@@ -17,10 +17,12 @@
 ├── research/                   # 房间二：意图还不清晰的探索（backlog 语义）
 │   ├── <id>.md                 #   开放线索：status = open | parked
 │   └── archive/<id>.md         #   已结案：status = promoted | dropped
-└── skills/                     # 房间三：学到的本事（DSH 技能格式，被 provider 监听）
-    ├── <name>/SKILL.md
-    ├── archive/<name>/SKILL.md #   退役的（移出 provider 扫描、不删、可恢复）
-    └── archive/snapshots/      #   覆盖写入前的旧版快照（每名留最新 3 份，手复制回去即恢复）
+├── skills/                     # 房间三：学到的本事（DSH 技能格式，被 provider 监听）
+│   ├── <name>/SKILL.md
+│   ├── archive/<name>/SKILL.md #   退役的（移出 provider 扫描、不删、可恢复）
+│   └── archive/snapshots/      #   覆盖写入前的旧版快照（每名留最新 3 份，手复制回去即恢复）
+└── knowledge/                  # 房间四：领域知识（[[互链]] 页面，OKF 字段子集）
+    └── <id>.md                 #   deprecated 页留在原地——链接必须继续解析
 ```
 
 **一个房间一个职责**，不许混：事实进 `memory/`，未决的线索进 `research/`，可复用的做法进 `skills/`。

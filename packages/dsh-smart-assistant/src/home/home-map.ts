@@ -44,6 +44,7 @@ what you do not keep is gone. Three rooms, one job each — do not mix them.
 | \`memory/\` | Facts, preferences, and decisions that stay true | \`active\` → superseded or retired → \`archive/\` |
 | \`research/\` | Threads you have not resolved: a question, why it matters, your current lean | \`open\` / \`parked\` → promoted or dropped → \`archive/\` |
 | \`skills/\` | Procedures worth reusing, in the harness skill format | edited in place; loaded by name; retired (out of the catalog, recoverable) → \`archive/\` |
+| \`knowledge/\` | Domain pages that interlink: concepts, entities, sources, how-things-work | \`draft\` → reviewed → \`stable\`; \`deprecated\` stays in place so links keep resolving |
 
 ## Retiring a skill
 
@@ -87,7 +88,8 @@ ${paths.root}/
 ├── skill-usage.json    (load counts; advisory, safe to delete)
 ├── memory/            (active records; archive/ for superseded or retired)
 ├── research/          (open and parked threads; archive/ for promoted or dropped)
-└── skills/            (<name>/SKILL.md, discovered by the skill provider; archive/ for retired)
+├── skills/            (<name>/SKILL.md, discovered by the skill provider; archive/ for retired)
+└── knowledge/         (<id>.md pages with [[wikilinks]]; deprecated pages stay in place)
 \`\`\`
 
 Load \`memory-hygiene\` before writing memory, \`research-backlog\` before opening or closing a

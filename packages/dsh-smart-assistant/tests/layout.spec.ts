@@ -32,11 +32,15 @@ describe('homePaths', () => {
     expect(paths.researchDir).toBe('/home/assistant/research')
     expect(paths.researchArchiveDir).toBe('/home/assistant/research/archive')
     expect(paths.skillsDir).toBe('/home/assistant/skills')
+    expect(paths.skillsArchiveDir).toBe('/home/assistant/skills/archive')
+    // The knowledge room has no archive on purpose: OKF deprecates in place so links resolve.
+    expect(paths.knowledgeDir).toBe('/home/assistant/knowledge')
+    expect(Object.keys(paths).includes('knowledgeArchiveDir')).toBe(false)
   })
 })
 
 describe('scaffoldHome', () => {
-  it('creates the three rooms, both archives, and the map', async () => {
+  it('creates every room, the archives, and the map', async () => {
     const root = await fixtureHome()
     const paths = homePaths(root)
     const result = await scaffoldHome(paths)
@@ -49,12 +53,15 @@ describe('scaffoldHome', () => {
       paths.researchDir,
       paths.researchArchiveDir,
       paths.skillsDir,
+      paths.skillsArchiveDir,
+      paths.knowledgeDir,
     ]) {
       expect(existsSync(directory)).toBe(true)
     }
     const map = await readFile(paths.mapFile, 'utf8')
     expect(map).toContain('# Your home')
     expect(map).toContain('research/')
+    expect(map).toContain('knowledge/')
     expect(map).toContain(root)
   })
 

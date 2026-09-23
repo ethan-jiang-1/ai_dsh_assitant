@@ -302,7 +302,7 @@ check('contract: docs/home.md lists the rooms and archives the layout creates', 
   const problems = []
   const layout = read(join(packageDir, 'src', 'home', 'layout.ts'))
   const document = read(join(repoRoot, 'docs', 'home.md'))
-  for (const constant of ['MEMORY_ROOM', 'RESEARCH_ROOM', 'SKILLS_ROOM', 'ARCHIVE_DIRECTORY_NAME']) {
+  for (const constant of ['MEMORY_ROOM', 'RESEARCH_ROOM', 'SKILLS_ROOM', 'KNOWLEDGE_ROOM', 'ARCHIVE_DIRECTORY_NAME']) {
     const value = new RegExp(`export const ${constant} = '([a-z]+)'`).exec(layout)?.[1]
     if (value === undefined) problems.push(`layout.ts does not declare ${constant}`)
     else if (!document.includes(value)) problems.push(`docs/home.md never mentions ${value}`)
