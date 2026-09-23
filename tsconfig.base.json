@@ -40,7 +40,13 @@
       "@deepseek-ai/dsh-home-paths": ["./vendor/dsh/packages/util/home-paths/src"],
       "@deepseek-ai/dsh-skill": ["./vendor/dsh/packages/skill/skill/src"],
       "@deepseek-ai/dsh-skill-filesystem": ["./vendor/dsh/packages/skill/skill-filesystem/src"],
-      "@deepseek-ai/dsh-host-webserver": ["./vendor/dsh/packages/host/webserver/src"]
+      "@deepseek-ai/dsh-host-webserver": ["./vendor/dsh/packages/host/webserver/src"],
+      "@deepseek-ai/dsh-agent": ["./vendor/dsh/packages/core/agent/src"],
+      "@deepseek-ai/dsh-agent-default-model": ["./vendor/dsh/packages/core/agent-default-model/src"],
+      "@deepseek-ai/dsh-agent-presets": ["./vendor/dsh/packages/preset/agent-presets/src"],
+      "@deepseek-ai/dsh-brand": ["./vendor/dsh/packages/util/brand/src"],
+      "@deepseek-ai/dsh-llm": ["./vendor/dsh/packages/llm/llm/src"],
+      "@deepseek-ai/dsh-session": ["./vendor/dsh/packages/core/session/src"]
     }
   }
 }

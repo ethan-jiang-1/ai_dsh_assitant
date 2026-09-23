@@ -40,12 +40,30 @@ importers:
       '@deepseek-ai/cordis':
         specifier: workspace:^
         version: link:../../vendor/dsh/vendor/cordis
+      '@deepseek-ai/dsh-agent':
+        specifier: workspace:^
+        version: link:../../vendor/dsh/packages/core/agent
+      '@deepseek-ai/dsh-agent-default-model':
+        specifier: workspace:^
+        version: link:../../vendor/dsh/packages/core/agent-default-model
+      '@deepseek-ai/dsh-agent-presets':
+        specifier: workspace:^
+        version: link:../../vendor/dsh/packages/preset/agent-presets
+      '@deepseek-ai/dsh-brand':
+        specifier: workspace:^
+        version: link:../../vendor/dsh/packages/util/brand
       '@deepseek-ai/dsh-home-paths':
         specifier: workspace:^
         version: link:../../vendor/dsh/packages/util/home-paths
       '@deepseek-ai/dsh-host-webserver':
         specifier: workspace:^
         version: link:../../vendor/dsh/packages/host/webserver
+      '@deepseek-ai/dsh-llm':
+        specifier: workspace:^
+        version: link:../../vendor/dsh/packages/llm/llm
+      '@deepseek-ai/dsh-session':
+        specifier: workspace:^
+        version: link:../../vendor/dsh/packages/core/session
       '@deepseek-ai/dsh-skill':
         specifier: workspace:^
         version: link:../../vendor/dsh/packages/skill/skill

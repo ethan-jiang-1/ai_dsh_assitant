@@ -34,6 +34,24 @@
     },
     {
       "path": "../../vendor/dsh/packages/host/webserver"
+    },
+    {
+      "path": "../../vendor/dsh/packages/core/agent"
+    },
+    {
+      "path": "../../vendor/dsh/packages/core/agent-default-model"
+    },
+    {
+      "path": "../../vendor/dsh/packages/preset/agent-presets"
+    },
+    {
+      "path": "../../vendor/dsh/packages/util/brand"
+    },
+    {
+      "path": "../../vendor/dsh/packages/llm/llm"
+    },
+    {
+      "path": "../../vendor/dsh/packages/core/session"
     }
   ]
 }

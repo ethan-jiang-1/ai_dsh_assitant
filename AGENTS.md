@@ -19,6 +19,7 @@
 | `.../src/skills/` | `SKILL.md` 契约与校验写入 | 改技能文件契约动这里 |
 | `.../src/tool-support/` | 三个工具共享的 presenter 管道（`presentationMeta` 投影与读回） | 改卡片行为动这里 |
 | `.../src/tool-memory/`、`src/tool-research/`、`src/memory-digest/`、`src/learn/` | **agent 面**插件入口（工具 / 提示词段落 / 复盘） | 改模型可见面动这里 |
+| `.../src/preset-runner/`、`dev/preset-runner.patch.yml` | **preset 挂载的 one-shot 驱动**（验证自动化：工具/摘要/persona 进 headless 会话） | 改验证驱动动这里 |
 | `.../src/index.ts` + `cordis.patch.yml` | **host 面**：`assistantMemory` 服务 | 改服务/配置动这里 |
 | `.../presets/assistant/` | preset（agent 面组合）+ 策展技能 | 改这个专家"会什么"动这里 |
 | `tsconfig.base.json` / `tsconfig.tsx.json` | 两个解析门面（编译期手维护 / 运行期 `pnpm gen-paths` 生成） | 引入新 `@deepseek-ai/*` import 或换 pin 时动这里（契约：`docs/dev.md` §二「两个解析门面」） |
@@ -46,6 +47,7 @@ pnpm sync-dsh -- --tag <dsh-tag>   # 换 submodule tag + SHA 簿记 + typecheck 
 bash dev/setup.sh       # 幂等：建 dev（web）+ dev-task（headless）两个 profile + link 装插件 + roster 指向 repo（两者为何不能合一：`docs/dev.md` §四）
 pnpm dsh --profile dev-task "one task"  # one-shot = **host 面冒烟**（headless 不进 preset，vendor 明文契约）
 pnpm dsh --profile dev --port 0 --no-open   # Web UI；preset 行为（三工具/persona/摘要）在这里的会话里验。交给人之前先 `pnpm preflight '<URL>'`（绿了再交，见 docs/dev.md §四）
+pnpm dsh --profile dev-task --patch dev/preset-runner.patch.yml "<task>"   # **preset 挂载的 one-shot**（验证自动化驱动；不带 patch 仍是裸 agent 冒烟）
 ```
 
 ## 五条硬规则
