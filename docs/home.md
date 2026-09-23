@@ -44,11 +44,23 @@ learn 模块的 `tools/result` 订阅就给对应名字计数（用户 `/name` �
 | `memory/` | 跨会话仍然成立的事实、偏好、决定 | `active` → `superseded`（被新记录取代）/ `retired`（不再成立）→ `archive/` | `assistant_memory` |
 | `research/` | 还没想清楚的线索：问题、为什么值得追、试过什么、现在倾向什么 | `open` / `parked` → **三档出口**：`promoted`（成立）/ `dropped`（不成立，**理由必填**）→ `archive/` | `assistant_research` |
 | `skills/` | 学到的做法（可复用、可被模型加载） | 由 DSH 技能 provider 发现与监听；被取代就改文件；**退役**（90 天未用阈值由 curate 报，`retire_skill` 执行）→ `skills/archive/`（不删、可恢复） | `assistant_reflect` |
+| `knowledge/` | 领域知识页：概念 / 实体 / 来源 / how-it-works，`[[互链]]` | `draft`（staged，不进搜索与摘要）→ **手改 status: stable 即人审** → `deprecated` 留在原地（链接必须继续解析，无 archive） | `assistant_reflect action=save_page`（写）+ `assistant_knowledge`（只读检索） |
 
 **为什么探索要单独一间房**：不清晰的意图如果没地方放，只会被硬塞进正式流程（污染记忆与技能、拉低信噪比）
 或者蒸发（下次从零重开同一个问题）。**分房是为了让"已确立的"保持干净。**
 
 **为什么 drop 必须写理由**：尸体是给未来的自己看的。没有理由的丢弃 = 下次重开同一个问题。
+
+**知识房间怎么进出**（write path 与桥，全部走既有动词）：
+- **进**：`assistant_reflect action=save_page`（sources 必填——`memory:<id>` / `research:<id>` /
+  URL / repo 路径）写 **draft**；draft 不进搜索与摘要。**draft→stable 是一次手改文件**——
+  那次编辑就是评审，没有 agent 自己批准自己的动作。
+- **出（查询）**：`assistant_knowledge`（search / get 附反链，deprecated 可搜带状态）；
+  digest 目录树只列 stable。
+- **桥**（memory↔knowledge，不自动同步不双写）：pin = `assistant_memory save` 带
+  `source: knowledge:<页id>`；promote = `save_page` 的 sources 引 `memory:<id>`——
+  provenance 指针即链接，重复 pin 撞近似重复检查。
+- **research 出口**：`promote` 的 `promoted_to` 可指知识页 id（先写页再 promote）。
 
 ## 三、桌面与抽屉（信噪比）
 

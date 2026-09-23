@@ -82,7 +82,7 @@ DSH 原生对迭代/队列的规划（已另立专项调研），但节奏本身
 
 | # | 意图 | 外部可观察行为 | 状态 |
 |---|---|---|---|
-| I15 | 家有**知识房间** | `knowledge/` 房间：概念/实体/来源页一条一文件，frontmatter 带 OKF 字段子集（type/generated/verified/status/stale_after/sources）+ `[[wikilink]]` 互链；`research` 的 `promote` 可指向知识页（sources 指回线索）；`curate` 报断链（三档）/孤页/stale_after finding；检索走关键词 + 反链现算（无索引服务）；agent 蒸馏的产出走 staged draft，人审才 stable | proposed（提案：`notes/proposed/2026-09-24-tri-line-synthesis.md` 阶段 2；排在治理环之后） |
+| I15 | 家有**知识房间** | `knowledge/` 房间：概念/实体/来源页一条一文件，frontmatter 带 OKF 字段子集（type/generated/verified/status/stale_after/sources）+ `[[wikilink]]` 互链；`research` 的 `promote` 可指向知识页（sources 指回线索）；`curate` 报断链（三档）/孤页/stale_after finding；检索走关键词 + 反链现算（无索引服务）；agent 蒸馏的产出走 staged draft，人审才 stable | implemented（阶段 2 全切片：`notes/implemented/2026-09-24-knowledge-*.md` 四篇；live E2E `session-d417555d`：save_page staged→搜索不可见→手改 stable→检索/摘要命中→curate 报 unwritten 链→promote 线索→pin 记忆带 provenance→get 反链，七步逐字在案） |
 
 ## 六、判据（借 talk 的两句，用于决定"搭多厚"）
 

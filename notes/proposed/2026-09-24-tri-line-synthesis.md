@@ -46,17 +46,17 @@
 | 1g | 格式对齐 spec 小步 | learned 技能补 `license`/`compatibility`（可空）——吃 Agent Skills 标准红利的小步 ✅ 审计结案（`notes/implemented/2026-09-24-spec-field-audit.md`）：亲验 provider（0.1.5-rc.2）**不读**这两字段（rg 零命中），写了即死重且绕门禁立意——不写；metadata provenance 本就是规范对齐的正确形态；延后触发=provider 读它们或第二消费方出现 | R2 §9.3-6 |
 | 1h | 预算强制（可选） | digest/索引预算从纪律升为 `ctx.tools.guard()` 写入原语层拒绝 ✅ implemented（`notes/implemented/2026-09-24-digest-budget-enforcement.md`：落点改服务层拒绝（单写者纪律，登记偏离）；亲验揪出 over-budget finding 死代码（bytes 恒≤预算），判据改 `truncated`；纯新增在截断态被拒，supersede/forget 开放） | R1 §6-1 |
 
-### 阶段 2 · 第四房间 knowledge/（家的最大结构变化）
+### 阶段 2 · 第四房间 knowledge/（家的最大结构变化）✅ 全部 implemented（2026-09-24）
 
 设计整体引用 R3 §7.2（每件标了借用来源），落地切片按 R3 §7.4：
 
-1. `src/home/layout.ts` 加房间 + scaffold + HOME.md 地图（布局唯一 owner 面改一处）；
-2. frontmatter 词汇：OKF v0.2 子集（D5 已定：六字段）+ `[[wikilink]]` 解析自研（百行级，DSH 生态四处先例）；
-3. curate 加 finding：断链三档 info/warn/error（D7 已定）、孤页、同名歧义、stale_after、index.md 漂移；
-4. 检索面：digest 加目录树有界摘要（"file tree as signposts"）+ 最小只读工具 search/get 附 backlinks（D6 已定）；embedding 继续延后；
+1. `src/home/layout.ts` 加房间 + scaffold + HOME.md 地图（布局唯一 owner 面改一处）✅（刻意无 archive——deprecated 留原地，链接必须继续解析）；
+2. frontmatter 词汇：OKF v0.2 子集（D5 已定：六字段）+ `[[wikilink]]` 解析自研（百行级，DSH 生态四处先例）✅ `notes/implemented/2026-09-24-knowledge-page-vocabulary.md`；
+3. curate 加 finding：断链三档 info/warn/error（D7 已定）、孤页、同名歧义、stale_after ✅ `notes/implemented/2026-09-24-knowledge-curation.md`（index.md 漂移不存在——index 不落盘，现场合成无物可漂移）；
+4. 检索面：digest 加目录树有界摘要（"file tree as signposts"）+ 最小只读工具 search/get 附 backlinks（D6 已定）；embedding 继续延后 ✅ `notes/implemented/2026-09-24-knowledge-retrieval.md`；
 5. research 的 promote 出口新增目标类型 knowledge（promotedTo 指页 id，sources 指回线索）；
-   memory↔knowledge 走 promote/pin 两条显式操作（D8 已定）；**自动产出走 staged draft**（status: draft 不参与召回，人审才 stable）；
-6. docs/home.md 契约更新 + 本 note 状态翻 implemented，同 diff。
+   memory↔knowledge 走 promote/pin 两条显式操作（D8 已定）；**自动产出走 staged draft**（status: draft 不参与召回，人审才 stable）✅ `notes/implemented/2026-09-24-knowledge-write-path.md`（桥落成 provenance 惯例，登记解释；draft→stable=手改文件即人审）；
+6. docs/home.md 契约更新 + 本 note 状态翻 implemented，同 diff ✅（docs/home.md 四房间合同 + I15 翻 implemented；live E2E `session-d417555d` 七步逐字在案）。
 
 ### 阶段 3 · 触发演进一格：手动 → 建议+人审（propose-only）
 
