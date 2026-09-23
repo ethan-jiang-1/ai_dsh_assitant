@@ -72,7 +72,6 @@ const OUTPUT = {
     counts: {
       type: 'object',
       additionalProperties: false,
-      required: true,
       properties: {
         memories: { type: 'integer', required: true },
         activeMemories: { type: 'integer', required: true },
@@ -103,7 +102,8 @@ interface MemoryOutput {
   summary: string
   memories: MemoryItem[]
   findings: { code: string, severity: string, message: string, refs: string[] }[]
-  counts: {
+  /** Set by `curate` only — the home's headline numbers, so the model can cite them. */
+  counts?: {
     memories: number
     activeMemories: number
     threads: number
@@ -113,17 +113,6 @@ interface MemoryOutput {
     digestBytes: number
     digestMaxBytes: number
   }
-}
-
-const EMPTY_COUNTS: MemoryOutput['counts'] = {
-  memories: 0,
-  activeMemories: 0,
-  threads: 0,
-  openThreads: 0,
-  parkedThreads: 0,
-  learnedSkills: 0,
-  digestBytes: 0,
-  digestMaxBytes: 0,
 }
 
 function item(record: MemoryRecord, why: readonly string[] = []): MemoryItem {
@@ -151,6 +140,15 @@ function render(_args: { action: Action }, value: MemoryOutput): { type: 'text',
   }
   for (const finding of value.findings) {
     lines.push(`- ${finding.severity}: ${finding.message}`)
+  }
+  if (value.counts !== undefined) {
+    const counts = value.counts
+    lines.push(
+      `- counts: ${counts.activeMemories}/${counts.memories} active memories,`
+      + ` ${counts.openThreads}/${counts.threads} threads open (${counts.parkedThreads} parked),`
+      + ` ${counts.learnedSkills} learned skills,`
+      + ` digest ${counts.digestBytes}/${counts.digestMaxBytes} bytes.`,
+    )
   }
   return [{ type: 'text', text: lines.join('\n') }]
 }
@@ -183,6 +181,7 @@ export function apply(ctx: Context): void {
         description: `save: ${IMPORTANCE_RANGE.min}–${IMPORTANCE_RANGE.max}; higher sorts earlier in the digest.`,
       },
       supersedes: { type: 'string', description: 'save: id of the record this replaces (it is archived).' },
+      source: { type: 'string', description: 'save: where the claim came from (a person, a session, a tool).' },
       id: { type: 'string', description: 'forget: id of the record to retire.' },
       limit: { type: 'number', description: 'recall | list: maximum records returned.' },
     },
@@ -204,6 +203,7 @@ export function apply(ctx: Context): void {
             ...(args.tags !== undefined ? { tags: args.tags } : {}),
             ...(args.importance !== undefined ? { importance: args.importance } : {}),
             ...(args.supersedes !== undefined ? { supersedes: args.supersedes } : {}),
+            ...(args.source !== undefined ? { source: args.source } : {}),
           })
           const superseded = args.supersedes !== undefined ? `, superseding ${args.supersedes}` : ''
           return {
@@ -211,7 +211,6 @@ export function apply(ctx: Context): void {
             summary: `Saved ${record.kind} ${record.id}${superseded}.`,
             memories: [item(record)],
             findings: [],
-            counts: EMPTY_COUNTS,
           }
         }
         case 'recall': {
@@ -228,7 +227,6 @@ export function apply(ctx: Context): void {
               : `${hits.length} memory record(s), strongest first:`,
             memories: hits.map(hitItem),
             findings: [],
-            counts: EMPTY_COUNTS,
           }
         }
         case 'list': {
@@ -241,7 +239,6 @@ export function apply(ctx: Context): void {
             summary: `${listing.entries.length} active record(s)${failures > 0 ? `; ${failures} file(s) unreadable` : ''}:`,
             memories: shown.map(record => item(record)),
             findings: [],
-            counts: EMPTY_COUNTS,
           }
         }
         case 'forget': {
@@ -255,7 +252,6 @@ export function apply(ctx: Context): void {
             summary: `Retired ${args.id}; it stays readable in memory/archive/.`,
             memories: [],
             findings: [],
-            counts: EMPTY_COUNTS,
           }
         }
         case 'curate': {

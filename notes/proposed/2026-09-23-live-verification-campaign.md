@@ -100,3 +100,18 @@ I14 拿到第一批使用数据；R1/R2 两条线索开进家的 research/ 房�
   三房间与空仓状态）、I7（摘要常驻）日志实证**。I12 留会话 C（0 线索时摘要无该节=设计行为）。
   I14 观察：两次 turn **零 curate 主动调用**（(a) 层第一个数据点：未主动）。对照会话未做
   （`3428f388` 是空壳）。
+- **载体扩展（2026-09-24）**：用户拍板"你来做吧"后建成 **preset-runner**（preset 挂载的
+  one-shot 驱动，`notes/implemented/2026-09-24-preset-runner.md`）——步骤 B/C/D 全部可自动化，
+  不再依赖浏览器真人操作。证据标准不变（真实 turn、逐字日志、组合可指认），载体从"Web UI
+  会话"扩展为"任何真实 preset 会话"；intents.md 挡板已同步更新。
+- **步骤 B 完成（记忆环，全日志在案）**：① 介绍跑（`b04a36b5`：agentPreset 头 + persona +
+  digest 进 system prompt + 工具真调用）；② B 段一（save→list→recall→curate 四连，先按 persona
+  加载 memory-hygiene；curate 清洁返回）；③ B 段二（**新进程** recall 命中同一 id——I2 跨进程
+  持久）。对照证据顺带到手：patch 未生效时的诊断跑 = 裸 agent 工具表（无 assistant 工具）。
+- **战役抓到两只产品面真虫（已修，`notes/implemented/2026-09-24-tool-source-and-counts.md`）**：
+  ① `save`/`open` 工具面缺 `source` 入参（服务层支持、词汇表没接——I9 来源可追对工具路径失效）；
+  ② `curate` 的 render 丢 counts（结构化有、模型可见无）。修复后 live 红绿在案（source 写入
+  frontmatter、counts 行出现在模型文本）。
+- **intents 翻转（步骤 5 部分执行）**：I1/I2/I5/I6/I7/I8/I9 → implemented（证据指针在各行）；
+  待翻：I3/I4（会话 D）、I10–I13（会话 C）、I14（持续观察：B 段助手主动建议清理探针记录——
+  memory-hygiene 生效的证据，但 curate 仍是被动执行，数据点 2）。

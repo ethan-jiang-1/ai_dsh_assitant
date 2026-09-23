@@ -120,6 +120,7 @@ export function apply(ctx: Context): void {
       id: { type: 'string', description: 'update | park | drop | promote: thread id.' },
       reason: { type: 'string', description: 'drop: why it was dropped. Required.' },
       promoted_to: { type: 'string', description: 'promote: id of the memory record or skill carrying the answer.' },
+      source: { type: 'string', description: 'open: where the thread came from (a person, a session).' },
     },
     output: {
       schema: OUTPUT,
@@ -141,6 +142,7 @@ export function apply(ctx: Context): void {
             why: args.why,
             ...(args.lean !== undefined ? { lean: args.lean } : {}),
             ...(args.evidence !== undefined ? { evidence: args.evidence } : {}),
+            ...(args.source !== undefined ? { source: args.source } : {}),
           })
           return { action, summary: `Opened thread ${thread.id}.`, threads: [item(thread)] }
         }

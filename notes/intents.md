@@ -4,8 +4,12 @@
 > 用户一开始把意图一股脑给了，后续又补了一条重要的。两条都记在这，作为所有设计的判据。
 > 状态：`proposed` = 已进设计、未实现；`implemented` = 有证据。
 > 状态挡板（2026-09-23）：代码与文档切片已交付并提交（见 `notes/implemented/`），但各行意图的
-> **外部可观察行为**要在 dev Web UI 的真实会话里验证过才翻 `implemented` —— 全表停在 `proposed`
+> **外部可观察行为**要在真实会话里验证过才翻 `implemented` —— 全表停在 `proposed`
 > 反映的是这个挡板，不是未开工。
+> 挡板更新（2026-09-24，战役步骤 1–2 后）：**验证载体从"Web UI 真人会话"扩展为"任何真实
+> preset 会话"**（含 preset-runner one-shot）——证据标准不变：真实 LLM turn、逐字会话日志、
+> 组合可指认（`agentPreset` 头）；载体扩展的依据在战役 note 开跑补记。已翻：I1/I2/I5–I9。
+> 未翻：I3/I4（技能与复盘，等会话 D）、I10–I13（探索环，等会话 C）、I14（持续观察）。
 
 ## 一、初始意图（2026-09-23）
 
@@ -16,11 +20,11 @@
 
 | # | 意图 | 外部可观察行为 | 状态 |
 |---|---|---|---|
-| I1 | 聪明的助手 | 挂上 `assistant` preset 的会话有它自己的 persona、工具集与技能；其他会话不受影响 | proposed |
-| I2 | **很好的记忆管理** | 会话能记住跨会话的事实/偏好/决定；重启后仍在；记忆以**有界摘要**进上下文（不爆上下文），需要时用 `assistant_memory` 深入检索 | proposed |
+| I1 | 聪明的助手 | 挂上 `assistant` preset 的会话有它自己的 persona、工具集与技能；其他会话不受影响 | implemented：preset 会话（web `e65ef210`、runner `b04a36b5`）日志实证 persona/摘要/三工具真调用；裸 agent 对照（`7c75c86c`、patch 诊断跑）工具表无 assistant 工具 |
+| I2 | **很好的记忆管理** | 会话能记住跨会话的事实/偏好/决定；重启后仍在；记忆以**有界摘要**进上下文（不爆上下文），需要时用 `assistant_memory` 深入检索 | implemented：B 段 save→list→recall→curate 四连（含命中理由）；**新进程** recall 命中同一 id `20260923-dev-web-ui-preset-runner-live-kfcf`；digest 821/4096 字节有界 |
 | I3 | **很好的技能管理** | 技能按需加载（目录 + 渐进披露）；技能目录可被 agent 自己扩充并**立刻可见**（无需重启） | proposed |
 | I4 | **很好的自我学习能力** | 一次会话能被复盘（`assistant_reflect`）成：新的记忆记录 + 新的技能草稿；两者都落成**人能读、能改、能删的文件** | proposed |
-| I5 | 很好控制的上下文 | 上下文由 preset 组装；记忆只以有界摘要常驻；过程性知识放技能（抽屉），不常驻桌面 | proposed |
+| I5 | 很好控制的上下文 | 上下文由 preset 组装；记忆只以有界摘要常驻；过程性知识放技能（抽屉），不常驻桌面 | implemented：摘要段进每个 preset 会话的请求日志；memory-hygiene 技能按需加载（B 段日志：save 前先 `skill` 调用），过程性知识不常驻 |
 
 ## 二、补充意图（2026-09-23 用户追加，同样是一等公民）
 
@@ -35,10 +39,10 @@
 
 | # | 意图 | 外部可观察行为 | 状态 |
 |---|---|---|---|
-| I6 | 家有**固定、可读的布局** | 一个目录一眼看懂：`HOME.md` 是地图；`memory/` 是长期记忆；`skills/` 是学到的本事；各有各的职责，不混 | proposed |
-| I7 | agent 对家**很熟悉** | 家的地图与记忆摘要常驻上下文（桌面）；细节用工具取（抽屉）。agent 不需要猜"我这儿有什么" | proposed |
-| I8 | 家要**整理与清理** | 一个**机器能跑的检查**（不是 AI 自己说）报出：重复/矛盾/过期记录、摘要是否超预算、孤儿文件；agent 据此合并/退役 | proposed |
-| I9 | 家要**清晰可审** | 学到的东西全是人可读的文件（Markdown + frontmatter），可 git、可 diff、可手改、可删；来源可追（哪次会话学来的） | proposed |
+| I6 | 家有**固定、可读的布局** | 一个目录一眼看懂：`HOME.md` 是地图；`memory/` 是长期记忆；`skills/` 是学到的本事；各有各的职责，不混 | implemented：会话 A/B 的助手正确报出三房间与状态（`e65ef210` 读 HOME.md；B 段盘上核验 `memory/` 单文件、`archive/` 空） |
+| I7 | agent 对家**很熟悉** | 家的地图与记忆摘要常驻上下文（桌面）；细节用工具取（抽屉）。agent 不需要猜"我这儿有什么" | implemented：digest blurb 逐字进 system prompt（全部 preset 会话日志）；会话 A 首轮"你好"即报出家况而未开文件 |
+| I8 | 家要**整理与清理** | 一个**机器能跑的检查**（不是 AI 自己说）报出：重复/矛盾/过期记录、摘要是否超预算、孤儿文件；agent 据此合并/退役 | implemented：curate 机器检查真实运行（B 段：清洁返回 + counts 行 `2/2 active memories, … digest 821/4096 bytes`） |
+| I9 | 家要**清晰可审** | 学到的东西全是人可读的文件（Markdown + frontmatter），可 git、可 diff、可手改、可删；来源可追（哪次会话学来的） | implemented：`memory/*.md` 人可读带 frontmatter（id/kind/tags/importance/created）；`source` 字段经工具面修复后写入读回成立（`20260923-note-ko0j.md`；缺口发现与修复见 `notes/implemented/2026-09-24-tool-source-and-counts.md`） |
 
 ## 三、补充意图（2026-09-23 用户追加 · 探索与 backlog）
 
