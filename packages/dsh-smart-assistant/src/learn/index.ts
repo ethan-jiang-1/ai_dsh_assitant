@@ -46,6 +46,9 @@ const DESCRIPTION = [
   '  deciding anything — do not reflect from your recollection of the conversation.',
   '- save_skill: write a validated skill into your home\'s skills/ room, where it becomes loadable',
   '  immediately. Use it for a procedure you would otherwise re-derive, not for a one-off.',
+  '- retire_skill: move a learned skill out of the skills room into skills/archive/ — it stops',
+  '  loading immediately but stays recoverable. Use it when curate reports the skill is past its',
+  '  use-by date, or when it is shadowed and not worth renaming.',
   '"Nothing durable came out of this session" is a correct result. Load the `self-reflection` skill',
   'before reflecting.',
 ].join('\n')
@@ -180,11 +183,12 @@ export function apply(ctx: Context): void {
     name: 'assistant_reflect',
     description: DESCRIPTION,
     parameters: {
-      action: { type: 'string', required: true, enum: ['brief', 'save_skill'], description: 'brief | save_skill' },
-      name: { type: 'string', description: 'save_skill: kebab-case skill name; also its directory name.' },
+      action: { type: 'string', required: true, enum: ['brief', 'save_skill', 'retire_skill'], description: 'brief | save_skill | retire_skill' },
+      name: { type: 'string', description: 'save_skill | retire_skill: kebab-case skill name; also its directory name.' },
       description: { type: 'string', description: 'save_skill: when to load it — the only text a future session sees first.' },
       when_to_use: { type: 'string', description: 'save_skill: extra trigger guidance.' },
       body: { type: 'string', description: 'save_skill: the procedure, written for a session without your context.' },
+      reason: { type: 'string', description: 'retire_skill: why it is retiring (optional; the usage ledger already holds the facts).' },
     },
     output: {
       schema: OUTPUT,
@@ -301,6 +305,20 @@ export function apply(ctx: Context): void {
             ...empty,
             summary: `Wrote skill "${written.name}"; it is loadable now.`,
             skill_path: written.path,
+          }
+        }
+        case 'retire_skill': {
+          if (args.name === undefined || args.name.trim().length === 0) {
+            throw new Error('assistant_reflect retire_skill requires name')
+          }
+          const retired = await ctx.assistantMemory.retireSkill(
+            args.name,
+            args.reason !== undefined ? args.reason : undefined,
+          )
+          return {
+            ...empty,
+            summary: `Retired skill "${retired.name}" to skills/archive/; it no longer loads and nothing was deleted — move the bundle back to restore it.`,
+            skill_path: retired.path,
           }
         }
         /* v8 ignore next 2 -- the enum in the parameter schema admits only the cases above */

@@ -49,6 +49,8 @@ export interface HomePaths {
   readonly researchArchiveDir: string
   /** Skills the agent wrote for itself, as `<name>/SKILL.md` bundles. */
   readonly skillsDir: string
+  /** Retired skills, out of the provider's scan but recoverable. */
+  readonly skillsArchiveDir: string
 }
 
 /**
@@ -59,6 +61,7 @@ export interface HomePaths {
 export function homePaths(root: string): HomePaths {
   const memoryDir = join(root, MEMORY_ROOM)
   const researchDir = join(root, RESEARCH_ROOM)
+  const skillsDir = join(root, SKILLS_ROOM)
   return {
     root,
     mapFile: join(root, HOME_MAP_FILE_NAME),
@@ -67,7 +70,8 @@ export function homePaths(root: string): HomePaths {
     memoryArchiveDir: join(memoryDir, ARCHIVE_DIRECTORY_NAME),
     researchDir,
     researchArchiveDir: join(researchDir, ARCHIVE_DIRECTORY_NAME),
-    skillsDir: join(root, SKILLS_ROOM),
+    skillsDir,
+    skillsArchiveDir: join(skillsDir, ARCHIVE_DIRECTORY_NAME),
   }
 }
 
@@ -102,6 +106,7 @@ export async function scaffoldHome(paths: HomePaths): Promise<ScaffoldResult> {
     paths.researchDir,
     paths.researchArchiveDir,
     paths.skillsDir,
+    paths.skillsArchiveDir,
   ]
   const createdDirectories: string[] = []
   for (const directory of directories) {

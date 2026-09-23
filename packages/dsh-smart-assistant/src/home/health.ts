@@ -30,6 +30,8 @@ export type FindingCode =
   | 'skill-without-provenance'
   | 'skill-usage-unreadable'
   | 'skill-shadowed'
+  | 'skill-stale'
+  | 'skill-retirable'
 
 /** One thing worth a human's or the agent's attention. */
 export interface CurationFinding {
@@ -53,6 +55,8 @@ export interface LearnedSkillInfo {
   readonly description?: string
   /** `metadata.origin`, when present. */
   readonly origin?: string
+  /** `metadata.learnedAt`, when present — the age anchor for a never-loaded skill. */
+  readonly learnedAt?: string
 }
 
 /** Everything the check reads; assembled by the service so the check itself stays pure. */
@@ -83,6 +87,10 @@ export interface CurationInput {
   readonly digestMaxBytes: number
   /** Age at which an open thread is reported as stalled. */
   readonly staleResearchDays: number
+  /** Days without a load after which a learned skill is reported as stale. */
+  readonly staleSkillDays: number
+  /** Days without a load after which a learned skill is retirement-ready. */
+  readonly retireSkillDays: number
   /** Timestamp used for age comparisons. */
   readonly now: Date
 }
@@ -244,6 +252,40 @@ export function curateHome(input: CurationInput): CurationBrief {
         + 'bundle, or make the curated one yield',
       refs: [name],
     })
+  }
+
+  // Use-by dates: the age anchor is the last load from the usage ledger, or the learnedAt stamp
+  // for a skill never loaded. A skill with neither (hand-written, no provenance) cannot be dated
+  // and is left to its own findings; a shadowed skill's exit is the shadow finding above, and its
+  // name-keyed ledger loads belong to the winner anyway.
+  for (const skill of input.skills) {
+    const name = skill.name
+    if (name === undefined || name in input.shadowedSkills) continue
+    const used = input.skillUsage[name]
+    const anchor = used?.lastUsedAt ?? skill.learnedAt
+    if (anchor === undefined) continue
+    const age = ageInDays(anchor, input.now)
+    if (!Number.isFinite(age)) continue
+    const days = Math.floor(age)
+    if (age > input.retireSkillDays) {
+      findings.push({
+        code: 'skill-retirable',
+        severity: 'warn',
+        message: `skill "${name}" has been unused for ${days} days, past the ${input.retireSkillDays}-day `
+          + `threshold${used !== undefined ? ` (last loaded ${anchor.slice(0, 10)})` : ` (never loaded since it was learned ${anchor.slice(0, 10)})`}: `
+          + 'retire it with assistant_reflect action=retire_skill — the bundle moves to skills/archive/ '
+          + 'and stays recoverable',
+        refs: [name],
+      })
+    } else if (age > input.staleSkillDays) {
+      findings.push({
+        code: 'skill-stale',
+        severity: 'info',
+        message: `skill "${name}" has not been loaded for ${days} days: keep it if it still matters, `
+          + 'otherwise retire it',
+        refs: [name],
+      })
+    }
   }
 
   for (const skill of input.skills) {

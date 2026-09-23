@@ -35,7 +35,8 @@ const DESCRIPTION = [
   '- list: show the active room.',
   '- curate: run the machine check and return findings (near-duplicates, dangling references,',
   '  digest budget, stalled threads, skills the loader would ignore, learned skills shadowed by',
-  '  a same-named curated skill) plus the per-skill usage ledger. Run this before tidying.',
+  '  a same-named curated skill, skills past their use-by date) plus the per-skill usage ledger.',
+  '  Run this before tidying.',
   'Load the `memory-hygiene` skill before saving, and `home-curation` before curating.',
 ].join('\n')
 

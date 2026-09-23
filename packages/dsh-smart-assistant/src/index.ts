@@ -13,6 +13,7 @@
  * @module dsh-smart-assistant
  */
 
+import { mkdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { Context, Service } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
@@ -20,6 +21,7 @@ import type Schema from '@deepseek-ai/schemastery'
 import { expandHomePath, resolveDshHome } from '@deepseek-ai/dsh-home-paths'
 import type {} from '@deepseek-ai/dsh-host-webserver'
 import { renderDigest, type DigestResult } from './home/digest.ts'
+import { parseFrontmatterDocument, renderFrontmatterDocument } from './home/frontmatter.ts'
 import { curateHome, type CurationBrief } from './home/health.ts'
 import { HOME_MAP_BLURB } from './home/home-map.ts'
 import { HOME_DIRECTORY_NAME, homePaths, scaffoldHome, type HomePaths, type ScaffoldResult } from './home/layout.ts'
@@ -42,7 +44,7 @@ import {
   type ResearchThread,
 } from './research/thread.ts'
 import { scanLearnedSkills } from './skills/scan.ts'
-import { writeLearnedSkill, isSkillName, type SkillDraft } from './skills/skill-file.ts'
+import { writeLearnedSkill, isSkillName, SKILL_FILE_NAME, type SkillDraft } from './skills/skill-file.ts'
 import {
   readSkillUsage,
   recordSkillLoad,
@@ -68,6 +70,10 @@ export interface Config {
   recallLimit?: number
   /** Age at which an open thread is reported as stalled. */
   staleResearchDays?: number
+  /** Days without a load after which a learned skill is reported as stale. */
+  staleSkillDays?: number
+  /** Days without a load after which a learned skill is retirement-ready. */
+  retireSkillDays?: number
   /** Tab title the branded Web shell carries; empty string disables the branding row. */
   webTitle?: string
 }
@@ -141,6 +147,8 @@ export class AssistantMemory extends Service {
     digestMaxBytes: z.number().step(1).min(256).default(4096),
     recallLimit: z.number().step(1).min(1).default(20),
     staleResearchDays: z.number().step(1).min(1).default(30),
+    staleSkillDays: z.number().step(1).min(1).default(30),
+    retireSkillDays: z.number().step(1).min(1).default(90),
     webTitle: z.string().default(DEFAULT_WEB_TITLE),
   })
 
@@ -155,6 +163,8 @@ export class AssistantMemory extends Service {
   private readonly digestMaxBytes: number
   private readonly recallLimit: number
   private readonly staleResearchDays: number
+  private readonly staleSkillDays: number
+  private readonly retireSkillDays: number
   private readonly memory: Room
   private readonly research: Room
   /**
@@ -177,6 +187,8 @@ export class AssistantMemory extends Service {
     this.digestMaxBytes = config.digestMaxBytes ?? 4096
     this.recallLimit = config.recallLimit ?? 20
     this.staleResearchDays = config.staleResearchDays ?? 30
+    this.staleSkillDays = config.staleSkillDays ?? 30
+    this.retireSkillDays = config.retireSkillDays ?? 90
     this.memory = new Room(this.paths.memoryDir, this.paths.memoryArchiveDir)
     this.research = new Room(this.paths.researchDir, this.paths.researchArchiveDir)
     // Best-effort activation scaffold: a home that cannot be created is reported, never fatal —
@@ -513,6 +525,8 @@ export class AssistantMemory extends Service {
       digestBytes: digest.bytes,
       digestMaxBytes: this.digestMaxBytes,
       staleResearchDays: this.staleResearchDays,
+      staleSkillDays: this.staleSkillDays,
+      retireSkillDays: this.retireSkillDays,
       now: new Date(),
     })
   }
@@ -527,6 +541,64 @@ export class AssistantMemory extends Service {
     const written = await writeLearnedSkill(this.paths.skillsDir, { ...draft, learnedAt: new Date().toISOString() })
     this.touch()
     return written
+  }
+
+  /**
+   * Retire a learned skill: move its bundle out of the provider's scan into the skills archive.
+   * The skill stops loading immediately (the provider watches the room) but nothing is deleted —
+   * moving the bundle back restores it. The archived copy is stamped with `metadata.retiredAt`
+   * and, when given, `metadata.retireReason`, so the corpse says how it died.
+   * @param name - Skill name; must satisfy the skill-name grammar.
+   * @param reason - Optional why; the usage facts are already in the ledger.
+   * @returns The archived bundle's name and path.
+   * @throws when no active learned skill has that name, the file is unreadable, or the name is
+   * already archived.
+   */
+  async retireSkill(name: string, reason?: string): Promise<{ name: string, path: string }> {
+    if (!isSkillName(name)) throw new Error(`"${name}" is not a valid skill name`)
+    const trimmed = reason?.trim()
+    const bundleDir = join(this.paths.skillsDir, name)
+    const bundleFile = join(bundleDir, SKILL_FILE_NAME)
+    const flatFile = join(this.paths.skillsDir, `${name}.md`)
+    const isBundle = await stat(bundleFile).then(entry => entry.isFile()).catch(() => false)
+    const isFlat = isBundle ? false : await stat(flatFile).then(entry => entry.isFile()).catch(() => false)
+    if (!isBundle && !isFlat) {
+      // The more honest error first: a name that is already archived names its archived copy,
+      // not a vague absence.
+      const archivedBundle = join(this.paths.skillsArchiveDir, name, SKILL_FILE_NAME)
+      const archivedFlat = join(this.paths.skillsArchiveDir, `${name}.md`)
+      const archived = await stat(archivedBundle).then(() => true).catch(() => false)
+        || await stat(archivedFlat).then(() => true).catch(() => false)
+      throw new Error(archived
+        ? `skill "${name}" is already archived`
+        : `no learned skill "${name}" in the skills room`)
+    }
+    const sourcePath = isBundle ? bundleFile : flatFile
+    const text = await readFile(sourcePath, 'utf8')
+    const document = parseFrontmatterDocument(text)
+    if (document === undefined) {
+      throw new Error(`skill "${name}" is not a readable SKILL.md — fix or remove it by hand`)
+    }
+    const metadata = document.data.metadata !== null
+      && typeof document.data.metadata === 'object'
+      && !Array.isArray(document.data.metadata)
+      ? { ...(document.data.metadata as Record<string, unknown>) }
+      : {}
+    metadata.retiredAt = new Date().toISOString()
+    if (trimmed !== undefined && trimmed.length > 0) metadata.retireReason = trimmed
+    const targetDir = isBundle ? join(this.paths.skillsArchiveDir, name) : this.paths.skillsArchiveDir
+    await mkdir(targetDir, { recursive: true })
+    const target = isBundle ? join(targetDir, SKILL_FILE_NAME) : join(targetDir, `${name}.md`)
+    if (await stat(target).then(() => true).catch(() => false)) {
+      throw new Error(`skill "${name}" is already archived`)
+    }
+    // Archive before removing the original: a failure leaves two readable copies (which curate's
+    // duplicate scan and the shadow check would surface) instead of losing the skill.
+    const temporary = `${target}.tmp`
+    await writeFile(temporary, renderFrontmatterDocument({ ...document.data, metadata }, document.body), 'utf8')
+    await rename(temporary, target)
+    await rm(isBundle ? bundleDir : flatFile, { recursive: true, force: true })
+    return { name, path: target }
   }
 
   /**

@@ -43,7 +43,15 @@ what you do not keep is gone. Three rooms, one job each — do not mix them.
 |---|---|---|
 | \`memory/\` | Facts, preferences, and decisions that stay true | \`active\` → superseded or retired → \`archive/\` |
 | \`research/\` | Threads you have not resolved: a question, why it matters, your current lean | \`open\` / \`parked\` → promoted or dropped → \`archive/\` |
-| \`skills/\` | Procedures worth reusing, in the harness skill format | edited in place; loaded by name |
+| \`skills/\` | Procedures worth reusing, in the harness skill format | edited in place; loaded by name; retired (out of the catalog, recoverable) → \`archive/\` |
+
+## Retiring a skill
+
+A skill you never load is catalog weight every request pays for. \`curate\` reports skills past
+their use-by date (stale, then retirement-ready, by the usage ledger). When one is dead, retire it:
+
+- **retire** — \`assistant_reflect action=retire_skill\`: the bundle moves to \`skills/archive/\`
+  and stops loading immediately. Nothing is deleted — moving it back restores it.
 
 ## The three exits for a thread
 
@@ -67,7 +75,8 @@ makes you worse, not better.
 
 \`assistant_memory action=curate\` is a machine check over these files: near-duplicates, dangling
 references, malformed headers, digest budget pressure, threads that have not moved, drops without
-a reason, and skills the loader would silently ignore. It finds candidates; you decide. Run it when
+a reason, skills the loader would silently ignore, learned skills shadowed by a same-named
+curated one, and skills past their use-by date. It finds candidates; you decide. Run it when
 the digest reports over-budget, after a session of real learning, or when you suspect rot.
 
 ## Layout on disk
@@ -75,9 +84,10 @@ the digest reports over-budget, after a session of real learning, or when you su
 \`\`\`text
 ${paths.root}/
 ├── HOME.md
+├── skill-usage.json    (load counts; advisory, safe to delete)
 ├── memory/            (active records; archive/ for superseded or retired)
 ├── research/          (open and parked threads; archive/ for promoted or dropped)
-└── skills/            (<name>/SKILL.md, discovered by the skill provider)
+└── skills/            (<name>/SKILL.md, discovered by the skill provider; archive/ for retired)
 \`\`\`
 
 Load \`memory-hygiene\` before writing memory, \`research-backlog\` before opening or closing a

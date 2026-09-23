@@ -10,6 +10,7 @@
 
 import { readdir, readFile, stat } from 'node:fs/promises'
 import { join } from 'node:path'
+import { ARCHIVE_DIRECTORY_NAME } from '../home/layout.ts'
 import { parseFrontmatterDocument } from '../home/frontmatter.ts'
 import type { LearnedSkillInfo } from '../home/health.ts'
 import type { RoomReadFailure } from '../home/room.ts'
@@ -23,15 +24,18 @@ export interface SkillScan {
   readonly failures: readonly RoomReadFailure[]
 }
 
-function readInfo(data: Readonly<Record<string, unknown>>): Pick<LearnedSkillInfo, 'name' | 'description' | 'origin'> {
+function readInfo(data: Readonly<Record<string, unknown>>): Pick<LearnedSkillInfo, 'name' | 'description' | 'origin' | 'learnedAt'> {
   const metadata = data.metadata
-  const origin = metadata !== null && typeof metadata === 'object' && !Array.isArray(metadata)
-    ? (metadata as Record<string, unknown>).origin
-    : undefined
+  const info = metadata !== null && typeof metadata === 'object' && !Array.isArray(metadata)
+    ? (metadata as Record<string, unknown>)
+    : {}
+  const origin = info.origin
+  const learnedAt = info.learnedAt
   return {
     ...(typeof data.name === 'string' ? { name: data.name } : {}),
     ...(typeof data.description === 'string' ? { description: data.description } : {}),
     ...(typeof origin === 'string' ? { origin } : {}),
+    ...(typeof learnedAt === 'string' ? { learnedAt } : {}),
   }
 }
 
@@ -50,6 +54,9 @@ export async function scanLearnedSkills(skillsDir: string): Promise<SkillScan> {
   const skills: LearnedSkillInfo[] = []
   const failures: RoomReadFailure[] = []
   for (const name of names.sort()) {
+    // The archive is layout, not a skill: the provider skips a directory without SKILL.md, and
+    // retired bundles live one level below its scan.
+    if (name === ARCHIVE_DIRECTORY_NAME) continue
     const path = join(skillsDir, name)
     const isDirectory = await stat(path).then(entry => entry.isDirectory()).catch(() => false)
     const file = isDirectory ? join(path, SKILL_FILE_NAME) : name.endsWith('.md') ? path : undefined

@@ -51,6 +51,8 @@ function input(overrides: Partial<CurationInput> = {}): CurationInput {
     digestBytes: 100,
     digestMaxBytes: 4096,
     staleResearchDays: 30,
+    staleSkillDays: 30,
+    retireSkillDays: 90,
     now,
     ...overrides,
   }
@@ -219,5 +221,42 @@ describe('curateHome', () => {
     }))
 
     expect(brief.skillUsage.map(line => line.name)).toEqual(['staging-reset'])
+  })
+
+  it('reports stale and retirement-ready skills by use-by date, anchored honestly', () => {
+    const stale = curateHome(input({
+      skills: [
+        // 45 days since the last load: stale (info), not yet retirement-ready.
+        { dirName: 'fading-skill', name: 'fading-skill', description: 'x', origin: 'learned', learnedAt: '2026-01-01T00:00:00.000Z' },
+        // 100 days since it was learned, never loaded: retirement-ready (warn).
+        { dirName: 'dead-skill', name: 'dead-skill', description: 'x', origin: 'learned', learnedAt: '2026-06-15T00:00:00.000Z' },
+        // Neither ledger entry nor learnedAt: cannot be dated, no use-by finding.
+        { dirName: 'hand-written', name: 'hand-written', description: 'x' },
+        // Loaded today: alive.
+        { dirName: 'alive-skill', name: 'alive-skill', description: 'x', origin: 'learned', learnedAt: '2026-06-15T00:00:00.000Z' },
+      ],
+      skillUsage: {
+        'fading-skill': { count: 2, lastUsedAt: '2026-08-09T00:00:00.000Z' },
+        'alive-skill': { count: 5, lastUsedAt: '2026-09-23T00:00:00.000Z' },
+      },
+    })).findings
+
+    const codes = stale.map(finding => finding.code)
+    expect(codes).toContain('skill-stale')
+    expect(codes).toContain('skill-retirable')
+    expect(stale.filter(finding => finding.code === 'skill-stale').map(finding => finding.refs[0]))
+      .toEqual(['fading-skill'])
+    const retriable = stale.find(finding => finding.code === 'skill-retirable')
+    expect(retriable?.severity).toBe('warn')
+    expect(retriable?.message).toContain('never loaded since it was learned 2026-06-15')
+  })
+
+  it('leaves a shadowed skill to the shadow finding, not a use-by date', () => {
+    const findings = curateHome(input({
+      skills: [{ dirName: 'dead-shadowed', name: 'dead-shadowed', description: 'x', origin: 'learned', learnedAt: '2026-01-01T00:00:00.000Z' }],
+      shadowedSkills: { 'dead-shadowed': 'skill-filesystem' },
+    })).findings
+
+    expect(findings.map(finding => finding.code)).toEqual(['skill-shadowed'])
   })
 })

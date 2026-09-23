@@ -18,7 +18,8 @@
 │   ├── <id>.md                 #   开放线索：status = open | parked
 │   └── archive/<id>.md         #   已结案：status = promoted | dropped
 └── skills/                     # 房间三：学到的本事（DSH 技能格式，被 provider 监听）
-    └── <name>/SKILL.md
+    ├── <name>/SKILL.md
+    └── archive/<name>/SKILL.md #   退役的（移出 provider 扫描、不删、可恢复）
 ```
 
 **一个房间一个职责**，不许混：事实进 `memory/`，未决的线索进 `research/`，可复用的做法进 `skills/`。
@@ -39,7 +40,7 @@ learn 模块的 `tools/result` 订阅就给对应名字计数（用户 `/name` �
 |---|---|---|---|
 | `memory/` | 跨会话仍然成立的事实、偏好、决定 | `active` → `superseded`（被新记录取代）/ `retired`（不再成立）→ `archive/` | `assistant_memory` |
 | `research/` | 还没想清楚的线索：问题、为什么值得追、试过什么、现在倾向什么 | `open` / `parked` → **三档出口**：`promoted`（成立）/ `dropped`（不成立，**理由必填**）→ `archive/` | `assistant_research` |
-| `skills/` | 学到的做法（可复用、可被模型加载） | 由 DSH 技能 provider 发现与监听；被取代就改文件 | `assistant_reflect action=save_skill` |
+| `skills/` | 学到的做法（可复用、可被模型加载） | 由 DSH 技能 provider 发现与监听；被取代就改文件；**退役**（90 天未用阈值由 curate 报，`retire_skill` 执行）→ `skills/archive/`（不删、可恢复） | `assistant_reflect` |
 
 **为什么探索要单独一间房**：不清晰的意图如果没地方放，只会被硬塞进正式流程（污染记忆与技能、拉低信噪比）
 或者蒸发（下次从零重开同一个问题）。**分房是为了让"已确立的"保持干净。**
@@ -72,6 +73,8 @@ learn 模块的 `tools/result` 订阅就给对应名字计数（用户 `/name` �
 | 缺理由的 drop | `status: dropped` 但 `reason` 为空 | 尸体没写死因 = 白丢 |
 | 技能文件 | 名字不合 `SKILL_NAME` 文法 / 缺 `description` / 目录名与 name 不一致 | 技能会静默不被发现 |
 | 同名遮蔽 | 学到技能的名字被注册表判给其他 provider（`skill-shadowed`，探自 curate 所在会话的技能注册表） | `save_skill` 说成功、文件也在家，但**永不加载**——静默失联 |
+| 技能过期（stale） | 超过 `staleSkillDays`（默认 30 天）未被加载（`skill-stale`，info） | 死技能是目录重；先报候选，去留归 agent |
+| 技能可退役 | 超过 `retireSkillDays`（默认 90 天）未被加载（`skill-retirable`，warn） | 每个技能的 name+description 都在目录里占常驻上下文——死技能每请求都在付费；年龄锚点=账本 `lastUsedAt`，从未加载的用 `learnedAt` |
 | 用量账本可读性 | `skill-usage.json` 存在但解析不了 | 静默读零会误导退役决策 |
 
 简报同时附带**技能用量数据面**（不是 finding）：每个学到技能的加载次数与最近使用（最少用在前）——
