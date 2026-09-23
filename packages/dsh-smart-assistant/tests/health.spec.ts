@@ -50,6 +50,7 @@ function input(overrides: Partial<CurationInput> = {}): CurationInput {
     shadowedSkills: {},
     digestBytes: 100,
     digestMaxBytes: 4096,
+    digestTruncated: false,
     staleResearchDays: 30,
     staleSkillDays: 30,
     retireSkillDays: 90,
@@ -126,7 +127,7 @@ describe('curateHome', () => {
   })
 
   it('reports digest budget pressure and duplicate ids', () => {
-    expect(codes(input({ digestBytes: 5000 }))).toContain('digest-over-budget')
+    expect(codes(input({ digestTruncated: true }))).toContain('digest-over-budget')
     expect(codes(input({ duplicatedIds: ['a-1'] }))).toContain('duplicate-id')
   })
 

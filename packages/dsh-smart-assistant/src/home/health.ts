@@ -83,10 +83,12 @@ export interface CurationInput {
   readonly skillUsageFailure?: SkillUsageReadFailure
   /** Learned skill names that lost the registry's name resolution, mapped to the winning provider. */
   readonly shadowedSkills: Readonly<Record<string, string>>
-  /** Bytes the current digest occupies. */
+  /** Bytes the current digest occupies (post-truncation, so never above the budget). */
   readonly digestBytes: number
   /** Digest budget. */
   readonly digestMaxBytes: number
+  /** Whether the budget cut the digest short — the real pressure signal. */
+  readonly digestTruncated: boolean
   /** Age at which an open thread is reported as stalled. */
   readonly staleResearchDays: number
   /** Days without a load after which a learned skill is reported as stale. */
@@ -239,12 +241,12 @@ export function curateHome(input: CurationInput): CurationBrief {
 
   findings.push(...findNearDuplicates(input.memories))
 
-  if (input.digestBytes > input.digestMaxBytes) {
+  if (input.digestTruncated) {
     findings.push({
       code: 'digest-over-budget',
       severity: 'warn',
-      message: `the digest is ${input.digestBytes} bytes against a ${input.digestMaxBytes}-byte budget: `
-        + 'retire the weakest active records or tighten their phrasing',
+      message: `the digest hit its ${input.digestMaxBytes}-byte budget and was cut short — records below `
+        + 'the cut are invisible in every session: retire the weakest active records or tighten their phrasing',
       refs: [],
     })
   }

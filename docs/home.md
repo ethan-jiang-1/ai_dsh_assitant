@@ -69,7 +69,7 @@ learn 模块的 `tools/result` 订阅就给对应名字计数（用户 `/name` �
 | id 唯一性 | 重复 id | 记录身份必须唯一 |
 | 悬空引用 | `supersedes` / `promotedTo` 指向不存在的 id | 引用断掉会让历史读不出来 |
 | 近似重复 | 高重合的活跃记忆（关键词/标签） | 三条模糊的记忆比一条准确的更糟 |
-| 摘要预算 | 摘要字节 vs `digestMaxBytes`；超了就报 | 桌面塞满 = 中间被漏掉 |
+| 摘要预算 | 摘要被预算截短（`truncated`）——被截掉的记忆对每个会话不可见 | 桌面塞满 = 中间被漏掉；**且纯新增写入在截断态被服务层拒绝**（supersede/forget 开放——它们是减压动作） |
 | 过期线索 | 超过 `staleResearchDays` 未更新的 `open` 线索 | 悬着的线索会烂，机器先发现 |
 | 缺理由的 drop | `status: dropped` 但 `reason` 为空 | 尸体没写死因 = 白丢 |
 | 技能文件 | 名字不合 `SKILL_NAME` 文法 / 缺 `description` / 目录名与 name 不一致 | 技能会静默不被发现 |

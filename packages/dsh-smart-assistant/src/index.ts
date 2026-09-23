@@ -279,9 +279,14 @@ export class AssistantMemory extends Service {
 
   /**
    * Write a memory record, optionally superseding an existing one.
+   *
+   * Budget enforcement (tri-line proposal slice 1h): when the digest is already cut short by its
+   * byte budget, a pure addition is refused at the write primitive — the budget stops being
+   * advisory. Superseding and retiring writes stay open because they replace or remove.
    * @param input - The claim and its metadata.
    * @returns The written record.
-   * @throws when `text` is empty, `supersedes` names a missing record, or `importance` is out of range.
+   * @throws when `text` is empty, `supersedes` names a missing record, `importance` is out of
+   * range, or the digest is over budget and this write would only add.
    */
   async saveMemory(input: SaveMemoryInput): Promise<MemoryRecord> {
     const text = input.text.trim()
@@ -291,6 +296,16 @@ export class AssistantMemory extends Service {
       throw new Error(`importance must be an integer in ${IMPORTANCE_RANGE.min}–${IMPORTANCE_RANGE.max}`)
     }
     await this.ensureHome()
+    if (input.supersedes === undefined) {
+      const digest = await this.digest()
+      if (digest.truncated) {
+        throw new Error(
+          `the home digest is already cut short by its ${this.digestMaxBytes}-byte budget — `
+          + 'retire a record (forget) or supersede an existing one instead of adding; '
+          + 'assistant_memory action=curate reports the pressure',
+        )
+      }
+    }
     const now = new Date()
     const stamp = now.toISOString()
     const id = newMemoryId(now, text, undefined, input.slug)
@@ -572,6 +587,7 @@ export class AssistantMemory extends Service {
       shadowedSkills: shadowedBy ?? {},
       digestBytes: digest.bytes,
       digestMaxBytes: this.digestMaxBytes,
+      digestTruncated: digest.truncated,
       staleResearchDays: this.staleResearchDays,
       staleSkillDays: this.staleSkillDays,
       retireSkillDays: this.retireSkillDays,
