@@ -45,7 +45,7 @@ pnpm sync-dsh -- --tag <dsh-tag>   # 换 submodule tag + SHA 簿记 + typecheck 
 
 bash dev/setup.sh       # 幂等：建 dev（web）+ dev-task（headless）两个 profile + link 装插件 + roster 指向 repo（两者为何不能合一：`docs/dev.md` §四）
 pnpm dsh --profile dev-task "one task"  # one-shot = **host 面冒烟**（headless 不进 preset，vendor 明文契约）
-pnpm dsh --profile dev --port 0    # Web UI；**preset 行为（三工具/persona/摘要）在这里的会话里验**
+pnpm dsh --profile dev --port 0 --no-open   # Web UI；preset 行为（三工具/persona/摘要）在这里的会话里验。交给人之前先 `pnpm preflight '<URL>'`（绿了再交，见 docs/dev.md §四）
 ```
 
 ## 五条硬规则

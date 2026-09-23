@@ -58,9 +58,17 @@ pnpm --dir vendor/dsh run build:web       # 只有跑 Web UI 才需要（前端 
 ```sh
 bash dev/setup.sh          # 幂等：建 dev（web）+ dev-task（headless）两个 profile + link 装插件
 pnpm dsh --profile dev-task "one task"   # one-shot 任务（headless）＝ host 面冒烟；不进 preset（§五）
-pnpm dsh --profile dev                   # Web UI
+pnpm dsh --profile dev --port 0 --no-open   # Web UI：**不自动开浏览器**
+pnpm preflight '<server 打印的 URL>'    # 开屏前检查；绿了才把 URL 交给浏览器
 pnpm typecheck && pnpm test && pnpm verify
 ```
+
+**为什么 preflight（2026-09-24 两轮实锤）**：客户端 bundle 若不能被经典脚本组合解析，
+一条语句就让整条 combo 全灭、其后所有注册丢失，浏览器只报一句莫名的 "loaded without
+registering"——而第一个打开页面的人就成了 crash-test dummy。`pnpm preflight` 用浏览器
+同款姿势（token → cookie → 文档）逐个取回 plugin 组合脚本并用 `new Function` 做**经典脚本
+编译检查**（只编译不执行）。它证明：服务器在、认证通、boot 图组装了、每个 combo 可解析、
+本仓客户端 bundle 在列且注册在案；**不证明**客户端树真的渲染——那仍是真会话的事。
 
 **两个 profile 是刻意的**：web-app 与 headless 两个 bundle 都 `insert` 了 `id: code-runtime`，
 混装进同一个 profile 必撞 `duplicate loader entry id`（DSH 已把该组合列为退役元组）。

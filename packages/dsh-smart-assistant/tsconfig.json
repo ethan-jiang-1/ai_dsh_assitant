@@ -34,12 +34,6 @@
     },
     {
       "path": "../../vendor/dsh/packages/host/webserver"
-    },
-    {
-      "path": "../../vendor/dsh/packages/client/ui-renderer"
-    },
-    {
-      "path": "../../vendor/dsh/packages/client/ui-sidebar"
     }
   ]
 }

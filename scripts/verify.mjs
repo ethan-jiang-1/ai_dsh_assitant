@@ -204,6 +204,50 @@ check('facade: the runtime tsconfig for the source launch is present and current
   return problems
 })
 
+check('client: the browser half registers via the loader facade and stays classic-script-safe', () => {
+  const problems = []
+  const files = walk(join(packageDir, 'src', 'client'), ['.ts'])
+  if (files.length === 0) {
+    return ['src/client is empty — the dsh.client declaration in package.json promises a browser half']
+  }
+  for (const path of files) {
+    const where = relative(repoRoot, path)
+    const text = read(path)
+    // The shell concatenates client bundles into classic-script combos: a runtime
+    // import/export statement is a parse error there and kills every later registration in
+    // the same combo (learned the hard way: 2026-09-24, the ESM-shaped first attempt broke
+    // the whole browser boot). Type-only forms are erased at emit and stay allowed.
+    if (/^import\s+(?!type\s)/m.test(text)) {
+      problems.push(`${where} has a runtime import — the browser half must take everything through the factory require`)
+    }
+    if (/^export\s+(?!type\s|interface\s)/m.test(text)) {
+      problems.push(`${where} has a runtime export — the browser half must submit its surface through the loader registration`)
+    }
+    if (!text.includes('__ModuleLoader__')) {
+      problems.push(`${where} never touches __ModuleLoader__ — the browser half must submit a factory registration`)
+    }
+  }
+  // The emitted bundle is what the shell actually serves into classic-script combos, and
+  // tsc synthesizes module markers (e.g. `export {};`) that a source-level scan cannot
+  // see. So compile the artifact as a classic-script body — parse only, never executed.
+  // `new Function` is the honest check; `node --check` is a false negative under Node's
+  // module-syntax detection. A missing lib is not a failure (verify runs on fresh clones
+  // before the first build; the source gate above is always active).
+  const bundle = join(packageDir, 'lib', 'client', 'index.js')
+  if (exists(bundle)) {
+    const emitted = read(bundle)
+    if (!emitted.includes('__ModuleLoader__')) {
+      problems.push('lib/client/index.js never touches __ModuleLoader__ — run pnpm build after changing the browser half')
+    }
+    try {
+      void new Function(emitted)
+    } catch (error) {
+      problems.push(`lib/client/index.js does not parse as a classic script (${String(error)}) — the combo it rides in would kill every later registration at browser boot`)
+    }
+  }
+  return problems
+})
+
 check('facade: skill-name grammar matches the harness registry', () => {
   const ours = /SKILL_NAME_PATTERN = (\/.*\/)/.exec(read(join(packageDir, 'src', 'skills', 'skill-file.ts')))?.[1]
   const registryPath = join(vendorDsh, 'packages', 'skill', 'skill', 'src', 'index.ts')

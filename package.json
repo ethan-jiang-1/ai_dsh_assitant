@@ -16,6 +16,7 @@
     "test": "pnpm --filter dsh-smart-assistant run test",
     "verify": "node scripts/gen-paths.mjs --check && node scripts/verify.mjs",
     "release-smoke": "node scripts/release-smoke.mjs",
+    "preflight": "node scripts/webui-preflight.mjs",
     "sync-dsh": "node scripts/sync-dsh.mjs"
   },
   "devDependencies": {

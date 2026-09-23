@@ -1,0 +1,110 @@
+#!/usr/bin/env node
+/**
+ * Pre-flight a running dsh web UI before any human opens it.
+ *
+ * Learned the hard way (2026-09-24, two rounds): a client bundle the shell cannot parse
+ * kills the whole browser boot with an opaque "loaded without registering" error, and the
+ * first human to open the page becomes the crash-test dummy. This script plays that role
+ * instead: it walks the served index exactly like a browser would (token → cookie →
+ * document), fetches every plugin combo script, and compiles each one as a classic-script
+ * body — parse only, never executed.
+ *
+ * What it proves: the server is up, the auth flow works, the boot graph is composed, every
+ * served combo parses, and this repo's client bundle is aboard with its registration.
+ * What it does NOT prove: that the client tree executes and renders — that is still the
+ * browser session's job.
+ *
+ * Usage: node scripts/webui-preflight.mjs 'http://127.0.0.1:<port>/?token=<token>'
+ */
+const given = process.argv[2]
+if (given === undefined) {
+  console.error('usage: node scripts/webui-preflight.mjs <url-with-token>')
+  process.exit(1)
+}
+
+let failures = 0
+const ok = (message) => console.log(`  ok   ${message}`)
+const fail = (message) => {
+  failures += 1
+  console.error(`  FAIL ${message}`)
+}
+
+const base = new URL('/', given)
+
+// ① The browser's auth flow: token in, cookie out.
+let cookies = ''
+try {
+  const boot = await fetch(given, { redirect: 'manual' })
+  cookies = boot.headers.getSetCookie().map(entry => entry.split(';')[0]).join('; ')
+  if (cookies.length === 0 && boot.status !== 200) {
+    fail(`token exchange returned ${boot.status} with no cookie — copy the URL exactly as printed`)
+  } else {
+    ok(`token exchange (${boot.status}, ${cookies.length > 0 ? 'cookie set' : 'no cookie needed'})`)
+  }
+} catch (error) {
+  fail(`cannot reach the server: ${String(error)}`)
+  process.exit(1)
+}
+
+// ② The document the browser would render.
+let html = ''
+try {
+  const page = await fetch(base, { headers: cookies.length > 0 ? { cookie: cookies } : {} })
+  html = await page.text()
+  if (page.status !== 200) {
+    fail(`index returned ${page.status}`)
+  } else if (!html.includes('__ModuleLoader__')) {
+    fail('the index carries no __ModuleLoader__ bootstrap — the boot graph is not composed')
+  } else {
+    ok('index served with the module-loader bootstrap')
+  }
+} catch (error) {
+  fail(`cannot read the index: ${String(error)}`)
+  process.exit(1)
+}
+
+// ③ Every combo script the document references, compiled as a classic-script body.
+const comboUrls = [...new Set([...html.matchAll(/(?:src|href)="(\/plugins\/[^"]+)"/g)]
+  .map(match => match[1].replaceAll('&amp;', '&')))]
+if (comboUrls.length === 0) fail('the index references no plugin combo scripts')
+for (const combo of comboUrls) {
+  try {
+    const response = await fetch(new URL(combo, base), { headers: cookies.length > 0 ? { cookie: cookies } : {} })
+    const text = await response.text()
+    if (response.status !== 200) {
+      fail(`${combo} → ${response.status}`)
+      continue
+    }
+    try {
+      void new Function(text)
+      ok(`${combo} parses (${text.length} bytes)`)
+    } catch (error) {
+      fail(`${combo} does not parse as a classic script: ${String(error)}`)
+      // The known culprit class, surfaced for a fast diagnosis: ESM statements in a combo.
+      const offender = /^[\t ]*(?:import|export)\b.*$/m.exec(text)?.[0]
+      if (offender !== undefined) console.error(`       first ESM-looking line: ${offender.trim().slice(0, 120)}`)
+    }
+  } catch (error) {
+    fail(`${combo}: ${String(error)}`)
+  }
+}
+
+// ④ This repo's client bundle is aboard with its registration.
+const ours = comboUrls.filter(combo => combo.includes('dsh-smart-assistant'))
+if (ours.length === 0) {
+  fail('no combo script carries dsh-smart-assistant — the client face is not in the boot graph')
+} else {
+  let registered = false
+  for (const combo of ours) {
+    const response = await fetch(new URL(combo, base), { headers: cookies.length > 0 ? { cookie: cookies } : {} })
+    if ((await response.text()).includes("id: 'dsh-smart-assistant'")) registered = true
+  }
+  if (registered) ok('dsh-smart-assistant client bundle registers under its name')
+  else fail('the combo carries our bundle but no __ModuleLoader__ registration for dsh-smart-assistant')
+}
+
+if (failures > 0) {
+  console.error(`\npreflight: ${failures} failure(s) — do NOT open this URL in a browser yet`)
+  process.exit(1)
+}
+console.log('\npreflight: green — the page should boot; hand the URL over')

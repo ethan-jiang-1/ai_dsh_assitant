@@ -55,7 +55,35 @@ facade 检查原只认"包根 → src"条目；扩展支持 vendor 惯例的 `pk
 ## 验证（真跑过）
 
 - `pnpm --dir packages/dsh-smart-assistant typecheck`（含测试工程）/ 根 `pnpm typecheck` /
-  `pnpm test` 70/70 / `pnpm build` / `pnpm verify` 15/15 / `pnpm release-smoke`（发布形状含
+  `pnpm test` / `pnpm build` / `pnpm verify` / `pnpm release-smoke`（发布形状含
   `./client` 出口与 `dsh.client` 声明）。
-- 盘上实证：重启 dev web 后 boot 图含 `dsh-smart-assistant` 客户端行，侧栏呈房子图标 +
-  "DSH local assistant"（用户浏览器回填）。
+- `pnpm preflight`：对真伺服页面的组合脚本逐个经典脚本编译检查（见修正记录第三节）。
+
+## 修正记录（同日三轮，教训全档）
+
+第一版（77a0561）的客户端半面是 tsc 直出的**纯 ESM 模块**。实况：vendor 客户端 bundle 是
+tsdown 产出的 `__ModuleLoader__.load({id, factory})` **注册包裹**（factory 收绑定模块表的
+同步 require，内部零 ESM 语法），浏览器把多条 bundle 拼成**经典脚本** combo 伺服——ESM
+语句在经典脚本里是解析级炸药，一条语句让整条 combo 全灭、其后所有注册丢失（报错只有一句
+"loaded without registering"，第一次打开页面的人就是 crash-test dummy）。
+
+第二版把文件改写成注册包裹形状，但保留 `import type` → tsc 给"类型导入全被擦除的模块"
+**合成 `export {};` 模块标记**——同样致命。`verbatimModuleSyntax: true` 也拦不住（实验实证，
+配置已回滚）。附带假阴性教训：`node --check` 在 Node 22 的模块语法检测下**通过**了带
+`export {};` 的文件——经典脚本检查必须用 `new Function` 编译。
+
+第三版（本版）：`src/client/index.ts` 刻意写成**零 import 的脚本**——vendor 契约类型用
+本地结构镜像（slot 名与 props 形状极小，漂移会在注册时 fail loud），react 类型经
+`typeof import('react')` 类型查询；tsc 对脚本文件不合成任何模块标记。为此撤回第一版为
+类型导入加的 ui-renderer/ui-sidebar paths/references/devDeps（host-webserver 保留：web-branding
+真实使用）。
+
+**三道闸**（用户要求固化的实践：界面交给人之前机器先验一遍）：
+1. verify 源级：client 半面禁运行时 import/export、必须触达 `__ModuleLoader__` ——红绿在案
+   （对第一版红：runtime import ×1 + runtime export ×2）。
+2. verify 发射物级：`new Function(lib/client/index.js)` 经典脚本编译——红绿在案（对第二版
+   的 `export {};` 发射物红，存档 /tmp/emit-before.js 复验；对第一版为推断：运行时
+   import/export 原样保留，同款解析失败）。
+3. `pnpm preflight '<URL>'`：起服务器后、交给人之前，按浏览器姿势（token → cookie → 文档）
+   取回每个 plugin combo 并编译检查 + 本仓 bundle 注册在案。`node --check` 的假阴性在
+   preflight 同样规避。
