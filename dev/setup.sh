@@ -20,7 +20,9 @@ profile_dir="$DSH_HOME/profiles/$profile"
 if [ -n "${DSH_BIN:-}" ]; then
   run_dsh() { "$DSH_BIN" "$@"; }
 else
-  run_dsh() { node --import tsx/esm "$repo_root/vendor/dsh/apps/cli/src/bin.ts" "$@"; }
+  # 从钉住的源码启动必须带运行期解析门面（tsconfig.tsx.json），否则 tsx 解析到
+  # 未构建的 lib/index.js —— ERR_MODULE_NOT_FOUND（handoff 坑 #3，实跑踩实过）。
+  run_dsh() { TSX_TSCONFIG_PATH="$repo_root/tsconfig.tsx.json" node --import tsx/esm "$repo_root/vendor/dsh/apps/cli/src/bin.ts" "$@"; }
 fi
 
 if [ ! -d "$profile_dir" ]; then
