@@ -48,9 +48,6 @@ declare module '@deepseek-ai/cordis' {
   }
 }
 
-/** Plugin name, matching the module's role rather than the package. */
-export const name = 'assistant-memory'
-
 /** Deployment configuration for the home. */
 export interface Config {
   /** Home root. Omitted resolves `<dshHome>/assistant`, so the dual-home split applies automatically. */
