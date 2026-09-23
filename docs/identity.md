@@ -24,7 +24,8 @@ shipped preset id（`standard`/`ptc`/`cordis`/`minimal`）、保留 profile 名�
 ## 二、皮肤（随时可改，零身份代价）
 
 preset 显示名与描述（`preset.yml`）、一切 UI 文案（走 locale）、`HOME.md` 的措辞、技能正文、
-Web 壳的页标题与图标（`src/web-branding.ts` 注入行，`webTitle` 配置）。
+Web 壳的页标题、图标与侧栏品牌（`src/web-branding.ts` 注入行 + `src/client/index.ts` 的
+`sidebar.brand.*` slot 占位；侧栏名 "DSH local assistant"）。
 工具 **description 是中间地带**：名字是身份，description 是**模型可见输入** —— 改它不是改名，
 是**行为变更**，要走 model-visible 纪律（配快照）。
 

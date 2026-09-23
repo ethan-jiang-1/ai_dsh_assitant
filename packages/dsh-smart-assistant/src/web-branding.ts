@@ -13,6 +13,9 @@
 
 import type { IndexInjection } from '@deepseek-ai/dsh-host-webserver'
 
+/** The `IndexInjection` member this module returns: an inline script row. */
+export type ScriptInjection = Extract<IndexInjection, { kind: 'script' }>
+
 /** Default tab title: names the assistant, keeps the local-build marker. */
 export const DEFAULT_WEB_TITLE = '聪明助手 · DSH Local Build'
 
@@ -54,6 +57,6 @@ function brandingScript(title: string): string {
  * @param title - Tab title; defaults to the assistant branding.
  * @returns the body script row.
  */
-export function webBrandingInjection(title: string = DEFAULT_WEB_TITLE): IndexInjection {
+export function webBrandingInjection(title: string = DEFAULT_WEB_TITLE): ScriptInjection {
   return { kind: 'script', placement: 'body', text: brandingScript(title) }
 }

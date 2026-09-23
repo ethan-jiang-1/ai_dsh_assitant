@@ -40,9 +40,18 @@ importers:
       '@deepseek-ai/cordis':
         specifier: workspace:^
         version: link:../../vendor/dsh/vendor/cordis
+      '@deepseek-ai/dsh-client-ui-renderer':
+        specifier: workspace:^
+        version: link:../../vendor/dsh/packages/client/ui-renderer
+      '@deepseek-ai/dsh-client-ui-sidebar':
+        specifier: workspace:^
+        version: link:../../vendor/dsh/packages/client/ui-sidebar
       '@deepseek-ai/dsh-home-paths':
         specifier: workspace:^
         version: link:../../vendor/dsh/packages/util/home-paths
+      '@deepseek-ai/dsh-host-webserver':
+        specifier: workspace:^
+        version: link:../../vendor/dsh/packages/host/webserver
       '@deepseek-ai/dsh-skill':
         specifier: workspace:^
         version: link:../../vendor/dsh/packages/skill/skill
@@ -55,6 +64,12 @@ importers:
       '@types/node':
         specifier: ^22.20.0
         version: 22.20.4
+      '@types/react':
+        specifier: ~18.3.1
+        version: 18.3.31
+      react:
+        specifier: ^18.2.0
+        version: 18.3.1
       typescript:
         specifier: ^6.0.3
         version: 6.0.3

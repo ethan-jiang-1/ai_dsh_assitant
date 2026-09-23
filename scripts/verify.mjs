@@ -170,11 +170,17 @@ check('facade: every @deepseek-ai import has a tsconfig paths entry and a projec
     }
     const target = new RegExp(`"${specifier.replace(/[/\\^$*+?.()|[\]{}]/g, '\\$&')}":\\s*\\["([^"]+)"\\]`).exec(base)?.[1]
     if (target === undefined) continue
-    const projectDir = resolve(repoRoot, target.replace(/\/src$/, ''))
+    // Package-root entries end at a `src` directory; client-face entries end at `src/<subpath>`
+    // (the vendor convention, e.g. `pkg/client` → `<pkg>/src/client`). In both cases the owning
+    // project is the package directory the `src` tree belongs to.
+    const srcSplit = target.indexOf('/src/')
+    const projectDir = resolve(repoRoot, srcSplit === -1 ? target.replace(/\/src$/, '') : target.slice(0, srcSplit))
     if (!references.has(projectDir)) {
       problems.push(`${specifier} resolves to ${relative(repoRoot, projectDir)}, which packages/dsh-smart-assistant/tsconfig.json does not reference`)
     }
-    if (!exists(join(projectDir, 'src', 'index.ts'))) problems.push(`${specifier} paths entry ${target} has no index.ts`)
+    if (!exists(join(repoRoot, target, 'index.ts'))) {
+      problems.push(`${specifier} paths entry ${target} has no index.ts`)
+    }
   }
   return problems
 })

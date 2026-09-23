@@ -29,6 +29,11 @@ HOST 面（cordis.patch.yml → dsh.bundle.patch）
 └── assistant-memory        服务：家的布局 + 三个房间的存储 + 摘要计算 + 养护检查
                             ctx.assistantMemory（唯一服务键）
                             + Web 壳品牌注入行（页标题/图标，webserver/index-inject；皮肤，不进模型上下文）
+
+浏览器面（package.json `dsh.client` → `./client` 出口；经既有 bundle 行被 client-modules
+自动发现，无需额外接线）：占用 `sidebar.brand.mark` / `sidebar.brand.name` 两个**通用**
+品牌 slot（官方品牌包只在 official 构建档案下注册，本地构建里空置）——不是 §六 延后的
+"专属 Web 卡片"（那是通用卡不够用时的 client 插件面，触发条件未到）。
                             为什么在 host：家是**跨会话持久化**，与持久化/沙箱/模型路由同类。
                             preset 里的服务行必须包在 isolate realm 里，否则与别的 preset 撞名。
 
@@ -63,6 +68,7 @@ AGENT 面（presets/assistant/agent.cordis.yml → agent preset）
 | `src/index.ts` | 服务：把上面这些组装成 `ctx.assistantMemory` | 全部 |
 | `src/tool-support/presentation.ts` | 三个工具共享的 presenter 管道：`presentationMeta` 投影摘要 → `presentResult` 从 `result.meta` 读回（完成卡读不到规范值，只能读持久化载荷） | dsh-tools 类型 |
 | `src/web-branding.ts` | Web 壳品牌注入行：页标题 + 图标（纯函数；经 `webserver/index-inject` 事件进浏览器，皮肤面） | dsh-host-webserver（仅类型） |
+| `src/client/index.ts` | 浏览器面：占用 `sidebar.brand.*` 通用品牌 slot（侧栏图标 + 部署名；皮肤面，不进模型上下文） | react + ui-renderer/ui-sidebar（仅类型） |
 | `src/tool-*/`、`src/memory-digest/`、`src/learn/` | agent 面入口：薄适配器（校验跨字段规则 → 调服务 → 返回规范值 + presenter） | cordis/tools |
 
 **依赖方向单向向下**，纯核（home/memory/research/skills）**不 import DSH 运行时** ——

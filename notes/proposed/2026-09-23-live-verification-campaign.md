@@ -93,3 +93,10 @@ I14 拿到第一批使用数据；R1/R2 两条线索开进家的 research/ 房�
   修复 + 回归测试见 `notes/implemented/2026-09-23-service-shadow-private-fields.md`。
   顺带一证：**preset 挂载本身已被真实对话日志实证**（`e0ac2cf8` 会话事件
   `agentPreset: "assistant"`）。
+- **修复实证回填（全部日志在案，`e65ef210` 00:19）**：两个 turn 正常完成；session 事件
+  `agentPreset: assistant`；系统提示词含 persona（long-lived assistant）与摘要 blurb
+  （修复后的 digestSnapshot 路径全程工作）；`assistant_memory` list 与 `assistant_research`
+  list 各被真实调用且正常返回——**I1（挂载/persona/工具在）、I6（家布局可读：助手正确报出
+  三房间与空仓状态）、I7（摘要常驻）日志实证**。I12 留会话 C（0 线索时摘要无该节=设计行为）。
+  I14 观察：两次 turn **零 curate 主动调用**（(a) 层第一个数据点：未主动）。对照会话未做
+  （`3428f388` 是空壳）。
