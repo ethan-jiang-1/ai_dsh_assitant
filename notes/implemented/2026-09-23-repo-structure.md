@@ -12,7 +12,8 @@
 1. **形态 = 方案 A**：独立 repo，DSH 以 git submodule 钉在 `vendor/dsh`，并入本 repo 的 pnpm workspace。
    钉 **`dsh-v0.1.5-rc.2`**（已逐条核实该 tag 含我们依赖的机制：`skill-filesystem.customSkillDirs`、
    preset 的 `baseUrl` 惯用法、`!!js ctx.<service>` 插值、`dsh.bundle.patch` 装载契约）。
-2. **包粒度 = 单包**（`packages/dsh-smart-assistant`），**包内 4 个入口**（1 host + 3 agent）。
+2. **包粒度 = 单包**（`packages/dsh-smart-assistant`），**包内 5 个入口**（1 host + 4 agent：
+   `memory-digest` / `tool-memory` / `tool-research` / `learn`）。
    行粒度给可插拔，包粒度不提前付税；三包形状（flows/tools/pack）是长出第二消费方后的机械升级。
 3. **平面切分**：服务在 **host 面**（`cordis.patch.yml` → bundle），模型可见贡献在 **agent 面**（preset）。
 4. **家的布局**（`docs/home.md` 是契约）：`<dataDir>/HOME.md` + `memory/`（+ `archive/`）+ `skills/`。
@@ -22,7 +23,8 @@
 6. **学到的技能**由我们自己的 `./learn` 模块**挂载 DSH 的 `dsh-skill-filesystem` 实例**
    （`providerName: assistant-learned`、`includeDefaultRoots: false`、`customSkillDirs: [<learned>]`）
    —— 复用真 provider，路径从服务取（零漂移、零插值脆弱性），且"学到的"与"策展的"天然分源。
-7. **第 0 天不新增事件、不注册 settings namespace、不做 client**（理由见 `docs/identity.md` 第三节）。
+7. **第 0 天不新增事件、不注册 settings namespace、不做 client**（理由与触发条件：
+   `docs/architecture.md` 第六节延后项表；身份面：`docs/identity.md`）。
 8. **检查靠代码**（talk ⑤）：家的健康是**纯函数**，既是 `assistant_memory action=curate` 的返回值，
    也被 repo 门禁与测试消费 —— "能让代码查的，别让 AI 自己说"。
 9. **家的三个房间 + 一条探索出口**：`memory/`（已确立的事实/偏好/决定）、`research/`（**意图还不清晰的探索**，
@@ -84,3 +86,7 @@
 
 已按纪律搬入 `implemented/`。搬家发生在交付（ae8bc24）**之后**的文档一致性切片里 ——
 破了"同 diff"纪律：本应在交付的那个 diff 内搬。留此为记，后续切片回归同 diff。
+
+- 入口数补记（同日信噪比审计切片）：决定 2 原写"包内 4 个入口（1 host + 3 agent）"，与决定 6
+  的 `./learn` 独立入口自相矛盾；按现行合同（package.json exports / 包 README / AGENTS.md 布局表）
+  改为 5（1+4）。

@@ -3,10 +3,9 @@
 > 本文是本 repo 对 DSH 研发纪律的**逐源枚举与声明** —— 不从记忆继承
 > （"你无法继承你从没清点过的东西"）。每行 = DSH 做法 → 本仓落点 → 状态
 > （✅ 照搬 / ⚠️ 带约束的适配 / ⏸ 刻意不做 + 触发条件 / ⏳ 部分 + 等待条件）。
-> 来源：`ai_dsh_company` 五轮实践的对齐复盘
-> （`/Users/bowhead/ai_dsh_company/notes/research/2026-09-23-dsh-inround-task-surface.md`，
-> 其 §四病根 / §六防再犯五件套 / §七可迁移清单）；决策记录：
-> `notes/implemented/2026-09-23-discipline-alignment.md`。
+> 来源：`ai_dsh_company` 五轮实践的对齐复盘（仓外原文的出处与章节映射登记在
+> `notes/implemented/2026-09-23-discipline-alignment.md` 的输入节——合同文档不引仓外绝对路径）；
+> 决策记录：同该 note。
 > **默认严格按本表走；偏离或裁剪不是错，但必须先登记（一行 note：约束 → 适配 → 证据）再动手。**
 
 ## 表
@@ -16,7 +15,7 @@
 | 文档只写 now；一个事实一个家（root AGENTS.md / `docs/AGENTS.md` tier 表） | docs/ 只写现在，无历史叙事；历史与输掉的方案全在 notes/ | ✅ 照搬 |
 | 决策 Note same-PR；完成的条目离开队列、不许标 ✅ 留场（`.agents/notes/README.md`） | notes/proposed→implemented 与切片同 diff；intents 台账只记"接下来" | ✅ 照搬 |
 | 计划文件被明确否决："a plan directory creates a second durable home"（2026-07-22 note :54） | 不建 plans/tasks 物种；交接文档只放 /tmp；I14 养护空槽走会话内 turn，不落计划文件 | ✅ 照搬 |
-| 会话日志即真相（log-only 持久层；复盘用日志 seq 重建，不凭自述） | 排查/复盘读 `dev/harness-home/sessions/**/session.v3.jsonl.zstd` 逐事件还原（`docs/dev.md` §四） | ✅ 照搬 |
+| 会话日志即真相（log-only 持久层；复盘用日志 seq 重建，不凭自述） | 排查/复盘读 `dev/harness-home/sessions/**/session.v3.jsonl.zstd` 逐事件还原（`docs/dev.md` §五） | ✅ 照搬 |
 | 轮内任务面：plan 呈批（反馈门①）+ `todo_write` 活清单（反馈门②）+ steer，机制在 base bundle 零接线 | 本 repo 开发流程见 AGENTS.md 硬规则 5；本插件 preset 已挂 `tool-todo` 且**连必填 config 一起抄**（`allowParallelInProgress: true`——不抄 config 会在挂载时炸且 UI 吞错误） | ✅ 照搬 |
 | 默认翻转 + 适配声明：默认严格，偏离/裁剪须登记（镜像 "Require evidence for public choices"） | AGENTS.md 硬规则 4；每条适配登记于本文"已声明的适配" | ✅ 照搬 |
 | 窄证据 + 只报告实跑过的命令（根 AGENTS.md / `dsh-pre-push-checks` skill） | AGENTS.md 硬规则 3 | ✅ 照搬 |

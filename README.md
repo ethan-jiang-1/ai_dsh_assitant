@@ -44,10 +44,11 @@ dsh plugin --profile <p> add file:./packages/dsh-smart-assistant   # 本地
 git submodule update --init     # vendor/dsh（钉在 dsh-v0.1.5-rc.2）
 pnpm install
 pnpm typecheck && pnpm test && pnpm verify
-bash dev/setup.sh               # 幂等：dev（web 模板）+ dev-task（headless）两 profile + link 装插件
-pnpm dsh --profile dev-task "one task"   # one-shot = host 面冒烟（one-shot 不进 preset，这是 DSH 契约）
-pnpm dsh --profile dev --port 0          # Web UI；preset 行为（三工具/persona/摘要）在这里的会话里验
 ```
+
+首次进入到此为止。日常开发环（dev / dev-task 两个 profile 各自验什么、one-shot 与 Web UI 的分工、
+换 pin 的步骤）唯一家在 `AGENTS.md` 命令表与 `docs/dev.md` —— 本段不复制它：这份重复已经烂过一次
+（`notes/implemented/2026-09-23-doc-consistency.md` 第 1 条）。
 
 契约在 `docs/`（`docs/home.md` 是家的契约，`docs/identity.md` 是身份名），
 决策与被否决的方案在 `notes/`，agent 的入口链在 `AGENTS.md`。

@@ -27,7 +27,7 @@
 **动机**：插件自己拥有一个 **working folder**（它的"家"）。这个家就是它的 harness 那一圈；
 **把里头的content整理对、清理干净、让 agent 很熟悉很清晰**，本身就是一件重要的事。
 
-概念依据：`/Users/bowhead/ai_dev_sdlc_aidc/talk-ai-coding-evolution-agent-101`
+概念依据：talk `agent-101`
 （`Agent = Model + Harness`；五件事 = 看到什么/懂什么/会什么/怎么做/怎么验；主线是信噪比；
 "能让代码查的，别让 AI 自己说"；桌面 / 抽屉）。
 

@@ -77,9 +77,8 @@ AGENT 面（presets/assistant/agent.cordis.yml → agent preset）
 | 技能目录（学到的技能出现/消失） | 目录随请求组装记录；`skills/change` 是注册表失效事件 |
 | 工具 description | 属于模型可见输入：改它是**行为变更**，不是改名 |
 
-**刻意不新增 SessionEventMap 成员**：上面四条已覆盖全部模型可见状态，而新增事件会把我们拖进
-`SESSION_FORMAT_VERSION` 的迁移纪律，day 0 没有任何消费方需要它。
-触发条件：出现要"记忆变更流"的 UI/审计消费方时，以 `assistant-memory/` 前缀声明（并决定 `ignorable`）。
+**刻意不新增 SessionEventMap 成员**（day 0）：上面四条已覆盖全部模型可见状态——
+理由与触发条件的唯一家是第六节延后项表；身份面代价见 `docs/identity.md` §一 第 5 行。
 
 ## 五、数据流
 
@@ -101,6 +100,7 @@ assistant_reflect ─────┘                          └─→ skills/<
 
 | 延后 | 触发条件 |
 |---|---|
+| 新增 SessionEventMap 事件（"记忆变更流"） | 出现要消费它的 UI/审计方：届时以 `assistant-memory/` 前缀声明（并决定 `ignorable`）——§四 的既有通道已覆盖全部模型可见状态，新增事件会拖进 `SESSION_FORMAT_VERSION` 迁移纪律 |
 | 语义检索（embedding） | 关键词/标签检索出现真实漏召回；那时经 `ctx.llm` 做 embedding，另开一缝 |
 | 自动后台复盘（`session/end` + `ctx.jobs`） | 有真实使用数据说明"每会话复盘"的收益大于 token 代价与同意成本 |
 | settings namespace `assistant` | 出现"用户要在设置页改"的真实需求（现在配置走 bundle/profile 的 Config） |

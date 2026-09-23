@@ -12,7 +12,7 @@
 | 2 | 插件行 id（前缀 `assistant-`） | `assistant-memory`（host）<br>`assistant-memory-tool`（agent）<br>`assistant-research-tool`（agent）<br>`assistant-memory-digest`（agent）<br>`assistant-learn`（agent） | 无强制文法，组合内唯一 | patch 按 id 做**整行配置替换**；`--dump-config` | 下游 patch overlay 落空 |
 | 3 | ctx 服务键 | `assistantMemory` | 与 Service Definition 同名 | 其他插件的 `inject`；capability-seams 生成目录 | 所有 Consumer 的 `inject` 断 |
 | 4 | 工具 wire 名 | `assistant_memory`、`assistant_research`、`assistant_reflect` | 短 kebab / snake_case，生态惯例；**带专家前缀**（一个专家一个前缀） | **会话日志逐字记录** `tool/call.name`；`tool.call.toolview` slot 按名 keyed | 旧会话重放断 |
-| 5 | SessionEventMap 事件名 | **day 0 不新增**（见下"刻意不做"） | 必须先声明 merging 进 map 才能写日志 | 事件名写进 JSONL | 旧日志读不出 = 格式迁移级 |
+| 5 | SessionEventMap 事件名 | **day 0 不新增**（延后项表：`docs/architecture.md` §六） | 必须先声明 merging 进 map 才能写日志 | 事件名写进 JSONL | 旧日志读不出 = 格式迁移级 |
 | 6 | preset id | `assistant` | `[a-z0-9][a-z0-9-]*`；id 即目录名 | roster 内；会话切换记录进日志 | 用户会话的 preset 引用断 |
 | 7 | settings namespace | `assistant`（**保留，day 0 不注册**） | 小写字母/数字/连字符 | 用户覆盖层按 namespace 持久化 | 用户设置被孤儿化 |
 | 8 | slot 域名 | 无（day 0 无 client 行）；未来 `assistant.<entry>.<hole>` | `<domain>.<entry>.<hole>` | 注册方与消费方的合约 | 注入方与占用方失配 |
@@ -29,14 +29,9 @@ preset 显示名与描述（`preset.yml`）、一切 UI 文案（走 locale）�
 
 ## 三、刻意不做（第 0 天）
 
-- **不新增 SessionEventMap 成员。** 理由：模型可见状态已被两条既有通道覆盖 ——
-  工具调用与结果（`tool/call`、`tool/result`）逐字进日志；记忆摘要进系统提示词组装（随请求记录）。
-  新增事件会把我们拖进 `SESSION_FORMAT_VERSION` 的迁移纪律，而 day 0 没有任何消费方需要它。
-  触发条件：出现 UI/审计消费方要"记忆变更流"时，再以 `assistant-memory/` 前缀声明（并决定 `ignorable`）。
-- **不注册 settings namespace。** 配置走 bundle/profile 的 Config（部署层），day 0 够用；
-  等出现"用户要在设置页改"的真实需求，再按 settings 契约注册 `assistant`。
-- **不做专属 Web 卡片。** 只做 presenter 层（纯函数、可 replay）。专属卡走 `tool.call.toolview` 槽，
-  独立 UI 面走 `dsh.client.inject` —— 都是升级阶梯的下一级，不是第 0 天。
+三个"刻意不做"——**不新增 SessionEventMap 成员、不注册 settings namespace、不做专属 Web 卡片**——
+都是**延后**而非永久否决。理由与触发条件的唯一家是 `docs/architecture.md` 第六节延后项表；
+本表只管身份面：触发后按 §一 的文法与代价登记新行，涉及模型可见文案时按第二节走 model-visible 纪律。
 
 ## 四、改名窗口
 

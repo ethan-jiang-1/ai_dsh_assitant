@@ -23,7 +23,20 @@
 `.env` **不能**设置 `DSH_*`（bootstrap-only 前缀，DSH 直接抛错）—— home 只能来自继承环境或启动器。
 工具子进程拿到的 `DSH_*` 会被 DSH 清洗后重注入本进程解析值，不会漏继承。
 
-## 二、一次性准备（每个 pin 一次）
+## 二、两个解析门面（编译期 vs 运行期）
+
+类型检查与"从钉住的源码启动"都要把 `@deepseek-ai/*` 解析到 vendor/dsh 的 **`src`**（而不是未构建的
+`lib/` 产物）——typecheck 的报错落在真实源码，agent 也能顺着跳转读实现。本 repo 用**两个 tsconfig
+门面**做这件事，职责不同，别混：
+
+| 门面 | 管什么 | 谁维护 |
+|---|---|---|
+| `tsconfig.base.json` | **编译期**：只列我们直接 import 的 6 个 `@deepseek-ai/*` 包（paths → vendor `src`）+ 公共编译选项；`packages/dsh-smart-assistant/tsconfig.json` extends 它，并为每个包配 project reference —— `tsc -b` 按项目引用构建它们，API 漂移在编译期暴露，又不把 DSH 源码并进本程序（撞 `rootDir`） | 手维护：src 里新增 `@deepseek-ai/*` import 时加一行 paths（`pnpm verify` 机械检查） |
+| `tsconfig.tsx.json` | **运行期**：全量别名（280 条），`scripts/dsh.mjs` 经 `TSX_TSCONFIG_PATH` 让 tsx 加载 DSH 的 `src` 启动 CLI | `pnpm gen-paths` 从 vendor/dsh 生成；`pnpm verify` 查不过期（换 pin 后必跑） |
+
+`pnpm typecheck`（根 `tsconfig.json` 按项目引用聚合到包工程）走编译期门面；`pnpm dsh` 走运行期门面。
+
+## 三、一次性准备（每个 pin 一次）
 
 ```sh
 pnpm install                              # 并入 vendor/dsh 整树
@@ -40,11 +53,11 @@ pnpm --dir vendor/dsh run build:web       # 只有跑 Web UI 才需要（前端 
 - 完整 boot 需要构建产物（40+ client bundle、native addon、各包 `lib/`）；
   `--dump-config` / `--help` 不加载它们，**不能**作为"能 boot"的证据。
 
-## 三、开发环（日常）
+## 四、开发环（日常）
 
 ```sh
 bash dev/setup.sh          # 幂等：建 dev（web）+ dev-task（headless）两个 profile + link 装插件
-pnpm dsh --profile dev-task "one task"   # 一次性任务（headless，跑在 assistant preset 上）
+pnpm dsh --profile dev-task "one task"   # one-shot 任务（headless）＝ host 面冒烟；不进 preset（§五）
 pnpm dsh --profile dev                   # Web UI
 pnpm typecheck && pnpm test && pnpm verify
 ```
@@ -62,9 +75,9 @@ pnpm typecheck && pnpm test && pnpm verify
    `file:` 是复制语义，开发环禁用（改码必须重装）。
 2. preset 代际只看 `agent.cordis.yml` 的 mtime+size —— 改 `presets/assistant/skills/*` 或
    `preset.yml` 后要 `touch` 该文件，新会话才拿得到新代。
-3. 换 vendor/dsh pin 后：`pnpm gen-paths` → 重跑第二节的 vendor 构建 → `pnpm typecheck`。
+3. 换 vendor/dsh pin 后：`pnpm gen-paths` → 重跑第三节的 vendor 构建 → `pnpm typecheck`。
 
-## 四、踩坑清单（每条都真踩过或有源码证据）
+## 五、踩坑清单（每条都真踩过或有源码证据）
 
 | 坑 | 事实 | 正确做法 |
 |---|---|---|
@@ -77,7 +90,7 @@ pnpm typecheck && pnpm test && pnpm verify
 | 命令表象不可信 | `--dump-config`/`--help` 不加载 loader entries | "能不能跑"的最低证据 = 真 boot 一次 |
 | preset 遮蔽 | roots 先到先赢同 id；roster 的 `!!js` 读 `ASSISTANT_PRESETS_DIR ?? cwd` 拼接 | `pnpm dsh` 固定以 repo 根为 cwd，兜底成立 |
 
-## 五、组合的四个层（dev 里谁改谁生效）
+## 六、组合的四个层（dev 里谁改谁生效）
 
 ```text
 bundle 层（@deepseek-ai/dsh-base → dsh-web-app → dsh-headless → dsh-smart-assistant）

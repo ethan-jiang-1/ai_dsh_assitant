@@ -21,10 +21,11 @@
 | `.../src/tool-memory/`、`src/tool-research/`、`src/memory-digest/`、`src/learn/` | **agent 面**插件入口（工具 / 提示词段落 / 复盘） | 改模型可见面动这里 |
 | `.../src/index.ts` + `cordis.patch.yml` | **host 面**：`assistantMemory` 服务 | 改服务/配置动这里 |
 | `.../presets/assistant/` | preset（agent 面组合）+ 策展技能 | 改这个专家"会什么"动这里 |
+| `tsconfig.base.json` / `tsconfig.tsx.json` | 两个解析门面（编译期手维护 / 运行期 `pnpm gen-paths` 生成） | 引入新 `@deepseek-ai/*` import 或换 pin 时动这里（契约：`docs/dev.md` §二） |
 | `vendor/dsh/` | **钉住的 DSH 源码（submodule）** | **永不改**；升级走 `pnpm sync-dsh` |
 | `docs/` | 当前合同（只写现在，无历史） | 门禁住了的事实进这里 |
 | `notes/` | `intents.md` + `proposed/` + `implemented/` | 决策与输掉的方案进这里 |
-| `dev/` | 开发 home 与 profile patch（运行残留 gitignore） | 环境问题动这里 |
+| `dev/` | 开发 home 与 profile patch（运行残留 gitignore） | 环境问题动这里（启动/调试手册：`docs/dev.md`） |
 | `scripts/` | 机械门禁（verify / release-smoke / sync-dsh） | 门禁问题动这里 |
 | `snapshots/` | 行为回归的证据面（day 0 占位：先用测试 + 会话日志顶，见其 README） | 回归证据问题动这里 |
 
@@ -42,21 +43,10 @@ pnpm build              # tsc 出 lib/（发布物与 dsh plugin add 需要）
 pnpm release-smoke      # pnpm pack → 干净 home → dsh plugin add → 组合断言（真实安装形状）
 pnpm sync-dsh -- --tag <dsh-tag>   # 换 submodule tag + SHA 簿记 + typecheck + 对照 docs/discipline.md 重校纪律表
 
-bash dev/setup.sh       # 一次性：建 dev（web）+ dev-task（headless）两个 profile + link 装插件 + roster 指向 repo
+bash dev/setup.sh       # 幂等：建 dev（web）+ dev-task（headless）两个 profile + link 装插件 + roster 指向 repo（两者为何不能合一：`docs/dev.md` §四）
 pnpm dsh --profile dev-task "one task"  # one-shot = **host 面冒烟**（headless 不进 preset，vendor 明文契约）
 pnpm dsh --profile dev --port 0    # Web UI；**preset 行为（三工具/persona/摘要）在这里的会话里验**
 ```
-
-**两个解析门面，别混**：`tsconfig.base.json` 是**编译期**门面（只列我们直接 import 的包，
-每个配 project reference，避免把 DSH 源码并进本程序撞 `rootDir`）；
-`tsconfig.tsx.json` 是**运行期**门面（全量别名，`pnpm dsh` 靠它让 tsx 加载 DSH 的 `src`
-而不是未构建的 `lib/index.js`）。它由 `pnpm gen-paths` 生成，`pnpm verify` 检查不过期。
-
-**dev/dev-task 两个 profile**：`dev` 从 **web 模板**建（preset roster 行只在 web-app bundle 里），
-跑 Web UI；`dev-task` 从 **headless 模板**建，跑 one-shot —— 两者不能合一（web-app 与 headless
-都 insert `id: code-runtime`，同 profile 必撞 duplicate id）。dev-task 的 roster 由
-`dev/profile-patch-headless.yml` 用 insert 语义补进来。`dev/setup.sh` 已把这些顺序写死。
-启动/调试/隔离的完整手册：`docs/dev.md`。
 
 ## 五条硬规则
 
