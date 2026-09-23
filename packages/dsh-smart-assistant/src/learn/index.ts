@@ -100,6 +100,19 @@ const OUTPUT = {
         },
       },
     },
+    audit_findings: {
+      type: 'array',
+      required: true,
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          code: { type: 'string', required: true },
+          severity: { type: 'string', required: true },
+          message: { type: 'string', required: true },
+        },
+      },
+    },
     skill_path: { type: 'string', required: true },
   },
 } as const
@@ -114,6 +127,7 @@ interface ReflectOutput {
   open_threads: string[]
   shadowed_skills: { name: string, provider: string }[]
   skill_usage: { name: string, count: number, last_used?: string }[]
+  audit_findings: { code: string, severity: string, message: string }[]
   skill_path: string
 }
 
@@ -147,6 +161,12 @@ function render(_args: unknown, value: ReflectOutput): { type: 'text', text: str
     const parts = value.skill_usage.map(skill =>
       skill.count === 0 ? `${skill.name} never loaded` : `${skill.name}×${skill.count}`)
     lines.push(`Skill usage: ${parts.join(', ')}.`)
+  }
+  if (value.audit_findings.length > 0) {
+    lines.push(
+      'Audit findings on what was just written (fix them in this turn, or the skill stays broken):',
+      ...value.audit_findings.map(finding => `- ${finding.severity}: ${finding.message}`),
+    )
   }
   if (value.skill_path.length > 0) lines.push(`Written: ${value.skill_path}`)
   return [{ type: 'text', text: lines.join('\n') }]
@@ -207,6 +227,7 @@ export function apply(ctx: Context): void {
         open_threads: [],
         shadowed_skills: [],
         skill_usage: [],
+        audit_findings: [],
         skill_path: '',
       }
       switch (action) {
@@ -303,8 +324,15 @@ export function apply(ctx: Context): void {
           })
           return {
             ...empty,
-            summary: `Wrote skill "${written.name}"; it is loadable now.`,
+            summary: written.findings.length > 0
+              ? `Wrote skill "${written.name}"; the post-write audit found ${written.findings.length} problem(s):`
+              : `Wrote skill "${written.name}"; it is loadable now.`,
             skill_path: written.path,
+            audit_findings: written.findings.map(finding => ({
+              code: finding.code,
+              severity: finding.severity,
+              message: finding.message,
+            })),
           }
         }
         case 'retire_skill': {

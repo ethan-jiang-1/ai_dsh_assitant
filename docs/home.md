@@ -75,6 +75,8 @@ learn 模块的 `tools/result` 订阅就给对应名字计数（用户 `/name` �
 | 同名遮蔽 | 学到技能的名字被注册表判给其他 provider（`skill-shadowed`，探自 curate 所在会话的技能注册表） | `save_skill` 说成功、文件也在家，但**永不加载**——静默失联 |
 | 技能过期（stale） | 超过 `staleSkillDays`（默认 30 天）未被加载（`skill-stale`，info） | 死技能是目录重；先报候选，去留归 agent |
 | 技能可退役 | 超过 `retireSkillDays`（默认 90 天）未被加载（`skill-retirable`，warn） | 每个技能的 name+description 都在目录里占常驻上下文——死技能每请求都在付费；年龄锚点=账本 `lastUsedAt`，从未加载的用 `learnedAt` |
+| 技能引用完整性 | SKILL.md 里的相对指针（markdown 链接 / `references/` 反引号路径）指向不存在的文件（`skill-broken-reference`，warn；**save_skill 写完即审**，结果里即时注入，不阻断） | 未来会话顺着指针走会撞墙 |
+| 技能凭据泄漏 | 技能文本里有疑似活凭据（私钥块/AKIA/sk-/gh_/`api_key:` 式长赋值）（`skill-credential-leak`，warn） | 写入面即攻击面（ClawHavoc 教训）：技能是会到处走的纯文件 |
 | 用量账本可读性 | `skill-usage.json` 存在但解析不了 | 静默读零会误导退役决策 |
 
 简报同时附带**技能用量数据面**（不是 finding）：每个学到技能的加载次数与最近使用（最少用在前）——

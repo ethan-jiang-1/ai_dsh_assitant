@@ -40,7 +40,7 @@
 | 1a | 用量统计 | 技能被加载次数/最近使用进 curate 与 brief——一切退役与延后判据的数据面 ✅ implemented（`notes/implemented/2026-09-24-skill-usage-stats.md`：家根 `skill-usage.json` 账本 + learn 模块 `tools/result` 订阅 + curate/brief 双面回显） | R2 §9.3-1 |
 | 1b | 遮蔽可见性 | 同名遮蔽从 logger warn 升为模型可见（D3 已定：curate finding + brief 节）✅ implemented（`notes/implemented/2026-09-24-skill-shadow-visibility.md`：问注册表不复演规则——agent 面探 `ctx.skills.snapshot` join 房间扫描，`skill-shadowed` warn finding + brief `shadowed_skills` 节） | R2 §9.3-2、§5.4 |
 | 1c | 阈值退役 | 30d 未用→stale、90d→archived（D4 已定，配置行可调；归档=移出 provider 扫描目录，不删，可恢复）✅ implemented（`notes/implemented/2026-09-24-skill-retirement.md`：双档 finding + `retire_skill` 出口动词 + `skills/archive/` 布局；年龄锚点=账本 lastUsedAt 优先、learnedAt 兜底；不自动归档——检测归代码、动作归 agent） | R2 §9.3-3 |
-| 1d | 写后审计 | 引用完整性 + 凭据检查（写时校验已挡 frontmatter，审计增量在引用与凭据） | R2 §9.3-4 |
+| 1d | 写后审计 | 引用完整性 + 凭据检查（写时校验已挡 frontmatter，审计增量在引用与凭据）✅ implemented（`notes/implemented/2026-09-24-skill-post-write-audit.md`：`skill-broken-reference`/`skill-credential-leak` 双 finding，save_skill 写完即审注入 + curate 常驻并档，不阻断；scan/audit 共享枚举） | R2 §9.3-4 |
 | 1e | I14 节拍器 | curate 从被动变主动——决策已在 `notes/proposed/2026-09-23-iteration-rhythm.md`（b 层 host 节拍器为主，a 层纪律垫底） | 该 note |
 | 1f | skills/ 快照 | 最轻回滚兜底（时间戳快照或 git init，三样板任选） | R2 §9.3-7 |
 | 1g | 格式对齐 spec 小步 | learned 技能补 `license`/`compatibility`（可空）——吃 Agent Skills 标准红利的小步 | R2 §9.3-6 |

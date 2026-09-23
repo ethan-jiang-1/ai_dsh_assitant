@@ -14,7 +14,7 @@
  */
 
 import { mkdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import { Context, Service } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import type Schema from '@deepseek-ai/schemastery'
@@ -22,7 +22,7 @@ import { expandHomePath, resolveDshHome } from '@deepseek-ai/dsh-home-paths'
 import type {} from '@deepseek-ai/dsh-host-webserver'
 import { renderDigest, type DigestResult } from './home/digest.ts'
 import { parseFrontmatterDocument, renderFrontmatterDocument } from './home/frontmatter.ts'
-import { curateHome, type CurationBrief } from './home/health.ts'
+import { compareFindings, curateHome, type CurationBrief, type CurationFinding } from './home/health.ts'
 import { HOME_MAP_BLURB } from './home/home-map.ts'
 import { HOME_DIRECTORY_NAME, homePaths, scaffoldHome, type HomePaths, type ScaffoldResult } from './home/layout.ts'
 import { Room, type RoomEntry, type RoomReadFailure } from './home/room.ts'
@@ -44,6 +44,7 @@ import {
   type ResearchThread,
 } from './research/thread.ts'
 import { scanLearnedSkills } from './skills/scan.ts'
+import { auditLearnedSkill, auditSkillsRoom } from './skills/audit.ts'
 import { writeLearnedSkill, isSkillName, SKILL_FILE_NAME, type SkillDraft } from './skills/skill-file.ts'
 import {
   readSkillUsage,
@@ -511,7 +512,7 @@ export class AssistantMemory extends Service {
       ...threads.archived.map(thread => thread.id),
     ]
     const archivedSet = new Set(archivedIds)
-    return curateHome({
+    const brief = curateHome({
       memories: memories.entries,
       threads: threads.entries,
       memoryFailures: memories.failures,
@@ -529,18 +530,34 @@ export class AssistantMemory extends Service {
       retireSkillDays: this.retireSkillDays,
       now: new Date(),
     })
+    // Post-write audit findings join the brief: the pure room check and the content audit are
+    // two passes over the same home, and the model should read one brief.
+    const audit = await auditSkillsRoom(this.paths.skillsDir)
+    return {
+      ...brief,
+      findings: [...brief.findings, ...audit].sort(compareFindings),
+    }
   }
 
   /**
-   * Write a skill the agent learned into the home's skills room.
+   * Write a skill the agent learned into the home's skills room, then audit what was written.
+   * The write-time contract check refuses an unusable frontmatter shape; the audit covers the two
+   * ways a well-formed skill still fails a future session (broken relative pointers, credential
+   * shapes). Findings ride the return value — reported, never blocking.
    * @param draft - Validated skill draft; provenance is stamped automatically.
-   * @returns The written bundle's name and path.
+   * @returns The written bundle's name, path, and post-write audit findings.
    */
-  async writeSkill(draft: Omit<SkillDraft, 'learnedAt'>): Promise<{ name: string, path: string }> {
+  async writeSkill(
+    draft: Omit<SkillDraft, 'learnedAt'>,
+  ): Promise<{ name: string, path: string, findings: readonly CurationFinding[] }> {
     await this.ensureHome()
     const written = await writeLearnedSkill(this.paths.skillsDir, { ...draft, learnedAt: new Date().toISOString() })
+    const text = await readFile(written.path, 'utf8').catch(() => undefined)
+    const findings = text === undefined
+      ? []
+      : await auditLearnedSkill(written.name, dirname(written.path), text)
     this.touch()
-    return written
+    return { ...written, findings }
   }
 
   /**

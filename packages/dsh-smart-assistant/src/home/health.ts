@@ -32,6 +32,8 @@ export type FindingCode =
   | 'skill-shadowed'
   | 'skill-stale'
   | 'skill-retirable'
+  | 'skill-broken-reference'
+  | 'skill-credential-leak'
 
 /** One thing worth a human's or the agent's attention. */
 export interface CurationFinding {
@@ -112,6 +114,20 @@ export interface CurationBrief {
     readonly digestBytes: number
     readonly digestMaxBytes: number
   }
+}
+
+/**
+ * Order findings warns-first, stably — the curation brief and the post-write audit both sort with
+ * this, so merged lists keep one order everywhere.
+ * @param left - One finding.
+ * @param right - The other finding.
+ * @returns Negative when `left` should come first.
+ */
+export function compareFindings(
+  left: CurationFinding,
+  right: CurationFinding,
+): number {
+  return left.severity === right.severity ? 0 : left.severity === 'warn' ? -1 : 1
 }
 
 const NEAR_DUPLICATE_THRESHOLD = 0.6
