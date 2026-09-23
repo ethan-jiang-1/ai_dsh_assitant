@@ -1,6 +1,6 @@
 # 提案：live 验证战役 —— 清 I1–I13 挡板，开首批研究线索
 
-日期：2026-09-23 · 状态：**proposed（环境已全绿，等拍板开跑；Web UI 会话操作需要人）**
+日期：2026-09-23 · 状态：**running（同日拍板开跑。步骤 0 已过、步骤 1 一号悬案已预答 —— 见文末"开跑补记"；Web UI 会话操作需要人）**
 
 ## 问题与现状（2026-09-23 实查取证）
 
@@ -68,3 +68,16 @@
 
 intents.md I1–I13 逐条 implemented 且带证据指针；repo-structure note ⏳ 清账或登记后延；
 I14 拿到第一批使用数据；R1/R2 两条线索开进家的 research/ 房间。
+
+## 开跑补记（2026-09-23 同日）
+
+- **步骤 0 已过**：`pnpm verify` 15/15、`pnpm build` 绿（tsc -b 幂等，lib/ 与 HEAD 一致），
+  one-shot 冒烟绿（会话 `1a140ee6`：boot 通、真 turn 完成、无凭据错误、启动器 DSH_HOME
+  强制覆盖生效）。
+- **步骤 1 一号悬案预答**：session `7c75c86c`（19:29）**是 one-shot 错门，不是 web 会话 bug**
+  ——证据：其 agent 工具表为裸 agent 基础集（bash / create_goal / ralph / subagent…，
+  无任何 assistant 工具）；session 事件 `preset=None`，对照 13:55 的 web 会话壳
+  `e0ac2cf8` 记录了 `agentPreset: "assistant"`（壳从未对话）。因此 preset 接线已实证到
+  **会话创建时挂载**，未验的只剩"真实对话里的行为面"。晚间 19:12/19:20/19:29 三次验证
+  尝试全走 one-shot（vendor 契约：one-shot 不进 preset），非产品缺陷。
+- 由此步骤 1 的"分辨两种情形"已完成，直接验新 web 会话是否默认挂 assistant 即可。
