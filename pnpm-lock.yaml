@@ -52,6 +52,9 @@ importers:
       '@deepseek-ai/dsh-brand':
         specifier: workspace:^
         version: link:../../vendor/dsh/packages/util/brand
+      '@deepseek-ai/dsh-goal':
+        specifier: workspace:^
+        version: link:../../vendor/dsh/packages/goal/goal
       '@deepseek-ai/dsh-home-paths':
         specifier: workspace:^
         version: link:../../vendor/dsh/packages/util/home-paths

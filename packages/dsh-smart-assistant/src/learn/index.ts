@@ -54,6 +54,11 @@ const DESCRIPTION = [
   '  Sources are required — cite where the knowledge came from (memory:<id>, research:<id>, a',
   '  URL, a repo path). Link pages with [[wikilinks]]. Pinning a page into memory is',
   '  `assistant_memory save` with source knowledge:<page-id>; that is the whole bridge.',
+  '- propose_skill: propose a skill into the review inbox (skill-proposals/) — it does NOT enter',
+  '  your skills until a person approves the proposal by editing its status and you run land_skill.',
+  '  Proposing an existing name revises it (revision bumps, text replaces).',
+  '- land_skill: write an approved proposal into the skills room. Only after a person flipped',
+  '  the proposal\'s status to approved — that edit is the review.',
   '"Nothing durable came out of this session" is a correct result. Load the `self-reflection` skill',
   'before reflecting.',
 ].join('\n')
@@ -92,6 +97,19 @@ const OUTPUT = {
         },
       },
     },
+    pending_proposals: {
+      type: 'array',
+      required: true,
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          name: { type: 'string', required: true },
+          status: { type: 'string', required: true },
+          revision: { type: 'integer', required: true },
+        },
+      },
+    },
     skill_usage: {
       type: 'array',
       required: true,
@@ -122,6 +140,7 @@ const OUTPUT = {
     snapshot_path: { type: 'string', required: true },
     page_id: { type: 'string', required: true },
     page_path: { type: 'string', required: true },
+    proposal_status: { type: 'string', required: true },
   },
 } as const
 
@@ -134,12 +153,14 @@ interface ReflectOutput {
   related_memories: string[]
   open_threads: string[]
   shadowed_skills: { name: string, provider: string }[]
+  pending_proposals: { name: string, status: string, revision: number }[]
   skill_usage: { name: string, count: number, last_used?: string }[]
   audit_findings: { code: string, severity: string, message: string }[]
   skill_path: string
   snapshot_path: string
   page_id: string
   page_path: string
+  proposal_status: string
 }
 
 function flatten(text: string): string {
@@ -166,6 +187,13 @@ function render(_args: unknown, value: ReflectOutput): { type: 'text', text: str
       'Shadowed skills (will never load — rename and retire them before saving a skill with '
       + 'one of these names):',
       ...value.shadowed_skills.map(skill => `- ${skill.name} (shadowed by provider ${skill.provider})`),
+    )
+  }
+  if (value.pending_proposals.length > 0) {
+    lines.push(
+      'Pending skill proposals (in the review inbox — propose revisions by name, never save_skill over them):',
+      ...value.pending_proposals.map(proposal =>
+        `- ${proposal.name} (r${String(proposal.revision)}, ${proposal.status})`),
     )
   }
   if (value.skill_usage.length > 0) {
@@ -221,7 +249,7 @@ export function apply(ctx: Context): void {
     name: 'assistant_reflect',
     description: DESCRIPTION,
     parameters: {
-      action: { type: 'string', required: true, enum: ['brief', 'save_skill', 'retire_skill', 'save_page'], description: 'brief | save_skill | retire_skill | save_page' },
+      action: { type: 'string', required: true, enum: ['brief', 'save_skill', 'retire_skill', 'save_page', 'propose_skill', 'land_skill'], description: 'brief | save_skill | retire_skill | save_page | propose_skill | land_skill' },
       name: { type: 'string', description: 'save_skill | retire_skill: kebab-case skill name; also its directory name.' },
       description: { type: 'string', description: 'save_skill: when to load it — the only text a future session sees first. save_page: one-line page summary.' },
       when_to_use: { type: 'string', description: 'save_skill: extra trigger guidance.' },
@@ -249,12 +277,14 @@ export function apply(ctx: Context): void {
         related_memories: [],
         open_threads: [],
         shadowed_skills: [],
+        pending_proposals: [],
         skill_usage: [],
         audit_findings: [],
         skill_path: '',
         snapshot_path: '',
         page_id: '',
         page_path: '',
+        proposal_status: '',
       }
       switch (action) {
         case 'brief': {
@@ -323,6 +353,11 @@ export function apply(ctx: Context): void {
             count: line.count,
             ...(line.lastUsedAt !== undefined ? { last_used: line.lastUsedAt } : {}),
           }))
+          // The proposal inbox belongs in the evidence: what is waiting on a person.
+          const inbox = await ctx.assistantMemory.listProposals()
+          const pending = inbox.entries
+            .filter(proposal => proposal.status === 'proposed' || proposal.status === 'approved')
+            .map(proposal => ({ name: proposal.id, status: proposal.status, revision: proposal.revision }))
           return {
             ...empty,
             summary: asks.length === 0 && toolCalls.length === 0
@@ -334,6 +369,7 @@ export function apply(ctx: Context): void {
             related_memories: related.map(hit => `${hit.record.text} (${hit.record.id}; ${hit.why.join(', ')})`),
             open_threads: openThreads.map(thread => `${thread.question} (${thread.id})`),
             shadowed_skills: shadowedItems,
+            pending_proposals: pending,
             skill_usage: usageItems,
           }
         }
@@ -402,6 +438,35 @@ export function apply(ctx: Context): void {
               severity: finding.severity,
               message: finding.message,
             })),
+          }
+        }
+        case 'propose_skill': {
+          if (args.name === undefined || args.description === undefined || args.body === undefined) {
+            throw new Error('assistant_reflect propose_skill requires name, description, and body')
+          }
+          const proposal = await ctx.assistantMemory.proposeSkill({
+            name: args.name,
+            description: args.description,
+            ...(args.when_to_use !== undefined ? { whenToUse: args.when_to_use } : {}),
+            body: args.body,
+            ...(exec.agent !== undefined ? { source: String(exec.agent.session.id) } : {}),
+          })
+          return {
+            ...empty,
+            summary: `Proposed skill "${proposal.id}" (revision ${String(proposal.revision)}) into the review inbox — `
+              + 'it does not load until a person approves the proposal and it is landed.',
+            proposal_status: `proposed r${String(proposal.revision)}`,
+          }
+        }
+        case 'land_skill': {
+          if (args.name === undefined || args.name.trim().length === 0) {
+            throw new Error('assistant_reflect land_skill requires name')
+          }
+          const landed = await ctx.assistantMemory.landSkill(args.name)
+          return {
+            ...empty,
+            summary: `Landed approved proposal "${landed.name}" into the skills room; it is loadable now.`,
+            skill_path: landed.path,
           }
         }
         /* v8 ignore next 2 -- the enum in the parameter schema admits only the cases above */

@@ -63,6 +63,13 @@ const DRIVE_POLL_MS = 250
 /** No session-log movement for this long means nothing is driving the session anymore. */
 const STALL_MS = 30_000
 
+/** After the goal settles, wait this long for quiet before exiting — turns queued around the
+ * completion boundary (the skill-proposal slot) get their turn inside this window. */
+const QUIET_MS = 5_000
+
+/** Upper bound on the post-settlement grace window. */
+const GRACE_MS = 20_000
+
 function delay(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
@@ -72,6 +79,8 @@ function delay(ms: number): Promise<void> {
  * turn settles (a durability checkpoint sits between), so agent quiescence is not the end of a
  * goal-driven session. Wait until the goal leaves the active phase, or until the session log
  * stops moving — a stall means nothing is driving the session and the run is over either way.
+ * After settlement, a quiet window lets boundary turns (a completed goal queues the proposal
+ * slot) run to completion before the process exits.
  * @param ctx - Plugin context, for the optional goal service.
  * @param agent - The run's agent.
  */
@@ -88,7 +97,7 @@ async function awaitGoalSettlement(ctx: Context, agent: Agent): Promise<void> {
     } catch {
       return // the agent is no longer the registry's live instance — nothing to wait for
     }
-    if (!active) return
+    if (!active) break
     await agent.whenIdle()
     await delay(DRIVE_POLL_MS)
     const seq = agent.session.seq
@@ -96,6 +105,20 @@ async function awaitGoalSettlement(ctx: Context, agent: Agent): Promise<void> {
       lastSeq = seq
       lastMove = Date.now()
     } else if (Date.now() - lastMove > STALL_MS) {
+      return
+    }
+  }
+  // Grace: turns queued around the completion boundary still deserve their run.
+  const deadline = Date.now() + GRACE_MS
+  let quiet = Date.now()
+  while (Date.now() < deadline) {
+    await agent.whenIdle()
+    await delay(DRIVE_POLL_MS)
+    const seq = agent.session.seq
+    if (seq !== lastSeq) {
+      lastSeq = seq
+      quiet = Date.now()
+    } else if (Date.now() - quiet > QUIET_MS) {
       return
     }
   }

@@ -42,6 +42,8 @@ export type FindingCode =
   | 'page-orphan'
   | 'page-stale'
   | 'page-draft-stale'
+  | 'proposal-awaiting-land'
+  | 'proposal-stale'
 
 /** One thing worth a human's or the agent's attention. */
 export interface CurationFinding {

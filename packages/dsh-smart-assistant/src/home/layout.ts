@@ -28,6 +28,9 @@ export const SKILLS_ROOM = 'skills'
 /** Room holding domain knowledge: concept, entity, and source pages that interlink. */
 export const KNOWLEDGE_ROOM = 'knowledge'
 
+/** Directory holding skill proposals: drafts awaiting human review, one `<name>.md` per name. */
+export const SKILL_PROPOSALS_DIRECTORY_NAME = 'skill-proposals'
+
 /** Subdirectory holding entries that left a room's active set. */
 export const ARCHIVE_DIRECTORY_NAME = 'archive'
 
@@ -59,6 +62,8 @@ export interface HomePaths {
    * so links keep resolving — retirement is a frontmatter status, not a move.
    */
   readonly knowledgeDir: string
+  /** Skill proposals: one `<name>.md` per proposed name, awaiting human review. */
+  readonly skillProposalsDir: string
 }
 
 /**
@@ -81,6 +86,7 @@ export function homePaths(root: string): HomePaths {
     skillsDir,
     skillsArchiveDir: join(skillsDir, ARCHIVE_DIRECTORY_NAME),
     knowledgeDir: join(root, KNOWLEDGE_ROOM),
+    skillProposalsDir: join(root, SKILL_PROPOSALS_DIRECTORY_NAME),
   }
 }
 
@@ -117,6 +123,7 @@ export async function scaffoldHome(paths: HomePaths): Promise<ScaffoldResult> {
     paths.skillsDir,
     paths.skillsArchiveDir,
     paths.knowledgeDir,
+    paths.skillProposalsDir,
   ]
   const createdDirectories: string[] = []
   for (const directory of directories) {

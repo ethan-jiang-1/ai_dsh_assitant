@@ -21,8 +21,9 @@
 │   ├── <name>/SKILL.md
 │   ├── archive/<name>/SKILL.md #   退役的（移出 provider 扫描、不删、可恢复）
 │   └── archive/snapshots/      #   覆盖写入前的旧版快照（每名留最新 3 份，手复制回去即恢复）
-└── knowledge/                  # 房间四：领域知识（[[互链]] 页面，OKF 字段子集）
-    └── <id>.md                 #   deprecated 页留在原地——链接必须继续解析
+├── knowledge/                  # 房间四：领域知识（[[互链]] 页面，OKF 字段子集）
+│   └── <id>.md                 #   deprecated 页留在原地——链接必须继续解析
+└── skill-proposals/            # 技能提案收件箱（<name>.md，等人工评审；不是房间，是暂存区）
 ```
 
 **一个房间一个职责**，不许混：事实进 `memory/`，未决的线索进 `research/`，可复用的做法进 `skills/`。
@@ -62,6 +63,18 @@ learn 模块的 `tools/result` 订阅就给对应名字计数（用户 `/name` �
   provenance 指针即链接，重复 pin 撞近似重复检查。
 - **research 出口**：`promote` 的 `promoted_to` 可指知识页 id（先写页再 promote）。
 
+**技能怎么提案（propose-only，触发演进的落点）**：
+- **提案**：`assistant_reflect action=propose_skill` → `skill-proposals/<name>.md`
+  （status: proposed；同名重提=改稿，revision 递增、正文替换——审批永远绑定批准时刻的
+  文件内容）；**不碰技能房间**。
+- **人审**：手改提案文件的 `status: approved / rejected`（与知识 draft 同构——编辑即评审）。
+- **落地**：`assistant_reflect action=land_skill`——仅接受 approved 的提案，写进 skills/
+  并盖 provenance `proposal:<name>#r<N>`；提案本体记 `landed` 留尸体。rejected/landed 后
+  可重新提案（新一轮评审）。
+- **触发**：goal 完成时自动排一个**提案槽**（plugin 源消息，propose-only 指令；
+  `goalProposalTurns` 可关）。**全自动蒸馏维持延后**（判据不变：用量统计显示收益>成本）；
+  brief 报待审提案，curate 报 approved-待落地与提案老化。
+
 ## 三、桌面与抽屉（信噪比）
 
 - **桌面**（常驻上下文，`assistant-memory-digest` 段落，**有界** `digestMaxBytes`）：
@@ -97,6 +110,8 @@ learn 模块的 `tools/result` 订阅就给对应名字计数（用户 `/name` �
 | 知识孤页 | stable 页无入链无出链（`page-orphan`，info） | 房间图导航不到的孤岛 |
 | 知识过期 | `staleAfter` 已过（`page-stale`，info）/ draft 超过 30 天未审（`page-draft-stale`，info） | 机器先发现，到期该复审 |
 | 知识无源 | stable 页无 `sources`（`page-unproven`，warn） | 无源知识冒充已确立——"无 sources 不进 stable" |
+| 提案待落地 | 提案 status=approved 但未 land（`proposal-awaiting-land`，info） | 决定已做未执行——跑 land_skill 收口 |
+| 提案老化 | 提案超过 30 天无人处置（`proposal-stale`，info） | 决定悬着没人做——人改 status 挑出口 |
 | 技能凭据泄漏 | 技能文本里有疑似活凭据（私钥块/AKIA/sk-/gh_/`api_key:` 式长赋值）（`skill-credential-leak`，warn） | 写入面即攻击面（ClawHavoc 教训）：技能是会到处走的纯文件 |
 | 用量账本可读性 | `skill-usage.json` 存在但解析不了 | 静默读零会误导退役决策 |
 

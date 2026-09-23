@@ -1,6 +1,6 @@
 # 提案（草稿）：三线合流——治理环 · 第四房间 knowledge/ · 触发演进
 
-日期：2026-09-24 · 状态：**proposed（方案已定）——同日用户 review 完成并拍板：D0/D1/D10 三题全 A，参数级 D2–D9 按推荐定值；阶段 1 切片待开工**
+日期：2026-09-24 · 状态：**已全部实施完毕（2026-09-24）——阶段 1（1a–1h）、阶段 2（2a–2f）、阶段 3（3a–3c）全部 implemented 带证据指针；延后项见 §六，触发条件不变**
 
 > 依据：三线研究（R1 记忆 / R2 技能成长 / R3 知识层）已入档并亲验。本文只做合流：
 > 分阶段路线 + 决策点 + 尸体清单。判据对照、借用清单、淘汰理由全在报告内，本文只引用不复述。
@@ -58,13 +58,16 @@
    memory↔knowledge 走 promote/pin 两条显式操作（D8 已定）；**自动产出走 staged draft**（status: draft 不参与召回，人审才 stable）✅ `notes/implemented/2026-09-24-knowledge-write-path.md`（桥落成 provenance 惯例，登记解释；draft→stable=手改文件即人审）；
 6. docs/home.md 契约更新 + 本 note 状态翻 implemented，同 diff ✅（docs/home.md 四房间合同 + I15 翻 implemented；live E2E `session-d417555d` 七步逐字在案）。
 
-### 阶段 3 · 触发演进一格：手动 → 建议+人审（propose-only）
+### 阶段 3 · 触发演进一格：手动 → 建议+人审（propose-only）✅ 全部 implemented（2026-09-24）
 
 | # | 切片 | 一句话 | 素材 |
 |---|---|---|---|
-| 3a | 批量边界检测 | 会话空闲/有界批次边界时检测可复用经验——DSH 零件齐备（sessionQuery + llm.stream + timer） | R2 §9.3-5、§5.2 garvel |
-| 3b | 草稿收件箱 | 候选不落房间、进待审区；不可变版本链；改稿=新版本，旧批准失效；批准才 save_skill | R2 §5.2 run2skill |
-| 3c | 默认 propose-only | 生态最谨慎同款（dsh-enhanced growth-experiments 默认值）；全自动蒸馏维持延后 | R2 §6、§9.3-5 |
+| 3a | 批量边界检测 | 会话空闲/有界批次边界时检测可复用经验——DSH 零件齐备（sessionQuery + llm.stream + timer）✅ 落为 goal 完成边界触发提案槽（`goal/changed` complete → plugin 源提案 turn，`goalProposalTurns` 可关；全自动蒸馏零件继续不用——延后判据不变） | R2 §9.3-5、§5.2 garvel |
+| 3b | 草稿收件箱 | 候选不落房间、进待审区；不可变版本链；改稿=新版本，旧批准失效；批准才 save_skill ✅ `skill-proposals/` 收件箱 + propose_skill/land_skill；版本链=revision 计数器（审批绑定批准时刻内容，等效实现并登记解释）；人审=手改 status；悬批下拒绝改稿 | R2 §5.2 run2skill |
+| 3c | 默认 propose-only | 生态最谨慎同款（dsh-enhanced growth-experiments 默认值）；全自动蒸馏维持延后 ✅ 提案槽只教 propose_skill；save_skill 保留为手动通道；brief/curate 报收件箱状态 | R2 §6、§9.3-5 |
+
+全阶段档案：`notes/implemented/2026-09-24-proposal-inbox.md`（live E2E `session-138b867f`
+提案→人审→落地逐字在案，模型无自批路径）。
 
 ### 顺序论证（为什么 1→2→3）
 

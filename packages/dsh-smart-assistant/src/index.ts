@@ -20,6 +20,10 @@ import z from '@deepseek-ai/schemastery'
 import type Schema from '@deepseek-ai/schemastery'
 import { expandHomePath, resolveDshHome } from '@deepseek-ai/dsh-home-paths'
 import type {} from '@deepseek-ai/dsh-host-webserver'
+// Type-only: the goal package declares the 'goal/changed' event and the 'goal' message source
+// kind in the cordis Events / llm MessageSourceMap merges — the proposal slot listens to the
+// event, so the augmentation must be in the program.
+import type {} from '@deepseek-ai/dsh-goal'
 import { createUserMessage } from '@deepseek-ai/dsh-llm'
 import { renderDigest, type DigestResult } from './home/digest.ts'
 import { parseFrontmatterDocument, renderFrontmatterDocument } from './home/frontmatter.ts'
@@ -51,7 +55,13 @@ import {
 import { scanLearnedSkills } from './skills/scan.ts'
 import { auditLearnedSkill, auditSkillsRoom, auditSkillCredentials } from './skills/audit.ts'
 import { snapshotExistingSkill } from './skills/snapshot.ts'
-import { writeLearnedSkill, isSkillName, SKILL_FILE_NAME, type SkillDraft } from './skills/skill-file.ts'
+import {
+  proposalFromEntry,
+  proposalToDocument,
+  renderProposalPrompt,
+  type SkillProposal,
+} from './skills/proposal.ts'
+import { writeLearnedSkill, validateSkillDraft, isSkillName, SKILL_FILE_NAME, type SkillDraft } from './skills/skill-file.ts'
 import {
   readSkillUsage,
   recordSkillLoad,
@@ -83,6 +93,8 @@ export interface Config {
   retireSkillDays?: number
   /** Goal rounds between maintenance slots; values below 1 disable the metronome. */
   maintenanceEveryRounds?: number
+  /** Whether a completed goal queues a skill-proposal slot (propose-only; never auto-lands). */
+  goalProposalTurns?: boolean
   /** Tab title the branded Web shell carries; empty string disables the branding row. */
   webTitle?: string
 }
@@ -159,6 +171,7 @@ export class AssistantMemory extends Service {
     staleSkillDays: z.number().step(1).min(1).default(30),
     retireSkillDays: z.number().step(1).min(1).default(90),
     maintenanceEveryRounds: z.number().step(1).min(0).default(5),
+    goalProposalTurns: z.boolean().default(true),
     webTitle: z.string().default(DEFAULT_WEB_TITLE),
   })
 
@@ -176,9 +189,11 @@ export class AssistantMemory extends Service {
   private readonly staleSkillDays: number
   private readonly retireSkillDays: number
   private readonly maintenanceEveryRounds: number
+  private readonly goalProposalTurns: boolean
   private readonly memory: Room
   private readonly research: Room
   private readonly knowledge: Room
+  private readonly proposals: Room
   /**
    * Last rendered digest. Prompt sections assemble synchronously while the home is read
    * asynchronously, so the section reads this cache and a write kicks a background refresh; a cold
@@ -202,11 +217,13 @@ export class AssistantMemory extends Service {
     this.staleSkillDays = config.staleSkillDays ?? 30
     this.retireSkillDays = config.retireSkillDays ?? 90
     this.maintenanceEveryRounds = config.maintenanceEveryRounds ?? 5
+    this.goalProposalTurns = config.goalProposalTurns ?? true
     this.memory = new Room(this.paths.memoryDir, this.paths.memoryArchiveDir)
     this.research = new Room(this.paths.researchDir, this.paths.researchArchiveDir)
     // Knowledge pages never move to an archive (deprecated stays in place), so the Room's
     // archive paths are simply never used for this room.
     this.knowledge = new Room(this.paths.knowledgeDir, join(this.paths.knowledgeDir, ARCHIVE_DIRECTORY_NAME))
+    this.proposals = new Room(this.paths.skillProposalsDir, join(this.paths.skillProposalsDir, ARCHIVE_DIRECTORY_NAME))
     // Best-effort activation scaffold: a home that cannot be created is reported, never fatal —
     // the write paths call ensureHome again, so a transient failure heals on the next write.
     void this.ensureHome().catch((error: unknown) => {
@@ -255,6 +272,27 @@ export class AssistantMemory extends Service {
           fired.delete(key)
           this.ctx.logger.warn(
             `maintenance metronome could not queue a slot for agent "${String(agent.id)}": ${String(error)}`,
+          )
+        }
+        return undefined
+      })
+    }
+
+    // The proposal slot (phase 3): a completed goal is a natural batch boundary, so it queues
+    // one proposal turn — propose-only. The model proposes; a person approves by editing the
+    // proposal file's status (the same review shape as knowledge drafts); nothing auto-lands.
+    if (this.goalProposalTurns) {
+      ctx.on('goal/changed', ({ agent, change }): undefined => {
+        if (change.operation !== 'complete') return undefined
+        const proposal = createUserMessage({
+          content: [{ type: 'text', text: renderProposalPrompt() }],
+          source: { kind: 'plugin', plugin: 'dsh-smart-assistant' },
+        })
+        try {
+          agent.followup(proposal)
+        } catch (error: unknown) {
+          this.ctx.logger.warn(
+            `proposal slot could not queue for agent "${String(agent.id)}": ${String(error)}`,
           )
         }
         return undefined
@@ -547,6 +585,84 @@ export class AssistantMemory extends Service {
   }
 
   /**
+   * List skill proposals.
+   * @returns Parsed proposals and the files that failed to parse.
+   */
+  async listProposals(): Promise<RoomReadResult<SkillProposal>> {
+    const listing = await this.proposals.list()
+    return {
+      entries: listing.entries
+        .map(proposalFromEntry)
+        .filter((proposal): proposal is SkillProposal => proposal !== undefined),
+      failures: listing.failures,
+    }
+  }
+
+  /**
+   * Propose a skill (or revise an existing proposal of the same name): the entry side of the
+   * governance gate. The proposal lands in the inbox for a person to review — it does not touch
+   * the skills room. Re-proposing a name bumps the revision and replaces the text, so an
+   * approval always binds to the content in the file at approval time.
+   * @param input - The proposed skill, validated by the same contract as `save_skill`.
+   * @returns The written proposal.
+   * @throws when the draft violates the skill contract, or an approved proposal of that name is
+   * already waiting to land (revise nothing behind a pending approval).
+   */
+  async proposeSkill(input: Omit<SkillDraft, 'learnedAt'> & { readonly source?: string }): Promise<SkillProposal> {
+    const problems = validateSkillDraft(input)
+    if (problems.length > 0) throw new Error(`skill proposal rejected: ${problems.join('; ')}`)
+    await this.ensureHome()
+    const existing = await this.proposals.read(input.name)
+    const previous = existing === undefined ? undefined : proposalFromEntry(existing)
+    if (previous?.status === 'approved') {
+      throw new Error(`proposal "${input.name}" is approved and waiting to land — land it or reject it before proposing again`)
+    }
+    const now = new Date().toISOString()
+    const proposal: SkillProposal = {
+      id: input.name,
+      status: 'proposed',
+      revision: (previous?.revision ?? 0) + 1,
+      description: input.description.trim(),
+      ...(input.whenToUse !== undefined ? { whenToUse: input.whenToUse.trim() } : {}),
+      created: previous?.created ?? now,
+      updated: now,
+      ...(input.source !== undefined && input.source.length > 0 ? { source: input.source } : {}),
+      body: input.body,
+    }
+    const document = proposalToDocument(proposal)
+    await this.proposals.write(proposal.id, document.data, document.body)
+    this.touch()
+    return proposal
+  }
+
+  /**
+   * Land an approved proposal into the skills room. The approval itself is a hand edit of the
+   * proposal file's `status` — this method only materializes what a person already approved,
+   * and stamps the landed skill's provenance with the proposal revision it came from.
+   * @param name - Proposal (and skill) name.
+   * @returns The written bundle's name and path.
+   * @throws when no proposal has that name, or its status is not `approved`.
+   */
+  async landSkill(name: string): Promise<{ name: string, path: string }> {
+    const entry = await this.proposals.read(name)
+    const proposal = entry === undefined ? undefined : proposalFromEntry(entry)
+    if (proposal === undefined) throw new Error(`no skill proposal "${name}" in the inbox`)
+    if (proposal.status !== 'approved') {
+      throw new Error(`proposal "${name}" is ${proposal.status}, not approved — the approval is a hand edit of its status field`)
+    }
+    const written = await this.writeSkill({
+      name: proposal.id,
+      description: proposal.description,
+      ...(proposal.whenToUse !== undefined ? { whenToUse: proposal.whenToUse } : {}),
+      body: proposal.body,
+      source: `proposal:${proposal.id}#r${String(proposal.revision)}`,
+    })
+    const document = proposalToDocument({ ...proposal, status: 'landed', updated: new Date().toISOString() })
+    await this.proposals.write(proposal.id, document.data, document.body)
+    return { name: written.name, path: written.path }
+  }
+
+  /**
    * Render the bounded digest.
    * @returns Digest text, its byte size, and what it contained.
    */
@@ -712,9 +828,34 @@ export class AssistantMemory extends Service {
       now: new Date(),
       staleResearchDays: this.staleResearchDays,
     })
+    // The proposal inbox is part of the home's health: an approved proposal waiting to land is
+    // a decision made and not executed; an aging proposal is a decision nobody is making.
+    const proposals = await this.listProposals()
+    const proposalFindings: CurationFinding[] = []
+    for (const proposal of proposals.entries) {
+      if (proposal.status === 'approved') {
+        proposalFindings.push({
+          code: 'proposal-awaiting-land',
+          severity: 'info',
+          message: `proposal "${proposal.id}" (r${String(proposal.revision)}) is approved and waiting to land — `
+            + 'run assistant_reflect action=land_skill to write it into the skills room',
+          refs: [proposal.id],
+        })
+      }
+      const age = (Date.now() - Date.parse(proposal.updated)) / (24 * 60 * 60 * 1000)
+      if (Number.isFinite(age) && age > this.staleResearchDays && (proposal.status === 'proposed' || proposal.status === 'approved')) {
+        proposalFindings.push({
+          code: 'proposal-stale',
+          severity: 'info',
+          message: `proposal "${proposal.id}" has sat ${String(Math.floor(age))} days in ${proposal.status} — `
+            + 'pick an exit: a person edits its status (approve/reject), or it keeps waiting',
+          refs: [proposal.id],
+        })
+      }
+    }
     return {
       ...brief,
-      findings: [...brief.findings, ...audit, ...pages].sort(compareFindings),
+      findings: [...brief.findings, ...audit, ...pages, ...proposalFindings].sort(compareFindings),
     }
   }
 

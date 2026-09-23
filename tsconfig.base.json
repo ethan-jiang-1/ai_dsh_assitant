@@ -45,6 +45,7 @@
       "@deepseek-ai/dsh-agent-default-model": ["./vendor/dsh/packages/core/agent-default-model/src"],
       "@deepseek-ai/dsh-agent-presets": ["./vendor/dsh/packages/preset/agent-presets/src"],
       "@deepseek-ai/dsh-brand": ["./vendor/dsh/packages/util/brand/src"],
+      "@deepseek-ai/dsh-goal": ["./vendor/dsh/packages/goal/goal/src"],
       "@deepseek-ai/dsh-llm": ["./vendor/dsh/packages/llm/llm/src"],
       "@deepseek-ai/dsh-session": ["./vendor/dsh/packages/core/session/src"]
     }

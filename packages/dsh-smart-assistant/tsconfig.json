@@ -48,6 +48,9 @@
       "path": "../../vendor/dsh/packages/util/brand"
     },
     {
+      "path": "../../vendor/dsh/packages/goal/goal"
+    },
+    {
       "path": "../../vendor/dsh/packages/llm/llm"
     },
     {
