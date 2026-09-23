@@ -34,13 +34,21 @@ export type FindingCode =
   | 'skill-retirable'
   | 'skill-broken-reference'
   | 'skill-credential-leak'
+  | 'page-unreadable'
+  | 'page-link-unwritten'
+  | 'page-link-ambiguous'
+  | 'page-link-deprecated'
+  | 'page-unproven'
+  | 'page-orphan'
+  | 'page-stale'
+  | 'page-draft-stale'
 
 /** One thing worth a human's or the agent's attention. */
 export interface CurationFinding {
   /** Stable kind. */
   readonly code: FindingCode
-  /** `warn` means the home is losing signal now; `info` means it will soon. */
-  readonly severity: 'warn' | 'info'
+  /** `error` means retrieval is silently wrong; `warn` means the home is losing signal now; `info` means it will soon. */
+  readonly severity: 'error' | 'warn' | 'info'
   /** One line naming the problem and the fix. */
   readonly message: string
   /** Entry ids, skill names, or file paths the finding is about. */
@@ -77,6 +85,8 @@ export interface CurationInput {
   readonly knownIds: readonly string[]
   /** Learned skill bundles found in the skills room. */
   readonly skills: readonly LearnedSkillInfo[]
+  /** Knowledge pages found in the knowledge room (headline count; the graph check runs separately). */
+  readonly knowledgePages: number
   /** The skill-usage ledger, joined against `skills` for the usage lines. */
   readonly skillUsage: SkillUsage
   /** Set when the ledger file exists but is not a valid ledger. */
@@ -113,14 +123,21 @@ export interface CurationBrief {
     readonly openThreads: number
     readonly parkedThreads: number
     readonly learnedSkills: number
+    readonly knowledgePages: number
     readonly digestBytes: number
     readonly digestMaxBytes: number
   }
 }
 
+const SEVERITY_ORDER: ReadonlyMap<CurationFinding['severity'], number> = new Map([
+  ['error', 0],
+  ['warn', 1],
+  ['info', 2],
+])
+
 /**
- * Order findings warns-first, stably — the curation brief and the post-write audit both sort with
- * this, so merged lists keep one order everywhere.
+ * Order findings errors-first then warns-first, stably — the curation brief, the post-write
+ * audit, and the knowledge graph check all sort with this, so merged lists keep one order.
  * @param left - One finding.
  * @param right - The other finding.
  * @returns Negative when `left` should come first.
@@ -129,7 +146,7 @@ export function compareFindings(
   left: CurationFinding,
   right: CurationFinding,
 ): number {
-  return left.severity === right.severity ? 0 : left.severity === 'warn' ? -1 : 1
+  return (SEVERITY_ORDER.get(left.severity) ?? 3) - (SEVERITY_ORDER.get(right.severity) ?? 3)
 }
 
 const NEAR_DUPLICATE_THRESHOLD = 0.6
@@ -352,7 +369,7 @@ export function curateHome(input: CurationInput): CurationBrief {
     }
   }
 
-  findings.sort((left, right) => (left.severity === right.severity ? 0 : left.severity === 'warn' ? -1 : 1))
+  findings.sort(compareFindings)
 
   const openThreads = input.threads.filter(thread => thread.status === 'open').length
   // Usage lines cover loadable learned skills only: a shadowed name's loads belong to the
@@ -371,6 +388,7 @@ export function curateHome(input: CurationInput): CurationBrief {
       openThreads,
       parkedThreads: input.threads.filter(thread => thread.status === 'parked').length,
       learnedSkills: input.skills.length,
+      knowledgePages: input.knowledgePages,
       digestBytes: input.digestBytes,
       digestMaxBytes: input.digestMaxBytes,
     },

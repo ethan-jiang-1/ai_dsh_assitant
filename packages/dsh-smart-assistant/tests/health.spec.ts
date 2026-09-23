@@ -46,6 +46,7 @@ function input(overrides: Partial<CurationInput> = {}): CurationInput {
     duplicatedIds: [],
     knownIds: [],
     skills: [],
+    knowledgePages: 0,
     skillUsage: {},
     shadowedSkills: {},
     digestBytes: 100,

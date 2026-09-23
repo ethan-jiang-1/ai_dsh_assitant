@@ -79,6 +79,12 @@ learn 模块的 `tools/result` 订阅就给对应名字计数（用户 `/name` �
 | 技能过期（stale） | 超过 `staleSkillDays`（默认 30 天）未被加载（`skill-stale`，info） | 死技能是目录重；先报候选，去留归 agent |
 | 技能可退役 | 超过 `retireSkillDays`（默认 90 天）未被加载（`skill-retirable`，warn） | 每个技能的 name+description 都在目录里占常驻上下文——死技能每请求都在付费；年龄锚点=账本 `lastUsedAt`，从未加载的用 `learnedAt` |
 | 技能引用完整性 | SKILL.md 里的相对指针（markdown 链接 / `references/` 反引号路径）指向不存在的文件（`skill-broken-reference`，warn；**save_skill 写完即审**，结果里即时注入，不阻断） | 未来会话顺着指针走会撞墙 |
+| 知识断链 · 未写成 | `[[链接]]` 目标不存在（`page-link-unwritten`，info） | OKF："may simply represent not-yet-written knowledge"——成长中的知识不算病 |
+| 知识断链 · 引过期 | `[[链接]]` 指向 deprecated 页（`page-link-deprecated`，warn） | 过期知识仍被当作现行引用 |
+| 知识断链 · 歧义 / 烂页 | 链接命中多个同名 title（`page-link-ambiguous`，error）；文件解析不了（`page-unreadable`，error） | 会让检索**静默**失效——error 级 |
+| 知识孤页 | stable 页无入链无出链（`page-orphan`，info） | 房间图导航不到的孤岛 |
+| 知识过期 | `staleAfter` 已过（`page-stale`，info）/ draft 超过 30 天未审（`page-draft-stale`，info） | 机器先发现，到期该复审 |
+| 知识无源 | stable 页无 `sources`（`page-unproven`，warn） | 无源知识冒充已确立——"无 sources 不进 stable" |
 | 技能凭据泄漏 | 技能文本里有疑似活凭据（私钥块/AKIA/sk-/gh_/`api_key:` 式长赋值）（`skill-credential-leak`，warn） | 写入面即攻击面（ClawHavoc 教训）：技能是会到处走的纯文件 |
 | 用量账本可读性 | `skill-usage.json` 存在但解析不了 | 静默读零会误导退役决策 |
 

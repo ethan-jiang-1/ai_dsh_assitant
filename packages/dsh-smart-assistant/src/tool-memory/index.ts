@@ -96,6 +96,7 @@ const OUTPUT = {
         openThreads: { type: 'integer', required: true },
         parkedThreads: { type: 'integer', required: true },
         learnedSkills: { type: 'integer', required: true },
+        knowledgePages: { type: 'integer', required: true },
         digestBytes: { type: 'integer', required: true },
         digestMaxBytes: { type: 'integer', required: true },
       },
@@ -127,6 +128,7 @@ interface MemoryOutput {
     openThreads: number
     parkedThreads: number
     learnedSkills: number
+    knowledgePages: number
     digestBytes: number
     digestMaxBytes: number
   }
@@ -166,6 +168,7 @@ function render(_args: { action: Action }, value: MemoryOutput): { type: 'text',
       `- counts: ${counts.activeMemories}/${counts.memories} active memories,`
       + ` ${counts.openThreads}/${counts.threads} threads open (${counts.parkedThreads} parked),`
       + ` ${counts.learnedSkills} learned skills,`
+      + ` ${counts.knowledgePages} knowledge pages,`
       + ` digest ${counts.digestBytes}/${counts.digestMaxBytes} bytes.`,
     )
   }

@@ -25,8 +25,10 @@ import { renderDigest, type DigestResult } from './home/digest.ts'
 import { parseFrontmatterDocument, renderFrontmatterDocument } from './home/frontmatter.ts'
 import { compareFindings, curateHome, type CurationBrief, type CurationFinding } from './home/health.ts'
 import { HOME_MAP_BLURB } from './home/home-map.ts'
-import { HOME_DIRECTORY_NAME, homePaths, scaffoldHome, type HomePaths, type ScaffoldResult } from './home/layout.ts'
+import { HOME_DIRECTORY_NAME, homePaths, scaffoldHome, ARCHIVE_DIRECTORY_NAME, type HomePaths, type ScaffoldResult } from './home/layout.ts'
 import { isMaintenanceRound, renderMaintenancePrompt } from './home/metronome.ts'
+import { curateKnowledge } from './knowledge/health.ts'
+import { pageFromEntry, type KnowledgePage } from './knowledge/page.ts'
 import { Room, type RoomEntry, type RoomReadFailure } from './home/room.ts'
 import {
   DEFAULT_IMPORTANCE,
@@ -175,6 +177,7 @@ export class AssistantMemory extends Service {
   private readonly maintenanceEveryRounds: number
   private readonly memory: Room
   private readonly research: Room
+  private readonly knowledge: Room
   /**
    * Last rendered digest. Prompt sections assemble synchronously while the home is read
    * asynchronously, so the section reads this cache and a write kicks a background refresh; a cold
@@ -200,6 +203,9 @@ export class AssistantMemory extends Service {
     this.maintenanceEveryRounds = config.maintenanceEveryRounds ?? 5
     this.memory = new Room(this.paths.memoryDir, this.paths.memoryArchiveDir)
     this.research = new Room(this.paths.researchDir, this.paths.researchArchiveDir)
+    // Knowledge pages never move to an archive (deprecated stays in place), so the Room's
+    // archive paths are simply never used for this room.
+    this.knowledge = new Room(this.paths.knowledgeDir, join(this.paths.knowledgeDir, ARCHIVE_DIRECTORY_NAME))
     // Best-effort activation scaffold: a home that cannot be created is reported, never fatal —
     // the write paths call ensureHome again, so a transient failure heals on the next write.
     void this.ensureHome().catch((error: unknown) => {
@@ -552,6 +558,20 @@ export class AssistantMemory extends Service {
   }
 
   /**
+   * List knowledge pages.
+   * @returns Parsed pages and the files that failed to parse.
+   */
+  async listKnowledge(): Promise<RoomReadResult<KnowledgePage>> {
+    const listing = await this.knowledge.list()
+    return {
+      entries: listing.entries
+        .map(pageFromEntry)
+        .filter((page): page is KnowledgePage => page !== undefined),
+      failures: listing.failures,
+    }
+  }
+
+  /**
    * Run the curation check over the home.
    * @param shadowedBy - Learned skill names that lost the registry's name resolution, mapped to
    * the winning provider. The registry only resolves names inside an agent's layer chain, so the
@@ -562,6 +582,7 @@ export class AssistantMemory extends Service {
   async curate(shadowedBy?: Readonly<Record<string, string>>): Promise<CurationBrief> {
     const memories = await this.listMemories()
     const threads = await this.listThreads()
+    const knowledge = await this.listKnowledge()
     const skills = await scanLearnedSkills(this.paths.skillsDir)
     const usage = await readSkillUsage(this.paths.skillUsageFile)
     const digest = await this.digest()
@@ -582,6 +603,7 @@ export class AssistantMemory extends Service {
       duplicatedIds: activeIds.filter(id => archivedSet.has(id)),
       knownIds: [...activeIds, ...archivedIds, ...skills.skills.flatMap(skill => skill.name ?? [])],
       skills: skills.skills,
+      knowledgePages: knowledge.entries.length,
       skillUsage: usage.usage,
       ...(usage.failure !== undefined ? { skillUsageFailure: usage.failure } : {}),
       shadowedSkills: shadowedBy ?? {},
@@ -596,9 +618,15 @@ export class AssistantMemory extends Service {
     // Post-write audit findings join the brief: the pure room check and the content audit are
     // two passes over the same home, and the model should read one brief.
     const audit = await auditSkillsRoom(this.paths.skillsDir)
+    const pages = curateKnowledge({
+      pages: knowledge.entries,
+      failures: knowledge.failures,
+      now: new Date(),
+      staleResearchDays: this.staleResearchDays,
+    })
     return {
       ...brief,
-      findings: [...brief.findings, ...audit].sort(compareFindings),
+      findings: [...brief.findings, ...audit, ...pages].sort(compareFindings),
     }
   }
 
