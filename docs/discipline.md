@@ -18,7 +18,7 @@
 | 会话日志即真相（log-only 持久层；复盘用日志 seq 重建，不凭自述） | 排查/复盘读 `dev/harness-home/sessions/**/session.v3.jsonl.zstd` 逐事件还原（`docs/dev.md` §五） | ✅ 照搬 |
 | 轮内任务面：plan 呈批（反馈门①）+ `todo_write` 活清单（反馈门②）+ steer，机制在 base bundle 零接线 | 本 repo 开发流程见 AGENTS.md 硬规则 5；本插件 preset 已挂 `tool-todo` 且**连必填 config 一起抄**（`allowParallelInProgress: true`——不抄 config 会在挂载时炸且 UI 吞错误） | ✅ 照搬 |
 | 默认翻转 + 适配声明：默认严格，偏离/裁剪须登记（镜像 "Require evidence for public choices"） | AGENTS.md 硬规则 4；每条适配登记于本文"已声明的适配" | ✅ 照搬 |
-| 窄证据 + 只报告实跑过的命令（根 AGENTS.md / `dsh-pre-push-checks` skill） | AGENTS.md 硬规则 3 | ✅ 照搬 |
+| 窄证据 + 只报告实跑过的命令（根 AGENTS.md / `dsh-pre-push-checks` skill） | AGENTS.md 硬规则 3；**验证主张分级**——实证（命令/日志/盘上文件可指认）、推断（标注依据）、未验（如实标 ⏳），自述不作为证据 | ✅ 照搬 |
 | 机械门禁带反证（每条先造红再证绿） | `pnpm verify` 15 条（结构 / 身份一致 / 双门面 / 自包含 / 技能语法 / 断链 / 提交安全） | ✅ 照搬 |
 | 语义漂移探针：门禁抓不住"读起来过期"，用新上下文只读入口链答"现在"问题 | 并入未来 live 会话检查档（当前形态 = 按需审计轮） | ✅ 适配（触发：入口链长到值得单做）。两轮实录：第一轮零过期；第二轮（2026-09-23 信噪比审计，`notes/implemented/2026-09-23-signal-tier-dedup.md`）抓出机械门禁未覆盖的漂移 6 处——探针职责面实证；脚本化已知坑：**问句的期望也会过期**（对方实证：期望锚到轮号，轮闭即红、同日重跑覆盖归档）——期望锚定方案立项时必须定 |
 | 继承跟 pin 走：升 pin 重校纪律表（vendor 的套路在演进，一次性快照会再烂） | `sync-dsh` 收尾清单第 4 步 + `pnpm verify` 强制本文存在 | ✅ 照搬 |

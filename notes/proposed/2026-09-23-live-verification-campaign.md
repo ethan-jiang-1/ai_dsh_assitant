@@ -28,7 +28,7 @@
 | 2 会话 B：记忆环 | 让助手 save → list → recall → curate；重启进程后新会话再 recall | 跨会话仍在（I2）；curate 机器可查（I8）；记录文件人可读带 source（I9） |
 | 3 会话 C：探索环 | open → update → park → promote / drop（试无理由 drop 被拒） | 三档出口全通（I10/I11）；摘要含开放线索条数（I12）；curate 报 stale（I13，按 `staleResearchDays` 造一条旧线索） |
 | 4 会话 D：技能与学习 | 四个策展技能按需加载；reflect brief → save_skill；再存一个与策展同名的技能 | 学到的技能即刻可见无需重启（I3，= repo-structure note 验证项 7）；复盘落文件 + provenance（I4/I9）；同名遮蔽顺序实录（= 验证项 8）；摘要保持有界（I5） |
-| 5 收尾切片 | 验一条翻一条：intents.md 状态 + 证据指针（会话 id / 家内文件路径）；repo-structure note ⏳ 项清账 | I1–I13 全 implemented；I14 留 proposed（战役 = 它的使用数据输入） |
+| 5 收尾切片 | 验一条翻一条：intents.md 状态 + 证据指针；repo-structure note ⏳ 项清账。**证据指针分级**：日志实证（会话 id + 事件）/ 盘上在案（文件路径）/ 未验待验——助手自述不算数 | I1–I13 全 implemented；I14 留 proposed（战役 = 它的使用数据输入） |
 | 6 I14(a) 观察 | 战役全程记录：助手是否主动跑 curate（persona 三习惯 + home-curation 技能够不够用） | 主动 → (a) 层视为已在场；不主动 → 一个 model-visible 措辞强化切片再观察 |
 | 7 开研究线索 | 会话里用 `assistant_research` open 开出下节两条线索（dogfooding：产品自己的 backlog 第一单） | 线索带 why/lean 落进家的 research/ 房间；摘要出现线索条数（I12 二次实证） |
 
@@ -53,7 +53,9 @@
 | R2 | 自我提高（knowledge/学习）：自己写还是用现成的？ | 已是混合态：reflect 自己写、技能落盘借用 DSH 真 provider（repo-structure note 决定 6）；现成学习/知识类插件未普查；自动复盘节奏是延后项（触发：使用数据） | architecture.md §六"自动后台复盘""跨会话复盘"两行 |
 
 普查（vendor 生态 + DSH 插件注册面）是战役后做还是先做轻量——**等用户定**；默认战役后
-（普查的判据也依赖"我们自己缺什么"的第一手体感）。
+（普查的判据也依赖"我们自己缺什么"的第一手体感）。研究 note 的形态以来源仓 research 文件
+为范本：一手引证（vendor 树优先）、证据分级（affordance / documented / observed，随条标注）、
+版本基线声明（钉住 SHA）、承重结论引文内联（只读本文即可成立）、普查底稿存档且进文前亲验。
 
 ## 被否决/刻意延后
 
