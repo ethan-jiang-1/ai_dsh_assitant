@@ -21,7 +21,7 @@
 | `.../src/tool-memory/`、`src/tool-research/`、`src/memory-digest/`、`src/learn/` | **agent 面**插件入口（工具 / 提示词段落 / 复盘） | 改模型可见面动这里 |
 | `.../src/index.ts` + `cordis.patch.yml` | **host 面**：`assistantMemory` 服务 | 改服务/配置动这里 |
 | `.../presets/assistant/` | preset（agent 面组合）+ 策展技能 | 改这个专家"会什么"动这里 |
-| `tsconfig.base.json` / `tsconfig.tsx.json` | 两个解析门面（编译期手维护 / 运行期 `pnpm gen-paths` 生成） | 引入新 `@deepseek-ai/*` import 或换 pin 时动这里（契约：`docs/dev.md` §二） |
+| `tsconfig.base.json` / `tsconfig.tsx.json` | 两个解析门面（编译期手维护 / 运行期 `pnpm gen-paths` 生成） | 引入新 `@deepseek-ai/*` import 或换 pin 时动这里（契约：`docs/dev.md` §二「两个解析门面」） |
 | `vendor/dsh/` | **钉住的 DSH 源码（submodule）** | **永不改**；升级走 `pnpm sync-dsh` |
 | `docs/` | 当前合同（只写现在，无历史） | 门禁住了的事实进这里 |
 | `notes/` | `intents.md` + `proposed/` + `implemented/` | 决策与输掉的方案进这里 |
@@ -38,7 +38,7 @@ pnpm install            # 并入 vendor/dsh 整树，首次较慢
 pnpm gen-paths          # 从 vendor/dsh 重新生成运行期解析门面 tsconfig.tsx.json（换 pin 后必跑）
 pnpm typecheck          # tsc -b：经编译期 paths 解析到 vendor/dsh 的 src（API 漂移在编译期暴露）
 pnpm test               # vitest：只测纯核（home/memory/research/skills），不依赖 DSH 运行时
-pnpm verify             # 机械门禁：结构/身份一致/两个解析门面/自包含/技能语法/提交安全
+pnpm verify             # 机械门禁：结构/身份一致/两个解析门面/自包含/技能语法/断链/提交安全
 pnpm build              # tsc 出 lib/（发布物与 dsh plugin add 需要）
 pnpm release-smoke      # pnpm pack → 干净 home → dsh plugin add → 组合断言（真实安装形状）
 pnpm sync-dsh -- --tag <dsh-tag>   # 换 submodule tag + SHA 簿记 + typecheck + 对照 docs/discipline.md 重校纪律表

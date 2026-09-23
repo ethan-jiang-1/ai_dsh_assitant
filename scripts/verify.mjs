@@ -5,8 +5,8 @@
  * Everything here is a fact a machine can check, so a person does not have to remember it: the
  * identity names in `docs/identity.md` match the code, every `@deepseek-ai/*` import has a
  * resolution-facade entry, the published package stays self-contained, our skill-name grammar has not
- * drifted from the harness registry's, the home document lists the rooms the code creates, and the
- * paths that must never be committed are ignored.
+ * drifted from the harness registry's, the home document lists the rooms the code creates, markdown
+ * pointers name files and sections that exist, and the paths that must never be committed are ignored.
  *
  * Exit code 1 with a per-check report when anything fails.
  */
@@ -282,6 +282,106 @@ check('contract: curated skills carry valid frontmatter and match their director
     if (!text.startsWith('---\n')) problems.push(`${name}/SKILL.md does not start with frontmatter`)
   }
   return problems.length > 0 ? problems : []
+})
+
+// ── reference integrity ─────────────────────────────────────────────────────────────────────────
+//
+// Markdown is this repo's routing surface: AGENTS.md and docs/ point at files and sections the
+// reader is meant to reach, so a pointer naming a moved file or a vanished section is a dead route
+// the gate should catch. Scope is deliberately narrow (the honest line between what this catches
+// and what stays probe territory is registered in the absorb note):
+//   · paths — backticked tokens whose first segment is a repo top-level directory, plus a small
+//     allowlist of root/package basenames. External material (URLs, absolute paths, $VARS, globs)
+//     and home-internal bare names (HOME.md, SKILL.md) are out of scope; dev/harness-home is
+//     runtime residue created by dev/setup.sh and exempt.
+//   · sections — cross-file references only ("`docs/x.md` §三" / "x.md 第三节"). A trailing
+//     「anchor」 must appear in the target heading, which is the branch that catches retargeted
+//     numbers, not just removed ones. Same-file §N and pointers living in code comments are out
+//     of scope: their staleness is semantic, which is audit/probe territory.
+//   · absolute paths — contract docs (AGENTS.md, README.md, docs/) must not cite machine-local
+//     absolute paths; notes/ is the registered home for external provenance.
+
+const CHINESE_NUMERALS = '一二三四五六七八九十'
+const TOP_LEVEL_DIRECTORIES = new Set(['docs', 'notes', 'packages', 'scripts', 'vendor', 'dev', 'snapshots'])
+const KNOWN_ROOT_BASENAMES = new Set([
+  'AGENTS.md', 'README.md', 'CLAUDE.md', 'package.json', 'pnpm-lock.yaml',
+  'pnpm-workspace.yaml', 'tsconfig.base.json', 'tsconfig.json', 'tsconfig.tsx.json',
+])
+const KNOWN_PACKAGE_BASENAMES = new Set(['cordis.patch.yml'])
+
+const markdownCorpus = [
+  join(repoRoot, 'AGENTS.md'),
+  join(repoRoot, 'README.md'),
+  ...walk(join(repoRoot, 'docs'), ['.md']),
+  ...walk(join(repoRoot, 'notes'), ['.md']),
+  ...walk(join(repoRoot, 'snapshots'), ['.md']),
+]
+
+/** Resolve a backticked token to a repo path it may legitimately name, or null when out of scope. */
+function resolveMarkdownPathReference(token) {
+  if (token.includes(' ') || /[*<>~$@:'"()]/.test(token)) return null
+  if (token.includes('…') || token.includes('...')) return null // abbreviated paths, same class as globs
+  if (token.startsWith('/') || token.startsWith('.')) return null
+  if (token === 'dev/harness-home' || token.startsWith('dev/harness-home/')) return null
+  const [firstSegment] = token.split('/')
+  if (token.includes('/')) {
+    if (!TOP_LEVEL_DIRECTORIES.has(firstSegment)) return null
+    return join(repoRoot, token)
+  }
+  if (KNOWN_ROOT_BASENAMES.has(token)) return join(repoRoot, token)
+  if (KNOWN_PACKAGE_BASENAMES.has(token)) return join(packageDir, token)
+  return null
+}
+
+check('links: backticked repo paths in markdown exist', () => {
+  const problems = []
+  const vendorPresent = exists(join(vendorDsh, 'packages', 'core', 'tools', 'src', 'index.ts'))
+  for (const file of markdownCorpus) {
+    const where = relative(repoRoot, file)
+    for (const match of read(file).matchAll(/`([^`\n]+)`/g)) {
+      const target = resolveMarkdownPathReference(match[1])
+      if (target === null) continue
+      if (!vendorPresent && target.startsWith(`${vendorDsh}/`)) continue
+      if (!exists(target)) problems.push(`${where} references \`${match[1]}\`, which does not exist`)
+    }
+  }
+  return problems
+})
+
+check('links: cross-file section references name a real section', () => {
+  const problems = []
+  const reference = new RegExp(
+    '`?([\\w./-]+\\.md)`?\\s*(?:§|第)([' + CHINESE_NUMERALS + ']+)(?:节)?(?:「([^」]+)」)?',
+    'g',
+  )
+  for (const file of markdownCorpus) {
+    const where = relative(repoRoot, file)
+    for (const occurrence of read(file).matchAll(reference)) {
+      const [, referenced, numeral, anchor] = occurrence
+      const target = resolve(repoRoot, referenced)
+      if (!exists(target)) continue // the path check owns missing-file reports
+      const headings = [...read(target).matchAll(new RegExp(`^#{1,3}\\s*${numeral}、.*$`, 'gm'))]
+        .map(heading => heading[0].replace(/^#+\s*/, ''))
+      if (headings.length === 0) {
+        problems.push(`${where} references ${referenced} §${numeral}, which has no such section`)
+      } else if (anchor !== undefined && !headings.some(heading => heading.includes(anchor))) {
+        problems.push(`${where} anchors ${referenced} §${numeral} on 「${anchor}」, but the section is "${headings[0]}"`)
+      }
+    }
+  }
+  return problems
+})
+
+check('links: contract docs cite no machine-local absolute paths', () => {
+  const problems = []
+  const machineLocal = /\/Users\/|(?<![a-z])\/home\//
+  for (const file of markdownCorpus) {
+    if (file.startsWith(join(repoRoot, 'notes'))) continue // notes/ is the registered home for external provenance
+    if (machineLocal.test(read(file))) {
+      problems.push(`${relative(repoRoot, file)} cites a machine-local absolute path — provenance belongs in notes/`)
+    }
+  }
+  return problems
 })
 
 // ── commit safety ───────────────────────────────────────────────────────────────────────────────

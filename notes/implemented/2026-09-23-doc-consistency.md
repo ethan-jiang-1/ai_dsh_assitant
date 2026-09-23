@@ -15,7 +15,7 @@
 | 2 | 已交付的实现 note 躺在 `proposed/`：repo-structure 自家时态纪律明文"不留 proposed/ 到交付后"，却连标题都还写"未实现"；dev-home-launcher 已标"已定并已实现"也还在 proposed/ | 两份同日搬入 `implemented/`（`git mv` 保历史）；repo-structure 标题、时态节、验证项编号（两个 6）与"尚未实跑"过期句一并补记 |
 | 3 | intents.md 全表 I1–I14 停在 `proposed` 且无挡板说明，新读者分不清"没做"还是"没更新" | 表头补一行：外部可观察行为待 dev Web UI 真实会话验证后才翻 `implemented` |
 | 4 | AGENTS.md 布局表漏 `snapshots/`（有自述 README、verify 强制其存在，但"谁管它"无处可查） | 补一行 owner 行 |
-| 5 | AGENTS.md 硬规则 2 的 `docs/capability-seams.md` 指向不明（紧跟 `vendor/dsh/docs/…` 之后，读起来像本 repo docs/ 的文件，真身在 vendor） | 写全路径 `vendor/dsh/docs/capability-seams.md` |
+| 5 | AGENTS.md 硬规则 2 的 docs/capability-seams.md 指向不明（紧跟 `vendor/dsh/docs/…` 之后，读起来像本 repo docs/ 的文件，真身在 vendor） | 写全路径 `vendor/dsh/docs/capability-seams.md` |
 | 6 | 语言分工事实上存在（模型可见面 = 英文，人读文档 = 中文）但未成文，repo 内脚本注释中英混用 | AGENTS.md 登记一行约定（脚本随文件现状，不整批改写） |
 | 7 | `home.md` 引用外部会话编号"talk ⑤"（合同文档不该有需要外部解码的引用）；`src/index.ts` #requireActiveThread 语句粘在 `{` 后未换行 | 分别改为判据自持 / 正常换行 |
 

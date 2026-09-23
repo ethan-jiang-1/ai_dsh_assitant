@@ -1,6 +1,6 @@
 # 决策：汲取 ai_dsh_company 的第二批实践（差距评估 + 待拍板项）
 
-日期：2026-09-23 · 状态：**proposed**（评估完成；三项采纳决定待拍板）
+日期：2026-09-23 · 状态：**implemented**（2026-09-23 拍板：采纳 gap ①，② ③ 维持延后；落地节见文末）
 
 ## 问题
 
@@ -18,7 +18,7 @@ iteration-rhythm note 即同形）。剩余**真 gap 三条：一条建议立即
 
 | research 条目（§十为主） | 本仓现状 | 判定 |
 |---|---|---|
-| **notes-links 断链门禁**（对方实装：上线即抓 4 条存量断链） | **无对应物**。本轮审计手工抓到 2 处同类：`scripts/dsh.mjs` 注释指向 AGENTS.md 已删段落、repo-structure note 决定 7 指针指向改家的节；dev.md 重编号还产生过 1 条过期节号引用（discipline.md §四→§五，已手工修） | **gap ① —— 建议立即吸收** |
+| **notes-links 断链门禁**（对方实装：上线即抓 4 条存量断链） | **无对应物**。本轮审计手工抓到 2 处同类：`scripts/dsh.mjs` 注释指向 AGENTS.md 已删段落、repo-structure note 决定 7 指针指向改家的节；dev.md 重编号还产生过 1 条过期节号引用（discipline.md 对 dev.md §四 的引用改指 §五，已手工修） | **gap ① —— 建议立即吸收** |
 | **entry-probe 脚本化**（对方实装：`entry-probe-smoke.mjs` 固定 8 问 + 归档，含语义矛盾反证） | 适配行：并入未来检查档；当前形态 = 按需审计轮（已两轮：第一轮零过期，第二轮抓出 6 处） | **gap ② —— 维持按需审计轮**（判据见待拍板 2） |
 | **doc-budget + slop 门禁**（对方实装：AGENTS 165 / 00-index 145 / guides 440 行预算 + slop grep） | ⏸ 触发：docs 腐化实证。第二轮证据 = 轻度腐化（多重书写 ×2、内部矛盾 ×1、过期数字 ×1），一轮修完 | **gap ③ —— 维持 ⏸，证据已登记** |
 | Issue/PR 流、条目三型（feature/卫生/研究）、收尾程序住 guides/ | 切片 diff + note 三段流 / 一律轻量切片 / 硬规则 3 即程序之家 | 不适用（约束与规模已声明，见 discipline 表"已声明的适配"） |
@@ -44,3 +44,35 @@ iteration-rhythm note 即同形）。剩余**真 gap 三条：一条建议立即
 - research 明文："采纳方请按 §七之 2 的声明流程走自己的约束，不要照抄本仓的偏离集。"——
   本 note 三条建议即按本仓约束（文档量、入口链规模、审计成本）重走声明流程的结果，不是照抄。
 - 若拍板采纳 gap ①：实施切片照本仓规矩先造红再证绿，note 落地节追加于此（状态翻 implemented）。
+
+## 落地（2026-09-23 · 用户拍板：采纳 gap ①；② ③ 维持延后）
+
+- `pnpm verify` 新增 **links 三检**（12 → 15 条），语料 = AGENTS.md、README.md、`docs/**`、
+  `notes/**`、`snapshots/**`：
+  1. **反引号 repo 路径存在性**：正向过滤——首段 ∈ 仓库顶层目录（docs / notes / packages /
+     scripts / vendor / dev / snapshots），或根/包内已知 basename；仓外绝对路径、URL、$VAR、
+     glob、省略号缩写（`vendor/dsh/docs/…` 这类）、裸相对名（src/…、HOME.md、SKILL.md 这类
+     住在家里的名字）不查；`dev/harness-home`（setup 生成的运行残留）豁免。
+  2. **跨文件节号引用**：反引号或裸写的「X.md §N / X.md 第 N 节」要求目标文件有对应编号标题；
+     引用可带「标题锚」（AGENTS.md 布局表 tsconfig 行已采用此写法），带锚时标题必须含锚词——
+     这一支才抓得住"改号未改引"（节号还在、内容已换）。同文件 §N 与代码注释里的指针不进 v1
+     （语义层，归探针职责面）。
+  3. **合同文档（AGENTS/README/docs/snapshots）不引机器本地绝对路径**（/Users、/home 前缀）——
+     signal-tier 切片 #6 规则的机械化；notes/ 豁免（仓外出处的登记之家）。
+- **诚实修正**：上表 gap ① 行"本可由它抓住"过强。复核：那 2 处指针过期是**语义层**（目标文件
+  与节号都还在，含义变了），纯存在性检查抓不住；三检之 2 的"标题锚"支只覆盖带锚形态。本门禁
+  的真实防面 = **文件移动/改名（最可能复发：note 从 proposed/ 毕业到 implemented/ 时的路径
+  引用）、节号打错或被删、合同文档引仓外路径**。语义层漂移仍归按需审计轮。
+- **gap ② ③ 维持延后**（用户拍板）：触发条件已在 discipline 两行登记（探针两轮实录 /
+  doc-budget"再犯即触发"）。
+
+## 验证（真跑过）
+
+- **存量即抓**（门禁首跑，同款经验：对方 notes-links 上线即抓 4 条）：`docs/discipline.md`
+  引 docs/AGENTS.md（真断链——本意是引 DSH 自己的 tier 表，真身 `vendor/dsh/docs/AGENTS.md`，
+  已修）；doc-consistency note 对当时问题原文的引述 docs/capability-seams.md（引述去反引号）与
+  缩写 `vendor/dsh/docs/…`（省略号并入过滤器豁免，同 glob 类）。
+- 红（三条均先造红再证绿）：README 临时植入指向不存在文件的反引号引用 → 路径检查 FAIL；
+  home.md 不存在的 §九 与 dev.md §五 的错误标题锚 → 节号检查 FAIL×2；机器本地绝对路径 →
+  绝对路径检查 FAIL。植入物还原后复绿。
+- 绿：`pnpm verify` 15/15。
