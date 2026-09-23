@@ -49,6 +49,7 @@ const REQUIRED_PATHS = [
   'tsconfig.json',
   'docs/home.md',
   'docs/identity.md',
+  'docs/discipline.md',
   'notes/intents.md',
   'dev/env.sh',
   'dev/setup.sh',

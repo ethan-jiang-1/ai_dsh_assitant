@@ -86,5 +86,7 @@ Next, in the same change:
        git -C vendor/dsh grep -c customSkillDirs ${tag} -- packages/skill/skill-filesystem/src/index.ts
   2. pnpm verify && pnpm test
   3. pnpm build && pnpm release-smoke
-  4. Move the note in notes/proposed/ to notes/implemented/ if this upgrade was its subject.
+  4. Re-check the inherited discipline table row by row against the new pin: docs/discipline.md
+      (DSH's own practices evolve; the inheritance must move with the pin).
+  5. Move the note in notes/proposed/ to notes/implemented/ if this upgrade was its subject.
 `)

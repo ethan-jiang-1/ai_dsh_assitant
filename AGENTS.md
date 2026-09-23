@@ -40,7 +40,7 @@ pnpm test               # vitest：只测纯核（home/memory/research/skills）
 pnpm verify             # 机械门禁：结构/身份一致/两个解析门面/自包含/技能语法/提交安全
 pnpm build              # tsc 出 lib/（发布物与 dsh plugin add 需要）
 pnpm release-smoke      # pnpm pack → 干净 home → dsh plugin add → 组合断言（真实安装形状）
-pnpm sync-dsh -- --tag <dsh-tag>   # 换 submodule tag + SHA 簿记 + typecheck
+pnpm sync-dsh -- --tag <dsh-tag>   # 换 submodule tag + SHA 簿记 + typecheck + 对照 docs/discipline.md 重校纪律表
 
 bash dev/setup.sh       # 一次性：建 dev（web）+ dev-task（headless）两个 profile + link 装插件 + roster 指向 repo
 pnpm dsh --profile dev-task "one task"  # one-shot = **host 面冒烟**（headless 不进 preset，vendor 明文契约）
@@ -58,7 +58,7 @@ pnpm dsh --profile dev --port 0    # Web UI；**preset 行为（三工具/person
 `dev/profile-patch-headless.yml` 用 insert 语义补进来。`dev/setup.sh` 已把这些顺序写死。
 启动/调试/隔离的完整手册：`docs/dev.md`。
 
-## 三条硬规则
+## 五条硬规则
 
 1. **双 home**：`pnpm dsh` 经 `scripts/dsh.mjs` 启动，**永远强制** `DSH_HOME=<repo>/dev/harness-home`
    （覆盖任何继承来的值，包括日用的 `~/.dsh`；显式出口是 `ASSISTANT_DSH_HOME`）。
@@ -68,6 +68,11 @@ pnpm dsh --profile dev --port 0    # Web UI；**preset 行为（三工具/person
    要真实签名，读 `vendor/dsh/packages/**/src/`。**不猜 API，去读。**
 3. **窄证据**：一次交付 = 一个垂直切片（代码 + 测试 + docs/README + note 同 diff）；
    只跑"会为这次回归而失败"的最小检查；**报告里只列真跑过的命令**。
+4. **默认严格，偏离登记**：研发纪律的继承是**逐源枚举**过的，不是凭印象
+   （全表：`docs/discipline.md`）；偏离或裁剪不是错——先在 note 里登记一行
+   （约束 → 适配 → 证据），再动手。
+5. **轮内任务面**：复杂任务开工用 plan 呈批、实施期用 todo 活清单（整表替换、完成即勾）、
+   人可随时 steer —— 机制都在 base bundle 里，挂着不用等于白挂。
 
 ## 探索路由（DSH 侧最常用的四个入口）
 
