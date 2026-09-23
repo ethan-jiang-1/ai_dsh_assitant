@@ -158,7 +158,7 @@ Snyk 威胁建模文章（2026 年，Liran Tal）载明：2026-01-27~29，OpenCl
 **@garvel/dsh-reflect 0.0.1-spike.22**（MIT，repo RGarvel/dsh_evo，2026-09-03 发布，89 dl/月，自标 spike）：
 - 与委托方基线**哲学最近**：文件级外部记忆四工具——`reflect_record`（归一化文本去重；**先过凭据筛查硬闸**，命中即拒且不回显）、`reflect_consolidate`（模型驱动整表重写，重写前自动 `.bak` 时间戳备份）、`reflect_pending`（**复核队列：候选不参与任何 prompt 组装，批准才落 memory.md**，每条带 `@src:session-<id>@<seq>` 溯源指针）、`/reflect-review` 人用命令（不经模型）。
 - **v0 边界与委托方纪律同构**："不自动触发：沉淀/整理由模型按注入规约主动调用"；"复核队列已经就位但**没有生产者**——自动蒸馏是下一步"；"不读会话历史"，但零件清单已点名：`sessionQuery`（listSessions/filterEvents/searchEvents）+ `llm.stream` 单发提炼 + `ctx.timer` 去抖——**"缺的是策略与安全门"**。109 项测试断言 + 如实登记的实机翻车记录（render 签名错位、`.d.ts` 误判）。[affordance] 包 README
-**判 J5**：DSH 内"session-end 自动蒸馏延后、先把审批队列和安全闸立好"的先行样本；其自动蒸馏设计文档（`docs/auto-distill-design.md`）对委托方的延后项是直接参照。
+**判 J5**：DSH 内"session-end 自动蒸馏延后、先把审批队列和安全闸立好"的先行样本；其自动蒸馏设计文档（garvel 包内 docs/auto-distill-design.md）对委托方的延后项是直接参照。
 
 ### 5.3 治理与管理类（J2/J4 的生态答案）
 
