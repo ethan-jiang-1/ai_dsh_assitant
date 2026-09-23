@@ -40,8 +40,8 @@ pnpm release-smoke      # pnpm pack → 干净 home → dsh plugin add → 组�
 pnpm sync-dsh -- --tag <dsh-tag>   # 换 submodule tag + SHA 簿记 + typecheck
 
 bash dev/setup.sh       # 一次性：建 dev（web）+ dev-task（headless）两个 profile + link 装插件 + roster 指向 repo
-pnpm dsh --profile dev-task "one task"  # 一次性任务（headless，跑在 assistant preset 上）
-pnpm dsh --profile dev             # Web UI（**别用** `dsh web`：别名硬编码 profile 'web'）
+pnpm dsh --profile dev-task "one task"  # one-shot = **host 面冒烟**（headless 不进 preset，vendor 明文契约）
+pnpm dsh --profile dev --port 0    # Web UI；**preset 行为（三工具/persona/摘要）在这里的会话里验**
 ```
 
 **两个解析门面，别混**：`tsconfig.base.json` 是**编译期**门面（只列我们直接 import 的包，

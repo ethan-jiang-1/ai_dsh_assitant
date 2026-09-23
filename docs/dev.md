@@ -71,6 +71,8 @@ pnpm typecheck && pnpm test && pnpm verify
 | `pnpm dsh web --profile dev` | `dsh web` 别名**硬编码 profile 'web'**，会在 dev home 里自动创建一个 shipped `web` profile | 用 `pnpm dsh --profile dev`（dev profile 自带 web-app bundle） |
 | one-shot 无反应 | web 模板没有 one-shot runner 行（在 `@deepseek-ai/dsh-headless` bundle） | setup.sh 已把 headless 追加进 profile bundles |
 | 无 key 的行为 | boot 不失败；首个 live turn 抛 `MISSING_CREDENTIAL`。"self-skip" 是**测试机制**不是产品行为 | 在 `$DSH_HOME/.credentials.yaml` 配 `DEEPSEEK_API_KEY`（或 `$DSH_HOME/.env`） |
+| **one-shot 不进 preset** | headless runner 建**裸 agent**，roster 只在"创建会话的一方"被消费（web 会话创建 / 子 agent 继承父 composition）—— vendor 源码注释明文："A deployment that DOES configure one has to join it here first" | preset 行为（三工具/persona/摘要段落）用 **dev profile 的 Web UI 会话**验证；dev-task 只冒烟 host 面（插件装载、家 scaffold、服务行） |
+| API 抖动 | `TRANSPORT` 错误（"DeepSeek API request failed"）会触发 attempt 重试循环，模型可能开始即兴行为 | 重试即可；会话日志（`sessions/<proj>/<id>/session.v3.jsonl.zstd`）能逐事件还原 |
 | vendor install 失败 | 根 postinstall（lefthook）在 submodule 里必然失败 | 包已就位；build 用 `--config.verify-deps-before-run=false` 绕过 |
 | 命令表象不可信 | `--dump-config`/`--help` 不加载 loader entries | "能不能跑"的最低证据 = 真 boot 一次 |
 | preset 遮蔽 | roots 先到先赢同 id；roster 的 `!!js` 读 `ASSISTANT_PRESETS_DIR ?? cwd` 拼接 | `pnpm dsh` 固定以 repo 根为 cwd，兜底成立 |
