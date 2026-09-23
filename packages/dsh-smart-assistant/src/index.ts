@@ -42,7 +42,14 @@ import {
   type ResearchThread,
 } from './research/thread.ts'
 import { scanLearnedSkills } from './skills/scan.ts'
-import { writeLearnedSkill, type SkillDraft } from './skills/skill-file.ts'
+import { writeLearnedSkill, isSkillName, type SkillDraft } from './skills/skill-file.ts'
+import {
+  readSkillUsage,
+  recordSkillLoad,
+  writeSkillUsage,
+  type SkillUsageEntry,
+  type SkillUsageRead,
+} from './skills/usage.ts'
 import { DEFAULT_WEB_TITLE, webBrandingInjection } from './web-branding.ts'
 
 declare module '@deepseek-ai/cordis' {
@@ -428,13 +435,46 @@ export class AssistantMemory extends Service {
   }
 
   /**
+   * Record one successful `skill`-tool load into the home's usage ledger. The learn module's
+   * `tools/result` subscription calls this for every load in a session running the preset;
+   * counts are advisory (last writer wins on a concurrent write, a deleted file resets to zero).
+   * @param name - Skill name; must satisfy the skill-name grammar.
+   * @returns The ledger entry after the increment.
+   * @throws when the name is not a valid skill name.
+   */
+  async recordSkillLoad(name: string): Promise<SkillUsageEntry> {
+    if (!isSkillName(name)) throw new Error(`"${name}" is not a valid skill name`)
+    const now = new Date()
+    const read = await readSkillUsage(this.paths.skillUsageFile)
+    if (read.failure !== undefined) {
+      this.ctx.logger.warn(
+        `skill-usage ledger unreadable at ${read.failure.path} (${read.failure.reason}) — counts reset`,
+      )
+    }
+    const usage = recordSkillLoad(read.usage, name, now)
+    const entry = usage[name]
+    if (entry === undefined) throw new Error(`usage ledger did not record "${name}"`)
+    await writeSkillUsage(this.paths.skillUsageFile, usage)
+    return entry
+  }
+
+  /**
+   * Read the skill-usage ledger.
+   * @returns The parsed map, plus the failure when the file exists but is unusable.
+   */
+  async skillUsage(): Promise<SkillUsageRead> {
+    return readSkillUsage(this.paths.skillUsageFile)
+  }
+
+  /**
    * Run the curation check over the home.
-   * @returns Findings and headline counts.
+   * @returns Findings, per-skill usage lines, and headline counts.
    */
   async curate(): Promise<CurationBrief> {
     const memories = await this.listMemories()
     const threads = await this.listThreads()
     const skills = await scanLearnedSkills(this.paths.skillsDir)
+    const usage = await readSkillUsage(this.paths.skillUsageFile)
     const digest = await this.digest()
     const activeIds = [
       ...memories.entries.map(record => record.id),
@@ -453,6 +493,8 @@ export class AssistantMemory extends Service {
       duplicatedIds: activeIds.filter(id => archivedSet.has(id)),
       knownIds: [...activeIds, ...archivedIds, ...skills.skills.flatMap(skill => skill.name ?? [])],
       skills: skills.skills,
+      skillUsage: usage.usage,
+      ...(usage.failure !== undefined ? { skillUsageFailure: usage.failure } : {}),
       digestBytes: digest.bytes,
       digestMaxBytes: this.digestMaxBytes,
       staleResearchDays: this.staleResearchDays,

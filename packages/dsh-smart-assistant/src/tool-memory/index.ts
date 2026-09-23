@@ -31,7 +31,8 @@ const DESCRIPTION = [
   '- forget: retire a record out of the active set (it stays readable in the archive).',
   '- list: show the active room.',
   '- curate: run the machine check and return findings (near-duplicates, dangling references,',
-  '  digest budget, stalled threads, skills the loader would ignore). Run this before tidying.',
+  '  digest budget, stalled threads, skills the loader would ignore) plus the per-skill usage',
+  '  ledger. Run this before tidying.',
   'Load the `memory-hygiene` skill before saving, and `home-curation` before curating.',
 ].join('\n')
 
@@ -61,6 +62,17 @@ const FINDING_ITEM = {
   },
 } as const
 
+const SKILL_USAGE_ITEM = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    name: { type: 'string', required: true },
+    count: { type: 'integer', required: true },
+    last_used: { type: 'string' },
+    days_since_last_use: { type: 'integer' },
+  },
+} as const
+
 const OUTPUT = {
   type: 'object',
   additionalProperties: false,
@@ -69,6 +81,7 @@ const OUTPUT = {
     summary: { type: 'string', required: true },
     memories: { type: 'array', required: true, items: MEMORY_ITEM },
     findings: { type: 'array', required: true, items: FINDING_ITEM },
+    skill_usage: { type: 'array', items: SKILL_USAGE_ITEM },
     counts: {
       type: 'object',
       additionalProperties: false,
@@ -113,6 +126,8 @@ interface MemoryOutput {
     digestBytes: number
     digestMaxBytes: number
   }
+  /** Set by `curate` only — per-skill load counts, least-used first (retirement candidates first). */
+  skill_usage?: { name: string, count: number, last_used?: string, days_since_last_use?: number }[]
 }
 
 function item(record: MemoryRecord, why: readonly string[] = []): MemoryItem {
@@ -149,6 +164,12 @@ function render(_args: { action: Action }, value: MemoryOutput): { type: 'text',
       + ` ${counts.learnedSkills} learned skills,`
       + ` digest ${counts.digestBytes}/${counts.digestMaxBytes} bytes.`,
     )
+  }
+  if (value.skill_usage !== undefined && value.skill_usage.length > 0) {
+    const parts = value.skill_usage.map(skill => skill.count === 0
+      ? `${skill.name} never loaded`
+      : `${skill.name}×${skill.count} (${skill.days_since_last_use ?? 0}d ago)`)
+    lines.push(`- skill usage: ${parts.join(', ')}.`)
   }
   return [{ type: 'text', text: lines.join('\n') }]
 }
@@ -270,6 +291,12 @@ export function apply(ctx: Context): void {
               refs: [...finding.refs],
             })),
             counts: brief.counts,
+            skill_usage: brief.skillUsage.map(line => ({
+              name: line.name,
+              count: line.count,
+              ...(line.lastUsedAt !== undefined ? { last_used: line.lastUsedAt } : {}),
+              ...(line.daysSinceLastUse !== undefined ? { days_since_last_use: line.daysSinceLastUse } : {}),
+            })),
           }
         }
         /* v8 ignore next 2 -- the enum in the parameter schema admits only the cases above */

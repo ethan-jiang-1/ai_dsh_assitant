@@ -12,6 +12,8 @@
 
 import type { MemoryRecord } from '../memory/record.ts'
 import type { ResearchThread } from '../research/thread.ts'
+import type { SkillUsage, SkillUsageLine, SkillUsageReadFailure } from '../skills/usage.ts'
+import { skillUsageLines } from '../skills/usage.ts'
 import type { RoomReadFailure } from './room.ts'
 
 /** Machine-readable finding kinds, stable enough for a caller to filter on. */
@@ -26,6 +28,7 @@ export type FindingCode =
   | 'skill-invalid-name'
   | 'skill-missing-description'
   | 'skill-without-provenance'
+  | 'skill-usage-unreadable'
 
 /** One thing worth a human's or the agent's attention. */
 export interface CurationFinding {
@@ -67,6 +70,10 @@ export interface CurationInput {
   readonly knownIds: readonly string[]
   /** Learned skill bundles found in the skills room. */
   readonly skills: readonly LearnedSkillInfo[]
+  /** The skill-usage ledger, joined against `skills` for the usage lines. */
+  readonly skillUsage: SkillUsage
+  /** Set when the ledger file exists but is not a valid ledger. */
+  readonly skillUsageFailure?: SkillUsageReadFailure
   /** Bytes the current digest occupies. */
   readonly digestBytes: number
   /** Digest budget. */
@@ -81,6 +88,8 @@ export interface CurationInput {
 export interface CurationBrief {
   /** Findings, warns first. */
   readonly findings: readonly CurationFinding[]
+  /** Per-skill usage lines for the learned skills, least-used first (retirement candidates first). */
+  readonly skillUsage: readonly SkillUsageLine[]
   /** Headline counts. */
   readonly counts: {
     readonly memories: number
@@ -213,6 +222,16 @@ export function curateHome(input: CurationInput): CurationBrief {
     })
   }
 
+  if (input.skillUsageFailure !== undefined) {
+    findings.push({
+      code: 'skill-usage-unreadable',
+      severity: 'warn',
+      message: `${input.skillUsageFailure.path} is not a readable usage ledger `
+        + `(${input.skillUsageFailure.reason}) — counts read as zero and would mislead a retirement decision`,
+      refs: [input.skillUsageFailure.path],
+    })
+  }
+
   for (const skill of input.skills) {
     if (skill.name === undefined) {
       findings.push({
@@ -262,8 +281,10 @@ export function curateHome(input: CurationInput): CurationBrief {
   findings.sort((left, right) => (left.severity === right.severity ? 0 : left.severity === 'warn' ? -1 : 1))
 
   const openThreads = input.threads.filter(thread => thread.status === 'open').length
+  const learnedNames = input.skills.flatMap(skill => skill.name !== undefined ? [skill.name] : [])
   return {
     findings,
+    skillUsage: skillUsageLines(input.skillUsage, learnedNames, input.now, 'least-used'),
     counts: {
       memories: input.memories.length,
       activeMemories: input.memories.filter(record => record.status === 'active').length,

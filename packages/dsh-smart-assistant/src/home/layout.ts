@@ -28,12 +28,17 @@ export const SKILLS_ROOM = 'skills'
 /** Subdirectory holding entries that left a room's active set. */
 export const ARCHIVE_DIRECTORY_NAME = 'archive'
 
+/** Machine-owned ledger of `skill`-tool load counts; advisory state, safe to delete. */
+export const SKILL_USAGE_FILE_NAME = 'skill-usage.json'
+
 /** Every path the home layout owns. */
 export interface HomePaths {
   /** Home root. */
   readonly root: string
   /** The home map file. */
   readonly mapFile: string
+  /** The skill-usage ledger (load counts; not a room, never scaffolded). */
+  readonly skillUsageFile: string
   /** Active memory records. */
   readonly memoryDir: string
   /** Superseded and retired memory records. */
@@ -57,6 +62,7 @@ export function homePaths(root: string): HomePaths {
   return {
     root,
     mapFile: join(root, HOME_MAP_FILE_NAME),
+    skillUsageFile: join(root, SKILL_USAGE_FILE_NAME),
     memoryDir,
     memoryArchiveDir: join(memoryDir, ARCHIVE_DIRECTORY_NAME),
     researchDir,

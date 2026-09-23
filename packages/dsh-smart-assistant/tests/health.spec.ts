@@ -46,6 +46,7 @@ function input(overrides: Partial<CurationInput> = {}): CurationInput {
     duplicatedIds: [],
     knownIds: [],
     skills: [],
+    skillUsage: {},
     digestBytes: 100,
     digestMaxBytes: 4096,
     staleResearchDays: 30,
@@ -151,5 +152,41 @@ describe('curateHome', () => {
 
     expect(findings[0]?.severity).toBe('warn')
     expect(findings.at(-1)?.severity).toBe('info')
+  })
+
+  it('joins the usage ledger into least-used-first lines, keeping never-loaded skills', () => {
+    const brief = curateHome(input({
+      skills: [
+        { dirName: 'often-used', name: 'often-used', description: 'x', origin: 'learned' },
+        { dirName: 'never-used', name: 'never-used', description: 'x', origin: 'learned' },
+        { dirName: 'once-used', name: 'once-used', description: 'x', origin: 'learned' },
+        { dirName: 'unreadable' },
+      ],
+      skillUsage: {
+        'often-used': { count: 4, lastUsedAt: '2026-09-22T00:00:00.000Z' },
+        'once-used': { count: 1, lastUsedAt: '2026-09-01T00:00:00.000Z' },
+        'a-curated-skill': { count: 9, lastUsedAt: '2026-09-23T00:00:00.000Z' },
+      },
+    }))
+
+    // Least-used first (retirement candidates first), never-loaded included, curated names excluded.
+    expect(brief.skillUsage.map(line => [line.name, line.count])).toEqual([
+      ['never-used', 0],
+      ['once-used', 1],
+      ['often-used', 4],
+    ])
+    expect(brief.skillUsage[0]?.lastUsedAt).toBeUndefined()
+    expect(brief.skillUsage[1]?.daysSinceLastUse).toBe(22)
+    expect(brief.skillUsage[2]?.daysSinceLastUse).toBe(1)
+  })
+
+  it('warns when the usage ledger exists but is unreadable', () => {
+    const findings = curateHome(input({
+      skillUsageFailure: { path: '/h/skill-usage.json', reason: 'not a valid skill-usage ledger' },
+    })).findings
+
+    expect(findings.map(finding => finding.code)).toContain('skill-usage-unreadable')
+    expect(findings[0]?.severity).toBe('warn')
+    expect(findings[0]?.refs).toEqual(['/h/skill-usage.json'])
   })
 })

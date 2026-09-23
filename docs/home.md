@@ -10,6 +10,7 @@
 ```text
 <dataDir>/                      # 默认 <dshHome>/assistant（$DSH_HOME → ~/.dsh）
 ├── HOME.md                     # 地图：这是什么、东西在哪、怎么用（agent 与人都先读它）
+├── skill-usage.json            # 机器账本：skill 工具加载计数（可删，删了计数归零；不进摘要）
 ├── memory/                     # 房间一：已确立的事实 / 偏好 / 决定
 │   ├── <id>.md                 #   一条记录一个文件（frontmatter + 正文）
 │   └── archive/<id>.md         #   被取代 / 退役的（不在摘要里，仍可读）
@@ -23,6 +24,12 @@
 **一个房间一个职责**，不许混：事实进 `memory/`，未决的线索进 `research/`，可复用的做法进 `skills/`。
 `dataDir` 可用配置覆盖（bundle patch / profile patch），默认跟随 `resolveDshHome()` —— 于是**双 home 隔离自动生效**：
 开发 home 里的家与日用的家互不可见。
+
+**根下的 `skill-usage.json` 不是房间**：它是机器自有的用量账本——每次 `skill` 工具成功加载一个技能，
+learn 模块的 `tools/result` 订阅就给对应名字计数（用户 `/name` 斜杠注入不走工具管线，不计）。
+`curate` 与 `assistant_reflect brief` 回显计数（最少用在前 / 最多用在前），作为退役决策与
+延后判据（自动蒸馏的"真实使用数据"）的数据面。它是**建议性状态**：删掉即归零，不影响任何知识；
+文件烂了 curate 会报 warn（静默读零会误导退役决策）。
 
 ## 二、三个房间的语义
 
@@ -62,6 +69,10 @@
 | 过期线索 | 超过 `staleResearchDays` 未更新的 `open` 线索 | 悬着的线索会烂，机器先发现 |
 | 缺理由的 drop | `status: dropped` 但 `reason` 为空 | 尸体没写死因 = 白丢 |
 | 技能文件 | 名字不合 `SKILL_NAME` 文法 / 缺 `description` / 目录名与 name 不一致 | 技能会静默不被发现 |
+| 用量账本可读性 | `skill-usage.json` 存在但解析不了 | 静默读零会误导退役决策 |
+
+简报同时附带**技能用量数据面**（不是 finding）：每个学到技能的加载次数与最近使用（最少用在前）——
+这是治理环（退役、触发演进延后判据）的依据。
 
 **判据**：能让代码查的，别让 AI 自己说。
 

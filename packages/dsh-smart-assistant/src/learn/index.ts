@@ -20,6 +20,8 @@
 import type { Context } from '@deepseek-ai/cordis'
 import * as skillFilesystem from '@deepseek-ai/dsh-skill-filesystem'
 import { defineTool } from '@deepseek-ai/dsh-tools'
+import { scanLearnedSkills } from '../skills/scan.ts'
+import { skillLoadFromResult, skillUsageLines } from '../skills/usage.ts'
 import { callCard, presentationMeta, resultCard } from '../tool-support/presentation.ts'
 
 export const name = 'assistant-learn'
@@ -32,13 +34,14 @@ const LEARNED_PROVIDER_NAME = 'assistant-learned'
 const MAX_ASKS = 5
 const MAX_TOOL_KINDS = 12
 const MAX_TEXT_CHARS = 240
+const MAX_SKILL_USAGE = 8
 
 const DESCRIPTION = [
   'Turn an experience into durable knowledge: gather the evidence, then write what is reusable.',
   'Actions:',
   '- brief: a compact view of this session (what was asked, what tools were used) plus the memory',
-  '  records and open threads that already relate to it. Read it before deciding anything — do not',
-  '  reflect from your recollection of the conversation.',
+  '  records, open threads, and learned-skill usage counts that relate to it. Read it before',
+  '  deciding anything — do not reflect from your recollection of the conversation.',
   '- save_skill: write a validated skill into your home\'s skills/ room, where it becomes loadable',
   '  immediately. Use it for a procedure you would otherwise re-derive, not for a one-off.',
   '"Nothing durable came out of this session" is a correct result. Load the `self-reflection` skill',
@@ -67,6 +70,19 @@ const OUTPUT = {
     },
     related_memories: { type: 'array', required: true, items: { type: 'string' } },
     open_threads: { type: 'array', required: true, items: { type: 'string' } },
+    skill_usage: {
+      type: 'array',
+      required: true,
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          name: { type: 'string', required: true },
+          count: { type: 'integer', required: true },
+          last_used: { type: 'string' },
+        },
+      },
+    },
     skill_path: { type: 'string', required: true },
   },
 } as const
@@ -79,6 +95,7 @@ interface ReflectOutput {
   tool_calls: { name: string, count: number }[]
   related_memories: string[]
   open_threads: string[]
+  skill_usage: { name: string, count: number, last_used?: string }[]
   skill_path: string
 }
 
@@ -101,6 +118,11 @@ function render(_args: unknown, value: ReflectOutput): { type: 'text', text: str
   if (value.open_threads.length > 0) {
     lines.push('Open threads:', ...value.open_threads.map(thread => `- ${thread}`))
   }
+  if (value.skill_usage.length > 0) {
+    const parts = value.skill_usage.map(skill =>
+      skill.count === 0 ? `${skill.name} never loaded` : `${skill.name}×${skill.count}`)
+    lines.push(`Skill usage: ${parts.join(', ')}.`)
+  }
   if (value.skill_path.length > 0) lines.push(`Written: ${value.skill_path}`)
   return [{ type: 'text', text: lines.join('\n') }]
 }
@@ -115,6 +137,21 @@ export function apply(ctx: Context): void {
     includeDefaultRoots: false,
     customSkillDirs: [ctx.assistantMemory.paths.skillsDir],
     watch: true,
+  })
+
+  // Usage ledger (tri-line proposal 2026-09-24, slice 1a): every successful `skill`-tool load in
+  // a session running this preset is counted into the home's shared ledger — the data plane for
+  // retirement decisions and the deferred auto-distill criterion. The user's `/<name>` slash
+  // invocation injects skill content without a tool call and is deliberately not counted here.
+  // The subscription rides this session's scope and dies with it; concurrent sessions may lose a
+  // race on a single increment (last writer wins), which advisory counts tolerate.
+  ctx.on('tools/result', (exec, result): undefined => {
+    const name = skillLoadFromResult(exec.name, exec.arguments, result.isError)
+    if (name === undefined) return undefined
+    void ctx.assistantMemory.recordSkillLoad(name).catch((error: unknown) => {
+      ctx.logger.warn(`skill usage record failed for "${name}": ${String(error)}`)
+    })
+    return undefined
   })
 
   ctx.tools.register(defineTool({
@@ -142,6 +179,7 @@ export function apply(ctx: Context): void {
         tool_calls: [],
         related_memories: [],
         open_threads: [],
+        skill_usage: [],
         skill_path: '',
       }
       switch (action) {
@@ -177,6 +215,19 @@ export function apply(ctx: Context): void {
             : await ctx.assistantMemory.recall({ query, limit: 8 })
           const threads = await ctx.assistantMemory.listThreads()
           const openThreads = threads.entries.filter(thread => thread.status === 'open').slice(0, 5)
+          const learned = await scanLearnedSkills(ctx.assistantMemory.paths.skillsDir)
+          const usage = await ctx.assistantMemory.skillUsage()
+          const usageItems = skillUsageLines(
+            usage.usage,
+            learned.skills.flatMap(skill => skill.name !== undefined ? [skill.name] : []),
+            new Date(),
+            'most-used',
+            MAX_SKILL_USAGE,
+          ).map(line => ({
+            name: line.name,
+            count: line.count,
+            ...(line.lastUsedAt !== undefined ? { last_used: line.lastUsedAt } : {}),
+          }))
           return {
             ...empty,
             summary: asks.length === 0 && toolCalls.length === 0
@@ -187,6 +238,7 @@ export function apply(ctx: Context): void {
             tool_calls: toolCalls,
             related_memories: related.map(hit => `${hit.record.text} (${hit.record.id}; ${hit.why.join(', ')})`),
             open_threads: openThreads.map(thread => `${thread.question} (${thread.id})`),
+            skill_usage: usageItems,
           }
         }
         case 'save_skill': {

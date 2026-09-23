@@ -37,7 +37,7 @@
 
 | # | 切片 | 一句话 | 素材 |
 |---|---|---|---|
-| 1a | 用量统计 | 技能被加载次数/最近使用进 curate 与 brief——一切退役与延后判据的数据面 | R2 §9.3-1 |
+| 1a | 用量统计 | 技能被加载次数/最近使用进 curate 与 brief——一切退役与延后判据的数据面 ✅ implemented（`notes/implemented/2026-09-24-skill-usage-stats.md`：家根 `skill-usage.json` 账本 + learn 模块 `tools/result` 订阅 + curate/brief 双面回显） | R2 §9.3-1 |
 | 1b | 遮蔽可见性 | 同名遮蔽从 logger warn 升为模型可见（D3 已定：curate finding + brief 节） | R2 §9.3-2、§5.4 |
 | 1c | 阈值退役 | 30d 未用→stale、90d→archived（D4 已定，配置行可调；归档=移出 provider 扫描目录，不删，可恢复） | R2 §9.3-3 |
 | 1d | 写后审计 | 引用完整性 + 凭据检查（写时校验已挡 frontmatter，审计增量在引用与凭据） | R2 §9.3-4 |
