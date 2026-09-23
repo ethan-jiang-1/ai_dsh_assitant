@@ -1,0 +1,16 @@
+# 开发用 profile patch：把 preset roster 指向**本 repo 的** `presets/` 目录，并把默认 preset 设成 `assistant`。
+#
+# 为什么不"拷进 <dshHome>/.agent-presets"：那是一次性拷贝（preset 授权本来就是 copy-only），
+# repo 里改了不会再生效 —— 开发环就断了。用 roots 指过来，改 agent.cordis.yml 即刻生效
+# （standing mount 按组合文件的 mtime/size 换代，已在跑的会话留在它原来那一代）。
+#
+# 语义提醒：patch 是**整行 config 替换**，不是合并。所以这一行要把 base 的意图重述完整；
+# shipped 的 agent-presets 行是 `default: standard`，且 includeShippedRoot / includeUserRoot 默认 true
+# —— 那两个默认值保持不变，所以 standard/ptc/cordis/minimal 仍然可选。
+- id: agent-presets
+  config:
+    default: assistant
+    roots:
+      # env.sh 给了绝对路径就用它；否则按 cwd 推（从 repo 根跑 pnpm dsh 时成立）。
+      - path: !!js "process.env.ASSISTANT_PRESETS_DIR ?? process.getBuiltinModule('node:path').join(process.cwd(), 'packages/dsh-smart-assistant/presets')"
+        trust: system

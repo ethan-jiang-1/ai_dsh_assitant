@@ -1,0 +1,162 @@
+#!/usr/bin/env node
+/**
+ * Real-install smoke: pack the plugin, install it into a clean harness home, and assert the
+ * composition actually carries it. Run with `pnpm release-smoke`.
+ *
+ * Source-checkout tests hide dependency-declaration mistakes — a missing runtime dependency or a
+ * peer range that is too narrow only shows up when the package is installed the way a user installs
+ * it. So this script never runs from the workspace: it packs a tarball, points `DSH_HOME` at a
+ * throwaway home, installs the tarball with `dsh plugin add`, points the preset roster at the
+ * *installed* `presets/` directory, and reads the composed tree back with `--dump-config`.
+ *
+ * The profile is created from the shipped `web` template on purpose: the preset roster row lives in
+ * the web-app bundle, so a base-backed profile could not mount the preset at all.
+ *
+ * A live model turn is optional: without `DEEPSEEK_API_KEY`, that step self-skips and every
+ * composition assertion still runs.
+ *
+ * Flags:
+ *   --keep        keep the throwaway home for inspection (prints its path)
+ *   --dsh <cmd>   harness launcher to use (default: the pinned source checkout via tsx)
+ */
+
+import { execFileSync } from 'node:child_process'
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { dirname, isAbsolute, join, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+const packageDir = join(repoRoot, 'packages', 'dsh-smart-assistant')
+const argv = process.argv.slice(2)
+const keep = argv.includes('--keep')
+const dshOverride = argv.includes('--dsh') ? argv[argv.indexOf('--dsh') + 1] : undefined
+const profile = 'smoke'
+const PACKAGE_NAME = 'dsh-smart-assistant'
+
+const failures = []
+const step = message => console.log(`\n▸ ${message}`)
+const ok = message => console.log(`  ok   ${message}`)
+const fail = message => {
+  failures.push(message)
+  console.log(`  FAIL ${message}`)
+}
+
+function run(command, args, options = {}) {
+  return execFileSync(command, args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], ...options })
+}
+
+/** Harness launcher: the pinned source checkout unless the caller names another. */
+function dshCommand() {
+  if (dshOverride !== undefined) return { command: dshOverride, prefix: [] }
+  const bin = join(repoRoot, 'vendor', 'dsh', 'apps', 'cli', 'src', 'bin.ts')
+  if (!existsSync(bin)) {
+    console.error(`vendor/dsh is not checked out (${bin} missing) — run \`git submodule update --init\``)
+    process.exit(2)
+  }
+  // The runtime facade is what lets tsx load the pinned sources instead of unbuilt lib/ output.
+  return { command: process.execPath, prefix: ['--import', 'tsx/esm', bin] }
+}
+
+const home = mkdtempSync(join(tmpdir(), 'assistant-smoke-'))
+const env = {
+  ...process.env,
+  DSH_HOME: home,
+  TSX_TSCONFIG_PATH: join(repoRoot, 'tsconfig.tsx.json'),
+}
+const { command, prefix } = dshCommand()
+const dsh = args => run(command, [...prefix, ...args], { cwd: repoRoot, env })
+
+try {
+  step(`packing ${packageDir}`)
+  // `pnpm pack`, not `npm pack`: only pnpm rewrites the `workspace:` protocol into concrete ranges.
+  // Packing with npm would ship `"@deepseek-ai/dsh-tools": "workspace:^"` verbatim, which no
+  // consumer can resolve — so this is also the check that the published manifest is installable.
+  const packed = run('pnpm', ['pack', '--pack-destination', home], { cwd: packageDir })
+    .trim().split('\n').filter(Boolean).pop()
+  // pnpm prints an absolute path where npm prints a bare file name.
+  const tarball = isAbsolute(packed) ? packed : join(home, packed)
+  ok(`packed ${packed}`)
+
+  step('inspecting the tarball for self-containment and rewritten peer ranges')
+  const listing = run('tar', ['-tzf', tarball]).split('\n').filter(Boolean)
+  for (const required of ['package/package.json', 'package/cordis.patch.yml', 'package/lib/index.js']) {
+    if (!listing.includes(required)) fail(`tarball is missing ${required} — did \`pnpm build\` run?`)
+  }
+  if (listing.some(entry => entry.includes('/vendor/'))) fail('tarball contains a vendor/ path')
+  const manifest = JSON.parse(run('tar', ['-xzOf', tarball, 'package/package.json']))
+  for (const [name, range] of Object.entries(manifest.peerDependencies ?? {})) {
+    if (String(range).startsWith('workspace:')) {
+      fail(`peerDependencies.${name} still says ${range} after packing — pack with pnpm, never with npm`)
+    }
+    if (!/^[\^~]?\d/.test(String(range))) {
+      fail(`peerDependencies.${name} is "${range}", which is not a concrete semver range`)
+    }
+  }
+  ok(`${listing.length} files; peer ranges are concrete`)
+
+  step(`creating a clean profile from the shipped web template at ${home}`)
+  // The profile directory must NOT pre-exist: `--from-default-profile` refuses to initialize over one.
+  writeFileSync(join(home, '.credentials.yaml'), '# no key here: the live turn self-skips\n', 'utf8')
+  dsh(['--profile', profile, '--from-default-profile', 'web', '--dump-config'])
+  if (!existsSync(join(home, 'profiles', profile, 'package.json'))) {
+    fail('the profile was not created from the web template')
+  } else {
+    ok('profile created from the web template (its bundle carries the preset roster)')
+  }
+
+  step('installing the tarball')
+  dsh(['plugin', '--profile', profile, 'add', tarball])
+  const installedPresets = join(home, 'profiles', profile, 'node_modules', PACKAGE_NAME, 'presets')
+  if (!existsSync(installedPresets)) fail(`installed package has no presets/ at ${installedPresets}`)
+  else ok('dsh plugin add installed the package with its presets/')
+
+  step('pointing the roster at the installed presets (the shape a user gets)')
+  writeFileSync(join(home, 'profiles', profile, 'cordis.patch.yml'), `# Written by scripts/release-smoke.mjs
+- id: agent-presets
+  config:
+    default: assistant
+    roots:
+      - path: ${installedPresets}
+        trust: system
+`, 'utf8')
+
+  step('reading the composed tree back')
+  const dump = dsh(['--profile', profile, '--dump-config'])
+  if (!dump.includes('assistant-memory')) fail('--dump-config does not show the host-plane row assistant-memory')
+  if (!dump.includes(PACKAGE_NAME)) fail(`--dump-config does not mention ${PACKAGE_NAME}`)
+  else ok('host-plane row is in the composition')
+  if (!dump.includes('assistant')) fail('--dump-config does not show the preset roster default')
+  else ok('the preset is the profile default')
+
+  step('live turn (self-skips without a key)')
+  const key = (process.env.DEEPSEEK_API_KEY ?? '').trim()
+  if (key.length === 0) {
+    ok('skipped: no DEEPSEEK_API_KEY in the environment')
+  } else {
+    writeFileSync(join(home, '.credentials.yaml'), `DEEPSEEK_API_KEY: ${key}\n`, 'utf8')
+    const answer = dsh(['--profile', profile, 'reply with the single word ready'])
+    if (!/ready/i.test(answer)) fail(`live turn did not answer as expected: ${answer.slice(0, 200)}`)
+    else ok('live turn answered on the assistant preset')
+  }
+} catch (error) {
+  fail(`threw: ${error instanceof Error ? error.message : String(error)}`)
+  for (const stream of ['stdout', 'stderr']) {
+    const text = error?.[stream]?.toString?.()
+    if (text && text.trim().length > 0) {
+      console.log(`  --- ${stream} ---`)
+      console.log(text.split('\n').slice(-20).join('\n'))
+    }
+  }
+} finally {
+  if (keep) console.log(`\nkept ${home}`)
+  else rmSync(home, { recursive: true, force: true })
+}
+
+console.log('')
+if (failures.length === 0) {
+  console.log('release-smoke: passed')
+  process.exit(0)
+}
+console.log(`release-smoke: ${failures.length} failure(s)`)
+process.exit(1)

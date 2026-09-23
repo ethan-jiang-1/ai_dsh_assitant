@@ -1,0 +1,95 @@
+# 本 repo 的 workspace = 我们自己的包 + 钉住的 DSH 源码树。
+#
+# 为什么必须整树并入：DSH 的包之间用 `workspace:` 协议互相依赖
+# （见 vendor/dsh/packages/skill/skill/package.json），只链几个包无法解析。
+# 并入 DSH 的 packages 与 vendor，`workspace:^` 才会解析到钉住的源码 ——
+# 这正是"钉源码"的意义：typecheck 与 agent 导航都落在真实 src/。
+#
+# 包 glob 之外的部分（allowBuilds / minimumReleaseAgeExclude / patchedDependencies /
+# overrides / peerDependencyRules）**照抄 vendor/dsh/pnpm-workspace.yaml**，只改路径前缀：
+# 我们装的是同一张依赖图，它的安装假设必须原样成立，裁剪过一次就踩过一次坑
+# （ERR_PNPM_WORKSPACE_PKG_NOT_FOUND）。改 DSH 版本时这几段要跟着复核。
+packages:
+  - packages/*
+  # DSH 的包在 group/package 两层（packages/core/tools），所以是 */* 而不是 *
+  - vendor/dsh/packages/*/*
+  - vendor/dsh/vendor/*
+  # dev 环需要从源码起 harness：apps/cli 拥有 `dsh` bin；
+  # apps/web 是它的传递依赖（bundle/web-app → dsh-web-frontend）。
+  # 刻意**不**收 apps/desktop：那会拖进 electron，几倍体积且与本插件无关。
+  - vendor/dsh/apps/cli
+  - vendor/dsh/apps/web
+  # Landlock launcher 与它的消费方一起开发；node-addon-system 是它的 workspace 根。
+  - vendor/dsh/native/system
+  - vendor/dsh/native/system/packages/*
+
+# 与 DSH 根同款：vendored 框架包保留上游 semver 范围，但本地构建必须解析到钉住的源码。
+linkWorkspacePackages: true
+
+overrides:
+  '@deepseek-ai/cosmokit': 'link:vendor/dsh/vendor/cosmokit'
+  '@deepseek-ai/schemastery': 'link:vendor/dsh/vendor/schemastery'
+
+peerDependencyRules:
+  allowedVersions:
+    typescript: '>=5 <7'
+
+# pnpm 10+ 会拦下任何带 install/build 脚本的依赖，直到它被显式列名
+# （strictDepBuilds 默认 true：未列名 = 安装硬报错）。逐条抄自 DSH，只把
+# workspace 包的 file: 路径改成本 repo 的相对路径。
+allowBuilds:
+  esbuild: true
+  lefthook: true
+  # Cross-platform boundary for the persistent PTY backend, including ConPTY on Windows.
+  node-pty: true
+  # Pulled in by @earendil-works/pi-ai (optional LLM API backend). pnpm lists
+  # them only because they ship lifecycle scripts, but those are no-ops we don't
+  # need, so we deny them — install still succeeds.
+  '@google/genai': false
+  protobufjs: false
+  node-addon-require-builtin: false
+  # JSONL durability calls MoveFileExW with write-through publication on Windows.
+  koffi: true
+  # The reviewed workspace postinstall that restores the executable bit on
+  # node-pty's macOS spawn helper.
+  '@deepseek-ai/dsh-subprocess-local@file:vendor/dsh/packages/subprocess/subprocess-local': true
+  # electron-builder pulls in the optional Squirrel.Windows helper, whose
+  # install script only selects its bundled 7-Zip executable.
+  electron-winstaller: false
+  # Store-index rewriting only needs msgpackr's portable JavaScript codec.
+  msgpackr-extract: false
+
+minimumReleaseAgeExclude:
+  # Fresh pi-ai releases carry the model catalog updates that are the whole
+  # point of bumping them; waiting out the release age would defeat that.
+  - '@earendil-works/pi-ai@0.85.1'
+  - '@earendil-works/pi-telemetry@0.85.1'
+  - node-addon-native-custom-loader@0.1.4
+  - node-addon-require-builtin-darwin-arm64@0.1.4
+  - node-addon-require-builtin-darwin-x64@0.1.4
+  - node-addon-require-builtin-linux-arm64-gnu@0.1.4
+  - node-addon-require-builtin-linux-x64-gnu@0.1.4
+  - node-addon-require-builtin-win32-arm64-msvc@0.1.4
+  - node-addon-require-builtin-win32-ia32-msvc@0.1.4
+  - node-addon-require-builtin-win32-x64-msvc@0.1.4
+  - node-addon-require-builtin@0.1.4
+  # The active pnpm supply-chain policy blocks this reviewed runtime closure
+  # until its release-age window expires unless every exact package is exempt.
+  - '@anthropic-ai/claude-agent-sdk-darwin-arm64@0.3.263'
+  - '@anthropic-ai/claude-agent-sdk-darwin-x64@0.3.263'
+  - '@anthropic-ai/claude-agent-sdk-linux-arm64-musl@0.3.263'
+  - '@anthropic-ai/claude-agent-sdk-linux-arm64@0.3.263'
+  - '@anthropic-ai/claude-agent-sdk-linux-x64-musl@0.3.263'
+  - '@anthropic-ai/claude-agent-sdk-linux-x64@0.3.263'
+  - '@anthropic-ai/claude-agent-sdk-win32-arm64@0.3.263'
+  - '@anthropic-ai/claude-agent-sdk-win32-x64@0.3.263'
+  - '@anthropic-ai/claude-agent-sdk@0.3.263'
+  # All platform aliases resolve to the @openai/codex package name, so their
+  # reviewed exact versions must share one version-union policy entry.
+  - '@openai/codex@0.153.4||0.153.4-darwin-arm64||0.153.4-darwin-x64||0.153.4-linux-arm64||0.153.4-linux-x64||0.153.4-win32-arm64||0.153.4-win32-x64'
+
+# patch 文件指向 submodule 里的原始文件（不复制：复制就会与钉住的 tag 漂移）。
+# 只列本 workspace 真正用得到的：`@yao-pkg/pkg` 只被 apps/desktop 的打包用到，
+# 我们刻意没收 desktop，留着它 pnpm 会以 ERR_PNPM_UNUSED_PATCH 直接失败。
+patchedDependencies:
+  node-pty@1.2.0-beta.15: vendor/dsh/patches/node-pty@1.2.0-beta.15.patch

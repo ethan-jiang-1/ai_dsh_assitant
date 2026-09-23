@@ -1,0 +1,36 @@
+{
+  // 本包的编译工程（composite）：`pnpm typecheck` 与 `pnpm build` 共用它。
+  // rootDir=src → lib/ 的产物形状与 package.json 的 exports 一一对应：
+  //   src/index.ts          → lib/index.js
+  //   src/tool-memory/index.ts → lib/tool-memory/index.js
+  // references 指向我们直接 import 的 DSH 包：tsc 按项目引用构建它们，
+  // 于是 API 漂移在编译期暴露，且不会把 DSH 源码并进本程序重复检查。
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "lib"
+  },
+  "include": [
+    "src"
+  ],
+  "references": [
+    {
+      "path": "../../vendor/dsh/vendor/cordis"
+    },
+    {
+      "path": "../../vendor/dsh/vendor/schemastery"
+    },
+    {
+      "path": "../../vendor/dsh/packages/core/tools"
+    },
+    {
+      "path": "../../vendor/dsh/packages/util/home-paths"
+    },
+    {
+      "path": "../../vendor/dsh/packages/skill/skill"
+    },
+    {
+      "path": "../../vendor/dsh/packages/skill/skill-filesystem"
+    }
+  ]
+}

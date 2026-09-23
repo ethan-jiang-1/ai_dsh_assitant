@@ -1,0 +1,17 @@
+{
+  // 测试的类型面：把 tests/ 也纳入检查，但不发射产物。
+  // 纯核模块（home/memory/skills）不 import DSH 运行时；类型 import 一律用 `import type`。
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": false,
+    "incremental": false,
+    "declaration": false,
+    "declarationMap": false,
+    "noEmit": true,
+    "rootDir": "."
+  },
+  "include": [
+    "src",
+    "tests"
+  ]
+}

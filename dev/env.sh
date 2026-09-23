@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# 双 home 隔离的兜底。用法：source dev/env.sh
+#
+# 为什么必须兜底：coding agent 不会自己想起来"开发 home ≠ 日用 home"这件事（FAQ 13 双 home 篇的结论）。
+# 这个脚本一 source，之后 agent 起的一切会话都落在 repo 内的开发 home，做崩了也不碰日用的 ~/.dsh。
+#
+# 注意：凭据按 home 隔离 —— 开发 home 要在 $DSH_HOME/.credentials.yaml 自己配一次
+# DEEPSEEK_API_KEY（或接受真实 API 的测试 self-skip）。
+
+: "${ASSISTANT_REPO:=$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
+export ASSISTANT_REPO
+
+export DSH_HOME="$ASSISTANT_REPO/dev/harness-home"
+export ASSISTANT_PRESETS_DIR="$ASSISTANT_REPO/packages/dsh-smart-assistant/presets"
+
+mkdir -p "$DSH_HOME"
+
+echo "DSH_HOME=$DSH_HOME"
+echo "ASSISTANT_PRESETS_DIR=$ASSISTANT_PRESETS_DIR"

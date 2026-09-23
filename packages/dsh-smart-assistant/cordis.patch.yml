@@ -1,0 +1,18 @@
+# HOST 面：只发布 `assistantMemory` 服务（家的布局 + 三间房的存储 + 摘要计算 + 养护检查）。
+#
+# 平面判据（DSH 架构）：HOST 组合持有"跨会话共享的东西" —— 持久化、沙箱、审批栈、模型路由。
+# 记忆/探索/技能是**跨会话持久化**，所以服务落在这里。preset 里的服务行必须包在
+# `isolate` realm 里，否则与别的 preset 撞名（`dsh-agent-presets` 在挂载时直接拒绝）。
+# 落 host 面还有一个好处：将来做记忆面板时，client 读的是同一个实例。
+#
+# 模型可见的贡献（工具、提示词段落）**不在这里** —— 它们在 AGENT 面
+# （`presets/assistant/agent.cordis.yml`），因为那是"一个会话贡献给注册表的东西"。
+- insert:
+    - id: assistant-memory
+      name: dsh-smart-assistant
+      config:
+        # dataDir 省略 → <dshHome>/assistant（$DSH_HOME → ~/.dsh，经 resolveDshHome）；
+        # 要换地方就在 profile/home 层的 patch 里覆盖这一行（patch 是整行 config 替换）。
+        digestMaxBytes: 4096
+        recallLimit: 20
+        staleResearchDays: 30

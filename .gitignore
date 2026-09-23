@@ -1,0 +1,44 @@
+# ── 必须入库的东西（写在这里是提醒：下面没有一条会盖住它们）────────────────────
+# pnpm-lock.yaml        可复现性产物 —— 提交，绝不 ignore
+# .gitmodules           submodule 定义
+# vendor/UPSTREAM.md    钉住的 SHA 簿记
+# dev/env.sh            dev 双 home 兜底（只有 dev/harness-home/ 是残留）
+# dev/profile-patch.yml 把 roster 指向本 repo 的 presets/
+# snapshots/            录制会话与预期（证据，不是产物）
+
+# ── 构建产物 ────────────────────────────────────────────────────────────────
+# 本包 tsc 的输出（发布物由 npm pack 现场构建，不入库）
+packages/*/lib/
+# tsc 增量状态（composite 工程在包目录与仓库根都会落）
+*.tsbuildinfo
+
+# ── 依赖 ────────────────────────────────────────────────────────────────────
+node_modules/
+# pnpm 的本地 store（沙箱/受限环境下 pnpm 会把 store 落在工作区内）。
+# 它是内容寻址缓存，几百 MB 起，**绝不能入库**。
+.pnpm-store/
+
+# ── 运行残留 ────────────────────────────────────────────────────────────────
+# 开发 home：会话日志、settings、**凭据**、profile 自己的 node_modules —— 全都不入库。
+# 精确到子目录（不是 dev/）：dev/env.sh 与 dev/profile-patch.yml 必须入库。
+dev/harness-home/
+
+# 打包与冒烟残留
+*.tgz
+.tmp/
+
+# ── 密钥 / 本地环境（防御性，本 repo 目前不需要 .env）────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ── 测试产物 ────────────────────────────────────────────────────────────────
+coverage/
+
+# ── 系统 ────────────────────────────────────────────────────────────────────
+.DS_Store
+
+# ── 明确不 ignore（防止后来者手滑）──────────────────────────────────────────
+# vendor/dsh 是 git submodule：父仓库只记一个 gitlink + .gitmodules，
+# 它的内容由它自己的仓库管。**不要**在这里 ignore vendor/ 或 vendor/dsh，
+# 那会让 submodule 失效，也会顺手把 vendor/UPSTREAM.md 排除掉。

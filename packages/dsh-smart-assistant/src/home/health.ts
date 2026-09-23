@@ -1,0 +1,278 @@
+/**
+ * The curation check: a pure function over the home's parsed files that reports what has rotted.
+ *
+ * This is the "let code check what code can check" half of the home's design. It never guesses and
+ * never repairs — it names candidates (near-duplicates, dangling references, budget pressure,
+ * threads that stopped moving, skills the loader would silently ignore) and leaves the decision to
+ * the agent or the person. The same function backs `assistant_memory action=curate` and the tests,
+ * so the brief the model reads and the brief CI asserts are the same brief.
+ *
+ * @module dsh-smart-assistant/home/health
+ */
+
+import type { MemoryRecord } from '../memory/record.ts'
+import type { ResearchThread } from '../research/thread.ts'
+import type { RoomReadFailure } from './room.ts'
+
+/** Machine-readable finding kinds, stable enough for a caller to filter on. */
+export type FindingCode =
+  | 'unreadable-file'
+  | 'duplicate-id'
+  | 'dangling-reference'
+  | 'near-duplicate'
+  | 'digest-over-budget'
+  | 'stale-thread'
+  | 'skill-name-mismatch'
+  | 'skill-invalid-name'
+  | 'skill-missing-description'
+  | 'skill-without-provenance'
+
+/** One thing worth a human's or the agent's attention. */
+export interface CurationFinding {
+  /** Stable kind. */
+  readonly code: FindingCode
+  /** `warn` means the home is losing signal now; `info` means it will soon. */
+  readonly severity: 'warn' | 'info'
+  /** One line naming the problem and the fix. */
+  readonly message: string
+  /** Entry ids, skill names, or file paths the finding is about. */
+  readonly refs: readonly string[]
+}
+
+/** What a learned-skill scan found for one bundle. */
+export interface LearnedSkillInfo {
+  /** Bundle directory name. */
+  readonly dirName: string
+  /** `name` from the bundle's frontmatter, when it parsed. */
+  readonly name?: string
+  /** `description` from the bundle's frontmatter. */
+  readonly description?: string
+  /** `metadata.origin`, when present. */
+  readonly origin?: string
+}
+
+/** Everything the check reads; assembled by the service so the check itself stays pure. */
+export interface CurationInput {
+  /** Active memory records. */
+  readonly memories: readonly MemoryRecord[]
+  /** Active threads. */
+  readonly threads: readonly ResearchThread[]
+  /** Memory files that did not parse. */
+  readonly memoryFailures: readonly RoomReadFailure[]
+  /** Thread files that did not parse. */
+  readonly researchFailures: readonly RoomReadFailure[]
+  /** Ids present in both a room and its archive, which means bookkeeping went wrong. */
+  readonly duplicatedIds: readonly string[]
+  /** Ids available for dangling-reference checks: active and archived entries of both rooms. */
+  readonly knownIds: readonly string[]
+  /** Learned skill bundles found in the skills room. */
+  readonly skills: readonly LearnedSkillInfo[]
+  /** Bytes the current digest occupies. */
+  readonly digestBytes: number
+  /** Digest budget. */
+  readonly digestMaxBytes: number
+  /** Age at which an open thread is reported as stalled. */
+  readonly staleResearchDays: number
+  /** Timestamp used for age comparisons. */
+  readonly now: Date
+}
+
+/** Counts and findings the caller renders or acts on. */
+export interface CurationBrief {
+  /** Findings, warns first. */
+  readonly findings: readonly CurationFinding[]
+  /** Headline counts. */
+  readonly counts: {
+    readonly memories: number
+    readonly activeMemories: number
+    readonly threads: number
+    readonly openThreads: number
+    readonly parkedThreads: number
+    readonly learnedSkills: number
+    readonly digestBytes: number
+    readonly digestMaxBytes: number
+  }
+}
+
+const NEAR_DUPLICATE_THRESHOLD = 0.6
+const MAX_DUPLICATE_PAIRS = 10
+const MS_PER_DAY = 24 * 60 * 60 * 1000
+
+function tokens(text: string): Set<string> {
+  const set = new Set<string>()
+  for (const token of text.toLowerCase().split(/[^\p{L}\p{N}]+/u)) {
+    if (token.length >= 3) set.add(token)
+  }
+  return set
+}
+
+function jaccard(left: ReadonlySet<string>, right: ReadonlySet<string>): number {
+  if (left.size === 0 || right.size === 0) return 0
+  let shared = 0
+  for (const token of left) if (right.has(token)) shared += 1
+  return shared / (left.size + right.size - shared)
+}
+
+function ageInDays(updated: string, now: Date): number {
+  const at = Date.parse(updated)
+  if (Number.isNaN(at)) return Number.POSITIVE_INFINITY
+  return (now.getTime() - at) / MS_PER_DAY
+}
+
+function findNearDuplicates(memories: readonly MemoryRecord[]): CurationFinding[] {
+  const findings: CurationFinding[] = []
+  const tokenSets = memories.map(record => tokens(record.text))
+  for (let left = 0; left < memories.length; left += 1) {
+    for (let right = left + 1; right < memories.length; right += 1) {
+      const leftRecord = memories[left]
+      const rightRecord = memories[right]
+      if (leftRecord === undefined || rightRecord === undefined) continue
+      const overlap = jaccard(tokenSets[left] ?? new Set(), tokenSets[right] ?? new Set())
+      if (overlap < NEAR_DUPLICATE_THRESHOLD) continue
+      findings.push({
+        code: 'near-duplicate',
+        severity: 'info',
+        message: `"${leftRecord.id}" and "${rightRecord.id}" say nearly the same thing `
+          + `(${Math.round(overlap * 100)}% overlap): keep the better-phrased one and supersede the other`,
+        refs: [leftRecord.id, rightRecord.id],
+      })
+      if (findings.length >= MAX_DUPLICATE_PAIRS) return findings
+    }
+  }
+  return findings
+}
+
+/**
+ * Check a home's parsed state.
+ * @param input - Parsed records, threads, skills, and the current digest size.
+ * @returns Findings (warns first) and headline counts.
+ */
+export function curateHome(input: CurationInput): CurationBrief {
+  const findings: CurationFinding[] = []
+  const known = new Set(input.knownIds)
+
+  for (const failure of [...input.memoryFailures, ...input.researchFailures]) {
+    findings.push({
+      code: 'unreadable-file',
+      severity: 'warn',
+      message: `${failure.path} is not a readable entry (${failure.reason}) — `
+        + 'a file that does not parse is silently absent from the digest',
+      refs: [failure.path],
+    })
+  }
+
+  for (const id of input.duplicatedIds) {
+    findings.push({
+      code: 'duplicate-id',
+      severity: 'warn',
+      message: `"${id}" exists both in a room and in its archive — bookkeeping went wrong`,
+      refs: [id],
+    })
+  }
+
+  for (const record of input.memories) {
+    if (record.supersedes !== undefined && !known.has(record.supersedes)) {
+      findings.push({
+        code: 'dangling-reference',
+        severity: 'warn',
+        message: `"${record.id}" supersedes "${record.supersedes}", which does not exist`,
+        refs: [record.id, record.supersedes],
+      })
+    }
+  }
+
+  for (const thread of input.threads) {
+    if (thread.promotedTo !== undefined && !known.has(thread.promotedTo)) {
+      findings.push({
+        code: 'dangling-reference',
+        severity: 'warn',
+        message: `"${thread.id}" was promoted to "${thread.promotedTo}", which does not exist`,
+        refs: [thread.id, thread.promotedTo],
+      })
+    }
+    if (thread.status === 'open' && ageInDays(thread.updated, input.now) > input.staleResearchDays) {
+      findings.push({
+        code: 'stale-thread',
+        severity: 'info',
+        message: `"${thread.id}" has been open for more than ${input.staleResearchDays} days: `
+          + 'pick an exit — promote, park, or drop it with a reason',
+        refs: [thread.id],
+      })
+    }
+  }
+
+  findings.push(...findNearDuplicates(input.memories))
+
+  if (input.digestBytes > input.digestMaxBytes) {
+    findings.push({
+      code: 'digest-over-budget',
+      severity: 'warn',
+      message: `the digest is ${input.digestBytes} bytes against a ${input.digestMaxBytes}-byte budget: `
+        + 'retire the weakest active records or tighten their phrasing',
+      refs: [],
+    })
+  }
+
+  for (const skill of input.skills) {
+    if (skill.name === undefined) {
+      findings.push({
+        code: 'skill-missing-description',
+        severity: 'warn',
+        message: `skill bundle "${skill.dirName}" has no readable frontmatter — the loader ignores it`,
+        refs: [skill.dirName],
+      })
+      continue
+    }
+    if (skill.name !== skill.dirName) {
+      findings.push({
+        code: 'skill-name-mismatch',
+        severity: 'warn',
+        message: `skill "${skill.name}" lives in directory "${skill.dirName}": `
+          + 'the bundle is loaded by directory, so the two must agree',
+        refs: [skill.name, skill.dirName],
+      })
+    }
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(skill.name)) {
+      findings.push({
+        code: 'skill-invalid-name',
+        severity: 'warn',
+        message: `skill name "${skill.name}" is not kebab-case — the loader ignores it`,
+        refs: [skill.name],
+      })
+    }
+    if (skill.description === undefined || skill.description.trim().length === 0) {
+      findings.push({
+        code: 'skill-missing-description',
+        severity: 'warn',
+        message: `skill "${skill.name}" has no description, so no future session will know when to load it`,
+        refs: [skill.name],
+      })
+    }
+    if (skill.origin === undefined) {
+      findings.push({
+        code: 'skill-without-provenance',
+        severity: 'info',
+        message: `skill "${skill.name}" carries no metadata.origin — it was hand-written, or written `
+          + 'without assistant_reflect',
+        refs: [skill.name],
+      })
+    }
+  }
+
+  findings.sort((left, right) => (left.severity === right.severity ? 0 : left.severity === 'warn' ? -1 : 1))
+
+  const openThreads = input.threads.filter(thread => thread.status === 'open').length
+  return {
+    findings,
+    counts: {
+      memories: input.memories.length,
+      activeMemories: input.memories.filter(record => record.status === 'active').length,
+      threads: input.threads.length,
+      openThreads,
+      parkedThreads: input.threads.filter(thread => thread.status === 'parked').length,
+      learnedSkills: input.skills.length,
+      digestBytes: input.digestBytes,
+      digestMaxBytes: input.digestMaxBytes,
+    },
+  }
+}

@@ -1,0 +1,147 @@
+# `assistant` agent preset —— 智能助手的 AGENT 面组合。
+#
+# 这是一个 AGENT-PLANE 组合。roster 只把它挂**一次**（standing scope），
+# 命名它的每个会话按 scope 父子关系加入：这里注册的工具与提示词段落覆盖每个加入的 agent，
+# 而每个会话自己的状态按 Session/Agent 键控在插件内部。
+# 服务（`assistantMemory`）不在这个文件里 —— 它在 HOST 面（`cordis.patch.yml`）。
+#
+# TRUST：这个 preset 能读写 agent 自己的家（记忆、探索线索、技能）。任何 preset 都是受信配置，
+# 因为它授权它所选插件的能力；挂它等于把家交给它。
+#
+# 三间房与三档出口的契约见 `docs/home.md`；身份名以 `docs/identity.md` 为唯一权威。
+
+# ── 身份 ────────────────────────────────────────────────────────────────────
+
+- id: persona
+  name: '@deepseek-ai/dsh-persona'
+  config:
+    prefix: |-
+      You are a long-lived assistant. You keep a home directory that outlives every session:
+      durable memories about the person and the work, open threads you have not resolved yet,
+      and skills you have written for yourself. What you keep there is what you will still know
+      tomorrow; what you do not keep is gone.
+
+      Three habits define you:
+      - Keep what will still matter later; let the rest go. One accurate record beats three vague ones.
+      - When you work out how something should be done here, write it down as a skill instead of
+        re-deriving it next time.
+      - Keep your home worth reading: merge duplicates, retire what is stale, and never let the
+        digest crowd out the work in front of you.
+
+      The digest in your context is a bounded view of your home, not the whole of it — when it is not
+      enough, recall. Load `memory-hygiene` before writing memory, `research-backlog` before opening or
+      closing a thread, `home-curation` before tidying, and `self-reflection` before turning an
+      experience into a skill. Your home's map is `HOME.md`.
+    suffix: Your working directory is {{cwd}}.
+
+- id: agent-instructions
+  name: '@deepseek-ai/dsh-agent-instructions'
+  config:
+    maxBytes: 65536
+
+# ── 家：桌面（有界摘要）──────────────────────────────────────────────────────
+#
+# 只放"此刻最该在眼前的东西"：家地图的一小段 + 活跃记忆的精选 + 开放线索的条数与前几条标题。
+# 有界（digestMaxBytes），所以它不会挤掉眼前的工作；细节用工具取（抽屉）。
+# 这一段单独成行，是为了让部署能独立地关掉它或调预算 —— 上下文控制是一等公民。
+- id: assistant-memory-digest
+  name: dsh-smart-assistant/memory-digest
+
+# ── 家：抽屉（工具）─────────────────────────────────────────────────────────
+#
+# 三个工具的动词集互不重叠，所以不合并：
+#   assistant_memory   recall/save/forget/list/curate   —— 已确立的事实、偏好、决定
+#   assistant_research open/update/park/drop/promote/list —— 未决的线索（backlog 三档出口）
+#   assistant_reflect  brief/save_skill                 —— 把经历变成记忆与技能
+- id: assistant-memory-tool
+  name: dsh-smart-assistant/tool-memory
+
+- id: assistant-research-tool
+  name: dsh-smart-assistant/tool-research
+
+- id: assistant-learn
+  name: dsh-smart-assistant/learn
+
+# ── 技能：两个来源 ──────────────────────────────────────────────────────────
+#
+# 技能注册表（`ctx.skills`）在 HOST 组合里，且按 scope 分层：这里的行注册进**本 preset 的层**，
+# 所以不需要 realm。
+#   · 策展技能：本 preset 目录下的 `skills/`（人写的、随 repo 版本化）—— 用 `baseUrl` 惯用法指过去
+#     （`baseUrl` 是 preset 自己的目录，抄自 shipped `cordis` preset）。
+#   · 学到的技能：由 `assistant-learn` 自己挂载第二个 `dsh-skill-filesystem` 实例
+#     （`providerName: assistant-learned`，只扫家里的 `skills/`）—— 路径从服务取，零漂移。
+# 分成两个 provider 是刻意的：一眼能看出一个技能是"策展的"还是"学来的"。
+- id: skill-filesystem
+  name: '@deepseek-ai/dsh-skill-filesystem'
+  config:
+    customSkillDirs:
+      - !!js "process.getBuiltinModule('node:url').fileURLToPath(new URL('skills/', baseUrl))"
+
+- id: tool-skill
+  name: '@deepseek-ai/dsh-tool-skill'
+
+# ── 文件系统（读家、读工作区）────────────────────────────────────────────────
+#
+# 两行都只注册进 host `tools` 注册表、不发布服务，所以不需要 realm。
+- id: tool-fs
+  name: '@deepseek-ai/dsh-tool-fs'
+
+- id: tool-fs-search
+  name: '@deepseek-ai/dsh-tool-fs-search'
+  config:
+    sampleOverCapGlobResults: false
+
+# ── shell ───────────────────────────────────────────────────────────────────
+
+- id: tool-bash
+  name: '@deepseek-ai/dsh-tool-bash'
+  disabled: !!js process.platform === 'win32'
+
+- id: tool-pwsh
+  name: '@deepseek-ai/dsh-tool-pwsh'
+  disabled: !!js process.platform !== 'win32'
+
+# ── 其余模型可见行 ──────────────────────────────────────────────────────────
+
+- id: tool-ask-user
+  name: '@deepseek-ai/dsh-tool-ask-user'
+
+- id: tool-todo
+  name: '@deepseek-ai/dsh-tool-todo'
+  config:
+    allowParallelInProgress: true
+
+# `web` 服务与它的搜索 provider 在 HOST 组合；这里只要模型可见的工具。
+- id: tool-web
+  name: '@deepseek-ai/dsh-tool-web'
+  config:
+    fetch: true
+    searchTimeoutMs: 60000
+
+- id: tool-present
+  name: '@deepseek-ai/dsh-tool-present'
+
+# ── 压缩（上下文控制的另一半）───────────────────────────────────────────────
+#
+# `compaction-basic` 通过 `ctx.get` 读 `toolResultPrune`，所以 pruner 必须与它同 realm，
+# 而不是坐在 realm 外面。`tokenMeter` 刻意**不**在这个 realm 里：它留在 HOST 面，
+# 按 Session 键控、拥有浏览器读的上下文计量单位。
+- id: compaction
+  name: cordis:group
+  group: true
+  isolate:
+    compaction: true
+    toolResultPruner: true
+  config:
+    - id: compaction-basic
+      name: '@deepseek-ai/dsh-compaction-basic'
+
+    - id: command-compact
+      name: '@deepseek-ai/dsh-command-compact'
+
+    - id: tool-result-pruner
+      name: '@deepseek-ai/dsh-compaction-tool-result-pruner'
+      config:
+        thresholdChars: 8192
+        headChars: 4096
+        tailChars: 1024

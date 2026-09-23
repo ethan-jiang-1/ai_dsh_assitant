@@ -1,0 +1,9 @@
+{
+  // 仓库级聚合工程：`pnpm typecheck` 从这里出发，按项目引用构建。
+  "files": [],
+  "references": [
+    {
+      "path": "packages/dsh-smart-assistant"
+    }
+  ]
+}
