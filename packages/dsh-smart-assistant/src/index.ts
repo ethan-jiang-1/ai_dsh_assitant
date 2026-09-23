@@ -47,6 +47,7 @@ import {
 } from './research/thread.ts'
 import { scanLearnedSkills } from './skills/scan.ts'
 import { auditLearnedSkill, auditSkillsRoom } from './skills/audit.ts'
+import { snapshotExistingSkill } from './skills/snapshot.ts'
 import { writeLearnedSkill, isSkillName, SKILL_FILE_NAME, type SkillDraft } from './skills/skill-file.ts'
 import {
   readSkillUsage,
@@ -587,23 +588,31 @@ export class AssistantMemory extends Service {
 
   /**
    * Write a skill the agent learned into the home's skills room, then audit what was written.
-   * The write-time contract check refuses an unusable frontmatter shape; the audit covers the two
-   * ways a well-formed skill still fails a future session (broken relative pointers, credential
-   * shapes). Findings ride the return value — reported, never blocking.
+   * Replacing an existing bundle snapshots the previous wording first (`skills/archive/
+   * snapshots/<name>/`, newest few kept) — the write-time contract check refuses an unusable
+   * frontmatter shape, and the audit covers the two ways a well-formed skill still fails a
+   * future session (broken relative pointers, credential shapes). Findings ride the return
+   * value — reported, never blocking.
    * @param draft - Validated skill draft; provenance is stamped automatically.
-   * @returns The written bundle's name, path, and post-write audit findings.
+   * @returns The written bundle's name, path, the pre-overwrite snapshot path when one was
+   * taken, and post-write audit findings.
    */
   async writeSkill(
     draft: Omit<SkillDraft, 'learnedAt'>,
-  ): Promise<{ name: string, path: string, findings: readonly CurationFinding[] }> {
+  ): Promise<{ name: string, path: string, snapshot?: string, findings: readonly CurationFinding[] }> {
     await this.ensureHome()
+    const snapshot = await snapshotExistingSkill(
+      this.paths.skillsDir,
+      this.paths.skillsArchiveDir,
+      draft.name,
+    )
     const written = await writeLearnedSkill(this.paths.skillsDir, { ...draft, learnedAt: new Date().toISOString() })
     const text = await readFile(written.path, 'utf8').catch(() => undefined)
     const findings = text === undefined
       ? []
       : await auditLearnedSkill(written.name, dirname(written.path), text)
     this.touch()
-    return { ...written, findings }
+    return { ...written, ...(snapshot !== undefined ? { snapshot } : {}), findings }
   }
 
   /**

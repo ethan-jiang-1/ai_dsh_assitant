@@ -114,6 +114,7 @@ const OUTPUT = {
       },
     },
     skill_path: { type: 'string', required: true },
+    snapshot_path: { type: 'string', required: true },
   },
 } as const
 
@@ -129,6 +130,7 @@ interface ReflectOutput {
   skill_usage: { name: string, count: number, last_used?: string }[]
   audit_findings: { code: string, severity: string, message: string }[]
   skill_path: string
+  snapshot_path: string
 }
 
 function flatten(text: string): string {
@@ -169,6 +171,9 @@ function render(_args: unknown, value: ReflectOutput): { type: 'text', text: str
     )
   }
   if (value.skill_path.length > 0) lines.push(`Written: ${value.skill_path}`)
+  if (value.snapshot_path.length > 0) {
+    lines.push(`Previous version snapshotted at ${value.snapshot_path} (recoverable by copying it back).`)
+  }
   return [{ type: 'text', text: lines.join('\n') }]
 }
 
@@ -229,6 +234,7 @@ export function apply(ctx: Context): void {
         skill_usage: [],
         audit_findings: [],
         skill_path: '',
+        snapshot_path: '',
       }
       switch (action) {
         case 'brief': {
@@ -328,6 +334,7 @@ export function apply(ctx: Context): void {
               ? `Wrote skill "${written.name}"; the post-write audit found ${written.findings.length} problem(s):`
               : `Wrote skill "${written.name}"; it is loadable now.`,
             skill_path: written.path,
+            snapshot_path: written.snapshot ?? '',
             audit_findings: written.findings.map(finding => ({
               code: finding.code,
               severity: finding.severity,
