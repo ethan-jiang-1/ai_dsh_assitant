@@ -49,6 +49,11 @@ const DESCRIPTION = [
   '- retire_skill: move a learned skill out of the skills room into skills/archive/ — it stops',
   '  loading immediately but stays recoverable. Use it when curate reports the skill is past its',
   '  use-by date, or when it is shadowed and not worth renaming.',
+  '- save_page: distill a domain page into the knowledge room as a DRAFT. Drafts stay out of',
+  '  search and the digest until a person flips status to stable (that file edit is the review).',
+  '  Sources are required — cite where the knowledge came from (memory:<id>, research:<id>, a',
+  '  URL, a repo path). Link pages with [[wikilinks]]. Pinning a page into memory is',
+  '  `assistant_memory save` with source knowledge:<page-id>; that is the whole bridge.',
   '"Nothing durable came out of this session" is a correct result. Load the `self-reflection` skill',
   'before reflecting.',
 ].join('\n')
@@ -115,6 +120,8 @@ const OUTPUT = {
     },
     skill_path: { type: 'string', required: true },
     snapshot_path: { type: 'string', required: true },
+    page_id: { type: 'string', required: true },
+    page_path: { type: 'string', required: true },
   },
 } as const
 
@@ -131,6 +138,8 @@ interface ReflectOutput {
   audit_findings: { code: string, severity: string, message: string }[]
   skill_path: string
   snapshot_path: string
+  page_id: string
+  page_path: string
 }
 
 function flatten(text: string): string {
@@ -174,6 +183,10 @@ function render(_args: unknown, value: ReflectOutput): { type: 'text', text: str
   if (value.snapshot_path.length > 0) {
     lines.push(`Previous version snapshotted at ${value.snapshot_path} (recoverable by copying it back).`)
   }
+  if (value.page_path.length > 0) {
+    lines.push(`Written draft page ${value.page_id}: ${value.page_path}`)
+    lines.push('It stays out of search and the digest until status is flipped to stable by hand — that edit is the review.')
+  }
   return [{ type: 'text', text: lines.join('\n') }]
 }
 
@@ -208,12 +221,17 @@ export function apply(ctx: Context): void {
     name: 'assistant_reflect',
     description: DESCRIPTION,
     parameters: {
-      action: { type: 'string', required: true, enum: ['brief', 'save_skill', 'retire_skill'], description: 'brief | save_skill | retire_skill' },
+      action: { type: 'string', required: true, enum: ['brief', 'save_skill', 'retire_skill', 'save_page'], description: 'brief | save_skill | retire_skill | save_page' },
       name: { type: 'string', description: 'save_skill | retire_skill: kebab-case skill name; also its directory name.' },
-      description: { type: 'string', description: 'save_skill: when to load it — the only text a future session sees first.' },
+      description: { type: 'string', description: 'save_skill: when to load it — the only text a future session sees first. save_page: one-line page summary.' },
       when_to_use: { type: 'string', description: 'save_skill: extra trigger guidance.' },
-      body: { type: 'string', description: 'save_skill: the procedure, written for a session without your context.' },
+      body: { type: 'string', description: 'save_skill | save_page: the content, written for a session without your context. Pages may use [[wikilinks]].' },
       reason: { type: 'string', description: 'retire_skill: why it is retiring (optional; the usage ledger already holds the facts).' },
+      type: { type: 'string', description: 'save_page: free-form kind — concept, entity, source, how-it-works.' },
+      title: { type: 'string', description: 'save_page: human-readable name; [[links]] may resolve against it.' },
+      sources: { type: 'array', items: { type: 'string' }, description: 'save_page: where the knowledge came from (memory:<id>, research:<id>, a URL, a repo path). Required.' },
+      tags: { type: 'array', items: { type: 'string' }, description: 'save_page: retrieval tags.' },
+      stale_after: { type: 'string', description: 'save_page: absolute ISO-8601 time after which the page is due for review.' },
     },
     output: {
       schema: OUTPUT,
@@ -235,6 +253,8 @@ export function apply(ctx: Context): void {
         audit_findings: [],
         skill_path: '',
         snapshot_path: '',
+        page_id: '',
+        page_path: '',
       }
       switch (action) {
         case 'brief': {
@@ -354,6 +374,34 @@ export function apply(ctx: Context): void {
             ...empty,
             summary: `Retired skill "${retired.name}" to skills/archive/; it no longer loads and nothing was deleted — move the bundle back to restore it.`,
             skill_path: retired.path,
+          }
+        }
+        case 'save_page': {
+          if (args.type === undefined || args.body === undefined
+            || args.sources === undefined || args.sources.length === 0) {
+            throw new Error('assistant_reflect save_page requires type, body, and sources')
+          }
+          const written = await ctx.assistantMemory.writePage({
+            type: args.type,
+            ...(args.title !== undefined ? { title: args.title } : {}),
+            ...(args.description !== undefined ? { description: args.description } : {}),
+            body: args.body,
+            sources: args.sources,
+            ...(args.tags !== undefined ? { tags: args.tags } : {}),
+            ...(args.stale_after !== undefined ? { staleAfter: args.stale_after } : {}),
+          })
+          return {
+            ...empty,
+            summary: written.findings.length > 0
+              ? `Wrote draft page "${written.id}"; the audit found ${written.findings.length} problem(s):`
+              : `Wrote draft page "${written.id}" — staged, awaiting review.`,
+            page_id: written.id,
+            page_path: written.path,
+            audit_findings: written.findings.map(finding => ({
+              code: finding.code,
+              severity: finding.severity,
+              message: finding.message,
+            })),
           }
         }
         /* v8 ignore next 2 -- the enum in the parameter schema admits only the cases above */

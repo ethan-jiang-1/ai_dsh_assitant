@@ -28,7 +28,7 @@ import { HOME_MAP_BLURB } from './home/home-map.ts'
 import { HOME_DIRECTORY_NAME, homePaths, scaffoldHome, ARCHIVE_DIRECTORY_NAME, type HomePaths, type ScaffoldResult } from './home/layout.ts'
 import { isMaintenanceRound, renderMaintenancePrompt } from './home/metronome.ts'
 import { curateKnowledge } from './knowledge/health.ts'
-import { pageFromEntry, backlinksOf, type KnowledgePage } from './knowledge/page.ts'
+import { pageFromEntry, pageToDocument, parseWikiLinks, backlinksOf, type KnowledgePage } from './knowledge/page.ts'
 import { searchPages, type KnowledgeQuery } from './knowledge/search.ts'
 import { Room, type RoomEntry, type RoomReadFailure } from './home/room.ts'
 import {
@@ -49,7 +49,7 @@ import {
   type ResearchThread,
 } from './research/thread.ts'
 import { scanLearnedSkills } from './skills/scan.ts'
-import { auditLearnedSkill, auditSkillsRoom } from './skills/audit.ts'
+import { auditLearnedSkill, auditSkillsRoom, auditSkillCredentials } from './skills/audit.ts'
 import { snapshotExistingSkill } from './skills/snapshot.ts'
 import { writeLearnedSkill, isSkillName, SKILL_FILE_NAME, type SkillDraft } from './skills/skill-file.ts'
 import {
@@ -479,11 +479,71 @@ export class AssistantMemory extends Service {
     const memory = await this.memory.read(destination)
     const archivedMemory = memory ?? await this.memory.readArchived(destination)
     const skills = await scanLearnedSkills(this.paths.skillsDir)
-    const known = archivedMemory !== undefined || skills.skills.some(skill => skill.name === destination)
+    const knowledge = await this.listKnowledge()
+    const known = archivedMemory !== undefined
+      || skills.skills.some(skill => skill.name === destination)
+      || knowledge.entries.some(page => page.id === destination)
     if (!known) {
-      throw new Error(`promotedTo names "${destination}", which is neither a memory record nor a learned skill`)
+      throw new Error(`promotedTo names "${destination}", which is neither a memory record, a learned skill, nor a knowledge page`)
     }
     return this.setThreadStatus(id, 'promoted', { promotedTo: destination })
+  }
+
+  /**
+   * Write a distilled knowledge page into the knowledge room, as a staged draft.
+   *
+   * Drafts never enter search results or the digest tree — the review gate is a deliberate file
+   * edit (a hand flip of `status` to `stable` is the approval), so nothing a session writes
+   * promotes itself. Sources are required: an unsourced page is useless even as a draft.
+   * @param input - The page's content and where it came from.
+   * @returns The written page's id, path, and credential-audit findings.
+   * @throws when `body` or `sources` is empty, or the generated id is not a safe file name.
+   */
+  async writePage(input: {
+    readonly type: string
+    readonly title?: string
+    readonly description?: string
+    readonly body: string
+    readonly sources: readonly string[]
+    readonly tags?: readonly string[]
+    readonly staleAfter?: string
+    readonly slug?: string
+  }): Promise<{ id: string, path: string, findings: readonly CurationFinding[] }> {
+    const body = input.body.trim()
+    const type = input.type.trim()
+    if (body.length === 0) throw new Error('assistant_reflect save_page requires a body')
+    if (type.length === 0) throw new Error('assistant_reflect save_page requires a type')
+    const sources = input.sources.map(source => source.trim()).filter(source => source.length > 0)
+    if (sources.length === 0) {
+      throw new Error('assistant_reflect save_page requires sources — where the knowledge came from (cite memory:<id>, research:<id>, a URL, or a repo path)')
+    }
+    if (input.staleAfter !== undefined && Number.isNaN(Date.parse(input.staleAfter))) {
+      throw new Error('stale_after must be an absolute ISO-8601 time')
+    }
+    await this.ensureHome()
+    const now = new Date()
+    const id = newThreadId(now, input.title ?? input.type, undefined, input.slug)
+    const page: KnowledgePage = {
+      id,
+      status: 'draft',
+      type,
+      ...(input.title !== undefined && input.title.trim().length > 0 ? { title: input.title.trim() } : {}),
+      ...(input.description !== undefined && input.description.trim().length > 0 ? { description: input.description.trim() } : {}),
+      generated: { by: 'process:assistant-reflect', at: now.toISOString() },
+      ...(input.staleAfter !== undefined ? { staleAfter: input.staleAfter } : {}),
+      sources: sources.map(resource => ({ resource })),
+      tags: [...(input.tags ?? [])],
+      body,
+      links: parseWikiLinks(body),
+    }
+    const document = pageToDocument(page)
+    await this.knowledge.write(id, document.data, document.body)
+    // The credential audit is content-agnostic: a page carrying a live secret is the same
+    // failure as a skill carrying one.
+    const findings = auditSkillCredentials(id, renderFrontmatterDocument(document.data, document.body))
+    this.touch()
+    const entry = await this.knowledge.read(id)
+    return { id, path: entry?.path ?? join(this.paths.knowledgeDir, `${id}.md`), findings }
   }
 
   /**
