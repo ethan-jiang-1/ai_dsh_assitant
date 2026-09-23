@@ -463,7 +463,8 @@ export class AssistantMemory extends Service {
     })
   }
 
-  async #requireActiveThread(id: string): Promise<RoomEntry> {    const entry = await this.#research.read(id)
+  async #requireActiveThread(id: string): Promise<RoomEntry> {
+    const entry = await this.#research.read(id)
     if (entry === undefined) {
       const archived = await this.#research.readArchived(id)
       if (archived !== undefined) throw new Error(`thread "${id}" is already closed and archived`)

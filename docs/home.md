@@ -63,7 +63,7 @@
 | 缺理由的 drop | `status: dropped` 但 `reason` 为空 | 尸体没写死因 = 白丢 |
 | 技能文件 | 名字不合 `SKILL_NAME` 文法 / 缺 `description` / 目录名与 name 不一致 | 技能会静默不被发现 |
 
-**这是 talk ⑤ 的落点**：能让代码查的，别让 AI 自己说。
+**判据**：能让代码查的，别让 AI 自己说。
 
 ## 五、`HOME.md`（地图）
 

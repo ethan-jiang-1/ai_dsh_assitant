@@ -26,6 +26,9 @@
 | `notes/` | `intents.md` + `proposed/` + `implemented/` | 决策与输掉的方案进这里 |
 | `dev/` | 开发 home 与 profile patch（运行残留 gitignore） | 环境问题动这里 |
 | `scripts/` | 机械门禁（verify / release-smoke / sync-dsh） | 门禁问题动这里 |
+| `snapshots/` | 行为回归的证据面（day 0 占位：先用测试 + 会话日志顶，见其 README） | 回归证据问题动这里 |
+
+**语言分工**：人与本仓文档（docs/notes/AGENTS.md）用中文；进模型上下文的（persona、SKILL.md、工具 description）用英文；代码与脚本注释随所在文件现状，不整批改写。
 
 ## 命令表
 
@@ -61,7 +64,7 @@ pnpm dsh --profile dev --port 0    # Web UI；**preset 行为（三工具/person
    （覆盖任何继承来的值，包括日用的 `~/.dsh`；显式出口是 `ASSISTANT_DSH_HOME`）。
    绕过启动器直连 node 的调用（release-smoke、`dev/setup.sh`）自己负责设置 `DSH_HOME`；
    `dev/env.sh` 是它们与手工调用时的兜底。**任何情况下不碰日用的 `~/.dsh`。**
-2. **探索路由**：要 DSH 机制结论，读 `vendor/dsh/docs/architecture.md` → `docs/capability-seams.md` → 对应包 README；
+2. **探索路由**：要 DSH 机制结论，读 `vendor/dsh/docs/architecture.md` → `vendor/dsh/docs/capability-seams.md` → 对应包 README；
    要真实签名，读 `vendor/dsh/packages/**/src/`。**不猜 API，去读。**
 3. **窄证据**：一次交付 = 一个垂直切片（代码 + 测试 + docs/README + note 同 diff）；
    只跑"会为这次回归而失败"的最小检查；**报告里只列真跑过的命令**。

@@ -1,8 +1,11 @@
-# 2026-09-23 · repo 组织与"家"的设计（已定，未实现）
+# 2026-09-23 · repo 组织与"家"的设计（已实现）
 
 依据：`_faq_on_digested/13_expert-plugin-repo-organization`（方案 A–D、五个决策、dev-loop、naming）、
 `notes/intents.md`（I1–I9）、talk `agent-101` 的概念框架。
 本文是 dev-loop 第 2 阶段的落点：**决定 / 输掉的方案及原因 / 需要验证什么**。
+
+> 状态：**implemented**（2026-09-23 补记搬入 `implemented/`；搬家晚于交付 —— 破了"同 diff"
+> 纪律，教训记在文末时态节）。
 
 ## 决定
 
@@ -61,7 +64,8 @@
 5. preset 的 roster 落法：dev 用 profile patch 给 `agent-presets` 加 `roots` 指向本 repo 的 `presets/`；
    发布形态则指向安装后的 `presets/`（两条都要验证）。
    **已验证发布形态**（smoke 里 roster 指向 profile 的 `node_modules/dsh-smart-assistant/presets`，
-   `--dump-config` 显示默认 preset 生效）。dev 形态由 `dev/setup.sh` 落，尚未实跑。
+   `--dump-config` 显示默认 preset 生效）。dev 形态由 `dev/setup.sh` 落——✅ 已实跑绿
+   （两 profile 建成、roster 双 patch、双 link 安装，见 `docs/dev.md`）。
 6. **从源码启动 harness 需要一份全量解析门面**（新发现，已解决）：
    DSH 的包 `main` 指向 `lib/index.js`（tsdown 产物），而 `tsc -b` 只出 `lib/types/`，
    所以 `node --import tsx/esm vendor/dsh/apps/cli/src/bin.ts` 会 `ERR_MODULE_NOT_FOUND`。
@@ -69,11 +73,14 @@
    本 repo 因此分离**两个门面**：`tsconfig.base.json`（编译期，只列直接 import 的包 + project reference）
    与 `tsconfig.tsx.json`（运行期，全量 280 条别名，由 `pnpm gen-paths` 从 vendor/dsh 生成，
    `pnpm verify` 检查其不过期）。
-6. 挂载第二个 `skill-filesystem` 实例（`providerName: assistant-learned`）不冲突、学到的技能**立刻可见**。
-7. 同一 provider 内多 root 的重名遮蔽顺序（策展 vs 学到）是否如文档所设（早者胜）—— 用一个 fixture 试。
-8. `assistant_memory`/`assistant_reflect` 在 PTC 模式下也可用（`defineTool` 应免费给到，需实测）。
+7. 挂载第二个 `skill-filesystem` 实例（`providerName: assistant-learned`）不冲突、学到的技能**立刻可见**。
+   ⏳ 待 live 会话验证（与 preset 行为验证同一挡板：one-shot 不进 preset）。
+8. 同一 provider 内多 root 的重名遮蔽顺序（策展 vs 学到）是否如文档所设（早者胜）—— 用一个 fixture 试。
+   ⏳ fixture 未建。
+9. `assistant_memory`/`assistant_reflect` 在 PTC 模式下也可用（`defineTool` 应免费给到，需实测）。
+   ⏳ 未实测。
 
-## 时态
+## 时态（2026-09-23 补记）
 
-本 note 在实现落地后，**同一个 diff 内**改写成 `implemented/`（dev-loop 第 4 阶段纪律），
-不留 `proposed/` 到交付后。
+已按纪律搬入 `implemented/`。搬家发生在交付（ae8bc24）**之后**的文档一致性切片里 ——
+破了"同 diff"纪律：本应在交付的那个 diff 内搬。留此为记，后续切片回归同 diff。

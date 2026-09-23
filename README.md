@@ -44,8 +44,9 @@ dsh plugin --profile <p> add file:./packages/dsh-smart-assistant   # 本地
 git submodule update --init     # vendor/dsh（钉在 dsh-v0.1.5-rc.2）
 pnpm install
 pnpm typecheck && pnpm test && pnpm verify
-bash dev/setup.sh               # 一次性：dev profile（web 模板）+ 装插件 + roster 指向 repo
-pnpm dsh --profile dev "one task"   # 开发环：profile 默认 preset = assistant
+bash dev/setup.sh               # 幂等：dev（web 模板）+ dev-task（headless）两 profile + link 装插件
+pnpm dsh --profile dev-task "one task"   # one-shot = host 面冒烟（one-shot 不进 preset，这是 DSH 契约）
+pnpm dsh --profile dev --port 0          # Web UI；preset 行为（三工具/persona/摘要）在这里的会话里验
 ```
 
 契约在 `docs/`（`docs/home.md` 是家的契约，`docs/identity.md` 是身份名），
