@@ -41,7 +41,7 @@ dsh plugin --profile <p> add file:./packages/dsh-smart-assistant   # 本地
 ## 开发
 
 ```sh
-git submodule update --init     # vendor/dsh（钉在 dsh-v0.1.5-rc.2）
+git submodule update --init     # vendor/dsh submodule（pin 的唯一家：`vendor/UPSTREAM.md`，`pnpm verify` 强制一致）
 pnpm install
 pnpm typecheck && pnpm test && pnpm verify
 ```
