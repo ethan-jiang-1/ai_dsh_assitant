@@ -52,6 +52,13 @@ if (override) {
 
 console.error(`[dsh] DSH_HOME=${process.env.DSH_HOME} (dev home; ~/.dsh untouched)`)
 
+// ── 其余两条按 home 共享、不随 DSH_HOME 隔离的通道（vendor 源码审计结论）──────
+// skills 的"共享 agent 根"默认 ~/.agents（skill-filesystem 直接读，不经 DSH_HOME）。
+// dev 自包含：没有显式设置才接管，指向本 dev home 内。
+process.env.DSH_AGENTS_HOME ??= join(process.env.DSH_HOME, 'agents-home')
+// dev 不出遥测（默认 FEEDBACK_ONLY；显式设置过就尊重）。
+process.env.DSH_TELEMETRY_DISABLED ??= '1'
+
 // ── 从钉住的源码启动 CLI ─────────────────────────────────────────────────────
 const child = spawn(process.execPath, ['--import', 'tsx/esm', bin, ...process.argv.slice(2)], {
   cwd: repoRoot,

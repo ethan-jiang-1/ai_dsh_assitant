@@ -13,6 +13,11 @@ export ASSISTANT_REPO
 export DSH_HOME="$ASSISTANT_REPO/dev/harness-home"
 export ASSISTANT_PRESETS_DIR="$ASSISTANT_REPO/packages/dsh-smart-assistant/presets"
 
+# 这两条不随 DSH_HOME 隔离（vendor 审计结论），dev 一并接管：
+# skills 共享 agent 根默认 ~/.agents；dev 不出遥测。
+export DSH_AGENTS_HOME="$DSH_HOME/agents-home"
+export DSH_TELEMETRY_DISABLED="${DSH_TELEMETRY_DISABLED:-1}"
+
 mkdir -p "$DSH_HOME"
 
 echo "DSH_HOME=$DSH_HOME"

@@ -39,9 +39,9 @@ pnpm build              # tsc 出 lib/（发布物与 dsh plugin add 需要）
 pnpm release-smoke      # pnpm pack → 干净 home → dsh plugin add → 组合断言（真实安装形状）
 pnpm sync-dsh -- --tag <dsh-tag>   # 换 submodule tag + SHA 簿记 + typecheck
 
-bash dev/setup.sh       # 一次性：建 dev profile（web 模板）+ 装插件 + roster 指向 repo
-pnpm dsh --profile dev "one task"  # 一次性任务（profile 默认 preset = assistant）
-pnpm dsh web --profile dev         # Web UI
+bash dev/setup.sh       # 一次性：建 dev（web）+ dev-task（headless）两个 profile + link 装插件 + roster 指向 repo
+pnpm dsh --profile dev-task "one task"  # 一次性任务（headless，跑在 assistant preset 上）
+pnpm dsh --profile dev             # Web UI（**别用** `dsh web`：别名硬编码 profile 'web'）
 ```
 
 **两个解析门面，别混**：`tsconfig.base.json` 是**编译期**门面（只列我们直接 import 的包，
@@ -49,9 +49,11 @@ pnpm dsh web --profile dev         # Web UI
 `tsconfig.tsx.json` 是**运行期**门面（全量别名，`pnpm dsh` 靠它让 tsx 加载 DSH 的 `src`
 而不是未构建的 `lib/index.js`）。它由 `pnpm gen-paths` 生成，`pnpm verify` 检查不过期。
 
-**为什么 dev profile 必须从 `web` 模板建**：preset roster（`agent-presets` 行）只存在于
-`web-app` bundle 里，base/headless 模板没有 roster —— 用错模板，preset 根本挂不上。
-`dev/setup.sh` 已经把这个顺序写死，不要手工改顺序。
+**dev/dev-task 两个 profile**：`dev` 从 **web 模板**建（preset roster 行只在 web-app bundle 里），
+跑 Web UI；`dev-task` 从 **headless 模板**建，跑 one-shot —— 两者不能合一（web-app 与 headless
+都 insert `id: code-runtime`，同 profile 必撞 duplicate id）。dev-task 的 roster 由
+`dev/profile-patch-headless.yml` 用 insert 语义补进来。`dev/setup.sh` 已把这些顺序写死。
+启动/调试/隔离的完整手册：`docs/dev.md`。
 
 ## 三条硬规则
 

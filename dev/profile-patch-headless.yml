@@ -1,0 +1,17 @@
+# dev-task（headless one-shot）用的 profile patch。
+#
+# headless 模板只有 [dsh-base, dsh-headless] —— 没有 web-app，所以 **没有** agent-presets 行
+# 可供"整行替换"；这里必须用 `insert` 语义补进 roster（web profile 的 dev/profile-patch.yml
+# 用的是替换语义，两个文件不可互换：替换版在 headless profile 里 patch 不到行只 warn，
+# insert 版放进 web profile 会撞 duplicate id）。
+#
+# 语义提醒：`!!js` 里 env.sh 给了 ASSISTANT_PRESETS_DIR 绝对路径就用它；
+# 否则按 cwd 推（从 repo 根跑 pnpm dsh 时成立）。
+- insert:
+    - id: agent-presets
+      name: '@deepseek-ai/dsh-agent-presets'
+      config:
+        default: assistant
+        roots:
+          - path: !!js "process.env.ASSISTANT_PRESETS_DIR ?? process.getBuiltinModule('node:path').join(process.cwd(), 'packages/dsh-smart-assistant/presets')"
+            trust: system
