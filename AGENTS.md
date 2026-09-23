@@ -55,8 +55,10 @@ pnpm dsh web --profile dev         # Web UI
 
 ## 三条硬规则
 
-1. **双 home**：开发一律 `DSH_HOME=<repo>/dev/harness-home`，**不碰日用的 `~/.dsh`**。
-   `dev/env.sh` 是兜底 —— agent 不会自己想起来这件事。
+1. **双 home**：`pnpm dsh` 经 `scripts/dsh.mjs` 启动，**永远强制** `DSH_HOME=<repo>/dev/harness-home`
+   （覆盖任何继承来的值，包括日用的 `~/.dsh`；显式出口是 `ASSISTANT_DSH_HOME`）。
+   绕过启动器直连 node 的调用（release-smoke、`dev/setup.sh`）自己负责设置 `DSH_HOME`；
+   `dev/env.sh` 是它们与手工调用时的兜底。**任何情况下不碰日用的 `~/.dsh`。**
 2. **探索路由**：要 DSH 机制结论，读 `vendor/dsh/docs/architecture.md` → `docs/capability-seams.md` → 对应包 README；
    要真实签名，读 `vendor/dsh/packages/**/src/`。**不猜 API，去读。**
 3. **窄证据**：一次交付 = 一个垂直切片（代码 + 测试 + docs/README + note 同 diff）；

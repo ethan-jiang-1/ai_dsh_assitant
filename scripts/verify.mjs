@@ -188,8 +188,11 @@ check('facade: the runtime tsconfig for the source launch is present and current
   for (const name of ['@deepseek-ai/dsh-app-boot', '@deepseek-ai/dsh-agent-presets']) {
     if (!text.includes(`"${name}"`)) problems.push(`tsconfig.tsx.json has no alias for ${name}`)
   }
-  if (!read(join(repoRoot, 'package.json')).includes('TSX_TSCONFIG_PATH=tsconfig.tsx.json')) {
-    problems.push('the `dsh` script does not point tsx at tsconfig.tsx.json')
+  // The source launch goes through scripts/dsh.mjs (which also enforces the dev home);
+  // the gate follows the contract there, not the one-line package.json script.
+  const launcher = read(join(repoRoot, 'scripts', 'dsh.mjs'))
+  if (!launcher.includes('tsconfig.tsx.json') || !launcher.includes('TSX_TSCONFIG_PATH')) {
+    problems.push('scripts/dsh.mjs does not point tsx at tsconfig.tsx.json')
   }
   return problems
 })

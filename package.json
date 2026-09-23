@@ -9,7 +9,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "dsh": "TSX_TSCONFIG_PATH=tsconfig.tsx.json node --import tsx/esm vendor/dsh/apps/cli/src/bin.ts",
+    "dsh": "node scripts/dsh.mjs",
     "gen-paths": "node scripts/gen-paths.mjs",
     "typecheck": "tsc -b packages/dsh-smart-assistant",
     "build": "pnpm --filter dsh-smart-assistant run build",
