@@ -29,6 +29,7 @@ export type FindingCode =
   | 'skill-missing-description'
   | 'skill-without-provenance'
   | 'skill-usage-unreadable'
+  | 'skill-shadowed'
 
 /** One thing worth a human's or the agent's attention. */
 export interface CurationFinding {
@@ -74,6 +75,8 @@ export interface CurationInput {
   readonly skillUsage: SkillUsage
   /** Set when the ledger file exists but is not a valid ledger. */
   readonly skillUsageFailure?: SkillUsageReadFailure
+  /** Learned skill names that lost the registry's name resolution, mapped to the winning provider. */
+  readonly shadowedSkills: Readonly<Record<string, string>>
   /** Bytes the current digest occupies. */
   readonly digestBytes: number
   /** Digest budget. */
@@ -232,6 +235,17 @@ export function curateHome(input: CurationInput): CurationBrief {
     })
   }
 
+  for (const [name, provider] of Object.entries(input.shadowedSkills)) {
+    findings.push({
+      code: 'skill-shadowed',
+      severity: 'warn',
+      message: `learned skill "${name}" is shadowed by provider "${provider}", which owns that name `
+        + 'in the catalog — the learned bundle will never load: rename it and retire the shadowed '
+        + 'bundle, or make the curated one yield',
+      refs: [name],
+    })
+  }
+
   for (const skill of input.skills) {
     if (skill.name === undefined) {
       findings.push({
@@ -281,7 +295,12 @@ export function curateHome(input: CurationInput): CurationBrief {
   findings.sort((left, right) => (left.severity === right.severity ? 0 : left.severity === 'warn' ? -1 : 1))
 
   const openThreads = input.threads.filter(thread => thread.status === 'open').length
-  const learnedNames = input.skills.flatMap(skill => skill.name !== undefined ? [skill.name] : [])
+  // Usage lines cover loadable learned skills only: a shadowed name's loads belong to the
+  // winning provider's body, so attributing them to the shadowed bundle would read as use.
+  const shadowedNames = new Set(Object.keys(input.shadowedSkills))
+  const learnedNames = input.skills
+    .flatMap(skill => skill.name !== undefined ? [skill.name] : [])
+    .filter(name => !shadowedNames.has(name))
   return {
     findings,
     skillUsage: skillUsageLines(input.skillUsage, learnedNames, input.now, 'least-used'),

@@ -10,14 +10,17 @@
  */
 
 import type { Context } from '@deepseek-ai/cordis'
+import type {} from '@deepseek-ai/dsh-skill'
 import { defineTool } from '@deepseek-ai/dsh-tools'
 import { MEMORY_KINDS, IMPORTANCE_RANGE, type MemoryRecord } from '../memory/record.ts'
 import type { RecallHit } from '../memory/recall.ts'
+import { LEARNED_PROVIDER_NAME } from '../learn/index.ts'
+import { shadowedLearnedSkills } from '../skills/shadow.ts'
 import { callCard, presentationMeta, resultCard } from '../tool-support/presentation.ts'
 
 export const name = 'assistant-memory-tool'
 
-export const inject = ['assistantMemory', 'tools']
+export const inject = ['assistantMemory', 'skills', 'tools']
 
 const ACTIONS = ['recall', 'save', 'forget', 'list', 'curate'] as const
 
@@ -31,8 +34,8 @@ const DESCRIPTION = [
   '- forget: retire a record out of the active set (it stays readable in the archive).',
   '- list: show the active room.',
   '- curate: run the machine check and return findings (near-duplicates, dangling references,',
-  '  digest budget, stalled threads, skills the loader would ignore) plus the per-skill usage',
-  '  ledger. Run this before tidying.',
+  '  digest budget, stalled threads, skills the loader would ignore, learned skills shadowed by',
+  '  a same-named curated skill) plus the per-skill usage ledger. Run this before tidying.',
   'Load the `memory-hygiene` skill before saving, and `home-curation` before curating.',
 ].join('\n')
 
@@ -211,7 +214,7 @@ export function apply(ctx: Context): void {
       render,
       presentationMeta: (_args, value) => presentationMeta(value.summary),
     },
-    async execute(args): Promise<MemoryOutput> {
+    async execute(args, exec): Promise<MemoryOutput> {
       const action = args.action
       switch (action) {
         case 'save': {
@@ -276,7 +279,22 @@ export function apply(ctx: Context): void {
           }
         }
         case 'curate': {
-          const brief = await ctx.assistantMemory.curate()
+          // Shadow probe (slice 1b): the registry resolves names per layer chain, so it must be
+          // asked from this agent's context. Without an agent (tests, headless maintenance) or on
+          // an incomplete catalog read, no shadows are reported rather than guessed.
+          const agent = exec.agent
+          let shadowedBy: Readonly<Record<string, string>> | undefined
+          if (agent !== undefined) {
+            const snapshot = await ctx.skills.snapshot({
+              cwd: agent.session.header.cwd,
+              signal: exec.signal,
+              scope: agent,
+            })
+            const winners = new Map(snapshot.skills.map(skill => [skill.name, skill.provider] as const))
+            const learned = await ctx.assistantMemory.learnedSkillNames()
+            shadowedBy = shadowedLearnedSkills(winners, snapshot.complete, learned, LEARNED_PROVIDER_NAME)
+          }
+          const brief = await ctx.assistantMemory.curate(shadowedBy)
           const warns = brief.findings.filter(finding => finding.severity === 'warn').length
           return {
             action,

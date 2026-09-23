@@ -467,10 +467,24 @@ export class AssistantMemory extends Service {
   }
 
   /**
+   * List the names of the learned skills currently in the home's skills room.
+   * @returns Kebab-case skill names; broken bundles contribute nothing (their findings come
+   * from the scan itself).
+   */
+  async learnedSkillNames(): Promise<string[]> {
+    const scan = await scanLearnedSkills(this.paths.skillsDir)
+    return scan.skills.flatMap(skill => skill.name !== undefined ? [skill.name] : [])
+  }
+
+  /**
    * Run the curation check over the home.
+   * @param shadowedBy - Learned skill names that lost the registry's name resolution, mapped to
+   * the winning provider. The registry only resolves names inside an agent's layer chain, so the
+   * agent-plane `assistant_memory` curate action probes it and passes the result in; callers
+   * without a registry (tests, host-side maintenance) omit it and get no shadow findings.
    * @returns Findings, per-skill usage lines, and headline counts.
    */
-  async curate(): Promise<CurationBrief> {
+  async curate(shadowedBy?: Readonly<Record<string, string>>): Promise<CurationBrief> {
     const memories = await this.listMemories()
     const threads = await this.listThreads()
     const skills = await scanLearnedSkills(this.paths.skillsDir)
@@ -495,6 +509,7 @@ export class AssistantMemory extends Service {
       skills: skills.skills,
       skillUsage: usage.usage,
       ...(usage.failure !== undefined ? { skillUsageFailure: usage.failure } : {}),
+      shadowedSkills: shadowedBy ?? {},
       digestBytes: digest.bytes,
       digestMaxBytes: this.digestMaxBytes,
       staleResearchDays: this.staleResearchDays,

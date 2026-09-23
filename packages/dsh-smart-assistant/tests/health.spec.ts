@@ -47,6 +47,7 @@ function input(overrides: Partial<CurationInput> = {}): CurationInput {
     knownIds: [],
     skills: [],
     skillUsage: {},
+    shadowedSkills: {},
     digestBytes: 100,
     digestMaxBytes: 4096,
     staleResearchDays: 30,
@@ -188,5 +189,35 @@ describe('curateHome', () => {
     expect(findings.map(finding => finding.code)).toContain('skill-usage-unreadable')
     expect(findings[0]?.severity).toBe('warn')
     expect(findings[0]?.refs).toEqual(['/h/skill-usage.json'])
+  })
+
+  it('warns on a learned skill shadowed by another provider', () => {
+    const findings = curateHome(input({
+      skills: [{ dirName: 'home-curation', name: 'home-curation', description: 'x', origin: 'learned' }],
+      shadowedSkills: { 'home-curation': 'skill-filesystem' },
+    })).findings
+
+    expect(findings.map(finding => finding.code)).toContain('skill-shadowed')
+    expect(findings[0]?.severity).toBe('warn')
+    expect(findings[0]?.refs).toEqual(['home-curation'])
+    expect(findings[0]?.message).toContain('skill-filesystem')
+    expect(findings[0]?.message).toContain('never load')
+  })
+
+  it('excludes shadowed names from the usage lines — their loads belong to the winner', () => {
+    const brief = curateHome(input({
+      skills: [
+        { dirName: 'home-curation', name: 'home-curation', description: 'x', origin: 'learned' },
+        { dirName: 'staging-reset', name: 'staging-reset', description: 'x', origin: 'learned' },
+      ],
+      skillUsage: {
+        // The name was loaded — but the curated body served it, not the shadowed bundle.
+        'home-curation': { count: 3, lastUsedAt: '2026-09-22T00:00:00.000Z' },
+        'staging-reset': { count: 1, lastUsedAt: '2026-09-23T00:00:00.000Z' },
+      },
+      shadowedSkills: { 'home-curation': 'skill-filesystem' },
+    }))
+
+    expect(brief.skillUsage.map(line => line.name)).toEqual(['staging-reset'])
   })
 })

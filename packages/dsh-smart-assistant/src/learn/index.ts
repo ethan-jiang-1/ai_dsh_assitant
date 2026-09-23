@@ -18,9 +18,11 @@
  */
 
 import type { Context } from '@deepseek-ai/cordis'
+import type {} from '@deepseek-ai/dsh-skill'
 import * as skillFilesystem from '@deepseek-ai/dsh-skill-filesystem'
 import { defineTool } from '@deepseek-ai/dsh-tools'
 import { scanLearnedSkills } from '../skills/scan.ts'
+import { shadowedLearnedSkills } from '../skills/shadow.ts'
 import { skillLoadFromResult, skillUsageLines } from '../skills/usage.ts'
 import { callCard, presentationMeta, resultCard } from '../tool-support/presentation.ts'
 
@@ -29,7 +31,7 @@ export const name = 'assistant-learn'
 export const inject = ['assistantMemory', 'skills', 'tools']
 
 /** Provider name for the learned-skills root, distinct from the curated provider's default. */
-const LEARNED_PROVIDER_NAME = 'assistant-learned'
+export const LEARNED_PROVIDER_NAME = 'assistant-learned'
 
 const MAX_ASKS = 5
 const MAX_TOOL_KINDS = 12
@@ -70,6 +72,18 @@ const OUTPUT = {
     },
     related_memories: { type: 'array', required: true, items: { type: 'string' } },
     open_threads: { type: 'array', required: true, items: { type: 'string' } },
+    shadowed_skills: {
+      type: 'array',
+      required: true,
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          name: { type: 'string', required: true },
+          provider: { type: 'string', required: true },
+        },
+      },
+    },
     skill_usage: {
       type: 'array',
       required: true,
@@ -95,6 +109,7 @@ interface ReflectOutput {
   tool_calls: { name: string, count: number }[]
   related_memories: string[]
   open_threads: string[]
+  shadowed_skills: { name: string, provider: string }[]
   skill_usage: { name: string, count: number, last_used?: string }[]
   skill_path: string
 }
@@ -117,6 +132,13 @@ function render(_args: unknown, value: ReflectOutput): { type: 'text', text: str
   }
   if (value.open_threads.length > 0) {
     lines.push('Open threads:', ...value.open_threads.map(thread => `- ${thread}`))
+  }
+  if (value.shadowed_skills.length > 0) {
+    lines.push(
+      'Shadowed skills (will never load — rename and retire them before saving a skill with '
+      + 'one of these names):',
+      ...value.shadowed_skills.map(skill => `- ${skill.name} (shadowed by provider ${skill.provider})`),
+    )
   }
   if (value.skill_usage.length > 0) {
     const parts = value.skill_usage.map(skill =>
@@ -179,6 +201,7 @@ export function apply(ctx: Context): void {
         tool_calls: [],
         related_memories: [],
         open_threads: [],
+        shadowed_skills: [],
         skill_usage: [],
         skill_path: '',
       }
@@ -217,9 +240,30 @@ export function apply(ctx: Context): void {
           const openThreads = threads.entries.filter(thread => thread.status === 'open').slice(0, 5)
           const learned = await scanLearnedSkills(ctx.assistantMemory.paths.skillsDir)
           const usage = await ctx.assistantMemory.skillUsage()
+          // Shadow probe (slice 1b): ask the registry who owns each learned name. The registry
+          // resolves names per layer chain, so this must run from the agent's context; a missing
+          // agent or an incomplete catalog read reports no shadows rather than guessing.
+          const allLearnedNames = learned.skills.flatMap(skill => skill.name !== undefined ? [skill.name] : [])
+          const shadowedItems: { name: string, provider: string }[] = []
+          if (agent !== undefined) {
+            const snapshot = await ctx.skills.snapshot({
+              cwd: agent.session.header.cwd,
+              signal: exec.signal,
+              scope: agent,
+            })
+            const winners = new Map(snapshot.skills.map(skill => [skill.name, skill.provider] as const))
+            for (const [name, provider] of Object.entries(
+              shadowedLearnedSkills(winners, snapshot.complete, allLearnedNames, LEARNED_PROVIDER_NAME),
+            )) {
+              shadowedItems.push({ name, provider })
+            }
+          }
+          // A shadowed name's loads belong to the winning provider's body — usage lines cover
+          // loadable learned skills only.
+          const shadowedNames = new Set(shadowedItems.map(item => item.name))
           const usageItems = skillUsageLines(
             usage.usage,
-            learned.skills.flatMap(skill => skill.name !== undefined ? [skill.name] : []),
+            allLearnedNames.filter(name => !shadowedNames.has(name)),
             new Date(),
             'most-used',
             MAX_SKILL_USAGE,
@@ -238,6 +282,7 @@ export function apply(ctx: Context): void {
             tool_calls: toolCalls,
             related_memories: related.map(hit => `${hit.record.text} (${hit.record.id}; ${hit.why.join(', ')})`),
             open_threads: openThreads.map(thread => `${thread.question} (${thread.id})`),
+            shadowed_skills: shadowedItems,
             skill_usage: usageItems,
           }
         }
