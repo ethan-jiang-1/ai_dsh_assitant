@@ -94,7 +94,7 @@ assistant_reflect ─────┘                          └─→ skills/<
                   ctx.skills 目录 → skill 工具按需加载
 
 摘要：ctx.assistantMemory.digest() ─→ 缓存 ─→ assistant-memory-digest 段落（同步读取缓存）
-      写操作 → #touch() 失效缓存并在后台重算（段落组装是同步的，摘要是异步 fs）
+      写操作 → touch() 失效缓存并在后台重算（段落组装是同步的，摘要是异步 fs）
 检查：ctx.assistantMemory.curate() ─→ curateHome()（纯函数）→ findings
 ```
 

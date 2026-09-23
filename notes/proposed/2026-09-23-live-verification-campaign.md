@@ -86,3 +86,10 @@ I14 拿到第一批使用数据；R1/R2 两条线索开进家的 research/ 房�
   workspace 最新会话自动恢复空白会话（ui-workspace navigation），新实例恢复撞锁。处置：kill
   旧进程（flock 随进程死亡释放，会话壳即刻可恢复）；坑位登记 `docs/dev.md` §五。同一切片顺手
   落了用户要求的 Web 壳品牌注入（`notes/implemented/2026-09-23-web-branding.md`）。
+- **战役首只产品面真虫（已修，等用户重试回填证据）**：步骤 1 的第一个真实 turn 在提示词组装
+  阶段死亡（`Cannot read private member #digestCache …`，`e0ac2cf8` 两次重试同错）——根因是
+  cordis 经属性代理解析服务时，方法以 shadow receiver 为 `this` 执行，JS `#` 私有字段的
+  brand check 必炸；vendor 全部 Service 子类因此从不用 `#`（生态约定，逐类核对为零）。
+  修复 + 回归测试见 `notes/implemented/2026-09-23-service-shadow-private-fields.md`。
+  顺带一证：**preset 挂载本身已被真实对话日志实证**（`e0ac2cf8` 会话事件
+  `agentPreset: "assistant"`）。

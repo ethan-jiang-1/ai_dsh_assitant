@@ -139,17 +139,22 @@ export class AssistantMemory extends Service {
   /** Resolved home paths. */
   readonly paths: HomePaths
 
-  readonly #digestMaxBytes: number
-  readonly #recallLimit: number
-  readonly #staleResearchDays: number
-  readonly #memory: Room
-  readonly #research: Room
+  // Cordis resolves `ctx.assistantMemory` through caller-bound shadow receivers: a method
+  // invoked via the property proxy runs with a forwarding overlay as `this` (the framework's
+  // `createShadowMethod`), which fails JS `#private` brand checks. Service members must
+  // therefore be TypeScript-private, never `#`-private — the harness-wide convention.
+  // Regression: tests/service-shadow-access.spec.ts.
+  private readonly digestMaxBytes: number
+  private readonly recallLimit: number
+  private readonly staleResearchDays: number
+  private readonly memory: Room
+  private readonly research: Room
   /**
    * Last rendered digest. Prompt sections assemble synchronously while the home is read
    * asynchronously, so the section reads this cache and a write kicks a background refresh; a cold
    * cache still returns the map blurb, so the model always learns that the home exists.
    */
-  #digestCache: DigestResult | undefined
+  private digestCache: DigestResult | undefined
 
   /**
    * @param ctx - Owning context.
@@ -161,11 +166,11 @@ export class AssistantMemory extends Service {
       ? expandHomePath(config.dataDir)
       : join(resolveDshHome(), HOME_DIRECTORY_NAME)
     this.paths = homePaths(root)
-    this.#digestMaxBytes = config.digestMaxBytes ?? 4096
-    this.#recallLimit = config.recallLimit ?? 20
-    this.#staleResearchDays = config.staleResearchDays ?? 30
-    this.#memory = new Room(this.paths.memoryDir, this.paths.memoryArchiveDir)
-    this.#research = new Room(this.paths.researchDir, this.paths.researchArchiveDir)
+    this.digestMaxBytes = config.digestMaxBytes ?? 4096
+    this.recallLimit = config.recallLimit ?? 20
+    this.staleResearchDays = config.staleResearchDays ?? 30
+    this.memory = new Room(this.paths.memoryDir, this.paths.memoryArchiveDir)
+    this.research = new Room(this.paths.researchDir, this.paths.researchArchiveDir)
     // Best-effort activation scaffold: a home that cannot be created is reported, never fatal —
     // the write paths call ensureHome again, so a transient failure heals on the next write.
     void this.ensureHome().catch((error: unknown) => {
@@ -195,8 +200,8 @@ export class AssistantMemory extends Service {
    * @returns Active and archived records with the files that failed to parse.
    */
   async listMemories(): Promise<RoomReadResult<MemoryRecord> & { readonly archived: readonly MemoryRecord[] }> {
-    const active = await this.#memory.list()
-    const archived = await this.#memory.listArchived()
+    const active = await this.memory.list()
+    const archived = await this.memory.listArchived()
     return {
       entries: active.entries.map(memoryFromEntry).filter((record): record is MemoryRecord => record !== undefined),
       archived: archived.entries.map(memoryFromEntry).filter((record): record is MemoryRecord => record !== undefined),
@@ -234,17 +239,17 @@ export class AssistantMemory extends Service {
       text,
     }
     if (input.supersedes !== undefined) {
-      const existing = await this.#memory.read(input.supersedes)
+      const existing = await this.memory.read(input.supersedes)
       if (existing === undefined) {
         throw new Error(`supersedes names "${input.supersedes}", which is not an active memory record`)
       }
     }
     const document = memoryToDocument(record)
-    await this.#memory.write(record.id, document.data, document.body)
+    await this.memory.write(record.id, document.data, document.body)
     // Archive only after the replacement exists: a failed archive leaves two readable records,
     // which the digest shows and curation reports, instead of losing the old claim.
-    if (input.supersedes !== undefined) await this.#memory.archive(input.supersedes, { status: 'superseded' })
-    this.#touch()
+    if (input.supersedes !== undefined) await this.memory.archive(input.supersedes, { status: 'superseded' })
+    this.touch()
     return record
   }
 
@@ -254,8 +259,8 @@ export class AssistantMemory extends Service {
    * @returns Whether an active record was archived.
    */
   async forgetMemory(id: string): Promise<boolean> {
-    const archived = await this.#memory.archive(id, { status: 'retired' })
-    if (archived) this.#touch()
+    const archived = await this.memory.archive(id, { status: 'retired' })
+    if (archived) this.touch()
     return archived
   }
 
@@ -267,7 +272,7 @@ export class AssistantMemory extends Service {
   async recall(query: Omit<RecallQuery, 'limit'> & { readonly limit?: number }): Promise<readonly RecallHit[]> {
     const listing = await this.listMemories()
     const now = new Date()
-    return recallMemories(listing.entries, { ...query, limit: query.limit ?? this.#recallLimit }, now)
+    return recallMemories(listing.entries, { ...query, limit: query.limit ?? this.recallLimit }, now)
   }
 
   /**
@@ -275,8 +280,8 @@ export class AssistantMemory extends Service {
    * @returns Active threads, archived threads, and unreadable files.
    */
   async listThreads(): Promise<RoomReadResult<ResearchThread> & { readonly archived: readonly ResearchThread[] }> {
-    const active = await this.#research.list()
-    const archived = await this.#research.listArchived()
+    const active = await this.research.list()
+    const archived = await this.research.listArchived()
     return {
       entries: active.entries.map(threadFromEntry).filter((thread): thread is ResearchThread => thread !== undefined),
       archived: archived.entries
@@ -314,8 +319,8 @@ export class AssistantMemory extends Service {
       ...(input.source !== undefined ? { source: input.source } : {}),
     }
     const document = threadToDocument(thread)
-    await this.#research.write(thread.id, document.data, document.body)
-    this.#touch()
+    await this.research.write(thread.id, document.data, document.body)
+    this.touch()
     return thread
   }
 
@@ -327,7 +332,7 @@ export class AssistantMemory extends Service {
    * @throws when the thread is missing or already closed.
    */
   async updateThread(id: string, update: ThreadUpdate): Promise<ResearchThread> {
-    const entry = await this.#requireActiveThread(id)
+    const entry = await this.requireActiveThread(id)
     const thread = threadFromEntry(entry)
     if (thread === undefined) throw new Error(`thread "${id}" is not readable`)
     const next: ResearchThread = {
@@ -339,8 +344,8 @@ export class AssistantMemory extends Service {
       updated: new Date().toISOString(),
     }
     const document = threadToDocument(next)
-    await this.#research.write(next.id, document.data, document.body)
-    this.#touch()
+    await this.research.write(next.id, document.data, document.body)
+    this.touch()
     return next
   }
 
@@ -350,7 +355,7 @@ export class AssistantMemory extends Service {
    * @returns The parked thread.
    */
   async parkThread(id: string): Promise<ResearchThread> {
-    const thread = await this.#setThreadStatus(id, 'parked')
+    const thread = await this.setThreadStatus(id, 'parked')
     return thread
   }
 
@@ -367,7 +372,7 @@ export class AssistantMemory extends Service {
     if (trimmed.length === 0) {
       throw new Error('assistant_research drop requires a reason: a thread dropped without one gets reopened')
     }
-    return this.#setThreadStatus(id, 'dropped', { reason: trimmed })
+    return this.setThreadStatus(id, 'dropped', { reason: trimmed })
   }
 
   /**
@@ -381,14 +386,14 @@ export class AssistantMemory extends Service {
   async promoteThread(id: string, target: PromoteTarget): Promise<ResearchThread> {
     const destination = target.promotedTo.trim()
     if (destination.length === 0) throw new Error('assistant_research promote requires promotedTo')
-    const memory = await this.#memory.read(destination)
-    const archivedMemory = memory ?? await this.#memory.readArchived(destination)
+    const memory = await this.memory.read(destination)
+    const archivedMemory = memory ?? await this.memory.readArchived(destination)
     const skills = await scanLearnedSkills(this.paths.skillsDir)
     const known = archivedMemory !== undefined || skills.skills.some(skill => skill.name === destination)
     if (!known) {
       throw new Error(`promotedTo names "${destination}", which is neither a memory record nor a learned skill`)
     }
-    return this.#setThreadStatus(id, 'promoted', { promotedTo: destination })
+    return this.setThreadStatus(id, 'promoted', { promotedTo: destination })
   }
 
   /**
@@ -402,9 +407,9 @@ export class AssistantMemory extends Service {
       mapBlurb: HOME_MAP_BLURB,
       memories: listing.entries,
       threads: threads.entries,
-      maxBytes: this.#digestMaxBytes,
+      maxBytes: this.digestMaxBytes,
     })
-    this.#digestCache = result
+    this.digestCache = result
     return result
   }
 
@@ -414,7 +419,7 @@ export class AssistantMemory extends Service {
    * @returns The cached digest text, or the map blurb while the first rendering is in flight.
    */
   digestSnapshot(): string {
-    if (this.#digestCache !== undefined) return this.#digestCache.text
+    if (this.digestCache !== undefined) return this.digestCache.text
     void this.digest().catch((error: unknown) => {
       this.ctx.logger.warn(`assistant home digest refresh failed: ${String(error)}`)
     })
@@ -448,8 +453,8 @@ export class AssistantMemory extends Service {
       knownIds: [...activeIds, ...archivedIds, ...skills.skills.flatMap(skill => skill.name ?? [])],
       skills: skills.skills,
       digestBytes: digest.bytes,
-      digestMaxBytes: this.#digestMaxBytes,
-      staleResearchDays: this.#staleResearchDays,
+      digestMaxBytes: this.digestMaxBytes,
+      staleResearchDays: this.staleResearchDays,
       now: new Date(),
     })
   }
@@ -462,7 +467,7 @@ export class AssistantMemory extends Service {
   async writeSkill(draft: Omit<SkillDraft, 'learnedAt'>): Promise<{ name: string, path: string }> {
     await this.ensureHome()
     const written = await writeLearnedSkill(this.paths.skillsDir, { ...draft, learnedAt: new Date().toISOString() })
-    this.#touch()
+    this.touch()
     return written
   }
 
@@ -470,29 +475,29 @@ export class AssistantMemory extends Service {
    * Invalidate the digest cache after a write and refresh it in the background, so the next request
    * sees the home as it is now rather than as it was.
    */
-  #touch(): void {
-    this.#digestCache = undefined
+  private touch(): void {
+    this.digestCache = undefined
     void this.digest().catch((error: unknown) => {
       this.ctx.logger.warn(`assistant home digest refresh failed: ${String(error)}`)
     })
   }
 
-  async #requireActiveThread(id: string): Promise<RoomEntry> {
-    const entry = await this.#research.read(id)
+  private async requireActiveThread(id: string): Promise<RoomEntry> {
+    const entry = await this.research.read(id)
     if (entry === undefined) {
-      const archived = await this.#research.readArchived(id)
+      const archived = await this.research.readArchived(id)
       if (archived !== undefined) throw new Error(`thread "${id}" is already closed and archived`)
       throw new Error(`thread "${id}" does not exist`)
     }
     return entry
   }
 
-  async #setThreadStatus(
+  private async setThreadStatus(
     id: string,
     status: ResearchThread['status'],
     extra: Readonly<Record<string, unknown>> = {},
   ): Promise<ResearchThread> {
-    const entry = await this.#requireActiveThread(id)
+    const entry = await this.requireActiveThread(id)
     const thread = threadFromEntry(entry)
     if (thread === undefined) throw new Error(`thread "${id}" is not readable`)
     const next: ResearchThread = {
@@ -503,9 +508,9 @@ export class AssistantMemory extends Service {
       ...(typeof extra.promotedTo === 'string' ? { promotedTo: extra.promotedTo } : {}),
     }
     const document = threadToDocument(next)
-    await this.#research.write(next.id, document.data, document.body)
-    await this.#research.archive(next.id)
-    this.#touch()
+    await this.research.write(next.id, document.data, document.body)
+    await this.research.archive(next.id)
+    this.touch()
     return next
   }
 }
