@@ -22,7 +22,7 @@ import z from '@deepseek-ai/schemastery'
 import type Schema from '@deepseek-ai/schemastery'
 import { brandString } from '@deepseek-ai/dsh-brand'
 import { installModelSelection } from '@deepseek-ai/dsh-agent'
-import type { ModelSelectionRef } from '@deepseek-ai/dsh-agent'
+import type { Agent, ModelSelectionRef } from '@deepseek-ai/dsh-agent'
 import type {} from '@deepseek-ai/dsh-agent-default-model'
 import type {} from '@deepseek-ai/dsh-agent-presets'
 import { createUserMessage } from '@deepseek-ai/dsh-llm'
@@ -56,6 +56,50 @@ interface RunOutcome {
 
 /** Bounded process-exit request the launcher provides (the cmdline `AppExit` contract). */
 type AppExit = (code: number) => void
+
+/** Poll quiet while waiting for driver-queued turns; small enough to feel instant. */
+const DRIVE_POLL_MS = 250
+
+/** No session-log movement for this long means nothing is driving the session anymore. */
+const STALL_MS = 30_000
+
+function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+/**
+ * A goal extends a one-shot run: the round driver queues each next round only after the previous
+ * turn settles (a durability checkpoint sits between), so agent quiescence is not the end of a
+ * goal-driven session. Wait until the goal leaves the active phase, or until the session log
+ * stops moving — a stall means nothing is driving the session and the run is over either way.
+ * @param ctx - Plugin context, for the optional goal service.
+ * @param agent - The run's agent.
+ */
+async function awaitGoalSettlement(ctx: Context, agent: Agent): Promise<void> {
+  const goals = ctx.get('goals')
+  if (goals === undefined) return
+  let lastSeq = agent.session.seq
+  let lastMove = Date.now()
+  while (true) {
+    let active = false
+    try {
+      const goal = goals.get(agent)
+      active = goal !== undefined && goal.phase === 'active'
+    } catch {
+      return // the agent is no longer the registry's live instance — nothing to wait for
+    }
+    if (!active) return
+    await agent.whenIdle()
+    await delay(DRIVE_POLL_MS)
+    const seq = agent.session.seq
+    if (seq !== lastSeq) {
+      lastSeq = seq
+      lastMove = Date.now()
+    } else if (Date.now() - lastMove > STALL_MS) {
+      return
+    }
+  }
+}
 
 /** Aggregate the last assistant text and turn outcome from the durable log. */
 function summarize(session: Session, firstSeq: SessionLogOffset): RunOutcome {
@@ -115,13 +159,15 @@ async function run(ctx: Context, config: Config): Promise<void> {
       await presets.mount(agentCtx, preset.id)
     },
   })
-  await agent.whenIdle()
   const firstSeq = agent.session.seq
-  agent.followup(createUserMessage({
+  const task = createUserMessage({
     content: [{ type: 'text', text: config.task }],
     source: { kind: 'user' },
-  }))
+  })
+  agent.followup(task)
   await agent.whenIdle()
+  // A goal created by the task keeps driving turns after quiescence; wait for it to settle.
+  await awaitGoalSettlement(ctx, agent)
   await sessions.flush(agent.session)
   const outcome = summarize(agent.session, firstSeq)
   process.stdout.write(outcome.text + '\n')

@@ -20,11 +20,13 @@ import z from '@deepseek-ai/schemastery'
 import type Schema from '@deepseek-ai/schemastery'
 import { expandHomePath, resolveDshHome } from '@deepseek-ai/dsh-home-paths'
 import type {} from '@deepseek-ai/dsh-host-webserver'
+import { createUserMessage } from '@deepseek-ai/dsh-llm'
 import { renderDigest, type DigestResult } from './home/digest.ts'
 import { parseFrontmatterDocument, renderFrontmatterDocument } from './home/frontmatter.ts'
 import { compareFindings, curateHome, type CurationBrief, type CurationFinding } from './home/health.ts'
 import { HOME_MAP_BLURB } from './home/home-map.ts'
 import { HOME_DIRECTORY_NAME, homePaths, scaffoldHome, type HomePaths, type ScaffoldResult } from './home/layout.ts'
+import { isMaintenanceRound, renderMaintenancePrompt } from './home/metronome.ts'
 import { Room, type RoomEntry, type RoomReadFailure } from './home/room.ts'
 import {
   DEFAULT_IMPORTANCE,
@@ -75,6 +77,8 @@ export interface Config {
   staleSkillDays?: number
   /** Days without a load after which a learned skill is retirement-ready. */
   retireSkillDays?: number
+  /** Goal rounds between maintenance slots; values below 1 disable the metronome. */
+  maintenanceEveryRounds?: number
   /** Tab title the branded Web shell carries; empty string disables the branding row. */
   webTitle?: string
 }
@@ -150,6 +154,7 @@ export class AssistantMemory extends Service {
     staleResearchDays: z.number().step(1).min(1).default(30),
     staleSkillDays: z.number().step(1).min(1).default(30),
     retireSkillDays: z.number().step(1).min(1).default(90),
+    maintenanceEveryRounds: z.number().step(1).min(0).default(5),
     webTitle: z.string().default(DEFAULT_WEB_TITLE),
   })
 
@@ -166,6 +171,7 @@ export class AssistantMemory extends Service {
   private readonly staleResearchDays: number
   private readonly staleSkillDays: number
   private readonly retireSkillDays: number
+  private readonly maintenanceEveryRounds: number
   private readonly memory: Room
   private readonly research: Room
   /**
@@ -190,6 +196,7 @@ export class AssistantMemory extends Service {
     this.staleResearchDays = config.staleResearchDays ?? 30
     this.staleSkillDays = config.staleSkillDays ?? 30
     this.retireSkillDays = config.retireSkillDays ?? 90
+    this.maintenanceEveryRounds = config.maintenanceEveryRounds ?? 5
     this.memory = new Room(this.paths.memoryDir, this.paths.memoryArchiveDir)
     this.research = new Room(this.paths.researchDir, this.paths.researchArchiveDir)
     // Best-effort activation scaffold: a home that cannot be created is reported, never fatal —
@@ -204,6 +211,45 @@ export class AssistantMemory extends Service {
     if (webTitle.length > 0) {
       ctx.on('webserver/index-inject', (table) => {
         table.push(webBrandingInjection(webTitle))
+      })
+    }
+
+    // The maintenance metronome (I14, tri-line proposal slice 1e): every `maintenanceEveryRounds`
+    // goal rounds, queue a maintenance turn ahead of the next round. The round driver's yield
+    // barrier — a non-goal message in nextTurn defers the next round until it is consumed — is
+    // what makes the slot safe (iteration-rhythm note: the native safe position). The round
+    // number and goal id ride the goal-kind message source, so the metronome is stateless across
+    // restarts and self-resets for a new goal; the fired-map only dedupes a re-queued round.
+    // Non-goal sessions fall to the persona discipline instead (the note's layer (a)).
+    if (this.maintenanceEveryRounds >= 1) {
+      const fired = new Map<string, number>()
+      ctx.on('agent/inbox/inserted', ({ agent, message }): undefined => {
+        // Widened on purpose: the 'goal' source kind is declared by @deepseek-ai/dsh-goal, which
+        // this package does not depend on — the runtime check needs only the two fields.
+        const source = message.source as { kind: string, goalId?: unknown, round?: number }
+        if (source.kind !== 'goal' || source.round === undefined || source.goalId === undefined) {
+          return undefined
+        }
+        const key = String(source.goalId)
+        if (!isMaintenanceRound(source.round, this.maintenanceEveryRounds)) return undefined
+        if ((fired.get(key) ?? 0) >= source.round) return undefined
+        fired.set(key, source.round)
+        const maintenance = createUserMessage({
+          content: [{
+            type: 'text',
+            text: renderMaintenancePrompt(source.round, this.maintenanceEveryRounds),
+          }],
+          source: { kind: 'plugin', plugin: 'dsh-smart-assistant' },
+        })
+        try {
+          agent.followup(maintenance)
+        } catch (error: unknown) {
+          fired.delete(key)
+          this.ctx.logger.warn(
+            `maintenance metronome could not queue a slot for agent "${String(agent.id)}": ${String(error)}`,
+          )
+        }
+        return undefined
       })
     }
   }

@@ -84,6 +84,10 @@ learn 模块的 `tools/result` 订阅就给对应名字计数（用户 `/name` �
 
 **判据**：能让代码查的，别让 AI 自己说。
 
+**curate 不再只靠人记得**：host 侧节拍器（I14）每个 goal 的第 `maintenanceEveryRounds`
+（默认 5，`0` 关闭）轮自动插入一条养护 turn（plugin 源 user message，让路栅栏保证它是轮间
+安全空槽），指示跑 curate 并逐条处理发现项；非 goal 会话仍由 persona 纪律驱动。
+
 ## 五、`HOME.md`（地图）
 
 `HOME.md` 由服务在首次使用时生成（scaffold），内容是**给人也给 agent 看**的地图：
