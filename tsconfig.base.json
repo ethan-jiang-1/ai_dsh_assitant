@@ -39,7 +39,8 @@
       "@deepseek-ai/dsh-tools": ["./vendor/dsh/packages/core/tools/src"],
       "@deepseek-ai/dsh-home-paths": ["./vendor/dsh/packages/util/home-paths/src"],
       "@deepseek-ai/dsh-skill": ["./vendor/dsh/packages/skill/skill/src"],
-      "@deepseek-ai/dsh-skill-filesystem": ["./vendor/dsh/packages/skill/skill-filesystem/src"]
+      "@deepseek-ai/dsh-skill-filesystem": ["./vendor/dsh/packages/skill/skill-filesystem/src"],
+      "@deepseek-ai/dsh-host-webserver": ["./vendor/dsh/packages/host/webserver/src"]
     }
   }
 }

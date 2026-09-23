@@ -18,6 +18,7 @@ import { Context, Service } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import type Schema from '@deepseek-ai/schemastery'
 import { expandHomePath, resolveDshHome } from '@deepseek-ai/dsh-home-paths'
+import type {} from '@deepseek-ai/dsh-host-webserver'
 import { renderDigest, type DigestResult } from './home/digest.ts'
 import { curateHome, type CurationBrief } from './home/health.ts'
 import { HOME_MAP_BLURB } from './home/home-map.ts'
@@ -41,6 +42,7 @@ import {
 } from './research/thread.ts'
 import { scanLearnedSkills } from './skills/scan.ts'
 import { writeLearnedSkill, type SkillDraft } from './skills/skill-file.ts'
+import { DEFAULT_WEB_TITLE, webBrandingInjection } from './web-branding.ts'
 
 declare module '@deepseek-ai/cordis' {
   interface Context {
@@ -58,6 +60,8 @@ export interface Config {
   recallLimit?: number
   /** Age at which an open thread is reported as stalled. */
   staleResearchDays?: number
+  /** Tab title the branded Web shell carries; empty string disables the branding row. */
+  webTitle?: string
 }
 
 /** Input for {@link AssistantMemory.saveMemory}. */
@@ -129,6 +133,7 @@ export class AssistantMemory extends Service {
     digestMaxBytes: z.number().step(1).min(256).default(4096),
     recallLimit: z.number().step(1).min(1).default(20),
     staleResearchDays: z.number().step(1).min(1).default(30),
+    webTitle: z.string().default(DEFAULT_WEB_TITLE),
   })
 
   /** Resolved home paths. */
@@ -166,6 +171,15 @@ export class AssistantMemory extends Service {
     void this.ensureHome().catch((error: unknown) => {
       this.ctx.logger.warn(`assistant home scaffold failed at ${this.paths.root}: ${String(error)}`)
     })
+    // Web shell branding (skin: browser-only, never model-visible; docs/identity.md §二). A
+    // webserver collects `webserver/index-inject` rows on every index render; in headless
+    // compositions no webserver exists, the event never fires, and this listener idles.
+    const webTitle = config.webTitle ?? DEFAULT_WEB_TITLE
+    if (webTitle.length > 0) {
+      ctx.on('webserver/index-inject', (table) => {
+        table.push(webBrandingInjection(webTitle))
+      })
+    }
   }
 
   /**

@@ -81,3 +81,8 @@ I14 拿到第一批使用数据；R1/R2 两条线索开进家的 research/ 房�
   **会话创建时挂载**，未验的只剩"真实对话里的行为面"。晚间 19:12/19:20/19:29 三次验证
   尝试全走 one-shot（vendor 契约：one-shot 不进 preset），非产品缺陷。
 - 由此步骤 1 的"分辨两种情形"已完成，直接验新 web 会话是否默认挂 assistant 即可。
+- **开跑即遇第一只真障碍（非本仓产品缺陷）**：用户开屏见 `resume failed` —— 诊断为 13:55 的
+  旧 dev web 进程（本仓 cwd）仍持有空白 seed 会话 `e0ac2cf8` 的跨进程写锁；web 客户端开屏按
+  workspace 最新会话自动恢复空白会话（ui-workspace navigation），新实例恢复撞锁。处置：kill
+  旧进程（flock 随进程死亡释放，会话壳即刻可恢复）；坑位登记 `docs/dev.md` §五。同一切片顺手
+  落了用户要求的 Web 壳品牌注入（`notes/implemented/2026-09-23-web-branding.md`）。

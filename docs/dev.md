@@ -89,6 +89,7 @@ pnpm typecheck && pnpm test && pnpm verify
 | vendor install 失败 | 根 postinstall（lefthook）在 submodule 里必然失败 | 包已就位；build 用 `--config.verify-deps-before-run=false` 绕过 |
 | 命令表象不可信 | `--dump-config`/`--help` 不加载 loader entries | "能不能跑"的最低证据 = 真 boot 一次 |
 | preset 遮蔽 | roots 先到先赢同 id；roster 的 `!!js` 读 `ASSISTANT_PRESETS_DIR ?? cwd` 拼接 | `pnpm dsh` 固定以 repo 根为 cwd，兜底成立 |
+| Web 开屏 `resume failed` | 残留的旧 dev web 进程仍持有空白 seed 会话的跨进程写锁（`session.lock` 是 flock 目标，进程死即释放）；web 客户端开屏按 workspace 最新会话自动恢复空白会话，新实例撞锁 | 起新例前 `lsof -iTCP -sTCP:LISTEN -P` 找本仓 cwd 的残留 node 并 kill；锁随进程死亡自动释放，勿手删 |
 
 ## 六、组合的四个层（dev 里谁改谁生效）
 
