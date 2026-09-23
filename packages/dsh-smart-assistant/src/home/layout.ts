@@ -25,6 +25,9 @@ export const RESEARCH_ROOM = 'research'
 /** Room holding skills the agent wrote for itself. */
 export const SKILLS_ROOM = 'skills'
 
+/** Room holding domain knowledge: concept, entity, and source pages that interlink. */
+export const KNOWLEDGE_ROOM = 'knowledge'
+
 /** Subdirectory holding entries that left a room's active set. */
 export const ARCHIVE_DIRECTORY_NAME = 'archive'
 
@@ -51,6 +54,11 @@ export interface HomePaths {
   readonly skillsDir: string
   /** Retired skills, out of the provider's scan but recoverable. */
   readonly skillsArchiveDir: string
+  /**
+   * Knowledge pages. No archive subdirectory on purpose: OKF keeps `deprecated` pages in place
+   * so links keep resolving — retirement is a frontmatter status, not a move.
+   */
+  readonly knowledgeDir: string
 }
 
 /**
@@ -72,6 +80,7 @@ export function homePaths(root: string): HomePaths {
     researchArchiveDir: join(researchDir, ARCHIVE_DIRECTORY_NAME),
     skillsDir,
     skillsArchiveDir: join(skillsDir, ARCHIVE_DIRECTORY_NAME),
+    knowledgeDir: join(root, KNOWLEDGE_ROOM),
   }
 }
 
@@ -107,6 +116,7 @@ export async function scaffoldHome(paths: HomePaths): Promise<ScaffoldResult> {
     paths.researchArchiveDir,
     paths.skillsDir,
     paths.skillsArchiveDir,
+    paths.knowledgeDir,
   ]
   const createdDirectories: string[] = []
   for (const directory of directories) {

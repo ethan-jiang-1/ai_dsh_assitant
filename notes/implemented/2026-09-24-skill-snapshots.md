@@ -37,5 +37,11 @@ R2 §9.3-7（"家的 skills/ 快照（J1）：最轻形态是时间戳快照或 
   当前版最新、最旧快照含 v1 不含 v0、结果报快照路径、扫描与 curate 零污染 / 平文件技能
   同样快照）。**108/108 全绿**（`pnpm test`）。
 - 机械门禁：`pnpm typecheck` && `pnpm verify` 16/16。
-- live：模型可见面（save_skill 结果的 snapshot_path 行）并入阶段 1 收尾的合并 live
-  验证（与 1h 同场），不单独付费跑一轮——纯 fs 行为由单测覆盖。
+- **live 实证**（preset-runner one-shot，2026-09-24，会话
+  `session-fb229643-6e9a-414b-90e7-90be817a3d73`）：save v1 → 同名覆盖 save v2 →
+  结果**逐字**带 `Previous version snapshotted at …/skills/archive/snapshots/snapshot-fixture/
+  2026-09-23T21-21-17-925Z.md (recoverable by copying it back).`；fs 读回快照文件确认
+  v1 措辞逐字保留（frontmatter+body 无损）；retire 清理后 curate `Home is clean`。
+- **live 助手的持久观察（登记不立案）**：快照树与 skills/archive 不进 digest、curate 不
+  报——静默累积、只有知道路径的人能发现。可能的未来微切片：curate 附一行 archive 规模
+  （"3 retired bundles, N snapshots"）。当下按 YAGNI 不做。
