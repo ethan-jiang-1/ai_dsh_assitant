@@ -6,10 +6,11 @@
 > 状态挡板（2026-09-23）：代码与文档切片已交付并提交（见 `notes/implemented/`），但各行意图的
 > **外部可观察行为**要在真实会话里验证过才翻 `implemented` —— 全表停在 `proposed`
 > 反映的是这个挡板，不是未开工。
-> 挡板更新（2026-09-24，战役步骤 1–2 后）：**验证载体从"Web UI 真人会话"扩展为"任何真实
+> 挡板更新（2026-09-24，战役步骤 1–7 全部跑完后）：**验证载体从"Web UI 真人会话"扩展为"任何真实
 > preset 会话"**（含 preset-runner one-shot）——证据标准不变：真实 LLM turn、逐字会话日志、
-> 组合可指认（`agentPreset` 头）；载体扩展的依据在战役 note 开跑补记。已翻：I1/I2/I5–I9。
-> 未翻：I3/I4（技能与复盘，等会话 D）、I10–I13（探索环，等会话 C）、I14（持续观察）。
+> 组合可指认（`agentPreset` 头）；载体扩展的依据在战役 note 开跑补记。**I1–I13 全部翻
+> implemented**（证据指针在各行）；仅 I14 留 proposed（持续观察——首批数据点：助手会按 persona
+> 加载技能、会自主 supersede 过时记忆，但 curate 仍是被动执行）。
 
 ## 一、初始意图（2026-09-23）
 
@@ -22,8 +23,8 @@
 |---|---|---|---|
 | I1 | 聪明的助手 | 挂上 `assistant` preset 的会话有它自己的 persona、工具集与技能；其他会话不受影响 | implemented：preset 会话（web `e65ef210`、runner `b04a36b5`）日志实证 persona/摘要/三工具真调用；裸 agent 对照（`7c75c86c`、patch 诊断跑）工具表无 assistant 工具 |
 | I2 | **很好的记忆管理** | 会话能记住跨会话的事实/偏好/决定；重启后仍在；记忆以**有界摘要**进上下文（不爆上下文），需要时用 `assistant_memory` 深入检索 | implemented：B 段 save→list→recall→curate 四连（含命中理由）；**新进程** recall 命中同一 id `20260923-dev-web-ui-preset-runner-live-kfcf`；digest 821/4096 字节有界 |
-| I3 | **很好的技能管理** | 技能按需加载（目录 + 渐进披露）；技能目录可被 agent 自己扩充并**立刻可见**（无需重启） | proposed |
-| I4 | **很好的自我学习能力** | 一次会话能被复盘（`assistant_reflect`）成：新的记忆记录 + 新的技能草稿；两者都落成**人能读、能改、能删的文件** | proposed |
+| I3 | **很好的技能管理** | 技能按需加载（目录 + 渐进披露）；技能目录可被 agent 自己扩充并**立刻可见**（无需重启） | implemented：save_skill 落 `skills/campaign-evidence-recording/SKILL.md` 后**同会话**即可列出并经 skill 工具加载（会话 D 日志）；策展 4 + 学到 1 双源可见 |
+| I4 | **很好的自我学习能力** | 一次会话能被复盘（`assistant_reflect`）成：新的记忆记录 + 新的技能草稿；两者都落成**人能读、能改、能删的文件** | implemented：reflect brief + save_skill 真跑通；SKILL.md 带 provenance（learnedAt 盖章），人可读可删 |
 | I5 | 很好控制的上下文 | 上下文由 preset 组装；记忆只以有界摘要常驻；过程性知识放技能（抽屉），不常驻桌面 | implemented：摘要段进每个 preset 会话的请求日志；memory-hygiene 技能按需加载（B 段日志：save 前先 `skill` 调用），过程性知识不常驻 |
 
 ## 二、补充意图（2026-09-23 用户追加，同样是一等公民）
@@ -57,10 +58,10 @@
 
 | # | 意图 | 外部可观察行为 | 状态 |
 |---|---|---|---|
-| I10 | 探索有**自己的房间** | 家的 `research/` 放开放线索：一条线索一个文件，带状态（`open`/`parked`）与"为什么值得追" | proposed |
-| I11 | 探索有**三档出口** | `promote` → 变成记忆记录或技能（成立就留着）；`drop` → 进 `archive/` 并**必须写理由**（不成立就丢弃，留尸体）；`park` → 留在 `research/` 但不占桌面 | proposed |
-| I12 | agent **知道自己悬着什么** | 常驻摘要里有"开放线索 N 条 + 前几条标题"，不需要翻文件 | proposed |
-| I13 | 悬着的线索**会烂，机器能发现** | `curate` 报出长期未更新的开放线索（建议 park 或 drop）与缺理由的 drop | proposed |
+| I10 | 探索有**自己的房间** | 家的 `research/` 放开放线索：一条线索一个文件，带状态（`open`/`parked`）与"为什么值得追" | implemented：R1/R2 真实线索入住（一条一文件带 why/lean/source，`list` 可见；会话 C/D 日志 + 盘上文件） |
+| I11 | 探索有**三档出口** | `promote` → 变成记忆记录或技能（成立就留着）；`drop` → 进 `archive/` 并**必须写理由**（不成立就丢弃，留尸体）；`park` → 留在 `research/` 但不占桌面 | implemented：三档全绿——无理由 drop 被拒（日志）；带理由 drop 归档留尸体；promote 指向真实记忆并带 promotedTo；park 留房不占摘要（合同级 bug 红绿修复后复验，`notes/implemented/2026-09-24-park-stays-in-room.md`） |
+| I12 | agent **知道自己悬着什么** | 常驻摘要里有"开放线索 N 条 + 前几条标题"，不需要翻文件 | implemented：digest 段落含 `Open threads (N open, M parked)` 与线索标题行（R1/R2 入住后 2/2 同步显示；多会话日志） |
+| I13 | 悬着的线索**会烂，机器能发现** | `curate` 报出长期未更新的开放线索（建议 park 或 drop）与缺理由的 drop | implemented：手工造 54 天旧的 stale 夹具，curate 准确报出"open for more than 30 days: pick an exit"（info 级）；处置后 findings 清零（counts 前后对照在案） |
 
 ## 四、补充意图（2026-09-23 用户追加 · 迭代节奏）
 

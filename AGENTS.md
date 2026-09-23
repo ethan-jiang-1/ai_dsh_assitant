@@ -38,7 +38,7 @@
 pnpm install            # 并入 vendor/dsh 整树，首次较慢
 pnpm gen-paths          # 从 vendor/dsh 重新生成运行期解析门面 tsconfig.tsx.json（换 pin 后必跑）
 pnpm typecheck          # tsc -b：经编译期 paths 解析到 vendor/dsh 的 src（API 漂移在编译期暴露）
-pnpm test               # vitest：只测纯核（home/memory/research/skills），不依赖 DSH 运行时
+pnpm test               # vitest：纯核（home/memory/research/skills）+ 服务级合同（真 cordis 构造，不依赖 DSH 运行时）
 pnpm verify             # 机械门禁：结构/身份一致/两个解析门面/自包含/技能语法/断链/提交安全
 pnpm build              # tsc 出 lib/（发布物与 dsh plugin add 需要）
 pnpm release-smoke      # pnpm pack → 干净 home → dsh plugin add → 组合断言（真实安装形状）

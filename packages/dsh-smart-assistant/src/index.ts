@@ -35,6 +35,7 @@ import {
 } from './memory/record.ts'
 import { recallMemories, type RecallHit, type RecallQuery } from './memory/recall.ts'
 import {
+  CLOSED_THREAD_STATUSES,
   newThreadId,
   threadFromEntry,
   threadToDocument,
@@ -509,7 +510,12 @@ export class AssistantMemory extends Service {
     }
     const document = threadToDocument(next)
     await this.research.write(next.id, document.data, document.body)
-    await this.research.archive(next.id)
+    // Only a closed thread (dropped or promoted) leaves the active room: park stays in
+    // research/ — digest visibility is a render concern, not a location concern.
+    // Regression: tests/park-contract.spec.ts (the campaign found park archiving the file).
+    if (CLOSED_THREAD_STATUSES.includes(status)) {
+      await this.research.archive(next.id)
+    }
     this.touch()
     return next
   }

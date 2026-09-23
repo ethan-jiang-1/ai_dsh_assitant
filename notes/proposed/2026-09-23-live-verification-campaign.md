@@ -115,3 +115,20 @@ I14 拿到第一批使用数据；R1/R2 两条线索开进家的 research/ 房�
 - **intents 翻转（步骤 5 部分执行）**：I1/I2/I5/I6/I7/I8/I9 → implemented（证据指针在各行）；
   待翻：I3/I4（会话 D）、I10–I13（会话 C）、I14（持续观察：B 段助手主动建议清理探针记录——
   memory-hygiene 生效的证据，但 curate 仍是被动执行，数据点 2）。
+- **步骤 C 完成（探索环）+ 第三只真虫（park 合同级，已修）**：open/update/park/drop/promote
+  全链跑通；无理由 drop 被拒（I11）；**stale 夹具（54 天）被 curate 准确报出**（I13）。
+  暴露：`park` 把文件归档（合同是留在 research/ 只离开摘要——可见性与位置被实现混为一谈，
+  发现者：会话里的助手本人，读源码引行号）。红绿修复 + live 复验：
+  `notes/implemented/2026-09-24-park-stays-in-room.md`。I10–I13 全部翻 implemented。
+- **步骤 D 完成（技能与学习环）**：reflect brief + save_skill 落 SKILL.md 带 provenance；
+  学到的技能**同会话即刻可见可加载**（I3）；遮蔽实录（验证项 8）：同 provider rank 并列
+  （都走 customSkillDirs=300）时**注册序决定**——策展赢，落败方只在 logger warn 可见
+  （观察登记：save_skill 返回成功但被遮蔽的技能静默不生效，产品面待议）。I3/I4 翻 implemented。
+- **步骤 7 完成（dogfooding 第一单）**：R1（记忆检索技术）/R2（自我提高）以"延后+触发条件"
+  形态入住 research/，digest 同步显示 2 open（I12 二次实证）。
+- **PTC 实测（repo-structure 验证项 9 清账）**：DSH_TOOLS_MODE=ptc + preset-runner，模型经
+  run_code 嵌套调用两个工具拿到 3 记忆/2 线索——PTC 模式下工具可用 ✅（顺带观察：PTC 序列化
+  把可选 counts 显示为 null，非 bug，登记不立案）。
+- **战役收束状态**：**I1–I13 全部 implemented**（证据指针在 intents.md 各行）；repo-structure
+  验证项 7/8/9 清账；I14 留观察（数据点：persona 驱动的技能加载 ✅、自主 supersede 过时记忆 ✅、
+  curate 被动执行 ✗——model-visible 措辞强化切片待议）；R1/R2 在家悬着等体感。

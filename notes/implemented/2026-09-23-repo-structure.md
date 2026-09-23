@@ -76,11 +76,15 @@
    与 `tsconfig.tsx.json`（运行期，全量 280 条别名，由 `pnpm gen-paths` 从 vendor/dsh 生成，
    `pnpm verify` 检查其不过期）。
 7. 挂载第二个 `skill-filesystem` 实例（`providerName: assistant-learned`）不冲突、学到的技能**立刻可见**。
-   ⏳ 待 live 会话验证（与 preset 行为验证同一挡板：one-shot 不进 preset）。
+   ✅ live 实证（战役步骤 D，2026-09-24）：save_skill 落盘后同会话即列出并可经 skill 工具加载，
+   策展 4 + 学到 1 双源并存。
 8. 同一 provider 内多 root 的重名遮蔽顺序（策展 vs 学到）是否如文档所设（早者胜）—— 用一个 fixture 试。
-   ⏳ fixture 未建。
+   ✅ live 实证（同上）：rank 并列（都走 `customSkillDirs`=300）时**注册序决定**——
+   `skill-filesystem` 行在 `assistant-learn` 前，策展赢；落败方仅 logger warn（观察：save_skill
+   返回成功但被遮蔽技能静默不生效，产品面待议——登记在战役 note 开跑补记）。
 9. `assistant_memory`/`assistant_reflect` 在 PTC 模式下也可用（`defineTool` 应免费给到，需实测）。
-   ⏳ 未实测。
+   ✅ live 实证（2026-09-24）：`DSH_TOOLS_MODE=ptc` + preset-runner，模型经 run_code 嵌套调用
+   `assistant_memory`/`assistant_research` 拿到真实计数（3 记忆/2 线索）。
 
 ## 时态（2026-09-23 补记）
 
