@@ -59,6 +59,13 @@
 - id: assistant-research-tool
   name: dsh-smart-assistant/tool-research
 
+# ── 家：知识（第四房间，只读检索面）─────────────────────────────────────────────
+#
+# 写入走 reflect（save_page，staged draft）与 research promote——本工具刻意只读（D6 定值）：
+# 检索=search/get 附反链，反链全房间现算，无索引服务。
+- id: assistant-knowledge-tool
+  name: dsh-smart-assistant/tool-knowledge
+
 - id: assistant-learn
   name: dsh-smart-assistant/learn
 

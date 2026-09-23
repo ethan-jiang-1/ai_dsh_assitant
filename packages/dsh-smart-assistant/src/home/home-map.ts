@@ -19,10 +19,11 @@ export const HOME_MAP_FILE_NAME = 'HOME.md'
  * to know that `recall` and `HOME.md` exist.
  */
 export const HOME_MAP_BLURB = [
-  'Your home is a directory that outlives this session. Three rooms, one job each:',
+  'Your home is a directory that outlives this session. Four rooms, one job each:',
   '- `memory/` settled facts, preferences, and decisions (recall when the digest is not enough)',
   '- `research/` unresolved threads — open or parked, with three exits: promote, park, drop',
   '- `skills/` procedures you wrote for yourself, loaded by name like any other skill',
+  '- `knowledge/` domain pages that interlink — search them with `assistant_knowledge`',
   'Write through `assistant_memory`, `assistant_research`, and `assistant_reflect`; those tools',
   'validate the file format and keep the rooms consistent. `assistant_memory action=curate`',
   'reports what has rotted. The full map is `HOME.md` in the home root.',

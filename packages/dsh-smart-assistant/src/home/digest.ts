@@ -11,6 +11,7 @@
 
 import type { MemoryRecord } from '../memory/record.ts'
 import type { ResearchThread } from '../research/thread.ts'
+import type { KnowledgePage } from '../knowledge/page.ts'
 
 /** What the digest is rendered from. */
 export interface DigestInput {
@@ -20,6 +21,11 @@ export interface DigestInput {
   readonly memories: readonly MemoryRecord[]
   /** Candidate threads; only open and parked ones are mentioned. */
   readonly threads: readonly ResearchThread[]
+  /**
+   * Knowledge pages for the signpost tree; the caller passes stable pages only (deprecated
+   * pages stay findable through search, drafts are staged out of recall).
+   */
+  readonly pages: readonly KnowledgePage[]
   /** Byte budget for the whole digest. */
   readonly maxBytes: number
 }
@@ -104,6 +110,22 @@ export function renderDigest(input: DigestInput): DigestResult {
     push(`## Open threads (${openThreads.length} open, ${parkedThreads.length} parked)`)
     for (const thread of openThreads.slice(0, MAX_OPEN_THREADS_LISTED)) {
       if (!push(`- ${oneLine(thread.question)} (${thread.id})`)) break
+    }
+  }
+
+  // The knowledge signpost tree: names act as directory signposts (Letta MemFS's shape) —
+  // one line per stable page, self-bounded by the same byte budget as everything else.
+  const stablePages = input.pages
+    .filter(page => page.status === 'stable')
+    .slice()
+    .sort((left, right) => left.id.localeCompare(right.id))
+  if (stablePages.length > 0) {
+    push('')
+    push(`## Knowledge (${stablePages.length} pages)`)
+    for (const page of stablePages) {
+      const name = page.title ?? page.id
+      const hint = page.description ?? page.type
+      if (!push(`- ${oneLine(name)} — ${oneLine(hint)} (${page.id})`)) break
     }
   }
 

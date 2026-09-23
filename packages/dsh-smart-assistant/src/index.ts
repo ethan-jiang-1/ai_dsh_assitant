@@ -28,7 +28,8 @@ import { HOME_MAP_BLURB } from './home/home-map.ts'
 import { HOME_DIRECTORY_NAME, homePaths, scaffoldHome, ARCHIVE_DIRECTORY_NAME, type HomePaths, type ScaffoldResult } from './home/layout.ts'
 import { isMaintenanceRound, renderMaintenancePrompt } from './home/metronome.ts'
 import { curateKnowledge } from './knowledge/health.ts'
-import { pageFromEntry, type KnowledgePage } from './knowledge/page.ts'
+import { pageFromEntry, backlinksOf, type KnowledgePage } from './knowledge/page.ts'
+import { searchPages, type KnowledgeQuery } from './knowledge/search.ts'
 import { Room, type RoomEntry, type RoomReadFailure } from './home/room.ts'
 import {
   DEFAULT_IMPORTANCE,
@@ -492,10 +493,12 @@ export class AssistantMemory extends Service {
   async digest(): Promise<DigestResult> {
     const listing = await this.listMemories()
     const threads = await this.listThreads()
+    const knowledge = await this.listKnowledge()
     const result = renderDigest({
       mapBlurb: HOME_MAP_BLURB,
       memories: listing.entries,
       threads: threads.entries,
+      pages: knowledge.entries,
       maxBytes: this.digestMaxBytes,
     })
     this.digestCache = result
@@ -569,6 +572,31 @@ export class AssistantMemory extends Service {
         .filter((page): page is KnowledgePage => page !== undefined),
       failures: listing.failures,
     }
+  }
+
+  /**
+   * Search knowledge pages by keyword. Retrieval covers stable and deprecated pages (the
+   * status rides along so the model can judge deprecated hits); drafts are staged out.
+   * @param query - Terms, required tags, and an optional limit.
+   * @returns Ranked hits with match reasons.
+   */
+  async searchKnowledge(query: KnowledgeQuery): Promise<readonly { page: KnowledgePage, why: readonly string[] }[]> {
+    const listing = await this.listKnowledge()
+    return searchPages(listing.entries, query)
+  }
+
+  /**
+   * Read one knowledge page with its graph neighbourhood: backlinks are computed on demand
+   * over the whole room — no index to keep fresh.
+   * @param id - Page id.
+   * @returns The page and the ids of pages linking to it, or `undefined` when the page does
+   * not exist or does not parse.
+   */
+  async readKnowledgePage(id: string): Promise<{ page: KnowledgePage, backlinks: readonly string[] } | undefined> {
+    const listing = await this.listKnowledge()
+    const page = listing.entries.find(candidate => candidate.id === id)
+    if (page === undefined) return undefined
+    return { page, backlinks: backlinksOf(page, listing.entries) }
   }
 
   /**

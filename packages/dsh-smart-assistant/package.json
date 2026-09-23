@@ -33,6 +33,10 @@
       "types": "./lib/tool-research/index.d.ts",
       "default": "./lib/tool-research/index.js"
     },
+    "./tool-knowledge": {
+      "types": "./lib/tool-knowledge/index.d.ts",
+      "default": "./lib/tool-knowledge/index.js"
+    },
     "./memory-digest": {
       "types": "./lib/memory-digest/index.d.ts",
       "default": "./lib/memory-digest/index.js"

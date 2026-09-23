@@ -55,8 +55,13 @@ describe('digest budget enforcement (service)', () => {
     const brief = await service.curate()
     expect(brief.findings.map(finding => finding.code)).toContain('digest-over-budget')
 
-    // Retiring reduces — allowed, and once enough pressure is gone the finding clears.
-    await expect(service.forgetMemory(replacement.id)).resolves.toBe(true)
+    // Retiring reduces — allowed; keep retiring until the pressure actually clears (the map
+    // blurb itself spends budget, so one forget is not guaranteed to be enough).
+    const active = (await service.listMemories()).entries
+    for (const record of active) {
+      await service.forgetMemory(record.id)
+      if (!(await service.digest()).truncated) break
+    }
     const after = await service.curate()
     expect(after.findings.map(finding => finding.code)).not.toContain('digest-over-budget')
   })

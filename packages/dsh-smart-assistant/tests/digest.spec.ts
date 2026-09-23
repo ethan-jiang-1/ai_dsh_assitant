@@ -45,6 +45,7 @@ describe('renderDigest', () => {
         memory({ id: 'a-2', text: 'Deploys go through staging.' }),
       ],
       threads: [thread({ id: 't-1', question: 'One file per memory?' })],
+      pages: [],
       maxBytes: 4096,
     })
 
@@ -60,6 +61,7 @@ describe('renderDigest', () => {
       mapBlurb: blurb,
       memories: [memory({ id: 'gone', status: 'retired' })],
       threads: [thread({ id: 'parked-1', status: 'parked' }), thread({ id: 'closed-1', status: 'dropped' })],
+      pages: [],
       maxBytes: 4096,
     })
 
@@ -75,7 +77,7 @@ describe('renderDigest', () => {
       text: `A claim long enough to consume budget number ${index}.`,
     }))
 
-    const result = renderDigest({ mapBlurb: blurb, memories, threads: [], maxBytes: 400 })
+    const result = renderDigest({ mapBlurb: blurb, memories, threads: [], pages: [], maxBytes: 400 })
 
     expect(result.bytes).toBeLessThanOrEqual(400)
     expect(result.truncated).toBe(true)
@@ -87,6 +89,7 @@ describe('renderDigest', () => {
       mapBlurb: blurb,
       memories: [memory({ id: 'a-1', text: 'x'.repeat(500) })],
       threads: [],
+      pages: [],
       maxBytes: 64,
     })
 
@@ -100,6 +103,7 @@ describe('renderDigest', () => {
       mapBlurb: '你的家比这次会话活得更久。',
       memories: [memory({ id: 'a-1', text: '用户偏好简洁的回答。'.repeat(20) })],
       threads: [],
+      pages: [],
       maxBytes: 120,
     })
 
