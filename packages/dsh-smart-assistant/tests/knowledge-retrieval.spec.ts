@@ -90,7 +90,7 @@ describe('knowledge retrieval (service + digest tree)', () => {
 
   it('renders the stable-page signpost tree inside the digest budget', () => {
     const result = renderDigest({
-      mapBlurb: 'map',
+      statusBlurb: 'status',
       memories: [],
       threads: [],
       pages: [

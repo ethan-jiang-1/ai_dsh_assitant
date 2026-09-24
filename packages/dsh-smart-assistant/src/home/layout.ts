@@ -11,7 +11,8 @@
 import { constants } from 'node:fs'
 import { access, mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { HOME_MAP_FILE_NAME, renderHomeMap } from './home-map.ts'
+import { AGENTS_FILE_NAME, renderHomeManual } from './home-map.ts'
+import { DEFAULT_SOUL, SOUL_FILE_NAME } from './soul.ts'
 
 /** Directory name of the home under the harness home. */
 export const HOME_DIRECTORY_NAME = 'assistant'
@@ -41,8 +42,10 @@ export const SKILL_USAGE_FILE_NAME = 'skill-usage.json'
 export interface HomePaths {
   /** Home root. */
   readonly root: string
-  /** The home map file. */
-  readonly mapFile: string
+  /** The home's operating manual (AGENTS.md). */
+  readonly agentsFile: string
+  /** The home's identity file (SOUL.md). */
+  readonly soulFile: string
   /** The skill-usage ledger (load counts; not a room, never scaffolded). */
   readonly skillUsageFile: string
   /** Active memory records. */
@@ -77,7 +80,8 @@ export function homePaths(root: string): HomePaths {
   const skillsDir = join(root, SKILLS_ROOM)
   return {
     root,
-    mapFile: join(root, HOME_MAP_FILE_NAME),
+    agentsFile: join(root, AGENTS_FILE_NAME),
+    soulFile: join(root, SOUL_FILE_NAME),
     skillUsageFile: join(root, SKILL_USAGE_FILE_NAME),
     memoryDir,
     memoryArchiveDir: join(memoryDir, ARCHIVE_DIRECTORY_NAME),
@@ -94,8 +98,10 @@ export function homePaths(root: string): HomePaths {
 export interface ScaffoldResult {
   /** Directories that did not exist before this call. */
   readonly createdDirectories: readonly string[]
-  /** Whether the home map was written by this call. */
-  readonly mapWritten: boolean
+  /** Whether the operating manual was written by this call. */
+  readonly manualWritten: boolean
+  /** Whether the identity file was seeded by this call. */
+  readonly soulWritten: boolean
 }
 
 async function exists(path: string): Promise<boolean> {
@@ -109,7 +115,7 @@ async function exists(path: string): Promise<boolean> {
 
 /**
  * Create a missing home. Idempotent, and safe on a home a person has edited: directories are only
- * created, and `HOME.md` is written only when absent, so hand edits survive.
+ * created, and `AGENTS.md` / `SOUL.md` are written only when absent, so hand edits survive.
  * @param paths - Resolved home paths.
  * @returns What this call created.
  */
@@ -130,7 +136,9 @@ export async function scaffoldHome(paths: HomePaths): Promise<ScaffoldResult> {
     if (!(await exists(directory))) createdDirectories.push(directory)
     await mkdir(directory, { recursive: true })
   }
-  const mapWritten = !(await exists(paths.mapFile))
-  if (mapWritten) await writeFile(paths.mapFile, renderHomeMap(paths), 'utf8')
-  return { createdDirectories, mapWritten }
+  const manualWritten = !(await exists(paths.agentsFile))
+  if (manualWritten) await writeFile(paths.agentsFile, renderHomeManual(paths), 'utf8')
+  const soulWritten = !(await exists(paths.soulFile))
+  if (soulWritten) await writeFile(paths.soulFile, `${DEFAULT_SOUL}\n`, 'utf8')
+  return { createdDirectories, manualWritten, soulWritten }
 }

@@ -45,6 +45,8 @@ if (!built) {
 
 /** This package's agent-plane rows, verbatim ids and names from presets/assistant/agent.cordis.yml. */
 const OWN_ROWS = [
+  '- id: assistant-home-preamble',
+  '  name: dsh-smart-assistant/home-preamble',
   '- id: assistant-memory-digest',
   '  name: dsh-smart-assistant/memory-digest',
   '- id: assistant-memory-tool',
@@ -134,7 +136,7 @@ async function agentOnPreset(ctx: Context, captured: Context[]) {
 }
 
 ;(built ? describe : describe.skip)('real composition: loader + preset standing mount + joined agent', () => {
-  it('renders the digest section through the joined preset (the live-turn crash path)', async () => {
+  it('renders the soul, manual, and digest sections through the joined preset (the live-turn crash path)', async () => {
     const ctx = await harness()
     const captured: Context[] = []
     const { agent } = await agentOnPreset(ctx, captured)
@@ -142,12 +144,22 @@ async function agentOnPreset(ctx: Context, captured: Context[]) {
     // The exact production consumption that crashed in the first live turn: the mounted
     // digest section's plugin injects `assistantMemory` in the standing scope and its text
     // calls digestSnapshot() through the property proxy at assembly time. Assembling the
-    // system prompt is what a real turn does before the first model request.
+    // system prompt is what a real turn does before the first model request. The preamble
+    // sections ride the same proxy path (soulSnapshot / manualSnapshot).
     const assembled = await ctx.systemPrompt.assemble(assembleContextFor(agent))
-    const sections = assembled.sections.map(section => section.name)
-    expect(sections).toContain('assistant:memory-digest')
-    expect(assembled.sections.find(section => section.name === 'assistant:memory-digest')?.text)
-      .toContain('Your home is a directory that outlives this session')
+    const names = assembled.sections.map(section => section.name)
+    expect(names).toContain('assistant:soul')
+    expect(names).toContain('assistant:home-manual')
+    expect(names).toContain('assistant:memory-digest')
+    // The story order: who you are, how the home works, what is in it now.
+    expect(names.indexOf('assistant:soul')).toBeLessThan(names.indexOf('assistant:home-manual'))
+    expect(names.indexOf('assistant:home-manual')).toBeLessThan(names.indexOf('assistant:memory-digest'))
+    const byName = new Map(assembled.sections.map(section => [section.name, section.text]))
+    // A fresh home's seed equals the built-in default, so the identity section is the default
+    // voice either way — the race between scaffold and first assembly is invisible by design.
+    expect(byName.get('assistant:soul')).toContain('You are a long-lived assistant')
+    expect(byName.get('assistant:home-manual')).toContain('# Your home — operating manual')
+    expect(byName.get('assistant:memory-digest')).toContain('Live status of your home')
   })
 
   it('registers this package\'s four tools on the joined agent, and only there', async () => {

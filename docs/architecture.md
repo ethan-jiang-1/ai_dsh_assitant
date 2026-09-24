@@ -11,7 +11,7 @@
 
 | 那一圈的五件事 | 本插件的落点 |
 |---|---|
-| ① 让它看到该看的东西（上下文） | **桌面 / 抽屉**：常驻的只有有界摘要（家地图 + 精选记忆 + 开放线索条数）；细节用工具取 |
+| ① 让它看到该看的东西（上下文） | **桌面 / 抽屉**：常驻的是身份段（SOUL.md）+ 家手册（AGENTS.md）+ 有界状态摘要（精选记忆 + 开放线索条数）；细节用工具取 |
 | ② 让它懂你的业务（隐性知识显性化） | `memory/` 房间：事实、偏好、决定 —— 一条一个文件，可读可审 |
 | ③ 让它有该有的本事（工具与边界） | 四个工具 + 家的写入边界（`src/home/layout.ts` 是唯一 owner） |
 | ④ 让它按对的步骤走（工作流） | 过程性知识进**技能**（抽屉），不占常驻上下文；三档出口固定了线索的收束方式 |
@@ -56,7 +56,7 @@ AGENT 面（presets/assistant/agent.cordis.yml → agent preset）
 
 | 模块 | 职责 | 依赖方向 |
 |---|---|---|
-| `src/home/layout.ts` | **家布局的唯一 owner**：路径、scaffold、HOME.md 生成 | 无（最底层） |
+| `src/home/layout.ts` | **家布局的唯一 owner**：路径、scaffold、SOUL.md/AGENTS.md 生成 | 无（最底层） |
 | `src/home/frontmatter.ts` | YAML frontmatter 解析/生成（**不抛异常**：坏文件交给养护检查点名） | `yaml` |
 | `src/home/room.ts` | 房间存储：安全 id、原子写、归档、**列出失败文件** | frontmatter |
 | `src/memory/record.ts` | 记忆记录词汇与校验（一条记录一个断言） | room 类型 |
@@ -83,7 +83,7 @@ AGENT 面（presets/assistant/agent.cordis.yml → agent preset）
 
 | 模型可见输入 | 由什么覆盖 |
 |---|---|
-| 摘要段落（家地图 + 精选记忆 + 线索条数） | 系统提示词组装随请求记录；内容由家文件（外部状态）决定 |
+| 身份/手册/摘要三段落（SOUL.md + AGENTS.md + 精选记忆与线索条数） | 系统提示词组装随请求记录；内容由家文件（外部状态）决定 |
 | 四个工具的调用与结果 | `tool/call` / `tool/result` 逐字进日志 |
 | 技能目录（学到的技能出现/消失） | 目录随请求组装记录；`skills/change` 是注册表失效事件 |
 | 工具 description | 属于模型可见输入：改它是**行为变更**，不是改名 |

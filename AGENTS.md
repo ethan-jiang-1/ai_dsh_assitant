@@ -24,7 +24,7 @@
 | 路径 | 是什么 | 谁能改 |
 |---|---|---|
 | `ROADMAP.md` | **根部队列：只写接下来**（队列/搁置池/维护规则；条目 ≤3 行，完成即离队） | 队列调整直接改 + 维护规则记一行 |
-| `packages/dsh-smart-assistant/src/home/` | **家的布局契约**（路径、scaffold、地图、健康检查）—— 单一 owner | 改布局只动这里 |
+| `packages/dsh-smart-assistant/src/home/` | **家的布局契约**（路径、scaffold、身份与手册文件、健康检查）—— 单一 owner | 改布局只动这里 |
 | `.../src/memory/` | 记忆记录词汇、文件存储、检索、有界摘要 | 改记忆语义动这里 |
 | `.../src/research/` | 探索线索（backlog）词汇与三档出口（promote/park/drop） | 改探索语义动这里 |
 | `.../src/skills/` | `SKILL.md` 契约与校验写入 | 改技能文件契约动这里 |

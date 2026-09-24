@@ -31,11 +31,16 @@ describe('service access through the cordis property proxy', () => {
     return ctx
   }
 
-  it('answers digestSnapshot through the proxy — the prompt-section call', () => {
+  it('answers the three snapshot methods through the proxy — the prompt-section calls', () => {
     const ctx = boot()
-    // Exact production shape: the digest section is `() => ctx.assistantMemory.digestSnapshot()`.
-    const text: string = ctx.assistantMemory.digestSnapshot()
-    expect(text).toContain('Your home is a directory that outlives this session')
+    // Exact production shape: the digest, soul, and manual sections are
+    // `() => ctx.assistantMemory.<method>()` — every one rides the shadow receiver. The
+    // constructor's scaffold is fire-and-forget, so the soul read may hit the seeded file or
+    // the fallback — seed equals fallback, so the voice assertion holds either way.
+    const digest: string = ctx.assistantMemory.digestSnapshot()
+    expect(digest).toContain('Live status of your home')
+    expect(ctx.assistantMemory.soulSnapshot()).toContain('You are a long-lived assistant')
+    expect(ctx.assistantMemory.manualSnapshot()).toContain('# Your home — operating manual')
   })
 
   it('serves the tool verbs through the proxy and the digest reflects writes', async () => {

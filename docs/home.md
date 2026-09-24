@@ -9,7 +9,8 @@
 
 ```text
 <dataDir>/                      # 默认 <dshHome>/assistant（$DSH_HOME → ~/.dsh）
-├── HOME.md                     # 地图：这是什么、东西在哪、怎么用（agent 与人都先读它）
+├── SOUL.md                     # 身份：agent 是谁、怎么说话（种子=内置默认；手改不覆盖）
+├── AGENTS.md                    # 手册：这个家怎么用（AGENTS.md 惯例名；带 scaffold 版本标记）
 ├── skill-usage.json            # 机器账本：skill 工具加载计数（可删，删了计数归零；不进摘要）
 ├── memory/                     # 房间一：已确立的事实 / 偏好 / 决定
 │   ├── <id>.md                 #   一条记录一个文件（frontmatter + 正文）
@@ -78,8 +79,13 @@ learn 模块的 `tools/result` 订阅就给对应名字计数（用户 `/name` �
 
 ## 三、桌面与抽屉（信噪比）
 
-- **桌面**（常驻上下文，`assistant-memory-digest` 段落，**有界** `digestMaxBytes`）：
-  家的地图（一小段）+ 活跃记忆的精选 + **开放线索的条数与前几条标题**。
+- **桌面**（常驻上下文，三个段落讲一个顺序的故事：**你是谁 → 家怎么用 → 家里现在有什么**）：
+  - 身份段（`assistant:soul`）：`SOUL.md` 逐字（缺/空回退内置默认身份——回退是替换不是叠加）；
+  - 手册段（`assistant:home-manual`）：`AGENTS.md` 逐字（缺则现场渲染当前版，永不落后）；
+  - 状态摘要（`assistant:memory-digest`，**有界** `digestMaxBytes`）：状态行 + 活跃记忆的精选 +
+    **开放线索的条数与前几条标题**。
+  身份与手册是**家根的数据文件**（人可改、可 git、scaffold 只在缺失时写）——身份是数据不是
+  preset 代码；静态引导（跨请求稳定，cache 友好）与动态状态（摘要）分离。
   桌面只放"此刻最该在眼前的东西"。
 - **抽屉**（要用再拿）：完整记录、归档、知识页、技能正文 —— 用 `assistant_memory` / `assistant_research` /
   `assistant_knowledge` / `skill` 工具取。
@@ -98,6 +104,7 @@ learn 模块的 `tools/result` 订阅就给对应名字计数（用户 `/name` �
 | 悬空引用 | `supersedes` / `promotedTo` 指向不存在的 id | 引用断掉会让历史读不出来 |
 | 近似重复 | 高重合的活跃记忆（关键词/标签） | 三条模糊的记忆比一条准确的更糟 |
 | 摘要预算 | 摘要被预算截短（`truncated`）——被截掉的记忆对每个会话不可见 | 桌面塞满 = 中间被漏掉；**且纯新增写入在截断态被服务层拒绝**（supersede/forget 开放——它们是减压动作） |
+| 手册漂移 | `AGENTS.md` 的 scaffold 版本标记旧于当前（`manual-stale-scaffold`，info） | 持久化生成物会静默腐烂——**手改内容不报**（手改是拥有者的），版本落后才报；处置=删文件重新生成或忽略 |
 | 过期线索 | 超过 `staleResearchDays` 未更新的 `open` 线索 | 悬着的线索会烂，机器先发现 |
 | 缺理由的 drop | `status: dropped` 但 `reason` 为空 | 尸体没写死因 = 白丢 |
 | 技能文件 | 名字不合 `SKILL_NAME` 文法 / 缺 `description` / 目录名与 name 不一致 | 技能会静默不被发现 |
@@ -127,9 +134,23 @@ bundles, M snapshots`，退役与快照都不删除、技能归档只增不减�
 （默认 5，`0` 关闭）轮自动插入一条养护 turn（plugin 源 user message，让路栅栏保证它是轮间
 安全空槽），指示跑 curate 并逐条处理发现项；非 goal 会话仍由 persona 纪律驱动。
 
-## 五、`HOME.md`（地图）
+## 五、家根的两个文件（`SOUL.md` 身份 + `AGENTS.md` 手册）
 
-`HOME.md` 由服务在首次使用时生成（scaffold），内容是**给人也给 agent 看**的地图：
-这是什么、四个房间各放什么、三档出口是什么、`curate` 怎么用。
-它**不进常驻上下文**（摘要里有精简版），但 agent 可以随时 `read` 它。
-人工手改 `HOME.md` 不会被覆盖（只在缺失时生成）。
+抄 Hermes 的形状（调研 `notes/research/2026-09-24-r4-hermes-identity-survey.md`；决定
+`notes/implemented/2026-09-24-soul-and-agents.md`，D1/D2/D3=a）：**身份与引导分文件**，
+分工一句话——到处适用的进 `SOUL.md`，属于这个家的进 `AGENTS.md`。
+
+- **`SOUL.md`（身份）**：agent 是谁、怎么说话。scaffold 缺则种（种子 = 内置默认身份，day 0
+  行为零变化），**已有永不覆盖**；空文件不注入。身份段读它逐字进 system prompt（紧贴 persona
+  stub，`assistant:soul`）；缺/空/坏 → **回退内置默认**（回退是替换不是叠加）。改人格 = 编辑
+  这个文件，不用动插件源码。
+- **`AGENTS.md`（手册）**：这个家怎么用——四房间、三档出口、退役、curate、盘上布局。
+  scaffold 缺则种（首行 `<!-- home-manual vN -->` 版本标记），永不覆盖；手册段
+  （`assistant:home-manual`）逐字进 system prompt；缺则**现场渲染当前版**（缺文件永不落后）。
+  版本标记旧于当前由 curate 报 info（见 §四「手册漂移」）。
+- 两者都是**给人也给 agent 看**的文件；文件名走 AGENTS.md 业界惯例——DSH 原生装载器认项目根
+  与 `$DSH_HOME` 根的同名文件，不探家根，**同名不同域，互不冲突**。
+- persona 行缩为一句 stub（shadow 部署级 persona 的职能不动），身份正文由身份段拥有。
+
+**旧 `HOME.md` 概念已清零**（2026-09-24，同 diff 扫掉代码/测试/文档/preset 全部引用）；
+dev home 的旧文件已删，由新 scaffold 种出两个新文件。

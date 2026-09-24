@@ -39,7 +39,7 @@ const blurb = 'Your home outlives this session.'
 describe('renderDigest', () => {
   it('renders the map, the strongest memories, and the open-thread count', () => {
     const result = renderDigest({
-      mapBlurb: blurb,
+      statusBlurb: blurb,
       memories: [
         memory({ id: 'a-1', text: 'The user prefers terse answers.', importance: 5 }),
         memory({ id: 'a-2', text: 'Deploys go through staging.' }),
@@ -58,7 +58,7 @@ describe('renderDigest', () => {
 
   it('leaves retired records and archived threads out', () => {
     const result = renderDigest({
-      mapBlurb: blurb,
+      statusBlurb: blurb,
       memories: [memory({ id: 'gone', status: 'retired' })],
       threads: [thread({ id: 'parked-1', status: 'parked' }), thread({ id: 'closed-1', status: 'dropped' })],
       pages: [],
@@ -77,7 +77,7 @@ describe('renderDigest', () => {
       text: `A claim long enough to consume budget number ${index}.`,
     }))
 
-    const result = renderDigest({ mapBlurb: blurb, memories, threads: [], pages: [], maxBytes: 400 })
+    const result = renderDigest({ statusBlurb: blurb, memories, threads: [], pages: [], maxBytes: 400 })
 
     expect(result.bytes).toBeLessThanOrEqual(400)
     expect(result.truncated).toBe(true)
@@ -86,7 +86,7 @@ describe('renderDigest', () => {
 
   it('keeps the map even when the budget cannot hold a single record', () => {
     const result = renderDigest({
-      mapBlurb: blurb,
+      statusBlurb: blurb,
       memories: [memory({ id: 'a-1', text: 'x'.repeat(500) })],
       threads: [],
       pages: [],
@@ -100,7 +100,7 @@ describe('renderDigest', () => {
 
   it('counts bytes, not characters, so a CJK digest is bounded too', () => {
     const result = renderDigest({
-      mapBlurb: '你的家比这次会话活得更久。',
+      statusBlurb: '你的家比这次会话活得更久。',
       memories: [memory({ id: 'a-1', text: '用户偏好简洁的回答。'.repeat(20) })],
       threads: [],
       pages: [],

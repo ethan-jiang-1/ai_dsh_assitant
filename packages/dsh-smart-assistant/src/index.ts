@@ -13,6 +13,7 @@
  * @module dsh-smart-assistant
  */
 
+import { readFileSync } from 'node:fs'
 import { mkdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { Context, Service } from '@deepseek-ai/cordis'
@@ -28,7 +29,8 @@ import { createUserMessage } from '@deepseek-ai/dsh-llm'
 import { renderDigest, type DigestResult } from './home/digest.ts'
 import { parseFrontmatterDocument, renderFrontmatterDocument } from './home/frontmatter.ts'
 import { compareFindings, curateHome, type CurationBrief, type CurationFinding } from './home/health.ts'
-import { HOME_MAP_BLURB } from './home/home-map.ts'
+import { HOME_STATUS_BLURB, parseManualVersion, renderHomeManual } from './home/home-map.ts'
+import { DEFAULT_SOUL } from './home/soul.ts'
 import { HOME_DIRECTORY_NAME, homePaths, scaffoldHome, ARCHIVE_DIRECTORY_NAME, type HomePaths, type ScaffoldResult } from './home/layout.ts'
 import { isMaintenanceRound, renderMaintenancePrompt } from './home/metronome.ts'
 import { curateKnowledge } from './knowledge/health.ts'
@@ -162,6 +164,35 @@ export interface RoomReadResult<T> {
 /**
  * The home service. One instance per process, mounted from the host composition.
  */
+
+/** Byte cap for the identity file riding in the prompt. */
+const SOUL_BYTE_CAP = 4096
+
+/** Byte cap for the manual riding in the prompt. */
+const MANUAL_BYTE_CAP = 8192
+
+/**
+ * Read one home-root file for a prompt section, synchronously (assembly is sync; the files are
+ * small and rarely change, so a per-assembly read keeps hand edits visible with no cache).
+ * @param path - The file to read.
+ * @param fallback - What to return when the file is missing, empty, or unreadable.
+ * @param cap - UTF-8 byte cap; an oversized file keeps its head plus a marker naming the cut.
+ * @returns The file's trimmed content, or the fallback.
+ */
+function rootFileSnapshot(path: string, fallback: string, cap: number): string {
+  let text: string
+  try {
+    text = readFileSync(path, 'utf8')
+  } catch {
+    return fallback
+  }
+  const trimmed = text.trim()
+  if (trimmed.length === 0) return fallback
+  const bytes = Buffer.byteLength(trimmed, 'utf8')
+  if (bytes <= cap) return trimmed
+  return `${trimmed.slice(0, cap)}\n[… truncated ${String(bytes - cap)} bytes; edit the file to be shorter]`
+}
+
 export class AssistantMemory extends Service {
   static Config: Schema<Config> = z.object({
     dataDir: z.string(),
@@ -197,7 +228,7 @@ export class AssistantMemory extends Service {
   /**
    * Last rendered digest. Prompt sections assemble synchronously while the home is read
    * asynchronously, so the section reads this cache and a write kicks a background refresh; a cold
-   * cache still returns the map blurb, so the model always learns that the home exists.
+   * cache still returns the status blurb, so the model always learns that the home exists.
    */
   private digestCache: DigestResult | undefined
 
@@ -301,7 +332,7 @@ export class AssistantMemory extends Service {
   }
 
   /**
-   * Create the home if it is missing. Idempotent; never overwrites a hand-edited `HOME.md`.
+   * Create the home if it is missing. Idempotent; never overwrites a hand-edited `AGENTS.md` or `SOUL.md`.
    * @returns What this call created.
    */
   async ensureHome(): Promise<ScaffoldResult> {
@@ -671,7 +702,7 @@ export class AssistantMemory extends Service {
     const threads = await this.listThreads()
     const knowledge = await this.listKnowledge()
     const result = renderDigest({
-      mapBlurb: HOME_MAP_BLURB,
+      statusBlurb: HOME_STATUS_BLURB,
       memories: listing.entries,
       threads: threads.entries,
       pages: knowledge.entries,
@@ -684,14 +715,36 @@ export class AssistantMemory extends Service {
   /**
    * Read the digest without awaiting. Prompt sections assemble synchronously, so this returns the
    * cached rendering and refreshes in the background when the cache is cold or invalidated.
-   * @returns The cached digest text, or the map blurb while the first rendering is in flight.
+   * @returns The cached digest text, or the status blurb while the first rendering is in flight.
    */
   digestSnapshot(): string {
     if (this.digestCache !== undefined) return this.digestCache.text
     void this.digest().catch((error: unknown) => {
       this.ctx.logger.warn(`assistant home digest refresh failed: ${String(error)}`)
     })
-    return HOME_MAP_BLURB
+    return HOME_STATUS_BLURB
+  }
+
+  /**
+   * The identity that rides in the system prompt: `SOUL.md` verbatim when it has content, the
+   * built-in default when it is missing, empty, or unreadable (Hermes semantics: the file
+   * replaces the default entirely; the default is the fallback, never an addition). Frozen
+   * per assembly read, so a hand edit is visible to the next request.
+   * @returns The identity text, byte-capped.
+   */
+  soulSnapshot(): string {
+    return rootFileSnapshot(this.paths.soulFile, DEFAULT_SOUL, SOUL_BYTE_CAP)
+  }
+
+  /**
+   * The home manual that rides in the system prompt: `AGENTS.md` verbatim when present, a
+   * freshly rendered manual otherwise — the fallback is always current, so a missing manual
+   * can never go stale. Hand edits are the owner's; only the scaffold version marker is the
+   * machine's (see `curate`'s drift finding).
+   * @returns The manual text, byte-capped.
+   */
+  manualSnapshot(): string {
+    return rootFileSnapshot(this.paths.agentsFile, renderHomeManual(this.paths), MANUAL_BYTE_CAP)
   }
 
   /**
@@ -789,6 +842,7 @@ export class AssistantMemory extends Service {
     const knowledge = await this.listKnowledge()
     const skills = await scanLearnedSkills(this.paths.skillsDir)
     const archiveScale = await scanSkillArchiveScale(this.paths.skillsArchiveDir)
+    const manualText = await readFile(this.paths.agentsFile, 'utf8').catch(() => undefined)
     const usage = await readSkillUsage(this.paths.skillUsageFile)
     const digest = await this.digest()
     const activeIds = [
@@ -811,6 +865,7 @@ export class AssistantMemory extends Service {
       knowledgePages: knowledge.entries.length,
       retiredSkillBundles: archiveScale.retiredBundles,
       skillSnapshots: archiveScale.snapshots,
+      ...(manualText !== undefined ? { manualVersion: parseManualVersion(manualText) } : {}),
       skillUsage: usage.usage,
       ...(usage.failure !== undefined ? { skillUsageFailure: usage.failure } : {}),
       shadowedSkills: shadowedBy ?? {},

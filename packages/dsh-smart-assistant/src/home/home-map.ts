@@ -1,44 +1,64 @@
 /**
- * The home's map: the text the agent reads to know what its home is and where things live,
- * plus the compact blurb that rides in the always-on digest.
+ * The home's operating manual: the text that rides in the system prompt's guidance section
+ * and is seeded as `AGENTS.md` in the home root (the industry name; DSH's native instruction
+ * loader reads AGENTS.md files from the workspace and the harness home — this one is the
+ * home's own, loaded by this plugin's section, so the convention is shared and the paths
+ * never collide).
  *
- * The map is written for the agent, so it is in English like the persona and the skills;
- * the repo's own contracts (`docs/`) are in the maintainer's language. The map is generated
- * only when missing — a hand-edited map is never overwritten.
+ * The manual is written for the agent, so it is in English like the persona and the skills;
+ * the repo's own contracts (`docs/`) are in the maintainer's language. The file is generated
+ * only when missing — a hand-edited manual is never overwritten — and carries a scaffold
+ * version marker so `curate` can report a manual that predates the current scaffold without
+ * fighting hand edits (content edits are the owner's; the marker is the machine's).
  *
  * @module dsh-smart-assistant/home/home-map
  */
 
 import type { HomePaths } from './layout.ts'
 
-/** File name of the home map. */
-export const HOME_MAP_FILE_NAME = 'HOME.md'
+/** File name of the home's operating manual (the AGENTS.md convention). */
+export const AGENTS_FILE_NAME = 'AGENTS.md'
+
+/** Version of the generated manual; bump when the generated content changes meaningfully. */
+export const HOME_MANUAL_VERSION = 1
+
+/** The version marker stamped as the file's first line (an HTML comment: invisible when rendered). */
+export const HOME_MANUAL_MARKER = `<!-- home-manual v${String(HOME_MANUAL_VERSION)} -->`
 
 /**
- * The blurb that rides in every digest: what the home is, in as few bytes as the agent needs
- * to know that `recall` and `HOME.md` exist.
+ * Parse a manual's scaffold version from its marker. A file without a marker (hand-written
+ * from scratch, or predating versioning) reads as version 0.
+ * @param text - The manual's contents.
+ * @returns The parsed version, or 0 when unmarked.
  */
-export const HOME_MAP_BLURB = [
-  'Your home is a directory that outlives this session. Four rooms, one job each:',
-  '- `memory/` settled facts, preferences, and decisions (recall when the digest is not enough)',
-  '- `research/` unresolved threads — open or parked, with three exits: promote, park, drop',
-  '- `skills/` procedures you wrote for yourself, loaded by name like any other skill',
-  '- `knowledge/` domain pages that interlink — search them with `assistant_knowledge`',
-  'Write through `assistant_memory`, `assistant_research`, and `assistant_reflect`; those tools',
-  'validate the file format and keep the rooms consistent. `assistant_memory action=curate`',
-  'reports what has rotted. The full map is `HOME.md` in the home root.',
+export function parseManualVersion(text: string): number {
+  const match = /^<!--\s*home-manual v(\d+)\s*-->/u.exec(text.trimStart())
+  return match?.[1] !== undefined ? Number(match[1]) : 0
+}
+
+/**
+ * The blurb that rides in every digest: the manual above carries how the home works, so this
+ * is only the live-status pointer — that `SOUL.md` and `AGENTS.md` are the agent's own files,
+ * and that the digest is bounded on purpose.
+ */
+export const HOME_STATUS_BLURB = [
+  'Live status of your home. The manual above (`AGENTS.md`) is how it works, your voice is',
+  '`SOUL.md`, and both are files in your home root — yours to read and edit. Only this bounded',
+  'status rides in every request; `recall` and `assistant_reflect` fetch the rest on demand.',
 ].join('\n')
 
 /**
- * Render the full home map.
- * @param paths - Resolved home paths, so the map names the real locations.
- * @returns Markdown contents for `HOME.md`.
+ * Render the full home manual.
+ * @param paths - Resolved home paths, so the manual names the real locations.
+ * @returns Markdown contents for `AGENTS.md`.
  */
-export function renderHomeMap(paths: HomePaths): string {
-  return `# Your home
+export function renderHomeManual(paths: HomePaths): string {
+  return `${HOME_MANUAL_MARKER}
+# Your home — operating manual
 
 This directory outlives every session. What you keep here is what you will still know tomorrow;
-what you do not keep is gone. Three rooms, one job each — do not mix them.
+what you do not keep is gone. Four rooms, one job each — do not mix them. Who you are lives in
+\`SOUL.md\` next to this file; this manual is how the home works.
 
 | Room | Holds | Lifecycle |
 |---|---|---|
@@ -47,46 +67,47 @@ what you do not keep is gone. Three rooms, one job each — do not mix them.
 | \`skills/\` | Procedures worth reusing, in the harness skill format | edited in place; loaded by name; retired (out of the catalog, recoverable) → \`archive/\` |
 | \`knowledge/\` | Domain pages that interlink: concepts, entities, sources, how-things-work | \`draft\` → reviewed → \`stable\`; \`deprecated\` stays in place so links keep resolving |
 
-## Retiring a skill
-
-A skill you never load is catalog weight every request pays for. \`curate\` reports skills past
-their use-by date (stale, then retirement-ready, by the usage ledger). When one is dead, retire it:
-
-- **retire** — \`assistant_reflect action=retire_skill\`: the bundle moves to \`skills/archive/\`
-  and stops loading immediately. Nothing is deleted — moving it back restores it.
-
 ## The three exits for a thread
 
 A thread is not a task. It is a question with a lean. Every thread ends one of three ways:
 
-- **promote** — the question got answered: it becomes a memory record (a fact or decision) or a skill.
+- **promote** — the question got answered: it becomes a memory record, a knowledge page, or a skill.
 - **park** — still valid, not now: it stays in \`research/\` but leaves the digest.
 - **drop** — wrong, moot, or not worth it: it moves to \`research/archive/\` **with a required reason**.
 
 The reason is the point. A thread dropped without one gets reopened by a future session that has
 the same idea; a thread dropped with "we tried X, it broke Y" does not.
 
+## Retiring a skill
+
+A skill you never load is catalog weight every request pays for. \`curate\` reports skills past
+their use-by date (stale, then retirement-ready, by the usage ledger). When one is dead, retire it
+with \`assistant_reflect action=retire_skill\`: the bundle moves to \`skills/archive/\` and stops
+loading immediately. Nothing is deleted — moving the bundle back restores it.
+
 ## What is always in front of you, and what is not
 
-Only a bounded digest of this home rides in your context: the map blurb, the strongest active
-memories, and the count of open threads. Everything else — full records, archived entries, skill
-bodies — is fetched on demand. That is deliberate: a home that crowds out the work in front of you
-makes you worse, not better.
+Three things ride in every request: your identity (\`SOUL.md\`), this manual (\`AGENTS.md\`), and a
+bounded digest of the home's live state — the strongest active memories and the open threads.
+Everything else — full records, archived entries, skill bodies, knowledge pages — is fetched on
+demand. That is deliberate: a home that crowds out the work in front of you makes you worse, not
+better.
 
 ## Keeping it worth reading
 
 \`assistant_memory action=curate\` is a machine check over these files: near-duplicates, dangling
 references, malformed headers, digest budget pressure, threads that have not moved, drops without
 a reason, skills the loader would silently ignore, learned skills shadowed by a same-named
-curated one, and skills past their use-by date. It finds candidates; you decide. Run it when
-the digest reports over-budget, after a session of real learning, or when you suspect rot.
+curated one, and skills past their use-by date. It finds candidates; you decide. Run it when the
+digest reports over-budget, after a session of real learning, or when you suspect rot.
 
 ## Layout on disk
 
 \`\`\`text
 ${paths.root}/
-├── HOME.md
-├── skill-usage.json    (load counts; advisory, safe to delete)
+├── SOUL.md            (your identity; seeded, never overwritten)
+├── AGENTS.md          (this manual; seeded, never overwritten)
+├── skill-usage.json   (load counts; advisory, safe to delete)
 ├── memory/            (active records; archive/ for superseded or retired)
 ├── research/          (open and parked threads; archive/ for promoted or dropped)
 ├── skills/            (<name>/SKILL.md, discovered by the skill provider; archive/ for retired)

@@ -41,6 +41,10 @@
       "types": "./lib/memory-digest/index.d.ts",
       "default": "./lib/memory-digest/index.js"
     },
+    "./home-preamble": {
+      "types": "./lib/home-preamble/index.d.ts",
+      "default": "./lib/home-preamble/index.js"
+    },
     "./learn": {
       "types": "./lib/learn/index.d.ts",
       "default": "./lib/learn/index.js"

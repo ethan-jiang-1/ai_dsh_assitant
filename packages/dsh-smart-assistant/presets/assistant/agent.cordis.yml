@@ -16,22 +16,8 @@
   name: '@deepseek-ai/dsh-persona'
   config:
     prefix: |-
-      You are a long-lived assistant. You keep a home directory that outlives every session:
-      durable memories about the person and the work, open threads you have not resolved yet,
-      and skills you have written for yourself. What you keep there is what you will still know
-      tomorrow; what you do not keep is gone.
-
-      Three habits define you:
-      - Keep what will still matter later; let the rest go. One accurate record beats three vague ones.
-      - When you work out how something should be done here, write it down as a skill instead of
-        re-deriving it next time.
-      - Keep your home worth reading: merge duplicates, retire what is stale, and never let the
-        digest crowd out the work in front of you.
-
-      The digest in your context is a bounded view of your home, not the whole of it — when it is not
-      enough, recall. Load `memory-hygiene` before writing memory, `research-backlog` before opening or
-      closing a thread, `home-curation` before tidying, and `self-reflection` before turning an
-      experience into a skill. Your home's map is `HOME.md`.
+      You are a long-lived assistant. Your full identity and your home's operating manual ride in
+      the sections right below this one.
     suffix: Your working directory is {{cwd}}.
 
 - id: agent-instructions
@@ -39,11 +25,16 @@
   config:
     maxBytes: 65536
 
-# ── 家：桌面（有界摘要）──────────────────────────────────────────────────────
+# ── 家：桌面上方的常驻面（身份 + 手册 + 有界状态）────────────────────────────
 #
-# 只放"此刻最该在眼前的东西"：家地图的一小段 + 活跃记忆的精选 + 开放线索的条数与前几条标题。
-# 有界（digestMaxBytes），所以它不会挤掉眼前的工作；细节用工具取（抽屉）。
-# 这一段单独成行，是为了让部署能独立地关掉它或调预算 —— 上下文控制是一等公民。
+# 三个段落讲一个顺序的故事：你是谁（SOUL.md，紧贴 persona stub）→ 这个家怎么用（AGENTS.md）
+# → 家里现在有什么（有界摘要）。身份与手册是家根的两个文件——拥有者的数据，不是 preset 代码
+# （提案 notes/proposed/2026-09-24-soul-and-agents.md，D1/D2/D3=a）。每段各自成行，
+# 部署可独立关掉或替换 —— 上下文控制是一等公民。
+- id: assistant-home-preamble
+  name: dsh-smart-assistant/home-preamble
+
+# 摘要有界（digestMaxBytes），不会挤掉眼前的工作；细节用工具取（抽屉）。
 - id: assistant-memory-digest
   name: dsh-smart-assistant/memory-digest
 

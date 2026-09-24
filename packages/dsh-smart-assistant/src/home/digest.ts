@@ -15,8 +15,8 @@ import type { KnowledgePage } from '../knowledge/page.ts'
 
 /** What the digest is rendered from. */
 export interface DigestInput {
-  /** The home map's compact blurb; always rendered first. */
-  readonly mapBlurb: string
+  /** The home status blurb; always rendered first. */
+  readonly statusBlurb: string
   /** Candidate memory records; only active ones are considered. */
   readonly memories: readonly MemoryRecord[]
   /** Candidate threads; only open and parked ones are mentioned. */
@@ -91,7 +91,7 @@ export function renderDigest(input: DigestInput): DigestResult {
     return true
   }
 
-  for (const line of input.mapBlurb.split('\n')) {
+  for (const line of input.statusBlurb.split('\n')) {
     if (!push(line)) break
   }
 

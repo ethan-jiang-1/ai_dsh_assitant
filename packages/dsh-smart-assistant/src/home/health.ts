@@ -15,10 +15,12 @@ import type { ResearchThread } from '../research/thread.ts'
 import type { SkillUsage, SkillUsageLine, SkillUsageReadFailure } from '../skills/usage.ts'
 import { skillUsageLines } from '../skills/usage.ts'
 import type { RoomReadFailure } from './room.ts'
+import { HOME_MANUAL_VERSION } from './home-map.ts'
 
 /** Machine-readable finding kinds, stable enough for a caller to filter on. */
 export type FindingCode =
   | 'unreadable-file'
+  | 'manual-stale-scaffold'
   | 'duplicate-id'
   | 'dangling-reference'
   | 'near-duplicate'
@@ -93,6 +95,8 @@ export interface CurationInput {
   readonly retiredSkillBundles: number
   /** Pre-overwrite snapshots under the skills archive. */
   readonly skillSnapshots: number
+  /** Scaffold version of the on-disk AGENTS.md marker; omitted when the file is absent. */
+  readonly manualVersion?: number
   /** The skill-usage ledger, joined against `skills` for the usage lines. */
   readonly skillUsage: SkillUsage
   /** Set when the ledger file exists but is not a valid ledger. */
@@ -230,6 +234,17 @@ export function curateHome(input: CurationInput): CurationBrief {
       severity: 'warn',
       message: `"${id}" exists both in a room and in its archive — bookkeeping went wrong`,
       refs: [id],
+    })
+  }
+
+  if (input.manualVersion !== undefined && input.manualVersion !== HOME_MANUAL_VERSION) {
+    findings.push({
+      code: 'manual-stale-scaffold',
+      severity: 'info',
+      message: 'the home manual (AGENTS.md) predates the current scaffold '
+        + `(v${String(input.manualVersion)} vs v${String(HOME_MANUAL_VERSION)}) — delete the file to `
+        + 'regenerate it, or ignore this if you curate it by hand',
+      refs: ['AGENTS.md'],
     })
   }
 
