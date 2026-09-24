@@ -13,7 +13,7 @@
 
 import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
-import { dirname, join, relative, resolve } from 'node:path'
+import { dirname, basename, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
@@ -44,6 +44,7 @@ const REQUIRED_PATHS = [
   'AGENTS.md',
   'CLAUDE.md',
   'README.md',
+  'ROADMAP.md',
   'pnpm-workspace.yaml',
   'tsconfig.base.json',
   'tsconfig.json',
@@ -313,6 +314,31 @@ check('contract: docs/home.md lists the rooms and archives the layout creates', 
   return problems
 })
 
+// ── queue discipline ────────────────────────────────────────────────────────────────────────────
+
+check('queue: every proposal is scheduled in ROADMAP.md', () => {
+  const problems = []
+  const roadmap = read(join(repoRoot, 'ROADMAP.md'))
+  for (const file of walk(join(repoRoot, 'notes', 'proposed'), ['.md'])) {
+    const name = relative(repoRoot, file)
+    if (!roadmap.includes(basename(name))) {
+      problems.push(`${name} has no home in ROADMAP.md — a proposal without a queue slot is a proposal being forgotten`)
+    }
+  }
+  return problems
+})
+
+check('queue: digested proposals graduate out of notes/proposed/', () => {
+  const problems = []
+  for (const file of walk(join(repoRoot, 'notes', 'proposed'), ['.md'])) {
+    const status = /状态：\*\*([^*]*)\*/.exec(read(file))?.[1] ?? ''
+    if (/已全部实施|已消化|已毕业/.test(status)) {
+      problems.push(`${relative(repoRoot, file)} says it is done but still sits in notes/proposed/ — graduate it to notes/implemented/`)
+    }
+  }
+  return problems
+})
+
 check('contract: curated skills carry valid frontmatter and match their directory', () => {
   const problems = []
   const skillsDir = join(packageDir, 'presets', 'assistant', 'skills')
@@ -362,6 +388,7 @@ const KNOWN_PACKAGE_BASENAMES = new Set(['cordis.patch.yml'])
 const markdownCorpus = [
   join(repoRoot, 'AGENTS.md'),
   join(repoRoot, 'README.md'),
+  join(repoRoot, 'ROADMAP.md'),
   ...walk(join(repoRoot, 'docs'), ['.md']),
   ...walk(join(repoRoot, 'notes'), ['.md']),
   ...walk(join(repoRoot, 'snapshots'), ['.md']),

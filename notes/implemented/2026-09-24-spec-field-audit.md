@@ -1,6 +1,6 @@
 # 2026-09-24 · spec 字段对齐审计（治理环切片 1g · 亲验后裁剪）（已实现——审计结案，字段不写）
 
-依据：三线合流提案 `notes/proposed/2026-09-24-tri-line-synthesis.md` 阶段 1 切片 1g；
+依据：三线合流提案 `notes/implemented/2026-09-24-tri-line-synthesis.md` 阶段 1 切片 1g；
 R2 §9.3-6（"格式小步向 spec 对齐：可选补 `license`/`compatibility` 字段"）。
 
 ## 亲验结论：字段不写——在本仓 pin 的 provider 上是死字段

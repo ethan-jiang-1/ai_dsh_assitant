@@ -1,6 +1,6 @@
 # 2026-09-24 · 遮蔽可见性（治理环切片 1b）（已实现）
 
-依据：三线合流提案 `notes/proposed/2026-09-24-tri-line-synthesis.md` 阶段 1 切片 1b
+依据：三线合流提案 `notes/implemented/2026-09-24-tri-line-synthesis.md` 阶段 1 切片 1b
 （D3 已定参数：curate finding + brief 节，零新工具面）；R2 §9.3-2 与 §5.4——
 "遮蔽可见性是全生态无人做的空白（普查 481 个技能/成长类条目逐一过目），
 最低成本版本是 curate finding + brief 一节"。原始观察在战役 note 开跑补记：

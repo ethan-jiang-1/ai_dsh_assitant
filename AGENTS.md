@@ -9,10 +9,19 @@
 它给 agent 一个自己的**家**（working folder）：长期记忆 + 学到的技能 + 家的养护检查。
 核心命题是 `Agent = Model + Harness` —— 本 repo 做的就是"那一圈"。
 
+## 新会话开工（先读这段）
+
+**现在在哪、接下来做什么的唯一权威 = `ROADMAP.md`（根部队列，只写接下来，完成即离队）**。
+开工前先读它：队列条目 / ⏳ 触发型 / ⏸ 等用户拍板——不要从 git log 或记忆发明任务。
+队列是索引不是全文：条目链接指向 `notes/proposed/` 提案或收尾 note；历史由
+`notes/implemented/` + git 说话。交接即此链：AGENTS.md（本文件）→ `ROADMAP.md` → 条目链接。
+`notes/proposed/` 不是停车场（proposal-scheduled / proposal-graduated 两道 verify 门禁管）。
+
 ## 布局（改动前先认领 owner 面）
 
 | 路径 | 是什么 | 谁能改 |
 |---|---|---|
+| `ROADMAP.md` | **根部队列：只写接下来**（队列/搁置池/维护规则；条目 ≤3 行，完成即离队） | 队列调整直接改 + 维护规则记一行 |
 | `packages/dsh-smart-assistant/src/home/` | **家的布局契约**（路径、scaffold、地图、健康检查）—— 单一 owner | 改布局只动这里 |
 | `.../src/memory/` | 记忆记录词汇、文件存储、检索、有界摘要 | 改记忆语义动这里 |
 | `.../src/research/` | 探索线索（backlog）词汇与三档出口（promote/park/drop） | 改探索语义动这里 |

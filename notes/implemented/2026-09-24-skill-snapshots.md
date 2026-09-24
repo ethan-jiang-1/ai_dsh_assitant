@@ -1,6 +1,6 @@
 # 2026-09-24 · skills/ 快照（治理环切片 1f）（已实现）
 
-依据：三线合流提案 `notes/proposed/2026-09-24-tri-line-synthesis.md` 阶段 1 切片 1f；
+依据：三线合流提案 `notes/implemented/2026-09-24-tri-line-synthesis.md` 阶段 1 切片 1f；
 R2 §9.3-7（"家的 skills/ 快照（J1）：最轻形态是时间戳快照或 git init——学错技能的兜底=可回滚"；
 三样板：dsh-mind snapshots / garvel `.bak` / michengai backup-rollback）。
 

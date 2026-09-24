@@ -5,28 +5,30 @@
 核心命题借自 `Agent = Model + Harness` —— 模型决定上限，**那一圈**决定你能拿到多少。
 本 repo 做的就是那一圈：给 agent 一个**跨会话存在的家**，并让这个家始终"有用的多、没用的少"。
 
-## 家有三个房间
+## 家有四个房间
 
 | 房间 | 放什么 | 出口 |
 |---|---|---|
 | `memory/` | 已确立的事实 / 偏好 / 决定 | 被取代或退役 → `archive/` |
-| `research/` | **意图还不清晰的探索**（backlog） | `promote`（成立 → 记忆或技能）/ `park` / `drop`（不成立 → 归档并**必写理由**） |
-| `skills/` | 学到的本事（DSH 技能格式） | 被取代就改文件；模型按需加载 |
+| `research/` | **意图还不清晰的探索**（backlog） | `promote`（成立 → 记忆/技能/知识页）/ `park` / `drop`（不成立 → 归档并**必写理由**） |
+| `skills/` | 学到的本事（DSH 技能格式） | 按需加载；退役 → `archive/`（不删可恢复）；提案制：`propose_skill` → 人审 → `land_skill` |
+| `knowledge/` | 领域知识页（概念/实体/来源，`[[互链]]`，OKF 字段子集） | `draft`（不进检索）→ 人审 `stable`；`deprecated` 留原地（链接不断） |
 
-**桌面与抽屉**：常驻上下文的只有一份**有界摘要**（家地图 + 精选记忆 + 开放线索条数）；
+**桌面与抽屉**：常驻上下文的只有一份**有界摘要**（家地图 + 精选记忆 + 开放线索 + 知识目录树）；
 完整记录、归档、技能正文都在抽屉里，用工具取。过程性知识（怎么写记忆、怎么养护、怎么复盘）
 一律放技能，不占常驻上下文。
 
-## 三个工具
+## 四个工具
 
 | 工具 | 动词 |
 |---|---|
 | `assistant_memory` | `recall` `save` `forget` `list` `curate` |
 | `assistant_research` | `open` `update` `park` `drop` `promote` `list` |
-| `assistant_reflect` | `brief` `save_skill` |
+| `assistant_reflect` | `brief` `save_skill` `retire_skill` `save_page` `propose_skill` `land_skill` |
+| `assistant_knowledge` | `search` `get`（只读检索，附反链） |
 
-`curate` 是**机器能跑的养护检查**（重复、悬空引用、摘要超预算、过期线索、缺理由的 drop、
-技能 frontmatter 不合法）—— 能让代码查的，别让 AI 自己说。
+`curate` 是**机器能跑的养护检查**（重复、悬空引用、摘要预算、过期线索、技能遮蔽/退役/断链/
+凭据、知识页断链/孤页/过期）—— 能让代码查的，别让 AI 自己说。
 
 ## 装法
 

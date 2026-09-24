@@ -41,7 +41,7 @@
 | 1b | 遮蔽可见性 | 同名遮蔽从 logger warn 升为模型可见（D3 已定：curate finding + brief 节）✅ implemented（`notes/implemented/2026-09-24-skill-shadow-visibility.md`：问注册表不复演规则——agent 面探 `ctx.skills.snapshot` join 房间扫描，`skill-shadowed` warn finding + brief `shadowed_skills` 节） | R2 §9.3-2、§5.4 |
 | 1c | 阈值退役 | 30d 未用→stale、90d→archived（D4 已定，配置行可调；归档=移出 provider 扫描目录，不删，可恢复）✅ implemented（`notes/implemented/2026-09-24-skill-retirement.md`：双档 finding + `retire_skill` 出口动词 + `skills/archive/` 布局；年龄锚点=账本 lastUsedAt 优先、learnedAt 兜底；不自动归档——检测归代码、动作归 agent） | R2 §9.3-3 |
 | 1d | 写后审计 | 引用完整性 + 凭据检查（写时校验已挡 frontmatter，审计增量在引用与凭据）✅ implemented（`notes/implemented/2026-09-24-skill-post-write-audit.md`：`skill-broken-reference`/`skill-credential-leak` 双 finding，save_skill 写完即审注入 + curate 常驻并档，不阻断；scan/audit 共享枚举） | R2 §9.3-4 |
-| 1e | I14 节拍器 | curate 从被动变主动——决策已在 `notes/proposed/2026-09-23-iteration-rhythm.md`（b 层 host 节拍器为主，a 层纪律垫底）✅ implemented（`notes/implemented/2026-09-24-maintenance-metronome.md`：触发信号亲验修正为 `agent/inbox/inserted`（goal 轮消息源自带 goalId/round，无状态节拍），`maintenanceEveryRounds` 默认 5；live 两轮——第一轮否定结果如实保留并揪出 preset-runner 静止≠goal 结束的真 bug（已修），第二轮 6 轮 goal 第 5 轮触发、栅栏恢复、正常完成；I14 翻 implemented） | 该 note |
+| 1e | I14 节拍器 | curate 从被动变主动——决策已在 `notes/implemented/2026-09-23-iteration-rhythm.md`（b 层 host 节拍器为主，a 层纪律垫底）✅ implemented（`notes/implemented/2026-09-24-maintenance-metronome.md`：触发信号亲验修正为 `agent/inbox/inserted`（goal 轮消息源自带 goalId/round，无状态节拍），`maintenanceEveryRounds` 默认 5；live 两轮——第一轮否定结果如实保留并揪出 preset-runner 静止≠goal 结束的真 bug（已修），第二轮 6 轮 goal 第 5 轮触发、栅栏恢复、正常完成；I14 翻 implemented） | 该 note |
 | 1f | skills/ 快照 | 最轻回滚兜底（时间戳快照或 git init，三样板任选）✅ implemented（`notes/implemented/2026-09-24-skill-snapshots.md`：覆盖前时间戳快照到 skills/archive/snapshots/，每名留 3 份，save_skill 结果报路径，恢复=手复制；git init 方案因 .git 特判与 VCS 语义落选） | R2 §9.3-7 |
 | 1g | 格式对齐 spec 小步 | learned 技能补 `license`/`compatibility`（可空）——吃 Agent Skills 标准红利的小步 ✅ 审计结案（`notes/implemented/2026-09-24-spec-field-audit.md`）：亲验 provider（0.1.5-rc.2）**不读**这两字段（rg 零命中），写了即死重且绕门禁立意——不写；metadata provenance 本就是规范对齐的正确形态；延后触发=provider 读它们或第二消费方出现 | R2 §9.3-6 |
 | 1h | 预算强制（可选） | digest/索引预算从纪律升为 `ctx.tools.guard()` 写入原语层拒绝 ✅ implemented（`notes/implemented/2026-09-24-digest-budget-enforcement.md`：落点改服务层拒绝（单写者纪律，登记偏离）；亲验揪出 over-budget finding 死代码（bytes 恒≤预算），判据改 `truncated`；纯新增在截断态被拒，supersede/forget 开放） | R1 §6-1 |
@@ -160,6 +160,9 @@
 | 自动开浏览器 / 碰日用 ~/.dsh | 既有五条硬规则（AGENTS.md） |
 
 ## 六、明确延后项（不是"不做"，是"还没到"——有触发条件）
+
+> **2026-09-24 起本表移交根部队列 `ROADMAP.md`（⏳ 各行）管理——那里是唯一权威**；
+> 本表保留为历史决策记录，不再更新。
 
 | 延后项 | 触发条件 | 依据 |
 |---|---|---|
