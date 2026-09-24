@@ -32,6 +32,17 @@ describe('parseWikiLinks', () => {
   it('trims whitespace around targets', () => {
     expect(parseWikiLinks('[[ spaced-target ]]')).toEqual(['spaced-target'])
   })
+
+  it('ignores [[literals]] inside code spans and fenced blocks, keeps real links', () => {
+    const text = [
+      'The syntax is `[[wikilink]]`; a fenced example:',
+      '```text',
+      'a [[fenced-example]] is not parsed',
+      '```',
+      'But [[real-page]] is a link, and so is the one in the fenced-free line [[second-page]].',
+    ].join('\n')
+    expect(parseWikiLinks(text)).toEqual(['real-page', 'second-page'])
+  })
 })
 
 describe('validatePageData', () => {

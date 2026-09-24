@@ -78,8 +78,14 @@ const WIKILINK = /\[\[([^\]#|]+)(?:#[^\]|]*)?(?:\|[^\]]*)?\]\]/g
  * @returns Trimmed link targets.
  */
 export function parseWikiLinks(text: string): string[] {
+  // Inline code spans and fenced blocks are blanked before matching: a `[[literal]]` inside
+  // backticks is a literal, not a link — a page documenting the syntax itself must not grow
+  // phantom unwritten links (found live by the 2026-09-25 campaign: the OKF page's examples).
+  const withoutCode = text
+    .replace(/```[\s\S]*?```/g, span => ' '.repeat(span.length))
+    .replace(/`[^`\n]*`/g, span => ' '.repeat(span.length))
   const targets: string[] = []
-  for (const match of text.matchAll(WIKILINK)) {
+  for (const match of withoutCode.matchAll(WIKILINK)) {
     const target = (match[1] ?? '').trim()
     if (target.length > 0) targets.push(target)
   }
