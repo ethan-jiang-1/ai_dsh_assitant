@@ -1,6 +1,6 @@
 # 聪明助手打磨战役（长程计划）
 
-日期：2026-09-25 · 状态：**待实施（用户 2026-09-25 拍板：全程自主执行、不依赖人——"想办法自己打磨……做实验做测试都不要依赖人"，六七小时后验收；方向级决策由 agent 代拍并逐项标注「我拍的」，用户回来可整体推翻）**
+日期：2026-09-25 · 状态：**实施中（P0–P3 已提交并验收全绿，P4–P6 进行中；用户 2026-09-25 拍板：全程自主执行、不依赖人——"想办法自己打磨……做实验做测试都不要依赖人"，六七小时后验收；方向级决策由 agent 代拍并逐项标注「我拍的」，用户回来可整体推翻）**
 
 ## 一、问题：机制满了，助手还空着
 
@@ -36,7 +36,7 @@ knowledge/ 0 页、学到技能 1 个、SOUL.md 还是内置兜底文本、perso
 | P0 基线快照 ✅ | preset-runner 探针会话（身份/家况问答）+ system prompt 分段字节盘点 + 家现状 counts，全部落档 | §七：盘点+双探针+分段字节+毛边#1（digest 冷启动）即修即测 |
 | P1 术语切片 ✅ | 全仓去「家」：docs/AGENTS/README×2/preset.yml/模型面（soul.ts、home-map.ts 手册 v3→v4、工具文案、SKILL.md×4、persona prefix）/tests 断言；dev home 重种（v4+working folder SOUL，digest 1550B 热）；包 README 顺带修「三房间/三工具/5 入口」过时腐化 | 活跃树 rg「家」清零（排除 专家/赢家 同字异义词与 notes 档案）；剩余 home 全为代码注释/标识符（边界见 §五）；test 164/164、verify 22/22 |
 | P2 知识注入 ✅ | 领域=本仓研发域（D1）。经**真实写路径**长出首批 knowledge 页（目标 8–12 页 → **10 页 stable**）：DSH 平台三页（composition layers / preset semantics / skills provider contract，sources=vendor docs）+ 标准三页（OKF subset / Agent Skills / One term one meaning）+ 哲学四页（signal-to-noise / why research separate / harness home vs working folder / governance loop）；三个 preset-runner 会话 save_page→draft→代行评审（D2，逐页读+会话自查互链）→stable | digest 树 10 页全上桌 3110/4096 不截断；search 命中带理由（text 查询四命中）；curate **零发现**；[[互链]]成网无断链 |
-| P3 记忆策展 | 战役真实产物（术语决定、悬问结论）经 `save` 入记忆；对照检查既有 4 条真实记忆，过时者走 supersede | 记忆全 active 且内容准确、curate 零发现 |
+| P3 记忆策展 ✅ | 助手自策展（preset-runner 会话，先 load memory-hygiene）：kfcf（09-23 战役语境）与 zrxy（提案已批准）各 supersede 为当前事实；新增术语决定与用户工作偏好两条（偏好来自 /tmp handoff——不捕就蒸发）；预算门真实咬合两次（纯新增被拒→按 home-curation 设计内动作收紧：合并偏好为一条、消两段机制长段落细节留在 note/test）| 6 active / 2 open / 1 skill / 10 pages；digest 4004/4096 不截断全上桌；curate 零发现；archive 14 条留痕（supersede 版本链，含预算抗争的重试历史） |
 | P4 学习闭环首跑 | 从 P2 的真实经验里长出一个**真有用**的技能提案 → propose → 代行 approve（D2）→ land；用量账本首批真实计数 | skill-proposals 全流程真实一遍、brief/curate 回显、账本非零 |
 | P5 纵向质量+毛边 ✅（提前兑现大半） | digest 预算压力实测——**真实触发**：10 页入房后 3880/4096 truncated=true、`digest-over-budget:warn`、第 10 页对每个会话不可见、纯新增被服务层拒绝（预算强制 1h 首次真实咬合）；治理响应=收紧十页 description（home-curation 技能设计内动作"tighten phrasing"）→ 3110/4096 全可见；**毛边 #2**：parseWikiLinks 不跳 code span——OKF 页反引号内字面 `[[links]]` 生幻影未写成链，修复=解析前抹行内/围栏代码（红绿测试 1 用例）；探针复跑对比 P0 留 P6 收尾 | 前后数字在案（3880→3110、truncated true→false、findings 3→0）；毛边 #2 有 fix 有测试 |
 | P6 收尾 | 卡毕业转 implemented（带输掉的方案+证据指针）；intents 补强（I14 新数据点）；ROADMAP ⏳ 触发条件对照真实数据逐条核（漏召回是否真出现）；最终 verify/test/typecheck | 全绿 + 给用户的验收汇报（含 §二代拍决策表） |
