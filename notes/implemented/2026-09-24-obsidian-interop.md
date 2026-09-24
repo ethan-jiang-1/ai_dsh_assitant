@@ -1,6 +1,6 @@
 # Obsidian 互通（家的 knowledge 房间 × Obsidian 生态）
 
-日期：2026-09-24 · 状态：**待实施（已拍板 D1=a 窄用+收敛、D2=⏳ 触发；E 转 ⏳，见 ROADMAP）**
+日期：2026-09-24 · 状态：**implemented（D1=a 窄用+措辞收敛落地；E 小改与 dsh-obsidian 挂桥转 ⏳ 触发型留 ROADMAP）**
 
 ## 问题
 
@@ -35,3 +35,20 @@
 
 拍板后按结论实施（a 路线=docs 切片半小时级；b 路线加百行内代码切片）后毕业；E 若转 ⏳
 触发型（触发=窄用真被用起来且名字链接不可点成为真实摩擦）则本卡按 a 毕业并留触发条目。
+
+## 落地（2026-09-24）
+
+- `docs/home.md` knowledge 行后新增 **Obsidian 互通（窄用）**段：语法兼容/解析键差异的
+  诚实收敛（我们 id→title，Obsidian basename→aliases，名字链接 unresolved）、单目录开
+  vault 的窄用法、两条使用纪律（别点 unresolved 建页——会分叉图且 curate 可见坏法；
+  嵌套字段走 Source 模式）；E 小改与 dsh-obsidian 桥的 ⏳ 触发条件指 ROADMAP。
+- r3 shortlist 收卷：未决 1-4 由 r5 关闭（官方 scope 404 非官方、llm-wiki 除名、
+  memory-wiki-bridge 无增量仅记幂等键借鉴线、断链检查 curate 已有）。
+
+## 输掉的方案
+
+- **b 路线（现在就改 aliases/全 id 链接/解析器加 basename）**：输给触发纪律——窄用还没
+  被真实使用过，"名字链接在 Obsidian 不可点"尚不是真实摩擦；百行内三选项已备在
+  [r5 §末](../research/2026-09-24-r5-obsidian-interop-survey.md)，触发日任选其一。
+- **现在挂 dsh-obsidian**：判据全绿但单人维护 + 用户尚无"助手管外部 vault"的需求；
+  其 basename 唯一匹配（多命中拒解析）哲学已录 r5 作参照。

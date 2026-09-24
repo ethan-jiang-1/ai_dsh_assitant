@@ -13,8 +13,6 @@
 ## 队列
 
 - ▶ **真实使用开跑**（与下列开发项并行；延后项触发的数据源。使用前清扫已完成，档案见 `notes/implemented/2026-09-24-dev-home-pre-usage-sweep.md`）
-- ▶ **A · session-recall a+**：家手册补 Past conversations 节（手册 v2）+ 策展技能带 rg 配方（已拍板 D1=a+——卡片 [session-log-memory](notes/proposed/2026-09-24-session-log-memory.md)，依据 [r6 survey](notes/research/2026-09-24-r6-session-log-memory-survey.md)）
-- ▶ **B · Obsidian 窄用+收敛**：零代码——窄用纪律与解析键差异进 docs，"Obsidian 兼容"措辞收敛，r3 shortlist 收尾（已拍板 D1=a/D2=⏳——卡片 [obsidian-interop](notes/proposed/2026-09-24-obsidian-interop.md)，依据 [r5 survey](notes/research/2026-09-24-r5-obsidian-interop-survey.md)）
 - ▶ **F · knowledge-craft 策展技能**（弹性池：A/B 顺利后的富余项——卡片 [knowledge-craft-skill](notes/proposed/2026-09-24-knowledge-craft-skill.md)）
 - ⏳ E · 名字链接在 Obsidian 可点（触发=窄用真被使用且不可点成为真实摩擦；三选项百行内备选见 r5 §末——用户 2026-09-24 拍板不抢跑）
 - ⏳ dsh-obsidian 挂桥（触发=用户想让助手直接操作某个外部 vault；设计参照已录 r5）

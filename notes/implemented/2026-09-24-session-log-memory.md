@@ -1,6 +1,6 @@
 # 会话日志记忆面（sessions/ 是被浪费的记忆原料吗）
 
-日期：2026-09-24 · 状态：**待实施（已拍板 D1=a+ 只补知识；b/c/D2 转 ⏳ 触发型，见 ROADMAP）**
+日期：2026-09-24 · 状态：**implemented（D1=a+ 已落地并验证；b/c 路线转 ⏳ 触发型留 ROADMAP）**
 
 ## 问题
 
@@ -41,3 +41,25 @@
 
 拍板后：D1=a+ 则落地知识与技能后毕业（改写为 implemented）；b/c 路线转实施提案。
 未复核保留项：palimpsest 是否真走 ctx.sessionQuery（README 未逐字写明）。
+
+## 落地（2026-09-24，commit 2569e46）
+
+- 家手册 v2 新增 Past conversations 节（[r6](../research/2026-09-24-r6-session-log-memory-survey.md)
+  结论"原料齐全、可达、可查，瓶颈只是知识"的落点）：在哪（`<harness-home>/sessions/
+  --<规范化cwd>--/`、harness home=家的父目录）/ 是 zstd 压缩 JSONL、每行一事（消息全文、
+  工具完整参数、header）/ 查法指向 session-recall 技能。
+- 策展技能 `presets/assistant/skills/session-recall/SKILL.md`：rg --pre 两段式配方（wrapper
+  脚本 + `./` 前缀防 `--` 旗标；实测 0.7s/34 会话）、zstd CLI 依赖声明、判断纪律（找到的
+  是会话不是记忆，durable 结论走 reflect 一次）。
+- `HOME_MANUAL_VERSION` 1→2：手册漂移 finding 机制首次真实运转（旧手册被 curate 报
+  info，dev home 已重种 v2、curate clean）。
+
+## 输掉的方案
+
+- **b1 薄动词（spawn zstd|rg 包装）**：输给触发纪律——配方已让"查"可行，建动词要等真实
+  使用证明配方不够用（触发条件在 ROADMAP ⏳）。文件系统原生但依赖 zstd CLI 于服务内。
+- **b2 薄动词（ctx.sessionQuery literal filter）**：同上输给触发纪律；且它是服务调用非 FS
+  原生、后端可用性（openAt:never 下 literal 走哪个后端）待细查——触发日再查。
+- **c 挂 palimpsest**：设计成熟（cwd 硬范围/脱敏/命中排序已录 r6 作参照）但零社区单维护者
+  （创建即最后 push），当依赖是险的；触发日若要建自己的动词，照抄其设计图案。
+- **部署级 compression:'none'**：非本插件可独断（全局副作用），r6 §D3 已记录，不动。
