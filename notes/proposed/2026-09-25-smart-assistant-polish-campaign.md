@@ -72,3 +72,24 @@ knowledge/ 0 页、学到技能 1 个、SOUL.md 还是内置兜底文本、perso
 - [intents.md](../intents.md)——I1–I15 与 §六判据（本战役的"对"以它为准）。
 - [tri-line 合流](../implemented/2026-09-24-tri-line-synthesis.md)——治理环/知识房间/触发演进已落地的边界。
 - 用户 2026-09-25 三条指令：①全程自主不依赖人；②「家」术语淘汰；③六七小时后验收。
+
+## 七、基线快照（P0 · 2026-09-25，战役前后对比的"前"）
+
+**机械盘点**（dev home）：4 条活跃记忆（2 归档）/ 2 条开放线索 / 1 个学到技能
+（campaign-evidence-recording）/ 0 知识页 / 0 提案 / 无用量账本（=零使用）；常驻 SOUL 830B +
+手册 v3 4341B。
+
+**system prompt 分段实测**（preset-runner 会话 `session-ff3377c2`，真实 LLM turn）：
+总 10040B = SOUL 1007B + 手册 4342B + digest **271B**（只剩状态 blurb，应为 ~1530B——见下）+ 基础
+bundle 其余。
+
+**探针①（身份/家况，`session-ff3377c2`）**：身份与手册推演全对；**诚实报"摘要本轮没携带任何
+内容"、拒绝编造计数**（诚实本身是好信号）；规则知识（三档出口/技能退休）从手册正确复述。
+**毛边 #1 就此抓到**：digest 冷启动竞态——`digestSnapshot()` 同步返回缓存，冷缓存只给 blurb、
+后台刷新赶不上 one-shot 会话的唯一一次请求；Web 长会话第一轮同样中招。I7/I12 历史证据全来自
+多轮会话第二轮以后，故漏网。修复=构造时链式预热（[note](../implemented/2026-09-25-digest-cold-start-prewarm.md)）。
+
+**探针②（领域知识零态，`session-73b5efd6`）**：知识页为零如实声明；转而凭常驻手册+按需读
+仓内源码（`page.ts`/`health.ts`）**答对全部领域问题**（四房间职责/生命周期/draft→stable=人改
+文件/deprecated 就地留），区分了家房间与仓内 docs/notes，守住了双 home 纪律；**并主动提议
+写第一页知识草稿**——P2 注入循环的"需求侧"已自己出现，缺的只是执行。

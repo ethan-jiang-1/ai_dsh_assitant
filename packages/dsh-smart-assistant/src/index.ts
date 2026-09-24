@@ -257,9 +257,19 @@ export class AssistantMemory extends Service {
     this.proposals = new Room(this.paths.skillProposalsDir, join(this.paths.skillProposalsDir, ARCHIVE_DIRECTORY_NAME))
     // Best-effort activation scaffold: a home that cannot be created is reported, never fatal —
     // the write paths call ensureHome again, so a transient failure heals on the next write.
-    void this.ensureHome().catch((error: unknown) => {
-      this.ctx.logger.warn(`assistant home scaffold failed at ${this.paths.root}: ${String(error)}`)
-    })
+    // The digest prewarm rides on the same chain: the prompt section contract is synchronous
+    // (vendor system-prompt: text is `string | (context) => string`), so a cold cache can only
+    // return the status blurb — and a one-shot session has exactly one request, which the
+    // background refresh would always miss. Warming at construction closes that race for the
+    // first request of every fresh process (found live by the 2026-09-25 baseline probe).
+    void this.ensureHome()
+      .catch((error: unknown) => {
+        this.ctx.logger.warn(`assistant home scaffold failed at ${this.paths.root}: ${String(error)}`)
+      })
+      .then(() => this.digest())
+      .catch((error: unknown) => {
+        this.ctx.logger.warn(`assistant home digest prewarm failed: ${String(error)}`)
+      })
     // Web shell branding (skin: browser-only, never model-visible; docs/identity.md §二). A
     // webserver collects `webserver/index-inject` rows on every index render; in headless
     // compositions no webserver exists, the event never fires, and this listener idles.
