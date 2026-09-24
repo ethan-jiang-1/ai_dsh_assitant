@@ -12,10 +12,13 @@
 
 ## 队列
 
-- ▶ **真实使用开跑**（不占开发轮；延后项触发的数据源——用量账本 `skill-usage.json` 已在采集。开发队列在此期间空转是真实状态。使用前清扫已于 2026-09-24 完成：dev home 只剩真实数据，档案见 `notes/implemented/2026-09-24-dev-home-pre-usage-sweep.md`）
-- ⏸ **发布面裁决**：v0.1.0 `npm publish` 还是继续 private（用户拍板；release-smoke 已绿，`docs/discipline.md` 发布纪律已对齐）
-- ▶ **Obsidian 互通**：家的 knowledge/ 当 vault 的验证 + dsh-obsidian 深评（调研中——卡片 [obsidian-interop](notes/proposed/2026-09-24-obsidian-interop.md)，接 [r3 shortlist](notes/research/2026-09-24-r3-knowledge-shortlist.md) 未决问题）
-- ▶ **会话日志记忆面**：sessions/ 原始日志的 MD-first 召回形态（调研中——卡片 [session-log-memory](notes/proposed/2026-09-24-session-log-memory.md)）
+- ▶ **真实使用开跑**（与下列开发项并行；延后项触发的数据源。使用前清扫已完成，档案见 `notes/implemented/2026-09-24-dev-home-pre-usage-sweep.md`）
+- ▶ **A · session-recall a+**：家手册补 Past conversations 节（手册 v2）+ 策展技能带 rg 配方（已拍板 D1=a+——卡片 [session-log-memory](notes/proposed/2026-09-24-session-log-memory.md)，依据 [r6 survey](notes/research/2026-09-24-r6-session-log-memory-survey.md)）
+- ▶ **B · Obsidian 窄用+收敛**：零代码——窄用纪律与解析键差异进 docs，"Obsidian 兼容"措辞收敛，r3 shortlist 收尾（已拍板 D1=a/D2=⏳——卡片 [obsidian-interop](notes/proposed/2026-09-24-obsidian-interop.md)，依据 [r5 survey](notes/research/2026-09-24-r5-obsidian-interop-survey.md)）
+- ▶ **F · knowledge-craft 策展技能**（弹性池：A/B 顺利后的富余项——卡片 [knowledge-craft-skill](notes/proposed/2026-09-24-knowledge-craft-skill.md)）
+- ⏳ E · 名字链接在 Obsidian 可点（触发=窄用真被使用且不可点成为真实摩擦；三选项百行内备选见 r5 §末——用户 2026-09-24 拍板不抢跑）
+- ⏳ dsh-obsidian 挂桥（触发=用户想让助手直接操作某个外部 vault；设计参照已录 r5）
+- ⏳ 会话日志薄动词 b1/b2（触发=真实使用中真去查历史会话且 rg 配方不够用；b2 后端可用性待细查）
 - ⏳ workflow-as-MD（触发=真实使用出现多步编排需求；方向：程序性知识之上，编排是否也为家的 MD 文件——用户 2026-09-24 提出）
 - ⏳ 语义检索 / embedding（触发=真实漏召回；依据：[三线合流 §六](notes/implemented/2026-09-24-tri-line-synthesis.md)、[R1 判据对照 §5](notes/research/2026-09-24-r1-memory-ecosystem-survey.md)、[R3 设计 §7.2](notes/research/2026-09-24-r3-knowledge-layer-survey.md)）
 - ⏳ 全自动蒸馏（触发=用量统计显示收益>token+同意成本；采集工具已在场；依据：[R2 缺口清单 §9.3-5](notes/research/2026-09-24-r2-skill-growth-survey.md)）

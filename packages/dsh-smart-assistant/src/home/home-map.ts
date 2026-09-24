@@ -20,7 +20,7 @@ import type { HomePaths } from './layout.ts'
 export const AGENTS_FILE_NAME = 'AGENTS.md'
 
 /** Version of the generated manual; bump when the generated content changes meaningfully. */
-export const HOME_MANUAL_VERSION = 1
+export const HOME_MANUAL_VERSION = 2
 
 /** The version marker stamped as the file's first line (an HTML comment: invisible when rendered). */
 export const HOME_MANUAL_MARKER = `<!-- home-manual v${String(HOME_MANUAL_VERSION)} -->`
@@ -92,6 +92,14 @@ bounded digest of the home's live state — the strongest active memories and th
 Everything else — full records, archived entries, skill bodies, knowledge pages — is fetched on
 demand. That is deliberate: a home that crowds out the work in front of you makes you worse, not
 better.
+
+## Past conversations
+
+Every session you have ever had is on disk: \`<harness-home>/sessions/--<normalized-cwd>--/session-<id>/session.v3.jsonl.zstd\`
+(the harness home is your home's parent directory). Each line is one event — full user and assistant
+messages, tool calls with their arguments, session headers naming the cwd and preset. Nothing indexes
+them; when memory is not enough and you need what was actually said or done, search them with the
+recipe in the \`session-recall\` skill.
 
 ## Keeping it worth reading
 
