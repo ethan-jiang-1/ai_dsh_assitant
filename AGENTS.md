@@ -20,6 +20,7 @@
 implemented note 必带「**输掉的方案**」节——没记击败了什么的决定会重新开讼；备选只能记录、不能编造（2026-09-25 起为机械门禁，此前的旧 note 祖父豁免）。过时提案转 `rejected/` 并写一行拒绝原因，而非滞留 `proposed/`；`rejected/` 失去防错价值即删。
 新 note 沿用 `YYYY-MM-DD-topic.md`（首次提出日期）。DSH 依据与生命周期见 `vendor/dsh/.agents/notes/README.md`；按需读取，不要求遍读全部 notes。交接即此链：AGENTS.md（本文件）→ `ROADMAP.md` → 条目链接。
 `notes/proposed/` 不是停车场（proposal-scheduled / proposal-graduated 两道 verify 门禁管）。
+**进行中的工作显式化（用户拍板 2026-09-24）：开工即立卡 `notes/proposed/`**——粗体状态行就是看板列（调研中 → 待拍板 → 待实施 → 毕业），随进度改行、毕业才移动文件；深评/调研证据链住 `notes/research/`，卡片链接之；ROADMAP 条目指卡。看不见的工作等于没在做。
 
 ## 布局（改动前先认领 owner 面）
 

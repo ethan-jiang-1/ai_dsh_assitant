@@ -63,3 +63,12 @@ DSH 的 no-index 理由对我们同样成立）。取代检查实做：本 note 
 `pnpm exec vitest run tests/verify-gates.spec.mjs` 10/10（新增正反例：门槛日期后的中文/
 英文节名过、裸决定报、祖父豁免过）；`pnpm verify` 22/22（新检
 `notes: implemented notes carry what they beat (输掉的方案)`）。
+
+## 延伸（2026-09-24 同日晚）：WIP 卡片制（用户拍板）
+
+用户指令：进行中的工作必须**显式化**——开工即立卡 `notes/proposed/`，粗体状态行即看板列
+（调研中 → 待拍板 → 待实施 → 毕业），随进度移动。这与 DSH 的 `proposed/` 语义严丝合缝
+（"未完成或仅部分完成的重大未来工作"），也与我们吸收的①互补不矛盾：**随当前变更已交付的
+决定跳过 proposed 直接进 implemented；跨会话的长线工作（调研线、待建提案）以卡片住在
+proposed/**。深评证据链仍住 `notes/research/`，卡片链接之；两道提案门禁不变，毕业照旧走
+"同 diff 改写为已交付事实"。首两张卡：obsidian-interop、session-log-memory（同日立）。
