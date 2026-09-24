@@ -36,7 +36,9 @@ notes/ 体系（intents → proposed → implemented + rejected/postmortem/resea
   自由中文格式，与"不推翻"指令正面对撞。我们只机械化了值得机械化的那一节（输掉的方案）。
 - **`archived/` 冻结树 + hash manifest**：反噪声机制本身好（信噪比主线），但 implemented/
   才十几篇，建冻结树是提前付维护费。触发=implemented/ 开始碍浏览。届时不带 manifest
-  先立目录也可，登记在触发条目里再议。
+  先立目录也可，登记在触发条目里再议。（部分实施 2026-09-24 晚，用户拍板：**research 面
+  先行**——`notes/research/archive/` 落地，九份完成调研已入档，规则入 research README；
+  implemented 面的归档维持原触发条件不变。）
 - **双语 triplet**：不适用（单语仓）。
 
 ## 已有、无需动（确认清单）

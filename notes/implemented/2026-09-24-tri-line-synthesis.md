@@ -4,7 +4,7 @@
 
 > 依据：三线研究（R1 记忆 / R2 技能成长 / R3 知识层）已入档并亲验。本文只做合流：
 > 分阶段路线 + 决策点 + 尸体清单。判据对照、借用清单、淘汰理由全在报告内，本文只引用不复述。
-> 素材入口：`notes/research/2026-09-24-r{1,2,3}-*.md`（survey ×3 + shortlist ×3）、
+> 素材入口：`notes/research/archive/2026-09-24-r{1,2,3}-*.md`（survey ×3 + shortlist ×3）、
 > `notes/intents.md`（意图与判据）、`notes/implemented/2026-09-23-repo-structure.md`（day-0 输赢表）。
 
 ## 一、为什么是现在（四个已知缺口）

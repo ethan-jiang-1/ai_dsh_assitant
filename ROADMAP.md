@@ -17,10 +17,10 @@
 - ⏳ dsh-obsidian 挂桥（触发=用户想让助手直接操作某个外部 vault；设计参照已录 r5）
 - ⏳ 会话日志薄动词 b1/b2（触发=真实使用中真去查历史会话且 rg 配方不够用；b2 后端可用性待细查）
 - ⏳ workflow-as-MD（触发=真实使用出现多步编排需求；方向：程序性知识之上，编排是否也为家的 MD 文件——用户 2026-09-24 提出）
-- ⏳ 语义检索 / embedding（触发=真实漏召回；依据：[三线合流 §六](notes/implemented/2026-09-24-tri-line-synthesis.md)、[R1 判据对照 §5](notes/research/2026-09-24-r1-memory-ecosystem-survey.md)、[R3 设计 §7.2](notes/research/2026-09-24-r3-knowledge-layer-survey.md)）
-- ⏳ 全自动蒸馏（触发=用量统计显示收益>token+同意成本；采集工具已在场；依据：[R2 缺口清单 §9.3-5](notes/research/2026-09-24-r2-skill-growth-survey.md)）
-- ⏳ FTS/trigram 检索升级（触发=grep 真实漏召回；方法参照 [dsh-knowledge-sqlite 实测表（R3 §4.3/§7.2-3）](notes/research/2026-09-24-r3-knowledge-layer-survey.md)）
-- ⏳ 跨 harness 共库（触发=第二消费方出现；[memsearch 形态，R1 §6-7](notes/research/2026-09-24-r1-memory-ecosystem-survey.md)）
+- ⏳ 语义检索 / embedding（触发=真实漏召回；依据：[三线合流 §六](notes/implemented/2026-09-24-tri-line-synthesis.md)、[R1 判据对照 §5](notes/research/archive/2026-09-24-r1-memory-ecosystem-survey.md)、[R3 设计 §7.2](notes/research/archive/2026-09-24-r3-knowledge-layer-survey.md)）
+- ⏳ 全自动蒸馏（触发=用量统计显示收益>token+同意成本；采集工具已在场；依据：[R2 缺口清单 §9.3-5](notes/research/archive/2026-09-24-r2-skill-growth-survey.md)）
+- ⏳ FTS/trigram 检索升级（触发=grep 真实漏召回；方法参照 [dsh-knowledge-sqlite 实测表（R3 §4.3/§7.2-3）](notes/research/archive/2026-09-24-r3-knowledge-layer-survey.md)）
+- ⏳ 跨 harness 共库（触发=第二消费方出现；[memsearch 形态，R1 §6-7](notes/research/archive/2026-09-24-r1-memory-ecosystem-survey.md)）
 - ⏳ 技能 license/compatibility 字段（触发=provider 读它们或第二消费方；[1g 审计](notes/implemented/2026-09-24-spec-field-audit.md)）
 
 ## 搁置池

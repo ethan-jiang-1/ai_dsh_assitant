@@ -9,7 +9,7 @@
 
 ## 当前状态
 
-- 深评落稿：[r5 survey](../research/2026-09-24-r5-obsidian-interop-survey.md)；承重主张已由
+- 深评落稿：[r5 survey](../research/archive/2026-09-24-r5-obsidian-interop-survey.md)；承重主张已由
   委托方亲验（resolveWikiLink id→title 于 page.ts:205-220 逐字对上；官方 scope 包 npm 404
   复测实锤；dsh-obsidian 源码抽查由代理完成）。
 - 深评结论：**"Obsidian 兼容"只对了一半**——语法双方逐字同，解析键不同（我们 id→title，
@@ -28,7 +28,7 @@
 
 ## 依据
 
-- [R3 shortlist](../research/2026-09-24-r3-knowledge-shortlist.md)（其未决问题 1-4 即本卡深评清单）
+- [R3 shortlist](../research/archive/2026-09-24-r3-knowledge-shortlist.md)（其未决问题 1-4 即本卡深评清单）
 - 用户硬过滤（2026-09-24 拍板）：一切方案 MD/文件系统原生，对 AI coding agent 全透明；纯本地。
 
 ## 验收（毕业条件）
@@ -49,6 +49,6 @@
 
 - **b 路线（现在就改 aliases/全 id 链接/解析器加 basename）**：输给触发纪律——窄用还没
   被真实使用过，"名字链接在 Obsidian 不可点"尚不是真实摩擦；百行内三选项已备在
-  [r5 §末](../research/2026-09-24-r5-obsidian-interop-survey.md)，触发日任选其一。
+  [r5 §末](../research/archive/2026-09-24-r5-obsidian-interop-survey.md)，触发日任选其一。
 - **现在挂 dsh-obsidian**：判据全绿但单人维护 + 用户尚无"助手管外部 vault"的需求；
   其 basename 唯一匹配（多命中拒解析）哲学已录 r5 作参照。

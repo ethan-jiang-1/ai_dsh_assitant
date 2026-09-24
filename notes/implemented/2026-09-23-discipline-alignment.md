@@ -7,7 +7,7 @@
 
 ## 输入
 
-`/Users/bowhead/ai_dsh_company/notes/research/2026-09-23-dsh-inround-task-surface.md`
+`/Users/bowhead/ai_dsh_company/notes/research/archive/2026-09-23-dsh-inround-task-surface.md`
 （另一 DSH 项目五轮实践后的对齐复盘：他们自创"垂直轮 + roadmap"，发现走样，
 D23 拍板转严格 DSH 套路 + 防再犯五件套；§七是给新项目的可迁移清单）。
 

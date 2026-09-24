@@ -1,6 +1,6 @@
 # 2026-09-24 · 会话日志记忆面深评（r6）：sessions/ 是被浪费的记忆原料吗
 
-日期：2026-09-24 · 状态：survey 底稿（判据与决策不放这里；进文前的承重主张待委托方复核）——**已消化：a+ 知识落地（[session-log-memory](../implemented/2026-09-24-session-log-memory.md)）；薄动词 ⏳**
+日期：2026-09-24 · 状态：survey 底稿（判据与决策不放这里；进文前的承重主张待委托方复核）——**已消化：a+ 知识落地（[session-log-memory](../../implemented/2026-09-24-session-log-memory.md)）；薄动词 ⏳**
 
 > 问题：(1) DSH 会话日志的盘上结构与内容——`<dshHome>/sessions/` 里的真实文件长什么样，rg 能查到什么；
 > (2) 生态对位深评——`dsh-palimpsest` 怎么解析会话日志、工具面、存储形态、license/活跃度；
@@ -81,7 +81,7 @@ vendor 里有一整层现成设施 [affordance：`vendor/dsh/packages/session-qu
 
 ## 二、Hermes session_search 对照
 
-引既有调研 [affordance：`notes/research/2026-09-24-r4-hermes-identity-survey.md` §四]：Hermes 把 `session_search`（SQLite FTS5，~20ms）当记忆第三支柱，补「上周聊过什么」类需求；其 MEMORY.md/USER.md 的策展角色由我们的 memory/ 房间更细粒度地覆盖（r4 结论，不重复展开）。
+引既有调研 [affordance：`notes/research/archive/2026-09-24-r4-hermes-identity-survey.md` §四]：Hermes 把 `session_search`（SQLite FTS5，~20ms）当记忆第三支柱，补「上周聊过什么」类需求；其 MEMORY.md/USER.md 的策展角色由我们的 memory/ 房间更细粒度地覆盖（r4 结论，不重复展开）。
 
 本调研增量：Hermes 解决的问题是**召回延迟与排序**（FTS 毫秒级、ranked）。我们的硬过滤把 SQLite 排除后，等价能力只剩两条实现路径：(1) 逐会话字面扫描（palimpsest 路线，实测秒级）；(2) compression:'none' + 裸 rg（毫秒级但要动部署配置、放弃压缩）。Hermes 对照真正告诉我们的是：**「会话日志召回」是独立于策展记忆的真实需求面，不是 memory 房间的缺失**——它召回的是过程细节（当时试了什么、为什么放弃），策展记忆只留结论。这与我们「家 = 蒸馏物」的分层自洽。
 

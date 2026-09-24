@@ -1,6 +1,6 @@
 # 2026-09-24 · Obsidian 互通深评（r5）：家的 knowledge 房间能否双向进出 Obsidian 生态
 
-日期：2026-09-24 · 状态：survey 底稿（判据与决策不放这里；进文前的承重主张待委托方复核）——**已消化：窄用+措辞收敛落地（[obsidian-interop](../implemented/2026-09-24-obsidian-interop.md)）；E 小改与挂桥 ⏳**
+日期：2026-09-24 · 状态：survey 底稿（判据与决策不放这里；进文前的承重主张待委托方复核）——**已消化：窄用+措辞收敛落地（[obsidian-interop](../../implemented/2026-09-24-obsidian-interop.md)）；E 小改与挂桥 ⏳**
 
 > 问题：（1）家的 `knowledge/` 目录直接当 Obsidian vault 打开，人编辑体验如何、什么会坏？
 > （2）`dsh-obsidian` 插件（处理用户自己的外部 vault）值不值得挂/借鉴？

@@ -40,7 +40,7 @@ implemented note 必带「**输掉的方案**」节——没记击败了什么�
 | `tsconfig.base.json` / `tsconfig.tsx.json` | 两个解析门面（编译期手维护 / 运行期 `pnpm gen-paths` 生成） | 引入新 `@deepseek-ai/*` import 或换 pin 时动这里（契约：`docs/dev.md` §二「两个解析门面」） |
 | `vendor/dsh/` | **钉住的 DSH 源码（submodule）** | **永不改**；升级走 `pnpm sync-dsh` |
 | `docs/` | 当前合同（只写现在，无历史） | 门禁住了的事实进这里 |
-| `notes/` | **开发记忆与证据链**：`intents.md` → `proposed/` → `implemented/`；`rejected/` 保留防复犯理由；`postmortem/` 记事故；`research/` 记仍在用的外部研究 | 决策与输掉的方案进这里 |
+| `notes/` | **开发记忆与证据链**：`intents.md` → `proposed/` → `implemented/`；`rejected/` 保留防复犯理由；`postmortem/` 记事故；`research/` 记**仍在用**的外部研究（完成即入其 `archive/`，与房间同构） | 决策与输掉的方案进这里 |
 | `dev/` | 开发 home 与 profile patch（运行残留 gitignore） | 环境问题动这里（启动/调试手册：`docs/dev.md`） |
 | `scripts/` | 机械门禁（verify / release-smoke / sync-dsh） | 门禁问题动这里 |
 | `snapshots/` | 行为回归的证据面（day 0 占位：先用测试 + 会话日志顶，见其 README） | 回归证据问题动这里 |

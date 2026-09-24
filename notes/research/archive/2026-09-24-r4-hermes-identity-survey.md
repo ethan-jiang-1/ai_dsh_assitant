@@ -1,6 +1,6 @@
 # 2026-09-24 · Hermes 身份与引导调研（r4）：SOUL.md、AGENTS.md 与家的布局
 
-日期：2026-09-24 · 状态：survey 底稿（判据与决策不放这里；进文前的承重主张待委托方复核）——**已消化：SOUL.md/AGENTS.md 落地（[soul-and-agents](../implemented/2026-09-24-soul-and-agents.md)）**
+日期：2026-09-24 · 状态：survey 底稿（判据与决策不放这里；进文前的承重主张待委托方复核）——**已消化：SOUL.md/AGENTS.md 落地（[soul-and-agents](../../implemented/2026-09-24-soul-and-agents.md)）**
 
 > 问题：委托方（DSH 插件 `dsh-smart-assistant`）的家根目录有 scaffold 的 `HOME.md`
 > （四房间地图：不进常驻上下文、无装载器、被动参考）；persona 硬编码在 DSH preset 的
