@@ -52,7 +52,7 @@ import {
   threadToDocument,
   type ResearchThread,
 } from './research/thread.ts'
-import { scanLearnedSkills } from './skills/scan.ts'
+import { scanLearnedSkills, scanSkillArchiveScale } from './skills/scan.ts'
 import { auditLearnedSkill, auditSkillsRoom, auditSkillCredentials } from './skills/audit.ts'
 import { snapshotExistingSkill } from './skills/snapshot.ts'
 import {
@@ -788,6 +788,7 @@ export class AssistantMemory extends Service {
     const threads = await this.listThreads()
     const knowledge = await this.listKnowledge()
     const skills = await scanLearnedSkills(this.paths.skillsDir)
+    const archiveScale = await scanSkillArchiveScale(this.paths.skillsArchiveDir)
     const usage = await readSkillUsage(this.paths.skillUsageFile)
     const digest = await this.digest()
     const activeIds = [
@@ -808,6 +809,8 @@ export class AssistantMemory extends Service {
       knownIds: [...activeIds, ...archivedIds, ...skills.skills.flatMap(skill => skill.name ?? [])],
       skills: skills.skills,
       knowledgePages: knowledge.entries.length,
+      retiredSkillBundles: archiveScale.retiredBundles,
+      skillSnapshots: archiveScale.snapshots,
       skillUsage: usage.usage,
       ...(usage.failure !== undefined ? { skillUsageFailure: usage.failure } : {}),
       shadowedSkills: shadowedBy ?? {},

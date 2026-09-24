@@ -89,6 +89,10 @@ export interface CurationInput {
   readonly skills: readonly LearnedSkillInfo[]
   /** Knowledge pages found in the knowledge room (headline count; the graph check runs separately). */
   readonly knowledgePages: number
+  /** Retired bundles (and flat retired skills) in the skills archive. */
+  readonly retiredSkillBundles: number
+  /** Pre-overwrite snapshots under the skills archive. */
+  readonly skillSnapshots: number
   /** The skill-usage ledger, joined against `skills` for the usage lines. */
   readonly skillUsage: SkillUsage
   /** Set when the ledger file exists but is not a valid ledger. */
@@ -126,6 +130,8 @@ export interface CurationBrief {
     readonly parkedThreads: number
     readonly learnedSkills: number
     readonly knowledgePages: number
+    readonly retiredSkillBundles: number
+    readonly skillSnapshots: number
     readonly digestBytes: number
     readonly digestMaxBytes: number
   }
@@ -391,6 +397,8 @@ export function curateHome(input: CurationInput): CurationBrief {
       parkedThreads: input.threads.filter(thread => thread.status === 'parked').length,
       learnedSkills: input.skills.length,
       knowledgePages: input.knowledgePages,
+      retiredSkillBundles: input.retiredSkillBundles,
+      skillSnapshots: input.skillSnapshots,
       digestBytes: input.digestBytes,
       digestMaxBytes: input.digestMaxBytes,
     },

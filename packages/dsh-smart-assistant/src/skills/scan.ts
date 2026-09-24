@@ -15,6 +15,7 @@ import { parseFrontmatterDocument } from '../home/frontmatter.ts'
 import type { LearnedSkillInfo } from '../home/health.ts'
 import type { RoomReadFailure } from '../home/room.ts'
 import { SKILL_FILE_NAME } from './skill-file.ts'
+import { SNAPSHOTS_DIRECTORY_NAME } from './snapshot.ts'
 
 /** Result of scanning a skills room. */
 export interface SkillScan {
@@ -106,4 +107,57 @@ export async function scanLearnedSkills(skillsDir: string): Promise<SkillScan> {
     skills.push({ dirName: entry.name, ...readInfo(document.data) })
   }
   return { skills, failures }
+}
+
+/** What the skills archive holds — the scale the curation counts observe. */
+export interface SkillArchiveScale {
+  /** Retired bundles (directories) and flat retired skills directly inside the archive. */
+  readonly retiredBundles: number
+  /** Pre-overwrite snapshot files kept under the archive's snapshots directory. */
+  readonly snapshots: number
+}
+
+/**
+ * Count the skills archive: retired bundles directly inside it, and snapshots below its
+ * snapshots directory. Retirement and snapshotting are non-destructive by design, so the
+ * archive only ever grows — curate reports this scale so the growth stays observable (the
+ * live assistant notices a climbing number the way it notices a filling digest).
+ * @param skillsArchiveDir - The skills archive root (`skills/archive/`).
+ * @returns Counts of retired bundles and snapshot files; both zero when the archive is absent.
+ */
+export async function scanSkillArchiveScale(skillsArchiveDir: string): Promise<SkillArchiveScale> {
+  let names: string[]
+  try {
+    names = await readdir(skillsArchiveDir)
+  } catch {
+    return { retiredBundles: 0, snapshots: 0 }
+  }
+  let retiredBundles = 0
+  let snapshots = 0
+  for (const name of names.sort()) {
+    const path = join(skillsArchiveDir, name)
+    const isDirectory = await stat(path).then(entry => entry.isDirectory()).catch(() => false)
+    if (!isDirectory) {
+      // A retired flat skill archives as `<name>.md` directly inside the archive root.
+      if (name.endsWith('.md')) retiredBundles += 1
+      continue
+    }
+    if (name === SNAPSHOTS_DIRECTORY_NAME) {
+      let skillNames: string[]
+      try {
+        skillNames = await readdir(path)
+      } catch {
+        continue
+      }
+      for (const skillName of skillNames.sort()) {
+        const skillDir = join(path, skillName)
+        if (!await stat(skillDir).then(entry => entry.isDirectory()).catch(() => false)) continue
+        const files = await readdir(skillDir).catch(() => [])
+        snapshots += files.filter(file => file.endsWith('.md')).length
+      }
+      continue
+    }
+    retiredBundles += 1
+  }
+  return { retiredBundles, snapshots }
 }

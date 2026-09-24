@@ -47,6 +47,8 @@ function input(overrides: Partial<CurationInput> = {}): CurationInput {
     knownIds: [],
     skills: [],
     knowledgePages: 0,
+    retiredSkillBundles: 0,
+    skillSnapshots: 0,
     skillUsage: {},
     shadowedSkills: {},
     digestBytes: 100,
@@ -71,10 +73,18 @@ describe('curateHome', () => {
       threads: [thread({ id: 't-1' })],
       knownIds: ['a-1', 't-1'],
       skills: [{ dirName: 'staging-reset', name: 'staging-reset', description: 'when resetting', origin: 'learned' }],
+      retiredSkillBundles: 2,
+      skillSnapshots: 1,
     }))
 
     expect(brief.findings).toEqual([])
-    expect(brief.counts).toMatchObject({ activeMemories: 1, openThreads: 1, learnedSkills: 1 })
+    expect(brief.counts).toMatchObject({
+      activeMemories: 1,
+      openThreads: 1,
+      learnedSkills: 1,
+      retiredSkillBundles: 2,
+      skillSnapshots: 1,
+    })
   })
 
   it('names unreadable files instead of letting them vanish from the digest', () => {

@@ -35,7 +35,8 @@ const DESCRIPTION = [
   '- list: show the active room.',
   '- curate: run the machine check and return findings (near-duplicates, dangling references,',
   '  digest budget, stalled threads, skills the loader would ignore, learned skills shadowed by',
-  '  a same-named curated skill, skills past their use-by date) plus the per-skill usage ledger.',
+  '  a same-named curated skill, skills past their use-by date) plus the per-skill usage ledger',
+  '  and headline counts, including the skills-archive scale (retired bundles, snapshots).',
   '  Run this before tidying.',
   'Load the `memory-hygiene` skill before saving, and `home-curation` before curating.',
 ].join('\n')
@@ -97,6 +98,8 @@ const OUTPUT = {
         parkedThreads: { type: 'integer', required: true },
         learnedSkills: { type: 'integer', required: true },
         knowledgePages: { type: 'integer', required: true },
+        retiredSkillBundles: { type: 'integer', required: true },
+        skillSnapshots: { type: 'integer', required: true },
         digestBytes: { type: 'integer', required: true },
         digestMaxBytes: { type: 'integer', required: true },
       },
@@ -129,6 +132,8 @@ interface MemoryOutput {
     parkedThreads: number
     learnedSkills: number
     knowledgePages: number
+    retiredSkillBundles: number
+    skillSnapshots: number
     digestBytes: number
     digestMaxBytes: number
   }
@@ -171,6 +176,9 @@ function render(_args: { action: Action }, value: MemoryOutput): { type: 'text',
       + ` ${counts.knowledgePages} knowledge pages,`
       + ` digest ${counts.digestBytes}/${counts.digestMaxBytes} bytes.`,
     )
+    // The skills archive only grows (retirement and snapshotting never delete), so its scale is
+    // the one number the home cannot observe by reading a room — report it every time.
+    lines.push(`- skills archive: ${counts.retiredSkillBundles} retired bundles, ${counts.skillSnapshots} snapshots.`)
   }
   if (value.skill_usage !== undefined && value.skill_usage.length > 0) {
     const parts = value.skill_usage.map(skill => skill.count === 0
