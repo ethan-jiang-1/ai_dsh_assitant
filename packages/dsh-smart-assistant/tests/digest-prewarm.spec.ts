@@ -14,7 +14,7 @@
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { Context } from '@deepseek-ai/cordis'
+import { Context, Service } from '@deepseek-ai/cordis'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import AssistantMemory from '../src/index.ts'
 
@@ -57,5 +57,18 @@ describe('digest prewarm (service)', () => {
     await vi.waitFor(() => {
       expect(service.digestSnapshot()).toContain('second claim arrives after touch')
     })
+  })
+
+  it('awaits the cordis init hook: the loader-await is the warm guarantee, no polling', async () => {
+    // Seed through a first instance, then boot a second one on the same directory and await the
+    // lifecycle hook the plugin loader awaits — after that the digest is warm deterministically.
+    const dir = mkdtempSync(join(tmpdir(), 'assistant-prewarm-'))
+    dirs.push(dir)
+    const seeder = bootIn(dir)
+    await seeder.saveMemory({ text: 'init hook warms deterministically', importance: 5 })
+
+    const service = bootIn(dir)
+    await service[Service.init]()
+    expect(service.digestSnapshot()).toContain('init hook warms deterministically')
   })
 })

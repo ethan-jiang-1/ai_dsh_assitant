@@ -231,6 +231,7 @@ export class AssistantMemory extends Service {
    * cache still returns the status blurb, so the model always learns that the home exists.
    */
   private digestCache: DigestResult | undefined
+  private prewarmPromise: Promise<void> | undefined
 
   /**
    * @param ctx - Owning context.
@@ -255,21 +256,14 @@ export class AssistantMemory extends Service {
     // archive paths are simply never used for this room.
     this.knowledge = new Room(this.paths.knowledgeDir, join(this.paths.knowledgeDir, ARCHIVE_DIRECTORY_NAME))
     this.proposals = new Room(this.paths.skillProposalsDir, join(this.paths.skillProposalsDir, ARCHIVE_DIRECTORY_NAME))
-    // Best-effort activation scaffold: a home that cannot be created is reported, never fatal —
-    // the write paths call ensureHome again, so a transient failure heals on the next write.
-    // The digest prewarm rides on the same chain: the prompt section contract is synchronous
-    // (vendor system-prompt: text is `string | (context) => string`), so a cold cache can only
-    // return the status blurb — and a one-shot session has exactly one request, which the
-    // background refresh would always miss. Warming at construction closes that race for the
-    // first request of every fresh process (found live by the 2026-09-25 baseline probe).
-    void this.ensureHome()
-      .catch((error: unknown) => {
-        this.ctx.logger.warn(`assistant home scaffold failed at ${this.paths.root}: ${String(error)}`)
-      })
-      .then(() => this.digest())
-      .catch((error: unknown) => {
-        this.ctx.logger.warn(`assistant home digest prewarm failed: ${String(error)}`)
-      })
+    // Best-effort prewarm, memoized so the constructor's fire-and-forget and the cordis
+    // `Service.init` hook (awaited by the plugin loader) share one run. Construction alone
+    // loses the race by milliseconds — measured live on 2026-09-25: the runner's first prompt
+    // assembly evaluated the digest section at T+113ms while the async refresh finished at
+    // T+115ms, a coin flip every fresh process. The loader awaiting `init` is what turns the
+    // prewarm from best-effort into a guarantee for plugin-loading paths; direct construction
+    // (tests) still gets the fire-and-forget head start.
+    void this.prewarm()
     // Web shell branding (skin: browser-only, never model-visible; docs/identity.md §二). A
     // webserver collects `webserver/index-inject` rows on every index render; in headless
     // compositions no webserver exists, the event never fires, and this listener idles.
@@ -733,6 +727,39 @@ export class AssistantMemory extends Service {
       this.ctx.logger.warn(`assistant home digest refresh failed: ${String(error)}`)
     })
     return HOME_STATUS_BLURB
+  }
+
+  /**
+   * Memoized startup chain: scaffold the working folder (best-effort — the write paths call
+   * `ensureHome` again, so a transient failure heals on the next write), then render the first
+   * digest. Shared by the constructor's fire-and-forget call and the cordis `Service.init`
+   * hook, so the plugin loader can await exactly the work the constructor started.
+   */
+  private prewarm(): Promise<void> {
+    this.prewarmPromise ??= (async () => {
+      try {
+        await this.ensureHome()
+      } catch (error: unknown) {
+        this.ctx.logger.warn(`assistant home scaffold failed at ${this.paths.root}: ${String(error)}`)
+      }
+      try {
+        await this.digest()
+      } catch (error: unknown) {
+        this.ctx.logger.warn(`assistant home digest prewarm failed: ${String(error)}`)
+      }
+    })()
+    return this.prewarmPromise
+  }
+
+  /**
+   * Cordis lifecycle hook (class plugins): the loader awaits this after construction, before
+   * the plugin counts as loaded. Awaiting the prewarm here is what guarantees the digest
+   * section is warm for the first prompt assembly of a fresh process — the constructor alone
+   * loses that race by milliseconds (measured 2026-09-25: section evaluated at T+113ms,
+   * fire-and-forget digest finished at T+115ms).
+   */
+  async [Service.init](): Promise<void> {
+    await this.prewarm()
   }
 
   /**
