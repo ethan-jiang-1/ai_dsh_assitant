@@ -13,7 +13,6 @@
 ## 队列
 
 - ▶ **真实使用开跑**（与下列开发项并行；延后项触发的数据源。使用前清扫已完成，档案见 `notes/implemented/2026-09-24-dev-home-pre-usage-sweep.md`）
-- ▶ **F · knowledge-craft 策展技能**（弹性池：A/B 顺利后的富余项——卡片 [knowledge-craft-skill](notes/proposed/2026-09-24-knowledge-craft-skill.md)）
 - ⏳ E · 名字链接在 Obsidian 可点（触发=窄用真被使用且不可点成为真实摩擦；三选项百行内备选见 r5 §末——用户 2026-09-24 拍板不抢跑）
 - ⏳ dsh-obsidian 挂桥（触发=用户想让助手直接操作某个外部 vault；设计参照已录 r5）
 - ⏳ 会话日志薄动词 b1/b2（触发=真实使用中真去查历史会话且 rg 配方不够用；b2 后端可用性待细查）

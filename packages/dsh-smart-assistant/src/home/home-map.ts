@@ -20,7 +20,7 @@ import type { HomePaths } from './layout.ts'
 export const AGENTS_FILE_NAME = 'AGENTS.md'
 
 /** Version of the generated manual; bump when the generated content changes meaningfully. */
-export const HOME_MANUAL_VERSION = 2
+export const HOME_MANUAL_VERSION = 3
 
 /** The version marker stamped as the file's first line (an HTML comment: invisible when rendered). */
 export const HOME_MANUAL_MARKER = `<!-- home-manual v${String(HOME_MANUAL_VERSION)} -->`
@@ -123,7 +123,8 @@ ${paths.root}/
 \`\`\`
 
 Load \`memory-hygiene\` before writing memory, \`research-backlog\` before opening or closing a
-thread, \`home-curation\` before tidying, and \`self-reflection\` before turning an experience
-into a skill.
+thread, \`knowledge-craft\` before writing a knowledge page, \`session-recall\` before searching
+past conversations, \`home-curation\` before tidying, and \`self-reflection\` before turning an
+experience into a skill.
 `
 }

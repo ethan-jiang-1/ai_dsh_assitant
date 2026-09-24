@@ -1,6 +1,6 @@
 # knowledge-craft 策展技能（知识房间的写作技能）
 
-日期：2026-09-24 · 状态：**待实施（弹性池：A/B 顺利后的富余项；八小时计划已排连）**
+日期：2026-09-24 · 状态：**implemented（弹性池提前开工——A/B 收得快；技能与手册 v3 落地）**
 
 ## 问题
 
@@ -28,7 +28,18 @@
 - 技能缺口对照：`presets/assistant/skills/` 现有四技能目录清单
 - 八小时计划拍板（2026-09-24）：F 进弹性池
 
-## 验收（毕业条件）
+## 落地（2026-09-24）
 
-技能落盘过 verify 技能语法门禁；`AGENTS.md`（手册）的技能加载指引加一行
-（knowledge-craft before writing a page）；本卡毕业转 implemented。
+- `presets/assistant/skills/knowledge-craft/SKILL.md`：房间归属判别（knowledge 被引用 /
+  memory 被召回 / skill 被遵循）、一页一事、**title 即链接键**（起名要稳——id→title 解析）、
+  边写边链（unwritten 链是预期不是错误，不建空壳页）、sources 必填（page-unproven 机器背书）、
+  staleAfter 只给真会过期的页、draft→stable 人审节奏（永不自批）、先 research 后成页的判断。
+- 手册 v3：技能加载行补 knowledge-craft 与 session-recall（六个策展技能全列）。
+- 测试：layout.spec 断言手册含 knowledge-craft 行；verify 技能语法门禁过。
+
+## 输掉的方案
+
+- **把写作指导并进 memory-hygiene 或 self-reflection**：输给单一职责——知识页的判断维度
+  （归属/命名/链接/人审节奏）与记忆措辞、复盘流程正交，混装让两个技能都更难加载。
+- **建知识写作的 lint 机器检查（如 title 质量检查）**：title 好坏是品味不是文法，机器判
+  不了；现有 page-* findings（断链/孤页/无源/过期）已覆盖可机械化的部分。
