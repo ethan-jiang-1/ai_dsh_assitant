@@ -122,6 +122,39 @@ export function proposalStatusProblems(proposedDir) {
   return problems
 }
 
+/**
+ * Implemented notes dated on/after this day must carry an alternatives section — before it,
+ * notes are grandfathered (the obligation landed 2026-09-24; see the absorption note).
+ */
+const ALTERNATIVES_GATE_DATE = '2026-09-25'
+
+/** A heading that names the alternatives the decision beat (中文惯例节名 or the English heading). */
+const ALTERNATIVES_PATTERN = /^##[^#\n]*(输掉的方案|[Aa]lternatives)/m
+
+/**
+ * Every implemented note carries what it beat: "a decision recorded without what it beat
+ * invites re-litigation — the failure notes exist to prevent" (DSH .agents/notes rule,
+ * absorbed 2026-09-24). Alternatives are recorded, never invented. Applies to notes dated
+ * on/after the gate date; older notes keep their shape.
+ *
+ * @param {string} implementedDir - path of notes/implemented/.
+ */
+export function implementedAlternativesProblems(implementedDir) {
+  const problems = []
+  if (!existsSync(implementedDir)) return problems
+  for (const name of readdirSync(implementedDir)) {
+    if (!name.endsWith('.md') || name === 'README.md') continue
+    if (!NOTE_NAME_PATTERN.test(name)) continue // the naming gate owns that problem
+    if (name.slice(0, 10) < ALTERNATIVES_GATE_DATE) continue // grandfathered
+    if (!ALTERNATIVES_PATTERN.test(read(join(implementedDir, name)))) {
+      problems.push(
+        `notes/implemented/${name} carries no 输掉的方案 section — a decision recorded without what it beat invites re-litigation`,
+      )
+    }
+  }
+  return problems
+}
+
 // ── relative markdown links ─────────────────────────────────────────────────────────────────────
 
 /**

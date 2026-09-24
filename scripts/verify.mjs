@@ -18,7 +18,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { dirname, basename, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { GRADUATED_STATUS, notesNamingProblems, pinProblems, proposalStatusProblems, relativeLinkProblems } from './verify-checks.mjs'
+import { GRADUATED_STATUS, implementedAlternativesProblems, notesNamingProblems, pinProblems, proposalStatusProblems, relativeLinkProblems } from './verify-checks.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const packageDir = join(repoRoot, 'packages', 'dsh-smart-assistant')
@@ -330,6 +330,9 @@ check('queue: proposals carry a bold status line', () =>
 
 check('notes: note files follow YYYY-MM-DD-topic naming', () =>
   notesNamingProblems(join(repoRoot, 'notes')))
+
+check('notes: implemented notes carry what they beat (输掉的方案)', () =>
+  implementedAlternativesProblems(join(repoRoot, 'notes', 'implemented')))
 
 check('contract: curated skills carry valid frontmatter and match their directory', () => {
   const problems = []

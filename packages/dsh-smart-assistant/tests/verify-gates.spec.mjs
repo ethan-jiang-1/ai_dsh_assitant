@@ -19,6 +19,7 @@ import {
   notesNamingProblems,
   pinProblems,
   proposalStatusProblems,
+  implementedAlternativesProblems,
   relativeLinkProblems,
 } from '../../../scripts/verify-checks.mjs'
 
@@ -100,6 +101,24 @@ describe('proposalStatusProblems', () => {
     expect(problems).toHaveLength(1)
     expect(problems[0]).toContain('without-status.md')
     expect(problems[0]).toContain('graduation gate')
+  })
+})
+
+describe('implementedAlternativesProblems', () => {
+  it('requires 输掉的方案 from the gate date on; grandfathers and English headings pass', () => {
+    const implemented = temp('implemented-')
+    // Gate date and later: must carry the section (Chinese or English heading both count).
+    writeFileSync(join(implemented, '2026-09-25-with-alternatives.md'), '## 决定\n…\n## 输掉的方案\n- b) 慢而稳\n', 'utf8')
+    writeFileSync(join(implemented, '2026-09-25-english-heading.md'), '## Decision\n…\n## Alternatives considered\n- b\n', 'utf8')
+    writeFileSync(join(implemented, '2026-09-26-bare.md'), '## 决定\n只有决定，没记击败了什么。\n', 'utf8')
+    // Before the gate date: grandfathered, shape untouched.
+    writeFileSync(join(implemented, '2026-09-24-old-shape.md'), '## 决定\n没有备选节的旧 note。\n', 'utf8')
+
+    const problems = implementedAlternativesProblems(implemented)
+    expect(problems).toHaveLength(1)
+    expect(problems[0]).toContain('2026-09-26-bare.md')
+    expect(problems[0]).toContain('输掉的方案')
+    expect(problems[0]).toContain('re-litigation')
   })
 })
 
