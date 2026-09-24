@@ -1,12 +1,12 @@
-# 聪明助手打磨战役（长程计划）
+# 聪明助手打磨战役（已实施）
 
-日期：2026-09-25 · 状态：**实施中（P0–P3 已提交并验收全绿，P4–P6 进行中；用户 2026-09-25 拍板：全程自主执行、不依赖人——"想办法自己打磨……做实验做测试都不要依赖人"，六七小时后验收；方向级决策由 agent 代拍并逐项标注「我拍的」，用户回来可整体推翻）**
+日期：2026-09-25 · 状态：**已全部实施（P0–P6 全部完成、逐阶段提交：立卡 5be88c5 → P0 c5690f9 → P1 02ddebb → P2 c1465da → P3 e06dead → P4 482f96f → 毛边#3 29bd627 → 毕业本提交；用户 2026-09-25 授权全程自主执行不依赖人，六七小时后验收；方向级决策 agent 代拍见 §四，用户可整体推翻）**
 
 ## 一、问题：机制满了，助手还空着
 
 I1–I15 全部 implemented，但证据形态清一色是"机制在场"：真实使用零开始（用量账本空、
 knowledge/ 0 页、学到技能 1 个、SOUL.md 还是内置兜底文本、persona 是三行 stub）。
-总差距一句话（[handoff 2026-09-24](/tmp/handoff-2026-09-24-dsh-assistant-long-range-plan.md) 定调）：
+总差距一句话（2026-09-24 深夜 handoff 定调，其内容已全部吸收进本卡，原件在 /tmp 不复依赖）：
 **"领域专家"目前是空壳——骨骼完整、血肉为零；而信噪比的真值只有真实使用时间能给。**
 本战役做的是把骨架里的助手养活：注入领域血肉、首跑学习闭环、纵向测质量、磨真实毛边。
 
@@ -39,7 +39,7 @@ knowledge/ 0 页、学到技能 1 个、SOUL.md 还是内置兜底文本、perso
 | P3 记忆策展 ✅ | 助手自策展（preset-runner 会话，先 load memory-hygiene）：kfcf（09-23 战役语境）与 zrxy（提案已批准）各 supersede 为当前事实；新增术语决定与用户工作偏好两条（偏好来自 /tmp handoff——不捕就蒸发）；预算门真实咬合两次（纯新增被拒→按 home-curation 设计内动作收紧：合并偏好为一条、消两段机制长段落细节留在 note/test）| 6 active / 2 open / 1 skill / 10 pages；digest 4004/4096 不截断全上桌；curate 零发现；archive 14 条留痕（supersede 版本链，含预算抗争的重试历史） |
 | P4 学习闭环首跑 ✅ | 真实全环：新会话（无战役上下文，凭 brief+战役卡+session-recall 挖当日学费）提炼 `repo-to-knowledge` 提案（批量蒸馏工作流，与 knowledge-craft 互补——单页手艺 vs 批次流程；实测数字 118–159B/行、3880/4096 事故、六条失败模式表）→ propose（proposed r1，不直写技能房）→ 代行 approve（D2，逐句评审）→ land（provenance `proposal:repo-to-knowledge#r1`，提案文件记 landed 留尸体）→ 落地会话真加载一次做 QA | 账本首批真实计数：knowledge-craft×3 / self-reflection×4 / memory-hygiene×1 / repo-to-knowledge×1（P2/P3 会话真实加载的副产物）；curate 零发现；落地会话现场应用新技能预算教训（拒绝在 92B 余量写记忆——技能落地即生效的自证） |
 | P5 纵向质量+毛边 ✅ | ①预算压力真实触发并按设计治理（P2 节）；②**毛边 #2** parseWikiLinks 不跳 code span（修复+测试）；③**毛边 #3（探针复跑逼出二轮真相）**：P0 的 digest 冷启动修复（构造预热）实测是**毫秒掷硬币**——时间戳探针：section 求值 T+113ms(冷) vs digest 完成 T+115ms，P3/P4 会话没发现皆因显式调工具不读 prompt；最终修复=cordis `Service.init` 钩子（loader await 实例 init promise 才算装载完成，fiber.ts:257）+ memoized prewarm，构造 fire-and-forget 保留（直接构造/测试路径）；④探针前后对照：**前**=自报"摘要位是空的模板文字"（271B），**后**=首请求逐字报出 6 记忆+2 线索+10 页树（4004B，不调工具）；知识房间使用前后对照：**前**（P0 探针②）读仓内源码答，**后**调 assistant_knowledge×9 全答自知识房、缺整表时诚实降级只读 docs/home.md 该节并说明理由 | 毛边 #3 有 fix 有测试（init 钩子确定性用例，无 waitFor）；note 二轮改写带完整时序证据；前后对照双探针逐字在案 |
-| P6 收尾 | 卡毕业转 implemented（带输掉的方案+证据指针）；intents 补强（I14 新数据点）；ROADMAP ⏳ 触发条件对照真实数据逐条核（漏召回是否真出现）；最终 verify/test/typecheck | 全绿 + 给用户的验收汇报（含 §二代拍决策表） |
+| P6 收尾 ✅ | 卡毕业转 implemented（本文）；intents 补强（I7 首请求摘要保证/I15 真实生长/I8 零发现维持）；ROADMAP ⏳ 触发条件逐条对照（见 §八）；最终 verify/test/typecheck 全绿 | 全绿 + 给用户的验收汇报（含 §四代拍决策表） |
 
 ## 四、agent 代拍决策表（我拍的，可推翻）
 
@@ -67,11 +67,12 @@ knowledge/ 0 页、学到技能 1 个、SOUL.md 还是内置兜底文本、perso
 
 ## 六、依据
 
-- [handoff 长程打磨计划（2026-09-24 深夜）](/tmp/handoff-2026-09-24-dsh-assistant-long-range-plan.md)
-  ——用户原话、方向骨架、决策分界与用户偏好全部继承。
+- 2026-09-24 深夜 handoff（/tmp 交接文档，一次性载体——用户原话、方向骨架、决策分界与
+  用户偏好已全部吸收进本卡 §三/§四/§七，不再依赖原件）。
 - [intents.md](../intents.md)——I1–I15 与 §六判据（本战役的"对"以它为准）。
-- [tri-line 合流](../implemented/2026-09-24-tri-line-synthesis.md)——治理环/知识房间/触发演进已落地的边界。
-- 用户 2026-09-25 三条指令：①全程自主不依赖人；②「家」术语淘汰；③六七小时后验收。
+- [tri-line 合流](2026-09-24-tri-line-synthesis.md)——治理环/知识房间/触发演进已落地的边界。
+- 用户 2026-09-25 指令：①全程自主不依赖人；②「家」术语淘汰；③信噪比不是性价比
+  （"同一概念两个说法就是噪声"）；④每步完成即提交；⑤六七小时后验收。
 
 ## 七、基线快照（P0 · 2026-09-25，战役前后对比的"前"）
 
@@ -87,9 +88,38 @@ bundle 其余。
 内容"、拒绝编造计数**（诚实本身是好信号）；规则知识（三档出口/技能退休）从手册正确复述。
 **毛边 #1 就此抓到**：digest 冷启动竞态——`digestSnapshot()` 同步返回缓存，冷缓存只给 blurb、
 后台刷新赶不上 one-shot 会话的唯一一次请求；Web 长会话第一轮同样中招。I7/I12 历史证据全来自
-多轮会话第二轮以后，故漏网。修复=构造时链式预热（[note](../implemented/2026-09-25-digest-cold-start-prewarm.md)）。
+多轮会话第二轮以后，故漏网。修复两轮收口（构造预热 → Service.init 装载等待）：
+[note](2026-09-25-digest-cold-start-prewarm.md)。
 
 **探针②（领域知识零态，`session-73b5efd6`）**：知识页为零如实声明；转而凭常驻手册+按需读
 仓内源码（`page.ts`/`health.ts`）**答对全部领域问题**（四房间职责/生命周期/draft→stable=人改
 文件/deprecated 就地留），区分了家房间与仓内 docs/notes，守住了双 home 纪律；**并主动提议
 写第一页知识草稿**——P2 注入循环的"需求侧"已自己出现，缺的只是执行。
+
+## 八、收官数字（P6 · 战役前后对比的"后"）
+
+| 面 | 前（P0 基线） | 后（收官） |
+|---|---|---|
+| 知识页 | 0 | **10 stable**（互链成网、search 命中带理由、curate 零发现） |
+| 活跃记忆 | 4（含 2 条过时） | **6**（全当前；2 条过时者 supersede 留痕于 archive 14 条版本链） |
+| 学到技能 | 1（never loaded） | **2**（repo-to-knowledge 经 propose→approve→land 全环，provenance 在案） |
+| 用量账本 | 无文件（零使用） | **4 技能 9 次真实加载**（knowledge-craft×3/self-reflection×4/memory-hygiene×1/repo-to-knowledge×1） |
+| 首请求 digest | 271B blurb（掷硬币） | **4004/4096 全量保证**（Service.init 装载等待，live 前后对照逐字在案） |
+| 领域问答 | 读仓内源码 | 调 assistant_knowledge 全答自知识房（×9），缺整表时诚实降级并说明 |
+| 「家」术语 | 全仓现行 | 活跃树零命中，working folder 单名，home 只指 DSH_HOME |
+
+**⏳ 触发条件逐条对照（全部未触发，首批数据在案）**：语义检索/embedding——无真实漏召回
+（知识 search 目标查询 4 命中/宽查询 10 命中）；FTS/trigram——同左；会话薄动词 b1/b2——
+session-recall 的 rg 配方在 P4 真实够用（提案会话搜到 save_page 会话）；全自动蒸馏——账本
+首批计数远低于任何收益阈值且无人审成本对照；E 名字链接/dsh-obsidian 挂桥/workflow-as-MD/
+跨 harness 共库/license 字段——无新触发数据。各 ⏳ 维持原判据。
+
+**留给用户的拍板点（战役中显式登记、未擅动）**：
+1. **digest 树行格式**：现 `- title — description (id)` 每行 118–159B，id 占 30–40%；
+   去 id 省约 350B 但取页多一次 search 往返——桌面形状的品味级取舍。
+2. **digest 余量 92B**：下一条记忆/第 11 页会再触预算门（按设计=策展信号；也可调
+   digestMaxBytes 配置）。
+3. **D1 领域定位复核**：本仓研发域是我拍的（§四），若你的助手另有领域，改 dev home 的
+   `SOUL.md` 一处即可（D1 理由行）。
+4. 已知怪癖（登记不立案）：记录 id 的 UTC 日期前缀与本机 +08 偶差一天；手册称"目录树"
+   实为平铺清单（探针如实指出，措辞 nit）。

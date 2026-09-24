@@ -12,8 +12,7 @@
 
 ## 队列
 
-- ▶ **聪明助手打磨战役**（长程：机制满、助手空——注入领域血肉+学习闭环首跑+纵向质量；用户 2026-09-25 授权全程自主执行。卡：[notes/proposed/2026-09-25-smart-assistant-polish-campaign.md](notes/proposed/2026-09-25-smart-assistant-polish-campaign.md)）
-- ▶ **真实使用开跑**（与上项一体：战役即首批真实使用；延后项触发的数据源。使用前清扫已完成，档案见 `notes/implemented/2026-09-24-dev-home-pre-usage-sweep.md`）
+- ▶ **真实使用开跑**（用户本人用起来——首批数据已由打磨战役产出：账本 4 技能 9 次真实加载、⏳ 判据对照全部未触发，档案见 `notes/implemented/2026-09-25-smart-assistant-polish-campaign.md` §八；后续用户会话的摩擦即新卡）
 - ⏳ E · 名字链接在 Obsidian 可点（触发=窄用真被使用且不可点成为真实摩擦；三选项百行内备选见 r5 §末——用户 2026-09-24 拍板不抢跑）
 - ⏳ dsh-obsidian 挂桥（触发=用户想让助手直接操作某个外部 vault；设计参照已录 r5）
 - ⏳ 会话日志薄动词 b1/b2（触发=真实使用中真去查历史会话且 rg 配方不够用；b2 后端可用性待细查）
