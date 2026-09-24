@@ -1,7 +1,7 @@
 # 启动与调试（dev 运行手册 · 只写现在）
 
 > 这份手册回答：怎么在不碰日用 DSH 的前提下，从零跑起本插件的 dev 实例。
-> 家的布局契约在 `docs/home.md`；插件架构在 `docs/architecture.md`；决策在 `notes/`。
+> working folder 的布局契约在 `docs/home.md`；插件架构在 `docs/architecture.md`；决策在 `notes/`。
 
 ## 一、隔离模型（什么被隔离、什么没有被隔离）
 
@@ -12,7 +12,7 @@
 
 | 通道 | 是否随 DSH_HOME 隔离 | dev 的处理 |
 |---|---|---|
-| profiles / sessions / storages / attachments / settings / credentials / 技能用户根 / `.agent-presets` / 家的 dataDir（默认值；显式 `dataDir` 覆盖例外，见 `docs/home.md`） | ✅ | 自动落在 dev home |
+| profiles / sessions / storages / attachments / settings / credentials / 技能用户根 / `.agent-presets` / assistant working folder 的 dataDir（默认值；显式 `dataDir` 覆盖例外，见 `docs/home.md`） | ✅ | 自动落在 dev home |
 | skills 的共享 agent 根（默认 `~/.agents`） | ❌ 不隔离 | 启动器接管为 `$DSH_HOME/agents-home`（仅当未显式设置；`dev/env.sh` 则无条件强制） |
 | telemetry | 身份按 home 独立；默认 FEEDBACK_ONLY | 启动器设 `DSH_TELEMETRY_DISABLED=1` |
 | spill 临时文件 | ❌ 用 OS tmpdir（`dsh-spill-*`），启动清扫会清过期文件 | 低危：dev 启动可能清掉日用实例**已过期 30 天**的临时输出 |
@@ -94,7 +94,7 @@ registering"——而第一个打开页面的人就成了 crash-test dummy。`pn
 | `pnpm dsh web --profile dev` | `dsh web` 别名**硬编码 profile 'web'**，会在 dev home 里自动创建一个 shipped `web` profile | 用 `pnpm dsh --profile dev`（dev profile 自带 web-app bundle） |
 | one-shot 无反应 | one-shot runner 行与位置参数解析都在 `@deepseek-ai/dsh-headless` bundle 的 headless-startup 里；web 模板没有它们 | 用 `dev-task` profile（headless 模板自带 runner 行）；**不要**往 `dev` 追加 headless bundle（§四：混装必撞 duplicate id，setup.sh 反而会把它摘掉） |
 | 无 key 的行为 | boot 不失败；首个 live turn 抛 `MISSING_CREDENTIAL`。"self-skip" 是**测试机制**不是产品行为 | 在 `$DSH_HOME/.credentials.yaml` 配 `DEEPSEEK_API_KEY`（或 `$DSH_HOME/.env`） |
-| **one-shot 不进 preset** | headless runner 建**裸 agent**，roster 只在"创建会话的一方"被消费（web 会话创建 / 子 agent 继承父 composition）—— vendor 源码注释明文："A deployment that DOES configure one has to join it here first" | preset 行为（四工具/persona/摘要段落）用 **dev profile 的 Web UI 会话**验证；dev-task 只冒烟 host 面（插件装载、家 scaffold、服务行） |
+| **one-shot 不进 preset** | headless runner 建**裸 agent**，roster 只在"创建会话的一方"被消费（web 会话创建 / 子 agent 继承父 composition）—— vendor 源码注释明文："A deployment that DOES configure one has to join it here first" | preset 行为（四工具/persona/摘要段落）用 **dev profile 的 Web UI 会话**验证；dev-task 只冒烟 host 面（插件装载、working folder scaffold、服务行） |
 | API 抖动 | `TRANSPORT` 错误（"DeepSeek API request failed"）会触发 attempt 重试循环，模型可能开始即兴行为 | 重试即可；会话日志（`sessions/<proj>/<id>/session.v3.jsonl.zstd`）能逐事件还原 |
 | vendor install 失败 | 根 postinstall（lefthook）在 submodule 里必然失败 | 包已就位；build 用 `--config.verify-deps-before-run=false` 绕过 |
 | 命令表象不可信 | `--dump-config`/`--help` 不加载 loader entries | "能不能跑"的最低证据 = 真 boot 一次 |

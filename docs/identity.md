@@ -32,7 +32,7 @@ Web 壳的页标题、图标与侧栏品牌（`src/web-branding.ts` 注入行 + 
 ## 三、刻意不做（第 0 天）
 
 三个"刻意不做"——**不新增 SessionEventMap 成员、不注册 settings namespace、不做专属 Web 卡片**——
-都是**延后**而非永久否决。理由与触发条件的唯一家是 `docs/architecture.md` 第六节延后项表；
+都是**延后**而非永久否决。理由与触发条件的唯一出处是 `docs/architecture.md` 第六节延后项表；
 本表只管身份面：触发后按 §一 的文法与代价登记新行，涉及模型可见文案时按第二节走 model-visible 纪律。
 
 ## 四、改名窗口

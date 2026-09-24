@@ -16,7 +16,7 @@ skipping the second one.
    memory of the conversation, which is exactly the thing that is unreliable.
 2. **Distill — and be willing to find nothing.** Ask, for each candidate: *would a future session be wrong
    without this?* Most sessions contain nothing worth keeping. **"Nothing durable came out of this" is a
-   correct and common result.** A home that grows every session is a home nobody reads.
+   correct and common result.** A working folder that grows every session is one nobody reads.
 3. **Route each survivor to its room:**
 
 | Distilled thing | Where it goes | Call |
@@ -48,6 +48,6 @@ gets no such validation and no provenance.
 ## Two things not to do
 
 - **Do not write a skill for a one-off.** If it will not recur, it is a memory or nothing.
-- **Do not promote your own draft to the curated set.** Skills you write land in the home's `skills/`
+- **Do not promote your own draft to the curated set.** Skills you write land in the working folder's `skills/`
   (yours, immediate). The curated skills that ship with the preset are edited by the person, in the repo —
   promotion is their call, and a learned skill that keeps proving itself is the argument for it.

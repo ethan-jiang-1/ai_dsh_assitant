@@ -1,13 +1,13 @@
 ---
 name: home-curation
-description: The maintenance loop for your home — how to read the machine-checked curation brief, resolve each finding, and keep the digest worth reading. Load when the home feels cluttered or before a periodic tidy.
+description: The maintenance loop for your working folder — how to read the machine-checked curation brief, resolve each finding, and keep the digest worth reading. Load when the working folder feels cluttered or before a periodic tidy.
 whenToUse: When the digest is crowding out work, after a burst of learning, or when curate reports findings.
 ---
 
-# Keeping the home worth reading
+# Keeping the working folder worth reading
 
-Your home has one quality bar: **someone reading it should find more signal and less noise than last month.**
-This is not housekeeping for its own sake — a home that fills with near-duplicates and dead threads makes
+Your working folder has one quality bar: **someone reading it should find more signal and less noise than last month.**
+This is not housekeeping for its own sake — a working folder that fills with near-duplicates and dead threads makes
 you *worse*, because the digest is what you actually see.
 
 ## The loop
@@ -26,7 +26,7 @@ you *worse*, because the digest is what you actually see.
 | `dropped` without a reason | Add the reason, or the next session will reopen it |
 | Skill with a bad name or missing description | Fix the frontmatter; an undiscoverable skill is a skill you wasted |
 
-3. **Re-run until clean.** `curate` is cheap. Stopping at "mostly fine" is how a home decays.
+3. **Re-run until clean.** `curate` is cheap. Stopping at "mostly fine" is how a working folder decays.
 
 ## What you must not do
 
@@ -39,4 +39,4 @@ you *worse*, because the digest is what you actually see.
 ## The rhythm
 
 Tidy when: the digest reports over-budget, a session ends after real learning, or `curate` shows findings
-you have been ignoring. Not on a timer, and never instead of the actual work — a home is a tool, not a hobby.
+you have been ignoring. Not on a timer, and never instead of the actual work — a working folder is a tool, not a hobby.

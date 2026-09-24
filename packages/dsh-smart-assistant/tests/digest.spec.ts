@@ -100,7 +100,7 @@ describe('renderDigest', () => {
 
   it('counts bytes, not characters, so a CJK digest is bounded too', () => {
     const result = renderDigest({
-      statusBlurb: '你的家比这次会话活得更久。',
+      statusBlurb: '你的 working folder 比这次会话活得更久。',
       memories: [memory({ id: 'a-1', text: '用户偏好简洁的回答。'.repeat(20) })],
       threads: [],
       pages: [],

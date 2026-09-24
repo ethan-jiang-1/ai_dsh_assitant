@@ -33,8 +33,8 @@ knowledge/ 0 页、学到技能 1 个、SOUL.md 还是内置兜底文本、perso
 
 | 阶段 | 内容 | 验收 |
 |---|---|---|
-| P0 基线快照 | preset-runner 探针会话（身份/家况问答）+ system prompt 分段字节盘点 + 家现状 counts，全部落档 | 基线数字在案（战役前后对比的"前"） |
-| P1 术语切片 | 全仓去「家」：docs/AGENTS/README×2/preset.yml/模型面（soul.ts、home-map.ts 手册 v3→v4、工具描述）/tests；dev home 重种 | 活跃树（排除 notes/ 历史档案）rg「家/home 隐喻」零命中；test/verify 全绿 |
+| P0 基线快照 ✅ | preset-runner 探针会话（身份/家况问答）+ system prompt 分段字节盘点 + 家现状 counts，全部落档 | §七：盘点+双探针+分段字节+毛边#1（digest 冷启动）即修即测 |
+| P1 术语切片 ✅ | 全仓去「家」：docs/AGENTS/README×2/preset.yml/模型面（soul.ts、home-map.ts 手册 v3→v4、工具文案、SKILL.md×4、persona prefix）/tests 断言；dev home 重种（v4+working folder SOUL，digest 1550B 热）；包 README 顺带修「三房间/三工具/5 入口」过时腐化 | 活跃树 rg「家」清零（排除 专家/赢家 同字异义词与 notes 档案）；剩余 home 全为代码注释/标识符（边界见 §五）；test 164/164、verify 22/22 |
 | P2 知识注入 | 领域=本仓研发域（D1）。经**真实写路径**长出首批 knowledge 页（目标 8–12 页 stable）：四房间治理、三线合流、两解析门面、DSH 组合层级、preset 语义、OKF/Agent Skills 两开放标准、信噪比判据体系、术语纪律。preset-runner 会话 `save_page`（draft）→ 代行评审（D2）→ stable | digest 目录树可见、curate 零发现、`[[互链]]` 成网、search 真命中 |
 | P3 记忆策展 | 战役真实产物（术语决定、悬问结论）经 `save` 入记忆；对照检查既有 4 条真实记忆，过时者走 supersede | 记忆全 active 且内容准确、curate 零发现 |
 | P4 学习闭环首跑 | 从 P2 的真实经验里长出一个**真有用**的技能提案 → propose → 代行 approve（D2）→ land；用量账本首批真实计数 | skill-proposals 全流程真实一遍、brief/curate 回显、账本非零 |

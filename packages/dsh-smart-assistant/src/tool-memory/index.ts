@@ -311,7 +311,7 @@ export function apply(ctx: Context): void {
           return {
             action,
             summary: brief.findings.length === 0
-              ? 'Home is clean: no findings.'
+              ? 'Working folder is clean: no findings.'
               : `${brief.findings.length} finding(s), ${warns} of them losing signal now:`,
             memories: [],
             findings: brief.findings.map(finding => ({

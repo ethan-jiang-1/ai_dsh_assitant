@@ -44,7 +44,7 @@ const DESCRIPTION = [
   '- brief: a compact view of this session (what was asked, what tools were used) plus the memory',
   '  records, open threads, and learned-skill usage counts that relate to it. Read it before',
   '  deciding anything — do not reflect from your recollection of the conversation.',
-  '- save_skill: write a validated skill into your home\'s skills/ room, where it becomes loadable',
+  '- save_skill: write a validated skill into your working folder\'s skills/ room, where it becomes loadable',
   '  immediately. Use it for a procedure you would otherwise re-derive, not for a one-off.',
   '- retire_skill: move a learned skill out of the skills room into skills/archive/ — it stops',
   '  loading immediately but stays recoverable. Use it when curate reports the skill is past its',
@@ -362,7 +362,7 @@ export function apply(ctx: Context): void {
             ...empty,
             summary: asks.length === 0 && toolCalls.length === 0
               ? 'No session evidence available; reflect from what you can verify.'
-              : 'Evidence for this reflection, plus what your home already relates to it:',
+              : 'Evidence for this reflection, plus what your working folder already relates to it:',
             session_id: sessionId,
             asks,
             tool_calls: toolCalls,

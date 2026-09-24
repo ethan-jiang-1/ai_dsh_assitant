@@ -1,8 +1,8 @@
-# 家的契约（working folder · 唯一权威）
+# working folder 的契约（唯一权威）
 
-> 这个插件给 agent 一个**自己的家**：一个跨会话存在的工作目录。
-> 家的组织本身就是产品的一部分 —— 概念依据是 `Agent = Model + Harness`：
-> 家就是"那一圈"的物理落点，它的信噪比决定 agent 糊涂还是清醒。
+> 这个插件给 agent 一个**自己的 working folder**：一个跨会话存在的工作目录。
+> 它的组织本身就是产品的一部分 —— 概念依据是 `Agent = Model + Harness`：
+> working folder 就是"那一圈"的物理落点，它的信噪比决定 agent 糊涂还是清醒。
 > 布局的**唯一 owner** 是 `src/home/layout.ts`；本文是它的契约说明，两者必须一致（`pnpm verify` 校验）。
 
 ## 一、布局
@@ -10,7 +10,7 @@
 ```text
 <dataDir>/                      # 默认 <dshHome>/assistant（$DSH_HOME → ~/.dsh）
 ├── SOUL.md                     # 身份：agent 是谁、怎么说话（种子=内置默认；手改不覆盖）
-├── AGENTS.md                    # 手册：这个家怎么用（AGENTS.md 惯例名；带 scaffold 版本标记）
+├── AGENTS.md                    # 手册：working folder 怎么用（AGENTS.md 惯例名；带 scaffold 版本标记）
 ├── skill-usage.json            # 机器账本：skill 工具加载计数（可删，删了计数归零；不进摘要）
 ├── memory/                     # 房间一：已确立的事实 / 偏好 / 决定
 │   ├── <id>.md                 #   一条记录一个文件（frontmatter + 正文）
@@ -30,7 +30,7 @@
 **一个房间一个职责**，不许混：事实进 `memory/`，未决的线索进 `research/`，可复用的做法进 `skills/`，
 领域理解进 `knowledge/`。
 `dataDir` 可用配置覆盖（bundle patch / profile patch），默认跟随 `resolveDshHome()` —— 于是**双 home 隔离自动生效**：
-开发 home 里的家与日用的家互不可见。
+开发 harness home 里的 working folder 与日用 harness home 里的互不可见。
 
 **根下的 `skill-usage.json` 不是房间**：它是机器自有的用量账本——每次 `skill` 工具成功加载一个技能，
 learn 模块的 `tools/result` 订阅就给对应名字计数（用户 `/name` 斜杠注入不走工具管线，不计）。
@@ -81,18 +81,18 @@ learn 模块的 `tools/result` 订阅就给对应名字计数（用户 `/name` �
 
 ## 三、桌面与抽屉（信噪比）
 
-- **桌面**（常驻上下文，三个段落讲一个顺序的故事：**你是谁 → 家怎么用 → 家里现在有什么**）：
+- **桌面**（常驻上下文，三个段落讲一个顺序的故事：**你是谁 → working folder 怎么用 → 里面现在有什么**）：
   - 身份段（`assistant:soul`）：`SOUL.md` 逐字（缺/空回退内置默认身份——回退是替换不是叠加）；
   - 手册段（`assistant:home-manual`）：`AGENTS.md` 逐字（缺则现场渲染当前版，永不落后）；
   - 状态摘要（`assistant:memory-digest`，**有界** `digestMaxBytes`）：状态行 + 活跃记忆的精选 +
     **开放线索的条数与前几条标题**。
-  身份与手册是**家根的数据文件**（人可改、可 git、scaffold 只在缺失时写）——身份是数据不是
+  身份与手册是**working folder 根部的数据文件**（人可改、可 git、scaffold 只在缺失时写）——身份是数据不是
   preset 代码；静态引导（跨请求稳定，cache 友好）与动态状态（摘要）分离。
   桌面只放"此刻最该在眼前的东西"。
 - **抽屉**（要用再拿）：完整记录、归档、知识页、技能正文 —— 用 `assistant_memory` / `assistant_research` /
   `assistant_knowledge` / `skill` 工具取。
 
-推论：**过程性知识不做成常驻段落**。怎么写记忆、怎么养护家、怎么复盘 —— 都在 `skills/`（抽屉），
+推论：**过程性知识不做成常驻段落**。怎么写记忆、怎么养护 working folder、怎么复盘 —— 都在 `skills/`（抽屉），
 由技能目录按需加载。这条是"很好控制的上下文"的落点。
 
 ## 四、机器能查的检查（`curate`）
@@ -110,7 +110,7 @@ learn 模块的 `tools/result` 订阅就给对应名字计数（用户 `/name` �
 | 过期线索 | 超过 `staleResearchDays` 未更新的 `open` 线索 | 悬着的线索会烂，机器先发现 |
 | 缺理由的 drop | `status: dropped` 但 `reason` 为空 | 尸体没写死因 = 白丢 |
 | 技能文件 | 名字不合 `SKILL_NAME` 文法 / 缺 `description` / 目录名与 name 不一致 | 技能会静默不被发现 |
-| 同名遮蔽 | 学到技能的名字被注册表判给其他 provider（`skill-shadowed`，探自 curate 所在会话的技能注册表） | `save_skill` 说成功、文件也在家，但**永不加载**——静默失联 |
+| 同名遮蔽 | 学到技能的名字被注册表判给其他 provider（`skill-shadowed`，探自 curate 所在会话的技能注册表） | `save_skill` 说成功、文件也在 working folder，但**永不加载**——静默失联 |
 | 技能过期（stale） | 超过 `staleSkillDays`（默认 30 天）未被加载（`skill-stale`，info） | 死技能是目录重；先报候选，去留归 agent |
 | 技能可退役 | 超过 `retireSkillDays`（默认 90 天）未被加载（`skill-retirable`，warn） | 每个技能的 name+description 都在目录里占常驻上下文——死技能每请求都在付费；年龄锚点=账本 `lastUsedAt`，从未加载的用 `learnedAt` |
 | 技能引用完整性 | SKILL.md 里的相对指针（markdown 链接 / `references/` 反引号路径）指向不存在的文件（`skill-broken-reference`，warn；**save_skill 写完即审**，结果里即时注入，不阻断） | 未来会话顺着指针走会撞墙 |
@@ -136,22 +136,22 @@ bundles, M snapshots`，退役与快照都不删除、技能归档只增不减�
 （默认 5，`0` 关闭）轮自动插入一条养护 turn（plugin 源 user message，让路栅栏保证它是轮间
 安全空槽），指示跑 curate 并逐条处理发现项；非 goal 会话仍由 persona 纪律驱动。
 
-## 五、家根的两个文件（`SOUL.md` 身份 + `AGENTS.md` 手册）
+## 五、working folder 根部的两个文件（`SOUL.md` 身份 + `AGENTS.md` 手册）
 
 抄 Hermes 的形状（调研 `notes/research/archive/2026-09-24-r4-hermes-identity-survey.md`；决定
 `notes/implemented/2026-09-24-soul-and-agents.md`，D1/D2/D3=a）：**身份与引导分文件**，
-分工一句话——到处适用的进 `SOUL.md`，属于这个家的进 `AGENTS.md`。
+分工一句话——到处适用的进 `SOUL.md`，属于这个 working folder 的进 `AGENTS.md`。
 
 - **`SOUL.md`（身份）**：agent 是谁、怎么说话。scaffold 缺则种（种子 = 内置默认身份，day 0
   行为零变化），**已有永不覆盖**；空文件不注入。身份段读它逐字进 system prompt（紧贴 persona
   stub，`assistant:soul`）；缺/空/坏 → **回退内置默认**（回退是替换不是叠加）。改人格 = 编辑
   这个文件，不用动插件源码。
-- **`AGENTS.md`（手册）**：这个家怎么用——四房间、三档出口、退役、curate、盘上布局。
+- **`AGENTS.md`（手册）**：working folder 怎么用——四房间、三档出口、退役、curate、盘上布局。
   scaffold 缺则种（首行 `<!-- home-manual vN -->` 版本标记），永不覆盖；手册段
   （`assistant:home-manual`）逐字进 system prompt；缺则**现场渲染当前版**（缺文件永不落后）。
   版本标记旧于当前由 curate 报 info（见 §四「手册漂移」）。
 - 两者都是**给人也给 agent 看**的文件；文件名走 AGENTS.md 业界惯例——DSH 原生装载器认项目根
-  与 `$DSH_HOME` 根的同名文件，不探家根，**同名不同域，互不冲突**。
+  与 `$DSH_HOME` 根的同名文件，不探 working folder 根，**同名不同域，互不冲突**。
 - persona 行缩为一句 stub（shadow 部署级 persona 的职能不动），身份正文由身份段拥有。
 
 **旧 `HOME.md` 概念已清零**（2026-09-24，同 diff 扫掉代码/测试/文档/preset 全部引用）；

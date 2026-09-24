@@ -38,9 +38,9 @@ describe('service access through the cordis property proxy', () => {
     // constructor's scaffold is fire-and-forget, so the soul read may hit the seeded file or
     // the fallback — seed equals fallback, so the voice assertion holds either way.
     const digest: string = ctx.assistantMemory.digestSnapshot()
-    expect(digest).toContain('Live status of your home')
+    expect(digest).toContain('Live status of your working folder')
     expect(ctx.assistantMemory.soulSnapshot()).toContain('You are a long-lived assistant')
-    expect(ctx.assistantMemory.manualSnapshot()).toContain('# Your home — operating manual')
+    expect(ctx.assistantMemory.manualSnapshot()).toContain('# Your working folder — operating manual')
   })
 
   it('serves the tool verbs through the proxy and the digest reflects writes', async () => {

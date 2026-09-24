@@ -13,8 +13,8 @@ compressed, and yours to search. Nothing needs to be re-derived from scratch.
 
 `<harness-home>/sessions/--<normalized-cwd>--/session-<id>/session.v3.jsonl.zstd`
 
-- The harness home is the **parent of your home** (the manual's layout tree names your home's
-  absolute path — go one level up).
+- The harness home is the **parent of your working folder** (the manual's layout tree names your working
+  folder's absolute path — go one level up).
 - Session directories are grouped per project: the project cwd with `/` swapped for `-`, wrapped
   in `--`. Sessions from other projects sit in sibling directories — search them deliberately,
   not by accident.

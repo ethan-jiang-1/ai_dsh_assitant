@@ -17,7 +17,7 @@
 - ⏳ E · 名字链接在 Obsidian 可点（触发=窄用真被使用且不可点成为真实摩擦；三选项百行内备选见 r5 §末——用户 2026-09-24 拍板不抢跑）
 - ⏳ dsh-obsidian 挂桥（触发=用户想让助手直接操作某个外部 vault；设计参照已录 r5）
 - ⏳ 会话日志薄动词 b1/b2（触发=真实使用中真去查历史会话且 rg 配方不够用；b2 后端可用性待细查）
-- ⏳ workflow-as-MD（触发=真实使用出现多步编排需求；方向：程序性知识之上，编排是否也为家的 MD 文件——用户 2026-09-24 提出）
+- ⏳ workflow-as-MD（触发=真实使用出现多步编排需求；方向：程序性知识之上，编排是否也为 working folder 的 MD 文件——用户 2026-09-24 提出）
 - ⏳ 语义检索 / embedding（触发=真实漏召回；依据：[三线合流 §六](notes/implemented/2026-09-24-tri-line-synthesis.md)、[R1 判据对照 §5](notes/research/archive/2026-09-24-r1-memory-ecosystem-survey.md)、[R3 设计 §7.2](notes/research/archive/2026-09-24-r3-knowledge-layer-survey.md)）
 - ⏳ 全自动蒸馏（触发=用量统计显示收益>token+同意成本；采集工具已在场；依据：[R2 缺口清单 §9.3-5](notes/research/archive/2026-09-24-r2-skill-growth-survey.md)）
 - ⏳ FTS/trigram 检索升级（触发=grep 真实漏召回；方法参照 [dsh-knowledge-sqlite 实测表（R3 §4.3/§7.2-3）](notes/research/archive/2026-09-24-r3-knowledge-layer-survey.md)）

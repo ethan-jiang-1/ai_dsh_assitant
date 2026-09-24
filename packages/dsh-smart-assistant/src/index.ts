@@ -386,7 +386,7 @@ export class AssistantMemory extends Service {
       const digest = await this.digest()
       if (digest.truncated) {
         throw new Error(
-          `the home digest is already cut short by its ${this.digestMaxBytes}-byte budget — `
+          `the working folder digest is already cut short by its ${this.digestMaxBytes}-byte budget — `
           + 'retire a record (forget) or supersede an existing one instead of adding; '
           + 'assistant_memory action=curate reports the pressure',
         )

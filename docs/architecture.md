@@ -2,18 +2,18 @@
 
 > 本文是**现在**的合同：插件由哪些部件组成、各自属于哪个平面、模型能看见什么。
 > 历史与被否决的方案在 `notes/`；身份名以 `docs/identity.md` 为唯一权威；
-> 家的布局与养护规则以 `docs/home.md` 为唯一权威。
+> working folder 的布局与养护规则以 `docs/home.md` 为唯一权威。
 
 ## 一、设计判据
 
 核心命题是 `Agent = Model + Harness`：模型决定上限，**那一圈**决定你能拿到多少。
-本插件做的就是把"那一圈"给一个 agent 落地成**一个自己的家**，并对齐五件事：
+本插件做的就是把"那一圈"给一个 agent 落地成**一个自己的 working folder**，并对齐五件事：
 
 | 那一圈的五件事 | 本插件的落点 |
 |---|---|
-| ① 让它看到该看的东西（上下文） | **桌面 / 抽屉**：常驻的是身份段（SOUL.md）+ 家手册（AGENTS.md）+ 有界状态摘要（精选记忆 + 开放线索条数）；细节用工具取 |
+| ① 让它看到该看的东西（上下文） | **桌面 / 抽屉**：常驻的是身份段（SOUL.md）+ 手册（AGENTS.md）+ 有界状态摘要（精选记忆 + 开放线索条数）；细节用工具取 |
 | ② 让它懂你的业务（隐性知识显性化） | `memory/` 房间：事实、偏好、决定 —— 一条一个文件，可读可审 |
-| ③ 让它有该有的本事（工具与边界） | 四个工具 + 家的写入边界（`src/home/layout.ts` 是唯一 owner） |
+| ③ 让它有该有的本事（工具与边界） | 四个工具 + working folder 的写入边界（`src/home/layout.ts` 是唯一 owner） |
 | ④ 让它按对的步骤走（工作流） | 过程性知识进**技能**（抽屉），不占常驻上下文；三档出口固定了线索的收束方式 |
 | ⑤ 让它经得起检查 | `curate`：**机器能跑的检查**（重复、悬空引用、预算、过期线索、缺理由的 drop、技能语法） |
 
@@ -26,7 +26,7 @@ DSH 的组合分两个平面，判据是"这东西是不是跨会话共享"：
 
 ```text
 HOST 面（cordis.patch.yml → dsh.bundle.patch）
-└── assistant-memory        服务：家的布局 + 四个房间的存储 + 摘要计算 + 养护检查
+└── assistant-memory        服务：working folder 的布局 + 四个房间的存储 + 摘要计算 + 养护检查
                             ctx.assistantMemory（唯一服务键）
                             + Web 壳品牌注入行（页标题/图标，webserver/index-inject；皮肤，不进模型上下文）
 
@@ -34,7 +34,7 @@ HOST 面（cordis.patch.yml → dsh.bundle.patch）
 自动发现，无需额外接线）：占用 `sidebar.brand.mark` / `sidebar.brand.name` 两个**通用**
 品牌 slot（官方品牌包只在 official 构建档案下注册，本地构建里空置）——不是 §六 延后的
 "专属 Web 卡片"（那是通用卡不够用时的 client 插件面，触发条件未到）。
-                            为什么在 host：家是**跨会话持久化**，与持久化/沙箱/模型路由同类。
+                            为什么在 host：working folder 是**跨会话持久化**，与持久化/沙箱/模型路由同类。
                             preset 里的服务行必须包在 isolate realm 里，否则与别的 preset 撞名。
 
 AGENT 面（presets/assistant/agent.cordis.yml → agent preset）
@@ -56,7 +56,7 @@ AGENT 面（presets/assistant/agent.cordis.yml → agent preset）
 
 | 模块 | 职责 | 依赖方向 |
 |---|---|---|
-| `src/home/layout.ts` | **家布局的唯一 owner**：路径、scaffold、SOUL.md/AGENTS.md 生成 | 无（最底层） |
+| `src/home/layout.ts` | **working folder 布局的唯一 owner**：路径、scaffold、SOUL.md/AGENTS.md 生成 | 无（最底层） |
 | `src/home/frontmatter.ts` | YAML frontmatter 解析/生成（**不抛异常**：坏文件交给养护检查点名） | `yaml` |
 | `src/home/room.ts` | 房间存储：安全 id、原子写、归档、**列出失败文件** | frontmatter |
 | `src/memory/record.ts` | 记忆记录词汇与校验（一条记录一个断言） | room 类型 |
@@ -83,13 +83,13 @@ AGENT 面（presets/assistant/agent.cordis.yml → agent preset）
 
 | 模型可见输入 | 由什么覆盖 |
 |---|---|
-| 身份/手册/摘要三段落（SOUL.md + AGENTS.md + 精选记忆与线索条数） | 系统提示词组装随请求记录；内容由家文件（外部状态）决定 |
+| 身份/手册/摘要三段落（SOUL.md + AGENTS.md + 精选记忆与线索条数） | 系统提示词组装随请求记录；内容由 working folder 的文件（外部状态）决定 |
 | 四个工具的调用与结果 | `tool/call` / `tool/result` 逐字进日志 |
 | 技能目录（学到的技能出现/消失） | 目录随请求组装记录；`skills/change` 是注册表失效事件 |
 | 工具 description | 属于模型可见输入：改它是**行为变更**，不是改名 |
 
 **刻意不新增 SessionEventMap 成员**（day 0）：上面四条已覆盖全部模型可见状态——
-理由与触发条件的唯一家是第六节延后项表；身份面代价见 `docs/identity.md` §一 第 5 行。
+理由与触发条件的唯一出处是第六节延后项表；身份面代价见 `docs/identity.md` §一 第 5 行。
 
 ## 五、数据流
 

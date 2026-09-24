@@ -9,7 +9,7 @@ whenToUse: When something is worth pursuing but not yet clear enough to become a
 Some things are not ready to be true yet. They are worth keeping — but not in memory, where they would
 masquerade as settled facts, and not in your head, where they evaporate. They go in `research/`.
 
-**A thread is a question with a lean, not a task.** "Should the home use one file per memory or one
+**A thread is a question with a lean, not a task.** "Should the working folder use one file per memory or one
 index file?" is a thread. "Write the memory store" is work, and belongs in your plan, not the backlog.
 
 ## Opening a thread

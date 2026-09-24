@@ -5,8 +5,8 @@
 # 而每个会话自己的状态按 Session/Agent 键控在插件内部。
 # 服务（`assistantMemory`）不在这个文件里 —— 它在 HOST 面（`cordis.patch.yml`）。
 #
-# TRUST：这个 preset 能读写 agent 自己的家（记忆、探索线索、技能）。任何 preset 都是受信配置，
-# 因为它授权它所选插件的能力；挂它等于把家交给它。
+# TRUST：这个 preset 能读写 agent 自己的 working folder（记忆、探索线索、技能、知识页）。任何 preset
+# 都是受信配置，因为它授权它所选插件的能力；挂它等于把 working folder 交给它。
 #
 # 四间房与三档出口的契约见 `docs/home.md`；身份名以 `docs/identity.md` 为唯一权威。
 
@@ -16,7 +16,7 @@
   name: '@deepseek-ai/dsh-persona'
   config:
     prefix: |-
-      You are a long-lived assistant. Your full identity and your home's operating manual ride in
+      You are a long-lived assistant. Your full identity and your working folder's operating manual ride in
       the sections right below this one.
     suffix: Your working directory is {{cwd}}.
 
@@ -25,11 +25,11 @@
   config:
     maxBytes: 65536
 
-# ── 家：桌面上方的常驻面（身份 + 手册 + 有界状态）────────────────────────────
+# ── working folder：桌面上方的常驻面（身份 + 手册 + 有界状态）──────────────────
 #
-# 三个段落讲一个顺序的故事：你是谁（SOUL.md，紧贴 persona stub）→ 这个家怎么用（AGENTS.md）
-# → 家里现在有什么（有界摘要）。身份与手册是家根的两个文件——拥有者的数据，不是 preset 代码
-# （提案 notes/proposed/2026-09-24-soul-and-agents.md，D1/D2/D3=a）。每段各自成行，
+# 三个段落讲一个顺序的故事：你是谁（SOUL.md，紧贴 persona stub）→ working folder 怎么用（AGENTS.md）
+# → 里面现在有什么（有界摘要）。身份与手册是 working folder 根部的两个文件——拥有者的数据，不是
+# preset 代码（提案 notes/proposed/2026-09-24-soul-and-agents.md，D1/D2/D3=a）。每段各自成行，
 # 部署可独立关掉或替换 —— 上下文控制是一等公民。
 - id: assistant-home-preamble
   name: dsh-smart-assistant/home-preamble
@@ -38,7 +38,7 @@
 - id: assistant-memory-digest
   name: dsh-smart-assistant/memory-digest
 
-# ── 家：抽屉（工具）─────────────────────────────────────────────────────────
+# ── working folder：抽屉（工具）──────────────────────────────────────────────
 #
 # 四个工具的动词集互不重叠，所以不合并：
 #   assistant_memory   recall/save/forget/list/curate   —— 已确立的事实、偏好、决定
@@ -51,7 +51,7 @@
 - id: assistant-research-tool
   name: dsh-smart-assistant/tool-research
 
-# ── 家：知识（第四房间，只读检索面）─────────────────────────────────────────────
+# ── working folder：知识（第四房间，只读检索面）──────────────────────────────
 #
 # 写入走 reflect（save_page，staged draft）与 research promote——本工具刻意只读（D6 定值）：
 # 检索=search/get 附反链，反链全房间现算，无索引服务。
@@ -68,7 +68,7 @@
 #   · 策展技能：本 preset 目录下的 `skills/`（人写的、随 repo 版本化）—— 用 `baseUrl` 惯用法指过去
 #     （`baseUrl` 是 preset 自己的目录，抄自 shipped `cordis` preset）。
 #   · 学到的技能：由 `assistant-learn` 自己挂载第二个 `dsh-skill-filesystem` 实例
-#     （`providerName: assistant-learned`，只扫家里的 `skills/`）—— 路径从服务取，零漂移。
+#     （`providerName: assistant-learned`，只扫 working folder 的 `skills/`）—— 路径从服务取，零漂移。
 # 分成两个 provider 是刻意的：一眼能看出一个技能是"策展的"还是"学来的"。
 - id: skill-filesystem
   name: '@deepseek-ai/dsh-skill-filesystem'
@@ -79,7 +79,7 @@
 - id: tool-skill
   name: '@deepseek-ai/dsh-tool-skill'
 
-# ── 文件系统（读家、读工作区）────────────────────────────────────────────────
+# ── 文件系统（读 working folder、读工作区）───────────────────────────────────
 #
 # 两行都只注册进 host `tools` 注册表、不发布服务，所以不需要 realm。
 - id: tool-fs

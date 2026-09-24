@@ -53,7 +53,7 @@ describe('manualSnapshot (guidance)', () => {
     const service = boot()
     await service.ensureHome()
     const manual = service.manualSnapshot()
-    expect(manual).toContain('# Your home — operating manual')
+    expect(manual).toContain('# Your working folder — operating manual')
     expect(manual).toContain(`home-manual v${String(HOME_MANUAL_VERSION)}`)
   })
 

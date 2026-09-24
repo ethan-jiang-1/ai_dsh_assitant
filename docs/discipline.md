@@ -12,7 +12,7 @@
 
 | DSH 纪律（源头） | 本仓落点 | 状态 |
 |---|---|---|
-| 文档只写 now；一个事实一个家；**入口文件只收常设指令与路由指针**——时变状态放进自动注入的文件，就是把最容易腐烂的东西放进最不被怀疑的地方（`vendor/dsh/AGENTS.md` / `vendor/dsh/docs/AGENTS.md` tier 表） | docs/ 只写现在，无历史叙事；历史与输掉的方案全在 notes/；AGENTS.md 全时不变（无状态节、无进度标记、无 pin 号） | ✅ 照搬 |
+| 文档只写 now；一个事实一个出处；**入口文件只收常设指令与路由指针**——时变状态放进自动注入的文件，就是把最容易腐烂的东西放进最不被怀疑的地方（`vendor/dsh/AGENTS.md` / `vendor/dsh/docs/AGENTS.md` tier 表） | docs/ 只写现在，无历史叙事；历史与输掉的方案全在 notes/；AGENTS.md 全时不变（无状态节、无进度标记、无 pin 号） | ✅ 照搬 |
 | 决策 Note same-PR；完成的条目离开队列、不许标 ✅ 留场（`.agents/notes/README.md`） | notes/proposed→implemented 与切片同 diff；intents 台账只记"接下来" | ✅ 照搬 |
 | 上游 plan 状态不二次落盘（2026-07-22 note :54：轮内计划已由工具参数记录，log-only 持久层不再建 plan 目录——**针对轮内计划状态**，不禁 repo 级提案与队列，见 `.agents/notes/README.md` 的 proposed 格式） | 不建 plans/tasks 物种（轮内计划走 plan/todo 机制，见下行）；repo 级设计计划住 `notes/proposed/`，队列住 `ROADMAP.md` | ✅ 适配（来源适用范围收窄：轮内状态 ≠ repo 级提案） |
 | 会话日志即真相（log-only 持久层；复盘用日志 seq 重建，不凭自述） | 排查/复盘读 `dev/harness-home/sessions/**/session.v3.jsonl.zstd` 逐事件还原（`docs/dev.md` §五） | ✅ 照搬 |
@@ -43,6 +43,6 @@
 - `pnpm sync-dsh` 升 pin 时：对照本文逐行重校（vendor 的套路在演进，继承必须跟着 pin 走）。
 - 语义漂移（读起来过期、自相矛盾）：机械门禁抓不住，靠新上下文探针与审计切片。
 - 审计切片的处置优先序：**删 > 并 > 修 > 记**——先问能不能删（净减少），再问能不能并（一处
-  事实一个家），然后才是修与登记；判据 = 每处改动能指向它修复的具体误导或漏检，**不是**
+  事实一个出处），然后才是修与登记；判据 = 每处改动能指向它修复的具体误导或漏检，**不是**
   "文件数与总行数少了多少"。文档预算（若触发立案）同上游规则：**上限是护栏，不是减量目标**
   （`vendor/dsh/docs/AGENTS.md`「Wordcount budgets」）。

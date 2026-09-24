@@ -158,8 +158,8 @@ async function agentOnPreset(ctx: Context, captured: Context[]) {
     // A fresh home's seed equals the built-in default, so the identity section is the default
     // voice either way — the race between scaffold and first assembly is invisible by design.
     expect(byName.get('assistant:soul')).toContain('You are a long-lived assistant')
-    expect(byName.get('assistant:home-manual')).toContain('# Your home — operating manual')
-    expect(byName.get('assistant:memory-digest')).toContain('Live status of your home')
+    expect(byName.get('assistant:home-manual')).toContain('# Your working folder — operating manual')
+    expect(byName.get('assistant:memory-digest')).toContain('Live status of your working folder')
   })
 
   it('registers this package\'s four tools on the joined agent, and only there', async () => {

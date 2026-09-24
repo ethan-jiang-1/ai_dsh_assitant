@@ -2,7 +2,7 @@
 /**
  * 开发启动器：`pnpm dsh <argv>` 的唯一入口。
  *
- * 为什么存在：DSH 用 `DSH_HOME` 决定一切持久化（profile、凭据、会话日志、插件安装、家的 dataDir）。
+ * 为什么存在：DSH 用 `DSH_HOME` 决定一切持久化（profile、凭据、会话日志、插件安装、assistant working folder 的 dataDir）。
  * 用户 shell 里可能已经导出了 `DSH_HOME=~/.dsh`（日用实例）—— 那么任何"忘了 source dev/env.sh
  * 就直接跑"的调用都会读写日用的 home：装进日用 profile、写日用会话日志、甚至拿到日用凭据。
  * `dev/env.sh` 是兜底，但兜底会被人（和 agent）忘掉；**默认值必须是安全的**。

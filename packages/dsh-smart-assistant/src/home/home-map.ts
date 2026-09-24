@@ -20,7 +20,7 @@ import type { HomePaths } from './layout.ts'
 export const AGENTS_FILE_NAME = 'AGENTS.md'
 
 /** Version of the generated manual; bump when the generated content changes meaningfully. */
-export const HOME_MANUAL_VERSION = 3
+export const HOME_MANUAL_VERSION = 4
 
 /** The version marker stamped as the file's first line (an HTML comment: invisible when rendered). */
 export const HOME_MANUAL_MARKER = `<!-- home-manual v${String(HOME_MANUAL_VERSION)} -->`
@@ -42,9 +42,10 @@ export function parseManualVersion(text: string): number {
  * and that the digest is bounded on purpose.
  */
 export const HOME_STATUS_BLURB = [
-  'Live status of your home. The manual above (`AGENTS.md`) is how it works, your voice is',
-  '`SOUL.md`, and both are files in your home root — yours to read and edit. Only this bounded',
-  'status rides in every request; `recall` and `assistant_reflect` fetch the rest on demand.',
+  'Live status of your working folder. The manual above (`AGENTS.md`) is how it works, your voice',
+  'is `SOUL.md`, and both are files in your working folder root — yours to read and edit. Only',
+  'this bounded status rides in every request; `recall` and `assistant_reflect` fetch the rest',
+  'on demand.',
 ].join('\n')
 
 /**
@@ -54,11 +55,11 @@ export const HOME_STATUS_BLURB = [
  */
 export function renderHomeManual(paths: HomePaths): string {
   return `${HOME_MANUAL_MARKER}
-# Your home — operating manual
+# Your working folder — operating manual
 
 This directory outlives every session. What you keep here is what you will still know tomorrow;
 what you do not keep is gone. Four rooms, one job each — do not mix them. Who you are lives in
-\`SOUL.md\` next to this file; this manual is how the home works.
+\`SOUL.md\` next to this file; this manual is how the working folder works.
 
 | Room | Holds | Lifecycle |
 |---|---|---|
@@ -88,15 +89,15 @@ loading immediately. Nothing is deleted — moving the bundle back restores it.
 ## What is always in front of you, and what is not
 
 Three things ride in every request: your identity (\`SOUL.md\`), this manual (\`AGENTS.md\`), and a
-bounded digest of the home's live state — the strongest active memories and the open threads.
-Everything else — full records, archived entries, skill bodies, knowledge pages — is fetched on
-demand. That is deliberate: a home that crowds out the work in front of you makes you worse, not
-better.
+bounded digest of the working folder's live state — the strongest active memories and the open
+threads. Everything else — full records, archived entries, skill bodies, knowledge pages — is
+fetched on demand. That is deliberate: a working folder that crowds out the work in front of you
+makes you worse, not better.
 
 ## Past conversations
 
 Every session you have ever had is on disk: \`<harness-home>/sessions/--<normalized-cwd>--/session-<id>/session.v3.jsonl.zstd\`
-(the harness home is your home's parent directory). Each line is one event — full user and assistant
+(the harness home is your working folder's parent directory). Each line is one event — full user and assistant
 messages, tool calls with their arguments, session headers naming the cwd and preset. Nothing indexes
 them; when memory is not enough and you need what was actually said or done, search them with the
 recipe in the \`session-recall\` skill.

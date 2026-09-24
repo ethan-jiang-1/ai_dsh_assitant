@@ -35,8 +35,8 @@ export function renderMaintenancePrompt(round: number, every: number): string {
     `[Maintenance slot] Round ${round} of this goal just queued, and that is your scheduled`,
     `maintenance interval (every ${every} rounds). Run \`assistant_memory action=curate\` now and`,
     'process what it reports: retire dead skills, rename or retire shadowed ones, fix broken',
-    'pointers, merge near-duplicates, or defer each finding with a one-line reason. If the home',
-    'is clean, say so in one line. Keep this turn short — the paused goal work resumes right',
+    'pointers, merge near-duplicates, or defer each finding with a one-line reason. If the working',
+    'folder is clean, say so in one line. Keep this turn short — the paused goal work resumes right',
     'after this turn.',
   ].join('\n')
 }

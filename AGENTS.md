@@ -6,7 +6,7 @@
 ## 这是什么
 
 一个 DSH 插件 repo：**一个领域专家式的助手**（`dsh-smart-assistant`）。
-它给 agent 一个自己的**家**（working folder）：长期记忆 + 领域知识 + 学到的技能 + 家的养护检查。
+它给 agent 一个自己的 **working folder**（跨会话的工作目录）：长期记忆 + 领域知识 + 学到的技能 + 机器能跑的养护检查。
 核心命题是 `Agent = Model + Harness` —— 本 repo 做的就是"那一圈"。
 
 ## 新会话开工（先读这段）
@@ -27,7 +27,7 @@ implemented note 必带「**输掉的方案**」节——没记击败了什么�
 | 路径 | 是什么 | 谁能改 |
 |---|---|---|
 | `ROADMAP.md` | **根部队列：只写接下来**（队列/搁置池/维护规则；条目 ≤3 行，完成即离队） | 队列调整直接改 + 维护规则记一行 |
-| `packages/dsh-smart-assistant/src/home/` | **家的布局契约**（路径、scaffold、身份与手册文件、健康检查）—— 单一 owner | 改布局只动这里 |
+| `packages/dsh-smart-assistant/src/home/` | **working folder 的布局契约**（路径、scaffold、身份与手册文件、健康检查）—— 单一 owner | 改布局只动这里 |
 | `.../src/memory/` | 记忆记录词汇、文件存储、检索、有界摘要 | 改记忆语义动这里 |
 | `.../src/research/` | 探索线索（backlog）词汇与三档出口（promote/park/drop） | 改探索语义动这里 |
 | `.../src/skills/` | `SKILL.md` 契约与校验写入 | 改技能文件契约动这里 |

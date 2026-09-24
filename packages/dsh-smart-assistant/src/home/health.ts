@@ -241,7 +241,7 @@ export function curateHome(input: CurationInput): CurationBrief {
     findings.push({
       code: 'manual-stale-scaffold',
       severity: 'info',
-      message: 'the home manual (AGENTS.md) predates the current scaffold '
+      message: 'the working folder manual (AGENTS.md) predates the current scaffold '
         + `(v${String(input.manualVersion)} vs v${String(HOME_MANUAL_VERSION)}) — delete the file to `
         + 'regenerate it, or ignore this if you curate it by hand',
       refs: ['AGENTS.md'],

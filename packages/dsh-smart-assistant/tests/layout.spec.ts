@@ -64,7 +64,7 @@ describe('scaffoldHome', () => {
       expect(existsSync(directory)).toBe(true)
     }
     const manual = await readFile(paths.agentsFile, 'utf8')
-    expect(manual).toContain('# Your home — operating manual')
+    expect(manual).toContain('# Your working folder — operating manual')
     expect(manual).toContain('## Past conversations')
     expect(manual).toContain('knowledge-craft')
     expect(manual).toContain(`home-manual v${String(HOME_MANUAL_VERSION)}`)
