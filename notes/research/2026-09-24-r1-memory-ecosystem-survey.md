@@ -1,6 +1,6 @@
 # 记忆插件生态普查与 "smart memory" 查证（r1）
 
-日期：2026-09-24 · 状态：research 底稿（判据与决策记录不入此文件；按本 repo research 面规范，进文前的承重主张由委托方复核）
+日期：2026-09-24 · 状态：research 底稿（判据与决策记录不入此文件；按本 repo research 面规范，进文前的承重主张由委托方复核）——**已消化：结论经 [tri-line 合流](../implemented/2026-09-24-tri-line-synthesis.md) 落地为记忆房间**
 
 **委托问题**：用户听说有个叫 "smart memory" 的插件，如果好用就直接用它、不用自己写（对照 `dsh-smart-assistant` 自研的记忆系统）。用户后续拍板两事：**① 硬约束：纯本地使用，不用云**——一切候选只有"可完整自托管/离线"才成立；**② supermemory（supermemoryai/supermemory）为重点候选**，需深评。
 

@@ -1,4 +1,4 @@
-# 2026-09-24 · R2：Agent 自主能力增长（技能成长）——技能框架设计空间与现有方案普查
+# 2026-09-24 · R2：Agent 自主能力增长（技能成长）——技能框架设计空间与现有方案普查（已消化：结论经 tri-line 三阶段落地）
 
 > 委托方问题：`dsh-smart-assistant` 已 live 验证了一套最小自研基线（家的 `skills/` 房间 + SKILL.md 契约 + `assistant_reflect`（brief→save_skill）+ 第二个 `dsh-skill-filesystem` provider（`assistant-learned`）+ 双源遮蔽 + 按需加载；触发目前仅模型/人主动）。生态里有什么现成方案？路线选全自研进化 / 借规范借组件 / 直接采用？
 >
