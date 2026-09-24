@@ -1,6 +1,6 @@
 # 会话日志记忆面（sessions/ 是被浪费的记忆原料吗）
 
-日期：2026-09-24 · 状态：**调研中（r6 深评代理运行中）**
+日期：2026-09-24 · 状态：**待拍板（r6 落稿，承重主张已亲验）**
 
 ## 问题
 
@@ -13,9 +13,22 @@
 
 ## 当前状态
 
-- r6 深评代理运行中：本地解剖（vendor session/storage 写入端 + dev home 真实日志样本 +
-  fs 工具路径可达性）+ palimpsest 深评 + Hermes session_search 对照。
-- 底稿将落 notes/research/（r6），落稿后此处补链接；承重主张经复核后本卡转「待拍板」。
+- 深评落稿：[r6 survey](../research/2026-09-24-r6-session-log-memory-survey.md)；承重主张
+  五条已由委托方亲验（布局/zstd 魔数/沙箱只限写/literal 谓词/openAt:never——各自有盘上或
+  vendor 源码指认）。
+- 深评结论：**原料齐全、可达、可查，瓶颈只是知识**——会话日志在 `<DSH_HOME>/sessions/
+  --<规范化cwd>--/session-<id>/session.v3.jsonl.zstd`（zstd 压缩，`rg --pre` 两段式配方
+  0.72s/34 会话实测）；agent 的 fs/shell 读路径本就开放。DSH 自带 session-query 层
+  （literal 过滤不依赖 FTS，sqlite 索引默认 openAt:never 关闭）；palimpsest 设计成熟但
+  零社区单维护者（创建即最后 push，~4s/20 会话）。
+
+## 决策点（待拍板）
+
+| # | 问题 | 选项 |
+|---|---|---|
+| D1 | 最小形态 | a+：**只补知识**——家手册/策展技能带"在哪/是 zstd/rg 配方"三句话（零代码，MD 原生）；b1/b2 薄动词、c 挂 palimpsest 转 ⏳ 触发型（触发=真实使用中真去查历史会话且配方不够用） |
+| D2 | 若将来建动词 | b1（spawn zstd\|rg，文件系统原生但依赖 zstd CLI）vs b2（ctx.sessionQuery literal filter，免外部依赖但是服务调用非 FS 原生——后端可用性待细查）；palimpsest 作设计参照（cwd 硬范围/脱敏/命中排序）不挂依赖 |
+| D3 | 部署项 | compression:'none' 可让裸 rg 成立（代价盘占）——部署层决定，不属本插件 |
 
 ## 依据
 
@@ -26,5 +39,5 @@
 
 ## 验收（毕业条件）
 
-三问各有事实结论 + go/no-go 与最小形态建议 → 本卡转「待拍板」；拍板后按结论立实施提案
-（或结论为"什么也不建"则一行原因转 rejected——negative result 也是结果）。
+拍板后：D1=a+ 则落地知识与技能后毕业（改写为 implemented）；b/c 路线转实施提案。
+未复核保留项：palimpsest 是否真走 ctx.sessionQuery（README 未逐字写明）。
