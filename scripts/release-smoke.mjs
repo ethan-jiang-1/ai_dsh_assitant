@@ -9,11 +9,18 @@
  * throwaway home, installs the tarball with `dsh plugin add`, points the preset roster at the
  * *installed* `presets/` directory, and reads the composed tree back with `--dump-config`.
  *
- * The profile is created from the shipped `web` template on purpose: the preset roster row lives in
- * the web-app bundle, so a base-backed profile could not mount the preset at all.
+ * The profile is created from the shipped `headless` template: the one-shot runner row and the
+ * positional-task parsing both live in the headless bundle, so a base/web-only profile could not
+ * run a one-shot turn at all. The preset roster is then INSERTED (the headless template has no
+ * roster row to replace) pointing at the *installed* `presets/` directory, mirroring
+ * `dev/profile-patch-headless.yml`.
  *
  * A live model turn is optional: without `DEEPSEEK_API_KEY`, that step self-skips and every
- * composition assertion still runs.
+ * composition assertion still runs — including the patched dump proving the preset-mounted
+ * runner is in the composition. The turn runs through `dsh-smart-assistant/preset-runner`
+ * (the same driver `dev/preset-runner.patch.yml` mounts in dev), so a keyed run joins the
+ * assistant preset instead of the shipped bare-agent one-shot — this is what "the live turn"
+ * can honestly claim to verify.
  *
  * Flags:
  *   --keep        keep the throwaway home for inspection (prints its path)
@@ -95,14 +102,16 @@ try {
   }
   ok(`${listing.length} files; peer ranges are concrete`)
 
-  step(`creating a clean profile from the shipped web template at ${home}`)
+  step(`creating a clean profile from the shipped headless template at ${home}`)
   // The profile directory must NOT pre-exist: `--from-default-profile` refuses to initialize over one.
+  // The headless template carries the one-shot runner and positional-task parsing; the roster
+  // row it lacks is inserted below (replace semantics would patch nothing and only warn).
   writeFileSync(join(home, '.credentials.yaml'), '# no key here: the live turn self-skips\n', 'utf8')
-  dsh(['--profile', profile, '--from-default-profile', 'web', '--dump-config'])
+  dsh(['--profile', profile, '--from-default-profile', 'headless', '--dump-config'])
   if (!existsSync(join(home, 'profiles', profile, 'package.json'))) {
-    fail('the profile was not created from the web template')
+    fail('the profile was not created from the headless template')
   } else {
-    ok('profile created from the web template (its bundle carries the preset roster)')
+    ok('profile created from the headless template (one-shot runner + positional parsing)')
   }
 
   step('installing the tarball')
@@ -112,13 +121,17 @@ try {
   else ok('dsh plugin add installed the package with its presets/')
 
   step('pointing the roster at the installed presets (the shape a user gets)')
+  // insert semantics — the headless template has no agent-presets row to replace
+  // (dev/profile-patch-headless.yml is the same shape in dev).
   writeFileSync(join(home, 'profiles', profile, 'cordis.patch.yml'), `# Written by scripts/release-smoke.mjs
-- id: agent-presets
-  config:
-    default: assistant
-    roots:
-      - path: ${installedPresets}
-        trust: system
+- insert:
+    - id: agent-presets
+      name: '@deepseek-ai/dsh-agent-presets'
+      config:
+        default: assistant
+        roots:
+          - path: ${installedPresets}
+            trust: system
 `, 'utf8')
 
   step('reading the composed tree back')
@@ -129,15 +142,34 @@ try {
   if (!dump.includes('assistant')) fail('--dump-config does not show the preset roster default')
   else ok('the preset is the profile default')
 
-  step('live turn (self-skips without a key)')
+  step('keyless check: the preset-mounted one-shot entry is in the composition')
+  // The runner patch mirrors dev/preset-runner.patch.yml: disable the shipped bare-agent
+  // runner, insert ours — which joins the preset from the profile's roster.
+  const runnerPatch = join(home, 'preset-runner.patch.yml')
+  writeFileSync(runnerPatch, `# Written by scripts/release-smoke.mjs
+- id: headless-runner
+  disabled: true
+- insert:
+    - id: preset-runner
+      name: dsh-smart-assistant/preset-runner
+      inject: [headlessStartup]
+      config:
+        task: !!js ctx.headlessStartup.task
+`, 'utf8')
+  const patched = dsh(['--profile', profile, '--patch', runnerPatch, '--dump-config'])
+  if (!patched.includes('preset-runner')) fail('--patch does not bring the preset-mounted runner into the composition')
+  else ok('preset-mounted runner composes (the live turn would join the assistant preset)')
+
+  step('live turn on the assistant preset (self-skips without a key)')
   const key = (process.env.DEEPSEEK_API_KEY ?? '').trim()
   if (key.length === 0) {
-    ok('skipped: no DEEPSEEK_API_KEY in the environment')
+    ok('skipped: no DEEPSEEK_API_KEY in the environment — the entry shape above was still checked keylessly')
   } else {
     writeFileSync(join(home, '.credentials.yaml'), `DEEPSEEK_API_KEY: ${key}\n`, 'utf8')
-    const answer = dsh(['--profile', profile, 'reply with the single word ready'])
+    // The preset-mounted runner prints the turn's final text and exits 0 on completion.
+    const answer = dsh(['--profile', profile, '--patch', runnerPatch, 'reply with the single word ready'])
     if (!/ready/i.test(answer)) fail(`live turn did not answer as expected: ${answer.slice(0, 200)}`)
-    else ok('live turn answered on the assistant preset')
+    else ok('live turn answered through the joined assistant preset')
   }
 } catch (error) {
   fail(`threw: ${error instanceof Error ? error.message : String(error)}`)

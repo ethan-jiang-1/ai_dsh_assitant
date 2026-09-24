@@ -16,11 +16,11 @@
 - ⏸ **发布面裁决**：v0.1.0 `npm publish` 还是继续 private（用户拍板；release-smoke 已绿，`docs/discipline.md` 发布纪律已对齐）
 - 🧹 **使用前清扫**：dev home 夹具尸体（archive 三 bundle + 悬链 `[[staging-gate]]`）+ 家 parked 线索 promote（目标=已有 decision 记忆）
 - 🧹 **微切片**：curate 附 archive 规模一行（"N retired bundles, M snapshots"——live 助手观察登记）
-- ⏳ 语义检索 / embedding（触发=真实漏召回；依据：三线提案 §六、R1/R3）
-- ⏳ 全自动蒸馏（触发=用量统计显示收益>token+同意成本；采集工具已在场）
-- ⏳ FTS/trigram 检索升级（触发=grep 真实漏召回；方法参照 dsh-knowledge-sqlite 实测表）
-- ⏳ 跨 harness 共库（触发=第二消费方出现；memsearch 形态）
-- ⏳ 技能 license/compatibility 字段（触发=provider 读它们或第二消费方；1g 审计 note）
+- ⏳ 语义检索 / embedding（触发=真实漏召回；依据：[三线合流 §六](notes/implemented/2026-09-24-tri-line-synthesis.md)、[R1 判据对照 §5](notes/research/2026-09-24-r1-memory-ecosystem-survey.md)、[R3 设计 §7.2](notes/research/2026-09-24-r3-knowledge-layer-survey.md)）
+- ⏳ 全自动蒸馏（触发=用量统计显示收益>token+同意成本；采集工具已在场；依据：[R2 缺口清单 §9.3-5](notes/research/2026-09-24-r2-skill-growth-survey.md)）
+- ⏳ FTS/trigram 检索升级（触发=grep 真实漏召回；方法参照 [dsh-knowledge-sqlite 实测表（R3 §4.3/§7.2-3）](notes/research/2026-09-24-r3-knowledge-layer-survey.md)）
+- ⏳ 跨 harness 共库（触发=第二消费方出现；[memsearch 形态，R1 §6-7](notes/research/2026-09-24-r1-memory-ecosystem-survey.md)）
+- ⏳ 技能 license/compatibility 字段（触发=provider 读它们或第二消费方；[1g 审计](notes/implemented/2026-09-24-spec-field-audit.md)）
 
 ## 搁置池
 

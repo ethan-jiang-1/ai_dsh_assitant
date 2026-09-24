@@ -6,7 +6,8 @@ DSH 的 model-visible 行为回归靠**录制会话的 keyless 重放**（一场
 **第 0 天的诚实状态：目录先立，harness 未建。** 先用两样东西顶：
 
 1. **测试**（`packages/dsh-smart-assistant/tests/`）：纯核函数的行为断言 ——
-   布局、frontmatter、存储、检索、三档出口、养护检查、摘要预算。
+   布局、frontmatter、存储、检索、三档出口、养护检查、摘要预算，
+   以及真实组合装载（Loader + preset 站立挂载 + 经属性代理消费服务，keyless）。
    这是"会为这次回归而失败"的最小证据，覆盖绝大多数改动。
 2. **会话 JSONL 日志 diff**（落在 `dev/harness-home/sessions/`，gitignore）：
    调试上下文组装时**读日志，不猜**（model-visible ⟺ logged）。

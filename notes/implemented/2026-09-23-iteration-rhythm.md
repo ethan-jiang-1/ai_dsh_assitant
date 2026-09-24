@@ -40,6 +40,10 @@ I14：加工要步步为营 —— 干一段时间，留一个空槽给"打扫�
   `followup()` 一条 `source:{kind:'plugin', plugin:'dsh-smart-assistant'}` 的养护 turn；
   driver 栅栏自动让下一轮加工排队等它。N 走服务 config（同 `digestMaxBytes` 的行配置模式）。
   模板：schedule runtime.ts:228-320、tool-jobs onJobDone。
+  > **2026-09-24 实施修正**（切片 1e，[maintenance-metronome](2026-09-24-maintenance-metronome.md)）：
+  > 上面设想的触发信号被亲验推翻——`goal/changed` 只在 goal 变更时发，**轮次推进不经过它**。
+  > 实际采用 `agent/inbox/inserted`（goal 轮消息 source 自带 goalId/round，无状态节拍）；
+  > followup、让路栅栏、config 行（`maintenanceEveryRounds` 默认 5）仍按本条设计落地。
 - **(a) 先垫底（零代码，可立即做）**：`home-curation` 技能 + persona 写节拍纪律
   （"加工几段主动跑 curate"）——纯纪律，无强制，但它让 (b) 出现前的行为先对。
 - **(c) 用户显式 `/curate` 命令**（模板 command-goal）：手动兜底，靠人记得，不作为主路径。

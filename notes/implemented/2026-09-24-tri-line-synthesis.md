@@ -1,4 +1,4 @@
-# 提案（草稿）：三线合流——治理环 · 第四房间 knowledge/ · 触发演进
+# 三线合流（已实施）：治理环 · 第四房间 knowledge/ · 触发演进
 
 日期：2026-09-24 · 状态：**已全部实施完毕（2026-09-24）——阶段 1（1a–1h）、阶段 2（2a–2f）、阶段 3（3a–3c）全部 implemented 带证据指针；延后项见 §六，触发条件不变**
 
@@ -173,13 +173,15 @@
 | 跨 harness 共库（memsearch 形态） | 第二消费方出现 | R1 §6-7 |
 | R1 其余七项设计借用（画像二分、注入常量、晋升回执等） | 相关切片落地时顺手借 | R1 §6 |
 
-## 七、批准后的事（现在不做，防抢跑）
+## 七、批准后的事（2026-09-24 逐项对账——毕业时把"待批准语气"收束为实际归宿）
 
-- intents.md 补 I15（知识房间意图：一行动机 + 一行外部可观察行为）——批准后第一片；
-- R3 线索在家 research/ 房间开 thread（handoff 残留待办，落地时顺手补）；
-- AGENTS.md 布局表/命令表若受影响 → 按 `writing-for-agents` 技能改；
-- 实施期纪律：每片 = 一个垂直切片（代码 + 测试 + docs + note 同 diff），tdd / code-review
-  进实施期再用；本文档已于 2026-09-24 按用户拍板转正 proposed，随各阶段切片逐项翻 implemented。
+- intents.md 补 I15：✅ 已补且随阶段 2 翻 implemented（`notes/intents.md` I15 行带 live E2E 证据指针）；
+- R3 线索在家 research/ 房间开 thread：✅ 已开（`20260923-how-should-the-knowledge-room-land-3e8i`，
+  source 指回本提案，落地后 parked）；
+- AGENTS.md 布局表/命令表：✅ 随各切片同步（最新一轮补 knowledge owner 行与四工具口径）；
+- 实施期纪律（每片一个垂直切片、note 同 diff）：✅ 全程执行，各切片档案见 §三各行。
+
+**仍未决（真实保留，不冒充完成）**：§六延后项全部移交 `ROADMAP.md` ⏳ 行管理，触发条件未到。
 
 ## 八、与 handoff 残留待办的对账
 

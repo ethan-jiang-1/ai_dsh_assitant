@@ -13,11 +13,6 @@ import { afterEach, describe, expect, it } from 'vitest'
 import AssistantMemory from '../src/index.ts'
 import { auditSkillCredentials, auditSkillReferences } from '../src/skills/audit.ts'
 
-const BODY_OK = [
-  'Run the checks listed in [the overview](references/overview.md) first.',
-  'Skip anything the `memory-hygiene` skill already covers.',
-].join('\n')
-
 describe('auditSkillCredentials (pure)', () => {
   it('names credential shapes', () => {
     const cases: readonly [string, string][] = [

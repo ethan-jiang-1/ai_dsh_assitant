@@ -12,8 +12,8 @@
 
 | 通道 | 是否随 DSH_HOME 隔离 | dev 的处理 |
 |---|---|---|
-| profiles / sessions / storages / attachments / settings / credentials / 技能用户根 / `.agent-presets` / 家的 dataDir | ✅ | 自动落在 dev home |
-| skills 的共享 agent 根（默认 `~/.agents`） | ❌ 不隔离 | 启动器接管为 `$DSH_HOME/agents-home` |
+| profiles / sessions / storages / attachments / settings / credentials / 技能用户根 / `.agent-presets` / 家的 dataDir（默认值；显式 `dataDir` 覆盖例外，见 `docs/home.md`） | ✅ | 自动落在 dev home |
+| skills 的共享 agent 根（默认 `~/.agents`） | ❌ 不隔离 | 启动器接管为 `$DSH_HOME/agents-home`（仅当未显式设置；`dev/env.sh` 则无条件强制） |
 | telemetry | 身份按 home 独立；默认 FEEDBACK_ONLY | 启动器设 `DSH_TELEMETRY_DISABLED=1` |
 | spill 临时文件 | ❌ 用 OS tmpdir（`dsh-spill-*`），启动清扫会清过期文件 | 低危：dev 启动可能清掉日用实例**已过期 30 天**的临时输出 |
 | pnpm 全局 store | ❌ 内容寻址缓存 | 良性共享 |
@@ -31,10 +31,11 @@
 
 | 门面 | 管什么 | 谁维护 |
 |---|---|---|
-| `tsconfig.base.json` | **编译期**：只列我们直接 import 的 6 个 `@deepseek-ai/*` 包（paths → vendor `src`）+ 公共编译选项；`packages/dsh-smart-assistant/tsconfig.json` extends 它，并为每个包配 project reference —— `tsc -b` 按项目引用构建它们，API 漂移在编译期暴露，又不把 DSH 源码并进本程序（撞 `rootDir`） | 手维护：src 里新增 `@deepseek-ai/*` import 时加一行 paths（`pnpm verify` 机械检查） |
+| `tsconfig.base.json` | **编译期**：只列我们直接 import 的 `@deepseek-ai/*` 包（paths → vendor `src`，条数随 import 面演进）+ 公共编译选项；`packages/dsh-smart-assistant/tsconfig.json` extends 它，并为每个包配 project reference —— `tsc -b` 按项目引用构建它们，API 漂移在编译期暴露，又不把 DSH 源码并进本程序（撞 `rootDir`） | 手维护：src 里新增 `@deepseek-ai/*` import 时加一行 paths（`pnpm verify` 机械检查） |
 | `tsconfig.tsx.json` | **运行期**：全量别名（280 条），`scripts/dsh.mjs` 经 `TSX_TSCONFIG_PATH` 让 tsx 加载 DSH 的 `src` 启动 CLI | `pnpm gen-paths` 从 vendor/dsh 生成；`pnpm verify` 查不过期（换 pin 后必跑） |
 
-`pnpm typecheck`（根 `tsconfig.json` 按项目引用聚合到包工程）走编译期门面；`pnpm dsh` 走运行期门面。
+`pnpm typecheck`（根命令委派包级脚本：`tsc -b` 按项目引用聚合到包工程、走编译期门面，再
+`tsc -p tsconfig.test.json` 覆盖 tests——测试工程经 workspace 构建声明解析 vendor，需先有构建产物）走编译期门面；`pnpm dsh` 走运行期门面。
 
 ## 三、一次性准备（每个 pin 一次）
 
@@ -91,9 +92,9 @@ registering"——而第一个打开页面的人就成了 crash-test dummy。`pn
 | 坑 | 事实 | 正确做法 |
 |---|---|---|
 | `pnpm dsh web --profile dev` | `dsh web` 别名**硬编码 profile 'web'**，会在 dev home 里自动创建一个 shipped `web` profile | 用 `pnpm dsh --profile dev`（dev profile 自带 web-app bundle） |
-| one-shot 无反应 | web 模板没有 one-shot runner 行（在 `@deepseek-ai/dsh-headless` bundle） | setup.sh 已把 headless 追加进 profile bundles |
+| one-shot 无反应 | one-shot runner 行与位置参数解析都在 `@deepseek-ai/dsh-headless` bundle 的 headless-startup 里；web 模板没有它们 | 用 `dev-task` profile（headless 模板自带 runner 行）；**不要**往 `dev` 追加 headless bundle（§四：混装必撞 duplicate id，setup.sh 反而会把它摘掉） |
 | 无 key 的行为 | boot 不失败；首个 live turn 抛 `MISSING_CREDENTIAL`。"self-skip" 是**测试机制**不是产品行为 | 在 `$DSH_HOME/.credentials.yaml` 配 `DEEPSEEK_API_KEY`（或 `$DSH_HOME/.env`） |
-| **one-shot 不进 preset** | headless runner 建**裸 agent**，roster 只在"创建会话的一方"被消费（web 会话创建 / 子 agent 继承父 composition）—— vendor 源码注释明文："A deployment that DOES configure one has to join it here first" | preset 行为（三工具/persona/摘要段落）用 **dev profile 的 Web UI 会话**验证；dev-task 只冒烟 host 面（插件装载、家 scaffold、服务行） |
+| **one-shot 不进 preset** | headless runner 建**裸 agent**，roster 只在"创建会话的一方"被消费（web 会话创建 / 子 agent 继承父 composition）—— vendor 源码注释明文："A deployment that DOES configure one has to join it here first" | preset 行为（四工具/persona/摘要段落）用 **dev profile 的 Web UI 会话**验证；dev-task 只冒烟 host 面（插件装载、家 scaffold、服务行） |
 | API 抖动 | `TRANSPORT` 错误（"DeepSeek API request failed"）会触发 attempt 重试循环，模型可能开始即兴行为 | 重试即可；会话日志（`sessions/<proj>/<id>/session.v3.jsonl.zstd`）能逐事件还原 |
 | vendor install 失败 | 根 postinstall（lefthook）在 submodule 里必然失败 | 包已就位；build 用 `--config.verify-deps-before-run=false` 绕过 |
 | 命令表象不可信 | `--dump-config`/`--help` 不加载 loader entries | "能不能跑"的最低证据 = 真 boot 一次 |
@@ -103,8 +104,11 @@ registering"——而第一个打开页面的人就成了 crash-test dummy。`pn
 ## 六、组合的四个层（dev 里谁改谁生效）
 
 ```text
-bundle 层（@deepseek-ai/dsh-base → dsh-web-app → dsh-headless → dsh-smart-assistant）
-  → profiles/dev/cordis.patch.yml        # dev/profile-patch.yml 拷贝（roster 指向 repo presets）
+bundle 层（两个 profile 各自的链，刻意的——§四，web-app 与 headless 不可混进同一 profile）：
+  dev      = @deepseek-ai/dsh-base → dsh-web-app  → dsh-smart-assistant
+  dev-task = @deepseek-ai/dsh-base → dsh-headless → dsh-smart-assistant
+  → profiles/<name>/cordis.patch.yml     # setup.sh 拷贝：dev 用 dev/profile-patch.yml（替换语义），
+                                          #   dev-task 用 dev/profile-patch-headless.yml（insert 语义，两文件不可互换）
   → $DSH_HOME/cordis.patch.yml           # home 级（作用于该 home 全部 profile）—— dev 不用它
   → --patch                              # 临时覆盖
 ```

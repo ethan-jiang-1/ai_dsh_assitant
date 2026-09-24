@@ -8,7 +8,7 @@
 # TRUST：这个 preset 能读写 agent 自己的家（记忆、探索线索、技能）。任何 preset 都是受信配置，
 # 因为它授权它所选插件的能力；挂它等于把家交给它。
 #
-# 三间房与三档出口的契约见 `docs/home.md`；身份名以 `docs/identity.md` 为唯一权威。
+# 四间房与三档出口的契约见 `docs/home.md`；身份名以 `docs/identity.md` 为唯一权威。
 
 # ── 身份 ────────────────────────────────────────────────────────────────────
 
@@ -49,10 +49,11 @@
 
 # ── 家：抽屉（工具）─────────────────────────────────────────────────────────
 #
-# 三个工具的动词集互不重叠，所以不合并：
+# 四个工具的动词集互不重叠，所以不合并：
 #   assistant_memory   recall/save/forget/list/curate   —— 已确立的事实、偏好、决定
 #   assistant_research open/update/park/drop/promote/list —— 未决的线索（backlog 三档出口）
-#   assistant_reflect  brief/save_skill                 —— 把经历变成记忆与技能
+#   assistant_reflect  brief/save_skill/save_page       —— 把经历变成记忆、技能与知识页
+#   assistant_knowledge search/get（只读）               —— 知识页检索（写入走 reflect/promote）
 - id: assistant-memory-tool
   name: dsh-smart-assistant/tool-memory
 

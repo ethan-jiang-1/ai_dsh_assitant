@@ -6,7 +6,10 @@
  * identity names in `docs/identity.md` match the code, every `@deepseek-ai/*` import has a
  * resolution-facade entry, the published package stays self-contained, our skill-name grammar has not
  * drifted from the harness registry's, the home document lists the rooms the code creates, markdown
- * pointers name files and sections that exist, and the paths that must never be committed are ignored.
+ * pointers (backticked paths, section references, relative links) name files and sections that exist,
+ * the vendor/dsh pin matches its bookkeeping (tag, SHA, gitlink) with tracked sources clean, note
+ * filenames and proposal status lines keep their shape, and the paths that must never be committed
+ * are ignored.
  *
  * Exit code 1 with a per-check report when anything fails.
  */
@@ -15,6 +18,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { dirname, basename, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { GRADUATED_STATUS, notesNamingProblems, pinProblems, proposalStatusProblems, relativeLinkProblems } from './verify-checks.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const packageDir = join(repoRoot, 'packages', 'dsh-smart-assistant')
@@ -81,26 +85,8 @@ check('structure: required paths exist', () => REQUIRED_PATHS
   .filter(path => !exists(join(repoRoot, path)))
   .map(path => `missing ${path}`))
 
-check('submodule: vendor/dsh is pinned and reachable', () => {
-  const problems = []
-  if (!exists(join(vendorDsh, 'packages', 'core', 'tools', 'src', 'index.ts'))) {
-    problems.push('vendor/dsh is not checked out — run `git submodule update --init`')
-  }
-  const gitmodules = exists(join(repoRoot, '.gitmodules')) ? read(join(repoRoot, '.gitmodules')) : ''
-  if (!gitmodules.includes('vendor/dsh')) problems.push('.gitmodules does not declare vendor/dsh')
-  const upstream = exists(join(repoRoot, 'vendor', 'UPSTREAM.md')) ? read(join(repoRoot, 'vendor', 'UPSTREAM.md')) : ''
-  const tag = /`(dsh-v[0-9][^`]*)`/.exec(upstream)?.[1]
-  if (tag === undefined) problems.push('vendor/UPSTREAM.md does not record the pinned tag')
-  else {
-    try {
-      const described = execFileSync('git', ['-C', vendorDsh, 'describe', '--tags'], { encoding: 'utf8' }).trim()
-      if (described !== tag) problems.push(`vendor/dsh is at ${described}, UPSTREAM.md records ${tag}`)
-    } catch {
-      problems.push('could not read the submodule revision (git describe failed)')
-    }
-  }
-  return problems
-})
+check('submodule: vendor/dsh matches UPSTREAM.md (tag, SHA, gitlink) and tracked sources are clean', () =>
+  pinProblems(repoRoot))
 
 // ── identity ────────────────────────────────────────────────────────────────────────────────────
 
@@ -332,12 +318,18 @@ check('queue: digested proposals graduate out of notes/proposed/', () => {
   const problems = []
   for (const file of walk(join(repoRoot, 'notes', 'proposed'), ['.md'])) {
     const status = /状态：\*\*([^*]*)\*/.exec(read(file))?.[1] ?? ''
-    if (/已全部实施|已消化|已毕业/.test(status)) {
+    if (GRADUATED_STATUS.test(status)) {
       problems.push(`${relative(repoRoot, file)} says it is done but still sits in notes/proposed/ — graduate it to notes/implemented/`)
     }
   }
   return problems
 })
+
+check('queue: proposals carry a bold status line', () =>
+  proposalStatusProblems(join(repoRoot, 'notes', 'proposed')))
+
+check('notes: note files follow YYYY-MM-DD-topic naming', () =>
+  notesNamingProblems(join(repoRoot, 'notes')))
 
 check('contract: curated skills carry valid frontmatter and match their directory', () => {
   const problems = []
@@ -370,6 +362,11 @@ check('contract: curated skills carry valid frontmatter and match their director
 //     allowlist of root/package basenames. External material (URLs, absolute paths, $VARS, globs)
 //     and home-internal bare names (HOME.md, SKILL.md) are out of scope; dev/harness-home is
 //     runtime residue created by dev/setup.sh and exempt.
+//   · relative markdown links — `[text](path)` targets that are relative and path-shaped must
+//     resolve to an existing file (standard markdown semantics: relative to the linking file).
+//     Anchors/query strings are stripped but NOT validated (heading slugs are out of scope), and
+//     prose placeholders (`(url)`, `(…)`) are out of scope by the path-shape rule. Fixtures pin
+//     both sides: scripts' verify-checks.mjs ↔ tests/verify-gates.spec.mjs.
 //   · sections — cross-file references only ("`docs/x.md` §三" / "x.md 第三节"). A trailing
 //     「anchor」 must appear in the target heading, which is the branch that catches retargeted
 //     numbers, not just removed ones. Same-file §N and pointers living in code comments are out
@@ -424,6 +421,9 @@ check('links: backticked repo paths in markdown exist', () => {
   }
   return problems
 })
+
+check('links: relative markdown links point at existing files', () =>
+  relativeLinkProblems(markdownCorpus.map(file => ({ file, where: relative(repoRoot, file) }))))
 
 check('links: cross-file section references name a real section', () => {
   const problems = []

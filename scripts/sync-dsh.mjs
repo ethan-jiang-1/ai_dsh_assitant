@@ -4,9 +4,14 @@
  * meaningful. Run with `pnpm sync-dsh -- --tag dsh-v0.1.6-rc.1`.
  *
  * The upgrade ring is: fetch and check out the tag, record the exact SHA and tag commit date in
- * `vendor/UPSTREAM.md`, add a column to the package's `dsh.compatibility.dshReleases`, then typecheck
- * — which resolves `@deepseek-ai/*` through the workspace to the pinned `src`, so API drift surfaces
- * at compile time rather than at run time. Skipping the typecheck would defeat the point of pinning.
+ * `vendor/UPSTREAM.md`, then typecheck — which resolves `@deepseek-ai/*` through the workspace
+ * to the pinned `src`, so API drift surfaces at compile time rather than at run time. Skipping
+ * the typecheck would defeat the point of pinning.
+ *
+ * The `dsh.compatibility.dshReleases` "verified" column is written only AFTER a typecheck that
+ * ran and passed (scripts/sync-bookkeeping.mjs releaseClaim): under --no-typecheck or on
+ * typecheck failure, no claim is recorded — "verified" is a fact about a passed check, not a
+ * side effect of moving the pin.
  *
  * Flags:
  *   --tag <tag>       required; the release tag to pin
@@ -18,6 +23,7 @@ import { execFileSync } from 'node:child_process'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { applyUpstreamRecord, releaseClaim } from './sync-bookkeeping.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const vendorDsh = join(repoRoot, 'vendor', 'dsh')
@@ -50,20 +56,15 @@ console.log(`  ok   ${tag} → ${sha} (${committed})`)
 
 console.log('\n▸ recording the pin in vendor/UPSTREAM.md')
 const upstream = readFileSync(upstreamFile, 'utf8')
-const updated = upstream
-  .replace(/(\| 钉住的 tag \| )`[^`]*`( \|)/, `$1\`${tag}\`$2`)
-  .replace(/(\| 精确 SHA \| )`[^`]*`( \|)/, `$1\`${sha}\`$2`)
-  .replace(/(\| tag 提交时间 \| )[^|]*(\|)/, `$1${committed} $2`)
+let updated
+try {
+  updated = applyUpstreamRecord(upstream, { tag, sha, committed })
+} catch (error) {
+  console.error(`\n  FAIL ${error instanceof Error ? error.message : String(error)}`)
+  process.exit(1)
+}
 writeFileSync(upstreamFile, updated, 'utf8')
 console.log('  ok   UPSTREAM.md updated')
-
-console.log('\n▸ adding a compatibility column')
-const manifest = JSON.parse(readFileSync(packageManifest, 'utf8'))
-const release = tag.replace(/^dsh-v/, '')
-const releases = manifest.dsh.compatibility.dshReleases
-releases[release] = 'verified'
-writeFileSync(packageManifest, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8')
-console.log(`  ok   dsh.compatibility.dshReleases["${release}"] = verified`)
 
 if (typecheck) {
   console.log('\n▸ typechecking against the new pin')
@@ -73,9 +74,24 @@ if (typecheck) {
   } catch {
     console.error('\n  FAIL typecheck failed: the new pin changed an API this plugin uses.')
     console.error('       Fix the call sites, then re-run `pnpm typecheck`. The pin stays where it is')
-    console.error('       until the code compiles against it.')
+    console.error('       until the code compiles against it. No compatibility claim was recorded.')
     process.exit(1)
   }
+}
+
+// The "verified" claim is a fact about a passed typecheck, written only after one — never a
+// side effect of moving the pin (scripts/sync-bookkeeping.mjs releaseClaim pins this rule).
+const claim = releaseClaim({ typecheckRequested: typecheck, typecheckPassed: true })
+if (claim.value !== undefined) {
+  console.log('\n▸ adding a compatibility column')
+  const manifest = JSON.parse(readFileSync(packageManifest, 'utf8'))
+  const release = tag.replace(/^dsh-v/, '')
+  manifest.dsh.compatibility.dshReleases[release] = claim.value
+  writeFileSync(packageManifest, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8')
+  console.log(`  ok   dsh.compatibility.dshReleases["${release}"] = ${claim.value}`)
+} else {
+  console.log('\n▸ compatibility column NOT written')
+  console.log(`  ${claim.reason}`)
 }
 
 console.log(`

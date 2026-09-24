@@ -26,7 +26,8 @@
 └── skill-proposals/            # 技能提案收件箱（<name>.md，等人工评审；不是房间，是暂存区）
 ```
 
-**一个房间一个职责**，不许混：事实进 `memory/`，未决的线索进 `research/`，可复用的做法进 `skills/`。
+**一个房间一个职责**，不许混：事实进 `memory/`，未决的线索进 `research/`，可复用的做法进 `skills/`，
+领域理解进 `knowledge/`。
 `dataDir` 可用配置覆盖（bundle patch / profile patch），默认跟随 `resolveDshHome()` —— 于是**双 home 隔离自动生效**：
 开发 home 里的家与日用的家互不可见。
 
@@ -38,7 +39,7 @@ learn 模块的 `tools/result` 订阅就给对应名字计数（用户 `/name` �
 它是**建议性状态**：删掉即归零，不影响任何知识；
 文件烂了 curate 会报 warn（静默读零会误导退役决策）。
 
-## 二、三个房间的语义
+## 二、四个房间的语义
 
 | 房间 | 里面是什么 | 生命周期 | 谁写 |
 |---|---|---|---|
@@ -80,8 +81,8 @@ learn 模块的 `tools/result` 订阅就给对应名字计数（用户 `/name` �
 - **桌面**（常驻上下文，`assistant-memory-digest` 段落，**有界** `digestMaxBytes`）：
   家的地图（一小段）+ 活跃记忆的精选 + **开放线索的条数与前几条标题**。
   桌面只放"此刻最该在眼前的东西"。
-- **抽屉**（要用再拿）：完整记录、归档、技能正文 —— 用 `assistant_memory` / `assistant_research` /
-  `skill` 工具取。
+- **抽屉**（要用再拿）：完整记录、归档、知识页、技能正文 —— 用 `assistant_memory` / `assistant_research` /
+  `assistant_knowledge` / `skill` 工具取。
 
 推论：**过程性知识不做成常驻段落**。怎么写记忆、怎么养护家、怎么复盘 —— 都在 `skills/`（抽屉），
 由技能目录按需加载。这条是"很好控制的上下文"的落点。
@@ -127,6 +128,6 @@ learn 模块的 `tools/result` 订阅就给对应名字计数（用户 `/name` �
 ## 五、`HOME.md`（地图）
 
 `HOME.md` 由服务在首次使用时生成（scaffold），内容是**给人也给 agent 看**的地图：
-这是什么、三个房间各放什么、三档出口是什么、`curate` 怎么用。
+这是什么、四个房间各放什么、三档出口是什么、`curate` 怎么用。
 它**不进常驻上下文**（摘要里有精简版），但 agent 可以随时 `read` 它。
 人工手改 `HOME.md` 不会被覆盖（只在缺失时生成）。
