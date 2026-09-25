@@ -12,8 +12,8 @@
  *      （覆盖继承值时在 stderr 打一行说明，让发生的事可见）。
  *   2. 唯一出口是 `ASSISTANT_DSH_HOME`：显式指定另一个开发用 home（冒烟/实验），指向
  *      `~/.dsh` 时不拦截但会打印显著警告 —— 本 repo 没有任何场景需要日用 home。
- *   3. 从钉住的源码启动 CLI（vendor/dsh/apps/cli/src/bin.ts），经运行期解析门面
- *      `tsconfig.tsx.json` 加载 DSH 的 src（契约：`docs/dev.md` §二「两个解析门面」）。
+ *   3. 从钉住的源码启动 CLI（vendor/dsh/apps/cli/src/bin.ts），经运行期tsconfig 解析入口
+ *      `tsconfig.tsx.json` 加载 DSH 的 src（契约：`docs/dev.md` §二「两个 tsconfig 解析入口」）。
  *
  * 不经过本启动器的调用方（release-smoke / dev/setup.sh）自己负责设置 `DSH_HOME`。
  */

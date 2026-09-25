@@ -29,6 +29,12 @@
 
 **一个房间一个职责**，不许混：事实进 `memory/`，未决的线索进 `research/`，可复用的做法进 `skills/`，
 领域理解进 `knowledge/`。
+
+> **与 DSH 词汇的对应（避免两仓同读时错位）**：`memory/`+`research/`+`knowledge/` 对应 DSH 的**持久领域**
+> （session log 之外的仓库自有文件）；`skills/` 对应 DSH 的 **runtime Skill capability**（`ctx.skills`
+> 的 provider/consumer 面），不是 DSH 仓库里 `.agents/skills/` 那种**开发用** Skill；"桌面"对应
+> DSH 的**常驻提示词段落**（system prompt sections），"抽屉"对应**按需查询面**（工具 + 检索）。
+> 这些是本仓自己的比喻，DSH 没有同名词——见到它们按上面对应，别当官方术语。
 `dataDir` 可用配置覆盖（bundle patch / profile patch），默认跟随 `resolveDshHome()` —— 于是**双 home 隔离自动生效**：
 开发 harness home 里的 working folder 与日用 harness home 里的互不可见。
 

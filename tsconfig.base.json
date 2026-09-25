@@ -3,7 +3,7 @@
   // 与插件作者相关的部分：`.ts` 扩展名导入 + 发射时改写（rewriteRelativeImportExtensions）、
   // 严格档、composite 项目引用。
   //
-  // `paths` 是**解析门面**：让 `@deepseek-ai/*` 解析到 vendor/dsh 的**源码**而不是
+  // `paths` 是**tsconfig 解析入口**：让 `@deepseek-ai/*` 解析到 vendor/dsh 的**源码**而不是
   // 未构建的 lib/ 产物，于是 typecheck 报错落在真实 src，agent 也能顺着跳转读实现。
   // 这份清单只列我们直接 import 的包，随 import 增长而增长；
   // 权威地图是 vendor/dsh/tsconfig.base.json（约 250 条，我们不需要全抄）。
@@ -31,9 +31,9 @@
     "noUnusedParameters": true,
     "types": ["node"],
     "paths": {
-      // 编译期门面：只列我们**直接** import 的包 —— 每个都配了 project reference，
+      // 编译期入口：只列我们**直接** import 的包 —— 每个都配了 project reference，
       // 所以 tsc 按项目引用构建它们，而不会把 DSH 源码并进本程序（那会撞 rootDir）。
-      // 运行期门面（tsx 启动 harness 用的全量别名）在 tsconfig.tsx.json，由 pnpm gen-paths 生成。
+      // 运行期入口（tsx 启动 harness 用的全量别名）在 tsconfig.tsx.json，由 pnpm gen-paths 生成。
       "@deepseek-ai/cordis": ["./vendor/dsh/vendor/cordis/src"],
       "@deepseek-ai/schemastery": ["./vendor/dsh/vendor/schemastery/src"],
       "@deepseek-ai/dsh-tools": ["./vendor/dsh/packages/core/tools/src"],

@@ -141,7 +141,7 @@ check('identity: every declared identity name appears in docs/identity.md', () =
 
 // ── resolution facade ───────────────────────────────────────────────────────────────────────────
 
-check('facade: every @deepseek-ai import has a tsconfig paths entry and a project reference', () => {
+check('resolution: every @deepseek-ai import has a tsconfig paths entry and a project reference', () => {
   const problems = []
   const base = read(join(repoRoot, 'tsconfig.base.json'))
   const pathsKeys = new Set([...base.matchAll(/^\s*"(@deepseek-ai\/[^"]+)":/gm)].map(match => match[1]))
@@ -176,7 +176,7 @@ check('facade: every @deepseek-ai import has a tsconfig paths entry and a projec
   return problems
 })
 
-check('facade: the runtime tsconfig for the source launch is present and current', () => {
+check('resolution: the runtime tsconfig for the source launch is present and current', () => {
   const problems = []
   const runtime = join(repoRoot, 'tsconfig.tsx.json')
   if (!exists(runtime)) return ['tsconfig.tsx.json is missing — run `pnpm gen-paths`']
@@ -239,7 +239,7 @@ check('client: the browser half registers via the loader facade and stays classi
   return problems
 })
 
-check('facade: skill-name grammar matches the harness registry', () => {
+check('resolution: skill-name grammar matches the harness registry', () => {
   const ours = /SKILL_NAME_PATTERN = (\/.*\/)/.exec(read(join(packageDir, 'src', 'skills', 'skill-file.ts')))?.[1]
   const registryPath = join(vendorDsh, 'packages', 'skill', 'skill', 'src', 'index.ts')
   if (!exists(registryPath)) return ['vendor/dsh skill registry source is missing']
@@ -248,7 +248,7 @@ check('facade: skill-name grammar matches the harness registry', () => {
   return ours === theirs ? [] : [`our pattern ${ours} differs from the registry's ${theirs}`]
 })
 
-check('facade: skill frontmatter keys we write are keys the provider reads', () => {
+check('resolution: skill frontmatter keys we write are keys the provider reads', () => {
   const provider = read(join(vendorDsh, 'packages', 'skill', 'skill-filesystem', 'src', 'index.ts'))
   const problems = []
   // The provider reads fields by property access (`data.metadata`), so match the identifier.
@@ -338,8 +338,15 @@ check('notes: state lines agree with their lifecycle directory', () =>
 check('notes: note files follow YYYY-MM-DD-topic naming', () =>
   notesNamingProblems(join(repoRoot, 'notes')))
 
-check('notes: AGENTS.md stays standing orders (no dates, no progress marks)', () =>
-  agentsMdStabilityProblems(join(repoRoot, 'AGENTS.md')))
+check('entry files: every AGENTS.md stays standing orders (no dates, no progress marks)', () =>
+  [
+    join(repoRoot, 'AGENTS.md'),
+    join(repoRoot, 'docs', 'AGENTS.md'),
+    join(repoRoot, 'dev', 'AGENTS.md'),
+    join(repoRoot, 'scripts', 'AGENTS.md'),
+    join(repoRoot, 'snapshots', 'AGENTS.md'),
+    join(packageDir, 'AGENTS.md'),
+  ].flatMap(agentsMdStabilityProblems))
 
 check('language: model-facing sources and skill bodies are English (skin face exempt)', () =>
   languageGuardProblems([

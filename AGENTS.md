@@ -39,23 +39,14 @@ implemented note 必带「**输掉的方案**」节——没记击败了什么�
 | 路径 | 是什么 | 谁能改 |
 |---|---|---|
 | `ROADMAP.md` | **根部队列：只写接下来**（队列/搁置池/维护规则；条目 ≤3 行，完成即离队） | 队列调整直接改 + 维护规则记一行 |
-| `packages/dsh-smart-assistant/src/home/` | **working folder 的布局契约**（路径、scaffold、身份与手册文件、健康检查）—— 单一 owner | 改布局只动这里 |
-| `.../src/memory/` | 记忆记录词汇、文件存储、检索、有界摘要 | 改记忆语义动这里 |
-| `.../src/research/` | 探索线索（backlog）词汇与三档出口（promote/park/drop） | 改探索语义动这里 |
-| `.../src/skills/` | `SKILL.md` 契约与校验写入 | 改技能文件契约动这里 |
-| `.../src/knowledge/` | 知识页词汇（OKF 字段子集 + `[[互链]]`）、关键词检索排序、知识 findings —— 纯核 | 改知识语义动这里 |
-| `.../src/tool-support/` | 四个工具共享的 presenter 管道（`presentationMeta` 投影与读回） | 改卡片行为动这里 |
-| `.../src/tool-memory/`、`src/tool-research/`、`src/tool-knowledge/`、`src/memory-digest/`、`src/learn/` | **agent 面**插件入口（= preset 的 agent 行，model-facing；工具 / 提示词段落 / 复盘） | 改模型可见面动这里 |
-| `.../src/preset-runner/`、`dev/preset-runner.patch.yml` | **preset 挂载的 one-shot 驱动**（验证自动化：工具/摘要/persona 进 headless 会话） | 改验证驱动动这里 |
-| `.../src/index.ts` + `cordis.patch.yml` | **host 面**（= 本包的 bundle patch 行）：`assistantMemory` 服务（Service Definition 与唯一 Provider 同包，Consumer = 各 agent 面入口） | 改服务/配置动这里 |
-| `.../presets/assistant/` | preset（agent 面组合）+ 策展技能 | 改这个专家"会什么"动这里 |
-| `tsconfig.base.json` / `tsconfig.tsx.json` | 两个解析门面（编译期手维护 / 运行期 `pnpm gen-paths` 生成） | 引入新 `@deepseek-ai/*` import 或换 pin 时动这里（契约：`docs/dev.md` §二「两个解析门面」） |
+| `packages/dsh-smart-assistant/` | **插件包**：8 个 plugin 入口（1 host + 7 agent）、四个工具、一个服务、working folder 布局 —— 包内 owner 面与纪律见其 `AGENTS.md` | 改模型可见面 / 服务 / 布局动这里 |
+| `docs/` | **当前合同**（只写现在，无历史）—— 文档 tier 与"谁拥有什么"见其 `AGENTS.md` | 门禁住了的事实进这里 |
+| `notes/` | **开发记忆与证据链**（分类 owner：`notes/README.md`）：`proposed/` 将来 → `implemented/` 当前权威 → `archived/` 冻结历史；`rejected/` 存负知识与一行原因；`research/` 进行中 → `research/archive/` 已收卷 | 决策与输掉的方案进这里 |
+| `dev/` | 开发 home 与 profile patch —— 双 home 与两个 profile 的纪律见其 `AGENTS.md` | 环境问题动这里（手册 owner：`docs/dev.md`） |
+| `scripts/` | 机械门禁与生成器 —— 门禁三条纪律与 freshness 约定见其 `AGENTS.md` | 门禁问题动这里 |
+| `snapshots/` | 行为回归的证据面（day 0 占位）—— 只收边界见其 `AGENTS.md` 与 `README.md` | 回归证据问题动这里 |
 | `vendor/dsh/` | **钉住的 DSH 源码（submodule）** | **永不改**；升级走 `pnpm sync-dsh` |
-| `docs/` | 当前合同（只写现在，无历史） | 门禁住了的事实进这里 |
-| `notes/` | **开发记忆与证据链**（分类 owner：[`notes/README.md`](notes/README.md)）：`proposed/` 将来 → `implemented/` 当前权威 → `archived/` 冻结历史；`rejected/` 存负知识与一行原因；`research/` 进行中 → `research/archive/` 已收卷 | 决策与输掉的方案进这里 |
-| `dev/` | 开发 home 与 profile patch（运行残留 gitignore） | 环境问题动这里（启动/调试手册：`docs/dev.md`） |
-| `scripts/` | 机械门禁（verify / release-smoke / sync-dsh） | 门禁问题动这里 |
-| `snapshots/` | 行为回归的证据面（day 0 占位：先用测试 + 会话日志顶，见其 README） | 回归证据问题动这里 |
+| `tsconfig.base.json` / `tsconfig.tsx.json` | 两个 tsconfig 解析入口（编译期手维护 / 运行期 `pnpm gen-paths` 生成） | 引入新 `@deepseek-ai/*` import 或换 pin 时动这里（契约：`docs/dev.md` §二） |
 
 **语言分工**：人与本仓文档（docs/notes/AGENTS.md）用中文；进模型上下文的（persona、SKILL.md、工具 description）用英文；代码与脚本注释随所在文件现状，不整批改写。
 
@@ -63,10 +54,10 @@ implemented note 必带「**输掉的方案**」节——没记击败了什么�
 
 ```sh
 pnpm install            # 并入 vendor/dsh 整树，首次较慢
-pnpm gen-paths          # 从 vendor/dsh 重新生成运行期解析门面 tsconfig.tsx.json（换 pin 后必跑）
+pnpm gen-paths          # 从 vendor/dsh 重新生成运行期解析入口 tsconfig.tsx.json（换 pin 后必跑）
 pnpm typecheck          # 委派包级：tsc -b（编译期 paths 解析到 vendor/dsh 的 src，API 漂移编译期暴露）+ tsc -p tsconfig.test.json（覆盖 tests）
 pnpm test               # vitest：纯核（home/memory/research/skills/knowledge）+ 服务级合同（真 cordis 构造，不依赖 DSH 运行时）
-pnpm verify             # 机械门禁：结构/身份一致/两个解析门面/自包含/技能语法/断链与相对链接/队列与 notes 形状/提交安全（清单以 scripts/verify.mjs 为准）
+pnpm verify             # 机械门禁：结构/身份一致/两个 tsconfig 解析入口/自包含/技能语法/断链与相对链接/队列与 notes 形状/提交安全（清单以 scripts/verify.mjs 为准）
 pnpm build              # tsc 出 lib/（发布物与 dsh plugin add 需要）
 pnpm release-smoke      # pnpm pack → 干净 home → dsh plugin add → 组合断言（真实安装形状；**改动发布物/依赖/preset 包装必跑**，否则它只是"存在一个脚本"）
 pnpm sync-dsh -- --tag <dsh-tag>   # 换 submodule tag + SHA 簿记 + typecheck + 对照 docs/discipline.md 重校纪律表

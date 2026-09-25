@@ -54,6 +54,18 @@ AGENT 面（presets/assistant/agent.cordis.yml → agent preset）
 
 ## 三、部件与 owner 面
 
+**参与阶梯（改动的首选入口按半径分级，不是价值排序）**：
+
+| 层 | 首选入口 | 典型变化 | 何时升级 |
+|---|---|---|---|
+| L0 组合 | profile / bundle / patch / preset 行 | 换 provider、改参数、开关某段落 | 配置表达不了新行为 |
+| L1 扩展点 | 工具 / 提示词段落 / 事件监听 | 新增一个模型工具或常驻段落 | 需要可替换实现的完整能力 |
+| L2 能力接缝 | Service Definition + Provider + Consumer | 新的持久化/技能/检索引擎 | 扩展点表达不了 |
+| L3 宿主循环 | agent-loop（vendor，我们不拥有） | 改默认循环驱动 | 前三级都表达不了（本仓不修改 vendor） |
+
+**横切义务**：任何新增**模型可见事实**（工具、段落、消息）必须同时进入会话日志并可从中重建——
+`model-visible means logged`；否则它在 resume/fork 后会消失（本仓对应 `docs/identity.md` 的 model-visible 纪律）。
+
 **新行为该放哪**（先问四句，再动手；对应 DSH「新行为挂在已文档化的扩展点上」）：
 ① 只改 `cordis.patch.yml` 的一行 config 就够吗（换 provider / 换顺序）？② 只加一个工具或提示词段落
 就够吗（agent 面）？③ 是不是跨会话共享的持久状态（→ 服务，host 面）？④ 是不是新增**模型可见事实**
