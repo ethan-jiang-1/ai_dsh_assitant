@@ -413,3 +413,27 @@ export function skillFrontmatterProblems(skillsDir) {
   }
   return problems
 }
+
+// ── deferral homes ──────────────────────────────────────────────────────────────
+
+/**
+ * A deferral recorded in a note must name its queue home. Any line that states a trigger
+ * (触发= / 触发条件=) has to name ROADMAP.md, because a trigger without a queue row is a promise
+ * nobody will find again — the failure mode that let four structural mechanisms sit unbuilt for a
+ * round. The bare word 延后 is deliberately NOT gated: measured at 51 lines, mostly historical
+ * references to the retired 延后项表, so gating it would push rewording instead of tracking.
+ *
+ * @param {readonly string[]} files - note files to scan.
+ */
+export function deferralHomesProblems(files) {
+  const problems = []
+  for (const file of files) {
+    const lines = read(file).split('\n')
+    for (const [index, line] of lines.entries()) {
+      if (!/触发[=＝]|触发条件[=＝]/.test(line)) continue
+      if (/ROADMAP/.test(line)) continue
+      problems.push(`${file}:${index + 1} states a trigger without naming its queue home — every deferral lives in ROADMAP.md`)
+    }
+  }
+  return problems
+}

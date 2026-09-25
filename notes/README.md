@@ -30,6 +30,7 @@
 - **不设 `postmortem/`**：事故记录属于"已交付决定"，进 `implemented/`（AGENTS.md 曾列该目录但从未存在，2026-09-25 删除该说法）。
 - **不采用 `{lifecycle}/{class}/` 两级路径**（DSH 用它）：偏离理由见 §四。
 - 提案过时转 `rejected/` 而非滞留 `proposed/`；`archived/` 只收已交付（implemented）的 note。
+- **延后只能住 `ROADMAP.md`**：note 里写下的触发条件必须同时指明队列归宿（机械门禁 `deferral homes` 管）；明确**永不**做的（负知识）才留在 note 的输掉的方案里。
 
 ## 二之二、`proposed/` 卡片的骨架（推荐形态）
 

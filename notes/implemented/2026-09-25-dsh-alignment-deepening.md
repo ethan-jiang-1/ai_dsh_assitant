@@ -17,7 +17,7 @@
 **做法**：建 5 个真子树 owner 文件（只写该子树的常设指令，不复制根的内容）：
 | 新文件 | 拥有什么 |
 |---|---|
-| packages/dsh-smart-assistant/AGENTS.md（新建） | 包级：8 个 plugin 入口与平面、四个工具与其动词集、Service Definition/Provider/Consumer 三角色、改模型可见面的纪律（语言分工 + 日志税 + 快照）、包级测试命令 |
+| packages/dsh-smart-assistant/AGENTS.md（新建） | 包级：入口与平面（清单以生成物为准）、四个工具与其动词集、Service Definition/Provider/Consumer 三角色、改模型可见面的纪律（语言分工 + 日志税 + 快照）、包级测试命令 |
 | docs/AGENTS.md（新建） | 文档 tier：每份 docs 文件拥有的事实、只写现在（禁 previously/now 叙事）、契约与代码 owner 的对应（谁钉谁） |
 | scripts/AGENTS.md（新建） | 门禁清单与纪律：每条检查能/不能建立什么、新检查必带负例夹具、收尾三连（typecheck/test/verify）、生成器与 freshness |
 | dev/AGENTS.md（新建） | 双 home 与 profile 纪律：不碰 `~/.dsh`、两个 profile 各自验什么、运行残留 gitignore |

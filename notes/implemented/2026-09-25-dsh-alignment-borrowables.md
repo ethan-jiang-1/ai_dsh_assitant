@@ -42,7 +42,7 @@ DSH 不要求插件仓复制它的完整 Note 机制与协作面。因此本卡�
 6. **生成物登记表**（`08` §3 五形态之「生成+freshness」）：`docs/dev.md` 加一张 3 列表（生成物/生成器/freshness 检查），当前只有 `tsconfig.tsx.json` 一行；不建 manifest。
 7. **运行时查询进探索路由**（`06`）：`AGENTS.md` 探索路由加两条——「组合里有没有这一行」→ `pnpm dsh --profile dev --dump-config`；「活进程注册了什么」→ 切 shipped `cordis` preset 用只读 inspect 工具（**不改** assistant preset，那是模型可见面变更）。
 8. **新行为归属判据四问**（`01` §15 / `04`）：`docs/architecture.md` owner 表前插四问（只改 patch 一行？只加工具/段落？跨会话持久状态→服务？新增模型可见事实→日志税？）。
-9. **术语锚定括注**（`09` §4）——**部分落地（5/7）**：已加 `host 面（= bundle patch 行）`、`agent 面（= preset agent 行，model-facing）`、`8 个入口（= package.json exports 的 8 个 plugin 子路径）`、`working folder（= 本插件 dataDir，≠ 进程 cwd）`、`服务（Definition + 单 Provider 同包，Consumer = 各 tool 入口）`。**未落地两项**（在收编证据时丢失）："两个解析门面"与 DSH `Context façade` 撞名未改；`房间/桌面/抽屉` 未加 DSH 侧映射句。去向：[补课卡 S5](2026-09-25-dsh-alignment-deepening.md)。
+9. **术语锚定括注**（`09` §4）——**部分落地（5/7）**：已加 `host 面（= bundle patch 行）`、`agent 面（= preset agent 行，model-facing）`、`8 个入口（= package.json exports 的 plugin 子路径；**该计数后被生成目录更正为 9**：host 1 + preset agent 6 + dev 专用 1 + client 1，见 `docs/package-catalog.md`）`、`working folder（= 本插件 dataDir，≠ 进程 cwd）`、`服务（Definition + 单 Provider 同包，Consumer = 各 tool 入口）`。**未落地两项**（在收编证据时丢失）："两个解析门面"与 DSH `Context façade` 撞名未改；`房间/桌面/抽屉` 未加 DSH 侧映射句。去向：[补课卡 S5](2026-09-25-dsh-alignment-deepening.md)。
 10. **tier 表一行式**（`05` §tier）：`AGENTS.md` 布局表前插 4 行「哪类事实归谁拥有」；不复制上游 13 行全表。
 11. **作者视角自检句**（`05` §41）：写 `ROADMAP.md`/`docs/` 时自问「读者只有 HEAD、没有会话 transcript 时能否核验每个 claim」；现有条目里的裸简称（`R1/R3/r5 §末`）改成可点链接。
 12. **snapshots 只收什么**（`08` §4）：`snapshots/README.md` 补边界句——只收 session 回放 fixture，单元/CLI/generator 期望输出跟 owning 层走。
@@ -66,20 +66,20 @@ DSH 不要求插件仓复制它的完整 Note 机制与协作面。因此本卡�
 - **`{lifecycle}/{class}/` 两级路径**（DSH 用它）：偏离理由登记在 [`notes/README.md`](../README.md) §四（class 是正交第二轴；44 篇迁移 churn 与误分类风险 > 收益；`09` 明说只继承精神）。
 - **GitHub 协作面全套**（Issues/PR/Project/review webhook/weighted approval/blame 加权/`/delegate`）：单人仓、无第二评审人、无协作面；`docs/discipline.md` 已登记不适用的部分不重开。
 - **CI 层与 git hooks**：本仓无远端流水线；本地 `verify` 承担同一逻辑（已登记）。
-- **文档词数预算 manifest / 双语配对 / VitePress 投影**：`docs/discipline.md` 已裁定"刻意不做（触发=docs 腐化实证）"；本次不改变该判定。
+- **文档词数预算 manifest / 双语配对 / VitePress 投影**：`docs/discipline.md` 已裁定"刻意不做（触发=docs 腐化实证；在 ROADMAP）"；本次不改变该判定。
 - **发布 lane（bump/tag/publish/CHANGELOG/registry 三态）**：本仓 private、未发布；只留"rehearsal 常开"（B18）与"无 CHANGELOG"两条纪律。
 - **钉版外链白名单 / SVG 全套结构规则 / 强制目录 README**：语料专属（它要独立发行、有 15 张 SVG、目录全有 README）；本仓无图、无发行面，强行照搬会全线红。**窄化采纳**：只对"引 `vendor/dsh` 的 URL"要求钉当前 tag/SHA（已有 pin 门禁）。
 - **`cordis_inspect_*` 加进 assistant preset / package invariant 运行时关系层**：前者是模型可见面变更（要付日志税与快照），为开发期需求不划算；后者单包无 owner relationship，`dev.md`"真 boot 一次"已顶替。
-- **`.agents/` 开发 skills 全集**：**延后**（不是不做）——触发=下一次换 pin 或下一轮审计里同一个多步流程真的重复出现；届时先立 1–2 个，并在 `AGENTS.md` 写明 `.agents/skills/`（开发用）与 `presets/assistant/skills/`（模型用）的分工，避免 DSH `03` 警告的同名陷阱。
-- **`change-scope` 脚本**：**延后**——触发=真实"跑错检查/漏跑检查"摩擦出现；当前 `pnpm typecheck && pnpm test && pnpm verify` 三连足够小。
+- **`.agents/` 开发 skills 全集**：**已落地**（三件，见 [补课卡 S3](2026-09-25-dsh-alignment-deepening.md)）——上轮"延后"的理由（等重复流程出现）被真实使用证伪；后续技能按"同一多步流程重复第三次就立"的常设规则增补，不再占队列。
+- **`change-scope` 脚本**：**延后**——触发=真实"跑错检查/漏跑检查"摩擦出现（在 ROADMAP）；当前 `pnpm typecheck && pnpm test && pnpm verify` 三连足够小。
 
 ## 六、验收（结果）
 
 > **2026-09-25 自审更正**：本卡 §三 A 组与 B 组大部分为真，但 B9 为 5/7 部分落地，
 > 且**四个结构性机制完全未做**（子树 AGENTS.md、生成目录+freshness、`.agents/skills/`、负例控制覆盖面）。
 > 逐项对照与证据见[自审档案](../research/archive/2026-09-25-dsh-alignment-audit.md)；
-> 补课计划见[补课卡](2026-09-25-dsh-alignment-deepening.md)。本卡不重写结论，只在此标出未完成面——
-> 按本仓纪律，未完成的检查不得写成绿色证据。
+> 补课计划见[补课卡](2026-09-25-dsh-alignment-deepening.md)——**四项已于同日全部落地**（S1–S4，提交 92aeb0f/138dee5/5a3290e/8cacf85），
+> 本卡不重写结论，只在此标出未完成面与去向；按本仓纪律，未完成的检查不得写成绿色证据。
 
 - P1 批：三条新门禁各带正反夹具（`tests/verify-gates.spec.mjs`；含非法 UTF-8、双结尾换行、运行时依赖、compat 漂移四种红），`pnpm verify` 27/27 绿。
 - P2 批：`docs/` 与 `AGENTS.md` 只加括注、映射与表，不引入新术语；链接与语言门禁绿。

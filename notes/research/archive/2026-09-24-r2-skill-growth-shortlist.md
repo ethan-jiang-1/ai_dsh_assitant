@@ -9,7 +9,7 @@
 
 `assistant_reflect`（brief→save_skill）+ 家的 `skills/` 房间（SKILL.md + provenance 盖章）
 + 学到技能即刻可见（双 provider）+ 已知缺口：**同名遮蔽静默**（学到版被策展版遮蔽只报
-logger warn）、curate 被动执行、自动复盘延后（触发条件=真实使用数据）。
+logger warn）、curate 被动执行、自动复盘延后（触发条件=真实使用数据；在 ROADMAP）。
 
 ## 过滤结果
 

@@ -16,6 +16,7 @@ import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import {
   agentsMdStabilityProblems,
+  deferralHomesProblems,
   dependencyPoseProblems,
   GRADUATED_STATUS,
   languageGuardProblems,
@@ -366,5 +367,21 @@ describe('skillFrontmatterProblems', () => {
     expect(problems.some(p => p.includes('declares name other-name'))).toBe(true)
     expect(problems.some(p => p.includes('has no description'))).toBe(true)
     expect(problems.some(p => p.includes('empty-bundle/ has no SKILL.md'))).toBe(true)
+  })
+})
+
+describe('deferralHomesProblems', () => {
+  it('accepts a trigger that names ROADMAP and rejects one that does not', () => {
+    const dir = temp('deferrals-')
+    const withHome = join(dir, 'with-home.md')
+    writeFileSync(withHome, '语义检索延后（触发=真实漏召回；在 ROADMAP）。\n', 'utf8')
+    const orphan = join(dir, 'orphan.md')
+    writeFileSync(orphan, '某个能力延后（触发条件=真实需求出现）。\n', 'utf8')
+
+    expect(deferralHomesProblems([withHome])).toEqual([])
+    const problems = deferralHomesProblems([orphan])
+    expect(problems).toHaveLength(1)
+    expect(problems[0]).toContain('orphan.md:1')
+    expect(problems[0]).toContain('queue home')
   })
 })
