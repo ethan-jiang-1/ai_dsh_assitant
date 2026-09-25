@@ -88,9 +88,9 @@ async function harness(): Promise<Context> {
   await ctx.plugin(AgentRegistry)
   // agents.create requires the loop's creation transaction (the "agent factory").
   await ctx.plugin(AgentLoop, { agents: [] })
-  // 0.1.7: preset = registry row (default) + definition row (plugins). No directory, no roots.
-  await ctx.plugin(AgentPresetRegistry, { default: 'assistant' })
-  await ctx.plugin(AgentPreset, { id: 'assistant', plugins: OWN_ROWS })
+  // The host row first, exactly as `cordis.patch.yml` orders it: the preset's tool rows inject
+  // `assistantMemory`, so composing the definition before its service leaves them "never started"
+  // (the registry reports exactly that, which is how this ordering constraint was found).
   const host = await import(pathToFileURL(join(packageRoot, 'lib', 'index.js')).href)
   const home = mkdtempSync(join(tmpdir(), 'assistant-preset-home-'))
   dirs.push(home)
@@ -100,6 +100,9 @@ async function harness(): Promise<Context> {
     recallLimit: 20,
     staleResearchDays: 30,
   })
+  // 0.1.7: preset = registry row (default) + definition row (plugins). No directory, no roots.
+  await ctx.plugin(AgentPresetRegistry, { default: 'assistant' })
+  await ctx.plugin(AgentPreset, { id: 'assistant', plugins: OWN_ROWS })
   return ctx
 }
 

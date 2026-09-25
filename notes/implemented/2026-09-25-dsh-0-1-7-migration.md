@@ -132,3 +132,16 @@ vendor 的构建脚本假设**已经引导过的树**（其 `lib/` 在场）。�
 context/baseUrl 由 patch 文件确定）。下一步应把测试夹具改成"**经 Loader 加载一份 patch**"的真实形状，
 再复现：若仍然 never started，就往 registry 的挂载/隔离（`mountPreset` 的 scope 与 host 服务可见性）查，
 而不是继续改别名。这也是本仓一贯的判据：**测真实组合形状，不测等价想象**。
+
+## 九、第十圈：顺序假设被证伪，错误语义查清（负结果，交接）
+
+- 夹具已按生产顺序调整：**host 行先于 preset 定义行**（`cordis.patch.yml` 就是这么排的）。**结果不变**——
+  四条工具行仍 `never started`。顺序不是原因（该改动保留，因为它更贴近生产形状）。
+- 查 `vendor/dsh/packages/preset/agent-preset-registry/src/mount.ts:180-200` 的 `auditRows`：
+  `never started` 的判据是 **`entry.fiber === undefined`**，即**这四行从未被实例化**——不是 import 失败、
+  也不是启动后抛错（那两类会走 `mountDetail(error)` 分支并带出原因），也不是"等不到服务"（那是 `pending` 分支）。
+  所以问题是**注册进树的行没有被实例化**，而不是别名/服务可见性。
+- **下一步（更锐）**：①把夹具改成**经 Loader 加载一份真实 patch**（`preset-assistant` 行 + registry 行），
+  完全复刻生产组合路径，看这四行是否仍不实例化；②若仍红，读 `ctx.agentPresets.diagnostic`（registry 在每次读取时
+  重新审计）区分 `failed` 与 `pending`，并对照官方 `bundle/web-app/presets/standard.patch.yml` 的行形状
+  逐字段比对（我们这四行与 home-preamble/memory-digest 的差别，是定位入口）。
