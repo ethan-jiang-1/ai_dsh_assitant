@@ -12,6 +12,7 @@
 
 ## 队列
 
+- ▶ **真实使用代理基线（长期责任圈 · 第一圈）**（用户授权的有界真实使用：五个真实任务含非开发类，产出可用性基线 + 摩擦清单 + 新差距排队；卡：[2026-09-25-owner-mandate-and-real-use-baseline](notes/proposed/2026-09-25-owner-mandate-and-real-use-baseline.md)）
 - ⏳ 负例控制存量补课（触发=下一次改动某条尚无红夹具的结构性门禁时，同 diff 补它的造红夹具；存量不追账，理由见[红证据档案](notes/research/archive/2026-09-25-old-gate-red-controls.md)）
 - ⏳ `implemented/` 冻结树 / class 子目录（触发=`implemented/` 篇数过百或浏览开始碍事；依据[吸收 note](notes/implemented/2026-09-24-agent-note-lifecycle-absorption.md)）
 - ⏳ `/personality` 类会话 overlay（触发=真实需求出现；依据[soul-and-agents](notes/implemented/2026-09-24-soul-and-agents.md)）
