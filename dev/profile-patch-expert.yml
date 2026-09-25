@@ -1,0 +1,22 @@
+# 专家部署形状（验证用）：**默认只读**——专家辅助本人、但不动这台机器上的仓库。
+#
+# 为什么单独一份而不是改进 dev/profile-patch.yml：`dev` profile 是"改这个插件"的开发环，必须能写仓库
+# （workspace-write）；专家部署是"用这个专家"的环，默认不该有仓库写权限。两个环的默认值不同，所以是
+# 两份 patch，而不是一处开关。权限预设的本体在基座 bundle（read-only / workspace-write /
+# danger-full-access），这里只改新会话的默认值——patch 是整行 config 替换，故整表重述一遍。
+#
+# 与 preset-runner 搭配跑真实会话（验证"家照常能写、仓库写被拒"）：
+#   pnpm dsh --profile dev-task --patch /tmp/expert-probe.patch.yml "<task>"
+- id: permission
+  config:
+    presets:
+      read-only:
+        sandbox: read-only
+        approval: ask
+      workspace-write:
+        sandbox: workspace-write
+        approval: ask
+      danger-full-access:
+        sandbox: danger-full-access
+        approval: ask
+    defaultPreset: read-only

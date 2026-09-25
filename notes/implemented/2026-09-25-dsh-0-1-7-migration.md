@@ -199,3 +199,27 @@ plugins 为六条 id/name）并经 `ctx.loader.create({ id: 'include', name: 'co
 
 **已有事实不变**：`verify` 31/31、`pnpm test` 33 套件 32 pass、`pnpm typecheck`/`pnpm build` exit 0；
 vendor 侧代码与 pin 指针未被修改（只删过一个孤儿安装残留目录）。
+
+## 十一、第十一圈之后：boot 修复三步 + 专家权限模型的 live 验证
+
+**boot 修复（三步，全部在 gitignore 产物层，vendor 源码未动）**：
+1. **typert 工件可独立再生**：tsdown 插件里的 `WorkspaceTypertGenerator` 不依赖 tsdown——
+   照抄 `emitWorkspace` 的逻辑直接调用（`generator.discover(['host'])` → 过滤声明 `./typert` 的包 →
+   `generate` → 写 `lib/typert.{host.js,d.ts}`）。实测 **24 个包**再生成功。这就是 §六 里"root 入口"
+   之谜的实体：装载器读的 `lib/typert.host.js` 是生成物，不是源码。
+2. **两个子路径垫片**：`@deepseek-ai/dsh-headless/startup` 与 `@deepseek-ai/dsh-subprocess/control`
+   经 exports map 落到 `lib/*.js`（tsdown 打包产物）；tsc 只出 `lib/types/*.js`。垫片＝
+   `export * from './types/<name>.js'`（命名导出，无 default——第一版写了 default 行被 ESM 拒绝，
+   已记）。写在 gitignore 产物层。
+3. **裸冒烟通过**：`pnpm dsh --profile dev-task "reply ready"` → `ready`，exit 0。
+   （pin 迁移后从未裸验过 boot——这是当时漏掉的一步，教训：迁移验收里"能起"必须包含裸 boot。）
+
+**专家权限模型的 live 验证**（`dev/profile-patch-expert.yml` + `dev/expert-probe.patch.yml` 可复跑）：
+基座 bundle 自带 `read-only`/`workspace-write`/`danger-full-access` 三档（行 id `permission`）；
+专家部署形状＝把 `defaultPreset` 改为 `read-only`。探针（真实会话）读数：
+- **写家成功**：`assistant_memory save` 落盘（fact `20260925-…-7555`）——治理工具面不经沙箱，照常工作；
+- **写仓库 fail-closed**：`write` → `sandbox: file access denied under read-only mode`；
+  按提示升权 `workspace-write` → `escalation requires approval, but no approval channel is available`
+  （无审批人即关）；bash 只读命令亦被拦（本机 sandbox-exec 不可用）→ shell 面整体不可用；
+- **会话自己不绕过**：被拒后不再试 bash 重定向/subagent 代写，理由"探针要测的就是这条边界本身，
+  绕过会让读数失真"，并标注可逆——这正是协作边界 + 权限模型想要的专家行为。

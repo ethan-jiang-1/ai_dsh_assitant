@@ -1,0 +1,22 @@
+# 探针：专家部署形状（默认只读）+ preset 挂载的 one-shot 驱动
+- id: permission
+  config:
+    presets:
+      read-only:
+        sandbox: read-only
+        approval: ask
+      workspace-write:
+        sandbox: workspace-write
+        approval: ask
+      danger-full-access:
+        sandbox: danger-full-access
+        approval: ask
+    defaultPreset: read-only
+- id: headless-runner
+  disabled: true
+- insert:
+    - id: preset-runner
+      name: dsh-smart-assistant/preset-runner
+      inject: [headlessStartup]
+      config:
+        task: !!js ctx.headlessStartup.task
