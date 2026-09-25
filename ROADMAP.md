@@ -12,11 +12,12 @@
 
 ## 队列
 
-- ▶ **专家部署的组合件 v0**（进行中：SOP 技能×2 + expert-setup 装配 + P1 行为 live 验证已落地；**卡在真 bug：pin 迁移后策展技能 provider 在 preset 会话整个缺席**，8 件全缺，根因在查）——卡：[2026-09-25-expert-pack-v0](notes/proposed/2026-09-25-expert-pack-v0.md)
+- ▶ **CEO 助手的 Sidebar UX**（用户 2026-09-25 拍板的当前优先项：快捷工具面，不只是对话）——研究 DSH 自有 client UI 的 slot/tab 机制 → 生态 UI 类候选 → CEO 工作流倒推；产出可拍板方案 + 第一个落地切片；卡：[2026-09-25-ceo-sidebar-ux](notes/proposed/2026-09-25-ceo-sidebar-ux.md)
+- ▶ **专家部署的组合件 v0**（进行中：可装可跑的件已齐——SOP 技能×2 + `pnpm expert-setup` 装配 + read-only 权限形状 + P1 行为 live 验证；迁移带出的"策展技能全缺"真 bug **已修**（baseUrl = profile 目录 → 按包名解析；红夹具 + live 重跑 + 账本三证据），`pnpm eval` 行为回归 **3/3**；剩 §四 的触发项：IM 渠道（等你选）、MCP、概念页抽取）——卡：[2026-09-25-expert-pack-v0](notes/proposed/2026-09-25-expert-pack-v0.md)
+- ▶ **会话日志代次配方**（写者已 v4、读方与配方仍写死 v3 的静默失效：开发仪表**已修**（代次无关发现 + 夹具），**模型可见**两处（手册段 + `session-recall` 技能）**已改成代次无关**，验收四条全绿（红夹具 + eval 3/3 + live 探针）；同批修掉这条技能的两处不可用（frontmatter parse 失败被静默 skip、`rg` 包装脚本缺 `--`）——见卡 §四/§六）——卡：[2026-09-25-session-log-generation-recipe](notes/proposed/2026-09-25-session-log-generation-recipe.md)
 - ⏳ 知识导入的转换与概念抽取（触发=①第一份真实 docx/pdf 文档集出现 ②评测集 v0 就位；依据：[导入纯核 note](notes/implemented/2026-09-25-knowledge-ingest-core.md) §四）
 - ⏳ **vendor `lib/` 重建（换 pin 的常规收尾）**（触发=需要 boot/release-smoke/plugin-add 出的 profile 时；测试已改为解析 vendor src，不再依赖它）——三条路与已试步骤见迁移记录 §六
 - ⏸ **阶段 0-3 · 评测集 v0**（30–50 条真实经营问题，含应拒答题与判分规则；**题目由你本人出**——这是 G2 关口，agent 只整理格式）
-- ⏳ 技能触发面：`session-recall` 在账本窗口与全量日志里都是 0 加载（另 5 件策展技能都被加载过）——判它是"罕见情况的招牌"还是"描述没接上真实场景"（触发=真实使用里确实需要回忆历史会话；依据：[责任圈卡](notes/proposed/2026-09-25-owner-mandate-and-real-use-baseline.md) §十一）
 - ⏳ 家的内存段瘦身（合并/下沉记忆、压缩措辞）（触发=真实使用中确实感到摘要偏薄；降级已优雅故不紧急，依据：[责任圈卡](notes/proposed/2026-09-25-owner-mandate-and-real-use-baseline.md) §九）
 - ▶ **长期责任圈（职责，不完成）**：北极星＝中小企业 CEO/VP 的**数字分身**（管理岗基座＋跟本人学；首位真人＝用户本人）——总纲 [企业聪明助手总体思路](notes/research/2026-09-25-grand-plan-enterprise-expert-assistant.md)，圈纪律与逐圈记录见[责任圈卡](notes/proposed/2026-09-25-owner-mandate-and-real-use-baseline.md)（职责无终点，不按"完成即离队"退场）
 - ⏳ 负例控制存量补课（触发=下一次改动某条尚无红夹具的结构性门禁时，同 diff 补它的造红夹具；存量不追账，理由见[红证据档案](notes/research/archive/2026-09-25-old-gate-red-controls.md)）
@@ -57,3 +58,7 @@
   只写接下来 / 完成即离队 / 队列=索引 / 两道机械门禁进 verify）。三线提案的 §六延后项
   表移交本队列（⏳ 各行），原表加移交注记；两份提案（tri-line、iteration-rhythm）毕业至
   `notes/implemented/`，全仓引用同步。档案：`notes/implemented/2026-09-24-roadmap-queue.md`。
+- 2026-09-25：**`session-recall` 0 加载的条目离队**——问题是"罕见情况的招牌还是描述没接上场景"，
+  答案是**两者都不是**：它的 frontmatter parse 失败，加载器静默 skip（`action-plan` 同病）。
+  修法与证据：[策展技能被静默跳过](notes/implemented/2026-09-25-curated-skill-frontmatter-silent-skip.md)；
+  "真实使用里技能是否真被加载"这一观察由 ▶ 真实使用开跑 条目承担。
