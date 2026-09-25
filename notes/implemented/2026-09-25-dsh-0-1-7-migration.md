@@ -98,3 +98,18 @@ vendor 的构建脚本假设**已经引导过的树**（其 `lib/` 在场）。�
 3. 兜底：`pnpm --dir vendor/dsh install`（**不加** `--ignore-scripts`，先解决 lefthook 与 submodule
    `core.worktree` 的冲突）后按 CI 的 `pnpm run build` 全量走一遍——CI 明文只做 install + build，
    说明干净树上本应可行；我们这棵树的差异需要与 CI 逐条对齐。
+
+## 七、pin 迁移留下的孤儿包目录（用户报告的 lint 警告）
+
+用户 lint 时看到：`File '…/vendor/dsh/packages/code-runtime/code-runtime' not found.`
+
+查证：该目录**只剩一个 `node_modules`**（无 `package.json`/`src`/`tsconfig.json`），而
+`@deepseek-ai/dsh-code-runtime` 在 0.1.7-rc.2 已从 workspace 与 lockfile 中消失（现役的是兄弟包
+`code-runtime-worker-thread`）。也就是说这是**换 pin 后遗留的空壳**：任何按目录当包加载的工具
+（编辑器 tsserver、lint）都会去找它的 `tsconfig.json`，于是报"文件不存在"。
+
+处置：删除该孤儿目录（gitignore 内的安装残留，**非 vendor 源码**——`git -C vendor/dsh status` 干净）。
+复核：`node scripts/verify.mjs` 31/31 exit 0、`pnpm typecheck` exit 0。
+
+**可复用的结论**：换 pin 后除了重建产物，还要清**上一个 pin 留下的孤儿包目录**（判据：目录里只有
+`node_modules`，且包名已不在 lockfile/workspace 里）。
