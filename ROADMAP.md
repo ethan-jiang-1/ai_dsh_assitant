@@ -12,7 +12,6 @@
 
 ## 队列
 
-- ▶ **DSH 对齐补课（借结构）**（自审确认上轮只借了术语与门禁：子树 AGENTS.md/生成目录+freshness/`.agents/skills/`/负例控制覆盖面四项结构性机制未做 + 两条术语锚定丢失；卡：[2026-09-25-dsh-alignment-deepening](notes/proposed/2026-09-25-dsh-alignment-deepening.md)，依据[自审档案](notes/research/archive/2026-09-25-dsh-alignment-audit.md)）
 - ⏳ `.agents/` 开发 skills（触发=下一次换 pin 或审计轮里同一多步流程真重复；落地时须在 AGENTS.md 写"开发用 vs 模型用"消歧句）
 - ⏳ change-scope 脚本（触发=真实"跑错检查/漏跑检查"摩擦出现；最简形态见卡 §五）
 - ▶ **真实使用开跑**（用户本人用起来；首批数据与 ⏳ 对照见[打磨战役 §八](notes/implemented/2026-09-25-smart-assistant-polish-campaign.md)，摩擦即新卡）

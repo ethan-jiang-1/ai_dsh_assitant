@@ -298,7 +298,9 @@ check('contract: docs/home.md lists the rooms and archives the layout creates', 
     if (value === undefined) problems.push(`layout.ts does not declare ${constant}`)
     else if (!document.includes(value)) problems.push(`docs/home.md never mentions ${value}`)
   }
-  for (const tool of ['assistant_memory', 'assistant_research', 'assistant_reflect']) {
+  // All four tools: the fourth room's tool was missing from this list until a red-control run
+  // showed the contract could drop assistant_knowledge without a word.
+  for (const tool of ['assistant_memory', 'assistant_research', 'assistant_reflect', 'assistant_knowledge']) {
     if (!document.includes(tool)) problems.push(`docs/home.md never mentions ${tool}`)
   }
   return problems

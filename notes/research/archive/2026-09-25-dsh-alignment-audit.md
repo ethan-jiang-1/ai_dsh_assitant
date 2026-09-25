@@ -44,7 +44,7 @@
   UPSTREAM 重审触发表）：`4a910b5`。
 - 状态词统一（消除"调研中/待拍板/待实施"第二套词）+ 意图三通道 + 卡片骨架：`9a32828`。
 
-## 四、结论与补课清单（进入 `notes/proposed/2026-09-25-dsh-alignment-deepening.md`）
+## 四、结论与补课清单（进入 `notes/implemented/2026-09-25-dsh-alignment-deepening.md`）
 
 按 DSH 自己的优先级（`07:52-58`）：第 1 条（一个事实一个 owner、根指令只放 standing orders）对应 S1；
 第 4 条（Skills 保存需判断的流程）对应 S3；第 5 条（确有组合压力时引入可查询结构）对应 S2；

@@ -58,3 +58,4 @@
 - 2026-09-25：新增 ▶ 打磨战役卡置顶（用户深夜 handoff"长程打磨不停跑"+次日凌晨追加"全程自主不依赖人、每步完成即提交"；悬问收口与 agent 代拍决策表在卡内 §二/§四；「真实使用开跑」条目改为战役一体注记——战役即首批真实使用）。
 - 2026-09-25（晚）：打磨战役毕业离队（P0–P6 全部完成、逐阶段提交；档案 `notes/implemented/2026-09-25-smart-assistant-polish-campaign.md` 含收官数字/⏳ 触发对照/留给用户的四个拍板点）；「真实使用开跑」恢复常态位（用户本人使用收集摩擦，⏳ 判据数据源已开流）。
 - 2026-09-25（更晚）：新增 DSH 对齐三批（门禁批/文档批/状态可见批）+ 两个延后项（`.agents/` 开发 skills、change-scope 脚本，各带触发条件）；三批与 notes 分类学**当日全部落地**（提交 fa1611c/6e09eb0/4a910b5 + 毕业提交），批次条目按"完成即离队"出队；档案转 `notes/implemented/2026-09-25-dsh-alignment-borrowables.md`（§四 落地记录）。
+- 2026-09-25（再晚）：DSH 对齐补课完成离队（自审逼出的四项结构性机制：子树 AGENTS.md、生成目录+freshness、`.agents/skills/` 开发技能、旧门禁红证据；档案 `notes/implemented/2026-09-25-dsh-alignment-deepening.md`）。

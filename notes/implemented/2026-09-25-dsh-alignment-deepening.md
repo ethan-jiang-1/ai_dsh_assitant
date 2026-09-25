@@ -1,6 +1,6 @@
 # DSH 对齐补课：借结构，不只是借术语
 
-日期：2026-09-25 · 状态：**proposed（S1 子树 owner 文件 ✅ 92aeb0f；S2 生成目录+freshness ✅ 本提交；S5 顺手项 ✅ 并 92aeb0f；S3 `.agents/skills/` ✅ 本提交；余 S4 旧门禁红证据）**
+日期：2026-09-25 · 状态：**implemented（五项全部落地：S1 92aeb0f、S2 138dee5、S3 5a3290e、S4 与毕业同提交、S5 并 92aeb0f；依据[自审档案](../research/archive/2026-09-25-dsh-alignment-audit.md)，红证据[档案](../research/archive/2026-09-25-old-gate-red-controls.md)）**
 
 > 依据：[DSH 对齐自审](../research/archive/2026-09-25-dsh-alignment-audit.md)（`notes/research/archive/`，已收卷）——
 > 上轮声称 vs 实际逐项对照，含两条被我在压缩证据时弄丢的借项（解析门面术语、房间/桌面/抽屉映射）。
@@ -53,7 +53,7 @@
 否则正撞 `03:17` 警告的同名陷阱。装载面（dev profile 是否扫 .agents/skills/）先查 `dev/profile-patch.yml`
 与 `dsh-skill-filesystem` 配置再定，不猜。
 
-### S4 · 负例控制补课（优先级 3：把可机械规则接入真实接受路径，并证明负例会失败）
+### S4 · 负例控制补课 ✅（优先级 3）
 
 **我方现状**：27 条检查 / 11 组夹具；结构、身份、自包含、docs 合同等旧门禁无红证据。
 **做法**：给旧门禁里**最高价值的四条**造红夹具（结构必需路径缺失、身份名与 patch 不一致、
@@ -72,7 +72,7 @@
 5. **Known Limitations 的 owner**：包 README 加一节，收纳目前散落的"登记不立案"负知识
    （如 PTC 模式 counts=null 显示瑕疵）。
 
-## 二、落地记录与剩余
+## 二、落地记录
 
 - **S1 ✅**（`92aeb0f`）：5 个子树 AGENTS.md（packages/docs/scripts/dev/snapshots）+ 根布局表 17→9 行 + 稳定性门禁扩到全部 6 个入口文件。
 - **S2 ✅**：`scripts/gen-catalog.mjs` → `docs/package-catalog.md`（入口×平面、组合行、工具×动词、策展技能、pin 与依赖姿态），
@@ -87,7 +87,10 @@
   **装载面结论（读源码，不猜）**：provider 自带 `project-agents` 根扫 `<projectRoot>/.agents/skills`
   （vendor `skill/skill-filesystem/src/index.ts:247`，rank 200）——**零接线**；实测本会话技能目录
   随文件落盘实时更新（三件技能当场出现在可用技能列表里），即"进目录即入目录"。
-- **S4（待做）**：四条高价值旧门禁的红证据（手工造红 + 记录，不重构四条内联检查）。
+- **S4 ✅**：四条高价值旧门禁的红证据（结构必需路径 / 身份名与 identity 表一致 / 自包含 /
+  docs-home 合同），手工造红 → 观察 FAIL → 还原，逐条原文入[证据档案](../research/archive/2026-09-25-old-gate-red-controls.md)；
+  **副产物两条**：一次探针自己写错（门禁正确保持绿——不红先怀疑探针）、
+  契约检查漏列第四个工具 `assistant_knowledge`（真缺口，同 diff 补齐）。
 
 ## 三、落地序与验收
 
