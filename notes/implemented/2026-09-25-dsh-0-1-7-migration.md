@@ -113,3 +113,22 @@ vendor 的构建脚本假设**已经引导过的树**（其 `lib/` 在场）。�
 
 **可复用的结论**：换 pin 后除了重建产物，还要清**上一个 pin 留下的孤儿包目录**（判据：目录里只有
 `node_modules`，且包名已不在 lockfile/workspace 里）。
+
+## 八、第九圈：测试回到 32/33（全域 src 别名）+ 组合测试的剩余红
+
+**做成的**：`packages/dsh-smart-assistant/vitest.config.ts` 改为**全域解析 vendor 源码**——复用生成物
+`tsconfig.tsx.json` 的别名表，再补上嵌套 `vendor/dsh/vendor/*`（按各自 `package.json` 的 name，因为目录名≠包名），
+并处理三个陷阱：①别名目标是**仓根相对**，须按仓根解析 ②要给**入口文件**（`src/index.ts`）而不是目录
+③跳过不存在的目标。效果：**32/33 套件通过、213/215 tests**（改动前是 16/33；上上圈清理 vendor `lib/` 导致）。
+这条同时消灭了"stale lib 静默跑旧 pin 代码"（§三.2）——测试与运行时现在解析**同一份源码**。
+
+**剩下的 2 个（同一个套件）**：`tests/preset-composition.spec.ts` 的两条都失败于
+`RemoteError: assistant-memory-tool (dsh-smart-assistant/tool-memory): never started`（research/knowledge/learn 同），
+抛出点 `vendor/dsh/packages/preset/agent-preset-registry/src/index.ts:219`（registry 的 retain 在收集"没起来的行"）。
+**不是解析失败**（否则报 not found）：四条行都被登记进了树，但没进入 started 态。
+
+**首要假设与下一步**：测试是用 `ctx.plugin(AgentPreset, { id, plugins })` **直接注册定义**，
+而生产是经 **Loader + `cordis.patch.yml` 的 `preset-assistant` 行**组合（`!!js` 在子插件加载时求值、
+context/baseUrl 由 patch 文件确定）。下一步应把测试夹具改成"**经 Loader 加载一份 patch**"的真实形状，
+再复现：若仍然 never started，就往 registry 的挂载/隔离（`mountPreset` 的 scope 与 host 服务可见性）查，
+而不是继续改别名。这也是本仓一贯的判据：**测真实组合形状，不测等价想象**。
