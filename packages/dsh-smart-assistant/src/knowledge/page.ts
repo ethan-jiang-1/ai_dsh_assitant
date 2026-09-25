@@ -203,7 +203,24 @@ export function validatePageData(data: Readonly<Record<string, unknown>>): strin
     && (!Array.isArray(data.tags) || data.tags.some(item => typeof item !== 'string'))) {
     problems.push('tags must be a list of strings')
   }
+  if (data.aliases !== undefined
+    && (!Array.isArray(data.aliases) || data.aliases.some(item => typeof item !== 'string'))) {
+    problems.push('aliases must be a list of strings (Obsidian requires the list form)')
+  }
   return problems
+}
+
+/**
+ * Read a page's alternative names, always including the title: an alias list that does not
+ * carry the page's own name would hide it from Obsidian's autocomplete.
+ * @param value - Raw `aliases` frontmatter value.
+ * @param title - The page's title, if it has one.
+ * @returns Deduped aliases, or `undefined` when the page declares none.
+ */
+function parseAliases(value: unknown, title: string | undefined): string[] | undefined {
+  const declared = Array.isArray(value) ? (value as string[]) : []
+  const aliases = [...new Set([...declared, ...(title !== undefined ? [title] : [])])]
+  return aliases.length > 0 ? aliases : undefined
 }
 
 /**
@@ -217,11 +234,14 @@ export function pageFromEntry(entry: RoomEntry): KnowledgePage | undefined {
   if (entry.body.trim().length === 0) return undefined
   const data = entry.data
   const body = entry.body
+  const title = typeof data.title === 'string' ? data.title : undefined
+  const aliases = parseAliases(data.aliases, title)
   return {
     id: entry.id,
     status: (data.status ?? 'stable') as PageStatus,
     type: (data.type as string).trim(),
-    ...(typeof data.title === 'string' ? { title: data.title } : {}),
+    ...(title !== undefined ? { title } : {}),
+    ...(aliases !== undefined ? { aliases } : {}),
     ...(typeof data.description === 'string' ? { description: data.description } : {}),
     ...(isRecord(data.generated) && typeof data.generated.by === 'string' && typeof data.generated.at === 'string'
       ? { generated: { by: data.generated.by, at: data.generated.at } }
@@ -247,12 +267,18 @@ export function pageFromEntry(entry: RoomEntry): KnowledgePage | undefined {
  * @returns Frontmatter fields and the body to write.
  */
 export function pageToDocument(page: KnowledgePage): { data: Record<string, unknown>, body: string } {
+  // The title always rides in the alias list: that is what lets a person type the name in
+  // Obsidian and have autocomplete offer (and then write) the clickable `[[id|name]]` form.
+  const aliases = parseAliases(page.aliases, page.title)
   return {
     data: {
       id: page.id,
       type: page.type,
       status: page.status,
       ...(page.title !== undefined ? { title: page.title } : {}),
+      // The title always rides in the alias list: that is what lets a person type the name in
+      // Obsidian and have autocomplete offer (and then write) the clickable `[[id|name]]` form.
+      ...(page.aliases !== undefined && page.aliases.length > 0 ? { aliases: page.aliases } : {}),
       ...(page.description !== undefined ? { description: page.description } : {}),
       ...(page.generated !== undefined ? { generated: page.generated } : {}),
       ...(page.verified !== undefined && page.verified.length > 0 ? { verified: page.verified } : {}),
