@@ -383,3 +383,33 @@ export function dependencyPoseProblems(packageJsonPath, upstreamPath) {
   }
   return problems
 }
+
+// ── skill file contract ─────────────────────────────────────────────────────────
+
+/**
+ * Every SKILL.md — curated (model-facing) or development (.agents/skills, discovered by the
+ * provider's `project-agents` root) — carries frontmatter whose `name` matches its directory and
+ * a non-empty `description`. The loader silently ignores a malformed skill, so the shape is gated.
+ *
+ * @param {string} skillsDir - a directory of <name>/SKILL.md bundles.
+ */
+export function skillFrontmatterProblems(skillsDir) {
+  const problems = []
+  if (!existsSync(skillsDir)) return problems
+  for (const name of readdirSync(skillsDir)) {
+    const file = join(skillsDir, name, 'SKILL.md')
+    if (!existsSync(file)) {
+      problems.push(`${name}/ has no SKILL.md`)
+      continue
+    }
+    const text = read(file)
+    const declared = /^name:\s*(\S+)\s*$/m.exec(text)?.[1]
+    const description = /^description:\s*(.+)$/m.exec(text)?.[1]
+    if (declared !== name) problems.push(`${name}/SKILL.md declares name ${declared ?? '(none)'}`)
+    if (description === undefined || description.trim().length === 0) {
+      problems.push(`${name}/SKILL.md has no description`)
+    }
+    if (!text.startsWith('---\n')) problems.push(`${name}/SKILL.md does not start with frontmatter`)
+  }
+  return problems
+}

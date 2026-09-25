@@ -18,7 +18,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { agentsMdStabilityProblems, dependencyPoseProblems, GRADUATED_STATUS, implementedAlternativesProblems, languageGuardProblems, notesNamingProblems, notesStateProblems, notesTopLevelProblems, pinProblems, relativeLinkProblems, textHygieneProblems } from './verify-checks.mjs'
+import { agentsMdStabilityProblems, dependencyPoseProblems, GRADUATED_STATUS, implementedAlternativesProblems, languageGuardProblems, notesNamingProblems, notesStateProblems, notesTopLevelProblems, pinProblems, relativeLinkProblems, skillFrontmatterProblems, textHygieneProblems } from './verify-checks.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const packageDir = join(repoRoot, 'packages', 'dsh-smart-assistant')
@@ -370,26 +370,12 @@ check('dependencies: harness packages are peers and the pinned tag is recorded a
 check('notes: implemented notes carry what they beat (输掉的方案)', () =>
   implementedAlternativesProblems(join(repoRoot, 'notes', 'implemented')))
 
-check('contract: curated skills carry valid frontmatter and match their directory', () => {
-  const problems = []
-  const skillsDir = join(packageDir, 'presets', 'assistant', 'skills')
-  for (const name of readdirSync(skillsDir)) {
-    const file = join(skillsDir, name, 'SKILL.md')
-    if (!exists(file)) {
-      problems.push(`${name}/ has no SKILL.md`)
-      continue
-    }
-    const text = read(file)
-    const declared = /^name:\s*(\S+)\s*$/m.exec(text)?.[1]
-    const description = /^description:\s*(.+)$/m.exec(text)?.[1]
-    if (declared !== name) problems.push(`${name}/SKILL.md declares name ${declared ?? '(none)'}`)
-    if (description === undefined || description.trim().length === 0) {
-      problems.push(`${name}/SKILL.md has no description`)
-    }
-    if (!text.startsWith('---\n')) problems.push(`${name}/SKILL.md does not start with frontmatter`)
-  }
-  return problems.length > 0 ? problems : []
-})
+check('contract: skill files carry valid frontmatter and match their directory', () => [
+  // Both homes ride the same provider contract; the development home is discovered natively via
+  // the provider's `project-agents` root (vendor: skill-filesystem/src/index.ts, rank 200).
+  ...skillFrontmatterProblems(join(packageDir, 'presets', 'assistant', 'skills')),
+  ...skillFrontmatterProblems(join(repoRoot, '.agents', 'skills')),
+])
 
 // ── reference integrity ─────────────────────────────────────────────────────────────────────────
 //

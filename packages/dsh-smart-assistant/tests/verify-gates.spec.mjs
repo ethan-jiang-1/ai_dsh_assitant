@@ -25,6 +25,7 @@ import {
   pinProblems,
   implementedAlternativesProblems,
   relativeLinkProblems,
+  skillFrontmatterProblems,
   textHygieneProblems,
 } from '../../../scripts/verify-checks.mjs'
 
@@ -346,5 +347,24 @@ describe('dependencyPoseProblems', () => {
     const problems = dependencyPoseProblems(bad, upstreamPath)
     expect(problems.some(p => p.includes('peerDependencies'))).toBe(true)
     expect(problems.some(p => p.includes('does not name the pinned upstream tag'))).toBe(true)
+  })
+})
+
+describe('skillFrontmatterProblems', () => {
+  it('accepts a well-formed bundle and flags a name/directory mismatch, a missing description, and a missing file', () => {
+    const dir = temp('skills-')
+    mkdirSync(join(dir, 'good-skill'), { recursive: true })
+    writeFileSync(join(dir, 'good-skill', 'SKILL.md'), '---\nname: good-skill\ndescription: does a thing\n---\n\nbody\n', 'utf8')
+    mkdirSync(join(dir, 'wrong-name'), { recursive: true })
+    writeFileSync(join(dir, 'wrong-name', 'SKILL.md'), '---\nname: other-name\ndescription: x\n---\n\nbody\n', 'utf8')
+    mkdirSync(join(dir, 'no-description'), { recursive: true })
+    writeFileSync(join(dir, 'no-description', 'SKILL.md'), '---\nname: no-description\n---\n\nbody\n', 'utf8')
+    mkdirSync(join(dir, 'empty-bundle'), { recursive: true })
+
+    const problems = skillFrontmatterProblems(dir)
+    expect(problems.some(p => p.includes('good-skill'))).toBe(false)
+    expect(problems.some(p => p.includes('declares name other-name'))).toBe(true)
+    expect(problems.some(p => p.includes('has no description'))).toBe(true)
+    expect(problems.some(p => p.includes('empty-bundle/ has no SKILL.md'))).toBe(true)
   })
 })

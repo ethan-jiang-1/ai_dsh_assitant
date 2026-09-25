@@ -1,6 +1,6 @@
 # DSH 对齐补课：借结构，不只是借术语
 
-日期：2026-09-25 · 状态：**proposed（S1 子树 owner 文件 ✅ 92aeb0f；S2 生成目录+freshness ✅ 本提交；S5 顺手项 ✅ 并 92aeb0f；余 S3 `.agents/skills/` 与 S4 旧门禁红夹具）**
+日期：2026-09-25 · 状态：**proposed（S1 子树 owner 文件 ✅ 92aeb0f；S2 生成目录+freshness ✅ 本提交；S5 顺手项 ✅ 并 92aeb0f；S3 `.agents/skills/` ✅ 本提交；余 S4 旧门禁红证据）**
 
 > 依据：[DSH 对齐自审](../research/archive/2026-09-25-dsh-alignment-audit.md)（`notes/research/archive/`，已收卷）——
 > 上轮声称 vs 实际逐项对照，含两条被我在压缩证据时弄丢的借项（解析门面术语、房间/桌面/抽屉映射）。
@@ -38,7 +38,7 @@
 包 README 与 `docs/identity.md` 的手维护清单改为指向 catalog（身份名的语义仍在 identity.md，
 但"当前有哪些"由生成物回答）。
 
-### S3 · `.agents/skills/`（优先级 4：用 Skills 保存需要上下文判断的工作流程）
+### S3 · `.agents/skills/` ✅（优先级 4）
 
 **我方现状**：不存在；6 个 SKILL.md 全是产品运行时技能。
 **DSH 依据**：`03:19-24` 两类同名 Skill 必须分清；`03:7-11` Skills 装"读上下文 + 应用判断 + 步骤 + 报告"的任务。
@@ -81,8 +81,13 @@
   未识别 client 平面、包 AGENTS.md 的"8 个子路径"与实际 9 个不符——手维护清单的口径分歧被生成物当场对账。
   包 README 与包 AGENTS.md 的入口表按 S2 设计改为**指向生成物**（永久消除该漂移面）。
 - **S5 ✅**：解析门面术语改名（防与 DSH `Context façade` 撞名）、房间/桌面/抽屉映射段、六层反馈表、参与阶梯 L0–L3。
-- **S3（待做）**：`.agents/skills/` 三技能 + 消歧句 + 装载面结论。
-- **S4（待做）**：四条高价值旧门禁的红夹具。
+- **S3 ✅**：三件开发技能（`repo-live-probe` 探针流程、`note-archive-judgment` 归档判定、
+  `pre-push-evidence` 按改动面选证据）+ 根 `AGENTS.md` 消歧句（开发用 vs 模型用，不共享 registry）
+  + 技能语法门禁扩到两个技能家（抽成纯核 `skillFrontmatterProblems` 并配反例夹具）。
+  **装载面结论（读源码，不猜）**：provider 自带 `project-agents` 根扫 `<projectRoot>/.agents/skills`
+  （vendor `skill/skill-filesystem/src/index.ts:247`，rank 200）——**零接线**；实测本会话技能目录
+  随文件落盘实时更新（三件技能当场出现在可用技能列表里），即"进目录即入目录"。
+- **S4（待做）**：四条高价值旧门禁的红证据（手工造红 + 记录，不重构四条内联检查）。
 
 ## 三、落地序与验收
 
