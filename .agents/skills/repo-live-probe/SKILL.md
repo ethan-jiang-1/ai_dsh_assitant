@@ -33,9 +33,18 @@ loop that answers "did it actually ride in the request?" without guessing.
    ```
    For bulk searches prefer the wrapper form (`printf '#!/bin/sh\nexec zstd -dc "$@"\n' > /tmp/zstd-cat`)
    because `rg --pre` cannot take a command with spaces.
-5. **Read the `system/message` event** (that is the assembled system prompt) and the
-   `assistant/message` event (what the model said). Measure section bytes by locating the section
-   headers and subtracting, rather than eyeballing the whole prompt.
+5. **Enumerate the event types before reading any field.** The shapes differ per event and guessing
+   costs a round trip (paid twice):
+   ```sh
+   zstd -dc <log> | python3 -c "import json,sys,collections;c=collections.Counter()
+   [c.update([json.loads(l)['type']]) for l in sys.stdin if l.strip()]
+   print(c)"
+   ```
+   Verified paths: the assembled system prompt is `system/message` → `data.message.content[].text`;
+   an inbound task is `user/message` → `data.content[].text` (a *different* nesting — this is the
+   trap). Tool calls/results carry their own shapes; enumerate first, then read.
+6. **Measure section bytes** by locating the section headers and subtracting, rather than eyeballing
+   the whole prompt.
 
 ## Hard-won details
 
@@ -46,6 +55,11 @@ loop that answers "did it actually ride in the request?" without guessing.
   `startsWith(blurb)` to test warmth; check for the records/threads/pages the digest should carry.
 - **Probe twice for before/after**: run the same task on the pre-change build (or `git stash`) and
   on the post-change build, and keep both log excerpts next to the claim in the note.
+- **A probe patch must mirror the patch it replaces.** `dev/preset-runner.patch.yml` starts by
+  disabling the shipped `headless-runner` row; a hand-written probe patch that only inserts
+  `preset-runner` leaves both mounted and the process dies at exit with
+  `the launcher must provide ctx.appExit before the tree mounts` — after printing a correct answer,
+  which makes it easy to miss. Copy the real patch and change one thing.
 - **A tool-using answer hides the resident state.** If the model calls `curate` and reports the
   numbers, you have proven the tool, not the prompt. Ask for a no-tool answer when the resident
   surface is the thing under test.

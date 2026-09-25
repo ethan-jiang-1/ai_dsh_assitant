@@ -12,8 +12,8 @@
 
 ## 队列
 
+- ⏳ 家的内存段瘦身（合并/下沉记忆、压缩措辞）（触发=真实使用中确实感到摘要偏薄；降级已优雅故不紧急，依据：[责任圈卡](notes/proposed/2026-09-25-owner-mandate-and-real-use-baseline.md) §九）
 - ▶ **长期责任圈（职责，不完成）**：按圈推进产品收敛——每圈测差距→切片→更新队列→摆下一圈；圈纪律、意图级仪表与逐圈记录见[责任圈卡](notes/proposed/2026-09-25-owner-mandate-and-real-use-baseline.md)（职责无终点，本行不按"完成即离队"退场）
-- ▶ **digest 预算压力（实测 4056/4096，余 40 字节）**：下一次写记忆就会触发截断门；处置=合并/下沉记忆或调 `digestMaxBytes`（真实会话自带观察，依据：[真实使用基线](notes/research/archive/2026-09-25-real-use-baseline.md) 与第三圈 live 探针）
 - ⏳ 负例控制存量补课（触发=下一次改动某条尚无红夹具的结构性门禁时，同 diff 补它的造红夹具；存量不追账，理由见[红证据档案](notes/research/archive/2026-09-25-old-gate-red-controls.md)）
 - ⏳ `implemented/` 冻结树 / class 子目录（触发=`implemented/` 篇数过百或浏览开始碍事；依据[吸收 note](notes/implemented/2026-09-24-agent-note-lifecycle-absorption.md)）
 - ⏳ `/personality` 类会话 overlay（触发=真实需求出现；依据[soul-and-agents](notes/implemented/2026-09-24-soul-and-agents.md)）

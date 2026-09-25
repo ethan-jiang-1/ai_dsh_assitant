@@ -8,6 +8,7 @@ import { describe, expect, it } from 'vitest'
 import { renderDigest } from '../src/home/digest.ts'
 import type { MemoryRecord } from '../src/memory/record.ts'
 import type { ResearchThread } from '../src/research/thread.ts'
+import type { KnowledgePage } from '../src/knowledge/page.ts'
 
 function memory(overrides: Partial<MemoryRecord> & { id: string }): MemoryRecord {
   return {
@@ -32,6 +33,10 @@ function thread(overrides: Partial<ResearchThread> & { id: string }): ResearchTh
     updated: '2026-09-01T00:00:00.000Z',
     ...overrides,
   }
+}
+
+function page(id: string, description: string): KnowledgePage {
+  return { id, status: 'stable', type: 'concept', title: id.toUpperCase(), description, sources: [], tags: [], body: '', links: [] }
 }
 
 const blurb = 'Your home outlives this session.'
@@ -109,5 +114,51 @@ describe('renderDigest', () => {
 
     expect(Buffer.byteLength(result.text, 'utf8')).toBeLessThanOrEqual(120)
     expect(result.truncated).toBe(true)
+  })
+})
+
+describe('renderDigest degradation', () => {
+  // The digest may shorten what it shows, but it must never silently hide a whole room: when the
+  // budget bites, descriptions go first, and what still does not fit is announced.
+  const pages = Array.from({ length: 6 }, (_unused, index) =>
+    page(`p-${index}`, 'a description long enough that dropping it visibly saves bytes in the tree'))
+  const manyMemories = Array.from({ length: 6 }, (_unused, index) =>
+    memory({ id: `m-${index}`, text: `record ${index} `.repeat(12), importance: 9 - index }))
+
+  it('keeps every page signposted by dropping descriptions before it drops pages', () => {
+    const generous = renderDigest({ statusBlurb: blurb, memories: [], threads: [], pages, maxBytes: 4096 })
+    const tight = renderDigest({ statusBlurb: blurb, memories: [], threads: [], pages, maxBytes: generous.bytes - 40 })
+
+    expect(tight.truncated).toBe(false)
+    for (const entry of pages) expect(tight.text).toContain(entry.id)
+    expect(tight.text).not.toContain('a description long enough')
+  })
+
+  it('announces what it omitted once even the compact tree does not fit', () => {
+    const result = renderDigest({ statusBlurb: blurb, memories: manyMemories, threads: [], pages, maxBytes: 700 })
+
+    expect(result.truncated).toBe(true)
+    expect(Buffer.byteLength(result.text, 'utf8')).toBeLessThanOrEqual(700)
+    expect(result.text).toContain('omitted — digest budget')
+    expect(result.text).toContain(blurb)
+  })
+
+  it('keeps the map and drops the marker when there is no room for either', () => {
+    const result = renderDigest({
+      statusBlurb: blurb,
+      memories: [memory({ id: 'big', text: 'x'.repeat(400) })],
+      threads: [],
+      pages,
+      maxBytes: 70,
+    })
+
+    expect(result.text).toContain(blurb)
+    expect(result.text).not.toContain('omitted — digest budget')
+    expect(result.memoryIds).toEqual([])
+  })
+
+  it('is deterministic: the same input renders byte-identical output', () => {
+    const input = { statusBlurb: blurb, memories: manyMemories, threads: [], pages, maxBytes: 700 }
+    expect(renderDigest(input).text).toBe(renderDigest(input).text)
   })
 })
