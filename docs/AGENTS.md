@@ -8,7 +8,7 @@
 - **禁历史叙事**：不用 `previously / now / no longer / 曾经 / 已不再`；不写"以前是 X，现在改成 Y"。
   决策理由与被否决的方案进 `notes/`（`implemented/` 是当前 rationale owner）。
 - **合同与代码对齐**：`docs/` 的每一句"是什么"都必须与代码现况一致；不一致就是 bug。
-- **生成物不手改**：docs/package-catalog.md 由 scripts/gen-catalog.mjs 生成（**待建立**，见补课卡 S2），改它等于改生成器。
+- **生成物不手改**：[`package-catalog.md`](package-catalog.md) 由 [`scripts/gen-catalog.mjs`](../scripts/gen-catalog.mjs) 生成（`pnpm gen-catalog`），改它等于改生成器。
 
 ## 谁拥有什么（改前先认领）
 
@@ -19,7 +19,7 @@
 | [`identity.md`](identity.md) | **名字与皮肤面**（身份名、改名代价、皮肤清单） | 改包名/patch 行 id/preset id 等必须同 diff 更新本文；`verify` 校验声明的身份名都在场 |
 | [`dev.md`](dev.md) | 开发环境：双 home、两个 profile、命令、生成器与 freshness、调试手册 | 命令与 `package.json` scripts 一致 |
 | [`discipline.md`](discipline.md) | **纪律继承表**（逐源枚举：借什么/怎么适配/偏离登记）与反馈层、门禁边界 | 新门禁/新纪律先在这里登记一行（约束 → 适配 → 证据） |
-| package-catalog.md（待建立） | 包当前形状的**生成索引**（入口×平面、工具×动词、行 id） | 生成物；freshness 由 `pnpm verify` 的 catalog 检查守 |
+| [`package-catalog.md`](package-catalog.md) | 包当前形状的**生成索引**（入口×平面、工具×动词、行 id、pin 与依赖姿态） | 生成物；freshness 由 `pnpm verify` 的 `gen-catalog --check` 守 |
 
 ## 写文档前自检（作者视角）
 

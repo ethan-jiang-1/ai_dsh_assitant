@@ -42,6 +42,7 @@
 | 生成物 | 生成器 | freshness 门禁 |
 |---|---|---|
 | `tsconfig.tsx.json` | `scripts/gen-paths.mjs`（`pnpm gen-paths`，从 vendor/dsh 全量别名） | `pnpm verify`「facade: the runtime tsconfig for the source launch is present and current」 |
+| `docs/package-catalog.md` | `scripts/gen-catalog.mjs`（`pnpm gen-catalog`） | `pnpm verify`（`gen-catalog --check`，与 `gen-paths` 同形） |
 | `packages/dsh-smart-assistant/lib/` | `pnpm build`（`tsc -b`） | 无独立 freshness 门禁：组合测试与 `release-smoke` 消费它，过期即红 |
 | `dev/harness-home/`（scaffold 出的 SOUL/AGENTS 等） | 插件运行时 `ensureHome`（`src/home/layout.ts` 是唯一 owner） | `curate` 的 `manual-stale-scaffold` finding |
 

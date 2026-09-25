@@ -10,18 +10,12 @@
 
 ## 它是什么形状
 
-包里有 8 个入口（= `package.json` exports 的 8 个 plugin 子路径；1 个 host 面 + 7 个 agent 面）：
+**当前声明了什么，以生成物为准**：[`docs/package-catalog.md`](../../docs/package-catalog.md)
+（由 `scripts/gen-catalog.mjs` 从 exports、组合行、工具源码与技能目录抽取；`pnpm verify` 守 freshness）。
+这里只留一句形状概括，不再手维护清单——手维护的入口表在本仓漂移过两次：
 
-| 入口 | 平面 | 内容 |
-|---|---|---|
-| `.` | HOST | `assistantMemory` 服务（working folder 布局 + 四个房间的存储 + 摘要 + 养护检查） |
-| `./memory-digest` | AGENT | 有界摘要提示词段落（桌面） |
-| `./home-preamble` | AGENT | 身份（`SOUL.md`）与手册（`AGENTS.md`）两个提示词段落 |
-| `./tool-memory` | AGENT | `assistant_memory` |
-| `./tool-research` | AGENT | `assistant_research` |
-| `./tool-knowledge` | AGENT | `assistant_knowledge`（只读检索） |
-| `./learn` | AGENT | `assistant_reflect` + 挂载"学到的技能"provider |
-| `./preset-runner` | AGENT | preset 挂载的 one-shot 验证驱动 |
+- **9 个 plugin 子路径**：host 1（`assistantMemory` 服务）+ preset agent 6（四个工具入口、两个提示词段落、
+  `learn`）+ dev 专用 agent 1（`preset-runner`）+ client 1（浏览器面）。
 
 装法、身份名、working folder 的契约分别在仓库的 `README.md`、`docs/identity.md`、`docs/home.md`。
 

@@ -7,26 +7,22 @@
 ## 这是什么包
 
 一个 **bundle**（不是 profile）：`package.json` 只声明 `dsh.bundle.patch = ./cordis.patch.yml`；
-它贡献 1 个 host 行（服务）+ 7 个 agent 行（preset 的 agent 面），共 **8 个 plugin 子路径导出**。
+它贡献 **9 个 plugin 子路径导出**（host 1 + preset agent 6 + dev 专用 agent 1 + client 1）——精确清单以生成物 `docs/package-catalog.md` 为准。
 它给 agent 一个 **working folder**（`dataDir`，默认 `<dshHome>/assistant`）——不是进程 cwd/workspace。
 
-## 8 个入口，两个平面
+## 入口、平面与组合行
 
-| 入口（exports 子路径） | 平面 | 贡献什么 |
-|---|---|---|
-| `.` | HOST | `assistantMemory` 服务（= Service Definition，**同包同文件给出唯一 Provider**；Consumer = 下列各 agent 面入口） |
-| `./tool-memory` | AGENT | 工具 `assistant_memory`（`recall` `save` `forget` `list` `curate`） |
-| `./tool-research` | AGENT | 工具 `assistant_research`（`open` `update` `park` `drop` `promote` `list`） |
-| `./tool-knowledge` | AGENT | 工具 `assistant_knowledge`（`search` `get`，**只读**；写入走 reflect/promote） |
-| `./memory-digest` | AGENT | 提示词段落：有界摘要（`digestMaxBytes`） |
-| `./home-preamble` | AGENT | 提示词段落：身份（`SOUL.md`）+ 手册（`AGENTS.md`） |
-| `./learn` | AGENT | 工具 `assistant_reflect` + 挂载"学到的技能"provider（`assistant-learned`） |
-| `./preset-runner` | AGENT | preset 挂载的 one-shot 验证驱动（`dev/preset-runner.patch.yml` 用） |
+**完整清单（入口 × 平面 × 组合行 id、工具 × 动词、策展技能、pin 与依赖姿态）以生成物为准**：
+[`docs/package-catalog.md`](../../docs/package-catalog.md)（`pnpm gen-catalog` 生成，`pnpm verify` 守 freshness）。
+本文件只拥有**不在生成物里的纪律**：
 
-**四个工具不合并**：动词集互不重叠，合并只会让模型在错误的房间找东西。
-**改模型可见面**（工具 description、提示词段落、persona 文本）必须同 diff 做三件事：
-① 语言用英文（`AGENTS.md` 语言分工）；② `model-visible means logged`——必须能从会话日志重建；
-③ 在 [`docs/identity.md`](../../docs/identity.md) 登记面与名，并配快照或真实组合断言。
+- 三个平面别混：**HOST**（服务 = Service Definition + 同包唯一 Provider）、**AGENT**（preset 的 agent 行，
+  model-facing：工具与提示词段落）、**CLIENT**（浏览器面，皮肤，模型不可见）。
+- **四个工具不合并**：动词集互不重叠，合并只会让模型在错误的房间找东西。
+- **改模型可见面**（工具 description、提示词段落、persona 文本）必须同 diff 做三件事：
+  ① 语言用英文（根 `AGENTS.md` 语言分工）；② `model-visible means logged`——必须能从会话日志重建；
+  ③ 在 [`docs/identity.md`](../../docs/identity.md) 登记面与名，并配快照或真实组合断言。
+- **改了组合行/exports/工具动词** → 必须重跑 `pnpm gen-catalog`，否则 freshness 门禁红。
 
 ## 包内 owner 面
 
