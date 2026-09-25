@@ -16,9 +16,9 @@
 
 import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
-import { dirname, basename, join, relative, resolve } from 'node:path'
+import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { agentsMdStabilityProblems, GRADUATED_STATUS, implementedAlternativesProblems, notesNamingProblems, notesStateProblems, notesTopLevelProblems, pinProblems, relativeLinkProblems } from './verify-checks.mjs'
+import { agentsMdStabilityProblems, dependencyPoseProblems, GRADUATED_STATUS, implementedAlternativesProblems, languageGuardProblems, notesNamingProblems, notesStateProblems, notesTopLevelProblems, pinProblems, relativeLinkProblems, textHygieneProblems } from './verify-checks.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const packageDir = join(repoRoot, 'packages', 'dsh-smart-assistant')
@@ -32,6 +32,9 @@ function walk(directory, extensions) {
   if (!exists(directory)) return []
   const found = []
   for (const name of readdirSync(directory)) {
+    // Dependency trees and the VCS store are never part of the managed corpus, and pnpm's
+    // symlink chains can exceed the path limit before a filter would ever see them.
+    if (name === 'node_modules' || name === '.git') continue
     const path = join(directory, name)
     if (statSync(path).isDirectory()) found.push(...walk(path, extensions))
     else if (extensions.some(extension => name.endsWith(extension))) found.push(path)
@@ -337,6 +340,25 @@ check('notes: note files follow YYYY-MM-DD-topic naming', () =>
 
 check('notes: AGENTS.md stays standing orders (no dates, no progress marks)', () =>
   agentsMdStabilityProblems(join(repoRoot, 'AGENTS.md')))
+
+check('language: model-facing sources and skill bodies are English (skin face exempt)', () =>
+  languageGuardProblems([
+    ...walk(join(packageDir, 'src'), ['.ts']).filter(file => !file.endsWith('.spec.ts')),
+    ...walk(join(packageDir, 'presets', 'assistant', 'skills'), ['.md']),
+  ].filter(file => !file.endsWith('web-branding.ts') && !file.includes(`${sep}client${sep}`))))
+
+check('text: managed text is strict UTF-8 with exactly one trailing newline', () =>
+  textHygieneProblems([
+    join(repoRoot, 'AGENTS.md'), join(repoRoot, 'README.md'), join(repoRoot, 'ROADMAP.md'), join(repoRoot, 'CLAUDE.md'),
+    ...walk(join(repoRoot, 'docs'), ['.md']),
+    ...walk(join(repoRoot, 'notes'), ['.md']),
+    ...walk(join(repoRoot, 'snapshots'), ['.md']),
+    ...walk(packageDir, ['.md']).filter(file => !file.includes(`${sep}node_modules${sep}`)),
+    ...walk(join(repoRoot, 'scripts'), ['.mjs']),
+  ]))
+
+check('dependencies: harness packages are peers and the pinned tag is recorded as verified', () =>
+  dependencyPoseProblems(join(packageDir, 'package.json'), join(repoRoot, 'vendor', 'UPSTREAM.md')))
 
 check('notes: implemented notes carry what they beat (输掉的方案)', () =>
   implementedAlternativesProblems(join(repoRoot, 'notes', 'implemented')))

@@ -1,6 +1,6 @@
 # DSH 研发体系对齐：可借鉴项收编与本仓落地计划（第一轮）
 
-日期：2026-09-25 · 状态：**proposed（第一轮已落地 notes 分类学；其余按 §四 落地序推进，逐项完成时改写本卡）**
+日期：2026-09-25 · 状态：**proposed（第一轮 notes 分类学与 P1 门禁批已落地；P2 文档批 / P3 状态可见批按 §四 推进，逐项完成时改写本卡）**
 
 > 来源与读法：参考语料 `/Users/bowhead/deepseek-harness/_agent_ready_development`（模拟 DSH 研发思路的
 > 独立语料，钉版 `dsh-v0.1.7-rc.1` @ `46a7f68`；只读借鉴，不改动它）。三个子目录分别由三个只读子代理
@@ -31,12 +31,12 @@ DSH 不要求插件仓复制它的完整 Note 机制与协作面。因此本卡�
 
 ## 三、采纳清单（待落地，借或适配）
 
-**A 组 · 门禁类（成本小，当前状态合法，可直接造红）**
-1. **语言分工上闸**（`AGENTS.md` 硬规则）：模型面路径（`src/tool-*`、`memory-digest`、`home-preamble`、`learn`、`preset-runner`、`presets/assistant/skills/**`、`preset.yml`）出现 CJK 即失败；注释豁免。
-2. **依赖姿态上闸**：`@deepseek-ai/*` 不得进 `dependencies`/`optionalDependencies`（只许 peer）；`dsh.compatibility.dshReleases` 与 `vendor/UPSTREAM.md` 的钉住 tag 对齐。
-3. **严格 UTF-8 + 恰好一个结尾换行**（语料 `verify.mjs` 规则 2/3）：现在非法字节会静默变 `�`。
-4. **负例控制成为规矩**：新增一条 `verify` 检查 = 同 diff 配一个「造红再证绿」夹具（语料 `05:34`「A guard only guards if the regression fails it」）；`verify-gates.spec.mjs` 已具形态，不追旧账、只对新检查生效。
-5. **三重门禁各管什么**（`10` §三道门禁表 / `06` 三层证据）：在 `docs/discipline.md` 加 3 行表——机械门禁能/不能建立什么、语义审计轮、用户拍板；**不借** weighted approval（单人仓无第二评审人）。
+**A 组 · 门禁类（成本小，当前状态合法，可直接造红）——✅ P1 批已落地**
+1. ✅ **语言分工上闸**：`src/**.ts`（注释行豁免）+ `presets/assistant/skills/**/*.md` 出现 CJK 即失败；**皮肤面豁免**（`web-branding.ts` 与 `client/` 的中文 UI 文案、`preset.yml` 显示名——侦察时修正了子代理把皮肤面错列进模型面的口径）。
+2. ✅ **依赖姿态上闸**：`@deepseek-ai/*` 不得进 `dependencies`/`optionalDependencies`（只许 peer）；`dsh.compatibility.dshReleases` 必须含 `vendor/UPSTREAM.md` 的钉住 tag。
+3. ✅ **严格 UTF-8 + 恰好一个结尾换行**：受管文本（仓库 md + 脚本）无非法字节、无缺/双结尾换行；顺带修 `walk()` 跳过 `node_modules`/`.git`（pnpm 符号链接链会撞 ENAMETOOLONG）。
+4. ✅ **负例控制成为规矩**：写进 `docs/discipline.md` 复查环；本批四条新门禁各配正反夹具（`tests/verify-gates.spec.mjs`）。
+5. ✅ **三重门禁各管什么**：`docs/discipline.md` 新增表（机械门禁 / 语义审计轮 / 用户拍板各能建立什么、不能建立什么）；**不借** weighted approval（单人仓无第二评审人）。
 
 **B 组 · 文档与路由类（成本小）**
 6. **生成物登记表**（`08` §3 五形态之「生成+freshness」）：`docs/dev.md` 加一张 3 列表（生成物/生成器/freshness 检查），当前只有 `tsconfig.tsx.json` 一行；不建 manifest。

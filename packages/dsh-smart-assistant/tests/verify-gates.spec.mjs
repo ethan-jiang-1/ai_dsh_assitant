@@ -16,13 +16,16 @@ import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import {
   agentsMdStabilityProblems,
+  dependencyPoseProblems,
   GRADUATED_STATUS,
+  languageGuardProblems,
   notesNamingProblems,
   notesStateProblems,
   notesTopLevelProblems,
   pinProblems,
   implementedAlternativesProblems,
   relativeLinkProblems,
+  textHygieneProblems,
 } from '../../../scripts/verify-checks.mjs'
 
 const dirs = []
@@ -277,5 +280,71 @@ describe('pinProblems', () => {
     const problems = pinProblems(root)
     expect(problems).toHaveLength(1)
     expect(problems[0]).toContain('tracked-source changes')
+  })
+})
+
+// ── language guard, text hygiene, dependency posture ────────────────────────────────────────────
+
+describe('languageGuardProblems', () => {
+  it('flags CJK outside comments, exempts comment lines, and passes English sources', () => {
+    const dir = temp('language-')
+    const good = join(dir, 'good.ts')
+    writeFileSync(good, "// 中文注释随文件现状（允许）\nexport const message = 'Load the skill first.'\n", 'utf8')
+    const bad = join(dir, 'bad.ts')
+    writeFileSync(bad, "export const message = '先加载技能'\n", 'utf8')
+    const skill = join(dir, 'SKILL.md')
+    writeFileSync(skill, '# Title\n\nLoad this before saving.\n', 'utf8')
+
+    const problems = languageGuardProblems([good, bad, skill])
+    expect(problems).toHaveLength(1)
+    expect(problems[0]).toContain('bad.ts')
+    expect(problems[0]).toContain('English')
+  })
+})
+
+describe('textHygieneProblems', () => {
+  it('accepts exact UTF-8 + one newline and rejects missing, doubled, or invalid endings', () => {
+    const dir = temp('text-')
+    const clean = join(dir, 'clean.md')
+    writeFileSync(clean, '# ok\n', 'utf8')
+    const noNewline = join(dir, 'no-newline.md')
+    writeFileSync(noNewline, '# ok', 'utf8')
+    const doubleNewline = join(dir, 'double.md')
+    writeFileSync(doubleNewline, '# ok\n\n', 'utf8')
+    const invalid = join(dir, 'invalid.md')
+    writeFileSync(invalid, Buffer.from([0xff, 0xfe, 0x0a]))
+
+    expect(textHygieneProblems([clean])).toEqual([])
+    const problems = textHygieneProblems([noNewline, doubleNewline, invalid])
+    expect(problems.some(p => p.includes('no-newline.md') && p.includes('no trailing newline'))).toBe(true)
+    expect(problems.some(p => p.includes('double.md') && p.includes('more than one newline'))).toBe(true)
+    expect(problems.some(p => p.includes('invalid.md') && p.includes('not valid UTF-8'))).toBe(true)
+  })
+})
+
+describe('dependencyPoseProblems', () => {
+  const upstream = (tag) => `| 项 | 值 |\n|---|---|\n| 钉住的 tag | \`${tag}\` |\n`
+
+  it('accepts peers + a recorded pinned tag and rejects a runtime dep or a drifted list', () => {
+    const dir = temp('deps-')
+    const upstreamPath = join(dir, 'UPSTREAM.md')
+    writeFileSync(upstreamPath, upstream('dsh-v0.1.5-rc.2'), 'utf8')
+
+    const good = join(dir, 'good.json')
+    writeFileSync(good, JSON.stringify({
+      dependencies: { yaml: '^2.8.1' },
+      peerDependencies: { '@deepseek-ai/cordis': '*' },
+      dsh: { compatibility: { dshReleases: { '0.1.5-rc.2': 'verified' } } },
+    }), 'utf8')
+    expect(dependencyPoseProblems(good, upstreamPath)).toEqual([])
+
+    const bad = join(dir, 'bad.json')
+    writeFileSync(bad, JSON.stringify({
+      dependencies: { '@deepseek-ai/cordis': '0.1.5-rc.2' },
+      dsh: { compatibility: { dshReleases: { '0.1.4': 'verified' } } },
+    }), 'utf8')
+    const problems = dependencyPoseProblems(bad, upstreamPath)
+    expect(problems.some(p => p.includes('peerDependencies'))).toBe(true)
+    expect(problems.some(p => p.includes('does not name the pinned upstream tag'))).toBe(true)
   })
 })
