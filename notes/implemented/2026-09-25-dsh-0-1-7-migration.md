@@ -53,4 +53,32 @@
 - `pnpm sync-dsh -- --tag dsh-v0.1.7-rc.2`：typecheck 通过、`verified` 记账、UPSTREAM.md 更新 ✅
 - `pnpm gen-paths`：325 条运行期别名重生成 ✅
 - `pnpm typecheck`：exit 0 ✅
-- `pnpm test` / `pnpm verify` / `pnpm build && pnpm release-smoke`：见本提交的最终报告（vendor `lib/` 重建后跑）。
+- `pnpm test` / `pnpm build` / `pnpm release-smoke`：**被 vendor 重建阻断**，详见下节。
+
+## 六、阻断：vendor `lib/` 重建（2026-09-25 未解决，交接给下一圈）
+
+`vendor/dsh/**/lib/` 是 **gitignore 的构建产物**。换 pin 后它整体失效（旧 pin 的代码），而本轮为排除"旧产物污染"
+把它清掉（318 个 `lib/` + 280 个 `*.tsbuildinfo`，**源码与 pin 指针未动**）——这使 `pnpm test`（vitest 按裸名
+经 node_modules 解析 vendor → 需要 lib JS）与 `release-smoke`/plugin-add 出来的 profile 目前不可用。
+dev 运行时不受影响（`tsconfig.tsx.json` 让 `pnpm dsh` 走 vendor `src`）。
+
+尝试过并记录结果的四步（都不成立，别再重来）：
+1. `pnpm --dir vendor/dsh install`：依赖解析通过；**postinstall（lefthook 装 git hook）失败**——与 submodule 的
+   `core.worktree` 配置冲突；改用 `--ignore-scripts` 通过。
+2. 直接 `build:lib:host`：`MISSING_EXPORT "SettingsProvider"`——rolldown 读到**旧 pin 的** `lib/types/index.js`。
+3. 清 `lib/` + `*.tsbuildinfo` 后重跑：`[@deepseek-ai/dsh-root] Cannot find entry: ["lib/types/{index,invariant,startup}.js"]`。
+   已补建构建期依赖 `@deepseek-ai/dsh-typert-generator`（`tsc -b packages/typert/generator/tsconfig.json`，
+   它的 `tsdown-plugin.js` 被 `vendor/dsh/tsdown.config.ts` import），错误不变。
+4. 按官方顺序先 `build:native-system`（成功：darwin-arm64/bin/system.node）再 `build:lib:host`：错误不变。
+
+**结论**：vendor 的 `tsdown.config.ts` 把 root 包入口写成 `lib/types/{index,invariant,startup}.js`，而该文件在
+**干净树上不存在**——它由 typert 的 workspace 生成通道产出，而那条通道本身又不在 `build`/`build:lib` 脚本里；
+vendor 的构建脚本假设**已经引导过的树**（其 `lib/` 在场）。因此从零重建需要 vendor 自己的引导顺序，
+本轮未找到其文档化入口（`vendor/dsh/README.md`、`docs/`、根 `scripts/build.ts` 都未写"首次构建"）。
+
+**下一圈的两条路（按优先级）**：
+1. 在 vendor 里找引导/CI 证据：`.github/workflows/`、`docs/**/contributing*`、或生成 root 入口的那条
+   typert 命令；照它跑。
+2. 若引导不可得：**让 vitest 也走 vendor `src`**（与运行时同一份解析）——用生成物 `tsconfig.tsx.json`
+   的别名喂给 vitest，而不是逐包打补丁。这同时消灭"stale lib 静默跑旧代码"这一整类风险（§三.2），
+   代价是测试与运行时解析完全一致、而不再覆盖 vendor 的构建产物形态。

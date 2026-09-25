@@ -12,6 +12,7 @@
 
 ## 队列
 
+- ▶ **解阻断：vendor `lib/` 重建**（阶段 0-1 的剩余项；`pnpm test`/`build`/`release-smoke` 都等它）——两条路：①在 vendor 里找引导顺序（CI/docs/生成 root 入口的 typert 命令）②让 vitest 也走 vendor `src`（与运行时一致，顺带消灭 stale-lib 风险）。证据与已试四步见[迁移记录 §六](notes/implemented/2026-09-25-dsh-0-1-7-migration.md)
 - ▶ **阶段 0-1 · 升 pin 到最新 RC `dsh-v0.1.7-rc.2`**（用户 2026-09-25 明确要求：先同步 DSH、主线用最新 RC）——`pnpm sync-dsh -- --tag dsh-v0.1.7-rc.2` 后做 preset 迁移（目录+roster → `agent-preset` 行），验收=`release-smoke` 绿 + 四工具可用 + `pnpm eval` 三个行为任务仍过
 - ▶ **阶段 0-2 · 结果意图领域版**：把 O1–O6 写成"中小企业管理者数字分身"的版本（拆解对不对有出处、办得成、知道自己不知道、跟本人越用越像、一条命令装好、管得住）
 - ⏸ **阶段 0-3 · 评测集 v0**（30–50 条真实经营问题，含应拒答题与判分规则；**题目由你本人出**——这是 G2 关口，agent 只整理格式）
