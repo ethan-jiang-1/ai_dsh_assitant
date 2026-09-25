@@ -1,6 +1,6 @@
 # 专家部署组合件 v0（管理岗专家包的装配）
 
-日期：2026-09-25 · 状态：**proposed（进行中：主体已落地并被 live 验证；卡在一件真 bug 上，见 §三）**
+日期：2026-09-25 · 状态：**proposed（进行中：主体已落地并被 live 验证；探针抓到的真 bug 当日已修，证据见 §三）**
 
 ## 一、这圈在干什么（一句话）
 
@@ -21,21 +21,33 @@
    P1 行为**：四层结构、口径三线并列、CFO/Sales 分歧被显式保留（"不要调和成再观察观察"）、
    每项行动带负责人/时限/度量/停止条件、owner 标注为占位待改真名、"毛利率底线只有你能给"。
 
-## 三、探针抓到的真 bug（当前正在查，卡在这）
+## 三、探针抓到的真 bug（**已定位并修复**，2026-09-25 当日收口）
 
 **策展技能 provider 在 preset 会话里整个缺席**——不是新技能的问题：目录里只有 `.agents/skills/`
-（项目根，3 件开发技能）与 working folder `skills/`（学到的 2 件），**8 件策展技能（含旧 6 件）全都不在**。
-模型在会话里自己核了这一点并如实报告（"不是猜测"）。对照实验已做：默认形状（非 read-only）同样缺席
-→ 与沙箱无关；是 **pin 迁移**（preset 变普通行）之后策展 provider 没挂上或没发现。
-`--dump-config` 显示 `skill-filesystem` 行确实在 preset 的 plugins 里 → 下一步查它挂载后为何不产出目录
-（嫌疑：行的 `!!js` customSkillDirs 里 `baseUrl` 在新挂载路径下的取值）。
-**后果**：账本里 28 次策展技能加载都是迁移前的；迁移后的 preset 会话一件策展技能都加载不了。
+（项目根，开发技能）与 working folder `skills/`（学到的技能），**8 件策展技能（含旧 6 件）全都不在**；
+`--dump-config` 显示 `skill-filesystem` 行在 preset 的 plugins 里，所以问题不在"行挂没挂上"。
+
+**根因**：`cordis.patch.yml` 里那行的 `customSkillDirs` 写的是相对 `baseUrl` 的 `presets/assistant/skills/`，
+而 **bundle patch 的行继承的 `baseUrl` 是 profile 目录**（探针实测 `…/dev/harness-home/profiles/dev-task/`），
+不是包根 —— 路径指到包外，provider 扫一个不存在的根：不报错、不告警、目录空。迁移前 preset 是独立文件
+（baseUrl = 该文件目录）所以这条路径曾成立，属于 pin 迁移的连带错事实（迁移 note §二 原表也写错了这条）。
+
+**修法与证据**（完整记录与输掉的方案）：[0.1.7 迁移 note §十二](../implemented/2026-09-25-dsh-0-1-7-migration.md)。
+要点：改为按包名解析（`createRequire(baseUrl).resolve('dsh-smart-assistant/package.json')` + 包内相对路径，
+shipped `cordis` preset 的同款惯用法）；新增红夹具 `tests/preset-skill-root.spec.ts`（修复前解析到包外＝红）；
+live 探针重跑：按名加载 `management-breakdown` 成功、8 件策展技能全在；账本出现迁移后第一次策展技能加载。
 
 ## 四、下一步（按序）
 
-1. 查 §三 的根因（dump-config 已确认行在树里；读 agent-preset 挂载时传给子插件的 baseUrl）并修复；
-2. 修好后重跑技能加载探针（按名加载 management-breakdown 应成功）与 `pnpm eval`（行为回归）；
-3. 装配脚本接 package.json 脚本名（`expert-setup`），补 README 一行；
+1. ~~查 §三 的根因并修复~~ ✅ 2026-09-25（§三 有证据指针；红夹具 + live 重跑 + 账本三条证据）；
+2. 修后回归：技能加载探针 ✅（按名加载 `management-breakdown` 成功）；`pnpm eval` 行为回归 ✅ **3/3**
+   （`reserved-item-restraint`、`scope-honesty`、`continuity-from-home`）。注：同一轮里另一次读数 2/3——
+   那次 `reserved-item-restraint` 会话把判断写成了 note 而不是只回复，被 `no-write-tools` 判 FAIL；
+   同一任务重跑 PASS，故按单样本噪声记，不当作稳定回归。另一条背景：修前 eval 恒报"没有会话日志"，
+   那是日志发现写死 v3 的独立 bug（见[会话日志代次配方卡](2026-09-25-session-log-generation-recipe.md)）；
+3. ~~装配脚本接 package.json 脚本名（`expert-setup`），补 README 一行~~ ✅ 2026-09-25（`pnpm expert-setup`
+   接上 tsx 入口，实跑：全新目录→SOUL 替换+3 种子，复跑→SOUL 跳过、种子 id 稳定不新增；README 装法段同时
+   修掉迁移后失效的"指向 `presets/` 目录"旧步骤，依据见[迁移 note §十三](../implemented/2026-09-25-dsh-0-1-7-migration.md)）；
 4. 剩余未做（带触发）：IM 渠道（O5，等你选）、MCP 连接（先文件替身）、概念页抽取（等评测集）。
 
 ## 五、输掉的方案
