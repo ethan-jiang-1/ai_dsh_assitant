@@ -7,7 +7,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { homeCounts, mergeSummaries, renderReport, summarizeEvents } from '../../../dev/usage-report.mjs'
+import { homeCounts, mergeSummaries, renderReport, sessionLogs, summarizeEvents } from '../../../dev/usage-report.mjs'
 
 const dirs = []
 
@@ -65,6 +65,30 @@ describe('summarizeEvents', () => {
     expect(text.split('\n').some(line => line.startsWith('- preset'))).toBe(false)
     expect(text).toContain('自用率：1/1')
     expect(text).toContain('知识页 2')
+  })
+})
+
+describe('sessionLogs', () => {
+  it('finds every writer generation, and only session logs', () => {
+    const home = temp('home-')
+    const project = join(home, 'sessions', '--tmp-probe--')
+    for (const [session, file] of [
+      ['session-old', 'session.v3.jsonl.zstd'],
+      ['session-new', 'session.v4.jsonl.zstd'],
+      ['session-locked', 'session.lock'],
+      ['session-junk', 'notes.txt'],
+    ]) {
+      mkdirSync(join(project, session), { recursive: true })
+      writeFileSync(join(project, session, file), 'x', 'utf8')
+    }
+
+    // The log name carries the writer generation, which moves with the pinned DSH. A name pinned to
+    // one generation made the dashboard and `pnpm eval` read no session at all after the 0.1.7 move
+    // (symptom: "no session log was produced", with the launch itself succeeding).
+    expect(sessionLogs(home).sort()).toEqual([
+      join(project, 'session-new', 'session.v4.jsonl.zstd'),
+      join(project, 'session-old', 'session.v3.jsonl.zstd'),
+    ])
   })
 })
 

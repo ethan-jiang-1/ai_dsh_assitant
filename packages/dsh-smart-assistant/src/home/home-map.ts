@@ -20,7 +20,7 @@ import type { HomePaths } from './layout.ts'
 export const AGENTS_FILE_NAME = 'AGENTS.md'
 
 /** Version of the generated manual; bump when the generated content changes meaningfully. */
-export const HOME_MANUAL_VERSION = 5
+export const HOME_MANUAL_VERSION = 6
 
 /** The version marker stamped as the file's first line (an HTML comment: invisible when rendered). */
 export const HOME_MANUAL_MARKER = `<!-- home-manual v${String(HOME_MANUAL_VERSION)} -->`
@@ -96,8 +96,9 @@ makes you worse, not better.
 
 ## Past conversations
 
-Every session you have ever had is on disk: \`<harness-home>/sessions/--<normalized-cwd>--/session-<id>/session.v3.jsonl.zstd\`
-(the harness home is your working folder's parent directory). Each line is one event — full user and assistant
+Every session you have ever had is on disk: \`<harness-home>/sessions/--<normalized-cwd>--/session-<id>/session.v<n>.jsonl.zstd\`
+(the harness home is your working folder's parent directory). \`<n>\` is the log format generation and moves
+with the harness — list the session directory instead of assuming the name. Each line is one event — full user and assistant
 messages, tool calls with their arguments, session headers naming the cwd and preset. Nothing indexes
 them; when memory is not enough and you need what was actually said or done, search them with the
 recipe in the \`session-recall\` skill.

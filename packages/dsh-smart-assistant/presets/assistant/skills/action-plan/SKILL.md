@@ -1,7 +1,7 @@
 ---
 name: action-plan
 description: How to turn an agreed breakdown into an executable action plan — every action carries owner, timing, metric, and a stop condition, and deferrals are recorded with reasons. Load when the principal says "so what do we do" or asks for a plan.
-whenToUse: A breakdown (or decision) exists and the principal wants the execution shape: who does what by when, how success is measured, and when to stop. Not for the breakdown itself — use management-breakdown first.
+whenToUse: A breakdown (or decision) exists and the principal wants the execution shape — who does what by when, how success is measured, and when to stop. Not for the breakdown itself — use management-breakdown first.
 ---
 
 # Action plan

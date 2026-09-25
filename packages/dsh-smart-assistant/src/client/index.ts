@@ -152,14 +152,14 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
                 return nsKeys + hfKeys
               })()
             : 'remote is ' + typeof remote
-          const am = (remote as Record<string, { digest?: () => Promise<unknown> } | undefined>)?.['assistantMemory']
+          const am = (remote as Record<string, { snapshot?: () => Promise<unknown> } | undefined>)?.['assistantDesk']
           if (am?.digest !== undefined) {
-            void am.digest().then((data: unknown) => {
-              const digest = data as { memoryIds?: unknown[], openThreads?: number, parkedThreads?: number }
+            void am.snapshot().then((data: unknown) => {
+              const snap = data as { counts?: Record<string, number> }
               setSnapshot({
                 counts: {
-                  Memories: digest.memoryIds?.length ?? 0,
-                  Threads: (digest.openThreads ?? 0) + (digest.parkedThreads ?? 0),
+                  Memories: snap.counts?.memories ?? 0,
+                  Threads: snap.counts?.threads ?? 0, + (digest.parkedThreads ?? 0),
                 },
               })
             }).catch((error: unknown) => {
@@ -190,8 +190,8 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       h('h2', { style: { margin: '0 0 16px', fontSize: '18px' } }, 'My Desk'),
       h('div', null,
         cell('Memories', String(memories)),
-        cell('Knowledge', '…'),
-        cell('Skills', '…'),
+        cell('Knowledge', String(snapshot.counts?.Knowledge ?? snapshot.counts?.knowledgeStable ?? '…')),
+        cell('Skills', String(snapshot.counts?.Skills ?? snapshot.counts?.skills ?? '…')),
         cell('Threads', String(threads))),
       status)
   }

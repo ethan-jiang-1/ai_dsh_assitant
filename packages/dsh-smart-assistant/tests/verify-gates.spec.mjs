@@ -371,6 +371,27 @@ describe('skillFrontmatterProblems', () => {
     expect(problems.some(p => p.includes('has no description'))).toBe(true)
     expect(problems.some(p => p.includes('empty-bundle/ has no SKILL.md'))).toBe(true)
   })
+
+  // The shape that hid two curated skills (2026-09-25): present on disk, absent from the catalog,
+  // `skill <name>` answering "unknown" — a plain scalar with an inner `: ` is a YAML parse error,
+  // which a line-scanning gate cannot see. The loader skips such a file with a warning only.
+  it('rejects frontmatter the loader would silently skip, not just a wrong name', () => {
+    const dir = temp('skills-')
+    mkdirSync(join(dir, 'inner-colon'), { recursive: true })
+    writeFileSync(join(dir, 'inner-colon', 'SKILL.md'),
+      '---\nname: inner-colon\ndescription: ok\nwhenToUse: the execution shape: who does what by when\n---\n\nbody\n', 'utf8')
+    mkdirSync(join(dir, 'legacy-invocation'), { recursive: true })
+    writeFileSync(join(dir, 'legacy-invocation', 'SKILL.md'),
+      '---\nname: legacy-invocation\ndescription: ok\ndisableModelInvocation: true\n---\n\nbody\n', 'utf8')
+    mkdirSync(join(dir, 'non-boolean-invocation'), { recursive: true })
+    writeFileSync(join(dir, 'non-boolean-invocation', 'SKILL.md'),
+      '---\nname: non-boolean-invocation\ndescription: ok\nuser-invocable: maybe\n---\n\nbody\n', 'utf8')
+
+    const problems = skillFrontmatterProblems(dir)
+    expect(problems.some(p => p.includes('inner-colon') && p.includes('not parsable YAML'))).toBe(true)
+    expect(problems.some(p => p.includes('uses unsupported "disableModelInvocation"'))).toBe(true)
+    expect(problems.some(p => p.includes('sets "user-invocable" to a non-boolean value'))).toBe(true)
+  })
 })
 
 describe('deferralHomesProblems', () => {

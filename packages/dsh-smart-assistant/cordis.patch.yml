@@ -7,7 +7,11 @@
 #
 # 模型可见的贡献（工具、提示词段落）在**同文件的 `preset-assistant` 行**里 —— DSH 0.1.7 起
 # preset 是普通插件行（`@deepseek-ai/dsh-agent-preset`），registry 不扫目录；`config.plugins`
-# 就是一个 preset 的子插件列表，`!!js` 保留到子插件加载时才求值（`baseUrl` = 本文件所在目录）。
+# 就是一个 preset 的子插件列表，`!!js` 保留到子插件加载时才求值。
+# **子插件的 `baseUrl` 不是本文件所在目录**：bundle patch 的行继承它落进的那一层，实测是
+# **profile 目录**（`<home>/profiles/<name>/`，2026-09-25）。所以本文件里指包内文件的路径一律
+# **按包名解析**（`createRequire(baseUrl).resolve('dsh-smart-assistant/package.json')` + 包内相对路径，
+# 抄自 shipped `cordis` preset），不写相对 `baseUrl` 的路径 —— 后者会指到包外且静默失效。
 - insert:
     - id: assistant-memory
       name: dsh-smart-assistant
@@ -35,6 +39,10 @@
 # 四间房与三档出口的契约见 `docs/home.md`；身份名以 `docs/identity.md` 为唯一权威。
 
 # ── 身份 ────────────────────────────────────────────────────────────────────
+
+    - id: assistant-desk-remote
+      name: dsh-smart-assistant/desk-remote
+      inject: [assistantMemory]
 
     - id: preset-assistant
       name: '@deepseek-ai/dsh-agent-preset'
@@ -97,8 +105,8 @@
           #
           # 技能注册表（`ctx.skills`）在 HOST 组合里，且按 scope 分层：这里的行注册进**本 preset 的层**，
           # 所以不需要 realm。
-          #   · 策展技能：本 preset 目录下的 `skills/`（人写的、随 repo 版本化）—— 用 `baseUrl` 惯用法指过去
-          #     （`baseUrl` 是 preset 自己的目录，抄自 shipped `cordis` preset）。
+          #   · 策展技能：本 preset 目录下的 `skills/`（人写的、随 repo 版本化）—— 按**包名**解析到
+          #     包内路径（`baseUrl` 是 profile 目录，不是包根：见文件头）。
           #   · 学到的技能：由 `assistant-learn` 自己挂载第二个 `dsh-skill-filesystem` 实例
           #     （`providerName: assistant-learned`，只扫 working folder 的 `skills/`）—— 路径从服务取，零漂移。
           # 分成两个 provider 是刻意的：一眼能看出一个技能是"策展的"还是"学来的"。
@@ -106,7 +114,7 @@
             name: '@deepseek-ai/dsh-skill-filesystem'
             config:
               customSkillDirs:
-                - !!js "process.getBuiltinModule('node:url').fileURLToPath(new URL('presets/assistant/skills/', baseUrl))"
+                - !!js process.getBuiltinModule('node:path').join(process.getBuiltinModule('node:path').dirname(process.getBuiltinModule('node:module').createRequire(baseUrl).resolve('dsh-smart-assistant/package.json')), 'presets/assistant/skills')
 
           - id: tool-skill
             name: '@deepseek-ai/dsh-tool-skill'

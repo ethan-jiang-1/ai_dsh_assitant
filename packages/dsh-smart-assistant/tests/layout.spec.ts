@@ -7,11 +7,14 @@
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { afterEach, describe, expect, it } from 'vitest'
 import { homePaths, scaffoldHome } from '../src/home/layout.ts'
 import { DEFAULT_SOUL, SOUL_FILE_NAME } from '../src/home/soul.ts'
 import { AGENTS_FILE_NAME, HOME_MANUAL_VERSION } from '../src/home/home-map.ts'
+
+const packageRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
 
 const roots: string[] = []
 
@@ -97,5 +100,24 @@ describe('scaffoldHome', () => {
     expect(result.soulWritten).toBe(false)
     expect(await readFile(paths.agentsFile, 'utf8')).toBe('# my own manual\n')
     expect(await readFile(paths.soulFile, 'utf8')).toBe('my own voice\n')
+  })
+
+  // Both faces that tell the assistant where its past sessions live ship in the model's context
+  // (the manual section and the curated skill body). Naming one writer generation — `session.v3`
+  // while the pinned harness wrote v4 — makes the assistant open a file that is not there, and a
+  // missing log reads as "no logs", not as an error. The generation is not ours to pin.
+  it('names the session-log file without pinning a writer generation, in both model-facing faces', async () => {
+    const paths = homePaths(await fixtureHome())
+    await scaffoldHome(paths)
+    const manual = await readFile(paths.agentsFile, 'utf8')
+    const recallSkill = await readFile(
+      join(packageRoot, 'presets', 'assistant', 'skills', 'session-recall', 'SKILL.md'),
+      'utf8',
+    )
+
+    for (const [face, text] of [['manual', manual], ['session-recall skill', recallSkill]] as const) {
+      expect(text, `${face} must name the log as session.v<n>.jsonl.zstd`).toContain('session.v<n>.jsonl.zstd')
+      expect(text, `${face} must not pin a writer generation`).not.toMatch(/session\.v\d+\.jsonl\.zstd/u)
+    }
   })
 })
