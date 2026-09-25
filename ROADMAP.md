@@ -12,18 +12,16 @@
 
 ## 队列
 
-- ⏸ **usage 边界（F1）**：会话对仓库的写权限到什么程度？用户拍板过的保留项要不要机械保护（如"队列里标记为保留的行，会话不得删除"）？依据：[真实使用基线](notes/research/archive/2026-09-25-real-use-baseline.md) §二 F1；圈纪律与仪表见[责任圈卡](notes/proposed/2026-09-25-owner-mandate-and-real-use-baseline.md)
-- ⏸ **E 项裁决**：E（名字链接在 Obsidian 可点）被会话判触发并落地（`739c30e`，技术绿：test 189/189、verify 28/28），但它是你拍板"不抢跑"的项——保留还是回滚，等你定
-- ▶ **会话纪律批（F2/F3/F4）**：并发提交边界（只 add 自己改的 pathspec）/ 单发会话无人可问时按推荐值拍板并标注 / "两个家"在手册与工具描述里说清（curate 只看 working folder）
+- ▶ **会话纪律批（F2/F4）**：并发提交边界（提交前只 add 自己改的 pathspec，已成文的记忆未成规则）/ "两个家"在手册与工具描述里说清（curate 只看 working folder）。F1 与 F3 已落成机制（家手册 v5 协作边界节 + preset-runner 每会话前置指令 + 保留项门禁）；圈纪律与仪表见[责任圈卡](notes/proposed/2026-09-25-owner-mandate-and-real-use-baseline.md)
 - ⏳ 负例控制存量补课（触发=下一次改动某条尚无红夹具的结构性门禁时，同 diff 补它的造红夹具；存量不追账，理由见[红证据档案](notes/research/archive/2026-09-25-old-gate-red-controls.md)）
 - ⏳ `implemented/` 冻结树 / class 子目录（触发=`implemented/` 篇数过百或浏览开始碍事；依据[吸收 note](notes/implemented/2026-09-24-agent-note-lifecycle-absorption.md)）
 - ⏳ `/personality` 类会话 overlay（触发=真实需求出现；依据[soul-and-agents](notes/implemented/2026-09-24-soul-and-agents.md)）
 - ⏳ 文档词数预算 manifest（触发=docs 腐化实证；判据在 [discipline](docs/discipline.md)）
 - ⏳ change-scope 脚本（触发=真实"跑错检查/漏跑检查"摩擦出现；最简形态见卡 §五）
 - ▶ **真实使用开跑**（用户本人用起来；首批数据与 ⏳ 对照见[打磨战役 §八](notes/implemented/2026-09-25-smart-assistant-polish-campaign.md)，摩擦即新卡）
-- ⏳ dsh-obsidian 挂桥（触发=用户想让助手直接操作某个外部 vault；设计参照已录 r5）
-- ⏳ 会话日志薄动词 b1/b2（触发=真实使用中真去查历史会话且 rg 配方不够用；b2 后端可用性待细查）
-- ⏳ workflow-as-MD（触发=真实使用出现多步编排需求；方向：程序性知识之上，编排是否也为 working folder 的 MD 文件——用户 2026-09-24 提出）
+- 🔒 ⏳ dsh-obsidian 挂桥（用户判触发）（触发=用户想让助手直接操作某个外部 vault；设计参照已录 r5）
+- 🔒 ⏳ 会话日志薄动词 b1/b2（用户判触发）（触发=真实使用中真去查历史会话且 rg 配方不够用；b2 后端可用性待细查）
+- 🔒 ⏳ workflow-as-MD（用户判触发）（触发=真实使用出现多步编排需求；方向：程序性知识之上，编排是否也为 working folder 的 MD 文件——用户 2026-09-24 提出）
 - ⏳ 语义检索 / embedding（触发=真实漏召回；依据 [三线合流 §六](notes/implemented/2026-09-24-tri-line-synthesis.md)、[R1 §5](notes/research/archive/2026-09-24-r1-memory-ecosystem-survey.md)、[R3 §7.2](notes/research/archive/2026-09-24-r3-knowledge-layer-survey.md)）
 - ⏳ 全自动蒸馏（触发=用量统计显示收益>token+同意成本；采集工具已在场；依据：[R2 缺口清单 §9.3-5](notes/research/archive/2026-09-24-r2-skill-growth-survey.md)）
 - ⏳ FTS/trigram 检索升级（触发=grep 真实漏召回；方法参照 [R3 实测表 §4.3/§7.2-3](notes/research/archive/2026-09-24-r3-knowledge-layer-survey.md)）
@@ -40,6 +38,8 @@
 ## 维护规则
 
 - 轮序调整或新增：直接改本表，并在 notes/ 记一行原因。
+- **保留项标记 `🔒`（用户判触发）**：出现在队列行上表示"条件可能已满足，但只有用户能判它成立"——
+  会话可以报告与建议，**不得自行判触发、不得删除该行、不得实现该条目**（机械门禁 `reserved items` 管形态）。
 - **延后只能住本表**：note 里不得只写"延后/触发="而不给队列归宿——凡在 note 里写下触发条件的行，
   必须同时指明本文件（机械门禁 `deferral homes` 管）；明确**永不**做的（负知识）才留在 note 的输掉的方案里。
 - 写条目自检（作者视角，借 DSH 散文标准）：**只拿到 HEAD、没有会话 transcript 的读者，能否解析

@@ -20,7 +20,7 @@ import type { HomePaths } from './layout.ts'
 export const AGENTS_FILE_NAME = 'AGENTS.md'
 
 /** Version of the generated manual; bump when the generated content changes meaningfully. */
-export const HOME_MANUAL_VERSION = 4
+export const HOME_MANUAL_VERSION = 5
 
 /** The version marker stamped as the file's first line (an HTML comment: invisible when rendered). */
 export const HOME_MANUAL_MARKER = `<!-- home-manual v${String(HOME_MANUAL_VERSION)} -->`
@@ -101,6 +101,22 @@ Every session you have ever had is on disk: \`<harness-home>/sessions/--<normali
 messages, tool calls with their arguments, session headers naming the cwd and preset. Nothing indexes
 them; when memory is not enough and you need what was actually said or done, search them with the
 recipe in the \`session-recall\` skill.
+
+## Working inside someone else's repository
+
+When your session runs inside a repository (rather than only your working folder), four boundaries hold:
+
+- **You may change the working tree, but you do not commit.** Commit authority belongs to the person
+  or the development session that owns the repository; leaving your change uncommitted is the handoff.
+- **Reserved queue items are not yours to trigger.** An item marked reserved (🔒) in the queue names a
+  condition, but only the person decides that it has fired. If you believe it has, say so and recommend —
+  do not delete the item or implement it on your own judgement.
+- **When nobody can answer, decide and continue.** A one-shot session has no one to reply to a question.
+  Give your recommended value, mark it as reversible, do the work, and report the assumption — do not stop
+  at the doorway.
+- **Your machine checks only see your working folder.** \`curate\` is a pure function over your files: it
+  cannot see git state, uncommitted changes, or another session working in the same tree. "Clean" never
+  means the whole situation is clean.
 
 ## Keeping it worth reading
 

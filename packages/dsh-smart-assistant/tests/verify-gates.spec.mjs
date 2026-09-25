@@ -17,6 +17,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import {
   agentsMdStabilityProblems,
   deferralHomesProblems,
+  reservedItemProblems,
   dependencyPoseProblems,
   GRADUATED_STATUS,
   languageGuardProblems,
@@ -383,5 +384,18 @@ describe('deferralHomesProblems', () => {
     expect(problems).toHaveLength(1)
     expect(problems[0]).toContain('orphan.md:1')
     expect(problems[0]).toContain('queue home')
+  })
+})
+
+describe('reservedItemProblems', () => {
+  it('accepts a reserved row that names the person, rejects an unnamed one and an actionable one', () => {
+    const good = '- 🔒 ⏳ 挂桥（用户判触发）（触发=用户想操作外部 vault）\n'
+    expect(reservedItemProblems(good)).toEqual([])
+
+    const unnamed = '- 🔒 ⏳ 挂桥（触发=用户想操作外部 vault）\n'
+    expect(reservedItemProblems(unnamed)[0]).toContain('用户判触发')
+
+    const actionable = '- ▶ 🔒 挂桥（用户判触发）\n'
+    expect(reservedItemProblems(actionable)[0]).toContain('not a session\'s to start')
   })
 })

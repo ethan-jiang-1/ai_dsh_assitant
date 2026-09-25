@@ -437,3 +437,27 @@ export function deferralHomesProblems(files) {
   }
   return problems
 }
+
+// ── reserved queue items ────────────────────────────────────────────────────────
+
+/**
+ * A reserved queue item (🔒) records a condition only the person may judge fired. The row itself
+ * must say so, and it must not be actionable: a session that could mark it ▶ could also implement
+ * it, which is exactly the over-reach this marker exists to stop (real finding: a session judged a
+ * user-reserved Obsidian item triggered, implemented it, and removed the row).
+ *
+ * @param {string} roadmapText - ROADMAP.md contents.
+ */
+export function reservedItemProblems(roadmapText) {
+  const problems = []
+  for (const [index, line] of roadmapText.split('\n').entries()) {
+    if (!line.startsWith('- ') || !line.includes('🔒')) continue
+    if (!line.includes('用户判触发')) {
+      problems.push(`ROADMAP.md:${index + 1} is reserved (🔒) but does not say 用户判触发 — the row must name who may judge it`)
+    }
+    if (line.startsWith('- ▶')) {
+      problems.push(`ROADMAP.md:${index + 1} is both reserved (🔒) and actionable (▶) — reserved items are not a session's to start`)
+    }
+  }
+  return problems
+}
