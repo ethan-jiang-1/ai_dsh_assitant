@@ -145,3 +145,23 @@ context/baseUrl 由 patch 文件确定）。下一步应把测试夹具改成"**
   完全复刻生产组合路径，看这四行是否仍不实例化；②若仍红，读 `ctx.agentPresets.diagnostic`（registry 在每次读取时
   重新审计）区分 `failed` 与 `pending`，并对照官方 `bundle/web-app/presets/standard.patch.yml` 的行形状
   逐字段比对（我们这四行与 home-preamble/memory-digest 的差别，是定位入口）。
+
+### 九之补：差异收敛到一个变量（下一圈从这里开始）
+
+六行的 `inject` 列表对照（本次实跑 `grep`）：
+
+| 行 | inject | 组合测试里的状态 |
+|---|---|---|
+| `tool-memory` | `assistantMemory`, `skills`, **`tools`** | ❌ never started |
+| `tool-research` | `assistantMemory`, **`tools`** | ❌ never started |
+| `tool-knowledge` | `assistantMemory`, **`tools`** | ❌ never started |
+| `learn` | `assistantMemory`, `skills`, **`tools`** | ❌ never started |
+| `home-preamble` | `assistantMemory`, `systemPrompt` | ✅ 起来 |
+| `memory-digest` | `assistantMemory`, `systemPrompt` | ✅ 起来 |
+
+**唯一差别 = inject 里有没有 `tools`**（`super(ctx, 'tools')` 在 0.1.7 未改名，已核）。
+所以下一步不是再猜顺序或别名，而是：①在夹具里断言 `ctx.get('tools')` 在 preset 挂载作用域**可见**；
+②对照官方 `bundle/web-app/presets/standard.patch.yml` 看工具行需要什么前置行/配置才能被实例化
+（那一份里有 `tool-*` 行且能在 CI 里跑通，是最好的对照组）；③若确实是 `tools` 可见性问题，
+看是夹具缺行还是我们的行在新 pin 下需要改成"读时取服务"（vendor 自己的注释里就有这种写法：
+PTC runtime 刻意不走静态 `inject`，避免把 `ctx.tools` 及其后的工具插件当人质）。
