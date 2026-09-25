@@ -139,7 +139,18 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
           const remote = deskRemote?.['remote'] as Record<string, unknown> | undefined
           // Diagnostic: enumerate what the remote layer actually exposes.
           const remoteKeys = remote !== undefined && typeof remote === 'object'
-            ? Object.keys(remote).filter(k => !k.startsWith('_')).slice(0, 20).join(', ')
+            ? (() => {
+                // Deep probe: namespaces (service registry) and hostFacts (host metadata)
+                const ns = (remote as { namespaces?: Record<string, unknown> }).namespaces
+                const nsKeys = ns !== undefined && typeof ns === 'object'
+                  ? 'namespaces=[' + Object.keys(ns).slice(0, 15).join(',') + ']'
+                  : 'namespaces=' + typeof ns
+                const hf = (remote as { hostFacts?: Record<string, unknown> }).hostFacts
+                const hfKeys = hf !== undefined && typeof hf === 'object'
+                  ? ' hostFacts=[' + Object.keys(hf).slice(0, 10).join(',') + ']'
+                  : ''
+                return nsKeys + hfKeys
+              })()
             : 'remote is ' + typeof remote
           const am = (remote as Record<string, { digest?: () => Promise<unknown> } | undefined>)?.['assistantMemory']
           if (am?.digest !== undefined) {
