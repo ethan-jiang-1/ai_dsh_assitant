@@ -16,6 +16,7 @@ import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import {
   agentsMdStabilityProblems,
+  configParseProblems,
   deferralHomesProblems,
   reservedItemProblems,
   dependencyPoseProblems,
@@ -397,5 +398,31 @@ describe('reservedItemProblems', () => {
 
     const actionable = '- ▶ 🔒 挂桥（用户判触发）\n'
     expect(reservedItemProblems(actionable)[0]).toContain('not a session\'s to start')
+  })
+})
+
+describe('composeRunnerTask', () => {
+  it('prepends the standing collaboration boundary to every scripted task', async () => {
+    const { composeRunnerTask, COLLABORATION_BOUNDARY } = await import('../../../packages/dsh-smart-assistant/src/preset-runner/index.ts')
+    const composed = composeRunnerTask('跑一次 curate')
+    expect(composed.startsWith(COLLABORATION_BOUNDARY)).toBe(true)
+    expect(composed).toContain('跑一次 curate')
+    expect(composed).toContain('you do not commit')
+    expect(composed).toContain('not yours to trigger')
+  })
+})
+
+describe('configParseProblems', () => {
+  it('accepts a resolvable !!js scalar and rejects a plain scalar starting with a backtick', () => {
+    const dir = temp('config-')
+    const good = join(dir, 'good.yml')
+    writeFileSync(good, 'task: !!js ctx.headlessStartup.task\n', 'utf8')
+    const bad = join(dir, 'bad.yml')
+    writeFileSync(bad, 'task: !!js `prefix${ctx.headlessStartup.task}`\n', 'utf8')
+
+    expect(configParseProblems([good])).toEqual([])
+    const problems = configParseProblems([bad])
+    expect(problems).toHaveLength(1)
+    expect(problems[0]).toContain('does not parse as YAML')
   })
 })

@@ -18,7 +18,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { agentsMdStabilityProblems, deferralHomesProblems, dependencyPoseProblems, reservedItemProblems, GRADUATED_STATUS, implementedAlternativesProblems, languageGuardProblems, notesNamingProblems, notesStateProblems, notesTopLevelProblems, pinProblems, relativeLinkProblems, skillFrontmatterProblems, textHygieneProblems } from './verify-checks.mjs'
+import { agentsMdStabilityProblems, configParseProblems, deferralHomesProblems, dependencyPoseProblems, reservedItemProblems, GRADUATED_STATUS, implementedAlternativesProblems, languageGuardProblems, notesNamingProblems, notesStateProblems, notesTopLevelProblems, pinProblems, relativeLinkProblems, skillFrontmatterProblems, textHygieneProblems } from './verify-checks.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const packageDir = join(repoRoot, 'packages', 'dsh-smart-assistant')
@@ -339,6 +339,13 @@ check('notes: state lines agree with their lifecycle directory', () =>
 
 check('notes: note files follow YYYY-MM-DD-topic naming', () =>
   notesNamingProblems(join(repoRoot, 'notes')))
+
+check('structure: every composition file we own parses as YAML', () =>
+  configParseProblems([
+    ...walk(join(repoRoot, 'dev'), ['.yml']).filter(file => !file.includes('harness-home')),
+    join(packageDir, 'cordis.patch.yml'),
+    ...walk(join(packageDir, 'presets'), ['.yml']),
+  ]))
 
 check('queue: reserved items name the person and stay non-actionable', () =>
   reservedItemProblems(read(join(repoRoot, 'ROADMAP.md'))))

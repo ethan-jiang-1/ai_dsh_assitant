@@ -12,6 +12,7 @@
 import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
+import { parse as parseYaml } from 'yaml'
 
 const read = path => readFileSync(path, 'utf8')
 
@@ -457,6 +458,32 @@ export function reservedItemProblems(roadmapText) {
     }
     if (line.startsWith('- ▶')) {
       problems.push(`ROADMAP.md:${index + 1} is both reserved (🔒) and actionable (▶) — reserved items are not a session's to start`)
+    }
+  }
+  return problems
+}
+
+// ── config files parse ──────────────────────────────────────────────────────────
+
+/** The overlay loader resolves `!!js` scalars; the gate only needs the YAML layer to accept them. */
+const YAML_JS_TAG = { tag: 'tag:yaml.org,2002:js', resolve: value => String(value) }
+
+/**
+ * Every composition file we own must parse as YAML. This exists because a change to
+ * `dev/preset-runner.patch.yml` shipped with a template-literal `!!js` scalar that the overlay's
+ * tag resolver rejects — `verify` and `test` stayed green while the runner could not boot at all.
+ * A patch file is boot-time input; parsing it is the cheapest member of that evidence layer.
+ *
+ * @param {readonly string[]} files - composition/patch YAML files.
+ */
+export function configParseProblems(files) {
+  const problems = []
+  for (const file of files) {
+    try {
+      parseYaml(read(file), { customTags: [YAML_JS_TAG] })
+    } catch (error) {
+      const message = error instanceof Error ? error.message.split('\n')[0] : String(error)
+      problems.push(`${file} does not parse as YAML: ${message}`)
     }
   }
   return problems

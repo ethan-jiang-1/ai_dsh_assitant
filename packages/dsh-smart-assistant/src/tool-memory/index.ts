@@ -37,6 +37,9 @@ const DESCRIPTION = [
   '  digest budget, stalled threads, skills the loader would ignore, learned skills shadowed by',
   '  a same-named curated skill, skills past their use-by date) plus the per-skill usage ledger',
   '  and headline counts, including the skills-archive scale (retired bundles, snapshots).',
+  '  Scope: it is a pure function over the working folder — it cannot see git state, uncommitted',
+  '  changes, or another session working in the same tree, so "clean" never means the whole',
+  '  situation is clean. Say so when that difference matters.',
   '  Run this before tidying.',
   'Load the `memory-hygiene` skill before saving, and `home-curation` before curating.',
 ].join('\n')
@@ -311,7 +314,7 @@ export function apply(ctx: Context): void {
           return {
             action,
             summary: brief.findings.length === 0
-              ? 'Working folder is clean: no findings.'
+              ? 'Working folder is clean: no findings (working-folder scope only — git state is invisible to this check).'
               : `${brief.findings.length} finding(s), ${warns} of them losing signal now:`,
             memories: [],
             findings: brief.findings.map(finding => ({

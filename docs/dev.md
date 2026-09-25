@@ -105,10 +105,14 @@ registering"——而第一个打开页面的人就成了 crash-test dummy。`pn
 | 无 key 的行为 | boot 不失败；首个 live turn 抛 `MISSING_CREDENTIAL`。"self-skip" 是**测试机制**不是产品行为 | 在 `$DSH_HOME/.credentials.yaml` 配 `DEEPSEEK_API_KEY`（或 `$DSH_HOME/.env`） |
 | **one-shot 不进 preset** | headless runner 建**裸 agent**，roster 只在"创建会话的一方"被消费（web 会话创建 / 子 agent 继承父 composition）—— vendor 源码注释明文："A deployment that DOES configure one has to join it here first" | preset 行为（四工具/persona/摘要段落）用 **dev profile 的 Web UI 会话**验证；dev-task 只冒烟 host 面（插件装载、working folder scaffold、服务行） |
 
-**自动化会话的协作边界**（preset-runner 每个任务的前置指令 + 家手册 v5 同一节）：会话**可以改工作树，
+**自动化会话的协作边界**（常量 `COLLABORATION_BOUNDARY` 在 `src/preset-runner/` 里逐会话前置 + 家手册 v5 同一节；**不写在 patch 的 `!!js` 表达式里**——配置层模板字面量会被 overlay 的 YAML 标签求解器拒绝，2026-09-25 真踩过，故新增 `structure: every composition file we own parses as YAML` 门禁）：会话**可以改工作树，
 但不得 `git commit`**（提交权属于人或开发会话）；队列里标 🔒 的保留项**不得自行判触发、不得删行、不得实现**，
 只能报告并建议（机械门禁 `reserved items` 查标记形态）；单发会话无人可问时按推荐值拍板、标注可推翻、继续做完。
 依据：[真实使用基线](../notes/research/archive/2026-09-25-real-use-baseline.md) §二 F1/F3。
+
+**并行会话（同一仓库）**：一棵工作树 + 一个 dev home 同时跑多个会话会互相污染——真实发生过一次：
+一个会话的提交把另一个会话未提交的 `page.ts` 改动扫了进去。两种正当做法：**串行**（一个窗口一个会话），
+或**各用 worktree**（各自的工作树 + 各自 `DSH_HOME`）；无论哪种，提交只 add 自己改的路径（根 `AGENTS.md` 硬规则 3）。
 | API 抖动 | `TRANSPORT` 错误（"DeepSeek API request failed"）会触发 attempt 重试循环，模型可能开始即兴行为 | 重试即可；会话日志（`sessions/<proj>/<id>/session.v3.jsonl.zstd`）能逐事件还原 |
 | vendor install 失败 | 根 postinstall（lefthook）在 submodule 里必然失败 | 包已就位；build 用 `--config.verify-deps-before-run=false` 绕过 |
 | 命令表象不可信 | `--dump-config`/`--help` 不加载 loader entries | "能不能跑"的最低证据 = 真 boot 一次 |

@@ -98,3 +98,20 @@
 4. **文档**：`docs/dev.md` 记自动化会话边界；obsidian-interop note 补"触发判定权"节；基线报告 §四 记裁决结果。
 
 下一圈候选不变：F2（并发提交边界）/ F4（两个家的表述）。
+
+## 八、第三圈：F2/F4 落地 + 一笔诚实账（2026-09-25）
+
+- **F4（两个家的表述）已落三处**：`assistant_memory` 工具描述加 curate 的 Scope 段（模型面常驻）、
+  clean 结论文案带作用域说明、`docs/home.md` 记已知边界。**live 验证**：一次真实会话被问
+  "这个检查能不能看见未提交改动"时，主动答"不能……它自己也在结论里写明了这一点"。
+- **F2（并发提交边界）已落两处**：根 `AGENTS.md` 硬规则 3 加"提交只 add 本次改动涉及的路径"、
+  `docs/dev.md` 记并行会话的两种正当做法（串行 / 各用 worktree）。F3 的机制上一圈已落地。
+- **协作边界改为代码实现**：常量 `COLLABORATION_BOUNDARY` + `composeRunnerTask()` 在
+  `src/preset-runner/` 里前置到每个脚本任务；**live 验证**：会话日志首条 user 消息逐字带该边界。
+- **一笔诚实账**：上一圈我把边界写进 `dev/preset-runner.patch.yml` 的 `!!js` 模板字面量，
+  只跑了 `verify`/`test` 就宣布落地——**而它让 runner 完全无法启动**（overlay 的 YAML 标签求解器
+  拒绝以反引号开头的 plain scalar）。这正是"门禁绿替代意图级证据"的复发。
+  两处修正：①改代码实现并在真会话里验证；②新增门禁
+  `structure: every composition file we own parses as YAML`（带反例夹具，专抓这一类 boot-time 失败）。
+- **live 探针顺带带回一个真信号**：digest 已到 **4056/4096**（余 40 字节），下次写记忆即触发截断门——
+  已作为 ▶ 进队列（合并/下沉记忆或调预算）。这条是助手自己报的，不是我推的。

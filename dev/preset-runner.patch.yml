@@ -18,4 +18,4 @@
       name: dsh-smart-assistant/preset-runner
       inject: [headlessStartup]
       config:
-        task: !!js `【协作边界】你可以改工作树，但不得 git commit（提交权属于人或开发会话）；队列里标 🔒 的保留项不得自行判触发、不得删除、不得实现，只能报告并建议；无人可问时按推荐值拍板、标注可推翻，然后继续做完。任务：${ctx.headlessStartup.task}`
+        task: !!js ctx.headlessStartup.task

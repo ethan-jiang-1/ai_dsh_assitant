@@ -138,6 +138,10 @@ bundles, M snapshots`，退役与快照都不删除、技能归档只增不减�
 
 **判据**：能让代码查的，别让 AI 自己说。
 
+**已知边界（工具描述同源）**：`curate` 是 working folder 的纯函数——**看不见 git 状态、未提交改动，
+也看不见同一棵树里的并行会话**。所以"报 clean"只等于"房间干净"，不等于"现场干净"；在仓库里工作时
+这两者的差别要如实说出来（同一条纪律也在家手册的协作边界节）。
+
 **curate 不再只靠人记得**：host 侧节拍器（I14）每个 goal 的第 `maintenanceEveryRounds`
 （默认 5，`0` 关闭）轮自动插入一条养护 turn（plugin 源 user message，让路栅栏保证它是轮间
 安全空槽），指示跑 curate 并逐条处理发现项；非 goal 会话仍由 persona 纪律驱动。

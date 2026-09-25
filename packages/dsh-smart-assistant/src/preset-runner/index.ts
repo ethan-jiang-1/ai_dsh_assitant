@@ -57,6 +57,31 @@ interface RunOutcome {
 /** Bounded process-exit request the launcher provides (the cmdline `AppExit` contract). */
 type AppExit = (code: number) => void
 
+/**
+ * Standing collaboration boundary prepended to every scripted task. It lives in code (not in the
+ * patch's `!!js` expression) because a config-level template literal is not resolvable by the
+ * overlay's YAML tag resolver — a failure mode that shipped once and was only caught by actually
+ * booting the runner. Model-facing text is English (repo language split); the task itself may be
+ * in any language.
+ */
+export const COLLABORATION_BOUNDARY = [
+  '[Collaboration boundary] You may change the working tree, but you do not commit — commit',
+  'authority belongs to the person or the development session that owns this repository.',
+  'Reserved queue items (marked reserved in ROADMAP.md) are not yours to trigger: report and',
+  'recommend, never delete the row or implement the item on your own judgement. Since nobody can',
+  'answer you here, pick a recommended value, mark it reversible, finish the work, and report the',
+  'assumption. Your machine checks see the working folder only — not git state, uncommitted',
+  'changes, or another session in the same tree.',
+].join('\n')
+
+/**
+ * Compose the message a scripted run receives: the standing boundary, then the caller's task.
+ * @param task - The task text passed on the command line.
+ */
+export function composeRunnerTask(task: string): string {
+  return `${COLLABORATION_BOUNDARY}\n\n${task}`
+}
+
 /** Poll quiet while waiting for driver-queued turns; small enough to feel instant. */
 const DRIVE_POLL_MS = 250
 
@@ -184,7 +209,7 @@ async function run(ctx: Context, config: Config): Promise<void> {
   })
   const firstSeq = agent.session.seq
   const task = createUserMessage({
-    content: [{ type: 'text', text: config.task }],
+    content: [{ type: 'text', text: composeRunnerTask(config.task) }],
     source: { kind: 'user' },
   })
   agent.followup(task)

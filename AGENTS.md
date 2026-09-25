@@ -82,7 +82,8 @@ pnpm dsh --profile dev-task --patch dev/preset-runner.patch.yml "<task>"   # **p
 2. **探索路由**：要 DSH 机制结论，读 `vendor/dsh/docs/architecture.md` → `vendor/dsh/docs/capability-seams.md` → 对应包 README；
    要真实签名，读 `vendor/dsh/packages/**/src/`。**不猜 API，去读。**
 3. **窄证据**：一次交付 = 一个垂直切片（代码 + 测试 + docs/README + note 同 diff）；
-   只跑"会为这次回归而失败"的最小检查；**报告里只列真跑过的命令**。
+   只跑"会为这次回归而失败"的最小检查；**报告里只列真跑过的命令**；
+   **提交只 add 本次改动涉及的路径**（同仓可能有并行会话，`git add -A` 会把别人的未提交改动扫进你的提交）。
 4. **默认严格，偏离登记**：研发纪律的继承是**逐源枚举**过的，不是凭印象
    （全表：`docs/discipline.md`）；偏离或裁剪不是错——先在 note 里登记一行
    （约束 → 适配 → 证据），再动手。
