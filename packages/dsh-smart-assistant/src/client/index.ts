@@ -33,6 +33,22 @@ interface SlotsRegistry {
 /** The browser root-context surface this face uses. */
 interface ClientContext {
   slots: SlotsRegistry
+  sidebarRightTabs: SidebarRightTabsRegistry
+}
+
+/** Minimal structural mirror of the sidebar-right tab registration surface. */
+interface SidebarRightTabDefinition {
+  readonly id: string
+  readonly kind: string
+  readonly patterns: readonly string[]
+  readonly priority: string
+  readonly canOpen: (address: string) => boolean
+  readonly title: (address: string) => string
+}
+
+/** The sidebar-right tab registry surface this face uses. */
+interface SidebarRightTabsRegistry {
+  register(definition: SidebarRightTabDefinition): unknown
 }
 
 /** Synchronous module-table require handed to a client bundle factory. */
@@ -92,7 +108,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   }
 
   /** Slots this face occupies (single-occupant, root-scope, declared by the sidebar). */
-  const inject = ['slots']
+  const inject = ['slots', 'sidebarRightTabs']
 
   /**
    * Register the brand occupants as one declaration-aware set.
@@ -109,6 +125,18 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         yield ctx.slots.register({ name: 'sidebar.brand.mark' }, AssistantBrandMark)
         yield ctx.slots.register({ name: 'sidebar.brand.name' }, AssistantBrandName)
       }))
+
+    // Experiment 1: register a "desk" tab type in the right sidebar. The four numbers are
+    // static placeholders — the point is proving the tab registration path works end-to-end;
+    // experiment 2 replaces them with live data from the assistantMemory service.
+    ctx.sidebarRightTabs.register({
+      id: 'dsh-smart-assistant-desk',
+      kind: 'desk',
+      patterns: ['dsh-resource://assistant/desk'],
+      priority: 'fallback',
+      canOpen: address => address === 'dsh-resource://assistant/desk',
+      title: () => 'My Desk',
+    })
   }
 
   return { inject, apply, AssistantBrandMark, AssistantBrandName }
