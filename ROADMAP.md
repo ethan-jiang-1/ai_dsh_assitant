@@ -12,7 +12,8 @@
 
 ## 队列
 
-- ▶ **解阻断：vendor `lib/` 重建**（阶段 0-1 剩余项；`pnpm test` 现为 16 pass/17 fail 套件，`build`/`release-smoke` 同样等它）——三条路：①找 vendor 引导顺序（CI 只做 install+build，说明干净树上可行，需逐条对齐差异）②完成"vitest 全域走 vendor src"（两个陷阱已定位：仓根相对基准 + 入口文件映射）③兜底按 CI 全量 install+build（先解 lefthook 冲突）。证据与全部已试步骤见[迁移记录 §六](notes/implemented/2026-09-25-dsh-0-1-7-migration.md)
+- ⏳ **组合测试的 `never started`（2 条，preset-composition）**（触发=真正需要它绿时：release-smoke 前 / 下一次动 preset 组合 / 有人要加新 preset 行）——已排除：顺序、别名解析、服务缺失、agents.create 路径、"inject tools 即环"（官方插件同样静态 inject 且 CI 跑通）；复现路标：夹具经 Loader 装载 patch 后**先 await include 树就绪**再复现，并与 `vendor/dsh/packages/bundle/web-app/presets/*.patch.yml` 的行形状逐字段对齐。全部证据见[迁移记录 §八/§九/§十](notes/implemented/2026-09-25-dsh-0-1-7-migration.md)
+- ⏳ **vendor `lib/` 重建（换 pin 的常规收尾）**（触发=需要 boot/release-smoke/plugin-add 出的 profile 时；测试已改为解析 vendor src，不再依赖它）——三条路与已试步骤见迁移记录 §六
 - ▶ **阶段 0-1 · 升 pin 到最新 RC `dsh-v0.1.7-rc.2`**（用户 2026-09-25 明确要求：先同步 DSH、主线用最新 RC）——`pnpm sync-dsh -- --tag dsh-v0.1.7-rc.2` 后做 preset 迁移（目录+roster → `agent-preset` 行），验收=`release-smoke` 绿 + 四工具可用 + `pnpm eval` 三个行为任务仍过
 - ▶ **阶段 0-2 · 结果意图领域版**：把 O1–O6 写成"中小企业管理者数字分身"的版本（拆解对不对有出处、办得成、知道自己不知道、跟本人越用越像、一条命令装好、管得住）
 - ⏸ **阶段 0-3 · 评测集 v0**（30–50 条真实经营问题，含应拒答题与判分规则；**题目由你本人出**——这是 G2 关口，agent 只整理格式）

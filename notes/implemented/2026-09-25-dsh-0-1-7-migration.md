@@ -178,3 +178,24 @@ PTC runtime 刻意不走静态 `inject`，避免把 `ctx.tools` 及其后的工�
   **普通对象行**，而生产是把 `preset-assistant` 行放进 patch、由 **Loader** 解析（`prepareProfileEntries`
   在那一刻求值 `!!js`、解析名字、建 EntryOptions）。**下一步就做这一件事**：夹具改成"写一份 patch +
   经 Loader 加载"，与官方 `bundle/web-app/presets/*.patch.yml` 的行形状逐字段对齐再复现。
+
+## 十、第十二圈：最后一次尝试（Loader + patch）与阻断降级
+
+按上一圈的承诺，给这条组合测试**最后一次机会**：夹具改成生产形状——写一份 patch（registry 行 + `preset-assistant` 行，
+plugins 为六条 id/name）并经 `ctx.loader.create({ id: 'include', name: 'cordis:include', config: { path: fileURL } })`
+装载（用法取自 `vendor/dsh/packages/boot/app-boot/src/index.ts:576-579`）。
+
+**结果：失败换位，原问题未被验证**——经 Loader 装载后 `ctx.agentPresets` 在测试上下文里是 `undefined`
+（服务由 registry 行提供，而 include 树未就绪；`loader.create` 返回后官方代码只 `resolve` 不 await），
+于是报 `TypeError: Cannot read properties of undefined (reading 'mount')`，而不是那条 `never started`。
+夹具已 `git checkout` 回滚到已提交状态（失败模式回到可记录的 `RemoteError`），本轮不留下新错误形态。
+
+**处置（按用户既定规矩：同一阻断连续三圈即停）**：
+- 该 2 条测试降级为 ROADMAP 的 ⏳ 项，附**已排除假设**（顺序、别名解析、服务缺失、`agents.create` 路径、
+  "inject tools 即环"）与**复现路标**（先 await include 树的就绪，再复现 `never started`；对照
+  `vendor/dsh/packages/bundle/web-app/presets/*.patch.yml` 的行形状）。
+- 本职责转向阶段 0 的**下一项：结果意图 O1–O6 的领域版**（中小企业 CEO/VP 数字分身），
+  而不是继续在这条测试上磨。
+
+**已有事实不变**：`verify` 31/31、`pnpm test` 33 套件 32 pass、`pnpm typecheck`/`pnpm build` exit 0；
+vendor 侧代码与 pin 指针未被修改（只删过一个孤儿安装残留目录）。
