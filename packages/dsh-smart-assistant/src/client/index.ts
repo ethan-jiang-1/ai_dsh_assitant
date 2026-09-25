@@ -136,8 +136,13 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       // If it's not exposed (likely — we haven't registered a Remote face), record why.
       const timer = setTimeout(() => {
         try {
-          const remote = deskRemote?.['remote'] as { assistantMemory?: { digest?: () => Promise<unknown> } } | undefined
-          if (remote?.assistantMemory?.digest !== undefined) {
+          const remote = deskRemote?.['remote'] as Record<string, unknown> | undefined
+          // Diagnostic: enumerate what the remote layer actually exposes.
+          const remoteKeys = remote !== undefined && typeof remote === 'object'
+            ? Object.keys(remote).filter(k => !k.startsWith('_')).slice(0, 20).join(', ')
+            : 'remote is ' + typeof remote
+          const am = (remote as { assistantMemory?: { digest?: () => Promise<unknown> } })?.assistantMemory
+          if (am?.digest !== undefined) {
             void remote.assistantMemory.digest().then((data: unknown) => {
               const digest = data as { memoryIds?: unknown[], openThreads?: number, parkedThreads?: number }
               setSnapshot({
@@ -150,7 +155,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
               setSnapshot({ error: String(error) })
             })
           } else {
-            setSnapshot({ error: 'remote.assistantMemory not exposed — needs Remote face registration' })
+            setSnapshot({ error: `assistantMemory not on remote. Available: [${remoteKeys}]` })
           }
         } catch (error) {
           setSnapshot({ error: String(error) })
