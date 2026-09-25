@@ -20,7 +20,7 @@
  * @module scripts/repair-vendor-artifacts
  */
 import { execFileSync } from 'node:child_process'
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { WorkspaceTypertGenerator } from '../vendor/dsh/packages/typert/generator/src/workspace.ts'
@@ -30,6 +30,7 @@ const vendorRoot = resolve(fileURLToPath(import.meta.url), '../../vendor/dsh')
 /** Packages whose subpath exports need a tsc build plus a named-export shim (lib/<name>.js). */
 const SUBPATH_PACKAGES = [
   { directory: 'packages/bundle/headless', entry: 'startup' },
+  { directory: 'packages/bundle/web-app', entry: 'startup' },
   { directory: 'packages/subprocess/subprocess', entry: 'control' },
 ]
 

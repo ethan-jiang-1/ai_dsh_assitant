@@ -64,7 +64,9 @@ try {
 }
 
 // ③ Every combo script the document references, compiled as a classic-script body.
-const comboUrls = [...new Set([...html.matchAll(/(?:src|href)="(\/plugins\/[^"]+)"/g)]
+// 0.1.7's frontend references combo scripts relatively (`plugins/…`), the 0.1.5 build used an
+// absolute path — accept both and normalize to absolute for fetching.
+const comboUrls = [...new Set([...html.matchAll(/(?:src|href)="([^"]*plugins\/[^"]+)"/g)]
   .map(match => match[1].replaceAll('&amp;', '&')))]
 if (comboUrls.length === 0) fail('the index references no plugin combo scripts')
 for (const combo of comboUrls) {
