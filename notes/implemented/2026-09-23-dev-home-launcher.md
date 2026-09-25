@@ -1,6 +1,6 @@
 # 决策：`pnpm dsh` 启动器强制 dev home（scripts/dsh.mjs）
 
-日期：2026-09-23 · 状态：**已定并已实现**
+日期：2026-09-23 · 状态：**implemented**
 
 ## 问题
 

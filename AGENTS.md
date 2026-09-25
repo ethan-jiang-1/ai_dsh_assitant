@@ -12,15 +12,15 @@
 ## 新会话开工（先读这段）
 
 **现在在哪、接下来做什么的唯一权威 = `ROADMAP.md`（根部队列，只写接下来，完成即离队）**。
-开工前先读它：队列条目 / ⏳ 触发型 / ⏸ 等用户拍板——不要从 git log 或记忆发明任务。
+开工前先读它：队列条目 / 触发型 / 等用户拍板三类——不要从 git log 或记忆发明任务。
 分工一句话：**本轮用户请求决定工作范围**；ROADMAP 只管未完成队列，`docs/` 管当前契约，`notes/` 管决定依据与验证。
 队列是索引不是全文：条目链接指向 `notes/proposed/` 提案或相关决定。`notes/implemented/` 是随实现维护的活跃决策，保留理由、输掉的方案和验证依据。
 写 note 的义务只覆盖**承载持久决定理由**的改动——代码、测试与现行文档说不清的 why 与放弃的备选；机械或局部编辑豁免。决定随当前变更已交付的，直接写 `implemented/`，不必从 `proposed/` 开始。
 改行为、契约或开发流程前，按任务链接或机制名查相关 notes。**每新增一篇 note 触发取代检查**：搜活跃树找同决定/同机制的旧 note——完整取代则新 note 吸收其独有理由/备选/后果/验证后**同 diff 删除旧的**（历史归 git）；部分取代则双方保留互链、更新仍有效的事实。同一决定的事实变化更新原文，反转决定即完整取代。非平凡改动同 diff 新增或更新相关 note；提案落地须改写为实际决定与证据，不能只搬目录。
-implemented note 必带「**输掉的方案**」节——没记击败了什么的决定会重新开讼；备选只能记录、不能编造（2026-09-25 起为机械门禁，此前的旧 note 祖父豁免）。过时提案转 `rejected/` 并写一行拒绝原因，而非滞留 `proposed/`；`rejected/` 失去防错价值即删。
+implemented note 必带「**输掉的方案**」节——没记击败了什么的决定会重新开讼；备选只能记录、不能编造（机械门禁，旧 note 按门禁生效日祖父豁免）。过时提案转 `rejected/` 并写一行拒绝原因，而非滞留 `proposed/`；`rejected/` 失去防错价值即删。
 新 note 沿用 `YYYY-MM-DD-topic.md`（首次提出日期）。DSH 依据与生命周期见 `vendor/dsh/.agents/notes/README.md`；按需读取，不要求遍读全部 notes。交接即此链：AGENTS.md（本文件）→ `ROADMAP.md` → 条目链接。
 `notes/proposed/` 不是停车场（proposal-scheduled / proposal-graduated 两道 verify 门禁管）。
-**进行中的工作显式化（用户拍板 2026-09-24）：开工即立卡 `notes/proposed/`**——粗体状态行就是看板列（调研中 → 待拍板 → 待实施 → 毕业），随进度改行、毕业才移动文件；深评/调研证据链住 `notes/research/`，卡片链接之；ROADMAP 条目指卡。看不见的工作等于没在做。
+**进行中的工作显式化（用户拍板）：开工即立卡 `notes/proposed/`**——粗体状态行就是看板列（调研中 → 待拍板 → 待实施 → 毕业），随进度改行、毕业才移动文件；深评/调研证据链住 `notes/research/`，卡片链接之；ROADMAP 条目指卡。看不见的工作等于没在做。
 
 ## 布局（改动前先认领 owner 面）
 
@@ -40,7 +40,7 @@ implemented note 必带「**输掉的方案**」节——没记击败了什么�
 | `tsconfig.base.json` / `tsconfig.tsx.json` | 两个解析门面（编译期手维护 / 运行期 `pnpm gen-paths` 生成） | 引入新 `@deepseek-ai/*` import 或换 pin 时动这里（契约：`docs/dev.md` §二「两个解析门面」） |
 | `vendor/dsh/` | **钉住的 DSH 源码（submodule）** | **永不改**；升级走 `pnpm sync-dsh` |
 | `docs/` | 当前合同（只写现在，无历史） | 门禁住了的事实进这里 |
-| `notes/` | **开发记忆与证据链**：`intents.md` → `proposed/` → `implemented/`；`rejected/` 保留防复犯理由；`postmortem/` 记事故；`research/` 记**仍在用**的外部研究（完成即入其 `archive/`，与房间同构） | 决策与输掉的方案进这里 |
+| `notes/` | **开发记忆与证据链**（分类 owner：[`notes/README.md`](notes/README.md)）：`proposed/` 将来 → `implemented/` 当前权威 → `archived/` 冻结历史；`rejected/` 存负知识与一行原因；`research/` 进行中 → `research/archive/` 已收卷 | 决策与输掉的方案进这里 |
 | `dev/` | 开发 home 与 profile patch（运行残留 gitignore） | 环境问题动这里（启动/调试手册：`docs/dev.md`） |
 | `scripts/` | 机械门禁（verify / release-smoke / sync-dsh） | 门禁问题动这里 |
 | `snapshots/` | 行为回归的证据面（day 0 占位：先用测试 + 会话日志顶，见其 README） | 回归证据问题动这里 |

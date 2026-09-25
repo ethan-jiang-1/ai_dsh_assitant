@@ -74,13 +74,30 @@ export function pinProblems(repoRoot) {
   return problems
 }
 
-// ── notes naming & proposal status ───────────────────────────────────────────────────────────────
+// ── notes naming & lifecycle state ─────────────────────────────────────────────
 
 /** Notes carry their first-proposal date in the filename: YYYY-MM-DD-topic.md (lowercase slug). */
 const NOTE_NAME_PATTERN = /^\d{4}-\d{2}-\d{2}-[a-z0-9][a-z0-9-]*\.md$/
 
 /** Status words that mean a proposal is done and must have left notes/proposed/. */
-export const GRADUATED_STATUS = /已全部实施|已消化|已毕业|已完成|已实施/
+export const GRADUATED_STATUS = /状态：\*\*(implemented|rejected|archived|已全部实施|已消化|已毕业|已完成|已实施)/
+
+/** Directory names directly under notes/ that may hold notes. */
+const NOTE_SUBDIRECTORIES = ['proposed', 'implemented', 'rejected', 'archived', 'research', 'research/archive']
+
+/** Every top-level entry notes/ may carry besides the note subdirectories. */
+const NOTES_ROOT_FILES = new Set(['README.md', 'intents.md', '.gitkeep'])
+
+/** The status word each lifecycle directory's notes must carry (archived keeps implemented). */
+const LIFECYCLE_STATUS = {
+  proposed: 'proposed',
+  implemented: 'implemented',
+  rejected: 'rejected',
+  archived: 'implemented',
+}
+
+/** Canonical state line: 日期：YYYY-MM-DD · 状态：**<word>**（reason, optional). */
+const STATE_LINE = /^日期：(\d{4}-\d{2}-\d{2}) · 状态：\*\*([a-z]+|进行中|已收卷)/
 
 /**
  * Note filenames under the note-bearing subdirectories follow YYYY-MM-DD-topic.md. README.md
@@ -90,7 +107,7 @@ export const GRADUATED_STATUS = /已全部实施|已消化|已毕业|已完成|�
  */
 export function notesNamingProblems(notesRoot) {
   const problems = []
-  for (const sub of ['proposed', 'implemented', 'rejected', 'postmortem', 'research']) {
+  for (const sub of NOTE_SUBDIRECTORIES) {
     const dir = join(notesRoot, sub)
     if (!existsSync(dir)) continue
     for (const name of readdirSync(dir)) {
@@ -104,19 +121,103 @@ export function notesNamingProblems(notesRoot) {
 }
 
 /**
- * Every proposal carries a bold `状态：**…**` line. The graduation gate reads that line; a
- * proposal without one is invisible to it forever, so the shape itself is checked.
+ * notes/ is a closed classification tree: the lifecycle directories plus the research pair and
+ * two root files. An unknown directory is a second home for something and drifts (DSH taxonomy:
+ * the tree is the classification, checked by a gate rather than convention).
  *
- * @param {string} proposedDir - path of notes/proposed/.
+ * @param {string} notesRoot - path of the notes/ directory.
  */
-export function proposalStatusProblems(proposedDir) {
+export function notesTopLevelProblems(notesRoot) {
   const problems = []
-  if (!existsSync(proposedDir)) return problems
-  for (const name of readdirSync(proposedDir)) {
-    if (!name.endsWith('.md')) continue
-    const status = /状态：\*\*([^*]*)\*/.exec(read(join(proposedDir, name)))?.[1]
-    if (status === undefined) {
-      problems.push(`${name} carries no bold 状态： line — the graduation gate cannot see its state`)
+  if (!existsSync(notesRoot)) return problems
+  const allowedDirs = new Set(NOTE_SUBDIRECTORIES.filter(sub => !sub.includes('/')))
+  for (const name of readdirSync(notesRoot, { withFileTypes: true })) {
+    if (name.isDirectory()) {
+      if (!allowedDirs.has(name.name)) {
+        problems.push(`notes/${name.name}/ is not a documented lifecycle directory — an undocumented bucket becomes a second home`)
+      }
+    } else if (!NOTES_ROOT_FILES.has(name.name)) {
+      problems.push(`notes/${name.name} is not a documented notes-root file — records belong in a lifecycle directory`)
+    }
+  }
+  return problems
+}
+
+/**
+ * The state line makes the lifecycle readable at a glance, so the directory and the status word
+ * must agree, the filename date must equal the status date, archived notes must carry their
+ * freeze line, and rejected notes must carry the one-line reason that keeps them useful. Research
+ * states are checked the same way: `research/` is in progress, `research/archive/` is wound up.
+ *
+ * @param {string} notesRoot - path of the notes/ directory.
+ */
+export function notesStateProblems(notesRoot) {
+  const problems = []
+  for (const [dir, word] of Object.entries(LIFECYCLE_STATUS)) {
+    const full = join(notesRoot, dir)
+    if (!existsSync(full)) continue
+    for (const name of readdirSync(full)) {
+      if (!name.endsWith('.md') || name === 'README.md') continue
+      const text = read(join(full, name))
+      const line = text.split('\n', 6).find(candidate => candidate.startsWith('日期：') && candidate.includes('状态：'))
+      const match = line === undefined ? null : STATE_LINE.exec(line)
+      if (match === null) {
+        problems.push(`notes/${dir}/${name} carries no 日期：… · 状态：**…** line in its first 6 lines — the lifecycle is unreadable`)
+        continue
+      }
+      const [, date, statusWord] = match
+      if (statusWord !== word) {
+        problems.push(`notes/${dir}/${name} says 状态：**${statusWord}** but sits in ${dir}/ — directory and status must agree`)
+      }
+      if (name.slice(0, 10) !== date) {
+        problems.push(`notes/${dir}/${name} status date ${date} differs from its filename date`)
+      }
+      if (dir === 'archived' && !/^已归档：\d{4}-\d{2}-\d{2}/m.test(text)) {
+        problems.push(`notes/archived/${name} carries no 已归档：YYYY-MM-DD line — archived notes are frozen history, not current authority`)
+      }
+      if (dir === 'rejected' && !/状态：\*\*rejected\*\*（.+）/.test(line ?? '')) {
+        problems.push(`notes/rejected/${name} carries no one-line rejection reason on its status line`)
+      }
+    }
+  }
+  const research = join(notesRoot, 'research')
+  if (existsSync(research)) {
+    for (const name of readdirSync(research)) {
+      if (!name.endsWith('.md') || name === 'README.md') continue
+      if (!/状态：[^\n]*进行中/.test(read(join(research, name)))) {
+        problems.push(`notes/research/${name} must carry 状态：…进行中 — wound-up research moves to research/archive/`)
+      }
+    }
+    const archive = join(research, 'archive')
+    if (existsSync(archive)) {
+      for (const name of readdirSync(archive)) {
+        if (!name.endsWith('.md') || name === 'README.md') continue
+        if (!/状态：[^\n]*已收卷/.test(read(join(archive, name)))) {
+          problems.push(`notes/research/archive/${name} must carry 状态：…已收卷 — an archived survey is wound up, not in progress`)
+        }
+      }
+    }
+  }
+  return problems
+}
+
+/**
+ * AGENTS.md is a standing-orders file (docs/discipline.md: no state sections, no progress marks,
+ * no pin numbers). A dated line or a progress mark is exactly the state claim that belongs in
+ * ROADMAP.md or a note, so the promise gets a command instead of being remembered.
+ *
+ * @param {string} agentsPath - path of the root AGENTS.md.
+ */
+export function agentsMdStabilityProblems(agentsPath) {
+  const problems = []
+  if (!existsSync(agentsPath)) return problems
+  const lines = read(agentsPath).split('\n')
+  for (const [index, line] of lines.entries()) {
+    if (/\b20\d{2}-\d{2}-\d{2}\b/.test(line)) {
+      problems.push(`AGENTS.md:${index + 1} carries a date — standing orders do not age; put the dated record in a note and link it`)
+    }
+    if (/[✅⏳⏸▶🧹]/.test(line)) {
+      problems.push(`AGENTS.md:${index + 1} carries a progress mark — progress lives in ROADMAP.md, not in the entry file`)
     }
   }
   return problems

@@ -1,0 +1,79 @@
+# DSH 研发体系对齐：可借鉴项收编与本仓落地计划（第一轮）
+
+日期：2026-09-25 · 状态：**proposed（第一轮已落地 notes 分类学；其余按 §四 落地序推进，逐项完成时改写本卡）**
+
+> 来源与读法：参考语料 `/Users/bowhead/deepseek-harness/_agent_ready_development`（模拟 DSH 研发思路的
+> 独立语料，钉版 `dsh-v0.1.7-rc.1` @ `46a7f68`；只读借鉴，不改动它）。三个子目录分别由三个只读子代理
+> 通读并产出带行号证据的清单（repo-harness / sdlc-reference / _coverage+verify.mjs），主线对
+> `08-repository-taxonomy.md`、`01-agent-note-lifecycle.md`、`09-plugin-author-entry.md` 三篇亲读核验。
+> 本卡是**唯一**清单（子代理的原始产物已收编于此，不另存第二份清单——第二份清单必然漂移）。
+
+## 一、对齐目标与判据
+
+用户诉求：**本仓是 DSH 插件仓，研发思路要与 DSH 对齐，coding agent 同时读两仓时不糊涂。**
+判据用 DSH 自己的边界（`repo-harness/09` §4）：插件仓从 DSH **继承**插件形态/配置/打包模型/术语；
+**分类学精神**（一个事实一个 owner、生成物有生成器、决定有记录、状态可机械检查）是可迁移原则；
+DSH 不要求插件仓复制它的完整 Note 机制与协作面。因此本卡逐项给 **借 / 适配 / 不借** 三档判定。
+
+## 二、第一轮已落地（本卡同 diff，见 git）
+
+| # | 机制 | 来源 | 落地物 |
+|---|---|---|---|
+| L1 | 生命周期四态：`proposed`（将来）/`implemented`（当前权威）/`rejected`（负知识）/`archived`（冻结历史） | `sdlc-reference/01` §3 | `notes/rejected/`、`notes/archived/` 实体化；6 篇历史 note 归档（带 `已归档：` 行） |
+| L2 | 路径与状态词互校；状态行可机械检查 | `01` §4；`08` §3「结构受 gate」 | 全部 note 状态行规范化为 `日期：YYYY-MM-DD · 状态：**<词>**`（28 篇改写：18 篇标题式补状态行、10 篇变体词归一） |
+| L3 | 归档=冻结、不再编辑 | `01` §3/§6 | `archived/` 门禁要求 `已归档：YYYY-MM-DD` 行；README 声明冻结 |
+| L4 | rejected 一行拒绝原因、失效即删 | `02` §「负知识需要 owner」 | `rejected/` 门禁要求状态行带括号原因 |
+| L5 | 目录树即工作清单、**不设集中索引** | `01` §2（no-index note） | `notes/README.md` 不建 INDEX，只写分类契约 |
+| L6 | 分区的职责由**具名文件**拥有，不由惯例拥有 | `08` §1 | 新建 `notes/README.md`（owner 文件）；`verify` 要求它存在 |
+| L7 | 入口文件是 standing orders：无状态节/无进度标记 | `08` §3；`05` §「每个可机械检查的承诺配一条命令」 | 新门禁 `AGENTS.md 内禁日期与进度标记`；AGENTS.md 两处日期与一处标记已清 |
+| L8 | 调研面状态可见（进行中 vs 已收卷） | 本仓 research 面规范 | `research/` 门禁要求「进行中」、`research/archive/` 要求「已收卷」 |
+| L9 | 顶层分类是封闭集合（未知目录=第二个家） | `08` §1 | 新门禁：`notes/` 顶层条目只允许文档化集合 |
+
+## 三、采纳清单（待落地，借或适配）
+
+**A 组 · 门禁类（成本小，当前状态合法，可直接造红）**
+1. **语言分工上闸**（`AGENTS.md` 硬规则）：模型面路径（`src/tool-*`、`memory-digest`、`home-preamble`、`learn`、`preset-runner`、`presets/assistant/skills/**`、`preset.yml`）出现 CJK 即失败；注释豁免。
+2. **依赖姿态上闸**：`@deepseek-ai/*` 不得进 `dependencies`/`optionalDependencies`（只许 peer）；`dsh.compatibility.dshReleases` 与 `vendor/UPSTREAM.md` 的钉住 tag 对齐。
+3. **严格 UTF-8 + 恰好一个结尾换行**（语料 `verify.mjs` 规则 2/3）：现在非法字节会静默变 `�`。
+4. **负例控制成为规矩**：新增一条 `verify` 检查 = 同 diff 配一个「造红再证绿」夹具（语料 `05:34`「A guard only guards if the regression fails it」）；`verify-gates.spec.mjs` 已具形态，不追旧账、只对新检查生效。
+5. **三重门禁各管什么**（`10` §三道门禁表 / `06` 三层证据）：在 `docs/discipline.md` 加 3 行表——机械门禁能/不能建立什么、语义审计轮、用户拍板；**不借** weighted approval（单人仓无第二评审人）。
+
+**B 组 · 文档与路由类（成本小）**
+6. **生成物登记表**（`08` §3 五形态之「生成+freshness」）：`docs/dev.md` 加一张 3 列表（生成物/生成器/freshness 检查），当前只有 `tsconfig.tsx.json` 一行；不建 manifest。
+7. **运行时查询进探索路由**（`06`）：`AGENTS.md` 探索路由加两条——「组合里有没有这一行」→ `pnpm dsh --profile dev --dump-config`；「活进程注册了什么」→ 切 shipped `cordis` preset 用只读 inspect 工具（**不改** assistant preset，那是模型可见面变更）。
+8. **新行为归属判据四问**（`01` §15 / `04`）：`docs/architecture.md` owner 表前插四问（只改 patch 一行？只加工具/段落？跨会话持久状态→服务？新增模型可见事实→日志税？）。
+9. **术语锚定括注**（`09` §4）：自造词首现处加一次 DSH canonical 括注——`host 面（= bundle patch 行）`、`agent 面（= preset agent 行，model-facing）`、`8 个入口（= package.json exports 的 8 个 plugin 子路径）`、`working folder（= 本插件 dataDir，≠ 进程 cwd）`、`服务（Definition + 单 Provider 同包，Consumer = 各 tool 入口）`。这是「两仓同检索模式」的最便宜兑现。
+10. **tier 表一行式**（`05` §tier）：`AGENTS.md` 布局表前插 4 行「哪类事实归谁拥有」；不复制上游 13 行全表。
+11. **作者视角自检句**（`05` §41）：写 `ROADMAP.md`/`docs/` 时自问「读者只有 HEAD、没有会话 transcript 时能否核验每个 claim」；现有条目里的裸简称（`R1/R3/r5 §末`）改成可点链接。
+12. **snapshots 只收什么**（`08` §4）：`snapshots/README.md` 补边界句——只收 session 回放 fixture，单元/CLI/generator 期望输出跟 owning 层走。
+13. **UPSTREAM 重审触发表 + 每轮固定字段**（`_coverage`）：`vendor/UPSTREAM.md` 加「上游路径 → 受影响 docs/notes 断言」映射；每轮 `sync-dsh` 在 `notes/implemented/` 落一条固定字段记录（日期/基线 SHA/动因/真跑命令+计数/未改动部分/遗留阻断）。
+14. **「被阻断的检查不得写成绿色证据」**（`_coverage` 纪律）：写进 `docs/discipline.md`。
+15. **历史边界句**（`08` §5）：note 只证明其自身内容；门禁规则带生效日、不追溯重判旧物（备选节门禁的 grandfather 日期即此例）。
+16. **意图入口与状态映射**（`09` intake）：`AGENTS.md` notes 段补「意图三通道」（用户轮内请求 / ROADMAP 条目 / `notes/proposed/` 卡片）与「队列标记 ↔ 卡片状态词」映射表；卡片状态词封闭为 `proposed`（不再造"调研中/待拍板/待实施"第二套词）。
+17. **卡片骨架**（`09` 模板）：`proposed/` 卡片固定四节（问题-可观察行为 / 提案 / 输掉的方案 / 验收）；ROADMAP 条目压回 ≤3 行，正文搬卡。
+18. **rehearsal 常开**（`11` §9）：`pnpm release-smoke` 进固定收尾环（发布路径改动必跑），不再靠记性。
+
+## 四、落地序
+
+1. **P1 门禁批**：A1–A4（各配夹具）→ 一次提交；
+2. **P2 文档批**：B6–B16、B18 → 一次提交（多处小改，同属"散文层对齐"）；
+3. **P3 状态可见批**：B16–B17（AGENTS notes 段 + 卡片骨架 + ROADMAP 条目瘦身）；
+4. 每批完成：`pnpm typecheck && pnpm test && pnpm verify` 全绿 + 提交；本卡随之改写进度。
+
+## 五、明确不借（防重新开讼）
+
+- **`{lifecycle}/{class}/` 两级路径**（DSH 用它）：偏离理由登记在 [`notes/README.md`](../README.md) §四（class 是正交第二轴；44 篇迁移 churn 与误分类风险 > 收益；`09` 明说只继承精神）。
+- **GitHub 协作面全套**（Issues/PR/Project/review webhook/weighted approval/blame 加权/`/delegate`）：单人仓、无第二评审人、无协作面；`docs/discipline.md` 已登记不适用的部分不重开。
+- **CI 层与 git hooks**：本仓无远端流水线；本地 `verify` 承担同一逻辑（已登记）。
+- **文档词数预算 manifest / 双语配对 / VitePress 投影**：`docs/discipline.md` 已裁定"刻意不做（触发=docs 腐化实证）"；本次不改变该判定。
+- **发布 lane（bump/tag/publish/CHANGELOG/registry 三态）**：本仓 private、未发布；只留"rehearsal 常开"（B18）与"无 CHANGELOG"两条纪律。
+- **钉版外链白名单 / SVG 全套结构规则 / 强制目录 README**：语料专属（它要独立发行、有 15 张 SVG、目录全有 README）；本仓无图、无发行面，强行照搬会全线红。**窄化采纳**：只对"引 `vendor/dsh` 的 URL"要求钉当前 tag/SHA（已有 pin 门禁）。
+- **`cordis_inspect_*` 加进 assistant preset / package invariant 运行时关系层**：前者是模型可见面变更（要付日志税与快照），为开发期需求不划算；后者单包无 owner relationship，`dev.md`"真 boot 一次"已顶替。
+- **`.agents/` 开发 skills 全集**：**延后**（不是不做）——触发=下一次换 pin 或下一轮审计里同一个多步流程真的重复出现；届时先立 1–2 个，并在 `AGENTS.md` 写明 `.agents/skills/`（开发用）与 `presets/assistant/skills/`（模型用）的分工，避免 DSH `03` 警告的同名陷阱。
+- **`change-scope` 脚本**：**延后**——触发=真实"跑错检查/漏跑检查"摩擦出现；当前 `pnpm typecheck && pnpm test && pnpm verify` 三连足够小。
+
+## 六、验收
+
+- P1 批：四条新门禁各有正反夹具（`tests/verify-gates.spec.mjs`），`pnpm verify` 全绿；
+- P2 批：`docs/` 与 `AGENTS.md` 的改动不引入新术语（只加括注与映射）；链接门禁绿；
+- P3 批：`ROADMAP.md` 每条 ≤3 行；卡片状态词与队列标记一一映射且被门禁校验。

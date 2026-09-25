@@ -15,10 +15,12 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import {
+  agentsMdStabilityProblems,
   GRADUATED_STATUS,
   notesNamingProblems,
+  notesStateProblems,
+  notesTopLevelProblems,
   pinProblems,
-  proposalStatusProblems,
   implementedAlternativesProblems,
   relativeLinkProblems,
 } from '../../../scripts/verify-checks.mjs'
@@ -91,16 +93,79 @@ describe('notesNamingProblems', () => {
   })
 })
 
-describe('proposalStatusProblems', () => {
-  it('accepts a bold status line and flags its absence', () => {
-    const proposed = temp('proposed-')
-    writeFileSync(join(proposed, '2026-09-24-with-status.md'), '状态：**待接手实施**\n', 'utf8')
-    writeFileSync(join(proposed, '2026-09-24-without-status.md'), '# a proposal with no state\n', 'utf8')
+describe('notesStateProblems', () => {
+  const line = (date, word) => `# t\n\n日期：${date} · 状态：**${word}**（说明）\n`
 
-    const problems = proposalStatusProblems(proposed)
-    expect(problems).toHaveLength(1)
-    expect(problems[0]).toContain('without-status.md')
-    expect(problems[0]).toContain('graduation gate')
+  it('accepts canonical lines whose word matches the directory and the filename date', () => {
+    const notes = temp('notes-state-')
+    for (const sub of ['proposed', 'implemented', 'archived', 'rejected']) mkdirSync(join(notes, sub), { recursive: true })
+    writeFileSync(join(notes, 'proposed', '2026-09-25-a.md'), line('2026-09-25', 'proposed'), 'utf8')
+    writeFileSync(join(notes, 'implemented', '2026-09-25-b.md'), line('2026-09-25', 'implemented'), 'utf8')
+    writeFileSync(join(notes, 'archived', '2026-09-25-c.md'), line('2026-09-25', 'implemented') + '已归档：2026-09-25（冻结）\n', 'utf8')
+    writeFileSync(join(notes, 'rejected', '2026-09-25-d.md'), line('2026-09-25', 'rejected'), 'utf8')
+
+    expect(notesStateProblems(notes)).toEqual([])
+  })
+
+  it('rejects a missing line, a wrong directory word, a date mismatch, and an unfrozen archive', () => {
+    const notes = temp('notes-state-')
+    for (const sub of ['proposed', 'implemented', 'archived']) mkdirSync(join(notes, sub), { recursive: true })
+    writeFileSync(join(notes, 'proposed', '2026-09-25-no-line.md'), '# no state line\n', 'utf8')
+    writeFileSync(join(notes, 'implemented', '2026-09-25-wrong-dir.md'), line('2026-09-25', 'proposed'), 'utf8')
+    writeFileSync(join(notes, 'implemented', '2026-09-25-date-drift.md'), line('2026-09-24', 'implemented'), 'utf8')
+    writeFileSync(join(notes, 'archived', '2026-09-25-unfrozen.md'), line('2026-09-25', 'implemented'), 'utf8')
+
+    const problems = notesStateProblems(notes)
+    expect(problems.some(p => p.includes('no-line.md') && p.includes('unreadable'))).toBe(true)
+    expect(problems.some(p => p.includes('wrong-dir.md') && p.includes('directory and status must agree'))).toBe(true)
+    expect(problems.some(p => p.includes('date-drift.md') && p.includes('filename date'))).toBe(true)
+    expect(problems.some(p => p.includes('unfrozen.md') && p.includes('已归档'))).toBe(true)
+  })
+
+  it('requires a rejection reason and the two research states', () => {
+    const notes = temp('notes-state-')
+    for (const sub of ['rejected', 'research', 'research/archive']) mkdirSync(join(notes, sub), { recursive: true })
+    writeFileSync(join(notes, 'rejected', '2026-09-25-bare.md'), '日期：2026-09-25 · 状态：**rejected**\n', 'utf8')
+    writeFileSync(join(notes, 'research', '2026-09-25-live.md'), '日期：2026-09-25 · 状态：进行中 · 底稿\n', 'utf8')
+    writeFileSync(join(notes, 'research', 'archive', '2026-09-25-done.md'), '日期：2026-09-25 · 状态：已收卷 · 结论在 §5\n', 'utf8')
+    writeFileSync(join(notes, 'research', 'archive', '2026-09-25-not-wound.md'), '日期：2026-09-25 · 状态：进行中\n', 'utf8')
+
+    const problems = notesStateProblems(notes)
+    expect(problems.some(p => p.includes('bare.md') && p.includes('rejection reason'))).toBe(true)
+    expect(problems.some(p => p.includes('not-wound.md') && p.includes('已收卷'))).toBe(true)
+    expect(problems.some(p => p.includes('live.md'))).toBe(false)
+  })
+})
+
+describe('notesTopLevelProblems', () => {
+  it('accepts the documented lifecycle set and rejects an undocumented bucket', () => {
+    const notes = temp('notes-top-')
+    for (const sub of ['proposed', 'implemented', 'rejected', 'archived', 'research']) mkdirSync(join(notes, sub), { recursive: true })
+    writeFileSync(join(notes, 'README.md'), '# map\n', 'utf8')
+    writeFileSync(join(notes, 'intents.md'), '# intents\n', 'utf8')
+
+    expect(notesTopLevelProblems(notes)).toEqual([])
+
+    mkdirSync(join(notes, 'postmortem'), { recursive: true })
+    writeFileSync(join(notes, 'scratch.md'), 'x', 'utf8')
+    const problems = notesTopLevelProblems(notes)
+    expect(problems.some(p => p.includes('notes/postmortem/'))).toBe(true)
+    expect(problems.some(p => p.includes('notes/scratch.md'))).toBe(true)
+  })
+})
+
+describe('agentsMdStabilityProblems', () => {
+  it('accepts standing orders and rejects dates and progress marks', () => {
+    const dir = temp('agents-')
+    const clean = join(dir, 'AGENTS.md')
+    writeFileSync(clean, '## 规则\n- 永远不要碰日用的 ~/.dsh。\n', 'utf8')
+    expect(agentsMdStabilityProblems(clean)).toEqual([])
+
+    const dirty = join(dir, 'DIRTY.md')
+    writeFileSync(dirty, '## 规则\n- （用户拍板 2026-09-24）开工即立卡。\n- 队列标记：▶ 可开工。\n', 'utf8')
+    const problems = agentsMdStabilityProblems(dirty)
+    expect(problems.some(p => p.includes('carries a date'))).toBe(true)
+    expect(problems.some(p => p.includes('progress mark'))).toBe(true)
   })
 })
 
@@ -124,10 +189,10 @@ describe('implementedAlternativesProblems', () => {
 
 describe('GRADUATED_STATUS', () => {
   it('matches every known completion word and no in-progress wording', () => {
-    for (const done of ['已全部实施', '已消化', '已毕业', '已完成', '已实施']) {
+    for (const done of ['状态：**已全部实施', '状态：**已消化', '状态：**已毕业', '状态：**已完成', '状态：**已实施', '状态：**implemented', '状态：**rejected', '状态：**archived']) {
       expect(GRADUATED_STATUS.test(done)).toBe(true)
     }
-    for (const pending of ['待接手实施', '部分实施', '草稿', 'proposed']) {
+    for (const pending of ['状态：**待接手实施', '状态：**部分实施', '状态：**proposed', '状态：**调研中', '待接手实施']) {
       expect(GRADUATED_STATUS.test(pending)).toBe(false)
     }
   })

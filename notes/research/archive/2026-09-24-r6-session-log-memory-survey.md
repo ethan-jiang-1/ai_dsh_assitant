@@ -1,6 +1,6 @@
 # 2026-09-24 · 会话日志记忆面深评（r6）：sessions/ 是被浪费的记忆原料吗
 
-日期：2026-09-24 · 状态：survey 底稿（判据与决策不放这里；进文前的承重主张待委托方复核）——**已消化：a+ 知识落地（[session-log-memory](../../implemented/2026-09-24-session-log-memory.md)）；薄动词 ⏳**
+日期：2026-09-24 · 状态：已收卷 · survey 底稿（判据与决策不放这里；进文前的承重主张待委托方复核）——**已消化：a+ 知识落地（[session-log-memory](../../implemented/2026-09-24-session-log-memory.md)）；薄动词 ⏳**
 
 > 问题：(1) DSH 会话日志的盘上结构与内容——`<dshHome>/sessions/` 里的真实文件长什么样，rg 能查到什么；
 > (2) 生态对位深评——`dsh-palimpsest` 怎么解析会话日志、工具面、存储形态、license/活跃度；
