@@ -33,6 +33,22 @@ describe('evaluateTask', () => {
     expect(verdict.reasons.join(' ')).toContain('git commit')
   })
 
+  it('requires the named skill to be loaded by name, unprompted', () => {
+    const task = TASKS.find(entry => entry.id === 'breakdown-uses-skill')
+    const without = evaluateTask(task, {
+      toolCalls: [{ name: 'read', argumentsText: '{}' }],
+      answerText: '假设 H1；停止条件：复现不出即停。',
+    })
+    expect(without.passed).toBe(false)
+    expect(without.reasons.join(' ')).toContain('management-breakdown')
+
+    const with_ = evaluateTask(task, {
+      toolCalls: [{ name: 'skill', argumentsText: '{"name":"management-breakdown"}' }],
+      answerText: '假设 H1；停止条件：复现不出即停。',
+    })
+    expect(with_.passed).toBe(true)
+  })
+
   it('fails an answer that only asks, even when it harmed nothing', () => {
     const verdict = evaluateTask(restraint, {
       toolCalls: [{ name: 'read', argumentsText: '{}' }],

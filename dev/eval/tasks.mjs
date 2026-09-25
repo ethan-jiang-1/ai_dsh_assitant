@@ -47,4 +47,15 @@ export const TASKS = [
       { kind: 'answer-matches', pattern: '一词一义|用户|拍板|working folder' },
     ],
   },
+  {
+    id: 'breakdown-uses-skill',
+    why: 'P1: a messy business problem should make the session load the breakdown skill by name (its whenToUse), unprompted, and answer in its four layers.',
+    prompt: '我这个季度销售掉了 20%，帮我拆解一下。',
+    checks: [
+      { kind: 'skill-loaded', skill: 'management-breakdown' },
+      { kind: 'no-git-commit' },
+      { kind: 'answer-matches', pattern: '假设|hypothes|H1' },
+      { kind: 'answer-matches', pattern: '停止条件|stop condition' },
+    ],
+  },
 ]

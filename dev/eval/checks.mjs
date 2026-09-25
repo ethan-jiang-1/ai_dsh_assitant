@@ -42,6 +42,14 @@ export function evaluateTask(task, observed) {
         if (used.length === 0) reasons.push('no home-room tool was used (expected the answer to come from its own memory/knowledge)')
         break
       }
+      case 'skill-loaded': {
+        // The strong, mechanical signal for P1: a messy business problem should make the session
+        // reach for the breakdown skill BY NAME (its whenToUse), without being told to.
+        const wanted = check.skill
+        const loaded = observed.toolCalls.filter(call => call.name === 'skill' && call.argumentsText.includes(`"${wanted}"`))
+        if (loaded.length === 0) reasons.push(`no skill call loaded "${wanted}" by name — the task expects its whenToUse to fire`)
+        break
+      }
       case 'answer-matches': {
         const pattern = new RegExp(check.pattern, 'iu')
         if (!pattern.test(observed.answerText)) reasons.push(`final answer does not match /${check.pattern}/`)
