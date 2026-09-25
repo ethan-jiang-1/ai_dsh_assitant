@@ -12,20 +12,17 @@
 
 ## 队列
 
-- ▶ **DSH 对齐 · 门禁批**（语言分工/依赖姿态/严格 UTF-8+单结尾换行/新门禁必带反例夹具；卡 §三 A 组：[2026-09-25-dsh-alignment-borrowables](notes/proposed/2026-09-25-dsh-alignment-borrowables.md)）
-- ▶ **DSH 对齐 · 文档批**（生成物登记表/tier 表/三重门禁表/探索路由加运行时查询/新行为归属四问/术语锚定括注/snapshots 边界/UPSTREAM 重审触发表；卡 §三 B 组）
-- ▶ **DSH 对齐 · 状态可见批**（意图三通道 + 队列标记↔卡片状态词映射 + 卡片四节骨架 + ROADMAP 条目压回 ≤3 行；卡 §三 B16–B17）
 - ⏳ `.agents/` 开发 skills（触发=下一次换 pin 或审计轮里同一多步流程真重复；落地时须在 AGENTS.md 写"开发用 vs 模型用"消歧句）
 - ⏳ change-scope 脚本（触发=真实"跑错检查/漏跑检查"摩擦出现；最简形态见卡 §五）
-- ▶ **真实使用开跑**（用户本人用起来——首批数据已由打磨战役产出：账本 4 技能 9 次真实加载、⏳ 判据对照全部未触发，档案见 `notes/implemented/2026-09-25-smart-assistant-polish-campaign.md` §八；后续用户会话的摩擦即新卡）
-- ⏳ E · 名字链接在 Obsidian 可点（触发=窄用真被使用且不可点成为真实摩擦；三选项百行内备选见 [r5 §末](notes/research/archive/2026-09-24-r5-obsidian-interop-survey.md)——用户 2026-09-24 拍板不抢跑）
+- ▶ **真实使用开跑**（用户本人用起来；首批数据与 ⏳ 对照见[打磨战役 §八](notes/implemented/2026-09-25-smart-assistant-polish-campaign.md)，摩擦即新卡）
+- ⏳ E · 名字链接在 Obsidian 可点（触发=窄用真被使用且不可点成为真实摩擦；三选项见 [r5 §末](notes/research/archive/2026-09-24-r5-obsidian-interop-survey.md)，用户拍板不抢跑）
 - ⏳ dsh-obsidian 挂桥（触发=用户想让助手直接操作某个外部 vault；设计参照已录 r5）
 - ⏳ 会话日志薄动词 b1/b2（触发=真实使用中真去查历史会话且 rg 配方不够用；b2 后端可用性待细查）
 - ⏳ workflow-as-MD（触发=真实使用出现多步编排需求；方向：程序性知识之上，编排是否也为 working folder 的 MD 文件——用户 2026-09-24 提出）
-- ⏳ 语义检索 / embedding（触发=真实漏召回；依据：[三线合流 §六](notes/implemented/2026-09-24-tri-line-synthesis.md)、[R1 判据对照 §5](notes/research/archive/2026-09-24-r1-memory-ecosystem-survey.md)、[R3 设计 §7.2](notes/research/archive/2026-09-24-r3-knowledge-layer-survey.md)）
+- ⏳ 语义检索 / embedding（触发=真实漏召回；依据 [三线合流 §六](notes/implemented/2026-09-24-tri-line-synthesis.md)、[R1 §5](notes/research/archive/2026-09-24-r1-memory-ecosystem-survey.md)、[R3 §7.2](notes/research/archive/2026-09-24-r3-knowledge-layer-survey.md)）
 - ⏳ 全自动蒸馏（触发=用量统计显示收益>token+同意成本；采集工具已在场；依据：[R2 缺口清单 §9.3-5](notes/research/archive/2026-09-24-r2-skill-growth-survey.md)）
-- ⏳ FTS/trigram 检索升级（触发=grep 真实漏召回；方法参照 [dsh-knowledge-sqlite 实测表（R3 §4.3/§7.2-3）](notes/research/archive/2026-09-24-r3-knowledge-layer-survey.md)）
-- ⏳ 跨 harness 共库（触发=第二消费方出现；[memsearch 形态，R1 §6-7](notes/research/archive/2026-09-24-r1-memory-ecosystem-survey.md)）
+- ⏳ FTS/trigram 检索升级（触发=grep 真实漏召回；方法参照 [R3 实测表 §4.3/§7.2-3](notes/research/archive/2026-09-24-r3-knowledge-layer-survey.md)）
+- ⏳ 跨 harness 共库（触发=第二消费方出现；[memsearch 形态](notes/research/archive/2026-09-24-r1-memory-ecosystem-survey.md)）
 - ⏳ 技能 license/compatibility 字段（触发=provider 读它们或第二消费方；[1g 审计](notes/implemented/2026-09-24-spec-field-audit.md)）
 
 ## 搁置池

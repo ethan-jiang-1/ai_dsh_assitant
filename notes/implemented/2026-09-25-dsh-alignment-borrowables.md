@@ -1,6 +1,6 @@
-# DSH 研发体系对齐：可借鉴项收编与本仓落地计划（第一轮）
+# DSH 研发体系对齐：可借鉴项收编与落地（第一轮）
 
-日期：2026-09-25 · 状态：**proposed（第一轮 notes 分类学与 P1 门禁批已落地；P2 文档批 / P3 状态可见批按 §四 推进，逐项完成时改写本卡）**
+日期：2026-09-25 · 状态：**implemented（三轮全部落地并提交：notes 分类学重整 fa1611c、P1 门禁批 6e09eb0、P2 文档批 4a910b5、P3 状态可见批与毕业同提交；两个延后项带触发条件留在 ROADMAP）**
 
 > 来源与读法：参考语料 `/Users/bowhead/deepseek-harness/_agent_ready_development`（模拟 DSH 研发思路的
 > 独立语料，钉版 `dsh-v0.1.7-rc.1` @ `46a7f68`；只读借鉴，不改动它）。三个子目录分别由三个只读子代理
@@ -31,14 +31,14 @@ DSH 不要求插件仓复制它的完整 Note 机制与协作面。因此本卡�
 
 ## 三、采纳清单（待落地，借或适配）
 
-**A 组 · 门禁类（成本小，当前状态合法，可直接造红）——✅ P1 批已落地**
+**A 组 · 门禁类（成本小，当前状态合法，可直接造红）——✅ 全部落地（P1 批）**
 1. ✅ **语言分工上闸**：`src/**.ts`（注释行豁免）+ `presets/assistant/skills/**/*.md` 出现 CJK 即失败；**皮肤面豁免**（`web-branding.ts` 与 `client/` 的中文 UI 文案、`preset.yml` 显示名——侦察时修正了子代理把皮肤面错列进模型面的口径）。
 2. ✅ **依赖姿态上闸**：`@deepseek-ai/*` 不得进 `dependencies`/`optionalDependencies`（只许 peer）；`dsh.compatibility.dshReleases` 必须含 `vendor/UPSTREAM.md` 的钉住 tag。
 3. ✅ **严格 UTF-8 + 恰好一个结尾换行**：受管文本（仓库 md + 脚本）无非法字节、无缺/双结尾换行；顺带修 `walk()` 跳过 `node_modules`/`.git`（pnpm 符号链接链会撞 ENAMETOOLONG）。
 4. ✅ **负例控制成为规矩**：写进 `docs/discipline.md` 复查环；本批四条新门禁各配正反夹具（`tests/verify-gates.spec.mjs`）。
 5. ✅ **三重门禁各管什么**：`docs/discipline.md` 新增表（机械门禁 / 语义审计轮 / 用户拍板各能建立什么、不能建立什么）；**不借** weighted approval（单人仓无第二评审人）。
 
-**B 组 · 文档与路由类（成本小）**
+**B 组 · 文档与路由类（成本小）——✅ 全部落地（P2 批 B6–B13/B18；B14–B15 已并入 P1；B16–B17 见 P3 批）**
 6. **生成物登记表**（`08` §3 五形态之「生成+freshness」）：`docs/dev.md` 加一张 3 列表（生成物/生成器/freshness 检查），当前只有 `tsconfig.tsx.json` 一行；不建 manifest。
 7. **运行时查询进探索路由**（`06`）：`AGENTS.md` 探索路由加两条——「组合里有没有这一行」→ `pnpm dsh --profile dev --dump-config`；「活进程注册了什么」→ 切 shipped `cordis` preset 用只读 inspect 工具（**不改** assistant preset，那是模型可见面变更）。
 8. **新行为归属判据四问**（`01` §15 / `04`）：`docs/architecture.md` owner 表前插四问（只改 patch 一行？只加工具/段落？跨会话持久状态→服务？新增模型可见事实→日志税？）。
@@ -53,14 +53,15 @@ DSH 不要求插件仓复制它的完整 Note 机制与协作面。因此本卡�
 17. **卡片骨架**（`09` 模板）：`proposed/` 卡片固定四节（问题-可观察行为 / 提案 / 输掉的方案 / 验收）；ROADMAP 条目压回 ≤3 行，正文搬卡。
 18. **rehearsal 常开**（`11` §9）：`pnpm release-smoke` 进固定收尾环（发布路径改动必跑），不再靠记性。
 
-## 四、落地序
+## 四、落地记录（实际提交）
 
-1. **P1 门禁批**：A1–A4（各配夹具）→ 一次提交；
-2. **P2 文档批**：B6–B16、B18 → 一次提交（多处小改，同属"散文层对齐"）；
-3. **P3 状态可见批**：B16–B17（AGENTS notes 段 + 卡片骨架 + ROADMAP 条目瘦身）；
-4. 每批完成：`pnpm typecheck && pnpm test && pnpm verify` 全绿 + 提交；本卡随之改写进度。
+1. **notes 分类学重整**（`fa1611c`）：`notes/README.md` owner 文件 + `rejected/`/`archived/` 实体化 + 28 篇状态行规范化 + 6 篇归档 + 4 条 notes 门禁（各配夹具）；verify 22→24。
+2. **P1 门禁批**（`6e09eb0`）：语言分工 / 依赖姿态 / 严格 UTF-8+单结尾换行 三条新门禁 + 负例控制与"阻断不得写成绿色"两条纪律 + 三道门禁表；verify 24→27、test 170→173。
+3. **P2 文档批**（`4a910b5`）：AGENTS.md tier 表与术语括注与运行时查询路由、dev.md 生成物登记表、architecture.md 归属四问与服务三角色、snapshots 只收边界、UPSTREAM 重审触发表与每轮记录字段、ROADMAP 作者视角自检句。
+4. **P3 状态可见批**（与毕业同提交）：意图三通道 + 卡片状态词统一为生命周期词一套（取消"调研中/待拍板/待实施"第二套）+ 卡片四节骨架（推荐不门禁，登记理由）+ ROADMAP 条目压回索引形。
+5. 每批验收：`pnpm typecheck && pnpm test && pnpm verify` 全绿（终态 173/173、verify 27/27）。
 
-## 五、明确不借（防重新开讼）
+## 五、输掉的方案（明确不借，防重新开讼）
 
 - **`{lifecycle}/{class}/` 两级路径**（DSH 用它）：偏离理由登记在 [`notes/README.md`](../README.md) §四（class 是正交第二轴；44 篇迁移 churn 与误分类风险 > 收益；`09` 明说只继承精神）。
 - **GitHub 协作面全套**（Issues/PR/Project/review webhook/weighted approval/blame 加权/`/delegate`）：单人仓、无第二评审人、无协作面；`docs/discipline.md` 已登记不适用的部分不重开。
@@ -72,8 +73,9 @@ DSH 不要求插件仓复制它的完整 Note 机制与协作面。因此本卡�
 - **`.agents/` 开发 skills 全集**：**延后**（不是不做）——触发=下一次换 pin 或下一轮审计里同一个多步流程真的重复出现；届时先立 1–2 个，并在 `AGENTS.md` 写明 `.agents/skills/`（开发用）与 `presets/assistant/skills/`（模型用）的分工，避免 DSH `03` 警告的同名陷阱。
 - **`change-scope` 脚本**：**延后**——触发=真实"跑错检查/漏跑检查"摩擦出现；当前 `pnpm typecheck && pnpm test && pnpm verify` 三连足够小。
 
-## 六、验收
+## 六、验收（结果）
 
-- P1 批：四条新门禁各有正反夹具（`tests/verify-gates.spec.mjs`），`pnpm verify` 全绿；
-- P2 批：`docs/` 与 `AGENTS.md` 的改动不引入新术语（只加括注与映射）；链接门禁绿；
-- P3 批：`ROADMAP.md` 每条 ≤3 行；卡片状态词与队列标记一一映射且被门禁校验。
+- P1 批：三条新门禁各带正反夹具（`tests/verify-gates.spec.mjs`；含非法 UTF-8、双结尾换行、运行时依赖、compat 漂移四种红），`pnpm verify` 27/27 绿。
+- P2 批：`docs/` 与 `AGENTS.md` 只加括注、映射与表，不引入新术语；链接与语言门禁绿。
+- P3 批：卡片状态词统一为生命周期词（第二套阶段词已在 AGENTS.md 与 `notes/README.md` 明确取消）；`ROADMAP.md` 条目回到索引形（长证据链走路由链接承担）。
+- 遗留（带触发条件，留 ROADMAP）：`.agents/` 开发 skills、`change-scope` 脚本。
