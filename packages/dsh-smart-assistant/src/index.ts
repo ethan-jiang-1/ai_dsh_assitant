@@ -34,7 +34,7 @@ import { DEFAULT_SOUL } from './home/soul.ts'
 import { HOME_DIRECTORY_NAME, homePaths, scaffoldHome, ARCHIVE_DIRECTORY_NAME, type HomePaths, type ScaffoldResult } from './home/layout.ts'
 import { isMaintenanceRound, renderMaintenancePrompt } from './home/metronome.ts'
 import { curateKnowledge } from './knowledge/health.ts'
-import { pageFromEntry, pageToDocument, parseWikiLinks, backlinksOf, type KnowledgePage } from './knowledge/page.ts'
+import { pageFromEntry, pageToDocument, parseWikiLinks, normalizeWikiLinks, backlinksOf, type KnowledgePage } from './knowledge/page.ts'
 import { searchPages, type KnowledgeQuery } from './knowledge/search.ts'
 import { Room, type RoomEntry, type RoomReadFailure } from './home/room.ts'
 import {
@@ -594,6 +594,9 @@ export class AssistantMemory extends Service {
       throw new Error('stale_after must be an absolute ISO-8601 time')
     }
     await this.ensureHome()
+    // Normalize links at the write boundary: a resolvable bare name link is rewritten into
+    // `[[<id>|<title>]]`, the only form this room and Obsidian both resolve (knowledge/page.ts).
+    const linkedBody = normalizeWikiLinks(body, (await this.listKnowledge()).entries)
     const now = new Date()
     const id = newThreadId(now, input.title ?? input.type, undefined, input.slug)
     const page: KnowledgePage = {
@@ -606,8 +609,8 @@ export class AssistantMemory extends Service {
       ...(input.staleAfter !== undefined ? { staleAfter: input.staleAfter } : {}),
       sources: sources.map(resource => ({ resource })),
       tags: [...(input.tags ?? [])],
-      body,
-      links: parseWikiLinks(body),
+      body: linkedBody,
+      links: parseWikiLinks(linkedBody),
     }
     const document = pageToDocument(page)
     await this.knowledge.write(id, document.data, document.body)

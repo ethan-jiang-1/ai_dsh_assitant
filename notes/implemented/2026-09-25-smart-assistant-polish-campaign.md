@@ -113,6 +113,8 @@ bundle 其余。
 session-recall 的 rg 配方在 P4 真实够用（提案会话搜到 save_page 会话）；全自动蒸馏——账本
 首批计数远低于任何收益阈值且无人审成本对照；E 名字链接/dsh-obsidian 挂桥/workflow-as-MD/
 跨 harness 共库/license 字段——无新触发数据。各 ⏳ 维持原判据。
+（2026-09-25 补记：**E 名字链接已触发并落地**——真实使用中报"链接在 Obsidian 点不开"，
+见 [obsidian-interop §落地](2026-09-24-obsidian-interop.md)；其余维持原判据。）
 
 **留给用户的拍板点（战役中显式登记、未擅动）**：
 1. **digest 树行格式**：现 `- title — description (id)` 每行 118–159B，id 占 30–40%；

@@ -276,9 +276,7 @@ export function pageToDocument(page: KnowledgePage): { data: Record<string, unkn
       type: page.type,
       status: page.status,
       ...(page.title !== undefined ? { title: page.title } : {}),
-      // The title always rides in the alias list: that is what lets a person type the name in
-      // Obsidian and have autocomplete offer (and then write) the clickable `[[id|name]]` form.
-      ...(page.aliases !== undefined && page.aliases.length > 0 ? { aliases: page.aliases } : {}),
+      ...(aliases !== undefined ? { aliases } : {}),
       ...(page.description !== undefined ? { description: page.description } : {}),
       ...(page.generated !== undefined ? { generated: page.generated } : {}),
       ...(page.verified !== undefined && page.verified.length > 0 ? { verified: page.verified } : {}),
@@ -293,14 +291,17 @@ export function pageToDocument(page: KnowledgePage): { data: Record<string, unkn
 /**
  * Resolve one `[[target]]` against the room's pages: by id first, then by title
  * (case-insensitive). Multiple title matches are an ambiguity the caller reports, not a guess.
+ * A trailing `.md` is dropped from the target first, because Obsidian accepts `[[id.md]]` as the
+ * same link as `[[id]]` and a name written for Obsidian must not go missing on our side.
  * @param target - Link target as written.
  * @param pages - Pages currently in the room.
  * @returns The resolution outcome.
  */
 export function resolveWikiLink(target: string, pages: readonly KnowledgePage[]): LinkResolution {
-  const byId = pages.find(page => page.id === target)
+  const trimmed = target.trim()
+  const byId = pages.find(page => page.id === trimmed || `${page.id}.md` === trimmed)
   if (byId !== undefined) return { kind: 'page', page: byId }
-  const folded = target.trim().toLowerCase()
+  const folded = trimmed.toLowerCase()
   const byTitle = pages.filter(page => page.title !== undefined && page.title.toLowerCase() === folded)
   if (byTitle.length === 1) {
     const page = byTitle[0]

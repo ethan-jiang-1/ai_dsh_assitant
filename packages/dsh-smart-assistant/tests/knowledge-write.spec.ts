@@ -59,6 +59,29 @@ describe('writePage (staged draft write path)', () => {
     expect((await service.digest()).text).toContain(written.id)
   })
 
+  it('normalizes links into the form Obsidian also clicks, and mirrors the title into aliases', async () => {
+    const service = boot()
+    const first = await service.writePage({ type: 'concept', title: 'Staging Gate', body: 'the gate', sources: ['repo'] })
+    const second = await service.writePage({
+      type: 'how-it-works',
+      title: 'Deploy pipeline',
+      body: 'Begins at [[Staging Gate]], and [[Some Unwritten Page]] stays as written.',
+      sources: ['repo'],
+    })
+
+    const read = await service.readKnowledgePage(second.id)
+    expect(read?.page.body).toContain(`[[${first.id}|Staging Gate]]`)
+    expect(read?.page.body).toContain('[[Some Unwritten Page]]')
+    // Backlinks work off the normalized target, so the graph is intact on our side too.
+    expect(read?.page.links).toEqual([first.id, 'Some Unwritten Page'])
+    expect((await service.readKnowledgePage(first.id))?.backlinks).toEqual([second.id])
+
+    // On disk: the id-form link plus the alias list Obsidian's autocomplete reads.
+    const text = (await import('node:fs')).readFileSync(join(service.paths.knowledgeDir, `${second.id}.md`), 'utf8')
+    expect(text).toContain(`[[${first.id}|Staging Gate]]`)
+    expect(text).toContain('aliases:\n  - Deploy pipeline')
+  })
+
   it('requires a body, a type, and at least one source', async () => {
     const service = boot()
     await expect(service.writePage({ type: 'concept', body: 'text', sources: [] }))
