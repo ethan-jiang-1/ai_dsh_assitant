@@ -9,6 +9,11 @@ import { defineConfig } from 'vitest/config'
  * session runs, instead of diverging from it (or crashing).
  *
  * Exact matches only: subpath imports must keep going through the package's own exports map.
+ *
+ * A general "resolve every vendor package to src" variant was attempted on 2026-09-25 and reverted:
+ * it needs the whole vendor graph to be source-complete (nested `vendor/*` packages included) plus a
+ * directory→entry-file mapping — more machinery than these two packages justify. See
+ * notes/implemented/2026-09-25-dsh-0-1-7-migration.md for the vendor-rebuild blocker it ran into.
  */
 const vendorSource = relative =>
   fileURLToPath(new URL(`../../vendor/dsh/packages/preset/${relative}`, import.meta.url))

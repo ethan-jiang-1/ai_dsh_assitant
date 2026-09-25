@@ -76,9 +76,25 @@ dev 运行时不受影响（`tsconfig.tsx.json` 让 `pnpm dsh` 走 vendor `src`�
 vendor 的构建脚本假设**已经引导过的树**（其 `lib/` 在场）。因此从零重建需要 vendor 自己的引导顺序，
 本轮未找到其文档化入口（`vendor/dsh/README.md`、`docs/`、根 `scripts/build.ts` 都未写"首次构建"）。
 
+**第八圈追加（同一天）**：补齐了构建期依赖——`tsc -b` 重建 typert 家族（generator/loader/protocol/registry）
+与嵌套 vendor（`vendor/dsh/vendor/` 的 cordis/cosmokit/schemastery 与 6 个 cordis-plugin-*），它们只出
+`lib/types/*.js`；而各包 `main` 指向的 `lib/index.js` 是 **tsdown 打包产物**，所以这些重建不足以恢复按裸名解析。
+随后尝试"让 vitest 全域走 vendor src"（读生成物 `tsconfig.tsx.json` 的 325 条别名 + 嵌套 vendor 的
+`package.json.name → src`）：过程中发现两个真陷阱——①别名目标在生成物里是**仓根相对**，必须按仓根解析
+（我一度按配置文件目录解析，全部指错）②别名要给**入口文件**（`src/index.ts`）而不是目录。该尝试未完成
+（未能让 33 个套件通过），已回退到最小双别名配置，两个陷阱写进配置注释以免重犯。
+
+**当前测试状态（诚实）**：清理 vendor `lib/` 后，**17 个套件因按裸名解析 vendor 缺 `lib/index.js` 而无法启动**
+（143 tests 中 142 过、1 失败；套件层面 16 pass / 17 fail）——比我清理前（31 pass / 1 fail）**更差**。
+`pnpm dsh` 的 dev 运行时走 `tsconfig.tsx.json` 的 src 别名，不受影响；受影响的是 vitest、
+`pnpm build`/`release-smoke` 与按 `dsh plugin add` 装出的 profile。
+
 **下一圈的两条路（按优先级）**：
 1. 在 vendor 里找引导/CI 证据：`.github/workflows/`、`docs/**/contributing*`、或生成 root 入口的那条
    typert 命令；照它跑。
-2. 若引导不可得：**让 vitest 也走 vendor `src`**（与运行时同一份解析）——用生成物 `tsconfig.tsx.json`
-   的别名喂给 vitest，而不是逐包打补丁。这同时消灭"stale lib 静默跑旧代码"这一整类风险（§三.2），
-   代价是测试与运行时解析完全一致、而不再覆盖 vendor 的构建产物形态。
+2. 若引导不可得：**完成"vitest 全域走 vendor src"**——两个陷阱已定位（仓根相对基准 + 入口文件映射），
+   剩下的工作是把 33 个套件跑绿（`entryOf` 之外还要处理没有 `src/index.ts` 的包），收益是彻底消灭
+   "stale lib 静默跑旧代码"（§三.2）并让测试与运行时解析同一份源码。
+3. 兜底：`pnpm --dir vendor/dsh install`（**不加** `--ignore-scripts`，先解决 lefthook 与 submodule
+   `core.worktree` 的冲突）后按 CI 的 `pnpm run build` 全量走一遍——CI 明文只做 install + build，
+   说明干净树上本应可行；我们这棵树的差异需要与 CI 逐条对齐。
