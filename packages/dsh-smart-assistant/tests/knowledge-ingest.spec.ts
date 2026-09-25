@@ -63,6 +63,11 @@ describe('planSourcePage', () => {
     expect(planSourcePage(document)).toEqual(plan)
   })
 
+  it('falls back to an English description when the document has no prose', () => {
+    const plan = planSourcePage({ ref: 'empty.md', title: 'Empty', text: '# Only a heading\n' })
+    expect(plan.description).toBe('Empty (imported source)')
+  })
+
   it('marks truncation instead of silently shortening the text', () => {
     const plan = planSourcePage({ ref: 'big.txt', title: 'Big', text: 'x'.repeat(200) }, { truncatedAt: 64 })
     expect(Buffer.byteLength(plan.body, 'utf8')).toBeLessThan(BODY_LIMIT_BYTES)

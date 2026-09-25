@@ -139,7 +139,7 @@ export function planSourcePage(document: SourceDocument, options: { truncatedAt?
     .map(line => line.trim())
     .find(line => line.length > 0 && !line.startsWith('#'))
   const description = firstProse === undefined
-    ? `${document.title}（导入）`
+    ? `${document.title} (imported source)`
     : firstProse.length <= 120 ? firstProse : `${firstProse.slice(0, 119)}…`
   return {
     id: sourcePageId(document.title, document.ref),

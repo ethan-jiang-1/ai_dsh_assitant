@@ -30,10 +30,10 @@
 
 ## 四、未做（各带触发）
 
-1. **docx/pdf 转换**：触发＝第一份真实的 docx/pdf 文档集出现（届时评估 DSH 原生 `office-to-pdf`
+1. **docx/pdf 转换**：触发＝第一份真实的 docx/pdf 文档集出现（在 ROADMAP）（届时评估 DSH 原生 `office-to-pdf`
    与其他转换路径，仍按"不发明"留证）。
-2. **概念页抽取**：触发＝评测集 v0 就位（由模型在会话里从 `sections` 抽概念页，人审转 stable）。
-3. **CLI / 工具接线**：下一步（`pnpm import-knowledge <dir>` 或一个 `assistant_reflect` 动作；
+2. **概念页抽取**：触发＝评测集 v0 就位（在 ROADMAP）（由模型在会话里从 `sections` 抽概念页，人审转 stable）。
+3. **CLI / 工具接线**：下一步（队列里的 ▶ 条目（`pnpm import-knowledge <dir>` 或一个 `assistant_reflect` 动作；
    后者是模型可见面变更，须同 diff 更 docs/identity 与夹具）。
 
 ## 五、输掉的方案
