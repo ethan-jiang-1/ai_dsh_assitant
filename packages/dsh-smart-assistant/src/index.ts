@@ -591,7 +591,17 @@ export class AssistantMemory extends Service {
     readonly sources: readonly string[]
     readonly tags?: readonly string[]
     readonly staleAfter?: string
+    /** Slug for a generated id; ignored when `id` is given. */
     readonly slug?: string
+    /**
+     * Explicit page id, for callers whose identity is already determined — bulk import derives it
+     * from the document's provenance, so re-importing the same document updates its page instead of
+     * minting a second one (the generated form carries a random 4-char suffix, which would
+     * duplicate). The room's own write path still validates the id as a safe file name.
+     */
+    readonly id?: string
+    /** Who wrote the page, for its provenance stamp. Defaults to the reflect tool's process label. */
+    readonly generatedBy?: string
   }): Promise<{ id: string, path: string, findings: readonly CurationFinding[] }> {
     const body = input.body.trim()
     const type = input.type.trim()
@@ -609,14 +619,14 @@ export class AssistantMemory extends Service {
     // `[[<id>|<title>]]`, the only form this room and Obsidian both resolve (knowledge/page.ts).
     const linkedBody = normalizeWikiLinks(body, (await this.listKnowledge()).entries)
     const now = new Date()
-    const id = newThreadId(now, input.title ?? input.type, undefined, input.slug)
+    const id = input.id?.trim() ?? newThreadId(now, input.title ?? input.type, undefined, input.slug)
     const page: KnowledgePage = {
       id,
       status: 'draft',
       type,
       ...(input.title !== undefined && input.title.trim().length > 0 ? { title: input.title.trim() } : {}),
       ...(input.description !== undefined && input.description.trim().length > 0 ? { description: input.description.trim() } : {}),
-      generated: { by: 'process:assistant-reflect', at: now.toISOString() },
+      generated: { by: input.generatedBy ?? 'process:assistant-reflect', at: now.toISOString() },
       ...(input.staleAfter !== undefined ? { staleAfter: input.staleAfter } : {}),
       sources: sources.map(resource => ({ resource })),
       tags: [...(input.tags ?? [])],

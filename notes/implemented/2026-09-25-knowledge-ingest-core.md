@@ -42,3 +42,17 @@
 - **直接装生态知识库插件**：未过准入，且与治理语义重叠（见 §二）。
 - **先上 RAG/embedding**：触发未到（评测集还没有"漏召回"证据）；先做会让"检索"替代"治理"。
 - **把原文切碎塞进 memory**：记忆是**有界摘要**的面，原文属知识页；塞进去会先撑爆摘要预算。
+
+## 六、接上可用面：`pnpm import-knowledge`（2026-09-25 同轮）
+
+- **服务侧两处小改**（都在 `writePage` 的入参上，不动写盘契约）：`id?` —— 允许调用方给出页 id
+  （生成的 id 带**随机 4 字符后缀**，批量导入会把同一文档写成新页；`newThreadId` 的规则在
+  `src/research/thread.ts:62`）；`generatedBy?` —— provenance 盖章写**真正写它的那个人**
+  （默认仍是 `process:assistant-reflect`，CLI 传 `process:import-knowledge`；provenance 说谎比缺字段更坏）。
+- **CLI**：`scripts/import-knowledge.mjs` + `pnpm import-knowledge -- --data-dir <assistant 目录> <文件/目录>... [--dry-run]`。
+  只吃 `.md/.markdown/.txt`（docx/pdf 见 §四）；`--data-dir` **显式传**，不继承 `DSH_HOME`（双 home 规则）；
+  仓内文档的 `ref` 用仓根相对路径，**仓外**用绝对路径（`../../../tmp/...` 定位不到任何东西）。
+- **live 证据（真跑）**：两份文档 → 两条源页草稿（`source-q3-sales-review-*` 3 段 / `source-...pricing-notes-*` 1 段），
+  `status: draft`、`type: source`、`sources` 齐、`generated.by: process:import-knowledge`；
+  **第二遍同 id、目录里仍只有 2 个文件**（幂等）；夹具 `tests/knowledge-import-write.spec.ts` 钉住这条。
+- 仍未做：docx/pdf 转换、概念页抽取、模型可见的导入动作（各带触发，见 §四）。

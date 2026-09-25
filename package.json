@@ -13,6 +13,7 @@
     "gen-paths": "node scripts/gen-paths.mjs",
     "gen-catalog": "node scripts/gen-catalog.mjs",
     "usage": "node dev/usage-report.mjs",
+    "import-knowledge": "TSX_TSCONFIG_PATH=tsconfig.tsx.json node --import tsx/esm scripts/import-knowledge.mjs",
     "eval": "node dev/eval/run.mjs",
     "typecheck": "pnpm --filter dsh-smart-assistant run typecheck",
     "build": "pnpm --filter dsh-smart-assistant run build",

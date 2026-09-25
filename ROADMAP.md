@@ -12,8 +12,8 @@
 
 ## 队列
 
+- ▶ **下一圈候选（O1 → O2 的桥）**：把导入的源页变成"**能用于拆解的领域知识**"——先做**知识种子包 v0**（管理/销售/财务各 5–10 页，来源可公开或脱敏；用户点头后搬 `ai_dsh_company` 的角色技能）
 - ⏳ 知识导入的转换与概念抽取（触发=①第一份真实 docx/pdf 文档集出现 ②评测集 v0 就位；依据：[导入纯核 note](notes/implemented/2026-09-25-knowledge-ingest-core.md) §四）
-- ▶ **知识批量导入管线 v0**（O1 的第一块地基：领域知识为 0）——docx/pdf/网页/markdown → **来源页 + 概念页**（带原文定位的 `sources`）→ 批量 draft → 人工评审转 stable；现有 `save_page` 一次一页由模型写，撑不住企业文档量。自建理由须在 note 里写明"DSH 原生与生态候选为何不行"（可先看生态的 `dsh-kb-sieve`/`dsh-knowledge-base` 两类做法）- ⏳ **组合测试的 `never started`（2 条，preset-composition）**（触发=真正需要它绿时：release-smoke 前 / 下一次动 preset 组合 / 有人要加新 preset 行）——已排除：顺序、别名解析、服务缺失、agents.create 路径、"inject tools 即环"（官方插件同样静态 inject 且 CI 跑通）；复现路标：夹具经 Loader 装载 patch 后**先 await include 树就绪**再复现，并与 `vendor/dsh/packages/bundle/web-app/presets/*.patch.yml` 的行形状逐字段对齐。全部证据见[迁移记录 §八/§九/§十](notes/implemented/2026-09-25-dsh-0-1-7-migration.md)
 - ⏳ **vendor `lib/` 重建（换 pin 的常规收尾）**（触发=需要 boot/release-smoke/plugin-add 出的 profile 时；测试已改为解析 vendor src，不再依赖它）——三条路与已试步骤见迁移记录 §六
 - ▶ **阶段 0-1 · 升 pin 到最新 RC `dsh-v0.1.7-rc.2`**（用户 2026-09-25 明确要求：先同步 DSH、主线用最新 RC）——`pnpm sync-dsh -- --tag dsh-v0.1.7-rc.2` 后做 preset 迁移（目录+roster → `agent-preset` 行），验收=`release-smoke` 绿 + 四工具可用 + `pnpm eval` 三个行为任务仍过
 - ⏸ **阶段 0-3 · 评测集 v0**（30–50 条真实经营问题，含应拒答题与判分规则；**题目由你本人出**——这是 G2 关口，agent 只整理格式）
