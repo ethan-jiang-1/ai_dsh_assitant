@@ -32,6 +32,20 @@ git -C vendor/dsh fetch --depth 1 origin ethan && git -C vendor/dsh checkout eth
 # 结论写进 notes/，基线仍以本文件的 tag 为准
 ```
 
+## 重审触发表（升 pin 时按路径查该重校哪里的断言）
+
+| 上游路径 | 受影响的本仓断言 |
+|---|---|
+| `packages/core/system-prompt/**` | `docs/architecture.md` §三 三段落顺序、`src/home-preamble`、`src/memory-digest` 的 section 契约（含同步 `text` 契约——prewarm 修复依赖它） |
+| `packages/core/agent-loop/**`、`packages/preset/agent-presets/**` | `docs/architecture.md` §二 平面表、`presets/assistant/agent.cordis.yml`、roster/standing mount 相关 tests |
+| `packages/skill/skill-filesystem/**`、`packages/skill/skill/**` | `docs/home.md` 技能行、`src/skills/*`、`skill-shadow`/`skill-retirement` findings 与 tests |
+| `packages/tool/**`、`docs/cookbook/adding-a-tool.md` | `src/tool-support`、四个工具的 presenter/卡片断言 |
+| `packages/core/compaction/**` | `presets/assistant/agent.cordis.yml` 的 realm 分组与 `toolResultPruner` 配置 |
+| `docs/architecture.md`、`docs/capability-seams.md` | `AGENTS.md` 探索路由、`docs/architecture.md` 全文 |
+
+**每轮升级的固定记录字段**（落 `notes/implemented/` 一条，不写进本文件——本文件只写**当前** pin）：
+日期 / 新基线 tag+SHA / 动因 / 真跑过的命令与计数 / 复核后未改动的部分 / 遗留阻断（**阻断不得写成绿色**）。
+
 ## 不要做的事
 
 - **不改 `vendor/dsh/` 里的任何文件。** 它不是我们的代码；改了下一次同步就丢，且会污染"钉住"的含义。

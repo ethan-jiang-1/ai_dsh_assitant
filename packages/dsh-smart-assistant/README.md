@@ -10,7 +10,7 @@
 
 ## 它是什么形状
 
-包里有 8 个入口（1 个 host 面 + 7 个 agent 面）：
+包里有 8 个入口（= `package.json` exports 的 8 个 plugin 子路径；1 个 host 面 + 7 个 agent 面）：
 
 | 入口 | 平面 | 内容 |
 |---|---|---|

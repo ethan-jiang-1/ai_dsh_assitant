@@ -12,6 +12,10 @@ DSH 的 model-visible 行为回归靠**录制会话的 keyless 重放**（一场
 2. **会话 JSONL 日志 diff**（落在 `dev/harness-home/sessions/`，gitignore）：
    调试上下文组装时**读日志，不猜**（model-visible ⟺ logged）。
 
+**本树只收什么**（边界现在就立，不等树满）：session 回放的 fixture（输入 JSONL + 期望投影）；
+单元/CLI/generator 的期望输出**跟 owning 层走**（`tests/`、各自脚本旁），不进这里——集中目录只收
+真正同类的证据。
+
 **升级触发条件**（够用再升级，别提前造）：出现第一处"只有跑起来才看得出"的回归
 （例如 preset 装载、provider 挂载、工具在 PTC 模式下的行为），
 再按 DSH 的形状建 `snapshots/<场景>/`（自带 session JSONL + `snapshot.yml` 声明 profile 与录制）。

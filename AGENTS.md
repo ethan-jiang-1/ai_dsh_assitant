@@ -6,7 +6,7 @@
 ## 这是什么
 
 一个 DSH 插件 repo：**一个领域专家式的助手**（`dsh-smart-assistant`）。
-它给 agent 一个自己的 **working folder**（跨会话的工作目录）：长期记忆 + 领域知识 + 学到的技能 + 机器能跑的养护检查。
+它给 agent 一个自己的 **working folder**（跨会话的工作目录 = 本插件的 `dataDir`，**不是**进程 cwd/workspace）：长期记忆 + 领域知识 + 学到的技能 + 机器能跑的养护检查。
 核心命题是 `Agent = Model + Harness` —— 本 repo 做的就是"那一圈"。
 
 ## 新会话开工（先读这段）
@@ -24,6 +24,11 @@ implemented note 必带「**输掉的方案**」节——没记击败了什么�
 
 ## 布局（改动前先认领 owner 面）
 
+**一个事实一个家**（tier）：`AGENTS.md` 只拥有**常设指令与路由**（无状态、无日期、无进度）；
+`docs/` 拥有**当前合同**（门禁住了的事实，只写现在）；`notes/` 拥有**决定理由与证据**（含输掉的
+方案与历史）；代码的 README/JSDoc 拥有**模块级契约**（与代码同 diff 维护）。写在别处即第二份清单，
+必然漂移——链接过去，不复制。
+
 | 路径 | 是什么 | 谁能改 |
 |---|---|---|
 | `ROADMAP.md` | **根部队列：只写接下来**（队列/搁置池/维护规则；条目 ≤3 行，完成即离队） | 队列调整直接改 + 维护规则记一行 |
@@ -33,9 +38,9 @@ implemented note 必带「**输掉的方案**」节——没记击败了什么�
 | `.../src/skills/` | `SKILL.md` 契约与校验写入 | 改技能文件契约动这里 |
 | `.../src/knowledge/` | 知识页词汇（OKF 字段子集 + `[[互链]]`）、关键词检索排序、知识 findings —— 纯核 | 改知识语义动这里 |
 | `.../src/tool-support/` | 四个工具共享的 presenter 管道（`presentationMeta` 投影与读回） | 改卡片行为动这里 |
-| `.../src/tool-memory/`、`src/tool-research/`、`src/tool-knowledge/`、`src/memory-digest/`、`src/learn/` | **agent 面**插件入口（工具 / 提示词段落 / 复盘） | 改模型可见面动这里 |
+| `.../src/tool-memory/`、`src/tool-research/`、`src/tool-knowledge/`、`src/memory-digest/`、`src/learn/` | **agent 面**插件入口（= preset 的 agent 行，model-facing；工具 / 提示词段落 / 复盘） | 改模型可见面动这里 |
 | `.../src/preset-runner/`、`dev/preset-runner.patch.yml` | **preset 挂载的 one-shot 驱动**（验证自动化：工具/摘要/persona 进 headless 会话） | 改验证驱动动这里 |
-| `.../src/index.ts` + `cordis.patch.yml` | **host 面**：`assistantMemory` 服务 | 改服务/配置动这里 |
+| `.../src/index.ts` + `cordis.patch.yml` | **host 面**（= 本包的 bundle patch 行）：`assistantMemory` 服务（Service Definition 与唯一 Provider 同包，Consumer = 各 agent 面入口） | 改服务/配置动这里 |
 | `.../presets/assistant/` | preset（agent 面组合）+ 策展技能 | 改这个专家"会什么"动这里 |
 | `tsconfig.base.json` / `tsconfig.tsx.json` | 两个解析门面（编译期手维护 / 运行期 `pnpm gen-paths` 生成） | 引入新 `@deepseek-ai/*` import 或换 pin 时动这里（契约：`docs/dev.md` §二「两个解析门面」） |
 | `vendor/dsh/` | **钉住的 DSH 源码（submodule）** | **永不改**；升级走 `pnpm sync-dsh` |
@@ -56,7 +61,7 @@ pnpm typecheck          # 委派包级：tsc -b（编译期 paths 解析到 vend
 pnpm test               # vitest：纯核（home/memory/research/skills/knowledge）+ 服务级合同（真 cordis 构造，不依赖 DSH 运行时）
 pnpm verify             # 机械门禁：结构/身份一致/两个解析门面/自包含/技能语法/断链与相对链接/队列与 notes 形状/提交安全（清单以 scripts/verify.mjs 为准）
 pnpm build              # tsc 出 lib/（发布物与 dsh plugin add 需要）
-pnpm release-smoke      # pnpm pack → 干净 home → dsh plugin add → 组合断言（真实安装形状）
+pnpm release-smoke      # pnpm pack → 干净 home → dsh plugin add → 组合断言（真实安装形状；**改动发布物/依赖/preset 包装必跑**，否则它只是"存在一个脚本"）
 pnpm sync-dsh -- --tag <dsh-tag>   # 换 submodule tag + SHA 簿记 + typecheck + 对照 docs/discipline.md 重校纪律表
 
 bash dev/setup.sh       # 幂等：建 dev（web）+ dev-task（headless）两个 profile + link 装插件 + roster 指向 repo（两者为何不能合一：`docs/dev.md` §四）
@@ -81,9 +86,13 @@ pnpm dsh --profile dev-task --patch dev/preset-runner.patch.yml "<task>"   # **p
 5. **轮内任务面**：复杂任务开工用 plan 呈批、实施期用 todo 活清单（整表替换、完成即勾）、
    人可随时 steer —— 机制都在 base bundle 里，挂着不用等于白挂。
 
-## 探索路由（DSH 侧最常用的四个入口）
+## 探索路由（DSH 侧常用入口）
 
 - 组合层级（bundle → profile patch → home patch → `--patch`）：`vendor/dsh/docs/architecture.md`
 - preset 语义（roster/roots/遮蔽/standing mount）：`vendor/dsh/packages/preset/agent-presets/README.md`
 - 技能 provider 契约（本 repo 依赖它）：`vendor/dsh/docs/subsystems/skills.md`
 - 工具与卡片（`defineTool` / presenter / 日志税）：`vendor/dsh/docs/cookbook/adding-a-tool.md`
+- **"组合里到底有没有这一行"**（读源码答不了这个问题）：`pnpm dsh --profile dev --dump-config`（boot-free；
+  行 id、disabled、realm 一目了然——排查 patch 落空/重复 id 的第一命令）
+- **"活进程里注册了什么"**：切到 shipped `cordis` preset 用它的只读 inspect 工具（我们的 `assistant`
+  preset 刻意不挂这两个工具——那是模型可见面变更，为开发期需求不划算）

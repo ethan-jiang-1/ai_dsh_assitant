@@ -37,6 +37,14 @@
 `pnpm typecheck`（根命令委派包级脚本：`tsc -b` 按项目引用聚合到包工程、走编译期门面，再
 `tsc -p tsconfig.test.json` 覆盖 tests——测试工程经 workspace 构建声明解析 vendor，需先有构建产物）走编译期门面；`pnpm dsh` 走运行期门面。
 
+**生成物登记表**（生成物 / 生成器 / freshness 检查——新增生成物必须同 diff 补一行，否则第二个生成物必然漏检）：
+
+| 生成物 | 生成器 | freshness 门禁 |
+|---|---|---|
+| `tsconfig.tsx.json` | `scripts/gen-paths.mjs`（`pnpm gen-paths`，从 vendor/dsh 全量别名） | `pnpm verify`「facade: the runtime tsconfig for the source launch is present and current」 |
+| `packages/dsh-smart-assistant/lib/` | `pnpm build`（`tsc -b`） | 无独立 freshness 门禁：组合测试与 `release-smoke` 消费它，过期即红 |
+| `dev/harness-home/`（scaffold 出的 SOUL/AGENTS 等） | 插件运行时 `ensureHome`（`src/home/layout.ts` 是唯一 owner） | `curate` 的 `manual-stale-scaffold` finding |
+
 ## 三、一次性准备（每个 pin 一次）
 
 ```sh

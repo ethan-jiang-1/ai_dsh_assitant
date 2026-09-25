@@ -54,6 +54,15 @@ AGENT 面（presets/assistant/agent.cordis.yml → agent preset）
 
 ## 三、部件与 owner 面
 
+**新行为该放哪**（先问四句，再动手；对应 DSH「新行为挂在已文档化的扩展点上」）：
+① 只改 `cordis.patch.yml` 的一行 config 就够吗（换 provider / 换顺序）？② 只加一个工具或提示词段落
+就够吗（agent 面）？③ 是不是跨会话共享的持久状态（→ 服务，host 面）？④ 是不是新增**模型可见事实**
+（→ 走 `docs/identity.md` 的 model-visible 纪律，配快照与日志）？
+
+**服务的三角色**：`assistantMemory` 是 Service Definition，**同一包同一文件**里给出唯一 Provider
+（所以不存在独立的 provider 包可找）；Consumer 是各 agent 面入口（四个工具、摘要段落、复盘）——按
+`inject` 声明消费，不依赖具体实现。
+
 | 模块 | 职责 | 依赖方向 |
 |---|---|---|
 | `src/home/layout.ts` | **working folder 布局的唯一 owner**：路径、scaffold、SOUL.md/AGENTS.md 生成 | 无（最底层） |
