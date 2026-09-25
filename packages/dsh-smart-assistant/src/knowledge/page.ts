@@ -11,6 +11,16 @@
  * first and then by title — the ambiguity that resolution can produce is a real state the
  * curation check reports, not an error to hide.
  *
+ * Two resolvers read these files, and they do not agree on the key: we resolve id → title,
+ * Obsidian resolves file name (our id) → `aliases` and **never** a bare alias or a `title`
+ * property (obsidian-help `Aliases`, and the resolver only consults `uniqueFileLookup`, which
+ * holds file names — forum.obsidian.md/t/113902, verified 2026-09-25). So a page written as
+ * `[[Name]]` is clickable for us and unresolved in Obsidian, where clicking it forks a new
+ * page. The one form both resolve is the file name plus display text: `[[<id>|<title>]]`.
+ * `writePage` therefore normalizes resolvable name links into that form, and every page mirrors
+ * its `title` into `aliases` so Obsidian's autocomplete can reach it by name and insert exactly
+ * that form when a person picks it.
+ *
  * @module dsh-smart-assistant/knowledge/page
  */
 
@@ -45,6 +55,12 @@ export interface KnowledgePage {
   readonly type: string
   /** Human-readable name; `[[links]]` may resolve against it. */
   readonly title?: string
+  /**
+   * Alternative names (Obsidian's `aliases` property, a YAML list). Obsidian's link resolver
+   * ignores aliases — they only feed its autocomplete — so this is an authoring affordance, not
+   * a resolution key here either. The title is always mirrored in (see `pageFromEntry`).
+   */
+  readonly aliases?: readonly string[]
   /** One-line summary for catalogs. */
   readonly description?: string
   /** Who wrote the page and when (OKF actor: `human:<id>` / `process:<id>` / `agent:<id>`). */
@@ -73,23 +89,62 @@ export type LinkResolution =
 const WIKILINK = /\[\[([^\]#|]+)(?:#[^\]|]*)?(?:\|[^\]]*)?\]\]/g
 
 /**
+ * Blank inline code spans and fenced blocks, preserving length so match offsets still line up
+ * with the original text. A `[[literal]]` inside backticks is a literal, not a link — a page
+ * documenting the syntax itself must not grow phantom unwritten links (found live by the
+ * 2026-09-25 campaign: the OKF page's examples).
+ * @param text - Text to mask.
+ * @returns Same-length text with code spans blanked.
+ */
+function maskCodeSpans(text: string): string {
+  return text
+    .replace(/```[\s\S]*?```/g, span => ' '.repeat(span.length))
+    .replace(/`[^`\n]*`/g, span => ' '.repeat(span.length))
+}
+
+/**
  * Parse every `[[wikilink]]` target from text, in order of appearance.
  * @param text - Page body (or any text).
  * @returns Trimmed link targets.
  */
 export function parseWikiLinks(text: string): string[] {
-  // Inline code spans and fenced blocks are blanked before matching: a `[[literal]]` inside
-  // backticks is a literal, not a link — a page documenting the syntax itself must not grow
-  // phantom unwritten links (found live by the 2026-09-25 campaign: the OKF page's examples).
-  const withoutCode = text
-    .replace(/```[\s\S]*?```/g, span => ' '.repeat(span.length))
-    .replace(/`[^`\n]*`/g, span => ' '.repeat(span.length))
   const targets: string[] = []
-  for (const match of withoutCode.matchAll(WIKILINK)) {
+  for (const match of maskCodeSpans(text).matchAll(WIKILINK)) {
     const target = (match[1] ?? '').trim()
     if (target.length > 0) targets.push(target)
   }
   return targets
+}
+
+/**
+ * Rewrite every resolvable bare name link into the one form both resolvers click:
+ * `[[<id>|<title>]]` (the section anchor, if any, is preserved). Links inside code spans, links
+ * that already carry display text, and targets that resolve to nothing are left exactly as
+ * written — an unresolved link is a signal the curation check reports, not something to guess
+ * at, and a forward reference cannot be rewritten until its page exists.
+ * @param body - Page body as authored.
+ * @param pages - Pages currently in the room.
+ * @returns The body with resolvable links in id form.
+ */
+export function normalizeWikiLinks(body: string, pages: readonly KnowledgePage[]): string {
+  let out = ''
+  let cursor = 0
+  for (const match of maskCodeSpans(body).matchAll(WIKILINK)) {
+    const start = match.index ?? 0
+    const raw = body.slice(start, start + match[0].length)
+    const inner = raw.slice(2, -2)
+    if (inner.includes('|')) continue
+    const hash = inner.indexOf('#')
+    const target = (hash === -1 ? inner : inner.slice(0, hash)).trim()
+    const anchor = hash === -1 ? '' : inner.slice(hash)
+    if (target.length === 0) continue
+    const resolution = resolveWikiLink(target, pages)
+    if (resolution.kind !== 'page') continue
+    const page = resolution.page
+    out += body.slice(cursor, start) + `[[${page.id}${anchor}|${page.title ?? target}]]`
+    cursor = start + raw.length
+  }
+  return out + body.slice(cursor)
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

@@ -33,6 +33,8 @@ describe('writePage (staged draft write path)', () => {
       title: 'Deploy pipeline',
       description: 'how deploys reach production',
       body: 'Begins at [[staging-gate]].',
+      // A real id that has since been archived (dropped 2026-09-25): sources are provenance
+      // strings, stored and read back verbatim — the service does not check the target exists.
       sources: ['research:20260924-note-zt0j'],
       tags: ['deploy'],
     })

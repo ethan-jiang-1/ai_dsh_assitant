@@ -30,7 +30,9 @@ ROADMAP 🧹「使用前清扫」落账。dev home（`dev/harness-home/assistant
 活跃记忆 4 条：tri-line 决策（`zrxy`，kind: decision）、同名遮蔽事实（`thug`）、park
 非破坏回归验证（`ie34`）、战役语境（`kfcf`，留给助手自己 forget/supersede）；归档历史
 2 条：`bug-found-uvpl`（被 `ie34` 的 `supersedes` 指着的真实 bug 史）、`note-ko0j`；
-R1/R2 两条 open 线索（`zt0j`/`i519`，多个 ⏳ 触发型条目的依据锚）；真技能
+R1/R2 两条线索（`zt0j`/`i519`，当时为 open，是多个 ⏳ 触发型条目的依据锚；
+2026-09-25 两条均已 drop 归档——普查已由 R1/R2 消化，剩余决策点在 ROADMAP 的 ⏳ 条目上，
+理由见各自归档件的 `reason` 字段）；真技能
 `campaign-evidence-recording`。
 
 ## promote（真服务，非手改）
