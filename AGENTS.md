@@ -60,6 +60,7 @@ implemented note 必带「**输掉的方案**」节——没记击败了什么�
 ```sh
 pnpm install            # 并入 vendor/dsh 整树，首次较慢
 pnpm gen-paths          # 从 vendor/dsh 重新生成运行期解析入口 tsconfig.tsx.json（换 pin 后必跑）
+pnpm usage              # 意图级仪表：会话/工具混合/自用率/摩擦/家的现状（读 dev home；dev 工具不得继承 DSH_HOME）
 pnpm typecheck          # 委派包级：tsc -b（编译期 paths 解析到 vendor/dsh 的 src，API 漂移编译期暴露）+ tsc -p tsconfig.test.json（覆盖 tests）
 pnpm test               # vitest：纯核（home/memory/research/skills/knowledge）+ 服务级合同（真 cordis 构造，不依赖 DSH 运行时）
 pnpm verify             # 机械门禁：结构/身份一致/两个 tsconfig 解析入口/自包含/技能语法/断链与相对链接/队列与 notes 形状/提交安全（清单以 scripts/verify.mjs 为准）

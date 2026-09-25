@@ -18,7 +18,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { agentsMdStabilityProblems, configParseProblems, deferralHomesProblems, dependencyPoseProblems, reservedItemProblems, GRADUATED_STATUS, implementedAlternativesProblems, languageGuardProblems, notesNamingProblems, notesStateProblems, notesTopLevelProblems, pinProblems, relativeLinkProblems, skillFrontmatterProblems, textHygieneProblems } from './verify-checks.mjs'
+import { agentsMdStabilityProblems, configParseProblems, deferralHomesProblems, dependencyPoseProblems, dshHomeInheritanceProblems, reservedItemProblems, GRADUATED_STATUS, implementedAlternativesProblems, languageGuardProblems, notesNamingProblems, notesStateProblems, notesTopLevelProblems, pinProblems, relativeLinkProblems, skillFrontmatterProblems, textHygieneProblems } from './verify-checks.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const packageDir = join(repoRoot, 'packages', 'dsh-smart-assistant')
@@ -340,6 +340,9 @@ check('notes: state lines agree with their lifecycle directory', () =>
 check('notes: note files follow YYYY-MM-DD-topic naming', () =>
   notesNamingProblems(join(repoRoot, 'notes')))
 
+check('structure: dev tooling never inherits DSH_HOME', () =>
+  dshHomeInheritanceProblems(walk(join(repoRoot, 'dev'), ['.mjs'])))
+
 check('structure: every composition file we own parses as YAML', () =>
   configParseProblems([
     ...walk(join(repoRoot, 'dev'), ['.yml']).filter(file => !file.includes('harness-home')),
@@ -381,6 +384,7 @@ check('text: managed text is strict UTF-8 with exactly one trailing newline', ()
     ...walk(join(repoRoot, 'snapshots'), ['.md']),
     ...walk(packageDir, ['.md']).filter(file => !file.includes(`${sep}node_modules${sep}`)),
     ...walk(join(repoRoot, 'scripts'), ['.mjs']),
+    ...walk(join(repoRoot, 'dev'), ['.mjs']),
   ]))
 
 check('dependencies: harness packages are peers and the pinned tag is recorded as verified', () =>

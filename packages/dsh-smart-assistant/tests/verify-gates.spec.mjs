@@ -17,6 +17,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import {
   agentsMdStabilityProblems,
   configParseProblems,
+  dshHomeInheritanceProblems,
   deferralHomesProblems,
   reservedItemProblems,
   dependencyPoseProblems,
@@ -424,5 +425,18 @@ describe('configParseProblems', () => {
     const problems = configParseProblems([bad])
     expect(problems).toHaveLength(1)
     expect(problems[0]).toContain('does not parse as YAML')
+  })
+})
+
+describe('dshHomeInheritanceProblems', () => {
+  it('rejects dev tooling that reads the inherited DSH_HOME and accepts ASSISTANT_DSH_HOME', () => {
+    const dir = temp('dev-home-')
+    const bad = join(dir, 'bad.mjs')
+    writeFileSync(bad, "const home = process.env.DSH_HOME ?? 'x'\n", 'utf8')
+    const good = join(dir, 'good.mjs')
+    writeFileSync(good, "const home = process.env.ASSISTANT_DSH_HOME ?? 'dev/harness-home'\n", 'utf8')
+
+    expect(dshHomeInheritanceProblems([good])).toEqual([])
+    expect(dshHomeInheritanceProblems([bad])[0]).toContain('must use ASSISTANT_DSH_HOME')
   })
 })

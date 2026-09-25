@@ -133,3 +133,23 @@
   探针 patch 必须镜像被替换的 patch（漏掉 `headless-runner: disabled` 会在答对之后于退出阶段报错）。
 - **本圈不改的**：内存段 2343B 的内容级瘦身（合并/下沉记忆）——降级已经优雅，它从"到期必须做"降为
   "想做再做"，触发条件=真实使用中确实感到摘要偏薄（条目在 ROADMAP）。
+
+## 十、第五圈：把仪表做出来（`pnpm usage`）（2026-09-25）
+
+- **测的差距**：第一圈列了"装最小意图级仪表"却只做了一半——此后每圈的意图级证据都是我手搓的日志解析
+  （数会话、看工具序列、量自用率、看降级），按"同一多步流程重复第三次就立"的常设规则该固化。
+- **切片**：`dev/usage-report.mjs` + `pnpm usage`：会话规模、工具混合、**自用率**、摩擦（非完成轮/LLM 重试）、
+  家的条目数、职责圈事件数；`--types` 打印事件类型直方图（把"先枚举再取字段"自动化）。
+  纯函数 `summarizeEvents`/`mergeSummaries`/`homeCounts`/`renderReport` 配 3 组夹具（202 tests 全绿）。
+- **首读（dev home，57 会话）**：自用率 **34/57 = 60%**；工具混合 bash×324、read×123、
+  **assistant_memory×78**（自家房间工具排第三）、assistant_research×31、skill×31、assistant_reflect×31、
+  assistant_knowledge×25；摩擦 completed×64 / error×4 / blocked×1，LLM 重试 21；
+  家的现状：记忆 7（归档 17）、线索 0（归档 3）、技能 2、知识页 10；职责圈 goal/change 7 次。
+- **首跑就抓到自己两个错**（都是"数字要看现实"抓的）：
+  ① **读了日用的 `~/.dsh`**——因为继承了会话环境里的 `DSH_HOME`，违反"永不继承"的硬规则
+  （只读未写，但这条线不该有例外）。修：与 `scripts/dsh.mjs` 同规则只用 `ASSISTANT_DSH_HOME`，
+  并立机械门禁 `structure: dev tooling never inherits DSH_HOME`（带夹具）。
+  ② **把 `archive/` 目录当条目**——报"线索 1、技能 3"，实际是"0、2"。修计数规则（记忆/线索/页数 `.md`，
+  技能数含 `SKILL.md` 的目录）并补一个能抓到这个错的夹具。
+- **下一圈候选**：①自用率的分母要区分"我们的会话"与"别人的会话"（57 里含早期战役会话；日志无 preset 字段，
+  需要别的判据）②技能使用面（`skill-usage.json` vs 仪表口径，未加载技能的成本）③真实使用开跑（等你本人）。

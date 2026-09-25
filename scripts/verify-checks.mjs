@@ -488,3 +488,27 @@ export function configParseProblems(files) {
   }
   return problems
 }
+
+// ── dev tooling home boundary ───────────────────────────────────────────────────
+
+/**
+ * Dev tooling must never read the inherited `DSH_HOME`: a session environment may carry the daily
+ * `~/.dsh`, and the repository's rule is that everything dev-shaped points at `dev/harness-home`
+ * (the only explicit exit is `ASSISTANT_DSH_HOME`; `scripts/dsh.mjs` owns the override warning and
+ * is out of scope here). Found the hard way: the first run of the usage dashboard read the daily
+ * home and reported 553 sessions that were not ours.
+ *
+ * @param {readonly string[]} files - dev tooling files.
+ */
+export function dshHomeInheritanceProblems(files) {
+  const problems = []
+  for (const file of files) {
+    const lines = read(file).split('\n')
+    for (const [index, line] of lines.entries()) {
+      if (!/process\.env\.DSH_HOME/.test(line)) continue
+      if (line.trimStart().startsWith('*') || line.trimStart().startsWith('//')) continue
+      problems.push(`${file}:${index + 1} reads process.env.DSH_HOME — dev tooling must use ASSISTANT_DSH_HOME or the repo dev home`)
+    }
+  }
+  return problems
+}
