@@ -30,7 +30,7 @@ const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const harnessHome = resolve(process.env.ASSISTANT_DSH_HOME ?? join(repoRoot, 'dev', 'harness-home'))
 
 /** 会话目录名把 cwd 里的 `/` 与 `.` 换成 `-`（`./` 前缀是路径安全用的）。 */
-function sessionLogs(home) {
+export function sessionLogs(home) {
   const sessionsRoot = join(home, 'sessions')
   if (!existsSync(sessionsRoot)) return []
   const logs = []
@@ -51,7 +51,7 @@ function sessionLogs(home) {
 }
 
 /** zstd 解压后逐行解析事件；坏行跳过（日志是 append-only，末尾可能半行）。 */
-function readEvents(log) {
+export function readEvents(log) {
   const raw = execFileSync('zstd', ['-dc', log], { maxBuffer: 256 * 1024 * 1024 }).toString('utf8')
   const events = []
   for (const line of raw.split('\n')) {

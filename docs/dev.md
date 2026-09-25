@@ -110,6 +110,12 @@ registering"——而第一个打开页面的人就成了 crash-test dummy。`pn
 只能报告并建议（机械门禁 `reserved items` 查标记形态）；单发会话无人可问时按推荐值拍板、标注可推翻、继续做完。
 依据：[真实使用基线](../notes/research/archive/2026-09-25-real-use-baseline.md) §二 F1/F3。
 
+**行为评测**：`pnpm eval` 把一组**真实请求**经 preset 会话跑一遍，判定读的是会话日志（不是 stdout）——
+任务在 `dev/eval/tasks.mjs`，判定核在 `dev/eval/checks.mjs`（每条任务至少一个正向检查，避免"什么都不做"也通过）；
+首条是真实事故回归：会话把队列里标为保留的条目判为触发、实现、并删行。三条诚实边界写在判定核头部：
+`answer-matches` 是正则（会误判措辞）、检查断言的是"没有造成伤害"、任务可能"通过但没用"。
+**串行跑**（同仓同 home，并发会互相污染）。
+
 **意图级仪表**：`pnpm usage` 读 dev home 的会话日志与 working folder，报会话数、工具混合、自用率、
 摩擦（非完成轮/重试）、家的条目数与职责圈事件数；`pnpm usage -- --types` 打印事件类型直方图（形状变了先看它）。
 两条硬规则：**dev 工具不得继承 `DSH_HOME`**——会话环境里它可能是日用的 `~/.dsh`，一律用
