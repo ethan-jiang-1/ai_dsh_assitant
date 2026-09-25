@@ -13,6 +13,9 @@
    `management-breakdown`（四层拆解：现象/可检验假设/各视角取舍标准/行动；事实要有出处、
    保留分歧、一页纸、不编造公司事实）与 `action-plan`（每项行动带负责人/时限/度量/**停止条件**；
    延后项要带理由；结论先行）。出处＝本仓自己的意图定义（P1/O1/O2），不碰兄弟仓的场景事实。
+   **补记（2026-09-25）**：`action-plan` 落地当天其实进不了任何会话的技能目录——它的 frontmatter 里
+   一个 `: ` 让 YAML parse 失败、加载器静默 skip；同批修好并加了门禁，见
+   [策展技能被静默跳过](../implemented/2026-09-25-curated-skill-frontmatter-silent-skip.md)。
 2. **装配脚本** `pnpm expert-setup -- --data-dir <assistant 目录>`（`scripts/expert-setup.mjs`）：
    SOUL **仅在未被主人改过时**替换为管理岗专家身份（改过则跳过并说明——装配不覆盖其所有者）；
    知识种子经治理写入路径导入为 draft；报告部署形状与"draft→stable 由你亲手改＝人审"。
