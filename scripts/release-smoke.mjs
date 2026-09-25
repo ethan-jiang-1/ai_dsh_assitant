@@ -116,22 +116,23 @@ try {
 
   step('installing the tarball')
   dsh(['plugin', '--profile', profile, 'add', tarball])
-  const installedPresets = join(home, 'profiles', profile, 'node_modules', PACKAGE_NAME, 'presets')
-  if (!existsSync(installedPresets)) fail(`installed package has no presets/ at ${installedPresets}`)
-  else ok('dsh plugin add installed the package with its presets/')
+  // 0.1.7: the preset definition ships inside the bundle patch (`cordis.patch.yml`), so the
+  // install assertion follows that file instead of a presets/ directory.
+  const installedPatch = join(home, 'profiles', profile, 'node_modules', PACKAGE_NAME, 'cordis.patch.yml')
+  if (!existsSync(installedPatch)) fail(`installed package has no cordis.patch.yml at ${installedPatch}`)
+  else if (!readFileSync(installedPatch, 'utf8').includes('preset-assistant')) fail('installed bundle patch declares no preset-assistant row')
+  else ok('dsh plugin add installed the package with its preset row')
 
-  step('pointing the roster at the installed presets (the shape a user gets)')
-  // insert semantics — the headless template has no agent-presets row to replace
-  // (dev/profile-patch-headless.yml is the same shape in dev).
+  step('selecting the installed preset as the profile default (the shape a user gets)')
+  // insert semantics — the headless template has no registry row to replace
+  // (dev/profile-patch-headless.yml is the same shape in dev). The definition itself arrives with
+  // the plugin's bundle patch, so nothing here points at a directory.
   writeFileSync(join(home, 'profiles', profile, 'cordis.patch.yml'), `# Written by scripts/release-smoke.mjs
 - insert:
-    - id: agent-presets
-      name: '@deepseek-ai/dsh-agent-presets'
+    - id: agent-preset-registry
+      name: '@deepseek-ai/dsh-agent-preset-registry'
       config:
         default: assistant
-        roots:
-          - path: ${installedPresets}
-            trust: system
 `, 'utf8')
 
   step('reading the composed tree back')

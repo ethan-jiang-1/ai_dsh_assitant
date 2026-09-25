@@ -12,7 +12,7 @@
  * Sources (all fail loud — a shape change must break the gate, not silently thin the catalog):
  *   packages/dsh-smart-assistant/package.json            exports, dsh bundle/client/compatibility
  *   packages/dsh-smart-assistant/cordis.patch.yml        host rows
- *   packages/dsh-smart-assistant/presets/assistant/agent.cordis.yml   agent rows
+ *   packages/dsh-smart-assistant/cordis.patch.yml        host row + the `agent-preset` row's plugins
  *   packages/dsh-smart-assistant/src/{tool-*,learn}/index.ts          tool names + action verbs
  *   packages/dsh-smart-assistant/presets/assistant/skills/*\/SKILL.md  curated skill names
  *   vendor/UPSTREAM.md                                   pinned upstream tag
@@ -72,8 +72,11 @@ export function extractTool(source, label) {
 /** Read every catalog input from disk. */
 export function collectCatalog(root = repoRoot) {
   const pkg = JSON.parse(read(join(root, 'packages', 'dsh-smart-assistant', 'package.json')))
-  const hostRows = parseRows(read(join(root, 'packages', 'dsh-smart-assistant', 'cordis.patch.yml')))
-  const agentRows = parseRows(read(join(root, 'packages', 'dsh-smart-assistant', 'presets', 'assistant', 'agent.cordis.yml')))
+  const hostRows = parseRows(read(join(root, 'packages', 'dsh-smart-assistant', 'cordis.patch.yml'))).filter(row => row.name === 'dsh-smart-assistant')
+  // 0.1.7: one file carries both planes — the host row and the `agent-preset` row whose
+  // `plugins` list is the agent plane. Classification is by plugin name, not by file position.
+  const patchRows = parseRows(read(join(root, 'packages', 'dsh-smart-assistant', 'cordis.patch.yml')))
+  const agentRows = patchRows.filter(row => (row.name ?? '').startsWith('dsh-smart-assistant/'))
   const devPatch = join(root, 'dev', 'preset-runner.patch.yml')
   const devRows = existsSync(devPatch)
     ? parseRows(read(devPatch)).filter(row => (row.name ?? '').startsWith('dsh-smart-assistant'))
@@ -127,7 +130,7 @@ export function renderCatalog(input) {
   lines.push('# 包形状目录（生成物）')
   lines.push('')
   lines.push('> **生成物，不手改**：本文件由 `scripts/gen-catalog.mjs` 从 `package.json` 的 exports、')
-  lines.push('> `cordis.patch.yml` / `presets/assistant/agent.cordis.yml` / `dev/preset-runner.patch.yml` 的组合行、')
+  lines.push('> `cordis.patch.yml`（host 行 + `agent-preset` 行的 plugins）/ `dev/preset-runner.patch.yml` 的组合行、')
   lines.push('> 四个工具源码的 name/ACTIONS、')
   lines.push('> 策展技能目录与 `vendor/UPSTREAM.md` 的 pin 抽取而成；')
   lines.push('> freshness 由 `pnpm verify`（`gen-catalog --check`）守——改了源却没重生成即红。')
@@ -152,8 +155,8 @@ export function renderCatalog(input) {
   lines.push('| 文件 | id | plugin | 状态 |')
   lines.push('|---|---|---|---|')
   for (const [file, rows] of [
-    ['cordis.patch.yml', input.hostRows],
-    ['presets/assistant/agent.cordis.yml', input.agentRows],
+    ['cordis.patch.yml（host 面）', input.hostRows],
+    ['cordis.patch.yml（agent 面 = preset 行的 plugins）', input.agentRows],
     ['dev/preset-runner.patch.yml（dev 专用）', input.devRows],
   ]) {
     for (const row of rows) {
