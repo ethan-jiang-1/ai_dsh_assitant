@@ -75,7 +75,7 @@ pnpm dsh --profile dev --port 0 --no-open   # Web UI；preset 行为（四工具
 pnpm dsh --profile dev-task --patch dev/preset-runner.patch.yml "<task>"   # **preset 挂载的 one-shot**（验证自动化驱动；不带 patch 仍是裸 agent 冒烟）
 ```
 
-## 六条硬规则
+## 七条硬规则
 
 1. **双 home**：`pnpm dsh` 经 `scripts/dsh.mjs` 启动，**永远强制** `DSH_HOME=<repo>/dev/harness-home`
    （覆盖任何继承来的值，包括日用的 `~/.dsh`；显式出口是 `ASSISTANT_DSH_HOME`）。
@@ -95,6 +95,9 @@ pnpm dsh --profile dev-task --patch dev/preset-runner.patch.yml "<task>"   # **p
    一次探索一个可回退的锚点，不攒大提交；往前探索怎么都过不去时，**用 git 回退**到上一个锚点，
    把死路与原因记进 note，而不是把半成品留在工作树里。环境修复也要固化成可重跑的脚本提交
    （范式：`pnpm repair-vendor`），修复只存在于手上＝没修复。
+7. **生态插件只借思路，不装包**（用户拍板）：引入第三方插件有真实代价（维护断供、安全、组合兼容、
+   升级漂移）；除非它有**已验证的声誉**（多人维护、活跃提交、社区口碑），否则**读它的源码、抄它的设计**，
+   不引入依赖。先看 popularity 与内部思路再决定；装之前必须过准入表。
 
 ## 探索路由（DSH 侧常用入口）
 
