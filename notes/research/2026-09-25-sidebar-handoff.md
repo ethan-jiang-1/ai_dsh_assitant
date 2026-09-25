@@ -24,26 +24,54 @@
 
 ## 你要做什么
 
-**实验二：把四个静态数字替换为 assistantMemory 服务的真实数据。**
+**实验二：把四个静态数字替换为 assistantMemory 服务的真实数据 + 加交互。**
 
-1. **暴露 Remote 读取面**：在 host 面（src/index.ts）暴露 digest counts 等只读数据
-2. **在 client 面读取**：通过 Remote API 从浏览器侧获取数据
-3. **替换 DeskPanel 的静态数字为真实数据**
+### 技术路径（Remote API 的正确做法）
 
-参考：`vendor/dsh/packages/client/ui-sidebar-documentpreview/src/client/rpc.ts` 看它怎么通过 Remote 读文件。
+DSH 的 Remote API 用 **TypertRemoteService** 协议。参照物：
 
-诊断线索（如果实验二遇到问题）：
-   - 打开 Web UI（服务器可能需要重启，见 §服务器）
-   - 用浏览器 DevTools Console 看有没有 `[assistant-desk]` 相关警告或报错
-   - 读 `vendor/dsh/packages/client/ui-sidebar/src/client/index.ts` 的 `entriesOfSlot` 逻辑
-   - 检查我们的 `inject` 调用是否被 sidebar 的 slot 消费端正确接收
+| 文件 | 看什么 |
+|---|---|
+| `vendor/dsh/packages/api/workspace-files/src/index.ts` | 一个完整的 TypertRemoteService 实现（`WorkspaceFiles extends TypertRemoteService`）——我们的参照物 |
+| `vendor/dsh/packages/typert/protocol/src/index.ts` | `TypertRemoteService` 基类、`Remote`、`RemoteError` 的定义 |
+| `vendor/dsh/packages/api/remotes/src/index.ts` | Remote 的装载与事件转发层 |
 
-2. **可能的嫌疑**（按优先级）：
-   - `main` slot 的注册方式可能不对——keyed slot 可能需要不同的注册形状
-   - `inject` 的回调返回值可能不匹配 slot 系统的预期
-   - scope 不对——sidebar 的 panellist 是 `scope: 'root'`，我们的注册可能在错误的 scope
+### Host 面要做的
 
-3. **确认后修好，让 CEO 能看到并点开面板**
+在 `src/index.ts`（AssistantMemory 服务）里：
+1. 导入 `TypertRemoteService` 相关类型
+2. 创建一个 `AssistantDeskSnapshot extends TypertRemoteService`（或直接在现有服务上挂 Remote 方法）
+3. 暴露一个只读方法 `deskSnapshot()`，返回：
+   ```json
+   {
+     "counts": { "memories": 8, "knowledgeStable": 13, "knowledgeDraft": 0, "skills": 8, "threads": 0 },
+     "threads": [{ "id": "...", "question": "...", "lean": "...", "status": "open" }],
+     "recentMemories": [{ "id": "...", "text": "...", "kind": "fact", "updated": "..." }]
+   }
+   ```
+   （数据来源：`this.digest()` 和 `this.curate()` 已有的服务端计算）
+
+### Client 面要做的
+
+在 `src/client/index.ts` 的 DeskPanel 里：
+1. `inject` 列表加 `'remote'`（和 `'remote.assistantMemory'` 如果有独立 Remote 服务名）
+2. 在 DeskPanel 组件里通过 `ctx.remote.assistantMemory.deskSnapshot()` 获取数据
+3. 渲染真实数字替换静态占位
+4. 加交互：线索可点击展开（显示 lean + why）；快捷操作按钮点击后往输入框插入 prompt
+
+### 交互设计（CEO 确认过的）
+
+面板不只是数字——要有**活内容**：
+- **等你决定**：draft 知识页数（点击跳到知识面板或提示 CEO 审批）
+- **在跟的事**：open threads 列表（问题 + 当前倾向，点击展开）
+- **最近记住的**：最近 3 条记忆（一句话 + 时间，点击看全文）
+- **快捷操作**：三个按钮（拆解一个问题 / 回顾上周 / 清理），点击往输入框插 prompt 文本
+
+### 最简起步（如果 Remote API 太复杂）
+
+如果 TypertRemoteService 的搭建太重，备选方案：
+- 在 host 面加一个简单的 HTTP JSON endpoint（利用 `dsh-host-webserver`），client 用 `fetch` 读取
+- 这不是 DSH 原生路径，但能快速验证概念后再迁移到 Remote API
 
 ## 怎么起服务器
 
