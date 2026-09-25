@@ -12,7 +12,7 @@
 
 ## 队列
 
-- ▶ **下一圈候选（O1 → O2 的桥）**：把导入的源页变成"**能用于拆解的领域知识**"——先做**知识种子包 v0**（管理/销售/财务各 5–10 页，来源可公开或脱敏；用户点头后搬 `ai_dsh_company` 的角色技能）
+- ▶ **专家包的权限预设**（阶段 1 第 1 项；F1 事故的根因面）——每个专家包带自己的 permission preset：**默认不给 cwd=仓库的写权限**；先做管理岗包的那一份，并在 dev profile 里验"越权写工作区会被拒"
 - ⏳ 知识导入的转换与概念抽取（触发=①第一份真实 docx/pdf 文档集出现 ②评测集 v0 就位；依据：[导入纯核 note](notes/implemented/2026-09-25-knowledge-ingest-core.md) §四）
 - ⏳ **vendor `lib/` 重建（换 pin 的常规收尾）**（触发=需要 boot/release-smoke/plugin-add 出的 profile 时；测试已改为解析 vendor src，不再依赖它）——三条路与已试步骤见迁移记录 §六
 - ▶ **阶段 0-1 · 升 pin 到最新 RC `dsh-v0.1.7-rc.2`**（用户 2026-09-25 明确要求：先同步 DSH、主线用最新 RC）——`pnpm sync-dsh -- --tag dsh-v0.1.7-rc.2` 后做 preset 迁移（目录+roster → `agent-preset` 行），验收=`release-smoke` 绿 + 四工具可用 + `pnpm eval` 三个行为任务仍过

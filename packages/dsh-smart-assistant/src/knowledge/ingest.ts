@@ -52,6 +52,14 @@ export interface SourcePagePlan {
   readonly sections: readonly IngestSection[]
 }
 
+/**
+ * Documents may declare extra provenance machine-readably: `<!-- sources: a, b -->`. The document's
+ * own reference is always first; declared sources are added after it. Seeds use this to cite where
+ * their content actually came from (a sibling repository, a handbook), because a seed file's path
+ * alone would claim the page came from this repo — true about the file, false about the knowledge.
+ */
+const SOURCES_DIRECTIVE = /<!--\s*sources?:\s*([^>]+?)\s*-->/iu
+
 /** Body cap: beyond this the page keeps a marker instead of pretending the text is complete. */
 export const BODY_LIMIT_BYTES = 256 * 1024
 
@@ -141,11 +149,15 @@ export function planSourcePage(document: SourceDocument, options: { truncatedAt?
   const description = firstProse === undefined
     ? `${document.title} (imported source)`
     : firstProse.length <= 120 ? firstProse : `${firstProse.slice(0, 119)}…`
+  const declared = SOURCES_DIRECTIVE.exec(document.text)?.[1]
+    ?.split(',')
+    .map(source => source.trim())
+    .filter(source => source.length > 0) ?? []
   return {
     id: sourcePageId(document.title, document.ref),
     title: document.title,
     description,
-    sources: [document.ref],
+    sources: [document.ref, ...declared.filter(source => source !== document.ref)],
     tags: ['imported'],
     body,
     sections,

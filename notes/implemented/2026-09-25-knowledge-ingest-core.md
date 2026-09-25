@@ -56,3 +56,20 @@
   `status: draft`、`type: source`、`sources` 齐、`generated.by: process:import-knowledge`；
   **第二遍同 id、目录里仍只有 2 个文件**（幂等）；夹具 `tests/knowledge-import-write.spec.ts` 钉住这条。
 - 仍未做：docx/pdf 转换、概念页抽取、模型可见的导入动作（各带触发，见 §四）。
+
+## 七、知识种子包 v0（管理岗基座的第一块内容，2026-09-25 同轮）
+
+- **形状**：`packages/dsh-smart-assistant/seeds/management/`——`README.md`（约定，不导入）+ 三页
+  **角色视角**（CEO / CFO / Sales lens）。导入即草稿：`pnpm import-knowledge -- --data-dir <home> <seeds 目录>`。
+- **内容边界（本切片最重要的决定）**：**只搬"视角/判断框架"，绝不搬公司具体事实**。兄弟仓
+  `ai_dsh_company` 的章程里同时有视角（一页纸原则、分歧保留、不代笔、现金流先于利润、SoD 纪律、
+  痛点频率优于痛点大小）与**场景事实**（编制 50 人、毛利底线 30%、折扣 9 折、预算硬顶、客户 9 家）。
+  后者是**那个仓的场景**，不是本人公司的事实——搬过来就是"用别人的事实回答本人的问题"，属编造，
+  故每页末尾都写明"Not in this page"。
+- **机器可读出处**：文档内 `<!-- sources: <ref> -->` 会在导入时接在文档路径之后。种子文件的路径只证明
+  "文件来自本仓"，不证明"知识来自本仓"；实测入库页 `sources` 同时带
+  `packages/.../management-lens-cfo.md` 与 `ai_dsh_company:company-workspace/kb/cfo/CHARTER.md`。
+- **导入器细节**：`README.md` 一律跳过（约定文档不是知识），并在摘要里报"skipped N convention file(s)"
+  ——静默跳过会掩盖错误。
+- **live 证据**：真跑导入 → 3 条草稿（`source-management-lens-{ceo,cfo,sales}-*`），`status: draft`，
+  出处两条齐全；语言按仓规用英文、领域词保留中文原词（一页纸原则 / 分歧保留 / 不代笔）。

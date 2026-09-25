@@ -17,7 +17,7 @@
  */
 import { readdir, readFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
-import { dirname, extname, join, relative, resolve } from 'node:path'
+import { basename, dirname, extname, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { Context } from '@deepseek-ai/cordis'
 import AssistantMemory from '../packages/dsh-smart-assistant/src/index.ts'
@@ -59,7 +59,11 @@ function titleOf(text, file) {
   return heading !== undefined ? heading.replace(/^#{1,6}\s+/, '').trim() : file.replace(/\.[^.]+$/, '')
 }
 
-const files = (await Promise.all(inputs.map(collect))).flat()
+const collected = (await Promise.all(inputs.map(collect))).flat()
+// A directory's README states the convention, it is not knowledge. Skipping it silently would hide
+// a mistake, so the summary reports how many were skipped and why.
+const files = collected.filter(file => !/^readme\.md$/i.test(basename(file)))
+const skipped = collected.length - files.length
 if (files.length === 0) {
   console.error('import-knowledge: no .md/.markdown/.txt documents found')
   process.exit(1)
@@ -95,4 +99,4 @@ for (const entry of written) {
   const findings = entry.findings === undefined ? '' : `, ${entry.findings} finding(s)`
   console.log(`  ${entry.id} ← ${entry.ref} (${entry.sections} section(s), ${entry.bytes} bytes${findings})`)
 }
-console.log(`import-knowledge: ${written.length} source page(s) ${dryRun ? 'planned' : 'written as drafts'} into ${join(dataDir, 'knowledge')}`)
+console.log(`import-knowledge: ${written.length} source page(s) ${dryRun ? 'planned' : 'written as drafts'} into ${join(dataDir, 'knowledge')}${skipped > 0 ? ` (skipped ${skipped} README convention file(s))` : ''}`)
