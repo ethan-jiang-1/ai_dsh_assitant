@@ -42,7 +42,7 @@
       "path": "../../vendor/dsh/packages/core/agent-default-model"
     },
     {
-      "path": "../../vendor/dsh/packages/preset/agent-presets"
+      "path": "../../vendor/dsh/packages/preset/agent-preset-registry"
     },
     {
       "path": "../../vendor/dsh/packages/util/brand"

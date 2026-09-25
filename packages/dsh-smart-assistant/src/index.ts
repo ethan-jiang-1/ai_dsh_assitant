@@ -26,6 +26,17 @@ import type {} from '@deepseek-ai/dsh-host-webserver'
 // event, so the augmentation must be in the program.
 import type {} from '@deepseek-ai/dsh-goal'
 import { createUserMessage } from '@deepseek-ai/dsh-llm'
+
+// 0.1.7: message sources became a merge-extensible map (`MessageSourceMap`); the generic
+// `{ kind: 'plugin' }` shape was removed. DSH's own packages each declare their kinds, so this
+// plugin declares the one kind it injects — a turn it queued on its own (maintenance metronome,
+// proposal slot). Consumers switch on `kind` and fall through unknowns.
+declare module '@deepseek-ai/dsh-llm' {
+  interface MessageSourceMap {
+    /** A turn this plugin queued by itself, with no user or model behind it. */
+    'assistant-plugin': { kind: 'assistant-plugin', plugin: 'dsh-smart-assistant' }
+  }
+}
 import { renderDigest, type DigestResult } from './home/digest.ts'
 import { parseFrontmatterDocument, renderFrontmatterDocument } from './home/frontmatter.ts'
 import { compareFindings, curateHome, type CurationBrief, type CurationFinding } from './home/health.ts'
@@ -299,7 +310,7 @@ export class AssistantMemory extends Service {
             type: 'text',
             text: renderMaintenancePrompt(source.round, this.maintenanceEveryRounds),
           }],
-          source: { kind: 'plugin', plugin: 'dsh-smart-assistant' },
+          source: { kind: 'assistant-plugin', plugin: 'dsh-smart-assistant' },
         })
         try {
           agent.followup(maintenance)
@@ -321,7 +332,7 @@ export class AssistantMemory extends Service {
         if (change.operation !== 'complete') return undefined
         const proposal = createUserMessage({
           content: [{ type: 'text', text: renderProposalPrompt() }],
-          source: { kind: 'plugin', plugin: 'dsh-smart-assistant' },
+          source: { kind: 'assistant-plugin', plugin: 'dsh-smart-assistant' },
         })
         try {
           agent.followup(proposal)

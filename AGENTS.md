@@ -95,7 +95,7 @@ pnpm dsh --profile dev-task --patch dev/preset-runner.patch.yml "<task>"   # **p
 ## 探索路由（DSH 侧常用入口）
 
 - 组合层级（bundle → profile patch → home patch → `--patch`）：`vendor/dsh/docs/architecture.md`
-- preset 语义（roster/roots/遮蔽/standing mount）：`vendor/dsh/packages/preset/agent-presets/README.md`
+- preset 语义（roster/roots/遮蔽/standing mount）：`vendor/dsh/packages/preset/agent-preset/README.md`
 - 技能 provider 契约（本 repo 依赖它）：`vendor/dsh/docs/subsystems/skills.md`
 - 工具与卡片（`defineTool` / presenter / 日志税）：`vendor/dsh/docs/cookbook/adding-a-tool.md`
 - **"组合里到底有没有这一行"**（读源码答不了这个问题）：`pnpm dsh --profile dev --dump-config`（boot-free；

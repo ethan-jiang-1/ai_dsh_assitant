@@ -62,3 +62,11 @@ describe('releaseClaim', () => {
     expect(claim.reason).toContain('typecheck failed')
   })
 })
+
+describe('fetchArguments', () => {
+  it('always names a remote, so git cannot read the refspec as a repository', async () => {
+    const { fetchArguments } = await import('../../../scripts/sync-dsh.mjs')
+    expect(fetchArguments('dsh-v0.1.7-rc.2')).toEqual(['fetch', '--depth', '1', '--force', 'origin', 'tag', 'dsh-v0.1.7-rc.2'])
+    expect(fetchArguments('dsh-v0.1.7-rc.2', 'https://example.invalid/dsh.git')).toContain('https://example.invalid/dsh.git')
+  })
+})

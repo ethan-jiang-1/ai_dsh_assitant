@@ -16,7 +16,7 @@
 | 3 | ctx 服务键 | `assistantMemory` | 与 Service Definition 同名 | 其他插件的 `inject`；capability-seams 生成目录 | 所有 Consumer 的 `inject` 断 |
 | 4 | 工具 wire 名 | `assistant_memory`、`assistant_research`、`assistant_reflect`、`assistant_knowledge` | 短 kebab / snake_case，生态惯例；**带专家前缀**（一个专家一个前缀） | **会话日志逐字记录** `tool/call.name`；`tool.call.toolview` slot 按名 keyed | 旧会话重放断 |
 | 5 | SessionEventMap 事件名 | **day 0 不新增**（延后项表：`docs/architecture.md` §六） | 必须先声明 merging 进 map 才能写日志 | 事件名写进 JSONL | 旧日志读不出 = 格式迁移级 |
-| 6 | preset id | `assistant` | `[a-z0-9][a-z0-9-]*`；id 即目录名 | roster 内；会话切换记录进日志 | 用户会话的 preset 引用断 |
+| 6 | preset id | `assistant` | `[a-z0-9][a-z0-9-]*`；id 是 `agent-preset` 行的 `config.id`（0.1.7 起不再是目录名） | registry 解析；会话切换记录进日志 | 用户会话的 preset 引用断 |
 | 7 | settings namespace | `assistant`（**保留，day 0 不注册**） | 小写字母/数字/连字符 | 用户覆盖层按 namespace 持久化 | 用户设置被孤儿化 |
 | 8 | slot 域名 | 无（day 0 无 client 行）；未来 `assistant.<entry>.<hole>` | `<domain>.<entry>.<hole>` | 注册方与消费方的合约 | 注入方与占用方失配 |
 

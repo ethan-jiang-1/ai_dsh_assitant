@@ -87,6 +87,12 @@ minimumReleaseAgeExclude:
   # All platform aliases resolve to the @openai/codex package name, so their
   # reviewed exact versions must share one version-union policy entry.
   - '@openai/codex@0.153.4||0.153.4-darwin-arm64||0.153.4-darwin-x64||0.153.4-linux-arm64||0.153.4-linux-x64||0.153.4-win32-arm64||0.153.4-win32-x64'
+  - '@deepseek-ai/libreoffice-kit-darwin-arm64@0.1.1'
+  - '@deepseek-ai/libreoffice-kit-darwin-x64@0.1.1'
+  - '@deepseek-ai/libreoffice-kit-wasm@0.1.1'
+  - '@deepseek-ai/libreoffice-kit-win32-arm64@0.1.1'
+  - '@deepseek-ai/libreoffice-kit-win32-x64@0.1.1'
+  - '@deepseek-ai/libreoffice-kit@0.1.1'
 
 # patch 文件指向 submodule 里的原始文件（不复制：复制就会与钉住的 tag 漂移）。
 # 只列本 workspace 真正用得到的：`@yao-pkg/pkg` 只被 apps/desktop 的打包用到，

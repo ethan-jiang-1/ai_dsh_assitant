@@ -35,7 +35,7 @@
 | 代码 vs 过程 | 产品源码 6.0k 行 TS、测试 3.9k 行；门禁与 dev 脚本 2.3k 行；**notes 5.7k 行**；`pnpm verify` 31 道门禁 | `wc -l` 实测 |
 | 模型真正读到的"本事" | 6 个策展技能共 **292 行**，全部是自我维护：`home-curation` `memory-hygiene` `self-reflection` `research-backlog` `knowledge-craft` `session-recall` | `presets/assistant/skills/` |
 | 领域知识 | 10 页 stable，**全部关于 DSH 与本仓自己**（组合层级、preset 语义、技能 provider 契约、一词一义、信噪比、working folder…） | dev home `knowledge/` |
-| 身份 | persona 一句 "You are a long-lived assistant"，SOUL 为内置通用身份——**没有领域** | [`agent.cordis.yml`](../../packages/dsh-smart-assistant/presets/assistant/agent.cordis.yml) |
+| 身份 | persona 一句 "You are a long-lived assistant"，SOUL 为内置通用身份——**没有领域** | [`cordis.patch.yml` 的 `preset-assistant` 行](../../packages/dsh-smart-assistant/cordis.patch.yml) |
 | 真实使用 | 用户本人≈0；57 个会话多为开发/代理探针；"自用率 60%"= 它读自己写的关于自己的笔记 | [基线报告](archive/2026-09-25-real-use-baseline.md)、[责任圈卡](../proposed/2026-09-25-owner-mandate-and-real-use-baseline.md) §十 |
 | 上游 | 钉 `dsh-v0.1.5-rc.2`；兄弟仓 `ai_dsh_architect` 已钉 `dsh-v0.1.7-rc.1`（2026-09-23） | [`vendor/UPSTREAM.md`](../../vendor/UPSTREAM.md) |
 

@@ -19,7 +19,7 @@
  * tested surface, and pulling them in would drag host-plane services this harness does not
  * carry. What this composition proves is our slice of the combination.
  */
-import { existsSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, rmSync, symlinkSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -34,7 +34,8 @@ import ToolRuntime from '@deepseek-ai/dsh-tools'
 import SkillRegistry from '@deepseek-ai/dsh-skill'
 import AgentRegistry, { assembleContextFor } from '@deepseek-ai/dsh-agent'
 import AgentLoop from '@deepseek-ai/dsh-agent-loop'
-import AgentPresets from '@deepseek-ai/dsh-agent-presets'
+import AgentPresetRegistry from '@deepseek-ai/dsh-agent-preset-registry'
+import AgentPreset from '@deepseek-ai/dsh-agent-preset'
 import { afterEach, describe, expect, it } from 'vitest'
 
 const packageRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
@@ -43,20 +44,14 @@ if (!built) {
   console.warn('[preset-composition] lib/ is not built yet — run `pnpm build`; the real-composition suite is skipped (fresh clones before the first build)')
 }
 
-/** This package's agent-plane rows, verbatim ids and names from presets/assistant/agent.cordis.yml. */
+/** This package's agent-plane rows, verbatim ids and names from cordis.patch.yml's preset row. */
 const OWN_ROWS = [
-  '- id: assistant-home-preamble',
-  '  name: dsh-smart-assistant/home-preamble',
-  '- id: assistant-memory-digest',
-  '  name: dsh-smart-assistant/memory-digest',
-  '- id: assistant-memory-tool',
-  '  name: dsh-smart-assistant/tool-memory',
-  '- id: assistant-research-tool',
-  '  name: dsh-smart-assistant/tool-research',
-  '- id: assistant-knowledge-tool',
-  '  name: dsh-smart-assistant/tool-knowledge',
-  '- id: assistant-learn',
-  '  name: dsh-smart-assistant/learn',
+  { id: 'assistant-home-preamble', name: 'dsh-smart-assistant/home-preamble' },
+  { id: 'assistant-memory-digest', name: 'dsh-smart-assistant/memory-digest' },
+  { id: 'assistant-memory-tool', name: 'dsh-smart-assistant/tool-memory' },
+  { id: 'assistant-research-tool', name: 'dsh-smart-assistant/tool-research' },
+  { id: 'assistant-knowledge-tool', name: 'dsh-smart-assistant/tool-knowledge' },
+  { id: 'assistant-learn', name: 'dsh-smart-assistant/learn' },
 ]
 
 const contexts: Context[] = []
@@ -67,18 +62,8 @@ afterEach(async () => {
   for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true })
 })
 
-/** Boot the real harness: loader, vendor registries, roster with a fixture root, host row. */
+/** Boot the real harness: loader, vendor registries, the preset definition row, host row. */
 async function harness(): Promise<Context> {
-  // A fixture preset root carrying this package's rows under the id `assistant`.
-  const presetRoot = mkdtempSync(join(tmpdir(), 'assistant-preset-mount-'))
-  dirs.push(presetRoot)
-  mkdirSync(join(presetRoot, 'assistant'))
-  writeFileSync(
-    join(presetRoot, 'assistant', 'agent.cordis.yml'),
-    `# fixture composition: this package's own agent-plane rows through the real roster\n${OWN_ROWS.join('\n')}\n`,
-    'utf8',
-  )
-
   const ctx = new Context()
   contexts.push(ctx)
   // Package names in a preset resolve from the harness base (ctx.baseUrl) — with the same
@@ -103,15 +88,9 @@ async function harness(): Promise<Context> {
   await ctx.plugin(AgentRegistry)
   // agents.create requires the loop's creation transaction (the "agent factory").
   await ctx.plugin(AgentLoop, { agents: [] })
-  await ctx.plugin(AgentPresets, {
-    default: 'assistant',
-    roots: [{ path: presetRoot, trust: 'system' }],
-    includeShippedRoot: false,
-    includeUserRoot: false,
-  })
-  // The host-plane row, mounted the way cordis.patch.yml does it: import the published entry
-  // point and let the plugin lifecycle instantiate it with the deployment config. The dataDir
-  // points at a throwaway home — the suite never touches a real harness home.
+  // 0.1.7: preset = registry row (default) + definition row (plugins). No directory, no roots.
+  await ctx.plugin(AgentPresetRegistry, { default: 'assistant' })
+  await ctx.plugin(AgentPreset, { id: 'assistant', plugins: OWN_ROWS })
   const host = await import(pathToFileURL(join(packageRoot, 'lib', 'index.js')).href)
   const home = mkdtempSync(join(tmpdir(), 'assistant-preset-home-'))
   dirs.push(home)

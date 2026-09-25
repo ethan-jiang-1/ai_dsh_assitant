@@ -12,10 +12,14 @@
 
 ## 队列
 
+- ▶ **阶段 0-1 · 升 pin 到最新 RC `dsh-v0.1.7-rc.2`**（用户 2026-09-25 明确要求：先同步 DSH、主线用最新 RC）——`pnpm sync-dsh -- --tag dsh-v0.1.7-rc.2` 后做 preset 迁移（目录+roster → `agent-preset` 行），验收=`release-smoke` 绿 + 四工具可用 + `pnpm eval` 三个行为任务仍过
+- ▶ **阶段 0-2 · 结果意图领域版**：把 O1–O6 写成"中小企业管理者数字分身"的版本（拆解对不对有出处、办得成、知道自己不知道、跟本人越用越像、一条命令装好、管得住）
+- ⏸ **阶段 0-3 · 评测集 v0**（30–50 条真实经营问题，含应拒答题与判分规则；**题目由你本人出**——这是 G2 关口，agent 只整理格式）
+- ▶ **阶段 0-4 · 冻结流程扩张**：不新增门禁、不再重组 notes，只为"曾经坏过或会静默坏"的产品行为立（已写入下方维护规则）
 - ⏳ 升级 pin 到 `dsh-v0.1.7-rc.2`（**用户 2026-09-25 拍板：等并行方案会话落定后自动启动**——判据=它的在制文件（`notes/research/2026-09-25-grand-plan-*.md` 与 `notes/README.md`）被提交、工作树只剩本仓自身改动；依据：上游已有 0.1.5-rc.3 / 0.1.7-rc.1 / 0.1.7-rc.2，本仓钉 `dsh-v0.1.5-rc.2`，落后两个 minor RC；兄弟仓 `ai_dsh_architect` 已钉 0.1.7-rc.1。**不并发启动**：pin 升级触及 `vendor/`、两份 tsconfig 解析入口与 `docs/discipline.md` 纪律表，按"同仓并发会污染提交边界"的教训须串行）
 - ⏳ 技能触发面：`session-recall` 在账本窗口与全量日志里都是 0 加载（另 5 件策展技能都被加载过）——判它是"罕见情况的招牌"还是"描述没接上真实场景"（触发=真实使用里确实需要回忆历史会话；依据：[责任圈卡](notes/proposed/2026-09-25-owner-mandate-and-real-use-baseline.md) §十一）
 - ⏳ 家的内存段瘦身（合并/下沉记忆、压缩措辞）（触发=真实使用中确实感到摘要偏薄；降级已优雅故不紧急，依据：[责任圈卡](notes/proposed/2026-09-25-owner-mandate-and-real-use-baseline.md) §九）
-- ▶ **长期责任圈（职责，不完成）**：按圈推进产品收敛——每圈测差距→切片→更新队列→摆下一圈；圈纪律、意图级仪表与逐圈记录见[责任圈卡](notes/proposed/2026-09-25-owner-mandate-and-real-use-baseline.md)（职责无终点，本行不按"完成即离队"退场）
+- ▶ **长期责任圈（职责，不完成）**：北极星＝中小企业 CEO/VP 的**数字分身**（管理岗基座＋跟本人学；首位真人＝用户本人）——总纲 [企业聪明助手总体思路](notes/research/2026-09-25-grand-plan-enterprise-expert-assistant.md)，圈纪律与逐圈记录见[责任圈卡](notes/proposed/2026-09-25-owner-mandate-and-real-use-baseline.md)（职责无终点，不按"完成即离队"退场）
 - ⏳ 负例控制存量补课（触发=下一次改动某条尚无红夹具的结构性门禁时，同 diff 补它的造红夹具；存量不追账，理由见[红证据档案](notes/research/archive/2026-09-25-old-gate-red-controls.md)）
 - ⏳ `implemented/` 冻结树 / class 子目录（触发=`implemented/` 篇数过百或浏览开始碍事；依据[吸收 note](notes/implemented/2026-09-24-agent-note-lifecycle-absorption.md)）
 - ⏳ `/personality` 类会话 overlay（触发=真实需求出现；依据[soul-and-agents](notes/implemented/2026-09-24-soul-and-agents.md)）
@@ -43,6 +47,9 @@
 - 轮序调整或新增：直接改本表，并在 notes/ 记一行原因。
 - **保留项标记 `🔒`（用户判触发）**：出现在队列行上表示"条件可能已满足，但只有用户能判它成立"——
   会话可以报告与建议，**不得自行判触发、不得删除该行、不得实现该条目**（机械门禁 `reserved items` 管形态）。
+- **冻结流程扩张（用户 2026-09-25 拍板，随《总体思路》§七）**：不新增门禁、不再重组 notes 结构，
+  除非被**产品回归**驱动；证据阶梯＝领域评测 > 真实用户会话 > 代理会话 > 单元测试 > 机械门禁，
+  上层缺席时下层绿不算前进；每周至少一个用户可感知的变化。
 - **延后只能住本表**：note 里不得只写"延后/触发="而不给队列归宿——凡在 note 里写下触发条件的行，
   必须同时指明本文件（机械门禁 `deferral homes` 管）；明确**永不**做的（负知识）才留在 note 的输掉的方案里。
 - 写条目自检（作者视角，借 DSH 散文标准）：**只拿到 HEAD、没有会话 transcript 的读者，能否解析

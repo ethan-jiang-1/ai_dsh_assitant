@@ -70,7 +70,7 @@
 - fs 沙箱**只限写、不限读**："confines model file writes and edits according to each session's sandbox mode while preserving the local filesystem's read behavior … while reads stay unconfined" [affordance：`vendor/dsh/packages/fs/fs-sandbox/README.md` §Summary/§Use this package]。`workspace-write` 模式的可写集合 = 会话 workspace + 平台 tmp；读无此栅栏。
 - bash runner 与 fs 收敛到同一 writable roots 策略 [同上 README："the filesystem and shell families never confine to different roots"]——即 shell 读 `~/.dsh/sessions/` 同样不受 workspace 限制。
 - 本仓 dev 形态下 `DSH_HOME=<repo>/dev/harness-home` 本来就在 workspace 内（AGENTS.md 硬规则 1）；真实用户部署时 sessions 在 `~/.dsh/sessions/`，workspace 外但**读路径仍开放**。
-- preset 已挂 `@deepseek-ai/dsh-tool-fs` / `dsh-tool-fs-search` / `tool-bash` [affordance：`packages/dsh-smart-assistant/presets/assistant/agent.cordis.yml`]——所以 agent 今天就有读 sessions 的全部工具面，缺的只是「知道去哪 + 会解压」。
+- preset 已挂 `@deepseek-ai/dsh-tool-fs` / `dsh-tool-fs-search` / `tool-bash` [affordance：`packages/dsh-smart-assistant/presets/assistant/…`（0.1.5 时的 preset 文件；0.1.7 起并入 `cordis.patch.yml`）]——所以 agent 今天就有读 sessions 的全部工具面，缺的只是「知道去哪 + 会解压」。
 
 ### 1.4 DSH 自带的召回面（重要对照，委托方此前未点名）
 

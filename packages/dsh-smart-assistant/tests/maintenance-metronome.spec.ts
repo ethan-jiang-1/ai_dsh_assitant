@@ -67,7 +67,7 @@ describe('maintenance metronome (service wiring)', () => {
     return {
       ...createUserMessage({
         content: [{ type: 'text', text: `round ${round}` }],
-        source: { kind: 'plugin', plugin: 'test' },
+        source: { kind: 'assistant-plugin', plugin: 'dsh-smart-assistant' },
       }),
       source: { kind: 'goal', goalId, revision: 1, round },
     }
@@ -88,7 +88,7 @@ describe('maintenance metronome (service wiring)', () => {
     expect(calls).toHaveLength(1)
     expect(calls[0]?.text).toContain('[Maintenance slot]')
     expect(calls[0]?.text).toContain('every 2 rounds')
-    expect(calls[0]?.source).toEqual({ kind: 'plugin', plugin: 'dsh-smart-assistant' })
+    expect(calls[0]?.source).toEqual({ kind: 'assistant-plugin', plugin: 'dsh-smart-assistant' })
 
     // A re-queued round does not fire twice (dedup by goal id).
     emit(ctx, agent, goalRound(2))

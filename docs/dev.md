@@ -83,16 +83,16 @@ registering"——而第一个打开页面的人就成了 crash-test dummy。`pn
 
 **两个 profile 是刻意的**：web-app 与 headless 两个 bundle 都 `insert` 了 `id: code-runtime`，
 混装进同一个 profile 必撞 `duplicate loader entry id`（DSH 已把该组合列为退役元组）。
-- `dev` = `[dsh-base, dsh-web-app, dsh-smart-assistant]`，roster 用 dev/profile-patch.yml（替换语义）。
-- `dev-task` = `[dsh-base, dsh-headless, dsh-smart-assistant]`，roster 用 dev/profile-patch-headless.yml
-  （insert 语义 —— headless 模板里没有 agent-presets 行可替换）。两个 patch 文件不可互换。
+- `dev` = `[dsh-base, dsh-web-app, dsh-smart-assistant]`，registry 默认值用 dev/profile-patch.yml（替换语义）替换 `agent-preset-registry` 行的 config。
+- `dev-task` = `[dsh-base, dsh-headless, dsh-smart-assistant]`，registry 用 dev/profile-patch-headless.yml
+  （insert 语义 —— headless 模板里没有 `agent-preset-registry` 行可替换）。两个 patch 文件不可互换。
 
 **三条纪律（为什么"改了不生效"）：**
 
 1. preset 行加载的是**构建物**（package.json exports → `lib/`）——改 `src/` 后必须 `pnpm build`。
    setup.sh 用**裸路径 link**（pnpm symlink 语义）装插件，所以不用重新 `plugin add`；
    `file:` 是复制语义，开发环禁用（改码必须重装）。
-2. preset 代际只看 `agent.cordis.yml` 的 mtime+size —— 改 `presets/assistant/skills/*` 或
+2. preset 代际看**组合文件**（`cordis.patch.yml`）的 mtime+size —— 改 `presets/assistant/skills/*` 或
    `preset.yml` 后要 `touch` 该文件，新会话才拿得到新代。
 3. 换 vendor/dsh pin 后：`pnpm gen-paths` → 重跑第三节的 vendor 构建 → `pnpm typecheck`。
 
@@ -114,7 +114,8 @@ registering"——而第一个打开页面的人就成了 crash-test dummy。`pn
 任务在 `dev/eval/tasks.mjs`，判定核在 `dev/eval/checks.mjs`（每条任务至少一个正向检查，避免"什么都不做"也通过）；
 首条是真实事故回归：会话把队列里标为保留的条目判为触发、实现、并删行。三条诚实边界写在判定核头部：
 `answer-matches` 是正则（会误判措辞）、检查断言的是"没有造成伤害"、任务可能"通过但没用"。
-**串行跑**（同仓同 home，并发会互相污染）。
+**串行跑**（同仓同 home，并发会互相污染）。`pnpm eval -- --self-check` 是**live 红控**：把真实事故形态喂给判定核、
+要求它判红，并同时要求合规回答判绿——它不跑会话（毫秒级），已接进 `pnpm verify` 链，作为"守卫的守卫"。
 
 **意图级仪表**：`pnpm usage` 读 dev home 的会话日志与 working folder，报会话数、工具混合、自用率、
 摩擦（非完成轮/重试）、家的条目数与职责圈事件数；`pnpm usage -- --types` 打印事件类型直方图（形状变了先看它）。
@@ -128,7 +129,7 @@ registering"——而第一个打开页面的人就成了 crash-test dummy。`pn
 | API 抖动 | `TRANSPORT` 错误（"DeepSeek API request failed"）会触发 attempt 重试循环，模型可能开始即兴行为 | 重试即可；会话日志（`sessions/<proj>/<id>/session.v3.jsonl.zstd`）能逐事件还原 |
 | vendor install 失败 | 根 postinstall（lefthook）在 submodule 里必然失败 | 包已就位；build 用 `--config.verify-deps-before-run=false` 绕过 |
 | 命令表象不可信 | `--dump-config`/`--help` 不加载 loader entries | "能不能跑"的最低证据 = 真 boot 一次 |
-| preset 遮蔽 | roots 先到先赢同 id；roster 的 `!!js` 读 `ASSISTANT_PRESETS_DIR ?? cwd` 拼接 | `pnpm dsh` 固定以 repo 根为 cwd，兜底成立 |
+| preset 遮蔽 | 同名 preset 行后到者覆盖（registry 不再扫目录，没有 roots 先后） | 组合顺序决定；dev 的 registry 只改 `default` |
 | Web 开屏 `resume failed` | 残留的旧 dev web 进程仍持有空白 seed 会话的跨进程写锁（`session.lock` 是 flock 目标，进程死即释放）；web 客户端开屏按 workspace 最新会话自动恢复空白会话，新实例撞锁 | 起新例前 `lsof -iTCP -sTCP:LISTEN -P` 找本仓 cwd 的残留 node 并 kill；锁随进程死亡自动释放，勿手删 |
 
 ## 六、组合的四个层（dev 里谁改谁生效）

@@ -3,7 +3,7 @@
 # 包形状目录（生成物）
 
 > **生成物，不手改**：本文件由 `scripts/gen-catalog.mjs` 从 `package.json` 的 exports、
-> `cordis.patch.yml` / `presets/assistant/agent.cordis.yml` / `dev/preset-runner.patch.yml` 的组合行、
+> `cordis.patch.yml`（host 行 + `agent-preset` 行的 plugins）/ `dev/preset-runner.patch.yml` 的组合行、
 > 四个工具源码的 name/ACTIONS、
 > 策展技能目录与 `vendor/UPSTREAM.md` 的 pin 抽取而成；
 > freshness 由 `pnpm verify`（`gen-catalog --check`）守——改了源却没重生成即红。
@@ -29,29 +29,13 @@
 
 | 文件 | id | plugin | 状态 |
 |---|---|---|---|
-| cordis.patch.yml | `assistant-memory` | `dsh-smart-assistant` | 启用 |
-| presets/assistant/agent.cordis.yml | `persona` | `'@deepseek-ai/dsh-persona'` | 启用 |
-| presets/assistant/agent.cordis.yml | `agent-instructions` | `'@deepseek-ai/dsh-agent-instructions'` | 启用 |
-| presets/assistant/agent.cordis.yml | `assistant-home-preamble` | `dsh-smart-assistant/home-preamble` | 启用 |
-| presets/assistant/agent.cordis.yml | `assistant-memory-digest` | `dsh-smart-assistant/memory-digest` | 启用 |
-| presets/assistant/agent.cordis.yml | `assistant-memory-tool` | `dsh-smart-assistant/tool-memory` | 启用 |
-| presets/assistant/agent.cordis.yml | `assistant-research-tool` | `dsh-smart-assistant/tool-research` | 启用 |
-| presets/assistant/agent.cordis.yml | `assistant-knowledge-tool` | `dsh-smart-assistant/tool-knowledge` | 启用 |
-| presets/assistant/agent.cordis.yml | `assistant-learn` | `dsh-smart-assistant/learn` | 启用 |
-| presets/assistant/agent.cordis.yml | `skill-filesystem` | `'@deepseek-ai/dsh-skill-filesystem'` | 启用 |
-| presets/assistant/agent.cordis.yml | `tool-skill` | `'@deepseek-ai/dsh-tool-skill'` | 启用 |
-| presets/assistant/agent.cordis.yml | `tool-fs` | `'@deepseek-ai/dsh-tool-fs'` | 启用 |
-| presets/assistant/agent.cordis.yml | `tool-fs-search` | `'@deepseek-ai/dsh-tool-fs-search'` | 启用 |
-| presets/assistant/agent.cordis.yml | `tool-bash` | `'@deepseek-ai/dsh-tool-bash'` | 条件：!!js process.platform === 'win32' |
-| presets/assistant/agent.cordis.yml | `tool-pwsh` | `'@deepseek-ai/dsh-tool-pwsh'` | 条件：!!js process.platform !== 'win32' |
-| presets/assistant/agent.cordis.yml | `tool-ask-user` | `'@deepseek-ai/dsh-tool-ask-user'` | 启用 |
-| presets/assistant/agent.cordis.yml | `tool-todo` | `'@deepseek-ai/dsh-tool-todo'` | 启用 |
-| presets/assistant/agent.cordis.yml | `tool-web` | `'@deepseek-ai/dsh-tool-web'` | 启用 |
-| presets/assistant/agent.cordis.yml | `tool-present` | `'@deepseek-ai/dsh-tool-present'` | 启用 |
-| presets/assistant/agent.cordis.yml | `compaction` | `cordis:group` | 启用 |
-| presets/assistant/agent.cordis.yml | `compaction-basic` | `'@deepseek-ai/dsh-compaction-basic'` | 启用 |
-| presets/assistant/agent.cordis.yml | `command-compact` | `'@deepseek-ai/dsh-command-compact'` | 启用 |
-| presets/assistant/agent.cordis.yml | `tool-result-pruner` | `'@deepseek-ai/dsh-compaction-tool-result-pruner'` | 启用 |
+| cordis.patch.yml（host 面） | `assistant-memory` | `dsh-smart-assistant` | 启用 |
+| cordis.patch.yml（agent 面 = preset 行的 plugins） | `assistant-home-preamble` | `dsh-smart-assistant/home-preamble` | 启用 |
+| cordis.patch.yml（agent 面 = preset 行的 plugins） | `assistant-memory-digest` | `dsh-smart-assistant/memory-digest` | 启用 |
+| cordis.patch.yml（agent 面 = preset 行的 plugins） | `assistant-memory-tool` | `dsh-smart-assistant/tool-memory` | 启用 |
+| cordis.patch.yml（agent 面 = preset 行的 plugins） | `assistant-research-tool` | `dsh-smart-assistant/tool-research` | 启用 |
+| cordis.patch.yml（agent 面 = preset 行的 plugins） | `assistant-knowledge-tool` | `dsh-smart-assistant/tool-knowledge` | 启用 |
+| cordis.patch.yml（agent 面 = preset 行的 plugins） | `assistant-learn` | `dsh-smart-assistant/learn` | 启用 |
 | dev/preset-runner.patch.yml（dev 专用） | `preset-runner` | `dsh-smart-assistant/preset-runner` | 启用 |
 
 ## 工具与动词（wire 名是身份，动词集互不重叠）
@@ -71,8 +55,8 @@
 
 ## 兼容与依赖姿态
 
-- 钉住的上游 tag：`dsh-v0.1.5-rc.2`
+- 钉住的上游 tag：`dsh-v0.1.7-rc.2`
 - 记录为 verified 的 DSH release：`0.1.5-rc.2`
 - 运行时 dependencies：`yaml`
-- peerDependencies：10 个 `@deepseek-ai/*`（姿态由门禁守：harness 包只许 peer）
+- peerDependencies：11 个 `@deepseek-ai/*`（姿态由门禁守：harness 包只许 peer）
 - client 面（浏览器包）：有

@@ -37,7 +37,7 @@ HOST 面（cordis.patch.yml → dsh.bundle.patch）
                             为什么在 host：working folder 是**跨会话持久化**，与持久化/沙箱/模型路由同类。
                             preset 里的服务行必须包在 isolate realm 里，否则与别的 preset 撞名。
 
-AGENT 面（presets/assistant/agent.cordis.yml → agent preset）
+AGENT 面（`cordis.patch.yml` 的 `preset-assistant` 行 → agent preset）
 ├── assistant-memory-digest   提示词段落：有界摘要（桌面）
 ├── assistant-memory-tool     工具 assistant_memory
 ├── assistant-research-tool   工具 assistant_research
@@ -92,7 +92,7 @@ AGENT 面（presets/assistant/agent.cordis.yml → agent preset）
 | `src/tool-support/presentation.ts` | 四个工具共享的 presenter 管道：`presentationMeta` 投影摘要 → `presentResult` 从 `result.meta` 读回（完成卡读不到规范值，只能读持久化载荷） | dsh-tools 类型 |
 | `src/web-branding.ts` | Web 壳品牌注入行：页标题 + 图标（纯函数；经 `webserver/index-inject` 事件进浏览器，皮肤面） | dsh-host-webserver（仅类型） |
 | `src/client/index.ts` | 浏览器面：占用 `sidebar.brand.*` 通用品牌 slot（侧栏图标 + 部署名；皮肤面，不进模型上下文） | react + ui-renderer/ui-sidebar（仅类型） |
-| `src/preset-runner/index.ts` | **preset 挂载的 one-shot 驱动**（dev 验证自动化：`agentPresets.resolve`→`mount` 进 agent setup，会话头记录 `agentPreset`；经 `dev/preset-runner.patch.yml` 替换 headless-runner 行启用） | dsh-agent / dsh-agent-presets / dsh-llm / dsh-session / dsh-brand |
+| `src/preset-runner/index.ts` | **preset 挂载的 one-shot 驱动**（dev 验证自动化：`agentPresets.resolve`→`mount` 进 agent setup，会话头记录 `agentPreset`；经 `dev/preset-runner.patch.yml` 替换 headless-runner 行启用） | dsh-agent / dsh-agent-preset-registry / dsh-llm / dsh-session / dsh-brand |
 | `src/tool-memory/`、`src/tool-research/`、`src/tool-knowledge/`、`src/memory-digest/`、`src/learn/` | agent 面入口：薄适配器（校验跨字段规则 → 调服务 → 返回规范值 + presenter） | cordis/tools |
 
 **依赖方向单向向下**，纯核（home/memory/research/skills）**不 import DSH 运行时** ——

@@ -34,7 +34,7 @@ R2 缺口清单第 1 项（`notes/research/archive/2026-09-24-r2-skill-growth-su
 - `tools/result` 事件：`vendor/dsh/packages/core/tools/src/index.ts:189`（签名）、
   `:1656`（emit，按 `exec.agent` 作用域路由）；scoped 订阅只收本会话执行、
   全局订阅全收（`tests/scoped.spec.ts` 实证）——我们用 scoped（preset 挂在 agent 作用域，
-  `vendor/dsh/packages/preset/agent-presets/src/mount.ts`）。
+  `vendor/dsh/packages/preset/…/src/mount.ts`）。
 - `skill` 工具：名字 `skill`、入参 `{name: string}`
   （`vendor/dsh/packages/skill/tool-skill/src/index.ts:82-85`）。
 - PTC 模式嵌套调用同样过管线发 result（`core/tools` scoped/ptc 测试实证）——计数覆盖 PTC。
