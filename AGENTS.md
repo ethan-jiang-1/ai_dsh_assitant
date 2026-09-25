@@ -75,7 +75,7 @@ pnpm dsh --profile dev --port 0 --no-open   # Web UI；preset 行为（四工具
 pnpm dsh --profile dev-task --patch dev/preset-runner.patch.yml "<task>"   # **preset 挂载的 one-shot**（验证自动化驱动；不带 patch 仍是裸 agent 冒烟）
 ```
 
-## 五条硬规则
+## 六条硬规则
 
 1. **双 home**：`pnpm dsh` 经 `scripts/dsh.mjs` 启动，**永远强制** `DSH_HOME=<repo>/dev/harness-home`
    （覆盖任何继承来的值，包括日用的 `~/.dsh`；显式出口是 `ASSISTANT_DSH_HOME`）。
@@ -91,6 +91,10 @@ pnpm dsh --profile dev-task --patch dev/preset-runner.patch.yml "<task>"   # **p
    （约束 → 适配 → 证据），再动手。
 5. **轮内任务面**：复杂任务开工用 plan 呈批、实施期用 todo 活清单（整表替换、完成即勾）、
    人可随时 steer —— 机制都在 base bundle 里，挂着不用等于白挂。
+6. **步步为营，死路回退**（用户拍板；带日期的原始记录在 0.1.7 迁移 note）：每个阶段评估达成了目的就**立刻提交**——
+   一次探索一个可回退的锚点，不攒大提交；往前探索怎么都过不去时，**用 git 回退**到上一个锚点，
+   把死路与原因记进 note，而不是把半成品留在工作树里。环境修复也要固化成可重跑的脚本提交
+   （范式：`pnpm repair-vendor`），修复只存在于手上＝没修复。
 
 ## 探索路由（DSH 侧常用入口）
 

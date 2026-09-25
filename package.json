@@ -21,7 +21,8 @@
     "verify": "node scripts/gen-paths.mjs --check && node scripts/gen-catalog.mjs --check && node dev/eval/run.mjs --self-check && node scripts/verify.mjs",
     "release-smoke": "node scripts/release-smoke.mjs",
     "preflight": "node scripts/webui-preflight.mjs",
-    "sync-dsh": "node scripts/sync-dsh.mjs"
+    "sync-dsh": "node scripts/sync-dsh.mjs",
+    "repair-vendor": "TSX_TSCONFIG_PATH=tsconfig.tsx.json node --import tsx/esm scripts/repair-vendor-artifacts.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.20.0",

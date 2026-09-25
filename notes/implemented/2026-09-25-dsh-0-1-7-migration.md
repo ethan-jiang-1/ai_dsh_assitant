@@ -214,6 +214,12 @@ vendor 侧代码与 pin 指针未被修改（只删过一个孤儿安装残留�
 3. **裸冒烟通过**：`pnpm dsh --profile dev-task "reply ready"` → `ready`，exit 0。
    （pin 迁移后从未裸验过 boot——这是当时漏掉的一步，教训：迁移验收里"能起"必须包含裸 boot。）
 
+**修复已固化（用户"步步为营"规矩的落实）**：上述三步不再只存在于手上——`pnpm repair-vendor`
+（`scripts/repair-vendor-artifacts.mjs`）可从干净 vendor 树重跑全部产物（typert 再生 + 两包 tsc + 垫片）。
+端到端验证：删 2 垫片 + 2 typert 工件 → `pnpm repair-vendor` → 全部回来 → 裸冒烟 `ready`。
+（脚本第一版被自己的 JSDoc 咬了：注释里写 `vendor/dsh/**/lib/`，其中的 `*/` 把块注释提前闭合，
+后面的反引号全成模板字面量——`node --check` 抓出，改用 `…`。）
+
 **专家权限模型的 live 验证**（`dev/profile-patch-expert.yml` + `dev/expert-probe.patch.yml` 可复跑）：
 基座 bundle 自带 `read-only`/`workspace-write`/`danger-full-access` 三档（行 id `permission`）；
 专家部署形状＝把 `defaultPreset` 改为 `read-only`。探针（真实会话）读数：
