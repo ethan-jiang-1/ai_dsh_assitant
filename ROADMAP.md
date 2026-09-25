@@ -12,7 +12,8 @@
 
 ## 队列
 
-- ⏳ 升级 pin 到 `dsh-v0.1.7-rc.2`（触发=并行方案会话落定或用户指定；依据：上游已有 0.1.5-rc.3 / 0.1.7-rc.1 / 0.1.7-rc.2，本仓钉 `dsh-v0.1.5-rc.2`，落后两个 minor RC；兄弟仓 `ai_dsh_architect` 已钉 0.1.7-rc.1。**不并发启动**：pin 升级触及 `vendor/`、两份 tsconfig 解析入口与 `docs/discipline.md` 纪律表，按"同仓并发会污染提交边界"的教训须串行）
+- ▶ **行为评测最小件（把基线变成可重复回归）**：`dev/eval/` 任务集 + `pnpm eval`，机械断言跑在会话日志上——首条取"保留项越界"（F1 的真实事故：会话把 🔒 保留项判为触发并实现）。方向无关（测行为不测领域），也是《总体思路》点名缺的"做对了的度量"的最小可用件；依据：[责任圈卡](notes/proposed/2026-09-25-owner-mandate-and-real-use-baseline.md) §十三
+- ⏳ 升级 pin 到 `dsh-v0.1.7-rc.2`（**用户 2026-09-25 拍板：等并行方案会话落定后自动启动**——判据=它的在制文件（`notes/research/2026-09-25-grand-plan-*.md` 与 `notes/README.md`）被提交、工作树只剩本仓自身改动；依据：上游已有 0.1.5-rc.3 / 0.1.7-rc.1 / 0.1.7-rc.2，本仓钉 `dsh-v0.1.5-rc.2`，落后两个 minor RC；兄弟仓 `ai_dsh_architect` 已钉 0.1.7-rc.1。**不并发启动**：pin 升级触及 `vendor/`、两份 tsconfig 解析入口与 `docs/discipline.md` 纪律表，按"同仓并发会污染提交边界"的教训须串行）
 - ⏳ 技能触发面：`session-recall` 在账本窗口与全量日志里都是 0 加载（另 5 件策展技能都被加载过）——判它是"罕见情况的招牌"还是"描述没接上真实场景"（触发=真实使用里确实需要回忆历史会话；依据：[责任圈卡](notes/proposed/2026-09-25-owner-mandate-and-real-use-baseline.md) §十一）
 - ⏳ 家的内存段瘦身（合并/下沉记忆、压缩措辞）（触发=真实使用中确实感到摘要偏薄；降级已优雅故不紧急，依据：[责任圈卡](notes/proposed/2026-09-25-owner-mandate-and-real-use-baseline.md) §九）
 - ▶ **长期责任圈（职责，不完成）**：按圈推进产品收敛——每圈测差距→切片→更新队列→摆下一圈；圈纪律、意图级仪表与逐圈记录见[责任圈卡](notes/proposed/2026-09-25-owner-mandate-and-real-use-baseline.md)（职责无终点，本行不按"完成即离队"退场）
