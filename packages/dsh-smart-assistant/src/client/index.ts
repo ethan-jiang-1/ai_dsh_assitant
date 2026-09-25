@@ -141,7 +141,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
           const remoteKeys = remote !== undefined && typeof remote === 'object'
             ? Object.keys(remote).filter(k => !k.startsWith('_')).slice(0, 20).join(', ')
             : 'remote is ' + typeof remote
-          const am = (remote as { assistantMemory?: { digest?: () => Promise<unknown> } })?.assistantMemory
+          const am = (remote as Record<string, { digest?: () => Promise<unknown> } | undefined>)?.['assistantMemory']
           if (am?.digest !== undefined) {
             void remote.assistantMemory.digest().then((data: unknown) => {
               const digest = data as { memoryIds?: unknown[], openThreads?: number, parkedThreads?: number }
