@@ -27,7 +27,9 @@ interface BrandMarkProps {
 /** The slots-registry surface this face uses (structural mirror of the client renderer's). */
 interface SlotsRegistry {
   inject(name: string, contribute: () => unknown): unknown
-  register(declaration: { name: string }, component: (props: BrandMarkProps) => unknown): unknown
+  register(declaration: { name: string }, component: (props: never) => unknown): unknown
+  /** List-slot contribution (may not exist on all slot hosts; guarded at call time). */
+  contribute?(name: string, entry: unknown): unknown
 }
 
 /** The browser root-context surface this face uses. */
@@ -107,6 +109,27 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     return createElement('span', { style: { fontSize: '17px', whiteSpace: 'nowrap' } }, BRAND_NAME)
   }
 
+  /**
+   * Experiment 1b: the My Desk panel body — four static numbers proving the panel path.
+   * Rendered with createElement only (no JSX in the script-format client bundle).
+   */
+  function DeskPanel(): unknown {
+    const { createElement: h } = require('react') as typeof import('react')
+    const cell = (label: string, value: string): ReturnType<typeof h> =>
+      h('div', { style: { display: 'inline-block', margin: '8px 16px', textAlign: 'center' as const } },
+        h('div', { style: { fontSize: '28px', fontWeight: 700, color: MARK_TEAL } }, value),
+        h('div', { style: { fontSize: '12px', color: '#666' } }, label))
+    return h('div', { style: { padding: '24px' } },
+      h('h2', { style: { margin: '0 0 16px', fontSize: '18px' } }, 'My Desk'),
+      h('div', null,
+        cell('Memories', '8'),
+        cell('Knowledge', '13'),
+        cell('Skills', '8'),
+        cell('Threads', '0')),
+      h('p', { style: { fontSize: '12px', color: '#999', marginTop: '16px' } },
+        'Experiment 1: static placeholders — real data in experiment 2.'))
+  }
+
   /** Slots this face occupies (single-occupant, root-scope, declared by the sidebar). */
   const inject = ['slots', 'sidebarRightTabs']
 
@@ -126,9 +149,29 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         yield ctx.slots.register({ name: 'sidebar.brand.name' }, AssistantBrandName)
       }))
 
-    // Experiment 1: register a "desk" tab type in the right sidebar. The four numbers are
-    // static placeholders — the point is proving the tab registration path works end-to-end;
-    // experiment 2 replaces them with live data from the assistantMemory service.
+    // Experiment 1b: register a "My Desk" panel in the LEFT sidebar's panel list — the same
+    // mechanism the Settings gear uses. Clicking the icon opens the panel body in the main area.
+    // The four numbers are static placeholders; experiment 2 wires them to assistantMemory.
+    try {
+      if (ctx.slots.contribute !== undefined) {
+        ctx.slots.contribute('sidebar.panellist', {
+          id: 'assistant-desk',
+          order: 10,
+          label: 'My Desk',
+        })
+      }
+      // The main slot is keyed: register under the panel id.
+      ;(ctx.slots as { register: (d: { name: string }, c: (p: never) => unknown) => unknown })
+        .register({ name: 'main' }, DeskPanel as (p: never) => unknown)
+    } catch (error) {
+      // The slots system may not expose `contribute` — record and continue; the brand marks
+      // above still work. This try/catch is the experiment's honesty mechanism.
+      console.warn('[assistant-desk] panel registration failed:', error)
+    }
+
+    // Experiment 1 (kept for reference): the right-sidebar tab type registration below
+    // registers a TYPE (what this plugin can open), not a VISIBLE tab — lesson learned:
+    // types are passive; visibility needs either an open action or a persistent panel.
     ctx.sidebarRightTabs.register({
       id: 'dsh-smart-assistant-desk',
       kind: 'desk',
