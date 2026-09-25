@@ -42,7 +42,7 @@ DSH 不要求插件仓复制它的完整 Note 机制与协作面。因此本卡�
 6. **生成物登记表**（`08` §3 五形态之「生成+freshness」）：`docs/dev.md` 加一张 3 列表（生成物/生成器/freshness 检查），当前只有 `tsconfig.tsx.json` 一行；不建 manifest。
 7. **运行时查询进探索路由**（`06`）：`AGENTS.md` 探索路由加两条——「组合里有没有这一行」→ `pnpm dsh --profile dev --dump-config`；「活进程注册了什么」→ 切 shipped `cordis` preset 用只读 inspect 工具（**不改** assistant preset，那是模型可见面变更）。
 8. **新行为归属判据四问**（`01` §15 / `04`）：`docs/architecture.md` owner 表前插四问（只改 patch 一行？只加工具/段落？跨会话持久状态→服务？新增模型可见事实→日志税？）。
-9. **术语锚定括注**（`09` §4）：自造词首现处加一次 DSH canonical 括注——`host 面（= bundle patch 行）`、`agent 面（= preset agent 行，model-facing）`、`8 个入口（= package.json exports 的 8 个 plugin 子路径）`、`working folder（= 本插件 dataDir，≠ 进程 cwd）`、`服务（Definition + 单 Provider 同包，Consumer = 各 tool 入口）`。这是「两仓同检索模式」的最便宜兑现。
+9. **术语锚定括注**（`09` §4）——**部分落地（5/7）**：已加 `host 面（= bundle patch 行）`、`agent 面（= preset agent 行，model-facing）`、`8 个入口（= package.json exports 的 8 个 plugin 子路径）`、`working folder（= 本插件 dataDir，≠ 进程 cwd）`、`服务（Definition + 单 Provider 同包，Consumer = 各 tool 入口）`。**未落地两项**（在收编证据时丢失）："两个解析门面"与 DSH `Context façade` 撞名未改；`房间/桌面/抽屉` 未加 DSH 侧映射句。去向：[补课卡 S5](../proposed/2026-09-25-dsh-alignment-deepening.md)。
 10. **tier 表一行式**（`05` §tier）：`AGENTS.md` 布局表前插 4 行「哪类事实归谁拥有」；不复制上游 13 行全表。
 11. **作者视角自检句**（`05` §41）：写 `ROADMAP.md`/`docs/` 时自问「读者只有 HEAD、没有会话 transcript 时能否核验每个 claim」；现有条目里的裸简称（`R1/R3/r5 §末`）改成可点链接。
 12. **snapshots 只收什么**（`08` §4）：`snapshots/README.md` 补边界句——只收 session 回放 fixture，单元/CLI/generator 期望输出跟 owning 层走。
@@ -74,6 +74,12 @@ DSH 不要求插件仓复制它的完整 Note 机制与协作面。因此本卡�
 - **`change-scope` 脚本**：**延后**——触发=真实"跑错检查/漏跑检查"摩擦出现；当前 `pnpm typecheck && pnpm test && pnpm verify` 三连足够小。
 
 ## 六、验收（结果）
+
+> **2026-09-25 自审更正**：本卡 §三 A 组与 B 组大部分为真，但 B9 为 5/7 部分落地，
+> 且**四个结构性机制完全未做**（子树 AGENTS.md、生成目录+freshness、`.agents/skills/`、负例控制覆盖面）。
+> 逐项对照与证据见[自审档案](../research/archive/2026-09-25-dsh-alignment-audit.md)；
+> 补课计划见[补课卡](../proposed/2026-09-25-dsh-alignment-deepening.md)。本卡不重写结论，只在此标出未完成面——
+> 按本仓纪律，未完成的检查不得写成绿色证据。
 
 - P1 批：三条新门禁各带正反夹具（`tests/verify-gates.spec.mjs`；含非法 UTF-8、双结尾换行、运行时依赖、compat 漂移四种红），`pnpm verify` 27/27 绿。
 - P2 批：`docs/` 与 `AGENTS.md` 只加括注、映射与表，不引入新术语；链接与语言门禁绿。
