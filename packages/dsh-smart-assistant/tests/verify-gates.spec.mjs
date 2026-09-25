@@ -399,6 +399,10 @@ describe('reservedItemProblems', () => {
 
     const actionable = '- ▶ 🔒 挂桥（用户判触发）\n'
     expect(reservedItemProblems(actionable)[0]).toContain('not a session\'s to start')
+
+    // A mention in prose is not a reservation (this false positive bit twice).
+    const mention = '- ▶ 行为评测：把 🔒 保留项越界变成可重跑回归\n'
+    expect(reservedItemProblems(mention)).toEqual([])
   })
 })
 

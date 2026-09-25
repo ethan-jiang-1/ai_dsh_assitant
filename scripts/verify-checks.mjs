@@ -452,7 +452,12 @@ export function deferralHomesProblems(files) {
 export function reservedItemProblems(roadmapText) {
   const problems = []
   for (const [index, line] of roadmapText.split('\n').entries()) {
-    if (!line.startsWith('- ') || !line.includes('🔒')) continue
+    if (!line.startsWith('- ')) continue
+    // Only a marker in *position* reserves a row. Prose that mentions the marker (a queue entry
+    // describing the discipline, a docs sentence) must not be read as a reservation — that false
+    // positive bit twice before this was narrowed.
+    const body = line.replace(/^-\s+/, '')
+    if (!/^(?:[▶⏳]\s+)?🔒(?:\s|$)/.test(body)) continue
     if (!line.includes('用户判触发')) {
       problems.push(`ROADMAP.md:${index + 1} is reserved (🔒) but does not say 用户判触发 — the row must name who may judge it`)
     }
