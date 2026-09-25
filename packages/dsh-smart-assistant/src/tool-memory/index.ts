@@ -17,6 +17,7 @@ import type { RecallHit } from '../memory/recall.ts'
 import { LEARNED_PROVIDER_NAME } from '../learn/index.ts'
 import { shadowedLearnedSkills } from '../skills/shadow.ts'
 import { callCard, presentationMeta, resultCard } from '../tool-support/presentation.ts'
+import { usageWindowNote } from '../skills/usage.ts'
 
 export const name = 'assistant-memory-tool'
 
@@ -90,6 +91,7 @@ const OUTPUT = {
     memories: { type: 'array', required: true, items: MEMORY_ITEM },
     findings: { type: 'array', required: true, items: FINDING_ITEM },
     skill_usage: { type: 'array', items: SKILL_USAGE_ITEM },
+    skill_usage_window: { type: 'string' },
     counts: {
       type: 'object',
       additionalProperties: false,
@@ -142,6 +144,11 @@ interface MemoryOutput {
   }
   /** Set by `curate` only — per-skill load counts, least-used first (retirement candidates first). */
   skill_usage?: { name: string, count: number, last_used?: string, days_since_last_use?: number }[]
+  /**
+   * Which window the counts cover ("since 2026-09-24" / "ledger window unknown"). A bare `0` reads
+   * as "never used", and a skill loaded before the ledger began is not evidence of disuse.
+   */
+  skill_usage_window?: string
 }
 
 function item(record: MemoryRecord, why: readonly string[] = []): MemoryItem {
@@ -185,9 +192,10 @@ function render(_args: { action: Action }, value: MemoryOutput): { type: 'text',
   }
   if (value.skill_usage !== undefined && value.skill_usage.length > 0) {
     const parts = value.skill_usage.map(skill => skill.count === 0
-      ? `${skill.name} never loaded`
+      ? `${skill.name} not loaded`
       : `${skill.name}×${skill.count} (${skill.days_since_last_use ?? 0}d ago)`)
-    lines.push(`- skill usage: ${parts.join(', ')}.`)
+    const window = value.skill_usage_window ?? 'ledger window unknown'
+    lines.push(`- skill usage (${window}): ${parts.join(', ')}.`)
   }
   return [{ type: 'text', text: lines.join('\n') }]
 }
@@ -324,6 +332,7 @@ export function apply(ctx: Context): void {
               refs: [...finding.refs],
             })),
             counts: brief.counts,
+            skill_usage_window: usageWindowNote(brief.skillUsageSince),
             skill_usage: brief.skillUsage.map(line => ({
               name: line.name,
               count: line.count,

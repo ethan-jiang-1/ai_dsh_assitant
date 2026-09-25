@@ -38,6 +38,11 @@
 `dataDir` 可用配置覆盖（bundle patch / profile patch），默认跟随 `resolveDshHome()` —— 于是**双 home 隔离自动生效**：
 开发 harness home 里的 working folder 与日用 harness home 里的互不可见。
 
+**账本的覆盖窗口**：账本记 `since`（开始计数的时刻）；旧账本没有该字段时，按**最早一次加载**推导下界
+（推导而非编造：覆盖不可能比它记下的第一笔更晚）。**`0 次`只表示"窗口内未加载"**，不得当作"从未使用"——
+真实案例：一件技能账本报 0 而会话日志里有两次加载，都发生在账本开始之前。`curate` 的 skill usage 行
+带窗口（`since YYYY-MM-DD` 或 `ledger window unknown`），退役判断必须连窗口一起读。
+
 **根下的 `skill-usage.json` 不是房间**：它是机器自有的用量账本——每次 `skill` 工具成功加载一个技能，
 learn 模块的 `tools/result` 订阅就给对应名字计数（用户 `/name` 斜杠注入不走工具管线，不计）。
 `curate` 与 `assistant_reflect brief` 回显计数（最少用在前 / 最多用在前），作为退役决策与

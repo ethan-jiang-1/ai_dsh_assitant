@@ -101,6 +101,8 @@ export interface CurationInput {
   readonly skillUsage: SkillUsage
   /** Set when the ledger file exists but is not a valid ledger. */
   readonly skillUsageFailure?: SkillUsageReadFailure
+  /** When the usage ledger started counting; absent when unknown (older ledger or fresh home). */
+  readonly skillUsageSince?: string
   /** Learned skill names that lost the registry's name resolution, mapped to the winning provider. */
   readonly shadowedSkills: Readonly<Record<string, string>>
   /** Bytes the current digest occupies (post-truncation, so never above the budget). */
@@ -125,6 +127,8 @@ export interface CurationBrief {
   readonly findings: readonly CurationFinding[]
   /** Per-skill usage lines for the learned skills, least-used first (retirement candidates first). */
   readonly skillUsage: readonly SkillUsageLine[]
+  /** Passed through from the ledger so consumers can say which window the counts cover. */
+  readonly skillUsageSince?: string
   /** Headline counts. */
   readonly counts: {
     readonly memories: number
@@ -404,6 +408,7 @@ export function curateHome(input: CurationInput): CurationBrief {
   return {
     findings,
     skillUsage: skillUsageLines(input.skillUsage, learnedNames, input.now, 'least-used'),
+    ...(input.skillUsageSince !== undefined ? { skillUsageSince: input.skillUsageSince } : {}),
     counts: {
       memories: input.memories.length,
       activeMemories: input.memories.filter(record => record.status === 'active').length,

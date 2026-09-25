@@ -13,10 +13,12 @@ import { afterEach, describe, expect, it } from 'vitest'
 import AssistantMemory from '../src/index.ts'
 import {
   parseSkillUsage,
+  parseSkillUsageFile,
   recordSkillLoad,
   renderSkillUsage,
   skillLoadFromResult,
   skillUsageLines,
+  usageWindowNote,
   writeSkillUsage,
 } from '../src/skills/usage.ts'
 
@@ -147,5 +149,62 @@ describe('skill usage ledger (service)', () => {
     // writeSkillUsage leaves no temporary residue behind.
     await writeSkillUsage(join(dir, 'skill-usage.json'), {})
     expect(JSON.parse(readFileSync(join(dir, 'skill-usage.json'), 'utf8')).usage).toEqual({})
+  })
+})
+
+describe('the ledger coverage window', () => {
+  const windows: string[] = []
+  afterEach(() => {
+    for (const dir of windows.splice(0)) rmSync(dir, { recursive: true, force: true })
+  })
+
+  // Measured case: a learned skill showed count 0 in the ledger while session logs held two loads,
+  // both predating the ledger. A bare "0 = never used" invites retiring a live skill, so the
+  // window is carried in the file and said out loud wherever the counts are shown.
+  const usage = { 'some-skill': { count: 2, lastUsedAt: '2026-09-24T05:00:00.000Z' } }
+
+  it('round-trips a declared window and derives a lower bound for a ledger without one', () => {
+    const withSince = renderSkillUsage(usage, '2026-09-24T17:03:48.685Z')
+    expect(parseSkillUsageFile(withSince)).toEqual({ usage, since: '2026-09-24T17:03:48.685Z' })
+    // No declared stamp: the earliest recorded load is the best defensible lower bound.
+    expect(parseSkillUsageFile(renderSkillUsage(usage))).toEqual({ usage, since: '2026-09-24T05:00:00.000Z' })
+    expect(parseSkillUsage(renderSkillUsage(usage, '2026-09-24T17:03:48.685Z'))).toEqual(usage)
+  })
+
+  it('ignores a since that is not a usable timestamp and derives it from the earliest load', () => {
+    const text = JSON.stringify({
+      version: 1, since: 42,
+      usage: { b: { count: 1, lastUsedAt: '2026-09-25T01:00:00.000Z' }, a: { count: 1, lastUsedAt: '2026-09-24T05:00:00.000Z' } },
+    })
+    expect(parseSkillUsageFile(text)?.since).toBe('2026-09-24T05:00:00.000Z')
+    expect(parseSkillUsageFile(JSON.stringify({ version: 1, usage: {} }))).toEqual({ usage: {} })
+  })
+
+  it('phrases the window for model-facing text', () => {
+    expect(usageWindowNote('2026-09-24T17:03:48.685Z')).toBe('since 2026-09-24')
+    expect(usageWindowNote(undefined)).toBe('ledger window unknown')
+  })
+
+  it('seeds the window on the first recorded load and keeps it afterwards', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'skill-window-'))
+    windows.push(dir)
+    const service = new AssistantMemory(new Context(), { dataDir: dir })
+    await service.recordSkillLoad('alpha')
+    const first = await service.skillUsage()
+    expect(first.since).toBeDefined()
+    const seeded = first.since
+    await service.recordSkillLoad('beta')
+    const second = await service.skillUsage()
+    expect(second.since).toBe(seeded)
+    expect(second.usage['alpha']?.count).toBe(1)
+    expect(second.usage['beta']?.count).toBe(1)
+  })
+})
+
+describe('skillUsageLines with a known window', () => {
+  it('keeps zero counts distinguishable from absence', () => {
+    const lines = skillUsageLines({}, ['never-used'], new Date('2026-09-25T00:00:00.000Z'), 'least-used')
+    expect(lines[0]).toEqual({ name: 'never-used', count: 0 })
+    expect(usageWindowNote('2026-09-20T00:00:00.000Z')).toBe('since 2026-09-20')
   })
 })

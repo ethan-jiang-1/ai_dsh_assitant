@@ -805,9 +805,10 @@ export class AssistantMemory extends Service {
       )
     }
     const usage = recordSkillLoad(read.usage, name, now)
+    const since = read.since ?? now.toISOString()
     const entry = usage[name]
     if (entry === undefined) throw new Error(`usage ledger did not record "${name}"`)
-    await writeSkillUsage(this.paths.skillUsageFile, usage)
+    await writeSkillUsage(this.paths.skillUsageFile, usage, since)
     return entry
   }
 
@@ -907,6 +908,7 @@ export class AssistantMemory extends Service {
       skillSnapshots: archiveScale.snapshots,
       ...(manualText !== undefined ? { manualVersion: parseManualVersion(manualText) } : {}),
       skillUsage: usage.usage,
+      ...(usage.since !== undefined ? { skillUsageSince: usage.since } : {}),
       ...(usage.failure !== undefined ? { skillUsageFailure: usage.failure } : {}),
       shadowedSkills: shadowedBy ?? {},
       digestBytes: digest.bytes,

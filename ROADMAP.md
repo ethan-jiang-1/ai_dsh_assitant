@@ -12,6 +12,7 @@
 
 ## 队列
 
+- ⏳ 技能触发面：`session-recall` 在账本窗口与全量日志里都是 0 加载（另 5 件策展技能都被加载过）——判它是"罕见情况的招牌"还是"描述没接上真实场景"（触发=真实使用里确实需要回忆历史会话；依据：[责任圈卡](notes/proposed/2026-09-25-owner-mandate-and-real-use-baseline.md) §十一）
 - ⏳ 家的内存段瘦身（合并/下沉记忆、压缩措辞）（触发=真实使用中确实感到摘要偏薄；降级已优雅故不紧急，依据：[责任圈卡](notes/proposed/2026-09-25-owner-mandate-and-real-use-baseline.md) §九）
 - ▶ **长期责任圈（职责，不完成）**：按圈推进产品收敛——每圈测差距→切片→更新队列→摆下一圈；圈纪律、意图级仪表与逐圈记录见[责任圈卡](notes/proposed/2026-09-25-owner-mandate-and-real-use-baseline.md)（职责无终点，本行不按"完成即离队"退场）
 - ⏳ 负例控制存量补课（触发=下一次改动某条尚无红夹具的结构性门禁时，同 diff 补它的造红夹具；存量不追账，理由见[红证据档案](notes/research/archive/2026-09-25-old-gate-red-controls.md)）

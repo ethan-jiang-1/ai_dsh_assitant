@@ -41,6 +41,14 @@ export interface SkillUsageReadFailure {
 export interface SkillUsageRead {
   /** Parsed entries; empty when the file is missing or corrupt. */
   readonly usage: SkillUsage
+  /**
+   * When the ledger started counting (the first recorded load). Absent for a ledger written before
+   * this field existed, and for a home that never recorded one. The window matters: a `count: 0`
+   * only means "not loaded **since `since`**", and a skill loaded before the ledger began is not
+   * evidence of disuse (measured case: a learned skill showed 0 loads while session logs held two,
+   * both predating the ledger).
+   */
+  readonly since?: string
   /** Set when the file exists but is not a valid ledger. */
   readonly failure?: SkillUsageReadFailure
 }
@@ -76,6 +84,15 @@ function parseEntry(value: unknown): SkillUsageEntry | undefined {
  * @returns The usage map, or `undefined` when the text is not a valid ledger.
  */
 export function parseSkillUsage(text: string): SkillUsage | undefined {
+  return parseSkillUsageFile(text)?.usage
+}
+
+/**
+ * Parse ledger file contents including its coverage window.
+ * @param text - Raw file text.
+ * @returns The usage map and optional `since`, or `undefined` when the text is not a valid ledger.
+ */
+export function parseSkillUsageFile(text: string): { usage: SkillUsage, since?: string } | undefined {
   let parsed: unknown
   try {
     parsed = JSON.parse(text)
@@ -91,7 +108,23 @@ export function parseSkillUsage(text: string): SkillUsage | undefined {
     const entry = parseEntry(value)
     if (entry !== undefined) usage[name] = entry
   }
-  return usage
+  // A ledger written before the `since` field existed still has a defensible lower bound on its
+  // coverage: it cannot have started counting later than its earliest recorded load. Derived, not
+  // invented — and only when the file carries no explicit stamp.
+  const declared = typeof file.since === 'string' && file.since.length > 0 ? file.since : undefined
+  const earliest = Object.values(usage)
+    .flatMap(entry => entry.lastUsedAt !== undefined ? [entry.lastUsedAt] : [])
+    .sort()[0]
+  const since = declared ?? earliest
+  return { usage, ...(since !== undefined ? { since } : {}) }
+}
+
+/**
+ * The coverage window as a phrase for model-facing text, so "0 loads" is never read as "never used".
+ * @param since - The ledger's first counted load, when known.
+ */
+export function usageWindowNote(since: string | undefined): string {
+  return since === undefined ? 'ledger window unknown' : `since ${since.slice(0, 10)}`
 }
 
 /**
@@ -100,10 +133,11 @@ export function parseSkillUsage(text: string): SkillUsage | undefined {
  * @param usage - Ledger contents.
  * @returns File text.
  */
-export function renderSkillUsage(usage: SkillUsage): string {
+export function renderSkillUsage(usage: SkillUsage, since?: string): string {
   const sorted: Record<string, SkillUsageEntry> = {}
   for (const name of Object.keys(usage).sort()) sorted[name] = usage[name] as SkillUsageEntry
-  return `${JSON.stringify({ version: LEDGER_VERSION, usage: sorted }, null, 2)}\n`
+  const file = since === undefined ? { version: LEDGER_VERSION, usage: sorted } : { version: LEDGER_VERSION, since, usage: sorted }
+  return `${JSON.stringify(file, null, 2)}\n`
 }
 
 /**
@@ -119,11 +153,11 @@ export async function readSkillUsage(path: string): Promise<SkillUsageRead> {
   } catch {
     return { usage: {} }
   }
-  const usage = parseSkillUsage(text)
-  if (usage === undefined) {
+  const parsed = parseSkillUsageFile(text)
+  if (parsed === undefined) {
     return { usage: {}, failure: { path, reason: 'not a valid skill-usage ledger (version or entries wrong)' } }
   }
-  return { usage }
+  return { usage: parsed.usage, ...(parsed.since !== undefined ? { since: parsed.since } : {}) }
 }
 
 /**
@@ -131,9 +165,9 @@ export async function readSkillUsage(path: string): Promise<SkillUsageRead> {
  * @param path - Ledger file path.
  * @param usage - Ledger contents.
  */
-export async function writeSkillUsage(path: string, usage: SkillUsage): Promise<void> {
+export async function writeSkillUsage(path: string, usage: SkillUsage, since?: string): Promise<void> {
   const temporary = `${path}.tmp`
-  await writeFile(temporary, renderSkillUsage(usage), 'utf8')
+  await writeFile(temporary, renderSkillUsage(usage, since), 'utf8')
   await rename(temporary, path)
 }
 

@@ -182,6 +182,7 @@ describe('curateHome', () => {
         'once-used': { count: 1, lastUsedAt: '2026-09-01T00:00:00.000Z' },
         'a-curated-skill': { count: 9, lastUsedAt: '2026-09-23T00:00:00.000Z' },
       },
+      skillUsageSince: '2026-09-20T00:00:00.000Z',
     }))
 
     // Least-used first (retirement candidates first), never-loaded included, curated names excluded.
@@ -193,6 +194,8 @@ describe('curateHome', () => {
     expect(brief.skillUsage[0]?.lastUsedAt).toBeUndefined()
     expect(brief.skillUsage[1]?.daysSinceLastUse).toBe(22)
     expect(brief.skillUsage[2]?.daysSinceLastUse).toBe(1)
+    // The window travels with the counts so a consumer can say "not loaded since <date>".
+    expect(brief.skillUsageSince).toBe('2026-09-20T00:00:00.000Z')
   })
 
   it('warns when the usage ledger exists but is unreadable', () => {
