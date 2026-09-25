@@ -91,10 +91,13 @@
 
 ## 五、实验计划（按序，每步可看可玩）
 
-### 实验一：最小桌面 tab（先跑通链路）
-- 一个 tab，只显示四个数字（记忆/知识/技能/线索计数）
-- 目的：验证 client → Remote → host 的数据链路
-- 判据：CEO 打开 sidebar 能看到真实数字
+### 实验一：最小桌面 tab ✅（2026-09-25，两轮修正后成功）
+- **实验一a（右侧 sidebar tab 类型注册）**：代码通过但浏览器不可见——**教训：tab 类型是"我能处理这种资源"的被动声明，不产生可见入口**
+- **实验一b（左侧 sidebar panellist 注册）**：✅ **成功**——CEO 看到了 My Desk 图标并打开了面板
+  - 修正过程：第一版用 `contribute` 方法（猜的，不存在）→ 第二版读 `ui-schedule` 源码发现正确形状是 `inject + register`（跟品牌标记同机制，declaration 带 `id`/`order`/`label`）
+  - 面板显示四个静态数字（Memories 8 / Knowledge 13 / Skills 8 / Threads 0）
+  - **学到的 DSH 交互机制**：panellist 是 list 型 slot，消费端用 `entriesOfSlot` 读取；注册端用 `inject(name, () => register(declaration, component))`；每个 inject 贡献一个条目
+- 目的达成：验证 client → sidebar 面板的路径端到端可行
 
 ### 实验二：桌面 tab 补全（等你决定 + 在跟的事 + 快捷操作）
 - 补全桌面 tab 的三块内容

@@ -12,9 +12,9 @@
 用户 2026-09-25 的意图：**"我们都实验一下吧，你看看我们这个角色拿这些交互到底呈现什么东西，
 好好思考思考，正好是一个挺好的练习，让我熟悉一下DSH底下交互怎么设计"**
 
-## 当前卡在哪
+## 当前状态
 
-**实验一b：左侧 sidebar 注册 "My Desk" 面板——代码已提交但图标未在浏览器中出现。**
+**实验一b ✅ 已成功**——CEO 确认看到了 My Desk 图标并打开了面板。当前任务：**实验二（接真数据）**。
 
 具体状态：
 - 客户端代码在 `packages/dsh-smart-assistant/src/client/index.ts`
@@ -24,7 +24,15 @@
 
 ## 你要做什么
 
-1. **诊断为什么图标不出现**：
+**实验二：把四个静态数字替换为 assistantMemory 服务的真实数据。**
+
+1. **暴露 Remote 读取面**：在 host 面（src/index.ts）暴露 digest counts 等只读数据
+2. **在 client 面读取**：通过 Remote API 从浏览器侧获取数据
+3. **替换 DeskPanel 的静态数字为真实数据**
+
+参考：`vendor/dsh/packages/client/ui-sidebar-documentpreview/src/client/rpc.ts` 看它怎么通过 Remote 读文件。
+
+诊断线索（如果实验二遇到问题）：
    - 打开 Web UI（服务器可能需要重启，见 §服务器）
    - 用浏览器 DevTools Console 看有没有 `[assistant-desk]` 相关警告或报错
    - 读 `vendor/dsh/packages/client/ui-sidebar/src/client/index.ts` 的 `entriesOfSlot` 逻辑
