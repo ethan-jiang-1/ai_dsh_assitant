@@ -74,7 +74,7 @@ dev 运行时不受影响（`tsconfig.tsx.json` 让 `pnpm dsh` 走 vendor `src`�
 **结论**：vendor 的 `tsdown.config.ts` 把 root 包入口写成 `lib/types/{index,invariant,startup}.js`，而该文件在
 **干净树上不存在**——它由 typert 的 workspace 生成通道产出，而那条通道本身又不在 `build`/`build:lib` 脚本里；
 vendor 的构建脚本假设**已经引导过的树**（其 `lib/` 在场）。因此从零重建需要 vendor 自己的引导顺序，
-本轮未找到其文档化入口（`vendor/dsh/README.md`、`docs/`、根 `scripts/build.ts` 都未写"首次构建"）。
+本轮未找到其文档化入口（`vendor/dsh/README.md`、`docs/`、根 `vendor/dsh/scripts/build.ts` 都未写"首次构建"）。
 
 **第八圈追加（同一天）**：补齐了构建期依赖——`tsc -b` 重建 typert 家族（generator/loader/protocol/registry）
 与嵌套 vendor（`vendor/dsh/vendor/` 的 cordis/cosmokit/schemastery 与 6 个 cordis-plugin-*），它们只出
