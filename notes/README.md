@@ -47,7 +47,7 @@
 - `implemented/`：39 篇（当前权威决定与理由）。
 - `rejected/`：空——先立目录与门禁，等第一个被否决的提案入住（负知识不与"输掉的方案"混住）。
 - `archived/`：6 篇（2026-09-23/24 的战役与外部吸收记录；决定已消化、只余历史引用价值）。
-- `research/`：空（无进行中调研）；`research/archive/`：9 篇（r1–r6 普查与三份 shortlist，全部已收卷）。
+- `research/`：1 篇进行中（[企业聪明助手总体思路](research/2026-09-25-grand-plan-enterprise-expert-assistant.md)）；`research/archive/`：9 篇（r1–r6 普查与三份 shortlist，全部已收卷）。
 
 ## 四、与 DSH 的对齐与偏离登记
 
