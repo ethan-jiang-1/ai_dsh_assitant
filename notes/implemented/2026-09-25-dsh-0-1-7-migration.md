@@ -165,3 +165,16 @@ context/baseUrl 由 patch 文件确定）。下一步应把测试夹具改成"**
 （那一份里有 `tool-*` 行且能在 CI 里跑通，是最好的对照组）；③若确实是 `tools` 可见性问题，
 看是夹具缺行还是我们的行在新 pin 下需要改成"读时取服务"（vendor 自己的注释里就有这种写法：
 PTC runtime 刻意不走静态 `inject`，避免把 `ctx.tools` 及其后的工具插件当人质）。
+
+### 九之补二：`tools` 变量的进一步排查（本轮实跑，仍未解）
+
+- **服务并不缺**：在夹具的预设挂载点打印，`tools=true skills=true assistantMemory=true systemPrompt=true` 四者都在根作用域。
+- **失败与 `agents.create` 无关**：直接在夹具里调 `ctx.agentPresets.mount(ctx, 'assistant')` 复现同一条
+  `RemoteError: … never started`，说明问题在**定义/行本身**，不在 agent setup 路径。
+- **不是"注入 `tools` 就是环"**：官方插件同样静态 inject —— `tool-skill` 是 `['agents','tools','skills']`、
+  `tool-workspace-dependencies` 是 `['tools']`、`tool-bash-persistent` 是 `['tools','terminals']`，
+  且它们都在官方 `presets/*.patch.yml` 的 preset 行里、能在 CI 跑通。所以"preset 行里 inject tools"本身合法。
+- 因此剩下的差异只可能在**组合方式**：我用 `ctx.plugin(AgentPreset, { id, plugins: OWN_ROWS })` 直接注册
+  **普通对象行**，而生产是把 `preset-assistant` 行放进 patch、由 **Loader** 解析（`prepareProfileEntries`
+  在那一刻求值 `!!js`、解析名字、建 EntryOptions）。**下一步就做这一件事**：夹具改成"写一份 patch +
+  经 Loader 加载"，与官方 `bundle/web-app/presets/*.patch.yml` 的行形状逐字段对齐再复现。
