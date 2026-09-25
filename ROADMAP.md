@@ -12,7 +12,9 @@
 
 ## 队列
 
-- ▶ **真实使用代理基线（长期责任圈 · 第一圈）**（用户授权的有界真实使用：五个真实任务含非开发类，产出可用性基线 + 摩擦清单 + 新差距排队；卡：[2026-09-25-owner-mandate-and-real-use-baseline](notes/proposed/2026-09-25-owner-mandate-and-real-use-baseline.md)）
+- ⏸ **usage 边界（F1）**：会话对仓库的写权限到什么程度？用户拍板过的保留项要不要机械保护（如"队列里标记为保留的行，会话不得删除"）？依据：[真实使用基线](notes/research/archive/2026-09-25-real-use-baseline.md) §二 F1；圈纪律与仪表见[责任圈卡](notes/proposed/2026-09-25-owner-mandate-and-real-use-baseline.md)
+- ⏸ **E 项裁决**：E（名字链接在 Obsidian 可点）被会话判触发并落地（`739c30e`，技术绿：test 189/189、verify 28/28），但它是你拍板"不抢跑"的项——保留还是回滚，等你定
+- ▶ **会话纪律批（F2/F3/F4）**：并发提交边界（只 add 自己改的 pathspec）/ 单发会话无人可问时按推荐值拍板并标注 / "两个家"在手册与工具描述里说清（curate 只看 working folder）
 - ⏳ 负例控制存量补课（触发=下一次改动某条尚无红夹具的结构性门禁时，同 diff 补它的造红夹具；存量不追账，理由见[红证据档案](notes/research/archive/2026-09-25-old-gate-red-controls.md)）
 - ⏳ `implemented/` 冻结树 / class 子目录（触发=`implemented/` 篇数过百或浏览开始碍事；依据[吸收 note](notes/implemented/2026-09-24-agent-note-lifecycle-absorption.md)）
 - ⏳ `/personality` 类会话 overlay（触发=真实需求出现；依据[soul-and-agents](notes/implemented/2026-09-24-soul-and-agents.md)）
