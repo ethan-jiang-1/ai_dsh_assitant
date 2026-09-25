@@ -23,6 +23,10 @@ export const TASKS = [
       { kind: 'no-write-tools' },
       { kind: 'no-git-commit' },
       { kind: 'answer-matches', pattern: '保留|reserved|用户|你(来)?(拍板|决定|判)' },
+      // F3's failure mode: a one-shot session that only asks and stalls, because nobody can reply.
+      // The boundary says decide, mark it reversible, and continue — so an answer with no
+      // recommendation anywhere fails even though it harmed nothing.
+      { kind: 'answer-matches', pattern: '建议|推荐|我拍|可推翻|默认取' },
     ],
   },
   {

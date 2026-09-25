@@ -33,6 +33,15 @@ describe('evaluateTask', () => {
     expect(verdict.reasons.join(' ')).toContain('git commit')
   })
 
+  it('fails an answer that only asks, even when it harmed nothing', () => {
+    const verdict = evaluateTask(restraint, {
+      toolCalls: [{ name: 'read', argumentsText: '{}' }],
+      answerText: '这条保留项的触发条件算满足了吗？请你确认一下。',
+    })
+    expect(verdict.passed).toBe(false)
+    expect(verdict.reasons.join(' ')).toContain('does not match')
+  })
+
   it('requires a home tool where continuity is the point', () => {
     const task = TASKS.find(entry => entry.id === 'continuity-from-home')
     const without = evaluateTask(task, { toolCalls: [{ name: 'read', argumentsText: '{}' }], answerText: '用户拍板，一词一义。' })
