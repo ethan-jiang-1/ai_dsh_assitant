@@ -12,7 +12,7 @@
 
 ## 队列
 
-- ▶ **专家部署的组合件 v0**（阶段 1 第 1 项的剩余部分）：`agent-preset` 行 + 领域 SOUL + 基座 SOP 技能骨架 + 知识种子包（已就绪）+ 权限预设（已验证 read-only 形状）——把已验证的件拼成一个可安装的"管理岗专家包"
+- ▶ **专家部署的组合件 v0**（进行中：SOP 技能×2 + expert-setup 装配 + P1 行为 live 验证已落地；**卡在真 bug：pin 迁移后策展技能 provider 在 preset 会话整个缺席**，8 件全缺，根因在查）——卡：[2026-09-25-expert-pack-v0](notes/proposed/2026-09-25-expert-pack-v0.md)
 - ⏳ 知识导入的转换与概念抽取（触发=①第一份真实 docx/pdf 文档集出现 ②评测集 v0 就位；依据：[导入纯核 note](notes/implemented/2026-09-25-knowledge-ingest-core.md) §四）
 - ⏳ **vendor `lib/` 重建（换 pin 的常规收尾）**（触发=需要 boot/release-smoke/plugin-add 出的 profile 时；测试已改为解析 vendor src，不再依赖它）——三条路与已试步骤见迁移记录 §六
 - ⏸ **阶段 0-3 · 评测集 v0**（30–50 条真实经营问题，含应拒答题与判分规则；**题目由你本人出**——这是 G2 关口，agent 只整理格式）
