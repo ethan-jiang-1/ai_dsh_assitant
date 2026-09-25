@@ -27,9 +27,7 @@ interface BrandMarkProps {
 /** The slots-registry surface this face uses (structural mirror of the client renderer's). */
 interface SlotsRegistry {
   inject(name: string, contribute: () => unknown): unknown
-  register(declaration: { name: string }, component: (props: never) => unknown): unknown
-  /** List-slot contribution (may not exist on all slot hosts; guarded at call time). */
-  contribute?(name: string, entry: unknown): unknown
+  register(declaration: { name: string, [key: string]: unknown }, component: (props: never) => unknown): unknown
 }
 
 /** The browser root-context surface this face uses. */
@@ -110,6 +108,22 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   }
 
   /**
+   * Experiment 1b: the desk icon for the left sidebar's panel list (same slot shape
+   * ui-schedule uses — a calendar glyph, sized by the sidebar's PropsRuntime).
+   */
+  function DeskIcon({ size }: { size: number }): unknown {
+    return createElement('svg', {
+      width: size, height: size, viewBox: '0 0 24 24', fill: 'none',
+      stroke: MARK_TEAL, strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round',
+      'aria-hidden': true,
+    },
+    createElement('rect', { x: 3, y: 3, width: 18, height: 18, rx: 2 }),
+    createElement('line', { x1: 3, y1: 9, x2: 21, y2: 9 }),
+    createElement('line', { x1: 9, y1: 21, x2: 9, y2: 9 }),
+    )
+  }
+
+  /**
    * Experiment 1b: the My Desk panel body — four static numbers proving the panel path.
    * Rendered with createElement only (no JSX in the script-format client bundle).
    */
@@ -149,25 +163,21 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         yield ctx.slots.register({ name: 'sidebar.brand.name' }, AssistantBrandName)
       }))
 
-    // Experiment 1b: register a "My Desk" panel in the LEFT sidebar's panel list — the same
-    // mechanism the Settings gear uses. Clicking the icon opens the panel body in the main area.
-    // The four numbers are static placeholders; experiment 2 wires them to assistantMemory.
-    try {
-      if (ctx.slots.contribute !== undefined) {
-        ctx.slots.contribute('sidebar.panellist', {
-          id: 'assistant-desk',
-          order: 10,
-          label: 'My Desk',
-        })
-      }
-      // The main slot is keyed: register under the panel id.
-      ;(ctx.slots as { register: (d: { name: string }, c: (p: never) => unknown) => unknown })
-        .register({ name: 'main' }, DeskPanel as (p: never) => unknown)
-    } catch (error) {
-      // The slots system may not expose `contribute` — record and continue; the brand marks
-      // above still work. This try/catch is the experiment's honesty mechanism.
-      console.warn('[assistant-desk] panel registration failed:', error)
-    }
+    // Experiment 1b (corrected shape, learned from ui-schedule's registration):
+    // panellist entries use inject + register with id/order/label in the declaration,
+    // and the panel body registers in the 'main' keyed slot under the same id.
+    ctx.slots.inject('sidebar.panellist', () =>
+      ctx.slots.register({
+        name: 'sidebar.panellist',
+        id: 'assistant-desk',
+        order: 10,
+        label: 'My Desk',
+      }, DeskIcon))
+    ctx.slots.inject('main', () =>
+      ctx.slots.register({
+        name: 'main',
+        key: 'assistant-desk',
+      }, DeskPanel))
 
     // Experiment 1 (kept for reference): the right-sidebar tab type registration below
     // registers a TYPE (what this plugin can open), not a VISIBLE tab — lesson learned:
