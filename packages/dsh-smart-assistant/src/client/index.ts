@@ -131,6 +131,9 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     const { createElement: h, useEffect, useState } = require('react') as typeof import('react')
     const [presets, setPresets] = useState<{ id: string, name: string }[] | undefined>(undefined)
     const [conversations, setConversations] = useState<{ total: number, running: number, recent: { id: string, updated: string, cwd: string }[] } | undefined>(undefined)
+    const [sessionIds, setSessionIds] = useState<string[]>([])
+    const [counts, setCounts] = useState<Record<string, number> | undefined>(undefined)
+    const [deskNote, setDeskNote] = useState<string | undefined>(undefined)
     const [error, setError] = useState<string | undefined>(undefined)
 
     // Assistants: one manifested Remote call. Its value is a Result wrapper
@@ -169,6 +172,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         const ids = state?.ids ?? []
         const byId = state?.byId ?? {}
         const ordered = ids.slice().sort((left, right) => Number(byId[right]?.updatedAt ?? 0) - Number(byId[left]?.updatedAt ?? 0))
+        setSessionIds(ordered)
         setConversations({
           total: ids.length,
           running: ids.filter(id => byId[id]?.running === true).length,
@@ -186,6 +190,40 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       update()
       return store.subscribe(update)
     }, [])
+
+    // Working-folder counts: the assistant maintains `.desk/state.json` inside the session
+    // workspace; the panel reads it through the manifested `workspaceFiles` namespace. This is
+    // the cheap route around the out-of-tree Remote-namespace block (see the proposal card).
+    useEffect(() => {
+      const sessionId = sessionIds[0]
+      if (sessionId === undefined) return
+      const api = deskRemote?.['workspaceFiles'] as {
+        read?: (sessionId: string, path: string, options: unknown) => Promise<unknown>
+      } | undefined
+      if (api?.read === undefined) {
+        setDeskNote('remote.workspaceFiles did not materialize')
+        return
+      }
+      void api.read(sessionId, '.desk/state.json', {}).then((result: unknown) => {
+        const wrapped = result as { ok?: boolean, value?: { text?: string }, error?: { message?: string } }
+        if (wrapped?.ok === false) {
+          setDeskNote(wrapped.error?.message ?? 'desk file read failed')
+          return
+        }
+        const text = wrapped?.value?.text
+        if (typeof text !== 'string' || text.trim() === '') {
+          setDeskNote('no desk file yet — the assistant writes .desk/state.json in the workspace')
+          return
+        }
+        try {
+          const parsed = JSON.parse(text) as { counts?: Record<string, number> }
+          setCounts(parsed.counts ?? {})
+          setDeskNote(undefined)
+        } catch (reason) {
+          setDeskNote(`desk file is not valid JSON: ${String(reason)}`)
+        }
+      }).catch((reason: unknown) => setDeskNote(String(reason)))
+    }, [sessionIds])
 
     const cell = (label: string, value: string): ReturnType<typeof h> =>
       h('div', { style: { display: 'inline-block', margin: '8px 16px', textAlign: 'center' as const } },
@@ -222,17 +260,17 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       error === undefined ? null : h('p', { style: { fontSize: '12px', color: '#c66', marginTop: '8px' } }, `⚠ ${error}`),
       sectionTitle('Working-folder counts'),
       h('div', null,
-        cell('Memories', '—'),
-        cell('Knowledge', '—'),
-        cell('Skills', '—'),
-        cell('Threads', '—')),
-      muted('Pending a host-data channel: an out-of-tree package cannot open a new Remote namespace '
-        + '(the browser-side manifest is generated from the vendor workspace). Next path: a desk file '
-        + 'the assistant maintains in the workspace, read through workspaceFiles.'))
+        cell('Memories', counts?.memories === undefined ? '—' : String(counts.memories)),
+        cell('Knowledge', counts?.knowledgeStable === undefined ? '—' : String(counts.knowledgeStable)),
+        cell('Skills', counts?.skills === undefined ? '—' : String(counts.skills)),
+        cell('Threads', counts?.threads === undefined ? '—' : String(counts.threads))),
+      deskNote === undefined
+        ? muted('Read live from .desk/state.json in this session\'s workspace, through the workspaceFiles namespace.')
+        : muted(deskNote))
   }
 
   /** Slots this face occupies (single-occupant, root-scope, declared by the sidebar). */
-  const inject = ['slots', 'sidebarRightTabs', 'sessions', 'remote', 'remote.agentPresets']
+  const inject = ['slots', 'sidebarRightTabs', 'sessions', 'remote', 'remote.agentPresets', 'remote.workspaceFiles']
 
   /**
    * Register the brand occupants as one declaration-aware set.
