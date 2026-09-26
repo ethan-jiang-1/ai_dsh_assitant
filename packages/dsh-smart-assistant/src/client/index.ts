@@ -132,6 +132,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     const [presets, setPresets] = useState<{ id: string, name: string }[] | undefined>(undefined)
     const [conversations, setConversations] = useState<{ total: number, running: number, recent: { id: string, updated: string, cwd: string }[] } | undefined>(undefined)
     const [sessionIds, setSessionIds] = useState<string[]>([])
+    const [sessionCwds, setSessionCwds] = useState<Record<string, string>>({})
     const [desk, setDesk] = useState<{
       counts?: Record<string, number>
       threads?: { id?: string, status?: string, why?: string, lean?: string }[]
@@ -140,6 +141,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     const [deskNote, setDeskNote] = useState<string | undefined>(undefined)
     const [refreshing, setRefreshing] = useState<string | undefined>(undefined)
     const [deskReloadKey, setDeskReloadKey] = useState(0)
+    const [deskSource, setDeskSource] = useState<string | undefined>(undefined)
     const [error, setError] = useState<string | undefined>(undefined)
 
     // Assistants: one manifested Remote call. Its value is a Result wrapper
@@ -179,6 +181,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         const byId = state?.byId ?? {}
         const ordered = ids.slice().sort((left, right) => Number(byId[right]?.updatedAt ?? 0) - Number(byId[left]?.updatedAt ?? 0))
         setSessionIds(ordered)
+        setSessionCwds(Object.fromEntries(ids.map(id => [id, String(byId[id]?.cwd ?? '')])))
         setConversations({
           total: ids.length,
           running: ids.filter(id => byId[id]?.running === true).length,
@@ -200,34 +203,53 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // Working-folder counts: the assistant maintains `.desk/state.json` inside the session
     // workspace; the panel reads it through the manifested `workspaceFiles` namespace. This is
     // the cheap route around the out-of-tree Remote-namespace block (see the proposal card).
+    // The desk file is per-workspace, so walk the most recent sessions until one has it and say
+    // which workspace answered — a silent miss here reads as "the panel is broken".
     useEffect(() => {
-      const sessionId = sessionIds[0]
-      if (sessionId === undefined) return
       const api = deskRemote?.['workspaceFiles'] as {
         read?: (sessionId: string, path: string, options: unknown) => Promise<unknown>
       } | undefined
-      if (api?.read === undefined) {
+      const read = api?.read
+      if (read === undefined) {
         setDeskNote('remote.workspaceFiles did not materialize')
-        return
+        return undefined
       }
-      void api.read(sessionId, '.desk/state.json', {}).then((result: unknown) => {
-        const wrapped = result as { ok?: boolean, value?: { text?: string }, error?: { message?: string } }
-        if (wrapped?.ok === false) {
-          setDeskNote(wrapped.error?.message ?? 'desk file read failed')
-          return
-        }
-        const text = wrapped?.value?.text
-        if (typeof text !== 'string' || text.trim() === '') {
-          setDeskNote('no desk file yet — the assistant writes .desk/state.json in the workspace')
+      const candidates = sessionIds.slice(0, 5)
+      if (candidates.length === 0) {
+        setDeskNote('还没有会话——先和助手说句话，再让它刷新桌面')
+        return undefined
+      }
+      let cancelled = false
+      const attempt = async (index: number): Promise<void> => {
+        if (cancelled) return
+        if (index >= candidates.length) {
+          setDeskNote('最近 5 个会话的工作区里都没有 .desk/state.json——点上面的按钮让助手刷新桌面')
           return
         }
         try {
-          setDesk(JSON.parse(text) as typeof desk)
+          const sessionId = candidates[index] as string
+          const result = await read(sessionId, '.desk/state.json', {})
+          const wrapped = result as { ok?: boolean, value?: { text?: string }, error?: { message?: string } }
+          if (wrapped?.ok === false) {
+            await attempt(index + 1)
+            return
+          }
+          const text = wrapped?.value?.text
+          if (typeof text !== 'string' || text.trim() === '') {
+            await attempt(index + 1)
+            return
+          }
+          const parsed = JSON.parse(text) as typeof desk
+          if (cancelled) return
+          setDesk(parsed)
+          setDeskSource(sessionCwds[sessionId] ?? '')
           setDeskNote(undefined)
-        } catch (reason) {
-          setDeskNote(`desk file is not valid JSON: ${String(reason)}`)
+        } catch {
+          await attempt(index + 1)
         }
-      }).catch((reason: unknown) => setDeskNote(String(reason)))
+      }
+      void attempt(0)
+      return () => { cancelled = true }
     }, [sessionIds, deskReloadKey])
 
     const cell = (label: string, value: string): ReturnType<typeof h> =>
@@ -336,7 +358,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         cell('Skills', desk?.counts?.skills === undefined ? '—' : String(desk?.counts?.skills)),
         cell('Threads', desk?.counts?.threads === undefined ? '—' : String(desk?.counts?.threads))),
       deskNote === undefined
-        ? muted('Read live from .desk/state.json in this session\'s workspace, through the workspaceFiles namespace.')
+        ? muted(`读自 ${deskSource === undefined || deskSource === '' ? '会话工作区' : deskSource} 的 .desk/state.json（经 workspaceFiles 命名空间）`)
         : muted(deskNote))
   }
 
