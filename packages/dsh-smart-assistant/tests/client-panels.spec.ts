@@ -26,6 +26,7 @@ const reactShim = {
   createElement,
   useState: <T,>(initial: T): [T, (next: T) => void] => [initial, () => {}],
   useEffect: (): void => {},
+  useRef: <T,>(initial: T): { current: T } => ({ current: initial }),
 }
 
 interface DeskStore {
@@ -35,6 +36,7 @@ interface DeskStore {
   pending?: { rowId: string, at: number, action: string } | undefined
   lastReceipt?: { rowId: string, action: string, at: number } | undefined
   readError?: string | undefined
+  focusKnowledge?: 'drafts' | undefined
   misses: Set<string>
   /** The newest Session's updatedAt, so the panels can say when they lag the conversation. */
   sessionUpdatedAt?: number | undefined
@@ -316,6 +318,34 @@ describe('desk panels', () => {
     const empty = textsOf(exports.DeskTabBody({ sessionId: 's1' })).join(' | ')
     expect(empty).toContain('还没有 .desk/state.json')
     expect(empty).toContain('刷新桌面')
+  })
+
+  it('presents the three rooms as three QUESTIONS and lands the draft pointer on the drafts (S4)', () => {
+    const exports = materialize()
+    exports.deskStore.data = {
+      generatedAt: '2026-09-26T13:00:00+08:00',
+      counts: { knowledgeDraft: 2 },
+      knowledge: [
+        { id: 'k1', title: 'draft-1', status: 'draft' },
+        { id: 'k2', title: 'draft-2', status: 'draft' },
+        { id: 'k3', title: 'stable-1', status: 'stable' },
+      ],
+      memories: [{ id: 'm1', kind: 'fact', text: '一条记录' }],
+    }
+    // The rooms keep their names but each opens with the question it answers (user ruling:
+    // keep the entries, change the semantics).
+    const desk = textsOf(exports.DeskPanel()).join(' | ')
+    const knowledge = textsOf(exports.KnowledgePanel()).join(' | ')
+    const memory = textsOf(exports.MemoryPanel()).join(' | ')
+    expect(desk).toContain('现在要采取什么行动？')
+    expect(knowledge).toContain('你凭什么这样判断？')
+    expect(memory).toContain('你把我理解成什么？')
+    // The desk's draft pointer sends the principal over; the room highlights the very block
+    // they were pointed at (selectPanel takes only a room id — the flag is the anchor).
+    exports.deskStore.focusKnowledge = 'drafts'
+    const focused = textsOf(exports.KnowledgePanel()).join(' | ')
+    expect(focused).toContain('↑ 你从桌面点过来的那批')
+    expect(focused).toContain('draft-1')
   })
 
   it('carries the freshness warning in every room, not only the desk (A7)', () => {

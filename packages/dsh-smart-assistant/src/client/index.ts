@@ -168,6 +168,8 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     lastReceipt?: { rowId: string, action: string, at: number } | undefined
     /** A corrupt desk file from the bound session (A5): the tab shows the error and a retry, not "reading…". */
     readError?: string | undefined
+    /** The desk's draft pointer just sent the principal over (S4): highlight and scroll to the drafts. */
+    focusKnowledge?: 'drafts' | undefined
     /** Sessions whose workspace is known to have no desk file (moved onto the store: testable). */
     misses: Set<string>
     /** The newest Session's updatedAt, so the panels can say when they are behind the conversation. */
@@ -898,6 +900,9 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     const data = store.data
     return createElement('div', { style: { padding: '24px', maxWidth: '620px' } },
       createElement('h2', { style: { margin: '0 0 4px', fontSize: '18px' } }, '我的桌面'),
+      // The three rooms are three QUESTIONS, not three data containers (user ruling 2026-09-26:
+      // keep the familiar entries, make the navigation MEAN something).
+      createElement('div', { style: { fontSize: '13px', color: '#888', margin: '0 0 8px' } }, '现在要采取什么行动？'),
       refreshRow(store, 'desk'),
       quickActions(),
 
@@ -1005,9 +1010,14 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
           draftCount === 0
             ? null
             : createElement('div', {
-                onClick: () => { try { deskLayout?.selectPanel?.('assistant-knowledge') } catch { /* stale target */ } },
+                // S4: the pointer lands on the drafts themselves — selectPanel takes only a room
+                // id, so the room reads focusKnowledge and highlights + scrolls to the drafts.
+                onClick: () => {
+                  patchDesk({ focusKnowledge: 'drafts' })
+                  try { deskLayout?.selectPanel?.('assistant-knowledge') } catch { /* stale target */ }
+                },
                 style: { fontSize: '13px', color: '#b26a00', cursor: 'pointer', textDecoration: 'underline', marginTop: '8px' },
-              }, `⚠ ${String(draftCount)} 页知识在等你审批（点这里打开知识室）`),
+              }, `⚠ ${String(draftCount)} 页知识在等你审批（点这里去审批）`),
           upkeep.length === 0
             ? null
             : createElement('div', { style: { marginTop: '8px' } },
@@ -1137,6 +1147,19 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   /** Panel 2 — the knowledge room: what the assistant knows, and what is waiting for review. */
   function KnowledgePanel(): unknown {
     const store = useDesk()
+    const { useEffect, useRef } = require('react') as typeof import('react')
+    const draftsAnchor = useRef<{ current?: { scrollIntoView?: (options?: unknown) => void } | null } | null>(null)
+    useEffect(() => {
+      if (store.focusKnowledge !== 'drafts') return
+      try {
+        const node = draftsAnchor.current as { scrollIntoView?: (options?: unknown) => void } | null | undefined
+        node?.scrollIntoView?.({ behavior: 'smooth', block: 'start' })
+      } catch {
+        // No DOM (tests) or scroll refused: the highlight still marks the block.
+      }
+      const timer = setTimeout(() => { patchDesk({ focusKnowledge: undefined }) }, 4000)
+      return () => { clearTimeout(timer) }
+    }, [store.focusKnowledge])
     const pages = store.data?.knowledge ?? []
     const drafts = pages.filter(page => page.status === 'draft')
     const stable = pages.filter(page => page.status === 'stable')
@@ -1161,6 +1184,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       })
     return createElement('div', { style: { padding: '24px', maxWidth: '620px' } },
       createElement('h2', { style: { margin: '0 0 4px', fontSize: '18px' } }, '知识室'),
+      createElement('div', { style: { fontSize: '13px', color: '#888', margin: '0 0 8px' } }, '你凭什么这样判断？——依据、来源、待确认的草稿'),
       refreshRow(store, 'knowledgeRoom'),
       pages.length === 0
         ? muted('（还没有知识页，或桌面文件尚未刷新）')
@@ -1168,8 +1192,17 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
             sectionTitle(`待你审批（${drafts.length}）`),
             drafts.length === 0
               ? muted('（没有草稿在等）')
-              : createElement('ul', { style: { margin: 0, paddingLeft: '18px', fontSize: '13px', lineHeight: 1.8, color: '#b26a00' } },
-                  ...drafts.map(page => row(page, '⚠ '))),
+              : createElement('div', {
+                  ref: store.focusKnowledge === 'drafts' ? draftsAnchor : undefined,
+                  style: store.focusKnowledge === 'drafts'
+                    ? { background: '#fff7e6', borderRadius: '6px', padding: '6px 8px', margin: '0 -8px' }
+                    : undefined,
+                },
+                store.focusKnowledge === 'drafts'
+                  ? createElement('div', { style: { fontSize: '11px', color: '#b26a00', marginBottom: '4px' } }, '↑ 你从桌面点过来的那批')
+                  : null,
+                createElement('ul', { style: { margin: 0, paddingLeft: '18px', fontSize: '13px', lineHeight: 1.8, color: '#b26a00' } },
+                  ...drafts.map(page => row(page, '⚠ ')))),
             sectionTitle(`已确认（${stable.length}）`),
             stable.length === 0
               ? muted('（还没有已确认的知识页）')
@@ -1234,6 +1267,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     const memories = store.data?.memories ?? []
     return createElement('div', { style: { padding: '24px', maxWidth: '620px' } },
       createElement('h2', { style: { margin: '0 0 4px', fontSize: '18px' } }, '记忆室'),
+      createElement('div', { style: { fontSize: '13px', color: '#888', margin: '0 0 8px' } }, '你把我理解成什么？——偏好、决定、事实，每条可纠错'),
       refreshRow(store, 'memoryRoom'),
       memories.length === 0
         ? muted('（还没有记忆，或桌面文件尚未刷新）')

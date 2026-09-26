@@ -119,5 +119,11 @@ IME `isComposing` 守卫 + 换 textarea。**验收**：每缺陷一个能红的�
   面板动作分类）、tsc 0 error、全套 245/247（已知降级 2）、verify 31/31、build exit 0、
   eval desk-refresh-loop（带 `[桌面]` 标记的生产原话）**首跑失败（原因未捕获）→ 复跑 PASS(147s)**——
   与已记录的小模型冷发现波动同类（3 次真跑 1 次不加载技能），如实记档不抹平。
-- [ ] S4 三室语义落地
+- [x] S4 三室语义落地（2026-09-26）——三室保留入口、副题改为三个用户问题（桌面"现在要采取什么
+  行动？"／知识室"你凭什么这样判断？——依据、来源、待确认的草稿"／记忆室"你把我理解成什么？——
+  偏好、决定、事实，每条可纠错"），技能契约同步"write for the question"一行；draft 指针落到那一条
+  （`selectPanel` 只收房间 id → 点击设 `focusKnowledge='drafts'`，知识室对"待你审批"块橙底高亮 +
+  "↑ 你从桌面点过来的那批"标记 + `scrollIntoView`，4 秒自动消退；无 DOM 环境降级为仅高亮）。
+  验收：client-panels 13/13（三问副题+焦点高亮夹具，shim 补 useRef）、tsc 0 error、全套 246/248
+  （已知降级 2）、verify 31/31（真退出码）、build exit 0、eval desk-refresh-loop PASS(88s)。
 - [ ] S5 密度（等真机截图）

@@ -89,6 +89,10 @@ The desk panel leads with its decisions section (`decisions`) and its threads se
 
 ## What the panels render, section by section
 
+The three rooms are three QUESTIONS the principal arrives with, not three data containers — write
+for the question: **Desk** = "what should I act on now?", **Knowledge** = "on what basis do you
+judge?", **Memory** = "what do you take me for?".
+
 - **Desk** — decisions, **actions**, gaps, threads, `recentActivity`, counts. `actions` is where the
   work you planned with the principal lives: every item from an action plan you produced together
   (the four things each action carries — owner, due, metric, stop condition) plus its `status`
