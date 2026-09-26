@@ -23,10 +23,12 @@ place your file tools write). Create the directory if it is missing.
   "generatedAt": "2026-09-25T16:00:00+08:00",
   "counts": { "memories": 8, "knowledgeStable": 10, "knowledgeDraft": 3, "skills": 2, "threads": 1 },
   "decisions": [
-    { "id": "…", "question": "…", "context": "…", "kind": "business|upkeep", "rank": 0 }
+    { "id": "…", "question": "…", "context": "…", "kind": "business|upkeep", "rank": 0,
+      "options": [{ "label": "…", "cost": "…", "irreversible": false }], "reply": "…" }
   ],
   "actions": [
-    { "id": "…", "what": "…", "owner": "…", "due": "…", "metric": "…", "stop": "…", "status": "open" }
+    { "id": "…", "what": "…", "owner": "…", "due": "…", "metric": "…", "stop": "…", "status": "open",
+      "note": "…" }
   ],
   "gaps": [
     { "id": "…", "what": "…", "why": "…" }
@@ -90,7 +92,10 @@ The desk panel leads with its decisions section (`decisions`) and its threads se
 - **Desk** — decisions, **actions**, gaps, threads, `recentActivity`, counts. `actions` is where the
   work you planned with the principal lives: every item from an action plan you produced together
   (the four things each action carries — owner, due, metric, stop condition) plus its `status`
-  (`open` while in flight, `done` or `dropped` once closed). This is the section that keeps a plan
+  (`open` while in flight, `done` or `dropped` once closed) and its **`note`** — the outcome or seal
+  record for that action (what was reported, what was missing, why it was frozen). The panel renders
+  `note` as the assistant's own line on the row; real files already carry it, and dropping it hides
+  exactly the history the trust line needs. This is the section that keeps a plan
   from vanishing into the conversation. The activity list answers the
   question a long-lived assistant has to keep answering: *what have you been doing?* Keep it to
   the last few real changes (newest first, about five), each one line with its time. Derive it from
@@ -159,8 +164,9 @@ just did. A change you apply but do not re-render reads as if you ignored them:
   drop the wrong line from the panel.
 - **A decision answered** ("my decision is: …") → record the call where you will act on it (a memory
   is usually right), act on it if it unblocks something, and take it off the decisions list.
-  **Presenting options is not an answer**: when the principal asks for choices, update the entry's
-  `context` ("options given, waiting for their pick") and keep it on the list until they decide —
+  **Presenting options is not an answer**: when the principal asks for choices, write them into the
+  entry's `options` (one `{ label, cost, irreversible }` each — the panel renders them as one-click
+  answers), set `reply` to your latest word on this row, and keep it on the list until they decide —
   a decision that leaves the desk before it is made lives only in the conversation, and the panel
   is the thing that reminds them it is still theirs to call.
 - **An approval** ("I approve page X") → `promote_page`, then re-render.

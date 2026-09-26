@@ -118,6 +118,10 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     threads?: { id?: string, status?: string, title?: string, why?: string, lean?: string }[]
     decisions?: {
       id?: string, question?: string, context?: string,
+      /** The choices the assistant presented (written back after "看选项"); rendered as one-click answers. */
+      options?: { label?: string, cost?: string, irreversible?: boolean }[] | undefined
+      /** The assistant's latest word on this row, rendered as its own line. */
+      reply?: string | undefined
       /**
        * `"business"` = only the principal can call it and calling it changes what happens outside;
        * anything else (including a missing field) is the assistant's own upkeep and never reaches
@@ -131,6 +135,8 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     actions?: {
       id?: string, what?: string, owner?: string, due?: string,
       metric?: string, stop?: string, status?: string,
+      /** The assistant's outcome/seal record for this action (real files already carry it). */
+      note?: string | undefined
     }[]
     recentActivity?: { at?: string, what?: string }[]
     memories?: { id?: string, kind?: string, text?: string, updated?: string, source?: string }[]
@@ -152,7 +158,14 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     data?: DeskData | undefined
     note?: string | undefined
     source?: string | undefined
-    busy?: string | undefined
+    /** The action in flight: which row, when it left, what it was. The DATA GATE — buttons stay
+     *  frozen until the desk file is rewritten past `at`. The prompt promise resolving only means
+     *  the queue accepted the message; the assistant then works for tens of seconds, and a freeze
+     *  that lifts at acceptance invites repeat clicks (real use queued one decision three times
+     *  and left an action with seven contradictory orders — reviews, 2026-09-26). */
+    pending?: { rowId: string, at: number, action: string } | undefined
+    /** Receipt of the last action the desk file confirmed, shown on its row. */
+    lastReceipt?: { rowId: string, action: string, at: number } | undefined
     /** The newest Session's updatedAt, so the panels can say when they are behind the conversation. */
     sessionUpdatedAt?: number | undefined
     /** The Session whose workspace answered the last load — a tab bound to another session withholds this data. */
@@ -220,8 +233,10 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
           await attempt(index + 1)
           return
         }
-        patchDesk({ data: JSON.parse(text) as DeskData, note: undefined, source: byId[sessionId]?.cwd ?? '', sourceSession: sessionId })
+        const parsed = JSON.parse(text) as DeskData
+        patchDesk({ data: parsed, note: undefined, source: byId[sessionId]?.cwd ?? '', sourceSession: sessionId })
         deskMisses.delete(sessionId)
+        settlePending(parsed.generatedAt)
       } catch {
         await attempt(index + 1)
       }
@@ -242,6 +257,34 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     return snapshot
   }
 
+  /** The desk file's generation time in ms, or undefined when missing or unparseable. */
+  function deskGeneratedAtMs(data: DeskData | undefined): number | undefined {
+    const raw = data?.generatedAt
+    if (raw === undefined) return undefined
+    const parsed = new Date(raw).getTime()
+    return Number.isNaN(parsed) ? undefined : parsed
+  }
+
+  /**
+   * The DATA GATE: an action is in flight until the desk file is rewritten past the moment it was
+   * sent. @see deskStore.pending for why the promise resolving must not lift this.
+   */
+  function pendingInFlight(store: typeof deskStore): boolean {
+    const pending = store.pending
+    if (pending === undefined) return false
+    const generated = deskGeneratedAtMs(store.data)
+    return generated === undefined || generated <= pending.at
+  }
+
+  /** A finished load settles the pending action: the file moving past `at` is the completion signal. */
+  function settlePending(generatedAt: string | undefined): void {
+    const pending = deskStore.pending
+    if (pending === undefined) return
+    const generated = deskGeneratedAtMs({ generatedAt } as DeskData)
+    if (generated === undefined || generated <= pending.at) return
+    patchDesk({ pending: undefined, lastReceipt: { rowId: pending.rowId, action: pending.action, at: Date.now() } })
+  }
+
   /** The newest Session, which every panel action drives. */
   function newestSessionId(): string | undefined {
     const state = deskSessions?.list?.getSnapshot() as { ids?: string[], byId?: Record<string, { updatedAt?: number }> } | undefined
@@ -253,11 +296,17 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   /**
    * Put one line to the assistant in the newest Session. Every panel action rides this — the
    * panel is a control surface for the same conversation the principal is having.
+   *
+   * The action is tracked as `pending` on its row and stays frozen behind the DATA GATE until the
+   * desk file is rewritten past the send: acceptance by the queue is not completion (the assistant
+   * then works for tens of seconds), and this poller keeps re-reading until the file actually
+   * moves — a single fixed delay reliably re-reads a stale file, mis-advises "click refresh", and
+   * left an action with seven contradictory orders (2026-09-26).
    * @param text - the line to send.
-   * @param busy - status line while the send is in flight.
-   * @param onSettled - runs once the prompt is accepted.
+   * @param action - the action name shown on the receipt line.
+   * @param rowId - the row this action belongs to (receipts and freezing are row-scoped).
    */
-  function sendPrompt(text: string, busy: string, onSettled?: () => void): void {
+  function sendPrompt(text: string, action: string, rowId: string): void {
     const prompt = (deskRemote?.['session'] as { prompt?: (request: unknown) => Promise<unknown> } | undefined)?.prompt
     // A tab bound to session X must send to X: a correction typed beside one conversation that
     // lands in another would read as the assistant ignoring what was just pointed at.
@@ -270,7 +319,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       patchDesk({ note: 'remote.session did not materialize' })
       return
     }
-    patchDesk({ busy })
+    patchDesk({ pending: { rowId, at: Date.now(), action }, lastReceipt: undefined })
     void prompt({
       requestId: `desk-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       sessionId,
@@ -279,14 +328,19 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     }).then((result: unknown) => {
       const wrapped = result as { ok?: boolean, error?: { message?: string } }
       if (wrapped?.ok === false) {
-        patchDesk({ busy: undefined, note: wrapped.error?.message ?? 'prompt failed' })
-        return
+        patchDesk({ pending: undefined, note: wrapped.error?.message ?? 'prompt failed' })
       }
-      patchDesk({ busy: undefined })
-      onSettled?.()
     }).catch((reason: unknown) => {
-      patchDesk({ busy: undefined, note: String(reason) })
+      patchDesk({ pending: undefined, note: String(reason) })
     })
+    let tries = 0
+    const tick = (): void => {
+      if (deskStore.pending === undefined || tries >= 15) return
+      tries += 1
+      reloadDesk()
+      setTimeout(tick, 10_000)
+    }
+    setTimeout(tick, 10_000)
   }
 
   /**
@@ -297,49 +351,44 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    */
   const DESK_REFRESH_STEP = '完成后加载 desk-refresh 技能，把桌面文件重写一遍。'
 
-  /** Ask the assistant to refresh the desk file, then reload it after it has had time to work. */
+  /** Ask the assistant to refresh the desk file; the poller re-reads until it actually moves. */
   function askRefresh(): void {
-    sendPrompt('刷新我的桌面：加载 desk-refresh 技能，严格按它把桌面文件重写一遍。', '已请助手刷新桌面，稍后自动重读…', () => {
-      setTimeout(() => { reloadDesk() }, 12000)
-    })
+    sendPrompt('刷新我的桌面：加载 desk-refresh 技能，严格按它把桌面文件重写一遍。', '刷新桌面', 'desk')
   }
 
   /**
    * Answer one open decision. The mirror of a correction: there the principal says a record is
    * wrong, here they say what they have decided — and the assistant records the call and moves.
    */
-  function answerDecision(question: string, answer: string): void {
+  function answerDecision(question: string, answer: string, rowId: string): void {
     sendPrompt(
       `关于这个待决事项：「${question}」——我的决定是：${answer}。请记住它、据此更新你的判断。${DESK_REFRESH_STEP}`,
-      '已把你的决定交给助手…',
-      () => { setTimeout(() => { reloadDesk() }, 15000) },
+      '回答', rowId,
     )
   }
 
   /** Put one open decision to the assistant and ask for options with their costs. */
-  function askAboutDecision(question: string): void {
+  function askAboutDecision(question: string, rowId: string): void {
     sendPrompt(`关于这个待决事项：「${question}」——请给我两三个选项，每个选项的代价与不可逆程度，以及你的建议。`,
-      '已把这条决定交给助手…')
+      '看选项', rowId)
   }
 
   /**
    * Close one action: the principal reports it is done, and the assistant records the outcome
    * rather than leaving a finished item sitting in flight.
    */
-  function finishAction(what: string): void {
+  function finishAction(what: string, rowId: string): void {
     sendPrompt(
       `行动「${what}」已经办完了。请记录结果（度量上发生了什么）。${DESK_REFRESH_STEP}`,
-      '已把完成情况交给助手…',
-      () => { setTimeout(() => { reloadDesk() }, 15000) },
+      '办完了', rowId,
     )
   }
 
   /** Drop one action: no longer worth doing — the assistant records why and takes it off the list. */
-  function dropAction(what: string): void {
+  function dropAction(what: string, rowId: string): void {
     sendPrompt(
       `行动「${what}」不办了：请记一行原因（写进相应线索或记忆）。${DESK_REFRESH_STEP}`,
-      '已把这条交给助手…',
-      () => { setTimeout(() => { reloadDesk() }, 15000) },
+      '不办了', rowId,
     )
   }
 
@@ -347,21 +396,19 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    * Park one thread: still valid, not now. The research room's middle exit, offered where the
    * principal sees the thread rather than only in chat.
    */
-  function parkThread(title: string): void {
+  function parkThread(title: string, rowId: string): void {
     sendPrompt(
       `线索「${title}」先放一放（park）：现在不推，但别丢。${DESK_REFRESH_STEP}`,
-      '已请助手把它先放放…',
-      () => { setTimeout(() => { reloadDesk() }, 15000) },
+      '先放放', rowId,
     )
   }
 
   /** Close one thread: answered, moot, or not worth it — the assistant promotes or drops it. */
-  function closeThread(title: string): void {
+  function closeThread(title: string, rowId: string): void {
     sendPrompt(
       `线索「${title}」可以收了：请判断该 promote（变成记忆/知识页/技能）还是 drop（写一行原因），`
       + `做完告诉我你归到了哪里。${DESK_REFRESH_STEP}`,
-      '已请助手收这条线索…',
-      () => { setTimeout(() => { reloadDesk() }, 15000) },
+      '收了', rowId,
     )
   }
 
@@ -369,11 +416,10 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    * Correct one memory record. This is the cultivation loop: the principal says which line is
    * wrong and what is right, and the assistant rewrites the record and refreshes the desk.
    */
-  function correctMemory(text: string, correction: string): void {
+  function correctMemory(text: string, correction: string, rowId: string): void {
     sendPrompt(
       `请更正这条记忆。原记录：「${text}」。正确的是：${correction}。${DESK_REFRESH_STEP}`,
-      '已把你的更正交给助手…',
-      () => { setTimeout(() => { reloadDesk() }, 15000) },
+      '更正', rowId,
     )
   }
 
@@ -381,11 +427,10 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    * Approve one draft knowledge page. The counterpart of a correction: the principal says the page
    * is right, and the assistant promotes it so it starts counting in retrieval and the digest.
    */
-  function approveKnowledgePage(title: string): void {
+  function approveKnowledgePage(title: string, rowId: string): void {
     sendPrompt(
       `我批准知识页「${title}」。请把它从 draft 翻成 stable。${DESK_REFRESH_STEP}`,
-      '已把批准交给助手…',
-      () => { setTimeout(() => { reloadDesk() }, 15000) },
+      '批准', rowId,
     )
   }
 
@@ -393,20 +438,18 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    * Mark one stable knowledge page past its use-by date. The page stays in place (links resolve)
    * but stops counting as current — the third lifecycle step beside approval and correction.
    */
-  function deprecateKnowledgePage(title: string): void {
+  function deprecateKnowledgePage(title: string, rowId: string): void {
     sendPrompt(
-      `知识页「${title}」过时了，请把它标记为 deprecated（保留在原处以便链接解析）。改完刷新我的桌面。`,
-      '已把退役请求交给助手…',
-      () => { setTimeout(() => { reloadDesk() }, 15000) },
+      `知识页「${title}」过时了，请把它标记为 deprecated（保留在原处以便链接解析）。${DESK_REFRESH_STEP}`,
+      '过时了', rowId,
     )
   }
 
   /** Tell the assistant what is wrong with one knowledge page. */
-  function flagKnowledgePage(title: string, problem: string): void {
+  function flagKnowledgePage(title: string, problem: string, rowId: string): void {
     sendPrompt(
       `知识页「${title}」有问题：${problem}。请核对并更正这一页。${DESK_REFRESH_STEP}`,
-      '已把这条意见交给助手…',
-      () => { setTimeout(() => { reloadDesk() }, 15000) },
+      '提意见', rowId,
     )
   }
 
@@ -421,19 +464,24 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     actionLabel: string
     placeholder: string
     onSubmit: (text: string) => void
-    actions?: { label: string, run: () => void }[] | undefined
+    actions?: { label: string, run: () => void, destructive?: boolean }[] | undefined
     source?: string | undefined
     /** Lead variant: the one item the desk points at first, rendered larger. */
     lead?: boolean
+    /** This row's identity: the in-flight receipt and the settled receipt land on the row acted on. */
+    rowId?: string | undefined
   }): ReturnType<typeof createElement> {
     const { useState } = require('react') as typeof import('react')
     const store = useDesk()
     const [open, setOpen] = useState(false)
     const [text, setText] = useState('')
-    // While a prompt is in flight, every row's buttons freeze: real use (2026-09-26) queued a
-    // decision's "看选项" three times because a click looks like nothing happened and the answer
-    // lives in the conversation, not on the desk. Frozen is quieter than re-queued.
-    const frozen = store.busy !== undefined
+    const [armed, setArmed] = useState<string | undefined>(undefined)
+    // The DATA GATE: buttons freeze until the desk file is rewritten past the send — not until the
+    // queue accepts it (acceptance is milliseconds; the work is tens of seconds. Real use queued a
+    // decision three times and left an action with seven contradictory orders).
+    const frozen = pendingInFlight(store)
+    const inflight = store.pending?.rowId === props.rowId && store.pending !== undefined && frozen
+    const receipt = store.lastReceipt?.rowId === props.rowId ? store.lastReceipt : undefined
     const submit = (): void => {
       const value = text.trim()
       if (value === '') return
@@ -457,16 +505,31 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
           }, `来源：${source.length > 110 ? `${source.slice(0, 110)}…` : source}`),
       createElement('div', { style: { fontSize: '11px', color: '#aaa', marginTop: '2px' } },
         props.meta === undefined || props.meta === '' ? null : props.meta,
-        ...(props.actions ?? []).map(action => createElement('button', {
-          key: action.label,
-          onClick: action.run,
-          disabled: frozen,
-          style: {
-            marginLeft: '8px', padding: '0 8px', fontSize: '11px',
-            cursor: frozen ? 'default' : 'pointer', opacity: frozen ? 0.5 : 1,
-            border: `1px solid ${MARK_TEAL}`, borderRadius: '4px', background: '#fff', color: MARK_TEAL,
-          },
-        }, action.label)),
+        ...(props.actions ?? []).map(action => {
+          // A destructive move asks twice: one click arms it for three seconds ("确认…？"), the
+          // second click sends. The record itself is recoverable (history/archives), and the
+          // confirm label says so — reversibility the principal can see.
+          const fire = (): void => {
+            if (action.destructive === true && armed !== action.label) {
+              setArmed(action.label)
+              setTimeout(() => { setArmed(current => current === action.label ? undefined : current) }, 3000)
+              return
+            }
+            action.run()
+          }
+          const label = armed === action.label ? `确认${action.label}？（可恢复）` : action.label
+          return createElement('button', {
+            key: action.label,
+            onClick: fire,
+            disabled: frozen,
+            style: {
+              marginLeft: '8px', padding: '0 8px', fontSize: '11px',
+              cursor: frozen ? 'default' : 'pointer', opacity: frozen ? 0.5 : 1,
+              border: `1px solid ${armed === action.label ? '#b26a00' : MARK_TEAL}`,
+              borderRadius: '4px', background: '#fff', color: armed === action.label ? '#b26a00' : MARK_TEAL,
+            },
+          }, label)
+        }),
         createElement('button', {
           onClick: () => { setOpen(!open) },
           disabled: frozen,
@@ -476,6 +539,12 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
             border: '1px solid #ddd', borderRadius: '4px', background: '#fff', color: '#888',
           },
         }, open ? '取消' : props.actionLabel)),
+      inflight === false ? null : createElement('div', {
+        style: { fontSize: '12px', color: '#888', marginTop: '4px' },
+      }, `已交给助手 · ${shortTime(new Date(store.pending?.at ?? Date.now()).toISOString())} · ${String(store.pending?.action ?? '')}——正在处理，回复出现在对话里`),
+      receipt === undefined ? null : createElement('div', {
+        style: { fontSize: '12px', color: MARK_TEAL, marginTop: '4px' },
+      }, `✓ 已更新 · ${shortTime(new Date(receipt.at).toISOString())}`),
       open
         ? createElement('div', { style: { marginTop: '6px', display: 'flex', gap: '6px' } },
             createElement('input', {
@@ -563,7 +632,9 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
           return
         }
         deskMisses.delete(sessionId)
-        patchDesk({ data: JSON.parse(text) as DeskData, note: undefined, source: cwd, sourceSession: sessionId })
+        const parsed = JSON.parse(text) as DeskData
+        patchDesk({ data: parsed, note: undefined, source: cwd, sourceSession: sessionId })
+        settlePending(parsed.generatedAt)
       } catch {
         // Keep the previous data; a failed read must not blank the room. The bound tab's guard
         // keeps showing "reading" rather than another session's desk.
@@ -688,20 +759,21 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   function quickActions(): ReturnType<typeof createElement> {
     return createElement('div', { style: { marginTop: '8px' } },
       quickButton('回顾一下', '让助手回顾最近的决定、在跟的事与它新学到的东西',
-        () => { sendPrompt('回顾一下：我们最近决定了什么、还有什么在跟、你新学到了什么？', '已请助手回顾…') }),
+        () => { sendPrompt('回顾一下：我们最近决定了什么、还有什么在跟、你新学到了什么？', '回顾', 'desk') }),
       quickButton('体检', '让助手跑一次 curate，报告家的现状与需要你处理的事',
-        () => { sendPrompt('跑一次 curate，报告家的现状与需要我处理的事。', '已请助手体检…') }))
+        () => { sendPrompt('跑一次 curate，报告家的现状与需要我处理的事。', '体检', 'desk') }))
   }
 
   /** The refresh button plus its status line, and — where the room can — the jump to the beside-conversation tab. */
   function refreshRow(store: typeof deskStore, tabKind?: string): ReturnType<typeof createElement> {
+    const inFlight = pendingInFlight(store)
     return createElement('div', { style: { margin: '8px 0 0' } },
       createElement('button', {
         onClick: askRefresh,
-        disabled: store.busy !== undefined,
+        disabled: inFlight,
         style: {
           padding: '6px 14px', fontSize: '13px', cursor: 'pointer', borderRadius: '6px',
-          border: `1px solid ${MARK_TEAL}`, background: store.busy === undefined ? '#fff' : '#f2f2f2',
+          border: `1px solid ${MARK_TEAL}`, background: inFlight ? '#f2f2f2' : '#fff',
           color: MARK_TEAL,
         },
       }, '刷新桌面'),
@@ -715,10 +787,10 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
               borderRadius: '6px', border: '1px solid #ddd', background: '#fff', color: '#555',
             },
           }, '在对话旁打开'),
-      store.busy === undefined
+      inFlight === false
         ? null
         : createElement('span', { style: { marginLeft: '10px', fontSize: '12px', color: '#888' } },
-            `${store.busy}——回复出现在对话里，桌面在它刷新后自动跟上`))
+            `已交给助手 · ${shortTime(new Date(store.pending?.at ?? Date.now()).toISOString())} · ${String(store.pending?.action ?? '')}——回复出现在对话里，桌面更新后自动跟上`))
   }
 
   /** Calendar glyph for the desk panel entry. */
@@ -791,19 +863,44 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         const draftCount = data?.counts?.knowledgeDraft ?? 0
         const lead = business[0]
         const rest = business.slice(1)
-        const row = (item: DeskDecision, compact: boolean): ReturnType<typeof createElement> =>
-          createElement(CorrectableRow, {
-            key: String(item.id),
+        const rowIdOf = (item: DeskDecision): string => String(item.id ?? item.question)
+        // Options the assistant presented become one-click answers on the row — the principal
+        // picks instead of copying the answer back from the conversation.
+        const optionButtons = (item: DeskDecision, rowId: string): ReturnType<typeof createElement> | null =>
+          (item.options ?? []).length === 0
+            ? null
+            : createElement('div', { style: { marginTop: '6px', display: 'flex', flexWrap: 'wrap', gap: '6px' } },
+                ...(item.options ?? []).map(option => createElement('button', {
+                  key: String(option.label),
+                  title: [option.cost === undefined || option.cost === '' ? undefined : `代价：${option.cost}`,
+                    option.irreversible === true ? '不可逆' : undefined]
+                    .filter(part => part !== undefined).join(' · ') || undefined,
+                  onClick: () => { answerDecision(String(item.question ?? ''), String(option.label ?? ''), rowId) },
+                  style: {
+                    padding: '4px 10px', fontSize: '12px', cursor: 'pointer', borderRadius: '4px',
+                    border: `1px solid ${MARK_TEAL}`, background: '#fff', color: MARK_TEAL,
+                  },
+                }, String(option.label ?? ''))))
+        const row = (item: DeskDecision, compact: boolean): ReturnType<typeof createElement> => {
+          const rowId = rowIdOf(item)
+          return createElement(CorrectableRow, {
+            key: rowId,
+            rowId,
             primary: createElement('span', null,
               createElement('span', { style: { fontSize: '13px', fontWeight: 600 } }, String(item.question ?? '')),
               compact || item.context === undefined || item.context === ''
                 ? null
-                : createElement('div', { style: { fontSize: '12px', color: '#888', fontWeight: 400 } }, String(item.context))),
+                : createElement('div', { style: { fontSize: '12px', color: '#888', fontWeight: 400 } }, String(item.context)),
+              item.reply === undefined || item.reply === ''
+                ? null
+                : createElement('div', { style: { fontSize: '11px', color: '#999', marginTop: '4px' } }, `它说：${item.reply}`),
+              optionButtons(item, rowId)),
             actionLabel: '回答',
             placeholder: '你的决定是什么？',
-            onSubmit: (text: string) => { answerDecision(String(item.question ?? ''), text) },
-            actions: [{ label: '看选项', run: () => { askAboutDecision(String(item.question ?? '')) } }],
+            onSubmit: (text: string) => { answerDecision(String(item.question ?? ''), text, rowId) },
+            actions: [{ label: '看选项', run: () => { askAboutDecision(String(item.question ?? ''), rowId) } }],
           })
+        }
         const fold = (label: string, toggle: () => void): ReturnType<typeof createElement> =>
           createElement('button', {
             onClick: toggle,
@@ -824,15 +921,20 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
               createElement('div', { style: { fontSize: '11px', fontWeight: 700, color: MARK_TEAL, letterSpacing: '1px' } }, '先办这件'),
               createElement(CorrectableRow, {
                 lead: true,
+                rowId: rowIdOf(lead),
                 primary: createElement('span', null,
                   createElement('span', { style: { fontSize: '16px', fontWeight: 700, color: '#111' } }, String(lead.question ?? '')),
                   lead.context === undefined || lead.context === ''
                     ? null
-                    : createElement('div', { style: { fontSize: '12px', color: '#666', fontWeight: 400, marginTop: '4px' } }, String(lead.context))),
+                    : createElement('div', { style: { fontSize: '12px', color: '#666', fontWeight: 400, marginTop: '4px' } }, String(lead.context)),
+                  lead.reply === undefined || lead.reply === ''
+                    ? null
+                    : createElement('div', { style: { fontSize: '11px', color: '#999', marginTop: '4px' } }, `它说：${lead.reply}`),
+                  optionButtons(lead, rowIdOf(lead))),
                 actionLabel: '回答',
                 placeholder: '你的决定是什么？',
-                onSubmit: (text: string) => { answerDecision(String(lead.question ?? ''), text) },
-                actions: [{ label: '看选项', run: () => { askAboutDecision(String(lead.question ?? '')) } }],
+                onSubmit: (text: string) => { answerDecision(String(lead.question ?? ''), text, rowIdOf(lead)) },
+                actions: [{ label: '看选项', run: () => { askAboutDecision(String(lead.question ?? ''), rowIdOf(lead)) } }],
               })),
           rest.length === 0
             ? null
@@ -864,6 +966,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
             .filter(action => action.status !== 'done' && action.status !== 'dropped')
             .map(action => createElement(CorrectableRow, {
               key: String(action.id ?? action.what),
+              rowId: String(action.id ?? action.what),
               primary: createElement('span', null,
                 createElement('span', { style: { fontSize: '13px', fontWeight: 600 } }, String(action.what ?? '')),
                 createElement('div', { style: { fontSize: '12px', color: '#666', fontWeight: 400 } },
@@ -874,15 +977,18 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
                   : createElement('div', { style: { fontSize: '11px', color: '#999', fontWeight: 400 } }, `度量：${action.metric}`),
                 action.stop === undefined || action.stop === ''
                   ? null
-                  : createElement('div', { style: { fontSize: '11px', color: '#999', fontWeight: 400 } }, `停止条件：${action.stop}`)),
+                  : createElement('div', { style: { fontSize: '11px', color: '#999', fontWeight: 400 } }, `停止条件：${action.stop}`),
+                action.note === undefined || action.note === ''
+                  ? null
+                  : createElement('div', { style: { fontSize: '11px', color: '#b26a00', fontWeight: 400, marginTop: '4px' } }, `它记：${action.note}`)),
               actionLabel: '改这条',
               placeholder: '哪里要改？',
               onSubmit: (text: string) => {
-                sendPrompt(`行动「${String(action.what ?? '')}」要改：${text}。改完刷新我的桌面。`, '已把修改交给助手…')
+                sendPrompt(`行动「${String(action.what ?? '')}」要改：${text}。${DESK_REFRESH_STEP}`, '修改', String(action.id ?? action.what))
               },
               actions: [
-                { label: '办完了', run: () => { finishAction(String(action.what ?? '')) } },
-                { label: '不办了', run: () => { dropAction(String(action.what ?? '')) } },
+                { label: '办完了', run: () => { finishAction(String(action.what ?? ''), String(action.id ?? action.what)) }, destructive: true },
+                { label: '不办了', run: () => { dropAction(String(action.what ?? ''), String(action.id ?? action.what)) }, destructive: true },
               ],
             }))),
       (data?.actions ?? []).some(action => action.status === 'done')
@@ -900,7 +1006,10 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
                 ? null
                 : createElement('div', { style: { fontSize: '11px', color: '#bbb' } },
                     [action.owner === undefined ? '' : `负责人：${action.owner}`,
-                      action.due === undefined ? '' : `时点：${action.due}`].filter(part => part !== '').join(' · '))))))
+                      action.due === undefined ? '' : `时点：${action.due}`].filter(part => part !== '').join(' · ')),
+              action.note === undefined || action.note === ''
+                ? null
+                : createElement('div', { style: { fontSize: '11px', color: '#bbb', marginTop: '2px' } }, `它记：${action.note}`)))))
         : null,
 
       sectionTitle('缺什么'),
@@ -920,6 +1029,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         ? muted('（暂时没有未决线索）')
         : createElement('div', null, ...data.threads.map(thread => createElement(CorrectableRow, {
             key: String(thread.id),
+            rowId: String(thread.id),
             primary: createElement('span', null,
               createElement('div', { style: { fontSize: '13px', fontWeight: 600, lineHeight: 1.5 } },
                 String(thread.title ?? thread.id ?? '')),
@@ -932,11 +1042,11 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
             actionLabel: '问进展',
             placeholder: '你想问这条线索的什么？',
             onSubmit: (text: string) => {
-              sendPrompt(`关于线索「${String(thread.title ?? thread.id ?? '')}」：${text}`, '已把问题交给助手…')
+              sendPrompt(`关于线索「${String(thread.title ?? thread.id ?? '')}」：${text}`, '问进展', String(thread.id))
             },
             actions: [
-              { label: '先放放', run: () => { parkThread(String(thread.title ?? thread.id ?? '')) } },
-              { label: '收了', run: () => { closeThread(String(thread.title ?? thread.id ?? '')) } },
+              { label: '先放放', run: () => { parkThread(String(thread.title ?? thread.id ?? ''), String(thread.id)) } },
+              { label: '收了', run: () => { closeThread(String(thread.title ?? thread.id ?? ''), String(thread.id)) }, destructive: true },
             ],
           }))),
 
@@ -979,16 +1089,17 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     const row = (page: typeof pages[number], mark: string): ReturnType<typeof createElement> =>
       createElement(CorrectableRow, {
         key: String(page.id),
+        rowId: String(page.id ?? page.title),
         primary: createElement('span', null, mark, String(page.title ?? page.id ?? '')),
         meta: [page.type === undefined ? '' : String(page.type), shortTime(page.updated)].filter(part => part !== '').join(' · '),
         actionLabel: '有问题',
         placeholder: '哪里不对？',
         source: (page.sources ?? []).join(' · '),
-        onSubmit: (text: string) => { flagKnowledgePage(String(page.title ?? page.id ?? ''), text) },
+        onSubmit: (text: string) => { flagKnowledgePage(String(page.title ?? page.id ?? ''), text, String(page.id ?? page.title)) },
         actions: page.status === 'draft'
-          ? [{ label: '批准', run: () => { approveKnowledgePage(String(page.title ?? page.id ?? '')) } }]
+          ? [{ label: '批准', run: () => { approveKnowledgePage(String(page.title ?? page.id ?? ''), String(page.id ?? page.title)) } }]
           : page.status === 'stable'
-            ? [{ label: '过时了', run: () => { deprecateKnowledgePage(String(page.title ?? page.id ?? '')) } }]
+            ? [{ label: '过时了', run: () => { deprecateKnowledgePage(String(page.title ?? page.id ?? ''), String(page.id ?? page.title)) }, destructive: true }]
             : undefined,
       })
     return createElement('div', { style: { padding: '24px', maxWidth: '620px' } },
@@ -1048,12 +1159,13 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       out.push(createElement('ul', { key: group.key, style: { margin: 0, padding: 0 } },
         ...items.map(memory => createElement(CorrectableRow, {
           key: String(memory.id),
+          rowId: String(memory.id),
           primary: String(memory.text ?? ''),
           meta: shortTime(memory.updated),
           actionLabel: '这条记错了',
           placeholder: '正确的是什么？',
           source: memory.source,
-          onSubmit: (text: string) => { correctMemory(String(memory.text ?? ''), text) },
+          onSubmit: (text: string) => { correctMemory(String(memory.text ?? ''), text, String(memory.id)) },
         }))))
     }
     return out

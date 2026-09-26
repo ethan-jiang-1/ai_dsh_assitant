@@ -32,7 +32,8 @@ interface DeskStore {
   data?: Record<string, unknown> | undefined
   note?: string | undefined
   source?: string | undefined
-  busy?: string | undefined
+  pending?: { rowId: string, at: number, action: string } | undefined
+  lastReceipt?: { rowId: string, action: string, at: number } | undefined
   /** The newest Session's updatedAt, so the panels can say when they lag the conversation. */
   sessionUpdatedAt?: number | undefined
   /** The Session whose workspace answered the last load — tab bodies withhold other sessions' data. */
@@ -300,16 +301,57 @@ describe('desk panels', () => {
     expect(text).toContain('没有落在任何会话')
   })
 
-  it('freezes every row action while a prompt is in flight — real use queued one decision three times', () => {
+  it('freezes actions behind the DATA GATE — queue acceptance is not completion (real use queued one decision three times and left an action with seven contradictory orders)', () => {
     const exports = materialize()
     exports.deskStore.data = {
+      generatedAt: '2026-09-26T13:00:00+08:00',
       decisions: [{ id: 'd1', question: '要不要授权读公司盘？', context: '读它才能定因', kind: 'business' }],
     }
-    exports.deskStore.busy = '已把你的动作交给助手…'
-    const text = textsOf(exports.DeskPanel()).join(' | ')
-    expect(text).toContain('回复出现在对话里')
-    // The freeze is mechanical: with one lead decision rendered, the busy panel carries several
-    // disabled buttons (回答 / 看选项 / the row toggle / 发送) — none clickable while busy.
+    // The action left AFTER the file was last written → still in flight: buttons frozen, the
+    // receipt lands on the row that was acted on. (The old freeze lifted when the queue accepted
+    // the message — milliseconds — which is exactly why three clicks queued three prompts.)
+    exports.deskStore.pending = { rowId: 'd1', at: new Date('2026-09-26T13:05:00+08:00').getTime(), action: '回答' }
+    const inFlight = textsOf(exports.DeskPanel()).join(' | ')
+    expect(inFlight).toContain('已交给助手')
+    expect(inFlight).toContain('正在处理')
+    expect(inFlight).toContain('回复出现在对话里')
     expect(disabledButtons(exports.DeskPanel())).toBeGreaterThanOrEqual(3)
+
+    // The desk file is rewritten past the send → the gate lifts and the row carries its receipt.
+    exports.deskStore.pending = undefined
+    exports.deskStore.lastReceipt = { rowId: 'd1', action: '回答', at: new Date('2026-09-26T13:06:30+08:00').getTime() }
+    exports.deskStore.data = { ...exports.deskStore.data, generatedAt: '2026-09-26T13:06:00+08:00' }
+    const settled = textsOf(exports.DeskPanel()).join(' | ')
+    expect(settled).toContain('✓ 已更新')
+    expect(disabledButtons(exports.DeskPanel())).toBe(0)
+  })
+
+  it('renders the options the assistant presented as one-click answers on the row', () => {
+    const exports = materialize()
+    exports.deskStore.data = {
+      decisions: [{
+        id: 'd1', question: '季末破价例外？', kind: 'business',
+        options: [{ label: '允许 48 小时', cost: '口径风险', irreversible: true }, { label: '一律不允' }],
+        reply: '选项已给，等你挑',
+      }],
+    }
+    const text = textsOf(exports.DeskPanel()).join(' | ')
+    expect(text).toContain('季末破价例外？')
+    expect(text).toContain('允许 48 小时')
+    expect(text).toContain('一律不允')
+    expect(text).toContain('它说：选项已给，等你挑')
+  })
+
+  it('renders the action outcome note the assistant recorded — real files carry it, the panel used to drop it', () => {
+    const exports = materialize()
+    exports.deskStore.data = {
+      actions: [
+        { id: 'a1', what: '口径卡', status: 'open', note: '收到 7 条互斥指令，已封存' },
+        { id: 'a2', what: '台账', status: 'done', owner: 'VP-Sales', note: '用户指示不办，已记原因' },
+      ],
+    }
+    const text = textsOf(exports.DeskPanel()).join(' | ')
+    expect(text).toContain('它记：收到 7 条互斥指令，已封存')
+    expect(text).toContain('它记：用户指示不办，已记原因')
   })
 })
