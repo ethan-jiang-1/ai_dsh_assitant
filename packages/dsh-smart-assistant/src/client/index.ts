@@ -110,7 +110,8 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   /** One desk snapshot as the assistant writes it (see the desk-refresh skill). */
   interface DeskData {
     counts?: { memories?: number, knowledgeStable?: number, knowledgeDraft?: number, skills?: number, threads?: number }
-    threads?: { id?: string, status?: string, why?: string, lean?: string }[]
+    threads?: { id?: string, status?: string, title?: string, why?: string, lean?: string }[]
+    decisions?: { id?: string, question?: string, context?: string }[]
     recentMemories?: { id?: string, kind?: string, text?: string, updated?: string }[]
     knowledge?: { id?: string, title?: string, status?: string, type?: string }[]
     skills?: { name?: string, description?: string }[]
@@ -322,6 +323,23 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       createElement('h2', { style: { margin: '0 0 4px', fontSize: '18px' } }, '我的桌面'),
       refreshRow(store),
 
+      // The principal's first question is "what needs me?" — so it leads, and the drafts the
+      // knowledge panel owns are counted here rather than duplicated.
+      sectionTitle('等你决定'),
+      (data?.decisions ?? []).length === 0 && (data?.counts?.knowledgeDraft ?? 0) === 0
+        ? muted('（没有等你拍板的事）')
+        : createElement('div', null,
+            ...(data?.decisions ?? []).map(item => createElement('div', {
+              key: String(item.id),
+              style: { marginBottom: '8px', paddingLeft: '10px', borderLeft: '2px solid #d97706' },
+            },
+            createElement('div', { style: { fontSize: '13px', fontWeight: 600 } }, String(item.question ?? '')),
+            item.context === undefined ? null : createElement('div', { style: { fontSize: '12px', color: '#888' } }, String(item.context)))),
+            (data?.counts?.knowledgeDraft ?? 0) === 0
+              ? null
+              : createElement('div', { style: { fontSize: '13px', color: '#b26a00' } },
+                  `⚠ ${String(data?.counts?.knowledgeDraft)} 页知识在等你审批（见「知识室」）`)),
+
       sectionTitle('在跟的事'),
       data?.threads === undefined || data.threads.length === 0
         ? muted('（暂时没有未决线索）')
@@ -329,9 +347,14 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
             key: String(thread.id),
             style: { marginBottom: '10px', paddingLeft: '10px', borderLeft: `2px solid ${MARK_TEAL}` },
           },
-          createElement('div', { style: { fontSize: '13px', lineHeight: 1.6 } }, String(thread.why ?? '')),
-          createElement('div', { style: { fontSize: '12px', color: '#888', marginTop: '2px' } },
-            '当前倾向：', String(thread.lean ?? '（未定）'))))),
+          createElement('div', { style: { fontSize: '13px', fontWeight: 600, lineHeight: 1.5 } },
+            String(thread.title ?? thread.id ?? '')),
+          createElement('div', { style: { fontSize: '12px', color: '#666', marginTop: '2px' } },
+            '当前倾向：', String(thread.lean ?? '（未定）')),
+          thread.why === undefined || thread.why === ''
+            ? null
+            : createElement('div', { style: { fontSize: '11px', color: '#aaa', marginTop: '2px', lineHeight: 1.5 } },
+                String(thread.why))))),
 
       sectionTitle('最近记住的'),
       data?.recentMemories === undefined || data.recentMemories.length === 0

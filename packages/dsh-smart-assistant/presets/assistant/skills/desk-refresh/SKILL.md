@@ -22,8 +22,11 @@ place your file tools write). Create the directory if it is missing.
   "generatedBy": "desk-refresh",
   "generatedAt": "2026-09-25T16:00:00+08:00",
   "counts": { "memories": 8, "knowledgeStable": 10, "knowledgeDraft": 3, "skills": 2, "threads": 1 },
+  "decisions": [
+    { "id": "…", "question": "…", "context": "…" }
+  ],
   "threads": [
-    { "id": "20260925-20-…", "status": "open", "why": "…", "lean": "…", "updated": "…" }
+    { "id": "20260925-20-…", "status": "open", "title": "…", "why": "…", "lean": "…", "updated": "…" }
   ],
   "recentMemories": [
     { "id": "20260925-…", "kind": "fact", "updated": "…", "text": "…" }
@@ -41,15 +44,31 @@ The panels read `knowledge` and `skills` too: the knowledge panel lists pages wi
 (`status: "draft"`) first as "waiting for your review", and the memory panel lists
 `recentMemories`. Fill every section you can; a missing one renders empty, which is honest.
 
-Keep `why` and `lean` to roughly one line each — the panel renders them as-is and a wall of text
-stops being a glance. `recentMemories`: the five most recently updated active records.
+The desk panel leads with its decisions section (`decisions`) and its threads section
+(`threads`), so both must read as a glance:
+
+- Write every rendered string **in the principal's own language** — the panels show them verbatim,
+  and a Chinese-speaking principal reading English one-liners is a worse panel, not a safer one.
+- `decisions[].question` — one line, the thing you would actually put to the principal (for example:
+  "should we retire the weakest record in the digest?"). `context` is one short line of why the call
+  is theirs. **Only real ones**: something you are genuinely waiting on. An empty list is a fine
+  answer and renders as "nothing waiting on you".
+- `threads[].title` — one line naming the question (for example: "Q3 sales down 20% — settle the
+  definition first, or the customers?"). `why` is the rationale (rendered small and grey), `lean` is
+  your current lean (rendered under the title). Keep `why` to about two lines: it is the footnote,
+  not the headline.
+- `recentMemories`: the five most recently updated active records.
 
 ## How to fill it
 
 1. **Counts** — from your own tools, not from memory: `assistant_memory action=curate` (memories,
    knowledge, skills) and `assistant_research action=list` (threads).
 2. **Threads** — `assistant_research action=list`, then `action=brief` for the ones you include;
-   carry their `why` and current `lean` verbatim rather than re-summarising.
+   carry their `why` and current `lean` verbatim rather than re-summarising, and write the `title`
+   yourself (the thread record has no one-line headline).
+2b. **Decisions** — ask yourself: *is there anything I am waiting on the principal for?* A draft page
+   awaiting approval, a question I could not answer without their numbers, a choice they reserved.
+   If yes, one entry each; if no, leave the list empty rather than inventing work for them.
 3. **Recent memories** — `assistant_memory action=list` (or `recall`), newest first, take five.
 4. **Knowledge pages** — list the knowledge room's files and read each page's frontmatter
    (`id`, `title`, `status`, `type`, `updated`). Include drafts: the principal reviews them from
