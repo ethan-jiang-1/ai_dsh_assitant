@@ -25,6 +25,9 @@ place your file tools write). Create the directory if it is missing.
   "decisions": [
     { "id": "…", "question": "…", "context": "…" }
   ],
+  "gaps": [
+    { "id": "…", "what": "…", "why": "…" }
+  ],
   "threads": [
     { "id": "20260925-20-…", "status": "open", "title": "…", "why": "…", "lean": "…", "updated": "…" }
   ],
@@ -50,6 +53,9 @@ The desk panel leads with its decisions section (`decisions`) and its threads se
 
 - Write every rendered string **in the principal's own language** — the panels show them verbatim,
   and a Chinese-speaking principal reading English one-liners is a worse panel, not a safer one.
+- `gaps[].what` — one line, the thing you lack, written so the principal knows what to hand over
+  ("this quarter's monthly revenue by customer", "read access to the company facts folder").
+  `why` is one line on what it unblocks. Keep it to what you actually hit, not a wish list.
 - `decisions[].question` — one line, the thing you would actually put to the principal (for example:
   "should we retire the weakest record in the digest?"). `context` is one short line of why the call
   is theirs. **Only real ones**: something you are genuinely waiting on. An empty list is a fine
@@ -73,8 +79,13 @@ The desk panel leads with its decisions section (`decisions`) and its threads se
    carry their `why` and current `lean` verbatim rather than re-summarising, and write the `title`
    yourself (the thread record has no one-line headline).
 2b. **Decisions** — ask yourself: *is there anything I am waiting on the principal for?* A draft page
-   awaiting approval, a question I could not answer without their numbers, a choice they reserved.
-   If yes, one entry each; if no, leave the list empty rather than inventing work for them.
+   awaiting approval, a choice they reserved, a call only they can make. If yes, one entry each; if
+   no, leave the list empty rather than inventing work for them.
+2c. **Gaps** — the other half of the ask, and not the same thing: a decision is *theirs to make*,
+   a gap is *something I lack* to be useful — a number I have no source for, an access I do not
+   have, a document nobody has handed me, a question I cannot even frame without a fact. `what` is
+   one line naming it, `why` is one line on what it would unblock. This is the cultivation ask:
+   the principal reads it and knows what to hand over. An empty list is a fine answer.
 3. **Memories** — `assistant_memory action=list` (or `recall`), newest first, up to about twenty
    active records.
 4. **Knowledge pages** — list the knowledge room's files and read each page's frontmatter

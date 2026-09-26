@@ -113,6 +113,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     counts?: { memories?: number, knowledgeStable?: number, knowledgeDraft?: number, skills?: number, threads?: number }
     threads?: { id?: string, status?: string, title?: string, why?: string, lean?: string }[]
     decisions?: { id?: string, question?: string, context?: string }[]
+    gaps?: { id?: string, what?: string, why?: string }[]
     memories?: { id?: string, kind?: string, text?: string, updated?: string, source?: string }[]
     knowledge?: { id?: string, title?: string, status?: string, type?: string, sources?: string[] }[]
     skills?: { name?: string, description?: string }[]
@@ -492,6 +493,18 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
                   onClick: () => { try { deskLayout?.selectPanel?.('assistant-knowledge') } catch { /* stale target */ } },
                   style: { fontSize: '13px', color: '#b26a00', cursor: 'pointer', textDecoration: 'underline' },
                 }, `⚠ ${String(data?.counts?.knowledgeDraft)} 页知识在等你审批（点这里打开知识室）`)),
+
+      sectionTitle('缺什么'),
+      (data?.gaps ?? []).length === 0
+        ? muted('（没有卡住的事）')
+        : createElement('div', null, ...(data?.gaps ?? []).map(item => createElement('div', {
+            key: String(item.id),
+            style: { marginBottom: '8px', paddingLeft: '10px', borderLeft: '2px solid #999' },
+          },
+          createElement('div', { style: { fontSize: '13px' } }, String(item.what ?? '')),
+          item.why === undefined || item.why === ''
+            ? null
+            : createElement('div', { style: { fontSize: '11px', color: '#999' } }, String(item.why))))),
 
       sectionTitle('在跟的事'),
       data?.threads === undefined || data.threads.length === 0
