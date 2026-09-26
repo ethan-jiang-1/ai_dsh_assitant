@@ -277,9 +277,26 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       '已把这条决定交给助手…')
   }
 
-  /** Ask the assistant where one thread actually stands. */
-  function askAboutThread(title: string): void {
-    sendPrompt(`「${title}」这条线索现在到哪一步了？还缺什么才能往下走？`, '已请助手汇报这条线索…')
+  /**
+   * Park one thread: still valid, not now. The research room's middle exit, offered where the
+   * principal sees the thread rather than only in chat.
+   */
+  function parkThread(title: string): void {
+    sendPrompt(
+      `线索「${title}」先放一放（park）：现在不推，但别丢。改完刷新我的桌面。`,
+      '已请助手把它先放放…',
+      () => { setTimeout(() => { loadDesk() }, 15000) },
+    )
+  }
+
+  /** Close one thread: answered, moot, or not worth it — the assistant promotes or drops it. */
+  function closeThread(title: string): void {
+    sendPrompt(
+      `线索「${title}」可以收了：请判断该 promote（变成记忆/知识页/技能）还是 drop（写一行原因），`
+      + `做完告诉我你归到了哪里，并刷新我的桌面。`,
+      '已请助手收这条线索…',
+      () => { setTimeout(() => { loadDesk() }, 15000) },
+    )
   }
 
   /**
@@ -582,21 +599,27 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       sectionTitle('在跟的事'),
       data?.threads === undefined || data.threads.length === 0
         ? muted('（暂时没有未决线索）')
-        : createElement('div', null, ...data.threads.map(thread => createElement('div', {
+        : createElement('div', null, ...data.threads.map(thread => createElement(CorrectableRow, {
             key: String(thread.id),
-            style: { marginBottom: '10px', paddingLeft: '10px', borderLeft: `2px solid ${MARK_TEAL}` },
-          },
-          createElement('div', {
-            onClick: () => { askAboutThread(String(thread.title ?? thread.id ?? '')) },
-            title: '点一下，问助手这条线索到哪一步了',
-            style: { fontSize: '13px', fontWeight: 600, lineHeight: 1.5, cursor: 'pointer' },
-          }, String(thread.title ?? thread.id ?? '')),
-          createElement('div', { style: { fontSize: '12px', color: '#666', marginTop: '2px' } },
-            '当前倾向：', String(thread.lean ?? '（未定）')),
-          thread.why === undefined || thread.why === ''
-            ? null
-            : createElement('div', { style: { fontSize: '11px', color: '#aaa', marginTop: '2px', lineHeight: 1.5 } },
-                String(thread.why))))),
+            primary: createElement('span', null,
+              createElement('div', { style: { fontSize: '13px', fontWeight: 600, lineHeight: 1.5 } },
+                String(thread.title ?? thread.id ?? '')),
+              createElement('div', { style: { fontSize: '12px', color: '#666', fontWeight: 400 } },
+                '当前倾向：', String(thread.lean ?? '（未定）')),
+              thread.why === undefined || thread.why === ''
+                ? null
+                : createElement('div', { style: { fontSize: '11px', color: '#aaa', fontWeight: 400, lineHeight: 1.5 } },
+                    String(thread.why))),
+            actionLabel: '问进展',
+            placeholder: '你想问这条线索的什么？',
+            onSubmit: (text: string) => {
+              sendPrompt(`关于线索「${String(thread.title ?? thread.id ?? '')}」：${text}`, '已把问题交给助手…')
+            },
+            actions: [
+              { label: '先放放', run: () => { parkThread(String(thread.title ?? thread.id ?? '')) } },
+              { label: '收了', run: () => { closeThread(String(thread.title ?? thread.id ?? '')) } },
+            ],
+          }))),
 
       sectionTitle('它最近做了什么'),
       (data?.recentActivity ?? []).length === 0

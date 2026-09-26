@@ -94,6 +94,10 @@ describe('desk panels', () => {
     expect(text).toContain('Q3 掉了 20%')
     // The activity list answers "what have you been doing?" — the question a long-lived
     // assistant has to keep answering.
+    // A thread carries the research room's exits where the principal sees it: ask, park, close.
+    expect(text).toContain('问进展')
+    expect(text).toContain('先放放')
+    expect(text).toContain('收了')
     expect(text).toContain('它最近做了什么')
     expect(text).toContain('按你的更正重写了一条记忆')
     expect(text).toContain('先定口径')
