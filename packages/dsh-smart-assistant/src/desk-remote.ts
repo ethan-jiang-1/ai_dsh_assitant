@@ -8,7 +8,7 @@
  * @module dsh-smart-assistant/desk-remote
  */
 import type { Context } from '@deepseek-ai/cordis'
-import { TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
+import { TypertRemoteService, Remote } from '@deepseek-ai/dsh-typert-protocol'
 import type { AssistantMemory } from './index.ts'
 
 /** What the My Desk panel renders. */
@@ -47,7 +47,7 @@ export class AssistantDeskRemote extends TypertRemoteService {
    * One call the desk panel needs: counts, open threads, recent memories.
    * @returns a snapshot of the working folder's live state.
    */
-  // Remote marking deferred: TS1241 in this tsconfig; testing auto-exposure.
+  @Remote
   async snapshot(): Promise<DeskSnapshot> {
     const curate = await this.memory.curate()
     const counts = curate.counts
