@@ -108,4 +108,14 @@
   证据 [p1b-first-open.png](../research/2026-09-26-first-mile-shots/p1b-first-open.png)。
   **已知视觉待办**（P2）：引导条 maxWidth 760 比 composer 窄，右边缘不齐——截图驱动的最小调整。
   **不能做**：hero 标题文案（"探索未至之境"）是 vendor locale 拥有的，不碰 vendor 即不可改。
-- [ ] P1-C 开发环境保真 · P2 S5 密度 · P3 收尾
+- [~] **P1-C 开发环境保真：未落地（如实记录，配置已回退）**——平台机制查清并在**一次**真机上端到端
+  见过（注册表出现 `defaultWorkspaceId` + 目录建出 + UI chip 显示默认工作区），但**无法按需复现**：
+  清空注册表后重跑，客户端停在"选择工作区"、注册表保持空，console 无错、host 无警告；字面量路径与
+  `!!js` 路径表现相同（所以不是 `!!js` 求值问题）。因此**不把未验证的 `dev/profile-patch.yml`
+  documentsDirectory 改动写进仓**（回退）；P1-C 的触发条件与复现配方见
+  [走查报告 §3/§5](../research/2026-09-26-first-mile-walkthrough.md)。**下个会话接手时从这里开始**：
+  先确认"客户端是否真的调用了 `workspace/initializeDefault`"（Network 域抓该 RPC），再谈 dev 配置。
+  顺带确认的两件事：`!!js` 表达式**不能加引号**（加了标签文本会漏进表达式 → 被当正则，报
+  "Invalid regular expression flags"）；dev patch 里用 `!!js` 依赖 `process.env.DSH_HOME` 有风险
+  （求值不到则整行 entry 不激活），不值得为未验证的收益承担。
+- [ ] P2 S5 密度 · P3 收尾

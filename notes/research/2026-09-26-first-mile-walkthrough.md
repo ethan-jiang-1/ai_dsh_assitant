@@ -69,6 +69,23 @@ DOM 证据同名 `.dom.json`（`visibleText` 是屏上文字，`textOutline` 是
 5. **SIGTERM 杀不干净 Chrome**（helper 进程存活，曾累积 26 个）→ 进程组 `SIGKILL`。
 6. **agent 沙箱**：`ps` 不可用（用 `pgrep`/`lsof`）；`~/Documents` 不可写（影响首次使用保真度）。
 
+## 4b. P1-C 的复现配方（未决，接手从这里开始）
+
+平台机制与一次成功的端到端观察见 §3.1。**但清空注册表后无法按需复现**（2026-09-26 深夜实测四次）：
+
+1. 起干净 home（`ASSISTANT_DSH_HOME=<dir>` + `--profile dev`），给一个假 provider key 跳过 API Key 门；
+2. 把 `workspace-controller` 的 `documentsDirectory` 指到可写路径（`--patch` 或 profile patch 均可）；
+3. 删 `<home>/storages/workspace.json` 后重开页面。
+
+结果：客户端停在"选择工作区"、注册表保持 `workspaceIds: []`、目标目录没建、console 无错、host 无警告；
+字面量路径与 `!!js` 路径表现相同；`location.reload()` 再触发一次启动恢复也无效。**待查的第一件事**：
+客户端是否真的发出了 `workspace/initializeDefault`（用 CDP 的 Network 域抓该 RPC）——发了而失败是
+host 侧问题，没发就是客户端启动恢复的分支没走到。
+
+两个顺带确认的环境事实：`!!js` 表达式**不能加引号**（引号让标签文本漏进表达式，被当正则解析，
+报 `Invalid regular expression flags`）；用 `!!js process.env.DSH_HOME` 有风险（求值不到则整行 entry
+不激活），不值得为未验证的收益承担。
+
 ## 5. 未决 / 下一步
 
 - **P1 的输入**：断点 1/2/3/5 直接对应 P1-A（命令面）、P1-B（首屏身份 + composer dock 引导）；
