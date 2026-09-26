@@ -16,6 +16,9 @@
  *
  * Usage: node scripts/webui-preflight.mjs 'http://127.0.0.1:<port>/?token=<token>'
  */
+import { existsSync, readFileSync, readdirSync } from 'node:fs'
+import { join } from 'node:path'
+
 const given = process.argv[2]
 if (given === undefined) {
   console.error('usage: node scripts/webui-preflight.mjs <url-with-token>')
@@ -179,6 +182,40 @@ if (bootStart < 0) {
       }
     }
   }
+}
+
+// ⑥ Review readiness: the panel renders content from a desk file inside a session workspace, so
+// a green boot with no desk file still hands the human an empty page. Fail (not warn) when no
+// recent session workspace has one — "hand over a URL where nothing is visible" is the failure
+// this whole script exists to prevent (user, 2026-09-25).
+const home = process.env.DSH_HOME ?? new URL('../dev/harness-home/', import.meta.url).pathname
+const sessionsRoot = join(home, 'sessions')
+let deskFound = ''
+try {
+  for (const project of readdirSync(sessionsRoot)) {
+    // The directory name encodes the workspace path with '-' for '/': --Users-me-project--
+    const workspace = project.replace(/^--/, '/').replace(/--$/, '').replaceAll('-', '/')
+    const candidate = join(workspace, '.desk', 'state.json')
+    if (!existsSync(candidate)) continue
+    // Content, not just presence: an old file without the sections renders an empty panel too.
+    try {
+      const parsed = JSON.parse(readFileSync(candidate, 'utf8'))
+      const sections = ['counts', 'threads', 'recentMemories', 'knowledge', 'skills'].filter(key => parsed[key] !== undefined)
+      deskFound = `${candidate} (sections: ${sections.join(', ')})`
+      break
+    } catch (error) {
+      fail(`desk file at ${candidate} is not valid JSON: ${String(error)}`)
+      break
+    }
+  }
+} catch (error) {
+  fail(`cannot read the session store at ${sessionsRoot}: ${String(error)}`)
+}
+if (deskFound === '') {
+  fail('no .desk/state.json in any session workspace — the desk/knowledge/memory panels will render empty; '
+    + 'ask the assistant to refresh the desk (the desk-refresh skill) before handing this URL over')
+} else {
+  ok(`desk file present: ${deskFound}`)
 }
 
 if (failures > 0) {

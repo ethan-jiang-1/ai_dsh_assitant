@@ -107,10 +107,176 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     return createElement('span', { style: { fontSize: '17px', whiteSpace: 'nowrap' } }, BRAND_NAME)
   }
 
+  /** One desk snapshot as the assistant writes it (see the desk-refresh skill). */
+  interface DeskData {
+    counts?: { memories?: number, knowledgeStable?: number, knowledgeDraft?: number, skills?: number, threads?: number }
+    threads?: { id?: string, status?: string, why?: string, lean?: string }[]
+    recentMemories?: { id?: string, kind?: string, text?: string, updated?: string }[]
+    knowledge?: { id?: string, title?: string, status?: string, type?: string }[]
+    skills?: { name?: string, description?: string }[]
+  }
+
   /**
-   * Experiment 1b: the desk icon for the left sidebar's panel list (same slot shape
-   * ui-schedule uses — a calendar glyph, sized by the sidebar's PropsRuntime).
+   * Shared desk state: one loader, three panels. The panels are separate sidebar entries, so
+   * they must not each re-fetch; the store is the single owner and notifies its subscribers.
    */
+  const deskStore: {
+    data?: DeskData | undefined
+    note?: string | undefined
+    source?: string | undefined
+    busy?: string | undefined
+    listeners: Set<() => void>
+  } = { listeners: new Set() }
+  const patchDesk = (next: Partial<typeof deskStore>): void => {
+    Object.assign(deskStore, next)
+    for (const listener of [...deskStore.listeners]) listener()
+  }
+
+  /** Monotonic load sequence: a newer load invalidates every attempt of the older one. */
+  let deskLoadSeq = 0
+
+  /**
+   * Read `.desk/state.json` for the newest Session that has one. The file is per-workspace, so
+   * walk the recent Sessions and say which workspace answered — a silent miss reads as breakage.
+   */
+  function loadDesk(): void {
+    const read = (deskRemote?.['workspaceFiles'] as {
+      read?: (sessionId: string, path: string, options: unknown) => Promise<unknown>
+    } | undefined)?.read
+    const store = deskSessions?.list
+    if (read === undefined) {
+      patchDesk({ note: 'remote.workspaceFiles did not materialize' })
+      return
+    }
+    if (store === undefined) {
+      patchDesk({ note: 'the client Session store is not available' })
+      return
+    }
+    const state = store.getSnapshot() as {
+      ids?: string[]
+      byId?: Record<string, { updatedAt?: number, cwd?: string }>
+    }
+    const ids = state?.ids ?? []
+    const byId = state?.byId ?? {}
+    const ordered = ids
+      .slice()
+      .sort((left, right) => Number(byId[right]?.updatedAt ?? 0) - Number(byId[left]?.updatedAt ?? 0))
+      .slice(0, 5)
+    if (ordered.length === 0) {
+      patchDesk({ note: '还没有会话——先和助手说句话，再点刷新桌面' })
+      return
+    }
+    const seq = ++deskLoadSeq
+    const attempt = async (index: number): Promise<void> => {
+      if (seq !== deskLoadSeq) return
+      if (index >= ordered.length) {
+        patchDesk({ note: '最近 5 个会话的工作区里都没有 .desk/state.json——点「刷新桌面」让助手写一份' })
+        return
+      }
+      const sessionId = ordered[index] as string
+      try {
+        const result = await read(sessionId, '.desk/state.json', {})
+        const wrapped = result as { ok?: boolean, value?: { text?: string } }
+        const text = wrapped?.ok === false ? undefined : wrapped?.value?.text
+        if (typeof text !== 'string' || text.trim() === '') {
+          await attempt(index + 1)
+          return
+        }
+        patchDesk({ data: JSON.parse(text) as DeskData, note: undefined, source: byId[sessionId]?.cwd ?? '' })
+      } catch {
+        await attempt(index + 1)
+      }
+    }
+    void attempt(0)
+  }
+
+  /** Subscribe one panel to the shared desk store. */
+  function useDesk(): typeof deskStore {
+    const { useEffect, useState } = require('react') as typeof import('react')
+    const [snapshot, setSnapshot] = useState({ ...deskStore })
+    useEffect(() => {
+      const update = (): void => setSnapshot({ ...deskStore })
+      deskStore.listeners.add(update)
+      update()
+      return () => { deskStore.listeners.delete(update) }
+    }, [])
+    return snapshot
+  }
+
+  /** Ask the assistant to refresh the desk file, then reload it after it has had time to work. */
+  function askRefresh(): void {
+    const read = (deskRemote?.['session'] as { prompt?: (request: unknown) => Promise<unknown> } | undefined)?.prompt
+    const store = deskSessions?.list
+    const state = store?.getSnapshot() as { ids?: string[], byId?: Record<string, { updatedAt?: number }> } | undefined
+    const ids = state?.ids ?? []
+    const byId = state?.byId ?? {}
+    const sessionId = ids
+      .slice()
+      .sort((left, right) => Number(byId[right]?.updatedAt ?? 0) - Number(byId[left]?.updatedAt ?? 0))[0]
+    if (sessionId === undefined) {
+      patchDesk({ note: '还没有会话可刷新——先和助手说句话' })
+      return
+    }
+    if (read === undefined) {
+      patchDesk({ note: 'remote.session did not materialize' })
+      return
+    }
+    patchDesk({ busy: '已请助手刷新桌面，稍后自动重读…' })
+    void read({
+      requestId: `desk-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      sessionId,
+      mode: 'queue',
+      content: [{ type: 'text', text: '刷新我的桌面。' }],
+    }).then((result: unknown) => {
+      const wrapped = result as { ok?: boolean, error?: { message?: string } }
+      if (wrapped?.ok === false) {
+        patchDesk({ busy: undefined, note: wrapped.error?.message ?? 'prompt failed' })
+        return
+      }
+      setTimeout(() => {
+        patchDesk({ busy: undefined })
+        loadDesk()
+      }, 12000)
+    }).catch((reason: unknown) => {
+      patchDesk({ busy: undefined, note: String(reason) })
+    })
+  }
+
+  /** A stat cell. */
+  function cell(label: string, value: string): ReturnType<typeof createElement> {
+    return createElement('div', { style: { display: 'inline-block', margin: '8px 16px', textAlign: 'center' as const } },
+      createElement('div', { style: { fontSize: '26px', fontWeight: 700, color: MARK_TEAL } }, value),
+      createElement('div', { style: { fontSize: '12px', color: '#666' } }, label))
+  }
+
+  /** A section heading. */
+  function sectionTitle(text: string): ReturnType<typeof createElement> {
+    return createElement('h3', { style: { margin: '20px 0 8px', fontSize: '13px', color: '#888', fontWeight: 600 } }, text)
+  }
+
+  /** Muted one-liner. */
+  function muted(text: string): ReturnType<typeof createElement> {
+    return createElement('p', { style: { fontSize: '12px', color: '#999', margin: 0 } }, text)
+  }
+
+  /** The refresh button plus its status line — shared by all three panels. */
+  function refreshRow(store: typeof deskStore): ReturnType<typeof createElement> {
+    return createElement('div', { style: { margin: '8px 0 0' } },
+      createElement('button', {
+        onClick: askRefresh,
+        disabled: store.busy !== undefined,
+        style: {
+          padding: '6px 14px', fontSize: '13px', cursor: 'pointer', borderRadius: '6px',
+          border: `1px solid ${MARK_TEAL}`, background: store.busy === undefined ? '#fff' : '#f2f2f2',
+          color: MARK_TEAL,
+        },
+      }, '刷新桌面'),
+      store.busy === undefined
+        ? null
+        : createElement('span', { style: { marginLeft: '10px', fontSize: '12px', color: '#888' } }, store.busy))
+  }
+
+  /** Calendar glyph for the desk panel entry. */
   function DeskIcon({ size }: { size: number }): unknown {
     return createElement('svg', {
       width: size, height: size, viewBox: '0 0 24 24', fill: 'none',
@@ -123,243 +289,124 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     )
   }
 
-  /**
-   * Experiment 1b: the My Desk panel body — four static numbers proving the panel path.
-   * Rendered with createElement only (no JSX in the script-format client bundle).
-   */
+  /** Book glyph for the knowledge panel entry. */
+  function KnowledgeIcon({ size }: { size: number }): unknown {
+    return createElement('svg', {
+      width: size, height: size, viewBox: '0 0 24 24', fill: 'none',
+      stroke: MARK_TEAL, strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round',
+      'aria-hidden': true,
+    },
+    createElement('path', { d: 'M4 4h7a3 3 0 0 1 3 3v13a2.5 2.5 0 0 0-2.5-2.5H4Z' }),
+    createElement('path', { d: 'M20 4h-7a3 3 0 0 0-3 3v13a2.5 2.5 0 0 1 2.5-2.5H20Z' }),
+    )
+  }
+
+  /** Lightbulb glyph for the memory panel entry. */
+  function MemoryIcon({ size }: { size: number }): unknown {
+    return createElement('svg', {
+      width: size, height: size, viewBox: '0 0 24 24', fill: 'none',
+      stroke: MARK_TEAL, strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round',
+      'aria-hidden': true,
+    },
+    createElement('path', { d: 'M9 18h6' }),
+    createElement('path', { d: 'M10 22h4' }),
+    createElement('path', { d: 'M12 2a7 7 0 0 0-4 12.7V18h8v-3.3A7 7 0 0 0 12 2Z' }),
+    )
+  }
+
+  /** Panel 1 — the desk: what is being tracked, what changed, and the working-folder counts. */
   function DeskPanel(): unknown {
-    const { createElement: h, useEffect, useState } = require('react') as typeof import('react')
-    const [presets, setPresets] = useState<{ id: string, name: string }[] | undefined>(undefined)
-    const [conversations, setConversations] = useState<{ total: number, running: number, recent: { id: string, updated: string, cwd: string }[] } | undefined>(undefined)
-    const [sessionIds, setSessionIds] = useState<string[]>([])
-    const [sessionCwds, setSessionCwds] = useState<Record<string, string>>({})
-    const [desk, setDesk] = useState<{
-      counts?: Record<string, number>
-      threads?: { id?: string, status?: string, why?: string, lean?: string }[]
-      recentMemories?: { id?: string, kind?: string, text?: string }[]
-    } | undefined>(undefined)
-    const [deskNote, setDeskNote] = useState<string | undefined>(undefined)
-    const [refreshing, setRefreshing] = useState<string | undefined>(undefined)
-    const [deskReloadKey, setDeskReloadKey] = useState(0)
-    const [deskSource, setDeskSource] = useState<string | undefined>(undefined)
-    const [error, setError] = useState<string | undefined>(undefined)
+    const store = useDesk()
+    const data = store.data
+    return createElement('div', { style: { padding: '24px', maxWidth: '620px' } },
+      createElement('h2', { style: { margin: '0 0 4px', fontSize: '18px' } }, '我的桌面'),
+      refreshRow(store),
 
-    // Assistants: one manifested Remote call. Its value is a Result wrapper
-    // ({ ok, value: { presets }, error }) — unpacking it as a bare roster was why this section
-    // first rendered empty (pattern learned from the shipped agent-preset client plugin).
-    useEffect(() => {
-      const timer = setTimeout(() => {
-        const api = deskRemote?.['agentPresets'] as { list?: () => Promise<unknown> } | undefined
-        if (api?.list === undefined) {
-          setError('remote.agentPresets did not materialize')
-          return
-        }
-        void api.list().then((result: unknown) => {
-          const wrapped = result as { ok?: boolean, value?: { presets?: unknown[] }, error?: { message?: string } }
-          if (wrapped?.ok === false) {
-            setError(wrapped.error?.message ?? 'agentPresets.list failed')
-            return
-          }
-          const rows = (wrapped?.value?.presets ?? []) as { id?: unknown, name?: unknown }[]
-          setPresets(rows.map(row => ({ id: String(row?.id ?? '?'), name: String(row?.name ?? row?.id ?? '?') })))
-        }).catch((reason: unknown) => setError(String(reason)))
-      }, 300)
-      return () => clearTimeout(timer)
-    }, [])
-
-    // Conversations: the client Session store is already synced from the host (the left sidebar
-    // renders from it), so this needs no Remote call and no session scoping.
-    useEffect(() => {
-      const store = deskSessions?.list
-      if (store === undefined) return undefined
-      const update = (): void => {
-        const state = store.getSnapshot() as {
-          ids?: string[]
-          byId?: Record<string, { updatedAt?: number, running?: boolean, cwd?: string }>
-        }
-        const ids = state?.ids ?? []
-        const byId = state?.byId ?? {}
-        const ordered = ids.slice().sort((left, right) => Number(byId[right]?.updatedAt ?? 0) - Number(byId[left]?.updatedAt ?? 0))
-        setSessionIds(ordered)
-        setSessionCwds(Object.fromEntries(ids.map(id => [id, String(byId[id]?.cwd ?? '')])))
-        setConversations({
-          total: ids.length,
-          running: ids.filter(id => byId[id]?.running === true).length,
-          recent: ordered.slice(0, 5).map(id => {
-            const row = byId[id]
-            const stamp = row?.updatedAt
-            return {
-              id: String(id).slice(0, 8),
-              updated: stamp === undefined ? '' : new Date(Number(stamp)).toLocaleString(),
-              cwd: String(row?.cwd ?? ''),
-            }
-          }),
-        })
-      }
-      update()
-      return store.subscribe(update)
-    }, [])
-
-    // Working-folder counts: the assistant maintains `.desk/state.json` inside the session
-    // workspace; the panel reads it through the manifested `workspaceFiles` namespace. This is
-    // the cheap route around the out-of-tree Remote-namespace block (see the proposal card).
-    // The desk file is per-workspace, so walk the most recent sessions until one has it and say
-    // which workspace answered — a silent miss here reads as "the panel is broken".
-    useEffect(() => {
-      const api = deskRemote?.['workspaceFiles'] as {
-        read?: (sessionId: string, path: string, options: unknown) => Promise<unknown>
-      } | undefined
-      const read = api?.read
-      if (read === undefined) {
-        setDeskNote('remote.workspaceFiles did not materialize')
-        return undefined
-      }
-      const candidates = sessionIds.slice(0, 5)
-      if (candidates.length === 0) {
-        setDeskNote('还没有会话——先和助手说句话，再让它刷新桌面')
-        return undefined
-      }
-      let cancelled = false
-      const attempt = async (index: number): Promise<void> => {
-        if (cancelled) return
-        if (index >= candidates.length) {
-          setDeskNote('最近 5 个会话的工作区里都没有 .desk/state.json——点上面的按钮让助手刷新桌面')
-          return
-        }
-        try {
-          const sessionId = candidates[index] as string
-          const result = await read(sessionId, '.desk/state.json', {})
-          const wrapped = result as { ok?: boolean, value?: { text?: string }, error?: { message?: string } }
-          if (wrapped?.ok === false) {
-            await attempt(index + 1)
-            return
-          }
-          const text = wrapped?.value?.text
-          if (typeof text !== 'string' || text.trim() === '') {
-            await attempt(index + 1)
-            return
-          }
-          const parsed = JSON.parse(text) as typeof desk
-          if (cancelled) return
-          setDesk(parsed)
-          setDeskSource(sessionCwds[sessionId] ?? '')
-          setDeskNote(undefined)
-        } catch {
-          await attempt(index + 1)
-        }
-      }
-      void attempt(0)
-      return () => { cancelled = true }
-    }, [sessionIds, deskReloadKey])
-
-    const cell = (label: string, value: string): ReturnType<typeof h> =>
-      h('div', { style: { display: 'inline-block', margin: '8px 16px', textAlign: 'center' as const } },
-        h('div', { style: { fontSize: '26px', fontWeight: 700, color: MARK_TEAL } }, value),
-        h('div', { style: { fontSize: '12px', color: '#666' } }, label))
-    const sectionTitle = (text: string): ReturnType<typeof h> =>
-      h('h3', { style: { margin: '20px 0 8px', fontSize: '13px', color: '#888', fontWeight: 600 } }, text)
-    const muted = (text: string): ReturnType<typeof h> =>
-      h('p', { style: { fontSize: '12px', color: '#999', margin: 0 } }, text)
-
-    const roster = presets === undefined
-      ? muted('读取中…')
-      : presets.length === 0
-        ? muted('（这个部署没有注册助手预设）')
-        : h('ul', { style: { margin: 0, paddingLeft: '18px', fontSize: '13px', lineHeight: 1.7 } },
-            ...presets.map(preset => h('li', { key: preset.id },
-              preset.name, h('span', { style: { color: '#aaa', fontSize: '11px' } }, ` · ${preset.id}`))))
-
-    const history = conversations === undefined
-      ? muted('读取中…')
-      : h('div', null,
-          h('p', { style: { margin: '0 0 6px', fontSize: '13px' } },
-            `对话 ${conversations.total} 次`, conversations.running > 0 ? `（运行中 ${conversations.running}）` : ''),
-          conversations.recent.length === 0 ? null : h('ul', { style: { margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#666', lineHeight: 1.7 } },
-            ...conversations.recent.map(item => h('li', { key: item.id },
-              item.updated, item.cwd === '' ? null : h('span', { style: { color: '#aaa' } }, ` · ${item.cwd}`)))))
-
-    // Interaction: ask the assistant to refresh the desk file, then re-read it. This is the
-    // panel's first real action — it drives the assistant through the same session the CEO uses.
-    const askRefresh = (): void => {
-      const sessionId = sessionIds[0]
-      if (sessionId === undefined) {
-        setDeskNote('还没有会话可刷新——先和助手说句话')
-        return
-      }
-      const api = deskRemote?.['session'] as { prompt?: (request: unknown) => Promise<unknown> } | undefined
-      if (api?.prompt === undefined) {
-        setDeskNote('remote.session did not materialize')
-        return
-      }
-      setRefreshing('已请助手刷新桌面，稍后自动重读…')
-      void api.prompt({
-        requestId: `desk-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        sessionId,
-        mode: 'queue',
-        content: [{ type: 'text', text: '刷新我的桌面。' }],
-      }).then((result: unknown) => {
-        const wrapped = result as { ok?: boolean, error?: { message?: string } }
-        if (wrapped?.ok === false) {
-          setRefreshing(undefined)
-          setDeskNote(wrapped.error?.message ?? 'prompt failed')
-          return
-        }
-        setTimeout(() => {
-          setDeskReloadKey(key => key + 1)
-          setRefreshing(undefined)
-        }, 12000)
-      }).catch((reason: unknown) => {
-        setRefreshing(undefined)
-        setDeskNote(String(reason))
-      })
-    }
-
-    return h('div', { style: { padding: '24px', maxWidth: '560px' } },
-      h('h2', { style: { margin: '0 0 4px', fontSize: '18px' } }, 'My Desk'),
-      h('div', { style: { margin: '8px 0 0' } },
-        h('button', {
-          onClick: askRefresh,
-          disabled: refreshing !== undefined,
-          style: {
-            padding: '6px 14px', fontSize: '13px', cursor: 'pointer', borderRadius: '6px',
-            border: `1px solid ${MARK_TEAL}`, background: refreshing === undefined ? '#fff' : '#f2f2f2',
-            color: MARK_TEAL,
-          },
-        }, '刷新桌面'),
-        refreshing === undefined ? null : h('span', { style: { marginLeft: '10px', fontSize: '12px', color: '#888' } }, refreshing)),
-      sectionTitle('Assistants in this deployment'),
-      roster,
-      sectionTitle('Our conversations'),
-      history,
-      error === undefined ? null : h('p', { style: { fontSize: '12px', color: '#c66', marginTop: '8px' } }, `⚠ ${error}`),
       sectionTitle('在跟的事'),
-      desk?.threads === undefined || desk.threads.length === 0
+      data?.threads === undefined || data.threads.length === 0
         ? muted('（暂时没有未决线索）')
-        : h('div', null, ...desk.threads.map(thread => h('div', {
+        : createElement('div', null, ...data.threads.map(thread => createElement('div', {
             key: String(thread.id),
             style: { marginBottom: '10px', paddingLeft: '10px', borderLeft: `2px solid ${MARK_TEAL}` },
           },
-          h('div', { style: { fontSize: '13px', lineHeight: 1.6 } }, String(thread.why ?? '')),
-          h('div', { style: { fontSize: '12px', color: '#888', marginTop: '2px' } },
+          createElement('div', { style: { fontSize: '13px', lineHeight: 1.6 } }, String(thread.why ?? '')),
+          createElement('div', { style: { fontSize: '12px', color: '#888', marginTop: '2px' } },
             '当前倾向：', String(thread.lean ?? '（未定）'))))),
 
       sectionTitle('最近记住的'),
-      desk?.recentMemories === undefined || desk.recentMemories.length === 0
+      data?.recentMemories === undefined || data.recentMemories.length === 0
         ? muted('（还没有记忆）')
-        : h('ul', { style: { margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#666', lineHeight: 1.7 } },
-            ...desk.recentMemories.map(memory => h('li', { key: String(memory.id) },
+        : createElement('ul', { style: { margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#666', lineHeight: 1.7 } },
+            ...data.recentMemories.map(memory => createElement('li', { key: String(memory.id) },
               String(memory.text ?? ''),
-              memory.kind === undefined ? null : h('span', { style: { color: '#aaa' } }, ` · ${memory.kind}`)))),
+              memory.kind === undefined ? null : createElement('span', { style: { color: '#aaa' } }, ` · ${memory.kind}`)))),
 
-      sectionTitle('Working-folder counts'),
-      h('div', null,
-        cell('Memories', desk?.counts?.memories === undefined ? '—' : String(desk?.counts?.memories)),
-        cell('Knowledge', desk?.counts?.knowledgeStable === undefined ? '—' : String(desk?.counts?.knowledgeStable)),
-        cell('Skills', desk?.counts?.skills === undefined ? '—' : String(desk?.counts?.skills)),
-        cell('Threads', desk?.counts?.threads === undefined ? '—' : String(desk?.counts?.threads))),
-      deskNote === undefined
-        ? muted(`读自 ${deskSource === undefined || deskSource === '' ? '会话工作区' : deskSource} 的 .desk/state.json（经 workspaceFiles 命名空间）`)
-        : muted(deskNote))
+      sectionTitle('我记住的规模'),
+      createElement('div', null,
+        cell('记忆', data?.counts?.memories === undefined ? '—' : String(data.counts.memories)),
+        cell('知识', data?.counts?.knowledgeStable === undefined ? '—' : String(data.counts.knowledgeStable)),
+        cell('技能', data?.counts?.skills === undefined ? '—' : String(data.counts.skills)),
+        cell('线索', data?.counts?.threads === undefined ? '—' : String(data.counts.threads))),
+      store.note === undefined
+        ? muted(`读自 ${store.source === undefined || store.source === '' ? '会话工作区' : store.source} 的 .desk/state.json（经 workspaceFiles）`)
+        : muted(store.note))
+  }
+
+  /** Panel 2 — the knowledge room: what the assistant knows, and what is waiting for review. */
+  function KnowledgePanel(): unknown {
+    const store = useDesk()
+    const pages = store.data?.knowledge ?? []
+    const drafts = pages.filter(page => page.status === 'draft')
+    const stable = pages.filter(page => page.status !== 'draft')
+    const row = (page: typeof pages[number], mark: string): ReturnType<typeof createElement> =>
+      createElement('li', { key: String(page.id), style: { marginBottom: '4px' } },
+        mark, String(page.title ?? page.id ?? ''),
+        page.type === undefined || page.type === '' ? null : createElement('span', { style: { color: '#aaa', fontSize: '11px' } }, ` · ${page.type}`))
+    return createElement('div', { style: { padding: '24px', maxWidth: '620px' } },
+      createElement('h2', { style: { margin: '0 0 4px', fontSize: '18px' } }, '知识室'),
+      refreshRow(store),
+      pages.length === 0
+        ? muted('（还没有知识页，或桌面文件尚未刷新）')
+        : createElement('div', null,
+            sectionTitle(`待你审批（${drafts.length}）`),
+            drafts.length === 0
+              ? muted('（没有草稿在等）')
+              : createElement('ul', { style: { margin: 0, paddingLeft: '18px', fontSize: '13px', lineHeight: 1.8, color: '#b26a00' } },
+                  ...drafts.map(page => row(page, '⚠ '))),
+            sectionTitle(`已确认（${stable.length}）`),
+            stable.length === 0
+              ? muted('（还没有已确认的知识页）')
+              : createElement('ul', { style: { margin: 0, paddingLeft: '18px', fontSize: '13px', lineHeight: 1.8, color: '#555' } },
+                  ...stable.map(page => row(page, '✓ ')))),
+      sectionTitle('技能'),
+      (store.data?.skills ?? []).length === 0
+        ? muted('（还没有技能）')
+        : createElement('ul', { style: { margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#666', lineHeight: 1.7 } },
+            ...(store.data?.skills ?? []).map(skill => createElement('li', { key: String(skill.name) },
+              createElement('span', { style: { color: MARK_TEAL } }, String(skill.name ?? '')),
+              skill.description === undefined ? null : createElement('span', null, ` — ${skill.description}`)))),
+      store.note === undefined ? null : muted(store.note))
+  }
+
+  /** Panel 3 — the memory room: what the assistant has written down about the principal. */
+  function MemoryPanel(): unknown {
+    const store = useDesk()
+    const memories = store.data?.recentMemories ?? []
+    return createElement('div', { style: { padding: '24px', maxWidth: '620px' } },
+      createElement('h2', { style: { margin: '0 0 4px', fontSize: '18px' } }, '记忆室'),
+      refreshRow(store),
+      memories.length === 0
+        ? muted('（还没有记忆，或桌面文件尚未刷新）')
+        : createElement('ul', { style: { margin: 0, paddingLeft: '18px', fontSize: '13px', lineHeight: 1.8, color: '#555' } },
+            ...memories.map(memory => createElement('li', { key: String(memory.id), style: { marginBottom: '8px' } },
+              String(memory.text ?? ''),
+              createElement('div', { style: { fontSize: '11px', color: '#aaa' } },
+                [memory.kind, memory.updated].filter(part => part !== undefined && part !== '').join(' · '))))),
+      sectionTitle('规模'),
+      createElement('div', null,
+        cell('记忆', store.data?.counts?.memories === undefined ? '—' : String(store.data.counts.memories)),
+        cell('线索', store.data?.counts?.threads === undefined ? '—' : String(store.data.counts.threads))),
+      store.note === undefined ? null : muted(store.note))
   }
 
   /** Slots this face occupies (single-occupant, root-scope, declared by the sidebar). */
@@ -392,18 +439,27 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // Experiment 1b (corrected shape, learned from ui-schedule's registration):
     // panellist entries use inject + register with id/order/label in the declaration,
     // and the panel body registers in the 'main' keyed slot under the same id.
-    ctx.slots.inject('sidebar.panellist', () =>
-      ctx.slots.register({
-        name: 'sidebar.panellist',
-        id: 'assistant-desk',
-        order: 10,
-        label: 'My Desk',
-      }, DeskIcon))
-    ctx.slots.inject('main', () =>
-      ctx.slots.register({
-        name: 'main',
-        key: 'assistant-desk',
-      }, DeskPanel))
+    const panels = [
+      { id: 'assistant-desk', order: 10, label: '我的桌面', icon: DeskIcon, body: DeskPanel },
+      { id: 'assistant-knowledge', order: 11, label: '知识室', icon: KnowledgeIcon, body: KnowledgePanel },
+      { id: 'assistant-memory', order: 12, label: '记忆室', icon: MemoryIcon, body: MemoryPanel },
+    ] as const
+    for (const panel of panels) {
+      ctx.slots.inject('sidebar.panellist', () =>
+        ctx.slots.register({
+          name: 'sidebar.panellist',
+          id: panel.id,
+          order: panel.order,
+          label: panel.label,
+        }, panel.icon))
+      ctx.slots.inject('main', () =>
+        ctx.slots.register({
+          name: 'main',
+          key: panel.id,
+        }, panel.body))
+    }
+    // One load feeds all three panels; the store notifies them as it settles.
+    loadDesk()
 
     // Experiment 1 (kept for reference): the right-sidebar tab type registration below
     // registers a TYPE (what this plugin can open), not a VISIBLE tab — lesson learned:

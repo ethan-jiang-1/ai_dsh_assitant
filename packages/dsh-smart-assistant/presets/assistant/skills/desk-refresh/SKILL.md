@@ -21,15 +21,25 @@ place your file tools write). Create the directory if it is missing.
 {
   "generatedBy": "desk-refresh",
   "generatedAt": "2026-09-25T16:00:00+08:00",
-  "counts": { "memories": 8, "knowledgeStable": 13, "skills": 2, "threads": 1 },
+  "counts": { "memories": 8, "knowledgeStable": 10, "knowledgeDraft": 3, "skills": 2, "threads": 1 },
   "threads": [
     { "id": "20260925-20-…", "status": "open", "why": "…", "lean": "…", "updated": "…" }
   ],
   "recentMemories": [
     { "id": "20260925-…", "kind": "fact", "updated": "…", "text": "…" }
+  ],
+  "knowledge": [
+    { "id": "…", "title": "…", "status": "stable", "type": "how-it-works", "updated": "…" }
+  ],
+  "skills": [
+    { "name": "…", "description": "…" }
   ]
 }
 ```
+
+The panels read `knowledge` and `skills` too: the knowledge panel lists pages with the drafts
+(`status: "draft"`) first as "waiting for your review", and the memory panel lists
+`recentMemories`. Fill every section you can; a missing one renders empty, which is honest.
 
 Keep `why` and `lean` to roughly one line each — the panel renders them as-is and a wall of text
 stops being a glance. `recentMemories`: the five most recently updated active records.
@@ -41,6 +51,11 @@ stops being a glance. `recentMemories`: the five most recently updated active re
 2. **Threads** — `assistant_research action=list`, then `action=brief` for the ones you include;
    carry their `why` and current `lean` verbatim rather than re-summarising.
 3. **Recent memories** — `assistant_memory action=list` (or `recall`), newest first, take five.
+4. **Knowledge pages** — list the knowledge room's files and read each page's frontmatter
+   (`id`, `title`, `status`, `type`, `updated`). Include drafts: the principal reviews them from
+   the knowledge panel, so a draft you leave out is a draft they never see.
+5. **Skills** — list your skill bundles and take each `name` (the directory) plus the first line of
+   its `description`.
 
 ## Rules
 
