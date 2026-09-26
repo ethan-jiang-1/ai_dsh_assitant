@@ -156,6 +156,11 @@ just did. A change you apply but do not re-render reads as if you ignored them:
 - **Never invent numbers.** Every count comes from a tool call you actually made this turn. If a
   tool failed, write the file without that section rather than guessing — the panel renders a
   missing section as empty, which is honest.
+- **Always end by writing the file, even when you judge nothing changed.** The rewrite is what
+  moves `generatedAt`, and the panel's freshness line is computed from it: a refresh that skips the
+  write leaves the panel insisting the desk is stale no matter how often the principal clicks
+  refresh. Re-derive the numbers from real tool calls and write — identical data with a fresh
+  timestamp is the honest output of a refresh.
 - **Say what you did.** After writing, tell the principal the desk is refreshed and name the
   counts, so they can check the panel against your sentence.
 - **Do not touch anything else in the workspace.** This file is the only thing the panel reads.

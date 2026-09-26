@@ -42,6 +42,24 @@ export function evaluateTask(task, observed) {
         if (used.length === 0) reasons.push('no home-room tool was used (expected the answer to come from its own memory/knowledge)')
         break
       }
+      case 'wrote-path': {
+        // The desk loop's guarantee is a real rewrite: the panel renders whatever the file says,
+        // so a session that *reports* a refresh without writing the file produces a lying desk.
+        // Two real write shapes, both seen in live runs: the write/edit tools with the path in
+        // their arguments, and bash driving `fs.writeFileSync` (a big JSON is easier through
+        // node). Bash mentions of the path that are mere reads (`cat`, `2>/dev/null`) must not
+        // count, hence the write-primitive requirement. Exotic write idioms would false-negative
+        // — widen this when a real run shows one, not preemptively.
+        const wanted = String(check.path ?? '')
+        const viaTools = observed.toolCalls.filter(call => WRITE_TOOLS.has(call.name) && call.argumentsText.includes(wanted))
+        const viaBash = observed.toolCalls.filter(call =>
+          call.name === 'bash' && call.argumentsText.includes(wanted)
+          && /writeFileSync|writeFile\(|fs\.write|>\s*["']?[^"';|]*desk|tee\s/.test(call.argumentsText))
+        if (viaTools.length === 0 && viaBash.length === 0) {
+          reasons.push(`no write-tool call touched "${wanted}" — the loop's guarantee is a real rewrite, not a report`)
+        }
+        break
+      }
       case 'skill-loaded': {
         // The strong, mechanical signal for P1: a messy business problem should make the session
         // reach for the breakdown skill BY NAME (its whenToUse), without being told to.

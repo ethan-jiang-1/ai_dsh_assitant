@@ -58,4 +58,16 @@ export const TASKS = [
       { kind: 'answer-matches', pattern: '停止条件|stop condition' },
     ],
   },
+  {
+    id: 'desk-refresh-loop',
+    why: 'The cultivation surface\'s server half: the panel\'s own "刷新我的桌面" must load the desk-refresh skill and really rewrite .desk/state.json from tool-derived numbers — the panel renders whatever the file says, so a reported-but-not-written refresh is a lying desk.',
+    prompt: '刷新我的桌面。',
+    checks: [
+      { kind: 'skill-loaded', skill: 'desk-refresh' },
+      { kind: 'wrote-path', path: '.desk/state.json' },
+      // The skill's own rule: report the desk refreshed and name the counts, so the principal
+      // can check the panel against the sentence.
+      { kind: 'answer-matches', pattern: '[0-9]' },
+    ],
+  },
 ]

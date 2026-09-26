@@ -65,6 +65,48 @@ describe('evaluateTask', () => {
     expect(without.reasons.join(' ')).toContain('no home-room tool')
   })
 
+  it('desk-refresh-loop: passes a real rewrite (write tool naming the desk path) and fails a reported-but-not-written one', () => {
+    const task = TASKS.find(entry => entry.id === 'desk-refresh-loop')
+    const answer = '桌面已刷新：记忆 7、知识 10（draft 4）、技能 3、线索 1。'
+    // The real shape (calibrated on live runs): the write goes through `write`, or through bash
+    // driving `fs.writeFileSync` for the big JSON — both are real rewrites; reads are not.
+    const real = evaluateTask(task, {
+      toolCalls: [
+        { name: 'read', argumentsText: '{"file_path":"/w/.desk/state.json"}' },
+        { name: 'bash', argumentsText: '{"command":"cat .desk/state.json"}' },
+        { name: 'skill', argumentsText: '{"name":"desk-refresh"}' },
+        { name: 'write', argumentsText: '{"file_path":"/w/.desk/state.json","content":"{}"}' },
+      ],
+      answerText: answer,
+    })
+    expect(real.passed).toBe(true)
+    const viaBash = evaluateTask(task, {
+      toolCalls: [
+        { name: 'skill', argumentsText: '{"name":"desk-refresh"}' },
+        { name: 'bash', argumentsText: '{"command":"node -e fs.writeFileSync(\'.desk/state.json\', d)"}' },
+      ],
+      answerText: answer,
+    })
+    expect(viaBash.passed).toBe(true)
+    // The failure mode the guard exists for: the session answers as if refreshed but never wrote.
+    const reported = evaluateTask(task, {
+      toolCalls: [
+        { name: 'skill', argumentsText: '{"name":"desk-refresh"}' },
+        { name: 'read', argumentsText: '{}' },
+        { name: 'bash', argumentsText: '{"command":"cat .desk/state.json 2>/dev/null | head"}' },
+      ],
+      answerText: answer,
+    })
+    expect(reported.passed).toBe(false)
+    expect(reported.reasons.join(' ')).toContain('real rewrite')
+    // A write to some other path does not count either.
+    const elsewhere = evaluateTask(task, {
+      toolCalls: [{ name: 'skill', argumentsText: '{"name":"desk-refresh"}' }, { name: 'write', argumentsText: '{"file_path":"/w/other.json","content":"{}"}' }],
+      answerText: answer,
+    })
+    expect(elsewhere.passed).toBe(false)
+  })
+
   it('refuses to guess at an unknown check kind', () => {
     const verdict = evaluateTask({ checks: [{ kind: 'vibes-are-good' }] }, { toolCalls: [], answerText: '' })
     expect(verdict.passed).toBe(false)
