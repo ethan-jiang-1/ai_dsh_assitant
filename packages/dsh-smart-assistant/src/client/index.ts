@@ -166,6 +166,10 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     pending?: { rowId: string, at: number, action: string } | undefined
     /** Receipt of the last action the desk file confirmed, shown on its row. */
     lastReceipt?: { rowId: string, action: string, at: number } | undefined
+    /** A corrupt desk file from the bound session (A5): the tab shows the error and a retry, not "reading…". */
+    readError?: string | undefined
+    /** Sessions whose workspace is known to have no desk file (moved onto the store: testable). */
+    misses: Set<string>
     /** The newest Session's updatedAt, so the panels can say when they are behind the conversation. */
     sessionUpdatedAt?: number | undefined
     /** The Session whose workspace answered the last load — a tab bound to another session withholds this data. */
@@ -173,7 +177,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     /** The Session a tab bound actions to; set while a tab is mounted, so sends land in its own conversation. */
     sendSession?: string | undefined
     listeners: Set<() => void>
-  } = { listeners: new Set() }
+  } = { listeners: new Set(), misses: new Set<string>() }
   const patchDesk = (next: Partial<typeof deskStore>): void => {
     Object.assign(deskStore, next)
     for (const listener of [...deskStore.listeners]) listener()
@@ -181,8 +185,6 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
 
   /** Monotonic load sequence: a newer load invalidates every attempt of the older one. */
   let deskLoadSeq = 0
-  /** Sessions whose workspace is known to have no desk file, so a bound tab can say so instead of spinning. */
-  const deskMisses = new Set<string>()
 
   /**
    * Read `.desk/state.json` for the newest Session that has one. The file is per-workspace, so
@@ -225,21 +227,35 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         return
       }
       const sessionId = ordered[index] as string
+      // Only the READ may fall through to the next session (the file is simply absent). A file
+      // that is PRESENT but corrupt must stop and say so: silently rendering an older session's
+      // desk as the present is exactly how a CEO gets lied to (A4).
+      let text: string | undefined
       try {
         const result = await read(sessionId, '.desk/state.json', {})
+        if (seq !== deskLoadSeq) return
         const wrapped = result as { ok?: boolean, value?: { text?: string } }
-        const text = wrapped?.ok === false ? undefined : wrapped?.value?.text
-        if (typeof text !== 'string' || text.trim() === '') {
-          await attempt(index + 1)
-          return
-        }
-        const parsed = JSON.parse(text) as DeskData
-        patchDesk({ data: parsed, note: undefined, source: byId[sessionId]?.cwd ?? '', sourceSession: sessionId })
-        deskMisses.delete(sessionId)
-        settlePending(parsed.generatedAt)
+        text = wrapped?.ok === false ? undefined : wrapped?.value?.text
       } catch {
-        await attempt(index + 1)
+        if (seq === deskLoadSeq) await attempt(index + 1)
+        return
       }
+      if (typeof text !== 'string' || text.trim() === '') {
+        if (seq === deskLoadSeq) await attempt(index + 1)
+        return
+      }
+      let parsed: DeskData
+      try {
+        parsed = JSON.parse(text) as DeskData
+      } catch {
+        if (seq === deskLoadSeq) {
+          patchDesk({ note: `桌面文件损坏（${byId[sessionId]?.cwd ?? sessionId}）——点「刷新桌面」让助手重写一份` })
+        }
+        return
+      }
+      patchDesk({ data: parsed, note: undefined, source: byId[sessionId]?.cwd ?? '', sourceSession: sessionId, readError: undefined })
+      deskStore.misses.delete(sessionId)
+      settlePending(parsed.generatedAt)
     }
     void attempt(0)
   }
@@ -320,11 +336,15 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       return
     }
     patchDesk({ pending: { rowId, at: Date.now(), action }, lastReceipt: undefined })
+    // A10: panel messages carry a marker so the conversation log (and the usage meter) can tell
+    // machine-written prompts from the principal's own words — otherwise the principal's history
+    // fills with assertions they never typed, and the meter counts the panel as the human.
+    const marked = `[桌面] ${text}`
     void prompt({
       requestId: `desk-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       sessionId,
       mode: 'queue',
-      content: [{ type: 'text', text }],
+      content: [{ type: 'text', text: marked }],
     }).then((result: unknown) => {
       const wrapped = result as { ok?: boolean, error?: { message?: string } }
       if (wrapped?.ok === false) {
@@ -546,14 +566,22 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         style: { fontSize: '12px', color: MARK_TEAL, marginTop: '4px' },
       }, `✓ 已更新 · ${shortTime(new Date(receipt.at).toISOString())}`),
       open
-        ? createElement('div', { style: { marginTop: '6px', display: 'flex', gap: '6px' } },
-            createElement('input', {
+        ? createElement('div', { style: { marginTop: '6px', display: 'flex', gap: '6px', alignItems: 'flex-start' } },
+            // A textarea, not an input: corrections run one to three sentences. Enter still sends,
+            // but guarded against IME composition — without the guard, a Chinese principal's
+            // Enter-to-pick-a-candidate fires half a sentence (runtime-proven class, 2026-09-26).
+            createElement('textarea', {
               value: text,
+              rows: 2,
               onChange: (event: { target: { value: string } }) => { setText(event.target.value) },
-              onKeyDown: (event: { key: string }) => { if (event.key === 'Enter') submit() },
+              onKeyDown: (event: { key: string, shiftKey?: boolean, keyCode?: number, nativeEvent?: { isComposing?: boolean } }) => {
+                if (event.nativeEvent?.isComposing === true || event.keyCode === 229) return
+                if (event.key === 'Enter' && event.shiftKey !== true) submit()
+              },
               placeholder: props.placeholder,
               style: {
                 flex: '1', padding: '5px 8px', fontSize: '12px', border: '1px solid #ddd', borderRadius: '4px',
+                resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.5,
               },
             }),
             createElement('button', {
@@ -620,26 +648,40 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     }
     const seq = ++deskLoadSeq
     void (async (): Promise<void> => {
-      const state = deskSessions?.list?.getSnapshot() as { byId?: Record<string, { cwd?: string }> } | undefined
+      const state = deskSessions?.list?.getSnapshot() as { byId?: Record<string, { cwd?: string, updatedAt?: number }> } | undefined
       const cwd = state?.byId?.[sessionId]?.cwd ?? ''
+      // A2: the bound form's staleness line must track ITS session's conversation — without this
+      // the warning was computed once at startup and then frozen wrong forever.
+      const updatedAt = state?.byId?.[sessionId]?.updatedAt
+      if (seq !== deskLoadSeq) return
+      if (updatedAt !== undefined) patchDesk({ sessionUpdatedAt: Number(updatedAt) })
+      let text: string | undefined
       try {
         const result = await read(sessionId, '.desk/state.json', {})
         if (seq !== deskLoadSeq) return
         const wrapped = result as { ok?: boolean, value?: { text?: string } }
-        const text = wrapped?.ok === false ? undefined : wrapped?.value?.text
-        if (typeof text !== 'string' || text.trim() === '') {
-          deskMisses.add(sessionId)
-          return
-        }
-        deskMisses.delete(sessionId)
-        const parsed = JSON.parse(text) as DeskData
-        patchDesk({ data: parsed, note: undefined, source: cwd, sourceSession: sessionId })
-        settlePending(parsed.generatedAt)
+        text = wrapped?.ok === false ? undefined : wrapped?.value?.text
       } catch {
-        // Keep the previous data; a failed read must not blank the room. The bound tab's guard
-        // keeps showing "reading" rather than another session's desk.
         if (seq === deskLoadSeq) patchDesk({ note: `读桌面文件失败（${cwd === '' ? '本会话工作区' : cwd}）` })
+        return
       }
+      if (typeof text !== 'string' || text.trim() === '') {
+        deskStore.misses.add(sessionId)
+        return
+      }
+      // A5: a corrupt file is an ERROR with a retry, not "reading…" forever — and it must not
+      // leave another session's data in place behind the guard.
+      let parsed: DeskData
+      try {
+        parsed = JSON.parse(text) as DeskData
+      } catch {
+        deskStore.misses.delete(sessionId)
+        patchDesk({ readError: '桌面文件损坏（JSON 解析失败）', data: undefined, sourceSession: sessionId, pending: undefined })
+        return
+      }
+      deskStore.misses.delete(sessionId)
+      patchDesk({ data: parsed, note: undefined, source: cwd, sourceSession: sessionId, readError: undefined })
+      settlePending(parsed.generatedAt)
     })()
   }
 
@@ -686,7 +728,20 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       }
     }, [sessionId, store.sourceSession])
     if (sessionId === undefined) return muted('这个 tab 没有落在任何会话里，读不到它的工作区')
-    if (deskMisses.has(sessionId)) return muted('这个会话的工作区还没有 .desk/state.json——回到对话说一声「刷新我的桌面」')
+    const retryButton = (label: string): ReturnType<typeof createElement> => createElement('button', {
+      onClick: askRefresh,
+      style: {
+        marginTop: '8px', padding: '6px 14px', fontSize: '12px', cursor: 'pointer', borderRadius: '6px',
+        border: `1px solid ${MARK_TEAL}`, background: '#fff', color: MARK_TEAL,
+      },
+    }, label)
+    // A5: a corrupt file is an error with a way out, not an eternal "reading…".
+    if (store.readError !== undefined) return createElement('div', null,
+      muted(`读桌面文件失败：${store.readError}。`), retryButton('让助手重写一份'))
+    // A6: the empty state is exactly the state that most needs a one-click refresh — asking the
+    // principal to go type it in the conversation was backwards.
+    if (deskStore.misses.has(sessionId)) return createElement('div', null,
+      muted('这个会话的工作区还没有 .desk/state.json——点一下，让助手写一份。'), retryButton('刷新桌面'))
     if (store.sourceSession !== sessionId) return muted('正在读这个会话的桌面…')
     return createElement(Panel as unknown as import('react').FunctionComponent)
   }
@@ -790,7 +845,13 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       inFlight === false
         ? null
         : createElement('span', { style: { marginLeft: '10px', fontSize: '12px', color: '#888' } },
-            `已交给助手 · ${shortTime(new Date(store.pending?.at ?? Date.now()).toISOString())} · ${String(store.pending?.action ?? '')}——回复出现在对话里，桌面更新后自动跟上`))
+            `已交给助手 · ${shortTime(new Date(store.pending?.at ?? Date.now()).toISOString())} · ${String(store.pending?.action ?? '')}——回复出现在对话里，桌面更新后自动跟上`),
+      // A7: freshness belongs to every room, not only the desk — the room the principal is
+      // reading in is exactly where "this snapshot is stale" must be said out loud.
+      staleWarning(store) === undefined
+        ? null
+        : createElement('div', { style: { fontSize: '12px', color: '#b26a00', marginTop: '4px' } },
+            `⚠ ${String(staleWarning(store))}`))
   }
 
   /** Calendar glyph for the desk panel entry. */
@@ -1070,11 +1131,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         ? muted(store.note)
         : createElement('div', null,
             muted(`读自 ${store.source === undefined || store.source === '' ? '会话工作区' : store.source} 的 .desk/state.json`
-              + (store.data?.generatedAt === undefined ? '' : `（更新于 ${shortTime(store.data.generatedAt)}）`)),
-            staleWarning(store) === undefined
-              ? null
-              : createElement('p', { style: { fontSize: '12px', color: '#b26a00', marginTop: '4px' } },
-                  `⚠ ${staleWarning(store)}`)))
+              + (store.data?.generatedAt === undefined ? '' : `（更新于 ${shortTime(store.data.generatedAt)}）`))))
   }
 
   /** Panel 2 — the knowledge room: what the assistant knows, and what is waiting for review. */

@@ -34,6 +34,8 @@ interface DeskStore {
   source?: string | undefined
   pending?: { rowId: string, at: number, action: string } | undefined
   lastReceipt?: { rowId: string, action: string, at: number } | undefined
+  readError?: string | undefined
+  misses: Set<string>
   /** The newest Session's updatedAt, so the panels can say when they lag the conversation. */
   sessionUpdatedAt?: number | undefined
   /** The Session whose workspace answered the last load — tab bodies withhold other sessions' data. */
@@ -299,6 +301,35 @@ describe('desk panels', () => {
     const exports = materialize()
     const text = textsOf(exports.DeskTabBody({})).join(' | ')
     expect(text).toContain('没有落在任何会话')
+  })
+
+  it('gives the bound tab an error-with-retry and an empty-state refresh button, not an eternal "reading"', () => {
+    const exports = materialize()
+    // A5: a corrupt file is an error with a way out.
+    exports.deskStore.readError = '桌面文件损坏（JSON 解析失败）'
+    const broken = textsOf(exports.DeskTabBody({ sessionId: 's1' })).join(' | ')
+    expect(broken).toContain('读桌面文件失败')
+    expect(broken).toContain('让助手重写一份')
+    // A6: the empty state is exactly the state that needs a one-click refresh.
+    exports.deskStore.readError = undefined
+    exports.deskStore.misses.add('s1')
+    const empty = textsOf(exports.DeskTabBody({ sessionId: 's1' })).join(' | ')
+    expect(empty).toContain('还没有 .desk/state.json')
+    expect(empty).toContain('刷新桌面')
+  })
+
+  it('carries the freshness warning in every room, not only the desk (A7)', () => {
+    const exports = materialize()
+    exports.deskStore.data = {
+      generatedAt: '2026-09-26T13:00:00+08:00',
+      counts: { memories: 1 },
+      memories: [{ id: 'm1', kind: 'fact', text: '一条记录' }],
+    }
+    exports.deskStore.sessionUpdatedAt = new Date('2026-09-26T13:05:00+08:00').getTime()
+    const knowledge = textsOf(exports.KnowledgePanel()).join(' | ')
+    const memory = textsOf(exports.MemoryPanel()).join(' | ')
+    expect(knowledge).toContain('对话比这份桌面新')
+    expect(memory).toContain('对话比这份桌面新')
   })
 
   it('freezes actions behind the DATA GATE — queue acceptance is not completion (real use queued one decision three times and left an action with seven contradictory orders)', () => {

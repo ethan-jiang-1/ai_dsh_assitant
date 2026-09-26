@@ -89,6 +89,7 @@ export function summarizeEvents(events) {
     steps: 0,
     userMessages: 0,
     principalMessages: 0,
+    panelMessages: 0,
     injectedUserMessages: 0,
     assistantMessages: 0,
     toolCalls: {},
@@ -127,6 +128,10 @@ export function summarizeEvents(events) {
           : String(content ?? '')
         if (/^\s*(\[Collaboration boundary\]|<system-reminder>|Current runtime context)/.test(text)) {
           summary.injectedUserMessages += 1
+        } else if (/^\s*\[桌面\]/.test(text)) {
+          // Panel-written prompts carry the [桌面] marker (client A10): without this they count
+          // as the principal's own words and the meter self-certifies real use.
+          summary.panelMessages += 1
         } else {
           summary.principalMessages += 1
         }
@@ -175,6 +180,7 @@ export function mergeSummaries(summaries) {
     total.steps += summary.steps
     total.userMessages += summary.userMessages
     total.principalMessages += summary.principalMessages
+    total.panelMessages += summary.panelMessages
     total.injectedUserMessages += summary.injectedUserMessages
     total.assistantMessages += summary.assistantMessages
     total.assistantToolSessions += summary.assistantToolSessions
@@ -227,7 +233,7 @@ export function renderReport(total, home) {
   lines.push(`# 意图级仪表（${harnessHome}）`)
   lines.push('')
   lines.push(`- 会话 ${total.sessions}（有请求 ${total.requests} 次 / 轮 ${total.turns} / 步 ${total.steps}）`)
-  lines.push(`- 消息：真人 ${total.principalMessages}，助手 ${total.assistantMessages}（注入前导 ${total.injectedUserMessages} 另计）`)
+  lines.push(`- 消息：真人 ${total.principalMessages}，助手 ${total.assistantMessages}（面板动作 ${total.panelMessages}、注入前导 ${total.injectedUserMessages} 另计）`)
   lines.push(`- 自用率：${total.withAssistantTool}/${total.sessions} 个会话调用过自家房间工具（${share(total.withAssistantTool, total.sessions)}）`)
   const tools = Object.entries(total.toolCalls).sort((left, right) => right[1] - left[1])
   lines.push(`- 工具混合（${tools.length} 种，共 ${tools.reduce((sum, entry) => sum + entry[1], 0)} 次）：${tools.slice(0, 8).map(([name, count]) => `${name}×${count}`).join('、') || '（无）'}`)

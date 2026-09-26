@@ -61,7 +61,7 @@ export const TASKS = [
   {
     id: 'desk-refresh-loop',
     why: 'The cultivation surface\'s server half: the panel\'s own "刷新我的桌面" must load the desk-refresh skill and really rewrite .desk/state.json from tool-derived numbers — the panel renders whatever the file says, so a reported-but-not-written refresh is a lying desk.',
-    prompt: '刷新我的桌面：加载 desk-refresh 技能，严格按它把桌面文件重写一遍。',
+    prompt: '[桌面] 刷新我的桌面：加载 desk-refresh 技能，严格按它把桌面文件重写一遍。',
     checks: [
       { kind: 'skill-loaded', skill: 'desk-refresh' },
       { kind: 'wrote-path', path: '.desk/state.json' },
