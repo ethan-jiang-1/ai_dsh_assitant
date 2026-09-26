@@ -12,6 +12,7 @@
 
 ## 队列
 
+- ▶ **第一公里：从打开到第一句话**（用户 2026-09-26 深夜拍板全量 P0–P3，当前 Goal）：P0 截图证据管线（Chrome headless 自产截图，解锁 S5"等截图"僵局）→ P1 命令面（`ctx.commandUi` 三室直达）+ hero 品牌位 + composer dock 首开引导 + 默认工作区（"选什么目录"之问的发行解）→ P2 S5 密度（截图驱动）→ P3 引导 IA 统一与收尾——卡：[2026-09-26-first-mile-landing](notes/proposed/2026-09-26-first-mile-landing.md)
 - ▶ **CEO 助手的 Sidebar 培养面**（用户拍板的当前 Goal，进行中）：三面板+培养循环已上线并经**真人首测全链走通**；右侧栏 tab、先办这件引导卡、已办分组、忙时冻结已落地；**设计思路＝[培养面设计思路](notes/proposed/2026-09-26-cultivation-surface-design.md)**；整改工作项＝▶ **培养面整改包**（本表下行）；typert 后置——编年记录：[活动卡](notes/proposed/2026-09-25-ceo-sidebar-ux.md) · 接手入口：[handoff](notes/research/2026-09-26-handoff-ceo-sidebar-cultivation.md)
 - ⏸ **IM 渠道接入**（O5；渠道由你选：飞书 / 企微 / 钉钉 / 先 Web+Desktop）——依据：[专家组合件 v0](notes/implemented/2026-09-25-expert-pack-v0.md) §四
 - ⏳ **MCP 连接**（触发=需要真实系统数据（公司盘/CRM 等）接入会话时；v0 用文件替身）——依据同上
