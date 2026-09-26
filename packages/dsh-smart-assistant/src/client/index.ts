@@ -129,6 +129,8 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     note?: string | undefined
     source?: string | undefined
     busy?: string | undefined
+    /** The newest Session's updatedAt, so the panels can say when they are behind the conversation. */
+    sessionUpdatedAt?: number | undefined
     listeners: Set<() => void>
   } = { listeners: new Set() }
   const patchDesk = (next: Partial<typeof deskStore>): void => {
@@ -170,6 +172,8 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       patchDesk({ note: '还没有会话——先和助手说句话，再点刷新桌面' })
       return
     }
+    const newest = ids.reduce((max, id) => Math.max(max, Number(byId[id]?.updatedAt ?? 0)), 0)
+    patchDesk({ sessionUpdatedAt: newest === 0 ? undefined : newest })
     const seq = ++deskLoadSeq
     const attempt = async (index: number): Promise<void> => {
       if (seq !== deskLoadSeq) return
@@ -445,6 +449,23 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     return `${pad(parsed.getMonth() + 1)}-${pad(parsed.getDate())} ${pad(parsed.getHours())}:${pad(parsed.getMinutes())}`
   }
 
+  /**
+   * Whether the desk file lags the conversation. The desk is only as fresh as the assistant's last
+   * refresh, so when the newest turn is newer than the file the panels say so instead of presenting
+   * a stale snapshot as current (a minute of slack absorbs the refresh itself).
+   * @param store - The shared desk store.
+   * @returns A warning line, or undefined when the file is current.
+   */
+  function staleWarning(store: typeof deskStore): string | undefined {
+    const generated = store.data?.generatedAt
+    const sessionAt = store.sessionUpdatedAt
+    if (generated === undefined || sessionAt === undefined) return undefined
+    const generatedAt = new Date(generated).getTime()
+    if (Number.isNaN(generatedAt)) return undefined
+    if (sessionAt - generatedAt <= 60_000) return undefined
+    return `对话比这份桌面新（对话 ${shortTime(new Date(sessionAt).toISOString())}，桌面 ${shortTime(generated)}）——点「刷新桌面」让它跟上`
+  }
+
   /** A stat cell; with a target it becomes the way to the panel that explains the number. */
   function cell(label: string, value: string, target?: string): ReturnType<typeof createElement> {
     const jump = (): void => {
@@ -637,10 +658,15 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         cell('知识', data?.counts?.knowledgeStable === undefined ? '—' : String(data.counts.knowledgeStable), 'assistant-knowledge'),
         cell('技能', data?.counts?.skills === undefined ? '—' : String(data.counts.skills), 'assistant-knowledge'),
         cell('线索', data?.counts?.threads === undefined ? '—' : String(data.counts.threads))),
-      store.note === undefined
-        ? muted(`读自 ${store.source === undefined || store.source === '' ? '会话工作区' : store.source} 的 .desk/state.json`
-            + (store.data?.generatedAt === undefined ? '' : `（更新于 ${shortTime(store.data.generatedAt)}）`))
-        : muted(store.note))
+      store.note !== undefined
+        ? muted(store.note)
+        : createElement('div', null,
+            muted(`读自 ${store.source === undefined || store.source === '' ? '会话工作区' : store.source} 的 .desk/state.json`
+              + (store.data?.generatedAt === undefined ? '' : `（更新于 ${shortTime(store.data.generatedAt)}）`)),
+            staleWarning(store) === undefined
+              ? null
+              : createElement('p', { style: { fontSize: '12px', color: '#b26a00', marginTop: '4px' } },
+                  `⚠ ${staleWarning(store)}`)))
   }
 
   /** Panel 2 — the knowledge room: what the assistant knows, and what is waiting for review. */

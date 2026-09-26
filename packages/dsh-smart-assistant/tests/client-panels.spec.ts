@@ -167,6 +167,24 @@ describe('desk panels', () => {
     expect(text).toContain('fact')
   })
 
+  it('warns when the desk file lags the conversation, and stays quiet when it does not', () => {
+    const exports = materialize()
+    exports.deskStore.data = { generatedAt: '2026-09-26T13:00:00+08:00' }
+
+    // Five minutes of conversation after the file was written: the panel must not present a stale
+    // snapshot as current.
+    exports.deskStore.sessionUpdatedAt = new Date('2026-09-26T13:05:00+08:00').getTime()
+    const stale = textsOf(exports.DeskPanel()).join(' | ')
+    expect(stale).toContain('对话比这份桌面新')
+    expect(stale).toContain('刷新桌面')
+
+    // A file written within the same minute as the newest turn is current (the refresh itself
+    // takes a moment; a minute of slack keeps the warning honest).
+    exports.deskStore.sessionUpdatedAt = new Date('2026-09-26T13:00:30+08:00').getTime()
+    const fresh = textsOf(exports.DeskPanel()).join(' | ')
+    expect(fresh).not.toContain('对话比这份桌面新')
+  })
+
   it('says so when there is nothing yet instead of rendering empty sections', () => {
     const exports = materialize()
     exports.deskStore.data = {}
