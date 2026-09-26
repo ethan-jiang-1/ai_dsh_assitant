@@ -42,6 +42,16 @@
  *   --settle  extra wall-clock ms after load-or-budget before capture, letting async
  *             boot (combo fetch, React hydration) finish painting (default 4000).
  *   --dom     also write the JSON evidence file described above.
+ *   --plain   screenshot only, via Chrome's own `--screenshot` flag (no DevTools protocol).
+ *             Use it when the page's main thread is busy: a wedged renderer answers no
+ *             protocol call while the compositor still has a frame to capture, so the PNG
+ *             survives and the DOM evidence does not (observed 2026-09-26 on the dsh web
+ *             client under Chrome 153.0.8010.54).
+ *   --eval    run a page-context JS snippet after load+settle, then settle again before
+ *             capturing; repeatable, run in order. This is how interaction states are
+ *             reached (e.g. dismiss a notice, open the command menu) — a scripted click
+ *             is weaker evidence than a human click, but enough to answer "does this
+ *             surface contain X", which is what the UI slices need.
  *   --lang    browser locale (default zh-CN): the first-mile experience being reviewed
  *             is the Chinese one, and a fresh headless profile would otherwise render
  *             en-US. Sets both the Chrome UI language and the page's locale override.
@@ -66,6 +76,7 @@ const option = (name, fallback) => {
   return i >= 0 && i + 1 < args.length ? args[i + 1] : fallback
 }
 const sizes = args.flatMap((a, i) => (a === '--size' && i + 1 < args.length ? [args[i + 1]] : []))
+const evals = args.flatMap((a, i) => (a === '--eval' && i + 1 < args.length ? [args[i + 1]] : []))
 
 const outDir = option('out', '/tmp/dsh-webui-shots')
 const name = option('name', `shot-${Date.now()}`)
@@ -73,6 +84,7 @@ const budget = Number(option('budget', '20000'))
 const settle = Number(option('settle', '4000'))
 const lang = option('lang', 'zh-CN')
 const wantDom = args.includes('--dom')
+const plain = args.includes('--plain')
 const viewports = sizes.length > 0 ? sizes : ['1600x1000']
 
 const chromeCandidates = [
@@ -124,6 +136,12 @@ class Cdp {
         this.events.push(message)
       }
     })
+    // A dead target must fail the capture, not hang it: without this, every pending
+    // response waits forever and the tool looks like a freeze (observed 2026-09-26).
+    this.socket.addEventListener('close', () => {
+      for (const resolve of this.pending.values()) resolve({ error: { message: 'DevTools socket closed' } })
+      this.pending.clear()
+    })
   }
 
   static async open(webSocketDebuggerUrl) {
@@ -169,48 +187,146 @@ for (const viewport of viewports) {
     '--hide-scrollbars',
     '--no-first-run',
     '--no-default-browser-check',
+    // Without this, headless Chrome consults the system proxy/PAC configuration and every
+    // HTTP load hangs forever while `data:` URLs still work — the misleading symptom that
+    // cost a long diagnosis on 2026-09-26 (requests were issued, no response ever landed,
+    // the server answered curl in milliseconds).
+    '--no-proxy-server',
     // Node's WebSocket sends no same-origin handshake Chrome accepts; without this flag
     // the DevTools socket is refused (local loopback, one-shot process: acceptable).
     '--remote-allow-origins=*',
     `--lang=${lang}`,
     `--user-data-dir=${userDataDir}`,
+    // Crashpad must not write under ~/Library (denied in a sandboxed session), but do NOT
+    // reach for that by overriding HOME: on Chrome 153.0.8010.54 an overridden HOME makes
+    // the browser fail to produce any output at all (observed 2026-09-26, cost: a long
+    // detour). The dedicated flag is the supported way.
+    `--crash-dumps-dir=${userDataDir}`,
     '--remote-debugging-port=0',
-    'about:blank',
-  ], { env: { ...process.env, HOME: userDataDir } })
+    // Start at the target URL, never about:blank + Page.navigate: on Chrome 153.0.8010.54
+    // a protocol-initiated navigation issues no subresource request at all and the page
+    // hangs (evaluate and screenshot both stall), while the same URL opened at launch
+    // loads normally — isolated 2026-09-26 after a long "the server must be broken"
+    // detour. The cost is that the locale override below lands after the first document,
+    // so the first paint follows the host's own locale settings.
+    `--window-size=${viewport.replace('x', ',')}`,
+    given,
+  ], {
+    env: process.env,
+    // Own process group: Chrome's helper processes (network, gpu, renderers) outlive a
+    // parent-only SIGTERM and accumulate across captures until new instances misbehave —
+    // 26 leftovers were measured before a long "HTTP hangs" diagnosis on 2026-09-26.
+    // Killing the group is what actually cleans up.
+    detached: true,
+  })
+
+  // Chrome's stderr is the only place a dead network service reports itself; keep a
+  // bounded tail so the watchdog can print it instead of swallowing it (observed
+  // 2026-09-26: HTTP loads hung with no other symptom).
+  let chromeStderr = ''
+  proc.stderr.on('data', chunk => { chromeStderr = (chromeStderr + chunk).slice(-4000) })
+
+  let watchdog
+  let cdp
+
+  if (plain) {
+    // Screenshot-only path: no protocol client, so a busy main thread cannot stall it.
+    // Chrome writes the file when the first frame is ready and then idles; we poll for
+    // the file and take the whole process group down afterwards.
+    const plainProc = spawn(chrome, [
+      '--headless=new', '--no-sandbox', '--disable-gpu', '--hide-scrollbars',
+      '--no-first-run', '--no-default-browser-check', '--no-proxy-server',
+      `--lang=${lang}`, `--user-data-dir=${userDataDir}`,
+      `--crash-dumps-dir=${userDataDir}`,
+      `--window-size=${viewport.replace('x', ',')}`, `--screenshot=${target}`, given,
+    ], { env: process.env, detached: true, stdio: 'ignore' })
+    const plainDeadline = Date.now() + budget + settle + 20_000
+    while ((!existsSync(target) || statSync(target).size === 0) && Date.now() < plainDeadline) await sleep(500)
+    try { process.kill(-plainProc.pid, 'SIGKILL') } catch { /* already gone */ }
+    await sleep(500)
+    try { rmSync(userDataDir, { recursive: true, force: true }) } catch { /* residue */ }
+    if (existsSync(target) && statSync(target).size > 0) {
+      console.log(`  ok   ${target} (${(statSync(target).size / 1024).toFixed(0)} KiB, viewport ${viewport}, plain)`)
+    } else {
+      failures += 1
+      console.error(`  FAIL ${target}: --plain produced no screenshot`)
+    }
+    continue
+  }
 
   try {
+    // Watchdog: a page that wedges Chrome would otherwise hang the whole capture with no
+    // output (observed 2026-09-26). Killing the process closes the DevTools socket, which
+    // rejects every pending response and lands the failure in the catch below.
+    const watchdogMs = budget + settle + evals.length * 1500 + 30_000
+    watchdog = setTimeout(() => {
+      console.error(`  !!   watchdog: no capture after ${watchdogMs}ms — killing chrome`)
+      // A killed Chrome does not reliably close the DevTools socket, so a pending CDP
+      // response may never settle; report what the browser-level channels saw and exit
+      // rather than hanging the caller (observed 2026-09-26).
+      if (cdp !== undefined) {
+        const log = cdp.events
+          .filter(e => e.method === 'Log.entryAdded' || e.method === 'Inspector.targetCrashed')
+          .map(e => e.method === 'Inspector.targetCrashed' ? 'TARGET CRASHED' : `${e.params.entry.level}: ${e.params.entry.text}`)
+          .slice(-10)
+        if (log.length > 0) console.error(`       browser log: ${log.join(' | ')}`)
+        const requests = cdp.events
+          .filter(e => e.method === 'Network.requestWillBeSent')
+          .map(e => e.params.request.url)
+          .slice(-6)
+        if (requests.length > 0) console.error(`       last requests: ${requests.join(' | ')}`)
+      }
+      if (chromeStderr.length > 0) {
+        const tail = chromeStderr.trim().split('\n').filter(line => line.trim().length > 0).slice(-6)
+        console.error(`       chrome stderr: ${tail.join(' | ')}`)
+      }
+      proc.kill('SIGKILL')
+      try { process.kill(-proc.pid, 'SIGKILL') } catch { /* already gone */ }
+      setTimeout(() => process.exit(1), 1000)
+    }, watchdogMs)
+
     const browserWs = await waitForDevToolsUrl(proc)
     const httpBase = browserWs.replace(/^ws:/, 'http:').replace(/\/devtools\/browser\/.*$/, '')
     const targets = await (await fetch(`${httpBase}/json/list`)).json()
     const page = targets.find(t => t.type === 'page')
     if (page === undefined) throw new Error('chrome exposed no page target')
 
-    const cdp = await Cdp.open(page.webSocketDebuggerUrl)
+    cdp = await Cdp.open(page.webSocketDebuggerUrl)
     // Enable before navigate: boot-time console errors, uncaught exceptions, and failed
     // resource loads are the first diagnosis when the app does not mount.
     await cdp.send('Page.enable')
     await cdp.send('Runtime.enable')
     await cdp.send('Network.enable')
+    // Log + Inspector keep reporting when the renderer's main thread is wedged: a crashed
+    // target or a browser-level complaint is the only evidence left in that state
+    // (observed 2026-09-26, where evaluate and screenshot both hung with no output).
+    await cdp.send('Log.enable')
+    await cdp.send('Inspector.enable')
     const [width, height] = viewport.split('x').map(Number)
     await cdp.send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: false })
-    // Language: the reviewed experience is the Chinese one, but a fresh headless profile
-    // has no stored locale preference and the client falls back to navigator.language
-    // (en-US). Neither --lang nor setLocaleOverride moves navigator.language in this
-    // Chrome (observed 2026-09-26), so override it before any page script runs, and send
-    // Accept-Language to match.
+    // Best-effort locale: the first document is already loading (see the spawn comment),
+    // so this reaches reloads and later documents. A capture that must read Chinese UI
+    // needs the host's locale preference set instead of a browser override.
     await cdp.send('Emulation.setLocaleOverride', { locale: lang })
     await cdp.send('Emulation.setUserAgentOverride', { acceptLanguage: `${lang},${lang.split('-')[0]};q=0.9,en;q=0.8` })
-    await cdp.send('Page.addScriptToEvaluateOnNewDocument', {
-      source: `Object.defineProperty(navigator, 'language', { get: () => ${JSON.stringify(lang)} });
-Object.defineProperty(navigator, 'languages', { get: () => [${JSON.stringify(lang)}, ${JSON.stringify(lang.split('-')[0])}] });`,
-    })
-    await cdp.send('Page.navigate', { url: given })
 
-    // Race: the page's load event (may never fire — SSE keeps the document loading)
-    // against the wall-clock budget; whichever wins, settle a beat for async boot.
-    const deadline = Date.now() + budget
-    while (!cdp.fired('Page.loadEventFired') && Date.now() < deadline) await sleep(250)
+    // The document started before we connected, so a captured load event is not reliable.
+    // Ask the page instead; if it is still booting, give it the budget, then settle a beat
+    // for async hydration before capturing.
+    const ready = await cdp.send('Runtime.evaluate', { expression: 'document.readyState', returnByValue: true })
+    if (ready.result?.result?.value !== 'complete') {
+      const deadline = Date.now() + budget
+      while (!cdp.fired('Page.loadEventFired') && Date.now() < deadline) await sleep(250)
+    }
     await sleep(settle)
+
+    for (const snippet of evals) {
+      const outcome = await cdp.send('Runtime.evaluate', { expression: snippet, returnByValue: true })
+      const detail = outcome.result?.result?.value ?? outcome.result?.exceptionDetails?.text ?? 'ok'
+      console.log(`  ..   eval → ${String(detail).slice(0, 120)}`)
+      // Let React commit whatever the snippet triggered before the next snippet or capture.
+      await sleep(1500)
+    }
 
     const shot = await cdp.send('Page.captureScreenshot', { format: 'png' })
     if (shot.error !== undefined) throw new Error(`capture rejected: ${JSON.stringify(shot.error)}`)
@@ -291,20 +407,35 @@ Object.defineProperty(navigator, 'languages', { get: () => [${JSON.stringify(lan
       writeFileSync(domTarget, JSON.stringify(pageData, null, 1))
       console.log(`  ok   ${domTarget} (DOM evidence)`)
     }
+    clearTimeout(watchdog)
     cdp.socket.close()
   } catch (error) {
     failures += 1
     console.error(`  FAIL ${target}: ${String(error)}`)
+    // A wedged renderer answers no evaluate, so the browser-level channels are the only
+    // diagnosis: surface whatever Log/Inspector reported before the watchdog fired.
+    const browserLog = cdp?.events
+      .filter(e => e.method === 'Log.entryAdded' || e.method === 'Inspector.targetCrashed')
+      .map(e => e.method === 'Inspector.targetCrashed' ? 'TARGET CRASHED' : `${e.params.entry.level}: ${e.params.entry.text}`)
+      .slice(-10)
+    if (browserLog !== undefined && browserLog.length > 0) console.error(`       browser log: ${browserLog.join(' | ')}`)
+    const pendingRequests = cdp?.events
+      .filter(e => e.method === 'Network.requestWillBeSent')
+      .map(e => e.params.request.url)
+      .slice(-5)
+    if (pendingRequests !== undefined && pendingRequests.length > 0) console.error(`       last requests: ${pendingRequests.join(' | ')}`)
   } finally {
-    // Wait for Chrome to actually exit before deleting its profile: it keeps writing
-    // files after SIGTERM, and racing the delete crashes the script (ENOTEMPTY, observed
-    // 2026-09-26). A profile that still refuses deletion is /tmp residue, not a failure
-    // of the capture — leave it rather than crashing the run.
-    proc.kill('SIGTERM')
+    clearTimeout(watchdog)
+    // Kill the whole group, then insist: a parent-only SIGTERM leaves Chrome's helpers
+    // running (see the spawn comment). A profile that still refuses deletion is /tmp
+    // residue, not a failure of the capture — leave it rather than crashing the run.
+    const killGroup = signal => { try { process.kill(-proc.pid, signal) } catch { /* already gone */ } }
+    killGroup('SIGTERM')
     await new Promise(resolve => {
       const timer = setTimeout(resolve, 5000)
       proc.once('exit', () => { clearTimeout(timer); resolve() })
     })
+    killGroup('SIGKILL')
     try {
       rmSync(userDataDir, { recursive: true, force: true })
     } catch { /* residue in /tmp; harmless */ }

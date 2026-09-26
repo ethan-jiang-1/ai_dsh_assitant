@@ -43,6 +43,11 @@
   对齐去重（一个事实一个家）。
 - **P1-C 默认工作区**：实测干净 home 首开 `initializeDefault` 是否兜住目录之问；未兜住则发行组合
   patch 预置默认工作区。目标：CEO 打开即有可用工作区，**永不被问"选什么目录"**。
+  **（2026-09-26 P0 实测修正）平台已经兜住了**：干净 home + 可写 Documents 根时，默认工作区
+  `<Documents>/deepseek-harness/default-workspace` 真的被建出（注册表 `defaultWorkspaceId` + 目录 +
+  UI chip 三处坐实）。此前的"没建"是 agent 沙箱写不了 `~/Documents` 的假象。→ 本片缩为**开发环境
+  保真**：给 dev 组合设 `documentsDirectory` 指到可写路径，让沙箱里的 dev 会话也能走通首次使用；
+  发行组合是否需要额外动作，转 P3 的用户拍板项（与"内测声明/API Key 门"一起）。
 
 ### P2 S5 密度/视觉（P0 解锁后才做）
 
@@ -75,3 +80,15 @@
 - P2：每条密度/视觉结论引用具体截图；改动前后截图对比入卡。
 - P3：本卡改写为已交付事实后迁 `implemented/`；ROADMAP/design 卡交叉引用闭合。
 - 用户拍板类（摘要预算、评测题目、视觉口味分歧）不代拍：备好材料跳过，最后汇报。
+
+## 进度
+
+- [x] **P0 证据管线 + 首开走查**（2026-09-26 落地）——`scripts/webui-shots.mjs`（CDP 截图 + DOM 证据；
+  看门狗/进程组清理/`--plain` 兜底/`--eval` 交互），走查报告与真机截图证据在
+  [第一公里走查](../research/2026-09-26-first-mile-walkthrough.md) 与
+  [截图目录](../research/2026-09-26-first-mile-shots/)。
+  **六条断点**（首屏是 DSH 的 / 输入框说工程师的话 / 零功能发现 / 三道门 / 面板标签不跟 UI 语言 /
+  窄栏未验）与四条平台事实（默认工作区真的会建、可注入面清单、门是配置、管线六坑）都带证据。
+  **验收实跑**：verify 31/31（真退出码）、typecheck 0 error、脚本对运行中的 dev web 实跑产出
+  PNG + DOM 证据（read_image 已核）。
+- [ ] P1-A 命令面 · P1-B 首屏身份与引导 · P1-C 开发环境保真 · P2 S5 密度 · P3 收尾
