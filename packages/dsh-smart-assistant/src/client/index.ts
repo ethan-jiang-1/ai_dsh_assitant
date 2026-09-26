@@ -695,7 +695,12 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     })
   }
 
-  return { inject, apply, AssistantBrandMark, AssistantBrandName }
+  // The occupants, the three panels, and the shared store are exposed for tests: the store is the
+  // panels' only input, so a test that fills it can render every section without a browser.
+  return {
+    inject, apply, AssistantBrandMark, AssistantBrandName,
+    DeskPanel, KnowledgePanel, MemoryPanel, deskStore,
+  }
 }
 
 const facade = (globalThis as { __ModuleLoader__?: ModuleLoaderFacade }).__ModuleLoader__
