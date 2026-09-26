@@ -293,6 +293,18 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     )
   }
 
+  /**
+   * Retire one learned skill. The third audit line beside memories and pages: the principal says
+   * a procedure is dead, and the assistant moves it out of the loading set (recoverable).
+   */
+  function retireSkill(name: string): void {
+    sendPrompt(
+      `技能「${name}」没用了，请退役它（assistant_reflect retire_skill）。改完刷新我的桌面。`,
+      '已把退役请求交给助手…',
+      () => { setTimeout(() => { loadDesk() }, 15000) },
+    )
+  }
+
   /** Tell the assistant what is wrong with one knowledge page. */
   function flagKnowledgePage(title: string, problem: string): void {
     sendPrompt(
@@ -313,7 +325,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     actionLabel: string
     placeholder: string
     onSubmit: (text: string) => void
-    approve?: { label: string, run: () => void } | undefined
+    actions?: { label: string, run: () => void }[] | undefined
     source?: string | undefined
   }): ReturnType<typeof createElement> {
     const { useState } = require('react') as typeof import('react')
@@ -342,15 +354,14 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
           }, `来源：${source.length > 110 ? `${source.slice(0, 110)}…` : source}`),
       createElement('div', { style: { fontSize: '11px', color: '#aaa', marginTop: '2px' } },
         props.meta === undefined || props.meta === '' ? null : props.meta,
-        props.approve === undefined
-          ? null
-          : createElement('button', {
-              onClick: props.approve.run,
-              style: {
-                marginLeft: '8px', padding: '0 8px', fontSize: '11px', cursor: 'pointer',
-                border: `1px solid ${MARK_TEAL}`, borderRadius: '4px', background: '#fff', color: MARK_TEAL,
-              },
-            }, props.approve.label),
+        ...(props.actions ?? []).map(action => createElement('button', {
+          key: action.label,
+          onClick: action.run,
+          style: {
+            marginLeft: '8px', padding: '0 8px', fontSize: '11px', cursor: 'pointer',
+            border: `1px solid ${MARK_TEAL}`, borderRadius: '4px', background: '#fff', color: MARK_TEAL,
+          },
+        }, action.label)),
         createElement('button', {
           onClick: () => { setOpen(!open) },
           style: {
@@ -552,8 +563,8 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         placeholder: '哪里不对？',
         source: (page.sources ?? []).join(' · '),
         onSubmit: (text: string) => { flagKnowledgePage(String(page.title ?? page.id ?? ''), text) },
-        approve: page.status === 'draft'
-          ? { label: '批准', run: () => { approveKnowledgePage(String(page.title ?? page.id ?? '')) } }
+        actions: page.status === 'draft'
+          ? [{ label: '批准', run: () => { approveKnowledgePage(String(page.title ?? page.id ?? '')) } }]
           : undefined,
       })
     return createElement('div', { style: { padding: '24px', maxWidth: '620px' } },
@@ -575,10 +586,17 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       sectionTitle('技能'),
       (store.data?.skills ?? []).length === 0
         ? muted('（还没有技能）')
-        : createElement('ul', { style: { margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#666', lineHeight: 1.7 } },
-            ...(store.data?.skills ?? []).map(skill => createElement('li', { key: String(skill.name) },
-              createElement('span', { style: { color: MARK_TEAL } }, String(skill.name ?? '')),
-              skill.description === undefined ? null : createElement('span', null, ` — ${skill.description}`)))),
+        : createElement('ul', { style: { margin: 0, padding: 0 } },
+            ...(store.data?.skills ?? []).map(skill => createElement(CorrectableRow, {
+              key: String(skill.name),
+              primary: createElement('span', null,
+                createElement('span', { style: { color: MARK_TEAL } }, String(skill.name ?? '')),
+                skill.description === undefined ? null : createElement('span', { style: { color: '#666' } }, ` — ${skill.description}`)),
+              actionLabel: '这技能有问题',
+              placeholder: '哪里不对？',
+              onSubmit: (text: string) => { flagKnowledgePage(String(skill.name ?? ''), text) },
+              actions: [{ label: '没用了', run: () => { retireSkill(String(skill.name ?? '')) } }],
+            }))),
       store.note === undefined ? null : muted(store.note))
   }
 

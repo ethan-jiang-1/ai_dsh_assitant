@@ -111,6 +111,10 @@ describe('desk panels', () => {
     expect(text).toContain('批准')
     expect(text).toContain('有问题')
     expect(text).toContain('desk-refresh')
+    // Skills carry their own audit actions: flag it, or retire it (the assistant moves it out of
+    // the loading set, recoverably).
+    expect(text).toContain('这技能有问题')
+    expect(text).toContain('没用了')
     // Provenance is the trust line.
     expect(text).toContain('ai_dsh_company:kb/ceo/CHARTER.md')
     // Drafts lead: their title appears before the stable page's.
