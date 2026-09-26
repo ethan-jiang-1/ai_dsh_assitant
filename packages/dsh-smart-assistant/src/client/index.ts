@@ -128,34 +128,78 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    * Rendered with createElement only (no JSX in the script-format client bundle).
    */
   function DeskPanel(): unknown {
-    const { createElement: h } = require('react') as typeof import('react')
+    const { createElement: h, useEffect, useState } = require('react') as typeof import('react')
+    const [presets, setPresets] = useState<{ id: string, name: string }[] | undefined>(undefined)
+    const [error, setError] = useState<string | undefined>(undefined)
+
+    useEffect(() => {
+      // Live data through a namespace the Remote manifest already lists. `agentPresets.list`
+      // takes no arguments and returns the deployment's roster — the first real content in this
+      // panel, and the proof that the client → Remote → host path works from here.
+      const timer = setTimeout(() => {
+        const api = deskRemote?.['agentPresets'] as { list?: () => Promise<unknown> } | undefined
+        if (api?.list === undefined) {
+          setError('remote.agentPresets did not materialize')
+          return
+        }
+        void api.list().then((data: unknown) => {
+          const roster = data as { presets?: unknown[], entries?: unknown[] } | unknown[]
+          const raw = Array.isArray(roster) ? roster : (roster?.presets ?? roster?.entries ?? [])
+          setPresets((raw as { id?: unknown, name?: unknown }[]).map(item => ({
+            id: String(item?.id ?? '?'),
+            name: String(item?.name ?? item?.id ?? '?'),
+          })))
+        }).catch((reason: unknown) => setError(String(reason)))
+      }, 300)
+      return () => clearTimeout(timer)
+    }, [])
+
     const cell = (label: string, value: string): ReturnType<typeof h> =>
       h('div', { style: { display: 'inline-block', margin: '8px 16px', textAlign: 'center' as const } },
-        h('div', { style: { fontSize: '28px', fontWeight: 700, color: MARK_TEAL } }, value),
+        h('div', { style: { fontSize: '26px', fontWeight: 700, color: MARK_TEAL } }, value),
         h('div', { style: { fontSize: '12px', color: '#666' } }, label))
-    return h('div', { style: { padding: '24px' } },
-      h('h2', { style: { margin: '0 0 16px', fontSize: '18px' } }, 'My Desk'),
+    const sectionTitle = (text: string): ReturnType<typeof h> =>
+      h('h3', { style: { margin: '20px 0 8px', fontSize: '13px', color: '#888', fontWeight: 600 } }, text)
+
+    const roster = presets === undefined
+      ? h('p', { style: { fontSize: '12px', color: '#999', margin: 0 } }, '读取中…')
+      : presets.length === 0
+        ? h('p', { style: { fontSize: '12px', color: '#999', margin: 0 } }, '（这个部署没有注册助手预设）')
+        : h('ul', { style: { margin: 0, paddingLeft: '18px', fontSize: '13px', lineHeight: 1.7 } },
+            ...presets.map(preset => h('li', { key: preset.id },
+              preset.name, h('span', { style: { color: '#aaa', fontSize: '11px' } }, ` · ${preset.id}`))))
+
+    return h('div', { style: { padding: '24px', maxWidth: '560px' } },
+      h('h2', { style: { margin: '0 0 4px', fontSize: '18px' } }, 'My Desk'),
+      h('p', { style: { margin: '0 0 8px', fontSize: '12px', color: '#999' } },
+        'This deployment\'s assistants (live, via the agentPresets Remote namespace):'),
+      roster,
+      error === undefined ? null : h('p', { style: { fontSize: '12px', color: '#c66', marginTop: '8px' } }, `⚠ ${error}`),
+      sectionTitle('Working-folder counts'),
       h('div', null,
         cell('Memories', '—'),
         cell('Knowledge', '—'),
         cell('Skills', '—'),
         cell('Threads', '—')),
-      h('p', { style: { fontSize: '12px', color: '#999', marginTop: '16px', maxWidth: '420px' } },
-        'Panel shell is live (registered through the sidebar panel list). The counts need a '
-        + 'host-data channel: the Remote-namespace route is blocked for out-of-tree plugins '
-        + '(the browser-side Remote manifest is generated from the vendor workspace), so the '
-        + 'next path is a desk file the assistant maintains in the workspace, read through the '
-        + 'existing workspaceFiles namespace.'))
+      h('p', { style: { fontSize: '12px', color: '#999', marginTop: '4px' } },
+        'Pending a host-data channel: an out-of-tree package cannot open a new Remote namespace '
+        + '(the browser-side manifest is generated from the vendor workspace). Next path: a desk '
+        + 'file the assistant maintains in the workspace, read through workspaceFiles.'))
   }
 
   /** Slots this face occupies (single-occupant, root-scope, declared by the sidebar). */
-  const inject = ['slots', 'sidebarRightTabs']
+  const inject = ['slots', 'sidebarRightTabs', 'remote', 'remote.agentPresets']
 
   /**
    * Register the brand occupants as one declaration-aware set.
    * @param ctx - Browser root context.
    */
+  /** The remote layer captured in apply; DeskPanel reads manifested namespaces through it. */
+  let deskRemote: Record<string, unknown> | undefined
+
   function apply(ctx: ClientContext): void {
+    deskRemote = (ctx as { remote?: Record<string, unknown> }).remote
+
     // The official build's brand package occupies these slots under its own build profile;
     // step aside there. A browser has no `process`, so the guard reads false and we register.
     if (typeof process !== 'undefined' && process.env?.DSH_CLIENT_BUILD_PROFILE === 'official') {
