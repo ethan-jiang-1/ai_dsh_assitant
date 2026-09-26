@@ -130,47 +130,61 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   function DeskPanel(): unknown {
     const { createElement: h, useEffect, useState } = require('react') as typeof import('react')
     const [presets, setPresets] = useState<{ id: string, name: string }[] | undefined>(undefined)
-    const [sessions, setSessions] = useState<{ total: number, running: number, recent: { id: string, updated: string, cwd: string }[] } | undefined>(undefined)
+    const [conversations, setConversations] = useState<{ total: number, running: number, recent: { id: string, updated: string, cwd: string }[] } | undefined>(undefined)
     const [error, setError] = useState<string | undefined>(undefined)
 
+    // Assistants: one manifested Remote call. Its value is a Result wrapper
+    // ({ ok, value: { presets }, error }) — unpacking it as a bare roster was why this section
+    // first rendered empty (pattern learned from the shipped agent-preset client plugin).
     useEffect(() => {
-      // Live data through namespaces the Remote manifest already lists. `agentPresets.list`
-      // (no arguments) and `session.list` ({cursor?}) are the two cheapest manifested calls;
-      // they also prove the client → Remote → host path works from this panel.
       const timer = setTimeout(() => {
-        const presetApi = deskRemote?.['agentPresets'] as { list?: () => Promise<unknown> } | undefined
-        if (presetApi?.list === undefined) setError('remote.agentPresets did not materialize')
-        else void presetApi.list().then((data: unknown) => {
-          const roster = data as { presets?: unknown[], entries?: unknown[] } | unknown[]
-          const raw = Array.isArray(roster) ? roster : (roster?.presets ?? roster?.entries ?? [])
-          setPresets((raw as { id?: unknown, name?: unknown }[]).map(item => ({
-            id: String(item?.id ?? '?'),
-            name: String(item?.name ?? item?.id ?? '?'),
-          })))
-        }).catch((reason: unknown) => setError(String(reason)))
-
-        const sessionApi = deskRemote?.['session'] as { list?: (request: unknown) => Promise<unknown> } | undefined
-        if (sessionApi?.list === undefined) setError('remote.session did not materialize')
-        else void sessionApi.list({}).then((data: unknown) => {
-          const items = ((data as { items?: unknown[] })?.items ?? []) as {
-            sessionId?: unknown, updatedAt?: unknown, running?: unknown, cwd?: unknown,
-          }[]
-          setSessions({
-            total: items.length,
-            running: items.filter(item => item.running === true).length,
-            recent: items
-              .slice()
-              .sort((left, right) => Number(right.updatedAt ?? 0) - Number(left.updatedAt ?? 0))
-              .slice(0, 5)
-              .map(item => ({
-                id: String(item.sessionId ?? '?').slice(0, 8),
-                updated: item.updatedAt === undefined ? '' : new Date(Number(item.updatedAt)).toLocaleString(),
-                cwd: String(item.cwd ?? ''),
-              })),
-          })
+        const api = deskRemote?.['agentPresets'] as { list?: () => Promise<unknown> } | undefined
+        if (api?.list === undefined) {
+          setError('remote.agentPresets did not materialize')
+          return
+        }
+        void api.list().then((result: unknown) => {
+          const wrapped = result as { ok?: boolean, value?: { presets?: unknown[] }, error?: { message?: string } }
+          if (wrapped?.ok === false) {
+            setError(wrapped.error?.message ?? 'agentPresets.list failed')
+            return
+          }
+          const rows = (wrapped?.value?.presets ?? []) as { id?: unknown, name?: unknown }[]
+          setPresets(rows.map(row => ({ id: String(row?.id ?? '?'), name: String(row?.name ?? row?.id ?? '?') })))
         }).catch((reason: unknown) => setError(String(reason)))
       }, 300)
       return () => clearTimeout(timer)
+    }, [])
+
+    // Conversations: the client Session store is already synced from the host (the left sidebar
+    // renders from it), so this needs no Remote call and no session scoping.
+    useEffect(() => {
+      const store = deskSessions?.list
+      if (store === undefined) return undefined
+      const update = (): void => {
+        const state = store.getSnapshot() as {
+          ids?: string[]
+          byId?: Record<string, { updatedAt?: number, running?: boolean, cwd?: string }>
+        }
+        const ids = state?.ids ?? []
+        const byId = state?.byId ?? {}
+        const ordered = ids.slice().sort((left, right) => Number(byId[right]?.updatedAt ?? 0) - Number(byId[left]?.updatedAt ?? 0))
+        setConversations({
+          total: ids.length,
+          running: ids.filter(id => byId[id]?.running === true).length,
+          recent: ordered.slice(0, 5).map(id => {
+            const row = byId[id]
+            const stamp = row?.updatedAt
+            return {
+              id: String(id).slice(0, 8),
+              updated: stamp === undefined ? '' : new Date(Number(stamp)).toLocaleString(),
+              cwd: String(row?.cwd ?? ''),
+            }
+          }),
+        })
+      }
+      update()
+      return store.subscribe(update)
     }, [])
 
     const cell = (label: string, value: string): ReturnType<typeof h> =>
@@ -190,13 +204,13 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
             ...presets.map(preset => h('li', { key: preset.id },
               preset.name, h('span', { style: { color: '#aaa', fontSize: '11px' } }, ` · ${preset.id}`))))
 
-    const history = sessions === undefined
+    const history = conversations === undefined
       ? muted('读取中…')
       : h('div', null,
           h('p', { style: { margin: '0 0 6px', fontSize: '13px' } },
-            `对话 ${sessions.total} 次`, sessions.running > 0 ? `（运行中 ${sessions.running}）` : ''),
-          sessions.recent.length === 0 ? null : h('ul', { style: { margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#666', lineHeight: 1.7 } },
-            ...sessions.recent.map(item => h('li', { key: item.id },
+            `对话 ${conversations.total} 次`, conversations.running > 0 ? `（运行中 ${conversations.running}）` : ''),
+          conversations.recent.length === 0 ? null : h('ul', { style: { margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#666', lineHeight: 1.7 } },
+            ...conversations.recent.map(item => h('li', { key: item.id },
               item.updated, item.cwd === '' ? null : h('span', { style: { color: '#aaa' } }, ` · ${item.cwd}`)))))
 
     return h('div', { style: { padding: '24px', maxWidth: '560px' } },
@@ -218,7 +232,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   }
 
   /** Slots this face occupies (single-occupant, root-scope, declared by the sidebar). */
-  const inject = ['slots', 'sidebarRightTabs', 'remote', 'remote.agentPresets', 'remote.session']
+  const inject = ['slots', 'sidebarRightTabs', 'sessions', 'remote', 'remote.agentPresets']
 
   /**
    * Register the brand occupants as one declaration-aware set.
@@ -226,9 +240,12 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    */
   /** The remote layer captured in apply; DeskPanel reads manifested namespaces through it. */
   let deskRemote: Record<string, unknown> | undefined
+  /** The client Session store; its list snapshot is already synced and needs no Remote call. */
+  let deskSessions: { list?: { getSnapshot: () => unknown, subscribe: (fn: () => void) => () => void } } | undefined
 
   function apply(ctx: ClientContext): void {
     deskRemote = (ctx as { remote?: Record<string, unknown> }).remote
+    deskSessions = (ctx as { sessions?: typeof deskSessions }).sessions
 
     // The official build's brand package occupies these slots under its own build profile;
     // step aside there. A browser has no `process`, so the guard reads false and we register.
