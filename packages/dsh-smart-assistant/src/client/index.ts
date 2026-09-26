@@ -168,7 +168,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
               setSnapshot({ error: String(error) })
             })
           } else {
-            setSnapshot({ error: `assistantMemory not on remote. Available: [${remoteKeys}]` })
+            setSnapshot({ error: `assistantDesk not on remote (namespace not materialized — check host row). Available: [${remoteKeys}]` })
           }
         } catch (error) {
           setSnapshot({ error: String(error) })
@@ -199,7 +199,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   }
 
   /** Slots this face occupies (single-occupant, root-scope, declared by the sidebar). */
-  const inject = ['slots', 'sidebarRightTabs', 'remote']
+  const inject = ['slots', 'sidebarRightTabs', 'remote', 'remote.assistantDesk']
 
   /**
    * Register the brand occupants as one declaration-aware set.
