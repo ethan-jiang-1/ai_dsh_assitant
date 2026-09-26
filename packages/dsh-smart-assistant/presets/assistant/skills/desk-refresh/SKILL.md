@@ -42,7 +42,7 @@ place your file tools write). Create the directory if it is missing.
       "sources": ["…"] }
   ],
   "skills": [
-    { "name": "…", "description": "…" }
+    { "name": "…", "description": "…", "kind": "curated" }
   ]
 }
 ```
@@ -114,8 +114,14 @@ The desk panel leads with its decisions section (`decisions`) and its threads se
    (`id`, `title`, `status`, `type`, `updated`, `sources`). Flatten `sources` to plain resource
    strings for the panel. Include drafts: the principal reviews them from the knowledge panel, so a
    draft you leave out is a draft they never see.
-5. **Skills** — list your skill bundles and take each `name` (the directory) plus the first line of
-   its `description`.
+5. **Skills** — both sources, because "what can you do" is the question this section answers:
+   - `kind: "curated"` — the skills that ship with this deployment. They are in your own skill
+     catalog (the catalog section of your context); list each with its one-line description. They
+     are not in the working folder, so the folder listing alone will miss all of them.
+   - `kind: "learned"` — the bundles in the working folder's `skills/` room: `name` is the
+     directory, `description` the first line of its `SKILL.md`.
+   The split is the point: a curated skill is fixed (the principal judges it, you cannot retire it),
+   a learned one is yours to retire.
 
 ## Their moves come back through this file
 

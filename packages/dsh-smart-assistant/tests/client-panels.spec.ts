@@ -123,7 +123,10 @@ describe('desk panels', () => {
         { id: 'k2', title: 'Agent preset semantics', status: 'stable', type: 'how-it-works' },
         { id: 'k3', title: 'old note', status: 'deprecated', type: 'concept' },
       ],
-      skills: [{ name: 'desk-refresh', description: 'how to refresh the desk file' }],
+      skills: [
+        { name: 'management-breakdown', description: 'how to break a business problem down', kind: 'curated' },
+        { name: 'repo-to-knowledge', description: 'how to distill in-repo material', kind: 'learned' },
+      ],
     }
     const text = textsOf(exports.KnowledgePanel()).join(' | ')
 
@@ -132,9 +135,11 @@ describe('desk panels', () => {
     expect(text).toContain('management-lens-ceo')
     expect(text).toContain('批准')
     expect(text).toContain('有问题')
-    expect(text).toContain('desk-refresh')
-    // Skills carry their own audit actions: flag it, or retire it (the assistant moves it out of
-    // the loading set, recoverably).
+    // Two sources, split on purpose: what ships with the deployment, and what it picked up.
+    expect(text).toContain('随包（1）')
+    expect(text).toContain('学来的（1）')
+    expect(text).toContain('management-breakdown')
+    expect(text).toContain('repo-to-knowledge')
     // Lifecycle: a draft can be approved, a stable page can be retired, a deprecated one carries
     // no action (there is nothing left to decide about it).
     expect(text).toContain('过时了')

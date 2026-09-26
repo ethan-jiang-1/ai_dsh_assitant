@@ -117,7 +117,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     recentActivity?: { at?: string, what?: string }[]
     memories?: { id?: string, kind?: string, text?: string, updated?: string, source?: string }[]
     knowledge?: { id?: string, title?: string, status?: string, type?: string, updated?: string, sources?: string[] }[]
-    skills?: { name?: string, description?: string }[]
+    skills?: { name?: string, description?: string, kind?: string }[]
   }
 
   /**
@@ -669,6 +669,33 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
                   `⚠ ${staleWarning(store)}`)))
   }
 
+  /**
+   * One skills group: a labelled list, with retirement offered only for learned skills (a curated
+   * skill ships with the deployment; retiring it from here would lie about what is loadable).
+   * @param label - The group heading.
+   * @param skills - The skills in this group.
+   * @param retirable - Whether the group offers the retire action.
+   * @returns The heading plus rows, as an element array to spread.
+   */
+  function skillGroup(label: string, skills: DeskData['skills'], retirable: boolean): ReturnType<typeof createElement>[] {
+    if (skills === undefined || skills.length === 0) return []
+    return [
+      createElement('div', { key: `${label}-head`, style: { fontSize: '12px', color: '#888', margin: '10px 0 4px' } },
+        `${label}（${skills.length}）`),
+      createElement('ul', { key: `${label}-list`, style: { margin: 0, padding: 0 } },
+        ...skills.map(skill => createElement(CorrectableRow, {
+          key: String(skill.name),
+          primary: createElement('span', null,
+            createElement('span', { style: { color: MARK_TEAL } }, String(skill.name ?? '')),
+            skill.description === undefined ? null : createElement('span', { style: { color: '#666' } }, ` — ${skill.description}`)),
+          actionLabel: '这技能有问题',
+          placeholder: '哪里不对？',
+          onSubmit: (text: string) => { flagKnowledgePage(String(skill.name ?? ''), text) },
+          actions: retirable ? [{ label: '没用了', run: () => { retireSkill(String(skill.name ?? '')) } }] : undefined,
+        }))),
+    ]
+  }
+
   /** Panel 2 — the knowledge room: what the assistant knows, and what is waiting for review. */
   function KnowledgePanel(): unknown {
     const store = useDesk()
@@ -718,17 +745,11 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       sectionTitle('技能'),
       (store.data?.skills ?? []).length === 0
         ? muted('（还没有技能）')
-        : createElement('ul', { style: { margin: 0, padding: 0 } },
-            ...(store.data?.skills ?? []).map(skill => createElement(CorrectableRow, {
-              key: String(skill.name),
-              primary: createElement('span', null,
-                createElement('span', { style: { color: MARK_TEAL } }, String(skill.name ?? '')),
-                skill.description === undefined ? null : createElement('span', { style: { color: '#666' } }, ` — ${skill.description}`)),
-              actionLabel: '这技能有问题',
-              placeholder: '哪里不对？',
-              onSubmit: (text: string) => { flagKnowledgePage(String(skill.name ?? ''), text) },
-              actions: [{ label: '没用了', run: () => { retireSkill(String(skill.name ?? '')) } }],
-            }))),
+        : createElement('div', null,
+            // Two sources, and the split matters: what ships with the deployment (fixed, the
+            // principal's to judge) versus what the assistant picked up on its own (retirable).
+            ...skillGroup('随包', (store.data?.skills ?? []).filter(skill => skill.kind !== 'learned'), false),
+            ...skillGroup('学来的', (store.data?.skills ?? []).filter(skill => skill.kind === 'learned'), true)),
       store.note === undefined ? null : muted(store.note))
   }
 
