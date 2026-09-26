@@ -109,6 +109,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
 
   /** One desk snapshot as the assistant writes it (see the desk-refresh skill). */
   interface DeskData {
+    generatedAt?: string
     counts?: { memories?: number, knowledgeStable?: number, knowledgeDraft?: number, skills?: number, threads?: number }
     threads?: { id?: string, status?: string, title?: string, why?: string, lean?: string }[]
     decisions?: { id?: string, question?: string, context?: string }[]
@@ -483,7 +484,8 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         cell('技能', data?.counts?.skills === undefined ? '—' : String(data.counts.skills), 'assistant-knowledge'),
         cell('线索', data?.counts?.threads === undefined ? '—' : String(data.counts.threads))),
       store.note === undefined
-        ? muted(`读自 ${store.source === undefined || store.source === '' ? '会话工作区' : store.source} 的 .desk/state.json（经 workspaceFiles）`)
+        ? muted(`读自 ${store.source === undefined || store.source === '' ? '会话工作区' : store.source} 的 .desk/state.json`
+            + (store.data?.generatedAt === undefined ? '' : `（更新于 ${store.data.generatedAt}）`))
         : muted(store.note))
   }
 
@@ -607,6 +609,25 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     }
     // One load feeds all three panels; the store notifies them as it settles.
     loadDesk()
+
+    // Follow the conversation: when the newest Session settles a turn, re-read the desk file after
+    // a short settle delay. A refresh the assistant performed during that turn then lands on its
+    // own — the principal should not have to click to see what just changed.
+    const store = deskSessions?.list
+    if (store !== undefined) {
+      let lastStamp = 0
+      let pending: ReturnType<typeof setTimeout> | undefined
+      store.subscribe(() => {
+        const state = store.getSnapshot() as { ids?: string[], byId?: Record<string, { updatedAt?: number }> }
+        const ids = state?.ids ?? []
+        const byId = state?.byId ?? {}
+        const newest = ids.reduce((max, id) => Math.max(max, Number(byId[id]?.updatedAt ?? 0)), 0)
+        if (newest === lastStamp) return
+        lastStamp = newest
+        if (pending !== undefined) clearTimeout(pending)
+        pending = setTimeout(() => { loadDesk() }, 4000)
+      })
+    }
 
     // Experiment 1 (kept for reference): the right-sidebar tab type registration below
     // registers a TYPE (what this plugin can open), not a VISIBLE tab — lesson learned:
