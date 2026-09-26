@@ -65,6 +65,12 @@ IME `isComposing` 守卫 + 换 textarea。**验收**：每缺陷一个能红的�
 
 ## 验收（包级）
 
+> **补记（2026-09-26 收尾整备）**：S1–S4 全部落地后跑 `pnpm release-smoke` **passed**（pack → 干净 home →
+> plugin add → 组合读回断言：host 行在组合、preset 是 profile 默认、preset-mounted runner 可组合）——
+> 整改没有破坏安装形状。桌面数据由 eval 复验持续刷新（20:52 版，business/upkeep 分类与选项/note/reply
+> 全部在场）。仪表"面板动作"计数含本仓 eval 复验自己发的 `[桌面]` 提示（消息层与真人点击不可区分），
+> 读数时须知。
+
 - 每片：`pnpm verify` 31/31 + 本包测试 + 相关夹具**能红**（新守卫必须证明会失败）；
 - 涉及模型面/契约：同 diff 改 SKILL.md，并跑 `pnpm eval -- --only desk-refresh-loop`；
 - 交付：`pnpm build` + 干净目录起 web + preflight 绿 + **真人（或 UX 专家）点得通**——
