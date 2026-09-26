@@ -28,7 +28,7 @@ place your file tools write). Create the directory if it is missing.
   "threads": [
     { "id": "20260925-20-…", "status": "open", "title": "…", "why": "…", "lean": "…", "updated": "…" }
   ],
-  "recentMemories": [
+  "memories": [
     { "id": "20260925-…", "kind": "fact", "updated": "…", "text": "…" }
   ],
   "knowledge": [
@@ -42,7 +42,7 @@ place your file tools write). Create the directory if it is missing.
 
 The panels read `knowledge` and `skills` too: the knowledge panel lists pages with the drafts
 (`status: "draft"`) first as "waiting for your review", and the memory panel lists
-`recentMemories`. Fill every section you can; a missing one renders empty, which is honest.
+`memories`. Fill every section you can; a missing one renders empty, which is honest.
 
 The desk panel leads with its decisions section (`decisions`) and its threads section
 (`threads`), so both must read as a glance:
@@ -57,7 +57,9 @@ The desk panel leads with its decisions section (`decisions`) and its threads se
   definition first, or the customers?"). `why` is the rationale (rendered small and grey), `lean` is
   your current lean (rendered under the title). Keep `why` to about two lines: it is the footnote,
   not the headline.
-- `recentMemories`: the five most recently updated active records.
+- `memories`: the **active** records the principal would want to audit — newest first, up to about
+  twenty. This is the memory panel's whole list, and each row is a correction target: a record you
+  leave out is one the principal cannot fix.
 
 ## How to fill it
 
@@ -69,12 +71,21 @@ The desk panel leads with its decisions section (`decisions`) and its threads se
 2b. **Decisions** — ask yourself: *is there anything I am waiting on the principal for?* A draft page
    awaiting approval, a question I could not answer without their numbers, a choice they reserved.
    If yes, one entry each; if no, leave the list empty rather than inventing work for them.
-3. **Recent memories** — `assistant_memory action=list` (or `recall`), newest first, take five.
+3. **Memories** — `assistant_memory action=list` (or `recall`), newest first, up to about twenty
+   active records.
 4. **Knowledge pages** — list the knowledge room's files and read each page's frontmatter
    (`id`, `title`, `status`, `type`, `updated`). Include drafts: the principal reviews them from
    the knowledge panel, so a draft you leave out is a draft they never see.
 5. **Skills** — list your skill bundles and take each `name` (the directory) plus the first line of
    its `description`.
+
+## Corrections come back through this file
+
+The memory and knowledge panels let the principal correct a row in place. That correction arrives as
+a normal message ("correct this memory: … what is right is …"), and the loop is yours to close:
+rewrite the record (or the page), then **refresh the desk file in the same turn** so the panel they
+are looking at stops showing the line they just told you was wrong. A correction you apply but do not
+re-render reads as if you ignored them.
 
 ## Rules
 

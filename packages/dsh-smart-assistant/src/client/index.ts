@@ -112,7 +112,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     counts?: { memories?: number, knowledgeStable?: number, knowledgeDraft?: number, skills?: number, threads?: number }
     threads?: { id?: string, status?: string, title?: string, why?: string, lean?: string }[]
     decisions?: { id?: string, question?: string, context?: string }[]
-    recentMemories?: { id?: string, kind?: string, text?: string, updated?: string }[]
+    memories?: { id?: string, kind?: string, text?: string, updated?: string }[]
     knowledge?: { id?: string, title?: string, status?: string, type?: string }[]
     skills?: { name?: string, description?: string }[]
   }
@@ -267,6 +267,81 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     sendPrompt(`「${title}」这条线索现在到哪一步了？还缺什么才能往下走？`, '已请助手汇报这条线索…')
   }
 
+  /**
+   * Correct one memory record. This is the cultivation loop: the principal says which line is
+   * wrong and what is right, and the assistant rewrites the record and refreshes the desk.
+   */
+  function correctMemory(text: string, correction: string): void {
+    sendPrompt(
+      `请更正这条记忆。原记录：「${text}」。正确的是：${correction}。改完请刷新我的桌面。`,
+      '已把你的更正交给助手…',
+      () => { setTimeout(() => { loadDesk() }, 15000) },
+    )
+  }
+
+  /** Tell the assistant what is wrong with one knowledge page. */
+  function flagKnowledgePage(title: string, problem: string): void {
+    sendPrompt(
+      `知识页「${title}」有问题：${problem}。请核对并更正这一页，改完刷新我的桌面。`,
+      '已把这条意见交给助手…',
+      () => { setTimeout(() => { loadDesk() }, 15000) },
+    )
+  }
+
+  /**
+   * One row the principal can correct in place: the content, a small action, and — once opened —
+   * an input plus send. Inline on purpose: pointing at the wrong line and typing the fix is one
+   * gesture, which is what "cultivating the assistant" actually costs.
+   */
+  function CorrectableRow(props: {
+    primary: ReturnType<typeof createElement> | string
+    meta?: string | undefined
+    actionLabel: string
+    placeholder: string
+    onSubmit: (text: string) => void
+  }): ReturnType<typeof createElement> {
+    const { useState } = require('react') as typeof import('react')
+    const [open, setOpen] = useState(false)
+    const [text, setText] = useState('')
+    const submit = (): void => {
+      const value = text.trim()
+      if (value === '') return
+      props.onSubmit(value)
+      setText('')
+      setOpen(false)
+    }
+    return createElement('li', { style: { marginBottom: '10px', listStyle: 'none' } },
+      createElement('div', { style: { fontSize: '13px', lineHeight: 1.6, color: '#555' } }, props.primary),
+      createElement('div', { style: { fontSize: '11px', color: '#aaa', marginTop: '2px' } },
+        props.meta === undefined || props.meta === '' ? null : props.meta,
+        createElement('button', {
+          onClick: () => { setOpen(!open) },
+          style: {
+            marginLeft: '8px', padding: '0 6px', fontSize: '11px', cursor: 'pointer',
+            border: '1px solid #ddd', borderRadius: '4px', background: '#fff', color: '#888',
+          },
+        }, open ? '取消' : props.actionLabel)),
+      open
+        ? createElement('div', { style: { marginTop: '6px', display: 'flex', gap: '6px' } },
+            createElement('input', {
+              value: text,
+              onChange: (event: { target: { value: string } }) => { setText(event.target.value) },
+              onKeyDown: (event: { key: string }) => { if (event.key === 'Enter') submit() },
+              placeholder: props.placeholder,
+              style: {
+                flex: '1', padding: '5px 8px', fontSize: '12px', border: '1px solid #ddd', borderRadius: '4px',
+              },
+            }),
+            createElement('button', {
+              onClick: submit,
+              style: {
+                padding: '5px 12px', fontSize: '12px', cursor: 'pointer', borderRadius: '4px',
+                border: `1px solid ${MARK_TEAL}`, background: '#fff', color: MARK_TEAL,
+              },
+            }, '发送'))
+        : null)
+  }
+
   /** A stat cell; with a target it becomes the way to the panel that explains the number. */
   function cell(label: string, value: string, target?: string): ReturnType<typeof createElement> {
     const jump = (): void => {
@@ -401,14 +476,6 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
             : createElement('div', { style: { fontSize: '11px', color: '#aaa', marginTop: '2px', lineHeight: 1.5 } },
                 String(thread.why))))),
 
-      sectionTitle('最近记住的'),
-      data?.recentMemories === undefined || data.recentMemories.length === 0
-        ? muted('（还没有记忆）')
-        : createElement('ul', { style: { margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#666', lineHeight: 1.7 } },
-            ...data.recentMemories.map(memory => createElement('li', { key: String(memory.id) },
-              String(memory.text ?? ''),
-              memory.kind === undefined ? null : createElement('span', { style: { color: '#aaa' } }, ` · ${memory.kind}`)))),
-
       sectionTitle('我记住的规模'),
       createElement('div', null,
         cell('记忆', data?.counts?.memories === undefined ? '—' : String(data.counts.memories), 'assistant-memory'),
@@ -427,9 +494,14 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     const drafts = pages.filter(page => page.status === 'draft')
     const stable = pages.filter(page => page.status !== 'draft')
     const row = (page: typeof pages[number], mark: string): ReturnType<typeof createElement> =>
-      createElement('li', { key: String(page.id), style: { marginBottom: '4px' } },
-        mark, String(page.title ?? page.id ?? ''),
-        page.type === undefined || page.type === '' ? null : createElement('span', { style: { color: '#aaa', fontSize: '11px' } }, ` · ${page.type}`))
+      createElement(CorrectableRow, {
+        key: String(page.id),
+        primary: createElement('span', null, mark, String(page.title ?? page.id ?? '')),
+        meta: page.type === undefined || page.type === '' ? '' : String(page.type),
+        actionLabel: '有问题',
+        placeholder: '哪里不对？',
+        onSubmit: (text: string) => { flagKnowledgePage(String(page.title ?? page.id ?? ''), text) },
+      })
     return createElement('div', { style: { padding: '24px', maxWidth: '620px' } },
       createElement('h2', { style: { margin: '0 0 4px', fontSize: '18px' } }, '知识室'),
       refreshRow(store),
@@ -459,17 +531,21 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   /** Panel 3 — the memory room: what the assistant has written down about the principal. */
   function MemoryPanel(): unknown {
     const store = useDesk()
-    const memories = store.data?.recentMemories ?? []
+    const memories = store.data?.memories ?? []
     return createElement('div', { style: { padding: '24px', maxWidth: '620px' } },
       createElement('h2', { style: { margin: '0 0 4px', fontSize: '18px' } }, '记忆室'),
       refreshRow(store),
       memories.length === 0
         ? muted('（还没有记忆，或桌面文件尚未刷新）')
-        : createElement('ul', { style: { margin: 0, paddingLeft: '18px', fontSize: '13px', lineHeight: 1.8, color: '#555' } },
-            ...memories.map(memory => createElement('li', { key: String(memory.id), style: { marginBottom: '8px' } },
-              String(memory.text ?? ''),
-              createElement('div', { style: { fontSize: '11px', color: '#aaa' } },
-                [memory.kind, memory.updated].filter(part => part !== undefined && part !== '').join(' · '))))),
+        : createElement('ul', { style: { margin: 0, padding: 0 } },
+            ...memories.map(memory => createElement(CorrectableRow, {
+              key: String(memory.id),
+              primary: String(memory.text ?? ''),
+              meta: [memory.kind, memory.updated].filter(part => part !== undefined && part !== '').join(' · '),
+              actionLabel: '这条记错了',
+              placeholder: '正确的是什么？',
+              onSubmit: (text: string) => { correctMemory(String(memory.text ?? ''), text) },
+            }))),
       sectionTitle('规模'),
       createElement('div', null,
         cell('记忆', store.data?.counts?.memories === undefined ? '—' : String(store.data.counts.memories)),
