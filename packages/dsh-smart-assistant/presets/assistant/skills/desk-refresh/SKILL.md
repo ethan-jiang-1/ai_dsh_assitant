@@ -25,6 +25,9 @@ place your file tools write). Create the directory if it is missing.
   "decisions": [
     { "id": "…", "question": "…", "context": "…" }
   ],
+  "actions": [
+    { "id": "…", "what": "…", "owner": "…", "due": "…", "metric": "…", "stop": "…", "status": "open" }
+  ],
   "gaps": [
     { "id": "…", "what": "…", "why": "…" }
   ],
@@ -76,7 +79,11 @@ The desk panel leads with its decisions section (`decisions`) and its threads se
 
 ## What the panels render, section by section
 
-- **Desk** — decisions, gaps, threads, `recentActivity`, counts. The activity list answers the
+- **Desk** — decisions, **actions**, gaps, threads, `recentActivity`, counts. `actions` is where the
+  work you planned with the principal lives: every item from an action plan you produced together
+  (the four things each action carries — owner, due, metric, stop condition) plus its `status`
+  (`open` while in flight, `done` or `dropped` once closed). This is the section that keeps a plan
+  from vanishing into the conversation. The activity list answers the
   question a long-lived assistant has to keep answering: *what have you been doing?* Keep it to
   the last few real changes (newest first, about five), each one line with its time. Derive it from
   what actually changed in the working folder — file times and your own tool results — not from a
@@ -103,6 +110,13 @@ The desk panel leads with its decisions section (`decisions`) and its threads se
    skill retired, a correction applied. One line each, `at` = when it happened. This is what makes
    a long-lived assistant legible; a stale or invented list is worse than none, so if nothing moved,
    leave it short rather than padding it.
+2e. **Actions** — read them from the plan pages (`type: plan`) in the knowledge room; that is where
+   an action plan lives once it outlives the conversation (the `action-plan` skill writes it there).
+   One entry per action, carrying what it is, who owns it, when it is due, how it is measured, and
+   its stop condition — copy them from the page rather than re-deriving them from memory. `status: "open"`
+   while it is in flight; mark it `done` or `dropped` when the principal says so (or when you know
+   from their report). Do not invent actions nobody agreed to, and do not silently drop a finished
+   one: a stale list is what makes a plan tracker worthless.
 2c. **Gaps** — the other half of the ask, and not the same thing: a decision is *theirs to make*,
    a gap is *something I lack* to be useful — a number I have no source for, an access I do not
    have, a document nobody has handed me, a question I cannot even frame without a fact. `what` is

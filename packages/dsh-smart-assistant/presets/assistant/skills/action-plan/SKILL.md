@@ -27,6 +27,24 @@ A plan is a promise with a stop condition. Lists without owners are not plans.
 - **What the plan needs from the principal** — decisions, data, or interventions only they can
   provide, each with when it is needed by.
 
+## Land the plan so it outlives the conversation
+
+A plan that lives only in this reply is gone the moment the session ends, and the principal's desk
+tracks actions from the working folder — not from your recollection. So once the shape is agreed (or
+the principal asks for it to be recorded):
+
+1. `assistant_reflect save_page` with `type: plan`, a `title` naming what it commits to, and the plan
+   as the body: the four things per action, the sequence and dependencies, the deferrals with their
+   reasons, and what you need from the principal. `sources` is required — cite the thread or memory
+   the plan came from.
+2. It lands as a **draft**. The principal approves it from the knowledge room when they accept the
+   plan, and that approval is what makes it count as current knowledge.
+3. Then refresh the desk (the `desk-refresh` skill) so the actions appear where the principal looks
+   for them.
+
+If the plan changes later, write the page again under the same title and say what changed — a plan
+tracker that drifts silently is worse than no tracker.
+
 ## Honesty rules
 
 - Every borrowed fact cites its source; every number without provenance is labelled assumed.

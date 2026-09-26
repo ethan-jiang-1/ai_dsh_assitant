@@ -114,6 +114,10 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     threads?: { id?: string, status?: string, title?: string, why?: string, lean?: string }[]
     decisions?: { id?: string, question?: string, context?: string }[]
     gaps?: { id?: string, what?: string, why?: string }[]
+    actions?: {
+      id?: string, what?: string, owner?: string, due?: string,
+      metric?: string, stop?: string, status?: string,
+    }[]
     recentActivity?: { at?: string, what?: string }[]
     memories?: { id?: string, kind?: string, text?: string, updated?: string, source?: string }[]
     knowledge?: { id?: string, title?: string, status?: string, type?: string, updated?: string, sources?: string[] }[]
@@ -279,6 +283,27 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   function askAboutDecision(question: string): void {
     sendPrompt(`关于这个待决事项：「${question}」——请给我两三个选项，每个选项的代价与不可逆程度，以及你的建议。`,
       '已把这条决定交给助手…')
+  }
+
+  /**
+   * Close one action: the principal reports it is done, and the assistant records the outcome
+   * rather than leaving a finished item sitting in flight.
+   */
+  function finishAction(what: string): void {
+    sendPrompt(
+      `行动「${what}」已经办完了。请记录结果（度量上发生了什么），然后刷新我的桌面。`,
+      '已把完成情况交给助手…',
+      () => { setTimeout(() => { loadDesk() }, 15000) },
+    )
+  }
+
+  /** Drop one action: no longer worth doing — the assistant records why and takes it off the list. */
+  function dropAction(what: string): void {
+    sendPrompt(
+      `行动「${what}」不办了：请记一行原因（写进相应线索或记忆），然后刷新我的桌面。`,
+      '已把这条交给助手…',
+      () => { setTimeout(() => { loadDesk() }, 15000) },
+    )
   }
 
   /**
@@ -604,6 +629,35 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
                   onClick: () => { try { deskLayout?.selectPanel?.('assistant-knowledge') } catch { /* stale target */ } },
                   style: { fontSize: '13px', color: '#b26a00', cursor: 'pointer', textDecoration: 'underline' },
                 }, `⚠ ${String(data?.counts?.knowledgeDraft)} 页知识在等你审批（点这里打开知识室）`)),
+
+      sectionTitle('在办的事'),
+      (data?.actions ?? []).filter(action => action.status !== 'done' && action.status !== 'dropped').length === 0
+        ? muted('（没有在办的动作）')
+        : createElement('div', null, ...(data?.actions ?? [])
+            .filter(action => action.status !== 'done' && action.status !== 'dropped')
+            .map(action => createElement(CorrectableRow, {
+              key: String(action.id ?? action.what),
+              primary: createElement('span', null,
+                createElement('span', { style: { fontSize: '13px', fontWeight: 600 } }, String(action.what ?? '')),
+                createElement('div', { style: { fontSize: '12px', color: '#666', fontWeight: 400 } },
+                  [action.owner === undefined ? '' : `负责人：${action.owner}`,
+                    action.due === undefined ? '' : `时点：${action.due}`].filter(part => part !== '').join(' · ')),
+                action.metric === undefined || action.metric === ''
+                  ? null
+                  : createElement('div', { style: { fontSize: '11px', color: '#999', fontWeight: 400 } }, `度量：${action.metric}`),
+                action.stop === undefined || action.stop === ''
+                  ? null
+                  : createElement('div', { style: { fontSize: '11px', color: '#999', fontWeight: 400 } }, `停止条件：${action.stop}`)),
+              actionLabel: '改这条',
+              placeholder: '哪里要改？',
+              onSubmit: (text: string) => {
+                sendPrompt(`行动「${String(action.what ?? '')}」要改：${text}。改完刷新我的桌面。`, '已把修改交给助手…')
+              },
+              actions: [
+                { label: '办完了', run: () => { finishAction(String(action.what ?? '')) } },
+                { label: '不办了', run: () => { dropAction(String(action.what ?? '')) } },
+              ],
+            }))),
 
       sectionTitle('缺什么'),
       (data?.gaps ?? []).length === 0

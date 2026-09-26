@@ -76,6 +76,10 @@ describe('desk panels', () => {
       counts: { memories: 7, knowledgeStable: 10, knowledgeDraft: 3, skills: 2, threads: 1 },
       decisions: [{ id: 'd1', question: '要不要授权读公司盘？', context: '读它才能定因' }],
       gaps: [{ id: 'g1', what: '本季度原始读数', why: '有它才能从框架走到定因' }],
+      actions: [{
+        id: 'a1', what: '填口径卡', owner: '你', due: '今天内',
+        metric: '四个空格写全', stop: '两个口径结论相反就停', status: 'open',
+      }],
       threads: [{ id: 't1', title: 'Q3 掉了 20%', lean: '先定口径', why: '口径未定则无法归因' }],
       recentActivity: [{ at: '2026-09-26T13:10:00+08:00', what: '按你的更正重写了一条记忆' }],
     }
@@ -88,6 +92,15 @@ describe('desk panels', () => {
     // correction row (there the principal says what is wrong, here what they have decided).
     expect(text).toContain('回答')
     expect(text).toContain('看选项')
+    // The action plan lives here instead of vanishing into the conversation: what, who, when,
+    // how it is measured, and when to stop.
+    expect(text).toContain('在办的事')
+    expect(text).toContain('填口径卡')
+    expect(text).toContain('负责人：你')
+    expect(text).toContain('时点：今天内')
+    expect(text).toContain('度量：四个空格写全')
+    expect(text).toContain('停止条件：两个口径结论相反就停')
+    expect(text).toContain('办完了')
     expect(text).toContain('缺什么')
     expect(text).toContain('本季度原始读数')
     expect(text).toContain('在跟的事')
