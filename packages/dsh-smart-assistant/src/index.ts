@@ -45,7 +45,7 @@ import { DEFAULT_SOUL } from './home/soul.ts'
 import { HOME_DIRECTORY_NAME, homePaths, scaffoldHome, ARCHIVE_DIRECTORY_NAME, type HomePaths, type ScaffoldResult } from './home/layout.ts'
 import { isMaintenanceRound, renderMaintenancePrompt } from './home/metronome.ts'
 import { curateKnowledge } from './knowledge/health.ts'
-import { pageFromEntry, pageToDocument, parseWikiLinks, normalizeWikiLinks, backlinksOf, type KnowledgePage } from './knowledge/page.ts'
+import { pageFromEntry, pageToDocument, parseWikiLinks, normalizeWikiLinks, backlinksOf, type KnowledgePage, type PageStatus } from './knowledge/page.ts'
 import { searchPages, type KnowledgeQuery } from './knowledge/search.ts'
 import { Room, type RoomEntry, type RoomReadFailure } from './home/room.ts'
 import {
@@ -849,6 +849,29 @@ export class AssistantMemory extends Service {
   async learnedSkillNames(): Promise<string[]> {
     const scan = await scanLearnedSkills(this.paths.skillsDir)
     return scan.skills.flatMap(skill => skill.name !== undefined ? [skill.name] : [])
+  }
+
+  /**
+   * Promote one knowledge page from draft to stable — the mechanical half of the principal's
+   * approval. Nothing reaches this on the session's own judgement: `writePage` never promotes
+   * itself, so the only way a draft leaves the staging area is a person saying so, and this
+   * performs the edit they asked for.
+   * @param id - The page id to promote.
+   * @returns The page's id, absolute path, and the status it now carries.
+   * @throws when no page carries that id, or the page does not parse.
+   */
+  async promotePage(id: string): Promise<{ id: string, path: string, status: PageStatus }> {
+    await this.ensureHome()
+    const listing = await this.knowledge.list()
+    const entry = listing.entries.find(candidate => candidate.id === id)
+    if (entry === undefined) throw new Error(`no knowledge page "${id}"`)
+    const page = pageFromEntry(entry)
+    if (page === undefined) throw new Error(`knowledge page "${id}" does not parse`)
+    if (page.status === 'stable') return { id, path: entry.path, status: 'stable' }
+    const promoted: KnowledgePage = { ...page, status: 'stable' }
+    const document = pageToDocument(promoted)
+    await this.knowledge.write(id, document.data, document.body)
+    return { id, path: entry.path, status: 'stable' }
   }
 
   /**

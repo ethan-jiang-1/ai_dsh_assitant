@@ -50,10 +50,13 @@ const DESCRIPTION = [
   '  loading immediately but stays recoverable. Use it when curate reports the skill is past its',
   '  use-by date, or when it is shadowed and not worth renaming.',
   '- save_page: distill a domain page into the knowledge room as a DRAFT. Drafts stay out of',
-  '  search and the digest until a person flips status to stable (that file edit is the review).',
+  '  search and the digest until the principal approves them — you cannot approve your own page.',
   '  Sources are required — cite where the knowledge came from (memory:<id>, research:<id>, a',
   '  URL, a repo path). Link pages with [[wikilinks]]. Pinning a page into memory is',
   '  `assistant_memory save` with source knowledge:<page-id>; that is the whole bridge.',
+  '- promote_page: flip one draft page to stable. Use it only when the principal has approved',
+  '  that page (in so many words, or from their desk panel) — the approval is theirs, this is just',
+  '  the edit. Say which page you promoted so they can check the knowledge room.',
   '- propose_skill: propose a skill into the review inbox (skill-proposals/) — it does NOT enter',
   '  your skills until a person approves the proposal by editing its status and you run land_skill.',
   '  Proposing an existing name revises it (revision bumps, text replaces).',
@@ -212,8 +215,16 @@ function render(_args: unknown, value: ReflectOutput): { type: 'text', text: str
     lines.push(`Previous version snapshotted at ${value.snapshot_path} (recoverable by copying it back).`)
   }
   if (value.page_path.length > 0) {
-    lines.push(`Written draft page ${value.page_id}: ${value.page_path}`)
-    lines.push('It stays out of search and the digest until status is flipped to stable by hand — that edit is the review.')
+    // The page fields are set by both page actions, so the wording has to follow the action —
+    // otherwise a promotion renders the draft notice and contradicts its own summary (found by a
+    // live probe: the model read the file back and reported the receipt as self-contradictory).
+    if (value.action === 'promote_page') {
+      lines.push(`Promoted ${value.page_id} to stable: ${value.page_path}`)
+      lines.push('It now counts in search and the digest.')
+    } else {
+      lines.push(`Written draft page ${value.page_id}: ${value.page_path}`)
+      lines.push('It stays out of search and the digest until the principal approves it — you cannot approve your own page.')
+    }
   }
   return [{ type: 'text', text: lines.join('\n') }]
 }
@@ -249,7 +260,7 @@ export function apply(ctx: Context): void {
     name: 'assistant_reflect',
     description: DESCRIPTION,
     parameters: {
-      action: { type: 'string', required: true, enum: ['brief', 'save_skill', 'retire_skill', 'save_page', 'propose_skill', 'land_skill'], description: 'brief | save_skill | retire_skill | save_page | propose_skill | land_skill' },
+      action: { type: 'string', required: true, enum: ['brief', 'save_skill', 'retire_skill', 'save_page', 'promote_page', 'propose_skill', 'land_skill'], description: 'brief | save_skill | retire_skill | save_page | promote_page | propose_skill | land_skill' },
       name: { type: 'string', description: 'save_skill | retire_skill: kebab-case skill name; also its directory name.' },
       description: { type: 'string', description: 'save_skill: when to load it — the only text a future session sees first. save_page: one-line page summary.' },
       when_to_use: { type: 'string', description: 'save_skill: extra trigger guidance.' },
@@ -260,6 +271,7 @@ export function apply(ctx: Context): void {
       sources: { type: 'array', items: { type: 'string' }, description: 'save_page: where the knowledge came from (memory:<id>, research:<id>, a URL, a repo path). Required.' },
       tags: { type: 'array', items: { type: 'string' }, description: 'save_page: retrieval tags.' },
       stale_after: { type: 'string', description: 'save_page: absolute ISO-8601 time after which the page is due for review.' },
+      page_id: { type: 'string', description: 'promote_page: the knowledge page id to promote from draft to stable.' },
     },
     output: {
       schema: OUTPUT,
@@ -410,6 +422,16 @@ export function apply(ctx: Context): void {
             ...empty,
             summary: `Retired skill "${retired.name}" to skills/archive/; it no longer loads and nothing was deleted — move the bundle back to restore it.`,
             skill_path: retired.path,
+          }
+        }
+        case 'promote_page': {
+          if (args.page_id === undefined) throw new Error('assistant_reflect promote_page requires page_id')
+          const promoted = await ctx.assistantMemory.promotePage(args.page_id)
+          return {
+            ...empty,
+            summary: `Promoted "${promoted.id}" to stable (${promoted.path}). It now counts in search and the digest.`,
+            page_id: promoted.id,
+            page_path: promoted.path,
           }
         }
         case 'save_page': {
