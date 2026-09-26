@@ -105,6 +105,82 @@ if (ours.length === 0) {
   else fail('the combo carries our bundle but no __ModuleLoader__ registration for dsh-smart-assistant')
 }
 
+// ⑤ The boot graph must be satisfiable, and every `remote.<ns>` our bundle injects must exist in
+// the Remote manifest — otherwise the entry stays "pending (waiting for service: remote.<ns>)"
+// in the browser and a human has to read the boot overlay to find out. Learned the hard way
+// (2026-09-25): the Remote manifest is generated at build time from the vendor workspace's typert
+// artifacts, so a namespace contributed by an out-of-tree plugin is absent from it.
+const bootMarker = 'globalThis["__DSH_BOOT__"] = '
+const bootStart = html.indexOf(bootMarker)
+if (bootStart < 0) {
+  fail('the index carries no __DSH_BOOT__ graph — cannot verify plugin activation')
+} else {
+  const tail = html.slice(bootStart + bootMarker.length)
+  let depth = 0
+  let end = -1
+  for (let index = 0; index < tail.length; index += 1) {
+    const char = tail[index]
+    if (char === '{') depth += 1
+    else if (char === '}') {
+      depth -= 1
+      if (depth === 0) { end = index + 1; break }
+    }
+  }
+  let graph
+  try {
+    graph = JSON.parse(tail.slice(0, end))
+  } catch (error) {
+    fail(`__DSH_BOOT__ is not valid JSON: ${String(error)}`)
+  }
+  if (graph !== undefined) {
+    const entries = graph.entries ?? []
+    const provided = new Set(entries.map(entry => entry.id))
+    ok(`boot graph: ${entries.length} entries, rev ${graph.rev}`)
+
+    // ⑤a This repo's entries: every package-id inject must be provided by another graph entry.
+    // Scoped to our own ids on purpose — the vendor graph legitimately references modules that
+    // ride inside a combo rather than as their own entry (e.g. client-ui-primitives).
+    for (const entry of entries.filter(candidate => candidate.id.startsWith('dsh-smart-assistant'))) {
+      for (const dependency of entry.inject ?? []) {
+        if (dependency.startsWith('@deepseek-ai/') && !provided.has(dependency)) {
+          fail(`${entry.id} injects ${dependency}, which no entry in the boot graph provides`)
+        }
+      }
+    }
+
+    // ⑤b Every remote namespace this repo's bundle injects must exist in the Remote manifest.
+    const remotesEntry = entries.find(entry => entry.id === '@deepseek-ai/dsh-api-remotes')
+    if (remotesEntry === undefined) {
+      fail('the boot graph carries no @deepseek-ai/dsh-api-remotes entry — cannot check Remote namespaces')
+    } else if (ours.length > 0) {
+      try {
+        const manifest = await (await fetch(new URL(remotesEntry.url, base), {
+          headers: cookies.length > 0 ? { cookie: cookies } : {},
+        })).text()
+        const namespaces = new Set([...manifest.matchAll(/namespace:\s*"([^"]+)"/g)].map(match => match[1]))
+        ok(`Remote manifest: ${namespaces.size} namespace(s)`)
+        // Read the runtime inject list from THIS repo's own bundle URL (a dedicated combo). Scanning
+        // every combo instead would regex the first `const inject` of a 10 MB concatenation — someone
+        // else's list (learned the hard way while building this very check).
+        let declared = []
+        for (const entry of entries.filter(candidate => candidate.id.startsWith('dsh-smart-assistant'))) {
+          const text = await (await fetch(new URL(entry.url, base), {
+            headers: cookies.length > 0 ? { cookie: cookies } : {},
+          })).text()
+          const injectLiteral = /const inject = \[([^\]]*)\]/.exec(text)?.[1]
+          if (injectLiteral !== undefined) declared = declared.concat([...injectLiteral.matchAll(/'remote\.([A-Za-z0-9_]+)'/g)].map(match => match[1]))
+        }
+        for (const namespace of new Set(declared)) {
+          if (namespaces.has(namespace)) ok(`remote.${namespace} is in the Remote manifest`)
+          else fail(`our bundle injects remote.${namespace}, but the Remote manifest has no such namespace — this entry will stay pending in the browser (out-of-tree Remote namespaces need typert manifest integration)`)
+        }
+      } catch (error) {
+        fail(`cannot read the Remote manifest: ${String(error)}`)
+      }
+    }
+  }
+}
+
 if (failures > 0) {
   console.error(`\npreflight: ${failures} failure(s) — do NOT open this URL in a browser yet`)
   process.exit(1)

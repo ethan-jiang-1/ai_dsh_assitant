@@ -128,86 +128,33 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    * Rendered with createElement only (no JSX in the script-format client bundle).
    */
   function DeskPanel(): unknown {
-    const { createElement: h, useState, useEffect } = require('react') as typeof import('react')
-    const [snapshot, setSnapshot] = useState<{ counts?: Record<string, number>, error?: string }>({})
-
-    useEffect(() => {
-      // Experiment 2: try to reach the assistantMemory service through the remote layer.
-      // If it's not exposed (likely — we haven't registered a Remote face), record why.
-      const timer = setTimeout(() => {
-        try {
-          const remote = deskRemote?.['remote'] as Record<string, unknown> | undefined
-          // Diagnostic: enumerate what the remote layer actually exposes.
-          const remoteKeys = remote !== undefined && typeof remote === 'object'
-            ? (() => {
-                // Deep probe: namespaces (service registry) and hostFacts (host metadata)
-                const ns = (remote as { namespaces?: Record<string, unknown> }).namespaces
-                const nsKeys = ns !== undefined && typeof ns === 'object'
-                  ? 'namespaces=[' + Object.keys(ns).slice(0, 15).join(',') + ']'
-                  : 'namespaces=' + typeof ns
-                const hf = (remote as { hostFacts?: Record<string, unknown> }).hostFacts
-                const hfKeys = hf !== undefined && typeof hf === 'object'
-                  ? ' hostFacts=[' + Object.keys(hf).slice(0, 10).join(',') + ']'
-                  : ''
-                return nsKeys + hfKeys
-              })()
-            : 'remote is ' + typeof remote
-          const am = (remote as Record<string, { snapshot?: () => Promise<unknown> } | undefined>)?.['assistantDesk']
-          if (am?.snapshot !== undefined) {
-            void am.snapshot().then((data: unknown) => {
-              const snap = data as { counts?: { memories?: number, knowledgeStable?: number, skills?: number, threads?: number } }
-              setSnapshot({
-                counts: {
-                  Memories: snap.counts?.memories ?? 0,
-                  Knowledge: snap.counts?.knowledgeStable ?? 0,
-                  Skills: snap.counts?.skills ?? 0,
-                  Threads: snap.counts?.threads ?? 0,
-                },
-              })
-            }).catch((error: unknown) => {
-              setSnapshot({ error: String(error) })
-            })
-          } else {
-            setSnapshot({ error: `assistantDesk not on remote (namespace not materialized — check host row). Available: [${remoteKeys}]` })
-          }
-        } catch (error) {
-          setSnapshot({ error: String(error) })
-        }
-      }, 500)
-      return () => clearTimeout(timer)
-    }, [])
-
+    const { createElement: h } = require('react') as typeof import('react')
     const cell = (label: string, value: string): ReturnType<typeof h> =>
       h('div', { style: { display: 'inline-block', margin: '8px 16px', textAlign: 'center' as const } },
         h('div', { style: { fontSize: '28px', fontWeight: 700, color: MARK_TEAL } }, value),
         h('div', { style: { fontSize: '12px', color: '#666' } }, label))
-
-    const memories = snapshot.counts?.Memories ?? '…'
-    const threads = snapshot.counts?.Threads ?? '…'
-    const status = snapshot.error !== undefined
-      ? h('p', { style: { fontSize: '11px', color: '#c66', marginTop: '12px' } }, `⚠ ${snapshot.error}`)
-      : h('p', { style: { fontSize: '12px', color: '#999', marginTop: '16px' } }, 'Experiment 2: connecting to live data…')
-
     return h('div', { style: { padding: '24px' } },
       h('h2', { style: { margin: '0 0 16px', fontSize: '18px' } }, 'My Desk'),
       h('div', null,
-        cell('Memories', String(memories)),
-        cell('Knowledge', String(snapshot.counts?.Knowledge ?? snapshot.counts?.knowledgeStable ?? '…')),
-        cell('Skills', String(snapshot.counts?.Skills ?? snapshot.counts?.skills ?? '…')),
-        cell('Threads', String(threads))),
-      status)
+        cell('Memories', '—'),
+        cell('Knowledge', '—'),
+        cell('Skills', '—'),
+        cell('Threads', '—')),
+      h('p', { style: { fontSize: '12px', color: '#999', marginTop: '16px', maxWidth: '420px' } },
+        'Panel shell is live (registered through the sidebar panel list). The counts need a '
+        + 'host-data channel: the Remote-namespace route is blocked for out-of-tree plugins '
+        + '(the browser-side Remote manifest is generated from the vendor workspace), so the '
+        + 'next path is a desk file the assistant maintains in the workspace, read through the '
+        + 'existing workspaceFiles namespace.'))
   }
 
   /** Slots this face occupies (single-occupant, root-scope, declared by the sidebar). */
-  const inject = ['slots', 'sidebarRightTabs', 'remote', 'remote.assistantDesk']
+  const inject = ['slots', 'sidebarRightTabs']
 
   /**
    * Register the brand occupants as one declaration-aware set.
    * @param ctx - Browser root context.
    */
-  /** Remote service captured from apply, consumed by DeskPanel. */
-  let deskRemote: Record<string, unknown> | undefined
-
   function apply(ctx: ClientContext): void {
     // The official build's brand package occupies these slots under its own build profile;
     // step aside there. A browser has no `process`, so the guard reads false and we register.
@@ -219,9 +166,6 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         yield ctx.slots.register({ name: 'sidebar.brand.mark' }, AssistantBrandMark)
         yield ctx.slots.register({ name: 'sidebar.brand.name' }, AssistantBrandName)
       }))
-
-    // Experiment 2: capture the remote service for DeskPanel's data fetch.
-    deskRemote = ctx as unknown as Record<string, unknown>
 
     // Experiment 1b (corrected shape, learned from ui-schedule's registration):
     // panellist entries use inject + register with id/order/label in the declaration,

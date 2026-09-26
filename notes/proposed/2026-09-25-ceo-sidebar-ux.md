@@ -89,6 +89,52 @@
 3. **React 组件**：三个 tab 的 UI（桌面/知识/记忆）
 4. **样式**：与 DSH 原生 UI 一致（用 DSH 的 design tokens，不自带 CSS 框架）
 
+## 四·二、Remote 命名空间：架构级发现（2026-09-25，实验二的结论）
+
+**目标**：面板里的四个数字接真实数据。**结论：Remote 命名空间这条路对"仓外的插件"是关着的。**
+
+### 证据链（全部实测）
+
+1. 我们建了 `AssistantDeskRemote extends TypertRemoteService`（wire name `assistantDesk`）、
+   `@Remote` 标记的 `snapshot()`、host 行 `assistant-desk-remote`——组合里确实有这一行（`--dump-config` 核过）。
+2. 客户端按 documentpreview 的同款写法声明 `inject: [..., 'remote.assistantDesk']`。
+3. 浏览器结果：`dsh-smart-assistant: pending (waiting for service: remote.assistantDesk)`。
+4. 诊断探针（面板里枚举 remote 对象）：`namespaces=[]`——**这是正常的**，Remote 代理不是 own-property，
+   由 loader 按 inject 声明物化（`Object.keys` 看不到）。
+5. **决定性证据**：`@deepseek-ai/dsh-api-remotes/client.js`（545KB）里**内嵌了构建期生成的 Remote 清单**——
+   形如 `{ id: "…dsh-api-settings-controller#credentials/describe", service: "credentialsController",
+   namespace: "credentials", method: "describe", … }`，共 **27 个命名空间**
+   （account/agentPresets/commands/credentials/directoryPicker/dynamicCordisRunner/fileReferences/
+   fileUploads/goals/job/llm/messageFeedback/officeToPdf/permissionPresets/pluginInventory/pluginManager/
+   pluginRegistryProbe/schedule/session/sessionFeedback/sessionReferenceResolver/settings/skills/subagents/
+   terminal/workspace/workspaceFiles）。**`assistantDesk` 不可能出现在其中**。
+6. 为什么不可能：清单由 **typert 生成器**从 **vendor 工作区**的 typert 产物生成
+   （对照：`api/workspace-files/lib/` 有 `typert.host.js` + `typert.remote-client.js`；我们的包两者都没有）。
+   生成器绑定单一 root（`vendor/dsh`），我们的包在仓根、不在该工作区内，也没有 `./typert` 导出
+   → 产物无从生成 → 清单里没有我们 → 客户端永远等不到。
+
+### 结论与下一步路径
+
+- **仓外插件要开 Remote 命名空间 = 需要 typert 清单集成**（把我们的包纳入生成器的工作区、
+   产出 `typert.host.js`/`typert.remote-client.js`、并让客户端清单包含它）。这是一次架构级集成，
+   **不在本轮范围**，已记为本卡的已知阻塞。
+- **下一步路径（可绕开）**：面板读**工作区里的一个 desk 文件**（助手用自己已有的文件工具维护它），
+  经**已在清单里的** `workspaceFiles` 命名空间读取。零新增宿主代码、零清单改动、当天可做。
+- 我们的 DeskRemote 服务代码保留在 `src/desk-remote.ts`（未接线到 client），作为将来做 typert 集成时的现成起点。
+
+### 过程修复：preflight 现在会自查这类问题（用户 2026-09-25 要求）
+
+"免得每次我来给你贴这么严重的问题，这不就有点荒唐了"——已升级 `scripts/webui-preflight.mjs`：
+1. 解析首页里的 `globalThis["__DSH_BOOT__"]` 图（entry / inject / rev）
+2. **⑤a** 本仓 entry 的每个包 id 依赖必须在图里有提供者
+3. **⑤b** 读 `@deepseek-ai/dsh-api-remotes` 的清单，取出命名空间集合；
+   再从**本仓 entry 的专属 combo**里提取运行时 `const inject = [...]`，
+   逐个校验 `remote.<ns>` 是否在清单里——不在就 FAIL 并直说原因
+
+**自证有效**：在修复前的失败状态上跑，它精确报出
+`our bundle injects remote.assistantDesk, but the Remote manifest has no such namespace …`。
+（两处自身 bug 也在实现中修掉：误报 vendor 的打包模块、以及在大 combo 里正则匹配到别人家的 inject。）
+
 ## 五、实验计划（按序，每步可看可玩）
 
 ### 实验一：最小桌面 tab ✅（2026-09-25，两轮修正后成功）
