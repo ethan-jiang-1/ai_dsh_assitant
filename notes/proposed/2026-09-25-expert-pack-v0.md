@@ -53,7 +53,7 @@ live 探针重跑：按名加载 `management-breakdown` 成功、8 件策展技�
    （`reserved-item-restraint`、`scope-honesty`、`continuity-from-home`）。注：同一轮里另一次读数 2/3——
    那次 `reserved-item-restraint` 会话把判断写成了 note 而不是只回复，被 `no-write-tools` 判 FAIL；
    同一任务重跑 PASS，故按单样本噪声记，不当作稳定回归。另一条背景：修前 eval 恒报"没有会话日志"，
-   那是日志发现写死 v3 的独立 bug（见[会话日志代次配方卡](2026-09-25-session-log-generation-recipe.md)）；
+   那是日志发现写死 v3 的独立 bug（见[会话日志代次配方卡](../implemented/2026-09-25-session-log-generation-recipe.md)）；
 **P1 有了可重跑回归（责任圈会话补，2026-09-25）**：`pnpm eval` 第 4 个任务 `breakdown-uses-skill`——
 任务**不给任何加载提示**（测判断，不测听话），断言会话自主按名加载 `management-breakdown`
 （新检查类型 `skill-loaded`，读会话日志里的 skill 调用参数）且回答含假设层与停止条件。

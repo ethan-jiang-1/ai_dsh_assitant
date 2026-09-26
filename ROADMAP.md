@@ -14,7 +14,6 @@
 
 - ▶ **CEO 助手的 Sidebar 培养面**（用户拍板的当前 Goal，进行中）：三面板+培养循环已上线（状态一览＝卡 §〇）；右侧栏 tab 已落地（三室+页头开启点，会话绑定读取），行动已按在办/已办分组；**方向获用户认可（09-26"整体挺好"），更正循环逐条实测仍待**；typert 底层按拍板后置——卡：[2026-09-25-ceo-sidebar-ux](notes/proposed/2026-09-25-ceo-sidebar-ux.md) · 接手入口：[handoff](notes/research/2026-09-26-handoff-ceo-sidebar-cultivation.md)
 - ▶ **专家部署的组合件 v0**（进行中）：可装可跑的件已齐（SOP 技能×2 + `pnpm expert-setup` 装配 + read-only 权限形状 + P1 行为 live 验证，eval 3/3；迁移 bug 修复记录在卡）；剩触发项：IM 渠道（等你选）、MCP、概念页抽取（卡 §四）——卡：[2026-09-25-expert-pack-v0](notes/proposed/2026-09-25-expert-pack-v0.md)
-- ▶ **会话日志代次配方**（进行中）：写者 v4、开发仪表与模型可见两处已改代次无关，验收四条全绿（红夹具+eval 3/3+live 探针）；细节与两处附带不可用的修复在卡 §四/§六——卡：[2026-09-25-session-log-generation-recipe](notes/proposed/2026-09-25-session-log-generation-recipe.md)
 - ⏳ 知识导入的转换与概念抽取（触发=①第一份真实 docx/pdf 文档集出现 ②评测集 v0 就位；依据：[导入纯核 note](notes/implemented/2026-09-25-knowledge-ingest-core.md) §四）
 - ⏳ **vendor `lib/` 重建（换 pin 的常规收尾）**（触发=需要 boot/release-smoke/plugin-add 出的 profile 时；测试已改为解析 vendor src，不再依赖它）——三条路与已试步骤见迁移记录 §六
 - ⏸ **阶段 0-3 · 评测集 v0**（30–50 条真实经营问题，含应拒答题与判分规则；**题目由你本人出**——这是 G2 关口，agent 只整理格式）
@@ -58,6 +57,8 @@
   只写接下来 / 完成即离队 / 队列=索引 / 两道机械门禁进 verify）。三线提案的 §六延后项
   表移交本队列（⏳ 各行），原表加移交注记；两份提案（tri-line、iteration-rhythm）毕业至
   `notes/implemented/`，全仓引用同步。档案：`notes/implemented/2026-09-24-roadmap-queue.md`。
+- 2026-09-26：**会话日志代次配方毕业**——主体与四条验收早已全绿（卡 §四），条目离队；卡迁
+  `notes/implemented/`（本次 notes/proposed 审计的第一项，用户要求系统清理）。
 - 2026-09-25：**`session-recall` 0 加载的条目离队**——问题是"罕见情况的招牌还是描述没接上场景"，
   答案是**两者都不是**：它的 frontmatter parse 失败，加载器静默 skip（`action-plan` 同病）。
   修法与证据：[策展技能被静默跳过](notes/implemented/2026-09-25-curated-skill-frontmatter-silent-skip.md)；
