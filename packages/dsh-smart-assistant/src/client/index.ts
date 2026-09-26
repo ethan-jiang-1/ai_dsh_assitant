@@ -138,6 +138,8 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       recentMemories?: { id?: string, kind?: string, text?: string }[]
     } | undefined>(undefined)
     const [deskNote, setDeskNote] = useState<string | undefined>(undefined)
+    const [refreshing, setRefreshing] = useState<string | undefined>(undefined)
+    const [deskReloadKey, setDeskReloadKey] = useState(0)
     const [error, setError] = useState<string | undefined>(undefined)
 
     // Assistants: one manifested Remote call. Its value is a Result wrapper
@@ -226,7 +228,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
           setDeskNote(`desk file is not valid JSON: ${String(reason)}`)
         }
       }).catch((reason: unknown) => setDeskNote(String(reason)))
-    }, [sessionIds])
+    }, [sessionIds, deskReloadKey])
 
     const cell = (label: string, value: string): ReturnType<typeof h> =>
       h('div', { style: { display: 'inline-block', margin: '8px 16px', textAlign: 'center' as const } },
@@ -254,8 +256,55 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
             ...conversations.recent.map(item => h('li', { key: item.id },
               item.updated, item.cwd === '' ? null : h('span', { style: { color: '#aaa' } }, ` · ${item.cwd}`)))))
 
+    // Interaction: ask the assistant to refresh the desk file, then re-read it. This is the
+    // panel's first real action — it drives the assistant through the same session the CEO uses.
+    const askRefresh = (): void => {
+      const sessionId = sessionIds[0]
+      if (sessionId === undefined) {
+        setDeskNote('还没有会话可刷新——先和助手说句话')
+        return
+      }
+      const api = deskRemote?.['session'] as { prompt?: (request: unknown) => Promise<unknown> } | undefined
+      if (api?.prompt === undefined) {
+        setDeskNote('remote.session did not materialize')
+        return
+      }
+      setRefreshing('已请助手刷新桌面，稍后自动重读…')
+      void api.prompt({
+        requestId: `desk-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        sessionId,
+        mode: 'queue',
+        content: [{ type: 'text', text: '刷新我的桌面。' }],
+      }).then((result: unknown) => {
+        const wrapped = result as { ok?: boolean, error?: { message?: string } }
+        if (wrapped?.ok === false) {
+          setRefreshing(undefined)
+          setDeskNote(wrapped.error?.message ?? 'prompt failed')
+          return
+        }
+        setTimeout(() => {
+          setDeskReloadKey(key => key + 1)
+          setRefreshing(undefined)
+        }, 12000)
+      }).catch((reason: unknown) => {
+        setRefreshing(undefined)
+        setDeskNote(String(reason))
+      })
+    }
+
     return h('div', { style: { padding: '24px', maxWidth: '560px' } },
       h('h2', { style: { margin: '0 0 4px', fontSize: '18px' } }, 'My Desk'),
+      h('div', { style: { margin: '8px 0 0' } },
+        h('button', {
+          onClick: askRefresh,
+          disabled: refreshing !== undefined,
+          style: {
+            padding: '6px 14px', fontSize: '13px', cursor: 'pointer', borderRadius: '6px',
+            border: `1px solid ${MARK_TEAL}`, background: refreshing === undefined ? '#fff' : '#f2f2f2',
+            color: MARK_TEAL,
+          },
+        }, '刷新桌面'),
+        refreshing === undefined ? null : h('span', { style: { marginLeft: '10px', fontSize: '12px', color: '#888' } }, refreshing)),
       sectionTitle('Assistants in this deployment'),
       roster,
       sectionTitle('Our conversations'),
@@ -292,7 +341,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   }
 
   /** Slots this face occupies (single-occupant, root-scope, declared by the sidebar). */
-  const inject = ['slots', 'sidebarRightTabs', 'sessions', 'remote', 'remote.agentPresets', 'remote.workspaceFiles']
+  const inject = ['slots', 'sidebarRightTabs', 'sessions', 'remote', 'remote.agentPresets', 'remote.workspaceFiles', 'remote.session']
 
   /**
    * Register the brand occupants as one declaration-aware set.
