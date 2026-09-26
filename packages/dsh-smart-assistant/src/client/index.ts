@@ -807,6 +807,42 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       store.note === undefined ? null : muted(store.note))
   }
 
+  /**
+   * The memory room, grouped by what the record is about — the split a digital twin lives on:
+   * how the principal works (preferences and their decisions) versus the world it learned (facts).
+   * One flat list hides that; a kind label per row is not enough to scan by.
+   * @param memories - Every active record the desk file carries.
+   * @returns Section headings and rows, as an element array to spread.
+   */
+  function memoryGroups(memories: NonNullable<DeskData['memories']>): ReturnType<typeof createElement>[] {
+    const groups: { key: string, label: string }[] = [
+      { key: 'preference', label: '你的偏好' },
+      { key: 'decision', label: '你的决定' },
+      { key: 'fact', label: '事实' },
+    ]
+    const known = new Set(groups.map(group => group.key))
+    const rest = memories.filter(memory => !known.has(String(memory.kind ?? '')))
+    const out: ReturnType<typeof createElement>[] = []
+    for (const group of [...groups, { key: '__rest', label: '其它' }]) {
+      const items = group.key === '__rest'
+        ? rest
+        : memories.filter(memory => String(memory.kind ?? '') === group.key)
+      if (items.length === 0) continue
+      out.push(sectionTitle(`${group.label}（${items.length}）`))
+      out.push(createElement('ul', { key: group.key, style: { margin: 0, padding: 0 } },
+        ...items.map(memory => createElement(CorrectableRow, {
+          key: String(memory.id),
+          primary: String(memory.text ?? ''),
+          meta: shortTime(memory.updated),
+          actionLabel: '这条记错了',
+          placeholder: '正确的是什么？',
+          source: memory.source,
+          onSubmit: (text: string) => { correctMemory(String(memory.text ?? ''), text) },
+        }))))
+    }
+    return out
+  }
+
   /** Panel 3 — the memory room: what the assistant has written down about the principal. */
   function MemoryPanel(): unknown {
     const store = useDesk()
@@ -816,16 +852,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       refreshRow(store),
       memories.length === 0
         ? muted('（还没有记忆，或桌面文件尚未刷新）')
-        : createElement('ul', { style: { margin: 0, padding: 0 } },
-            ...memories.map(memory => createElement(CorrectableRow, {
-              key: String(memory.id),
-              primary: String(memory.text ?? ''),
-              meta: [memory.kind, shortTime(memory.updated)].filter(part => part !== undefined && part !== '').join(' · '),
-              actionLabel: '这条记错了',
-              placeholder: '正确的是什么？',
-              source: memory.source,
-              onSubmit: (text: string) => { correctMemory(String(memory.text ?? ''), text) },
-            }))),
+        : createElement('div', null, ...memoryGroups(memories)),
       sectionTitle('规模'),
       createElement('div', null,
         cell('记忆', store.data?.counts?.memories === undefined ? '—' : String(store.data.counts.memories)),
