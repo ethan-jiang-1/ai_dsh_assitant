@@ -135,6 +135,24 @@
 `our bundle injects remote.assistantDesk, but the Remote manifest has no such namespace …`。
 （两处自身 bug 也在实现中修掉：误报 vendor 的打包模块、以及在大 combo 里正则匹配到别人家的 inject。）
 
+## 四·三、实验二的部分交付：面板接上两份活数据（2026-09-25）
+
+**绕开被阻塞的路径，用清单里已有的命名空间先让面板"活"起来。**
+
+| 区块 | 数据来源 | 为什么选它 |
+|---|---|---|
+| **这个部署里的助手** | `remote.agentPresets.list()` | 零参数（manifest 记录 `parameters: []`）→ 调用最稳；返回 AgentPresetRoster |
+| **我和助手的对话** | `remote.session.list({})` | 请求形状极简（`{cursor?}`）→ `{items: SessionSummary[]}`；显示总次数、运行中数量、最近 5 次（时间 + cwd） |
+
+**这两个调用同时证明了 client → Remote → host 的完整路径在本面板可用**——剩下的是"工作文件夹计数"
+（记忆/知识/技能/线索），它需要 host-data 通道，仍按 §四·二 的结论待做。
+
+实现要点：
+- `inject` 里逐个声明清单内的命名空间（`'remote.agentPresets'`、`'remote.session'`），
+  apply 里捕获 `ctx.remote` 供面板闭包使用（与品牌标记同一套 slot/closure 机制）。
+- 面板用 `useState`/`useEffect`，300ms 后调用，防御式解包（数组或 `{presets|entries}`/`{items}`）。
+- 任何一环失败都把具体错误显示在面板上（不静默）。
+
 ## 五、实验计划（按序，每步可看可玩）
 
 ### 实验一：最小桌面 tab ✅（2026-09-25，两轮修正后成功）

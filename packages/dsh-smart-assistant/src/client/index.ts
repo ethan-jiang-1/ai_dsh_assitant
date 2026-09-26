@@ -130,25 +130,44 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   function DeskPanel(): unknown {
     const { createElement: h, useEffect, useState } = require('react') as typeof import('react')
     const [presets, setPresets] = useState<{ id: string, name: string }[] | undefined>(undefined)
+    const [sessions, setSessions] = useState<{ total: number, running: number, recent: { id: string, updated: string, cwd: string }[] } | undefined>(undefined)
     const [error, setError] = useState<string | undefined>(undefined)
 
     useEffect(() => {
-      // Live data through a namespace the Remote manifest already lists. `agentPresets.list`
-      // takes no arguments and returns the deployment's roster — the first real content in this
-      // panel, and the proof that the client → Remote → host path works from here.
+      // Live data through namespaces the Remote manifest already lists. `agentPresets.list`
+      // (no arguments) and `session.list` ({cursor?}) are the two cheapest manifested calls;
+      // they also prove the client → Remote → host path works from this panel.
       const timer = setTimeout(() => {
-        const api = deskRemote?.['agentPresets'] as { list?: () => Promise<unknown> } | undefined
-        if (api?.list === undefined) {
-          setError('remote.agentPresets did not materialize')
-          return
-        }
-        void api.list().then((data: unknown) => {
+        const presetApi = deskRemote?.['agentPresets'] as { list?: () => Promise<unknown> } | undefined
+        if (presetApi?.list === undefined) setError('remote.agentPresets did not materialize')
+        else void presetApi.list().then((data: unknown) => {
           const roster = data as { presets?: unknown[], entries?: unknown[] } | unknown[]
           const raw = Array.isArray(roster) ? roster : (roster?.presets ?? roster?.entries ?? [])
           setPresets((raw as { id?: unknown, name?: unknown }[]).map(item => ({
             id: String(item?.id ?? '?'),
             name: String(item?.name ?? item?.id ?? '?'),
           })))
+        }).catch((reason: unknown) => setError(String(reason)))
+
+        const sessionApi = deskRemote?.['session'] as { list?: (request: unknown) => Promise<unknown> } | undefined
+        if (sessionApi?.list === undefined) setError('remote.session did not materialize')
+        else void sessionApi.list({}).then((data: unknown) => {
+          const items = ((data as { items?: unknown[] })?.items ?? []) as {
+            sessionId?: unknown, updatedAt?: unknown, running?: unknown, cwd?: unknown,
+          }[]
+          setSessions({
+            total: items.length,
+            running: items.filter(item => item.running === true).length,
+            recent: items
+              .slice()
+              .sort((left, right) => Number(right.updatedAt ?? 0) - Number(left.updatedAt ?? 0))
+              .slice(0, 5)
+              .map(item => ({
+                id: String(item.sessionId ?? '?').slice(0, 8),
+                updated: item.updatedAt === undefined ? '' : new Date(Number(item.updatedAt)).toLocaleString(),
+                cwd: String(item.cwd ?? ''),
+              })),
+          })
         }).catch((reason: unknown) => setError(String(reason)))
       }, 300)
       return () => clearTimeout(timer)
@@ -160,20 +179,32 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         h('div', { style: { fontSize: '12px', color: '#666' } }, label))
     const sectionTitle = (text: string): ReturnType<typeof h> =>
       h('h3', { style: { margin: '20px 0 8px', fontSize: '13px', color: '#888', fontWeight: 600 } }, text)
+    const muted = (text: string): ReturnType<typeof h> =>
+      h('p', { style: { fontSize: '12px', color: '#999', margin: 0 } }, text)
 
     const roster = presets === undefined
-      ? h('p', { style: { fontSize: '12px', color: '#999', margin: 0 } }, '读取中…')
+      ? muted('读取中…')
       : presets.length === 0
-        ? h('p', { style: { fontSize: '12px', color: '#999', margin: 0 } }, '（这个部署没有注册助手预设）')
+        ? muted('（这个部署没有注册助手预设）')
         : h('ul', { style: { margin: 0, paddingLeft: '18px', fontSize: '13px', lineHeight: 1.7 } },
             ...presets.map(preset => h('li', { key: preset.id },
               preset.name, h('span', { style: { color: '#aaa', fontSize: '11px' } }, ` · ${preset.id}`))))
 
+    const history = sessions === undefined
+      ? muted('读取中…')
+      : h('div', null,
+          h('p', { style: { margin: '0 0 6px', fontSize: '13px' } },
+            `对话 ${sessions.total} 次`, sessions.running > 0 ? `（运行中 ${sessions.running}）` : ''),
+          sessions.recent.length === 0 ? null : h('ul', { style: { margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#666', lineHeight: 1.7 } },
+            ...sessions.recent.map(item => h('li', { key: item.id },
+              item.updated, item.cwd === '' ? null : h('span', { style: { color: '#aaa' } }, ` · ${item.cwd}`)))))
+
     return h('div', { style: { padding: '24px', maxWidth: '560px' } },
       h('h2', { style: { margin: '0 0 4px', fontSize: '18px' } }, 'My Desk'),
-      h('p', { style: { margin: '0 0 8px', fontSize: '12px', color: '#999' } },
-        'This deployment\'s assistants (live, via the agentPresets Remote namespace):'),
+      sectionTitle('Assistants in this deployment'),
       roster,
+      sectionTitle('Our conversations'),
+      history,
       error === undefined ? null : h('p', { style: { fontSize: '12px', color: '#c66', marginTop: '8px' } }, `⚠ ${error}`),
       sectionTitle('Working-folder counts'),
       h('div', null,
@@ -181,14 +212,13 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         cell('Knowledge', '—'),
         cell('Skills', '—'),
         cell('Threads', '—')),
-      h('p', { style: { fontSize: '12px', color: '#999', marginTop: '4px' } },
-        'Pending a host-data channel: an out-of-tree package cannot open a new Remote namespace '
-        + '(the browser-side manifest is generated from the vendor workspace). Next path: a desk '
-        + 'file the assistant maintains in the workspace, read through workspaceFiles.'))
+      muted('Pending a host-data channel: an out-of-tree package cannot open a new Remote namespace '
+        + '(the browser-side manifest is generated from the vendor workspace). Next path: a desk file '
+        + 'the assistant maintains in the workspace, read through workspaceFiles.'))
   }
 
   /** Slots this face occupies (single-occupant, root-scope, declared by the sidebar). */
-  const inject = ['slots', 'sidebarRightTabs', 'remote', 'remote.agentPresets']
+  const inject = ['slots', 'sidebarRightTabs', 'remote', 'remote.agentPresets', 'remote.session']
 
   /**
    * Register the brand occupants as one declaration-aware set.
