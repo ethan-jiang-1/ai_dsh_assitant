@@ -115,7 +115,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     decisions?: { id?: string, question?: string, context?: string }[]
     gaps?: { id?: string, what?: string, why?: string }[]
     memories?: { id?: string, kind?: string, text?: string, updated?: string, source?: string }[]
-    knowledge?: { id?: string, title?: string, status?: string, type?: string, sources?: string[] }[]
+    knowledge?: { id?: string, title?: string, status?: string, type?: string, updated?: string, sources?: string[] }[]
     skills?: { name?: string, description?: string }[]
   }
 
@@ -390,6 +390,19 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         : null)
   }
 
+  /**
+   * A timestamp the principal can read at a glance. ISO strings ("2026-09-26T05:10:02.454Z") are
+   * for machines; a desk shows "09-26 13:10". Unparseable values pass through untouched rather
+   * than turning into "Invalid Date".
+   */
+  function shortTime(value: string | undefined): string {
+    if (value === undefined || value.trim() === '') return ''
+    const parsed = new Date(value)
+    if (Number.isNaN(parsed.getTime())) return value
+    const pad = (part: number): string => String(part).padStart(2, '0')
+    return `${pad(parsed.getMonth() + 1)}-${pad(parsed.getDate())} ${pad(parsed.getHours())}:${pad(parsed.getMinutes())}`
+  }
+
   /** A stat cell; with a target it becomes the way to the panel that explains the number. */
   function cell(label: string, value: string, target?: string): ReturnType<typeof createElement> {
     const jump = (): void => {
@@ -544,7 +557,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         cell('线索', data?.counts?.threads === undefined ? '—' : String(data.counts.threads))),
       store.note === undefined
         ? muted(`读自 ${store.source === undefined || store.source === '' ? '会话工作区' : store.source} 的 .desk/state.json`
-            + (store.data?.generatedAt === undefined ? '' : `（更新于 ${store.data.generatedAt}）`))
+            + (store.data?.generatedAt === undefined ? '' : `（更新于 ${shortTime(store.data.generatedAt)}）`))
         : muted(store.note))
   }
 
@@ -558,7 +571,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       createElement(CorrectableRow, {
         key: String(page.id),
         primary: createElement('span', null, mark, String(page.title ?? page.id ?? '')),
-        meta: page.type === undefined || page.type === '' ? '' : String(page.type),
+        meta: [page.type === undefined ? '' : String(page.type), shortTime(page.updated)].filter(part => part !== '').join(' · '),
         actionLabel: '有问题',
         placeholder: '哪里不对？',
         source: (page.sources ?? []).join(' · '),
@@ -613,7 +626,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
             ...memories.map(memory => createElement(CorrectableRow, {
               key: String(memory.id),
               primary: String(memory.text ?? ''),
-              meta: [memory.kind, memory.updated].filter(part => part !== undefined && part !== '').join(' · '),
+              meta: [memory.kind, shortTime(memory.updated)].filter(part => part !== undefined && part !== '').join(' · '),
               actionLabel: '这条记错了',
               placeholder: '正确的是什么？',
               source: memory.source,

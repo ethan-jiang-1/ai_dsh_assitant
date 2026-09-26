@@ -88,9 +88,14 @@ describe('desk panels', () => {
     expect(text).toContain('在跟的事')
     expect(text).toContain('Q3 掉了 20%')
     expect(text).toContain('先定口径')
-    // The four counts, and the freshness line the principal uses to judge staleness.
+    // The four counts, and the freshness line the principal uses to judge staleness. The stamp is
+    // rendered in local time, so the expectation is computed the same way instead of hard-coded
+    // (a fixed string would pass in one timezone and fail in another).
     expect(text).toContain('知识')
-    expect(text).toContain('2026-09-26T13:00:00+08:00')
+    expect(text).toContain('更新于')
+    const stamp = new Date('2026-09-26T13:00:00+08:00')
+    const pad = (part: number): string => String(part).padStart(2, '0')
+    expect(text).toContain(`${pad(stamp.getMonth() + 1)}-${pad(stamp.getDate())}`)
   })
 
   it('renders drafts before stable pages, with the approval action on drafts only', () => {
