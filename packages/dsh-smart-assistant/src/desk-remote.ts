@@ -3,7 +3,7 @@
  * calls `snapshot()` through the Remote layer to get live counts and thread summaries.
  *
  * Pattern from `@deepseek-ai/dsh-api-workspace-files` (WorkspaceFiles extends TypertRemoteService):
- * the constructor registers the wire name; `@Remote()` marks a method as browser-callable.
+ * the constructor registers the wire name; `@Remote` marks a method as browser-callable.
  *
  * @module dsh-smart-assistant/desk-remote
  */
