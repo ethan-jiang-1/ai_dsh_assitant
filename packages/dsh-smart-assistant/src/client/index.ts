@@ -204,43 +204,67 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     return snapshot
   }
 
-  /** Ask the assistant to refresh the desk file, then reload it after it has had time to work. */
-  function askRefresh(): void {
-    const read = (deskRemote?.['session'] as { prompt?: (request: unknown) => Promise<unknown> } | undefined)?.prompt
-    const store = deskSessions?.list
-    const state = store?.getSnapshot() as { ids?: string[], byId?: Record<string, { updatedAt?: number }> } | undefined
+  /** The newest Session, which every panel action drives. */
+  function newestSessionId(): string | undefined {
+    const state = deskSessions?.list?.getSnapshot() as { ids?: string[], byId?: Record<string, { updatedAt?: number }> } | undefined
     const ids = state?.ids ?? []
     const byId = state?.byId ?? {}
-    const sessionId = ids
-      .slice()
-      .sort((left, right) => Number(byId[right]?.updatedAt ?? 0) - Number(byId[left]?.updatedAt ?? 0))[0]
+    return ids.slice().sort((left, right) => Number(byId[right]?.updatedAt ?? 0) - Number(byId[left]?.updatedAt ?? 0))[0]
+  }
+
+  /**
+   * Put one line to the assistant in the newest Session. Every panel action rides this — the
+   * panel is a control surface for the same conversation the principal is having.
+   * @param text - the line to send.
+   * @param busy - status line while the send is in flight.
+   * @param onSettled - runs once the prompt is accepted.
+   */
+  function sendPrompt(text: string, busy: string, onSettled?: () => void): void {
+    const prompt = (deskRemote?.['session'] as { prompt?: (request: unknown) => Promise<unknown> } | undefined)?.prompt
+    const sessionId = newestSessionId()
     if (sessionId === undefined) {
-      patchDesk({ note: '还没有会话可刷新——先和助手说句话' })
+      patchDesk({ note: '还没有会话——先和助手说句话' })
       return
     }
-    if (read === undefined) {
+    if (prompt === undefined) {
       patchDesk({ note: 'remote.session did not materialize' })
       return
     }
-    patchDesk({ busy: '已请助手刷新桌面，稍后自动重读…' })
-    void read({
+    patchDesk({ busy })
+    void prompt({
       requestId: `desk-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       sessionId,
       mode: 'queue',
-      content: [{ type: 'text', text: '刷新我的桌面。' }],
+      content: [{ type: 'text', text }],
     }).then((result: unknown) => {
       const wrapped = result as { ok?: boolean, error?: { message?: string } }
       if (wrapped?.ok === false) {
         patchDesk({ busy: undefined, note: wrapped.error?.message ?? 'prompt failed' })
         return
       }
-      setTimeout(() => {
-        patchDesk({ busy: undefined })
-        loadDesk()
-      }, 12000)
+      patchDesk({ busy: undefined })
+      onSettled?.()
     }).catch((reason: unknown) => {
       patchDesk({ busy: undefined, note: String(reason) })
     })
+  }
+
+  /** Ask the assistant to refresh the desk file, then reload it after it has had time to work. */
+  function askRefresh(): void {
+    sendPrompt('刷新我的桌面。', '已请助手刷新桌面，稍后自动重读…', () => {
+      setTimeout(() => { loadDesk() }, 12000)
+    })
+  }
+
+  /** Put one open decision to the assistant and ask for options with their costs. */
+  function askAboutDecision(question: string): void {
+    sendPrompt(`关于这个待决事项：「${question}」——请给我两三个选项，每个选项的代价与不可逆程度，以及你的建议。`,
+      '已把这条决定交给助手…')
+  }
+
+  /** Ask the assistant where one thread actually stands. */
+  function askAboutThread(title: string): void {
+    sendPrompt(`「${title}」这条线索现在到哪一步了？还缺什么才能往下走？`, '已请助手汇报这条线索…')
   }
 
   /** A stat cell; with a target it becomes the way to the panel that explains the number. */
@@ -343,7 +367,11 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         : createElement('div', null,
             ...(data?.decisions ?? []).map(item => createElement('div', {
               key: String(item.id),
-              style: { marginBottom: '8px', paddingLeft: '10px', borderLeft: '2px solid #d97706' },
+              onClick: () => { askAboutDecision(String(item.question ?? '')) },
+              title: '点一下，让助手摆出选项与代价',
+              style: {
+                marginBottom: '8px', paddingLeft: '10px', borderLeft: '2px solid #d97706', cursor: 'pointer',
+              },
             },
             createElement('div', { style: { fontSize: '13px', fontWeight: 600 } }, String(item.question ?? '')),
             item.context === undefined ? null : createElement('div', { style: { fontSize: '12px', color: '#888' } }, String(item.context)))),
@@ -361,8 +389,11 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
             key: String(thread.id),
             style: { marginBottom: '10px', paddingLeft: '10px', borderLeft: `2px solid ${MARK_TEAL}` },
           },
-          createElement('div', { style: { fontSize: '13px', fontWeight: 600, lineHeight: 1.5 } },
-            String(thread.title ?? thread.id ?? '')),
+          createElement('div', {
+            onClick: () => { askAboutThread(String(thread.title ?? thread.id ?? '')) },
+            title: '点一下，问助手这条线索到哪一步了',
+            style: { fontSize: '13px', fontWeight: 600, lineHeight: 1.5, cursor: 'pointer' },
+          }, String(thread.title ?? thread.id ?? '')),
           createElement('div', { style: { fontSize: '12px', color: '#666', marginTop: '2px' } },
             '当前倾向：', String(thread.lean ?? '（未定）')),
           thread.why === undefined || thread.why === ''
