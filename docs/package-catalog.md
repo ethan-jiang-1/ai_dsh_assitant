@@ -45,11 +45,11 @@
 | `assistant_memory` | `recall` `save` `forget` `list` `curate` | src/tool-memory/index.ts |
 | `assistant_research` | `open` `update` `park` `drop` `promote` `list` | src/tool-research/index.ts |
 | `assistant_knowledge` | `search` `get` | src/tool-knowledge/index.ts |
-| `assistant_reflect` | `brief` `save_skill` `retire_skill` `save_page` `propose_skill` `land_skill` | src/learn/index.ts |
+| `assistant_reflect` | `brief` `save_skill` `retire_skill` `save_page` `promote_page` `deprecate_page` `propose_skill` `land_skill` | src/learn/index.ts |
 
-## 策展技能（模型用，8 个）
+## 策展技能（模型用，9 个）
 
-`action-plan`、`home-curation`、`knowledge-craft`、`management-breakdown`、`memory-hygiene`、`research-backlog`、`self-reflection`、`session-recall`
+`action-plan`、`desk-refresh`、`home-curation`、`knowledge-craft`、`management-breakdown`、`memory-hygiene`、`research-backlog`、`self-reflection`、`session-recall`
 
 > 开发用 Skill（若有）在 `.agents/skills/`，不进 preset——两类同名概念的分工见根 `AGENTS.md`。
 

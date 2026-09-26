@@ -33,6 +33,8 @@ interface DeskStore {
   note?: string | undefined
   source?: string | undefined
   busy?: string | undefined
+  /** The newest Session's updatedAt, so the panels can say when they lag the conversation. */
+  sessionUpdatedAt?: number | undefined
   listeners: Set<() => void>
 }
 
