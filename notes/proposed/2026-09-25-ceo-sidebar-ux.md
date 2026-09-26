@@ -184,3 +184,29 @@
 
 - ROADMAP：▶ 条目指向本卡
 - 前置研究（生态全量扫描、五个高声誉插件分析）：归档在 git 历史（`759c27d` 与 `ec52cf0`）
+
+## 九、运行与验证（操作信息，原 handoff 文档的内容折入此处）
+
+```sh
+# 起 Web UI（必须从干净目录起，避免会话读到开发仓的 AGENTS.md）
+cd /tmp/desk && node /Users/bowhead/ai_dsh_assitant/scripts/dsh.mjs --profile dev --port 0 --no-open
+# 交付前必须过 preflight（现在它含 boot 图 + Remote 清单检查）
+cd /Users/bowhead/ai_dsh_assitant && node scripts/webui-preflight.mjs '<URL>'
+# 组合里有没有这一行（绕过 pnpm 的 deps check，直接用 node）
+node scripts/dsh.mjs --profile dev --dump-config | grep -A3 '<row id>'
+```
+
+关键文件：
+- `packages/dsh-smart-assistant/src/client/index.ts` —— client 面（品牌标记 + My Desk 面板）
+- `packages/dsh-smart-assistant/src/desk-remote.ts` —— DeskRemote 服务（保留为将来 typert 集成的起点）
+- `vendor/dsh/packages/client/ui-schedule/src/client/index.ts` —— panellist 注册的参照物
+- `vendor/dsh/packages/client/ui-sidebar/src/client/index.ts` —— panellist 的消费端
+- `scripts/webui-preflight.mjs` —— 交付前关口（含 boot 图检查）
+
+不可推翻的架构事实（实验中学到的）：
+1. **client 是 SCRIPT 不是 ESM**——web shell 把 client bundle 拼成 classic-script combo，不能有 import/export；
+   类型用结构镜像，依赖用 `require()`。
+2. **UI 一切走 slot 系统**——`inject` 占位 + `register` 提供组件；品牌标记、panellist 面板、右侧 tab 同一机制。
+3. **tab 类型注册 ≠ tab 可见**——类型是"我能处理这种资源"的被动声明。
+4. **Remote 代理不是 own-property**——由 loader 按 inject 声明物化；`Object.keys(remote)` 为空是正常的。
+5. **仓外插件的 Remote 命名空间需要 typert 清单集成**（§四·二 的证据链）。
