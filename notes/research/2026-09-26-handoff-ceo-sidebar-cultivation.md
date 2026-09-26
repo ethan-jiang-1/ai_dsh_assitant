@@ -68,8 +68,8 @@ working folder：记忆 / 探索线索 / 知识 / 技能 + 养护检查）。
 
 ### 待办（都记在卡里）
 
-1. **形态问题**（用户说"暂时先不纠结"）：面板在主区域整页 vs 右侧栏 tab。机制已查清（卡 §四·五），
-   右侧栏 tab 的 body 能直接拿到 sessionId（还顺便解决"读哪个工作区"的问题）。
+1. **形态已拍板（2026-09-26，用户）：右侧栏 tab**——机制已查清（卡 §四·五），body 直接拿到
+   sessionId（还顺便解决"读哪个工作区"的问题），待开工。
 2. **用户的实测反馈**：更正循环/决定回答/行动处置都只经过代理会话验证，**没有真人用过**。
    助手已把"你亲手试一次更正循环"作为一条决定提上桌面。
 3. **底层实现（用户拍板后置）**：自有 Remote 命名空间的 typert 集成（见 §3.4）。
@@ -88,26 +88,16 @@ working folder：记忆 / 探索线索 / 知识 / 技能 + 养护检查）。
 **契约**：`generatedBy` / `generatedAt` / `counts` / `decisions[]` / `actions[]` / `gaps[]` / `threads[]` /
 `memories[]` / `knowledge[]` / `skills[]`（后两者带 `sources` / `kind`）。
 
-### 3.2 客户端是 classic script，不是 ESM
+### 3.2–3.4 客户端机制四事实（权威是开发技能，不在交接文档复述）
 
-web shell 把 client bundle 拼成 `<script>` combo：**一条 import/export 就是解析错误，而且会杀掉同一
-combo 里之后的所有注册**。所以 `src/client/index.ts` 没有 import、类型用结构镜像、依赖走
-`require()`，注册经页面全局 `__ModuleLoader__.load`。`scripts/verify.mjs` 与 preflight 都守这条。
+client 是 classic script 不是 ESM（一条 import/export 就解析错误、杀掉同一 combo 里之后的所有注册）、
+一切可见面走 slot 系统（`inject`+`register`，**注册 tab 类型 ≠ 出现 tab**）、Remote 代理按 inject 声明
+物化（`Object.keys(remote)` 为空是正常的）、**仓外插件开不了新的 Remote 命名空间**（清单由 typert
+生成器从 vendor 工作区构建期产出；可用的替代 = 清单内已有的 27 个命名空间）——
 
-### 3.3 一切可见面走 slot 系统
-
-`inject(name, () => register(declaration, component))`：品牌标记、panellist 面板、右侧 tab 同一机制。
-**没有 `contribute` 方法**；declaration 携带 `id`/`order`/`label`/`key`；**注册 tab 类型 ≠ 出现 tab**
-（类型是"我能处理这种资源"的被动声明）。参照物：`vendor/dsh/packages/client/ui-schedule/src/client/index.ts`。
-
-### 3.4 仓外插件开不了新的 Remote 命名空间（架构级结论）
-
-`remote.<ns>` 代理不是 own-property（`Object.keys(remote)` 为空是正常的），由 loader 按 inject 声明物化。
-能否物化由**构建期清单**决定——它内嵌在 `@deepseek-ai/dsh-api-remotes/client.js`（27 个命名空间，
-`{ service, namespace, method, … }` 记录），由 **typert 生成器从 vendor 工作区**产出。
-我们的包在 vendor 外、没有 `./typert` 导出 → 清单里永远不会有我们 → 客户端永远等不到。
-**证据链在卡 §四·二**；死路回退记录在 §四·二末（DeskRemote 已整段删除）。
-可用的替代：清单内已有的 27 个命名空间（`skills` / `session` / `workspaceFiles` / `workspace` / `goals` / …）。
+四条的**完整展开与验证循环的权威是开发技能 [`client-ui-contribution`](../../.agents/skills/client-ui-contribution/SKILL.md)**；
+typert 阻塞的证据链与死路回退（DeskRemote 整段删除）在[卡 §四·二](../proposed/2026-09-25-ceo-sidebar-ux.md)。
+（旧版在本节逐条复述，与技能双写——2026-09-26 审计拆除，见[清理卡](../proposed/2026-09-26-signal-noise-sweep.md)。）
 
 ### 3.5 两道闸门是纪律，不是机械门禁（诚实记录）
 
@@ -143,22 +133,23 @@ cd /tmp/desk && node /Users/bowhead/ai_dsh_assitant/scripts/dsh.mjs --profile de
 # 交付前关口（必须绿；它会报 desk 文件的段）
 cd /Users/bowhead/ai_dsh_assitant && node scripts/webui-preflight.mjs '<URL>'
 
-# 机械门禁 + 测试
+# 机械门禁 + 测试（pnpm 直跑即可）
 node scripts/verify.mjs
-cd packages/dsh-smart-assistant && npx vitest run
+pnpm test        # 全仓；只要本包时 cd packages/dsh-smart-assistant && npx vitest run
 
 # preset 挂载的 one-shot（验证模型面行为；如让助手刷新桌面）
 cd /tmp/desk && node /Users/bowhead/ai_dsh_assitant/scripts/dsh.mjs --profile dev-task \
   --patch /Users/bowhead/ai_dsh_assitant/dev/preset-runner.patch.yml "刷新我的桌面。"
 
-# 组合里有没有这一行（绕过 pnpm 的依赖检查）
+# 组合里有没有这一行（boot-free：不加载 loader entries，故不能当"能 boot"的证据）
 node scripts/dsh.mjs --profile dev --dump-config | grep -A3 '<row id>'
 ```
 
-**注意**：`pnpm build` / `pnpm test` 会被 pnpm 的依赖前置检查挡住（lockfile 与 package.json 不一致时
-报 `xlsx` integrity）。绕过：`npx tsc -b tsconfig.json`、`npx vitest run`。
-**别给 package.json 加 vendor 依赖**——本仓约定是 vendor 包不声明为依赖（靠工作区 + tsconfig 路径解析），
-加了会让上述命令全挂（我踩过，已回退）。
+**历史坑（已修，别再绕）**：2026-09-26 之前 pnpm 曾被依赖前置检查挡住（package.json 与 lockfile 不一致时
+报 `xlsx` integrity，源于误加的 peerDep）——旧版交接文档教的 `npx` 绕过法已随修复过时删除，
+`pnpm build` / `pnpm test` 现在**直跑**（2026-09-26 实测 build exit 0）。仍然有效的教训：**别给 package.json
+加 vendor 依赖**——本仓约定 vendor 包不声明为依赖（靠工作区 + tsconfig 路径解析），加了会让 pnpm 全家挂
+（踩过，已回退）。vendor lefthook postinstall 卡 `verify-deps` 的正牌绕法见 [`docs/dev.md`](../../docs/dev.md) §三。
 
 ---
 
