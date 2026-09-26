@@ -570,12 +570,16 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
 
   /** Open one room as a right-sidebar tab beside the conversation (the approved form). */
   function openBeside(kind: string): void {
-    const openTab = deskSidebarRight?.openTab
-    if (openTab === undefined) {
+    const controller = deskSidebarRight
+    if (controller === undefined || controller.openTab === undefined) {
       patchDesk({ note: 'sidebarRight 服务没有物化，开不了对话旁的 tab' })
       return
     }
-    openTab(kind)
+    // Call THROUGH the controller, never through a detached reference: the vendor's openTab starts
+    // with `this.require()`, so a bare function call loses the receiver and throws. Runtime-proven
+    // 2026-09-26 (独立体验反馈): "Cannot read properties of undefined (reading 'require')" — the
+    // approved right-tab form never opened for a real click.
+    controller.openTab(kind)
   }
 
   /** Props a right-sidebar tab body receives (structural mirror of the session-scoped seat). */

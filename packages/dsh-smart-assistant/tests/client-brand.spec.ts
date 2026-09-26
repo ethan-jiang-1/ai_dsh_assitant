@@ -64,6 +64,48 @@ describe('client-module registration', () => {
     expect(span.props.style.whiteSpace).toBe('nowrap')
   })
 
+  it('opens the beside-conversation tab through the controller — a detached openTab loses the receiver', () => {
+    // Runtime-proven failure (2026-09-26): the opener used to detach `openTab` into a bare function;
+    // the vendor's implementation starts with `this.require()`, so every real click threw
+    // "Cannot read properties of undefined (reading 'require')" and the approved right-tab form
+    // never opened. This fixture mirrors that contract: the fake requires its receiver.
+    const exports = materialize()
+    const components = new Map<string, (props: unknown) => { props?: { onClick?: () => void } }>()
+    const opened: string[] = []
+    const sidebarRight = {
+      opened,
+      openTab(kind: string): void {
+        const self = this as { opened?: string[] } | undefined
+        if (self?.opened === undefined) throw new TypeError("Cannot read properties of undefined (reading 'require')")
+        self.opened.push(kind)
+      },
+    }
+    const ctx = {
+      slots: {
+        inject: (_slot: string, make: () => unknown) => {
+          const contribution = make()
+          if (contribution !== null && typeof contribution === 'object'
+            && Symbol.iterator in (contribution as object)) {
+            for (const _entry of contribution as Iterable<unknown>) void _entry
+          }
+        },
+        register: (declaration: { name: string, key?: string, id?: string }, component: unknown) => {
+          if (typeof component === 'function') {
+            components.set(declaration.key ?? declaration.id ?? declaration.name, component as never)
+          }
+        },
+      },
+      sidebarRightTabs: { register: () => {} },
+      sidebarRight,
+    }
+    ;(exports.apply as (ctx: unknown) => void)(ctx)
+    const chip = components.get('assistant-desk-chip')
+    expect(chip).toBeDefined()
+    const element = chip!({})
+    expect(() => { element.props?.onClick?.() }).not.toThrow()
+    expect(opened).toEqual(['desk'])
+  })
+
   it('declares every service the panels need, and wires both sidebar brand slots', () => {
     const exports = materialize()
     // The list is the client half's whole dependency contract: slots and the sidebar registry for
