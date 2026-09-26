@@ -132,7 +132,11 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     const [presets, setPresets] = useState<{ id: string, name: string }[] | undefined>(undefined)
     const [conversations, setConversations] = useState<{ total: number, running: number, recent: { id: string, updated: string, cwd: string }[] } | undefined>(undefined)
     const [sessionIds, setSessionIds] = useState<string[]>([])
-    const [counts, setCounts] = useState<Record<string, number> | undefined>(undefined)
+    const [desk, setDesk] = useState<{
+      counts?: Record<string, number>
+      threads?: { id?: string, status?: string, why?: string, lean?: string }[]
+      recentMemories?: { id?: string, kind?: string, text?: string }[]
+    } | undefined>(undefined)
     const [deskNote, setDeskNote] = useState<string | undefined>(undefined)
     const [error, setError] = useState<string | undefined>(undefined)
 
@@ -216,8 +220,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
           return
         }
         try {
-          const parsed = JSON.parse(text) as { counts?: Record<string, number> }
-          setCounts(parsed.counts ?? {})
+          setDesk(JSON.parse(text) as typeof desk)
           setDeskNote(undefined)
         } catch (reason) {
           setDeskNote(`desk file is not valid JSON: ${String(reason)}`)
@@ -258,12 +261,31 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       sectionTitle('Our conversations'),
       history,
       error === undefined ? null : h('p', { style: { fontSize: '12px', color: '#c66', marginTop: '8px' } }, `⚠ ${error}`),
+      sectionTitle('在跟的事'),
+      desk?.threads === undefined || desk.threads.length === 0
+        ? muted('（暂时没有未决线索）')
+        : h('div', null, ...desk.threads.map(thread => h('div', {
+            key: String(thread.id),
+            style: { marginBottom: '10px', paddingLeft: '10px', borderLeft: `2px solid ${MARK_TEAL}` },
+          },
+          h('div', { style: { fontSize: '13px', lineHeight: 1.6 } }, String(thread.why ?? '')),
+          h('div', { style: { fontSize: '12px', color: '#888', marginTop: '2px' } },
+            '当前倾向：', String(thread.lean ?? '（未定）'))))),
+
+      sectionTitle('最近记住的'),
+      desk?.recentMemories === undefined || desk.recentMemories.length === 0
+        ? muted('（还没有记忆）')
+        : h('ul', { style: { margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#666', lineHeight: 1.7 } },
+            ...desk.recentMemories.map(memory => h('li', { key: String(memory.id) },
+              String(memory.text ?? ''),
+              memory.kind === undefined ? null : h('span', { style: { color: '#aaa' } }, ` · ${memory.kind}`)))),
+
       sectionTitle('Working-folder counts'),
       h('div', null,
-        cell('Memories', counts?.memories === undefined ? '—' : String(counts.memories)),
-        cell('Knowledge', counts?.knowledgeStable === undefined ? '—' : String(counts.knowledgeStable)),
-        cell('Skills', counts?.skills === undefined ? '—' : String(counts.skills)),
-        cell('Threads', counts?.threads === undefined ? '—' : String(counts.threads))),
+        cell('Memories', desk?.counts?.memories === undefined ? '—' : String(desk?.counts?.memories)),
+        cell('Knowledge', desk?.counts?.knowledgeStable === undefined ? '—' : String(desk?.counts?.knowledgeStable)),
+        cell('Skills', desk?.counts?.skills === undefined ? '—' : String(desk?.counts?.skills)),
+        cell('Threads', desk?.counts?.threads === undefined ? '—' : String(desk?.counts?.threads))),
       deskNote === undefined
         ? muted('Read live from .desk/state.json in this session\'s workspace, through the workspaceFiles namespace.')
         : muted(deskNote))
