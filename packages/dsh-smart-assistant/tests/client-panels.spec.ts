@@ -84,6 +84,10 @@ describe('desk panels', () => {
     expect(text).toContain('我的桌面')
     expect(text).toContain('等你决定')
     expect(text).toContain('要不要授权读公司盘？')
+    // A decision is answerable in place, and can also be opened into options — the mirror of a
+    // correction row (there the principal says what is wrong, here what they have decided).
+    expect(text).toContain('回答')
+    expect(text).toContain('看选项')
     expect(text).toContain('缺什么')
     expect(text).toContain('本季度原始读数')
     expect(text).toContain('在跟的事')

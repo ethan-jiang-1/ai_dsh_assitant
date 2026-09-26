@@ -259,6 +259,18 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     })
   }
 
+  /**
+   * Answer one open decision. The mirror of a correction: there the principal says a record is
+   * wrong, here they say what they have decided — and the assistant records the call and moves.
+   */
+  function answerDecision(question: string, answer: string): void {
+    sendPrompt(
+      `关于这个待决事项：「${question}」——我的决定是：${answer}。请记住它、据此更新你的判断，然后刷新我的桌面。`,
+      '已把你的决定交给助手…',
+      () => { setTimeout(() => { loadDesk() }, 15000) },
+    )
+  }
+
   /** Put one open decision to the assistant and ask for options with their costs. */
   function askAboutDecision(question: string): void {
     sendPrompt(`关于这个待决事项：「${question}」——请给我两三个选项，每个选项的代价与不可逆程度，以及你的建议。`,
@@ -536,16 +548,18 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       (data?.decisions ?? []).length === 0 && (data?.counts?.knowledgeDraft ?? 0) === 0
         ? muted('（没有等你拍板的事）')
         : createElement('div', null,
-            ...(data?.decisions ?? []).map(item => createElement('div', {
+            ...(data?.decisions ?? []).map(item => createElement(CorrectableRow, {
               key: String(item.id),
-              onClick: () => { askAboutDecision(String(item.question ?? '')) },
-              title: '点一下，让助手摆出选项与代价',
-              style: {
-                marginBottom: '8px', paddingLeft: '10px', borderLeft: '2px solid #d97706', cursor: 'pointer',
-              },
-            },
-            createElement('div', { style: { fontSize: '13px', fontWeight: 600 } }, String(item.question ?? '')),
-            item.context === undefined ? null : createElement('div', { style: { fontSize: '12px', color: '#888' } }, String(item.context)))),
+              primary: createElement('span', null,
+                createElement('span', { style: { fontSize: '13px', fontWeight: 600 } }, String(item.question ?? '')),
+                item.context === undefined || item.context === ''
+                  ? null
+                  : createElement('div', { style: { fontSize: '12px', color: '#888', fontWeight: 400 } }, String(item.context))),
+              actionLabel: '回答',
+              placeholder: '你的决定是什么？',
+              onSubmit: (text: string) => { answerDecision(String(item.question ?? ''), text) },
+              actions: [{ label: '看选项', run: () => { askAboutDecision(String(item.question ?? '')) } }],
+            })),
             (data?.counts?.knowledgeDraft ?? 0) === 0
               ? null
               : createElement('div', {

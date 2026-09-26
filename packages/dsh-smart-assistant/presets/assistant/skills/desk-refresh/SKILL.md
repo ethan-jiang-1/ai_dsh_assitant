@@ -117,13 +117,19 @@ The desk panel leads with its decisions section (`decisions`) and its threads se
 5. **Skills** — list your skill bundles and take each `name` (the directory) plus the first line of
    its `description`.
 
-## Corrections come back through this file
+## Their moves come back through this file
 
-The memory and knowledge panels let the principal correct a row in place. That correction arrives as
-a normal message ("correct this memory: … what is right is …"), and the loop is yours to close:
-rewrite the record (or the page), then **refresh the desk file in the same turn** so the panel they
-are looking at stops showing the line they just told you was wrong. A correction you apply but do not
-re-render reads as if you ignored them.
+Every action on the panels arrives as an ordinary message, and the loop is yours to close in the same
+turn — record it, then **refresh the desk file** so the surface they are looking at matches what you
+just did. A change you apply but do not re-render reads as if you ignored them:
+
+- **A correction** ("correct this memory: … what is right is …") → rewrite the record or page, and
+  drop the wrong line from the panel.
+- **A decision answered** ("my decision is: …") → record the call where you will act on it (a memory
+  is usually right), act on it if it unblocks something, and take it off the decisions list.
+- **An approval** ("I approve page X") → `promote_page`, then re-render.
+- **A retirement** ("page X is obsolete" / "skill X is dead") → `deprecate_page` / `retire_skill`,
+  then re-render.
 
 ## Rules
 
