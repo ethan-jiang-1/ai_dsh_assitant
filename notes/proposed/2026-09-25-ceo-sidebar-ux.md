@@ -532,8 +532,9 @@ verify 31/31、build exit 0、干净目录起 web + preflight 绿（boot 图 65 
    源文件可读），`skill-loaded` 判定保持严格并如实记录这次波动。
 3. 第三轮真跑 PASS（77s：加载技能 → 工具取数 → 真写 → 报计数）。
 
-**诚实观察**：两次真跑对 knowledgeStable/draft 的划分不一致（10+4 vs 13+1，总数 14 一致）——
-状态读取口径待核。**验收**：eval-checks 9/9（含红/绿夹具与"只做子串匹配不执行命令"的形态校准）、
+**诚实观察（已核，2026-09-26）**：先前的 knowledgeStable/draft 划分不一致（10+4 vs 13+1）经实查
+是**真状态变化**——页面集在两次跑之间演进（Q3 计划页 20260926-2026-q3-20-mgai 等新入），非计数
+口径漂移；当前桌面文件与工作文件夹 frontmatter 逐一相符（13 stable + 2 draft，共 15 页）。口径无恙。**验收**：eval-checks 9/9（含红/绿夹具与"只做子串匹配不执行命令"的形态校准）、
 verify 31/31、self-check ok、`--only` 真跑 PASS。
 
 **全量首测（同日）**：5 任务 3 过——breakdown 与 desk 两条**技能依赖任务双双在 skill-loaded 上
@@ -552,7 +553,8 @@ verify 31/31、self-check ok、`--only` 真跑 PASS。
 从此就是生产条件**。**证据**：tsc 0 error、全套 238/240（已知降级 2 不变）、verify 31/31、
 build exit 0、eval `--only desk-refresh-loop` PASS（46s，比此前 77–102s 更快——点名的技能省掉了
 模型的摸索段）。**留着的已知缺口**：面板之外的自然语言请求（如"帮我拆解一下"）的冷发现仍不可靠
-（breakdown 任务随机会红）——那是 preamble/persona 层的活，另一片。
+（breakdown 任务随机会红）——那是 preamble/persona 层的活，另一片。（修复代价与摘要预算联动：
+站桩指令的成本是常驻上下文，而摘要在 3962/4096 贴顶、预算处置正等用户拍板——两个决定宜一起做。）
 
 ## 五、实验计划（按序，每步可看可玩）
 
