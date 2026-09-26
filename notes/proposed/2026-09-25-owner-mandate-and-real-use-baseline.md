@@ -1,6 +1,6 @@
 # 长期责任圈（mandate）：定位、圈纪律、意图级仪表
 
-日期：2026-09-25 · 状态：**proposed（长期责任圈的常设活卡——职责永不毕业，本卡只按圈追加记录 §六–§十五；当前圈见[专家组合件卡](2026-09-25-expert-pack-v0.md)，队列快照在 ROADMAP；各圈主题的正式记录在 `notes/implemented/` 对应 note）**
+日期：2026-09-25 · 状态：**proposed（长期责任圈的常设活卡——职责永不毕业；已交圈记录 §六–§十五，第九圈的交付物[专家组合件 v0](../implemented/2026-09-25-expert-pack-v0.md) 已毕业；下一圈等用户 steer 或 ROADMAP 的 ▶ 项；队列快照在 ROADMAP；各圈主题的正式记录在 `notes/implemented/` 对应 note）**
 
 ## 一、定位（用户 2026-09-25 确认）
 
