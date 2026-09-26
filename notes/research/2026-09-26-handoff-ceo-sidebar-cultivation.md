@@ -139,9 +139,9 @@ cd /Users/bowhead/ai_dsh_assitant && node scripts/webui-preflight.mjs '<URL>'
 node scripts/verify.mjs
 pnpm test        # 全仓；只要本包时 cd packages/dsh-smart-assistant && npx vitest run
 
-# preset 挂载的 one-shot（验证模型面行为；如让助手刷新桌面）
+# preset 挂载的 one-shot（验证模型面行为；提示须与面板发送的原文一致，当前含点名技能）
 cd /tmp/desk && node /Users/bowhead/ai_dsh_assitant/scripts/dsh.mjs --profile dev-task \
-  --patch /Users/bowhead/ai_dsh_assitant/dev/preset-runner.patch.yml "刷新我的桌面。"
+  --patch /Users/bowhead/ai_dsh_assitant/dev/preset-runner.patch.yml "刷新我的桌面：加载 desk-refresh 技能，严格按它把桌面文件重写一遍。"
 
 # 组合里有没有这一行（boot-free：不加载 loader entries，故不能当"能 boot"的证据）
 node scripts/dsh.mjs --profile dev --dump-config | grep -A3 '<row id>'

@@ -273,9 +273,17 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     })
   }
 
+  /**
+   * Every desk action ends the same way: the desk-refresh skill owns the rewrite. Naming the
+   * skill in the message makes the model's path explicit instead of hoping skill discovery fires
+   * on a small model (measured 2026-09-26: cold discovery skipped the skill on 2 of 3 live runs).
+   * The panel and the skill ship together; the pairing is recorded on the campaign card §四·十九.
+   */
+  const DESK_REFRESH_STEP = '完成后加载 desk-refresh 技能，把桌面文件重写一遍。'
+
   /** Ask the assistant to refresh the desk file, then reload it after it has had time to work. */
   function askRefresh(): void {
-    sendPrompt('刷新我的桌面。', '已请助手刷新桌面，稍后自动重读…', () => {
+    sendPrompt('刷新我的桌面：加载 desk-refresh 技能，严格按它把桌面文件重写一遍。', '已请助手刷新桌面，稍后自动重读…', () => {
       setTimeout(() => { reloadDesk() }, 12000)
     })
   }
@@ -286,7 +294,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    */
   function answerDecision(question: string, answer: string): void {
     sendPrompt(
-      `关于这个待决事项：「${question}」——我的决定是：${answer}。请记住它、据此更新你的判断，然后刷新我的桌面。`,
+      `关于这个待决事项：「${question}」——我的决定是：${answer}。请记住它、据此更新你的判断。${DESK_REFRESH_STEP}`,
       '已把你的决定交给助手…',
       () => { setTimeout(() => { reloadDesk() }, 15000) },
     )
@@ -304,7 +312,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    */
   function finishAction(what: string): void {
     sendPrompt(
-      `行动「${what}」已经办完了。请记录结果（度量上发生了什么），然后刷新我的桌面。`,
+      `行动「${what}」已经办完了。请记录结果（度量上发生了什么）。${DESK_REFRESH_STEP}`,
       '已把完成情况交给助手…',
       () => { setTimeout(() => { reloadDesk() }, 15000) },
     )
@@ -313,7 +321,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   /** Drop one action: no longer worth doing — the assistant records why and takes it off the list. */
   function dropAction(what: string): void {
     sendPrompt(
-      `行动「${what}」不办了：请记一行原因（写进相应线索或记忆），然后刷新我的桌面。`,
+      `行动「${what}」不办了：请记一行原因（写进相应线索或记忆）。${DESK_REFRESH_STEP}`,
       '已把这条交给助手…',
       () => { setTimeout(() => { reloadDesk() }, 15000) },
     )
@@ -325,7 +333,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    */
   function parkThread(title: string): void {
     sendPrompt(
-      `线索「${title}」先放一放（park）：现在不推，但别丢。改完刷新我的桌面。`,
+      `线索「${title}」先放一放（park）：现在不推，但别丢。${DESK_REFRESH_STEP}`,
       '已请助手把它先放放…',
       () => { setTimeout(() => { reloadDesk() }, 15000) },
     )
@@ -335,7 +343,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   function closeThread(title: string): void {
     sendPrompt(
       `线索「${title}」可以收了：请判断该 promote（变成记忆/知识页/技能）还是 drop（写一行原因），`
-      + `做完告诉我你归到了哪里，并刷新我的桌面。`,
+      + `做完告诉我你归到了哪里。${DESK_REFRESH_STEP}`,
       '已请助手收这条线索…',
       () => { setTimeout(() => { reloadDesk() }, 15000) },
     )
@@ -347,7 +355,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    */
   function correctMemory(text: string, correction: string): void {
     sendPrompt(
-      `请更正这条记忆。原记录：「${text}」。正确的是：${correction}。改完请刷新我的桌面。`,
+      `请更正这条记忆。原记录：「${text}」。正确的是：${correction}。${DESK_REFRESH_STEP}`,
       '已把你的更正交给助手…',
       () => { setTimeout(() => { reloadDesk() }, 15000) },
     )
@@ -359,7 +367,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    */
   function approveKnowledgePage(title: string): void {
     sendPrompt(
-      `我批准知识页「${title}」。请把它从 draft 翻成 stable，改完刷新我的桌面。`,
+      `我批准知识页「${title}」。请把它从 draft 翻成 stable。${DESK_REFRESH_STEP}`,
       '已把批准交给助手…',
       () => { setTimeout(() => { reloadDesk() }, 15000) },
     )
@@ -371,7 +379,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    */
   function retireSkill(name: string): void {
     sendPrompt(
-      `技能「${name}」没用了，请退役它（assistant_reflect retire_skill）。改完刷新我的桌面。`,
+      `技能「${name}」没用了，请退役它（assistant_reflect retire_skill）。${DESK_REFRESH_STEP}`,
       '已把退役请求交给助手…',
       () => { setTimeout(() => { reloadDesk() }, 15000) },
     )
@@ -392,7 +400,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   /** Tell the assistant what is wrong with one knowledge page. */
   function flagKnowledgePage(title: string, problem: string): void {
     sendPrompt(
-      `知识页「${title}」有问题：${problem}。请核对并更正这一页，改完刷新我的桌面。`,
+      `知识页「${title}」有问题：${problem}。请核对并更正这一页。${DESK_REFRESH_STEP}`,
       '已把这条意见交给助手…',
       () => { setTimeout(() => { reloadDesk() }, 15000) },
     )
