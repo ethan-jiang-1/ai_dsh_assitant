@@ -114,6 +114,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     threads?: { id?: string, status?: string, title?: string, why?: string, lean?: string }[]
     decisions?: { id?: string, question?: string, context?: string }[]
     gaps?: { id?: string, what?: string, why?: string }[]
+    recentActivity?: { at?: string, what?: string }[]
     memories?: { id?: string, kind?: string, text?: string, updated?: string, source?: string }[]
     knowledge?: { id?: string, title?: string, status?: string, type?: string, updated?: string, sources?: string[] }[]
     skills?: { name?: string, description?: string }[]
@@ -570,6 +571,16 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
             ? null
             : createElement('div', { style: { fontSize: '11px', color: '#aaa', marginTop: '2px', lineHeight: 1.5 } },
                 String(thread.why))))),
+
+      sectionTitle('它最近做了什么'),
+      (data?.recentActivity ?? []).length === 0
+        ? muted('（还没有可讲的变动）')
+        : createElement('ul', { style: { margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#666', lineHeight: 1.8 } },
+            ...(data?.recentActivity ?? []).map((item, index) => createElement('li', { key: `${String(item.at)}-${index}` },
+              item.at === undefined || item.at === ''
+                ? null
+                : createElement('span', { style: { color: '#aaa' } }, `${shortTime(item.at)} `),
+              String(item.what ?? '')))),
 
       sectionTitle('我记住的规模'),
       createElement('div', null,

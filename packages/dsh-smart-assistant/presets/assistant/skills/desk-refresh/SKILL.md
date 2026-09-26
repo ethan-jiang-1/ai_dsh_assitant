@@ -28,6 +28,9 @@ place your file tools write). Create the directory if it is missing.
   "gaps": [
     { "id": "…", "what": "…", "why": "…" }
   ],
+  "recentActivity": [
+    { "at": "2026-09-26T13:10:00+08:00", "what": "…" }
+  ],
   "threads": [
     { "id": "20260925-20-…", "status": "open", "title": "…", "why": "…", "lean": "…", "updated": "…" }
   ],
@@ -71,6 +74,16 @@ The desk panel leads with its decisions section (`decisions`) and its threads se
   correction ("the principal corrected this on …"). A record with no source renders without one —
   do not invent a citation.
 
+## What the panels render, section by section
+
+- **Desk** — decisions, gaps, threads, `recentActivity`, counts. The activity list answers the
+  question a long-lived assistant has to keep answering: *what have you been doing?* Keep it to
+  the last few real changes (newest first, about five), each one line with its time. Derive it from
+  what actually changed in the working folder — file times and your own tool results — not from a
+  narrative you would like to be true.
+- **Knowledge** — drafts (with approval), stable pages (with provenance), skills (flag or retire).
+- **Memory** — every active record, with its source and a correction action.
+
 ## How to fill it
 
 1. **Counts** — from your own tools, not from memory: `assistant_memory action=curate` (memories,
@@ -81,6 +94,11 @@ The desk panel leads with its decisions section (`decisions`) and its threads se
 2b. **Decisions** — ask yourself: *is there anything I am waiting on the principal for?* A draft page
    awaiting approval, a choice they reserved, a call only they can make. If yes, one entry each; if
    no, leave the list empty rather than inventing work for them.
+2d. **Recent activity** — list the last few changes you actually made to the working folder
+   (newest first, about five): a record written, a thread opened or closed, a page distilled, a
+   skill retired, a correction applied. One line each, `at` = when it happened. This is what makes
+   a long-lived assistant legible; a stale or invented list is worse than none, so if nothing moved,
+   leave it short rather than padding it.
 2c. **Gaps** — the other half of the ask, and not the same thing: a decision is *theirs to make*,
    a gap is *something I lack* to be useful — a number I have no source for, an access I do not
    have, a document nobody has handed me, a question I cannot even frame without a fact. `what` is

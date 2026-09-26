@@ -77,6 +77,7 @@ describe('desk panels', () => {
       decisions: [{ id: 'd1', question: '要不要授权读公司盘？', context: '读它才能定因' }],
       gaps: [{ id: 'g1', what: '本季度原始读数', why: '有它才能从框架走到定因' }],
       threads: [{ id: 't1', title: 'Q3 掉了 20%', lean: '先定口径', why: '口径未定则无法归因' }],
+      recentActivity: [{ at: '2026-09-26T13:10:00+08:00', what: '按你的更正重写了一条记忆' }],
     }
     const text = textsOf(exports.DeskPanel()).join(' | ')
 
@@ -87,6 +88,10 @@ describe('desk panels', () => {
     expect(text).toContain('本季度原始读数')
     expect(text).toContain('在跟的事')
     expect(text).toContain('Q3 掉了 20%')
+    // The activity list answers "what have you been doing?" — the question a long-lived
+    // assistant has to keep answering.
+    expect(text).toContain('它最近做了什么')
+    expect(text).toContain('按你的更正重写了一条记忆')
     expect(text).toContain('先定口径')
     // The four counts, and the freshness line the principal uses to judge staleness. The stamp is
     // rendered in local time, so the expectation is computed the same way instead of hard-coded
@@ -160,6 +165,7 @@ describe('desk panels', () => {
 
     expect(desk).toContain('（没有等你拍板的事）')
     expect(desk).toContain('（没有卡住的事）')
+    expect(desk).toContain('（还没有可讲的变动）')
     expect(knowledge).toContain('（还没有知识页，或桌面文件尚未刷新）')
     expect(memory).toContain('（还没有记忆，或桌面文件尚未刷新）')
     // The loader's reason reaches every panel, so an empty page is explained rather than mute.
