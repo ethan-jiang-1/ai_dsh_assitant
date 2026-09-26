@@ -29,7 +29,7 @@ loop that answers "did it actually ride in the request?" without guessing.
    ```sh
    cd dev/harness-home/sessions
    ls -t ./--Users-...--/            # the ./ prefix is REQUIRED: dir names start with --
-   zstd -dc ./--<cwd-dir>--/<session-id>/session.v3.jsonl.zstd > /tmp/probe.jsonl
+   zstd -dc ./--<cwd-dir>--/<session-id>/session.v*.jsonl.zstd > /tmp/probe.jsonl   # the generation in the name moves with the pin: list the dir, do not assume it
    ```
    For bulk searches prefer the wrapper form (`printf '#!/bin/sh\nexec zstd -dc "$@"\n' > /tmp/zstd-cat`)
    because `rg --pre` cannot take a command with spaces.

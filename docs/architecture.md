@@ -43,7 +43,7 @@ AGENT 面（`cordis.patch.yml` 的 `preset-assistant` 行 → agent preset）
 ├── assistant-research-tool   工具 assistant_research
 ├── assistant-knowledge-tool  工具 assistant_knowledge（只读检索：search/get 附反链）
 ├── assistant-learn           工具 assistant_reflect + 挂载"学到的技能"provider
-├── skill-filesystem          策展技能（preset 目录下的 skills/，经 baseUrl 指过去）
+├── skill-filesystem          策展技能（包内 `presets/assistant/skills/`，按包名解析后指过去）
 ├── tool-skill                技能目录与加载器（DSH 原生）
 └── persona / agent-instructions / tool-fs / tool-fs-search / shell / ask-user /
     todo / web / present / compaction

@@ -37,8 +37,14 @@ dsh plugin --profile <p> add <npm-name>                            # 发布后
 dsh plugin --profile <p> add file:./packages/dsh-smart-assistant   # 本地
 ```
 
-装完做两件事：① preset roster 要能看到 `assistant`（把 `agent-presets` 的 `roots` 指向安装后的
-`presets/` 目录，或把该目录拷进 `<dshHome>/.agent-presets/`）；② 会话挂上 `assistant`。
+装完只需把该 profile 的 `agent-preset-registry` 行的 `default` 设成 `assistant`（模板：`dev/profile-patch.yml`）。
+**0.1.7 起 registry 既不扫目录、也不接受 preset 路径**：`assistant` 的定义随包发（`package.json` 的
+`dsh.bundle.patch` → `cordis.patch.yml` 里的 `preset-assistant` 行），装包即进组合 —— 不必再指 `presets/`
+目录（那条在 0.1.5 成立，0.1.7 起是错的；依据 `notes/implemented/2026-09-25-dsh-0-1-7-migration.md`）。
+
+**专家部署装配**（把全新的 working folder 装成管理岗专家的）：`pnpm expert-setup -- --data-dir <assistant 目录>`
+—— 只在 `SOUL.md` 还是未经改动的默认种子时替换为管理岗身份（改过就跳过：装配不覆盖它的主人），
+知识种子按治理写入路径落 `draft`；`draft → stable` 由你亲手改，那一下就是人审。
 
 ## 开发
 

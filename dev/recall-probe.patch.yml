@@ -1,0 +1,24 @@
+# 探针：会话日志配方的**代次无关性**（会话日志代次配方卡 §五.4 的 live 验收）
+#
+# 用法（repo 根）：
+#   rm -rf /tmp/assistant-recall-probe
+#   pnpm dsh --profile dev-task --patch dev/recall-probe.patch.yml "<按手册配方回忆一条历史会话>"
+#
+# 与 preset-runner.patch.yml / expert-probe.patch.yml 的差别只有一点：把宿主行 `assistant-memory`
+# 的 `dataDir` 指到一个**全新** working folder。原因：手册只在缺失时生成（手改过的手册永不覆盖），
+# 既有 dev home 的手册仍是旧脚手架版本；探针要测的是"新会话拿到的配方"，所以让新家按当前脚手架出生。
+# 日志位置不变（探针测的是读日志，不是换 home）：会话仍在 dev home 的 sessions/ 下。
+- id: assistant-memory
+  config:
+    dataDir: /tmp/assistant-recall-probe/assistant
+    digestMaxBytes: 4096
+    recallLimit: 20
+    staleResearchDays: 30
+- id: headless-runner
+  disabled: true
+- insert:
+    - id: preset-runner
+      name: dsh-smart-assistant/preset-runner
+      inject: [headlessStartup]
+      config:
+        task: !!js ctx.headlessStartup.task

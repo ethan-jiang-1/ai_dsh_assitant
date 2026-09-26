@@ -387,10 +387,58 @@ export function dependencyPoseProblems(packageJsonPath, upstreamPath) {
 
 // ── skill file contract ─────────────────────────────────────────────────────────
 
+/** The loader's public skill-name grammar (`isSkillName` in `@deepseek-ai/dsh-skill`). */
+const SKILL_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+
+/** Frontmatter keys the loader rejects outright, with the canonical key that replaced each. */
+const LEGACY_INVOCATION_KEYS = new Map([
+  ['disableModelInvocation', 'disable-model-invocation'],
+  ['modelInvocable', 'disable-model-invocation'],
+  ['userInvocable', 'user-invocable'],
+])
+
+/** Frontmatter keys whose value the loader requires to be a boolean. */
+const BOOLEAN_INVOCATION_KEYS = ['disable-model-invocation', 'user-invocable']
+
+/** The loader's accepted boolean spellings (`frontmatterBoolean` in `dsh-skill-filesystem`). */
+const BOOLEAN_WORDS = new Set(['true', 'yes', 'on', 'false', 'no', 'off'])
+
+/** Whether a frontmatter value is one the loader reads as a boolean. */
+function isBooleanSpelling(value) {
+  return typeof value === 'boolean' || value === 1 || value === 0
+    || (typeof value === 'string' && BOOLEAN_WORDS.has(value.toLowerCase()))
+}
+
+/**
+ * The frontmatter block of a SKILL.md, mirroring the loader's own scan: the first line must be
+ * exactly `---` and the block ends at the next line that is exactly `---`.
+ *
+ * @param {string} text - the skill file's contents.
+ * @returns {string | undefined} the block between the delimiters, or undefined when absent.
+ */
+function frontmatterBlock(text) {
+  const firstLineEnd = text.indexOf('\n')
+  if (firstLineEnd < 0 || text.slice(0, firstLineEnd).replace(/\r$/, '') !== '---') return undefined
+  let lineStart = firstLineEnd + 1
+  while (lineStart <= text.length) {
+    const nextNewline = text.indexOf('\n', lineStart)
+    const lineEnd = nextNewline < 0 ? text.length : nextNewline
+    if (text.slice(lineStart, lineEnd).replace(/\r$/, '') === '---') return text.slice(firstLineEnd + 1, lineStart)
+    if (nextNewline < 0) return undefined
+    lineStart = nextNewline + 1
+  }
+  return undefined
+}
+
 /**
  * Every SKILL.md — curated (model-facing) or development (.agents/skills, discovered by the
  * provider's `project-agents` root) — carries frontmatter whose `name` matches its directory and
  * a non-empty `description`. The loader silently ignores a malformed skill, so the shape is gated.
+ *
+ * The frontmatter is parsed with the same YAML dialect the loader uses, not scanned with regular
+ * expressions: a plain scalar containing `: ` (`whenToUse: … shape: who does what`) is a YAML
+ * parse error, which made two curated skills invisible — present on disk, absent from the catalog,
+ * each load answering "unknown". A gate that only reads lines cannot see that.
  *
  * @param {string} skillsDir - a directory of <name>/SKILL.md bundles.
  */
@@ -404,13 +452,37 @@ export function skillFrontmatterProblems(skillsDir) {
       continue
     }
     const text = read(file)
-    const declared = /^name:\s*(\S+)\s*$/m.exec(text)?.[1]
-    const description = /^description:\s*(.+)$/m.exec(text)?.[1]
-    if (declared !== name) problems.push(`${name}/SKILL.md declares name ${declared ?? '(none)'}`)
-    if (description === undefined || description.trim().length === 0) {
+    const block = frontmatterBlock(text)
+    if (block === undefined) {
+      problems.push(`${name}/SKILL.md does not start with frontmatter`)
+      continue
+    }
+    let data
+    try {
+      data = parseYaml(block)
+    } catch (error) {
+      problems.push(`${name}/SKILL.md frontmatter is not parsable YAML: ${String(error).split('\n')[0]}`)
+      continue
+    }
+    if (typeof data !== 'object' || data === null || Array.isArray(data)) {
+      problems.push(`${name}/SKILL.md frontmatter is not a mapping`)
+      continue
+    }
+    if (data.name !== name) {
+      problems.push(`${name}/SKILL.md declares name ${typeof data.name === 'string' ? data.name : '(none)'}`)
+    }
+    if (!SKILL_NAME.test(name)) problems.push(`${name}/ is not a valid skill name (kebab-case)`)
+    if (typeof data.description !== 'string' || data.description.trim().length === 0) {
       problems.push(`${name}/SKILL.md has no description`)
     }
-    if (!text.startsWith('---\n')) problems.push(`${name}/SKILL.md does not start with frontmatter`)
+    for (const [legacy, canonical] of LEGACY_INVOCATION_KEYS) {
+      if (Object.hasOwn(data, legacy)) problems.push(`${name}/SKILL.md uses unsupported "${legacy}"; use "${canonical}"`)
+    }
+    for (const key of BOOLEAN_INVOCATION_KEYS) {
+      if (Object.hasOwn(data, key) && !isBooleanSpelling(data[key])) {
+        problems.push(`${name}/SKILL.md sets "${key}" to a non-boolean value`)
+      }
+    }
   }
   return problems
 }

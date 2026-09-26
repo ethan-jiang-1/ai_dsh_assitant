@@ -29,7 +29,12 @@ const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 // 报告头会打印实际读取的 home，就是为了让这种默认值可见。
 const harnessHome = resolve(process.env.ASSISTANT_DSH_HOME ?? join(repoRoot, 'dev', 'harness-home'))
 
-/** 会话目录名把 cwd 里的 `/` 与 `.` 换成 `-`（`./` 前缀是路径安全用的）。 */
+/**
+ * 会话目录名把 cwd 里的 `/` 与 `.` 换成 `-`（`./` 前缀是路径安全用的）。
+ * 日志文件名带写者代次（`session.v<n>.jsonl.zstd`，n = DSH 的 `SESSION_FORMAT_VERSION`），
+ * **不写死某一代**：写者代次随 pin 升级前移（v3 → v4 实测于 0.1.7），写死会让仪表与 `pnpm eval`
+ * 在升级后静默读不到任何新会话（症状是"没有会话日志"，不是报错）。
+ */
 export function sessionLogs(home) {
   const sessionsRoot = join(home, 'sessions')
   if (!existsSync(sessionsRoot)) return []
@@ -43,8 +48,15 @@ export function sessionLogs(home) {
       continue
     }
     for (const entry of entries) {
-      const log = join(projectDir, entry, 'session.v3.jsonl.zstd')
-      if (existsSync(log)) logs.push(log)
+      let files = []
+      try {
+        files = readdirSync(join(projectDir, entry))
+      } catch {
+        continue
+      }
+      for (const file of files) {
+        if (/^session\.v\d+\.jsonl\.zstd$/.test(file)) logs.push(join(projectDir, entry, file))
+      }
     }
   }
   return logs

@@ -19,7 +19,7 @@
 | 定义随谁分发 | repo 目录（profile 指路径） | **随包**：`dsh.bundle.patch`（`cordis.patch.yml`）里的 `preset-assistant` 行 —— "换领域 = 换包"的机制前提 |
 | 我们改的三个包名 | `@deepseek-ai/dsh-agent-presets` | `@deepseek-ai/dsh-agent-preset`（定义行，随包发 `lib/` + `skills/`）、`@deepseek-ai/dsh-agent-preset-registry`（服务） |
 | 消息来源 | `source: { kind: 'plugin', plugin }` | `MessageSourceMap` 可合并扩展 —— 本包**自声明** `'assistant-plugin'` kind（`src/index.ts`） |
-| 技能目录 | `baseUrl` = preset 文件目录 | `baseUrl` = **patch 文件目录**（包根）→ `presets/assistant/skills/` |
+| 技能目录 | `baseUrl` = preset 文件目录 | `baseUrl` = **profile 目录**（`<home>/profiles/<name>/`，**不是包根**）→ 包内文件须**按包名解析**；本节原写"patch 文件目录（包根）"是错的，见 §十二 |
 
 删除并吸收：`presets/assistant/agent.cordis.yml`（行搬进 `cordis.patch.yml` 的 `preset-assistant.config.plugins`）、
 `presets/assistant/preset.yml`（name/description/order 进同一行的 config）。同 diff 更新四份合同文档
@@ -229,3 +229,59 @@ vendor 侧代码与 pin 指针未被修改（只删过一个孤儿安装残留�
   （无审批人即关）；bash 只读命令亦被拦（本机 sandbox-exec 不可用）→ shell 面整体不可用；
 - **会话自己不绕过**：被拒后不再试 bash 重定向/subagent 代写，理由"探针要测的就是这条边界本身，
   绕过会让读数失真"，并标注可逆——这正是协作边界 + 权限模型想要的专家行为。
+
+## 十二、修正 §二 的一条错事实：bundle patch 行的 `baseUrl` 是 **profile 目录**，不是包根
+
+**症状（真实会话，不是门禁红）**：迁移后 preset 会话里**8 件策展技能全部缺席**——`skill management-breakdown`
+答 "unknown"，而 `--dump-config` 里 `skill-filesystem` 行确实在 preset 的 plugins 里；工作目录里学到的技能与
+`.agents/skills/` 的开发技能照常在，所以不是技能面整体坏掉。
+
+**根因**：§二 原表写"`baseUrl` = patch 文件目录（包根）"——**错的**。在这行 `customSkillDirs` 的 `!!js` 里挂探针
+（`process.stderr.write`）实测：`baseUrl` = `file:///…/dev/harness-home/profiles/dev-task/`，即**该行落进的那一层
+自己的目录**（profile 目录；bundle patch 的行被并进 profile 的这一层）。于是 `new URL('presets/assistant/skills/', baseUrl)`
+指到 `<profile>/presets/assistant/skills/` —— **包外**：provider 扫一个不存在的根，不报错、不告警，目录里一件
+策展技能都没有。迁移前这条路径成立是因为 preset 当时是**独立文件**，其目录恰好就是包内 `presets/assistant/`。
+
+**修法**（`packages/dsh-smart-assistant/cordis.patch.yml`）：不写相对 `baseUrl` 的包内路径，改为 shipped `cordis`
+preset 的同款惯用法——`createRequire(baseUrl).resolve('dsh-smart-assistant/package.json')` → `dirname` → 拼包内
+`presets/assistant/skills`。从 baseUrl 出发走 node_modules 找本包：dev（profile 的 node_modules link 到本仓包）与
+`dsh plugin add` 装出来的 home（release-smoke 断言的 `profiles/<p>/node_modules/dsh-smart-assistant/cordis.patch.yml`）
+是同一种形状。文件头与技能段的注释同步改写，避免下一个人再按"baseUrl = 本文件目录"写路径。
+
+**验证（真跑过的）**：
+- 新增红夹具 `packages/dsh-smart-assistant/tests/preset-skill-root.spec.ts`：读真实 `cordis.patch.yml`，用 loader 的
+  `interpolate`（运行时同一个求值器）在"profile 形状 + node_modules link"的 baseUrl 下求值那一行。
+  修复前红：解析结果 `/var/folders/…/assistant-preset-base-…/presets/assistant/skills/`（包外）；修复后绿（= 包内目录）。
+- live：`pnpm dsh --profile dev-task --patch dev/preset-runner.patch.yml "用 skill 工具按名加载 management-breakdown…"`
+  → 模型报加载成功，列出全部 8 件策展技能，base 目录 = `packages/dsh-smart-assistant/presets/assistant/skills/…`
+  （会话 `session-12be0619`：日志里 `presets/assistant/skills` 与那 8 个名字都在）。
+- 账本：`dev/harness-home/assistant/skill-usage.json` 出现迁移后**第一次**策展技能加载（`management-breakdown` count 1，
+  `2026-09-25T14:31:04Z`）；此前的 28 次全是迁移前的。
+
+**输掉的方案**：
+- **保留相对 `baseUrl` 的 `presets/assistant/skills/`**：迁移前成立、现在是包外路径；且失效是静默的（provider 扫不存在
+  的根＝空目录，不报错）——所以只能按机制改，不能指望"下次注意"。
+- **改写成 `../../..` 之类更长的相对路径**：把 profile 目录到包根的距离写死，装出来的 home 立刻失效（profile 深度不同）。
+- **把这一行搬进代码**（像 `learn` 那样在模块里挂 provider，用 `import.meta.url` 定位）：路径更好测，但要同 diff 动
+  行 id/name、`docs/package-catalog.md` 生成物与 preset 层的注册顺序，修复半径大于这次的问题本身，本次不取。
+
+## 十三、迁移带出的第二处失效：README「装法」的旧步骤（同日收口）
+
+**症状**：README 的装法段要求"① preset roster 要能看到 `assistant`（把 `agent-presets` 的 `roots` 指向安装后的
+`presets/` 目录，或把该目录拷进 `<dshHome>/.agent-presets/`）"——照做的安装者会去改一个 0.1.7 里不存在的机制
+（行名与 `roots` 字段都是 0.1.5 的形状）。这是 entry 文档上的错事实，装的人是照它做的。
+
+**依据**：vendor 自述"the registry neither scans directories nor accepts preset paths"
+（`vendor/dsh/packages/preset/agent-preset-registry/README.md:46`）；本仓 `--dump-config` 里该行的 config 只有
+`default`（`AgentPresetRegistry.Config`，`vendor/dsh/packages/preset/agent-preset-registry/src/index.ts:53-56`）。
+定义随包走 `dsh.bundle.patch`（§二 表已记），所以装完只需把该 profile 的 registry 行 `default` 设成 `assistant`。
+
+**修法**：README 装法段改写成上面这一句，并指向本 note；同段补一行专家部署装配命令 `pnpm expert-setup -- --data-dir <目录>`
+（`package.json` 接上 tsx 入口，与 `import-knowledge` 同形）。实跑证据：全新目录→`soul replaced` + 3 条种子草稿；
+复跑→`soul SKIPPED`、种子 id 不变且目录仍 3 个文件（幂等）。
+
+**输掉的方案**：
+- **保留旧步骤、加一句"0.1.7 起不用了"**：装法段是给"第一次装"的人读的，留一条不存在的操作等于留一个坑；
+  历史归本 note 与 git。
+- **把装法搬进 `docs/`**：与根 `AGENTS.md` 的"一个事实一个家"冲突——安装形状已在 README 与 §二 表里，
+  再开一处就是第二份清单。
