@@ -200,7 +200,7 @@ try {
     // Content, not just presence: an old file without the sections renders an empty panel too.
     try {
       const parsed = JSON.parse(readFileSync(candidate, 'utf8'))
-      const sections = ['counts', 'decisions', 'threads', 'memories', 'knowledge', 'skills'].filter(key => parsed[key] !== undefined)
+      const sections = ['counts', 'decisions', 'actions', 'gaps', 'threads', 'memories', 'knowledge', 'skills', 'recentActivity'].filter(key => parsed[key] !== undefined)
       deskFound = `${candidate} (sections: ${sections.join(', ')})`
       break
     } catch (error) {
