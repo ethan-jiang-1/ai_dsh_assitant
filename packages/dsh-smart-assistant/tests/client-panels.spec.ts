@@ -348,6 +348,26 @@ describe('desk panels', () => {
     expect(focused).toContain('draft-1')
   })
 
+  it('shows a first-open landing guide when no desk file exists, and the source line explains itself (S6)', () => {
+    const exports = materialize()
+    // No file at all → the panel says what it is and how to get in — the principal's real first
+    // reaction (2026-09-26 trial) was "不知道怎么落脚，不知道要干什么".
+    exports.deskStore.data = undefined
+    exports.deskStore.note = '最近 5 个会话的工作区里都没有 .desk/state.json'
+    const empty = textsOf(exports.DeskPanel()).join(' | ')
+    expect(empty).toContain('第一次来这里？')
+    expect(empty).toContain('在旁边的对话里跟助手说句话')
+    expect(empty).toContain('这里是你的仪表盘')
+    // With data → the workspace line explains the follow-the-conversation rule, not a raw path.
+    exports.deskStore.data = { generatedAt: '2026-09-26T13:00:00+08:00' }
+    exports.deskStore.source = '/Users/somewhere/company'
+    exports.deskStore.note = undefined
+    const filled = textsOf(exports.DeskPanel()).join(' | ')
+    expect(filled).toContain('桌面跟随当前对话的工作区')
+    expect(filled).toContain('换一个对话，桌面跟着换')
+    expect(filled).not.toContain('第一次来这里？')
+  })
+
   it('carries the freshness warning in every room, not only the desk (A7)', () => {
     const exports = materialize()
     exports.deskStore.data = {

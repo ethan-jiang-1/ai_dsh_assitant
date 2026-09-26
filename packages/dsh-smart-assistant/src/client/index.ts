@@ -904,6 +904,23 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       // keep the familiar entries, make the navigation MEAN something).
       createElement('div', { style: { fontSize: '13px', color: '#888', margin: '0 0 8px' } }, '现在要采取什么行动？'),
       refreshRow(store, 'desk'),
+      // S6 landing: the principal's real first reaction (2026-09-26 trial) was "不知所措——
+      // 不知道怎么落脚，不知道要干什么". When no desk file exists yet, say what this surface
+      // is and give the three-step way in — before any content can.
+      store.data === undefined
+        ? createElement('div', {
+            style: {
+              border: '1px solid #ddd', borderRadius: '8px', background: '#fafafa',
+              padding: '10px 14px', margin: '8px 0', fontSize: '12px', color: '#666', lineHeight: 1.8,
+            },
+          },
+          createElement('div', { style: { fontWeight: 600, color: '#555' } }, '第一次来这里？'),
+          '① 在旁边的对话里跟助手说句话（说「刷新我的桌面」也行）',
+          createElement('br'),
+          '② 它会把这个工作区的桌面建起来——这里是你的仪表盘，不是要你配置的东西',
+          createElement('br'),
+          '③ 之后这里一直显示：等你拍板的事、在办的事、它缺什么。每一条都能就地处置')
+        : null,
       quickActions(),
 
       // The principal's first question is "what NOW?" — real-use feedback (2026-09-26) was that a
@@ -1140,8 +1157,12 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       store.note !== undefined
         ? muted(store.note)
         : createElement('div', null,
-            muted(`读自 ${store.source === undefined || store.source === '' ? '会话工作区' : store.source} 的 .desk/state.json`
-              + (store.data?.generatedAt === undefined ? '' : `（更新于 ${shortTime(store.data.generatedAt)}）`))))
+            createElement('div', {
+              title: `桌面跟随你当前对话的工作区${store.source === undefined || store.source === '' ? '' : `：${store.source}`}——换一个对话，这里显示的就是那一个的桌面。`,
+              style: { fontSize: '12px', color: '#999', margin: 0 },
+            }, `桌面跟随当前对话的工作区`
+              + (store.data?.generatedAt === undefined ? '' : `，更新于 ${shortTime(store.data.generatedAt)}`)
+              + '（换一个对话，桌面跟着换）')))
   }
 
   /** Panel 2 — the knowledge room: what the assistant knows, and what is waiting for review. */
