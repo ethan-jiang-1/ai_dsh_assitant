@@ -16,7 +16,7 @@
 | 就地更正循环（每行"这条记错了/有问题"→内联输入→送回对话→助手改并刷新） | ✅ 已实现，待用户实测反馈 |
 | 交互（刷新/点决定要选项/点线索问进展/计数跳转） | ✅ 已实现 |
 | preflight 环境就绪关口（boot 图 + Remote 清单 + desk 文件内容段） | ✅ 已加（防"交一个啥都看不到的 URL"） |
-| 形态问题（主区域整页 vs 右侧栏 tab） | ⏸ 用户说"暂时先不纠结"，机制已查清记在 §四·五 |
+| 面板形态 | ✅ 已拍板（2026-09-26）：**右侧栏 tab**——机制与开工前待查清项记在 §四·五 |
 | 底层实现（自有 Remote 命名空间 / typert 集成） | ⏸ 用户拍板后置："UX 体验出来了之后，咱们再把底下落实的东西给落实了" |
 
 ## 一、用户意图（2026-09-25 原话）
@@ -224,6 +224,10 @@ threads 的 why/lean + 最近五条记忆；数据必须来自本轮真跑的工
 以及 store/locale/children 的必填项。是一块独立的集成。
 
 **建议**：等用户对现有三面板的表达给过反馈后再决定——形态要服务于"看一眼就知道"，不是为形态而形态。
+
+**拍板（2026-09-26，用户）：右侧栏 tab。**理由：body 的 inject 直接拿 sessionId（顺手解决"读哪个
+工作区"）、紧挨对话符合"培养时随手指错"的姿势。开工前需按上文查清：navigator 如何由 kind+params
+构造地址（匹配 patterns/canOpen）、tab 生命周期、store/locale/children 必填项。
 
 ## 四·六、培养面：内容分工 + 就地更正（2026-09-25，用户拍板的方向）
 
@@ -515,16 +519,16 @@ promote / park / drop。切片：线索行改用 `CorrectableRow`（内联"问�
 - ROADMAP：▶ 条目指向本卡
 - 前置研究（生态全量扫描、五个高声誉插件分析）：归档在 git 历史（`759c27d` 与 `ec52cf0`）
 
-## 九、运行与验证（操作信息，原 handoff 文档的内容折入此处）
+## 九、运行与验证（链接，不复述）
 
-```sh
-# 起 Web UI（必须从干净目录起，避免会话读到开发仓的 AGENTS.md）
-cd /tmp/desk && node /Users/bowhead/ai_dsh_assitant/scripts/dsh.mjs --profile dev --port 0 --no-open
-# 交付前必须过 preflight（现在它含 boot 图 + Remote 清单检查）
-cd /Users/bowhead/ai_dsh_assitant && node scripts/webui-preflight.mjs '<URL>'
-# 组合里有没有这一行（绕过 pnpm 的 deps check，直接用 node）
-node scripts/dsh.mjs --profile dev --dump-config | grep -A3 '<row id>'
-```
+命令的唯一权威：根 [`AGENTS.md`](../../AGENTS.md) 命令表 + [`docs/dev.md`](../../docs/dev.md) §四；
+交付关口是 `scripts/webui-preflight.mjs`。本卡只记两条本战役特有：
+
+- 起 Web UI 必须从**干净目录**起（如 `/tmp/desk`），否则会话会读到开发仓的 AGENTS.md；
+- 查组合里有没有这一行（boot-free）：`node scripts/dsh.mjs --profile dev --dump-config | grep -A3 '<row id>'`。
+
+（本节旧版复述的完整命令块与 pnpm 绕过法已删——绕过法在 peerDep 回退当天就过期；审计与拆法见
+[清理卡](../proposed/2026-09-26-signal-noise-sweep.md)。）
 
 关键文件：
 - `packages/dsh-smart-assistant/src/client/index.ts` —— client 面（品牌标记 + My Desk 面板）
@@ -532,10 +536,6 @@ node scripts/dsh.mjs --profile dev --dump-config | grep -A3 '<row id>'
 - `vendor/dsh/packages/client/ui-sidebar/src/client/index.ts` —— panellist 的消费端
 - `scripts/webui-preflight.mjs` —— 交付前关口（含 boot 图检查）
 
-不可推翻的架构事实（实验中学到的）：
-1. **client 是 SCRIPT 不是 ESM**——web shell 把 client bundle 拼成 classic-script combo，不能有 import/export；
-   类型用结构镜像，依赖用 `require()`。
-2. **UI 一切走 slot 系统**——`inject` 占位 + `register` 提供组件；品牌标记、panellist 面板、右侧 tab 同一机制。
-3. **tab 类型注册 ≠ tab 可见**——类型是"我能处理这种资源"的被动声明。
-4. **Remote 代理不是 own-property**——由 loader 按 inject 声明物化；`Object.keys(remote)` 为空是正常的。
-5. **仓外插件的 Remote 命名空间需要 typert 清单集成**（§四·二 的证据链）。
+不可推翻的架构事实（实验所得）的权威 = 开发技能
+[`client-ui-contribution`](../../.agents/skills/client-ui-contribution/SKILL.md)（四事实 + 验证循环）；
+typert 阻塞的证据链与死路回退保留在本卡 §四·二（rationale 家，不复述 how-to）。
