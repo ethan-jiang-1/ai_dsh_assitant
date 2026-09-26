@@ -141,6 +141,8 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     sessionUpdatedAt?: number | undefined
     /** The Session whose workspace answered the last load — a tab bound to another session withholds this data. */
     sourceSession?: string | undefined
+    /** The Session a tab bound actions to; set while a tab is mounted, so sends land in its own conversation. */
+    sendSession?: string | undefined
     listeners: Set<() => void>
   } = { listeners: new Set() }
   const patchDesk = (next: Partial<typeof deskStore>): void => {
@@ -241,7 +243,9 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    */
   function sendPrompt(text: string, busy: string, onSettled?: () => void): void {
     const prompt = (deskRemote?.['session'] as { prompt?: (request: unknown) => Promise<unknown> } | undefined)?.prompt
-    const sessionId = newestSessionId()
+    // A tab bound to session X must send to X: a correction typed beside one conversation that
+    // lands in another would read as the assistant ignoring what was just pointed at.
+    const sessionId = deskStore.sendSession ?? newestSessionId()
     if (sessionId === undefined) {
       patchDesk({ note: '还没有会话——先和助手说句话' })
       return
@@ -272,7 +276,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   /** Ask the assistant to refresh the desk file, then reload it after it has had time to work. */
   function askRefresh(): void {
     sendPrompt('刷新我的桌面。', '已请助手刷新桌面，稍后自动重读…', () => {
-      setTimeout(() => { loadDesk() }, 12000)
+      setTimeout(() => { reloadDesk() }, 12000)
     })
   }
 
@@ -284,7 +288,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     sendPrompt(
       `关于这个待决事项：「${question}」——我的决定是：${answer}。请记住它、据此更新你的判断，然后刷新我的桌面。`,
       '已把你的决定交给助手…',
-      () => { setTimeout(() => { loadDesk() }, 15000) },
+      () => { setTimeout(() => { reloadDesk() }, 15000) },
     )
   }
 
@@ -302,7 +306,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     sendPrompt(
       `行动「${what}」已经办完了。请记录结果（度量上发生了什么），然后刷新我的桌面。`,
       '已把完成情况交给助手…',
-      () => { setTimeout(() => { loadDesk() }, 15000) },
+      () => { setTimeout(() => { reloadDesk() }, 15000) },
     )
   }
 
@@ -311,7 +315,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     sendPrompt(
       `行动「${what}」不办了：请记一行原因（写进相应线索或记忆），然后刷新我的桌面。`,
       '已把这条交给助手…',
-      () => { setTimeout(() => { loadDesk() }, 15000) },
+      () => { setTimeout(() => { reloadDesk() }, 15000) },
     )
   }
 
@@ -323,7 +327,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     sendPrompt(
       `线索「${title}」先放一放（park）：现在不推，但别丢。改完刷新我的桌面。`,
       '已请助手把它先放放…',
-      () => { setTimeout(() => { loadDesk() }, 15000) },
+      () => { setTimeout(() => { reloadDesk() }, 15000) },
     )
   }
 
@@ -333,7 +337,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       `线索「${title}」可以收了：请判断该 promote（变成记忆/知识页/技能）还是 drop（写一行原因），`
       + `做完告诉我你归到了哪里，并刷新我的桌面。`,
       '已请助手收这条线索…',
-      () => { setTimeout(() => { loadDesk() }, 15000) },
+      () => { setTimeout(() => { reloadDesk() }, 15000) },
     )
   }
 
@@ -345,7 +349,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     sendPrompt(
       `请更正这条记忆。原记录：「${text}」。正确的是：${correction}。改完请刷新我的桌面。`,
       '已把你的更正交给助手…',
-      () => { setTimeout(() => { loadDesk() }, 15000) },
+      () => { setTimeout(() => { reloadDesk() }, 15000) },
     )
   }
 
@@ -357,7 +361,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     sendPrompt(
       `我批准知识页「${title}」。请把它从 draft 翻成 stable，改完刷新我的桌面。`,
       '已把批准交给助手…',
-      () => { setTimeout(() => { loadDesk() }, 15000) },
+      () => { setTimeout(() => { reloadDesk() }, 15000) },
     )
   }
 
@@ -369,7 +373,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     sendPrompt(
       `技能「${name}」没用了，请退役它（assistant_reflect retire_skill）。改完刷新我的桌面。`,
       '已把退役请求交给助手…',
-      () => { setTimeout(() => { loadDesk() }, 15000) },
+      () => { setTimeout(() => { reloadDesk() }, 15000) },
     )
   }
 
@@ -381,7 +385,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     sendPrompt(
       `知识页「${title}」过时了，请把它标记为 deprecated（保留在原处以便链接解析）。改完刷新我的桌面。`,
       '已把退役请求交给助手…',
-      () => { setTimeout(() => { loadDesk() }, 15000) },
+      () => { setTimeout(() => { reloadDesk() }, 15000) },
     )
   }
 
@@ -390,7 +394,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     sendPrompt(
       `知识页「${title}」有问题：${problem}。请核对并更正这一页，改完刷新我的桌面。`,
       '已把这条意见交给助手…',
-      () => { setTimeout(() => { loadDesk() }, 15000) },
+      () => { setTimeout(() => { reloadDesk() }, 15000) },
     )
   }
 
@@ -500,6 +504,12 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     return `对话比这份桌面新（对话 ${shortTime(new Date(sessionAt).toISOString())}，桌面 ${shortTime(generated)}）——点「刷新桌面」让它跟上`
   }
 
+  /** Re-read the desk for whoever is bound: a tab reloads its own session, the pages walk the newest five. */
+  function reloadDesk(): void {
+    if (deskStore.sendSession === undefined) loadDesk()
+    else loadDeskFor(deskStore.sendSession)
+  }
+
   /**
    * Read one Session's desk file — the bound form a right-sidebar tab uses. The tab lives in a
    * specific Session's sidebar, so it reads that Session's workspace directly instead of walking
@@ -566,7 +576,14 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     const store = useDesk()
     const sessionId = props.sessionId ?? props.useTabInfo?.()?.tab?.navigation?.params?.sessionId
     useEffect(() => {
-      if (sessionId !== undefined && store.sourceSession !== sessionId) loadDeskFor(sessionId)
+      if (sessionId === undefined) return
+      if (store.sourceSession !== sessionId) loadDeskFor(sessionId)
+      // Bind this tab's actions to the session it lives in — and unbind on unmount, so a later
+      // main-page send falls back to the newest session instead of a dead tab's target.
+      deskStore.sendSession = sessionId
+      return () => {
+        if (deskStore.sendSession === sessionId) deskStore.sendSession = undefined
+      }
     }, [sessionId, store.sourceSession])
     if (sessionId === undefined) return muted('这个 tab 没有落在任何会话里，读不到它的工作区')
     if (deskMisses.has(sessionId)) return muted('这个会话的工作区还没有 .desk/state.json——回到对话说一声「刷新我的桌面」')
@@ -1049,7 +1066,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         if (newest === lastStamp) return
         lastStamp = newest
         if (pending !== undefined) clearTimeout(pending)
-        pending = setTimeout(() => { loadDesk() }, 4000)
+        pending = setTimeout(() => { reloadDesk() }, 4000)
       })
     }
 
