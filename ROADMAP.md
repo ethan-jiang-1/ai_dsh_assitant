@@ -12,7 +12,7 @@
 
 ## 队列
 
-- ▶ **CEO 助手的 Sidebar 培养面**（用户拍板的当前 Goal，进行中）：三面板+培养循环已上线（状态一览＝卡 §〇）；右侧栏 tab 已落地（三室+页头开启点，会话绑定读取），行动已按在办/已办分组；**方向获用户认可（09-26"整体挺好"），更正循环逐条实测仍待**；typert 底层按拍板后置——卡：[2026-09-25-ceo-sidebar-ux](notes/proposed/2026-09-25-ceo-sidebar-ux.md) · 接手入口：[handoff](notes/research/2026-09-26-handoff-ceo-sidebar-cultivation.md)
+- ▶ **CEO 助手的 Sidebar 培养面**（用户拍板的当前 Goal，进行中）：三面板+培养循环已上线并经**真人首测全链走通**；右侧栏 tab、先办这件引导卡、已办分组、忙时冻结已落地；**设计思路＝[培养面设计思路](notes/proposed/2026-09-26-cultivation-surface-design.md)**；⏸ 下一轮实测反馈 / 家务-生意分组价值判断；typert 后置——编年记录：[活动卡](notes/proposed/2026-09-25-ceo-sidebar-ux.md) · 接手入口：[handoff](notes/research/2026-09-26-handoff-ceo-sidebar-cultivation.md)
 - ⏸ **IM 渠道接入**（O5；渠道由你选：飞书 / 企微 / 钉钉 / 先 Web+Desktop）——依据：[专家组合件 v0](notes/implemented/2026-09-25-expert-pack-v0.md) §四
 - ⏳ **MCP 连接**（触发=需要真实系统数据（公司盘/CRM 等）接入会话时；v0 用文件替身）——依据同上
 - ⏳ 知识导入的转换与概念抽取（触发=①第一份真实 docx/pdf 文档集出现 ②评测集 v0 就位；依据：[导入纯核 note](notes/implemented/2026-09-25-knowledge-ingest-core.md) §四）
@@ -25,7 +25,7 @@
 - ⏳ `/personality` 类会话 overlay（触发=真实需求出现；依据[soul-and-agents](notes/implemented/2026-09-24-soul-and-agents.md)）
 - ⏳ 文档词数预算 manifest（触发=docs 腐化实证；判据在 [discipline](docs/discipline.md)）
 - ⏳ change-scope 脚本（触发=真实"跑错检查/漏跑检查"摩擦出现；最简形态见卡 §五）
-- ▶ **真实使用开跑**（用户本人用起来；首批数据与 ⏳ 对照见[打磨战役 §八](notes/implemented/2026-09-25-smart-assistant-polish-campaign.md)，摩擦即新卡）
+- ▶ **真实使用开跑**（**已开始**：2026-09-26 真人经面板走完整条培养循环，会话 `34e64c5d`；首个摩擦已落地为忙时冻结；首批数据与 ⏳ 对照见[打磨战役 §八](notes/implemented/2026-09-25-smart-assistant-polish-campaign.md)，摩擦即新卡）
 - 🔒 ⏳ dsh-obsidian 挂桥（用户判触发）（触发=用户想让助手直接操作某个外部 vault；设计参照已录 r5）
 - 🔒 ⏳ 会话日志薄动词 b1/b2（用户判触发）（触发=真实使用中真去查历史会话且 rg 配方不够用；b2 后端可用性待细查）
 - 🔒 ⏳ workflow-as-MD（用户判触发）（触发=真实使用出现多步编排需求；方向：程序性知识之上，编排是否也为 working folder 的 MD 文件——用户 2026-09-24 提出）
@@ -58,6 +58,9 @@
   只写接下来 / 完成即离队 / 队列=索引 / 两道机械门禁进 verify）。三线提案的 §六延后项
   表移交本队列（⏳ 各行），原表加移交注记；两份提案（tri-line、iteration-rhythm）毕业至
   `notes/implemented/`，全仓引用同步。档案：`notes/implemented/2026-09-24-roadmap-queue.md`。
+- 2026-09-26：**培养面设计思路显性化**（用户要求：先停一下、系统思考清楚）——新增
+  [设计 owner 卡](notes/proposed/2026-09-26-cultivation-surface-design.md)（判据/11 条设计原则/架构/
+  现状/输掉的方案/判据怎么验）；活动卡保留编年记录与逐圈证据。
 - 2026-09-26：**专家部署组合件 v0 毕业**——v0 四件全部落地并 live 验证（卡迁 `notes/implemented/`）；
   v0 之外的触发项入队：IM 渠道（⏸ 等你选渠道）、MCP 连接（⏳）；概念页抽取并入既有 ⏳ 知识导入条目。
 - 2026-09-26：**会话日志代次配方毕业**——主体与四条验收早已全绿（卡 §四），条目离队；卡迁
