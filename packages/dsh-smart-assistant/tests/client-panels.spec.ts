@@ -35,6 +35,8 @@ interface DeskStore {
   busy?: string | undefined
   /** The newest Session's updatedAt, so the panels can say when they lag the conversation. */
   sessionUpdatedAt?: number | undefined
+  /** The Session whose workspace answered the last load — tab bodies withhold other sessions' data. */
+  sourceSession?: string | undefined
   listeners: Set<() => void>
 }
 
@@ -42,6 +44,9 @@ interface PanelExports {
   DeskPanel: () => unknown
   KnowledgePanel: () => unknown
   MemoryPanel: () => unknown
+  DeskTabBody: (props: { sessionId?: string }) => unknown
+  KnowledgeTabBody: (props: { sessionId?: string }) => unknown
+  MemoryTabBody: (props: { sessionId?: string }) => unknown
   deskStore: DeskStore
 }
 
@@ -231,5 +236,32 @@ describe('desk panels', () => {
     expect(memory).toContain('（还没有记忆，或桌面文件尚未刷新）')
     // The loader's reason reaches every panel, so an empty page is explained rather than mute.
     expect(desk).toContain('没有 .desk/state.json')
+  })
+
+  it('binds each tab body to its own session instead of showing another session’s desk', () => {
+    const exports = materialize()
+    exports.deskStore.data = { counts: { memories: 7 } }
+    // The store currently holds session s1's desk; a tab living in session s2 must not present it.
+    exports.deskStore.sourceSession = 's1'
+    const foreign = textsOf(exports.DeskTabBody({ sessionId: 's2' })).join(' | ')
+    expect(foreign).toContain('正在读这个会话的桌面…')
+    expect(foreign).not.toContain('我的桌面')
+
+    // The matching session renders the full room, exactly like the main page.
+    const own = textsOf(exports.DeskTabBody({ sessionId: 's1' })).join(' | ')
+    expect(own).toContain('我的桌面')
+    expect(own).toContain('等你决定')
+
+    // The other rooms bind the same way.
+    const knowledge = textsOf(exports.KnowledgeTabBody({ sessionId: 's1' })).join(' | ')
+    expect(knowledge).toContain('知识室')
+    const memory = textsOf(exports.MemoryTabBody({ sessionId: 's1' })).join(' | ')
+    expect(memory).toContain('记忆室')
+  })
+
+  it('says so when a tab is not mounted inside any session', () => {
+    const exports = materialize()
+    const text = textsOf(exports.DeskTabBody({})).join(' | ')
+    expect(text).toContain('没有落在任何会话')
   })
 })

@@ -67,11 +67,12 @@ describe('client-module registration', () => {
   it('declares every service the panels need, and wires both sidebar brand slots', () => {
     const exports = materialize()
     // The list is the client half's whole dependency contract: slots and the sidebar registry for
-    // the brand mark and the three panels, the Session store for the conversation list and the
-    // desk file's workspace, layout for panel jumps, and the three manifested Remote namespaces
-    // (a namespace the browser-side manifest does not list leaves the entry pending forever).
+    // the brand mark and the three panels, sidebarRight to open the beside-conversation room tabs,
+    // the Session store for the conversation list and the desk file's workspace, layout for panel
+    // jumps, and the three manifested Remote namespaces (a namespace the browser-side manifest does
+    // not list leaves the entry pending forever).
     expect(exports.inject).toEqual([
-      'slots', 'sidebarRightTabs', 'sessions', 'layout', 'remote',
+      'slots', 'sidebarRightTabs', 'sidebarRight', 'sessions', 'layout', 'remote',
       'remote.agentPresets', 'remote.workspaceFiles', 'remote.session',
     ])
     const calls: string[] = []
@@ -97,20 +98,27 @@ describe('client-module registration', () => {
       sidebarRightTabs: { register: (definition: { kind: string }) => { registered.push(`tab:${definition.kind}`) } },
     }
     ;(exports.apply as (ctx: unknown) => void)(ctx)
-    // Brand slots first, then one panellist entry plus one main body per panel.
+    // Brand slots first, then one panellist entry plus one main body per panel, then one
+    // right-sidebar tab body per room, then the Session-header chip that opens the desk tab.
     expect(calls).toEqual([
       'sidebar.brand.mark', 'sidebar.brand.name',
       'sidebar.panellist', 'main',
       'sidebar.panellist', 'main',
       'sidebar.panellist', 'main',
+      'sidebar.right.pane.tab', 'sidebar.right.pane.tab', 'sidebar.right.pane.tab',
+      'conversation.session.header.utilities',
     ])
-    // Each panel registers twice by design: its icon in the panellist, its body in `main`.
+    // Each panel registers twice by design: its icon in the panellist, its body in `main`;
+    // each room then registers its tab type and its keyed body; the chip closes the set.
     expect(registered).toEqual([
       'sidebar.brand.mark', 'sidebar.brand.name',
       'assistant-desk', 'assistant-desk',
       'assistant-knowledge', 'assistant-knowledge',
       'assistant-memory', 'assistant-memory',
-      'tab:desk',
+      'tab:desk', 'dsh-smart-assistant-desk',
+      'tab:knowledgeRoom', 'dsh-smart-assistant-knowledge',
+      'tab:memoryRoom', 'dsh-smart-assistant-memory',
+      'assistant-desk-chip',
     ])
   })
 })

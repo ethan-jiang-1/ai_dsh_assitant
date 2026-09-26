@@ -34,15 +34,19 @@ interface SlotsRegistry {
 interface ClientContext {
   slots: SlotsRegistry
   sidebarRightTabs: SidebarRightTabsRegistry
+  /** The right-sidebar controller, so a page can open a room tab beside the conversation. */
+  sidebarRight?: { openTab: (kind: string, options?: { params?: unknown }) => void }
 }
 
 /** Minimal structural mirror of the sidebar-right tab registration surface. */
 interface SidebarRightTabDefinition {
   readonly id: string
   readonly kind: string
-  readonly patterns: readonly string[]
+  /** Resource addresses this type claims; a kind-opened page (no address) omits it. */
+  readonly patterns?: readonly string[]
   readonly priority: string
-  readonly canOpen: (address: string) => boolean
+  readonly canOpen?: (address: string) => boolean
+  /** The chip text captured at open time; a title-seat registration may replace it. */
   readonly title: (address: string) => string
 }
 
@@ -135,6 +139,8 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     busy?: string | undefined
     /** The newest Session's updatedAt, so the panels can say when they are behind the conversation. */
     sessionUpdatedAt?: number | undefined
+    /** The Session whose workspace answered the last load — a tab bound to another session withholds this data. */
+    sourceSession?: string | undefined
     listeners: Set<() => void>
   } = { listeners: new Set() }
   const patchDesk = (next: Partial<typeof deskStore>): void => {
@@ -144,6 +150,8 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
 
   /** Monotonic load sequence: a newer load invalidates every attempt of the older one. */
   let deskLoadSeq = 0
+  /** Sessions whose workspace is known to have no desk file, so a bound tab can say so instead of spinning. */
+  const deskMisses = new Set<string>()
 
   /**
    * Read `.desk/state.json` for the newest Session that has one. The file is per-workspace, so
@@ -194,7 +202,8 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
           await attempt(index + 1)
           return
         }
-        patchDesk({ data: JSON.parse(text) as DeskData, note: undefined, source: byId[sessionId]?.cwd ?? '' })
+        patchDesk({ data: JSON.parse(text) as DeskData, note: undefined, source: byId[sessionId]?.cwd ?? '', sourceSession: sessionId })
+        deskMisses.delete(sessionId)
       } catch {
         await attempt(index + 1)
       }
@@ -491,6 +500,103 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     return `对话比这份桌面新（对话 ${shortTime(new Date(sessionAt).toISOString())}，桌面 ${shortTime(generated)}）——点「刷新桌面」让它跟上`
   }
 
+  /**
+   * Read one Session's desk file — the bound form a right-sidebar tab uses. The tab lives in a
+   * specific Session's sidebar, so it reads that Session's workspace directly instead of walking
+   * the five newest; a silent miss is remembered so the tab can say "this session has none yet"
+   * rather than spinning on a reload that will never answer.
+   */
+  function loadDeskFor(sessionId: string): void {
+    const read = (deskRemote?.['workspaceFiles'] as {
+      read?: (sessionId: string, path: string, options: unknown) => Promise<unknown>
+    } | undefined)?.read
+    if (read === undefined) {
+      patchDesk({ note: 'remote.workspaceFiles did not materialize' })
+      return
+    }
+    const seq = ++deskLoadSeq
+    void (async (): Promise<void> => {
+      const state = deskSessions?.list?.getSnapshot() as { byId?: Record<string, { cwd?: string }> } | undefined
+      const cwd = state?.byId?.[sessionId]?.cwd ?? ''
+      try {
+        const result = await read(sessionId, '.desk/state.json', {})
+        if (seq !== deskLoadSeq) return
+        const wrapped = result as { ok?: boolean, value?: { text?: string } }
+        const text = wrapped?.ok === false ? undefined : wrapped?.value?.text
+        if (typeof text !== 'string' || text.trim() === '') {
+          deskMisses.add(sessionId)
+          return
+        }
+        deskMisses.delete(sessionId)
+        patchDesk({ data: JSON.parse(text) as DeskData, note: undefined, source: cwd, sourceSession: sessionId })
+      } catch {
+        // Keep the previous data; a failed read must not blank the room. The bound tab's guard
+        // keeps showing "reading" rather than another session's desk.
+        if (seq === deskLoadSeq) patchDesk({ note: `读桌面文件失败（${cwd === '' ? '本会话工作区' : cwd}）` })
+      }
+    })()
+  }
+
+  /** Open one room as a right-sidebar tab beside the conversation (the approved form). */
+  function openBeside(kind: string): void {
+    const openTab = deskSidebarRight?.openTab
+    if (openTab === undefined) {
+      patchDesk({ note: 'sidebarRight 服务没有物化，开不了对话旁的 tab' })
+      return
+    }
+    openTab(kind)
+  }
+
+  /** Props a right-sidebar tab body receives (structural mirror of the session-scoped seat). */
+  interface TabBodyProps {
+    /** The Session whose sidebar holds this tab — session-scope slots get it as a standard prop. */
+    sessionId?: string
+    /** The tab record; a kind-opened tab's opener may also have bound a session in its params. */
+    useTabInfo?: () => { tab?: { navigation?: { params?: { sessionId?: string } } } }
+  }
+
+  /**
+   * One room rendered as a right-sidebar tab, bound to the session the tab lives in. The store is
+   * shared with the main pages, so when its data came from another session's workspace the tab
+   * withholds it and reloads its own — presenting another session's desk as yours would be worse
+   * than a one-line wait.
+   */
+  function tabBody(props: TabBodyProps, Panel: () => unknown): ReturnType<typeof createElement> {
+    const { useEffect } = require('react') as typeof import('react')
+    const store = useDesk()
+    const sessionId = props.sessionId ?? props.useTabInfo?.()?.tab?.navigation?.params?.sessionId
+    useEffect(() => {
+      if (sessionId !== undefined && store.sourceSession !== sessionId) loadDeskFor(sessionId)
+    }, [sessionId, store.sourceSession])
+    if (sessionId === undefined) return muted('这个 tab 没有落在任何会话里，读不到它的工作区')
+    if (deskMisses.has(sessionId)) return muted('这个会话的工作区还没有 .desk/state.json——回到对话说一声「刷新我的桌面」')
+    if (store.sourceSession !== sessionId) return muted('正在读这个会话的桌面…')
+    return createElement(Panel as unknown as import('react').FunctionComponent)
+  }
+
+  /** Tab bodies: the same three rooms the main pages render, bound to their own session. */
+  function DeskTabBody(props: TabBodyProps): ReturnType<typeof createElement> {
+    return tabBody(props, DeskPanel)
+  }
+  function KnowledgeTabBody(props: TabBodyProps): ReturnType<typeof createElement> {
+    return tabBody(props, KnowledgePanel)
+  }
+  function MemoryTabBody(props: TabBodyProps): ReturnType<typeof createElement> {
+    return tabBody(props, MemoryPanel)
+  }
+
+  /** The opener where the principal already is: a chip in the Session header beside the conversation. */
+  function AssistantDeskChip(): ReturnType<typeof createElement> {
+    return createElement('button', {
+      onClick: () => { openBeside('desk') },
+      title: '在对话旁打开我的桌面',
+      style: {
+        border: 'none', background: 'transparent', cursor: 'pointer',
+        fontSize: '12px', color: MARK_TEAL, padding: '2px 6px',
+      },
+    }, '桌面')
+  }
+
   /** A stat cell; with a target it becomes the way to the panel that explains the number. */
   function cell(label: string, value: string, target?: string): ReturnType<typeof createElement> {
     const jump = (): void => {
@@ -541,8 +647,8 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         () => { sendPrompt('跑一次 curate，报告家的现状与需要我处理的事。', '已请助手体检…') }))
   }
 
-  /** The refresh button plus its status line — shared by all three panels. */
-  function refreshRow(store: typeof deskStore): ReturnType<typeof createElement> {
+  /** The refresh button plus its status line, and — where the room can — the jump to the beside-conversation tab. */
+  function refreshRow(store: typeof deskStore, tabKind?: string): ReturnType<typeof createElement> {
     return createElement('div', { style: { margin: '8px 0 0' } },
       createElement('button', {
         onClick: askRefresh,
@@ -553,6 +659,16 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
           color: MARK_TEAL,
         },
       }, '刷新桌面'),
+      tabKind === undefined
+        ? null
+        : createElement('button', {
+            onClick: () => { openBeside(tabKind) },
+            title: '把这一室开到对话旁边的右侧栏（绑定当前会话）',
+            style: {
+              marginLeft: '8px', padding: '6px 12px', fontSize: '12px', cursor: 'pointer',
+              borderRadius: '6px', border: '1px solid #ddd', background: '#fff', color: '#555',
+            },
+          }, '在对话旁打开'),
       store.busy === undefined
         ? null
         : createElement('span', { style: { marginLeft: '10px', fontSize: '12px', color: '#888' } }, store.busy))
@@ -602,7 +718,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     const data = store.data
     return createElement('div', { style: { padding: '24px', maxWidth: '620px' } },
       createElement('h2', { style: { margin: '0 0 4px', fontSize: '18px' } }, '我的桌面'),
-      refreshRow(store),
+      refreshRow(store, 'desk'),
       quickActions(),
 
       // The principal's first question is "what needs me?" — so it leads, and the drafts the
@@ -776,7 +892,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       })
     return createElement('div', { style: { padding: '24px', maxWidth: '620px' } },
       createElement('h2', { style: { margin: '0 0 4px', fontSize: '18px' } }, '知识室'),
-      refreshRow(store),
+      refreshRow(store, 'knowledgeRoom'),
       pages.length === 0
         ? muted('（还没有知识页，或桌面文件尚未刷新）')
         : createElement('div', null,
@@ -849,7 +965,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     const memories = store.data?.memories ?? []
     return createElement('div', { style: { padding: '24px', maxWidth: '620px' } },
       createElement('h2', { style: { margin: '0 0 4px', fontSize: '18px' } }, '记忆室'),
-      refreshRow(store),
+      refreshRow(store, 'memoryRoom'),
       memories.length === 0
         ? muted('（还没有记忆，或桌面文件尚未刷新）')
         : createElement('div', null, ...memoryGroups(memories)),
@@ -861,7 +977,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   }
 
   /** Slots this face occupies (single-occupant, root-scope, declared by the sidebar). */
-  const inject = ['slots', 'sidebarRightTabs', 'sessions', 'layout', 'remote', 'remote.agentPresets', 'remote.workspaceFiles', 'remote.session']
+  const inject = ['slots', 'sidebarRightTabs', 'sidebarRight', 'sessions', 'layout', 'remote', 'remote.agentPresets', 'remote.workspaceFiles', 'remote.session']
 
   /**
    * Register the brand occupants as one declaration-aware set.
@@ -873,11 +989,14 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   let deskSessions: { list?: { getSnapshot: () => unknown, subscribe: (fn: () => void) => () => void } } | undefined
   /** Main-panel navigation, so a count can jump to the panel that explains it. */
   let deskLayout: { selectPanel?: (panelId: string) => void } | undefined
+  /** The right-sidebar controller, so a page can open a room tab beside the conversation. */
+  let deskSidebarRight: { openTab: (kind: string, options?: { params?: unknown }) => void } | undefined
 
   function apply(ctx: ClientContext): void {
     deskRemote = (ctx as { remote?: Record<string, unknown> }).remote
     deskSessions = (ctx as { sessions?: typeof deskSessions }).sessions
     deskLayout = (ctx as { layout?: typeof deskLayout }).layout
+    deskSidebarRight = ctx.sidebarRight
 
     // The official build's brand package occupies these slots under its own build profile;
     // step aside there. A browser has no `process`, so the guard reads false and we register.
@@ -934,17 +1053,35 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       })
     }
 
-    // Experiment 1 (kept for reference): the right-sidebar tab type registration below
-    // registers a TYPE (what this plugin can open), not a VISIBLE tab — lesson learned:
-    // types are passive; visibility needs either an open action or a persistent panel.
-    ctx.sidebarRightTabs.register({
-      id: 'dsh-smart-assistant-desk',
-      kind: 'desk',
-      patterns: ['dsh-resource://assistant/desk'],
-      priority: 'fallback',
-      canOpen: address => address === 'dsh-resource://assistant/desk',
-      title: () => 'My Desk',
-    })
+    // The approved form (2026-09-26): the rooms live beside the conversation as right-sidebar
+    // tabs, each bound to the session whose sidebar holds it — the body reads that session's
+    // workspace desk file directly, no more newest-five walk. Two-stage like ui-schedule: the
+    // definition into `sidebarRightTabs`, the body into the keyed `sidebar.right.pane.tab` seat
+    // under the definition's id. The chip title is the constant the definition captures; these
+    // are kind-opened pages (no resource address), reached from the Session-header chip or a
+    // room's "在对话旁打开" button.
+    const roomTabs = [
+      { id: 'dsh-smart-assistant-desk', kind: 'desk', title: '我的桌面', body: DeskTabBody },
+      { id: 'dsh-smart-assistant-knowledge', kind: 'knowledgeRoom', title: '知识室', body: KnowledgeTabBody },
+      { id: 'dsh-smart-assistant-memory', kind: 'memoryRoom', title: '记忆室', body: MemoryTabBody },
+    ] as const
+    for (const room of roomTabs) {
+      ctx.sidebarRightTabs.register({
+        id: room.id,
+        kind: room.kind,
+        priority: 'fallback',
+        title: () => room.title,
+      })
+      ctx.slots.inject('sidebar.right.pane.tab', () =>
+        ctx.slots.register({ name: 'sidebar.right.pane.tab', key: room.id }, room.body))
+    }
+    // The opener the principal sees where they already are: a chip in the Session header.
+    ctx.slots.inject('conversation.session.header.utilities', () =>
+      ctx.slots.register({
+        name: 'conversation.session.header.utilities',
+        id: 'assistant-desk-chip',
+        order: -6,
+      }, AssistantDeskChip))
   }
 
   // The occupants, the three panels, and the shared store are exposed for tests: the store is the
@@ -952,6 +1089,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   return {
     inject, apply, AssistantBrandMark, AssistantBrandName,
     DeskPanel, KnowledgePanel, MemoryPanel, deskStore,
+    DeskTabBody, KnowledgeTabBody, MemoryTabBody, AssistantDeskChip,
   }
 }
 

@@ -16,7 +16,7 @@
 | 就地更正循环（每行"这条记错了/有问题"→内联输入→送回对话→助手改并刷新） | ✅ 已实现，待用户实测反馈 |
 | 交互（刷新/点决定要选项/点线索问进展/计数跳转） | ✅ 已实现 |
 | preflight 环境就绪关口（boot 图 + Remote 清单 + desk 文件内容段） | ✅ 已加（防"交一个啥都看不到的 URL"） |
-| 面板形态 | ✅ 已拍板（2026-09-26）：**右侧栏 tab**——机制与开工前待查清项记在 §四·五 |
+| 面板形态 | ✅ 已落地（2026-09-26）：**右侧栏 tab**——三室 tab + 页头「桌面」开启点 + 会话绑定读取（§四·十六） |
 | 底层实现（自有 Remote 命名空间 / typert 集成） | ⏸ 用户拍板后置："UX 体验出来了之后，咱们再把底下落实的东西给落实了" |
 
 ## 一、用户意图（2026-09-25 原话）
@@ -228,6 +228,13 @@ threads 的 why/lean + 最近五条记忆；数据必须来自本轮真跑的工
 **拍板（2026-09-26，用户）：右侧栏 tab。**理由：body 的 inject 直接拿 sessionId（顺手解决"读哪个
 工作区"）、紧挨对话符合"培养时随手指错"的姿势。开工前需按上文查清：navigator 如何由 kind+params
 构造地址（匹配 patterns/canOpen）、tab 生命周期、store/locale/children 必填项。
+
+**落地（2026-09-26）**：查清的结果比预想更省——`sidebar.right.pane.tab` 是 keyed、session 作用域的
+seat，组件经 session 标准	props **直接拿到所在会话的 sessionId**，所以三室都做成 kind 型页
+（无 patterns、按 kind 打开，照 ui-schedule 的两段注册形状）。恢复态 tab 只存布局记录、不带导航
+参数——schedule 需要 binding 表找回任务，桌面不需要：它天然绑定所在会话，恢复后仍读对工作区。
+开启点两处：会话页头「桌面」chip（`conversation.session.header.utilities`）与整页各室的
+「在对话旁打开」按钮。
 
 ## 四·六、培养面：内容分工 + 就地更正（2026-09-25，用户拍板的方向）
 
@@ -468,6 +475,28 @@ promote / park / drop。切片：线索行改用 `CorrectableRow`（内联"问�
 
 切片：记忆室分四组渲染——**你的偏好 / 你的决定 / 事实 / 其它**（顺序即优先级：分身的核心是先懂人）。
 行内不再重复 kind（已由组标题承载），保留时间与出处与"这条记错了"。测试覆盖四组、偏好排在事实之前。
+
+## 四·十六、第 26 圈：形态落地——三室开进对话旁的右侧栏（2026-09-26）
+
+用户拍板右侧栏 tab 后的第一个切片（§四·五 的拍板与机制记录在此收口）。
+
+**切片（四处同 diff）**：
+1. **三室三 kind**：`desk` / `knowledgeRoom` / `memoryRoom`，kind 型页（无 patterns、按 kind 打开），
+   两段注册照 ui-schedule（definition 进 `sidebarRightTabs`、body 挂 keyed `sidebar.right.pane.tab`
+   座位、chip 标题用 definition 捕获的常量）。
+2. **会话绑定读取**：session 作用域的 seat 组件直接拿到 `sessionId`（`ScopeStandardProps`）——
+   新增 `loadDeskFor(sessionId)` 只读本 tab 所在会话的工作区，"读哪个工作区"从"最近五个会话挨个试"
+   变成机制层保证；miss 记账（`deskMisses`）让 tab 明说"这个会话还没有桌面文件"而不是空转；
+   跨会话数据用 `sourceSession` 守卫——不属于本会话的快照显示"正在读这个会话的桌面…"，不冒充现状。
+3. **两个开启点**：会话页头「桌面」chip（`conversation.session.header.utilities`，照 ui-schedule 的
+   order 形状）+ 各整页室头的「在对话旁打开」按钮（`openBeside(kind)`）。
+4. **恢复态语义（查清后定的取舍）**：恢复的 tab 只存布局记录、不带导航参数——schedule 用 binding 表
+   找回任务，桌面不需要：它天然绑定所在会话，恢复后仍读对工作区。
+
+**验收（显式退出码）**：tsc 0 error、本包 vitest 36 通过 / 1 失败文件（=已知降级两条，与本切片不相交）、
+verify 31/31、build exit 0、干净目录起 web + preflight 绿（boot 图 65 项，含新依赖 `sidebarRight`
+的提供者 `dsh-client-ui-sidebar-right`；Remote 清单 27 命名空间；desk 文件九段在列）。
+**待真人**：右栏窄幅下的表达（行宽、截断、逐条动作的密度）没经真人眼——等实测反馈再调，不提前打磨。
 
 ## 五、实验计划（按序，每步可看可玩）
 

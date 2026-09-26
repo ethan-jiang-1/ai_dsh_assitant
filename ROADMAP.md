@@ -12,7 +12,7 @@
 
 ## 队列
 
-- ▶ **CEO 助手的 Sidebar 培养面**（用户拍板的当前 Goal，进行中）：三面板+培养循环已上线（已完成清单与状态一览＝卡 §〇）；**形态已拍板（2026-09-26）：右侧栏 tab，待开工**；⏸ 更正循环等用户实测反馈；typert 底层按拍板后置——卡：[2026-09-25-ceo-sidebar-ux](notes/proposed/2026-09-25-ceo-sidebar-ux.md) · 接手入口：[handoff](notes/research/2026-09-26-handoff-ceo-sidebar-cultivation.md)
+- ▶ **CEO 助手的 Sidebar 培养面**（用户拍板的当前 Goal，进行中）：三面板+培养循环已上线（状态一览＝卡 §〇）；**右侧栏 tab 已落地（2026-09-26）：三室 + 页头「桌面」开启点，会话绑定读取**；⏸ 右栏窄幅表达等用户实测反馈；typert 底层按拍板后置——卡：[2026-09-25-ceo-sidebar-ux](notes/proposed/2026-09-25-ceo-sidebar-ux.md) · 接手入口：[handoff](notes/research/2026-09-26-handoff-ceo-sidebar-cultivation.md)
 - ▶ **专家部署的组合件 v0**（进行中）：可装可跑的件已齐（SOP 技能×2 + `pnpm expert-setup` 装配 + read-only 权限形状 + P1 行为 live 验证，eval 3/3；迁移 bug 修复记录在卡）；剩触发项：IM 渠道（等你选）、MCP、概念页抽取（卡 §四）——卡：[2026-09-25-expert-pack-v0](notes/proposed/2026-09-25-expert-pack-v0.md)
 - ▶ **会话日志代次配方**（进行中）：写者 v4、开发仪表与模型可见两处已改代次无关，验收四条全绿（红夹具+eval 3/3+live 探针）；细节与两处附带不可用的修复在卡 §四/§六——卡：[2026-09-25-session-log-generation-recipe](notes/proposed/2026-09-25-session-log-generation-recipe.md)
 - ⏳ 知识导入的转换与概念抽取（触发=①第一份真实 docx/pdf 文档集出现 ②评测集 v0 就位；依据：[导入纯核 note](notes/implemented/2026-09-25-knowledge-ingest-core.md) §四）
