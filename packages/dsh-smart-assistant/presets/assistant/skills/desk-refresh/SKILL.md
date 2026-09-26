@@ -23,7 +23,7 @@ place your file tools write). Create the directory if it is missing.
   "generatedAt": "2026-09-25T16:00:00+08:00",
   "counts": { "memories": 8, "knowledgeStable": 10, "knowledgeDraft": 3, "skills": 2, "threads": 1 },
   "decisions": [
-    { "id": "…", "question": "…", "context": "…" }
+    { "id": "…", "question": "…", "context": "…", "kind": "business|upkeep", "rank": 0 }
   ],
   "actions": [
     { "id": "…", "what": "…", "owner": "…", "due": "…", "metric": "…", "stop": "…", "status": "open" }
@@ -66,6 +66,14 @@ The desk panel leads with its decisions section (`decisions`) and its threads se
   "should we retire the weakest record in the digest?"). `context` is one short line of why the call
   is theirs. **Only real ones**: something you are genuinely waiting on. An empty list is a fine
   answer and renders as "nothing waiting on you".
+- `decisions[].kind` — **"business" or "upkeep", and this is the gate for the lead card**: only a
+  business decision can reach the lead slot, so before you write one, ask: *can only the principal
+  call this, AND does calling it change what happens outside?* (signing, spending, hiring,
+  promising a customer — yes; anything about yourself, your own configuration, this product's
+  roadmap, your budget, your evaluation set — no, that is "upkeep"). **At most one business
+  decision leads**; give it the lowest `rank` if there are several. When there is no business
+  decision the panel honestly reports that nothing needs the principal's call, and your upkeep
+  waits folded under its own group — that is the correct output, not a failure.
 - `threads[].title` — one line naming the question (for example: "Q3 sales down 20% — settle the
   definition first, or the customers?"). `why` is the rationale (rendered small and grey), `lean` is
   your current lean (rendered under the title). Keep `why` to about two lines: it is the footnote,
@@ -89,7 +97,7 @@ The desk panel leads with its decisions section (`decisions`) and its threads se
   what actually changed in the working folder — file times and your own tool results — not from a
   narrative you would like to be true.
 - **Knowledge** — drafts (with approval), stable pages (with provenance and a retire action),
-  deprecated pages (kept in place so links resolve, shown without actions), skills (flag or retire).
+  deprecated pages (kept in place so links resolve, shown without actions), skills (a count only).
   The principal's three lifecycle moves arrive as ordinary messages: approve a draft
   (`promote_page`), retire a page that is past its use-by date (`deprecate_page`), or tell you what
   is wrong with it. Perform the edit and refresh the desk in the same turn.
@@ -104,7 +112,10 @@ The desk panel leads with its decisions section (`decisions`) and its threads se
    yourself (the thread record has no one-line headline).
 2b. **Decisions** — ask yourself: *is there anything I am waiting on the principal for?* A draft page
    awaiting approval, a choice they reserved, a call only they can make. If yes, one entry each; if
-   no, leave the list empty rather than inventing work for them.
+   no, leave the list empty rather than inventing work for them. Then classify every entry
+   (`kind`): only entries that are the principal's *business* — a call only they can make that
+   changes what happens outside — may lead; everything about yourself or this deployment is
+   `upkeep` and renders folded under the assistant's-own-affairs group.
 2d. **Recent activity** — list the last few changes you actually made to the working folder
    (newest first, about five): a record written, a thread opened or closed, a page distilled, a
    skill retired, a correction applied. One line each, `at` = when it happened. This is what makes
@@ -130,12 +141,13 @@ The desk panel leads with its decisions section (`decisions`) and its threads se
    draft you leave out is a draft they never see.
 5. **Skills** — both sources, because "what can you do" is the question this section answers:
    - `kind: "curated"` — the skills that ship with this deployment. They are in your own skill
-     catalog (the catalog section of your context); list each with its one-line description. They
-     are not in the working folder, so the folder listing alone will miss all of them.
+     catalog (the catalog section of your context). They are not in the working folder, so the
+     folder listing alone will miss all of them.
    - `kind: "learned"` — the bundles in the working folder's `skills/` room: `name` is the
-     directory, `description` the first line of its `SKILL.md`.
-   The split is the point: a curated skill is fixed (the principal judges it, you cannot retire it),
-   a learned one is yours to retire.
+     directory.
+   The panel renders **a count only** (name and kind are enough; descriptions are not shown) — the
+   principal cannot judge a skill from a description, and retiring one is a sentence in the
+   conversation, not a row of buttons.
 
 ## Their moves come back through this file
 
@@ -157,6 +169,11 @@ just did. A change you apply but do not re-render reads as if you ignored them:
 
 ## Rules
 
+- **Content eligibility: this surface is for the principal's business and their portrait — not for
+  your own maintenance.** Developer material (DSH mechanisms, repository discipline, evaluation
+  process, your own tooling and roadmap) does not belong on the desk, in the knowledge list, or
+  among the memories you surface; if the principal needs to see any of it, that is a conversation,
+  not a panel row. When in doubt, leave it off.
 - **Never invent numbers.** Every count comes from a tool call you actually made this turn. If a
   tool failed, write the file without that section rather than guessing — the panel renders a
   missing section as empty, which is honest.

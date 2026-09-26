@@ -94,8 +94,11 @@ describe('desk panels', () => {
       generatedAt: '2026-09-26T13:00:00+08:00',
       counts: { memories: 7, knowledgeStable: 10, knowledgeDraft: 3, skills: 2, threads: 1 },
       decisions: [
-        { id: 'd1', question: '要不要授权读公司盘？', context: '读它才能定因' },
-        { id: 'd2', question: '摘要预算怎么处置？', context: '3962/4096 贴顶' },
+        // The first row is the assistant's own upkeep on purpose: the regression this pins is that
+        // the lead card used to take decisions[0] and so promoted housekeeping to the principal.
+        { id: 'd0', question: '培养面接着做深，还是先停一停？', context: '形态已定', kind: 'upkeep' },
+        { id: 'd1', question: '要不要授权读公司盘？', context: '读它才能定因', kind: 'business', rank: 2 },
+        { id: 'd2', question: '摘要预算怎么处置？', context: '3962/4096 贴顶', kind: 'business', rank: 1 },
       ],
       gaps: [{ id: 'g1', what: '本季度原始读数', why: '有它才能从框架走到定因' }],
       actions: [{
@@ -111,12 +114,15 @@ describe('desk panels', () => {
 
     expect(text).toContain('我的桌面')
     // Real-use feedback (2026-09-26): a pile of equal rows never says where to start — the desk
-    // answers with ONE lead item, and the rest wait collapsed behind an explicit toggle.
+    // answers with ONE lead item. Reviews (2026-09-26) added the second half of the rule: the lead
+    // must be the principal's BUSINESS (kind + rank), never whatever the model wrote first.
     expect(text).toContain('从这开始')
     expect(text).toContain('先办这件')
-    expect(text).toContain('要不要授权读公司盘？')
+    expect(text).toContain('摘要预算怎么处置？')            // rank 1 wins
+    expect(text).not.toContain('要不要授权读公司盘？')      // folded: business, not the lead
+    expect(text).not.toContain('培养面接着做深')            // upkeep never reaches the lead card
     expect(text).toContain('等你决定（还有 1 条）')
-    expect(text).not.toContain('摘要预算怎么处置？')
+    expect(text).toContain('助手自己的事（1）')
     // A decision is answerable in place, and can also be opened into options — the mirror of a
     // correction row (there the principal says what is wrong, here what they have decided).
     expect(text).toContain('回答')
@@ -185,16 +191,14 @@ describe('desk panels', () => {
     expect(text).toContain('management-lens-ceo')
     expect(text).toContain('批准')
     expect(text).toContain('有问题')
-    // Two sources, split on purpose: what ships with the deployment, and what it picked up.
-    expect(text).toContain('随包（1）')
-    expect(text).toContain('学来的（1）')
-    expect(text).toContain('management-breakdown')
-    expect(text).toContain('repo-to-knowledge')
+    // Skills are a count, not a list: the principal cannot judge them, and their descriptions are
+    // model-facing English (repository rule) — content eligibility before layout (2026-09-26 reviews).
+    expect(text).toContain('共 2 件（随包 1 · 学来的 1）')
+    expect(text).not.toContain('management-breakdown')
+    expect(text).not.toContain('repo-to-knowledge')
     // Lifecycle: a draft can be approved, a stable page can be retired, a deprecated one carries
     // no action (there is nothing left to decide about it).
     expect(text).toContain('过时了')
-    expect(text).toContain('这技能有问题')
-    expect(text).toContain('没用了')
     // Provenance is the trust line.
     expect(text).toContain('ai_dsh_company:kb/ceo/CHARTER.md')
     // Drafts lead: their title appears before the stable page's.
@@ -259,7 +263,7 @@ describe('desk panels', () => {
     const knowledge = textsOf(exports.KnowledgePanel()).join(' | ')
     const memory = textsOf(exports.MemoryPanel()).join(' | ')
 
-    expect(desk).toContain('（没有等你拍板的事）')
+    expect(desk).toContain('目前没有需要你拍板的经营事项')
     expect(desk).toContain('（没有卡住的事）')
     expect(desk).toContain('（还没有可讲的变动）')
     expect(knowledge).toContain('（还没有知识页，或桌面文件尚未刷新）')
@@ -281,7 +285,7 @@ describe('desk panels', () => {
     const own = textsOf(exports.DeskTabBody({ sessionId: 's1' })).join(' | ')
     expect(own).toContain('我的桌面')
     expect(own).toContain('从这开始')
-    expect(own).toContain('（没有等你拍板的事）')
+    expect(own).toContain('目前没有需要你拍板的经营事项')
 
     // The other rooms bind the same way.
     const knowledge = textsOf(exports.KnowledgeTabBody({ sessionId: 's1' })).join(' | ')
@@ -299,7 +303,7 @@ describe('desk panels', () => {
   it('freezes every row action while a prompt is in flight — real use queued one decision three times', () => {
     const exports = materialize()
     exports.deskStore.data = {
-      decisions: [{ id: 'd1', question: '要不要授权读公司盘？', context: '读它才能定因' }],
+      decisions: [{ id: 'd1', question: '要不要授权读公司盘？', context: '读它才能定因', kind: 'business' }],
     }
     exports.deskStore.busy = '已把你的动作交给助手…'
     const text = textsOf(exports.DeskPanel()).join(' | ')

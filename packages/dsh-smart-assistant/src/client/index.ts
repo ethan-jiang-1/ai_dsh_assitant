@@ -116,7 +116,17 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     generatedAt?: string
     counts?: { memories?: number, knowledgeStable?: number, knowledgeDraft?: number, skills?: number, threads?: number }
     threads?: { id?: string, status?: string, title?: string, why?: string, lean?: string }[]
-    decisions?: { id?: string, question?: string, context?: string }[]
+    decisions?: {
+      id?: string, question?: string, context?: string,
+      /**
+       * `"business"` = only the principal can call it and calling it changes what happens outside;
+       * anything else (including a missing field) is the assistant's own upkeep and never reaches
+       * the lead card. Contract rule: at most one business decision leads.
+       */
+      kind?: string,
+      /** Optional ordering among business decisions; lower first. */
+      rank?: number,
+    }[]
     gaps?: { id?: string, what?: string, why?: string }[]
     actions?: {
       id?: string, what?: string, owner?: string, due?: string,
@@ -127,6 +137,12 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     knowledge?: { id?: string, title?: string, status?: string, type?: string, updated?: string, sources?: string[] }[]
     skills?: { name?: string, description?: string, kind?: string }[]
   }
+
+  /**
+   * One desk decision as the file carries it.
+   * @see DeskData.decisions for the `kind` rule that keeps upkeep off the lead card.
+   */
+  type DeskDecision = NonNullable<DeskData['decisions']>[number]
 
   /**
    * Shared desk state: one loader, three panels. The panels are separate sidebar entries, so
@@ -369,18 +385,6 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     sendPrompt(
       `我批准知识页「${title}」。请把它从 draft 翻成 stable。${DESK_REFRESH_STEP}`,
       '已把批准交给助手…',
-      () => { setTimeout(() => { reloadDesk() }, 15000) },
-    )
-  }
-
-  /**
-   * Retire one learned skill. The third audit line beside memories and pages: the principal says
-   * a procedure is dead, and the assistant moves it out of the loading set (recoverable).
-   */
-  function retireSkill(name: string): void {
-    sendPrompt(
-      `技能「${name}」没用了，请退役它（assistant_reflect retire_skill）。${DESK_REFRESH_STEP}`,
-      '已把退役请求交给助手…',
       () => { setTimeout(() => { reloadDesk() }, 15000) },
     )
   }
@@ -768,64 +772,84 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       // pile of equal-weight rows never says where to start. So the desk answers with ONE lead
       // item (the first decision, enlarged, actions at hand) and the rest wait collapsed behind
       // an explicit toggle: nothing is hidden, but nothing competes with the one thing first.
+      // The principal's first question is "what NOW?" — and the answer must be THEIR business, not the
+      // assistant's upkeep. Two independent reviews (2026-09-26) found the lead card showing "should I
+      // keep building this panel?": with no kind field it took decisions[0], i.e. whatever the model
+      // wrote first. Contract: kind = "business" | "upkeep"; only business reaches the lead card, and
+      // when there is none the desk says so honestly instead of promoting housekeeping.
       sectionTitle('从这开始'),
       (() => {
         const { useState } = require('react') as typeof import('react')
         const decisions = data?.decisions ?? []
         const [showRest, setShowRest] = useState(false)
-        const lead = decisions[0]
-        const rest = decisions.slice(1)
-        if (lead === undefined && (data?.counts?.knowledgeDraft ?? 0) === 0) return muted('（没有等你拍板的事）')
-        return createElement('div', null,
-          lead === undefined ? null : createElement('div', {
-            style: {
-              border: `2px solid ${MARK_TEAL}`, borderRadius: '8px', background: '#f0fdfa',
-              padding: '12px 14px', margin: '8px 0',
-            },
-          },
-          createElement('div', { style: { fontSize: '11px', fontWeight: 700, color: MARK_TEAL, letterSpacing: '1px' } }, '先办这件'),
+        const [showUpkeep, setShowUpkeep] = useState(false)
+        const business = decisions
+          .filter(item => item.kind === 'business')
+          .slice()
+          .sort((left, right) => Number(left.rank ?? 0) - Number(right.rank ?? 0))
+        const upkeep = decisions.filter(item => item.kind !== 'business')
+        const draftCount = data?.counts?.knowledgeDraft ?? 0
+        const lead = business[0]
+        const rest = business.slice(1)
+        const row = (item: DeskDecision, compact: boolean): ReturnType<typeof createElement> =>
           createElement(CorrectableRow, {
-            lead: true,
+            key: String(item.id),
             primary: createElement('span', null,
-              createElement('span', { style: { fontSize: '16px', fontWeight: 700, color: '#111' } }, String(lead.question ?? '')),
-              lead.context === undefined || lead.context === ''
+              createElement('span', { style: { fontSize: '13px', fontWeight: 600 } }, String(item.question ?? '')),
+              compact || item.context === undefined || item.context === ''
                 ? null
-                : createElement('div', { style: { fontSize: '12px', color: '#666', fontWeight: 400, marginTop: '4px' } }, String(lead.context))),
+                : createElement('div', { style: { fontSize: '12px', color: '#888', fontWeight: 400 } }, String(item.context))),
             actionLabel: '回答',
             placeholder: '你的决定是什么？',
-            onSubmit: (text: string) => { answerDecision(String(lead.question ?? ''), text) },
-            actions: [{ label: '看选项', run: () => { askAboutDecision(String(lead.question ?? '')) } }],
-          })),
+            onSubmit: (text: string) => { answerDecision(String(item.question ?? ''), text) },
+            actions: [{ label: '看选项', run: () => { askAboutDecision(String(item.question ?? '')) } }],
+          })
+        const fold = (label: string, toggle: () => void): ReturnType<typeof createElement> =>
+          createElement('button', {
+            onClick: toggle,
+            style: {
+              padding: '5px 12px', fontSize: '12px', cursor: 'pointer', borderRadius: '6px',
+              border: '1px solid #ddd', background: '#fff', color: '#555',
+            },
+          }, label)
+        return createElement('div', null,
+          lead === undefined
+            ? muted('目前没有需要你拍板的经营事项')
+            : createElement('div', {
+                style: {
+                  border: `2px solid ${MARK_TEAL}`, borderRadius: '8px', background: '#f0fdfa',
+                  padding: '12px 14px', margin: '8px 0',
+                },
+              },
+              createElement('div', { style: { fontSize: '11px', fontWeight: 700, color: MARK_TEAL, letterSpacing: '1px' } }, '先办这件'),
+              createElement(CorrectableRow, {
+                lead: true,
+                primary: createElement('span', null,
+                  createElement('span', { style: { fontSize: '16px', fontWeight: 700, color: '#111' } }, String(lead.question ?? '')),
+                  lead.context === undefined || lead.context === ''
+                    ? null
+                    : createElement('div', { style: { fontSize: '12px', color: '#666', fontWeight: 400, marginTop: '4px' } }, String(lead.context))),
+                actionLabel: '回答',
+                placeholder: '你的决定是什么？',
+                onSubmit: (text: string) => { answerDecision(String(lead.question ?? ''), text) },
+                actions: [{ label: '看选项', run: () => { askAboutDecision(String(lead.question ?? '')) } }],
+              })),
           rest.length === 0
             ? null
             : createElement('div', { style: { marginTop: '8px' } },
-                createElement('button', {
-                  onClick: () => { setShowRest(!showRest) },
-                  style: {
-                    padding: '5px 12px', fontSize: '12px', cursor: 'pointer', borderRadius: '6px',
-                    border: '1px solid #ddd', background: '#fff', color: '#555',
-                  },
-                }, showRest ? `收起其余 ${rest.length} 条` : `等你决定（还有 ${rest.length} 条）`),
-                showRest === false
-                  ? null
-                  : createElement('div', null, ...rest.map(item => createElement(CorrectableRow, {
-                      key: String(item.id),
-                      primary: createElement('span', null,
-                        createElement('span', { style: { fontSize: '13px', fontWeight: 600 } }, String(item.question ?? '')),
-                        item.context === undefined || item.context === ''
-                          ? null
-                          : createElement('div', { style: { fontSize: '12px', color: '#888', fontWeight: 400 } }, String(item.context))),
-                      actionLabel: '回答',
-                      placeholder: '你的决定是什么？',
-                      onSubmit: (text: string) => { answerDecision(String(item.question ?? ''), text) },
-                      actions: [{ label: '看选项', run: () => { askAboutDecision(String(item.question ?? '')) } }],
-                    })))),
-          (data?.counts?.knowledgeDraft ?? 0) === 0
+                fold(showRest ? `收起其余 ${rest.length} 条` : `等你决定（还有 ${rest.length} 条）`, () => { setShowRest(!showRest) }),
+                showRest === false ? null : createElement('div', null, ...rest.map(item => row(item, false)))),
+          draftCount === 0
             ? null
             : createElement('div', {
                 onClick: () => { try { deskLayout?.selectPanel?.('assistant-knowledge') } catch { /* stale target */ } },
                 style: { fontSize: '13px', color: '#b26a00', cursor: 'pointer', textDecoration: 'underline', marginTop: '8px' },
-              }, `⚠ ${String(data?.counts?.knowledgeDraft)} 页知识在等你审批（点这里打开知识室）`))
+              }, `⚠ ${String(draftCount)} 页知识在等你审批（点这里打开知识室）`),
+          upkeep.length === 0
+            ? null
+            : createElement('div', { style: { marginTop: '8px' } },
+                fold(showUpkeep ? `收起 ${upkeep.length} 条` : `助手自己的事（${upkeep.length}）`, () => { setShowUpkeep(!showUpkeep) }),
+                showUpkeep === false ? null : createElement('div', null, ...upkeep.map(item => row(item, true)))))
       })(),
 
       // Actions split by state: the open ones are the working surface (each row carries its
@@ -943,33 +967,6 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
                   `⚠ ${staleWarning(store)}`)))
   }
 
-  /**
-   * One skills group: a labelled list, with retirement offered only for learned skills (a curated
-   * skill ships with the deployment; retiring it from here would lie about what is loadable).
-   * @param label - The group heading.
-   * @param skills - The skills in this group.
-   * @param retirable - Whether the group offers the retire action.
-   * @returns The heading plus rows, as an element array to spread.
-   */
-  function skillGroup(label: string, skills: DeskData['skills'], retirable: boolean): ReturnType<typeof createElement>[] {
-    if (skills === undefined || skills.length === 0) return []
-    return [
-      createElement('div', { key: `${label}-head`, style: { fontSize: '12px', color: '#888', margin: '10px 0 4px' } },
-        `${label}（${skills.length}）`),
-      createElement('ul', { key: `${label}-list`, style: { margin: 0, padding: 0 } },
-        ...skills.map(skill => createElement(CorrectableRow, {
-          key: String(skill.name),
-          primary: createElement('span', null,
-            createElement('span', { style: { color: MARK_TEAL } }, String(skill.name ?? '')),
-            skill.description === undefined ? null : createElement('span', { style: { color: '#666' } }, ` — ${skill.description}`)),
-          actionLabel: '这技能有问题',
-          placeholder: '哪里不对？',
-          onSubmit: (text: string) => { flagKnowledgePage(String(skill.name ?? ''), text) },
-          actions: retirable ? [{ label: '没用了', run: () => { retireSkill(String(skill.name ?? '')) } }] : undefined,
-        }))),
-    ]
-  }
-
   /** Panel 2 — the knowledge room: what the assistant knows, and what is waiting for review. */
   function KnowledgePanel(): unknown {
     const store = useDesk()
@@ -1019,11 +1016,10 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       sectionTitle('技能'),
       (store.data?.skills ?? []).length === 0
         ? muted('（还没有技能）')
-        : createElement('div', null,
-            // Two sources, and the split matters: what ships with the deployment (fixed, the
-            // principal's to judge) versus what the assistant picked up on its own (retirable).
-            ...skillGroup('随包', (store.data?.skills ?? []).filter(skill => skill.kind !== 'learned'), false),
-            ...skillGroup('学来的', (store.data?.skills ?? []).filter(skill => skill.kind === 'learned'), true)),
+        // A count, not a list: the principal cannot judge `repo-to-knowledge`, and the descriptions
+        // are model-facing English (repository rule), so a 71-line English list is noise on their
+        // surface — content eligibility before layout (2026-09-26 reviews).
+        : muted(`共 ${String((store.data?.skills ?? []).length)} 件（随包 ${String((store.data?.skills ?? []).filter(skill => skill.kind !== 'learned').length)} · 学来的 ${String((store.data?.skills ?? []).filter(skill => skill.kind === 'learned').length)}）——要退役哪一件，在对话里说一声即可`),
       store.note === undefined ? null : muted(store.note))
   }
 
