@@ -12,7 +12,7 @@
 
 ## 队列
 
-- ▶ **CEO 助手的 Sidebar 培养面**（用户拍板的当前 Goal，进行中）——三个面板已上线并接真实数据（我的桌面＝行动面／知识室＝懂什么／记忆室＝全量记忆审计清单）；桌面协议闭环（助手写 .desk/state.json，面板经 workspaceFiles 读，端到端真跑过）；**就地更正循环**（每行"这条记错了/有问题"→内联输入→送回对话→助手改并刷新）＝养成数字分身的入口；preflight 已加环境就绪关口（防交一个啥都看不到的 URL）。⏸ 待用户：形态问题（主区域整页 vs 右侧栏 tab）、更正循环实测反馈；底层实现（自有 Remote 命名空间/typert）按用户拍板后置到 UX 之后——卡：[2026-09-25-ceo-sidebar-ux](notes/proposed/2026-09-25-ceo-sidebar-ux.md)
+- ▶ **CEO 助手的 Sidebar 培养面**（用户拍板的当前 Goal，进行中）——三个面板已上线并接真实数据（我的桌面＝行动面／知识室＝懂什么／记忆室＝全量记忆审计清单）；桌面协议闭环（助手写 .desk/state.json，面板经 workspaceFiles 读，端到端真跑过）；**就地更正循环**（每行"这条记错了/有问题"→内联输入→送回对话→助手改并刷新）＝养成数字分身的入口；preflight 已加环境就绪关口（防交一个啥都看不到的 URL）。⏸ 待用户：形态问题（主区域整页 vs 右侧栏 tab）、更正循环实测反馈；底层实现（自有 Remote 命名空间/typert）按用户拍板后置到 UX 之后——卡：[2026-09-25-ceo-sidebar-ux](notes/proposed/2026-09-25-ceo-sidebar-ux.md) · **接手入口：[handoff](notes/research/2026-09-26-handoff-ceo-sidebar-cultivation.md)**
 - ▶ **专家部署的组合件 v0**（进行中：可装可跑的件已齐——SOP 技能×2 + `pnpm expert-setup` 装配 + read-only 权限形状 + P1 行为 live 验证；迁移带出的"策展技能全缺"真 bug **已修**（baseUrl = profile 目录 → 按包名解析；红夹具 + live 重跑 + 账本三证据），`pnpm eval` 行为回归 **3/3**；剩 §四 的触发项：IM 渠道（等你选）、MCP、概念页抽取）——卡：[2026-09-25-expert-pack-v0](notes/proposed/2026-09-25-expert-pack-v0.md)
 - ▶ **会话日志代次配方**（写者已 v4、读方与配方仍写死 v3 的静默失效：开发仪表**已修**（代次无关发现 + 夹具），**模型可见**两处（手册段 + `session-recall` 技能）**已改成代次无关**，验收四条全绿（红夹具 + eval 3/3 + live 探针）；同批修掉这条技能的两处不可用（frontmatter parse 失败被静默 skip、`rg` 包装脚本缺 `--`）——见卡 §四/§六）——卡：[2026-09-25-session-log-generation-recipe](notes/proposed/2026-09-25-session-log-generation-recipe.md)
 - ⏳ 知识导入的转换与概念抽取（触发=①第一份真实 docx/pdf 文档集出现 ②评测集 v0 就位；依据：[导入纯核 note](notes/implemented/2026-09-25-knowledge-ingest-core.md) §四）
