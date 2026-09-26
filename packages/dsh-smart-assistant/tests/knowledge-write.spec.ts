@@ -1,8 +1,9 @@
 /**
  * The knowledge write path and its bridges (tri-line proposal 2026-09-24, phase 2 slice 2e):
- * `save_page` distills a DRAFT page (staged out of recall until a hand edit flips it to stable —
- * the edit is the review), research `promote` accepts a knowledge page as its destination, and
- * the memory↔knowledge bridge is two provenance conventions over existing verbs.
+ * `save_page` distills a DRAFT page (staged out of recall until the principal approves it; the
+ * approval is theirs, `promotePage` only performs the edit they asked for), research `promote`
+ * accepts a knowledge page as its destination, and the memory↔knowledge bridge is two provenance
+ * conventions over existing verbs.
  */
 
 import { mkdirSync, mkdtempSync, rmSync } from 'node:fs'
@@ -57,6 +58,30 @@ describe('writePage (staged draft write path)', () => {
     const hits = await service.searchKnowledge({ text: 'deploy' })
     expect(hits.map(hit => hit.page.id)).toEqual([written.id])
     expect((await service.digest()).text).toContain(written.id)
+  })
+
+  it('promotePage flips one draft to stable, idempotently, and fails loudly on an unknown id', async () => {
+    const service = boot()
+    const written = await service.writePage({
+      type: 'how-it-works',
+      title: 'Promotion path',
+      body: 'Promoted on the principal word alone.',
+      sources: ['probe'],
+    })
+    expect((await service.readKnowledgePage(written.id))?.page.status).toBe('draft')
+    expect(await service.searchKnowledge({ text: 'Promotion path' })).toEqual([])
+
+    const promoted = await service.promotePage(written.id)
+    expect(promoted.status).toBe('stable')
+    expect((await service.readKnowledgePage(written.id))?.page.status).toBe('stable')
+    expect((await service.searchKnowledge({ text: 'Promotion path' })).map(hit => hit.page.id))
+      .toEqual([written.id])
+
+    // Promoting an already-stable page is a no-op, not an error: the panel's approve button may
+    // be clicked twice, and a second click must not fail the turn.
+    await expect(service.promotePage(written.id)).resolves.toMatchObject({ status: 'stable' })
+    // An unknown id is a loud failure rather than a silent success.
+    await expect(service.promotePage('no-such-page-0000')).rejects.toThrow(/no knowledge page/)
   })
 
   it('normalizes links into the form Obsidian also clicks, and mirrors the title into aliases', async () => {

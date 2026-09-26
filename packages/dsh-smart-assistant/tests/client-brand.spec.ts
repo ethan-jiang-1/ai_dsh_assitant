@@ -64,21 +64,53 @@ describe('client-module registration', () => {
     expect(span.props.style.whiteSpace).toBe('nowrap')
   })
 
-  it('declares the slots injection and wires both sidebar brand slots', () => {
+  it('declares every service the panels need, and wires both sidebar brand slots', () => {
     const exports = materialize()
-    expect(exports.inject).toEqual(['slots'])
+    // The list is the client half's whole dependency contract: slots and the sidebar registry for
+    // the brand mark and the three panels, the Session store for the conversation list and the
+    // desk file's workspace, layout for panel jumps, and the three manifested Remote namespaces
+    // (a namespace the browser-side manifest does not list leaves the entry pending forever).
+    expect(exports.inject).toEqual([
+      'slots', 'sidebarRightTabs', 'sessions', 'layout', 'remote',
+      'remote.agentPresets', 'remote.workspaceFiles', 'remote.session',
+    ])
     const calls: string[] = []
+    const registered: string[] = []
     const ctx = {
       slots: {
-        // The real registry consumes the contribution callback; a recorder that never
-        // calls it would miss the nested registration.
+        // The real registry consumes the contribution callback — including a generator
+        // contribution, whose `yield` is where the nested registration happens. A recorder that
+        // merely called the callback would miss it.
         inject: (slot: string, make: () => unknown) => {
           calls.push(slot)
-          void make()
+          const contribution = make()
+          if (contribution !== null && typeof contribution === 'object'
+            && Symbol.iterator in (contribution as object)) {
+            for (const _entry of contribution as Iterable<unknown>) void _entry
+          }
+        },
+        register: (declaration: { name: string, key?: string, id?: string }) => {
+          registered.push(declaration.key ?? declaration.id ?? declaration.name)
         },
       },
+      // The right-sidebar tab type: registered, but only a type (it produces no visible entry).
+      sidebarRightTabs: { register: (definition: { kind: string }) => { registered.push(`tab:${definition.kind}`) } },
     }
     ;(exports.apply as (ctx: unknown) => void)(ctx)
-    expect(calls).toEqual(['sidebar.brand.mark', 'sidebar.brand.name'])
+    // Brand slots first, then one panellist entry plus one main body per panel.
+    expect(calls).toEqual([
+      'sidebar.brand.mark', 'sidebar.brand.name',
+      'sidebar.panellist', 'main',
+      'sidebar.panellist', 'main',
+      'sidebar.panellist', 'main',
+    ])
+    // Each panel registers twice by design: its icon in the panellist, its body in `main`.
+    expect(registered).toEqual([
+      'sidebar.brand.mark', 'sidebar.brand.name',
+      'assistant-desk', 'assistant-desk',
+      'assistant-knowledge', 'assistant-knowledge',
+      'assistant-memory', 'assistant-memory',
+      'tab:desk',
+    ])
   })
 })

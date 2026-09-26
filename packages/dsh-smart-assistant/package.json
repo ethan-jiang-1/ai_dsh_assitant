@@ -59,11 +59,7 @@
       "default": "./lib/client/index.js"
     },
     "./src/*": "./src/*",
-    "./package.json": "./package.json",
-    "./desk-remote": {
-      "types": "./lib/desk-remote.d.ts",
-      "default": "./lib/desk-remote.js"
-    }
+    "./package.json": "./package.json"
   },
   "files": [
     "lib",
@@ -88,8 +84,7 @@
     "@deepseek-ai/dsh-skill-filesystem": "workspace:^",
     "@deepseek-ai/dsh-session": "workspace:^",
     "@deepseek-ai/dsh-tools": "workspace:^",
-    "@deepseek-ai/schemastery": "workspace:^",
-    "@deepseek-ai/dsh-typert-protocol": "workspace:^"
+    "@deepseek-ai/schemastery": "workspace:^"
   },
   "dependencies": {
     "yaml": "^2.8.1"

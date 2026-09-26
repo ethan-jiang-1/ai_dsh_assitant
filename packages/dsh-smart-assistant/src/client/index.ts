@@ -280,6 +280,18 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     )
   }
 
+  /**
+   * Approve one draft knowledge page. The counterpart of a correction: the principal says the page
+   * is right, and the assistant promotes it so it starts counting in retrieval and the digest.
+   */
+  function approveKnowledgePage(title: string): void {
+    sendPrompt(
+      `我批准知识页「${title}」。请把它从 draft 翻成 stable，改完刷新我的桌面。`,
+      '已把批准交给助手…',
+      () => { setTimeout(() => { loadDesk() }, 15000) },
+    )
+  }
+
   /** Tell the assistant what is wrong with one knowledge page. */
   function flagKnowledgePage(title: string, problem: string): void {
     sendPrompt(
@@ -300,6 +312,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     actionLabel: string
     placeholder: string
     onSubmit: (text: string) => void
+    approve?: { label: string, run: () => void } | undefined
   }): ReturnType<typeof createElement> {
     const { useState } = require('react') as typeof import('react')
     const [open, setOpen] = useState(false)
@@ -315,6 +328,15 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       createElement('div', { style: { fontSize: '13px', lineHeight: 1.6, color: '#555' } }, props.primary),
       createElement('div', { style: { fontSize: '11px', color: '#aaa', marginTop: '2px' } },
         props.meta === undefined || props.meta === '' ? null : props.meta,
+        props.approve === undefined
+          ? null
+          : createElement('button', {
+              onClick: props.approve.run,
+              style: {
+                marginLeft: '8px', padding: '0 8px', fontSize: '11px', cursor: 'pointer',
+                border: `1px solid ${MARK_TEAL}`, borderRadius: '4px', background: '#fff', color: MARK_TEAL,
+              },
+            }, props.approve.label),
         createElement('button', {
           onClick: () => { setOpen(!open) },
           style: {
@@ -503,6 +525,9 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         actionLabel: '有问题',
         placeholder: '哪里不对？',
         onSubmit: (text: string) => { flagKnowledgePage(String(page.title ?? page.id ?? ''), text) },
+        approve: page.status === 'draft'
+          ? { label: '批准', run: () => { approveKnowledgePage(String(page.title ?? page.id ?? '')) } }
+          : undefined,
       })
     return createElement('div', { style: { padding: '24px', maxWidth: '620px' } },
       createElement('h2', { style: { margin: '0 0 4px', fontSize: '18px' } }, '知识室'),

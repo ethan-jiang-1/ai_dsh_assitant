@@ -12,7 +12,7 @@
 | # | 名字 | 取值 | 文法 / 约束 | 谁钉死了它 | 改名代价 |
 |---|---|---|---|---|---|
 | 1 | npm 包名 | `dsh-smart-assistant` | npm 规则；含 `dsh` 便于生态发现 | npm registry 全局；profile 层清单按真实安装名 reconcile | = 发新包，老用户不升级 |
-| 2 | 插件行 id（前缀 `assistant-`） | `assistant-memory`（host）<br>`assistant-memory-tool`（agent）<br>`assistant-research-tool`（agent）<br>`assistant-knowledge-tool`（agent）<br>`assistant-memory-digest`（agent）<br>`assistant-home-preamble`（agent）<br>`assistant-learn`（agent）<br>`assistant-desk-remote`（host） | 无强制文法，组合内唯一 | patch 按 id 做**整行配置替换**；`--dump-config` | 下游 patch overlay 落空 |
+| 2 | 插件行 id（前缀 `assistant-`） | `assistant-memory`（host）<br>`assistant-memory-tool`（agent）<br>`assistant-research-tool`（agent）<br>`assistant-knowledge-tool`（agent）<br>`assistant-memory-digest`（agent）<br>`assistant-home-preamble`（agent）<br>`assistant-learn`（agent） | 无强制文法，组合内唯一 | patch 按 id 做**整行配置替换**；`--dump-config` | 下游 patch overlay 落空 |
 | 3 | ctx 服务键 | `assistantMemory` | 与 Service Definition 同名 | 其他插件的 `inject`；capability-seams 生成目录 | 所有 Consumer 的 `inject` 断 |
 | 4 | 工具 wire 名 | `assistant_memory`、`assistant_research`、`assistant_reflect`、`assistant_knowledge` | 短 kebab / snake_case，生态惯例；**带专家前缀**（一个专家一个前缀） | **会话日志逐字记录** `tool/call.name`；`tool.call.toolview` slot 按名 keyed | 旧会话重放断 |
 | 5 | SessionEventMap 事件名 | **day 0 不新增**（延后项表：`docs/architecture.md` §六） | 必须先声明 merging 进 map 才能写日志 | 事件名写进 JSONL | 旧日志读不出 = 格式迁移级 |

@@ -110,6 +110,7 @@
 
 1. 我们建了 `AssistantDeskRemote extends TypertRemoteService`（wire name `assistantDesk`）、
    `@Remote` 标记的 `snapshot()`、host 行 `assistant-desk-remote`——组合里确实有这一行（`--dump-config` 核过）。
+   （这条路径后来整段删除了，理由见本节末的"死路回退"。）
 2. 客户端按 documentpreview 的同款写法声明 `inject: [..., 'remote.assistantDesk']`。
 3. 浏览器结果：`dsh-smart-assistant: pending (waiting for service: remote.assistantDesk)`。
 4. 诊断探针（面板里枚举 remote 对象）：`namespaces=[]`——**这是正常的**，Remote 代理不是 own-property，
@@ -133,7 +134,11 @@
    **不在本轮范围**，已记为本卡的已知阻塞。
 - **下一步路径（可绕开）**：面板读**工作区里的一个 desk 文件**（助手用自己已有的文件工具维护它），
   经**已在清单里的** `workspaceFiles` 命名空间读取。零新增宿主代码、零清单改动、当天可做。
-- 我们的 DeskRemote 服务代码保留在 `src/desk-remote.ts`（未接线到 client），作为将来做 typert 集成时的现成起点。
+- **死路回退（2026-09-26）**：DeskRemote 服务（`TypertRemoteService` 子类 + `@Remote` 方法 + host 行 +
+  包导出 + identity 登记）已**全部删除**。理由：desk 文件协议取代了它的用途，而它单独存在时既无消费者、
+  又带着一个未同步 lockfile 的 peerDep（那个 peerDep 一度把 `pnpm build`/`test`/`dump-config` 全挡在依赖
+  检查外——本仓约定是 vendor 包不声明为依赖，靠工作区 + tsconfig 路径解析）。**机制没有丢**：本节的证据链
+  与三段注册方式（类型/内容/标题）留在卡里，将来真要做 typert 集成时按它重做，不必从零再查一遍。
 
 ### 过程修复：preflight 现在会自查这类问题（用户 2026-09-25 要求）
 
@@ -363,7 +368,6 @@ node scripts/dsh.mjs --profile dev --dump-config | grep -A3 '<row id>'
 
 关键文件：
 - `packages/dsh-smart-assistant/src/client/index.ts` —— client 面（品牌标记 + My Desk 面板）
-- `packages/dsh-smart-assistant/src/desk-remote.ts` —— DeskRemote 服务（保留为将来 typert 集成的起点）
 - `vendor/dsh/packages/client/ui-schedule/src/client/index.ts` —— panellist 注册的参照物
 - `vendor/dsh/packages/client/ui-sidebar/src/client/index.ts` —— panellist 的消费端
 - `scripts/webui-preflight.mjs` —— 交付前关口（含 boot 图检查）
