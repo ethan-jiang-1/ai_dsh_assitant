@@ -419,6 +419,8 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     onSubmit: (text: string) => void
     actions?: { label: string, run: () => void }[] | undefined
     source?: string | undefined
+    /** Lead variant: the one item the desk points at first, rendered larger. */
+    lead?: boolean
   }): ReturnType<typeof createElement> {
     const { useState } = require('react') as typeof import('react')
     const [open, setOpen] = useState(false)
@@ -434,7 +436,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // and for a record they corrected, the source is the cultivation trace itself.
     const source = props.source === undefined || props.source.trim() === '' ? undefined : props.source.trim()
     return createElement('li', { style: { marginBottom: '10px', listStyle: 'none' } },
-      createElement('div', { style: { fontSize: '13px', lineHeight: 1.6, color: '#555' } }, props.primary),
+      createElement('div', { style: { fontSize: props.lead === true ? '16px' : '13px', lineHeight: 1.6, color: props.lead === true ? '#111' : '#555' } }, props.primary),
       source === undefined
         ? null
         : createElement('div', {
@@ -746,30 +748,69 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       refreshRow(store, 'desk'),
       quickActions(),
 
-      // The principal's first question is "what needs me?" — so it leads, and the drafts the
-      // knowledge panel owns are counted here rather than duplicated.
-      sectionTitle('等你决定'),
-      (data?.decisions ?? []).length === 0 && (data?.counts?.knowledgeDraft ?? 0) === 0
-        ? muted('（没有等你拍板的事）')
-        : createElement('div', null,
-            ...(data?.decisions ?? []).map(item => createElement(CorrectableRow, {
-              key: String(item.id),
-              primary: createElement('span', null,
-                createElement('span', { style: { fontSize: '13px', fontWeight: 600 } }, String(item.question ?? '')),
-                item.context === undefined || item.context === ''
+      // The principal's first question is "what NOW?" — real-use feedback (2026-09-26) was that a
+      // pile of equal-weight rows never says where to start. So the desk answers with ONE lead
+      // item (the first decision, enlarged, actions at hand) and the rest wait collapsed behind
+      // an explicit toggle: nothing is hidden, but nothing competes with the one thing first.
+      sectionTitle('从这开始'),
+      (() => {
+        const { useState } = require('react') as typeof import('react')
+        const decisions = data?.decisions ?? []
+        const [showRest, setShowRest] = useState(false)
+        const lead = decisions[0]
+        const rest = decisions.slice(1)
+        if (lead === undefined && (data?.counts?.knowledgeDraft ?? 0) === 0) return muted('（没有等你拍板的事）')
+        return createElement('div', null,
+          lead === undefined ? null : createElement('div', {
+            style: {
+              border: `2px solid ${MARK_TEAL}`, borderRadius: '8px', background: '#f0fdfa',
+              padding: '12px 14px', margin: '8px 0',
+            },
+          },
+          createElement('div', { style: { fontSize: '11px', fontWeight: 700, color: MARK_TEAL, letterSpacing: '1px' } }, '先办这件'),
+          createElement(CorrectableRow, {
+            lead: true,
+            primary: createElement('span', null,
+              createElement('span', { style: { fontSize: '16px', fontWeight: 700, color: '#111' } }, String(lead.question ?? '')),
+              lead.context === undefined || lead.context === ''
+                ? null
+                : createElement('div', { style: { fontSize: '12px', color: '#666', fontWeight: 400, marginTop: '4px' } }, String(lead.context))),
+            actionLabel: '回答',
+            placeholder: '你的决定是什么？',
+            onSubmit: (text: string) => { answerDecision(String(lead.question ?? ''), text) },
+            actions: [{ label: '看选项', run: () => { askAboutDecision(String(lead.question ?? '')) } }],
+          })),
+          rest.length === 0
+            ? null
+            : createElement('div', { style: { marginTop: '8px' } },
+                createElement('button', {
+                  onClick: () => { setShowRest(!showRest) },
+                  style: {
+                    padding: '5px 12px', fontSize: '12px', cursor: 'pointer', borderRadius: '6px',
+                    border: '1px solid #ddd', background: '#fff', color: '#555',
+                  },
+                }, showRest ? `收起其余 ${rest.length} 条` : `等你决定（还有 ${rest.length} 条）`),
+                showRest === false
                   ? null
-                  : createElement('div', { style: { fontSize: '12px', color: '#888', fontWeight: 400 } }, String(item.context))),
-              actionLabel: '回答',
-              placeholder: '你的决定是什么？',
-              onSubmit: (text: string) => { answerDecision(String(item.question ?? ''), text) },
-              actions: [{ label: '看选项', run: () => { askAboutDecision(String(item.question ?? '')) } }],
-            })),
-            (data?.counts?.knowledgeDraft ?? 0) === 0
-              ? null
-              : createElement('div', {
-                  onClick: () => { try { deskLayout?.selectPanel?.('assistant-knowledge') } catch { /* stale target */ } },
-                  style: { fontSize: '13px', color: '#b26a00', cursor: 'pointer', textDecoration: 'underline' },
-                }, `⚠ ${String(data?.counts?.knowledgeDraft)} 页知识在等你审批（点这里打开知识室）`)),
+                  : createElement('div', null, ...rest.map(item => createElement(CorrectableRow, {
+                      key: String(item.id),
+                      primary: createElement('span', null,
+                        createElement('span', { style: { fontSize: '13px', fontWeight: 600 } }, String(item.question ?? '')),
+                        item.context === undefined || item.context === ''
+                          ? null
+                          : createElement('div', { style: { fontSize: '12px', color: '#888', fontWeight: 400 } }, String(item.context))),
+                      actionLabel: '回答',
+                      placeholder: '你的决定是什么？',
+                      onSubmit: (text: string) => { answerDecision(String(item.question ?? ''), text) },
+                      actions: [{ label: '看选项', run: () => { askAboutDecision(String(item.question ?? '')) } }],
+                    })))),
+          (data?.counts?.knowledgeDraft ?? 0) === 0
+            ? null
+            : createElement('div', {
+                onClick: () => { try { deskLayout?.selectPanel?.('assistant-knowledge') } catch { /* stale target */ } },
+                style: { fontSize: '13px', color: '#b26a00', cursor: 'pointer', textDecoration: 'underline', marginTop: '8px' },
+              }, `⚠ ${String(data?.counts?.knowledgeDraft)} 页知识在等你审批（点这里打开知识室）`))
+      })(),
 
       // Actions split by state: the open ones are the working surface (each row carries its
       // correction and close-out actions); the done ones move to their own dimmed group — a plan

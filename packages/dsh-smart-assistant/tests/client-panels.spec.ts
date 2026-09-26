@@ -81,7 +81,10 @@ describe('desk panels', () => {
     exports.deskStore.data = {
       generatedAt: '2026-09-26T13:00:00+08:00',
       counts: { memories: 7, knowledgeStable: 10, knowledgeDraft: 3, skills: 2, threads: 1 },
-      decisions: [{ id: 'd1', question: '要不要授权读公司盘？', context: '读它才能定因' }],
+      decisions: [
+        { id: 'd1', question: '要不要授权读公司盘？', context: '读它才能定因' },
+        { id: 'd2', question: '摘要预算怎么处置？', context: '3962/4096 贴顶' },
+      ],
       gaps: [{ id: 'g1', what: '本季度原始读数', why: '有它才能从框架走到定因' }],
       actions: [{
         id: 'a1', what: '填口径卡', owner: '你', due: '今天内',
@@ -95,8 +98,13 @@ describe('desk panels', () => {
     const text = textsOf(exports.DeskPanel()).join(' | ')
 
     expect(text).toContain('我的桌面')
-    expect(text).toContain('等你决定')
+    // Real-use feedback (2026-09-26): a pile of equal rows never says where to start — the desk
+    // answers with ONE lead item, and the rest wait collapsed behind an explicit toggle.
+    expect(text).toContain('从这开始')
+    expect(text).toContain('先办这件')
     expect(text).toContain('要不要授权读公司盘？')
+    expect(text).toContain('等你决定（还有 1 条）')
+    expect(text).not.toContain('摘要预算怎么处置？')
     // A decision is answerable in place, and can also be opened into options — the mirror of a
     // correction row (there the principal says what is wrong, here what they have decided).
     expect(text).toContain('回答')
@@ -260,7 +268,8 @@ describe('desk panels', () => {
     // The matching session renders the full room, exactly like the main page.
     const own = textsOf(exports.DeskTabBody({ sessionId: 's1' })).join(' | ')
     expect(own).toContain('我的桌面')
-    expect(own).toContain('等你决定')
+    expect(own).toContain('从这开始')
+    expect(own).toContain('（没有等你拍板的事）')
 
     // The other rooms bind the same way.
     const knowledge = textsOf(exports.KnowledgeTabBody({ sessionId: 's1' })).join(' | ')
