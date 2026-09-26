@@ -86,6 +86,8 @@ describe('desk panels', () => {
       actions: [{
         id: 'a1', what: '填口径卡', owner: '你', due: '今天内',
         metric: '四个空格写全', stop: '两个口径结论相反就停', status: 'open',
+      }, {
+        id: 'a2', what: '季末破价承诺清零', owner: 'VP-Sales', due: '09-30 前', status: 'done',
       }],
       threads: [{ id: 't1', title: 'Q3 掉了 20%', lean: '先定口径', why: '口径未定则无法归因' }],
       recentActivity: [{ at: '2026-09-26T13:10:00+08:00', what: '按你的更正重写了一条记忆' }],
@@ -108,6 +110,14 @@ describe('desk panels', () => {
     expect(text).toContain('度量：四个空格写全')
     expect(text).toContain('停止条件：两个口径结论相反就停')
     expect(text).toContain('办完了')
+    // Actions split by state: open ones are the working surface, done ones move to a dimmed
+    // follow-through group — a tracker that hides finished work hides the assistant's follow-through.
+    expect(text).toContain('在办的事（1）')
+    expect(text).toContain('已办（1）')
+    expect(text).toContain('✓ 季末破价承诺清零')
+    // A closed row carries no close-out buttons: only the open one offers 办完了/不办了.
+    expect(text.split('办完了').length - 1).toBe(1)
+    expect(text.split('不办了').length - 1).toBe(1)
     expect(text).toContain('缺什么')
     expect(text).toContain('本季度原始读数')
     expect(text).toContain('在跟的事')

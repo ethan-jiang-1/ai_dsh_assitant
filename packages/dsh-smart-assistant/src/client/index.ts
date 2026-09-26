@@ -763,7 +763,12 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
                   style: { fontSize: '13px', color: '#b26a00', cursor: 'pointer', textDecoration: 'underline' },
                 }, `⚠ ${String(data?.counts?.knowledgeDraft)} 页知识在等你审批（点这里打开知识室）`)),
 
-      sectionTitle('在办的事'),
+      // Actions split by state: the open ones are the working surface (each row carries its
+      // correction and close-out actions); the done ones move to their own dimmed group — a plan
+      // tracker that hides finished work hides the assistant's follow-through, which is the trust
+      // question "did what you planned actually happen?" Dropped ones stay off the panel (recorded
+      // on the plan page); they are a decision that was made, not work to look at.
+      sectionTitle(`在办的事（${(data?.actions ?? []).filter(action => action.status !== 'done' && action.status !== 'dropped').length}）`),
       (data?.actions ?? []).filter(action => action.status !== 'done' && action.status !== 'dropped').length === 0
         ? muted('（没有在办的动作）')
         : createElement('div', null, ...(data?.actions ?? [])
@@ -791,6 +796,23 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
                 { label: '不办了', run: () => { dropAction(String(action.what ?? '')) } },
               ],
             }))),
+      (data?.actions ?? []).some(action => action.status === 'done')
+        ? createElement('div', null,
+            sectionTitle(`已办（${(data?.actions ?? []).filter(action => action.status === 'done').length}）`),
+            createElement('div', null, ...(data?.actions ?? [])
+              .filter(action => action.status === 'done')
+              .map(action => createElement('div', {
+                key: `done-${String(action.id ?? action.what)}`,
+                style: { marginBottom: '8px', paddingLeft: '10px', borderLeft: '2px solid #ddd' },
+              },
+              createElement('div', { style: { fontSize: '13px', color: '#888' } }, `✓ ${String(action.what ?? '')}`),
+              [action.owner === undefined ? '' : String(action.owner),
+                action.due === undefined ? '' : String(action.due)].filter(part => part !== '').length === 0
+                ? null
+                : createElement('div', { style: { fontSize: '11px', color: '#bbb' } },
+                    [action.owner === undefined ? '' : `负责人：${action.owner}`,
+                      action.due === undefined ? '' : `时点：${action.due}`].filter(part => part !== '').join(' · '))))))
+        : null,
 
       sectionTitle('缺什么'),
       (data?.gaps ?? []).length === 0
