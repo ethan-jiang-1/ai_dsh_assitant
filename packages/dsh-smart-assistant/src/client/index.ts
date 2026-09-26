@@ -878,7 +878,13 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     return createElement('div', {
       style: {
         display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-start',
-        margin: '0 auto 8px', padding: '12px 16px', maxWidth: '760px', width: '100%',
+        // The composer's own card width, read from the variable the shell defines on the
+        // shared stack (this dock is a child of it, so the variable is in scope). The
+        // literal cap is only a fallback for a composition that renders this seat outside
+        // that tree; a fixed width here would drift from the card at every breakpoint
+        // (observed 2026-09-26: an 760px strip against an ~875px card).
+        width: 'min(var(--dsh-composer-card-max-width, 952px), 100%)',
+        margin: '0 auto 8px', padding: '12px 16px',
         border: '1px solid rgba(128,128,128,0.28)', borderRadius: '10px',
       },
     },
