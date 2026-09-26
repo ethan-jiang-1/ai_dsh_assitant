@@ -99,4 +99,13 @@
   build 0、真机 `+` 菜单实拍（Commands 区出现三条，带名字与说明）——
   证据 [p1a-command-menu.png](../research/2026-09-26-first-mile-shots/p1a-command-menu.png)。
   **未做**：行内图标（vendor 行有 glyph；我们的没有）——留 P3 视觉收尾评估。
-- [ ] P1-B 首屏身份与引导 · P1-C 开发环境保真 · P2 S5 密度 · P3 收尾
+- [x] **P1-B 首屏身份与引导**（2026-09-26 落地）——两个空会话专属槽位：
+  ① `conversation.hero.brand.mark` 换成我们的房子标识（首屏不再是清一色 DSH 身份）；
+  ② `conversation.input.dock`（owner 只在 hero 态渲染）注入引导条：说一句经营问题就行 +
+  两个具体示例 + "敲 / 看它现在能做什么" + 「打开我的桌面」按钮（经 inject face 拿 opener）。
+  **验收实跑**：client-first-mile 3/3（造红证明：改错 opener 的 kind → 红，复原 → 绿）、
+  verify 31/31、build 0、真机首开实拍——hero 是我们的标识、引导条在输入框正上方可见，
+  证据 [p1b-first-open.png](../research/2026-09-26-first-mile-shots/p1b-first-open.png)。
+  **已知视觉待办**（P2）：引导条 maxWidth 760 比 composer 窄，右边缘不齐——截图驱动的最小调整。
+  **不能做**：hero 标题文案（"探索未至之境"）是 vendor locale 拥有的，不碰 vendor 即不可改。
+- [ ] P1-C 开发环境保真 · P2 S5 密度 · P3 收尾

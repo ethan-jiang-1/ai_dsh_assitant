@@ -843,6 +843,59 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     }, '桌面')
   }
 
+  /**
+   * The blank-session hero mark: the deployment's own house mark, where the shell would
+   * otherwise show its official one. First impressions should say whose assistant this is
+   * — the first-mile walkthrough (2026-09-26) found the product's only identity on the
+   * opening screen was a line in the sidebar.
+   * @param props - the hero seat's owner props (requested edge, surrounding geometry class).
+   * @returns the mark element.
+   */
+  function AssistantHeroMark({ size, className }: { size: number, className?: string }): ReturnType<typeof createElement> {
+    return createElement('svg', {
+      width: size,
+      height: size,
+      viewBox: '0 0 64 64',
+      className,
+      'aria-hidden': true,
+    },
+    createElement('rect', { width: 64, height: 64, rx: 14, fill: MARK_TEAL }),
+    createElement('path', { d: 'M32 11 57 33h-8v18H15V33H7Z', fill: '#ffffff' }),
+    createElement('rect', { x: 26, y: 38, width: 12, height: 13, fill: MARK_TEAL }),
+    )
+  }
+
+  /**
+   * The first-open strip above the composer. The owner renders this dock only in the
+   * blank-session hero state, so it is exactly the first mile: it answers the two questions
+   * the walkthrough found unanswered — what do I say first, and what can this thing do —
+   * and offers the one surface worth visiting before there is any content (the desk, whose
+   * own empty state explains what it becomes).
+   * @param props - the dock's injected opener.
+   * @returns the strip element.
+   */
+  function FirstMileDock({ openRoom }: { openRoom?: (kind: string) => void }): ReturnType<typeof createElement> {
+    return createElement('div', {
+      style: {
+        display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-start',
+        margin: '0 auto 8px', padding: '12px 16px', maxWidth: '760px', width: '100%',
+        border: '1px solid rgba(128,128,128,0.28)', borderRadius: '10px',
+      },
+    },
+    createElement('div', { style: { fontSize: '13px', color: 'inherit' } },
+      '第一次来？直接说一句你手头的经营问题就行，不用先配置什么。'),
+    createElement('div', { style: { fontSize: '12px', color: '#888' } },
+      '例：「这个月签单为什么慢」「把季度目标拆成这周能做的三件事」· 敲 / 看它现在能做什么'),
+    createElement('button', {
+      onClick: () => { openRoom?.('desk') },
+      style: {
+        border: '1px solid rgba(128,128,128,0.4)', background: 'transparent', cursor: 'pointer',
+        fontSize: '12px', color: MARK_TEAL, padding: '3px 10px', borderRadius: '6px',
+      },
+    }, '打开我的桌面'),
+    )
+  }
+
   /** A stat cell; with a target it becomes the way to the panel that explains the number. */
   function cell(label: string, value: string, target?: string): ReturnType<typeof createElement> {
     const jump = (): void => {
@@ -1498,17 +1551,32 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       if (commandUi === undefined) return
       for (const contribution of roomCommands(openBeside)) commandUi.register(contribution)
     })
+
+    // First-mile identity and guidance (P1-B, 2026-09-26). Two seats the shell leaves open
+    // exactly where a first-time principal looks: the blank-session hero mark, and the
+    // full-width dock above the composer that the owner renders only in that same hero
+    // state. Both disappear on their own once the conversation starts.
+    ctx.slots.inject('conversation.hero.brand.mark', () =>
+      ctx.slots.register({ name: 'conversation.hero.brand.mark' }, AssistantHeroMark))
+    ctx.slots.inject('conversation.input.dock', () =>
+      ctx.slots.register({
+        name: 'conversation.input.dock',
+        id: 'assistant-first-mile',
+        order: -10,
+        inject: () => ({ openRoom: openBeside }),
+      }, FirstMileDock))
   }
 
   // The occupants, the three panels, and the shared store are exposed for tests: the store is the
   // panels' only input, so a test that fills it can render every section without a browser.
   // `roomCommands` is exposed the same way — its contributions are pure values, so a test can
-  // assert names, copy, and the room each one opens without a browser context.
+  // assert names, copy, and the room each one opens without a browser context. The first-mile
+  // components are exposed because their copy and their button are the deliverable.
   return {
     inject, apply, AssistantBrandMark, AssistantBrandName,
     DeskPanel, KnowledgePanel, MemoryPanel, deskStore,
     DeskTabBody, KnowledgeTabBody, MemoryTabBody, AssistantDeskChip,
-    roomCommands,
+    roomCommands, AssistantHeroMark, FirstMileDock,
   }
 }
 
