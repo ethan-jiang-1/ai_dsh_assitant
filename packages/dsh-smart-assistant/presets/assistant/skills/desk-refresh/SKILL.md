@@ -147,6 +147,10 @@ just did. A change you apply but do not re-render reads as if you ignored them:
   drop the wrong line from the panel.
 - **A decision answered** ("my decision is: …") → record the call where you will act on it (a memory
   is usually right), act on it if it unblocks something, and take it off the decisions list.
+  **Presenting options is not an answer**: when the principal asks for choices, update the entry's
+  `context` ("options given, waiting for their pick") and keep it on the list until they decide —
+  a decision that leaves the desk before it is made lives only in the conversation, and the panel
+  is the thing that reminds them it is still theirs to call.
 - **An approval** ("I approve page X") → `promote_page`, then re-render.
 - **A retirement** ("page X is obsolete" / "skill X is dead") → `deprecate_page` / `retire_skill`,
   then re-render.
