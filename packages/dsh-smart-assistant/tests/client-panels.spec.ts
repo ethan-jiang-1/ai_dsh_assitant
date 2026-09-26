@@ -75,6 +75,18 @@ function textsOf(node: unknown): string[] {
   return element.props === undefined ? [] : textsOf(element.props.children)
 }
 
+/** Buttons rendered disabled — the busy freeze must be mechanical, not just a line of copy. */
+function disabledButtons(node: unknown): number {
+  if (node === null || node === undefined || typeof node === 'boolean') return 0
+  if (Array.isArray(node)) return node.reduce((sum, child) => sum + disabledButtons(child), 0)
+  const element = node as { type?: unknown, props?: { children?: unknown, disabled?: unknown } }
+  if (typeof element.type === 'function') {
+    return disabledButtons((element.type as (props: unknown) => unknown)(element.props))
+  }
+  let own = element.type === 'button' && element.props?.disabled === true ? 1 : 0
+  return own + disabledButtons(element.props === undefined ? [] : element.props.children)
+}
+
 describe('desk panels', () => {
   it('renders the desk sections from the shared store', () => {
     const exports = materialize()
@@ -282,5 +294,18 @@ describe('desk panels', () => {
     const exports = materialize()
     const text = textsOf(exports.DeskTabBody({})).join(' | ')
     expect(text).toContain('没有落在任何会话')
+  })
+
+  it('freezes every row action while a prompt is in flight — real use queued one decision three times', () => {
+    const exports = materialize()
+    exports.deskStore.data = {
+      decisions: [{ id: 'd1', question: '要不要授权读公司盘？', context: '读它才能定因' }],
+    }
+    exports.deskStore.busy = '已把你的动作交给助手…'
+    const text = textsOf(exports.DeskPanel()).join(' | ')
+    expect(text).toContain('回复出现在对话里')
+    // The freeze is mechanical: with one lead decision rendered, the busy panel carries several
+    // disabled buttons (回答 / 看选项 / the row toggle / 发送) — none clickable while busy.
+    expect(disabledButtons(exports.DeskPanel())).toBeGreaterThanOrEqual(3)
   })
 })

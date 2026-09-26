@@ -423,8 +423,13 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     lead?: boolean
   }): ReturnType<typeof createElement> {
     const { useState } = require('react') as typeof import('react')
+    const store = useDesk()
     const [open, setOpen] = useState(false)
     const [text, setText] = useState('')
+    // While a prompt is in flight, every row's buttons freeze: real use (2026-09-26) queued a
+    // decision's "看选项" three times because a click looks like nothing happened and the answer
+    // lives in the conversation, not on the desk. Frozen is quieter than re-queued.
+    const frozen = store.busy !== undefined
     const submit = (): void => {
       const value = text.trim()
       if (value === '') return
@@ -451,15 +456,19 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         ...(props.actions ?? []).map(action => createElement('button', {
           key: action.label,
           onClick: action.run,
+          disabled: frozen,
           style: {
-            marginLeft: '8px', padding: '0 8px', fontSize: '11px', cursor: 'pointer',
+            marginLeft: '8px', padding: '0 8px', fontSize: '11px',
+            cursor: frozen ? 'default' : 'pointer', opacity: frozen ? 0.5 : 1,
             border: `1px solid ${MARK_TEAL}`, borderRadius: '4px', background: '#fff', color: MARK_TEAL,
           },
         }, action.label)),
         createElement('button', {
           onClick: () => { setOpen(!open) },
+          disabled: frozen,
           style: {
-            marginLeft: '8px', padding: '0 6px', fontSize: '11px', cursor: 'pointer',
+            marginLeft: '8px', padding: '0 6px', fontSize: '11px',
+            cursor: frozen ? 'default' : 'pointer', opacity: frozen ? 0.5 : 1,
             border: '1px solid #ddd', borderRadius: '4px', background: '#fff', color: '#888',
           },
         }, open ? '取消' : props.actionLabel)),
@@ -476,9 +485,11 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
             }),
             createElement('button', {
               onClick: submit,
+              disabled: frozen,
               style: {
-                padding: '5px 12px', fontSize: '12px', cursor: 'pointer', borderRadius: '4px',
-                border: `1px solid ${MARK_TEAL}`, background: '#fff', color: MARK_TEAL,
+                padding: '5px 12px', fontSize: '12px',
+                cursor: frozen ? 'default' : 'pointer', opacity: frozen ? 0.5 : 1,
+                borderRadius: '4px', border: `1px solid ${MARK_TEAL}`, background: '#fff', color: MARK_TEAL,
               },
             }, '发送'))
         : null)
@@ -698,7 +709,8 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
           }, '在对话旁打开'),
       store.busy === undefined
         ? null
-        : createElement('span', { style: { marginLeft: '10px', fontSize: '12px', color: '#888' } }, store.busy))
+        : createElement('span', { style: { marginLeft: '10px', fontSize: '12px', color: '#888' } },
+            `${store.busy}——回复出现在对话里，桌面在它刷新后自动跟上`))
   }
 
   /** Calendar glyph for the desk panel entry. */
