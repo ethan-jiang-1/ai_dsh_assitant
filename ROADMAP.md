@@ -12,11 +12,11 @@
 
 ## 队列
 
-- ▶ **第一公里：从打开到第一句话**（用户 2026-09-26 深夜拍板全量 P0–P3，当前 Goal）：P0 截图证据管线（Chrome headless 自产截图，解锁 S5"等截图"僵局）→ P1 命令面（`ctx.commandUi` 三室直达）+ hero 品牌位 + composer dock 首开引导 + 默认工作区（"选什么目录"之问的发行解）→ P2 S5 密度（截图驱动）→ P3 引导 IA 统一与收尾——卡：[2026-09-26-first-mile-landing](notes/proposed/2026-09-26-first-mile-landing.md)
+- ▶ **第一公里：从打开到第一句话**（用户 2026-09-26 深夜拍板全量 P0–P3，当前 Goal）：**P0 截图证据管线 + P1-A 命令面 + P1-B 首屏身份与引导 + P2 视觉（同宽修复+密度证据）已落地**；剩 **P1-C 未决**（平台默认工作区机制查清、一次真机端到端见过但无法按需复现，未验证配置已回退——复现配方在走查报告 §4b）+ **P2 层级提案 ⏸ 等你拍板**（动作移行首／它记折起／在办折叠）+ **P3 收尾**——卡：[2026-09-26-first-mile-landing](notes/proposed/2026-09-26-first-mile-landing.md) · 走查与截图证据：[2026-09-26-first-mile-walkthrough](notes/research/2026-09-26-first-mile-walkthrough.md)
 - ▶ **CEO 助手的 Sidebar 培养面**（用户拍板的当前 Goal，进行中）：三面板+培养循环已上线并经**真人首测全链走通**；右侧栏 tab、先办这件引导卡、已办分组、忙时冻结已落地；**设计思路＝[培养面设计思路](notes/proposed/2026-09-26-cultivation-surface-design.md)**；整改工作项＝▶ **培养面整改包**（本表下行）；typert 后置——编年记录：[活动卡](notes/proposed/2026-09-25-ceo-sidebar-ux.md) · 接手入口：[handoff](notes/research/2026-09-26-handoff-ceo-sidebar-cultivation.md)
 - ⏸ **IM 渠道接入**（O5；渠道由你选：飞书 / 企微 / 钉钉 / 先 Web+Desktop）——依据：[专家组合件 v0](notes/implemented/2026-09-25-expert-pack-v0.md) §四
 - ⏳ **MCP 连接**（触发=需要真实系统数据（公司盘/CRM 等）接入会话时；v0 用文件替身）——依据同上
-- ▶ **培养面整改包**（S1–S4 + S6 着陆 + S7 已答只读已落地 2026-09-26：内容准入/异步闭环/机械缺陷/三室语义/首开引导/已答决定只读，逐片验收在卡）——剩 **S5 密度：⏸ 等真机截图或录屏**（无截图不下视觉结论）——卡：[2026-09-26-cultivation-remediation](notes/proposed/2026-09-26-cultivation-remediation.md)
+- ▶ **培养面整改包**（S1–S4 + S6 着陆 + S7 已答只读已落地 2026-09-26：内容准入/异步闭环/机械缺陷/三室语义/首开引导/已答决定只读，逐片验收在卡）——**S5 密度：僵局已解**（第一公里的 P0 截图管线自产真机窄栏证据，见[走查](notes/research/2026-09-26-first-mile-walkthrough.md)；密度结论与层级提案在[第一公里卡](notes/proposed/2026-09-26-first-mile-landing.md) P2，⏸ 等用户拍板层级）——卡：[2026-09-26-cultivation-remediation](notes/proposed/2026-09-26-cultivation-remediation.md)
 - ⏸ **外部 UX/UI 评审**（等你找评审者；自足简报：[2026-09-26-ux-review-brief](notes/research/2026-09-26-ux-review-brief.md)——含平台约束、9 条困惑、期望的反馈形态）——反馈回来后逐条转切片或说明拒绝理由
 - ⏳ 知识导入的转换与概念抽取（触发=①第一份真实 docx/pdf 文档集出现 ②评测集 v0 就位；依据：[导入纯核 note](notes/implemented/2026-09-25-knowledge-ingest-core.md) §四）
 - ⏳ **vendor `lib/` 重建（换 pin 的常规收尾）**（触发=需要 boot/release-smoke/plugin-add 出的 profile 时；测试已改为解析 vendor src，不再依赖它）——三条路与已试步骤见迁移记录 §六
