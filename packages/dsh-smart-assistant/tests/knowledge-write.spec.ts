@@ -84,6 +84,27 @@ describe('writePage (staged draft write path)', () => {
     await expect(service.promotePage('no-such-page-0000')).rejects.toThrow(/no knowledge page/)
   })
 
+  it('deprecatePage keeps the page in place and out of current knowledge', async () => {
+    const service = boot()
+    const written = await service.writePage({
+      type: 'concept',
+      title: 'Retired concept',
+      body: 'Superseded, but links still point here.',
+      sources: ['probe'],
+    })
+    await service.promotePage(written.id)
+
+    const deprecated = await service.deprecatePage(written.id)
+    expect(deprecated.status).toBe('deprecated')
+    const read = await service.readKnowledgePage(written.id)
+    expect(read?.page.status).toBe('deprecated')
+    // Deprecated pages stay readable by id so inbound links resolve.
+    expect(read?.page.body).toContain('Superseded')
+    // Idempotent, and an unknown id still fails loudly.
+    await expect(service.deprecatePage(written.id)).resolves.toMatchObject({ status: 'deprecated' })
+    await expect(service.deprecatePage('no-such-page-0000')).rejects.toThrow(/no knowledge page/)
+  })
+
   it('normalizes links into the form Obsidian also clicks, and mirrors the title into aliases', async () => {
     const service = boot()
     const first = await service.writePage({ type: 'concept', title: 'Staging Gate', body: 'the gate', sources: ['repo'] })

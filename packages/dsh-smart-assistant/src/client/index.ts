@@ -306,6 +306,18 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     )
   }
 
+  /**
+   * Mark one stable knowledge page past its use-by date. The page stays in place (links resolve)
+   * but stops counting as current — the third lifecycle step beside approval and correction.
+   */
+  function deprecateKnowledgePage(title: string): void {
+    sendPrompt(
+      `知识页「${title}」过时了，请把它标记为 deprecated（保留在原处以便链接解析）。改完刷新我的桌面。`,
+      '已把退役请求交给助手…',
+      () => { setTimeout(() => { loadDesk() }, 15000) },
+    )
+  }
+
   /** Tell the assistant what is wrong with one knowledge page. */
   function flagKnowledgePage(title: string, problem: string): void {
     sendPrompt(
@@ -599,7 +611,10 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     const store = useDesk()
     const pages = store.data?.knowledge ?? []
     const drafts = pages.filter(page => page.status === 'draft')
-    const stable = pages.filter(page => page.status !== 'draft')
+    const stable = pages.filter(page => page.status === 'stable')
+    // Deprecated pages are their own group: they stay in place so links resolve, and they are not
+    // "confirmed" — lumping them in with stable pages would overstate what the assistant knows.
+    const deprecated = pages.filter(page => page.status === 'deprecated')
     const row = (page: typeof pages[number], mark: string): ReturnType<typeof createElement> =>
       createElement(CorrectableRow, {
         key: String(page.id),
@@ -611,7 +626,9 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         onSubmit: (text: string) => { flagKnowledgePage(String(page.title ?? page.id ?? ''), text) },
         actions: page.status === 'draft'
           ? [{ label: '批准', run: () => { approveKnowledgePage(String(page.title ?? page.id ?? '')) } }]
-          : undefined,
+          : page.status === 'stable'
+            ? [{ label: '过时了', run: () => { deprecateKnowledgePage(String(page.title ?? page.id ?? '')) } }]
+            : undefined,
       })
     return createElement('div', { style: { padding: '24px', maxWidth: '620px' } },
       createElement('h2', { style: { margin: '0 0 4px', fontSize: '18px' } }, '知识室'),
@@ -628,7 +645,13 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
             stable.length === 0
               ? muted('（还没有已确认的知识页）')
               : createElement('ul', { style: { margin: 0, paddingLeft: '18px', fontSize: '13px', lineHeight: 1.8, color: '#555' } },
-                  ...stable.map(page => row(page, '✓ ')))),
+                  ...stable.map(page => row(page, '✓ '))),
+            deprecated.length === 0
+              ? null
+              : createElement('div', null,
+                  sectionTitle(`已退役（${deprecated.length}）`),
+                  createElement('ul', { style: { margin: 0, paddingLeft: '18px', fontSize: '13px', lineHeight: 1.8, color: '#aaa' } },
+                    ...deprecated.map(page => row(page, '— '))))),
       sectionTitle('技能'),
       (store.data?.skills ?? []).length === 0
         ? muted('（还没有技能）')

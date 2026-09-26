@@ -875,6 +875,28 @@ export class AssistantMemory extends Service {
   }
 
   /**
+   * Mark one knowledge page deprecated — the page stays in place so inbound links keep resolving,
+   * but it stops counting as current knowledge. Like `promotePage`, this only performs an edit the
+   * principal asked for: nothing here decides on its own that a page is past its use-by date.
+   * @param id - The page id to deprecate.
+   * @returns The page's id, absolute path, and the status it now carries.
+   * @throws when no page carries that id, or the page does not parse.
+   */
+  async deprecatePage(id: string): Promise<{ id: string, path: string, status: PageStatus }> {
+    await this.ensureHome()
+    const listing = await this.knowledge.list()
+    const entry = listing.entries.find(candidate => candidate.id === id)
+    if (entry === undefined) throw new Error(`no knowledge page "${id}"`)
+    const page = pageFromEntry(entry)
+    if (page === undefined) throw new Error(`knowledge page "${id}" does not parse`)
+    if (page.status === 'deprecated') return { id, path: entry.path, status: 'deprecated' }
+    const deprecated: KnowledgePage = { ...page, status: 'deprecated' }
+    const document = pageToDocument(deprecated)
+    await this.knowledge.write(id, document.data, document.body)
+    return { id, path: entry.path, status: 'deprecated' }
+  }
+
+  /**
    * List knowledge pages.
    * @returns Parsed pages and the files that failed to parse.
    */

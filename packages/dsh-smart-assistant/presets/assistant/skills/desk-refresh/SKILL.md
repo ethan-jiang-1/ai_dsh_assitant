@@ -81,7 +81,11 @@ The desk panel leads with its decisions section (`decisions`) and its threads se
   the last few real changes (newest first, about five), each one line with its time. Derive it from
   what actually changed in the working folder — file times and your own tool results — not from a
   narrative you would like to be true.
-- **Knowledge** — drafts (with approval), stable pages (with provenance), skills (flag or retire).
+- **Knowledge** — drafts (with approval), stable pages (with provenance and a retire action),
+  deprecated pages (kept in place so links resolve, shown without actions), skills (flag or retire).
+  The principal's three lifecycle moves arrive as ordinary messages: approve a draft
+  (`promote_page`), retire a page that is past its use-by date (`deprecate_page`), or tell you what
+  is wrong with it. Perform the edit and refresh the desk in the same turn.
 - **Memory** — every active record, with its source and a correction action.
 
 ## How to fill it

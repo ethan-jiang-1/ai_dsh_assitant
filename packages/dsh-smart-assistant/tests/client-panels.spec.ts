@@ -113,6 +113,7 @@ describe('desk panels', () => {
       knowledge: [
         { id: 'k1', title: 'management-lens-ceo', status: 'draft', type: 'source', sources: ['ai_dsh_company:kb/ceo/CHARTER.md'] },
         { id: 'k2', title: 'Agent preset semantics', status: 'stable', type: 'how-it-works' },
+        { id: 'k3', title: 'old note', status: 'deprecated', type: 'concept' },
       ],
       skills: [{ name: 'desk-refresh', description: 'how to refresh the desk file' }],
     }
@@ -126,6 +127,9 @@ describe('desk panels', () => {
     expect(text).toContain('desk-refresh')
     // Skills carry their own audit actions: flag it, or retire it (the assistant moves it out of
     // the loading set, recoverably).
+    // Lifecycle: a draft can be approved, a stable page can be retired, a deprecated one carries
+    // no action (there is nothing left to decide about it).
+    expect(text).toContain('过时了')
     expect(text).toContain('这技能有问题')
     expect(text).toContain('没用了')
     // Provenance is the trust line.
