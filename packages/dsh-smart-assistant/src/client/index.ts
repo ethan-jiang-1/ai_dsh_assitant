@@ -36,6 +36,73 @@ interface ClientContext {
   sidebarRightTabs: SidebarRightTabsRegistry
   /** The right-sidebar controller, so a page can open a room tab beside the conversation. */
   sidebarRight?: { openTab: (kind: string, options?: { params?: unknown }) => void }
+  /**
+   * Scoped dependency injection. The command registry is reached this way instead of
+   * through the plugin's own `inject` list: the rooms must render whether or not the
+   * composition carries a command surface, so the panels must not wait on it.
+   */
+  inject?: (deps: string[], callback: (scope: { get: (name: string) => unknown }) => void) => unknown
+}
+
+/** One client-owned command's UI behavior (mirrors the ui-commands contract). */
+interface CommandActionSpec {
+  readonly kind: 'action'
+  /** Runs for one session; consumes the trigger token and submits nothing. */
+  run(session: unknown): void
+}
+
+/** A client-owned slash-menu command (mirrors the ui-commands contract). */
+interface CommandContribution {
+  /** Command name without the leading slash. */
+  readonly name: string
+  /** Localized menu row title. */
+  label?(): string
+  /** Localized menu row description. */
+  description?(): string
+  /** Capability filter, called with a fresh projection per candidate pass. */
+  available(session: unknown): boolean
+  readonly ui: CommandActionSpec
+}
+
+/** The client command registry surface this face uses. */
+interface CommandUiRegistry {
+  register(contribution: CommandContribution): unknown
+}
+
+/**
+ * The rooms as discoverable commands.
+ *
+ * Why this exists: the first-mile walkthrough (2026-09-26) found the product had zero
+ * presence in the composer's `/` and `+` menus — "what can this thing do" depended on the
+ * principal guessing. These rows are the discovery surface; each opens its room beside the
+ * conversation and submits nothing.
+ * @param open - opens one room's right-sidebar tab by kind.
+ * @returns the three contributions, in menu order.
+ */
+function roomCommands(open: (kind: string) => void): CommandContribution[] {
+  return [
+    {
+      name: 'desk',
+      label: () => '打开我的桌面',
+      description: () => '现在要采取什么行动：等你拍板、在办的事、缺什么',
+      available: () => true,
+      ui: { kind: 'action', run: () => { open('desk') } },
+    },
+    {
+      name: 'knowledge',
+      label: () => '打开知识室',
+      description: () => '它凭什么这样判断：知识页、出处与适用范围',
+      available: () => true,
+      ui: { kind: 'action', run: () => { open('knowledgeRoom') } },
+    },
+    {
+      name: 'memory',
+      label: () => '打开记忆室',
+      description: () => '它把你理解成什么：记住的偏好、决定与事实',
+      available: () => true,
+      ui: { kind: 'action', run: () => { open('memoryRoom') } },
+    },
+  ]
 }
 
 /** Minimal structural mirror of the sidebar-right tab registration surface. */
@@ -1421,14 +1488,27 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         id: 'assistant-desk-chip',
         order: -6,
       }, AssistantDeskChip))
+
+    // Discovery (P1-A, 2026-09-26): the `/` menu and the composer's `+` menu list these,
+    // so "what can this thing do" stops depending on the principal guessing at a prompt.
+    // Scoped inject rather than the plugin's own inject list keeps the rooms independent
+    // of whether this composition carries a command surface at all.
+    ctx.inject?.(['commandUi'], (scope) => {
+      const commandUi = scope.get('commandUi') as CommandUiRegistry | undefined
+      if (commandUi === undefined) return
+      for (const contribution of roomCommands(openBeside)) commandUi.register(contribution)
+    })
   }
 
   // The occupants, the three panels, and the shared store are exposed for tests: the store is the
   // panels' only input, so a test that fills it can render every section without a browser.
+  // `roomCommands` is exposed the same way — its contributions are pure values, so a test can
+  // assert names, copy, and the room each one opens without a browser context.
   return {
     inject, apply, AssistantBrandMark, AssistantBrandName,
     DeskPanel, KnowledgePanel, MemoryPanel, deskStore,
     DeskTabBody, KnowledgeTabBody, MemoryTabBody, AssistantDeskChip,
+    roomCommands,
   }
 }
 

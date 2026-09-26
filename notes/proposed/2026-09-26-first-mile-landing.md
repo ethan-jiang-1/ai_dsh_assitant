@@ -91,4 +91,12 @@
   窄栏未验）与四条平台事实（默认工作区真的会建、可注入面清单、门是配置、管线六坑）都带证据。
   **验收实跑**：verify 31/31（真退出码）、typecheck 0 error、脚本对运行中的 dev web 实跑产出
   PNG + DOM 证据（read_image 已核）。
-- [ ] P1-A 命令面 · P1-B 首屏身份与引导 · P1-C 开发环境保真 · P2 S5 密度 · P3 收尾
+- [x] **P1-A 命令面**（2026-09-26 落地）——client 注册三条 `ctx.commandUi` action：
+  `/desk`、`/knowledge`、`/memory`，各开对应房间到对话旁（不发消息）。命令面经**scoped inject**
+  取，不进插件自己的 `inject` 表——命令是加法，三室不能因为组合里没有命令注册表而一起 pending
+  （测试守卫这一条）。行文案带三室语义（S4 的三个用户问题）。
+  **验收实跑**：client-commands 3/3（造红证明：改错 room kind → 红，复原 → 绿）、verify 31/31、
+  build 0、真机 `+` 菜单实拍（Commands 区出现三条，带名字与说明）——
+  证据 [p1a-command-menu.png](../research/2026-09-26-first-mile-shots/p1a-command-menu.png)。
+  **未做**：行内图标（vendor 行有 glyph；我们的没有）——留 P3 视觉收尾评估。
+- [ ] P1-B 首屏身份与引导 · P1-C 开发环境保真 · P2 S5 密度 · P3 收尾
