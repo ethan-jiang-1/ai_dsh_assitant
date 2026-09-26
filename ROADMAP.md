@@ -12,7 +12,7 @@
 
 ## 队列
 
-- ▶ **CEO 助手的 Sidebar 交互实验**（用户拍板的当前 Goal：五个实验按序做）——实验一 ✅ 面板壳已 live（panellist 注册跑通，CEO 已看到）；实验二 ⏸ 接真数据**卡在架构**：仓外插件的 Remote 命名空间需要 typert 清单集成（证据链在卡 §四·二），下一步路径=助手维护工作区 desk 文件、经已在清单里的 workspaceFiles 读取；过程修复 ✅ preflight 现在自查 boot 图与 Remote 清单（不再让用户当试错者）——卡：[2026-09-25-ceo-sidebar-ux](notes/proposed/2026-09-25-ceo-sidebar-ux.md)
+- ▶ **CEO 助手的 Sidebar 交互实验**（用户拍板的当前 Goal）——实验一 ✅ 面板壳 live（panellist 注册，CEO 已看到）；实验二 ◐ 两份活数据已接（助手预设 `agentPresets` + 对话历史 `session`，均走清单内的 Remote 命名空间，证明 client→Remote→host 可用）；工作文件夹计数 ⏸ 两条候选路待用户拍板（A：助手维护工作区 desk 文件、经 workspaceFiles 读；B：做 typert 清单集成开自有命名空间）；过程修复 ✅ preflight 现在自查 boot 图与 Remote 清单——卡：[2026-09-25-ceo-sidebar-ux](notes/proposed/2026-09-25-ceo-sidebar-ux.md)
 - ▶ **专家部署的组合件 v0**（进行中：可装可跑的件已齐——SOP 技能×2 + `pnpm expert-setup` 装配 + read-only 权限形状 + P1 行为 live 验证；迁移带出的"策展技能全缺"真 bug **已修**（baseUrl = profile 目录 → 按包名解析；红夹具 + live 重跑 + 账本三证据），`pnpm eval` 行为回归 **3/3**；剩 §四 的触发项：IM 渠道（等你选）、MCP、概念页抽取）——卡：[2026-09-25-expert-pack-v0](notes/proposed/2026-09-25-expert-pack-v0.md)
 - ▶ **会话日志代次配方**（写者已 v4、读方与配方仍写死 v3 的静默失效：开发仪表**已修**（代次无关发现 + 夹具），**模型可见**两处（手册段 + `session-recall` 技能）**已改成代次无关**，验收四条全绿（红夹具 + eval 3/3 + live 探针）；同批修掉这条技能的两处不可用（frontmatter parse 失败被静默 skip、`rg` 包装脚本缺 `--`）——见卡 §四/§六）——卡：[2026-09-25-session-log-generation-recipe](notes/proposed/2026-09-25-session-log-generation-recipe.md)
 - ⏳ 知识导入的转换与概念抽取（触发=①第一份真实 docx/pdf 文档集出现 ②评测集 v0 就位；依据：[导入纯核 note](notes/implemented/2026-09-25-knowledge-ingest-core.md) §四）
