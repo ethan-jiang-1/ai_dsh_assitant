@@ -73,6 +73,37 @@ Cheaper routes for panel data, in order of preference: an **already-manifested**
 (`skills`, `session`, `workspaceFiles`, `workspace`, `goals`, … — 27 of them), or a file the
 assistant maintains in the workspace, read through `workspaceFiles`.
 
+## 5. Right-sidebar tab bodies: two-stage registration, and what a restored tab remembers
+
+A **visible** tab needs the type AND a body AND a reachable opener. The type alone is the passive
+declaration from §2; the body rides a keyed seat, and nothing opens itself:
+
+```ts
+// stage 1 — the type; a kind-opened page needs no patterns at all (shape: ui-schedule's definition.ts)
+ctx.sidebarRightTabs.register({ id: 'pkg/room', kind: 'pkg-room', priority: 'fallback', title: () => 'Room' })
+// stage 2 — the body under the type's id; the chip-title seat is optional (the captured title suffices)
+ctx.slots.inject('sidebar.right.pane.tab', () => ctx.slots.register(
+  { name: 'sidebar.right.pane.tab', key: 'pkg/room' }, Body))
+// an opener, e.g. a chip in the Session header (list seat, session-scoped — ui-schedule's catalog entry):
+ctx.slots.inject('conversation.session.header.utilities', () => ctx.slots.register(
+  { name: 'conversation.session.header.utilities', id: 'pkg-room-chip', order: -6 }, Chip))
+// add the 'sidebarRight' service to the bundle's inject list, then open with:
+// ctx.sidebarRight.openTab('pkg-room')
+```
+
+Facts that save rounds:
+
+- The `sidebar.right.pane.tab` seat is **keyed and session-scoped**: the body receives the holding
+  session's id as a plain `sessionId` prop (the session standard props) — per-session binding needs
+  no navigation plumbing. Route the body's actions to that same session: a correction typed beside
+  session X that lands in the newest session reads as being ignored.
+- A restored tab persists its **layout record only, not the opener's params** (`tab.navigation.params`
+  is `undefined` after a reload). Content that names an external object needs a provider-owned
+  binding store (`ui-schedule`'s `task-tab-bindings`); content that is inherently about its own
+  session — a desk — needs nothing: read the session prop.
+- Placement (`SidebarRightTabPlacement`) carries pane/splitting options but **no sessionId** — a tab
+  lives in the session whose sidebar was mounted when it was opened.
+
 ## The loop
 
 1. Build (`pnpm build`) — the dev profile links the package and the composition consumes `lib/`.
