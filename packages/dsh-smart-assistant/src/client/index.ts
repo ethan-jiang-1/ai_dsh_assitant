@@ -492,6 +492,8 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     lead?: boolean
     /** This row's identity: the in-flight receipt and the settled receipt land on the row acted on. */
     rowId?: string | undefined
+    /** Read-only: the row was acted on and its question is settled — no buttons, no input. */
+    readOnly?: boolean
   }): ReturnType<typeof createElement> {
     const { useState } = require('react') as typeof import('react')
     const store = useDesk()
@@ -525,7 +527,10 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
               textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '540px',
             },
           }, `来源：${source.length > 110 ? `${source.slice(0, 110)}…` : source}`),
-      createElement('div', { style: { fontSize: '11px', color: '#aaa', marginTop: '2px' } },
+      props.readOnly === true
+        ? createElement('div', { style: { fontSize: '11px', color: '#aaa', marginTop: '2px' } },
+            '已回答——改主意？在对话里说一声，它会改回来')
+        : createElement('div', { style: { fontSize: '11px', color: '#aaa', marginTop: '2px' } },
         props.meta === undefined || props.meta === '' ? null : props.meta,
         ...(props.actions ?? []).map(action => {
           // A destructive move asks twice: one click arms it for three seconds ("确认…？"), the
@@ -567,7 +572,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       receipt === undefined ? null : createElement('div', {
         style: { fontSize: '12px', color: MARK_TEAL, marginTop: '4px' },
       }, `✓ 已更新 · ${shortTime(new Date(receipt.at).toISOString())}`),
-      open
+      open && props.readOnly !== true
         ? createElement('div', { style: { marginTop: '6px', display: 'flex', gap: '6px', alignItems: 'flex-start' } },
             // A textarea, not an input: corrections run one to three sentences. Enter still sends,
             // but guarded against IME composition — without the guard, a Chinese principal's
@@ -964,11 +969,19 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
                     border: `1px solid ${MARK_TEAL}`, background: '#fff', color: MARK_TEAL,
                   },
                 }, String(option.label ?? ''))))
+        // S7: once THIS row has been answered (in flight or settled), it stops looking
+        // answerable — a real trial answered one decision three times because the row kept its
+        // buttons through the assistant's multi-step rewrite window.
+        const answered = (item: DeskDecision): boolean => {
+          const rowId = rowIdOf(item)
+          return store.pending?.rowId === rowId || store.lastReceipt?.rowId === rowId
+        }
         const row = (item: DeskDecision, compact: boolean): ReturnType<typeof createElement> => {
           const rowId = rowIdOf(item)
           return createElement(CorrectableRow, {
             key: rowId,
             rowId,
+            readOnly: answered(item),
             primary: createElement('span', null,
               createElement('span', { style: { fontSize: '13px', fontWeight: 600 } }, String(item.question ?? '')),
               compact || item.context === undefined || item.context === ''
@@ -977,7 +990,8 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
               item.reply === undefined || item.reply === ''
                 ? null
                 : createElement('div', { style: { fontSize: '11px', color: '#999', marginTop: '4px' } }, `它说：${item.reply}`),
-              optionButtons(item, rowId)),
+              // Options hide once answered — the trial's second click came exactly from here.
+              answered(item) ? null : optionButtons(item, rowId)),
             actionLabel: '回答',
             placeholder: '你的决定是什么？',
             onSubmit: (text: string) => { answerDecision(String(item.question ?? ''), text, rowId) },
@@ -1005,6 +1019,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
               createElement(CorrectableRow, {
                 lead: true,
                 rowId: rowIdOf(lead),
+                readOnly: answered(lead),
                 primary: createElement('span', null,
                   createElement('span', { style: { fontSize: '16px', fontWeight: 700, color: '#111' } }, String(lead.question ?? '')),
                   lead.context === undefined || lead.context === ''
@@ -1013,7 +1028,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
                   lead.reply === undefined || lead.reply === ''
                     ? null
                     : createElement('div', { style: { fontSize: '11px', color: '#999', marginTop: '4px' } }, `它说：${lead.reply}`),
-                  optionButtons(lead, rowIdOf(lead))),
+                  answered(lead) ? null : optionButtons(lead, rowIdOf(lead))),
                 actionLabel: '回答',
                 placeholder: '你的决定是什么？',
                 onSubmit: (text: string) => { answerDecision(String(lead.question ?? ''), text, rowIdOf(lead)) },

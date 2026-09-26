@@ -368,6 +368,29 @@ describe('desk panels', () => {
     expect(filled).not.toContain('第一次来这里？')
   })
 
+  it('an answered decision stops looking answerable — read-only with a reversal hint (S7)', () => {
+    const exports = materialize()
+    exports.deskStore.data = {
+      generatedAt: '2026-09-26T22:40:00+08:00',
+      decisions: [{ id: 'd1', question: '季末破价例外签单？', kind: 'business',
+        options: [{ label: '守默认' }, { label: '允许例外' }] }],
+    }
+    // Answered and settled: the row carries its receipt and a reversal path — but no buttons.
+    exports.deskStore.lastReceipt = { rowId: 'd1', action: '回答', at: new Date('2026-09-26T22:43:07+08:00').getTime() }
+    const settled = textsOf(exports.DeskPanel()).join(' | ')
+    expect(settled).toContain('✓ 已更新')
+    expect(settled).toContain('已回答——改主意？在对话里说一声')
+    expect(settled).not.toContain('看选项')
+    expect(settled).not.toContain('守默认')   // option buttons gone too
+    // In flight: same read-only shape (the receipt line says "正在处理").
+    exports.deskStore.lastReceipt = undefined
+    exports.deskStore.pending = { rowId: 'd1', at: new Date('2026-09-26T22:40:39+08:00').getTime(), action: '回答' }
+    const inFlight = textsOf(exports.DeskPanel()).join(' | ')
+    expect(inFlight).toContain('已交给助手')
+    expect(inFlight).toContain('已回答——改主意？在对话里说一声')
+    expect(inFlight).not.toContain('允许例外')
+  })
+
   it('carries the freshness warning in every room, not only the desk (A7)', () => {
     const exports = materialize()
     exports.deskStore.data = {
@@ -396,7 +419,10 @@ describe('desk panels', () => {
     expect(inFlight).toContain('已交给助手')
     expect(inFlight).toContain('正在处理')
     expect(inFlight).toContain('回复出现在对话里')
-    expect(disabledButtons(exports.DeskPanel())).toBeGreaterThanOrEqual(3)
+    // S7: the answered row is read-only — no answer buttons AT ALL (stronger than frozen); the
+    // global gate still freezes the rest of the surface (refresh button here).
+    expect(inFlight).not.toContain('看选项')
+    expect(disabledButtons(exports.DeskPanel())).toBeGreaterThanOrEqual(1)
 
     // The desk file is rewritten past the send → the gate lifts and the row carries its receipt.
     exports.deskStore.pending = undefined
