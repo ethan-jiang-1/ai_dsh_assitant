@@ -29,10 +29,11 @@ place your file tools write). Create the directory if it is missing.
     { "id": "20260925-20-…", "status": "open", "title": "…", "why": "…", "lean": "…", "updated": "…" }
   ],
   "memories": [
-    { "id": "20260925-…", "kind": "fact", "updated": "…", "text": "…" }
+    { "id": "20260925-…", "kind": "fact", "updated": "…", "text": "…", "source": "…" }
   ],
   "knowledge": [
-    { "id": "…", "title": "…", "status": "stable", "type": "how-it-works", "updated": "…" }
+    { "id": "…", "title": "…", "status": "stable", "type": "how-it-works", "updated": "…",
+      "sources": ["…"] }
   ],
   "skills": [
     { "name": "…", "description": "…" }
@@ -59,7 +60,10 @@ The desk panel leads with its decisions section (`decisions`) and its threads se
   not the headline.
 - `memories`: the **active** records the principal would want to audit — newest first, up to about
   twenty. This is the memory panel's whole list, and each row is a correction target: a record you
-  leave out is one the principal cannot fix.
+  leave out is one the principal cannot fix. Carry each record's `source` verbatim: the panel shows
+  it as the trust line, and for a record the principal corrected it *is* the trace of that
+  correction ("the principal corrected this on …"). A record with no source renders without one —
+  do not invent a citation.
 
 ## How to fill it
 
@@ -74,8 +78,9 @@ The desk panel leads with its decisions section (`decisions`) and its threads se
 3. **Memories** — `assistant_memory action=list` (or `recall`), newest first, up to about twenty
    active records.
 4. **Knowledge pages** — list the knowledge room's files and read each page's frontmatter
-   (`id`, `title`, `status`, `type`, `updated`). Include drafts: the principal reviews them from
-   the knowledge panel, so a draft you leave out is a draft they never see.
+   (`id`, `title`, `status`, `type`, `updated`, `sources`). Flatten `sources` to plain resource
+   strings for the panel. Include drafts: the principal reviews them from the knowledge panel, so a
+   draft you leave out is a draft they never see.
 5. **Skills** — list your skill bundles and take each `name` (the directory) plus the first line of
    its `description`.
 

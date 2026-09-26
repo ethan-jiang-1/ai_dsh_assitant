@@ -113,8 +113,8 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     counts?: { memories?: number, knowledgeStable?: number, knowledgeDraft?: number, skills?: number, threads?: number }
     threads?: { id?: string, status?: string, title?: string, why?: string, lean?: string }[]
     decisions?: { id?: string, question?: string, context?: string }[]
-    memories?: { id?: string, kind?: string, text?: string, updated?: string }[]
-    knowledge?: { id?: string, title?: string, status?: string, type?: string }[]
+    memories?: { id?: string, kind?: string, text?: string, updated?: string, source?: string }[]
+    knowledge?: { id?: string, title?: string, status?: string, type?: string, sources?: string[] }[]
     skills?: { name?: string, description?: string }[]
   }
 
@@ -313,6 +313,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     placeholder: string
     onSubmit: (text: string) => void
     approve?: { label: string, run: () => void } | undefined
+    source?: string | undefined
   }): ReturnType<typeof createElement> {
     const { useState } = require('react') as typeof import('react')
     const [open, setOpen] = useState(false)
@@ -324,8 +325,20 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       setText('')
       setOpen(false)
     }
+    // Provenance is the trust line: where a claim came from is what lets the principal judge it —
+    // and for a record they corrected, the source is the cultivation trace itself.
+    const source = props.source === undefined || props.source.trim() === '' ? undefined : props.source.trim()
     return createElement('li', { style: { marginBottom: '10px', listStyle: 'none' } },
       createElement('div', { style: { fontSize: '13px', lineHeight: 1.6, color: '#555' } }, props.primary),
+      source === undefined
+        ? null
+        : createElement('div', {
+            title: source,
+            style: {
+              fontSize: '11px', color: '#9a9a9a', marginTop: '2px', overflow: 'hidden',
+              textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '540px',
+            },
+          }, `来源：${source.length > 110 ? `${source.slice(0, 110)}…` : source}`),
       createElement('div', { style: { fontSize: '11px', color: '#aaa', marginTop: '2px' } },
         props.meta === undefined || props.meta === '' ? null : props.meta,
         props.approve === undefined
@@ -524,6 +537,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         meta: page.type === undefined || page.type === '' ? '' : String(page.type),
         actionLabel: '有问题',
         placeholder: '哪里不对？',
+        source: (page.sources ?? []).join(' · '),
         onSubmit: (text: string) => { flagKnowledgePage(String(page.title ?? page.id ?? ''), text) },
         approve: page.status === 'draft'
           ? { label: '批准', run: () => { approveKnowledgePage(String(page.title ?? page.id ?? '')) } }
@@ -571,6 +585,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
               meta: [memory.kind, memory.updated].filter(part => part !== undefined && part !== '').join(' · '),
               actionLabel: '这条记错了',
               placeholder: '正确的是什么？',
+              source: memory.source,
               onSubmit: (text: string) => { correctMemory(String(memory.text ?? ''), text) },
             }))),
       sectionTitle('规模'),
