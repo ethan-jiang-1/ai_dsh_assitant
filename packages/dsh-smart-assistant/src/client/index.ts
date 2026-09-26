@@ -432,6 +432,27 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     return createElement('p', { style: { fontSize: '12px', color: '#999', margin: 0 } }, text)
   }
 
+  /** One quick-action button in the shared row. */
+  function quickButton(label: string, hint: string, run: () => void): ReturnType<typeof createElement> {
+    return createElement('button', {
+      onClick: run,
+      title: hint,
+      style: {
+        marginRight: '8px', padding: '5px 12px', fontSize: '12px', cursor: 'pointer',
+        border: '1px solid #ddd', borderRadius: '6px', background: '#fff', color: '#555',
+      },
+    }, label)
+  }
+
+  /** The quick actions every panel carries: the whole-point-of-a-desk prompts, one click each. */
+  function quickActions(): ReturnType<typeof createElement> {
+    return createElement('div', { style: { marginTop: '8px' } },
+      quickButton('回顾一下', '让助手回顾最近的决定、在跟的事与它新学到的东西',
+        () => { sendPrompt('回顾一下：我们最近决定了什么、还有什么在跟、你新学到了什么？', '已请助手回顾…') }),
+      quickButton('体检', '让助手跑一次 curate，报告家的现状与需要你处理的事',
+        () => { sendPrompt('跑一次 curate，报告家的现状与需要我处理的事。', '已请助手体检…') }))
+  }
+
   /** The refresh button plus its status line — shared by all three panels. */
   function refreshRow(store: typeof deskStore): ReturnType<typeof createElement> {
     return createElement('div', { style: { margin: '8px 0 0' } },
@@ -494,6 +515,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     return createElement('div', { style: { padding: '24px', maxWidth: '620px' } },
       createElement('h2', { style: { margin: '0 0 4px', fontSize: '18px' } }, '我的桌面'),
       refreshRow(store),
+      quickActions(),
 
       // The principal's first question is "what needs me?" — so it leads, and the drafts the
       // knowledge panel owns are counted here rather than duplicated.

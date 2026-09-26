@@ -93,6 +93,9 @@ describe('desk panels', () => {
     // (a fixed string would pass in one timezone and fail in another).
     expect(text).toContain('知识')
     expect(text).toContain('更新于')
+    // The desk's quick actions: the whole-point-of-a-desk prompts, one click each.
+    expect(text).toContain('回顾一下')
+    expect(text).toContain('体检')
     const stamp = new Date('2026-09-26T13:00:00+08:00')
     const pad = (part: number): string => String(part).padStart(2, '0')
     expect(text).toContain(`${pad(stamp.getMonth() + 1)}-${pad(stamp.getDate())}`)
