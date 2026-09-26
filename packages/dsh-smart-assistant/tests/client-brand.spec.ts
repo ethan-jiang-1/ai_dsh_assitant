@@ -141,7 +141,8 @@ describe('client-module registration', () => {
     }
     ;(exports.apply as (ctx: unknown) => void)(ctx)
     // Brand slots first, then one panellist entry plus one main body per panel, then one
-    // right-sidebar tab body per room, then the Session-header chip that opens the desk tab.
+    // right-sidebar tab body per room, then the Session-header chip that opens the desk tab,
+    // then the two first-mile seats (blank-session hero mark and the dock above the composer).
     expect(calls).toEqual([
       'sidebar.brand.mark', 'sidebar.brand.name',
       'sidebar.panellist', 'main',
@@ -149,9 +150,11 @@ describe('client-module registration', () => {
       'sidebar.panellist', 'main',
       'sidebar.right.pane.tab', 'sidebar.right.pane.tab', 'sidebar.right.pane.tab',
       'conversation.session.header.utilities',
+      'conversation.hero.brand.mark', 'conversation.input.dock',
     ])
     // Each panel registers twice by design: its icon in the panellist, its body in `main`;
-    // each room then registers its tab type and its keyed body; the chip closes the set.
+    // each room then registers its tab type and its keyed body; the chip and the first-mile
+    // seats close the set.
     expect(registered).toEqual([
       'sidebar.brand.mark', 'sidebar.brand.name',
       'assistant-desk', 'assistant-desk',
@@ -161,6 +164,7 @@ describe('client-module registration', () => {
       'tab:knowledgeRoom', 'dsh-smart-assistant-knowledge',
       'tab:memoryRoom', 'dsh-smart-assistant-memory',
       'assistant-desk-chip',
+      'conversation.hero.brand.mark', 'assistant-first-mile',
     ])
   })
 })
