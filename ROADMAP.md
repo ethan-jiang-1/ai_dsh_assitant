@@ -15,7 +15,6 @@
 - ▶ **CEO 助手的 Sidebar 培养面**（用户拍板的当前 Goal，进行中）：三面板+培养循环已上线（已完成清单与状态一览＝卡 §〇）；**形态已拍板（2026-09-26）：右侧栏 tab，待开工**；⏸ 更正循环等用户实测反馈；typert 底层按拍板后置——卡：[2026-09-25-ceo-sidebar-ux](notes/proposed/2026-09-25-ceo-sidebar-ux.md) · 接手入口：[handoff](notes/research/2026-09-26-handoff-ceo-sidebar-cultivation.md)
 - ▶ **专家部署的组合件 v0**（进行中）：可装可跑的件已齐（SOP 技能×2 + `pnpm expert-setup` 装配 + read-only 权限形状 + P1 行为 live 验证，eval 3/3；迁移 bug 修复记录在卡）；剩触发项：IM 渠道（等你选）、MCP、概念页抽取（卡 §四）——卡：[2026-09-25-expert-pack-v0](notes/proposed/2026-09-25-expert-pack-v0.md)
 - ▶ **会话日志代次配方**（进行中）：写者 v4、开发仪表与模型可见两处已改代次无关，验收四条全绿（红夹具+eval 3/3+live 探针）；细节与两处附带不可用的修复在卡 §四/§六——卡：[2026-09-25-session-log-generation-recipe](notes/proposed/2026-09-25-session-log-generation-recipe.md)
-- 🧹 **信噪比清理包**（进行中，用户已拍板按序全做）：handoff 过时绕过法 / notes/README 陈旧计数 / dev.md 断表 / ROADMAP 条目瘦身 / 卡 §九 链接化——卡：[2026-09-26-signal-noise-sweep](notes/proposed/2026-09-26-signal-noise-sweep.md)
 - ⏳ 知识导入的转换与概念抽取（触发=①第一份真实 docx/pdf 文档集出现 ②评测集 v0 就位；依据：[导入纯核 note](notes/implemented/2026-09-25-knowledge-ingest-core.md) §四）
 - ⏳ **vendor `lib/` 重建（换 pin 的常规收尾）**（触发=需要 boot/release-smoke/plugin-add 出的 profile 时；测试已改为解析 vendor src，不再依赖它）——三条路与已试步骤见迁移记录 §六
 - ⏸ **阶段 0-3 · 评测集 v0**（30–50 条真实经营问题，含应拒答题与判分规则；**题目由你本人出**——这是 G2 关口，agent 只整理格式）

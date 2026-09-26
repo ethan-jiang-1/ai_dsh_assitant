@@ -528,7 +528,7 @@ promote / park / drop。切片：线索行改用 `CorrectableRow`（内联"问�
 - 查组合里有没有这一行（boot-free）：`node scripts/dsh.mjs --profile dev --dump-config | grep -A3 '<row id>'`。
 
 （本节旧版复述的完整命令块与 pnpm 绕过法已删——绕过法在 peerDep 回退当天就过期；审计与拆法见
-[清理卡](../proposed/2026-09-26-signal-noise-sweep.md)。）
+[清理卡](../implemented/2026-09-26-signal-noise-sweep.md)。）
 
 关键文件：
 - `packages/dsh-smart-assistant/src/client/index.ts` —— client 面（品牌标记 + My Desk 面板）

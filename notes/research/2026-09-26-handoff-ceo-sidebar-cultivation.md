@@ -97,7 +97,7 @@ client 是 classic script 不是 ESM（一条 import/export 就解析错误、�
 
 四条的**完整展开与验证循环的权威是开发技能 [`client-ui-contribution`](../../.agents/skills/client-ui-contribution/SKILL.md)**；
 typert 阻塞的证据链与死路回退（DeskRemote 整段删除）在[卡 §四·二](../proposed/2026-09-25-ceo-sidebar-ux.md)。
-（旧版在本节逐条复述，与技能双写——2026-09-26 审计拆除，见[清理卡](../proposed/2026-09-26-signal-noise-sweep.md)。）
+（旧版在本节逐条复述，与技能双写——2026-09-26 审计拆除，见[清理卡](../implemented/2026-09-26-signal-noise-sweep.md)。）
 
 ### 3.5 两道闸门是纪律，不是机械门禁（诚实记录）
 
