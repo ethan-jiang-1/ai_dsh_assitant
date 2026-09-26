@@ -88,6 +88,8 @@ export function summarizeEvents(events) {
     turns: 0,
     steps: 0,
     userMessages: 0,
+    principalMessages: 0,
+    injectedUserMessages: 0,
     assistantMessages: 0,
     toolCalls: {},
     assistantToolSessions: 0,
@@ -113,9 +115,23 @@ export function summarizeEvents(events) {
       case 'step/start':
         summary.steps += 1
         break
-      case 'user/message':
+      case 'user/message': {
         summary.userMessages += 1
+        // The harness injects standing preambles as user messages (collaboration boundary,
+        // workspace instructions, runtime context) — the meter's job is real use, so they count
+        // separately instead of inflating the principal's side. Real misread this fixes: a run of
+        // injected preambles looked like "the principal tested the panel" (2026-09-26).
+        const content = data.content
+        const text = Array.isArray(content)
+          ? content.filter(part => part && part.type === 'text').map(part => String(part.text ?? '')).join(' ')
+          : String(content ?? '')
+        if (/^\s*(\[Collaboration boundary\]|<system-reminder>|Current runtime context)/.test(text)) {
+          summary.injectedUserMessages += 1
+        } else {
+          summary.principalMessages += 1
+        }
         break
+      }
       case 'assistant/message':
         summary.assistantMessages += 1
         break
@@ -158,6 +174,8 @@ export function mergeSummaries(summaries) {
     total.turns += summary.turns
     total.steps += summary.steps
     total.userMessages += summary.userMessages
+    total.principalMessages += summary.principalMessages
+    total.injectedUserMessages += summary.injectedUserMessages
     total.assistantMessages += summary.assistantMessages
     total.assistantToolSessions += summary.assistantToolSessions
     total.errorTurns += summary.errorTurns
@@ -209,7 +227,7 @@ export function renderReport(total, home) {
   lines.push(`# 意图级仪表（${harnessHome}）`)
   lines.push('')
   lines.push(`- 会话 ${total.sessions}（有请求 ${total.requests} 次 / 轮 ${total.turns} / 步 ${total.steps}）`)
-  lines.push(`- 消息：用户 ${total.userMessages}，助手 ${total.assistantMessages}`)
+  lines.push(`- 消息：真人 ${total.principalMessages}，助手 ${total.assistantMessages}（注入前导 ${total.injectedUserMessages} 另计）`)
   lines.push(`- 自用率：${total.withAssistantTool}/${total.sessions} 个会话调用过自家房间工具（${share(total.withAssistantTool, total.sessions)}）`)
   const tools = Object.entries(total.toolCalls).sort((left, right) => right[1] - left[1])
   lines.push(`- 工具混合（${tools.length} 种，共 ${tools.reduce((sum, entry) => sum + entry[1], 0)} 次）：${tools.slice(0, 8).map(([name, count]) => `${name}×${count}`).join('、') || '（无）'}`)

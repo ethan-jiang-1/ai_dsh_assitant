@@ -46,6 +46,24 @@ describe('summarizeEvents', () => {
     expect([...summary.models]).toEqual(['p/m'])
     expect(summary.reasons).toEqual({ completed: 1 })
     expect(summary.errorTurns).toBe(0)
+    // A plain user message is the principal speaking.
+    expect(summary.principalMessages).toBe(1)
+    expect(summary.injectedUserMessages).toBe(0)
+  })
+
+  it('counts injected preambles separately from the principal — the meter measures real use', () => {
+    // The real shapes (calibrated on live logs): the collaboration boundary, workspace
+    // instructions, and the runtime context arrive as user messages. Counting them as the
+    // principal's made a run of injected preambles read as "the principal tested the panel".
+    const summary = summarizeEvents([
+      { type: 'user/message', data: { content: [{ type: 'text', text: '[Collaboration boundary] You may change the working tree, but you do not commit' }] } },
+      { type: 'user/message', data: { content: [{ type: 'text', text: '<system-reminder>\nAdditional instructions from: dev/AGENTS.md' }] } },
+      { type: 'user/message', data: { content: [{ type: 'text', text: 'Current runtime context. This snapshot supersedes earlier snapshots.' }] } },
+      { type: 'user/message', data: { content: [{ type: 'text', text: '刷新我的桌面：加载 desk-refresh 技能，严格按它把桌面文件重写一遍。' }] } },
+    ])
+    expect(summary.userMessages).toBe(4)
+    expect(summary.injectedUserMessages).toBe(3)
+    expect(summary.principalMessages).toBe(1)
   })
 
   it('marks a session without a home-room tool as not self-using, and counts non-completed turns as friction', () => {
@@ -64,6 +82,8 @@ describe('summarizeEvents', () => {
     })
     expect(text.split('\n').some(line => line.startsWith('- preset'))).toBe(false)
     expect(text).toContain('自用率：1/1')
+    expect(text).toContain('真人 1')
+    expect(text).toContain('注入前导 0 另计')
     expect(text).toContain('知识页 2')
   })
 })
