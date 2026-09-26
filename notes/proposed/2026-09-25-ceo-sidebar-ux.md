@@ -175,6 +175,35 @@ threads 的 why/lean + 最近五条记忆；数据必须来自本轮真跑的工
 **发现二（产品级）：家的摘要在溢出。** 那次 curate 报 `摘要 4014/4096 已截断`——有记录被挤出
 每个会话的视野，这正是"桌面"该管的事。已记入待办，等用户拍板处理方式（退最弱一条 / 压缩）。
 
+## 四·五、表达改进与一个待定的形态问题（2026-09-25）
+
+### 已做：表达
+
+- **「等你决定」置顶**——CEO 的第一个问题是"什么需要我"，所以它排第一（decisions + 待审知识页计数）。
+- **线索三层表达**：一句话标题（加粗）→ 当前倾向 → why（11px 灰字，脚注而非正文）。此前是 200 字
+  整段铺开，对"一眼看"不友好。契约相应扩展 `threads[].title` 与 `decisions[]`。
+- **跨面板跳转**：计数格子可点（记忆→记忆室、知识/技能→知识室），"N 页等你审批"也可点——
+  用 `ctx.layout.selectPanel(panelId)`。从"N 是个数"变成"N 是个入口"。
+
+### 待定：面板的**形态**（主区域整页 vs 右侧栏 tab）
+
+现状：三个 sidebar 图标点开是在**主区域**（整页），这是 DSH 的 `sidebar.panellist` + `main`
+机制（与 Settings 同款）。用户最初说的是"sidebar 那边应该有点什么"——右侧栏（紧挨对话那条）
+才是字面意义上的 sidebar。
+
+**右侧栏 tab 的机制（已查清，未实现）**：
+1. 类型注册：`ctx.sidebarRightTabs.register({ id, kind, patterns: ['dsh-resource://<域>/…'], priority, canOpen, title })`（已注册 desk 类型）
+2. 内容注册：`ctx.slots.inject('sidebar.right.pane.tab', () => ctx.slots.register({ name: 'sidebar.right.pane.tab', key: <类型 id>, locale, store, children, inject: (sessionId, actions) => props }, Body))`
+3. 标题注册：`sidebar.right.pane.tab.title`（同 key）
+4. 打开：`ctx.sidebarRight.openTab(kind, { params })`——**作用于当前挂载的会话**（placement 里没有 sessionId）
+
+**为什么值得考虑**：body 的 `inject` 直接拿到 `sessionId` → 天然解决"读哪个工作区的 desk 文件"
+（现在要试最近 5 个会话）；且紧挨对话，符合"sidebar"的字面期待。
+**代价**：需要弄清 navigator 如何由 kind+params 构造地址（以匹配 patterns/canOpen）、tab 生命周期、
+以及 store/locale/children 的必填项。是一块独立的集成。
+
+**建议**：等用户对现有三面板的表达给过反馈后再决定——形态要服务于"看一眼就知道"，不是为形态而形态。
+
 ## 五、实验计划（按序，每步可看可玩）
 
 ### 实验一：最小桌面 tab ✅（2026-09-25，两轮修正后成功）

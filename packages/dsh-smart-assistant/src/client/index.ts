@@ -243,11 +243,23 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     })
   }
 
-  /** A stat cell. */
-  function cell(label: string, value: string): ReturnType<typeof createElement> {
-    return createElement('div', { style: { display: 'inline-block', margin: '8px 16px', textAlign: 'center' as const } },
+  /** A stat cell; with a target it becomes the way to the panel that explains the number. */
+  function cell(label: string, value: string, target?: string): ReturnType<typeof createElement> {
+    const jump = (): void => {
+      if (target === undefined) return
+      try {
+        deskLayout?.selectPanel?.(target)
+      } catch {
+        // selectPanel throws for an unregistered panel; a stale target must not break the panel.
+      }
+    }
+    const style: Record<string, unknown> = {
+      display: 'inline-block', margin: '8px 16px', textAlign: 'center' as const,
+    }
+    if (target !== undefined) Object.assign(style, { cursor: 'pointer' })
+    return createElement('div', { style, onClick: jump, title: target === undefined ? undefined : '打开这个面板' },
       createElement('div', { style: { fontSize: '26px', fontWeight: 700, color: MARK_TEAL } }, value),
-      createElement('div', { style: { fontSize: '12px', color: '#666' } }, label))
+      createElement('div', { style: { fontSize: '12px', color: '#666', textDecoration: target === undefined ? 'none' : 'underline' } }, label))
   }
 
   /** A section heading. */
@@ -337,8 +349,10 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
             item.context === undefined ? null : createElement('div', { style: { fontSize: '12px', color: '#888' } }, String(item.context)))),
             (data?.counts?.knowledgeDraft ?? 0) === 0
               ? null
-              : createElement('div', { style: { fontSize: '13px', color: '#b26a00' } },
-                  `⚠ ${String(data?.counts?.knowledgeDraft)} 页知识在等你审批（见「知识室」）`)),
+              : createElement('div', {
+                  onClick: () => { try { deskLayout?.selectPanel?.('assistant-knowledge') } catch { /* stale target */ } },
+                  style: { fontSize: '13px', color: '#b26a00', cursor: 'pointer', textDecoration: 'underline' },
+                }, `⚠ ${String(data?.counts?.knowledgeDraft)} 页知识在等你审批（点这里打开知识室）`)),
 
       sectionTitle('在跟的事'),
       data?.threads === undefined || data.threads.length === 0
@@ -366,9 +380,9 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
 
       sectionTitle('我记住的规模'),
       createElement('div', null,
-        cell('记忆', data?.counts?.memories === undefined ? '—' : String(data.counts.memories)),
-        cell('知识', data?.counts?.knowledgeStable === undefined ? '—' : String(data.counts.knowledgeStable)),
-        cell('技能', data?.counts?.skills === undefined ? '—' : String(data.counts.skills)),
+        cell('记忆', data?.counts?.memories === undefined ? '—' : String(data.counts.memories), 'assistant-memory'),
+        cell('知识', data?.counts?.knowledgeStable === undefined ? '—' : String(data.counts.knowledgeStable), 'assistant-knowledge'),
+        cell('技能', data?.counts?.skills === undefined ? '—' : String(data.counts.skills), 'assistant-knowledge'),
         cell('线索', data?.counts?.threads === undefined ? '—' : String(data.counts.threads))),
       store.note === undefined
         ? muted(`读自 ${store.source === undefined || store.source === '' ? '会话工作区' : store.source} 的 .desk/state.json（经 workspaceFiles）`)
@@ -433,7 +447,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   }
 
   /** Slots this face occupies (single-occupant, root-scope, declared by the sidebar). */
-  const inject = ['slots', 'sidebarRightTabs', 'sessions', 'remote', 'remote.agentPresets', 'remote.workspaceFiles', 'remote.session']
+  const inject = ['slots', 'sidebarRightTabs', 'sessions', 'layout', 'remote', 'remote.agentPresets', 'remote.workspaceFiles', 'remote.session']
 
   /**
    * Register the brand occupants as one declaration-aware set.
@@ -443,10 +457,13 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   let deskRemote: Record<string, unknown> | undefined
   /** The client Session store; its list snapshot is already synced and needs no Remote call. */
   let deskSessions: { list?: { getSnapshot: () => unknown, subscribe: (fn: () => void) => () => void } } | undefined
+  /** Main-panel navigation, so a count can jump to the panel that explains it. */
+  let deskLayout: { selectPanel?: (panelId: string) => void } | undefined
 
   function apply(ctx: ClientContext): void {
     deskRemote = (ctx as { remote?: Record<string, unknown> }).remote
     deskSessions = (ctx as { sessions?: typeof deskSessions }).sessions
+    deskLayout = (ctx as { layout?: typeof deskLayout }).layout
 
     // The official build's brand package occupies these slots under its own build profile;
     // step aside there. A browser has no `process`, so the guard reads false and we register.
