@@ -1,6 +1,6 @@
 # 培养面设计思路（设计 owner）
 
-日期：2026-09-26 · 状态：**proposed（进行中：本卡是培养面的**设计思路 owner**——原则、架构与判据在此；编年记录与逐圈证据在[活动卡](2026-09-25-ceo-sidebar-ux.md)，上手入口在 [handoff](../research/2026-09-26-handoff-ceo-sidebar-cultivation.md)。随真实使用演进）**
+日期：2026-09-26 · 状态：**proposed（进行中：本卡是培养面的设计思路 owner——原则、架构与判据在此；编年记录与逐圈证据在[活动卡](2026-09-25-ceo-sidebar-ux.md)，上手入口在 [handoff](../research/2026-09-26-handoff-ceo-sidebar-cultivation.md)。随真实使用演进）**
 
 ## 一、它是什么、为谁、怎样算好
 
