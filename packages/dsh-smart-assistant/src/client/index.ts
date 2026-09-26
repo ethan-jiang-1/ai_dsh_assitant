@@ -153,13 +153,15 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
               })()
             : 'remote is ' + typeof remote
           const am = (remote as Record<string, { snapshot?: () => Promise<unknown> } | undefined>)?.['assistantDesk']
-          if (am?.digest !== undefined) {
+          if (am?.snapshot !== undefined) {
             void am.snapshot().then((data: unknown) => {
-              const snap = data as { counts?: Record<string, number> }
+              const snap = data as { counts?: { memories?: number, knowledgeStable?: number, skills?: number, threads?: number } }
               setSnapshot({
                 counts: {
                   Memories: snap.counts?.memories ?? 0,
-                  Threads: snap.counts?.threads ?? 0, + (digest.parkedThreads ?? 0),
+                  Knowledge: snap.counts?.knowledgeStable ?? 0,
+                  Skills: snap.counts?.skills ?? 0,
+                  Threads: snap.counts?.threads ?? 0,
                 },
               })
             }).catch((error: unknown) => {
