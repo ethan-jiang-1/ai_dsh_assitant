@@ -90,6 +90,26 @@ export function parseQuestions(text) {
   return questions.filter(question => question.ask.trim() !== '')
 }
 
+/**
+ * One question's run under the transient-failure retry policy.
+ *
+ * Measured 2026-09-27: a question's launch can die to a transient model-side failure the harness
+ * retry set does not cover — MALFORMED_RESPONSE (invalid tool-input JSON) is not among
+ * EMPTY_RESPONSE/RATE_LIMIT/SERVER/TIMEOUT/TRANSPORT, so one malformed chunk kills the whole
+ * question on first occurrence (real incident: Q2's first smoke run; the retry succeeded).
+ * One automatic retry; `retriedAfter` carries the first failure into the sheet so both attempts
+ * stay on the record.
+ * @param ask - the question text.
+ * @param launch - the launcher to retry (injected so the policy is fixtureable).
+ * @returns the last run plus `retriedAfter` ('' when the first attempt succeeded).
+ */
+export function runQuestionWithRetry(ask, launch) {
+  const first = launch(ask)
+  if (first.launchFailure === '') return { ...first, retriedAfter: '' }
+  const second = launch(ask)
+  return { ...second, retriedAfter: first.launchFailure }
+}
+
 /** 把一次运行的观测压成打分表里的"机器观测"块。 */
 function observationsOf(run) {
   const tools = run.observation?.toolCalls ?? []
@@ -106,6 +126,7 @@ function observationsOf(run) {
     seconds: run.seconds,
     sessionId: run.sessionId,
     launchFailure: run.launchFailure,
+    retriedAfter: run.retriedAfter ?? '',
   }
 }
 
@@ -141,6 +162,7 @@ export function renderSheet(questions, runs, { title, home }) {
       + ` · 房间 ${observed.rooms.length === 0 ? '（一个都没问）' : observed.rooms.join('/')}`
       + ` · 技能 ${observed.skills.length === 0 ? '（没加载）' : observed.skills.join('/')}`
       + ` · 答案 ${observed.answerChars} 字`)
+    if (observed.retriedAfter !== '') lines.push(`> 首跑启动失败（${observed.retriedAfter}），自动重跑后采用本次结果`)
     if (observed.launchFailure !== '') lines.push(`> 启动异常：${observed.launchFailure}`)
     lines.push('')
     lines.push('**答案原文**：')
@@ -192,7 +214,33 @@ export function selfCheck() {
   expect('refuse false by default', questions[0].refuse, false)
   expect('refuse true when 是', questions[1].refuse, true)
   expect('missing ask dropped', questions.some(question => question.id.includes('没有问法')), false)
-  return 'eval:domain --self-check: ok — 合成题集解析出 2 条（续行拼接、该拒答=是、缺 问法 被丢）'
+
+  // Retry policy (measured 2026-09-27): a launch can die to a transient model-side failure the
+  // harness retry set does not cover (MALFORMED_RESPONSE — invalid tool-input JSON — kills the
+  // question on first occurrence). One automatic retry, both attempts recorded.
+  const failing = { sessionId: 's-fail', observation: { toolCalls: [], answerText: '' }, seconds: 10,
+    launchFailure: 'MALFORMED_RESPONSE: tool input is invalid JSON' }
+  const good = { sessionId: 's-ok', observation: { toolCalls: [{ name: 'assistant_memory', argumentsText: '{}' }],
+    answerText: '答案' }, seconds: 159, launchFailure: '' }
+  const launchSequence = sequence => () => {
+    const item = sequence.shift()
+    if (item === undefined) throw new Error('unexpected extra launch')
+    return item
+  }
+  const retried = runQuestionWithRetry('问', launchSequence([failing, good]))
+  expect('retry carries first failure', retried.retriedAfter, failing.launchFailure)
+  expect('retry adopts second run', retried.sessionId, 's-ok')
+  expect('retry clears current failure', retried.launchFailure, '')
+  expect('no retry on first success', runQuestionWithRetry('问', launchSequence([good])).retriedAfter, '')
+  const bothFail = runQuestionWithRetry('问', launchSequence([failing, { ...failing, sessionId: 's-fail-2' }]))
+  expect('double failure records second run', bothFail.sessionId, 's-fail-2')
+  expect('double failure keeps first reason', bothFail.retriedAfter, failing.launchFailure)
+  const sheet = renderSheet(
+    [{ id: 'Q1', title: 't', ask: '问', expect: '', refuse: false, rubric: '', extra: [] }],
+    [{ sessionId: 's-ok', observation: { toolCalls: [], answerText: '答案' }, seconds: 5, launchFailure: '', retriedAfter: 'boom' }],
+    { title: 'x', home: 'y' })
+  if (!sheet.includes('首跑启动失败（boom）')) throw new Error('sheet must record the first-attempt failure')
+  return 'eval:domain --self-check: ok — 解析 2 条（续行、该拒答=是、缺问法被丢）· 重试策略：瞬态失败重跑一次、双次尝试都入表'
 }
 
 function main() {
@@ -233,10 +281,11 @@ function main() {
   process.stdout.write(`eval:domain: 跑 ${selected.length}/${questions.length} 题（一题约 1–3 分钟）\n`)
   for (const { question, index } of selected) {
     process.stdout.write(`▶ ${question.id} … `)
-    const run = runPreset(question.ask)
+    const run = runQuestionWithRetry(question.ask, runPreset)
     runs[index] = run
     const observed = observationsOf(run)
-    process.stdout.write(`${run.observation === null ? '没跑出会话' : 'ok'} (${observed.seconds}s`
+    process.stdout.write(`${observed.retriedAfter === '' ? '' : '首跑启动失败，重试 '}`
+      + `${run.observation === null ? '没跑出会话' : 'ok'} (${observed.seconds}s`
       + `${observed.rooms.length === 0 ? '，没问房间' : `，房间 ${observed.rooms.join('/')}`})\n`)
   }
   writeFileSync(out, renderSheet(questions, runs, { title: file.replace(`${repoRoot}/`, ''), home: harnessHome }))
