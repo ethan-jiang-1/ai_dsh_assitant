@@ -21,7 +21,7 @@
 - ⏳ 知识导入的转换与概念抽取（触发=①第一份真实 docx/pdf 文档集出现 ②评测集 v0 就位；依据：[导入纯核 note](notes/implemented/2026-09-25-knowledge-ingest-core.md) §四）
 - ⏸ **阶段 0-3 · 评测集 v0**（30–50 条真实经营问题，含应拒答题与判分规则；**题目由你本人出**——这是 G2 关口，agent 只整理格式）
 - ⏳ 家的内存段瘦身（合并/下沉记忆、压缩措辞）（触发=真实使用中确实感到摘要偏薄；降级已优雅故不紧急，依据：[责任圈卡](notes/implemented/2026-09-25-owner-mandate-and-real-use-baseline.md) §九）
-- ▶ **长期责任圈（职责，不完成）**：北极星＝中小企业 CEO/VP 的**数字分身**（管理岗基座＋跟本人学；首位真人＝用户本人）——总纲 [企业聪明助手总体思路](notes/research/2026-09-25-grand-plan-enterprise-expert-assistant.md)，圈纪律与逐圈记录见[责任圈卡](notes/implemented/2026-09-25-owner-mandate-and-real-use-baseline.md)（当前权威）（职责无终点，不按"完成即离队"退场）
+- ▶ **长期责任圈（职责，不完成）**：北极星＝中小企业 CEO/VP 的**数字分身**（管理岗基座＋跟本人学；首位真人＝用户本人）——总纲 [企业聪明助手总体思路](notes/research/archive/2026-09-25-grand-plan-enterprise-expert-assistant.md)，圈纪律与逐圈记录见[责任圈卡](notes/implemented/2026-09-25-owner-mandate-and-real-use-baseline.md)（当前权威）（职责无终点，不按"完成即离队"退场）
 - ⏳ **培养面按会话分 store**（触发=多会话并行使用成为真实场景——主页与 tab 共用单 store、`sendSession` 全局单值的 A3 缺陷开始咬人时；依据：[整改卡](notes/implemented/2026-09-26-cultivation-remediation.md) S3）——**2026-09-27 窄范围复审给了真实咬人的证据**：store 被所有绑定 tab 共享、匹配只按裸 rowId，A 会话说一句会给 B 会话里同 id 的行盖上冻结与回执（见[二轮整改卡](notes/implemented/2026-09-27-cultivation-remediation-round2.md) R11 观察）
 - ⏳ **desk 文件 schema 版本号**（触发=真实字段不匹配出现——模型发明面板不识的新字段时；依据同上）
 - ⏳ 负例控制存量补课（触发=下一次改动某条尚无红夹具的结构性门禁时，同 diff 补它的造红夹具；存量不追账，理由见[红证据档案](notes/research/archive/2026-09-25-old-gate-red-controls.md)）
@@ -84,6 +84,13 @@
   《总体思路》§八 逐条给处置（定位＝B 底座+专家包、数据边界＝严格本地，两条按既成事实记决定，
   反转属用户；渠道仍 ⏸）、`change-scope` 触发已到（P1-B 漏跑整包）→ 见下条。同日自主两轴评审
   （对抗设计 + 可用性走查）产出 10 条发现 → 新卡 **培养面二轮整改**（R1–R10）。
+- 2026-09-27：**`notes/research/` 清空**（用户："research 里面还有东西，要么继续做，要么归档"）——
+  按目录 README 早写好的规则（"结论消化完毕即整文件移入 `archive/`"）执行三件：
+  ① [《总体思路》](notes/research/archive/2026-09-25-grand-plan-enterprise-expert-assistant.md) §八 已逐条处置 → 收卷，
+  当前权威是[责任圈卡](notes/implemented/2026-09-25-owner-mandate-and-real-use-baseline.md)与[意图清单](notes/intents.md)；
+  ② [外部 UX 评审简报](notes/research/archive/2026-09-26-ux-review-brief.md) → 收卷（评审改由 agent 自审执行并已交付，
+  外部真人评审降为可选；将来要请可从该文件重建简报）；③ 第一公里截图证据目录随其走查一并入 `archive/`（证据面与结论同住）。
+  由此 `research/` 只剩 README + `archive/`——**进行中的调研为零**，与 `proposed/` 同理：将来时只住队列。
 - 2026-09-27：**`notes/proposed/` 清空**（用户："不论如何，proposed 里面的要都解决了"）——最后两张
   （[责任圈卡](notes/implemented/2026-09-25-owner-mandate-and-real-use-baseline.md) 与
   [培养面设计卡](notes/implemented/2026-09-26-cultivation-surface-design.md)）毕业：它们**不是未来工作提案**

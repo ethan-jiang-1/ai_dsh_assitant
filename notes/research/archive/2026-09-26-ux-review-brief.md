@@ -1,6 +1,6 @@
 # 外部 UX/UI 评审简报：培养面（CEO 数字分身的"指哪打哪"界面）
 
-日期：2026-09-26 · 状态：**进行中**（等待外部 UX/UI 评审者；本文件是给评审者的自足简报——不需要 DSH 经验，读完即可给反馈）
+日期：2026-09-26 · 状态：**已收卷**（这份简报是给外部 UX 评审者写的；评审改由 agent 自审执行并已交付（对抗性设计 + 可用性走查 → [二轮整改 R1–R11](../../implemented/2026-09-27-cultivation-remediation-round2.md)），外部真人评审降为可选；若将来要请，可从本文件快速重建简报）
 
 > **怎么用这份简报**：§1–§2 讲清产品与被评审的面；§3 是已有的真实证据（含唯一一条真人反馈原话）；
 > §4 是平台硬约束（DSH 很新，这节决定"什么能做、什么做不了"）；§5 是我的困惑（**最想听你意见的部分**）；
@@ -150,13 +150,13 @@ DSH 是一个 agent harness（模型 + 工具 + 插件组合）带 Web UI；插�
 ## 7. 你可以看的材料（按价值排序）
 
 1. **设计 owner 卡**（判据 5 条 + 设计原则 11 条 + 架构 + 现状 + 输掉的方案）：
-   [`notes/implemented/2026-09-26-cultivation-surface-design.md`](../implemented/2026-09-26-cultivation-surface-design.md)
+   [`notes/implemented/2026-09-26-cultivation-surface-design.md`](../../implemented/2026-09-26-cultivation-surface-design.md)
 2. **编年记录**（每一次改动与真人反馈；重点 §〇 状态一览、§四·六 内容分工、§四·二十 真人反馈与引导卡、
-   §四·二十一 真人实测与忙时冻结）：[`notes/archived/2026-09-25-ceo-sidebar-ux.md`](../archived/2026-09-25-ceo-sidebar-ux.md)
+   §四·二十一 真人实测与忙时冻结）：[`notes/archived/2026-09-25-ceo-sidebar-ux.md`](../../archived/2026-09-25-ceo-sidebar-ux.md)
 3. **面板的全部实现**（约 1200 行，classic script；DeskPanel / KnowledgePanel / MemoryPanel /
-   CorrectableRow / 各动作提示词）：[`packages/dsh-smart-assistant/src/client/index.ts`](../../packages/dsh-smart-assistant/src/client/index.ts)
-4. **模型面契约**（助手往桌上放什么、怎么填）：[`desk-refresh/SKILL.md`](../../packages/dsh-smart-assistant/presets/assistant/skills/desk-refresh/SKILL.md)
-5. **现有测试断言了什么**（＝开发者认为重要的行为）：[`tests/client-panels.spec.ts`](../../packages/dsh-smart-assistant/tests/client-panels.spec.ts)
+   CorrectableRow / 各动作提示词）：[`packages/dsh-smart-assistant/src/client/index.ts`](../../../packages/dsh-smart-assistant/src/client/index.ts)
+4. **模型面契约**（助手往桌上放什么、怎么填）：[`desk-refresh/SKILL.md`](../../../packages/dsh-smart-assistant/presets/assistant/skills/desk-refresh/SKILL.md)
+5. **现有测试断言了什么**（＝开发者认为重要的行为）：[`tests/client-panels.spec.ts`](../../../packages/dsh-smart-assistant/tests/client-panels.spec.ts)
 6. **真机**：需要一套 DSH 开发环境（DSH 很新，装起来有门槛）。更方便的替代：请委托人（用户本人）
    提供**截图或录屏**，或直接口述观感——**任何真实观感都比我从代码推断强**。
 

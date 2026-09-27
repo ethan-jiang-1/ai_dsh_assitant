@@ -12,7 +12,7 @@
   并量三处最高摩擦。
 
 两份独立、结论高度一致（一致处＝高置信）。**发现全部经开发者复核**（我逐条对着代码与 DOM 数字看过）。
-证据面：[截图目录](../research/2026-09-26-first-mile-shots/)（含 `.dom.json`）；上一轮整改的
+证据面：[截图目录](../research/archive/2026-09-26-first-mile-shots)（含 `.dom.json`）；上一轮整改的
 [已交付卡](../implemented/2026-09-26-cultivation-remediation.md)是这些面的第一轮。
 
 ## 切片与交付（R1–R11，按严重度；每片一个垂直切片、独立提交——逐片验收与证据见文末「进度」）
@@ -110,9 +110,9 @@ Permission/Model/Export) → 我们的三室 → **15 条英文技能**（`clien
   **验收实跑**：夹具三条（冻结时行按钮 disabled 且 `刷新桌面` 不在其中；`expirePending` 后 stalled 落在
   行上、无禁用按钮；文件移动后 stalled 结算为回执）＋**造红证明**（把 stalled 改成 undefined → 红）；
   真机走了一遍完整路径（dev home + 合成 desk 文件 + 黑洞模型端，**真实 desk 文件先备份后按 sha 还原**）：
-  [冻结中（行按钮 disabled、刷新桌面可用）](../research/2026-09-26-first-mile-shots/r1-frozen-escape-hatch-live.png)
+  [冻结中（行按钮 disabled、刷新桌面可用）](../research/archive/2026-09-26-first-mile-shots/r1-frozen-escape-hatch-live.png)
   → 等 ~175s →
-  [超时后（在飞状态消失、按钮全部回活）](../research/2026-09-26-first-mile-shots/r1-released-after-timeout.png)。
+  [超时后（在飞状态消失、按钮全部回活）](../research/archive/2026-09-26-first-mile-shots/r1-released-after-timeout.png)。
   工具侧顺带：`pnpm shots --timeout <ms>`（等真实超时用，看门狗默认公式不再够用）、DOM 证据记录
   `disabled` 状态（否则"闸门开了没有"无法从证据里断言）。
 - [x] **R2「看选项」把决定自己吃掉**（2026-09-27 落地）——`answered` 从"这一行被任何动作碰过"收窄为
@@ -166,8 +166,8 @@ Permission/Model/Export) → 我们的三室 → **15 条英文技能**（`clien
   不再靠"越淡越次级"（那正是 AA 之下的来源）。③ 顺带补上 R7 欠的另一半：**`它记` 钳制**（3 行 + 展开；
   它是信任线，只钳不删）。
   **验收**：夹具（行按钮 geometry 与主色）+ **造红证明两条**（几何改回 18px → 红；主色改回旧值 → 红）；
-  前后真机截图：[改前](../research/2026-09-26-first-mile-shots/p2b-actions-on-title-line.png)（18px 按钮、
-  浅灰文本）vs [改后](../research/2026-09-26-first-mile-shots/r8-after-accessible-palette.png)（27px、
+  前后真机截图：[改前](../research/archive/2026-09-26-first-mile-shots/p2b-actions-on-title-line.png)（18px 按钮、
+  浅灰文本）vs [改后](../research/archive/2026-09-26-first-mile-shots/r8-after-accessible-palette.png)（27px、
   深色文本、`它记` 带「展开全部」）——DOM 证据里 `button h=27` 与改前的 `h=18` 直接可比。
 - [x] **R9 静默无操作与缺失状态**（2026-09-27 落地，五处）——① **撤下的行动有留痕**：新增折叠的
   「已撤（N）」组（暗色 + `它记` 原因）——此前它们"留在计划页"，但本人在**他动手的那个面上**看不到

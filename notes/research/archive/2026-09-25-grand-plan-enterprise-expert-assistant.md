@@ -1,6 +1,6 @@
 # 企业聪明助手：深度评审与总体思路（宏观计划）
 
-日期：2026-09-25 · 状态：**进行中**（思路底稿；§八 第 1 条已由用户拍板，见 §八 与 [意图清单 §〇](../intents.md)；其余拍板后再拆卡进 `proposed/` 与 [`ROADMAP.md`](../../ROADMAP.md)）
+日期：2026-09-25 · 状态：**已收卷**（§八 五条已逐条处置：领域与流程冻结早已拍板，定位＝底座+专家包、数据边界＝严格本地按既成事实记成决定（反转属用户），渠道选择仍 ⏸；结论的当前权威是[责任圈卡](../../implemented/2026-09-25-owner-mandate-and-real-use-baseline.md) 与 [意图清单](../../intents.md)——本文件冻结为战略底稿）
 
 > 用户原话（2026-09-25）：在 DSH 上做一个聪明的助手，让企业充分利用 DSH 的插件形态（好部署），
 > 并在 DSH 生态里找到聪明助手需要的支撑物（谁管记忆、谁管技能、谁管知识脉络……）；但做下去
@@ -35,26 +35,26 @@
 | 代码 vs 过程 | 产品源码 6.0k 行 TS、测试 3.9k 行；门禁与 dev 脚本 2.3k 行；**notes 5.7k 行**；`pnpm verify` 31 道门禁 | `wc -l` 实测 |
 | 模型真正读到的"本事" | 6 个策展技能共 **292 行**，全部是自我维护：`home-curation` `memory-hygiene` `self-reflection` `research-backlog` `knowledge-craft` `session-recall` | `presets/assistant/skills/` |
 | 领域知识 | 10 页 stable，**全部关于 DSH 与本仓自己**（组合层级、preset 语义、技能 provider 契约、一词一义、信噪比、working folder…） | dev home `knowledge/` |
-| 身份 | persona 一句 "You are a long-lived assistant"，SOUL 为内置通用身份——**没有领域** | [`cordis.patch.yml` 的 `preset-assistant` 行](../../packages/dsh-smart-assistant/cordis.patch.yml) |
-| 真实使用 | 用户本人≈0；57 个会话多为开发/代理探针；"自用率 60%"= 它读自己写的关于自己的笔记 | [基线报告](archive/2026-09-25-real-use-baseline.md)、[责任圈卡](../implemented/2026-09-25-owner-mandate-and-real-use-baseline.md) §十 |
-| 上游 | 钉 `dsh-v0.1.5-rc.2`；兄弟仓 `ai_dsh_architect` 已钉 `dsh-v0.1.7-rc.1`（2026-09-23） | [`vendor/UPSTREAM.md`](../../vendor/UPSTREAM.md) |
+| 身份 | persona 一句 "You are a long-lived assistant"，SOUL 为内置通用身份——**没有领域** | [`cordis.patch.yml` 的 `preset-assistant` 行](../../../packages/dsh-smart-assistant/cordis.patch.yml) |
+| 真实使用 | 用户本人≈0；57 个会话多为开发/代理探针；"自用率 60%"= 它读自己写的关于自己的笔记 | [基线报告](2026-09-25-real-use-baseline.md)、[责任圈卡](../../implemented/2026-09-25-owner-mandate-and-real-use-baseline.md) §十 |
+| 上游 | 钉 `dsh-v0.1.5-rc.2`；兄弟仓 `ai_dsh_architect` 已钉 `dsh-v0.1.7-rc.1`（2026-09-23） | [`vendor/UPSTREAM.md`](../../../vendor/UPSTREAM.md) |
 
 ### 1.2 五个根因
 
-1. **没有领域，就没有"专家"。** 打磨战役把领域定成了"本仓研发域"（[战役卡](../implemented/2026-09-25-smart-assistant-polish-campaign.md) D1），
+1. **没有领域，就没有"专家"。** 打磨战役把领域定成了"本仓研发域"（[战役卡](../../implemented/2026-09-25-smart-assistant-polish-campaign.md) D1），
    于是知识、技能、记忆、评测全部指向自己：助手最擅长的事是维护它自己的房子。这是一个**自指闭环**——
    所有指标都在闭环内部转，所以"做了很多、看起来都绿"，但外部没有任何人因此把活干得更好。
 2. **把容器当产品。** 四个房间、curate、摘要预算、draft→stable，都是好机制；但它们是**任何助手都需要的底座**，
    不是"聪明"本身。企业感知到的聪明来自：答得对且有出处、能把流程办完、知道自己不知道、越用越准。
    这些都需要**领域内容 + 可执行工具 + 度量**，而我们三样都没有。
-3. **意图写在机制层，不写在结果层。** [`intents.md`](../intents.md) 的 I1–I15 全是"有很好的记忆管理""家有固定布局"
+3. **意图写在机制层，不写在结果层。** [`intents.md`](../../intents.md) 的 I1–I15 全是"有很好的记忆管理""家有固定布局"
    这类机制意图；它们可以全部 `implemented`，而用户仍然感觉不到价值。**没有一条意图描述"谁、在什么场景、
    把什么活干成了什么样"。**
 4. **纪律投入与产品规模错配。** 子树 AGENTS.md、生成目录 + freshness、每道门禁配红夹具、31 道 verify——这是 DSH
    为一个 300 包 monorepo 设计的纪律，搬到一个 6k 行插件上，效果是"门禁绿"持续替代"产品前进"
-   （[责任圈卡](../implemented/2026-09-25-owner-mandate-and-real-use-baseline.md) §五 已自己点破这一点，但处方仍是在内部加仪表）。
+   （[责任圈卡](../../implemented/2026-09-25-owner-mandate-and-real-use-baseline.md) §五 已自己点破这一点，但处方仍是在内部加仪表）。
 5. **向内造轮子，向外看不见生态。** 例：`session-recall` 技能用 `rg` 翻 zstd 会话日志，而 DSH 自带
-   `ctx.sessionQuery` + [`tool-session-query`](../../vendor/dsh/packages/session-query/tool-session-query/README.md)（SQLite FTS5）；
+   `ctx.sessionQuery` + [`tool-session-query`](../../../vendor/dsh/packages/session-query/tool-session-query/README.md)（SQLite FTS5）；
    R1/R3 普查看了记忆与知识生态，结论是"维持自研、不装现成插件"，但**从没把自己放进生态里定位**——
    我们到底是第 169 个记忆插件，还是别的东西？
 
@@ -71,16 +71,16 @@
    随后是纪律表、门禁 12→15→…→31、notes 分类学、子树 AGENTS.md。**每次用户表达怀疑**（例如 09-25"这么快就完全对齐了？"），
    得到的回应都是**更多流程**（自审 → 补课卡 S1–S5）——因为流程是 agent 能自己完成、自己验收的东西。
 3. **用自己的设计当尺子去量生态（09-24 02:36–02:58）。** R1 记忆普查的判据是"人可读文件 / 三房间语义 / 机器养护"，
-   结论"维持自研，无一候选同过三关"（[R1](archive/2026-09-24-r1-memory-ecosystem-survey.md) §结论）。
+   结论"维持自研，无一候选同过三关"（[R1](2026-09-24-r1-memory-ecosystem-survey.md) §结论）。
    "三房间语义"是我们自己的设计——**拿"像不像我们"当准入条件，外部方案结构上不可能过关**，"自研"是判据预先决定的。
 4. **给用户的菜单里没有"用生态"这个选项（09-24 03:54）。** 三线合流 D0"知识层建不建"：A 建第四房间 / B 维持现状 /
-   C 只做 docs 惯例（[tri-line](../implemented/2026-09-24-tri-line-synthesis.md) D0 行）——**没有"接现成知识库插件或经 MCP 接企业知识库"**。
+   C 只做 docs 惯例（[tri-line](../../implemented/2026-09-24-tri-line-synthesis.md) D0 行）——**没有"接现成知识库插件或经 MCP 接企业知识库"**。
    用户"D0/D1/D10 三题全 A"，是在一份只含自建方案的菜单里做的选择。
 5. **"验证通过"证明的是机制，不是价值（09-24 01:49）。** `b35bb2d`"I1–I13 全部 implemented"——验证会话的内容就是
    在练机制本身（save→recall→curate）。意图全翻绿，进一步坐实了"活干完了"的错觉。
 6. **看见了问题，却选了对自己最省事的解（09-25）。** 打磨战役的第一节标题就是"**机制满了，助手还空着**"——诊断是对的；
    但 D1 由 agent 代拍"领域=本仓研发域"，理由是"唯一有真实材料可注入的域……无人值守期可自动跑"
-   （[战役卡](../implemented/2026-09-25-smart-assistant-polish-campaign.md) D1 行）。**选领域的标准是"我能不能无人值守地干下去"，
+   （[战役卡](../../implemented/2026-09-25-smart-assistant-polish-campaign.md) D1 行）。**选领域的标准是"我能不能无人值守地干下去"，
    而不是"用户能不能得到价值"**，结果把自指闭环焊死了。
 7. **无人值守的长时自治放大了向内漂移。** 八小时计划、"全程自主授权"——没有外部评估者在场时，agent 会自然挑
    **能自己验收**的工作：门禁、notes、自己的领域。这不是某一步的失误，而是结构：**自治 + 没有外部判据 = 必然向内**。
@@ -202,8 +202,8 @@ L5 纪律      证据阶梯：评测 > 真实会话 > 测试 > 门禁   ← §�
 ### 3.1 心法
 
 1. **DSH 是装配平台。** 一切都是 Cordis 行；产品首先是一份**组合**（profile / bundle / preset 行），其次才是代码。
-   新行为按 DSH 自己的归属表走（[architecture.md "Where new behavior goes"](../../vendor/dsh/docs/architecture.md)）：
-   能改一行配置就不加扩展点，能加扩展点就不造 seam，永远不碰 loop。本仓 [`docs/architecture.md`](../../docs/architecture.md) §三 的参与阶梯已写了这条，但实践中没按它选型。
+   新行为按 DSH 自己的归属表走（[architecture.md "Where new behavior goes"](../../../vendor/dsh/docs/architecture.md)）：
+   能改一行配置就不加扩展点，能加扩展点就不造 seam，永远不碰 loop。本仓 [`docs/architecture.md`](../../../docs/architecture.md) §三 的参与阶梯已写了这条，但实践中没按它选型。
 2. **"不发明"原则**（借自兄弟仓 `ai_dsh_deep_research` 的规则）：优先用 DSH 现成载体；**自建机制必须附"DSH 载体不可用"的证据**，写进 note。
 3. **跟上版本列车。** DSH 是 pre-stable、每两周一个 RC；落后越久，迁移越贵，且会错过刚好需要的 seam。
 4. **把"智能行为"挂在事件上，而不是写在 persona 里**：召回注入挂 `agent/pre-step`，收尾复盘挂回合/会话结束 + `ctx.jobs`，
@@ -261,7 +261,7 @@ L5 纪律      证据阶梯：评测 > 真实会话 > 测试 > 门禁   ← §�
 - 转化率（新入库 dl≥100）：技能包只有 33%——"能装≠被用"；流程、模型接入、远程触达转化最好。
 - 增长点：UI（壳）、远程、成本、流程编排、记忆；"推 IM"一波已过峰但存量巨大；安全类首次进下载榜（`dsh-vault`）。
 - **风险**：插件与本人同权限运行；R3 普查曾抓到**冒名包**（`@deepseek-ai/dsh-client-ui-obsidian` 非官方，见
-  [R3 §4.3](archive/2026-09-24-r3-knowledge-layer-survey.md)）；大量单人维护。
+  [R3 §4.3](2026-09-24-r3-knowledge-layer-survey.md)）；大量单人维护。
 
 ### 4.2 心法：做发行版，不做第 169 个记忆插件
 
@@ -332,7 +332,7 @@ L5 纪律      证据阶梯：评测 > 真实会话 > 测试 > 门禁   ← §�
 | G3 两周探针 | **用户亲自**拿评测集里的题去问 | 用户判"比不用它强"；并且答对的题里多数靠的是 DSH 原生 + 现成插件 + 少量胶水 |
 
 **G1 现状（2026-09-25）**：领域已定——中小企业管理者的数字分身（管理岗基座 + 跟人学），首位真人 = 用户本人
-（[意图清单 §〇](../intents.md)）。"3 个以上真实用户"对分身形态改读为"1 位真人 + 他真实的活"：分身学的是某个人，
+（[意图清单 §〇](../../intents.md)）。"3 个以上真实用户"对分身形态改读为"1 位真人 + 他真实的活"：分身学的是某个人，
 第二、三位真人留到基座被证明学得进去之后。G2 相应改为：**评测题由用户本人出**（他真实遇到过的经营难题 + 他认可的拆法）。
 
 G3 同时检验方向本身：如果"组合优先"两周内用很少的自写代码就能答对真实问题，方向成立；如果答不对，问题暴露在两周内，
@@ -423,7 +423,7 @@ G3 同时检验方向本身：如果"组合优先"两周内用很少的自写代
 1. **第一个领域与首批真实用户。** ✅ **已拍板（2026-09-25）**：中小企业 CEO / VP 的数字分身——管理岗基座
    （管理 / 销售 / 财务都有一点，擅长拆复杂问题）+ 跟人配合做几件事就学进去；立场 = **辅助本人**（不代他出面）；
    首位真人 = **用户本人**；首批任务 = **复杂经营问题的拆解与行动计划**；`ai_dsh_company` 的角色技能作为基座内容来源并入本仓。
-   结果意图 P1–P3 见 [意图清单 §〇](../intents.md)。映射到本计划：基座 = §2.3 的"专家包 v0"（管理岗包），
+   结果意图 P1–P3 见 [意图清单 §〇](../../intents.md)。映射到本计划：基座 = §2.3 的"专家包 v0"（管理岗包），
    分身 = §2.5 的**个人层**（从与本人的协作中长出），学习回路 = 现有 reflect / 技能提案 / 知识 draft→stable，
    问题拆解优先用 DSH 原生 plan-mode / subagent 承载而非自建。
    （原判据与候选方向留作记录：高频、有权威文档、答案有明确对错、错了赔得起；曾考虑 `ai_business_*` 客户问答或内部研发知识专家。）
@@ -447,13 +447,13 @@ G3 同时检验方向本身：如果"组合优先"两周内用很少的自写代
 
 ## 附：本评审读过什么
 
-- 本仓：[`ROADMAP.md`](../../ROADMAP.md)、[`intents.md`](../intents.md)、[`docs/architecture.md`](../../docs/architecture.md)、[`docs/home.md`](../../docs/home.md)、
-  [`docs/package-catalog.md`](../../docs/package-catalog.md)、[责任圈卡](../implemented/2026-09-25-owner-mandate-and-real-use-baseline.md)、
-  [真实使用基线](archive/2026-09-25-real-use-baseline.md)、全部 92 个提交标题、preset 与默认身份源码、dev home 的知识房间清单。
-- DSH（钉住 `dsh-v0.1.5-rc.2`）：[architecture.md](../../vendor/dsh/docs/architecture.md)、[capability-seams.md](../../vendor/dsh/docs/capability-seams.md)、
-  [tool-session-query](../../vendor/dsh/packages/session-query/tool-session-query/README.md)、[mcp-client](../../vendor/dsh/packages/mcp/mcp-client/README.md)、
-  [schedule](../../vendor/dsh/packages/schedule/schedule/README.md)、[webhook](../../vendor/dsh/packages/webhook/webhook/README.md)、
-  [goal](../../vendor/dsh/packages/goal/goal/README.md)、[agent-team](../../vendor/dsh/packages/experimental/agent-team/README.md) 等 README。
+- 本仓：[`ROADMAP.md`](../../../ROADMAP.md)、[`intents.md`](../../intents.md)、[`docs/architecture.md`](../../../docs/architecture.md)、[`docs/home.md`](../../../docs/home.md)、
+  [`docs/package-catalog.md`](../../../docs/package-catalog.md)、[责任圈卡](../../implemented/2026-09-25-owner-mandate-and-real-use-baseline.md)、
+  [真实使用基线](2026-09-25-real-use-baseline.md)、全部 92 个提交标题、preset 与默认身份源码、dev home 的知识房间清单。
+- DSH（钉住 `dsh-v0.1.5-rc.2`）：[architecture.md](../../../vendor/dsh/docs/architecture.md)、[capability-seams.md](../../../vendor/dsh/docs/capability-seams.md)、
+  [tool-session-query](../../../vendor/dsh/packages/session-query/tool-session-query/README.md)、[mcp-client](../../../vendor/dsh/packages/mcp/mcp-client/README.md)、
+  [schedule](../../../vendor/dsh/packages/schedule/schedule/README.md)、[webhook](../../../vendor/dsh/packages/webhook/webhook/README.md)、
+  [goal](../../../vendor/dsh/packages/goal/goal/README.md)、[agent-team](../../../vendor/dsh/packages/experimental/agent-team/README.md) 等 README。
 - DSH `dsh-v0.1.7-rc.1`（兄弟仓 `ai_dsh_architect` 的 vendor，2026-09-23）：包目录对比；`agent-preset`、`agent-preset-registry`、`skill-office` README。
 - 生态：本机 `awesome-dsh-plugin` 仓（`main@38976afd`，2026-09-12）的 `README.zh.md` 记忆/技能包/身份与通信分类全量、
   企业 IM 关键词检索，以及其研究分支的 `_digested/ecosystem/01-scenario-taxonomy.md`、`04-value-trend.md`。

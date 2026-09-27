@@ -67,7 +67,7 @@ IME `isComposing` 守卫 + 换 textarea。**验收**：每缺陷一个能红的�
 内容过滤后再看真实密度；在此之前**不动**字号、配色、暗色、砍结构。
 
 **2026-09-26 更新：僵局已解，证据已取。** 第一公里 P0 的截图管线自产真机窄栏证据
-（[走查报告](../research/archive/2026-09-26-first-mile-walkthrough.md) + [截图目录](../research/2026-09-26-first-mile-shots/)），
+（[走查报告](../research/archive/2026-09-26-first-mile-walkthrough.md) + [截图目录](../research/archive/2026-09-26-first-mile-shots)），
 第一次能按"有截图才有结论"下判断：右栏 ~530px 内每条「在办」6–9 行、动作按钮在行底（要读完
 审计行才够得着）——内容本身是 S1 过滤后的经营实质，所以这是**层级**问题不是内容问题。
 
