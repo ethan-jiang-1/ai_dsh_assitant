@@ -31,8 +31,8 @@ const events = [
   { type: 'tool/call', data: { name: 'assistant_reflect', arguments: {} } },
   { type: 'assistant/message', data: { message: { role: 'assistant', content: [] } } },
   { type: 'request/context', data: { provider: 'p', model: 'm' } },
-  { type: 'llm/retry', data: { retryId: 'r' } },
-  { type: 'turn/end', data: { reason: { kind: 'completed' } } },
+  { type: 'llm/retry', data: { retryId: 'r', turn: 1, step: 1, failure: { code: 'TRANSPORT', message: 'DeepSeek API stream failed' } } },
+  { type: 'turn/end', data: { turn: 1, reason: { kind: 'completed' } } },
 ]
 
 describe('summarizeEvents', () => {
@@ -43,6 +43,7 @@ describe('summarizeEvents', () => {
     expect(summary.toolCalls).toEqual({ assistant_memory: 1, bash: 1, assistant_reflect: 1 })
     expect(summary.assistantToolSessions).toBe(1)
     expect(summary.retries).toBe(1)
+    expect(summary.failureCodes).toEqual({ TRANSPORT: 1 })
     expect([...summary.models]).toEqual(['p/m'])
     expect(summary.reasons).toEqual({ completed: 1 })
     expect(summary.errorTurns).toBe(0)
@@ -66,6 +67,39 @@ describe('summarizeEvents', () => {
     expect(summary.injectedUserMessages).toBe(3)
     expect(summary.panelMessages).toBe(1)
     expect(summary.principalMessages).toBe(1)
+  })
+
+  it('separates API-transport error turns from unexplained ones — only the latter can be product defects', () => {
+    // The classification IS the dig: 2026-09-27's manual investigation of 5 error turns found
+    // every one preceded by TRANSPORT retries (API-side transients), which the turn/end reason
+    // alone cannot say — it carries only the kind. Pin the rule so future reports answer it
+    // themselves: an error turn with retries is API-side; one without is worth digging.
+    const summary = summarizeEvents([
+      { type: 'session', data: null },
+      { type: 'turn/start', data: { turn: 1 } },
+      { type: 'llm/retry', data: { turn: 1, step: 1, failure: { code: 'TRANSPORT', message: 'stream failed' } } },
+      { type: 'llm/retry', data: { turn: 1, step: 1, failure: { code: 'RATE_LIMIT', message: 'slow down' } } },
+      { type: 'turn/end', data: { turn: 1, reason: { kind: 'error' } } },
+      { type: 'turn/start', data: { turn: 2 } },
+      { type: 'turn/end', data: { turn: 2, reason: { kind: 'error' } } },
+    ])
+    expect(summary.errorTurns).toBe(2)
+    expect(summary.errorTurnsWithRetries).toBe(1)
+    expect(summary.failureCodes).toEqual({ TRANSPORT: 1, RATE_LIMIT: 1 })
+  })
+
+  it('renders the failure-code breakdown and the transport correlation on the friction line', () => {
+    const summary = summarizeEvents([
+      { type: 'session', data: null },
+      { type: 'turn/start', data: { turn: 1 } },
+      { type: 'llm/retry', data: { turn: 1, step: 1, failure: { code: 'TRANSPORT', message: 'stream failed' } } },
+      { type: 'turn/end', data: { turn: 1, reason: { kind: 'error' } } },
+    ])
+    const text = renderReport(mergeSummaries([summary]), {
+      memories: 0, archivedMemories: 0, threads: 0, archivedThreads: 0, skills: 0, archivedSkills: 0, pages: 0,
+    })
+    expect(text).toContain('LLM 重试 1（TRANSPORT×1）')
+    expect(text).toContain('伴随重试 1/1')
   })
 
   it('marks a session without a home-room tool as not self-using, and counts non-completed turns as friction', () => {

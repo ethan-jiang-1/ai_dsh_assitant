@@ -95,12 +95,18 @@ export function summarizeEvents(events) {
     toolCalls: {},
     assistantToolSessions: 0,
     errorTurns: 0,
+    errorTurnsWithRetries: 0,
     retries: 0,
+    failureCodes: {},
     goalChanges: 0,
     models: new Set(),
     reasons: {},
   }
   let usedAssistantTool = false
+  // Retries seen per turn, so an error turn can be told apart from an unexplained one: the
+  // turn/end reason carries only the kind, never the cause (verified in real logs, 2026-09-27 —
+  // all 5 error turns were API TRANSPORT failures the retry policy could not absorb).
+  const retriesByTurn = new Map()
   for (const event of events) {
     const data = event.data ?? {}
     switch (event.type) {
@@ -149,12 +155,19 @@ export function summarizeEvents(events) {
       case 'turn/end': {
         const kind = data.reason?.kind ?? 'unknown'
         summary.reasons[kind] = (summary.reasons[kind] ?? 0) + 1
-        if (kind !== 'completed') summary.errorTurns += 1
+        if (kind !== 'completed') {
+          summary.errorTurns += 1
+          if ((retriesByTurn.get(data.turn) ?? 0) > 0) summary.errorTurnsWithRetries += 1
+        }
         break
       }
-      case 'llm/retry':
+      case 'llm/retry': {
         summary.retries += 1
+        const code = String(data.failure?.code ?? 'UNKNOWN')
+        summary.failureCodes[code] = (summary.failureCodes[code] ?? 0) + 1
+        retriesByTurn.set(data.turn, (retriesByTurn.get(data.turn) ?? 0) + 1)
         break
+      }
       case 'goal/change':
         summary.goalChanges += 1
         break
@@ -185,7 +198,11 @@ export function mergeSummaries(summaries) {
     total.assistantMessages += summary.assistantMessages
     total.assistantToolSessions += summary.assistantToolSessions
     total.errorTurns += summary.errorTurns
+    total.errorTurnsWithRetries += summary.errorTurnsWithRetries
     total.retries += summary.retries
+    for (const [code, count] of Object.entries(summary.failureCodes)) {
+      total.failureCodes[code] = (total.failureCodes[code] ?? 0) + count
+    }
     total.goalChanges += summary.goalChanges
     for (const [name, count] of Object.entries(summary.toolCalls)) {
       total.toolCalls[name] = (total.toolCalls[name] ?? 0) + count
@@ -238,7 +255,12 @@ export function renderReport(total, home) {
   const tools = Object.entries(total.toolCalls).sort((left, right) => right[1] - left[1])
   lines.push(`- 工具混合（${tools.length} 种，共 ${tools.reduce((sum, entry) => sum + entry[1], 0)} 次）：${tools.slice(0, 8).map(([name, count]) => `${name}×${count}`).join('、') || '（无）'}`)
   const reasons = Object.entries(total.reasons).sort((left, right) => right[1] - left[1])
-  lines.push(`- 摩擦：非完成轮 ${total.errorTurns}（结束原因：${reasons.map(([kind, count]) => `${kind}×${count}`).join('、') || '（无）'}）；LLM 重试 ${total.retries}`)
+  const codes = Object.entries(total.failureCodes).sort((left, right) => right[1] - left[1])
+  const codeText = codes.length === 0 ? '' : `（${codes.map(([code, count]) => `${code}×${count}`).join('、')}）`
+  const errorText = total.errorTurns === 0
+    ? ''
+    : ` · 伴随重试 ${total.errorTurnsWithRetries}/${total.errorTurns}（伴随＝API 侧瞬时；无重试的非完成轮才指向产品缺陷）`
+  lines.push(`- 摩擦：非完成轮 ${total.errorTurns}（结束原因：${reasons.map(([kind, count]) => `${kind}×${count}`).join('、') || '（无）'}）；LLM 重试 ${total.retries}${codeText}${errorText}`)
   lines.push(`- 模型：${[...total.models].join('、') || '（未记录）'}`)
   lines.push(`- 家的现状：记忆 ${home.memories}（归档 ${home.archivedMemories}）、线索 ${home.threads}（归档 ${home.archivedThreads}）、技能 ${home.skills}（归档 ${home.archivedSkills}）、知识页 ${home.pages}`)
   lines.push(`- 职责圈事件：goal/change ${total.goalChanges} 次`)
