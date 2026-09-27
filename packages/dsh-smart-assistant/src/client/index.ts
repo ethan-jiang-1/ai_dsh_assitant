@@ -201,8 +201,9 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       reply?: string | undefined
       /**
        * `"business"` = only the principal can call it and calling it changes what happens outside;
-       * anything else (including a missing field) is the assistant's own upkeep and never reaches
-       * the lead card. Contract rule: at most one business decision leads.
+       * anything else (including a missing field) is the assistant's own upkeep and cannot lead on
+       * `kind` alone — but R4 gives the lead slot to an options-bearing decision when no business
+       * one is waiting. Contract rule: at most one decision leads.
        */
       kind?: string,
       /** Optional ordering among business decisions; lower first. */
@@ -1140,23 +1141,34 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       // The principal's first question is "what NOW?" — and the answer must be THEIR business, not the
       // assistant's upkeep. Two independent reviews (2026-09-26) found the lead card showing "should I
       // keep building this panel?": with no kind field it took decisions[0], i.e. whatever the model
-      // wrote first. Contract: kind = "business" | "upkeep"; only business reaches the lead card, and
-      // when there is none the desk says so honestly instead of promoting housekeeping.
+      // wrote first. Contract: kind = "business" | "upkeep"; business leads, and when none is waiting
+      // the desk says so honestly instead of promoting housekeeping.
+      //
+      // R4 (self-review, 2026-09-27): `kind` alone is not the whole gate. A decision already carrying
+      // `options[]` is a concrete choice the assistant prepared FOR the principal — the live desk had
+      // "two draft pages: approve, or comment? only you can finalize them" filed as upkeep with two
+      // one-click options, while the lead card claimed nothing needed a call. So: business first,
+      // then the first options-bearing decision whatever its kind says.
       sectionTitle('从这开始'),
       (() => {
         const { useState } = require('react') as typeof import('react')
         const decisions = data?.decisions ?? []
         const [showRest, setShowRest] = useState(false)
         const [showUpkeep, setShowUpkeep] = useState(false)
-        const business = decisions
-          .filter(item => item.kind === 'business')
-          .slice()
-          .sort((left, right) => Number(left.rank ?? 0) - Number(right.rank ?? 0))
-        const upkeep = decisions.filter(item => item.kind !== 'business')
-        const draftCount = data?.counts?.knowledgeDraft ?? 0
-        const lead = business[0]
-        const rest = business.slice(1)
+        const byRank = (left: DeskDecision, right: DeskDecision): number =>
+          Number(left.rank ?? 0) - Number(right.rank ?? 0)
+        const business = decisions.filter(item => item.kind === 'business').slice().sort(byRank)
         const rowIdOf = (item: DeskDecision): string => String(item.id ?? item.question)
+        const waiting = decisions
+          .filter(item => item.kind !== 'business' && (item.options ?? []).length > 0)
+          .slice()
+          .sort(byRank)
+        const draftCount = data?.counts?.knowledgeDraft ?? 0
+        const lead = business[0] ?? waiting[0]
+        const rest = business.slice(1)
+        // Whatever leads leaves the fold: the same row must not appear twice.
+        const upkeep = decisions.filter(item =>
+          item.kind !== 'business' && (lead === undefined || rowIdOf(item) !== rowIdOf(lead)))
         // Options the assistant presented become one-click answers on the row — the principal
         // picks instead of copying the answer back from the conversation.
         const optionButtons = (item: DeskDecision, rowId: string): ReturnType<typeof createElement> | null =>

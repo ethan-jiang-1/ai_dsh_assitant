@@ -293,6 +293,37 @@ describe('desk panels', () => {
     expect(desk).toContain('没有 .desk/state.json')
   })
 
+  it('leads with an options-bearing decision when no business decision is waiting (R4)', () => {
+    const exports = materialize()
+    // The live shape that motivated R4: every decision filed as upkeep, but one of them carries the
+    // options only the principal can pick. Before the fix the card said nothing needed his call.
+    exports.deskStore.data = {
+      generatedAt: '2026-09-27T12:00:00+08:00',
+      decisions: [
+        { id: 'u1', kind: 'upkeep', question: '两张知识页 draft：批准还是提意见？只有你能把草案变定稿', options: [{ label: '批准两张' }, { label: '先看再定' }] },
+        { id: 'u2', kind: 'upkeep', question: '培养面接着做深，还是先停一停？' },
+      ],
+    }
+    const desk = textsOf(exports.DeskPanel()).join(' | ')
+    expect(desk).toContain('先办这件')
+    expect(desk).toContain('只有你能把草案变定稿')
+    expect(desk).not.toContain('目前没有需要你拍板的经营事项')
+    // …and the same row is not also folded below.
+    expect(desk).toContain('助手自己的事（1）')
+  })
+
+  it('keeps the honest empty state when neither business nor options are waiting (R4)', () => {
+    const exports = materialize()
+    exports.deskStore.data = {
+      generatedAt: '2026-09-27T12:00:00+08:00',
+      decisions: [{ id: 'u1', kind: 'upkeep', question: '我自己的配置待定' }],
+    }
+    const desk = textsOf(exports.DeskPanel()).join(' | ')
+    expect(desk).toContain('目前没有需要你拍板的经营事项')
+    expect(desk).toContain('助手自己的事（1）')
+    expect(desk).not.toContain('先办这件')
+  })
+
   it('binds each tab body to its own session instead of showing another session’s desk', () => {
     const exports = materialize()
     exports.deskStore.data = { counts: { memories: 7 } }

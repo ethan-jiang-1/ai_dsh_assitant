@@ -68,14 +68,18 @@ The desk panel leads with its decisions section (`decisions`) and its threads se
   "should we retire the weakest record in the digest?"). `context` is one short line of why the call
   is theirs. **Only real ones**: something you are genuinely waiting on. An empty list is a fine
   answer and renders as "nothing waiting on you".
-- `decisions[].kind` — **"business" or "upkeep", and this is the gate for the lead card**: only a
-  business decision can reach the lead slot, so before you write one, ask: *can only the principal
-  call this, AND does calling it change what happens outside?* (signing, spending, hiring,
-  promising a customer — yes; anything about yourself, your own configuration, this product's
-  roadmap, your budget, your evaluation set — no, that is "upkeep"). **At most one business
-  decision leads**; give it the lowest `rank` if there are several. When there is no business
-  decision the panel honestly reports that nothing needs the principal's call, and your upkeep
-  waits folded under its own group — that is the correct output, not a failure.
+- `decisions[].kind` — **"business" or "upkeep", and this is the gate for the lead card**: a
+  business decision reaches the lead slot first, so before you write one, ask: *can only the
+  principal call this, AND does calling it change what happens outside?* (signing, spending,
+  hiring, promising a customer — yes; anything about yourself, your own configuration, this
+  product's roadmap, your budget, your evaluation set — no, that is "upkeep"). **At most one
+  decision leads**; give it the lowest `rank` if there are several. **A decision that already
+  carries `options[]` leads whenever no business decision is waiting, whatever its `kind` says**:
+  options are a choice you prepared for the principal, and a call only they can make about your
+  own output (approving a draft, signing off a plan) is still a call they must see — filing it as
+  upkeep while the panel reports "nothing needs your call" hides the one thing that does. When
+  neither is waiting, the panel honestly reports that nothing needs the principal's call and your
+  upkeep waits folded under its own group — that is the correct output, not a failure.
 - `threads[].title` — one line naming the question (for example: "Q3 sales down 20% — settle the
   definition first, or the customers?"). `why` is the rationale (rendered small and grey), `lean` is
   your current lean (rendered under the title). Keep `why` to about two lines: it is the footnote,
