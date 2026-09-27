@@ -151,8 +151,33 @@ interface ModuleLoaderFacade {
 /** The deployment's sidebar identity. */
 const BRAND_NAME = 'DSH local assistant'
 
-/** Mark color, shared with the tab favicon injected by `src/web-branding.ts`. */
-const MARK_TEAL = '#0f766e'
+/** Panel accent (brand teal) as a theme variable; the favicon in `src/web-branding.ts` keeps the
+ * literal hex — favicons are fixed images and cannot resolve CSS variables. */
+const MARK_TEAL = 'var(--dsha-accent)'
+
+/**
+ * Panel color contract, injected once per page. Neutral roles consume the vendor theme aliases
+ * (`--dsw-alias-*`) directly; the warn and accent roles ride these `dsha-` variables because the
+ * vendor amber scale has no step meeting the AA bar this package committed to on light surfaces
+ * (R8: ≥4.5:1) and the teal is this assistant's own brand identity (the vendor palette has no
+ * teal). Dark values reference vendor statics where one fits.
+ */
+function ensureThemeVars(): void {
+  // Headless compositions (tests, no DOM) skip the injection: the variables only matter
+  // when something renders, and the panels already treat "no document" as no-op elsewhere.
+  if (typeof document === 'undefined') return
+  if (document.getElementById('dsha-theme-vars') !== null) return
+  const style = document.createElement('style')
+  style.id = 'dsha-theme-vars'
+  style.textContent = [
+    'body{--dsha-warn:#92400e;--dsha-warn-tint:#fff7e6;'
+      + '--dsha-accent:#0f766e;--dsha-accent-tint:#f0fdfa}',
+    'body[data-ds-dark-theme]{--dsha-warn:var(--dsw-static-amber-400);'
+      + '--dsha-warn-tint:var(--dsw-static-amber-900);'
+      + '--dsha-accent:#2dd4bf;--dsha-accent-tint:rgba(45,212,191,0.12)}',
+  ].join('')
+  document.head.appendChild(style)
+}
 
 /**
  * Build the plugin surface and the brand occupants against a module-table require.
@@ -728,7 +753,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         onClick: () => { setOpen(!open) },
         style: {
           marginTop: '2px', padding: '4px 8px', fontSize: '11px', cursor: 'pointer',
-          border: '1px solid #8a8a8a', borderRadius: '4px', background: '#fff', color: '#6b7280',
+          border: '1px solid var(--dsw-alias-border-l3)', borderRadius: '4px', background: 'var(--dsw-alias-bg-base)', color: 'var(--dsw-alias-label-secondary)',
         },
       }, open ? '收起' : '展开全部'))
   }
@@ -781,7 +806,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         flexWrap: 'wrap', justifyContent: 'flex-end',
       },
     },
-    props.meta === undefined || props.meta === '' ? null : createElement('span', { style: { fontSize: '11px', color: '#6b7280' } }, props.meta),
+    props.meta === undefined || props.meta === '' ? null : createElement('span', { style: { fontSize: '11px', color: 'var(--dsw-alias-label-secondary)' } }, props.meta),
     ...(props.actions ?? []).map(action => {
           // A destructive move asks twice: one click arms it for three seconds ("确认…？"), the
           // second click sends. The record itself is recoverable (history/archives), and the
@@ -804,8 +829,8 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
             style: {
               padding: '4px 8px', fontSize: '12px',
               cursor: frozen ? 'default' : 'pointer', opacity: frozen ? 0.5 : 1,
-              border: `1px solid ${armed === action.label ? '#92400e' : MARK_TEAL}`,
-              borderRadius: '4px', background: '#fff', color: armed === action.label ? '#92400e' : MARK_TEAL,
+              border: `1px solid ${armed === action.label ? 'var(--dsha-warn)' : MARK_TEAL}`,
+              borderRadius: '4px', background: 'var(--dsw-alias-bg-base)', color: armed === action.label ? 'var(--dsha-warn)' : MARK_TEAL,
             },
           }, label)
         }),
@@ -815,21 +840,21 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
           style: {
             padding: '4px 8px', fontSize: '12px',
             cursor: frozen ? 'default' : 'pointer', opacity: frozen ? 0.5 : 1,
-            border: '1px solid #8a8a8a', borderRadius: '4px', background: '#fff', color: '#6b7280',
+            border: '1px solid var(--dsw-alias-border-l3)', borderRadius: '4px', background: 'var(--dsw-alias-bg-base)', color: 'var(--dsw-alias-label-secondary)',
           },
         }, open ? '取消' : props.actionLabel))
 
     return createElement('li', { style: { marginBottom: '10px', listStyle: 'none' } },
       createElement('div', { style: { display: 'flex', alignItems: 'flex-start', gap: '8px' } },
         createElement('div', { style: { flex: '1', minWidth: 0 } },
-          createElement('div', { style: { fontSize: props.lead === true ? '16px' : '13px', lineHeight: 1.6, color: props.lead === true ? '#111' : '#555' } }, props.primary),
+          createElement('div', { style: { fontSize: props.lead === true ? '16px' : '13px', lineHeight: 1.6, color: props.lead === true ? 'var(--dsw-alias-label-primary)' : 'var(--dsw-alias-label-secondary)' } }, props.primary),
           source === undefined
             ? null
             // R7 (self-review, 2026-09-27): the live page carried 11 sources / 945 characters and this
             // line showed ~12% of them, the rest reachable only by hovering a clipped element.
             // Provenance is the trust line — it gets a real expander.
             : createElement('div', {
-                style: { fontSize: '11px', color: '#6b7280', marginTop: '2px' },
+                style: { fontSize: '11px', color: 'var(--dsw-alias-label-secondary)', marginTop: '2px' },
               },
               openSource || source.length <= 110 ? `来源：${source}` : `来源：${source.slice(0, 110)}…`,
               source.length <= 110
@@ -838,7 +863,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
                     onClick: () => { setOpenSource(!openSource) },
                     style: {
                       marginLeft: '6px', padding: '4px 8px', fontSize: '11px', cursor: 'pointer',
-                      border: '1px solid #8a8a8a', borderRadius: '4px', background: '#fff', color: '#6b7280',
+                      border: '1px solid var(--dsw-alias-border-l3)', borderRadius: '4px', background: 'var(--dsw-alias-bg-base)', color: 'var(--dsw-alias-label-secondary)',
                     },
                   }, openSource ? '收起' : `全部（${source.length} 字）`))),
         props.readOnly === true ? null : controls),
@@ -846,16 +871,16 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       // just-answered row said "已回答" and "正在处理" at once. While the answer is in flight the row
       // says one thing; the settled line is what replaces it.
       props.readOnly === true && inflight === false
-        ? createElement('div', { style: { fontSize: '11px', color: '#6b7280', marginTop: '2px' } },
+        ? createElement('div', { style: { fontSize: '11px', color: 'var(--dsw-alias-label-secondary)', marginTop: '2px' } },
             '已回答——改主意？在对话里说一声，它会改回来')
         : null,
       inflight === false ? null : createElement('div', {
-        style: { fontSize: '12px', color: '#6b7280', marginTop: '4px' },
+        style: { fontSize: '12px', color: 'var(--dsw-alias-label-secondary)', marginTop: '4px' },
       }, `已交给助手 · ${shortTime(new Date(store.pending?.at ?? Date.now()).toISOString())} · ${String(store.pending?.action ?? '')}——正在处理，回复出现在对话里`),
       // The poller gave up: the action left, the desk did not catch up. Durable on the row on
       // purpose — a row that looks untouched reads as "nothing happened" (R1).
       stalled === undefined ? null : createElement('div', {
-        style: { fontSize: '12px', color: '#92400e', marginTop: '4px' },
+        style: { fontSize: '12px', color: 'var(--dsha-warn)', marginTop: '4px' },
       }, `已发出 · ${shortTime(new Date(stalled.at).toISOString())} · ${stalled.action}——桌面还没跟上，点「刷新桌面」再试（动作不会被撤销）`),
       receipt === undefined ? null : createElement('div', {
         style: { fontSize: '12px', color: MARK_TEAL, marginTop: '4px' },
@@ -875,7 +900,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
               },
               placeholder: props.placeholder,
               style: {
-                flex: '1', padding: '5px 8px', fontSize: '12px', border: '1px solid #8a8a8a', borderRadius: '4px',
+                flex: '1', padding: '5px 8px', fontSize: '12px', border: '1px solid var(--dsw-alias-border-l3)', borderRadius: '4px',
                 resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.5,
               },
             }),
@@ -885,7 +910,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
               style: {
                 padding: '5px 12px', fontSize: '12px',
                 cursor: frozen ? 'default' : 'pointer', opacity: frozen ? 0.5 : 1,
-                borderRadius: '4px', border: `1px solid ${MARK_TEAL}`, background: '#fff', color: MARK_TEAL,
+                borderRadius: '4px', border: `1px solid ${MARK_TEAL}`, background: 'var(--dsw-alias-bg-base)', color: MARK_TEAL,
               },
             }, '发送'))
         : null)
@@ -1052,7 +1077,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       onClick: askRefresh,
       style: {
         marginTop: '8px', padding: '6px 14px', fontSize: '12px', cursor: 'pointer', borderRadius: '6px',
-        border: `1px solid ${MARK_TEAL}`, background: '#fff', color: MARK_TEAL,
+        border: `1px solid ${MARK_TEAL}`, background: 'var(--dsw-alias-bg-base)', color: MARK_TEAL,
       },
     }, label)
     // A5: a corrupt file is an error with a way out, not an eternal "reading…".
@@ -1086,7 +1111,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       title: failed ? '上次没能打开：右侧栏服务不在这个组合里' : '在对话旁打开我的桌面',
       style: {
         border: 'none', background: 'transparent', cursor: 'pointer',
-        fontSize: '12px', color: failed ? '#92400e' : MARK_TEAL, padding: '4px 6px',
+        fontSize: '12px', color: failed ? 'var(--dsha-warn)' : MARK_TEAL, padding: '4px 6px',
       },
     }, failed ? `桌面（${store.openError}）` : '桌面')
   }
@@ -1142,7 +1167,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         // (observed 2026-09-26: an 760px strip against an ~875px card).
         width: 'min(var(--dsh-composer-card-max-width, 952px), 100%)',
         margin: '0 auto 8px', padding: '12px 16px',
-        border: '1px solid rgba(128,128,128,0.28)', borderRadius: '10px',
+        border: '1px solid var(--dsw-alias-border-l2)', borderRadius: '10px',
       },
     },
     createElement('div', { style: { fontSize: '13px', color: 'inherit' } },
@@ -1151,12 +1176,12 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // menu it opened leads with the shell's own commands and then a list of skill rows carrying
     // English, developer-facing descriptions (the very material the knowledge panel excludes as
     // noise on the principal's surface). The strip now points at the doors that are ours.
-    createElement('div', { style: { fontSize: '12px', color: '#6b7280' } },
+    createElement('div', { style: { fontSize: '12px', color: 'var(--dsw-alias-label-secondary)' } },
       '例：「这个月签单为什么慢」「把季度目标拆成这周能做的三件事」· 左栏三室随时可开'),
     createElement('button', {
       onClick: () => { openRoom?.('desk') },
       style: {
-        border: '1px solid rgba(128,128,128,0.4)', background: 'transparent', cursor: 'pointer',
+        border: '1px solid var(--dsw-alias-border-l3)', background: 'transparent', cursor: 'pointer',
         fontSize: '12px', color: MARK_TEAL, padding: '3px 10px', borderRadius: '6px',
       },
     }, DESK_LABEL),
@@ -1181,7 +1206,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       createElement('div', { key: 'v', style: { fontSize: '26px', fontWeight: 700, color: MARK_TEAL } }, value),
       createElement('div', {
         key: 'l',
-        style: { fontSize: '12px', color: '#666', textDecoration: target === undefined ? 'none' : 'underline' },
+        style: { fontSize: '12px', color: 'var(--dsw-alias-label-secondary)', textDecoration: target === undefined ? 'none' : 'underline' },
       }, label),
     ]
     const style: Record<string, unknown> = {
@@ -1208,7 +1233,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   function panelAlerts(store: typeof deskStore): ReturnType<typeof createElement>[] {
     const alerts: ReturnType<typeof createElement>[] = []
     if (store.readError !== undefined) {
-      alerts.push(createElement('div', { key: 'read-error', style: { fontSize: '12px', color: '#92400e', margin: '6px 0 0' } },
+      alerts.push(createElement('div', { key: 'read-error', style: { fontSize: '12px', color: 'var(--dsha-warn)', margin: '6px 0 0' } },
         store.readError))
     }
     if (store.note !== undefined) alerts.push(createElement('div', { key: 'note' }, muted(store.note)))
@@ -1217,12 +1242,12 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
 
   /** A section heading. */
   function sectionTitle(text: string): ReturnType<typeof createElement> {
-    return createElement('h3', { style: { margin: '20px 0 8px', fontSize: '13px', color: '#6b7280', fontWeight: 600 } }, text)
+    return createElement('h3', { style: { margin: '20px 0 8px', fontSize: '13px', color: 'var(--dsw-alias-label-secondary)', fontWeight: 600 } }, text)
   }
 
   /** Muted one-liner. */
   function muted(text: string): ReturnType<typeof createElement> {
-    return createElement('p', { style: { fontSize: '12px', color: '#6b7280', margin: 0 } }, text)
+    return createElement('p', { style: { fontSize: '12px', color: 'var(--dsw-alias-label-secondary)', margin: 0 } }, text)
   }
 
   /** One quick-action button in the shared row. */
@@ -1232,7 +1257,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       title: hint,
       style: {
         marginRight: '8px', padding: '5px 12px', fontSize: '12px', cursor: 'pointer',
-        border: '1px solid #8a8a8a', borderRadius: '6px', background: '#fff', color: '#555',
+        border: '1px solid var(--dsw-alias-border-l3)', borderRadius: '6px', background: 'var(--dsw-alias-bg-base)', color: 'var(--dsw-alias-label-secondary)',
       },
     }, label)
   }
@@ -1258,7 +1283,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         onClick: askRefresh,
         style: {
           padding: '6px 14px', fontSize: '13px', cursor: 'pointer', borderRadius: '6px',
-          border: `1px solid ${MARK_TEAL}`, background: '#fff',
+          border: `1px solid ${MARK_TEAL}`, background: 'var(--dsw-alias-bg-base)',
           color: MARK_TEAL,
         },
       }, '刷新桌面'),
@@ -1269,18 +1294,18 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
             title: '把这一室开到对话旁边的右侧栏（绑定当前会话）',
             style: {
               marginLeft: '8px', padding: '6px 12px', fontSize: '12px', cursor: 'pointer',
-              borderRadius: '6px', border: '1px solid #8a8a8a', background: '#fff', color: '#555',
+              borderRadius: '6px', border: '1px solid var(--dsw-alias-border-l3)', background: 'var(--dsw-alias-bg-base)', color: 'var(--dsw-alias-label-secondary)',
             },
           }, '在对话旁打开'),
       inFlight === false
         ? null
-        : createElement('span', { style: { marginLeft: '10px', fontSize: '12px', color: '#6b7280' } },
+        : createElement('span', { style: { marginLeft: '10px', fontSize: '12px', color: 'var(--dsw-alias-label-secondary)' } },
             `已交给助手 · ${shortTime(new Date(store.pending?.at ?? Date.now()).toISOString())} · ${String(store.pending?.action ?? '')}——回复出现在对话里，桌面更新后自动跟上`),
       // A7: freshness belongs to every room, not only the desk — the room the principal is
       // reading in is exactly where "this snapshot is stale" must be said out loud.
       staleWarning(store) === undefined
         ? null
-        : createElement('div', { style: { fontSize: '12px', color: '#92400e', marginTop: '4px' } },
+        : createElement('div', { style: { fontSize: '12px', color: 'var(--dsha-warn)', marginTop: '4px' } },
             `⚠ ${String(staleWarning(store))}`))
   }
 
@@ -1330,7 +1355,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       createElement('h2', { style: { margin: '0 0 4px', fontSize: '18px' } }, '我的桌面'),
       // The three rooms are three QUESTIONS, not three data containers (user ruling 2026-09-26:
       // keep the familiar entries, make the navigation MEAN something).
-      createElement('div', { style: { fontSize: '13px', color: '#6b7280', margin: '0 0 8px' } }, '现在要采取什么行动？'),
+      createElement('div', { style: { fontSize: '13px', color: 'var(--dsw-alias-label-secondary)', margin: '0 0 8px' } }, '现在要采取什么行动？'),
       refreshRow(store, 'desk'),
       // S6 landing: the principal's real first reaction (2026-09-26 trial) was "不知所措——
       // 不知道怎么落脚，不知道要干什么". When no desk file exists yet, say what this surface
@@ -1338,11 +1363,11 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       store.data === undefined
         ? createElement('div', {
             style: {
-              border: '1px solid #8a8a8a', borderRadius: '8px', background: '#fafafa',
-              padding: '10px 14px', margin: '8px 0', fontSize: '12px', color: '#666', lineHeight: 1.8,
+              border: '1px solid var(--dsw-alias-border-l3)', borderRadius: '8px', background: 'var(--dsw-alias-bg-layer-1)',
+              padding: '10px 14px', margin: '8px 0', fontSize: '12px', color: 'var(--dsw-alias-label-secondary)', lineHeight: 1.8,
             },
           },
-          createElement('div', { style: { fontWeight: 600, color: '#555' } }, '第一次来这里？'),
+          createElement('div', { style: { fontWeight: 600, color: 'var(--dsw-alias-label-secondary)' } }, '第一次来这里？'),
           '① 在旁边的对话里跟助手说句话（说「刷新我的桌面」也行）',
           createElement('br'),
           '② 它会把这个工作区的桌面建起来——这里是你的仪表盘，不是要你配置的东西',
@@ -1400,7 +1425,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
                   onClick: () => { answerDecision(String(item.question ?? ''), String(option.label ?? ''), rowId) },
                   style: {
                     padding: '4px 10px', fontSize: '12px', cursor: 'pointer', borderRadius: '4px',
-                    border: `1px solid ${MARK_TEAL}`, background: '#fff', color: MARK_TEAL,
+                    border: `1px solid ${MARK_TEAL}`, background: 'var(--dsw-alias-bg-base)', color: MARK_TEAL,
                   },
                 }, String(option.label ?? ''))))
         // S7: once THIS row has been ANSWERED it stops looking answerable — a real trial answered
@@ -1428,10 +1453,10 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
               createElement('span', { style: { fontSize: '13px', fontWeight: 600 } }, String(item.question ?? '')),
               compact || item.context === undefined || item.context === ''
                 ? null
-                : createElement('div', { style: { fontSize: '12px', color: '#6b7280', fontWeight: 400 } }, String(item.context)),
+                : createElement('div', { style: { fontSize: '12px', color: 'var(--dsw-alias-label-secondary)', fontWeight: 400 } }, String(item.context)),
               item.reply === undefined || item.reply === ''
                 ? null
-                : createElement('div', { style: { fontSize: '11px', color: '#6b7280', marginTop: '4px' } }, `它说：${item.reply}`),
+                : createElement('div', { style: { fontSize: '11px', color: 'var(--dsw-alias-label-secondary)', marginTop: '4px' } }, `它说：${item.reply}`),
               // Options hide once answered — the trial's second click came exactly from here.
               answered(item) ? null : optionButtons(item, rowId)),
             actionLabel: '回答',
@@ -1445,7 +1470,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
             onClick: toggle,
             style: {
               padding: '5px 12px', fontSize: '12px', cursor: 'pointer', borderRadius: '6px',
-              border: '1px solid #8a8a8a', background: '#fff', color: '#555',
+              border: '1px solid var(--dsw-alias-border-l3)', background: 'var(--dsw-alias-bg-base)', color: 'var(--dsw-alias-label-secondary)',
             },
           }, label)
         return createElement('div', null,
@@ -1453,7 +1478,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
             ? muted('目前没有需要你拍板的经营事项')
             : createElement('div', {
                 style: {
-                  border: `2px solid ${MARK_TEAL}`, borderRadius: '8px', background: '#f0fdfa',
+                  border: `2px solid ${MARK_TEAL}`, borderRadius: '8px', background: 'var(--dsha-accent-tint)',
                   padding: '12px 14px', margin: '8px 0',
                 },
               },
@@ -1463,13 +1488,13 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
                 rowId: rowIdOf(lead),
                 readOnly: answered(lead),
                 primary: createElement('span', null,
-                  createElement('span', { style: { fontSize: '16px', fontWeight: 700, color: '#111' } }, String(lead.question ?? '')),
+                  createElement('span', { style: { fontSize: '16px', fontWeight: 700, color: 'var(--dsw-alias-label-primary)' } }, String(lead.question ?? '')),
                   lead.context === undefined || lead.context === ''
                     ? null
-                    : createElement('div', { style: { fontSize: '12px', color: '#666', fontWeight: 400, marginTop: '4px' } }, String(lead.context)),
+                    : createElement('div', { style: { fontSize: '12px', color: 'var(--dsw-alias-label-secondary)', fontWeight: 400, marginTop: '4px' } }, String(lead.context)),
                   lead.reply === undefined || lead.reply === ''
                     ? null
-                    : createElement('div', { style: { fontSize: '11px', color: '#6b7280', marginTop: '4px' } }, `它说：${lead.reply}`),
+                    : createElement('div', { style: { fontSize: '11px', color: 'var(--dsw-alias-label-secondary)', marginTop: '4px' } }, `它说：${lead.reply}`),
                   answered(lead) ? null : optionButtons(lead, rowIdOf(lead))),
                 actionLabel: '回答',
                 placeholder: '你的决定是什么？',
@@ -1490,7 +1515,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
                   patchDesk({ focusKnowledge: 'drafts' })
                   try { deskLayout?.selectPanel?.('assistant-knowledge') } catch { /* stale target */ }
                 },
-                style: { fontSize: '13px', color: '#92400e', cursor: 'pointer', textDecoration: 'underline', marginTop: '8px' },
+                style: { fontSize: '13px', color: 'var(--dsha-warn)', cursor: 'pointer', textDecoration: 'underline', marginTop: '8px' },
               }, `⚠ ${String(draftCount)} 页知识在等你审批（点这里去审批）`),
           upkeep.length === 0
             ? null
@@ -1520,17 +1545,17 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
                 // is a status this surface does not know — say so instead of rendering it as in-flight.
                 action.status === 'open' || action.status === undefined
                   ? null
-                  : createElement('span', { style: { fontSize: '11px', color: '#92400e', marginLeft: '6px' } },
+                  : createElement('span', { style: { fontSize: '11px', color: 'var(--dsha-warn)', marginLeft: '6px' } },
                       `（状态「${String(action.status)}」不在面板认识的集合里）`),
-                createElement('div', { style: { fontSize: '12px', color: '#666', fontWeight: 400 } },
+                createElement('div', { style: { fontSize: '12px', color: 'var(--dsw-alias-label-secondary)', fontWeight: 400 } },
                   [action.owner === undefined ? '' : `负责人：${action.owner}`,
                     action.due === undefined ? '' : `时点：${action.due}`].filter(part => part !== '').join(' · ')),
                 action.metric === undefined || action.metric === ''
                   ? null
-                  : createElement('div', { style: { fontSize: '11px', color: '#6b7280', fontWeight: 400 } }, `度量：${action.metric}`),
+                  : createElement('div', { style: { fontSize: '11px', color: 'var(--dsw-alias-label-secondary)', fontWeight: 400 } }, `度量：${action.metric}`),
                 action.stop === undefined || action.stop === ''
                   ? null
-                  : createElement('div', { style: { fontSize: '11px', color: '#6b7280', fontWeight: 400 } }, `停止条件：${action.stop}`),
+                  : createElement('div', { style: { fontSize: '11px', color: 'var(--dsw-alias-label-secondary)', fontWeight: 400 } }, `停止条件：${action.stop}`),
                 action.note === undefined || action.note === ''
                   ? null
                   // R7's deferred half: the assistant's own reconciliation log runs long (up to 53 px on
@@ -1539,7 +1564,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
                   : createElement(ClampedText, {
                       text: `它记：${action.note}`,
                       maxLines: 3,
-                      style: { fontSize: '11px', color: '#92400e', fontWeight: 400, marginTop: '4px' },
+                      style: { fontSize: '11px', color: 'var(--dsha-warn)', fontWeight: 400, marginTop: '4px' },
                     })),
               actionLabel: '改这条',
               placeholder: '哪里要改？',
@@ -1560,13 +1585,13 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
               .filter(action => action.status === 'done')
               .map(action => createElement('div', {
                 key: `done-${String(action.id ?? action.what)}`,
-                style: { marginBottom: '8px', paddingLeft: '10px', borderLeft: '2px solid #ddd' },
+                style: { marginBottom: '8px', paddingLeft: '10px', borderLeft: '2px solid var(--dsw-alias-border-l2)' },
               },
-              createElement('div', { style: { fontSize: '13px', color: '#6b7280' } }, `✓ ${String(action.what ?? '')}`),
+              createElement('div', { style: { fontSize: '13px', color: 'var(--dsw-alias-label-secondary)' } }, `✓ ${String(action.what ?? '')}`),
               [action.owner === undefined ? '' : String(action.owner),
                 action.due === undefined ? '' : String(action.due)].filter(part => part !== '').length === 0
                 ? null
-                : createElement('div', { style: { fontSize: '11px', color: '#6b7280' } },
+                : createElement('div', { style: { fontSize: '11px', color: 'var(--dsw-alias-label-secondary)' } },
                     [action.owner === undefined ? '' : `负责人：${action.owner}`,
                       action.due === undefined ? '' : `时点：${action.due}`].filter(part => part !== '').join(' · ')),
               action.note === undefined || action.note === ''
@@ -1574,7 +1599,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
                 : createElement(ClampedText, {
                     text: `它记：${action.note}`,
                     maxLines: 2,
-                    style: { fontSize: '11px', color: '#6b7280', marginTop: '2px' },
+                    style: { fontSize: '11px', color: 'var(--dsw-alias-label-secondary)', marginTop: '2px' },
                   })))))
         : null,
 
@@ -1586,15 +1611,15 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
               .filter(action => action.status === 'dropped')
               .map(action => createElement('div', {
                 key: `dropped-${String(action.id ?? action.what)}`,
-                style: { marginBottom: '8px', paddingLeft: '10px', borderLeft: '2px solid #ddd' },
+                style: { marginBottom: '8px', paddingLeft: '10px', borderLeft: '2px solid var(--dsw-alias-border-l2)' },
               },
-              createElement('div', { style: { fontSize: '13px', color: '#6b7280' } }, `✕ ${String(action.what ?? '')}`),
+              createElement('div', { style: { fontSize: '13px', color: 'var(--dsw-alias-label-secondary)' } }, `✕ ${String(action.what ?? '')}`),
               action.note === undefined || action.note === ''
                 ? null
                 : createElement(ClampedText, {
                     text: `它记：${action.note}`,
                     maxLines: 2,
-                    style: { fontSize: '11px', color: '#6b7280', marginTop: '2px' },
+                    style: { fontSize: '11px', color: 'var(--dsw-alias-label-secondary)', marginTop: '2px' },
                   })))))
         : null,
 
@@ -1611,7 +1636,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
               createElement('span', { style: { fontSize: '13px', fontWeight: 600 } }, String(item.what ?? '')),
               item.why === undefined || item.why === ''
                 ? null
-                : createElement('div', { style: { fontSize: '11px', color: '#6b7280', fontWeight: 400 } }, String(item.why))),
+                : createElement('div', { style: { fontSize: '11px', color: 'var(--dsw-alias-label-secondary)', fontWeight: 400 } }, String(item.why))),
             actionLabel: '补上',
             placeholder: '它缺的那个读数／台账／参数是什么？',
             onSubmit: (text: string) => {
@@ -1632,21 +1657,21 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
                 // one, with the same three controls.
                 thread.status === undefined || thread.status === 'open'
                   ? null
-                  : createElement('span', { style: { fontSize: '11px', color: '#92400e', marginLeft: '6px', fontWeight: 400 } },
+                  : createElement('span', { style: { fontSize: '11px', color: 'var(--dsha-warn)', marginLeft: '6px', fontWeight: 400 } },
                       `（状态：${String(thread.status)}）`)),
               // The lean is the field that measured 345 px on the live desk (R7): both free-text
               // lines clamp with an expander instead of pushing the room off-screen.
               createElement(ClampedText, {
                 text: `当前倾向：${String(thread.lean ?? '（未定）')}`,
                 maxLines: 3,
-                style: { fontSize: '12px', color: '#666', fontWeight: 400 },
+                style: { fontSize: '12px', color: 'var(--dsw-alias-label-secondary)', fontWeight: 400 },
               }),
               thread.why === undefined || thread.why === ''
                 ? null
                 : createElement(ClampedText, {
                     text: String(thread.why),
                     maxLines: 2,
-                    style: { fontSize: '11px', color: '#6b7280', fontWeight: 400, lineHeight: 1.5 },
+                    style: { fontSize: '11px', color: 'var(--dsw-alias-label-secondary)', fontWeight: 400, lineHeight: 1.5 },
                   })),
             actionLabel: '问进展',
             placeholder: '你想问这条线索的什么？',
@@ -1662,11 +1687,11 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       sectionTitle('它最近做了什么'),
       (data?.recentActivity ?? []).length === 0
         ? muted('（还没有可讲的变动）')
-        : createElement('ul', { style: { margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#666', lineHeight: 1.8 } },
+        : createElement('ul', { style: { margin: 0, paddingLeft: '18px', fontSize: '12px', color: 'var(--dsw-alias-label-secondary)', lineHeight: 1.8 } },
             ...(data?.recentActivity ?? []).map((item, index) => createElement('li', { key: `${String(item.at)}-${index}` },
               item.at === undefined || item.at === ''
                 ? null
-                : createElement('span', { style: { color: '#6b7280' } }, `${shortTime(item.at)} `),
+                : createElement('span', { style: { color: 'var(--dsw-alias-label-secondary)' } }, `${shortTime(item.at)} `),
               String(item.what ?? '')))),
 
       // R7: the counts carried no date of their own, while the desk's staleness line sits screens
@@ -1675,7 +1700,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       // R9: a count that could not open its panel says so, right under the numbers it belongs to.
       store.jumpError === undefined
         ? null
-        : createElement('div', { style: { fontSize: '11px', color: '#92400e', margin: '0 16px 6px' } }, store.jumpError),
+        : createElement('div', { style: { fontSize: '11px', color: 'var(--dsha-warn)', margin: '0 16px 6px' } }, store.jumpError),
       createElement('div', null,
         cell('记忆', data?.counts?.memories === undefined ? '—' : String(data.counts.memories), 'assistant-memory'),
         cell('知识', data?.counts?.knowledgeStable === undefined ? '—' : String(data.counts.knowledgeStable), 'assistant-knowledge'),
@@ -1685,7 +1710,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       createElement('div', null,
         createElement('div', {
           title: `桌面跟随你当前对话的工作区${store.source === undefined || store.source === '' ? '' : `：${store.source}`}——换一个对话，这里显示的就是那一个的桌面。`,
-          style: { fontSize: '12px', color: '#6b7280', margin: 0 },
+          style: { fontSize: '12px', color: 'var(--dsw-alias-label-secondary)', margin: 0 },
         }, `桌面跟随当前对话的工作区`
           + (store.data?.generatedAt === undefined ? '' : `，更新于 ${shortTime(store.data.generatedAt)}`)
           + '（换一个对话，桌面跟着换）')))
@@ -1731,7 +1756,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       })
     return createElement('div', { style: { padding: '24px', maxWidth: '620px' } },
       createElement('h2', { style: { margin: '0 0 4px', fontSize: '18px' } }, '知识室'),
-      createElement('div', { style: { fontSize: '13px', color: '#6b7280', margin: '0 0 8px' } }, '你凭什么这样判断？——依据、来源、待确认的草稿'),
+      createElement('div', { style: { fontSize: '13px', color: 'var(--dsw-alias-label-secondary)', margin: '0 0 8px' } }, '你凭什么这样判断？——依据、来源、待确认的草稿'),
       refreshRow(store, 'knowledgeRoom'),
       pages.length === 0
         ? muted('（还没有知识页，或桌面文件尚未刷新）')
@@ -1742,24 +1767,24 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
               : createElement('div', {
                   ref: store.focusKnowledge === 'drafts' ? draftsAnchor : undefined,
                   style: store.focusKnowledge === 'drafts'
-                    ? { background: '#fff7e6', borderRadius: '6px', padding: '6px 8px', margin: '0 -8px' }
+                    ? { background: 'var(--dsha-warn-tint)', borderRadius: '6px', padding: '6px 8px', margin: '0 -8px' }
                     : undefined,
                 },
                 store.focusKnowledge === 'drafts'
-                  ? createElement('div', { style: { fontSize: '11px', color: '#92400e', marginBottom: '4px' } }, '↑ 你从桌面点过来的那批')
+                  ? createElement('div', { style: { fontSize: '11px', color: 'var(--dsha-warn)', marginBottom: '4px' } }, '↑ 你从桌面点过来的那批')
                   : null,
-                createElement('ul', { style: { margin: 0, paddingLeft: '18px', fontSize: '13px', lineHeight: 1.8, color: '#92400e' } },
+                createElement('ul', { style: { margin: 0, paddingLeft: '18px', fontSize: '13px', lineHeight: 1.8, color: 'var(--dsha-warn)' } },
                   ...drafts.map(page => row(page, '⚠ ')))),
             sectionTitle(`已确认（${stable.length}）`),
             stable.length === 0
               ? muted('（还没有已确认的知识页）')
-              : createElement('ul', { style: { margin: 0, paddingLeft: '18px', fontSize: '13px', lineHeight: 1.8, color: '#555' } },
+              : createElement('ul', { style: { margin: 0, paddingLeft: '18px', fontSize: '13px', lineHeight: 1.8, color: 'var(--dsw-alias-label-secondary)' } },
                   ...stable.map(page => row(page, '✓ '))),
             deprecated.length === 0
               ? null
               : createElement('div', null,
                   sectionTitle(`已退役（${deprecated.length}）`),
-                  createElement('ul', { style: { margin: 0, paddingLeft: '18px', fontSize: '13px', lineHeight: 1.8, color: '#6b7280' } },
+                  createElement('ul', { style: { margin: 0, paddingLeft: '18px', fontSize: '13px', lineHeight: 1.8, color: 'var(--dsw-alias-label-secondary)' } },
                     ...deprecated.map(page => row(page, '— '))))),
       sectionTitle('技能'),
       (store.data?.skills ?? []).length === 0
@@ -1814,7 +1839,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     const memories = store.data?.memories ?? []
     return createElement('div', { style: { padding: '24px', maxWidth: '620px' } },
       createElement('h2', { style: { margin: '0 0 4px', fontSize: '18px' } }, '记忆室'),
-      createElement('div', { style: { fontSize: '13px', color: '#6b7280', margin: '0 0 8px' } }, '你把我理解成什么？——偏好、决定、事实，每条可纠错'),
+      createElement('div', { style: { fontSize: '13px', color: 'var(--dsw-alias-label-secondary)', margin: '0 0 8px' } }, '你把我理解成什么？——偏好、决定、事实，每条可纠错'),
       refreshRow(store, 'memoryRoom'),
       memories.length === 0
         ? muted('（还没有记忆，或桌面文件尚未刷新）')
@@ -1847,6 +1872,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     deskSessions = (ctx as { sessions?: typeof deskSessions }).sessions
     deskLayout = (ctx as { layout?: typeof deskLayout }).layout
     deskSidebarRight = ctx.sidebarRight
+    ensureThemeVars()
 
     // The official build's brand package occupies these slots under its own build profile;
     // step aside there. A browser has no `process`, so the guard reads false and we register.

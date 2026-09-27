@@ -553,9 +553,13 @@ describe('desk panels', () => {
     expect(textsOf(exports.DeskPanel()).join(' | ')).toContain('✓ 已更新')
   })
 
-  it('keeps every text colour in the client at or above AA on white (R8/R11)', async () => {
+  it('keeps the client on theme tokens, and the colour contract at or above AA on white (R8/R11)', async () => {
     // A source-level guard, because the first R8 sweep missed two colours and only a reviewer caught
     // them (R11, narrow review 2026-09-27). Anything the component tests cannot see, this can.
+    // Since the theme-token borrowing (R4 survey, 2026-09-27) the components carry no raw colour
+    // literals: neutrals ride the vendor `--dsw-alias-*` palette and warn/accent ride the
+    // `--dsha-*` contract block — so the AA claim is checked against that block's LIGHT values
+    // (the dark values ride vendor statics and the dark palette, not white).
     const { readFileSync } = await import('node:fs')
     const source = readFileSync(new URL('../src/client/index.ts', import.meta.url), 'utf8')
     const luminance = (colour: string): number => {
@@ -565,9 +569,16 @@ describe('desk panels', () => {
       return 0.2126 * linear[0]! + 0.7152 * linear[1]! + 0.0722 * linear[2]!
     }
     const contrastOnWhite = (colour: string): number => (1.05) / (luminance(colour) + 0.05)
-    const literals = [...source.matchAll(/color:\s*'(#[0-9a-fA-F]{6})'/g)].map(match => match[1] as string)
-    const below = [...new Set(literals)].filter(colour => contrastOnWhite(colour) < 4.5)
-    expect(literals.length).toBeGreaterThan(3)
+    // The discipline: the only quoted hex left in the file is the brand-mark silhouette — a fixed
+    // logo colour that paints its own background and never sits on a theme surface.
+    const quoted = [...source.matchAll(/'(#[0-9a-fA-F]{3,8})'/g)].map(match => match[1] as string)
+    expect([...new Set(quoted)]).toEqual(['#ffffff'])
+    // The light-skin text colours from the contract block must each clear AA on white.
+    const lightBlock = source.slice(0, source.indexOf('body[data-ds-dark-theme]'))
+    const contract = [...lightBlock.matchAll(/--dsha-(?:warn|accent):(#[0-9a-fA-F]{6})/g)]
+      .map(match => match[1] as string)
+    expect(contract.length).toBeGreaterThanOrEqual(2)
+    const below = [...new Set(contract)].filter(colour => contrastOnWhite(colour) < 4.5)
     expect(below).toEqual([])
   })
 
@@ -671,7 +682,9 @@ describe('desk panels', () => {
     // target, and the palette was 3.74 / 2.32 / 1.92 : 1 on white (self-review R8, 2026-09-27).
     expect(style?.fontSize).toBe('12px')
     expect(style?.padding).toBe('4px 8px')
-    expect(style?.color).toBe('#0f766e')          // 5.47:1
+    // The accent rides the theme variable (R4 borrowing, 2026-09-27): the light value's own
+    // contrast is the colour-contract test's job — this asserts the wiring, not the hex.
+    expect(style?.color).toBe('var(--dsha-accent)')
     const note = textsOf(exports.DeskPanel()).join(' | ')
     expect(note).toContain('它记：')
   })

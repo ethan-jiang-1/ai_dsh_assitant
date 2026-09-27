@@ -68,6 +68,31 @@
 - `surfaces/05-客户端架构与插件纪律.md`：对照三面板的 slot 纪律与 R1–R13 整改是否有漏。
 - 两篇若无新借点 → **收卷判定成立**：源 2 被源 1 蒸馏覆盖，源 3/4 按需，goal 完成并归档本文件。
 
+## 源 2 抽查结果（2026-09-27，两篇均读毕）
+
+| 篇 | 判定 | 依据 |
+|---|---|---|
+| session-and-loop/01（事件表/required-on-read/格式世代） | 无新借点 | digest 明文「tool schema 与模型配置走 `request/header` 现成路径，无需为每个 section 新增事件类型」——「无日志税负债」判断成立：本仓模型可见状态经工具调用/结果与 core 事件走，无自定义事件面（identity.md §三 + grep 证实）；格式世代是 host 职责 |
+| surfaces/05（客户端架构与插件纪律） | **一个立即借点 → 已落地** | 「feature 组件只消费 `--dsw-alias-*` 语义 token、禁字面色值」（vendor `docs/web-styling.md` 纪律）——本仓三面板 grep 出 **70 处字面色值、0 个 token**：暗色主题下白底按钮/暗青图标/暗棕 warn 文字全部不可读（dev home 实测即暗色主题），R8 的「暗色另算」欠账即此 |
+
+**落地切片**（同 diff：代码 + 测试 + 纪律 + 证据）：
+
+- `src/client/index.ts`：53 处换 vendor alias（label-secondary/bg-base/layer-1/border-l2-l3）、
+  warn/accent/tint 四角色走新增 `ensureThemeVars()` 注入的 `--dsha-*` 契约块（body 级挂载，沿 vendor
+  `--dsw-specific-*` 先例；暗值引用 vendor statics：amber-400/amber-900；teal 暗值 `#2dd4bf` 为自有品牌值）；
+  唯二保留字面色 = 品牌 SVG 白剪影（固定 logo 色）。
+- 为什么 warn 不用 vendor token：`state-warn-label` = amber-600 = rgb(221,134,41)，白底 **2.6:1**，
+  会打破 R8 的 ≥4.5:1 承诺——vendor amber 阶（100/400/500/600/900）无一亮面达 AA，故亮值自带（7.4:1）。
+- 测试重塑：R8/R11 的 AA 守卫从「扫组件字面色」升级为「组件零字面色 + 契约亮值逐个 ≥AA」——
+  **它当场抓住了 replace_all 误改契约块造成的自引用退化**（`--dsha-warn:var(--dsha-warn)`），负例证明真实有效。
+- 证据：typecheck 0 · build 0 · 279/281（2 条＝记录在案的 preset-composition 已知降级）· verify 32/32 ·
+  **暗色主题真机截图**（dev home 即暗色：三室图标/品牌标记以亮青正确渲染、引导条文字可读——改前为
+  不可见的暗青 `#0f766e`）；亮色零变化（同 hex 值经 var 传递）。
+- 纪律归位：包 AGENTS.md 新增第 4 条（色值走主题）；R8 卡「暗色另算」段补兑现注记。
+
+**结论**：源 2 两篇抽查——一篇无新借点（判断成立），一篇产出本次 goal 的**唯一立即借点且已落地**。
+源 2 的其余专题（agent-loop/composition/…）按「FAQ 即其二次蒸馏」的判断不再全读；收卷判定待最后一轮复核。
+
 ## 输掉的方案
 
 - **不做的**：把借鉴物做成「大而全的改造战役」——借鉴必须逐项过痛点判据（做在触发之前＝替本人想象需求）。
