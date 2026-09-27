@@ -88,19 +88,21 @@ describe('client-module registration', () => {
     expect(opened).toEqual(['desk'])
   })
 
-  it('declares every service the panels need, and wires both sidebar brand slots', () => {
+  it('declares every service the rooms need, and wires both sidebar brand slots', () => {
     const exports = materialize()
-    // The list is the client half's whole dependency contract: slots and the sidebar registry for
-    // the brand mark and the three panels, sidebarRight to open the beside-conversation room tabs,
-    // the Session store for the conversation list and the desk file's workspace, layout for panel
-    // jumps, and the three manifested Remote namespaces (a namespace the browser-side manifest does
-    // not list leaves the entry pending forever).
+    // The list is the client half's whole dependency contract: slots and the tab registry for
+    // the brand mark and the three rooms, sidebarRight to open the beside-conversation room
+    // tabs, the Session store for the conversation list and the desk file's workspace, and the
+    // three manifested Remote namespaces (a namespace the browser-side manifest does not list
+    // leaves the entry pending forever). The left-panel era's `layout` is gone: the rooms live
+    // as right-sidebar tabs (user steer, 2026-09-28), so panel jumps open tabs, not panels.
     expect(exports.inject).toEqual([
-      'slots', 'sidebarRightTabs', 'sidebarRight', 'sessions', 'layout', 'remote',
+      'slots', 'sidebarRightTabs', 'sidebarRight', 'sessions', 'remote',
       'remote.agentPresets', 'remote.workspaceFiles', 'remote.session',
     ])
     const calls: string[] = []
     const registered: string[] = []
+    const guideEntries: string[] = []
     const ctx = {
       slots: {
         // The real registry consumes the contribution callback — including a generator
@@ -118,35 +120,41 @@ describe('client-module registration', () => {
           registered.push(declaration.key ?? declaration.id ?? declaration.name)
         },
       },
-      // The right-sidebar tab type: registered, but only a type (it produces no visible entry).
-      sidebarRightTabs: { register: (definition: { kind: string }) => { registered.push(`tab:${definition.kind}`) } },
+      // The right-sidebar tab type: registering a type alone produces no visible entry — the
+      // guide ("+") page lists only what the definition's guide entries contribute.
+      sidebarRightTabs: {
+        register: (definition: { kind: string, guide?: { id: string }[] }) => {
+          registered.push(`tab:${definition.kind}`)
+          for (const entry of definition.guide ?? []) guideEntries.push(entry.id)
+        },
+      },
     }
     ;(exports.apply as (ctx: unknown) => void)(ctx)
-    // Brand slots first, then one panellist entry plus one main body per panel, then one
-    // right-sidebar tab body per room, then the Session-header chip that opens the desk tab,
-    // then the two first-mile seats (blank-session hero mark and the dock above the composer).
+    // Brand slots first, then one right-sidebar tab body per room, then the Session-header chip
+    // that opens the desk tab, then the two first-mile seats (blank-session hero mark and the
+    // dock above the composer). No panellist/main pairs: the left main panels are retired.
     expect(calls).toEqual([
       'sidebar.brand.mark', 'sidebar.brand.name',
-      'sidebar.panellist', 'main',
-      'sidebar.panellist', 'main',
-      'sidebar.panellist', 'main',
       'sidebar.right.pane.tab', 'sidebar.right.pane.tab', 'sidebar.right.pane.tab',
       'conversation.session.header.utilities',
       'conversation.hero.brand.mark', 'conversation.input.dock',
     ])
-    // Each panel registers twice by design: its icon in the panellist, its body in `main`;
-    // each room then registers its tab type and its keyed body; the chip and the first-mile
-    // seats close the set.
+    // Each room registers its tab type and its keyed body; the chip and the first-mile seats
+    // close the set.
     expect(registered).toEqual([
       'sidebar.brand.mark', 'sidebar.brand.name',
-      'assistant-desk', 'assistant-desk',
-      'assistant-knowledge', 'assistant-knowledge',
-      'assistant-memory', 'assistant-memory',
       'tab:desk', 'dsh-smart-assistant-desk',
       'tab:knowledgeRoom', 'dsh-smart-assistant-knowledge',
       'tab:memoryRoom', 'dsh-smart-assistant-memory',
       'assistant-desk-chip',
       'conversation.hero.brand.mark', 'assistant-first-mile',
+    ])
+    // The steer's whole point: each room contributes a guide entry, so the "+" picker lists
+    // the rooms beside the browser and terminal tabs.
+    expect(guideEntries).toEqual([
+      'dsh-smart-assistant-desk-guide',
+      'dsh-smart-assistant-knowledge-guide',
+      'dsh-smart-assistant-memory-guide',
     ])
   })
 })

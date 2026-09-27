@@ -104,7 +104,7 @@ describe('first-mile seats', () => {
     expect(copy).toContain('例：')
     // R10: the strip no longer advertises the `/` menu (it leads with shell commands and
     // English developer-flavoured skill rows); it points at the three rooms instead.
-    expect(copy).toContain('左栏三室随时可开')
+    expect(copy).toContain('右侧栏「+」随时开三室')
     expect(copy).not.toContain('敲 /')
 
     const buttons = elementsOf(dock, 'button')

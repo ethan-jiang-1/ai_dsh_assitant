@@ -115,6 +115,18 @@ function roomCommands(open: (kind: RoomKind) => void): CommandContribution[] {
   ]
 }
 
+/** One capsule the right sidebar's guide ("+" picker) lists; picking it opens this type. */
+interface SidebarRightGuideEntry {
+  readonly id: string
+  /** Ascending position among every registered type's entries. */
+  readonly order: number
+  readonly title: () => string
+  /** One line under the title; the guide drops it when crowded. */
+  readonly description?: () => string
+  /** Glyph drawn before the title; without one the guide draws its cube placeholder. */
+  readonly icon?: (props: { size: number }) => unknown
+}
+
 /** Minimal structural mirror of the sidebar-right tab registration surface. */
 interface SidebarRightTabDefinition {
   readonly id: string
@@ -125,6 +137,8 @@ interface SidebarRightTabDefinition {
   readonly canOpen?: (address: string) => boolean
   /** The chip text captured at open time; a title-seat registration may replace it. */
   readonly title: (address: string) => string
+  /** Entries on the guide page — without one the type registers but has no visible entry. */
+  readonly guide?: readonly SidebarRightGuideEntry[]
 }
 
 /** The sidebar-right tab registry surface this face uses. */
@@ -1177,7 +1191,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // English, developer-facing descriptions (the very material the knowledge panel excludes as
     // noise on the principal's surface). The strip now points at the doors that are ours.
     createElement('div', { style: { fontSize: '12px', color: 'var(--dsw-alias-label-secondary)' } },
-      '例：「这个月签单为什么慢」「把季度目标拆成这周能做的三件事」· 左栏三室随时可开'),
+      '例：「这个月签单为什么慢」「把季度目标拆成这周能做的三件事」· 右侧栏「+」随时开三室'),
     createElement('button', {
       onClick: () => { openRoom?.('desk') },
       style: {
@@ -1188,18 +1202,22 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     )
   }
 
-  /** A stat cell; with a target it becomes the way to the panel that explains the number. */
-  function cell(label: string, value: string, target?: string): ReturnType<typeof createElement> {
+  /**
+   * A stat cell; with a room kind it becomes the way to the room tab that explains the number.
+   * The rooms live as right-sidebar tabs (user steer, 2026-09-28), so the jump opens the tab
+   * beside the conversation instead of navigating the retired left main panels.
+   */
+  function cell(label: string, value: string, target?: RoomKind): ReturnType<typeof createElement> {
     const jump = (): void => {
       if (target === undefined) return
       patchDesk({ jumpError: undefined })
       try {
-        deskLayout?.selectPanel?.(target)
+        openBeside(target)
       } catch {
         // R9 (self-review, 2026-09-27): swallowing this left an underlined, pointer-cursor number that
         // did nothing at all. The stale target still must not break the panel — but the failure is
         // now visible where the click happened.
-        patchDesk({ jumpError: `「${label}」这个数字打不开对应的面板（${target}）——它可能还没注册` })
+        patchDesk({ jumpError: `「${label}」这个数字打不开对应的房间页（${target}）——右侧栏服务可能不在组合里` })
       }
     }
     const inner = [
@@ -1509,11 +1527,11 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
           draftCount === 0
             ? null
             : createElement('div', {
-                // S4: the pointer lands on the drafts themselves — selectPanel takes only a room
-                // id, so the room reads focusKnowledge and highlights + scrolls to the drafts.
+                // S4: the pointer lands on the drafts themselves — openBeside opens only a room
+                // tab, so the room reads focusKnowledge and highlights + scrolls to the drafts.
                 onClick: () => {
                   patchDesk({ focusKnowledge: 'drafts' })
-                  try { deskLayout?.selectPanel?.('assistant-knowledge') } catch { /* stale target */ }
+                  try { openBeside('knowledgeRoom') } catch { /* right sidebar missing */ }
                 },
                 style: { fontSize: '13px', color: 'var(--dsha-warn)', cursor: 'pointer', textDecoration: 'underline', marginTop: '8px' },
               }, `⚠ ${String(draftCount)} 页知识在等你审批（点这里去审批）`),
@@ -1706,9 +1724,9 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         ? null
         : createElement('div', { style: { fontSize: '11px', color: 'var(--dsha-warn)', margin: '0 16px 6px' } }, store.jumpError),
       createElement('div', null,
-        cell('记忆', data?.counts?.memories === undefined ? '—' : String(data.counts.memories), 'assistant-memory'),
-        cell('知识', data?.counts?.knowledgeStable === undefined ? '—' : String(data.counts.knowledgeStable), 'assistant-knowledge'),
-        cell('技能', data?.counts?.skills === undefined ? '—' : String(data.counts.skills), 'assistant-knowledge'),
+        cell('记忆', data?.counts?.memories === undefined ? '—' : String(data.counts.memories), 'memoryRoom'),
+        cell('知识', data?.counts?.knowledgeStable === undefined ? '—' : String(data.counts.knowledgeStable), 'knowledgeRoom'),
+        cell('技能', data?.counts?.skills === undefined ? '—' : String(data.counts.skills), 'knowledgeRoom'),
         cell('线索', data?.counts?.threads === undefined ? '—' : String(data.counts.threads))),
       ...panelAlerts(store),
       createElement('div', null,
@@ -1856,7 +1874,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   }
 
   /** Slots this face occupies (single-occupant, root-scope, declared by the sidebar). */
-  const inject = ['slots', 'sidebarRightTabs', 'sidebarRight', 'sessions', 'layout', 'remote', 'remote.agentPresets', 'remote.workspaceFiles', 'remote.session']
+  const inject = ['slots', 'sidebarRightTabs', 'sidebarRight', 'sessions', 'remote', 'remote.agentPresets', 'remote.workspaceFiles', 'remote.session']
 
   /**
    * Register the brand occupants as one declaration-aware set.
@@ -1866,15 +1884,12 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   let deskRemote: Record<string, unknown> | undefined
   /** The client Session store; its list snapshot is already synced and needs no Remote call. */
   let deskSessions: { list?: { getSnapshot: () => unknown, subscribe: (fn: () => void) => () => void } } | undefined
-  /** Main-panel navigation, so a count can jump to the panel that explains it. */
-  let deskLayout: { selectPanel?: (panelId: string) => void } | undefined
   /** The right-sidebar controller, so a page can open a room tab beside the conversation. */
   let deskSidebarRight: { openTab: (kind: string, options?: { params?: unknown }) => void } | undefined
 
   function apply(ctx: ClientContext): void {
     deskRemote = (ctx as { remote?: Record<string, unknown> }).remote
     deskSessions = (ctx as { sessions?: typeof deskSessions }).sessions
-    deskLayout = (ctx as { layout?: typeof deskLayout }).layout
     deskSidebarRight = ctx.sidebarRight
     ensureThemeVars()
 
@@ -1889,29 +1904,11 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         yield ctx.slots.register({ name: 'sidebar.brand.name' }, AssistantBrandName)
       }))
 
-    // Experiment 1b (corrected shape, learned from ui-schedule's registration):
-    // panellist entries use inject + register with id/order/label in the declaration,
-    // and the panel body registers in the 'main' keyed slot under the same id.
-    const panels = [
-      { id: 'assistant-desk', order: 10, label: '我的桌面', icon: DeskIcon, body: DeskPanel },
-      { id: 'assistant-knowledge', order: 11, label: '知识室', icon: KnowledgeIcon, body: KnowledgePanel },
-      { id: 'assistant-memory', order: 12, label: '记忆室', icon: MemoryIcon, body: MemoryPanel },
-    ] as const
-    for (const panel of panels) {
-      ctx.slots.inject('sidebar.panellist', () =>
-        ctx.slots.register({
-          name: 'sidebar.panellist',
-          id: panel.id,
-          order: panel.order,
-          label: panel.label,
-        }, panel.icon))
-      ctx.slots.inject('main', () =>
-        ctx.slots.register({
-          name: 'main',
-          key: panel.id,
-        }, panel.body))
-    }
-    // One load feeds all three panels; the store notifies them as it settles.
+    // (2026-09-28 user steer) The rooms' home is the RIGHT sidebar as addable tabs — like the
+    // browser and terminal tabs there, opened from the guide ("+") while a conversation is on,
+    // several at once, each bound to its session. The left main-panel registrations are retired;
+    // the wide-panel bodies are unchanged (the tab seat renders the same components).
+    // One load feeds all three rooms; the store notifies them as it settles.
     loadDesk()
 
     // Follow the conversation: when the newest Session settles a turn, re-read the desk file after
@@ -1933,17 +1930,29 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       })
     }
 
-    // The approved form (2026-09-26): the rooms live beside the conversation as right-sidebar
-    // tabs, each bound to the session whose sidebar holds it — the body reads that session's
-    // workspace desk file directly, no more newest-five walk. Two-stage like ui-schedule: the
-    // definition into `sidebarRightTabs`, the body into the keyed `sidebar.right.pane.tab` seat
-    // under the definition's id. The chip title is the constant the definition captures; these
-    // are kind-opened pages (no resource address), reached from the Session-header chip or a
-    // room's "在对话旁打开" button.
+    // The rooms live beside the conversation as right-sidebar tabs, each bound to the session
+    // whose sidebar holds it — the body reads that session's workspace desk file directly, no
+    // more newest-five walk. Two-stage like ui-schedule: the definition into
+    // `sidebarRightTabs`, the body into the keyed `sidebar.right.pane.tab` seat under the
+    // definition's id. The guide entries (user steer, 2026-09-28) put the rooms in the "+"
+    // picker beside the browser and terminal tabs, so opening one no longer depends on knowing
+    // the chip or the panel button: the rooms are first-class addable tabs of the right sidebar.
     const roomTabs = [
-      { id: 'dsh-smart-assistant-desk', kind: 'desk', title: '我的桌面', body: DeskTabBody },
-      { id: 'dsh-smart-assistant-knowledge', kind: 'knowledgeRoom', title: '知识室', body: KnowledgeTabBody },
-      { id: 'dsh-smart-assistant-memory', kind: 'memoryRoom', title: '记忆室', body: MemoryTabBody },
+      {
+        id: 'dsh-smart-assistant-desk', kind: 'desk', title: '我的桌面', body: DeskTabBody,
+        description: '现在要采取什么行动：等你拍板、在办的事、缺什么',
+        icon: DeskIcon, order: 10,
+      },
+      {
+        id: 'dsh-smart-assistant-knowledge', kind: 'knowledgeRoom', title: '知识室', body: KnowledgeTabBody,
+        description: '它凭什么这样判断：知识页、出处与待你审批的草稿',
+        icon: KnowledgeIcon, order: 11,
+      },
+      {
+        id: 'dsh-smart-assistant-memory', kind: 'memoryRoom', title: '记忆室', body: MemoryTabBody,
+        description: '它把你理解成什么：偏好、决定与事实，每条可纠错',
+        icon: MemoryIcon, order: 12,
+      },
     ] as const
     for (const room of roomTabs) {
       ctx.sidebarRightTabs.register({
@@ -1951,6 +1960,13 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         kind: room.kind,
         priority: 'fallback',
         title: () => room.title,
+        guide: [{
+          id: `${room.id}-guide`,
+          order: room.order,
+          title: () => room.title,
+          description: () => room.description,
+          icon: room.icon,
+        }],
       })
       ctx.slots.inject('sidebar.right.pane.tab', () =>
         ctx.slots.register({ name: 'sidebar.right.pane.tab', key: room.id }, room.body))

@@ -59,7 +59,7 @@
 
 | 层 | 现状 |
 |---|---|
-| 形态 | 三室 × 两形态：主区域整页（`sidebar.panellist` + `main`）与右侧栏 tab（kind 型页，两段注册）；会话页头「桌面」chip 开启 |
+| 形态 | **三室住右侧栏**（用户 steer 2026-09-28，[迁卡](2026-09-28-rooms-to-right-sidebar.md)：房间=「+」向导里可添加的 tab，与浏览器/Terminal 并列，对话中多 tab 并开）——左主面板注册已退役；入口＝向导 / 会话页头「桌面」chip / 面板内「在对话旁打开」 |
 | 数据通道 | **desk 文件协议**：助手用文件工具维护会话工作区 `.desk/state.json`；面板经**清单内**的 `workspaceFiles` Remote 读——绕开"仓外插件开不了新 Remote 命名空间" |
 | 客户端 | classic script（无 import/export）；slot 系统 `inject`+`register`；vendor 类型结构化镜像 |
 | 模型面契约 | `desk-refresh` 技能：字段、填法、四类动作的回程、"给选项≠回答" |
