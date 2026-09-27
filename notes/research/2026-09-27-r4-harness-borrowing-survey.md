@@ -73,7 +73,7 @@
 | 篇 | 判定 | 依据 |
 |---|---|---|
 | session-and-loop/01（事件表/required-on-read/格式世代） | 无新借点 | digest 明文「tool schema 与模型配置走 `request/header` 现成路径，无需为每个 section 新增事件类型」——「无日志税负债」判断成立：本仓模型可见状态经工具调用/结果与 core 事件走，无自定义事件面（identity.md §三 + grep 证实）；格式世代是 host 职责 |
-| surfaces/05（客户端架构与插件纪律） | **一个立即借点 → 已落地** | 「feature 组件只消费 `--dsw-alias-*` 语义 token、禁字面色值」（vendor `docs/web-styling.md` 纪律）——本仓三面板 grep 出 **70 处字面色值、0 个 token**：暗色主题下白底按钮/暗青图标/暗棕 warn 文字全部不可读（dev home 实测即暗色主题），R8 的「暗色另算」欠账即此 |
+| surfaces/05（客户端架构与插件纪律） | **一个立即借点 → 已落地** | 「feature 组件只消费 `--dsw-alias-*` 语义 token、禁字面色值」（vendor [`vendor/dsh/docs/web-styling.md`](../../vendor/dsh/docs/web-styling.md) 纪律）——本仓三面板 grep 出 **70 处字面色值、0 个 token**：暗色主题下白底按钮/暗青图标/暗棕 warn 文字全部不可读（dev home 实测即暗色主题），R8 的「暗色另算」欠账即此 |
 
 **落地切片**（同 diff：代码 + 测试 + 纪律 + 证据）：
 
