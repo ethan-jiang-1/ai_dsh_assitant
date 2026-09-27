@@ -72,8 +72,15 @@ pnpm dsh --profile dev-task --patch dev/preset-runner.patch.yml "<task>"   # pre
 pnpm dsh --profile dev --port 0 --no-open   # Web UI：**不自动开浏览器**
 pnpm preflight '<server 打印的 URL>'    # 开屏前检查；绿了才把 URL 交给浏览器
 pnpm shots '<server 打印的 URL>' --dom --size 1600x1000 --name <名字>   # 渲染证据：PNG + DOM 证据（默认落 /tmp/dsh-webui-shots）
+pnpm desk-loop              # 培养循环摩擦报告：从真实会话日志读「点了没反应 / 反复点 / 答了多次 / 技能没加载」
 pnpm typecheck && pnpm test && pnpm verify
 ```
+
+**`pnpm desk-loop` 证明什么**：它把"这东西用起来到底别扭在哪"从**会话日志**里读出来（面板自己的消息
+带 `[桌面] ` 标记，因此能与本人的话分开）：面板动作之后桌面文件有没有真的被重写、同一行有没有被反复动、
+同一个决定有没有被答多次、面板点名了 `desk-refresh` 的那一轮有没有真的加载它——再把面板动作之后十分钟内
+**本人说的话**原样摆出来供人读。**不证明**质量，也不做语义分类：那一段留给人（报告里写明这条限制）。
+"写了文件"的判定与评测器共用同一个谓词（[`wrotePath`](../dev/eval/checks.mjs)），所以两处说的是同一个事实。
 
 **preflight 的姊妹：`pnpm shots`（渲染证据）**。preflight 证明"装得上"，不证明"看得见"；
 `pnpm shots` 用 headless Chrome **经 CDP** 打开页面（headless 的 `--screenshot` 在 SSE 长连接下

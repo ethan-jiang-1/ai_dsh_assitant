@@ -23,6 +23,7 @@
     "release-smoke": "node scripts/release-smoke.mjs",
     "preflight": "node scripts/webui-preflight.mjs",
     "shots": "node scripts/webui-shots.mjs",
+    "desk-loop": "node dev/desk-loop-report.mjs",
     "sync-dsh": "node scripts/sync-dsh.mjs",
     "repair-vendor": "TSX_TSCONFIG_PATH=tsconfig.tsx.json node --import tsx/esm scripts/repair-vendor-artifacts.mjs"
   },

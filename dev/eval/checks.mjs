@@ -18,6 +18,26 @@
 const WRITE_TOOLS = new Set(['edit', 'write', 'multi_edit', 'patch', 'apply_patch', 'notebook_edit'])
 
 /**
+ * Did these tool calls really WRITE `path`? The desk loop's guarantee is a real rewrite: the panel
+ * renders whatever the file says, so a session that *reports* a refresh without writing produces a
+ * lying desk. Two real write shapes, both seen in live runs: the write/edit tools with the path in
+ * their arguments, and bash driving `fs.writeFileSync` (a big JSON is easier through node). Bash
+ * mentions of the path that are mere reads (`cat`, `2>/dev/null`) must not count, hence the
+ * write-primitive requirement. Exotic write idioms would false-negative — widen this when a real run
+ * shows one, not preemptively. Exported because `dev/desk-loop-report.mjs` reads the same fact.
+ * @param toolCalls - `{ name, argumentsText }` records from one session log.
+ * @param path - the path that must have been written.
+ * @returns true when at least one call wrote it.
+ */
+export function wrotePath(toolCalls, path) {
+  const viaTools = toolCalls.some(call => WRITE_TOOLS.has(call.name) && call.argumentsText.includes(path))
+  const viaBash = toolCalls.some(call =>
+    call.name === 'bash' && call.argumentsText.includes(path)
+    && /writeFileSync|writeFile\(|fs\.write|>\s*["']?[^"';|]*desk|tee\s/.test(call.argumentsText))
+  return viaTools || viaBash
+}
+
+/**
  * Evaluate one task against one session's observed behaviour.
  * @param task - `{ checks: Check[] }` (see `tasks.mjs`).
  * @param observed - `{ toolCalls, answerText }` read from the session log.
@@ -43,19 +63,8 @@ export function evaluateTask(task, observed) {
         break
       }
       case 'wrote-path': {
-        // The desk loop's guarantee is a real rewrite: the panel renders whatever the file says,
-        // so a session that *reports* a refresh without writing the file produces a lying desk.
-        // Two real write shapes, both seen in live runs: the write/edit tools with the path in
-        // their arguments, and bash driving `fs.writeFileSync` (a big JSON is easier through
-        // node). Bash mentions of the path that are mere reads (`cat`, `2>/dev/null`) must not
-        // count, hence the write-primitive requirement. Exotic write idioms would false-negative
-        // — widen this when a real run shows one, not preemptively.
         const wanted = String(check.path ?? '')
-        const viaTools = observed.toolCalls.filter(call => WRITE_TOOLS.has(call.name) && call.argumentsText.includes(wanted))
-        const viaBash = observed.toolCalls.filter(call =>
-          call.name === 'bash' && call.argumentsText.includes(wanted)
-          && /writeFileSync|writeFile\(|fs\.write|>\s*["']?[^"';|]*desk|tee\s/.test(call.argumentsText))
-        if (viaTools.length === 0 && viaBash.length === 0) {
+        if (!wrotePath(observed.toolCalls, wanted)) {
           reasons.push(`no write-tool call touched "${wanted}" — the loop's guarantee is a real rewrite, not a report`)
         }
         break

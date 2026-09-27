@@ -41,6 +41,8 @@ interface PanelExports {
   settlePending: (generatedAt: string | undefined) => void
   /** Retire a receipt whose decision is still open in the file (R11). */
   retireStaleReceipt: (data: Record<string, unknown> | undefined) => void
+  /** Does this JSON carry the desk contract's shape at all (R12)? */
+  looksLikeDesk: (parsed: Record<string, unknown>) => boolean
   DeskTabBody: (props: { sessionId?: string }) => unknown
   KnowledgeTabBody: (props: { sessionId?: string }) => unknown
   MemoryTabBody: (props: { sessionId?: string }) => unknown
@@ -567,6 +569,27 @@ describe('desk panels', () => {
     const below = [...new Set(literals)].filter(colour => contrastOnWhite(colour) < 4.5)
     expect(literals.length).toBeGreaterThan(3)
     expect(below).toEqual([])
+  })
+
+  it('names a desk file that parses but is not a desk, instead of showing an empty room (R12)', () => {
+    // Why R12 exists (friction report on the real sessions, 2026-09-27): panel messages name the
+    // desk-refresh skill, the model writes the file, but in 5 of 7 real panel actions it never LOADED
+    // the skill — it improvised. A file with none of the contract's shape then renders as a
+    // legitimately empty desk, and the principal reads "nothing is happening".
+    const exports = materialize()
+    exports.deskStore.data = { somethingElse: true }
+    exports.deskStore.readError = undefined
+    // The loader's own rule, exercised directly: `looksLikeDesk` is what the load paths call.
+    expect(exports.looksLikeDesk({ somethingElse: true })).toBe(false)
+    expect(exports.looksLikeDesk({ generatedAt: '2026-09-27T12:00:00+08:00' })).toBe(true)
+    expect(exports.looksLikeDesk({ decisions: [{ id: 'd1' }] })).toBe(true)
+
+    // And the panel says so where the principal is looking (readError used to render in the tab only).
+    exports.deskStore.readError = '这份桌面文件不像 desk-refresh 写的'
+    const desk = textsOf(exports.DeskPanel()).join(' | ')
+    expect(desk).toContain('不像 desk-refresh 写的')
+    const knowledge = textsOf(exports.KnowledgePanel()).join(' | ')
+    expect(knowledge).toContain('不像 desk-refresh 写的')
   })
 
   it('lets a decision be answered again when the file still carries it (R11)', () => {

@@ -353,6 +353,17 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         }
         return
       }
+      if (!looksLikeDesk(parsed)) {
+        // A file that parses but carries none of the contract's shape would render as a legitimately
+        // empty desk: every section shows its honest "（没有…）" and the principal reads "nothing is
+        // happening" while the assistant believes it just refreshed him.
+        patchDesk({
+          data: undefined,
+          readError: '这份桌面文件不像 desk-refresh 写的（没有 generatedAt、也没有任何分区）——点「刷新桌面」让助手按契约重写',
+          source: byId[sessionId]?.cwd ?? '', sourceSession: sessionId, jumpError: undefined,
+        })
+        return
+      }
       patchDesk({ data: parsed, note: undefined, source: byId[sessionId]?.cwd ?? '', sourceSession: sessionId, readError: undefined, jumpError: undefined })
       deskStore.misses.delete(sessionId)
       settlePending(parsed.generatedAt)
@@ -425,6 +436,25 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     const stillOpen = (data.decisions ?? [])
       .some(item => String(item.id ?? item.question) === receipt.rowId)
     if (stillOpen) patchDesk({ lastReceipt: undefined })
+  }
+
+  /**
+   * Does this JSON look like a desk file at all?
+   *
+   * Why (2026-09-27, from the friction report on real sessions): panel messages name the
+   * `desk-refresh` skill, the model rewrites the file, but in 5 of 7 real panel actions it never
+   * LOADED the skill — it improvised from memory. A file that parses but carries none of the
+   * contract's shape then renders as a legitimately empty desk: every section shows its honest
+   * "（没有…）" empty text and the principal reads "nothing is happening" while the assistant thinks
+   * it just refreshed him. That is the "a stale or invented list is worse than none" case the skill
+   * itself warns about, so the panel says what it can actually see.
+   * @param parsed - the JSON just parsed.
+   * @returns true when the file carries the contract's mandatory `generatedAt` or a known section.
+   */
+  function looksLikeDesk(parsed: DeskData): boolean {
+    if (typeof parsed.generatedAt === 'string' && parsed.generatedAt.trim() !== '') return true
+    const sections = [parsed.decisions, parsed.actions, parsed.gaps, parsed.threads, parsed.memories, parsed.knowledge, parsed.skills]
+    return sections.some(section => Array.isArray(section) && section.length > 0)
   }
 
   /** A finished load settles the pending action: the file moving past `at` is the completion signal. */
@@ -947,6 +977,14 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         return
       }
       deskStore.misses.delete(sessionId)
+      if (!looksLikeDesk(parsed)) {
+        patchDesk({
+          data: undefined,
+          readError: '这份桌面文件不像 desk-refresh 写的（没有 generatedAt、也没有任何分区）——点「刷新桌面」让助手按契约重写',
+          source: cwd, sourceSession: sessionId, jumpError: undefined,
+        })
+        return
+      }
       patchDesk({ data: parsed, note: undefined, source: cwd, sourceSession: sessionId, readError: undefined, jumpError: undefined })
       settlePending(parsed.generatedAt)
       retireStaleReceipt(parsed)
@@ -1154,6 +1192,23 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       title: '打开这个面板',
       style: { ...style, border: 'none', background: 'transparent', font: 'inherit', padding: 0, cursor: 'pointer' },
     }, ...inner)
+  }
+
+  /**
+   * The lines every panel shows at its foot: a failed read or a file that is not a desk at all, then
+   * the loader's own note. `readError` used to render only in the right-pane tab, so a main-area panel
+   * showed an empty-looking desk with no explanation (2026-09-27).
+   * @param store - the shared desk store.
+   * @returns the alert elements, in severity order.
+   */
+  function panelAlerts(store: typeof deskStore): ReturnType<typeof createElement>[] {
+    const alerts: ReturnType<typeof createElement>[] = []
+    if (store.readError !== undefined) {
+      alerts.push(createElement('div', { key: 'read-error', style: { fontSize: '12px', color: '#92400e', margin: '6px 0 0' } },
+        store.readError))
+    }
+    if (store.note !== undefined) alerts.push(createElement('div', { key: 'note' }, muted(store.note)))
+    return alerts
   }
 
   /** A section heading. */
@@ -1622,15 +1677,14 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         cell('知识', data?.counts?.knowledgeStable === undefined ? '—' : String(data.counts.knowledgeStable), 'assistant-knowledge'),
         cell('技能', data?.counts?.skills === undefined ? '—' : String(data.counts.skills), 'assistant-knowledge'),
         cell('线索', data?.counts?.threads === undefined ? '—' : String(data.counts.threads))),
-      store.note !== undefined
-        ? muted(store.note)
-        : createElement('div', null,
-            createElement('div', {
-              title: `桌面跟随你当前对话的工作区${store.source === undefined || store.source === '' ? '' : `：${store.source}`}——换一个对话，这里显示的就是那一个的桌面。`,
-              style: { fontSize: '12px', color: '#6b7280', margin: 0 },
-            }, `桌面跟随当前对话的工作区`
-              + (store.data?.generatedAt === undefined ? '' : `，更新于 ${shortTime(store.data.generatedAt)}`)
-              + '（换一个对话，桌面跟着换）')))
+      ...panelAlerts(store),
+      createElement('div', null,
+        createElement('div', {
+          title: `桌面跟随你当前对话的工作区${store.source === undefined || store.source === '' ? '' : `：${store.source}`}——换一个对话，这里显示的就是那一个的桌面。`,
+          style: { fontSize: '12px', color: '#6b7280', margin: 0 },
+        }, `桌面跟随当前对话的工作区`
+          + (store.data?.generatedAt === undefined ? '' : `，更新于 ${shortTime(store.data.generatedAt)}`)
+          + '（换一个对话，桌面跟着换）')))
   }
 
   /** Panel 2 — the knowledge room: what the assistant knows, and what is waiting for review. */
@@ -1710,7 +1764,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         // are model-facing English (repository rule), so a 71-line English list is noise on their
         // surface — content eligibility before layout (2026-09-26 reviews).
         : muted(`共 ${String((store.data?.skills ?? []).length)} 件（随包 ${String((store.data?.skills ?? []).filter(skill => skill.kind !== 'learned').length)} · 学来的 ${String((store.data?.skills ?? []).filter(skill => skill.kind === 'learned').length)}）——要退役哪一件，在对话里说一声即可`),
-      store.note === undefined ? null : muted(store.note))
+      ...panelAlerts(store))
   }
 
   /**
@@ -1765,7 +1819,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       createElement('div', null,
         cell('记忆', store.data?.counts?.memories === undefined ? '—' : String(store.data.counts.memories)),
         cell('线索', store.data?.counts?.threads === undefined ? '—' : String(store.data.counts.threads))),
-      store.note === undefined ? null : muted(store.note))
+      ...panelAlerts(store))
   }
 
   /** Slots this face occupies (single-occupant, root-scope, declared by the sidebar). */
@@ -1909,7 +1963,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     inject, apply, AssistantBrandMark, AssistantBrandName,
     DeskPanel, KnowledgePanel, MemoryPanel, deskStore,
     DeskTabBody, KnowledgeTabBody, MemoryTabBody, AssistantDeskChip,
-    roomCommands, AssistantHeroMark, FirstMileDock, expirePending, settlePending, loadDeskFor, retireStaleReceipt,
+    roomCommands, AssistantHeroMark, FirstMileDock, expirePending, settlePending, loadDeskFor, retireStaleReceipt, looksLikeDesk,
   }
 }
 
