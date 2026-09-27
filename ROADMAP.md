@@ -18,9 +18,10 @@
 - ▶ **真实使用开跑**（**已开始**：2026-09-26 真人经面板走完整条培养循环，会话 `34e64c5d`；首个摩擦已落地为忙时冻结；首批数据与 ⏳ 对照见[打磨战役 §八](notes/implemented/2026-09-25-smart-assistant-polish-campaign.md)，摩擦即新卡）；**摩擦读法已就位**：`pnpm desk-loop` 从真实会话日志读"点了没反应 / 反复点 / 答了多次 / 技能没加载"，首次实跑即产出两个发现（→ [R12](notes/implemented/2026-09-27-cultivation-remediation-round2.md)：点名 desk-refresh 的 14 次面板动作里 13 次没加载契约技能，文件照写；并独立重发现"三答一问"）
 - ⏳ **命令菜单里的技能行（首次给外人用时的噪声）**（触发=真实委托人反馈这个菜单太吵，或第一次给外人用时；"发行 profile"触发已退役）：`/` 与 `+` 菜单把每条技能渲染成行，描述是模型面英文（如 `campaign-evidence-recording | How to record live-verification evidence in this repo…`），开发期还会混进仓库/开发技能——正是知识室已按"委托人面上的噪声"排除掉的同类素材。客户端看不到别的插件的命令来源、没有隐藏它的公开面，所以这归**发行准入**（产品组合该带哪些技能）。证据：[自审卡](notes/implemented/2026-09-27-cultivation-remediation-round2.md) R10
 - ⏳ 知识导入的转换与概念抽取（触发=①第一份真实 docx/pdf 文档集出现 ②评测集 v0 就位；依据：[导入纯核 note](notes/implemented/2026-09-25-knowledge-ingest-core.md) §四）
-- ⏸ **阶段 0-3 · 评测集 v0**（30–50 条真实经营问题，含应拒答题与判分规则；**题目由你本人出**——这是 G2 关口，agent 只整理格式）
+- ⏸ **阶段 0-3 · 评测集 v0**（30–50 条真实经营问题，含应拒答题与判分规则；**题目由你本人出**——这是 G2 关口，agent 只整理格式）——骨架已 **3/3 题端到端冒烟**（2026-09-27）：Q1 诊断链 / Q2 口径链 / Q3 拒答链**达标**（明说不编数、指路、占位显式标注可推翻）；另发现 **MALFORMED_RESPONSE 瞬态失败族**（模型偶发畸形工具输入，不在重试策略集、一击即死）→ 对策已立 ▶ 条目
 - ⏳ **[桌面] 标记泄漏进会话标题**（第三轮自主评审 F1，2026-09-27：会话列表兜底标题显示 `[桌面] 刷新我的桌面…` 原文——A10 标记只在标题 LLM 生成失败的兜底路径可见；修法要同步动三处标记正则（client A10 / usage-report / desk-loop），跨面改动换一行观感，触发=真实使用中本人反馈它碍事才做）
-- ⏳ 家的内存段瘦身（合并/下沉记忆、压缩措辞）（触发=真实使用中确实感到摘要偏薄；降级已优雅故不紧急，依据：[责任圈卡](notes/implemented/2026-09-25-owner-mandate-and-real-use-baseline.md) §九）
+- ▶ **eval runner 启动异常自动重试一次**（G2 服务切片：瞬态 MALFORMED_RESPONSE 不该让整题报废——2026-09-27 冒烟实测 Q2 首跑即死于该失败族、重跑即好；判分表记录两次尝试，红绿夹具用注入失败验证）
+- ⏳ 家的内存段瘦身（合并/下沉记忆、压缩措辞）（触发=真实使用中确实感到摘要偏薄；降级已优雅故不紧急，依据：[责任圈卡](notes/implemented/2026-09-25-owner-mandate-and-real-use-baseline.md) §九）——**2026-09-27 客观读数：摘要 3985/4096 已顶 97%**（评测会话自述「本轮诊断不进记忆室、由线索承担」＝分流已在发生；触发仍以你的主观感受为准，此数据备判）
 - ▶ **长期责任圈（职责，不完成）**：北极星＝中小企业 CEO/VP 的**数字分身**（管理岗基座＋跟本人学；首位真人＝用户本人）——总纲 [企业聪明助手总体思路](notes/research/archive/2026-09-25-grand-plan-enterprise-expert-assistant.md)，圈纪律与逐圈记录见[责任圈卡](notes/implemented/2026-09-25-owner-mandate-and-real-use-baseline.md)（当前权威）（职责无终点，不按"完成即离队"退场）
 - ⏳ **培养面按会话分 store**（触发=多会话并行使用成为真实场景——主页与 tab 共用单 store、`sendSession` 全局单值的 A3 缺陷开始咬人时；依据：[整改卡](notes/implemented/2026-09-26-cultivation-remediation.md) S3）——**2026-09-27 窄范围复审给了真实咬人的证据**：store 被所有绑定 tab 共享、匹配只按裸 rowId，A 会话说一句会给 B 会话里同 id 的行盖上冻结与回执（见[二轮整改卡](notes/implemented/2026-09-27-cultivation-remediation-round2.md) R11 观察）
 - ⏳ **desk 文件 schema 版本号**（触发=真实字段不匹配出现——模型发明面板不识的新字段时；依据同上）
