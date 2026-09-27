@@ -15,6 +15,8 @@
  * @module dev/eval/checks
  */
 
+import { readFileSync } from 'node:fs'
+
 const WRITE_TOOLS = new Set(['edit', 'write', 'multi_edit', 'patch', 'apply_patch', 'notebook_edit'])
 
 /**
@@ -35,6 +37,43 @@ export function wrotePath(toolCalls, path) {
     call.name === 'bash' && call.argumentsText.includes(path)
     && /writeFileSync|writeFile\(|fs\.write|>\s*["']?[^"';|]*desk|tee\s/.test(call.argumentsText))
   return viaTools || viaBash
+}
+
+/**
+ * Read `path` and check it carries the desk contract's mandatory shape.
+ *
+ * Why (2026-09-27, `pnpm desk-loop` first real reading): panel messages name the `desk-refresh` skill and the
+ * model rewrites the file, but in 13 of 23 real panel actions it never LOADED the skill — it improvised.
+ * A file that parses but carries none of the contract then renders as a legitimately empty desk, so the
+ * principal reads "nothing is happening". The browser half guards that at render time
+ * (`looksLikeDesk` in the client); this guard is the development-time one, so the regression fails HERE
+ * rather than in front of the principal. The two live apart because the client is a classic script with
+ * no imports — the contract itself is owned by `presets/assistant/skills/desk-refresh/SKILL.md`.
+ * @param path - the file to read (relative to the process CWD, which is the session workspace).
+ * @param required - keys the parsed object must carry.
+ * @returns `{ ok, reason }`; `reason` is empty when ok.
+ */
+export function fileShape(path, required) {
+  let text
+  try {
+    text = readFileSync(path, 'utf8')
+  } catch (reason) {
+    return { ok: false, reason: `could not read "${path}" (${String(reason)})` }
+  }
+  let parsed
+  try {
+    parsed = JSON.parse(text)
+  } catch {
+    return { ok: false, reason: `"${path}" is not JSON` }
+  }
+  if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    return { ok: false, reason: `"${path}" is not a JSON object` }
+  }
+  const missing = required.filter(key => parsed[key] === undefined)
+  if (missing.length > 0) {
+    return { ok: false, reason: `"${path}" lacks ${missing.join(', ')} — the desk contract's mandatory shape` }
+  }
+  return { ok: true, reason: '' }
 }
 
 /**
@@ -67,6 +106,11 @@ export function evaluateTask(task, observed) {
         if (!wrotePath(observed.toolCalls, wanted)) {
           reasons.push(`no write-tool call touched "${wanted}" — the loop's guarantee is a real rewrite, not a report`)
         }
+        break
+      }
+      case 'file-shape': {
+        const shape = fileShape(String(check.path ?? ''), Array.isArray(check.required) ? check.required : [])
+        if (!shape.ok) reasons.push(shape.reason)
         break
       }
       case 'skill-loaded': {

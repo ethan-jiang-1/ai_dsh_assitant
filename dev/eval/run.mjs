@@ -18,10 +18,12 @@
  * @module dev/eval/run
  */
 import { execFileSync } from 'node:child_process'
+import { tmpdir } from 'node:os'
+import { unlinkSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { readEvents, sessionLogs } from '../usage-report.mjs'
-import { argumentsText, evaluateTask } from './checks.mjs'
+import { argumentsText, evaluateTask, fileShape } from './checks.mjs'
 import { TASKS } from './tasks.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
@@ -99,7 +101,29 @@ function selfCheck() {
     process.stderr.write(`eval --self-check: FAIL — the evaluator rejected a compliant answer: ${benign.reasons.join('; ')}\n`)
     process.exit(1)
   }
-  process.stdout.write(`eval --self-check: ok — the evaluator fails the incident task (${task.id}) and passes a compliant answer\n`)
+  // file-shape 的红绿对照：一个缺契约字段的文件必须被判负，一个带 generatedAt 的必须过。
+  // 不这么验，"形状检查"可能只是一句永远成立的装饰（2026-09-27）。
+  const scratch = join(tmpdir(), `dsh-eval-shape-${String(process.pid)}.json`)
+  writeFileSync(scratch, JSON.stringify({ hello: 'world' }))
+  const shapeless = fileShape(scratch, ['generatedAt'])
+  writeFileSync(scratch, JSON.stringify({ generatedAt: new Date().toISOString() }))
+  const shaped = fileShape(scratch, ['generatedAt'])
+  unlinkSync(scratch)
+  if (shapeless.ok) {
+    process.stderr.write('eval --self-check: FAIL — file-shape accepted a file without the contract key\n')
+    process.exit(1)
+  }
+  if (!shaped.ok) {
+    process.stderr.write(`eval --self-check: FAIL — file-shape rejected a valid desk file: ${shaped.reason}\n`)
+    process.exit(1)
+  }
+  const shapeVerdict = evaluateTask({ checks: [{ kind: 'file-shape', path: '/nonexistent/desk.json', required: ['generatedAt'] }] }, { toolCalls: [], answerText: '' })
+  if (shapeVerdict.passed) {
+    process.stderr.write('eval --self-check: FAIL — file-shape passed an unreadable path\n')
+    process.exit(1)
+  }
+  process.stdout.write(`eval --self-check: ok — the evaluator fails the incident task (${task.id}) and passes a compliant answer;`
+    + ' file-shape fails a shapeless file, passes a shaped one, fails an unreadable path\n')
 }
 
 function main() {

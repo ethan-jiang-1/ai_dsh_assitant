@@ -65,6 +65,9 @@ export const TASKS = [
     checks: [
       { kind: 'skill-loaded', skill: 'desk-refresh' },
       { kind: 'wrote-path', path: '.desk/state.json' },
+      // 写出来了还不够：一个能 parse 但缺契约字段的文件会被面板当"合法空桌面"，本人读到"今天没事"
+      // （真机读数：23 次面板动作里 13 次没加载技能、靠即兴写文件）。形状在这里把关，而不是在本人面前。
+      { kind: 'file-shape', path: '.desk/state.json', required: ['generatedAt'] },
       // The skill's own rule: report the desk refreshed and name the counts, so the principal
       // can check the panel against the sentence.
       { kind: 'answer-matches', pattern: '[0-9]' },
