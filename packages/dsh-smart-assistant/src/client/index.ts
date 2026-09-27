@@ -1689,10 +1689,14 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         ? muted('（还没有可讲的变动）')
         : createElement('ul', { style: { margin: 0, paddingLeft: '18px', fontSize: '12px', color: 'var(--dsw-alias-label-secondary)', lineHeight: 1.8 } },
             ...(data?.recentActivity ?? []).map((item, index) => createElement('li', { key: `${String(item.at)}-${index}` },
-              item.at === undefined || item.at === ''
-                ? null
-                : createElement('span', { style: { color: 'var(--dsw-alias-label-secondary)' } }, `${shortTime(item.at)} `),
-              String(item.what ?? '')))),
+              // Round 3 (2026-09-27): the live desk's longest activity row measured 173px — the
+              // clamp-and-expand treatment R7 gave lean/why/它记, extended here after real data
+              // showed this section carries long rows too. The timestamp rides inside the clamped
+              // line so it stays visible at the head of the first line.
+              createElement(ClampedText, {
+                text: `${item.at === undefined || item.at === '' ? '' : `${shortTime(item.at)} `}${String(item.what ?? '')}`,
+                maxLines: 3,
+              })))),
 
       // R7: the counts carried no date of their own, while the desk's staleness line sits screens
       // above them in the narrow pane. The number and the moment it was counted travel together.

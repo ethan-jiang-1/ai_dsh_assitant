@@ -689,6 +689,26 @@ describe('desk panels', () => {
     expect(note).toContain('它记：')
   })
 
+  it('clamps a long recent-activity row with an expander (round 3: real data measured 173px)', () => {
+    // The live desk's longest activity row measured 173px (panel DOM evidence, 2026-09-27) — R7's
+    // clamp covered lean/why/它记 because those were the offenders it measured; this section can
+    // carry them too. Same treatment, measured after the fact.
+    const exports = materialize()
+    exports.deskStore.data = {
+      generatedAt: '2026-09-27T12:00:00+08:00',
+      recentActivity: [
+        { at: '2026-09-27T16:32:00+08:00', what: '短活动' },
+        { at: '2026-09-27T16:25:00+08:00', what: `桌面重刷（本条）：${'数字全部用本轮真跑的 curate / research list / memory list 重取。'.repeat(12)}` },
+      ],
+    }
+    const desk = textsOf(exports.DeskPanel()).join(' | ')
+    expect(desk).toContain('短活动')
+    expect(desk).toContain('桌面重刷（本条）')
+    // One expander for the long row, none for the short one.
+    expect(desk.match(/展开全部/g)?.length).toBe(1)
+    expect(findButton(exports.DeskPanel(), '展开全部')).toBeDefined()
+  })
+
   it('clamps long free text with an expander and renders minimal markdown (R7)', () => {
     const exports = materialize()
     const longLean = `当前口径**已消解**，${'但要等 CFO 更正行落盘之后才对外引用，之前一律按旧数讲。'.repeat(15)}`
