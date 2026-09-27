@@ -353,9 +353,10 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         }
         return
       }
-      patchDesk({ data: parsed, note: undefined, source: byId[sessionId]?.cwd ?? '', sourceSession: sessionId, readError: undefined })
+      patchDesk({ data: parsed, note: undefined, source: byId[sessionId]?.cwd ?? '', sourceSession: sessionId, readError: undefined, jumpError: undefined })
       deskStore.misses.delete(sessionId)
       settlePending(parsed.generatedAt)
+      retireStaleReceipt(parsed)
     }
     void attempt(0)
   }
@@ -411,6 +412,21 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     })
   }
 
+  /**
+   * A receipt claims "the principal answered this row". When a load comes back still carrying that row
+   * unanswered, the claim is stale — the assistant re-opened it, or the answer never landed — and the
+   * row was stuck read-only until a reload (R11, narrow review 2026-09-27). Retiring it lets the
+   * principal answer again. Scoped to decisions, where the false 已回答 was observed.
+   * @param data - the file just parsed, if any.
+   */
+  function retireStaleReceipt(data: DeskData | undefined): void {
+    const receipt = deskStore.lastReceipt
+    if (receipt === undefined || data === undefined) return
+    const stillOpen = (data.decisions ?? [])
+      .some(item => String(item.id ?? item.question) === receipt.rowId)
+    if (stillOpen) patchDesk({ lastReceipt: undefined })
+  }
+
   /** A finished load settles the pending action: the file moving past `at` is the completion signal. */
   function settlePending(generatedAt: string | undefined): void {
     const generated = deskGeneratedAtMs({ generatedAt } as DeskData)
@@ -461,7 +477,9 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       patchDesk({ note: 'remote.session did not materialize' })
       return
     }
-    patchDesk({ pending: { rowId, at: Date.now(), action }, lastReceipt: undefined, stalled: undefined })
+    // `stalled` is deliberately NOT cleared here: it is an earlier action's unconfirmed trace, and
+    // only the desk file moving past its `at` may retire it (R11, narrow review 2026-09-27).
+    patchDesk({ pending: { rowId, at: Date.now(), action }, lastReceipt: undefined })
     // A10: panel messages carry a marker so the conversation log (and the usage meter) can tell
     // machine-written prompts from the principal's own words — otherwise the principal's history
     // fills with assertions they never typed, and the meter counts the panel as the human.
@@ -665,15 +683,18 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     if (text.length <= 220) return createElement('div', { style }, ...inlineMarkdown(text))
     return createElement('div', { style },
       createElement('div', {
-        style: open
-          ? undefined
-          : { display: '-webkit-box', WebkitLineClamp: maxLines, WebkitBoxOrient: 'vertical', overflow: 'hidden' },
+        style: {
+          overflowWrap: 'anywhere',
+          ...(open
+            ? {}
+            : { display: '-webkit-box', WebkitLineClamp: maxLines, WebkitBoxOrient: 'vertical', overflow: 'hidden' }),
+        },
       }, ...inlineMarkdown(text)),
       createElement('button', {
         onClick: () => { setOpen(!open) },
         style: {
           marginTop: '2px', padding: '4px 8px', fontSize: '11px', cursor: 'pointer',
-          border: '1px solid #ddd', borderRadius: '4px', background: '#fff', color: '#6b7280',
+          border: '1px solid #8a8a8a', borderRadius: '4px', background: '#fff', color: '#6b7280',
         },
       }, open ? '收起' : '展开全部'))
   }
@@ -750,7 +771,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
               padding: '4px 8px', fontSize: '12px',
               cursor: frozen ? 'default' : 'pointer', opacity: frozen ? 0.5 : 1,
               border: `1px solid ${armed === action.label ? '#92400e' : MARK_TEAL}`,
-              borderRadius: '4px', background: '#fff', color: armed === action.label ? '#b26a00' : MARK_TEAL,
+              borderRadius: '4px', background: '#fff', color: armed === action.label ? '#92400e' : MARK_TEAL,
             },
           }, label)
         }),
@@ -760,7 +781,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
           style: {
             padding: '4px 8px', fontSize: '12px',
             cursor: frozen ? 'default' : 'pointer', opacity: frozen ? 0.5 : 1,
-            border: '1px solid #ddd', borderRadius: '4px', background: '#fff', color: '#6b7280',
+            border: '1px solid #8a8a8a', borderRadius: '4px', background: '#fff', color: '#6b7280',
           },
         }, open ? '取消' : props.actionLabel))
 
@@ -774,7 +795,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
             // line showed ~12% of them, the rest reachable only by hovering a clipped element.
             // Provenance is the trust line — it gets a real expander.
             : createElement('div', {
-                style: { fontSize: '11px', color: '#9a9a9a', marginTop: '2px' },
+                style: { fontSize: '11px', color: '#6b7280', marginTop: '2px' },
               },
               openSource || source.length <= 110 ? `来源：${source}` : `来源：${source.slice(0, 110)}…`,
               source.length <= 110
@@ -783,11 +804,14 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
                     onClick: () => { setOpenSource(!openSource) },
                     style: {
                       marginLeft: '6px', padding: '4px 8px', fontSize: '11px', cursor: 'pointer',
-                      border: '1px solid #ddd', borderRadius: '4px', background: '#fff', color: '#6b7280',
+                      border: '1px solid #8a8a8a', borderRadius: '4px', background: '#fff', color: '#6b7280',
                     },
                   }, openSource ? '收起' : `全部（${source.length} 字）`))),
         props.readOnly === true ? null : controls),
-      props.readOnly === true
+      // R11 (narrow review, 2026-09-27): this used to co-render with the in-flight line below, so a
+      // just-answered row said "已回答" and "正在处理" at once. While the answer is in flight the row
+      // says one thing; the settled line is what replaces it.
+      props.readOnly === true && inflight === false
         ? createElement('div', { style: { fontSize: '11px', color: '#6b7280', marginTop: '2px' } },
             '已回答——改主意？在对话里说一声，它会改回来')
         : null,
@@ -817,7 +841,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
               },
               placeholder: props.placeholder,
               style: {
-                flex: '1', padding: '5px 8px', fontSize: '12px', border: '1px solid #ddd', borderRadius: '4px',
+                flex: '1', padding: '5px 8px', fontSize: '12px', border: '1px solid #8a8a8a', borderRadius: '4px',
                 resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.5,
               },
             }),
@@ -923,8 +947,9 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         return
       }
       deskStore.misses.delete(sessionId)
-      patchDesk({ data: parsed, note: undefined, source: cwd, sourceSession: sessionId, readError: undefined })
+      patchDesk({ data: parsed, note: undefined, source: cwd, sourceSession: sessionId, readError: undefined, jumpError: undefined })
       settlePending(parsed.generatedAt)
+      retireStaleReceipt(parsed)
     })()
   }
 
@@ -942,7 +967,14 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // with `this.require()`, so a bare function call loses the receiver and throws. Runtime-proven
     // 2026-09-26 (独立体验反馈): "Cannot read properties of undefined (reading 'require')" — the
     // approved right-tab form never opened for a real click.
-    controller.openTab(kind)
+    try {
+      controller.openTab(kind)
+    } catch (reason: unknown) {
+      // R11 (narrow review, 2026-09-27): clearing openError BEFORE the call and leaving the call
+      // uncaught meant a throwing openTab showed nothing at all — the exact failure this marker was
+      // added for.
+      patchDesk({ openError: '开不了', note: `打开桌面失败：${String(reason)}` })
+    }
   }
 
   /** Props a right-sidebar tab body receives (structural mirror of the session-scoped seat). */
@@ -1141,7 +1173,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       title: hint,
       style: {
         marginRight: '8px', padding: '5px 12px', fontSize: '12px', cursor: 'pointer',
-        border: '1px solid #ddd', borderRadius: '6px', background: '#fff', color: '#555',
+        border: '1px solid #8a8a8a', borderRadius: '6px', background: '#fff', color: '#555',
       },
     }, label)
   }
@@ -1178,7 +1210,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
             title: '把这一室开到对话旁边的右侧栏（绑定当前会话）',
             style: {
               marginLeft: '8px', padding: '6px 12px', fontSize: '12px', cursor: 'pointer',
-              borderRadius: '6px', border: '1px solid #ddd', background: '#fff', color: '#555',
+              borderRadius: '6px', border: '1px solid #8a8a8a', background: '#fff', color: '#555',
             },
           }, '在对话旁打开'),
       inFlight === false
@@ -1247,7 +1279,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       store.data === undefined
         ? createElement('div', {
             style: {
-              border: '1px solid #ddd', borderRadius: '8px', background: '#fafafa',
+              border: '1px solid #8a8a8a', borderRadius: '8px', background: '#fafafa',
               padding: '10px 14px', margin: '8px 0', fontSize: '12px', color: '#666', lineHeight: 1.8,
             },
           },
@@ -1354,7 +1386,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
             onClick: toggle,
             style: {
               padding: '5px 12px', fontSize: '12px', cursor: 'pointer', borderRadius: '6px',
-              border: '1px solid #ddd', background: '#fff', color: '#555',
+              border: '1px solid #8a8a8a', background: '#fff', color: '#555',
             },
           }, label)
         return createElement('div', null,
@@ -1532,8 +1564,8 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       data?.threads === undefined || data.threads.length === 0
         ? muted('（暂时没有未决线索）')
         : createElement('div', null, ...data.threads.map(thread => createElement(CorrectableRow, {
-            key: String(thread.id),
-            rowId: String(thread.id),
+            key: String(thread.id ?? thread.title),
+            rowId: String(thread.id ?? thread.title),
             primary: createElement('span', null,
               createElement('div', { style: { fontSize: '13px', fontWeight: 600, lineHeight: 1.5 } },
                 String(thread.title ?? thread.id ?? ''),
@@ -1877,7 +1909,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     inject, apply, AssistantBrandMark, AssistantBrandName,
     DeskPanel, KnowledgePanel, MemoryPanel, deskStore,
     DeskTabBody, KnowledgeTabBody, MemoryTabBody, AssistantDeskChip,
-    roomCommands, AssistantHeroMark, FirstMileDock, expirePending, settlePending, loadDeskFor,
+    roomCommands, AssistantHeroMark, FirstMileDock, expirePending, settlePending, loadDeskFor, retireStaleReceipt,
   }
 }
 

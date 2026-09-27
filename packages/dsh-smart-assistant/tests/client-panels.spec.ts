@@ -39,6 +39,8 @@ interface PanelExports {
   expirePending: () => void
   /** Settle a pending/stalled row when a load reports the file moved past the send. */
   settlePending: (generatedAt: string | undefined) => void
+  /** Retire a receipt whose decision is still open in the file (R11). */
+  retireStaleReceipt: (data: Record<string, unknown> | undefined) => void
   DeskTabBody: (props: { sessionId?: string }) => unknown
   KnowledgeTabBody: (props: { sessionId?: string }) => unknown
   MemoryTabBody: (props: { sessionId?: string }) => unknown
@@ -455,12 +457,14 @@ describe('desk panels', () => {
     expect(settled).toContain('已回答——改主意？在对话里说一声')
     expect(settled).not.toContain('看选项')
     expect(settled).not.toContain('守默认')   // option buttons gone too
-    // In flight: same read-only shape (the receipt line says "正在处理").
+    // In flight: read-only from the click, but it says ONE thing — the in-flight line. The 已回答 line
+    // is what replaces it once the file moves (R11, narrow review 2026-09-27: the two used to
+    // co-render, so a just-answered row simultaneously claimed "已回答" and "正在处理").
     exports.deskStore.lastReceipt = undefined
     exports.deskStore.pending = { rowId: 'd1', at: new Date('2026-09-26T22:40:39+08:00').getTime(), action: '回答' }
     const inFlight = textsOf(exports.DeskPanel()).join(' | ')
     expect(inFlight).toContain('已交给助手')
-    expect(inFlight).toContain('已回答——改主意？在对话里说一声')
+    expect(inFlight).not.toContain('已回答——改主意？')
     expect(inFlight).not.toContain('允许例外')
   })
 
@@ -545,6 +549,56 @@ describe('desk panels', () => {
     exports.settlePending('2026-09-27T10:05:00+08:00')
     expect(exports.deskStore.stalled).toBeUndefined()
     expect(textsOf(exports.DeskPanel()).join(' | ')).toContain('✓ 已更新')
+  })
+
+  it('keeps every text colour in the client at or above AA on white (R8/R11)', async () => {
+    // A source-level guard, because the first R8 sweep missed two colours and only a reviewer caught
+    // them (R11, narrow review 2026-09-27). Anything the component tests cannot see, this can.
+    const { readFileSync } = await import('node:fs')
+    const source = readFileSync(new URL('../src/client/index.ts', import.meta.url), 'utf8')
+    const luminance = (colour: string): number => {
+      const hex = colour.replace('#', '')
+      const channels = [0, 2, 4].map(index => parseInt(hex.slice(index, index + 2), 16) / 255)
+      const linear = channels.map(value => value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4)
+      return 0.2126 * linear[0]! + 0.7152 * linear[1]! + 0.0722 * linear[2]!
+    }
+    const contrastOnWhite = (colour: string): number => (1.05) / (luminance(colour) + 0.05)
+    const literals = [...source.matchAll(/color:\s*'(#[0-9a-fA-F]{6})'/g)].map(match => match[1] as string)
+    const below = [...new Set(literals)].filter(colour => contrastOnWhite(colour) < 4.5)
+    expect(literals.length).toBeGreaterThan(3)
+    expect(below).toEqual([])
+  })
+
+  it('lets a decision be answered again when the file still carries it (R11)', () => {
+    const exports = materialize()
+    const data = { generatedAt: '2026-09-27T12:00:00+08:00', decisions: [{ id: 'd1', question: '季末破价例外？' }] }
+    exports.deskStore.data = data
+    exports.deskStore.lastReceipt = { rowId: 'd1', action: '回答', at: new Date('2026-09-27T11:00:00+08:00').getTime() }
+    // The assistant re-opened the row (or the answer never landed): the file still lists it, so the
+    // receipt's "已回答" claim is stale and the row must be answerable again.
+    exports.retireStaleReceipt(data)
+    expect(exports.deskStore.lastReceipt).toBeUndefined()
+    // But a receipt for a row the file no longer carries stands: that is what "recorded" looks like.
+    exports.deskStore.lastReceipt = { rowId: 'd1', action: '回答', at: Date.now() }
+    exports.retireStaleReceipt({ generatedAt: '2026-09-27T12:05:00+08:00', decisions: [] })
+    expect(exports.deskStore.lastReceipt).toBeDefined()
+  })
+
+  it('gives an id-less row a stable identity from its own text (R11)', () => {
+    const exports = materialize()
+    exports.deskStore.data = {
+      generatedAt: '2026-09-27T12:00:00+08:00',
+      threads: [{ title: '口径问题', lean: '等你定' }, { title: '另一条线索', lean: '也在等' }],
+    }
+    // Two id-less threads used to collapse onto the literal "undefined": one gate and one receipt
+    // covered both rows at once.
+    exports.deskStore.pending = { rowId: '口径问题', at: Date.now(), action: '问进展' }
+    const desk = textsOf(exports.DeskPanel()).join(' | ')
+    expect(desk).toContain('口径问题')
+    // The refresh row carries a global "an action is in flight" line, so the row-level marker is the
+    // one that must appear exactly once: only the thread whose identity matches is frozen.
+    expect(desk.match(/正在处理/g)?.length).toBe(1)
+    expect(desk.match(/已交给助手/g)?.length).toBe(2)
   })
 
   it('keeps a durable trace of what was dropped and flags a status it cannot read (R9)', () => {
