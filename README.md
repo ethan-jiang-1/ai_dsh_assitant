@@ -24,7 +24,7 @@
 |---|---|
 | `assistant_memory` | `recall` `save` `forget` `list` `curate` |
 | `assistant_research` | `open` `update` `park` `drop` `promote` `list` |
-| `assistant_reflect` | `brief` `save_skill` `retire_skill` `save_page` `propose_skill` `land_skill` |
+| `assistant_reflect` | `brief` `save_skill` `retire_skill` `save_page` `promote_page` `deprecate_page` `propose_skill` `land_skill` |
 | `assistant_knowledge` | `search` `get`（只读检索，附反链） |
 
 `curate` 是**机器能跑的养护检查**（重复、悬空引用、摘要预算、过期线索、技能遮蔽/退役/断链/
@@ -54,7 +54,8 @@ pack → 干净 home → 装 → 组合断言。`file:` 这条路径本身实测
 
 **专家部署装配**（把全新的 working folder 装成管理岗专家的）：`pnpm expert-setup -- --data-dir <assistant 目录>`
 —— 只在 `SOUL.md` 还是未经改动的默认种子时替换为管理岗身份（改过就跳过：装配不覆盖它的主人），
-知识种子按治理写入路径落 `draft`；`draft → stable` 由你亲手改，那一下就是人审。
+知识种子按治理写入路径落 `draft`；`draft → stable` 的人审有两条合法路径——**你亲手改** `status`（那一下就是评审），
+或**你明确批准后由助手 `promote_page` 执行那次翻转**（批准是你的，助手只做编辑）。
 
 ## 开发
 

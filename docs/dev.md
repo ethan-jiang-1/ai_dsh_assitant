@@ -32,7 +32,7 @@
 | 门面 | 管什么 | 谁维护 |
 |---|---|---|
 | `tsconfig.base.json` | **编译期**：只列我们直接 import 的 `@deepseek-ai/*` 包（paths → vendor `src`，条数随 import 面演进）+ 公共编译选项；`packages/dsh-smart-assistant/tsconfig.json` extends 它，并为每个包配 project reference —— `tsc -b` 按项目引用构建它们，API 漂移在编译期暴露，又不把 DSH 源码并进本程序（撞 `rootDir`） | 手维护：src 里新增 `@deepseek-ai/*` import 时加一行 paths（`pnpm verify` 机械检查） |
-| `tsconfig.tsx.json` | **运行期**：全量别名（280 条），`scripts/dsh.mjs` 经 `TSX_TSCONFIG_PATH` 让 tsx 加载 DSH 的 `src` 启动 CLI | `pnpm gen-paths` 从 vendor/dsh 生成；`pnpm verify` 查不过期（换 pin 后必跑） |
+| `tsconfig.tsx.json` | **运行期**：全量别名（条数以生成物为准，当前 325 条），`scripts/dsh.mjs` 经 `TSX_TSCONFIG_PATH` 让 tsx 加载 DSH 的 `src` 启动 CLI | `pnpm gen-paths` 从 vendor/dsh 生成；`pnpm verify` 查不过期（换 pin 后必跑） |
 
 `pnpm typecheck`（根命令委派包级脚本：`tsc -b` 按项目引用聚合到包工程、走编译期入口，再
 `tsc -p tsconfig.test.json` 覆盖 tests——测试工程经 workspace 构建声明解析 vendor，需先有构建产物）走编译期入口；`pnpm dsh` 走运行期入口。
@@ -50,7 +50,7 @@
 
 ```sh
 pnpm install                              # 并入 vendor/dsh 整树
-pnpm --dir vendor/dsh install             # vendor 树自己的依赖（1266 包）
+pnpm --dir vendor/dsh install             # vendor 树自己的依赖
 pnpm --dir vendor/dsh run build:native-system
 pnpm --dir vendor/dsh run build:lib       # host + client 双 face 的 lib/
 pnpm --dir vendor/dsh run build:web       # 只有跑 Web UI 才需要（前端 dist）

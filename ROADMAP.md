@@ -23,11 +23,11 @@
 - ▶ **长期责任圈（职责，不完成）**：北极星＝中小企业 CEO/VP 的**数字分身**（管理岗基座＋跟本人学；首位真人＝用户本人）——总纲 [企业聪明助手总体思路](notes/research/archive/2026-09-25-grand-plan-enterprise-expert-assistant.md)，圈纪律与逐圈记录见[责任圈卡](notes/implemented/2026-09-25-owner-mandate-and-real-use-baseline.md)（当前权威）（职责无终点，不按"完成即离队"退场）
 - ⏳ **培养面按会话分 store**（触发=多会话并行使用成为真实场景——主页与 tab 共用单 store、`sendSession` 全局单值的 A3 缺陷开始咬人时；依据：[整改卡](notes/implemented/2026-09-26-cultivation-remediation.md) S3）——**2026-09-27 窄范围复审给了真实咬人的证据**：store 被所有绑定 tab 共享、匹配只按裸 rowId，A 会话说一句会给 B 会话里同 id 的行盖上冻结与回执（见[二轮整改卡](notes/implemented/2026-09-27-cultivation-remediation-round2.md) R11 观察）
 - ⏳ **desk 文件 schema 版本号**（触发=真实字段不匹配出现——模型发明面板不识的新字段时；依据同上）
-- ⏳ 负例控制存量补课（触发=下一次改动某条尚无红夹具的结构性门禁时，同 diff 补它的造红夹具；存量不追账，理由见[红证据档案](notes/research/archive/2026-09-25-old-gate-red-controls.md)）
+- ⏳ 负例控制存量补课（触发=下一次改动某条尚无红夹具的结构性门禁时，同 diff 补它的造红夹具；存量不追账，理由见[红证据档案](notes/research/archive/2026-09-25-old-gate-red-controls.md)）——**常设触发**：2026-09-27 那次已满足（`desk-loop --self-check` 与评测网 `file-shape` 各带红绿对照），条目留作下次的提醒
 - ⏳ `implemented/` 冻结树 / class 子目录（触发=`implemented/` 篇数过百或浏览开始碍事；依据[吸收 note](notes/implemented/2026-09-24-agent-note-lifecycle-absorption.md)）
 - ⏳ `/personality` 类会话 overlay（触发=真实需求出现；依据[soul-and-agents](notes/implemented/2026-09-24-soul-and-agents.md)）
 - ⏳ 文档词数预算 manifest（触发=docs 腐化实证；判据在 [discipline](docs/discipline.md)）
-- ⏳ change-scope 脚本（**触发已到过一次**：P1-B 漏跑整包——处置是教训进 [pre-push-evidence](.agents/skills/pre-push-evidence/SKILL.md)（改 `src/client/` 跑整包 + 证据要覆盖状态的补集），**脚本本身判定不做**：一次摩擦不足以证明值得加一层自动化。**触发重置=同类摩擦第二次出现**；最简形态见卡 §五）
+- ⏳ change-scope 脚本（**触发已到过一次**：P1-B 漏跑整包——处置是教训进 [pre-push-evidence](.agents/skills/pre-push-evidence/SKILL.md)（改 `src/client/` 跑整包 + 证据要覆盖状态的补集），**脚本本身判定不做**：一次摩擦不足以证明值得加一层自动化。**触发重置=同类摩擦第二次出现**，届时再定形态——脚本本轮判定不做，卡里也没有现成草图，别去 §五找）
 - 🔒 ⏳ dsh-obsidian 挂桥（用户判触发）（触发=用户想让助手直接操作某个外部 vault；设计参照已录 r5）
 - 🔒 ⏳ 会话日志薄动词 b1/b2（用户判触发）（触发=真实使用中真去查历史会话且 rg 配方不够用；b2 后端可用性待细查）
 - 🔒 ⏳ workflow-as-MD（用户判触发）（触发=真实使用出现多步编排需求；方向：程序性知识之上，编排是否也为 working folder 的 MD 文件——用户 2026-09-24 提出）
@@ -76,8 +76,8 @@
 - 2026-09-27：**按研发姿态重新分诊 ⏸ 项**（用户当日拍板：技术/设计自决、阶段才 REVIEW——判据在
   [意图清单](notes/intents.md) §〇·三，常设指令在根 `AGENTS.md`「研发姿态」）。本次动作：
   "等外部 UX 评审者" → ▶ **自主评审**（自己做，外部真人降为可选）；第一公里 P1-C → 搁置、
-  P2 层级 → 已自主判定落地（理由在卡内判定记录）；**仍留 ⏸ 的只有真人输入**——IM 渠道选择、
-  评测集 v0 题目（G2 关口）。
+  P2 层级 → 已自主判定落地（理由在卡内判定记录）；同日 **O5 渠道也拍板（只做 DSH 交互面，IM 不做、条目离队）**，
+  于是**仍留 ⏸ 的只剩真人输入里的评测集 v0 题目**（G2 关口）。
 - 2026-09-27：**存量消化一轮**（用户要求"盘算没加工的内容"）：整改包与编年卡毕业/归档、
   四篇结论已消化的调研收卷（对抗评审 · UX 反馈 · 第一公里走查 · sidebar handoff）、
   《总体思路》§八 逐条给处置（定位＝B 底座+专家包、数据边界＝严格本地，两条按既成事实记决定，

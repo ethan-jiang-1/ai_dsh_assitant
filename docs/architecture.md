@@ -38,6 +38,7 @@ HOST 面（cordis.patch.yml → dsh.bundle.patch）
                             preset 里的服务行必须包在 isolate realm 里，否则与别的 preset 撞名。
 
 AGENT 面（`cordis.patch.yml` 的 `preset-assistant` 行 → agent preset）
+├── assistant-home-preamble   提示词段落：身份（SOUL.md）与家手册（AGENTS.md）逐字
 ├── assistant-memory-digest   提示词段落：有界摘要（桌面）
 ├── assistant-memory-tool     工具 assistant_memory
 ├── assistant-research-tool   工具 assistant_research

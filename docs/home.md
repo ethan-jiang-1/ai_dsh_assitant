@@ -69,8 +69,11 @@ learn 模块的 `tools/result` 订阅就给对应名字计数（用户 `/name` �
 
 **知识房间怎么进出**（write path 与桥，全部走既有动词）：
 - **进**：`assistant_reflect action=save_page`（sources 必填——`memory:<id>` / `research:<id>` /
-  URL / repo 路径）写 **draft**；draft 不进搜索与摘要。**draft→stable 是一次手改文件**——
-  那次编辑就是评审，没有 agent 自己批准自己的动作。
+  URL / repo 路径）写 **draft**；draft 不进搜索与摘要。
+- **draft→stable 的评审是本人的**，两条合法路径：① 本人直接改页面/文件的 `status`（那次编辑就是评审）；
+  ② 本人在对话或桌面面板上明确批准后，助手用 `assistant_reflect action=promote_page` 执行那次翻转
+  ——**批准是本人的，助手只做那次编辑**（工具描述逐字写着这条）。反向的 `deprecate_page` 同理：
+  本人说某页错了/过时了，或 curate 报它过期且本人同意，助手才标；**永不凭自己的判断标**。
 - **出（查询）**：`assistant_knowledge`（search / get 附反链，deprecated 可搜带状态）；
   digest 目录树只列 stable。
 - **桥**（memory↔knowledge，不自动同步不双写）：pin = `assistant_memory save` 带
