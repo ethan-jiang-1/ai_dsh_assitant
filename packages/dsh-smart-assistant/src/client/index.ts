@@ -620,6 +620,59 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    * an input plus send. Inline on purpose: pointing at the wrong line and typing the fix is one
    * gesture, which is what "cultivating the assistant" actually costs.
    */
+  /**
+   * Minimal inline markdown for principal-facing text: the live desk rendered `**已消解**` with the
+   * asterisks visible (self-review R7, 2026-09-27). Only bold and inline code are recognised —
+   * anything else stays verbatim, because guessing at the model's formatting is worse than showing it.
+   * @param text - the raw string.
+   * @returns the alternating text/element sequence React can render.
+   */
+  function inlineMarkdown(text: string): (string | ReturnType<typeof createElement>)[] {
+    const parts: (string | ReturnType<typeof createElement>)[] = []
+    const pattern = /\*\*([^*]+)\*\*|`([^`]+)`/g
+    let last = 0
+    let match: RegExpExecArray | null
+    while ((match = pattern.exec(text)) !== null) {
+      if (match.index > last) parts.push(text.slice(last, match.index))
+      parts.push(match[1] === undefined
+        ? createElement('code', { key: `c${match.index}`, style: { fontSize: '11px' } }, match[2] ?? '')
+        : createElement('strong', { key: `b${match.index}` }, match[1]))
+      last = match.index + match[0].length
+    }
+    if (last < text.length) parts.push(text.slice(last))
+    return parts
+  }
+
+  /**
+   * Long free text clamps to a few lines with a one-click expander. Measured on the live desk: one
+   * thread's `lean` rendered 345 px tall — 35% of the 530 px pane — and pushed the rest of the room
+   * off-screen (self-review R7, 2026-09-27). Clamping, never deleting: every word stays one click away.
+   * @param props - the text, the clamp height, and the style of the containing line.
+   * @returns the clamped line with its expander when the text is long.
+   */
+  function ClampedText({ text, maxLines = 3, style }: {
+    text: string
+    maxLines?: number
+    style?: Record<string, unknown>
+  }): ReturnType<typeof createElement> {
+    const { useState } = require('react') as typeof import('react')
+    const [open, setOpen] = useState(false)
+    if (text.length <= 220) return createElement('div', { style }, ...inlineMarkdown(text))
+    return createElement('div', { style },
+      createElement('div', {
+        style: open
+          ? undefined
+          : { display: '-webkit-box', WebkitLineClamp: maxLines, WebkitBoxOrient: 'vertical', overflow: 'hidden' },
+      }, ...inlineMarkdown(text)),
+      createElement('button', {
+        onClick: () => { setOpen(!open) },
+        style: {
+          marginTop: '2px', padding: '0 6px', fontSize: '10px', cursor: 'pointer',
+          border: '1px solid #ddd', borderRadius: '4px', background: '#fff', color: '#888',
+        },
+      }, open ? '收起' : '展开全部'))
+  }
+
   function CorrectableRow(props: {
     primary: ReturnType<typeof createElement> | string
     meta?: string | undefined
@@ -640,6 +693,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     const [open, setOpen] = useState(false)
     const [text, setText] = useState('')
     const [armed, setArmed] = useState<string | undefined>(undefined)
+    const [openSource, setOpenSource] = useState(false)
     // The DATA GATE: buttons freeze until the desk file is rewritten past the send — not until the
     // queue accepts it (acceptance is milliseconds; the work is tens of seconds. Real use queued a
     // decision three times and left an action with seven contradictory orders).
@@ -711,13 +765,22 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
           createElement('div', { style: { fontSize: props.lead === true ? '16px' : '13px', lineHeight: 1.6, color: props.lead === true ? '#111' : '#555' } }, props.primary),
           source === undefined
             ? null
+            // R7 (self-review, 2026-09-27): the live page carried 11 sources / 945 characters and this
+            // line showed ~12% of them, the rest reachable only by hovering a clipped element.
+            // Provenance is the trust line — it gets a real expander.
             : createElement('div', {
-                title: source,
-                style: {
-                  fontSize: '11px', color: '#9a9a9a', marginTop: '2px', overflow: 'hidden',
-                  textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '540px',
-                },
-              }, `来源：${source.length > 110 ? `${source.slice(0, 110)}…` : source}`)),
+                style: { fontSize: '11px', color: '#9a9a9a', marginTop: '2px' },
+              },
+              openSource || source.length <= 110 ? `来源：${source}` : `来源：${source.slice(0, 110)}…`,
+              source.length <= 110
+                ? null
+                : createElement('button', {
+                    onClick: () => { setOpenSource(!openSource) },
+                    style: {
+                      marginLeft: '6px', padding: '0 6px', fontSize: '10px', cursor: 'pointer',
+                      border: '1px solid #ddd', borderRadius: '4px', background: '#fff', color: '#888',
+                    },
+                  }, openSource ? '收起' : `全部（${source.length} 字）`))),
         props.readOnly === true ? null : controls),
       props.readOnly === true
         ? createElement('div', { style: { fontSize: '11px', color: '#aaa', marginTop: '2px' } },
@@ -1409,12 +1472,20 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
             primary: createElement('span', null,
               createElement('div', { style: { fontSize: '13px', fontWeight: 600, lineHeight: 1.5 } },
                 String(thread.title ?? thread.id ?? '')),
-              createElement('div', { style: { fontSize: '12px', color: '#666', fontWeight: 400 } },
-                '当前倾向：', String(thread.lean ?? '（未定）')),
+              // The lean is the field that measured 345 px on the live desk (R7): both free-text
+              // lines clamp with an expander instead of pushing the room off-screen.
+              createElement(ClampedText, {
+                text: `当前倾向：${String(thread.lean ?? '（未定）')}`,
+                maxLines: 3,
+                style: { fontSize: '12px', color: '#666', fontWeight: 400 },
+              }),
               thread.why === undefined || thread.why === ''
                 ? null
-                : createElement('div', { style: { fontSize: '11px', color: '#aaa', fontWeight: 400, lineHeight: 1.5 } },
-                    String(thread.why))),
+                : createElement(ClampedText, {
+                    text: String(thread.why),
+                    maxLines: 2,
+                    style: { fontSize: '11px', color: '#aaa', fontWeight: 400, lineHeight: 1.5 },
+                  })),
             actionLabel: '问进展',
             placeholder: '你想问这条线索的什么？',
             onSubmit: (text: string) => {
@@ -1436,7 +1507,9 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
                 : createElement('span', { style: { color: '#aaa' } }, `${shortTime(item.at)} `),
               String(item.what ?? '')))),
 
-      sectionTitle('我记住的规模'),
+      // R7: the counts carried no date of their own, while the desk's staleness line sits screens
+      // above them in the narrow pane. The number and the moment it was counted travel together.
+      sectionTitle(`我记住的规模${data?.generatedAt === undefined ? '' : ` · ${shortTime(String(data.generatedAt))}`}`),
       createElement('div', null,
         cell('记忆', data?.counts?.memories === undefined ? '—' : String(data.counts.memories), 'assistant-memory'),
         cell('知识', data?.counts?.knowledgeStable === undefined ? '—' : String(data.counts.knowledgeStable), 'assistant-knowledge'),

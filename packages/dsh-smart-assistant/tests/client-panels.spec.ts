@@ -64,6 +64,18 @@ function textsOf(node: unknown): string[] {
   return element.props === undefined ? [] : textsOf(element.props.children)
 }
 
+/** True when the tree renders at least one element of this tag. */
+function hasTag(node: unknown, tag: string): boolean {
+  if (node === null || node === undefined || typeof node !== 'object') return false
+  if (Array.isArray(node)) return node.some(child => hasTag(child, tag))
+  const element = node as { type?: unknown, props?: { children?: unknown } }
+  if (typeof element.type === 'function') {
+    return hasTag((element.type as (props: unknown) => unknown)(element.props), tag)
+  }
+  if (element.type === tag) return true
+  return hasTag(element.props === undefined ? [] : element.props.children, tag)
+}
+
 /** The first rendered button whose text is exactly `label`, or undefined. */
 function findButton(node: unknown, label: string): { props: { onClick?: () => void } } | undefined {
   if (node === null || node === undefined || typeof node !== 'object') return undefined
@@ -533,6 +545,52 @@ describe('desk panels', () => {
     exports.settlePending('2026-09-27T10:05:00+08:00')
     expect(exports.deskStore.stalled).toBeUndefined()
     expect(textsOf(exports.DeskPanel()).join(' | ')).toContain('✓ 已更新')
+  })
+
+  it('clamps long free text with an expander and renders minimal markdown (R7)', () => {
+    const exports = materialize()
+    const longLean = `当前口径**已消解**，${'但要等 CFO 更正行落盘之后才对外引用，之前一律按旧数讲。'.repeat(15)}`
+    exports.deskStore.data = {
+      generatedAt: '2026-09-27T12:00:00+08:00',
+      threads: [{ id: 't1', title: '口径问题', lean: longLean, why: '短说明' }],
+    }
+    const desk = textsOf(exports.DeskPanel()).join(' | ')
+    // The live desk rendered one lean 345 px tall — 35% of the narrow pane (R7).
+    expect(findButton(exports.DeskPanel(), '展开全部')).toBeDefined()
+    // …and it rendered the model's asterisks verbatim.
+    expect(hasTag(exports.DeskPanel(), 'strong')).toBe(true)
+    expect(desk).not.toContain('**已消解**')
+
+    // A short line needs no expander.
+    exports.deskStore.data = {
+      generatedAt: '2026-09-27T12:00:00+08:00',
+      threads: [{ id: 't1', title: '口径问题', lean: '一句话说清' }],
+    }
+    expect(findButton(exports.DeskPanel(), '展开全部')).toBeUndefined()
+  })
+
+  it('shows a long provenance line in full instead of hiding it in a tooltip (R7)', () => {
+    const exports = materialize()
+    const sources = Array.from({ length: 11 }, (_, index) => `kb/cfo/company-facts.md#L${index * 7 + 1}`)
+    exports.deskStore.data = {
+      generatedAt: '2026-09-27T12:00:00+08:00',
+      knowledge: [{ id: 'k1', title: '一页', status: 'stable', sources }],
+    }
+    const before = textsOf(exports.KnowledgePanel()).join(' | ')
+    // The live page carried 11 sources / 945 characters; the line showed ~12% of them and the rest
+    // only existed in a mouse-only title attribute.
+    expect(before).toContain('来源：')
+    expect(before).toContain('…')
+    const all = findButton(exports.KnowledgePanel(), `全部（${sources.join(' · ').length} 字）`)
+    expect(all).toBeDefined()
+  })
+
+  it('dates the counts it prints (R7)', () => {
+    const exports = materialize()
+    exports.deskStore.data = { generatedAt: '2026-09-27T09:15:00+08:00', counts: { memories: 7 } }
+    const desk = textsOf(exports.DeskPanel()).join(' | ')
+    // The numbers used to have no date of their own while the staleness line sat screens above.
+    expect(desk).toContain('我记住的规模 · 09-27 09:15')
   })
 
   it('keeps a decision answerable when the receipt came from reading its options (R2)', () => {
