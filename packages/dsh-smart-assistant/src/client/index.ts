@@ -303,9 +303,18 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     const newest = ids.reduce((max, id) => Math.max(max, Number(byId[id]?.updatedAt ?? 0)), 0)
     patchDesk({ sessionUpdatedAt: newest === 0 ? undefined : newest })
     const seq = ++deskLoadSeq
+    // R6 (self-review, 2026-09-27): "the read threw" and "the file is absent" are different facts.
+    // The walk deliberately falls through on a failed read (A4: an older session's desk must never
+    // be presented as the present one), but when EVERY attempt threw, claiming the file does not
+    // exist is a lie the principal cannot see through.
+    let readFailures = 0
     const attempt = async (index: number): Promise<void> => {
       if (seq !== deskLoadSeq) return
       if (index >= ordered.length) {
+        if (readFailures > 0) {
+          patchDesk({ readError: `读桌面文件失败（${readFailures} 个工作区都读不到）——点「刷新桌面」重试`, note: undefined })
+          return
+        }
         patchDesk({ note: '最近 5 个会话的工作区里都没有 .desk/state.json——点「刷新桌面」让助手写一份' })
         return
       }
@@ -320,7 +329,10 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         const wrapped = result as { ok?: boolean, value?: { text?: string } }
         text = wrapped?.ok === false ? undefined : wrapped?.value?.text
       } catch {
-        if (seq === deskLoadSeq) await attempt(index + 1)
+        if (seq === deskLoadSeq) {
+          readFailures += 1
+          await attempt(index + 1)
+        }
         return
       }
       if (typeof text !== 'string' || text.trim() === '') {
@@ -819,7 +831,13 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         const wrapped = result as { ok?: boolean, value?: { text?: string } }
         text = wrapped?.ok === false ? undefined : wrapped?.value?.text
       } catch {
-        if (seq === deskLoadSeq) patchDesk({ note: `读桌面文件失败（${cwd === '' ? '本会话工作区' : cwd}）` })
+        // R6 (self-review, 2026-09-27): a throw used to land only in `note`, and the right-pane tab
+        // returns before any Panel renders notes — so a failed read showed "正在读这个会话的桌面…"
+        // forever, with no retry anywhere. `readError` is the field the tab and the panels both
+        // render an error-and-retry from, so a failure reaches the principal wherever he is.
+        if (seq === deskLoadSeq) {
+          patchDesk({ readError: `读桌面文件失败（${cwd === '' ? '本会话工作区' : cwd}）`, note: undefined })
+        }
         return
       }
       if (typeof text !== 'string' || text.trim() === '') {
@@ -1707,7 +1725,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     inject, apply, AssistantBrandMark, AssistantBrandName,
     DeskPanel, KnowledgePanel, MemoryPanel, deskStore,
     DeskTabBody, KnowledgeTabBody, MemoryTabBody, AssistantDeskChip,
-    roomCommands, AssistantHeroMark, FirstMileDock, expirePending, settlePending,
+    roomCommands, AssistantHeroMark, FirstMileDock, expirePending, settlePending, loadDeskFor,
   }
 }
 

@@ -138,7 +138,22 @@ Permission/Model/Export) → 我们的三室 → **15 条英文技能**（`clien
   收到该消息后把值落到该落的地方（知识页/记忆/它解开的行动），再从 `gaps` 移除那一条，不够就改写它。
   **验收**：夹具（缺口行有「补上」控件且 what/why 都在）+ 造红证明（把 `actionLabel` 改掉 → 该夹具红）；
   模型面改动按纪律：build 0 · touch preset 世代 · `pnpm eval -- --only desk-refresh-loop` **PASS (133s)**。
-- [ ] R6 · R7 · R8 · R9 · R10
+- [x] **R6 右栏 tab 读失败 = 永远的"正在读…"**（2026-09-27 落地）——`loadDeskFor` 的 catch 从只落 `note`
+  （tab 在任何 Panel 之前就返回，note 根本不渲染）改为落 **`readError`**：tab 与面板都有一条"读桌面文件
+  失败 + 重试"的出路。顺带修同族的一处不诚实：`loadDesk` 走多个会话时，**读失败**与**文件不存在**被混为
+  一谈（全部失败后报"最近 5 个会话里都没有 .desk/state.json"）——现在分别计数，全失败且有过异常时改报
+  "读桌面文件失败（N 个工作区都读不到）"。
+  **验收**：夹具直接驱动 tab 路径（先让 `apply` 的走查落定再清空判词，确保断言只依赖 tab 那条）
+  + 造红证明（catch 改回只落 note → 该夹具红）；typecheck 0 · verify 31/31。
+- [ ] R7 · R8 · R9 · R10
+
+## 观察（不是切片，但值得记）
+
+- **desk-refresh 循环有真实的不稳定率**：本轮同一契约三次 `pnpm eval -- --only desk-refresh-loop`
+  ＝ 红(127s) · 绿(133s) · 绿(77s)。红的那次判定是 `wrote-path`（"没有任何写工具调用碰
+  `.desk/state.json`"），而技能 Rules 最后一条明写"**Always end by writing the file, even when you
+  judge nothing changed**"——即：**契约没问题，是模型有时不遵守**。这正是 R1 的释放阀要覆盖的场景
+  （写不来时冻不死，行上诚实说"桌面还没跟上"）。攒够样本再谈要不要给循环加机械兜底。
 
 ## 输掉的方案
 - **"先做视觉大改（R8）"**：视觉类改动没有前后截图不许下结论（S5 方法纪律），且 R1/R2/R4 的面级

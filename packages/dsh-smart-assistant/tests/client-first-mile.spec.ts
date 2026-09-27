@@ -9,9 +9,8 @@
  * test installs the page-global facade, evaluates the script, and materializes the factory
  * with a module-table require stub, the same harness as client-panels.spec.ts.
  */
-import { createElement } from 'react'
 import { describe, expect, it } from 'vitest'
-import { loadClientRegistration, materializeClient } from './client-harness.ts'
+import { inertReactShim, loadClientRegistration, materializeClient } from './client-harness.ts'
 
 const registration = await loadClientRegistration()
 
@@ -30,7 +29,8 @@ interface ClientExports {
 }
 
 function materialize(): ClientExports {
-  return materializeClient(registration, { createElement }) as unknown as ClientExports
+  // The inert shim (not bare createElement): the tab body and the rows call useState/useEffect.
+  return materializeClient(registration, inertReactShim()) as unknown as ClientExports
 }
 
 /** Every element of one tag in a tree, depth-first. */
@@ -109,6 +109,45 @@ describe('first-mile seats', () => {
     expect(textsOf(buttons[0]).join('')).toBe('打开我的桌面')
     ;(buttons[0]?.props.onClick as () => void)()
     expect(opened).toEqual(['desk'])
+  })
+
+  it('turns a failed desk read into a visible error with a retry, not an eternal reading state (R6)', async () => {
+    const views: string[] = []
+    const ctx = {
+      slots: { inject: (_name: string, contribute: () => unknown) => { contribute() }, register: () => undefined },
+      sidebarRightTabs: { register: () => undefined },
+      sidebarRight: { openTab: () => {} },
+      inject: () => undefined,
+      remote: { workspaceFiles: { read: () => { throw new Error('boom') } } },
+      sessions: {
+        list: {
+          getSnapshot: () => ({ ids: ['s1'], byId: { s1: { updatedAt: 1, cwd: '/tmp/ws' } } }),
+          subscribe: () => () => {},
+        },
+      },
+    }
+    const exports = materialize() as unknown as ClientExports & {
+      deskStore: { readError?: string | undefined, note?: string | undefined }
+      DeskTabBody: (props: { sessionId: string }) => unknown
+    }
+    exports.apply(ctx)
+    // Let apply()'s own walk finish, then clear its verdict: the assertion must depend on the TAB
+    // path alone (the main panels render notes, so their failure was never invisible).
+    await new Promise(resolve => { setTimeout(resolve, 0) })
+    exports.deskStore.readError = undefined
+    exports.deskStore.note = undefined
+    // Drive the tab path directly: this is the one whose failure used to be invisible, because the
+    // tab returns before any Panel renders notes.
+    ;(exports as unknown as { loadDeskFor: (sessionId: string) => void }).loadDeskFor('s1')
+    await new Promise(resolve => { setTimeout(resolve, 0) })
+
+    expect(exports.deskStore.readError).toContain('读桌面文件失败')
+    const tab = textsOf(exports.DeskTabBody({ sessionId: 's1' })).join(' | ')
+    // Before R6 a throwing read only patched a note, which this tab never renders: the pane sat on
+    // "正在读这个会话的桌面…" forever, with no retry anywhere.
+    expect(tab).toContain('读桌面文件失败')
+    expect(tab).not.toContain('正在读')
+    void views
   })
 
   it('claims the hero mark and the blank-session dock when applied', () => {
