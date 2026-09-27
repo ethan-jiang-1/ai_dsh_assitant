@@ -7,7 +7,7 @@
 > （[client/index.ts](../../../packages/dsh-smart-assistant/src/client/index.ts)，1199 行）、
 > [desk-refresh 契约](../../../packages/dsh-smart-assistant/presets/assistant/skills/desk-refresh/SKILL.md)、
 > [面板测试](../../../packages/dsh-smart-assistant/tests/client-panels.spec.ts)、
-> [设计卡](../../proposed/2026-09-26-cultivation-surface-design.md)、[编年记录](../../archived/2026-09-25-ceo-sidebar-ux.md)、
+> [设计卡](../../implemented/2026-09-26-cultivation-surface-design.md)、[编年记录](../../archived/2026-09-25-ceo-sidebar-ux.md)、
 > **仓库根真实的 `.desk/state.json`（17:40 版）**，以及 DSH 侧两处机制源码（提示受理语义、主题 token）。
 > **开发者已逐条核实**（§0）；评审者自己标注了哪些是"代码可断定"、哪些是"推断·需真人眼"。
 

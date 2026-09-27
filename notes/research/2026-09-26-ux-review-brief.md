@@ -150,7 +150,7 @@ DSH 是一个 agent harness（模型 + 工具 + 插件组合）带 Web UI；插�
 ## 7. 你可以看的材料（按价值排序）
 
 1. **设计 owner 卡**（判据 5 条 + 设计原则 11 条 + 架构 + 现状 + 输掉的方案）：
-   [`notes/proposed/2026-09-26-cultivation-surface-design.md`](../proposed/2026-09-26-cultivation-surface-design.md)
+   [`notes/implemented/2026-09-26-cultivation-surface-design.md`](../implemented/2026-09-26-cultivation-surface-design.md)
 2. **编年记录**（每一次改动与真人反馈；重点 §〇 状态一览、§四·六 内容分工、§四·二十 真人反馈与引导卡、
    §四·二十一 真人实测与忙时冻结）：[`notes/archived/2026-09-25-ceo-sidebar-ux.md`](../archived/2026-09-25-ceo-sidebar-ux.md)
 3. **面板的全部实现**（约 1200 行，classic script；DeskPanel / KnowledgePanel / MemoryPanel /

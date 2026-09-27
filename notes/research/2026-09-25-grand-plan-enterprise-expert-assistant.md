@@ -36,7 +36,7 @@
 | 模型真正读到的"本事" | 6 个策展技能共 **292 行**，全部是自我维护：`home-curation` `memory-hygiene` `self-reflection` `research-backlog` `knowledge-craft` `session-recall` | `presets/assistant/skills/` |
 | 领域知识 | 10 页 stable，**全部关于 DSH 与本仓自己**（组合层级、preset 语义、技能 provider 契约、一词一义、信噪比、working folder…） | dev home `knowledge/` |
 | 身份 | persona 一句 "You are a long-lived assistant"，SOUL 为内置通用身份——**没有领域** | [`cordis.patch.yml` 的 `preset-assistant` 行](../../packages/dsh-smart-assistant/cordis.patch.yml) |
-| 真实使用 | 用户本人≈0；57 个会话多为开发/代理探针；"自用率 60%"= 它读自己写的关于自己的笔记 | [基线报告](archive/2026-09-25-real-use-baseline.md)、[责任圈卡](../proposed/2026-09-25-owner-mandate-and-real-use-baseline.md) §十 |
+| 真实使用 | 用户本人≈0；57 个会话多为开发/代理探针；"自用率 60%"= 它读自己写的关于自己的笔记 | [基线报告](archive/2026-09-25-real-use-baseline.md)、[责任圈卡](../implemented/2026-09-25-owner-mandate-and-real-use-baseline.md) §十 |
 | 上游 | 钉 `dsh-v0.1.5-rc.2`；兄弟仓 `ai_dsh_architect` 已钉 `dsh-v0.1.7-rc.1`（2026-09-23） | [`vendor/UPSTREAM.md`](../../vendor/UPSTREAM.md) |
 
 ### 1.2 五个根因
@@ -52,7 +52,7 @@
    把什么活干成了什么样"。**
 4. **纪律投入与产品规模错配。** 子树 AGENTS.md、生成目录 + freshness、每道门禁配红夹具、31 道 verify——这是 DSH
    为一个 300 包 monorepo 设计的纪律，搬到一个 6k 行插件上，效果是"门禁绿"持续替代"产品前进"
-   （[责任圈卡](../proposed/2026-09-25-owner-mandate-and-real-use-baseline.md) §五 已自己点破这一点，但处方仍是在内部加仪表）。
+   （[责任圈卡](../implemented/2026-09-25-owner-mandate-and-real-use-baseline.md) §五 已自己点破这一点，但处方仍是在内部加仪表）。
 5. **向内造轮子，向外看不见生态。** 例：`session-recall` 技能用 `rg` 翻 zstd 会话日志，而 DSH 自带
    `ctx.sessionQuery` + [`tool-session-query`](../../vendor/dsh/packages/session-query/tool-session-query/README.md)（SQLite FTS5）；
    R1/R3 普查看了记忆与知识生态，结论是"维持自研、不装现成插件"，但**从没把自己放进生态里定位**——
@@ -448,7 +448,7 @@ G3 同时检验方向本身：如果"组合优先"两周内用很少的自写代
 ## 附：本评审读过什么
 
 - 本仓：[`ROADMAP.md`](../../ROADMAP.md)、[`intents.md`](../intents.md)、[`docs/architecture.md`](../../docs/architecture.md)、[`docs/home.md`](../../docs/home.md)、
-  [`docs/package-catalog.md`](../../docs/package-catalog.md)、[责任圈卡](../proposed/2026-09-25-owner-mandate-and-real-use-baseline.md)、
+  [`docs/package-catalog.md`](../../docs/package-catalog.md)、[责任圈卡](../implemented/2026-09-25-owner-mandate-and-real-use-baseline.md)、
   [真实使用基线](archive/2026-09-25-real-use-baseline.md)、全部 92 个提交标题、preset 与默认身份源码、dev home 的知识房间清单。
 - DSH（钉住 `dsh-v0.1.5-rc.2`）：[architecture.md](../../vendor/dsh/docs/architecture.md)、[capability-seams.md](../../vendor/dsh/docs/capability-seams.md)、
   [tool-session-query](../../vendor/dsh/packages/session-query/tool-session-query/README.md)、[mcp-client](../../vendor/dsh/packages/mcp/mcp-client/README.md)、

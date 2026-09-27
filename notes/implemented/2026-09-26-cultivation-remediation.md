@@ -1,6 +1,6 @@
 # 培养面整改包：内容准入 → 异步闭环 → 机械缺陷 → 语义 → 密度
 
-日期：2026-09-26 · 状态：**implemented**（S1–S4 + S6 + S7 全部交付、S5 由第一公里 P2 判定闭环；逐片验收在本文，决策理由见[第一公里卡](2026-09-26-first-mile-landing.md)与[设计 owner 卡](../proposed/2026-09-26-cultivation-surface-design.md)）
+日期：2026-09-26 · 状态：**implemented**（S1–S4 + S6 + S7 全部交付、S5 由第一公里 P2 判定闭环；逐片验收在本文，决策理由见[第一公里卡](2026-09-26-first-mile-landing.md)与[设计 owner 卡](2026-09-26-cultivation-surface-design.md)）
 
 ## 问题（可观察行为，开发者已逐条核实）
 

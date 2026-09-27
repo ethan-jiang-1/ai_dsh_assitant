@@ -1,6 +1,6 @@
 # Handoff：CEO 助手的 Sidebar 培养面（交接给新 Agent）
 
-日期：2026-09-26 · 状态：**已收卷**（交接的工作已交付：整改包毕业、第一公里交付；现行入口＝[设计 owner 卡](../../proposed/2026-09-26-cultivation-surface-design.md) 与 ROADMAP）
+日期：2026-09-26 · 状态：**已收卷**（交接的工作已交付：整改包毕业、第一公里交付；现行入口＝[设计 owner 卡](../../implemented/2026-09-26-cultivation-surface-design.md) 与 ROADMAP）
 交接人：责任圈会话（第 18–24 圈）· 接手人：新 Agent
 
 ---
@@ -127,7 +127,7 @@ typert 阻塞的证据链与死路回退（DeskRemote 整段删除）在[卡 §�
 | `packages/dsh-smart-assistant/src/tool-research/index.ts` | `assistant_research` 工具（线索生命周期） |
 | `scripts/webui-preflight.mjs` | 交付前关口（boot 图 + Remote 清单 + desk 文件内容段） |
 | `packages/dsh-smart-assistant/tests/client-panels.spec.ts` | 面板渲染测试（装置：装门面 → 求值脚本 → 带 hook shim 物化工厂） |
-| `notes/proposed/2026-09-26-cultivation-surface-design.md` | **设计 owner 卡**：判据、11 条设计原则、架构、现状、输掉的方案、判据怎么验 |
+| `notes/implemented/2026-09-26-cultivation-surface-design.md` | **设计 owner 卡**：判据、11 条设计原则、架构、现状、输掉的方案、判据怎么验 |
 | `notes/archived/2026-09-25-ceo-sidebar-ux.md` | **编年记录**：§〇 状态一览、逐圈证据（§四·X）、原始设计稿与实验计划（§二/§五，历史） |
 | `.agents/skills/client-ui-contribution/SKILL.md` | 开发技能：怎么给 DSH Web 客户端加界面（四个坑 + 验证循环） |
 
