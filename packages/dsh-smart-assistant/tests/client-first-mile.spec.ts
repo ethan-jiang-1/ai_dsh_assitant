@@ -114,6 +114,18 @@ describe('first-mile seats', () => {
     expect(opened).toEqual(['desk'])
   })
 
+  it('shows an unopenable desk on the chip the principal actually clicked (R9)', () => {
+    const exports = materialize() as unknown as ClientExports & {
+      AssistantDeskChip: () => Element
+      deskStore: { openError?: string | undefined }
+    }
+    // Before R9 the failure only patched a note, which renders inside a panel body — invisible from
+    // the Session header where the click happened.
+    expect(textsOf(exports.AssistantDeskChip()).join('')).toBe('桌面')
+    exports.deskStore.openError = '开不了'
+    expect(textsOf(exports.AssistantDeskChip()).join('')).toBe('桌面（开不了）')
+  })
+
   it('turns a failed desk read into a visible error with a retry, not an eternal reading state (R6)', async () => {
     const views: string[] = []
     const ctx = {

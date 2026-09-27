@@ -1,6 +1,5 @@
-import { createElement } from 'react'
 import { describe, expect, it } from 'vitest'
-import { loadClientRegistration, materializeClient } from './client-harness.ts'
+import { inertReactShim, loadClientRegistration, materializeClient } from './client-harness.ts'
 
 // The browser half is deliberately a classic script (zero imports/exports — see its file
 // header for why), so TS refuses it as a module import; the harness evaluates it exactly
@@ -8,7 +7,8 @@ import { loadClientRegistration, materializeClient } from './client-harness.ts'
 const registration = await loadClientRegistration()
 
 function materialize(): Record<string, (unknown extends never ? never : unknown)> {
-  return materializeClient(registration, { createElement })
+  // The inert shim, not bare createElement: the desk chip reads the store through useState/useEffect.
+  return materializeClient(registration, inertReactShim())
 }
 
 describe('client-module registration', () => {

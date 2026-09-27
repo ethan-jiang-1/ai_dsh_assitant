@@ -547,6 +547,40 @@ describe('desk panels', () => {
     expect(textsOf(exports.DeskPanel()).join(' | ')).toContain('✓ 已更新')
   })
 
+  it('keeps a durable trace of what was dropped and flags a status it cannot read (R9)', () => {
+    const exports = materialize()
+    exports.deskStore.data = {
+      generatedAt: '2026-09-27T12:00:00+08:00',
+      actions: [
+        { id: 'a1', what: '季末守住纪律', status: 'open' },
+        { id: 'a2', what: '起草回话模板', status: 'dropped', note: '你 22:44 说不做了：口径变了' },
+        { id: 'a3', what: '门槛缺口一页纸', status: 'in-flight' },
+      ],
+    }
+    const desk = textsOf(exports.DeskPanel()).join(' | ')
+    // A dropped action used to render nowhere: the principal clicked 不办了 and the surface he acted
+    // on kept no trace of it.
+    expect(desk).toContain('已撤（1）')
+    expect(desk).toContain('✕ 起草回话模板')
+    expect(desk).toContain('你 22:44 说不做了：口径变了')
+    // …and a status this surface does not know says so instead of rendering as in-flight.
+    expect(desk).toContain('（状态「in-flight」不在面板认识的集合里）')
+  })
+
+  it('makes an actionable count a real button and marks a non-open thread (R9)', () => {
+    const exports = materialize()
+    exports.deskStore.data = {
+      generatedAt: '2026-09-27T12:00:00+08:00',
+      counts: { memories: 7 },
+      threads: [{ id: 't1', title: '口径问题', status: 'parked', lean: '等你定' }],
+    }
+    const panel = exports.DeskPanel()
+    // The count used to be an onClick div with no role and no tab stop: mouse-only.
+    expect(findButton(panel, '7记忆')).toBeDefined()
+    // A parked thread used to return to 在跟的事 looking exactly like a live one.
+    expect(textsOf(panel).join(' | ')).toContain('（状态：parked）')
+  })
+
   it('draws its controls at the 24px target and its text at AA contrast (R8)', () => {
     const exports = materialize()
     exports.deskStore.data = {

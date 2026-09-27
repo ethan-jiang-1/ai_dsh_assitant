@@ -169,7 +169,15 @@ Permission/Model/Export) → 我们的三室 → **15 条英文技能**（`clien
   前后真机截图：[改前](../research/2026-09-26-first-mile-shots/p2b-actions-on-title-line.png)（18px 按钮、
   浅灰文本）vs [改后](../research/2026-09-26-first-mile-shots/r8-after-accessible-palette.png)（27px、
   深色文本、`它记` 带「展开全部」）——DOM 证据里 `button h=27` 与改前的 `h=18` 直接可比。
-- [ ] R9
+- [x] **R9 静默无操作与缺失状态**（2026-09-27 落地，五处）——① **撤下的行动有留痕**：新增折叠的
+  「已撤（N）」组（暗色 + `它记` 原因）——此前它们"留在计划页"，但本人在**他动手的那个面上**看不到
+  任何痕迹（"已提交≠已完成"对撤下同样成立）。② **不认识的 action status** 在行上明说（"（状态「x」
+  不在面板认识的集合里）"），不再渲染成在飞。③ **可点的计数改成真 `<button>`**（原来是 onClick 的 div，
+  无 role、无 tab stop＝纯鼠标）。④ **点不动就说**：`selectPanel` 的 throw 不再被吞，落 `jumpError`
+  并在计数下方显示。⑤ **开关失败可见**：右栏开不了时页头 chip 变「桌面（开不了）」（原来只 patch 一个
+  渲染在面板体内的 note＝在那个位置根本看不见）。线程的 `status` 也上行了（parked/closed 不再伪装成活线索）。
+  **验收**：夹具四条 + **造红证明五条**（每处各一条，均"破坏即红、复原即绿"）· build 0 · typecheck 0 ·
+  verify 31/31 · 本包 264/266（2 条＝记录在案的已知降级）。
 
 ## 观察（不是切片，但值得记）
 

@@ -247,6 +247,11 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     /** An action that left but whose desk rewrite never arrived (the poller gave up). Rendered on
      *  its row as a durable, honest state — clearing it silently would read as "done" (R1). */
     stalled?: { rowId: string, at: number, action: string } | undefined
+    /** A count that could not open its panel (R9): the cell used to swallow the throw and stay
+     *  clickable, so the principal saw an underlined number that did nothing. */
+    jumpError?: string | undefined
+    /** The desk tab could not be opened (R9): visible on the chip, which is where the click was. */
+    openError?: string | undefined
     /** A corrupt desk file from the bound session (A5): the tab shows the error and a retry, not "reading…". */
     readError?: string | undefined
     /** The desk's draft pointer just sent the principal over (S4): highlight and scroll to the drafts. */
@@ -927,9 +932,12 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   function openBeside(kind: RoomKind): void {
     const controller = deskSidebarRight
     if (controller === undefined || controller.openTab === undefined) {
-      patchDesk({ note: 'sidebarRight 服务没有物化，开不了对话旁的 tab' })
+      // R9: the note rendered inside a panel body — invisible from the Session header, where the
+      // click happened. The chip shows it instead.
+      patchDesk({ note: 'sidebarRight 服务没有物化，开不了对话旁的 tab', openError: '开不了' })
       return
     }
+    patchDesk({ openError: undefined })
     // Call THROUGH the controller, never through a detached reference: the vendor's openTab starts
     // with `this.require()`, so a bare function call loses the receiver and throws. Runtime-proven
     // 2026-09-26 (独立体验反馈): "Cannot read properties of undefined (reading 'require')" — the
@@ -997,14 +1005,16 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
 
   /** The opener where the principal already is: a chip in the Session header beside the conversation. */
   function AssistantDeskChip(): ReturnType<typeof createElement> {
+    const store = useDesk()
+    const failed = store.openError !== undefined
     return createElement('button', {
       onClick: () => { openBeside('desk') },
-      title: '在对话旁打开我的桌面',
+      title: failed ? '上次没能打开：右侧栏服务不在这个组合里' : '在对话旁打开我的桌面',
       style: {
         border: 'none', background: 'transparent', cursor: 'pointer',
-        fontSize: '12px', color: MARK_TEAL, padding: '2px 6px',
+        fontSize: '12px', color: failed ? '#92400e' : MARK_TEAL, padding: '4px 6px',
       },
-    }, '桌面')
+    }, failed ? `桌面（${store.openError}）` : '桌面')
   }
 
   /**
@@ -1083,19 +1093,35 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   function cell(label: string, value: string, target?: string): ReturnType<typeof createElement> {
     const jump = (): void => {
       if (target === undefined) return
+      patchDesk({ jumpError: undefined })
       try {
         deskLayout?.selectPanel?.(target)
       } catch {
-        // selectPanel throws for an unregistered panel; a stale target must not break the panel.
+        // R9 (self-review, 2026-09-27): swallowing this left an underlined, pointer-cursor number that
+        // did nothing at all. The stale target still must not break the panel — but the failure is
+        // now visible where the click happened.
+        patchDesk({ jumpError: `「${label}」这个数字打不开对应的面板（${target}）——它可能还没注册` })
       }
     }
+    const inner = [
+      createElement('div', { key: 'v', style: { fontSize: '26px', fontWeight: 700, color: MARK_TEAL } }, value),
+      createElement('div', {
+        key: 'l',
+        style: { fontSize: '12px', color: '#666', textDecoration: target === undefined ? 'none' : 'underline' },
+      }, label),
+    ]
     const style: Record<string, unknown> = {
       display: 'inline-block', margin: '8px 16px', textAlign: 'center' as const,
     }
-    if (target !== undefined) Object.assign(style, { cursor: 'pointer' })
-    return createElement('div', { style, onClick: jump, title: target === undefined ? undefined : '打开这个面板' },
-      createElement('div', { style: { fontSize: '26px', fontWeight: 700, color: MARK_TEAL } }, value),
-      createElement('div', { style: { fontSize: '12px', color: '#666', textDecoration: target === undefined ? 'none' : 'underline' } }, label))
+    if (target === undefined) return createElement('div', { style }, ...inner)
+    // A real button when it acts: the count used to be an onClick div with no role and no tab stop,
+    // i.e. mouse-only (R9).
+    return createElement('button', {
+      type: 'button',
+      onClick: jump,
+      title: '打开这个面板',
+      style: { ...style, border: 'none', background: 'transparent', font: 'inherit', padding: 0, cursor: 'pointer' },
+    }, ...inner)
   }
 
   /** A section heading. */
@@ -1385,8 +1411,10 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       // Actions split by state: the open ones are the working surface (each row carries its
       // correction and close-out actions); the done ones move to their own dimmed group — a plan
       // tracker that hides finished work hides the assistant's follow-through, which is the trust
-      // question "did what you planned actually happen?" Dropped ones stay off the panel (recorded
-      // on the plan page); they are a decision that was made, not work to look at.
+      // question "did what you planned actually happen?" Dropped ones get a folded dimmed group of
+      // their own (R9, self-review 2026-09-27): the earlier choice was to keep them off the panel
+      // because the plan page records them, but the principal who clicked 不办了 had no durable trace
+      // ON THE SURFACE HE ACTED ON — the "submitted is not done" rule applies to a close-out too.
       sectionTitle(`在办的事（${(data?.actions ?? []).filter(action => action.status !== 'done' && action.status !== 'dropped').length}）`),
       (data?.actions ?? []).filter(action => action.status !== 'done' && action.status !== 'dropped').length === 0
         ? muted('（没有在办的动作）')
@@ -1397,6 +1425,12 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
               rowId: String(action.id ?? action.what),
               primary: createElement('span', null,
                 createElement('span', { style: { fontSize: '13px', fontWeight: 600 } }, String(action.what ?? '')),
+                // R9: only `open` belongs here (done/dropped have their own groups), so anything else
+                // is a status this surface does not know — say so instead of rendering it as in-flight.
+                action.status === 'open' || action.status === undefined
+                  ? null
+                  : createElement('span', { style: { fontSize: '11px', color: '#92400e', marginLeft: '6px' } },
+                      `（状态「${String(action.status)}」不在面板认识的集合里）`),
                 createElement('div', { style: { fontSize: '12px', color: '#666', fontWeight: 400 } },
                   [action.owner === undefined ? '' : `负责人：${action.owner}`,
                     action.due === undefined ? '' : `时点：${action.due}`].filter(part => part !== '').join(' · ')),
@@ -1453,6 +1487,26 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
                   })))))
         : null,
 
+      // R9: dropped actions are a decision the principal made here; they fold away rather than vanish.
+      (data?.actions ?? []).some(action => action.status === 'dropped')
+        ? createElement('div', null,
+            sectionTitle(`已撤（${(data?.actions ?? []).filter(action => action.status === 'dropped').length}）`),
+            createElement('div', null, ...(data?.actions ?? [])
+              .filter(action => action.status === 'dropped')
+              .map(action => createElement('div', {
+                key: `dropped-${String(action.id ?? action.what)}`,
+                style: { marginBottom: '8px', paddingLeft: '10px', borderLeft: '2px solid #ddd' },
+              },
+              createElement('div', { style: { fontSize: '13px', color: '#6b7280' } }, `✕ ${String(action.what ?? '')}`),
+              action.note === undefined || action.note === ''
+                ? null
+                : createElement(ClampedText, {
+                    text: `它记：${action.note}`,
+                    maxLines: 2,
+                    style: { fontSize: '11px', color: '#6b7280', marginTop: '2px' },
+                  })))))
+        : null,
+
       sectionTitle('缺什么'),
       // R5 (self-review, 2026-09-27): a gap names the thing that blocks everything and says only the
       // principal can supply it — and then offered no way to supply it ("想补只需回一句" = back to
@@ -1482,7 +1536,13 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
             rowId: String(thread.id),
             primary: createElement('span', null,
               createElement('div', { style: { fontSize: '13px', fontWeight: 600, lineHeight: 1.5 } },
-                String(thread.title ?? thread.id ?? '')),
+                String(thread.title ?? thread.id ?? ''),
+                // R9: a parked or closed thread used to return to 在跟的事 looking exactly like a live
+                // one, with the same three controls.
+                thread.status === undefined || thread.status === 'open'
+                  ? null
+                  : createElement('span', { style: { fontSize: '11px', color: '#92400e', marginLeft: '6px', fontWeight: 400 } },
+                      `（状态：${String(thread.status)}）`)),
               // The lean is the field that measured 345 px on the live desk (R7): both free-text
               // lines clamp with an expander instead of pushing the room off-screen.
               createElement(ClampedText, {
@@ -1521,6 +1581,10 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       // R7: the counts carried no date of their own, while the desk's staleness line sits screens
       // above them in the narrow pane. The number and the moment it was counted travel together.
       sectionTitle(`我记住的规模${data?.generatedAt === undefined ? '' : ` · ${shortTime(String(data.generatedAt))}`}`),
+      // R9: a count that could not open its panel says so, right under the numbers it belongs to.
+      store.jumpError === undefined
+        ? null
+        : createElement('div', { style: { fontSize: '11px', color: '#92400e', margin: '0 16px 6px' } }, store.jumpError),
       createElement('div', null,
         cell('记忆', data?.counts?.memories === undefined ? '—' : String(data.counts.memories), 'assistant-memory'),
         cell('知识', data?.counts?.knowledgeStable === undefined ? '—' : String(data.counts.knowledgeStable), 'assistant-knowledge'),
