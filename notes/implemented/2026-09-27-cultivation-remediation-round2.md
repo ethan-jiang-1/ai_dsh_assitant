@@ -80,7 +80,10 @@ Markdown 原样直出（DOM 里能看到 `**已消解**`）、`来源` 只截 11
 改完**必须出截图对比**（S5 方法纪律）。**验收**：截图对比 + 门禁绿。
 （2026-09-27 当晚兑现"另算"：面板色值全部主题化——中性色走 vendor `--dsw-alias-*`、warn/accent 走
 `ensureThemeVars` 注入的 `--dsha-*` 契约块（暗值引用 vendor statics），暗色由选择器
-`body[data-ds-dark-theme]` 自动生效；AA 守卫测试随之升级为"组件零字面色 + 契约亮值逐个 ≥AA"。）
+`body[data-ds-dark-theme]` 自动生效；AA 守卫测试随之升级为"组件零字面色 + 契约亮值逐个 ≥AA"。
+**证据对（截图 + 计算样式双读）**：[theme-shots](../research/archive/2026-09-27-theme-shots)——
+亮色 accent=rgb(15,118,110)/warn=#92400e/bg=#fff，暗色 accent=rgb(45,212,191)/warn=vendor amber-400/bg=bluish-950，
+两分支两变量全部按契约解析。）
 
 ### R9 静默无操作与缺失状态（对抗评审，中）
 
