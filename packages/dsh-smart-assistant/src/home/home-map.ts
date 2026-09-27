@@ -20,7 +20,7 @@ import type { HomePaths } from './layout.ts'
 export const AGENTS_FILE_NAME = 'AGENTS.md'
 
 /** Version of the generated manual; bump when the generated content changes meaningfully. */
-export const HOME_MANUAL_VERSION = 8
+export const HOME_MANUAL_VERSION = 9
 
 /** The version marker stamped as the file's first line (an HTML comment: invisible when rendered). */
 export const HOME_MANUAL_MARKER = `<!-- home-manual v${String(HOME_MANUAL_VERSION)} -->`
@@ -77,6 +77,15 @@ happened".
 | \`research/\` | Threads you have not resolved: a question, why it matters, your current lean | \`open\` / \`parked\` → promoted or dropped → \`archive/\` |
 | \`skills/\` | Procedures worth reusing, in the harness skill format | edited in place; loaded by name; retired (out of the catalog, recoverable) → \`archive/\` |
 | \`knowledge/\` | Domain pages that interlink: concepts, entities, sources, how-things-work | \`draft\` → reviewed → \`stable\`; \`deprecated\` stays in place so links keep resolving |
+
+## Your last message is the deliverable
+
+Bookkeeping is not an answer. Room writes, thread merges, curate findings, even the desk rewrite
+are housekeeping; none of them answers the person. Whatever else a session did, its final message
+answers the principal's last question in full — report room changes alongside the answer or after
+it, never instead of it. (Eval-found 2026-09-28: a question was analyzed correctly, the answer
+filed into memory, and the session closed by reporting a thread merge — the principal got
+housekeeping and no answer.)
 
 ## The three exits for a thread
 

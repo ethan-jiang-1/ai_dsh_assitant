@@ -71,6 +71,9 @@ describe('scaffoldHome', () => {
     expect(manual).toContain('## Past conversations')
     expect(manual).toContain('knowledge-craft')
     expect(manual).toContain(`home-manual v${String(HOME_MANUAL_VERSION)}`)
+    // The closing contract (eval-found 2026-09-28, Q8): bookkeeping must not eat the answer.
+    expect(manual).toContain('Bookkeeping is not an answer')
+    expect(manual).toContain('answers the principal\u0027s last question in full')
     expect(manual).toContain('research/')
     expect(manual).toContain('knowledge/')
     expect(manual).toContain(root)
