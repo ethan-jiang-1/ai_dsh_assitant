@@ -46,6 +46,9 @@ interface PanelExports {
   DeskTabBody: (props: { sessionId?: string }) => unknown
   KnowledgeTabBody: (props: { sessionId?: string }) => unknown
   MemoryTabBody: (props: { sessionId?: string }) => unknown
+  /** The tab-strip title factory: icon glyph before the room's title (user steer 2026-09-28). */
+  roomTabTitle: (icon: (props: { size: number }) => unknown, fallback: string) =>
+    (props: { useTabInfo?: () => { tab?: { title?: string } } }) => unknown
   deskStore: DeskStore
 }
 
@@ -377,6 +380,22 @@ describe('desk panels', () => {
       { props?: { style?: Record<string, unknown> } }
     expect(root.props?.style?.overflowY).toBe('auto')
     expect(root.props?.style?.minHeight).toBe('0')
+    // The "在对话旁打开" opener is retired with the left main panels: a room now renders only
+    // inside a right-sidebar tab, so that button opened the very tab it sat in — a no-op the
+    // principal rightly read as broken (real use, 2026-09-28). The openers that remain live
+    // outside the rooms: the "+" guide, the Session-header chip, and the first-mile dock.
+    const deskText = textsOf(exports.DeskTabBody({ sessionId: 's1' })).join(' | ')
+    expect(deskText).not.toContain('在对话旁打开')
+
+    // The tab strip carries each room's own glyph (user steer, 2026-09-28): the title reads the
+    // live tab title through the seat's hook, and falls back to the room's constant without one.
+    const Title = exports.roomTabTitle(() => textsOf.length >= 0 ? { type: 'svg', props: {} } : null, '我的桌面')
+    const withHook = Title({ useTabInfo: () => ({ tab: { title: '我的桌面 · 会话 A' } }) }) as unknown as { props: { children: unknown[] } }
+    expect(withHook.props.children.length).toBe(2)
+    const titleText = textsOf(withHook).join('')
+    expect(titleText).toContain('我的桌面 · 会话 A')
+    const withoutHook = Title({}) as unknown as { props: { children: unknown[] } }
+    expect(textsOf(withoutHook).join('')).toContain('我的桌面')
 
     // The other rooms bind the same way.
     const knowledge = textsOf(exports.KnowledgeTabBody({ sessionId: 's1' })).join(' | ')

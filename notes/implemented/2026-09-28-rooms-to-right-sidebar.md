@@ -29,10 +29,15 @@
 - brand spec 更新：注册顺序断言去掉 panellist/main 对、inject 表去 `layout`、**新增 guide 条目断言**
   （`guideEntries` 三条逐一核对）——三室在「+」里这件事从此有夹具钉着；
 - 整包 **284/284** · build 0 · verify 32/32；
-- **交付当日的真用缺陷与修复**：用户真机即报「房间 tab 滚不了」——vendor 面板体是
+- **交付当日的真用缺陷与修复**：① 用户真机即报「房间 tab 滚不了」——vendor 面板体是
   `overflow:hidden` 的 flex 列、座位内容自带滚动是它的契约，我们没带。修法：tabBody 全部出口包
   `roomScroller`（flex:1 + minHeight:0 + overflowY:auto）；红绿夹具（根元素样式断言先红后绿）；
   真机复验 scrollHeight 7853 / clientHeight 762、滚得动（[roomtab-scroll 证据](../research/archive/2026-09-27-theme-shots/roomtab-scroll-1200x800.png)）。
+  ② 用户即报「在对话旁打开点了没用」——按钮在自己身上打开自己（房间只在右栏 tab 里渲染后，
+  该按钮从左主面板时代的跳转入口退化为 no-op）。修法：按钮随左面板退役，`refreshRow` 收敛为单参；
+  夹具断言不再出现。③ 用户 steer「tab 上最好每个都有自己的 icon」——注册
+  `sidebar.right.pane.tab.title` 座位（照 vendor guide 指南针的形状）：每房间图标 + 动态标题
+  （`useTabInfo` 读、常量兜底）；真机验证 tab chip 带 svg。三处均记 brand spec 注册断言。
   顺带学到：vendor 资产按进程 rev 做 immutable 缓存——改 client bundle 后必须重启 dev 服务，刷新不够。
 
 ## 输掉的方案

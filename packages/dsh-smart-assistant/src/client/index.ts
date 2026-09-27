@@ -1072,6 +1072,26 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    * withholds it and reloads its own — presenting another session's desk as yours would be worse
    * than a one-line wait.
    */
+  /**
+   * The room's tab-strip title: the room's own glyph before its title text (user steer,
+   * 2026-09-28 — each tab should carry its own icon). Shapes after the vendor's guide title:
+   * reads the live tab title through the seat's `useTabInfo` prop, falls back to the room's
+   * constant when the hook is absent (tests, or a seat that passes no hook).
+   * @param Icon - the room's glyph component.
+   * @param fallbackTitle - the room's constant title.
+   * @returns the title component for that room's tab.
+   */
+  function roomTabTitle(Icon: (props: { size: number }) => unknown, fallbackTitle: string) {
+    return function RoomTabTitle(props: { useTabInfo?: () => { tab?: { title?: string } } }): ReturnType<typeof createElement> {
+      const title = props.useTabInfo?.()?.tab?.title ?? fallbackTitle
+      return createElement('span', {
+        style: { display: 'inline-flex', alignItems: 'center', gap: '5px', minWidth: '0' },
+      },
+      createElement(Icon as unknown as import('react').FunctionComponent<{ size: number }>, { size: 14 }),
+      title)
+    }
+  }
+
   function tabBody(props: TabBodyProps, Panel: () => unknown): ReturnType<typeof createElement> {
     const { useEffect } = require('react') as typeof import('react')
     const store = useDesk()
@@ -1304,11 +1324,15 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   }
 
   /** The refresh button plus its status line, and — where the room can — the jump to the beside-conversation tab. */
-  function refreshRow(store: typeof deskStore, tabKind?: RoomKind): ReturnType<typeof createElement> {
+  function refreshRow(store: typeof deskStore): ReturnType<typeof createElement> {
     // Used for the status line only. The button itself is deliberately NOT disabled while an action
     // is in flight: it is the escape hatch when the assistant does not rewrite the desk file
     // (self-review R1, 2026-09-27). It re-reads the file; reading is always safe, and a frozen
     // surface with a dead escape hatch is not.
+    // (2026-09-28) The "在对话旁打开" button is gone with the left main panels: rooms render only
+    // inside right-sidebar tabs now, so that opener opened the very tab it sat in — a no-op the
+    // principal rightly read as broken (real use, same day as the move). The openers that remain
+    // are the "+" guide, the Session-header chip, and the first-mile dock.
     const inFlight = pendingInFlight(store)
     return createElement('div', { style: { margin: '8px 0 0' } },
       createElement('button', {
@@ -1319,16 +1343,6 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
           color: MARK_TEAL,
         },
       }, '刷新桌面'),
-      tabKind === undefined
-        ? null
-        : createElement('button', {
-            onClick: () => { openBeside(tabKind) },
-            title: '把这一室开到对话旁边的右侧栏（绑定当前会话）',
-            style: {
-              marginLeft: '8px', padding: '6px 12px', fontSize: '12px', cursor: 'pointer',
-              borderRadius: '6px', border: '1px solid var(--dsw-alias-border-l3)', background: 'var(--dsw-alias-bg-base)', color: 'var(--dsw-alias-label-secondary)',
-            },
-          }, '在对话旁打开'),
       inFlight === false
         ? null
         : createElement('span', { style: { marginLeft: '10px', fontSize: '12px', color: 'var(--dsw-alias-label-secondary)' } },
@@ -1388,7 +1402,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       // The three rooms are three QUESTIONS, not three data containers (user ruling 2026-09-26:
       // keep the familiar entries, make the navigation MEAN something).
       createElement('div', { style: { fontSize: '13px', color: 'var(--dsw-alias-label-secondary)', margin: '0 0 8px' } }, '现在要采取什么行动？'),
-      refreshRow(store, 'desk'),
+      refreshRow(store),
       // S6 landing: the principal's real first reaction (2026-09-26 trial) was "不知所措——
       // 不知道怎么落脚，不知道要干什么". When no desk file exists yet, say what this surface
       // is and give the three-step way in — before any content can.
@@ -1793,7 +1807,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     return createElement('div', { style: { padding: '24px', maxWidth: '620px' } },
       createElement('h2', { style: { margin: '0 0 4px', fontSize: '18px' } }, '知识室'),
       createElement('div', { style: { fontSize: '13px', color: 'var(--dsw-alias-label-secondary)', margin: '0 0 8px' } }, '你凭什么这样判断？——依据、来源、待确认的草稿'),
-      refreshRow(store, 'knowledgeRoom'),
+      refreshRow(store),
       pages.length === 0
         ? muted('（还没有知识页，或桌面文件尚未刷新）')
         : createElement('div', null,
@@ -1876,7 +1890,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     return createElement('div', { style: { padding: '24px', maxWidth: '620px' } },
       createElement('h2', { style: { margin: '0 0 4px', fontSize: '18px' } }, '记忆室'),
       createElement('div', { style: { fontSize: '13px', color: 'var(--dsw-alias-label-secondary)', margin: '0 0 8px' } }, '你把我理解成什么？——偏好、决定、事实，每条可纠错'),
-      refreshRow(store, 'memoryRoom'),
+      refreshRow(store),
       memories.length === 0
         ? muted('（还没有记忆，或桌面文件尚未刷新）')
         : createElement('div', null, ...memoryGroups(memories)),
@@ -1984,6 +1998,11 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       })
       ctx.slots.inject('sidebar.right.pane.tab', () =>
         ctx.slots.register({ name: 'sidebar.right.pane.tab', key: room.id }, room.body))
+      // The tab strip's chip: the room's own glyph before its title (user steer, 2026-09-28 —
+      // "tab 上最好每个都有一个自己的 icon"). The title seat replaces the bare-label chip the
+      // definition would otherwise draw (same mechanism as the vendor's guide compass).
+      ctx.slots.inject('sidebar.right.pane.tab.title', () =>
+        ctx.slots.register({ name: 'sidebar.right.pane.tab.title', key: room.id }, roomTabTitle(room.icon, room.title)))
     }
     // The opener the principal sees where they already are: a chip in the Session header.
     ctx.slots.inject('conversation.session.header.utilities', () =>
@@ -2026,7 +2045,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   return {
     inject, apply, AssistantBrandMark, AssistantBrandName,
     DeskPanel, KnowledgePanel, MemoryPanel, deskStore,
-    DeskTabBody, KnowledgeTabBody, MemoryTabBody, AssistantDeskChip,
+    DeskTabBody, KnowledgeTabBody, MemoryTabBody, AssistantDeskChip, roomTabTitle,
     roomCommands, AssistantHeroMark, FirstMileDock, expirePending, settlePending, loadDeskFor, retireStaleReceipt, looksLikeDesk,
   }
 }
