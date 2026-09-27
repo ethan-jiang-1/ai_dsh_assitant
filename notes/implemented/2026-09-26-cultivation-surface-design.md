@@ -1,6 +1,6 @@
 # 培养面设计思路（设计 owner）
 
-日期：2026-09-26 · 状态：**implemented**（培养面的**当前设计权威**：判据、11 条设计原则、架构与现状盘点在此，随真实使用保持 current；两轮整改均已交付——[S1–S7](2026-09-26-cultivation-remediation.md) 与 [R1–R11](2026-09-27-cultivation-remediation-round2.md)；逐圈历史冻结在[编年卡](../archived/2026-09-25-ceo-sidebar-ux.md)）
+日期：2026-09-26 · 状态：**implemented**（培养面的**当前设计权威**：判据、11 条设计原则、架构与现状盘点在此，随真实使用保持 current；两轮整改均已交付——[S1–S7](2026-09-26-cultivation-remediation.md) 与 [R1–R13](2026-09-27-cultivation-remediation-round2.md)；逐圈历史冻结在[编年卡](../archived/2026-09-25-ceo-sidebar-ux.md)）
 
 ## 一、它是什么、为谁、怎样算好
 

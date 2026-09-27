@@ -196,7 +196,7 @@ plugins 为六条 id/name）并经 `ctx.loader.create({ id: 'include', name: 'co
 - **验收**：整包 vitest **281/281 全绿**（迁移以来首次零红零降级）· typecheck 0 · verify 32/32。
 - 本职责转向阶段 0 的**下一项：结果意图 O1–O6 的领域版**（中小企业 CEO/VP 数字分身）。
 
-**已有事实不变**：`verify` 31/31、`pnpm test` 33 套件 32 pass、`pnpm typecheck`/`pnpm build` exit 0；
+**已有事实不变**：`verify` 32/32、`pnpm test` 整包 281/281 全绿（preset-composition 两条已修复——见上文处置）、`pnpm typecheck`/`pnpm build` exit 0；
 vendor 侧代码与 pin 指针未被修改（只删过一个孤儿安装残留目录）。
 
 ## 十一、第十一圈之后：boot 修复三步 + 专家权限模型的 live 验证
