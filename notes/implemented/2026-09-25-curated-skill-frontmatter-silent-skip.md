@@ -4,8 +4,8 @@
 
 ## 发现（真实会话，不是门禁红）
 
-排 `session-recall` 在账本里 **0 加载**（当时 ROADMAP 的 ⏳ 技能触发面条目，已随本次修复离队 ——
-见 [ROADMAP](../../ROADMAP.md) 维护规则的 2026-09-25 行）时，先按"配方写死 `session.v3`"查；
+排 `session-recall` 在账本里 **0 加载**（当时 ROADMAP 的 ⏳ 技能触发面条目，已随本次修复离队——
+记录即本卡与 git）时，先按"配方写死 `session.v3`"查；
 但那条解释不了"一件都加载不了"：live 探针在 preset 会话里按名加载 `session-recall`，回来的是
 `Error: skill "session-recall" is unknown or no longer available`，而**同一目录**里的 `home-curation`
 按名加载成功（返回 `<skill_content>`）。同一形状连跑 3 次全失败 → 不是偶发，也不是"罕见情况的招牌"。

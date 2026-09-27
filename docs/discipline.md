@@ -41,7 +41,7 @@
    pre-push hook，不让流程再长一层）→ 纪律靠 [pre-push-evidence](../.agents/skills/pre-push-evidence/SKILL.md)
    （报告只列真跑过的命令、证据要覆盖改动面）与「被阻断的检查不得写成绿色证据」条承担；
    备选（hook、CI）在此记录为输掉方案 → 证据：P1-B 漏跑整包的教训进技能后，同类摩擦未再现
-   （change-scope 触发重置后无第二次，见 `ROADMAP.md` 维护规则的触发复核条）。
+   （change-scope 触发重置后无第二次，见 `ROADMAP.md` 维护规则「触发未到的条目不动手」）。
 
 ## 复查环（防"一次性快照再烂"）
 

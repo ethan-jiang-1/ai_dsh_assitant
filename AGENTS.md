@@ -43,7 +43,7 @@ implemented note 必带「**输掉的方案**」节——没记击败了什么�
 
 | 路径 | 是什么 | 谁能改 |
 |---|---|---|
-| `ROADMAP.md` | **根部队列：只写接下来**（队列/搁置池/维护规则；条目 ≤3 行，完成即离队） | 队列调整直接改 + 维护规则记一行 |
+| `ROADMAP.md` | **根部队列：只写接下来**（队列/搁置池/维护规则；条目 ≤3 行，完成即离队） | 队列调整直接改；决定理由住 notes/（维护规则段只写常设规则） |
 | `packages/dsh-smart-assistant/` | **插件包**（bundle）：入口×平面、四工具×动词、组合行、pin 与依赖姿态见生成物 `docs/package-catalog.md`；包内 owner 面与纪律见其 `AGENTS.md` | 改模型可见面 / 服务 / 布局动这里 |
 | `docs/` | **当前合同**（只写现在，无历史）—— 文档 tier 与"谁拥有什么"见其 `AGENTS.md` | 门禁住了的事实进这里 |
 | `notes/` | **开发记忆与证据链**（分类 owner：`notes/README.md`）：`proposed/` 将来 → `implemented/` 当前权威 → `archived/` 冻结历史；`rejected/` 存负知识与一行原因；`research/` 进行中 → `research/archive/` 已收卷 | 决策与输掉的方案进这里 |
