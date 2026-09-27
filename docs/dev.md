@@ -119,7 +119,7 @@ registering"——而第一个打开页面的人就成了 crash-test dummy。`pn
 **三条纪律（为什么"改了不生效"）：**
 
 1. preset 行加载的是**构建物**（package.json exports → `lib/`）——改 `src/` 后必须 `pnpm build`。
-   setup.sh 用**裸路径 link**（pnpm symlink 语义）装插件，所以不用重新 `plugin add`；
+   setup.sh 用**裸路径 link**（pnpm 的 symlink 语义）装插件，所以不用重新 `plugin add`；
    `file:` 是复制语义，开发环禁用（改码必须重装）。
 2. preset 代际看**组合文件**（`cordis.patch.yml`）的 mtime+size —— 改 `presets/assistant/skills/*` 或
    `preset.yml` 后要 `touch` 该文件，新会话才拿得到新代。

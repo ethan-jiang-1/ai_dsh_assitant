@@ -50,6 +50,8 @@ pack → 干净 home → 装 → 组合断言。`file:` 这条路径本身实测
 `dsh.bundle.patch` → `cordis.patch.yml` 里的 `preset-assistant` 行），装包即进组合 —— 不必再指 `presets/`
 目录（那条在 0.1.5 成立，0.1.7 起是错的；依据 `notes/implemented/2026-09-25-dsh-0-1-7-migration.md`）。
 
+**知识导入**（把文件/目录导成知识页草稿）：`pnpm import-knowledge -- --data-dir <assistant 目录> <文件或目录>… [--dry-run]`。
+
 **专家部署装配**（把全新的 working folder 装成管理岗专家的）：`pnpm expert-setup -- --data-dir <assistant 目录>`
 —— 只在 `SOUL.md` 还是未经改动的默认种子时替换为管理岗身份（改过就跳过：装配不覆盖它的主人），
 知识种子按治理写入路径落 `draft`；`draft → stable` 由你亲手改，那一下就是人审。

@@ -577,6 +577,46 @@ export function configParseProblems(files) {
  *
  * @param {readonly string[]} files - dev tooling files.
  */
+/**
+ * The docs' commands and `package.json` must agree, both ways.
+ *
+ * Why: the front door rotted exactly here — `README.md` advertised an npm-publish path that no alias
+ * ever provided, and nothing failed. Docs drift silently because prose has no freshness check; this
+ * gives the two directions a mechanical one (2026-09-27):
+ *   · every `pnpm <name>` in a current doc must be an alias (or a pnpm builtin);
+ *   · every alias must be named in at least one current doc, so adding one cannot skip documentation.
+ * "At least one" rather than "the root command table": a generator documented in the dev manual is
+ * findable, and forcing the root table to list every generator would bloat the one place that must stay
+ * short. Notes are deliberately outside the corpus: they record what was true when written.
+ * @param options - `{ scripts, documents }`.
+ * @returns problem strings, empty when the two sides agree.
+ */
+export function commandAliasProblems({ scripts, documents, ownerPath }) {
+  const problems = []
+  const aliases = new Set(Object.keys(scripts))
+  // pnpm's own subcommands, which are not aliases and never will be
+  const builtins = new Set(['install', 'exec', 'add', 'dlx', 'run', 'pack', 'publish', 'why', 'outdated',
+    'list', 'update', 'rebuild', 'config', 'store', 'import', 'link', 'prune', 'start', 'deploy', 'licenses'])
+  for (const { path: file, text } of documents) {
+    for (const match of text.matchAll(/\bpnpm (?:run )?([a-z][a-z0-9:_-]*)/gu)) {
+      const name = match[1]
+      if (aliases.has(name) || builtins.has(name)) continue
+      problems.push(`${file} names \`pnpm ${name}\`, which is not a script in package.json — the doc outlived the alias`)
+    }
+  }
+  if (documents.length === 0) {
+    problems.push('the document corpus is empty — alias coverage cannot be checked')
+    return problems
+  }
+  const allText = documents.map(document => document.text).join('\n')
+  for (const name of aliases) {
+    if (!new RegExp(`\\bpnpm (?:run )?${name}\\b`, 'u').test(allText)) {
+      problems.push(`alias \`pnpm ${name}\` is named in no current doc — a command nobody documents is a command nobody finds`)
+    }
+  }
+  return problems
+}
+
 export function dshHomeInheritanceProblems(files) {
   const problems = []
   for (const file of files) {

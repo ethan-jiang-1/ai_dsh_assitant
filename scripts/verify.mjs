@@ -18,7 +18,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { agentsMdStabilityProblems, configParseProblems, deferralHomesProblems, dependencyPoseProblems, dshHomeInheritanceProblems, reservedItemProblems, GRADUATED_STATUS, implementedAlternativesProblems, languageGuardProblems, notesNamingProblems, notesStateProblems, notesTopLevelProblems, pinProblems, relativeLinkProblems, skillFrontmatterProblems, textHygieneProblems } from './verify-checks.mjs'
+import { agentsMdStabilityProblems, commandAliasProblems, configParseProblems, deferralHomesProblems, dependencyPoseProblems, dshHomeInheritanceProblems, reservedItemProblems, GRADUATED_STATUS, implementedAlternativesProblems, languageGuardProblems, notesNamingProblems, notesStateProblems, notesTopLevelProblems, pinProblems, relativeLinkProblems, skillFrontmatterProblems, textHygieneProblems } from './verify-checks.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const packageDir = join(repoRoot, 'packages', 'dsh-smart-assistant')
@@ -338,6 +338,22 @@ check('notes: note files follow YYYY-MM-DD-topic naming', () =>
 
 check('structure: dev tooling never inherits DSH_HOME', () =>
   dshHomeInheritanceProblems(walk(join(repoRoot, 'dev'), ['.mjs'])))
+
+// 文档里的命令与 package.json 的别名必须互相成立：别名必须进命令表，文档提到的命令必须真存在
+// （README 那条 stale 的 npm 发布路径就是这么烂掉的）。notes 不在语料里——它们记录的是当时为真的事。
+check('docs: commands named in the docs exist, and every alias is named in a current doc', () => {
+  const corpus = [join(repoRoot, 'AGENTS.md'), join(repoRoot, 'README.md'), join(repoRoot, 'docs', 'dev.md'),
+    join(repoRoot, 'docs', 'discipline.md'), join(repoRoot, 'dev', 'AGENTS.md'), join(repoRoot, 'scripts', 'AGENTS.md'),
+    join(packageDir, 'AGENTS.md'), join(packageDir, 'README.md')]
+    .filter(existsSync)
+    .map(file => ({ path: relative(repoRoot, file), text: read(file) }))
+    .concat(walk(join(repoRoot, '.agents', 'skills'), ['.md'])
+      .map(file => ({ path: relative(repoRoot, file), text: read(file) })))
+  return commandAliasProblems({
+    scripts: JSON.parse(read(join(repoRoot, 'package.json'))).scripts ?? {},
+    documents: corpus,
+  })
+})
 
 check('structure: every composition file we own parses as YAML', () =>
   configParseProblems([

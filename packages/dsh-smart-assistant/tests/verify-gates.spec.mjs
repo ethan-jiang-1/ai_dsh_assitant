@@ -16,6 +16,7 @@ import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import {
   agentsMdStabilityProblems,
+  commandAliasProblems,
   configParseProblems,
   dshHomeInheritanceProblems,
   deferralHomesProblems,
@@ -47,6 +48,42 @@ function temp(prefix) {
 }
 
 // ── relative markdown links ────────────────────────────────────────────────────────────────────
+
+describe('commandAliasProblems', () => {
+  const scripts = { verify: 'node scripts/verify.mjs', 'eval:domain': 'node dev/eval/domain-run.mjs' }
+  const doc = (path, text) => ({ path, text })
+
+  it('accepts docs whose commands are aliases and whose aliases are documented', () => {
+    expect(commandAliasProblems({
+      scripts,
+      documents: [doc('AGENTS.md', 'pnpm verify  # 门禁\npnpm eval:domain  # 领域评测\npnpm install'), doc('docs/dev.md', 'pnpm exec dsh')],
+    })).toEqual([])
+  })
+
+  it('rejects a documented command that no alias provides (the class that caught `pnpm symlink`)', () => {
+    // Scope note: this rule owns the *alias table*. A bare `dsh plugin add …` invocation belongs to
+    // DSH's CLI, not to package.json, so it is deliberately out of scope here.
+    const problems = commandAliasProblems({
+      scripts,
+      documents: [doc('docs/dev.md', '（pnpm symlink 语义）'), doc('AGENTS.md', 'pnpm verify')],
+    })
+    expect(problems.join(' ')).toContain('pnpm symlink')
+    expect(problems.join(' ')).toContain('the doc outlived the alias')
+  })
+
+  it('rejects an alias that no current doc names', () => {
+    const problems = commandAliasProblems({
+      scripts: { ...scripts, silent: 'node scripts/silent.mjs' },
+      documents: [doc('AGENTS.md', 'pnpm verify')],
+    })
+    expect(problems.join(' ')).toContain('pnpm silent')
+    expect(problems.join(' ')).toContain('named in no current doc')
+  })
+
+  it('reports an empty corpus rather than passing silently', () => {
+    expect(commandAliasProblems({ scripts, documents: [] }).join(' ')).toContain('corpus is empty')
+  })
+})
 
 describe('relativeLinkProblems', () => {
   it('accepts resolving links, anchors on them, and out-of-scope targets; rejects broken ones', () => {
