@@ -512,6 +512,21 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    * Close one action: the principal reports it is done, and the assistant records the outcome
    * rather than leaving a finished item sitting in flight.
    */
+  /**
+   * Hand the missing reading to the assistant in place (R5, self-review 2026-09-27): the gap row
+   * used to be inert text, so the one thing only the principal could supply had no way to reach him
+   * except back through the conversation.
+   * @param what - the gap's headline, so the assistant knows which entry is being filled.
+   * @param value - the reading the principal typed.
+   * @param rowId - the row the receipt lands on.
+   */
+  function fillGap(what: string, value: string, rowId: string): void {
+    sendPrompt(
+      `缺口的原始读数：「${what}」→ ${value}。请据此更新相关记录，并把这条从 gaps 里拿掉（或写明还缺什么）。${DESK_REFRESH_STEP}`,
+      '补上', rowId,
+    )
+  }
+
   function finishAction(what: string, rowId: string): void {
     sendPrompt(
       `行动「${what}」已经办完了。请记录结果（度量上发生了什么）。${DESK_REFRESH_STEP}`,
@@ -1343,16 +1358,25 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         : null,
 
       sectionTitle('缺什么'),
+      // R5 (self-review, 2026-09-27): a gap names the thing that blocks everything and says only the
+      // principal can supply it — and then offered no way to supply it ("想补只需回一句" = back to
+      // chat). Every judgement on this surface is actionable in place; a gap is a judgement too.
       (data?.gaps ?? []).length === 0
         ? muted('（没有卡住的事）')
-        : createElement('div', null, ...(data?.gaps ?? []).map(item => createElement('div', {
-            key: String(item.id),
-            style: { marginBottom: '8px', paddingLeft: '10px', borderLeft: '2px solid #999' },
-          },
-          createElement('div', { style: { fontSize: '13px' } }, String(item.what ?? '')),
-          item.why === undefined || item.why === ''
-            ? null
-            : createElement('div', { style: { fontSize: '11px', color: '#999' } }, String(item.why))))),
+        : createElement('div', null, ...(data?.gaps ?? []).map(item => createElement(CorrectableRow, {
+            key: String(item.id ?? item.what),
+            rowId: String(item.id ?? item.what),
+            primary: createElement('span', null,
+              createElement('span', { style: { fontSize: '13px', fontWeight: 600 } }, String(item.what ?? '')),
+              item.why === undefined || item.why === ''
+                ? null
+                : createElement('div', { style: { fontSize: '11px', color: '#999', fontWeight: 400 } }, String(item.why))),
+            actionLabel: '补上',
+            placeholder: '它缺的那个读数／台账／参数是什么？',
+            onSubmit: (text: string) => {
+              fillGap(String(item.what ?? ''), text, String(item.id ?? item.what))
+            },
+          }))),
 
       sectionTitle('在跟的事'),
       data?.threads === undefined || data.threads.length === 0

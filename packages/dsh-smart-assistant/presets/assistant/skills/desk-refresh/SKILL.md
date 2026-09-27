@@ -64,6 +64,11 @@ The desk panel leads with its decisions section (`decisions`) and its threads se
 - `gaps[].what` — one line, the thing you lack, written so the principal knows what to hand over
   ("this quarter's monthly revenue by customer", "read access to the company facts folder").
   `why` is one line on what it unblocks. Keep it to what you actually hit, not a wish list.
+  **The principal can fill a gap in place**: the row carries a fill control, and what he types
+  reaches you as a panel message naming this gap's `what` together with the value he supplied
+  (every panel message carries the desk marker the panel prefixes). Record the value where it
+  belongs — knowledge page, memory, or the action it unblocks — then drop that gap from `gaps`;
+  if the value is still not enough, rewrite the entry to say exactly what is now missing.
 - `decisions[].question` — one line, the thing you would actually put to the principal (for example:
   "should we retire the weakest record in the digest?"). `context` is one short line of why the call
   is theirs. **Only real ones**: something you are genuinely waiting on. An empty list is a fine

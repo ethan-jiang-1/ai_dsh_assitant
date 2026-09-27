@@ -132,7 +132,13 @@ Permission/Model/Export) → 我们的三室 → **15 条英文技能**（`clien
   **验收**：夹具两条（只有带选项的 upkeep 时 → 上卡且折叠计数为 1；既无 business 也无选项时 → 诚实的
   空态）+ 造红证明（`lead` 改回只看 business → 该夹具红）；模型面改动按纪律跑了
   `pnpm eval -- --only desk-refresh-loop` **PASS (95s)**、`pnpm build`、touch preset 世代文件。
-- [ ] R5 · R6 · R7 · R8 · R9 · R10
+- [x] **R5 缺口无处置入口**（2026-09-27 落地）——缺口行改用 `CorrectableRow`：`actionLabel: 补上` +
+  placeholder「它缺的那个读数／台账／参数是什么？」→ 发送 `缺口的原始读数：「<what>」→ <value>。请据此
+  更新相关记录，并把这条从 gaps 里拿掉（或写明还缺什么）`。契约同 diff 补了**回程说明**（模型面英文）：
+  收到该消息后把值落到该落的地方（知识页/记忆/它解开的行动），再从 `gaps` 移除那一条，不够就改写它。
+  **验收**：夹具（缺口行有「补上」控件且 what/why 都在）+ 造红证明（把 `actionLabel` 改掉 → 该夹具红）；
+  模型面改动按纪律：build 0 · touch preset 世代 · `pnpm eval -- --only desk-refresh-loop` **PASS (133s)**。
+- [ ] R6 · R7 · R8 · R9 · R10
 
 ## 输掉的方案
 - **"先做视觉大改（R8）"**：视觉类改动没有前后截图不许下结论（S5 方法纪律），且 R1/R2/R4 的面级

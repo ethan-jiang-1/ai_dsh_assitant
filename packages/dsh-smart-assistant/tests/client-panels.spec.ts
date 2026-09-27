@@ -293,6 +293,20 @@ describe('desk panels', () => {
     expect(desk).toContain('没有 .desk/state.json')
   })
 
+  it('gives every gap an in-place way to supply the missing reading (R5)', () => {
+    const exports = materialize()
+    exports.deskStore.data = {
+      generatedAt: '2026-09-27T12:00:00+08:00',
+      gaps: [{ id: 'g1', what: '「20%」的原始读数', why: '没有它就没有基线' }],
+    }
+    const desk = textsOf(exports.DeskPanel()).join(' | ')
+    expect(desk).toContain('「20%」的原始读数')
+    expect(desk).toContain('没有它就没有基线')
+    // Before R5 the gap was inert text: the one thing only the principal could supply had no
+    // control at all, and the desk told him to go back to the conversation.
+    expect(findButton(exports.DeskPanel(), '补上')).toBeDefined()
+  })
+
   it('leads with an options-bearing decision when no business decision is waiting (R4)', () => {
     const exports = materialize()
     // The live shape that motivated R4: every decision filed as upkeep, but one of them carries the
