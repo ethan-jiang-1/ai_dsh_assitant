@@ -369,6 +369,15 @@ describe('desk panels', () => {
     expect(own).toContain('从这开始')
     expect(own).toContain('目前没有需要你拍板的经营事项')
 
+    // The room rides inside its own scroller: the vendor pane body is a flex column with
+    // overflow hidden and no scroll of its own, so the seat content brings scrolling —
+    // without the wrapper the long desk was clipped at the fold with no way down
+    // (user on the real machine, right-sidebar era, 2026-09-28).
+    const root = exports.DeskTabBody({ sessionId: 's1' }) as unknown as
+      { props?: { style?: Record<string, unknown> } }
+    expect(root.props?.style?.overflowY).toBe('auto')
+    expect(root.props?.style?.minHeight).toBe('0')
+
     // The other rooms bind the same way.
     const knowledge = textsOf(exports.KnowledgeTabBody({ sessionId: 's1' })).join(' | ')
     expect(knowledge).toContain('知识室')

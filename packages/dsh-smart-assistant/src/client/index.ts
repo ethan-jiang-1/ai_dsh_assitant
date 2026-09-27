@@ -1086,7 +1086,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         if (deskStore.sendSession === sessionId) deskStore.sendSession = undefined
       }
     }, [sessionId, store.sourceSession])
-    if (sessionId === undefined) return muted('这个 tab 没有落在任何会话里，读不到它的工作区')
+    if (sessionId === undefined) return roomScroller(muted('这个 tab 没有落在任何会话里，读不到它的工作区'))
     const retryButton = (label: string): ReturnType<typeof createElement> => createElement('button', {
       onClick: askRefresh,
       style: {
@@ -1095,14 +1095,28 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       },
     }, label)
     // A5: a corrupt file is an error with a way out, not an eternal "reading…".
-    if (store.readError !== undefined) return createElement('div', null,
+    if (store.readError !== undefined) return roomScroller(
       muted(`读桌面文件失败：${store.readError}。`), retryButton('让助手重写一份'))
     // A6: the empty state is exactly the state that most needs a one-click refresh — asking the
     // principal to go type it in the conversation was backwards.
-    if (deskStore.misses.has(sessionId)) return createElement('div', null,
+    if (deskStore.misses.has(sessionId)) return roomScroller(
       muted('这个会话的工作区还没有 .desk/state.json——点一下，让助手写一份。'), retryButton('刷新桌面'))
-    if (store.sourceSession !== sessionId) return muted('正在读这个会话的桌面…')
-    return createElement(Panel as unknown as import('react').FunctionComponent)
+    if (store.sourceSession !== sessionId) return roomScroller(muted('正在读这个会话的桌面…'))
+    return roomScroller(createElement(Panel as unknown as import('react').FunctionComponent))
+  }
+
+  /**
+   * The room tab's scroll container. The vendor's pane body is a flex column with
+   * `overflow: hidden` and no scroll of its own — the seat's content brings scrolling.
+   * Without this wrapper the long desk was clipped at the fold with no way down
+   * (user on the real machine, right-sidebar era, 2026-09-28).
+   * @param children - the room content, or an error/empty state.
+   * @returns the scrollable wrapper element.
+   */
+  function roomScroller(...children: (string | ReturnType<typeof createElement>)[]): ReturnType<typeof createElement> {
+    return createElement('div', {
+      style: { flex: '1', minHeight: '0', minWidth: '0', overflowY: 'auto', overflowX: 'hidden' },
+    }, ...children)
   }
 
   /** Tab bodies: the same three rooms the main pages render, bound to their own session. */
