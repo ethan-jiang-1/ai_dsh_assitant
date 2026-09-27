@@ -49,3 +49,6 @@ coverage/
 # 领域评测集：本人填的真实经营问题（不进 Git）与它跑出的打分表
 dev/eval/domain/questions.local.md
 dev/eval/domain/sheet-*.md
+
+# Session-written deliverables (cwd=repo by design; uncommitted handoff, see .desk rule)
+/deliverables/
