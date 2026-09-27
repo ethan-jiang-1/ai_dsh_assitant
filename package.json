@@ -19,7 +19,7 @@
     "typecheck": "pnpm --filter dsh-smart-assistant run typecheck",
     "build": "pnpm --filter dsh-smart-assistant run build",
     "test": "pnpm --filter dsh-smart-assistant run test",
-    "verify": "node scripts/gen-paths.mjs --check && node scripts/gen-catalog.mjs --check && node dev/eval/run.mjs --self-check && node scripts/verify.mjs",
+    "verify": "node scripts/gen-paths.mjs --check && node scripts/gen-catalog.mjs --check && node dev/eval/run.mjs --self-check && node dev/desk-loop-report.mjs --self-check && node scripts/verify.mjs",
     "release-smoke": "node scripts/release-smoke.mjs",
     "preflight": "node scripts/webui-preflight.mjs",
     "shots": "node scripts/webui-shots.mjs",
