@@ -243,6 +243,9 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     pending?: { rowId: string, at: number, action: string } | undefined
     /** Receipt of the last action the desk file confirmed, shown on its row. */
     lastReceipt?: { rowId: string, action: string, at: number } | undefined
+    /** An action that left but whose desk rewrite never arrived (the poller gave up). Rendered on
+     *  its row as a durable, honest state — clearing it silently would read as "done" (R1). */
+    stalled?: { rowId: string, at: number, action: string } | undefined
     /** A corrupt desk file from the bound session (A5): the tab shows the error and a retry, not "reading…". */
     readError?: string | undefined
     /** The desk's draft pointer just sent the principal over (S4): highlight and scroll to the drafts. */
@@ -371,13 +374,39 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     return generated === undefined || generated <= pending.at
   }
 
+  /**
+   * Release the data gate when the poller gives up waiting for the assistant to rewrite the desk
+   * file. Leaving `pending` set froze every action button in all three rooms behind a "正在处理"
+   * that never ended, while the escape hatch (刷新桌面) was disabled by that same flag — the live
+   * desk was 13 h stale in exactly that state (self-review R1, 2026-09-27). Expiry is honest: the
+   * action was sent and is not revoked; only the "still working" claim stops.
+   */
+  function expirePending(): void {
+    const pending = deskStore.pending
+    patchDesk({
+      pending: undefined,
+      // The row keeps an honest, durable state: the action DID leave, the desk just has not caught
+      // up. A transient note would be wiped by the next successful load (verified live: the note
+      // was gone by the time the release was captured), and silence would read as "done".
+      stalled: pending === undefined ? undefined : { ...pending },
+      note: '它还没重写桌面——点「刷新桌面」再试一次（动作已发出，不会被撤销）',
+    })
+  }
+
   /** A finished load settles the pending action: the file moving past `at` is the completion signal. */
   function settlePending(generatedAt: string | undefined): void {
-    const pending = deskStore.pending
-    if (pending === undefined) return
     const generated = deskGeneratedAtMs({ generatedAt } as DeskData)
-    if (generated === undefined || generated <= pending.at) return
-    patchDesk({ pending: undefined, lastReceipt: { rowId: pending.rowId, action: pending.action, at: Date.now() } })
+    if (generated === undefined) return
+    const pending = deskStore.pending
+    if (pending !== undefined && generated > pending.at) {
+      patchDesk({ pending: undefined, stalled: undefined, lastReceipt: { rowId: pending.rowId, action: pending.action, at: Date.now() } })
+      return
+    }
+    // A stalled row is settled by the same signal: the file moving past its send.
+    const stalled = deskStore.stalled
+    if (stalled !== undefined && generated > stalled.at) {
+      patchDesk({ stalled: undefined, lastReceipt: { rowId: stalled.rowId, action: stalled.action, at: Date.now() } })
+    }
   }
 
   /** The newest Session, which every panel action drives. */
@@ -414,7 +443,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       patchDesk({ note: 'remote.session did not materialize' })
       return
     }
-    patchDesk({ pending: { rowId, at: Date.now(), action }, lastReceipt: undefined })
+    patchDesk({ pending: { rowId, at: Date.now(), action }, lastReceipt: undefined, stalled: undefined })
     // A10: panel messages carry a marker so the conversation log (and the usage meter) can tell
     // machine-written prompts from the principal's own words — otherwise the principal's history
     // fills with assertions they never typed, and the meter counts the panel as the human.
@@ -434,7 +463,13 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     })
     let tries = 0
     const tick = (): void => {
-      if (deskStore.pending === undefined || tries >= 15) return
+      if (deskStore.pending === undefined) return
+      if (tries >= 15) {
+        // Giving up releases the gate (see expirePending): a frozen surface whose escape hatch is
+        // disabled by the same flag has no way out at all.
+        expirePending()
+        return
+      }
       tries += 1
       reloadDesk()
       setTimeout(tick, 10_000)
@@ -583,6 +618,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     const frozen = pendingInFlight(store)
     const inflight = store.pending?.rowId === props.rowId && store.pending !== undefined && frozen
     const receipt = store.lastReceipt?.rowId === props.rowId ? store.lastReceipt : undefined
+    const stalled = store.stalled?.rowId === props.rowId ? store.stalled : undefined
     const submit = (): void => {
       const value = text.trim()
       if (value === '') return
@@ -660,6 +696,11 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       inflight === false ? null : createElement('div', {
         style: { fontSize: '12px', color: '#888', marginTop: '4px' },
       }, `已交给助手 · ${shortTime(new Date(store.pending?.at ?? Date.now()).toISOString())} · ${String(store.pending?.action ?? '')}——正在处理，回复出现在对话里`),
+      // The poller gave up: the action left, the desk did not catch up. Durable on the row on
+      // purpose — a row that looks untouched reads as "nothing happened" (R1).
+      stalled === undefined ? null : createElement('div', {
+        style: { fontSize: '12px', color: '#b26a00', marginTop: '4px' },
+      }, `已发出 · ${shortTime(new Date(stalled.at).toISOString())} · ${stalled.action}——桌面还没跟上，点「刷新桌面」再试（动作不会被撤销）`),
       receipt === undefined ? null : createElement('div', {
         style: { fontSize: '12px', color: MARK_TEAL, marginTop: '4px' },
       }, `✓ 已更新 · ${shortTime(new Date(receipt.at).toISOString())}`),
@@ -987,14 +1028,17 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
 
   /** The refresh button plus its status line, and — where the room can — the jump to the beside-conversation tab. */
   function refreshRow(store: typeof deskStore, tabKind?: RoomKind): ReturnType<typeof createElement> {
+    // Used for the status line only. The button itself is deliberately NOT disabled while an action
+    // is in flight: it is the escape hatch when the assistant does not rewrite the desk file
+    // (self-review R1, 2026-09-27). It re-reads the file; reading is always safe, and a frozen
+    // surface with a dead escape hatch is not.
     const inFlight = pendingInFlight(store)
     return createElement('div', { style: { margin: '8px 0 0' } },
       createElement('button', {
         onClick: askRefresh,
-        disabled: inFlight,
         style: {
           padding: '6px 14px', fontSize: '13px', cursor: 'pointer', borderRadius: '6px',
-          border: `1px solid ${MARK_TEAL}`, background: inFlight ? '#f2f2f2' : '#fff',
+          border: `1px solid ${MARK_TEAL}`, background: '#fff',
           color: MARK_TEAL,
         },
       }, '刷新桌面'),
@@ -1615,7 +1659,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     inject, apply, AssistantBrandMark, AssistantBrandName,
     DeskPanel, KnowledgePanel, MemoryPanel, deskStore,
     DeskTabBody, KnowledgeTabBody, MemoryTabBody, AssistantDeskChip,
-    roomCommands, AssistantHeroMark, FirstMileDock,
+    roomCommands, AssistantHeroMark, FirstMileDock, expirePending, settlePending,
   }
 }
 

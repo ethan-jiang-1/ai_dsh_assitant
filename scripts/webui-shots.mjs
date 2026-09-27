@@ -52,6 +52,8 @@
  *             reached (e.g. dismiss a notice, open the command menu) — a scripted click
  *             is weaker evidence than a human click, but enough to answer "does this
  *             surface contain X", which is what the UI slices need.
+ *   --timeout watchdog override in ms (default: budget + settle + 1.5s per --eval + 30s);
+ *             raise it when an awaited promise eval waits longer than that.
  *   --lang    browser locale (default zh-CN): the first-mile experience being reviewed
  *             is the Chinese one, and a fresh headless profile would otherwise render
  *             en-US. Sets both the Chrome UI language and the page's locale override.
@@ -284,7 +286,9 @@ for (const viewport of viewports) {
     // Watchdog: a page that wedges Chrome would otherwise hang the whole capture with no
     // output (observed 2026-09-26). Killing the process closes the DevTools socket, which
     // rejects every pending response and lands the failure in the catch below.
-    const watchdogMs = budget + settle + evals.length * 1500 + 30_000
+    // `--timeout` exists because an awaited promise eval (a real wait for a timeout to expire,
+    // a turn to settle) can legitimately outlive any formula over budget/settle/eval count.
+    const watchdogMs = Number(option('timeout', String(budget + settle + evals.length * 1500 + 30_000)))
     watchdog = setTimeout(() => {
       console.error(`  !!   watchdog: no capture after ${watchdogMs}ms — killing chrome`)
       // A killed Chrome does not reliably close the DevTools socket, so a pending CDP
@@ -382,7 +386,10 @@ for (const viewport of viewports) {
             if (own) lines.push('  '.repeat(depth) + el.tagName.toLowerCase() + ' h=' + Math.round(r.height) + ': ' + own.slice(0, 120))
             if (el.tagName === 'BUTTON' || el.tagName === 'TEXTAREA' || (el.tagName === 'INPUT' && el.type !== 'hidden')) {
               const label = (el.getAttribute('aria-label') || el.placeholder || el.innerText || '').trim()
-              controls.push(el.tagName.toLowerCase() + ' h=' + Math.round(r.height) + ': ' + label.slice(0, 100))
+              // The disabled attribute is part of the evidence: a frozen surface and a live one
+              // differ only by it, so a control list without it cannot prove a gate opened.
+              const state = el.disabled === true ? 'disabled ' : ''
+              controls.push(state + el.tagName.toLowerCase() + ' h=' + Math.round(r.height) + ': ' + label.slice(0, 100))
             }
             for (const c of el.children) walk(c, depth + 1)
           }

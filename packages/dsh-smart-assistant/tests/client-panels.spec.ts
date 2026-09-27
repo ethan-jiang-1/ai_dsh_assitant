@@ -19,6 +19,8 @@ interface DeskStore {
   source?: string | undefined
   pending?: { rowId: string, at: number, action: string } | undefined
   lastReceipt?: { rowId: string, action: string, at: number } | undefined
+  /** An action that left but whose desk rewrite never arrived (R1). */
+  stalled?: { rowId: string, at: number, action: string } | undefined
   readError?: string | undefined
   focusKnowledge?: 'drafts' | undefined
   misses: Set<string>
@@ -33,6 +35,10 @@ interface PanelExports {
   DeskPanel: () => unknown
   KnowledgePanel: () => unknown
   MemoryPanel: () => unknown
+  /** Release the data gate when the poller gives up (R1). */
+  expirePending: () => void
+  /** Settle a pending/stalled row when a load reports the file moved past the send. */
+  settlePending: (generatedAt: string | undefined) => void
   DeskTabBody: (props: { sessionId?: string }) => unknown
   KnowledgeTabBody: (props: { sessionId?: string }) => unknown
   MemoryTabBody: (props: { sessionId?: string }) => unknown
@@ -56,6 +62,18 @@ function textsOf(node: unknown): string[] {
     return textsOf((element.type as (props: unknown) => unknown)(element.props))
   }
   return element.props === undefined ? [] : textsOf(element.props.children)
+}
+
+/** Labels of the buttons rendered disabled — the busy freeze must be mechanical, not copy. */
+function disabledButtonLabels(node: unknown): string[] {
+  if (node === null || node === undefined || typeof node !== 'object') return []
+  if (Array.isArray(node)) return node.flatMap(disabledButtonLabels)
+  const element = node as { type?: unknown, props?: { children?: unknown, disabled?: unknown } }
+  if (typeof element.type === 'function') {
+    return disabledButtonLabels((element.type as (props: unknown) => unknown)(element.props))
+  }
+  const own = element.type === 'button' && element.props?.disabled === true ? textsOf(element) : []
+  return [...own, ...disabledButtonLabels(element.props === undefined ? [] : element.props.children)]
 }
 
 /** Buttons rendered disabled — the busy freeze must be mechanical, not just a line of copy. */
@@ -388,6 +406,9 @@ describe('desk panels', () => {
     exports.deskStore.data = {
       generatedAt: '2026-09-26T13:00:00+08:00',
       decisions: [{ id: 'd1', question: '要不要授权读公司盘？', context: '读它才能定因', kind: 'business' }],
+      // A row that carries action buttons, so "the gate is mechanical" can be asserted on a row
+      // button rather than on the escape hatch (which must stay live — see below).
+      actions: [{ id: 'a1', what: '季末守住纪律', status: 'open' }],
     }
     // The action left AFTER the file was last written → still in flight: buttons frozen, the
     // receipt lands on the row that was acted on. (The old freeze lifted when the queue accepted
@@ -397,10 +418,16 @@ describe('desk panels', () => {
     expect(inFlight).toContain('已交给助手')
     expect(inFlight).toContain('正在处理')
     expect(inFlight).toContain('回复出现在对话里')
-    // S7: the answered row is read-only — no answer buttons AT ALL (stronger than frozen); the
-    // global gate still freezes the rest of the surface (refresh button here).
+    // S7: the answered row is read-only — no answer buttons AT ALL (stronger than frozen).
     expect(inFlight).not.toContain('看选项')
-    expect(disabledButtons(exports.DeskPanel())).toBeGreaterThanOrEqual(1)
+    // The gate is mechanical, on every row button the panel renders…
+    const frozen = disabledButtonLabels(exports.DeskPanel())
+    expect(frozen.length).toBeGreaterThanOrEqual(1)
+    expect(frozen).toContain('办完了')
+    // …and the escape hatch is NOT one of them: a frozen surface whose 刷新桌面 is disabled by the
+    // same flag has no way out at all (self-review R1, 2026-09-27 — the live desk sat 13 h stale
+    // behind exactly that combination).
+    expect(frozen).not.toContain('刷新桌面')
 
     // The desk file is rewritten past the send → the gate lifts and the row carries its receipt.
     exports.deskStore.pending = undefined
@@ -409,6 +436,38 @@ describe('desk panels', () => {
     const settled = textsOf(exports.DeskPanel()).join(' | ')
     expect(settled).toContain('✓ 已更新')
     expect(disabledButtons(exports.DeskPanel())).toBe(0)
+  })
+
+  it('releases the frozen surface and says so when the assistant never rewrites the desk (R1)', () => {
+    const exports = materialize()
+    exports.deskStore.data = {
+      generatedAt: '2026-09-26T13:00:00+08:00',
+      actions: [{ id: 'a1', what: '季末守住纪律', status: 'open' }],
+    }
+    const sentAt = new Date('2026-09-27T10:00:00+08:00').getTime()
+    exports.deskStore.pending = { rowId: 'a1', at: sentAt, action: '办完了' }
+    expect(disabledButtonLabels(exports.DeskPanel())).toContain('办完了')
+
+    // The poller's re-read budget runs out; expiry is the release valve. Before R1 the pending
+    // flag stayed set forever, so every action button in all three rooms stayed dead while still
+    // claiming "正在处理", and 刷新桌面 — the only way out — was disabled by that same flag.
+    exports.expirePending()
+
+    expect(exports.deskStore.pending).toBeUndefined()
+    const after = textsOf(exports.DeskPanel()).join(' | ')
+    expect(after).not.toContain('正在处理')
+    // The row keeps an honest, durable state: the action left, the desk did not catch up. Silence
+    // would read as "done", and a transient note is wiped by the next successful load.
+    expect(after).toContain('桌面还没跟上')
+    expect(after).toContain('点「刷新桌面」再试')
+    expect(exports.deskStore.stalled?.rowId).toBe('a1')
+    expect(disabledButtonLabels(exports.DeskPanel())).toEqual([])
+
+    // …and the desk file finally moving past the send settles that row.
+    exports.deskStore.data = { ...exports.deskStore.data, generatedAt: '2026-09-27T10:05:00+08:00' }
+    exports.settlePending('2026-09-27T10:05:00+08:00')
+    expect(exports.deskStore.stalled).toBeUndefined()
+    expect(textsOf(exports.DeskPanel()).join(' | ')).toContain('✓ 已更新')
   })
 
   it('renders the options the assistant presented as one-click answers on the row', () => {
