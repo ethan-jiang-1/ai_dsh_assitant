@@ -12,12 +12,12 @@
 
 ## 队列
 
-- ▶ **第一公里：从打开到第一句话**（用户 2026-09-26 深夜拍板全量 P0–P3，当前 Goal）：**P0 截图证据管线 + P1-A 命令面 + P1-B 首屏身份与引导 + P2 视觉（同宽修复+密度证据）已落地**；剩 **P1-C 未决**（平台默认工作区机制查清、一次真机端到端见过但无法按需复现，未验证配置已回退——复现配方在走查报告 §4b）+ **P2 层级提案 ⏸ 等你拍板**（动作移行首／它记折起／在办折叠）+ **P3 收尾**——卡：[2026-09-26-first-mile-landing](notes/proposed/2026-09-26-first-mile-landing.md) · 走查与截图证据：[2026-09-26-first-mile-walkthrough](notes/research/2026-09-26-first-mile-walkthrough.md)
+- ▶ **第一公里：从打开到第一句话**（用户 2026-09-26 拍板 P0–P3）：**P0 截图证据管线 + P1-A 命令面 + P1-B 首屏身份与引导 + P2 视觉与层级 + P3 收尾已落地**；**P1-C 搁置**（平台默认工作区机制查清、一次真机端到端见过、只在写不了 Documents 的环境失败——复现配方在走查报告 §4b）；各判定理由在卡内「判定记录」——卡：[2026-09-26-first-mile-landing](notes/proposed/2026-09-26-first-mile-landing.md) · 走查与截图证据：[2026-09-26-first-mile-walkthrough](notes/research/2026-09-26-first-mile-walkthrough.md)
 - ▶ **CEO 助手的 Sidebar 培养面**（用户拍板的当前 Goal，进行中）：三面板+培养循环已上线并经**真人首测全链走通**；右侧栏 tab、先办这件引导卡、已办分组、忙时冻结已落地；**设计思路＝[培养面设计思路](notes/proposed/2026-09-26-cultivation-surface-design.md)**；整改工作项＝▶ **培养面整改包**（本表下行）；typert 后置——编年记录：[活动卡](notes/proposed/2026-09-25-ceo-sidebar-ux.md) · 接手入口：[handoff](notes/research/2026-09-26-handoff-ceo-sidebar-cultivation.md)
 - ⏸ **IM 渠道接入**（O5；渠道由你选：飞书 / 企微 / 钉钉 / 先 Web+Desktop）——依据：[专家组合件 v0](notes/implemented/2026-09-25-expert-pack-v0.md) §四
 - ⏳ **MCP 连接**（触发=需要真实系统数据（公司盘/CRM 等）接入会话时；v0 用文件替身）——依据同上
-- ▶ **培养面整改包**（S1–S4 + S6 着陆 + S7 已答只读已落地 2026-09-26：内容准入/异步闭环/机械缺陷/三室语义/首开引导/已答决定只读，逐片验收在卡）——**S5 密度：僵局已解**（第一公里的 P0 截图管线自产真机窄栏证据，见[走查](notes/research/2026-09-26-first-mile-walkthrough.md)；密度结论与层级提案在[第一公里卡](notes/proposed/2026-09-26-first-mile-landing.md) P2，⏸ 等用户拍板层级）——卡：[2026-09-26-cultivation-remediation](notes/proposed/2026-09-26-cultivation-remediation.md)
-- ⏸ **外部 UX/UI 评审**（等你找评审者；自足简报：[2026-09-26-ux-review-brief](notes/research/2026-09-26-ux-review-brief.md)——含平台约束、9 条困惑、期望的反馈形态）——反馈回来后逐条转切片或说明拒绝理由
+- ▶ **培养面整改包**（S1–S4 + S6 着陆 + S7 已答只读已落地 2026-09-26：内容准入/异步闭环/机械缺陷/三室语义/首开引导/已答决定只读，逐片验收在卡）——**S5 密度/层级已闭环**（第一公里 P0 管线自产真机窄栏证据 → P2 判定：动作上移到标题行，见[卡](notes/proposed/2026-09-26-first-mile-landing.md) 判定记录 1）——卡：[2026-09-26-cultivation-remediation](notes/proposed/2026-09-26-cultivation-remediation.md)
+- ▶ **自主 UX/可用性评审**（2026-09-27 按研发姿态把"等外部评审者"改为**自己做**）：用已到手的真机截图 + 对抗性设计评审 + 可用性走查（入口可发现性、首屏三秒判据、窄栏可读性、错误/空/陈旧态）出一份评审与切片建议；外部真人评审**可选**、不再是前置。自足简报仍可用：[2026-09-26-ux-review-brief](notes/research/2026-09-26-ux-review-brief.md)
 - ⏳ 知识导入的转换与概念抽取（触发=①第一份真实 docx/pdf 文档集出现 ②评测集 v0 就位；依据：[导入纯核 note](notes/implemented/2026-09-25-knowledge-ingest-core.md) §四）
 - ⏳ **vendor `lib/` 重建（换 pin 的常规收尾）**（触发=需要 boot/release-smoke/plugin-add 出的 profile 时；测试已改为解析 vendor src，不再依赖它）——三条路与已试步骤见迁移记录 §六
 - ⏸ **阶段 0-3 · 评测集 v0**（30–50 条真实经营问题，含应拒答题与判分规则；**题目由你本人出**——这是 G2 关口，agent 只整理格式）
@@ -76,3 +76,8 @@
   答案是**两者都不是**：它的 frontmatter parse 失败，加载器静默 skip（`action-plan` 同病）。
   修法与证据：[策展技能被静默跳过](notes/implemented/2026-09-25-curated-skill-frontmatter-silent-skip.md)；
   "真实使用里技能是否真被加载"这一观察由 ▶ 真实使用开跑 条目承担。
+- 2026-09-27：**按研发姿态重新分诊 ⏸ 项**（用户当日拍板：技术/设计自决、阶段才 REVIEW——判据在
+  [意图清单](notes/intents.md) §〇·三，常设指令在根 `AGENTS.md`「研发姿态」）。本次动作：
+  "等外部 UX 评审者" → ▶ **自主评审**（自己做，外部真人降为可选）；第一公里 P1-C → 搁置、
+  P2 层级 → 已自主判定落地（理由在卡内判定记录）；**仍留 ⏸ 的只有真人输入**——IM 渠道选择、
+  评测集 v0 题目（G2 关口）。
