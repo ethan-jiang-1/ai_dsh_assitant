@@ -1,6 +1,6 @@
 # 培养面设计思路（设计 owner）
 
-日期：2026-09-26 · 状态：**proposed（进行中：本卡是培养面的设计思路 owner——原则、架构与判据在此；编年记录与逐圈证据在[活动卡](2026-09-25-ceo-sidebar-ux.md)，上手入口在 [handoff](../research/2026-09-26-handoff-ceo-sidebar-cultivation.md)。随真实使用演进）**
+日期：2026-09-26 · 状态：**proposed（进行中：本卡是培养面的设计思路 owner——原则、架构与判据在此；编年记录与逐圈证据在[活动卡](../archived/2026-09-25-ceo-sidebar-ux.md)，上手入口在 [handoff](../research/archive/2026-09-26-handoff-ceo-sidebar-cultivation.md)。随真实使用演进）**
 
 ## 一、它是什么、为谁、怎样算好
 
@@ -31,7 +31,7 @@
    而契约没有排序/分类字段——真实数据里引导卡当前展示的正是**助手的家务问题**（"培养面接着做深，
    还是先停一停？"）。**已修（S1，2026-09-26）**：契约加 `kind: business|upkeep` + `rank`，引导卡
    只吃 business 第一条，无 business 时诚实显示"目前没有需要你拍板的经营事项"；实战检验：助手
-   首跑即正确分类（2 business / 2 upkeep）——见[整改卡](2026-09-26-cultivation-remediation.md) S1。
+   首跑即正确分类（2 business / 2 upkeep）——见[整改卡](../implemented/2026-09-26-cultivation-remediation.md) S1。
 4. **信任线**。每条记忆/知识页带出处（`source`/`sources`）；桌面带新鲜度（`generatedAt` +
    "对话比桌面新"告警）；技能里写死"没有出处就不要编造引用"、"陈旧或编造的清单比没有更糟"。
 5. **面板是控制器，不是只读展示**。动作以**普通消息**送回对话（`sendPrompt`），助手改记录并在
@@ -64,7 +64,7 @@
 
 机制细节（两段注册、session 作用域 seat、恢复态语义、boot 图）的 how-to 权威是开发技能
 [`client-ui-contribution`](../../.agents/skills/client-ui-contribution/SKILL.md)；typert 阻塞的完整证据链在
-[活动卡 §四·二](2026-09-25-ceo-sidebar-ux.md)。
+[活动卡 §四·二](../archived/2026-09-25-ceo-sidebar-ux.md)。
 
 ## 四、现状盘点（2026-09-26）
 
@@ -73,12 +73,12 @@
 忙时冻结（**评审核实：窗口错误，待修**）、信任线（出处 + 新鲜度）、preflight 关口、
 行为评测网、真人首测全链走通。
 
-**对抗性评审的修复包（2026-09-26，⏸ 待用户拍板）**：[评审记录](../research/2026-09-26-adversarial-design-review.md)——
+**对抗性评审的修复包（2026-09-26，⏸ 待用户拍板）**：[评审记录](../research/archive/2026-09-26-adversarial-design-review.md)——
 判决"这是工作目录的只读投影 + 模板消息发送器"；修复顺序＝内容政策（`kind`/`rank`）→ 协议回执
 （`options[]`/`pending`/`reply`/`note` + 数据闸门）→ 窄栏密度（一行一条/层级/按钮对比/暗色 token）；
 另含 A1–A10 十条代码级缺陷（技能行发错对象类型、陈旧告警失准、跨会话静默回退、固定重读窗口等）。
 
-**运行中页面的独立反馈（2026-09-26，⏸ 待用户拍板）**：[体验反馈](../research/2026-09-26-ux-review-feedback.md)——
+**运行中页面的独立反馈（2026-09-26，⏸ 待用户拍板）**：[体验反馈](../research/archive/2026-09-26-ux-review-feedback.md)——
 dev profile 的三室实际内容与右栏打不开的浏览器证据；与上面直接重切三室的方案不同，建议先验
 "行动 / 依据 / 对本人理解"三个用户问题能否在现有入口成立。两份评审是并列备选，不当作已定设计。
 
@@ -93,14 +93,14 @@ dev profile 的三室实际内容与右栏打不开的浏览器证据；与上�
 - **发行组合的默认工作区**（平台层；2026-09-26 第一公里 P0-B 已查清）：**平台本身会给**——空注册表
   时客户端触发 `initializeDefault`，建 `<Documents>/deepseek-harness/default-workspace`（标题显示为
   本地化的"默认工作区"）；一次真机端到端见过三处一致，但**无法按需复现**（细节与复现配方见
-  [第一公里走查](../research/2026-09-26-first-mile-walkthrough.md) §3/§4b）。用户当时问"是不是要选一个
+  [第一公里走查](../research/archive/2026-09-26-first-mile-walkthrough.md) §3/§4b）。用户当时问"是不是要选一个
   工作目录"因此更可能是**affordance**（chip 长得像"必须选"）而不是缺默认；沙箱里看到的"选择工作区"
   占位是 agent 文件沙箱写不了 `~/Documents` 的假象。**发行组合是否要额外动作 → 转第一公里卡的用户拍板项。**
 
 ## 五、输掉的方案
 
 - **自建 Remote 命名空间**（`TypertRemoteService`）：仓外插件进不了构建期清单，客户端永远等不到——
-  整段回退；替代＝desk 文件协议。证据链留[活动卡 §四·二](2026-09-25-ceo-sidebar-ux.md)。
+  整段回退；替代＝desk 文件协议。证据链留[活动卡 §四·二](../archived/2026-09-25-ceo-sidebar-ux.md)。
 - **装第三方 sidebar 包**：只借思路不装包（第七条硬规则）。
 - **全功能仪表盘**：CEO 不要 BI 工具，要的是"助手状态一览 + 指哪打哪"。
 - **先做 genui 式回复内渲染**：依赖最重、链路最长，放最后。
@@ -110,21 +110,21 @@ dev profile 的三室实际内容与右栏打不开的浏览器证据；与上�
 
 - **机械层**：`pnpm verify`（31 项）+ 面板渲染测试 + `pnpm eval -- --only desk-refresh-loop` + `preflight` 绿；
 - **真实层**：真人使用 → 会话日志（仪表"真人消息"与"注入前导"分列）→ 别扭变切片；
-- **已跑通的一圈**：真人首测反馈（判据 1）→ [活动卡 §四·二十](2026-09-25-ceo-sidebar-ux.md) → 引导卡切片
-  → 真人实测全链走通（会话 `34e64c5d`）→ [§四·二十一](2026-09-25-ceo-sidebar-ux.md) → 忙时冻结。
+- **已跑通的一圈**：真人首测反馈（判据 1）→ [活动卡 §四·二十](../archived/2026-09-25-ceo-sidebar-ux.md) → 引导卡切片
+  → 真人实测全链走通（会话 `34e64c5d`）→ [§四·二十一](../archived/2026-09-25-ceo-sidebar-ux.md) → 忙时冻结。
 
 ## 七、与其它文档的关系（一个事实一个家）
 
 - **本卡**：设计思路 owner（原则、架构、判据、未决）；
-- [活动卡](2026-09-25-ceo-sidebar-ux.md)：编年记录与逐圈证据（§四·X）＋当前状态一览（§〇）；
-- [handoff](../research/2026-09-26-handoff-ceo-sidebar-cultivation.md)：新 Agent 上手入口（怎么跑、怎么验、环境快照）；
+- [活动卡](../archived/2026-09-25-ceo-sidebar-ux.md)：编年记录与逐圈证据（§四·X）＋当前状态一览（§〇）；
+- [handoff](../research/archive/2026-09-26-handoff-ceo-sidebar-cultivation.md)：新 Agent 上手入口（怎么跑、怎么验、环境快照）；
 - [`desk-refresh` 技能](../../packages/dsh-smart-assistant/presets/assistant/skills/desk-refresh/SKILL.md)：模型面字段契约（填法）；
 - [client-ui-contribution 技能](../../.agents/skills/client-ui-contribution/SKILL.md)：client 机制 how-to。
 
 ## 八、两份外部评审的综合（2026-09-26）
 
-两份独立评审：**[对抗性设计评审](../research/2026-09-26-adversarial-design-review.md)**（不知情的新 agent，
-读代码 + 真实 desk 文件，开发者逐条核实）与**[运行中页面独立体验反馈](../research/2026-09-26-ux-review-feedback.md)**
+两份独立评审：**[对抗性设计评审](../research/archive/2026-09-26-adversarial-design-review.md)**（不知情的新 agent，
+读代码 + 真实 desk 文件，开发者逐条核实）与**[运行中页面独立体验反馈](../research/archive/2026-09-26-ux-review-feedback.md)**
 （真机点过页面）。两者独立（一个读代码、一个动手点）：**一致处＝高置信信号；分歧处＝需要用户拍板的设计分叉。**
 
 ### 一致（高置信，按优先级）

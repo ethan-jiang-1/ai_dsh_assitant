@@ -1,6 +1,6 @@
 # Handoff：CEO 助手的 Sidebar 培养面（交接给新 Agent）
 
-日期：2026-09-26 · 状态：**进行中**（交接文档；工作未完成，本文件是接手的入口）
+日期：2026-09-26 · 状态：**已收卷**（交接的工作已交付：整改包毕业、第一公里交付；现行入口＝[设计 owner 卡](../../proposed/2026-09-26-cultivation-surface-design.md) 与 ROADMAP）
 交接人：责任圈会话（第 18–24 圈）· 接手人：新 Agent
 
 ---
@@ -74,7 +74,7 @@ working folder：记忆 / 探索线索 / 知识 / 技能 + 养护检查）。
    异步闭环（数据闸门/行内回执/二次确认/选项一键答）、机械缺陷 A2–A10+IME、三室语义（三个用户
    问题+指针落到那一条）、着陆（首开三步引导+来源行说人话）、**已答决定只读**（真人实测"三答一问"
    的行级修复）；P0（右栏开启器丢 receiver，此前右栏从未打开过）已修。逐片验收见
-   [整改卡](../proposed/2026-09-26-cultivation-remediation.md)。
+   [整改卡](../../implemented/2026-09-26-cultivation-remediation.md)。
 2. **S5 密度/视觉：等真机截图或录屏**——无截图不下视觉结论（方法纪律）；在那之前不动字号/配色/
    砍结构。二次确认与只读行的**真人手感**也仍待实测（夹具测不了点击手感）。
 3. **真人二次实测已发生（会话 2109ae56）**：全链走通（刷新/停办/选项/两条决定被接住撤下），
@@ -103,9 +103,9 @@ client 是 classic script 不是 ESM（一条 import/export 就解析错误、�
 物化（`Object.keys(remote)` 为空是正常的）、**仓外插件开不了新的 Remote 命名空间**（清单由 typert
 生成器从 vendor 工作区构建期产出；可用的替代 = 清单内已有的 27 个命名空间）——
 
-四条的**完整展开与验证循环的权威是开发技能 [`client-ui-contribution`](../../.agents/skills/client-ui-contribution/SKILL.md)**；
-typert 阻塞的证据链与死路回退（DeskRemote 整段删除）在[卡 §四·二](../proposed/2026-09-25-ceo-sidebar-ux.md)。
-（旧版在本节逐条复述，与技能双写——2026-09-26 审计拆除，见[清理卡](../implemented/2026-09-26-signal-noise-sweep.md)。）
+四条的**完整展开与验证循环的权威是开发技能 [`client-ui-contribution`](../../../.agents/skills/client-ui-contribution/SKILL.md)**；
+typert 阻塞的证据链与死路回退（DeskRemote 整段删除）在[卡 §四·二](../../archived/2026-09-25-ceo-sidebar-ux.md)。
+（旧版在本节逐条复述，与技能双写——2026-09-26 审计拆除，见[清理卡](../../implemented/2026-09-26-signal-noise-sweep.md)。）
 
 ### 3.5 两道闸门是纪律，不是机械门禁（诚实记录）
 
@@ -128,7 +128,7 @@ typert 阻塞的证据链与死路回退（DeskRemote 整段删除）在[卡 §�
 | `scripts/webui-preflight.mjs` | 交付前关口（boot 图 + Remote 清单 + desk 文件内容段） |
 | `packages/dsh-smart-assistant/tests/client-panels.spec.ts` | 面板渲染测试（装置：装门面 → 求值脚本 → 带 hook shim 物化工厂） |
 | `notes/proposed/2026-09-26-cultivation-surface-design.md` | **设计 owner 卡**：判据、11 条设计原则、架构、现状、输掉的方案、判据怎么验 |
-| `notes/proposed/2026-09-25-ceo-sidebar-ux.md` | **编年记录**：§〇 状态一览、逐圈证据（§四·X）、原始设计稿与实验计划（§二/§五，历史） |
+| `notes/archived/2026-09-25-ceo-sidebar-ux.md` | **编年记录**：§〇 状态一览、逐圈证据（§四·X）、原始设计稿与实验计划（§二/§五，历史） |
 | `.agents/skills/client-ui-contribution/SKILL.md` | 开发技能：怎么给 DSH Web 客户端加界面（四个坑 + 验证循环） |
 
 ---
@@ -158,7 +158,7 @@ node scripts/dsh.mjs --profile dev --dump-config | grep -A3 '<row id>'
 报 `xlsx` integrity，源于误加的 peerDep）——旧版交接文档教的 `npx` 绕过法已随修复过时删除，
 `pnpm build` / `pnpm test` 现在**直跑**（2026-09-26 实测 build exit 0）。仍然有效的教训：**别给 package.json
 加 vendor 依赖**——本仓约定 vendor 包不声明为依赖（靠工作区 + tsconfig 路径解析），加了会让 pnpm 全家挂
-（踩过，已回退）。vendor lefthook postinstall 卡 `verify-deps` 的正牌绕法见 [`docs/dev.md`](../../docs/dev.md) §三。
+（踩过，已回退）。vendor lefthook postinstall 卡 `verify-deps` 的正牌绕法见 [`docs/dev.md`](../../../docs/dev.md) §三。
 
 ---
 

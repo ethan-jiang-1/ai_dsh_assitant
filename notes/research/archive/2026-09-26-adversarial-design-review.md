@@ -1,13 +1,13 @@
 # 对抗性设计评审：培养面（外部 agent 评审记录 + 开发者核实）
 
-日期：2026-09-26 · 状态：**进行中**（评审已回；§0 是开发者核实、§8 是回应计划——待用户拍板后转切片）
+日期：2026-09-26 · 状态：**已收卷**（结论已消化：内容准入/异步闭环/机械缺陷与右栏 P0 修复均已交付，见[整改卡](../../implemented/2026-09-26-cultivation-remediation.md)）
 
 > **来源与性质**：本文件记录一次**对抗性设计评审**。评审者是一个**不知情的新 agent**（不继承开发者思路），
 > 被明确要求"找出它错在哪，不是验证它对；不要复述设计原则来夸它"。它读了：面板全部实现
-> （[client/index.ts](../../packages/dsh-smart-assistant/src/client/index.ts)，1199 行）、
-> [desk-refresh 契约](../../packages/dsh-smart-assistant/presets/assistant/skills/desk-refresh/SKILL.md)、
-> [面板测试](../../packages/dsh-smart-assistant/tests/client-panels.spec.ts)、
-> [设计卡](../proposed/2026-09-26-cultivation-surface-design.md)、[编年记录](../proposed/2026-09-25-ceo-sidebar-ux.md)、
+> （[client/index.ts](../../../packages/dsh-smart-assistant/src/client/index.ts)，1199 行）、
+> [desk-refresh 契约](../../../packages/dsh-smart-assistant/presets/assistant/skills/desk-refresh/SKILL.md)、
+> [面板测试](../../../packages/dsh-smart-assistant/tests/client-panels.spec.ts)、
+> [设计卡](../../proposed/2026-09-26-cultivation-surface-design.md)、[编年记录](../../archived/2026-09-25-ceo-sidebar-ux.md)、
 > **仓库根真实的 `.desk/state.json`（17:40 版）**，以及 DSH 侧两处机制源码（提示受理语义、主题 token）。
 > **开发者已逐条核实**（§0）；评审者自己标注了哪些是"代码可断定"、哪些是"推断·需真人眼"。
 
@@ -157,5 +157,5 @@
 **需要用户拍板的**：① `business`/`upkeep` 的判定规则（"只有本人能拍、且拍完会改变外面的动作"）
 ——按此规则，真实数据里 3 条决定全是 upkeep，引导卡会显示"没有等你拍板的事"（**评审者认为这是正确
 输出，不是失败**）；② 砍清单（在办整块、已办分组、规模数字、快捷操作、技能列表）是否照砍；
-③ 外部 UX 评审（[简报](2026-09-26-ux-review-brief.md)）是否仍要进行——本评审已覆盖部分同类问题，
+③ 外部 UX 评审（[简报](../2026-09-26-ux-review-brief.md)）是否仍要进行——本评审已覆盖部分同类问题，
 但两者独立（一个读代码、一个看观感），建议并行。

@@ -1,6 +1,6 @@
 # 第一公里：从打开到第一句话（着陆 / 功能发现 / 工作区之问）
 
-日期：2026-09-26 · 状态：**implemented**（用户 2026-09-26 批准 P0–P3；切片全部交付，逐片验收与判定记录在下。遗留两项各有归宿：P1-C 搁置（ROADMAP ⏳ 条目，配方在[走查](../research/2026-09-26-first-mile-walkthrough.md) §4b）、locale 席位延后（判定记录 6））
+日期：2026-09-26 · 状态：**implemented**（用户 2026-09-26 批准 P0–P3；切片全部交付，逐片验收与判定记录在下。遗留两项各有归宿：P1-C 搁置（ROADMAP ⏳ 条目，配方在[走查](../research/archive/2026-09-26-first-mile-walkthrough.md) §4b）、locale 席位延后（判定记录 6））
 
 ## 问题（可观察行为）
 
@@ -103,7 +103,7 @@
 
 - [x] **P0 证据管线 + 首开走查**（2026-09-26 落地）——`scripts/webui-shots.mjs`（CDP 截图 + DOM 证据；
   看门狗/进程组清理/`--plain` 兜底/`--eval` 交互），走查报告与真机截图证据在
-  [第一公里走查](../research/2026-09-26-first-mile-walkthrough.md) 与
+  [第一公里走查](../research/archive/2026-09-26-first-mile-walkthrough.md) 与
   [截图目录](../research/2026-09-26-first-mile-shots/)。
   **六条断点**（首屏是 DSH 的 / 输入框说工程师的话 / 零功能发现 / 三道门 / 面板标签不跟 UI 语言 /
   窄栏未验）与四条平台事实（默认工作区真的会建、可注入面清单、门是配置、管线六坑）都带证据。
@@ -131,7 +131,7 @@
   清空注册表后重跑，客户端停在"选择工作区"、注册表保持空，console 无错、host 无警告；字面量路径与
   `!!js` 路径表现相同（所以不是 `!!js` 求值问题）。因此**不把未验证的 `dev/profile-patch.yml`
   documentsDirectory 改动写进仓**（回退）；P1-C 的触发条件与复现配方见
-  [走查报告 §3/§5](../research/2026-09-26-first-mile-walkthrough.md)。**下个会话接手时从这里开始**：
+  [走查报告 §3/§5](../research/archive/2026-09-26-first-mile-walkthrough.md)。**下个会话接手时从这里开始**：
   先确认"客户端是否真的调用了 `workspace/initializeDefault`"（Network 域抓该 RPC），再谈 dev 配置
   （配方全文在走查 §4b）。
   顺带确认的两件事：`!!js` 表达式**不能加引号**（加了标签文本会漏进表达式 → 被当正则，报

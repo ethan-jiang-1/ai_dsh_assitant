@@ -67,7 +67,7 @@ So an **out-of-tree package cannot open a new Remote namespace** by writing a
 `TypertRemoteService`: the manifest has no record of it and the client waits forever. Making one
 work means joining the typert generation workspace (emit `lib/typert.host.js` +
 `lib/typert.remote-client.js`, get the namespace into the client manifest). Evidence and the
-attempted path: `notes/proposed/2026-09-25-ceo-sidebar-ux.md` §四·二.
+attempted path: `notes/archived/2026-09-25-ceo-sidebar-ux.md` §四·二.
 
 Cheaper routes for panel data, in order of preference: an **already-manifested** namespace
 (`skills`, `session`, `workspaceFiles`, `workspace`, `goals`, … — 27 of them), or a file the

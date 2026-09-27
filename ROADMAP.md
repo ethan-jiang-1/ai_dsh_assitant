@@ -12,25 +12,24 @@
 
 ## 队列
 
-- ⏳ **默认工作区复现（第一公里 P1-C 遗留）**（触发=真实安装出现"选择工作区"阻塞，或下次做发行 profile 时）：机制已查清（空注册表时平台建 `<Documents>/deepseek-harness/default-workspace`）、一次真机端到端见过，但按需复现失败——配方与第一步（CDP Network 域抓 `workspace/initializeDefault`）在[走查](notes/research/2026-09-26-first-mile-walkthrough.md) §4b。第一公里 P0–P3 本体已交付离队，记录在[卡](notes/implemented/2026-09-26-first-mile-landing.md)与 git
-- ▶ **CEO 助手的 Sidebar 培养面**（用户拍板的当前 Goal，进行中）：三面板+培养循环已上线并经**真人首测全链走通**；右侧栏 tab、先办这件引导卡、已办分组、忙时冻结已落地；**设计思路＝[培养面设计思路](notes/proposed/2026-09-26-cultivation-surface-design.md)**；整改工作项＝▶ **培养面整改包**（本表下行）；typert 后置——编年记录：[活动卡](notes/proposed/2026-09-25-ceo-sidebar-ux.md) · 接手入口：[handoff](notes/research/2026-09-26-handoff-ceo-sidebar-cultivation.md)
+- ⏳ **默认工作区复现（第一公里 P1-C 遗留）**（触发=真实安装出现"选择工作区"阻塞，或下次做发行 profile 时）：机制已查清（空注册表时平台建 `<Documents>/deepseek-harness/default-workspace`）、一次真机端到端见过，但按需复现失败——配方与第一步（CDP Network 域抓 `workspace/initializeDefault`）在[走查](notes/research/archive/2026-09-26-first-mile-walkthrough.md) §4b。第一公里 P0–P3 本体已交付离队，记录在[卡](notes/implemented/2026-09-26-first-mile-landing.md)与 git
+- ▶ **CEO 助手的 Sidebar 培养面**（用户拍板的当前 Goal，进行中）：三面板+培养循环已上线并经**真人首测全链走通**；设计思路＝[培养面设计思路](notes/proposed/2026-09-26-cultivation-surface-design.md)；当前工作项＝▶ **培养面二轮整改**（本表下行，自审发现 R1–R10）；typert 后置——逐圈历史（冻结）：[编年卡](notes/archived/2026-09-25-ceo-sidebar-ux.md) · 接手历史：[handoff](notes/research/archive/2026-09-26-handoff-ceo-sidebar-cultivation.md)
 - ⏸ **IM 渠道接入**（O5；渠道由你选：飞书 / 企微 / 钉钉 / 先 Web+Desktop）——依据：[专家组合件 v0](notes/implemented/2026-09-25-expert-pack-v0.md) §四
 - ⏳ **MCP 连接**（触发=需要真实系统数据（公司盘/CRM 等）接入会话时；v0 用文件替身）——依据同上
-- ▶ **培养面整改包**（S1–S4 + S6 着陆 + S7 已答只读已落地 2026-09-26：内容准入/异步闭环/机械缺陷/三室语义/首开引导/已答决定只读，逐片验收在卡）——**S5 密度/层级已闭环**（第一公里 P0 管线自产真机窄栏证据 → 判定：动作上移到标题行，见[卡](notes/implemented/2026-09-26-first-mile-landing.md) 判定记录 1）——卡：[2026-09-26-cultivation-remediation](notes/proposed/2026-09-26-cultivation-remediation.md)
-- ▶ **自主 UX/可用性评审**（2026-09-27 按研发姿态把"等外部评审者"改为**自己做**）：用已到手的真机截图 + 对抗性设计评审 + 可用性走查（入口可发现性、首屏三秒判据、窄栏可读性、错误/空/陈旧态）出一份评审与切片建议；外部真人评审**可选**、不再是前置。自足简报仍可用：[2026-09-26-ux-review-brief](notes/research/2026-09-26-ux-review-brief.md)
+- ▶ **培养面二轮整改（自主两轴评审的发现）**：R1 冻结永不过期＋逃生门自闭（面级锁死）· R2「看选项」把决定自己吃掉 · R3「办完了」不该二次确认 · R4 首办卡漏"只有你能办" · R5「缺什么」无处置入口 · R6 右栏 tab 读失败永久"正在读" · R7 密度/内容资格（lean 345px、Markdown 直出、出处只露 12%）· R8 尺寸/对比度不达 AA · R9 静默无操作与缺失状态 · R10 引导条把 CEO 送进开发者的门——按严重度逐片落地，逐片验收在卡：[2026-09-27-cultivation-remediation-round2](notes/proposed/2026-09-27-cultivation-remediation-round2.md)
+- ▶ **真实使用开跑**（**已开始**：2026-09-26 真人经面板走完整条培养循环，会话 `34e64c5d`；首个摩擦已落地为忙时冻结；首批数据与 ⏳ 对照见[打磨战役 §八](notes/implemented/2026-09-25-smart-assistant-polish-campaign.md)，摩擦即新卡）
 - ⏳ 知识导入的转换与概念抽取（触发=①第一份真实 docx/pdf 文档集出现 ②评测集 v0 就位；依据：[导入纯核 note](notes/implemented/2026-09-25-knowledge-ingest-core.md) §四）
 - ⏳ **vendor `lib/` 重建（换 pin 的常规收尾）**（触发=需要 boot/release-smoke/plugin-add 出的 profile 时；测试已改为解析 vendor src，不再依赖它）——三条路与已试步骤见迁移记录 §六
 - ⏸ **阶段 0-3 · 评测集 v0**（30–50 条真实经营问题，含应拒答题与判分规则；**题目由你本人出**——这是 G2 关口，agent 只整理格式）
 - ⏳ 家的内存段瘦身（合并/下沉记忆、压缩措辞）（触发=真实使用中确实感到摘要偏薄；降级已优雅故不紧急，依据：[责任圈卡](notes/proposed/2026-09-25-owner-mandate-and-real-use-baseline.md) §九）
 - ▶ **长期责任圈（职责，不完成）**：北极星＝中小企业 CEO/VP 的**数字分身**（管理岗基座＋跟本人学；首位真人＝用户本人）——总纲 [企业聪明助手总体思路](notes/research/2026-09-25-grand-plan-enterprise-expert-assistant.md)，圈纪律与逐圈记录见[责任圈卡](notes/proposed/2026-09-25-owner-mandate-and-real-use-baseline.md)（职责无终点，不按"完成即离队"退场）
-- ⏳ **培养面按会话分 store**（触发=多会话并行使用成为真实场景——主页与 tab 共用单 store、`sendSession` 全局单值的 A3 缺陷开始咬人时；依据：[整改卡](notes/proposed/2026-09-26-cultivation-remediation.md) S3）
+- ⏳ **培养面按会话分 store**（触发=多会话并行使用成为真实场景——主页与 tab 共用单 store、`sendSession` 全局单值的 A3 缺陷开始咬人时；依据：[整改卡](notes/implemented/2026-09-26-cultivation-remediation.md) S3）
 - ⏳ **desk 文件 schema 版本号**（触发=真实字段不匹配出现——模型发明面板不识的新字段时；依据同上）
 - ⏳ 负例控制存量补课（触发=下一次改动某条尚无红夹具的结构性门禁时，同 diff 补它的造红夹具；存量不追账，理由见[红证据档案](notes/research/archive/2026-09-25-old-gate-red-controls.md)）
 - ⏳ `implemented/` 冻结树 / class 子目录（触发=`implemented/` 篇数过百或浏览开始碍事；依据[吸收 note](notes/implemented/2026-09-24-agent-note-lifecycle-absorption.md)）
 - ⏳ `/personality` 类会话 overlay（触发=真实需求出现；依据[soul-and-agents](notes/implemented/2026-09-24-soul-and-agents.md)）
 - ⏳ 文档词数预算 manifest（触发=docs 腐化实证；判据在 [discipline](docs/discipline.md)）
 - ⏳ change-scope 脚本（触发=真实"跑错检查/漏跑检查"摩擦出现；最简形态见卡 §五）
-- ▶ **真实使用开跑**（**已开始**：2026-09-26 真人经面板走完整条培养循环，会话 `34e64c5d`；首个摩擦已落地为忙时冻结；首批数据与 ⏳ 对照见[打磨战役 §八](notes/implemented/2026-09-25-smart-assistant-polish-campaign.md)，摩擦即新卡）
 - 🔒 ⏳ dsh-obsidian 挂桥（用户判触发）（触发=用户想让助手直接操作某个外部 vault；设计参照已录 r5）
 - 🔒 ⏳ 会话日志薄动词 b1/b2（用户判触发）（触发=真实使用中真去查历史会话且 rg 配方不够用；b2 后端可用性待细查）
 - 🔒 ⏳ workflow-as-MD（用户判触发）（触发=真实使用出现多步编排需求；方向：程序性知识之上，编排是否也为 working folder 的 MD 文件——用户 2026-09-24 提出）
@@ -81,6 +80,11 @@
   "等外部 UX 评审者" → ▶ **自主评审**（自己做，外部真人降为可选）；第一公里 P1-C → 搁置、
   P2 层级 → 已自主判定落地（理由在卡内判定记录）；**仍留 ⏸ 的只有真人输入**——IM 渠道选择、
   评测集 v0 题目（G2 关口）。
+- 2026-09-27：**存量消化一轮**（用户要求"盘算没加工的内容"）：整改包与编年卡毕业/归档、
+  四篇结论已消化的调研收卷（对抗评审 · UX 反馈 · 第一公里走查 · sidebar handoff）、
+  《总体思路》§八 逐条给处置（定位＝B 底座+专家包、数据边界＝严格本地，两条按既成事实记决定，
+  反转属用户；渠道仍 ⏸）、`change-scope` 触发已到（P1-B 漏跑整包）→ 见下条。同日自主两轴评审
+  （对抗设计 + 可用性走查）产出 10 条发现 → 新卡 **培养面二轮整改**（R1–R10）。
 - 2026-09-27：**第一公里 P0–P3 交付、卡毕业至 `implemented/`**（本体离队，不打 ✅）；仅 **P1-C 遗留**
   转 ⏳ 条目（触发=真实安装出现"选择工作区"阻塞，或下次做发行 profile）。同日自主跑的两轴评审
   （Standards / Spec）抓到四件并已修：P1-B 提交时漏跑整包（夹具两提交后才补）、`webui-shots` 无入口
