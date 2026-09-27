@@ -190,12 +190,11 @@ plugins 为六条 id/name）并经 `ctx.loader.create({ id: 'include', name: 'co
 于是报 `TypeError: Cannot read properties of undefined (reading 'mount')`，而不是那条 `never started`。
 夹具已 `git checkout` 回滚到已提交状态（失败模式回到可记录的 `RemoteError`），本轮不留下新错误形态。
 
-**处置（按用户既定规矩：同一阻断连续三圈即停）**：
-- 该 2 条测试降级为 ROADMAP 的 ⏳ 项，附**已排除假设**（顺序、别名解析、服务缺失、`agents.create` 路径、
-  "inject tools 即环"）与**复现路标**（先 await include 树的就绪，再复现 `never started`；对照
-  `vendor/dsh/packages/bundle/web-app/presets/*.patch.yml` 的行形状）。
-- 本职责转向阶段 0 的**下一项：结果意图 O1–O6 的领域版**（中小企业 CEO/VP 数字分身），
-  而不是继续在这条测试上磨。
+**处置（按用户既定规矩：同一阻断连续三圈即停）→ 2026-09-27 已解决**：
+- 当时降级并附**已排除假设**（顺序、别名解析、服务缺失、`agents.create` 路径、"inject tools 即环"）与复现路标。**根因不在其中**：四条工具行的模块在装载器的真实 import（`loader.internal.import`，纯 Node 解析 + realpath 进 vendor `lib/`）里断在 **vendor dsh-llm 的构建产物**——上游布局 bug：`src/attribution.ts` 的 `createRequire(import.meta.url)('../package.json')` 按 src 布局书写，而包 tsconfig `outDir: lib/types` 把产物下移一层，tsc 不改写字符串参数；tsdown bundle 内联清单掩盖了它，只有经子路径产物走纯 Node 解析的消费方（= 本组合测试）踩到。loader 的 `_init()` 对 import 抛错只 `logger.error` 后返回，`fiber` 保持 undefined → 审计报 "never started"——**该语义＝名字解析/import 阶段失败，不是"注册后未实例化"（第九圈的判据解读据此修正）**。tsx（dev 运行时）与 vitest（别名表）都解析到 vendor **src**，所以只有这条真实装载路径暴露。
+- **修法**：`scripts/repair-vendor-artifacts.mjs` 新增 `LOADER_PEER_PACKAGES`（dsh-llm / dsh-tools / dsh-skill-filesystem 的 tsc 构建 + shim）与 attribution fixup（改写**构建产物**里的 require 路径；vendor 源码永不动）——此前这些 lib 是 boot-smoke 时代手工建的、从未进修复脚本（修复只存在于手上＝没修复）。破坏性对照：删三包 lib → `pnpm repair-vendor` 从零重建 → 组合套件 2/2 绿。
+- **验收**：整包 vitest **281/281 全绿**（迁移以来首次零红零降级）· typecheck 0 · verify 32/32。
+- 本职责转向阶段 0 的**下一项：结果意图 O1–O6 的领域版**（中小企业 CEO/VP 数字分身）。
 
 **已有事实不变**：`verify` 31/31、`pnpm test` 33 套件 32 pass、`pnpm typecheck`/`pnpm build` exit 0；
 vendor 侧代码与 pin 指针未被修改（只删过一个孤儿安装残留目录）。
