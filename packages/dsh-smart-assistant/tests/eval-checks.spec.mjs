@@ -4,7 +4,10 @@
  * the real incident's shape fails. A harness that cannot fail is a report, not a guard.
  */
 import { describe, expect, it } from 'vitest'
-import { argumentsText, evaluateTask } from '../../../dev/eval/checks.mjs'
+import { mkdtempSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { argumentsText, evaluateTask, fileShape } from '../../../dev/eval/checks.mjs'
 import { TASKS } from '../../../dev/eval/tasks.mjs'
 
 const restraint = TASKS.find(task => task.id === 'reserved-item-restraint')
@@ -66,7 +69,16 @@ describe('evaluateTask', () => {
   })
 
   it('desk-refresh-loop: passes a real rewrite (write tool naming the desk path) and fails a reported-but-not-written one', () => {
-    const task = TASKS.find(entry => entry.id === 'desk-refresh-loop')
+    // `file-shape` reads the file from disk, so this fixture writes a real one in a temp dir and
+    // points that check at it — the task's other checks stay exactly as shipped.
+    const scratch = mkdtempSync(join(tmpdir(), 'dsh-eval-desk-'))
+    const deskPath = join(scratch, '.desk-state.json')
+    writeFileSync(deskPath, JSON.stringify({ generatedAt: '2026-09-27T12:00:00+08:00', decisions: [] }))
+    const shipped = TASKS.find(entry => entry.id === 'desk-refresh-loop')
+    const task = {
+      ...shipped,
+      checks: shipped.checks.map(check => check.kind === 'file-shape' ? { ...check, path: deskPath } : check),
+    }
     const answer = '桌面已刷新：记忆 7、知识 10（draft 4）、技能 3、线索 1。'
     // The real shape (calibrated on live runs): the write goes through `write`, or through bash
     // driving `fs.writeFileSync` for the big JSON — both are real rewrites; reads are not.
@@ -105,6 +117,37 @@ describe('evaluateTask', () => {
       answerText: answer,
     })
     expect(elsewhere.passed).toBe(false)
+
+    // …and a file that parses but carries none of the contract's shape fails the same task: that is
+    // the failure mode the shape check exists for (a shapeless desk renders as "nothing happened").
+    writeFileSync(deskPath, JSON.stringify({ somethingElse: true }))
+    const shapeless = evaluateTask(task, {
+      toolCalls: [
+        { name: 'skill', argumentsText: '{"name":"desk-refresh"}' },
+        { name: 'write', argumentsText: `{"file_path":"${deskPath}","content":"{}"}` },
+      ],
+      answerText: answer,
+    })
+    expect(shapeless.passed).toBe(false)
+    expect(shapeless.reasons.join(' ')).toContain('generatedAt')
+  })
+
+  it('file-shape: shaped passes, shapeless fails, unreadable fails', () => {
+    const scratch = mkdtempSync(join(tmpdir(), 'dsh-eval-shape-'))
+    const shaped = join(scratch, 'shaped.json')
+    writeFileSync(shaped, JSON.stringify({ generatedAt: '2026-09-27T12:00:00+08:00' }))
+    expect(fileShape(shaped, ['generatedAt']).ok).toBe(true)
+
+    const shapeless = join(scratch, 'shapeless.json')
+    writeFileSync(shapeless, JSON.stringify({ hello: 'world' }))
+    const missing = fileShape(shapeless, ['generatedAt'])
+    expect(missing.ok).toBe(false)
+    expect(missing.reason).toContain('generatedAt')
+
+    const notJson = join(scratch, 'not-json.json')
+    writeFileSync(notJson, 'not json at all')
+    expect(fileShape(notJson, ['generatedAt']).ok).toBe(false)
+    expect(fileShape(join(scratch, 'absent.json'), ['generatedAt']).ok).toBe(false)
   })
 
   it('refuses to guess at an unknown check kind', () => {

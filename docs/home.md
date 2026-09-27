@@ -166,7 +166,8 @@ bundles, M snapshots`，退役与快照都不删除、技能归档只增不减�
   行为零变化），**已有永不覆盖**；空文件不注入。身份段读它逐字进 system prompt（紧贴 persona
   stub，`assistant:soul`）；缺/空/坏 → **回退内置默认**（回退是替换不是叠加）。改人格 = 编辑
   这个文件，不用动插件源码。
-- **`AGENTS.md`（手册）**：working folder 怎么用——四房间、三档出口、退役、curate、盘上布局。
+- **`AGENTS.md`（手册）**：working folder 怎么用——四房间、三档出口、退役、curate、盘上布局，以及
+  **桌面文件（`.desk/state.json`）的最小契约**（`generatedAt` + 各分区；面板的唯一数据源）。
   scaffold 缺则种（首行 `<!-- home-manual vN -->` 版本标记），永不覆盖；手册段
   （`assistant:home-manual`）逐字进 system prompt；缺则**现场渲染当前版**（缺文件永不落后）。
   版本标记旧于当前由 curate 报 info（见 §四「手册漂移」）。
