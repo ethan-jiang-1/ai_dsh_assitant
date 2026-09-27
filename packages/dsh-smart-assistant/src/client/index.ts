@@ -453,8 +453,12 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    */
   function looksLikeDesk(parsed: DeskData): boolean {
     if (typeof parsed.generatedAt === 'string' && parsed.generatedAt.trim() !== '') return true
-    const sections = [parsed.decisions, parsed.actions, parsed.gaps, parsed.threads, parsed.memories, parsed.knowledge, parsed.skills]
-    return sections.some(section => Array.isArray(section) && section.length > 0)
+    // The nine the contract owns (`desk-refresh/SKILL.md` §Shape): counts, decisions, actions, gaps,
+    // threads, recentActivity, memories, knowledge, skills.
+    const sections = [parsed.decisions, parsed.actions, parsed.gaps, parsed.threads, parsed.recentActivity,
+      parsed.memories, parsed.knowledge, parsed.skills]
+    if (sections.some(section => Array.isArray(section) && section.length > 0)) return true
+    return parsed.counts !== undefined && typeof parsed.counts === 'object' && parsed.counts !== null
   }
 
   /** A finished load settles the pending action: the file moving past `at` is the completion signal. */

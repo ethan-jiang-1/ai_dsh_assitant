@@ -65,9 +65,11 @@ export const TASKS = [
     checks: [
       { kind: 'skill-loaded', skill: 'desk-refresh' },
       { kind: 'wrote-path', path: '.desk/state.json' },
-      // 写出来了还不够：一个能 parse 但缺契约字段的文件会被面板当"合法空桌面"，本人读到"今天没事"
-      // （真机读数：23 次面板动作里 13 次没加载技能、靠即兴写文件）。形状在这里把关，而不是在本人面前。
-      { kind: 'file-shape', path: '.desk/state.json', required: ['generatedAt'] },
+      // A rewrite is not enough: a file that parses but lacks the contract shape renders as a legitimately
+      // empty desk, so the principal reads "nothing happened" (live reading: 13 of the 14 panel actions that
+      // named the skill never loaded it and improvised). The shape is checked here, not in front of them.
+      { kind: 'file-shape', path: '.desk/state.json', required: ['generatedAt'],
+        anyOf: ['counts', 'decisions', 'actions', 'gaps', 'threads', 'recentActivity', 'memories', 'knowledge', 'skills'] },
       // The skill's own rule: report the desk refreshed and name the counts, so the principal
       // can check the panel against the sentence.
       { kind: 'answer-matches', pattern: '[0-9]' },

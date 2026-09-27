@@ -20,7 +20,7 @@ import type { HomePaths } from './layout.ts'
 export const AGENTS_FILE_NAME = 'AGENTS.md'
 
 /** Version of the generated manual; bump when the generated content changes meaningfully. */
-export const HOME_MANUAL_VERSION = 7
+export const HOME_MANUAL_VERSION = 8
 
 /** The version marker stamped as the file's first line (an HTML comment: invisible when rendered). */
 export const HOME_MANUAL_MARKER = `<!-- home-manual v${String(HOME_MANUAL_VERSION)} -->`
@@ -65,10 +65,11 @@ what you do not keep is gone. Four rooms, one job each — do not mix them. Who 
 
 Your principal's sidebar panel renders this file, and the file is its **only** data source. Keep it
 shaped: \`generatedAt\` (ISO-8601, the moment you wrote it) plus the sections you actually have —
-\`decisions\`, \`actions\`, \`gaps\`, \`threads\`, \`recentActivity\`, \`counts\`. Load the
-\`desk-refresh\` skill for the full contract, and end any session that changed memories, threads,
-knowledge or skills by writing the file. A file that parses but carries none of that shape renders as
-an empty desk, and the principal cannot tell it apart from "nothing happened".
+\`counts\`, \`decisions\`, \`actions\`, \`gaps\`, \`threads\`, \`recentActivity\`, \`memories\`,
+\`knowledge\`, \`skills\`. Load the \`desk-refresh\` skill for the full contract, and end any session
+that changed memories, threads, knowledge or skills by writing the file. A file that parses but carries
+none of that shape renders as an empty desk, and the principal cannot tell it apart from "nothing
+happened".
 
 | Room | Holds | Lifecycle |
 |---|---|---|

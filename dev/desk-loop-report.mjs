@@ -213,6 +213,7 @@ export function analyzeSessions(sessions, { includeEval = false } = {}) {
   const reactions = []
   const unconsulted = []
   let panelActions = 0
+  let refreshAsks = 0
   let humanTurns = 0
 
   for (const session of considered) {
@@ -247,6 +248,7 @@ export function analyzeSessions(sessions, { includeEval = false } = {}) {
       actions.push(action)
       // §1 只在**承诺了重写**的动作上算：`回顾一下` / `curate` 这类按钮的消息里没有那句承诺，
       // 把它们的窗口也算作"没重写"是冤枉（2026-09-27 实测修正）。
+      if (action.asksRefresh) refreshAsks += 1
       if (action.asksRefresh && !wrotePath(window.tools, DESK_PATH)) noWrite.push(action)
       if (action.asksRefresh && !window.tools.some(call => call.name === 'skill' && call.argumentsText.includes(SKILL))) {
         noSkill.push(action)
@@ -276,21 +278,24 @@ export function analyzeSessions(sessions, { includeEval = false } = {}) {
     }
   }
 
-  return { human, evalRuns, considered, panelActions, noWrite, noSkill, repeats, doubleAnswers, reactions, humanTurns, unconsulted }
+  return { human, evalRuns, considered, panelActions, refreshAsks, noWrite, noSkill, repeats, doubleAnswers, reactions, humanTurns, unconsulted }
 }
 
 /** 报告正文（给人读的 markdown）。 */
 export function renderReport(analysis, { home, sinceDays, includeEval } = {}) {
-  const { human, evalRuns, considered, panelActions, noWrite, noSkill, repeats, doubleAnswers, reactions, humanTurns, unconsulted } = analysis
-  const pct = (count) => panelActions === 0 ? '—' : `${Math.round(count / panelActions * 100)}%`
+  const { human, evalRuns, considered, panelActions, refreshAsks, noWrite, noSkill, repeats, doubleAnswers, reactions, humanTurns, unconsulted } = analysis
+  // 分母跟着分子走：§1/§4 只统计**点名了 desk-refresh** 的动作（没点名的那次点击本来就没承诺重写桌面），
+  // 所以百分比也按同一个分母算——此前印的是「n/全部面板动作」，把 1/14 与 13/14 说成了 1/23 与 13/23
+  // （窄审抓到，2026-09-27：口径混用的读数比没有读数更坏）。
+  const pct = (count) => refreshAsks === 0 ? '—' : `${Math.round(count / refreshAsks * 100)}%`
   const when = (at) => new Date(at).toISOString().replace('T', ' ').slice(0, 16)
   const lines = []
   lines.push(`# 培养循环摩擦报告 — ${home}`)
   lines.push('')
   lines.push(`会话 ${considered.length}（本人 ${human.length} · 评测 ${evalRuns.length}${includeEval ? '，已含' : '，默认不计'}）`
-    + `｜面板动作 ${panelActions}${sinceDays === undefined ? '' : `｜窗口：最近 ${sinceDays} 天`}`)
+    + `｜面板动作 ${panelActions}（其中点名 desk-refresh 的 ${refreshAsks}）${sinceDays === undefined ? '' : `｜窗口：最近 ${sinceDays} 天`}`)
   lines.push('')
-  lines.push(`## 1. 面板动作之后，桌面文件没有被重写（循环的硬保证）— ${noWrite.length}/${panelActions}（${pct(noWrite.length)}）`)
+  lines.push(`## 1. 点名了 desk-refresh 的面板动作里，桌面文件没有被重写（循环的硬保证）— ${noWrite.length}/${refreshAsks}（${pct(noWrite.length)}）`)
   lines.push('')
   lines.push('这一类的体验就是"它没理我"：本人点了、消息发了、文件没动，面板自然也不变。')
   lines.push('')
@@ -316,7 +321,7 @@ export function renderReport(analysis, { home, sinceDays, includeEval } = {}) {
   }
   if (doubleAnswers.length === 0) lines.push('- （无）')
   lines.push('')
-  lines.push(`## 4. 面板消息点名了 desk-refresh，那一轮却没加载它 — ${noSkill.length}/${panelActions}（${pct(noSkill.length)}）`)
+  lines.push(`## 4. 面板消息点名了 desk-refresh，那一轮却没加载它 — ${noSkill.length}/${refreshAsks}（${pct(noSkill.length)}）`)
   lines.push('')
   lines.push('面板的提示语写死了"完成后加载 desk-refresh 技能"；没加载却动了桌面，就是冷发现不可靠的那一类。')
   lines.push('')
@@ -332,7 +337,7 @@ export function renderReport(analysis, { home, sinceDays, includeEval } = {}) {
   }
   if (reactions.length === 0) lines.push('- （无）')
   lines.push('')
-  lines.push(`## 6. 真人用面板的那一轮，助手没问过自己的房间 — ${unconsulted.length}/${humanTurns}（${humanTurns === 0 ? '—' : `${Math.round(unconsulted.length / humanTurns * 100)}%`}）`)
+  lines.push(`## 6. 真人在用面板的会话里，他**打字**的那几轮有没有问过自己的房间 — ${unconsulted.length}/${humanTurns}（${humanTurns === 0 ? '—' : `${Math.round(unconsulted.length / humanTurns * 100)}%`}）`)
   lines.push('')
   lines.push('口径：**只数有面板动作的会话**（真在用这个产品的人）；家的四房间工具（memory / knowledge / research / '
     + 'reflect）一个都没用的回合。**这是"没查"的机械信号，不是判负**：有些回合确实不需要查（"你好"、纯写作、'
@@ -442,6 +447,10 @@ export function selfCheck() {
   expect('no-write rows are the answers', humanOnly.noWrite.every(item => item.action === '回答'), true)
   // §4：那两条问了技能却没加载；A 的刷新加载了；B 的"要改"也加载了
   expect('no-skill count', humanOnly.noSkill.length, 2)
+  // 分母口径：只有**点名了 desk-refresh** 的动作进这个分母（合成会话：A 的刷新 1 条 + B 的两条回答与一条
+  // "要改" 3 条 ＝ 4），它必须与"全部面板动作"分开数——混用会把 1/4 说成 1/4 之外的数（真机上是 1/14 vs 1/23）。
+  expect('refresh-ask denominator', humanOnly.refreshAsks, 4)
+  expect('panel actions counted separately', humanOnly.panelActions, 4)
   // §3：同一条决定答两次
   expect('double answers', humanOnly.doubleAnswers.length, 1)
   // §2：B 的两条"回答"落在同一行 ⇒ 一处"被反复动"；§3 同一簇里答了两次 ⇒ 也算"被答多次"

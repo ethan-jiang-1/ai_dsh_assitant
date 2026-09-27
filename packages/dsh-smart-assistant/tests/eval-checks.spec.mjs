@@ -150,6 +150,24 @@ describe('evaluateTask', () => {
     expect(fileShape(join(scratch, 'absent.json'), ['generatedAt']).ok).toBe(false)
   })
 
+  it('file-shape: a header-only file and a stale file both fail', () => {
+    const scratch = mkdtempSync(join(tmpdir(), 'dsh-eval-shape2-'))
+    const headerOnly = join(scratch, 'header-only.json')
+    writeFileSync(headerOnly, JSON.stringify({ generatedAt: '2026-09-27T12:00:00+08:00' }))
+    // Only the header ⇒ the panel renders every section empty: "nothing happened", the case this guards.
+    const headerVerdict = fileShape(headerOnly, ['generatedAt'], { anyOf: ['counts', 'decisions', 'actions'] })
+    expect(headerVerdict.ok).toBe(false)
+    expect(headerVerdict.reason).toContain('renders as an empty desk')
+
+    const withSection = join(scratch, 'with-section.json')
+    writeFileSync(withSection, JSON.stringify({ generatedAt: '2026-09-27T12:00:00+08:00', counts: { memories: 1 } }))
+    expect(fileShape(withSection, ['generatedAt'], { anyOf: ['counts', 'decisions'] }).ok).toBe(true)
+
+    // A file last written before the run is a leftover, not a rewrite.
+    expect(fileShape(withSection, [], { since: Date.now() + 60_000 }).ok).toBe(false)
+    expect(fileShape(withSection, [], { since: Date.now() - 60_000 }).ok).toBe(true)
+  })
+
   it('refuses to guess at an unknown check kind', () => {
     const verdict = evaluateTask({ checks: [{ kind: 'vibes-are-good' }] }, { toolCalls: [], answerText: '' })
     expect(verdict.passed).toBe(false)

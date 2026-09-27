@@ -52,12 +52,23 @@ export function observe(events) {
 }
 
 /** Run one task and read its session back. Returns the task, the observation and the verdict. */
-function runTask(task) {
+/**
+ * Run one prompt through a preset-mounted session and read the session back.
+ *
+ * Exported because the domain question set (`dev/eval/domain-run.mjs`) needs exactly this and nothing
+ * else: one home for "how a preset session is launched and observed". The eval's own tasks add their
+ * mechanical verdict on top; a domain run adds a human scoring sheet instead.
+ * @param prompt - the text to send as the session's task.
+ * @returns `{ sessionId, observation, seconds, launchFailure }`; `observation` is null when no log appeared.
+ */
+export function runPreset(prompt) {
   const before = new Set(sessionLogs(harnessHome))
   const started = Date.now()
+  // `file-shape` uses this to reject a stale file: a leftover from an earlier session must not go green.
+  const startedAt = started
   let launchFailure = ''
   try {
-    execFileSync('node', ['scripts/dsh.mjs', '--profile', 'dev-task', '--patch', 'dev/preset-runner.patch.yml', task.prompt], {
+    execFileSync('node', ['scripts/dsh.mjs', '--profile', 'dev-task', '--patch', 'dev/preset-runner.patch.yml', prompt], {
       cwd: repoRoot,
       stdio: ['ignore', 'pipe', 'pipe'],
       timeout: 15 * 60 * 1000,
@@ -65,13 +76,25 @@ function runTask(task) {
   } catch (error) {
     launchFailure = error instanceof Error ? error.message.split('\n')[0] : String(error)
   }
-  const fresh = sessionLogs(harnessHome).filter(log => !before.has(log))
-  if (fresh.length === 0) {
-    return { task, verdict: { passed: false, reasons: [`no session log was produced${launchFailure === '' ? '' : ` (${launchFailure})`}`] }, seconds: 0 }
+  const fresh = sessionLogs(harnessHome).filter(log => !before.has(log)).sort()
+  const log = fresh.at(-1)
+  if (log === undefined) return { sessionId: '', observation: null, seconds: 0, launchFailure }
+  return {
+    sessionId: (/(?:^|\/)session-([0-9a-f-]+)(?:\/|$)/.exec(log)?.[1] ?? '').slice(0, 8),
+    observation: { ...observe(readEvents(log)), startedAt },
+    seconds: Math.round((Date.now() - started) / 1000),
+    launchFailure,
   }
-  const observation = observe(readEvents(fresh.sort().at(-1)))
-  const verdict = evaluateTask(task, observation)
-  return { task, verdict, seconds: Math.round((Date.now() - started) / 1000), observation }
+}
+
+function runTask(task) {
+  const run = runPreset(task.prompt)
+  if (run.observation === null) {
+    const suffix = run.launchFailure === '' ? '' : ` (${run.launchFailure})`
+    return { task, verdict: { passed: false, reasons: [`no session log was produced${suffix}`] }, seconds: 0 }
+  }
+  const verdict = evaluateTask(task, run.observation)
+  return { task, verdict, seconds: run.seconds, observation: run.observation }
 }
 
 /**
@@ -122,8 +145,21 @@ function selfCheck() {
     process.stderr.write('eval --self-check: FAIL — file-shape passed an unreadable path\n')
     process.exit(1)
   }
+  // anyOf: a file with only the header renders as an empty desk — the case the guard exists for.
+  writeFileSync(scratch, JSON.stringify({ generatedAt: new Date().toISOString() }))
+  const headerOnly = fileShape(scratch, ['generatedAt'], { anyOf: ['counts', 'decisions'] })
+  if (headerOnly.ok) {
+    process.stderr.write('eval --self-check: FAIL — file-shape accepted a header-only file (no section)\n')
+    process.exit(1)
+  }
+  // since: a file older than the run is a leftover, not a rewrite.
+  const stale = fileShape(scratch, [], { since: Date.now() + 60_000 })
+  if (stale.ok) {
+    process.stderr.write('eval --self-check: FAIL — file-shape accepted a file older than the run\n')
+    process.exit(1)
+  }
   process.stdout.write(`eval --self-check: ok — the evaluator fails the incident task (${task.id}) and passes a compliant answer;`
-    + ' file-shape fails a shapeless file, passes a shaped one, fails an unreadable path\n')
+    + ' file-shape fails a shapeless file, a header-only file, a stale file and an unreadable path, and passes a shaped one\n')
 }
 
 function main() {

@@ -15,7 +15,7 @@
  * @module dev/eval/checks
  */
 
-import { readFileSync } from 'node:fs'
+import { readFileSync, statSync } from 'node:fs'
 
 const WRITE_TOOLS = new Set(['edit', 'write', 'multi_edit', 'patch', 'apply_patch', 'notebook_edit'])
 
@@ -43,7 +43,8 @@ export function wrotePath(toolCalls, path) {
  * Read `path` and check it carries the desk contract's mandatory shape.
  *
  * Why (2026-09-27, `pnpm desk-loop` first real reading): panel messages name the `desk-refresh` skill and the
- * model rewrites the file, but in 13 of 23 real panel actions it never LOADED the skill — it improvised.
+ * model rewrites the file, but in 13 of the 14 panel actions that asked for the skill it never LOADED it — it
+ * improvised. (Denominator matters: only actions whose own text names the skill promise a rewrite.)
  * A file that parses but carries none of the contract then renders as a legitimately empty desk, so the
  * principal reads "nothing is happening". The browser half guards that at render time
  * (`looksLikeDesk` in the client); this guard is the development-time one, so the regression fails HERE
@@ -51,9 +52,12 @@ export function wrotePath(toolCalls, path) {
  * no imports — the contract itself is owned by `presets/assistant/skills/desk-refresh/SKILL.md`.
  * @param path - the file to read (relative to the process CWD, which is the session workspace).
  * @param required - keys the parsed object must carry.
+ * @param options - `{ anyOf?: string[], since?: number }`: `anyOf` needs at least one key present (a file
+ *   with only `generatedAt` renders as an empty desk — the very case this guard exists for); `since`
+ *   (epoch ms) rejects a file older than the run, so a leftover from an earlier run cannot go green.
  * @returns `{ ok, reason }`; `reason` is empty when ok.
  */
-export function fileShape(path, required) {
+export function fileShape(path, required, options = {}) {
   let text
   try {
     text = readFileSync(path, 'utf8')
@@ -72,6 +76,21 @@ export function fileShape(path, required) {
   const missing = required.filter(key => parsed[key] === undefined)
   if (missing.length > 0) {
     return { ok: false, reason: `"${path}" lacks ${missing.join(', ')} — the desk contract's mandatory shape` }
+  }
+  const anyOf = Array.isArray(options.anyOf) ? options.anyOf : []
+  if (anyOf.length > 0 && !anyOf.some(key => parsed[key] !== undefined)) {
+    return { ok: false, reason: `"${path}" carries none of ${anyOf.join('/')} — a file with only the header renders as an empty desk` }
+  }
+  if (typeof options.since === 'number' && options.since > 0) {
+    let modified = 0
+    try {
+      modified = statSync(path).mtimeMs
+    } catch {
+      return { ok: false, reason: `could not stat "${path}"` }
+    }
+    if (modified < options.since) {
+      return { ok: false, reason: `"${path}" was last written ${Math.round((options.since - modified) / 1000)}s before this run — a stale file is not a rewrite` }
+    }
   }
   return { ok: true, reason: '' }
 }
@@ -109,7 +128,10 @@ export function evaluateTask(task, observed) {
         break
       }
       case 'file-shape': {
-        const shape = fileShape(String(check.path ?? ''), Array.isArray(check.required) ? check.required : [])
+        const shape = fileShape(String(check.path ?? ''), Array.isArray(check.required) ? check.required : [], {
+          anyOf: Array.isArray(check.anyOf) ? check.anyOf : [],
+          since: typeof observed.startedAt === 'number' ? observed.startedAt : 0,
+        })
         if (!shape.ok) reasons.push(shape.reason)
         break
       }

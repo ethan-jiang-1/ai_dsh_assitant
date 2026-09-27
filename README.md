@@ -37,8 +37,9 @@
 ```sh
 git submodule update --init                                       # vendor/dsh（pin 的唯一出处：vendor/UPSTREAM.md）
 pnpm install && pnpm build                                        # build 必需：包的入口是 lib/，而 lib/ 不入库
-dsh plugin --profile <p> add file:./packages/dsh-smart-assistant
+dsh plugin --profile <p> add file:./packages/dsh-smart-assistant   # <p>＝你的 profile 名；第三步要 dsh 在 PATH 上
 ```
+（仓内开发时用 `pnpm exec dsh …` 或 `pnpm dsh --profile …`——后者强制 `DSH_HOME=dev/harness-home`。）
 
 打包安装的形状（`pnpm pack` 出 tarball 再 `dsh plugin add <tarball>`）由 `pnpm release-smoke` 机械验证：
 pack → 干净 home → 装 → 组合断言。`file:` 这条路径本身实测过：装进干净 home 3.1s，`--dump-config` 里能看到
