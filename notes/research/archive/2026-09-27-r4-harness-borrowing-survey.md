@@ -1,6 +1,6 @@
 # R4 · 先进 harness 借鉴调研
 
-日期：2026-09-27 · 状态：**research（进行中）** · 用户拍板：ongoing goal「学习先进 harness，能学多少算多少，主要是借鉴，差不多了即停」。
+日期：2026-09-27 · 状态：**已收卷**（四族语源过完：源 1 十三专题零立即借、源 2 抽查一借一证且唯一借点已同日落地——面板色值主题化切片、源 3/4 机制已镜像或由既有调研覆盖；停止判据满足，边际收益趋零。分诊表与机制清单冻结为本文件）
 
 ## 目的与方法
 
@@ -73,7 +73,7 @@
 | 篇 | 判定 | 依据 |
 |---|---|---|
 | session-and-loop/01（事件表/required-on-read/格式世代） | 无新借点 | digest 明文「tool schema 与模型配置走 `request/header` 现成路径，无需为每个 section 新增事件类型」——「无日志税负债」判断成立：本仓模型可见状态经工具调用/结果与 core 事件走，无自定义事件面（identity.md §三 + grep 证实）；格式世代是 host 职责 |
-| surfaces/05（客户端架构与插件纪律） | **一个立即借点 → 已落地** | 「feature 组件只消费 `--dsw-alias-*` 语义 token、禁字面色值」（vendor [`vendor/dsh/docs/web-styling.md`](../../vendor/dsh/docs/web-styling.md) 纪律）——本仓三面板 grep 出 **70 处字面色值、0 个 token**：暗色主题下白底按钮/暗青图标/暗棕 warn 文字全部不可读（dev home 实测即暗色主题），R8 的「暗色另算」欠账即此 |
+| surfaces/05（客户端架构与插件纪律） | **一个立即借点 → 已落地** | 「feature 组件只消费 `--dsw-alias-*` 语义 token、禁字面色值」（vendor [`vendor/dsh/docs/web-styling.md`](../../../vendor/dsh/docs/web-styling.md) 纪律）——本仓三面板 grep 出 **70 处字面色值、0 个 token**：暗色主题下白底按钮/暗青图标/暗棕 warn 文字全部不可读（dev home 实测即暗色主题），R8 的「暗色另算」欠账即此 |
 
 **落地切片**（同 diff：代码 + 测试 + 纪律 + 证据）：
 
@@ -92,6 +92,19 @@
 
 **结论**：源 2 两篇抽查——一篇无新借点（判断成立），一篇产出本次 goal 的**唯一立即借点且已落地**。
 源 2 的其余专题（agent-loop/composition/…）按「FAQ 即其二次蒸馏」的判断不再全读；收卷判定待最后一轮复核。
+
+## 收卷结论（2026-09-27 终判）
+
+停止判据核验（用户授权自判「差不多了」）：**四族语源全部过完，剩余可借项全部触发型或不适用，无立即借项**——
+
+| 语源族 | 处置 | 判定 |
+|---|---|---|
+| 源 1 · `_faq_on_digested` 13 未读专题 | 通读 + 逐项分诊（§分诊总表） | 零立即借：已借齐 7 / 已继承 3 / 不适用·留观 3 / 触发后再借 1（原生拦截点，记设计约定不立条目） |
+| 源 2 · `_digested` 深度层 | 两篇定点抽查（session-event-map、surfaces/05），其余按「FAQ 即其二次蒸馏」不全读 | 一借一证：唯一立即借点（色值主题化）已同日落地；「无日志税负债」判断成立 |
+| 源 3 · vendor docs 与 `.agents/notes` | 机制层经 FAQ 家族消化 + 定点读（design-platform/web-styling/naming/dev-loop 伴生篇）；vendor notes 系统即本仓 notes 体系的母体（继承登记在 `docs/discipline.md`） | 无未消化机制；无待答分诊问题 |
+| 源 4 · 生态 harness（邻居学习仓、R1/R2/R3 调研、FAQ14 三家对照） | 覆盖性确认：生态对照早由 R1/R2/R3（memory/skills/knowledge 三调研）与 FAQ14（CC/Codex/DSH hooks 对照）完成，候选项全部触发型住队列 | 按需即零：无新立即借 |
+
+**触发型借项的家**＝`ROADMAP.md` 队列（词数预算 manifest、按会话分 store、语义检索、FTS、跨 harness 共库等 ⏳ 条目）——触发未到不做，做在触发之前＝替本人想象需求。本次 goal 交付：① 面板色值主题化切片（暗色主题从不可用到正确渲染）；② 十三维分诊负知识与机制清单（本文件附录）；③ 上游 0 新提交的 pin 新鲜度实证。
 
 ## 输掉的方案
 
