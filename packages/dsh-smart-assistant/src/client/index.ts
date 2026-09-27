@@ -583,23 +583,18 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // Provenance is the trust line: where a claim came from is what lets the principal judge it —
     // and for a record they corrected, the source is the cultivation trace itself.
     const source = props.source === undefined || props.source.trim() === '' ? undefined : props.source.trim()
-    return createElement('li', { style: { marginBottom: '10px', listStyle: 'none' } },
-      createElement('div', { style: { fontSize: props.lead === true ? '16px' : '13px', lineHeight: 1.6, color: props.lead === true ? '#111' : '#555' } }, props.primary),
-      source === undefined
-        ? null
-        : createElement('div', {
-            title: source,
-            style: {
-              fontSize: '11px', color: '#9a9a9a', marginTop: '2px', overflow: 'hidden',
-              textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '540px',
-            },
-          }, `来源：${source.length > 110 ? `${source.slice(0, 110)}…` : source}`),
-      props.readOnly === true
-        ? createElement('div', { style: { fontSize: '11px', color: '#aaa', marginTop: '2px' } },
-            '已回答——改主意？在对话里说一声，它会改回来')
-        : createElement('div', { style: { fontSize: '11px', color: '#aaa', marginTop: '2px' } },
-        props.meta === undefined || props.meta === '' ? null : props.meta,
-        ...(props.actions ?? []).map(action => {
+    // Hierarchy (P2, 2026-09-26): the actions ride the row's first line, right-aligned, with the
+    // detail lines flowing underneath them. The narrow-pane measurement showed 6–9 lines per row
+    // and the buttons at the very bottom, so acting meant reading the audit trail first. One
+    // change here covers every row type that shares this component.
+    const controls = createElement('div', {
+      style: {
+        flexShrink: 0, display: 'flex', alignItems: 'center', gap: '6px',
+        flexWrap: 'wrap', justifyContent: 'flex-end',
+      },
+    },
+    props.meta === undefined || props.meta === '' ? null : createElement('span', { style: { fontSize: '11px', color: '#aaa' } }, props.meta),
+    ...(props.actions ?? []).map(action => {
           // A destructive move asks twice: one click arms it for three seconds ("确认…？"), the
           // second click sends. The record itself is recoverable (history/archives), and the
           // confirm label says so — reversibility the principal can see.
@@ -617,7 +612,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
             onClick: fire,
             disabled: frozen,
             style: {
-              marginLeft: '8px', padding: '0 8px', fontSize: '11px',
+              padding: '0 8px', fontSize: '11px',
               cursor: frozen ? 'default' : 'pointer', opacity: frozen ? 0.5 : 1,
               border: `1px solid ${armed === action.label ? '#b26a00' : MARK_TEAL}`,
               borderRadius: '4px', background: '#fff', color: armed === action.label ? '#b26a00' : MARK_TEAL,
@@ -628,11 +623,30 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
           onClick: () => { setOpen(!open) },
           disabled: frozen,
           style: {
-            marginLeft: '8px', padding: '0 6px', fontSize: '11px',
+            padding: '0 6px', fontSize: '11px',
             cursor: frozen ? 'default' : 'pointer', opacity: frozen ? 0.5 : 1,
             border: '1px solid #ddd', borderRadius: '4px', background: '#fff', color: '#888',
           },
-        }, open ? '取消' : props.actionLabel)),
+        }, open ? '取消' : props.actionLabel))
+
+    return createElement('li', { style: { marginBottom: '10px', listStyle: 'none' } },
+      createElement('div', { style: { display: 'flex', alignItems: 'flex-start', gap: '8px' } },
+        createElement('div', { style: { flex: '1', minWidth: 0 } },
+          createElement('div', { style: { fontSize: props.lead === true ? '16px' : '13px', lineHeight: 1.6, color: props.lead === true ? '#111' : '#555' } }, props.primary),
+          source === undefined
+            ? null
+            : createElement('div', {
+                title: source,
+                style: {
+                  fontSize: '11px', color: '#9a9a9a', marginTop: '2px', overflow: 'hidden',
+                  textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '540px',
+                },
+              }, `来源：${source.length > 110 ? `${source.slice(0, 110)}…` : source}`)),
+        props.readOnly === true ? null : controls),
+      props.readOnly === true
+        ? createElement('div', { style: { fontSize: '11px', color: '#aaa', marginTop: '2px' } },
+            '已回答——改主意？在对话里说一声，它会改回来')
+        : null,
       inflight === false ? null : createElement('div', {
         style: { fontSize: '12px', color: '#888', marginTop: '4px' },
       }, `已交给助手 · ${shortTime(new Date(store.pending?.at ?? Date.now()).toISOString())} · ${String(store.pending?.action ?? '')}——正在处理，回复出现在对话里`),
