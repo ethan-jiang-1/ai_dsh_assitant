@@ -71,8 +71,17 @@ pnpm dsh --profile dev-task "one task"   # one-shot 任务（headless）＝ host
 pnpm dsh --profile dev-task --patch dev/preset-runner.patch.yml "<task>"   # preset 挂载的 one-shot（验证自动化；行替换形状见该 patch 头注）
 pnpm dsh --profile dev --port 0 --no-open   # Web UI：**不自动开浏览器**
 pnpm preflight '<server 打印的 URL>'    # 开屏前检查；绿了才把 URL 交给浏览器
+pnpm shots '<server 打印的 URL>' --dom --size 1600x1000 --name <名字>   # 渲染证据：PNG + DOM 证据（默认落 /tmp/dsh-webui-shots）
 pnpm typecheck && pnpm test && pnpm verify
 ```
+
+**preflight 的姊妹：`pnpm shots`（渲染证据）**。preflight 证明"装得上"，不证明"看得见"；
+`pnpm shots` 用 headless Chrome **经 CDP** 打开页面（headless 的 `--screenshot` 在 SSE 长连接下
+等不到 load，故不用它），每个视口产出两件：`<name>-<WxH>.png`（给人看：审阅、前后对比）与
+`<name>-<WxH>.dom.txt`（给读文本的模型与脚本看：可见文本、带像素高度的文本大纲、交互件清单、
+boot 诊断、console 错误、失败请求）。`--eval` 在截图前执行页面 JS（开菜单、点 tab 拿交互态证据），
+`--plain` 是主线程被占死时的兜底（只出图）。它**收 URL、不自起 web**：启动归 `scripts/dsh.mjs`
+的双 home 守卫，截图器不重复实现它。
 
 **为什么 preflight（2026-09-24 两轮实锤）**：客户端 bundle 若不能被经典脚本组合解析，
 一条语句就让整条 combo 全灭、其后所有注册丢失，浏览器只报一句莫名的 "loaded without

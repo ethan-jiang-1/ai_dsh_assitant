@@ -65,9 +65,9 @@ import { mkdirSync, existsSync, statSync, writeFileSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 
 const args = process.argv.slice(2)
-const given = args.find(a => !a.startsWith('--'))
-if (given === undefined) {
-  console.error("usage: node scripts/webui-shots.mjs <url-with-token> [--out <dir>] [--name <base>] [--size <WxH>]... [--budget <ms>] [--settle <ms>] [--dom] [--lang <bcp47>]")
+const targetUrl = args.find(a => !a.startsWith('--'))
+if (targetUrl === undefined) {
+  console.error("usage: node scripts/webui-shots.mjs <url-with-token> [--out <dir>] [--name <base>] [--size <WxH>]... [--budget <ms>] [--settle <ms>] [--dom] [--plain] [--eval <js>]... [--lang <bcp47>]")
   process.exit(1)
 }
 
@@ -118,6 +118,50 @@ function waitForDevToolsUrl(proc) {
       reject(new Error(`chrome exited before exposing DevTools (exit ${code})`))
     })
   })
+}
+
+/**
+ * The Chrome flags both capture paths share. Kept in one place because the two used to
+ * carry copies that drifted; the per-path flags (CDP endpoint vs `--screenshot`) stay at
+ * their spawn site.
+ * @param options - the capture's profile directory and viewport.
+ * @returns the shared argument list, in launch order.
+ */
+function sharedChromeArgs({ userDataDir, viewport }) {
+  return [
+    '--headless=new',
+    '--no-sandbox',
+    '--disable-gpu',
+    '--hide-scrollbars',
+    '--no-first-run',
+    '--no-default-browser-check',
+    // Without this, headless Chrome consults the system proxy/PAC configuration and every
+    // HTTP load hangs forever while `data:` URLs still work — the misleading symptom that
+    // cost a long diagnosis on 2026-09-26 (requests were issued, no response ever landed,
+    // the server answered curl in milliseconds).
+    '--no-proxy-server',
+    `--lang=${lang}`,
+    `--user-data-dir=${userDataDir}`,
+    // Crashpad must not write under ~/Library (denied in a sandboxed session), but do NOT
+    // reach for that by overriding HOME: on Chrome 153.0.8010.54 an overridden HOME makes
+    // the browser fail to produce any output at all (observed 2026-09-26, cost: a long
+    // detour). The dedicated flag is the supported way.
+    `--crash-dumps-dir=${userDataDir}`,
+    `--window-size=${viewport.replace('x', ',')}`,
+  ]
+}
+
+/** The browser-level diagnosis a wedged renderer leaves behind (it answers no evaluate). */
+function diagnostics(cdp) {
+  const log = cdp.events
+    .filter(e => e.method === 'Log.entryAdded' || e.method === 'Inspector.targetCrashed')
+    .map(e => e.method === 'Inspector.targetCrashed' ? 'TARGET CRASHED' : `${e.params.entry.level}: ${e.params.entry.text}`)
+    .slice(-10)
+  const requests = cdp.events
+    .filter(e => e.method === 'Network.requestWillBeSent')
+    .map(e => e.params.request.url)
+    .slice(-6)
+  return { log, requests }
 }
 
 /** A minimal CDP client over one page-target WebSocket. */
@@ -176,69 +220,19 @@ for (const viewport of viewports) {
   mkdirSync(userDataDir, { recursive: true })
   const target = join(outDir, `${name}-${viewport}.png`)
 
-  // --no-sandbox + a throwaway HOME: a capture process cannot initialize Chrome's own
-  // sandbox under an outer file sandbox, and Crashpad insists on writing crash dumps
-  // under $HOME/Library (both observed 2026-09-26). A process that renders one page and
-  // exits has nothing worth sandboxing.
-  const proc = spawn(chrome, [
-    '--headless=new',
-    '--no-sandbox',
-    '--disable-gpu',
-    '--hide-scrollbars',
-    '--no-first-run',
-    '--no-default-browser-check',
-    // Without this, headless Chrome consults the system proxy/PAC configuration and every
-    // HTTP load hangs forever while `data:` URLs still work — the misleading symptom that
-    // cost a long diagnosis on 2026-09-26 (requests were issued, no response ever landed,
-    // the server answered curl in milliseconds).
-    '--no-proxy-server',
-    // Node's WebSocket sends no same-origin handshake Chrome accepts; without this flag
-    // the DevTools socket is refused (local loopback, one-shot process: acceptable).
-    '--remote-allow-origins=*',
-    `--lang=${lang}`,
-    `--user-data-dir=${userDataDir}`,
-    // Crashpad must not write under ~/Library (denied in a sandboxed session), but do NOT
-    // reach for that by overriding HOME: on Chrome 153.0.8010.54 an overridden HOME makes
-    // the browser fail to produce any output at all (observed 2026-09-26, cost: a long
-    // detour). The dedicated flag is the supported way.
-    `--crash-dumps-dir=${userDataDir}`,
-    '--remote-debugging-port=0',
-    // Start at the target URL, never about:blank + Page.navigate: on Chrome 153.0.8010.54
-    // a protocol-initiated navigation issues no subresource request at all and the page
-    // hangs (evaluate and screenshot both stall), while the same URL opened at launch
-    // loads normally — isolated 2026-09-26 after a long "the server must be broken"
-    // detour. The cost is that the locale override below lands after the first document,
-    // so the first paint follows the host's own locale settings.
-    `--window-size=${viewport.replace('x', ',')}`,
-    given,
-  ], {
-    env: process.env,
-    // Own process group: Chrome's helper processes (network, gpu, renderers) outlive a
-    // parent-only SIGTERM and accumulate across captures until new instances misbehave —
-    // 26 leftovers were measured before a long "HTTP hangs" diagnosis on 2026-09-26.
-    // Killing the group is what actually cleans up.
-    detached: true,
-  })
-
-  // Chrome's stderr is the only place a dead network service reports itself; keep a
-  // bounded tail so the watchdog can print it instead of swallowing it (observed
-  // 2026-09-26: HTTP loads hung with no other symptom).
-  let chromeStderr = ''
-  proc.stderr.on('data', chunk => { chromeStderr = (chromeStderr + chunk).slice(-4000) })
-
   let watchdog
   let cdp
+  let proc
+  let chromeStderr = ''
 
   if (plain) {
     // Screenshot-only path: no protocol client, so a busy main thread cannot stall it.
     // Chrome writes the file when the first frame is ready and then idles; we poll for
     // the file and take the whole process group down afterwards.
     const plainProc = spawn(chrome, [
-      '--headless=new', '--no-sandbox', '--disable-gpu', '--hide-scrollbars',
-      '--no-first-run', '--no-default-browser-check', '--no-proxy-server',
-      `--lang=${lang}`, `--user-data-dir=${userDataDir}`,
-      `--crash-dumps-dir=${userDataDir}`,
-      `--window-size=${viewport.replace('x', ',')}`, `--screenshot=${target}`, given,
+      ...sharedChromeArgs({ userDataDir, viewport }),
+      `--screenshot=${target}`,
+      targetUrl,
     ], { env: process.env, detached: true, stdio: 'ignore' })
     const plainDeadline = Date.now() + budget + settle + 20_000
     while ((!existsSync(target) || statSync(target).size === 0) && Date.now() < plainDeadline) await sleep(500)
@@ -254,6 +248,38 @@ for (const viewport of viewports) {
     continue
   }
 
+  // The CDP path only: --plain returns above, so it never spawns this browser.
+  // --no-sandbox + a throwaway HOME: a capture process cannot initialize Chrome's own
+  // sandbox under an outer file sandbox, and Crashpad insists on writing crash dumps
+  // under $HOME/Library (both observed 2026-09-26). A process that renders one page and
+  // exits has nothing worth sandboxing.
+  proc = spawn(chrome, [
+    ...sharedChromeArgs({ userDataDir, viewport }),
+    // Node's WebSocket sends no same-origin handshake Chrome accepts; without this flag
+    // the DevTools socket is refused (local loopback, one-shot process: acceptable).
+    '--remote-allow-origins=*',
+    '--remote-debugging-port=0',
+    // Start at the target URL, never about:blank + Page.navigate: on Chrome 153.0.8010.54
+    // a protocol-initiated navigation issues no subresource request at all and the page
+    // hangs (evaluate and screenshot both stall), while the same URL opened at launch
+    // loads normally — isolated 2026-09-26 after a long "the server must be broken"
+    // detour. The cost is that the locale override lands after the first document, so the
+    // first paint follows the host's own locale settings.
+    targetUrl,
+  ], {
+    env: process.env,
+    // Own process group: Chrome's helper processes (network, gpu, renderers) outlive a
+    // parent-only SIGTERM and accumulate across captures until new instances misbehave —
+    // 26 leftovers were measured before a long "HTTP hangs" diagnosis on 2026-09-26.
+    // Killing the group is what actually cleans up.
+    detached: true,
+  })
+
+  // Chrome's stderr is the only place a dead network service reports itself; keep a
+  // bounded tail (declared with the other capture state) so the watchdog can print it
+  // instead of swallowing it (observed 2026-09-26: HTTP loads hung with no other symptom).
+  proc.stderr.on('data', chunk => { chromeStderr = (chromeStderr + chunk).slice(-4000) })
+
   try {
     // Watchdog: a page that wedges Chrome would otherwise hang the whole capture with no
     // output (observed 2026-09-26). Killing the process closes the DevTools socket, which
@@ -265,15 +291,8 @@ for (const viewport of viewports) {
       // response may never settle; report what the browser-level channels saw and exit
       // rather than hanging the caller (observed 2026-09-26).
       if (cdp !== undefined) {
-        const log = cdp.events
-          .filter(e => e.method === 'Log.entryAdded' || e.method === 'Inspector.targetCrashed')
-          .map(e => e.method === 'Inspector.targetCrashed' ? 'TARGET CRASHED' : `${e.params.entry.level}: ${e.params.entry.text}`)
-          .slice(-10)
+        const { log, requests } = diagnostics(cdp)
         if (log.length > 0) console.error(`       browser log: ${log.join(' | ')}`)
-        const requests = cdp.events
-          .filter(e => e.method === 'Network.requestWillBeSent')
-          .map(e => e.params.request.url)
-          .slice(-6)
         if (requests.length > 0) console.error(`       last requests: ${requests.join(' | ')}`)
       }
       if (chromeStderr.length > 0) {
@@ -321,7 +340,9 @@ for (const viewport of viewports) {
     await sleep(settle)
 
     for (const snippet of evals) {
-      const outcome = await cdp.send('Runtime.evaluate', { expression: snippet, returnByValue: true })
+      // awaitPromise lets a snippet wait for real time (a tab to open, a turn to settle)
+      // instead of the caller padding the run with throwaway evals.
+      const outcome = await cdp.send('Runtime.evaluate', { expression: snippet, returnByValue: true, awaitPromise: true })
       const detail = outcome.result?.result?.value ?? outcome.result?.exceptionDetails?.text ?? 'ok'
       console.log(`  ..   eval → ${String(detail).slice(0, 120)}`)
       // Let React commit whatever the snippet triggered before the next snippet or capture.
@@ -414,16 +435,11 @@ for (const viewport of viewports) {
     console.error(`  FAIL ${target}: ${String(error)}`)
     // A wedged renderer answers no evaluate, so the browser-level channels are the only
     // diagnosis: surface whatever Log/Inspector reported before the watchdog fired.
-    const browserLog = cdp?.events
-      .filter(e => e.method === 'Log.entryAdded' || e.method === 'Inspector.targetCrashed')
-      .map(e => e.method === 'Inspector.targetCrashed' ? 'TARGET CRASHED' : `${e.params.entry.level}: ${e.params.entry.text}`)
-      .slice(-10)
-    if (browserLog !== undefined && browserLog.length > 0) console.error(`       browser log: ${browserLog.join(' | ')}`)
-    const pendingRequests = cdp?.events
-      .filter(e => e.method === 'Network.requestWillBeSent')
-      .map(e => e.params.request.url)
-      .slice(-5)
-    if (pendingRequests !== undefined && pendingRequests.length > 0) console.error(`       last requests: ${pendingRequests.join(' | ')}`)
+    if (cdp !== undefined) {
+      const { log, requests } = diagnostics(cdp)
+      if (log.length > 0) console.error(`       browser log: ${log.join(' | ')}`)
+      if (requests.length > 0) console.error(`       last requests: ${requests.join(' | ')}`)
+    }
   } finally {
     clearTimeout(watchdog)
     // Kill the whole group, then insist: a parent-only SIGTERM leaves Chrome's helpers

@@ -70,6 +70,16 @@ interface CommandUiRegistry {
 }
 
 /**
+ * The three rooms as one vocabulary. A bare `string` here let a mistyped kind compile —
+ * the card's own red-proof had to simulate exactly that bug — so the union makes it
+ * unrepresentable instead.
+ */
+type RoomKind = 'desk' | 'knowledgeRoom' | 'memoryRoom'
+
+/** The desk room's command/dock label, shared so the two surfaces cannot drift apart. */
+const DESK_LABEL = '打开我的桌面'
+
+/**
  * The rooms as discoverable commands.
  *
  * Why this exists: the first-mile walkthrough (2026-09-26) found the product had zero
@@ -79,11 +89,11 @@ interface CommandUiRegistry {
  * @param open - opens one room's right-sidebar tab by kind.
  * @returns the three contributions, in menu order.
  */
-function roomCommands(open: (kind: string) => void): CommandContribution[] {
+function roomCommands(open: (kind: RoomKind) => void): CommandContribution[] {
   return [
     {
       name: 'desk',
-      label: () => '打开我的桌面',
+      label: () => DESK_LABEL,
       description: () => '现在要采取什么行动：等你拍板、在办的事、缺什么',
       available: () => true,
       ui: { kind: 'action', run: () => { open('desk') } },
@@ -774,7 +784,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   }
 
   /** Open one room as a right-sidebar tab beside the conversation (the approved form). */
-  function openBeside(kind: string): void {
+  function openBeside(kind: RoomKind): void {
     const controller = deskSidebarRight
     if (controller === undefined || controller.openTab === undefined) {
       patchDesk({ note: 'sidebarRight 服务没有物化，开不了对话旁的 tab' })
@@ -880,15 +890,24 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   }
 
   /**
-   * The first-open strip above the composer. The owner renders this dock only in the
-   * blank-session hero state, so it is exactly the first mile: it answers the two questions
-   * the walkthrough found unanswered — what do I say first, and what can this thing do —
-   * and offers the one surface worth visiting before there is any content (the desk, whose
-   * own empty state explains what it becomes).
-   * @param props - the dock's injected opener.
-   * @returns the strip element.
+   * The first-open strip above the composer, for a session that has no content yet: it
+   * answers the two questions the walkthrough found unanswered — what do I say first, and
+   * what can this thing do — and offers the one surface worth visiting before there is any
+   * content (the desk, whose own empty state explains what it becomes).
+   *
+   * The blank check is OURS, not the owner's: the vendor renders this dock for every
+   * session (`zone` is defined whenever session+input exist; only the hero chrome is
+   * hero-gated — ConversationContent.tsx), so without this line a first-open strip would
+   * sit above the composer of every ongoing conversation. A blank session is the owner
+   * data's own `session.blank`.
+   * @param props - the dock's owner data and injected opener.
+   * @returns the strip element, or null once the session has any content.
    */
-  function FirstMileDock({ openRoom }: { openRoom?: (kind: string) => void }): ReturnType<typeof createElement> {
+  function FirstMileDock({ session, openRoom }: {
+    session?: { blank?: boolean } | undefined
+    openRoom?: (kind: RoomKind) => void
+  }): ReturnType<typeof createElement> | null {
+    if (session?.blank !== true) return null
     return createElement('div', {
       style: {
         display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-start',
@@ -912,7 +931,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         border: '1px solid rgba(128,128,128,0.4)', background: 'transparent', cursor: 'pointer',
         fontSize: '12px', color: MARK_TEAL, padding: '3px 10px', borderRadius: '6px',
       },
-    }, '打开我的桌面'),
+    }, DESK_LABEL),
     )
   }
 
@@ -967,7 +986,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   }
 
   /** The refresh button plus its status line, and — where the room can — the jump to the beside-conversation tab. */
-  function refreshRow(store: typeof deskStore, tabKind?: string): ReturnType<typeof createElement> {
+  function refreshRow(store: typeof deskStore, tabKind?: RoomKind): ReturnType<typeof createElement> {
     const inFlight = pendingInFlight(store)
     return createElement('div', { style: { margin: '8px 0 0' } },
       createElement('button', {

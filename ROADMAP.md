@@ -12,11 +12,11 @@
 
 ## 队列
 
-- ▶ **第一公里：从打开到第一句话**（用户 2026-09-26 拍板 P0–P3）：**P0 截图证据管线 + P1-A 命令面 + P1-B 首屏身份与引导 + P2 视觉与层级 + P3 收尾已落地**；**P1-C 搁置**（平台默认工作区机制查清、一次真机端到端见过、只在写不了 Documents 的环境失败——复现配方在走查报告 §4b）；各判定理由在卡内「判定记录」——卡：[2026-09-26-first-mile-landing](notes/proposed/2026-09-26-first-mile-landing.md) · 走查与截图证据：[2026-09-26-first-mile-walkthrough](notes/research/2026-09-26-first-mile-walkthrough.md)
+- ⏳ **默认工作区复现（第一公里 P1-C 遗留）**（触发=真实安装出现"选择工作区"阻塞，或下次做发行 profile 时）：机制已查清（空注册表时平台建 `<Documents>/deepseek-harness/default-workspace`）、一次真机端到端见过，但按需复现失败——配方与第一步（CDP Network 域抓 `workspace/initializeDefault`）在[走查](notes/research/2026-09-26-first-mile-walkthrough.md) §4b。第一公里 P0–P3 本体已交付离队，记录在[卡](notes/implemented/2026-09-26-first-mile-landing.md)与 git
 - ▶ **CEO 助手的 Sidebar 培养面**（用户拍板的当前 Goal，进行中）：三面板+培养循环已上线并经**真人首测全链走通**；右侧栏 tab、先办这件引导卡、已办分组、忙时冻结已落地；**设计思路＝[培养面设计思路](notes/proposed/2026-09-26-cultivation-surface-design.md)**；整改工作项＝▶ **培养面整改包**（本表下行）；typert 后置——编年记录：[活动卡](notes/proposed/2026-09-25-ceo-sidebar-ux.md) · 接手入口：[handoff](notes/research/2026-09-26-handoff-ceo-sidebar-cultivation.md)
 - ⏸ **IM 渠道接入**（O5；渠道由你选：飞书 / 企微 / 钉钉 / 先 Web+Desktop）——依据：[专家组合件 v0](notes/implemented/2026-09-25-expert-pack-v0.md) §四
 - ⏳ **MCP 连接**（触发=需要真实系统数据（公司盘/CRM 等）接入会话时；v0 用文件替身）——依据同上
-- ▶ **培养面整改包**（S1–S4 + S6 着陆 + S7 已答只读已落地 2026-09-26：内容准入/异步闭环/机械缺陷/三室语义/首开引导/已答决定只读，逐片验收在卡）——**S5 密度/层级已闭环**（第一公里 P0 管线自产真机窄栏证据 → P2 判定：动作上移到标题行，见[卡](notes/proposed/2026-09-26-first-mile-landing.md) 判定记录 1）——卡：[2026-09-26-cultivation-remediation](notes/proposed/2026-09-26-cultivation-remediation.md)
+- ▶ **培养面整改包**（S1–S4 + S6 着陆 + S7 已答只读已落地 2026-09-26：内容准入/异步闭环/机械缺陷/三室语义/首开引导/已答决定只读，逐片验收在卡）——**S5 密度/层级已闭环**（第一公里 P0 管线自产真机窄栏证据 → 判定：动作上移到标题行，见[卡](notes/implemented/2026-09-26-first-mile-landing.md) 判定记录 1）——卡：[2026-09-26-cultivation-remediation](notes/proposed/2026-09-26-cultivation-remediation.md)
 - ▶ **自主 UX/可用性评审**（2026-09-27 按研发姿态把"等外部评审者"改为**自己做**）：用已到手的真机截图 + 对抗性设计评审 + 可用性走查（入口可发现性、首屏三秒判据、窄栏可读性、错误/空/陈旧态）出一份评审与切片建议；外部真人评审**可选**、不再是前置。自足简报仍可用：[2026-09-26-ux-review-brief](notes/research/2026-09-26-ux-review-brief.md)
 - ⏳ 知识导入的转换与概念抽取（触发=①第一份真实 docx/pdf 文档集出现 ②评测集 v0 就位；依据：[导入纯核 note](notes/implemented/2026-09-25-knowledge-ingest-core.md) §四）
 - ⏳ **vendor `lib/` 重建（换 pin 的常规收尾）**（触发=需要 boot/release-smoke/plugin-add 出的 profile 时；测试已改为解析 vendor src，不再依赖它）——三条路与已试步骤见迁移记录 §六
@@ -81,3 +81,9 @@
   "等外部 UX 评审者" → ▶ **自主评审**（自己做，外部真人降为可选）；第一公里 P1-C → 搁置、
   P2 层级 → 已自主判定落地（理由在卡内判定记录）；**仍留 ⏸ 的只有真人输入**——IM 渠道选择、
   评测集 v0 题目（G2 关口）。
+- 2026-09-27：**第一公里 P0–P3 交付、卡毕业至 `implemented/`**（本体离队，不打 ✅）；仅 **P1-C 遗留**
+  转 ⏳ 条目（触发=真实安装出现"选择工作区"阻塞，或下次做发行 profile）。同日自主跑的两轴评审
+  （Standards / Spec）抓到四件并已修：P1-B 提交时漏跑整包（夹具两提交后才补）、`webui-shots` 无入口
+  （已加 `pnpm shots` + 命令表 + `docs/dev.md`）、**引导条并非只在空会话渲染**（真 bug：已修 +
+  反证截图 + 三态守卫）、P3 两处交叉引用过期。教训补进
+  [pre-push-evidence](.agents/skills/pre-push-evidence/SKILL.md)（整包套件 + 覆盖状态的补集）。

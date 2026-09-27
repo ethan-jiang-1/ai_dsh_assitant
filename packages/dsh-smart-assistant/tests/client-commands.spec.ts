@@ -8,18 +8,9 @@
  */
 import { createElement } from 'react'
 import { describe, expect, it } from 'vitest'
+import { loadClientRegistration, materializeClient } from './client-harness.ts'
 
-interface Registration {
-  id: string
-  factory: (require: (spec: string) => unknown) => Record<string, unknown>
-}
-
-const registrations: Registration[] = []
-;(globalThis as Record<string, unknown>).__ModuleLoader__ = {
-  load: (registration: Registration) => { registrations.push(registration) },
-}
-// @ts-expect-error TS2306 the browser half is intentionally not a module
-await import('../src/client/index.ts')
+const registration = await loadClientRegistration()
 
 interface CommandContribution {
   name: string
@@ -36,12 +27,7 @@ interface ClientExports {
 }
 
 function materialize(): ClientExports {
-  const registration = registrations[0]
-  if (registration === undefined) throw new Error('no registration was submitted')
-  return registration.factory((spec) => {
-    if (spec === 'react') return { createElement }
-    throw new Error(`unexpected module-table require: ${spec}`)
-  }) as unknown as ClientExports
+  return materializeClient(registration, { createElement }) as unknown as ClientExports
 }
 
 /** A browser context that records slot/tab/command registrations and nothing else. */

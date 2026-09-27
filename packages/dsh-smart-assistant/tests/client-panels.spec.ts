@@ -6,28 +6,12 @@
  * module-table require stub. The panels read one shared store, which the factory exposes for
  * exactly this: fill it and every section renders without a browser.
  */
-import { createElement } from 'react'
 import { describe, expect, it } from 'vitest'
+import { inertReactShim, loadClientRegistration, materializeClient } from './client-harness.ts'
 
-interface Registration {
-  id: string
-  factory: (require: (spec: string) => unknown) => Record<string, unknown>
-}
-
-const registrations: Registration[] = []
-;(globalThis as Record<string, unknown>).__ModuleLoader__ = {
-  load: (registration: Registration) => { registrations.push(registration) },
-}
-// @ts-expect-error TS2306 the browser half is intentionally not a module
-await import('../src/client/index.ts')
-
-/** Minimal hook shim: the panels use useState/useEffect, and these tests render one snapshot. */
-const reactShim = {
-  createElement,
-  useState: <T,>(initial: T): [T, (next: T) => void] => [initial, () => {}],
-  useEffect: (): void => {},
-  useRef: <T,>(initial: T): { current: T } => ({ current: initial }),
-}
+const registration = await loadClientRegistration()
+/** The panels call useState/useEffect; these tests render one snapshot. */
+const reactShim = inertReactShim()
 
 interface DeskStore {
   data?: Record<string, unknown> | undefined
@@ -56,13 +40,7 @@ interface PanelExports {
 }
 
 function materialize(): PanelExports {
-  const registration = registrations[0]
-  if (registration === undefined) throw new Error('no registration was submitted')
-  const exports = registration.factory((spec) => {
-    if (spec === 'react') return reactShim
-    throw new Error(`unexpected module-table require: ${spec}`)
-  })
-  return exports as unknown as PanelExports
+  return materializeClient(registration, reactShim) as unknown as PanelExports
 }
 
 /** Every string in a rendered element tree, for asserting on copy without a DOM. */

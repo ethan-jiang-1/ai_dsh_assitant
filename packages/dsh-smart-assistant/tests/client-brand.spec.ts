@@ -1,39 +1,21 @@
 import { createElement } from 'react'
 import { describe, expect, it } from 'vitest'
+import { loadClientRegistration, materializeClient } from './client-harness.ts'
 
-/**
- * The browser half is a client-module registration script, not an importable module: the
- * test installs a fake page-global facade first, imports the script (which submits its
- * registration), then materializes the factory with a module-table require stub.
- */
-interface Registration {
-  id: string
-  factory: (require: (spec: string) => unknown) => Record<string, unknown>
-}
-
-const registrations: Registration[] = []
-;(globalThis as Record<string, unknown>).__ModuleLoader__ = {
-  load: (registration: Registration) => { registrations.push(registration) },
-}
-// The browser half is deliberately a classic script (zero imports/exports — see the file
-// header for why), so TS refuses it as a module import; evaluating it is exactly what the
-// shell does with it, and esbuild-run vitest executes it the same way.
-// @ts-expect-error TS2306 the browser half is intentionally not a module
-await import('../src/client/index.ts')
+// The browser half is deliberately a classic script (zero imports/exports — see its file
+// header for why), so TS refuses it as a module import; the harness evaluates it exactly
+// the way the shell does, after installing the page-global facade.
+const registration = await loadClientRegistration()
 
 function materialize(): Record<string, (unknown extends never ? never : unknown)> {
-  const registration = registrations[0]
-  if (registration === undefined) throw new Error('no registration was submitted')
-  return registration.factory((spec) => {
-    if (spec === 'react') return { createElement }
-    throw new Error(`unexpected module-table require: ${spec}`)
-  })
+  return materializeClient(registration, { createElement })
 }
 
 describe('client-module registration', () => {
-  it('registers the package exactly once under its name', () => {
-    expect(registrations).toHaveLength(1)
-    expect(registrations[0]?.id).toBe('dsh-smart-assistant')
+  it('registers the package under its name', () => {
+    // The harness fails the load when the script submits anything other than exactly one
+    // registration, so reaching this line already proves the count; the name is the claim.
+    expect(registration.id).toBe('dsh-smart-assistant')
   })
 
   it('renders the house mark at the requested size', () => {

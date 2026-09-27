@@ -1,6 +1,6 @@
 # 第一公里：从打开到第一句话（着陆 / 功能发现 / 工作区之问）
 
-日期：2026-09-26 · 状态：**proposed**（用户拍板 2026-09-26 深夜批准全量 P0–P3；规划对话即本卡的问题与提案节）
+日期：2026-09-26 · 状态：**implemented**（用户 2026-09-26 批准 P0–P3；切片全部交付，逐片验收与判定记录在下。遗留两项各有归宿：P1-C 搁置（ROADMAP ⏳ 条目，配方在[走查](../research/2026-09-26-first-mile-walkthrough.md) §4b）、locale 席位延后（判定记录 6））
 
 ## 问题（可观察行为）
 
@@ -25,9 +25,13 @@
 
 ### P0 证据管线（先看见，再动手）
 
-- `scripts/webui-shots.mjs`：起 web（可指定 home）→ Chrome headless（`--headless --screenshot
-  --virtual-time-budget`，外部进程调用，不引 npm 依赖）截关键屏 → PNG 存档。风格遵守 `scripts/AGENTS.md`
-  （纯 ESM、Node 内置、注释写为什么）。
+- `scripts/webui-shots.mjs`（**已交付**）：**收 URL**（不自起 web——启动归 `scripts/dsh.mjs` 的双 home
+  守卫，截图器不重复实现它）→ headless Chrome **经 CDP** 截图 + 产出 DOM 证据（可见文本/带高度大纲/
+  交互件/boot 诊断/console 错误/失败请求）。原计划的 `--headless --screenshot --virtual-time-budget`
+  路线**实测走不通**（SSE 长连接下永远等不到 load），CDP 自控时机是修法；另带看门狗、进程组清理、
+  `--plain` 兜底与 `--eval`（可 await 的页面交互：点菜单、开 tab 靠它）。风格遵守 `scripts/AGENTS.md`
+  （纯 ESM、Node 内置、注释写为什么）。**入口**：`pnpm shots`（`package.json` 别名，与命令表、
+  `docs/dev.md` 同 diff 登记）。
 - **首开走查**：干净 home（CEO 第一次打开的样子）+ dev home 各走一遍，断点清单进
   `notes/research/`；截图＝视觉结论的唯一依据（继承 S5 方法纪律，证据自产）。
 - 交互态截图（菜单展开等）headless 一次性截图做不到 → DOM 断言兜底（preflight 同族）；不硬闯。
@@ -37,6 +41,20 @@
 - **P1-A 命令面**：client 注册 `ctx.commandUi` `ActionSpec`——`/desk`（开桌面右栏 tab）、
   `/knowledge`、`/memory`（开对应面板/右栏）。功能发现从"靠对话试"变"菜单可见、点选直达"。
   注册前读 vendor `ui-commands/src/client/contract.ts` 与 service 名，不猜 API。
+  **点选直达的证据**（2026-09-27 补齐，回应 Spec 轴"presence-only"的指摘）：真机点 `+` 菜单里的
+  「打开我的桌面」→ 右栏真的开出该室并带真实内容；`/` 菜单同源（vendor 文档：`+` 与 `/` 开同一个菜单），
+  实测键入 `/` 后菜单列出三条命令。证据
+  [p1a-clickthrough.png](../research/2026-09-26-first-mile-shots/p1a-clickthrough.png) 与
+  [p1a-slash-menu.png](../research/2026-09-26-first-mile-shots/p1a-slash-menu.png)（DOM 证据同目录）。
+- **P1-B 首屏身份与引导**（**已交付**）：`conversation.hero.brand.mark` 注入产品标识；
+  `conversation.input.dock` 注入首开引导（一句话先说什么 + 两个示例 + 打开桌面）。
+  **修正（2026-09-27，Spec 轴自审抓到）**：dock **不是** owner 只在 hero 态渲染的槽位——vendor 的
+  `zone` 在每个会话都有值（只有 hero chrome 是 `hero &&` 门控），所以第一版引导条会挂在**每个**对话
+  的输入框上方。修法：以 owner 数据自带的 `session.blank === true` 为门（组件自己判，不靠 owner）；
+  夹具三态（blank=false / 缺 session / blank=true）；真机反证
+  [p1b-nonblank.png](../research/2026-09-26-first-mile-shots/p1b-nonblank.png)（打开有内容的会话 →
+  引导条消失）。**教训**：证据集若只覆盖一种状态，状态类 bug 照不出来——已补进
+  [pre-push-evidence](../../.agents/skills/pre-push-evidence/SKILL.md)。
 - **P1-B 首屏身份与引导**：`conversation.hero.brand.mark` 注入产品标识；composer 上下 dock
   （`conversation.input.dock`/`conversation.composer.dock`，session scope——blank session 渲染时机
   需实验确认，不渲染则降级记卡）注入首开引导（一句话先说什么 + 入口按钮）。与 S6 面板内引导
@@ -114,7 +132,8 @@
   `!!js` 路径表现相同（所以不是 `!!js` 求值问题）。因此**不把未验证的 `dev/profile-patch.yml`
   documentsDirectory 改动写进仓**（回退）；P1-C 的触发条件与复现配方见
   [走查报告 §3/§5](../research/2026-09-26-first-mile-walkthrough.md)。**下个会话接手时从这里开始**：
-  先确认"客户端是否真的调用了 `workspace/initializeDefault`"（Network 域抓该 RPC），再谈 dev 配置。
+  先确认"客户端是否真的调用了 `workspace/initializeDefault`"（Network 域抓该 RPC），再谈 dev 配置
+  （配方全文在走查 §4b）。
   顺带确认的两件事：`!!js` 表达式**不能加引号**（加了标签文本会漏进表达式 → 被当正则，报
   "Invalid regular expression flags"）；dev patch 里用 `!!js` 依赖 `process.env.DSH_HOME` 有风险
   （求值不到则整行 entry 不激活），不值得为未验证的收益承担。
@@ -128,7 +147,7 @@
   **按钮在每条最底部——要读完审计行才够得着动作**；5 条在办 ≈ 40+ 行。
   内容本身是 S1 过滤后的经营实质（不是噪声），所以这不是"砍内容"问题而是**层级**问题。
   ③ **层级修复（2026-09-27 自主判定落地）**：把行内动作移到标题行右侧（`CorrectableRow` 一处改动，
-  六个调用点全部受益：决定/知识/技能/线索/行动），细节行（负责人/度量/停止条件/它记）落在下方。
+  六个调用点全部受益：决定/知识/线索/行动/记忆/技能行），细节行（负责人/度量/停止条件/它记）落在下方。
   真机复核（[p2b 截图](../research/2026-09-26-first-mile-shots/p2b-actions-on-title-line.png)）：
   四条「在办」的标题与「办完了/不办了/改这条」同在第一行，**不用再读完审计行才够得着动作**。
   **未采纳**：① 给「它记」加折行截断——它是信任线（助手自纠的记录），橙色是有意的权重，
@@ -137,8 +156,9 @@
 - [x] **P3 收尾**（2026-09-26 / 09-27）——**引导信息架构检查**（一个事实一个家）：首开引导条说
   "第一句说什么 + 敲 / 看能力"，桌面空态说"这个桌面是什么、怎么长出来"，命令菜单说"现在能做什么"
   ——三者互补、无重复，不需要再动。**交叉引用闭合**：设计卡 §四"发行组合的默认工作区"已按 P0-B
-  结论改写；整改卡 S5 已标注"僵局已解 + 证据位置"；ROADMAP 两条目已更新。**本卡留在 `proposed/`**：
-  P1-C 未决（见下行），不满足毕业条件（改写成已交付事实才迁 `implemented/`）。
+  结论改写；整改卡 S5 已标注"僵局已解 + 证据位置"；ROADMAP 条目已更新。**本卡已毕业到
+  `implemented/`**（改写为已交付事实）；P1-C 的归宿是 ROADMAP 的 ⏳ 条目（触发=真实安装出现
+  "选择工作区"阻塞或下次做发行 profile）。
 
 ## 判定记录（2026-09-27 起：技术/设计选择由 agent 自主判定，附理由；真人才有的输入才停下问）
 
@@ -159,3 +179,8 @@
    标签+命令名+说明成立。
 5. **既有三项**：摘要预算处置（默认方案已在自治运转——最弱优先淘汰）、typert 集成（用户已拍板
    后置）**维持现状**；评测集 v0 题目**仍属真人**（只有本人能出真实经营问题），不代拍。
+6. **locale 席位（断点 5）** → **判定：中文优先，locale 字典延后**。走查断点 5 说"我们的面板标签
+   不跟 UI 语言"（英文界面下三室仍显示中文），新一轮的命令标签同样硬编码中文。理由：目标用户是
+   中文 CEO、本仓的 skin face 本来就豁免英文门禁，为一个不存在的第二语言引入整套 locale 字典 +
+   `locale` 席位不划算。**触发条件**：真出现第二语言需求（或发行到非中文环境）时，把 client 面的
+   文案一次性搬进 typed 字典——那时三室与命令行一起搬，不零敲碎打。

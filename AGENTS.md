@@ -72,6 +72,7 @@ pnpm sync-dsh -- --tag <dsh-tag>   # 换 submodule tag + SHA 簿记 + typecheck 
 bash dev/setup.sh       # 幂等：建 dev（web）+ dev-task（headless）两个 profile + link 装插件 + roster 指向 repo（两者为何不能合一：`docs/dev.md` §四）
 pnpm dsh --profile dev-task "one task"  # one-shot = **host 面冒烟**（headless 不进 preset，vendor 明文契约）
 pnpm dsh --profile dev --port 0 --no-open   # Web UI；preset 行为（四工具/persona/摘要）在这里的会话里验。交给人之前先 `pnpm preflight '<URL>'`（绿了再交，见 docs/dev.md §四）
+pnpm shots '<URL>' --dom --size 1600x1000   # 渲染证据：headless Chrome 经 CDP 出 PNG + DOM 证据（可见文本/高度大纲/交互件/console）；`--eval` 拿交互态，`--plain` 兜底（见 docs/dev.md §四）
 pnpm dsh --profile dev-task --patch dev/preset-runner.patch.yml "<task>"   # **preset 挂载的 one-shot**（验证自动化驱动；不带 patch 仍是裸 agent 冒烟）
 ```
 

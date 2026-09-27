@@ -11,18 +11,9 @@
  */
 import { createElement } from 'react'
 import { describe, expect, it } from 'vitest'
+import { loadClientRegistration, materializeClient } from './client-harness.ts'
 
-interface Registration {
-  id: string
-  factory: (require: (spec: string) => unknown) => Record<string, unknown>
-}
-
-const registrations: Registration[] = []
-;(globalThis as Record<string, unknown>).__ModuleLoader__ = {
-  load: (registration: Registration) => { registrations.push(registration) },
-}
-// @ts-expect-error TS2306 the browser half is intentionally not a module
-await import('../src/client/index.ts')
+const registration = await loadClientRegistration()
 
 interface Element {
   type: unknown
@@ -32,16 +23,14 @@ interface Element {
 interface ClientExports {
   apply: (ctx: unknown) => void
   AssistantHeroMark: (props: { size: number, className?: string }) => Element
-  FirstMileDock: (props: { openRoom?: (kind: string) => void }) => Element
+  FirstMileDock: (props: {
+    session?: { blank?: boolean } | undefined
+    openRoom?: (kind: string) => void
+  }) => Element | null
 }
 
 function materialize(): ClientExports {
-  const registration = registrations[0]
-  if (registration === undefined) throw new Error('no registration was submitted')
-  return registration.factory((spec) => {
-    if (spec === 'react') return { createElement }
-    throw new Error(`unexpected module-table require: ${spec}`)
-  }) as unknown as ClientExports
+  return materializeClient(registration, { createElement }) as unknown as ClientExports
 }
 
 /** Every element of one tag in a tree, depth-first. */
@@ -93,10 +82,22 @@ describe('first-mile seats', () => {
     expect(mark.props.children).toHaveLength(3)
   })
 
+  it('renders nothing once the session has any content', () => {
+    // The owner renders this dock for EVERY session (only the hero chrome is hero-gated),
+    // so the blank check is the component's own — a first-open strip above an ongoing
+    // conversation would be wrong content in the wrong place. Guarded here because every
+    // screenshot in the evidence set is a blank session and cannot catch a regression.
+    const exports = materialize()
+    expect(exports.FirstMileDock({ session: { blank: false }, openRoom: () => {} })).toBe(null)
+    expect(exports.FirstMileDock({ openRoom: () => {} })).toBe(null)
+    expect(exports.FirstMileDock({ session: { blank: true }, openRoom: () => {} })).not.toBe(null)
+  })
+
   it('tells a first-time principal what to say and offers the desk', () => {
     const opened: string[] = []
-    const dock = materialize().FirstMileDock({ openRoom: kind => { opened.push(kind) } })
+    const dock = materialize().FirstMileDock({ session: { blank: true }, openRoom: kind => { opened.push(kind) } })
 
+    if (dock === null) throw new Error('the strip should render for a blank session')
     const copy = textsOf(dock).join(' ')
     // The two gaps the walkthrough named: what do I say first, and what can this thing do.
     expect(copy).toContain('第一次来')

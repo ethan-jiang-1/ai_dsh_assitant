@@ -12,6 +12,7 @@ whenToUse: Choosing what to run before a commit or handover; deciding whether a 
 | Surface you touched | Minimal credible evidence |
 |---|---|
 | pure core (`src/home`, `memory`, `research`, `skills`, `knowledge`, `tool-support`) | package `pnpm test` (the unit specs own these behaviors) |
+| `src/client/` browser half | the **whole package suite**, not just the spec you touched: `client-brand.spec.ts` asserts the complete slot-registration surface, so adding one registration reds a spec you never opened (this happened — P1-B landed red and the fixture followed two commits later) |
 | model-visible surface (tool description, prompt section, persona, digest) | `pnpm build` **then** the real-composition test **then** a live probe (`repo-live-probe`) |
 | `src/index.ts` service behavior | `pnpm test` (service-level specs construct a real cordis context) + the composition test |
 | `scripts/verify*.mjs` | the new/changed check's **red fixture** in `tests/verify-gates.spec.mjs` + `pnpm verify` |
@@ -29,6 +30,12 @@ whenToUse: Choosing what to run before a commit or handover; deciding whether a 
   reason; it never joins the green list.
 - **One slice, one vertical cut.** Code, test, docs/README and the note land together; if the
   evidence needs a different slice, split the change instead of widening the evidence.
+- **An evidence set that covers one state cannot catch a state bug.** Every screenshot of the
+  first-mile strip was a blank session, so "renders only in the blank-session state" looked
+  proven while the strip actually rendered in every session (the owner renders that dock for
+  every session — only the hero chrome is hero-gated). When a claim is conditional ("only when
+  X"), the evidence must include the **complementary case** (here: a session with content), not
+  one more instance of X.
 
 ## Finish line
 
