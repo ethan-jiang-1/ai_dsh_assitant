@@ -647,7 +647,9 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
           const fire = (): void => {
             if (action.destructive === true && armed !== action.label) {
               setArmed(action.label)
-              setTimeout(() => { setArmed(current => current === action.label ? undefined : current) }, 3000)
+              // Five seconds, not three: these are 18px buttons and a Chinese principal may be
+              // mid-IME when the confirm appears (R3, self-review 2026-09-27).
+              setTimeout(() => { setArmed(current => current === action.label ? undefined : current) }, 5000)
               return
             }
             action.run()
@@ -1172,12 +1174,20 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
                     border: `1px solid ${MARK_TEAL}`, background: '#fff', color: MARK_TEAL,
                   },
                 }, String(option.label ?? ''))))
-        // S7: once THIS row has been answered (in flight or settled), it stops looking
-        // answerable — a real trial answered one decision three times because the row kept its
-        // buttons through the assistant's multi-step rewrite window.
+        // S7: once THIS row has been ANSWERED it stops looking answerable — a real trial answered
+        // one decision three times because the row kept its buttons through the assistant's
+        // multi-step rewrite window.
+        //
+        // R2 (self-review, 2026-09-27): "answered" must mean the 回答 action, not "any action
+        // touched this row". The row used to go read-only on ANY receipt — including the one from
+        // 看选项, which is a READ: the principal asked to see the options and lost both the options
+        // and the ability to answer, with a false "已回答" line on top. Only 回答 closes a row; a
+        // receipt from 看选项/修改 leaves it live, and options always render for a live decision.
         const answered = (item: DeskDecision): boolean => {
           const rowId = rowIdOf(item)
-          return store.pending?.rowId === rowId || store.lastReceipt?.rowId === rowId
+          const inFlight = store.pending?.rowId === rowId ? store.pending.action : undefined
+          const settled = store.lastReceipt?.rowId === rowId ? store.lastReceipt.action : undefined
+          return inFlight === '回答' || (inFlight === undefined && settled === '回答')
         }
         const row = (item: DeskDecision, compact: boolean): ReturnType<typeof createElement> => {
           const rowId = rowIdOf(item)
@@ -1293,7 +1303,9 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
                 sendPrompt(`行动「${String(action.what ?? '')}」要改：${text}。${DESK_REFRESH_STEP}`, '修改', String(action.id ?? action.what))
               },
               actions: [
-                { label: '办完了', run: () => { finishAction(String(action.what ?? ''), String(action.id ?? action.what)) }, destructive: true },
+                // Completing is a positive move: confirming it (R3, self-review 2026-09-27) made
+                // the most common action two clicks inside a small window on an 18px button.
+                { label: '办完了', run: () => { finishAction(String(action.what ?? ''), String(action.id ?? action.what)) } },
                 { label: '不办了', run: () => { dropAction(String(action.what ?? ''), String(action.id ?? action.what)) }, destructive: true },
               ],
             }))),

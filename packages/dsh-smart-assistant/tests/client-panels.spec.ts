@@ -64,6 +64,26 @@ function textsOf(node: unknown): string[] {
   return element.props === undefined ? [] : textsOf(element.props.children)
 }
 
+/** The first rendered button whose text is exactly `label`, or undefined. */
+function findButton(node: unknown, label: string): { props: { onClick?: () => void } } | undefined {
+  if (node === null || node === undefined || typeof node !== 'object') return undefined
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const hit = findButton(child, label)
+      if (hit !== undefined) return hit
+    }
+    return undefined
+  }
+  const element = node as { type?: unknown, props?: { children?: unknown } }
+  if (typeof element.type === 'function') {
+    return findButton((element.type as (props: unknown) => unknown)(element.props), label)
+  }
+  if (element.type === 'button' && textsOf(element).join('') === label) {
+    return element as { props: { onClick?: () => void } }
+  }
+  return findButton(element.props === undefined ? [] : element.props.children, label)
+}
+
 /** Labels of the buttons rendered disabled — the busy freeze must be mechanical, not copy. */
 function disabledButtonLabels(node: unknown): string[] {
   if (node === null || node === undefined || typeof node !== 'object') return []
@@ -468,6 +488,53 @@ describe('desk panels', () => {
     exports.settlePending('2026-09-27T10:05:00+08:00')
     expect(exports.deskStore.stalled).toBeUndefined()
     expect(textsOf(exports.DeskPanel()).join(' | ')).toContain('✓ 已更新')
+  })
+
+  it('keeps a decision answerable when the receipt came from reading its options (R2)', () => {
+    const exports = materialize()
+    exports.deskStore.data = {
+      generatedAt: '2026-09-27T10:00:00+08:00',
+      decisions: [{
+        id: 'd1', question: '季末破价例外？', kind: 'business',
+        options: [{ label: '允许 48 小时' }, { label: '一律不允' }],
+      }],
+    }
+    const at = new Date('2026-09-27T10:01:00+08:00').getTime()
+    // 看选项 is a READ. Before R2 its receipt closed the row, printed a false "已回答" and hid the
+    // options the principal had just asked for.
+    exports.deskStore.pending = { rowId: 'd1', at, action: '看选项' }
+    expect(textsOf(exports.DeskPanel()).join(' | ')).toContain('允许 48 小时')
+    exports.deskStore.pending = undefined
+    exports.deskStore.lastReceipt = { rowId: 'd1', action: '看选项', at }
+    const afterRead = textsOf(exports.DeskPanel()).join(' | ')
+    expect(afterRead).toContain('允许 48 小时')
+    expect(afterRead).not.toContain('已回答')
+
+    // Answering it is what closes the row.
+    exports.deskStore.lastReceipt = { rowId: 'd1', action: '回答', at }
+    const afterAnswer = textsOf(exports.DeskPanel()).join(' | ')
+    expect(afterAnswer).toContain('已回答')
+    expect(afterAnswer).not.toContain('允许 48 小时')
+  })
+
+  it('acts on 办完了 with one click, still confirming 不办了 (R3)', () => {
+    const exports = materialize()
+    exports.deskStore.data = {
+      generatedAt: '2026-09-27T10:00:00+08:00',
+      actions: [{ id: 'a1', what: '季末守住纪律', status: 'open' }],
+    }
+    // Completing fires immediately: the click reaches the send path (which reports the missing
+    // session in this fixture) and never turns into a confirmation prompt.
+    findButton(exports.DeskPanel(), '办完了')?.props.onClick?.()
+    expect(exports.deskStore.note).toContain('还没有会话')
+    expect(textsOf(exports.DeskPanel()).join(' | ')).not.toContain('确认办完了')
+
+    // Dropping still arms first — it is the destructive one. The arm label is component state and
+    // this harness renders a single snapshot, so the contract is asserted on the effect instead:
+    // the first click must NOT reach the send path.
+    exports.deskStore.note = undefined
+    findButton(exports.DeskPanel(), '不办了')?.props.onClick?.()
+    expect(exports.deskStore.note).toBeUndefined()
   })
 
   it('renders the options the assistant presented as one-click answers on the row', () => {
