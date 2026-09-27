@@ -12,11 +12,11 @@
 
 ## 队列
 
-- ⏳ **默认工作区复现（第一公里 P1-C 遗留）**（触发=真实安装出现"选择工作区"阻塞，或下次做发行 profile 时）：机制已查清（空注册表时平台建 `<Documents>/deepseek-harness/default-workspace`）、一次真机端到端见过，但按需复现失败——配方与第一步（CDP Network 域抓 `workspace/initializeDefault`）在[走查](notes/research/archive/2026-09-26-first-mile-walkthrough.md) §4b。第一公里 P0–P3 本体已交付离队，记录在[卡](notes/implemented/2026-09-26-first-mile-landing.md)与 git
+- ⏳ **默认工作区复现（第一公里 P1-C 遗留）**（触发=真实安装出现"选择工作区"阻塞，或**第一次给外人用**时；"发行 profile"触发已退役，见维护规则 2026-09-27）：机制已查清（空注册表时平台建 `<Documents>/deepseek-harness/default-workspace`）、一次真机端到端见过，但按需复现失败——配方与第一步（CDP Network 域抓 `workspace/initializeDefault`）在[走查](notes/research/archive/2026-09-26-first-mile-walkthrough.md) §4b。第一公里 P0–P3 本体已交付离队，记录在[卡](notes/implemented/2026-09-26-first-mile-landing.md)与 git
 - ▶ **CEO 助手的 Sidebar 培养面**（用户拍板的当前 Goal，进行中）：三面板+培养循环已上线并经**真人首测全链走通**；设计权威＝[培养面设计卡](notes/implemented/2026-09-26-cultivation-surface-design.md)（当前 rationale owner）；二轮整改（自主评审 R1–R10）已交付：见[二轮整改卡](notes/implemented/2026-09-27-cultivation-remediation-round2.md)；typert 后置——逐圈历史（冻结）：[编年卡](notes/archived/2026-09-25-ceo-sidebar-ux.md) · 接手历史：[handoff](notes/research/archive/2026-09-26-handoff-ceo-sidebar-cultivation.md)
 - ⏳ **MCP 连接**（触发=需要真实系统数据（公司盘/CRM 等）接入会话时；v0 用文件替身）——依据同上
 - ▶ **真实使用开跑**（**已开始**：2026-09-26 真人经面板走完整条培养循环，会话 `34e64c5d`；首个摩擦已落地为忙时冻结；首批数据与 ⏳ 对照见[打磨战役 §八](notes/implemented/2026-09-25-smart-assistant-polish-campaign.md)，摩擦即新卡）；**摩擦读法已就位**：`pnpm desk-loop` 从真实会话日志读"点了没反应 / 反复点 / 答了多次 / 技能没加载"，首次实跑即产出两个发现（→ [R12](notes/implemented/2026-09-27-cultivation-remediation-round2.md)：23 次面板动作里 13 次没加载契约技能，文件照写；并独立重发现"三答一问"）
-- ⏳ **命令菜单里的技能行（发行准入）**（触发=真实委托人反馈这个菜单太吵，或下次做发行 profile 时）：`/` 与 `+` 菜单把每条技能渲染成行，描述是模型面英文（如 `campaign-evidence-recording | How to record live-verification evidence in this repo…`），开发期还会混进仓库/开发技能——正是知识室已按"委托人面上的噪声"排除掉的同类素材。客户端看不到别的插件的命令来源、没有隐藏它的公开面，所以这归**发行准入**（产品组合该带哪些技能）。证据：[自审卡](notes/implemented/2026-09-27-cultivation-remediation-round2.md) R10
+- ⏳ **命令菜单里的技能行（首次给外人用时的噪声）**（触发=真实委托人反馈这个菜单太吵，或第一次给外人用时；"发行 profile"触发已退役）：`/` 与 `+` 菜单把每条技能渲染成行，描述是模型面英文（如 `campaign-evidence-recording | How to record live-verification evidence in this repo…`），开发期还会混进仓库/开发技能——正是知识室已按"委托人面上的噪声"排除掉的同类素材。客户端看不到别的插件的命令来源、没有隐藏它的公开面，所以这归**发行准入**（产品组合该带哪些技能）。证据：[自审卡](notes/implemented/2026-09-27-cultivation-remediation-round2.md) R10
 - ⏳ 知识导入的转换与概念抽取（触发=①第一份真实 docx/pdf 文档集出现 ②评测集 v0 就位；依据：[导入纯核 note](notes/implemented/2026-09-25-knowledge-ingest-core.md) §四）
 - ⏸ **阶段 0-3 · 评测集 v0**（30–50 条真实经营问题，含应拒答题与判分规则；**题目由你本人出**——这是 G2 关口，agent 只整理格式）
 - ⏳ 家的内存段瘦身（合并/下沉记忆、压缩措辞）（触发=真实使用中确实感到摘要偏薄；降级已优雅故不紧急，依据：[责任圈卡](notes/implemented/2026-09-25-owner-mandate-and-real-use-baseline.md) §九）
@@ -83,6 +83,13 @@
   《总体思路》§八 逐条给处置（定位＝B 底座+专家包、数据边界＝严格本地，两条按既成事实记决定，
   反转属用户；渠道仍 ⏸）、`change-scope` 触发已到（P1-B 漏跑整包）→ 见下条。同日自主两轴评审
   （对抗设计 + 可用性走查）产出 10 条发现 → 新卡 **培养面二轮整改**（R1–R10）。
+- 2026-09-27：**研发期不做正式发行**（用户 2026-09-27：还在研发，别人能从 Git 看到并容易跑起来就行）——
+  标准从"发布"改成**外人 clone 后的上手路径**：`git submodule update --init` → `pnpm install && pnpm build`
+  → `dsh plugin --profile <p> add file:./packages/dsh-smart-assistant` → registry `default: assistant`。
+  本轮**实测过这条路**：`file:` 装进干净 home（3.1s）、`--dump-config` 里能看到 `preset-assistant` 与四个工具行；
+  打包形状（`pnpm pack` → `add <tarball>`）由 `pnpm release-smoke` 继续机械验证。据此**退役两条 ⏳ 里的
+  "下次做发行 profile"触发**（它们仍保留真实反馈/首次给外人用这两个真触发），并把根 README 的装法段按实测重排
+  （去掉不存在的 npm 发布路径、补上必需的 `pnpm build`——包入口是 `lib/`，而 `lib/` 不入库）。
 - 2026-09-27：**O5 触达渠道已拍板＝只在 DSH 自己的交互面（Web/Desktop）**（用户 2026-09-27：只考虑 DSH
   的交互，不去考虑其他的 IM）——IM 渠道接入（飞书/企微/钉钉）**不做**，条目离队；O5 的判据随之收窄为
   「一条命令装好、管理员不写 YAML」（IM 不在 v0 范围）。同口径已同步：[意图清单](notes/intents.md) 的 O5

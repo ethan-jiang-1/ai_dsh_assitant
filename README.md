@@ -32,10 +32,17 @@
 
 ## 装法
 
+研发期**不做正式发行**（没有 npm 发布路径）：拿到的就是这个 Git 仓，装它三步：
+
 ```sh
-dsh plugin --profile <p> add <npm-name>                            # 发布后
-dsh plugin --profile <p> add file:./packages/dsh-smart-assistant   # 本地
+git submodule update --init                                       # vendor/dsh（pin 的唯一出处：vendor/UPSTREAM.md）
+pnpm install && pnpm build                                        # build 必需：包的入口是 lib/，而 lib/ 不入库
+dsh plugin --profile <p> add file:./packages/dsh-smart-assistant
 ```
+
+打包安装的形状（`pnpm pack` 出 tarball 再 `dsh plugin add <tarball>`）由 `pnpm release-smoke` 机械验证：
+pack → 干净 home → 装 → 组合断言。`file:` 这条路径本身实测过：装进干净 home 3.1s，`--dump-config` 里能看到
+`preset-assistant` 行与四个工具行。
 
 装完只需把该 profile 的 `agent-preset-registry` 行的 `default` 设成 `assistant`（模板：`dev/profile-patch.yml`）。
 **0.1.7 起 registry 既不扫目录、也不接受 preset 路径**：`assistant` 的定义随包发（`package.json` 的
