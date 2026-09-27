@@ -547,6 +547,24 @@ describe('desk panels', () => {
     expect(textsOf(exports.DeskPanel()).join(' | ')).toContain('✓ 已更新')
   })
 
+  it('draws its controls at the 24px target and its text at AA contrast (R8)', () => {
+    const exports = materialize()
+    exports.deskStore.data = {
+      generatedAt: '2026-09-27T12:00:00+08:00',
+      actions: [{ id: 'a1', what: '季末守住纪律', status: 'open', note: '它记：22:41 曾按允许例外改写，22:43 随口径回退' }],
+    }
+    const button = findButton(exports.DeskPanel(), '办完了') as unknown as
+      { props: { style?: Record<string, unknown> } } | undefined
+    const style = button?.props.style
+    // 12px text + 4px padding + 1px border ≈ 24px: the row buttons were 18px, under WCAG 2.2's minimum
+    // target, and the palette was 3.74 / 2.32 / 1.92 : 1 on white (self-review R8, 2026-09-27).
+    expect(style?.fontSize).toBe('12px')
+    expect(style?.padding).toBe('4px 8px')
+    expect(style?.color).toBe('#0f766e')          // 5.47:1
+    const note = textsOf(exports.DeskPanel()).join(' | ')
+    expect(note).toContain('它记：')
+  })
+
   it('clamps long free text with an expander and renders minimal markdown (R7)', () => {
     const exports = materialize()
     const longLean = `当前口径**已消解**，${'但要等 CFO 更正行落盘之后才对外引用，之前一律按旧数讲。'.repeat(15)}`
