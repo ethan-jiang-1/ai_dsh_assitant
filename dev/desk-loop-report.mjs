@@ -40,6 +40,8 @@ const PANEL_MARKER = '[桌面] '
 const SKILL = 'desk-refresh'
 const DESK_PATH = '.desk/state.json'
 const REPEAT_WINDOW_MS = 15 * 60 * 1000
+/** 家的四房间工具（`assistant_memory` / `assistant_knowledge` / `assistant_research` / `assistant_reflect`）。 */
+const HOME_TOOLS = new Set(['assistant_memory', 'assistant_knowledge', 'assistant_research', 'assistant_reflect'])
 const REACTION_WINDOW_MS = 10 * 60 * 1000
 
 /** 评测会话的题面（用来把它们从"本人"的账里分出去：消息层与真人不可区分，题面可以）。 */
@@ -116,6 +118,25 @@ function speakerOf(event) {
 }
 
 /**
+ * 剥掉粘在**首轮**前面的协作边界前言。
+ *
+ * 前言是 harness 注入的，落盘时挂在第一条 user/message 的正文前面（`source.kind` 仍是 `'user'`，
+ * 所以结构判定分不出来——这是第四个被真机抓出来的读数缺陷，2026-09-27）：它会整段冒充"本人的话"
+ * （§5/§6 里出现一串 `[Collaboration boundary] You may change the working tree…`），也会把面板消息的
+ * `[桌面] ` 前缀顶掉。剥法是机械的：以该标记开头 ⇒ 丢掉第一个空行（含）之前的部分；剩下的才是他说的话。
+ * @param text - 消息纯文本。
+ * @returns 剥掉前言后的正文（可能为空＝这一轮没有人的内容）。
+ */
+function stripPreamble(text) {
+  const marker = '[Collaboration boundary]'
+  const trimmed = text.trimStart()
+  if (!trimmed.startsWith(marker)) return text
+  const rest = trimmed.slice(marker.length)
+  const blank = rest.indexOf('\n\n')
+  return blank < 0 ? '' : rest.slice(blank + 2)
+}
+
+/**
  * 把一个会话切成"反应窗"：每条用户消息之后、下一条用户消息之前的工具调用。
  * @param events - 一个会话的事件序列（seq 序）。
  * @returns `{ message, at, tools }` 列表。
@@ -128,8 +149,11 @@ function reactionWindows(events) {
       const speaker = speakerOf(event)
       // 注入的前言既不算一条消息、也不切断窗口：它夹在面板动作与那一轮工具调用之间。
       if (speaker === 'injected') continue
+      const message = stripPreamble(textOf(event))
+      // 首轮可能**只剩前言**：那一轮没有人的内容，同样不算一条消息、也不切断窗口。
+      if (message.trim() === '') continue
       if (current !== undefined) windows.push(current)
-      current = { message: textOf(event), at: Number(event.time ?? 0), panel: speaker === 'panel', tools: [] }
+      current = { message, at: Number(event.time ?? 0), panel: speaker === 'panel', tools: [] }
       continue
     }
     if (event.type === 'tool/call' && current !== undefined) {
@@ -187,9 +211,15 @@ export function analyzeSessions(sessions, { includeEval = false } = {}) {
   const repeats = []
   const doubleAnswers = []
   const reactions = []
+  const unconsulted = []
   let panelActions = 0
+  let humanTurns = 0
 
   for (const session of considered) {
+    // §6 的口径：**只看真有面板动作的会话**——那才是"在用这个产品"的人。dev home 里同时住着我自己的
+    // 探针与评测会话（"Reply with exactly one word: ready" 之类），把它们算进"助手没问自己的房间"
+    // 是把噪声当信号（2026-09-27 实测：143 轮里 55 轮"没查"，其中大半是探针）。
+    const sessionUsesPanel = session.windows.some(window => window.panel === true)
     const actions = []
     for (const window of session.windows) {
       if (window.panel !== true) {
@@ -197,6 +227,12 @@ export function analyzeSessions(sessions, { includeEval = false } = {}) {
         const previous = actions[actions.length - 1]
         if (previous !== undefined && window.at - previous.at <= REACTION_WINDOW_MS) {
           reactions.push({ session: session.id, at: window.at, action: previous, said: window.message.trim().slice(0, 160) })
+        }
+        // §6：这一轮他说话了，助手有没有问过自己的房间（家的四工具）？产品的核心承诺是"记得住、
+        // 用得上"；一轮里一个房间工具都没用，是"没查"的机械信号（不判定对错——有时确实不需要）。
+        if (sessionUsesPanel) humanTurns += 1
+        if (sessionUsesPanel && !window.tools.some(call => HOME_TOOLS.has(call.name))) {
+          unconsulted.push({ session: session.id, at: window.at, said: window.message.replace(/\s+/g, ' ').trim().slice(0, 120) })
         }
         continue
       }
@@ -240,12 +276,12 @@ export function analyzeSessions(sessions, { includeEval = false } = {}) {
     }
   }
 
-  return { human, evalRuns, considered, panelActions, noWrite, noSkill, repeats, doubleAnswers, reactions }
+  return { human, evalRuns, considered, panelActions, noWrite, noSkill, repeats, doubleAnswers, reactions, humanTurns, unconsulted }
 }
 
 /** 报告正文（给人读的 markdown）。 */
 export function renderReport(analysis, { home, sinceDays, includeEval } = {}) {
-  const { human, evalRuns, considered, panelActions, noWrite, noSkill, repeats, doubleAnswers, reactions } = analysis
+  const { human, evalRuns, considered, panelActions, noWrite, noSkill, repeats, doubleAnswers, reactions, humanTurns, unconsulted } = analysis
   const pct = (count) => panelActions === 0 ? '—' : `${Math.round(count / panelActions * 100)}%`
   const when = (at) => new Date(at).toISOString().replace('T', ' ').slice(0, 16)
   const lines = []
@@ -296,6 +332,17 @@ export function renderReport(analysis, { home, sinceDays, includeEval } = {}) {
   }
   if (reactions.length === 0) lines.push('- （无）')
   lines.push('')
+  lines.push(`## 6. 真人用面板的那一轮，助手没问过自己的房间 — ${unconsulted.length}/${humanTurns}（${humanTurns === 0 ? '—' : `${Math.round(unconsulted.length / humanTurns * 100)}%`}）`)
+  lines.push('')
+  lines.push('口径：**只数有面板动作的会话**（真在用这个产品的人）；家的四房间工具（memory / knowledge / research / '
+    + 'reflect）一个都没用的回合。**这是"没查"的机械信号，不是判负**：有些回合确实不需要查（"你好"、纯写作、'
+    + '接着上一句往下走）。列出来是为了让人看几眼，判断"它是不是在忽略自己的记忆"——那才是产品承诺的核心。')
+  lines.push('')
+  for (const item of unconsulted.slice(0, 25)) {
+    lines.push(`- ${when(item.at)} · 会话 ${item.session} · 本人：${item.said}`)
+  }
+  if (unconsulted.length === 0) lines.push('- （无）')
+  lines.push('')
   lines.push('## 限制（先说清，免得把数字当结论）')
   lines.push('')
   lines.push('- 分类读日志的**结构**：`source.kind === "user"` 且 `rpcId` 形如 `desk-…` ＝ 面板消息；'
@@ -314,7 +361,8 @@ export function renderReport(analysis, { home, sinceDays, includeEval } = {}) {
   lines.push('- §3 有量 ⇒ 决定没被接住（回答落盘失败或行没撤），这是信任问题，优先于任何新功能。')
   lines.push('- 读到的摩擦**先与修复对齐**：一条摩擦的时间若早于相关修复的提交，它已经闭环（例：`2109ae56` 的'
     + '"三答一问"早于 S7，是那一片的输入）。')
-  lines.push('- §5 是唯一需要人眼的一段：本人那句话是不是新的别扭，决定要不要立新切片。')
+  lines.push('- §5/§6 是唯一需要人眼的两段：本人那句话是不是新的别扭（§5）、它是不是在忽略自己的记忆（§6），'
+    + '决定要不要立新切片。')
   return lines.join('\n') + '\n'
 }
 
@@ -350,13 +398,17 @@ export function selfCheck() {
   const desk = { kind: 'user', rpcId: 'desk-1-abc' }
 
   const sessionA = buildSession(logA, [
-    userMessage(T0, `${PANEL_MARKER}刷新我的桌面：加载 desk-refresh 技能，严格按它把桌面文件重写一遍。`, desk),
+    // 首轮带着协作边界前言：面板标记必须仍被认出，而且它不算"人说的话"
+    userMessage(T0, '[Collaboration boundary] You may change the working tree, but you do not commit — '
+      + `commit authority belongs to the person.\n\n${PANEL_MARKER}刷新我的桌面：加载 desk-refresh 技能，严格按它把桌面文件重写一遍。`, desk),
     // 两种注入形态都夹在面板动作与工具调用之间：`<…>` 与**纯文本**（后者曾骗过启发式）——都不得切断窗口
     userMessage(T0 + 1000, '<system-reminder>\nA skill is a reusable set of task-specific instructions.', { kind: 'skill-catalog' }),
     userMessage(T0 + 1500, 'Current runtime context. This snapshot supersedes earlier runtime-context snapshots.', { kind: 'runtime-context' }),
     toolCall(T0 + 2000, 'skill', { name: 'desk-refresh' }),
     toolCall(T0 + 3000, 'write', { file_path: '/ws/.desk/state.json', content: '{}' }),
     userMessage(T0 + 4 * MINUTE, '好的'),
+    // 只有前言、没有人话的一轮：不得进 §5/§6
+    userMessage(T0 + 6 * MINUTE, '[Collaboration boundary] You may change the working tree, but you do not commit — commit authority belongs to the person.'),
   ])
 
   const answer = `${PANEL_MARKER}关于这个待决事项：「季末破例？」——我的决定是：不允许。完成后加载 desk-refresh 技能，把桌面文件重写一遍。`
@@ -398,6 +450,27 @@ export function selfCheck() {
   // §5：A 之后本人说了"好的"；注入的 runtime-context 不得被当成本人的话
   expect('reactions', humanOnly.reactions.length, 1)
   expect('reaction text', humanOnly.reactions[0].said, '好的')
+  // 前言不得冒充本人的话：只有前言的轮既不算人说话，也不进 §5/§6
+  expect('preamble-only turns are not human turns', humanOnly.humanTurns, 1)
+
+  // §6：本人的回合里有没有问过自己的房间。B 会话里没有人说话；A 里"好的"那一轮没有房间工具 ⇒ 1 条；
+  // 再造一轮带 assistant_memory 的，必须**不算**没查。
+  expect('human turns counted', humanOnly.humanTurns, 1)
+  expect('unconsulted human turns', humanOnly.unconsulted.length, 1)
+  expect('unconsulted is the human turn', humanOnly.unconsulted[0].said, '好的')
+  // 会话里有面板动作 ⇒ 进 §6 口径；本人的那一轮查了记忆 ⇒ 不算"没查"
+  const consulted = analyzeSessions([buildSession(logB, [
+    userMessage(T0, `${PANEL_MARKER}刷新我的桌面：加载 desk-refresh 技能，严格按它把桌面文件重写一遍。`, desk),
+    toolCall(T0 + 500, 'skill', { name: 'desk-refresh' }),
+    toolCall(T0 + 800, 'write', { file_path: '/ws/.desk/state.json', content: '{}' }),
+    userMessage(T0 + 2 * MINUTE, '上次那个季末破例，我们最后怎么定的？'),
+    toolCall(T0 + 2 * MINUTE + 1000, 'assistant_memory', { action: 'search', query: '季末破例' }),
+  ])])
+  expect('consulted turn is not flagged', consulted.unconsulted.length, 0)
+  // 口径：没有面板动作的会话不进 §6（探针会话的噪声）
+  const probeOnly = analyzeSessions([buildSession(logB, [userMessage(T0, 'Reply with exactly one word: ready')])])
+  expect('sessions without panel actions are out of section 6', probeOnly.humanTurns, 0)
+  expect('consulted turn still counts', consulted.humanTurns, 1)
 
   // 混合重复：同一行"答完又问别的"——曾经被两个条件同时漏掉
   const mixed = analyzeSessions([buildSession(logB, [
@@ -408,7 +481,7 @@ export function selfCheck() {
   expect('answer-then-drop is not a double answer', mixed.doubleAnswers.length, 0)
 
   return 'desk-loop --self-check: ok — synthetic sessions yield the known counts (结构判类：注入前言不切断窗口、'
-    + '纯文本注入不算本人的话、混合重复算重复、题面撞车不误判真人会话)'
+    + '纯文本注入不算本人的话、协作边界前言不冒充本人的话、混合重复算重复、§6 只数面板会话、题面撞车不误判真人会话)'
 }
 
 function main() {
