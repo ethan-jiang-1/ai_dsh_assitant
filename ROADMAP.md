@@ -18,6 +18,7 @@
 - ⏳ **MCP 连接**（触发=需要真实系统数据（公司盘/CRM 等）接入会话时；v0 用文件替身）——依据同上
 - ▶ **培养面二轮整改（自主两轴评审的发现）**：R1 冻结永不过期＋逃生门自闭（面级锁死）· R2「看选项」把决定自己吃掉 · R3「办完了」不该二次确认 · R4 首办卡漏"只有你能办" · R5「缺什么」无处置入口 · R6 右栏 tab 读失败永久"正在读" · R7 密度/内容资格（lean 345px、Markdown 直出、出处只露 12%）· R8 尺寸/对比度不达 AA · R9 静默无操作与缺失状态 · R10 引导条把 CEO 送进开发者的门——按严重度逐片落地，逐片验收在卡：[2026-09-27-cultivation-remediation-round2](notes/proposed/2026-09-27-cultivation-remediation-round2.md)
 - ▶ **真实使用开跑**（**已开始**：2026-09-26 真人经面板走完整条培养循环，会话 `34e64c5d`；首个摩擦已落地为忙时冻结；首批数据与 ⏳ 对照见[打磨战役 §八](notes/implemented/2026-09-25-smart-assistant-polish-campaign.md)，摩擦即新卡）
+- ⏳ **命令菜单里的技能行（发行准入）**（触发=真实委托人反馈这个菜单太吵，或下次做发行 profile 时）：`/` 与 `+` 菜单把每条技能渲染成行，描述是模型面英文（如 `campaign-evidence-recording | How to record live-verification evidence in this repo…`），开发期还会混进仓库/开发技能——正是知识室已按"委托人面上的噪声"排除掉的同类素材。客户端看不到别的插件的命令来源、没有隐藏它的公开面，所以这归**发行准入**（产品组合该带哪些技能）。证据：[自审卡](notes/proposed/2026-09-27-cultivation-remediation-round2.md) R10
 - ⏳ 知识导入的转换与概念抽取（触发=①第一份真实 docx/pdf 文档集出现 ②评测集 v0 就位；依据：[导入纯核 note](notes/implemented/2026-09-25-knowledge-ingest-core.md) §四）
 - ⏳ **vendor `lib/` 重建（换 pin 的常规收尾）**（触发=需要 boot/release-smoke/plugin-add 出的 profile 时；测试已改为解析 vendor src，不再依赖它）——三条路与已试步骤见迁移记录 §六
 - ⏸ **阶段 0-3 · 评测集 v0**（30–50 条真实经营问题，含应拒答题与判分规则；**题目由你本人出**——这是 G2 关口，agent 只整理格式）

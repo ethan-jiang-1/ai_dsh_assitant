@@ -102,7 +102,10 @@ describe('first-mile seats', () => {
     // The two gaps the walkthrough named: what do I say first, and what can this thing do.
     expect(copy).toContain('第一次来')
     expect(copy).toContain('例：')
-    expect(copy).toContain('敲 / 看它现在能做什么')
+    // R10: the strip no longer advertises the `/` menu (it leads with shell commands and
+    // English developer-flavoured skill rows); it points at the three rooms instead.
+    expect(copy).toContain('左栏三室随时可开')
+    expect(copy).not.toContain('敲 /')
 
     const buttons = elementsOf(dock, 'button')
     expect(buttons).toHaveLength(1)

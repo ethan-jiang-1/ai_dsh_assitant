@@ -1000,8 +1000,12 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     },
     createElement('div', { style: { fontSize: '13px', color: 'inherit' } },
       '第一次来？直接说一句你手头的经营问题就行，不用先配置什么。'),
+    // R10 (self-review, 2026-09-27): the strip used to say "敲 / 看它现在能做什么" — and the `/`
+    // menu it opened leads with the shell's own commands and then a list of skill rows carrying
+    // English, developer-facing descriptions (the very material the knowledge panel excludes as
+    // noise on the principal's surface). The strip now points at the doors that are ours.
     createElement('div', { style: { fontSize: '12px', color: '#888' } },
-      '例：「这个月签单为什么慢」「把季度目标拆成这周能做的三件事」· 敲 / 看它现在能做什么'),
+      '例：「这个月签单为什么慢」「把季度目标拆成这周能做的三件事」· 左栏三室随时可开'),
     createElement('button', {
       onClick: () => { openRoom?.('desk') },
       style: {
