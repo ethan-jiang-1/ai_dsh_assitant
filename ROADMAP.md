@@ -61,6 +61,9 @@
   每个引用并核验每个 claim？** 裸简称（R1/r5 §末之类）一律写成可点链接；条目 ≤3 行，正文搬卡。
 - **触发未到的条目不动手**——做在触发之前等于替本人想象需求。触发复核方法可重跑：家的现状看
   `dev/harness-home/assistant/`，真人使用面看 `pnpm desk-loop` 的报告。
+- **战役/阶段收尾必跑一轮语义漂移审计**（2026-09-28 起，质量维持卡轨 B）：新上下文只读探针
+  走入口链（技能：[semantic-drift-audit](.agents/skills/semantic-drift-audit/SKILL.md)），
+  发现即各自成切片——机械门禁对散文合同面的盲区由它补（实证：四轮 0/6/7/6，全在门禁绿时发生）。
 - **研发期不做正式发行**（用户 2026-09-27）：外人上手标准＝clone 后按 [README](README.md) 走通
   （`git submodule update --init` → `pnpm install && pnpm build` → `dsh plugin add file:./packages/dsh-smart-assistant`
   → registry `default: assistant`）；打包形状由 `pnpm release-smoke` 机械验证；队列条目不挂"下次做发行 profile"类触发。
