@@ -66,6 +66,27 @@ opt-in 调试摘要、非外发上报。官方跑分用云端 Doubao——**本�
 - **开源权重**：V3/R1 均为大 MoE，无小杯 embedding；DeepSeek-VL2 是小杯视觉开源权重，但**不在 Ollama 库**、需自行 transformers/vLLM 部署——不算「容易安装」。
 - 结论：**本地小模型位（embedding / planner）DeepSeek 家没有现成物**；文字主力位（VLM 槽）DeepSeek API 是最省事的远端选择。
 
+### 硅基流动（SiliconFlow）一站配齐核查（2026-09-28）
+
+用户点名问「硅基流动是否提供所有我们需要的模型」——逐位核对（官方 API 文档逐字核读）：
+
+| 模型位 | 硅基流动有没有 | 证据 |
+|---|---|---|
+| **embedding（必需）** | ✅ **bge-m3 / Pro/bge-m3**（8192 token 输入）+ Qwen3-Embedding-8B/4B/0.6B（32K 输入，维度可选 64–4096）+ 甚至 **Qwen3-VL-Embedding-8B**（文本+图片多模态向量） | [嵌入 API 文档](https://api-docs.siliconflow.cn/docs/api/embeddings-post)逐型号列明 [documented] |
+| **VLM（必需）** | ✅ **Qwen3-VL 系列在架**（官方博客 + models 页；具体型号/档位以控制台模型列表 cloud.siliconflow.cn/me/models 为准，SPA 页无法静态抓取） | [官方博客](https://www.siliconflow.com/blog/qwen3-vl-on-siliconflow-next-gen-vlm-with-better-world-understanding) + models 页 [observed] |
+| rerank（可选） | 有 rerank API（Cohere 兼容格式）；但 OpenViking 的 rerank provider 枚举（vikingdb/cohere/openai/litellm/jev）无硅基流动直连——**试点先不配 rerank**，别为可选增强加一层 | rerank API 在其 API 手册 [documented]；OpenViking rerank 枚举见配置指南 |
+| query_planner（可选） | ✅ 可用 SF 小杯对话模型；或维持官方 Ollama 0.8B 微调件 | 同对话端点 |
+
+- 对话端点 OpenAI 兼容、带 tools 参数；**具体模型是否支持 function calling 以其模型卡为准**——试点第一步用 `openviking-server doctor` 探针验证（呼应 PR #3088 的 FC 探测）。
+- 一个 key 同时填两个必需位，OpenViking 配置形如：
+  ```json
+  {
+    "embedding": { "dense": { "provider": "openai", "api_key": "sk-…", "api_base": "https://api.siliconflow.cn/v1", "model": "BAAI/bge-m3", "dimension": 1024 } },
+    "vlm": { "provider": "openai", "api_key": "sk-…", "model": "<Qwen3-VL 系型号，以模型列表页为准>", "api_base": "https://api.siliconflow.cn/v1" }
+  }
+  ```
+- 价格/免费档未核（models 页 SPA 抓不到、价格页未读）——注册前以官网价格页为准。
+
 ### 推荐组合
 
 | 组合 | VLM 位 | embedding 位 | 本地算力要求 | 适用 |
@@ -73,6 +94,7 @@ opt-in 调试摘要、非外发上报。官方跑分用云端 Doubao——**本�
 | **A（推荐起步）** | DeepSeek API `deepseek-chat`（纯文字） | 本地 Ollama `bge-m3` | ≈零（1.2GB） | 试点只喂文字材料 |
 | **B（要喂图）** | GLM `glm-4.6v` 或 Qwen-VL 系聚合 | 同 A | ≈零 | 摄取含截图/扫描件 |
 | **C（全本地断网）** | Ollama `qwen2.5vl` 7b（按上面三条坑调） | 同 A | 7B 级视觉模型 | 完全离线；质量待验=试点第一问 |
+| **D（一个 key 全包）** | 硅基流动 Qwen3-VL 系（FC 以模型卡为准，doctor 探针验证） | 硅基流动 `BAAI/bge-m3`（同 key） | ≈零（全云端） | 本地什么都不想跑，一个 key 配齐必需位 |
 
 模型不进 git（1.2GB 级）；断网前囤货用上面的 `ollama pull` / `pip download` 命令即可。
 
