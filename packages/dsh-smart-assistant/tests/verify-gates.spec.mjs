@@ -182,7 +182,7 @@ describe('notesStateProblems', () => {
 describe('notesTopLevelProblems', () => {
   it('accepts the documented lifecycle set and rejects an undocumented bucket', () => {
     const notes = temp('notes-top-')
-    for (const sub of ['proposed', 'implemented', 'rejected', 'archived', 'research']) mkdirSync(join(notes, sub), { recursive: true })
+    for (const sub of ['proposed', 'implemented', 'rejected', 'archived', 'archived/research']) mkdirSync(join(notes, sub), { recursive: true })
     writeFileSync(join(notes, 'README.md'), '# map\n', 'utf8')
     writeFileSync(join(notes, 'intents.md'), '# intents\n', 'utf8')
 
@@ -428,7 +428,7 @@ describe('skillFrontmatterProblems', () => {
   })
 })
 
-describe(.composeRunnerTask., () => {
+describe('composeRunnerTask', () => {
   it('prepends the standing collaboration boundary to every scripted task', async () => {
     const { composeRunnerTask, COLLABORATION_BOUNDARY } = await import('../../../packages/dsh-smart-assistant/src/preset-runner/index.ts')
     const composed = composeRunnerTask('跑一次 curate')
