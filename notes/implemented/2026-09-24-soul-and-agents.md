@@ -47,7 +47,8 @@
 - **不动 `$DSH_HOME/AGENTS.md` user-global 槽**：那是 DSH 原生的用户全局引导位（对所有会话
   生效，含非 preset 会话），不是插件的领地；想用的人手写即可，插件不 scaffold 不越界。
 - **不动记忆房间**：Hermes 的 MEMORY.md/USER.md 角色由我们的 `memory/` 已覆盖（r4 §四）。
-- **不做 `/personality` 类会话 overlay**：触发=真实需求出现（在 ROADMAP）。
+- **不做 `/personality` 类会话 overlay**：2026-09-28 用户拍板关闭触发卡（无真实需求，身份面
+  已够用），推敲卡归档于 [_backlog/_done/_closed_plans/260928-personality-overlay.md](../../_backlog/_done/_closed_plans/260928-personality-overlay.md)。
 
 ## 决策点（已拍板 2026-09-24）
 
