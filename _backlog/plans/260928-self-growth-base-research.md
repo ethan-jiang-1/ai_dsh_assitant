@@ -31,7 +31,7 @@
 - grand plan §4 四分法（组合/适配/借鉴/自建）的落地选择——本卡产出即其输入。
 - 若拍板 A：毕业为 proposed 卡（准入表 + 试点验收标准，准入表字段可抄 dsh-memento 的 dshWorkshop manifest 设计）。
 - 「评测基线进运行时」缺口若触发：单独立卡（新机制，与 [260928-domain-eval-v0](260928-domain-eval-v0.md) 的评测集是两回事）。
-- 与既有卡不冲突：[260928-full-auto-distill](260928-full-auto-distill.md)（自动化蒸馏触发面）、[260928-semantic-retrieval](260928-semantic-retrieval.md)（embedding 缝）、[260928-cross-harness-shared-memory](260928-cross-harness-shared-memory.md)（跨 harness 共库）各管各的触发。
+- 与既有卡不冲突：[260928-full-auto-distill](../_done/_closed_plans/260928-full-auto-distill.md)（自动化蒸馏触发面，已关闭归档）、[260928-semantic-retrieval](260928-semantic-retrieval.md)（embedding 缝）、[260928-cross-harness-shared-memory](../_done/_closed_plans/260928-cross-harness-shared-memory.md)（跨 harness 共库，已关闭归档）各管各的触发。
 
 ## 候选与取舍
 
