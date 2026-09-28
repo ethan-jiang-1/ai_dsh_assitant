@@ -25,6 +25,8 @@ dev/harness-home/
 
 # 打包与冒烟残留
 *.tgz
+# 例外：vendor/thirdparty/ 的钉存上游包是证据/离线安装物，不是打包残留（见其 README）
+!vendor/thirdparty/openviking/*.tgz
 .tmp/
 
 # 助手维护的桌面状态文件（My Desk 面板读的就是它）——会话工作区里的运行残留，不入库
