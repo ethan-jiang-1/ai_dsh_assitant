@@ -98,6 +98,12 @@ opt-in 调试摘要、非外发上报。官方跑分用云端 Doubao——**本�
 
 模型不进 git（1.2GB 级）；断网前囤货用上面的 `ollama pull` / `pip download` 命令即可。
 
+## 密钥纪律（.env 法，用户拍板 2026-09-28）
+
+- key 的家 = 仓根 `.env.local`（day-0 已 gitignore，`git check-ignore` 验证过）；**永不进 git、永不进会话日志**。
+- 流向：试点脚本读 `.env.local` → 写 `~/.openviking/ov.conf`（仓库之外，权限 0600）→ server；ov.conf 在用户家目录，天然不入库。
+- key 由用户亲手粘进 `.env.local`；agent 只做传递，不回显、不要求把 key 贴进对话（会话日志会留底）。
+
 ## .gitignore 的关系
 
 仓库级 `*.tgz`（打包残留语义）经 `!vendor/thirdparty/openviking/*.tgz` 例外放行；
