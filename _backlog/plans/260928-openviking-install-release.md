@@ -1,6 +1,6 @@
 # 推敲：OpenViking 集成的安装与发布形态
 
-> 立卡：2026-09-28 ｜ 状态：推敲中｜毕业门判断 = 待触发（试点过审后拍板形态）｜下一步 = 跑试点（姊妹卡实验 1-2）→ 拿质量/合规证据 → 回填本卡拍 S2 形态细节
+> 立卡：2026-09-28 ｜ 状态：**试点进行中**（2026-09-28 用户过目安装方案、拍板组合 D）｜毕业门判断 = 待触发（试点过审后拍板形态）｜下一步 = 执行下方六步（每步检查点，失败即停记卡）
 
 ## 背景 / 触发
 
@@ -27,6 +27,26 @@
 - **S1 依赖打包**（插件进我们 bundle 的 dependencies）：❌ 暂不推荐——让渡版本控制权、碰发布物自包含与 release-smoke 纪律、用户装我们即被动装第三方，与「生态插件只借思路/过准入」的姿态相悖。
 - **S2 组合行 + 准入（推荐终点）**：插件保持独立安装（`dsh plugin add @openviking/dsh-memory-plugin@0.5.8` 钉版本）；我们提供**一键安装脚本**（读 `.env.local` → 生成 ov.conf → `dsh plugin add` → `--dump-config` + doctor 探针），准入表过一遍（字段抄 dsh-memento 的 dshWorkshop manifest 设计）；发行动作 = 发行组合里列白名单 + 钉版本。
 - **S3 仅文档指引（现在即此形态）**：README runbook + 手动步骤，零耦合——试点期就该这么轻。
+
+## 试点安装方案（2026-09-28 定稿，用户过目）
+
+**环境读数（当日实测）**：Python 3.13.5（homebrew，≥3.10 ✓）；uv 0.7.3 ✓；macOS 26.6.2（wheel 要求 14.0+ ✓）；端口 1933 空闲；`~/.openviking` 不存在（干净）；353GB 可用；git remote = github.com/ethan-jiang-1/ai_dsh_assitant（peer 派生源）。
+
+**四决策**：
+- **D1 安装方式 = `uv tool install openviking==0.4.22`**（隔离、钉版、卸载即净；wheel 自带 RAGFS 库与 C++ 向量引擎，免 Rust 工具链）
+- **D2 配置落点 = 标准位 `~/.openviking/`**（0600，由 `dev/ov-trial.sh` 从 `.env.local` 生成，agent 不读明文）；回退 B = 沙箱拦写家目录时改 `OPENVIKING_CONFIG_FILE` 指到 `dev/harness-home/ov.conf`（gitignored 区）
+- **D3 profile = 裸 `ov-trial`**（无 roster/preset——vendor 契约：不带 patch 即不进 preset，天然隔离试验田）；插件行 + 试点参数（`commitTokenThreshold` 调小——默认 20000 试点会话凑不满、`skipSubagentSessions: true`）由 profile 级 patch 挂
+- **D4 插件来源 = 钉存 tgz 优先**（顺带验证离线装）；有 quirk 则退 npm 直装
+
+**六步（每步检查点，失败即停记卡）**：
+1. `uv tool install openviking==0.4.22` → `openviking-server --version` 出版本号
+2. `dev/ov-trial.sh` 生成两份配置（0600）→ 权限复查
+3. 后台起 server → `openviking-server doctor`（embedding 探针出 1024 / VLM 过）——先验社区「静默劣化」坑（#5032）
+4. 建 `ov-trial` profile → `dsh plugin add`（钉存 tgz）→ `--dump-config` 断言 `openviking-memory-runtime` 行在场
+5. 记忆往返：server 级 curl session→commit→find 找回；DSH 级 headless 会话验召回注入
+6. 质量抽评（GLM-4.5V 抽取准头）→ 回填两卡状态行 → 交报告
+
+**风险与退路**：pip 依赖拉取几分钟（一次性）；`dsh plugin add` 对 tgz 有 quirk → 退 npm 直装；全线失败 = `uv tool uninstall openviking` + 删 `~/.openviking` + 删 profile 目录，repo 零留痕。key 纪律全程生效（`.env.local` → ov.conf，不进会话不回显）。
 
 ## 毕业门
 
