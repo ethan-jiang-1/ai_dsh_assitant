@@ -21,7 +21,7 @@
 ## 待答问题 / 待跑实验
 
 1. OpenViking 插件在**隔离 dev profile**（不带本仓 assistant preset）试装：`dsh plugin add` + `--dump-config` + 真实 server 记忆往返（官方 e2e 门 = `OPENVIKING_E2E=1`）；组合干净度与注入面行为。
-2. 最小本地配置（一个视觉模型填 VLM 位 + 一个小 embedding 模型，均走本地 Ollama；vectordb/auth 全 local）下 OpenViking 的抽取/检索质量——官方基准全用云端 Doubao，本地小模型质量未核证，**试点第一问**。
+2. 最小本地配置（一个视觉模型填 VLM 位 + 一个小 embedding 模型，均走本地 Ollama；vectordb/auth 全 local）下 OpenViking 的抽取/检索质量——官方基准全用云端 Doubao，本地小模型质量未核证，**试点第一问**。模型位选型菜单与三条社区踩坑（ollama embedding 404→litellm 形式、num_ctx 截断、memory_policy 收窄）已备于 `vendor/thirdparty/openviking/README.md`。
 3. AGPL 合规面复核：本仓只做「独立进程 + HTTP/MCP 消费」是否成立（初判成立；fork server 才触发——涉及许可边界，属真人输入位）。
 4. 腾讯 Agent Memory 的 LICENSE 文件核读（README 与 GitHub API 不一致）；其 DSH 集成文档深度。
 5. **发布形状**（用户问「回头发布的时候包括他吗」）：进我们 bundle 作运行时依赖 / 推荐组合行（发行组合里钉版本）/ 仅文档指引 `dsh plugin add`——三种形状的取舍等试点过准入表后再定（钉存物已备于 `vendor/thirdparty/openviking/`，试点与将来发布都有可复现的离线起点）。

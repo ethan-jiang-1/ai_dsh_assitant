@@ -35,6 +35,47 @@ ollama pull <embedding 模型，如 bge-m3> # embedding 位（provider: ollama�
 C++ 引擎，无外部数据库）；localhost 认证走 `dev` 模式免密；operation telemetry 为请求级
 opt-in 调试摘要、非外发上报。官方跑分用云端 Doubao——**本地小模型质量未验证**，是试点第一问。
 
+## 模型位选型菜单（社区核读 2026-09-28：GitHub issue/PR 普查 + FAQ + 配置指南）
+
+> 社区面：上游仓 `ollama` 关键词命中 121 条 issue/PR——本地小模型是高频用法，三条坑已被先行者踩实，配置直接抄下面的形式。
+
+### embedding 位（必需，本地小模型）
+
+- 首选 **Ollama `bge-m3`**（1.2GB / 1024 维 / 多语 / 8K ctx；`ollama pull bge-m3` 一条命令）。
+- ⚠️ **不要用文档里 `provider: "ollama"` 的形式**：显式 `api_base` 会 404（issue [#4302](https://github.com/volcengine/OpenViking/issues/4302)，修复 PR #4317 截至 09-28 未合并）。用社区验证的 **litellm 变通形式**：
+  ```json
+  {"embedding":{"dense":{"provider":"litellm","api_key":"ollama","api_base":"http://127.0.0.1:11434","model":"ollama/bge-m3","dimension":1024}}}
+  ```
+- 更小备选：`nomic-embed-text`（274MB / 768 维，英文为主；中文语料优先 bge-m3）。
+
+### VLM 位（记忆抽取 / L0/L1 的主力模型——FAQ 明说 memory extraction requires VLM）
+
+- **远端·纯文字试点（最省事）**：DeepSeek API `deepseek-chat`（OpenAI 兼容、支持 function calling、中文强、成本低；`provider:"openai"` + `api_base:"https://api.deepseek.com"`）——**无视觉**，喂图摄取不可用。
+- **远端·要喂图**：GLM `glm-4.6v`（OpenViking 配置文档点名的视觉模型）或其它 OpenAI 兼容聚合的 Qwen-VL 系。
+- **本地**：Ollama `qwen2.5vl`（7b 级）。两条硬要求：模型**必须支持 function calling**（无 FC 的模型 doctor 不报错、到记忆抽取的工具调用才炸，PR [#3066/#3088](https://github.com/volcengine/OpenViking/pull/3088)）；`num_ctx ≥ 16384`（默认 4096 截断 ~5k token 的抽取提示词 → **抽取静默返回空**，#5030，修复 #5033 已于 09-17 合并、0.4.21+ 应含）。
+- ⚠️ **小模型抽不出记忆的坑**：默认 memory_policy 含 soul/identity 时，小模型（qwen3.5:4b 社区实测）只顾改人格字段、不调抽取工具 → 把 `server.user_config_defaults.memory_policy.memory_types` 收窄为 `["profile","preferences","events","entities"]`（PR [#5083](https://github.com/volcengine/OpenViking/pull/5083) 作者实测有效）。
+- ⚠️ **VLM 不可达会静默劣化**：状态全绿、队列 0 错误、检索 ~99% 零结果（issue [#5032](https://github.com/volcengine/OpenViking/issues/5032)）——试点第一步先 `openviking-server doctor` 亲验。
+
+### query_planner 位（可选，官方出的本地小模型）
+
+- `guoxuter/ov_intent_analysis_sft:v7_q8`（0.8B，Qwen3.5 微调，官方推荐；`ollama pull` 即得）——省 token 的检索规划，闲聊轮直接返回零查询。
+
+### DeepSeek 家能填什么位（2026-09-28 核读：官方 API docs + deepseek-ai/DeepSeek-V3#806 + 搜索）
+
+- **API**：deepseek-chat / deepseek-reasoner——纯文字、支持 function calling；**无 embedding 端点、无视觉端点**（官方确认无 embedding：[DeepSeek-V3#806](https://github.com/deepseek-ai/DeepSeek-V3/issues/806)）。
+- **开源权重**：V3/R1 均为大 MoE，无小杯 embedding；DeepSeek-VL2 是小杯视觉开源权重，但**不在 Ollama 库**、需自行 transformers/vLLM 部署——不算「容易安装」。
+- 结论：**本地小模型位（embedding / planner）DeepSeek 家没有现成物**；文字主力位（VLM 槽）DeepSeek API 是最省事的远端选择。
+
+### 推荐组合
+
+| 组合 | VLM 位 | embedding 位 | 本地算力要求 | 适用 |
+|---|---|---|---|---|
+| **A（推荐起步）** | DeepSeek API `deepseek-chat`（纯文字） | 本地 Ollama `bge-m3` | ≈零（1.2GB） | 试点只喂文字材料 |
+| **B（要喂图）** | GLM `glm-4.6v` 或 Qwen-VL 系聚合 | 同 A | ≈零 | 摄取含截图/扫描件 |
+| **C（全本地断网）** | Ollama `qwen2.5vl` 7b（按上面三条坑调） | 同 A | 7B 级视觉模型 | 完全离线；质量待验=试点第一问 |
+
+模型不进 git（1.2GB 级）；断网前囤货用上面的 `ollama pull` / `pip download` 命令即可。
+
 ## .gitignore 的关系
 
 仓库级 `*.tgz`（打包残留语义）经 `!vendor/thirdparty/openviking/*.tgz` 例外放行；
