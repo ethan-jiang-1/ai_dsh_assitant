@@ -73,7 +73,7 @@ opt-in 调试摘要、非外发上报。官方跑分用云端 Doubao——**本�
 | 模型位 | 硅基流动有没有 | 证据 |
 |---|---|---|
 | **embedding（必需）** | ✅ **bge-m3 / Pro/bge-m3**（8192 token 输入）+ Qwen3-Embedding-8B/4B/0.6B（32K 输入，维度可选 64–4096）+ 甚至 **Qwen3-VL-Embedding-8B**（文本+图片多模态向量） | [嵌入 API 文档](https://api-docs.siliconflow.cn/docs/api/embeddings-post)逐型号列明 [documented] |
-| **VLM（必需）** | ✅ **Qwen3-VL 系列在架**（官方博客 + models 页；具体型号/档位以控制台模型列表 cloud.siliconflow.cn/me/models 为准，SPA 页无法静态抓取） | [官方博客](https://www.siliconflow.com/blog/qwen3-vl-on-siliconflow-next-gen-vlm-with-better-world-understanding) + models 页 [observed] |
+| **VLM（必需）** | ✅ **选型实测落定：`zai-org/GLM-4.5V`**（视觉 + 标准 function calling 双过探针）；文字备选 `deepseek-ai/DeepSeek-V3.2`（FC 干净、纯文字）。**负知识：Qwen3-VL 全系不可选**——32B/8B/30B-A3B-Instruct 实测 tool_call 以 `<tool_call>` 文本漏进 `reasoning_content`、标准 `tool_calls` 不解析（30B 还拒绝 `enable_thinking` 参数），记忆抽取必炸 | 模型清单 + FC 探针实测（2026-09-28，本机 key 实测：`/v1/models` 98 个模型；bge-m3 出 1024 维；GLM-4.5V/DeepSeek-V3.2/Qwen3-32B 三探针两过一坑）[observed] |
 | rerank（可选） | 有 rerank API（Cohere 兼容格式）；但 OpenViking 的 rerank provider 枚举（vikingdb/cohere/openai/litellm/jev）无硅基流动直连——**试点先不配 rerank**，别为可选增强加一层 | rerank API 在其 API 手册 [documented]；OpenViking rerank 枚举见配置指南 |
 | query_planner（可选） | ✅ 可用 SF 小杯对话模型；或维持官方 Ollama 0.8B 微调件 | 同对话端点 |
 
@@ -94,7 +94,7 @@ opt-in 调试摘要、非外发上报。官方跑分用云端 Doubao——**本�
 | **A（推荐起步）** | DeepSeek API `deepseek-chat`（纯文字） | 本地 Ollama `bge-m3` | ≈零（1.2GB） | 试点只喂文字材料 |
 | **B（要喂图）** | GLM `glm-4.6v` 或 Qwen-VL 系聚合 | 同 A | ≈零 | 摄取含截图/扫描件 |
 | **C（全本地断网）** | Ollama `qwen2.5vl` 7b（按上面三条坑调） | 同 A | 7B 级视觉模型 | 完全离线；质量待验=试点第一问 |
-| **D（一个 key 全包）** | 硅基流动 Qwen3-VL 系（FC 以模型卡为准，doctor 探针验证） | 硅基流动 `BAAI/bge-m3`（同 key） | ≈零（全云端） | 本地什么都不想跑，一个 key 配齐必需位 |
+| **D（一个 key 全包）✅ 已实测选型** | 硅基流动 `zai-org/GLM-4.5V`（视觉+FC 双过） | 硅基流动 `BAAI/bge-m3`（1024 维实测） | ≈零（全云端） | **用户拍板采用（2026-09-28）**；key/URL/模型名住 `.env.local` |
 
 模型不进 git（1.2GB 级）；断网前囤货用上面的 `ollama pull` / `pip download` 命令即可。
 
