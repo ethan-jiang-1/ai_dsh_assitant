@@ -14,7 +14,7 @@
 |---|---|---|
 | 文档只写 now；一个事实一个出处；**入口文件只收常设指令与路由指针**——时变状态放进自动注入的文件，就是把最容易腐烂的东西放进最不被怀疑的地方（`vendor/dsh/AGENTS.md` / `vendor/dsh/docs/AGENTS.md` tier 表） | docs/ 只写现在，无历史叙事；历史与输掉的方案全在 notes/；AGENTS.md 全时不变（无状态节、无进度标记、无 pin 号） | ✅ 照搬 |
 | 决策 Note same-PR；完成的条目离开队列、不许标 ✅ 留场（`.agents/notes/README.md`） | notes/proposed→implemented 与切片同 diff；intents 台账只记"接下来" | ✅ 照搬 |
-| 上游 plan 状态不二次落盘（2026-07-22 note :54：轮内计划已由工具参数记录，log-only 持久层不再建 plan 目录——**针对轮内计划状态**，不禁 repo 级提案与队列，见 `.agents/notes/README.md` 的 proposed 格式） | 不建 plans/tasks 物种（轮内计划走 plan/todo 机制，见下行）；repo 级设计计划住 `notes/proposed/`，队列住 `ROADMAP.md` | ✅ 适配（来源适用范围收窄：轮内状态 ≠ repo 级提案） |
+| 上游 plan 状态不二次落盘（2026-07-22 note :54：轮内计划已由工具参数记录，log-only 持久层不再建 plan 目录——**针对轮内计划状态**，不禁 repo 级提案与队列，见 `.agents/notes/README.md` 的 proposed 格式） | 不建 plans/tasks 物种（轮内计划走 plan/todo 机制，见下行）；repo 级设计计划住 `notes/proposed/`（RFC）与 `_backlog/plans/`（推敲/触发卡） | ✅ 适配（来源适用范围收窄：轮内状态 ≠ repo 级提案） |
 | 会话日志即真相（log-only 持久层；复盘用日志 seq 重建，不凭自述） | 排查/复盘读 `dev/harness-home/sessions/**/session.v*.jsonl.zstd` 逐事件还原（`docs/dev.md` §五） | ✅ 照搬 |
 | 轮内任务面：plan 呈批（反馈门①）+ `todo_write` 活清单（反馈门②）+ steer，机制在 base bundle 零接线 | 本 repo 开发流程见 AGENTS.md 硬规则 5；本插件 preset 已挂 `tool-todo` 且**连必填 config 一起抄**（`allowParallelInProgress: true`——不抄 config 会在挂载时炸且 UI 吞错误） | ✅ 适配（本地选择：具体工具与模式以当前会话所有为准，不宣称普适强制） |
 | 默认翻转 + 适配声明：默认严格，偏离/裁剪须登记（镜像 "Require evidence for public choices"） | AGENTS.md 硬规则 4；每条适配登记于本文"已声明的适配" | ✅ 照搬 |
@@ -24,15 +24,15 @@
 | 继承跟 pin 走：升 pin 重校纪律表（vendor 的套路在演进，一次性快照会再烂） | `sync-dsh` 收尾清单第 4 步 + `pnpm verify` 强制本文存在 | ✅ 照搬 |
 | 测试纪律：本地窄证据 + 非平凡改动 same-PR 更新快照 | `pnpm test`（vitest：纯核 + 服务级合同）；快照 harness day 0 未建（触发条件在 `snapshots/README.md`） | ⏳ 部分照搬（等第一处 live-only 回归出现再建） |
 | 文档词数预算 + slop 门禁（`doc-budgets` manifest + `verify-doc-budgets`） | 刻意不做 | ⏸ 触发条件：docs 腐化实证（与来源仓同款推迟理由）。第二轮审计（2026-09-23）证据：轻度腐化——多重书写 ×2、内部矛盾 ×1、过期数字 ×1，一轮修完；暂不立案，再犯即触发；建时带**降限防回填**（每次削减后主动降 ceiling，反证 = 临时设更低值即红） |
-| Issue → PR 连续流 + Project 状态机（队列不积累历史） | 不适用：本地单人仓无协作面 | ⚠️ 适配：一次切片 = 一个 commit（note 同 diff）；队列语义 = `ROADMAP.md` 根部队列（2026-09-24 起，决定档案 `notes/implemented/2026-09-24-roadmap-queue.md`）+ `notes/intents.md` 意图台账；完成即离队、不积历史（等价物映射见"已声明的适配"2） |
+| Issue → PR 连续流 + Project 状态机（队列不积累历史） | 不适用：本地单人仓无协作面 | ⚠️ 适配：一次切片 = 一个 commit（note 同 diff）；工作流 = 用户轮内请求 + `notes/proposed/`（已批未做）+ `_backlog/plans/`（推敲/触发型；2026-09-28 起 ROADMAP 队列退役，决定档案 `notes/implemented/2026-09-28-roadmap-queue-retired.md`）+ `notes/intents.md` 意图台账；完成即离队、不积历史（等价物映射见"已声明的适配"2） |
 
 ## 已声明的适配（约束 → 适配 → 证据）
 
 1. **无 GitHub 协作面**（约束：本地单人仓）→ 无 Issues/PR 流；等价物 = 切片 diff + note 三段流
    （证据：本表与 notes 流自 day 0 的实际运转）。
 2. **工作队列落一个文件**（约束演变：上游"second durable home"否决的是**轮内计划状态**的二次
-   持久化；"队列不积累历史"仍成立）→ 2026-09-24 起根部队列 = `ROADMAP.md`（只写接下来、
-   完成即离队、条目 ≤3 行索引；决定档案：`notes/implemented/2026-09-24-roadmap-queue.md`，
+   持久化；"队列不积累历史"仍成立）→ 2026-09-28 修订：队列退役，工作流 = 轮内请求 + proposed 卡 + `_backlog/plans/` 卡（roadmap-queue-retired note）；原表述——根部队列（只写接下来、
+   完成即离队、条目 ≤3 行索引；决定档案：`notes/implemented/2026-09-28-roadmap-queue-retired.md`，
    **部分替代本条原表述**"工作队列不落文件"）。`notes/intents.md` 仍是意图台账（非工作队列），
    交接文档仍只放 /tmp。
 3. **切片可以全新会话**（约束：上下文经济）→ 交接靠入口链（AGENTS.md → docs → notes）本身，
@@ -41,7 +41,7 @@
    pre-push hook，不让流程再长一层）→ 纪律靠 [pre-push-evidence](../.agents/skills/pre-push-evidence/SKILL.md)
    （报告只列真跑过的命令、证据要覆盖改动面）与「被阻断的检查不得写成绿色证据」条承担；
    备选（hook、CI）在此记录为输掉方案 → 证据：P1-B 漏跑整包的教训进技能后，同类摩擦未再现
-   （change-scope 触发重置后无第二次，见 `ROADMAP.md` 维护规则「触发未到的条目不动手」）。
+   （change-scope 触发重置后无第二次；「触发未到不动手」纪律在 AGENTS.md）。
 
 ## 复查环（防"一次性快照再烂"）
 

@@ -1,6 +1,6 @@
 # 十维自评：借 DSH 借鉴 FAQ 的尺子量本仓 harness（第四轮语义漂移审计同轮）
 
-日期：2026-09-28 · 状态：进行中 · 自评底稿（判据与决策不放这里；本轮审计发现的处置随同 diff 交付，消化后进 `research/archive/`）
+日期：2026-09-28 · 状态：已收卷 · 自评底稿（结论已消化：[质量维持卡](../../implemented/2026-09-28-harness-quality-upkeep.md) 三轨全交付；台账随 2026-09-28 research 层并入迁此）
 
 > **缘起**：用户 2026-09-28 指定语料 `_faq_on_digested/07_borrowing-dsh-harness-idea`（仓外
 > digested FAQ，位于 deepseek-harness checkout；对应 DSH 基线 `46a7f68b09` / `dsh-v0.1.7-rc.1`），

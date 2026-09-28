@@ -19,8 +19,6 @@ import {
   commandAliasProblems,
   configParseProblems,
   dshHomeInheritanceProblems,
-  deferralHomesProblems,
-  reservedItemProblems,
   dependencyPoseProblems,
   GRADUATED_STATUS,
   languageGuardProblems,
@@ -124,16 +122,16 @@ describe('relativeLinkProblems', () => {
 describe('notesNamingProblems', () => {
   it('accepts date-named notes and README/non-markdown exemptions; rejects other names', () => {
     const notes = temp('notes-')
-    for (const sub of ['proposed', 'implemented', 'research']) mkdirSync(join(notes, sub), { recursive: true })
+    for (const sub of ['proposed', 'implemented', 'archived/research']) mkdirSync(join(notes, sub), { recursive: true })
     writeFileSync(join(notes, 'proposed', '2026-09-24-a-proposal.md'), 'x', 'utf8')
     writeFileSync(join(notes, 'implemented', '2026-09-23-a-decision.md'), 'x', 'utf8')
-    writeFileSync(join(notes, 'research', 'README.md'), 'x', 'utf8')
+    writeFileSync(join(notes, 'archived', 'research', 'README.md'), 'x', 'utf8')
     writeFileSync(join(notes, 'implemented', '.gitkeep'), '', 'utf8')
-    writeFileSync(join(notes, 'research', 'random-jottings.md'), 'x', 'utf8')
+    writeFileSync(join(notes, 'archived', 'research', 'random-jottings.md'), 'x', 'utf8')
 
     const problems = notesNamingProblems(notes)
     expect(problems).toHaveLength(1)
-    expect(problems[0]).toContain('notes/research/random-jottings.md')
+    expect(problems[0]).toContain('notes/archived/research/random-jottings.md')
     expect(problems[0]).toContain('YYYY-MM-DD-topic.md')
   })
 })
@@ -167,13 +165,12 @@ describe('notesStateProblems', () => {
     expect(problems.some(p => p.includes('unfrozen.md') && p.includes('已归档'))).toBe(true)
   })
 
-  it('requires a rejection reason and the two research states', () => {
+  it('requires a rejection reason and a wound-up survey in the ledger', () => {
     const notes = temp('notes-state-')
-    for (const sub of ['rejected', 'research', 'research/archive']) mkdirSync(join(notes, sub), { recursive: true })
+    for (const sub of ['rejected', 'archived/research']) mkdirSync(join(notes, sub), { recursive: true })
     writeFileSync(join(notes, 'rejected', '2026-09-25-bare.md'), '日期：2026-09-25 · 状态：**rejected**\n', 'utf8')
-    writeFileSync(join(notes, 'research', '2026-09-25-live.md'), '日期：2026-09-25 · 状态：进行中 · 底稿\n', 'utf8')
-    writeFileSync(join(notes, 'research', 'archive', '2026-09-25-done.md'), '日期：2026-09-25 · 状态：已收卷 · 结论在 §5\n', 'utf8')
-    writeFileSync(join(notes, 'research', 'archive', '2026-09-25-not-wound.md'), '日期：2026-09-25 · 状态：进行中\n', 'utf8')
+    writeFileSync(join(notes, 'archived', 'research', '2026-09-25-done.md'), '日期：2026-09-25 · 状态：已收卷 · 结论在 §5\n', 'utf8')
+    writeFileSync(join(notes, 'archived', 'research', '2026-09-25-not-wound.md'), '日期：2026-09-25 · 状态：进行中\n', 'utf8')
 
     const problems = notesStateProblems(notes)
     expect(problems.some(p => p.includes('bare.md') && p.includes('rejection reason'))).toBe(true)
@@ -431,40 +428,7 @@ describe('skillFrontmatterProblems', () => {
   })
 })
 
-describe('deferralHomesProblems', () => {
-  it('accepts a trigger that names ROADMAP and rejects one that does not', () => {
-    const dir = temp('deferrals-')
-    const withHome = join(dir, 'with-home.md')
-    writeFileSync(withHome, '语义检索延后（触发=真实漏召回；在 ROADMAP）。\n', 'utf8')
-    const orphan = join(dir, 'orphan.md')
-    writeFileSync(orphan, '某个能力延后（触发条件=真实需求出现）。\n', 'utf8')
-
-    expect(deferralHomesProblems([withHome])).toEqual([])
-    const problems = deferralHomesProblems([orphan])
-    expect(problems).toHaveLength(1)
-    expect(problems[0]).toContain('orphan.md:1')
-    expect(problems[0]).toContain('queue home')
-  })
-})
-
-describe('reservedItemProblems', () => {
-  it('accepts a reserved row that names the person, rejects an unnamed one and an actionable one', () => {
-    const good = '- 🔒 ⏳ 挂桥（用户判触发）（触发=用户想操作外部 vault）\n'
-    expect(reservedItemProblems(good)).toEqual([])
-
-    const unnamed = '- 🔒 ⏳ 挂桥（触发=用户想操作外部 vault）\n'
-    expect(reservedItemProblems(unnamed)[0]).toContain('用户判触发')
-
-    const actionable = '- ▶ 🔒 挂桥（用户判触发）\n'
-    expect(reservedItemProblems(actionable)[0]).toContain('not a session\'s to start')
-
-    // A mention in prose is not a reservation (this false positive bit twice).
-    const mention = '- ▶ 行为评测：把 🔒 保留项越界变成可重跑回归\n'
-    expect(reservedItemProblems(mention)).toEqual([])
-  })
-})
-
-describe('composeRunnerTask', () => {
+describe(.composeRunnerTask., () => {
   it('prepends the standing collaboration boundary to every scripted task', async () => {
     const { composeRunnerTask, COLLABORATION_BOUNDARY } = await import('../../../packages/dsh-smart-assistant/src/preset-runner/index.ts')
     const composed = composeRunnerTask('跑一次 curate')

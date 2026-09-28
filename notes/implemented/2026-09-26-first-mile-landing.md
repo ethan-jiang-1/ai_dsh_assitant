@@ -1,6 +1,6 @@
 # 第一公里：从打开到第一句话（着陆 / 功能发现 / 工作区之问）
 
-日期：2026-09-26 · 状态：**implemented**（用户 2026-09-26 批准 P0–P3；切片全部交付，逐片验收与判定记录在下。遗留两项各有归宿：P1-C 搁置（ROADMAP ⏳ 条目，配方在[走查](../research/archive/2026-09-26-first-mile-walkthrough.md) §4b）、locale 席位延后（判定记录 6））
+日期：2026-09-26 · 状态：**implemented**（用户 2026-09-26 批准 P0–P3；切片全部交付，逐片验收与判定记录在下。遗留两项各有归宿：P1-C 搁置（ROADMAP ⏳ 条目，配方在[走查](../archived/research/2026-09-26-first-mile-walkthrough.md) §4b）、locale 席位延后（判定记录 6））
 
 ## 问题（可观察行为）
 
@@ -33,7 +33,7 @@
   （纯 ESM、Node 内置、注释写为什么）。**入口**：`pnpm shots`（`package.json` 别名，与命令表、
   `docs/dev.md` 同 diff 登记）。
 - **首开走查**：干净 home（CEO 第一次打开的样子）+ dev home 各走一遍，断点清单进
-  `notes/research/`；截图＝视觉结论的唯一依据（继承 S5 方法纪律，证据自产）。
+  `notes/archived/research/`；截图＝视觉结论的唯一依据（继承 S5 方法纪律，证据自产）。
 - 交互态截图（菜单展开等）headless 一次性截图做不到 → DOM 断言兜底（preflight 同族）；不硬闯。
 
 ### P1 第一公里（本轮抱怨的直接回应）
@@ -44,15 +44,15 @@
   **点选直达的证据**（2026-09-27 补齐，回应 Spec 轴"presence-only"的指摘）：真机点 `+` 菜单里的
   「打开我的桌面」→ 右栏真的开出该室并带真实内容；`/` 菜单同源（vendor 文档：`+` 与 `/` 开同一个菜单），
   实测键入 `/` 后菜单列出三条命令。证据
-  [p1a-clickthrough.png](../research/archive/2026-09-26-first-mile-shots/p1a-clickthrough.png) 与
-  [p1a-slash-menu.png](../research/archive/2026-09-26-first-mile-shots/p1a-slash-menu.png)（DOM 证据同目录）。
+  [p1a-clickthrough.png](../archived/research/2026-09-26-first-mile-shots/p1a-clickthrough.png) 与
+  [p1a-slash-menu.png](../archived/research/2026-09-26-first-mile-shots/p1a-slash-menu.png)（DOM 证据同目录）。
 - **P1-B 首屏身份与引导**（**已交付**）：`conversation.hero.brand.mark` 注入产品标识；
   `conversation.input.dock` 注入首开引导（一句话先说什么 + 两个示例 + 打开桌面）。
   **修正（2026-09-27，Spec 轴自审抓到）**：dock **不是** owner 只在 hero 态渲染的槽位——vendor 的
   `zone` 在每个会话都有值（只有 hero chrome 是 `hero &&` 门控），所以第一版引导条会挂在**每个**对话
   的输入框上方。修法：以 owner 数据自带的 `session.blank === true` 为门（组件自己判，不靠 owner）；
   夹具三态（blank=false / 缺 session / blank=true）；真机反证
-  [p1b-nonblank.png](../research/archive/2026-09-26-first-mile-shots/p1b-nonblank.png)（打开有内容的会话 →
+  [p1b-nonblank.png](../archived/research/2026-09-26-first-mile-shots/p1b-nonblank.png)（打开有内容的会话 →
   引导条消失）。**教训**：证据集若只覆盖一种状态，状态类 bug 照不出来——已补进
   [pre-push-evidence](../../.agents/skills/pre-push-evidence/SKILL.md)。
 - **P1-B 首屏身份与引导**：`conversation.hero.brand.mark` 注入产品标识；composer 上下 dock
@@ -103,8 +103,8 @@
 
 - [x] **P0 证据管线 + 首开走查**（2026-09-26 落地）——`scripts/webui-shots.mjs`（CDP 截图 + DOM 证据；
   看门狗/进程组清理/`--plain` 兜底/`--eval` 交互），走查报告与真机截图证据在
-  [第一公里走查](../research/archive/2026-09-26-first-mile-walkthrough.md) 与
-  [截图目录](../research/archive/2026-09-26-first-mile-shots)。
+  [第一公里走查](../archived/research/2026-09-26-first-mile-walkthrough.md) 与
+  [截图目录](../archived/research/2026-09-26-first-mile-shots)。
   **六条断点**（首屏是 DSH 的 / 输入框说工程师的话 / 零功能发现 / 三道门 / 面板标签不跟 UI 语言 /
   窄栏未验）与四条平台事实（默认工作区真的会建、可注入面清单、门是配置、管线六坑）都带证据。
   **验收实跑**：verify 31/31（真退出码）、typecheck 0 error、脚本对运行中的 dev web 实跑产出
@@ -115,7 +115,7 @@
   （测试守卫这一条）。行文案带三室语义（S4 的三个用户问题）。
   **验收实跑**：client-commands 3/3（造红证明：改错 room kind → 红，复原 → 绿）、verify 31/31、
   build 0、真机 `+` 菜单实拍（Commands 区出现三条，带名字与说明）——
-  证据 [p1a-command-menu.png](../research/archive/2026-09-26-first-mile-shots/p1a-command-menu.png)。
+  证据 [p1a-command-menu.png](../archived/research/2026-09-26-first-mile-shots/p1a-command-menu.png)。
   **未做**：行内图标（vendor 行有 glyph；我们的没有）——留 P3 视觉收尾评估。
 - [x] **P1-B 首屏身份与引导**（2026-09-26 落地）——两个空会话专属槽位：
   ① `conversation.hero.brand.mark` 换成我们的房子标识（首屏不再是清一色 DSH 身份）；
@@ -123,7 +123,7 @@
   两个具体示例 + "敲 / 看它现在能做什么" + 「打开我的桌面」按钮（经 inject face 拿 opener）。
   **验收实跑**：client-first-mile 3/3（造红证明：改错 opener 的 kind → 红，复原 → 绿）、
   verify 31/31、build 0、真机首开实拍——hero 是我们的标识、引导条在输入框正上方可见，
-  证据 [p1b-first-open.png](../research/archive/2026-09-26-first-mile-shots/p1b-first-open.png)。
+  证据 [p1b-first-open.png](../archived/research/2026-09-26-first-mile-shots/p1b-first-open.png)。
   **已知视觉待办**（P2）：引导条 maxWidth 760 比 composer 窄，右边缘不齐——截图驱动的最小调整。
   **不能做**：hero 标题文案（"探索未至之境"）是 vendor locale 拥有的，不碰 vendor 即不可改。
 - [~] **P1-C 开发环境保真：未落地（如实记录，配置已回退）**——平台机制查清并在**一次**真机上端到端
@@ -131,7 +131,7 @@
   清空注册表后重跑，客户端停在"选择工作区"、注册表保持空，console 无错、host 无警告；字面量路径与
   `!!js` 路径表现相同（所以不是 `!!js` 求值问题）。因此**不把未验证的 `dev/profile-patch.yml`
   documentsDirectory 改动写进仓**（回退）；P1-C 的触发条件与复现配方见
-  [走查报告 §3/§5](../research/archive/2026-09-26-first-mile-walkthrough.md)。**下个会话接手时从这里开始**：
+  [走查报告 §3/§5](../archived/research/2026-09-26-first-mile-walkthrough.md)。**下个会话接手时从这里开始**：
   先确认"客户端是否真的调用了 `workspace/initializeDefault`"（Network 域抓该 RPC），再谈 dev 配置
   （配方全文在走查 §4b）。
   顺带确认的两件事：`!!js` 表达式**不能加引号**（加了标签文本会漏进表达式 → 被当正则，报
@@ -142,13 +142,13 @@
   ① **客观修复**：P1-B 引导条原本 `maxWidth 760` 比 composer 卡片（~875px）窄、右边缘不齐 →
   改读 shell 自己的 `--dsh-composer-card-max-width`（dock 是同一棵树的后代，变量在作用域内），
   每个断点都与卡片同宽；截图复核已对齐。
-  ② **密度结论**（[p2 截图](../research/archive/2026-09-26-first-mile-shots/p2-strip-aligned-and-desk-density.png)）：
+  ② **密度结论**（[p2 截图](../archived/research/2026-09-26-first-mile-shots/p2-strip-aligned-and-desk-density.png)）：
   右栏 ~530px 内每条「在办」6–9 行（标题 + 负责人/时点 + 度量 + 停止条件 + 它记 + 按钮），
   **按钮在每条最底部——要读完审计行才够得着动作**；5 条在办 ≈ 40+ 行。
   内容本身是 S1 过滤后的经营实质（不是噪声），所以这不是"砍内容"问题而是**层级**问题。
   ③ **层级修复（2026-09-27 自主判定落地）**：把行内动作移到标题行右侧（`CorrectableRow` 一处改动，
   六个调用点全部受益：决定/知识/线索/行动/记忆/技能行），细节行（负责人/度量/停止条件/它记）落在下方。
-  真机复核（[p2b 截图](../research/archive/2026-09-26-first-mile-shots/p2b-actions-on-title-line.png)）：
+  真机复核（[p2b 截图](../archived/research/2026-09-26-first-mile-shots/p2b-actions-on-title-line.png)）：
   四条「在办」的标题与「办完了/不办了/改这条」同在第一行，**不用再读完审计行才够得着动作**。
   **未采纳**：① 给「它记」加折行截断——它是信任线（助手自纠的记录），橙色是有意的权重，
   截断会把"它改过口径"这件事藏进 hover；② 给「在办」加折叠——内容已是 S1 过滤后的经营实质，

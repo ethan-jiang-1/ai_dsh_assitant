@@ -2,7 +2,7 @@
 
 日期：2026-09-28 · 状态：**implemented**（用户 2026-09-28 拍板「只要是正确的，不论代价，都值得」；三轨同日全部交付：轨 A `afac8ab`、轨 B `0be8683`、轨 C 本文与 ROADMAP 数据回写）
 
-> 证据链：[十维自评（借 DSH 借鉴 FAQ 尺子，含第四轮漂移审计）](../research/2026-09-28-harness-ten-dim-self-assessment.md)。
+> 证据链：[十维自评（借 DSH 借鉴 FAQ 尺子，含第四轮漂移审计）](../archived/research/2026-09-28-harness-ten-dim-self-assessment.md)。
 
 ## 问题（立卡时的可观察行为）
 

@@ -447,7 +447,7 @@ G3 同时检验方向本身：如果"组合优先"两周内用很少的自写代
 
 ## 附：本评审读过什么
 
-- 本仓：[`ROADMAP.md`](../../../ROADMAP.md)、[`intents.md`](../../intents.md)、[`docs/architecture.md`](../../../docs/architecture.md)、[`docs/home.md`](../../../docs/home.md)、
+- 本仓：ROADMAP（2026-09-28 退役）（ROADMAP 已于 2026-09-28 退役，见 notes/implemented/2026-09-28-roadmap-queue-retired.md）、[`intents.md`](../../intents.md)、[`docs/architecture.md`](../../../docs/architecture.md)、[`docs/home.md`](../../../docs/home.md)、
   [`docs/package-catalog.md`](../../../docs/package-catalog.md)、[责任圈卡](../../implemented/2026-09-25-owner-mandate-and-real-use-baseline.md)、
   [真实使用基线](2026-09-25-real-use-baseline.md)、全部 92 个提交标题、preset 与默认身份源码、dev home 的知识房间清单。
 - DSH（钉住 `dsh-v0.1.5-rc.2`）：[architecture.md](../../../vendor/dsh/docs/architecture.md)、[capability-seams.md](../../../vendor/dsh/docs/capability-seams.md)、

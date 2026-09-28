@@ -2,12 +2,12 @@
 
 日期：2026-09-23 · 状态：**implemented**（2026-09-23 拍板采纳并落切片，见文末落地节）
 **2026-09-24 部分替代**：本文逐源对照表"队列不积累历史"行的"无 roadmap 物种"表述由
-[ROADMAP 队列决定](2026-09-24-roadmap-queue.md) 部分替代（根部队列文件落成；原理由保留在原行，
+[ROADMAP 队列决定](2026-09-28-roadmap-queue-retired.md) 部分替代（根部队列文件落成；原理由保留在原行，
 `docs/discipline.md` 已同步收口）。
 
 ## 输入
 
-`/Users/bowhead/ai_dsh_company/notes/research/archive/2026-09-23-dsh-inround-task-surface.md`
+`/Users/bowhead/ai_dsh_company/notes/archived/research/2026-09-23-dsh-inround-task-surface.md`
 （另一 DSH 项目五轮实践后的对齐复盘：他们自创"垂直轮 + roadmap"，发现走样，
 D23 拍板转严格 DSH 套路 + 防再犯五件套；§七是给新项目的可迁移清单）。
 

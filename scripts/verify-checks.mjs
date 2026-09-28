@@ -83,8 +83,8 @@ const NOTE_NAME_PATTERN = /^\d{4}-\d{2}-\d{2}-[a-z0-9][a-z0-9-]*\.md$/
 /** Status words that mean a proposal is done and must have left notes/proposed/. */
 export const GRADUATED_STATUS = /状态：\*\*(implemented|rejected|archived|已全部实施|已消化|已毕业|已完成|已实施)/
 
-/** Directory names directly under notes/ that may hold notes. */
-const NOTE_SUBDIRECTORIES = ['proposed', 'implemented', 'rejected', 'archived', 'research', 'research/archive']
+/** Directory names directly under notes/ that may hold notes (archived/research = wound-up survey ledger). */
+const NOTE_SUBDIRECTORIES = ['proposed', 'implemented', 'rejected', 'archived', 'archived/research']
 
 /** Every top-level entry notes/ may carry besides the note subdirectories. */
 const NOTES_ROOT_FILES = new Set(['README.md', 'intents.md', '.gitkeep'])
@@ -122,8 +122,8 @@ export function notesNamingProblems(notesRoot) {
 }
 
 /**
- * notes/ is a closed classification tree: the lifecycle directories plus the research pair and
- * two root files. An unknown directory is a second home for something and drifts (DSH taxonomy:
+ * notes/ is a closed classification tree: the lifecycle directories, the wound-up survey ledger
+ * and two root files. An unknown directory is a second home for something and drifts (DSH taxonomy:
  * the tree is the classification, checked by a gate rather than convention).
  *
  * @param {string} notesRoot - path of the notes/ directory.
@@ -147,8 +147,8 @@ export function notesTopLevelProblems(notesRoot) {
 /**
  * The state line makes the lifecycle readable at a glance, so the directory and the status word
  * must agree, the filename date must equal the status date, archived notes must carry their
- * freeze line, and rejected notes must carry the one-line reason that keeps them useful. Research
- * states are checked the same way: `research/` is in progress, `research/archive/` is wound up.
+ * freeze line, and rejected notes must carry the one-line reason that keeps them useful. The
+ * wound-up survey ledger (`archived/research/`) keeps its own loose rule: a survey line says 已收卷.
  *
  * @param {string} notesRoot - path of the notes/ directory.
  */
@@ -181,21 +181,12 @@ export function notesStateProblems(notesRoot) {
       }
     }
   }
-  const research = join(notesRoot, 'research')
-  if (existsSync(research)) {
-    for (const name of readdirSync(research)) {
+  const surveyLedger = join(notesRoot, 'archived', 'research')
+  if (existsSync(surveyLedger)) {
+    for (const name of readdirSync(surveyLedger)) {
       if (!name.endsWith('.md') || name === 'README.md') continue
-      if (!/状态：[^\n]*进行中/.test(read(join(research, name)))) {
-        problems.push(`notes/research/${name} must carry 状态：…进行中 — wound-up research moves to research/archive/`)
-      }
-    }
-    const archive = join(research, 'archive')
-    if (existsSync(archive)) {
-      for (const name of readdirSync(archive)) {
-        if (!name.endsWith('.md') || name === 'README.md') continue
-        if (!/状态：[^\n]*已收卷/.test(read(join(archive, name)))) {
-          problems.push(`notes/research/archive/${name} must carry 状态：…已收卷 — an archived survey is wound up, not in progress`)
-        }
+      if (!/状态：[^\n]*已收卷/.test(read(join(surveyLedger, name)))) {
+        problems.push(`notes/archived/research/${name} must carry 状态：…已收卷 — an archived survey is wound up, not in progress`)
       }
     }
   }
@@ -482,59 +473,6 @@ export function skillFrontmatterProblems(skillsDir) {
       if (Object.hasOwn(data, key) && !isBooleanSpelling(data[key])) {
         problems.push(`${name}/SKILL.md sets "${key}" to a non-boolean value`)
       }
-    }
-  }
-  return problems
-}
-
-// ── deferral homes ──────────────────────────────────────────────────────────────
-
-/**
- * A deferral recorded in a note must name its queue home. Any line that states a trigger
- * (触发= / 触发条件=) has to name ROADMAP.md, because a trigger without a queue row is a promise
- * nobody will find again — the failure mode that let four structural mechanisms sit unbuilt for a
- * round. The bare word 延后 is deliberately NOT gated: measured at 51 lines, mostly historical
- * references to the retired 延后项表, so gating it would push rewording instead of tracking.
- *
- * @param {readonly string[]} files - note files to scan.
- */
-export function deferralHomesProblems(files) {
-  const problems = []
-  for (const file of files) {
-    const lines = read(file).split('\n')
-    for (const [index, line] of lines.entries()) {
-      if (!/触发[=＝]|触发条件[=＝]/.test(line)) continue
-      if (/ROADMAP/.test(line)) continue
-      problems.push(`${file}:${index + 1} states a trigger without naming its queue home — every deferral lives in ROADMAP.md`)
-    }
-  }
-  return problems
-}
-
-// ── reserved queue items ────────────────────────────────────────────────────────
-
-/**
- * A reserved queue item (🔒) records a condition only the person may judge fired. The row itself
- * must say so, and it must not be actionable: a session that could mark it ▶ could also implement
- * it, which is exactly the over-reach this marker exists to stop (real finding: a session judged a
- * user-reserved Obsidian item triggered, implemented it, and removed the row).
- *
- * @param {string} roadmapText - ROADMAP.md contents.
- */
-export function reservedItemProblems(roadmapText) {
-  const problems = []
-  for (const [index, line] of roadmapText.split('\n').entries()) {
-    if (!line.startsWith('- ')) continue
-    // Only a marker in *position* reserves a row. Prose that mentions the marker (a queue entry
-    // describing the discipline, a docs sentence) must not be read as a reservation — that false
-    // positive bit twice before this was narrowed.
-    const body = line.replace(/^-\s+/, '')
-    if (!/^(?:[▶⏳]\s+)?🔒(?:\s|$)/.test(body)) continue
-    if (!line.includes('用户判触发')) {
-      problems.push(`ROADMAP.md:${index + 1} is reserved (🔒) but does not say 用户判触发 — the row must name who may judge it`)
-    }
-    if (line.startsWith('- ▶')) {
-      problems.push(`ROADMAP.md:${index + 1} is both reserved (🔒) and actionable (▶) — reserved items are not a session's to start`)
     }
   }
   return problems

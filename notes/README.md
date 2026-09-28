@@ -3,7 +3,7 @@
 > **每个目录装什么、状态怎么读、由谁维护，以本文件为准**——职责由一个具名文件拥有，不由惯例拥有
 > （借自 DSH `.agents/notes/` 的分类学：`_agent_ready_development/repo-harness/08-repository-taxonomy.md`、
 > `sdlc-reference/01-agent-note-lifecycle.md`；对齐与偏离登记见 §四）。
-> **工作队列不在这里**：接下来做什么只读 [`ROADMAP.md`](../ROADMAP.md)（队列=索引，完成即离队）。
+> **接下来做什么**：用户本轮请求优先；已批未做的 RFC 住 `proposed/`，想法/触发型住 [`_backlog/plans/`](../_backlog/plans/README.md)（2026-09-28 起 ROADMAP 队列退役）。本目录只管已决与证据。
 
 ## 一、状态轴：一眼怎么读
 
@@ -12,10 +12,12 @@
 | `proposed/` | 未完成或仅部分完成的**重大未来工作**（提案） | `proposed` | 看问题/方案/验收/风险；**不能当已交付** |
 | `implemented/` | 已交付决定 + 它击败的备选 + 后果 | `implemented` | **当前 rationale owner**，随实现保持 current |
 | `rejected/` | 被否决的提案 + 一行拒绝原因 | `rejected` | 只在还能阻止同一个可信错误时保留；失效即删 |
-| `archived/` | 未来决策价值低的 implemented 历史 | `implemented` + 一行 `已归档：YYYY-MM-DD` | 只作历史引用，**冻结不再编辑**，不是当前权威 |
-| `research/` | 进行中的开发者调研底稿 | `进行中` | 工作面 |
-| `research/archive/` | 已收卷的调研（结论已消化） | `已收卷` | 证据档案：可读可引，不再是工作面 |
+| `archived/` | 未来决策价值低的 implemented 历史 + **收卷调研证据台账**（`research/` 子目录） | `implemented`（台账 = `已收卷`）+ 一行 `已归档：YYYY-MM-DD`（台账行免） | 只作历史引用，**冻结不再编辑**，不是当前权威 |
 | `intents.md` | 用户原始意图清单（所有设计的判据） | — | 判据唯一权威 |
+
+> **调研层并入（用户 2026-09-28 拍板）**：进行中的调研/推敲住 [`_backlog/plans/`](../_backlog/plans/README.md)
+> （一个思考一个家）；收卷证据台账 = `archived/research/`（子目录深度与原路径一致，冻结文件内部链接零改）。
+> 依据：[research-absorbed-into-backlog](implemented/2026-09-28-research-absorbed-into-backlog.md)。
 
 **命名**：`YYYY-MM-DD-<topic>.md`，日期是主题**首次提出**日（不是实现或归档日）。
 **状态行**：文件前 6 行内一行 `日期：YYYY-MM-DD · 状态：**<状态词>**（说明可省）`；
@@ -30,7 +32,7 @@
 - **不设 `postmortem/`**：事故记录属于"已交付决定"，进 `implemented/`（AGENTS.md 曾列该目录但从未存在，2026-09-25 删除该说法）。
 - **不采用 `{lifecycle}/{class}/` 两级路径**（DSH 用它）：偏离理由见 §四。
 - 提案过时转 `rejected/` 而非滞留 `proposed/`；`archived/` 只收已交付（implemented）的 note。
-- **延后只能住 `ROADMAP.md`**：note 里写下的触发条件必须同时指明队列归宿（机械门禁 `deferral homes` 管）；明确**永不**做的（负知识）才留在 note 的输掉的方案里。
+- **延后/触发的家 = `_backlog/plans/` 卡的状态行**（2026-09-28 起，原 ROADMAP 队列退役）：note 里写触发条件须指明其 plans 卡；明确**永不**做的（负知识）留在输掉的方案。
 
 ## 二之二、`proposed/` 卡片的骨架（推荐形态）
 
@@ -39,7 +41,7 @@
 （见 §一）；再钉卡片正文结构会在小切片上逼出凑节标题的噪声。卡片形状是给人读的，语义由评审把关。
 
 **状态词唯一**：卡片不使用"调研中/待拍板/待实施"这类第二套阶段词——生命周期词就是状态（§一表），
-可执行性看 `ROADMAP.md` 的标记。两套词并存即噪声（用户 2026-09-25 立的设计纪律：一词一义）。
+可执行性看卡自身的状态行与用户拍板。两套词并存即噪声（用户 2026-09-25 立的设计纪律：一词一义）。
 
 **上游边界（2026-09-28）**：不成熟、未到「问题/方案/验收」三件的思考，先住
 [`_backlog/plans/`](../_backlog/plans/README.md) 推敲（毕业四门见其
@@ -48,7 +50,7 @@
 ## 三、不设计数清单（2026-09-26 拆除原"当前清单"）
 
 第二份清单必然漂移（§二）——本节曾维护各目录的篇数快照，2026-09-26 审计时计数已全数过期，按自身原则拆除。
-各目录现状直接看目录树本身；"接下来做什么"看 [`ROADMAP.md`](../ROADMAP.md)。
+各目录现状直接看目录树本身；"接下来做什么"看 [`_backlog/plans/`](../_backlog/plans/README.md) 与 proposed/。
 `rejected/` 空目录是刻意的：先立目录与门禁，等第一个被否决的提案入住（负知识不与"输掉的方案"混住）。
 
 ## 四、与 DSH 的对齐与偏离登记

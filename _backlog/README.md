@@ -2,8 +2,8 @@
 
 > 性质：**点子进入 proposed/队列/实施之前的推敲空间**——「该不该做、何时做、次序如何、是否放弃」
 > 四问在这里成熟。**只承载判断材料（问题、证据、候选、取舍），不承载次序与授权**：
-> 次序唯一 = [ROADMAP.md](../ROADMAP.md) §队列；本目录**永远不做调度**（借鉴源仓 D23 教训：
-> plans 层一旦开始排任务就会长成第二个队列，2026-09-24 退役过一次）。
+> **永远不做调度**：次序与开工由用户拍板与轮内请求决定（借鉴源仓 D23 教训：plans 层一旦开始
+> 排任务就会长成第二个队列，2026-09-24 退役过一次；本仓 ROADMAP 队列也于 2026-09-28 退役）。
 > 来源：借鉴 `ai_dsh_company/_backlog`（其自身借鉴 ai_deerflow_deep_research_v2，D31）；
 > 判定、取舍与不借清单见本文「明确不借」。
 
@@ -29,8 +29,8 @@ _backlog/
 
 | 判断 | 出路 | 卡的去向 |
 |---|---|---|
-| 该做（现在/近期） | [notes/proposed/](../notes/README.md) 卡 + ROADMAP 队列行（卫生小修可不立卡，直接 🧹 进队列） | 关闭迁 `_done/_closed_plans/`，状态行记去向指针 |
-| 该做但不现在（待触发） | ROADMAP 队列 ⏳/🔒 行或 §搁置池行 | 同上 |
+| 该做（现在/近期） | [notes/proposed/](../notes/README.md) 卡（问题/方案/验收）+ 用户点头即开工（卫生小修可不立卡直接做） | 关闭迁 `_done/_closed_plans/`，状态行记去向指针 |
+| 该做但不现在（待触发） | **留在本目录**：状态行写触发条件（待触发），或 🔒 待用户判触发 | 同上 |
 | 不做（证伪/否决） | 结论并入 owner Note「输掉的方案」；防复犯价值高的迁 [notes/rejected/](../notes/README.md) | 同上 |
 | 不用单独记（消化） | 结论已并入某 Note/合同 | 同上，状态行记消化落点 |
 
@@ -56,8 +56,16 @@ _backlog/
 
 - **plans 卡：`YYMMDD-<slug>.md`**——六位日期 = 立卡日，归档后按文件名排序即日期流，
   一眼看清思考的先后（对借鉴源的刻意适配：源仓 plans 卡无日期）。与 notes/ 的
-  `YYYY-MM-DD-topic.md` 刻意不同层：notes 承载已决事实与调研底稿，本目录承载推敲中。
+  `YYYY-MM-DD-topic.md` 刻意不同层：notes 承载已决事实，本目录承载推敲中。
 - **bugs 卡：`BUG-<NNN>-<slug>.md`**——序号即流，发现日期在状态行。
+
+## 调研卡（原 notes/research 功能并入，用户 2026-09-28 拍板）
+
+一个思考一个家：进行中的调研/推敲都住 plans/，调研只是卡的一种性质（补「待答问题 / 待跑实验 /
+喂给谁」字段与形态规范，见 [plans/README.md](plans/README.md)）。**收卷证据台账** =
+[`notes/archived/research/`](../notes/README.md)（子目录深度与原路径一致，冻结文件内部链接零改）。
+依据：[research-absorbed-into-backlog](../notes/implemented/2026-09-28-research-absorbed-into-backlog.md)
+——此前「复发才升格、暂不并」的判断被拍板推翻，原判断留该 note 输掉的方案节。
 
 ## 谁写、谁读、何时读
 
@@ -66,13 +74,12 @@ _backlog/
   **不成熟的思考不许进 proposed/ 或队列**（那边有归宿门禁）。
 - **读**：① 立新卡前先检索；② 用户点名继续推敲某卡；③ 队列走空的打磨型 goal 可把
   「把一张卡成熟到毕业判断」当输入源（产出 = 呈批，不是开工）。
-- fresh agent 开工照旧只读 ROADMAP：**推敲卡不是任务**。
+- fresh agent 开工读 AGENTS.md：**推敲卡不是任务**，没有点名不取用。
 
 ## 明确不借（负知识：重新提出前先读理由）
 
 | 不借项 | 理由 |
 |---|---|
-| research 并入 plans（来源仓 D31 做了） | 本仓 [notes/research/](../notes/research/README.md) 有自己的形态规范、状态行门禁与归档纪律，死稿病未复发——按「复发才升格」判据不并；两家互链即可，死稿真出现再议 |
 | todos/ 桶 | ROADMAP §队列（含 🧹/触发型标记）已是次序的家；另立 = 第二个调度器 |
 | `_suspended_*` 桶 | ROADMAP §搁置池已是悬挂事实家（准入判据 + 复活条件齐全） |
 | `_reference/` 桶 | [notes/archived/](../notes/README.md) 已覆盖留存参考语义 |

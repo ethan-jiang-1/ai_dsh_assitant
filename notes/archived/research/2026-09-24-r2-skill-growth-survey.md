@@ -3,7 +3,7 @@
 日期：2026-09-24 · 状态：已收卷 · survey 底稿（结论已消化；进文前的承重主张见文末收卷注记）
 > 委托方问题：`dsh-smart-assistant` 已 live 验证了一套最小自研基线（家的 `skills/` 房间 + SKILL.md 契约 + `assistant_reflect`（brief→save_skill）+ 第二个 `dsh-skill-filesystem` provider（`assistant-learned`）+ 双源遮蔽 + 按需加载；触发目前仅模型/人主动）。生态里有什么现成方案？路线选全自研进化 / 借规范借组件 / 直接采用？
 >
-> 本文按 `notes/research/README.md` 规范：一手引证、证据分级（[affordance]=源码/接口/包内容可指认；[documented]=官方文档载明；[observed]=社区观察或 API 查询，注明出处）、版本基线、承重结论内联自足。检索与验证基线日期：**2026-09-24**。
+> 本文按 `_backlog/plans/README.md` 规范（原 notes/research 规范 2026-09-28 并入）：一手引证、证据分级（[affordance]=源码/接口/包内容可指认；[documented]=官方文档载明；[observed]=社区观察或 API 查询，注明出处）、版本基线、承重结论内联自足。检索与验证基线日期：**2026-09-24**。
 
 ## 0. 结论速览
 

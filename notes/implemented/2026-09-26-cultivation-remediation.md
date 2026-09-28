@@ -4,8 +4,8 @@
 
 ## 问题（可观察行为，开发者已逐条核实）
 
-两份独立评审——[对抗性设计评审](../research/archive/2026-09-26-adversarial-design-review.md)（不知情新 agent，
-读代码 + 真实 desk 文件）与[运行中页面独立体验反馈](../research/archive/2026-09-26-ux-review-feedback.md)
+两份独立评审——[对抗性设计评审](../archived/research/2026-09-26-adversarial-design-review.md)（不知情新 agent，
+读代码 + 真实 desk 文件）与[运行中页面独立体验反馈](../archived/research/2026-09-26-ux-review-feedback.md)
 （真机点过页面）——一致指出、并经开发者核实的可观察缺陷：
 
 1. **内容准入缺失**：首屏放大的正是助手家务（真实 desk 文件 `decisions[0]` = "培养面接着做深，还是先停一停？"）；
@@ -60,14 +60,14 @@ IME `isComposing` 守卫 + 换 textarea。**验收**：每缺陷一个能红的�
 完整路径进 tooltip。**平台层管不到的部分**（DSH 会话创建问"选工作目录"）记入设计卡未决——
 **2026-09-27 已查清**：平台本身会给默认工作区（空注册表时建
 `<Documents>/deepseek-harness/default-workspace`），用户当时的问法更可能是 affordance 问题；
-结论与复现配方见[第一公里走查](../research/archive/2026-09-26-first-mile-walkthrough.md) §3/§4b。
+结论与复现配方见[第一公里走查](../archived/research/2026-09-26-first-mile-walkthrough.md) §3/§4b。
 
 ### S5 密度（最后；等真机截图/录屏）
 
 内容过滤后再看真实密度；在此之前**不动**字号、配色、暗色、砍结构。
 
 **2026-09-26 更新：僵局已解，证据已取。** 第一公里 P0 的截图管线自产真机窄栏证据
-（[走查报告](../research/archive/2026-09-26-first-mile-walkthrough.md) + [截图目录](../research/archive/2026-09-26-first-mile-shots)），
+（[走查报告](../archived/research/2026-09-26-first-mile-walkthrough.md) + [截图目录](../archived/research/2026-09-26-first-mile-shots)），
 第一次能按"有截图才有结论"下判断：右栏 ~530px 内每条「在办」6–9 行、动作按钮在行底（要读完
 审计行才够得着）——内容本身是 S1 过滤后的经营实质，所以这是**层级**问题不是内容问题。
 

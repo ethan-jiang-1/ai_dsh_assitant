@@ -13,7 +13,7 @@
 
 ## 当前状态
 
-- 深评落稿：[r6 survey](../research/archive/2026-09-24-r6-session-log-memory-survey.md)；承重主张
+- 深评落稿：[r6 survey](../archived/research/2026-09-24-r6-session-log-memory-survey.md)；承重主张
   五条已由委托方亲验（布局/zstd 魔数/沙箱只限写/literal 谓词/openAt:never——各自有盘上或
   vendor 源码指认）。
 - 深评结论：**原料齐全、可达、可查，瓶颈只是知识**——会话日志在 `<DSH_HOME>/sessions/
@@ -34,8 +34,8 @@
 
 ## 依据
 
-- [R1 shortlist](../research/archive/2026-09-24-r1-memory-shortlist.md)（palimpsest 行）与
-  [R4 Hermes 调研 §四](../research/archive/2026-09-24-r4-hermes-identity-survey.md)（session_search
+- [R1 shortlist](../archived/research/2026-09-24-r1-memory-shortlist.md)（palimpsest 行）与
+  [R4 Hermes 调研 §四](../archived/research/2026-09-24-r4-hermes-identity-survey.md)（session_search
   作为记忆第三支柱的对照表）
 - 用户硬过滤（2026-09-24 拍板）：文件系统原生、rg 可查、无 SQLite/FTS；纯本地。
 
@@ -46,7 +46,7 @@
 
 ## 落地（2026-09-24，commit 2569e46）
 
-- 家手册 v2 新增 Past conversations 节（[r6](../research/archive/2026-09-24-r6-session-log-memory-survey.md)
+- 家手册 v2 新增 Past conversations 节（[r6](../archived/research/2026-09-24-r6-session-log-memory-survey.md)
   结论"原料齐全、可达、可查，瓶颈只是知识"的落点）：在哪（`<harness-home>/sessions/
   --<规范化cwd>--/`、harness home=家的父目录）/ 是 zstd 压缩 JSONL、每行一事（消息全文、
   工具完整参数、header）/ 查法指向 session-recall 技能。

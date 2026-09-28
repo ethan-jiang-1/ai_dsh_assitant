@@ -140,9 +140,9 @@ registering"——而第一个打开页面的人就成了 crash-test dummy。`pn
 | Web 开屏 `resume failed` | 残留的旧 dev web 进程仍持有空白 seed 会话的跨进程写锁（`session.lock` 是 flock 目标，进程死即释放）；web 客户端开屏按 workspace 最新会话自动恢复空白会话，新实例撞锁 | 起新例前 `lsof -iTCP -sTCP:LISTEN -P` 找本仓 cwd 的残留 node 并 kill；锁随进程死亡自动释放，勿手删 |
 
 **自动化会话的协作边界**（常量 `COLLABORATION_BOUNDARY` 在 `src/preset-runner/` 里逐会话前置 + 家手册协作边界同一节；**不写在 patch 的 `!!js` 表达式里**——配置层模板字面量会被 overlay 的 YAML 标签求解器拒绝，2026-09-25 真踩过，故新增 `structure: every composition file we own parses as YAML` 门禁）：会话**可以改工作树，
-但不得 `git commit`**（提交权属于人或开发会话）；队列里标 🔒 的保留项**不得自行判触发、不得删行、不得实现**，
+但不得 `git commit`**（提交权属于人或开发会话）；卡上标 🔒 的保留项（`_backlog/plans/`）**不得自行判触发、不得删卡、不得实现**，
 只能报告并建议（机械门禁 `reserved items` 查标记形态）；单发会话无人可问时按推荐值拍板、标注可推翻、继续做完。
-依据：[真实使用基线](../notes/research/archive/2026-09-25-real-use-baseline.md) §二 F1/F3。
+依据：[真实使用基线](../notes/archived/research/2026-09-25-real-use-baseline.md) §二 F1/F3。
 
 **行为评测**：`pnpm eval` 把一组**真实请求**经 preset 会话跑一遍，判定读的是会话日志（不是 stdout）——
 任务在 `dev/eval/tasks.mjs`，判定核在 `dev/eval/checks.mjs`（每条任务至少一个正向检查，避免"什么都不做"也通过）；

@@ -18,7 +18,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { agentsMdStabilityProblems, commandAliasProblems, configParseProblems, deferralHomesProblems, dependencyPoseProblems, dshHomeInheritanceProblems, reservedItemProblems, GRADUATED_STATUS, implementedAlternativesProblems, languageGuardProblems, notesNamingProblems, notesStateProblems, notesTopLevelProblems, pinProblems, relativeLinkProblems, skillFrontmatterProblems, textHygieneProblems } from './verify-checks.mjs'
+import { agentsMdStabilityProblems, commandAliasProblems, configParseProblems, dependencyPoseProblems, dshHomeInheritanceProblems, GRADUATED_STATUS, implementedAlternativesProblems, languageGuardProblems, notesNamingProblems, notesStateProblems, notesTopLevelProblems, pinProblems, relativeLinkProblems, skillFrontmatterProblems, textHygieneProblems } from './verify-checks.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const packageDir = join(repoRoot, 'packages', 'dsh-smart-assistant')
@@ -51,7 +51,7 @@ const REQUIRED_PATHS = [
   'AGENTS.md',
   'CLAUDE.md',
   'README.md',
-  'ROADMAP.md',
+
   'pnpm-workspace.yaml',
   'tsconfig.base.json',
   'tsconfig.json',
@@ -304,18 +304,6 @@ check('contract: docs/home.md lists the rooms and archives the layout creates', 
 
 // ── queue discipline ────────────────────────────────────────────────────────────────────────────
 
-check('queue: every proposal is scheduled in ROADMAP.md', () => {
-  const problems = []
-  const roadmap = read(join(repoRoot, 'ROADMAP.md'))
-  for (const file of walk(join(repoRoot, 'notes', 'proposed'), ['.md'])) {
-    const name = relative(repoRoot, file)
-    if (!roadmap.includes(basename(name))) {
-      problems.push(`${name} has no home in ROADMAP.md — a proposal without a queue slot is a proposal being forgotten`)
-    }
-  }
-  return problems
-})
-
 check('queue: digested proposals graduate out of notes/proposed/', () => {
   const problems = []
   for (const file of walk(join(repoRoot, 'notes', 'proposed'), ['.md'])) {
@@ -362,16 +350,6 @@ check('structure: every composition file we own parses as YAML', () =>
     ...walk(join(packageDir, 'presets'), ['.yml']),
   ]))
 
-check('queue: reserved items name the person and stay non-actionable', () =>
-  reservedItemProblems(read(join(repoRoot, 'ROADMAP.md'))))
-
-check('notes: every stated trigger names its queue home (deferrals live in ROADMAP)', () =>
-  deferralHomesProblems([
-    ...walk(join(repoRoot, 'notes', 'implemented'), ['.md']),
-    ...walk(join(repoRoot, 'notes', 'proposed'), ['.md']),
-    ...walk(join(repoRoot, 'notes', 'research'), ['.md']),
-  ]))
-
 check('entry files: every AGENTS.md stays standing orders (no dates, no progress marks)', () =>
   [
     join(repoRoot, 'AGENTS.md'),
@@ -390,7 +368,7 @@ check('language: model-facing sources and skill bodies are English (skin face ex
 
 check('text: managed text is strict UTF-8 with exactly one trailing newline', () =>
   textHygieneProblems([
-    join(repoRoot, 'AGENTS.md'), join(repoRoot, 'README.md'), join(repoRoot, 'ROADMAP.md'), join(repoRoot, 'CLAUDE.md'),
+    join(repoRoot, 'AGENTS.md'), join(repoRoot, 'README.md'), join(repoRoot, 'CLAUDE.md'),
     ...walk(join(repoRoot, 'docs'), ['.md']),
     ...walk(join(repoRoot, 'notes'), ['.md']),
     ...walk(join(repoRoot, 'snapshots'), ['.md']),
@@ -445,7 +423,6 @@ const KNOWN_PACKAGE_BASENAMES = new Set(['cordis.patch.yml'])
 const markdownCorpus = [
   join(repoRoot, 'AGENTS.md'),
   join(repoRoot, 'README.md'),
-  join(repoRoot, 'ROADMAP.md'),
   ...walk(join(repoRoot, 'docs'), ['.md']),
   ...walk(join(repoRoot, 'notes'), ['.md']),
   ...walk(join(repoRoot, 'snapshots'), ['.md']),

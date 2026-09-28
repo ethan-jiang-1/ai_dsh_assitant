@@ -18,9 +18,9 @@ on 2026-09-27, six on 2026-09-28) — every one of them invisible to `pnpm verif
    Give the auditor the entry chain and nothing else; if you brief it with your own summary, you get
    your own blind spots back. Run it as a sub-agent with "read-only, no test suite, time-box ~20
    minutes".
-2. **Walk the chain the way a new session does**: `AGENTS.md` → `ROADMAP.md` → the docs each one
-   links (`docs/home.md`, `docs/architecture.md`, `docs/identity.md`, `docs/dev.md`,
-   `docs/discipline.md`) → `README.md`. Stop where a claim becomes checkable.
+2. **Walk the chain the way a new session does**: `AGENTS.md` → the docs each one links
+   (`docs/home.md`, `docs/architecture.md`, `docs/identity.md`, `docs/dev.md`,
+   `docs/discipline.md`) → `_backlog/README.md` → `README.md`. Stop where a claim becomes checkable.
 3. **Verify every claim against the thing it describes** — the file, the code, the generated catalog,
    or a read-only command. A finding is a pair: *claim* (`file:line`) and *contradicting fact*
    (`file:line` or command output). Suspicions go in a separate list, never in the findings.
@@ -45,7 +45,7 @@ on 2026-09-27, six on 2026-09-28) — every one of them invisible to `pnpm verif
 ## Hard-won details
 
 - **The entry chain is the corpus.** A drift that only a `notes/` reader would meet is history, not a
-  bug — notes record what was true when written. Fix `docs/`, `AGENTS.md`, `ROADMAP.md`, `README.md`.
+  bug — notes record what was true when written. Fix `docs/`, `AGENTS.md`, `_backlog/` READMEs, `README.md`.
 - **Same-day self-contradiction is the cheapest signal.** A queue line saying "IM still pending" two
   lines under "IM decided, entry dropped" needed no code reading at all.
 - **Numbers in prose expire silently.** Prefer "the count lives in the generated file" over a copied

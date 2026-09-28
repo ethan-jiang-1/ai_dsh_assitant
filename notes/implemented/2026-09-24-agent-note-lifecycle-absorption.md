@@ -37,7 +37,7 @@ notes/ 体系（intents → proposed → implemented + rejected/postmortem/resea
 - **`archived/` 冻结树 + hash manifest**：反噪声机制本身好（信噪比主线），但 implemented/
   才十几篇，建冻结树是提前付维护费。触发=implemented/ 开始碍浏览（在 ROADMAP）。届时不带 manifest
   先立目录也可，登记在触发条目里再议。（部分实施 2026-09-24 晚，用户拍板：**research 面
-  先行**——`notes/research/archive/` 落地，九份完成调研已入档，规则入 research README；
+  先行**——`notes/archived/research/` 落地，九份完成调研已入档，规则入 research README；
   implemented 面的归档维持原触发条件不变。）
 - **双语 triplet**：不适用（单语仓）。
 
@@ -46,7 +46,7 @@ notes/ 体系（intents → proposed → implemented + rejected/postmortem/resea
 proposed→implemented 同 diff 改写为已交付事实；相对 markdown 链接可机械检查；日期=首次
 提出日期；不设 notes 集中索引（ROADMAP 是"接下来"的工作队列，不是 notes 索引——两回事，
 DSH 的 no-index 理由对我们同样成立）。取代检查实做：本 note 与
-[roadmap-queue](2026-09-24-roadmap-queue.md) 部分相邻（都管 notes/ROADMAP 秩序），互链不
+[roadmap-queue](2026-09-28-roadmap-queue-retired.md) 部分相邻（都管 notes/ROADMAP 秩序），互链不
 收敛——那篇管队列机制，这篇管 note 生命周期义务。
 
 ## 输掉的方案
@@ -72,5 +72,5 @@ DSH 的 no-index 理由对我们同样成立）。取代检查实做：本 note 
 （调研中 → 待拍板 → 待实施 → 毕业），随进度移动。这与 DSH 的 `proposed/` 语义严丝合缝
 （"未完成或仅部分完成的重大未来工作"），也与我们吸收的①互补不矛盾：**随当前变更已交付的
 决定跳过 proposed 直接进 implemented；跨会话的长线工作（调研线、待建提案）以卡片住在
-proposed/**。深评证据链仍住 `notes/research/`，卡片链接之；两道提案门禁不变，毕业照旧走
+proposed/**。深评证据链现住 `_backlog/plans/`（2026-09-28 起；收卷台账 `notes/archived/research/`），卡片链接之；两道提案门禁不变，毕业照旧走
 "同 diff 改写为已交付事实"。首两张卡：obsidian-interop、session-log-memory（同日立）。

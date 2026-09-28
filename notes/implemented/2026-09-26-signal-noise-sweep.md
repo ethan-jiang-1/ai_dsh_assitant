@@ -7,7 +7,7 @@
 Fresh-agent 审计（2026-09-26）沿入口链（AGENTS.md → ROADMAP → 卡 → docs/）走查探针链与任务执行链：
 两条链整体清楚（verify 31/31、目录链注入与开发技能发现均实测生效），但查得五处降低信噪比的残留，各带实证：
 
-1. **过时的绕坑地图（A→B→C 残留）**：[handoff §5](../research/archive/2026-09-26-handoff-ceo-sidebar-cultivation.md)
+1. **过时的绕坑地图（A→B→C 残留）**：[handoff §5](../archived/research/2026-09-26-handoff-ceo-sidebar-cultivation.md)
    教"pnpm 被依赖检查挡住，用 `npx` 绕过"——peerDep 事故回退后 `pnpm build` 已实测 exit 0（2026-09-26）；
    B 时期的生存知识留到了 C 之后。
 2. **一个事实三个家**：client 架构四事实（classic script / slot 系统 / tab 类型≠可见 / 仓外 Remote 需 typert 清单）
