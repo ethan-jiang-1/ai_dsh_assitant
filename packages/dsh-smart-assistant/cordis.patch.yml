@@ -65,7 +65,7 @@
           #
           # 三个段落讲一个顺序的故事：你是谁（SOUL.md，紧贴 persona stub）→ working folder 怎么用（AGENTS.md）
           # → 里面现在有什么（有界摘要）。身份与手册是 working folder 根部的两个文件——拥有者的数据，不是
-          # preset 代码（提案 notes/proposed/2026-09-24-soul-and-agents.md，D1/D2/D3=a）。每段各自成行，
+          # preset 代码（决定 notes/implemented/2026-09-24-soul-and-agents.md，D1/D2/D3=a）。每段各自成行，
           # 部署可独立关掉或替换 —— 上下文控制是一等公民。
           - id: assistant-home-preamble
             name: dsh-smart-assistant/home-preamble

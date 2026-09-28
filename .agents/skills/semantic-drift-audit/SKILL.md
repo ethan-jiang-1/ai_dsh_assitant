@@ -9,8 +9,8 @@ whenToUse: After several slices that changed behaviour, commands, rows or verbs;
 The gates check structure, links, names and command aliases. They cannot see a sentence that is
 grammatically perfect and factually dead: a verb list that is two verbs short, an identity row that
 says "none" about a plane that shipped, a queue line that contradicts another line written the same
-day. Three rounds of this audit have produced 13 such drifts (zero, then six on 2026-09-23, then seven
-on 2026-09-27) — every one of them invisible to `pnpm verify`.
+day. Four rounds of this audit have produced 19 such drifts (zero, then six on 2026-09-23, seven
+on 2026-09-27, six on 2026-09-28) — every one of them invisible to `pnpm verify`.
 
 ## The loop
 
@@ -24,7 +24,7 @@ on 2026-09-27) — every one of them invisible to `pnpm verify`.
 3. **Verify every claim against the thing it describes** — the file, the code, the generated catalog,
    or a read-only command. A finding is a pair: *claim* (`file:line`) and *contradicting fact*
    (`file:line` or command output). Suspicions go in a separate list, never in the findings.
-4. **Hunt the classes that keep recurring** (all seven from the last round were one of these):
+4. **Hunt the classes that keep recurring** (all six from the last round were one of these):
    - a **verb or row list** that went short when the tool/composition grew;
    - an **identity or capability row** that still says "none / day 0 / future" about something shipped;
    - a **hardcoded count** in prose (alias counts, package counts) that nobody recomputes;
@@ -32,7 +32,10 @@ on 2026-09-27) — every one of them invisible to `pnpm verify`.
      pending after it was made;
    - a **dangling pointer** to a sketch, section or card that does not contain it;
    - a **governance claim** ("no agent approves its own work") that the tool seam quietly contradicts;
-   - a **doc's list of what something renders/does** that omits an entry the code has.
+   - a **doc's list of what something renders/does** that omits an entry the code has;
+   - a **pointer hiding in a non-markdown file** (YAML/patch comment) that the link gates never
+     scan — found 2026-09-28: `cordis.patch.yml` still cited a `notes/proposed/` path after the
+     note graduated to `implemented/`.
 5. **Fix in one slice, claim→fact quoted.** Each fix cites what it contradicted; docs-only fixes need
    `pnpm verify` (and `pnpm test` if you touched a package file).
 6. **Mechanize the class you can.** When a drift class turns out to be checkable, add a gate for it in

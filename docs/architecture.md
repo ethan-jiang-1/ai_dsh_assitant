@@ -17,7 +17,8 @@
 | ④ 让它按对的步骤走（工作流） | 过程性知识进**技能**（抽屉），不占常驻上下文；三档出口固定了线索的收束方式 |
 | ⑤ 让它经得起检查 | `curate`：**机器能跑的检查**（重复、悬空引用、预算、过期线索、缺理由的 drop、技能语法） |
 
-**反过度工程**：不建向量库、不建后台自动学习循环、不做 client。
+**反过度工程**：不建向量库、不建后台自动学习循环。浏览器面只消费 vendor 的**通用** slot/座位
+（皮肤面，不进模型上下文）——不做**专属 Web 卡片**（触发条件见 §六）。
 判据是那两句 —— **错了赔得起吗？错了多久能发现？** 每条延后项都在第六节写明触发条件。
 
 ## 二、两个平面（DSH 的组合纪律）
@@ -31,8 +32,13 @@ HOST 面（cordis.patch.yml → dsh.bundle.patch）
                             + Web 壳品牌注入行（页标题/图标，webserver/index-inject；皮肤，不进模型上下文）
 
 浏览器面（package.json `dsh.client` → `./client` 出口；经既有 bundle 行被 client-modules
-自动发现，无需额外接线）：占用 `sidebar.brand.mark` / `sidebar.brand.name` 两个**通用**
-品牌 slot（官方品牌包只在 official 构建档案下注册，本地构建里空置）——不是 §六 延后的
+自动发现，无需额外接线），全部消费 **vendor 通用座位**（皮肤面，不进模型上下文）：品牌
+`sidebar.brand.mark` / `sidebar.brand.name`（官方品牌包只在 official 构建档案下注册，本地
+构建里空置）；**三室右栏 tab**——`sidebarRightTabs` 定义带「+」向导 `guide[]` 条目，每室
+keyed 座位 `sidebar.right.pane.tab`（tab 体）与 `sidebar.right.pane.tab.title`（图标+标题
+chip）；会话面 `conversation.session.header.utilities`（页头桌面 chip）、
+`conversation.hero.brand.mark` 与 `conversation.input.dock`（首里引导，开聊即隐）；
+`/` 与 `+` 菜单的房间命令（scoped inject `commandUi`）——不是 §六 延后的
 "专属 Web 卡片"（那是通用卡不够用时的 client 插件面，触发条件未到）。
                             为什么在 host：working folder 是**跨会话持久化**，与持久化/沙箱/模型路由同类。
                             preset 里的服务行必须包在 isolate realm 里，否则与别的 preset 撞名。
@@ -51,7 +57,7 @@ AGENT 面（`cordis.patch.yml` 的 `preset-assistant` 行 → agent preset）
 ```
 
 **为什么工具在 agent 面**：它们是一个会话贡献给注册表的东西（DSH 的 preset 语义）。
-**为什么服务在 host 面**：将来做记忆面板时，client 读的是同一个实例。
+**为什么服务在 host 面**：client 的三室 tab 读的就是同一个实例。
 
 ## 三、部件与 owner 面
 
@@ -92,7 +98,7 @@ AGENT 面（`cordis.patch.yml` 的 `preset-assistant` 行 → agent preset）
 | `src/index.ts` | 服务：把上面这些组装成 `ctx.assistantMemory` | 全部 |
 | `src/tool-support/presentation.ts` | 四个工具共享的 presenter 管道：`presentationMeta` 投影摘要 → `presentResult` 从 `result.meta` 读回（完成卡读不到规范值，只能读持久化载荷） | dsh-tools 类型 |
 | `src/web-branding.ts` | Web 壳品牌注入行：页标题 + 图标（纯函数；经 `webserver/index-inject` 事件进浏览器，皮肤面） | dsh-host-webserver（仅类型） |
-| `src/client/index.ts` | 浏览器面：占用 `sidebar.brand.*` 通用品牌 slot（侧栏图标 + 部署名；皮肤面，不进模型上下文） | react + ui-renderer/ui-sidebar（仅类型） |
+| `src/client/index.ts` | 浏览器面：品牌 slot + 三室右栏 tab + 会话面座位与房间命令（全走 vendor 通用座位，清单见 §二；皮肤面，不进模型上下文） | react + ui-renderer/ui-sidebar（仅类型） |
 | `src/preset-runner/index.ts` | **preset 挂载的 one-shot 驱动**（dev 验证自动化：`agentPresets.resolve`→`mount` 进 agent setup，会话头记录 `agentPreset`；经 `dev/preset-runner.patch.yml` 替换 headless-runner 行启用） | dsh-agent / dsh-agent-preset-registry / dsh-llm / dsh-session / dsh-brand |
 | `src/tool-memory/`、`src/tool-research/`、`src/tool-knowledge/`、`src/memory-digest/`、`src/learn/` | agent 面入口：薄适配器（校验跨字段规则 → 调服务 → 返回规范值 + presenter） | cordis/tools |
 

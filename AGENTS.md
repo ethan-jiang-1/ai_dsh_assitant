@@ -66,7 +66,7 @@ pnpm eval               # 行为评测：真实请求经 preset 会话跑一遍�
 pnpm eval:domain        # 领域评测集 v0（G2 关口）：本人出的真实经营问题逐题跑一遍 → 给人打分的报告（题目格式 `dev/eval/domain/TEMPLATE.md`；填题副本 `dev/eval/domain/` 下的 questions.local.md，不入库）
 pnpm typecheck          # 委派包级：tsc -b（编译期 paths 解析到 vendor/dsh 的 src，API 漂移编译期暴露）+ tsc -p tsconfig.test.json（覆盖 tests）
 pnpm test               # vitest：纯核（home/memory/research/skills/knowledge）+ 服务级合同（真 cordis 构造，不依赖 DSH 运行时）
-pnpm verify             # 机械门禁链：2 个生成物 freshness + 3 个自检（评测器 / 摩擦报告 / 领域评测）+ 32 条检查（结构/身份/解析入口/自包含/技能语法/断链/文档命令与别名互证/队列与 notes 形状/提交安全；清单以 scripts/verify.mjs 为准）
+pnpm verify             # 机械门禁链：生成物 freshness + 自检（评测器 / 摩擦报告 / 领域评测）+ 结构/身份/解析入口/自包含/技能语法/断链/文档命令与别名互证/队列与 notes 形状/提交安全等检查（条数与清单以 scripts/verify.mjs 为准）
 pnpm build              # tsc 出 lib/（发布物与 dsh plugin add 需要）
 pnpm release-smoke      # pnpm pack → 干净 home → dsh plugin add → 组合断言（真实安装形状；**改动发布物/依赖/preset 包装必跑**，否则它只是"存在一个脚本"）
 pnpm sync-dsh -- --tag <dsh-tag>   # 换 submodule tag + SHA 簿记 + typecheck + 对照 docs/discipline.md 重校纪律表
