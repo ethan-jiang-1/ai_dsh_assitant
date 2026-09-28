@@ -69,6 +69,24 @@ export function extractTool(source, label) {
   return { name, actions }
 }
 
+/** Extract the client seat surface from `src/client/index.ts`. Fails loud when the file
+ *  carries no recognizable surface or when a room tab lacks its guide entry — a renamed
+ *  helper or a not-discoverable tab must break the gate, not silently thin the catalog. */
+export function extractClientSurface(source) {
+  const seats = [...source.matchAll(/ctx\.slots\.inject\('([a-z][a-z.]+)'/g)].map(match => match[1])
+  const roomTabs = [...source.matchAll(/\{\s*\n\s*id: '([^']+)', kind: '([A-Za-z]+)',/g)]
+    .map(match => ({ id: match[1], kind: match[2] }))
+  const guideEntries = [...source.matchAll(/guide: \[\{/g)].length
+  const commands = [...source.matchAll(/\{\s*\n\s*name: '([a-z]+)',\s*\n\s*label:/g)].map(match => match[1])
+  if (seats.length === 0 || roomTabs.length === 0) {
+    throw new Error('gen-catalog: client source declares no recognizable seat surface — the extraction shape changed')
+  }
+  if (roomTabs.length > 0 && guideEntries === 0) {
+    throw new Error('gen-catalog: room tabs registered without any guide entry — every addable tab must be discoverable in the "+" picker')
+  }
+  return { seats: [...new Set(seats)], roomTabs, guideEntries, commands: [...new Set(commands)] }
+}
+
 /** Read every catalog input from disk. */
 export function collectCatalog(root = repoRoot) {
   const pkg = JSON.parse(read(join(root, 'packages', 'dsh-smart-assistant', 'package.json')))
@@ -92,6 +110,9 @@ export function collectCatalog(root = repoRoot) {
   const upstream = read(join(root, 'vendor', 'UPSTREAM.md'))
   const pin = /钉住的 tag \| `([^`]+)`/.exec(upstream)?.[1]
   if (pin === undefined) throw new Error('gen-catalog: vendor/UPSTREAM.md carries no pinned tag row')
+  const clientSurface = pkg.dsh?.client !== undefined
+    ? extractClientSurface(read(join(root, 'packages', 'dsh-smart-assistant', 'src', 'client', 'index.ts')))
+    : undefined
   return {
     exports: Object.keys(pkg.exports ?? {}),
     hostRows,
@@ -100,6 +121,7 @@ export function collectCatalog(root = repoRoot) {
     tools,
     skills,
     pin,
+    clientSurface,
     releases: Object.keys(pkg.dsh?.compatibility?.dshReleases ?? {}),
     dependencies: Object.keys(pkg.dependencies ?? {}),
     peers: Object.keys(pkg.peerDependencies ?? {}),
@@ -132,6 +154,7 @@ export function renderCatalog(input) {
   lines.push('> **生成物，不手改**：本文件由 `scripts/gen-catalog.mjs` 从 `package.json` 的 exports、')
   lines.push('> `cordis.patch.yml`（host 行 + `agent-preset` 行的 plugins）/ `dev/preset-runner.patch.yml` 的组合行、')
   lines.push('> 四个工具源码的 name/ACTIONS、')
+  lines.push('> `src/client/index.ts` 的座位注册、')
   lines.push('> 策展技能目录与 `vendor/UPSTREAM.md` 的 pin 抽取而成；')
   lines.push('> freshness 由 `pnpm verify`（`gen-catalog --check`）守——改了源却没重生成即红。')
   lines.push('> 语义与改名代价的 owner 是 [`identity.md`](identity.md)；这里只回答"当前声明了什么"。')
@@ -178,6 +201,14 @@ export function renderCatalog(input) {
   lines.push('')
   lines.push('> 开发用 Skill（若有）在 `.agents/skills/`，不进 preset——两类同名概念的分工见根 `AGENTS.md`。')
   lines.push('')
+  if (input.clientSurface !== undefined) {
+    lines.push('## 客户端座位面（CLIENT，全走 vendor 通用座位；皮肤面，不进模型上下文）')
+    lines.push('')
+    lines.push(`- 消费 slot 座位（slots.inject）：${input.clientSurface.seats.map(seat => `\`${seat}\``).join('、')}`)
+    lines.push(`- 右栏 tab 定义（sidebarRightTabs.register，含「+」向导 guide 条目）：${input.clientSurface.roomTabs.map(tab => `\`${tab.id}\`（${tab.kind}）`).join('、')}`)
+    lines.push(`- 命令注册（commandUi，slash 菜单与 composer 加号菜单的发现面）：${input.clientSurface.commands.map(command => `\`${command}\``).join('、') || '（无）'}`)
+    lines.push('')
+  }
   lines.push('## 兼容与依赖姿态')
   lines.push('')
   lines.push(`- 钉住的上游 tag：\`${input.pin}\``)

@@ -32,13 +32,11 @@ HOST 面（cordis.patch.yml → dsh.bundle.patch）
                             + Web 壳品牌注入行（页标题/图标，webserver/index-inject；皮肤，不进模型上下文）
 
 浏览器面（package.json `dsh.client` → `./client` 出口；经既有 bundle 行被 client-modules
-自动发现，无需额外接线），全部消费 **vendor 通用座位**（皮肤面，不进模型上下文）：品牌
-`sidebar.brand.mark` / `sidebar.brand.name`（官方品牌包只在 official 构建档案下注册，本地
-构建里空置）；**三室右栏 tab**——`sidebarRightTabs` 定义带「+」向导 `guide[]` 条目，每室
-keyed 座位 `sidebar.right.pane.tab`（tab 体）与 `sidebar.right.pane.tab.title`（图标+标题
-chip）；会话面 `conversation.session.header.utilities`（页头桌面 chip）、
-`conversation.hero.brand.mark` 与 `conversation.input.dock`（首里引导，开聊即隐）；
-`/` 与 `+` 菜单的房间命令（scoped inject `commandUi`）——不是 §六 延后的
+自动发现，无需额外接线），全部消费 **vendor 通用座位**（皮肤面，不进模型上下文）。
+座位与命令的精确清单是生成物：[`package-catalog.md`](package-catalog.md)「客户端座位面」节
+（生成器从 `src/client/index.ts` 抽取，freshness 由 `pnpm verify` 守——散文清单在生成物面前
+四轮漂移三轮同根，已退役为指针）。语义要点：官方品牌包只在 official 构建档案下注册，本地
+构建里品牌 slot 空置；三室是「+」向导里可添加的右栏 tab；首里引导座位开聊即隐——不是 §六 延后的
 "专属 Web 卡片"（那是通用卡不够用时的 client 插件面，触发条件未到）。
                             为什么在 host：working folder 是**跨会话持久化**，与持久化/沙箱/模型路由同类。
                             preset 里的服务行必须包在 isolate realm 里，否则与别的 preset 撞名。
@@ -98,7 +96,7 @@ AGENT 面（`cordis.patch.yml` 的 `preset-assistant` 行 → agent preset）
 | `src/index.ts` | 服务：把上面这些组装成 `ctx.assistantMemory` | 全部 |
 | `src/tool-support/presentation.ts` | 四个工具共享的 presenter 管道：`presentationMeta` 投影摘要 → `presentResult` 从 `result.meta` 读回（完成卡读不到规范值，只能读持久化载荷） | dsh-tools 类型 |
 | `src/web-branding.ts` | Web 壳品牌注入行：页标题 + 图标（纯函数；经 `webserver/index-inject` 事件进浏览器，皮肤面） | dsh-host-webserver（仅类型） |
-| `src/client/index.ts` | 浏览器面：品牌 slot + 三室右栏 tab + 会话面座位与房间命令（全走 vendor 通用座位，清单见 §二；皮肤面，不进模型上下文） | react + ui-renderer/ui-sidebar（仅类型） |
+| `src/client/index.ts` | 浏览器面：座位与命令注册（精确清单 = 生成物 [`package-catalog.md`](package-catalog.md)「客户端座位面」节；皮肤面，不进模型上下文） | react + ui-renderer/ui-sidebar（仅类型） |
 | `src/preset-runner/index.ts` | **preset 挂载的 one-shot 驱动**（dev 验证自动化：`agentPresets.resolve`→`mount` 进 agent setup，会话头记录 `agentPreset`；经 `dev/preset-runner.patch.yml` 替换 headless-runner 行启用） | dsh-agent / dsh-agent-preset-registry / dsh-llm / dsh-session / dsh-brand |
 | `src/tool-memory/`、`src/tool-research/`、`src/tool-knowledge/`、`src/memory-digest/`、`src/learn/` | agent 面入口：薄适配器（校验跨字段规则 → 调服务 → 返回规范值 + presenter） | cordis/tools |
 

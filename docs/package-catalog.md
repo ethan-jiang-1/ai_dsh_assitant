@@ -5,6 +5,7 @@
 > **生成物，不手改**：本文件由 `scripts/gen-catalog.mjs` 从 `package.json` 的 exports、
 > `cordis.patch.yml`（host 行 + `agent-preset` 行的 plugins）/ `dev/preset-runner.patch.yml` 的组合行、
 > 四个工具源码的 name/ACTIONS、
+> `src/client/index.ts` 的座位注册、
 > 策展技能目录与 `vendor/UPSTREAM.md` 的 pin 抽取而成；
 > freshness 由 `pnpm verify`（`gen-catalog --check`）守——改了源却没重生成即红。
 > 语义与改名代价的 owner 是 [`identity.md`](identity.md)；这里只回答"当前声明了什么"。
@@ -52,6 +53,12 @@
 `action-plan`、`desk-refresh`、`home-curation`、`knowledge-craft`、`management-breakdown`、`memory-hygiene`、`research-backlog`、`self-reflection`、`session-recall`
 
 > 开发用 Skill（若有）在 `.agents/skills/`，不进 preset——两类同名概念的分工见根 `AGENTS.md`。
+
+## 客户端座位面（CLIENT，全走 vendor 通用座位；皮肤面，不进模型上下文）
+
+- 消费 slot 座位（slots.inject）：`sidebar.brand.mark`、`sidebar.brand.name`、`sidebar.right.pane.tab`、`sidebar.right.pane.tab.title`、`conversation.session.header.utilities`、`conversation.hero.brand.mark`、`conversation.input.dock`
+- 右栏 tab 定义（sidebarRightTabs.register，含「+」向导 guide 条目）：`dsh-smart-assistant-desk`（desk）、`dsh-smart-assistant-knowledge`（knowledgeRoom）、`dsh-smart-assistant-memory`（memoryRoom）
+- 命令注册（commandUi，slash 菜单与 composer 加号菜单的发现面）：`desk`、`knowledge`、`memory`
 
 ## 兼容与依赖姿态
 
