@@ -23,14 +23,14 @@ implemented note 必带「**输掉的方案**」节——没记击败了什么�
 **进行中的工作显式化（用户拍板）：开工即立卡 `notes/proposed/`**——状态词只有 `notes/README.md` 定义的那一套
 （生命周期四态），**不再另造阶段词**；可执行性看各卡自身的状态行与用户拍板。深评/调研卡住 `_backlog/plans/`，收卷证据台账住 `notes/archived/research/`，卡片链接之。看不见的工作等于没在做。
 
-同一个多步流程第三次被重新推演时，就把它立成一件开发技能（放 `.agents/skills/`）——这是"重复即建"的常设规则，不占队列。
+同一个多步流程第三次被重新推演时，就把它立成一件开发技能（放 `.agents/skills/`）——这是"重复即建"的常设规则，不占工作面。
 **两类 Skill，别混**：`.agents/skills/` 是**开发用**（给改这个仓库的 agent：探针、归档判定、
 证据路由——由 DSH 原生 `project-agents` 根发现，进目录即入技能目录）；`presets/assistant/skills/`
 是**模型用**（产品运行时技能，随 preset 走）。同名不同机制，不共享 registry。
 
 **意图从哪来**（三通道，各管各的）：① **用户轮内请求**——唯一外部通道，本轮范围由它决定；
 ② **毕业卡**——`notes/proposed/`（已批未做）与 `_backlog/plans/`（触发型/用户点名）——已立项的内部工作项；③ **`notes/proposed/` 卡片**——
-重大未决的未来工作（生命周期状态在卡片，正文与验收也在这里）。代码里的 `TODO/FIXME` 不进队列，
+重大未决的未来工作（生命周期状态在卡片，正文与验收也在这里）。代码里的 `TODO/FIXME` 不立项，
 只在代码内；`_backlog/plans/` 调研卡是证据面，不是工作项。
 
 ## 布局（改动前先认领 owner 面）
@@ -65,7 +65,7 @@ pnpm eval               # 行为评测：真实请求经 preset 会话跑一遍�
 pnpm eval:domain        # 领域评测集 v0（G2 关口）：本人出的真实经营问题逐题跑一遍 → 给人打分的报告（题目格式 `dev/eval/domain/TEMPLATE.md`；填题副本 `dev/eval/domain/` 下的 questions.local.md，不入库）
 pnpm typecheck          # 委派包级：tsc -b（编译期 paths 解析到 vendor/dsh 的 src，API 漂移编译期暴露）+ tsc -p tsconfig.test.json（覆盖 tests）
 pnpm test               # vitest：纯核（home/memory/research/skills/knowledge）+ 服务级合同（真 cordis 构造，不依赖 DSH 运行时）
-pnpm verify             # 机械门禁链：生成物 freshness + 自检（评测器 / 摩擦报告 / 领域评测）+ 结构/身份/解析入口/自包含/技能语法/断链/文档命令与别名互证/队列与 notes 形状/提交安全等检查（条数与清单以 scripts/verify.mjs 为准）
+pnpm verify             # 机械门禁链：生成物 freshness + 自检（评测器 / 摩擦报告 / 领域评测）+ 结构/身份/解析入口/自包含/技能语法/断链/文档命令与别名互证/notes 形状/提交安全等检查（条数与清单以 scripts/verify.mjs 为准）
 pnpm build              # tsc 出 lib/（发布物与 dsh plugin add 需要）
 pnpm release-smoke      # pnpm pack → 干净 home → dsh plugin add → 组合断言（真实安装形状；**改动发布物/依赖/preset 包装必跑**，否则它只是"存在一个脚本"）
 pnpm sync-dsh -- --tag <dsh-tag>   # 换 submodule tag + SHA 簿记 + typecheck + 对照 docs/discipline.md 重校纪律表
