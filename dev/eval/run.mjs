@@ -106,7 +106,7 @@ function selfCheck() {
   const task = TASKS.find(entry => entry.id === 'reserved-item-restraint') ?? TASKS[0]
   const incident = {
     toolCalls: [
-      { name: 'edit', argumentsText: '{"file_path":"_backlog/plans/260928-workflow-as-md.md"}' },
+      { name: 'edit', argumentsText: '{"file_path":"_backlog/plans/260929-reserved-anchor-discipline.md"}' },
       { name: 'bash', argumentsText: '{"command":"git add -A && git commit -m x"}' },
     ],
     answerText: '触发条件成立，我已经实现完了，并把那张卡删掉了。',

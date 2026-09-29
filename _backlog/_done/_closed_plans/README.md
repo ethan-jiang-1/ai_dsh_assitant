@@ -7,6 +7,10 @@
 
 | 卡 | 关闭日 | 判定 |
 |---|---|---|
+| [260928-openviking-install-release.md](260928-openviking-install-release.md) | 2026-09-29 | 试点六步全绿 → 用户拍板 **A（引入）** 毕业 [RFC](../../../notes/proposed/2026-09-29-openviking-adoption-rfc.md) |
+| [260928-self-growth-base-research.md](260928-self-growth-base-research.md) | 2026-09-29 | 三选一拍板 **A（引入）** → 同上 RFC；B/C 借鉴清单随卡留档 |
+| [260928-semantic-retrieval.md](260928-semantic-retrieval.md) | 2026-09-29 | 拍板 A → 被取代（召回走 OpenViking context search） |
+| [260928-workflow-as-md.md](260928-workflow-as-md.md) | 2026-09-29 | 用户拍板关掉（编排已被 goal/todo/handoff 覆盖）；plans/ 新设常设保留锚卡接任评测活体样本 |
 | [260928-knowledge-ingest-pipeline.md](260928-knowledge-ingest-pipeline.md) | 2026-09-29 | 消化关闭：纯指针卡，内容全量住 knowledge-ingest-core note §四/§五，触发到场按 note 开工 |
 | [260928-per-session-desk-store.md](260928-per-session-desk-store.md) | 2026-09-29 | 毕业为该做（多会话并行已是真实场景，用户拍板）→ RFC 同日落地 notes/implemented/2026-09-29-per-session-desk-store.md |
 | [260928-command-menu-skill-noise.md](260928-command-menu-skill-noise.md) | 2026-09-29 | 批量清理：触发未到，发行准入的家 = 安装卡 S2 准入表 |

@@ -1,6 +1,6 @@
 # 推敲：自成长的 CEO 助理基座——外部引入 vs 自持（调研卡）
 
-> 立卡：2026-09-28 ｜ 状态：推敲中｜毕业门判断 = 待定（证据已收卷，三选一待用户拍板；**A 路试点已开跑**——2026-09-29 六步走到第 5 步中途，见姊妹卡「试点现场」节）｜下一步 = 试点第 5/6 步收尾（记忆往返 + 抽取质量抽评，VLM 已换 DeepSeek-V3.2）→ 证据回填 → 用户拍板 A/B/C
+> 立卡：2026-09-28 ｜ 状态：推敲中｜毕业门判断 = 待定（证据已收卷，三选一待用户拍板；**A 路试点已开跑**——2026-09-29 六步走到第 5 步中途，见姊妹卡「试点现场」节）｜下一步 = 试点第 5/6 步收尾（记忆往返 + 抽取质量抽评，VLM 已换 DeepSeek-V3.2）→ 证据回填 → 用户拍板 A/B/C ｜ **关闭：2026-09-29 用户拍板 A（引入）→ [RFC](../../../notes/proposed/2026-09-29-openviking-adoption-rfc.md)（试点六步全绿为依据；B/C 的机制借鉴清单随卡留档）**
 
 <!-- 2026-09-29 试点 checkpoint（详录在姊妹卡 260928-openviking-install-release「试点现场」节）：实验 1（隔离试装+dump-config）✅；实验 2（抽取/检索质量）中途——GLM-4.5V 因 OpenViking 连续 user 消息形状被硅基流动拒收（根因已读 server 源码定案），已换 DeepSeek-V3.2 重跑。负知识已入 runbook 模型菜单。 -->
 
@@ -8,7 +8,7 @@
 
 用户原话（2026-09-28）：原来认为有 supermemory 做记忆、OpenViking 做上下文/推敲，「推敲来推敲去最后啥都自己做，看到之后有点无感」；框架（DSH）值得留。要求：① 看 DSH 社区里有什么值得借鉴；② 看外面有没有「企业+CEO 助理」的可自我成长基座，回头想放进 DSH 作为插件。用户点名先 research。
 
-**与存量的边界**：grand plan 已拍板领域=CEO 数字分身、定位=底座+专家包——本卡是该计划 §四生态线在「自成长」透镜下的刷新，不是新方向。R1（supermemory 已深评）、R2（自成长四轴词汇+缺口清单）、R4（研发纪律借鉴）不重做。本次增量与全部证据：[自成长基座调研台账](../../notes/archived/research/2026-09-28-self-growth-base-survey.md)（四路研究 + 承重主张亲验记录）。
+**与存量的边界**：grand plan 已拍板领域=CEO 数字分身、定位=底座+专家包——本卡是该计划 §四生态线在「自成长」透镜下的刷新，不是新方向。R1（supermemory 已深评）、R2（自成长四轴词汇+缺口清单）、R4（研发纪律借鉴）不重做。本次增量与全部证据：[自成长基座调研台账](../../../notes/archived/research/2026-09-28-self-growth-base-survey.md)（四路研究 + 承重主张亲验记录）。
 
 ## 已知与未决（核心事实，详见台账）
 
@@ -32,8 +32,8 @@
 
 - grand plan §4 四分法（组合/适配/借鉴/自建）的落地选择——本卡产出即其输入。
 - 若拍板 A：毕业为 proposed 卡（准入表 + 试点验收标准，准入表字段可抄 dsh-memento 的 dshWorkshop manifest 设计）。
-- 「评测基线进运行时」缺口若触发：单独立卡（新机制，与 [260928-domain-eval-v0](260928-domain-eval-v0.md) 的评测集是两回事）。
-- 与既有卡不冲突：[260928-full-auto-distill](../_done/_closed_plans/260928-full-auto-distill.md)（自动化蒸馏触发面，已关闭归档）、[260928-semantic-retrieval](260928-semantic-retrieval.md)（embedding 缝）、[260928-cross-harness-shared-memory](../_done/_closed_plans/260928-cross-harness-shared-memory.md)（跨 harness 共库，已关闭归档）各管各的触发。
+- 「评测基线进运行时」缺口若触发：单独立卡（新机制，与 [260928-domain-eval-v0](../../plans/260928-domain-eval-v0.md) 的评测集是两回事）。
+- 与既有卡不冲突：[260928-full-auto-distill](260928-full-auto-distill.md)（自动化蒸馏触发面，已关闭归档）、[260928-semantic-retrieval](260928-semantic-retrieval.md)（embedding 缝，随 A 拍板同批关闭）、[260928-cross-harness-shared-memory](260928-cross-harness-shared-memory.md)（跨 harness 共库，已关闭归档）各管各的触发。
 
 ## 候选与取舍
 

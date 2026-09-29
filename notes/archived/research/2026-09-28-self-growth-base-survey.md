@@ -1,6 +1,6 @@
 # 自成长基座调研：外部「企业+CEO 助理基座」× DSH 生态刷新 × 自成长机制 v2
 
-日期：2026-09-28 · 状态：**已收卷**（四路研究全部回收、承重主张已亲验；推敲与毕业判断住调研卡 [260928-self-growth-base-research](../../../_backlog/plans/260928-self-growth-base-research.md)）
+日期：2026-09-28 · 状态：**已收卷**（四路研究全部回收、承重主张已亲验；推敲与毕业判断住调研卡 [260928-self-growth-base-research](../../../_backlog/_done/_closed_plans/260928-self-growth-base-research.md)）
 
 > **委托问题**（用户原话，2026-09-28）：原来认为有 supermemory 做记忆、OpenViking 做上下文，「推敲来推敲去最后啥都自己做，看到之后有点无感」；框架（DSH）值得留。要求调研：① DSH 社区里有什么值得借鉴的；② 外面有没有做「企业+CEO 助理」的可自我成长基座，回头想放进 DSH 作为插件。
 >
