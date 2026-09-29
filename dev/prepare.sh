@@ -30,29 +30,43 @@ fi
 pnpm_vendor() { pnpm --config.verify-deps-before-run=false --dir vendor/dsh "$@"; }
 
 built=0
-need() { # name glob
-  # A glob, not a literal path: the native addon lands in a platform-named package
-  # (`packages/<platform>/bin/system.node`), and the platform is whatever the host happens to be.
-  # Guessing the literal path made this report "missing" on a fully built tree and rebuild every run.
-  if compgen -G "$2" > /dev/null; then
-    echo "▸ $1: present"
-  else
-    echo "▸ $1: missing — building"
-    built=1
-    return 1
-  fi
+# 探测"产物集合"而不是单个文件：`build:lib` 的产物是整批 client 包的 lib/client.js，
+# 只探其中一个（历史上探的正是 `client/modules/lib/client.js`）在全新检出上会**假绿**——
+# 那个文件并不存在，而别的包也可能缺；运行时才炸成几十条 "client bundle not found"。
+present() { # path-or-glob
+  # `compgen -G` is the only portable glob probe here: this script runs under macOS's bash 3.2,
+  # where `[[ -e some/glob/*.js ]]` does NOT expand the glob (that is a bash 4+ behaviour) and
+  # `[ -e ]` never expands it at all — the latter made this probe answer "present" for **every**
+  # input, so the script silently skipped every build step it owns.
+  compgen -G "$1" > /dev/null 2>&1
 }
 
-if ! need "vendor deps" 'vendor/dsh/node_modules'; then
+if present 'vendor/dsh/node_modules'; then
+  echo "▸ vendor deps: present"
+else
+  echo "▸ vendor deps: missing — installing"
+  built=1
   pnpm_vendor install
 fi
-if ! need "native addon" 'vendor/dsh/native/system/packages/*/bin/system.node'; then
+if present 'vendor/dsh/native/system/packages/*/bin/system.node'; then
+  echo "▸ native addon: present"
+else
+  echo "▸ native addon: missing — building"
+  built=1
   pnpm_vendor run build:native-system
 fi
-if ! need "host + client lib" 'vendor/dsh/packages/client/modules/lib/client.js'; then
+if present 'vendor/dsh/packages/client/*/lib/client.js'; then
+  echo "▸ client libs (build:lib): present"
+else
+  echo "▸ client libs (build:lib): missing — building"
+  built=1
   pnpm_vendor run build:lib
 fi
-if ! need "web dist (Web UI)" 'vendor/dsh/apps/web/dist/index.html'; then
+if present 'vendor/dsh/apps/web/dist/index.html'; then
+  echo "▸ web dist (Web UI): present"
+else
+  echo "▸ web dist (Web UI): missing — building"
+  built=1
   pnpm_vendor run build:web
 fi
 

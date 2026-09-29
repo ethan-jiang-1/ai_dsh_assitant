@@ -53,8 +53,36 @@
 - `vitest run tests/verify-gates.spec.mjs`：34 passed（`startPathProblems` 4 条 + `ASSISTANT_DSH_HOME` 解析 1 条）。
 - 隔离路径端到端：干净工作树 + `ASSISTANT_DSH_HOME=/tmp/cold-start/home`，
   `bash dev/setup.sh` 原样跑通（不再需要补丁副本），两个 profile 落在隔离 home，仓库 dev home 未被改写。
+- 冷启动探针 v2（干净工作树，从①走到④）**先跑失败、再跑通**，见下条——
+  这条"失败"是本次最有价值的机械证据。
 
-## 实验反馈（两个 fresh agent 会话，真跑过）
+## 探针 v2 抓到的假绿：`prepare.sh` 一直在空转（我自己的 bug）
+
+v2 在干净工作树上走到④时 boot 崩了：`client-modules: client bundle not found`（几十个 client 包），
+而②`prepare.sh` 报的是全 `present`、`already prepared — nothing to build`。查到底，是**三个叠加**的事实：
+
+1. **`[ -e "$2" ]` 对 glob 输入恒真**。`need()` 写的是
+   `if [ -e "$2" ] || compgen -G "$2" …`，而 `[ -e ]` **从不展开 glob**——它只判那个字面字符串
+   非空，于是第一个条件永远为真、`compgen` 那半截**从来没被求值过**。结果：所有探测恒报 present，
+   脚本**没有执行过任何一步构建**（干净树里 `vendor/dsh/node_modules` 条目数为 **0**，即
+   `pnpm --dir vendor/dsh install` 也从未跑过）。
+2. **`[[ -e glob ]]` 在这里也不可用**：本仓的脚本跑在 macOS 自带的 **bash 3.2** 上，
+   而"`[[ -e ]]` 展开 glob"是 bash 4+ 的行为。改成 `[[ -e ]]` 的第一次修法因此同样报错答案。
+3. **判据必须对"整批产物"**：`build:lib` 的产物是**整批** client 包的 `lib/*.js`
+   （clean 树 61 个 `lib/` 目录全缺；主仓库 `index.js` 61 个、`client.js` 56 个），
+   探单个文件（甚至探 `client/modules/lib/client.js` 这个在干净树上并不存在的路径）都会假绿。
+
+**最终写法**：`present() { compgen -G "$1" > /dev/null 2>&1; }`——bash 3.2 兼容、对文件与 glob 都成立；
+四个探测点分别探 `vendor/dsh/node_modules`、`native/**/*.node`、`client/*/lib/client.js`、`web/dist/index.html`。
+`dev/setup.sh` 的守卫原本探的正是那个假判据文件（`client/modules/lib/client.js`），
+同样会在干净检出上假绿放行、把失败推迟到 boot；已改为 `find packages/client -maxdepth 3
+-path '*/lib/*' -name index.js`（主仓库实测 61/61 都有）。
+
+**为什么值得单列**：这不是笔误，是"我在已构建的主仓库上验证过，于是以为探测是对的"——
+而主仓库的 `vendor/dsh` 是预先构建好的，**真正的 bug 只在干净检出上显形**。
+判据若与 boot 实际加载的产物集不对齐，就是假绿；这也是"实验优先于推理"的直接收益。
+
+## 实验反馈（三个 fresh agent 会话，真跑过）
 
 **A. 默认路径试跑（成功，1 分 27 秒到 URL）**：它按 AGENTS.md ②③④ 走到
 `http://127.0.0.1:57918/?token=…`，preflight 全绿（boot graph 65 条、本包 client bundle 在列），
@@ -81,6 +109,15 @@ pnpm 11 之前被缓存/旧版掩盖），而 `vendor/dsh` 的同一条有值。
 `pnpm install --frozen-lockfile --force` exit 0（frozen 会拒绝坏 lockfile，这是它作为验证的意义）。
 **诚实边界**：整条链的"①`pnpm install` 真跑通 + ②prepare 的构建分支"仍未被端到端跑完
 （node_modules 常驻，install 是空跑）；已证的是 ① 不再在解析期即败、②③ 在干净工作树 + 隔离 home 下通过。
+
+**D. 闭环（修复后再放一个新会话跑同一条路）**：仍然只用 AGENTS.md 命令表 + `docs/dev.md` 起隔离 home 的
+Web UI，**0 卡点 / 0 重试 / 0 报错**，且**没有读 `dev/env.sh`、`scripts/dsh.mjs`、`dev/setup.sh` 的源码**、
+一条脚本都没改（对比实验 B：卡 3~4 分钟 + 自搓补丁副本 + 读三个脚本）。
+它实证了隔离（仓库 `dev/harness-home` 与 `~/.dsh` 的 mtime 均未变、两个 profile 只落在隔离 home），
+并点名三条判据真起作用：`.modules.yaml`（据此跳过①）、三个 vendor 产物（据此跳过②）、
+`ls $DSH_HOME/profiles` 见 `dev`+`dev-task`（据此验③）。
+**它唯一提的缺口已补**：命令表缺"隔离 home 变体"——要隔离的人得自己把两个文件的信息拼起来，
+而隔离恰是"不碰日用 `~/.dsh`"最常用的落地形态；已加一节逐条带 `ASSISTANT_DSH_HOME` 的可复制命令。
 
 ## 输掉的方案
 

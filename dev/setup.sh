@@ -27,8 +27,8 @@ if [ -z "${ASSISTANT_DSH_HOME:-}" ] && [ "$DSH_HOME" = "$HOME/.dsh" ]; then
 fi
 
 if [ ! -f "$repo_root/vendor/dsh/packages/boot/app-boot/lib/index.js" ] || \
-   [ ! -f "$repo_root/vendor/dsh/packages/client/modules/lib/client.js" ]; then
-  echo "✗ vendor/dsh is not built (host/client lib missing) — the harness needs its built lib/ to boot." >&2
+   [ -z "$(find "$repo_root/vendor/dsh/packages/client" -maxdepth 3 -name index.js -path '*/lib/*' -print -quit 2>/dev/null)" ]; then
+  echo "✗ vendor/dsh is not built (host lib / client bundles missing) — the harness needs its built lib/ to boot." >&2
   echo "  Run once per pin: bash dev/prepare.sh" >&2
   echo "  (it wraps: pnpm --dir vendor/dsh install; build:native-system; build:lib; build:web)" >&2
   exit 1

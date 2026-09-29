@@ -456,6 +456,30 @@ describe('configParseProblems', () => {
   })
 })
 
+describe('dev script probes: a presence check must answer both ways under bash 3.2', () => {
+  /**
+   * The first draft of `dev/prepare.sh` probed with `[ -e "$glob" ]`, which never expands a glob and
+   * is true for any non-empty string — so every step it owned was silently skipped on a fresh clone
+   * (`vendor/dsh/node_modules` was still absent) and the failure surfaced at boot as dozens of
+   * "client bundle not found". `[[ -e glob ]]` is not the fix either: this repo's scripts run under
+   * macOS's bash 3.2, where that does not expand globs. Only `compgen -G` answers both ways there.
+   */
+  const probe = pattern => {
+    const script = `present() { compgen -G "$1" > /dev/null 2>&1; }; present ${JSON.stringify(pattern)}`
+    try {
+      execFileSync('bash', ['-c', script], { stdio: 'ignore', env: { PATH: process.env.PATH ?? '' } })
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  it('answers present for a real path and missing for a glob that matches nothing', () => {
+    expect(probe(join(import.meta.dirname, 'verify-gates.spec.mjs'))).toBe(true)
+    expect(probe('definitely/not/here/*.js')).toBe(false)
+  })
+})
+
 describe('dev env.sh: the isolation exit is honoured by the shell scripts too', () => {
   /**
    * `scripts/dsh.mjs` has always honoured `ASSISTANT_DSH_HOME`; `dev/env.sh` used to overwrite

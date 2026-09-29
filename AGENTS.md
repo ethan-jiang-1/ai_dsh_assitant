@@ -68,6 +68,17 @@ pnpm dsh --profile dev --port 0 --no-open   # ④ Web UI：preset 行为（四�
 pnpm dsh --profile dev-task "one task"   # ⑤ 只想冒烟 host 面（插件装载/scaffold/服务行）就跑它，进程自己退（不进 preset）
 ```
 
+**要落到另一个 home（隔离实验/并行实例）**：给 ②③④⑤ **每一条都前置** `ASSISTANT_DSH_HOME=<dir>`
+（它对启动器与两个脚本一致生效；漏加到任意一条，就会得到 `profile "dev" does not exist`——
+因为 profile 建在一个 home、启动器去另一个找）：
+
+```sh
+export ASSISTANT_DSH_HOME=/tmp/my-trial-home
+bash dev/prepare.sh && bash dev/setup.sh
+ls "$ASSISTANT_DSH_HOME/profiles"          # 判据：应见 dev 与 dev-task
+pnpm dsh --profile dev --port 0 --no-open  # 起服务与验证命令（preflight/shots/dump-config）同样带着这个变量
+```
+
 **开发环与舱内工具**（用①的 install 装好即可，与起服务无先后）：
 
 先判据、别瞎跑：① 装好了 = `node_modules/.modules.yaml` 在（或 `pnpm store` 里已有本次解析）；
