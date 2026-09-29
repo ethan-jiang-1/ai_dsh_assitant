@@ -11,7 +11,8 @@
 ## 提案（S2 形态：组合行 + 准入，非依赖打包）
 
 1. **引入形态**：插件独立安装——`dsh plugin add <钉存 tgz 绝对路径>`（相对路径会被 pnpm 按 profile 目录解析，已踩）；server 双钉 `openviking==0.4.22` + 插件 `0.5.8`（上游五周 17 版，升级=人工触发重跑准入+doctor+往返冒烟，不自动追 latest）。
-2. **一键脚本**（拟建于 dev/ 下，名 ov-install.sh；幂等七步，试点经验入脚本）：装 server → `dev/ov-trial.sh` 生成配置（0600）→ 起 server + doctor 全绿门 → 建/复用裸 profile → 装 tgz → 写 profile patch（`commitTokenThreshold`/`skipSubagentSessions` 参数化）→ dump-config 断言 + 「怎么试记忆」提示。
+2. **发布物两件套**（兄弟仓 `_dist` 精神，2026-09-29 对照确认）：**打包 tgz + 安装手册 md**，同目录即完整发布。手册七段：表头基线表（版本/包名/打包日期/验证基线 DSH pin+Node）→ 自包含声明（不依赖 registry/克隆）→ 安装（默认 profile + 隔离试用两种，命令可直接复制）→ 验证（`--dump-config` 应看到的确切标记）→ 界面出现方式（重启+硬刷新类操作细节）→ 卸载（干净无残留声明）→ 常见问题表（现象→原因与处理）。铁律：**手册只写发布冒烟验证过的路径**（兄弟仓原话「是被证明过的顺序，不是设想」）。
+3. **一键脚本**（拟建于 dev/ 下，名 ov-install.sh；幂等七步，试点经验入脚本）：装 server → `dev/ov-trial.sh` 生成配置（0600）→ 起 server + doctor 全绿门 → 建/复用裸 profile → 装 tgz → 写 profile patch（`commitTokenThreshold`/`skipSubagentSessions` 参数化）→ dump-config 断言 + 「怎么试记忆」提示。
 3. **治理边界**：本仓治理层完全不动（draft→stable 人审、`sources` 必填、provenance）；OpenViking 做自成长记忆/技能的**第二储存层**，与自研三房间**并存观察**；双记忆重叠靠 profile 隔离控制（`ov-trial` 先行，正式接入 preset = 独立决策切片，不在本 RFC）。
 4. **模型位**：VLM = `deepseek-ai/DeepSeek-V3.2`（文字位；**必须宽容连续 user 消息**——抽取协议按宽容假设设计，GLM-4.5V/Qwen3-VL 已证不可用，见 runbook 负知识）；embedding = `BAAI/bge-m3`（1024 维实测）；喂图（多模态摄取）待后续另议。
 5. **AGPL 边界**：独立进程 + HTTP/MCP 消费不构成链接（初判成立）；fork server 才触发——**合规复核为真人输入位，实施前完成**。
@@ -46,5 +47,5 @@
 ## 遗留与边界
 
 - 喂图（多模态摄取）未测：DeepSeek-V3.2 纯文字；要喂图须换宽容连续 user 的视觉模型（runbook 菜单已备探针配方）。
-- `_dist`（兄弟仓发布形态）对照修订 S2 细节：待读（用户放行跨仓读后补）。
+- ~~`_dist` 对照修订~~：已完成（2026-09-29，发布物两件套 + 手册七段结构已并入提案 2）。
 - 升级节奏：上游周更快，双钉 + 人工升级窗口；上游旧版强制 deprecated 的应对待遇真实现场再定。
