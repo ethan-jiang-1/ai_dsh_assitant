@@ -1,14 +1,14 @@
 # 推敲：OpenViking 集成的安装与发布形态
 
-> 立卡：2026-09-28 ｜ 状态：**试点进行中**（2026-09-28 用户过目安装方案、拍板组合 D；2026-09-29 六步走到第 5 步中途——见「试点现场」节）｜毕业门判断 = 待触发（试点过审后拍板形态）｜下一步 = 第 5 步记忆往返重跑（VLM 已换 DeepSeek-V3.2）
+> 立卡：2026-09-28 ｜ 状态：**试点六步全部完成**（2026-09-29；第 5/6 步结果见「试点现场」节）｜毕业门判断 = 待触发（试点已过审条件达成：安装✅ 往返✅ 质量✅——**拍板 A/B/C + S2 形态待用户**）｜下一步 = 用户拍板采用与发布形态 → 毕业 RFC
 
 ## 试点现场（2026-09-29 checkpoint，自动续跑会话）
 
+- **插曲·VLM 换型**：首轮抽取在 GLM-4.5V 下 400 失败——根因（读 server 源码定案）：抽取循环的 python 协议把预取工具结果渲染成**连续 user 消息**（`extraction_output_protocol/python_protocol.py` 的 render_tool_result_messages 返回 user 角色；`sanitize_openai_messages` 只删空 assistant 不合并），硅基流动 GLM 强制严格轮替 → code 20015 拒收（`[user,user]` 探针复现）。**处置：VLM 位换 `deepseek-ai/DeepSeek-V3.2`**（`.env.local` 已改、ov.conf 重生成、server 重启）；GLM-4.5V 降为负知识（runbook 模型菜单已记）。喂图能力随之不可用（纯文字），属已知边界。
 - **第 1–3 步 ✅**：server 0.4.22 装好、`dev/ov-trial.sh` 两份配置 0600、doctor **全绿**（两处 FAIL 均修复：workspace 目录提权建好；embedding 探针两次超时确认是网络抖动——手测 3/3 秒回 0.14–0.21s、1024 维）。
 - **第 4 步 ✅**：裸 profile `ov-trial`（headless 模板、无 preset）+ **钉存 tgz 离线直装成功**（绝对路径；相对路径会被 pnpm 按 profile 目录解析而 ENOENT——D4 的 quirk 答案）；profile patch 挂试点参数（`commitTokenThreshold: 2000`、`skipSubagentSessions: true`）；`--dump-config` 断言 `openviking-memory-runtime` 行在场且标注 patched。
-- **第 5 步 ⏸️ 中途**：server 级往返——会话/14 条语料/commit 全通，但抽取任务 400 失败。**根因（读 server 源码定案）**：抽取循环的 python 协议把预取工具结果渲染成**连续 user 消息**（`session/memory/extraction_output_protocol/python_protocol.py` render_tool_result_messages 返回 user 角色；`utils/message_format.sanitize_openai_messages` 只删空 assistant、不合并），**硅基流动的 GLM-4.5V 强制严格轮替 → 400 code 20015 拒收**（探针复现：`[user,user]` 必拒，system-first/结尾 assistant 均 200）。豆包/GPT 类宽容模型不受影响——上游按宽容假设设计。
-- **处置（试点内换型，agent 判定）**：VLM 位 → `deepseek-ai/DeepSeek-V3.2`（runbook 既定备选；连续 user 三探针全 200；纯文字——试点语料本就纯文字，损失=喂图不可用，记入采用决定包）。`.env.local` 的 `SILICONFLOW_VLM_MODEL` 已改、ov.conf 已重生成、server 已重启。**GLM-4.5V 从选型位降为负知识**（VLM 位不可用，runbook 模型菜单已记）。
-- 第 5 步重跑与第 6 步质量抽评待续（自动审批限流阻塞 curl/commit，见 handoff）。
+- **第 5 步 ✅（2026-09-29 完成）**：server 级往返全链通——`pnpm ov-trial-rt` 建 `dsh-trial-probe-002`、14 条哨兵语料、commit 归档、**DeepSeek-V3.2 抽取成功**（GLM 时代是秒拒 400；换型后任务跑了 ~8 分钟落库）。**质量抽评：15 条记忆（偏好 2/实体 8/事件 5），七组事实全覆盖；改口探针取终值（生日 10-20）；保密标注被理解（"仅限用户与助手知晓"）；每条事件带 ChatLog 出处；零编造；语义找回命中正确（"小满的生日" → 家人/小满.md 0.788 第一名）。**抽取物在 `viking://user/default/memories/`（实体按 公司/家人/同事 分组、事件按 年/月/日）。
+- **第 6 步 ✅（同上）**：质量抽评即上方读数——**本地小模型（云端文字模型）质量疑虑解除**：抽取准头、结构、出处、保密处理全部合格（官方跑分用云端 Doubao 的顾虑，实测 DeepSeek-V3.2 文字位同样成立）。喂图（多模态摄取）未测——DeepSeek-V3.2 纯文字，属已知边界。
 
 ## 背景 / 触发
 
