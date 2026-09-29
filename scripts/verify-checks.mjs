@@ -567,3 +567,31 @@ export function dshHomeInheritanceProblems(files) {
   }
   return problems
 }
+
+// ── manual export ────────────────────────────────────────────────────────────────────────────────
+
+/**
+ * The exported install manual (`_dist/安装手册.md`) is the only tracked artifact of a manual
+ * distribution: the tarball next to it is gitignored, so a version bump without a re-export would
+ * otherwise leave a manual advertising a tarball that no longer exists. This gate pins the manual's
+ * header table to the package manifest. No manual = nothing exported yet = nothing to check (the
+ * gate must stay green on fresh clones, where `_dist/` does not exist).
+ */
+export function exportManualProblems({ manualPath, manifest }) {
+  if (!existsSync(manualPath)) return []
+  const text = read(manualPath)
+  const problems = []
+  const version = /^\| 版本 \| `?([^`|\n]+?)`? \|$/m.exec(text)?.[1]?.trim()
+  if (version !== manifest.version) {
+    problems.push(`manual 版本 row says ${version ?? 'nothing'}, package.json says ${manifest.version} — rerun \`pnpm export-dist\``)
+  }
+  const expected = `${manifest.name}-${manifest.version}.tgz`
+  // The generator appends a suffix（与本手册同目录）after the filename, so only the backticked
+  // token itself is pinned — anchoring the row end red-lined the real artifact (the fixtures
+  // mirror the generated shape, so this cannot regress silently).
+  const tarball = /^\| 安装包 \| `([^`]+)`/m.exec(text)?.[1]?.trim()
+  if (tarball !== expected) {
+    problems.push(`manual 安装包 row says ${tarball ?? 'nothing'}, expected ${expected}`)
+  }
+  return problems
+}

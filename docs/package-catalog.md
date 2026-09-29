@@ -24,7 +24,7 @@
 | `./preset-runner` | AGENT（dev 专用） | — |
 | `./client` | CLIENT（浏览器面） | — |
 
-非 plugin 导出（不挂组合行）：`./src/*`、`./package.json`
+非 plugin 导出（不挂组合行）：`./package.json`
 
 ## 组合行
 

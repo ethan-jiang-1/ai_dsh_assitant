@@ -68,6 +68,7 @@ pnpm test               # vitest：纯核（home/memory/research/skills/knowledg
 pnpm verify             # 机械门禁链：生成物 freshness + 自检（评测器 / 摩擦报告 / 领域评测）+ 结构/身份/解析入口/自包含/技能语法/断链/文档命令与别名互证/notes 形状/提交安全等检查（条数与清单以 scripts/verify.mjs 为准）
 pnpm build              # tsc 出 lib/（发布物与 dsh plugin add 需要）
 pnpm release-smoke      # pnpm pack → 干净 home → dsh plugin add → 组合断言（真实安装形状；**改动发布物/依赖/preset 包装必跑**，否则它只是"存在一个脚本"）
+pnpm export-dist        # 手动分发导出：pnpm pack → _dist/ 的 tgz + 清单边界断言 + 自动生成《安装手册》（导出 ≠ 发布；手册版本由 verify 门禁对包防漂）
 pnpm sync-dsh -- --tag <dsh-tag>   # 换 submodule tag + SHA 簿记 + typecheck + 对照 docs/discipline.md 重校纪律表
 
 bash dev/setup.sh       # 幂等：建 dev（web）+ dev-task（headless）两个 profile + link 装插件 + roster 指向 repo（两者为何不能合一：`docs/dev.md` §四）

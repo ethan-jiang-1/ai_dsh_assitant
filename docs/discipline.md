@@ -42,6 +42,11 @@
    （报告只列真跑过的命令、证据要覆盖改动面）与「被阻断的检查不得写成绿色证据」条承担；
    备选（hook、CI）在此记录为输掉方案 → 证据：P1-B 漏跑整包的教训进技能后，同类摩擦未再现
    （change-scope 触发重置后无第二次；「触发未到不动手」纪律在 AGENTS.md）。
+5. **手动分发打包用 `pnpm pack`，不用借来源的 `npm pack`**（约束：本包 peerDependencies 写
+   `workspace:^`，只有 pnpm 在打包时改写成具体 semver；company 原设计靠源里写死 peer 版本才能用
+   npm。原判定：`notes/implemented/2026-09-23-repo-structure.md`）→ `export-dist` 与
+   `release-smoke` 用同一条 `pnpm pack`，且都对产物断言 peer 已具体化（证据：`release-smoke`
+   对 tarball manifest 的逐 peer 断言；`workspace:` 原样出包没人能解析）。
 
 ## 复查环（防"一次性快照再烂"）
 

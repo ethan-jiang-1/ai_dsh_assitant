@@ -20,6 +20,7 @@ import {
   configParseProblems,
   dshHomeInheritanceProblems,
   dependencyPoseProblems,
+  exportManualProblems,
   GRADUATED_STATUS,
   languageGuardProblems,
   notesNamingProblems,
@@ -464,5 +465,51 @@ describe('dshHomeInheritanceProblems', () => {
 
     expect(dshHomeInheritanceProblems([good])).toEqual([])
     expect(dshHomeInheritanceProblems([bad])[0]).toContain('must use ASSISTANT_DSH_HOME')
+  })
+})
+
+describe('exportManualProblems', () => {
+  const manifest = { name: 'dsh-smart-assistant', version: '1.2.3' }
+  // Rows mirror the exact shape export-dist.mjs generates (安装包 carries a suffix after the
+  // filename) — the first red run of this gate was a fixture/reality mismatch on that suffix.
+  const manual = (version, tarball) => [
+    '# 手册',
+    '',
+    '| | |',
+    '|---|---|',
+    `| 版本 | ${version === undefined ? '（缺行）' : `\`${version}\``} |`,
+    `| 安装包 | \`${tarball}\`（与本手册同目录） |`,
+    '',
+  ].join('\n')
+
+  it('accepts a missing manual (nothing exported yet) and a manual that matches the manifest', () => {
+    expect(exportManualProblems({ manualPath: join(temp('dist-'), 'absent.md'), manifest })).toEqual([])
+    const dir = temp('dist-')
+    const file = join(dir, '安装手册.md')
+    writeFileSync(file, manual('1.2.3', 'dsh-smart-assistant-1.2.3.tgz'), 'utf8')
+    expect(exportManualProblems({ manualPath: file, manifest })).toEqual([])
+  })
+
+  it('rejects a manual whose version no longer matches the package (bump without re-export)', () => {
+    const dir = temp('dist-')
+    const file = join(dir, '安装手册.md')
+    writeFileSync(file, manual('1.2.2', 'dsh-smart-assistant-1.2.3.tgz'), 'utf8')
+    const problems = exportManualProblems({ manualPath: file, manifest })
+    expect(problems).toHaveLength(1)
+    expect(problems[0]).toContain('says 1.2.2')
+    expect(problems[0]).toContain('pnpm export-dist')
+  })
+
+  it('rejects a manual whose tarball name or missing header rows drift from the manifest', () => {
+    const dir = temp('dist-')
+    const file = join(dir, '安装手册.md')
+    writeFileSync(file, manual('1.2.3', 'dsh-smart-assistant-9.9.9.tgz'), 'utf8')
+    expect(exportManualProblems({ manualPath: file, manifest })[0]).toContain('expected dsh-smart-assistant-1.2.3.tgz')
+
+    const bare = join(dir, 'bare.md')
+    writeFileSync(bare, '没有表头的手册\n', 'utf8')
+    const problems = exportManualProblems({ manualPath: bare, manifest })
+    expect(problems).toHaveLength(2)
+    expect(problems[0]).toContain('says nothing')
   })
 })

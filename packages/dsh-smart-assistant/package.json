@@ -58,12 +58,10 @@
       "types": "./lib/client/index.d.ts",
       "default": "./lib/client/index.js"
     },
-    "./src/*": "./src/*",
     "./package.json": "./package.json"
   },
   "files": [
     "lib",
-    "src",
     "presets",
     "cordis.patch.yml",
     "README.md"

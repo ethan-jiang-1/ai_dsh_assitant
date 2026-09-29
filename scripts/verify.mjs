@@ -18,7 +18,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { agentsMdStabilityProblems, commandAliasProblems, configParseProblems, dependencyPoseProblems, dshHomeInheritanceProblems, GRADUATED_STATUS, implementedAlternativesProblems, languageGuardProblems, notesNamingProblems, notesStateProblems, notesTopLevelProblems, pinProblems, relativeLinkProblems, skillFrontmatterProblems, textHygieneProblems } from './verify-checks.mjs'
+import { agentsMdStabilityProblems, commandAliasProblems, configParseProblems, dependencyPoseProblems, dshHomeInheritanceProblems, exportManualProblems, GRADUATED_STATUS, implementedAlternativesProblems, languageGuardProblems, notesNamingProblems, notesStateProblems, notesTopLevelProblems, pinProblems, relativeLinkProblems, skillFrontmatterProblems, textHygieneProblems } from './verify-checks.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const packageDir = join(repoRoot, 'packages', 'dsh-smart-assistant')
@@ -379,6 +379,12 @@ check('text: managed text is strict UTF-8 with exactly one trailing newline', ()
 
 check('dependencies: harness packages are peers and the pinned tag is recorded as verified', () =>
   dependencyPoseProblems(join(packageDir, 'package.json'), join(repoRoot, 'vendor', 'UPSTREAM.md')))
+
+check('release: the exported install manual matches the package', () =>
+  exportManualProblems({
+    manualPath: join(repoRoot, '_dist', '安装手册.md'),
+    manifest: JSON.parse(read(join(packageDir, 'package.json'))),
+  }))
 
 check('notes: implemented notes carry what they beat (输掉的方案)', () =>
   implementedAlternativesProblems(join(repoRoot, 'notes', 'implemented')))
