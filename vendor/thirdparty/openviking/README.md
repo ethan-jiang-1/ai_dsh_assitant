@@ -11,12 +11,12 @@
 |---|---|
 | 包名 / 版本 | `@openviking/dsh-memory-plugin` 0.5.8（latest） |
 | 来源 | https://registry.npmjs.org/@openviking/dsh-memory-plugin/-/dsh-memory-plugin-0.5.8.tgz |
-| 发布日 | 2026-09-25（GitHub Actions trusted publishing + SLSA provenance） |
+| 发布日 | 2026-09-25（GitHub Actions trusted publishing；SLSA provenance 声明 2026-09-29 复核 registry attestations 未见——存疑，见[验收台账](../../../notes/archived/research/2026-09-29-openviking-acceptance-audit.md)） |
 | 完整性 | `sha512-S90WV24K4tdRm0rMa8UHmnvkqCzaqnWck7lGN5aGfg2M45kDv2/mPOgclfSepM9ZWuSxIl3ZrM2y26fMnK//Wg==`（= registry `dist.integrity`，本仓 2026-09-28 下载后独立重算一致） |
 | license | Apache-2.0（bundle 位于上游仓 `examples/`，license 分表载明；上游主项目 OpenViking 为 AGPL-3.0——独立进程 + HTTP/MCP 消费不构成链接，fork server 才触发） |
 | 上游源码 | https://github.com/volcengine/OpenViking （`examples/dsh-memory-plugin` 目录） |
 | 兼容 | peer 范围 `>=0.1.0-rc.6 <0.2.0 \|\| ^0.1.5-rc.1 \|\| ^0.1.7-rc.2`——含本仓 pin `0.1.7-rc.2` [observed：npm registry] |
-| 为什么钉存 | ① 试点隔离 profile 时离线可装（`dsh plugin add <本文件>`，经 pnpm tarball 装法，试点时验证）；② 周更上游（五周 17 版）下锁定试点对象，保证证据可复现；③ 包内 `shared/`、`skills/` 为 prepack 生成物，tarball 自含、无需上游 checkout |
+| 为什么钉存 | ① 试点隔离 profile 时离线可装（`dsh plugin add <本文件>`，经 pnpm tarball 装法，试点时验证）；② 周更上游（五周 16 版，2026-09-29 registry 复测；首批记录 17 为计数时刻差异）下锁定试点对象，保证证据可复现；③ 包内 `shared/`、`skills/` 为 prepack 生成物，tarball 自含、无需上游 checkout |
 
 ## 服务器侧离线件（不入库，按需重拉）
 

@@ -79,7 +79,13 @@ async function main() {
 
   console.log('== 7) find-back probes（该找回的三组事实）')
   for (const query of ['我女儿小满的生日是哪天', '我开会应该喝什么', '去苏州见谁 谈什么']) {
-    r = await api('POST', '/api/v1/search/find', { query, limit: 5 })
+    try {
+      r = await api('POST', '/api/v1/search/find', { query, limit: 5 })
+    } catch (e) {
+      // 抽取任务并发时 find 会间歇 500/超时（2026-09-29 验收亲历）——记错不崩，drained 后重跑即恢复
+      console.log(`\nQ: ${query}\n  ERROR: ${e.cause?.code ?? e.message}（server 忙？等抽取 drained 后重跑）`)
+      continue
+    }
     const hits = (r.body?.result?.items ?? r.body?.result?.results ?? r.body?.result ?? [])
     const brief = Array.isArray(hits) ? hits.slice(0, 5).map((h) => {
       const s = String(h.content ?? h.text ?? h.uri ?? JSON.stringify(h))
@@ -97,8 +103,13 @@ async function main() {
   for (const e of entries.slice(0, 12)) {
     const uri = e.uri ?? (typeof e === 'string' ? e : null)
     if (uri === null || !String(uri).includes('memories')) continue
-    const rr = await api('GET', '/api/v1/content/read?uri=' + encodeURIComponent(String(uri)))
-    const content = rr.body?.result?.content ?? rr.body?.result?.text ?? JSON.stringify(rr.body?.result).slice(0, 200)
+    let content
+    try {
+      const rr = await api('GET', '/api/v1/content/read?uri=' + encodeURIComponent(String(uri)))
+      content = rr.body?.result?.content ?? rr.body?.result?.text ?? JSON.stringify(rr.body?.result).slice(0, 200)
+    } catch (err) {
+      content = `<read failed: ${err.cause?.code ?? err.message}>`
+    }
     console.log(`\n--- ${uri}\n${String(content).slice(0, 500)}`)
   }
 
