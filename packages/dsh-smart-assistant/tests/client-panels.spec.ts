@@ -13,34 +13,42 @@ const registration = await loadClientRegistration()
 /** The panels call useState/useEffect; these tests render one snapshot. */
 const reactShim = inertReactShim()
 
-interface DeskStore {
+/** One session's slice of desk state (R11): the flat fields are the primary session's slice. */
+interface DeskSlice {
   data?: Record<string, unknown> | undefined
-  note?: string | undefined
   source?: string | undefined
+  readError?: string | undefined
   pending?: { rowId: string, at: number, action: string } | undefined
   lastReceipt?: { rowId: string, action: string, at: number } | undefined
   /** An action that left but whose desk rewrite never arrived (R1). */
   stalled?: { rowId: string, at: number, action: string } | undefined
-  readError?: string | undefined
+  sessionUpdatedAt?: number | undefined
+  seq?: number | undefined
+}
+
+interface DeskStore extends DeskSlice {
+  note?: string | undefined
   focusKnowledge?: 'drafts' | undefined
   misses: Set<string>
-  /** The newest Session's updatedAt, so the panels can say when they lag the conversation. */
-  sessionUpdatedAt?: number | undefined
-  /** The Session whose workspace answered the last load — tab bodies withhold other sessions' data. */
+  /** The Session whose workspace answered the last walk — the flat fields above belong to it. */
   sourceSession?: string | undefined
+  /** One slice per tab-bound session that is not the primary (R11). */
+  bySession: Record<string, DeskSlice>
+  /** Sessions with a mounted tab — the follow-the-conversation reload refreshes these (R11). */
+  boundSessions: Set<string>
   listeners: Set<() => void>
 }
 
 interface PanelExports {
-  DeskPanel: () => unknown
-  KnowledgePanel: () => unknown
-  MemoryPanel: () => unknown
-  /** Release the data gate when the poller gives up (R1). */
-  expirePending: () => void
-  /** Settle a pending/stalled row when a load reports the file moved past the send. */
-  settlePending: (generatedAt: string | undefined) => void
+  DeskPanel: (props?: { sessionId?: string }) => unknown
+  KnowledgePanel: (props?: { sessionId?: string }) => unknown
+  MemoryPanel: (props?: { sessionId?: string }) => unknown
+  /** Release the data gate when the poller gives up (R1); the session scopes it (R11). */
+  expirePending: (sessionId?: string) => void
+  /** Settle a pending/stalled row when a load reports the file moved past the send (R11-scoped). */
+  settlePending: (generatedAt: string | undefined, sessionId?: string) => void
   /** Retire a receipt whose decision is still open in the file (R11). */
-  retireStaleReceipt: (data: Record<string, unknown> | undefined) => void
+  retireStaleReceipt: (data: Record<string, unknown> | undefined, sessionId?: string) => void
   /** Does this JSON carry the desk contract's shape at all (R12)? */
   looksLikeDesk: (parsed: Record<string, unknown>) => boolean
   DeskTabBody: (props: { sessionId?: string }) => unknown
@@ -50,6 +58,8 @@ interface PanelExports {
   roomTabTitle: (icon: (props: { size: number }) => unknown, fallback: string) =>
     (props: { useTabInfo?: () => { tab?: { title?: string } } }) => unknown
   deskStore: DeskStore
+  /** The slice a surface reads: flat for the primary, `bySession[sid]` for a bound tab (R11). */
+  deskSlice: (sessionId?: string) => DeskSlice
 }
 
 function materialize(): PanelExports {
@@ -857,5 +867,52 @@ describe('desk panels', () => {
     const text = textsOf(exports.DeskPanel()).join(' | ')
     expect(text).toContain('它记：收到 7 条互斥指令，已封存')
     expect(text).toContain('它记：用户指示不办，已记原因')
+  })
+
+  it('scopes the freeze, the settle and the receipt to their own session (R11)', () => {
+    const exports = materialize()
+    // Two sessions, each with a desk carrying the SAME rowId 'd1' — the shared-by-construction
+    // shape (askRefresh uses the literal 'desk' on every session). Pre-slice, one shared store
+    // froze and stamped receipts across both: a session A action froze session B's same-id row.
+    exports.deskStore.sourceSession = 's1'
+    const s1 = exports.deskStore        // the flat fields are the primary session's slice
+    const s2 = exports.deskSlice('s2')  // a tab bound to another session reads its own slice
+    const deskOf = (question: string): Record<string, unknown> =>
+      ({ generatedAt: '2026-09-28T10:00:00+08:00', decisions: [{ id: 'd1', question, kind: 'business' }] })
+    s1.data = deskOf('先办这件')
+    s2.data = deskOf('另一件事')
+    // '看选项' is a READ action: the row stays live (only 回答 closes it — R2), so the freeze
+    // has buttons to freeze. A '回答' pending would render the row read-only instead.
+    s1.pending = { rowId: 'd1', at: new Date('2026-09-28T10:00:10+08:00').getTime(), action: '看选项' }
+
+    // A's freeze does not land on B's same-id row: B stays actionable while A is frozen.
+    const a = textsOf(exports.DeskPanel({ sessionId: 's1' })).join(' | ')
+    const b = textsOf(exports.DeskPanel({ sessionId: 's2' })).join(' | ')
+    expect(a).toContain('正在处理')
+    expect(b).not.toContain('正在处理')
+    expect(disabledButtons(exports.DeskPanel({ sessionId: 's1' }))).toBeGreaterThan(0)
+    expect(disabledButtons(exports.DeskPanel({ sessionId: 's2' }))).toBe(0)
+
+    // B's file moving past A's send must NOT settle A's pending — the confirmed R11 bite: a load
+    // from the wrong session settled the freeze and stamped a receipt on the wrong session's row.
+    exports.settlePending('2026-09-28T10:05:00+08:00', 's2')
+    expect(s1.pending).toBeDefined()
+    // Only A's own file moving past A's send settles it, and the receipt lands on A's slice only.
+    exports.settlePending('2026-09-28T10:05:00+08:00', 's1')
+    expect(s1.pending).toBeUndefined()
+    expect(s1.lastReceipt?.rowId).toBe('d1')
+    expect(s2.lastReceipt).toBeUndefined()
+    // A receipt earned in A does not render on B's same-id row.
+    const bAfter = textsOf(exports.DeskPanel({ sessionId: 's2' })).join(' | ')
+    expect(bAfter).not.toContain('已更新')
+
+    // The stall expiry releases only the session that sent: B's rows never even knew about A's
+    // action, and A's row keeps its honest durable state (R1) on A's slice.
+    s1.pending = { rowId: 'd1', at: new Date('2026-09-28T10:00:10+08:00').getTime(), action: '回答' }
+    exports.expirePending('s2')
+    expect(s1.pending).toBeDefined()
+    exports.expirePending('s1')
+    expect(s1.pending).toBeUndefined()
+    expect(s1.stalled?.rowId).toBe('d1')
   })
 })

@@ -7,7 +7,7 @@
 
 | 卡 | 关闭日 | 判定 |
 |---|---|---|
-| [260928-per-session-desk-store.md](260928-per-session-desk-store.md) | 2026-09-29 | 毕业为该做（多会话并行已是真实场景，用户拍板）→ RFC 住 notes/proposed/2026-09-29-per-session-desk-store.md |
+| [260928-per-session-desk-store.md](260928-per-session-desk-store.md) | 2026-09-29 | 毕业为该做（多会话并行已是真实场景，用户拍板）→ RFC 同日落地 notes/implemented/2026-09-29-per-session-desk-store.md |
 | [260928-command-menu-skill-noise.md](260928-command-menu-skill-noise.md) | 2026-09-29 | 批量清理：触发未到，发行准入的家 = 安装卡 S2 准入表 |
 | [260928-default-workspace-repro.md](260928-default-workspace-repro.md) | 2026-09-29 | 批量清理：复现配方住第一公里走查 note |
 | [260928-self-upkeep-baseline.md](260928-self-upkeep-baseline.md) | 2026-09-29 | 批量清理：产品要件已住 intents.md，外人用前按 intents 验证 |

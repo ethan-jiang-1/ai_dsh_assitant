@@ -1,6 +1,6 @@
 # 推敲：培养面按会话分 store
 
-> 立卡：2026-09-28 ｜ 状态：推敲中｜毕业门判断 = 待触发｜下一步 = 多会话并行使用成为真实场景、A3 缺陷开始咬人 ｜ **关闭：2026-09-29 毕业为该做（用户拍板：多会话并行已是真实场景）；去向 = [notes/proposed/2026-09-29-per-session-desk-store.md](../../../notes/proposed/2026-09-29-per-session-desk-store.md)**
+> 立卡：2026-09-28 ｜ 状态：推敲中｜毕业门判断 = 待触发｜下一步 = 多会话并行使用成为真实场景、A3 缺陷开始咬人 ｜ **关闭：2026-09-29 毕业为该做（用户拍板：多会话并行已是真实场景）→ RFC 同日落地为 [notes/implemented/2026-09-29-per-session-desk-store.md](../../../notes/implemented/2026-09-29-per-session-desk-store.md)**
 
 ## 背景 / 触发
 主页与 tab 共用单 store、`sendSession` 全局单值（[整改卡 S3](../../../notes/implemented/2026-09-26-cultivation-remediation.md)）。

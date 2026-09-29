@@ -268,13 +268,20 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   type DeskDecision = NonNullable<DeskData['decisions']>[number]
 
   /**
-   * Shared desk state: one loader, three panels. The panels are separate sidebar entries, so
-   * they must not each re-fetch; the store is the single owner and notifies its subscribers.
+   * Per-session desk state (R11, graduated 2026-09-29): the row-scoped facts — data, pending,
+   * receipt, stalled, readError — belong to the session whose workspace produced them. The FLAT
+   * fields are the primary slice: the session the newest-five walk last answered (recorded in
+   * `sourceSession`). `bySession` carries one slice per additional tab-bound session, so two tabs
+   * bound to different sessions no longer freeze each other's same-id rows, stamp receipts across
+   * sessions, or invalidate each other's loads (the pre-slice store was one shared object with
+   * bare-rowId matching and ONE global load sequence — a session A action froze session B's row,
+   * and two mounted tabs re-fired each other's reloads forever).
    */
-  const deskStore: {
+  interface DeskSlice {
     data?: DeskData | undefined
-    note?: string | undefined
     source?: string | undefined
+    /** A corrupt desk file from the bound session (A5): the tab shows the error and a retry, not "reading…". */
+    readError?: string | undefined
     /** The action in flight: which row, when it left, what it was. The DATA GATE — buttons stay
      *  frozen until the desk file is rewritten past `at`. The prompt promise resolving only means
      *  the queue accepted the message; the assistant then works for tens of seconds, and a freeze
@@ -286,32 +293,89 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     /** An action that left but whose desk rewrite never arrived (the poller gave up). Rendered on
      *  its row as a durable, honest state — clearing it silently would read as "done" (R1). */
     stalled?: { rowId: string, at: number, action: string } | undefined
+    /** The bound session's own conversation clock, so a tab can say when it lags (A2). */
+    sessionUpdatedAt?: number | undefined
+    /** This slice's load sequence; unused on the primary (which owns the module-level counter). */
+    seq?: number | undefined
+  }
+
+  /**
+   * Shared desk state: one loader, three panels. The panels are separate sidebar entries, so
+   * they must not each re-fetch; the store is the single owner and notifies its subscribers.
+   */
+  const deskStore: DeskSlice & {
+    note?: string | undefined
+    /** The Session whose workspace answered the last walk — the flat fields above belong to it. */
+    sourceSession?: string | undefined
     /** A count that could not open its panel (R9): the cell used to swallow the throw and stay
      *  clickable, so the principal saw an underlined number that did nothing. */
     jumpError?: string | undefined
     /** The desk tab could not be opened (R9): visible on the chip, which is where the click was. */
     openError?: string | undefined
-    /** A corrupt desk file from the bound session (A5): the tab shows the error and a retry, not "reading…". */
-    readError?: string | undefined
     /** The desk's draft pointer just sent the principal over (S4): highlight and scroll to the drafts. */
     focusKnowledge?: 'drafts' | undefined
     /** Sessions whose workspace is known to have no desk file (moved onto the store: testable). */
     misses: Set<string>
-    /** The newest Session's updatedAt, so the panels can say when they are behind the conversation. */
-    sessionUpdatedAt?: number | undefined
-    /** The Session whose workspace answered the last load — a tab bound to another session withholds this data. */
-    sourceSession?: string | undefined
-    /** The Session a tab bound actions to; set while a tab is mounted, so sends land in its own conversation. */
-    sendSession?: string | undefined
+    /** One slice per tab-bound session that is not the primary (R11). */
+    bySession: Record<string, DeskSlice>
+    /** Sessions with a mounted tab — the follow-the-conversation reload refreshes each of these. */
+    boundSessions: Set<string>
     listeners: Set<() => void>
-  } = { listeners: new Set(), misses: new Set<string>() }
+  } = { listeners: new Set(), misses: new Set<string>(), bySession: {}, boundSessions: new Set<string>() }
+
+  /**
+   * The slice a surface reads: the flat fields for the primary session (or the walk view —
+   * `undefined`), a per-session slice for a tab bound to another session. While no session owns
+   * the flat fields yet (`sourceSession` unset), the first targeted load claims them — the
+   * loadDeskFor success path sets `sourceSession`, so an owned flat never serves a stranger.
+   */
+  function deskSlice(sessionId: string | undefined): DeskSlice {
+    if (sessionId === undefined || deskStore.sourceSession === undefined || sessionId === deskStore.sourceSession) return deskStore
+    if (deskStore.bySession[sessionId] === undefined) deskStore.bySession[sessionId] = {}
+    return deskStore.bySession[sessionId]
+  }
+
   const patchDesk = (next: Partial<typeof deskStore>): void => {
     Object.assign(deskStore, next)
     for (const listener of [...deskStore.listeners]) listener()
   }
 
-  /** Monotonic load sequence: a newer load invalidates every attempt of the older one. */
+  /** Patch one session's slice (the flat object is the primary session's slice). */
+  const patchSlice = (slice: DeskSlice, next: Partial<DeskSlice>): void => {
+    Object.assign(slice, next)
+    for (const listener of [...deskStore.listeners]) listener()
+  }
+
+  /**
+   * Monotonic load sequence per slice: a newer load invalidates every older attempt of the SAME
+   * slice only. The pre-slice single counter made a load for one session cancel an in-flight read
+   * for another (two mounted tabs then re-fired each other forever — the R11 reload ping-pong).
+   */
   let deskLoadSeq = 0
+  const sliceSeq = (slice: DeskSlice): { current: () => number, next: () => number } => {
+    if (slice === (deskStore as DeskSlice)) {
+      return { current: () => deskLoadSeq, next: () => ++deskLoadSeq }
+    }
+    return { current: () => slice.seq ?? 0, next: () => (slice.seq = (slice.seq ?? 0) + 1) }
+  }
+
+  /**
+   * When the walk re-homes the flat fields to a different session, the row-scoped facts still
+   * belong to the OLD owner: carry them into that session's slice instead of silently
+   * re-attributing them to the new primary (R11 — a pending from session A must never settle
+   * against session B's file).
+   */
+  function carryRowStateTo(previous: string, next: string): void {
+    if (previous === next) return
+    const carry: Partial<DeskSlice> = {}
+    for (const key of ['pending', 'lastReceipt', 'stalled', 'readError'] as const) {
+      if (deskStore[key] !== undefined) {
+        (carry as Record<string, unknown>)[key] = deskStore[key]
+        patchDesk({ [key]: undefined } as Partial<typeof deskStore>)
+      }
+    }
+    if (Object.keys(carry).length > 0) Object.assign(deskSlice(previous), carry)
+  }
 
   /**
    * Read `.desk/state.json` for the newest Session that has one. The file is per-workspace, so
@@ -396,6 +460,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         // A file that parses but carries none of the contract's shape would render as a legitimately
         // empty desk: every section shows its honest "（没有…）" and the principal reads "nothing is
         // happening" while the assistant believes it just refreshed him.
+        carryRowStateTo(deskStore.sourceSession ?? sessionId, sessionId)
         patchDesk({
           data: undefined,
           readError: '这份桌面文件不像 desk-refresh 写的（没有 generatedAt、也没有任何分区）——点「刷新桌面」让助手按契约重写',
@@ -403,24 +468,46 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         })
         return
       }
+      // Re-homing the walk view: the flat fields become this session's, and the previous owner's
+      // row state rides into its own slice (R11).
+      carryRowStateTo(deskStore.sourceSession ?? sessionId, sessionId)
       patchDesk({ data: parsed, note: undefined, source: byId[sessionId]?.cwd ?? '', sourceSession: sessionId, readError: undefined, jumpError: undefined })
       deskStore.misses.delete(sessionId)
-      settlePending(parsed.generatedAt)
-      retireStaleReceipt(parsed)
+      settlePending(parsed.generatedAt, sessionId)
+      retireStaleReceipt(parsed, sessionId)
     }
     void attempt(0)
   }
 
-  /** Subscribe one panel to the shared desk store. */
-  function useDesk(): typeof deskStore {
+  /**
+   * The per-session fields of a slice. A merge must set each of these EXPLICITLY from the slice:
+   * a plain `{ ...deskStore, ...slice }` leaves the flat values in place for keys the slice does
+   * not carry, which is exactly the cross-session leak the slices exist to prevent (R11).
+   */
+  const DESK_SLICE_KEYS = ['data', 'source', 'readError', 'pending', 'lastReceipt', 'stalled', 'sessionUpdatedAt'] as const
+
+  /** The view one surface reads: the shared fields plus one session's slice, slice keys explicit. */
+  function mergeDeskSlice(sessionId?: string): typeof deskStore {
+    const slice = deskSlice(sessionId)
+    const merged: Record<string, unknown> = { ...deskStore }
+    for (const key of DESK_SLICE_KEYS) merged[key] = slice[key]
+    return merged as unknown as typeof deskStore
+  }
+
+  /**
+   * Subscribe one surface to the desk store. `undefined` follows the walk view (the primary
+   * slice); a tab passes its own session and reads that session's slice merged over the shared
+   * fields (R11).
+   */
+  function useDesk(sessionId?: string): typeof deskStore {
     const { useEffect, useState } = require('react') as typeof import('react')
-    const [snapshot, setSnapshot] = useState({ ...deskStore })
+    const [snapshot, setSnapshot] = useState(mergeDeskSlice(sessionId))
     useEffect(() => {
-      const update = (): void => setSnapshot({ ...deskStore })
+      const update = (): void => setSnapshot(mergeDeskSlice(sessionId))
       deskStore.listeners.add(update)
       update()
       return () => { deskStore.listeners.delete(update) }
-    }, [])
+    }, [sessionId])
     return snapshot
   }
 
@@ -450,16 +537,17 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    * desk was 13 h stale in exactly that state (self-review R1, 2026-09-27). Expiry is honest: the
    * action was sent and is not revoked; only the "still working" claim stops.
    */
-  function expirePending(): void {
-    const pending = deskStore.pending
-    patchDesk({
+  function expirePending(sessionId?: string): void {
+    const slice = deskSlice(sessionId)
+    const pending = slice.pending
+    patchSlice(slice, {
       pending: undefined,
       // The row keeps an honest, durable state: the action DID leave, the desk just has not caught
       // up. A transient note would be wiped by the next successful load (verified live: the note
       // was gone by the time the release was captured), and silence would read as "done".
       stalled: pending === undefined ? undefined : { ...pending },
-      note: '它还没重写桌面——点「刷新桌面」再试一次（动作已发出，不会被撤销）',
     })
+    patchDesk({ note: '它还没重写桌面——点「刷新桌面」再试一次（动作已发出，不会被撤销）' })
   }
 
   /**
@@ -469,12 +557,13 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    * principal answer again. Scoped to decisions, where the false 已回答 was observed.
    * @param data - the file just parsed, if any.
    */
-  function retireStaleReceipt(data: DeskData | undefined): void {
-    const receipt = deskStore.lastReceipt
+  function retireStaleReceipt(data: DeskData | undefined, sessionId?: string): void {
+    const slice = deskSlice(sessionId)
+    const receipt = slice.lastReceipt
     if (receipt === undefined || data === undefined) return
     const stillOpen = (data.decisions ?? [])
       .some(item => String(item.id ?? item.question) === receipt.rowId)
-    if (stillOpen) patchDesk({ lastReceipt: undefined })
+    if (stillOpen) patchSlice(slice, { lastReceipt: undefined })
   }
 
   /**
@@ -500,19 +589,22 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     return parsed.counts !== undefined && typeof parsed.counts === 'object' && parsed.counts !== null
   }
 
-  /** A finished load settles the pending action: the file moving past `at` is the completion signal. */
-  function settlePending(generatedAt: string | undefined): void {
+  /** A finished load settles the pending action: the file moving past `at` is the completion
+   *  signal — on the slice of the session whose file moved (R11: another session's file moving
+   *  past the send must not settle this one's rows). */
+  function settlePending(generatedAt: string | undefined, sessionId?: string): void {
     const generated = deskGeneratedAtMs({ generatedAt } as DeskData)
     if (generated === undefined) return
-    const pending = deskStore.pending
+    const slice = deskSlice(sessionId)
+    const pending = slice.pending
     if (pending !== undefined && generated > pending.at) {
-      patchDesk({ pending: undefined, stalled: undefined, lastReceipt: { rowId: pending.rowId, action: pending.action, at: Date.now() } })
+      patchSlice(slice, { pending: undefined, stalled: undefined, lastReceipt: { rowId: pending.rowId, action: pending.action, at: Date.now() } })
       return
     }
     // A stalled row is settled by the same signal: the file moving past its send.
-    const stalled = deskStore.stalled
+    const stalled = slice.stalled
     if (stalled !== undefined && generated > stalled.at) {
-      patchDesk({ stalled: undefined, lastReceipt: { rowId: stalled.rowId, action: stalled.action, at: Date.now() } })
+      patchSlice(slice, { stalled: undefined, lastReceipt: { rowId: stalled.rowId, action: stalled.action, at: Date.now() } })
     }
   }
 
@@ -537,12 +629,14 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    * @param action - the action name shown on the receipt line.
    * @param rowId - the row this action belongs to (receipts and freezing are row-scoped).
    */
-  function sendPrompt(text: string, action: string, rowId: string): void {
+  function sendPrompt(text: string, action: string, rowId: string, sessionId?: string): void {
     const prompt = (deskRemote?.['session'] as { prompt?: (request: unknown) => Promise<unknown> } | undefined)?.prompt
-    // A tab bound to session X must send to X: a correction typed beside one conversation that
-    // lands in another would read as the assistant ignoring what was just pointed at.
-    const sessionId = deskStore.sendSession ?? newestSessionId()
-    if (sessionId === undefined) {
+    // A tab bound to session X passes X explicitly: a correction typed beside one conversation
+    // that lands in another would read as the assistant ignoring what was just pointed at. The
+    // old global `sendSession` slot made the LAST mounted tab steal every send (R11); the target
+    // is now a per-surface argument with the newest session as the walk-view fallback.
+    const target = sessionId ?? newestSessionId()
+    if (target === undefined) {
       patchDesk({ note: '还没有会话——先和助手说句话' })
       return
     }
@@ -550,37 +644,40 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       patchDesk({ note: 'remote.session did not materialize' })
       return
     }
+    const slice = deskSlice(target)
     // `stalled` is deliberately NOT cleared here: it is an earlier action's unconfirmed trace, and
     // only the desk file moving past its `at` may retire it (R11, narrow review 2026-09-27).
-    patchDesk({ pending: { rowId, at: Date.now(), action }, lastReceipt: undefined })
+    patchSlice(slice, { pending: { rowId, at: Date.now(), action }, lastReceipt: undefined })
     // A10: panel messages carry a marker so the conversation log (and the usage meter) can tell
     // machine-written prompts from the principal's own words — otherwise the principal's history
     // fills with assertions they never typed, and the meter counts the panel as the human.
     const marked = `[桌面] ${text}`
     void prompt({
       requestId: `desk-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      sessionId,
+      sessionId: target,
       mode: 'queue',
       content: [{ type: 'text', text: marked }],
     }).then((result: unknown) => {
       const wrapped = result as { ok?: boolean, error?: { message?: string } }
       if (wrapped?.ok === false) {
-        patchDesk({ pending: undefined, note: wrapped.error?.message ?? 'prompt failed' })
+        patchSlice(slice, { pending: undefined })
+        patchDesk({ note: wrapped.error?.message ?? 'prompt failed' })
       }
     }).catch((reason: unknown) => {
-      patchDesk({ pending: undefined, note: String(reason) })
+      patchSlice(slice, { pending: undefined })
+      patchDesk({ note: String(reason) })
     })
     let tries = 0
     const tick = (): void => {
-      if (deskStore.pending === undefined) return
+      if (deskSlice(target).pending === undefined) return
       if (tries >= 15) {
         // Giving up releases the gate (see expirePending): a frozen surface whose escape hatch is
         // disabled by the same flag has no way out at all.
-        expirePending()
+        expirePending(target)
         return
       }
       tries += 1
-      reloadDesk()
+      reloadDesk(target)
       setTimeout(tick, 10_000)
     }
     setTimeout(tick, 10_000)
@@ -595,25 +692,25 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   const DESK_REFRESH_STEP = '完成后加载 desk-refresh 技能，把桌面文件重写一遍。'
 
   /** Ask the assistant to refresh the desk file; the poller re-reads until it actually moves. */
-  function askRefresh(): void {
-    sendPrompt('刷新我的桌面：加载 desk-refresh 技能，严格按它把桌面文件重写一遍。', '刷新桌面', 'desk')
+  function askRefresh(sessionId?: string): void {
+    sendPrompt('刷新我的桌面：加载 desk-refresh 技能，严格按它把桌面文件重写一遍。', '刷新桌面', 'desk', sessionId)
   }
 
   /**
    * Answer one open decision. The mirror of a correction: there the principal says a record is
    * wrong, here they say what they have decided — and the assistant records the call and moves.
    */
-  function answerDecision(question: string, answer: string, rowId: string): void {
+  function answerDecision(question: string, answer: string, rowId: string, sessionId?: string): void {
     sendPrompt(
       `关于这个待决事项：「${question}」——我的决定是：${answer}。请记住它、据此更新你的判断。${DESK_REFRESH_STEP}`,
-      '回答', rowId,
+      '回答', rowId, sessionId,
     )
   }
 
   /** Put one open decision to the assistant and ask for options with their costs. */
-  function askAboutDecision(question: string, rowId: string): void {
+  function askAboutDecision(question: string, rowId: string, sessionId?: string): void {
     sendPrompt(`关于这个待决事项：「${question}」——请给我两三个选项，每个选项的代价与不可逆程度，以及你的建议。`,
-      '看选项', rowId)
+      '看选项', rowId, sessionId)
   }
 
   /**
@@ -628,25 +725,25 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    * @param value - the reading the principal typed.
    * @param rowId - the row the receipt lands on.
    */
-  function fillGap(what: string, value: string, rowId: string): void {
+  function fillGap(what: string, value: string, rowId: string, sessionId?: string): void {
     sendPrompt(
       `缺口的原始读数：「${what}」→ ${value}。请据此更新相关记录，并把这条从 gaps 里拿掉（或写明还缺什么）。${DESK_REFRESH_STEP}`,
-      '补上', rowId,
+      '补上', rowId, sessionId,
     )
   }
 
-  function finishAction(what: string, rowId: string): void {
+  function finishAction(what: string, rowId: string, sessionId?: string): void {
     sendPrompt(
       `行动「${what}」已经办完了。请记录结果（度量上发生了什么）。${DESK_REFRESH_STEP}`,
-      '办完了', rowId,
+      '办完了', rowId, sessionId,
     )
   }
 
   /** Drop one action: no longer worth doing — the assistant records why and takes it off the list. */
-  function dropAction(what: string, rowId: string): void {
+  function dropAction(what: string, rowId: string, sessionId?: string): void {
     sendPrompt(
       `行动「${what}」不办了：请记一行原因（写进相应线索或记忆）。${DESK_REFRESH_STEP}`,
-      '不办了', rowId,
+      '不办了', rowId, sessionId,
     )
   }
 
@@ -654,19 +751,19 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    * Park one thread: still valid, not now. The research room's middle exit, offered where the
    * principal sees the thread rather than only in chat.
    */
-  function parkThread(title: string, rowId: string): void {
+  function parkThread(title: string, rowId: string, sessionId?: string): void {
     sendPrompt(
       `线索「${title}」先放一放（park）：现在不推，但别丢。${DESK_REFRESH_STEP}`,
-      '先放放', rowId,
+      '先放放', rowId, sessionId,
     )
   }
 
   /** Close one thread: answered, moot, or not worth it — the assistant promotes or drops it. */
-  function closeThread(title: string, rowId: string): void {
+  function closeThread(title: string, rowId: string, sessionId?: string): void {
     sendPrompt(
       `线索「${title}」可以收了：请判断该 promote（变成记忆/知识页/技能）还是 drop（写一行原因），`
       + `做完告诉我你归到了哪里。${DESK_REFRESH_STEP}`,
-      '收了', rowId,
+      '收了', rowId, sessionId,
     )
   }
 
@@ -674,10 +771,10 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    * Correct one memory record. This is the cultivation loop: the principal says which line is
    * wrong and what is right, and the assistant rewrites the record and refreshes the desk.
    */
-  function correctMemory(text: string, correction: string, rowId: string): void {
+  function correctMemory(text: string, correction: string, rowId: string, sessionId?: string): void {
     sendPrompt(
       `请更正这条记忆。原记录：「${text}」。正确的是：${correction}。${DESK_REFRESH_STEP}`,
-      '更正', rowId,
+      '更正', rowId, sessionId,
     )
   }
 
@@ -685,10 +782,10 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    * Approve one draft knowledge page. The counterpart of a correction: the principal says the page
    * is right, and the assistant promotes it so it starts counting in retrieval and the digest.
    */
-  function approveKnowledgePage(title: string, rowId: string): void {
+  function approveKnowledgePage(title: string, rowId: string, sessionId?: string): void {
     sendPrompt(
       `我批准知识页「${title}」。请把它从 draft 翻成 stable。${DESK_REFRESH_STEP}`,
-      '批准', rowId,
+      '批准', rowId, sessionId,
     )
   }
 
@@ -696,18 +793,18 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    * Mark one stable knowledge page past its use-by date. The page stays in place (links resolve)
    * but stops counting as current — the third lifecycle step beside approval and correction.
    */
-  function deprecateKnowledgePage(title: string, rowId: string): void {
+  function deprecateKnowledgePage(title: string, rowId: string, sessionId?: string): void {
     sendPrompt(
       `知识页「${title}」过时了，请把它标记为 deprecated（保留在原处以便链接解析）。${DESK_REFRESH_STEP}`,
-      '过时了', rowId,
+      '过时了', rowId, sessionId,
     )
   }
 
   /** Tell the assistant what is wrong with one knowledge page. */
-  function flagKnowledgePage(title: string, problem: string, rowId: string): void {
+  function flagKnowledgePage(title: string, problem: string, rowId: string, sessionId?: string): void {
     sendPrompt(
       `知识页「${title}」有问题：${problem}。请核对并更正这一页。${DESK_REFRESH_STEP}`,
-      '提意见', rowId,
+      '提意见', rowId, sessionId,
     )
   }
 
@@ -786,9 +883,11 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     rowId?: string | undefined
     /** Read-only: the row was acted on and its question is settled — no buttons, no input. */
     readOnly?: boolean
+    /** The session this row's desk belongs to: the freeze, receipt and stall scoping (R11). */
+    deskSession?: string | undefined
   }): ReturnType<typeof createElement> {
     const { useState } = require('react') as typeof import('react')
-    const store = useDesk()
+    const store = useDesk(props.deskSession)
     const [open, setOpen] = useState(false)
     const [text, setText] = useState('')
     const [armed, setArmed] = useState<string | undefined>(undefined)
@@ -960,10 +1059,10 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     return `对话比这份桌面新（对话 ${shortTime(new Date(sessionAt).toISOString())}，桌面 ${shortTime(generated)}）——点「刷新桌面」让它跟上`
   }
 
-  /** Re-read the desk for whoever is bound: a tab reloads its own session, the pages walk the newest five. */
-  function reloadDesk(): void {
-    if (deskStore.sendSession === undefined) loadDesk()
-    else loadDeskFor(deskStore.sendSession)
+  /** Re-read the desk for one target session; `undefined` walks the newest five (the primary view). */
+  function reloadDesk(sessionId?: string): void {
+    if (sessionId === undefined) loadDesk()
+    else loadDeskFor(sessionId)
   }
 
   /**
@@ -980,19 +1079,23 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       patchDesk({ note: 'remote.workspaceFiles did not materialize' })
       return
     }
-    const seq = ++deskLoadSeq
+    // R11: the target session's own slice and load sequence — a load for one session no longer
+    // cancels an in-flight read for another.
+    const slice = deskSlice(sessionId)
+    const seqOf = sliceSeq(slice)
+    const seq = seqOf.next()
     void (async (): Promise<void> => {
       const state = deskSessions?.list?.getSnapshot() as { byId?: Record<string, { cwd?: string, updatedAt?: number }> } | undefined
       const cwd = state?.byId?.[sessionId]?.cwd ?? ''
       // A2: the bound form's staleness line must track ITS session's conversation — without this
       // the warning was computed once at startup and then frozen wrong forever.
       const updatedAt = state?.byId?.[sessionId]?.updatedAt
-      if (seq !== deskLoadSeq) return
-      if (updatedAt !== undefined) patchDesk({ sessionUpdatedAt: Number(updatedAt) })
+      if (seq !== seqOf.current()) return
+      if (updatedAt !== undefined) patchSlice(slice, { sessionUpdatedAt: Number(updatedAt) })
       let text: string | undefined
       try {
         const result = await read(sessionId, '.desk/state.json', {})
-        if (seq !== deskLoadSeq) return
+        if (seq !== seqOf.current()) return
         const wrapped = result as { ok?: boolean, value?: { text?: string } }
         text = wrapped?.ok === false ? undefined : wrapped?.value?.text
       } catch {
@@ -1000,8 +1103,8 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         // returns before any Panel renders notes — so a failed read showed "正在读这个会话的桌面…"
         // forever, with no retry anywhere. `readError` is the field the tab and the panels both
         // render an error-and-retry from, so a failure reaches the principal wherever he is.
-        if (seq === deskLoadSeq) {
-          patchDesk({ readError: `读桌面文件失败（${cwd === '' ? '本会话工作区' : cwd}）`, note: undefined })
+        if (seq === seqOf.current()) {
+          patchSlice(slice, { readError: `读桌面文件失败（${cwd === '' ? '本会话工作区' : cwd}）` })
         }
         return
       }
@@ -1016,21 +1119,27 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         parsed = JSON.parse(text) as DeskData
       } catch {
         deskStore.misses.delete(sessionId)
-        patchDesk({ readError: '桌面文件损坏（JSON 解析失败）', data: undefined, sourceSession: sessionId, pending: undefined })
+        patchSlice(slice, { readError: '桌面文件损坏（JSON 解析失败）', data: undefined, pending: undefined })
         return
       }
       deskStore.misses.delete(sessionId)
       if (!looksLikeDesk(parsed)) {
-        patchDesk({
+        patchSlice(slice, {
           data: undefined,
           readError: '这份桌面文件不像 desk-refresh 写的（没有 generatedAt、也没有任何分区）——点「刷新桌面」让助手按契约重写',
-          source: cwd, sourceSession: sessionId, jumpError: undefined,
+          source: cwd,
         })
         return
       }
-      patchDesk({ data: parsed, note: undefined, source: cwd, sourceSession: sessionId, readError: undefined, jumpError: undefined })
-      settlePending(parsed.generatedAt)
-      retireStaleReceipt(parsed)
+      patchSlice(slice, { data: parsed, source: cwd, readError: undefined })
+      patchDesk({ note: undefined, jumpError: undefined })
+      // A first targeted load may be the flat slice's first owner (the walk never answered): claim
+      // it so later walks carry row state instead of re-attributing it (R11).
+      if (slice === (deskStore as DeskSlice) && deskStore.sourceSession === undefined) {
+        patchDesk({ sourceSession: sessionId })
+      }
+      settlePending(parsed.generatedAt, sessionId)
+      retireStaleReceipt(parsed, sessionId)
     })()
   }
 
@@ -1092,23 +1201,29 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     }
   }
 
-  function tabBody(props: TabBodyProps, Panel: () => unknown): ReturnType<typeof createElement> {
+  function tabBody(props: TabBodyProps, Panel: (props?: { sessionId?: string }) => unknown): ReturnType<typeof createElement> {
     const { useEffect } = require('react') as typeof import('react')
-    const store = useDesk()
     const sessionId = props.sessionId ?? props.useTabInfo?.()?.tab?.navigation?.params?.sessionId
+    // R11: this tab renders its OWN session's slice, never the shared walk view.
+    const store = useDesk(sessionId)
+    const slice = deskSlice(sessionId)
+    const unloaded = sessionId === undefined
+      || (slice.data === undefined && slice.readError === undefined && !deskStore.misses.has(sessionId))
     useEffect(() => {
       if (sessionId === undefined) return
-      if (store.sourceSession !== sessionId) loadDeskFor(sessionId)
-      // Bind this tab's actions to the session it lives in — and unbind on unmount, so a later
-      // main-page send falls back to the newest session instead of a dead tab's target.
-      deskStore.sendSession = sessionId
-      return () => {
-        if (deskStore.sendSession === sessionId) deskStore.sendSession = undefined
+      // Register the bound session — the follow-the-conversation reload refreshes each of these;
+      // the old single global `sendSession` slot made the last-mounted tab steal every send.
+      deskStore.boundSessions.add(sessionId)
+      if (deskSlice(sessionId).data === undefined && deskSlice(sessionId).readError === undefined && !deskStore.misses.has(sessionId)) {
+        loadDeskFor(sessionId)
       }
-    }, [sessionId, store.sourceSession])
+      return () => { deskStore.boundSessions.delete(sessionId) }
+      // `unloaded` re-fires the load when the walk re-homes the primary away from this session and
+      // its slice empties — without it a tab could sit on "reading…" forever.
+    }, [sessionId, unloaded])
     if (sessionId === undefined) return roomScroller(muted('这个 tab 没有落在任何会话里，读不到它的工作区'))
     const retryButton = (label: string): ReturnType<typeof createElement> => createElement('button', {
-      onClick: askRefresh,
+      onClick: () => { askRefresh(sessionId) },
       style: {
         marginTop: '8px', padding: '6px 14px', fontSize: '12px', cursor: 'pointer', borderRadius: '6px',
         border: `1px solid ${MARK_TEAL}`, background: 'var(--dsw-alias-bg-base)', color: MARK_TEAL,
@@ -1121,8 +1236,9 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // principal to go type it in the conversation was backwards.
     if (deskStore.misses.has(sessionId)) return roomScroller(
       muted('这个会话的工作区还没有 .desk/state.json——点一下，让助手写一份。'), retryButton('刷新桌面'))
-    if (store.sourceSession !== sessionId) return roomScroller(muted('正在读这个会话的桌面…'))
-    return roomScroller(createElement(Panel as unknown as import('react').FunctionComponent))
+    if (slice.data === undefined) return roomScroller(muted('正在读这个会话的桌面…'))
+    // The panel reads and acts on this session's slice: the session rides in as a plain prop.
+    return roomScroller(createElement(Panel as unknown as import('react').FunctionComponent<{ sessionId?: string }>, { sessionId }))
   }
 
   /**
@@ -1315,16 +1431,16 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   }
 
   /** The quick actions every panel carries: the whole-point-of-a-desk prompts, one click each. */
-  function quickActions(): ReturnType<typeof createElement> {
+  function quickActions(session?: string): ReturnType<typeof createElement> {
     return createElement('div', { style: { marginTop: '8px' } },
       quickButton('回顾一下', '让助手回顾最近的决定、在跟的事与它新学到的东西',
-        () => { sendPrompt('回顾一下：我们最近决定了什么、还有什么在跟、你新学到了什么？', '回顾', 'desk') }),
+        () => { sendPrompt('回顾一下：我们最近决定了什么、还有什么在跟、你新学到了什么？', '回顾', 'desk', session) }),
       quickButton('体检', '让助手跑一次 curate，报告家的现状与需要你处理的事',
-        () => { sendPrompt('跑一次 curate，报告家的现状与需要我处理的事。', '体检', 'desk') }))
+        () => { sendPrompt('跑一次 curate，报告家的现状与需要我处理的事。', '体检', 'desk', session) }))
   }
 
   /** The refresh button plus its status line, and — where the room can — the jump to the beside-conversation tab. */
-  function refreshRow(store: typeof deskStore): ReturnType<typeof createElement> {
+  function refreshRow(store: typeof deskStore, session?: string): ReturnType<typeof createElement> {
     // Used for the status line only. The button itself is deliberately NOT disabled while an action
     // is in flight: it is the escape hatch when the assistant does not rewrite the desk file
     // (self-review R1, 2026-09-27). It re-reads the file; reading is always safe, and a frozen
@@ -1336,7 +1452,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     const inFlight = pendingInFlight(store)
     return createElement('div', { style: { margin: '8px 0 0' } },
       createElement('button', {
-        onClick: askRefresh,
+        onClick: () => { askRefresh(session) },
         style: {
           padding: '6px 14px', fontSize: '13px', cursor: 'pointer', borderRadius: '6px',
           border: `1px solid ${MARK_TEAL}`, background: 'var(--dsw-alias-bg-base)',
@@ -1394,15 +1510,16 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   }
 
   /** Panel 1 — the desk: what is being tracked, what changed, and the working-folder counts. */
-  function DeskPanel(): unknown {
-    const store = useDesk()
+  function DeskPanel(props?: { sessionId?: string }): unknown {
+    const session = props?.sessionId
+    const store = useDesk(session)
     const data = store.data
     return createElement('div', { style: { padding: '24px', maxWidth: '620px' } },
       createElement('h2', { style: { margin: '0 0 4px', fontSize: '18px' } }, '我的桌面'),
       // The three rooms are three QUESTIONS, not three data containers (user ruling 2026-09-26:
       // keep the familiar entries, make the navigation MEAN something).
       createElement('div', { style: { fontSize: '13px', color: 'var(--dsw-alias-label-secondary)', margin: '0 0 8px' } }, '现在要采取什么行动？'),
-      refreshRow(store),
+      refreshRow(store, session),
       // S6 landing: the principal's real first reaction (2026-09-26 trial) was "不知所措——
       // 不知道怎么落脚，不知道要干什么". When no desk file exists yet, say what this surface
       // is and give the three-step way in — before any content can.
@@ -1420,7 +1537,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
           createElement('br'),
           '③ 之后这里一直显示：等你拍板的事、在办的事、它缺什么。每一条都能就地处置')
         : null,
-      quickActions(),
+      quickActions(session),
 
       // The principal's first question is "what NOW?" — real-use feedback (2026-09-26) was that a
       // pile of equal-weight rows never says where to start. So the desk answers with ONE lead
@@ -1468,7 +1585,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
                   title: [option.cost === undefined || option.cost === '' ? undefined : `代价：${option.cost}`,
                     option.irreversible === true ? '不可逆' : undefined]
                     .filter(part => part !== undefined).join(' · ') || undefined,
-                  onClick: () => { answerDecision(String(item.question ?? ''), String(option.label ?? ''), rowId) },
+                  onClick: () => { answerDecision(String(item.question ?? ''), String(option.label ?? ''), rowId, session) },
                   style: {
                     padding: '4px 10px', fontSize: '12px', cursor: 'pointer', borderRadius: '4px',
                     border: `1px solid ${MARK_TEAL}`, background: 'var(--dsw-alias-bg-base)', color: MARK_TEAL,
@@ -1507,8 +1624,9 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
               answered(item) ? null : optionButtons(item, rowId)),
             actionLabel: '回答',
             placeholder: '你的决定是什么？',
-            onSubmit: (text: string) => { answerDecision(String(item.question ?? ''), text, rowId) },
-            actions: [{ label: '看选项', run: () => { askAboutDecision(String(item.question ?? ''), rowId) } }],
+            deskSession: session,
+            onSubmit: (text: string) => { answerDecision(String(item.question ?? ''), text, rowId, session) },
+            actions: [{ label: '看选项', run: () => { askAboutDecision(String(item.question ?? ''), rowId, session) } }],
           })
         }
         const fold = (label: string, toggle: () => void): ReturnType<typeof createElement> =>
@@ -1544,8 +1662,9 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
                   answered(lead) ? null : optionButtons(lead, rowIdOf(lead))),
                 actionLabel: '回答',
                 placeholder: '你的决定是什么？',
-                onSubmit: (text: string) => { answerDecision(String(lead.question ?? ''), text, rowIdOf(lead)) },
-                actions: [{ label: '看选项', run: () => { askAboutDecision(String(lead.question ?? ''), rowIdOf(lead)) } }],
+                deskSession: session,
+                onSubmit: (text: string) => { answerDecision(String(lead.question ?? ''), text, rowIdOf(lead), session) },
+                actions: [{ label: '看选项', run: () => { askAboutDecision(String(lead.question ?? ''), rowIdOf(lead), session) } }],
               })),
           rest.length === 0
             ? null
@@ -1614,14 +1733,15 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
                     })),
               actionLabel: '改这条',
               placeholder: '哪里要改？',
+              deskSession: session,
               onSubmit: (text: string) => {
-                sendPrompt(`行动「${String(action.what ?? '')}」要改：${text}。${DESK_REFRESH_STEP}`, '修改', String(action.id ?? action.what))
+                sendPrompt(`行动「${String(action.what ?? '')}」要改：${text}。${DESK_REFRESH_STEP}`, '修改', String(action.id ?? action.what), session)
               },
               actions: [
                 // Completing is a positive move: confirming it (R3, self-review 2026-09-27) made
                 // the most common action two clicks inside a small window on an 18px button.
-                { label: '办完了', run: () => { finishAction(String(action.what ?? ''), String(action.id ?? action.what)) } },
-                { label: '不办了', run: () => { dropAction(String(action.what ?? ''), String(action.id ?? action.what)) }, destructive: true },
+                { label: '办完了', run: () => { finishAction(String(action.what ?? ''), String(action.id ?? action.what), session) } },
+                { label: '不办了', run: () => { dropAction(String(action.what ?? ''), String(action.id ?? action.what), session) }, destructive: true },
               ],
             }))),
       (data?.actions ?? []).some(action => action.status === 'done')
@@ -1685,8 +1805,9 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
                 : createElement('div', { style: { fontSize: '11px', color: 'var(--dsw-alias-label-secondary)', fontWeight: 400 } }, String(item.why))),
             actionLabel: '补上',
             placeholder: '它缺的那个读数／台账／参数是什么？',
+            deskSession: session,
             onSubmit: (text: string) => {
-              fillGap(String(item.what ?? ''), text, String(item.id ?? item.what))
+              fillGap(String(item.what ?? ''), text, String(item.id ?? item.what), session)
             },
           }))),
 
@@ -1721,12 +1842,13 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
                   })),
             actionLabel: '问进展',
             placeholder: '你想问这条线索的什么？',
+            deskSession: session,
             onSubmit: (text: string) => {
-              sendPrompt(`关于线索「${String(thread.title ?? thread.id ?? '')}」：${text}`, '问进展', String(thread.id))
+              sendPrompt(`关于线索「${String(thread.title ?? thread.id ?? '')}」：${text}`, '问进展', String(thread.id), session)
             },
             actions: [
-              { label: '先放放', run: () => { parkThread(String(thread.title ?? thread.id ?? ''), String(thread.id)) } },
-              { label: '收了', run: () => { closeThread(String(thread.title ?? thread.id ?? ''), String(thread.id)) }, destructive: true },
+              { label: '先放放', run: () => { parkThread(String(thread.title ?? thread.id ?? ''), String(thread.id), session) } },
+              { label: '收了', run: () => { closeThread(String(thread.title ?? thread.id ?? ''), String(thread.id), session) }, destructive: true },
             ],
           }))),
 
@@ -1767,8 +1889,9 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   }
 
   /** Panel 2 — the knowledge room: what the assistant knows, and what is waiting for review. */
-  function KnowledgePanel(): unknown {
-    const store = useDesk()
+  function KnowledgePanel(props?: { sessionId?: string }): unknown {
+    const session = props?.sessionId
+    const store = useDesk(session)
     const { useEffect, useRef } = require('react') as typeof import('react')
     const draftsAnchor = useRef<{ current?: { scrollIntoView?: (options?: unknown) => void } | null } | null>(null)
     useEffect(() => {
@@ -1796,12 +1919,13 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         meta: [page.type === undefined ? '' : String(page.type), shortTime(page.updated)].filter(part => part !== '').join(' · '),
         actionLabel: '有问题',
         placeholder: '哪里不对？',
+        deskSession: session,
         source: (page.sources ?? []).join(' · '),
-        onSubmit: (text: string) => { flagKnowledgePage(String(page.title ?? page.id ?? ''), text, String(page.id ?? page.title)) },
+        onSubmit: (text: string) => { flagKnowledgePage(String(page.title ?? page.id ?? ''), text, String(page.id ?? page.title), session) },
         actions: page.status === 'draft'
-          ? [{ label: '批准', run: () => { approveKnowledgePage(String(page.title ?? page.id ?? ''), String(page.id ?? page.title)) } }]
+          ? [{ label: '批准', run: () => { approveKnowledgePage(String(page.title ?? page.id ?? ''), String(page.id ?? page.title), session) } }]
           : page.status === 'stable'
-            ? [{ label: '过时了', run: () => { deprecateKnowledgePage(String(page.title ?? page.id ?? ''), String(page.id ?? page.title)) }, destructive: true }]
+            ? [{ label: '过时了', run: () => { deprecateKnowledgePage(String(page.title ?? page.id ?? ''), String(page.id ?? page.title), session) }, destructive: true }]
             : undefined,
       })
     return createElement('div', { style: { padding: '24px', maxWidth: '620px' } },
@@ -1853,7 +1977,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    * @param memories - Every active record the desk file carries.
    * @returns Section headings and rows, as an element array to spread.
    */
-  function memoryGroups(memories: NonNullable<DeskData['memories']>): ReturnType<typeof createElement>[] {
+  function memoryGroups(memories: NonNullable<DeskData['memories']>, session?: string): ReturnType<typeof createElement>[] {
     const groups: { key: string, label: string }[] = [
       { key: 'preference', label: '你的偏好' },
       { key: 'decision', label: '你的决定' },
@@ -1876,24 +2000,26 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
           meta: shortTime(memory.updated),
           actionLabel: '这条记错了',
           placeholder: '正确的是什么？',
+          deskSession: session,
           source: memory.source,
-          onSubmit: (text: string) => { correctMemory(String(memory.text ?? ''), text, String(memory.id)) },
+          onSubmit: (text: string) => { correctMemory(String(memory.text ?? ''), text, String(memory.id), session) },
         }))))
     }
     return out
   }
 
   /** Panel 3 — the memory room: what the assistant has written down about the principal. */
-  function MemoryPanel(): unknown {
-    const store = useDesk()
+  function MemoryPanel(props?: { sessionId?: string }): unknown {
+    const session = props?.sessionId
+    const store = useDesk(session)
     const memories = store.data?.memories ?? []
     return createElement('div', { style: { padding: '24px', maxWidth: '620px' } },
       createElement('h2', { style: { margin: '0 0 4px', fontSize: '18px' } }, '记忆室'),
       createElement('div', { style: { fontSize: '13px', color: 'var(--dsw-alias-label-secondary)', margin: '0 0 8px' } }, '你把我理解成什么？——偏好、决定、事实，每条可纠错'),
-      refreshRow(store),
+      refreshRow(store, session),
       memories.length === 0
         ? muted('（还没有记忆，或桌面文件尚未刷新）')
-        : createElement('div', null, ...memoryGroups(memories)),
+        : createElement('div', null, ...memoryGroups(memories, session)),
       sectionTitle('规模'),
       createElement('div', null,
         cell('记忆', store.data?.counts?.memories === undefined ? '—' : String(store.data.counts.memories)),
@@ -1954,7 +2080,11 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         if (newest === lastStamp) return
         lastStamp = newest
         if (pending !== undefined) clearTimeout(pending)
-        pending = setTimeout(() => { reloadDesk() }, 4000)
+        // R11: refresh every bound session's own desk; with no bound tab, walk the newest five.
+        pending = setTimeout(() => {
+          if (deskStore.boundSessions.size === 0) loadDesk()
+          for (const bound of deskStore.boundSessions) loadDeskFor(bound)
+        }, 4000)
       })
     }
 
@@ -2044,7 +2174,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   // components are exposed because their copy and their button are the deliverable.
   return {
     inject, apply, AssistantBrandMark, AssistantBrandName,
-    DeskPanel, KnowledgePanel, MemoryPanel, deskStore,
+    DeskPanel, KnowledgePanel, MemoryPanel, deskStore, deskSlice,
     DeskTabBody, KnowledgeTabBody, MemoryTabBody, AssistantDeskChip, roomTabTitle,
     roomCommands, AssistantHeroMark, FirstMileDock, expirePending, settlePending, loadDeskFor, retireStaleReceipt, looksLikeDesk,
   }
