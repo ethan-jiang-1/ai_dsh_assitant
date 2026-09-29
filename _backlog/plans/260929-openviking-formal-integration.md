@@ -124,9 +124,9 @@
 
 | 场景 | 判据 | 状态 |
 |---|---|---|
-| S1 基础往返 ×3 轮（换哨兵语料） | 种子会话→手动 commit→抽取→**新会话** recall 块含哨兵事实且模型答对 | ✅ 轮1（年糕）、✅ 轮2（香樟三事实全对带出处）；轮3 已抽取待聚焦验证 |
-| S2 修正探针（先说错再改口） | 找回取**终值**（试点证过 server 级，DSH 级待复验） | 抽取物就绪（`parking_space_correction.md` 事件 0.84）；聚焦召回验证待跑 |
-| S3 保密标注 | 敏感事实（估值底线类）抽取物带保密语义 | 双面发现（见轮2记录）：事件命名 `confidential_supplier_terms` ✅；但「只有你知道」类秘密被 server 抽取无视口头意图照样落盘（stone_pixiu 实体在盘）⚠️ |
+| S1 基础往返 ×3 轮（换哨兵语料） | 种子会话→手动 commit→抽取→**新会话** recall 块含哨兵事实且模型答对 | ✅✅✅ **3/3 全绿**（轮1 年糕 / 轮2 香樟 / 轮3 车位账期教练）|
+| S2 修正探针（先说错再改口） | 找回取**终值**（试点证过 server 级，DSH 级待复验） | ✅ **过**：答 B2-171（终值），召回块带原句「from B2-117 to B2-171 … final correct number」 |
+| S3 保密标注 | 敏感事实（估值底线类）抽取物带保密语义 | ✅ 判分过：答「60 天（机密等级，仅对你本人复述）」+ 事件名 `confidential_` 前缀 ✅；双面发现保留：口头保密拦不住 server 落盘（stone_pixiu 实体在盘），入库拦截是产品缺口 ⚠️ |
 | S4 多会话累积 | 后轮 recall 能见前轮事实（累积不覆盖） | ✅ 过（轮1+轮2 事实同会话全对，出处精确到 URI） |
 | S5 对照组 | dev-task 同题答「不知道」+ 零 ov 注入 | ✅ 轮1 过（诚实拒答+枚举上下文自证） |
 | S6 无中生有拒答 | 未种过的问题不编造（recall 无命中时模型明说没有） | ✅ 过（问母亲生日→「没有」+枚举实见画像，零编造） |
@@ -142,7 +142,23 @@
 - 📏 工具面实测 **16 个** `mcp__openviking__*`（文档口径 12 之外另有 cancel_watch/find/health/list_watches）——shim 用前缀拒恰好全覆盖，固定名单设计会漏。
 - ⚠️ **偏差③（可靠性主发现，2026-09-29 晚）→ 已修复**：抽取任务存在 **~600s 单次 LLM 调用超时墙**（三路并发与单发全灭于 602-606s，连 3 条消息的小会话也同点超时）。**根因 = `vlm.timeout` 默认 600.0s**（`vlm_config.py:160`，schema 自述「慢端点请调大」）。**修复**：`dev/ov-trial.sh` 生成器加 `timeout: 1500` → 重生成 ov.conf → server 重启 → 同语料抽取 **38s 完成**（timeout 提升+重启复合归因，诚实记）；18 条存量记忆重启后完好。
 - ⚠️ **偏差①（修正再修正）**：`peerId: assistant` **生效**——记忆落 `viking://user/default/peers/assistant/` 子空间（fs 实证）；但**画像（profile.md）是 user 级**（试点语料跨 peer 共享进画像）。更正后的语义：**记忆 peer 隔离、画像全局共享**——「新空间从零攒」对记忆成立、对画像不成立。
-- 🎯 **召回深度发现（改判 shim 设计）**：server 的 context 模式**只出目录级 overview**（实体页只到「类目有年糕」的指针级，叶子内容不进召回块）——四个旋钮两轮验证无效（`recallPreferAbstract`/`recallMaxContentChars` 是降级路径专用 [README 明载]，`recallLimit`/`recallMaxTokens` 不改粒度）。**结论：纯隐形引擎（全拒工具）到不了事实级召回**；shim 改判**读写分离**——拒 6 个写面工具（remember/write/edit/forget/add_resource/add_skill，治理关切），放开只读面（search/read/find/…）。**读展开路径已端到端验证**：召回指针 → `mcp__openviking__read` → 三事实全对 + 模型自带治理边界（只读不改、拒绝填默认值）。
+- 🎯 **召回深度发现（第一轮判词，已被轮3终局发现部分取代）**：server 默认走的 context 模式只出目录级 overview，四旋钮两轮验证无效（`recallPreferAbstract`/`recallMaxContentChars` 是降级路径专用，`recallLimit`/`recallMaxTokens` 不改粒度）——当时据此把 shim 改判**读写分离**（拒 6 写放只读，读展开端到端验证过）。轮 3 找到真根因（见下条）后，「到不了事实级召回」的悲观判词作废，但读写分离的 shim 结论**独立成立**（治理拒写不变；只读展开补深读）。
+- 🎯 **轮3 终局发现（召回质量根因 + 旋钮级修复）**：插件在 DSH 会话里走 **session-aware `/search/search`（带 session_id，server 侧 LLM 规划「自行决定给什么上下文」）**——实测对聚焦查询返回陈旧/相邻内容（同 4 命中跨查询不变，`recallQueryExpansion: off` 无效）；而**查询式 `/find` 命中精准**（0.84/0.87 直打全对）。**修复 = `recallContextTimeoutMs: 3000`**（会话感知规划调用实测 >15s，3s 超时必然触发插件既有降级路径 → /find）——召回块从指针级 4 条（3051 chars）变**叶子全文 5497 chars**（含「B2-117→B2-171 final correct」原句），模型零工具答对终值+机密等级。**通道分工终版：画像=蒸馏事实，召回（find 路径）=叶子事实，工具=深读。**
+- 📏 **抽取时延（修复后）**：38s / 106s / 48s 三轮（修复前 600s 墙全灭）。
+
+## 层 1 最终旋钮剖面（实弹验证版，v2）
+
+```yaml
+- id: openviking-memory-runtime
+  config:
+    endpoint: http://127.0.0.1:1933
+    skillCatalog: false          # 服务器端技能目录注入关
+    skipSubagentSessions: true
+    profileTokenBudget: 3000     # 画像块实测 538-755 chars，余量充足
+    recallContextTimeoutMs: 3000 # 关键旋钮：强制降级到查询式 find（叶子内容进召回块）
+    # peerId: assistant 可留作 actor 归因（记忆落 peers/assistant/；画像是 user 级，不隔离）
+    # recallQueryExpansion: off 无效留档；mcpEnabled 死旋钮勿写
+```
 - 🎯 **轮2 现场记录**：S1 轮2 ✅（香樟/清明修枝/貔貅钥匙三题全对，①②带 URI 出处）；抽取 106s；S4 同探针验证 ✅。**通道分工浮现**：**画像块=事实主力**（跨轮蒸馏事实，年糕/香樟都在），**召回块=主题指针**（单题聚焦时命中好），**工具展开=叶子内容**。⚠️ **多主题稀释**：四题连问时召回查询（=整段 prompt）被「机密/不要外传」字眼带偏，4 个命中全是私密治理 flavored，轮 3 新事实零命中——真实会话多单题，稀释有限，但长复合问题要拆。⚠️ **S3 双面**：抽取物命名带 `confidential_` 前缀（保密语义进了抽取物 ✅）；但「这件事只有你知道」的口头意图拦不住 server 抽取——`stone_pixiu_statue` 实体照样落盘（本地明文，治理注记：敏感事实的入库拦截是产品缺口，非本切片能修）。⚠️ 画像重建滞后：轮 3 事实抽取完成后未即时进 profile.md（重建节奏待观察）。
 
 ## 待答问题 / 待跑实验 / 喂给谁
