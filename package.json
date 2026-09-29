@@ -17,6 +17,7 @@
     "expert-setup": "TSX_TSCONFIG_PATH=tsconfig.tsx.json node --import tsx/esm scripts/expert-setup.mjs",
     "eval": "node dev/eval/run.mjs",
     "eval:domain": "node dev/eval/domain-run.mjs",
+    "ov-trial-rt": "node dev/ov-rt.mjs",
     "typecheck": "pnpm --filter dsh-smart-assistant run typecheck",
     "build": "pnpm --filter dsh-smart-assistant run build",
     "test": "pnpm --filter dsh-smart-assistant run test",

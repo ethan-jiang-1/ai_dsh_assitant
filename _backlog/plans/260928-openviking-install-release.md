@@ -1,6 +1,14 @@
 # 推敲：OpenViking 集成的安装与发布形态
 
-> 立卡：2026-09-28 ｜ 状态：**试点进行中**（2026-09-28 用户过目安装方案、拍板组合 D）｜毕业门判断 = 待触发（试点过审后拍板形态）｜下一步 = 执行下方六步（每步检查点，失败即停记卡）
+> 立卡：2026-09-28 ｜ 状态：**试点进行中**（2026-09-28 用户过目安装方案、拍板组合 D；2026-09-29 六步走到第 5 步中途——见「试点现场」节）｜毕业门判断 = 待触发（试点过审后拍板形态）｜下一步 = 第 5 步记忆往返重跑（VLM 已换 DeepSeek-V3.2）
+
+## 试点现场（2026-09-29 checkpoint，自动续跑会话）
+
+- **第 1–3 步 ✅**：server 0.4.22 装好、`dev/ov-trial.sh` 两份配置 0600、doctor **全绿**（两处 FAIL 均修复：workspace 目录提权建好；embedding 探针两次超时确认是网络抖动——手测 3/3 秒回 0.14–0.21s、1024 维）。
+- **第 4 步 ✅**：裸 profile `ov-trial`（headless 模板、无 preset）+ **钉存 tgz 离线直装成功**（绝对路径；相对路径会被 pnpm 按 profile 目录解析而 ENOENT——D4 的 quirk 答案）；profile patch 挂试点参数（`commitTokenThreshold: 2000`、`skipSubagentSessions: true`）；`--dump-config` 断言 `openviking-memory-runtime` 行在场且标注 patched。
+- **第 5 步 ⏸️ 中途**：server 级往返——会话/14 条语料/commit 全通，但抽取任务 400 失败。**根因（读 server 源码定案）**：抽取循环的 python 协议把预取工具结果渲染成**连续 user 消息**（`session/memory/extraction_output_protocol/python_protocol.py` render_tool_result_messages 返回 user 角色；`utils/message_format.sanitize_openai_messages` 只删空 assistant、不合并），**硅基流动的 GLM-4.5V 强制严格轮替 → 400 code 20015 拒收**（探针复现：`[user,user]` 必拒，system-first/结尾 assistant 均 200）。豆包/GPT 类宽容模型不受影响——上游按宽容假设设计。
+- **处置（试点内换型，agent 判定）**：VLM 位 → `deepseek-ai/DeepSeek-V3.2`（runbook 既定备选；连续 user 三探针全 200；纯文字——试点语料本就纯文字，损失=喂图不可用，记入采用决定包）。`.env.local` 的 `SILICONFLOW_VLM_MODEL` 已改、ov.conf 已重生成、server 已重启。**GLM-4.5V 从选型位降为负知识**（VLM 位不可用，runbook 模型菜单已记）。
+- 第 5 步重跑与第 6 步质量抽评待续（自动审批限流阻塞 curl/commit，见 handoff）。
 
 ## 背景 / 触发
 
@@ -15,7 +23,7 @@
 3. **DSH 适配器**：`@openviking/dsh-memory-plugin` 0.5.8——已钉存 `vendor/thirdparty/openviking/`（SHA512 验真，离线可装）。
 4. **key 纪律（用户红线）**：`.env.local`（仓根，day-0 已 gitignore 并经 `git check-ignore` 验证）→ 试点脚本读取后写 `~/.openviking/ov.conf`（**仓外**，0600）→ server。key 不进 git、不进会话日志——**key 由用户亲手粘进 `.env.local`，agent 全程不读明文、不要求贴进对话**。
 
-未决：`dsh plugin add` 对本地 tgz 的装法（pnpm tarball 语义）待验证；上游五周 17 版的钉版升级节奏；全新机器开箱步数。
+未决：~~`dsh plugin add` 对本地 tgz 的装法（pnpm tarball 语义）待验证~~（2026-09-29 已验证：绝对路径直装成功，见试点现场）；上游五周 17 版的钉版升级节奏；全新机器开箱步数。
 
 ## 待答问题 / 待跑实验 / 喂给谁
 
@@ -25,7 +33,13 @@
 ## 候选与取舍
 
 - **S1 依赖打包**（插件进我们 bundle 的 dependencies）：❌ 暂不推荐——让渡版本控制权、碰发布物自包含与 release-smoke 纪律、用户装我们即被动装第三方，与「生态插件只借思路/过准入」的姿态相悖。
-- **S2 组合行 + 准入（推荐终点）**：插件保持独立安装（`dsh plugin add @openviking/dsh-memory-plugin@0.5.8` 钉版本）；我们提供**一键安装脚本**（读 `.env.local` → 生成 ov.conf → `dsh plugin add` → `--dump-config` + doctor 探针），准入表过一遍（字段抄 dsh-memento 的 dshWorkshop manifest 设计）；发行动作 = 发行组合里列白名单 + 钉版本。**发布做法参考：兄弟仓 `ai_dsh_architect/_dist`（用户点名 2026-09-28，「把精神抄袭过来」——读它的发布产物与流程，只借思路不搬文件）**。
+- **S2 组合行 + 准入（推荐终点）**：插件保持独立安装（`dsh plugin add @openviking/dsh-memory-plugin@0.5.8` 钉版本）；我们提供**一键安装脚本**（读 `.env.local` → 生成 ov.conf → `dsh plugin add` → `--dump-config` + doctor 探针），准入表过一遍（字段抄 dsh-memento 的 dshWorkshop manifest 设计）；发行动作 = 发行组合里列白名单 + 钉版本。**发布做法参考：兄弟仓 `ai_dsh_architect/_dist`（用户点名 2026-09-28，「把精神抄袭过来」——读它的发布产物与流程，只借思路不搬文件；2026-09-29 自主窗口被审批层拦在 workspace 外读，待读）**。
+
+  **S2 细节草案（2026-09-29 自主窗口拟，待 _dist 对照修订 + 试点过审后拍板）**：
+  - **脚本形状**：`dev/ov-install.sh` 幂等七步（每步检查点、失败即停——六步试点经验直接入脚本）：① `uv tool install openviking==<PIN>`（已装则跳过）② `dev/ov-trial.sh` 生成双配置（0600，已有资产）③ 起 server + `doctor` 全绿门 ④ 建/复用目标 profile（裸 headless 模板，参数化 profile 名）⑤ `dsh plugin add <钉存 tgz 的绝对路径>`（D4 已验证：**必须绝对路径**）⑥ 写 profile patch（`commitTokenThreshold`/`skipSubagentSessions` 参数化）⑦ `--dump-config` 断言 `openviking-memory-runtime` 行 + 尾行打印「下一步怎么说一句话试记忆」。发布期另配 `pnpm ov-install` 别名。
+  - **准入表字段**（精神抄 dsh-memento dshWorkshop manifest）：name/钉版+SHA512/license（插件 Apache-2.0，与 server AGPL-3.0 的进程边界一行说明）/peer 兼容（`0.1.7-rc.2` 亲验）/维护方（volcengine 组织级）/更新节奏（上游五周 17 版 → 双钉 `0.4.22+0.5.8`，升级=人工触发重跑准入+doctor+往返冒烟，不自动追 latest）/数据流向（全本地 server、telemetry 是请求级 opt-in 非外发）/回退（`uv tool uninstall` + 删 profile 即净）。
+  - **白名单位置**：grand plan §2.3「发行组合」（用户拍板位，非 agent 可定）。
+  - **脚本自身验收**：干净 home 从零跑到「会话有记忆」（即本卡待跑③开箱测试）。
 - **S3 仅文档指引（现在即此形态）**：README runbook + 手动步骤，零耦合——试点期就该这么轻。
 
 ## 试点安装方案（2026-09-28 定稿，用户过目）

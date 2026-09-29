@@ -74,6 +74,7 @@ pnpm preflight '<server 打印的 URL>'    # 开屏前检查；绿了才把 URL 
 pnpm shots '<server 打印的 URL>' --dom --size 1600x1000 --name <名字>   # 渲染证据：PNG + DOM 证据（默认落 /tmp/dsh-webui-shots）
 pnpm desk-loop              # 培养循环摩擦报告：从真实会话日志读「点了没反应 / 反复点 / 答了多次 / 技能没加载」
 pnpm eval:domain            # 领域评测集 v0（G2）：把本人出的真实经营问题逐题跑一遍，产出**给人打分**的报告（题目格式见 dev/eval/domain/TEMPLATE.md）
+pnpm ov-trial-rt            # OpenViking 试点第 5/6 步驱动：server 级记忆往返 + 抽取质量抽评（建会话→塞哨兵语料→commit→等抽取→找回→读抽取物；前提 server 在 127.0.0.1:1933）
 pnpm typecheck && pnpm test && pnpm verify
 ```
 
