@@ -21,7 +21,7 @@ for (const [k, v] of Object.entries({SILICONFLOW_API_KEY: key, SILICONFLOW_BASE_
 const home = os.homedir();
 const ovConf = {
   embedding: { dense: { provider: "openai", api_key: key, api_base: base, model: emb, dimension: 1024 } },
-  vlm: { provider: "openai", api_key: key, api_base: base, model: vlm },
+  vlm: { provider: "openai", api_key: key, api_base: base, model: vlm, timeout: 1500 },
   storage: { workspace: home + "/.openviking/workspace",
              vectordb: { name: "context", backend: "local" }, agfs: { backend: "local" } },
   server: { host: "127.0.0.1", port: 1933 }

@@ -87,12 +87,19 @@
 
 ```yaml
 # packages/dsh-smart-assistant/cordis.patch.yml 的 preset plugins 追加（行 id 与命名走 identity.md 拍板）：
+# 实弹测试改判（2026-09-29 晚）：读写分离——server context 模式只出指针级召回，
+# 叶子内容必须靠只读工具展开；治理关切只在写面。
 - id: assistant-ov-shield          # 名字待拍板，暂拟
   name: dsh-smart-assistant/ov-shield
   config:
-    denyToolPrefixes: ["mcp__openviking__"]   # 动态枚举 + 前缀拒（server 升级加新工具也进 deny）
+    denyToolNames:                 # 治理执法面：6 个写/删工具（前缀枚举兜 server 升级新增写面）
+      - mcp__openviking__remember
+      - mcp__openviking__write
+      - mcp__openviking__edit
+      - mcp__openviking__forget
+      - mcp__openviking__add_resource
+      - mcp__openviking__add_skill
     shadowSkills: ["openviking-memory", "openviking-skills"]  # modelInvocable:false 同名遮蔽
-    allowReadonlyTools: false                  # 远期选项：放开 search/read/list 等只读面（层 3 再议）
 ```
 
 ### 七、解法突破（2026-09-29 二轮：五条路逐一实证）
@@ -117,7 +124,7 @@
 
 | 场景 | 判据 | 状态 |
 |---|---|---|
-| S1 基础往返 ×3 轮（换哨兵语料） | 种子会话→手动 commit→抽取→**新会话** recall 块含哨兵事实且模型答对 | 轮1 语料重试中（f626e7ef，首次三路并发抽取全灭）；轮2 语料待重 commit |
+| S1 基础往返 ×3 轮（换哨兵语料） | 种子会话→手动 commit→抽取→**新会话** recall 块含哨兵事实且模型答对 | ✅ **轮1 过**（年糕三事实：召回指针+工具读展开，答案全对）；轮2 语料待重跑 |
 | S2 修正探针（先说错再改口） | 找回取**终值**（试点证过 server 级，DSH 级待复验） | 待跑 |
 | S3 保密标注 | 敏感事实（估值底线类）抽取物带保密语义 | 待跑 |
 | S4 多会话累积 | 后轮 recall 能见前轮事实（累积不覆盖） | 待跑 |
@@ -133,7 +140,9 @@
 - ⚠️ **偏差①**：`peerId: assistant` **不开新记忆空间**——`viking://user` 下只有 `default`；peer 是请求侧 actor 维度，画像与记忆是 user 级（试点语料直接喂进本轮画像）。§六剖面「新空间从零攒」假设作废；正式接入的隔离思路要重想（若要隔离须 `recallPeerScope: actor` 级别，未测）。
 - ⚠️ **偏差②**：one-shot 退出**不自动 commit**（无 session_commit 任务出现；手动 `POST /commit` 后任务才建，14:10:07 起 running）。探针流程手动 commit 兜底；web 真实会话的 flush→commit 行为待验（产品面关键项）。
 - 📏 工具面实测 **16 个** `mcp__openviking__*`（文档口径 12 之外另有 cancel_watch/find/health/list_watches）——shim 用前缀拒恰好全覆盖，固定名单设计会漏。
-- ⚠️ **偏差③（可靠性主发现，2026-09-29 晚）**：抽取任务存在 **~600s 单次 LLM 调用超时墙**——三路并发 commit 全灭（604/602/604s，"Request timed out"），连 3 条消息的小会话也同点超时（与语料量无关）；当晨对照：02:38 的任务跑 1110s 总时长成功（多次调用各自 <600s）。doctor 全绿（embedding/VLM 短探针过，embedding 4.1s 慢告警）——**长生成时段性慢**（晚间 V3.2 推理变慢或限流）。**协议修正：commit 严格串行 + 失败单发重试**；当晚失败**零残留**（总记忆数 18 未变——失败发生在首次调用前，与旧验收「不回滚」记录不同，是个体差异还是版本行为待观察）。
+- ⚠️ **偏差③（可靠性主发现，2026-09-29 晚）→ 已修复**：抽取任务存在 **~600s 单次 LLM 调用超时墙**（三路并发与单发全灭于 602-606s，连 3 条消息的小会话也同点超时）。**根因 = `vlm.timeout` 默认 600.0s**（`vlm_config.py:160`，schema 自述「慢端点请调大」）。**修复**：`dev/ov-trial.sh` 生成器加 `timeout: 1500` → 重生成 ov.conf → server 重启 → 同语料抽取 **38s 完成**（timeout 提升+重启复合归因，诚实记）；18 条存量记忆重启后完好。
+- ⚠️ **偏差①（修正再修正）**：`peerId: assistant` **生效**——记忆落 `viking://user/default/peers/assistant/` 子空间（fs 实证）；但**画像（profile.md）是 user 级**（试点语料跨 peer 共享进画像）。更正后的语义：**记忆 peer 隔离、画像全局共享**——「新空间从零攒」对记忆成立、对画像不成立。
+- 🎯 **召回深度发现（改判 shim 设计）**：server 的 context 模式**只出目录级 overview**（实体页只到「类目有年糕」的指针级，叶子内容不进召回块）——四个旋钮两轮验证无效（`recallPreferAbstract`/`recallMaxContentChars` 是降级路径专用 [README 明载]，`recallLimit`/`recallMaxTokens` 不改粒度）。**结论：纯隐形引擎（全拒工具）到不了事实级召回**；shim 改判**读写分离**——拒 6 个写面工具（remember/write/edit/forget/add_resource/add_skill，治理关切），放开只读面（search/read/find/…）。**读展开路径已端到端验证**：召回指针 → `mcp__openviking__read` → 三事实全对 + 模型自带治理边界（只读不改、拒绝填默认值）。
 
 ## 待答问题 / 待跑实验 / 喂给谁
 
