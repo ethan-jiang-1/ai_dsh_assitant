@@ -19,7 +19,9 @@
 - **视图合并显式取片值**（`mergeDeskSlice` + `DESK_SLICE_KEYS`）：朴素 `{...flat, ...slice}`
   会让分片缺失的键漏出扁平片旧值——正是分片要防的跨会话泄漏，R11 夹具第一版当场抓到。
 - **walk 换主时行级状态随主迁移**（`carryRowStateTo`）：旧主的 pending / receipt / stalled /
-  readError 移入其自己的分片，不被新主的视图静默重归属。
+  readError 移入其自己的分片，不被新主的视图静默重归属。（验收三轮 2026-09-29 抓到首版实现在换主
+  前经 `deskSlice(previous)` 解析回**扁平片自身**——行级状态被赋回即将易主的扁平片、随后被新主的
+  settle 消费；修复为显式写入 `bySession[previous]`，见证据第三条。）
 
 ## 问题（交付前可观察）
 
@@ -36,6 +38,12 @@ R11 实测：store 被所有绑定 tab 共享、行匹配只按裸 rowId——A 
   不结算 A 的 pending（settle 按 (session, generatedAt)）、回执只落 A 片、停滞过期只释放发送方；
 - `pnpm build` 后全套 **288/288** 与 `pnpm verify` **29/29**（client 面规则：整套包级套件、
   fresh lib 上跑——假绿防护来自先 build 后 test 的顺序）。
+- 验收三轮机制面补钉（2026-09-29，[台账](../archived/research/2026-09-29-desk-store-acceptance-audit.md)）：
+  四夹具经导出面（`apply` + `loadDeskFor` + 假 remote）驱动——①认领路径（无人认领的扁平片服务任意
+  会话、首个定向加载成功即认领、认领后不再服务陌生会话）；②认领竞态（双首发共享扁平序列，只有最新
+  序列写入并认领）；③walk 换主 carry——**红→绿**：新夹具当场抓到 carry 经 `deskSlice(previous)`
+  解析回扁平片自身的 bug（修复后转绿）；④分片 seq 独立性（一会话的加载不再取消另一会话的在途读——
+  旧单计数器下该断言必红）。修复后全套 295/295、verify 30/30、`tsc -b` 0。
 
 ## 输掉的方案
 

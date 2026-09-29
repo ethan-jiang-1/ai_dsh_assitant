@@ -361,9 +361,11 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
 
   /**
    * When the walk re-homes the flat fields to a different session, the row-scoped facts still
-   * belong to the OLD owner: carry them into that session's slice instead of silently
-   * re-attributing them to the new primary (R11 — a pending from session A must never settle
-   * against session B's file).
+   * belong to the OLD owner: carry them into that session's OWN slice (`bySession[previous]` —
+   * resolved EXPLICITLY, because at call time `sourceSession` still names the previous owner, so
+   * `deskSlice(previous)` would return the flat itself and hand the row state right back to the
+   * slice being re-homed; acceptance round 3, 2026-09-29, caught the walk path doing exactly
+   * that — the new owner's settle then consumed the old owner's pending as its own).
    */
   function carryRowStateTo(previous: string, next: string): void {
     if (previous === next) return
@@ -374,7 +376,10 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         patchDesk({ [key]: undefined } as Partial<typeof deskStore>)
       }
     }
-    if (Object.keys(carry).length > 0) Object.assign(deskSlice(previous), carry)
+    if (Object.keys(carry).length > 0) {
+      if (deskStore.bySession[previous] === undefined) deskStore.bySession[previous] = {}
+      Object.assign(deskStore.bySession[previous], carry)
+    }
   }
 
   /**

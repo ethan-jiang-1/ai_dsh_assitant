@@ -6,7 +6,7 @@
  * module-table require stub. The panels read one shared store, which the factory exposes for
  * exactly this: fill it and every section renders without a browser.
  */
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { inertReactShim, loadClientRegistration, materializeClient } from './client-harness.ts'
 
 const registration = await loadClientRegistration()
@@ -60,6 +60,12 @@ interface PanelExports {
   deskStore: DeskStore
   /** The slice a surface reads: flat for the primary, `bySession[sid]` for a bound tab (R11). */
   deskSlice: (sessionId?: string) => DeskSlice
+  /** Wiring entry (acceptance round 3, 2026-09-29): captures a fake remote/session ctx so the
+    * load paths can be driven headless — claiming, carry, and per-slice seq live behind it. */
+  apply: (ctx: unknown) => void
+  /** Read one Session's desk file into its slice (R11): the claim path and the slice's own load
+    * sequence are the acceptance targets of round 3. */
+  loadDeskFor: (sessionId: string) => void
 }
 
 function materialize(): PanelExports {
@@ -914,5 +920,115 @@ describe('desk panels', () => {
     exports.expirePending('s1')
     expect(s1.pending).toBeUndefined()
     expect(s1.stalled?.rowId).toBe('d1')
+  })
+})
+
+/**
+ * The slice MECHANICS the R11 note claims (acceptance round 3, 2026-09-29): the fixture above pins
+ * the cross-talk symptoms; these pin the mechanics behind them — the claiming path, the claim race
+ * on the unowned flat, the walk re-homing carry, and the per-slice load sequence. All are driven
+ * through the exported surface (`apply` + `loadDeskFor`) with a fake remote, never by poking the
+ * internals, so they fail if the wiring moves even when the store shape stays.
+ */
+describe('per-session slice mechanics (R11, acceptance round 2026-09-29)', () => {
+  /** A readable desk file for one session, stamped `generatedAt`. */
+  const deskFile = (generatedAt: string): { ok: boolean, value: { text: string } } => ({
+    ok: true,
+    value: { text: JSON.stringify({ generatedAt, decisions: [{ id: 'd1', question: '先办这件', kind: 'business' }] }) },
+  })
+  /** Microtask flush for the async read chains (real-timer tests). */
+  const flush = async (): Promise<void> => {
+    for (let i = 0; i < 6; i++) await new Promise((resolve) => setTimeout(resolve, 0))
+  }
+  const makeDeferred = (): { promise: Promise<unknown>, resolve: (value: unknown) => void } => {
+    let resolve!: (value: unknown) => void
+    const promise = new Promise<unknown>((r) => { resolve = r })
+    return { promise, resolve }
+  }
+  /** The fake browser ctx apply() needs: a controllable workspaceFiles.read, a mutable Session
+    * list, and no-op slot/tab registries (their registrations never fire without a real mount). */
+  const fakeCtx = (
+    read: (sessionId: string) => Promise<unknown>,
+    list: { getSnapshot: () => unknown, subscribe: (fn: () => void) => () => void },
+  ): unknown => ({
+    remote: { workspaceFiles: { read: (sessionId: string, _path: string, _options: unknown) => read(sessionId) } },
+    sessions: { list },
+    slots: { inject: () => {} },
+    sidebarRightTabs: { register: () => {} },
+  })
+  const inertList = { getSnapshot: () => ({ ids: [], byId: {} }), subscribe: () => () => {} }
+
+  it('an unowned flat slice serves anyone; the first targeted load claims it (R11 claim path)', async () => {
+    const exports = materialize()
+    exports.apply(fakeCtx(async (sid) => (sid === 's1' ? deskFile('2026-09-28T10:00:00+08:00') : { ok: false }), inertList))
+    // Pre-claim: no walk ever answered, so the flat fields serve whichever session asks first.
+    expect(exports.deskSlice('s2')).toBe(exports.deskStore)
+    exports.loadDeskFor('s1')
+    await flush()
+    expect(exports.deskStore.sourceSession).toBe('s1')
+    expect((exports.deskStore.data as { generatedAt?: string })?.generatedAt).toBe('2026-09-28T10:00:00+08:00')
+    // Post-claim: an owned flat never serves a stranger — s2 now reads its own slice.
+    expect(exports.deskSlice('s2')).not.toBe(exports.deskStore)
+  })
+
+  it('two first loads racing for the unowned flat: only the newest sequence writes (R11 claim race)', async () => {
+    const exports = materialize()
+    const deferred = { s1: makeDeferred(), s2: makeDeferred() }
+    exports.apply(fakeCtx((sid) => (deferred as Record<string, { promise: Promise<unknown> }>)[sid]?.promise ?? Promise.resolve({ ok: false }), inertList))
+    // Both fire while the flat is unowned, so both capture the flat slice — and its ONE sequence.
+    exports.loadDeskFor('s1')
+    exports.loadDeskFor('s2')
+    deferred.s1.resolve(deskFile('2026-09-28T10:00:00+08:00')) // the FIRST fire completes first
+    await flush()
+    expect(exports.deskStore.sourceSession).toBeUndefined() // stale seq: dropped, no claim, no write
+    expect(exports.deskStore.data).toBeUndefined()
+    deferred.s2.resolve(deskFile('2026-09-28T11:00:00+08:00')) // the newest sequence lands and claims
+    await flush()
+    expect(exports.deskStore.sourceSession).toBe('s2')
+    expect((exports.deskStore.data as { generatedAt?: string })?.generatedAt).toBe('2026-09-28T11:00:00+08:00')
+  })
+
+  it("one session's load no longer cancels another's in-flight read (R11 per-slice seq)", async () => {
+    const exports = materialize()
+    const deferred = { s1: makeDeferred(), s2: makeDeferred() }
+    exports.apply(fakeCtx((sid) => (deferred as Record<string, { promise: Promise<unknown> }>)[sid]?.promise ?? Promise.resolve({ ok: false }), inertList))
+    exports.deskStore.sourceSession = 's1' // flat owned by s1; s2 reads its own slice
+    exports.loadDeskFor('s1')              // in-flight on the primary slice…
+    exports.loadDeskFor('s2')              // …a later load for ANOTHER session
+    deferred.s2.resolve(deskFile('2026-09-28T11:00:00+08:00')) // completes first
+    await flush()
+    expect((exports.deskSlice('s2').data as { generatedAt?: string })?.generatedAt).toBe('2026-09-28T11:00:00+08:00')
+    expect(exports.deskStore.data).toBeUndefined() // the flat still waits on its own read
+    deferred.s1.resolve(deskFile('2026-09-28T10:00:00+08:00')) // the OLDER fire completes last…
+    await flush()
+    // …and lands: with the pre-slice single counter this completion was cancelled by s2's load.
+    expect((exports.deskStore.data as { generatedAt?: string })?.generatedAt).toBe('2026-09-28T10:00:00+08:00')
+  })
+
+  it("carries the previous owner's row state into its own slice when the walk re-homes (R11)", async () => {
+    vi.useFakeTimers()
+    try {
+      const exports = materialize()
+      const notified: Array<() => void> = []
+      let snapshot: { ids: string[], byId: Record<string, { updatedAt?: number, cwd?: string }> } =
+        { ids: ['s1'], byId: { s1: { updatedAt: 10, cwd: '/w1' } } }
+      const list = {
+        getSnapshot: () => snapshot,
+        subscribe: (fn: () => void) => { notified.push(fn); return () => {} },
+      }
+      exports.apply(fakeCtx(async (sid) => (sid === 's1' ? deskFile('2026-09-28T10:00:00+08:00') : sid === 's2' ? deskFile('2026-09-28T11:00:00+08:00') : { ok: false }), list))
+      for (let i = 0; i < 8; i++) await Promise.resolve() // the walk's read chain is all microtasks
+      expect(exports.deskStore.sourceSession).toBe('s1') // the newest-five walk answered s1
+      exports.deskStore.pending = { rowId: 'd1', at: 1, action: '看选项' }
+      snapshot = { ids: ['s1', 's2'], byId: { ...snapshot.byId, s2: { updatedAt: 99, cwd: '/w2' } } }
+      for (const fn of [...notified]) fn()               // s2's conversation settles
+      await vi.advanceTimersByTimeAsync(4000)            // the follow-the-conversation debounce
+      for (let i = 0; i < 8; i++) await Promise.resolve()
+      expect(exports.deskStore.sourceSession).toBe('s2') // the walk re-homed the flat fields…
+      expect(exports.deskStore.pending).toBeUndefined()  // …so s1's row state left the flat…
+      expect(exports.deskSlice('s1').pending?.rowId).toBe('d1') // …and rode into s1's own slice
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })
