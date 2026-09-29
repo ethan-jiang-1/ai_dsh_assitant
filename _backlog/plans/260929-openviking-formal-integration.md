@@ -109,6 +109,31 @@
 
 **② 的完整代价账（诚实登记）**：a) shim 是我们包的**模型可见面变更**——走 identity.md 登记 + gen-catalog + 快照/eval 纪律；b) `restrict` 时序：MCP 工具连接后异步注册，shim 须监听 `tools/change`（`core/tools` 199-209 声明）动态补 deny（前缀枚举，server 升级加新工具也覆盖）；c) 技能遮蔽残留：`ctx.skills.list()` 中立视图仍有条目 + 每次 fresh collect 一条 registry warn（日志噪声级）；d) **URI 死胡同**：召回块内联 `viking://` URI（`recall-core.mjs:396` 每命中一行），工具被拒后模型若追 URI → 守卫 deny 并指向不存在的 mcp 工具 → UNKNOWN_TOOL——内容已内联，正常不需要追；eval 量测追逐率，若显著再议只读放开（`allowReadonlyTools`）。
 
+## 实弹测试台账（2026-09-29 起 ongoing；目标 goal-01c7b263）
+
+**环境**：dev-ov 探针 profile（headless + assistant preset + ov 五旋钮）／dev-task 对照（零 ov）／dev（web）同步挂载。命令形状：`pnpm dsh --profile dev-ov --patch dev/preset-runner.patch.yml "<task>"`；日志 `dev/harness-home/sessions/--<cwd>--/<sid>/session.v4.jsonl.zstd` 按 [repo-live-probe](../../.agents/skills/repo-live-probe/SKILL.md) 解包。
+
+**场景电池**（每轮至少推进一格；全绿 ≥3 轮才可毕业）：
+
+| 场景 | 判据 | 状态 |
+|---|---|---|
+| S1 基础往返 ×3 轮（换哨兵语料） | 种子会话→手动 commit→抽取→**新会话** recall 块含哨兵事实且模型答对 | 轮1 抽取中 |
+| S2 修正探针（先说错再改口） | 找回取**终值**（试点证过 server 级，DSH 级待复验） | 待跑 |
+| S3 保密标注 | 敏感事实（估值底线类）抽取物带保密语义 | 待跑 |
+| S4 多会话累积 | 后轮 recall 能见前轮事实（累积不覆盖） | 待跑 |
+| S5 对照组 | dev-task 同题答「不知道」+ 零 ov 注入 | ✅ 轮1 过（诚实拒答+枚举上下文自证） |
+| S6 无中生有拒答 | 未种过的问题不编造（recall 无命中时模型明说没有） | 待跑 |
+| S7 表面纪律 | system prompt 无 ov 污染；profile 块 ≤3000 token；工具面计数稳定 | 轮1 已测：13031 chars 干净 / profile 538 chars / 16 个 mcp__openviking__* |
+
+**轮 1 现场记录**（探针 #1 = session-2f3fd292）：
+- ✅ 捕获：server 会话 2 条消息在库（user+assistant 轮都进）。
+- ✅ **profile 块到达 preset 会话**：`<openviking-context source="profile">` 含试点实体画像（咖啡因/小满/华芯/Q3 回款）+ available-memories 清单，538 chars。
+- ✅ **recall 块到达**：种子会话即有命中（score 0.77，试点遗留 + resources 样板页）——注入管道不等抽取也活。
+- ✅ 对照（S5）：dev-task 同题诚实「不知道」并枚举其上下文自证。
+- ⚠️ **偏差①**：`peerId: assistant` **不开新记忆空间**——`viking://user` 下只有 `default`；peer 是请求侧 actor 维度，画像与记忆是 user 级（试点语料直接喂进本轮画像）。§六剖面「新空间从零攒」假设作废；正式接入的隔离思路要重想（若要隔离须 `recallPeerScope: actor` 级别，未测）。
+- ⚠️ **偏差②**：one-shot 退出**不自动 commit**（无 session_commit 任务出现；手动 `POST /commit` 后任务才建，14:10:07 起 running）。探针流程手动 commit 兜底；web 真实会话的 flush→commit 行为待验（产品面关键项）。
+- 📏 工具面实测 **16 个** `mcp__openviking__*`（文档口径 12 之外另有 cancel_watch/find/health/list_watches）——shim 用前缀拒恰好全覆盖，固定名单设计会漏。
+
 ## 待答问题 / 待跑实验 / 喂给谁
 
 - **待答**：① URI 追逐率（工具被拒后模型追 `viking://` 的频度——§七.②代价账 d）；② commitTokenThreshold 真实长会话的最优值（默认 20000 一次/长会话 vs 更频繁）；③ `recallExcludeUris` 是否需要排目录生成文件（上游默认空表有此注释）；④ shim 对 `restrict` 未知名抛错的时序边界（MCP re-sync 竞态窗口多宽）。
