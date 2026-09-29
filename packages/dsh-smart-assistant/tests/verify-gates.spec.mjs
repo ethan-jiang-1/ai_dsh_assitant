@@ -456,6 +456,34 @@ describe('configParseProblems', () => {
   })
 })
 
+describe('dev env.sh: the isolation exit is honoured by the shell scripts too', () => {
+  /**
+   * `scripts/dsh.mjs` has always honoured `ASSISTANT_DSH_HOME`; `dev/env.sh` used to overwrite
+   * `DSH_HOME` unconditionally, so an isolated run built profiles in one home while the launcher
+   * read another — and the only symptom was `profile "dev" does not exist`. Exercised in a real
+   * bash subprocess, against a throwaway ASSISTANT_REPO so nothing of the repo is touched.
+   */
+  const envSh = join(import.meta.dirname, '..', '..', '..', 'dev', 'env.sh')
+  const resolvedHome = (assistantDshHome, extraEnv = {}) => {
+    const probeHome = temp('env-home-')
+    const scratchRepo = temp('env-repo-')
+    const script = `source ${JSON.stringify(envSh)}\nprintf 'RESOLVED=%s\\n' "$DSH_HOME"`
+    const env = { PATH: process.env.PATH ?? '', HOME: probeHome, ASSISTANT_REPO: scratchRepo, ...extraEnv }
+    if (assistantDshHome !== undefined) env.ASSISTANT_DSH_HOME = assistantDshHome
+    return execFileSync('bash', ['-c', script], { encoding: 'utf8', env })
+  }
+
+  it('uses ASSISTANT_DSH_HOME when set, and the repo dev home when unset', () => {
+    const isolated = join(temp('env-iso-'), 'home')
+    expect(resolvedHome(isolated)).toContain(`RESOLVED=${isolated}`)
+    // The unset case is the safety net: whatever DSH_HOME the calling shell had, the default wins.
+    const fallback = resolvedHome(undefined, { DSH_HOME: '/tmp/env-should-not-win' })
+    expect(fallback).toContain('RESOLVED=')
+    expect(fallback).not.toContain('RESOLVED=/tmp/env-should-not-win')
+    expect(fallback).toMatch(/RESOLVED=\S*\/dev\/harness-home\n/)
+  })
+})
+
 describe('startPathProblems', () => {
   // Entry-file fixtures are inline text: the check reads AGENTS.md's bytes, so a throwaway file
   // would add nothing but a second place for the shape to drift.

@@ -20,8 +20,9 @@ source "$repo_root/dev/env.sh"
 cd "$repo_root"
 
 # 与 setup.sh 的守卫同一约定：不碰日用 home（本脚本自己不装 profile，但保持一致，免得抄错改坏）。
-if [ "$DSH_HOME" = "$HOME/.dsh" ]; then
-  echo "✗ DSH_HOME points at the daily ~/.dsh — refusing to touch it. source dev/env.sh first." >&2
+if [ -z "${ASSISTANT_DSH_HOME:-}" ] && [ "$DSH_HOME" = "$HOME/.dsh" ]; then
+  echo "✗ DSH_HOME resolves to the daily ~/.dsh — refusing to touch it." >&2
+  echo "  Unset it, source dev/env.sh, or point ASSISTANT_DSH_HOME at a scratch home on purpose." >&2
   exit 1
 fi
 
@@ -29,8 +30,11 @@ fi
 pnpm_vendor() { pnpm --config.verify-deps-before-run=false --dir vendor/dsh "$@"; }
 
 built=0
-need() { # name path
-  if [ -e "$2" ]; then
+need() { # name glob
+  # A glob, not a literal path: the native addon lands in a platform-named package
+  # (`packages/<platform>/bin/system.node`), and the platform is whatever the host happens to be.
+  # Guessing the literal path made this report "missing" on a fully built tree and rebuild every run.
+  if compgen -G "$2" > /dev/null; then
     echo "▸ $1: present"
   else
     echo "▸ $1: missing — building"
@@ -39,16 +43,16 @@ need() { # name path
   fi
 }
 
-if ! need "vendor deps" vendor/dsh/node_modules; then
+if ! need "vendor deps" 'vendor/dsh/node_modules'; then
   pnpm_vendor install
 fi
-if ! need "native addon" vendor/dsh/node_modules/node-pty/build/Release/pty.node; then
+if ! need "native addon" 'vendor/dsh/native/system/packages/*/bin/system.node'; then
   pnpm_vendor run build:native-system
 fi
-if ! need "host + client lib" vendor/dsh/packages/client/modules/lib/client.js; then
+if ! need "host + client lib" 'vendor/dsh/packages/client/modules/lib/client.js'; then
   pnpm_vendor run build:lib
 fi
-if ! need "web dist (Web UI)" vendor/dsh/apps/web/dist/index.html; then
+if ! need "web dist (Web UI)" 'vendor/dsh/apps/web/dist/index.html'; then
   pnpm_vendor run build:web
 fi
 

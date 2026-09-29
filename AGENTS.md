@@ -70,6 +70,10 @@ pnpm dsh --profile dev-task "one task"   # ⑤ 只想冒烟 host 面（插件装
 
 **开发环与舱内工具**（用①的 install 装好即可，与起服务无先后）：
 
+先判据、别瞎跑：① 装好了 = `node_modules/.modules.yaml` 在（或 `pnpm store` 里已有本次解析）；
+② 建好了 = `vendor/dsh/packages/boot/app-boot/lib/index.js`、`.../client/modules/lib/client.js`、
+`vendor/dsh/apps/web/dist/index.html` 三个都在（`--dump-config`/`--help` 不加载 lib，**不能**当判据）。
+
 ```sh
 pnpm gen-paths          # 从 vendor/dsh 重新生成运行期解析入口 tsconfig.tsx.json（换 pin 后必跑）
 pnpm build              # tsc 出 lib/：改 src 后必跑——preset 行加载的是构建物，不是源码
@@ -94,7 +98,9 @@ pnpm eval:domain        # 领域评测集 v0（G2 关口）：本人出的真实
 1. **双 home**：`pnpm dsh` 经 `scripts/dsh.mjs` 启动，**永远强制** `DSH_HOME=<repo>/dev/harness-home`
    （覆盖任何继承来的值，包括日用的 `~/.dsh`；显式出口是 `ASSISTANT_DSH_HOME`）。
    绕过启动器直连 node 的调用（release-smoke、`dev/setup.sh`）自己负责设置 `DSH_HOME`；
-   `dev/env.sh` 是它们与手工调用时的兜底。**任何情况下不碰日用的 `~/.dsh`。**
+   `dev/env.sh` 是它们与手工调用时的兜底，**同样认 `ASSISTANT_DSH_HOME`**
+   （用隔离 home 跑实验的人，脚本与启动器必须落在**同一个** home，否则 profile 建在一个 home、启动器去另一个找）。
+   **任何情况下不碰日用的 `~/.dsh`。**
 2. **探索路由**：要 DSH 机制结论，读 `vendor/dsh/docs/architecture.md` → `vendor/dsh/docs/capability-seams.md` → 对应包 README；
    要真实签名，读 `vendor/dsh/packages/**/src/`。**不猜 API，去读。**
 3. **窄证据**：一次交付 = 一个垂直切片（代码 + 测试 + docs/README + note 同 diff）；

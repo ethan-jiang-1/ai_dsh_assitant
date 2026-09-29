@@ -20,8 +20,9 @@ repo_root="$(git rev-parse --show-toplevel)"
 # shellcheck source=dev/env.sh
 source "$repo_root/dev/env.sh"
 
-if [ "$DSH_HOME" = "$HOME/.dsh" ]; then
-  echo "✗ DSH_HOME points at the daily ~/.dsh — refusing to touch it. source dev/env.sh first." >&2
+if [ -z "${ASSISTANT_DSH_HOME:-}" ] && [ "$DSH_HOME" = "$HOME/.dsh" ]; then
+  echo "✗ DSH_HOME resolves to the daily ~/.dsh — refusing to touch it." >&2
+  echo "  Unset it, source dev/env.sh, or point ASSISTANT_DSH_HOME at a scratch home on purpose." >&2
   exit 1
 fi
 

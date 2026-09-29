@@ -6,9 +6,12 @@
 ## 一、隔离模型（什么被隔离、什么没有被隔离）
 
 一切持久化的根是 `DSH_HOME`（解析优先级：显式配置 > `$DSH_HOME` > `~/.dsh`）。
-**dev 实例 = `DSH_HOME=<repo>/dev/harness-home`**，由 `scripts/dsh.mjs`（`pnpm dsh` 的唯一入口）
-无条件强制 —— 继承来的 `DSH_HOME=~/.dsh` 会被覆盖并在 stderr 打一行说明；
-显式出口是 `ASSISTANT_DSH_HOME`（冒烟/实验用，指向 `~/.dsh` 会被警告）。
+**dev 实例默认 = `DSH_HOME=<repo>/dev/harness-home`**，由 `scripts/dsh.mjs`（`pnpm dsh` 的唯一入口）
+无条件强制 —— 继承来的 `DSH_HOME=~/.dsh` 会被覆盖并在 stderr 打一行说明。
+**唯一出口是 `ASSISTANT_DSH_HOME`**，且它对**启动器和两个 dev 脚本一致生效**
+（`dev/env.sh` 是后者的收口处）：指向日用 `~/.dsh` 时不拦截但打显著警告（与启动器同语义——只让发生的事可见）。
+**用隔离 home 跑实验必须建 profile 与起服务同 home**：profile 由 `dev/setup.sh` 建、由 `pnpm dsh` 读，
+两边不同就会看到 `profile "dev" does not exist`——而它说的是实话，只是没说"你建在另一个 home 了"。
 
 | 通道 | 是否随 DSH_HOME 隔离 | dev 的处理 |
 |---|---|---|
