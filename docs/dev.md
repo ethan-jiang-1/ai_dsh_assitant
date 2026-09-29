@@ -50,12 +50,22 @@
 ## 三、一次性准备（每个 pin 一次）
 
 ```sh
-pnpm install                              # 并入 vendor/dsh 整树
-pnpm --dir vendor/dsh install             # vendor 树自己的依赖
+pnpm install            # 仓根：并入 vendor/dsh 整树（首次较慢）
+bash dev/prepare.sh     # 幂等：缺什么补什么（vendor 依赖 → native addon → host+client lib → web dist）
+```
+
+它包住的四条命令（产物已在位时本脚本原样跳过，所以重跑安全；手动逐条敲是同一个结果，但要自己记住约束）：
+
+```sh
+pnpm --dir vendor/dsh install
 pnpm --dir vendor/dsh run build:native-system
 pnpm --dir vendor/dsh run build:lib       # host + client 双 face 的 lib/
 pnpm --dir vendor/dsh run build:web       # 只有跑 Web UI 才需要（前端 dist）
 ```
+
+- **为什么包成脚本**：这四条是**起服务的前置**，漏一条的失败点是一句无关的报错（缺 boot lib 时
+  `dev/setup.sh` 会 fail loud，但它不替你把构建跑一遍）。搬进脚本后，fresh clone 到能起服务只剩
+  命令表那条链，每一步都能重跑。
 
 - **known pitfall**：vendor 树的根 `postinstall`（lefthook）在 submodule 里会失败
   （`extensions.worktreeConfig` + `core.worktree` 冲突）。包已全部就位，可忽略；
@@ -117,6 +127,23 @@ registering"——而第一个打开页面的人就成了 crash-test dummy。`pn
 - `dev` = `[dsh-base, dsh-web-app, dsh-smart-assistant]`，registry 默认值用 dev/profile-patch.yml（替换语义）替换 `agent-preset-registry` 行的 config。
 - `dev-task` = `[dsh-base, dsh-headless, dsh-smart-assistant]`，registry 用 dev/profile-patch-headless.yml
   （insert 语义 —— headless 模板里没有 `agent-preset-registry` 行可替换）。两个 patch 文件不可互换。
+
+**一个 profile 装出来是什么**：`dev`（web 模板）与 `dev-task`（headless 模板）两个 profile 住在
+`$DSH_HOME/profiles/`；两者都装本插件（`dsh plugin add` 指向 repo 的裸路径 = link 语义），
+并分别载入 `dev/profile-patch.yml`（整行替换）与 `dev/profile-patch-headless.yml`（insert），
+把 roster 的默认 preset 指到本仓的 `assistant`。
+
+**跳过 setup.sh 直接起服务（fresh clone 的第一次就会撞）**：
+
+```sh
+$ pnpm dsh --profile dev --port 0 --no-open
+Error: dsh: profile "dev" does not exist; create it with 'dsh plugin --profile dev add <package>'
+```
+
+DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得到一个官方模板 profile：
+本插件的 bundle 与 roster 指向都不在里面，起得来但不是本 repo 的 dev 实例。
+**正解是 `bash dev/setup.sh`**（它建两个 profile、装插件、指 roster）。
+判据：`ls "$DSH_HOME/profiles"` 里同时有 `dev` 与 `dev-task`；只缺一个时重跑脚本即可（幂等）。
 
 **三条纪律（为什么"改了不生效"）：**
 

@@ -555,6 +555,57 @@ export function commandAliasProblems({ scripts, documents, ownerPath }) {
   return problems
 }
 
+/**
+ * The startup path is the one thing a fresh agent must get right on its first read, and it is the
+ * only thing here that fails *before* any tooling can help. Two skips each produce a misleading
+ * error: no `dev/prepare.sh` and the boot libs are missing (setup.sh's guard is the only thing that
+ * says so), no `bash dev/setup.sh` and DSH answers `profile "dev" does not exist; create it with
+ * 'dsh plugin --profile dev add <package>'` — which points at a template profile carrying neither
+ * this plugin nor the roster. So the command table's startup block is pinned to three facts: both
+ * preparatory scripts are marked as the first step and come before any launch, and the block names
+ * both profiles (each is the only place its surface — preset behaviour vs host smoke — is verifiable).
+ */
+export function startPathProblems({ agentsPath, source }) {
+  const problems = []
+  if (typeof source !== 'string' || source.length === 0) {
+    problems.push(`${agentsPath} was not read (or is empty) — the startup path cannot be checked`)
+    return problems
+  }
+  const lines = source.split('\n')
+  // A server-launching command is `dsh … --profile …` minus the two boot-free diagnostics: those
+  // never need a profile to exist, so they must not be mistaken for the thing setup.sh precedes.
+  const launches = lines
+    .map((line, index) => ({ line, index }))
+    .filter(({ line }) => line.includes('--profile') && !line.includes('--dump-config') && !line.includes('--help'))
+  // Order matters: prepare builds the vendor artifacts, setup.sh then builds the profiles.
+  let lastIndex = -1
+  for (const script of ['dev/prepare.sh', 'dev/setup.sh']) {
+    // A fencing/indent-tolerant extraction: a shell comment sits on the same line, and the command
+    // itself may be `bash dev/prepare.sh`, `./dev/setup.sh`, or a bare path copy-paste.
+    const line = lines.find(candidate => candidate.includes(script))
+    if (line === undefined) {
+      problems.push(`${agentsPath} names ${script} nowhere — a fresh clone has no way to reach a runnable instance`)
+      return problems
+    }
+    const index = lines.indexOf(line)
+    if (!/首次|前置|先跑|先执行|\bfirst\b/iu.test(line)) {
+      problems.push(`${agentsPath}:${index + 1} names ${script} without saying it is the first step — an unmarked step is a step agents skip`)
+    }
+    const early = launches.find(launch => launch.index < index && launch.index > lastIndex)
+    if (early) {
+      problems.push(`${agentsPath}:${early.index + 1} launches a profile before ${script} (line ${index + 1}) — that order boots the "profile does not exist" failure`)
+    }
+    lastIndex = index
+  }
+  const startup = launches.filter(({ index }) => index > lastIndex).map(({ line }) => line).join('\n')
+  for (const profile of ['dev', 'dev-task']) {
+    if (!new RegExp(`--profile ${profile}\\b`, 'u').test(startup)) {
+      problems.push(`${agentsPath} never launches profile \`${profile}\` after dev/setup.sh — one of the two dev surfaces lost its route`)
+    }
+  }
+  return problems
+}
+
 export function dshHomeInheritanceProblems(files) {
   const problems = []
   for (const file of files) {

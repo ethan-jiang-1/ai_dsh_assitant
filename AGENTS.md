@@ -56,26 +56,37 @@ implemented note 必带「**输掉的方案**」节——没记击败了什么�
 
 ## 命令表
 
+**要起服务，这一串按序跑到底**（②③ 都幂等，重跑安全）：
+
 ```sh
-pnpm install            # 并入 vendor/dsh 整树，首次较慢
+pnpm install            # ① 并入 vendor/dsh 整树（首次较慢）
+bash dev/prepare.sh     # ② **首次必须先跑**：补齐 boot 需要的 vendor/dsh 产物（deps/native/lib/web，已在位即跳过）
+bash dev/setup.sh       # ③ **起服务的前置**：它才建 dev（web）+ dev-task（headless）两个 profile 并把 roster 指向本仓；
+                        #    skip 它 = `profile "dev" does not exist`，而 DSH 那句报错会把你指向错的命令
+pnpm dsh --profile dev --port 0 --no-open   # ④ Web UI：preset 行为（四工具/persona/摘要）只在这里的会话里验；
+                        #    3080 被占则 `--port 0`（OS 分配端口 + token）；交给人之前先 `pnpm preflight '<URL>'`（绿了再交）
+pnpm dsh --profile dev-task "one task"   # ⑤ 只想冒烟 host 面（插件装载/scaffold/服务行）就跑它，进程自己退（不进 preset）
+```
+
+**开发环与舱内工具**（用①的 install 装好即可，与起服务无先后）：
+
+```sh
 pnpm gen-paths          # 从 vendor/dsh 重新生成运行期解析入口 tsconfig.tsx.json（换 pin 后必跑）
+pnpm build              # tsc 出 lib/：改 src 后必跑——preset 行加载的是构建物，不是源码
+pnpm preflight '<URL>'  # 开屏前门禁：证明装得上（auth/boot 图/每个 combo 可解析）；不证明渲染出来
+pnpm shots '<URL>' --dom --size 1600x1000   # 渲染证据：headless Chrome 经 CDP 出 PNG + DOM 证据；`--eval` 拿交互态
+pnpm dsh --profile dev --dump-config   # boot-free：组合里到底有没有这一行（排查 patch 落空/重复 id 的第一命令）
+pnpm dsh --profile dev-task --patch dev/preset-runner.patch.yml "<task>"   # preset 挂载的 one-shot（验证自动化驱动）
+pnpm typecheck          # 委派包级：tsc -b（编译期 paths 解析到 vendor/dsh 的 src，API 漂移编译期暴露）+ 测试工程
+pnpm test               # vitest：纯核（home/memory/research/skills/knowledge）+ 服务级合同（真 cordis 构造）
+pnpm verify             # 机械门禁链：生成物 freshness + 自检 + 结构/身份/解析入口/自包含/技能语法/断链/文档命令互证/notes 形状等（清单以 scripts/verify.mjs 为准）
+pnpm release-smoke      # pnpm pack → 干净 home → dsh plugin add → 组合断言（**改动发布物/依赖/preset 包装必跑**）
+pnpm export-dist        # 手动分发导出：pnpm pack → _dist/ 的 tgz + 清单边界断言 + 自动生成《安装手册》
+pnpm sync-dsh -- --tag <dsh-tag>   # 换 submodule tag + SHA 簿记 + typecheck + 对照 docs/discipline.md 重校纪律表
 pnpm usage              # 意图级仪表：会话/工具混合/自用率/摩擦/家的现状（读 dev home；dev 工具不得继承 DSH_HOME）
 pnpm desk-loop          # 培养循环摩擦报告：从真实会话日志读「点了没反应 / 反复点 / 答了多次 / 技能没加载」（读 dev home）
 pnpm eval               # 行为评测：真实请求经 preset 会话跑一遍，判定读会话日志（串行；任务集 dev/eval/tasks.mjs）
-pnpm eval:domain        # 领域评测集 v0（G2 关口）：本人出的真实经营问题逐题跑一遍 → 给人打分的报告（题目格式 `dev/eval/domain/TEMPLATE.md`；填题副本 `dev/eval/domain/` 下的 questions.local.md，不入库）
-pnpm typecheck          # 委派包级：tsc -b（编译期 paths 解析到 vendor/dsh 的 src，API 漂移编译期暴露）+ tsc -p tsconfig.test.json（覆盖 tests）
-pnpm test               # vitest：纯核（home/memory/research/skills/knowledge）+ 服务级合同（真 cordis 构造，不依赖 DSH 运行时）
-pnpm verify             # 机械门禁链：生成物 freshness + 自检（评测器 / 摩擦报告 / 领域评测）+ 结构/身份/解析入口/自包含/技能语法/断链/文档命令与别名互证/notes 形状/提交安全等检查（条数与清单以 scripts/verify.mjs 为准）
-pnpm build              # tsc 出 lib/（发布物与 dsh plugin add 需要）
-pnpm release-smoke      # pnpm pack → 干净 home → dsh plugin add → 组合断言（真实安装形状；**改动发布物/依赖/preset 包装必跑**，否则它只是"存在一个脚本"）
-pnpm export-dist        # 手动分发导出：pnpm pack → _dist/ 的 tgz + 清单边界断言 + 自动生成《安装手册》（导出 ≠ 发布；手册版本由 verify 门禁对包防漂）
-pnpm sync-dsh -- --tag <dsh-tag>   # 换 submodule tag + SHA 簿记 + typecheck + 对照 docs/discipline.md 重校纪律表
-
-bash dev/setup.sh       # 幂等：建 dev（web）+ dev-task（headless）两个 profile + link 装插件 + roster 指向 repo（两者为何不能合一：`docs/dev.md` §四）
-pnpm dsh --profile dev-task "one task"  # one-shot = **host 面冒烟**（headless 不进 preset，vendor 明文契约）
-pnpm dsh --profile dev --port 0 --no-open   # Web UI；preset 行为（四工具/persona/摘要）在这里的会话里验。交给人之前先 `pnpm preflight '<URL>'`（绿了再交，见 docs/dev.md §四）
-pnpm shots '<URL>' --dom --size 1600x1000   # 渲染证据：headless Chrome 经 CDP 出 PNG + DOM 证据（可见文本/高度大纲/交互件/console）；`--eval` 拿交互态，`--plain` 兜底（见 docs/dev.md §四）
-pnpm dsh --profile dev-task --patch dev/preset-runner.patch.yml "<task>"   # **preset 挂载的 one-shot**（验证自动化驱动；不带 patch 仍是裸 agent 冒烟）
+pnpm eval:domain        # 领域评测集 v0（G2 关口）：本人出的真实经营问题逐题跑 → 给人打分的报告（题面格式 dev/eval/domain/TEMPLATE.md）
 ```
 
 ## 七条硬规则

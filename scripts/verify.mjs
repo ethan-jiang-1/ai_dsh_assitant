@@ -18,7 +18,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { agentsMdStabilityProblems, commandAliasProblems, configParseProblems, dependencyPoseProblems, dshHomeInheritanceProblems, exportManualProblems, GRADUATED_STATUS, implementedAlternativesProblems, languageGuardProblems, notesNamingProblems, notesStateProblems, notesTopLevelProblems, pinProblems, relativeLinkProblems, skillFrontmatterProblems, textHygieneProblems } from './verify-checks.mjs'
+import { agentsMdStabilityProblems, commandAliasProblems, configParseProblems, dependencyPoseProblems, dshHomeInheritanceProblems, exportManualProblems, GRADUATED_STATUS, implementedAlternativesProblems, languageGuardProblems, notesNamingProblems, notesStateProblems, notesTopLevelProblems, pinProblems, relativeLinkProblems, skillFrontmatterProblems, startPathProblems, textHygieneProblems } from './verify-checks.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const packageDir = join(repoRoot, 'packages', 'dsh-smart-assistant')
@@ -342,6 +342,13 @@ check('docs: commands named in the docs exist, and every alias is named in a cur
     documents: corpus,
   })
 })
+
+// 起服务是 fresh agent 第一次读就会照做的那条路，也是唯一在任何工具能帮上忙之前就失败的环节：
+// 漏掉 setup.sh，DSH 回答的是 `create it with 'dsh plugin --profile dev add <package>'`——
+// 照它做得到的是既没本插件也没 roster 的模板 profile。所以命令表的启动块钉死三件事：
+// 脚本被标成第一步、它排在任何起服务的命令之前、两个 profile 各有路由。
+check('docs: the startup path in AGENTS.md is reachable in first-step order', () =>
+  startPathProblems({ agentsPath: 'AGENTS.md', source: read(join(repoRoot, 'AGENTS.md')) }))
 
 check('structure: every composition file we own parses as YAML', () =>
   configParseProblems([

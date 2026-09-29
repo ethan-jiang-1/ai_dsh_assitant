@@ -28,10 +28,8 @@ fi
 if [ ! -f "$repo_root/vendor/dsh/packages/boot/app-boot/lib/index.js" ] || \
    [ ! -f "$repo_root/vendor/dsh/packages/client/modules/lib/client.js" ]; then
   echo "✗ vendor/dsh is not built (host/client lib missing) — the harness needs its built lib/ to boot." >&2
-  echo "  Run once per pin:" >&2
-  echo "    pnpm --dir vendor/dsh install" >&2
-  echo "    pnpm --dir vendor/dsh run build:native-system && pnpm --dir vendor/dsh run build:lib" >&2
-  echo "  (Web UI additionally needs: pnpm --dir vendor/dsh run build:web)" >&2
+  echo "  Run once per pin: bash dev/prepare.sh" >&2
+  echo "  (it wraps: pnpm --dir vendor/dsh install; build:native-system; build:lib; build:web)" >&2
   exit 1
 fi
 

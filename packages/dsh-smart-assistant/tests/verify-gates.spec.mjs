@@ -30,6 +30,7 @@ import {
   implementedAlternativesProblems,
   relativeLinkProblems,
   skillFrontmatterProblems,
+  startPathProblems,
   textHygieneProblems,
 } from '../../../scripts/verify-checks.mjs'
 
@@ -452,6 +453,75 @@ describe('configParseProblems', () => {
     const problems = configParseProblems([bad])
     expect(problems).toHaveLength(1)
     expect(problems[0]).toContain('does not parse as YAML')
+  })
+})
+
+describe('startPathProblems', () => {
+  // Entry-file fixtures are inline text: the check reads AGENTS.md's bytes, so a throwaway file
+  // would add nothing but a second place for the shape to drift.
+  const agents = source => ({ agentsPath: 'AGENTS.md', source })
+  const prepare = "bash dev/prepare.sh     # 首次必须先跑：补齐 vendor 产物"
+  const setup = 'bash dev/setup.sh       # 首次起服务的前置：它才建两个 profile（幂等）'
+  const good = [
+    '## 命令表',
+    '',
+    '要起服务，照这一串顺序走：',
+    '',
+    '```sh',
+    'pnpm install',
+    prepare,
+    setup,
+    'pnpm dsh --profile dev --port 0 --no-open',
+    'pnpm dsh --profile dev-task "one task"',
+    '```',
+    '',
+  ].join('\n')
+
+  it('accepts both marked first steps ordered before the launches, with both profiles routed', () => {
+    expect(startPathProblems(agents(good))).toEqual([])
+  })
+
+  it('rejects each wrong order that boots the "profile does not exist" failure', () => {
+    // Fixtures are written out in full rather than patched with string surgery: a fixture built by
+    // replacements can silently stop testing what it claims to (the first draft of this one did).
+    const beforeSetup = [
+      '```sh',
+      'pnpm install',
+      prepare,
+      'pnpm dsh --profile dev --port 0 --no-open',
+      setup,
+      'pnpm dsh --profile dev-task "one task"',
+      '```',
+      '',
+    ].join('\n')
+    expect(startPathProblems(agents(beforeSetup))[0]).toContain('launches a profile before dev/setup.sh')
+    const beforePrepare = [
+      '```sh',
+      'pnpm install',
+      'pnpm dsh --profile dev --port 0 --no-open',
+      prepare,
+      setup,
+      'pnpm dsh --profile dev-task "one task"',
+      '```',
+      '',
+    ].join('\n')
+    expect(startPathProblems(agents(beforePrepare))[0]).toContain('launches a profile before dev/prepare.sh')
+  })
+
+  it('rejects an unmarked preparatory step — an unmarked step is a step agents skip', () => {
+    expect(startPathProblems(agents(good.replace(prepare, 'bash dev/prepare.sh')))[0])
+      .toContain('dev/prepare.sh without saying it is the first step')
+    expect(startPathProblems(agents(good.replace(setup, 'bash dev/setup.sh')))[0])
+      .toContain('dev/setup.sh without saying it is the first step')
+  })
+
+  it('rejects a missing preparatory step, a lost profile route, and an unreadable entry file', () => {
+    expect(startPathProblems(agents(good.replace(`${prepare}\n`, '')))[0]).toContain('dev/prepare.sh nowhere')
+    expect(startPathProblems(agents(good.replace(`${setup}\n`, '')))[0]).toContain('dev/setup.sh nowhere')
+    expect(startPathProblems(agents(good.replace('pnpm dsh --profile dev-task "one task"\n', '')))[0])
+      .toContain('never launches profile `dev-task`')
+    // A missing/empty file must read as "could not check", never as a silent pass.
+    expect(startPathProblems(agents(''))[0]).toContain('cannot be checked')
   })
 })
 
