@@ -3,7 +3,7 @@
   //
   // Runtime resolution facade for `pnpm dsh` (node --import tsx/esm): tsx resolves
   // `@deepseek-ai/*` through the nearest tsconfig's `paths`, so this file is what lets the harness
-  // load the pinned sources instead of unbuilt `lib/index.js`. 325 aliases,
+  // load the pinned sources instead of unbuilt `lib/index.js`. 329 aliases,
   // regenerated from vendor/dsh on every pin change.
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
@@ -53,6 +53,7 @@
       "@deepseek-ai/dsh-client-hmr": ["./vendor/dsh/packages/client/hmr/src"],
       "@deepseek-ai/dsh-client-locale": ["./vendor/dsh/packages/client/locale/src"],
       "@deepseek-ai/dsh-client-modules": ["./vendor/dsh/packages/client/modules/src"],
+      "@deepseek-ai/dsh-client-product-analytics": ["./vendor/dsh/packages/client/product-analytics/src"],
       "@deepseek-ai/dsh-client-resources": ["./vendor/dsh/packages/client/resources/src"],
       "@deepseek-ai/dsh-client-shortcuts": ["./vendor/dsh/packages/client/shortcuts/src"],
       "@deepseek-ai/dsh-client-store": ["./vendor/dsh/packages/client/store/src"],
@@ -91,6 +92,7 @@
       "@deepseek-ai/dsh-client-ui-settings-models": ["./vendor/dsh/packages/client/ui-settings-models/src"],
       "@deepseek-ai/dsh-client-ui-settings-plugin-inventory": ["./vendor/dsh/packages/client/ui-settings-plugin-inventory/src"],
       "@deepseek-ai/dsh-client-ui-settings-plugins": ["./vendor/dsh/packages/client/ui-settings-plugins/src"],
+      "@deepseek-ai/dsh-client-ui-settings-session-log": ["./vendor/dsh/packages/client/ui-settings-session-log/src"],
       "@deepseek-ai/dsh-client-ui-settings-shell": ["./vendor/dsh/packages/client/ui-settings-shell/src"],
       "@deepseek-ai/dsh-client-ui-settings-subagent": ["./vendor/dsh/packages/client/ui-settings-subagent/src"],
       "@deepseek-ai/dsh-client-ui-settings-web-search": ["./vendor/dsh/packages/client/ui-settings-web-search/src"],
@@ -146,6 +148,7 @@
       "@deepseek-ai/dsh-experimental-computer-use-cua-driver-native": ["./vendor/dsh/packages/experimental/computer-use-cua-driver-native/src"],
       "@deepseek-ai/dsh-experimental-inspector": ["./vendor/dsh/packages/experimental/inspector/src"],
       "@deepseek-ai/dsh-experimental-ptc-runtime-python": ["./vendor/dsh/packages/experimental/ptc-runtime-python/src"],
+      "@deepseek-ai/dsh-experimental-schedule-bundle": ["./vendor/dsh/packages/experimental/schedule-bundle/src"],
       "@deepseek-ai/dsh-experimental-speech-to-text": ["./vendor/dsh/packages/experimental/speech-to-text/src"],
       "@deepseek-ai/dsh-experimental-speech-to-text-sensevoice": ["./vendor/dsh/packages/experimental/speech-to-text-sensevoice/src"],
       "@deepseek-ai/dsh-experimental-tool-agent-team": ["./vendor/dsh/packages/experimental/tool-agent-team/src"],
@@ -198,6 +201,7 @@
       "@deepseek-ai/dsh-message-feedback": ["./vendor/dsh/packages/feedback/message-feedback/src"],
       "@deepseek-ai/dsh-native-command": ["./vendor/dsh/packages/util/native-command/src"],
       "@deepseek-ai/dsh-office-to-pdf": ["./vendor/dsh/packages/document/office-to-pdf/src"],
+      "@deepseek-ai/dsh-otel": ["./vendor/dsh/packages/telemetry/otel/src"],
       "@deepseek-ai/dsh-output-retention": ["./vendor/dsh/packages/util/output-retention/src"],
       "@deepseek-ai/dsh-package-manifest": ["./vendor/dsh/packages/util/package-manifest/src"],
       "@deepseek-ai/dsh-permission-presets": ["./vendor/dsh/packages/interaction/permission-presets/src"],

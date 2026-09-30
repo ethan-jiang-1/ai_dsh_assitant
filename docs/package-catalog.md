@@ -62,8 +62,8 @@
 
 ## 兼容与依赖姿态
 
-- 钉住的上游 tag：`dsh-v0.1.7-rc.2`
-- 记录为 verified 的 DSH release：`0.1.5-rc.2`、`0.1.7-rc.2`
+- 钉住的上游 tag：`dsh-v0.2.0-rc.2`
+- 记录为 verified 的 DSH release：`0.1.5-rc.2`、`0.1.7-rc.2`、`0.2.0-rc.2`
 - 运行时 dependencies：`yaml`
 - peerDependencies：11 个 `@deepseek-ai/*`（姿态由门禁守：harness 包只许 peer）
 - client 面（浏览器包）：有

@@ -9,9 +9,9 @@
 | 项 | 值 |
 |---|---|
 | 上游 | `https://github.com/deepseek-ai/deepseek-harness.git` |
-| 钉住的 tag | `dsh-v0.1.7-rc.2` |
-| 精确 SHA | `477b4f420553e8a52c2fbccc464d7561b239c443` |
-| tag 提交时间 | 2026-09-24 |
+| 钉住的 tag | `dsh-v0.2.0-rc.2` |
+| 精确 SHA | `639ed015397290b3745d163aafe02ffee4aa3f84` |
+| tag 提交时间 | 2026-09-29 |
 | 本地形状 | **shallow**（`--depth 1`，只含该 tag 的树；升级要重新 fetch 目标 tag） |
 
 ## 为什么钉这个 tag（不是 `ethan` 分支）
