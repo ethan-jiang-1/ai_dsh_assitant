@@ -120,7 +120,18 @@
 
 **环境**：dev-ov 探针 profile（headless + assistant preset + ov 五旋钮）／dev-task 对照（零 ov）／dev（web）同步挂载。命令形状：`pnpm dsh --profile dev-ov --patch dev/preset-runner.patch.yml "<task>"`；日志 `dev/harness-home/sessions/--<cwd>--/<sid>/session.v4.jsonl.zstd` 按 [repo-live-probe](../../.agents/skills/repo-live-probe/SKILL.md) 解包。
 
-**场景电池**（每轮至少推进一格；全绿 ≥3 轮才可毕业）：
+**二期稳定性台账（2026-09-29 深夜起；goal-2c3fbe0e）**：
+
+| 场景 | 判据 | 结果 |
+|---|---|---|
+| S8 重复性 ×3 | 同题跨会话召回一致 | ❌ **判词反转=发现本身**：召回通道**不确定**（planner 时延双峰 0.2s↔>15s，快慢决定走会话感知还是 find 降级；`bypassSession` 是死旋钮——`isBypassed` 零调用点）。**画像通道 3/3 稳定**（名字类事实全对）；实体页细节（过敏/喂养）召回 0/3，仅工具读可达。**确定性契约 = 画像（事实）+ 工具读（深度）**，召回是尽力而为加速器 |
+| S10 事实更新 | 新值赢、旧值不复活 | ✅ **过**：换车位种子→抽取 `parking_space_change`（0.87，09/30）压过旧 `parking_space_correction`（0.84，09/29）；放开工具后模型自主四源查证（assistant_memory recall + ov 语义检索 + grep + 事件目录），产出完整更迭链 B2-117→B2-171（取代）→B3-205（现行，带 URI+「无更晚翻转」核验） |
+| S13 flush 时机 | 源码级结论（能实测则实测） | ✅ **源码定案**：`session/flush` ≠ commit——插件 flush 只等消息写入（`runtime.mjs:400-403`）；commit 仅在 turn/end 且 `pending_tokens ≥ commitTokenThreshold`（`runtime.mjs` maybeCommit，默认 20000）。**推论：短会话（<20000 token）默认永不进抽取——个人助手主场景的记忆丢失缺口**。层 1 剖面 v3 必改：commitTokenThreshold 降至 2000-4000（试点 2000 的判断才是对的）；精确值待真实 web 会话校准（需真人多轮，headless 无法模拟） |
+| S12 中断恢复 | 重启后记忆/队列/召回完好 | ✅ **2/2 过**（18 条、38 条两次重启全保留；find-back 即时 0.83 双命中；插件无状态 HTTP 天然跨重启） |
+
+**二期结论**：靠不靠谱的最终形状——**画像+工具读是确定性主通道（可承诺），召回块是统计性加速器（不可承诺）**。shim 读写分离设计三期不变且更必要。
+
+**一期场景电池**（每轮至少推进一格；全绿 ≥3 轮才可毕业）：
 
 | 场景 | 判据 | 状态 |
 |---|---|---|
