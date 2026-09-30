@@ -57,6 +57,14 @@ pack → 干净 home → 装 → 组合断言。`file:` 这条路径本身实测
 知识种子按治理写入路径落 `draft`；`draft → stable` 的人审有两条合法路径——**你亲手改** `status`（那一下就是评审），
 或**你明确批准后由助手 `promote_page` 执行那次翻转**（批准是你的，助手只做编辑）。
 
+**养护定时（可选，experimental）**：助手自己的养护巡检可以交给 DSH 的 `schedule-bundle` 定时驱动——
+**本包不默认带它**（experimental 合同随时会漂，2026-09-30 拍板；依 adoption 卡 C1 片）。想开的人在 Web
+插件页一键开 `dsh-experimental-schedule-bundle`（vendor OPTIONAL_BUNDLES 机制），开完用
+`--dump-config` 断言组合里出现 `schedule` 行且**不**带 `pending (waiting for service: sessionController)`
+—— 它依赖 web 层，纯 headless 部署里挂上也激活不了（隔离 home 实测的判据句）。激活后让助手建首个
+养护任务即可（`schedule_create`：`prompt`+`title` 必填、`after_seconds` 延时秒）；本包已挂的
+`time-context` 行与该 bundle 自带行同 id 同 config，组合容忍并列、无行为差异（实测）。
+
 ## 开发
 
 ```sh

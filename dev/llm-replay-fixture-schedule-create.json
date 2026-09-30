@@ -1,0 +1,31 @@
+[
+  {
+    "kind": "chunks",
+    "chunks": [
+      { "type": "block-start", "index": 0, "blockType": "tool-call" },
+      { "type": "tool-call-delta", "index": 0, "id": "call_c1_schedule_create", "name": "schedule_create", "argumentsDelta": "{\"prompt\": \"养护巡检：读一遍 curate findings 与 stale research，写一行摘要到桌面。\", \"title\": \"养护巡检\", \"after_seconds\": 3600}" },
+      { "type": "block-end", "index": 0, "block": { "type": "tool-call", "id": "call_c1_schedule_create", "name": "schedule_create", "arguments": "{\"prompt\": \"养护巡检：读一遍 curate findings 与 stale research，写一行摘要到桌面。\", \"title\": \"养护巡检\", \"after_seconds\": 3600}" } },
+      { "type": "finish", "reason": { "kind": "tool-calls" } }
+    ]
+  },
+  {
+    "kind": "chunks",
+    "chunks": [
+      { "type": "block-start", "index": 0, "blockType": "text" },
+      { "type": "text-delta", "index": 0, "text": "schedule create probe complete" },
+      { "type": "block-end", "index": 0, "block": { "type": "text", "text": "schedule create probe complete" } },
+      { "type": "usage", "usage": { "inputTokens": 1, "outputTokens": 1 } },
+      { "type": "finish", "reason": { "kind": "stop" } }
+    ]
+  },
+  {
+    "kind": "chunks",
+    "chunks": [
+      { "type": "block-start", "index": 0, "blockType": "text" },
+      { "type": "text-delta", "index": 0, "text": "C1 schedule probe" },
+      { "type": "block-end", "index": 0, "block": { "type": "text", "text": "C1 schedule probe" } },
+      { "type": "usage", "usage": { "inputTokens": 1, "outputTokens": 1 } },
+      { "type": "finish", "reason": { "kind": "stop" } }
+    ]
+  }
+]
