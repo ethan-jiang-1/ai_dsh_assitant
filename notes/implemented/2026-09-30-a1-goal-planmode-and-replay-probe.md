@@ -2,7 +2,7 @@
 
 日期：2026-09-30 · 状态：**implemented（dump-config 行在场；真实会话日志请求侧 30 工具含四新行；301 tests / verify 31 绿）**
 
-采纳卡：[`notes/proposed/2026-09-30-stock-plugin-adoption.md`](../../notes/proposed/2026-09-30-stock-plugin-adoption.md)（本卡 A1 片）。
+采纳卡：[`notes/implemented/2026-09-30-stock-plugin-adoption.md`](../../notes/implemented/2026-09-30-stock-plugin-adoption.md)（本卡 A1 片）。
 
 ## 决定与证据
 

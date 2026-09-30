@@ -2,7 +2,7 @@
 
 日期：2026-09-30 · 状态：**implemented（replay 探针端到端：fixture 编排的 session_search 真实执行、索引库首搜落盘 49MB；301 tests / verify 31 绿）**
 
-采纳卡：[`notes/proposed/2026-09-30-stock-plugin-adoption.md`](../../notes/proposed/2026-09-30-stock-plugin-adoption.md)（B1 片）。
+采纳卡：[`notes/implemented/2026-09-30-stock-plugin-adoption.md`](../../notes/implemented/2026-09-30-stock-plugin-adoption.md)（B1 片）。
 
 ## 决定与证据
 

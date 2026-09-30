@@ -2,7 +2,7 @@
 
 日期：2026-09-30 · 状态：**implemented（desk-loop --self-check 绿含 §7 断言；verify 31 绿；真实报告 §7 渲染正常——dev home 尚无赞踩数据，0 是真实读数）**
 
-采纳卡：[`notes/proposed/2026-09-30-stock-plugin-adoption.md`](../../notes/proposed/2026-09-30-stock-plugin-adoption.md)（C2 片）。
+采纳卡：[`notes/implemented/2026-09-30-stock-plugin-adoption.md`](../../notes/implemented/2026-09-30-stock-plugin-adoption.md)（C2 片）。
 
 ## 决定与证据
 

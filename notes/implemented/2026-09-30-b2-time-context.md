@@ -2,7 +2,7 @@
 
 日期：2026-09-30 · 状态：**implemented（replay 探针：请求里出现 "Time sampled … 2026-09-30T22:13:08+08:00[Asia/Shanghai]"；dump-config 0 warn；301 tests / verify 31 绿）**
 
-采纳卡：[`notes/proposed/2026-09-30-stock-plugin-adoption.md`](../../notes/proposed/2026-09-30-stock-plugin-adoption.md)（B2 片）。
+采纳卡：[`notes/implemented/2026-09-30-stock-plugin-adoption.md`](../../notes/implemented/2026-09-30-stock-plugin-adoption.md)（B2 片）。
 
 ## 决定与证据
 

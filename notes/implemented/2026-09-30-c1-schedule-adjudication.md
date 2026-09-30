@@ -2,7 +2,7 @@
 
 日期：2026-09-30 · 状态：**implemented（用户拍板「文档指引，不默认带」；隔离 home 实测三条边界事实进手册）**
 
-采纳卡：[`notes/proposed/2026-09-30-stock-plugin-adoption.md`](../../notes/proposed/2026-09-30-stock-plugin-adoption.md)（C1 片）。
+采纳卡：[`notes/implemented/2026-09-30-stock-plugin-adoption.md`](../../notes/implemented/2026-09-30-stock-plugin-adoption.md)（C1 片）。
 
 ## 决定（用户 2026-09-30 拍板）
 

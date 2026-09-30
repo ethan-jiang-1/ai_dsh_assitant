@@ -2,7 +2,7 @@
 
 日期：2026-09-30 · 状态：**implemented（dump-config 0 warn；replay 探针请求侧 30 工具全 PRESENT 含 web 守卫；301 tests / verify 31 / release-smoke 绿）**
 
-采纳卡：[`notes/proposed/2026-09-30-stock-plugin-adoption.md`](../../notes/proposed/2026-09-30-stock-plugin-adoption.md)（A2 片）。
+采纳卡：[`notes/implemented/2026-09-30-stock-plugin-adoption.md`](../../notes/implemented/2026-09-30-stock-plugin-adoption.md)（A2 片）。
 
 ## 决定与证据
 
