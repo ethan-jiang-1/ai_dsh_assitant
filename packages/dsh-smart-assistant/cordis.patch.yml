@@ -36,6 +36,14 @@
           process.getBuiltinModule('node:module').createRequire(baseUrl)('@deepseek-ai/dsh-home-paths').dshHomePath('session-search.db')
         openAt: first-search
 
+    # ── 时间上下文（adoption 卡 B2 片，2026-09-30）────────────────────────────────────
+    #
+    # 现货 `@deepseek-ai/dsh-time-context`（schedule-bundle 里同款行，此处独立挂）：
+    # 给模型当前时间/时区/经过时长——stale 判断（`staleResearchDays`、知识页保鲜）与
+    # "下周提醒我"类表达需要"今天是几号"在请求里。Config 全默认（进程时区 + 10 分钟注入间隔）。
+    - id: time-context
+      name: '@deepseek-ai/dsh-time-context'
+
 # ── AGENT 面：`assistant` preset（0.1.7 起是普通行，随本 bundle 分发）────────────────
 #
 # 打包形状：一个专家 = 一个 `agent-preset` 行；换领域 = 换包。registry 行（`default: assistant`）

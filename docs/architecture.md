@@ -30,6 +30,7 @@ HOST 面（cordis.patch.yml → dsh.bundle.patch）
 └── assistant-memory        服务：working folder 的布局 + 四个房间的存储 + 摘要计算 + 养护检查
                             ctx.assistantMemory（唯一服务键）
                             + session-query-sqlite 翻开行（`first-search` + 持久索引库，原始会话检索）
+                            + time-context 行（当前时间/时区/经过时长随请求注入）
                             + Web 壳品牌注入行（页标题/图标，webserver/index-inject；皮肤，不进模型上下文）
 
 浏览器面（package.json `dsh.client` → `./client` 出口；经既有 bundle 行被 client-modules
