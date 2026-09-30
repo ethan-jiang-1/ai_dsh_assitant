@@ -29,6 +29,7 @@ DSH 的组合分两个平面，判据是"这东西是不是跨会话共享"：
 HOST 面（cordis.patch.yml → dsh.bundle.patch）
 └── assistant-memory        服务：working folder 的布局 + 四个房间的存储 + 摘要计算 + 养护检查
                             ctx.assistantMemory（唯一服务键）
+                            + session-query-sqlite 翻开行（`first-search` + 持久索引库，原始会话检索）
                             + Web 壳品牌注入行（页标题/图标，webserver/index-inject；皮肤，不进模型上下文）
 
 浏览器面（package.json `dsh.client` → `./client` 出口；经既有 bundle 行被 client-modules
@@ -47,6 +48,7 @@ AGENT 面（`cordis.patch.yml` 的 `preset-assistant` 行 → agent preset）
 ├── assistant-memory-tool     工具 assistant_memory
 ├── assistant-research-tool   工具 assistant_research
 ├── assistant-knowledge-tool  工具 assistant_knowledge（只读检索：search/get 附反链）
+├── tool-session-query      工具 session_query 族（原始会话证据检索；与 knowledge 房分工见 docs/home.md）
 ├── assistant-learn           工具 assistant_reflect + 挂载"学到的技能"provider
 ├── skill-filesystem          策展技能（包内 `presets/assistant/skills/`，按包名解析后指过去）
 ├── tool-skill                技能目录与加载器（DSH 原生）

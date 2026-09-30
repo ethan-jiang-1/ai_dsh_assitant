@@ -29,6 +29,8 @@
 #   ⚠️ 把裸脚本塞进 `file` 会报 `session snapshot line 1 …` 并让整行不 activate——
 #   实测就是这样：patch 静默失效、真实模型照答，探针看着"绿"其实什么都没测。
 # - 两个路径都用 `!!js process.cwd()` 拼仓根相对路径（本 patch 是 dev 专用，从仓根启动）。
+#   可用 env 换回放脚本而不动本文件：`REPLAY_SCRIPT=<json>`（裸 ReplayEntry[]）与
+#   `REPLAY_PRIMARY=<jsonl>`（默认指向一个故意不存在的派生路径）。
 - id: headless-runner
   disabled: true
 - id: llm-deepseek
@@ -44,8 +46,8 @@
     - id: llm-replay
       name: '@deepseek-ai/dsh-llm-replay'
       config:
-        file: !!js process.cwd() + '/dev/.llm-replay-no-derive.jsonl'
-        overrideFile: !!js process.cwd() + '/dev/llm-replay-fixture.json'
+        file: !!js process.env.REPLAY_PRIMARY || process.cwd() + '/dev/.llm-replay-no-derive.jsonl'
+        overrideFile: !!js process.env.REPLAY_SCRIPT || process.cwd() + '/dev/llm-replay-fixture.json'
         providers:
           - id: deepseek-official
             name: DeepSeek (replay)

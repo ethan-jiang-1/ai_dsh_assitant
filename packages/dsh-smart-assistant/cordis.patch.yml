@@ -22,6 +22,20 @@
         recallLimit: 20
         staleResearchDays: 30
 
+    # ── 会话全文检索（翻开 base 出厂关着的 seam；adoption 卡 B1 片，2026-09-30）────────
+    #
+    # base 的 `session-query-sqlite` 行出厂 `openAt: never` + `:memory:`（base:149-153，注释明说
+    # 后续层翻开）。本行 = 整行 config 替换：`first-search`（首次检索才建索引，不付启动税）+
+    # 持久库（DSH home 根，重启后历史仍可搜；**独立的派生索引**，绝不指向 session-persistence 库）。
+    # 路径经 `dshHomePath` 解析（peer 现货 `@deepseek-ai/dsh-home-paths`），不手拼 DSH_HOME——
+    # env 兜底/展开逻辑在 helper 里，patch 里复刻一遍就是第二份清单。
+    - id: session-query-sqlite
+      name: '@deepseek-ai/dsh-session-query-sqlite'
+      config:
+        path: !!js |-
+          process.getBuiltinModule('node:module').createRequire(baseUrl)('@deepseek-ai/dsh-home-paths').dshHomePath('session-search.db')
+        openAt: first-search
+
 # ── AGENT 面：`assistant` preset（0.1.7 起是普通行，随本 bundle 分发）────────────────
 #
 # 打包形状：一个专家 = 一个 `agent-preset` 行；换领域 = 换包。registry 行（`default: assistant`）
@@ -94,6 +108,14 @@
           # 检索=search/get 附反链，反链全房间现算，无索引服务。
           - id: assistant-knowledge-tool
             name: dsh-smart-assistant/tool-knowledge
+
+          # ── 会话检索（与 knowledge 房的分工：adoption 卡 B1 片）──────────────────────
+          #
+          # knowledge 房 = 我们自己提炼过的知识页（带反链、经 curate）；session_query 族 =
+          # **原始会话证据**的全文检索（SQLite FTS5，host 面 session-query-sqlite 已翻开）。
+          # "上次怎么定的 X"走这里，不进 knowledge 房。Config 用默认（100 条 / 30s）。
+          - id: tool-session-query
+            name: '@deepseek-ai/dsh-tool-session-query'
 
           - id: assistant-learn
             name: dsh-smart-assistant/learn

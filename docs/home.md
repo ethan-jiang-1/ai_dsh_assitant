@@ -76,6 +76,10 @@ learn 模块的 `tools/result` 订阅就给对应名字计数（用户 `/name` �
   本人说某页错了/过时了，或 curate 报它过期且本人同意，助手才标；**永不凭自己的判断标**。
 - **出（查询）**：`assistant_knowledge`（search / get 附反链，deprecated 可搜带状态）；
   digest 目录树只列 stable。
+- **与会话检索的分工**：`assistant_knowledge` 检索的是**我们自己提炼过的知识页**；"上次会话里怎么定的"
+  这类**原始会话证据**走 DSH 现货 `session_query` 族（`session_search` 等，SQLite FTS5，索引库在
+  DSH home 根 `session-search.db`，host 行 `session-query-sqlite` 翻成 `first-search`）——原始证据
+  不进 knowledge 房，提炼后想留存的才经 `assistant_reflect save_page` 入房。
 - **桥**（memory↔knowledge，不自动同步不双写）：pin = `assistant_memory save` 带
   `source: knowledge:<页id>`；promote = `save_page` 的 sources 引 `memory:<id>`——
   provenance 指针即链接，重复 pin 撞近似重复检查。
