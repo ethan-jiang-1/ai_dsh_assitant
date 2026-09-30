@@ -103,8 +103,12 @@ describe('first-mile seats', () => {
     expect(copy).toContain('第一次来')
     expect(copy).toContain('例：')
     // R10: the strip no longer advertises the `/` menu (it leads with shell commands and
-    // English developer-flavoured skill rows); it points at the three rooms instead.
-    expect(copy).toContain('右侧栏「+」随时开三室')
+    // English developer-flavoured skill rows); it points at our own doors instead.
+    // First-open UX card (2026-10-01): "三室" was governance vocabulary on the principal's
+    // surface — the copy now names what they get, not our room taxonomy.
+    expect(copy).toContain('它替你记下的东西')
+    expect(copy).toContain('点右侧「+」随时能看')
+    expect(copy).not.toContain('三室')
     expect(copy).not.toContain('敲 /')
 
     const buttons = elementsOf(dock, 'button')

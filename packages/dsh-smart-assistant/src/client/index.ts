@@ -1345,8 +1345,11 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // menu it opened leads with the shell's own commands and then a list of skill rows carrying
     // English, developer-facing descriptions (the very material the knowledge panel excludes as
     // noise on the principal's surface). The strip now points at the doors that are ours.
+    // First-open UX card (2026-10-01): "三室" is governance vocabulary leaking onto the
+    // principal's surface — the strip says what they get ("它替你记下的东西"), not what we call
+    // the rooms internally.
     createElement('div', { style: { fontSize: '12px', color: 'var(--dsw-alias-label-secondary)' } },
-      '例：「这个月签单为什么慢」「把季度目标拆成这周能做的三件事」· 右侧栏「+」随时开三室'),
+      '例：「这个月签单为什么慢」「把季度目标拆成这周能做的三件事」· 它替你记下的东西，点右侧「+」随时能看'),
     createElement('button', {
       onClick: () => { openRoom?.('desk') },
       style: {
