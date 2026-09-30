@@ -10,7 +10,9 @@
  * 读什么（全部来自会话日志，不读 stdout，也不读面板内部状态）：
  *   · `user/message` 的 content 文本块 —— 面板自己的消息带 `[桌面] ` 标记（A10），本人的话没有；
  *   · `tool/call` 的 name/arguments —— 桌面写入（谓词与评测器共用：[`wrotePath`](eval/checks.mjs)）
- *     与技能加载（`skill` 工具点名 `desk-refresh`）。
+ *     与技能加载（`skill` 工具点名 `desk-refresh`）；
+ *   · `feedback/message-put` / `feedback/message-delete` —— 消息赞踩（adoption 卡 C2 片）：本人点在
+ *     助手消息上的 👍/👎 与备注；delete 按 messageId 对消（撤回的不再计正负，只记一笔）。
  *
  * 不做什么：不判定质量、不做语义分类。"本人的话是不是在抱怨"这类判断留给人读（§5 只把材料摆出来）。
  *
@@ -175,6 +177,33 @@ function sessionIdOf(log) {
 }
 
 /**
+ * 一个会话的消息赞踩（adoption 卡 C2 片）：`feedback/message-put` 是本人对一条助手消息的 👍/👎
+ * （可带备注），`feedback/message-delete` 按 messageId 对消——撤回的不再计正负，只记一笔"撤回"。
+ * 纯结构读数：不判定赞踩对错，备注原样摆给人读（§5 的同款姿态）。
+ * @param events - 一个会话的事件序列（seq 序）。
+ * @returns `{ items: [{rating, note, at}], retracted }`。
+ */
+function feedbackOf(events) {
+  const items = new Map()
+  let retracted = 0
+  for (const event of events) {
+    if (event.type === 'feedback/message-put') {
+      const item = event.data?.item
+      if (item !== undefined && typeof item.messageId === 'string') {
+        items.set(item.messageId, {
+          rating: item.rating,
+          note: typeof item.note === 'string' && item.note.trim() !== '' ? item.note.trim() : undefined,
+          at: Number(event.time ?? 0),
+        })
+      }
+    } else if (event.type === 'feedback/message-delete') {
+      if (typeof event.data?.messageId === 'string' && items.delete(event.data.messageId)) retracted += 1
+    }
+  }
+  return { items: [...items.values()], retracted }
+}
+
+/**
  * 一个会话的关键事实（与 IO 无关，`--self-check` 直接喂合成事件）。
  * @param log - 日志路径（用来取 id 与判定评测会话）。
  * @param events - 事件序列。
@@ -192,6 +221,7 @@ export function buildSession(log, events) {
     // 一次刷新加一句"好的"就是两条。评测是 headless one-shot：题面进去、答案出来，会话就结束。
     evalRun: windows.length === 1 && TASK_PROMPTS.includes(windows[0].message.trim()),
     windows,
+    feedback: feedbackOf(events),
   }
 }
 
@@ -215,8 +245,16 @@ export function analyzeSessions(sessions, { includeEval = false } = {}) {
   let panelActions = 0
   let refreshAsks = 0
   let humanTurns = 0
+  // §7（adoption 卡 C2 片）：消息赞踩的计数与备注（备注是给人读的材料，不判定）。
+  const feedback = { positive: 0, negative: 0, retracted: 0, notes: [] }
 
   for (const session of considered) {
+    feedback.positive += session.feedback.items.filter(item => item.rating === 'positive').length
+    feedback.negative += session.feedback.items.filter(item => item.rating === 'negative').length
+    feedback.retracted += session.feedback.retracted
+    for (const item of session.feedback.items) {
+      if (item.note !== undefined) feedback.notes.push({ session: session.id, at: item.at, rating: item.rating, note: item.note })
+    }
     // §6 的口径：**只看真有面板动作的会话**——那才是"在用这个产品"的人。dev home 里同时住着我自己的
     // 探针与评测会话（"Reply with exactly one word: ready" 之类），把它们算进"助手没问自己的房间"
     // 是把噪声当信号（2026-09-27 实测：143 轮里 55 轮"没查"，其中大半是探针）。
@@ -278,12 +316,14 @@ export function analyzeSessions(sessions, { includeEval = false } = {}) {
     }
   }
 
-  return { human, evalRuns, considered, panelActions, refreshAsks, noWrite, noSkill, repeats, doubleAnswers, reactions, humanTurns, unconsulted }
+  feedback.notes.sort((a, b) => a.at - b.at)
+
+  return { human, evalRuns, considered, panelActions, refreshAsks, noWrite, noSkill, repeats, doubleAnswers, reactions, humanTurns, unconsulted, feedback }
 }
 
 /** 报告正文（给人读的 markdown）。 */
 export function renderReport(analysis, { home, sinceDays, includeEval } = {}) {
-  const { human, evalRuns, considered, panelActions, refreshAsks, noWrite, noSkill, repeats, doubleAnswers, reactions, humanTurns, unconsulted } = analysis
+  const { human, evalRuns, considered, panelActions, refreshAsks, noWrite, noSkill, repeats, doubleAnswers, reactions, humanTurns, unconsulted, feedback } = analysis
   // 分母跟着分子走：§1/§4 只统计**点名了 desk-refresh** 的动作（没点名的那次点击本来就没承诺重写桌面），
   // 所以百分比也按同一个分母算——此前印的是「n/全部面板动作」，把 1/14 与 13/14 说成了 1/23 与 13/23
   // （窄审抓到，2026-09-27：口径混用的读数比没有读数更坏）。
@@ -348,6 +388,16 @@ export function renderReport(analysis, { home, sinceDays, includeEval } = {}) {
   }
   if (unconsulted.length === 0) lines.push('- （无）')
   lines.push('')
+  lines.push(`## 7. 消息赞踩（adoption 卡 C2）— 👍 ${feedback.positive} · 👎 ${feedback.negative} · 撤回 ${feedback.retracted}`)
+  lines.push('')
+  lines.push('口径：`feedback/message-put` 的计数（撤回按 messageId 对消，不计正负）；备注原样列出，是给人读的'
+    + '材料——"踩"的备注是摩擦的直接证词，"赞"的备注说明哪个行为该保持。没有备注的赞踩只是信号强度，不解释原因。')
+  lines.push('')
+  for (const item of feedback.notes.slice(0, 25)) {
+    lines.push(`- ${item.rating === 'positive' ? '👍' : '👎'} ${when(item.at)} · 会话 ${item.session} · ${item.note}`)
+  }
+  if (feedback.notes.length === 0) lines.push('- （无备注的赞踩）')
+  lines.push('')
   lines.push('## 限制（先说清，免得把数字当结论）')
   lines.push('')
   lines.push('- 分类读日志的**结构**：`source.kind === "user"` 且 `rpcId` 形如 `desk-…` ＝ 面板消息；'
@@ -389,6 +439,13 @@ function userMessage(at, text, source = { kind: 'user' }) {
 function toolCall(at, name, args) {
   return { type: 'tool/call', time: at, data: { name, arguments: JSON.stringify(args) } }
 }
+/** 造一条消息赞踩（put）/撤回（delete）——data 形状对齐 message-feedback 的 putSchema/deleteSchema。 */
+function feedbackPut(at, messageId, rating, note) {
+  return { type: 'feedback/message-put', time: at, data: { sessionId: 's', item: { messageId, rating, note, version: 'v', createdAt: at, updatedAt: at } } }
+}
+function feedbackDelete(at, messageId) {
+  return { type: 'feedback/message-delete', time: at, data: { sessionId: 's', messageId } }
+}
 
 /**
  * 拿合成会话验证读数逻辑本身（CI 意义上的负例控制）。**每一条断言都对应一个真发生过的读数缺陷**
@@ -414,6 +471,10 @@ export function selfCheck() {
     userMessage(T0 + 4 * MINUTE, '好的'),
     // 只有前言、没有人话的一轮：不得进 §5/§6
     userMessage(T0 + 6 * MINUTE, '[Collaboration boundary] You may change the working tree, but you do not commit — commit authority belongs to the person.'),
+    // §7（C2）：一条带备注的赞 + 一条带备注的踩随后被撤回——撤回的必须退出正负计数
+    feedbackPut(T0 + 7 * MINUTE, 'm-1', 'positive', '这次刷新一次到位'),
+    feedbackPut(T0 + 8 * MINUTE, 'm-2', 'negative', '选项没给全'),
+    feedbackDelete(T0 + 9 * MINUTE, 'm-2'),
   ])
 
   const answer = `${PANEL_MARKER}关于这个待决事项：「季末破例？」——我的决定是：不允许。完成后加载 desk-refresh 技能，把桌面文件重写一遍。`
@@ -425,6 +486,8 @@ export function selfCheck() {
     userMessage(T0 + 5 * MINUTE, `${PANEL_MARKER}行动「守住纪律」要改：改成只压流程。完成后加载 desk-refresh 技能，把桌面文件重写一遍。`, desk),
     toolCall(T0 + 5 * MINUTE + 1000, 'write', { file_path: '/ws/.desk/state.json', content: '{}' }),
     toolCall(T0 + 5 * MINUTE + 2000, 'skill', { name: 'desk-refresh' }),
+    // §7（C2）：一条无备注的踩（只进计数，不进备注表）
+    feedbackPut(T0 + 6 * MINUTE, 'm-3', 'negative'),
   ])
 
   // 评测会话：题面命中 tasks.mjs，且是 one-shot 形状（只有那条题面）
@@ -489,8 +552,16 @@ export function selfCheck() {
   expect('answer-then-drop counts as a repeat', mixed.repeats.length, 1)
   expect('answer-then-drop is not a double answer', mixed.doubleAnswers.length, 0)
 
+  // §7（C2）：赞踩计数与撤回对消；备注进表、无备注不进
+  expect('feedback positive (retracted one is out)', humanOnly.feedback.positive, 1)
+  expect('feedback negative (only session B; A was retracted)', humanOnly.feedback.negative, 1)
+  expect('feedback retracted', humanOnly.feedback.retracted, 1)
+  expect('feedback notes carry notes only', humanOnly.feedback.notes.length, 1)
+  expect('the note is the positive one', humanOnly.feedback.notes[0].note, '这次刷新一次到位')
+
   return 'desk-loop --self-check: ok — synthetic sessions yield the known counts (结构判类：注入前言不切断窗口、'
-    + '纯文本注入不算本人的话、协作边界前言不冒充本人的话、混合重复算重复、§6 只数面板会话、题面撞车不误判真人会话)'
+    + '纯文本注入不算本人的话、协作边界前言不冒充本人的话、混合重复算重复、§6 只数面板会话、题面撞车不误判真人会话、'
+    + '§7 撤回的赞踩退出计数且备注表只收带备注的)'
 }
 
 function main() {

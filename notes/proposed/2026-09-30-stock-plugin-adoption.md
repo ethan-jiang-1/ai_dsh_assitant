@@ -20,7 +20,7 @@
 | **B1** ✅ 2026-09-30（note：`implemented/2026-09-30-b1-session-query-search.md`） | `session-query-sqlite` 翻开（`openAt: first-search`+`path`）＋`tool-session-query` 挂 preset；与四房间关系写进 docs/home.md（memory=提炼事实 / session-query=原始证据） | host patch 行 + preset 行 | 检索探针：问"上次怎么定的"能取回会话证据；不与 assistant_knowledge 撞名 |（探针已证：fixture 编排的 session_search 真实执行、索引库落盘）
 | **B2** ✅ 2026-09-30（note：`implemented/2026-09-30-b2-time-context.md`；独立挂、不等 C1） | `time-context`（时间感知进 digest 相邻段，stale 判断有"今天"） | 随 B1 或 C1 的 patch | dump-config 在场；digest 探针含时间段 |（探针已证：请求文本含 "Time sampled … +08:00[Asia/Shanghai]"）
 | **C1** | `schedule-bundle` 打开方式裁决：文档指引（用户插件页一键开）vs 我们 profile patch 默认带；定案后把养护检查接 schedule（`schedule_create` 定时触发养护问答） | 裁决卡→实施 | 养护任务真实定时触发一次的日志证据 |
-| **C2** | `message-feedback`/`command-feedback` 赞踩信号进摩擦报告（desk-loop 增一类读数） | 消费侧改动 | desk-loop 报告出现 feedback 类；先探 dev profile 是否已挂 web 层 |
+| **C2** ✅ 2026-09-30（note：`implemented/2026-09-30-c2-feedback-desk-loop.md`；stock 行已由出厂层挂好，本片是消费侧） | `message-feedback`/`command-feedback` 赞踩信号进摩擦报告（desk-loop 增一类读数） | 消费侧改动 | desk-loop 报告出现 feedback 类；先探 dev profile 是否已挂 web 层 |（§7 上线：计数+撤回对消+备注表，自检三断言）
 
 ## 明确不做（触发条件登记，不排期）
 
