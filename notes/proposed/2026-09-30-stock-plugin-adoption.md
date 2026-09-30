@@ -16,7 +16,7 @@
 | 片 | 内容 | 挂法 | 验收 |
 |---|---|---|---|
 | **A1** ✅ 2026-09-30（note：`implemented/2026-09-30-a1-goal-planmode-and-replay-probe.md`） | `command-goal`+`tool-goal`+`plan-mode`（照抄 standard `planning` 组形状，含 ui-user-questions 计划评审联动） | `cordis.patch.yml` preset 行 insert | dump-config 行在场；repo-live-probe 证明模型可见；任务面规则与组合一致 |
-| **A2** | `delegation` 组：`tool-subagent`+`subagent_fork`+`tool-subagent-control`（in-process 后端；codex/claude-code 照抄 disabled 占位）＋`tool-jobs` | 同上 | 同上；research 线委派探针：一次真实调研委派走通 |
+| **A2** ✅ 2026-09-30（note：`implemented/2026-09-30-a2-delegation-and-jobs.md`；偏离：不抄 `modelSelectionSettings`） | `delegation` 组：`tool-subagent`+`subagent_fork`+`tool-subagent-control`（in-process 后端；codex/claude-code 照抄 disabled 占位）＋`tool-jobs` | 同上 | 同上；research 线委派探针：一次真实调研委派走通 |（残余：组合与请求侧已证；**模型真实发起委派的端到端**探针未跑——replay fixture 需含 subagent 工具调用脚本，随 eval 轮或 C 片顺带补）
 | **B1** | `session-query-sqlite` 翻开（`openAt: first-search`+`path`）＋`tool-session-query` 挂 preset；与四房间关系写进 docs/home.md（memory=提炼事实 / session-query=原始证据） | host patch 行 + preset 行 | 检索探针：问"上次怎么定的"能取回会话证据；不与 assistant_knowledge 撞名 |
 | **B2** | `time-context`（时间感知进 digest 相邻段，stale 判断有"今天"） | 随 B1 或 C1 的 patch | dump-config 在场；digest 探针含时间段 |
 | **C1** | `schedule-bundle` 打开方式裁决：文档指引（用户插件页一键开）vs 我们 profile patch 默认带；定案后把养护检查接 schedule（`schedule_create` 定时触发养护问答） | 裁决卡→实施 | 养护任务真实定时触发一次的日志证据 |

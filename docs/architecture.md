@@ -51,7 +51,8 @@ AGENT 面（`cordis.patch.yml` 的 `preset-assistant` 行 → agent preset）
 ├── skill-filesystem          策展技能（包内 `presets/assistant/skills/`，按包名解析后指过去）
 ├── tool-skill                技能目录与加载器（DSH 原生）
 └── persona / agent-instructions / tool-fs / tool-fs-search / shell / ask-user /
-    todo / goal（`tool-goal`+`command-goal`）/ plan-mode（isolate 组）/ web / present / compaction
+    todo / goal（`tool-goal`+`command-goal`）/ plan-mode（isolate 组）/
+    jobs / 委派组（`subagent`+`subagent_fork`+control 三件，isolate 组）/ web / present / compaction
 ```
 
 **为什么工具在 agent 面**：它们是一个会话贡献给注册表的东西（DSH 的 preset 语义）。
