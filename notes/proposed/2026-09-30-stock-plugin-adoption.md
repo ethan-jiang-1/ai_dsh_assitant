@@ -33,3 +33,7 @@
 ## 验收（整卡毕业门）
 
 A1→A2→B1→B2→C1→C2 顺序推进；每片以"真跑过的命令"报告；全部落地后本卡转 implemented 并吸收各片 note；组合行变化同 diff 更新 `docs/package-catalog.md`（生成物）与 `docs/architecture.md`。
+
+**常设守卫（用户 2026-09-30 拍板：web search/fetch 能力一定要有）**：`web_search`/`web_fetch` 与 host 侧
+`web-search-deepseek`/`web-fetch-http` 是本插件的底线面——每片验收的探针都顺带断言请求侧 tools 数组仍含这两行
+（2026-09-30 实测：30 工具在场）；后续若立 verify 门禁守组合底线，先补"造红再证绿"夹具。
