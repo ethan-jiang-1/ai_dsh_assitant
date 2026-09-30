@@ -1,0 +1,54 @@
+# keyless live 探针：在 `preset-runner.patch.yml` 的形状上只加一件事——
+# 用现货 `@deepseek-ai/dsh-llm-replay` 整脚本回放替掉真实 DeepSeek adapter，
+# 让没有 DEEPSEEK_API_KEY 的机器也能产出**真实会话日志**（组装后的 system/tools 进日志）。
+#
+# 用法（repo 根）：
+#   pnpm dsh --profile dev-task --patch dev/preset-runner-replay.patch.yml "<probe task>"
+#
+# 回放脚本 = dev/llm-replay-fixture.json（整脚本 override 形状，裸 ReplayEntry[]）——
+# 模型回复是固定的"probe turn complete"；**证据不在回复里，在日志的请求侧**：
+# system/message 段与 request/header 的 tools 数组才是被测对象。
+#
+# 行形状说明：
+# - 与 `preset-runner.patch.yml` 相同的两行（禁 shipped headless-runner + 插 preset-runner）。
+# - replay 行注册 provider `deepseek-official` / model `deepseek-flash` —— 与 base 的
+#   `agent-default-model` 行（base:82-86）同名，agent 的默认选择直接落进回放 adapter。
+# - 必须禁掉真实 adapter 的两个入口行（`llm-deepseek` / `llm-deepseek-account`，
+#   它们同时是 adapter 的挂载行）：同名 provider 双注册时真实 adapter 先接住流，
+#   replay 永远不被调用——首轮实测就是这样（回复是真模型答的；`replayState` 是
+#   llm-deepseek translate.ts 自己写的响应元数据，不是 replay 插件的标记）。
+#   ⚠️ 行 id 随 pin 漂移：dsh-v0.2.0-rc.2（639ed015）里 api-key adapter 的行 id 是
+#   `llm-deepseek`（name `@deepseek-ai/dsh-llm-deepseek-api-key`），**不是**
+#   `llm-deepseek-api-key`——写错 id 不报错，只在 `--dump-config` 里留一行
+#   `patch: entry "…" not found`，真实 adapter 照旧在组合里接住全部请求
+#   （2026-09-30 实测：凭据取自 dev home 的 `.credentials.yaml`，env 里没有 key 也照样真跑）。
+#   换 pin 后先 `--dump-config | grep -A1 "dsh-llm-deepseek"` 校对本行 id。
+# - `file` 必须是**录制的会话 JSONL**（会走 parseSessionFixture）；本探针用不上派生脚本，
+#   故按 vendor 自己的整脚本 override 习语（snapshots/sdk/session-title-after-turn）指向
+#   一个**故意不存在**的路径，真正的脚本由 `overrideFile`（裸 ReplayEntry[]）整体替换。
+#   ⚠️ 把裸脚本塞进 `file` 会报 `session snapshot line 1 …` 并让整行不 activate——
+#   实测就是这样：patch 静默失效、真实模型照答，探针看着"绿"其实什么都没测。
+# - 两个路径都用 `!!js process.cwd()` 拼仓根相对路径（本 patch 是 dev 专用，从仓根启动）。
+- id: headless-runner
+  disabled: true
+- id: llm-deepseek
+  disabled: true
+- id: llm-deepseek-account
+  disabled: true
+- insert:
+    - id: preset-runner
+      name: dsh-smart-assistant/preset-runner
+      inject: [headlessStartup]
+      config:
+        task: !!js ctx.headlessStartup.task
+    - id: llm-replay
+      name: '@deepseek-ai/dsh-llm-replay'
+      config:
+        file: !!js process.cwd() + '/dev/.llm-replay-no-derive.jsonl'
+        overrideFile: !!js process.cwd() + '/dev/llm-replay-fixture.json'
+        providers:
+          - id: deepseek-official
+            name: DeepSeek (replay)
+            models:
+              - id: deepseek-flash
+                contextWindow: 128000

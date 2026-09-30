@@ -83,6 +83,7 @@ pnpm --dir vendor/dsh run build:web       # 只有跑 Web UI 才需要（前端 
 bash dev/setup.sh          # 幂等：建 dev（web）+ dev-task（headless）两个 profile + link 装插件
 pnpm dsh --profile dev-task "one task"   # one-shot 任务（headless）＝ host 面冒烟；不进 preset（§五）
 pnpm dsh --profile dev-task --patch dev/preset-runner.patch.yml "<task>"   # preset 挂载的 one-shot（验证自动化；行替换形状见该 patch 头注）
+pnpm dsh --profile dev-task --patch dev/preset-runner-replay.patch.yml "<task>"   # 同上但 keyless：现货 `llm-replay` 整脚本回放替掉真实 DeepSeek adapter，无 API key 也能产出真实会话日志（请求侧 system/tools 进日志＝live 探针的被测面）；形状与坑见该 patch 头注
 pnpm dsh --profile dev --port 0 --no-open   # Web UI：**不自动开浏览器**
 pnpm preflight '<server 打印的 URL>'    # 开屏前检查；绿了才把 URL 交给浏览器
 pnpm shots '<server 打印的 URL>' --dom --size 1600x1000 --name <名字>   # 渲染证据：PNG + DOM 证据（默认落 /tmp/dsh-webui-shots）
