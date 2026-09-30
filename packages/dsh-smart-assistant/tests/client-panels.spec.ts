@@ -434,10 +434,14 @@ describe('desk panels', () => {
     expect(broken).toContain('读桌面文件失败')
     expect(broken).toContain('让助手重写一份')
     // A6: the empty state is exactly the state that needs a one-click refresh.
+    // First-open UX card (2026-10-01): no raw file paths on the principal's surface — the
+    // state explains what the desk is and how it grows instead.
     exports.deskStore.readError = undefined
     exports.deskStore.misses.add('s1')
     const empty = textsOf(exports.DeskTabBody({ sessionId: 's1' })).join(' | ')
-    expect(empty).toContain('还没有 .desk/state.json')
+    expect(empty).toContain('桌面还空着')
+    expect(empty).toContain('它替你记的东西')
+    expect(empty).not.toContain('.desk/state.json')
     expect(empty).toContain('刷新桌面')
   })
 

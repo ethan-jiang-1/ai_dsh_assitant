@@ -1239,8 +1239,12 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       muted(`读桌面文件失败：${store.readError}。`), retryButton('让助手重写一份'))
     // A6: the empty state is exactly the state that most needs a one-click refresh — asking the
     // principal to go type it in the conversation was backwards.
+    // First-open UX card (2026-10-01): the raw `.desk/state.json` path leaked onto the
+    // principal's surface; the state now says what the desk IS and how it grows, and names
+    // what the button actually does (it sends the refresh prompt to this conversation).
     if (deskStore.misses.has(sessionId)) return roomScroller(
-      muted('这个会话的工作区还没有 .desk/state.json——点一下，让助手写一份。'), retryButton('刷新桌面'))
+      muted('桌面还空着——跟它聊一件事之后，这里会出现它替你记的东西：在办的事、待你拍板的决定、缺的数据。急着看，就点下面让它现在写一份。'),
+      retryButton('刷新桌面'))
     if (slice.data === undefined) return roomScroller(muted('正在读这个会话的桌面…'))
     // The panel reads and acts on this session's slice: the session rides in as a plain prop.
     return roomScroller(createElement(Panel as unknown as import('react').FunctionComponent<{ sessionId?: string }>, { sessionId }))
