@@ -26,6 +26,7 @@
     "export-dist": "node scripts/export-dist.mjs",
     "preflight": "node scripts/webui-preflight.mjs",
     "shots": "node scripts/webui-shots.mjs",
+    "loop-probe": "node scripts/webui-loop-probe.mjs",
     "desk-loop": "node dev/desk-loop-report.mjs",
     "sync-dsh": "node scripts/sync-dsh.mjs",
     "repair-vendor": "TSX_TSCONFIG_PATH=tsconfig.tsx.json node --import tsx/esm scripts/repair-vendor-artifacts.mjs"
