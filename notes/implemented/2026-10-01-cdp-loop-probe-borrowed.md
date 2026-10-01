@@ -27,13 +27,28 @@
 3. **注册**：package.json `loop-probe` 别名；根 AGENTS.md 命令表与 docs/dev.md 各一行
    （文档命令互证门禁守一致性）。
 
-## 场景层沉淀的两条硬知识（都真踩过）
+## 场景层沉淀的硬知识（都真踩过）
 
 1. **composer 必须用 ClipboardEvent paste**：`execCommand('insertText')` 在该编辑器上返回 false
    且编辑器状态不动（2026-10-01 实测）。
 2. **发送/停止按钮必须 aria-label 精确匹配**（`发送消息`/`Send message`、`停止生成`/`Stop generating`）：
    子串匹配被侧栏会话条目毒化——其 aria-label 内嵌 LLM 生成的会话标题，问"停止条件"得到的标题
    让 `/停止/` 永远命中，探针在一个 4 秒完成的回合上超时 450 秒（2026-10-01 实测）。
+3. **空 composer 的发送键本来就地禁用**——"等发送键可用"作为粘贴前预检是同义反复；正确形状是
+   **粘贴后重试**（粘贴 → 发送键启用 = 编辑器收下了文本；否则重贴，最多 6 次）。全新 home 的
+   composer 在默认工作区初始化落地（异步 ~10s）前会静默丢文本。
+4. **驱动 evaluate 不 awaitPromise**——场景里的多步 UI 流程（👎 对话框：分类→备注→提交）必须
+   拆成**顺序分步** evaluate，一个 async IIFE 的 promise 会被放弃在半路（对话框开着、事件没落盘，
+   2026-10-01 实测）。
+
+## 能力面（2026-10-01 第二批）
+
+- `--follow-up '<问句>'`：同一会话的第二轮——多轮连续性（P2）一次跑验证。
+- `--dislike`：给最后一条助手消息 👎（分类+备注+提交）——反馈管线（摩擦报告 §7）的回归探针，
+  事件落盘已验证（`feedback/message-put`，rating/note/category 完整）。
+- `waitSamples`：回合等待期间每 ~4.5s 采样（bodyLen/思考行/工具行），**量化等待是否"活着"**——
+  修复前（无 transcriptView 预置的全新 home）等待 152s 全冻结；修复后 bodyLen 连续增长
+  （1415→6745），思考行与工具行全程可见。
 
 ## 输掉的方案
 
@@ -55,3 +70,6 @@
   replySeconds 5→replyTail 捕获到完整中文回复（含诚实的"我这边没有你们公司的具体底线数字"），
   零 console 错误，exit 0。
 - `pnpm verify` 31/31（文档命令互证含新别名）。
+- 第二批（同日）：全新 home（ux-exp2）`--ask + --follow-up + --dislike` 全环绿——首问 146s、
+  追问 24s 且引用上一轮上下文（多轮连续性 ✓）、👎 事件落盘；`release-smoke` 绿（发布物含
+  首开预置两行）。

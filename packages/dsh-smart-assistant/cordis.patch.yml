@@ -44,6 +44,28 @@
     - id: time-context
       name: '@deepseek-ai/dsh-time-context'
 
+    # ── 首开预置（首开 UX 卡 261001，2026-10-01）──────────────────────────────────
+    #
+    # 两行都是"同 id 整行替换"覆盖 web-app 出厂行（session-query-sqlite 同先例）：
+    #
+    # `ui-chat.transcriptView`：此 pin 的 vendor **预构建 client bundle 落后于其 src**——
+    # src 的 `TranscriptViewPolicy.adopt()` 有 `?? defaultMode` 兜底，lib/client.js 没有；
+    # 全新 home 无存档时 mode=undefined → `POLICIES[undefined]` → conversation.view 槽崩溃
+    # （首条消息后对话区整片冻结，实测复现 + 修后消失，见首开 UX 卡第 3/8 轮）。
+    # 预置一个合法档位绕开；等上游接上兜底后此行可退役。
+    - id: ui-chat
+      name: '@deepseek-ai/dsh-client-ui-chat'
+      config:
+        transcriptView: detailed
+
+    # `locale.preference`：目标用户是中文管理者，zh 字典 vendor 全套自带，但无偏好时
+    # 首开语言随浏览器协商（英文浏览器落回 en——首屏满英文，owner 2026-10-01 的直接投诉）。
+    # 这里给**产品默认**；Settings→General 可随时改（持久化到 home 层，覆盖本行）。
+    - id: locale
+      name: '@deepseek-ai/dsh-client-locale'
+      config:
+        preference: zh
+
 # ── AGENT 面：`assistant` preset（0.1.7 起是普通行，随本 bundle 分发）────────────────
 #
 # 打包形状：一个专家 = 一个 `agent-preset` 行；换领域 = 换包。registry 行（`default: assistant`）
