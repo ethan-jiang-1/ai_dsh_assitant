@@ -276,6 +276,10 @@ describe('desk panels', () => {
         { id: 'm2', kind: 'preference', updated: '2026-09-25T10:00:00.000Z', text: '结论先行，别铺垫' },
         { id: 'm3', kind: 'decision', updated: '2026-09-25T11:00:00.000Z', text: 'dev home 只用于开发' },
         { id: 'm4', kind: 'other', updated: '2026-09-25T12:00:00.000Z', text: '一条未分类的记录' },
+        // First-open UX card (2026-10-01): a built-in seed's provenance renders
+        // as product language — the principal reads the approval flow, and a
+        // repo path there is developer coordinates leaking onto their surface.
+        { id: 'm5', kind: 'fact', updated: '2026-10-01T02:34:00.000Z', text: '管理岗基座：总经理视角的判断框架', source: 'packages/dsh-smart-assistant/seeds/management/management-lens-ceo.md' },
       ],
     }
     const text = textsOf(exports.MemoryPanel()).join(' | ')
@@ -283,14 +287,16 @@ describe('desk panels', () => {
     expect(text).toContain('记忆室')
     expect(text).toContain('会话日志住在')
     expect(text).toContain('这条记错了')
+    expect(text).toContain('内置基座种子页')
+    expect(text).not.toContain('packages/dsh-smart-assistant/seeds/')
     expect(text).toContain('用户 2026-09-26 更正')
     // Grouped by what the record is about — how the principal works versus the world it learned.
     expect(text).toContain('你的偏好（1）')
     expect(text).toContain('你的决定（1）')
-    expect(text).toContain('事实（1）')
+    expect(text).toContain('事实（2）')
     expect(text).toContain('其它（1）')
     // Preferences lead: the digital twin's core is knowing how the principal works.
-    expect(text.indexOf('你的偏好')).toBeLessThan(text.indexOf('事实（1）'))
+    expect(text.indexOf('你的偏好')).toBeLessThan(text.indexOf('事实（2）'))
   })
 
   it('warns when the desk file lags the conversation, and stays quiet when it does not', () => {

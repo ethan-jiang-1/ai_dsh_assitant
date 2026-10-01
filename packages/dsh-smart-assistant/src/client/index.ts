@@ -80,6 +80,17 @@ type RoomKind = 'desk' | 'knowledgeRoom' | 'memoryRoom'
 const DESK_LABEL = '打开我的桌面'
 
 /**
+ * Provenance shown to the principal speaks product language: repo-internal
+ * seed paths are developer coordinates (the approval flow's source line is
+ * the principal's surface — first-open UX card, 2026-10-01). Known internal
+ * prefixes map to product words; every other source stays verbatim, because
+ * workspace/external origins ARE the provenance the owner needs.
+ */
+function friendlySource(source: string): string {
+  return source.replace(/packages\/dsh-smart-assistant\/seeds\//g, '内置基座种子页/')
+}
+
+/**
  * The rooms as discoverable commands.
  *
  * Why this exists: the first-mile walkthrough (2026-09-26) found the product had zero
@@ -974,7 +985,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
             : createElement('div', {
                 style: { fontSize: '11px', color: 'var(--dsw-alias-label-secondary)', marginTop: '2px' },
               },
-              openSource || source.length <= 110 ? `来源：${source}` : `来源：${source.slice(0, 110)}…`,
+              openSource || source.length <= 110 ? `来源：${friendlySource(source)}` : `来源：${friendlySource(source).slice(0, 110)}…`,
               source.length <= 110
                 ? null
                 : createElement('button', {
