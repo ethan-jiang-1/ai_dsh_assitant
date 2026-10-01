@@ -1,6 +1,6 @@
 # 推敲：首开 UX——CEO 打开的第一屏在用三种不属于它的语言说话
 
-> 立卡：2026-10-01 ｜ 状态：推敲中｜毕业门判断 = 该做（用户 2026-10-01 拍板「UX 上好好想一想 变成 ongoing goal」，本卡=该 goal 的显式化）｜下一步 = 等本人打开试用 home 的第一读数（两轮已修：全中文首开 + 工作区之问 + 三室黑话 + 桌面空态路径泄漏；`+` 菜单验过健康；剩余项在用户拍板面/上游面/真实会话闭环）
+> 立卡：2026-10-01 ｜ 状态：推敲中｜毕业门判断 = 该做（用户 2026-10-01 拍板「UX 上好好想一想 变成 ongoing goal」，本卡=该 goal 的显式化）｜下一步 = 等本人打开试用 home 的第一读数（三轮已修：全中文首开、工作区之问、三室黑话、桌面空态路径泄漏、**首条消息崩溃**、**凭据缺口**；闭环彩排全链通过；下一切片=手册绝对路径 bug + 桌面自动生长语义 + 上游 issue 两件）
 
 ## 背景 / 触发
 
@@ -61,6 +61,39 @@
   长出来**，并把按钮的真实动作=向会话发刷新指令讲清楚；`client-panels.spec.ts` 加
   `not.toContain('.desk/state.json')` 反夹具；43 测试绿；真机 DOM 复核逐字在场）。
 - **待验**：会话闭环（CEO 第一句话 → 中文回复 → 桌面长出来）——需要真实输入，等本人打开。
+
+**第 3 轮（2026-10-01，会话闭环彩排：一次性 home 全链真机驱动）**：
+
+彩排方法：复制试用 home 为一次性实例（/tmp/ux-loop-home），headless Chrome 经 `--eval` 真打字、
+真发送、真等待生成。**彩排前先抓到并修掉两个会让首句话就翻车的堵点**：
+
+- **首条消息必崩（vendor 发布错位）**：此 pin 的 vendor `ui-chat` **预构建 client bundle 落后于其
+  自带 src**——src 的 `TranscriptViewPolicy.adopt()` 有 `?? defaultMode` 兜底，`lib/client.js` 没有；
+  全新 home 无 `transcriptView` 存档 → `mode=undefined` → `POLICIES[undefined]` → `conversation.view`
+  槽崩溃（`foldCompletedTurns` TypeError），**对话区整片空白**。实测复现（干净 home 第一条消息即崩，
+  8 条 console error）。修复走配置正门：`ui-chat` 行 config 预置 `transcriptView: detailed`
+  （等同用户选过一次工作详情档位）；修后同场景 **0 console error**。上游 issue 候选：**同 tag 内
+  src/lib 漂移**。根修候选（下切片）：经 `repair-vendor` 既有范式从 vendor src 重建 client 产物。
+- **试用 home 缺 API key**：`setup.sh` 建的 home 只带 `client-connection` 记录，无
+  `refs.DEEPSEEK_API_KEY` → 首条消息 `MISSING_CREDENTIAL`。已把 dev home 的 key 引用合并进
+  trial-home（结构只增不改）。
+
+**闭环验证结果（修复后，全链真机）**：发问（中文经营难题）→ **29s 专家级中文回复**
+（已知/假设分离、五条可证伪假设各配"能杀它的数"、三透镜分歧保留、动作表带负责人/指标/停止条件、
+缺的数据明说"只在你手上"——正是 O1/O3 的产品承诺）→ 点「刷新桌面」→ **33s 桌面文件写出**。
+零 console error。
+
+**环境发现（影响交接姿态）**：本会话沙箱内起的服务进程，其 `sandbox-exec` 被嵌套拒绝
+（`sandbox_apply: Operation not permitted`，实测 exit 71）→ 助手的一切 bash/文件工具全挂。
+**交接服务必须非嵌套启动**（等同用户自起；已按此重启 trial 服务）。
+
+**新发现真 bug（下一切片，非首开阻塞）**：scaffold 把**绝对 dataDir 路径烤进 `AGENTS.md`**
+（手册 owner 数据，line 96）而 digest 段不带任何动态路径——home 一旦搬动/恢复备份，手册即指错
+位置，模型会跟着读写错处（彩排中实际发生：模型按旧路径读写）。vendor 自身纪律
+（`dshHomeDisplay`）是"永不返回机器绝对路径"。修法候选：scaffold 种符号路径（`$DSH_HOME/assistant/`）
++ digest/premium 每 boot 动态带出当前真实路径 + curate 加"手册路径漂移"机器检查。
+**彩排方法教训**：复制 home 仿真首装**不成立**（工作区注册表存 canonical 绝对路径，整条链绕回
+原 home——桌面文件被写进试用 home，已清理还原）；真仿真必须从头 `setup.sh`。
 
 仍然挂着的：
 
