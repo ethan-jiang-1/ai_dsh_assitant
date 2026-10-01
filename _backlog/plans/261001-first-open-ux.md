@@ -143,6 +143,22 @@
   外部路径逐字保留——那才是真出处；真机验证友好标签在场、`packages/.../seeds` 零残留，301 测试绿，
   页面刷新即取新 bundle 无需重启）。选渲染层而非改种子 frontmatter：一处修好所有 home、存量数据
   零迁移；备选记录于 [note](../../notes/implemented/2026-10-01-cdp-loop-probe-borrowed.md)。
+
+
+**第 11 轮（2026-10-01，「批准」终点验证——在克隆环境上跑出的教训）**：
+
+- **机制验证 ✓**：点「批准」→ 面板提示进对话 → 模型走 `assistant_reflect promote_page`（进程内
+  正道，无审批需求）→ 盘上 `status: draft → stable` 真翻转。审批流的终点是通的。
+- **测试环境本身无效**：/tmp/ux-loop-home 是克隆 home——v9 手册烤着 trial 路径 + 注册表指向 trial
+  工作区 → 模型身份混乱，回合在多个 home 之间游走，试图编辑 trial home 的知识文件。**审批门成功
+  拦截跨 home 写入**（`escalate sandbox` 理由点名实际路径）——安全模型按设计生效；无人在场时回合
+  在审批门挂起 28 分钟（无 turn/end）。
+- **零损害确认**：试用 home 知识文件 mtime 02:34 原封、桌面文件 09:23（本人刷新）原封——挂起的
+  编辑从未执行。
+- **教训固化为下一切片**：① 批准流的干净 home 验证（fresh home + expert-setup + 探针 --approve，
+  一步到位无克隆伪影）；② 探针加 `--approve` 步骤冻结审批闭环。
+
+
   种子页 sources 字段改产品语言（"内置基座页 · 源自 ai_dsh_company 管理知识库"）或渲染层映射
   已知种子路径；涉及 repo 种子与 trial 数据两层，等本人确认审批流的实际使用后再动。
 
