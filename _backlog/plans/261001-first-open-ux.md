@@ -95,6 +95,18 @@
 **彩排方法教训**：复制 home 仿真首装**不成立**（工作区注册表存 canonical 绝对路径，整条链绕回
 原 home——桌面文件被写进试用 home，已清理还原）；真仿真必须从头 `setup.sh`。
 
+**第 4 轮（2026-10-01，手册可移植化切片 + 评测归因）**：
+
+- **手册烤死绝对路径 bug 已修（v10）**：布局树根改符号占位，提示词任何段落不再出现机器路径
+  （首版"尾部追加位置行"与"摘要头部位置行"两案均被评测 A/B 证伪——路径本身在内容丰富的 home
+  里是翻家邀请；详见[手册可移植化 note](../../notes/implemented/2026-10-01-home-manual-portable.md)）。
+  存量 home 走既有 `manual-stale-scaffold` 版本通道再生。
+- **评测两任务既有红立 [BUG-001](BUG-001-eval-behavior-tasks-red.md)**：A/B 矩阵（基线/在途 ×
+  dev/fresh home）证明 `breakdown-uses-skill` 与 `desk-refresh-loop` 与当日改动无关；附带实测
+  凭据文件 0600 权限陷阱。
+- **评测基础设施发现**：评测会话会写家（今日两条"签单"线索），行为评测读数必须注明 home 状态；
+  受控 fixture home 是 BUG-001 的修复方向之一。
+
 仍然挂着的：
 
 4. **内测声明弹窗**——**用户已拍板保留**（first-mile 判定记录 2：DSH 合规告知不是插件

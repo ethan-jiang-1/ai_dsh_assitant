@@ -66,11 +66,16 @@ describe('manualSnapshot (guidance)', () => {
     expect(manual).toContain('desk-refresh')
   })
 
-  it('returns a hand-edited manual verbatim', async () => {
+  it('returns a hand-edited manual verbatim, and the prompt never names the dataDir path', async () => {
     const service = boot()
     await service.ensureHome()
     writeFileSync(service.paths.agentsFile, '# my own manual\n', 'utf8')
+    // The manual text is the owner's and rides verbatim. NO prompt section carries the machine's
+    // dataDir path: all home access is tool-mediated, and a prompt-level path goes stale when a
+    // home moves and primes raw file-access bypass (both observed 2026-10-01).
     expect(service.manualSnapshot()).toBe('# my own manual')
+    expect(service.manualSnapshot()).not.toContain(service.paths.root)
+    expect(service.digestSnapshot()).not.toContain(service.paths.root)
   })
 
   it('renders a current manual when the file is absent — the fallback cannot go stale', async () => {

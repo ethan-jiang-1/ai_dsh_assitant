@@ -76,7 +76,11 @@ describe('scaffoldHome', () => {
     expect(manual).toContain('answers the principal\u0027s last question in full')
     expect(manual).toContain('research/')
     expect(manual).toContain('knowledge/')
-    expect(manual).toContain(root)
+    // The manual is owner data seeded once — it must stay portable: the layout tree roots at a
+    // symbolic placeholder, and the machine's absolute path never gets baked in (a moved home
+    // would otherwise leave the model reading and writing the old location; observed 2026-10-01).
+    expect(manual).toContain('<working-folder>/')
+    expect(manual).not.toContain(root)
     // The identity seed is the built-in default: day 0 the voice is exactly the shipped one.
     expect(await readFile(paths.soulFile, 'utf8')).toBe(`${DEFAULT_SOUL}\n`)
   })

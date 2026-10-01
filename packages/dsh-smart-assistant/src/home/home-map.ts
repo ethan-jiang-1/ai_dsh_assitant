@@ -14,13 +14,11 @@
  * @module dsh-smart-assistant/home/home-map
  */
 
-import type { HomePaths } from './layout.ts'
-
 /** File name of the home's operating manual (the AGENTS.md convention). */
 export const AGENTS_FILE_NAME = 'AGENTS.md'
 
 /** Version of the generated manual; bump when the generated content changes meaningfully. */
-export const HOME_MANUAL_VERSION = 9
+export const HOME_MANUAL_VERSION = 10
 
 /** The version marker stamped as the file's first line (an HTML comment: invisible when rendered). */
 export const HOME_MANUAL_MARKER = `<!-- home-manual v${String(HOME_MANUAL_VERSION)} -->`
@@ -49,11 +47,15 @@ export const HOME_STATUS_BLURB = [
 ].join('\n')
 
 /**
- * Render the full home manual.
- * @param paths - Resolved home paths, so the manual names the real locations.
+ * Render the full home manual. The manual is seeded once and is owner data afterwards — so it
+ * must stay **portable**: the layout tree roots at a symbolic placeholder, never the machine's
+ * absolute path. A baked path goes stale the day the home moves, and the model trusts it
+ * (observed 2026-10-01: a moved home's model read and wrote the old location, because the
+ * manual was the only place the prompt named the dataDir at all). The concrete location rides
+ * in the prompt separately, rendered fresh per request — see `manualSnapshot`.
  * @returns Markdown contents for `AGENTS.md`.
  */
-export function renderHomeManual(paths: HomePaths): string {
+export function renderHomeManual(): string {
   return `${HOME_MANUAL_MARKER}
 # Your working folder — operating manual
 
@@ -149,7 +151,7 @@ digest reports over-budget, after a session of real learning, or when you suspec
 ## Layout on disk
 
 \`\`\`text
-${paths.root}/
+<working-folder>/
 ├── SOUL.md            (your identity; seeded, never overwritten)
 ├── AGENTS.md          (this manual; seeded, never overwritten)
 ├── skill-usage.json   (load counts; advisory, safe to delete)

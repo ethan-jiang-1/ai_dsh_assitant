@@ -9,7 +9,7 @@
 
 | Bug | 标题 | 严重级 | 发现 |
 |---|---|---|---|
-| （空——首卡立时建行） | | | |
+| [BUG-001](BUG-001-eval-behavior-tasks-red.md) | 行为评测两任务既有红（breakdown / desk-refresh） | P1 | 2026-10-01 |
 
 ## 卡片模板
 

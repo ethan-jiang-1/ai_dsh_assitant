@@ -137,7 +137,7 @@ export async function scaffoldHome(paths: HomePaths): Promise<ScaffoldResult> {
     await mkdir(directory, { recursive: true })
   }
   const manualWritten = !(await exists(paths.agentsFile))
-  if (manualWritten) await writeFile(paths.agentsFile, renderHomeManual(paths), 'utf8')
+  if (manualWritten) await writeFile(paths.agentsFile, renderHomeManual(), 'utf8')
   const soulWritten = !(await exists(paths.soulFile))
   if (soulWritten) await writeFile(paths.soulFile, `${DEFAULT_SOUL}\n`, 'utf8')
   return { createdDirectories, manualWritten, soulWritten }

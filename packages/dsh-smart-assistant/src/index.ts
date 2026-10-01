@@ -801,11 +801,15 @@ export class AssistantMemory extends Service {
    * The home manual that rides in the system prompt: `AGENTS.md` verbatim when present, a
    * freshly rendered manual otherwise — the fallback is always current, so a missing manual
    * can never go stale. Hand edits are the owner's; only the scaffold version marker is the
-   * machine's (see `curate`'s drift finding).
+   * machine's (see `curate`'s drift finding). Since v10 the manual is fully portable: the
+   * layout tree roots at a symbolic placeholder and NO machine path rides in the prompt —
+   * all home access is tool-mediated, and a prompt-level path both goes stale when a home
+   * moves and primes the model to bypass the tools with raw file access (both observed
+   * 2026-10-01; the path-priming also degraded skill selection in the behavior eval).
    * @returns The manual text, byte-capped.
    */
   manualSnapshot(): string {
-    return rootFileSnapshot(this.paths.agentsFile, renderHomeManual(this.paths), MANUAL_BYTE_CAP)
+    return rootFileSnapshot(this.paths.agentsFile, renderHomeManual(), MANUAL_BYTE_CAP)
   }
 
   /**
