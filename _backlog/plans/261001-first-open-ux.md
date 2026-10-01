@@ -139,8 +139,10 @@
 - **「⚠ 3 页知识在等你审批（点这里去审批）」承诺兑现验证**（真点击 + 可见性取证）：点击后知识室
   以 720px 可见面板打开，「待你审批（3）」三页草稿各带来源出处与**一击「批准 / 有问题」按钮**——
   CEO 不需要懂 frontmatter 就能完成审批。承诺成立，无 bug。
-- **新打磨候选（记录不动手）**：审批行的来源出处显示仓内路径
-  （`packages/dsh-smart-assistant/seeds/management/...`）——对 CEO 是开发者黑话。候选修法：
+- **审批行来源路径泄漏已修**（渲染层映射 `friendlySource`：`seeds/` 前缀 → 「内置基座种子页」，
+  外部路径逐字保留——那才是真出处；真机验证友好标签在场、`packages/.../seeds` 零残留，301 测试绿，
+  页面刷新即取新 bundle 无需重启）。选渲染层而非改种子 frontmatter：一处修好所有 home、存量数据
+  零迁移；备选记录于 [note](../../notes/implemented/2026-10-01-cdp-loop-probe-borrowed.md)。
   种子页 sources 字段改产品语言（"内置基座页 · 源自 ai_dsh_company 管理知识库"）或渲染层映射
   已知种子路径；涉及 repo 种子与 trial 数据两层，等本人确认审批流的实际使用后再动。
 
