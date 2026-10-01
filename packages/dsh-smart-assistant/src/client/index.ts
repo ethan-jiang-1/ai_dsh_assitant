@@ -1281,7 +1281,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     const failed = store.openError !== undefined
     return createElement('button', {
       onClick: () => { openBeside('desk') },
-      title: failed ? '上次没能打开：右侧栏服务不在这个组合里' : '在对话旁打开我的桌面',
+      title: failed ? '上次没能打开桌面：刷新页面通常能恢复' : '在对话旁打开我的桌面',
       style: {
         border: 'none', background: 'transparent', cursor: 'pointer',
         fontSize: '12px', color: failed ? 'var(--dsha-warn)' : MARK_TEAL, padding: '4px 6px',
@@ -1379,7 +1379,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         // R9 (self-review, 2026-09-27): swallowing this left an underlined, pointer-cursor number that
         // did nothing at all. The stale target still must not break the panel — but the failure is
         // now visible where the click happened.
-        patchDesk({ jumpError: `「${label}」这个数字打不开对应的房间页（${target}）——右侧栏服务可能不在组合里` })
+        patchDesk({ jumpError: `「${label}」这次没能打开——刷新页面通常能恢复` })
       }
     }
     const inner = [
