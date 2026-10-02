@@ -124,11 +124,16 @@ Next, in the same change:
      why a stale lib/ does not show up until the tests or a boot.)
   1. Re-run the mechanism checks this plugin depends on, e.g.
        git -C vendor/dsh grep -c customSkillDirs ${tag} -- packages/skill/skill-filesystem/src/index.ts
-  2. pnpm verify && pnpm test
-  3. pnpm build && pnpm release-smoke
-  4. Re-check the inherited discipline table row by row against the new pin: docs/discipline.md
+  2. Sample-check the load-bearing \`path:line\` pins in notes/ and docs/ against the new pin. A pin
+     that still lands inside the file's length but points at the WRONG lines passes every mechanical
+     ref-sweep — the digested 0010 recheck round found ~60 such drifts, every one of them by hand
+     (_digested/_change_log/0010-ledger-and-pin-recheck.md). Spot-check the pins your current
+     decisions actually lean on (service seams, event payloads, config shapes), not every pin.
+  3. pnpm verify && pnpm test
+  4. pnpm build && pnpm release-smoke
+  5. Re-check the inherited discipline table row by row against the new pin: docs/discipline.md
       (DSH's own practices evolve; the inheritance must move with the pin).
-  5. Move the note in notes/proposed/ to notes/implemented/ if this upgrade was its subject.
+  6. Move the note in notes/proposed/ to notes/implemented/ if this upgrade was its subject.
 `)
 }
 

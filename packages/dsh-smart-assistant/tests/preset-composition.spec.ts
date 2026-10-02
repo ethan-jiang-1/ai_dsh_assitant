@@ -36,6 +36,7 @@ import AgentRegistry, { assembleContextFor } from '@deepseek-ai/dsh-agent'
 import AgentLoop from '@deepseek-ai/dsh-agent-loop'
 import AgentPresetRegistry from '@deepseek-ai/dsh-agent-preset-registry'
 import AgentPreset from '@deepseek-ai/dsh-agent-preset'
+import { DIGEST_SECTION_ORDER } from '../src/memory-digest/index.ts'
 import { afterEach, describe, expect, it } from 'vitest'
 
 const packageRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
@@ -136,6 +137,11 @@ async function agentOnPreset(ctx: Context, captured: Context[]) {
     // The story order: who you are, how the home works, what is in it now.
     expect(names.indexOf('assistant:soul')).toBeLessThan(names.indexOf('assistant:home-manual'))
     expect(names.indexOf('assistant:home-manual')).toBeLessThan(names.indexOf('assistant:memory-digest'))
+    // The digest rides in the tail band (>10000, after the environment facts, before the persona
+    // suffix at 10200): its text changes on every memory write, so sitting ahead of the tool
+    // sections would re-tokenize the shared prefix on every save (the KV-prefix discipline).
+    expect(DIGEST_SECTION_ORDER).toBeGreaterThan(10_000)
+    expect(DIGEST_SECTION_ORDER).toBeLessThan(10_200)
     const byName = new Map(assembled.sections.map(section => [section.name, section.text]))
     // A fresh home's seed equals the built-in default, so the identity section is the default
     // voice either way — the race between scaffold and first assembly is invisible by design.

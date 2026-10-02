@@ -83,6 +83,10 @@ AGENT 面（`cordis.patch.yml` 的 `preset-assistant` 行 → agent preset）
 **服务的三角色**：`assistantMemory` 是 Service Definition，**同一包同一文件**里给出唯一 Provider
 （所以不存在独立的 provider 包可找）；Consumer 是各 agent 面入口（四个工具、摘要段落、复盘）——按
 `inject` 声明消费，不依赖具体实现。
+**主干 service ≠ 竞聘 seam**：`assistantMemory` 是单 Provider、多 Consumer 的主干 service 形态；
+seam 的成色读数是**第二个真实 Provider 出现而 Consumer 一行不改**——没有第二实现预期时，不为
+"架构完整"把 service 抬成 seam（反味信号：只剩单一调用者的公开方法，该是私有闭包）。
+参与阶梯的 L2 行是**落点判据**（扩展点表达不了才用），不是成熟度升级方向。
 
 | 模块 | 职责 | 依赖方向 |
 |---|---|---|

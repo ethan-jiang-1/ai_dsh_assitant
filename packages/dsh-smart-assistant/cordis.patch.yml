@@ -111,6 +111,9 @@
           # → 里面现在有什么（有界摘要）。身份与手册是 working folder 根部的两个文件——拥有者的数据，不是
           # preset 代码（决定 notes/implemented/2026-09-24-soul-and-agents.md，D1/D2/D3=a）。每段各自成行，
           # 部署可独立关掉或替换 —— 上下文控制是一等公民。
+          # 摆位分两带（2026-10-02 起）：稳定内容（soul 100 / manual 300）留在前带紧贴身份；**易变内容
+          # （digest，每次记忆写入都变）移到尾部带 10150**（环境事实 10000/10100 之后、persona 后缀 10200
+          # 之前）——DSH 的 KV 前缀纪律：易变内容坐在工具段前面，一次 save 就把全部可共享前缀作废。
           - id: assistant-home-preamble
             name: dsh-smart-assistant/home-preamble
 
