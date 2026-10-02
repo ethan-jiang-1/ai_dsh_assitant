@@ -50,9 +50,10 @@ coverage/
 # 它的内容由它自己的仓库管。**不要**在这里 ignore vendor/ 或 vendor/dsh，
 # 那会让 submodule 失效，也会顺手把 vendor/UPSTREAM.md 排除掉。
 
-# 领域评测集：本人填的真实经营问题（不进 Git）与它跑出的打分表
+# 领域评测集：本人填的真实经营问题（不进 Git）与它跑出的打分表；.runs/ 是题间隔离的暂存目录
 dev/eval/domain/questions.local.md
 dev/eval/domain/sheet-*.md
+dev/eval/domain/.runs/
 
 # Session-written deliverables (cwd=repo by design; uncommitted handoff, see .desk rule)
 /deliverables/

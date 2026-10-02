@@ -21,7 +21,7 @@
  *
  * @module dev/eval/domain-run
  */
-import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -131,11 +131,14 @@ function observationsOf(run) {
 }
 
 /** 渲染打分表（人读的 markdown）。 */
-export function renderSheet(questions, runs, { title, home }) {
+export function renderSheet(questions, runs, { title, home, isolation }) {
   const lines = []
   lines.push(`# 领域评测集打分表 — ${title}`)
   lines.push('')
   lines.push(`题目 ${questions.length} 条｜跑于 ${new Date().toISOString().replace('T', ' ').slice(0, 16)}｜dev home：${home}`)
+  lines.push('')
+  lines.push(`**题间隔离**：${isolation === undefined ? '关（--no-isolate；题间共享 deliverables/，2026-09-29 校准记过跨题骑乘）'
+    : `开——每题的 deliverables/ 移入 \`${isolation.dir}/<题号>/\`，批前状态批后还原（隔离目录在 .gitignore）`}`)
   lines.push('')
   lines.push('**评分规则**（先定死，免得事后争）：事实正确 0/1/2 · 依据在场 0/1/2 · 该拒答就拒答（是/否/不适用）·'
     + ' 可用性 0/1/2。**G2 判据**：事实正确 ≥1 的比例 ≥90%、0 分题 ≤2 道、`该拒答：是` 的题全部拒答。')
@@ -238,9 +241,68 @@ export function selfCheck() {
   const sheet = renderSheet(
     [{ id: 'Q1', title: 't', ask: '问', expect: '', refuse: false, rubric: '', extra: [] }],
     [{ sessionId: 's-ok', observation: { toolCalls: [], answerText: '答案' }, seconds: 5, launchFailure: '', retriedAfter: 'boom' }],
-    { title: 'x', home: 'y' })
+    { title: 'x', home: 'y', isolation: { dir: '/q' } })
   if (!sheet.includes('首跑启动失败（boom）')) throw new Error('sheet must record the first-attempt failure')
+  if (!sheet.includes('题间隔离')) throw new Error('sheet must state the isolation mode')
+  if (renderSheet([], [], { title: 'x', home: 'y', isolation: undefined }).includes('/q')) {
+    throw new Error('sheet must not name an isolation dir when isolation is off')
+  }
+
+  // Deliverables isolation (fixture fs — every branch, no real tree touched).
+  const moved = []
+  const made = []
+  const tree = new Set(['/repo/deliverables'])
+  const fixtureFs = {
+    exists: path => tree.has(path),
+    mkdir: (path, options) => { made.push([path, options]) },
+    move: (from, to) => { if (!tree.delete(from)) throw new Error(`fixture move of absent ${from}`); tree.add(to); moved.push([from, to]) },
+  }
+  const iso = createDeliverablesIsolator({ repoRoot: '/repo', batchDir: '/q', fs: fixtureFs })
+  expect('stash pre-batch moves the tree', iso.stashPreBatch(), true)
+  expect('pre-batch landed in the batch dir', moved.at(-1)[1], '/q/pre-batch')
+  expect('stash is a no-op when nothing is there', iso.stashQuestion('Q1'), false)
+  tree.add('/repo/deliverables')
+  expect('question output goes to its own slot', iso.stashQuestion('Q17'), true)
+  expect('question slot is per-id', moved.at(-1)[1], '/q/Q17')
+  expect('restore moves the pre-batch tree back', iso.restorePreBatch(), true)
+  expect('restore puts it where it was', moved.at(-1)[1], '/repo/deliverables')
+  expect('restore after restore is a no-op', iso.restorePreBatch(), false)
+  expect('mkdir got recursive:true for the batch slots', made.every(([, options]) => options?.recursive === true), true)
   return 'eval:domain --self-check: ok — 解析 2 条（续行、该拒答=是、缺问法被丢）· 重试策略：瞬态失败重跑一次、双次尝试都入表'
+    + ' · 题间隔离：批前暂存/逐题入槽/批后还原/no-op 分支全覆盖'
+}
+
+/**
+ * Per-question `deliverables/` isolation.
+ *
+ * Why (measured, 2026-09-29 calibration on sheet-2026-09-28-19-23): the preset session runs with
+ * cwd = repo root by design, so a serial batch shares `deliverables/` across questions — Q17's
+ * evidence partly rode Q1/Q2's memos and Q19 rode Q17/Q12's, which forced a "score 依据在场 one
+ * notch down" caveat. A fresh answer must stand on the company workspace and the working folder's
+ * rooms, not on another question's output. Quarantine everything the batch finds or writes into a
+ * per-batch directory and restore the pre-batch tree afterwards, so the repo is exactly as it was.
+ * @param options - `{ repoRoot, batchDir, fs }`; `fs` is injected (`{ exists, mkdir, move }`) so the
+ * self-check can fixture every branch without touching a real tree.
+ * @returns the stash/restore API used by {@link main}.
+ */
+export function createDeliverablesIsolator({ repoRoot, batchDir, fs }) {
+  const deliverables = join(repoRoot, 'deliverables')
+  const moveIfExists = (from, to) => {
+    if (!fs.exists(from)) return false
+    fs.mkdir(dirname(to), { recursive: true })
+    fs.move(from, to)
+    return true
+  }
+  return {
+    /** Quarantine the pre-batch tree aside (restored by {@link restorePreBatch}). */
+    stashPreBatch() { return moveIfExists(deliverables, join(batchDir, 'pre-batch')) },
+    /** Quarantine one question's freshly written tree into its own slot. */
+    stashQuestion(id) { return moveIfExists(deliverables, join(batchDir, id)) },
+    /** Put the pre-batch tree back where it was. */
+    restorePreBatch() { return moveIfExists(join(batchDir, 'pre-batch'), deliverables) },
+    /** Where quarantined trees live (for the sheet header). */
+    dir: batchDir,
+  }
 }
 
 function main() {
@@ -278,17 +340,32 @@ function main() {
   const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/gu, '-')
   const out = resolve(valueOf('--out', join(dirname(file), `sheet-${stamp}.md`)))
   const runs = new Array(questions.length).fill(undefined)
-  process.stdout.write(`eval:domain: 跑 ${selected.length}/${questions.length} 题（一题约 1–3 分钟）\n`)
-  for (const { question, index } of selected) {
-    process.stdout.write(`▶ ${question.id} … `)
-    const run = runQuestionWithRetry(question.ask, runPreset)
-    runs[index] = run
-    const observed = observationsOf(run)
-    process.stdout.write(`${observed.retriedAfter === '' ? '' : '首跑启动失败，重试 '}`
-      + `${run.observation === null ? '没跑出会话' : 'ok'} (${observed.seconds}s`
-      + `${observed.rooms.length === 0 ? '，没问房间' : `，房间 ${observed.rooms.join('/')}`})\n`)
+  // 题间隔离（2026-09-29 校准挂的"下一批改进"）：默认开；--no-isolate 逃生口（复现旧行为对照用）。
+  const isolate = argv.includes('--no-isolate')
+    ? undefined
+    : createDeliverablesIsolator({
+        repoRoot,
+        batchDir: join(domainDir, '.runs', stamp),
+        fs: { exists: existsSync, mkdir: mkdirSync, move: renameSync },
+      })
+  if (isolate !== undefined) isolate.stashPreBatch()
+  process.stdout.write(`eval:domain: 跑 ${selected.length}/${questions.length} 题（一题约 1–3 分钟）`
+    + `${isolate === undefined ? '' : `｜题间 deliverables 隔离：${isolate.dir}`}\n`)
+  try {
+    for (const { question, index } of selected) {
+      process.stdout.write(`▶ ${question.id} … `)
+      const run = runQuestionWithRetry(question.ask, runPreset)
+      runs[index] = run
+      if (isolate !== undefined) isolate.stashQuestion(question.id)
+      const observed = observationsOf(run)
+      process.stdout.write(`${observed.retriedAfter === '' ? '' : '首跑启动失败，重试 '}`
+        + `${run.observation === null ? '没跑出会话' : 'ok'} (${observed.seconds}s`
+        + `${observed.rooms.length === 0 ? '，没问房间' : `，房间 ${observed.rooms.join('/')}`})\n`)
+    }
+  } finally {
+    if (isolate !== undefined) isolate.restorePreBatch()
   }
-  writeFileSync(out, renderSheet(questions, runs, { title: file.replace(`${repoRoot}/`, ''), home: harnessHome }))
+  writeFileSync(out, renderSheet(questions, runs, { title: file.replace(`${repoRoot}/`, ''), home: harnessHome, isolation: isolate }))
   process.stdout.write(`\n打分表：${out}\n按 TEMPLATE.md 的评分规则打分；达不到 G2 判据的题攒成下一批切片。\n`)
 }
 
