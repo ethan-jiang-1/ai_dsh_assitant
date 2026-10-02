@@ -31,10 +31,19 @@ const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 // ── 与 scripts/dsh.mjs 同一条硬规则：永不继承 DSH_HOME（见 dev/usage-report.mjs 的同名说明） ──
 const harnessHome = resolve(process.env.ASSISTANT_DSH_HOME ?? join(repoRoot, 'dev', 'harness-home'))
 
-/** Observe one session log: the tool calls it made and the text of its last answer. */
+/**
+ * Observe one session log: the tool calls it made and the full text the model said to the user.
+ *
+ * All assistant text blocks are concatenated in order — NOT just the last message. The last-message
+ * read lost the substance on present-turns (measured 2026-10-02, domain batch Q30): the model
+ * delivers the answer in a text block, then calls `present`, then closes with a short pointer
+ * ("file attached above") — the pointer overwrote the answer, leaving the scoring sheet with 27
+ * chars. Reasoning blocks are type `reasoning` and are excluded; single-answer sessions are
+ * unchanged (one text block, same output as before).
+ */
 export function observe(events) {
   const toolCalls = []
-  let answerText = ''
+  const answerParts = []
   for (const event of events) {
     if (event.type === 'tool/call') {
       toolCalls.push({ name: String(event.data?.name ?? ''), argumentsText: argumentsText(event.data?.arguments) })
@@ -43,12 +52,15 @@ export function observe(events) {
     if (event.type === 'assistant/message') {
       const blocks = event.data?.message?.content
       if (Array.isArray(blocks)) {
-        const text = blocks.flatMap(block => block?.type === 'text' && typeof block.text === 'string' ? [block.text] : []).join('\n')
-        if (text.trim() !== '') answerText = text
+        for (const block of blocks) {
+          if (block?.type === 'text' && typeof block.text === 'string' && block.text.trim() !== '') {
+            answerParts.push(block.text)
+          }
+        }
       }
     }
   }
-  return { toolCalls, answerText }
+  return { toolCalls, answerText: answerParts.join('\n\n') }
 }
 
 /** Run one task and read its session back. Returns the task, the observation and the verdict. */
@@ -158,8 +170,35 @@ function selfCheck() {
     process.stderr.write('eval --self-check: FAIL — file-shape accepted a file older than the run\n')
     process.exit(1)
   }
+  // observe 的 present 轮红绿对照（2026-10-02，领域批 Q30 实证）：答案块在前、present 之后的
+  // 短指针在后——只取最后一条会把实体答案整个丢掉（27 字指针覆盖 1809 字答案）。
+  const presentTurnEvents = [
+    { type: 'assistant/message', data: { message: { content: [
+      { type: 'reasoning', text: '内部推理不该进答案' },
+      { type: 'text', text: '草稿写好了：B 版全文……' },
+    ] } } },
+    { type: 'tool/call', data: { name: 'present', arguments: { files: [] } } },
+    { type: 'assistant/message', data: { message: { content: [
+      { type: 'text', text: '文件已挂到交付室（上方预览）。' },
+    ] } } },
+  ]
+  const observed = observe(presentTurnEvents)
+  if (!observed.answerText.includes('B 版全文') || !observed.answerText.includes('文件已挂到交付室')) {
+    process.stderr.write('eval --self-check: FAIL — observe dropped the substantive answer on a present-turn\n')
+    process.exit(1)
+  }
+  if (observed.answerText.includes('内部推理')) {
+    process.stderr.write('eval --self-check: FAIL — observe leaked a reasoning block into the answer\n')
+    process.exit(1)
+  }
+  const single = observe([{ type: 'assistant/message', data: { message: { content: [{ type: 'text', text: '唯一答案' }] } } }])
+  if (single.answerText !== '唯一答案') {
+    process.stderr.write('eval --self-check: FAIL — observe changed the single-answer shape\n')
+    process.exit(1)
+  }
   process.stdout.write(`eval --self-check: ok — the evaluator fails the incident task (${task.id}) and passes a compliant answer;`
-    + ' file-shape fails a shapeless file, a header-only file, a stale file and an unreadable path, and passes a shaped one\n')
+    + ' file-shape fails a shapeless file, a header-only file, a stale file and an unreadable path, and passes a shaped one;'
+    + ' observe keeps the substantive answer on a present-turn, excludes reasoning, and is unchanged for single answers\n')
 }
 
 function main() {
