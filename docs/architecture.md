@@ -31,6 +31,9 @@ HOST 面（cordis.patch.yml → dsh.bundle.patch）
                             ctx.assistantMemory（唯一服务键）
                             + session-query-sqlite 翻开行（`first-search` + 持久索引库，原始会话检索）
                             + time-context 行（当前时间/时区/经过时长随请求注入）
+                            + schedule + ui-schedule 行（定时面：到期任务以原会话 follow-up 投递；
+                              schedule_create/list/update/delete 四工具只挂 root agents——Web 组合默认带，
+                              headless 组合由 profile 层显式 disabled，它依赖 web-app 层的 sessionController）
                             + Web 壳品牌注入行（页标题/图标，webserver/index-inject；皮肤，不进模型上下文）
 
 浏览器面（package.json `dsh.client` → `./client` 出口；经既有 bundle 行被 client-modules

@@ -44,6 +44,21 @@
     - id: time-context
       name: '@deepseek-ai/dsh-time-context'
 
+    # ── 定时面：schedule 默认带（C1 反转，用户 2026-10-02 拍板）──────────────────────
+    #
+    # 0.2.0 起 Schedule 以可选 bundle 交付（`schedule-bundle`，OPTIONAL_BUNDLES，插件页
+    # 一键开），C1 原"文档指引不默认带"的 experimental 前提过期 → 反转为默认带。
+    # 两行照抄 schedule-bundle 的 patch（time-context 行我们已有，不重复）；它自己就是
+    # "借力不瞎折腾"的样本：到期投递 = 原会话 follow-up 消息，持久化、重启后仍投递，
+    # 全部上游维护。`dsh-schedule` 只给 root agents 挂 schedule_create/list/update/delete
+    # 四工具（`ctx.agents.roots()`，schedule/src/index.ts:170）——子代理不重复拿到；
+    # 养护检查定时触发（原 C1 预留的接入点）与"每周提醒我过经营状况"类主动感都走它。
+    - id: schedule
+      name: '@deepseek-ai/dsh-schedule'
+
+    - id: ui-schedule
+      name: '@deepseek-ai/dsh-client-ui-schedule'
+
     # ── 首开预置（首开 UX 卡 261001，2026-10-01）──────────────────────────────────
     #
     # 两行都是"同 id 整行替换"覆盖 web-app 出厂行（session-query-sqlite 同先例）：
