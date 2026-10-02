@@ -38,6 +38,8 @@ export interface DigestResult {
   readonly bytes: number
   /** Ids of the memory records that made it in, in render order. */
   readonly memoryIds: readonly string[]
+  /** Active memory records the budget left off the desktop. */
+  readonly omittedMemories: number
   /** Number of open threads in the home (not only the ones listed). */
   readonly openThreads: number
   /** Number of parked threads in the home. */
@@ -228,6 +230,7 @@ export function renderDigest(input: DigestInput): DigestResult {
     text,
     bytes: bytes(text),
     memoryIds: chosen.memoryIds,
+    omittedMemories: chosen.omittedMemories,
     openThreads: openThreads.length,
     parkedThreads: parkedThreads.length,
     truncated: chosen.truncated,

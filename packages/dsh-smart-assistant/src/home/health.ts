@@ -111,6 +111,8 @@ export interface CurationInput {
   readonly digestMaxBytes: number
   /** Whether the budget cut the digest short — the real pressure signal. */
   readonly digestTruncated: boolean
+  /** Active memory records the budget left off the desktop — the gate keying (0 = memories all ride). */
+  readonly digestOmittedMemories: number
   /** Age at which an open thread is reported as stalled. */
   readonly staleResearchDays: number
   /** Days without a load after which a learned skill is reported as stale. */
@@ -286,11 +288,19 @@ export function curateHome(input: CurationInput): CurationBrief {
   findings.push(...findNearDuplicates(input.memories))
 
   if (input.digestTruncated) {
+    // The message names what is actually being squeezed (2026-10-02 keying fix): memory-line
+    // omission is actionable by memory consolidation; lower-section truncation is not — pointing
+    // the model at memory retirement there would misdirect the cure.
     findings.push({
       code: 'digest-over-budget',
       severity: 'warn',
-      message: `the digest hit its ${input.digestMaxBytes}-byte budget and was cut short — records below `
-        + 'the cut are invisible in every session: retire the weakest active records or tighten their phrasing',
+      message: input.digestOmittedMemories > 0
+        ? `the digest hit its ${input.digestMaxBytes}-byte budget and ${String(input.digestOmittedMemories)} `
+          + 'active memory record(s) are invisible in every session — retire the weakest active records or tighten their phrasing'
+        : `the digest hit its ${input.digestMaxBytes}-byte budget — lower-priority lines (threads / knowledge `
+          + 'signposts) are omitted from the desktop, but every memory still rides and the rooms stay intact '
+          + 'and searchable; memory writes remain open. Raise the budget only if the omitted signposts matter '
+          + 'more than the resident-context cost',
       refs: [],
     })
   }

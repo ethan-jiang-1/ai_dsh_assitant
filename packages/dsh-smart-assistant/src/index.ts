@@ -207,7 +207,11 @@ function rootFileSnapshot(path: string, fallback: string, cap: number): string {
 export class AssistantMemory extends Service {
   static Config: Schema<Config> = z.object({
     dataDir: z.string(),
-    digestMaxBytes: z.number().step(1).min(256).default(4096),
+    // 6144（2026-10-02 校准）：4096 是骨架期（三房间）定的，第四房间（知识签树）落地后从未
+    // 校准——真实使用里 6 记忆 + 9 线索 + 3 稳定页就把知识签树挤到只挂 1/3、线索只列 3/5，
+    // 预算闸门随之被知识节的截断误触发（记忆写入门被堵）。6144 = 四房间成熟形状
+    // （~10 记忆 + 5 线索 + 5 签树页）仍有余量的有界值；桌面仍然有界，只是不再过紧。
+    digestMaxBytes: z.number().step(1).min(256).default(6144),
     recallLimit: z.number().step(1).min(1).default(20),
     staleResearchDays: z.number().step(1).min(1).default(30),
     staleSkillDays: z.number().step(1).min(1).default(30),
@@ -254,7 +258,7 @@ export class AssistantMemory extends Service {
       ? expandHomePath(config.dataDir)
       : join(resolveDshHome(), HOME_DIRECTORY_NAME)
     this.paths = homePaths(root)
-    this.digestMaxBytes = config.digestMaxBytes ?? 4096
+    this.digestMaxBytes = config.digestMaxBytes ?? 6144
     this.recallLimit = config.recallLimit ?? 20
     this.staleResearchDays = config.staleResearchDays ?? 30
     this.staleSkillDays = config.staleSkillDays ?? 30
@@ -371,13 +375,17 @@ export class AssistantMemory extends Service {
   /**
    * Write a memory record, optionally superseding an existing one.
    *
-   * Budget enforcement (tri-line proposal slice 1h): when the digest is already cut short by its
-   * byte budget, a pure addition is refused at the write primitive — the budget stops being
-   * advisory. Superseding and retiring writes stay open because they replace or remove.
+   * Budget enforcement (tri-line proposal slice 1h; keying fixed 2026-10-02): a pure addition is
+   * refused when the digest is already dropping **memory lines** off the desktop
+   * (`omittedMemories > 0`) — the budget stops being advisory for the section that is actually
+   * under pressure. The original `truncated` keying misfired once the fourth room landed: the
+   * knowledge signpost tree truncating (a state no memory write can remediate) closed the memory
+   * gate, so distilled facts stopped landing (G2 batch evidence: multiple sessions self-reported
+   * "cannot save"). Superseding and retiring writes stay open because they replace or remove.
    * @param input - The claim and its metadata.
    * @returns The written record.
    * @throws when `text` is empty, `supersedes` names a missing record, `importance` is out of
-   * range, or the digest is over budget and this write would only add.
+   * range, or memory lines are being squeezed off the desktop and this write would only add.
    */
   async saveMemory(input: SaveMemoryInput): Promise<MemoryRecord> {
     const text = input.text.trim()
@@ -389,9 +397,9 @@ export class AssistantMemory extends Service {
     await this.ensureHome()
     if (input.supersedes === undefined) {
       const digest = await this.digest()
-      if (digest.truncated) {
+      if (digest.omittedMemories > 0) {
         throw new Error(
-          `the working folder digest is already cut short by its ${this.digestMaxBytes}-byte budget — `
+          `the digest is already dropping ${String(digest.omittedMemories)} active memory record(s) off the desktop — `
           + 'retire a record (forget) or supersede an existing one instead of adding; '
           + 'assistant_memory action=curate reports the pressure',
         )
@@ -984,6 +992,7 @@ export class AssistantMemory extends Service {
       digestBytes: digest.bytes,
       digestMaxBytes: this.digestMaxBytes,
       digestTruncated: digest.truncated,
+      digestOmittedMemories: digest.omittedMemories,
       staleResearchDays: this.staleResearchDays,
       staleSkillDays: this.staleSkillDays,
       retireSkillDays: this.retireSkillDays,

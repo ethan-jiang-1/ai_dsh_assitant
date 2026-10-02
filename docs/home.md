@@ -102,8 +102,11 @@ learn 模块的 `tools/result` 订阅就给对应名字计数（用户 `/name` �
 - **桌面**（常驻上下文，三个段落讲一个顺序的故事：**你是谁 → working folder 怎么用 → 里面现在有什么**）：
   - 身份段（`assistant:soul`）：`SOUL.md` 逐字（缺/空回退内置默认身份——回退是替换不是叠加）；
   - 手册段（`assistant:home-manual`）：`AGENTS.md` 逐字（缺则现场渲染当前版，永不落后）；
-  - 状态摘要（`assistant:memory-digest`，**有界** `digestMaxBytes`）：状态行 + 活跃记忆的精选 +
-    **开放线索的条数与前几条标题**。
+  - 状态摘要（`assistant:memory-digest`，**有界** `digestMaxBytes`，默认 6144）：状态行 +
+    活跃记忆的精选 + **开放线索的条数与前几条标题** + **知识签树**（stable 页一行一页，作检索路标）。
+    预算闸门（`save` 纯新增）：只在**记忆行本身被挤下桌面**时拒绝（消息给出路：retire 或 supersede）；
+    线索/签树被挤只报 finding、不堵记忆写入门——堵了也修不好那部分（2026-10-02 校准与钥匙修复，
+    依据 `notes/implemented/2026-10-02-digest-budget-recalibration.md`）。
   身份与手册是**working folder 根部的数据文件**（人可改、可 git、scaffold 只在缺失时写）——身份是数据不是
   preset 代码；静态引导（跨请求稳定，cache 友好）与动态状态（摘要）分离。
   桌面只放"此刻最该在眼前的东西"。

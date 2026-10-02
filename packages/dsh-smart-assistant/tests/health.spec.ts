@@ -54,6 +54,7 @@ function input(overrides: Partial<CurationInput> = {}): CurationInput {
     digestBytes: 100,
     digestMaxBytes: 4096,
     digestTruncated: false,
+    digestOmittedMemories: 0,
     staleResearchDays: 30,
     staleSkillDays: 30,
     retireSkillDays: 90,
@@ -140,6 +141,20 @@ describe('curateHome', () => {
   it('reports digest budget pressure and duplicate ids', () => {
     expect(codes(input({ digestTruncated: true }))).toContain('digest-over-budget')
     expect(codes(input({ duplicatedIds: ['a-1'] }))).toContain('duplicate-id')
+  })
+
+  it('names what the budget is squeezing — memory omission is actionable, signpost omission is not', () => {
+    // Memory lines off the desktop: the cure is consolidation (retire / supersede).
+    const memorySqueezed = curateHome(input({ digestTruncated: true, digestOmittedMemories: 2 }))
+      .findings.find(finding => finding.code === 'digest-over-budget')
+    expect(memorySqueezed?.message).toContain('invisible in every session')
+
+    // Lower-section truncation (threads / knowledge signposts): memory writes stay open —
+    // pointing the model at memory retirement here would misdirect the cure (2026-10-02 keying).
+    const signpostsSqueezed = curateHome(input({ digestTruncated: true, digestOmittedMemories: 0 }))
+      .findings.find(finding => finding.code === 'digest-over-budget')
+    expect(signpostsSqueezed?.message).toContain('memory writes remain open')
+    expect(signpostsSqueezed?.message).not.toContain('retire the weakest')
   })
 
   it('reports skills the loader would ignore', () => {
