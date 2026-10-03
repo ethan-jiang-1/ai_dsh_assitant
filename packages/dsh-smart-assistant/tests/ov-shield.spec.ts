@@ -21,6 +21,9 @@ import SkillRegistry from '@deepseek-ai/dsh-skill'
 import { afterEach, describe, expect, it } from 'vitest'
 import * as OvShield from '../src/ov-shield/index.ts'
 import { denyDelta, SHADOW_DESCRIPTION_PREFIX } from '../src/ov-shield/index.ts'
+import { ToolCallId } from '@deepseek-ai/dsh-llm'
+
+const testSignal = new AbortController().signal
 
 const contexts: Context[] = []
 const disposers: Array<() => Promise<void> | void> = []
@@ -40,7 +43,7 @@ function fakeTool(name: string): ToolDefinition {
   } as unknown as ToolDefinition
 }
 
-const SHIELD_CONFIG: OvShield.OvShieldConfig = { denyToolPrefix: 'mcp__openviking__', shadowSkills: ['openviking-memory', 'openviking-skills'] }
+const SHIELD_CONFIG: OvShield.OvShieldConfig = { denyToolPrefix: 'mcp__openviking__', denyServerResources: 'openviking', shadowSkills: ['openviking-memory', 'openviking-skills'] }
 
 /** Scope keys are objects in production (agent identities) — the registries WeakMap them. */
 const agentKey = (): ScopeKey => ({ agent: 'test-agent' })
@@ -55,6 +58,7 @@ async function harness(): Promise<Context> {
   parent.tools.register(fakeTool('mcp__openviking__remember'))
   parent.tools.register(fakeTool('mcp__openviking__search'))
   parent.tools.register(fakeTool('assistant_memory'))
+  parent.tools.register(fakeTool('read_mcp_resource'))
   parent.skills.register({ name: 'openviking-memory', description: 'OpenViking memory skill', provider: 'openviking', content: 'c', source: 'runtime' })
   parent.skills.register({ name: 'management-breakdown', description: 'curated house skill', provider: 'curated', content: 'c', source: 'runtime' })
   return parent
@@ -132,9 +136,10 @@ describe('ov-shield enforcement', () => {
     await parent.plugin(ToolRuntime)
     await parent.plugin(SkillRegistry)
     parent.tools.register(fakeTool('assistant_memory'))
+  parent.tools.register(fakeTool('read_mcp_resource'))
     const key = agentKey()
     await mountShield(parent, key)
-    expect(visibleNames(parent, key)).toEqual(['assistant_memory'])
+    expect(visibleNames(parent, key)).toEqual(['assistant_memory', 'read_mcp_resource'])
   })
 })
 
@@ -157,5 +162,37 @@ describe('ov-shield skill shadowing', () => {
     parent.skills.register({ name: 'bare-skill', description: 'no invocation policy', provider: 'openviking', content: 'c', source: 'runtime' })
     const listed = await parent.skills.list()
     expect(listed.find(skill => skill.name === 'bare-skill')?.invocation).toEqual({ modelInvocable: true, userInvocable: true })
+  })
+})
+
+
+describe('ov-shield resource guard', () => {
+  // The read bridge (2026-10-04 live finding): generic MCP resource tools address any server by
+  // URI argument, so the prefix deny misses them. The guard denies the openviking server's
+  // resource calls and lets every other server pass through.
+  type ToolService = { execute: (input: { signal: AbortSignal, callId: unknown, name: string, arguments: unknown }) => Promise<unknown> }
+  const exec = (tools: ToolService, name: string, args: unknown) =>
+    tools.execute({ signal: testSignal, callId: ToolCallId('g1'), name, arguments: args })
+
+  it('denies resource reads naming the ov server, passes other servers and non-resource calls', async () => {
+    const parent = await harness()
+    const key = agentKey()
+    await mountShield(parent, key)
+    const tools = parent.tools as unknown as ToolService
+    // The guard's throw is normalized by the tool runtime into an error RESULT (not a
+    // rejected promise) — the model-friendly denial channel. Assert on that shape.
+    const denied = await exec(tools, 'read_mcp_resource', { server: 'openviking', uri: 'viking://user/default/memories/x' }) as { isError: boolean, content: Array<{ text?: string }> }
+    expect(denied.isError).toBe(true)
+    expect(JSON.stringify(denied.content)).toContain('ov-shield: OpenViking resources')
+    const deniedList = await exec(tools, 'list_mcp_resources', { server: 'openviking' }) as { isError: boolean }
+    expect(deniedList.isError).toBe(true)
+    const deniedTpl = await exec(tools, 'list_mcp_resource_templates', { server: 'openviking' }) as { isError: boolean }
+    expect(deniedTpl.isError).toBe(true)
+    // Other servers pass the guard; the tool itself executes cleanly.
+    const passed = await exec(tools, 'read_mcp_resource', { server: 'some-other-server', uri: 'x://y' }) as { isError?: boolean }
+    expect(passed.isError ?? false).toBe(false)
+    // Non-resource tools are untouched.
+    const untouched = await exec(tools, 'assistant_memory', {}) as { isError?: boolean }
+    expect(untouched.isError ?? false).toBe(false)
   })
 })

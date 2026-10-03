@@ -195,6 +195,7 @@
             name: dsh-smart-assistant/ov-shield
             config:
               denyToolPrefix: mcp__openviking__
+              denyServerResources: openviking
               shadowSkills:
                 - openviking-memory
                 - openviking-skills

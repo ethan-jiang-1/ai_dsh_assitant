@@ -41,12 +41,16 @@ export const inject = ['tools', 'skills']
 export interface OvShieldConfig {
   /** Global-tool name prefix denied for every agent under this mount. */
   denyToolPrefix: string
+  /** MCP server name whose resources the generic resource tools must not reach (the read bridge). */
+  denyServerResources: string
   /** Skill names shadowed with a non-invocable same-name entry at this (nearer) layer. */
   shadowSkills: string[]
 }
 
 export const Config: Schema<OvShieldConfig> = z.object({
   denyToolPrefix: z.string().required().pattern(/\S/u),
+  /** MCP server name whose resources the generic resource tools must not reach. */
+  denyServerResources: z.string().required(),
   shadowSkills: z.array(z.string()).required(),
 })
 
@@ -117,4 +121,20 @@ export function apply(ctx: Context, config: OvShieldConfig): void {
   // surface may never emit again), the listener catches late connects and resyncs.
   enforce()
   ctx.on('tools/change', enforce)
+
+  // The read bridge: the MCP client's GENERIC resource tools (list_mcp_resources,
+  // read_mcp_resource, list_mcp_resource_templates) address any server by URI argument, so a
+  // prefix deny on the server's own tool namespace does not reach them — a live session read
+  // viking:// entities through read_mcp_resource while every mcp__openviking__* call stayed
+  // absent (observed 2026-10-04, dev-home four-measure run). Deny resource calls whose `server`
+  // names this deployment's OpenViking and let every other server's resources pass through —
+  // the per-server guard seam the browser-use MCP integration established.
+  ctx.on('tools/execute', async (exec, next) => {
+    if (typeof exec.arguments === 'object' && exec.arguments !== null
+      && (exec.arguments as { server?: unknown }).server === config.denyServerResources
+      && (exec.name === 'list_mcp_resources' || exec.name === 'read_mcp_resource' || exec.name === 'list_mcp_resource_templates')) {
+      throw new Error(`ov-shield: OpenViking resources are not part of this assistant's tool surface (recall blocks inline what the model needs; see the openviking integration card)`)
+    }
+    return next()
+  }, { global: true })
 }

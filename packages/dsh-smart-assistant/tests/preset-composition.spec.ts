@@ -57,7 +57,7 @@ const OWN_ROWS = [
   {
     id: 'assistant-ov-shield',
     name: 'dsh-smart-assistant/ov-shield',
-    config: { denyToolPrefix: 'mcp__openviking__', shadowSkills: ['openviking-memory', 'openviking-skills'] },
+    config: { denyToolPrefix: 'mcp__openviking__', denyServerResources: 'openviking', shadowSkills: ['openviking-memory', 'openviking-skills'] },
   },
 ]
 
