@@ -9,6 +9,14 @@
 
 ## 已知与未决
 
+> **0.2.0-rc.2 升 pin 复验（2026-10-03，pin c1857a8）**：本节与 §七 的机制缝在新 pin 逐条在场——
+> `ctx.tools.restrict` 仍 `core/tools/src/index.ts:1097-1124`（scoped 校验、未知名抛错 1114-1118、
+> `tools/change` 声明与 emit 原位）；`isModelInvocable` 仍 `tool-skill/src/index.ts:226`；技能「最近层
+> 全胜」语义原样；bundle reconcile 仍 `operations.ts:88-100`；include 同 id 整行覆盖无深合并原样；
+> session 格式仍 v4（`core/session/src/types.ts:89`）。**组合面一项新事实**：BUG-001 修复（tool-skill
+> 移 host 行，2026-10-02）后 one-shot 会话开始发布技能目录——§五「+2 技能条目」与「待跑实验②」的
+> 遮蔽断言自此才在 one-shot 真正可测（修复前 one-shot 从不发布目录，该量测必然空转）。
+
 ### 一、两侧表面（本轮亲验）
 
 **OpenViking 插件 0.5.8**（本机装于 ov-trial，源码逐文件读）——单 HOST 行 `openviking-memory-runtime` 挂 8 个钩子：
@@ -29,7 +37,7 @@
 ### 二、DSH 机制结论（vendor 源码引证）
 
 1. **挂载点**：插件自带 `dsh.bundle.patch` 在 `dsh plugin add` 后经 reconcile **自动进该 profile 的 `dsh.profile.bundles`**——安装即对**该 profile 全部会话**生效（`vendor/dsh/packages/boot/plugin-manager/src/operations.ts:88-113`；层序 bundles → profile patch → home patch → `--patch`，`profile-context.ts:63-70`）。我们的 profile patch 只需**同 id 整行 config 覆盖**（`vendor/dsh/vendor/include/src/index.ts:120-123` 顶层字段逐一赋值、无深合并）。
-2. **缺席插件**：host 面行引用未安装插件 = 启动警告后继续（仅 7 个全局 required id 致命，`app-boot/src/index.ts:925-939`）；**preset 的 `config.plugins` 行是严格语义**——一行缺席 = 整个 preset broken（`agent-preset-registry/src/mount.ts:266` "A mount failure is final"）。
+2. **缺席插件**：host 面行引用未安装插件 = 启动警告后继续（仅 7 个全局 required id 致命，`app-boot/src/index.ts:925-939`）；**preset 的 `config.plugins` 行是严格语义**——一行缺席 = 整个 preset broken（`agent-preset-registry/src/index.ts:123` "A mount failure is final"；0.2.0-rc.2 起从 mount.ts 挪入）。
 3. **技能多 provider**：跨层「最近层全胜」（rank 不参与）、同层 rank → 注册序（`skill/skill/src/index.ts:551-582, 807-811`）；同名静默遮蔽（输家仅 logger.warn）。我方双 provider 在 **preset 层**，ov 的在 **global 层**（host 行）→ 同名时**我方无条件压过**，反向不可能。
 4. **DSH 的 mcp-client 无按工具过滤能力**（README/src 双零命中）；permission-presets 是 sandbox+approval 打包器（`interaction/permission-presets/README.md`），非工具过滤。
 

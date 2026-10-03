@@ -179,6 +179,19 @@
 
 
 
+**升 pin 复验（2026-10-03，dsh-v0.2.0-rc.2 / c1857a8）**：
+
+- **`transcriptView: detailed` 预置行仍是承重，不是冗余**：本地 `packages/client/ui-chat/lib/client.js`
+  是 9/26 的旧产物（升 0.2.0 pin 时未重建），其 `adopt()` 仍无 `?? defaultMode` 兜底——崩溃漂移在
+  本机运行时还在；新 pin 的 **src** 已带兜底（`transcript-view.ts:48`）。上游候选的证据口径修正：
+  先证「本地树 lib 未随 pin 重建」，上游发布物是否同样漂移须重建后复验。
+- **升 pin 重建清单的洞**（喂 sync-dsh playbook）：0.2.0 pin note 第 3 条只扫「新包缺
+  `lib/client.js`」（presence），没扫「组合引用包的 lib 过期」（freshness）——ui-chat 恰好漏网。
+  固定步骤应补：对照组合引用的 client 包清单扫**产物新鲜度**，不止在场性。
+- 0.2.0 client 大重组：ui-chat 从 `packages/extensions/` 挪到 `packages/client/`。
+- **下一切片前置**：重建组合引用的 client bundle（至少 ui-chat）→ 首条消息崩溃场景复验 →
+  更新上游候选证据；此后所有真机探针读数才有干净基面。
+
 仍然挂着的：
 
 4. **内测声明弹窗**——**用户已拍板保留**（first-mile 判定记录 2：DSH 合规告知不是插件
