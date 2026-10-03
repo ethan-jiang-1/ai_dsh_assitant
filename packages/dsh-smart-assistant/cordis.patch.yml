@@ -85,6 +85,16 @@
       config:
         preference: zh
 
+    # ── 技能目录工具（host 行，BUG-001 修复，2026-10-02）────────────────────────────
+    #
+    # tool-skill 以 preset 行挂载时，其目录监听器在 one-shot 会话里从不发布
+    # <available_skills>（host 层实例可发布——裸 one-shot 实测），模型无从知道技能存在，
+    # `skill-loaded` 类行为全部退化为"提示词点名才加载"。移到 host 行（web 侧同 id 覆盖
+    # web-app 的 disabled 行——session-query/ui-chat 同先例；headless 侧覆盖 base 活行，
+    # 形状不变）后目录随首请求发布。诊断与证据：BUG-001 归档卡。
+    - id: tool-skill
+      name: '@deepseek-ai/dsh-tool-skill'
+
 # ── AGENT 面：`assistant` preset（0.1.7 起是普通行，随本 bundle 分发）────────────────
 #
 # 打包形状：一个专家 = 一个 `agent-preset` 行；换领域 = 换包。registry 行（`default: assistant`）
@@ -186,9 +196,6 @@
             config:
               customSkillDirs:
                 - !!js process.getBuiltinModule('node:path').join(process.getBuiltinModule('node:path').dirname(process.getBuiltinModule('node:module').createRequire(baseUrl).resolve('dsh-smart-assistant/package.json')), 'presets/assistant/skills')
-
-          - id: tool-skill
-            name: '@deepseek-ai/dsh-tool-skill'
 
           # ── 文件系统（读 working folder、读工作区）───────────────────────────────────
           #
