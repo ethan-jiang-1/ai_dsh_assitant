@@ -9,7 +9,7 @@
 
 1. **记忆基础已埋好（双层）**：房间事实记忆（26 个 memory/digest 测试当日全绿；245 会话中
    `assistant_memory` 真实调用 349 次；跨进程 recall 命中有日志实证）＋ OpenViking 情景记忆
-   层 1（[推敲卡](../../_backlog/plans/260929-openviking-formal-integration.md)实弹验证版剖面已定稿，
+   层 1（[推敲卡](../../_backlog/_done/_closed_plans/260929-openviking-formal-integration.md)实弹验证版剖面已定稿，
    卡两道真人门）。诚实面：内容仍以研发域自指为主——"记得住"已解决，"记得都是用户的事"未开始。
 2. **能力面机制大件已齐**：`--dump-config` 实证 goal / plan-mode / 委派 subagent / jobs /
    session-query / time-context / web 搜索抓取全部在场（[采纳卡](../implemented/2026-09-30-stock-plugin-adoption.md)）。

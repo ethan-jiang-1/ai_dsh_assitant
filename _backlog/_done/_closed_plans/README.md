@@ -7,6 +7,7 @@
 
 | 卡 | 关闭日 | 判定 |
 |---|---|---|
+| [260929-openviking-formal-integration.md](260929-openviking-formal-integration.md) | 2026-10-04 | 层 1 落地毕业（AGPL delegated 认 + 四量测活体 + 安装器双验收）→ [层 1 note](../../../notes/implemented/2026-10-04-openviking-layer1-landing.md)；层 2/3 门在 note 尾 |
 | [260928-openviking-install-release.md](260928-openviking-install-release.md) | 2026-09-29 | 试点六步全绿 → 用户拍板 **A（引入）** 毕业 [RFC](../../../notes/proposed/2026-09-29-openviking-adoption-rfc.md) |
 | [260928-self-growth-base-research.md](260928-self-growth-base-research.md) | 2026-09-29 | 三选一拍板 **A（引入）** → 同上 RFC；B/C 借鉴清单随卡留档 |
 | [260928-semantic-retrieval.md](260928-semantic-retrieval.md) | 2026-09-29 | 拍板 A → 被取代（召回走 OpenViking context search） |

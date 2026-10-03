@@ -2,7 +2,7 @@
 
 日期：2026-09-29 · 状态：已收卷 · 证据范围：本机全量重跑（doctor / dump-config / 记忆往返复现 / find 探针 /
 DSH 级注入面拆日志 / 硅基流动双探针 / registry+GitHub 直查），对照
-[RFC](../../proposed/2026-09-29-openviking-adoption-rfc.md)、
+[RFC](../../implemented/2026-09-29-openviking-adoption-rfc.md)、
 [试点卡](../../../_backlog/_done/_closed_plans/260928-openviking-install-release.md)与
 [runbook](../../../vendor/thirdparty/openviking/README.md) 的全部可验声明。
 

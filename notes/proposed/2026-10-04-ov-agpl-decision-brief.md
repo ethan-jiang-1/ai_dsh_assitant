@@ -44,6 +44,6 @@
 
 ## 证据链
 
-- [RFC](2026-09-29-openviking-adoption-rfc.md)（准入表+提案 6）·
-  [推敲卡](../../_backlog/plans/260929-openviking-formal-integration.md)（§六 v3 旋钮、§七 缝法、四量测活体节）·
+- [RFC](../implemented/2026-09-29-openviking-adoption-rfc.md)（准入表+提案 6）·
+  [推敲卡](../../_backlog/_done/_closed_plans/260929-openviking-formal-integration.md)（§六 v3 旋钮、§七 缝法、四量测活体节）·
   安装器 `dev/ov-install.sh` · shield `packages/dsh-smart-assistant/src/ov-shield/`

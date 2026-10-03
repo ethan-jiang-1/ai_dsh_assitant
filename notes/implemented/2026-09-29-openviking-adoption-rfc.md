@@ -1,6 +1,6 @@
 # RFC：引入 OpenViking 作为自成长基座（准入表 + 发布形态 + 验收标准）
 
-日期：2026-09-29 · 状态：**proposed**（拍板 A 落地：用户 2026-09-29 三选一拍 A「引入」；试点六步全绿为依据）
+日期：2026-09-29 · 状态：**implemented**（全部验收闭合 2026-10-04：安装器双验收 ✓ · 往返/四量测活体 ✓ · AGPL delegated 裁定「认」 ✓ [双裁定](../implemented/2026-10-04-delegated-verdicts-agpl-and-ux-review.md) · 正式接入切片落地 → [层 1 note](../implemented/2026-10-04-openviking-layer1-landing.md)；原拍板：用户 2026-09-29 三选一拍 A）
 
 毕业自两张卡（均已关闭归档）：[260928-self-growth-base-research](../../_backlog/_done/_closed_plans/260928-self-growth-base-research.md)（三选一拍板）与 [260928-openviking-install-release](../../_backlog/_done/_closed_plans/260928-openviking-install-release.md)（试点六步 + S2 细节草案）。
 
@@ -42,7 +42,7 @@
 1. 干净 home 跑一遍 ov-install.sh（拟建，见提案 2）→ doctor 全绿 + dump-config 断言 + 「会话有记忆」（开箱测试）；
 2. 记忆往返 + 找回命中（`pnpm ov-trial-rt` 形状，哨兵语料判分）；
 3. AGPL 合规复核通过（真人）；
-4. 正式接入面的决策切片另立（preset 组合行怎么挂、与自研三房间的开关关系）——已立卡推敲：[_backlog/plans/260929-openviking-formal-integration.md](../../_backlog/plans/260929-openviking-formal-integration.md)（缝法 + 旋钮剖面 + 0.5.8 负知识）。
+4. 正式接入面的决策切片另立（preset 组合行怎么挂、与自研三房间的开关关系）——已立卡推敲：[_backlog/plans/260929-openviking-formal-integration.md](../../_backlog/_done/_closed_plans/260929-openviking-formal-integration.md)（缝法 + 旋钮剖面 + 0.5.8 负知识）。
 
 ## 遗留与边界
 
