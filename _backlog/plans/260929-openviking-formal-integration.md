@@ -61,7 +61,7 @@
 1. **`mcpEnabled` 是死旋钮**：`shared/config-schema.mjs:63` 有声明，本 bundle **零消费者**（全包 grep 唯一命中即声明行；0.5.9 复测同样成立，见 §七.①）；`index.mjs:83` 无条件 `mountOpenVikingMcp(ctx, config)`。设 false 无任何效果，12 个 mcp 工具照挂。
 2. **skills provider 无条件挂载**：`index.mjs:84` 无条件 `mountOpenVikingSkills(ctx)`，不吃 config；想保留记忆而关技能目录，0.5.8/0.5.9 只能整行禁用或层遮蔽。
 
-配套事实：DSH mcp 层无工具过滤、MCP 桥是程序化挂载（无组合行可 patch）、permission 层非工具过滤——**但这三条只堵「配置面」，DSH 另有注册表原生的执法缝（§七.②），「隐形引擎」经我们自己的包可达成**。上游 issue 候选（三件，截至 2026-09-29 检索无在途 issue/PR [observed]）：① 给 `mcpEnabled` 接上消费者；② skills mount 条件化；③ server 侧 `/mcp` 端点开关。上游接上之日 = shim 退役之时。
+配套事实：DSH mcp 层无工具过滤、MCP 桥是程序化挂载（无组合行可 patch）、permission 层非工具过滤——**但这三条只堵「配置面」，DSH 另有注册表原生的执法缝（§七.②），「隐形引擎」经我们自己的包可达成**。上游 issue 候选（三件，截至 2026-09-29 检索无在途 issue/PR [observed]；**2026-10-03 复查维持**：npm 无 >0.5.9 版本，repo issue/PR 检索零相关命中，唯一相关的 PR #4157（2026-08-20 合并）是现行 MCP 桥形状的**起源**而非修复——它带来的正是 §四 的 16 工具无条件挂载）：① 给 `mcpEnabled` 接上消费者；② skills mount 条件化；③ server 侧 `/mcp` 端点开关。上游接上之日 = shim 退役之时。
 
 ### 五、残留的模型可见变更（诚实登记——实施切片须走 model-visible 纪律）
 
@@ -198,7 +198,7 @@
 ## 毕业门（四问 + 验收判据）
 
 - **该不该**：已过（用户拍板「肯定需要融合」）。
-- **何时**：层 1 待 AGPL 真人复核（RFC 遗留前置）+ 用户过 §六旋钮剖面；层 2 待层 1 跑一个真实使用周期（eval 有对照数据）。
+- **何时**：层 1 待 AGPL 真人复核（RFC 遗留前置）+ 用户过 §六旋钮剖面；层 2 待层 1 跑一个真实使用周期（eval 有对照数据）。**复核面的事实收敛（2026-10-03，随 §七.② 定形）**：本卡缝法对 AGPL 侧零改动零重分发（`ov-install.sh` 安装上游原样 tgz；server 独立进程；shim 属我方 MIT 包、经 DSH 原生缝执法）——RFC 提案 6 初判的场景（独立进程 + HTTP/MCP 消费不构成链接）就是复核的全部场景，fork/改动触发条件在本缝法下不存在；判断仍归真人。
 - **次序**：层 1（插件行 + shim 行 = 隐形引擎）→ 量化（URI 追逐率/eval 对照）→ 层 2（治理桥）→ 层 3（只读放开等，数据驱动）不立项。
 - **放弃**：上面六个输掉的方案已记录；若 eval 证实召回段噪声或 URI 追逐不可控，回退 = 从 `dsh.profile.bundles` 移除该 bundle + preset 里禁 shim 行（`operations.ts` 机制：无需卸载包）。
 
