@@ -687,6 +687,14 @@ export function backlogLivenessProblems(backlogRoot) {
     }
   }
 
+  // reference/ material is named by its area's index (the contract in reference/README.md).
+  if (existsSync(join(backlogRoot, 'reference'))) {
+    const refIndex = readFileSync(join(backlogRoot, 'reference', 'README.md'), 'utf8')
+    for (const name of cardNames('reference')) {
+      if (!refIndex.includes(name)) problems.push(`_backlog/reference/${name} is not named by reference/README.md's index`)
+    }
+  }
+
   // Archive membership: every archived card is named by its pool's index.
   const archiveIndexes = {
     [join('_done', '_closed_plans')]: join('_done', '_closed_plans', 'README.md'),

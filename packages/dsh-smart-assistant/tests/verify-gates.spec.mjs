@@ -240,6 +240,15 @@ describe('backlogLivenessProblems', () => {
     expect(backlogLivenessProblems(backlog).some(p => p.includes('_suspended_plans'))).toBe(true)
   })
 
+  it('rejects reference material missing from its index', () => {
+    const backlog = temp('backlog-ref-')
+    bootBacklog(backlog)
+    writeFileSync(join(backlog, 'reference', '260928-survey.md'), '# 调研材料\n', 'utf8')
+    expect(backlogLivenessProblems(backlog).some(p => p.includes('260928-survey.md') && p.includes('index'))).toBe(true)
+    writeFileSync(join(backlog, 'reference', 'README.md'), '# reference\n\n| 文件 |\n|---|\n| [260928-survey.md](260928-survey.md) |\n', 'utf8')
+    expect(backlogLivenessProblems(backlog)).toEqual([])
+  })
+
   it('rejects an archived card missing from its pool index', () => {
     const backlog = temp('backlog-arch-')
     bootBacklog(backlog)
