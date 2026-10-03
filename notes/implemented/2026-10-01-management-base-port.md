@@ -65,6 +65,18 @@ CFO 3、COO 3、VP-Eng 2）。本切片搬 **2 件**进 `packages/dsh-smart-assi
 5. `pnpm release-smoke`——绿（发布物内容变化：147 files 打包含新技能目录，干净 home 装载＋组合断言过）。
 6. `pnpm verify`——提交前最终门禁（绿；读数见提交时的门禁输出）。
 
+## 五、下一切片（2026-10-04 更新：切片二已落地 + 甄别施工图并入）
+
+切片二（2026-10-04 落地）：**finance-compliance** 技能入 preset（b2332d5，验证六步同切片一）；
+**decision-memo / ops-review-note** 两页知识种子入 seeds/management（ee92cb8，零剥离纯方法论）。
+甄别结论（subagent 全页覆盖）：kb/ 实为 8 文件 ≈75KB（非 596K——旧估把 deliverables-archive 误入）；
+journal/ 五目录已收敛为空；**方法论真矿在 templates/ 六份骨架与五份 CHARTER 头部 10–20 行**
+（成体系的角色治理骨架：一页纸/分歧保留/SoD/三格核查/自建三问/量不换价）。剩余搬运候选
+（优先级序）：kb/cfo 头部（财务闸门，须剥离数字段+历史纪要）→ kb/vp-sales 头部（定价纪律，
+整段剥离客户/竞品事实）→ kb/coo 头部（交付承接）→ vp-eng 自建三问（强候补）→ 公司手册
+AGENTS.md（决策路由+审批纪律，第一候选但须剔 DSH 机制细节）；剥离动作集中在「删历史纪要段
++抠数字换占位」两类机械操作。不搬：org.md（100% 公司事实）、owners.md、motion-ledger 残渣。
+
 ## 五、下一步
 
 - **下一切片候选**（按价值序）：customer-voice → finance-compliance → ops-feasibility / budget-check；
