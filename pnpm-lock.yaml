@@ -76,6 +76,9 @@ importers:
       '@deepseek-ai/dsh-llm':
         specifier: workspace:^
         version: link:../../vendor/dsh/packages/llm/llm
+      '@deepseek-ai/dsh-scope':
+        specifier: workspace:^
+        version: link:../../vendor/dsh/packages/core/scope
       '@deepseek-ai/dsh-session':
         specifier: workspace:^
         version: link:../../vendor/dsh/packages/core/session
