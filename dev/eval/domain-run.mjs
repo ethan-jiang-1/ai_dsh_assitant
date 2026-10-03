@@ -339,6 +339,12 @@ function main() {
 
   const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/gu, '-')
   const out = resolve(valueOf('--out', join(dirname(file), `sheet-${stamp}.md`)))
+  // 覆盖既存打分表 = 静默丢已跑题的证据（2026-10-03 点检实操踩到：同路径连跑三题，表只剩最后一题）。
+  // 早失败放在跑题之前——错配置不该烧完一整批 API 才报。
+  if (existsSync(out)) {
+    process.stderr.write(`eval:domain: --out 目标已存在：${out}\n换一个路径（或先挪走旧表）——覆盖会静默丢掉旧表里已跑题的证据。\n`)
+    process.exit(1)
+  }
   const runs = new Array(questions.length).fill(undefined)
   // 题间隔离（2026-09-29 校准挂的"下一批改进"）：默认开；--no-isolate 逃生口（复现旧行为对照用）。
   const isolate = argv.includes('--no-isolate')
