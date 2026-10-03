@@ -53,6 +53,7 @@ const size = sizeIndex >= 0 ? (args[sizeIndex + 1] ?? '1600,1000') : '1600,1000'
 const keepBrowser = flag('--keep-browser');
 const quiet = flag('--quiet');
 const dislike = flag('--dislike');
+const approve = flag('--approve');
 const say = (message) => { if (!quiet) console.error(`  ..  ${message}`) };
 
 if (guiUrl === undefined || !/^https?:\/\//.test(guiUrl) || !guiUrl.includes('token=')) {
@@ -160,7 +161,7 @@ try {
   // "停止" matched forever and the probe timed out on a 4-second turn
   // (observed 2026-10-01).
   const runTurn = async (text) => {
-    const result = { question: text, pasted: undefined, composerReady: false, sent: undefined, replySeconds: null, replyTail: '', waitSamples: [] };
+    const result = { question: text, pasted: undefined, composerReady: false, sent: undefined, replySeconds: null, replyTail: '', waitSamples: [], approvals: 0, approvalPending: false };
     const pasteOnce = `(() => {
       const composer = document.querySelector('[data-composer-input="true"]');
       if (composer === null) return 'no-composer';
@@ -226,8 +227,34 @@ try {
           };
         })()`));
       }
+      // 审批门（2026-10-04）：回合可能停在 approval/asked 上等真人——UI 出现「允许一次」。
+      // --approve 就地点掉并计数（探针冻结审批闭环的挂账能力，首开 UX 卡第 11 轮）；
+      // 不带旗标则如实上报 parked，不再伪装成普通超时。
+      const approvalState = await evaluate(`(() => {
+        const b = [...document.querySelectorAll('button')].find(x => (x.textContent ?? '').trim() === '允许一次');
+        if (b === undefined) return 'none';
+        return 'present';
+      })()`);
+      if (approvalState === 'present') {
+        if (approve) {
+          const clicked = await evaluate(`(() => {
+            const b = [...document.querySelectorAll('button')].find(x => (x.textContent ?? '').trim() === '允许一次');
+            if (b === undefined) return 'gone';
+            b.click();
+            return 'clicked';
+          })()`);
+          if (clicked === 'clicked') result.approvals = (result.approvals ?? 0) + 1;
+        } else {
+          result.approvalPending = true;
+        }
+      }
     }
-    if (!done) { result.sent = 'timeout: turn still running after 450s'; return result; }
+    if (!done) {
+      result.sent = result.approvalPending === true
+        ? 'turn parked at approval gate (pass --approve to auto-approve)'
+        : 'timeout: turn still running after 450s';
+      return result;
+    }
     result.replySeconds = Math.round((Date.now() - startedAt) / 1000);
     // The reply renders into the conversation body; the tail carries its
     // closing sections (动作表/停止条件 live at the end of an answer).
