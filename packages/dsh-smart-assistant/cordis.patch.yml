@@ -184,6 +184,21 @@
           - id: assistant-learn
             name: dsh-smart-assistant/learn
 
+          # ── OpenViking 治理遮蔽（推敲卡 260929 §六/§七.②，对抗评审定稿 2026-10-04）────────
+          #
+          # 部署若采用 OpenViking，其插件无条件挂 MCP 工具面与第二技能目录（0.5.x 两旋钮皆死）。
+          # 本行是治理执法面：整前缀拒 `mcp__openviking__*`（fail-closed，上游新增写面同轮被拒），
+          # 两个 ov 技能名以显式双 false 遮蔽。价值不受损：画像与召回块内联内容，模型所需不在被拒
+          # 工具后面。OpenViking 缺席时模型可见面零影响（幽灵条目只出现在不过滤的 list() 中立视图）。
+          # 全前缀拒 vs 拒 6 写放只读的裁决与输掉的方案：见推敲卡 §七.② 与 ov-shield 模块注释。
+          - id: assistant-ov-shield
+            name: dsh-smart-assistant/ov-shield
+            config:
+              denyToolPrefix: mcp__openviking__
+              shadowSkills:
+                - openviking-memory
+                - openviking-skills
+
           # ── 技能：两个来源 ──────────────────────────────────────────────────────────
           #
           # 技能注册表（`ctx.skills`）在 HOST 组合里，且按 scope 分层：这里的行注册进**本 preset 的层**，

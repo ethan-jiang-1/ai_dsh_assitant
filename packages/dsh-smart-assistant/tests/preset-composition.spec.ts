@@ -24,6 +24,7 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { Context } from '@deepseek-ai/cordis'
+import { scopeOf } from '@deepseek-ai/dsh-scope'
 import Loader from '@deepseek-ai/cordis-plugin-loader'
 import Include from '@deepseek-ai/cordis-plugin-include'
 import LlmRuntime from '@deepseek-ai/dsh-llm'
@@ -53,6 +54,11 @@ const OWN_ROWS = [
   { id: 'assistant-research-tool', name: 'dsh-smart-assistant/tool-research' },
   { id: 'assistant-knowledge-tool', name: 'dsh-smart-assistant/tool-knowledge' },
   { id: 'assistant-learn', name: 'dsh-smart-assistant/learn' },
+  {
+    id: 'assistant-ov-shield',
+    name: 'dsh-smart-assistant/ov-shield',
+    config: { denyToolPrefix: 'mcp__openviking__', shadowSkills: ['openviking-memory', 'openviking-skills'] },
+  },
 ]
 
 const contexts: Context[] = []
@@ -148,6 +154,41 @@ async function agentOnPreset(ctx: Context, captured: Context[]) {
     expect(byName.get('assistant:soul')).toContain('You are a long-lived assistant')
     expect(byName.get('assistant:home-manual')).toContain('# Your working folder — operating manual')
     expect(byName.get('assistant:memory-digest')).toContain('Live status of your working folder')
+
+  })
+
+  ;(built ? it : it.skip)('ov-shield denies fixture OpenViking tools and shadows the skill names through the joined preset', async () => {
+    const ctx = await harness()
+    // The co-installed OpenViking surface, as the host layer would present it: an MCP tool and a
+    // second skill-provider entry, both at the global layer.
+    ctx.tools.register({
+      name: 'mcp__openviking__remember',
+      description: 'fixture ov write tool',
+      parameters: { type: 'object', properties: {} },
+      output: { schema: { type: 'null' }, render: () => [] },
+      async execute() { return null },
+    } as never)
+    ctx.skills.register({
+      name: 'openviking-memory', description: 'OpenViking memory skill', provider: 'openviking',
+      content: 'c', source: 'runtime',
+    })
+    const captured: Context[] = []
+    await agentOnPreset(ctx, captured)
+    const agentCtx = captured[0]
+    if (agentCtx === undefined) throw new Error('agent context was not captured')
+    const scopeKey = scopeOf(agentCtx)
+    // The model-visible tool surface: the ov write tool is denied, the house tools are intact.
+    const names = ctx.tools.schemas(scopeKey).map(tool => tool.name)
+    expect(names).not.toContain('mcp__openviking__remember')
+    expect(names).toContain('assistant_memory')
+    expect(names).toContain('assistant_knowledge')
+    // The skill catalog: the shadow wins the name, the model-facing filter drops it, and the
+    // ghost entries stay in the invocation-neutral view (accounted residue, never model-visible).
+    const listed = await ctx.skills.list({ scope: scopeKey })
+    const shadow = listed.find(skill => skill.name === 'openviking-memory')
+    expect(shadow?.invocation).toEqual({ modelInvocable: false, userInvocable: false })
+    expect(listed.filter(skill => skill.invocation.modelInvocable).map(skill => skill.name))
+      .not.toContain('openviking-memory')
   })
 
   it('registers this package\'s four tools on the joined agent, and only there', async () => {

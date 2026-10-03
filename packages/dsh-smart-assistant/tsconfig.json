@@ -24,6 +24,9 @@
       "path": "../../vendor/dsh/packages/core/tools"
     },
     {
+      "path": "../../vendor/dsh/packages/core/scope"
+    },
+    {
       "path": "../../vendor/dsh/packages/util/home-paths"
     },
     {

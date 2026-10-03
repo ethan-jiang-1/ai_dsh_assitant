@@ -122,7 +122,7 @@
 | ④ 补丁重打包 | **机械成立但降为备选**：spike 实证 2 行守卫（`mcpEnabled`/`skillCatalog` 均为 schema 已声明旋钮，包住 index.mjs:83-84 两行挂载）+ `--ignore-scripts` 等价重打包 → `0.5.8-dshsa.1` tgz 造出（SHA512 在 spike 记录，未入库）；维护税 = 每次上游升级重打 | /tmp spike 亲测 |
 | ⑤ 接受 + stub 遮蔽 | **被 ② 取代**：`modelInvocable:false` 遮蔽正是 ⑤ 的更优形态（不是写 stub 内容，是让目录过滤器删行） | 同 ② |
 
-**② 的完整代价账（诚实登记）**：a) shim 是我们包的**模型可见面变更**——走 identity.md 登记 + gen-catalog + 快照/eval 纪律；b) `restrict` 时序：MCP 工具连接后异步注册，shim 须监听 `tools/change`（`core/tools` 199-209 声明）动态补 deny（前缀枚举，server 升级加新工具也覆盖）；c) 技能遮蔽残留：`ctx.skills.list()` 中立视图仍有条目 + 每次 fresh collect 一条 registry warn（日志噪声级）；d) **URI 死胡同**：召回块内联 `viking://` URI（`recall-core.mjs:396` 每命中一行），工具被拒后模型若追 URI → 守卫 deny 并指向不存在的 mcp 工具 → UNKNOWN_TOOL——内容已内联，正常不需要追；eval 量测追逐率，若显著再议只读放开（`allowReadonlyTools`）。
+**② 的完整代价账（诚实登记；2026-10-04 对抗评审修正两处）**：a) shim 是我们包的**模型可见面变更**——走 identity.md 登记 + gen-catalog + 快照/eval 纪律；b) `restrict` 时序：MCP 工具连接后异步注册，shim 须监听 `tools/change`（`core/tools` 199-209 声明）动态补 deny（前缀枚举，server 升级加新工具也覆盖）；~~c) 技能遮蔽残留：`ctx.skills.list()` 中立视图仍有条目 + 每次 fresh collect 一条 registry warn~~ **c) 修正**：跨层遮蔽在 registry 是**静默覆盖**（`merged.set` 无 warn；warn 只在同层去重时发）——真实残留 = 两条**幽灵条目**：无论 ov 在场与否都在不过滤的 `list()` 中立视图在场（模型不可见；BUG-001 runner 预热 snapshot 计数 19→21 一类断言会移位），且 `skills.register` 缺省 invocation 是**双 true**——遮蔽条目必须显式双 false（fail-deadly 默认，测试钉死）；d) **URI 死胡同**：召回块内联 `viking://` URI（`recall-core.mjs:396` 每命中一行），工具被拒后模型若追 URI → 守卫 deny 并指向不存在的 mcp 工具 → UNKNOWN_TOOL——内容已内联，正常不需要追；eval 量测追逐率，若显著再议只读放开（`allowReadonlyTools`）。
 
 ## 实弹测试台账（2026-09-29 起 ongoing；目标 goal-01c7b263）
 

@@ -37,6 +37,7 @@
       "@deepseek-ai/cordis": ["./vendor/dsh/vendor/cordis/src"],
       "@deepseek-ai/schemastery": ["./vendor/dsh/vendor/schemastery/src"],
       "@deepseek-ai/dsh-tools": ["./vendor/dsh/packages/core/tools/src"],
+      "@deepseek-ai/dsh-scope": ["./vendor/dsh/packages/core/scope/src"],
       "@deepseek-ai/dsh-home-paths": ["./vendor/dsh/packages/util/home-paths/src"],
       "@deepseek-ai/dsh-skill": ["./vendor/dsh/packages/skill/skill/src"],
       "@deepseek-ai/dsh-skill-filesystem": ["./vendor/dsh/packages/skill/skill-filesystem/src"],
