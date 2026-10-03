@@ -1,5 +1,7 @@
 # OpenViking 采用：AGPL 合规复核决策包
 
+日期：2026-10-04 · 状态：**proposed（等本人 AGPL 判定——认=bash dev/ov-install.sh <profile> 落地层 1；不认=OpenViking 线止步，自研记忆层现状继续）**
+
 > 给本人的一页纸（2026-10-04）。你只需要回答一个问题：**AGPL 边界的初判你认不认**——认，层 1
 > 一条命令落地（`bash dev/ov-install.sh <profile>`，已双验收）；不认，OpenViking 线停在这，自研
 > 记忆层现状继续服务。技术事实全部经过活体验证（证据链见文末）。
@@ -42,6 +44,6 @@
 
 ## 证据链
 
-- [RFC](../notes/proposed/2026-09-29-openviking-adoption-rfc.md)（准入表+提案 6）·
-  [推敲卡](../_backlog/plans/260929-openviking-formal-integration.md)（§六 v3 旋钮、§七 缝法、四量测活体节）·
+- [RFC](2026-09-29-openviking-adoption-rfc.md)（准入表+提案 6）·
+  [推敲卡](../../_backlog/plans/260929-openviking-formal-integration.md)（§六 v3 旋钮、§七 缝法、四量测活体节）·
   安装器 `dev/ov-install.sh` · shield `packages/dsh-smart-assistant/src/ov-shield/`
