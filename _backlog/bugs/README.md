@@ -4,6 +4,7 @@
 > [`../_done/_fixed_bugs/`](../_done/_fixed_bugs/)，文件名不变、内容不重写。
 > **编号权威在归档侧**：新号 = [_done README](../_done/README.md) 的 Next BUG ID
 > （已分配最大号 + 1，活跃 ∪ 归档一起算）。规矩手册 = [`../README.md`](../README.md)。
+> 活跃卡受 `backlog-liveness` 门禁看守（状态行户口 + 本表索引互查，2026-10-02 借鉴）。
 
 ## 活跃列表
 

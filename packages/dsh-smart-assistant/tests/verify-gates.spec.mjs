@@ -25,6 +25,7 @@ import {
   languageGuardProblems,
   notesNamingProblems,
   notesStateProblems,
+  backlogLivenessProblems,
   notesTopLevelProblems,
   pinProblems,
   implementedAlternativesProblems,
@@ -195,6 +196,57 @@ describe('notesTopLevelProblems', () => {
     const problems = notesTopLevelProblems(notes)
     expect(problems.some(p => p.includes('notes/postmortem/'))).toBe(true)
     expect(problems.some(p => p.includes('notes/scratch.md'))).toBe(true)
+  })
+})
+
+
+// ── backlog liveness（2026-10-02 治理借鉴：状态行户口 + 制度目录 + 索引互查）────────────────
+
+describe('backlogLivenessProblems', () => {
+  function bootBacklog(dir) {
+    for (const sub of ['plans', 'bugs', 'reference', join('_done', '_closed_plans'), join('_done', '_fixed_bugs'), join('_done', '_suspended_plans'), join('_done', '_suspended_bugs'), join('_done', '_reference')]) {
+      mkdirSync(join(dir, sub), { recursive: true })
+    }
+    writeFileSync(join(dir, 'plans', 'README.md'), '# plans\n\n| 卡 | 一句话 | 倾向 |\n|---|---|---|\n', 'utf8')
+    writeFileSync(join(dir, 'bugs', 'README.md'), '# bugs\n\n| Bug | 标题 | 严重级 | 发现 |\n|---|---|---|---|\n', 'utf8')
+    writeFileSync(join(dir, 'reference', 'README.md'), '# reference\n', 'utf8')
+    for (const pool of ['_closed_plans', '_fixed_bugs', '_suspended_plans', '_suspended_bugs', '_reference']) {
+      writeFileSync(join(dir, '_done', pool, 'README.md'), `# ${pool}\n`, 'utf8')
+    }
+    writeFileSync(join(dir, '_done', 'README.md'), '# _done\n', 'utf8')
+  }
+
+  it('accepts a live backlog: hukou lines present, every card indexed', () => {
+    const backlog = temp('backlog-ok-')
+    bootBacklog(backlog)
+    writeFileSync(join(backlog, 'plans', '260928-demo.md'),
+      '# 推敲：demo\n\n> 立卡：2026-09-28 ｜ 状态：推敲中｜下一步 = 想清楚\n', 'utf8')
+    writeFileSync(join(backlog, 'plans', 'README.md'),
+      '| 卡 |\n|---|\n| [260928-demo.md](260928-demo.md) |\n', 'utf8')
+    expect(backlogLivenessProblems(backlog)).toEqual([])
+  })
+
+  it('rejects a dead draft (no status line) and an unindexed card, and a missing pool', () => {
+    const backlog = temp('backlog-red-')
+    bootBacklog(backlog)
+    writeFileSync(join(backlog, 'plans', '260928-dead.md'), '# 推敲：死稿\n\n没有状态行。\n', 'utf8')
+    writeFileSync(join(backlog, 'plans', '260928-live.md'),
+      '# 推敲：活卡\n\n> 状态：推敲中\n', 'utf8')
+    const problems = backlogLivenessProblems(backlog)
+    expect(problems.some(p => p.includes('260928-dead.md') && p.includes('状态：'))).toBe(true)
+    expect(problems.some(p => p.includes('260928-live.md') && p.includes('index'))).toBe(true)
+
+    rmSync(join(backlog, '_done', '_suspended_plans'), { recursive: true, force: true })
+    expect(backlogLivenessProblems(backlog).some(p => p.includes('_suspended_plans'))).toBe(true)
+  })
+
+  it('rejects an archived card missing from its pool index', () => {
+    const backlog = temp('backlog-arch-')
+    bootBacklog(backlog)
+    writeFileSync(join(backlog, '_done', '_closed_plans', '260928-gone.md'),
+      '# 推敲：已毕业\n\n> 状态：已关闭\n', 'utf8')
+    // _closed_plans README 不点名它
+    expect(backlogLivenessProblems(backlog).some(p => p.includes('260928-gone.md') && p.includes('index'))).toBe(true)
   })
 })
 

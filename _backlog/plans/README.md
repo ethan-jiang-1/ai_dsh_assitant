@@ -5,8 +5,19 @@
 > [`../_done/_closed_plans/`](../_done/_closed_plans/)，文件名不变、内容不重写，状态行补去向指针。
 > 规矩手册 = [`../README.md`](../README.md)。
 >
-> **活跃清单 = 本目录树本身**（位置即状态；不设第二份索引——[notes/README §三](../../notes/README.md)
-> 同款纪律：第二份清单必然漂移）。毕业判断看各卡状态行。
+> **活跃清单**（下表）= 本目录的名册；目录树本身仍是**位置即状态**的真相（卡在不在，树说了算）。
+> 名册与树的互查由 `backlog-liveness` 门禁双向把守（2026-10-02 借鉴自 ai_dsh_loop_advisor：
+> 名册会漂移的老问题，靠"有门禁看守的名册"解决——notes/ 不设索引是因为那里没有这门禁，两者不矛盾）。
+> 毕业判断看各卡状态行。
+
+## 活跃清单
+
+| 卡 | 一句话 | 毕业倾向 |
+|---|---|---|
+| [260928-domain-eval-v0.md](260928-domain-eval-v0.md) | 领域评测集 v0 扩题（G2 关口的毕业件） | 机器侧完成——等本人抽检定 G2（真人门） |
+| [260929-openviking-formal-integration.md](260929-openviking-formal-integration.md) | OpenViking 情景记忆层正式接入 | 该做——等两道真人门（AGPL 复核 + §六旋钮剖面） |
+| [260929-reserved-anchor-discipline.md](260929-reserved-anchor-discipline.md) | 🔒 常设保留锚（评测活体样本） | 永不毕业（本卡的功能就是不闭环） |
+| [261001-first-open-ux.md](261001-first-open-ux.md) | 首开 UX（"怎么看都好像不知道怎么用"） | ongoing goal——等第一次真实使用读数 |
 
 ## 🔒 保留卡（用户判触发）
 
@@ -38,7 +49,8 @@
 ## 状态行规则
 
 首部 12 行内必须有 `状态：` 行且写明毕业门判断——**每张卡自带户口**，防挂死稿。
-（机械门禁暂不设：死稿卡第一次出现即加 `plans-liveness`，见 [`../README.md`](../README.md) 机械门禁节。）
+（机械门禁 = `backlog-liveness`，2026-10-02 随治理借鉴一并实施：状态行户口 + 活跃索引互查，
+见 [`../README.md`](../README.md) 机械门禁节。）
 
 ## 调研卡形态规范（原 notes/research 规范并入，2026-09-28）
 

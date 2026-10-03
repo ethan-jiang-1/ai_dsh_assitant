@@ -4,23 +4,63 @@
 > 四问在这里成熟。**只承载判断材料（问题、证据、候选、取舍），不承载次序与授权**：
 > **永远不做调度**：次序与开工由用户拍板与轮内请求决定（借鉴源仓 D23 教训：plans 层一旦开始
 > 排任务就会长成第二个队列，2026-09-24 退役过一次；本仓 ROADMAP 队列也于 2026-09-28 退役）。
-> 来源：借鉴 `ai_dsh_company/_backlog`（其自身借鉴 ai_deerflow_deep_research_v2，D31）；
-> 判定、取舍与不借清单见本文「明确不借」。
+> 来源：初版借鉴 `ai_dsh_company/_backlog`（其自身借鉴 ai_deerflow_deep_research_v2，D31）；
+> **2026-10-02 治理升级**：主干框架、挂起池、reference 区与 `backlog-liveness` 门禁借鉴
+> `ai_dsh_loop_advisor/_backlog`（用户指示"尽量借鉴"）——该仓的同一制度本身借自
+> ai_dsh_architect（2026-09-29）再上游同出 ai_dsh_company D31 与 ai_deerflow_dr_v3（2026-10-03），
+> 结构同源，故整章对齐其成熟形状。判定、取舍与不借清单见本文「明确不借」；
+> 决定档案：[backlog 治理借鉴](../notes/implemented/2026-10-02-backlog-governance-borrow.md)。
 
 ## `_` 前缀语义（借 deerflow；`_` 只表示「不在活跃队列」，不表示禁读）
 
-- **归档件**（会关闭；fresh agent 默认忽略，点名才读）：`_done/`。
-- **活跃推敲卡**住无前缀目录（`plans/`、`bugs/`）。
+- **归档件**（fresh agent 默认忽略，点名才读）：`_done/`——两种诚实的离场卡**分池存放**：
+  **做完的**（`_closed_plans/`、`_fixed_bugs/`）与**暂停的**（`_suspended_plans/`、
+  `_suspended_bugs/`——既非完成也非删除），外加随卡归档的调研材料（`_reference/`）。
+- **活跃区**住无前缀目录：推敲卡在 `plans/`、缺陷卡在 `bugs/`、喂卡片的调研材料在
+  `reference/`。活跃区里只放本仓还打算继续推敲的东西——做完的立刻走。
 
 ## 目录
 
 ```text
 _backlog/
-├── README.md            # 本文件（规矩手册）
+├── README.md            # 本文件（规矩手册 = 章程）
 ├── plans/               # 推敲卡：设计 / 分析 / 调研
 ├── bugs/                # 缺陷卡：已发现、决定不当场修的缺陷（当场修掉的不建档）
-└── _done/               # 归档（位置即状态）：_closed_plans/ + _fixed_bugs/
+├── reference/           # 服务于活跃卡片的调研材料（随卡毕业迁 _done/_reference/）
+└── _done/               # 归档（位置即状态）：_closed_plans/ + _suspended_plans/
+                         #   + _fixed_bugs/ + _suspended_bugs/ + _reference/
 ```
+
+## 主干：缓冲 → 毕业 → 管道 → 回写（借 loop_advisor，2026-10-02）
+
+`_backlog/` 是加工前的打磨空间；`notes/` 是加工线（proposed 卡 = 呈批，implemented = 决定记录）。
+一条主干，一次说清：
+
+```text
+入口面（半成品合法——缓冲区收问题、证据、缺陷、原始调研）
+  ├─ 设计/分析推敲        → plans/     （背景 → 已知/未决 → 候选 → 毕业门）
+  ├─ 搁置的缺陷           → bugs/      （症状 → 根因假设 → 复现 → 类判读）
+  └─ 推敲中收集的调研      → reference/（喂上面两类的证据）
+
+毕业 —— 从缓冲区进管道的唯一车票（四门判断，见下节）
+
+管道 —— 唯一实施通道是 notes/
+  notes/proposed/ 卡（问题/方案/验收）→ 用户点头 → implemented → 改动落地
+
+回写与归还
+  毕业卡 → _done/ 对应池（清理规矩，见铁律）
+  未裁决即搁置的卡 → _done/_suspended_{plans,bugs}/（暂停，不是完成）
+  喂卡的调研材料 → 随卡 git mv（见 reference/ 契约）
+  下游发现的新缺口 → 回本区立新卡——绝不搭车塞进某篇 note 或某次改动里
+```
+
+随主干的三条硬规矩（借 loop_advisor）：
+
+- **无 proposed 卡，不产生行为**：本目录的东西再成熟也不会自己变成系统行为；去实施只有
+  `notes/proposed/` 一条路。
+- **卡记思考，note 记决定**：一个事实一个家——卡的状态行指向落地的 note，note 不复写推敲过程。
+- **回写，不搭车**：毕业卡名下的实施工作常暴露下一个问题——回缓冲区立新卡，
+  不许作为搭车段落藏进 note。
 
 ## plans/ 卡的生命周期：毕业四门
 
@@ -30,12 +70,15 @@ _backlog/
 | 判断 | 出路 | 卡的去向 |
 |---|---|---|
 | 该做（现在/近期） | [notes/proposed/](../notes/README.md) 卡（问题/方案/验收）+ 用户点头即开工（卫生小修可不立卡直接做） | 关闭迁 `_done/_closed_plans/`，状态行记去向指针 |
-| 该做但不现在（待触发） | **留在本目录**：状态行写触发条件（待触发），或 🔒 待用户判触发 | 同上 |
-| 不做（证伪/否决） | 结论并入 owner Note「输掉的方案」；防复犯价值高的迁 [notes/rejected/](../notes/README.md) | 同上 |
+| 该做但不现在（待触发） | 触发条件落进**决定它的 note**（deferred-with-trigger 负知识） | 关闭迁 `_done/_closed_plans/`，状态行记去向指针；触发到场 = 以**引用本卡的新卡/RFC** 重进（写回规则，不是复活） |
+| 不做（证伪/否决） | 结论并入 owner Note「输掉的方案」；防复犯价值高的迁 [notes/rejected/](../notes/README.md) | 同上，关闭迁 `_closed_plans/` |
 | 不用单独记（消化） | 结论已并入某 Note/合同 | 同上，状态行记消化落点 |
 
 **边界**：推敲卡 ≠ 提案——卡可以只有问题没有方案；proposed 卡必须有问题/方案/验收三件。
-推敲未到毕业程度时卡停在活跃区继续熟，状态行写「下一步 + 触发」。
+推敲未到毕业程度时卡停在活跃区继续熟，状态行写「下一步 + 触发」；**等用户判触发的卡也是
+未裁决**（留活跃区，不算毕业）。**已作为 deferred-with-trigger 落在某决定 note 里的条目不再立卡**
+——note 就是它的家；第二个队列正是借鉴源自己记录过的失败。**毕业卡永不复活**：归档记录的是
+"判断已落地"，触发到场按写回规则以新卡重进。
 
 ## bugs/ 卡的边界
 
@@ -44,27 +87,57 @@ _backlog/
 把每个 bug 当**契约探针**——一个具体缺陷往往牵出一类失败，顺藤摸瓜值得横切排查。
 已有归宿的旧缺陷不迁移（例：`#digestCache` 症状签名已住质量维持卡轨 C，不另立卡）。
 
-## 铁律（借 deerflow 搬迁规矩）
+## 挂起池：暂停，绝不假完成（借 loop_advisor，2026-10-02）
+
+被**显式搁置**、且**尚未形成任何毕业判断**的卡，`git mv` 进 `_done/_suspended_plans/`
+（缺陷：`_done/_suspended_bugs/`，编号保留）——暂停既非完成也非删除：上下文、风险、重启条件
+原样随卡。三条纪律：
+
+- **挂起是队列决定**：跟显式指示走（用户的，或状态行已记录 parked 的）；agent 不得因自己
+  判断某卡"暂时不活跃"就挂起它。
+- **已裁决的该做不现在 ≠ 挂起**：它的家是决定 note（毕业四门第二门）；挂起池只收**未裁决**的
+  暂停件——这条边界就是本仓 2026-09-28 否决挂起池的理由的解法（否决针对的是"第二事实家"，
+  边界划开后两 home 语义不重叠）。
+- **回活需要显式的新优先级决定**（`git mv` 回活跃区 + 恢复索引行）；挂起卡不是实施授权。
+
+## 调研材料区（reference/；借 loop_advisor，2026-10-02）
+
+推敲卡片产出的调研——证据阅读、综述、机制笔记——需要一个既不是卡片本体（卡只放判断材料）
+也不是树外草稿的家：`reference/`。完整契约见 [其 README](reference/README.md)。要点：
+**跟着卡片走**（卡片毕业时 `git mv` 进 `_done/_reference/`，文件名不变、内容不重写）；
+**无状态行**（纯约定）；**价值超过所有喂过的卡片的材料不在此**（调研卡的收卷证据台账仍是
+[`notes/archived/research/`](../notes/README.md)，既定机制不变——两者语义不重叠：一个喂活跃卡，
+一个收卷已毕业的调研卡）。
+
+## 铁律（借 deerflow 搬迁规矩 + loop_advisor 补强）
 
 - **位置即状态**：`git mv` 过去、文件名不变、**内容不重写**——推敲过程本身就是证据；
-  毕业/关闭只在状态行加去向指针。
+  毕业/关闭只在状态行加去向指针。**状态行是归档卡唯一会活的部分**：它指向的 note 挪走时，
+  指针跟着更新。
 - **README 永不删除**，只更新索引行。
+- **章程与账本二分**（借 loop_advisor）：本文件是**章程**（制度：布局、四门、铁律、门禁），
+  只随制度级决定（借鉴、门/铁律变更、门禁升级）而动，每次落 note；其余 README（plans/bugs/
+  各池）是**账本**——活跃名册的行随卡片走，归档索引随每次落地长一行。判据：凡点名某张活卡、
+  某个计数、某个当前值的，住账本，不进章程。
 - **编号权威住归档侧**：`_done/_fixed_bugs/` 侧的 [_done README](_done/README.md) 持有
   Next BUG ID（新号 = 已分配最大号 + 1，活跃 ∪ 归档一起算）；plans 卡无编号。
 
 ## 命名（本仓适配，2026-09-28 用户定）
 
 - **plans 卡：`YYMMDD-<slug>.md`**——六位日期 = 立卡日，归档后按文件名排序即日期流，
-  一眼看清思考的先后（对借鉴源的刻意适配：源仓 plans 卡无日期）。与 notes/ 的
-  `YYYY-MM-DD-topic.md` 刻意不同层：notes 承载已决事实，本目录承载推敲中。
+  一眼看清思考的先后（对借鉴源的刻意适配：源仓 plans 卡无日期；loop_advisor 用全日期
+  `YYYY-MM-DD` 并主张全仓一个格式——理由已记录，本仓维持 2026-09-28 的六位适配不改）。
+  与 notes/ 的 `YYYY-MM-DD-topic.md` 刻意不同层：notes 承载已决事实，本目录承载推敲中。
 - **bugs 卡：`BUG-<NNN>-<slug>.md`**——序号即流，发现日期在状态行。
+- **reference 材料：`YYMMDD-<slug>.md`**——与推敲卡同格式（随卡走）。
 
 ## 调研卡（原 notes/research 功能并入，用户 2026-09-28 拍板）
 
 一个思考一个家：进行中的调研/推敲都住 plans/，调研只是卡的一种性质（补「待答问题 / 待跑实验 /
 喂给谁」字段与形态规范，见 [plans/README.md](plans/README.md)）。**收卷证据台账** =
-[`notes/archived/research/`](../notes/README.md)（子目录深度与原路径一致，冻结文件内部链接零改）。
-依据：[research-absorbed-into-backlog](../notes/implemented/2026-09-28-research-absorbed-into-backlog.md)
+[`notes/archived/research/`](../notes/README.md)（子目录深度与原路径一致，冻结文件内部链接零改）；
+reference/ 区与收卷台账的分工见上文调研材料区。依据：
+[research-absorbed-into-backlog](../notes/implemented/2026-09-28-research-absorbed-into-backlog.md)
 ——此前「复发才升格、暂不并」的判断被拍板推翻，原判断留该 note 输掉的方案节。
 
 ## 谁写、谁读、何时读
@@ -76,18 +149,27 @@ _backlog/
   「把一张卡成熟到毕业判断」当输入源（产出 = 呈批，不是开工）。
 - fresh agent 开工读 AGENTS.md：**推敲卡不是任务**，没有点名不取用。
 
-## 明确不借（负知识：重新提出前先读理由）
+## 明确不借（负知识：重新提出前先读理由；带日期的行 = 该日重新裁决过）
 
 | 不借项 | 理由 |
 |---|---|
 | todos/ 桶 | 次序与开工由用户轮内请求决定（本目录永不排序）；另立 = 第二个调度器 |
-| `_suspended_*` 桶 | 待触发的家 = plans 卡状态行（下一步 = 触发）；另立 = 第二事实家 |
-| `_reference/` 桶 | [notes/archived/](../notes/README.md) 已覆盖留存参考语义 |
+| 调度/排序职能（loop_advisor 同款负知识） | proposed/ 与 goal 机制 owns 它们；第二个队列 = 源仓 D23 记录过的失败 |
+| 全日期卡名（`YYYY-MM-DD-<slug>`） | 2026-10-02 裁决：维持 2026-09-28 的六位 `YYMMDD` 适配——loop_advisor 的"全仓一个日期格式"论据已记录，改名收益（跨树格式统一）不值 30+ 张卡的机械重命名与链接翻修 |
 | 复盘卡 | 本仓刻意不设 postmortem（[notes/README.md](../notes/README.md) §二）：事故记录属「已交付决定」，进 implemented |
-| deerflow 三道一致性门禁 | 无复发证据不预铺（「复发才升格」判据）；plans-liveness 同判 |
+| id 冲突守卫（loop_advisor 同款"压力下再借"） | 无复发证据不预铺（「复发才升格」判据；同 `plans-liveness` 的原登记逻辑） |
 
-## 机械门禁
+（2026-09-28 版不借表中的 `_suspended_*` 与 `_reference/` 两行于 2026-10-02 **翻案转为有界借入**——
+原否决理由"另立第二事实家"被 loop_advisor 的边界划分解掉：挂起池只收未裁决暂停件、
+reference 只喂活跃卡且随卡归档；翻案依据 = 用户指示"尽量借鉴" + 决定档案
+[backlog-governance-borrow](../notes/implemented/2026-10-02-backlog-governance-borrow.md)。）
 
-- **现在：零**——本目录靠 README 纪律运转。`plans-liveness`（每张活跃卡自带状态行户口）
-  按「有压力再借」登记：死稿卡第一次出现即加（同 diff 在 verify 夹具配红绿对照，
-  见 [scripts/AGENTS.md](../scripts/AGENTS.md) 门禁纪律 1）。
+## 机械门禁（2026-10-02 起：`backlog-liveness`，借 loop_advisor 实施）
+
+`pnpm verify` 链内三查（核在 [scripts/verify-checks.mjs](../scripts/verify-checks.mjs)，
+红绿夹具在 verify-gates.spec）：
+
+1. **制度目录在场**：plans / bugs / reference / _done 五池——缺目录即红；
+2. **活跃卡户口**：每张活跃卡首 12 行内必有 `状态：` 行（死稿卡无处藏身）；
+3. **索引互查**：每张卡文件被其账本点名（plans/bugs 活跃名册、_closed_plans 索引、
+   _done 归档行）——搬了卡忘更账本即红（正反向：账本点名不存在的文件由既有的断链检查管）。

@@ -646,3 +646,62 @@ export function exportManualProblems({ manualPath, manifest }) {
   }
   return problems
 }
+
+/**
+ * Backlog liveness (borrowed 2026-10-02 from ai_dsh_loop_advisor/_backlog's `backlog-liveness`,
+ * owner-directed): the deliberation space's own mechanical gate. Three checks, all structural —
+ * they never judge a card's content:
+ *
+ * 1. the institution's directories exist (plans / bugs / reference and the five _done pools);
+ * 2. every active card carries its status line (the hukou: 立卡 + 状态 within the first 12 lines,
+ *    per the plans/ and bugs/ card templates) — a dead draft cannot hide;
+ * 3. index membership both ways: every card file is named by its area's index (plans/ and bugs/
+ *    active lists, _done/_closed_plans/ index, _done/README archive rows) — a card moved without
+ *    the index update is the drift the gate exists for.
+ *
+ * @param {string} backlogRoot - path of the _backlog/ directory.
+ */
+export function backlogLivenessProblems(backlogRoot) {
+  const problems = []
+  const requiredDirs = [
+    'plans', 'bugs', 'reference',
+    join('_done', '_closed_plans'), join('_done', '_fixed_bugs'),
+    join('_done', '_suspended_plans'), join('_done', '_suspended_bugs'), join('_done', '_reference'),
+  ]
+  for (const dir of requiredDirs) {
+    if (!existsSync(join(backlogRoot, dir))) problems.push(`_backlog/${dir} is missing (the institution's directories are part of the charter)`)
+  }
+  if (!existsSync(backlogRoot)) return problems
+
+  const cardNames = (dir) => readdirSync(join(backlogRoot, dir), { withFileTypes: true })
+    .filter(entry => entry.isFile() && entry.name.endsWith('.md') && entry.name !== 'README.md')
+    .map(entry => entry.name)
+
+  // Active cards: status line within the first 12 lines (the hukou), then index membership.
+  for (const area of ['plans', 'bugs']) {
+    const index = readFileSync(join(backlogRoot, area, 'README.md'), 'utf8')
+    for (const name of cardNames(area)) {
+      const head = readFileSync(join(backlogRoot, area, name), 'utf8').split('\n').slice(0, 12).join('\n')
+      if (!head.includes('状态：')) problems.push(`_backlog/${area}/${name} carries no 状态： line in its first 12 lines (the hukou rule)`)
+      if (!index.includes(name)) problems.push(`_backlog/${area}/${name} is not named by ${area}/README.md's active index`)
+    }
+  }
+
+  // Archive membership: every archived card is named by its pool's index.
+  const archiveIndexes = {
+    [join('_done', '_closed_plans')]: join('_done', '_closed_plans', 'README.md'),
+    [join('_done', '_fixed_bugs')]: join('_done', '_fixed_bugs', 'README.md'),
+    [join('_done', '_suspended_plans')]: join('_done', 'README.md'),
+    [join('_done', '_suspended_bugs')]: join('_done', 'README.md'),
+    [join('_done', '_reference')]: join('_done', 'README.md'),
+  }
+  for (const [dir, indexPath] of Object.entries(archiveIndexes)) {
+    const fullDir = join(backlogRoot, dir)
+    if (!existsSync(fullDir)) continue
+    const index = readFileSync(join(backlogRoot, indexPath), 'utf8')
+    for (const name of cardNames(dir)) {
+      if (!index.includes(name)) problems.push(`_backlog/${dir}/${name} is not named by ${indexPath}'s index`)
+    }
+  }
+  return problems
+}
