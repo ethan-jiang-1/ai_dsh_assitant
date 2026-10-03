@@ -165,7 +165,7 @@
 - 🎯 **轮3 终局发现（召回质量根因 + 旋钮级修复）**：插件在 DSH 会话里走 **session-aware `/search/search`（带 session_id，server 侧 LLM 规划「自行决定给什么上下文」）**——实测对聚焦查询返回陈旧/相邻内容（同 4 命中跨查询不变，`recallQueryExpansion: off` 无效）；而**查询式 `/find` 命中精准**（0.84/0.87 直打全对）。**修复 = `recallContextTimeoutMs: 3000`**（会话感知规划调用实测 >15s，3s 超时必然触发插件既有降级路径 → /find）——召回块从指针级 4 条（3051 chars）变**叶子全文 5497 chars**（含「B2-117→B2-171 final correct」原句），模型零工具答对终值+机密等级。**通道分工终版：画像=蒸馏事实，召回（find 路径）=叶子事实，工具=深读。**
 - 📏 **抽取时延（修复后）**：38s / 106s / 48s 三轮（修复前 600s 墙全灭）。
 
-## 层 1 最终旋钮剖面（实弹验证版，v2）
+## 层 1 最终旋钮剖面（实弹验证版，v3——2026-10-04 定稿）
 
 ```yaml
 - id: openviking-memory-runtime
@@ -175,6 +175,9 @@
     skipSubagentSessions: true
     profileTokenBudget: 3000     # 画像块实测 538-755 chars，余量充足
     recallContextTimeoutMs: 3000 # 关键旋钮：强制降级到查询式 find（叶子内容进召回块）
+    commitTokenThreshold: 3000   # v3 新增（S13 结论）：默认 20000 = 短会话永不进抽取 = 个人助手主场景记忆丢失缺口；
+                                 # 取 2000-4000 中值。自主拍板依据：可逆 config 旋钮、试点 2000 实证可用、
+                                 # 精确值留真实使用期校准（多轮真人会话 headless 模拟不了）
     # peerId: assistant 可留作 actor 归因（记忆落 peers/assistant/；画像是 user 级，不隔离）
     # recallQueryExpansion: off 无效留档；mcpEnabled 死旋钮勿写
 ```
