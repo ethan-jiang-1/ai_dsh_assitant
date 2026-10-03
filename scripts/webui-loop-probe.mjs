@@ -115,6 +115,12 @@ try {
   // settles (max ~12s), and only a persistent stick fails. A single early
   // sample misreports a healthy home (observed 2026-10-01: registry
   // initialized:true while the first paint still asked the workspace question).
+  // 2026-10-04 (auditor-caught): poll until the WHOLE surface settles, not just
+  // the workspace chip — the first-mile strip depends on session.blank owner
+  // data that hydrates after first paint, so the one-shot sample misreported
+  // it absent on a healthy home (live DOM showed the strip rendered). Any
+  // marker still failing may be mid-hydration; only a failure that persists
+  // the full budget is a real failure.
   let surface = await evaluate(`(() => {
     const text = document.body.textContent ?? '';
     return {
@@ -125,7 +131,9 @@ try {
       zhHero: text.includes('探索未至之境'),
     };
   })()`);
-  for (let i = 0; i < 8 && surface?.workspaceStuck === true; i++) {
+  for (let i = 0; i < 8; i++) {
+    if (surface?.firstMile === true && surface?.zhHero === true
+      && surface?.roomJargon === false && surface?.workspaceStuck === false) break
     await new Promise((resolve) => { setTimeout(resolve, 1500) });
     surface = await evaluate(`(() => {
       const text = document.body.textContent ?? '';
