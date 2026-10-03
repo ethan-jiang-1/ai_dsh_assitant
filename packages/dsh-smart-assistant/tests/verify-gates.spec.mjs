@@ -10,7 +10,7 @@
  * module costs the type gate nothing.
  */
 import { execFileSync } from 'node:child_process'
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, rmSync, utimesSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -33,6 +33,7 @@ import {
   skillFrontmatterProblems,
   startPathProblems,
   textHygieneProblems,
+  vendorClientFreshnessProblems,
 } from '../../../scripts/verify-checks.mjs'
 
 const dirs = []
@@ -694,5 +695,75 @@ describe('exportManualProblems', () => {
     const problems = exportManualProblems({ manualPath: bare, manifest })
     expect(problems).toHaveLength(2)
     expect(problems[0]).toContain('says nothing')
+  })
+})
+
+// ── vendor client-face freshness ────────────────────────────────────────────────────────────────
+
+describe('vendorClientFreshnessProblems', () => {
+  const T = 1_700_000_000_000
+  const at = offset => new Date(T + offset)
+
+  /** Fake vendor tree with deterministic clocks: sources at T, faces/dist wherever the case needs. */
+  function fakeVendor({ faceOffsets = {}, distOffset }) {
+    const root = temp('vendor-fresh-')
+    const packages = join(root, 'packages')
+    const web = join(root, 'apps-web')
+    const stamp = (path, offset) => utimesSync(path, at(offset), at(offset))
+    // face name → lib mtime offset; src always sits at T. A name absent from faceOffsets gets no lib at all.
+    for (const [group, name, offset] of [
+      ['client', 'fresh-ui', faceOffsets['client/fresh-ui'] ?? 1000],
+      ['client', 'stale-ui', faceOffsets['client/stale-ui'] ?? 1000],
+      ['client', 'src-only', faceOffsets['client/src-only'] ?? 1000],
+      ['api', 'fresh-api', faceOffsets['api/fresh-api'] ?? 1000],
+      ['api', 'stale-api', faceOffsets['api/stale-api'] ?? 1000],
+      ['experimental', 'stale-exp', faceOffsets['experimental/stale-exp'] ?? 1000],
+    ]) {
+      const pkg = join(packages, group, name)
+      mkdirSync(join(pkg, 'src'), { recursive: true })
+      writeFileSync(join(pkg, 'src', 'index.ts'), 'export {}\n', 'utf8')
+      stamp(join(pkg, 'src', 'index.ts'), 0)
+      if (faceOffsets[`${group}/${name}`] !== undefined || name !== 'src-only') {
+        mkdirSync(join(pkg, 'lib'), { recursive: true })
+        writeFileSync(join(pkg, 'lib', 'client.js'), '// built\n', 'utf8')
+        stamp(join(pkg, 'lib', 'client.js'), offset)
+      }
+    }
+    if (distOffset !== undefined) {
+      mkdirSync(join(web, 'dist'), { recursive: true })
+      writeFileSync(join(web, 'dist', 'index.html'), '<html></html>\n', 'utf8')
+      stamp(join(web, 'dist', 'index.html'), distOffset)
+    }
+    return { vendorPackagesRoot: packages, webAppRoot: web }
+  }
+
+  it('accepts fresh faces and skips unbuilt, src-only, and experimental ones', () => {
+    const tree = fakeVendor({
+      faceOffsets: {
+        'experimental/stale-exp': -1000, // preview-only group: never rebuildable, must stay exempt
+      },
+      // src-only has no lib at all → prepare.sh territory; dist absent → never built here
+    })
+    expect(vendorClientFreshnessProblems(tree)).toEqual([])
+  })
+
+  it('flags a client face and an api face whose lib predates their sources', () => {
+    const tree = fakeVendor({
+      faceOffsets: { 'client/stale-ui': -1000, 'api/stale-api': -1000 },
+    })
+    const problems = vendorClientFreshnessProblems(tree)
+    expect(problems).toHaveLength(2)
+    expect(problems.some(problem => problem.includes('client/stale-ui/lib/client.js'))).toBe(true)
+    expect(problems.some(problem => problem.includes('api/stale-api/lib/client.js'))).toBe(true)
+    expect(problems[0]).toContain('pnpm --dir')
+  })
+
+  it('flags a web dist older than client sources, and accepts one that is newer', () => {
+    const stale = vendorClientFreshnessProblems(fakeVendor({ distOffset: -100 }))
+    expect(stale).toHaveLength(1)
+    expect(stale[0]).toContain('web shell')
+
+    const fresh = vendorClientFreshnessProblems(fakeVendor({ distOffset: 2000 }))
+    expect(fresh).toEqual([])
   })
 })

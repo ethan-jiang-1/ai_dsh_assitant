@@ -10,7 +10,7 @@
  * both sides of that line.
  */
 import { execFileSync } from 'node:child_process'
-import { existsSync, readFileSync, readdirSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { parse as parseYaml } from 'yaml'
 
@@ -614,6 +614,73 @@ export function dshHomeInheritanceProblems(files) {
       if (!/process\.env\.DSH_HOME/.test(line)) continue
       if (line.trimStart().startsWith('*') || line.trimStart().startsWith('//')) continue
       problems.push(`${file}:${index + 1} reads process.env.DSH_HOME — dev tooling must use ASSISTANT_DSH_HOME or the repo dev home`)
+    }
+  }
+  return problems
+}
+
+// ── vendor client-face freshness ────────────────────────────────────────────────────────────────
+
+/** Newest mtime (ms) among `src/**` .ts/.tsx files under one package; undefined when there is no src. */
+function newestSrcMtime(packageDir) {
+  const srcDir = join(packageDir, 'src')
+  if (!existsSync(srcDir)) return undefined
+  let newest
+  const visit = dir => {
+    for (const name of readdirSync(dir)) {
+      const path = join(dir, name)
+      if (statSync(path).isDirectory()) visit(path)
+      else if (name.endsWith('.ts') || name.endsWith('.tsx')) {
+        const mtime = statSync(path).mtimeMs
+        newest = newest === undefined ? mtime : Math.max(newest, mtime)
+      }
+    }
+  }
+  visit(srcDir)
+  return newest
+}
+
+/**
+ * Vendored browser artifacts must not be older than the sources they were built from. A pin
+ * switch rewrites vendor sources and leaves the gitignored `lib/client.js` builds behind, and a
+ * partially rebuilt client face set fractures the web boot (new client bundles against a stale
+ * `api/remotes` assembly left a fresh home on a full-screen "Failed to load plugins" — evidence:
+ * notes/implemented/2026-09-30-dsh-0-2-0-rc-2-pin.md, 2026-10-03 补正). Skips, and why:
+ *   - a package without `lib/client.js` has no built face yet (fresh clone; `prepare.sh` owns that);
+ *   - `packages/experimental/` hosts preview-only faces whose packages declare no `bundle` script,
+ *     so the rebuild playbook cannot refresh them and they are not in the served composition;
+ *   - a missing `apps/web/dist/index.html` means the shell was never built here (`prepare.sh`).
+ *
+ * @param {string} vendorPackagesRoot - path of `vendor/dsh/packages`.
+ * @param {string} webAppRoot - path of `vendor/dsh/apps/web` (its `src` and `dist` are compared).
+ * @returns {string[]} problem strings; empty = every present client face and the web dist are fresh.
+ */
+export function vendorClientFreshnessProblems({ vendorPackagesRoot, webAppRoot }) {
+  const problems = []
+  for (const group of readdirSync(vendorPackagesRoot).sort()) {
+    if (group === 'experimental') continue
+    const groupDir = join(vendorPackagesRoot, group)
+    if (!statSync(groupDir).isDirectory()) continue
+    for (const pkg of readdirSync(groupDir).sort()) {
+      const packageDir = join(groupDir, pkg)
+      const libClient = join(packageDir, 'lib', 'client.js')
+      if (!statSync(packageDir).isDirectory() || !existsSync(libClient)) continue
+      const newest = newestSrcMtime(packageDir)
+      if (newest !== undefined && statSync(libClient).mtimeMs < newest) {
+        const face = `${join('vendor/dsh/packages', group, pkg)}/lib/client.js`
+        problems.push(`${face} is older than its sources — rebuild the WHOLE stale set, then the web shell (a partial rebuild fractures the client): pnpm --dir <pkg> run bundle && pnpm --dir vendor/dsh/apps/web run build`)
+      }
+    }
+  }
+  const distIndex = join(webAppRoot, 'dist', 'index.html')
+  if (existsSync(distIndex)) {
+    let newest = newestSrcMtime(join(webAppRoot))
+    for (const pkg of readdirSync(join(vendorPackagesRoot, 'client')).sort()) {
+      const mtime = newestSrcMtime(join(vendorPackagesRoot, 'client', pkg))
+      if (mtime !== undefined) newest = newest === undefined ? mtime : Math.max(newest, mtime)
+    }
+    if (newest !== undefined && statSync(distIndex).mtimeMs < newest) {
+      problems.push('vendor/dsh/apps/web/dist is older than client sources — rebuild the web shell: pnpm --dir vendor/dsh/apps/web run build')
     }
   }
   return problems

@@ -18,7 +18,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { agentsMdStabilityProblems, backlogLivenessProblems, commandAliasProblems, configParseProblems, dependencyPoseProblems, dshHomeInheritanceProblems, exportManualProblems, GRADUATED_STATUS, implementedAlternativesProblems, languageGuardProblems, notesNamingProblems, notesStateProblems, notesTopLevelProblems, pinProblems, relativeLinkProblems, skillFrontmatterProblems, startPathProblems, textHygieneProblems } from './verify-checks.mjs'
+import { agentsMdStabilityProblems, backlogLivenessProblems, commandAliasProblems, configParseProblems, dependencyPoseProblems, dshHomeInheritanceProblems, exportManualProblems, GRADUATED_STATUS, implementedAlternativesProblems, languageGuardProblems, notesNamingProblems, notesStateProblems, notesTopLevelProblems, pinProblems, relativeLinkProblems, skillFrontmatterProblems, startPathProblems, textHygieneProblems, vendorClientFreshnessProblems } from './verify-checks.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const packageDir = join(repoRoot, 'packages', 'dsh-smart-assistant')
@@ -329,6 +329,12 @@ check('backlog: liveness (status lines, institution dirs, index membership)', ()
 
 check('structure: dev tooling never inherits DSH_HOME', () =>
   dshHomeInheritanceProblems(walk(join(repoRoot, 'dev'), ['.mjs'])))
+
+// 升 pin 只换源不换产物：gitignore 的 lib/client.js 与 web dist 会停在旧 pin。部分重建还会把
+// web client 打碎（新 ui-user-questions 配旧 api/remotes 装配 = 全屏 Failed to load plugins，
+// 2026-10-03 实录）。机制与 playbook：notes/implemented/2026-09-30-dsh-0-2-0-rc-2-pin.md。
+check('vendor: client faces and web dist are not older than their sources', () =>
+  vendorClientFreshnessProblems({ vendorPackagesRoot: join(vendorDsh, 'packages'), webAppRoot: join(vendorDsh, 'apps', 'web') }))
 
 // 文档里的命令与 package.json 的别名必须互相成立：别名必须进命令表，文档提到的命令必须真存在
 // （README 那条 stale 的 npm 发布路径就是这么烂掉的）。notes 不在语料里——它们记录的是当时为真的事。

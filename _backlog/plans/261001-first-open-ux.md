@@ -192,8 +192,8 @@
   shell dist 也是 9/25 的。**事故证据**：只重建 client 面 26 家后真机起服务，`ui-user-questions`
   等 `remote.userQuestions` 落空 → **"Failed to load plugins" 全屏白板**（一次性 home 实拍 +
   probe verdict consoleProblems 在案）——新 client bundle 配旧 `api/remotes` 装配不连贯；补重建
-  api 面 5 家 + shell 后恢复。**结论：client 面必须成套新鲜，部分重建=坏面**；门禁化候选
-  （verify 加 vendor 产物 freshness 检查）待议。
+  api 面 5 家 + shell 后恢复。**结论：client 面必须成套新鲜，部分重建=坏面**；已门禁化
+  （verify 33 项含 vendor 产物 freshness 检查，红绿夹具四案同 diff，2026-10-03）。
 - 0.2.0 client 大重组：ui-chat 从 `packages/extensions/` 挪到 `packages/client/`。
 - **重建 + 复验已完成（2026-10-03）**：31 家 client 面 + shell 全部重建到本 pin src；一次性 fresh
   home（setup.sh 全新建 + key 合入）双路探针：① 无预置行（`--patch` 整行替换 `config: {}`）+
