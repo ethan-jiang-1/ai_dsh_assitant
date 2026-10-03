@@ -1,7 +1,7 @@
 # 决定：家手册可移植化（v10）——提示词不再出现机器绝对路径
 
 日期：2026-10-01 · 状态：**implemented**（301 测试绿；评测 3/5 与基线一致——两红经 A/B 矩阵证明为
-既有问题，独立立 [BUG-001](../../_backlog/bugs/BUG-001-eval-behavior-tasks-red.md)）
+既有问题，独立立 [BUG-001](../../_backlog/_done/_fixed_bugs/BUG-001-eval-behavior-tasks-red.md)）
 
 ## 问题（可观察行为）
 
@@ -23,7 +23,7 @@ scaffold 把**绝对 dataDir 路径烤进 `AGENTS.md`**（"Layout on disk"树根
 
 第一版修法（手册尾部动态追加位置行）引发 `breakdown-uses-skill` 评测回归 → 换到摘要段头部仍红 →
 彻底移除后与基线行为一致。过程中发现两个红任务是**既有红**（基线代码 + 全新 home 同样红，见
-[BUG-001](../../_backlog/bugs/BUG-001-eval-behavior-tasks-red.md)），即：位置行的回归与任务既有红
+[BUG-001](../../_backlog/_done/_fixed_bugs/BUG-001-eval-behavior-tasks-red.md)），即：位置行的回归与任务既有红
 叠加，靠 A/B 矩阵才分离。**方法论沉淀：评测红先跑基线对照再定性；评测会话会污染家，行为评测的
 读数必须注明 home 状态。**
 
@@ -41,7 +41,7 @@ scaffold 把**绝对 dataDir 路径烤进 `AGENTS.md`**（"Layout on disk"树根
 
 - `pnpm build` + 包级 301/301（layout.spec 翻转断言：手册**不得**包含机器根路径、必须含符号根；
   root-files.spec 新增"提示词任何段落不含 dataDir 路径"反夹具）。
-- 评测 A/B 矩阵见 [BUG-001](../../_backlog/bugs/BUG-001-eval-behavior-tasks-red.md)；最终读数
+- 评测 A/B 矩阵见 [BUG-001](../../_backlog/_done/_fixed_bugs/BUG-001-eval-behavior-tasks-red.md)；最终读数
   3/5（全新 home），与基线一致。
 - 附带实测发现（同日）：凭据文件权限必须 0600（`cp` 落 644 → 凭据服务静默拒绝 → MISSING_CREDENTIAL）；
   已写入 BUG-001 复现节。

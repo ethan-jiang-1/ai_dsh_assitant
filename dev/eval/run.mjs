@@ -23,7 +23,7 @@ import { unlinkSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { readEvents, sessionLogs } from '../usage-report.mjs'
-import { argumentsText, evaluateTask, fileShape } from './checks.mjs'
+import { argumentsText, evaluateTask, fileShape, wrotePath } from './checks.mjs'
 import { TASKS } from './tasks.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
@@ -194,6 +194,18 @@ function selfCheck() {
   const single = observe([{ type: 'assistant/message', data: { message: { content: [{ type: 'text', text: '唯一答案' }] } } }])
   if (single.answerText !== '唯一答案') {
     process.stderr.write('eval --self-check: FAIL — observe changed the single-answer shape\n')
+    process.exit(1)
+  }
+
+  // wrote-path 的 python 写法红绿（BUG-001 第二根因）：desk-refresh 技能教的是 bash+python
+  // 重写 .desk/state.json，判定核必须认得 json.dump / open('w')，而不是只认 JS/shell 写法。
+  const pythonWrite = [{ name: 'bash', argumentsText: "cd /x && python3 - <<'PY'\nimport json\njson.dump(s, open('.desk/state.json','w'))\nPY" }]
+  if (!wrotePath(pythonWrite, '.desk/state.json')) {
+    process.stderr.write('eval --self-check: FAIL — wrote-path missed a python rewrite of the desk file\n')
+    process.exit(1)
+  }
+  if (wrotePath([{ name: 'bash', argumentsText: "cat .desk/state.json" }], '.desk/state.json')) {
+    process.stderr.write('eval --self-check: FAIL — wrote-path accepted a read-only command\n')
     process.exit(1)
   }
   process.stdout.write(`eval --self-check: ok — the evaluator fails the incident task (${task.id}) and passes a compliant answer;`

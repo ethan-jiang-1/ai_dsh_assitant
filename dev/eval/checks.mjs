@@ -35,7 +35,7 @@ export function wrotePath(toolCalls, path) {
   const viaTools = toolCalls.some(call => WRITE_TOOLS.has(call.name) && call.argumentsText.includes(path))
   const viaBash = toolCalls.some(call =>
     call.name === 'bash' && call.argumentsText.includes(path)
-    && /writeFileSync|writeFile\(|fs\.write|>\s*["']?[^"';|]*desk|tee\s/.test(call.argumentsText))
+    && /writeFileSync|writeFile\(|fs\.write|>\s*["']?[^"';|]*desk|tee\s|json\.dump|open\([^)]*['\"]w['\"]/.test(call.argumentsText))
   return viaTools || viaBash
 }
 

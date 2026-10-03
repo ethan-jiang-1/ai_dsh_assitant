@@ -33,7 +33,7 @@ import type { Session, SessionEvent, SessionId, SessionLogOffset } from '@deepse
 export const name = 'assistant-preset-runner'
 
 /** Core services required before the one-shot turn can start. */
-export const inject = ['agentDefaultModel', 'agents', 'sessions', 'agentPresets']
+export const inject = ['agentDefaultModel', 'agents', 'sessions', 'agentPresets', 'skills']
 
 /** Plugin config: the task text (the row patch interpolates it from headlessStartup). */
 export interface Config {
@@ -207,6 +207,14 @@ async function run(ctx: Context, config: Config): Promise<void> {
       await presets.mount(agentCtx, preset.id)
     },
   })
+  // Warm the skill catalog before the first request (BUG-001 root cause): the tool-skill
+  // catalog listener publishes on agent/pre-step and silently skips an incomplete snapshot —
+  // and a one-shot has exactly one request, so a first-request race against provider discovery
+  // left every one-shot session without the catalog (models loaded skills only when the prompt
+  // or the home manual named one). Awaiting one snapshot here completes discovery, so the
+  // listener's own snapshot is the cached, complete one and the catalog rides the first request.
+  // 完成技能发现：首请求前把目录快照缓存为完整态（BUG-001；预热本身即修复的一部分）。
+  await ctx.skills.snapshot({ cwd: agent.session.header.cwd, scope: agent })
   const firstSeq = agent.session.seq
   const task = createUserMessage({
     content: [{ type: 'text', text: composeRunnerTask(config.task) }],
