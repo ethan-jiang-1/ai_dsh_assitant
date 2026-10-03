@@ -71,7 +71,9 @@
     # src 的 `TranscriptViewPolicy.adopt()` 有 `?? defaultMode` 兜底，lib/client.js 没有；
     # 全新 home 无存档时 mode=undefined → `POLICIES[undefined]` → conversation.view 槽崩溃
     # （首条消息后对话区整片冻结，实测复现 + 修后消失，见首开 UX 卡第 3/8 轮）。
-    # 预置一个合法档位绕开；等上游接上兜底后此行可退役。
+    # 预置一个合法档位绕开。退役条件（2026-10-03 校准）：本 pin src 已带兜底、开发树 lib 已重建
+    # （首开 UX 卡「升 pin 复验」节），但**发布人口**（release-smoke 干净安装所用的 dsh 发布物
+    # 自带 client lib）是否带兜底未验——上游发布物确认后此行可退役。
     - id: ui-chat
       name: '@deepseek-ai/dsh-client-ui-chat'
       config:

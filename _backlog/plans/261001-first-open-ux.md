@@ -185,12 +185,24 @@
   是 9/26 的旧产物（升 0.2.0 pin 时未重建），其 `adopt()` 仍无 `?? defaultMode` 兜底——崩溃漂移在
   本机运行时还在；新 pin 的 **src** 已带兜底（`transcript-view.ts:48`）。上游候选的证据口径修正：
   先证「本地树 lib 未随 pin 重建」，上游发布物是否同样漂移须重建后复验。
-- **升 pin 重建清单的洞**（喂 sync-dsh playbook）：0.2.0 pin note 第 3 条只扫「新包缺
-  `lib/client.js`」（presence），没扫「组合引用包的 lib 过期」（freshness）——ui-chat 恰好漏网。
-  固定步骤应补：对照组合引用的 client 包清单扫**产物新鲜度**，不止在场性。
+- **升 pin 重建清单的洞——实测比初判宽三倍，且「部分重建」会打碎 web client**（喂 sync-dsh
+  playbook）：0.2.0 pin note 第 3 条只扫「新包缺 `lib/client.js`」（presence），没扫「已有包的
+  lib 过期」（freshness）。全仓扫描实况：client/ + extensions/ **26 家** + **api/ 组 5 家**
+  （gateway/remotes/session-controller/terminal-controller/workspace-controller）全停在 9/26 旧产物；
+  shell dist 也是 9/25 的。**事故证据**：只重建 client 面 26 家后真机起服务，`ui-user-questions`
+  等 `remote.userQuestions` 落空 → **"Failed to load plugins" 全屏白板**（一次性 home 实拍 +
+  probe verdict consoleProblems 在案）——新 client bundle 配旧 `api/remotes` 装配不连贯；补重建
+  api 面 5 家 + shell 后恢复。**结论：client 面必须成套新鲜，部分重建=坏面**；门禁化候选
+  （verify 加 vendor 产物 freshness 检查）待议。
 - 0.2.0 client 大重组：ui-chat 从 `packages/extensions/` 挪到 `packages/client/`。
-- **下一切片前置**：重建组合引用的 client bundle（至少 ui-chat）→ 首条消息崩溃场景复验 →
-  更新上游候选证据；此后所有真机探针读数才有干净基面。
+- **重建 + 复验已完成（2026-10-03）**：31 家 client 面 + shell 全部重建到本 pin src；一次性 fresh
+  home（setup.sh 全新建 + key 合入）双路探针：① 无预置行（`--patch` 整行替换 `config: {}`）+
+  重建 lib → 首条消息**零 consoleProblems 零 exceptions**、composer 挂载、回合真跑到
+  `ask_user_question` 澄清门（模型从工作区认出行业不符、拒绝编造、问真人——旧 lib 在这一步就是
+  整片冻结 + 8 条 console error）；② 默认组合（预置行在场）→ 首开面全绿零错误，无冲突。
+  **本地运行时崩溃关闭；预置行仍保留**——发布人口（release-smoke 的干净 dsh 自带的 client lib）
+  是否带兜底未验，行退役条件改为「上游发布物确认带兜底」。450s 探针窗口回合未完 = 停在澄清门等
+  真人，非缺陷（第 11 轮审批门挂起同机制）。
 
 仍然挂着的：
 
