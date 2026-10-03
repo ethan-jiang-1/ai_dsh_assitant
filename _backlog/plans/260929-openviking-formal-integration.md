@@ -185,9 +185,10 @@
 
 ## 待答问题 / 待跑实验 / 喂给谁
 
-- **待答**：① URI 追逐率（工具被拒后模型追 `viking://` 的频度——§七.②代价账 d）；② commitTokenThreshold 真实长会话的最优值（默认 20000 一次/长会话 vs 更频繁）；③ `recallExcludeUris` 是否需要排目录生成文件（上游默认空表有此注释）；④ shim 对 `restrict` 未知名抛错的时序边界（MCP re-sync 竞态窗口多宽）。
-- **待跑**（实施切片验收，天然 A/B：dev 挂 / dev-task 不挂）：① `--dump-config` 断言行+旋钮；② [repo-live-probe](../../.agents/skills/repo-live-probe/SKILL.md)（preset 会话拆日志按节量测：召回段在场、`mcp__openviking__*` 与 2 技能**不在**模型面、URI 追逐次数）；③ `pnpm eval` 对照挂前/挂后；④ 记忆往返在新 peer 复现（`pnpm ov-trial-rt` 参数化形状）。
-- **喂给谁**：层 2 治理桥的立项（`source: openviking:<id>` 转正语法 + digest 加情景记忆计数行）；`ov-install.sh` 参数化设计；上游反馈清单（§四三件）。
+- ~~实施切片四量测~~ **已跑（2026-10-04，dev home 活体，ov server 0.4.22 在线）**：①画像块在场 ✓（本轮 recall 未触发——按 S8 结论召回是尽力而为加速器，不承诺）；②`mcp__openviking__*` 零调用零 UNKNOWN_TOOL ✓（shield 行为证据）；③目录无两个 ov 技能 ✓（遮蔽生效）；④URI 零死胡同 ✓。**附加发现与封堵**：通用 MCP 资源工具（`read_mcp_resource` 等，按 `server` 参数寻址）是 deny 前缀的**读桥旁路**——活体会话实证模型经它读到 `viking://` 实体页；修复 = per-server `tools/execute` guard（browser-use 先例，`b1446d5`，红绿测试三态），复验 5 次资源尝试全部被拒、模型自适应走 session_search 正路取回内容。证据：`/tmp/ux-evidence-1004/ov-live-session{,2}.jsonl`。
+- **待答**：① ~~URI 追逐率~~ 已测：追逐存在（模型主动探索）但经 guard 拒后转正路，无死胡同——`allowReadonlyTools` 层 3 选项维持不启用；② commitTokenThreshold 真实长会话最优值（v3 定 3000，真实使用期校准）；③ `recallExcludeUris` 是否需排目录生成文件（上游默认空表）；④ ~~restrict 未知名时序~~ 已解（增量发现设计天然规避，同步监听器无窗口）。
+- **待跑**（层 1 正式落地验收，AGPL 过门后）：`--dump-config` 断言 + 干净安装的 ov-install.sh 端到端 + eval 对照挂前/挂后 + 新 peer 记忆往返。
+- **喂给谁**：层 2 治理桥的立项（`source: openviking:<id>` 转正语法 + digest 加情景记忆计数行）；上游反馈清单（§四三件 + 新增第四件：资源工具无 per-server 权限面——我们的 guard 是组合层补丁，上游修了可退役）。
 
 ## 候选与取舍（输掉的方案）
 
