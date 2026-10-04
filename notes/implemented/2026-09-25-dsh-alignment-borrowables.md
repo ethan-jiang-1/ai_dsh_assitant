@@ -45,7 +45,7 @@ DSH 不要求插件仓复制它的完整 Note 机制与协作面。因此本卡�
 9. **术语锚定括注**（`09` §4）——**部分落地（5/7）**：已加 `host 面（= bundle patch 行）`、`agent 面（= preset agent 行，model-facing）`、`8 个入口（= package.json exports 的 plugin 子路径；**该计数后被生成目录更正为 9**：host 1 + preset agent 6 + dev 专用 1 + client 1，见 `docs/package-catalog.md`）`、`working folder（= 本插件 dataDir，≠ 进程 cwd）`、`服务（Definition + 单 Provider 同包，Consumer = 各 tool 入口）`。**未落地两项**（在收编证据时丢失）："两个解析门面"与 DSH `Context façade` 撞名未改；`房间/桌面/抽屉` 未加 DSH 侧映射句。去向：[补课卡 S5](2026-09-25-dsh-alignment-deepening.md)。
 10. **tier 表一行式**（`05` §tier）：`AGENTS.md` 布局表前插 4 行「哪类事实归谁拥有」；不复制上游 13 行全表。
 11. **作者视角自检句**（`05` §41）：写 ROADMAP（2026-09-28 退役）/`docs/` 时自问「读者只有 HEAD、没有会话 transcript 时能否核验每个 claim」；现有条目里的裸简称（`R1/R3/r5 §末`）改成可点链接。
-12. **snapshots 只收什么**（`08` §4）：`snapshots/README.md` 补边界句——只收 session 回放 fixture，单元/CLI/generator 期望输出跟 owning 层走。
+12. **snapshots 只收什么**（`08` §4）：`snapshots/README.md` 补边界句——只收 session 回放 fixture，单元/CLI/generator 期望输出跟 owning 层走。（**2026-10-04 部分取代**：边界演进为两类同类证据——session 回放 + web 渲染期望，收编与理由见 [2026-10-04-test-strategy-adoption](2026-10-04-test-strategy-adoption.md)；本条的剥离原则不变。）
 13. **UPSTREAM 重审触发表 + 每轮固定字段**（`_coverage`）：`vendor/UPSTREAM.md` 加「上游路径 → 受影响 docs/notes 断言」映射；每轮 `sync-dsh` 在 `notes/implemented/` 落一条固定字段记录（日期/基线 SHA/动因/真跑命令+计数/未改动部分/遗留阻断）。
 14. **「被阻断的检查不得写成绿色证据」**（`_coverage` 纪律）：写进 `docs/discipline.md`。
 15. **历史边界句**（`08` §5）：note 只证明其自身内容；门禁规则带生效日、不追溯重判旧物（备选节门禁的 grandfather 日期即此例）。
