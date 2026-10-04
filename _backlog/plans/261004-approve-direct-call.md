@@ -52,9 +52,12 @@ desk-refresh，60-90s）；候选 = 面板直调服务（`promotePage` 翻转 dr
 - **审计设计修订**：会话事件方案**否决**——运行时 `session.append` 无法携带 `ignorable` 标记
   （envelope 硬编码），未知必需事件会毒化会话日志读回；identity.md 第 5 行 day-0 决定保持完好。
   审计落独立 JSONL（gateway remote journal 双证）。
-- **未决（诚实）**：client 直调**未生效**——live 验证中 `remote.assistantKnowledge` 未挂载成功
-  （fallback 正常工作、零回归）；classic-script 插件能否 `$mount` 自有 remote 贡献 = vendor
-  深水区未知数（voice-input 先例有 vendor 构建链支撑），需上游提案或 vendor 确认注入形状。
+- **未决（诚实，2026-10-04 二轮实锤）**：client 直调未生效。两个实锤：① `$mount` 在 client
+  端公开可用（诊断补齐后定位），但 typert descriptor 的 codec 需要 **zod**，而 classic-script
+  插件的 shell 模块表**不含裸名 zod**（运行时探测实锤："zod is not reachable"）；②
+  `workspaceFiles` remote **刻意只读**（read/stat/list/changes，无 write）——直写工作区文件的
+  变通不存在。**上游提案是正道**（client 插件的受控写缝 / zod 可达性 / 非 zod codec），提案前
+  fallback（模型回合批准）保持可用，零回归。
 - 触发条件以本节为准：未知数解决（上游/确认）+ 本人拍板 → 实施 client 侧。
 
 ## 触发（毕业门）

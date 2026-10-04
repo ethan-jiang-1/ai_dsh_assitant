@@ -2095,6 +2095,47 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   /** Slots this face occupies (single-occupant, root-scope, declared by the sidebar). */
   const inject = ['slots', 'sidebarRightTabs', 'sidebarRight', 'sessions', 'remote', 'remote.agentPresets', 'remote.workspaceFiles', 'remote.session']
 
+  /** Minimal structural zod type the typert contribution codecs need. */
+  interface ZodLike {
+    string: () => { optional: () => unknown }
+    object: (fields: Record<string, unknown>) => unknown
+  }
+
+  /**
+   * Build the typert contribution the client mounts for the knowledge-approve direct-call lane.
+   * Hand-written (the vendor generator targets tsdown builds; this package builds with tsc), so
+   * the codecs are plain zod schemas matching the host method's request/result shapes — the same
+   * shape `@deepseek-ai/dsh-typert-generator` emits.
+   */
+  function buildApproveContribution(zod: ZodLike): unknown {
+    const requestCodec = {
+      mode: 'strict',
+      typeSymbol: 'dsh-smart-assistant/types#KnowledgeApproveRequest',
+      create: () => zod.object({
+        pageId: zod.string(),
+        sessionId: zod.string(),
+        title: zod.string().optional(),
+      }),
+    }
+    const resultCodec = {
+      mode: 'strict',
+      typeSymbol: 'dsh-smart-assistant/types#KnowledgeApproveResult',
+      create: () => zod.object({ id: zod.string(), status: zod.string() }),
+    }
+    return {
+      package: 'dsh-smart-assistant',
+      descriptors: [{
+        id: 'dsh-smart-assistant#knowledgeApproveRemote/approvePage',
+        service: 'knowledgeApproveRemote',
+        namespace: 'assistantKnowledge',
+        method: 'approvePage',
+        invocation: { kind: 'direct' },
+        parameters: [{ name: 'request', wire: 'request', source: 'json', codec: requestCodec }],
+        result: resultCodec,
+      }],
+    }
+  }
+
   /**
    * Register the brand occupants as one declaration-aware set.
    * @param ctx - Browser root context.
@@ -2116,21 +2157,26 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // `remote.assistantKnowledge.approvePage` reaches the host service without a model round
     // trip. Failure degrades approveKnowledgePage to the legacy prompt path, announced in-panel.
     if (typeof (deskRemote as { $mount?: unknown })?.$mount === 'function') {
-      const contribution = {
-        package: 'dsh-smart-assistant',
-        descriptors: [{
-          id: 'dsh-smart-assistant#knowledgeApproveRemote/approvePage',
-          service: 'knowledgeApproveRemote',
-          namespace: 'assistantKnowledge',
-          method: 'approvePage',
-          invocation: { kind: 'direct' },
-        }],
+      // Typert descriptors carry zod codecs; the shell's module table exposes zod to the
+      // generated remotes, so a classic-script contribution can require it too.
+      let zod: Record<string, unknown> | undefined
+      try { zod = require('zod') as Record<string, unknown> } catch { zod = undefined }
+      if (zod !== undefined && typeof (zod as { string?: unknown }).string === 'function') {
+        const contribution = buildApproveContribution(zod as unknown as ZodLike)
+        void Promise.resolve(
+          (deskRemote as { $mount: (c: unknown) => Promise<unknown> }).$mount(contribution),
+        ).then(() => {
+          // Mount evidence: the approve button's direct-call branch reads this namespace.
+          console.info('assistantKnowledge remote mounted')
+        }).catch((reason: unknown) => {
+          console.error('assistantKnowledge mount failed:', String(reason))
+          patchDesk({ note: `批准直调通道未挂载（回退指令通道）：${String(reason)}` })
+        })
+      } else {
+        console.warn('assistantKnowledge mount skipped: zod is not reachable from the classic script')
       }
-      void Promise.resolve(
-        (deskRemote as { $mount: (c: unknown) => Promise<unknown> }).$mount(contribution),
-      ).catch((reason: unknown) => {
-        patchDesk({ note: `批准直调通道未挂载（回退指令通道）：${String(reason)}` })
-      })
+    } else {
+      console.warn('assistantKnowledge mount skipped: no $mount on the client remote service')
     }
 
     // The official build's brand package occupies these slots under its own build profile;
