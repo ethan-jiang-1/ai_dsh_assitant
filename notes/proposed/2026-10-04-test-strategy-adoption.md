@@ -70,7 +70,7 @@
 - **机制**：扩展现有 `shots` 机械加**期望比对模式**——DOM 证据（`--dom` 的 JSON）与已提交期望文件比对，PNG 作人工审阅副页不进机械比对（DSH 口径：diff 人工过目）；比对落 `snapshots/web-face/` 或试点专用目录，边界句随场景同 diff 写清。
 - **prove-it-red**：临时改一个座位文案/布局常量 → 比对变红 → 还原，证据进 note。
 - **成本台账**：建造成本、UI 改动时刷新期望的成本、假红率（连跑 N 次±环境噪声）；按 §二"失败出口"判定铺开/降级/退回。
-- 提示词组装面的录制回放（DSH `snapshots/session/` 形态）列为**第二场景候选**：等打磨移回提示词/摘要面、或 web 试点台账证明 harness 可复用时再建。
+- 提示词组装面的录制回放（DSH 的 snapshots/session/ 形态，本仓路径切片落地时建立）列为**第二场景候选**：等打磨移回提示词/摘要面、或 web 试点台账证明 harness 可复用时再建。
 
 ### 切片 3：台阶一——导出形态守卫
 
@@ -86,11 +86,11 @@
 
 ### 切片 5：测试政策成文（文档批，收尾同 diff 一篇 note）
 
-- 新 `docs/testing.md`（≤60 行，对齐 DSH 同名同位，只写现在）：① 证据形态分层——引 `discipline.md` 六层反馈表，不复制；② 插件证据五台阶表（导出守卫→行为 spec→生命周期→REAL composition→组装转录），每行给本仓样板文件路径；③ 政策条款：mock 白名单（LLM/网络/时钟）、禁 hand-built 组装证据、禁对 agent 自报的关键词探测、单跑才绿=spec 缺陷、禁掩盖修法清单、新守卫必须 prove-it-red；④ 触发条件与已定姿态（coverage 新文件 100%、eval 节奏、快照第二场景候选、loader-smoke/CI 触发）。
+- 新测试政策页（本切片落地的 docs/testing.md，≤60 行，对齐 DSH 同名同位，只写现在）：① 证据形态分层——引 `discipline.md` 六层反馈表，不复制；② 插件证据五台阶表（导出守卫→行为 spec→生命周期→REAL composition→组装转录），每行给本仓样板文件路径；③ 政策条款：mock 白名单（LLM/网络/时钟）、禁 hand-built 组装证据、禁对 agent 自报的关键词探测、单跑才绿=spec 缺陷、禁掩盖修法清单、新守卫必须 prove-it-red；④ 触发条件与已定姿态（coverage 新文件 100%、eval 节奏、快照第二场景候选、loader-smoke/CI 触发）。
 - `docs/AGENTS.md` tier 表加一行（testing.md 拥有"测试面合同"）。
 - `docs/discipline.md`：测试行 ⏳→✅ 更新，登记采纳矩阵与偏离（约束→适配→触发条件）；冻结豁免句（开发证据面不在「真用第一」冻结范围——用户 2026-10-04 拍板）登记进已声明的适配。
 - `snapshots/README.md`：升级触发条件改写为可判定清单，并标注"web 面触发已于 2026-10-03 ui-chat 事故响过一次、试点已立项"。
-- `notes/implemented/2026-10-04-test-strategy-adoption.md`：消化来源、采纳矩阵全文、试点成本台账、输掉的方案；与 `2026-09-25-dsh-alignment-borrowables.md`（部分取代关系：快照边界句在此收编）互链。
+- 本切片同 diff 落一篇 implemented note（2026-10-04-test-strategy-adoption.md）：消化来源、采纳矩阵全文、试点成本台账、输掉的方案；与 2026-09-25-dsh-alignment-borrowables.md（部分取代关系：快照边界句在此收编）互链。
 
 ## 四、验收
 

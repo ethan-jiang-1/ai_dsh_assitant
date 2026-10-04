@@ -1,0 +1,8 @@
+# 场景契约的机器可读面；完整判据、命令与台账在同目录 README.md（同 diff 维护）。
+version: 1
+scenario: blank-first-open
+profile: dev            # 起在隔离 home（ASSISTANT_DSH_HOME 指向一次性 home），共享 dev home 的时间戳漂移不可用
+recording: live         # shots 经 CDP 真渲染拍摄；PNG 人工审阅，DOM 证据进比对
+comparison: dom-evidence
+runner: pnpm web-expected '<url>'        # --refresh 重录期望
+entry: scripts/webui-expected.mjs

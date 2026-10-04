@@ -26,6 +26,7 @@
     "export-dist": "node scripts/export-dist.mjs",
     "preflight": "node scripts/webui-preflight.mjs",
     "shots": "node scripts/webui-shots.mjs",
+    "web-expected": "node scripts/webui-expected.mjs",
     "loop-probe": "node scripts/webui-loop-probe.mjs",
     "desk-loop": "node dev/desk-loop-report.mjs",
     "sync-dsh": "node scripts/sync-dsh.mjs",

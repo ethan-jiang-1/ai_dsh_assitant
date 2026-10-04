@@ -1,0 +1,120 @@
+/**
+ * Pure core for the web-face expected-comparison pilot (test-strategy adoption, slice 2).
+ *
+ * Owns exactly two decisions, so the CLI shell (`webui-expected.mjs`) stays thin and the
+ * spec (`tests/webui-expected.spec.mjs`) can pin every accepted/rejected shape on fixtures:
+ *
+ *   1. normalizeDomEvidence — strip/rename the fields that CANNOT be part of the expected
+ *      state (per-capture volatility), leaving the text-structural evidence.
+ *   2. compareEvidence — diff normalized actual against the committed expectation,
+ *      returning human-readable problem lines (empty = pass).
+ *
+ * The ignore list is a REVIEWED SOURCE CONSTANT, not a knob: every field left out must
+ * carry the reason it can never be evidence. This is the "fix fixtures, not normalizers"
+ * boundary from the other side — the normalizer is allowed to exist, but only with an
+ * explicit, reviewable reason per exclusion (a silent widening is the failure mode).
+ * Pixel comparison is deliberately absent: the DOM outline is the diffable surface, and
+ * the PNG travels beside it for human review only.
+ */
+
+/**
+ * Fields dropped before comparison, each with the reason it can never carry evidence.
+ * `bootEntries` is the composition surface — owned by preflight / --dump-config, not by
+ * a render. Counting fields (elementCount/pageHeight/screens) move with font metrics and
+ * unrelated DOM churn; the structural lists below are the actual regression surface.
+ * `href` carries the per-serve port and token. `lang` reads the host locale: the locale
+ * override cannot reach the first document (webui-shots.mjs header), so the field reports
+ * the machine, not the product — the rendered copy (visibleText) is the evidence.
+ */
+const IGNORED_FIELDS = new Set(['href', 'lang', 'elementCount', 'pageHeight', 'screens', 'bootEntries'])
+
+/**
+ * Fields compared verbatim after normalization. `readyState` must be "complete" (a half-
+ * booted capture should fail, not pass); `viewport` pins the capture geometry to the
+ * scenario's declared size; `title` is a stable identity face; the three text-structural
+ * lists ARE the evidence; console/network failure lists must stay empty for this state.
+ */
+const COMPARED_FIELDS = ['title', 'viewport', 'readyState', 'visibleText', 'textOutline', 'controls', 'consoleErrors', 'networkFailures']
+
+/**
+ * Replace per-serve volatility inside compared strings with typed tokens (DSH snapshot
+ * shape: identity moves to a token, relations stay). Currently only the console/network
+ * lists can embed the origin (a failed request URL); `href` itself is already ignored.
+ */
+function tokenize(value) {
+  if (typeof value === 'string') {
+    return value.replace(/https?:\/\/127\.0\.0\.1:\d+/g, '{{origin}}')
+  }
+  if (Array.isArray(value)) return value.map(tokenize)
+  if (value !== null && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, tokenize(v)]))
+  }
+  return value
+}
+
+/**
+ * Drop ignored fields and tokenize. Returns a plain object holding only compared fields —
+ * an unknown top-level field (shots gained a new output) is KEPT under `unowned`, so a
+ * new evidence channel becomes a visible diff instead of silently joining the contract.
+ */
+export function normalizeDomEvidence(raw) {
+  if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) {
+    throw new Error(`DOM evidence must be a JSON object, got ${typeof raw}`)
+  }
+  const normalized = {}
+  const unowned = {}
+  for (const [key, value] of Object.entries(raw)) {
+    if (IGNORED_FIELDS.has(key)) continue
+    if (COMPARED_FIELDS.includes(key)) normalized[key] = tokenize(value)
+    else unowned[key] = value
+  }
+  if (unowned.unowned === undefined && Object.keys(unowned).length > 0) normalized.unowned = unowned
+  return normalized
+}
+
+/** One-line render of a scalar mismatch, bounded so a wall of text stays readable. */
+function preview(value, max = 120) {
+  const text = typeof value === 'string' ? value : JSON.stringify(value)
+  if (text === undefined) return 'undefined'
+  return text.length > max ? `${text.slice(0, max)}…` : text
+}
+
+/** First differing index of two string arrays, or -1 when one is a prefix of the other. */
+function firstDelta(actual, expected) {
+  const len = Math.max(actual.length, expected.length)
+  for (let i = 0; i < len; i++) if (actual[i] !== expected[i]) return i
+  return -1
+}
+
+/**
+ * Compare normalized actual against the committed expectation. Returns problem lines
+ * (empty array = pass). Line lists diff by first-delta with bounded extra/missing
+ * previews: a UI regression shifts or inserts lines, and the reviewer needs WHAT moved,
+ * not a full unified dump.
+ */
+export function compareEvidence(actual, expected) {
+  const problems = []
+  for (const field of COMPARED_FIELDS) {
+    const a = actual[field]
+    const e = expected[field]
+    if (Array.isArray(e) || Array.isArray(a)) {
+      const av = Array.isArray(a) ? a : []
+      const ev = Array.isArray(e) ? e : []
+      if (JSON.stringify(av) !== JSON.stringify(ev)) {
+        const at = firstDelta(av, ev)
+        const detail = at === -1
+          ? `length ${ev.length} → ${av.length}`
+          : `first change at [${at}]: "${preview(ev[at])}" → "${preview(av[at])}"`
+        problems.push(`${field}: ${detail}`)
+        const extra = av.length - ev.length
+        if (extra > 0) problems.push(`${field}: +${extra} line(s), e.g. ${preview(av.slice(ev.length).find(x => !ev.includes(x)) ?? av[av.length - 1], 90)}`)
+        if (extra < 0) problems.push(`${field}: ${-extra} line(s) missing, e.g. ${preview(ev.slice(av.length).find(x => !av.includes(x)) ?? ev[ev.length - 1], 90)}`)
+      }
+      continue
+    }
+    if (JSON.stringify(a) !== JSON.stringify(e)) {
+      problems.push(`${field}: expected ${preview(e)}, actual ${preview(a)}`)
+    }
+  }
+  return problems
+}
