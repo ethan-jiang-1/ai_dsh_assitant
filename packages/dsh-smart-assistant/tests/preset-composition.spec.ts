@@ -37,6 +37,8 @@ import AgentRegistry, { assembleContextFor } from '@deepseek-ai/dsh-agent'
 import AgentLoop from '@deepseek-ai/dsh-agent-loop'
 import AgentPresetRegistry from '@deepseek-ai/dsh-agent-preset-registry'
 import AgentPreset from '@deepseek-ai/dsh-agent-preset'
+import SessionPersistenceJsonl from '@deepseek-ai/dsh-session-persistence-jsonl'
+import TypertRegistry from '@deepseek-ai/dsh-typert-registry'
 import { DIGEST_SECTION_ORDER } from '../src/memory-digest/index.ts'
 import { afterEach, describe, expect, it } from 'vitest'
 
@@ -86,6 +88,12 @@ async function harness(): Promise<Context> {
   ctx.loader.builtins.include = Include
   await ctx.plugin(LlmRuntime)
   await ctx.plugin(SessionStore)
+  // The knowledge-approve companion row audits into the session log: persistence and the
+  // Typert registry are its injects, exactly as the shipped host composition provides them.
+  const persistenceHome = mkdtempSync(join(tmpdir(), 'assistant-preset-persist-'))
+  dirs.push(persistenceHome)
+  await ctx.plugin(SessionPersistenceJsonl, { root: persistenceHome, compression: 'none' })
+  await ctx.plugin(TypertRegistry)
   await ctx.plugin(SessionProjectionRegistry)
   await ctx.plugin(SystemPrompt, { personaPrefix: '' })
   await ctx.plugin(ToolRuntime)
@@ -107,6 +115,11 @@ async function harness(): Promise<Context> {
     recallLimit: 20,
     staleResearchDays: 30,
   })
+  // The knowledge-approve companion row (approve-direct-call): direct-call lane for the
+  // knowledge-room approve button, audited into the session log. Mounted from built lib/
+  // exactly like the deployment loads it.
+  const approveRemote = await import(pathToFileURL(join(packageRoot, 'lib', 'knowledge-approve-remote.js')).href)
+  await ctx.plugin(approveRemote.default)
   // 0.1.7: preset = registry row (default) + definition row (plugins). No directory, no roots.
   await ctx.plugin(AgentPresetRegistry, { default: 'assistant' })
   await ctx.plugin(AgentPreset, { id: 'assistant', plugins: OWN_ROWS })
@@ -125,6 +138,12 @@ async function agentOnPreset(ctx: Context, captured: Context[]) {
 }
 
 ;(built ? describe : describe.skip)('real composition: loader + preset standing mount + joined agent', () => {
+  it('mounts the knowledge-approve companion service alongside the host row (direct-call lane)', async () => {
+    const ctx = await harness()
+    const approve = ctx.get('knowledgeApproveRemote')
+    expect(approve).toBeDefined()
+  })
+
   it('renders the soul, manual, and digest sections through the joined preset (the live-turn crash path)', async () => {
     const ctx = await harness()
     const captured: Context[] = []

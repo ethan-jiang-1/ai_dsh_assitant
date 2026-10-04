@@ -41,6 +41,22 @@ desk-refresh，60-90s）；候选 = 面板直调服务（`promotePage` 翻转 dr
   实施前唯一待验项。
 - 服务侧就绪：`promotePage` 是纯机械翻转（hand flip 即审批，src/index.ts:875）。
 
+## 切片 1 实施账（2026-10-04，静默自主）
+
+- **已落地**：host 伴生服务 `knowledge-approve-remote`（TypertRemoteService 子类，namespace
+  `assistantKnowledge`，`@Remote approvePage` = promotePage + 独立审计文件
+  `<dataDir>/audit/approvals.jsonl`）；patch 行 `assistant-knowledge-approve`（dump-config 在场）；
+  exports 子路径；client 批准按钮直调接线（带 legacy prompt 降级路径）；组合测试挂载伴生行；
+  export-shape 守卫重构为形态自洽（service default OR clean function）；vitest 子路径导出
+  别名修复（`lib/types/<name>.js` ↔ `src/<name>.ts`）。
+- **审计设计修订**：会话事件方案**否决**——运行时 `session.append` 无法携带 `ignorable` 标记
+  （envelope 硬编码），未知必需事件会毒化会话日志读回；identity.md 第 5 行 day-0 决定保持完好。
+  审计落独立 JSONL（gateway remote journal 双证）。
+- **未决（诚实）**：client 直调**未生效**——live 验证中 `remote.assistantKnowledge` 未挂载成功
+  （fallback 正常工作、零回归）；classic-script 插件能否 `$mount` 自有 remote 贡献 = vendor
+  深水区未知数（voice-input 先例有 vendor 构建链支撑），需上游提案或 vendor 确认注入形状。
+- 触发条件以本节为准：未知数解决（上游/确认）+ 本人拍板 → 实施 client 侧。
+
 ## 触发（毕业门）
 
 **触发 = 本人拍板开工**（2026-10-04 修订：原"频次 ≥5/月 + 摩擦再现"废止——单次批准 90s 的

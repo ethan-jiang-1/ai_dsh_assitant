@@ -10,11 +10,12 @@
 > freshness 由 `pnpm verify`（`gen-catalog --check`）守——改了源却没重生成即红。
 > 语义与改名代价的 owner 是 [`identity.md`](identity.md)；这里只回答"当前声明了什么"。
 
-## 入口与平面（10 个 plugin 子路径 = host 1 + agent 8 + client 1）
+## 入口与平面（11 个 plugin 子路径 = host 1 + agent 9 + client 1）
 
 | 入口 | 平面 | 组合行 id |
 |---|---|---|
 | `.` | HOST | assistant-memory |
+| `./knowledge-approve-remote` | AGENT | assistant-knowledge-approve |
 | `./home-preamble` | AGENT | assistant-home-preamble |
 | `./memory-digest` | AGENT | assistant-memory-digest |
 | `./tool-memory` | AGENT | assistant-memory-tool |
@@ -32,6 +33,7 @@
 | 文件 | id | plugin | 状态 |
 |---|---|---|---|
 | cordis.patch.yml（host 面） | `assistant-memory` | `dsh-smart-assistant` | 启用 |
+| cordis.patch.yml（agent 面 = preset 行的 plugins） | `assistant-knowledge-approve` | `dsh-smart-assistant/knowledge-approve-remote` | 启用 |
 | cordis.patch.yml（agent 面 = preset 行的 plugins） | `assistant-home-preamble` | `dsh-smart-assistant/home-preamble` | 启用 |
 | cordis.patch.yml（agent 面 = preset 行的 plugins） | `assistant-memory-digest` | `dsh-smart-assistant/memory-digest` | 启用 |
 | cordis.patch.yml（agent 面 = preset 行的 plugins） | `assistant-memory-tool` | `dsh-smart-assistant/tool-memory` | 启用 |
@@ -67,5 +69,5 @@
 - 钉住的上游 tag：`dsh-v0.2.0-rc.2`
 - 记录为 verified 的 DSH release：`0.1.5-rc.2`、`0.1.7-rc.2`、`0.2.0-rc.2`
 - 运行时 dependencies：`yaml`
-- peerDependencies：11 个 `@deepseek-ai/*`（姿态由门禁守：harness 包只许 peer）
+- peerDependencies：12 个 `@deepseek-ai/*`（姿态由门禁守：harness 包只许 peer）
 - client 面（浏览器包）：有

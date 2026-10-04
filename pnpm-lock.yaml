@@ -33,6 +33,9 @@ importers:
       '@deepseek-ai/dsh-agent-preset':
         specifier: workspace:^
         version: link:../../vendor/dsh/packages/preset/agent-preset
+      '@deepseek-ai/dsh-typert-protocol':
+        specifier: workspace:^
+        version: link:../../vendor/dsh/packages/typert/protocol
       '@deepseek-ai/schemastery':
         specifier: link:../../vendor/dsh/vendor/schemastery
         version: link:../../vendor/dsh/vendor/schemastery
@@ -82,6 +85,9 @@ importers:
       '@deepseek-ai/dsh-session':
         specifier: workspace:^
         version: link:../../vendor/dsh/packages/core/session
+      '@deepseek-ai/dsh-session-persistence-jsonl':
+        specifier: workspace:^
+        version: link:../../vendor/dsh/packages/session/session-persistence-jsonl
       '@deepseek-ai/dsh-session-projection':
         specifier: workspace:^
         version: link:../../vendor/dsh/packages/session/session-projection
@@ -97,6 +103,9 @@ importers:
       '@deepseek-ai/dsh-tools':
         specifier: workspace:^
         version: link:../../vendor/dsh/packages/core/tools
+      '@deepseek-ai/dsh-typert-registry':
+        specifier: workspace:^
+        version: link:../../vendor/dsh/packages/typert/registry
       '@types/node':
         specifier: ^22.20.0
         version: 22.20.4

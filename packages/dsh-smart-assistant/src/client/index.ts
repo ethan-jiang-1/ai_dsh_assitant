@@ -807,8 +807,30 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   /**
    * Approve one draft knowledge page. The counterpart of a correction: the principal says the page
    * is right, and the assistant promotes it so it starts counting in retrieval and the digest.
+   *
+   * Direct-call lane (approve-direct-call): the click IS the approval, so the flip goes straight
+   * to the host service — seconds, not a model round trip — and the service writes the audit
+   * record. Needs the session id (the audit lands in that session's log); without one, or before
+   * the remote namespace mounts (first boot after install), it falls back to the legacy prompt
+   * path, which is honest degradation rather than a silently lost approval.
    */
   function approveKnowledgePage(title: string, rowId: string, sessionId?: string): void {
+    const namespace = deskRemote?.assistantKnowledge as { approvePage?: (request: unknown) => Promise<unknown> } | undefined
+    if (typeof namespace?.approvePage === 'function' && sessionId !== undefined) {
+      void namespace.approvePage({ pageId: rowId, sessionId, title }).then((result: unknown) => {
+        const outcome = result as { ok?: boolean, error?: { message?: string } }
+        if (outcome?.ok === false) {
+          patchDesk({ note: outcome.error?.message ?? '批准未生效' })
+        }
+      }).catch((reason: unknown) => {
+        patchDesk({ note: `直调批准失败，回退指令通道：${String(reason)}` })
+        sendPrompt(
+          `我批准知识页「${title}」。请把它从 draft 翻成 stable。${DESK_REFRESH_STEP}`,
+          '批准', rowId, sessionId,
+        )
+      })
+      return
+    }
     sendPrompt(
       `我批准知识页「${title}」。请把它从 draft 翻成 stable。${DESK_REFRESH_STEP}`,
       '批准', rowId, sessionId,
@@ -2089,6 +2111,27 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     deskSessions = (ctx as { sessions?: typeof deskSessions }).sessions
     deskSidebarRight = ctx.sidebarRight
     ensureThemeVars()
+
+    // The knowledge-approve direct-call lane (approve-direct-call): mount our contribution so
+    // `remote.assistantKnowledge.approvePage` reaches the host service without a model round
+    // trip. Failure degrades approveKnowledgePage to the legacy prompt path, announced in-panel.
+    if (typeof (deskRemote as { $mount?: unknown })?.$mount === 'function') {
+      const contribution = {
+        package: 'dsh-smart-assistant',
+        descriptors: [{
+          id: 'dsh-smart-assistant#knowledgeApproveRemote/approvePage',
+          service: 'knowledgeApproveRemote',
+          namespace: 'assistantKnowledge',
+          method: 'approvePage',
+          invocation: { kind: 'direct' },
+        }],
+      }
+      void Promise.resolve(
+        (deskRemote as { $mount: (c: unknown) => Promise<unknown> }).$mount(contribution),
+      ).catch((reason: unknown) => {
+        patchDesk({ note: `批准直调通道未挂载（回退指令通道）：${String(reason)}` })
+      })
+    }
 
     // The official build's brand package occupies these slots under its own build profile;
     // step aside there. A browser has no `process`, so the guard reads false and we register.

@@ -47,7 +47,7 @@ const devRows = parseRows(readFileSync(join(packageRoot, '..', '..', 'dev', 'pre
 
 const PREFIX = 'dsh-smart-assistant'
 const hostRow = ownRows.find(row => row.name === PREFIX)
-const functionRows = ownRows.filter(row => row.name !== PREFIX)
+const presetSubRows = ownRows.filter(row => row.name !== PREFIX)
 
 /** Relative source-module path for a patch row name (package root row → src/index.ts). */
 function sourceOf(rowName) {
@@ -55,26 +55,38 @@ function sourceOf(rowName) {
   return sub === '' ? '../src/index.ts' : `../src/${sub}/index.ts`
 }
 
-if (hostRow === undefined || functionRows.length === 0) {
+if (hostRow === undefined || presetSubRows.length === 0) {
   throw new Error(`cordis.patch.yml shape unexpected: ${ownRows.length} own rows, host=${hostRow !== undefined}`)
 }
 
 const loader = Object.create(Loader.prototype)
 
-describe('every preset sub-row is a clean function plugin (no default, namespace survives unwrapExports)', () => {
-  for (const row of functionRows) {
+/**
+ * Shape self-consistency, not a hardcoded list of which row is which: a row whose module
+ * default-exports must be a Service subclass (service plugin — the host/companion shape), and
+ * a row without one must be a clean function plugin (named name/inject/apply). Either way the
+ * namespace must survive `unwrapExports` and the plugin `name` export must equal the patch
+ * row id. Adding a row of a NEW shape means extending this guard in the same diff.
+ */
+describe('every preset sub-row is shape-consistent (service default OR clean function plugin)', () => {
+  for (const row of presetSubRows) {
     const modulePath = sourceOf(row.name)
     it(`${row.id} (${row.name})`, async () => {
       const mod = await import(modulePath)
       expect(mod, modulePath).toBeDefined()
-      expect('default' in mod, `${modulePath} must not default-export`).toBe(false)
       const unwrapped = loader.unwrapExports(mod)
-      expect(unwrapped, 'unwrapExports must return the namespace itself (round-trip)').toBe(mod)
-      expect(unwrapped.name, 'plugin name must equal the patch row id (--dump-config identity)').toBe(row.id)
-      expect(unwrapped.inject, 'inject must name the services this row consumes').toEqual(
-        expect.arrayContaining([expect.any(String)]),
-      )
-      expect(typeof unwrapped.apply, 'apply must be a function').toBe('function')
+      if ('default' in mod) {
+        // Service plugin: unwrapExports intentionally resolves to the class itself.
+        expect(mod.default.prototype, 'a default-exporting row must be a Service subclass').toBeInstanceOf(Service)
+        expect(unwrapped, 'unwrap resolves the service class').toBe(mod.default)
+      } else {
+        expect(unwrapped, 'unwrapExports must return the namespace itself (round-trip)').toBe(mod)
+        expect(unwrapped.name, 'plugin name must equal the patch row id (--dump-config identity)').toBe(row.id)
+        expect(unwrapped.inject, 'inject must name the services this row consumes').toEqual(
+          expect.arrayContaining([expect.any(String)]),
+        )
+        expect(typeof unwrapped.apply, 'apply must be a function').toBe('function')
+      }
     })
   }
 })

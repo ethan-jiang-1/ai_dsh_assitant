@@ -1,5 +1,6 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
+import { dirname, join } from 'node:path'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { defineConfig } from 'vitest/config'
 
 /**
@@ -60,13 +61,53 @@ function nestedVendorAliases() {
   return entries
 }
 
+/**
+ * Subpath exports (`@scope/pkg/projection`) are NOT prefix-aliasable: the package-root alias
+ * would rewrite them to `src/index.ts/projection`, which is not a file (hit when the
+ * knowledge-approve row pulled session-format-catalog into the composition tests). Each
+ * `./sub` export maps back to its source file by the vendor convention `lib/types/<name>.js`
+ * ↔ `src/<name>.ts`; the alias is a plain string (exact match), so it cannot shadow the
+ * package root even though it sorts after it.
+ */
+function subpathAliases() {
+  const entries = []
+  const text = readFileSync(new URL('tsconfig.tsx.json', repositoryRoot), 'utf8')
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .split('\n')
+    .filter(line => !line.trimStart().startsWith('//'))
+    .join('\n')
+  const paths = JSON.parse(text).compilerOptions.paths
+  for (const [specifier, targets] of Object.entries(paths)) {
+    const target = Array.isArray(targets) ? targets[0] : undefined
+    if (typeof target !== 'string' || specifier.includes('*') || target.includes('*')) continue
+    // tsconfig targets end at the package's `src/`; the manifest lives one level up.
+    const packageDirUrl = pathToFileURL(`${join(repositoryRoot.pathname, target, '..')}/`)
+    const manifest = new URL('package.json', packageDirUrl)
+    if (!existsSync(manifest)) continue
+    const pkg = JSON.parse(readFileSync(manifest, 'utf8'))
+    for (const [sub, subTarget] of Object.entries(pkg.exports ?? {})) {
+      if (sub === '.' || sub === './package.json' || sub.includes('*')) continue
+      const js = typeof subTarget === 'string' ? subTarget : subTarget?.default
+      if (typeof js !== 'string' || !js.startsWith('./lib/')) continue
+      const sourceName = js.replace('./lib/types/', '').replace('./lib/', '').replace(/\.js$/, '')
+      const sourceUrl = new URL(`src/${sourceName}.ts`, packageDirUrl)
+      if (!existsSync(sourceUrl)) continue
+      entries.push({ specifier: `${specifier}/${sub.replace(/^\.\//, '')}`, entry: fileURLToPath(sourceUrl), exact: true })
+    }
+  }
+  return entries
+}
+
 const escape = text => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 export default defineConfig({
   resolve: {
-    // Longest specifier first so `@scope/a` cannot shadow `@scope/a-longer`.
-    alias: [...runtimeAliases(), ...nestedVendorAliases()]
+    // Longest specifier first so `@scope/a` cannot shadow `@scope/a-longer`. Exact subpath
+    // entries (string find = exact match) sort before every prefix regex by their length.
+    alias: [...subpathAliases(), ...runtimeAliases(), ...nestedVendorAliases()]
       .sort((left, right) => right.specifier.length - left.specifier.length)
-      .map(entry => ({ find: new RegExp(`^${escape(entry.specifier)}(?=/|$)`), replacement: entry.entry })),
+      .map(entry => (entry.exact === true
+        ? { find: entry.specifier, replacement: entry.entry }
+        : { find: new RegExp(`^${escape(entry.specifier)}(?=/|$)`), replacement: entry.entry })),
   },
 })

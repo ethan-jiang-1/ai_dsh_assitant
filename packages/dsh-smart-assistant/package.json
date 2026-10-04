@@ -51,6 +51,10 @@
       "types": "./lib/learn/index.d.ts",
       "default": "./lib/learn/index.js"
     },
+    "./knowledge-approve-remote": {
+      "types": "./lib/knowledge-approve-remote/index.d.ts",
+      "default": "./lib/knowledge-approve-remote/index.js"
+    },
     "./preset-runner": {
       "types": "./lib/preset-runner/index.d.ts",
       "default": "./lib/preset-runner/index.js"
@@ -87,7 +91,8 @@
     "@deepseek-ai/dsh-skill-filesystem": "workspace:^",
     "@deepseek-ai/dsh-session": "workspace:^",
     "@deepseek-ai/dsh-tools": "workspace:^",
-    "@deepseek-ai/schemastery": "workspace:^"
+    "@deepseek-ai/schemastery": "workspace:^",
+    "@deepseek-ai/dsh-typert-protocol": "workspace:^"
   },
   "dependencies": {
     "yaml": "^2.8.1"
@@ -105,13 +110,15 @@
     "@deepseek-ai/dsh-home-paths": "workspace:^",
     "@deepseek-ai/dsh-host-webserver": "workspace:^",
     "@deepseek-ai/dsh-llm": "workspace:^",
+    "@deepseek-ai/dsh-scope": "workspace:^",
     "@deepseek-ai/dsh-session": "workspace:^",
+    "@deepseek-ai/dsh-session-persistence-jsonl": "workspace:^",
     "@deepseek-ai/dsh-session-projection": "workspace:^",
     "@deepseek-ai/dsh-skill": "workspace:^",
     "@deepseek-ai/dsh-skill-filesystem": "workspace:^",
     "@deepseek-ai/dsh-system-prompt": "workspace:^",
     "@deepseek-ai/dsh-tools": "workspace:^",
-    "@deepseek-ai/dsh-scope": "workspace:^",
+    "@deepseek-ai/dsh-typert-registry": "workspace:^",
     "@deepseek-ai/schemastery": "workspace:^",
     "@types/node": "^22.20.0",
     "@types/react": "~18.3.1",

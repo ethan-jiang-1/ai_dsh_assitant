@@ -49,7 +49,10 @@
       "@deepseek-ai/dsh-brand": ["./vendor/dsh/packages/util/brand/src"],
       "@deepseek-ai/dsh-goal": ["./vendor/dsh/packages/goal/goal/src"],
       "@deepseek-ai/dsh-llm": ["./vendor/dsh/packages/llm/llm/src"],
-      "@deepseek-ai/dsh-session": ["./vendor/dsh/packages/core/session/src"]
+      "@deepseek-ai/dsh-session": ["./vendor/dsh/packages/core/session/src"],
+      "@deepseek-ai/dsh-typert-protocol": ["./vendor/dsh/packages/typert/protocol/src"],
+      "@deepseek-ai/dsh-typert-registry": ["./vendor/dsh/packages/typert/registry/src"],
+      "@deepseek-ai/dsh-session-persistence-jsonl": ["./vendor/dsh/packages/session/session-persistence-jsonl/src"]
     }
   }
 }
