@@ -14,14 +14,24 @@
  * What it does NOT prove: that the client tree executes and renders — that is still the
  * browser session's job.
  *
- * Usage: node scripts/webui-preflight.mjs 'http://127.0.0.1:<port>/?token=<token>'
+ * Usage: node scripts/webui-preflight.mjs 'http://127.0.0.1:<port>/?token=<token>' [--dsh-home <dir>]
+ *        --dsh-home: the home the TARGET SERVICE runs on (the desk-readiness check scans its
+ *        session workspaces). Defaults to the runner's own DSH_HOME / harness home — pass it
+ *        explicitly whenever the service runs anywhere else, or the check greens on the wrong
+ *        home's desk (2026-10-05 handover: it reported the repo root's leftover .desk while the
+ *        user's desk lived in the trial home).
  */
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 
-const given = process.argv[2]
+const positional = process.argv.slice(2)
+const given = positional.find(argument => !argument.startsWith('--'))
+const dshHomeFlag = (() => {
+  const index = positional.indexOf('--dsh-home')
+  return index >= 0 && index + 1 < positional.length ? positional[index + 1] : undefined
+})()
 if (given === undefined) {
-  console.error('usage: node scripts/webui-preflight.mjs <url-with-token>')
+  console.error('usage: node scripts/webui-preflight.mjs <url-with-token> [--dsh-home <dir>]')
   process.exit(1)
 }
 
@@ -188,14 +198,25 @@ if (bootStart < 0) {
 // a green boot with no desk file still hands the human an empty page. Fail (not warn) when no
 // recent session workspace has one — "hand over a URL where nothing is visible" is the failure
 // this whole script exists to prevent (user, 2026-09-25).
-const home = process.env.DSH_HOME ?? new URL('../dev/harness-home/', import.meta.url).pathname
-const sessionsRoot = join(home, 'sessions')
+// The desk check scans the home the SERVICE runs on — an explicit --dsh-home wins, then the
+// runner's own DSH_HOME. The scanned home is printed in the verdict so a wrong-home pass is
+// visible instead of silently green.
+// Workspace paths come from the home's workspace registry (storages/workspace.json), the
+// authoritative canonical paths. The sessions/ directory names are a LOSSY encoding — a
+// literal dash in a workspace path is indistinguishable from an encoded slash — so decoding
+// them misses desks in dash-containing workspaces (2026-10-05: the trial home's desk sits in
+// …/deepseek-harness/default-workspace, whose decoded name pointed at a nonexistent path).
+const home = dshHomeFlag ?? process.env.DSH_HOME ?? new URL('../dev/harness-home/', import.meta.url).pathname
+const registryPath = join(home, 'storages', 'workspace.json')
 let deskFound = ''
 try {
-  for (const project of readdirSync(sessionsRoot)) {
-    // The directory name encodes the workspace path with '-' for '/': --Users-me-project--
-    const workspace = project.replace(/^--/, '/').replace(/--$/, '').replaceAll('-', '/')
-    const candidate = join(workspace, '.desk', 'state.json')
+  const registry = JSON.parse(readFileSync(registryPath, 'utf8'))
+  const workspaces = Object.values(registry?.tables?.workspaces ?? {})
+  if (workspaces.length === 0) fail(`the workspace registry at ${registryPath} registers no workspaces`)
+  for (const workspace of workspaces) {
+    const workspacePath = String(workspace?.path ?? '')
+    if (workspacePath === '') continue
+    const candidate = join(workspacePath, '.desk', 'state.json')
     if (!existsSync(candidate)) continue
     // Content, not just presence: an old file without the sections renders an empty panel too.
     try {
@@ -209,13 +230,13 @@ try {
     }
   }
 } catch (error) {
-  fail(`cannot read the session store at ${sessionsRoot}: ${String(error)}`)
+  fail(`cannot read the workspace registry at ${registryPath}: ${String(error)}`)
 }
 if (deskFound === '') {
-  fail('no .desk/state.json in any session workspace — the desk/knowledge/memory panels will render empty; '
+  fail(`no .desk/state.json in any registered workspace under ${home} — the desk/knowledge/memory panels will render empty; `
     + 'ask the assistant to refresh the desk (the desk-refresh skill) before handing this URL over')
 } else {
-  ok(`desk file present: ${deskFound}`)
+  ok(`desk file present (scanned home: ${home}): ${deskFound}`)
 }
 
 if (failures > 0) {

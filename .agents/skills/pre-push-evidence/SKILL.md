@@ -47,6 +47,12 @@ whenToUse: Choosing what to run before a commit or handover; deciding whether a 
   every session — only the hero chrome is hero-gated). When a claim is conditional ("only when
   X"), the evidence must include the **complementary case** (here: a session with content), not
   one more instance of X.
+- **Point instrument checks at the target, not at the runner.** `webui-preflight`'s desk-readiness
+  check scans a DSH home — without `--dsh-home <service home>` it scans the *runner's* own home
+  and can green on an unrelated leftover desk while the handed-over URL serves an empty page
+  (2026-10-05 handover). It reads the home's workspace registry; the sessions/ bucket names are
+  a lossy encoding (a literal dash in a workspace path is indistinguishable from an encoded
+  slash) and must not be decoded back into paths.
 
 ## Finish line
 
