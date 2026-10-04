@@ -768,7 +768,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   /** Drop one action: no longer worth doing — the assistant records why and takes it off the list. */
   function dropAction(what: string, rowId: string, sessionId?: string): void {
     sendPrompt(
-      `行动「${what}」不办了：请记一行原因（写进相应线索或记忆）。${DESK_REFRESH_STEP}`,
+      `行动「${what}」不办了：请记一行原因（写进在跟的事或记忆）。${DESK_REFRESH_STEP}`,
       '不办了', rowId, sessionId,
     )
   }
@@ -779,7 +779,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    */
   function parkThread(title: string, rowId: string, sessionId?: string): void {
     sendPrompt(
-      `线索「${title}」先放一放（park）：现在不推，但别丢。${DESK_REFRESH_STEP}`,
+      `在跟的事「${title}」先放一放（park）：现在不推，但别丢。${DESK_REFRESH_STEP}`,
       '先放放', rowId, sessionId,
     )
   }
@@ -787,7 +787,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   /** Close one thread: answered, moot, or not worth it — the assistant promotes or drops it. */
   function closeThread(title: string, rowId: string, sessionId?: string): void {
     sendPrompt(
-      `线索「${title}」可以收了：请判断该 promote（变成记忆/知识页/技能）还是 drop（写一行原因），`
+      `在跟的事「${title}」可以收了：请判断该 promote（变成记忆/知识页/技能）还是 drop（写一行原因），`
       + `做完告诉我你归到了哪里。${DESK_REFRESH_STEP}`,
       '收了', rowId, sessionId,
     )
@@ -1853,7 +1853,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
 
       sectionTitle('在跟的事'),
       data?.threads === undefined || data.threads.length === 0
-        ? muted('（暂时没有未决线索）')
+        ? muted('（暂时没有在跟的事）')
         : createElement('div', null, ...data.threads.map(thread => createElement(CorrectableRow, {
             key: String(thread.id ?? thread.title),
             rowId: String(thread.id ?? thread.title),
@@ -1881,10 +1881,10 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
                     style: { fontSize: '11px', color: 'var(--dsw-alias-label-secondary)', fontWeight: 400, lineHeight: 1.5 },
                   })),
             actionLabel: '问进展',
-            placeholder: '你想问这条线索的什么？',
+            placeholder: '你想问这件事的什么？',
             deskSession: session,
             onSubmit: (text: string) => {
-              sendPrompt(`关于线索「${String(thread.title ?? thread.id ?? '')}」：${text}`, '问进展', String(thread.id), session)
+              sendPrompt(`关于在跟的事「${String(thread.title ?? thread.id ?? '')}」：${text}`, '问进展', String(thread.id), session)
             },
             actions: [
               { label: '先放放', run: () => { parkThread(String(thread.title ?? thread.id ?? ''), String(thread.id), session) } },
@@ -1917,7 +1917,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         cell('记忆', data?.counts?.memories === undefined ? '—' : String(data.counts.memories), 'memoryRoom'),
         cell('知识', data?.counts?.knowledgeStable === undefined ? '—' : String(data.counts.knowledgeStable), 'knowledgeRoom'),
         cell('技能', data?.counts?.skills === undefined ? '—' : String(data.counts.skills), 'knowledgeRoom'),
-        cell('线索', data?.counts?.threads === undefined ? '—' : String(data.counts.threads))),
+        cell('在跟的事', data?.counts?.threads === undefined ? '—' : String(data.counts.threads))),
       ...panelAlerts(store),
       createElement('div', null,
         createElement('div', {
@@ -2066,7 +2066,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       sectionTitle('规模'),
       createElement('div', null,
         cell('记忆', store.data?.counts?.memories === undefined ? '—' : String(store.data.counts.memories)),
-        cell('线索', store.data?.counts?.threads === undefined ? '—' : String(store.data.counts.threads))),
+        cell('在跟的事', store.data?.counts?.threads === undefined ? '—' : String(store.data.counts.threads))),
       ...panelAlerts(store))
   }
 

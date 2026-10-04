@@ -404,6 +404,22 @@ describe('languageGuardProblems', () => {
     expect(problems[0]).toContain('bad.ts')
     expect(problems[0]).toContain('English')
   })
+
+  it('exempts an HTML-comment vocabulary line in a skill body, but not CJK prose beside it', () => {
+    const dir = temp('language-md-')
+    const skill = join(dir, 'SKILL.md')
+    writeFileSync(skill, [
+      '# Title',
+      '',
+      '<!-- 词汇（用户可见散文）：threads 一律称「在跟的事」 -->',
+      'Call threads 「在跟的事」 in prose.',
+      '',
+    ].join('\n'), 'utf8')
+    const problems = languageGuardProblems([skill])
+    expect(problems).toHaveLength(1)
+    expect(problems[0]).toContain('SKILL.md:4')
+    expect(problems[0]).toContain('English')
+  })
 })
 
 describe('textHygieneProblems', () => {

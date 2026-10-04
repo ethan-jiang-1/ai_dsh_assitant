@@ -318,6 +318,10 @@ export function languageGuardProblems(files) {
     const lines = read(file).split('\n')
     for (const [index, line] of lines.entries()) {
       if (isTypeScript && COMMENT_LINE.test(line)) continue
+      // Markdown skill bodies carry an HTML-comment escape hatch: a vocabulary line that must
+      // teach the model a Chinese product word (e.g. threads = 「在跟的事」) is meta-information,
+      // not prose — the `<!--` prefix marks it as such. CJK in prose still bites.
+      if (file.endsWith('.md') && /^\s*<!--/.test(line)) continue
       if (CJK_TEXT.test(line)) {
         problems.push(`${file}:${index + 1} carries CJK outside a comment — model-facing text is English`)
       }

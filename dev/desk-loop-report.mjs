@@ -64,7 +64,7 @@ function actionOf(text) {
   if (text.includes('」不办了')) return '不办了'
   if (text.includes('」要改：')) return '改这条'
   if (text.includes('缺口的原始读数')) return '补上'
-  if (text.includes('关于线索「')) return '问进展'
+  if (text.includes('关于在跟的事「')) return '问进展'
   return '其他'
 }
 

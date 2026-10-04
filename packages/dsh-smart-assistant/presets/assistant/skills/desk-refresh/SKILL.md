@@ -103,6 +103,8 @@ The three rooms are three QUESTIONS the principal arrives with, not three data c
 for the question: **Desk** = "what should I act on now?", **Knowledge** = "on what basis do you
 judge?", **Memory** = "what do you take me for?".
 
+<!-- 词汇（用户可见散文）：threads 一律称「在跟的事」，不要称「线索」（本人指认的黑话）；内部键与文件内容保持 threads。 -->
+
 - **Desk** — decisions, **actions**, gaps, threads, `recentActivity`, counts. `actions` is where the
   work you planned with the principal lives: every item from an action plan you produced together
   (the four things each action carries — owner, due, metric, stop condition) plus its `status`
