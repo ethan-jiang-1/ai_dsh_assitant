@@ -20,3 +20,4 @@
 ## 索引
 
 - [261001-upstream-candidates.md](261001-upstream-candidates.md)——vendor 面上游候选台账（喂 261001-first-open-ux：9 稳定 + 3 条件 + 2 已关闭，逐条带 vendor 锚点）
+- [261001-upstream-issue-drafts.md](261001-upstream-issue-drafts.md)——6 条上游 issue 递交草案（D1-D6，英文贴用文本 + 中文摘要；待用户过目后递交）
