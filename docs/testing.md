@@ -38,6 +38,19 @@
 - **测试描述行为**：行为命题命名；client spec 文件头 docstring 逐条列验收点。
 - **scoped 注册的断言必须带 scope key**（与 createScope 同一引用对象）；`assemble({ scope })` 可免 agent 栈。
 
+## 命名法：后缀即层（"跑哪层 / 进没进 regression"的共同词汇）
+
+| 文件形态 | 层 | 命令 | 进 regression 的方式 |
+|---|---|---|---|
+| `tests/*.spec.{ts,mjs}` | 单元 / 合同 / 守卫（含导出与生命周期守卫） | `pnpm test`（全量，每次收尾必绿） | 行为改动同 diff 更新对应 spec |
+| `tests/*harness.ts` | 共享夹具——刻意不被任何 include 选中 | — | — |
+| `snapshots/web-face/<场景>/` | web 渲染期望（场景目录 = snapshot.yml + 契约 README + expected.dom.json；脚本门，非 vitest） | `pnpm web-expected` | web 可见面改动：过目 diff 后 `--refresh` |
+| `*.e2e.ts`（预留） | 真模型车道，无 key 自跳 | 未建 | 触发条件 owner：`snapshots/README.md` |
+| `*.snapshot.ts`（预留） | session 回放驱动 | 未建 | 同上 |
+| `*.bench.ts` / `*.perf.ts`（预留） | 性能门（独占）/ 手动诊断 | 未建 | 第一处性能回归实证后立案 |
+
+期望文件一律叫 `expected`，不叫 `golden`（上游"命名即所有权"门的口径）；新增测试资产形态先入本表再落文件。
+
 ## 已定姿态与升级触发
 
 - **coverage**：新文件 per-file 100%，存量祖父豁免；先纪律后机器门（触发：第一处"删了才对"的死代码实证）。

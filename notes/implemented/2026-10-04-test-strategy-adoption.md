@@ -45,6 +45,11 @@
 - **切片 5（政策成文）**：[docs/testing.md](../../docs/testing.md)（46 行）为测试面合同唯一家；
   `docs/AGENTS.md` tier 表加行；`discipline.md` 测试行 ⏳→✅ + 适配 6（冻结豁免）；
   `snapshots/` 的 AGENTS.md 与 README.md 边界收编 web 渲染期望为第二类同类证据并更新 harness 状态。
+- **命名法补录（同日，用户点拨）**：上游"后缀即层"（文件名唯一决定层与车道，`expected` 不叫
+  `golden`——命名即所有权）在消化时已识别但未单列入采纳项；用户指出"今后容易判断我在说什么"
+  后补为 [testing.md](../../docs/testing.md) 的"命名法：后缀即层"节（现存 44 个测试文件全部
+  符合该文法，无需改名；`e2e`/`snapshot`/`bench` 后缀为将来车道预留）。价值：层的指称从口头
+  约定变成机械可读——说"跑 e2e""进 snapshot"即指向唯一命令与 regression 语义。
 
 ## 试点成本台账（切片 2 实测，2026-10-04）
 
