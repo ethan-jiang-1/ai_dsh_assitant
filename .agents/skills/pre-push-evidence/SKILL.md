@@ -12,7 +12,7 @@ whenToUse: Choosing what to run before a commit or handover; deciding whether a 
 | Surface you touched | Minimal credible evidence |
 |---|---|
 | pure core (`src/home`, `memory`, `research`, `skills`, `knowledge`, `tool-support`) | package `pnpm test` (the unit specs own these behaviors) |
-| `src/client/` browser half | the **whole package suite**, not just the spec you touched: `client-brand.spec.ts` asserts the complete slot-registration surface, so adding one registration reds a spec you never opened (this happened — P1-B landed red and the fixture followed two commits later) |
+| `src/client/` browser half | the **whole package suite**, not just the spec you touched: `client-brand.spec.ts` asserts the complete slot-registration surface, so adding one registration reds a spec you never opened (this happened — P1-B landed red and the fixture followed two commits later) **+ both web-face scenes re-run** (`pnpm web-expected` against an isolated home) — unit green while a recorded scene went silently stale for a day (the approve-direct-call console change landed after blank-first-open was recorded; caught 2026-10-05 by building the second scene) |
 | model-visible surface (tool description, prompt section, persona, digest) | `pnpm build` **then** the real-composition test **then** a live probe (`repo-live-probe`) |
 | `src/index.ts` service behavior | `pnpm test` (service-level specs construct a real cordis context) + the composition test |
 | `scripts/verify*.mjs` | the new/changed check's **red fixture** in `tests/verify-gates.spec.mjs` + `pnpm verify` |
