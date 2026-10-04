@@ -1415,6 +1415,65 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   }
 
   /**
+   * The pending-approval banner above the composer. The desk already points at the drafts (S4),
+   * but that pointer sits one room deep — the second naive-CEO reading (first-open UX card,
+   * 2026-10-04) named the depth itself as the friction: pages wait for an approval only the
+   * principal can give, and nothing on the first screen says so (before-evidence 2026-10-05:
+   * 3 drafts on the desk, zero approval words in the first-open DOM). This banner is the
+   * shallow twin of the desk pointer: it shows wherever the principal already is — blank
+   * session or not — and disappears once the drafts are approved.
+   *
+   * Data rides the walk view (the primary slice), not the dock session's own slice: on the
+   * first screen the session is brand new and has no desk yet, while the drafts live in the
+   * workspace the last desk-refresh served. In the shipped composition every session shares
+   * the one default workspace, so the click-through's own read finds the same file; a session
+   * on a different workspace lands on the knowledge room's honest empty state instead of a
+   * foreign desk (tabBody withholds other sessions' data by design — this banner does not
+   * override that, it only points).
+   * @param props - the injected opener.
+   * @returns the banner element, or null when nothing is waiting for approval.
+   */
+  function ApprovalDockBanner({ openRoom }: {
+    openRoom?: (kind: RoomKind) => void
+  }): ReturnType<typeof createElement> | null {
+    const store = useDesk()
+    const pages = store.data?.knowledge
+    // Count what the click-through will show: the knowledge room's 待你审批 section counts ROWS
+    // with status draft. Desk files that carry no rows fall back to the model's own count — a
+    // banner number the room cannot reproduce would break the promise the click makes.
+    const draftCount = pages !== undefined
+      ? pages.filter(page => page.status === 'draft').length
+      : (store.data?.counts?.knowledgeDraft ?? 0)
+    if (draftCount === 0) return null
+    return createElement('div', {
+      style: {
+        display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-start',
+        // Same card width rule as the first-mile strip: follow the composer's card, not a
+        // fixed pixel cap that drifts at every breakpoint.
+        width: 'min(var(--dsh-composer-card-max-width, 952px), 100%)',
+        margin: '0 auto 8px', padding: '10px 16px',
+        border: '1px solid var(--dsha-warn)', borderRadius: '10px', background: 'var(--dsha-warn-tint)',
+      },
+    },
+    createElement('div', { style: { fontSize: '13px', color: 'var(--dsha-warn)' } },
+      `⚠ ${String(draftCount)} 页知识草稿在等你审批——批准后才会成为它的判断依据`),
+    createElement('button', {
+      onClick: () => {
+        // Same routing as the desk pointer (S4): the room opens with the drafts highlighted
+        // and scrolled into view. openBeside is total — it reports its own failure — so no
+        // guard here; the banner never swallows a click silently.
+        patchDesk({ focusKnowledge: 'drafts' })
+        openRoom?.('knowledgeRoom')
+      },
+      style: {
+        border: '1px solid var(--dsha-warn)', background: 'transparent', cursor: 'pointer',
+        fontSize: '12px', color: 'var(--dsha-warn)', padding: '3px 10px', borderRadius: '6px',
+      },
+    }, '点这里去审批'),
+    )
+  }
+
+  /**
    * A stat cell; with a room kind it becomes the way to the room tab that explains the number.
    * The rooms live as right-sidebar tabs (user steer, 2026-09-28), so the jump opens the tab
    * beside the conversation instead of navigating the retired left main panels.
@@ -2010,7 +2069,10 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
                     : undefined,
                 },
                 store.focusKnowledge === 'drafts'
-                  ? createElement('div', { style: { fontSize: '11px', color: 'var(--dsha-warn)', marginBottom: '4px' } }, '↑ 你从桌面点过来的那批')
+                  // Surface-neutral on purpose: the pointer now has two senders (the desk's
+                  // draft line and the composer's approval banner), so the text must not
+                  // claim the principal came from the desk.
+                  ? createElement('div', { style: { fontSize: '11px', color: 'var(--dsha-warn)', marginBottom: '4px' } }, '↑ 你刚点过来的那批')
                   : null,
                 createElement('ul', { style: { margin: 0, paddingLeft: '18px', fontSize: '13px', lineHeight: 1.8, color: 'var(--dsha-warn)' } },
                   ...drafts.map(page => row(page, '⚠ ')))),
@@ -2272,6 +2334,17 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         order: -10,
         inject: () => ({ openRoom: openBeside }),
       }, FirstMileDock))
+    // The pending-approval banner (first-open UX card round 16): the desk pointer's shallow
+    // twin, visible above the composer in ANY session state whenever drafts wait. Rides the
+    // same dock as the first-mile strip; the two coexist (a first open with pending approvals
+    // shows both — each answers a different question: how do I start vs what needs my call).
+    ctx.slots.inject('conversation.input.dock', () =>
+      ctx.slots.register({
+        name: 'conversation.input.dock',
+        id: 'assistant-approval-banner',
+        order: -9,
+        inject: () => ({ openRoom: openBeside }),
+      }, ApprovalDockBanner))
   }
 
   // The occupants, the three panels, and the shared store are exposed for tests: the store is the
@@ -2283,7 +2356,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     inject, apply, AssistantBrandMark, AssistantBrandName,
     DeskPanel, KnowledgePanel, MemoryPanel, deskStore, deskSlice,
     DeskTabBody, KnowledgeTabBody, MemoryTabBody, AssistantDeskChip, roomTabTitle,
-    roomCommands, AssistantHeroMark, FirstMileDock, expirePending, settlePending, loadDeskFor, retireStaleReceipt, looksLikeDesk,
+    roomCommands, AssistantHeroMark, FirstMileDock, ApprovalDockBanner, expirePending, settlePending, loadDeskFor, retireStaleReceipt, looksLikeDesk,
   }
 }
 

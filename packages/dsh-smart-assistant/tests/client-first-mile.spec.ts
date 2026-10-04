@@ -26,6 +26,16 @@ interface ClientExports {
     session?: { blank?: boolean } | undefined
     openRoom?: (kind: string) => void
   }) => Element | null
+  ApprovalDockBanner: (props: {
+    openRoom?: (kind: string) => void
+  }) => Element | null
+  deskStore: {
+    data?: {
+      counts?: { knowledgeDraft?: number }
+      knowledge?: { status?: string }[]
+    } | undefined
+    focusKnowledge?: 'drafts' | undefined
+  }
 }
 
 function materialize(): ClientExports {
@@ -176,9 +186,85 @@ describe('first-mile seats', () => {
     const names = registered.map(entry => entry.name)
     expect(names).toContain('conversation.hero.brand.mark')
     expect(names).toContain('conversation.input.dock')
-    const dock = registered.find(entry => entry.name === 'conversation.input.dock')
-    expect(dock?.declaration.id).toBe('assistant-first-mile')
+    const dock = registered.find(entry => entry.declaration.id === 'assistant-first-mile')
+    expect(dock?.declaration.name).toBe('conversation.input.dock')
     // The dock's action must reach the opener through the inject face, not a closure over ctx.
     expect(typeof (dock?.declaration.inject as () => unknown)()).toBe('object')
+  })
+})
+
+describe('approval dock banner', () => {
+  /** A desk view with the given draft rows and (optionally) a stale model-asserted count. */
+  function deskWith(rows: { status?: string }[], knowledgeDraft?: number): {
+    counts?: { knowledgeDraft?: number }
+    knowledge?: { status?: string }[]
+  } {
+    const desk: { counts?: { knowledgeDraft?: number }, knowledge?: { status?: string }[] } = {}
+    if (knowledgeDraft !== undefined) desk.counts = { knowledgeDraft }
+    if (rows.length > 0 || knowledgeDraft === undefined) desk.knowledge = rows
+    return desk
+  }
+
+  it('stays hidden while nothing waits for approval — no desk, empty desk, all approved', () => {
+    const exports = materialize()
+    exports.deskStore.data = undefined
+    expect(exports.ApprovalDockBanner({ openRoom: () => {} })).toBe(null)
+    exports.deskStore.data = deskWith([])
+    expect(exports.ApprovalDockBanner({ openRoom: () => {} })).toBe(null)
+    exports.deskStore.data = deskWith([{ status: 'stable' }, { status: 'deprecated' }])
+    expect(exports.ApprovalDockBanner({ openRoom: () => {} })).toBe(null)
+  })
+
+  it('surfaces the drafts in any session state — the dock seat renders for blank and ongoing alike', () => {
+    // The claim is "wherever the principal already is", so the complementary states both get
+    // evidence: the dock slot itself is session-scoped but NOT hero-gated, and this banner
+    // must not inherit the first-mile strip's blank-only rule.
+    const exports = materialize()
+    exports.deskStore.data = deskWith([{ status: 'draft' }, { status: 'stable' }])
+    expect(exports.ApprovalDockBanner({ openRoom: () => {} })).not.toBe(null)
+  })
+
+  it('counts the rows the click-through will show, not the model-asserted tally', () => {
+    // The knowledge room's 待你审批 section counts rows with status draft; a banner number the
+    // room cannot reproduce would break the promise the click makes. The model's counts field
+    // is only a fallback for desk files that carry no rows at all.
+    const exports = materialize()
+    exports.deskStore.data = deskWith(
+      [{ status: 'draft' }, { status: 'draft' }, { status: 'stable' }], 99)
+    const banner = exports.ApprovalDockBanner({ openRoom: () => {} })
+    if (banner === null) throw new Error('the banner should render for draft rows')
+    const copy = textsOf(banner).join(' ')
+    expect(copy).toContain('2 页知识草稿在等你审批')
+    expect(copy).not.toContain('99')
+    expect(copy).toContain('批准后才会成为它的判断依据')
+
+    exports.deskStore.data = deskWith([], 4)
+    const fallback = exports.ApprovalDockBanner({ openRoom: () => {} })
+    expect(textsOf(fallback as Element).join(' ')).toContain('4 页知识草稿在等你审批')
+  })
+
+  it('routes the click to the knowledge room with the drafts highlighted (same routing as the desk pointer)', () => {
+    const exports = materialize()
+    const opened: string[] = []
+    exports.deskStore.data = deskWith([{ status: 'draft' }])
+    const banner = exports.ApprovalDockBanner({ openRoom: kind => { opened.push(kind) } })
+    if (banner === null) throw new Error('the banner should render for draft rows')
+    const buttons = elementsOf(banner, 'button')
+    expect(buttons).toHaveLength(1)
+    expect(textsOf(buttons[0]).join('')).toBe('点这里去审批')
+    exports.deskStore.focusKnowledge = undefined
+    ;(buttons[0]?.props.onClick as () => void)()
+    expect(opened).toEqual(['knowledgeRoom'])
+    // S4's contract: the room reads focusKnowledge and highlights + scrolls to the drafts.
+    expect(exports.deskStore.focusKnowledge).toBe('drafts')
+  })
+
+  it('claims the second dock seat with its own id when applied', () => {
+    const { ctx, registered } = recordingContext()
+    materialize().apply(ctx)
+    const banners = registered.filter(entry => entry.declaration.id === 'assistant-approval-banner')
+    expect(banners).toHaveLength(1)
+    expect(banners[0]?.declaration.name).toBe('conversation.input.dock')
+    expect(typeof (banners[0]?.declaration.inject as () => unknown)()).toBe('object')
   })
 })

@@ -472,10 +472,12 @@ describe('desk panels', () => {
     expect(knowledge).toContain('你凭什么这样判断？')
     expect(memory).toContain('你把我理解成什么？')
     // The desk's draft pointer sends the principal over; the room highlights the very block
-    // they were pointed at (selectPanel takes only a room id — the flag is the anchor).
+    // they were pointed at (selectPanel takes only a room id — the flag is the anchor). The
+    // highlight text stays surface-neutral: the composer's approval banner sends the same
+    // pointer, so the copy must not claim the principal came from the desk.
     exports.deskStore.focusKnowledge = 'drafts'
     const focused = textsOf(exports.KnowledgePanel()).join(' | ')
-    expect(focused).toContain('↑ 你从桌面点过来的那批')
+    expect(focused).toContain('↑ 你刚点过来的那批')
     expect(focused).toContain('draft-1')
   })
 

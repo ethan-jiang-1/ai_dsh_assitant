@@ -133,25 +133,25 @@ describe('client-module registration', () => {
     }
     ;(exports.apply as (ctx: unknown) => void)(ctx)
     // Brand slots first, then each room's tab body and tab title in loop order, then the
-    // Session-header chip that opens the desk tab, then the two first-mile seats. No
-    // panellist/main pairs: the left main panels are retired.
+    // Session-header chip, then the first-mile strip and the approval banner (two dock seats).
+    // No panellist/main pairs: the left main panels are retired.
     expect(calls).toEqual([
       'sidebar.brand.mark', 'sidebar.brand.name',
       'sidebar.right.pane.tab', 'sidebar.right.pane.tab.title',
       'sidebar.right.pane.tab', 'sidebar.right.pane.tab.title',
       'sidebar.right.pane.tab', 'sidebar.right.pane.tab.title',
       'conversation.session.header.utilities',
-      'conversation.hero.brand.mark', 'conversation.input.dock',
+      'conversation.hero.brand.mark', 'conversation.input.dock', 'conversation.input.dock',
     ])
     // Each room registers its tab type, its keyed body, and its keyed tab title (the glyph chip);
-    // the chip and the first-mile seats close the set.
+    // the chip, the first-mile strip, and the approval banner close the set.
     expect(registered).toEqual([
       'sidebar.brand.mark', 'sidebar.brand.name',
       'tab:desk', 'dsh-smart-assistant-desk', 'dsh-smart-assistant-desk',
       'tab:knowledgeRoom', 'dsh-smart-assistant-knowledge', 'dsh-smart-assistant-knowledge',
       'tab:memoryRoom', 'dsh-smart-assistant-memory', 'dsh-smart-assistant-memory',
       'assistant-desk-chip',
-      'conversation.hero.brand.mark', 'assistant-first-mile',
+      'conversation.hero.brand.mark', 'assistant-first-mile', 'assistant-approval-banner',
     ])
     // The steer's whole point: each room contributes a guide entry, so the "+" picker lists
     // the rooms beside the browser and terminal tabs.
