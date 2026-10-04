@@ -46,7 +46,7 @@ const REPEAT_WINDOW_MS = 15 * 60 * 1000
 const HOME_TOOLS = new Set(['assistant_memory', 'assistant_knowledge', 'assistant_research', 'assistant_reflect'])
 const REACTION_WINDOW_MS = 10 * 60 * 1000
 
-/** 评测会话的题面（用来把它们从"本人"的账里分出去：消息层与真人不可区分，题面可以）。 */
+/** 评测会话的题面（评测判定的证据之一；另一条在 source 层——面板消息带 rpcId，见 buildSession）。 */
 const TASK_PROMPTS = TASKS.map(task => task.prompt)
 
 /**
@@ -216,10 +216,13 @@ export function buildSession(log, events) {
   return {
     id: sessionIdOf(log),
     startedAt: Number(events[0]?.time ?? windows[0].at),
-    // 评测会话判定：题面命中**且整个会话只有那一条消息**。desk-refresh 那条评测的题面**就是**面板的刷新
-    // 文案，只看题面会把"真人以刷新开场"的会话误判成评测（自检抓到的第一版缺陷）；"≤2 条"也不够——
-    // 一次刷新加一句"好的"就是两条。评测是 headless one-shot：题面进去、答案出来，会话就结束。
-    evalRun: windows.length === 1 && TASK_PROMPTS.includes(windows[0].message.trim()),
+    // 评测会话判定：题面命中 **且** 整个会话只有那一条消息 **且** 那条消息不走面板。
+    // 第三个条件是 BUG-002 的修复（2026-10-01 真实命中）：desk-refresh 那条评测的题面**就是**面板的刷新
+    // 文案，"只点一下刷新、之后一个字没说"的真人会话恰好同形——头两版补丁（只看题面；"≤2 条"）分别被
+    // 自检与实测算出假阳性，判别子必须在消息文本之外。它就在 source 里：评测是 headless one-shot，题面经
+    // argv 进来（source 是裸 `{kind:"user"}`，无 rpcId），而面板消息必带 `rpcId: desk-…`（speakerOf 的
+    // 结构判据）——面板来源 ⇒ 不可能是评测提交。
+    evalRun: windows.length === 1 && TASK_PROMPTS.includes(windows[0].message.trim()) && windows[0].panel !== true,
     windows,
     feedback: feedbackOf(events),
   }
@@ -402,9 +405,9 @@ export function renderReport(analysis, { home, sinceDays, includeEval } = {}) {
   lines.push('')
   lines.push('- 分类读日志的**结构**：`source.kind === "user"` 且 `rpcId` 形如 `desk-…` ＝ 面板消息；'
     + '`kind === "user"` 其余 ＝ 本人的话；其它 kind（agent-instructions / runtime-context / skill-catalog…）＝ 注入前言（不进窗口、不切断窗口）。')
-  lines.push('- 评测会话按"题面命中 **且** 整个会话只有那一条消息"识别（评测是 headless one-shot）；'
-    + '`desk-refresh` 那条评测的题面就是面板的刷新文案，所以"只有一次点击、之后一个字没说"的真人会话会被算成评测'
-    + '（用 `--all` 仍能看它的数据）。')
+  lines.push('- 评测会话按"题面命中 **且** 整个会话只有那一条消息 **且** 消息不走面板"识别（评测是 headless'
+    + ' one-shot，题面经 argv 进来、source 无 rpcId；面板消息必带 `rpcId: desk-…`）。'
+    + '残余：真人在 web 里**手动逐字**敲出评测题面且只此一条，结构上与评测不可区分—— benign，`--all` 仍可见。')
   lines.push('- §1/§4 只认"同一窗口内的工具调用"；跨窗口的补救（例如下一轮才写文件）不算数——那是另一种问题（延迟），不是这一节要量的。')
   lines.push('')
   lines.push('## 怎么读')
@@ -490,8 +493,14 @@ export function selfCheck() {
     feedbackPut(T0 + 6 * MINUTE, 'm-3', 'negative'),
   ])
 
-  // 评测会话：题面命中 tasks.mjs，且是 one-shot 形状（只有那条题面）
+  // 评测会话：题面命中 tasks.mjs，且是 one-shot 形状（只有那条题面，裸 source 无 rpcId）
   const sessionC = buildSession(logC, [userMessage(T0, TASK_PROMPTS[0] ?? 'eval task')])
+  // BUG-002 回归钉：题面命中 + 单消息窗，但那条消息是**面板发的**（rpcId desk-…）——真人点了一下
+  // 刷新再没说话的会话（2026-10-01 真实命中）。headless 评测发不出这个形状：不得判成评测。
+  const logD = '/tmp/home/sessions/--proj--/session-dddddddd-1111-2222-3333-444444444444/session.v4.jsonl.zstd'
+  const sessionD = buildSession(logD, [
+    userMessage(T0, TASK_PROMPTS.find(prompt => prompt.includes('刷新我的桌面')) ?? 'panel refresh copy', desk),
+  ])
   const sessions = [sessionA, sessionB, sessionC]
   if (sessions.some(session => session === undefined)) throw new Error('a synthetic session produced no windows')
 
@@ -500,6 +509,11 @@ export function selfCheck() {
   const expect = (label, actual, wanted) => {
     if (actual !== wanted) throw new Error(`${label}: got ${actual}, want ${wanted}`)
   }
+
+  // BUG-002 的双向钉：面板来源的单次刷新点击不是评测（真人会话留在"本人"账里）；
+  // 裸 source 的 one-shot 题面仍是评测。
+  expect('panel-sourced single refresh click is not an eval run', sessionD.evalRun, false)
+  expect('headless bare-source eval shape is still an eval run', sessionC.evalRun, true)
 
   expect('sessions (human)', humanOnly.considered.length, 2)
   expect('sessions (eval)', humanOnly.evalRuns.length, 1)
@@ -560,7 +574,7 @@ export function selfCheck() {
   expect('the note is the positive one', humanOnly.feedback.notes[0].note, '这次刷新一次到位')
 
   return 'desk-loop --self-check: ok — synthetic sessions yield the known counts (结构判类：注入前言不切断窗口、'
-    + '纯文本注入不算本人的话、协作边界前言不冒充本人的话、混合重复算重复、§6 只数面板会话、题面撞车不误判真人会话、'
+    + '纯文本注入不算本人的话、协作边界前言不冒充本人的话、混合重复算重复、§6 只数面板会话、题面撞车的面板来源不误判真人会话、'
     + '§7 撤回的赞踩退出计数且备注表只收带备注的)'
 }
 

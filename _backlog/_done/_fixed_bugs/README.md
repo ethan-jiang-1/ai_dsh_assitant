@@ -6,3 +6,4 @@
 | 卡 | 标题 | 修复 | 日期 |
 |---|---|---|---|
 | [BUG-001](BUG-001-eval-behavior-tasks-red.md) | 行为评测两任务既有红 | 技能目录移 host 行 + wrote-path 认 python 写法（5/5 两轮） | 2026-10-02 |
+| [BUG-002](BUG-002-desk-loop-session-classification.md) | 以面板刷新文案开场的真人会话被误判成评测 | evalRun 加第三条件（消息不走面板；self-check 双向钉） | 2026-10-05 |
