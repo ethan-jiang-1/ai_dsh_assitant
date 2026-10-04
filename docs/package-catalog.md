@@ -39,7 +39,7 @@
 | cordis.patch.yml（agent 面 = preset 行的 plugins） | `assistant-knowledge-tool` | `dsh-smart-assistant/tool-knowledge` | 启用 |
 | cordis.patch.yml（agent 面 = preset 行的 plugins） | `assistant-learn` | `dsh-smart-assistant/learn` | 启用 |
 | cordis.patch.yml（agent 面 = preset 行的 plugins） | `assistant-ov-shield` | `dsh-smart-assistant/ov-shield` | 启用 |
-| dev/preset-runner.patch.yml（dev 专用） | `preset-runner` | `dsh-smart-assistant/preset-runner` | 启用 |
+| dev/preset-runner.patch.yml（dev 专用） | `assistant-preset-runner` | `dsh-smart-assistant/preset-runner` | 启用 |
 
 ## 工具与动词（wire 名是身份，动词集互不重叠）
 

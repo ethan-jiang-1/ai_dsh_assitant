@@ -6,7 +6,7 @@
 #
 # 形状说明（loader 守卫：行**替换**不得改 `name`——插件身份不可被 patch 劫持）：
 # 先禁用 shipped 的 headless-runner 行，再以**新 id 插入**我们的 runner。
-# 已验证：--dump-config 无 warn，`headless-runner` 显示 disabled，`preset-runner` 在组合中。
+# 已验证：--dump-config 无 warn，`headless-runner` 显示 disabled，`assistant-preset-runner` 在组合中。
 # - task 经 loader 侧 `!!js` 从 headlessStartup 服务取（与被替换的行同源）；CLI 位置参数
 #   解析发生在 headless-startup 行，不受本替换影响。
 # - preset 不设 → roster 默认（dev-task 的 agent-presets 行 default: assistant）。
@@ -14,7 +14,7 @@
 - id: headless-runner
   disabled: true
 - insert:
-    - id: preset-runner
+    - id: assistant-preset-runner
       name: dsh-smart-assistant/preset-runner
       inject: [headlessStartup]
       config:

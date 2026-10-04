@@ -10,7 +10,7 @@
 # system/message 段与 request/header 的 tools 数组才是被测对象。
 #
 # 行形状说明：
-# - 与 `preset-runner.patch.yml` 相同的两行（禁 shipped headless-runner + 插 preset-runner）。
+# - 与 `preset-runner.patch.yml` 相同的两行（禁 shipped headless-runner + 插 assistant-preset-runner）。
 # - replay 行注册 provider `deepseek-official` / model `deepseek-flash` —— 与 base 的
 #   `agent-default-model` 行（base:82-86）同名，agent 的默认选择直接落进回放 adapter。
 # - 必须禁掉真实 adapter 的两个入口行（`llm-deepseek` / `llm-deepseek-account`，
@@ -38,7 +38,7 @@
 - id: llm-deepseek-account
   disabled: true
 - insert:
-    - id: preset-runner
+    - id: assistant-preset-runner
       name: dsh-smart-assistant/preset-runner
       inject: [headlessStartup]
       config:

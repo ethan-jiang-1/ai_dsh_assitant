@@ -151,14 +151,14 @@ try {
 - id: headless-runner
   disabled: true
 - insert:
-    - id: preset-runner
+    - id: assistant-preset-runner
       name: dsh-smart-assistant/preset-runner
       inject: [headlessStartup]
       config:
         task: !!js ctx.headlessStartup.task
 `, 'utf8')
   const patched = dsh(['--profile', profile, '--patch', runnerPatch, '--dump-config'])
-  if (!patched.includes('preset-runner')) fail('--patch does not bring the preset-mounted runner into the composition')
+  if (!patched.includes('assistant-preset-runner')) fail('--patch does not bring the preset-mounted runner into the composition')
   else ok('preset-mounted runner composes (the live turn would join the assistant preset)')
 
   step('live turn on the assistant preset (self-skips without a key)')
