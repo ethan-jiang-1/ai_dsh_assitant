@@ -49,7 +49,7 @@
 | `*.snapshot.ts`（预留） | session 回放驱动 | 未建 | 同上 |
 | `*.bench.ts` / `*.perf.ts`（预留） | 性能门（独占）/ 手动诊断 | 未建 | 第一处性能回归实证后立案 |
 
-期望文件一律叫 `expected`，不叫 `golden`（上游"命名即所有权"门的口径）；新增测试资产形态先入本表再落文件。
+期望文件一律叫 `expected`，不叫 `golden`（上游"命名即所有权"门的口径）；新增测试资产形态先入本表再落文件——由 `verify` 的 `test assets:` 门机械执行（负例夹具：`tests/verify-gates.spec.mjs`）。
 
 ## 已定姿态与升级触发
 

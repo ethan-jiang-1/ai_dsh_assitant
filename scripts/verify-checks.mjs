@@ -780,3 +780,44 @@ export function backlogLivenessProblems(backlogRoot) {
   }
   return problems
 }
+
+/**
+ * Test-asset naming: the file shapes under the package tests tree and the web-face scene
+ * tree must match the naming table in docs/testing.md ("新增测试资产形态先入本表再落文件").
+ * Code files that are neither spec nor harness would still RUN or sit silently outside
+ * every lane's vocabulary — the gate makes the table's rule mechanical. `fixtures/`-style
+ * subdirectories are exempt (the upstream convention for fixture trees); they join the
+ * table when one actually appears. Web-face scenes must carry their contract files
+ * (snapshot.yml + README.md, per snapshots/AGENTS.md) or a year later nobody can replay
+ * them.
+ */
+export function testAssetNamingProblems(repoRoot) {
+  const problems = []
+  const testsDir = join(repoRoot, 'packages', 'dsh-smart-assistant', 'tests')
+  if (existsSync(testsDir)) {
+    for (const entry of readdirSync(testsDir)) {
+      const full = join(testsDir, entry)
+      if (!statSync(full).isFile()) continue
+      if (!/\.(ts|mjs|tsx|js)$/.test(entry)) continue
+      if (/\.spec\.(ts|mjs|tsx|js)$/.test(entry)) continue
+      if (/harness\.(ts|mjs)$/.test(entry)) continue
+      problems.push(`packages/dsh-smart-assistant/tests/${entry}: not an admitted test-asset shape (*.spec.* / *harness.*) — enter the naming table in docs/testing.md first`)
+    }
+  }
+  const webFace = join(repoRoot, 'snapshots', 'web-face')
+  if (existsSync(webFace)) {
+    for (const scenario of readdirSync(webFace)) {
+      const dir = join(webFace, scenario)
+      if (!statSync(dir).isDirectory()) {
+        problems.push(`snapshots/web-face/${scenario}: a scene is a directory, not a loose file`)
+        continue
+      }
+      for (const required of ['snapshot.yml', 'README.md']) {
+        if (!existsSync(join(dir, required))) {
+          problems.push(`snapshots/web-face/${scenario}: missing ${required} — the scene contract must be recorded beside the fixture (snapshots/AGENTS.md)`)
+        }
+      }
+    }
+  }
+  return problems
+}

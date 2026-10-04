@@ -32,6 +32,7 @@ import {
   relativeLinkProblems,
   skillFrontmatterProblems,
   startPathProblems,
+  testAssetNamingProblems,
   textHygieneProblems,
   vendorClientFreshnessProblems,
 } from '../../../scripts/verify-checks.mjs'
@@ -765,5 +766,48 @@ describe('vendorClientFreshnessProblems', () => {
 
     const fresh = vendorClientFreshnessProblems(fakeVendor({ distOffset: 2000 }))
     expect(fresh).toEqual([])
+  })
+})
+
+describe('testAssetNamingProblems', () => {
+  function fakeRepo({ tests = [], webFace = {} }) {
+    const root = mkdtempSync(join(tmpdir(), 'gate-test-assets-'))
+    dirs.push(root)
+    mkdirSync(join(root, 'packages', 'dsh-smart-assistant', 'tests'), { recursive: true })
+    for (const name of tests) writeFileSync(join(root, 'packages', 'dsh-smart-assistant', 'tests', name), '')
+    for (const [scenario, files] of Object.entries(webFace)) {
+      mkdirSync(join(root, 'snapshots', 'web-face', scenario), { recursive: true })
+      for (const [name, text] of Object.entries(files)) writeFileSync(join(root, 'snapshots', 'web-face', scenario, name), text)
+    }
+    return root
+  }
+
+  it('accepts the shipped shapes: specs, a harness file, and contract-complete scenes', () => {
+    const root = fakeRepo({
+      tests: ['layout.spec.ts', 'verify-gates.spec.mjs', 'client-harness.ts'],
+      webFace: { 'blank-first-open': { 'snapshot.yml': 'version: 1', 'README.md': 'contract' } },
+    })
+    expect(testAssetNamingProblems(root)).toEqual([])
+  })
+
+  it('rejects a code file that is neither spec nor harness (the "enter the table first" rule)', () => {
+    const root = fakeRepo({ tests: ['helper.test.ts'] })
+    const problems = testAssetNamingProblems(root)
+    expect(problems.length).toBe(1)
+    expect(problems[0]).toContain('helper.test.ts')
+    expect(problems[0]).toContain('docs/testing.md')
+  })
+
+  it('rejects a scene directory without its contract files', () => {
+    const root = fakeRepo({ webFace: { 'second-scene': { 'expected.dom.json': '{}' } } })
+    const problems = testAssetNamingProblems(root)
+    expect(problems.some(p => p.includes('second-scene') && p.includes('snapshot.yml'))).toBe(true)
+    expect(problems.some(p => p.includes('second-scene') && p.includes('README.md'))).toBe(true)
+  })
+
+  it('ignores markdown (rules live beside the tests) and a web-face tree that does not exist', () => {
+    const root = fakeRepo({ tests: ['AGENTS.md', 'README.md'] })
+    rmSync(join(root, 'snapshots'), { recursive: true, force: true })
+    expect(testAssetNamingProblems(root)).toEqual([])
   })
 })

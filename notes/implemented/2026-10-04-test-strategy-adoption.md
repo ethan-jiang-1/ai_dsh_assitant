@@ -50,6 +50,11 @@
   后补为 [testing.md](../../docs/testing.md) 的"命名法：后缀即层"节（现存 44 个测试文件全部
   符合该文法，无需改名；`e2e`/`snapshot`/`bench` 后缀为将来车道预留）。价值：层的指称从口头
   约定变成机械可读——说"跑 e2e""进 snapshot"即指向唯一命令与 regression 语义。
+  **同日内化收尾**：`verify` 新增 `test assets:` 门（34 检查；`testAssetNamingProblems` 纯核——
+  tests 树只收 `*.spec.*`/`*harness.*`，web-face 场景必须带 snapshot.yml + README 契约；负例夹具
+  4 件）把"先入表再落文件"变成机器执行；`tests/AGENTS.md` 立测试树形态规则（目录链加载，写测试
+  的那一刻在场）；`webui-expected.spec.mjs` 更名 `webui-expected-core.spec.mjs`（文件名与被测
+  模块对齐，唯一一处改名）。
 
 ## 试点成本台账（切片 2 实测，2026-10-04）
 

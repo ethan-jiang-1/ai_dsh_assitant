@@ -3,7 +3,7 @@
 > 场景契约（snapshots/AGENTS.md：录制命令、profile、判据与 fixture 同 diff）。
 > 比对器与 CLI：[`scripts/webui-expected-core.mjs`](../../../scripts/webui-expected-core.mjs) +
 > [`scripts/webui-expected.mjs`](../../../scripts/webui-expected.mjs)；形态夹具：
-> `packages/dsh-smart-assistant/tests/webui-expected.spec.mjs`。
+> `packages/dsh-smart-assistant/tests/webui-expected-core.spec.mjs`。
 
 ## 场景是什么
 
@@ -36,7 +36,7 @@ PNG 只作人工审阅副页，不进 git（保持 diff 全文可读）。
 
 ## prove-it-red 记录（2026-10-04）
 
-1. **纯核层**：11 个夹具（`webui-expected.spec.mjs`）——忽略字段真忽略、比对字段真咬
+1. **纯核层**：11 个夹具（`webui-expected-core.spec.mjs`）——忽略字段真忽略、比对字段真咬
    （文案变/控件消失/console 噪声/未加载完/视口不符各一红）、origin token 化、未知字段显式化。
 2. **全链路**：污染 `expected.dom.json`（改首行品牌词 + 加不存在按钮）→ 真拍比对
    `FAIL — 1 drift line(s)`、**exit 1** → 还原 → 复绿。

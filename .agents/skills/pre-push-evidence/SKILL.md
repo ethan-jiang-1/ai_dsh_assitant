@@ -22,6 +22,11 @@ whenToUse: Choosing what to run before a commit or handover; deciding whether a 
 
 ## Rules that keep the evidence honest
 
+- **Name the lane by the file's suffix.** Test-asset shapes are the shared vocabulary —
+  `*.spec.*` unit lane, web-face scenes, and the reserved `e2e`/`snapshot`/`bench` forms live in
+  [docs/testing.md](../../../docs/testing.md)'s naming table (mechanically enforced by the
+  `test assets:` verify gate). When the user names a lane, that table is what maps the word to a
+  command and a regression semantics.
 - **Build before trusting `lib/`-consuming tests.** The composition and release-smoke specs read
   the built package; without `pnpm build` they assert yesterday's code and go green anyway.
 - **A new gate without a red fixture is a claim, not a guard.** Introduce the regression, watch it
