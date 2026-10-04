@@ -12,8 +12,8 @@
 ## 新会话开工（先读这段）
 
 **意图从哪来**（两通道，各管各的）：① **用户本轮请求**——唯一外部通道，本轮范围由它决定；② **已立项的内部工作项**——
-`notes/proposed/` 的提案卡（毕业形态：问题/方案/验收三件齐，**待用户拍板**，正文与验收都在卡上；点名或点头即开工）
-与 `_backlog/plans/` 的推敲卡（触发型/用户点名才取用，毕业四门见其 `README.md`）。
+`notes/proposed/` 的提案卡（毕业形态：问题/方案/验收三件齐——「输掉的方案」一节推荐带上、毕业为 implemented 时门禁强制，**待用户拍板**，正文与验收都在卡上；点名或点头即开工）
+与 `_backlog/plans/` 的推敲卡（触发型/用户点名才取用，毕业四门见 `_backlog/README.md`）。
 **没有用户任务时不发明任务**——报告家况，或按点名的卡推敲/实施；不要从 git log 或记忆发明任务。
 进行中的工作显式化：开工即立卡 `notes/proposed/`（状态词只用 `notes/README.md` 的生命周期四态，不另造阶段词）；
 深评/调研卡住 `_backlog/plans/`，收卷证据台账住 `notes/archived/research/`，卡片链接之——看不见的工作等于没在做。
@@ -36,13 +36,13 @@ rejected 政策、命名——本文件不复制）；改行为、契约或开�
 
 | 路径 | 是什么 | 谁能改 |
 |---|---|---|
-| `packages/dsh-smart-assistant/` | **插件包**（bundle）：入口×平面、四工具×动词、组合行、pin 与依赖姿态见生成物 `docs/package-catalog.md`；包内 owner 面与纪律见其 `AGENTS.md` | 改模型可见面 / 服务 / 布局动这里 |
+| `packages/dsh-smart-assistant/` | **插件包**（bundle）：入口×平面、自有四工具×动词、组合行、pin 与依赖姿态见生成物 `docs/package-catalog.md`；包内 owner 面与纪律见其 `AGENTS.md` | 改模型可见面 / 服务 / 布局动这里 |
 | `docs/` | **当前合同**（只写现在，无历史）—— 文档 tier 与"谁拥有什么"见其 `AGENTS.md` | 门禁住了的事实进这里 |
 | `notes/` | **开发记忆与证据链**（分类 owner：`notes/README.md`）：`proposed/` 将来 → `implemented/` 当前权威 → `archived/` 冻结历史（含 `research/` 收卷调研台账）；`rejected/` 存负知识与一行原因 | 决策与输掉的方案进这里 |
 | `_backlog/` | **推敲空间**：正式加工前的四问推敲（该不该/何时/次序/放弃）——plans 卡（`YYMMDD-slug`，含调研卡）+ bugs 卡，只装判断材料、**永不调度**；毕业四门与铁律见其 `README.md` | 收割/走查/对话中值得推敲但未到裁决的思考在此立卡 |
 | `dev/` | 开发 home 与 profile patch —— 双 home 与两个 profile 的纪律见其 `AGENTS.md` | 环境问题动这里（手册 owner：`docs/dev.md`） |
 | `scripts/` | 机械门禁与生成器 —— 门禁三条纪律与 freshness 约定见其 `AGENTS.md` | 门禁问题动这里 |
-| `snapshots/` | 行为回归的证据面（day 0 占位）—— 只收边界见其 `AGENTS.md` 与 `README.md` | 回归证据问题动这里 |
+| `snapshots/` | 行为回归的证据面——只收边界与现状见其 `AGENTS.md` 与 `README.md` | 回归证据问题动这里 |
 | `_dist/` | **分发导出（生成物）**：`pnpm export-dist` 的 tgz（不入库）与《安装手册》 | 分发问题动这里；生成器 `scripts/export-dist.mjs` |
 | `.agents/` | **开发用 Skill 根**（探针、归档判定、证据路由——DSH 原生 `project-agents` 根发现） | 新开发技能动这里 |
 | `deliverables/` · `.desk/` · `.tmp/` | **会话运行现场（git 忽略，不是仓库内容）**：cwd=仓根的会话留下的业务交付（未提交交接件）、My Desk 桌面状态、临时产物 | 不提交、不当文档读；语义见 `.gitignore` 注释 |
@@ -138,7 +138,7 @@ pnpm eval:domain        # 领域评测集 v0（G2 关口）：本人出的真实
 3. **阶段才 REVIEW**：自己能做的审查自己做（代码审查、回归证据、设计自审、真机取证、对抗性自评）；
    只在**阶段收尾且确有真人不可替代的输入**时才请人 review。真人输入＝真实业务内容、合规/法务文本、
    产品口味反转；除此之外一律不停。**"等用户拍板"不是默认状态**：先把能自己定的定下来，
-   真的只剩真人输入时才挂起等拍板（判据与原始话语在 `notes/intents.md` §〇·三）。
+   真的只剩真人输入时才挂起等拍板（判据与原始话语在 [`README.md`](README.md)「方向判据」节所引的 intents-retired note）。
 
 ## 探索路由（DSH 侧常用入口）
 

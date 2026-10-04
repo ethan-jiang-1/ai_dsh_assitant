@@ -1,6 +1,6 @@
 # 真用第一：冻结机制，本人过评测题定 G2，摩擦驱动下一轮 UX
 
-日期：2026-10-01 · 状态：**proposed（主轴已拍板：A 真用驱动；G2 机器预判完成——30/30 零失败 + 判例乙回填 + 三判据全绿（2026-10-02），**只剩本人抽检真人门**；并行线 2026-10-04 快照：线A UX 修（CEO 评审 7/7 认三批）批1-3 全部落地、线B 基座搬运切片一至三落地（技能 5 件 + 知识种子 5 页，剩余唯一触发已到候选 = 公司手册 AGENTS.md 的决策路由+审批纪律）、OpenViking 层 1 毕业（AGPL 双裁定认，复核三条件在案）、评测集扩至 40 题、测试策略采纳五切片收官（冻结豁免开发证据面，登记于 [discipline.md 适配 6](../../docs/discipline.md)）。**关键路径上唯一等本人的事 = 开始真用**（trial-home 已就绪；👎/卡壳自动进 desk-loop §7）**
+日期：2026-10-01 · 状态：**proposed**（主轴已拍板 A 真用驱动；关键路径上唯一等本人的事 = 开始真用——trial-home 已就绪，👎/卡壳自动进 desk-loop §7；逐线进度见文末「进度快照」）
 
 ## 问题（可观察行为）
 
@@ -35,13 +35,14 @@
    [评测卡](../../_backlog/_done/_closed_plans/260928-domain-eval-v0.md)）。每下 👎/每次卡壳
    自动进 desk-loop 摩擦报告 §7（[C2](../implemented/2026-09-30-c2-feedback-desk-loop.md)）不变。
 3. **并行（agent 自主）**：搬管理岗基座内容——`ai_dsh_company` 的角色技能（CEO/VP-Sales/CFO/COO）
-   搬成本仓 preset 技能（模型用、英文），知识种子按治理写入路径落 `draft` 人审（ intents §〇
+   搬成本仓 preset 技能（模型用、英文），知识种子按治理写入路径落 `draft` 人审（[README 方向判据](../../README.md)
    既定：基座内容的来源=那边）。目标：打开它第一眼像懂管理的专家，不是白纸。
    切片一已落地（2026-10-01）：[管理岗基座搬运](../implemented/2026-10-01-management-base-port.md)
    ——`market-sizing` / `project-economics` 两件入 preset 并 live 验证；其余 9 件的取舍理由与
    下一切片清单在彼。
 4. **挂起不阻塞**：OpenViking 层 1 的两道真人门（AGPL 复核 + §六旋钮剖面过目）等本人方便时点，
-   不排在本主轴关键路径上。
+   不排在本主轴关键路径上。（**已了结，2026-10-04**：两道门经 delegated 双裁定认、层 1 落地——
+   见文末进度快照与 [openviking-layer1-landing](../implemented/2026-10-04-openviking-layer1-landing.md)。）
 5. **UX 下一轮改动的判据**：必须引用 desk-loop/feedback 报告里的具体摩擦条目；无摩擦证据不动。
 
 ## 输掉的方案
@@ -63,3 +64,14 @@
 - **基座搬运**：首批角色技能入 preset 技能面（`pnpm build` 后 preset 会话可加载）、知识种子落
   `draft` 待人审；切片遵守垂直切片纪律（代码+测试+docs+note 同 diff）。
 - 若真用暴露"形态层"问题（主动感/概念税），立独立推敲卡裁决，不在本卡内顺手改。
+
+## 进度快照（2026-10-04；原记在状态行，按一行状态行规约移此）
+
+- **G2 机器预判完成**（2026-10-02）：30/30 零失败 + 判例乙回填 + 三判据全绿，只剩本人抽检真人门。
+- **线A UX 修**（CEO 评审 7/7 认三批）批 1-3 全部落地。
+- **线B 基座搬运**切片一至三落地：技能 5 件 + 知识种子 5 页；剩余唯一触发已到候选 =
+  公司手册 AGENTS.md 的决策路由+审批纪律。
+- **OpenViking 层 1 毕业**：AGPL 双裁定认（delegated，复核三条件在案），层 1 落地——
+  [openviking-layer1-landing](../implemented/2026-10-04-openviking-layer1-landing.md)。
+- **评测集扩至 40 题**；**测试策略采纳五切片收官**（冻结豁免开发证据面，登记于
+  [discipline.md 适配 6](../../docs/discipline.md)）。

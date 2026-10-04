@@ -87,7 +87,7 @@ export const GRADUATED_STATUS = /状态：\*\*(implemented|rejected|archived|已
 const NOTE_SUBDIRECTORIES = ['proposed', 'implemented', 'rejected', 'archived', 'archived/research']
 
 /** Every top-level entry notes/ may carry besides the note subdirectories. */
-const NOTES_ROOT_FILES = new Set(['README.md', 'intents.md', '.gitkeep'])
+const NOTES_ROOT_FILES = new Set(['README.md', '.gitkeep'])
 
 /** The status word each lifecycle directory's notes must carry (archived keeps implemented). */
 const LIFECYCLE_STATUS = {
@@ -102,7 +102,7 @@ const STATE_LINE = /^日期：(\d{4}-\d{2}-\d{2}) · 状态：\*\*([a-z]+|进行
 
 /**
  * Note filenames under the note-bearing subdirectories follow YYYY-MM-DD-topic.md. README.md
- * and non-markdown files (.gitkeep, intents.md at the notes root) are not notes and are exempt.
+ * and non-markdown files (.gitkeep at the notes root) are not notes and are exempt.
  *
  * @param {string} notesRoot - path of the notes/ directory.
  */

@@ -14,7 +14,7 @@ knowledge/ 0 页、学到技能 1 个、SOUL.md 还是内置兜底文本、perso
 
 1. **「家」术语淘汰**：全仓 notes/docs/AGENTS/README、本仓 34 个会话日志（zstd 全文搜）、
    兄弟仓 dev 会话——**均无"淘汰家"的讨论记录**；现行术语就是「家」。
-   [intents.md](../intents.md) §二 原始表述以 **working folder 为主术语**、家是括注。
+   [mechanism-intents 冻结档](../archived/2026-09-23-mechanism-intents.md) 的原始表述以 **working folder 为主术语**、家是括注。
    **按用户 2026-09-25 指令执行**（原话"这个术语最好是个淘汰的术语，就别再用了"）：
    活跃面全仓去「家」——中文面改「working folder（工作目录）」，英文模型面去 home 隐喻
    （`DEFAULT_SOUL`/手册/工具描述）；历史 notes 保留原词（档案记录当时事实，先例：
@@ -23,7 +23,7 @@ knowledge/ 0 页、学到技能 1 个、SOUL.md 还是内置兜底文本、perso
    消除"两个 home"歧义（[session-recall 技能](../../packages/dsh-smart-assistant/presets/assistant/skills/session-recall/SKILL.md) 里本就写着"the harness home is the parent of your home"这种拧巴句子）。
 2. **「信噪比」讨论记在哪**（用户提问时口误为"性价比"，2026-09-25 亲自更正：**是信噪比**——
    "信号和噪声，对同一个概念有两个说法、或两个方向，那就是噪声"）：本仓权威记录 =
-   [intents.md](../intents.md) §二（talk `agent-101`：「主线是信噪比」）与 §六两判据
+   [mechanism-intents 冻结档](../archived/2026-09-23-mechanism-intents.md)（talk `agent-101`：「主线是信噪比」）与 §六两判据
    （错了赔得起吗/错了多久能发现）+ 有界常驻（digest 4096B 预算、技能目录 500 字符 cap）
    + 桌面/抽屉分层 + 常驻字节对账（[soul-and-agents note](../implemented/2026-09-24-soul-and-agents.md)
    的 +2.9KB 记账）。**这句更正同时立为本战役第一条设计纪律：一词一义，同义词=噪声**——
@@ -69,7 +69,7 @@ knowledge/ 0 页、学到技能 1 个、SOUL.md 还是内置兜底文本、perso
 
 - 2026-09-24 深夜 handoff（/tmp 交接文档，一次性载体——用户原话、方向骨架、决策分界与
   用户偏好已全部吸收进本卡 §三/§四/§七，不再依赖原件）。
-- [intents.md](../intents.md)——I1–I15 与 §六判据（本战役的"对"以它为准）。
+- [mechanism-intents 冻结档](../archived/2026-09-23-mechanism-intents.md)——I1–I15 与 §六判据（本战役的"对"以它为准；现行判据见 [`README.md`](../../README.md)）。
 - [tri-line 合流](2026-09-24-tri-line-synthesis.md)——治理环/知识房间/触发演进已落地的边界。
 - 用户 2026-09-25 指令：①全程自主不依赖人；②「家」术语淘汰；③信噪比不是性价比
   （"同一概念两个说法就是噪声"）；④每步完成即提交；⑤六七小时后验收。

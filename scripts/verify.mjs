@@ -58,7 +58,6 @@ const REQUIRED_PATHS = [
   'docs/home.md',
   'docs/identity.md',
   'docs/discipline.md',
-  'notes/intents.md',
   'notes/README.md',
   'dev/env.sh',
   'dev/setup.sh',

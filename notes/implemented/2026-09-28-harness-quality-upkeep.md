@@ -33,7 +33,7 @@
     线索段 1,326B / 知识段 231B；常驻面全貌 = persona+SOUL 1,262B + 家手册 7,106B + 摘要 3,768B。
     ⏳ 内存段瘦身条目数据已回写，**裁决权不变**（同日二次拍板更新：dev home＝基座试车场、
     内容可随意处置，摘要自管是出厂能力——原「待裁决」框架解除，条目改写为「基座自养护」，
-    见 [intents §〇](../intents.md) 2026-09-28 拍板）。
+    见 [README 方向判据](../../README.md) 2026-09-28 拍板）。
   - **非完成轮归因**（同 usage 口径扫全部会话日志，9 轮）：interrupted×1（人为）/
     TRANSPORT×1（API 瞬时，伴随重试）/ MALFORMED_RESPONSE×2（模型输出畸形工具 JSON，
     vendor 层如实拒绝，重试策略归 vendor）/ no-API-key×1（环境）/ **`#digestCache`×3（本仓

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Turn a (fresh) assistant working folder into the management-post expert's folder — the one
- * command of the expert deployment assembly (intents.md §〇: P1 base + O5 one-command shape).
+ * command of the expert deployment assembly (repo README「方向判据」: P1 base + O5 one-command shape).
  *
  * What it does, and what it deliberately does NOT do:
  *   · SOUL.md — written ONLY while it is still the untouched generic seed. An edited soul is the

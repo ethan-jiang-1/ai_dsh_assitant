@@ -5,7 +5,7 @@
 > 依据：三线研究（R1 记忆 / R2 技能成长 / R3 知识层）已入档并亲验。本文只做合流：
 > 分阶段路线 + 决策点 + 尸体清单。判据对照、借用清单、淘汰理由全在报告内，本文只引用不复述。
 > 素材入口：`notes/archived/research/2026-09-24-r{1,2,3}-*.md`（survey ×3 + shortlist ×3）、
-> `notes/intents.md`（意图与判据）、`notes/implemented/2026-09-23-repo-structure.md`（day-0 输赢表）。
+> notes/intents.md（意图与判据）、`notes/implemented/2026-09-23-repo-structure.md`（day-0 输赢表）。
 
 ## 一、为什么是现在（四个已知缺口）
 
@@ -175,7 +175,7 @@
 
 ## 七、批准后的事（2026-09-24 逐项对账——毕业时把"待批准语气"收束为实际归宿）
 
-- intents.md 补 I15：✅ 已补且随阶段 2 翻 implemented（`notes/intents.md` I15 行带 live E2E 证据指针）；
+- intents.md 补 I15：✅ 已补且随阶段 2 翻 implemented（notes/intents.md I15 行带 live E2E 证据指针）；
 - R3 线索在家 research/ 房间开 thread：✅ 已开（`20260923-how-should-the-knowledge-room-land-3e8i`，
   source 指回本提案，落地后 parked）；
 - AGENTS.md 布局表/命令表：✅ 随各切片同步（最新一轮补 knowledge owner 行与四工具口径）；

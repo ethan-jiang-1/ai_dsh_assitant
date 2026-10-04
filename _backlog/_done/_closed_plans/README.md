@@ -19,7 +19,7 @@
 | [260928-per-session-desk-store.md](260928-per-session-desk-store.md) | 2026-09-29 | 毕业为该做（多会话并行已是真实场景，用户拍板）→ RFC 同日落地 notes/implemented/2026-09-29-per-session-desk-store.md |
 | [260928-command-menu-skill-noise.md](260928-command-menu-skill-noise.md) | 2026-09-29 | 批量清理：触发未到，发行准入的家 = 安装卡 S2 准入表 |
 | [260928-default-workspace-repro.md](260928-default-workspace-repro.md) | 2026-09-29 | 批量清理：复现配方住第一公里走查 note |
-| [260928-self-upkeep-baseline.md](260928-self-upkeep-baseline.md) | 2026-09-29 | 批量清理：产品要件已住 intents.md，外人用前按 intents 验证 |
+| [260928-self-upkeep-baseline.md](260928-self-upkeep-baseline.md) | 2026-09-29 | 批量清理：产品要件已住判据文档（原 intents.md，2026-10-04 退役后为 README 方向判据），外人用前按它验证 |
 | [260928-cross-harness-shared-memory.md](260928-cross-harness-shared-memory.md) | 2026-09-29 | 批量清理：第二消费方未出现，形态参照 R1 已归档 |
 | [260928-desk-file-schema-version.md](260928-desk-file-schema-version.md) | 2026-09-29 | 批量清理：字段不匹配从未发生，修法随卡归档可查 |
 | [260928-doc-budget-manifest.md](260928-doc-budget-manifest.md) | 2026-09-29 | 批量清理：立案设计（降限防回填）已住 docs/discipline.md ⏸ 行 |

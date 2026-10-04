@@ -24,7 +24,7 @@
 | 继承跟 pin 走：升 pin 重校纪律表（vendor 的套路在演进，一次性快照会再烂） | `sync-dsh` 收尾清单第 4 步 + `pnpm verify` 强制本文存在 | ✅ 照搬 |
 | 测试纪律：本地窄证据 + 非平凡改动 same-PR 更新快照；插件证据五台阶（导出守卫→行为→生命周期→真组合→组装转录）+ 政策禁令（mock 白名单 / 禁 hand-built 组装证据 / 禁自报探测 / 单跑才绿=spec 缺陷 / 禁掩盖修法 / prove-it-red） | 测试面合同成文于 [testing.md](testing.md)（证据分层表 + 五台阶表 + 禁令 + 已定姿态）；`pnpm test`（纯核 + 服务合同 + 导出守卫 + 生命周期）+ 真实组合 + web 渲染期望（`snapshots/web-face/`）+ eval 两级 + release-smoke | ✅ 照搬（按事故面采纳：session 回放快照与 CI 矩阵等四项刻意不采纳带触发条件，登记于 testing.md 与 implemented note 2026-10-04） |
 | 文档词数预算 + slop 门禁（`doc-budgets` manifest + `verify-doc-budgets`） | 刻意不做 | ⏸ 触发条件：docs 腐化实证（与来源仓同款推迟理由）。第二轮审计（2026-09-23）证据：轻度腐化——多重书写 ×2、内部矛盾 ×1、过期数字 ×1，一轮修完；暂不立案，再犯即触发；建时带**降限防回填**（每次削减后主动降 ceiling，反证 = 临时设更低值即红） |
-| Issue → PR 连续流 + Project 状态机（队列不积累历史） | 不适用：本地单人仓无协作面 | ⚠️ 适配：一次切片 = 一个 commit（note 同 diff）；工作流 = 用户轮内请求 + `notes/proposed/`（毕业待拍板，依据 [proposed-card-positioning](../notes/implemented/2026-10-04-proposed-card-positioning.md)）+ `_backlog/plans/`（推敲/触发型；2026-09-28 起 ROADMAP 队列退役，决定档案 `notes/implemented/2026-09-28-roadmap-queue-retired.md`）+ `notes/intents.md` 意图台账；完成即离队、不积历史（等价物映射见"已声明的适配"2） |
+| Issue → PR 连续流 + Project 状态机（队列不积累历史） | 不适用：本地单人仓无协作面 | ⚠️ 适配：一次切片 = 一个 commit（note 同 diff）；工作流 = 用户轮内请求 + `notes/proposed/`（毕业待拍板，依据 [proposed-card-positioning](../notes/implemented/2026-10-04-proposed-card-positioning.md)）+ `_backlog/plans/`（推敲/触发型；2026-09-28 起 ROADMAP 队列退役，决定档案 `notes/implemented/2026-09-28-roadmap-queue-retired.md`）+ 方向判据（[`README.md`](../README.md)，原 intents.md 已于 2026-10-04 退役）；完成即离队、不积历史（等价物映射见"已声明的适配"2） |
 
 ## 已声明的适配（约束 → 适配 → 证据）
 
@@ -33,7 +33,7 @@
 2. **工作队列落一个文件**（约束演变：上游"second durable home"否决的是**轮内计划状态**的二次
    持久化；"队列不积累历史"仍成立）→ 2026-09-28 修订：队列退役，工作流 = 轮内请求 + proposed 卡 + `_backlog/plans/` 卡（roadmap-queue-retired note）；原表述——根部队列（只写接下来、
    完成即离队、条目 ≤3 行索引；决定档案：`notes/implemented/2026-09-28-roadmap-queue-retired.md`，
-   **部分替代本条原表述**"工作队列不落文件"）。`notes/intents.md` 仍是意图台账（非工作队列），
+   **部分替代本条原表述**"工作队列不落文件"）。方向判据住 [`README.md`](../README.md)（非工作队列——原 intents.md 已于 2026-10-04 退役，依据 [intents-retired](../notes/implemented/2026-10-04-intents-retired.md)），
    交接文档仍只放 /tmp。
 3. **切片可以全新会话**（约束：上下文经济）→ 交接靠入口链（AGENTS.md → docs → notes）本身，
    不靠长活上下文。

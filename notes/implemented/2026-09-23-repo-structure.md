@@ -2,7 +2,7 @@
 
 日期：2026-09-23 · 状态：**implemented**
 依据：`_faq_on_digested/13_expert-plugin-repo-organization`（方案 A–D、五个决策、dev-loop、naming）、
-`notes/intents.md`（I1–I9）、talk `agent-101` 的概念框架。
+notes/intents.md（I1–I9）、talk `agent-101` 的概念框架。
 本文是 dev-loop 第 2 阶段的落点：**决定 / 输掉的方案及原因 / 需要验证什么**。
 
 > 状态：**implemented**（2026-09-23 补记搬入 `implemented/`；搬家晚于交付 —— 破了"同 diff"

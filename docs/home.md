@@ -35,6 +35,8 @@
 > 的 provider/consumer 面），不是 DSH 仓库里 `.agents/skills/` 那种**开发用** Skill；"桌面"对应
 > DSH 的**常驻提示词段落**（system prompt sections），"抽屉"对应**按需查询面**（工具 + 检索）。
 > 这些是本仓自己的比喻，DSH 没有同名词——见到它们按上面对应，别当官方术语。
+> **另一处撞名是本仓自己的**：`research/` 房间的「backlog 语义」＝这个 working folder 的探索缓冲；
+> 开发仓根的 `_backlog/` 推敲空间是另一回事——同名不同物，两处同读时按「产品房间 / 开发目录」分。
 `dataDir` 可用配置覆盖（bundle patch / profile patch），默认跟随 `resolveDshHome()` —— 于是**双 home 隔离自动生效**：
 开发 harness home 里的 working folder 与日用 harness home 里的互不可见。
 
@@ -111,7 +113,7 @@ learn 模块的 `tools/result` 订阅就给对应名字计数（用户 `/name` �
   preset 代码；静态引导（跨请求稳定，cache 友好）与动态状态（摘要）分离。
   桌面只放"此刻最该在眼前的东西"。
 - **抽屉**（要用再拿）：完整记录、归档、知识页、技能正文 —— 用 `assistant_memory` / `assistant_research` /
-  `assistant_knowledge` / `skill` 工具取。
+  `assistant_knowledge` / `skill` 工具取；`assistant_reflect`（§二）管写入面与复盘简报（`brief`）。
 
 推论：**过程性知识不做成常驻段落**。怎么写记忆、怎么养护 working folder、怎么复盘 —— 都在 `skills/`（抽屉），
 由技能目录按需加载。这条是"很好控制的上下文"的落点。

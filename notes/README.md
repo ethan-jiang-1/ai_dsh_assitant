@@ -27,7 +27,6 @@
 | `implemented/` | 已交付决定 + 它击败的备选 + 后果 | `implemented` | **当前 rationale owner**，随实现保持 current |
 | `rejected/` | 被否决的提案 + 一行拒绝原因 | `rejected` | 只在还能阻止同一个可信错误时保留；失效即删 |
 | `archived/` | 未来决策价值低的 implemented 历史 + **收卷调研证据台账**（`research/` 子目录） | `implemented`（台账 = `已收卷`）+ 一行 `已归档：YYYY-MM-DD`（台账行免） | 只作历史引用，**冻结不再编辑**，不是当前权威 |
-| `intents.md` | **已拍板的方向判据**：产品初衷（P1–P3）、结果意图（O1–O6）、研发姿态判据与用户原话 | — | 判据唯一权威；机制意图 I1–I15 已冻结至 `archived/2026-09-23-mechanism-intents.md` |
 
 > **调研层并入（用户 2026-09-28 拍板）**：进行中的调研/推敲住 [`_backlog/plans/`](../_backlog/plans/README.md)
 > （一个思考一个家）；收卷证据台账 = `archived/research/`（子目录深度与原路径一致，冻结文件内部链接零改）。

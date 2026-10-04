@@ -5,7 +5,7 @@
 
 ## 问题与现状（2026-09-23 实查取证）
 
-`notes/intents.md` 全表停在 `proposed`，挡板 = "外部可观察行为要在 dev Web UI 的真实会话里
+notes/intents.md 全表停在 `proposed`，挡板 = "外部可观察行为要在 dev Web UI 的真实会话里
 验证过才翻 implemented"。逐层取证：
 
 | 层 | 状态 | 证据 |
