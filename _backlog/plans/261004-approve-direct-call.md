@@ -30,10 +30,20 @@ desk-refresh，60-90s）；候选 = 面板直调服务（`promotePage` 翻转 dr
   「批准变成了对话消息」体验。
 - **折中（未展开）**：直调翻转 + 同步发一条系统消息进会话（审计留痕），桌面重读面板直读。
 
+## 技术侦察（2026-10-04 深化：设计已到实施级）
+
+- **审计可保留**：SessionEventMap 支持插件模块扩充（`tool-todo` 的 `'todo/write'` 先例，
+  `declare module '@deepseek-ai/dsh-session/types'`）——我方定义 `knowledge/approve` 事件写入会话流，
+  审计天然留在会话日志（第 12 轮"审计语义重设计"的顾虑化解）。
+- **直调缝位存在**：vendor remote 体系 = 插件贡献 `/remote` 子路径模块聚合进 client remote 面
+  （`@deepseek-ai/dsh-api-session-controller/remote` 先例）；我方 client 已消费 `remote.*` 注入。
+- **剩余单点**：api/remotes 聚合文件是否可插件扩展（bundle patch 替换聚合 vs 上游提案）——
+  实施前唯一待验项。
+- 服务侧就绪：`promotePage` 是纯机械翻转（hand flip 即审批，src/index.ts:875）。
+
 ## 触发（毕业门）
 
-**同时满足**才重开推敲：
-1. 真用期间 desk-loop/usage 报告显示**批准动作频次上来**（月度 ≥5 次，或单场会话 ≥3 次）；
-2. 摩擦报告或本人再提摩擦 1（「批准慢/要等」）。
-
-缺一维持现状（模型回合），本卡不毕业不删除——触发前它就是「已排程、不动手」的记号。
+**触发 = 本人拍板开工**（2026-10-04 修订：原"频次 ≥5/月 + 摩擦再现"废止——单次批准 90s 的
+痛感不随频次摊薄，低频高痛每次都是坏体验；且设计已到实施级，频次门槛失去意义）。
+实施形状 = 折中方案：面板直调 `promotePage` + `knowledge/approve` 事件进会话留痕 + 面板直读
+刷新桌面（`reloadDesk` 已在）。

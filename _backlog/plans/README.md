@@ -16,7 +16,7 @@
 |---|---|---|
 | [260929-reserved-anchor-discipline.md](260929-reserved-anchor-discipline.md) | 🔒 常设保留锚（评测活体样本） | 永不毕业（本卡的功能就是不闭环） |
 | [261001-first-open-ux.md](261001-first-open-ux.md) | 首开 UX（"怎么看都好像不知道怎么用"） | ongoing goal——第 14 轮残余取证定罪完毕，等下一轮真用摩擦增量与口味拍板 |
-| [261004-approve-direct-call.md](261004-approve-direct-call.md) | 批准流直调架构（审批「一秒完事」要不要绕过模型回合） | 待触发（批准频次上来 + 摩擦再现才重开推敲） |
+| [261004-approve-direct-call.md](261004-approve-direct-call.md) | 批准流直调架构（审批「一秒完事」要不要绕过模型回合） | 设计已到实施级（事件扩展 + remote 缝位已侦察）——**等本人拍板开工** |
 
 ## 🔒 保留卡（用户判触发）
 
