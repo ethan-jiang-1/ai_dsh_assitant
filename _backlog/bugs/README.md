@@ -10,7 +10,7 @@
 
 | Bug | 标题 | 严重级 | 发现 |
 |---|---|---|---|
-| （空——第一张卡创建其行） | | | |
+| [BUG-002-desk-loop-session-classification.md](BUG-002-desk-loop-session-classification.md) | 以面板刷新文案开场的真人会话被误判成评测 | P2 | 2026-10-01 |
 
 ## 卡片模板
 
