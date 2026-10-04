@@ -8,6 +8,7 @@
 | 卡 | 关闭日 | 判定 |
 |---|---|---|
 | [260928-domain-eval-v0.md](260928-domain-eval-v0.md) | 2026-10-04 | G2 定案毕业：本人认可 Q1/Q4 从严裁定（三判据全绿；40 题入册 + 判例乙口径 + 两条新判分规则）→ 毕业件交付于评测基础设施 `dev/eval/domain/` |
+| [261004-approve-direct-call.md](261004-approve-direct-call.md) | 2026-10-04 | 用户拍板否决：三层实锤（strict codec 强制 zod / classic script 不可达、workspaceFiles 只读、会话事件无法带 ignorable）判定直调需上游缝；host 侧服务保留为资产，上游提案要点在卡 |
 | [260929-openviking-formal-integration.md](260929-openviking-formal-integration.md) | 2026-10-04 | 层 1 落地毕业（AGPL delegated 认 + 四量测活体 + 安装器双验收）→ [层 1 note](../../../notes/implemented/2026-10-04-openviking-layer1-landing.md)；层 2/3 门在 note 尾 |
 | [260928-openviking-install-release.md](260928-openviking-install-release.md) | 2026-09-29 | 试点六步全绿 → 用户拍板 **A（引入）** 毕业 [RFC](../../../notes/proposed/2026-09-29-openviking-adoption-rfc.md) |
 | [260928-self-growth-base-research.md](260928-self-growth-base-research.md) | 2026-09-29 | 三选一拍板 **A（引入）** → 同上 RFC；B/C 借鉴清单随卡留档 |
