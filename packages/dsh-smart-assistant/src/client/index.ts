@@ -2199,6 +2199,10 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // The knowledge-approve direct-call lane (approve-direct-call): mount our contribution so
     // `remote.assistantKnowledge.approvePage` reaches the host service without a model round
     // trip. Failure degrades approveKnowledgePage to the legacy prompt path, announced in-panel.
+    // This pin deterministically rejects the mount (strict codec vs classic-script contribution,
+    // 261004-approve-direct-call) — the designed state until upstream moves, so the diagnostic
+    // stays at info level: an error here would pollute every first open and trip the web-face
+    // scenes' empty-console contract (first-open-draft-banner caught this on 2026-10-05).
     if (typeof (deskRemote as { $mount?: unknown })?.$mount === 'function') {
       // TypertCodec's `src-json` mode needs no zod schema, so a classic-script contribution
       // can carry plain-JSON codecs without reaching the shell's module table.
@@ -2209,7 +2213,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         // Mount evidence: the approve button's direct-call branch reads this namespace.
         console.info('assistantKnowledge remote mounted')
       }).catch((reason: unknown) => {
-        console.error('assistantKnowledge mount failed:', String(reason))
+        console.info('assistantKnowledge mount failed (fallback prompt path stays):', String(reason))
         patchDesk({ note: `批准直调通道未挂载（回退指令通道）：${String(reason)}` })
       })
     } else {

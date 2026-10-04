@@ -13,7 +13,7 @@
  * `tsc -p tsconfig.test.json` does not include non-TS files.
  */
 import { describe, expect, it } from 'vitest'
-import { compareEvidence, normalizeDomEvidence } from '../../../scripts/webui-expected-core.mjs'
+import { buildWaitSnippet, compareEvidence, normalizeDomEvidence } from '../../../scripts/webui-expected-core.mjs'
 
 /** A minimal well-formed capture: complete, right viewport, empty failure lists. */
 function evidence(overrides = {}) {
@@ -116,5 +116,27 @@ describe('compareEvidence accepts the matching state and bites on every compared
       normalizeDomEvidence(evidence()),
     )
     expect(problems.some(p => p.startsWith('viewport:'))).toBe(true)
+  })
+})
+
+describe('buildWaitSnippet compiles a scene readiness token into a polling eval', () => {
+  it('polls for the needle and resolves ready on sight', () => {
+    const snippet = buildWaitSnippet('在等你审批')
+    expect(snippet).toContain("'在等你审批'")
+    expect(snippet).toContain('setInterval')
+    expect(snippet).toContain('document.body.innerText.includes(needle)')
+    expect(snippet).toContain("resolve('ready: ' + needle)")
+  })
+
+  it('times out by resolving, not rejecting — an absent token stays a content drift', () => {
+    const snippet = buildWaitSnippet('no-such-thing', 15_000)
+    expect(snippet).toContain('15000')
+    expect(snippet).toContain("resolve('timeout: ' + needle)")
+    expect(snippet).not.toContain('reject(')
+  })
+
+  it('escapes the needle so a quote in the token cannot break the snippet literal', () => {
+    const snippet = buildWaitSnippet("boss' 决策")
+    expect(snippet).toContain("\\' 决策")
   })
 })

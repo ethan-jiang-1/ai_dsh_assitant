@@ -87,6 +87,30 @@ function firstDelta(actual, expected) {
 }
 
 /**
+ * Build the page-context readiness snippet for a scene that pins async-loaded content.
+ * The shots settle window is a fixed clock, and a fetch that straddles it produces a
+ * false red (first-open-draft-banner: the desk walk-view read missed the window in
+ * ~2/10 captures, 2026-10-05). A scene that declares a wait token gets a polling eval
+ * (shots runs evals with awaitPromise and re-settles after each) instead of a longer
+ * guess. Timeout resolves rather than rejects: the capture proceeds and the comparison
+ * fails on the missing content — a legitimately absent token (negative probe) stays a
+ * content drift, not a tool error.
+ */
+export function buildWaitSnippet(needle, timeoutMs = 15_000) {
+  const literal = String(needle).replace(/\\/g, '\\\\').replace(/'/g, "\\'")
+  return [
+    'new Promise(resolve => {',
+    `  const needle = '${literal}'`,
+    `  const deadline = Date.now() + ${Number(timeoutMs)}`,
+    '  const iv = setInterval(() => {',
+    "    if (document.body !== null && document.body.innerText.includes(needle)) { clearInterval(iv); resolve('ready: ' + needle) }",
+    "    if (Date.now() > deadline) { clearInterval(iv); resolve('timeout: ' + needle) }",
+    '  }, 200)',
+    '})',
+  ].join('\n')
+}
+
+/**
  * Compare normalized actual against the committed expectation. Returns problem lines
  * (empty array = pass). Line lists diff by first-delta with bounded extra/missing
  * previews: a UI regression shifts or inserts lines, and the reviewer needs WHAT moved,

@@ -334,6 +334,24 @@
   3 条件 + 2 已关闭，逐条带首报轮次与 vendor 代码锚点；随卡毕业同迁（reference 契约）。
   递交与否、何时递 = 用户拍板，agent 只备料（硬规则 1：vendor 源码永不改，递交是外部动作）。
 
+**第 18 轮补记（2026-10-05 续，横幅证据耐久化切片——goal 续轮自主推进）**：
+
+- **web 面期望比对第二场景落地**：`snapshots/web-face/first-open-draft-banner/`——第 17 轮横幅
+  三态真机证据原住 /tmp（易失），现在仓内可重放（`seed.mjs` 两步预置：workspace 钉子+声明
+  预确认 boot 前打、桌面种子文件 boot 后种；`expected.dom.json` + snapshot.yml/README 契约）。
+  隔离 home 真机：无横幅态→有横幅态→比对绿，最终 committed 期望的 PNG 人工过目在场。
+- **场景顺手抓到一条真回归**：首拍 console 有 approve-direct-call（rejected 车道）挂载失败的
+  `console.error`——**每次首开都报错**，且 blank 场景的「console 必须空」期望自该切片落地起
+  **静默过时**（10-04 上午录制、切片 17:58 落地，无人重跑所以未红）。修复：console.error →
+  console.info（诊断仪器保留、严重级归位——设计内降级态不是错误）；blank 场景在第二个全新
+  home 复绿。教训：有 UI 交付的轮次应把既有场景跑一遍，快照场景不重跑=静默过时。
+- **settle 是固定时钟不是就绪条件**：无就绪令牌十连拍两红（红拍大纲从侧栏直跳 composer 占位
+  符——桌面 walk-view 读取越窗，横幅整体缺席）；runner 加通用 `--wait-text` 就绪令牌（编译
+  为 shots 的 awaitPromise 轮询 eval，超时 resolve 不 reject——反面探针语义不变），纯核
+  `buildWaitSnippet` + 三夹具；带令牌十拍全绿。
+- 门禁：typecheck / test 364（+3 夹具）/ verify 34 全绿；全链红绿证据（反面探针、单字污染、
+  竞态现行、blank 复绿）入场景 README 台账。
+
 **升 pin 复验（2026-10-03，dsh-v0.2.0-rc.2 / c1857a8）**：
 
 - **`transcriptView: detailed` 预置行仍是承重，不是冗余**：本地 `packages/client/ui-chat/lib/client.js`
