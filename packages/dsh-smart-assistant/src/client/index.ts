@@ -174,7 +174,7 @@ interface ModuleLoaderFacade {
 }
 
 /** The deployment's sidebar identity. */
-const BRAND_NAME = 'DSH local assistant'
+const BRAND_NAME = '智能助手'
 
 /** Panel accent (brand teal) as a theme variable; the favicon in `src/web-branding.ts` keeps the
  * literal hex — favicons are fixed images and cannot resolve CSS variables. */
@@ -2009,7 +2009,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         // A count, not a list: the principal cannot judge `repo-to-knowledge`, and the descriptions
         // are model-facing English (repository rule), so a 71-line English list is noise on their
         // surface — content eligibility before layout (2026-09-26 reviews).
-        : muted(`共 ${String((store.data?.skills ?? []).length)} 件（随包 ${String((store.data?.skills ?? []).filter(skill => skill.kind !== 'learned').length)} · 学来的 ${String((store.data?.skills ?? []).filter(skill => skill.kind === 'learned').length)}）——要退役哪一件，在对话里说一声即可`),
+        : muted(`共 ${String((store.data?.skills ?? []).length)} 件（随包 ${String((store.data?.skills ?? []).filter(skill => skill.kind !== 'learned').length)} · 学来的 ${String((store.data?.skills ?? []).filter(skill => skill.kind === 'learned').length)}）——哪一件不想要了，在对话里说一声即可下掉`),
       ...panelAlerts(store))
   }
 

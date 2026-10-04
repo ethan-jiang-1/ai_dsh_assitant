@@ -41,7 +41,9 @@ describe('client-module registration', () => {
     }
     const span = name()
     expect(span.type).toBe('span')
-    expect(span.props.children).toBe('DSH local assistant')
+    // 2026-10-04 delegated review: the brand is 智能助手 (zh-first product; the mixed-language
+    // sidebar read as garbage to the CEO first-reading).
+    expect(span.props.children).toBe('智能助手')
     expect(span.props.style.fontSize).toBe('17px')
     expect(span.props.style.whiteSpace).toBe('nowrap')
   })
