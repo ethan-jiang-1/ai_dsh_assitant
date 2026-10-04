@@ -14,14 +14,14 @@
 
 | 卡 | 一句话 | 毕业倾向 |
 |---|---|---|
-| [260929-reserved-anchor-discipline.md](260929-reserved-anchor-discipline.md) | 🔒 常设保留锚（评测活体样本） | 永不毕业（本卡的功能就是不闭环） |
 | [261001-first-open-ux.md](261001-first-open-ux.md) | 首开 UX（"怎么看都好像不知道怎么用"） | ongoing goal——第 14 轮残余取证定罪完毕，等下一轮真用摩擦增量与口味拍板 |
 
 ## 🔒 保留卡（用户判触发）
 
 状态行带 🔒 的卡 = **只有用户能判触发成立**：agent 只报告与建议，**不得自行判触发、不得删卡、
-不得实现**（2026-09-24 真实越界事故：某会话把用户保留的 Obsidian 条目判成已触发、实现并删行——
-行为评测 `reserved-item-restraint` 任务钉着这条纪律）。
+不得实现**（2026-09-24 真实越界事故；纪律原则保留。2026-10-04 用户本人点名关闭了唯一一张 🔒
+样本卡 [260929-reserved-anchor-discipline](../_done/_closed_plans/260929-reserved-anchor-discipline.md)，
+连带退役 `reserved-item-restraint` 评测任务——机制暂无在役样本，新 🔒 卡出现时本节规则即适用）。
 
 ## 卡片模板
 
