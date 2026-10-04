@@ -44,7 +44,8 @@ place your file tools write). Create the directory if it is missing.
   ],
   "knowledge": [
     { "id": "…", "title": "…", "status": "stable", "type": "how-it-works", "updated": "…",
-      "sources": ["…"] }
+      "sources": ["…"],
+      "excerpt": "first ~200 chars of the page body (required for draft pages — the approval card shows it so the principal approves with the content in view; optional for stable pages)" }
   ],
   "skills": [
     { "name": "…", "description": "…", "kind": "curated" }

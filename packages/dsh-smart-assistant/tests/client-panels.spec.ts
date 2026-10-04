@@ -797,8 +797,21 @@ describe('desk panels', () => {
     // only existed in a mouse-only title attribute.
     expect(before).toContain('来源：')
     expect(before).toContain('…')
-    const all = findButton(exports.KnowledgePanel(), `全部（${sources.join(' · ').length} 字）`)
+    // 2026-10-04: the toggle now says what it opens (来源全文) — the CEO clicked it expecting
+    // the page body and got source paths (friction #4).
+    const all = findButton(exports.KnowledgePanel(), `来源全文（${sources.join(' · ').length} 字）`)
     expect(all).toBeDefined()
+  })
+
+  it('shows the content excerpt on a draft approval card (CEO friction #2: blind approval)', () => {
+    const exports = materialize()
+    exports.deskStore.data = {
+      generatedAt: '2026-10-04T12:00:00+08:00',
+      knowledge: [{ id: 'k1', title: '判决页', status: 'draft', excerpt: '结论先行：不要按他开口的方式让。该让的是结构，不是价格水平。' }],
+    }
+    const texts = textsOf(exports.KnowledgePanel()).join(' | ')
+    expect(texts).toContain('结论先行：不要按他开口的方式让')
+    expect(texts).toContain('待你审批')
   })
 
   it('dates the counts it prints (R7)', () => {

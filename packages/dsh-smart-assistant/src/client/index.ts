@@ -268,7 +268,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     }[]
     recentActivity?: { at?: string, what?: string }[]
     memories?: { id?: string, kind?: string, text?: string, updated?: string, source?: string }[]
-    knowledge?: { id?: string, title?: string, status?: string, type?: string, updated?: string, sources?: string[] }[]
+    knowledge?: { id?: string, title?: string, status?: string, type?: string, updated?: string, sources?: string[], excerpt?: string }[]
     skills?: { name?: string, description?: string, kind?: string }[]
   }
 
@@ -684,8 +684,18 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       patchDesk({ note: String(reason) })
     })
     let tries = 0
+    let lastGenerated: number | undefined
     const tick = (): void => {
       if (deskSlice(target).pending === undefined) return
+      const generated = deskGeneratedAtMs(deskSlice(target).data)
+      if (generated !== undefined && generated !== lastGenerated) {
+        // The desk moved since the last look — the assistant is visibly working the queue.
+        // Progress resets the budget: approval turns (promote + desk-refresh) run 60–90s each
+        // and queue behind each other, so the fixed 150s budget expired mid-queue and pushed
+        // manual refreshes onto the principal (CEO first-reading friction #1, 2026-10-04).
+        tries = 0
+      }
+      lastGenerated = generated
       if (tries >= 15) {
         // Giving up releases the gate (see expirePending): a frozen surface whose escape hatch is
         // disabled by the same flag has no way out at all.
@@ -888,6 +898,8 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   function CorrectableRow(props: {
     primary: ReturnType<typeof createElement> | string
     meta?: string | undefined
+    /** Content excerpt shown under the title — the approval card's answer to blind approval (CEO friction #2). */
+    excerpt?: string | undefined
     actionLabel: string
     placeholder: string
     onSubmit: (text: string) => void
@@ -977,6 +989,11 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       createElement('div', { style: { display: 'flex', alignItems: 'flex-start', gap: '8px' } },
         createElement('div', { style: { flex: '1', minWidth: 0 } },
           createElement('div', { style: { fontSize: props.lead === true ? '16px' : '13px', lineHeight: 1.6, color: props.lead === true ? 'var(--dsw-alias-label-primary)' : 'var(--dsw-alias-label-secondary)' } }, props.primary),
+          // The excerpt is what makes an approval informed: title + provenance alone had the
+          // principal approving blind (CEO friction #2 — 「盲批全靠信任」).
+          props.excerpt === undefined || props.excerpt.trim() === '' ? null : createElement('div', {
+            style: { fontSize: '12px', lineHeight: 1.6, color: 'var(--dsw-alias-label-primary)', marginTop: '4px' },
+          }, props.excerpt),
           source === undefined
             ? null
             // R7 (self-review, 2026-09-27): the live page carried 11 sources / 945 characters and this
@@ -994,7 +1011,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
                       marginLeft: '6px', padding: '4px 8px', fontSize: '11px', cursor: 'pointer',
                       border: '1px solid var(--dsw-alias-border-l3)', borderRadius: '4px', background: 'var(--dsw-alias-bg-base)', color: 'var(--dsw-alias-label-secondary)',
                     },
-                  }, openSource ? '收起' : `全部（${source.length} 字）`))),
+                  }, openSource ? '收起来源' : `来源全文（${source.length} 字）`))),
         props.readOnly === true ? null : controls),
       // R11 (narrow review, 2026-09-27): this used to co-render with the in-flight line below, so a
       // just-answered row said "已回答" and "正在处理" at once. While the answer is in flight the row
@@ -1939,7 +1956,10 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         key: String(page.id),
         rowId: String(page.id ?? page.title),
         primary: createElement('span', null, mark, String(page.title ?? page.id ?? '')),
+        // The excerpt rides only on draft rows: that is where the approve decision happens, and
+        // the excerpt is what turns a blind approval into an informed one (CEO friction #2).
         meta: [page.type === undefined ? '' : String(page.type), shortTime(page.updated)].filter(part => part !== '').join(' · '),
+        excerpt: page.status === 'draft' ? page.excerpt : undefined,
         actionLabel: '有问题',
         placeholder: '哪里不对？',
         deskSession: session,
