@@ -1,6 +1,6 @@
 # 推敲：批准流直调架构——审批「一秒完事」要不要绕过模型回合
 
-> 立卡：2026-10-04 ｜ 状态：推敲中｜毕业门判断 = 待触发（触发条件见 §触发）｜下一步 = 无（材料已备齐，触发前不动手）
+> 立卡：2026-10-04 ｜ 状态：**rejected（2026-10-04：三层实锤判定直调需上游缝——client 端 strict codec 强制 + zod 不可达 + workspaceFiles 只读；详见 §切片 1 实施账。上游提案候选保留，真用数据证明高频痛点时可重提）**｜毕业门判断 = 待触发（触发条件见 §触发）｜下一步 = 无（材料已备齐，触发前不动手）
 
 ## 背景 / 触发
 
@@ -52,12 +52,15 @@ desk-refresh，60-90s）；候选 = 面板直调服务（`promotePage` 翻转 dr
 - **审计设计修订**：会话事件方案**否决**——运行时 `session.append` 无法携带 `ignorable` 标记
   （envelope 硬编码），未知必需事件会毒化会话日志读回；identity.md 第 5 行 day-0 决定保持完好。
   审计落独立 JSONL（gateway remote journal 双证）。
-- **未决（诚实，2026-10-04 二轮实锤）**：client 直调未生效。两个实锤：① `$mount` 在 client
-  端公开可用（诊断补齐后定位），但 typert descriptor 的 codec 需要 **zod**，而 classic-script
-  插件的 shell 模块表**不含裸名 zod**（运行时探测实锤："zod is not reachable"）；②
-  `workspaceFiles` remote **刻意只读**（read/stat/list/changes，无 write）——直写工作区文件的
-  变通不存在。**上游提案是正道**（client 插件的受控写缝 / zod 可达性 / 非 zod codec），提案前
-  fallback（模型回合批准）保持可用，零回归。
+- **未决（诚实，2026-10-04 三轮实锤，直调判定不可行）**：三层证据链闭环——① `$mount` 在
+  client 端可用（gateway client 类方法），但 mount 时 `requireStrictCodec` **强制 strict
+  codec**（`gateway/src/client:801`），strict 需要 **zod schema**，而 classic-script 插件的
+  shell 模块表**不含裸名 zod**（运行时探测实锤）；② `workspaceFiles` remote **刻意只读**
+  （read/stat/list/changes）——直写变通不存在；③ 运行时 `session.append` 无法携带
+  `ignorable`（envelope 硬编码）——会话事件审计会毒化日志读回。**duck-type codec 是对抗
+  gateway 设计**（显式 strict 校验），不做。**结论：直调需要上游缝**（提案要点：bundle
+  插件 client 半面的受控 remote 贡献聚合，或 zod/codec 可达性）。fallback（模型回合批准）
+  保持可用零回归；本卡转 rejected 待上游接纳或真用数据推翻。
 - 触发条件以本节为准：未知数解决（上游/确认）+ 本人拍板 → 实施 client 侧。
 
 ## 触发（毕业门）
