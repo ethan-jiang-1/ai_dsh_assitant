@@ -19,4 +19,4 @@
 
 ## 索引
 
-（空——第一份材料进来自建行。）
+- [261001-upstream-candidates.md](261001-upstream-candidates.md)——vendor 面上游候选台账（喂 261001-first-open-ux：9 稳定 + 3 条件 + 2 已关闭，逐条带 vendor 锚点）
