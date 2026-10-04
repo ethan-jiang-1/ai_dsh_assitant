@@ -32,7 +32,7 @@
    为 ongoing goal。G2 打分改为**机器按判例乙（已拍板：占位合规）逐题预判回填 + 本人随时抽检**
    （材料仍在：[打分表](../../dev/eval/domain/sheet-2026-09-28-19-23.md) +
    [校准导览](../../dev/eval/domain/calibration-2026-09-29.md)；对应
-   [评测卡](../../_backlog/plans/260928-domain-eval-v0.md)）。每下 👎/每次卡壳
+   [评测卡](../../_backlog/_done/_closed_plans/260928-domain-eval-v0.md)）。每下 👎/每次卡壳
    自动进 desk-loop 摩擦报告 §7（[C2](../implemented/2026-09-30-c2-feedback-desk-loop.md)）不变。
 3. **并行（agent 自主）**：搬管理岗基座内容——`ai_dsh_company` 的角色技能（CEO/VP-Sales/CFO/COO）
    搬成本仓 preset 技能（模型用、英文），知识种子按治理写入路径落 `draft` 人审（ intents §〇
@@ -58,7 +58,7 @@
 
 - **G2 打分（零作业形态）**：机器按判例乙逐题预判回填打分表、G2 判据（事实正确 ≥1 比例 ≥90%、
   0 分题 ≤2、应拒答题全拒答）算出红绿；本人抽检推翻预判时以本人为准——这是
-  [评测卡](../../_backlog/plans/260928-domain-eval-v0.md)的毕业件。
+  [评测卡](../../_backlog/_done/_closed_plans/260928-domain-eval-v0.md)的毕业件。
 - **首批真人摩擦读数**进 desk-loop 报告（含 §7 赞踩与备注），作为下一轮 UX 的唯一依据。
 - **基座搬运**：首批角色技能入 preset 技能面（`pnpm build` 后 preset 会话可加载）、知识种子落
   `draft` 待人审；切片遵守垂直切片纪律（代码+测试+docs+note 同 diff）。

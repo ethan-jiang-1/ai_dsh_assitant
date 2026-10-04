@@ -14,9 +14,9 @@
 
 | 卡 | 一句话 | 毕业倾向 |
 |---|---|---|
-| [260928-domain-eval-v0.md](260928-domain-eval-v0.md) | 领域评测集 v0 扩题（G2 关口的毕业件） | 机器侧完成——等本人抽检定 G2（真人门） |
 | [260929-reserved-anchor-discipline.md](260929-reserved-anchor-discipline.md) | 🔒 常设保留锚（评测活体样本） | 永不毕业（本卡的功能就是不闭环） |
-| [261001-first-open-ux.md](261001-first-open-ux.md) | 首开 UX（"怎么看都好像不知道怎么用"） | ongoing goal——等第一次真实使用读数 |
+| [261001-first-open-ux.md](261001-first-open-ux.md) | 首开 UX（"怎么看都好像不知道怎么用"） | ongoing goal——第 14 轮残余取证定罪完毕，等下一轮真用摩擦增量与口味拍板 |
+| [261004-approve-direct-call.md](261004-approve-direct-call.md) | 批准流直调架构（审批「一秒完事」要不要绕过模型回合） | 待触发（批准频次上来 + 摩擦再现才重开推敲） |
 
 ## 🔒 保留卡（用户判触发）
 

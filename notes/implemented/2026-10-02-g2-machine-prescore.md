@@ -3,7 +3,7 @@
 日期：2026-10-02 · 状态：**implemented（机器侧完成；G2 终判剩本人抽检真人门——本人推翻任一预判以本人为准）**
 
 来源：[真用第一卡](../proposed/2026-10-01-real-use-first.md) 验收 §1（零作业形态：机器按判例乙逐题预判回填 +
-本人随时抽检）与 [领域评测卡](../../_backlog/plans/260928-domain-eval-v0.md) 毕业门。
+本人随时抽检）与 [领域评测卡](../../_backlog/_done/_closed_plans/260928-domain-eval-v0.md) 毕业门。
 
 ## 做了什么
 
