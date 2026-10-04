@@ -1,6 +1,6 @@
 # 管理岗基座搬运：销售与财务两件方法论技能入 preset
 
-日期：2026-10-01 · 状态：**implemented**（2026-10-01 落地：`market-sizing` / `project-economics` 两件技能入 preset 技能面并 live 验证；其余 9 件的取舍与下一切片清单见 §三/§五）
+日期：2026-10-01 · 状态：**implemented**（切片一 2026-10-01：market-sizing / project-economics；切片二 2026-10-04：finance-compliance + 种子二页；切片三 2026-10-04：种子三页；**切片四 2026-10-04：decision-routing 技能**——甄别施工图全部消化，剩余候选全部触发型见 §六）
 
 来源卡：[真用第一](../proposed/2026-10-01-real-use-first.md) 第 3 条（基座搬运，agent 并行自主做）。
 既有形状：[专家部署组合件 v0](2026-09-25-expert-pack-v0.md) 的两件 SOP 技能与 `seeds/management` 知识种子包。
@@ -84,3 +84,32 @@ AGENTS.md（决策路由+审批纪律，第一候选但须剔 DSH 机制细节�
   不为搬而搬。
 - **知识种子甄别**（若做）：逐页过「方法论 vs 场景事实」关，按治理写入路径落 draft 人审。
 - 原地吸收已完成的两条：MEDDIC 资格进 `market-sizing`；人·周 / 最坏档进 `project-economics` 成本侧。
+
+## 六、切片四（2026-10-04 落地）：decision-routing 技能——甄别施工图收官
+
+**源材料**：那仓公司手册 AGENTS.md（company-workspace，195 行）——甄别施工图点名的最后一个
+触发已到候选。**甄别**：可搬骨架 = 四块思想（决策按类型路由 / 审批边界 / 升级带证据 /
+成品与草稿态）；剔除 = 公司事实（毛利 30%、9 折、$500 门槛、50 人编制、并行 8 项目——数字
+全剥离，先例同切片三）、多分身机制细节（组合继承 / 写盘守卫 / 派活行 / 日期通道 / 多人模式 /
+journal 收敛——全是那仓实现机制）、本仓已有机制（待办面板 / 提案收件箱 / present——不重述）。
+
+**关键适配（约束 → 改写）**：那仓是**五分身公司**（路由表找谁签字），本仓是**一个分身辅助
+本人**——路由表变形为「决策类型 → 方法论尺子」（要不要做 → management-breakdown/action-plan；
+赚不赚钱 → project-economics/finance-compliance + 现金纪律；有没有人买 → market-sizing +
+定价纪律；做不做得出 → 自建三问；交付承接 → 本仓无专尺，明示 provisional——O3 诚实原则）；
+「谁能对外」变形为成品/草稿态 + 本人的数字不编造（没问过就先问）；分歧保留原样收编。
+6 件现存技能逐一查重：无职能重叠（routing 是横切件，各 lens 技能是纵切件）。
+
+**验证六步（真跑过的命令）**：① gen-catalog（技能 12→13，catalog 同 diff）② build+typecheck 绿
+③ test 352 绿 ④ **live probe 两层**：禁工具 probe → 模型从技能目录正确指认 decision-routing 且
+诚实拒绝编造正文（O3 正例）；放行 skill 工具 probe → 逐字复述正文首句
+（"A wrong answer is recoverable; an answer from the wrong lens is not even wrong — it is noise."）
+⑤ release-smoke 绿 ⑥ verify 34 绿。
+
+## 七、下一步（切片四后）
+
+- **搬运面收官**：甄别施工图点名的候选全部消化（coo 头部切片三裁决不搬——与 ops-review-note
+  种子同源重叠；org.md / owners.md / journal 残渣维持不搬）。剩余候选全部**触发型**：
+  customer-voice / ops-feasibility / budget-check——触发条件 = P1 真用暴露对应视角缺口，
+  不为搬而搬。
+- **关键路径唯一等本人的事 = 开始真用**（主轴卡状态行 2026-10-04 快照）。
