@@ -1,6 +1,6 @@
 # AGENTS.md —— 本 repo 的常驻规则与入口链
 
-> 给 coding agent 读的**几百词**：怎么跑、东西在哪、改动走哪条路。
+> 给 coding agent 读的开工说明：怎么跑、东西在哪、改动走哪条路。
 > 详细契约在 `docs/`（只写**现在**）；开发提案、活跃决策与验证依据在 `notes/`；身份名以 `docs/identity.md` 为唯一权威。
 
 ## 这是什么
@@ -11,27 +11,21 @@
 
 ## 新会话开工（先读这段）
 
-**接下来做什么由两路决定**：① **用户本轮请求**（唯一外部通道，本轮范围由它决定）；② 已立项的卡——
-已批未做的 RFC 住 `notes/proposed/`（问题/方案/验收），想法与触发型住 `_backlog/plans/`（推敲卡，
-毕业门判断在状态行）。**没有用户任务时不发明任务**——报告家况，或按点名的卡推敲/实施；不要从
-git log 或记忆发明任务。
-写 note 的义务只覆盖**承载持久决定理由**的改动——代码、测试与现行文档说不清的 why 与放弃的备选；机械或局部编辑豁免。决定随当前变更已交付的，直接写 `implemented/`，不必从 `proposed/` 开始。
-改行为、契约或开发流程前，按任务链接或机制名查相关 notes。**每新增一篇 note 触发取代检查**：搜活跃树找同决定/同机制的旧 note——完整取代则新 note 吸收其独有理由/备选/后果/验证后**同 diff 删除旧的**（历史归 git）；部分取代则双方保留互链、更新仍有效的事实。同一决定的事实变化更新原文，反转决定即完整取代。非平凡改动同 diff 新增或更新相关 note；提案落地须改写为实际决定与证据，不能只搬目录。
-implemented note 必带「**输掉的方案**」节——没记击败了什么的决定会重新开讼；备选只能记录、不能编造（机械门禁，旧 note 按门禁生效日祖父豁免）。过时提案转 `rejected/` 并写一行拒绝原因，而非滞留 `proposed/`；`rejected/` 失去防错价值即删。
-新 note 沿用 `YYYY-MM-DD-topic.md`（首次提出日期）。DSH 依据与生命周期见 `vendor/dsh/.agents/notes/README.md`；按需读取，不要求遍读全部 notes。交接即此链：AGENTS.md（本文件）→ `_backlog/plans/` 与 `notes/proposed/` → 各卡。
-`notes/proposed/` 不是停车场（proposal-graduated 门禁管：毕业即离开）。
-**进行中的工作显式化（用户拍板）：开工即立卡 `notes/proposed/`**——状态词只有 `notes/README.md` 定义的那一套
-（生命周期四态），**不再另造阶段词**；可执行性看各卡自身的状态行与用户拍板。深评/调研卡住 `_backlog/plans/`，收卷证据台账住 `notes/archived/research/`，卡片链接之。看不见的工作等于没在做。
+**意图从哪来**（两通道，各管各的）：① **用户本轮请求**——唯一外部通道，本轮范围由它决定；② **已立项的内部工作项**——
+`notes/proposed/` 的提案卡（毕业形态：问题/方案/验收三件齐，**待用户拍板**，正文与验收都在卡上；点名或点头即开工）
+与 `_backlog/plans/` 的推敲卡（触发型/用户点名才取用，毕业四门见其 `README.md`）。
+**没有用户任务时不发明任务**——报告家况，或按点名的卡推敲/实施；不要从 git log 或记忆发明任务。
+进行中的工作显式化：开工即立卡 `notes/proposed/`（状态词只用 `notes/README.md` 的生命周期四态，不另造阶段词）；
+深评/调研卡住 `_backlog/plans/`，收卷证据台账住 `notes/archived/research/`，卡片链接之——看不见的工作等于没在做。
+代码里的 `TODO/FIXME` 不立项，只在代码内；`_backlog/plans/` 调研卡是证据面，不是工作项。
+**Note 的义务、取代检查与生命周期以 [`notes/README.md`](notes/README.md) 为唯一权威**（何时写、输掉的方案、
+rejected 政策、命名——本文件不复制）；改行为、契约或开发流程前，按任务链接或机制名查相关 notes。
+交接即此链：AGENTS.md（本文件）→ `_backlog/plans/` 与 `notes/proposed/` → 各卡。
 
 同一个多步流程第三次被重新推演时，就把它立成一件开发技能（放 `.agents/skills/`）——这是"重复即建"的常设规则，不占工作面。
 **两类 Skill，别混**：`.agents/skills/` 是**开发用**（给改这个仓库的 agent：探针、归档判定、
-证据路由——由 DSH 原生 `project-agents` 根发现，进目录即入技能目录）；`presets/assistant/skills/`
+证据路由——由 DSH 原生 `project-agents` 根发现，进目录即入技能目录）；`packages/dsh-smart-assistant/presets/assistant/skills/`
 是**模型用**（产品运行时技能，随 preset 走）。同名不同机制，不共享 registry。
-
-**意图从哪来**（三通道，各管各的）：① **用户轮内请求**——唯一外部通道，本轮范围由它决定；
-② **毕业卡**——`notes/proposed/`（已批未做）与 `_backlog/plans/`（触发型/用户点名）——已立项的内部工作项；③ **`notes/proposed/` 卡片**——
-重大未决的未来工作（生命周期状态在卡片，正文与验收也在这里）。代码里的 `TODO/FIXME` 不立项，
-只在代码内；`_backlog/plans/` 调研卡是证据面，不是工作项。
 
 ## 布局（改动前先认领 owner 面）
 
@@ -49,6 +43,9 @@ implemented note 必带「**输掉的方案**」节——没记击败了什么�
 | `dev/` | 开发 home 与 profile patch —— 双 home 与两个 profile 的纪律见其 `AGENTS.md` | 环境问题动这里（手册 owner：`docs/dev.md`） |
 | `scripts/` | 机械门禁与生成器 —— 门禁三条纪律与 freshness 约定见其 `AGENTS.md` | 门禁问题动这里 |
 | `snapshots/` | 行为回归的证据面（day 0 占位）—— 只收边界见其 `AGENTS.md` 与 `README.md` | 回归证据问题动这里 |
+| `_dist/` | **分发导出（生成物）**：`pnpm export-dist` 的 tgz（不入库）与《安装手册》 | 分发问题动这里；生成器 `scripts/export-dist.mjs` |
+| `.agents/` | **开发用 Skill 根**（探针、归档判定、证据路由——DSH 原生 `project-agents` 根发现） | 新开发技能动这里 |
+| `deliverables/` · `.desk/` · `.tmp/` | **会话运行现场（git 忽略，不是仓库内容）**：cwd=仓根的会话留下的业务交付（未提交交接件）、My Desk 桌面状态、临时产物 | 不提交、不当文档读；语义见 `.gitignore` 注释 |
 | `vendor/dsh/` | **钉住的 DSH 源码（submodule）** | **永不改**；升级走 `pnpm sync-dsh` |
 | `tsconfig.base.json` / `tsconfig.tsx.json` | 两个 tsconfig 解析入口（编译期手维护 / 运行期 `pnpm gen-paths` 生成） | 引入新 `@deepseek-ai/*` import 或换 pin 时动这里（契约：`docs/dev.md` §二） |
 

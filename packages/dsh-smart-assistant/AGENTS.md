@@ -7,7 +7,8 @@
 ## 这是什么包
 
 一个 **bundle**（不是 profile）：`package.json` 只声明 `dsh.bundle.patch = ./cordis.patch.yml`；
-它贡献 **9 个 plugin 子路径导出**（host 1 + preset agent 6 + dev 专用 agent 1 + client 1）——精确清单以生成物 `docs/package-catalog.md` 为准。
+它贡献 plugin 子路径导出（host + agent + client 三平面）——清单与计数以生成物 `docs/package-catalog.md` 为准
+（本文件不复述数字：数过即过期）。
 它给 agent 一个 **working folder**（`dataDir`，默认 `<dshHome>/assistant`）——不是进程 cwd/workspace。
 
 ## 入口、平面与组合行

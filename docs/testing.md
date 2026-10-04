@@ -1,7 +1,7 @@
 # testing.md —— 测试面合同（当前 · 只写现在）
 
 > 本文件拥有**测试面合同**：证据形态分层、插件证据五台阶、政策条款、已定姿态与升级触发条件。
-> 命令 owner = 根 `AGENTS.md` 命令表；决策理由与输掉的方案 =
+> 命令 owner = 根 `AGENTS.md` 命令表 + `docs/dev.md` §四（开发环命令）；决策理由与输掉的方案 =
 > `notes/implemented/2026-10-04-test-strategy-adoption.md`；机制分层表 = `discipline.md` 六层反馈（不复制）。
 > 执行细则（改动面→最小证据的逐面表）= `.agents/skills/pre-push-evidence/`（本文不复制）。
 

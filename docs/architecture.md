@@ -29,6 +29,8 @@ DSH 的组合分两个平面，判据是"这东西是不是跨会话共享"：
 HOST 面（cordis.patch.yml → dsh.bundle.patch）
 └── assistant-memory        服务：working folder 的布局 + 四个房间的存储 + 摘要计算 + 养护检查
                             ctx.assistantMemory（唯一服务键）
+                            + assistant-knowledge-approve 行（知识批准直调：draft→stable 的机械翻转
+                              经 Typert Remote 给 client 直调，无 config——host 行，随包分发）
                             + session-query-sqlite 翻开行（`first-search` + 持久索引库，原始会话检索）
                             + time-context 行（当前时间/时区/经过时长随请求注入）
                             + schedule + ui-schedule 行（定时面：到期任务以原会话 follow-up 投递；
@@ -36,24 +38,15 @@ HOST 面（cordis.patch.yml → dsh.bundle.patch）
                               headless 组合由 profile 层显式 disabled，它依赖 web-app 层的 sessionController）
                             + Web 壳品牌注入行（页标题/图标，webserver/index-inject；皮肤，不进模型上下文）
 
-浏览器面（package.json `dsh.client` → `./client` 出口；经既有 bundle 行被 client-modules
-自动发现，无需额外接线），全部消费 **vendor 通用座位**（皮肤面，不进模型上下文）。
-座位与命令的精确清单是生成物：[`package-catalog.md`](package-catalog.md)「客户端座位面」节
-（生成器从 `src/client/index.ts` 抽取，freshness 由 `pnpm verify` 守——散文清单在生成物面前
-四轮漂移三轮同根，已退役为指针）。语义要点：官方品牌包只在 official 构建档案下注册，本地
-构建里品牌 slot 空置；三室是「+」向导里可添加的右栏 tab；首里引导座位开聊即隐——不是 §六 延后的
-"专属 Web 卡片"（那是通用卡不够用时的 client 插件面，触发条件未到）。
-                            为什么在 host：working folder 是**跨会话持久化**，与持久化/沙箱/模型路由同类。
-                            preset 里的服务行必须包在 isolate realm 里，否则与别的 preset 撞名。
-
 AGENT 面（`cordis.patch.yml` 的 `preset-assistant` 行 → agent preset）
 ├── assistant-home-preamble   提示词段落：身份（SOUL.md）与家手册（AGENTS.md）逐字
 ├── assistant-memory-digest   提示词段落：有界摘要（桌面）
 ├── assistant-memory-tool     工具 assistant_memory
 ├── assistant-research-tool   工具 assistant_research
 ├── assistant-knowledge-tool  工具 assistant_knowledge（只读检索：search/get 附反链）
-├── tool-session-query      工具 session_query 族（原始会话证据检索；与 knowledge 房分工见 docs/home.md）
+├── tool-session-query        工具 session_query 族（原始会话证据检索；与 knowledge 房分工见 docs/home.md）
 ├── assistant-learn           工具 assistant_reflect + 挂载"学到的技能"provider
+├── assistant-ov-shield       治理遮蔽行（denyToolPrefix / shadowSkills 两 config 键，约束模型可见面）
 ├── skill-filesystem          策展技能（包内 `presets/assistant/skills/`，按包名解析后指过去）
 ├── tool-skill                技能目录与加载器（DSH 原生）
 └── persona / agent-instructions / tool-fs / tool-fs-search / shell / ask-user /
@@ -61,8 +54,18 @@ AGENT 面（`cordis.patch.yml` 的 `preset-assistant` 行 → agent preset）
     jobs / 委派组（`subagent`+`subagent_fork`+control 三件，isolate 组）/ web / present / compaction
 ```
 
+**浏览器面**（package.json `dsh.client` → `./client` 出口；经既有 bundle 行被 client-modules
+自动发现，无需额外接线），全部消费 **vendor 通用座位**（皮肤面，不进模型上下文）。
+座位与命令的精确清单是生成物：[`package-catalog.md`](package-catalog.md)「客户端座位面」节
+（生成器从 `src/client/index.ts` 抽取，freshness 由 `pnpm verify` 守——散文清单在生成物面前
+四轮漂移三轮同根，已退役为指针）。语义要点：官方品牌包只在 official 构建档案下注册，本地
+构建里品牌 slot 空置；三室是「+」向导里可添加的右栏 tab；首里引导座位开聊即隐——不是 §六 延后的
+"专属 Web 卡片"（那是通用卡不够用时的 client 插件面，触发条件未到）。
+
+**为什么服务在 host 面**：working folder 是**跨会话持久化**，与持久化/沙箱/模型路由同类；
+client 的三室 tab 读的就是同一个实例；preset 里的服务行必须包在 isolate realm 里，
+否则与别的 preset 撞名（`dsh-agent-presets` 挂载时直接拒绝）。
 **为什么工具在 agent 面**：它们是一个会话贡献给注册表的东西（DSH 的 preset 语义）。
-**为什么服务在 host 面**：client 的三室 tab 读的就是同一个实例。
 
 ## 三、部件与 owner 面
 

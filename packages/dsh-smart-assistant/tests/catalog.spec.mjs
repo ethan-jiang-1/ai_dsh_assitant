@@ -117,7 +117,10 @@ describe('renderCatalog', () => {
   const input = {
     exports: ['.', './tool-memory', './client', './src/*', './package.json'],
     hostRows: [{ id: 'assistant-memory', indent: 0, name: 'dsh-smart-assistant' }],
-    agentRows: [{ id: 'assistant-memory-tool', indent: 0, name: 'dsh-smart-assistant/tool-memory' }],
+    // 2026-10-04: host rows may carry a package subpath too (assistant-knowledge-approve 先例)——
+    // collectCatalog 按组合位置（preset 行嵌套深度）分平面，renderCatalog 只消费分好的三桶。
+    hostSubRows: [{ id: 'assistant-knowledge-approve', indent: 4, name: 'dsh-smart-assistant/knowledge-approve-remote' }],
+    agentRows: [{ id: 'assistant-memory-tool', indent: 10, name: 'dsh-smart-assistant/tool-memory' }],
     devRows: [],
     tools: [{ name: 'assistant_memory', actions: ['recall'], label: 'src/tool-memory/index.ts' }],
     skills: ['memory-hygiene'],
@@ -142,6 +145,13 @@ describe('renderCatalog', () => {
     expect(text).toContain('CLIENT（浏览器面）')
     expect(text).toContain('非 plugin 导出（不挂组合行）：`./src/*`、`./package.json`')
     expect(text).toContain('`assistant_memory` | `recall`')
+  })
+
+  it('lands a package-subpath HOST row in the host plane and the host-side row table, not the agent one', () => {
+    const text = renderCatalog(input)
+    expect(text).toContain('| `./knowledge-approve-remote` | HOST | assistant-knowledge-approve |')
+    expect(text).toContain('| cordis.patch.yml（host 面） | `assistant-knowledge-approve` | `dsh-smart-assistant/knowledge-approve-remote` |')
+    expect(text).not.toContain('agent 面 = preset 行的 plugins） | `assistant-knowledge-approve`')
   })
 
   it('renders the client seat surface from the extracted input', () => {

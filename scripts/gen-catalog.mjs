@@ -90,11 +90,16 @@ export function extractClientSurface(source) {
 /** Read every catalog input from disk. */
 export function collectCatalog(root = repoRoot) {
   const pkg = JSON.parse(read(join(root, 'packages', 'dsh-smart-assistant', 'package.json')))
-  const hostRows = parseRows(read(join(root, 'packages', 'dsh-smart-assistant', 'cordis.patch.yml'))).filter(row => row.name === 'dsh-smart-assistant')
-  // 0.1.7: one file carries both planes — the host row and the `agent-preset` row whose
-  // `plugins` list is the agent plane. Classification is by plugin name, not by file position.
   const patchRows = parseRows(read(join(root, 'packages', 'dsh-smart-assistant', 'cordis.patch.yml')))
-  const agentRows = patchRows.filter(row => (row.name ?? '').startsWith('dsh-smart-assistant/'))
+  const hostRows = patchRows.filter(row => row.name === 'dsh-smart-assistant')
+  // 0.1.7: one file carries both planes — the host `insert` rows and the `agent-preset` row whose
+  // `plugins` list is the agent plane. Classification is by composition position (nesting under the
+  // `preset-assistant` row), NOT by plugin name: a host row may carry a package subpath too
+  // (assistant-knowledge-approve 先例——按名字分会把它错标成 agent 面，与 identity.md 相抵，2026-10-04 实修).
+  const presetRow = patchRows.find(row => row.id === 'preset-assistant')
+  if (presetRow === undefined) throw new Error('gen-catalog: cordis.patch.yml has no preset-assistant row — the patch shape changed')
+  const agentRows = patchRows.filter(row => (row.name ?? '').startsWith('dsh-smart-assistant/') && row.indent > presetRow.indent)
+  const hostSubRows = patchRows.filter(row => (row.name ?? '').startsWith('dsh-smart-assistant/') && row.indent <= presetRow.indent)
   const devPatch = join(root, 'dev', 'preset-runner.patch.yml')
   const devRows = existsSync(devPatch)
     ? parseRows(read(devPatch)).filter(row => (row.name ?? '').startsWith('dsh-smart-assistant'))
@@ -116,6 +121,7 @@ export function collectCatalog(root = repoRoot) {
   return {
     exports: Object.keys(pkg.exports ?? {}),
     hostRows,
+    hostSubRows,
     agentRows,
     devRows,
     tools,
@@ -134,6 +140,10 @@ export function renderCatalog(input) {
   const pluginEntries = new Map()
   for (const row of input.hostRows) {
     if (row.name === 'dsh-smart-assistant') pluginEntries.set('.', 'HOST')
+  }
+  for (const row of input.hostSubRows ?? []) {
+    const match = /^dsh-smart-assistant\/(.+)$/.exec(row.name ?? '')
+    if (match !== null) pluginEntries.set(`./${match[1]}`, 'HOST')
   }
   for (const row of input.agentRows) {
     const match = /^dsh-smart-assistant\/(.+)$/.exec(row.name ?? '')
@@ -163,7 +173,7 @@ export function renderCatalog(input) {
   lines.push('')
   lines.push('| 入口 | 平面 | 组合行 id |')
   lines.push('|---|---|---|')
-  const rowFor = name => [...input.hostRows, ...input.agentRows].find(row => row.name === name)
+  const rowFor = name => [...input.hostRows, ...(input.hostSubRows ?? []), ...input.agentRows].find(row => row.name === name)
   for (const [entry, plane] of pluginEntries) {
     const name = entry === '.' ? 'dsh-smart-assistant' : `dsh-smart-assistant${entry.slice(1)}`
     lines.push(`| \`${entry}\` | ${plane} | ${rowFor(name)?.id ?? '—'} |`)
@@ -178,7 +188,7 @@ export function renderCatalog(input) {
   lines.push('| 文件 | id | plugin | 状态 |')
   lines.push('|---|---|---|---|')
   for (const [file, rows] of [
-    ['cordis.patch.yml（host 面）', input.hostRows],
+    ['cordis.patch.yml（host 面）', [...input.hostRows, ...(input.hostSubRows ?? [])]],
     ['cordis.patch.yml（agent 面 = preset 行的 plugins）', input.agentRows],
     ['dev/preset-runner.patch.yml（dev 专用）', input.devRows],
   ]) {
