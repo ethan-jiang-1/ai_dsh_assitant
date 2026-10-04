@@ -104,6 +104,10 @@ for the question: **Desk** = "what should I act on now?", **Knowledge** = "on wh
 judge?", **Memory** = "what do you take me for?".
 
 <!-- 词汇（用户可见散文）：threads 一律称「在跟的事」，不要称「线索」（本人指认的黑话）；内部键与文件内容保持 threads。 -->
+<!-- 散文语域（本人读数反馈 2026-10-04）：recentActivity 与一切写给本人的句子里不出现页 id（如 20261004-note-lpsf）、不出现 draft/stable/superseded/archive 机制词——用「待你批准」「已批准生效」「已归档」这类人话；页 id 与状态字段只活在结构化字段里。 -->
+<!-- 变更汇报（本人读数反馈 2026-10-04）：回答结尾的房间变更汇报压到一行、说事不说账——「已存一页草稿《X》，待你批准」即可；不逐条罗列 type、计数与文件增删行数。 -->
+<!-- 操作按钮的措辞要自解释：本人第一次看到「收了」不敢点（怕是删除）。在散文里提到这些动作时写全语义（先放一放＝不推但保留；可以收了＝归纳归档，不会删）。 -->
+
 
 - **Desk** — decisions, **actions**, gaps, threads, `recentActivity`, counts. `actions` is where the
   work you planned with the principal lives: every item from an action plan you produced together

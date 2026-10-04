@@ -728,14 +728,14 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    */
   function answerDecision(question: string, answer: string, rowId: string, sessionId?: string): void {
     sendPrompt(
-      `关于这个待决事项：「${question}」——我的决定是：${answer}。请记住它、据此更新你的判断。${DESK_REFRESH_STEP}`,
+      `桌面面板代本人拍板——待决事项「${question}」的决定：${answer}。请把决定记入记忆并据此更新判断。${DESK_REFRESH_STEP}`,
       '回答', rowId, sessionId,
     )
   }
 
   /** Put one open decision to the assistant and ask for options with their costs. */
   function askAboutDecision(question: string, rowId: string, sessionId?: string): void {
-    sendPrompt(`关于这个待决事项：「${question}」——请给我两三个选项，每个选项的代价与不可逆程度，以及你的建议。`,
+    sendPrompt(`桌面面板代本人提问——待决事项「${question}」：请给两三个选项，每个选项的代价与不可逆程度，以及你的建议。`,
       '看选项', rowId, sessionId)
   }
 
@@ -753,14 +753,14 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    */
   function fillGap(what: string, value: string, rowId: string, sessionId?: string): void {
     sendPrompt(
-      `缺口的原始读数：「${what}」→ ${value}。请据此更新相关记录，并把这条从 gaps 里拿掉（或写明还缺什么）。${DESK_REFRESH_STEP}`,
+      `桌面面板代本人补数——缺口「${what}」的原始读数：${value}。请据此更新相关记录，并把这条从 gaps 里拿掉（或写明还缺什么）。${DESK_REFRESH_STEP}`,
       '补上', rowId, sessionId,
     )
   }
 
   function finishAction(what: string, rowId: string, sessionId?: string): void {
     sendPrompt(
-      `行动「${what}」已经办完了。请记录结果（度量上发生了什么）。${DESK_REFRESH_STEP}`,
+      `桌面面板代本人回执——行动「${what}」已经办完了。请记录结果（度量上发生了什么）。${DESK_REFRESH_STEP}`,
       '办完了', rowId, sessionId,
     )
   }
@@ -768,7 +768,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   /** Drop one action: no longer worth doing — the assistant records why and takes it off the list. */
   function dropAction(what: string, rowId: string, sessionId?: string): void {
     sendPrompt(
-      `行动「${what}」不办了：请记一行原因（写进在跟的事或记忆）。${DESK_REFRESH_STEP}`,
+      `桌面面板代本人回执——行动「${what}」决定不办了：请记一行原因（写进在跟的事或记忆）。${DESK_REFRESH_STEP}`,
       '不办了', rowId, sessionId,
     )
   }
@@ -779,7 +779,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    */
   function parkThread(title: string, rowId: string, sessionId?: string): void {
     sendPrompt(
-      `在跟的事「${title}」先放一放（park）：现在不推，但别丢。${DESK_REFRESH_STEP}`,
+      `桌面面板代本人操作——在跟的事「${title}」先放一放（park）：现在不推，但别丢。${DESK_REFRESH_STEP}`,
       '先放放', rowId, sessionId,
     )
   }
@@ -787,7 +787,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   /** Close one thread: answered, moot, or not worth it — the assistant promotes or drops it. */
   function closeThread(title: string, rowId: string, sessionId?: string): void {
     sendPrompt(
-      `在跟的事「${title}」可以收了：请判断该 promote（变成记忆/知识页/技能）还是 drop（写一行原因），`
+      `桌面面板代本人操作——在跟的事「${title}」可以收了：请判断该 promote（变成记忆/知识页/技能）还是 drop（写一行原因），`
       + `做完告诉我你归到了哪里。${DESK_REFRESH_STEP}`,
       '收了', rowId, sessionId,
     )
@@ -825,14 +825,14 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       }).catch((reason: unknown) => {
         patchDesk({ note: `直调批准失败，回退指令通道：${String(reason)}` })
         sendPrompt(
-          `我批准知识页「${title}」。请把它从 draft 翻成 stable。${DESK_REFRESH_STEP}`,
+          `桌面面板代本人批准——知识页「${title}」已获批准：请把它从 draft 翻成 stable。${DESK_REFRESH_STEP}`,
           '批准', rowId, sessionId,
         )
       })
       return
     }
     sendPrompt(
-      `我批准知识页「${title}」。请把它从 draft 翻成 stable。${DESK_REFRESH_STEP}`,
+      `桌面面板代本人批准——知识页「${title}」已获批准：请把它从 draft 翻成 stable。${DESK_REFRESH_STEP}`,
       '批准', rowId, sessionId,
     )
   }

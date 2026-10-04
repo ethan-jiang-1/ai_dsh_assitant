@@ -58,12 +58,12 @@ const TASK_PROMPTS = TASKS.map(task => task.prompt)
  */
 function actionOf(text) {
   if (text.includes('刷新我的桌面')) return '刷新桌面'
-  if (text.includes('请给我两三个选项')) return '看选项'
-  if (text.includes('——我的决定是：')) return '回答'
+  if (text.includes('代本人提问')) return '看选项'
+  if (text.includes('代本人拍板')) return '回答'
   if (text.includes('」已经办完了')) return '办完了'
   if (text.includes('」不办了')) return '不办了'
   if (text.includes('」要改：')) return '改这条'
-  if (text.includes('缺口的原始读数')) return '补上'
+  if (text.includes('代本人补数')) return '补上'
   if (text.includes('关于在跟的事「')) return '问进展'
   return '其他'
 }
@@ -477,7 +477,7 @@ export function selfCheck() {
     feedbackDelete(T0 + 9 * MINUTE, 'm-2'),
   ])
 
-  const answer = `${PANEL_MARKER}关于这个待决事项：「季末破例？」——我的决定是：不允许。完成后加载 desk-refresh 技能，把桌面文件重写一遍。`
+  const answer = `${PANEL_MARKER}桌面面板代本人拍板——待决事项「季末破例？」的决定：不允许。完成后加载 desk-refresh 技能，把桌面文件重写一遍。`
   const sessionB = buildSession(logB, [
     userMessage(T0, answer, desk),
     toolCall(T0 + 1000, 'read', { file_path: '/home/assistant/knowledge/x.md' }),   // 既没写文件也没加载技能

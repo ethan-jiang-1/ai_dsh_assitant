@@ -118,7 +118,7 @@ async function harness(): Promise<Context> {
   // The knowledge-approve companion row (approve-direct-call): direct-call lane for the
   // knowledge-room approve button, audited into the session log. Mounted from built lib/
   // exactly like the deployment loads it.
-  const approveRemote = await import(pathToFileURL(join(packageRoot, 'lib', 'knowledge-approve-remote.js')).href)
+  const approveRemote = await import(pathToFileURL(join(packageRoot, 'lib', 'knowledge-approve-remote', 'index.js')).href)
   await ctx.plugin(approveRemote.default)
   // 0.1.7: preset = registry row (default) + definition row (plugins). No directory, no roots.
   await ctx.plugin(AgentPresetRegistry, { default: 'assistant' })
