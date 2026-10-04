@@ -20,9 +20,8 @@
    即 broken——可选增强不能成单点故障）；**不写进**我们包的 `cordis.patch.yml`（发布物
    自包含纪律）。安装器 `dev/ov-install.sh` 七步幂等（server 双钉 0.4.22/配置 0600/健康门/
    profile/tgz/patch/双断言），幂等与全新 home 双验收。
-4. **AGPL 边界**：进程边界 + 协议消费不构成链接（delegated 裁定，授权链与依据见
-   [双裁定 note](2026-10-04-delegated-verdicts-agpl-and-ux-review.md)；复核触发三条件在
-   [决策包](../proposed/2026-10-04-ov-agpl-decision-brief.md)）。
+4. **AGPL 边界**：进程边界 + 协议消费不构成链接（delegated 裁定，授权链与依据、复核触发三条件见
+   [双裁定 note](2026-10-04-delegated-verdicts-agpl-and-ux-review.md)）。
 
 ## 验证（真跑过的）
 
