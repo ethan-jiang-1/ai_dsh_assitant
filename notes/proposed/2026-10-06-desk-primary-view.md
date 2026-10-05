@@ -37,7 +37,9 @@
 - 自洽卡四件门逐件闭合记录：入口证据=本卡事实 1-4；旧会话回路=视图是 UI 层叠加、会话数据与既有 right-tab 面板不动（回归由既有 client spec 守）；示例/真实边界=沿用 desk 数据标注纪律；审批/撤销=沿用面板既有动作路径（remote.session.prompt 车道，不新增直调）。
 - DeskData 契约不动；四工具/persona/组合行零变化（非模型可见面）。
 
-## 发行预置拍板材料（⑤预备；正式拍板待用户真机读数后）
+## 发行预置拍板（2026-10-06 定案：用户读数确认形态操作面，维持现状即证据支持的形状）
+
+**定案**：`locale.preference: zh` **随发行维持**（已在 bundle patch 内，261001 用户投诉+目标用户证据）；`workspace-controller.documentsDirectory` **不随发行维持**（全限定路径不可移植；vendor 默认即首用设计路径；本仓失败为 headless 进程特例——留 dev/trial profile 层）。`ui-chat` 行维持 standing 退役条件。**原拍板材料：**
 
 | 行 | 证据 | 建议 |
 |---|---|---|
