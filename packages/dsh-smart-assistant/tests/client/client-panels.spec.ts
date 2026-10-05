@@ -471,6 +471,9 @@ describe('desk panels', () => {
     const desk = textsOf(exports.DeskPanel()).join(' | ')
     const knowledge = textsOf(exports.KnowledgePanel()).join(' | ')
     const memory = textsOf(exports.MemoryPanel()).join(' | ')
+    // The rhythm line (real-user walk, 2026-10-06): the desk must state the standing loop —
+    // "what coming back here means" — not just the rows.
+    expect(desk).toContain('这里是你的起点：来了先看「要你拍的」，拍完就走')
     expect(desk).toContain('现在要采取什么行动？')
     expect(knowledge).toContain('你凭什么这样判断？')
     expect(memory).toContain('你把我理解成什么？')

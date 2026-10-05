@@ -14,7 +14,7 @@
 //
 // Usage:
 //   node dev/probes/web/webui-loop-probe.mjs '<gui-url>' [--ask 'question']
-//        [--follow-up 'second question'] [--dislike] [--size 1600,1000]
+//        [--follow-up 'second question'] [--walk '["msg2","msg3"]'] [--dislike] [--size 1600,1000]
 //        [--keep-browser] [--quiet]
 //
 //   '<gui-url>'  the booted GUI URL including its ?token= (preflight-green
@@ -25,6 +25,12 @@
 //                preset home, a real model call) in the target home — point
 //                it at a throwaway home when the target must stay pristine.
 //   --follow-up '…'
+//   --walk '["…","…"]'
+//     Multi-turn naive walk (2026-10-06, new-UX landing discipline): a JSON array of further
+//     messages run sequentially in the SAME session after --ask — the self-test instrument for
+//     Day-0 arcs the single turn cannot cover (e.g. the three-question intake to its brief).
+//     Each turn gets the same verdict shape as --ask (paste/send/reply); exit 1 if any turn
+//     fails to send.
 //                a second turn in the SAME session — multi-turn continuity
 //                (P2) in one run.
 //   --dislike    rate the LAST assistant message 👎 with a category and a
@@ -48,6 +54,13 @@ const askIndex = args.indexOf('--ask');
 const ask = askIndex >= 0 ? (args[askIndex + 1] ?? undefined) : undefined;
 const followUpIndex = args.indexOf('--follow-up');
 const followUp = followUpIndex >= 0 ? (args[followUpIndex + 1] ?? undefined) : undefined;
+const walkIndex = args.indexOf('--walk');
+let walk = undefined;
+if (walkIndex >= 0) {
+  try { walk = JSON.parse(args[walkIndex + 1] ?? '[]'); if (!Array.isArray(walk)) walk = undefined }
+  catch { walk = undefined }
+  if (walk === undefined) { console.error('loop-probe: --walk expects a JSON array of strings'); process.exit(2) }
+}
 const sizeIndex = args.indexOf('--size');
 const size = sizeIndex >= 0 ? (args[sizeIndex + 1] ?? '1600,1000') : '1600,1000';
 const keepBrowser = flag('--keep-browser');
@@ -296,6 +309,13 @@ try {
     if (followUp !== undefined && verdict.ask.replySeconds !== null) {
       verdict.followUp = await runTurn(followUp);
     }
+    // The naive walk: further turns in the same session, sequential (each waits for its
+    // reply before the next paste — the composer is one editor, parallel pastes would eat
+    // each other).
+    if (walk !== undefined && walk.length > 0 && verdict.ask.replySeconds !== null) {
+      verdict.walkTurns = [];
+      for (const message of walk) verdict.walkTurns.push(await runTurn(message));
+    }
     // The 👎 flow: rate the LAST assistant message with a category and a
     // remark — the signal the friction report (§7) and the next fix list run on.
     // SEQUENTIAL evaluate steps, not one async IIFE: the driver's evaluate
@@ -355,5 +375,7 @@ const askOk = verdict.ask !== undefined
 if (ask !== undefined && !askOk) exitCode = 1;
 if (followUp !== undefined && (verdict.followUp === undefined
   || verdict.followUp.sent !== 'sent' || typeof verdict.followUp.replySeconds !== 'number')) exitCode = 1;
+if (walk !== undefined && (verdict.walkTurns ?? []).some(turn =>
+  turn.sent !== 'sent' || typeof turn.replySeconds !== 'number')) exitCode = 1;
 if (dislike && verdict.dislike !== 'submitted') exitCode = 1;
 process.exit(exitCode);
