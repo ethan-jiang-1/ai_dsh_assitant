@@ -35,9 +35,9 @@ import { entryListSchema } from '@deepseek-ai/cordis-plugin-include'
 import Loader from '@deepseek-ai/cordis-plugin-loader'
 import { Service } from '@deepseek-ai/cordis'
 import { describe, expect, it } from 'vitest'
-import { parseRows } from '../../../scripts/generate/gen-catalog.mjs'
+import { parseRows } from '../../../../scripts/generate/gen-catalog.mjs'
 
-const packageRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
+const packageRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const ownRows = parseRows(readFileSync(join(packageRoot, 'cordis.patch.yml'), 'utf8'))
   .filter(row => row.name !== undefined && row.name.startsWith('dsh-smart-assistant'))
 const runnerPatches = {
@@ -62,7 +62,7 @@ const presetSubRows = ownRows.filter(row => row.name !== PREFIX)
 /** Relative source-module path for a patch row name (package root row → src/index.ts). */
 function sourceOf(rowName) {
   const sub = rowName.slice(PREFIX.length).replace(/^\//, '')
-  return sub === '' ? '../src/index.ts' : `../src/${sub}/index.ts`
+  return sub === '' ? '../../src/index.ts' : `../../src/${sub}/index.ts`
 }
 
 if (hostRow === undefined || presetSubRows.length === 0) {

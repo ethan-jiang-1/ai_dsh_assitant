@@ -39,7 +39,7 @@ const SUBPATH_PACKAGES = [
 
 /**
  * Packages whose built libs the real-loader preset import walks into. The composition suite
- * (packages/dsh-smart-assistant/tests/preset-composition.spec.ts) loads this package's four tool
+ * (packages/dsh-smart-assistant/tests/composition/preset-composition.spec.ts) loads this package's four tool
  * rows through the Loader, whose internal.import resolves with plain Node — realpath into vendor
  * `lib/`, not the src tree tsx/vitest alias. Those rows import `@deepseek-ai/dsh-tools` and
  * `@deepseek-ai/dsh-skill-filesystem` as peers, and the built dsh-tools imports

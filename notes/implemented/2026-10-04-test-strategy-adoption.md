@@ -31,13 +31,13 @@
   `unowned` 显式出现在 diff）；复用 shots 子进程采集（不复制 CDP 坑）；首场景
   `snapshots/web-face/blank-first-open/`（契约 README + snapshot.yml 同 diff）。prove-it-red：
   11 形态夹具 + 全链路污染期望→`FAIL exit 1`→还原复绿。
-- **切片 3（导出形态守卫）**：`tests/export-shape.spec.mjs` 9 用例；复用 gen-catalog 的
+- **切片 3（导出形态守卫）**：`tests/composition/export-shape.spec.mjs` 9 用例；复用 gen-catalog 的
   `parseRows`（一个解析器两个消费方）。**守卫首跑即抓真红**：dev patch 两处行 id
   `preset-runner` 与插件 name 导出 `assistant-preset-runner` 漂移——判定统一为 id=name 导出
   （shipped 面 8 行的既成约定；行 id 是 `--dump-config` 与组合的身份面，漂移即孤儿行风险），
   同 diff 修 `dev/preset-runner*.patch.yml` ×2 + `release-smoke.mjs` 断言 + `gen-catalog` 重生成。
   prove-it-red：造 default export → `exit 1` 精确指认模块。
-- **切片 4（生命周期补缺）**：`tests/registry-lifecycle.spec.ts` 7 用例（工具×4 参数化 + 段落×2
+- **切片 4（生命周期补缺）**：`tests/composition/registry-lifecycle.spec.ts` 7 用例（工具×4 参数化 + 段落×2
   经真实 `assemble({scope})` 断言撤销 + dispose 后重挂）。两个实证发现入注释：① scoped 注册对
   全局视图不可见（`ScopedLayers` 按 scope 链合并），断言必须带与 `createScope` 同一引用的
   scope key；② `assemble({scope})` 免 agent 全家桶。机制注释写实证结论：贡献经 cordis effect

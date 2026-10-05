@@ -12,7 +12,7 @@ P1 采用最小证据链修复组合与测试门禁的可见性缺口，不迁�
 
 ## 反证与证据
 
-- runner 身份反证：临时把 expert patch 的 `id: preset-runner` 改成错误值后，`pnpm --filter dsh-smart-assistant exec vitest run tests/export-shape.spec.mjs` 以 exit 1 失败，命中该文件的显式身份断言；随后恢复。
+- runner 身份反证：临时把 expert patch 的 `id: preset-runner` 改成错误值后，`pnpm --filter dsh-smart-assistant exec vitest run tests/composition/export-shape.spec.mjs` 以 exit 1 失败，命中该文件的显式身份断言；随后恢复。
 - 配置缺行反证：临时从 shipped YAML 删除 `assistant-memory-tool` 后，组合 spec 以 exit 1 失败，两个要求四工具的断言都缺少 `assistant_memory`；随后恢复。
 - 绿色窄证据：`export-shape.spec.mjs` 四 runner patch + 包行共 13 tests 通过；`preset-composition.spec.ts` 6 tests 通过，共 19 tests。
 - 递归资产检查的旧实现负例与缺构建物负例已在本片实现前实际执行并恢复，详见 P1 计划与测试门禁夹具。

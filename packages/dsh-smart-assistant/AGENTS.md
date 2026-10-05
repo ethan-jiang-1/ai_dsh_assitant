@@ -42,7 +42,7 @@
 
 1. **不在这里改** [`vendor/dsh/`](../../vendor/dsh/)：DSH 源码永不改，升级只走 `pnpm sync-dsh`。
 2. **不在包内跑裸 node 起 harness**：一律经仓根 `pnpm dsh`（它强制 dev home，永不碰日用 `~/.dsh`）。
-3. **改动分两层验**：纯核改 `tests/*.spec.ts`；模型可见面改必跑仓根真实组合测试
+3. **改动分两层验**：纯核改 `tests/domain/*.spec.ts`（层表见 [`docs/testing.md`](../../docs/testing.md)）；模型可见面改必跑仓根真实组合测试
    （包根 `cordis.patch.yml` 的 `preset-assistant` 行 + Standing mount + 代理消费）、`pnpm build`
    （组合测试与 `release-smoke` 消费 `lib/` 产物，不 build 会拿到旧行为）与 `pnpm eval`
    （行为回归：真实请求跑一遍，判定读会话日志——改 persona/工具描述/家手册/协作边界时它是唯一会红的那层）。

@@ -82,7 +82,7 @@
 - **身份语义红绿**：`tests/host/root-files.spec.ts`（8 用例）——种子=内置默认（day 0 零变化）、
   手改逐字生效、空文件回退默认、手册缺失现场渲染当前版（缺文件永不落后）、漂移 finding
   报旧版本/静默于当前版。
-- **真组合断言**：`tests/preset-composition.spec.ts` 扩为三段落——真实 Loader+roster+standing
+- **真组合断言**：`tests/composition/preset-composition.spec.ts` 扩为三段落——真实 Loader+roster+standing
   mount+代理路径组装 system prompt，断言 `assistant:soul` < `assistant:home-manual` <
   `assistant:memory-digest` 顺序与各段内容；`tests/host/service-shadow-access.spec.ts` 扩为三快照
   方法的代理回归（原 #private 翻车路径）。

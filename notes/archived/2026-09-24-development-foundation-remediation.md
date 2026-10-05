@@ -57,7 +57,7 @@ vendor 的现状保留，构建前置写明）。
 profile 各自的链（dev = base→web-app→插件；dev-task = base→headless→插件），并注明两个 patch 文件
 不可互换。
 
-**G · 真实组合回归**：`tests/preset-composition.spec.ts`——真实 Loader + vendor 注册表
+**G · 真实组合回归**：`tests/composition/preset-composition.spec.ts`——真实 Loader + vendor 注册表
 （llm/session/session-projection/system-prompt/tools/skill/agent/agent-loop/agent-presets）+ 站立
 挂载 + 真 Agent join。装载内容是本包自己的面：agent 面行（digest + 四工具，行名与本包
 agent.cordis.yml 逐字一致，从 lib/ 构建物经 node_modules 链接解析——部署同款）与 host 行（发布入口

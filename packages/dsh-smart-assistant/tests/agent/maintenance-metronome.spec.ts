@@ -1,4 +1,6 @@
 /**
+ * Layer: agent (agent-loop turn contract). Counting/dedup/reset state lives in the host
+ * service (src/index.ts); service-plane contracts live in tests/host/.
  * The maintenance metronome (tri-line proposal 2026-09-24, slice 1e; I14): every N goal rounds a
  * maintenance turn takes the slot the round driver's yield barrier reserves. These tests pin the
  * interval predicate and, with a fake agent, the counting, dedup, per-goal reset, and the

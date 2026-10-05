@@ -37,7 +37,7 @@
 
 **修法与证据**（完整记录与输掉的方案）：[0.1.7 迁移 note §十二](2026-09-25-dsh-0-1-7-migration.md)。
 要点：改为按包名解析（`createRequire(baseUrl).resolve('dsh-smart-assistant/package.json')` + 包内相对路径，
-shipped `cordis` preset 的同款惯用法）；新增红夹具 `tests/preset-skill-root.spec.ts`（修复前解析到包外＝红）；
+shipped `cordis` preset 的同款惯用法）；新增红夹具 `tests/composition/preset-skill-root.spec.ts`（修复前解析到包外＝红）；
 live 探针重跑：按名加载 `management-breakdown` 成功、8 件策展技能全在；账本出现迁移后第一次策展技能加载。
 
 **并发修复的裁决记录（责任圈会话补记，2026-09-25）**：本 bug 被两个会话同时独立诊断（同一探针法：

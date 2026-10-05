@@ -27,7 +27,7 @@
 
 - 一次性 dev home 内、无模型的浏览器挂载检查：记录 `$mount` 拒绝原因、namespace 是否存在、点击产生何种 Remote 调用；确认实际构建与本 pin 对齐。无需再次烧模型证明静态 codec 冲突。
 - 后续实施若获授权，再补临时知识页的 Remote/模型路径合同测试：status、verified、审计文件、重复调用、审计写失败后的页面状态与恢复；并查真实审批日志是否充分标记“谁、何时、批了什么、执行是否成功”。本轮不实现修复。
-- Remote 注释称 gateway 自带 remote journal，但本轮未找到可引用的实际审批持久化调用，不能列为第二份已验证审计。组合测试只是挂载伴生服务：[composition:118–122](../../../packages/dsh-smart-assistant/tests/preset-composition.spec.ts#L118-L122)，不是浏览器贯通或审计失败测试。
+- Remote 注释称 gateway 自带 remote journal，但本轮未找到可引用的实际审批持久化调用，不能列为第二份已验证审计。组合测试只是挂载伴生服务：[composition:118–122](../../../packages/dsh-smart-assistant/tests/composition/preset-composition.spec.ts#L118-L122)，不是浏览器贯通或审计失败测试。
 
 ## 2. OV 实验 home、server/storage/peer 与数据边界
 

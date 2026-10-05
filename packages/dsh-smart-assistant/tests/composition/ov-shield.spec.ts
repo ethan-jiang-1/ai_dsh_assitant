@@ -19,8 +19,8 @@ import ToolRuntime from '@deepseek-ai/dsh-tools'
 import SystemPrompt from '@deepseek-ai/dsh-system-prompt'
 import SkillRegistry from '@deepseek-ai/dsh-skill'
 import { afterEach, describe, expect, it } from 'vitest'
-import * as OvShield from '../src/ov-shield/index.ts'
-import { denyDelta, SHADOW_DESCRIPTION_PREFIX } from '../src/ov-shield/index.ts'
+import * as OvShield from '../../src/ov-shield/index.ts'
+import { denyDelta, SHADOW_DESCRIPTION_PREFIX } from '../../src/ov-shield/index.ts'
 import { ToolCallId } from '@deepseek-ai/dsh-llm'
 
 const testSignal = new AbortController().signal

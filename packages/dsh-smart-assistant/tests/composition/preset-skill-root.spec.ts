@@ -20,7 +20,7 @@ import { interpolate } from '@deepseek-ai/cordis-plugin-loader'
 import { afterAll, describe, expect, it } from 'vitest'
 import { parse } from 'yaml'
 
-const packageRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
+const packageRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const packageName = 'dsh-smart-assistant'
 
 /** Loader dialect for `!!js` scalars: the loader interpolates the expression later, against a context. */

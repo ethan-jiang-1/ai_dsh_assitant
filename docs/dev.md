@@ -93,6 +93,7 @@ pnpm desk-loop              # 培养循环摩擦报告：从真实会话日志�
 pnpm eval:domain            # 领域评测集 v0（G2）：把本人出的真实经营问题逐题跑一遍，产出**给人打分**的报告（题目格式见 dev/eval/domain/TEMPLATE.md）
 pnpm ov-trial-rt            # OpenViking 试点第 5/6 步驱动：server 级记忆往返 + 抽取质量抽评（建会话→塞哨兵语料→commit→等抽取→找回→读抽取物；前提 server 在 127.0.0.1:1933）
 pnpm test:composition       # 先 pnpm build，再跑真实 shipped preset 组合 spec
+pnpm test:domain / pnpm test:host / pnpm test:agent / pnpm test:client / pnpm test:tooling   # 层入口：只跑对应 tests/<layer>（各层能/不能证明什么见 docs/testing.md 分层表）
 pnpm typecheck && pnpm test && pnpm verify
 ```
 

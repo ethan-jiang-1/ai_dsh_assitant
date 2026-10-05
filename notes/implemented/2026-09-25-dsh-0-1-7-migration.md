@@ -122,7 +122,7 @@ vendor 的构建脚本假设**已经引导过的树**（其 `lib/` 在场）。�
 ③跳过不存在的目标。效果：**32/33 套件通过、213/215 tests**（改动前是 16/33；上上圈清理 vendor `lib/` 导致）。
 这条同时消灭了"stale lib 静默跑旧 pin 代码"（§三.2）——测试与运行时现在解析**同一份源码**。
 
-**剩下的 2 个（同一个套件）**：`tests/preset-composition.spec.ts` 的两条都失败于
+**剩下的 2 个（同一个套件）**：`tests/composition/preset-composition.spec.ts` 的两条都失败于
 `RemoteError: assistant-memory-tool (dsh-smart-assistant/tool-memory): never started`（research/knowledge/learn 同），
 抛出点 `vendor/dsh/packages/preset/agent-preset-registry/src/index.ts:219`（registry 的 retain 在收集"没起来的行"）。
 **不是解析失败**（否则报 not found）：四条行都被登记进了树，但没进入 started 态。
@@ -248,7 +248,7 @@ preset 的同款惯用法——`createRequire(baseUrl).resolve('dsh-smart-assist
 是同一种形状。文件头与技能段的注释同步改写，避免下一个人再按"baseUrl = 本文件目录"写路径。
 
 **验证（真跑过的）**：
-- 新增红夹具 `packages/dsh-smart-assistant/tests/preset-skill-root.spec.ts`：读真实 `cordis.patch.yml`，用 loader 的
+- 新增红夹具 `packages/dsh-smart-assistant/tests/composition/preset-skill-root.spec.ts`：读真实 `cordis.patch.yml`，用 loader 的
   `interpolate`（运行时同一个求值器）在"profile 形状 + node_modules link"的 baseUrl 下求值那一行。
   修复前红：解析结果 `/var/folders/…/assistant-preset-base-…/presets/assistant/skills/`（包外）；修复后绿（= 包内目录）。
 - live：`pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner.patch.yml "用 skill 工具按名加载 management-breakdown…"`

@@ -12,9 +12,9 @@
 | 改动面 | 证据 | 家 |
 |---|---|---|
 | 纯核 / 存储词汇 / 检索排序 | 单元 spec | `packages/dsh-smart-assistant/tests/**/*.spec.ts` |
-| 导出形态 / 组合行身份 | 台阶一守卫（现读 patch，新行自动被扫） | `tests/export-shape.spec.mjs` |
-| 注册贡献的撤销 | 生命周期守卫（新注册面同 diff 加用例） | `tests/registry-lifecycle.spec.ts` |
-| 组装后的组合（服务/段落/工具 scope） | 真实组合测试（真 Loader + built lib + 站立挂载；需 `pnpm build`） | `tests/preset-composition.spec.ts` |
+| 导出形态 / 组合行身份 | 台阶一守卫（现读 patch，新行自动被扫） | `tests/composition/export-shape.spec.mjs` |
+| 注册贡献的撤销 | 生命周期守卫（新注册面同 diff 加用例） | `tests/composition/registry-lifecycle.spec.ts` |
+| 组装后的组合（服务/段落/工具 scope） | 真实组合测试（真 Loader + built lib + 站立挂载；需 `pnpm build`） | `tests/composition/preset-composition.spec.ts` |
 | web 渲染面（首开/座位/文案） | 期望比对（隔离 home 真渲染，DOM 证据 diff） | `snapshots/web-face/` + `pnpm web-expected` |
 | 行为地板 / 领域质量 | `pnpm eval`（判决读会话日志）/ `eval:domain`（人判） | `dev/eval/` |
 | 发布物 / 依赖 / preset 包装 | `pnpm release-smoke`；真模型冒烟 `pnpm loop-probe`；keyless 回放 `dev/probes/session/preset-runner-replay.patch.yml` | `scripts/release/release-smoke.mjs` |
@@ -23,10 +23,10 @@
 
 | 台阶 | 本仓样板 | 何时必须 |
 |---|---|---|
-| ① 导出形态（无 default + unwrapExports 往返 + name=行 id） | `tests/export-shape.spec.mjs` | 每 patch 行（现读，自动覆盖） |
+| ① 导出形态（无 default + unwrapExports 往返 + name=行 id） | `tests/composition/export-shape.spec.mjs` | 每 patch 行（现读，自动覆盖） |
 | ② 行为 spec（真依赖，只 stand-in 最外层包装） | 各 `tests/*.spec.ts` | 每个行为改动 |
-| ③ 注册生命周期（dispose 即撤销 + 可重挂） | `tests/registry-lifecycle.spec.ts` | 每个新注册面 |
-| ④ 真实组合（真 Loader 读真 yml，hand-built 不算数） | `tests/preset-composition.spec.ts`（入口：`pnpm test:composition`，先 build） | 每个新 preset 行；spec 从 shipped `preset-assistant` rows 取本包范围 |
+| ③ 注册生命周期（dispose 即撤销 + 可重挂） | `tests/composition/registry-lifecycle.spec.ts` | 每个新注册面 |
+| ④ 真实组合（真 Loader 读真 yml，hand-built 不算数） | `tests/composition/preset-composition.spec.ts`（入口：`pnpm test:composition`，先 build） | 每个新 preset 行；spec 从 shipped `preset-assistant` rows 取本包范围 |
 | ⑤ 组装转录（录制会话 keyless 回放） | 未建——触发条件 owner：`snapshots/README.md` | 触发未到，不预建 |
 
 ## 政策条款（禁令，无例外）
@@ -52,6 +52,22 @@
 | `*.bench.ts` / `*.perf.ts`（预留） | 性能门（独占）/ 手动诊断 | 未建 | 第一处性能回归实证后立案 |
 
 期望文件一律叫 `expected`，不叫 `golden`（上游"命名即所有权"门的口径）；新增测试资产形态先入本表再落文件——由 `verify` 的 `test assets:` 门机械执行（负例夹具：`tests/tooling/verify-gates.spec.mjs`）。
+
+## 测试层：目录即被测 interface（双层寻址——后缀 = 车道，目录 = interface 家）
+
+分层轴 = **被测 interface × 真实依赖半径**，不用 unit/integration/e2e 标签（同一标签下纯核与真 IO 的失败含义不同，标签回答不了"要什么前置"）。一个 spec 归最主要 interface，跨层依赖在文件头注明。渲染期望（snapshots 两场景，真浏览器）与行为评测（eval，真模型判日志）是独立车道，不在本表。
+
+| 目录 | 被测 interface | 依赖半径 | 能证明 | 不能证明 | 层命令 |
+|---|---|---|---|---|---|
+| `tests/domain/` | 领域规则与存储基础（词汇、生命周期、检索排序、摘要渲染、curate findings、布局、Room 适配器） | src 直读；临时目录文件 IO | 规则/解析/排序/预算/渲染的确定性 | 组合装载、模型可见面组装、浏览器渲染 | `pnpm test:domain` |
+| `tests/host/` | 服务合同（四房间读写、curate、提案收件箱、房间落位、根文件、品牌注入） | 真 cordis Context + 临时 home | 写路径/生命周期/代理访问的服务级行为 | 段落组装（agent 层）、装载与注册（composition 层） | `pnpm test:host` |
+| `tests/agent/` | agent 面合同（提示词段落、养护回合） | 真服务 + 临时 home | 段落就绪/段落预算/回合占位等模型可见合同 | Loader 组合、UI 读回；机制本体在 host 服务（文件头注明） | `pnpm test:agent` |
+| `tests/composition/` | 配置装载、注册与范围合同 | 真 Loader + shipped YAML + built `lib/` | 行身份、导出形态、注册撤销、scope 语义、本包组合 seam | vendor rows、完整产品 boot（release-smoke 的事） | `pnpm test:composition`（先 build） |
+| `tests/client/` | 浏览器注册与交互状态合同 | classic-script 装置 + React shim，无浏览器 | 注册、组件树、回调、色彩契约 | 真实 web boot 与渲染（`pnpm web-expected` 两场景） | `pnpm test:client` |
+| `tests/tooling/` | 仓库工具核（verify 门禁、eval 判决、catalog 生成器、报告、DOM 比较核） | 脚本直读 + throwaway 夹具 | 工具核的接受/拒绝形状（含 prove-it-red 负例） | 真实会话/渲染/门禁全量（`pnpm verify` 的事） | `pnpm test:tooling` |
+| `tests/support/` | 共享夹具（`*harness.ts`） | — | — | 刻意不被任何 include 选中（门禁豁免容器） | — |
+
+失败报告先按本表分层归因再上浮：配置 / 构建物 / 领域规则 / 服务行为 / 模型回合 / UI 读回，不混称"测试挂了"。
 
 ## 已定姿态与升级触发
 
