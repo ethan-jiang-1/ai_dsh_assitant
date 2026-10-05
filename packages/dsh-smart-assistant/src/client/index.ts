@@ -734,6 +734,27 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   }
 
   /**
+   * Inline skill-proposal approval (B2, 2026-10-06): the click IS the approval — the prompt
+   * asks the assistant to edit the proposal file's status to approved and then land_skill it
+   * in the same turn. Same one-click shape as the knowledge draft's 批准 button, so every
+   * review queue on the principal's surface is in-place, not a separate chore.
+   */
+  function askApproveProposal(name: string, sessionId?: string): void {
+    sendPrompt(
+      `桌面面板代本人批准技能提案「${name}」：请把提案文件的 status 改为 approved，然后立刻 land_skill 落地。${DESK_REFRESH_STEP}`,
+      '批准提案', name, sessionId,
+    )
+  }
+
+  /** The rejection twin: the proposal is rejected with the principal's one-line reason. */
+  function askRejectProposal(name: string, reason: string, sessionId?: string): void {
+    sendPrompt(
+      `桌面面板代本人拒绝技能提案「${name}」：请把提案文件的 status 改为 rejected（理由：${reason}）。${DESK_REFRESH_STEP}`,
+      '拒绝提案', name, sessionId,
+    )
+  }
+
+  /**
    * Answer one open decision. The mirror of a correction: there the principal says a record is
    * wrong, here they say what they have decided — and the assistant records the call and moves.
    */
@@ -2124,6 +2145,37 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
                   : null,
                 createElement('ul', { style: { margin: 0, paddingLeft: '18px', fontSize: '13px', lineHeight: 1.8, color: 'var(--dsha-warn)' } },
                   ...drafts.map(page => row(page, '⚠ ')))),
+            // Inline skill proposals (B2, 2026-10-06): the review inbox rides the same panel as
+            // the knowledge drafts — one-click approve/reject in place, no separate chore. The
+            // proposals come from the desk file's `knowledge` section (drafts the assistant
+            // proposes as skills, not pages); each row carries CorrectableRow for the reject
+            // reason and one-click approve, same shape as the knowledge draft rows above.
+            (store.data?.knowledge ?? []).some(item => (item as { kind?: string, status?: string }).kind === 'skill-proposal' && (item as { status?: string }).status === 'proposed')
+              ? createElement('div', null,
+                  sectionTitle(`技能提案（${(store.data?.knowledge ?? []).filter(item => (item as { kind?: string, status?: string }).kind === 'skill-proposal' && (item as { status?: string }).status === 'proposed').length}）`),
+                  ...(store.data?.knowledge ?? [])
+                    .filter(item => (item as { kind?: string, status?: string }).kind === 'skill-proposal' && (item as { status?: string }).status === 'proposed')
+                    .map(item => createElement(CorrectableRow, {
+                      key: String(item.id ?? item.title),
+                      rowId: `proposal-${String(item.id ?? item.title)}`,
+                      primary: createElement('span', null,
+                        createElement('span', { style: { fontSize: '13px', fontWeight: 600 } }, String(item.title ?? item.id ?? '')),
+                        (item as { description?: string }).description !== undefined
+                          ? createElement('div', { style: { fontSize: '11px', color: 'var(--dsw-alias-label-secondary)', fontWeight: 400 } }, String((item as { description?: string }).description))
+                          : null),
+                      actionLabel: '批准',
+                      placeholder: '不批准的理由（可选，会记进提案文件）',
+                      deskSession: session,
+                      onSubmit: (text: string) => {
+                        if (text.trim() === '') {
+                          askApproveProposal(String(item.title ?? item.id ?? ''), session)
+                        } else {
+                          askRejectProposal(String(item.title ?? item.id ?? ''), text, session)
+                        }
+                      },
+                      actions: [{ label: '批准', run: () => { askApproveProposal(String(item.title ?? item.id ?? ''), session) } }],
+                    })))
+              : null,
             sectionTitle(`已确认（${stable.length}）`),
             stable.length === 0
               ? muted('（还没有已确认的知识页）')
