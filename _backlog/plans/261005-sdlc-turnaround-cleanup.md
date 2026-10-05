@@ -32,7 +32,7 @@
 
 - **机制面**：~~self-reflection / home-curation / research 与技能提案的实际输入、触发、消费者、成本~~ **已审（2026-10-05，处置表 v2 见下）**；memory-hygiene 的归属按实际上下文再定（40 载活跃，倾向留守，随门禁面一并复核）。
 - **门禁面**：verify各检查的风险与反例、消费者及成本——完整清单以脚本为准；间接保护可靠性也有价值，不按是否出现在演示中裁掉。
-- **数据面**：dev home 试车场数据、trial home 残留、探针会话残留（261001 卡曾多轮清理）。学习技能的开发残留已随机制面审计处置（见 v2 表末两行）。
+- **数据面**：~~dev home 试车场数据、trial home 残留、探针会话残留~~ **已审（2026-10-05，处置表 v2 · 数据面见下）**。
 - **文档面**：docs/notes 链上指向已死方向的段落（语义漂移审计技能的用武之地）。
 - **演示面**：harness 打扫的产品定义——管理层打开时看不到任何开发内脏（与 261001 卡
   残留清单、上游候选台账衔接）。
@@ -48,6 +48,23 @@
 | 低热策展技能（decision-routing 1 / finance-compliance 1 / market-sizing 2 / project-economics 2 / session-recall 8 / action-plan 6） | 窗口仅约 10 天、末次 10-03/04（trial 期读数）；B 军师域 = 定位第一天承诺 | ①是（域承诺）②是③失军师面 | **留守**；账本窗口太短不按低计数定罪（home.md 账本纪律），90 天阈值到期由 curate 报 |
 | ~~repo-live-probe（学习技能）~~ | 账本记 1 载（09-25）但目录已不存在（早前清理）；0 残留 | — | **已在案外消失，无需处置** |
 | campaign-evidence-recording（学习技能） | **开发用技能混进产品目录**（dev 会话与产品共用 home 所致；内容=本仓 live 验证记录法）；窗口内 0 载 | ①否（服务 dev）②否③失 dev 会话便利（可在 `.agents/skills/` 重安家=另立决定，不搭车） | **已归档**（skills/archive/，retire 语义、可恢复；2026-10-05 执行） |
+
+### 处置表 v2 · 数据面（2026-10-05 审计；逐资产消费者/损失/回退）
+
+| 资产 | 消费者 / 处置依据 | 裁决 |
+|---|---|---|
+| dev home sessions/（356：真人 270 + 评测 69） | usage 仪表、desk-loop 摩擦报告、eval 判决、session_query 全部读它——**会话史就是审计仪器本身**，删它=毁仪表 | **留守** |
+| dev home assistant/（12 记忆/10 线索/23 知识页） | 产品试车场的活状态；机制面审计的证据源；真实学习回路的产出 | **留守** |
+| session-search.db（96MB） | session_query 工具与 preflight 的活索引 | **留守** |
+| trial-home | 三个活跃材料的演示载体（首开卡发行余项、定位卡 trial 读数、repo-navigability 运行 home 保留决定）；P1-C 工作区修复与 locale patch 的样板 | **留守** |
+| handoff-2026-09-29-openviking-trial.md | 暂停实验（OV 触发型）的恢复证据，成本≈0 | **留守** |
+| settings.yaml.imported / .anonymous-user-id | 迁移标记，消费者未知——不凭年代删 | **留守** |
+| dev home 根 `ov-rt.mjs` | P2 归位前的旧副本；正本在 `dev/experiments/openviking/ov-rt.mjs`（git 在案且已演进：支持 session-id 参数） | **已删**（内容在 git 正本无损失） |
+| dev home 根 `p1-commit-msg.txt` | 早已消费的提交草稿，实际提交在 git 历史 | **已删** |
+| 仓根 `.desk/state.json` 陈旧投影 | 陈旧投影（重开即生成）；先前 eval 残留 | **已清**（随 A' 切片，2026-10-05） |
+| /tmp 一次性 home ×2（eval 与演示） | key 副本卫生；eval home 已清零；演示 home 服务在跑，用户示意用完即清 | **待清**（演示关停时） |
+
+结论：数据面主体是**证据不是垃圾**——试车场数据=审计仪器；真正可弃的只有两件被正本取代的散落文件（已删）。
 
 审计副产品（真实摩擦读数，喂演示/真用合流问题）：desk-loop 报 **71%（15/21）面板轮点名 desk-refresh 却未加载该技能**（冷发现不可靠类）+ 3/21 点了没重写桌面文件 + 4 处同行 15 分钟内反复动——三者都是桌面主对象化切片（新 UX 第一刀）的输入，不是本卡处置对象。
 
