@@ -37,6 +37,14 @@
 - 自洽卡四件门逐件闭合记录：入口证据=本卡事实 1-4；旧会话回路=视图是 UI 层叠加、会话数据与既有 right-tab 面板不动（回归由既有 client spec 守）；示例/真实边界=沿用 desk 数据标注纪律；审批/撤销=沿用面板既有动作路径（remote.session.prompt 车道，不新增直调）。
 - DeskData 契约不动；四工具/persona/组合行零变化（非模型可见面）。
 
+## 发行预置拍板材料（⑤预备；正式拍板待用户真机读数后）
+
+| 行 | 证据 | 建议 |
+|---|---|---|
+| `workspace-controller.documentsDirectory`（P1-C） | vendor README：**全限定 Host 目录覆盖，无便携形式**；vendor 默认=系统 Documents 目录（首用设计路径，TCC 正常弹窗授权）。本仓 P1-C 失败是**本机 headless/sandbox 进程上下文**的特例，非装机普遍态；随 bundle 预置会把所有安装钉死到一条机器路径 | **不随发行预置**——留在 dev/trial profile 层作环境特定配置；真装机首开走 vendor 设计路径（Documents + 授权弹窗），失败兜底=文件夹选择器（vendor 既有） |
+| `locale.preference: zh`（261001） | 无偏好时首开语言随浏览器协商（英文浏览器落 en——用户本人 2026-10-01 的直接投诉）；目标用户=中文管理者；Settings 可改且持久化到 home 层覆盖 | **建议随发行预置 zh**（产品声音决策，用户可一并确认） |
+| `ui-chat.transcriptView: detailed` | vendor 预构建 lib 落后其 src 的兜底缺口（首开崩溃实测）；退役条件=上游发布物确认带兜底 | 维持现状（standing 条件，非新决定） |
+
 ## 输掉的方案
 
 1. **桌面为默认落地视图（打开即见桌面）**：被 vendor 硬编码（事实 2）与空白相位自持（事实 3）挡住——硬造需要 vendor 改动，走上游 D7；插件边界内输给「视图并列 + 偏好记忆」。
