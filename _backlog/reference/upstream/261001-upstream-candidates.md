@@ -8,7 +8,7 @@
 
 ## 稳定候选（多轮读数反复命中，或带代码锚可直接立 issue）
 
-> 递交草案：[261001-upstream-issue-drafts.md](261001-upstream-issue-drafts.md)（D1-D6 覆盖下行 #1/#2/#3+#9/#5/#6/#7，档头记录 2026-10-05 文本已放行；尚无已递链接。本轮仅校准资料，不执行对外递交，认证/渠道事实使用时复核）。
+> 递交草案：[261001-upstream-issue-drafts.md](261001-upstream-issue-drafts.md)（D1-D6 覆盖下行 #1/#2/#3+#9/#5/#6/#7；2026-10-05 文本放行，2026-10-06 已全部递交：D1→[discussions/8939](https://github.com/deepseek-ai/deepseek-harness/discussions/8939)、D2→[8940](https://github.com/deepseek-ai/deepseek-harness/discussions/8940)、D3→[8941](https://github.com/deepseek-ai/deepseek-harness/discussions/8941)、D4→[8942](https://github.com/deepseek-ai/deepseek-harness/discussions/8942)、D5→[8943](https://github.com/deepseek-ai/deepseek-harness/discussions/8943)、D6→[8944](https://github.com/deepseek-ai/deepseek-harness/discussions/8944)；后续状态以上游回复为准）。
 
 | # | 候选 | 首报 | vendor 锚点 | 说明 / 建议动作 |
 |---|---|---|---|---|
