@@ -12,7 +12,7 @@
 
 | 阶段 | 内容 | 状态 |
 |---|---|---|
-| P0 真实入口与地图 | `docs/architecture.md` 三链导航（启动链/模型请求链/浏览器动作链，逐节点真实源码链接）；五条功能路由（记忆保存/检索、知识草稿/批准/检索、提示词摘要、桌面刷新、插件装载——各给规则与状态、实现入口、最低验证命令、失败看什么）；空 `agent.cordis.yml` 先搜消费者再处置 | 大半随 `f25d686` 交付（README 入口表、dev §六、testing 分工、包 AGENTS/setup 真实入口）；残尾待做 |
+| P0 真实入口与地图 | `docs/architecture.md` 三链导航（启动链/模型请求链/浏览器动作链，逐节点真实源码链接）；五条功能路由（记忆保存/检索、知识草稿/批准/检索、提示词摘要、桌面刷新、插件装载——各给规则与状态、实现入口、最低验证命令、失败看什么）；空 `agent.cordis.yml` 先搜消费者再处置 | **已交付**：大半随 `f25d686`；残尾（空文件处置 + 三链/路由）见 [P0 note](../implemented/2026-10-05-p0-entry-map-residue.md) |
 | P1 验证可信度 | 组合读真 shipped 配置、缺 build 显式红、资产守卫递归、runner 身份钉住 | **已交付**：[P1 note](../implemented/2026-10-05-p1-validation-trustworthiness.md) |
 | P2 研发工具归位 | scripts 与 dev 的工具按目的归位：dev 下分 env、profiles、probes（session/web）、fixtures、eval、reports、deploy、experiments 职责子目录，scripts 下分 checks、generate、release、maintenance 四类（精确迁移归属表见卡）；**先试点一片再扩展**；运行 home 原地保留 | 待做（第一段 goal） |
 | P3 测试资产分层 | 按底稿逐 spec 迁入包测试树的 domain、host、agent、composition、client、tooling 职责子目录、support 单独；迁前后 Vitest 发现集合一一对应 | 待做（后续段） |
