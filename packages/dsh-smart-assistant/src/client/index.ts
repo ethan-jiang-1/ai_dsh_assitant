@@ -1517,6 +1517,53 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   }
 
   /**
+   * A2' (2026-10-06 stepwise form migration): the persistent desk summary bar in every
+   * non-blank session. The composer's dock (conversation.input.dock, scope: session) is the
+   * one surface that rides every conversation, so the desk's key numbers are always one
+   * glance above the composer — pending decisions, due actions, blocking gaps — with a
+   * one-click switch to the full desk view tab. This is the plugin boundary's answer to
+   * "the desk is always visible" (the auto-view-switch needs vendor's DEFAULT_VIEW_ID
+   * change, upstream candidate D7).
+   * @param props - The dock-injected `openDeskView` callback (sidebarRight.openTab).
+   * @returns The compact summary bar, or null when there is nothing to show.
+   */
+  function DeskSummaryDock({ openDeskView }: {
+    openDeskView?: () => void
+  }): ReturnType<typeof createElement> | null {
+    const walk = deskSlice(undefined)
+    const data = walk.data
+    if (data === undefined) return null
+    const decisions = (data.decisions ?? []).filter(item => item.kind === 'business' || ((item.options ?? []).length > 0))
+    const actions = (data.actions ?? []).filter(item => item.status !== 'done')
+    const gaps = data.gaps ?? []
+    if (decisions.length === 0 && actions.length === 0 && gaps.length === 0) return null
+    const chips: ReturnType<typeof createElement>[] = []
+    if (decisions.length > 0) chips.push(createElement('span', { key: 'dec', style: { fontSize: '12px' } }, `要拍 ${decisions.length}`))
+    if (actions.length > 0) chips.push(createElement('span', { key: 'act', style: { fontSize: '12px' } }, `在跟 ${actions.length}`))
+    if (gaps.length > 0) chips.push(createElement('span', { key: 'gap', style: { fontSize: '12px' } }, `缺 ${gaps.length}`))
+    return createElement('div', {
+      style: {
+        display: 'flex', gap: '10px', alignItems: 'center',
+        width: 'min(var(--dsh-composer-card-max-width, 952px), 100%)',
+        margin: '0 auto 4px', padding: '4px 14px',
+        border: '1px solid var(--dsw-alias-border-l2)', borderRadius: '8px',
+        background: 'var(--dsw-alias-bg-layer-1)',
+        fontSize: '12px', color: 'var(--dsw-alias-label-secondary)',
+      },
+    },
+    ...chips,
+    createElement('button', {
+      onClick: () => { openDeskView?.() },
+      style: {
+        border: 'none', background: 'transparent', cursor: 'pointer',
+        fontSize: '12px', color: MARK_TEAL, padding: '2px 8px', borderRadius: '4px',
+        textDecoration: 'underline',
+      },
+    }, '桌面 →'),
+    )
+  }
+
+  /**
    * The pending-approval banner above the composer. The desk already points at the drafts (S4),
    * but that pointer sits one room deep — the second naive-CEO reading (first-open UX card,
    * 2026-10-04) named the depth itself as the friction: pages wait for an approval only the
@@ -2505,6 +2552,16 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         order: -9,
         inject: () => ({ openRoom: openBeside }),
       }, ApprovalDockBanner))
+
+    // A2' (2026-10-06): the persistent desk summary — rides every non-blank session above
+    // the composer. Same dock seat, one order slot below the approval banner.
+    ctx.slots.inject('conversation.input.dock', () =>
+      ctx.slots.register({
+        name: 'conversation.input.dock',
+        id: 'assistant-desk-summary',
+        order: -7,
+        inject: () => ({ openDeskView: () => { openBeside('desk') } }),
+      }, DeskSummaryDock))
   }
 
   // The occupants, the three panels, and the shared store are exposed for tests: the store is the
@@ -2515,7 +2572,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   return {
     inject, apply, AssistantBrandMark, AssistantBrandName,
     DeskPanel, KnowledgePanel, MemoryPanel, deskStore, deskSlice,
-    DeskTabBody, DeskViewBody, KnowledgeTabBody, MemoryTabBody, AssistantDeskChip, roomTabTitle,
+    DeskTabBody, DeskViewBody, DeskSummaryDock, KnowledgeTabBody, MemoryTabBody, AssistantDeskChip, roomTabTitle,
     roomCommands, AssistantHeroMark, FirstMileDock, ApprovalDockBanner, expirePending, settlePending, loadDeskFor, retireStaleReceipt, looksLikeDesk,
   }
 }
