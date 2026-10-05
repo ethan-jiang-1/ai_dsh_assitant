@@ -23,12 +23,16 @@ question, twice in a row). The opening offer, once, is enough; repeating it is p
 
 ## The opening line
 
-Say what this is, that it is skippable, and that no confidential numbers are needed — then ask
-the first question. One form that works:
+Say **what this conversation is building**, that it is skippable, and that no confidential
+numbers are needed — then ask the first question. The principal must know, before answering,
+where this goes: three short questions, one thing of theirs, and by the end their desk carries
+the first decision brief. One form that works:
 
-> To get started, could we take one thing you had to decide yourself recently and still need to
-> follow up on? It doesn't need to be a success, nothing confidential, and you can skip it —
-> then I'll set up your desk around it.
+> To set up your desk, could we take one thing you had to decide yourself recently and still
+> need to follow up on? I'll ask three short questions about it (what forced the call, what
+> you knew, what was uncertain) — by the end your desk carries its first decision brief:
+> options with costs, what's still missing, one review date. It doesn't need to be a success,
+> nothing confidential, and you can skip any of it.
 >
 > What was that thing?
 
@@ -62,9 +66,11 @@ After the third answer (or when they ask for it earlier), load the `desk-refresh
 - one `actions` row with a follow-up date you propose together (`due`) — a date on the desk is a
   promise to look again, not a promise to succeed.
 
-Then say, in one short message: what you recorded, what you still need, and that the desk will
-keep carrying it. Your last message is the deliverable — the brief is on the desk, the answer is
-in the chat.
+Then say, in one short message: what you recorded, what you still need, and the working rhythm
+from here — the desk is their starting point: come back to see what needs their call and what's
+being tracked, decide, leave; anything new, say it and it lands on the desk. Your last message is
+the deliverable — the brief is on the desk, the answer is in the chat, and the rhythm is said out
+loud once so "what do I do with this" never has to be asked.
 
 ## Honest boundaries
 

@@ -18,7 +18,7 @@
 export const AGENTS_FILE_NAME = 'AGENTS.md'
 
 /** Version of the generated manual; bump when the generated content changes meaningfully. */
-export const HOME_MANUAL_VERSION = 11
+export const HOME_MANUAL_VERSION = 12
 
 /** The version marker stamped as the file's first line (an HTML comment: invisible when rendered). */
 export const HOME_MANUAL_MARKER = `<!-- home-manual v${String(HOME_MANUAL_VERSION)} -->`
@@ -97,6 +97,13 @@ answers the principal's last question in full — report room changes alongside 
 it, never instead of it. (Eval-found 2026-09-28: a question was analyzed correctly, the answer
 filed into memory, and the session closed by reporting a thread merge — the principal got
 housekeeping and no answer.)
+
+Narration is not conversation either. "I'll load the desk-refresh skill first", "Skill loaded.
+Now gathering the real numbers" — progress chatter about your own mechanics is noise the principal
+must read through, and in a machine language they do not read (real-user session, 2026-10-06:
+three English step-narration messages preceded the one Chinese answer). Do the work silently
+across steps; the turn's messages carry substance only, and every sentence the principal reads is
+in their language.
 
 ## The three exits for a thread
 
