@@ -2,7 +2,11 @@
 
 > 立档：2026-10-05｜服务对象：[261001-upstream-candidates.md](261001-upstream-candidates.md)
 > （行号映射见下表）与 [首开 UX 卡](../plans/261001-first-open-ux.md)。
-> 状态：**草案待过目**——你点头后按你指定的渠道递交；文本即贴即用。
+> 状态：**已放行（2026-10-05 用户拍板「按建议递 6 条」并放行文本），待贴**——
+> 渠道 = `github.com/deepseek-ai/deepseek-harness` 的 **Discussions · Ideas** 分类
+> （CONTRIBUTING 明文外部反馈走 Discussions；issue 面留维护者）。两条执行路径：
+> ① 用户 `gh auth login -h github.com` 重认证（现 token invalid）→ agent 经 gh api 代发 6 帖；
+> ② 用户手贴——每帖 = 下表标题 + 对应草案正文块（即贴即用）。
 > 锚点版本：dsh **v0.2.0-rc.2**（c1857a8）。证据出处：真实产品安装上的两轮 delegated
 > naive-CEO 读数（2026-10-04，非开发者、中文使用）+ agent 侧取证轮（2026-10-01..05）。
 
@@ -135,8 +139,9 @@ gets from it, not what the machine calls it).
 
 ---
 
-## 递交清单（你点头后执行）
+## 递交清单（放行后执行）
 
-1. 你指定渠道（上游 tracker 链接/仓库，或你自己贴）——我按渠道产出最终文本或交给您手贴。
-2. 递交后在本档与台账逐条记「已递 + 链接」，台账行状态 稳定候选 → 已递交。
-3. D3 若上游倾向拆分（遥测与思考流两事），拆两帖的文本我已备好口径。
+1. ~~你指定渠道~~ 已定：deepseek-harness **Discussions · Ideas**（2026-10-05 查证，README/CONTRIBUTING 明文路由）。
+2. 执行路径：① `gh auth login -h github.com` 重认证后 agent 经 gh api 代发 6 帖；或 ② 手贴（标题取下表、正文取对应块）。
+3. 贴完在本档与台账逐条记「已递 + 链接」，台账行状态 稳定候选 → 已递交。
+4. D3 若上游倾向拆分（遥测与思考流两事），拆两帖的文本我已备好口径。
