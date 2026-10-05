@@ -8,6 +8,13 @@
 
 ## 稳定候选（多轮读数反复命中，或带代码锚可直接立 issue）
 
+### D7（2026-10-06 新增，桌面主对象化切片产出，未递交）
+- **默认视图/落地视图不可插件化**：`ui-conversation/view-selection.ts:5-7` 硬编码 `DEFAULT_VIEW_ID='chat'`，
+  resolveActiveView 只回退 chat；空白相位（未说话）视图区渲染 null（DefaultConversationViews.tsx:49），
+  EmptyHero+composer vendor 自持。插件可贡献 conversation.view 标签但不能设默认视图或占空白相位主区。
+- **诉求**：默认视图可配置（或插件可贡献 landing view / 空白相位主区座位）——一把手定位的产品
+  （打开=桌面，会话是动作）需要它。锚点以本仓 pin 为准；递交与否用户拍板。
+
 > 递交草案：[261001-upstream-issue-drafts.md](261001-upstream-issue-drafts.md)（D1-D6 覆盖下行 #1/#2/#3+#9/#5/#6/#7；2026-10-05 文本放行，2026-10-06 已全部递交：D1→[discussions/8939](https://github.com/deepseek-ai/deepseek-harness/discussions/8939)、D2→[8940](https://github.com/deepseek-ai/deepseek-harness/discussions/8940)、D3→[8941](https://github.com/deepseek-ai/deepseek-harness/discussions/8941)、D4→[8942](https://github.com/deepseek-ai/deepseek-harness/discussions/8942)、D5→[8943](https://github.com/deepseek-ai/deepseek-harness/discussions/8943)、D6→[8944](https://github.com/deepseek-ai/deepseek-harness/discussions/8944)；后续状态以上游回复为准）。
 
 | # | 候选 | 首报 | vendor 锚点 | 说明 / 建议动作 |

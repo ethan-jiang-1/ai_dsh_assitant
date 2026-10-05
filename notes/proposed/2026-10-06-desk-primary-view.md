@@ -1,6 +1,9 @@
 # 桌面主对象化（新 UX 第一刀）：桌面升为 Conversation View 主视图
 
-日期：2026-10-06 · 状态：**proposed**（用户 2026-10-06 点头推进并要求显性化追踪；方向 owner=[定位卡](../../_backlog/plans/261005-open-value-deficit.md)，毕业门 owner=[自洽卡](../../_backlog/plans/261005-turnaround-coherence.md) 形态迁移行，判据承接自[首开卡边界收口](../../_backlog/plans/261001-first-open-ux.md)）
+日期：2026-10-06 · 状态：**proposed（片1 已交付：`6680e01`——视图注册/三步卡重写/spec 4 断言/test 44 件 379/typecheck/verify 34/preflight 绿 + live 证据：真会话写真桌面→点击桌面标签→内容区渲染，DOM 在案）**
+- **如实偏差**：web-expected 持久场景未建——非空白会话的确定性种子设计（session 记录文件预置）是真设计题，记为后续切片；
+  本片渲染证据 = shots --eval 交互态 DOM（/tmp/dsh-webui-shots/desk-view-final-*.dom.txt，点击链：开会话→点桌面）。
+- D7 已记入上游台账（默认视图不可插件化），递交与否用户拍板。（用户 2026-10-06 点头推进并要求显性化追踪；方向 owner=[定位卡](../../_backlog/plans/261005-open-value-deficit.md)，毕业门 owner=[自洽卡](../../_backlog/plans/261005-turnaround-coherence.md) 形态迁移行，判据承接自[首开卡边界收口](../../_backlog/plans/261001-first-open-ux.md)）
 
 ## 问题（可观察行为）
 
