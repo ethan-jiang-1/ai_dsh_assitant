@@ -446,9 +446,12 @@ describe('desk panels', () => {
     exports.deskStore.misses.add('s1')
     const empty = textsOf(exports.DeskTabBody({ sessionId: 's1' })).join(' | ')
     expect(empty).toContain('桌面还空着')
-    expect(empty).toContain('它替你记的东西')
+    expect(empty).toContain('开始第一件事')
+    // 2026-10-06 (real-user walk): the empty branch's next step is the first conversation,
+    // not a refresh — the start button invites it; the refresh button no longer appears here.
+    expect(empty).toContain('它会先问你最近要拍板')
+    expect(empty).not.toContain('刷新桌面')
     expect(empty).not.toContain('.desk/state.json')
-    expect(empty).toContain('刷新桌面')
   })
 
   it('presents the three rooms as three QUESTIONS and lands the draft pointer on the drafts (S4)', () => {

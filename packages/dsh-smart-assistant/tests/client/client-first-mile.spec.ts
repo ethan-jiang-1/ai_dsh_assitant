@@ -123,7 +123,10 @@ describe('first-mile seats', () => {
 
     const buttons = elementsOf(dock, 'button')
     expect(buttons).toHaveLength(1)
-    expect(textsOf(buttons[0]).join('')).toBe('打开我的桌面')
+    // 2026-10-06 (real-user walk): the desk button is demoted to a labelled preview of the
+    // empty desk — the primary start is the first word in the composer, and the copy above
+    // now says what happens after it (the assistant asks first).
+    expect(textsOf(buttons[0]).join('')).toBe('先看一眼桌面（现在还是空的）')
     ;(buttons[0]?.props.onClick as () => void)()
     expect(opened).toEqual(['desk'])
   })

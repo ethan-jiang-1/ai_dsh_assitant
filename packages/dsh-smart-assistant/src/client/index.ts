@@ -723,6 +723,17 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   }
 
   /**
+   * Day-0's true start (real-user walk finding, 2026-10-06): on a desk-less folder the
+   * refresh button produced an honest zero-report loop with no meaning — the principal
+   * clicked it three times "not knowing what I'm doing". The empty desk's next step is the
+   * first conversation, not a refresh; this invites that conversation in this session (on a
+   * fresh folder the first-conversation skill takes it from here).
+   */
+  function askStart(sessionId?: string): void {
+    sendPrompt('开始第一件事：从最近要我拍板、还要跟进的一件事说起。', '开始第一件事', 'desk', sessionId)
+  }
+
+  /**
    * Answer one open decision. The mirror of a correction: there the principal says a record is
    * wrong, here they say what they have decided — and the assistant records the call and moves.
    */
@@ -1287,14 +1298,21 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // A5: a corrupt file is an error with a way out, not an eternal "reading…".
     if (store.readError !== undefined) return roomScroller(
       muted(`读桌面文件失败：${store.readError}。`), retryButton('让助手重写一份'))
-    // A6: the empty state is exactly the state that most needs a one-click refresh — asking the
-    // principal to go type it in the conversation was backwards.
-    // First-open UX card (2026-10-01): the raw `.desk/state.json` path leaked onto the
-    // principal's surface; the state now says what the desk IS and how it grows, and names
-    // what the button actually does (it sends the refresh prompt to this conversation).
+    // A6 inverted by the real-user walk (2026-10-06): on a desk-less Day-0 the refresh button
+    // produced an honest zero-report loop with no meaning — the one-click refresh this branch
+    // once prided itself on was the trap. The empty desk's next step is the first conversation;
+    // the copy says what the desk IS and how it grows, and the button starts that conversation
+    // instead of refreshing nothing. (2026-10-01: the raw `.desk/state.json` path stays off the
+    // principal's surface.)
     if (deskStore.misses.has(sessionId)) return roomScroller(
-      muted('桌面还空着——跟它聊一件事之后，这里会出现它替你记的东西：在办的事、待你拍板的决定、缺的数据。急着看，就点下面让它现在写一份。'),
-      retryButton('刷新桌面'))
+      muted('桌面还空着——先在对话里说一句话（说什么都行，它会先问你最近要拍板、还要跟进的一件事），这里才开始长：在办的事、待你拍板的决定、缺的数据。'),
+      createElement('button', {
+        onClick: () => { askStart(sessionId) },
+        style: {
+          marginTop: '8px', padding: '6px 14px', fontSize: '12px', cursor: 'pointer', borderRadius: '6px',
+          border: `1px solid ${MARK_TEAL}`, background: 'var(--dsw-alias-bg-base)', color: MARK_TEAL,
+        },
+      }, '开始第一件事'))
     if (slice.data === undefined) return roomScroller(muted('正在读这个会话的桌面…'))
     // The panel reads and acts on this session's slice: the session rides in as a plain prop.
     return roomScroller(createElement(Panel as unknown as import('react').FunctionComponent<{ sessionId?: string }>, { sessionId }))
@@ -1410,8 +1428,11 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         border: '1px solid var(--dsw-alias-border-l2)', borderRadius: '10px',
       },
     },
+    // Real-user walk finding (2026-10-06): the strip told HOW to start but not WHAT the arc is
+    // ("流畅但不知道自己在做什么") — the copy now says what happens after the first word, and
+    // the desk button sets the expectation (it is a preview of an empty desk, not a start).
     createElement('div', { style: { fontSize: '13px', color: 'inherit' } },
-      '第一次来？直接说一句你手头的经营问题就行，不用先配置什么。'),
+      '第一次来？直接说一句你手头的经营问题就行，不用先配置什么——你开了口，它会先问你最近要拍板、还要跟进的一件事。'),
     // R10 (self-review, 2026-09-27): the strip used to say "敲 / 看它现在能做什么" — and the `/`
     // menu it opened leads with the shell's own commands and then a list of skill rows carrying
     // English, developer-facing descriptions (the very material the knowledge panel excludes as
@@ -1427,7 +1448,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         border: '1px solid var(--dsw-alias-border-l3)', background: 'transparent', cursor: 'pointer',
         fontSize: '12px', color: MARK_TEAL, padding: '3px 10px', borderRadius: '6px',
       },
-    }, DESK_LABEL),
+    }, '先看一眼桌面（现在还是空的）'),
     )
   }
 
@@ -1656,6 +1677,11 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       createElement('h2', { style: { margin: '0 0 4px', fontSize: '18px' } }, '我的桌面'),
       // The three rooms are three QUESTIONS, not three data containers (user ruling 2026-09-26:
       // keep the familiar entries, make the navigation MEAN something).
+      // The rhythm line (real-user walk finding, 2026-10-06): the desk answered "what now"
+      // per row but never the standing loop — one line states the working rhythm so the
+      // principal knows what coming back here means.
+      createElement('div', { style: { fontSize: '11px', color: 'var(--dsw-alias-label-secondary)', margin: '0 0 6px' } },
+        '这里是你的起点：来了先看「要你拍的」，拍完就走。'),
       createElement('div', { style: { fontSize: '13px', color: 'var(--dsw-alias-label-secondary)', margin: '0 0 8px' } }, '现在要采取什么行动？'),
       refreshRow(store, session),
       // S6 landing: the principal's real first reaction (2026-09-26 trial) was "不知所措——
