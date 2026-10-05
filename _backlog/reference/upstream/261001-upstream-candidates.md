@@ -8,7 +8,7 @@
 
 ## 稳定候选（多轮读数反复命中，或带代码锚可直接立 issue）
 
-### D7（2026-10-06 新增，桌面主对象化切片产出，未递交）
+### D7（2026-10-06 新增，桌面主对象化切片产出，**已递交 [discussions/8961](https://github.com/deepseek-ai/deepseek-harness/discussions/8961)**）
 - **默认视图/落地视图不可插件化**：`ui-conversation/view-selection.ts:5-7` 硬编码 `DEFAULT_VIEW_ID='chat'`，
   resolveActiveView 只回退 chat；空白相位（未说话）视图区渲染 null（DefaultConversationViews.tsx:49），
   EmptyHero+composer vendor 自持。插件可贡献 conversation.view 标签但不能设默认视图或占空白相位主区。
