@@ -28,9 +28,13 @@ describe('isMaintenanceRound (pure)', () => {
     expect(isMaintenanceRound(5, 1)).toBe(true)
   })
 
-  it('renders the instruction with the interval and the resume promise', () => {
+  it('renders the instruction with the interval, the skill pointer, and the resume promise', () => {
     const text = renderMaintenancePrompt(5, 5)
     expect(text).toContain('every 5 rounds')
+    // 2026-10-06 (SDLC audit follow-up): the maintenance slot names the home-curation skill so
+    // auto-maintenance turns follow the taught finding-by-finding discipline instead of
+    // improvising (the audit found the skill idle while metronome turns ran curate cold).
+    expect(text).toContain('Load the `home-curation` skill')
     expect(text).toContain('assistant_memory action=curate')
     expect(text).toContain('resumes right')
   })
