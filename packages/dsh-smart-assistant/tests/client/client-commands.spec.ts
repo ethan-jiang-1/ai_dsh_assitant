@@ -8,7 +8,7 @@
  */
 import { createElement } from 'react'
 import { describe, expect, it } from 'vitest'
-import { loadClientRegistration, materializeClient } from './client-harness.ts'
+import { loadClientRegistration, materializeClient } from '../support/client-harness.ts'
 
 const registration = await loadClientRegistration()
 

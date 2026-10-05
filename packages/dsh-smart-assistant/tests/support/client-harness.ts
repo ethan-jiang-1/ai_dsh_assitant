@@ -29,7 +29,7 @@ export async function loadClientRegistration(): Promise<ClientRegistration> {
     load: (registration: ClientRegistration) => { registrations.push(registration) },
   }
   // @ts-expect-error TS2306 the browser half is intentionally not a module
-  await import('../src/client/index.ts')
+  await import('../../src/client/index.ts')
   const registration = registrations[0]
   // The bundle must submit exactly one registration: two would mean the script ran twice
   // (a duplicate-load bug the shell would also see), none means it never registered.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { inertReactShim, loadClientRegistration, materializeClient } from './client-harness.ts'
+import { inertReactShim, loadClientRegistration, materializeClient } from '../support/client-harness.ts'
 
 // The browser half is deliberately a classic script (zero imports/exports — see its file
 // header for why), so TS refuses it as a module import; the harness evaluates it exactly

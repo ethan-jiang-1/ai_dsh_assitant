@@ -64,7 +64,7 @@ working folder：记忆 / 探索线索 / 知识 / 技能 + 养护检查）。
 | **信任线** | 每条记忆/知识页显示出处（`source`/`sources`），更正的记录出处写着"用户 … 更正" |
 | **新鲜度** | 面板显示 `generatedAt`；落后对话超过一分钟就告警"对话比这份桌面新…点刷新"；会话更新后自动重读 |
 | **preflight 关口** | ⑤a boot 图可满足性、⑤b Remote 清单校验、⑥ desk 文件内容段检查（防"交一个啥都看不到的 URL"） |
-| **面板渲染测试** | `tests/client-panels.spec.ts`（5 个测试：分段渲染、生命周期动作、出处、空态、陈旧告警） |
+| **面板渲染测试** | `tests/client/client-panels.spec.ts`（5 个测试：分段渲染、生命周期动作、出处、空态、陈旧告警） |
 | **新能力** | `promote_page` / `deprecate_page`（服务方法 + 工具动作 + 回执分支，live 探针验过） |
 | **右侧栏 tab（三室）** | 形态拍板当日落地：页头「桌面」chip + 各室「在对话旁打开」开启；body 直接拿所在会话的 sessionId，只读本会话工作区；preflight 绿（§四·十六） |
 
@@ -126,7 +126,7 @@ typert 阻塞的证据链与死路回退（DeskRemote 整段删除）在[卡 §�
 | `packages/dsh-smart-assistant/src/learn/index.ts` | `assistant_reflect` 工具（动作集 + 回执 render） |
 | `packages/dsh-smart-assistant/src/tool-research/index.ts` | `assistant_research` 工具（线索生命周期） |
 | `dev/probes/web/webui-preflight.mjs` | 交付前关口（boot 图 + Remote 清单 + desk 文件内容段） |
-| `packages/dsh-smart-assistant/tests/client-panels.spec.ts` | 面板渲染测试（装置：装门面 → 求值脚本 → 带 hook shim 物化工厂） |
+| `packages/dsh-smart-assistant/tests/client/client-panels.spec.ts` | 面板渲染测试（装置：装门面 → 求值脚本 → 带 hook shim 物化工厂） |
 | `notes/implemented/2026-09-26-cultivation-surface-design.md` | **设计 owner 卡**：判据、11 条设计原则、架构、现状、输掉的方案、判据怎么验 |
 | `notes/archived/2026-09-25-ceo-sidebar-ux.md` | **编年记录**：§〇 状态一览、逐圈证据（§四·X）、原始设计稿与实验计划（§二/§五，历史） |
 | `.agents/skills/client-ui-contribution/SKILL.md` | 开发技能：怎么给 DSH Web 客户端加界面（四个坑 + 验证循环） |

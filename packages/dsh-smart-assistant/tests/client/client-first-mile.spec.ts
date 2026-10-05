@@ -10,7 +10,7 @@
  * with a module-table require stub, the same harness as client-panels.spec.ts.
  */
 import { describe, expect, it } from 'vitest'
-import { inertReactShim, loadClientRegistration, materializeClient } from './client-harness.ts'
+import { inertReactShim, loadClientRegistration, materializeClient } from '../support/client-harness.ts'
 
 const registration = await loadClientRegistration()
 

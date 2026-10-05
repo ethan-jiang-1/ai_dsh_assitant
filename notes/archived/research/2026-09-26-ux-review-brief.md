@@ -156,7 +156,7 @@ DSH 是一个 agent harness（模型 + 工具 + 插件组合）带 Web UI；插�
 3. **面板的全部实现**（约 1200 行，classic script；DeskPanel / KnowledgePanel / MemoryPanel /
    CorrectableRow / 各动作提示词）：[`packages/dsh-smart-assistant/src/client/index.ts`](../../../packages/dsh-smart-assistant/src/client/index.ts)
 4. **模型面契约**（助手往桌上放什么、怎么填）：[`desk-refresh/SKILL.md`](../../../packages/dsh-smart-assistant/presets/assistant/skills/desk-refresh/SKILL.md)
-5. **现有测试断言了什么**（＝开发者认为重要的行为）：[`tests/client-panels.spec.ts`](../../../packages/dsh-smart-assistant/tests/client-panels.spec.ts)
+5. **现有测试断言了什么**（＝开发者认为重要的行为）：[`tests/client/client-panels.spec.ts`](../../../packages/dsh-smart-assistant/tests/client/client-panels.spec.ts)
 6. **真机**：需要一套 DSH 开发环境（DSH 很新，装起来有门槛）。更方便的替代：请委托人（用户本人）
    提供**截图或录屏**，或直接口述观感——**任何真实观感都比我从代码推断强**。
 

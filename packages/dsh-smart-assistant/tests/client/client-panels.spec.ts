@@ -7,7 +7,7 @@
  * exactly this: fill it and every section renders without a browser.
  */
 import { describe, expect, it, vi } from 'vitest'
-import { inertReactShim, loadClientRegistration, materializeClient } from './client-harness.ts'
+import { inertReactShim, loadClientRegistration, materializeClient } from '../support/client-harness.ts'
 
 const registration = await loadClientRegistration()
 /** The panels call useState/useEffect; these tests render one snapshot. */
@@ -617,7 +617,7 @@ describe('desk panels', () => {
     // `--dsha-*` contract block — so the AA claim is checked against that block's LIGHT values
     // (the dark values ride vendor statics and the dark palette, not white).
     const { readFileSync } = await import('node:fs')
-    const source = readFileSync(new URL('../src/client/index.ts', import.meta.url), 'utf8')
+    const source = readFileSync(new URL('../../src/client/index.ts', import.meta.url), 'utf8')
     const luminance = (colour: string): number => {
       const hex = colour.replace('#', '')
       const channels = [0, 2, 4].map(index => parseInt(hex.slice(index, index + 2), 16) / 255)

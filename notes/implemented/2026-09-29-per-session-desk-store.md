@@ -33,7 +33,7 @@ R11 实测：store 被所有绑定 tab 共享、行匹配只按裸 rowId——A 
 
 ## 证据
 
-- 夹具 `tests/client-panels.spec.ts`「scopes the freeze, the settle and the receipt to their own
+- 夹具 `tests/client/client-panels.spec.ts`「scopes the freeze, the settle and the receipt to their own
   session (R11)」：同 rowId 双会话——A 的冻结不落 B 的行（B 面板 0 个禁用按钮）、B 的文件翻新
   不结算 A 的 pending（settle 按 (session, generatedAt)）、回执只落 A 片、停滞过期只释放发送方；
 - `pnpm build` 后全套 **288/288** 与 `pnpm verify` **29/29**（client 面规则：整套包级套件、

@@ -352,7 +352,7 @@ source = `用户 2026-09-26 更正（补文件位置）；原记录 20260925-…
 
 ### ③ 面板渲染冒烟测试
 
-**缺口**：UI 此前零覆盖，而它是产品门面且在长大。切片：`tests/client-panels.spec.ts`（4 测试）覆盖
+**缺口**：UI 此前零覆盖，而它是产品门面且在长大。切片：`tests/client/client-panels.spec.ts`（4 测试）覆盖
 三个面板的分段渲染、draft 在前的排序与"批准只在 draft 上"、出处行、空态可读性（含加载器原因到达每个面板）。
 测试装置：装 `__ModuleLoader__` 门面 → 求值脚本 → 用带 hook shim 的 require 物化工厂；`textsOf` 会调用
 函数组件（面板把行委托给 CorrectableRow）。工厂按既有"暴露给测试"约定额外暴露三面板与 deskStore。
