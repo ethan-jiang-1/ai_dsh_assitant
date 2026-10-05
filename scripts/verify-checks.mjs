@@ -759,9 +759,16 @@ export function backlogLivenessProblems(backlogRoot) {
   }
 
   // reference/ material is named by its area's index (the contract in reference/README.md).
+  // Since 2026-10-05 material may live in topic subdirectories — the walk must follow the
+  // layout, or subdir files silently escape the index cross-check (coverage follows layout).
   if (existsSync(join(backlogRoot, 'reference'))) {
     const refIndex = readFileSync(join(backlogRoot, 'reference', 'README.md'), 'utf8')
-    for (const name of cardNames('reference')) {
+    const refNames = (dir, prefix = '') => readdirSync(dir, { withFileTypes: true }).flatMap(entry => {
+      if (entry.isDirectory()) return refNames(join(dir, entry.name), join(prefix, entry.name))
+      if (entry.isFile() && entry.name.endsWith('.md') && entry.name !== 'README.md') return [join(prefix, entry.name)]
+      return []
+    })
+    for (const name of refNames(join(backlogRoot, 'reference'))) {
       if (!refIndex.includes(name)) problems.push(`_backlog/reference/${name} is not named by reference/README.md's index`)
     }
   }

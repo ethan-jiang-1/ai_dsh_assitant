@@ -250,6 +250,17 @@ describe('backlogLivenessProblems', () => {
     expect(backlogLivenessProblems(backlog)).toEqual([])
   })
 
+  it('walks topic subdirectories: subdir material must be named by its subpath, else red', () => {
+    const backlog = temp('backlog-refsub-')
+    bootBacklog(backlog)
+    mkdirSync(join(backlog, 'reference', 'tech-exploration'), { recursive: true })
+    writeFileSync(join(backlog, 'reference', 'tech-exploration', '261005-case.md'), '# 技术定调\n', 'utf8')
+    // 2026-10-05 reference 分装子目录——子目录文件若脱离索引互查，检查就等于没守住那半边
+    expect(backlogLivenessProblems(backlog).some(p => p.includes('tech-exploration/261005-case.md') && p.includes('index'))).toBe(true)
+    writeFileSync(join(backlog, 'reference', 'README.md'), '# reference\n\n| 文件 |\n|---|\n| [261005-case.md](tech-exploration/261005-case.md) |\n', 'utf8')
+    expect(backlogLivenessProblems(backlog)).toEqual([])
+  })
+
   it('rejects an archived card missing from its pool index', () => {
     const backlog = temp('backlog-arch-')
     bootBacklog(backlog)

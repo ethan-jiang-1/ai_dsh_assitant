@@ -23,7 +23,7 @@ _backlog/
 ├── README.md            # 本文件（规矩手册 = 章程）
 ├── plans/               # 推敲卡：设计 / 分析 / 调研
 ├── bugs/                # 缺陷卡：已发现、决定不当场修的缺陷（当场修掉的不建档）
-├── reference/           # 服务于活跃卡片的调研材料（随卡毕业迁 _done/_reference/）
+├── reference/           # 服务于活跃卡片的调研材料（按主题子目录分装；随卡毕业迁 _done/_reference/）
 └── _done/               # 归档（位置即状态）：_closed_plans/ + _suspended_plans/
                          #   + _fixed_bugs/ + _suspended_bugs/ + _reference/
 ```
@@ -102,7 +102,9 @@ _backlog/
 推敲卡片产出的调研——证据阅读、综述、机制笔记——需要一个既不是卡片本体（卡只放判断材料）
 也不是树外草稿的家：`reference/`。完整契约见 [其 README](reference/README.md)。要点：
 **跟着卡片走**（卡片毕业时 `git mv` 进 `_done/_reference/`，文件名不变、内容不重写）；
-**无状态行**（纯约定）；**价值超过所有喂过的卡片的材料不在此**（调研卡的收卷证据台账仍是
+**无状态行**（纯约定）；**按主题子目录分装**（2026-10-05 用户拍板：`upstream/`、`positioning/`、
+`tech-exploration/` 等，文件名与内容不变，索引记含子目录路径，门禁递归互查）；**价值超过所有
+喂过的卡片的材料不在此**（调研卡的收卷证据台账仍是
 [`notes/archived/research/`](../notes/README.md)，既定机制不变——两者语义不重叠：一个喂活跃卡，
 一个收卷已毕业的调研卡）。
 
