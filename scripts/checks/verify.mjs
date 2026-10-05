@@ -59,8 +59,8 @@ const REQUIRED_PATHS = [
   'docs/identity.md',
   'docs/discipline.md',
   'notes/README.md',
-  'dev/env.sh',
-  'dev/setup.sh',
+  'dev/env/env.sh',
+  'dev/env/setup.sh',
   'dev/profiles/profile-patch.yml',
   'snapshots/README.md',
   'vendor/UPSTREAM.md',
@@ -181,11 +181,11 @@ check('resolution: the runtime tsconfig for the source launch is present and cur
   for (const name of ['@deepseek-ai/dsh-app-boot', '@deepseek-ai/dsh-agent-preset-registry']) {
     if (!text.includes(`"${name}"`)) problems.push(`tsconfig.tsx.json has no alias for ${name}`)
   }
-  // The source launch goes through scripts/dsh.mjs (which also enforces the dev home);
+  // The source launch goes through dev/env/dsh.mjs (which also enforces the dev home);
   // the gate follows the contract there, not the one-line package.json script.
-  const launcher = read(join(repoRoot, 'scripts', 'dsh.mjs'))
+  const launcher = read(join(repoRoot, 'dev', 'env', 'dsh.mjs'))
   if (!launcher.includes('tsconfig.tsx.json') || !launcher.includes('TSX_TSCONFIG_PATH')) {
-    problems.push('scripts/dsh.mjs does not point tsx at tsconfig.tsx.json')
+    problems.push('dev/env/dsh.mjs does not point tsx at tsconfig.tsx.json')
   }
   return problems
 })
@@ -420,7 +420,7 @@ check('contract: skill files carry valid frontmatter and match their directory',
 //   · paths — backticked tokens whose first segment is a repo top-level directory, plus a small
 //     allowlist of root/package basenames. External material (URLs, absolute paths, $VARS, globs)
 //     and home-internal bare names (HOME.md, SKILL.md) are out of scope; dev/harness-home is
-//     runtime residue created by dev/setup.sh and exempt.
+//     runtime residue created by dev/env/setup.sh and exempt.
 //   · relative markdown links — `[text](path)` targets that are relative and path-shaped must
 //     resolve to an existing file (standard markdown semantics: relative to the linking file).
 //     Anchors/query strings are stripped but NOT validated (heading slugs are out of scope), and
@@ -544,7 +544,7 @@ check('commit safety: residue and credentials are ignored', () => {
     '.env',
   ]
   const mustTrack = [
-    'dev/env.sh',
+    'dev/env/env.sh',
     'dev/profiles/profile-patch.yml',
     'vendor/UPSTREAM.md',
     'docs/home.md',

@@ -67,7 +67,7 @@ notes/intents.md（I1–I9）、talk `agent-101` 的概念框架。
 5. preset 的 roster 落法：dev 用 profile patch 给 `agent-presets` 加 `roots` 指向本 repo 的 `presets/`；
    发布形态则指向安装后的 `presets/`（两条都要验证）。
    **已验证发布形态**（smoke 里 roster 指向 profile 的 `node_modules/dsh-smart-assistant/presets`，
-   `--dump-config` 显示默认 preset 生效）。dev 形态由 `dev/setup.sh` 落——✅ 已实跑绿
+   `--dump-config` 显示默认 preset 生效）。dev 形态由 `dev/env/setup.sh` 落——✅ 已实跑绿
    （两 profile 建成、roster 双 patch、双 link 安装，见 `docs/dev.md`）。
 6. **从源码启动 harness 需要一份全量解析门面**（新发现，已解决）：
    DSH 的包 `main` 指向 `lib/index.js`（tsdown 产物），而 `tsc -b` 只出 `lib/types/`，

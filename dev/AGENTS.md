@@ -7,9 +7,9 @@
 
 - **任何情况下不碰日用的 `~/.dsh`**：一切持久化（profile、凭据、会话日志、插件安装、
   working folder 的 `dataDir`）都由 `DSH_HOME` 决定，本仓一律指向 `dev/harness-home`。
-- `pnpm dsh` 经 [`scripts/dsh.mjs`](../scripts/dsh.mjs) 启动，**永远强制**该值（覆盖继承来的任何值）；
+- `pnpm dsh` 经 [`dev/env/dsh.mjs`](../dev/env/dsh.mjs) 启动，**永远强制**该值（覆盖继承来的任何值）；
   显式出口只有 `ASSISTANT_DSH_HOME`。绕过启动器直连 node 的调用（`release-smoke`、`setup.sh`）
-  自己负责设置 `DSH_HOME`；[`dev/env.sh`](env.sh) 是兜底。
+  自己负责设置 `DSH_HOME`；[`dev/env/env.sh`](env.sh) 是兜底。
 - 本目录的运行残留（harness home、profile 装出来的东西）在 `.gitignore` 保护下；
   **不要把 dev home 里的状态当仓库内容提交**。
 

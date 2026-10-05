@@ -7,7 +7,7 @@
 以两个判据做第二轮结构审计：**信噪比**（每行都活着、一个含义一个家）与**渐进式披露**
 （入口层只放每个分支都需要的东西，窄分支细节推到指针后面）。第一轮（`2026-09-23-doc-consistency.md`）
 修的是"读起来过期"；本轮修的是"写多了 / 写重了"。零运行时行为变更（唯一动到的代码是
-`scripts/dsh.mjs` 一行注释的指向）。
+`dev/env/dsh.mjs` 一行注释的指向）。
 
 ## 修正清单
 
@@ -26,7 +26,7 @@
   改"第三节"；discipline.md 的"docs/dev.md §四"引用改 §五。
 - AGENTS.md 布局表 dev/ 行补"启动/调试手册：docs/dev.md"指针（两段删除后入口链仍指向手册）。
 - AGENTS.md 命令表 setup.sh 行"一次性"改"幂等"（与 dev.md 用词统一：setup 可重复跑）。
-- `scripts/dsh.mjs` 头注释的"见 AGENTS.md『两个解析门面』"改指 `docs/dev.md` §二（跟随门面契约搬家）。
+- `dev/env/dsh.mjs` 头注释的"见 AGENTS.md『两个解析门面』"改指 `docs/dev.md` §二（跟随门面契约搬家）。
 - repo-structure note 决定 7 的"理由见 docs/identity.md 第三节"改指 architecture.md §六（跟随 #3 的唯一家搬家）。
 
 ## 刻意不做

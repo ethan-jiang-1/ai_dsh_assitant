@@ -16,7 +16,7 @@
 
 ```sh
 # ① 起隔离 home 服务（幂等；vendor 产物在位时 ≈6s）
-ASSISTANT_DSH_HOME=/tmp/dsh-expected-home bash dev/prepare.sh && bash dev/setup.sh
+ASSISTANT_DSH_HOME=/tmp/dsh-expected-home bash dev/env/prepare.sh && bash dev/env/setup.sh
 ASSISTANT_DSH_HOME=/tmp/dsh-expected-home pnpm dsh --profile dev --port 0 --no-open
 
 # ② 比对（漂移即 exit 1，逐条 diff + PNG 路径供人工过目）

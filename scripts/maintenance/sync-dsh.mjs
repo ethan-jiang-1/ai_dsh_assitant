@@ -120,7 +120,7 @@ Next, in the same change:
      through node_modules — vitest, plugin-added profiles — would silently run the OLD pin:
        pnpm --dir vendor/dsh install
        pnpm --dir vendor/dsh run build:native-system && pnpm --dir vendor/dsh run build:lib
-     (dev/setup.sh checks this; the runtime launch resolves vendor src via tsconfig.tsx.json, which is
+     (dev/env/setup.sh checks this; the runtime launch resolves vendor src via tsconfig.tsx.json, which is
      why a stale lib/ does not show up until the tests or a boot.)
   1. Re-run the mechanism checks this plugin depends on, e.g.
        git -C vendor/dsh grep -c customSkillDirs ${tag} -- packages/skill/skill-filesystem/src/index.ts

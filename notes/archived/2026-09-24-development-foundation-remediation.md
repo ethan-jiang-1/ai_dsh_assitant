@@ -53,7 +53,7 @@ vendor 的现状保留，构建前置写明）。
 
 **F · dev 手册矛盾**：§五"one-shot 无反应"行的正确做法改为"跑 dev-task（headless 模板自带 runner
 行与位置参数解析），不要往 dev 追加 headless（§四 混装必撞 duplicate id，setup.sh 反而会摘除）"——
-原文"setup.sh 已把 headless 追加进 profile bundles"与 `dev/setup.sh` 实际行为相反；§六组合图改为两条
+原文"setup.sh 已把 headless 追加进 profile bundles"与 `dev/env/setup.sh` 实际行为相反；§六组合图改为两条
 profile 各自的链（dev = base→web-app→插件；dev-task = base→headless→插件），并注明两个 patch 文件
 不可互换。
 

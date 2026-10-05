@@ -10,7 +10,7 @@
  * This suite reads the shipped `cordis.patch.yml`, evaluates the row's own `!!js` expression with
  * the Loader's evaluator (the same one the runtime interpolates config with), and resolves it
  * against the live shape: a profile-like base whose `node_modules` holds this package, which is what
- * `dsh plugin add` and `dev/setup.sh` both produce. A path that leaves the package fails here.
+ * `dsh plugin add` and `dev/env/setup.sh` both produce. A path that leaves the package fails here.
  */
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync } from 'node:fs'
 import { tmpdir } from 'node:os'

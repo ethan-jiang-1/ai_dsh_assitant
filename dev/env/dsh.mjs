@@ -3,9 +3,9 @@
  * 开发启动器：`pnpm dsh <argv>` 的唯一入口。
  *
  * 为什么存在：DSH 用 `DSH_HOME` 决定一切持久化（profile、凭据、会话日志、插件安装、assistant working folder 的 dataDir）。
- * 用户 shell 里可能已经导出了 `DSH_HOME=~/.dsh`（日用实例）—— 那么任何"忘了 source dev/env.sh
+ * 用户 shell 里可能已经导出了 `DSH_HOME=~/.dsh`（日用实例）—— 那么任何"忘了 source dev/env/env.sh
  * 就直接跑"的调用都会读写日用的 home：装进日用 profile、写日用会话日志、甚至拿到日用凭据。
- * `dev/env.sh` 是兜底，但兜底会被人（和 agent）忘掉；**默认值必须是安全的**。
+ * `dev/env/env.sh` 是兜底，但兜底会被人（和 agent）忘掉；**默认值必须是安全的**。
  *
  * 规则（有意做死，不做开关矩阵）：
  *   1. `pnpm dsh` 永远用 `<repo>/dev/harness-home`，覆盖任何继承来的 `DSH_HOME`
@@ -23,7 +23,7 @@
  *      显式指定（置空串=禁用注入）＞ 系统代理设置（macOS `scutil --proxy` 的 HTTP 口）＞
  *      常见混合口 7897，先探测先得；显式导出过 `HTTP(S)_PROXY` 的调用者不被覆盖。
  *
- * 不经过本启动器的调用方（release-smoke / dev/setup.sh）自己负责设置 `DSH_HOME`。
+ * 不经过本启动器的调用方（release-smoke / dev/env/setup.sh）自己负责设置 `DSH_HOME`。
  */
 import { spawn, execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
@@ -32,7 +32,7 @@ import { homedir } from 'node:os'
 import { existsSync } from 'node:fs'
 import { connect } from 'node:net'
 
-const repoRoot = fileURLToPath(new URL('..', import.meta.url))
+const repoRoot = fileURLToPath(new URL('../..', import.meta.url))
 const devHome = join(repoRoot, 'dev', 'harness-home')
 const bin = join(repoRoot, 'vendor', 'dsh', 'apps', 'cli', 'src', 'bin.ts')
 

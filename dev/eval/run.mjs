@@ -28,7 +28,7 @@ import { TASKS } from './tasks.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 
-// ── 与 scripts/dsh.mjs 同一条硬规则：永不继承 DSH_HOME（见 dev/reports/usage-report.mjs 的同名说明） ──
+// ── 与 dev/env/dsh.mjs 同一条硬规则：永不继承 DSH_HOME（见 dev/reports/usage-report.mjs 的同名说明） ──
 const harnessHome = resolve(process.env.ASSISTANT_DSH_HOME ?? join(repoRoot, 'dev', 'harness-home'))
 
 /**
@@ -80,7 +80,7 @@ export function runPreset(prompt) {
   const startedAt = started
   let launchFailure = ''
   try {
-    execFileSync('node', ['scripts/dsh.mjs', '--profile', 'dev-task', '--patch', 'dev/probes/session/preset-runner.patch.yml', prompt], {
+    execFileSync('node', ['dev/env/dsh.mjs', '--profile', 'dev-task', '--patch', 'dev/probes/session/preset-runner.patch.yml', prompt], {
       cwd: repoRoot,
       stdio: ['ignore', 'pipe', 'pipe'],
       timeout: 15 * 60 * 1000,

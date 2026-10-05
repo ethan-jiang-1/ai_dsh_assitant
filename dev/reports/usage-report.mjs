@@ -23,7 +23,7 @@ import { fileURLToPath } from 'node:url'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 
-// 与 scripts/dsh.mjs 同一条硬规则：**永不继承 `DSH_HOME`**（会话环境里它可能是日用的 ~/.dsh），
+// 与 dev/env/dsh.mjs 同一条硬规则：**永不继承 `DSH_HOME`**（会话环境里它可能是日用的 ~/.dsh），
 // 一律指向仓内 dev home；显式出口只有 `ASSISTANT_DSH_HOME`。
 // 这条不是洁癖：本工具第一次运行就读错 home（读到日用的 ~/.dsh，553 个会话）——
 // 报告头会打印实际读取的 home，就是为了让这种默认值可见。

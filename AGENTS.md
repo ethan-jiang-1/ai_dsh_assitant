@@ -57,8 +57,8 @@ rejected 政策、命名——本文件不复制）；改行为、契约或开�
 
 ```sh
 pnpm install            # ① 并入 vendor/dsh 整树（首次较慢）
-bash dev/prepare.sh     # ② **首次必须先跑**：补齐 boot 需要的 vendor/dsh 产物（deps/native/lib/web，已在位即跳过）
-bash dev/setup.sh       # ③ **起服务的前置**：它才建 dev（web）+ dev-task（headless）两个 profile 并把 roster 指向本仓；
+bash dev/env/prepare.sh     # ② **首次必须先跑**：补齐 boot 需要的 vendor/dsh 产物（deps/native/lib/web，已在位即跳过）
+bash dev/env/setup.sh       # ③ **起服务的前置**：它才建 dev（web）+ dev-task（headless）两个 profile 并把 roster 指向本仓；
                         #    skip 它 = `profile "dev" does not exist`，而 DSH 那句报错会把你指向错的命令
 pnpm dsh --profile dev --port 0 --no-open   # ④ Web UI：preset 行为（四工具/persona/摘要）只在这里的会话里验；
                         #    3080 被占则 `--port 0`（OS 分配端口 + token）；交给人之前先 `pnpm preflight '<URL>'`（绿了再交）
@@ -71,7 +71,7 @@ pnpm dsh --profile dev-task "one task"   # ⑤ 只想冒烟 host 面（插件装
 
 ```sh
 export ASSISTANT_DSH_HOME=/tmp/my-trial-home
-bash dev/prepare.sh && bash dev/setup.sh
+bash dev/env/prepare.sh && bash dev/env/setup.sh
 ls "$ASSISTANT_DSH_HOME/profiles"          # 判据：应见 dev 与 dev-task
 pnpm dsh --profile dev --port 0 --no-open  # 起服务与验证命令（preflight/shots/dump-config）同样带着这个变量
 ```
@@ -104,10 +104,10 @@ pnpm eval:domain        # 领域评测集 v0（G2 关口）：本人出的真实
 
 ## 七条硬规则
 
-1. **双 home**：`pnpm dsh` 经 `scripts/dsh.mjs` 启动，**永远强制** `DSH_HOME=<repo>/dev/harness-home`
+1. **双 home**：`pnpm dsh` 经 `dev/env/dsh.mjs` 启动，**永远强制** `DSH_HOME=<repo>/dev/harness-home`
    （覆盖任何继承来的值，包括日用的 `~/.dsh`；显式出口是 `ASSISTANT_DSH_HOME`）。
-   绕过启动器直连 node 的调用（release-smoke、`dev/setup.sh`）自己负责设置 `DSH_HOME`；
-   `dev/env.sh` 是它们与手工调用时的兜底，**同样认 `ASSISTANT_DSH_HOME`**
+   绕过启动器直连 node 的调用（release-smoke、`dev/env/setup.sh`）自己负责设置 `DSH_HOME`；
+   `dev/env/env.sh` 是它们与手工调用时的兜底，**同样认 `ASSISTANT_DSH_HOME`**
    （用隔离 home 跑实验的人，脚本与启动器必须落在**同一个** home，否则 profile 建在一个 home、启动器去另一个找）。
    **任何情况下不碰日用的 `~/.dsh`。**
 2. **探索路由**：要 DSH 机制结论，读 `vendor/dsh/docs/architecture.md` → `vendor/dsh/docs/capability-seams.md` → 对应包 README；

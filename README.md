@@ -74,7 +74,7 @@ git submodule update --init                                       # vendor/dsh�
 pnpm install && pnpm build                                        # build 必需：包的入口是 lib/，而 lib/ 不入库
 dsh plugin --profile <p> add file:./packages/dsh-smart-assistant   # <p>＝你的 profile 名；第三步要 dsh 在 PATH 上
 ```
-（仓内开发时用 `pnpm dsh --profile …`；它经 `scripts/dsh.mjs` 启动 pinned CLI，强制 `DSH_HOME=dev/harness-home` 并把仓根作为 cwd。）
+（仓内开发时用 `pnpm dsh --profile …`；它经 `dev/env/dsh.mjs` 启动 pinned CLI，强制 `DSH_HOME=dev/harness-home` 并把仓根作为 cwd。）
 
 ## 从哪个入口开始
 

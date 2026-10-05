@@ -19,7 +19,7 @@ iteration-rhythm note 即同形）。剩余**真 gap 三条：一条建议立即
 
 | research 条目（§十为主） | 本仓现状 | 判定 |
 |---|---|---|
-| **notes-links 断链门禁**（对方实装：上线即抓 4 条存量断链） | **无对应物**。本轮审计手工抓到 2 处同类：`scripts/dsh.mjs` 注释指向 AGENTS.md 已删段落、repo-structure note 决定 7 指针指向改家的节；dev.md 重编号还产生过 1 条过期节号引用（discipline.md 对 dev.md §四 的引用改指 §五，已手工修） | **gap ① —— 建议立即吸收** |
+| **notes-links 断链门禁**（对方实装：上线即抓 4 条存量断链） | **无对应物**。本轮审计手工抓到 2 处同类：`dev/env/dsh.mjs` 注释指向 AGENTS.md 已删段落、repo-structure note 决定 7 指针指向改家的节；dev.md 重编号还产生过 1 条过期节号引用（discipline.md 对 dev.md §四 的引用改指 §五，已手工修） | **gap ① —— 建议立即吸收** |
 | **entry-probe 脚本化**（对方实装：`entry-probe-smoke.mjs` 固定 8 问 + 归档，含语义矛盾反证） | 适配行：并入未来检查档；当前形态 = 按需审计轮（已两轮：第一轮零过期，第二轮抓出 6 处） | **gap ② —— 维持按需审计轮**（判据见待拍板 2） |
 | **doc-budget + slop 门禁**（对方实装：AGENTS 165 / 00-index 145 / guides 440 行预算 + slop grep） | ⏸ 触发：docs 腐化实证。第二轮证据 = 轻度腐化（多重书写 ×2、内部矛盾 ×1、过期数字 ×1），一轮修完 | **gap ③ —— 维持 ⏸，证据已登记** |
 | Issue/PR 流、条目三型（feature/卫生/研究）、收尾程序住 guides/ | 切片 diff + note 三段流 / 一律轻量切片 / 硬规则 3 即程序之家 | 不适用（约束与规模已声明，见 discipline 表"已声明的适配"） |

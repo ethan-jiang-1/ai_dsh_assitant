@@ -34,7 +34,7 @@
 2. **`vendor/` 的 `lib/` 是 gitignore 的构建产物，换 pin 后是旧的**：`tsconfig.tsx.json` 让**运行时**走 vendor `src`，
    所以 dev 起步看不出问题；但凡是经 `node_modules` 解析 vendor 的路径（**vitest**、`dsh plugin add` 装出来的 profile）
    都在**静默跑上一个 pin 的代码**（实测：`z.string().volatile()` 不存在）。`sync-dsh` 的 Next 清单漏了这一步，
-   已补为**第 0 步**：`pnpm --dir vendor/dsh install && … build:native-system && … build:lib`（`dev/setup.sh` 早就在查这条）。
+   已补为**第 0 步**：`pnpm --dir vendor/dsh install && … build:native-system && … build:lib`（`dev/env/setup.sh` 早就在查这条）。
 3. **两个新 preset 包在钉住的 checkout 里只有声明、没有 JS**（release 才打包）：测试裸名解析失败。修：
    `packages/dsh-smart-assistant/vitest.config.ts` 加**精确匹配**别名指向 vendor `src`——让测试与运行时解析同一份源码，
    而不是各自跑不同版本。

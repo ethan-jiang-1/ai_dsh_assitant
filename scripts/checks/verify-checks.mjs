@@ -513,7 +513,7 @@ export function configParseProblems(files) {
 /**
  * Dev tooling must never read the inherited `DSH_HOME`: a session environment may carry the daily
  * `~/.dsh`, and the repository's rule is that everything dev-shaped points at `dev/harness-home`
- * (the only explicit exit is `ASSISTANT_DSH_HOME`; `scripts/dsh.mjs` owns the override warning and
+ * (the only explicit exit is `ASSISTANT_DSH_HOME`; `dev/env/dsh.mjs` owns the override warning and
  * is out of scope here). Found the hard way: the first run of the usage dashboard read the daily
  * home and reported 553 sessions that were not ours.
  *
@@ -562,8 +562,8 @@ export function commandAliasProblems({ scripts, documents, ownerPath }) {
 /**
  * The startup path is the one thing a fresh agent must get right on its first read, and it is the
  * only thing here that fails *before* any tooling can help. Two skips each produce a misleading
- * error: no `dev/prepare.sh` and the boot libs are missing (setup.sh's guard is the only thing that
- * says so), no `bash dev/setup.sh` and DSH answers `profile "dev" does not exist; create it with
+ * error: no `dev/env/prepare.sh` and the boot libs are missing (setup.sh's guard is the only thing that
+ * says so), no `bash dev/env/setup.sh` and DSH answers `profile "dev" does not exist; create it with
  * 'dsh plugin --profile dev add <package>'` — which points at a template profile carrying neither
  * this plugin nor the roster. So the command table's startup block is pinned to three facts: both
  * preparatory scripts are marked as the first step and come before any launch, and the block names
@@ -583,9 +583,9 @@ export function startPathProblems({ agentsPath, source }) {
     .filter(({ line }) => line.includes('--profile') && !line.includes('--dump-config') && !line.includes('--help'))
   // Order matters: prepare builds the vendor artifacts, setup.sh then builds the profiles.
   let lastIndex = -1
-  for (const script of ['dev/prepare.sh', 'dev/setup.sh']) {
+  for (const script of ['dev/env/prepare.sh', 'dev/env/setup.sh']) {
     // A fencing/indent-tolerant extraction: a shell comment sits on the same line, and the command
-    // itself may be `bash dev/prepare.sh`, `./dev/setup.sh`, or a bare path copy-paste.
+    // itself may be `bash dev/env/prepare.sh`, `./dev/env/setup.sh`, or a bare path copy-paste.
     const line = lines.find(candidate => candidate.includes(script))
     if (line === undefined) {
       problems.push(`${agentsPath} names ${script} nowhere — a fresh clone has no way to reach a runnable instance`)
@@ -604,7 +604,7 @@ export function startPathProblems({ agentsPath, source }) {
   const startup = launches.filter(({ index }) => index > lastIndex).map(({ line }) => line).join('\n')
   for (const profile of ['dev', 'dev-task']) {
     if (!new RegExp(`--profile ${profile}\\b`, 'u').test(startup)) {
-      problems.push(`${agentsPath} never launches profile \`${profile}\` after dev/setup.sh — one of the two dev surfaces lost its route`)
+      problems.push(`${agentsPath} never launches profile \`${profile}\` after dev/env/setup.sh — one of the two dev surfaces lost its route`)
     }
   }
   return problems
@@ -613,6 +613,11 @@ export function startPathProblems({ agentsPath, source }) {
 export function dshHomeInheritanceProblems(files) {
   const problems = []
   for (const file of files) {
+    // The launcher (dev/env/dsh.mjs) is this rule's enforcement, not its violation: it reads
+    // inherited DSH_HOME only to override it and warn on stderr. Exempting it by exact path
+    // keeps the rule's bite for every other dev tool — the verify-gates fixture pins both
+    // sides (the launcher passes, a sibling one directory up still fires).
+    if (file.endsWith(join('dev', 'env', 'dsh.mjs'))) continue
     const lines = read(file).split('\n')
     for (const [index, line] of lines.entries()) {
       if (!/process\.env\.DSH_HOME/.test(line)) continue

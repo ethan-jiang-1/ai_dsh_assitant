@@ -147,7 +147,7 @@
   家的现状：记忆 7（归档 17）、线索 0（归档 3）、技能 2、知识页 10；职责圈 goal/change 7 次。
 - **首跑就抓到自己两个错**（都是"数字要看现实"抓的）：
   ① **读了日用的 `~/.dsh`**——因为继承了会话环境里的 `DSH_HOME`，违反"永不继承"的硬规则
-  （只读未写，但这条线不该有例外）。修：与 `scripts/dsh.mjs` 同规则只用 `ASSISTANT_DSH_HOME`，
+  （只读未写，但这条线不该有例外）。修：与 `dev/env/dsh.mjs` 同规则只用 `ASSISTANT_DSH_HOME`，
   并立机械门禁 `structure: dev tooling never inherits DSH_HOME`（带夹具）。
   ② **把 `archive/` 目录当条目**——报"线索 1、技能 3"，实际是"0、2"。修计数规则（记忆/线索/页数 `.md`，
   技能数含 `SKILL.md` 的目录）并补一个能抓到这个错的夹具。

@@ -6,17 +6,17 @@
 ## 一、隔离模型（什么被隔离、什么没有被隔离）
 
 一切持久化的根是 `DSH_HOME`（解析优先级：显式配置 > `$DSH_HOME` > `~/.dsh`）。
-**dev 实例默认 = `DSH_HOME=<repo>/dev/harness-home`**，由 `scripts/dsh.mjs`（`pnpm dsh` 的唯一入口）
+**dev 实例默认 = `DSH_HOME=<repo>/dev/harness-home`**，由 `dev/env/dsh.mjs`（`pnpm dsh` 的唯一入口）
 无条件强制 —— 继承来的 `DSH_HOME=~/.dsh` 会被覆盖并在 stderr 打一行说明。
 **唯一出口是 `ASSISTANT_DSH_HOME`**，且它对**启动器和两个 dev 脚本一致生效**
-（`dev/env.sh` 是后者的收口处）：指向日用 `~/.dsh` 时不拦截但打显著警告（与启动器同语义——只让发生的事可见）。
-**用隔离 home 跑实验必须建 profile 与起服务同 home**：profile 由 `dev/setup.sh` 建、由 `pnpm dsh` 读，
+（`dev/env/env.sh` 是后者的收口处）：指向日用 `~/.dsh` 时不拦截但打显著警告（与启动器同语义——只让发生的事可见）。
+**用隔离 home 跑实验必须建 profile 与起服务同 home**：profile 由 `dev/env/setup.sh` 建、由 `pnpm dsh` 读，
 两边不同就会看到 `profile "dev" does not exist`——而它说的是实话，只是没说"你建在另一个 home 了"。
 
 | 通道 | 是否随 DSH_HOME 隔离 | dev 的处理 |
 |---|---|---|
 | profiles / sessions / storages / attachments / settings / credentials / 技能用户根 / `.agent-presets` / assistant working folder 的 dataDir（默认值；显式 `dataDir` 覆盖例外，见 `docs/home.md`） | ✅ | 自动落在 dev home |
-| skills 的共享 agent 根（默认 `~/.agents`） | ❌ 不隔离 | 启动器接管为 `$DSH_HOME/agents-home`（仅当未显式设置；`dev/env.sh` 则无条件强制） |
+| skills 的共享 agent 根（默认 `~/.agents`） | ❌ 不隔离 | 启动器接管为 `$DSH_HOME/agents-home`（仅当未显式设置；`dev/env/env.sh` 则无条件强制） |
 | telemetry | 身份按 home 独立；默认 FEEDBACK_ONLY | 启动器设 `DSH_TELEMETRY_DISABLED=1` |
 | spill 临时文件 | ❌ 用 OS tmpdir（`dsh-spill-*`），启动清扫会清过期文件 | 低危：dev 启动可能清掉日用实例**已过期 30 天**的临时输出 |
 | pnpm 全局 store | ❌ 内容寻址缓存 | 良性共享 |
@@ -35,7 +35,7 @@
 | 门面 | 管什么 | 谁维护 |
 |---|---|---|
 | `tsconfig.base.json` | **编译期**：只列我们直接 import 的 `@deepseek-ai/*` 包（paths → vendor `src`，条数随 import 面演进）+ 公共编译选项；`packages/dsh-smart-assistant/tsconfig.json` extends 它，并为每个包配 project reference —— `tsc -b` 按项目引用构建它们，API 漂移在编译期暴露，又不把 DSH 源码并进本程序（撞 `rootDir`） | 手维护：src 里新增 `@deepseek-ai/*` import 时加一行 paths（`pnpm verify` 机械检查） |
-| `tsconfig.tsx.json` | **运行期**：全量别名（条数以生成物为准），`scripts/dsh.mjs` 经 `TSX_TSCONFIG_PATH` 让 tsx 加载 DSH 的 `src` 启动 CLI | `pnpm gen-paths` 从 vendor/dsh 生成；`pnpm verify` 查不过期（换 pin 后必跑） |
+| `tsconfig.tsx.json` | **运行期**：全量别名（条数以生成物为准），`dev/env/dsh.mjs` 经 `TSX_TSCONFIG_PATH` 让 tsx 加载 DSH 的 `src` 启动 CLI | `pnpm gen-paths` 从 vendor/dsh 生成；`pnpm verify` 查不过期（换 pin 后必跑） |
 
 `pnpm typecheck`（根命令委派包级脚本：`tsc -b` 按项目引用聚合到包工程、走编译期入口，再
 `tsc -p tsconfig.test.json` 覆盖 tests——测试工程经 workspace 构建声明解析 vendor，需先有构建产物）走编译期入口；`pnpm dsh` 走运行期入口。
@@ -54,7 +54,7 @@
 
 ```sh
 pnpm install            # 仓根：并入 vendor/dsh 整树（首次较慢）
-bash dev/prepare.sh     # 幂等：缺什么补什么（vendor 依赖 → native addon → host+client lib → web dist）
+bash dev/env/prepare.sh     # 幂等：缺什么补什么（vendor 依赖 → native addon → host+client lib → web dist）
 ```
 
 它包住的四条命令（产物已在位时本脚本原样跳过，所以重跑安全；手动逐条敲是同一个结果，但要自己记住约束）：
@@ -67,7 +67,7 @@ pnpm --dir vendor/dsh run build:web       # 只有跑 Web UI 才需要（前端 
 ```
 
 - **为什么包成脚本**：这四条是**起服务的前置**，漏一条的失败点是一句无关的报错（缺 boot lib 时
-  `dev/setup.sh` 会 fail loud，但它不替你把构建跑一遍）。搬进脚本后，fresh clone 到能起服务只剩
+  `dev/env/setup.sh` 会 fail loud，但它不替你把构建跑一遍）。搬进脚本后，fresh clone 到能起服务只剩
   命令表那条链，每一步都能重跑。
 
 - **known pitfall**：vendor 树的根 `postinstall`（lefthook）在 submodule 里会失败
@@ -80,7 +80,7 @@ pnpm --dir vendor/dsh run build:web       # 只有跑 Web UI 才需要（前端 
 ## 四、开发环（日常）
 
 ```sh
-bash dev/setup.sh          # 幂等：建 dev（web）+ dev-task（headless）两个 profile + link 装插件
+bash dev/env/setup.sh          # 幂等：建 dev（web）+ dev-task（headless）两个 profile + link 装插件
 pnpm dsh --profile dev-task "one task"   # one-shot 任务（headless）＝ host 面冒烟；不进 preset（§五）
 pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner.patch.yml "<task>"   # preset 挂载的 one-shot（验证自动化；行替换形状见该 patch 头注）
 pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner-replay.patch.yml "<task>"   # 同上但 keyless：现货 `llm-replay` 整脚本回放替掉真实 DeepSeek adapter，无 API key 也能产出真实会话日志（请求侧 system/tools 进日志＝live 探针的被测面）；形状与坑见该 patch 头注
@@ -119,7 +119,7 @@ pnpm typecheck && pnpm test && pnpm verify
 等不到 load，故不用它），每个视口产出两件：`<name>-<WxH>.png`（给人看：审阅、前后对比）与
 `<name>-<WxH>.dom.txt`（给读文本的模型与脚本看：可见文本、带像素高度的文本大纲、交互件清单、
 boot 诊断、console 错误、失败请求）。`--eval` 在截图前执行页面 JS（开菜单、点 tab 拿交互态证据），
-`--plain` 是主线程被占死时的兜底（只出图）。它**收 URL、不自起 web**：启动归 `scripts/dsh.mjs`
+`--plain` 是主线程被占死时的兜底（只出图）。它**收 URL、不自起 web**：启动归 `dev/env/dsh.mjs`
 的双 home 守卫，截图器不重复实现它。
 
 **为什么 preflight（2026-09-24 两轮实锤）**：客户端 bundle 若不能被经典脚本组合解析，
@@ -149,7 +149,7 @@ Error: dsh: profile "dev" does not exist; create it with 'dsh plugin --profile d
 
 DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得到一个官方模板 profile：
 本插件的 bundle 与 roster 指向都不在里面，起得来但不是本 repo 的 dev 实例。
-**正解是 `bash dev/setup.sh`**（它建两个 profile、装插件、指 roster）。
+**正解是 `bash dev/env/setup.sh`**（它建两个 profile、装插件、指 roster）。
 判据：`ls "$DSH_HOME/profiles"` 里同时有 `dev` 与 `dev-task`；只缺一个时重跑脚本即可（幂等）。
 
 **三条纪律（为什么"改了不生效"）：**
@@ -175,7 +175,7 @@ DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得
 | preset 遮蔽 | 同名 preset 行后到者覆盖（registry 不再扫目录，没有 roots 先后） | 组合顺序决定；dev 的 registry 只改 `default` |
 | Web 开屏 `resume failed` | 残留的旧 dev web 进程仍持有空白 seed 会话的跨进程写锁（`session.lock` 是 flock 目标，进程死即释放）；web 客户端开屏按 workspace 最新会话自动恢复空白会话，新实例撞锁 | 起新例前 `lsof -iTCP -sTCP:LISTEN -P` 找本仓 cwd 的残留 node 并 kill；锁随进程死亡自动释放，勿手删 |
 | build 半途失败留下混合 vendor lib | `tsc -b` 会先重建 references 里的 vendor 引用项目；若本包类型错让 build 中断，vendor lib 停在混合态（症状举例：组合测试全行 `never started`、裸 node 加载 vendor llm 报 `Cannot find module '../package.json'`——llm attribution 经 tsc outDir 后 manifest 不可达） | 修复 = `pnpm repair-vendor`（内建 llm attribution fixup）；build 报错先修错、再重跑 build 至绿，不留半途态 |
-| `web_fetch` 全拒 `non-public IP` | 本机 TUN 代理的 **fake-ip DNS** 把所有域名解析到 198.18.0.0/15 保留段；`web-fetch-http` 的 SSRF 防护只对**直连** hop 做本机解析检查（走代理的 hop 由代理远端解析、**跳过检查**，`web-fetch-http/src/network.ts` 明文）；DSH 只认 env / home `.env` 的 `HTTP(S)_PROXY`——**系统代理（scutil）它不读**，无 env 时一切直连 ⇒ 全灭 | **不用手配**：启动器 `scripts/dsh.mjs` 条件注入——探测本地代理口（`ASSISTANT_PROXY_URL` 显式指定＞scutil 系统代理口＞默认混合口 7897），活着才注入 `HTTP(S)_PROXY`、死了直连（**有没有 VPN 都能跑**；显式导出过的 env 不被覆盖，`ASSISTANT_PROXY_URL=""` 可禁用）。判定档案：[web-fetch 代理环境修复](../notes/implemented/2026-10-02-web-fetch-proxy-env.md) |
+| `web_fetch` 全拒 `non-public IP` | 本机 TUN 代理的 **fake-ip DNS** 把所有域名解析到 198.18.0.0/15 保留段；`web-fetch-http` 的 SSRF 防护只对**直连** hop 做本机解析检查（走代理的 hop 由代理远端解析、**跳过检查**，`web-fetch-http/src/network.ts` 明文）；DSH 只认 env / home `.env` 的 `HTTP(S)_PROXY`——**系统代理（scutil）它不读**，无 env 时一切直连 ⇒ 全灭 | **不用手配**：启动器 `dev/env/dsh.mjs` 条件注入——探测本地代理口（`ASSISTANT_PROXY_URL` 显式指定＞scutil 系统代理口＞默认混合口 7897），活着才注入 `HTTP(S)_PROXY`、死了直连（**有没有 VPN 都能跑**；显式导出过的 env 不被覆盖，`ASSISTANT_PROXY_URL=""` 可禁用）。判定档案：[web-fetch 代理环境修复](../notes/implemented/2026-10-02-web-fetch-proxy-env.md) |
 
 **自动化会话的协作边界**（常量 `COLLABORATION_BOUNDARY` 在 `src/preset-runner/` 里逐会话前置 + 家手册协作边界同一节；**不写在 patch 的 `!!js` 表达式里**——配置层模板字面量会被 overlay 的 YAML 标签求解器拒绝，2026-09-25 真踩过，故新增 `structure: every composition file we own parses as YAML` 门禁）：会话**可以改工作树，
 但不得 `git commit`**（提交权属于人或开发会话）；卡上标 🔒 的保留项（`_backlog/plans/`）**不得自行判触发、不得删卡、不得实现**，

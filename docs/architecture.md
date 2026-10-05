@@ -169,11 +169,11 @@ assistant_knowledge ───→ ctx.assistantMemory.searchKnowledge / readKnowl
 ### 启动链：命令 → 可用的会话面
 
 ```text
-pnpm dsh …（package.json scripts → scripts/dsh.mjs，唯一启动器：
+pnpm dsh …（package.json scripts → dev/env/dsh.mjs，唯一启动器：
   强制 DSH_HOME=<repo>/dev/harness-home（唯一出口 ASSISTANT_DSH_HOME）、子进程 cwd 钉在仓根、
   TSX_TSCONFIG_PATH=tsconfig.tsx.json 让运行期解析 vendor src、出网代理条件注入）
   └ vendor/dsh/apps/cli/src/bin.ts（钉住的 CLI 源码，非构建物）
-      └ profile 解析（DSH_HOME/profiles/ 里的 dev / dev-task，由 dev/setup.sh 建立）
+      └ profile 解析（DSH_HOME/profiles/ 里的 dev / dev-task，由 dev/env/setup.sh 建立）
           └ boot graph 按四层装载组合（bundle → profile patch → home patch → --patch，
             细节 owner = docs/dev.md §七）：本包经 package.json 的 dsh.bundle.patch
             → cordis.patch.yml 进入 bundle 层；profile 层是 setup.sh 拷贝的
@@ -185,8 +185,8 @@ pnpm dsh …（package.json scripts → scripts/dsh.mjs，唯一启动器：
 
 | 主要失败模式 | 症状 | 最小证据 |
 |---|---|---|
-| vendor 未 checkout / 构建产物缺 | 启动器显式报错；boot 报缺 | `bash dev/prepare.sh` 后复跑 |
-| profile 不存在 | `profile "dev" does not exist`（DSH 的提示语会指错命令） | `bash dev/setup.sh` |
+| vendor 未 checkout / 构建产物缺 | 启动器显式报错；boot 报缺 | `bash dev/env/prepare.sh` 后复跑 |
+| profile 不存在 | `profile "dev" does not exist`（DSH 的提示语会指错命令） | `bash dev/env/setup.sh` |
 | lib 缺或旧 | 组合行 never started / 旧行为 | `pnpm build` 后 `pnpm dsh --profile dev-task "one task"` |
 | patch 行落空 / 重复 id | 组合里没有这行 / duplicate id | `pnpm dsh --profile dev --dump-config`（boot-free：行 id、disabled、realm 一目了然） |
 
@@ -249,4 +249,4 @@ pnpm dsh …（package.json scripts → scripts/dsh.mjs，唯一启动器：
 | 知识草稿/批准/检索 | 模型 + 浏览器链 | 草稿 = `assistant_reflect` 的 save_page（staged）；批准 = 浏览器两车道 → host `promotePage`（`src/index.ts`）；检索 = `assistant_knowledge`（`src/tool-knowledge/`） | `pnpm --filter dsh-smart-assistant exec vitest run tests/knowledge-write.spec.ts`（草稿/批准/检索/摘要全链） | draft→stable 翻转与会话审计；直调挂载回退提示 | 批准按钮与回退车道要浏览器；草稿内容生成在模型回合 |
 | 提示词摘要 | 模型请求链 | `assistant-memory-digest` 段落（`src/memory-digest/`）← `ctx.assistantMemory.digest()` 缓存 + 写操作 touch 失效（§五） | `pnpm --filter dsh-smart-assistant exec vitest run tests/digest.spec.ts tests/digest-prewarm.spec.ts` | 缓存失效时序与段落同步 `text` 契约 | 摘要计算无模型；真实会话的段落组装用 keyless 回放看 |
 | 桌面刷新 | 浏览器 → 模型 → 读回 | `sendPrompt`（`src/client/index.ts`）→ 模型回合 → `.desk/state.json` → 轮询越过 pending.at | `pnpm --filter dsh-smart-assistant exec vitest run tests/client-panels.spec.ts tests/client-commands.spec.ts` | `.desk/state.json` 生成时间 vs pending.at；会话日志 | 全链要真会话与渲染：`pnpm web-expected` 两场景；真问真答 `pnpm loop-probe` |
-| 插件装载 | 启动链 | `cordis.patch.yml` 行 → built `lib/` → profile（`dev/setup.sh` 装包 + profile patch 设 default） | `pnpm test:composition`（先 build）+ `pnpm --filter dsh-smart-assistant exec vitest run tests/export-shape.spec.mjs` | lib freshness（never started）；行 id/patch 落空（dump-config） | Web UI 行为要 `pnpm preflight` + 两场景 |
+| 插件装载 | 启动链 | `cordis.patch.yml` 行 → built `lib/` → profile（`dev/env/setup.sh` 装包 + profile patch 设 default） | `pnpm test:composition`（先 build）+ `pnpm --filter dsh-smart-assistant exec vitest run tests/export-shape.spec.mjs` | lib freshness（never started）；行 id/patch 落空（dump-config） | Web UI 行为要 `pnpm preflight` + 两场景 |

@@ -9,7 +9,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "dsh": "node scripts/dsh.mjs",
+    "dsh": "node dev/env/dsh.mjs",
     "gen-paths": "node scripts/generate/gen-paths.mjs",
     "gen-catalog": "node scripts/generate/gen-catalog.mjs",
     "usage": "node dev/reports/usage-report.mjs",

@@ -23,7 +23,7 @@ before/出现/贯通/退场三态真机证据住在 /tmp（易失），本场景
 export ASSISTANT_DSH_HOME=/tmp/dsh-expected-banner-home
 
 # ① 隔离 home（幂等；vendor 产物在位时 ≈13s）
-bash dev/prepare.sh && bash dev/setup.sh
+bash dev/env/prepare.sh && bash dev/env/setup.sh
 
 # ② boot 前预置：workspace-controller 行（P1-C）+ 内测声明预确认（幂等，各查各的 marker）
 node snapshots/web-face/first-open-draft-banner/seed.mjs patch "$ASSISTANT_DSH_HOME"

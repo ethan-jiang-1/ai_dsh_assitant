@@ -626,7 +626,7 @@ describe('dev env.sh: the isolation exit is honoured by the shell scripts too', 
    * read another — and the only symptom was `profile "dev" does not exist`. Exercised in a real
    * bash subprocess, against a throwaway ASSISTANT_REPO so nothing of the repo is touched.
    */
-  const envSh = join(import.meta.dirname, '..', '..', '..', 'dev', 'env.sh')
+  const envSh = join(import.meta.dirname, '..', '..', '..', 'dev', 'env', 'env.sh')
   const resolvedHome = (assistantDshHome, extraEnv = {}) => {
     const probeHome = temp('env-home-')
     const scratchRepo = temp('env-repo-')
@@ -651,8 +651,8 @@ describe('startPathProblems', () => {
   // Entry-file fixtures are inline text: the check reads AGENTS.md's bytes, so a throwaway file
   // would add nothing but a second place for the shape to drift.
   const agents = source => ({ agentsPath: 'AGENTS.md', source })
-  const prepare = "bash dev/prepare.sh     # 首次必须先跑：补齐 vendor 产物"
-  const setup = 'bash dev/setup.sh       # 首次起服务的前置：它才建两个 profile（幂等）'
+  const prepare = 'bash dev/env/prepare.sh     # 首次必须先跑：补齐 vendor 产物'
+  const setup = 'bash dev/env/setup.sh       # 首次起服务的前置：它才建两个 profile（幂等）'
   const good = [
     '## 命令表',
     '',
@@ -685,7 +685,7 @@ describe('startPathProblems', () => {
       '```',
       '',
     ].join('\n')
-    expect(startPathProblems(agents(beforeSetup))[0]).toContain('launches a profile before dev/setup.sh')
+    expect(startPathProblems(agents(beforeSetup))[0]).toContain('launches a profile before dev/env/setup.sh')
     const beforePrepare = [
       '```sh',
       'pnpm install',
@@ -696,19 +696,19 @@ describe('startPathProblems', () => {
       '```',
       '',
     ].join('\n')
-    expect(startPathProblems(agents(beforePrepare))[0]).toContain('launches a profile before dev/prepare.sh')
+    expect(startPathProblems(agents(beforePrepare))[0]).toContain('launches a profile before dev/env/prepare.sh')
   })
 
   it('rejects an unmarked preparatory step — an unmarked step is a step agents skip', () => {
-    expect(startPathProblems(agents(good.replace(prepare, 'bash dev/prepare.sh')))[0])
-      .toContain('dev/prepare.sh without saying it is the first step')
-    expect(startPathProblems(agents(good.replace(setup, 'bash dev/setup.sh')))[0])
-      .toContain('dev/setup.sh without saying it is the first step')
+    expect(startPathProblems(agents(good.replace(prepare, 'bash dev/env/prepare.sh')))[0])
+      .toContain('dev/env/prepare.sh without saying it is the first step')
+    expect(startPathProblems(agents(good.replace(setup, 'bash dev/env/setup.sh')))[0])
+      .toContain('dev/env/setup.sh without saying it is the first step')
   })
 
   it('rejects a missing preparatory step, a lost profile route, and an unreadable entry file', () => {
-    expect(startPathProblems(agents(good.replace(`${prepare}\n`, '')))[0]).toContain('dev/prepare.sh nowhere')
-    expect(startPathProblems(agents(good.replace(`${setup}\n`, '')))[0]).toContain('dev/setup.sh nowhere')
+    expect(startPathProblems(agents(good.replace(`${prepare}\n`, '')))[0]).toContain('dev/env/prepare.sh nowhere')
+    expect(startPathProblems(agents(good.replace(`${setup}\n`, '')))[0]).toContain('dev/env/setup.sh nowhere')
     expect(startPathProblems(agents(good.replace('pnpm dsh --profile dev-task "one task"\n', '')))[0])
       .toContain('never launches profile `dev-task`')
     // A missing/empty file must read as "could not check", never as a silent pass.
@@ -726,6 +726,18 @@ describe('dshHomeInheritanceProblems', () => {
 
     expect(dshHomeInheritanceProblems([good])).toEqual([])
     expect(dshHomeInheritanceProblems([bad])[0]).toContain('must use ASSISTANT_DSH_HOME')
+  })
+
+  it('exempts the launcher by exact path — it overrides DSH_HOME, a sibling does not', () => {
+    const dir = temp('dev-home-launcher-')
+    const launcher = join(dir, 'dev', 'env', 'dsh.mjs')
+    mkdirSync(dirname(launcher), { recursive: true })
+    writeFileSync(launcher, "const inherited = process.env.DSH_HOME // read only to override + warn\n", 'utf8')
+    const sibling = join(dir, 'dev', 'env', 'other.mjs')
+    writeFileSync(sibling, "const home = process.env.DSH_HOME ?? 'x'\n", 'utf8')
+
+    expect(dshHomeInheritanceProblems([launcher])).toEqual([])
+    expect(dshHomeInheritanceProblems([sibling])[0]).toContain('must use ASSISTANT_DSH_HOME')
   })
 })
 

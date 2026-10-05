@@ -679,7 +679,7 @@ recentActivity 主动修剪到五条、还抓到自己编造的时间戳并纠�
 交付关口是 `dev/probes/web/webui-preflight.mjs`。本卡只记两条本战役特有：
 
 - 起 Web UI 必须从**干净目录**起（如 `/tmp/desk`），否则会话会读到开发仓的 AGENTS.md；
-- 查组合里有没有这一行（boot-free）：`node scripts/dsh.mjs --profile dev --dump-config | grep -A3 '<row id>'`。
+- 查组合里有没有这一行（boot-free）：`node dev/env/dsh.mjs --profile dev --dump-config | grep -A3 '<row id>'`。
 
 （本节旧版复述的完整命令块与 pnpm 绕过法已删——绕过法在 peerDep 回退当天就过期；审计与拆法见
 [清理卡](../implemented/2026-09-26-signal-noise-sweep.md)。）

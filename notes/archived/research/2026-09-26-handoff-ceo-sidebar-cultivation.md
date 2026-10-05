@@ -17,7 +17,7 @@ cd /Users/bowhead/ai_dsh_assitant
 #    notes/proposed/2026-09-25-ceo-sidebar-ux.md  —— 编年记录 + §〇 状态一览
 
 # 2) 起 Web UI（必须从干净目录起，否则会话会读到开发仓的 AGENTS.md）
-cd /tmp/desk && node /Users/bowhead/ai_dsh_assitant/scripts/dsh.mjs --profile dev --port 0 --no-open
+cd /tmp/desk && node /Users/bowhead/ai_dsh_assitant/dev/env/dsh.mjs --profile dev --port 0 --no-open
 # 输出里有 URL（带 token）
 
 # 3) 交付给用户之前必须过 preflight（会查 boot 图 + Remote 清单 + desk 文件内容段）
@@ -137,7 +137,7 @@ typert 阻塞的证据链与死路回退（DeskRemote 整段删除）在[卡 §�
 
 ```sh
 # 起 Web UI（干净目录！）
-cd /tmp/desk && node /Users/bowhead/ai_dsh_assitant/scripts/dsh.mjs --profile dev --port 0 --no-open
+cd /tmp/desk && node /Users/bowhead/ai_dsh_assitant/dev/env/dsh.mjs --profile dev --port 0 --no-open
 
 # 交付前关口（必须绿；它会报 desk 文件的段）
 cd /Users/bowhead/ai_dsh_assitant && node scripts/webui-preflight.mjs '<URL>'
@@ -147,11 +147,11 @@ node scripts/checks/verify.mjs
 pnpm test        # 全仓；只要本包时 cd packages/dsh-smart-assistant && npx vitest run
 
 # preset 挂载的 one-shot（验证模型面行为；提示须与面板发送的原文一致，当前含点名技能）
-cd /tmp/desk && node /Users/bowhead/ai_dsh_assitant/scripts/dsh.mjs --profile dev-task \
+cd /tmp/desk && node /Users/bowhead/ai_dsh_assitant/dev/env/dsh.mjs --profile dev-task \
   --patch /Users/bowhead/ai_dsh_assitant/dev/probes/session/preset-runner.patch.yml "刷新我的桌面：加载 desk-refresh 技能，严格按它把桌面文件重写一遍。"
 
 # 组合里有没有这一行（boot-free：不加载 loader entries，故不能当"能 boot"的证据）
-node scripts/dsh.mjs --profile dev --dump-config | grep -A3 '<row id>'
+node dev/env/dsh.mjs --profile dev --dump-config | grep -A3 '<row id>'
 ```
 
 **历史坑（已修，别再绕）**：2026-09-26 之前 pnpm 曾被依赖前置检查挡住（package.json 与 lockfile 不一致时

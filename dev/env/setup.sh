@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 幂等的开发环境搭建。用法：bash dev/setup.sh
+# 幂等的开发环境搭建。用法：bash dev/env/setup.sh
 #
 # 三件事，顺序不能换：
 #   1. 建 dev profile —— **必须从 web 模板建**，因为 preset roster（`agent-preset-registry` 行）
@@ -18,19 +18,19 @@
 set -euo pipefail
 
 repo_root="$(git rev-parse --show-toplevel)"
-# shellcheck source=dev/env.sh
-source "$repo_root/dev/env.sh"
+# shellcheck source=dev/env/env.sh
+source "$repo_root/dev/env/env.sh"
 
 if [ -z "${ASSISTANT_DSH_HOME:-}" ] && [ "$DSH_HOME" = "$HOME/.dsh" ]; then
   echo "✗ DSH_HOME resolves to the daily ~/.dsh — refusing to touch it." >&2
-  echo "  Unset it, source dev/env.sh, or point ASSISTANT_DSH_HOME at a scratch home on purpose." >&2
+  echo "  Unset it, source dev/env/env.sh, or point ASSISTANT_DSH_HOME at a scratch home on purpose." >&2
   exit 1
 fi
 
 if [ ! -f "$repo_root/vendor/dsh/packages/boot/app-boot/lib/index.js" ] || \
    [ -z "$(find "$repo_root/vendor/dsh/packages/client" -maxdepth 3 -name index.js -path '*/lib/*' -print -quit 2>/dev/null)" ]; then
   echo "✗ vendor/dsh is not built (host lib / client bundles missing) — the harness needs its built lib/ to boot." >&2
-  echo "  Run once per pin: bash dev/prepare.sh" >&2
+  echo "  Run once per pin: bash dev/env/prepare.sh" >&2
   echo "  (it wraps: pnpm --dir vendor/dsh install; build:native-system; build:lib; build:web)" >&2
   exit 1
 fi

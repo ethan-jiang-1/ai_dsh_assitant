@@ -33,7 +33,7 @@
 
 ## 其余核验
 
-- **AGENTS.md 新命令表实存性**（并行会话刚改的，新声明最脆）：`dev/prepare.sh` 存在 ✓；
+- **AGENTS.md 新命令表实存性**（并行会话刚改的，新声明最脆）：`dev/env/prepare.sh` 存在 ✓；
   三个判据文件（app-boot/lib、client modules lib、web dist/index.html）+ `.modules.yaml` 全在 ✓；
   export-dist 面（scripts + note）存在 ✓（在途，未验内容）。
 - **preflight**：13 项全绿——token 交换、模块装载（11MB bundle 解析）、

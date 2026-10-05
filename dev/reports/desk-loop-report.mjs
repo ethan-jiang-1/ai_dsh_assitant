@@ -35,7 +35,7 @@ import { argumentsText, wrotePath } from '../eval/checks.mjs'
 import { TASKS } from '../eval/tasks.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
-// 与 scripts/dsh.mjs 同一条硬规则：永不继承 DSH_HOME（见 dev/usage-report.mjs 的同名说明）
+// 与 dev/env/dsh.mjs 同一条硬规则：永不继承 DSH_HOME（见 dev/usage-report.mjs 的同名说明）
 const harnessHome = resolve(process.env.ASSISTANT_DSH_HOME ?? join(repoRoot, 'dev', 'harness-home'))
 
 const PANEL_MARKER = '[桌面] '
