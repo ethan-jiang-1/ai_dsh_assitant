@@ -4,7 +4,7 @@
 
 ## 决定
 
-按[提案](../proposed/2026-10-05-repo-navigability.md) P3 套路（与用户 2026-10-05 对齐），43 个 spec + 1 个共享夹具
+按[提案](2026-10-05-repo-navigability.md) P3 套路（与用户 2026-10-05 对齐），43 个 spec + 1 个共享夹具
 按**被测 interface × 真实依赖半径**迁入职责子目录——后缀 = 车道不变（`*.spec.{ts,mjs}` / `*harness.ts`），
 目录 = interface 家；每个 spec 归最主要 interface，跨层依赖文件头注明。六片独立提交锚点，每片迁前后
 Vitest 发现集合一一对应（43=43）：

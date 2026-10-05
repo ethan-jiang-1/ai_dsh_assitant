@@ -4,7 +4,7 @@
 
 ## 决定
 
-按[提案](../proposed/2026-10-05-repo-navigability.md) P4 与冻结卡「主要迁移归属」表，包 src 从平铺目录切分为职责子树
+按[提案](2026-10-05-repo-navigability.md) P4 与冻结卡「主要迁移归属」表，包 src 从平铺目录切分为职责子树
 （client 原地不动；一次一片独立提交锚点；**稳定外部 interface 全程不变**——包名、工具名/动词、preset/组合行 id、
 `ctx.assistantMemory`、exports 子路径键、根命令名、两 profile 语义、home/dataDir、存储格式）：
 
