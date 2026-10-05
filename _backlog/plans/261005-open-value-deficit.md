@@ -25,7 +25,7 @@
 已有设计材料：Day-0 概念稿的换位节律节）。
 
 主对象迁移（桌面为主、会话为动作）**片1 已交付**：桌面经 vendor `conversation.view` 缝升为主区 first-class 视图
-（[提案卡](../../notes/proposed/2026-10-06-desk-primary-view.md)，test 44 件 379/preflight 绿/live 点击链 DOM 证据）；
+（[提案卡](../../notes/implemented/2026-10-06-desk-primary-view.md)，test 44 件 379/preflight 绿/live 点击链 DOM 证据）；
 A'（Day-0 intake 它先问）已先行落地（真模型 eval PASS）。**插件边界内的诚实限制**：默认视图 vendor 硬编码
 chat、空白相位 vendor 自持——「打开=桌面」的最后一步走上游 D7（已入台账，递交与否用户拍板）。
 **未决**：真人判据读数（「打开不困惑」转移到新形态首开，等待用户真机验收）——读数前不宣布形态迁移价值已验证；

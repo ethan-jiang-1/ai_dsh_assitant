@@ -1,6 +1,6 @@
 # 桌面主对象化（新 UX 第一刀）：桌面升为 Conversation View 主视图
 
-日期：2026-10-06 · 状态：**proposed（片1 已交付：`6680e01`——视图注册/三步卡重写/spec 4 断言/test 44 件 379/typecheck/verify 34/preflight 绿 + live 证据：真会话写真桌面→点击桌面标签→内容区渲染，DOM 在案）**
+日期：2026-10-06 · 状态：**implemented**（片1 视图 `6680e01` → 真机走查四根因 → 落地战役四修 `1e7a0ad`/`34ec4fd`/`4988e79` + 账面 `7710ed1`——全链自测通过：真模型四轮 naive 走查（开场框架句/英文叙述 0/简报落桌 1 决策 4 选项 4 缺口 1 动作/桌面视图节律句渲染），eval 复跑 PASS，web-expected 两场景重录复验 PASS，preflight 绿；真人读数按 2026-10-06 用户铁律无限期后置，落地版常驻 /tmp/landed-home 服务）
 - **既有两场景复验 PASS（2026-10-06，新构建）**：blank-first-open 与 first-open-draft-banner 在隔离 home 全流程重跑均 PASS，
   期望文件**零差异**——桌面视图与三步卡重写不在两场景捕获面内，不回归成立（中间踩过的坑如实记：seed patch 必须 boot 前落、
   隔离 home 需带凭据否则 API Key 弹窗入镜——seed 无 creds 子命令是 P2 已记缺口）。
