@@ -37,6 +37,13 @@
 - 自洽卡四件门逐件闭合记录：入口证据=本卡事实 1-4；旧会话回路=视图是 UI 层叠加、会话数据与既有 right-tab 面板不动（回归由既有 client spec 守）；示例/真实边界=沿用 desk 数据标注纪律；审批/撤销=沿用面板既有动作路径（remote.session.prompt 车道，不新增直调）。
 - DeskData 契约不动；四工具/persona/组合行零变化（非模型可见面）。
 
+## 能力环闭环（B1-B3，2026-10-06 落地战役续篇——用户铁律「goal 结束前零交互，错了回头改」）
+
+- **B1 晨报 v1**（`37d3073`）：`morning-brief` 策展技能 + manual v13 指针——承诺即排程（desk action 带 due → 同回合 schedule_create[09:00 默认/IANA]），到期投递 = 简报时刻（到期/要拍板/阻塞缺口三块一段话），延期→update 同步、静默→delete 记忆防复建、预算=每 due 一次投递；vendor schedule 家族原生承载（零自建机制）。
+- **B2 审批内联**（`c606567`）：技能提案入 KnowledgePanel——CorrectableRow 一键批准/拒绝（拒绝可填理由），面板代发 prompt 通道（此 pin 下直调 codec 拒绝的诚实回退），与知识草稿批准同形——全部审批面一过性。
+- **B3 全链终验**：真模型五轮 naive 走查——英文叙述 **0 条**；桌面：1 决策（4 选项）+ 4 真缺口 + **2 动作**（due 10-07 + 10-20）；schedule：**2 条排程**均 `at` 型、目标 `01:00Z` = 北京 09:00 ✓、prompt 含 `[due follow-up]` + morning-brief 指令 ✓、desk/schedule 日期一一对应 ✓。
+- **能力环判定**：打开→说一句话→它先问（三问带弧线框架）→答→拍板选项呈上→到期它推→内联确认——全程天真身份自测走通且每步知道「我在做什么、下一步是什么」。
+
 ## 发行预置拍板（2026-10-06 定案：用户读数确认形态操作面，维持现状即证据支持的形状）
 
 **定案**：`locale.preference: zh` **随发行维持**（已在 bundle patch 内，261001 用户投诉+目标用户证据）；`workspace-controller.documentsDirectory` **不随发行维持**（全限定路径不可移植；vendor 默认即首用设计路径；本仓失败为 headless 进程特例——留 dev/trial profile 层）。`ui-chat` 行维持 standing 退役条件。**原拍板材料：**
