@@ -13,8 +13,8 @@
  * (scripts/AGENTS.md: check logic and checked corpus stay apart).
  *
  * Two modes:
- *   node scripts/webui-expected.mjs '<url>'                # capture → compare → exit 1 on drift
- *   node scripts/webui-expected.mjs '<url>' --refresh      # capture → write the expectation
+ *   node dev/probes/web/webui-expected.mjs '<url>'                # capture → compare → exit 1 on drift
+ *   node dev/probes/web/webui-expected.mjs '<url>' --refresh      # capture → write the expectation
  *
  * Every written expectation is human-reviewed before commit (the DOM JSON is the diffable
  * surface; the PNG stays in the temp dir for eyeballing and never enters git). Scenario
@@ -22,7 +22,7 @@
  * ignored — lives in the scenario's own README, per snapshots/AGENTS.md.
  *
  * Usage:
- *   node scripts/webui-expected.mjs '<url-with-token>' [--scenario <dir>] [--refresh]
+ *   node dev/probes/web/webui-expected.mjs '<url-with-token>' [--scenario <dir>] [--refresh]
  *        [--size <WxH>]   (default 1600x1000, must match the committed expectation)
  *        [--wait-text <substring>]   (readiness token polled before capture; scenes pinning
  *                                     async-loaded content declare theirs in snapshot.yml)
@@ -41,7 +41,7 @@ const option = (name, fallback) => {
   return i >= 0 && i + 1 < args.length ? args[i + 1] : fallback
 }
 const scriptRoot = fileURLToPath(new URL('.', import.meta.url))
-const scenarioDir = resolve(option('scenario', join(scriptRoot, '..', 'snapshots', 'web-face', 'blank-first-open')))
+const scenarioDir = resolve(option('scenario', join(scriptRoot, '..', '..', '..', 'snapshots', 'web-face', 'blank-first-open')))
 const size = option('size', '1600x1000')
 const refresh = args.includes('--refresh')
 // Scenes pinning async-loaded content declare their readiness token; the polling eval
@@ -49,7 +49,7 @@ const refresh = args.includes('--refresh')
 const waitText = option('wait-text')
 
 if (targetUrl === undefined) {
-  console.error('usage: node scripts/webui-expected.mjs <url-with-token> [--scenario <dir>] [--refresh] [--size <WxH>] [--wait-text <substring>]')
+  console.error('usage: node dev/probes/web/webui-expected.mjs <url-with-token> [--scenario <dir>] [--refresh] [--size <WxH>] [--wait-text <substring>]')
   process.exit(1)
 }
 const expectedPath = join(scenarioDir, 'expected.dom.json')

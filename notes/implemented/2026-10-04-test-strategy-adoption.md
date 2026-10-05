@@ -26,7 +26,7 @@
 - **切片 1（侦察）**：导出面当前全纯净（守卫=防退化）；dispose 缺口 6 面；eval 无 key 显式红
   （`exit 1`，DSH 缺 key 硬失败的等价物已在）；vendor `test-support` 七件套全在源码平面别名表
   （零胶水）；web 试点 v1 定隔离 home 真·首开态（共享 dev home 的时间戳漂移不可用）。
-- **切片 2（web 面期望比对试点）**：`scripts/webui-expected.mjs` + 纯核比对器
+- **切片 2（web 面期望比对试点）**：`dev/probes/web/webui-expected.mjs` + 纯核比对器
   `webui-expected-core.mjs`（忽略清单与 `{{origin}}` token 化为**被审常量**，shots 新增输出以
   `unowned` 显式出现在 diff）；复用 shots 子进程采集（不复制 CDP 坑）；首场景
   `snapshots/web-face/blank-first-open/`（契约 README + snapshot.yml 同 diff）。prove-it-red：

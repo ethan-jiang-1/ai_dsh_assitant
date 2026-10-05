@@ -13,12 +13,12 @@
 
 ## 决定
 
-1. **拷入驱动**（[scripts/lib/cdp-driver.mjs](../../scripts/lib/cdp-driver.mjs)，源仓逐字节复制 + 来源注记）：
+1. **拷入驱动**（[dev/probes/web/cdp-driver.mjs](../../dev/probes/web/cdp-driver.mjs)，源仓逐字节复制 + 来源注记）：
    一次性无头 Chrome（port 0 + DevToolsActivePort 防孤儿 Chrome）、CDP 连接、evaluate/click 带
    20s 超时竞速、console 错误与未捕获异常捕获、settle 清理。五条环境坑已编码成规则
    （`--no-sandbox`、桌面视口、禁用 virtual-time-budget 等）。零仓内依赖，纯 Node 内置——合
    scripts/AGENTS.md 风格。
-2. **场景本仓化**（[scripts/webui-loop-probe.mjs](../../scripts/webui-loop-probe.mjs)，`pnpm loop-probe`）：
+2. **场景本仓化**（[dev/probes/web/webui-loop-probe.mjs](../../dev/probes/web/webui-loop-probe.mjs)，`pnpm loop-probe`）：
    - 首屏断言（产品承诺面）：composer 挂载、引导条在场、无"三室"黑话、无工作区之问
      （`Choose a workspace to start` / `Unable to create default workspace`）、zh hero（报告项）。
    - `--ask '<问句>'` 全产品环：粘贴真发问 → 点发送 → 等停止按钮消失（回合完成信号）→

@@ -1,7 +1,7 @@
 # first-open-draft-banner —— 有草稿待批时的首开态（web 面期望比对第二场景）
 
 > 场景契约（snapshots/AGENTS.md：录制命令、profile、判据与 fixture 同 diff）。
-> harness：[`scripts/webui-expected.mjs`](../../../scripts/webui-expected.mjs)（`--scenario` +
+> harness：[`dev/probes/web/webui-expected.mjs`](../../../dev/probes/web/webui-expected.mjs)（`--scenario` +
 > `--wait-text`）；预置脚本：本目录 [`seed.mjs`](seed.mjs)。
 > 试点场景与成本台账：[`../blank-first-open/README.md`](../blank-first-open/README.md)。
 

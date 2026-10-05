@@ -10,14 +10,14 @@
 1. **session 回放 fixture**：输入 JSONL + 期望投影（一场景一目录 + 自己的 `snapshot.yml` 声明
    profile 与录制）。
 2. **web 渲染期望**：真渲染一次的 DOM 证据比对（一场景一目录 + `snapshot.yml` + 契约 README；
-   harness = `scripts/webui-expected.mjs`，首场景 `web-face/blank-first-open/`）。
+   harness = `dev/probes/web/webui-expected.mjs`，首场景 `web-face/blank-first-open/`）。
 
 单元 / CLI / generator / 几何 / 其他纯函数期望输出**跟 owning 层走**
 （`packages/dsh-smart-assistant/tests/`、各自脚本旁）——集中目录只收真正同类的证据。
 
 ## harness 状态（诚实）
 
-- **web 渲染期望**：harness 已建（`scripts/webui-expected.mjs` + 纯核比对器，形态夹具在
+- **web 渲染期望**：harness 已建（`dev/probes/web/webui-expected.mjs` + 纯核比对器，形态夹具在
   `tests/webui-expected-core.spec.mjs`）；场景契约 owner 是各场景目录的 `README.md`。
 - **session 回放**：仍未建。升级触发条件（够用再升级，别提前造）、当前用什么顶、以及为什么：
   owner 是 [`README.md`](README.md)——本文件不复制它。

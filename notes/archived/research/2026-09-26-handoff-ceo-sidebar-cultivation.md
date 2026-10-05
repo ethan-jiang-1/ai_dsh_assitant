@@ -125,7 +125,7 @@ typert 阻塞的证据链与死路回退（DeskRemote 整段删除）在[卡 §�
 | `packages/dsh-smart-assistant/src/index.ts` | AssistantMemory 服务（`writePage` / `promotePage` / `deprecatePage` / `listKnowledge` / `digest` …） |
 | `packages/dsh-smart-assistant/src/learn/index.ts` | `assistant_reflect` 工具（动作集 + 回执 render） |
 | `packages/dsh-smart-assistant/src/tool-research/index.ts` | `assistant_research` 工具（线索生命周期） |
-| `scripts/webui-preflight.mjs` | 交付前关口（boot 图 + Remote 清单 + desk 文件内容段） |
+| `dev/probes/web/webui-preflight.mjs` | 交付前关口（boot 图 + Remote 清单 + desk 文件内容段） |
 | `packages/dsh-smart-assistant/tests/client-panels.spec.ts` | 面板渲染测试（装置：装门面 → 求值脚本 → 带 hook shim 物化工厂） |
 | `notes/implemented/2026-09-26-cultivation-surface-design.md` | **设计 owner 卡**：判据、11 条设计原则、架构、现状、输掉的方案、判据怎么验 |
 | `notes/archived/2026-09-25-ceo-sidebar-ux.md` | **编年记录**：§〇 状态一览、逐圈证据（§四·X）、原始设计稿与实验计划（§二/§五，历史） |

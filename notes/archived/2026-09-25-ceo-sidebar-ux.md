@@ -157,7 +157,7 @@
 
 ### 过程修复：preflight 现在会自查这类问题（用户 2026-09-25 要求）
 
-"免得每次我来给你贴这么严重的问题，这不就有点荒唐了"——已升级 `scripts/webui-preflight.mjs`：
+"免得每次我来给你贴这么严重的问题，这不就有点荒唐了"——已升级 `dev/probes/web/webui-preflight.mjs`：
 1. 解析首页里的 `globalThis["__DSH_BOOT__"]` 图（entry / inject / rev）
 2. **⑤a** 本仓 entry 的每个包 id 依赖必须在图里有提供者
 3. **⑤b** 读 `@deepseek-ai/dsh-api-remotes` 的清单，取出命名空间集合；
@@ -676,7 +676,7 @@ recentActivity 主动修剪到五条、还抓到自己编造的时间戳并纠�
 ## 九、运行与验证（链接，不复述）
 
 命令的唯一权威：根 [`AGENTS.md`](../../AGENTS.md) 命令表 + [`docs/dev.md`](../../docs/dev.md) §四；
-交付关口是 `scripts/webui-preflight.mjs`。本卡只记两条本战役特有：
+交付关口是 `dev/probes/web/webui-preflight.mjs`。本卡只记两条本战役特有：
 
 - 起 Web UI 必须从**干净目录**起（如 `/tmp/desk`），否则会话会读到开发仓的 AGENTS.md；
 - 查组合里有没有这一行（boot-free）：`node scripts/dsh.mjs --profile dev --dump-config | grep -A3 '<row id>'`。
@@ -688,7 +688,7 @@ recentActivity 主动修剪到五条、还抓到自己编造的时间戳并纠�
 - `packages/dsh-smart-assistant/src/client/index.ts` —— client 面（品牌标记 + My Desk 面板）
 - `vendor/dsh/packages/client/ui-schedule/src/client/index.ts` —— panellist 注册的参照物
 - `vendor/dsh/packages/client/ui-sidebar/src/client/index.ts` —— panellist 的消费端
-- `scripts/webui-preflight.mjs` —— 交付前关口（含 boot 图检查）
+- `dev/probes/web/webui-preflight.mjs` —— 交付前关口（含 boot 图检查）
 
 不可推翻的架构事实（实验所得）的权威 = 开发技能
 [`client-ui-contribution`](../../.agents/skills/client-ui-contribution/SKILL.md)（四事实 + 验证循环）；

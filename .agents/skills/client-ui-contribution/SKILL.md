@@ -17,7 +17,7 @@ error, and **one bad statement kills every later registration in the same combo*
 - No imports. Mirror vendor types structurally; pull dependencies through the factory's `require`
   (`'react'` is a baseline external every dynamic bundle may request).
 - Register through the page-global facade: `__ModuleLoader__.load({ id: '<package name>', factory })`.
-- Verify the emitted bundle parses: `node scripts/webui-preflight.mjs '<url>'` compiles each combo
+- Verify the emitted bundle parses: `node dev/probes/web/webui-preflight.mjs '<url>'` compiles each combo
   as a classic-script body and fails loudly on the first ESM-looking line.
 
 ## 2. Everything visible goes through the slot system: `inject` + `register`
@@ -109,7 +109,7 @@ Facts that save rounds:
 1. Build (`pnpm build`) — the dev profile links the package and the composition consumes `lib/`.
 2. Restart the web UI from a **clean directory** (a repo cwd leaks the repo's AGENTS.md into the
    session): `cd /tmp/desk && node <repo>/scripts/dsh.mjs --profile dev --port 0 --no-open`.
-3. `node scripts/webui-preflight.mjs '<url with token>'` — must be green before a human opens it.
+3. `node dev/probes/web/webui-preflight.mjs '<url with token>'` — must be green before a human opens it.
    It checks the auth flow, that every combo parses, that our bundle registers, that the boot graph
    is satisfiable, and that every `remote.<ns>` we inject exists in the Remote manifest.
 4. Only then hand over the URL.

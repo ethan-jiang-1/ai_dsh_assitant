@@ -11,7 +11,7 @@
  * Provenance: borrowed verbatim from the sibling repo `ai_dsh_loop_advisor`
  * (scripts/lib/cdp-driver.mjs, 2026-10-01) at the owner's instruction — the
  * driver is deliberately self-contained so repos copy it rather than depend
- * on it. This repo's scenario lives in scripts/webui-loop-probe.mjs.
+ * on it. This repo's scenario lives in dev/probes/web/webui-loop-probe.mjs.
  *
  * Hard-won rules encoded here (break them and the probe lies or hangs):
  * 1. `--remote-debugging-port=0` + read the real port from DevToolsActivePort

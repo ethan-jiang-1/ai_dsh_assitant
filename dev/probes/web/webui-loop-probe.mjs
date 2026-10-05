@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // First-use loop probe: launch a throwaway headless Chrome against a booted
-// GUI URL (via the generic CDP driver in scripts/lib/cdp-driver.mjs), assert
+// GUI URL (via the generic CDP driver in cdp-driver.mjs, adjacent), assert
 // the first-open surface this repo promises, and — with --ask — drive the
 // full product loop (type a real question, send it, wait for the real reply).
 //
@@ -13,7 +13,7 @@
 // after any composition or bundle change instead of re-improvised.
 //
 // Usage:
-//   node scripts/webui-loop-probe.mjs '<gui-url>' [--ask 'question']
+//   node dev/probes/web/webui-loop-probe.mjs '<gui-url>' [--ask 'question']
 //        [--follow-up 'second question'] [--dislike] [--size 1600,1000]
 //        [--keep-browser] [--quiet]
 //
@@ -38,7 +38,7 @@
 // Style: scripts/AGENTS.md — pure ESM, Node built-ins only, comments carry
 // the why. The composer interaction knowledge below is this repo's own
 // hard-won material (2026-10-01, first-open UX campaign).
-import { launchCdpBrowser } from './lib/cdp-driver.mjs';
+import { launchCdpBrowser } from './cdp-driver.mjs';
 import process from 'node:process';
 
 const args = process.argv.slice(2);

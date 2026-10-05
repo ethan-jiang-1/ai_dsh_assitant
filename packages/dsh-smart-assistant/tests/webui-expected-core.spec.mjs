@@ -1,5 +1,5 @@
 /**
- * Fixtures for the web-face expected-comparison core (`scripts/webui-expected-core.mjs`,
+ * Fixtures for the web-face expected-comparison core (`dev/probes/web/webui-expected-core.mjs`,
  * test-strategy adoption slice 2). Every accepted and rejected shape is pinned here on
  * throwaway objects — the real snapshot scenario is never touched, and no capture runs.
  *
@@ -13,7 +13,7 @@
  * `tsc -p tsconfig.test.json` does not include non-TS files.
  */
 import { describe, expect, it } from 'vitest'
-import { buildWaitSnippet, compareEvidence, normalizeDomEvidence } from '../../../scripts/webui-expected-core.mjs'
+import { buildWaitSnippet, compareEvidence, normalizeDomEvidence } from '../../../dev/probes/web/webui-expected-core.mjs'
 
 /** A minimal well-formed capture: complete, right viewport, empty failure lists. */
 function evidence(overrides = {}) {

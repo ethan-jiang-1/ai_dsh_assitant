@@ -25,7 +25,7 @@
 
 ### P0 证据管线（先看见，再动手）
 
-- `scripts/webui-shots.mjs`（**已交付**）：**收 URL**（不自起 web——启动归 `scripts/dsh.mjs` 的双 home
+- `dev/probes/web/webui-shots.mjs`（**已交付**）：**收 URL**（不自起 web——启动归 `scripts/dsh.mjs` 的双 home
   守卫，截图器不重复实现它）→ headless Chrome **经 CDP** 截图 + 产出 DOM 证据（可见文本/带高度大纲/
   交互件/boot 诊断/console 错误/失败请求）。原计划的 `--headless --screenshot --virtual-time-budget`
   路线**实测走不通**（SSE 长连接下永远等不到 load），CDP 自控时机是修法；另带看门狗、进程组清理、
@@ -101,7 +101,7 @@
 
 ## 进度
 
-- [x] **P0 证据管线 + 首开走查**（2026-09-26 落地）——`scripts/webui-shots.mjs`（CDP 截图 + DOM 证据；
+- [x] **P0 证据管线 + 首开走查**（2026-09-26 落地）——`dev/probes/web/webui-shots.mjs`（CDP 截图 + DOM 证据；
   看门狗/进程组清理/`--plain` 兜底/`--eval` 交互），走查报告与真机截图证据在
   [第一公里走查](../archived/research/2026-09-26-first-mile-walkthrough.md) 与
   [截图目录](../archived/research/2026-09-26-first-mile-shots)。

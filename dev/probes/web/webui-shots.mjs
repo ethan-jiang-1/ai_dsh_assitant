@@ -27,7 +27,7 @@
  * synthesize input; those states stay with DOM assertions.
  *
  * Usage:
- *   node scripts/webui-shots.mjs 'http://127.0.0.1:<port>/?token=<token>' \
+ *   node dev/probes/web/webui-shots.mjs 'http://127.0.0.1:<port>/?token=<token>' \
  *     [--out <dir>] [--name <base>] [--size <WxH>]... [--budget <ms>] [--settle <ms>]
  *     [--dom] [--lang <bcp47>]
  *
@@ -69,7 +69,7 @@ import { join } from 'node:path'
 const args = process.argv.slice(2)
 const targetUrl = args.find(a => !a.startsWith('--'))
 if (targetUrl === undefined) {
-  console.error("usage: node scripts/webui-shots.mjs <url-with-token> [--out <dir>] [--name <base>] [--size <WxH>]... [--budget <ms>] [--settle <ms>] [--dom] [--plain] [--eval <js>]... [--lang <bcp47>]")
+  console.error("usage: node dev/probes/web/webui-shots.mjs <url-with-token> [--out <dir>] [--name <base>] [--size <WxH>]... [--budget <ms>] [--settle <ms>] [--dom] [--plain] [--eval <js>]... [--lang <bcp47>]")
   process.exit(1)
 }
 

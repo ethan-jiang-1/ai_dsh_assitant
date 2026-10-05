@@ -14,7 +14,7 @@
  * What it does NOT prove: that the client tree executes and renders — that is still the
  * browser session's job.
  *
- * Usage: node scripts/webui-preflight.mjs 'http://127.0.0.1:<port>/?token=<token>' [--dsh-home <dir>]
+ * Usage: node dev/probes/web/webui-preflight.mjs 'http://127.0.0.1:<port>/?token=<token>' [--dsh-home <dir>]
  *        --dsh-home: the home the TARGET SERVICE runs on (the desk-readiness check scans its
  *        session workspaces). Defaults to the runner's own DSH_HOME / harness home — pass it
  *        explicitly whenever the service runs anywhere else, or the check greens on the wrong
@@ -31,7 +31,7 @@ const dshHomeFlag = (() => {
   return index >= 0 && index + 1 < positional.length ? positional[index + 1] : undefined
 })()
 if (given === undefined) {
-  console.error('usage: node scripts/webui-preflight.mjs <url-with-token> [--dsh-home <dir>]')
+  console.error('usage: node dev/probes/web/webui-preflight.mjs <url-with-token> [--dsh-home <dir>]')
   process.exit(1)
 }
 
@@ -198,15 +198,18 @@ if (bootStart < 0) {
 // a green boot with no desk file still hands the human an empty page. Fail (not warn) when no
 // recent session workspace has one — "hand over a URL where nothing is visible" is the failure
 // this whole script exists to prevent (user, 2026-09-25).
-// The desk check scans the home the SERVICE runs on — an explicit --dsh-home wins, then the
-// runner's own DSH_HOME. The scanned home is printed in the verdict so a wrong-home pass is
-// visible instead of silently green.
 // Workspace paths come from the home's workspace registry (storages/workspace.json), the
 // authoritative canonical paths. The sessions/ directory names are a LOSSY encoding — a
 // literal dash in a workspace path is indistinguishable from an encoded slash — so decoding
 // them misses desks in dash-containing workspaces (2026-10-05: the trial home's desk sits in
 // …/deepseek-harness/default-workspace, whose decoded name pointed at a nonexistent path).
-const home = dshHomeFlag ?? process.env.DSH_HOME ?? new URL('../dev/harness-home/', import.meta.url).pathname
+// The desk check scans the home the SERVICE runs on — an explicit --dsh-home wins, then
+// ASSISTANT_DSH_HOME (the launcher's sanctioned outlet: every legit non-default home arrives
+// through it and lands in the child env with the same value). Ambient DSH_HOME is deliberately
+// not read — that inheritance is the wrong-home trap the dev-tree structure gate forbids. The
+// scanned home is printed in the verdict so a wrong-home pass is visible instead of silently
+// green.
+const home = dshHomeFlag ?? process.env.ASSISTANT_DSH_HOME ?? new URL('../../harness-home/', import.meta.url).pathname
 const registryPath = join(home, 'storages', 'workspace.json')
 let deskFound = ''
 try {
