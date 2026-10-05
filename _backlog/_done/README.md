@@ -32,4 +32,5 @@
 
 | 文件 | 服务的卡 | 日期 |
 |---|---|---|
-| （空——随卡毕业时迁入自建行） | | |
+| [tech-exploration/261005-repo-entry-tooling-audit.md](_reference/tech-exploration/261005-repo-entry-tooling-audit.md) | [261005-repo-navigability](_closed_plans/261005-repo-navigability.md) | 2026-10-05 |
+| [tech-exploration/261005-repo-test-asset-audit.md](_reference/tech-exploration/261005-repo-test-asset-audit.md) | [261005-repo-navigability](_closed_plans/261005-repo-navigability.md) | 2026-10-05 |

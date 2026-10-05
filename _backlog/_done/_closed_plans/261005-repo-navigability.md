@@ -1,6 +1,7 @@
 # 推敲：让项目可理解、可局部验证、可驾驭
 
-> 立卡：2026-10-05 ｜ 状态：推敲中｜毕业门判断 = 倾向该做，候选方案待用户审阅｜下一步 = 核对证据与阶段验收，用户确认后按 notes 生命周期毕业有界提案；本卡不是实施授权
+> 毕业去向：整体毕业为该做（用户 2026-10-05 确认分段实施：第一段 P0 残尾 + P2，段间回用户复核）→ [提案](../../../notes/proposed/2026-10-05-repo-navigability.md)。P0 大半与 P1 已随 `f25d686` 交付（[P1 note](../../../notes/implemented/2026-10-05-p1-validation-trustworthiness.md)）；本卡完整推敲史（八条承重事实、五项硬要求映射、状态分层与 run bundle 候选、迁移归属表、回退纪律）随卡归档冻结，实施以提案为方案面、卡上「候选阶段」出口为验收细节。
+> 立卡：2026-10-05 ｜ 状态：已毕业（该做，分段实施）｜毕业门判断 = 该做（用户定位/验证障碍与可指认误导；底稿完整、主代理复核、选型/兼容 interface/消费者/验收/回退可执行、用户确认实施范围）｜下一步 = 第一段 goal（P0 残尾 + P2 工具归位）按提案推进；后续段逐段拍板
 
 ## 背景与范围
 
@@ -14,23 +15,23 @@
 |---|---|
 | [SDLC 清理卡](261005-sdlc-turnaround-cleanup.md) | 拥有资产保留/退役/删除与防护损失判断；本卡只组织有消费者的资产，不按年龄删除能力 |
 | [总体自洽卡](261005-turnaround-coherence.md) | 拥有产品转向总体依赖；本卡是 repo 卫生中的可驾驭性切片，不另建产品总路线 |
-| [测试策略决定](../../notes/implemented/2026-10-04-test-strategy-adoption.md) | 保留真实依赖、负例证据、分层验证与快照归属；本卡改导航和执行组织，不重写测试哲学 |
-| [文档职责](../../docs/AGENTS.md) | 架构/开发/测试各自拥有当前事实；根入口提供路由，不复制合同 |
+| [测试策略决定](../../../notes/implemented/2026-10-04-test-strategy-adoption.md) | 保留真实依赖、负例证据、分层验证与快照归属；本卡改导航和执行组织，不重写测试哲学 |
+| [文档职责](../../../docs/AGENTS.md) | 架构/开发/测试各自拥有当前事实；根入口提供路由，不复制合同 |
 
 ## 已知、证据与未决
 
-基线：本仓 HEAD `36f1f00d834ba931d10f0d728b7cabeca6beee9e`，2026-10-05；DSH pin 以 [簿记](../../vendor/UPSTREAM.md)为准。源码可指认的机制不等于当前 GUI 已实际运行该构建。
+基线：本仓 HEAD `36f1f00d834ba931d10f0d728b7cabeca6beee9e`，2026-10-05；DSH pin 以 [簿记](../../../vendor/UPSTREAM.md)为准。源码可指认的机制不等于当前 GUI 已实际运行该构建。
 
-调研底稿：[入口与工具库存](../reference/tech-exploration/261005-repo-entry-tooling-audit.md)、[测试资产审计](../reference/tech-exploration/261005-repo-test-asset-audit.md)。以下承重事实由主代理回读对应源码，不以代理摘要作最终证据。
+调研底稿：[入口与工具库存](../_reference/tech-exploration/261005-repo-entry-tooling-audit.md)、[测试资产审计](../_reference/tech-exploration/261005-repo-test-asset-audit.md)。以下承重事实由主代理回读对应源码，不以代理摘要作最终证据。
 
-1. **目录用途混杂**：[根命令表](../../package.json)将启动、部署装配、生成、门禁、浏览器探针和发布都路由到 scripts；dev 同时承载环境、评测、报告、试验、fixture 与忽略的运行 home。问题是职责不显露，不是功能不存在。
-2. **真实 preset 入口与导航冲突**：[bundle](../../packages/dsh-smart-assistant/cordis.patch.yml#L129)内嵌 `preset-assistant.config.plugins`；[旧 preset 文件](../../packages/dsh-smart-assistant/presets/assistant/agent.cordis.yml)为空。[包入口说明](../../packages/dsh-smart-assistant/AGENTS.md#L38)和 [setup 提示](../../dev/setup.sh#L103)仍引用旧链/宣称裸 headless 进入 preset，不能继续作为操作指导。
-3. **主链可以分层验证**：模型工具调用 [host 实现](../../packages/dsh-smart-assistant/src/index.ts)，后者组织领域规则/存储；[知识写入 spec](../../packages/dsh-smart-assistant/tests/knowledge-write.spec.ts)直接验证草稿、批准、检索、摘要，无模型。[摘要贡献](../../packages/dsh-smart-assistant/src/memory-digest/index.ts)与 [身份/手册贡献](../../packages/dsh-smart-assistant/src/home-preamble/index.ts)独立挂载，不是浏览器实现的一部分。
-4. **交互不是全都直调**：[client 发送路径](../../packages/dsh-smart-assistant/src/client/index.ts#L648)经 `remote.session.prompt` 进模型回合，读回工作区桌面文件；[审批按钮](../../packages/dsh-smart-assistant/src/client/index.ts#L817)有直调与提示路径，[当前挂载处理](../../packages/dsh-smart-assistant/src/client/index.ts#L2199)记录 codec 拒绝并回退。导航须区分可用链、候选链；本卡不修审批契约。
-5. **组合证据已限定为可核验范围**：[组合 spec](../../packages/dsh-smart-assistant/tests/preset-composition.spec.ts#L61)读取包根 shipped YAML 的 `preset-assistant` 行，筛选本包 agent rows，经真 Loader、built `lib/`、standing mount 和代理消费；缺 `lib/index.js` 直接失败，入口 `pnpm test:composition` 先 build。它证明本包组合 seam，不宣称完整产品 boot。
-6. **测试迁子目录会漏门禁**：[testAssetNamingProblems](../../scripts/verify-checks.mjs#L805)只查测试根文件；嵌套 spec 仍可能被 Vitest 发现，但代码资产检查会绕过。迁移前须让发现、形态守卫与类型面共同覆盖新树。
-7. **浏览器期望不是自动全场景**：[比对器](../../scripts/webui-expected.mjs#L43)默认一个场景；另一个需显式 `--scenario` 和 `--wait-text`。声明与执行参数需要清楚入口，不能写“跑过 web-expected = 所有场景绿”。
-8. **三个目录根不能混**：[启动器](../../scripts/dsh.mjs#L114)强制子进程 cwd 为仓根；换调用 shell 的目录不等于隔离会话 workspace。DSH_HOME 管运行实例，dataDir 管助手 working folder，cwd 管业务交付及项目指令装载。此处先澄清，不借整理改变默认 cwd。
+1. **目录用途混杂**：[根命令表](../../../package.json)将启动、部署装配、生成、门禁、浏览器探针和发布都路由到 scripts；dev 同时承载环境、评测、报告、试验、fixture 与忽略的运行 home。问题是职责不显露，不是功能不存在。
+2. **真实 preset 入口与导航冲突**：[bundle](../../../packages/dsh-smart-assistant/cordis.patch.yml#L129)内嵌 `preset-assistant.config.plugins`；[旧 preset 文件](../../../packages/dsh-smart-assistant/presets/assistant/agent.cordis.yml)为空。[包入口说明](../../../packages/dsh-smart-assistant/AGENTS.md#L38)和 [setup 提示](../../../dev/setup.sh#L103)仍引用旧链/宣称裸 headless 进入 preset，不能继续作为操作指导。
+3. **主链可以分层验证**：模型工具调用 [host 实现](../../../packages/dsh-smart-assistant/src/index.ts)，后者组织领域规则/存储；[知识写入 spec](../../../packages/dsh-smart-assistant/tests/knowledge-write.spec.ts)直接验证草稿、批准、检索、摘要，无模型。[摘要贡献](../../../packages/dsh-smart-assistant/src/memory-digest/index.ts)与 [身份/手册贡献](../../../packages/dsh-smart-assistant/src/home-preamble/index.ts)独立挂载，不是浏览器实现的一部分。
+4. **交互不是全都直调**：[client 发送路径](../../../packages/dsh-smart-assistant/src/client/index.ts#L648)经 `remote.session.prompt` 进模型回合，读回工作区桌面文件；[审批按钮](../../../packages/dsh-smart-assistant/src/client/index.ts#L817)有直调与提示路径，[当前挂载处理](../../../packages/dsh-smart-assistant/src/client/index.ts#L2199)记录 codec 拒绝并回退。导航须区分可用链、候选链；本卡不修审批契约。
+5. **组合证据已限定为可核验范围**：[组合 spec](../../../packages/dsh-smart-assistant/tests/preset-composition.spec.ts#L61)读取包根 shipped YAML 的 `preset-assistant` 行，筛选本包 agent rows，经真 Loader、built `lib/`、standing mount 和代理消费；缺 `lib/index.js` 直接失败，入口 `pnpm test:composition` 先 build。它证明本包组合 seam，不宣称完整产品 boot。
+6. **测试迁子目录会漏门禁**：[testAssetNamingProblems](../../../scripts/verify-checks.mjs#L805)只查测试根文件；嵌套 spec 仍可能被 Vitest 发现，但代码资产检查会绕过。迁移前须让发现、形态守卫与类型面共同覆盖新树。
+7. **浏览器期望不是自动全场景**：[比对器](../../../scripts/webui-expected.mjs#L43)默认一个场景；另一个需显式 `--scenario` 和 `--wait-text`。声明与执行参数需要清楚入口，不能写“跑过 web-expected = 所有场景绿”。
+8. **三个目录根不能混**：[启动器](../../../scripts/dsh.mjs#L114)强制子进程 cwd 为仓根；换调用 shell 的目录不等于隔离会话 workspace。DSH_HOME 管运行实例，dataDir 管助手 working folder，cwd 管业务交付及项目指令装载。此处先澄清，不借整理改变默认 cwd。
 
 实施期实跑：`pnpm --filter dsh-smart-assistant exec vitest run tests/export-shape.spec.mjs tests/preset-composition.spec.ts`，2 文件、19 断言通过；`export-shape` 覆盖四个实际 dev runner patch（expert、recall、main、replay），组合 spec 覆盖 shipped YAML 筛选、本包工具/段落/companion seam。另有两项真实 prove-it-red：旧 runner id 使 2 个 patch 断言失败；保留删除 memory 行的临时配置使 2 个组合断言失败。完整收尾命令见 P1 note，未执行项目不列为绿证据。
 
@@ -181,18 +182,18 @@ docs/ · notes/ · _backlog/ · .agents/ · vendor/ · _dist/
 
 | 家 | 让读者迅速回答 | 不重复 |
 |---|---|---|
-| [根 README](../../README.md) 开发入口 | 本体/研发工具/验证资产/数据四块在哪；从运行、推敲功能、定位故障三种意图跳转 | 全命令表、导出清单、历史 |
-| [根 AGENTS](../../AGENTS.md) | 开工路由、改动面→owner→最小证据指针、常设安全规则 | 进度/日期、长操作手册 |
-| [architecture](../../docs/architecture.md) | 启动链、模型请求链、浏览器动作链；实际入口、日志与产物；UI→模型回合明确 | 全量工具/技能清单，仍指生成 catalog |
-| [dev 手册](../../docs/dev.md) | 从零运行、三种实例区别、改了不生效的分层排查、home/cwd/dataDir 区别 | 测试政策与资产列表 |
-| [testing](../../docs/testing.md) | 按功能定位被测 interface、测试层、命令、能/不能证明什么 | 环境准备、完整用例库存 |
+| [根 README](../../../README.md) 开发入口 | 本体/研发工具/验证资产/数据四块在哪；从运行、推敲功能、定位故障三种意图跳转 | 全命令表、导出清单、历史 |
+| [根 AGENTS](../../../AGENTS.md) | 开工路由、改动面→owner→最小证据指针、常设安全规则 | 进度/日期、长操作手册 |
+| [architecture](../../../docs/architecture.md) | 启动链、模型请求链、浏览器动作链；实际入口、日志与产物；UI→模型回合明确 | 全量工具/技能清单，仍指生成 catalog |
+| [dev 手册](../../../docs/dev.md) | 从零运行、三种实例区别、改了不生效的分层排查、home/cwd/dataDir 区别 | 测试政策与资产列表 |
+| [testing](../../../docs/testing.md) | 按功能定位被测 interface、测试层、命令、能/不能证明什么 | 环境准备、完整用例库存 |
 | 子树 README/AGENTS | 有真实特殊约束才留；同 diff 维护局部契约 | 每目录一份通用规则 |
 
 功能路由先覆盖“记忆保存/检索”“知识草稿/批准/检索”“提示词摘要”“桌面刷新”“插件装载”五条现有路径。每条给规则与状态、实现入口、最低验证命令、失败看什么、哪一步才用模型/浏览器。链接 owner，不把规则抄五遍。模型技能与开发技能各走自己的目录。
 
 ### 测试组织和运行约定
 
-每个现有 spec 归属最主要的 interface，跨层合同注明依赖；[测试底稿](../reference/tech-exploration/261005-repo-test-asset-audit.md)的全量清单是迁移输入，不是日后第二清单。
+每个现有 spec 归属最主要的 interface，跨层合同注明依赖；[测试底稿](../_reference/tech-exploration/261005-repo-test-asset-audit.md)的全量清单是迁移输入，不是日后第二清单。
 
 1. 保留 `.spec.{ts,mjs}` 和现有 Vitest，按目录选层、按文件/用例选功能；不为每功能造 runner。不把真实 IO 的 spec 称纯单元。
 2. 默认 `pnpm test` 继续收全部现有 keyless spec，不自动隐藏 build；整体可信入口明确为 `pnpm build && pnpm test`，缺构建物失败信息给出前置命令。局部源码 spec 保留快速入口，无需每次 build。显式层入口复用同一配置，候选为 `test:domain/host/agent/composition/client/tooling`，只为实际非空且有稳定职责的层设命令。参数透传与发现列表须实跑，不只写命令。
@@ -254,7 +255,7 @@ P4 的发布出口证据须补到产物：从本轮新打出的 tarball 安装�
 
 四问：**该做**的依据是用户定位/验证障碍及可指认误导；**何时**先 P0/P1，再在卫生范围内实施后续片；**次序**由证据依赖决定，不重排产品转向；**放弃什么**见取舍表，不借整理删已有能力/防护。
 
-毕业条件：入口/工具/测试底稿完整，主要结论主代理复核；目录选型、兼容 interface、各片消费者、验收和回退可执行；用户确认实施范围。按 [notes 规则](../../notes/README.md)承接有界提案；本卡按 [backlog 生命周期](../README.md)关闭并链接承接，材料随最后消费者归档，不维持两份活实施计划。
+毕业条件：入口/工具/测试底稿完整，主要结论主代理复核；目录选型、兼容 interface、各片消费者、验收和回退可执行；用户确认实施范围。按 [notes 规则](../../../notes/README.md)承接有界提案；本卡按 [backlog 生命周期](../../../_backlog/README.md)关闭并链接承接，材料随最后消费者归档，不维持两份活实施计划。
 
 待确认的实施 goal 候选文本：
 
