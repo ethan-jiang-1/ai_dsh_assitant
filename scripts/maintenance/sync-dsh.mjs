@@ -25,7 +25,7 @@ import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { applyUpstreamRecord, releaseClaim } from './sync-bookkeeping.mjs'
 
-const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const vendorDsh = join(repoRoot, 'vendor', 'dsh')
 const upstreamFile = join(repoRoot, 'vendor', 'UPSTREAM.md')
 const packageManifest = join(repoRoot, 'packages', 'dsh-smart-assistant', 'package.json')

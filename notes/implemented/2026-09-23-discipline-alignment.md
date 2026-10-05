@@ -59,6 +59,6 @@ ai_dsh_company 的教训反过来印证 I14 决策：节奏靠机制与纪律，
 - **AGENTS.md 硬规则 3 条 → 5 条**：补缺口 2（默认严格，偏离登记，指向 docs/discipline.md）
   与缺口 1（轮内任务面：plan 呈批 / todo 活清单 / steer）。
 - **缺口 4（继承跟 pin 走）三处闭环**：AGENTS.md 命令表 sync-dsh 行加"对照 docs/discipline.md
-  重校"；`scripts/sync-dsh.mjs` 收尾清单加同款提醒；`pnpm verify` 强制 docs/discipline.md 存在
+  重校"；`scripts/maintenance/sync-dsh.mjs` 收尾清单加同款提醒；`pnpm verify` 强制 docs/discipline.md 存在
   （纪律表从此不可静默删除）。
 - 语义探针保持"并入未来 live 会话检查档"的适配不动（触发条件见 docs/discipline.md 表）。

@@ -27,7 +27,7 @@
 
 ## 三、过程中抓到的三个真问题（本迁移真正的产出）
 
-1. **`scripts/sync-dsh.mjs` 自己跑不通**：`git fetch` 拼参数时没给默认 remote，git 把 refspec 的 `tag` 当仓库名
+1. **`scripts/maintenance/sync-dsh.mjs` 自己跑不通**：`git fetch` 拼参数时没给默认 remote，git 把 refspec 的 `tag` 当仓库名
    → `fatal: 'tag' does not appear to be a git repository`。即 **AGENTS.md 里写的那条标准命令从来跑不了**
    （此前的升级想必是带 `--remote` 手动传的）。修：纯函数 `fetchArguments(tag, remote = 'origin')` + 夹具；
    同时给脚本加 main 守卫（否则测试 import 它会直接执行整个同步）。
@@ -109,7 +109,7 @@ vendor 的构建脚本假设**已经引导过的树**（其 `lib/` 在场）。�
 （编辑器 tsserver、lint）都会去找它的 `tsconfig.json`，于是报"文件不存在"。
 
 处置：删除该孤儿目录（gitignore 内的安装残留，**非 vendor 源码**——`git -C vendor/dsh status` 干净）。
-复核：`node scripts/verify.mjs` 31/31 exit 0、`pnpm typecheck` exit 0。
+复核：`node scripts/checks/verify.mjs` 31/31 exit 0、`pnpm typecheck` exit 0。
 
 **可复用的结论**：换 pin 后除了重建产物，还要清**上一个 pin 留下的孤儿包目录**（判据：目录里只有
 `node_modules`，且包名已不在 lockfile/workspace 里）。
@@ -192,7 +192,7 @@ plugins 为六条 id/name）并经 `ctx.loader.create({ id: 'include', name: 'co
 
 **处置（按用户既定规矩：同一阻断连续三圈即停）→ 2026-09-27 已解决**：
 - 当时降级并附**已排除假设**（顺序、别名解析、服务缺失、`agents.create` 路径、"inject tools 即环"）与复现路标。**根因不在其中**：四条工具行的模块在装载器的真实 import（`loader.internal.import`，纯 Node 解析 + realpath 进 vendor `lib/`）里断在 **vendor dsh-llm 的构建产物**——上游布局 bug：`src/attribution.ts` 的 `createRequire(import.meta.url)('../package.json')` 按 src 布局书写，而包 tsconfig `outDir: lib/types` 把产物下移一层，tsc 不改写字符串参数；tsdown bundle 内联清单掩盖了它，只有经子路径产物走纯 Node 解析的消费方（= 本组合测试）踩到。loader 的 `_init()` 对 import 抛错只 `logger.error` 后返回，`fiber` 保持 undefined → 审计报 "never started"——**该语义＝名字解析/import 阶段失败，不是"注册后未实例化"（第九圈的判据解读据此修正）**。tsx（dev 运行时）与 vitest（别名表）都解析到 vendor **src**，所以只有这条真实装载路径暴露。
-- **修法**：`scripts/repair-vendor-artifacts.mjs` 新增 `LOADER_PEER_PACKAGES`（dsh-llm / dsh-tools / dsh-skill-filesystem 的 tsc 构建 + shim）与 attribution fixup（改写**构建产物**里的 require 路径；vendor 源码永不动）——此前这些 lib 是 boot-smoke 时代手工建的、从未进修复脚本（修复只存在于手上＝没修复）。破坏性对照：删三包 lib → `pnpm repair-vendor` 从零重建 → 组合套件 2/2 绿。
+- **修法**：`scripts/maintenance/repair-vendor-artifacts.mjs` 新增 `LOADER_PEER_PACKAGES`（dsh-llm / dsh-tools / dsh-skill-filesystem 的 tsc 构建 + shim）与 attribution fixup（改写**构建产物**里的 require 路径；vendor 源码永不动）——此前这些 lib 是 boot-smoke 时代手工建的、从未进修复脚本（修复只存在于手上＝没修复）。破坏性对照：删三包 lib → `pnpm repair-vendor` 从零重建 → 组合套件 2/2 绿。
 - **验收**：整包 vitest **281/281 全绿**（迁移以来首次零红零降级）· typecheck 0 · verify 32/32。
 - 本职责转向阶段 0 的**下一项：结果意图 O1–O6 的领域版**（中小企业 CEO/VP 数字分身）。
 
@@ -214,7 +214,7 @@ vendor 侧代码与 pin 指针未被修改（只删过一个孤儿安装残留�
    （pin 迁移后从未裸验过 boot——这是当时漏掉的一步，教训：迁移验收里"能起"必须包含裸 boot。）
 
 **修复已固化（用户"步步为营"规矩的落实）**：上述三步不再只存在于手上——`pnpm repair-vendor`
-（`scripts/repair-vendor-artifacts.mjs`）可从干净 vendor 树重跑全部产物（typert 再生 + 两包 tsc + 垫片）。
+（`scripts/maintenance/repair-vendor-artifacts.mjs`）可从干净 vendor 树重跑全部产物（typert 再生 + 两包 tsc + 垫片）。
 端到端验证：删 2 垫片 + 2 typert 工件 → `pnpm repair-vendor` → 全部回来 → 裸冒烟 `ready`。
 （脚本第一版被自己的 JSDoc 咬了：注释里写 `vendor/dsh/**/lib/`，其中的 `*/` 把块注释提前闭合，
 后面的反引号全成模板字面量——`node --check` 抓出，改用 `…`。）

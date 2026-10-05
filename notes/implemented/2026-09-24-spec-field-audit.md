@@ -16,7 +16,7 @@ R2 §9.3-6（"格式小步向 spec 对齐：可选补 `license`/`compatibility` 
   安全但惰性（对 DSH 无效果；对 agentskills 规范的消费方有意义）。
 
 按本仓门禁的立意（"facade: skill frontmatter keys we write are keys the provider reads"，
-scripts/verify.mjs）——**写 provider 不读的键正是这条门禁要防的漂移**。R2 的建议是
+scripts/checks/verify.mjs）——**写 provider 不读的键正是这条门禁要防的漂移**。R2 的建议是
 [documented]（对着规范说的），但本仓 pin 的 provider 现实优先：写了就是死重，还绕开门禁
 立意。
 
@@ -40,6 +40,6 @@ scripts/verify.mjs）——**写 provider 不读的键正是这条门禁要防�
 - rg 亲验：`license|compatibility` 在 `vendor/dsh/packages/skill/skill-filesystem/src/index.ts`
   与 `vendor/dsh/packages/skill/skill/src/index.ts` **零命中**（2026-09-24）；
 - parseSkillFile 键读取集：skill-filesystem/src/index.ts:810-830；
-- 门禁立意：scripts/verify.mjs `facade: skill frontmatter keys…` 检查
+- 门禁立意：scripts/checks/verify.mjs `facade: skill frontmatter keys…` 检查
   （键列表 name/description/whenToUse/metadata——若加写新键必须同扩门禁，而门禁会因
   provider 不读而红——这正是不写的机械证明）。

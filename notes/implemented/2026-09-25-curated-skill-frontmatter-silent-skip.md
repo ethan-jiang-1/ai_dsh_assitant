@@ -31,7 +31,7 @@ YAML 把 ": " 读成嵌套映射的开始，`yaml.parse` 于是抛
 ## 修法与证据
 
 1. 两处 `: ` 改成 ` — `：仍是 plain scalar，与同目录其余 6 件同一风格，文案语义不变。
-2. 门禁升级为**与加载器同方言**（`scripts/verify-checks.mjs` 的 `skillFrontmatterProblems`）：用 `yaml.parse`
+2. 门禁升级为**与加载器同方言**（`scripts/checks/verify-checks.mjs` 的 `skillFrontmatterProblems`）：用 `yaml.parse`
    解出 frontmatter，再镜像加载器的跳过条件（块缺失、非映射、`name` ≠ 目录名、名字不合 kebab 文法、
    无 `description`、遗留 invocation 键 `disableModelInvocation`/`modelInvocable`/`userInvocable`、
    invocation 值非布尔），并拼出与加载器同一层意思的诊断。

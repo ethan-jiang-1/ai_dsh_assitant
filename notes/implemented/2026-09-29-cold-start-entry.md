@@ -29,7 +29,7 @@
    故不能当"已建好"的证据（按文件探）；native addon 落在**平台命名**的包里
    （`native/system/packages/<platform>/bin/system.node`），故探测走 glob 而不是写死路径。
    `dev/setup.sh` 的守卫改指向它。
-3. **机械门禁 `startPathProblems`**（`scripts/verify-checks.mjs`，接入 `pnpm verify`）钉住三件事：
+3. **机械门禁 `startPathProblems`**（`scripts/checks/verify-checks.mjs`，接入 `pnpm verify`）钉住三件事：
    两个前置脚本都被标成第一步；两者都排在任何**起服务的**命令之前（`--dump-config`/`--help` 豁免——
    它们 boot-free，不需要 profile 存在）；两个 profile 在 setup 之后都还有路由。
    夹具在 `tests/verify-gates.spec.mjs`（含显式构造的反序/漏标注/缺脚本负例）。

@@ -11,7 +11,7 @@
 ## 它是什么形状
 
 **当前声明了什么，以生成物为准**：[`docs/package-catalog.md`](../../docs/package-catalog.md)
-（由 `scripts/gen-catalog.mjs` 从 exports、组合行、工具源码与技能目录抽取；`pnpm verify` 守 freshness）。
+（由 `scripts/generate/gen-catalog.mjs` 从 exports、组合行、工具源码与技能目录抽取；`pnpm verify` 守 freshness）。
 这里只留一句形状概括，不再手维护清单——手维护的入口表在本仓漂移过两次：
 
 - **9 个 plugin 子路径**：host 1（`assistantMemory` 服务）+ preset agent 6（四个工具入口、两个提示词段落、

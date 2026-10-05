@@ -19,7 +19,7 @@ FTS/trigram 的 dsh-knowledge-sqlite 实测表在 R3 survey §4.3/§7.2-3；mems
 **B · 纪律收口**（docs/discipline.md）：计划文件行的上游来源适用范围收窄到"轮内计划状态"
 （vendor 2026-07-22 note :54 讨论的是已由工具参数记录的计划不重复持久化，不是 repo 级提案禁令；
 repo 级设计计划住 notes/proposed/、队列住 ROADMAP）；轮内任务面标为"本地选择，以当前会话所有为准"；
-"15 条""60/60"等过期计数改为"清单以 scripts/verify.mjs / 实际测试为准"；Issue→PR 行的队列语义改指
+"15 条""60/60"等过期计数改为"清单以 scripts/checks/verify.mjs / 实际测试为准"；Issue→PR 行的队列语义改指
 ROADMAP（决定档案 roadmap-queue note）；"已声明的适配"2 改写为"工作队列落一个文件"（ROADMAP）；
 文末"文件数与总行数"判据改为"每处改动能指向它修复的具体误导或漏检"（上游规则：上限是护栏不是
 减量目标，`vendor/dsh/docs/AGENTS.md`「Wordcount budgets」）。discipline-alignment 与 roadmap-queue
@@ -38,7 +38,7 @@ parked——`20260923-how-should-the-knowledge-room-land-3e8i`；布局表随切
 声明，测试断言语义不动；AGENTS/dev.md 命令注释同步覆盖范围（测试工程经 workspace 构建声明解析
 vendor 的现状保留，构建前置写明）。
 
-**E · 门禁补缺**（verify 18→21）：三条检查的核心逻辑抽到 `scripts/verify-checks.mjs`（窄函数），
+**E · 门禁补缺**（verify 18→21）：三条检查的核心逻辑抽到 `scripts/checks/verify-checks.mjs`（窄函数），
 正反例持久化在 `tests/verify-gates.spec.mjs`（9 fixtures，.mjs——vitest 跑、类型工程不看）：
 1. **pin**：UPSTREAM.md 记录 SHA ↔ checkout HEAD 精确一致；父 gitlink 语义明确（提交指针落后于
    checkout = sync-dsh 正常待提交尾态，允许，以簿记与 checkout 一致为前提；其余分歧报错）；
@@ -122,7 +122,7 @@ class did not declare it"，同款 shadow-receiver 栈）；恢复源码重建�
    + R3 survey §7.1-2；owner 面 = AGENTS 布局表 `src/knowledge/` 行（A 切片的行被探针直接消费）。
 2. 决定反转 → 新建 note 双向互链，旧 note 不就地改写（AGENTS 18-19 行 + vendor notes README 48/50 行）。
 3. 相对链接切片 → `pnpm verify` 的 "links: relative markdown links point at existing files"
-   （`scripts/verify-checks.mjs` + 范围注释），正反例在 `tests/verify-gates.spec.mjs`——检查范围
+   （`scripts/checks/verify-checks.mjs` + 范围注释），正反例在 `tests/verify-gates.spec.mjs`——检查范围
    "查什么/明确不查什么"与实现一字不差（E 切片的注释真实化被验证）。
 4. 根 typecheck → 委派包级 `tsc -b` + `tsc -p tsconfig.test.json`，覆盖 src+tests、不覆盖
    `scripts/*.mjs`——与 D 切片后的实际命令一致。

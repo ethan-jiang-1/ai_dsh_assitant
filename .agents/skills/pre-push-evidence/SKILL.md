@@ -33,7 +33,7 @@ whenToUse: Choosing what to run before a commit or handover; deciding whether a 
   fail, revert — then report the gate as covering the case.
 - **Report only what actually ran.** A blocked or skipped check is reported as blocked with its
   reason; it never joins the green list.
-- **Gate the commit on the gate's own verdict, not on the command having run.** `node scripts/verify.mjs`
+- **Gate the commit on the gate's own verdict, not on the command having run.** `node scripts/checks/verify.mjs`
   prints its failure count and exits non-zero; `... ; echo VERIFY=$?` still commits if the next command
   is unconditional. Two red commits in this campaign came from exactly that (the shell printed
   `VERIFY=1` and the `&&` chain was not actually a chain). Make it mechanical: read the exit code AND

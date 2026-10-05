@@ -17,7 +17,7 @@
 | 组装后的组合（服务/段落/工具 scope） | 真实组合测试（真 Loader + built lib + 站立挂载；需 `pnpm build`） | `tests/preset-composition.spec.ts` |
 | web 渲染面（首开/座位/文案） | 期望比对（隔离 home 真渲染，DOM 证据 diff） | `snapshots/web-face/` + `pnpm web-expected` |
 | 行为地板 / 领域质量 | `pnpm eval`（判决读会话日志）/ `eval:domain`（人判） | `dev/eval/` |
-| 发布物 / 依赖 / preset 包装 | `pnpm release-smoke`；真模型冒烟 `pnpm loop-probe`；keyless 回放 `dev/probes/session/preset-runner-replay.patch.yml` | `scripts/release-smoke.mjs` |
+| 发布物 / 依赖 / preset 包装 | `pnpm release-smoke`；真模型冒烟 `pnpm loop-probe`；keyless 回放 `dev/probes/session/preset-runner-replay.patch.yml` | `scripts/release/release-smoke.mjs` |
 
 ## 插件证据五台阶（加 preset 行 / 工具 / client 面时逐级对表）
 

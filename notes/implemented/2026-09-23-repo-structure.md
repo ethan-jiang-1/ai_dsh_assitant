@@ -62,7 +62,7 @@ notes/intents.md（I1–I9）、talk `agent-101` 的概念框架。
    （源码直跑会掩盖依赖声明错误）。
 4. `peerDependencies` 里的 `workspace:^` 在打包后是否被改写成真实范围。
    **已定论：只有 `pnpm pack` 会改写，`npm pack` 不会**（会把 `workspace:^` 原样发出去）。
-   所以 `scripts/release-smoke.mjs` 用 `pnpm pack`，并断言每个 peer 都是具体 semver 范围；
+   所以 `scripts/release/release-smoke.mjs` 用 `pnpm pack`，并断言每个 peer 都是具体 semver 范围；
    **发布也一律走 pnpm，绝不用 npm publish**。
 5. preset 的 roster 落法：dev 用 profile patch 给 `agent-presets` 加 `roots` 指向本 repo 的 `presets/`；
    发布形态则指向安装后的 `presets/`（两条都要验证）。

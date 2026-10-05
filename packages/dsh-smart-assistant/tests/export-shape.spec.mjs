@@ -35,7 +35,7 @@ import { entryListSchema } from '@deepseek-ai/cordis-plugin-include'
 import Loader from '@deepseek-ai/cordis-plugin-loader'
 import { Service } from '@deepseek-ai/cordis'
 import { describe, expect, it } from 'vitest'
-import { parseRows } from '../../../scripts/gen-catalog.mjs'
+import { parseRows } from '../../../scripts/generate/gen-catalog.mjs'
 
 const packageRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
 const ownRows = parseRows(readFileSync(join(packageRoot, 'cordis.patch.yml'), 'utf8'))

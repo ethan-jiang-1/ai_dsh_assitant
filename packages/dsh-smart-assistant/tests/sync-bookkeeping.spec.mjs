@@ -1,5 +1,5 @@
 /**
- * Fixtures for the pure sync-dsh bookkeeping (scripts/sync-bookkeeping.mjs) — the two fragile
+ * Fixtures for the pure sync-dsh bookkeeping (scripts/maintenance/sync-bookkeeping.mjs) — the two fragile
  * spots of an upgrade: rewriting the vendor/UPSTREAM.md rows (a drifted table must refuse, not
  * silently no-op) and the rule that the manifest's "verified" claim exists only after a
  * typecheck that ran and passed. Real pins are never moved by this suite.
@@ -7,7 +7,7 @@
  * Plain .mjs on purpose: vitest runs it, `tsc -p tsconfig.test.json` does not type-check it.
  */
 import { describe, expect, it } from 'vitest'
-import { applyUpstreamRecord, releaseClaim } from '../../../scripts/sync-bookkeeping.mjs'
+import { applyUpstreamRecord, releaseClaim } from '../../../scripts/maintenance/sync-bookkeeping.mjs'
 
 const UPSTREAM = [
   '# vendor/dsh 的簿记（钉住的 DSH 源码）',
@@ -65,7 +65,7 @@ describe('releaseClaim', () => {
 
 describe('fetchArguments', () => {
   it('always names a remote, so git cannot read the refspec as a repository', async () => {
-    const { fetchArguments } = await import('../../../scripts/sync-dsh.mjs')
+    const { fetchArguments } = await import('../../../scripts/maintenance/sync-dsh.mjs')
     expect(fetchArguments('dsh-v0.1.7-rc.2')).toEqual(['fetch', '--depth', '1', '--force', 'origin', 'tag', 'dsh-v0.1.7-rc.2'])
     expect(fetchArguments('dsh-v0.1.7-rc.2', 'https://example.invalid/dsh.git')).toContain('https://example.invalid/dsh.git')
   })

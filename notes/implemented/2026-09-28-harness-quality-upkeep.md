@@ -15,7 +15,7 @@
 
 ## 决定（已交付）
 
-- **轨 A · 合同面自生成扩面**（`afac8ab`）：`scripts/gen-catalog.mjs` 新增 `extractClientSurface`
+- **轨 A · 合同面自生成扩面**（`afac8ab`）：`scripts/generate/gen-catalog.mjs` 新增 `extractClientSurface`
   纯函数——静态抽取 `src/client/index.ts` 三类注册（`slots.inject` 消费座位 ×7、
   `sidebarRightTabs` 数组字面量的 tab 定义 id+kind、`roomCommands` 的 name/label 命令 ×3），
   fail-loud 两道：无 recognizable 表面＝抽取形状变了；有 tab 定义而无 guide 注册＝「+」向导

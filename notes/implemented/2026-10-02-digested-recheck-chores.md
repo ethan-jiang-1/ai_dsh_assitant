@@ -25,7 +25,7 @@
 
 1. `DIGEST_SECTION_ORDER` 400 → **10150**（环境事实 10000/10100 之后、persona 后缀 10200 之前）；
    soul 100 / manual 300 留前带（稳定内容）。组合测试加带位断言（>10000 且 <10200）钉住回归。
-2. `scripts/sync-dsh.mjs` 收尾清单插第 2 步：**人工抽验承重行号钉**（抽当前决定真正倚靠的钉，
+2. `scripts/maintenance/sync-dsh.mjs` 收尾清单插第 2 步：**人工抽验承重行号钉**（抽当前决定真正倚靠的钉，
    不是每颗钉）；同句登记进 `docs/discipline.md` 复查环。
 3. `docs/architecture.md` 服务三角色段补三句：主干 service ≠ 竞聘 seam、seam 的成色读数、
    L2 行是落点判据不是成熟度升级方向。

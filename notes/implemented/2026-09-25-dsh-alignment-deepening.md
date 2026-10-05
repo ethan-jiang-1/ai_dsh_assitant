@@ -31,7 +31,7 @@
 现在是 verify 交叉检查兜底。
 **DSH 依据**：`02:43-49`、`06:23-27`、`08:55`。
 
-**做法**：新增 scripts/gen-catalog.mjs（新建）→ 生成 docs/package-catalog.md（新建；**生成物，禁手改**），
+**做法**：新增 scripts/generate/gen-catalog.mjs（新建）→ 生成 docs/package-catalog.md（新建；**生成物，禁手改**），
 数据从真实源抽取：`package.json` 的 `exports`（入口×平面）、`cordis.patch.yml`（host 行）、
 `presets/assistant/agent.cordis.yml`（agent 行：id/name/disabled）、四个工具的 wire name 与动词集、
 两个 prompt 段落与技能来源。`verify` 加 freshness 检查（`gen-catalog --check`，与 `gen-paths` 同形）。
@@ -75,7 +75,7 @@
 ## 二、落地记录
 
 - **S1 ✅**（`92aeb0f`）：5 个子树 AGENTS.md（packages/docs/scripts/dev/snapshots）+ 根布局表 17→9 行 + 稳定性门禁扩到全部 6 个入口文件。
-- **S2 ✅**：`scripts/gen-catalog.mjs` → `docs/package-catalog.md`（入口×平面、组合行、工具×动词、策展技能、pin 与依赖姿态），
+- **S2 ✅**：`scripts/generate/gen-catalog.mjs` → `docs/package-catalog.md`（入口×平面、组合行、工具×动词、策展技能、pin 与依赖姿态），
   freshness 进 `pnpm verify`（`gen-catalog --check`，与 `gen-paths` 同形），6 个纯核夹具。
   **建成即抓三处真问题**：生成器漏了 `dev/probes/session/preset-runner.patch.yml`（把 preset-runner 误报为非 plugin 导出）、
   未识别 client 平面、包 AGENTS.md 的"8 个子路径"与实际 9 个不符——手维护清单的口径分歧被生成物当场对账。

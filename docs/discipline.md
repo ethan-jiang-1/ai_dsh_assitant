@@ -19,7 +19,7 @@
 | 轮内任务面：plan 呈批（反馈门①）+ `todo_write` 活清单（反馈门②）+ steer，机制在 base bundle 零接线 | 本 repo 开发流程见 AGENTS.md 硬规则 5；本插件 preset 已挂 `tool-todo` 且**连必填 config 一起抄**（`allowParallelInProgress: true`——不抄 config 会在挂载时炸且 UI 吞错误） | ✅ 适配（本地选择：具体工具与模式以当前会话所有为准，不宣称普适强制） |
 | 默认翻转 + 适配声明：默认严格，偏离/裁剪须登记（镜像 "Require evidence for public choices"） | AGENTS.md 硬规则 4；每条适配登记于本文"已声明的适配" | ✅ 照搬 |
 | 窄证据 + 只报告实跑过的命令（根 AGENTS.md / `dsh-pre-push-checks` skill） | AGENTS.md 硬规则 3；**验证主张分级**——实证（命令/日志/盘上文件可指认）、推断（标注依据）、未验（如实标 ⏳），自述不作为证据 | ✅ 照搬 |
-| 机械门禁带反证（每条先造红再证绿） | `pnpm verify`（结构 / 身份一致 / 双解析入口 / 自包含 / 技能语法 / 断链 / notes 形状 / **文档命令与别名表互证** / 提交安全——检查清单以 `scripts/verify.mjs` 为准，条数随缺口演进） | ✅ 照搬 |
+| 机械门禁带反证（每条先造红再证绿） | `pnpm verify`（结构 / 身份一致 / 双解析入口 / 自包含 / 技能语法 / 断链 / notes 形状 / **文档命令与别名表互证** / 提交安全——检查清单以 `scripts/checks/verify.mjs` 为准，条数随缺口演进） | ✅ 照搬 |
 | 语义漂移探针：门禁抓不住"读起来过期"，用新上下文只读入口链答"现在"问题 | **已立成开发技能** [`.agents/skills/semantic-drift-audit/`](../.agents/skills/semantic-drift-audit/SKILL.md)（轮次与逐轮计数的档案在技能与各轮 note——本文不复写数字，数过即过期；技能里带"反复出现的类别"清单与"能机械化的就同轮加门禁"的收尾） | ✅ 适配（原触发"入口链长到值得单做"已由多轮实证满足：第二轮 2026-09-23 信噪比审计起职责面实证，[signal-tier-dedup](../notes/implemented/2026-09-23-signal-tier-dedup.md)；脚本化已知坑：**问句的期望也会过期**——期望锚到轮号，轮闭即红、同日重跑覆盖归档，期望锚定方案立项时必须定） |
 | 继承跟 pin 走：升 pin 重校纪律表（vendor 的套路在演进，一次性快照会再烂） | `sync-dsh` 收尾清单第 4 步 + `pnpm verify` 强制本文存在 | ✅ 照搬 |
 | 测试纪律：本地窄证据 + 非平凡改动 same-PR 更新快照；插件证据五台阶（导出守卫→行为→生命周期→真组合→组装转录）+ 政策禁令（mock 白名单 / 禁 hand-built 组装证据 / 禁自报探测 / 单跑才绿=spec 缺陷 / 禁掩盖修法 / prove-it-red） | 测试面合同成文于 [testing.md](testing.md)（证据分层表 + 五台阶表 + 禁令 + 已定姿态）；`pnpm test`（纯核 + 服务合同 + 导出守卫 + 生命周期）+ 真实组合 + web 渲染期望（`snapshots/web-face/`）+ eval 两级 + release-smoke | ✅ 照搬（按事故面采纳：session 回放快照与 CI 矩阵等四项刻意不采纳带触发条件，登记于 testing.md 与 implemented note 2026-10-04） |

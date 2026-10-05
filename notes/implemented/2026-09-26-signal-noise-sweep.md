@@ -42,7 +42,7 @@ Fresh-agent 审计（2026-09-26）沿入口链（AGENTS.md → ROADMAP → 卡 �
 
 ## 验收
 
-- 每切片 `node scripts/verify.mjs` 绿（31 项，逐片实跑）；纯文档 diff 的证据面就是 verify
+- 每切片 `node scripts/checks/verify.mjs` 绿（31 项，逐片实跑）；纯文档 diff 的证据面就是 verify
   （typecheck/test 与其无交，未跑也不列入证据——按"窄证据"只跑会为这次回归而失败的检查）。
 - 终态抽查：四事实在活跃树只余两个家（skill + 活动卡 rationale）；notes/README 无计数；
   ROADMAP 条目 ≤3 行；dev.md §五 表格连续；handoff 里 pnpm 绕过法清零。

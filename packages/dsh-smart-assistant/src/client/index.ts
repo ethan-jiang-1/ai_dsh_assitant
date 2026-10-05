@@ -12,7 +12,7 @@
  * before the module system boots). Its factory receives a synchronous `require` bound to
  * the shared module table — 'react' is a baseline external every dynamic bundle may
  * request. Vendor packages emit this shape with their bundler; this hand-rolled
- * equivalent keeps the tsc-only build. scripts/verify.mjs gates both the source and the
+ * equivalent keeps the tsc-only build. scripts/checks/verify.mjs gates both the source and the
  * emitted bundle.
  *
  * @module dsh-smart-assistant/client

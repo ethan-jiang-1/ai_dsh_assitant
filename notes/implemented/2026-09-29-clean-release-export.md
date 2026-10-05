@@ -7,7 +7,7 @@
 1. **发布物边界收窄**：`packages/dsh-smart-assistant` 的 `files` 去掉 `src`、exports 摘除
    `"./src/*"`。tarball 从此只装运行时四件套：`lib/ + presets/ + cordis.patch.yml + README.md`
    （实测 145 条目，`src/` 的 33 个 `.ts` 不再入包）。
-2. **`scripts/export-dist.mjs`（`pnpm export-dist`）**：手动分发导出，三规矩照搬
+2. **`scripts/release/export-dist.mjs`（`pnpm export-dist`）**：手动分发导出，三规矩照搬
    `ai_dsh_company` 的同名脚本——① `_dist/` 是导出目的地不是源（tgz 走根 `.gitignore` 已有的
    `*.tgz` 规则，《安装手册》是唯一 tracked 例外）；② 打包步 = `release-smoke` 每轮证明的同一条
    `pnpm pack`；③ 手册脚本生成、注入版本/日期/条目数，永不手改。导出 ≠ 发布：不 bump、不发

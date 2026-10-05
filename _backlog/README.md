@@ -163,7 +163,7 @@ reference/ 区与收卷台账的分工见上文调研材料区。依据：
 
 ## 机械门禁（`backlog-liveness`，2026-10-02 实施）
 
-`pnpm verify` 链内三查（核在 [scripts/verify-checks.mjs](../scripts/verify-checks.mjs)，
+`pnpm verify` 链内三查（核在 [scripts/verify-checks.mjs](../scripts/checks/verify-checks.mjs)，
 红绿夹具在 verify-gates.spec）：
 
 1. **制度目录在场**：plans / bugs / reference / _done 五池——缺目录即红；

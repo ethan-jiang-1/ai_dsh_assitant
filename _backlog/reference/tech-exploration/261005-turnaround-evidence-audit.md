@@ -59,9 +59,9 @@
 
 ### 事实
 
-- `markdownCorpus` 只收根 AGENTS/README、docs、notes、snapshots：[verify:444–450](../../../scripts/verify.mjs#L444-L450)；relative-link 检查仅接收这个数组：[verify:483–484](../../../scripts/verify.mjs#L483-L484)。`_backlog/reference` 未进入语料。
-- 纯核按 linking file 所在目录解析相对路径，缺失就报错：[relativeLinkProblems:278–296](../../../scripts/verify-checks.mjs#L278-L296)。例如定位子目录里的 `../plans/` 实际指向 `reference/plans/`；正确父层应为 `../../plans/`。纯核忽略 anchors/query，不能验证行号真实性。
-- `backlogLivenessProblems` 对 reference 递归检查的是“文件路径是否被 index 字符串包含”，没有解析其正文链接：[liveness:761–773](../../../scripts/verify-checks.mjs#L761-L773)。它能管索引成员，不能替代链接检查。
+- `markdownCorpus` 只收根 AGENTS/README、docs、notes、snapshots：[verify:444–450](../../../scripts/checks/verify.mjs#L444-L450)；relative-link 检查仅接收这个数组：[verify:483–484](../../../scripts/checks/verify.mjs#L483-L484)。`_backlog/reference` 未进入语料。
+- 纯核按 linking file 所在目录解析相对路径，缺失就报错：[relativeLinkProblems:278–296](../../../scripts/checks/verify-checks.mjs#L278-L296)。例如定位子目录里的 `../plans/` 实际指向 `reference/plans/`；正确父层应为 `../../plans/`。纯核忽略 anchors/query，不能验证行号真实性。
+- `backlogLivenessProblems` 对 reference 递归检查的是“文件路径是否被 index 字符串包含”，没有解析其正文链接：[liveness:761–773](../../../scripts/checks/verify-checks.mjs#L761-L773)。它能管索引成员，不能替代链接检查。
 - 本轮用现有 `relativeLinkProblems` 直接递归扫 reference：14 个 Markdown 文件中报 11 个缺失目标；包含入口 `plans/README.md`、`bugs/README.md`，定位/upstream 的 `../plans`，tech 的 `../../docs` / `../../notes` 与同目录替代品链接。这是父代理并行修订期间的时点快照，不能当最终未修计数。本轮没有再跑全仓 verify。
 
 ### 推论
@@ -70,6 +70,6 @@
 
 ### 已交付补充
 
-- [verify 的相对链接语料](../../../scripts/verify.mjs#L483) 现在收原 markdownCorpus + `_backlog/README.md` + 活跃 plans/bugs/reference 递归 Markdown；`_done` 不扩扫。其他 backtick/section/机器路径门仍使用原 corpus，未改纯核或做历史全面治理。
+- [verify 的相对链接语料](../../../scripts/checks/verify.mjs#L483) 现在收原 markdownCorpus + `_backlog/README.md` + 活跃 plans/bugs/reference 递归 Markdown；`_done` 不扩扫。其他 backtick/section/机器路径门仍使用原 corpus，未改纯核或做历史全面治理。
 - [真实 runner 接线夹具](../../../packages/dsh-smart-assistant/tests/verify-gates.spec.mjs#L125) 对九个活跃路径造断链。旧接线漏报导致新增夹具红；新接线检出所有目标、补目标后链接门绿，冻结与未约定根材料作为负控制未扩扫。verify-gates 49/49 通过；pnpm verify 34 检查通过。
 - 父代理直接扫活跃 backlog 的22个 Markdown，缺失相对目标已清零，包含原 reference 和首开卡历史 BUG 指针；最终收尾证据归 [资料归位决定](../../../notes/implemented/2026-10-05-turnaround-deliberation-routing.md)。链接检查不验证 URL、anchors、引用行号、原始事实或产品效果。

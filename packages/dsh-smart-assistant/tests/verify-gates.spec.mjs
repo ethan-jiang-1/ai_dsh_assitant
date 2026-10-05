@@ -1,5 +1,5 @@
 /**
- * Fixtures for the mechanical-gate cores in scripts/verify-checks.mjs (slice E of the
+ * Fixtures for the mechanical-gate cores in scripts/checks/verify-checks.mjs (slice E of the
  * development-foundation remediation, 2026-09-24). Every accepted and rejected shape of the
  * pin, notes-naming, proposal-status, and relative-link checks is pinned here against
  * throwaway directories and throwaway git repositories — the real vendor tree, ROADMAP, and
@@ -35,7 +35,7 @@ import {
   testAssetNamingProblems,
   textHygieneProblems,
   vendorClientFreshnessProblems,
-} from '../../../scripts/verify-checks.mjs'
+} from '../../../scripts/checks/verify-checks.mjs'
 
 const dirs = []
 
@@ -53,7 +53,7 @@ function temp(prefix) {
 // ── relative markdown links ────────────────────────────────────────────────────────────────────
 
 describe('commandAliasProblems', () => {
-  const scripts = { verify: 'node scripts/verify.mjs', 'eval:domain': 'node dev/eval/domain-run.mjs' }
+  const scripts = { verify: 'node scripts/checks/verify.mjs', 'eval:domain': 'node dev/eval/domain-run.mjs' }
   const doc = (path, text) => ({ path, text })
 
   it('accepts docs whose commands are aliases and whose aliases are documented', () => {
@@ -128,10 +128,12 @@ describe('relativeLinkProblems', () => {
 describe('verify relative-link corpus wiring', () => {
   it('rejects broken routes in every active backlog area, accepts repaired routes, and leaves _done frozen', () => {
     const root = temp('verify-link-wiring-')
-    const scripts = join(root, 'scripts')
+    // Stage the runner at its real depth (scripts/checks/) — verify.mjs derives repoRoot
+    // as two levels up from its own location, so the fixture tree must mirror the layout.
+    const scripts = join(root, 'scripts', 'checks')
     mkdirSync(scripts, { recursive: true })
-    writeFileSync(join(scripts, 'verify.mjs'), readFileSync(join(import.meta.dirname, '../../../scripts/verify.mjs'), 'utf8'))
-    const core = new URL('../../../scripts/verify-checks.mjs', import.meta.url).href
+    writeFileSync(join(scripts, 'verify.mjs'), readFileSync(join(import.meta.dirname, '../../../scripts/checks/verify.mjs'), 'utf8'))
+    const core = new URL('../../../scripts/checks/verify-checks.mjs', import.meta.url).href
     writeFileSync(join(scripts, 'verify-checks.mjs'), `export * from ${JSON.stringify(core)}\n`)
     for (const file of ['AGENTS.md', 'README.md']) writeFileSync(join(root, file), '# fixture\n')
     const active = [

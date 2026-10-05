@@ -8,7 +8,7 @@
 - **禁历史叙事**：不用 `previously / now / no longer / 曾经 / 已不再`；不写"以前是 X，现在改成 Y"。
   决策理由与被否决的方案进 `notes/`（`implemented/` 是当前 rationale owner）。
 - **合同与代码对齐**：`docs/` 的每一句"是什么"都必须与代码现况一致；不一致就是 bug。
-- **生成物不手改**：[`package-catalog.md`](package-catalog.md) 由 [`scripts/gen-catalog.mjs`](../scripts/gen-catalog.mjs) 生成（`pnpm gen-catalog`），改它等于改生成器。
+- **生成物不手改**：[`package-catalog.md`](package-catalog.md) 由 [`scripts/generate/gen-catalog.mjs`](../scripts/generate/gen-catalog.mjs) 生成（`pnpm gen-catalog`），改它等于改生成器。
 
 ## 谁拥有什么（改前先认领）
 

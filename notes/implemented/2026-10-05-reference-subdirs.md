@@ -9,7 +9,7 @@
   （`YYMMDD-<slug>.md`）、无状态行、索引互查门禁、随卡毕业 `git mv` 四条不变。
 - **适配**：材料移入主题子目录，**文件名与内容不变**（位置即状态精神不变，变的只是组织层）；
   索引（`reference/README.md`）记含子目录路径；`backlog-liveness` 门禁的 reference 互查从
-  顶层 readdir 升为**递归**（`scripts/verify-checks.mjs` `backlogLivenessProblems`——否则子目录
+  顶层 readdir 升为**递归**（`scripts/checks/verify-checks.mjs` `backlogLivenessProblems`——否则子目录
   文件会静默脱离索引互查，检查覆盖面必须跟着布局走）；同 diff 配红绿夹具
   （`verify-gates.spec.mjs`：子目录文件未以含子路径点名 → 红；点名 → 绿）。
 - **证据**：`pnpm vitest run packages/dsh-smart-assistant/tests/verify-gates.spec.mjs` 48 绿

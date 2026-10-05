@@ -75,7 +75,7 @@
 5. `cordis.patch.yml:68` 注释里的提案指针悬空——soul-and-agents note 已毕业至 `notes/implemented/`（原指针写的是它毕业前所在 proposed/ 的旧路径；YAML 注释逃过断链门禁——新类，记入技能）→ 改指 implemented。
 6. `docs/dev.md:142` 家手册版本戳「v5」死掉（现 v9）→ 去版本号改指针。
 
-**类硬化（同轮）**：AGENTS.md 命令表去易腐计数（「2 生成物 + 3 自检 + 32 条」→ 类别 + 「条数与清单以 scripts/verify.mjs 为准」）；ROADMAP 摘要行「切线以下看不见」精确为「内容不进摘要（模型只见到省略计数）」——省略标记第四圈已落地，原文措辞会让读者以为全无可见性。**新门禁不加**（冻结流程扩张；无产品回归驱动），新类记入 semantic-drift-audit 技能（计数更新为四轮 19 处）。
+**类硬化（同轮）**：AGENTS.md 命令表去易腐计数（「2 生成物 + 3 自检 + 32 条」→ 类别 + 「条数与清单以 scripts/checks/verify.mjs 为准」）；ROADMAP 摘要行「切线以下看不见」精确为「内容不进摘要（模型只见到省略计数）」——省略标记第四圈已落地，原文措辞会让读者以为全无可见性。**新门禁不加**（冻结流程扩张；无产品回归驱动），新类记入 semantic-drift-audit 技能（计数更新为四轮 19 处）。
 
 **核对相符项（抽样全过，[observed]）**：verify 恰 32 条；四工具×动词与 catalog/patch/README 三方一致；产品技能 9；tsconfig paths 325；home.md 数字（metronome 5 / staleSkillDays 30 / retireSkillDays 90 / 快照留 3）；AGENTS 命令表 ↔ package.json scripts；ROADMAP 全部 notes 链接在盘；identity 行 id / wire 名与 catalog/patch 一致；questions.local.md 确在 gitignore。
 

@@ -24,7 +24,7 @@ cd /tmp/desk && node /Users/bowhead/ai_dsh_assitant/scripts/dsh.mjs --profile de
 cd /Users/bowhead/ai_dsh_assitant && node scripts/webui-preflight.mjs '<URL>'
 
 # 4) 改动后的最小验证
-node scripts/verify.mjs                 # 机械门禁 31 项
+node scripts/checks/verify.mjs                 # 机械门禁 31 项
 cd packages/dsh-smart-assistant && npx vitest run   # 本包测试（36 通过 / 1 已知降级失败文件）
 ```
 
@@ -143,7 +143,7 @@ cd /tmp/desk && node /Users/bowhead/ai_dsh_assitant/scripts/dsh.mjs --profile de
 cd /Users/bowhead/ai_dsh_assitant && node scripts/webui-preflight.mjs '<URL>'
 
 # 机械门禁 + 测试（pnpm 直跑即可）
-node scripts/verify.mjs
+node scripts/checks/verify.mjs
 pnpm test        # 全仓；只要本包时 cd packages/dsh-smart-assistant && npx vitest run
 
 # preset 挂载的 one-shot（验证模型面行为；提示须与面板发送的原文一致，当前含点名技能）

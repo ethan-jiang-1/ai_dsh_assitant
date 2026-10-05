@@ -32,7 +32,7 @@
    → 包文件去数字化，指向生成物（"数过即过期"）。
 2. `docs/architecture.md` AGENT 面缺 `assistant-ov-shield`（`cordis.patch.yml` preset plugins 里有）、
    host 面缺 `assistant-knowledge-approve` → 两行补齐；§二 围栏内散文（浏览器面段 + 被隔断的"为什么在 host"）移出代码块。
-3. **生成器 bug**：`scripts/gen-catalog.mjs` 按插件名前缀分平面，把 host 行 `knowledge-approve-remote` 错标 AGENT
+3. **生成器 bug**：`scripts/generate/gen-catalog.mjs` 按插件名前缀分平面，把 host 行 `knowledge-approve-remote` 错标 AGENT
    （与 `identity.md`「host」相抵）→ 改按组合位置（`preset-assistant` 行嵌套深度）分类，重新生成
    `docs/package-catalog.md`（host 2 + agent 8 + client 1），红绿夹具进 `tests/catalog.spec.mjs`。
 4. `docs/discipline.md` 漂移审计轮数「三轮共 13 处：零→六→七」vs 技能 SKILL.md「四轮 19：零、六、七、六」，

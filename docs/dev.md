@@ -44,11 +44,11 @@
 
 | 生成物 | 生成器 | freshness 门禁 |
 |---|---|---|
-| `tsconfig.tsx.json` | `scripts/gen-paths.mjs`（`pnpm gen-paths`，从 vendor/dsh 全量别名） | `pnpm verify`「facade: the runtime tsconfig for the source launch is present and current」 |
-| `docs/package-catalog.md` | `scripts/gen-catalog.mjs`（`pnpm gen-catalog`） | `pnpm verify`（`gen-catalog --check`，与 `gen-paths` 同形） |
+| `tsconfig.tsx.json` | `scripts/generate/gen-paths.mjs`（`pnpm gen-paths`，从 vendor/dsh 全量别名） | `pnpm verify`「facade: the runtime tsconfig for the source launch is present and current」 |
+| `docs/package-catalog.md` | `scripts/generate/gen-catalog.mjs`（`pnpm gen-catalog`） | `pnpm verify`（`gen-catalog --check`，与 `gen-paths` 同形） |
 | `packages/dsh-smart-assistant/lib/` | `pnpm build`（`tsc -b`） | 无独立 freshness 门禁：组合测试与 `release-smoke` 消费它，过期即红 |
 | `dev/harness-home/`（scaffold 出的 SOUL/AGENTS 等） | 插件运行时 `ensureHome`（`src/home/layout.ts` 是唯一 owner） | `curate` 的 `manual-stale-scaffold` finding |
-| `_dist/安装手册.md`（同目录 tgz 走 `*.tgz` ignore，不入库） | `scripts/export-dist.mjs`（`pnpm export-dist`：pnpm pack → 清单边界断言 → 手册注入版本/日期/条目数） | `pnpm verify`「release: the exported install manual matches the package」（手册版本行对包 manifest 防漂；无 `_dist/` 即无导出，门禁绿） |
+| `_dist/安装手册.md`（同目录 tgz 走 `*.tgz` ignore，不入库） | `scripts/release/export-dist.mjs`（`pnpm export-dist`：pnpm pack → 清单边界断言 → 手册注入版本/日期/条目数） | `pnpm verify`「release: the exported install manual matches the package」（手册版本行对包 manifest 防漂；无 `_dist/` 即无导出，门禁绿） |
 
 ## 三、一次性准备（每个 pin 一次）
 
