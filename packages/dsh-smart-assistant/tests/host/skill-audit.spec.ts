@@ -10,8 +10,8 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Context } from '@deepseek-ai/cordis'
 import { afterEach, describe, expect, it } from 'vitest'
-import AssistantMemory from '../src/index.ts'
-import { auditSkillCredentials, auditSkillReferences } from '../src/skills/audit.ts'
+import AssistantMemory from '../../src/index.ts'
+import { auditSkillCredentials, auditSkillReferences } from '../../src/skills/audit.ts'
 
 describe('auditSkillCredentials (pure)', () => {
   it('names credential shapes', () => {

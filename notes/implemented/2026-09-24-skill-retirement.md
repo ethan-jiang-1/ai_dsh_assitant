@@ -47,7 +47,7 @@
 
 ## 证据
 
-- 纯核 + 服务级：`tests/skill-retirement.spec.ts`（4 测试：scanner 跳 archive 且读 learnedAt /
+- 纯核 + 服务级：`tests/host/skill-retirement.spec.ts`（4 测试：scanner 跳 archive 且读 learnedAt /
   bundle 移动+盖章+出房间 / 未知名/非法名/双重退役的错误 / 平文件技能归档）；
   `tests/domain/health.spec.ts` 扩 2 测试（双档 finding 分档与锚点诚实 / 遮蔽豁免）。
   **95/95 全绿**（`pnpm test`）。

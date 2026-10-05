@@ -54,7 +54,7 @@
   仓内文档的 `ref` 用仓根相对路径，**仓外**用绝对路径（`../../../tmp/...` 定位不到任何东西）。
 - **live 证据（真跑）**：两份文档 → 两条源页草稿（`source-q3-sales-review-*` 3 段 / `source-...pricing-notes-*` 1 段），
   `status: draft`、`type: source`、`sources` 齐、`generated.by: process:import-knowledge`；
-  **第二遍同 id、目录里仍只有 2 个文件**（幂等）；夹具 `tests/knowledge-import-write.spec.ts` 钉住这条。
+  **第二遍同 id、目录里仍只有 2 个文件**（幂等）；夹具 `tests/host/knowledge-import-write.spec.ts` 钉住这条。
 - 仍未做：docx/pdf 转换、概念页抽取、模型可见的导入动作（各带触发，见 §四）。
 
 ## 七、知识种子包 v0（管理岗基座的第一块内容，2026-09-25 同轮）

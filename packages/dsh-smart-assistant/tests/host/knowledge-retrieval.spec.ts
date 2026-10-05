@@ -11,10 +11,10 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Context } from '@deepseek-ai/cordis'
 import { afterEach, describe, expect, it } from 'vitest'
-import AssistantMemory from '../src/index.ts'
-import { renderDigest } from '../src/home/digest.ts'
-import { searchPages } from '../src/knowledge/search.ts'
-import type { KnowledgePage } from '../src/knowledge/page.ts'
+import AssistantMemory from '../../src/index.ts'
+import { renderDigest } from '../../src/home/digest.ts'
+import { searchPages } from '../../src/knowledge/search.ts'
+import type { KnowledgePage } from '../../src/knowledge/page.ts'
 
 function page(overrides: Partial<KnowledgePage> & { id: string }): KnowledgePage {
   return {

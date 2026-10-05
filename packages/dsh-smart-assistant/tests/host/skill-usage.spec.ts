@@ -10,7 +10,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Context } from '@deepseek-ai/cordis'
 import { afterEach, describe, expect, it } from 'vitest'
-import AssistantMemory from '../src/index.ts'
+import AssistantMemory from '../../src/index.ts'
 import {
   parseSkillUsage,
   parseSkillUsageFile,
@@ -20,7 +20,7 @@ import {
   skillUsageLines,
   usageWindowNote,
   writeSkillUsage,
-} from '../src/skills/usage.ts'
+} from '../../src/skills/usage.ts'
 
 const NOW = new Date('2026-09-24T12:00:00.000Z')
 

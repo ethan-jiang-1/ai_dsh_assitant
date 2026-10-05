@@ -42,7 +42,7 @@ R2 §3.6）。两者都是写时校验看不见、而未来会话会踩到的。
 
 ## 证据
 
-- 纯核 + 服务级：`tests/skill-audit.spec.ts`（6 测试：五类凭据形态逐个命中 / 散文三例
+- 纯核 + 服务级：`tests/host/skill-audit.spec.ts`（6 测试：五类凭据形态逐个命中 / 散文三例
   不触发 / 断链双形态（链接+反引号）报出 / 文件在则过、URL 锚点绝对路径不查 /
   save_skill 即时带 findings 且 curate 并入 warn 在前 / 干净技能零噪音）。
   **101/101 全绿**（`pnpm test`）。

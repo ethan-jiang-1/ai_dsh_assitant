@@ -25,7 +25,7 @@ counts 行把爬升数字交给 live 助手登记观察（与"摘要快满了"�
 ## 证据
 
 - `tests/domain/health.spec.ts`：clean-home 用例加透传断言（retiredSkillBundles: 2 / skillSnapshots: 1）。
-- `tests/skill-retirement.spec.ts` 两级：scan 纯函数（手造归档 2 bundle + 1 快照 + 1 杂散
+- `tests/host/skill-retirement.spec.ts` 两级：scan 纯函数（手造归档 2 bundle + 1 快照 + 1 杂散
   → 2/1；缺目录 → 0/0）；服务级（fresh home 先断 0/0，双写同名造快照 + retire 后 curate
   计 1/1）。
 - **真家首读**：[使用前清扫](2026-09-24-dev-home-pre-usage-sweep.md)后的 dev home 上

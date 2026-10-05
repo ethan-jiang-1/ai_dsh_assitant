@@ -60,7 +60,7 @@ save_skill 返回成功但被遮蔽技能静默不生效，落败方仅 logger w
 
 ## 证据
 
-- 纯核 + 服务级：`tests/skill-shadow.spec.ts`（4 测试：join 只报他人赢走的名字 /
+- 纯核 + 服务级：`tests/host/skill-shadow.spec.ts`（4 测试：join 只报他人赢走的名字 /
   不完整读不判案 / 目录缺席归 scan finding / 服务无探针不报、有探针报 warn）；
   `tests/domain/health.spec.ts` 扩 2 测试（skill-shadowed finding 的级别/refs/消息；
   被遮蔽名字从用量行排除）。**89/89 全绿**（`pnpm test`）。

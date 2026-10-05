@@ -32,7 +32,7 @@
 
 ## 证据
 
-`tests/knowledge-retrieval.spec.ts`（5 测试：排序+deprecated 带状态+why 齐备 /
+`tests/host/knowledge-retrieval.spec.ts`（5 测试：排序+deprecated 带状态+why 齐备 /
 draft 出搜索、必选 tag 生效、空查询空结果 / 服务级搜索+反链+draft 按 id 可读+missing
 undefined / digest 树 stable-only id 序、deprecated/draft 不上桌、预算内自限）。
 **126/126 全绿**；typecheck/build/verify 16/16。工具面（thin adapter）live 验证并入

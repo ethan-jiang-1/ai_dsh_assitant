@@ -18,7 +18,7 @@ bug 存成了记忆。连锁伤害：parked 不进 list/curate 的计数、无�
 
 ## 修复（红绿）
 
-1. **先写测试**：`tests/park-contract.spec.ts`（真 cordis 构造服务）：park 后线索仍在活跃
+1. **先写测试**：`tests/host/park-contract.spec.ts`（真 cordis 构造服务）：park 后线索仍在活跃
    房间且 status=parked、archive 为空、digest 计 parked 不列 open、parked 仍可 drop 带理由
    ——跑：**红**（`expected [] to include '20260923-park-roundtrip-contract-l5se'`）。
 2. 修复：`setThreadStatus` 只在 `CLOSED_THREAD_STATUSES`（promoted/dropped）命中时归档，

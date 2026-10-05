@@ -33,7 +33,7 @@ one-shot 不进 preset（无人经代理调服务）；13:55 的 preset 壳从�
 
 `AssistantMemory` 类的 6 个 `#` 字段与 3 个 `#` 方法全部转 TypeScript `private`
 （`src/index.ts`，类内注释记原因与 vendor 出处）。内部类（Room 等）不经代理消费，保持 `#`
-不变。回归测试 `tests/service-shadow-access.spec.ts`：真 cordis `Context` + 经属性代理调
+不变。回归测试 `tests/host/service-shadow-access.spec.ts`：真 cordis `Context` + 经属性代理调
 `digestSnapshot` / `saveMemory` / `digest` / `curate`——生产同款路径，红证即本虫。
 
 ## 教训（登记不立案）

@@ -37,7 +37,7 @@
 
 ## 证据
 
-`tests/knowledge-write.spec.ts`（5 测试：draft 盖章+sources 保留+搜索与 digest 不可见
+`tests/host/knowledge-write.spec.ts`（5 测试：draft 盖章+sources 保留+搜索与 digest 不可见
 +手改翻转后进搜索与 digest 树（红绿）/ 三缺一拒绝（body/type/sources）/ 凭据审计命中 /
 promote 接受页目标且拒绝未知目标 / pin 惯例 save+recall 闭环）。
 **131/131 全绿**；typecheck/build/verify 16/16。工具面 live 并入阶段 2 收尾会话。

@@ -32,7 +32,7 @@ dev Web UI 与日用 DSH Web UI 同屏时完全同貌（同 `<title>DSH Local Bu
 
 ## 验证（真跑过）
 
-- `pnpm typecheck` / `pnpm test`（新增 `tests/web-branding.spec.ts` 6 例：行 shape、标题嵌入、
+- `pnpm typecheck` / `pnpm test`（新增 `tests/host/web-branding.spec.ts` 6 例：行 shape、标题嵌入、
   图标 data-URI、即刻应用、`</script` 不可注入——恶意标题的 `<` 全量转义 `\u003c`，与 webserver
   `global` 行同款）/ `pnpm verify` 15/15。
 - 盘上实证：重建 lib 并重启 dev web 后，curl 首页 HTML 含品牌注入行（证据见战役 note 开跑补记）。

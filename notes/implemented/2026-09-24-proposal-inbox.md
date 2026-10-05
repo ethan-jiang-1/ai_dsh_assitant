@@ -43,7 +43,7 @@ R2 §9.3-5 + §6（翻车案例全部指向缺门的全自动；生态收敛在"
 
 ## 证据
 
-- `tests/skill-proposals.spec.ts`（5 测试：词汇校验与槽 prompt / 提案不碰技能房间+同名
+- `tests/host/skill-proposals.spec.ts`（5 测试：词汇校验与槽 prompt / 提案不碰技能房间+同名
   改稿 revision+created 保留+未批不能落+手改 approved 后落地 provenance `#r2`+landed
   尸体+落地后重开新轮+悬批下拒绝改稿 / 契约拒绝（坏名/空 description）/ curate 报
   awaiting-land 与 fresh 提案不误报 / 词汇 roundtrip）。**135/135 全绿**；

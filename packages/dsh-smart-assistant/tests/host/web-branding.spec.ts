@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_WEB_TITLE, webBrandingInjection } from '../src/web-branding.ts'
+import { DEFAULT_WEB_TITLE, webBrandingInjection } from '../../src/web-branding.ts'
 
 describe('web branding injection', () => {
   it('is one body script row', () => {

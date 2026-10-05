@@ -229,7 +229,7 @@ export class AssistantMemory extends Service {
   // invoked via the property proxy runs with a forwarding overlay as `this` (the framework's
   // `createShadowMethod`), which fails JS `#private` brand checks. Service members must
   // therefore be TypeScript-private, never `#`-private — the harness-wide convention.
-  // Regression: tests/service-shadow-access.spec.ts.
+  // Regression: tests/host/service-shadow-access.spec.ts.
   private readonly digestMaxBytes: number
   private readonly recallLimit: number
   private readonly staleResearchDays: number
@@ -1166,7 +1166,7 @@ export class AssistantMemory extends Service {
     await this.research.write(next.id, document.data, document.body)
     // Only a closed thread (dropped or promoted) leaves the active room: park stays in
     // research/ — digest visibility is a render concern, not a location concern.
-    // Regression: tests/park-contract.spec.ts (the campaign found park archiving the file).
+    // Regression: tests/host/park-contract.spec.ts (the campaign found park archiving the file).
     if (CLOSED_THREAD_STATUSES.includes(status)) {
       await this.research.archive(next.id)
     }

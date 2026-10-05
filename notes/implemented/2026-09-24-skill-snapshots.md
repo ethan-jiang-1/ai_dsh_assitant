@@ -34,7 +34,7 @@ R2 §9.3-7（"家的 skills/ 快照（J1）：最轻形态是时间戳快照或 
 
 ## 证据
 
-- `tests/skill-snapshot.spec.ts`（3 测试：不存在的技能不快照 / 覆盖 5 次留最新 3 份、
+- `tests/host/skill-snapshot.spec.ts`（3 测试：不存在的技能不快照 / 覆盖 5 次留最新 3 份、
   当前版最新、最旧快照含 v1 不含 v0、结果报快照路径、扫描与 curate 零污染 / 平文件技能
   同样快照）。**108/108 全绿**（`pnpm test`）。
 - 机械门禁：`pnpm typecheck` && `pnpm verify` 16/16。

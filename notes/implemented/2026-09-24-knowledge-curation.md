@@ -32,6 +32,6 @@
 
 ## 证据
 
-`tests/knowledge-curation.spec.ts`（4 测试：三档分档与 refs / 孤页+stale+draft 老化+无源
+`tests/host/knowledge-curation.spec.ts`（4 测试：三档分档与 refs / 孤页+stale+draft 老化+无源
 齐发且 draft 不算孤页 / 烂文件 error / 服务级读房间合并进简报与 counts）。
 **122/122 全绿**；typecheck/build/verify 16/16。

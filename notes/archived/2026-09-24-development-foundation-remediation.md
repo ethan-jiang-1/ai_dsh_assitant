@@ -33,8 +33,8 @@ parked——`20260923-how-should-the-knowledge-room-land-3e8i`；布局表随切
 校准（当时还含用户追加的布局行）。
 
 **D · 根类型检查**：根 `pnpm typecheck` 委派包级脚本（`tsc -b` + `tsc -p tsconfig.test.json`），
-从根一个入口即覆盖 src 与 tests。修改前红证（接手时即提案记录的）：`tests/knowledge-write.spec.ts(8,42)`
-未使用 `writeFileSync`、`tests/skill-audit.spec.ts(16,7)` 未使用 `BODY_OK`（TS6133）——删除两处未使用
+从根一个入口即覆盖 src 与 tests。修改前红证（接手时即提案记录的）：`tests/host/knowledge-write.spec.ts(8,42)`
+未使用 `writeFileSync`、`tests/host/skill-audit.spec.ts(16,7)` 未使用 `BODY_OK`（TS6133）——删除两处未使用
 声明，测试断言语义不动；AGENTS/dev.md 命令注释同步覆盖范围（测试工程经 workspace 构建声明解析
 vendor 的现状保留，构建前置写明）。
 
@@ -118,7 +118,7 @@ class did not declare it"，同款 shadow-receiver 栈）；恢复源码重建�
 到文件行号级、结论"是——入口链足以让新 agent 不靠猜"**。摘录：
 
 1. 知识排序 → `src/knowledge/search.ts` `searchPages()`（排序唯一实现，`src/index.ts` 只是薄包装）；
-   测试 `tests/knowledge-retrieval.spec.ts`；取舍 `notes/implemented/2026-09-24-knowledge-retrieval.md`
+   测试 `tests/host/knowledge-retrieval.spec.ts`；取舍 `notes/implemented/2026-09-24-knowledge-retrieval.md`
    + R3 survey §7.1-2；owner 面 = AGENTS 布局表 `src/knowledge/` 行（A 切片的行被探针直接消费）。
 2. 决定反转 → 新建 note 双向互链，旧 note 不就地改写（AGENTS 18-19 行 + vendor notes README 48/50 行）。
 3. 相对链接切片 → `pnpm verify` 的 "links: relative markdown links point at existing files"

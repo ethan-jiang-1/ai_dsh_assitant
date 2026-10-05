@@ -68,7 +68,7 @@
   `resolveWikiLink` 顺手容忍 Obsidian 的 `.md` 后缀写法。
 - 证据指针：`packages/dsh-smart-assistant/src/knowledge/page.ts`（`normalizeWikiLinks` /
   `parseAliases` / 解析器）、`src/index.ts` `writePage`；夹具 `tests/domain/knowledge-page.spec.ts`
-  （规范化四例 + 别名往返 + `.md` 解析）、`tests/knowledge-write.spec.ts`（写入面：id 链接、
+  （规范化四例 + 别名往返 + `.md` 解析）、`tests/host/knowledge-write.spec.ts`（写入面：id 链接、
   别名、反链成立）；合同措辞 `docs/home.md` Obsidian 段。
 - **存量数据**：dev working folder 的 10 页用真实代码路径跑了一遍迁移（正文 25 处名字链接
   全部转成 id 形态、每页补 `aliases`；迁移后 0 未解析链接、二次运行零改动=幂等）。
