@@ -31,7 +31,7 @@
 ### 未决（候选清单——均为假设，未定罪；逐个过"三问"）
 
 - **机制面**：~~self-reflection / home-curation / research 与技能提案的实际输入、触发、消费者、成本~~ **已审（2026-10-05，处置表 v2 见下）**；memory-hygiene 的归属按实际上下文再定（40 载活跃，倾向留守，随门禁面一并复核）。
-- **门禁面**：verify各检查的风险与反例、消费者及成本——完整清单以脚本为准；间接保护可靠性也有价值，不按是否出现在演示中裁掉。
+- **门禁面**：~~verify各检查的风险与反例、消费者及成本~~ **已审（2026-10-05，门禁预算表 v1 见下；预算制程序落卡）**。
 - **数据面**：~~dev home 试车场数据、trial home 残留、探针会话残留~~ **已审（2026-10-05，处置表 v2 · 数据面见下）**。
 - **文档面**：docs/notes 链上指向已死方向的段落（语义漂移审计技能的用武之地）。
 - **演示面**：harness 打扫的产品定义——管理层打开时看不到任何开发内脏（与 261001 卡
@@ -65,6 +65,22 @@
 | /tmp 一次性 home ×2（eval 与演示） | key 副本卫生；eval home 已清零；演示 home 服务在跑，用户示意用完即清 | **待清**（演示关停时） |
 
 结论：数据面主体是**证据不是垃圾**——试车场数据=审计仪器；真正可弃的只有两件被正本取代的散落文件（已删）。
+
+### 门禁预算表 v1（2026-10-05；34 门全枚举自 verify.mjs；退役判据 = 曾坏过/静默坏证据 + 替代防护在旧反例上红绿成立，两缺其一即留守）
+
+**预算制程序（常设，此后新增/退役都走它）**：新增门禁须带 prove-it-red 夹具（既有规则）；退役须四件——原防护风险、曾坏过或静默坏证据、现行消费者核对、替代防护对旧反例的红绿证明——交齐才立案，不以「不直接改善演示」裁掉间接防护。
+
+| 门禁族 | 门数 | 本会话/近史真实咬合（活证据） | 退役候选 |
+|---|---|---|---|
+| links（backticked/relative/section/absolute）×4 | 4 | **本会话抓 20+ 处真断链**（P4 迁移三轮 11 处、P5 收口 6 处、A' 毕业 1 处）——每次大动 docs 的第一道网 | 0 |
+| notes（lifecycle/state/naming/输掉的方案）+ queue + backlog:liveness | 6 | notes:state 抓 2（提案毕业未迁、A' 状态行未改）；backlog:liveness 抓 1（UX 路径档未入索引）——生命周期唯一执行者 | 0 |
+| docs:commands + docs:startup-path | 2 | docs:commands 抓 2（pnpm test: 非别名、五别名未点名）——命令面的双向账 | 0 |
+| identity ×2 + resolution ×4 + client + self-containment + contract ×2 | 10 | resolution:skill-grammar/home.md 房间合同在 P4 迁移中被搬路径后立即复验；identity 守名字面（identity.md 登记契约） | 0 |
+| structure ×3（required-paths/YAML-parse/DSH_HOME）+ text + language | 5 | DSH_HOME 门禁是硬规则 1 的执法者（P2 精确豁免实录）；language 守英文模型面 | 0 |
+| vendor + submodule + dependencies + release | 4 | pin 簿记与发布面 freshness（release-smoke/P4 出口四证消费同一事实源） | 0 |
+| test-assets + entry-files + commit-safety | 3 | test-assets 在 P1 递归化时带红夹具（prove-it-red 在案）；entry-files 守常设指令纯度 | 0 |
+
+结论：**34 门零退役候选**——13 门有本会话活咬合证据，其余 21 门的防护对象均有在案失败模式且无替代防护；门禁预算制的价值在程序常设（上框），不在本轮裁人。**发现的缺口（不搭车，记档待修）**：gen-catalog 的 devPatch 仍指 P2 前旧路径（existsSync 静默空转、devRows 失真——P4 note 已记），属生成器小修不是门禁退役，本战役内另做一片。
 
 审计副产品（真实摩擦读数，喂演示/真用合流问题）：desk-loop 报 **71%（15/21）面板轮点名 desk-refresh 却未加载该技能**（冷发现不可靠类）+ 3/21 点了没重写桌面文件 + 4 处同行 15 分钟内反复动——三者都是桌面主对象化切片（新 UX 第一刀）的输入，不是本卡处置对象。
 
