@@ -19,7 +19,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Context } from '@deepseek-ai/cordis'
 import { afterEach, describe, expect, it } from 'vitest'
-import AssistantMemory from '../src/index.ts'
+import AssistantMemory from '../../src/index.ts'
 
 describe('digest budget enforcement (service)', () => {
   const dirs: string[] = []

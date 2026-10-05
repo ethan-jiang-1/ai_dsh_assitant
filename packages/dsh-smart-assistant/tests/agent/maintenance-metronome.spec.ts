@@ -12,8 +12,8 @@ import { Context } from '@deepseek-ai/cordis'
 import type { Agent } from '@deepseek-ai/dsh-agent'
 import { createUserMessage } from '@deepseek-ai/dsh-llm'
 import { afterEach, describe, expect, it } from 'vitest'
-import AssistantMemory from '../src/index.ts'
-import { isMaintenanceRound, renderMaintenancePrompt } from '../src/home/metronome.ts'
+import AssistantMemory from '../../src/index.ts'
+import { isMaintenanceRound, renderMaintenancePrompt } from '../../src/home/metronome.ts'
 
 describe('isMaintenanceRound (pure)', () => {
   it('fires on the interval and nowhere else', () => {

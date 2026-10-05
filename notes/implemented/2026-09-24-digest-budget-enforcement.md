@@ -37,7 +37,7 @@ push 循环保证 used ≤ maxBytes，digest.ts:77-86），恒不超预算，所
 
 ## 证据
 
-- `tests/digest-budget.spec.ts`（2 测试：小预算灌满到截断 → 纯新增被拒（消息含出路）、
+- `tests/agent/digest-budget.spec.ts`（2 测试：小预算灌满到截断 → 纯新增被拒（消息含出路）、
   supersede 仍开放、压力在场时 curate 报 finding、forget 后 finding 消；
   常规预算下自由写零误伤）。`tests/domain/health.spec.ts` 的判据改 `digestTruncated`。
   **110/110 全绿**（`pnpm test`）。

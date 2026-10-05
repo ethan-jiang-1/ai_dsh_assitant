@@ -29,7 +29,7 @@ class 插件实例化后 loader **await `instance[Service.init]()` 返回的 pro
 
 ## 证据
 
-- 红绿测试 `tests/digest-prewarm.spec.ts`（3 用例）：①同目录二次构造（缓存冷、该实例无任何
+- 红绿测试 `tests/agent/digest-prewarm.spec.ts`（3 用例）：①同目录二次构造（缓存冷、该实例无任何
   写入触发）→ `vi.waitFor` 摘要含预置记录——修复前必然超时红；②写后无需 curate 摘要即含
   新记录；③**init 钩子确定性测试**：`await svc[Service.init]()` 后摘要**立即**（无 waitFor）
   含预置记录——loader 的 await 就是保证。

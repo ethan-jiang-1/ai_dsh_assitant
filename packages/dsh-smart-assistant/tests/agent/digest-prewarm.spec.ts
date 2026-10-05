@@ -16,7 +16,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Context, Service } from '@deepseek-ai/cordis'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import AssistantMemory from '../src/index.ts'
+import AssistantMemory from '../../src/index.ts'
 
 describe('digest prewarm (service)', () => {
   const dirs: string[] = []

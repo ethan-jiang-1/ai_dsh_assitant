@@ -59,7 +59,7 @@ curate 是被动的：persona 与技能只在模型"想到"时触发养护。连
 
 ## 证据
 
-- 纯核 + 接线：`tests/maintenance-metronome.spec.ts`（5 测试：interval 谓词全边界 /
+- 纯核 + 接线：`tests/agent/maintenance-metronome.spec.ts`（5 测试：interval 谓词全边界 /
   prompt 渲染 / 第 2 轮触发且 plugin 源与文案正确 / 同轮重排不重触发、下个间隔再触发 /
   换 goal 重置、非 goal 消息忽略、0 关闭）。**105/105 全绿**（`pnpm test`）。
 - 机械门禁：`pnpm typecheck` && `pnpm build` && `pnpm verify` 16/16。
