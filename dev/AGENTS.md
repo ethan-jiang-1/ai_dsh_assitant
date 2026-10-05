@@ -25,6 +25,23 @@
 `dev/profiles/profile-patch.yml` 用整行替换语义、`dev/harness-home/profiles/dev-task/cordis.patch.yml` 用 insert 语义，
 两者互换即失配（细节 owner：[`docs/dev.md`](../docs/dev.md) §四）。
 
+## 布局（工具按职责分家；运行数据原地不动）
+
+| 目录 | 装什么 |
+|---|---|
+| `env/` | 启动器（`dsh.mjs`）、env 兜底、prepare/setup——起服务的那串全在这 |
+| `profiles/` | 基础 profile patch（setup 拷贝进 home 的源） |
+| `probes/session/` | one-shot 探针 patch（preset-runner / expert / recall / replay） |
+| `probes/web/` | 浏览器探针（preflight / shots / web-expected / loop-probe + CDP 驱动 + 比对纯核） |
+| `fixtures/` | keyless 回放夹具（llm-replay） |
+| `eval/` | 行为/领域评测（不与单元测试合并） |
+| `reports/` | usage / desk-loop 报告 |
+| `deploy/` | 知识导入与专家装配 CLI（仓库用，非发行命令） |
+| `experiments/openviking/` | 外部服务试验工具（只归位不执行） |
+| `harness-home/` · `trial-home/` | **忽略的运行数据**，原地保留（源码归位 ≠ 数据迁移） |
+
+命令与判据 owner = 根 [`AGENTS.md`](../AGENTS.md) 命令表与 [`docs/dev.md`](../docs/dev.md)——本表只回答「东西在 dev/ 的哪个抽屉」。
+
 ## 交给人之前
 
 起 Web UI 后必须 `pnpm preflight '<URL>'`（门禁绿了再交）；URL 与命令的 owner 是
