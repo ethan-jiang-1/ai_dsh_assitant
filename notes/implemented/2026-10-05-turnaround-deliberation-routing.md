@@ -6,7 +6,7 @@
 
 用户要求先解决逻辑/自洽，再整理系统/结构；plans 推敲正确后才进入 proposed，reference 也要自洽。本 note 记录已交付的资料治理，不记录产品转向已完成，也不授权 UI/督办/审批/OV 实现、运行数据清扫、重大产品资产删除或外部递交；旧任务退役、文档归位等有界卫生按当前策动计划处理。
 
-综合转向稿曾提前进入 proposed，内部仍有审批语义、实验隔离/判读、状态契约、形态和资产审计未决。本轮移至 [转向自洽卡](../../_backlog/plans/261005-turnaround-coherence.md)，状态推敲中；未作整卡毕业、否决或拒绝用户已确认的方向。旧 [真用第一](../rejected/2026-10-01-real-use-first.md) 更新取代指针与历史边界，不把过去冻结或等待状态继续当现行调度。
+综合转向稿曾提前进入 proposed，内部仍有审批语义、实验隔离/判读、状态契约、形态和资产审计未决。本轮移至 [转向自洽卡](../../_backlog/_done/_closed_plans/261005-turnaround-coherence.md)，状态推敲中；未作整卡毕业、否决或拒绝用户已确认的方向。旧 [真用第一](../rejected/2026-10-01-real-use-first.md) 更新取代指针与历史边界，不把过去冻结或等待状态继续当现行调度。
 
 ## 已交付决定
 
@@ -30,7 +30,7 @@
 
 ## 总体策动次序（同日用户补充）
 
-用户进一步要求：整体思路成立后先打扫卫生剔除无用历史，恢复repo信噪比，再UX主导落地，配合既定技术偏好。总体候选顺序只住 [自洽卡](../../_backlog/plans/261005-turnaround-coherence.md)：方向→卫生出口→可操作UX路径→最小垂直落地→信息积累验证→继续取舍。逐资产三问/处置证据住 [SDLC卡](../../_backlog/_done/_closed_plans/261005-sdlc-turnaround-cleanup.md)，技术偏好指向 [原生定调](../../_backlog/reference/tech-exploration/261005-dsh-native-first-tech-keynote.md)，不复制第二总队列。
+用户进一步要求：整体思路成立后先打扫卫生剔除无用历史，恢复repo信噪比，再UX主导落地，配合既定技术偏好。总体候选顺序只住 [自洽卡](../../_backlog/_done/_closed_plans/261005-turnaround-coherence.md)：方向→卫生出口→可操作UX路径→最小垂直落地→信息积累验证→继续取舍。逐资产三问/处置证据住 [SDLC卡](../../_backlog/_done/_closed_plans/261005-sdlc-turnaround-cleanup.md)，技术偏好指向 [原生定调](../../_backlog/reference/tech-exploration/261005-dsh-native-first-tech-keynote.md)，不复制第二总队列。
 
 卫生可先退役失效未来任务、归位重复/冲突owner、清运行时可见的无职责内容；源码/门禁删除必须查当前消费者、损失、替代与回退，不以年代/低计数定罪。卫生清理和审计已属本轮范围，不重新呈批只读动作；重大产品契约变化仍需具体成熟方案。UX先定义用户动作与可见反馈，再选最低状态/数据/DSH承载；行为/界面/内容同切片，不先铺完整技术平台。总体计划与访谈框架本轮已成可评审材料，产品落地尚未执行。
 

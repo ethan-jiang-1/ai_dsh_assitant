@@ -2,9 +2,9 @@
 
 日期：2026-10-01 · 状态：**rejected**（方案被取代：原型阶段不再以本人真用/抽检为推进前置，已交付部分归各自 implemented；拒绝的是旧推进方式）
 
-2026-10-05 处置：本稿保留用于防止再次把真人业务输入设成原型研发的阻塞条件，不再拥有进度或等待任务。当前推敲归 [自洽卡](../../_backlog/plans/261005-turnaround-coherence.md) 与 [定位卡](../../_backlog/plans/261005-open-value-deficit.md)；本轮采用可由 agent 完成的公开案例、情景重放与访谈框架设计。未来实际受众/决定的反馈可提升证据等级，不是现在的开工门。
+2026-10-05 处置：本稿保留用于防止再次把真人业务输入设成原型研发的阻塞条件，不再拥有进度或等待任务。当前推敲归 [自洽卡](../../_backlog/_done/_closed_plans/261005-turnaround-coherence.md) 与 [定位卡](../../_backlog/_done/_closed_plans/261005-open-value-deficit.md)；本轮采用可由 agent 完成的公开案例、情景重放与访谈框架设计。未来实际受众/决定的反馈可提升证据等级，不是现在的开工门。
 
-已交付事实归 [基座搬运](../implemented/2026-10-01-management-base-port.md)、[机器预评分](../implemented/2026-10-02-g2-machine-prescore.md)、[反馈管线](../implemented/2026-09-30-c2-feedback-desk-loop.md)、[OV 层 1](../implemented/2026-10-04-openviking-layer1-landing.md) 与 [首开 UX 卡](../../_backlog/plans/261001-first-open-ux.md)。仍有意义的研究问题归当前 owner，不把真人抽检转成新等待队列；旧评分仍是机器读数，未经真人验证。
+已交付事实归 [基座搬运](../implemented/2026-10-01-management-base-port.md)、[机器预评分](../implemented/2026-10-02-g2-machine-prescore.md)、[反馈管线](../implemented/2026-09-30-c2-feedback-desk-loop.md)、[OV 层 1](../implemented/2026-10-04-openviking-layer1-landing.md) 与 [首开 UX 卡](../../_backlog/_done/_closed_plans/261001-first-open-ux.md)。仍有意义的研究问题归当前 owner，不把真人抽检转成新等待队列；旧评分仍是机器读数，未经真人验证。
 
 以下正文是截至 2026-10-04 的原方案与当时快照。“无真实摩擦不动 UI”“先重想产品形态输掉”“真人摩擦作为唯一依据”及等待状态全部只作历史，不能继续作为实施约束。
 
@@ -32,9 +32,9 @@
 1. **冻结**：机制与门禁扩张停止（宏观计划阶段 0 既有决定重申生效）；**无真实摩擦证据不动 UI**。
 2. **G2+G3 一举两得的真用探针（2026-10-01 当日更新为零作业形态）**：本人在**干净试用 home**
    （`dev/trial-home`：expert-setup 装配管理岗身份 + 3 页管理知识种子；首开工作区之问已修，
-   记录见[首开 UX 卡](../../_backlog/plans/261001-first-open-ux.md)）**随手真用**，不布置作业。首版
+   记录见[首开 UX 卡](../../_backlog/_done/_closed_plans/261001-first-open-ux.md)）**随手真用**，不布置作业。首版
    「本人过 30 题评测并打分」被本人当日否决："本来想让你帮我解决问题，结果你给我抛过来这么多
-   问题"——这正是产品自身的 UX 反模式现场重演，UX 思考已立 [首开 UX 卡](../../_backlog/plans/261001-first-open-ux.md)
+   问题"——这正是产品自身的 UX 反模式现场重演，UX 思考已立 [首开 UX 卡](../../_backlog/_done/_closed_plans/261001-first-open-ux.md)
    为 ongoing goal。G2 打分改为**机器按判例乙（已拍板：占位合规）逐题预判回填 + 本人随时抽检**
    （材料仍在：[打分表](../../dev/eval/domain/sheet-2026-09-28-19-23.md) +
    [校准导览](../../dev/eval/domain/calibration-2026-09-29.md)；对应

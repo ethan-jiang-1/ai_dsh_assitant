@@ -1,6 +1,6 @@
 # 面向 CEO/CFO 的「十分钟 AI 演示」叙事先例调研
 
-> 调研日期：2026-10-05。服务对象：dsh-smart-assistant 的"面向企业管理层的 AI 助手"十分钟演示叙事设计（喂 `plans/261005-open-value-deficit` 一线的推敲，亦为独立叙事参考）。
+> 调研日期：2026-10-05。服务对象：dsh-smart-assistant 的"面向企业管理层的 AI 助手"十分钟演示叙事设计（喂 `_done/_closed_plans/261005-open-value-deficit` 一线的推敲，亦为独立叙事参考）。
 > **方法**：web_search 定位 + curl 直抓一手页面。本会话 `web_fetch` 工具被 DNS 白名单阻断（"resolves to a non-public IP"，与同日 [261005-external-ux-patterns.md](261005-external-ux-patterns.md) 记录一致），全部抓取经 `curl -A <浏览器UA>` 完成；BusinessWire 对 curl 403、Gartner 新闻站对 curl 与 Web Archive 均拒绝，前者改读全文转载、后者经 r.jina.ai 代理取得（正文与 IT Brief UK 转述逐句一致）。Gartner 1Q26 CFO Report 与 Deloitte CFO Sentiment 为公开 PDF（pdftotext 提取）。
 > **诚实标注**：每条结论标〔一手〕（官方页面/官方 PDF/官方 playbook 原文）或〔二手〕（媒体/转录/转载）。文末有「未证实/仅二手」清单。
 
@@ -8,7 +8,7 @@
 
 ## 本轮使用边界
 
-本档记录营销话术、实践建议和转引统计，不是本方案的采纳实证。董事会汇报、演示录像与实际上手不同；Atlassian +90% 不能作亲演示的因果收益或本项目验收。CEO/CFO 材料保留作反证/支撑，本项目已确认一把手主线，不自动设双角色主线、KPI 页或固定十分钟规格。脚本动作与技术/数据事实分别核验；本轮未重新抓全部来源。喂 [定位卡](../../plans/261005-open-value-deficit.md) 与 [自洽卡](../../plans/261005-turnaround-coherence.md)。
+本档记录营销话术、实践建议和转引统计，不是本方案的采纳实证。董事会汇报、演示录像与实际上手不同；Atlassian +90% 不能作亲演示的因果收益或本项目验收。CEO/CFO 材料保留作反证/支撑，本项目已确认一把手主线，不自动设双角色主线、KPI 页或固定十分钟规格。脚本动作与技术/数据事实分别核验；本轮未重新抓全部来源。喂 [定位卡](../../_done/_closed_plans/261005-open-value-deficit.md) 与 [自洽卡](../../_done/_closed_plans/261005-turnaround-coherence.md)。
 
 ## 一、AI 助理产品对高管的营销叙事结构（5 家）
 

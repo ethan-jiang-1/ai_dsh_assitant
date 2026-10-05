@@ -47,7 +47,7 @@
    npm。原判定：`notes/implemented/2026-09-23-repo-structure.md`）→ `export-dist` 与
    `release-smoke` 用同一条 `pnpm pack`，且都对产物断言 peer 已具体化（证据：`release-smoke`
    对 tarball manifest 的逐 peer 断言；`workspace:` 原样出包没人能解析）。
-6. **开发证据按风险投入，UX路径主导切片**（次序见 [转向自洽卡](../_backlog/plans/261005-turnaround-coherence.md)）：
+6. **开发证据按风险投入，UX路径主导切片**（次序见 [转向自洽卡](../_backlog/_done/_closed_plans/261005-turnaround-coherence.md)）：
    卫生有界先行，再围绕一条用户动作设计最小端到端体验，UI、行为和内容同片考虑；测试策略（见 [testing.md](testing.md)）
    按风险与实际消费者保留或退役，不以数量或演示可见性判断；技术承载优先组合与既有 DSH 扩展点，
    组合/扩展点不足才有证据地自建；相关决定依据见 [转向归位记录](../notes/implemented/2026-10-05-turnaround-deliberation-routing.md)。

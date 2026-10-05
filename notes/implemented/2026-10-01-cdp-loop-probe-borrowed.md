@@ -5,7 +5,7 @@
 
 ## 问题（可观察行为）
 
-首用 UX 战役（[首开 UX 卡](../../_backlog/plans/261001-first-open-ux.md)）的闭环彩排全靠手工：
+首用 UX 战役（[首开 UX 卡](../../_backlog/_done/_closed_plans/261001-first-open-ux.md)）的闭环彩排全靠手工：
 六次分离的 `pnpm shots --eval` 调用 + 单表达式内联 JS，每步一个发现（composer 拒绝 execCommand、
 发送/停止按钮是可靠的回合完成信号、工作区之问的回归判据……）。这些知识**只存在于当次会话**，
 无法复用、无法进回归——下次组合变更又得重新即兴。owner 指令：兄弟仓

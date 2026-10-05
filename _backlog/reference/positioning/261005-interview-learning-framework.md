@@ -1,6 +1,6 @@
 # 原型候选：访谈、案例重放与可验证的能力积累
 
-> 服务 [定位卡](../../plans/261005-open-value-deficit.md) 和 [自洽卡](../../plans/261005-turnaround-coherence.md)。这是可直接使用的访谈/记录/评估框架；未安装成运行时技能，也未证明访谈能提高决策效果。一手材料定位与访问限制归 [案例研究](261005-prototype-cases-and-interview-method.md)，本档拥有产品框架，不复制来源综述。
+> 服务 [定位卡](../../_done/_closed_plans/261005-open-value-deficit.md) 和 [自洽卡](../../_done/_closed_plans/261005-turnaround-coherence.md)。这是可直接使用的访谈/记录/评估框架；未安装成运行时技能，也未证明访谈能提高决策效果。一手材料定位与访问限制归 [案例研究](261005-prototype-cases-and-interview-method.md)，本档拥有产品框架，不复制来源综述。
 
 ## 1. 原型现在如何推进
 

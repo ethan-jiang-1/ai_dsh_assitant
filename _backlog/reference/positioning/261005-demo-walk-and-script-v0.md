@@ -1,6 +1,6 @@
 # 十分钟走查记录与演示脚本候选 v0（督办主线）
 
-> 喂 [定位卡](../../plans/261005-open-value-deficit.md) 与 [自洽卡](../../plans/261005-turnaround-coherence.md)。性质：供攻击的候选脚本，不是实施授权，也不是现有能力清单。
+> 喂 [定位卡](../../_done/_closed_plans/261005-open-value-deficit.md) 与 [自洽卡](../../_done/_closed_plans/261005-turnaround-coherence.md)。性质：供攻击的候选脚本，不是实施授权，也不是现有能力清单。
 > 原走查依赖 blank-first-open 快照、trial 产物与 delegated naive-CEO 读数。代理评价不是实际管理层反应，trial 账面不是本人两周经营证据。本轮校准脚本的状态/数据边界，未重新运行浏览器或真人演示。
 
 ## 一、历史走查：已记录观察与解释

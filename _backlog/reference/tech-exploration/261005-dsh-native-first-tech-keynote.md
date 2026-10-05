@@ -2,7 +2,7 @@
 
 > 立档：2026-10-05 ｜ 性质：**技术定调**（用户拍板原话："OKF 和 VK 肯定是对的；一个就是
 > 充分的利用 DSH 自身的能力——尤其是插件这里，其实是技术面上我对他的诉求"）｜ 喂
-> [261005-open-value-deficit](../../plans/261005-open-value-deficit.md) 第 5/11/19 轮。
+> [261005-open-value-deficit](../../_done/_closed_plans/261005-open-value-deficit.md) 第 5/11/19 轮。
 > 姊妹档：[261005-okf-wiki-tech-case.md](261005-okf-wiki-tech-case.md)（OKF 注的完整论证与实验设计）。
 
 ## 一、技术注确认（两注已定，不再摇摆）

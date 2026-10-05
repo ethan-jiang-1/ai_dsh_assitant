@@ -1,6 +1,6 @@
 # 上游（vendor 面）候选台账——喂 261001-first-open-ux
 
-> 立档：2026-10-05（首开 UX 第 18 轮）｜服务对象：[261001-first-open-ux](../../plans/261001-first-open-ux.md)
+> 立档：2026-10-05（首开 UX 第 18 轮）｜服务对象：[261001-first-open-ux](../../_done/_closed_plans/261001-first-open-ux.md)
 > ｜性质：调研材料（随卡毕业迁 `_done/_reference/`）。
 > 为什么立档：vendor 面候选散在卡面第 1/3/8/12/13/14/16 轮各处，散读变不成一叠可递交的 issue；
 > 本档一处收敛，每条带首报轮次与 vendor 代码锚点。**纪律不变：vendor 源码永不改（硬规则 1），

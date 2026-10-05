@@ -1,6 +1,6 @@
 # 技术定调：OKF/WIKI 的能力边界与可辨识实验
 
-> 立档：2026-10-05 ｜ 喂 [定位卡](../../plans/261005-open-value-deficit.md) 与 [自洽卡](../../plans/261005-turnaround-coherence.md)。
+> 立档：2026-10-05 ｜ 喂 [定位卡](../../_done/_closed_plans/261005-open-value-deficit.md) 与 [自洽卡](../../_done/_closed_plans/261005-turnaround-coherence.md)。
 > 用户选定探索方向：有组织的知识、技能和事件信息能帮一把手什么；OKF/VK 与 DSH 原生优先已确认。选择方向不是测得收益，本档区分 schema 能力、当前实现与效果假设。
 
 ## 一、两类记忆与当前资产

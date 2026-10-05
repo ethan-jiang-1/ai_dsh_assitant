@@ -31,7 +31,7 @@ review）。本文记录两项裁定的内容与依据，本人推翻权永久�
 
 ## 裁定二：CEO 摩擦报告 review——**7 条全认，三批修**
 
-对象：naive-CEO 第一读数的摩擦清单 7 条（[首开 UX 卡](../../_backlog/plans/261001-first-open-ux.md) 第 13 轮）。
+对象：naive-CEO 第一读数的摩擦清单 7 条（[首开 UX 卡](../../_backlog/_done/_closed_plans/261001-first-open-ux.md) 第 13 轮）。
 
 | 批 | 条目 | 处置 | 面 |
 |---|---|---|---|

@@ -6,7 +6,7 @@
   隔离 home 需带凭据否则 API Key 弹窗入镜——seed 无 creds 子命令是 P2 已记缺口）。
 - **如实偏差**：桌面视图自身的持久场景未建——非空白会话的确定性种子设计（session 记录文件预置）是真设计题，记为后续切片；
   本片渲染证据 = shots --eval 交互态 DOM（点击链：开会话→点桌面→内容区渲染，/tmp/dsh-webui-shots/desk-view-final-*.dom.txt）。
-- D7 已记入上游台账（默认视图不可插件化），递交与否用户拍板。（用户 2026-10-06 点头推进并要求显性化追踪；方向 owner=[定位卡](../../_backlog/plans/261005-open-value-deficit.md)，毕业门 owner=[自洽卡](../../_backlog/plans/261005-turnaround-coherence.md) 形态迁移行，判据承接自[首开卡边界收口](../../_backlog/plans/261001-first-open-ux.md)）
+- D7 已记入上游台账（默认视图不可插件化），递交与否用户拍板。（用户 2026-10-06 点头推进并要求显性化追踪；方向 owner=[定位卡](../../_backlog/_done/_closed_plans/261005-open-value-deficit.md)，毕业门 owner=[自洽卡](../../_backlog/_done/_closed_plans/261005-turnaround-coherence.md) 形态迁移行，判据承接自[首开卡边界收口](../../_backlog/_done/_closed_plans/261001-first-open-ux.md)）
 
 ## 问题（可观察行为）
 

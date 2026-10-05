@@ -31,8 +31,8 @@
 | O6 | **管得住（权限与数据）** | 知识变更可追溯；数据不出企业边界；对外内容需本人过目 |
 
 本人的经营事实、判断标准与数据边界由本人提供或确认；原型可先用公开案例与标注模拟验证方法和机制，不等真人回访。
-**当前推敲与毕业边界按 owner 取用**：[定位卡](_backlog/plans/261005-open-value-deficit.md) 与
-[自洽卡](_backlog/plans/261005-turnaround-coherence.md)。已交付能力与证据归各自 implemented；
+**当前推敲与毕业边界按 owner 取用**：[定位卡](_backlog/_done/_closed_plans/261005-open-value-deficit.md) 与
+[自洽卡](_backlog/_done/_closed_plans/261005-turnaround-coherence.md)。已交付能力与证据归各自 implemented；
 [旧真用第一](notes/rejected/2026-10-01-real-use-first.md) 只作被取代方案的防错历史。推敲不构成新增产品能力或全部实施授权。研发姿态三条判据的常设指令在根
 `AGENTS.md`，用户原话存 [intents-retired](notes/implemented/2026-10-04-intents-retired.md)
 （本节承接已退役 intents.md 的判据面）。

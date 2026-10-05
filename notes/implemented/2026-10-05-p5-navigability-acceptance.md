@@ -42,7 +42,7 @@ repo-navigability 提案的终段（P5）：一个**全新上下文**（后台�
 
 ## 卫生阶段出口声明
 
-[自洽卡](../../_backlog/plans/261005-turnaround-coherence.md) 阶段 1（repo 卫生）的出口判据现已满足：
+[自洽卡](../../_backlog/_done/_closed_plans/261005-turnaround-coherence.md) 阶段 1（repo 卫生）的出口判据现已满足：
 活跃入口无失效任务/冲突指令（链接/命令门禁 + P5 无死链实测）；重大疑项有清楚 owner（四段 note + 修正的
 文档面）；新会话能读出方向/下一具体问题（P5 五路 PASS 即此判据的直接证明）。**阶段 1 出口，产品落地
 （UX 切片）按同卡阶段 2→3 开始**——UX 路径 v0 与首切方案（B 缺数连线 / A' Day-0 intake「它先问」）已备

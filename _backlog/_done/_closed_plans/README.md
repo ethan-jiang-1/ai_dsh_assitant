@@ -8,6 +8,9 @@
 | 卡 | 关闭日 | 判定 |
 |---|---|---|
 | [261005-sdlc-turnaround-cleanup.md](261005-sdlc-turnaround-cleanup.md) | 2026-10-06 | 毕业为该做并执行完毕：六面收口（机制/数据处置表 v2、门禁预算表 v1 零退役、gen-catalog devPatch 修复、演示面并入新 UX、文档面五轮审计 8 修、两探索问题定案）→ [SDLC 收口 note](../../../notes/implemented/2026-10-06-sdlc-campaign-closeout.md) |
+| [261001-first-open-ux.md](261001-first-open-ux.md) | 2026-10-06 | 毕业为已消化：18 轮首开 UX 全部落地 + 上游 6/6 递交（#8939-#8944）+ 判据「打开不困惑」转移至 desk-primary-view → 各 implemented note |
+| [261005-open-value-deficit.md](261005-open-value-deficit.md) | 2026-10-06 | 毕业为方向已确认+切片已落地：一把手总助定位经 19 轮定案；Day-0 intake / 桌面主视图 / 晨报 v1 / 审批内联各有 implemented note；未落地候选为 deferred-with-trigger |
+| [261005-turnaround-coherence.md](261005-turnaround-coherence.md) | 2026-10-06 | 毕业为阶段 0-3 交付：方向收敛→repo 卫生→UX 路径→最小垂直落地全链完成；阶段 4-5 为持续实践散入触发条件；常设贡献已固化（证据阶梯/数据同源/DSH 原生优先） |
 | [261005-repo-navigability.md](261005-repo-navigability.md) | 2026-10-05 | 毕业为该做：用户确认分段实施（第一段 P0 残尾 + P2 工具归位，段间回用户复核）→ [提案](../../../notes/proposed/2026-10-05-repo-navigability.md)；P0 大半与 P1 已交付（`f25d686`，[P1 note](../../../notes/implemented/2026-10-05-p1-validation-trustworthiness.md)）；两份 tech-exploration 底稿随卡归档 |
 | [260928-domain-eval-v0.md](260928-domain-eval-v0.md) | 2026-10-04 | G2 定案毕业：本人认可 Q1/Q4 从严裁定（三判据全绿；40 题入册 + 判例乙口径 + 两条新判分规则）→ 毕业件交付于评测基础设施 `dev/eval/domain/` |
 | [260929-reserved-anchor-discipline.md](260929-reserved-anchor-discipline.md) | 2026-10-04 | 用户本人点名关闭（「毫无意义，移掉」——本卡规则唯一合法关闭方式）；连带退役 reserved-item-restraint 评测任务；🔒 机制原则保留于 backlog README |

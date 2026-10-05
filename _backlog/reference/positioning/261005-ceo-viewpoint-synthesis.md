@@ -1,6 +1,6 @@
 # 典型一把手的视角与诉求（证据合成与适用边界）
 
-> 立档：2026-10-05 ｜ 喂 [定位卡](../../plans/261005-open-value-deficit.md) 与 [自洽卡](../../plans/261005-turnaround-coherence.md)。
+> 立档：2026-10-05 ｜ 喂 [定位卡](../../_done/_closed_plans/261005-open-value-deficit.md) 与 [自洽卡](../../_done/_closed_plans/261005-turnaround-coherence.md)。
 > 性质：三路外部资料与代理生成的 trial 产物形态对照，不是真人连续经营 n=1 实证。
 > 原始出处分别归 [CEO 声音](261005-ceo-voices.md)、[时间/决策研究](261005-ceo-time-and-decision-research.md)、[中国 SME 画像](261005-chinese-sme-boss.md)。本轮校准推论强度，未重新访问全部外部 URL；“有出处”不等于原研究可推广到本产品。
 
@@ -58,7 +58,7 @@
 
 ## 五、方向约束与技术/数据边界
 
-用户确认的 A/B/C 筛子见 [定位卡第 18 轮](../../plans/261005-open-value-deficit.md)：
+用户确认的 A/B/C 筛子见 [定位卡第 18 轮](../../_done/_closed_plans/261005-open-value-deficit.md)：
 
 - A：信息合成、缺口、检索/留痕、结构化备选与本地决定跟进是探索范围；AI 是否做好各项仍须验证。
 - B：谈判、难谈话、用人、对外文件由 AI 准备、本人执行/过目；不模糊两者分工。
@@ -72,4 +72,4 @@
 
 原料中有原文/URL的数字，也须核对原测量、样本与上下文；+30% 不用于产品收益，91.6% 不用于排除仪表盘，相关性不改写为因果。仅二手、未核原文、旧/不同样本的统计不能作为本方案验收或 ROI 承诺。原有“2500 小时/CEO”“寿命 2.5 年”等未核数字仍不用。
 
-本档是证据合成 owner，实施候选与毕业条件归 [自洽卡](../../plans/261005-turnaround-coherence.md)；本轮未开展新的真实经营/受众实验。
+本档是证据合成 owner，实施候选与毕业条件归 [自洽卡](../../_done/_closed_plans/261005-turnaround-coherence.md)；本轮未开展新的真实经营/受众实验。
