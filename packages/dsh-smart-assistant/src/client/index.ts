@@ -1669,11 +1669,12 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
             },
           },
           createElement('div', { style: { fontWeight: 600, color: 'var(--dsw-alias-label-secondary)' } }, '第一次来这里？'),
-          // Rewritten for the new form (desk-primary-view, 2026-10-06): the assistant now
-          // opens the first conversation itself (first-conversation skill, manual v11), so
-          // step one is answering it, not finding something to say; and the desk is a main
-          // view beside the conversation, not a side panel.
-          '① 助手已经先开口了——切到「对话」看它的问题，答一句桌面就开始长（说「刷新我的桌面」也行）',
+          // Corrected 2026-10-06 (real-user walk finding): the assistant's opening question
+          // fires INSIDE the first conversation, in reply to the principal's first message —
+          // it does not exist before anyone speaks. The earlier rewrite claimed "the assistant
+          // has already opened" and pointed at an empty conversation; the true Day-0 start is
+          // the principal saying anything at all (the assistant then takes over the asking).
+          '① 跟它说一句话就行——说什么都行，它会先问你：最近要你拍板、还要跟进的一件事',
           createElement('br'),
           '② 这里是你的仪表盘，不是要你配置的东西',
           createElement('br'),
