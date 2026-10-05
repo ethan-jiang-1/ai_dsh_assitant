@@ -36,6 +36,7 @@ reference → plans → proposed 是证据到裁决的关系，不是三份活�
 - [261005-substitute-landscape.md](positioning/261005-substitute-landscape.md)——替代品格局调研（喂 261005-open-value-deficit：ChatGPT/Claude/Gemini 原生记忆现状、AI chief of staff 品类成败 → 我们的真实增量）
 - [261005-exec-demo-narratives.md](positioning/261005-exec-demo-narratives.md)——面向 CEO/CFO 的十分钟 AI 演示叙事调研（Lindy/Martin/Day/Reclaim/Huper 营销叙事骨架、向董事会演示 AI 的公开方法、CFO 采纳关注点、演示方法论 → 演示叙事的可借框架）
 - [261005-demo-walk-and-script-v0.md](positioning/261005-demo-walk-and-script-v0.md)——现状十分钟管理层走查 + 督办主线演示脚本骨架 v0（喂 261005-open-value-deficit 第 7-9 轮；供攻击的推敲材料）
+- [261005-ux-path-annotated-simulation.md](positioning/261005-ux-path-annotated-simulation.md)——UX 路径 v0 纸面走查（喂自洽卡阶段2：打开→给片段→看选项/缺数→拍板→看跟进 六步 × DeskData 现行载体 × 诚实状态标注；reversible-cost-v0 标注模拟场景；首切候选=入口/空态/引导）
 - [261005-coding-agent-exec-barrier.md](positioning/261005-coding-agent-exec-barrier.md)——管理层对 coding agent 的却步点调研（喂 261005-open-value-deficit：Codex/Claude Code/ChatGPT Enterprise 官方叙事取证 + 高管真实声音 + 权威调研阻力数字 → 三轴归纳「看不懂/管不住/说不清价值」）
 - [261005-chinese-sme-boss.md](positioning/261005-chinese-sme-boss.md)——中国中小企业一把手（含 BU 一把手）工作画像调研（喂 261005-open-value-deficit：时间节律/痛点榜 2024-2026/数字化 AI 采纳/信息流四类取证，附画像卡与未证实清单；web_fetch 受限处改用 curl 并注明）
 - [261005-ceo-voices.md](positioning/261005-ceo-voices.md)——真实一把手声音与 CoS 职业方法论调研（喂 261005-open-value-deficit：VandeHei 全司实测一手、三份官方 JD 提炼「雇总助买什么」、Buffett/Bezos/Horowitz 逐字诉求、失败模式 7 条 → 设计红线；BU 级盲区如实标注）
