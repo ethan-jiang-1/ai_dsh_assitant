@@ -283,7 +283,7 @@ R12 的两半都是**兜底**：客户端在渲染时发现"这文件不像桌�
 - **复核后的更正（窄审，2026-09-27）**：手册当时只列了契约九个分区里的六个（漏 `memories`/`knowledge`/`skills`），
   客户端 `looksLikeDesk` 又漏了 `recentActivity`/`counts`——**同一份契约三个家各说各话**。三处已按
   `desk-refresh/SKILL.md` §Shape 对齐（手册 v8），`file-shape` 也补上"至少一个分区"与"文件必须新于本次运行"。
-- **证据（真机探针，本仓 §模型可见面纪律）**：`pnpm dsh --profile dev-task --patch dev/preset-runner.patch.yml`
+- **证据（真机探针，本仓 §模型可见面纪律）**：`pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner.patch.yml`
   一条**禁止调用工具**的探针——模型只凭常驻上下文就**逐字引出**该段标题、列出六个分区名，并说明
   "这段来自我的 working-folder 手册，不是仓库级 `AGENTS.md`"（它自己做了出处区分，说明该段确实在场且可辨）。
 - **纪律三件事**：英文 ✓；可从会话日志重建 ✓（手册逐字进 `system/message`）；`docs/home.md` 的家手册条目

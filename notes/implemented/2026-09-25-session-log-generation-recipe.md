@@ -48,7 +48,7 @@ pin 迁到 0.1.7 后写者前移到 **v4**，而本仓多处读方与给助手�
 - `pnpm verify` 31/31 exit 0；`pnpm typecheck` exit 0；`pnpm test` 35/36 套件、227/229 tests
   （唯一红是既有的 `preset-composition.spec.ts` 两条"never started"，迁移 note §八/§十 已登记的降级项）；
 - `pnpm eval` 3/3（真实请求经 preset 会话跑，判定读会话日志）；
-- live（全新 working folder、v6 手册，`dev/recall-probe.patch.yml` 可复跑）：会话**先列目录再读**，
+- live（全新 working folder、v6 手册，`dev/probes/session/recall-probe.patch.yml` 可复跑）：会话**先列目录再读**，
   读到的是一份**存在**的 `session.v4.jsonl.zstd`（`ls` 定名、`zstd -dc` 解压、`jq` 读会话头），
   并引用出该日志里的一条真实消息 —— 配方走通，且它没有猜文件名。
 

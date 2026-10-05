@@ -3,14 +3,14 @@
 # 包形状目录（生成物）
 
 > **生成物，不手改**：本文件由 `scripts/gen-catalog.mjs` 从 `package.json` 的 exports、
-> `cordis.patch.yml`（host 行 + `agent-preset` 行的 plugins）/ `dev/preset-runner.patch.yml` 的组合行、
+> `cordis.patch.yml`（host 行 + `agent-preset` 行的 plugins）/ `dev/probes/session/preset-runner.patch.yml` 的组合行、
 > 四个工具源码的 name/ACTIONS、
 > `src/client/index.ts` 的座位注册、
 > 策展技能目录与 `vendor/UPSTREAM.md` 的 pin 抽取而成；
 > freshness 由 `pnpm verify`（`gen-catalog --check`）守——改了源却没重生成即红。
 > 语义与改名代价的 owner 是 [`identity.md`](identity.md)；这里只回答"当前声明了什么"。
 
-## 入口与平面（11 个 plugin 子路径 = host 2 + agent 8 + client 1）
+## 入口与平面（10 个 plugin 子路径 = host 2 + agent 7 + client 1）
 
 | 入口 | 平面 | 组合行 id |
 |---|---|---|
@@ -23,10 +23,9 @@
 | `./tool-knowledge` | AGENT | assistant-knowledge-tool |
 | `./learn` | AGENT | assistant-learn |
 | `./ov-shield` | AGENT | assistant-ov-shield |
-| `./preset-runner` | AGENT（dev 专用） | — |
 | `./client` | CLIENT（浏览器面） | — |
 
-非 plugin 导出（不挂组合行）：`./package.json`
+非 plugin 导出（不挂组合行）：`./preset-runner`、`./package.json`
 
 ## 组合行
 
@@ -41,7 +40,6 @@
 | cordis.patch.yml（agent 面 = preset 行的 plugins） | `assistant-knowledge-tool` | `dsh-smart-assistant/tool-knowledge` | 启用 |
 | cordis.patch.yml（agent 面 = preset 行的 plugins） | `assistant-learn` | `dsh-smart-assistant/learn` | 启用 |
 | cordis.patch.yml（agent 面 = preset 行的 plugins） | `assistant-ov-shield` | `dsh-smart-assistant/ov-shield` | 启用 |
-| dev/preset-runner.patch.yml（dev 专用） | `assistant-preset-runner` | `dsh-smart-assistant/preset-runner` | 启用 |
 
 ## 工具与动词（wire 名是身份，动词集互不重叠）
 

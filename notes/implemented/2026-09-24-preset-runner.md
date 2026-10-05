@@ -25,7 +25,7 @@ agent、roster 只在"创建会话的一方"被消费——此前唯一载体是
 1. **`src/preset-runner/index.ts`**：vendor headless runner 的精简翻版 + `presets.mount` 进
    setup + 会话头记录 `agentPreset`（与 web 会话同形）。删推理流（自动化不需要）；
    `loader`/`appExit` 经 `ctx.get` 的字符串重载（返回 any）取用，省掉两个类型依赖。
-2. **`dev/preset-runner.patch.yml`**：禁用 `headless-runner` 行 + 新 id `preset-runner` 插入；
+2. **`dev/probes/session/preset-runner.patch.yml`**：禁用 `headless-runner` 行 + 新 id `preset-runner` 插入；
    task 仍经 `!!js ctx.headlessStartup.task`（loader 侧求值，与原行同源）。
 3. **验证语义不变**：不带 patch 的 one-shot 仍是裸 agent 冒烟（AGENTS.md 命令表）；带 patch
    才是 preset 驱动。产品面零影响——这是 dev 验证基础设施，不是产品行为。

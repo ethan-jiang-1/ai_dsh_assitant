@@ -10,8 +10,8 @@
  * `agentPreset` header like a browser session does. It exists so live verification can
  * drive real preset conversations without a human at the browser.
  *
- * Mount it by replacing the `headless-runner` row (dev/preset-runner.patch.yml):
- *   pnpm dsh --profile dev-task --patch dev/preset-runner.patch.yml "<task>"
+ * Mount it by replacing the `headless-runner` row (dev/probes/session/preset-runner.patch.yml):
+ *   pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner.patch.yml "<task>"
  *
  * @module dsh-smart-assistant/preset-runner
  */

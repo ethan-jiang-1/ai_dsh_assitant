@@ -80,7 +80,7 @@ export function runPreset(prompt) {
   const startedAt = started
   let launchFailure = ''
   try {
-    execFileSync('node', ['scripts/dsh.mjs', '--profile', 'dev-task', '--patch', 'dev/preset-runner.patch.yml', prompt], {
+    execFileSync('node', ['scripts/dsh.mjs', '--profile', 'dev-task', '--patch', 'dev/probes/session/preset-runner.patch.yml', prompt], {
       cwd: repoRoot,
       stdio: ['ignore', 'pipe', 'pipe'],
       timeout: 15 * 60 * 1000,

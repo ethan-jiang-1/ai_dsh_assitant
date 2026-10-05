@@ -65,7 +65,7 @@
 | 单次拍摄+比对 | ~15s | 比全量单测还便宜 |
 | 假红率 | 90s 间隔两拍零差异（隔离 home） | 忽略清单当前足够 |
 | 残留风险 | "改 src→build→服务真红"未演练（build 动共享 `lib/` 与并行会话冲突） | 纯核红 + 期望污染红已夹住比对器；实现侧红留第一次真实回归自然验证 |
-| 第二场景候选 | 提示词组装面录制回放；`dev/preset-runner-replay.patch.yml` 已给 keyless 回放半套基建 | 打磨移回提示词/摘要面时启动 |
+| 第二场景候选 | 提示词组装面录制回放；`dev/probes/session/preset-runner-replay.patch.yml` 已给 keyless 回放半套基建 | 打磨移回提示词/摘要面时启动 |
 
 ## 取代检查
 

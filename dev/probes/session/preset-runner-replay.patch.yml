@@ -3,9 +3,9 @@
 # 让没有 DEEPSEEK_API_KEY 的机器也能产出**真实会话日志**（组装后的 system/tools 进日志）。
 #
 # 用法（repo 根）：
-#   pnpm dsh --profile dev-task --patch dev/preset-runner-replay.patch.yml "<probe task>"
+#   pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner-replay.patch.yml "<probe task>"
 #
-# 回放脚本 = dev/llm-replay-fixture.json（整脚本 override 形状，裸 ReplayEntry[]）——
+# 回放脚本 = dev/fixtures/llm-replay-fixture.json（整脚本 override 形状，裸 ReplayEntry[]）——
 # 模型回复是固定的"probe turn complete"；**证据不在回复里，在日志的请求侧**：
 # system/message 段与 request/header 的 tools 数组才是被测对象。
 #
@@ -47,7 +47,7 @@
       name: '@deepseek-ai/dsh-llm-replay'
       config:
         file: !!js process.env.REPLAY_PRIMARY || process.cwd() + '/dev/.llm-replay-no-derive.jsonl'
-        overrideFile: !!js process.env.REPLAY_SCRIPT || process.cwd() + '/dev/llm-replay-fixture.json'
+        overrideFile: !!js process.env.REPLAY_SCRIPT || process.cwd() + '/dev/fixtures/llm-replay-fixture.json'
         providers:
           - id: deepseek-official
             name: DeepSeek (replay)

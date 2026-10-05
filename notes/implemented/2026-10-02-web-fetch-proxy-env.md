@@ -37,7 +37,7 @@
 1. **before**：本 harness `web_fetch` 取 `https://www.cnblogs.com/sylvesterzhang/articles/23002451`
    → 同款 `non-public IP` 报错（上机实证）。
 2. **代理连通**：`curl -x http://127.0.0.1:7897 <同 URL>` → HTTP 200 / 24,837 bytes（正文到手）。
-3. **after**：`pnpm dsh --profile dev-task --patch dev/preset-runner.patch.yml "<取数任务>"`
+3. **after**：`pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner.patch.yml "<取数任务>"`
    → 会话经 `web_fetch` 真拿到正文（作者/日期/内容梗概逐字报出，会话日志 `tool/call`+`tool/result`
    配对在案）；同一会话正常完成 ⇒ **LLM API 经代理无回归**（loopback 内建豁免，本地 Web UI 不受影响）。
 4. **条件注入四态实测**（静态 `.env` 取代后补验）：

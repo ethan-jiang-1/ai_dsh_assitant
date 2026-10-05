@@ -59,7 +59,7 @@ CFO 3、COO 3、VP-Eng 2）。本切片搬 **2 件**进 `packages/dsh-smart-assi
 1. `pnpm gen-catalog`——策展技能清单 9→11（`docs/package-catalog.md` 同 diff 更新，freshness 由 verify 守）。
 2. `pnpm build` ＋ `pnpm typecheck`——绿（本切片无 src 改动，floor）。
 3. `pnpm test`——39 个测试文件 301 个测试全绿（含真组合装载 `preset-composition.spec.ts`）。
-4. **live probe**（model-visible 面的证据）：`pnpm dsh --profile dev-task --patch dev/preset-runner.patch.yml`
+4. **live probe**（model-visible 面的证据）：`pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner.patch.yml`
    真跑一个 preset 会话，按名加载两件技能——均加载成功，模型逐字复述正文首句
    （`An estimate is an argument with numbers.` / `A price is a promise about cost.`）。
 5. `pnpm release-smoke`——绿（发布物内容变化：147 files 打包含新技能目录，干净 home 装载＋组合断言过）。

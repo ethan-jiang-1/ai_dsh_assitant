@@ -13,7 +13,7 @@
    的 patch 形状；`time-context` 行本仓已有，不重复）。**不装 bundle 包、不加 peer**——行按名引用
    现货与 session-query-sqlite/time-context 同先例（peer 只收本包代码 import 的包）。
 2. **headless 例外**：`schedule` 注入的 `sessionController` 是 web-app 层服务（web-app patch :121），
-   headless 组合永远等不到——`dev/profile-patch-headless.yml` 显式 `disabled: true` 该行
+   headless 组合永远等不到——`dev/profiles/profile-patch-headless.yml` 显式 `disabled: true` 该行
    （`- id: schedule / disabled: true`，与 preset-runner patch 禁 headless-runner 同形状），避免每次
    one-shot 挂常驻 pending warning 淹没真实激活失败。Web 组合不受影响。
 3. 养护检查定时触发（原 C1 预留的接入点）与"每周提醒我过经营状况"类主动感，全部走
@@ -33,7 +33,7 @@
 ## 验证（真跑过的命令与判决）
 
 1. `pnpm dsh --profile dev --dump-config`——`schedule`/`ui-schedule` 行在场、无 warn。
-2. `pnpm dsh --profile dev-task --patch dev/preset-runner.patch.yml "<探针任务>"`（headless 冒烟）——
+2. `pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner.patch.yml "<探针任务>"`（headless 冒烟）——
    schedule 行 disabled 后**无激活警告**；模型自述工具表无 schedule 工具（headless 正确形状）。
 3. **Web 端到端**（隔离 home 对照实验 + loop-probe 真会话，四路交叉）：
    - stock 对照（/tmp 一次性 home，web profile + `dsh plugin add` schedule-bundle，standard preset）：

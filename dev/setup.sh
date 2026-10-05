@@ -73,7 +73,7 @@ if (clean.length !== bundles.length) {
 ' "$profile_dir/package.json"
 
 # headless 模板 profile（one-shot）：base + headless，没有 web-app —— roster 行由
-# dev/profile-patch-headless.yml 用 insert 语义补进来（web 模板的行在它里面不存在）。
+# dev/profiles/profile-patch-headless.yml 用 insert 语义补进来（web 模板的行在它里面不存在）。
 task_profile="${ASSISTANT_DEV_TASK_PROFILE:-dev-task}"
 task_dir="$DSH_HOME/profiles/$task_profile"
 if [ ! -d "$task_dir" ]; then
@@ -85,8 +85,8 @@ if [ ! -d "$task_dir" ]; then
   fi
 fi
 
-for pair in "$profile:$profile_dir:$repo_root/dev/profile-patch.yml" \
-            "$task_profile:$task_dir:$repo_root/dev/profile-patch-headless.yml"; do
+for pair in "$profile:$profile_dir:$repo_root/dev/profiles/profile-patch.yml" \
+            "$task_profile:$task_dir:$repo_root/dev/profiles/profile-patch-headless.yml"; do
   name="${pair%%:*}"
   rest="${pair#*:}"
   dir="${rest%%:*}"
@@ -102,7 +102,7 @@ done
 echo
 echo "done. Next:"
 echo "  pnpm dsh --profile $task_profile \"one task\"   # host-only one-shot: plugin load/scaffold/service smoke (headless)"
-echo "  pnpm dsh --profile $task_profile --patch dev/preset-runner.patch.yml \"one task\"   # one-shot through the assistant preset"
+echo "  pnpm dsh --profile $task_profile --patch dev/probes/session/preset-runner.patch.yml \"one task\"   # one-shot through the assistant preset"
 echo "  pnpm dsh --profile $profile                    # Web UI (the profile carries the web-app bundle)"
 echo
 echo "  ⚠ not 'pnpm dsh web': the 'web' alias hardcodes profile 'web' and would create a"

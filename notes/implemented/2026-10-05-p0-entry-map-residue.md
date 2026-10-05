@@ -16,7 +16,7 @@ P0「真实入口与地图」的残尾两片收口（大半已随 `f25d686` 交�
 - 路由表五条验证命令逐条实跑：记忆+知识+摘要 specs（record/recall/knowledge-write/digest/digest-prewarm）35 断言、桌面 client specs（client-panels/client-commands）41 断言、`pnpm test:composition`（先 build）6 断言，全绿。
 - `pnpm verify` 34 项全绿（×3：处置片后、链路片后、red 还原后）。
 - **prove-it-red**：向 architecture.md 临时塞一条 `packages/` 深处不存在的反引号假路径，backtick 路径门禁点名抓红；还原后终态 diff 与绿跑逐字节一致（本片为 test-first 证据环落章后第一片，红侧不是纸面推演）。
-- 链路锚点全部本 session 一手回读：`src/client/index.ts` 发送路径（sendPrompt/remote.session.prompt/mode:queue/[桌面] 标记/pending 轮询）、批准路径（approveKnowledgePage 直调+回退）、挂载处理（本 pin 确定性拒绝=设计状态）、host `promotePage`、`scripts/dsh.mjs` 全文、`dev/setup.sh`、`dev/profile-patch.yml`、vendor web-app bundle 行 id。
+- 链路锚点全部本 session 一手回读：`src/client/index.ts` 发送路径（sendPrompt/remote.session.prompt/mode:queue/[桌面] 标记/pending 轮询）、批准路径（approveKnowledgePage 直调+回退）、挂载处理（本 pin 确定性拒绝=设计状态）、host `promotePage`、`scripts/dsh.mjs` 全文、`dev/setup.sh`、`dev/profiles/profile-patch.yml`、vendor web-app bundle 行 id。
 
 ## 输掉的方案
 

@@ -50,7 +50,7 @@
 | `note-archive-judgment` | 判断一篇 implemented note 该留还是冻结进 archived | 本轮现场重推：低未来决策价值判据、`已归档：` 行、入站链接修复、冻结语义 |
 | `pre-push-evidence` | 收尾时按改动面选最小证据 | 硬规则 3 每轮都要判断；本轮 DSH 三次提交全是手工判断（typecheck/test/verify/夹具/build 的取舍） |
 **同 diff 必须做**：根 AGENTS.md 写消歧句（.agents/skills/（新建）=开发用、`presets/assistant/skills/`=模型用），
-否则正撞 `03:17` 警告的同名陷阱。装载面（dev profile 是否扫 .agents/skills/）先查 `dev/profile-patch.yml`
+否则正撞 `03:17` 警告的同名陷阱。装载面（dev profile 是否扫 .agents/skills/）先查 `dev/profiles/profile-patch.yml`
 与 `dsh-skill-filesystem` 配置再定，不猜。
 
 ### S4 · 负例控制补课 ✅（优先级 3）
@@ -77,7 +77,7 @@
 - **S1 ✅**（`92aeb0f`）：5 个子树 AGENTS.md（packages/docs/scripts/dev/snapshots）+ 根布局表 17→9 行 + 稳定性门禁扩到全部 6 个入口文件。
 - **S2 ✅**：`scripts/gen-catalog.mjs` → `docs/package-catalog.md`（入口×平面、组合行、工具×动词、策展技能、pin 与依赖姿态），
   freshness 进 `pnpm verify`（`gen-catalog --check`，与 `gen-paths` 同形），6 个纯核夹具。
-  **建成即抓三处真问题**：生成器漏了 `dev/preset-runner.patch.yml`（把 preset-runner 误报为非 plugin 导出）、
+  **建成即抓三处真问题**：生成器漏了 `dev/probes/session/preset-runner.patch.yml`（把 preset-runner 误报为非 plugin 导出）、
   未识别 client 平面、包 AGENTS.md 的"8 个子路径"与实际 9 个不符——手维护清单的口径分歧被生成物当场对账。
   包 README 与包 AGENTS.md 的入口表按 S2 设计改为**指向生成物**（永久消除该漂移面）。
 - **S5 ✅**：解析门面术语改名（防与 DSH `Context façade` 撞名）、房间/桌面/抽屉映射段、六层反馈表、参与阶梯 L0–L3。

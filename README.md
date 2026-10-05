@@ -82,7 +82,7 @@ dsh plugin --profile <p> add file:./packages/dsh-smart-assistant   # <p>＝你�
 |---|---|---|
 | 配置/组合 | `pnpm dsh --profile dev --dump-config` | profile、bundle patch、preset roster 的行是否进入组合；不证明运行时注册或浏览器渲染 |
 | host 冒烟 | `pnpm dsh --profile dev-task "one task"` | 插件装载、host 服务行、working folder scaffold；不进入 assistant preset |
-| preset one-shot | `pnpm dsh --profile dev-task --patch dev/preset-runner.patch.yml "one task"` | headless 会话挂载 assistant preset；适合自动化驱动 |
+| preset one-shot | `pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner.patch.yml "one task"` | headless 会话挂载 assistant preset；适合自动化驱动 |
 | Web 交互 | `pnpm dsh --profile dev --port 0 --no-open` | Web preset 行为；交给人前先跑 `pnpm preflight '<URL>'` |
 | 测试/构建 | `pnpm typecheck && pnpm test` | 类型、纯核和服务级合同；组合与发行物另需 `pnpm build` / `pnpm release-smoke` |
 
@@ -94,7 +94,7 @@ dsh plugin --profile <p> add file:./packages/dsh-smart-assistant   # <p>＝你�
 pack → 干净 home → 装 → 组合断言。`file:` 这条路径本身实测过：装进干净 home 3.1s，`--dump-config` 里能看到
 `preset-assistant` 行与四个工具行。
 
-装完只需把该 profile 的 `agent-preset-registry` 行的 `default` 设成 `assistant`（模板：`dev/profile-patch.yml`）。
+装完只需把该 profile 的 `agent-preset-registry` 行的 `default` 设成 `assistant`（模板：`dev/profiles/profile-patch.yml`）。
 **0.1.7 起 registry 既不扫目录、也不接受 preset 路径**：`assistant` 的定义随包发（`package.json` 的
 `dsh.bundle.patch` → `cordis.patch.yml` 里的 `preset-assistant` 行），装包即进组合 —— 不必再指 `presets/`
 目录（那条在 0.1.5 成立，0.1.7 起是错的；依据 `notes/implemented/2026-09-25-dsh-0-1-7-migration.md`）。
@@ -113,7 +113,7 @@ pack → 干净 home → 装 → 组合断言。`file:` 这条路径本身实测
 延时秒）即可建首个养护或提醒任务。**headless 组合例外**：`schedule` 依赖 web-app 层的
 `sessionController`，纯 headless 部署里挂上激活不了（隔离 home 实测判据：`pending (waiting for
 service: sessionController)`）——headless profile 的 patch 应显式 `disabled: true` 该行（本仓 dev-task
-profile 的先例：`dev/profile-patch-headless.yml`），避免常驻 pending warning 淹没真实激活失败。
+profile 的先例：`dev/profiles/profile-patch-headless.yml`），避免常驻 pending warning 淹没真实激活失败。
 
 ## 开发
 

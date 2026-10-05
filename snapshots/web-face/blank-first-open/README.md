@@ -52,6 +52,6 @@ PNG 只作人工审阅副页，不进 git（保持 diff 全文可读）。
 | 单次拍摄+比对 | ~15s |
 | 假红率 | 隔离 home 下间隔 90s 两拍，除忽略清单外**零差异**；共享 dev home 不可用（时间戳漂移） |
 | 胶水成本 | core+CLI+spec+本 README ≈ 一个轻切片 |
-| 第二场景候选 | 提示词组装面（headless 会话回放）——`dev/preset-runner-replay.patch.yml` 已给 keyless 回放半套基建 |
+| 第二场景候选 | 提示词组装面（headless 会话回放）——`dev/probes/session/preset-runner-replay.patch.yml` 已给 keyless 回放半套基建 |
 
 三岔判定待更多打磨轮次的数据（本卡 §二"失败出口"）；当前形态继续。

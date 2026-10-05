@@ -9,7 +9,7 @@
 1. **A1 行挂载**：`cordis.patch.yml` 的 preset 行插入 `command-goal`+`tool-goal`+`planning`（isolate 组，
    `planMode: true`，section 文案逐字抄 shipped `standard` preset）。修复"AGENTS.md 硬规则 5 宣称依赖
    plan 呈批、组合里实际没挂"的自相矛盾（adoption 卡的问题 1）。
-2. **live 探针环**：`dev/preset-runner-replay.patch.yml` + `dev/llm-replay-fixture.json` —— 用现货
+2. **live 探针环**：`dev/probes/session/preset-runner-replay.patch.yml` + `dev/fixtures/llm-replay-fixture.json` —— 用现货
    `@deepseek-ai/dsh-llm-replay`（整脚本 override 习语）替掉真实 adapter，**无 API key 也能产出真实
    会话日志**；证据读请求侧（`system/message` 段 + `request/header.tools` 数组），不读回放文本。
    实测：真实 turn 的请求带 30 个工具，`create_goal/get_goal/update_goal/exit_plan_mode` 全部在场，

@@ -129,7 +129,7 @@
 - [~] **P1-C 开发环境保真：未落地（如实记录，配置已回退）**——平台机制查清并在**一次**真机上端到端
   见过（注册表出现 `defaultWorkspaceId` + 目录建出 + UI chip 显示默认工作区），但**无法按需复现**：
   清空注册表后重跑，客户端停在"选择工作区"、注册表保持空，console 无错、host 无警告；字面量路径与
-  `!!js` 路径表现相同（所以不是 `!!js` 求值问题）。因此**不把未验证的 `dev/profile-patch.yml`
+  `!!js` 路径表现相同（所以不是 `!!js` 求值问题）。因此**不把未验证的 `dev/profiles/profile-patch.yml`
   documentsDirectory 改动写进仓**（回退）；P1-C 的触发条件与复现配方见
   [走查报告 §3/§5](../archived/research/2026-09-26-first-mile-walkthrough.md)。**下个会话接手时从这里开始**：
   先确认"客户端是否真的调用了 `workspace/initializeDefault`"（Network 域抓该 RPC），再谈 dev 配置

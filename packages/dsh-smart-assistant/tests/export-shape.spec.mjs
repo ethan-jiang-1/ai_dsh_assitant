@@ -104,7 +104,7 @@ describe('every preset sub-row is shape-consistent (service default OR clean fun
 describe('every actual dev preset-runner patch rides the same guard', () => {
   for (const [file, expectedId] of Object.entries(runnerPatches)) {
     it(file, async () => {
-      const patches = yaml.load(readFileSync(join(packageRoot, '..', '..', 'dev', file), 'utf8'), { schema: entryListSchema })
+      const patches = yaml.load(readFileSync(join(packageRoot, '..', '..', 'dev', 'probes', 'session', file), 'utf8'), { schema: entryListSchema })
       const rows = insertedRows(patches).filter(row => row.name === 'dsh-smart-assistant/preset-runner')
       expect(rows, `${file} must contain exactly one preset runner`).toHaveLength(1)
       const row = rows[0]

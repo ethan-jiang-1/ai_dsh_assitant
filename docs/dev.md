@@ -82,8 +82,8 @@ pnpm --dir vendor/dsh run build:web       # 只有跑 Web UI 才需要（前端 
 ```sh
 bash dev/setup.sh          # 幂等：建 dev（web）+ dev-task（headless）两个 profile + link 装插件
 pnpm dsh --profile dev-task "one task"   # one-shot 任务（headless）＝ host 面冒烟；不进 preset（§五）
-pnpm dsh --profile dev-task --patch dev/preset-runner.patch.yml "<task>"   # preset 挂载的 one-shot（验证自动化；行替换形状见该 patch 头注）
-pnpm dsh --profile dev-task --patch dev/preset-runner-replay.patch.yml "<task>"   # 同上但 keyless：现货 `llm-replay` 整脚本回放替掉真实 DeepSeek adapter，无 API key 也能产出真实会话日志（请求侧 system/tools 进日志＝live 探针的被测面）；形状与坑见该 patch 头注
+pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner.patch.yml "<task>"   # preset 挂载的 one-shot（验证自动化；行替换形状见该 patch 头注）
+pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner-replay.patch.yml "<task>"   # 同上但 keyless：现货 `llm-replay` 整脚本回放替掉真实 DeepSeek adapter，无 API key 也能产出真实会话日志（请求侧 system/tools 进日志＝live 探针的被测面）；形状与坑见该 patch 头注
 pnpm dsh --profile dev --port 0 --no-open   # Web UI：**不自动开浏览器**
 pnpm preflight '<server 打印的 URL>'    # 开屏前检查；绿了才把 URL 交给浏览器
 pnpm shots '<server 打印的 URL>' --dom --size 1600x1000 --name <名字>   # 渲染证据：PNG + DOM 证据（默认落 /tmp/dsh-webui-shots）
@@ -131,13 +131,13 @@ registering"——而第一个打开页面的人就成了 crash-test dummy。`pn
 
 **两个 profile 是刻意的**：web-app 与 headless 两个 bundle 都 `insert` 了 `id: code-runtime`，
 混装进同一个 profile 必撞 `duplicate loader entry id`（DSH 已把该组合列为退役元组）。
-- `dev` = `[dsh-base, dsh-web-app, dsh-smart-assistant]`，registry 默认值用 dev/profile-patch.yml（替换语义）替换 `agent-preset-registry` 行的 config。
-- `dev-task` = `[dsh-base, dsh-headless, dsh-smart-assistant]`，registry 用 dev/profile-patch-headless.yml
+- `dev` = `[dsh-base, dsh-web-app, dsh-smart-assistant]`，registry 默认值用 dev/profiles/profile-patch.yml（替换语义）替换 `agent-preset-registry` 行的 config。
+- `dev-task` = `[dsh-base, dsh-headless, dsh-smart-assistant]`，registry 用 dev/profiles/profile-patch-headless.yml
   （insert 语义 —— headless 模板里没有 `agent-preset-registry` 行可替换）。两个 patch 文件不可互换。
 
 **一个 profile 装出来是什么**：`dev`（web 模板）与 `dev-task`（headless 模板）两个 profile 住在
 `$DSH_HOME/profiles/`；两者都装本插件（`dsh plugin add` 指向 repo 的裸路径 = link 语义），
-并分别载入 `dev/profile-patch.yml`（整行替换）与 `dev/profile-patch-headless.yml`（insert），
+并分别载入 `dev/profiles/profile-patch.yml`（整行替换）与 `dev/profiles/profile-patch-headless.yml`（insert），
 把 roster 的默认 preset 指到本仓的 `assistant`。
 
 **跳过 setup.sh 直接起服务（fresh clone 的第一次就会撞）**：
@@ -205,9 +205,9 @@ DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得
 |---|---|---|---|
 | 看配置组合 | `pnpm dsh --profile dev --dump-config` | bundle/profile/临时 patch 的行、id、disabled、realm | 运行时注册、DOM 或模型请求 |
 | 验 host 面 | `pnpm dsh --profile dev-task "one task"` | 插件装载、host 服务、working folder scaffold | preset 工具与提示词 |
-| 验 assistant preset | `pnpm dsh --profile dev-task --patch dev/preset-runner.patch.yml "one task"` | one-shot 挂载 preset 后的会话驱动 | 浏览器渲染 |
+| 验 assistant preset | `pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner.patch.yml "one task"` | one-shot 挂载 preset 后的会话驱动 | 浏览器渲染 |
 | 验 Web 面 | `pnpm dsh --profile dev --port 0 --no-open` + `pnpm preflight '<URL>'` | Web boot、Remote、desk readiness | DOM 期望；再跑 `pnpm web-expected` |
-| 验请求侧组装 | `pnpm dsh --profile dev-task --patch dev/preset-runner-replay.patch.yml "probe"` | keyless replay 的 system/tools/session log | 固定回复代表模型自主选择 |
+| 验请求侧组装 | `pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner-replay.patch.yml "probe"` | keyless replay 的 system/tools/session log | 固定回复代表模型自主选择 |
 
 当前 assistant preset 的定义来源是安装包的 `dsh.bundle.patch`，实际文件为 `packages/dsh-smart-assistant/cordis.patch.yml` 中的 `preset-assistant` 行；headless profile 本身没有 roster，必须使用 `preset-runner.patch.yml` 才会挂载 assistant preset。
 
@@ -217,8 +217,8 @@ DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得
 bundle 层（两个 profile 各自的链，刻意的——§四，web-app 与 headless 不可混进同一 profile）：
   dev      = @deepseek-ai/dsh-base → dsh-web-app  → dsh-smart-assistant
   dev-task = @deepseek-ai/dsh-base → dsh-headless → dsh-smart-assistant
-  → profiles/<name>/cordis.patch.yml     # setup.sh 拷贝：dev 用 dev/profile-patch.yml（替换语义），
-                                          #   dev-task 用 dev/profile-patch-headless.yml（insert 语义，两文件不可互换）
+  → profiles/<name>/cordis.patch.yml     # setup.sh 拷贝：dev 用 dev/profiles/profile-patch.yml（替换语义），
+                                          #   dev-task 用 dev/profiles/profile-patch-headless.yml（insert 语义，两文件不可互换）
   → $DSH_HOME/cordis.patch.yml           # home 级（作用于该 home 全部 profile）—— dev 不用它
   → --patch                              # 临时覆盖
 ```

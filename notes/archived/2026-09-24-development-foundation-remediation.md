@@ -79,7 +79,7 @@ class did not declare it"，同款 shadow-receiver 栈）；恢复源码重建�
    `vendor/dsh/packages/bundle/headless/src/startup.ts` 持有该服务与位置参数解析），位置参数与 one-shot 在该组合里不可能执行；
    且 shipped one-shot 是裸 agent，即使跑也不验 preset。修复：smoke profile 改从 headless 模板建、
    roster 用 insert 语义指向安装产物（镜像 dev-task）、live turn 走 preset-runner 挂载（--patch，
-   与 dev/preset-runner.patch.yml 同款形状，live turn 才真正 join assistant preset）；keyless 增加
+   与 dev/probes/session/preset-runner.patch.yml 同款形状，live turn 才真正 join assistant preset）；keyless 增加
    "patched dump 含 preset-runner"断言。无 key 路径实跑通过；有 key 的真 turn 本轮无凭据未 live
    验证（见剩余限制）。
 3. **research README**：属实——原文把 repo 侧调研说成家的 research 房间的"repo 侧文档面"，暗示

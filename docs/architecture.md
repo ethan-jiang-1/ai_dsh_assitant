@@ -111,7 +111,7 @@ seam 的成色读数是**第二个真实 Provider 出现而 Consumer 一行不�
 | `src/tool-support/presentation.ts` | 四个工具共享的 presenter 管道：`presentationMeta` 投影摘要 → `presentResult` 从 `result.meta` 读回（完成卡读不到规范值，只能读持久化载荷） | dsh-tools 类型 |
 | `src/web-branding.ts` | Web 壳品牌注入行：页标题 + 图标（纯函数；经 `webserver/index-inject` 事件进浏览器，皮肤面） | dsh-host-webserver（仅类型） |
 | `src/client/index.ts` | 浏览器面：座位与命令注册（精确清单 = 生成物 [`package-catalog.md`](package-catalog.md)「客户端座位面」节；皮肤面，不进模型上下文） | react + ui-renderer/ui-sidebar（仅类型） |
-| `src/preset-runner/index.ts` | **preset 挂载的 one-shot 驱动**（dev 验证自动化：`agentPresets.resolve`→`mount` 进 agent setup，会话头记录 `agentPreset`；经 `dev/preset-runner.patch.yml` 替换 headless-runner 行启用） | dsh-agent / dsh-agent-preset-registry / dsh-llm / dsh-session / dsh-brand |
+| `src/preset-runner/index.ts` | **preset 挂载的 one-shot 驱动**（dev 验证自动化：`agentPresets.resolve`→`mount` 进 agent setup，会话头记录 `agentPreset`；经 `dev/probes/session/preset-runner.patch.yml` 替换 headless-runner 行启用） | dsh-agent / dsh-agent-preset-registry / dsh-llm / dsh-session / dsh-brand |
 | `src/tool-memory/`、`src/tool-research/`、`src/tool-knowledge/`、`src/memory-digest/`、`src/learn/` | agent 面入口：薄适配器（校验跨字段规则 → 调服务 → 返回规范值 + presenter） | cordis/tools |
 
 **依赖方向单向向下**，纯核（home/memory/research/skills）**不 import DSH 运行时** ——
@@ -177,7 +177,7 @@ pnpm dsh …（package.json scripts → scripts/dsh.mjs，唯一启动器：
           └ boot graph 按四层装载组合（bundle → profile patch → home patch → --patch，
             细节 owner = docs/dev.md §七）：本包经 package.json 的 dsh.bundle.patch
             → cordis.patch.yml 进入 bundle 层；profile 层是 setup.sh 拷贝的
-            dev/profile-patch.yml（dev）/ dev/profile-patch-headless.yml（dev-task）
+            dev/profiles/profile-patch.yml（dev）/ dev/profiles/profile-patch-headless.yml（dev-task）
           └ 行实例化：host 服务行与 preset 行读 built lib/（pnpm build 产物——
             改 src 不 build = 行 never started 或旧行为）；client 面经
             package.json 的 dsh.client → ./client 出口被 client-modules 自动发现
@@ -212,7 +212,7 @@ pnpm dsh …（package.json scripts → scripts/dsh.mjs，唯一启动器：
 | 主要失败模式 | 症状 | 最小证据 |
 |---|---|---|
 | 行没实例化（lib 缺/旧） | never started | 同启动链 lib 行 |
-| 段落缺席或过期 | 提示词缺身份/桌面 | `pnpm dsh --profile dev-task --patch dev/preset-runner-replay.patch.yml "probe"`（keyless 回放，看 system/tools/session log 的组装） |
+| 段落缺席或过期 | 提示词缺身份/桌面 | `pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner-replay.patch.yml "probe"`（keyless 回放，看 system/tools/session log 的组装） |
 | 模型可见但没进日志 | resume/fork 后消失 | §四 纪律对照会话日志 |
 | 模型自主行为回归 | 行为地板跌 | `pnpm eval`（判决读会话日志） |
 

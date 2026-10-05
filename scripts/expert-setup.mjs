@@ -109,4 +109,4 @@ for (const file of await collect(seedDir)) {
 console.log(`\nexpert-setup: ${imported} seed page(s) as drafts into ${join(dataDir, 'knowledge')}`)
 console.log('  next (the principal): review the drafts, then flip status: draft → stable by hand —')
 console.log('  that edit IS the approval; drafts stay out of search and the digest until then.')
-console.log('  deployment shape: dev/profile-patch-expert.yml (read-only default) + registry default: assistant')
+console.log('  deployment shape: dev/profiles/profile-patch-expert.yml (read-only default) + registry default: assistant')

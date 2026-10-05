@@ -13,12 +13,12 @@
  * positional-task parsing both live in the headless bundle, so a base/web-only profile could not
  * run a one-shot turn at all. The preset roster is then INSERTED (the headless template has no
  * roster row to replace) pointing at the *installed* `presets/` directory, mirroring
- * `dev/profile-patch-headless.yml`.
+ * `dev/profiles/profile-patch-headless.yml`.
  *
  * A live model turn is optional: without `DEEPSEEK_API_KEY`, that step self-skips and every
  * composition assertion still runs — including the patched dump proving the preset-mounted
  * runner is in the composition. The turn runs through `dsh-smart-assistant/preset-runner`
- * (the same driver `dev/preset-runner.patch.yml` mounts in dev), so a keyed run joins the
+ * (the same driver `dev/probes/session/preset-runner.patch.yml` mounts in dev), so a keyed run joins the
  * assistant preset instead of the shipped bare-agent one-shot — this is what "the live turn"
  * can honestly claim to verify.
  *
@@ -125,7 +125,7 @@ try {
 
   step('selecting the installed preset as the profile default (the shape a user gets)')
   // insert semantics — the headless template has no registry row to replace
-  // (dev/profile-patch-headless.yml is the same shape in dev). The definition itself arrives with
+  // (dev/profiles/profile-patch-headless.yml is the same shape in dev). The definition itself arrives with
   // the plugin's bundle patch, so nothing here points at a directory.
   writeFileSync(join(home, 'profiles', profile, 'cordis.patch.yml'), `# Written by scripts/release-smoke.mjs
 - insert:
@@ -144,7 +144,7 @@ try {
   else ok('the preset is the profile default')
 
   step('keyless check: the preset-mounted one-shot entry is in the composition')
-  // The runner patch mirrors dev/preset-runner.patch.yml: disable the shipped bare-agent
+  // The runner patch mirrors dev/probes/session/preset-runner.patch.yml: disable the shipped bare-agent
   // runner, insert ours — which joins the preset from the profile's roster.
   const runnerPatch = join(home, 'preset-runner.patch.yml')
   writeFileSync(runnerPatch, `# Written by scripts/release-smoke.mjs

@@ -16,8 +16,8 @@
 
 ## 探针环的增量（本片顺带）
 
-`dev/preset-runner-replay.patch.yml` 的 fixture 路径改为可 env 覆盖（`REPLAY_SCRIPT`/`REPLAY_PRIMARY`）；
-新增 `dev/llm-replay-fixture-session-search.json`（三段：tool-call → 文本 → 标题调用）。标题生成
+`dev/probes/session/preset-runner-replay.patch.yml` 的 fixture 路径改为可 env 覆盖（`REPLAY_SCRIPT`/`REPLAY_PRIMARY`）；
+新增 `dev/fixtures/llm-replay-fixture-session-search.json`（三段：tool-call → 文本 → 标题调用）。标题生成
 （`session-title-first-prompt-llm`）也走 LLM——fixture 少一段会报 `script exhausted`，这是第三次调用
 的真实来源，不是 bug。
 

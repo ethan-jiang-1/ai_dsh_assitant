@@ -61,7 +61,7 @@ const REQUIRED_PATHS = [
   'notes/README.md',
   'dev/env.sh',
   'dev/setup.sh',
-  'dev/profile-patch.yml',
+  'dev/profiles/profile-patch.yml',
   'snapshots/README.md',
   'vendor/UPSTREAM.md',
   '.gitmodules',
@@ -545,7 +545,7 @@ check('commit safety: residue and credentials are ignored', () => {
   ]
   const mustTrack = [
     'dev/env.sh',
-    'dev/profile-patch.yml',
+    'dev/profiles/profile-patch.yml',
     'vendor/UPSTREAM.md',
     'docs/home.md',
     'pnpm-workspace.yaml',

@@ -219,7 +219,7 @@ vendor 侧代码与 pin 指针未被修改（只删过一个孤儿安装残留�
 （脚本第一版被自己的 JSDoc 咬了：注释里写 `vendor/dsh/**/lib/`，其中的 `*/` 把块注释提前闭合，
 后面的反引号全成模板字面量——`node --check` 抓出，改用 `…`。）
 
-**专家权限模型的 live 验证**（`dev/profile-patch-expert.yml` + `dev/expert-probe.patch.yml` 可复跑）：
+**专家权限模型的 live 验证**（`dev/profiles/profile-patch-expert.yml` + `dev/probes/session/expert-probe.patch.yml` 可复跑）：
 基座 bundle 自带 `read-only`/`workspace-write`/`danger-full-access` 三档（行 id `permission`）；
 专家部署形状＝把 `defaultPreset` 改为 `read-only`。探针（真实会话）读数：
 - **写家成功**：`assistant_memory save` 落盘（fact `20260925-…-7555`）——治理工具面不经沙箱，照常工作；
@@ -251,7 +251,7 @@ preset 的同款惯用法——`createRequire(baseUrl).resolve('dsh-smart-assist
 - 新增红夹具 `packages/dsh-smart-assistant/tests/preset-skill-root.spec.ts`：读真实 `cordis.patch.yml`，用 loader 的
   `interpolate`（运行时同一个求值器）在"profile 形状 + node_modules link"的 baseUrl 下求值那一行。
   修复前红：解析结果 `/var/folders/…/assistant-preset-base-…/presets/assistant/skills/`（包外）；修复后绿（= 包内目录）。
-- live：`pnpm dsh --profile dev-task --patch dev/preset-runner.patch.yml "用 skill 工具按名加载 management-breakdown…"`
+- live：`pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner.patch.yml "用 skill 工具按名加载 management-breakdown…"`
   → 模型报加载成功，列出全部 8 件策展技能，base 目录 = `packages/dsh-smart-assistant/presets/assistant/skills/…`
   （会话 `session-12be0619`：日志里 `presets/assistant/skills` 与那 8 个名字都在）。
 - 账本：`dev/harness-home/assistant/skill-usage.json` 出现迁移后**第一次**策展技能加载（`management-breakdown` count 1，

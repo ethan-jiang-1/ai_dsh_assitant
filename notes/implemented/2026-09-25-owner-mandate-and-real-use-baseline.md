@@ -108,7 +108,7 @@
   `docs/dev.md` 记并行会话的两种正当做法（串行 / 各用 worktree）。F3 的机制上一圈已落地。
 - **协作边界改为代码实现**：常量 `COLLABORATION_BOUNDARY` + `composeRunnerTask()` 在
   `src/preset-runner/` 里前置到每个脚本任务；**live 验证**：会话日志首条 user 消息逐字带该边界。
-- **一笔诚实账**：上一圈我把边界写进 `dev/preset-runner.patch.yml` 的 `!!js` 模板字面量，
+- **一笔诚实账**：上一圈我把边界写进 `dev/probes/session/preset-runner.patch.yml` 的 `!!js` 模板字面量，
   只跑了 `verify`/`test` 就宣布落地——**而它让 runner 完全无法启动**（overlay 的 YAML 标签求解器
   拒绝以反引号开头的 plain scalar）。这正是"门禁绿替代意图级证据"的复发。
   两处修正：①改代码实现并在真会话里验证；②新增门禁

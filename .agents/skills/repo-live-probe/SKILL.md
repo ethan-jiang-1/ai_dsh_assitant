@@ -16,7 +16,7 @@ loop that answers "did it actually ride in the request?" without guessing.
    yesterday's behavior.
 2. **Run a preset-mounted one-shot from the repo root**:
    ```sh
-   pnpm dsh --profile dev-task --patch dev/preset-runner.patch.yml "<probe task>"
+   pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner.patch.yml "<probe task>"
    ```
    Root matters: the launcher pins `DSH_HOME` and resolves the profile relative to the cwd; run it
    from a package directory and you get `profile does not exist`.
@@ -55,7 +55,7 @@ loop that answers "did it actually ride in the request?" without guessing.
   `startsWith(blurb)` to test warmth; check for the records/threads/pages the digest should carry.
 - **Probe twice for before/after**: run the same task on the pre-change build (or `git stash`) and
   on the post-change build, and keep both log excerpts next to the claim in the note.
-- **A probe patch must mirror the patch it replaces.** `dev/preset-runner.patch.yml` starts by
+- **A probe patch must mirror the patch it replaces.** `dev/probes/session/preset-runner.patch.yml` starts by
   disabling the shipped `headless-runner` row; a hand-written probe patch that only inserts
   `preset-runner` leaves both mounted and the process dies at exit with
   `the launcher must provide ctx.appExit before the tree mounts` — after printing a correct answer,

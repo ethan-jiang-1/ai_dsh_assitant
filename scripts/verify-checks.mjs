@@ -489,7 +489,7 @@ const YAML_JS_TAG = { tag: 'tag:yaml.org,2002:js', resolve: value => String(valu
 
 /**
  * Every composition file we own must parse as YAML. This exists because a change to
- * `dev/preset-runner.patch.yml` shipped with a template-literal `!!js` scalar that the overlay's
+ * `dev/probes/session/preset-runner.patch.yml` shipped with a template-literal `!!js` scalar that the overlay's
  * tag resolver rejects — `verify` and `test` stayed green while the runner could not boot at all.
  * A patch file is boot-time input; parsing it is the cheapest member of that evidence layer.
  *

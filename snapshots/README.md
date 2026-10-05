@@ -25,6 +25,6 @@ DSH 的行为回归证据面按"录一次、keyless 重放比对"运转（一场
 
 **session 回放的升级触发条件**（够用再升级，别提前造）：提示词组装面出现"只有跑起来才看得出"
 的回归，或同一 model-visible 面第三次靠手工探针钉回归——再按 DSH 的形状建
-（自带 session JSONL + `snapshot.yml`；`dev/preset-runner-replay.patch.yml` 已给 keyless 回放
+（自带 session JSONL + `snapshot.yml`；`dev/probes/session/preset-runner-replay.patch.yml` 已给 keyless 回放
 半套基建）。web 面的同类触发已于 2026-10-03 ui-chat `transcriptView` 事故响过一次，
 web 渲染期望 harness 因此先行落地（试点台账在该场景 README）。

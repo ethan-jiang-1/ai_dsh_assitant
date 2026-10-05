@@ -89,7 +89,7 @@ pnpm preflight '<URL>'  # 开屏前门禁：证明装得上（auth/boot 图/每�
 pnpm shots '<URL>' --dom --size 1600x1000   # 渲染证据：headless Chrome 经 CDP 出 PNG + DOM 证据；`--eval` 拿交互态
 pnpm loop-probe '<URL>' --ask '<问句>'   # 首用闭环探针：首屏断言（中文首开/无黑话/工作区就绪）+ 真发问真等回复，JSON 判决（驱动借自 ai_dsh_loop_advisor；`--ask` 会真建会话，指向一次性 home）
 pnpm dsh --profile dev --dump-config   # boot-free：组合里到底有没有这一行（排查 patch 落空/重复 id 的第一命令）
-pnpm dsh --profile dev-task --patch dev/preset-runner.patch.yml "<task>"   # preset 挂载的 one-shot（验证自动化驱动）
+pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner.patch.yml "<task>"   # preset 挂载的 one-shot（验证自动化驱动）
 pnpm typecheck          # 委派包级：tsc -b（编译期 paths 解析到 vendor/dsh 的 src，API 漂移编译期暴露）+ 测试工程
 pnpm test               # vitest：纯核（home/memory/research/skills/knowledge）+ 服务级合同（真 cordis 构造）
 pnpm verify             # 机械门禁链：生成物 freshness + 自检 + 结构/身份/解析入口/自包含/技能语法/断链/文档命令互证/notes 形状等（清单以 scripts/verify.mjs 为准）

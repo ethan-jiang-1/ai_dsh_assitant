@@ -162,7 +162,7 @@ export function renderCatalog(input) {
   lines.push('# 包形状目录（生成物）')
   lines.push('')
   lines.push('> **生成物，不手改**：本文件由 `scripts/gen-catalog.mjs` 从 `package.json` 的 exports、')
-  lines.push('> `cordis.patch.yml`（host 行 + `agent-preset` 行的 plugins）/ `dev/preset-runner.patch.yml` 的组合行、')
+  lines.push('> `cordis.patch.yml`（host 行 + `agent-preset` 行的 plugins）/ `dev/probes/session/preset-runner.patch.yml` 的组合行、')
   lines.push('> 四个工具源码的 name/ACTIONS、')
   lines.push('> `src/client/index.ts` 的座位注册、')
   lines.push('> 策展技能目录与 `vendor/UPSTREAM.md` 的 pin 抽取而成；')
@@ -190,7 +190,7 @@ export function renderCatalog(input) {
   for (const [file, rows] of [
     ['cordis.patch.yml（host 面）', [...input.hostRows, ...(input.hostSubRows ?? [])]],
     ['cordis.patch.yml（agent 面 = preset 行的 plugins）', input.agentRows],
-    ['dev/preset-runner.patch.yml（dev 专用）', input.devRows],
+    ['dev/probes/session/preset-runner.patch.yml（dev 专用）', input.devRows],
   ]) {
     for (const row of rows) {
       lines.push(`| ${file} | \`${row.id}\` | \`${row.name}\` | ${row.disabled === undefined ? '启用' : `条件：${row.disabled}`} |`)
