@@ -106,3 +106,35 @@
 - 首切建议：**B 先行**（最小、纯 client 面、web-expected 可验、立刻让 S2 模拟场景可走查）→ A' 随后
   （模型可见面，影响更大但门禁更重）；C 留给督办原型毕业。A'/B 的先后也可在切片 B 落地后按模拟走查
   的实际缺口再定。
+
+## 5. A'（Day-0 intake「它先问」）方案草案——毕业提案的直接输入
+
+按仓库自身模式落位（home.md §三「过程性知识不做常驻段落」——配方进技能抽屉，常驻面只留条件指针）：
+
+1. **manual（v10→v11）加一节一行**（`renderHomeManual`，英文，随每次请求注入）：「The first conversation —
+   when the desk file does not exist and there are no memories yet, do not wait to be asked:
+   open by asking the principal, one question at a time, following the `first-conversation` skill.
+   If they would rather drive, follow their lead.」版本号同步 `HOME_MANUAL_VERSION` 与手册漂移测试。
+2. **新策展技能 `first-conversation`**（`presets/assistant/skills/first-conversation/SKILL.md`，英文，
+   格式仿 desk-refresh：name/description/whenToUse frontmatter + 正文配方）：
+   - 触发条件：无 desk 文件 + memory 房间为空（fresh working folder）；
+   - 开场白一句（说明目的、可跳过、不问机密——访谈框架原话）；
+   - 三问序列（每次只问一个，答完再问下一个；不便/记不清就跳过）：
+     ① 最近一次需要你亲自拍板、后来还要跟进的事是什么？（不要求成功案例；以前公开/可脱敏的一件也行）
+     ② 当时什么变化让你必须做决定？最迟什么时候要定、不做有什么后果？
+     ③ 你当时确实知道什么、还有什么不确定？有没有哪份资料影响最大？
+   - 每答即落（不等十问问完）：事实/偏好 → `assistant_memory save`（带原话与日期）；未决 → research open thread；
+     缺口 → desk `gaps`；第三问后交付**第一份处理单**：`decisions[]`（question/context/options，
+     options 含成本与 irreversibility 标注）+ `gaps[]` + `actions[]`（含一条回访约定 due）；
+   - 停止线：对方连续两次不接话 → 退回被动模式，只留已落记录；不十问连发、不问卷式轰炸；
+   - 边界：不替本人拍板（options 只是准备好的选择）；公司卡（客单价/规模等）只在自然流出时记，
+     不单独追问财务数字。
+3. **验收**（模型可见面全门禁）：
+   - eval 新任务 `first-open-intake`（dev/eval/tasks.mjs）：fresh home + 一句开场（"你好"）→ 断言
+     开场是问句且只问一个问题、无 desk 文件时首答后 desk 出现首写（decisions/gaps/actions 形状）、
+     回复不含编造数字；
+   - `pnpm build` + `test:composition`（manual 段落与技能目录装载）；技能语法门禁（verify）+
+     gen-catalog 重生成（技能清单变化）；identity.md 无需新增（技能名进 catalog 生成物）；
+   - 模拟走查判据（本档 §3）在 A' 落地后用真实 preset 会话重跑 S1/S2。
+4. **诚实边界**：intake 改变的是首会话行为，不承诺「15 分钟建公司卡」的完成度（公司卡三要素只在自然流出时
+   记）；回访约定是一条 due action，不等于主动性机制（那是切片 C）。
