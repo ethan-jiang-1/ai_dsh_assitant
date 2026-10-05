@@ -18,7 +18,7 @@
 | P3 测试资产分层 | 按底稿逐 spec 迁入包测试树的 domain、host、agent、composition、client、tooling 职责子目录、support 单独；迁前后 Vitest 发现集合一一对应 | **已交付**：六片迁移 + 六层命令实跑 + 分层合同落 docs/testing.md，见 [P3 note](../implemented/2026-10-05-p3-test-asset-layering.md) |
 
 **P3 分层套路（设计要点，2026-10-05 与用户对齐；落地时正文进 `docs/testing.md`）**：分层轴 = **被测 interface × 真实依赖半径**，不用 unit/integration/e2e 标签（冻结卡已判为伪完成——同一标签下纯核与真 IO 的失败含义不同，标签回答不了"要什么前置"）。**双层寻址**：后缀 = 车道（`*.spec.{ts,mjs}` 等保持，不发明新后缀），目录 = 被测 interface 家。**每层声明能证明/不能证明**（证据合同，testing.md 拥有）：纯核（domain 规则，无 IO）→ host 服务合同（真 cordis 构造 + 临时 home）→ agent 面合同（工具/段落/provider）→ composition（真 Loader 读真 shipped YAML + built lib）→ client 合同（classic-script 装置，无浏览器）→ 渲染期望（snapshots 两场景，真浏览器）→ 行为评测（eval，真模型判日志）；E2E 只做跨层验收，失败报告先分层归因再上浮。**四条不变式**：默认 `pnpm test` keyless 全绿且发现集合迁移前后一一对应；mock 白名单 = LLM/网络/时钟（边界下游全真）；live/浏览器/模型走各自显式入口不混默认车道；一个 spec 归最主要 interface、跨层依赖文件头注明。
-| P4 产品源码职责 | 包 src 按 domain、host、agent、client、dev 切分职责子树，一次动一个；exports/组合行/工具语义不变 | 待做（后续段） |
+| P4 产品源码职责 | 包 src 按 domain、host、agent、client、dev 切分职责子树，一次动一个；exports/组合行/工具语义不变 | **已交付**：四片迁移 + 段末出口四证（release-smoke、dump-config 行身份、keyless replay 查日志、tarball 12/12 exports 解析零旧布局残留），见 [P4 note](../implemented/2026-10-05-p4-source-responsibility.md) |
 | P5 驾驭验收 | 新上下文只从根文档完成五条功能定位/验证/失败定位，真实证据记 implemented | 待做（终段） |
 
 **稳定的外部 interface**（全程不变）：包名、工具名/动词、preset/组合行 id、`ctx.assistantMemory`、既有 package exports 子路径、根 pnpm 命令名、两个 profile 语义、默认 home/dataDir、存储格式。运行 home（`dev/harness-home`、`trial-home`）原地保留——源码/工具归位与数据迁移是两件事。
