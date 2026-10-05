@@ -23,8 +23,8 @@ import { basename, dirname, extname, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { Context } from '@deepseek-ai/cordis'
 import AssistantMemory from '../../packages/dsh-smart-assistant/src/index.ts'
-import { DEFAULT_SOUL } from '../../packages/dsh-smart-assistant/src/home/soul.ts'
-import { planSourcePage } from '../../packages/dsh-smart-assistant/src/knowledge/ingest.ts'
+import { DEFAULT_SOUL } from '../../packages/dsh-smart-assistant/src/domain/home/soul.ts'
+import { planSourcePage } from '../../packages/dsh-smart-assistant/src/domain/knowledge/ingest.ts'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const argv = process.argv.slice(2)
