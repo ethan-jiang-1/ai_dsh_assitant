@@ -30,8 +30,9 @@
 | O5 | **装得上（企业环境）** | 一条命令在企业机器装好并可用；管理员不写 YAML 就能配置与评审 |
 | O6 | **管得住（权限与数据）** | 知识变更可追溯；数据不出企业边界；对外内容需本人过目 |
 
-只有用户能给的：第一批真实活、数据边界反转、品味裁决。**当前差距与进度不在本节**——唯一家是
-[真用第一卡](notes/proposed/2026-10-01-real-use-first.md)。研发姿态三条判据的常设指令在根
+只有用户能给的：第一批真实活、数据边界反转、品味裁决。**当前差距与进度按 owner 取用**：
+[真用第一卡](notes/proposed/2026-10-01-real-use-first.md) 保留既有证据与余项；新方向的推敲、未决与毕业边界见
+[定位卡](_backlog/plans/261005-open-value-deficit.md) 与 [自洽卡](_backlog/plans/261005-turnaround-coherence.md)。它们不构成新增产品能力或全部实施授权。研发姿态三条判据的常设指令在根
 `AGENTS.md`，用户原话存 [intents-retired](notes/implemented/2026-10-04-intents-retired.md)
 （本节承接已退役 intents.md 的判据面）。
 

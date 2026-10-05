@@ -45,7 +45,7 @@
 - **不设 `postmortem/`**：事故记录属于"已交付决定"，进 `implemented/`（AGENTS.md 曾列该目录但从未存在，2026-09-25 删除该说法）。
 - **不采用 `{lifecycle}/{class}/` 两级路径**（DSH 用它）：偏离理由见 §四。
 - 提案过时转 `rejected/` 而非滞留 `proposed/`；`archived/` 只收已交付（implemented）的 note。
-- **延后/触发的家 = `_backlog/plans/` 卡的状态行**（2026-09-28 起，原 ROADMAP 队列退役）：note 里写触发条件须指明其 plans 卡；明确**永不**做的（负知识）留在输掉的方案。
+- **延后归属按裁决分开**：未裁决的推敲/待用户判触发留 `_backlog/plans/`；已裁决“该做但不现在”的触发条件归决定 note（deferred-with-trigger），旧卡关闭，不另立等待卡。触发到场以引用旧卡的新卡/RFC 重进，不复活毕业卡；完整规则见 [backlog 毕业四门](../_backlog/README.md)，依据 [治理决定](implemented/2026-10-02-backlog-governance-borrow.md)。永不做的负知识留在输掉的方案。
 
 ## 二之二、`proposed/` 卡片的骨架（推荐形态）
 

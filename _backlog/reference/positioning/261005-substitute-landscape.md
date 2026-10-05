@@ -152,33 +152,37 @@
 - （中文生态：飞书/钉钉 AI 助理官方页未及逐页核验，本节不对其下结论。）
 
 ### 本类小结
-- 没有一家同时占住三轴：关系 CRM 记"人脉"不记"公司"；日程任务盯"时间"不盯"决定"；Lindy 有编排与晨报但无经营对象模型；唯一把"决定+执行追踪"做成卖点的 Huper 是 2026 年 2 月才融 pre-seed 的新玩家——**市场整体仍空着"经营决定的状态机"这一格**。
+- 所查公开页面的主对象不同：关系 CRM、日程任务、编排与 CoS 叙事各有侧重。Huper 是本轮找到直接强调决定/执行跟踪的样本，但本研究未穷尽产品/插件/企业方案；未找到经营状态机描述不等于它不存在，不能宣布市场整体空白。
 
 ---
 
-## 六、共同短板 → 我们的真实增量
+## 六、定位假设与竞争反证（不是排他事实）
 
-**短板 1：都记得"资料与人偏好"，没有一家把「公司」做成一等实体。**
-三家大模型的记忆定位全是"你这个人/你的工作上下文"：ChatGPT memory sources 列表（[FAQ](https://help.openai.com/en/articles/8590148-memory-in-chatgpt)）、Claude"Memory built for work…remembers your team's processes"（[2025-09 博客](https://claude.com/blog/memory)）、Gemini"Personal context"（[帮助页](https://support.google.com/gemini/answer/16413516)）。组织、目标、决定、行动项在这些记忆里没有对象模型——公司知识只能以"文件/聊天"散料形式存在。
+以下五项按所查公开页面提出候选比较维度，不证明市场缺功能、客户愿付费或本仓已实现优势。企业产品与可组合 agent 都可能覆盖同样任务；本轮未重新抓取全部动态页面，版本/计划变化须在对外引用前重验。已记录的 Claude 三轴能力、企业治理/金融来源链是重要反证。
 
-**短板 2：「主动」已被平台补齐成"定时推送"，但没有一家有「决定的跟进语义」。**
-ChatGPT scheduled tasks（用户自配+事件触发；官方明文任务读不到项目文件，[help](https://help.openai.com/en/articles/10291617-scheduled-tasks-in-chatgpt)）、Gemini Daily Brief/Scheduled actions（[blog](https://blog.google/products-and-platforms/products/gemini/scheduled-actions-gemini-app/)、[help](https://support.google.com/gemini/answer/17077455)）、Claude 的任意周期无人值守任务（[产品页](https://claude.com/product/cowork)）——"会主动"已不是增量；"主动盯的是**未决决定、超期行动项、该问谁**"才是。全品类中只有 Huper 把"track execution, surface decisions"写进卖点（[PR](https://metroatlantaceo.com/news/2026/02/huper-raises-15m-deliver-chief-staff-rest-us/)）。
+**假设 1：显式公司/决定对象可能比通用记忆更贴合目标工作。** 所查记忆页偏用户/工作上下文，未完成竞品对象模型/插件组合穷举；以下“没有对象模型”只代表本轮公开描述未指认，不是实现不存在的事实。
+三家大模型的记忆定位全是"你这个人/你的工作上下文"：ChatGPT memory sources 列表（[FAQ](https://help.openai.com/en/articles/8590148-memory-in-chatgpt)）、Claude"Memory built for work…remembers your team's processes"（[2025-09 博客](https://claude.com/blog/memory)）、Gemini"Personal context"（[帮助页](https://support.google.com/gemini/answer/16413516)）。这些页面未具体指认组织、目标、决定、行动项的对象模型；是否可通过项目、工具或企业组合承载，仍需实际任务核验。
 
-**短板 3：产出物是"文档"，不是"可审计的决策台账"。**
-Canvas/Artifacts/Deep Research/Daily Brief 产出的是一次性文档或信息流；"Sources"类引用只回答"这次用了什么记忆"（[ChatGPT FAQ](https://help.openai.com/en/articles/8590148-memory-in-chatgpt)、[Claude 帮助](https://support.claude.com/en/articles/11817273-use-claude-s-chat-search-and-memory-to-build-on-previous-context)），不构成"决定是谁、何时、凭什么、后来怎样"的可审计链条。可审计性恰恰是 Huper 用 BYOK+治理去赌的方向——证明市场认为这是缺口。
+**假设 2：决定跟进可能比通用定时推送更贴近本目标。** 所查平台公开材料展示定时任务/简报；本轮未穷举所有决定跟踪能力。Huper 是直接强调 track execution 的样本，不构成唯一性。
+ChatGPT scheduled tasks（用户自配+事件触发；官方明文任务读不到项目文件，[help](https://help.openai.com/en/articles/10291617-scheduled-tasks-in-chatgpt)）、Gemini Daily Brief/Scheduled actions（[blog](https://blog.google/products-and-platforms/products/gemini/scheduled-actions-gemini-app/)、[help](https://support.google.com/gemini/answer/17077455)）、Claude 的任意周期无人值守任务（[产品页](https://claude.com/product/cowork)）——"会主动"已不是增量；"主动盯的是**未决决定、超期行动项、该问谁**"才是。本轮直接找到 Huper 把"track execution, surface decisions"写进卖点（[PR](https://metroatlantaceo.com/news/2026/02/huper-raises-15m-deliver-chief-staff-rest-us/)）。
 
-**短板 4：数据与账号治理在"公司机密"面前集体失格。**
-Gemini 自动记忆与 Daily Brief **排除工作/学校账号**（[帮助页](https://support.google.com/gemini/answer/16598469)、[17077455](https://support.google.com/gemini/answer/17077455)）；ChatGPT improved memory 不在 BAA 内、受监管工作区默认关（[FAQ](https://help.openai.com/en/articles/8590148-memory-in-chatgpt)）；三家均为美国云 SaaS、无本地/自托管。企业护栏要到贵价 plan（Claude Team/Enterprise 管理面）才出现。**中小企业 CEO 的真实约束是"数据不能随便进通用云 + 买不起企业档"——这个价格带三家都不服务。**
+**假设 3：可审计的决定/行动链可能是目标对象，而不只是一次文档。** 各产品的公开 Sources/Canvas/Brief 页面不能单独证明没有台账；本仓是否能稳定重建“谁、何时、凭什么、后来怎样”仍待真实路径与状态契约。
+所查 Canvas/Artifacts/Deep Research/Daily Brief 与 Sources 页面强调文档/信息流/引用（[ChatGPT FAQ](https://help.openai.com/en/articles/8590148-memory-in-chatgpt)、[Claude 帮助](https://support.claude.com/en/articles/11817273-use-claude-s-chat-search-and-memory-to-build-on-previous-context)）；本次查到的引用面本身不足以重建完整决定链，但未审所有企业工作流。Huper 的 BYOK/治理营销表明供应商关注此问题，不证明普遍市场需求。
 
-**短板 5：平台在 2026 年集体收敛"自定义人格+知识"产品，预置专家形态进入动荡期。**
+**假设 4：数据边界/账号限制会影响部分机密场景的选择。** 以下限制针对所查计划/页面，不能推出三家所有企业方案“集体失格”、目标用户普遍买不起企业档或市场不服务其价格带。本仓本地存储也不保证推理留域，见 [数据流审计](../tech-exploration/261005-turnaround-evidence-audit.md)。
+Gemini 自动记忆与 Daily Brief **排除工作/学校账号**（[帮助页](https://support.google.com/gemini/answer/16598469)、[17077455](https://support.google.com/gemini/answer/17077455)）；ChatGPT improved memory 不在 BAA 内、受监管工作区默认关（[FAQ](https://help.openai.com/en/articles/8590148-memory-in-chatgpt)）；三家均为美国云 SaaS、无本地/自托管。企业护栏要到贵价 plan（Claude Team/Enterprise 管理面）才出现。**数据不能随意出域、企业档价格可能是部分目标场景的约束；目标用户的预算和合规条件尚未访谈，不能声称三家都不服务。**
+
+**假设 5：平台产品收敛会提高“只做有记忆聊天”的替代压力。** 页面/计划的迁移或退役是时间敏感事实；本轮只把它作为定位风险，不据此预测行业方向或客户锁定。
 Custom GPTs 官宣退役（企业 2026-12-11、个人账号已禁新建，[help](https://help.openai.com/en/articles/8983148-does-memory-function-with-gpts)）；Gems 官宣 2026-11 起个人账号迁往 skills（[help](https://support.google.com/gemini/answer/15146780)）；NotebookLM 并入 Gemini 生态改名（[blog](https://blog.google/innovation-and-ai/products/gemini-notebook/notebooklm-gemini-notebook/)）；Claude Cowork 并回 Claude 本体（[产品页](https://claude.com/product/cowork)）。同时 a16z 合伙人 Olivia Moore 公开把**记忆列为 AI 产品下一个核心优势/留存杠杆**（[Top 100 报告访谈中文转述，2026-03](http://www.woshipm.com/share/6352891.html)；原报告 The Top 100 Gen AI Consumer Apps——二手转述，见文末）。**解读：平台记忆越强，"通用助手"锁定越深——一个只做"有记忆的聊天+简报"的产品会被吸进去；我们的位置必须落在平台记忆结构装不下的东西上。**
 
-### 我们剩下的真实增量（综合判断）
-1. **公司作为一等实体**：组织/目标/决定/行动项的对象模型与状态机——平台记忆是"关于你的摘要"，不是"关于你公司的台账"（证据：短板 1、2）。
-2. **盯决定的主动性**：简报的单位不是"信息"而是"待决/超期/该跟谁"（证据：短板 2；全品类仅 Huper 同向，且它是 2026 年 alpha 期新玩家）。
-3. **可审计产物**：每条建议/简报可回溯到决定与行动项的因果链（证据：短板 3）。
-4. **中小企业价格带的数据主权**：本地/可控存储 + 无需企业档的治理（证据：短板 4；Huper 把 BYOK 当头号卖点侧证需求）。
-5. **警惕项**：Claude 的"记忆+无人值守任务+插件专家"组合与我们的形态最接近，且官方主动降低跨平台记忆迁移成本——若只做"记得住+出活"，护城河在平台侧是撑不住的（证据：第一节 Claude 部分与短板 5）。
+### 候选增量（综合推论，待实现与真实对照）
+
+下列“增量”是比较维度，不是已测差异；“全品类仅 Huper”“平台只有摘要”“数据主权已满足”等措辞均按上述适用边界收窄。只有同任务/同输入的结果与数据流证据才能形成优势结论，具体问题归 [自洽卡](../../plans/261005-turnaround-coherence.md)。
+1. **显式工作对象**：组织/目标/决定/行动项的对象模型与状态 owner 是否让任务更可靠？当前本仓还不能只凭页/表存在宣布完备状态机。
+2. **盯决定的主动性**：待决/超期/该跟谁是否比普通定时摘要更有用？Huper 是同向竞争证据，不是市场唯一对手。
+3. **可审计产物**：来源、本人选择、执行与后续状态能否关联重建？引用齐全不等于判断正确，审批路径仍有未闭契约。
+4. **可控数据边界**：本地/可控存储与实际推理端点是否满足目标允许范围？预算、权限与导出边界需真实场景，不宣称普遍数据主权优势。
+5. **竞争反证**：Claude 的记忆/无人值守/插件组合贴近同类工作；应拿它作任务对照，不能把它已有三轴能力从差异化论证里删掉。
 
 ---
 

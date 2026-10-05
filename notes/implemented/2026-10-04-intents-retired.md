@@ -24,6 +24,10 @@ fresh-agent 信噪比审计给出三案（整抛 / 抛噪留宪 / 只更新数�
    （notes 记录书写时为真的东西）。门禁侧：`verify.mjs` 的 REQUIRED_PATHS 删该行、notes 根白名单
    （NOTES_ROOT_FILES）去掉 'intents.md'、对应夹具行同步删除。
 
+## 进度路由补充（2026-10-05）
+
+上述唯一家记录的是 10-04 主轴，不是要求今后所有方向继续塞旧卡。本轮方向推敲归 [定位卡](../../_backlog/plans/261005-open-value-deficit.md)、跨资料自洽/毕业边界归 [自洽卡](../../_backlog/plans/261005-turnaround-coherence.md)，旧真用卡保留历史与余项；常设入口只指向 owner，不复建集中仪表盘。具体实施仍按成熟 proposed 与用户范围授权，不能把推敲当任务队列。
+
 ## 研发姿态原话（2026-09-27 用户；常设指令在根 `AGENTS.md`「研发姿态」）
 
 > "我是希望这个 REPO 研发宪章这里 1) 尽量遵循 DSH 的研发流程 2) 尽量想办法自主解决问题

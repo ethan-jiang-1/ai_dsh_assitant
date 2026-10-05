@@ -15,7 +15,7 @@
 `notes/proposed/` 的提案卡（毕业形态：问题/方案/验收三件齐——「输掉的方案」一节推荐带上、毕业为 implemented 时门禁强制，**待用户拍板**，正文与验收都在卡上；点名或点头即开工）
 与 `_backlog/plans/` 的推敲卡（触发型/用户点名才取用，毕业四门见 `_backlog/README.md`）。
 **没有用户任务时不发明任务**——报告家况，或按点名的卡推敲/实施；不要从 git log 或记忆发明任务。
-进行中的工作显式化：开工即立卡 `notes/proposed/`（状态词只用 `notes/README.md` 的生命周期四态，不另造阶段词）；
+重大未来工作先在 `_backlog/plans/` 推敲，成熟并进入跨会话实施前用 `notes/proposed/` 显式承载；已授权局部编辑与轮内交付决定的 note 义务按 `notes/README.md`，不为小修立空壳卡或重复呈批。
 深评/调研卡住 `_backlog/plans/`，收卷证据台账住 `notes/archived/research/`，卡片链接之——看不见的工作等于没在做。
 代码里的 `TODO/FIXME` 不立项，只在代码内；`_backlog/plans/` 调研卡是证据面，不是工作项。
 **Note 的义务、取代检查与生命周期以 [`notes/README.md`](notes/README.md) 为唯一权威**（何时写、输掉的方案、

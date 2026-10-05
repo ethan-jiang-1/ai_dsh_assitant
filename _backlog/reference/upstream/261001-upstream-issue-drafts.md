@@ -1,23 +1,23 @@
 # 上游 issue 递交草案（6 条）——喂 261001-first-open-ux
 
 > 立档：2026-10-05｜服务对象：[261001-upstream-candidates.md](261001-upstream-candidates.md)
-> （行号映射见下表）与 [首开 UX 卡](../plans/261001-first-open-ux.md)。
+> （行号映射见下表）与 [首开 UX 卡](../../plans/261001-first-open-ux.md)。
 > 状态：**已放行（2026-10-05 用户拍板「按建议递 6 条」并放行文本），待贴**——
 > 渠道 = `github.com/deepseek-ai/deepseek-harness` 的 **Discussions · Ideas** 分类
 > （CONTRIBUTING 明文外部反馈走 Discussions；issue 面留维护者）。两条执行路径：
 > ① 用户 `gh auth login -h github.com` 重认证（现 token invalid）→ agent 经 gh api 代发 6 帖；
 > ② 用户手贴——每帖 = 下表标题 + 对应草案正文块（即贴即用）。
-> 锚点版本：dsh **v0.2.0-rc.2**（c1857a8）。证据出处：真实产品安装上的两轮 delegated
-> naive-CEO 读数（2026-10-04，非开发者、中文使用）+ agent 侧取证轮（2026-10-01..05）。
+> 原稿锚点版本记为 dsh v0.2.0-rc.2 / c1857a8；当前源码 pin 见 [vendor 簿记](../../../vendor/UPSTREAM.md) 与 [技术审计](../tech-exploration/261005-turnaround-evidence-audit.md)，递交前核对旧行号/构建是否仍适用，不把原稿 SHA 当当前。
+> 证据出处：安装界面的 delegated naive-CEO 角色读数与 agent 取证，不是真实非开发者用户测试。外发文字中的 naive-user/non-developer 应准确说明是代理模拟；认证状态/渠道为原记录，本轮未重新检查，也未递交。
 
 | 草案 | 台账行 | 标题（英文贴用） | 状态 |
 |---|---|---|---|
-| D1 | #1 | zh hero placeholder speaks developer language and exposes `/`@` syntax | 待过目 |
-| D2 | #2 | zh hero headline 「探索未至之境」 is poetic, not informative | 待过目 |
-| D3 | #3+9 | developer telemetry (tok/s, cache %, context %) and untranslated thinking stream on the chat surface | 待过目 |
-| D4 | #5 | tool change-lists render machine-absolute paths, against the repo's own `dshHomeDisplay` rule | 待过目 |
-| D5 | #6 | document preview renders raw markdown incl. YAML frontmatter | 待过目 |
-| D6 | #7 | zh panel name 「轨迹」 (trajectory) is mechanism jargon for product users | 待过目 |
+| D1 | #1 | zh hero placeholder speaks developer language and exposes `/`@` syntax | 已放行，未递 |
+| D2 | #2 | zh hero headline 「探索未至之境」 is poetic, not informative | 已放行，未递 |
+| D3 | #3+9 | developer telemetry (tok/s, cache %, context %) and untranslated thinking stream on the chat surface | 已放行，未递 |
+| D4 | #5 | tool change-lists render machine-absolute paths, against the repo's own `dshHomeDisplay` rule | 已放行，未递 |
+| D5 | #6 | document preview renders raw markdown incl. YAML frontmatter | 已放行，未递 |
+| D6 | #7 | zh panel name 「轨迹」 (trajectory) is mechanism jargon for product users | 已放行，未递 |
 
 ---
 
@@ -35,8 +35,8 @@
 aimed at non-developer users, the composer reads like IDE copy before the user has typed
 anything.
 
-**Why it matters:** Two independent naive-user readings of a real install (2026-10-04,
-non-developer business persona, Chinese UI) flagged this line as the single most confusing
+**Why it matters:** Two delegated-agent readings of a real install (2026-10-04,
+simulating a non-developer business persona in the Chinese UI; not human usability sessions) flagged this line as the single most confusing
 first-screen text: the page says "ask a business question", the composer says "build
 something" — the two sentences contradict each other.
 
@@ -53,7 +53,7 @@ affordances surface progressively (or as a secondary hint) instead of leading th
 
     'hero.headline': '探索未至之境'
 
-**What:** The zh hero headline is poetic and abstract. In the same naive-user readings,
+**What:** The zh hero headline is poetic and abstract. In the same delegated-agent persona readings (not human usability sessions),
 the plain, concrete welcome line on the page (「第一次来？直接说一句你手头的经营问题就行」)
 was rated the best copy on screen — the headline is the only element that does not say
 what the product does for the user.
@@ -72,7 +72,7 @@ answers), consistent with the welcome line's voice.
 
 **What:** The conversation surface shows per-turn developer telemetry — tok/s, cache-hit
 percentage, context-% — inline with the answer, and the thinking preview renders the
-model's raw English stream with no label. Three successive naive-user readings
+model's raw English stream with no label. Three successive delegated-agent persona readings (not human usability sessions)
 (2026-10-04) independently flagged these as 「机器内脏上脸」: noise that competes with the
 answer for a non-developer's attention.
 
@@ -128,7 +128,7 @@ above the body), so the document reads as a document.
 （`view.trajectory`: '轨迹', 'toolbar.aria': '轨迹工具栏', 'toolbar.search': '搜索轨迹',
 'history.loadingTrajectory': '正在加载轨迹…'）.
 
-**What:** The trajectory panel's zh vocabulary is mechanism-speak. Naive-user readings
+**What:** The trajectory panel's zh vocabulary is mechanism-speak. Delegated-agent persona readings (not human usability sessions)
 (2026-10-04) flagged 「轨迹」 as jargon on a product surface aimed at non-developers.
 For comparison: renaming the assistant product's 「线索」 to 「在跟的事」 (same campaign)
 measurably improved the readings.

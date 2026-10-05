@@ -32,7 +32,7 @@
 | 资源桥旁路（MCP 面） | 活体发现模型探索资源工具 → guard 封堵 → 复验 5 次全拒、模型自适应走 session_search 正路（独立审计逐 callId 核对 5/5） |
 | 渗漏通道修正（独立审计纠偏） | 修复前的真实渗漏走 **bash+curl 直连 1933 HTTP API**（read_mcp_resource 当时即报 Unknown resource）；**HTTP 直连不在 shield 拦截面，属显式豁免**：server 是本人本机进程、模型有 shell 是 DSH 的产品前提（bash 本可读写整个本机），豁免记录在案不视为治理缺口 |
 | mcp 前缀 schema 级不可见 | 单测+组合断言证明（fixtures 下 denied）；活会话两侧（修复前后）该前缀本就零调用——「不可见」由测试证据持有，行为证据中性 |
-| eval 对照（挂/不挂 ov） | 见本文补记（A/B 两臂） |
+| eval 对照（挂/不挂 ov） | 未验证：原指向的 A/B 补记不存在；层 1 证据不包含正式对照结果。后续设计见 [OKF/VK 实验材料](../../_backlog/reference/tech-exploration/261005-okf-wiki-tech-case.md) |
 | 记忆往返活体 | 车位/貔貅跨会话可答（P1 会话），画像/召回/正路工具三层可用 |
 | shield 测试电池 | 9 案全绿（含资源桥拒/放/不动三态与 fail-deadly 默认钉子） |
 

@@ -2,7 +2,11 @@
 
 > 调研问题：Codex / Claude Code（以及 Cursor 一类）coding agent 对执行层（工程师）体验极好，
 > 但管理层（CEO/CFO/高管）看着却步——把「却步点」做成逐条、可对照的清单，作为
-> 「面向企业管理层的 AI 助手」定位推敲的证据半边。喂 [261005-open-value-deficit](../plans/261005-open-value-deficit.md)。
+> 「面向企业管理层的 AI 助手」定位推敲的证据半边。喂 [261005-open-value-deficit](../../plans/261005-open-value-deficit.md)。
+
+## 本轮判读边界
+
+官网可证明公开叙事，不能证明所有功能/真实使用者，更不能证明“高管都却步”。本档三轴是解释假设；官方能力、个人实践、社区观察与二手调查分别保留等级，不能拼成统一需求发生率。已有竞品来源/审计/review 是反证。新增实际验证问题归 [自洽卡](../../plans/261005-turnaround-coherence.md)，本轮未逐 URL 重验。
 
 ## 0 · 方法与查证说明
 
@@ -248,7 +252,7 @@ ChatGPT Enterprise 专利级地占住，而 coding agent 的官网完全没有�
   test, or multi-day migration" + TS 代码 diff 演示，证言区就叫 "What developers are saying"（§2.2，一手）。
 - **文档第一句预设开发者心智**："reads your codebase, edits files, runs commands"（§2.1，一手）——
   「codebase/terminal/CLI」对管理层是外语。
-- **形态物理排斥**：核心形态是终端/IDE（Claude Code 虽有 web/移动端，叙事重心仍是"你在哪写代码"）；
+- **形态负担假设**：公开叙事的核心形态是终端/IDE（Claude Code 虽有 web/移动端，叙事重心仍是"你在哪写代码"）；
   Codex 的移动端只做云端任务查看（§1.1）。
 - **上手即成本**：VandeHei——"only if you know how to use it"、"You can't wing it… even at the CEO level"；
   CEO 必须每日亲自投喂上下文（§4.1，一手）。
@@ -280,15 +284,13 @@ ChatGPT Enterprise 专利级地占住，而 coding agent 的官网完全没有�
   （§5.1，二手）。
 - **采纳门槛被 ROI 验证卡住**：Deloitte——ROI 达标但普遍晚于预期，「先验证用例再规模化」（§5.7，二手）。
 - **高管的自我修正**：VandeHei——"efficiency gains are overhyped"，真正的机会是「以前不可能的新业务线」，
-  且必须"don't believe the demos"（§4.1，一手）——**省成本叙事已经讲烂，高管要的是新收入叙事+可验证性**。
+  且必须"don't believe the demos"（§4.1，一手）——**这位 CEO 的经验支持避免夸大效率、要求可验证结果；不能泛化所有高管只要新收入而不关心成本。**
 - **对照范本**：ChatGPT Enterprise 证明了管理层叙事的成熟语法——结果物（finished work）+ 采纳率指标 +
   治理三段 + 按职能场景（Finance 段直接用 monthly close BvA/re-forecast/risk-weighted scenarios 的 CFO 语言）+
   陪跑服务（§3.1，一手）；Anthropic 金融页证明高管话术的关键词是 **traceable / source-attributed /
-  audit trail / review steps / judgment stays with you**（§2.3，一手）。**而 coding agent 的官网两样都没有**。
+  audit trail / review steps / judgment stays with you**（§2.3，一手）。**所查 coding-agent 首页强调工程工作，不能从首页未强调推出产品没有来源/审计或管理层使用能力。**
 
-**差异化论证（一句话）**：coding agent 把高管当「预算签名者 + 工程团队的旁观者」；ChatGPT Enterprise 把高管当
-「全公司 AI 的发起人」但把 coding agent 藏在 developer 段落里——**「管理层自己能上手、看得懂、可问责的
-agent 界面与叙事」是一个被两类头部玩家同时留空的位子**（Anthropic 用 Cowork 沾了个边，但那是通用委派，不是经营问责面）。
+**定位假设（有限检索范围）**：所查 coding-agent 官网页面偏工程场景，不能证明管理者被排除或真实用户为何却步。面向一把手的经营判断入口可能是细分差异，但不是“头部同时留空/我们独占”：本档已记录 Enterprise、Anthropic 金融页与 Cowork 的来源、review、audit、非 coding 委派能力。需要同经营任务的真实试用对照，而不是竞品官网 vs 本产品成品。
 
 ---
 

@@ -9,7 +9,7 @@
 
 | 注 | 承重什么 | 状态 |
 |---|---|---|
-| **OKF（结构化知识层）** | 语义记忆：口径/制度/数字/决定——"公司作为一等实体"的技术形态 | 已建（六字段子集+互链+curate）；四格 2×2 实验为其验证器 |
+| **OKF（结构化知识层）** | 语义知识页与生命周期；完整公司决定对象/状态机仍待定义 | 六字段子集/互链/curate 已有；收益未验证，可用性四格及等内容结构消融尚待仪器 |
 | **VK（OpenViking 情景记忆层）** | 情节记忆：哪天谁说了什么、上次说到哪——督办与"记得他的路数"的另一半 | 层 1 已落地（DSH 原生缝）；层 2 待真实使用周期 |
 
 两注的分工与互证见 [okf-wiki-tech-case §一](261005-okf-wiki-tech-case.md)；本档不重复论证。
@@ -23,7 +23,7 @@
 2. **缝优先**：不能只配置时，能不能挂既有扩展点/seam（`ctx.*`、slots、事件、schedule、
    jobs、approval、workspaceFiles、subagent）？挂缝 = 可配置、可关闭、可记日志。
 3. **自建须举证**：以上都不行才自建，且 note 里必须附"DSH 载体不可用"的证据（"不发明"
-   原则，grand plan §3.1 心法 2；[discipline](../../docs/discipline.md) 逐源枚举既有登记）。
+   原则，grand plan §3.1 心法 2；[discipline](../../../docs/discipline.md) 逐源枚举既有登记）。
 
 **插件机制用足的具体含义**：我们的交付物本身就是 bundle（cordis.patch.yml 的行）——功能
 优先表现为**多一行**而不是多一个模块；client 面 = slot 注册；host 面 = Service + provider
@@ -32,7 +32,7 @@
 ## 三、现状对照盘点（按这把尺过一遍现有产品面）
 
 ### A. 已是 DSH 原生承载（正确示范）
-- preset 行 + 策展技能 provider（agent 面）｜ schedule bundle（晨报/养护节拍）｜
+- preset 行 + 策展技能 provider（agent 面）｜ schedule bundle（既有养护节拍；业务晨报尚未交付）｜
   OV = 插件行 + shield（原生缝执法，不 fork 上游）｜ ctx.approval（审批链）｜
   client = slots/右栏 tab/输入 dock（皮肤面）｜ 桌面文件走 workspace 文件缝（面板数据）。
 
@@ -44,15 +44,14 @@
 
 ### C. 待审/待用（下一步的机会面）
 - **Conversation View 标签页**（桌面主对象迁移的落点——slot 已在，未用）；
-- **碎片输入抽取**（微信群/口语）——若立项，优先查生态组合（IM 桥类过准入表）与
-  DSH 消息/附件缝，不自建通道；
-- **晨报投递渠道**：schedule follow-up 已够（不做 IM 拍板不变）；
+- **碎片输入抽取**（本地文件、用户粘贴或已提供转录）——若立项，先查 DSH 消息/附件缝与既有解析；“不做 IM”保持，不因案例涉及微信群就评估安装 IM 桥；
+- **晨报投递渠道**：schedule follow-up 是候选承载；可见性、权限、幂等与预算尚需最小投递证据，不能仅按接口存在判“已够”；
 - DSH 原生 `session-query`（会话检索 FTS5）——已用于 session_search；知识检索维持自建
   （检索对象不同，理由在 R3）。
 
 ## 四、验证器挂钩（定调怎么被检验）
 
-- OKF/VK 注 → **四格 2×2 实验**（[okf-wiki-tech-case §四](261005-okf-wiki-tech-case.md)）；
+- OKF/VK 方向 → **知识可用性四格 + 等内容结构消融候选**（[实验问题与隔离条件](261005-okf-wiki-tech-case.md)）；未跑结果，方向确认不是验证通过，技术收益与产品真实价值分开；
 - DSH 原生优先 → **利用率走查**（tech-exploration 待跑探索：逐功能列"承载 = DSH 缝 /
   自建"，找"自建但 DSH 其实有"的点——grand plan §3.4 的四点复盘后再扫一遍新面）；
   触发：下一切片立项前顺手扫，不单独立期。

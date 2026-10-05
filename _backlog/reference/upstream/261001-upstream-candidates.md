@@ -1,6 +1,6 @@
 # 上游（vendor 面）候选台账——喂 261001-first-open-ux
 
-> 立档：2026-10-05（首开 UX 第 18 轮）｜服务对象：[261001-first-open-ux](../plans/261001-first-open-ux.md)
+> 立档：2026-10-05（首开 UX 第 18 轮）｜服务对象：[261001-first-open-ux](../../plans/261001-first-open-ux.md)
 > ｜性质：调研材料（随卡毕业迁 `_done/_reference/`）。
 > 为什么立档：vendor 面候选散在卡面第 1/3/8/12/13/14/16 轮各处，散读变不成一叠可递交的 issue；
 > 本档一处收敛，每条带首报轮次与 vendor 代码锚点。**纪律不变：vendor 源码永不改（硬规则 1），
@@ -8,7 +8,7 @@
 
 ## 稳定候选（多轮读数反复命中，或带代码锚可直接立 issue）
 
-> 递交草案：[261001-upstream-issue-drafts.md](261001-upstream-issue-drafts.md)（D1-D6 覆盖下行 #1/#2/#3+#9/#5/#6/#7，2026-10-05 用户拍板「按建议递」，草案过目中）。
+> 递交草案：[261001-upstream-issue-drafts.md](261001-upstream-issue-drafts.md)（D1-D6 覆盖下行 #1/#2/#3+#9/#5/#6/#7，档头记录 2026-10-05 文本已放行；尚无已递链接。本轮仅校准资料，不执行对外递交，认证/渠道事实使用时复核）。
 
 | # | 候选 | 首报 | vendor 锚点 | 说明 / 建议动作 |
 |---|---|---|---|---|
@@ -28,7 +28,7 @@
 |---|---|---|---|
 | 10 | transcriptView src/lib 同 tag 漂移 | 上游发布物确认是否带 `?? defaultMode` 兜底（我方预置行的退役条件） | R3 定罪；升 pin 本地重建后本地崩溃已关（2026-10-03 复验在卡） |
 | 11 | 升级档位缺「只读域外」中间档 | 正常部署不受影响；沙箱后端不可用环境一回合 14 次 danger-full-access 升级 | R12 升级风暴观察（喂上游候选/摩擦报告） |
-| 12 | 直调缝：bundle 插件 client 半面受控 remote 贡献聚合 / zod codec 可达性 | 本人拍板重提批准流直调时 | [261004-approve-direct-call](../_done/_closed_plans/261004-approve-direct-call.md) §切片 1 三层实锤 |
+| 12 | 直调缝：bundle 插件 client 半面受控 remote 贡献聚合 / zod codec 可达性 | 本人拍板重提批准流直调时 | [261004-approve-direct-call](../../_done/_closed_plans/261004-approve-direct-call.md) §切片 1 三层实锤 |
 
 ## 已关闭不再追（第 18 轮定罪，处置详情在卡）
 

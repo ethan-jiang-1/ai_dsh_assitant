@@ -9,8 +9,8 @@
  * (type-checking the TS specs) does not include non-TS files, so importing the untyped script
  * module costs the type gate nothing.
  */
-import { execFileSync } from 'node:child_process'
-import { mkdirSync, mkdtempSync, rmSync, utimesSync, writeFileSync } from 'node:fs'
+import { execFileSync, spawnSync } from 'node:child_process'
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, utimesSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -119,6 +119,54 @@ describe('relativeLinkProblems', () => {
     ])
     expect(problems).toHaveLength(1)
     expect(problems[0]).toContain('other.md')
+  })
+})
+
+// The production runner's corpus is part of the contract: passing files directly to the pure
+// core cannot catch a directory omitted by verify.mjs. Run its unchanged source in a throwaway
+// repo, importing the real core; unrelated gates can fail in this deliberately minimal fixture.
+describe('verify relative-link corpus wiring', () => {
+  it('rejects broken routes in every active backlog area, accepts repaired routes, and leaves _done frozen', () => {
+    const root = temp('verify-link-wiring-')
+    const scripts = join(root, 'scripts')
+    mkdirSync(scripts, { recursive: true })
+    writeFileSync(join(scripts, 'verify.mjs'), readFileSync(join(import.meta.dirname, '../../../scripts/verify.mjs'), 'utf8'))
+    const core = new URL('../../../scripts/verify-checks.mjs', import.meta.url).href
+    writeFileSync(join(scripts, 'verify-checks.mjs'), `export * from ${JSON.stringify(core)}\n`)
+    for (const file of ['AGENTS.md', 'README.md']) writeFileSync(join(root, file), '# fixture\n')
+    const active = [
+      '_backlog/README.md',
+      '_backlog/plans/README.md',
+      '_backlog/plans/261005-card.md',
+      '_backlog/bugs/README.md',
+      '_backlog/bugs/BUG-001-example.md',
+      '_backlog/reference/README.md',
+      '_backlog/reference/261005-flat.md',
+      '_backlog/reference/positioning/261005-nested.md',
+      '_backlog/reference/tech-exploration/deeper/261005-deep.md',
+    ]
+    for (const file of [...active, '_backlog/_done/README.md', '_backlog/_done/_reference/261005-frozen.md', '_backlog/unowned.md']) {
+      const path = join(root, file)
+      mkdirSync(join(path, '..'), { recursive: true })
+      writeFileSync(path, '[route](missing.md)\n')
+    }
+    const gate = 'links: relative markdown links point at existing files'
+    const run = () => {
+      const result = spawnSync(process.execPath, [join(scripts, 'verify.mjs')], { encoding: 'utf8' })
+      expect(result.error).toBeUndefined()
+      expect(result.signal).toBeNull()
+      // Full exit stays red for unrelated missing-fixture contracts; inspect the real link verdict.
+      expect(result.status).toBe(1)
+      return result.stdout
+    }
+    const broken = run()
+    expect(broken).toContain(`FAIL ${gate}`)
+    for (const file of active) expect(broken).toContain(`${file} links to missing.md`)
+    expect(broken).not.toContain('_backlog/_done/README.md links to')
+    expect(broken).not.toContain('_backlog/_done/_reference/261005-frozen.md links to')
+    expect(broken).not.toContain('_backlog/unowned.md links to')
+    for (const file of active) writeFileSync(join(root, file, '..', 'missing.md'), '# destination\n')
+    expect(run()).toContain(`ok   ${gate}`)
   })
 })
 

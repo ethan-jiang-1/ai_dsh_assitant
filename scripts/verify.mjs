@@ -480,8 +480,18 @@ check('links: backticked repo paths in markdown exist', () => {
   return problems
 })
 
+// Active deliberation needs resolving routes too; frozen evidence under _done keeps its
+// historical prose. Only relative links extend here — contract/path/section scopes stay intact.
+const relativeLinkCorpus = [
+  ...markdownCorpus,
+  join(repoRoot, '_backlog', 'README.md'),
+  ...walk(join(repoRoot, '_backlog', 'plans'), ['.md']),
+  ...walk(join(repoRoot, '_backlog', 'bugs'), ['.md']),
+  ...walk(join(repoRoot, '_backlog', 'reference'), ['.md']),
+].filter(exists)
+
 check('links: relative markdown links point at existing files', () =>
-  relativeLinkProblems(markdownCorpus.map(file => ({ file, where: relative(repoRoot, file) }))))
+  relativeLinkProblems(relativeLinkCorpus.map(file => ({ file, where: relative(repoRoot, file) }))))
 
 check('test assets: only admitted shapes in the tests tree, scene contracts beside web-face fixtures', () =>
   testAssetNamingProblems(repoRoot))

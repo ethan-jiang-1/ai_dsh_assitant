@@ -18,7 +18,7 @@
 ## 子目录划分（新主题开新目录，根目录不再平铺）
 
 - `upstream/`——DSH 上游递交面（候选台账 + issue 草案；喂 261001-first-open-ux）；
-- `positioning/`——定位与打动管理层（四份外部调研 + 演示脚本 v0；喂 261005-open-value-deficit）；
+- `positioning/`——定位与打动管理层（外部调研、合成档与演示候选；实际材料以 [reference 索引](../../_backlog/reference/README.md) 为准）；
 - `tech-exploration/`——技术定调与技术实验（首件：OKF/WIKI 结构化知识层的技术定调材料，
   用户点名"这是技术定调"）。
 
