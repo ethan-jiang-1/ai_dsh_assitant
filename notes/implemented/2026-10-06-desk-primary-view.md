@@ -44,6 +44,16 @@
 - **B3 全链终验**：真模型五轮 naive 走查——英文叙述 **0 条**；桌面：1 决策（4 选项）+ 4 真缺口 + **2 动作**（due 10-07 + 10-20）；schedule：**2 条排程**均 `at` 型、目标 `01:00Z` = 北京 09:00 ✓、prompt 含 `[due follow-up]` + morning-brief 指令 ✓、desk/schedule 日期一一对应 ✓。
 - **能力环判定**：打开→说一句话→它先问（三问带弧线框架）→答→拍板选项呈上→到期它推→内联确认——全程天真身份自测走通且每步知道「我在做什么、下一步是什么」。
 
+## Phase A 形态迁移（2026-10-06 插件边界内步步为营——vendor 三重阻挡下的最大化可见度）
+
+三重阻挡（vendor 硬编码）：①DEFAULT_VIEW_ID='chat'（view-selection.ts:5-7）②空白相位视图区渲染 null（DefaultConversationViews.tsx:49）③composer 开发者语言（vendor locales）。Phase A = 在插件边界内让新形态尽可能可见。
+
+- **A1 富桌面落地卡**（`678b106`）：空白相位 `conversation.input.dock`（vendor 无高度限制）替换细带为实质卡片——fresh folder 模式（弧线说明+决策简报承诺+开始按钮[面板代发]）/ has-desk 模式（要拍 N+在跟 M+缺 K+打开桌面全景）。
+- **A2' 常驻桌面摘要条**（`69b7bf5`）：`conversation.input.dock`（scope=session）在每条非空白会话 composer 上方注册 DeskSummaryDock——三 chip（要拍/在跟/缺）+「桌面→」一键切桌面 tab；空桌面 return null 不占位。
+- **A3 自测走查全通**（真模型 + 无头浏览器逐帧 DOM 证据）：帧 1 空白相位富落地卡 7/7 关键词命中 ✓；帧 2 种桌面文件后非空白会话摘要条 4/4 命中（`要拍 1·在跟 1·缺 2·桌面→`）✓；帧 3 桌面视图 tab 点击后主区 6/6 命中（节律句/首个决策/选项/due）✓；preflight 绿 ✓。
+- **Phase B**（上游 D7——默认视图可配置 / 空白相位主区可插件贡献）：已入上游台账，vendor 改后触发。
+- **Phase C**（vendor 落地后真桌面优先：打开=桌面，会话=桌面上的动作）：触发条件 = D7 被上游接受并发布。
+
 ## 发行预置拍板（2026-10-06 定案：用户读数确认形态操作面，维持现状即证据支持的形状）
 
 **定案**：`locale.preference: zh` **随发行维持**（已在 bundle patch 内，261001 用户投诉+目标用户证据）；`workspace-controller.documentsDirectory` **不随发行维持**（全限定路径不可移植；vendor 默认即首用设计路径；本仓失败为 headless 进程特例——留 dev/trial profile 层）。`ui-chat` 行维持 standing 退役条件。**原拍板材料：**
