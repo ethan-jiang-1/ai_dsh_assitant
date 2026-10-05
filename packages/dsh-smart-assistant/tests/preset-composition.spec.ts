@@ -13,20 +13,20 @@
  * the tool schemas the agent's scope sees).
  *
  * The preset rows mounted here are this package's own agent-plane faces, loaded from the
- * *built* lib/ exactly the way a deployment loads them — so the suite needs `pnpm build` to
- * have run and self-skips (loudly) on a fresh clone before the first build. The full shipped
+ * *built* lib/ exactly the way a deployment loads them — so the suite requires `pnpm build`
+ * before it runs. A missing build is a test failure, not a skipped assertion. The full shipped
  * preset also rows vendor plugins (persona, fs, shell, web…); those are their own packages'
  * tested surface, and pulling them in would drag host-plane services this harness does not
  * carry. What this composition proves is our slice of the combination.
  */
-import { existsSync, mkdirSync, mkdtempSync, rmSync, symlinkSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { Context } from '@deepseek-ai/cordis'
 import { scopeOf } from '@deepseek-ai/dsh-scope'
 import Loader from '@deepseek-ai/cordis-plugin-loader'
-import Include from '@deepseek-ai/cordis-plugin-include'
+import Include, { applyEntryPatches, entryListSchema, type PatchOptions } from '@deepseek-ai/cordis-plugin-include'
 import LlmRuntime from '@deepseek-ai/dsh-llm'
 import SessionStore, { SessionId } from '@deepseek-ai/dsh-session'
 import SessionProjectionRegistry from '@deepseek-ai/dsh-session-projection'
@@ -40,28 +40,36 @@ import AgentPreset from '@deepseek-ai/dsh-agent-preset'
 import SessionPersistenceJsonl from '@deepseek-ai/dsh-session-persistence-jsonl'
 import TypertRegistry from '@deepseek-ai/dsh-typert-registry'
 import { DIGEST_SECTION_ORDER } from '../src/memory-digest/index.ts'
+import * as yaml from 'js-yaml'
 import { afterEach, describe, expect, it } from 'vitest'
 
 const packageRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
 const built = existsSync(join(packageRoot, 'lib', 'index.js'))
 if (!built) {
-  console.warn('[preset-composition] lib/ is not built yet — run `pnpm build`; the real-composition suite is skipped (fresh clones before the first build)')
+  throw new Error('[preset-composition] lib/ is not built — run `pnpm build` before running the real-composition suite')
 }
 
-/** This package's agent-plane rows, verbatim ids and names from cordis.patch.yml's preset row. */
-const OWN_ROWS = [
-  { id: 'assistant-home-preamble', name: 'dsh-smart-assistant/home-preamble' },
-  { id: 'assistant-memory-digest', name: 'dsh-smart-assistant/memory-digest' },
-  { id: 'assistant-memory-tool', name: 'dsh-smart-assistant/tool-memory' },
-  { id: 'assistant-research-tool', name: 'dsh-smart-assistant/tool-research' },
-  { id: 'assistant-knowledge-tool', name: 'dsh-smart-assistant/tool-knowledge' },
-  { id: 'assistant-learn', name: 'dsh-smart-assistant/learn' },
-  {
-    id: 'assistant-ov-shield',
-    name: 'dsh-smart-assistant/ov-shield',
-    config: { denyToolPrefix: 'mcp__openviking__', denyServerResources: 'openviking', shadowSkills: ['openviking-memory', 'openviking-skills'] },
-  },
-]
+interface PresetRow {
+  id: string
+  name?: string
+  config?: Record<string, unknown>
+}
+
+/** Read this package's agent-plane rows from the shipped preset configuration. */
+function ownPresetFromPatch(patchText: string): PresetRow {
+  const patches = yaml.load(patchText, { schema: entryListSchema }) as PatchOptions[]
+  const entries = applyEntryPatches([], patches, (message, ...args) => {
+    throw new Error(`cordis.patch.yml: ${message} ${args.join(' ')}`)
+  }) as PresetRow[]
+  const preset = entries.find(row => row.id === 'preset-assistant')
+  const plugins = (preset?.config as { plugins?: PresetRow[] } | undefined)?.plugins ?? []
+  const rows = plugins.filter(row => row.name?.startsWith('dsh-smart-assistant/'))
+  if (!preset || rows.length === 0) throw new Error('cordis.patch.yml: preset-assistant declares no dsh-smart-assistant agent rows')
+  return { ...preset, config: { ...preset.config, plugins: rows } }
+}
+
+const patchText = readFileSync(join(packageRoot, 'cordis.patch.yml'), 'utf8')
+const ownPreset = ownPresetFromPatch(patchText)
 
 const contexts: Context[] = []
 const dirs: string[] = []
@@ -72,7 +80,7 @@ afterEach(async () => {
 })
 
 /** Boot the real harness: loader, vendor registries, the preset definition row, host row. */
-async function harness(): Promise<Context> {
+async function harness(preset = ownPreset): Promise<Context> {
   const ctx = new Context()
   contexts.push(ctx)
   // Package names in a preset resolve from the harness base (ctx.baseUrl) — with the same
@@ -86,6 +94,9 @@ async function harness(): Promise<Context> {
   ctx.baseUrl = pathToFileURL(installBase).href + '/'
   await ctx.plugin(Loader)
   ctx.loader.builtins.include = Include
+  // Keep the vendor preset carrier in Vitest's source module graph, like the registries above.
+  // Our own child rows still resolve their public exports from lib/ through the real loader.
+  ctx.loader.builtins['agent-preset'] = AgentPreset
   await ctx.plugin(LlmRuntime)
   await ctx.plugin(SessionStore)
   // The knowledge-approve companion row audits into the session log: persistence and the
@@ -122,7 +133,9 @@ async function harness(): Promise<Context> {
   await ctx.plugin(approveRemote.default)
   // 0.1.7: preset = registry row (default) + definition row (plugins). No directory, no roots.
   await ctx.plugin(AgentPresetRegistry, { default: 'assistant' })
-  await ctx.plugin(AgentPreset, { id: 'assistant', plugins: OWN_ROWS })
+  expect(preset.name).toBe('@deepseek-ai/dsh-agent-preset')
+  await ctx.loader.root.update([{ ...preset, name: 'cordis:agent-preset' }])
+  await ctx.loader.await()
   return ctx
 }
 
@@ -137,7 +150,11 @@ async function agentOnPreset(ctx: Context, captured: Context[]) {
   })
 }
 
-;(built ? describe : describe.skip)('real composition: loader + preset standing mount + joined agent', () => {
+describe('real composition: loader + preset standing mount + joined agent', () => {
+  it('rejects a missing preset declaration instead of assembling an empty selection', () => {
+    expect(() => ownPresetFromPatch('- insert: []\n')).toThrow('declares no dsh-smart-assistant agent rows')
+  })
+
   it('mounts the knowledge-approve companion service alongside the host row (direct-call lane)', async () => {
     const ctx = await harness()
     const approve = ctx.get('knowledgeApproveRemote')
@@ -176,7 +193,7 @@ async function agentOnPreset(ctx: Context, captured: Context[]) {
 
   })
 
-  ;(built ? it : it.skip)('ov-shield denies fixture OpenViking tools and shadows the skill names through the joined preset', async () => {
+  it('ov-shield denies fixture OpenViking tools and shadows the skill names through the joined preset', async () => {
     const ctx = await harness()
     // The co-installed OpenViking surface, as the host layer would present it: an MCP tool and a
     // second skill-provider entry, both at the global layer.
@@ -208,6 +225,17 @@ async function agentOnPreset(ctx: Context, captured: Context[]) {
     expect(shadow?.invocation).toEqual({ modelInvocable: false, userInvocable: false })
     expect(listed.filter(skill => skill.invocation.modelInvocable).map(skill => skill.name))
       .not.toContain('openviking-memory')
+  })
+
+  it('a removed tool row in the shipped YAML removes that tool from the joined agent', async () => {
+    const missingMemoryTool = patchText.replace(
+      /\s*- id: assistant-memory-tool\n\s*name: dsh-smart-assistant\/tool-memory\n/,
+      '\n',
+    )
+    expect(missingMemoryTool).not.toBe(patchText)
+    const ctx = await harness(ownPresetFromPatch(missingMemoryTool))
+    const { agent } = await agentOnPreset(ctx, [])
+    expect(ctx.tools.schemas(agent).map(schema => schema.name)).not.toContain('assistant_memory')
   })
 
   it('registers this package\'s four tools on the joined agent, and only there', async () => {

@@ -92,6 +92,7 @@ pnpm loop-probe '<server 打印的 URL>' --ask '<问句>'   # 首用闭环探针
 pnpm desk-loop              # 培养循环摩擦报告：从真实会话日志读「点了没反应 / 反复点 / 答了多次 / 技能没加载」
 pnpm eval:domain            # 领域评测集 v0（G2）：把本人出的真实经营问题逐题跑一遍，产出**给人打分**的报告（题目格式见 dev/eval/domain/TEMPLATE.md）
 pnpm ov-trial-rt            # OpenViking 试点第 5/6 步驱动：server 级记忆往返 + 抽取质量抽评（建会话→塞哨兵语料→commit→等抽取→找回→读抽取物；前提 server 在 127.0.0.1:1933）
+pnpm test:composition       # 先 pnpm build，再跑真实 shipped preset 组合 spec
 pnpm typecheck && pnpm test && pnpm verify
 ```
 
@@ -198,7 +199,19 @@ DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得
 一个会话的提交把另一个会话未提交的 `page.ts` 改动扫了进去。两种正当做法：**串行**（一个窗口一个会话），
 或**各用 worktree**（各自的工作树 + 各自 `DSH_HOME`）；无论哪种，提交只 add 自己改的路径（根 `AGENTS.md` 硬规则 3）。
 
-## 六、组合的四个层（dev 里谁改谁生效）
+## 六、入口路由（先判断你要证明什么）
+
+| 意图 | 命令 | 观察对象 | 不要从它推出 |
+|---|---|---|---|
+| 看配置组合 | `pnpm dsh --profile dev --dump-config` | bundle/profile/临时 patch 的行、id、disabled、realm | 运行时注册、DOM 或模型请求 |
+| 验 host 面 | `pnpm dsh --profile dev-task "one task"` | 插件装载、host 服务、working folder scaffold | preset 工具与提示词 |
+| 验 assistant preset | `pnpm dsh --profile dev-task --patch dev/preset-runner.patch.yml "one task"` | one-shot 挂载 preset 后的会话驱动 | 浏览器渲染 |
+| 验 Web 面 | `pnpm dsh --profile dev --port 0 --no-open` + `pnpm preflight '<URL>'` | Web boot、Remote、desk readiness | DOM 期望；再跑 `pnpm web-expected` |
+| 验请求侧组装 | `pnpm dsh --profile dev-task --patch dev/preset-runner-replay.patch.yml "probe"` | keyless replay 的 system/tools/session log | 固定回复代表模型自主选择 |
+
+当前 assistant preset 的定义来源是安装包的 `dsh.bundle.patch`，实际文件为 `packages/dsh-smart-assistant/cordis.patch.yml` 中的 `preset-assistant` 行。`presets/assistant/agent.cordis.yml` 不提供 shipped 组合；headless profile 本身没有 roster，必须使用 `preset-runner.patch.yml` 才会挂载 assistant preset。
+
+## 七、组合的四个层（dev 里谁改谁生效）
 
 ```text
 bundle 层（两个 profile 各自的链，刻意的——§四，web-app 与 headless 不可混进同一 profile）：

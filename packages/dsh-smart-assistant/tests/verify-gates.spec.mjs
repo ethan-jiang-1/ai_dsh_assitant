@@ -12,7 +12,7 @@
 import { execFileSync, spawnSync } from 'node:child_process'
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, utimesSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import {
   agentsMdStabilityProblems,
@@ -848,7 +848,11 @@ describe('testAssetNamingProblems', () => {
     const root = mkdtempSync(join(tmpdir(), 'gate-test-assets-'))
     dirs.push(root)
     mkdirSync(join(root, 'packages', 'dsh-smart-assistant', 'tests'), { recursive: true })
-    for (const name of tests) writeFileSync(join(root, 'packages', 'dsh-smart-assistant', 'tests', name), '')
+    for (const name of tests) {
+      const file = join(root, 'packages', 'dsh-smart-assistant', 'tests', name)
+      mkdirSync(dirname(file), { recursive: true })
+      writeFileSync(file, '')
+    }
     for (const [scenario, files] of Object.entries(webFace)) {
       mkdirSync(join(root, 'snapshots', 'web-face', scenario), { recursive: true })
       for (const [name, text] of Object.entries(files)) writeFileSync(join(root, 'snapshots', 'web-face', scenario, name), text)
@@ -870,6 +874,19 @@ describe('testAssetNamingProblems', () => {
     expect(problems.length).toBe(1)
     expect(problems[0]).toContain('helper.test.ts')
     expect(problems[0]).toContain('docs/testing.md')
+  })
+
+  it('recursively rejects an unadmitted nested code asset instead of letting it bypass the gate', () => {
+    const root = fakeRepo({ tests: ['nested/accidental-helper.ts'] })
+    const problems = testAssetNamingProblems(root)
+    expect(problems.length).toBe(1)
+    expect(problems[0]).toContain('tests/nested/accidental-helper.ts')
+    expect(problems[0]).toContain('docs/testing.md')
+  })
+
+  it('accepts an admitted nested harness asset and an upstream fixture directory', () => {
+    const root = fakeRepo({ tests: ['fixtures/client-harness.ts', 'fixtures/README.md'] })
+    expect(testAssetNamingProblems(root)).toEqual([])
   })
 
   it('rejects a scene directory without its contract files', () => {

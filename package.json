@@ -21,6 +21,7 @@
     "typecheck": "pnpm --filter dsh-smart-assistant run typecheck",
     "build": "pnpm --filter dsh-smart-assistant run build",
     "test": "pnpm --filter dsh-smart-assistant run test",
+    "test:composition": "pnpm build && pnpm --filter dsh-smart-assistant exec vitest run tests/preset-composition.spec.ts",
     "verify": "node scripts/gen-paths.mjs --check && node scripts/gen-catalog.mjs --check && node dev/eval/run.mjs --self-check && node dev/desk-loop-report.mjs --self-check && node dev/eval/domain-run.mjs --self-check && node scripts/verify.mjs",
     "release-smoke": "node scripts/release-smoke.mjs",
     "export-dist": "node scripts/export-dist.mjs",

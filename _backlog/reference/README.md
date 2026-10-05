@@ -27,6 +27,9 @@ reference → plans → proposed 是证据到裁决的关系，不是三份活�
 
 ## 索引
 
+- [261005-repo-entry-tooling-audit.md](tech-exploration/261005-repo-entry-tooling-audit.md)——喂 repo 可驾驭性卡：启动/交互入口、工具职责与迁移消费者，源码链不冒充 live 证明
+- [261005-repo-test-asset-audit.md](tech-exploration/261005-repo-test-asset-audit.md)——喂 repo 可驾驭性卡：测试全量归属、执行/发现机制与假绿边界，分层迁移的最低证据
+
 - [261005-prototype-cases-and-interview-method.md](positioning/261005-prototype-cases-and-interview-method.md)——公开一手来源线索与访问限制；正文未取回，具体案例验收未达；模拟变式支持原型设计，不作已核重放/真人证据
 - [261005-interview-learning-framework.md](positioning/261005-interview-learning-framework.md)——短访谈、案例记录与知识/偏好/技能积累候选：来源/范围/例外、前后/未见病例验证、现有载体与未建闭环
 

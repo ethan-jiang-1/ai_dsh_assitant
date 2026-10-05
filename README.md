@@ -74,7 +74,19 @@ git submodule update --init                                       # vendor/dsh�
 pnpm install && pnpm build                                        # build 必需：包的入口是 lib/，而 lib/ 不入库
 dsh plugin --profile <p> add file:./packages/dsh-smart-assistant   # <p>＝你的 profile 名；第三步要 dsh 在 PATH 上
 ```
-（仓内开发时用 `pnpm exec dsh …` 或 `pnpm dsh --profile …`——后者强制 `DSH_HOME=dev/harness-home`。）
+（仓内开发时用 `pnpm dsh --profile …`；它经 `scripts/dsh.mjs` 启动 pinned CLI，强制 `DSH_HOME=dev/harness-home` 并把仓根作为 cwd。）
+
+## 从哪个入口开始
+
+| 目的 | 入口 | 证明范围 |
+|---|---|---|
+| 配置/组合 | `pnpm dsh --profile dev --dump-config` | profile、bundle patch、preset roster 的行是否进入组合；不证明运行时注册或浏览器渲染 |
+| host 冒烟 | `pnpm dsh --profile dev-task "one task"` | 插件装载、host 服务行、working folder scaffold；不进入 assistant preset |
+| preset one-shot | `pnpm dsh --profile dev-task --patch dev/preset-runner.patch.yml "one task"` | headless 会话挂载 assistant preset；适合自动化驱动 |
+| Web 交互 | `pnpm dsh --profile dev --port 0 --no-open` | Web preset 行为；交给人前先跑 `pnpm preflight '<URL>'` |
+| 测试/构建 | `pnpm typecheck && pnpm test` | 类型、纯核和服务级合同；组合与发行物另需 `pnpm build` / `pnpm release-smoke` |
+
+实际 preset 来源是 `package.json` 的 `dsh.bundle.patch` 指向 `packages/dsh-smart-assistant/cordis.patch.yml`；`presets/assistant/agent.cordis.yml` 不承载当前组合。运行数据的 `DSH_HOME`、助手 `dataDir` 与源码 cwd 是三个不同根，详见 [开发手册](docs/dev.md)。
 
 打包安装的形状（`pnpm pack` 出 tarball 再 `dsh plugin add <tarball>`）由 `pnpm release-smoke` 机械验证：
 pack → 干净 home → 装 → 组合断言。`file:` 这条路径本身实测过：装进干净 home 3.1s，`--dump-config` 里能看到

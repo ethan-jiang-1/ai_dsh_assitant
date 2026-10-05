@@ -87,12 +87,12 @@
     "@deepseek-ai/dsh-brand": "workspace:^",
     "@deepseek-ai/dsh-home-paths": "workspace:^",
     "@deepseek-ai/dsh-llm": "workspace:^",
+    "@deepseek-ai/dsh-session": "workspace:^",
     "@deepseek-ai/dsh-skill": "workspace:^",
     "@deepseek-ai/dsh-skill-filesystem": "workspace:^",
-    "@deepseek-ai/dsh-session": "workspace:^",
     "@deepseek-ai/dsh-tools": "workspace:^",
-    "@deepseek-ai/schemastery": "workspace:^",
-    "@deepseek-ai/dsh-typert-protocol": "workspace:^"
+    "@deepseek-ai/dsh-typert-protocol": "workspace:^",
+    "@deepseek-ai/schemastery": "workspace:^"
   },
   "dependencies": {
     "yaml": "^2.8.1"
@@ -120,8 +120,10 @@
     "@deepseek-ai/dsh-tools": "workspace:^",
     "@deepseek-ai/dsh-typert-registry": "workspace:^",
     "@deepseek-ai/schemastery": "workspace:^",
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "^22.20.0",
     "@types/react": "~18.3.1",
+    "js-yaml": "^4.3.2",
     "react": "^18.2.0",
     "typescript": "^6.0.3",
     "vitest": "^4.1.8"

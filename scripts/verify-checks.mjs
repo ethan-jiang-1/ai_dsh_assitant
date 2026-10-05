@@ -806,14 +806,24 @@ export function testAssetNamingProblems(repoRoot) {
   const problems = []
   const testsDir = join(repoRoot, 'packages', 'dsh-smart-assistant', 'tests')
   if (existsSync(testsDir)) {
-    for (const entry of readdirSync(testsDir)) {
-      const full = join(testsDir, entry)
-      if (!statSync(full).isFile()) continue
-      if (!/\.(ts|mjs|tsx|js)$/.test(entry)) continue
-      if (/\.spec\.(ts|mjs|tsx|js)$/.test(entry)) continue
-      if (/harness\.(ts|mjs)$/.test(entry)) continue
-      problems.push(`packages/dsh-smart-assistant/tests/${entry}: not an admitted test-asset shape (*.spec.* / *harness.*) — enter the naming table in docs/testing.md first`)
+    const inspect = (dir, relativeDir = '') => {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const relativePath = relativeDir === '' ? entry.name : join(relativeDir, entry.name)
+        const full = join(dir, entry.name)
+        if (entry.isDirectory()) {
+          // Upstream fixture/support trees are containers, not test lanes. Their contents are
+          // intentionally outside the naming vocabulary until a lane adopts them explicitly.
+          if (entry.name === 'fixtures' || entry.name === 'support') continue
+          inspect(full, relativePath)
+          continue
+        }
+        if (!entry.isFile() || !/\.(ts|mjs|tsx|js)$/.test(entry.name)) continue
+        if (/\.spec\.(ts|mjs|tsx|js)$/.test(entry.name)) continue
+        if (/harness\.(ts|mjs)$/.test(entry.name)) continue
+        problems.push(`packages/dsh-smart-assistant/tests/${relativePath}: not an admitted test-asset shape (*.spec.* / *harness.*) — enter the naming table in docs/testing.md first`)
+      }
     }
+    inspect(testsDir)
   }
   const webFace = join(repoRoot, 'snapshots', 'web-face')
   if (existsSync(webFace)) {

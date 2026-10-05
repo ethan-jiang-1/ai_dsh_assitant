@@ -11,21 +11,17 @@
  * was the same combination-visibility class; the real-composition suite covers step four,
  * and this file is the cheapest step — one-line assertions that would have fenced it.
  *
- * Rows are parsed with the SAME parseRows gen-catalog uses (one parser, two consumers),
- * so a patch-shape change fails here the same way it fails the catalog. The plugin `name`
- * export must equal the patch row id: the id is what --dump-config and the composition
- * show, so a drifted name would orphan the row while everything stays green — the rule
- * fired for real on its first run, catching the dev patches' `preset-runner` id (the
- * plugin's name export had drifted to `assistant-preset-runner`).
+ * The runner patch id and plugin `name` are separate compatibility surfaces: both are pinned
+ * explicitly below because existing dev patch identities must remain stable. The four dev
+ * runner patches are parsed with the same js-yaml schema as Include, so nested `insert` rows
+ * and inert `!!js` expressions retain their production structure.
  *
  * Planes: preset sub-rows are function plugins — named name/inject/apply, NO default.
  * The host row is a service plugin — default-exports the Service class with static
- * Config, the legal service shape. The dev-only preset-runner row (loaded by
- * dev/preset-runner.patch.yml) gets the same function-plugin assertions: it rides the
- * real Loader in development too. The replay sibling patch is not parsed here — its
- * nested provider rows are outside parseRows' shape contract (that fail-loud is
- * intentional), and its runner row is pinned to the main patch's shape by that file's
- * own header note ("相同的两行").
+ * Config, the legal service shape. Every dev runner patch gets the same function-plugin
+ * assertions, including replay: provider/model rows are not Loader entry rows. The two
+ * legacy probe rows intentionally keep `preset-runner`; the main and replay patches use
+ * `assistant-preset-runner`.
  *
  * Deliberately plain .mjs (like verify-gates.spec.mjs): it imports the untyped
  * gen-catalog script module, and `tsc -p tsconfig.test.json` does not include non-TS
@@ -34,6 +30,8 @@
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import * as yaml from 'js-yaml'
+import { entryListSchema } from '@deepseek-ai/cordis-plugin-include'
 import Loader from '@deepseek-ai/cordis-plugin-loader'
 import { Service } from '@deepseek-ai/cordis'
 import { describe, expect, it } from 'vitest'
@@ -42,8 +40,20 @@ import { parseRows } from '../../../scripts/gen-catalog.mjs'
 const packageRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
 const ownRows = parseRows(readFileSync(join(packageRoot, 'cordis.patch.yml'), 'utf8'))
   .filter(row => row.name !== undefined && row.name.startsWith('dsh-smart-assistant'))
-const devRows = parseRows(readFileSync(join(packageRoot, '..', '..', 'dev', 'preset-runner.patch.yml'), 'utf8'))
-  .filter(row => row.name !== undefined && row.name.startsWith('dsh-smart-assistant/'))
+const runnerPatches = {
+  'expert-probe.patch.yml': 'preset-runner',
+  'recall-probe.patch.yml': 'preset-runner',
+  'preset-runner.patch.yml': 'assistant-preset-runner',
+  'preset-runner-replay.patch.yml': 'assistant-preset-runner',
+}
+
+function insertedRows(patches) {
+  if (!Array.isArray(patches)) throw new Error('runner patch must be an array')
+  return patches.flatMap(patch => {
+    const rows = patch.insert ?? []
+    return rows.flatMap(row => [row, ...(row.group ? insertedRows([{ insert: row.config }]) : [])])
+  })
+}
 
 const PREFIX = 'dsh-smart-assistant'
 const hostRow = ownRows.find(row => row.name === PREFIX)
@@ -91,14 +101,22 @@ describe('every preset sub-row is shape-consistent (service default OR clean fun
   }
 })
 
-describe('the dev-only preset-runner rows ride the same guard', () => {
-  for (const row of devRows) {
-    it(`${row.id} (${row.name})`, async () => {
+describe('every actual dev preset-runner patch rides the same guard', () => {
+  for (const [file, expectedId] of Object.entries(runnerPatches)) {
+    it(file, async () => {
+      const patches = yaml.load(readFileSync(join(packageRoot, '..', '..', 'dev', file), 'utf8'), { schema: entryListSchema })
+      const rows = insertedRows(patches).filter(row => row.name === 'dsh-smart-assistant/preset-runner')
+      expect(rows, `${file} must contain exactly one preset runner`).toHaveLength(1)
+      const row = rows[0]
+      expect(row.config.task).toEqual({ __jsExpr: 'ctx.headlessStartup.task' })
       const mod = await import(sourceOf(row.name))
       expect('default' in mod, `${row.name} must not default-export`).toBe(false)
       const unwrapped = loader.unwrapExports(mod)
       expect(unwrapped).toBe(mod)
-      expect(unwrapped.name, 'plugin name must equal the patch row id').toBe(row.id)
+      expect(row.id, 'runner row id must remain the documented patch identity').toBe(expectedId)
+      expect(unwrapped.name, 'plugin export name must remain stable').toBe('assistant-preset-runner')
+      expect(unwrapped.inject).toEqual(expect.arrayContaining([expect.any(String)]))
+      expect(typeof unwrapped.apply).toBe('function')
     })
   }
 })

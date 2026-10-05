@@ -35,7 +35,7 @@
 | `src/tool-support/` | 四个工具共享的 presenter 管道（`presentationMeta` 投影与读回） |
 | `src/tool-*/` `src/memory-digest/` `src/home-preamble/` `src/learn/` `src/preset-runner/` | 各 agent 面入口 |
 | `src/index.ts` | 服务实现（host 面）：四个房间的读写、curate、digest、提案收件箱 |
-| `presets/assistant/` | preset 组合（`agent.cordis.yml`）+ 策展技能（`skills/`，**模型用**） |
+| `presets/assistant/` | 策展技能（`skills/`，**模型用**）；shipped preset 组合由包根 `cordis.patch.yml` 的 `preset-assistant` 行拥有 |
 | `tests/` | 纯核 + 服务级合同 + 真实组合装载（服务级用真 cordis 构造，不依赖 DSH 运行时） |
 
 ## 本子树的纪律
@@ -43,7 +43,7 @@
 1. **不在这里改** [`vendor/dsh/`](../../vendor/dsh/)：DSH 源码永不改，升级只走 `pnpm sync-dsh`。
 2. **不在包内跑裸 node 起 harness**：一律经仓根 `pnpm dsh`（它强制 dev home，永不碰日用 `~/.dsh`）。
 3. **改动分两层验**：纯核改 `tests/*.spec.ts`；模型可见面改必跑仓根真实组合测试
-   （`presets/assistant/agent.cordis.yml` + Standing mount + 代理消费）、`pnpm build`
+   （包根 `cordis.patch.yml` 的 `preset-assistant` 行 + Standing mount + 代理消费）、`pnpm build`
    （组合测试与 `release-smoke` 消费 `lib/` 产物，不 build 会拿到旧行为）与 `pnpm eval`
    （行为回归：真实请求跑一遍，判定读会话日志——改 persona/工具描述/家手册/协作边界时它是唯一会红的那层）。
 4. **客户端色值走主题，不写死**：中性角色（文字/背景/边框）一律消费 vendor `--dsw-alias-*` 语义

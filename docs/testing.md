@@ -4,6 +4,8 @@
 > 命令 owner = 根 `AGENTS.md` 命令表 + `docs/dev.md` §四（开发环命令）；决策理由与输掉的方案 =
 > `notes/implemented/2026-10-04-test-strategy-adoption.md`；机制分层表 = `discipline.md` 六层反馈（不复制）。
 > 执行细则（改动面→最小证据的逐面表）= `.agents/skills/pre-push-evidence/`（本文不复制）。
+>
+> 入口分工：`pnpm test` 覆盖源码与服务级合同；真实 preset 装载使用 `preset-composition.spec.ts` 与 `dev/preset-runner*.patch.yml`；浏览器交互使用 `snapshots/web-face/`。三者分别回答规则、组合、界面问题，不把 end-to-end 当作唯一理解方式。
 
 ## 证据形态分层（改什么 → 什么必须绿）
 
@@ -24,7 +26,7 @@
 | ① 导出形态（无 default + unwrapExports 往返 + name=行 id） | `tests/export-shape.spec.mjs` | 每 patch 行（现读，自动覆盖） |
 | ② 行为 spec（真依赖，只 stand-in 最外层包装） | 各 `tests/*.spec.ts` | 每个行为改动 |
 | ③ 注册生命周期（dispose 即撤销 + 可重挂） | `tests/registry-lifecycle.spec.ts` | 每个新注册面 |
-| ④ 真实组合（真 Loader 读真 yml，hand-built 不算数） | `tests/preset-composition.spec.ts` | 每个新 preset 行（OWN_ROWS 增行） |
+| ④ 真实组合（真 Loader 读真 yml，hand-built 不算数） | `tests/preset-composition.spec.ts`（入口：`pnpm test:composition`，先 build） | 每个新 preset 行；spec 从 shipped `preset-assistant` rows 取本包范围 |
 | ⑤ 组装转录（录制会话 keyless 回放） | 未建——触发条件 owner：`snapshots/README.md` | 触发未到，不预建 |
 
 ## 政策条款（禁令，无例外）

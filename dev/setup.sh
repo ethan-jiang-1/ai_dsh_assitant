@@ -100,7 +100,8 @@ done
 
 echo
 echo "done. Next:"
-echo "  pnpm dsh --profile $task_profile \"one task\"   # one-shot run on the assistant preset (headless, exits when done)"
+echo "  pnpm dsh --profile $task_profile \"one task\"   # host-only one-shot: plugin load/scaffold/service smoke (headless)"
+echo "  pnpm dsh --profile $task_profile --patch dev/preset-runner.patch.yml \"one task\"   # one-shot through the assistant preset"
 echo "  pnpm dsh --profile $profile                    # Web UI (the profile carries the web-app bundle)"
 echo
 echo "  ⚠ not 'pnpm dsh web': the 'web' alias hardcodes profile 'web' and would create a"
