@@ -6,7 +6,7 @@
 
 ## 决定与证据
 
-stock 两行**已由出厂层挂好**（`message-feedback` 随 web-app 层、`command-feedback` 随 base，dump-config 实证在场）——本片是**消费侧**改动：[`dev/desk-loop-report.mjs`](../../dev/desk-loop-report.mjs) 增 §7「消息赞踩」读数：
+stock 两行**已由出厂层挂好**（`message-feedback` 随 web-app 层、`command-feedback` 随 base，dump-config 实证在场）——本片是**消费侧**改动：[`dev/reports/desk-loop-report.mjs`](../../dev/reports/desk-loop-report.mjs) 增 §7「消息赞踩」读数：
 - `feedback/message-put` 计 👍/👎；`feedback/message-delete` 按 messageId 对消（撤回的退出正负，记一笔撤回）；
 - 备注原样列出（踩的备注是摩擦的直接证词、赞的备注说明哪个行为该保持），无备注的只进计数；
 - 自检新增三断言：撤回对消、备注表只收带备注的、计数与撤回分离——门禁红先于读数错。

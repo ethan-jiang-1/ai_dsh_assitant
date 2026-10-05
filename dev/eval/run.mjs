@@ -22,13 +22,13 @@ import { tmpdir } from 'node:os'
 import { unlinkSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { readEvents, sessionLogs } from '../usage-report.mjs'
+import { readEvents, sessionLogs } from '../reports/usage-report.mjs'
 import { argumentsText, evaluateTask, fileShape, wrotePath } from './checks.mjs'
 import { TASKS } from './tasks.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 
-// ── 与 scripts/dsh.mjs 同一条硬规则：永不继承 DSH_HOME（见 dev/usage-report.mjs 的同名说明） ──
+// ── 与 scripts/dsh.mjs 同一条硬规则：永不继承 DSH_HOME（见 dev/reports/usage-report.mjs 的同名说明） ──
 const harnessHome = resolve(process.env.ASSISTANT_DSH_HOME ?? join(repoRoot, 'dev', 'harness-home'))
 
 /**

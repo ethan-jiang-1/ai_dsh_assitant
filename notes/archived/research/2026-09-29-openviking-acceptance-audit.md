@@ -46,7 +46,7 @@ DSH 级注入面拆日志 / 硅基流动双探针 / registry+GitHub 直查），
 
 ## 复现实验（声明 8/9/10 的增量证据）
 
-同语料二跑（`dsh-accept-probe-003`，驱动已参数化：`node dev/ov-rt.mjs <sid>`）——**合并不爆炸**：
+同语料二跑（`dsh-accept-probe-003`，驱动已参数化：`node dev/experiments/openviking/ov-rt.mjs <sid>`）——**合并不爆炸**：
 
 - 新增 1 事件文件（估值底线再次确认.md，重复强调被理解为又一次事件——轻度粒度重复，可接受）；
 - 实体**增富**：华芯半导体 +2 bullets（估值底线/硬性约束）、恒基地产 +1（2026 Q3 细节）；

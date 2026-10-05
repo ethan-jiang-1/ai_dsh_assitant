@@ -22,11 +22,11 @@ import { existsSync, mkdirSync } from 'node:fs'
 import { basename, dirname, extname, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { Context } from '@deepseek-ai/cordis'
-import AssistantMemory from '../packages/dsh-smart-assistant/src/index.ts'
-import { DEFAULT_SOUL } from '../packages/dsh-smart-assistant/src/home/soul.ts'
-import { planSourcePage } from '../packages/dsh-smart-assistant/src/knowledge/ingest.ts'
+import AssistantMemory from '../../packages/dsh-smart-assistant/src/index.ts'
+import { DEFAULT_SOUL } from '../../packages/dsh-smart-assistant/src/home/soul.ts'
+import { planSourcePage } from '../../packages/dsh-smart-assistant/src/knowledge/ingest.ts'
 
-const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const argv = process.argv.slice(2)
 const dataDirArg = argv.includes('--data-dir') ? argv[argv.indexOf('--data-dir') + 1] : undefined
 if (dataDirArg === undefined) {

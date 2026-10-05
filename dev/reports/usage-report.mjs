@@ -21,7 +21,7 @@ import { existsSync, readdirSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 
 // 与 scripts/dsh.mjs 同一条硬规则：**永不继承 `DSH_HOME`**（会话环境里它可能是日用的 ~/.dsh），
 // 一律指向仓内 dev home；显式出口只有 `ASSISTANT_DSH_HOME`。

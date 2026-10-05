@@ -49,7 +49,7 @@
   （生成的 id 带**随机 4 字符后缀**，批量导入会把同一文档写成新页；`newThreadId` 的规则在
   `src/research/thread.ts:62`）；`generatedBy?` —— provenance 盖章写**真正写它的那个人**
   （默认仍是 `process:assistant-reflect`，CLI 传 `process:import-knowledge`；provenance 说谎比缺字段更坏）。
-- **CLI**：`scripts/import-knowledge.mjs` + `pnpm import-knowledge -- --data-dir <assistant 目录> <文件/目录>... [--dry-run]`。
+- **CLI**：`dev/deploy/import-knowledge.mjs` + `pnpm import-knowledge -- --data-dir <assistant 目录> <文件/目录>... [--dry-run]`。
   只吃 `.md/.markdown/.txt`（docx/pdf 见 §四）；`--data-dir` **显式传**，不继承 `DSH_HOME`（双 home 规则）；
   仓内文档的 `ref` 用仓根相对路径，**仓外**用绝对路径（`../../../tmp/...` 定位不到任何东西）。
 - **live 证据（真跑）**：两份文档 → 两条源页草稿（`source-q3-sales-review-*` 3 段 / `source-...pricing-notes-*` 1 段），

@@ -4,7 +4,7 @@
 #       密钥纪律见 vendor/thirdparty/openviking/README.md「密钥纪律」。
 # 红线：key 只从 .env.local 读取、只写入仓库外的 ~/.openviking/（0600），本脚本不回显任何密钥。
 set -euo pipefail
-REPO="$(cd "$(dirname "$0")/.." && pwd)"
+REPO="$(cd "$(dirname "$0")/../../.." REPO="$(cd "$(dirname "$0")/.." && pwd)"REPO="$(cd "$(dirname "$0")/.." && pwd)" pwd)"
 ENV_FILE="$REPO/.env.local"
 [ -f "$ENV_FILE" ] || { echo "缺 $ENV_FILE"; exit 1; }
 mkdir -p ~/.openviking

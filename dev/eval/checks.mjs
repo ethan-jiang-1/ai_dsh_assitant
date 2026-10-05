@@ -26,7 +26,7 @@ const WRITE_TOOLS = new Set(['edit', 'write', 'multi_edit', 'patch', 'apply_patc
  * their arguments, and bash driving `fs.writeFileSync` (a big JSON is easier through node). Bash
  * mentions of the path that are mere reads (`cat`, `2>/dev/null`) must not count, hence the
  * write-primitive requirement. Exotic write idioms would false-negative — widen this when a real run
- * shows one, not preemptively. Exported because `dev/desk-loop-report.mjs` reads the same fact.
+ * shows one, not preemptively. Exported because `dev/reports/desk-loop-report.mjs` reads the same fact.
  * @param toolCalls - `{ name, argumentsText }` records from one session log.
  * @param path - the path that must have been written.
  * @returns true when at least one call wrote it.

@@ -12,7 +12,7 @@ pin 迁到 0.1.7 后写者前移到 **v4**，而本仓多处读方与给助手�
 
 | 位置 | 症状 |
 |---|---|
-| `dev/usage-report.mjs` 的 `sessionLogs()` | 只认 `session.v3.jsonl.zstd` → `pnpm usage` 与 `pnpm eval` 读不到任何新会话 |
+| `dev/reports/usage-report.mjs` 的 `sessionLogs()` | 只认 `session.v3.jsonl.zstd` → `pnpm usage` 与 `pnpm eval` 读不到任何新会话 |
 | `pnpm eval`（3 个任务） | 全部 FAIL，理由 `no session log was produced`（启动本身成功，没有 launchFailure） |
 | `src/home/home-map.ts:99`（**模型可见**：working folder 手册"Past conversations"段） | 告诉助手去读 `session.v3.jsonl.zstd` —— 该文件已不存在 |
 | `presets/assistant/skills/session-recall/SKILL.md:14`（**模型可见**：策展技能配方） | 同病：配方给的是不存在的文件名 |
@@ -20,7 +20,7 @@ pin 迁到 0.1.7 后写者前移到 **v4**，而本仓多处读方与给助手�
 
 ## 三、修法（代次无关，不是"换成 v4"）
 
-`dev/usage-report.mjs` 的 `sessionLogs()` 按 `^session\.v\d+\.jsonl\.zstd$` 发现；夹具
+`dev/reports/usage-report.mjs` 的 `sessionLogs()` 按 `^session\.v\d+\.jsonl\.zstd$` 发现；夹具
 `tests/usage-report.spec.mjs` 的 `sessionLogs` 用例是同 diff 的红证据（写死一代时 v4 那份恒不出现；
 `session.lock`/`notes.txt` 不算）。两处模型可见面 + 三处开发面引用同批改为"代次无关"：
 

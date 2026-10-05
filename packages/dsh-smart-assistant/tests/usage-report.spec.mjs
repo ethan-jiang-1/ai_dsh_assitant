@@ -1,5 +1,5 @@
 /**
- * Fixtures for the intent-level dashboard (`dev/usage-report.mjs`). The dashboard is evidence, so
+ * Fixtures for the intent-level dashboard (`dev/reports/usage-report.mjs`). The dashboard is evidence, so
  * its parsing is pinned: the shapes it reads are the ones verified in real logs, and the report must
  * not invent a field a log does not carry.
  */
@@ -7,7 +7,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { homeCounts, mergeSummaries, renderReport, sessionLogs, summarizeEvents } from '../../../dev/usage-report.mjs'
+import { homeCounts, mergeSummaries, renderReport, sessionLogs, summarizeEvents } from '../../../dev/reports/usage-report.mjs'
 
 const dirs = []
 

@@ -16,7 +16,7 @@
    **补记**：`action-plan` 落地当天其实进不了任何会话的技能目录——它的 frontmatter 里
    一个 `: ` 让 YAML parse 失败、加载器静默 skip；同批修好并加了门禁，见
    [策展技能被静默跳过](2026-09-25-curated-skill-frontmatter-silent-skip.md)。
-2. **装配脚本** `pnpm expert-setup -- --data-dir <assistant 目录>`（`scripts/expert-setup.mjs`）：
+2. **装配脚本** `pnpm expert-setup -- --data-dir <assistant 目录>`（`dev/deploy/expert-setup.mjs`）：
    SOUL **仅在未被主人改过时**替换为管理岗专家身份（改过则跳过并说明——装配不覆盖其所有者）；
    知识种子经治理写入路径导入为 draft；报告部署形状与"draft→stable 由你亲手改＝人审"。
    实测两遍：全新家→SOUL 替换+3 种子；复跑→SOUL 跳过、种子幂等。

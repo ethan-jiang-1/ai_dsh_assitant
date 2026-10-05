@@ -138,7 +138,7 @@
 
 - **测的差距**：第一圈列了"装最小意图级仪表"却只做了一半——此后每圈的意图级证据都是我手搓的日志解析
   （数会话、看工具序列、量自用率、看降级），按"同一多步流程重复第三次就立"的常设规则该固化。
-- **切片**：`dev/usage-report.mjs` + `pnpm usage`：会话规模、工具混合、**自用率**、摩擦（非完成轮/LLM 重试）、
+- **切片**：`dev/reports/usage-report.mjs` + `pnpm usage`：会话规模、工具混合、**自用率**、摩擦（非完成轮/LLM 重试）、
   家的条目数、职责圈事件数；`--types` 打印事件类型直方图（把"先枚举再取字段"自动化）。
   纯函数 `summarizeEvents`/`mergeSummaries`/`homeCounts`/`renderReport` 配 3 组夹具（202 tests 全绿）。
 - **首读（dev home，57 会话）**：自用率 **34/57 = 60%**；工具混合 bash×324、read×123、

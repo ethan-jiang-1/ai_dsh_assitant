@@ -1,7 +1,7 @@
 // OpenViking 试点 · server 级记忆往返 + 抽取质量抽评驱动（试点六步的第 5/6 步）
 // 运行：pnpm ov-trial-rt    （前提：OpenViking server 在 127.0.0.1:1933，dev 认证无需 key）
 // 可选参数：session id（默认 dsh-trial-probe-002）——复现/验收用新 id 避免污染首批证据：
-//   node dev/ov-rt.mjs dsh-accept-probe-003
+//   node dev/experiments/openviking/ov-rt.mjs dsh-accept-probe-003
 // 做什么：建会话 → 塞 14 条模拟 CEO↔分身语料（含一处"先说错再改口"的修正探针）→ commit →
 //         等后台抽取 → find 找回三组事实 → 读抽取物原文，输出结构化报告。
 // 语料是虚构人设的哨兵事实（测抽取准头，非真实数据）；质量判分属人——机器只守地板。

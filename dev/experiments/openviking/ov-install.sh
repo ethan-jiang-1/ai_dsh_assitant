@@ -17,7 +17,7 @@
 #       AGPL 边界=独立进程 + HTTP/MCP 消费（RFC 提案 6，复核在案后方可对发行 profile 执行本脚本）。
 set -euo pipefail
 
-REPO="$(cd "$(dirname "$0")/.." && pwd)"
+REPO="$(cd "$(dirname "$0")/../../.." REPO="$(cd "$(dirname "$0")/.." && pwd)"REPO="$(cd "$(dirname "$0")/.." && pwd)" pwd)"
 PROFILE="${1:?用法: bash dev/ov-install.sh <profile> [dsh-home]}"
 HOME_DIR="${2:-${ASSISTANT_DSH_HOME:-$REPO/dev/harness-home}}"
 TGZ="$REPO/vendor/thirdparty/openviking/dsh-memory-plugin-0.5.8.tgz"

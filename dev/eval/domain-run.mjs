@@ -31,7 +31,7 @@ import { runPreset } from './run.mjs'
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const domainDir = join(repoRoot, 'dev', 'eval', 'domain')
 const defaultQuestions = join(domainDir, 'questions.local.md')
-// 与 scripts/dsh.mjs 同一条硬规则：dev 工具**永不继承 DSH_HOME**（见 dev/usage-report.mjs 的同名说明）。
+// 与 scripts/dsh.mjs 同一条硬规则：dev 工具**永不继承 DSH_HOME**（见 dev/reports/usage-report.mjs 的同名说明）。
 // 这里只用它来在打分表头上写清"跑的是哪个 home"。
 const harnessHome = resolve(process.env.ASSISTANT_DSH_HOME ?? join(repoRoot, 'dev', 'harness-home'))
 
