@@ -3,7 +3,7 @@
 > 场景契约（snapshots/AGENTS.md：录制命令、profile、判据与 fixture 同 diff）。
 > 比对器与 CLI：[`dev/probes/web/webui-expected-core.mjs`](../../../dev/probes/web/webui-expected-core.mjs) +
 > [`dev/probes/web/webui-expected.mjs`](../../../dev/probes/web/webui-expected.mjs)；形态夹具：
-> `packages/dsh-smart-assistant/tests/webui-expected-core.spec.mjs`。
+> `packages/dsh-smart-assistant/tests/tooling/webui-expected-core.spec.mjs`。
 
 ## 场景是什么
 

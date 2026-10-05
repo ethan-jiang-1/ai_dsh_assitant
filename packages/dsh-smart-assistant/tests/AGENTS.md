@@ -19,4 +19,4 @@
 - scoped 注册断言必须带与 `createScope` 同一引用的 scope key；`assemble({ scope })` 免 agent 全家桶
   （实证记录：`registry-lifecycle.spec.ts` 头注释）。
 - 新守卫（含 `verify` 检查）必须 prove-it-red：造回归、看红、还原（负例夹具的家：
-  `verify-gates.spec.mjs`）。
+  `tooling/verify-gates.spec.mjs`）。

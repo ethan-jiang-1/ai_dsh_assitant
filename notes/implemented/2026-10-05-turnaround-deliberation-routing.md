@@ -15,7 +15,7 @@
 3. **窄研究而非继续铺资料**：一手代码核查形成 [技术审计](../../_backlog/reference/tech-exploration/261005-turnaround-evidence-audit.md)。当前审批是模型提示回退，Remote 审计有范围/失败边界；独立 DSH home 不隔离外部 OV；本地 storage 不证明推理留域。原型阶段下一步以agent可做的一手公开案例、短访谈/增长框架、可辨识仪器设计与技术核查推进；真人决定/受众以后补，不作等待门。条件性补直接替代品或原统计，拿不到就收窄表述。
 4. **制度入口按既有决定统一**：[notes 规则](../README.md) 的延后归属按 [治理决定](2026-10-02-backlog-governance-borrow.md) 区分未裁决/已裁决；已裁决触发住决定 note、卡关闭，不重建等待队列。暂停不算毕业；root/backlog 对 proposed 的绝对句收窄到重大未来工作，保留 notes 既有局部/机械编辑及轮内交付豁免。不改生命周期四态，不新增呈批层。
 5. **现行合同只写已交付**：README 本轮只校准 owner 路由；产品方向合同迁移另作有界切片，不把候选督办/晨报/内联审批写现在时。已实现 note 的不存在 A/B 补记降未验、易过期数量改索引指针；未重写冻结归档。
-6. **链接修复与覆盖补强**：搬主题子目录后相对路径修到真实 owner；上游放行/未递交状态一致，代理模拟不写成人类测试。[verify](../../scripts/checks/verify.mjs) 保持原 markdownCorpus 的其他门范围，另将 backlog 根 README 与 plans/bugs/reference 的递归 Markdown 加入现有 relativeLinkProblems；[接线夹具](../../packages/dsh-smart-assistant/tests/verify-gates.spec.mjs) 用真实 runner 检出九个活跃位置的断链、修目标后转绿，并证明 `_done` 与未约定根材料不扩扫。纯核未改，未增加平行命令或产品行为。
+6. **链接修复与覆盖补强**：搬主题子目录后相对路径修到真实 owner；上游放行/未递交状态一致，代理模拟不写成人类测试。[verify](../../scripts/checks/verify.mjs) 保持原 markdownCorpus 的其他门范围，另将 backlog 根 README 与 plans/bugs/reference 的递归 Markdown 加入现有 relativeLinkProblems；[接线夹具](../../packages/dsh-smart-assistant/tests/tooling/verify-gates.spec.mjs) 用真实 runner 检出九个活跃位置的断链、修目标后转绿，并证明 `_done` 与未约定根材料不扩扫。纯核未改，未增加平行命令或产品行为。
 
 本 note 部分校准 [backlog 治理](2026-10-02-backlog-governance-borrow.md) 与 [reference 分装](2026-10-05-reference-subdirs.md) 的绝对“唯一实施通道/内容不变”措辞：保留原生命周期与取证意图，澄清授权小修豁免及可解析链接修复，不另立规则体系。进度路由的细节见 [intents 退役补充](2026-10-04-intents-retired.md)。
 

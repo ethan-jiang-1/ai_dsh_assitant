@@ -1,7 +1,7 @@
 /**
  * Pure bookkeeping transforms for `pnpm sync-dsh`, extracted so the upgrade script's two
  * fragile spots are fixture-testable without ever really moving the pin
- * (packages/dsh-smart-assistant/tests/sync-bookkeeping.spec.mjs):
+ * (packages/dsh-smart-assistant/tests/tooling/sync-bookkeeping.spec.mjs):
  *   · applyUpstreamRecord — rewriting the vendor/UPSTREAM.md bookkeeping rows. A missing row
  *     means the table drifted; silently returning unchanged text would record a lie, so the
  *     transform refuses instead of no-oping.

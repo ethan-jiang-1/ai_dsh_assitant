@@ -35,7 +35,7 @@ import {
   testAssetNamingProblems,
   textHygieneProblems,
   vendorClientFreshnessProblems,
-} from '../../../scripts/checks/verify-checks.mjs'
+} from '../../../../scripts/checks/verify-checks.mjs'
 
 const dirs = []
 
@@ -132,8 +132,8 @@ describe('verify relative-link corpus wiring', () => {
     // as two levels up from its own location, so the fixture tree must mirror the layout.
     const scripts = join(root, 'scripts', 'checks')
     mkdirSync(scripts, { recursive: true })
-    writeFileSync(join(scripts, 'verify.mjs'), readFileSync(join(import.meta.dirname, '../../../scripts/checks/verify.mjs'), 'utf8'))
-    const core = new URL('../../../scripts/checks/verify-checks.mjs', import.meta.url).href
+    writeFileSync(join(scripts, 'verify.mjs'), readFileSync(join(import.meta.dirname, '../../../../scripts/checks/verify.mjs'), 'utf8'))
+    const core = new URL('../../../../scripts/checks/verify-checks.mjs', import.meta.url).href
     writeFileSync(join(scripts, 'verify-checks.mjs'), `export * from ${JSON.stringify(core)}\n`)
     for (const file of ['AGENTS.md', 'README.md']) writeFileSync(join(root, file), '# fixture\n')
     const active = [
@@ -571,7 +571,7 @@ describe('skillFrontmatterProblems', () => {
 
 describe('composeRunnerTask', () => {
   it('prepends the standing collaboration boundary to every scripted task', async () => {
-    const { composeRunnerTask, COLLABORATION_BOUNDARY } = await import('../../../packages/dsh-smart-assistant/src/preset-runner/index.ts')
+    const { composeRunnerTask, COLLABORATION_BOUNDARY } = await import('../../../../packages/dsh-smart-assistant/src/preset-runner/index.ts')
     const composed = composeRunnerTask('跑一次 curate')
     expect(composed.startsWith(COLLABORATION_BOUNDARY)).toBe(true)
     expect(composed).toContain('跑一次 curate')
@@ -626,7 +626,7 @@ describe('dev env.sh: the isolation exit is honoured by the shell scripts too', 
    * read another — and the only symptom was `profile "dev" does not exist`. Exercised in a real
    * bash subprocess, against a throwaway ASSISTANT_REPO so nothing of the repo is touched.
    */
-  const envSh = join(import.meta.dirname, '..', '..', '..', 'dev', 'env', 'env.sh')
+  const envSh = join(import.meta.dirname, '..', '..', '..', '..', 'dev', 'env', 'env.sh')
   const resolvedHome = (assistantDshHome, extraEnv = {}) => {
     const probeHome = temp('env-home-')
     const scratchRepo = temp('env-repo-')

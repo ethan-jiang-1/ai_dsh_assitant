@@ -7,7 +7,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { homeCounts, mergeSummaries, renderReport, sessionLogs, summarizeEvents } from '../../../dev/reports/usage-report.mjs'
+import { homeCounts, mergeSummaries, renderReport, sessionLogs, summarizeEvents } from '../../../../dev/reports/usage-report.mjs'
 
 const dirs = []
 

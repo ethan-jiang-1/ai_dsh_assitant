@@ -6,7 +6,7 @@
 ## 门禁的三条纪律
 
 1. **新检查必带负例夹具**：新增一条 `verify` 检查 = 同 diff 在
-   `packages/dsh-smart-assistant/tests/verify-gates.spec.mjs` 配一个"造红再证绿"夹具。
+   `packages/dsh-smart-assistant/tests/tooling/verify-gates.spec.mjs` 配一个"造红再证绿"夹具。
    没证明过会失败的守卫不是守卫（借 DSH `docs/testing.md`：introduce the regression, watch red, revert）。
 2. **检查逻辑与被检查语料分开**：可夹具化的**纯核**放 `verify-checks.mjs`（收路径/输入，返回问题串数组）；
    `verify.mjs` 只拥有"什么算语料、退出码、逐条报告"。这样每个接受/拒绝形态都能在 throwaway 夹具上跑。

@@ -2,7 +2,7 @@
  * Pure core for the web-face expected-comparison pilot (test-strategy adoption, slice 2).
  *
  * Owns exactly two decisions, so the CLI shell (`webui-expected.mjs`) stays thin and the
- * spec (`tests/webui-expected.spec.mjs`) can pin every accepted/rejected shape on fixtures:
+ * spec (`tests/tooling/webui-expected-core.spec.mjs`) can pin every accepted/rejected shape on fixtures:
  *
  *   1. normalizeDomEvidence — strip/rename the fields that CANNOT be part of the expected
  *      state (per-capture volatility), leaving the text-structural evidence.

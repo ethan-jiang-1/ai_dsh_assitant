@@ -64,7 +64,7 @@
   "文件数与总行数少了多少"。文档预算（若触发立案）同上游规则：**上限是护栏，不是减量目标**
   （`vendor/dsh/docs/AGENTS.md`「Wordcount budgets」）。
 - **新门禁必带反例**（负例控制；借 DSH「A guard only guards if the regression fails it」）：
-  新增一条 `verify` 检查 = 同 diff 在 `tests/verify-gates.spec.mjs` 配一个"造红再证绿"夹具；
+  新增一条 `verify` 检查 = 同 diff 在 `tests/tooling/verify-gates.spec.mjs` 配一个"造红再证绿"夹具；
   只对新检查生效，不追旧账。
 - **被阻断的检查不得写成绿色证据**：跑不了或没跑完的检查，在报告与 note 里如实标
   "阻断 + 原因"，不得并入"通过"。

@@ -1,6 +1,6 @@
 /**
  * Fixture-testable cores of the mechanical gates, consumed by scripts/verify.mjs and pinned by
- * packages/dsh-smart-assistant/tests/verify-gates.spec.mjs.
+ * packages/dsh-smart-assistant/tests/tooling/verify-gates.spec.mjs.
  *
  * Each exported function takes the paths/inputs it needs and returns a list of problem strings
  * (empty = pass). verify.mjs owns what counts as the corpus and the exit code; these functions

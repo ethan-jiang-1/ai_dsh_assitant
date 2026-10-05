@@ -13,7 +13,7 @@
  * `tsc -p tsconfig.test.json` does not include non-TS files.
  */
 import { describe, expect, it } from 'vitest'
-import { buildWaitSnippet, compareEvidence, normalizeDomEvidence } from '../../../dev/probes/web/webui-expected-core.mjs'
+import { buildWaitSnippet, compareEvidence, normalizeDomEvidence } from '../../../../dev/probes/web/webui-expected-core.mjs'
 
 /** A minimal well-formed capture: complete, right viewport, empty failure lists. */
 function evidence(overrides = {}) {

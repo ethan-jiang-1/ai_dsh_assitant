@@ -425,7 +425,7 @@ check('contract: skill files carry valid frontmatter and match their directory',
 //     resolve to an existing file (standard markdown semantics: relative to the linking file).
 //     Anchors/query strings are stripped but NOT validated (heading slugs are out of scope), and
 //     prose placeholders (`(url)`, `(…)`) are out of scope by the path-shape rule. Fixtures pin
-//     both sides: scripts' verify-checks.mjs ↔ tests/verify-gates.spec.mjs.
+//     both sides: scripts' verify-checks.mjs ↔ tests/tooling/verify-gates.spec.mjs.
 //   · sections — cross-file references only ("`docs/x.md` §三" / "x.md 第三节"). A trailing
 //     「anchor」 must appear in the target heading, which is the branch that catches retargeted
 //     numbers, not just removed ones. Same-file §N and pointers living in code comments are out

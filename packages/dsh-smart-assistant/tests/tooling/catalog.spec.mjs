@@ -6,7 +6,7 @@
  * client seat extraction reads every seat family and fails loud on an undiscoverable tab.
  */
 import { describe, expect, it } from 'vitest'
-import { extractClientSurface, extractTool, parseRows, renderCatalog } from '../../../scripts/generate/gen-catalog.mjs'
+import { extractClientSurface, extractTool, parseRows, renderCatalog } from '../../../../scripts/generate/gen-catalog.mjs'
 
 describe('parseRows', () => {
   it('reads id/name/disabled rows and accepts a disable-only directive', () => {
