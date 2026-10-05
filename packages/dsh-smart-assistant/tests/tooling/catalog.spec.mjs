@@ -6,7 +6,7 @@
  * client seat extraction reads every seat family and fails loud on an undiscoverable tab.
  */
 import { describe, expect, it } from 'vitest'
-import { extractClientSurface, extractTool, parseRows, renderCatalog } from '../../../../scripts/generate/gen-catalog.mjs'
+import { collectCatalog, extractClientSurface, extractTool, parseRows, renderCatalog } from '../../../../scripts/generate/gen-catalog.mjs'
 
 describe('parseRows', () => {
   it('reads id/name/disabled rows and accepts a disable-only directive', () => {
@@ -169,5 +169,16 @@ describe('renderCatalog', () => {
 
   it('is deterministic: same input renders the same text', () => {
     expect(renderCatalog(input)).toBe(renderCatalog(input))
+  })
+})
+
+describe('collectCatalog reads the real dev runner patch (devRows never silently empty)', () => {
+  // Red proof: before 2026-10-05 the reader still pointed at the pre-P2 path
+  // (dev/preset-runner.patch.yml) while the renderer already labelled the new location —
+  // existsSync made the empty devRows a silent lie in the shipped catalog.
+  it('finds the dev runner row at its post-P2 location', () => {
+    const catalog = collectCatalog()
+    expect(catalog.devRows.length, 'devRows must not be silently empty — the reader path must track the real patch').toBeGreaterThan(0)
+    expect(catalog.devRows.some(row => (row.name ?? '').includes('preset-runner'))).toBe(true)
   })
 })

@@ -100,7 +100,7 @@ export function collectCatalog(root = repoRoot) {
   if (presetRow === undefined) throw new Error('gen-catalog: cordis.patch.yml has no preset-assistant row — the patch shape changed')
   const agentRows = patchRows.filter(row => (row.name ?? '').startsWith('dsh-smart-assistant/') && row.indent > presetRow.indent)
   const hostSubRows = patchRows.filter(row => (row.name ?? '').startsWith('dsh-smart-assistant/') && row.indent <= presetRow.indent)
-  const devPatch = join(root, 'dev', 'preset-runner.patch.yml')
+  const devPatch = join(root, 'dev', 'probes', 'session', 'preset-runner.patch.yml')
   const devRows = existsSync(devPatch)
     ? parseRows(read(devPatch)).filter(row => (row.name ?? '').startsWith('dsh-smart-assistant'))
     : []
