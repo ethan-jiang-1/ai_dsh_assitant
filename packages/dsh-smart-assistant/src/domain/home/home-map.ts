@@ -18,7 +18,7 @@
 export const AGENTS_FILE_NAME = 'AGENTS.md'
 
 /** Version of the generated manual; bump when the generated content changes meaningfully. */
-export const HOME_MANUAL_VERSION = 12
+export const HOME_MANUAL_VERSION = 13
 
 /** The version marker stamped as the file's first line (an HTML comment: invisible when rendered). */
 export const HOME_MANUAL_MARKER = `<!-- home-manual v${String(HOME_MANUAL_VERSION)} -->`
@@ -79,6 +79,15 @@ happened".
 | \`research/\` | Threads you have not resolved: a question, why it matters, your current lean | \`open\` / \`parked\` → promoted or dropped → \`archive/\` |
 | \`skills/\` | Procedures worth reusing, in the harness skill format | edited in place; loaded by name; retired (out of the catalog, recoverable) → \`archive/\` |
 | \`knowledge/\` | Domain pages that interlink: concepts, entities, sources, how-things-work | \`draft\` → reviewed → \`stable\`; \`deprecated\` stays in place so links keep resolving |
+
+## Dated commitments are scheduled
+
+A desk action with a \`due\` is a promise; a promise nobody pings is a calendar entry the principal
+must remember to open. When you write a dated action, create its reminder in the same turn
+(\`schedule_create\`, 09:00 of the due date when no time is given), and when a scheduled follow-up
+arrives in the conversation, that arrival is the brief moment — load the \`morning-brief\` skill and
+present what is due, briefly. Defer and silence are the principal's words for it (any language);
+one delivery per due, no re-ping without new information.
 
 ## The first conversation
 
