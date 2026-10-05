@@ -107,9 +107,10 @@ seam 的成色读数是**第二个真实 Provider 出现而 Consumer 一行不�
 | `src/skills/scan.ts` | 按 provider 的规则回读技能房间，报出会被静默忽略的文件 | frontmatter |
 | `src/home/digest.ts` | 有界摘要（桌面），按 UTF-8 字节裁剪 | record/thread 类型 |
 | `src/home/health.ts` | **纯函数**养护检查：输入是解析结果，输出是 findings | 类型 |
-| `src/index.ts` | 服务：把上面这些组装成 `ctx.assistantMemory` | 全部 |
+| `src/index.ts` | 稳定包入口：`src/host/index.ts` 服务实现的薄导出（同 class 身份；`ctx.assistantMemory` 增广随实现加载） | 全部 |
+| `src/host/index.ts` | 服务实现：把领域模块组装成 `ctx.assistantMemory` | 全部 |
 | `src/tool-support/presentation.ts` | 四个工具共享的 presenter 管道：`presentationMeta` 投影摘要 → `presentResult` 从 `result.meta` 读回（完成卡读不到规范值，只能读持久化载荷） | dsh-tools 类型 |
-| `src/web-branding.ts` | Web 壳品牌注入行：页标题 + 图标（纯函数；经 `webserver/index-inject` 事件进浏览器，皮肤面） | dsh-host-webserver（仅类型） |
+| `src/host/web-branding.ts` | Web 壳品牌注入行：页标题 + 图标（纯函数；经 `webserver/index-inject` 事件进浏览器，皮肤面） | dsh-host-webserver（仅类型） |
 | `src/client/index.ts` | 浏览器面：座位与命令注册（精确清单 = 生成物 [`package-catalog.md`](package-catalog.md)「客户端座位面」节；皮肤面，不进模型上下文） | react + ui-renderer/ui-sidebar（仅类型） |
 | `src/preset-runner/index.ts` | **preset 挂载的 one-shot 驱动**（dev 验证自动化：`agentPresets.resolve`→`mount` 进 agent setup，会话头记录 `agentPreset`；经 `dev/probes/session/preset-runner.patch.yml` 替换 headless-runner 行启用） | dsh-agent / dsh-agent-preset-registry / dsh-llm / dsh-session / dsh-brand |
 | `src/tool-memory/`、`src/tool-research/`、`src/tool-knowledge/`、`src/memory-digest/`、`src/learn/` | agent 面入口：薄适配器（校验跨字段规则 → 调服务 → 返回规范值 + presenter） | cordis/tools |
@@ -203,7 +204,7 @@ pnpm dsh …（package.json scripts → dev/env/dsh.mjs，唯一启动器：
         + 技能目录（随请求扫描）
       └ model turn（vendor agent-loop）
           └ tool call → 本包工具行（§二）→ ctx.assistantMemory
-            （packages/dsh-smart-assistant/src/index.ts，host 服务）
+            （packages/dsh-smart-assistant/src/host/index.ts，host 服务（根 `src/index.ts` 为薄导出稳定入口））
             → Room 存储（working folder 四房间，布局 owner = docs/home.md）
           └ tool result → 下一轮或最终答复
 全程模型可见输入逐字进会话日志（§四 model-visible ⟺ logged）
@@ -246,7 +247,7 @@ pnpm dsh …（package.json scripts → dev/env/dsh.mjs，唯一启动器：
 | 功能 | 走哪条链 | 实现入口 | 最低验证（keyless） | 失败先看 | 哪步才要模型/浏览器 |
 |---|---|---|---|---|---|
 | 记忆保存/检索 | 模型请求链 | `assistant_memory`（`src/tool-memory/`）→ `ctx.assistantMemory` → memory/ 房间；词汇 `src/memory/record.ts`、排序 `src/memory/recall.ts` | `pnpm --filter dsh-smart-assistant exec vitest run tests/domain/record.spec.ts tests/domain/recall.spec.ts` | 房间文件 frontmatter；digest 缓存 touch 失效（§五） | 规则与排序确定性无模型；真实措辞与召回选择才在模型回合 |
-| 知识草稿/批准/检索 | 模型 + 浏览器链 | 草稿 = `assistant_reflect` 的 save_page（staged）；批准 = 浏览器两车道 → host `promotePage`（`src/index.ts`）；检索 = `assistant_knowledge`（`src/tool-knowledge/`） | `pnpm --filter dsh-smart-assistant exec vitest run tests/host/knowledge-write.spec.ts`（草稿/批准/检索/摘要全链） | draft→stable 翻转与会话审计；直调挂载回退提示 | 批准按钮与回退车道要浏览器；草稿内容生成在模型回合 |
+| 知识草稿/批准/检索 | 模型 + 浏览器链 | 草稿 = `assistant_reflect` 的 save_page（staged）；批准 = 浏览器两车道 → host `promotePage`（`src/host/index.ts`）；检索 = `assistant_knowledge`（`src/tool-knowledge/`） | `pnpm --filter dsh-smart-assistant exec vitest run tests/host/knowledge-write.spec.ts`（草稿/批准/检索/摘要全链） | draft→stable 翻转与会话审计；直调挂载回退提示 | 批准按钮与回退车道要浏览器；草稿内容生成在模型回合 |
 | 提示词摘要 | 模型请求链 | `assistant-memory-digest` 段落（`src/memory-digest/`）← `ctx.assistantMemory.digest()` 缓存 + 写操作 touch 失效（§五） | `pnpm --filter dsh-smart-assistant exec vitest run tests/domain/digest.spec.ts tests/agent/digest-prewarm.spec.ts` | 缓存失效时序与段落同步 `text` 契约 | 摘要计算无模型；真实会话的段落组装用 keyless 回放看 |
 | 桌面刷新 | 浏览器 → 模型 → 读回 | `sendPrompt`（`src/client/index.ts`）→ 模型回合 → `.desk/state.json` → 轮询越过 pending.at | `pnpm --filter dsh-smart-assistant exec vitest run tests/client/client-panels.spec.ts tests/client/client-commands.spec.ts` | `.desk/state.json` 生成时间 vs pending.at；会话日志 | 全链要真会话与渲染：`pnpm web-expected` 两场景；真问真答 `pnpm loop-probe` |
 | 插件装载 | 启动链 | `cordis.patch.yml` 行 → built `lib/` → profile（`dev/env/setup.sh` 装包 + profile patch 设 default） | `pnpm test:composition`（先 build）+ `pnpm --filter dsh-smart-assistant exec vitest run tests/composition/export-shape.spec.mjs` | lib freshness（never started）；行 id/patch 落空（dump-config） | Web UI 行为要 `pnpm preflight` + 两场景 |

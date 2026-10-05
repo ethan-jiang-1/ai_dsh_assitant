@@ -52,8 +52,8 @@
       "default": "./lib/learn/index.js"
     },
     "./knowledge-approve-remote": {
-      "types": "./lib/knowledge-approve-remote/index.d.ts",
-      "default": "./lib/knowledge-approve-remote/index.js"
+      "types": "./lib/host/knowledge-approve-remote/index.d.ts",
+      "default": "./lib/host/knowledge-approve-remote/index.js"
     },
     "./preset-runner": {
       "types": "./lib/preset-runner/index.d.ts",

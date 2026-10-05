@@ -59,10 +59,16 @@ const PREFIX = 'dsh-smart-assistant'
 const hostRow = ownRows.find(row => row.name === PREFIX)
 const presetSubRows = ownRows.filter(row => row.name !== PREFIX)
 
-/** Relative source-module path for a patch row name (package root row → src/index.ts). */
+/** Layer directory each subpath row's implementation lives in: `src/<layer><sub>/index.ts`.
+ * Rows absent from the map still sit at the src root; the package-root row resolves to the
+ * thin stable entry `src/index.ts`, which re-exports the same class identity. */
+const SOURCE_LAYER = { 'knowledge-approve-remote': 'host/' }
+
+/** Relative source-module path for a patch row name (package root row → thin src/index.ts). */
 function sourceOf(rowName) {
   const sub = rowName.slice(PREFIX.length).replace(/^\//, '')
-  return sub === '' ? '../../src/index.ts' : `../../src/${sub}/index.ts`
+  if (sub === '') return '../../src/index.ts'
+  return `../../src/${SOURCE_LAYER[sub] ?? ''}${sub}/index.ts`
 }
 
 if (hostRow === undefined || presetSubRows.length === 0) {

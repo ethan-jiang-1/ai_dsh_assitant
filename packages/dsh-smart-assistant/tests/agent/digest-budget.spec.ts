@@ -1,6 +1,6 @@
 /**
  * Layer: agent (prompt-section contract). The gate is enforced on the host service's
- * write path (src/index.ts); service-plane contracts live in tests/host/.
+ * write path (src/host/index.ts); service-plane contracts live in tests/host/.
  * Budget enforcement (tri-line proposal 2026-09-24, slice 1h; keying fixed 2026-10-02): a pure
  * memory addition is refused when memory lines are being squeezed off the desktop
  * (`omittedMemories > 0`) — the budget stops being advisory for the section actually under

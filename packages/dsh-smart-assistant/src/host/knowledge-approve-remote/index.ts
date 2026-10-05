@@ -11,7 +11,7 @@
  * Audit design: every approval writes a `knowledge/approve` event into the approving session's
  * log (SessionEventMap extension below) — the same durability the round trip had, minus the
  * model turn. Nothing else changes: `promotePage` is the same method the model path calls, and
- * it refuses to promote anything the session did not write (see `src/index.ts` — only drafts
+ * it refuses to promote anything the session did not write (see `src/host/index.ts` — only drafts
  * flip, and a hand flip of status to stable is the approval).
  *
  * Shape per the vendor precedent `api/session-controller` `SessionSkillCatalog`: a

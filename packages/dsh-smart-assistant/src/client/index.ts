@@ -176,7 +176,7 @@ interface ModuleLoaderFacade {
 /** The deployment's sidebar identity. */
 const BRAND_NAME = '智能助手'
 
-/** Panel accent (brand teal) as a theme variable; the favicon in `src/web-branding.ts` keeps the
+/** Panel accent (brand teal) as a theme variable; the favicon in `src/host/web-branding.ts` keeps the
  * literal hex — favicons are fixed images and cannot resolve CSS variables. */
 const MARK_TEAL = 'var(--dsha-accent)'
 

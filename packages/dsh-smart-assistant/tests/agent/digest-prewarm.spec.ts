@@ -1,6 +1,6 @@
 /**
  * Layer: agent (prompt-section contract). The mechanism under test — the constructor
- * chaining the first rendering — lives in the host service (src/index.ts); service-plane
+ * chaining the first rendering — lives in the host service (src/host/index.ts); service-plane
  * behaviour has its own contracts in tests/host/.
  * Cold-start digest prewarm (2026-09-25, campaign slice: found live by the baseline probe).
  *
