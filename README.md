@@ -86,6 +86,8 @@ dsh plugin --profile <p> add file:./packages/dsh-smart-assistant   # <p>＝你�
 | Web 交互 | `pnpm dsh --profile dev --port 0 --no-open` | Web preset 行为；交给人前先跑 `pnpm preflight '<URL>'` |
 | 测试/构建 | `pnpm typecheck && pnpm test` | 类型、纯核和服务级合同；组合与发行物另需 `pnpm build` / `pnpm release-smoke` |
 
+按功能找入口/主链/验证命令/失败定位：五条功能路由在 [docs/architecture.md](docs/architecture.md) §八（启动、模型请求、浏览器三条链路在 §七）。
+
 实际 preset 来源是 `package.json` 的 `dsh.bundle.patch` 指向 `packages/dsh-smart-assistant/cordis.patch.yml` 中的 `preset-assistant` 行。运行数据的 `DSH_HOME`、助手 `dataDir` 与源码 cwd 是三个不同根，详见 [开发手册](docs/dev.md)。
 
 打包安装的形状（`pnpm pack` 出 tarball 再 `dsh plugin add <tarball>`）由 `pnpm release-smoke` 机械验证：
