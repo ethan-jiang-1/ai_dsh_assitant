@@ -65,7 +65,7 @@ const presetSubRows = ownRows.filter(row => row.name !== PREFIX)
 const SOURCE_LAYER = {
   'knowledge-approve-remote': 'host/',
   'tool-memory': 'agent/', 'tool-research': 'agent/', 'tool-knowledge': 'agent/',
-  'memory-digest': 'agent/', 'home-preamble': 'agent/', 'learn': 'agent/', 'ov-shield': 'agent/',
+  'memory-digest': 'agent/', 'home-preamble': 'agent/', 'learn': 'agent/', 'ov-shield': 'agent/', 'preset-runner': 'dev/',
 }
 
 /** Relative source-module path for a patch row name (package root row → thin src/index.ts). */

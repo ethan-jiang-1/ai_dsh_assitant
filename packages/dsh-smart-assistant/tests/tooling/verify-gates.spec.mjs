@@ -571,7 +571,7 @@ describe('skillFrontmatterProblems', () => {
 
 describe('composeRunnerTask', () => {
   it('prepends the standing collaboration boundary to every scripted task', async () => {
-    const { composeRunnerTask, COLLABORATION_BOUNDARY } = await import('../../../../packages/dsh-smart-assistant/src/preset-runner/index.ts')
+    const { composeRunnerTask, COLLABORATION_BOUNDARY } = await import('../../../../packages/dsh-smart-assistant/src/dev/preset-runner/index.ts')
     const composed = composeRunnerTask('跑一次 curate')
     expect(composed.startsWith(COLLABORATION_BOUNDARY)).toBe(true)
     expect(composed).toContain('跑一次 curate')
