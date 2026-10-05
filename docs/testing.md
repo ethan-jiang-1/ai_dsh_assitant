@@ -24,7 +24,7 @@
 | 台阶 | 本仓样板 | 何时必须 |
 |---|---|---|
 | ① 导出形态（无 default + unwrapExports 往返 + name=行 id） | `tests/composition/export-shape.spec.mjs` | 每 patch 行（现读，自动覆盖） |
-| ② 行为 spec（真依赖，只 stand-in 最外层包装） | 各 `tests/*.spec.ts` | 每个行为改动 |
+| ② 行为 spec（真依赖，只 stand-in 最外层包装） | 各 `tests/**/*.spec.{ts,mjs}`（分层表见「目录即被测 interface」） | 每个行为改动 |
 | ③ 注册生命周期（dispose 即撤销 + 可重挂） | `tests/composition/registry-lifecycle.spec.ts` | 每个新注册面 |
 | ④ 真实组合（真 Loader 读真 yml，hand-built 不算数） | `tests/composition/preset-composition.spec.ts`（入口：`pnpm test:composition`，先 build） | 每个新 preset 行；spec 从 shipped `preset-assistant` rows 取本包范围 |
 | ⑤ 组装转录（录制会话 keyless 回放） | 未建——触发条件 owner：`snapshots/README.md` | 触发未到，不预建 |

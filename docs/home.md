@@ -134,6 +134,7 @@ learn 模块的 `tools/result` 订阅就给对应名字计数（用户 `/name` �
 | 缺理由的 drop | `status: dropped` 但 `reason` 为空 | 尸体没写死因 = 白丢 |
 | 技能文件 | 名字不合 `SKILL_NAME` 文法 / 缺 `description` / 目录名与 name 不一致 | 技能会静默不被发现 |
 | 同名遮蔽 | 学到技能的名字被注册表判给其他 provider（`skill-shadowed`，探自 curate 所在会话的技能注册表） | `save_skill` 说成功、文件也在 working folder，但**永不加载**——静默失联 |
+| 技能无出处 | 技能无 `metadata.origin`（`skill-without-provenance`，info）——手写或未经 `assistant_reflect` 写入 | 出处是学习信心的来源：不知来路的技能不敢退役也不敢信 |
 | 技能过期（stale） | 超过 `staleSkillDays`（默认 30 天）未被加载（`skill-stale`，info） | 死技能是目录重；先报候选，去留归 agent |
 | 技能可退役 | 超过 `retireSkillDays`（默认 90 天）未被加载（`skill-retirable`，warn） | 每个技能的 name+description 都在目录里占常驻上下文——死技能每请求都在付费；年龄锚点=账本 `lastUsedAt`，从未加载的用 `learnedAt` |
 | 技能引用完整性 | SKILL.md 里的相对指针（markdown 链接 / `references/` 反引号路径）指向不存在的文件（`skill-broken-reference`，warn；**save_skill 写完即审**，结果里即时注入，不阻断） | 未来会话顺着指针走会撞墙 |
@@ -178,7 +179,8 @@ bundles, M snapshots`，退役与快照都不删除、技能归档只增不减�
   行为零变化），**已有永不覆盖**；空文件不注入。身份段读它逐字进 system prompt（紧贴 persona
   stub，`assistant:soul`）；缺/空/坏 → **回退内置默认**（回退是替换不是叠加）。改人格 = 编辑
   这个文件，不用动插件源码。
-- **`AGENTS.md`（手册）**：working folder 怎么用——四房间、三档出口、退役、curate、盘上布局，以及
+- **`AGENTS.md`（手册）**：working folder 怎么用——四房间、三档出口、退役、curate、盘上布局、首会话开场
+  （first conversation）、协作边界等节（非穷举，正文以 `renderHomeManual` 为准），以及
   **桌面文件（`.desk/state.json`）的最小契约**（`generatedAt` + 各分区；面板的唯一数据源；字段级模板源 = `src/domain/home/home-map.ts` 的 `renderHomeManual`——运行时随家手册落盘，字段清单的家在家手册）.
   scaffold 缺则种（首行 `<!-- home-manual vN -->` 版本标记），永不覆盖；手册段
   （`assistant:home-manual`）逐字进 system prompt；缺则**现场渲染当前版**（缺文件永不落后）。

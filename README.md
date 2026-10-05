@@ -59,8 +59,8 @@
 | `assistant_reflect` | `brief` `save_skill` `retire_skill` `save_page` `promote_page` `deprecate_page` `propose_skill` `land_skill` |
 | `assistant_knowledge` | `search` `get`（只读检索，附反链） |
 
-`curate` 是**机器能跑的养护检查**（重复、悬空引用、摘要预算、过期线索、技能遮蔽/退役/断链/
-凭据、知识页断链/孤页/过期）—— 能让代码查的，别让 AI 自己说。
+`curate` 是**机器能跑的养护检查**（重复、悬空引用、摘要预算、过期线索、技能遮蔽/退役/断链/凭据、
+知识页治理等——**非穷举**，完整检查面 = [`docs/home.md`](docs/home.md) §四）—— 能让代码查的，别让 AI 自己说。
 
 这四个是本插件的**自有**工具；同一组合里还有 DSH 现货工具在场——`session_query` 族（原始会话
 检索）、`schedule_*` 定时四件、`skill`（技能加载）等，完整组合见 `docs/architecture.md` §二。

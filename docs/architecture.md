@@ -15,7 +15,7 @@
 | ② 让它懂你的业务（隐性知识显性化） | `memory/` 房间：事实、偏好、决定 —— 一条一个文件，可读可审 |
 | ③ 让它有该有的本事（工具与边界） | 四个工具 + working folder 的写入边界（`src/domain/home/layout.ts` 是唯一 owner） |
 | ④ 让它按对的步骤走（工作流） | 过程性知识进**技能**（抽屉），不占常驻上下文；三档出口固定了线索的收束方式 |
-| ⑤ 让它经得起检查 | `curate`：**机器能跑的检查**（重复、悬空引用、预算、过期线索、缺理由的 drop、技能语法） |
+| ⑤ 让它经得起检查 | `curate`：**机器能跑的检查**（重复、悬空引用、预算、过期线索、缺理由的 drop、技能语法等——非穷举，完整面 = [`home.md`](home.md) §四） |
 
 **反过度工程**：不建向量库、不建后台自动学习循环。浏览器面只消费 vendor 的**通用** slot/座位
 （皮肤面，不进模型上下文）——不做**专属 Web 卡片**（触发条件见 §六）。
@@ -37,7 +37,12 @@ HOST 面（cordis.patch.yml → dsh.bundle.patch）
                             + schedule + ui-schedule 行（定时面：到期任务以原会话 follow-up 投递；
                               schedule_create/list/update/delete 四工具只挂 root agents——Web 组合默认带，
                               headless 组合由 profile 层显式 disabled，它依赖 web-app 层的 sessionController）
-                            + Web 壳品牌注入行（页标题/图标，webserver/index-inject；皮肤，不进模型上下文）
+                            + ui-chat 行（首开预置 transcriptView: detailed——vendor 预构建 client lib 落后其 src，
+                              全新 home 无存档时 mode=undefined 会使 conversation.view 槽崩溃；退役条件=上游发布物确认带兜底）
+                            + locale 行（首开预置 preference: zh——无偏好时首开语言随浏览器协商落回 en；
+                              Settings 可改，持久化到 home 层覆盖本行）
+                            + Web 壳品牌注入（页标题/图标，经 assistant-memory 插件内的 webserver/index-inject
+                              监听推送——**非独立组合行**；皮肤，不进模型上下文）
 
 AGENT 面（`cordis.patch.yml` 的 `preset-assistant` 行 → agent preset）
 ├── assistant-home-preamble   提示词段落：身份（SOUL.md）与家手册（AGENTS.md）逐字
@@ -51,7 +56,7 @@ AGENT 面（`cordis.patch.yml` 的 `preset-assistant` 行 → agent preset）
 ├── skill-filesystem          策展技能（包内 `presets/assistant/skills/`，按包名解析后指过去）
 └── persona / agent-instructions / tool-fs / tool-fs-search / shell / ask-user /
     todo / goal（`tool-goal`+`command-goal`）/ plan-mode（isolate 组）/
-    jobs / 委派组（`subagent`+`subagent_fork`+control 三件，isolate 组）/ web / present / compaction
+    jobs / 委派组（`subagent`、`subagent_fork`、control 家族，isolate 组）/ web / present / compaction
 ```
 
 **浏览器面**（package.json `dsh.client` → `./client` 出口；经既有 bundle 行被 client-modules
@@ -113,7 +118,7 @@ seam 的成色读数是**第二个真实 Provider 出现而 Consumer 一行不�
 | `src/host/web-branding.ts` | Web 壳品牌注入行：页标题 + 图标（纯函数；经 `webserver/index-inject` 事件进浏览器，皮肤面） | dsh-host-webserver（仅类型） |
 | `src/client/index.ts` | 浏览器面：座位与命令注册（精确清单 = 生成物 [`package-catalog.md`](package-catalog.md)「客户端座位面」节；皮肤面，不进模型上下文） | react + ui-renderer/ui-sidebar（仅类型） |
 |  `src/dev/preset-runner/index.ts` | **preset 挂载的 one-shot 驱动**（dev 验证自动化：`agentPresets.resolve`→`mount` 进 agent setup，会话头记录 `agentPreset`；经 `dev/probes/session/preset-runner.patch.yml` 替换 headless-runner 行启用） | dsh-agent / dsh-agent-preset-registry / dsh-llm / dsh-session / dsh-brand |
-| `src/agent/tool-memory/`、`src/agent/tool-research/`、`src/agent/tool-knowledge/`、`src/agent/memory-digest/`、`src/learn/` | agent 面入口：薄适配器（校验跨字段规则 → 调服务 → 返回规范值 + presenter） | cordis/tools |
+| `src/agent/`（`tool-memory`、`tool-research`、`tool-knowledge`、`memory-digest`、`home-preamble`、`learn`、`ov-shield`） | agent 面入口：薄适配器（校验跨字段规则 → 调服务 → 返回规范值 + presenter） | cordis/tools |
 
 **依赖方向单向向下**，纯核（home/memory/research/skills）**不 import DSH 运行时** ——
 所以它们能被 vitest 直接测，不需要挂 harness。

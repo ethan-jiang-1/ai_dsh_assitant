@@ -2,7 +2,7 @@
 # —— 本仓 dev 验证专用驱动（战役步骤 B/C/D 的自动化；live 检查档的种子）。
 #
 # 用法（repo 根）：
-#   pnpm dsh --profile dev-task --patch dev/preset-runner.patch.yml "<task>"
+#   pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner.patch.yml "<task>"
 #
 # 形状说明（loader 守卫：行**替换**不得改 `name`——插件身份不可被 patch 劫持）：
 # 先禁用 shipped 的 headless-runner 行，再以**新 id 插入**我们的 runner。

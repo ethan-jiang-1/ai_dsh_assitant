@@ -14,8 +14,9 @@
 （由 `scripts/generate/gen-catalog.mjs` 从 exports、组合行、工具源码与技能目录抽取；`pnpm verify` 守 freshness）。
 这里只留一句形状概括，不再手维护清单——手维护的入口表在本仓漂移过两次：
 
-- **9 个 plugin 子路径**：host 1（`assistantMemory` 服务）+ preset agent 6（四个工具入口、两个提示词段落、
-  `learn`）+ dev 专用 agent 1（`preset-runner`）+ client 1（浏览器面）。
+- plugin 子路径按 host / agent / client 三平面分布（host 含知识批准服务，agent 含四工具、提示词段落、
+  learn 与遮蔽盾），另有非 plugin 导出（`./preset-runner`、`./package.json`）。**计数与逐行清单以
+  [生成物 catalog](../../docs/package-catalog.md) 为准——本句不携带数字，数字在这里烂过一次**（第五轮漂移审计 #1）。
 
 装法、身份名、working folder 的契约分别在仓库的 `README.md`、`docs/identity.md`、`docs/home.md`。
 
