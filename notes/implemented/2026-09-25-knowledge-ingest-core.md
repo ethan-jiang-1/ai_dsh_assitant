@@ -24,7 +24,7 @@
 ## 三、形状与验证
 
 - 纯核 `ingest.ts`：`slugify` / `sourcePageId` / `segmentDocument` / `planSourcePage`（+`BODY_LIMIT_BYTES`）；
-- 夹具 `tests/knowledge-ingest.spec.ts`（7 例）：slug 边界（CJK 标题折叠为 `doc`）、id 确定性、
+- 夹具 `tests/domain/knowledge-ingest.spec.ts`（7 例）：slug 边界（CJK 标题折叠为 `doc`）、id 确定性、
   围栏内 `#` 不是标题、空输入、摘要取首行、截断标记、`plan` 幂等。
 - **本切片不含**：写盘与 CLI/工具接线（下一步）；因此它现在还不能被"用起来"——诚实记录。
 

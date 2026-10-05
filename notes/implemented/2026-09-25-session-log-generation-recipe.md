@@ -31,7 +31,7 @@ pin 迁到 0.1.7 后写者前移到 **v4**，而本仓多处读方与给助手�
 | `docs/dev.md` §五、`docs/discipline.md` 纪律表、`.agents/skills/repo-live-probe/SKILL.md` | 改用可用 glob `session.v*.jsonl.zstd` |
 | [`2026-09-24-session-log-memory.md`](2026-09-24-session-log-memory.md) | 同一事实的当前值改为代次无关并链到本 note |
 
-红证据（同 diff）：`tests/layout.spec.ts` 新增用例钉住两处模型可见面——文本必须含
+红证据（同 diff）：`tests/domain/layout.spec.ts` 新增用例钉住两处模型可见面——文本必须含
 `session.v<n>.jsonl.zstd` 且**不得**出现 `session.v\d+.jsonl.zstd`。造红实测：把两处改回
 `session.v3.jsonl.zstd` → 该用例红（断言信息指名 `manual must name the log as session.v<n>…`），
 复原 → 绿。
@@ -39,7 +39,7 @@ pin 迁到 0.1.7 后写者前移到 **v4**，而本仓多处读方与给助手�
 ## 四、验收（交付时全绿）
 
 1. `docs/` 与 .agents 的引用同一批改完，`pnpm verify` 31/31 ✅；
-2. 模型可见文案改动同 diff 带断言 ✅（`tests/layout.spec.ts` 的新用例，造红→复原→绿）；
+2. 模型可见文案改动同 diff 带断言 ✅（`tests/domain/layout.spec.ts` 的新用例，造红→复原→绿）；
 3. `pnpm eval` 真跑 ✅ 3/3；
 4. live：preset 会话里请助手按手册配方回忆一条历史会话，读会话日志确认它读的是**存在**的文件 ✅。
 

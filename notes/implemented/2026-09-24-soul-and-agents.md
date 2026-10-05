@@ -86,7 +86,7 @@
   mount+代理路径组装 system prompt，断言 `assistant:soul` < `assistant:home-manual` <
   `assistant:memory-digest` 顺序与各段内容；`tests/service-shadow-access.spec.ts` 扩为三快照
   方法的代理回归（原 #private 翻车路径）。
-- **scaffold**：`tests/layout.spec.ts`——双文件种子、幂等、手改不覆盖。
+- **scaffold**：`tests/domain/layout.spec.ts`——双文件种子、幂等、手改不覆盖。
 - **dev home 迁移实跑**：删旧烂图（仍写 Three rooms 的 HOME.md）→ ensureHome 种出 SOUL.md +
   AGENTS.md（`manualWritten/soulWritten: true`）→ curate 零发现、digest 1941→1530 字节
   （blurb 减负兑现，对冲手册新增的常驻重量）。

@@ -52,7 +52,7 @@ R2 缺口清单第 1 项（`notes/archived/research/2026-09-24-r2-skill-growth-s
 ## 证据
 
 - 纯核 + 服务级：`tests/skill-usage.spec.ts`（8 测试：roundtrip/烂文件容忍/递增/提取过滤/
-  排序截断/跨实例持久/不可读 warn/原子写与名字校验）、`tests/health.spec.ts` 扩 2 测试
+  排序截断/跨实例持久/不可读 warn/原子写与名字校验）、`tests/domain/health.spec.ts` 扩 2 测试
   （join 排序与 never-loaded、账本不可读 finding）。**83/83 全绿**（`pnpm test`）。
 - 机械门禁：`pnpm typecheck` && `pnpm build` && `pnpm verify` 16/16。
 - **live 实证**（preset-runner one-shot，2026-09-24，会话 `session-e687709b-2de4-4975-974f-3d5ae3f8b7cb`，

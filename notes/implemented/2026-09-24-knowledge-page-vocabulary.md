@@ -26,6 +26,6 @@
 
 ## 证据
 
-`tests/knowledge-page.spec.ts`（8 测试：三形态解析与顺序/trim、type 唯一必填与 status 缺省、
+`tests/domain/knowledge-page.spec.ts`（8 测试：三形态解析与顺序/trim、type 唯一必填与 status 缺省、
 五种非法形状、全字段 roundtrip 与 links 提取、无效映射 undefined（含空 body）、id 优先
 title 兜底/歧义三态/missing、反链去重无自环）。**118/118 全绿**；typecheck/verify 16/16。

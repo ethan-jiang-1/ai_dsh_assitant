@@ -39,7 +39,7 @@ push 循环保证 used ≤ maxBytes，digest.ts:77-86），恒不超预算，所
 
 - `tests/digest-budget.spec.ts`（2 测试：小预算灌满到截断 → 纯新增被拒（消息含出路）、
   supersede 仍开放、压力在场时 curate 报 finding、forget 后 finding 消；
-  常规预算下自由写零误伤）。`tests/health.spec.ts` 的判据改 `digestTruncated`。
+  常规预算下自由写零误伤）。`tests/domain/health.spec.ts` 的判据改 `digestTruncated`。
   **110/110 全绿**（`pnpm test`）。
 - 机械门禁：`pnpm typecheck` && `pnpm build` && `pnpm verify` 16/16。
 - live：拒绝路径的错误面浮出依赖"服务 throw → 工具错误"的既有机制（战役 C 的无理由

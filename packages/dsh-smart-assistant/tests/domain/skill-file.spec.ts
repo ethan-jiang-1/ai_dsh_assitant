@@ -15,10 +15,10 @@ import {
   renderSkillFile,
   validateSkillDraft,
   writeLearnedSkill,
-} from '../src/skills/skill-file.ts'
-import { parseFrontmatterDocument } from '../src/home/frontmatter.ts'
-import { scanLearnedSkills } from '../src/skills/scan.ts'
-import type { SkillDraft } from '../src/skills/skill-file.ts'
+} from '../../src/skills/skill-file.ts'
+import { parseFrontmatterDocument } from '../../src/home/frontmatter.ts'
+import { scanLearnedSkills } from '../../src/skills/scan.ts'
+import type { SkillDraft } from '../../src/skills/skill-file.ts'
 
 const roots: string[] = []
 
