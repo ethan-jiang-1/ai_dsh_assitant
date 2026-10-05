@@ -86,7 +86,7 @@ dsh plugin --profile <p> add file:./packages/dsh-smart-assistant   # <p>＝你�
 | Web 交互 | `pnpm dsh --profile dev --port 0 --no-open` | Web preset 行为；交给人前先跑 `pnpm preflight '<URL>'` |
 | 测试/构建 | `pnpm typecheck && pnpm test` | 类型、纯核和服务级合同；组合与发行物另需 `pnpm build` / `pnpm release-smoke` |
 
-实际 preset 来源是 `package.json` 的 `dsh.bundle.patch` 指向 `packages/dsh-smart-assistant/cordis.patch.yml`；`presets/assistant/agent.cordis.yml` 不承载当前组合。运行数据的 `DSH_HOME`、助手 `dataDir` 与源码 cwd 是三个不同根，详见 [开发手册](docs/dev.md)。
+实际 preset 来源是 `package.json` 的 `dsh.bundle.patch` 指向 `packages/dsh-smart-assistant/cordis.patch.yml` 中的 `preset-assistant` 行。运行数据的 `DSH_HOME`、助手 `dataDir` 与源码 cwd 是三个不同根，详见 [开发手册](docs/dev.md)。
 
 打包安装的形状（`pnpm pack` 出 tarball 再 `dsh plugin add <tarball>`）由 `pnpm release-smoke` 机械验证：
 pack → 干净 home → 装 → 组合断言。`file:` 这条路径本身实测过：装进干净 home 3.1s，`--dump-config` 里能看到

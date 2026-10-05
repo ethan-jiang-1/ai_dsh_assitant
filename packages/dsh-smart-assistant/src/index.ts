@@ -4,7 +4,8 @@
  * The home is the harness ring made physical — durable memory, unresolved threads, distilled
  * knowledge, and skills the agent wrote for itself — and this service is its single writer. It lives on the HOST plane
  * (`cordis.patch.yml`) because the home is persistence shared across sessions; the model-facing
- * tools and prompt sections live on the AGENT plane (`presets/assistant/agent.cordis.yml`) because
+ * tools and prompt sections live on the AGENT plane (the `preset-assistant` row of this
+ * package's `cordis.patch.yml`) because
  * they are what one session contributes to the registries.
  *
  * Layout, room semantics, and the curation rules are contracts in `docs/home.md`; every path here

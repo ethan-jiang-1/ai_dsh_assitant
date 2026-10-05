@@ -2,12 +2,13 @@
 # 幂等的开发环境搭建。用法：bash dev/setup.sh
 #
 # 三件事，顺序不能换：
-#   1. 建 dev profile —— **必须从 web 模板建**，因为 preset roster（`agent-presets` 行）
+#   1. 建 dev profile —— **必须从 web 模板建**，因为 preset roster（`agent-preset-registry` 行）
 #      只存在于 web-app bundle 里；base/headless 模板没有 roster，preset 无从挂载。
-#   2. `dsh plugin add` 装本插件 —— 它把 package.json 的 `dsh.bundle.patch` 注册进 profile，
-#      host 面的 `assistant-memory` 服务行由此进入组合。
-#   3. 把 roster 指向**本 repo 的** presets/ 并把默认 preset 设成 assistant ——
-#      指向 repo 而不是拷贝，改 agent.cordis.yml 即刻生效（standing mount 按文件换代）。
+#   2. `dsh plugin add` 装本插件 —— 它把 package.json 的 `dsh.bundle.patch` 注册进 profile：
+#      host 面的 `assistant-memory` 服务行与 assistant preset 的定义（`cordis.patch.yml` 的
+#      `preset-assistant` 行）由此进入组合。
+#   3. 把默认 preset 设成 assistant —— profile patch 整行替换 registry 行的 `default`；
+#      改 `cordis.patch.yml` 即刻生效（组合按文件 mtime/size 换代，已在跑的会话留原代）。
 #   4. 建**第二个** profile `dev-task`（headless 模板）跑 one-shot —— web 与 headless 的
 #      bundle 里都 insert 了 id: code-runtime，混装必撞 duplicate id（DSH 自己也把它列为
 #      退役元组）；one-shot 的 runner 行只在 headless bundle 里。
@@ -107,8 +108,9 @@ echo
 echo "  ⚠ not 'pnpm dsh web': the 'web' alias hardcodes profile 'web' and would create a"
 echo "    shipped 'web' profile inside the dev home."
 echo
-echo "Discipline: after changing src/ run 'pnpm build' (preset rows load lib/); after changing"
-echo "presets/assistant/skills/ run 'touch packages/dsh-smart-assistant/presets/assistant/agent.cordis.yml'"
-echo "(preset generations track only that file's mtime+size)."
+echo "Discipline: after changing src/ run 'pnpm build' (preset rows load the built lib/)."
+echo "Skill edits (presets/assistant/skills/) need no rebuild — the catalog is re-scanned per"
+echo "request. Composition edits (cordis.patch.yml) reach new sessions with the next"
+echo "generation (file mtime+size stamp); sessions already running keep theirs."
 echo
 echo "Note: the home lives at $DSH_HOME — the daily ~/.dsh is untouched."

@@ -209,7 +209,7 @@ DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得
 | 验 Web 面 | `pnpm dsh --profile dev --port 0 --no-open` + `pnpm preflight '<URL>'` | Web boot、Remote、desk readiness | DOM 期望；再跑 `pnpm web-expected` |
 | 验请求侧组装 | `pnpm dsh --profile dev-task --patch dev/preset-runner-replay.patch.yml "probe"` | keyless replay 的 system/tools/session log | 固定回复代表模型自主选择 |
 
-当前 assistant preset 的定义来源是安装包的 `dsh.bundle.patch`，实际文件为 `packages/dsh-smart-assistant/cordis.patch.yml` 中的 `preset-assistant` 行。`presets/assistant/agent.cordis.yml` 不提供 shipped 组合；headless profile 本身没有 roster，必须使用 `preset-runner.patch.yml` 才会挂载 assistant preset。
+当前 assistant preset 的定义来源是安装包的 `dsh.bundle.patch`，实际文件为 `packages/dsh-smart-assistant/cordis.patch.yml` 中的 `preset-assistant` 行；headless profile 本身没有 roster，必须使用 `preset-runner.patch.yml` 才会挂载 assistant preset。
 
 ## 七、组合的四个层（dev 里谁改谁生效）
 
