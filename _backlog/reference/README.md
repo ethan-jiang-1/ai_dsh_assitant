@@ -35,3 +35,4 @@
 - [261005-ceo-time-and-decision-research.md](positioning/261005-ceo-time-and-decision-research.md)——一把手时间分配与决策过程实证调研（喂 261005-open-value-deficit：CEO 时间研究 60,000 小时数据、pre-mortem/决策日志方法论、执行缺口 85%/27%/1/5 等硬数字、信息环境 MUM effect/CSF/BLUF 四类取证 + 十点产品推论 + 未证实清单；GM/BU 级证据单独标注；web_fetch DNS 故障全程 curl/r.jina.ai/Web Archive 并注明）
 - [261005-ceo-viewpoint-synthesis.md](positioning/261005-ceo-viewpoint-synthesis.md)——典型一把手视角与诉求合成档（喂 261005-open-value-deficit 第 17 轮：三路外证×n=1 内证互校 → 工作形状实证表、诉求分层清单（日常/每周/遇事/边界）、十二条可检验推论、演示引用纪律）
 - [tech-exploration/261005-okf-wiki-tech-case.md](tech-exploration/261005-okf-wiki-tech-case.md)——技术定调：OKF/WIKI 结构化知识层为什么承重一把手的判断工作（喂 261005-open-value-deficit 第 5/11 轮：认识论定位、六字段价值、2×2 实验与失败归因、可证伪预言）
+- [tech-exploration/261005-dsh-native-first-tech-keynote.md](tech-exploration/261005-dsh-native-first-tech-keynote.md)——技术定调：双注确认（OKF/VK）+ DSH 原生能力优先（插件机制用足；组合→缝→自建三问尺、现状 A/B/C 盘点、验证器挂钩）
