@@ -12,12 +12,12 @@
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-skill'
 import { defineTool } from '@deepseek-ai/dsh-tools'
-import { MEMORY_KINDS, IMPORTANCE_RANGE, type MemoryRecord } from '../memory/record.ts'
-import type { RecallHit } from '../memory/recall.ts'
+import { MEMORY_KINDS, IMPORTANCE_RANGE, type MemoryRecord } from '../../memory/record.ts'
+import type { RecallHit } from '../../memory/recall.ts'
 import { LEARNED_PROVIDER_NAME } from '../learn/index.ts'
-import { shadowedLearnedSkills } from '../skills/shadow.ts'
+import { shadowedLearnedSkills } from '../../skills/shadow.ts'
 import { callCard, presentationMeta, resultCard } from '../tool-support/presentation.ts'
-import { usageWindowNote } from '../skills/usage.ts'
+import { usageWindowNote } from '../../skills/usage.ts'
 
 export const name = 'assistant-memory-tool'
 

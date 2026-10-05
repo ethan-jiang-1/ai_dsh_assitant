@@ -32,8 +32,8 @@
 | `src/home/layout.ts` | **working folder 布局的唯一 owner**：路径、scaffold、种子文件、健康检查 |
 | `src/home/` 其余 | frontmatter、Room 存储抽象、摘要渲染、手册渲染、节拍器、curate findings |
 | `src/memory/` `src/research/` `src/skills/` `src/knowledge/` | 四个房间的**词汇与纯核**（校验、生命周期、检索排序、findings） |
-| `src/tool-support/` | 四个工具共享的 presenter 管道（`presentationMeta` 投影与读回） |
-| `src/tool-*/` `src/memory-digest/` `src/home-preamble/` `src/learn/` `src/preset-runner/` | 各 agent 面入口 |
+| `src/agent/`（`tool-*`、`tool-support`、`memory-digest`、`home-preamble`、`learn`、`ov-shield`） | agent 面入口：四工具、共享 presenter 管道（`presentationMeta` 投影与读回）、段落贡献、学习 provider、遮蔽盾 |
+| `src/preset-runner/` | 验证驱动（agent 面，非产品能力；`./preset-runner` 公开出口保留） |
 | `src/host/index.ts` | 服务实现（host 面）：四个房间的读写、curate、digest、提案收件箱；根 `src/index.ts` 是它的薄导出稳定入口（同 class 身份，不持第二份实现） |
 | `presets/assistant/` | 策展技能（`skills/`，**模型用**）；shipped preset 组合由包根 `cordis.patch.yml` 的 `preset-assistant` 行拥有 |
 | `tests/` | 纯核 + 服务级合同 + 真实组合装载（服务级用真 cordis 构造，不依赖 DSH 运行时） |

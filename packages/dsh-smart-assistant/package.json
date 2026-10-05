@@ -28,28 +28,28 @@
       "default": "./lib/index.js"
     },
     "./tool-memory": {
-      "types": "./lib/tool-memory/index.d.ts",
-      "default": "./lib/tool-memory/index.js"
+      "types": "./lib/agent/tool-memory/index.d.ts",
+      "default": "./lib/agent/tool-memory/index.js"
     },
     "./tool-research": {
-      "types": "./lib/tool-research/index.d.ts",
-      "default": "./lib/tool-research/index.js"
+      "types": "./lib/agent/tool-research/index.d.ts",
+      "default": "./lib/agent/tool-research/index.js"
     },
     "./tool-knowledge": {
-      "types": "./lib/tool-knowledge/index.d.ts",
-      "default": "./lib/tool-knowledge/index.js"
+      "types": "./lib/agent/tool-knowledge/index.d.ts",
+      "default": "./lib/agent/tool-knowledge/index.js"
     },
     "./memory-digest": {
-      "types": "./lib/memory-digest/index.d.ts",
-      "default": "./lib/memory-digest/index.js"
+      "types": "./lib/agent/memory-digest/index.d.ts",
+      "default": "./lib/agent/memory-digest/index.js"
     },
     "./home-preamble": {
-      "types": "./lib/home-preamble/index.d.ts",
-      "default": "./lib/home-preamble/index.js"
+      "types": "./lib/agent/home-preamble/index.d.ts",
+      "default": "./lib/agent/home-preamble/index.js"
     },
     "./learn": {
-      "types": "./lib/learn/index.d.ts",
-      "default": "./lib/learn/index.js"
+      "types": "./lib/agent/learn/index.d.ts",
+      "default": "./lib/agent/learn/index.js"
     },
     "./knowledge-approve-remote": {
       "types": "./lib/host/knowledge-approve-remote/index.d.ts",
@@ -60,8 +60,8 @@
       "default": "./lib/preset-runner/index.js"
     },
     "./ov-shield": {
-      "types": "./lib/ov-shield/index.d.ts",
-      "default": "./lib/ov-shield/index.js"
+      "types": "./lib/agent/ov-shield/index.d.ts",
+      "default": "./lib/agent/ov-shield/index.js"
     },
     "./client": {
       "types": "./lib/client/index.d.ts",

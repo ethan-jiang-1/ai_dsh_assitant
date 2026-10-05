@@ -64,7 +64,7 @@
 
 - **层级与同名遮蔽**：enterprise → personal → project 三层，同名时"Enterprise over personal, and personal over project"，模型侧静默裁决但**人类侧有完整文档表**；nested 目录同名则两个都可用（目录限定名区分）；plugin 技能一律加命名空间（`/plugin-name:skill-name`）避免遮蔽。DSH 的对应机制是 rank+layer（project-dsh 100 > project-agents 200 > custom 300 > user-dsh 400 > user-agents 500 > bundled 600；最近 layer 赢，层内 rank→provider 注册序→local order）。[documented] https://code.claude.com/docs/en/skills ；[affordance] `vendor/dsh/docs/subsystems/skills.md`
 - **渐进披露的常驻成本**：description+when_to_use 在技能列表中截断至 1,536 字符；SKILL.md 正文建议 ≤500 行；压缩（compaction）后重挂最近一次调用的技能，每技能保留前 5,000 token、合计 25,000 token 预算，从最近调用者优先填充。DSSH 对应：目录只含 name+description（`catalogDescriptionMaxLength` 默认 500），正文经 `skill` 工具加载。[documented] 同上；[affordance] `vendor/dsh/docs/subsystems/skills.md`
-- **变更即热加载**（live change detection）：编辑/增删技能目录当前会话内生效，无需重启。DSH 原生 provider 同样有 chokidar watch + `skills/change` 失效事件，委托方基线挂载时显式 `watch: true`。[documented/affordance] 同上；`packages/dsh-smart-assistant/src/learn/index.ts`
+- **变更即热加载**（live change detection）：编辑/增删技能目录当前会话内生效，无需重启。DSH 原生 provider 同样有 chokidar watch + `skills/change` 失效事件，委托方基线挂载时显式 `watch: true`。[documented/affordance] 同上；`packages/dsh-smart-assistant/src/agent/learn/index.ts`
 - **技能可见性治理**：`skillOverrides` 设置四态（on / name-only / user-invocable-only / off）；frontmatter `disable-model-invocation` / `user-invocable` 双向控制谁能调用——DSH 的 `SkillInvocationPolicy` 读的就是同名的两个 kebab-case 键，字段级兼容。[documented/affordance] 同上
 
 ### 3.3 Claude Code 的两条已产品化学习回路

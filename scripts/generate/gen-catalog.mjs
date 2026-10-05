@@ -13,7 +13,7 @@
  *   packages/dsh-smart-assistant/package.json            exports, dsh bundle/client/compatibility
  *   packages/dsh-smart-assistant/cordis.patch.yml        host rows
  *   packages/dsh-smart-assistant/cordis.patch.yml        host row + the `agent-preset` row's plugins
- *   packages/dsh-smart-assistant/src/{tool-*,learn}/index.ts          tool names + action verbs
+ *   packages/dsh-smart-assistant/src/agent/{tool-*,learn}/index.ts          tool names + action verbs
  *   packages/dsh-smart-assistant/presets/assistant/skills/*\/SKILL.md  curated skill names
  *   vendor/UPSTREAM.md                                   pinned upstream tag
  *
@@ -105,8 +105,8 @@ export function collectCatalog(root = repoRoot) {
     ? parseRows(read(devPatch)).filter(row => (row.name ?? '').startsWith('dsh-smart-assistant'))
     : []
   const tools = ['tool-memory', 'tool-research', 'tool-knowledge', 'learn'].map(dir => ({
-    label: `src/${dir}/index.ts`,
-    ...extractTool(read(join(root, 'packages', 'dsh-smart-assistant', 'src', dir, 'index.ts')), `src/${dir}/index.ts`),
+    label: `src/agent/${dir}/index.ts`,
+    ...extractTool(read(join(root, 'packages', 'dsh-smart-assistant', 'src', 'agent', dir, 'index.ts')), `src/agent/${dir}/index.ts`),
   }))
   const skillsDir = join(root, 'packages', 'dsh-smart-assistant', 'presets', 'assistant', 'skills')
   const skills = existsSync(skillsDir)

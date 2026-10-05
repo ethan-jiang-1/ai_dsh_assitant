@@ -12,7 +12,7 @@
 
 import type { Context } from '@deepseek-ai/cordis'
 import { defineTool } from '@deepseek-ai/dsh-tools'
-import type { KnowledgePage } from '../knowledge/page.ts'
+import type { KnowledgePage } from '../../knowledge/page.ts'
 import { callCard, presentationMeta, resultCard } from '../tool-support/presentation.ts'
 
 export const name = 'assistant-knowledge-tool'

@@ -62,7 +62,11 @@ const presetSubRows = ownRows.filter(row => row.name !== PREFIX)
 /** Layer directory each subpath row's implementation lives in: `src/<layer><sub>/index.ts`.
  * Rows absent from the map still sit at the src root; the package-root row resolves to the
  * thin stable entry `src/index.ts`, which re-exports the same class identity. */
-const SOURCE_LAYER = { 'knowledge-approve-remote': 'host/' }
+const SOURCE_LAYER = {
+  'knowledge-approve-remote': 'host/',
+  'tool-memory': 'agent/', 'tool-research': 'agent/', 'tool-knowledge': 'agent/',
+  'memory-digest': 'agent/', 'home-preamble': 'agent/', 'learn': 'agent/', 'ov-shield': 'agent/',
+}
 
 /** Relative source-module path for a patch row name (package root row → thin src/index.ts). */
 function sourceOf(rowName) {

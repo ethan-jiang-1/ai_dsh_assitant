@@ -39,7 +39,7 @@ import AgentPresetRegistry from '@deepseek-ai/dsh-agent-preset-registry'
 import AgentPreset from '@deepseek-ai/dsh-agent-preset'
 import SessionPersistenceJsonl from '@deepseek-ai/dsh-session-persistence-jsonl'
 import TypertRegistry from '@deepseek-ai/dsh-typert-registry'
-import { DIGEST_SECTION_ORDER } from '../../src/memory-digest/index.ts'
+import { DIGEST_SECTION_ORDER } from '../../src/agent/memory-digest/index.ts'
 import * as yaml from 'js-yaml'
 import { afterEach, describe, expect, it } from 'vitest'
 

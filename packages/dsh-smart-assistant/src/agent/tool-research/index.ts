@@ -11,7 +11,7 @@
 
 import type { Context } from '@deepseek-ai/cordis'
 import { defineTool } from '@deepseek-ai/dsh-tools'
-import type { ResearchThread } from '../research/thread.ts'
+import type { ResearchThread } from '../../research/thread.ts'
 import { callCard, presentationMeta, resultCard } from '../tool-support/presentation.ts'
 
 export const name = 'assistant-research-tool'

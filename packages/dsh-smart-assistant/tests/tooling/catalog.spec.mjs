@@ -122,7 +122,7 @@ describe('renderCatalog', () => {
     hostSubRows: [{ id: 'assistant-knowledge-approve', indent: 4, name: 'dsh-smart-assistant/knowledge-approve-remote' }],
     agentRows: [{ id: 'assistant-memory-tool', indent: 10, name: 'dsh-smart-assistant/tool-memory' }],
     devRows: [],
-    tools: [{ name: 'assistant_memory', actions: ['recall'], label: 'src/tool-memory/index.ts' }],
+    tools: [{ name: 'assistant_memory', actions: ['recall'], label: 'src/agent/tool-memory/index.ts' }],
     skills: ['memory-hygiene'],
     pin: 'dsh-v0.0.0',
     clientSurface: {
