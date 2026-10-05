@@ -4,8 +4,8 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { recallMemories } from '../../src/memory/recall.ts'
-import type { MemoryRecord } from '../../src/memory/record.ts'
+import { recallMemories } from '../../src/domain/memory/recall.ts'
+import type { MemoryRecord } from '../../src/domain/memory/record.ts'
 
 const now = new Date('2026-09-23T00:00:00.000Z')
 

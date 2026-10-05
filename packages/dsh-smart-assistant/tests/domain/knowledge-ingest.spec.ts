@@ -10,7 +10,7 @@ import {
   segmentDocument,
   slugify,
   sourcePageId,
-} from '../../src/knowledge/ingest.ts'
+} from '../../src/domain/knowledge/ingest.ts'
 
 describe('slugify', () => {
   it('keeps ASCII alphanumerics, folds everything else to dashes, and never returns empty', () => {

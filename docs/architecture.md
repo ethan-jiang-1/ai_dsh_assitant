@@ -13,7 +13,7 @@
 |---|---|
 | ① 让它看到该看的东西（上下文） | **桌面 / 抽屉**：常驻的是身份段（SOUL.md）+ 手册（AGENTS.md）+ 有界状态摘要（精选记忆 + 开放线索条数）；细节用工具取 |
 | ② 让它懂你的业务（隐性知识显性化） | `memory/` 房间：事实、偏好、决定 —— 一条一个文件，可读可审 |
-| ③ 让它有该有的本事（工具与边界） | 四个工具 + working folder 的写入边界（`src/home/layout.ts` 是唯一 owner） |
+| ③ 让它有该有的本事（工具与边界） | 四个工具 + working folder 的写入边界（`src/domain/home/layout.ts` 是唯一 owner） |
 | ④ 让它按对的步骤走（工作流） | 过程性知识进**技能**（抽屉），不占常驻上下文；三档出口固定了线索的收束方式 |
 | ⑤ 让它经得起检查 | `curate`：**机器能跑的检查**（重复、悬空引用、预算、过期线索、缺理由的 drop、技能语法） |
 
@@ -96,17 +96,17 @@ seam 的成色读数是**第二个真实 Provider 出现而 Consumer 一行不�
 
 | 模块 | 职责 | 依赖方向 |
 |---|---|---|
-| `src/home/layout.ts` | **working folder 布局的唯一 owner**：路径、scaffold、SOUL.md/AGENTS.md 生成 | 无（最底层） |
-| `src/home/frontmatter.ts` | YAML frontmatter 解析/生成（**不抛异常**：坏文件交给养护检查点名） | `yaml` |
-| `src/home/room.ts` | 房间存储：安全 id、原子写、归档、**列出失败文件** | frontmatter |
-| `src/memory/record.ts` | 记忆记录词汇与校验（一条记录一个断言） | room 类型 |
-| `src/memory/recall.ts` | 检索排序（确定性 + **给出命中理由**） | record |
-| `src/research/thread.ts` | 线索词汇与三档出口（drop 必填理由由校验强制） | record（slugify） |
-| `src/skills/skill-file.ts` | `SKILL.md` 契约：名校验、草稿校验、写入、**provenance 盖章** | frontmatter |
-| `src/knowledge/page.ts`、`search.ts`、`health.ts` | 知识页词汇（OKF 字段子集 + `[[互链]]` 解析/反链）、关键词检索排序、知识 findings —— 纯核 | frontmatter |
-| `src/skills/scan.ts` | 按 provider 的规则回读技能房间，报出会被静默忽略的文件 | frontmatter |
-| `src/home/digest.ts` | 有界摘要（桌面），按 UTF-8 字节裁剪 | record/thread 类型 |
-| `src/home/health.ts` | **纯函数**养护检查：输入是解析结果，输出是 findings | 类型 |
+| `src/domain/home/layout.ts` | **working folder 布局的唯一 owner**：路径、scaffold、SOUL.md/AGENTS.md 生成 | 无（最底层） |
+| `src/domain/home/frontmatter.ts` | YAML frontmatter 解析/生成（**不抛异常**：坏文件交给养护检查点名） | `yaml` |
+| `src/domain/home/room.ts` | 房间存储：安全 id、原子写、归档、**列出失败文件** | frontmatter |
+| `src/domain/memory/record.ts` | 记忆记录词汇与校验（一条记录一个断言） | room 类型 |
+| `src/domain/memory/recall.ts` | 检索排序（确定性 + **给出命中理由**） | record |
+| `src/domain/research/thread.ts` | 线索词汇与三档出口（drop 必填理由由校验强制） | record（slugify） |
+| `src/domain/skills/skill-file.ts` | `SKILL.md` 契约：名校验、草稿校验、写入、**provenance 盖章** | frontmatter |
+| `src/domain/knowledge/page.ts`、`search.ts`、`health.ts` | 知识页词汇（OKF 字段子集 + `[[互链]]` 解析/反链）、关键词检索排序、知识 findings —— 纯核 | frontmatter |
+| `src/domain/skills/scan.ts` | 按 provider 的规则回读技能房间，报出会被静默忽略的文件 | frontmatter |
+| `src/domain/home/digest.ts` | 有界摘要（桌面），按 UTF-8 字节裁剪 | record/thread 类型 |
+| `src/domain/home/health.ts` | **纯函数**养护检查：输入是解析结果，输出是 findings | 类型 |
 | `src/index.ts` | 稳定包入口：`src/host/index.ts` 服务实现的薄导出（同 class 身份；`ctx.assistantMemory` 增广随实现加载） | 全部 |
 | `src/host/index.ts` | 服务实现：把领域模块组装成 `ctx.assistantMemory` | 全部 |
 | `src/agent/tool-support/presentation.ts` | 四个工具共享的 presenter 管道：`presentationMeta` 投影摘要 → `presentResult` 从 `result.meta` 读回（完成卡读不到规范值，只能读持久化载荷） | dsh-tools 类型 |
@@ -246,7 +246,7 @@ pnpm dsh …（package.json scripts → dev/env/dsh.mjs，唯一启动器：
 
 | 功能 | 走哪条链 | 实现入口 | 最低验证（keyless） | 失败先看 | 哪步才要模型/浏览器 |
 |---|---|---|---|---|---|
-| 记忆保存/检索 | 模型请求链 | `assistant_memory`（`src/agent/tool-memory/`）→ `ctx.assistantMemory` → memory/ 房间；词汇 `src/memory/record.ts`、排序 `src/memory/recall.ts` | `pnpm --filter dsh-smart-assistant exec vitest run tests/domain/record.spec.ts tests/domain/recall.spec.ts` | 房间文件 frontmatter；digest 缓存 touch 失效（§五） | 规则与排序确定性无模型；真实措辞与召回选择才在模型回合 |
+| 记忆保存/检索 | 模型请求链 | `assistant_memory`（`src/agent/tool-memory/`）→ `ctx.assistantMemory` → memory/ 房间；词汇 `src/domain/memory/record.ts`、排序 `src/domain/memory/recall.ts` | `pnpm --filter dsh-smart-assistant exec vitest run tests/domain/record.spec.ts tests/domain/recall.spec.ts` | 房间文件 frontmatter；digest 缓存 touch 失效（§五） | 规则与排序确定性无模型；真实措辞与召回选择才在模型回合 |
 | 知识草稿/批准/检索 | 模型 + 浏览器链 | 草稿 = `assistant_reflect` 的 save_page（staged）；批准 = 浏览器两车道 → host `promotePage`（`src/host/index.ts`）；检索 = `assistant_knowledge`（`src/agent/tool-knowledge/`） | `pnpm --filter dsh-smart-assistant exec vitest run tests/host/knowledge-write.spec.ts`（草稿/批准/检索/摘要全链） | draft→stable 翻转与会话审计；直调挂载回退提示 | 批准按钮与回退车道要浏览器；草稿内容生成在模型回合 |
 | 提示词摘要 | 模型请求链 | `assistant-memory-digest` 段落（`src/agent/memory-digest/`）← `ctx.assistantMemory.digest()` 缓存 + 写操作 touch 失效（§五） | `pnpm --filter dsh-smart-assistant exec vitest run tests/domain/digest.spec.ts tests/agent/digest-prewarm.spec.ts` | 缓存失效时序与段落同步 `text` 契约 | 摘要计算无模型；真实会话的段落组装用 keyless 回放看 |
 | 桌面刷新 | 浏览器 → 模型 → 读回 | `sendPrompt`（`src/client/index.ts`）→ 模型回合 → `.desk/state.json` → 轮询越过 pending.at | `pnpm --filter dsh-smart-assistant exec vitest run tests/client/client-panels.spec.ts tests/client/client-commands.spec.ts` | `.desk/state.json` 生成时间 vs pending.at；会话日志 | 全链要真会话与渲染：`pnpm web-expected` 两场景；真问真答 `pnpm loop-probe` |

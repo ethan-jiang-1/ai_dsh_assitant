@@ -29,9 +29,9 @@
 
 | 模块 | 拥有什么 |
 |---|---|
-| `src/home/layout.ts` | **working folder 布局的唯一 owner**：路径、scaffold、种子文件、健康检查 |
-| `src/home/` 其余 | frontmatter、Room 存储抽象、摘要渲染、手册渲染、节拍器、curate findings |
-| `src/memory/` `src/research/` `src/skills/` `src/knowledge/` | 四个房间的**词汇与纯核**（校验、生命周期、检索排序、findings） |
+| `src/domain/home/layout.ts` | **working folder 布局的唯一 owner**：路径、scaffold、种子文件、健康检查 |
+| `src/domain/home/` 其余 | frontmatter、Room 存储抽象、摘要渲染、手册渲染、节拍器、curate findings |
+| `src/domain/memory/` `src/domain/research/` `src/domain/skills/` `src/domain/knowledge/` | 四个房间的**词汇与纯核**（校验、生命周期、检索排序、findings） |
 | `src/agent/`（`tool-*`、`tool-support`、`memory-digest`、`home-preamble`、`learn`、`ov-shield`） | agent 面入口：四工具、共享 presenter 管道（`presentationMeta` 投影与读回）、段落贡献、学习 provider、遮蔽盾 |
 | `src/preset-runner/` | 验证驱动（agent 面，非产品能力；`./preset-runner` 公开出口保留） |
 | `src/host/index.ts` | 服务实现（host 面）：四个房间的读写、curate、digest、提案收件箱；根 `src/index.ts` 是它的薄导出稳定入口（同 class 身份，不持第二份实现） |

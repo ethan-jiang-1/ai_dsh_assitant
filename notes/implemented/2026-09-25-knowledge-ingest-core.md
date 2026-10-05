@@ -5,7 +5,7 @@
 ## 一、决定
 
 为 O1（拆得对且说得清出处）建**薄导入管线**，第一批只做**机械部分**：
-`packages/dsh-smart-assistant/src/knowledge/ingest.ts` —— markdown 分段（代码围栏不透明）、
+`packages/dsh-smart-assistant/src/domain/knowledge/ingest.ts` —— markdown 分段（代码围栏不透明）、
 按 `ref` 的**确定性页 id**（同 ref 重复导入 = 更新而非重复）、出处 `sources: [ref]`、
 首行摘要、超限**显式截断标记**。模型侧只保留"概念页抽取"这类必须由模型做的部分，走既有
 `save_page`（它强制 `sources`）。

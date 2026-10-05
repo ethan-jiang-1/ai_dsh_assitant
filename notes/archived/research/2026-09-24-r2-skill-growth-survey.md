@@ -58,7 +58,7 @@
 - Agent Skills 于 2025-10-16 随 Anthropic 工程博客发布，**2025-12-18 更新为开放标准**（原文："We've published Agent Skills as an open standard for cross-platform portability"），规范仓库 `agentskills/agentskills`（代码 Apache-2.0、文档 CC-BY-4.0），"originally developed by Anthropic, released as an open standard, and has been adopted by a growing number of agent products"。[documented] https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills ；https://agentskills.io/home ；https://github.com/agentskills/agentskills
 - **规范字段（specification 页，2026-09-24 查证）**：`name`（必填，≤64 字符，小写字母数字连字符）、`description`（必填，≤1024 字符）、`license`（可选）、`compatibility`（可选，≤500 字符）、`metadata`（可选，string→string 任意映射）、`allowed-tools`（可选，实验性）。可选目录 `scripts/ references/ assets/`。加载模型为**渐进披露三阶段**：Discovery（启动只装 name+description）→ Activation（任务匹配才读全文）→ Execution（按需执行捆绑代码/读引用文件）。规范还有 Validation 一节（字段校验）。[documented] https://agentskills.io/specification
 - 兼容面的实证：Claude Code 文档自述"follow the Agent Skills open standard, which works across multiple AI tools"；Snyk（2026）称规范"adopted by Claude Code, Cursor, GitHub Copilot, and numerous other tools"；`agentskills.io/clients` 有官方 Client Showcase 页。[documented/observed] https://code.claude.com/docs/en/skills ；https://snyk.io/articles/skill-md-shell-access/
-- **对委托方的含义**：基线的 frontmatter（name/description/whenToUse/metadata.origin/source/learnedAt）与规范六字段高度对齐——`metadata` 正是规范预留的自定义通道，provenance 盖章走的是标准路径而非私货；`whenToUse` 是 Claude Code 扩展字段（规范里并进 description），`license`/`compatibility` 未使用。吃标准红利只需小步（见 §9.3）。[affordance：`packages/dsh-smart-assistant/src/skills/skill-file.ts` 对照 spec]
+- **对委托方的含义**：基线的 frontmatter（name/description/whenToUse/metadata.origin/source/learnedAt）与规范六字段高度对齐——`metadata` 正是规范预留的自定义通道，provenance 盖章走的是标准路径而非私货；`whenToUse` 是 Claude Code 扩展字段（规范里并进 description），`license`/`compatibility` 未使用。吃标准红利只需小步（见 §9.3）。[affordance：`packages/dsh-smart-assistant/src/domain/skills/skill-file.ts` 对照 spec]
 
 ### 3.2 Claude Code 实现（文档基线：v2.1.x 系列，2026-09-24 查证，文中引用版本至 v2.1.280）
 
@@ -267,5 +267,5 @@ Snyk 威胁建模文章（2026 年，Liran Tal）载明：2026-01-27~29，OpenCl
 - 月下载量：api.npmjs.org/downloads/point/last-month/&lt;pkg&gt;（2026-09-24 查询）
 
 **本地源码（[affordance] 依据）**
-- `packages/dsh-smart-assistant/src/skills/skill-file.ts`、`src/learn/index.ts`、`packages/dsh-smart-assistant/package.json`（v0.0.0，MIT，DSH 0.1.5-rc.2 verified）
+- `packages/dsh-smart-assistant/src/domain/skills/skill-file.ts`、`src/learn/index.ts`、`packages/dsh-smart-assistant/package.json`（v0.0.0，MIT，DSH 0.1.5-rc.2 verified）
 - `vendor/dsh/docs/subsystems/skills.md`（DSH 技能子系统契约，随 pin）

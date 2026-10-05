@@ -11,7 +11,7 @@ import { join } from 'node:path'
 import { Context } from '@deepseek-ai/cordis'
 import { afterEach, describe, expect, it } from 'vitest'
 import AssistantMemory from '../../src/index.ts'
-import { proposalFromEntry, proposalToDocument, renderProposalPrompt, validateProposalData, type SkillProposal } from '../../src/skills/proposal.ts'
+import { proposalFromEntry, proposalToDocument, renderProposalPrompt, validateProposalData, type SkillProposal } from '../../src/domain/skills/proposal.ts'
 
 describe('proposal vocabulary (pure core)', () => {
   it('validates the required shape and renders the proposal slot prompt', () => {

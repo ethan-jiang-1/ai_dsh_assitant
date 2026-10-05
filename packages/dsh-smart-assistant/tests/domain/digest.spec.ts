@@ -5,10 +5,10 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { renderDigest } from '../../src/home/digest.ts'
-import type { MemoryRecord } from '../../src/memory/record.ts'
-import type { ResearchThread } from '../../src/research/thread.ts'
-import type { KnowledgePage } from '../../src/knowledge/page.ts'
+import { renderDigest } from '../../src/domain/home/digest.ts'
+import type { MemoryRecord } from '../../src/domain/memory/record.ts'
+import type { ResearchThread } from '../../src/domain/research/thread.ts'
+import type { KnowledgePage } from '../../src/domain/knowledge/page.ts'
 
 function memory(overrides: Partial<MemoryRecord> & { id: string }): MemoryRecord {
   return {

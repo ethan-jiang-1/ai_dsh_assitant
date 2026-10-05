@@ -38,17 +38,17 @@ declare module '@deepseek-ai/dsh-llm' {
     'assistant-plugin': { kind: 'assistant-plugin', plugin: 'dsh-smart-assistant' }
   }
 }
-import { renderDigest, type DigestResult } from '../home/digest.ts'
-import { parseFrontmatterDocument, renderFrontmatterDocument } from '../home/frontmatter.ts'
-import { compareFindings, curateHome, type CurationBrief, type CurationFinding } from '../home/health.ts'
-import { HOME_STATUS_BLURB, parseManualVersion, renderHomeManual } from '../home/home-map.ts'
-import { DEFAULT_SOUL } from '../home/soul.ts'
-import { HOME_DIRECTORY_NAME, homePaths, scaffoldHome, ARCHIVE_DIRECTORY_NAME, type HomePaths, type ScaffoldResult } from '../home/layout.ts'
-import { isMaintenanceRound, renderMaintenancePrompt } from '../home/metronome.ts'
-import { curateKnowledge } from '../knowledge/health.ts'
-import { pageFromEntry, pageToDocument, parseWikiLinks, normalizeWikiLinks, backlinksOf, type KnowledgePage, type PageStatus } from '../knowledge/page.ts'
-import { searchPages, type KnowledgeQuery } from '../knowledge/search.ts'
-import { Room, type RoomEntry, type RoomReadFailure } from '../home/room.ts'
+import { renderDigest, type DigestResult } from '../domain/home/digest.ts'
+import { parseFrontmatterDocument, renderFrontmatterDocument } from '../domain/home/frontmatter.ts'
+import { compareFindings, curateHome, type CurationBrief, type CurationFinding } from '../domain/home/health.ts'
+import { HOME_STATUS_BLURB, parseManualVersion, renderHomeManual } from '../domain/home/home-map.ts'
+import { DEFAULT_SOUL } from '../domain/home/soul.ts'
+import { HOME_DIRECTORY_NAME, homePaths, scaffoldHome, ARCHIVE_DIRECTORY_NAME, type HomePaths, type ScaffoldResult } from '../domain/home/layout.ts'
+import { isMaintenanceRound, renderMaintenancePrompt } from '../domain/home/metronome.ts'
+import { curateKnowledge } from '../domain/knowledge/health.ts'
+import { pageFromEntry, pageToDocument, parseWikiLinks, normalizeWikiLinks, backlinksOf, type KnowledgePage, type PageStatus } from '../domain/knowledge/page.ts'
+import { searchPages, type KnowledgeQuery } from '../domain/knowledge/search.ts'
+import { Room, type RoomEntry, type RoomReadFailure } from '../domain/home/room.ts'
 import {
   DEFAULT_IMPORTANCE,
   IMPORTANCE_RANGE,
@@ -57,32 +57,32 @@ import {
   newMemoryId,
   type MemoryKind,
   type MemoryRecord,
-} from '../memory/record.ts'
-import { recallMemories, type RecallHit, type RecallQuery } from '../memory/recall.ts'
+} from '../domain/memory/record.ts'
+import { recallMemories, type RecallHit, type RecallQuery } from '../domain/memory/recall.ts'
 import {
   CLOSED_THREAD_STATUSES,
   newThreadId,
   threadFromEntry,
   threadToDocument,
   type ResearchThread,
-} from '../research/thread.ts'
-import { scanLearnedSkills, scanSkillArchiveScale } from '../skills/scan.ts'
-import { auditLearnedSkill, auditSkillsRoom, auditSkillCredentials } from '../skills/audit.ts'
-import { snapshotExistingSkill } from '../skills/snapshot.ts'
+} from '../domain/research/thread.ts'
+import { scanLearnedSkills, scanSkillArchiveScale } from '../domain/skills/scan.ts'
+import { auditLearnedSkill, auditSkillsRoom, auditSkillCredentials } from '../domain/skills/audit.ts'
+import { snapshotExistingSkill } from '../domain/skills/snapshot.ts'
 import {
   proposalFromEntry,
   proposalToDocument,
   renderProposalPrompt,
   type SkillProposal,
-} from '../skills/proposal.ts'
-import { writeLearnedSkill, validateSkillDraft, isSkillName, SKILL_FILE_NAME, type SkillDraft } from '../skills/skill-file.ts'
+} from '../domain/skills/proposal.ts'
+import { writeLearnedSkill, validateSkillDraft, isSkillName, SKILL_FILE_NAME, type SkillDraft } from '../domain/skills/skill-file.ts'
 import {
   readSkillUsage,
   recordSkillLoad,
   writeSkillUsage,
   type SkillUsageEntry,
   type SkillUsageRead,
-} from '../skills/usage.ts'
+} from '../domain/skills/usage.ts'
 import { DEFAULT_WEB_TITLE, webBrandingInjection } from './web-branding.ts'
 
 declare module '@deepseek-ai/cordis' {

@@ -10,9 +10,9 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { afterEach, describe, expect, it } from 'vitest'
-import { homePaths, scaffoldHome } from '../../src/home/layout.ts'
-import { DEFAULT_SOUL, SOUL_FILE_NAME } from '../../src/home/soul.ts'
-import { AGENTS_FILE_NAME, HOME_MANUAL_VERSION } from '../../src/home/home-map.ts'
+import { homePaths, scaffoldHome } from '../../src/domain/home/layout.ts'
+import { DEFAULT_SOUL, SOUL_FILE_NAME } from '../../src/domain/home/soul.ts'
+import { AGENTS_FILE_NAME, HOME_MANUAL_VERSION } from '../../src/domain/home/home-map.ts'
 
 const packageRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
 

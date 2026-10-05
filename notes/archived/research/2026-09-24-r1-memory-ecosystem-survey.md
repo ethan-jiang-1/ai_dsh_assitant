@@ -198,7 +198,7 @@
   - supersede/retire：mnemosyne 有 lifecycle 批量编辑；achasoft 有 Active/Archived/Expired + 审计轨迹 [documented]；supermemory 有"时间更新/矛盾处理/自动遗忘"但发生在引擎内部、不可审 [documented]。
   - provenance：wiki-bridge（URI+SHA-256）、auto-memory（五来源 user/project/log/whiteboard/reflection + 锚点身份寻址）、achasoft（审计轨迹）各有覆盖，无人全有。
   - 技能房间：auto-memory 的技能固化（证据渐进 + 审批 + 三档注入）与 dsh-mind 的技能治理（30d/90d + 回滚）是生态里仅有的两处认真做技能生命周期的 [documented]。
-- 委托方词汇（fact/preference/decision × active/superseded/retired × source/supersedes，一记录一文件 [affordance：`packages/dsh-smart-assistant/src/memory/record.ts`]）在任何候选里都无处安放。
+- 委托方词汇（fact/preference/decision × active/superseded/retired × source/supersedes，一记录一文件 [affordance：`packages/dsh-smart-assistant/src/domain/memory/record.ts`]）在任何候选里都无处安放。
 
 **判据五：信噪比（常驻上下文有界）**
 

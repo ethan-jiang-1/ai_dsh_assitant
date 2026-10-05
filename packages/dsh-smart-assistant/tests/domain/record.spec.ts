@@ -12,9 +12,9 @@ import {
   newMemoryId,
   slugify,
   validateMemoryData,
-} from '../../src/memory/record.ts'
-import type { MemoryRecord } from '../../src/memory/record.ts'
-import { renderFrontmatterDocument, parseFrontmatterDocument } from '../../src/home/frontmatter.ts'
+} from '../../src/domain/memory/record.ts'
+import type { MemoryRecord } from '../../src/domain/memory/record.ts'
+import { renderFrontmatterDocument, parseFrontmatterDocument } from '../../src/domain/home/frontmatter.ts'
 
 const at = new Date('2026-09-23T10:00:00.000Z')
 

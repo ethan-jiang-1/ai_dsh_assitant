@@ -12,9 +12,9 @@ import {
   threadFromEntry,
   threadToDocument,
   validateThreadData,
-} from '../../src/research/thread.ts'
-import type { ResearchThread } from '../../src/research/thread.ts'
-import { parseFrontmatterDocument, renderFrontmatterDocument } from '../../src/home/frontmatter.ts'
+} from '../../src/domain/research/thread.ts'
+import type { ResearchThread } from '../../src/domain/research/thread.ts'
+import { parseFrontmatterDocument, renderFrontmatterDocument } from '../../src/domain/home/frontmatter.ts'
 
 const at = new Date('2026-09-23T10:00:00.000Z')
 

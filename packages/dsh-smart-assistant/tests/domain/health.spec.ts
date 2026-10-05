@@ -5,10 +5,10 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { curateHome } from '../../src/home/health.ts'
-import type { CurationInput } from '../../src/home/health.ts'
-import type { MemoryRecord } from '../../src/memory/record.ts'
-import type { ResearchThread } from '../../src/research/thread.ts'
+import { curateHome } from '../../src/domain/home/health.ts'
+import type { CurationInput } from '../../src/domain/home/health.ts'
+import type { MemoryRecord } from '../../src/domain/memory/record.ts'
+import type { ResearchThread } from '../../src/domain/research/thread.ts'
 
 const now = new Date('2026-09-23T00:00:00.000Z')
 

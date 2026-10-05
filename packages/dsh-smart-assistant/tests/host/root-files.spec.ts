@@ -11,8 +11,8 @@ import { join } from 'node:path'
 import { Context } from '@deepseek-ai/cordis'
 import { afterEach, describe, expect, it } from 'vitest'
 import AssistantMemory from '../../src/index.ts'
-import { DEFAULT_SOUL } from '../../src/home/soul.ts'
-import { HOME_MANUAL_VERSION } from '../../src/home/home-map.ts'
+import { DEFAULT_SOUL } from '../../src/domain/home/soul.ts'
+import { HOME_MANUAL_VERSION } from '../../src/domain/home/home-map.ts'
 
 const dirs: string[] = []
 

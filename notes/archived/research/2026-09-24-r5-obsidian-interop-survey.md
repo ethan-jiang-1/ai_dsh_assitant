@@ -18,7 +18,7 @@
 ## 〇、承重事实速览（后文逐条展开）
 
 - 我们的 `[[链接]]` 解析键是 **id 优先、其次 frontmatter title**（大小写不敏感）
-  [affordance：`packages/dsh-smart-assistant/src/knowledge/page.ts` L213-224]。
+  [affordance：`packages/dsh-smart-assistant/src/domain/knowledge/page.ts` L213-224]。
 - Obsidian 的 wikilink 解析键是**文件名（basename）**，别名走 frontmatter `aliases` 属性；
   **没有以 `title` 属性为解析键的机制** [documented：Internal links / Aliases / Properties 三页，见 §一]。
 - 页文件名 = id = `newThreadId(now, title, …)` 产出的 **`20260924-<slug>-<4位随机>`** 形态

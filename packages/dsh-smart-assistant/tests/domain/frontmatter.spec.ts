@@ -5,7 +5,7 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { parseFrontmatterDocument, renderFrontmatterDocument } from '../../src/home/frontmatter.ts'
+import { parseFrontmatterDocument, renderFrontmatterDocument } from '../../src/domain/home/frontmatter.ts'
 
 describe('renderFrontmatterDocument', () => {
   it('writes fields in insertion order and omits undefined values', () => {

@@ -11,9 +11,9 @@ import { join } from 'node:path'
 import { Context } from '@deepseek-ai/cordis'
 import { afterEach, describe, expect, it } from 'vitest'
 import AssistantMemory from '../../src/index.ts'
-import { scaffoldHome, homePaths } from '../../src/home/layout.ts'
-import { scanLearnedSkills, scanSkillArchiveScale } from '../../src/skills/scan.ts'
-import { SNAPSHOTS_DIRECTORY_NAME } from '../../src/skills/snapshot.ts'
+import { scaffoldHome, homePaths } from '../../src/domain/home/layout.ts'
+import { scanLearnedSkills, scanSkillArchiveScale } from '../../src/domain/skills/scan.ts'
+import { SNAPSHOTS_DIRECTORY_NAME } from '../../src/domain/skills/snapshot.ts'
 
 const OLD_LEARNED_AT = '2026-06-15T00:00:00.000Z'
 

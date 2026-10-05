@@ -68,10 +68,10 @@ const REQUIRED_PATHS = [
   'packages/dsh-smart-assistant/package.json',
   'packages/dsh-smart-assistant/cordis.patch.yml',
   'packages/dsh-smart-assistant/src/index.ts',
-  'packages/dsh-smart-assistant/src/home/layout.ts',
-  'packages/dsh-smart-assistant/src/memory/record.ts',
-  'packages/dsh-smart-assistant/src/research/thread.ts',
-  'packages/dsh-smart-assistant/src/skills/skill-file.ts',
+  'packages/dsh-smart-assistant/src/domain/home/layout.ts',
+  'packages/dsh-smart-assistant/src/domain/memory/record.ts',
+  'packages/dsh-smart-assistant/src/domain/research/thread.ts',
+  'packages/dsh-smart-assistant/src/domain/skills/skill-file.ts',
   'packages/dsh-smart-assistant/src/agent/tool-memory/index.ts',
   'packages/dsh-smart-assistant/src/agent/tool-research/index.ts',
   'packages/dsh-smart-assistant/src/agent/memory-digest/index.ts',
@@ -235,7 +235,7 @@ check('client: the browser half registers via the loader facade and stays classi
 })
 
 check('resolution: skill-name grammar matches the harness registry', () => {
-  const ours = /SKILL_NAME_PATTERN = (\/.*\/)/.exec(read(join(packageDir, 'src', 'skills', 'skill-file.ts')))?.[1]
+  const ours = /SKILL_NAME_PATTERN = (\/.*\/)/.exec(read(join(packageDir, 'src', 'domain', 'skills', 'skill-file.ts')))?.[1]
   const registryPath = join(vendorDsh, 'packages', 'skill', 'skill', 'src', 'index.ts')
   if (!exists(registryPath)) return ['vendor/dsh skill registry source is missing']
   const theirs = /const SKILL_NAME = (\/.*\/)/.exec(read(registryPath))?.[1]
@@ -286,7 +286,7 @@ check('self-containment: published files never reach outside the package', () =>
 
 check('contract: docs/home.md lists the rooms and archives the layout creates', () => {
   const problems = []
-  const layout = read(join(packageDir, 'src', 'home', 'layout.ts'))
+  const layout = read(join(packageDir, 'src', 'domain', 'home', 'layout.ts'))
   const document = read(join(repoRoot, 'docs', 'home.md'))
   for (const constant of ['MEMORY_ROOM', 'RESEARCH_ROOM', 'SKILLS_ROOM', 'KNOWLEDGE_ROOM', 'ARCHIVE_DIRECTORY_NAME']) {
     const value = new RegExp(`export const ${constant} = '([a-z]+)'`).exec(layout)?.[1]

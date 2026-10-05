@@ -3,7 +3,7 @@
 > 这个插件给 agent 一个**自己的 working folder**：一个跨会话存在的工作目录。
 > 它的组织本身就是产品的一部分 —— 概念依据是 `Agent = Model + Harness`：
 > working folder 就是"那一圈"的物理落点，它的信噪比决定 agent 糊涂还是清醒。
-> 布局的**唯一 owner** 是 `src/home/layout.ts`；本文是它的契约说明，两者必须一致（`pnpm verify` 校验）。
+> 布局的**唯一 owner** 是 `src/domain/home/layout.ts`；本文是它的契约说明，两者必须一致（`pnpm verify` 校验）。
 
 ## 一、布局
 

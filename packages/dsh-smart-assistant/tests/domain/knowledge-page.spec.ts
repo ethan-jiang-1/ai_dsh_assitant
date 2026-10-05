@@ -7,7 +7,7 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import type { RoomEntry } from '../../src/home/room.ts'
+import type { RoomEntry } from '../../src/domain/home/room.ts'
 import {
   backlinksOf,
   normalizeWikiLinks,
@@ -17,7 +17,7 @@ import {
   resolveWikiLink,
   validatePageData,
   type KnowledgePage,
-} from '../../src/knowledge/page.ts'
+} from '../../src/domain/knowledge/page.ts'
 
 function entry(data: Record<string, unknown>, body: string, id = 'test-page'): RoomEntry {
   return { id, path: `/h/knowledge/${id}.md`, data, body }

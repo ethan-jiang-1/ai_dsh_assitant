@@ -20,7 +20,7 @@ import {
   skillUsageLines,
   usageWindowNote,
   writeSkillUsage,
-} from '../../src/skills/usage.ts'
+} from '../../src/domain/skills/usage.ts'
 
 const NOW = new Date('2026-09-24T12:00:00.000Z')
 

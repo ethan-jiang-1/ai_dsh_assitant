@@ -11,8 +11,8 @@ import { join } from 'node:path'
 import { Context } from '@deepseek-ai/cordis'
 import { afterEach, describe, expect, it } from 'vitest'
 import AssistantMemory from '../../src/index.ts'
-import { curateKnowledge } from '../../src/knowledge/health.ts'
-import type { KnowledgePage } from '../../src/knowledge/page.ts'
+import { curateKnowledge } from '../../src/domain/knowledge/health.ts'
+import type { KnowledgePage } from '../../src/domain/knowledge/page.ts'
 
 const NOW = new Date('2026-09-24T00:00:00.000Z')
 

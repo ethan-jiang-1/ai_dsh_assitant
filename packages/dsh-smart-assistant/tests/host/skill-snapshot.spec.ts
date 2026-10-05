@@ -11,7 +11,7 @@ import { join } from 'node:path'
 import { Context } from '@deepseek-ai/cordis'
 import { afterEach, describe, expect, it } from 'vitest'
 import AssistantMemory from '../../src/index.ts'
-import { SNAPSHOTS_DIRECTORY_NAME, SNAPSHOTS_KEPT, snapshotExistingSkill } from '../../src/skills/snapshot.ts'
+import { SNAPSHOTS_DIRECTORY_NAME, SNAPSHOTS_KEPT, snapshotExistingSkill } from '../../src/domain/skills/snapshot.ts'
 
 describe('snapshotExistingSkill (pure core)', () => {
   const dirs: string[] = []

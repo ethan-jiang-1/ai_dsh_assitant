@@ -66,7 +66,7 @@
 - **写入即规范化**：`save_page` 写入时把可解析的裸名字链接改写成 ②（`normalizeWikiLinks`，
   跳代码跨距、跳带显示文本者、跳解析不到者——未写成的知识仍是信号，不清洗掉）；
   `resolveWikiLink` 顺手容忍 Obsidian 的 `.md` 后缀写法。
-- 证据指针：`packages/dsh-smart-assistant/src/knowledge/page.ts`（`normalizeWikiLinks` /
+- 证据指针：`packages/dsh-smart-assistant/src/domain/knowledge/page.ts`（`normalizeWikiLinks` /
   `parseAliases` / 解析器）、`src/index.ts` `writePage`；夹具 `tests/domain/knowledge-page.spec.ts`
   （规范化四例 + 别名往返 + `.md` 解析）、`tests/host/knowledge-write.spec.ts`（写入面：id 链接、
   别名、反链成立）；合同措辞 `docs/home.md` Obsidian 段。
