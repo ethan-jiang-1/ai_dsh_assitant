@@ -38,6 +38,81 @@
 
 实施前再核对：迁移时的完整消费者/测试发现基线；旧 lib 清理重建与发布边界；新路径对 shell、patch、生成器的影响。不把本日库存永久当真。产品重构、审批修复、外部服务隔离不作为本计划暗含任务。**待答问题/待跑实验**：单片试点是否降低五条功能的定位时间、递归守卫能否检出嵌套负例、发行配置缺行/缺构建物是否真红、安装出口是否独立可解析；均属实施片的验证，不在本轮伪报。**喂给谁**：本卡毕业后的可驾驭性有界提案，并向相邻 SDLC/总体自洽卡提供依赖结论，不拥有它们的执行顺序。
 
+## 用户提出的五项硬要求与计划映射
+
+本卡不是把“目录整理”理解成机械搬家，而是把项目变成**可驾驭、可解释、可局部验证**的系统。以下五项要求是本计划的验收主轴：
+
+| 用户要求 | 目标状态 | 计划中的落点 | 不接受的伪完成 |
+|---|---|---|---|
+| 运行态、测试、调试、用户交互分开 | 每个平面有明确 owner、入口、依赖方向和验证方式 | P0 先画真实平面图；P2/P3/P4 分别整理工具、测试、产品源码 | 只按文件后缀改名，或创建空的 `runtime/`、`debug/` 目录但行为仍混在一起 |
+| 入口链和运行逻辑可读 | 新读者能从根入口追到 UI/CLI → 组合 → agent 面 → loop → 状态 → 输出 | `docs/architecture.md` 增加真实入口链；README/AGENTS 只做路由；P5 做无指引验收 | 只列命令，不解释命令证明什么、不能证明什么 |
+| README / AGENTS 能帮助新 Agent | 常驻规则、给人看的总览、当前合同、决定理由各归其家 | 根 README、根 AGENTS、`docs/architecture.md`、`docs/dev.md`、`docs/testing.md` 分工 | 把完整命令表、历史、进度和架构全塞进根 AGENTS |
+| 测试资产组织清楚 | 测试目录表达被测 interface/依赖半径；证据资产、脚本探针、领域评测各自有家 | P1 先守发现集合；P3 分层迁移；snapshots/eval/replay 保持独立车道 | 只建 `unit/integration/e2e` 三个标签，不说明 IO、构建物、真实模型和浏览器前提 |
+| agent loop、harness、技能、状态、run bundle 显性化 | 能区分 DSH host/harness、插件 runtime、model-facing agent 面、一次 run 的状态和证据 | P0 画 loop/状态图；P2 建调试/诊断归属；P5 验证一条 run bundle 能回溯 | 在仓库复制一套 DSH loop，或把 `DSH_HOME`、`dataDir`、session log、`.desk` 混称为“运行状态” |
+
+### 目标运行态心智模型（候选，不宣称当前已存在）
+
+```text
+用户交互
+  ├─ Web UI / client classic script
+  └─ one-shot / preset runner
+          │
+          ▼
+DSH host / harness（外部承载机制，不等于本插件业务 runtime）
+  ├─ profile / home / boot graph
+  ├─ bundle patch / preset roster
+  └─ session controller / model adapter
+          │
+          ▼
+本插件的 assistant runtime
+  ├─ HOST：service provider、working-folder 存储、状态读写
+  ├─ AGENT：工具、提示词段落、技能 provider、agent-facing contract
+  └─ CLIENT：浏览器注册、交互状态、桌面读回
+          │
+          ▼
+一次 agent loop
+  输入请求 → 组装上下文 → model turn → tool call
+      → tool result / observation → 下一轮或最终答复
+          │
+          ├─ DSH session / event log（会话事实）
+          ├─ assistant dataDir（memory/research/skills/knowledge）
+          ├─ `.desk/state.json`（交互读回状态）
+          └─ run bundle（调试时汇总的可审阅证据切片）
+```
+
+这张图必须在实施阶段逐节点替换为真实源码/配置链接，并为每条箭头标出：调用者、被调用的 interface、主要失败模式、可运行的最小证据。若真实 agent loop 完全由 vendor DSH 提供，文档应明确写“本仓不拥有 loop 实现，只拥有接入它的 bundle/agent/service/client 面”，而不是为了目录对称性新增一个假的 `src/harness/`。
+
+### 状态分层与 run bundle 候选
+
+用户所说“运行态的状态往哪儿放”需要拆成不同寿命和 owner 的状态，不允许统一叫 `state`：
+
+| 状态层 | 典型内容 | 当前/候选 owner | 是否版本化 | 调试价值 |
+|---|---|---|---|---|
+| 配置状态 | profile、patch、roster、插件组合行 | `dev/`、包根 patch、DSH home | 源码/配置入库；home 运行副本不入库 | 解释“为什么没装上” |
+| 会话状态 | session、turn、tool event、request/response log | DSH session/storage | 运行数据不入库 | 解释“loop 实际走了什么” |
+| 产品状态 | working folder 四房间、frontmatter、提案、技能、知识页 | `src/home/layout.ts` + dataDir | 用户数据不入库 | 解释“写到了哪里/为何读不到” |
+| 交互状态 | pending、receipt、桌面刷新、banner | client + `.desk/state.json` | 运行数据不入库 | 解释“模型做了但 UI 没显示” |
+| 证据状态 | DOM、截图、判决、探针摘要、失败上下文 | `snapshots/`、`deliverables/`、调试输出 | 受证据类型决定 | 复现和交接 |
+| run bundle | 一次运行的 manifest、输入、组合摘要、skill/tool 清单、事件索引、产物引用、verdict | 候选 `dev/diagnostics/run-bundle/` 生成，输出到忽略的 `deliverables/runs/<run-id>/` | schema/reader 可入库，具体 run 不入库 | 将分散状态拼成一份可审阅运行切片 |
+
+run bundle 第一版只做**收集和索引**，不复制所有 session 或用户数据；优先采用引用（path、session id、hash、时间范围）和脱敏摘要。候选 manifest 至少包含：`runId`、开始/结束时间、profile/home 标识（不含凭据）、入口命令、git/build identity、preset/组合行摘要、加载的技能与工具、loop turn/event 索引、状态文件引用、证据文件引用、最终 verdict、失败层级。是否把它提升为产品正式格式，必须另立决定，不由本次 repo 整理偷偷决定。
+
+### 端到端的正确位置
+
+本计划明确反对“只靠端到端”，但不反对 E2E：
+
+```text
+纯核 / domain       → 规则、解析、排序、预算
+service / storage    → 临时 home、真实文件读写、生命周期
+composition / host  → Loader、scope、built lib、组合行
+client contract      → classic script、slot、组件状态和回调
+runtime probe        → session/request side、tool/prompt 组装、run bundle
+web interaction      → isolated home、preflight、DOM scene、真实读回
+E2E / live eval      → 最终用户路径与行为地板
+```
+
+每层必须声明“能证明什么 / 不能证明什么”。E2E 只在更窄的层已经足以定位确定性问题后，承担跨层验收；失败报告必须先指出失败属于配置、构建物、组合、领域规则、模型回合、工具副作用还是 UI 读回，而不是只贴一张截图说“端到端失败”。
+
 ## 推荐方案
 
 ### 目标职责树（候选，不表示已经存在）
