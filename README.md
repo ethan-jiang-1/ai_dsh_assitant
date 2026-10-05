@@ -30,9 +30,10 @@
 | O5 | **装得上（企业环境）** | 一条命令在企业机器装好并可用；管理员不写 YAML 就能配置与评审 |
 | O6 | **管得住（权限与数据）** | 知识变更可追溯；数据不出企业边界；对外内容需本人过目 |
 
-只有用户能给的：第一批真实活、数据边界反转、品味裁决。**当前差距与进度按 owner 取用**：
-[真用第一卡](notes/proposed/2026-10-01-real-use-first.md) 保留既有证据与余项；新方向的推敲、未决与毕业边界见
-[定位卡](_backlog/plans/261005-open-value-deficit.md) 与 [自洽卡](_backlog/plans/261005-turnaround-coherence.md)。它们不构成新增产品能力或全部实施授权。研发姿态三条判据的常设指令在根
+本人的经营事实、判断标准与数据边界由本人提供或确认；原型可先用公开案例与标注模拟验证方法和机制，不等真人回访。
+**当前推敲与毕业边界按 owner 取用**：[定位卡](_backlog/plans/261005-open-value-deficit.md) 与
+[自洽卡](_backlog/plans/261005-turnaround-coherence.md)。已交付能力与证据归各自 implemented；
+[旧真用第一](notes/rejected/2026-10-01-real-use-first.md) 只作被取代方案的防错历史。推敲不构成新增产品能力或全部实施授权。研发姿态三条判据的常设指令在根
 `AGENTS.md`，用户原话存 [intents-retired](notes/implemented/2026-10-04-intents-retired.md)
 （本节承接已退役 intents.md 的判据面）。
 
@@ -42,7 +43,7 @@
 |---|---|---|
 | `memory/` | 已确立的事实 / 偏好 / 决定 | 被取代或退役 → `archive/` |
 | `research/` | **意图还不清晰的探索**（backlog） | `promote`（成立 → 记忆/技能/知识页）/ `park` / `drop`（不成立 → 归档并**必写理由**） |
-| `skills/` | 学到的本事（DSH 技能格式） | 按需加载；退役 → `archive/`（不删可恢复）；提案制：`propose_skill` → 人审 → `land_skill` |
+| `skills/` | 学到的本事（DSH 技能格式） | 按需加载；退役 → `archive/`（不删可恢复）；提案车道 `propose_skill` → 人审 → `land_skill`，另有 `save_skill` 直接写入，详见 [当前契约](docs/home.md#L90) |
 | `knowledge/` | 领域知识页（概念/实体/来源，`[[互链]]`，OKF 字段子集） | `draft`（不进检索）→ 人审 `stable`；`deprecated` 留原地（链接不断） |
 
 **桌面与抽屉**：常驻上下文的只有一份**有界摘要**（精选记忆 + 开放线索 + 知识目录树）；

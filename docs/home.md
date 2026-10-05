@@ -128,7 +128,7 @@ learn 模块的 `tools/result` 订阅就给对应名字计数（用户 `/name` �
 | id 唯一性 | 重复 id | 记录身份必须唯一 |
 | 悬空引用 | `supersedes` / `promotedTo` 指向不存在的 id | 引用断掉会让历史读不出来 |
 | 近似重复 | 高重合的活跃记忆（关键词/标签） | 三条模糊的记忆比一条准确的更糟 |
-| 摘要预算 | 摘要被预算截短（`truncated`）——被截掉的记忆对每个会话不可见 | 桌面塞满 = 中间被漏掉；**且纯新增写入在截断态被服务层拒绝**（supersede/forget 开放——它们是减压动作） |
+| 摘要预算 | 摘要被预算截短（`truncated`）——被截掉的记忆对每个会话不可见；只有 `omittedMemories > 0` 时纯新增记忆才被服务层拒绝 | 桌面塞满 = 中间被漏掉；知识树/线索截短本身不阻塞 memory save；supersede/forget 是减压动作 |
 | 手册漂移 | `AGENTS.md` 的 scaffold 版本标记旧于当前（`manual-stale-scaffold`，info） | 持久化生成物会静默腐烂——**手改内容不报**（手改是拥有者的），版本落后才报；处置=删文件重新生成或忽略 |
 | 过期线索 | 超过 `staleResearchDays` 未更新的 `open` 线索 | 悬着的线索会烂，机器先发现 |
 | 缺理由的 drop | `status: dropped` 但 `reason` 为空 | 尸体没写死因 = 白丢 |

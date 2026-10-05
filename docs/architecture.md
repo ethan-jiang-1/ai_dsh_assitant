@@ -29,8 +29,9 @@ DSH 的组合分两个平面，判据是"这东西是不是跨会话共享"：
 HOST 面（cordis.patch.yml → dsh.bundle.patch）
 └── assistant-memory        服务：working folder 的布局 + 四个房间的存储 + 摘要计算 + 养护检查
                             ctx.assistantMemory（唯一服务键）
-                            + assistant-knowledge-approve 行（知识批准直调：draft→stable 的机械翻转
-                              经 Typert Remote 给 client 直调，无 config——host 行，随包分发）
+                            + assistant-knowledge-approve 行（host 知识批准服务：draft→stable 的机械翻转
+                              client Remote mount 因 codec 不兼容失败，UI 回退模型提示路径；无 config，随包分发）
+                            + tool-skill 行（DSH 技能目录与加载器；host 实例使 one-shot 首请求可发现技能目录）
                             + session-query-sqlite 翻开行（`first-search` + 持久索引库，原始会话检索）
                             + time-context 行（当前时间/时区/经过时长随请求注入）
                             + schedule + ui-schedule 行（定时面：到期任务以原会话 follow-up 投递；
@@ -48,7 +49,6 @@ AGENT 面（`cordis.patch.yml` 的 `preset-assistant` 行 → agent preset）
 ├── assistant-learn           工具 assistant_reflect + 挂载"学到的技能"provider
 ├── assistant-ov-shield       治理遮蔽行（ov＝OpenViking 记忆插件：部署共装时拒其 mcp__openviking__* 工具前缀、遮蔽其同名技能——模型可见面保持本包四工具与策展技能目录；denyToolPrefix / shadowSkills 两 config 键）
 ├── skill-filesystem          策展技能（包内 `presets/assistant/skills/`，按包名解析后指过去）
-├── tool-skill                技能目录与加载器（DSH 原生）
 └── persona / agent-instructions / tool-fs / tool-fs-search / shell / ask-user /
     todo / goal（`tool-goal`+`command-goal`）/ plan-mode（isolate 组）/
     jobs / 委派组（`subagent`+`subagent_fork`+control 三件，isolate 组）/ web / present / compaction

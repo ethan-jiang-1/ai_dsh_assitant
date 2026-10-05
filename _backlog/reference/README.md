@@ -27,6 +27,9 @@ reference → plans → proposed 是证据到裁决的关系，不是三份活�
 
 ## 索引
 
+- [261005-prototype-cases-and-interview-method.md](positioning/261005-prototype-cases-and-interview-method.md)——公开一手来源线索与访问限制；正文未取回，具体案例验收未达；模拟变式支持原型设计，不作已核重放/真人证据
+- [261005-interview-learning-framework.md](positioning/261005-interview-learning-framework.md)——短访谈、案例记录与知识/偏好/技能积累候选：来源/范围/例外、前后/未见病例验证、现有载体与未建闭环
+
 - [261001-upstream-candidates.md](upstream/261001-upstream-candidates.md)——vendor 面上游候选台账（喂 261001-first-open-ux：9 稳定 + 3 条件 + 2 已关闭，逐条带 vendor 锚点）
 - [261001-upstream-issue-drafts.md](upstream/261001-upstream-issue-drafts.md)——6 条上游 issue 递交草案（D1-D6，英文贴用文本 + 中文摘要；档头记录已放行，尚无已递链接，本轮不递交）
 - [261005-external-ux-patterns.md](positioning/261005-external-ux-patterns.md)——外部同类产品首跑 UX 模式调研（喂 261005-open-value-deficit：Clay/Martin/NotebookLM/Limitless 等的首跑、主动价值与主对象）

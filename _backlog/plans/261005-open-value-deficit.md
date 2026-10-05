@@ -16,7 +16,7 @@
 - OKF/VK 方向确认与效果测量分开；知识满/空 × OV 只能测可用性，同内容平铺/OKF 才能辨识结构增量。现有 runner/home 不满足全状态/外部 OV 隔离，正式实验未跑。
 - 字段存在不等于审批写 verified；留痕是可追溯性，不等于判断正确。审批 Remote 候选与当前 prompt fallback 不混为同一车道，事实见 [技术审计](../reference/tech-exploration/261005-turnaround-evidence-audit.md)。
 
-下一轮只针对能改变毕业判断的缺口取证；外部引用保留出处和样本限制，真实受众/真实经营输入不能用代理扩样替代。
+本轮原型校准：用户指出很难拿到真实决定/回访，研究只选agent能做的。旧真用第一已移rejected；先做 [公开案例](../reference/positioning/261005-prototype-cases-and-interview-method.md) 与 [短访谈/能力积累框架](../reference/positioning/261005-interview-learning-framework.md)，分决策时信息/后验、事实/推论、知识/做法和行为验证。实际访谈/回访以后补，不当原型推进前置；公开/模拟证据不冒充本人需求或经营价值。
 
 ## 背景 / 触发
 
@@ -28,7 +28,7 @@
 
 1. 2026-09-25「不痛不痒」→ [总体思路](../../notes/archived/research/2026-09-25-grand-plan-enterprise-expert-assistant.md)
    §一：诊断为自指闭环、把容器当产品；处方 = 换北极星 + 真用驱动。
-2. 2026-10-01「怎么看都好像不知道怎么用」→ [真用第一卡](../../notes/proposed/2026-10-01-real-use-first.md)：
+2. 2026-10-01「怎么看都好像不知道怎么用」→ [真用第一卡](../../notes/rejected/2026-10-01-real-use-first.md)：
    拍板 = 真用第一 + 无真实摩擦证据不动 UI。
 3. 2026-10-05（本卡）：首开 UX 已修三轮共 18 轮（locale / 黑话 / 横幅 / 空态，见
    [261001-first-open-ux](261001-first-open-ux.md)），感受未变 → **根因不在之前修的那一层**。

@@ -16,9 +16,9 @@
 | 卡 | 一句话 | 毕业倾向 |
 |---|---|---|
 | [261001-first-open-ux.md](261001-first-open-ux.md) | 首开 UX 的历史切片、剩余发行与上游反馈边界 | 第 18 轮我方残余收口；保留真实摩擦增量和上游递交证据，不拥有转向新形态 |
-| [261005-open-value-deficit.md](261005-open-value-deficit.md) | 一把手总助定位、用户原话与十九轮候选取舍 | 方向已确认，具体方案未毕业；三路调研已落地，仍需真实决定/受众验证，不复制综合稿 |
-| [261005-sdlc-turnaround-cleanup.md](261005-sdlc-turnaround-cleanup.md) | SDLC、资产与门禁的三问处置判断 | 资料逻辑/结构核查已获本轮授权；产品资产审计与删除未授权，处置方案仍待证据 |
-| [261005-turnaround-coherence.md](261005-turnaround-coherence.md) | 转向资料自洽、owner 边界、窄研究问题与单项毕业门 | 从过早 proposed 归位；先修证据链再毕业具体事项，候选阶段不构成实施队列 |
+| [261005-open-value-deficit.md](261005-open-value-deficit.md) | 一把手总助定位、用户原话与十九轮候选取舍 | 方向已确认，具体方案未毕业；原型先用公开案例/短访谈框架，真人决定/受众以后补，不阻塞推进 |
+| [261005-sdlc-turnaround-cleanup.md](261005-sdlc-turnaround-cleanup.md) | SDLC、资产与门禁的三问处置判断 | 卫生先行；旧任务/噪声先处置，逐资产核对消费者/删除损失/回退，未知不凭年代删 |
+| [261005-turnaround-coherence.md](261005-turnaround-coherence.md) | 转向自洽与总体策动：卫生→UX路径→技术配合的垂直落地→可验证积累 | 先清旧任务/噪声，再毕业具体UX切片；原型不等真人回访，总路线不作同步实施队列 |
 
 ## 🔒 保留卡（用户判触发）
 

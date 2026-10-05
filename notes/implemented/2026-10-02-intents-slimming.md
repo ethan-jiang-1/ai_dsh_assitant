@@ -19,7 +19,7 @@
 ## 决定
 
 > **2026-10-04 部分取代**：下述「保留」已被用户拍板推翻——intents.md 整体删除，判据并入
-> [`README.md`](../../README.md)「方向判据」节、进度归[真用第一卡](../proposed/2026-10-01-real-use-first.md)、
+> [`README.md`](../../README.md)「方向判据」节、进度归[真用第一卡](../rejected/2026-10-01-real-use-first.md)、
 > 研发原话入 [intents-retired](2026-10-04-intents-retired.md)；决定 2/3（I1–I15 冻结档、§六指针）不受影响。
 
 intents.md **保留并瘦身为纯方向判据文件**（notes/README.md 分类行同步）：

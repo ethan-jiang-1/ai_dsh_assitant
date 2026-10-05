@@ -2,7 +2,7 @@
 
 日期：2026-10-01 · 状态：**implemented**（切片一 2026-10-01：market-sizing / project-economics；切片二 2026-10-04：finance-compliance + 种子二页；切片三 2026-10-04：种子三页；**切片四 2026-10-04：decision-routing 技能**——甄别施工图全部消化，剩余候选全部触发型见 §六）
 
-来源卡：[真用第一](../proposed/2026-10-01-real-use-first.md) 第 3 条（基座搬运，agent 并行自主做）。
+来源卡：[真用第一](../rejected/2026-10-01-real-use-first.md) 第 3 条（基座搬运，agent 并行自主做）。
 既有形状：[专家部署组合件 v0](2026-09-25-expert-pack-v0.md) 的两件 SOP 技能与 `seeds/management` 知识种子包。
 
 ## 一、搬了什么
@@ -106,7 +106,11 @@ journal 收敛——全是那仓实现机制）、本仓已有机制（待办面
 （"A wrong answer is recoverable; an answer from the wrong lens is not even wrong — it is noise."）
 ⑤ release-smoke 绿 ⑥ verify 34 绿。
 
-## 七、下一步（切片四后）
+## 当前判读补充（2026-10-05 原型转向）
+
+旧真用主轴已退役，以下“关键路径等本人”仅是10-04快照，不是当前条件。基座搬运已收官，方法论缺口可由agent可核的公开案例与 [访谈框架](../../_backlog/reference/positioning/261005-interview-learning-framework.md) 检查；不因暂时无访谈记录就禁止设计框架，也不为搬而搬。运行时接入按当前有界切片推敲，不要求本人先开始真用。
+
+## 七、下一步（切片四后历史记录）
 
 - **搬运面收官**：甄别施工图点名的候选全部消化（coo 头部切片三裁决不搬——与 ops-review-note
   种子同源重叠；org.md / owners.md / journal 残渣维持不搬）。剩余候选全部**触发型**：

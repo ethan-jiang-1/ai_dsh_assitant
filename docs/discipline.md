@@ -47,10 +47,10 @@
    npm。原判定：`notes/implemented/2026-09-23-repo-structure.md`）→ `export-dist` 与
    `release-smoke` 用同一条 `pnpm pack`，且都对产物断言 peer 已具体化（证据：`release-smoke`
    对 tarball manifest 的逐 peer 断言；`workspace:` 原样出包没人能解析）。
-6. **「真用第一」冻结豁免开发证据面**（约束：主轴卡冻结"机制与门禁扩张"、用户注意力留给真用；
-   用户 2026-10-04 拍板）→ 测试策略采纳（`testing.md` 合同、导出守卫、生命周期守卫、web 渲染
-   期望试点）作为并行低档轨推进，一次一个切片，不占真人时间；冻结语义覆盖**产品机制与面向
-   用户的门禁**，不覆盖开发自身的证据面（证据：测试策略采纳四切片的实际运转与台账）。
+6. **开发证据按风险投入，UX路径主导切片**（次序见 [转向自洽卡](../_backlog/plans/261005-turnaround-coherence.md)）：
+   卫生有界先行，再围绕一条用户动作设计最小端到端体验，UI、行为和内容同片考虑；测试策略（见 [testing.md](testing.md)）
+   按风险与实际消费者保留或退役，不以数量或演示可见性判断；技术承载优先组合与既有 DSH 扩展点，
+   组合/扩展点不足才有证据地自建；相关决定依据见 [转向归位记录](../notes/implemented/2026-10-05-turnaround-deliberation-routing.md)。
 
 ## 复查环（防"一次性快照再烂"）
 
