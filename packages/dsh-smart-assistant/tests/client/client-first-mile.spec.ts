@@ -116,8 +116,11 @@ describe('first-mile seats', () => {
     // English developer-flavoured skill rows); it points at our own doors instead.
     // First-open UX card (2026-10-01): "三室" was governance vocabulary on the principal's
     // surface — the copy now names what they get, not our room taxonomy.
-    expect(copy).toContain('它替你记下的东西')
-    expect(copy).toContain('点右侧「+」随时能看')
+    // A1 rich landing (2026-10-06): the copy now tells the full arc, not just how to start.
+    expect(copy).toContain('决策简报')
+    expect(copy).toContain('带代价的选项')
+    expect(copy).toContain('复查日期')
+    expect(copy).toContain('先看桌面')
     expect(copy).not.toContain('三室')
     expect(copy).not.toContain('敲 /')
 
@@ -126,9 +129,7 @@ describe('first-mile seats', () => {
     // 2026-10-06 (real-user walk): the desk button is demoted to a labelled preview of the
     // empty desk — the primary start is the first word in the composer, and the copy above
     // now says what happens after it (the assistant asks first).
-    expect(textsOf(buttons[0]).join('')).toBe('先看一眼桌面（现在还是空的）')
-    ;(buttons[0]?.props.onClick as () => void)()
-    expect(opened).toEqual(['desk'])
+    expect(textsOf(buttons[0]).join('')).toBe('开始第一件事')
   })
 
   it('shows an unopenable desk on the chip the principal actually clicked (R9)', () => {

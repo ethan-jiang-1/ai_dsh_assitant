@@ -1431,46 +1431,89 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    * @param props - the dock's owner data and injected opener.
    * @returns the strip element, or null once the session has any content.
    */
+  /**
+   * The rich desk landing for the blank (pre-first-message) phase (A1, 2026-10-06 stepwise form
+   * migration). This replaces the old thin first-mile strip with a substantial card that fills
+   * the gap between the vendor hero and the composer — the plugin boundary's best shot at making
+   * the first screen carry real content.
+   *
+   * Two modes:
+   * - fresh folder (no desk file, no memories): the Day-0 landing — what the arc is, what you'll
+   *   have after three answers, and one start button (the assistant asks first, not you).
+   * - folder with a desk: the compact desk summary — what needs your call, what's due, what's
+   *   blocking — with one-click actions, so the first screen IS the working surface.
+   *
+   * Vendor seam facts this rides: `conversation.input.dock` is a list slot with no height limit,
+   * rendered between HeroShell and the composer bar in the blank phase (ConversationContent.tsx:165-168).
+   */
   function FirstMileDock({ session, openRoom }: {
-    session?: { blank?: boolean } | undefined
+    session?: { blank?: boolean, id?: string } | undefined
     openRoom?: (kind: RoomKind) => void
   }): ReturnType<typeof createElement> | null {
     if (session?.blank !== true) return null
-    return createElement('div', {
-      style: {
-        display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-start',
-        // The composer's own card width, read from the variable the shell defines on the
-        // shared stack (this dock is a child of it, so the variable is in scope). The
-        // literal cap is only a fallback for a composition that renders this seat outside
-        // that tree; a fixed width here would drift from the card at every breakpoint
-        // (observed 2026-09-26: an 760px strip against an ~875px card).
-        width: 'min(var(--dsh-composer-card-max-width, 952px), 100%)',
-        margin: '0 auto 8px', padding: '12px 16px',
-        border: '1px solid var(--dsw-alias-border-l2)', borderRadius: '10px',
-      },
-    },
-    // Real-user walk finding (2026-10-06): the strip told HOW to start but not WHAT the arc is
-    // ("流畅但不知道自己在做什么") — the copy now says what happens after the first word, and
-    // the desk button sets the expectation (it is a preview of an empty desk, not a start).
-    createElement('div', { style: { fontSize: '13px', color: 'inherit' } },
-      '第一次来？直接说一句你手头的经营问题就行，不用先配置什么——你开了口，它会先问你最近要拍板、还要跟进的一件事。'),
-    // R10 (self-review, 2026-09-27): the strip used to say "敲 / 看它现在能做什么" — and the `/`
-    // menu it opened leads with the shell's own commands and then a list of skill rows carrying
-    // English, developer-facing descriptions (the very material the knowledge panel excludes as
-    // noise on the principal's surface). The strip now points at the doors that are ours.
-    // First-open UX card (2026-10-01): "三室" is governance vocabulary leaking onto the
-    // principal's surface — the strip says what they get ("它替你记下的东西"), not what we call
-    // the rooms internally.
-    createElement('div', { style: { fontSize: '12px', color: 'var(--dsw-alias-label-secondary)' } },
-      '例：「这个月签单为什么慢」「把季度目标拆成这周能做的三件事」· 它替你记下的东西，点右侧「+」随时能看'),
-    createElement('button', {
-      onClick: () => { openRoom?.('desk') },
-      style: {
-        border: '1px solid var(--dsw-alias-border-l3)', background: 'transparent', cursor: 'pointer',
-        fontSize: '12px', color: MARK_TEAL, padding: '3px 10px', borderRadius: '6px',
-      },
-    }, '先看一眼桌面（现在还是空的）'),
-    )
+    // The walk view's desk data — on a blank session there is no session slice yet, so we
+    // read the global walk store to detect "has a desk at all" (a one-shot check, no memo).
+    const walk = deskSlice(undefined)
+    const hasDesk = walk.data !== undefined && Object.keys(walk.data).length > 0
+    const shell = (children: (string | ReturnType<typeof createElement> | undefined)[]): ReturnType<typeof createElement> =>
+      createElement('div', {
+        style: {
+          display: 'flex', flexDirection: 'column', gap: '8px',
+          width: 'min(var(--dsh-composer-card-max-width, 952px), 100%)',
+          margin: '0 auto 8px', padding: '16px 20px',
+          border: '1px solid var(--dsw-alias-border-l2)', borderRadius: '10px',
+          background: 'var(--dsw-alias-bg-layer-1)',
+        },
+      }, ...children)
+    const heading = (text: string): ReturnType<typeof createElement> =>
+      createElement('div', { style: { fontSize: '14px', fontWeight: 600 } }, text)
+    const body = (text: string): ReturnType<typeof createElement> =>
+      createElement('div', { style: { fontSize: '13px', color: 'var(--dsw-alias-label-secondary)', lineHeight: 1.7 } }, text)
+    const startButton = (label: string, run: () => void): ReturnType<typeof createElement> =>
+      createElement('button', {
+        onClick: run,
+        style: {
+          border: `1px solid ${MARK_TEAL}`, background: 'var(--dsw-alias-bg-base)', cursor: 'pointer',
+          fontSize: '13px', color: MARK_TEAL, padding: '6px 16px', borderRadius: '6px', alignSelf: 'flex-start',
+        },
+      }, label)
+
+    if (!hasDesk) {
+      // Day-0: the arc, the promise, and the start.
+      return shell([
+        heading('第一次来？说一句话，它先问你。'),
+        body('你开了口，它会先问你最近要拍板、还要跟进的一件事——然后三个短问（什么逼出了决定、当时知道什么、哪里没底）。'),
+        body('答完，你的桌面就有了第一份决策简报：带代价的选项、还缺的数、一个复查日期。之后每次来，先看桌面——要你拍的、在跟的、缺的，一目了然。'),
+        createElement('div', { style: { fontSize: '12px', color: 'var(--dsw-alias-label-secondary)' } },
+          '例：「这个月签单为什么慢」「我在想要不要给老客户涨价」'),
+        startButton('开始第一件事', () => {
+          if (session?.id !== undefined) { askStart(session.id) }
+        }),
+      ])
+    }
+
+    // Has a desk: compact summary — the first screen IS the working surface.
+    const data = walk.data
+    const decisions = (data?.decisions ?? []).filter(item => item.kind === 'business' || ((item.options ?? []).length > 0))
+    const gaps = data?.gaps ?? []
+    const actions = (data?.actions ?? []).filter(item => item.status !== 'done')
+    return shell([
+      heading('这是你的一把手桌面'),
+      decisions.length > 0
+        ? body(`要你拍的 ${decisions.length} 件——最新：「${String(decisions[0]?.question ?? '').slice(0, 40)}」`)
+        : body('没有等你拍板的事。'),
+      actions.length > 0
+        ? body(`在跟的 ${actions.length} 件——最近到期：「${String(actions[0]?.what ?? '').slice(0, 30)}」（${String(actions[0]?.due ?? '')}）`)
+        : undefined,
+      gaps.length > 0
+        ? body(`缺的数 ${gaps.length} 个——最挡路的：「${String(gaps[0]?.what ?? '').slice(0, 30)}」`)
+        : undefined,
+      createElement('div', { style: { display: 'flex', gap: '8px', alignItems: 'center' } },
+        startButton('打开桌面全景', () => { openRoom?.('desk') }),
+        createElement('span', { style: { fontSize: '12px', color: 'var(--dsw-alias-label-secondary)' } },
+          '· 有新的事，直接在下面说'),
+      ),
+    ])
   }
 
   /**
