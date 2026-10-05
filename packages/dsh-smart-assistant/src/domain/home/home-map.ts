@@ -18,7 +18,7 @@
 export const AGENTS_FILE_NAME = 'AGENTS.md'
 
 /** Version of the generated manual; bump when the generated content changes meaningfully. */
-export const HOME_MANUAL_VERSION = 10
+export const HOME_MANUAL_VERSION = 11
 
 /** The version marker stamped as the file's first line (an HTML comment: invisible when rendered). */
 export const HOME_MANUAL_MARKER = `<!-- home-manual v${String(HOME_MANUAL_VERSION)} -->`
@@ -79,6 +79,15 @@ happened".
 | \`research/\` | Threads you have not resolved: a question, why it matters, your current lean | \`open\` / \`parked\` → promoted or dropped → \`archive/\` |
 | \`skills/\` | Procedures worth reusing, in the harness skill format | edited in place; loaded by name; retired (out of the catalog, recoverable) → \`archive/\` |
 | \`knowledge/\` | Domain pages that interlink: concepts, entities, sources, how-things-work | \`draft\` → reviewed → \`stable\`; \`deprecated\` stays in place so links keep resolving |
+
+## The first conversation
+
+A fresh working folder (the memory room has no active records) is where a principal closes the tab:
+they do not know what to say first. Freshness is the memory room — a desk file may be stale residue
+from an earlier workspace and must not silence you. On a fresh folder, load the
+\`first-conversation\` skill and follow it: open by asking instead of waiting to be asked, one
+question at a time, land each answer as it comes, and aim to leave them holding their first decision
+brief. If they would rather drive, follow their lead.
 
 ## Your last message is the deliverable
 

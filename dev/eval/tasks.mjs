@@ -66,4 +66,23 @@ export const TASKS = [
       { kind: 'answer-matches', pattern: '[0-9]' },
     ],
   },
+  {
+    id: 'first-open-intake',
+    // Run condition: the intake trigger needs a FRESH working folder — run this task with a
+    // throwaway home (`ASSISTANT_DSH_HOME=$(mktemp -d) pnpm eval -- --only first-open-intake`
+    // after dev/env setup there); the shared dev home carries memories, so the trigger never fires.
+    // Also clear the session workspace's stale desk projection first (`rm -f .desk/state.json`
+    // at the repo root): it is residue from earlier tasks, and the first run of this task read it
+    // as "not a first date" (found live, 2026-10-05) — the freshness trigger now keys on the
+    // memory room instead, but a clean workspace keeps the scenario honest.
+    why: 'Day-0 intake (first-conversation skill + manual v11): on a fresh folder the first reply must be the opening offer plus one real question about something to decide and follow up on — not bookkeeping, not a menu, not silence. The manual\'s one-line pointer must cause the skill load by name.',
+    prompt: '你好',
+    checks: [
+      { kind: 'skill-loaded', skill: 'first-conversation' },
+      // The opener is conversational: answers land after they come, not before.
+      { kind: 'no-write-tools' },
+      { kind: 'answer-matches', pattern: '？|\\?' },
+      { kind: 'answer-matches', pattern: '决定|拍板|跟进|decide|follow' },
+    ],
+  },
 ]
