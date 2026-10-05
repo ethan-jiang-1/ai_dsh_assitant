@@ -489,7 +489,9 @@ describe('desk panels', () => {
     exports.deskStore.note = '最近 5 个会话的工作区里都没有 .desk/state.json'
     const empty = textsOf(exports.DeskPanel()).join(' | ')
     expect(empty).toContain('第一次来这里？')
-    expect(empty).toContain('在旁边的对话里跟助手说句话')
+    // Rewritten for the new form (2026-10-06): the assistant opens the first conversation
+    // itself (first-conversation skill), so step one is answering it, not speaking first.
+    expect(empty).toContain('助手已经先开口了')
     expect(empty).toContain('这里是你的仪表盘')
     // With data → the workspace line explains the follow-the-conversation rule, not a raw path.
     exports.deskStore.data = { generatedAt: '2026-09-26T13:00:00+08:00' }

@@ -1318,6 +1318,23 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   function DeskTabBody(props: TabBodyProps): ReturnType<typeof createElement> {
     return tabBody(props, DeskPanel)
   }
+
+  /**
+   * The desk as a conversation view (desk-primary-view proposal, 2026-10-06): the same panel
+   * tree and the same session-scoped slice the right-sidebar tab renders, claimed as a
+   * main-area view beside chat. The vendor seam this rides: a `conversation.view` entry
+   * ({id, label} + component) becomes a view tab whose body renders via
+   * `renderSlot('conversation.view', …, {only: id})` inside the session's view area, with the
+   * entry's `inject(sessionId)` supplying the body's session props (ui-chat's chat view is the
+   * mirrored shape). The blank phase renders no views (vendor-owned hero) — the first-mile
+   * dock still owns that state, and the desk as the DEFAULT view needs the upstream enabler
+   * (candidate D7), so this view is reachable-by-tab and remembered per session once chosen.
+   * @param props - The session-standard props the view seat injects (`sessionId`).
+   * @returns The desk panel, loading/empty states included (same wrapper as the room tab).
+   */
+  function DeskViewBody(props: { sessionId?: string } & Record<string, unknown>): ReturnType<typeof createElement> {
+    return tabBody(props as TabBodyProps, DeskPanel)
+  }
   function KnowledgeTabBody(props: TabBodyProps): ReturnType<typeof createElement> {
     return tabBody(props, KnowledgePanel)
   }
@@ -1652,9 +1669,13 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
             },
           },
           createElement('div', { style: { fontWeight: 600, color: 'var(--dsw-alias-label-secondary)' } }, '第一次来这里？'),
-          '① 在旁边的对话里跟助手说句话（说「刷新我的桌面」也行）',
+          // Rewritten for the new form (desk-primary-view, 2026-10-06): the assistant now
+          // opens the first conversation itself (first-conversation skill, manual v11), so
+          // step one is answering it, not finding something to say; and the desk is a main
+          // view beside the conversation, not a side panel.
+          '① 助手已经先开口了——切到「对话」看它的问题，答一句桌面就开始长（说「刷新我的桌面」也行）',
           createElement('br'),
-          '② 它会把这个工作区的桌面建起来——这里是你的仪表盘，不是要你配置的东西',
+          '② 这里是你的仪表盘，不是要你配置的东西',
           createElement('br'),
           '③ 之后这里一直显示：等你拍板的事、在办的事、它缺什么。每一条都能就地处置')
         : null,
@@ -2307,6 +2328,19 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       ctx.slots.inject('sidebar.right.pane.tab.title', () =>
         ctx.slots.register({ name: 'sidebar.right.pane.tab.title', key: room.id }, roomTabTitle(room.icon, room.title)))
     }
+    // Desk primary view (desk-primary-view proposal, 2026-10-06): the desk stops being only a
+    // right-sidebar tab — it claims a first-class conversation view beside chat. See
+    // DeskViewBody's docstring for the seam facts; order 5 keeps chat (0) first on the strip
+    // while the desk tab stays one click away, remembered per session once chosen.
+    ctx.slots.inject('conversation.view', () =>
+      ctx.slots.register({
+        name: 'conversation.view',
+        id: 'dsh-smart-assistant-desk-view',
+        order: 5,
+        label: () => '桌面',
+        inject: (sessionId: string) => ({ sessionId }),
+      }, DeskViewBody))
+
     // The opener the principal sees where they already are: a chip in the Session header.
     ctx.slots.inject('conversation.session.header.utilities', () =>
       ctx.slots.register({
@@ -2359,7 +2393,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   return {
     inject, apply, AssistantBrandMark, AssistantBrandName,
     DeskPanel, KnowledgePanel, MemoryPanel, deskStore, deskSlice,
-    DeskTabBody, KnowledgeTabBody, MemoryTabBody, AssistantDeskChip, roomTabTitle,
+    DeskTabBody, DeskViewBody, KnowledgeTabBody, MemoryTabBody, AssistantDeskChip, roomTabTitle,
     roomCommands, AssistantHeroMark, FirstMileDock, ApprovalDockBanner, expirePending, settlePending, loadDeskFor, retireStaleReceipt, looksLikeDesk,
   }
 }

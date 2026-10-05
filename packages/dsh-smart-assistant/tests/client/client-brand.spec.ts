@@ -133,13 +133,15 @@ describe('client-module registration', () => {
     }
     ;(exports.apply as (ctx: unknown) => void)(ctx)
     // Brand slots first, then each room's tab body and tab title in loop order, then the
-    // Session-header chip, then the first-mile strip and the approval banner (two dock seats).
+    // Session-header chip, then the desk primary view (conversation.view, 2026-10-06), then
+    // the first-mile strip and the approval banner (two dock seats).
     // No panellist/main pairs: the left main panels are retired.
     expect(calls).toEqual([
       'sidebar.brand.mark', 'sidebar.brand.name',
       'sidebar.right.pane.tab', 'sidebar.right.pane.tab.title',
       'sidebar.right.pane.tab', 'sidebar.right.pane.tab.title',
       'sidebar.right.pane.tab', 'sidebar.right.pane.tab.title',
+      'conversation.view',
       'conversation.session.header.utilities',
       'conversation.hero.brand.mark', 'conversation.input.dock', 'conversation.input.dock',
     ])
@@ -150,6 +152,7 @@ describe('client-module registration', () => {
       'tab:desk', 'dsh-smart-assistant-desk', 'dsh-smart-assistant-desk',
       'tab:knowledgeRoom', 'dsh-smart-assistant-knowledge', 'dsh-smart-assistant-knowledge',
       'tab:memoryRoom', 'dsh-smart-assistant-memory', 'dsh-smart-assistant-memory',
+      'dsh-smart-assistant-desk-view',
       'assistant-desk-chip',
       'conversation.hero.brand.mark', 'assistant-first-mile', 'assistant-approval-banner',
     ])
