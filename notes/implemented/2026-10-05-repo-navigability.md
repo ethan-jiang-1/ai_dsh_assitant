@@ -27,7 +27,7 @@
 
 **执行模式（用户 2026-10-05 拍板分段）**：本提案整体获确认，实施按段推进、段间回用户复核——第一段 = P0 残尾 + P2（先试点后扩展），验收后再立下一段；P3 → P4 → P5 的顺序由证据依赖决定（P1 先于 P3 已满足，P2/P3 先于 P4）。goal 管当前段，todo 管片内实施，本提案管方案与验收边界。
 
-相邻 owner：资产退役/保留判断归 [SDLC 清理卡](../../_backlog/plans/261005-sdlc-turnaround-cleanup.md)，产品转向总路线归[自洽卡](../../_backlog/plans/261005-turnaround-coherence.md)，测试哲学归[测试策略决定](./2026-10-04-test-strategy-adoption.md)——本提案只拥有导航与组织，不重写它们，也不按年龄删除能力。
+相邻 owner：资产退役/保留判断归 [SDLC 清理卡](../../_backlog/_done/_closed_plans/261005-sdlc-turnaround-cleanup.md)，产品转向总路线归[自洽卡](../../_backlog/plans/261005-turnaround-coherence.md)，测试哲学归[测试策略决定](./2026-10-04-test-strategy-adoption.md)——本提案只拥有导航与组织，不重写它们，也不按年龄删除能力。
 
 ## 输掉的方案
 

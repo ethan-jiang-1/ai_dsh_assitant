@@ -9,7 +9,7 @@
 | owner | 本卡与它的分工 |
 |---|---|
 | [定位卡](261005-open-value-deficit.md) | 拥有动机、用户原话、十九轮取舍与方向判断；本卡不复制推敲过程 |
-| [SDLC 卡](261005-sdlc-turnaround-cleanup.md) | 拥有资产/门禁处置的三问判断；本卡只定依赖和毕业边界 |
+| [SDLC 卡](../_done/_closed_plans/261005-sdlc-turnaround-cleanup.md) | 拥有资产/门禁处置的三问判断；本卡只定依赖和毕业边界 |
 | [首开卡](261001-first-open-ux.md) | 拥有已做 UX 切片与发行/上游余项，不继续担当转向主轴 |
 | [reference](../reference/README.md) | 拥有外部/代码证据、反证与局限；本卡拥有从证据到方案的推理，不造第二份总台账 |
 | [真用第一（rejected）](../../notes/rejected/2026-10-01-real-use-first.md) | 旧推进方式已被取代，只留防错历史；已交付能力归各自 implemented，不拥有当前进度或真人等待任务 |
