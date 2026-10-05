@@ -1,8 +1,11 @@
 # 桌面主对象化（新 UX 第一刀）：桌面升为 Conversation View 主视图
 
 日期：2026-10-06 · 状态：**proposed（片1 已交付：`6680e01`——视图注册/三步卡重写/spec 4 断言/test 44 件 379/typecheck/verify 34/preflight 绿 + live 证据：真会话写真桌面→点击桌面标签→内容区渲染，DOM 在案）**
-- **如实偏差**：web-expected 持久场景未建——非空白会话的确定性种子设计（session 记录文件预置）是真设计题，记为后续切片；
-  本片渲染证据 = shots --eval 交互态 DOM（/tmp/dsh-webui-shots/desk-view-final-*.dom.txt，点击链：开会话→点桌面）。
+- **既有两场景复验 PASS（2026-10-06，新构建）**：blank-first-open 与 first-open-draft-banner 在隔离 home 全流程重跑均 PASS，
+  期望文件**零差异**——桌面视图与三步卡重写不在两场景捕获面内，不回归成立（中间踩过的坑如实记：seed patch 必须 boot 前落、
+  隔离 home 需带凭据否则 API Key 弹窗入镜——seed 无 creds 子命令是 P2 已记缺口）。
+- **如实偏差**：桌面视图自身的持久场景未建——非空白会话的确定性种子设计（session 记录文件预置）是真设计题，记为后续切片；
+  本片渲染证据 = shots --eval 交互态 DOM（点击链：开会话→点桌面→内容区渲染，/tmp/dsh-webui-shots/desk-view-final-*.dom.txt）。
 - D7 已记入上游台账（默认视图不可插件化），递交与否用户拍板。（用户 2026-10-06 点头推进并要求显性化追踪；方向 owner=[定位卡](../../_backlog/plans/261005-open-value-deficit.md)，毕业门 owner=[自洽卡](../../_backlog/plans/261005-turnaround-coherence.md) 形态迁移行，判据承接自[首开卡边界收口](../../_backlog/plans/261001-first-open-ux.md)）
 
 ## 问题（可观察行为）
