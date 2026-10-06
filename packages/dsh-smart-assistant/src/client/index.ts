@@ -1543,6 +1543,33 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       document.head.appendChild(style)
       return () => { style.remove() }
     }, [])
+    // Auto-send + view preference (form migration, 2026-10-06):
+    // 1. On blank session mount, pre-write the view preference so that when the session
+    //    becomes non-blank (after the first message), the desk view activates automatically.
+    // 2. On fresh folder (no desk file, no memories), auto-send the intake opener so the
+    //    principal sees content immediately — not a blank screen.
+    const sid = (session as { sessionId?: string })?.sessionId
+      ?? (session as { id?: string })?.id
+    useEffect(() => {
+      if (sid === undefined) return
+      // Pre-write view preference (before activateView reads it)
+      if (typeof localStorage !== 'undefined') {
+        try {
+          const key = 'dsh.conversation.' + sid
+          if (localStorage.getItem(key) === null) {
+            localStorage.setItem(key, JSON.stringify({ view: 'dsh-smart-assistant-desk-view' }))
+          }
+        } catch { /* localStorage unavailable */ }
+      }
+      // Auto-send the intake opener on fresh folder (once per session)
+      const walk = deskSlice(sid)
+      const memoryCount = walk.data?.counts?.memories
+      if (memoryCount === undefined || memoryCount === 0) {
+        // Fresh folder: the first-conversation skill will fire
+        const timer = setTimeout(() => { sendPrompt('你好', 'desktop-auto-start', 'desk', sid) }, 800)
+        return () => { clearTimeout(timer) }
+      }
+    }, [sid])
     const send = () => {
       const text = draft.trim()
       const sid = (session as { sessionId?: string })?.sessionId ?? (session as { id?: string })?.id
