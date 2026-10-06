@@ -48,7 +48,24 @@ Day 1-N（有事问）：
   到期行动由它先开口（晨报=到期驱动，原料全部已在家里）
 ```
 
-## 分步消化（两个 goal，顺序执行）
+## 走偏了什么（第二次诚实复盘）
+
+Goal 1+2 做完之后，用户体验**没有根本变化**——产品还是聊天壳，桌面还是旁边一个 tab，auto-send 是 hack。原因是我在 plugin boundary 内的 conversation.view / input.dock 缝里加内容，这些都是「聊天壳里的附加物」，不是「独立的非聊天页面」。
+
+## 真正的解法：sidebar.panellist + main 主区面板
+
+vendor 有一个被忽略的机制：**sidebar.panellist + main 槽系统**。
+- 生态先例：ui-schedule 用这个机制做了「自动化任务」管理页面（侧栏图标 → 点击 → 主区变成完整页面）
+- 这是 **list 槽**（不是 chain 槽的 owner-only 限制）——我们已经成功注册过很多 list 槽
+- **root scope**——不依赖任何 session，不需要用户先发消息，冷启动即可见
+
+注册这个面板意味着：
+- 侧栏有一个「桌面」图标（跟设置/自动化任务并列）
+- 点击后**整个主区变成桌面 dashboard**——不是聊天壳里的 tab，是独立页面
+- 对话变成「输入通道」：dashboard 里有入口可以进入对话
+- 用户看状态/拍板/看跟进/审批——都在 dashboard 上，不需要在聊天流里翻
+
+## 分步消化（三个 goal，顺序执行）
 
 ### Goal 1（Steps 1+2）：打开=桌面——form 层
 **门禁链**：client spec / build / preflight / web-expected 两场景
@@ -66,11 +83,12 @@ Day 1-N（有事问）：
 **怎么做**：FirstMileDock 的 inject 回调在会话绑定时就把 view preference 写入 localStorage（在 activateView 读之前）。
 **自测**：说完第一句话 → 主区显示桌面（不是对话流）。
 
-### Goal 2（Steps 3+4）：体验深度——substance 层
-**门禁链**：build / 真实组合 / eval / 真模型多轮走查
-**自测方法**：naive 走查 + desk-loop 摩擦自读
-**完成判据**：简报有上下文 + 回答引用记忆 + desk-loop 无新增摩擦
-**前置**：Goal 1 完成
+### Goal 2（已完成）：体验深度——substance 层
+结果：morning-brief 上下文简报 + 知识回显（真模型验证通过）
+
+### Goal 3（Goal 1.5 落地后）：dashboard 与对话的双向流通
+**做什么**：dashboard 里的决策卡点击 → 进入拍板对话；对话里的处理单 → 自动出现在 dashboard
+**自测**：dashboard → 点决策卡 → 切到对话 → 拍板 → 切回 dashboard → 决策状态更新
 
 ### Step 3：晨报简报体验
 **做什么**：到期投递（schedule follow-up 到达）时，morning-brief 的简报不是一条「你有一件事到期」——而是一段**有用的摘要**：这件事的上下文、你上次拍了什么、还缺什么数、建议下一步。
