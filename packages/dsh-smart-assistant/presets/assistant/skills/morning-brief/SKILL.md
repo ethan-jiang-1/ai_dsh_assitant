@@ -1,7 +1,7 @@
 ---
 name: morning-brief
-description: How due dates become deliveries — commit a dated desk action AND schedule its reminder in the same turn (schedule_create), and when the scheduled follow-up arrives, present the brief. Load when an action lands on the desk with a due, or when a scheduled reminder fires.
-whenToUse: (a) Any turn that writes a desk `actions[]` row with a `due` — create the matching reminder before the turn ends. (b) A scheduled follow-up has just arrived in this conversation — that arrival IS the brief moment. (c) The principal answers a brief by deferring it or telling you to stop reminding them (their own words, any language).
+description: How due dates become deliveries — commit a dated desk action AND schedule its reminder in the same turn (schedule_create), ensure the standing weekly reconciliation exists, and when a scheduled follow-up or the weekly review arrives, present the brief. Load when an action lands on the desk with a due, or when a scheduled reminder (due or weekly) fires.
+whenToUse: (a) Any turn that writes a desk `actions[]` row with a `due` — create the matching reminder and ensure the weekly review before the turn ends. (b) A scheduled follow-up (due or weekly) has just arrived in this conversation — that arrival IS the brief moment. (c) The principal answers a brief by deferring it or telling you to stop reminding them (their own words, any language).
 ---
 
 # Due dates that actually arrive
@@ -60,7 +60,29 @@ Three blocks maximum, no essay, no tables of zeros — but each block carries co
   the principal ignored is an answer, not an invitation to resend. Restarts do not stack (the Host
   already collapses missed recurring occurrences to the latest one); you do not stack either.
 
-## 4. Honest limits
+## 4. The weekly sit — one standing reconciliation
+
+Due pings handle single items; the weekly sit is the batch channel — the principal reviews a
+whole week in one sitting. Two halves, same skill:
+
+**Ensure it exists (same turn as any dated action, trigger (a)):** call `schedule_list` first —
+if a weekly review you created is already active, do nothing (never stack). Otherwise
+`schedule_create` with kind `weekly`, Monday 09:00 in the principal's IANA zone, prompt
+`[weekly review] — present the weekly reconciliation per the morning-brief skill`. One weekly
+review per working folder, ever; the principal silences it → `schedule_delete` and note the
+silence in memory like any other.
+
+**Deliver it** when the `[weekly review]` prompt arrives — the RECONCILIATION, bad news first:
+1. **Last week's open promises** — actions past their due or slipped, stated as facts
+   ("the renewal draft was due Thursday; the desk has no outcome on it"), never as blame;
+2. **Decisions taken last week** — one line each: the call and its review date;
+3. **Blocking gaps** — the missing readings stalling what is in flight, and why each matters;
+4. **This week's asks** — what needs the principal's call in the next five days.
+
+Same honesty rules as the daily brief: only what the desk and rooms actually hold, short
+prose blocks, no tables of zeros.
+
+## 5. Honest limits
 
 The brief carries what the desk actually holds — no invented progress, no "should be done by now".
 If a due item's state cannot be read from the desk, say exactly that. v1 delivers inside the

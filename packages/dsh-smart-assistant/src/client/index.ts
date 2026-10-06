@@ -1813,7 +1813,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         }, '有问题？'),
       ),
       // Rhythm line
-      muted('这里是你的起点：来了先看「要你拍的」，拍完就走。'),
+      muted('这里是你的起点：来了先看「要你拍的」，拍完就走。每周一早它带对账来，一刻钟批完一周。'),
 
       // Decisions
       ce('div', { style: { marginTop: '20px' } },

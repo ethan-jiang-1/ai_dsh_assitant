@@ -94,6 +94,9 @@ describe('dashboard main panel', () => {
     // Header + conversation entry
     expect(text).toContain('你的桌面')
     expect(text).toContain('有问题')
+    // The weekly rhythm line (261007 Slice 3): the standing sit is named where the principal
+    // already looks, not only in the skill drawer.
+    expect(text).toContain('每周一早')
   })
 
   it('option buttons carry onClick that proxies the decision', () => {
