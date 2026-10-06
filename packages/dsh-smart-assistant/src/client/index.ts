@@ -1460,103 +1460,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   void DeskLandingOverride; // retained for future chain-slot authorization
-  function DeskLandingOverride(props: Record<string, unknown>): ReturnType<typeof createElement> | null {
-    const session = props.session as { blank?: boolean } | undefined
-    if (session?.blank !== true) return null
-    const { useState, useRef, useEffect } = require('react') as typeof import('react')
-    const [draft, setDraft] = useState('')
-    const inputRef = useRef<HTMLTextAreaElement | null>(null)
-    // Inject style to enforce the chain fallback hide (vendor CSS module overrides display:none)
-    useEffect(() => {
-      const style = document.createElement('style')
-      style.textContent = "[data-chain-overlay-fallback='conversation.composer'] { display: none !important; }"
-      document.head.appendChild(style)
-      return () => { style.remove() }
-    }, [])
-    useEffect(() => { inputRef.current?.focus() }, [])
-    const send = () => {
-      const text = draft.trim()
-      const sid = props.sessionId as string | undefined
-      if (text === '' || !sid) return
-      sendPrompt(text, 'desktop-landing', 'desk', sid)
-      setDraft('')
-    }
-    const walk = deskSlice(undefined)
-    const hasDesk = walk.data !== undefined && Object.keys(walk.data).length > 0
 
-    const card = (children: (ReturnType<typeof createElement> | undefined)[]): ReturnType<typeof createElement> =>
-      createElement('div', {
-        style: {
-          display: 'flex', flexDirection: 'column', gap: '10px',
-          width: 'min(var(--dsh-composer-card-max-width, 952px), 100%)',
-          margin: '0 auto', padding: '24px 28px',
-          border: '1px solid var(--dsw-alias-border-l2)', borderRadius: '12px',
-          background: 'var(--dsw-alias-bg-layer-1)',
-          boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
-        },
-      }, ...children)
-
-    const inputArea = createElement('textarea', {
-      ref: inputRef,
-      value: draft,
-      onChange: (e: { target: { value: string } }) => { setDraft(e.target.value) },
-      onKeyDown: (e: { key: string, shiftKey: boolean, preventDefault: () => void }) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } },
-      placeholder: '说说你现在要处理的事…',
-      rows: 2,
-      style: {
-        width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--dsw-alias-border-l2)',
-        background: 'var(--dsw-alias-bg-base)', color: 'inherit', fontSize: '14px', resize: 'vertical' as const,
-        fontFamily: 'inherit', boxSizing: 'border-box' as const,
-      },
-    })
-    const sendBtn = createElement('button', {
-      onClick: send,
-      disabled: !draft.trim(),
-      style: {
-        alignSelf: 'flex-end', padding: '8px 20px', borderRadius: '8px',
-        cursor: draft.trim() ? 'pointer' : 'default',
-        border: 'none', fontSize: '14px', fontWeight: 600,
-        background: draft.trim() ? MARK_TEAL : 'var(--dsw-alias-border-l2)',
-        color: draft.trim() ? 'var(--dsw-alias-text-primary, #fff)' : 'var(--dsw-alias-label-secondary)',
-      },
-    }, draft.trim() ? '发送' : '开始')
-
-    if (!hasDesk) {
-      return card([
-        createElement('div', { style: { fontSize: '20px', fontWeight: 700 } }, '你的桌面'),
-        createElement('div', { style: { fontSize: '14px', color: 'var(--dsw-alias-label-secondary)', lineHeight: 1.7 } },
-          '说一句话，我开始问你——三件事答完，你的桌面上就有第一份决策简报：'),
-        createElement('div', { style: { fontSize: '13px', lineHeight: 2, paddingLeft: '8px', color: 'var(--dsw-alias-label-secondary)' } },
-          createElement('span', null, '① 带代价的选项（你挑一个，不用从零开始）'),
-          createElement('br'),
-          createElement('span', null, '② 还缺的数（我告诉你缺什么、为什么缺它）'),
-          createElement('br'),
-          createElement('span', null, '③ 一个复查日期（到期我主动来找你）')),
-        createElement('div', { style: { fontSize: '13px', color: 'var(--dsw-alias-label-secondary)' } },
-          '例：「我在想要不要给老客户涨价」「这个月签单为什么慢」'),
-        inputArea,
-        sendBtn,
-      ])
-    }
-
-    const data = walk.data
-    const decisions = (data?.decisions ?? []).filter(item => item.kind === 'business' || ((item.options ?? []).length > 0))
-    const actions = (data?.actions ?? []).filter(item => item.status !== 'done')
-    const gaps = data?.gaps ?? []
-    return card([
-      createElement('div', { style: { fontSize: '20px', fontWeight: 700 } }, '你的桌面'),
-      decisions.length > 0
-        ? createElement('div', { style: { padding: '12px 16px', border: '1px solid ' + MARK_TEAL, borderRadius: '8px', background: 'var(--dsw-alias-bg-base)' } },
-            createElement('div', { style: { fontSize: '13px', fontWeight: 600 } }, String(decisions[0]?.question ?? '')),
-            createElement('div', { style: { fontSize: '12px', color: 'var(--dsw-alias-label-secondary)', marginTop: '4px' } },
-              decisions.length + ' 件等你拍板'))
-        : createElement('div', { style: { fontSize: '13px', color: 'var(--dsw-alias-label-secondary)' } }, '没有等你拍板的事。'),
-      ...(actions.length > 0 ? [createElement('div', { style: { fontSize: '13px' } }, '在跟的 ' + actions.length + ' 件——最近到期 ' + String(actions[0]?.due ?? ''))] : []),
-      ...(gaps.length > 0 ? [createElement('div', { style: { fontSize: '13px' } }, '缺的数 ' + gaps.length + ' 个')] : []),
-      inputArea,
-      sendBtn,
-    ])
-  }
 
   function DeskLandingOverride(props: Record<string, unknown>): ReturnType<typeof createElement> | null {
     const session = props.session as { blank?: boolean } | undefined
@@ -1628,6 +1532,24 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     openRoom?: (kind: RoomKind) => void
   }): ReturnType<typeof createElement> | null {
     if (session?.blank !== true) return null
+    // Form migration CSS: hide the vendor's hero + composer for blank sessions.
+    // The chain overlay system provides data-chain-overlay-fallback on the wrapper —
+    // we target it with !important to override the vendor's .composerStack display:flex.
+    const { useEffect, useState } = require('react') as typeof import('react')
+    const [draft, setDraft] = useState('')
+    useEffect(() => {
+      const style = document.createElement('style')
+      style.textContent = "[data-chain-overlay-fallback='conversation.composer'] { display: none !important; }"
+      document.head.appendChild(style)
+      return () => { style.remove() }
+    }, [])
+    const send = () => {
+      const text = draft.trim()
+      const sid = (session as { sessionId?: string })?.sessionId ?? (session as { id?: string })?.id
+      if (text === '' || !sid) return
+      sendPrompt(text, 'desktop-landing', 'desk', sid)
+      setDraft('')
+    }
 
     // The walk view's desk data — on a blank session there is no session slice yet, so we
     // read the global walk store to detect "has a desk at all" (a one-shot check, no memo).
@@ -1667,6 +1589,18 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         startButton('开始第一件事', () => {
           if (session?.id !== undefined) { askStart(session.id) }
         }),
+      createElement('textarea', {
+        value: draft,
+        onChange: (e: { target: { value: string } }) => { setDraft(e.target.value) },
+        onKeyDown: (e: { key: string, shiftKey: boolean, preventDefault: () => void }) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } },
+        placeholder: '说说你现在要处理的事…',
+        rows: 2,
+        style: { width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--dsw-alias-border-l2)', background: 'var(--dsw-alias-bg-base)', color: 'inherit', fontSize: '14px', resize: 'vertical' as const, fontFamily: 'inherit', boxSizing: 'border-box' as const },
+      }),
+      createElement('button', {
+        onClick: send,
+        style: { alignSelf: 'flex-end', padding: '8px 20px', borderRadius: '8px', cursor: 'pointer', border: 'none', fontSize: '14px', fontWeight: 600, background: MARK_TEAL, color: 'var(--dsw-alias-text-primary, #fff)' },
+      }, '发送'),
       ])
     }
 
@@ -2685,11 +2619,6 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // right-sidebar tab — it claims a first-class conversation view beside chat. See
     // DeskViewBody's docstring for the seam facts; order 5 keeps chat (0) first on the strip
     // while the desk tab stays one click away, remembered per session once chosen.
-    ctx.slots.inject('conversation.composer', () =>
-      ctx.slots.register({
-        name: 'conversation.composer',
-        id: 'dsh-smart-assistant-desk-landing',
-      }, DeskLandingOverride))
 
     ctx.slots.inject('conversation.view', () =>
       ctx.slots.register({

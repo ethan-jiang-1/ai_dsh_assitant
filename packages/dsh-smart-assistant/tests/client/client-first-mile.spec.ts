@@ -125,7 +125,7 @@ describe('first-mile seats', () => {
     expect(copy).not.toContain('敲 /')
 
     const buttons = elementsOf(dock, 'button')
-    expect(buttons).toHaveLength(1)
+    expect(buttons).toHaveLength(2) // 开始第一件事 + 发送（A1 内嵌 composer 的发送按钮）
     // 2026-10-06 (real-user walk): the desk button is demoted to a labelled preview of the
     // empty desk — the primary start is the first word in the composer, and the copy above
     // now says what happens after it (the assistant asks first).
@@ -254,7 +254,7 @@ describe('approval dock banner', () => {
     const banner = exports.ApprovalDockBanner({ openRoom: kind => { opened.push(kind) } })
     if (banner === null) throw new Error('the banner should render for draft rows')
     const buttons = elementsOf(banner, 'button')
-    expect(buttons).toHaveLength(1)
+    expect(buttons).toHaveLength(1) // 开始第一件事（发送按钮在 composer 内，不在 dock 测试范围内）
     expect(textsOf(buttons[0]).join('')).toBe('点这里去审批')
     exports.deskStore.focusKnowledge = undefined
     ;(buttons[0]?.props.onClick as () => void)()
