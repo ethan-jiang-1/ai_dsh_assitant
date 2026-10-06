@@ -18,7 +18,7 @@
 export const AGENTS_FILE_NAME = 'AGENTS.md'
 
 /** Version of the generated manual; bump when the generated content changes meaningfully. */
-export const HOME_MANUAL_VERSION = 13
+export const HOME_MANUAL_VERSION = 14
 
 /** The version marker stamped as the file's first line (an HTML comment: invisible when rendered). */
 export const HOME_MANUAL_MARKER = `<!-- home-manual v${String(HOME_MANUAL_VERSION)} -->`
@@ -88,6 +88,16 @@ must remember to open. When you write a dated action, create its reminder in the
 arrives in the conversation, that arrival is the brief moment — load the \`morning-brief\` skill and
 present what is due, briefly. Defer and silence are the principal's words for it (any language);
 one delivery per due, no re-ping without new information.
+
+## Recall what you know — every answer
+
+Before answering any question, check the memory room (\`assistant_memory action=list\`) for context
+the principal has already given you. If relevant context exists, weave it into your answer with a
+natural reference (in their own words — for example, "you mentioned last time that...",
+"based on what you told me before..."). This is what makes the
+difference between a stranger with good analysis and an aide who knows the company. The principal
+should never have to repeat something they already told you. If the memory has no relevant context,
+just answer normally — do not force a reference where none exists.
 
 ## The first conversation
 

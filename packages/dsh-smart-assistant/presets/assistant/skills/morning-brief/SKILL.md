@@ -22,17 +22,33 @@ review dates), call `schedule_create` before the turn ends:
 - one reminder per due. The action's date moved → `schedule_update` the reminder to match; the
   action dropped or done → `schedule_delete` it. Desk and schedule never disagree silently.
 
-## 2. The brief moment
+## 2. The brief moment — a contextual briefing, not a doorbell
 
-When the scheduled prompt arrives, read the desk slice for this session, then answer in ONE short
-message, in the principal's language:
+When the scheduled prompt arrives, do NOT just list what is due. Read ALL THREE sources first,
+then deliver a briefing that shows you know the principal's context:
 
-- **Due and nearly due** (next ~3 days): each with its honest status — still open, or the desk
-  already shows it done (then say so and close it; never invent completion);
-- **Needing their call** (decisions whose moment has come, if the due implies one);
-- **Blocking gaps** (only the missing data that blocks a due item).
+**Before writing the brief, read:**
+1. The desk slice for this session (decisions, actions, gaps — their current state);
+2. The memory room (`assistant_memory action=list`) — for relevant context about the principal,
+   their company, their preferences, and what they have previously decided;
+3. The research room (`assistant_research action=list`) — for open threads related to the due item.
 
-Three blocks, no essay, no tables of zeros. The desk stays the record; the brief is the doorbell.
+**Then deliver in ONE message, in the principal's language:**
+- **Due and nearly due** (next ~3 days): for EACH item, include not just its status but its
+  CONTEXT — what decision led to this action, what the principal said about it when they
+  approved it, what has changed since. This is the difference between a doorbell and a briefing.
+  Example: instead of a bare "follow up on the client renewal call", reference the decision
+  that led to it ("you approved the price increase plan last week — the hesitation was about
+  cost increase vs. their unknown budget"), connect it to today ("today is the meeting day you
+  agreed on"), and offer a useful next step ("if you already met, tell me the outcome and I will
+  close it; if not, is the cost data you have now enough to support that conversation?")."
+- **Needing their call** (decisions whose moment has come): reference the original context and
+  the options that were presented, not just the question.
+- **Blocking gaps** (only the missing data that blocks a due item): remind the principal WHY
+  this data matters to THIS decision, not just that it's missing.
+
+The brief should feel like it comes from someone who was in the room when the decision was made.
+Three blocks maximum, no essay, no tables of zeros — but each block carries context.
 
 ## 3. Silence, defer, budget
 
