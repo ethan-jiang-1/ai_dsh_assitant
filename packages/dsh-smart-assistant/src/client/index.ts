@@ -1458,6 +1458,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    *
    * For non-blank sessions, returns null so the vendor's normal rendering continues.
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   function DeskLandingOverride(props: Record<string, unknown>): ReturnType<typeof createElement> | null {
     const session = props.session as { blank?: boolean } | undefined
     if (session?.blank !== true) return null
@@ -1474,8 +1475,9 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     useEffect(() => { inputRef.current?.focus() }, [])
     const send = () => {
       const text = draft.trim()
-      if (text === '' || props.sessionId === undefined) return
-      sendPrompt(text, 'desktop-landing', 'desk', props.sessionId)
+      const sid = props.sessionId as string | undefined
+      if (text === '' || !sid) return
+      sendPrompt(text, 'desktop-landing', 'desk', sid)
       setDraft('')
     }
     const walk = deskSlice(undefined)
@@ -2606,16 +2608,11 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       ctx.slots.inject('sidebar.right.pane.tab.title', () =>
         ctx.slots.register({ name: 'sidebar.right.pane.tab.title', key: room.id }, roomTabTitle(room.icon, room.title)))
     }
-    // Form migration (2026-10-06 revised): `conversation.composer` chain + `overlay:true` —
-    // when elected, the vendor's fallback (hero + composer) is wrapped in a div with
-    // `data-chain-overlay-fallback` and `display:none`. The vendor's own CSS module
-    // (`.composerStack { display: flex }`) overrides this at the child level, so DeskLandingOverride
-    // injects a targeted style rule using the data attribute to enforce the hide.
-    ctx.slots.inject('conversation.composer', () =>
-      ctx.slots.register({
-        name: 'conversation.composer',
-        id: 'dsh-smart-assistant-desk-landing',
-      }, DeskLandingOverride))
+    // Form migration: conversation.composer is a CHAIN slot — chain slots are owner-only
+    // registration (the declaring entry is the only one that can add to the chain).
+    // Our plugin cannot register on it. The rich landing card in conversation.input.dock
+    // (below) is the plugin boundary's best shot. Full form migration needs upstream D7.
+
 
     // Desk primary view (desk-primary-view proposal, 2026-10-06): the desk stops being only a
     // right-sidebar tab — it claims a first-class conversation view beside chat. See
