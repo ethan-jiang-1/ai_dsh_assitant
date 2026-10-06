@@ -1443,6 +1443,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    * The composer is rebuilt here as a simple textarea + send button, wired to sendPrompt —
    * the vendor's input bar is hidden by the chain election, so we provide our own.
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   function DeskLandingOverride(props: { sessionId?: string, session?: { blank?: boolean } }): ReturnType<typeof createElement> | null {
     const session = props.session
     if (session?.blank !== true) return null
@@ -1490,7 +1491,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
           ref: inputRef,
           value: draft,
           onChange: (e: unknown) => { setDraft((e as { target: { value: string } }).target.value) },
-          onKeyDown: (e: unknown) => { if ((e as { key: string }).key === 'Enter' && !(e as { shiftKey: boolean }).shiftKey) { e.preventDefault(); send() } },
+          onKeyDown: (e?: { key?: string, shiftKey?: boolean, preventDefault?: () => void }) => { if (e?.key === 'Enter' && !e.shiftKey) { e.preventDefault?.(); send() } },
           placeholder: '说说你现在要处理的事…',
           rows: 2,
           style: {
@@ -1526,17 +1527,13 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
               `${decisions.length} 件等你拍板`),
           )
         : createElement('div', { style: { fontSize: '13px', color: 'var(--dsw-alias-label-secondary)' } }, '没有等你拍板的事。'),
-      actions.length > 0
-        ? createElement('div', { style: { fontSize: '13px' } }, `在跟的 ${actions.length} 件——最近到期 ${actions[0]?.due ?? ''}`)
-        : null,
-      gaps.length > 0
-        ? createElement('div', { style: { fontSize: '13px' } }, `缺的数 ${gaps.length} 个`)
-        : null,
+      ...(actions.length > 0 ? [createElement('div', { style: { fontSize: '13px' } }, `在跟的 ${actions.length} 件——最近到期 ${actions[0]?.due ?? ''}`)] : []),
+      ...(gaps.length > 0 ? [createElement('div', { style: { fontSize: '13px' } }, `缺的数 ${gaps.length} 个`)] : []),
       createElement('textarea', {
         ref: inputRef,
         value: draft,
         onChange: (e: unknown) => { setDraft((e as { target: { value: string } }).target.value) },
-        onKeyDown: (e: unknown) => { if ((e as { key: string }).key === 'Enter' && !(e as { shiftKey: boolean }).shiftKey) { e.preventDefault(); send() } },
+        onKeyDown: (e?: { key?: string, shiftKey?: boolean, preventDefault?: () => void }) => { if (e?.key === 'Enter' && !e.shiftKey) { e.preventDefault?.(); send() } },
         placeholder: '有新的事，直接说…',
         rows: 2,
         style: {
@@ -2629,11 +2626,12 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // fallback (HeroShell + workspace chip + input bar) gets `display: none`. This means we
     // can REPLACE the entire blank-phase rendering, not just add a strip beside it.
     // For non-blank sessions we return null so the vendor's normal rendering continues.
-    ctx.slots.inject('conversation.composer', () =>
-      ctx.slots.register({
-        name: 'conversation.composer',
-        id: 'dsh-smart-assistant-desk-landing',
-      }, DeskLandingOverride))
+    // TEMPORARILY DISABLED: debugging plugin activation failure
+    // ctx.slots.inject('conversation.composer', () =>
+    //   ctx.slots.register({
+    //     name: 'conversation.composer',
+    //     id: 'dsh-smart-assistant-desk-landing',
+    //   }, // DeskLandingOverride))
 
     // Desk primary view (desk-primary-view proposal, 2026-10-06): the desk stops being only a
     // right-sidebar tab — it claims a first-class conversation view beside chat. See
