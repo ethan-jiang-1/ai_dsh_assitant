@@ -1782,6 +1782,15 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
                 ...((item.options ?? []).map((opt, j) =>
                   ce('button', {
                     key: 'opt-' + j,
+                    onClick: () => {
+                      // Goal 3 (2026-10-06): dashboard → conversation — the option click IS the
+                      // decision. Same panel-proxies-principal mechanism as the DeskPanel's
+                      // one-click options: sendPrompt carries the decision to the session.
+                      sendPrompt(
+                        `Dashboard panel decided on behalf of principal — pending decision "${String(item.question ?? '')}": ${String(opt.label ?? '')}. Record the decision and update the desk.`,
+                        '拍板', String(item.id ?? item.question ?? ''), undefined,
+                      )
+                    },
                     style: {
                       marginRight: '8px', marginBottom: '6px', padding: '6px 14px',
                       borderRadius: '6px', border: '1px solid var(--dsw-alias-border-l3)',
