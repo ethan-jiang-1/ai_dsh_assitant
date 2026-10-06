@@ -1723,8 +1723,9 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    */
   function DashboardMainPanel(props: { onAsk?: () => void }): ReturnType<typeof createElement> {
     const { useEffect } = require('react') as typeof import('react')
+    const store = useDesk()
     useEffect(() => { reloadDesk(undefined) }, [])
-    const walk = deskSlice(undefined)
+    const walk = store
     const data = walk.data
     const { createElement: ce } = { createElement }
     const sectionTitle = (text: string): ReturnType<typeof createElement> =>
