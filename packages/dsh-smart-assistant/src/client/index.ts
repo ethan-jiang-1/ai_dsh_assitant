@@ -1459,6 +1459,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    * For non-blank sessions, returns null so the vendor's normal rendering continues.
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  void DeskLandingOverride; // retained for future chain-slot authorization
   function DeskLandingOverride(props: Record<string, unknown>): ReturnType<typeof createElement> | null {
     const session = props.session as { blank?: boolean } | undefined
     if (session?.blank !== true) return null
@@ -1558,10 +1559,22 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   }
 
   function FirstMileDock({ session, openRoom }: {
-    session?: { blank?: boolean, id?: string } | undefined
+    session?: { blank?: boolean, id?: string, sessionId?: string } | undefined
     openRoom?: (kind: RoomKind) => void
   }): ReturnType<typeof createElement> | null {
     if (session?.blank !== true) return null
+    // Form migration (2026-10-06): pre-write the view preference to the desk view so that
+    // when the session leaves the blank phase (after the first message), the desk view
+    // activates automatically — the principal sees the desk, not the chat transcript.
+    const sid = (session as { sessionId?: string }).sessionId ?? (session as { id?: string }).id
+    if (sid !== undefined && typeof localStorage !== 'undefined') {
+      try {
+        const key = 'dsh.conversation.' + sid
+        if (localStorage.getItem(key) === null) {
+          localStorage.setItem(key, JSON.stringify({ view: 'dsh-smart-assistant-desk-view' }))
+        }
+      } catch { /* localStorage unavailable — the desk is still reachable by tab */ }
+    }
     // The walk view's desk data — on a blank session there is no session slice yet, so we
     // read the global walk store to detect "has a desk at all" (a one-shot check, no memo).
     const walk = deskSlice(undefined)
