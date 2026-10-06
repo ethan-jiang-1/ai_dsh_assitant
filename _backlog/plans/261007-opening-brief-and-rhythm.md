@@ -1,6 +1,6 @@
 # 推敲：它先开口——开屏播报、拍板感与周节律（行为层收口）
 
-> 立卡：2026-10-07 ｜ 状态：推敲中｜毕业门判断 = **该做**（2026-10-07 真机走查 + 设计考古收口：四 Goal 形态层落地属实，但「它先开口」内容物错位 + 三个断链 P0 + 节律层未设计；方向本身经 19 轮定位卡 + 三路外证复核为靠谱，距离在行为层不在形态层）｜下一步 = Slice 1 开工（授权：用户 2026-10-07 本轮点名「plan + ongoing goal + 一路往前推进」；呈批件 = [notes/proposed/2026-10-07-opening-brief-and-rhythm.md](../../notes/proposed/2026-10-07-opening-brief-and-rhythm.md)）
+> 立卡：2026-10-07 ｜ 状态：推敲中｜毕业门判断 = **该做，四片全交付**（Slice 1 `7fe774a` / 2 `636a4a6` / 3 `532c19d`，implemented note = [notes/implemented/2026-10-07-opening-brief-and-rhythm.md](../../notes/implemented/2026-10-07-opening-brief-and-rhythm.md)；完整弧线真机走查通过——Day-2 与 Day-0 双弧线、重载幂等、composer 全相位存活、双排程落盘）｜**剩毕业门最后一环：用户终验「这回不一样了」**｜下一步 = 用户上手终验 → 过则卡毕业迁 `_done/_closed_plans/`
 
 ## 背景 / 触发
 
@@ -63,3 +63,14 @@ morning-brief 周变体（对账口径：上周拍的/在跟状态/缺的数/本
 
 完整弧线真机走查（干净 home、真模型、逐帧 DOM）每步可答「我在做什么/下一步是什么」：
 打开（桌有数据）→ 三行播报（非「你好」）→ 点播报项进拍板对话 → **能打字**（composer 活）→ 拍板中文句+卡片即时状态 → 切回桌面见回执 → 重载 3 次会话不增殖不重发 → fresh home 走 intake 弧线同样成立 → 「有问题」从 dashboard 真回对话。加：用户终验「这回不一样了」。
+
+**走查记录（2026-10-07，证据 /tmp/ux-shots/slice1-*…slice4-*）：**
+- 重载幂等：×3 重载会话数恒 2、无 `[桌面] 你好`、播报常在（对照修复前：10 分钟 6 条幽灵会话）✔
+- 播报卡：三行业务话术可见可点（y=408 实渲染），行点击进中文拍板对话 ✔
+- composer：全相位存活（vendor contenteditable），Day-2 拍板与 Day-0 intake 两轮真打字 ✔
+- 拍板：中文句入账（`桌面面板代本人拍板`）、卡片即时「已拍」锁定、回执退场、新决策上位 ✔
+- 有问题：dashboard 点击 → `selectPanel(null)` → 主区回会话面 ✔
+- 周坐：真模型同回合双排程落盘（`weekly` 周一 09:00 Asia/Shanghai + `at` 10-10 due，prompt 逐字守约）✔
+- Day-0：Day-0 卡 → 「开始第一件事」→ intake 提问 → 打字回答 → 桌面长出首份决策 → 重载播报接班 ✔
+- web-expected 两场景重录 PASS；test 45 件 386 + verify 34 全绿 ✔
+- **未勾：用户终验「这回不一样了」（毕业门最后一环，等本人上手）**
