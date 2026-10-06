@@ -1723,7 +1723,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    */
   function DashboardMainPanel(props: { onAsk?: () => void }): ReturnType<typeof createElement> {
     const { useEffect } = require('react') as typeof import('react')
-    useEffect(() => { loadDeskFor(undefined) }, [])
+    useEffect(() => { reloadDesk(undefined) }, [])
     const walk = deskSlice(undefined)
     const data = walk.data
     const { createElement: ce } = { createElement }
@@ -1774,7 +1774,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         sectionTitle(`要你拍的（${decisions.length}）`),
         decisions.length === 0
           ? muted('没有等你拍板的事。')
-          : ce('div', null, ...decisions.slice(0, 3).map((item, i) =>
+          : ce('div', null, ...decisions.slice(0, 3).map(item =>
               card(
                 ce('div', { style: { fontSize: '15px', fontWeight: 600, marginBottom: '6px' }, key: 'q' }, String(item.question ?? '')),
                 ce('div', { style: { fontSize: '12px', color: 'var(--dsw-alias-label-secondary)', marginBottom: '10px' }, key: 'ctx' }, String(item.context ?? '')),
@@ -2694,7 +2694,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       ctx.slots.register({
         name: 'main',
         key: 'dsh-smart-assistant-dashboard',
-        inject: (): { onAsk: () => void } => ({ onAsk: () => { ctx.uiWorkspace.startSession() } }),
+        inject: (): { onAsk: () => void } => ({ onAsk: () => { window.dispatchEvent(new CustomEvent('dsh-navigate-to-session')) } }),
       }, DashboardMainPanel))
 
     ctx.slots.inject('sidebar.brand.mark', () =>
