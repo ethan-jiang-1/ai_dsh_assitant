@@ -37,6 +37,12 @@ interface ClientContext {
   /** The right-sidebar controller, so a page can open a room tab beside the conversation. */
   sidebarRight?: { openTab: (kind: string, options?: { params?: unknown }) => void }
   /**
+   * The cross-plugin panel-action face (ctx.layout, vendor ui-layout): selectPanel(null)
+   * returns the main area to the Conversation. The dead-button fix (261007 Slice 1c) — the
+   * dashboard's 「有问题？」 used to dispatch a CustomEvent nobody listens to.
+   */
+  layout?: { selectPanel: (panelId: string | null) => void }
+  /**
    * Scoped dependency injection. The command registry is reached this way instead of
    * through the plugin's own `inject` list: the rooms must render whether or not the
    * composition carries a command surface, so the panels must not wait on it.
@@ -769,6 +775,21 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   function askAboutDecision(question: string, rowId: string, sessionId?: string): void {
     sendPrompt(`桌面面板代本人提问——待决事项「${question}」：请给两三个选项，每个选项的代价与不可逆程度，以及你的建议。`,
       '看选项', rowId, sessionId)
+  }
+
+  /**
+   * Briefing-row check-in (261007 Slice 1b): the opening brief's action row opens the matching
+   * conversation — the principal asks about progress without composing the question.
+   */
+  function askCheckIn(what: string, due: string, rowId: string, sessionId?: string): void {
+    sendPrompt(`桌面面板代本人过问——在跟的事「${what}」（${due} 到期）：现在到哪一步了？有没有要我拍板或补的数？`,
+      '过问', rowId, sessionId)
+  }
+
+  /** The briefing's gap row: open a conversation about closing this missing reading. */
+  function askAboutGap(what: string, why: string, rowId: string, sessionId?: string): void {
+    sendPrompt(`桌面面板代本人过问——缺的数「${what}」（${why}）：怎么把它补上？需要我提供什么，还是先告诉我去哪里拿？`,
+      '补缺', rowId, sessionId)
   }
 
   /**
@@ -1531,45 +1552,43 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     session?: { blank?: boolean, id?: string, sessionId?: string } | undefined
     openRoom?: (kind: RoomKind) => void
   }): ReturnType<typeof createElement> | null {
-    if (session?.blank !== true) return null
-    // Form migration CSS: hide the vendor's hero + composer for blank sessions.
-    // The chain overlay system provides data-chain-overlay-fallback on the wrapper —
-    // we target it with !important to override the vendor's .composerStack display:flex.
+    // Hooks stay UNCONDITIONAL (React rules): the 2026-10-07 live probe caught the early
+    // return below them leaking the composer-hiding style past unmount — an ongoing session
+    // was left with no input box at all while the model waited for an answer.
     const { useEffect, useState } = require('react') as typeof import('react')
     const [draft, setDraft] = useState('')
-    useEffect(() => {
-      const style = document.createElement('style')
-      style.textContent = "[data-chain-overlay-fallback='conversation.composer'] { display: none !important; }"
-      document.head.appendChild(style)
-      return () => { style.remove() }
-    }, [])
-    // Auto-send + view preference (form migration, 2026-10-06):
-    // 1. On blank session mount, pre-write the view preference so that when the session
-    //    becomes non-blank (after the first message), the desk view activates automatically.
-    // 2. On fresh folder (no desk file, no memories), auto-send the intake opener so the
-    //    principal sees content immediately — not a blank screen.
     const sid = (session as { sessionId?: string })?.sessionId
       ?? (session as { id?: string })?.id
+    // (261007 Slice 1a) The A1-era hiding CSS — "[data-chain-overlay-fallback='conversation.composer']
+    // { display:none }" — is RETIRED, not fixed. The live probe (2026-10-07) showed WHY it could
+    // never work: this dock renders INSIDE that fallback wrapper (vendor ConversationContent.tsx:
+    // composerStack = hero + input.dock + inputBar), so hiding the vendor composer hid this card
+    // too — the blank-phase takeover hid itself, and an unmount leak left ongoing sessions with
+    // no input box at all. The blank phase now shows the honest stack: vendor hero + this card +
+    // the vendor composer (the input channel the card's copy points at).
+    // View preference pre-write (kept from Goal 1, 2026-10-06): makes REOPENING this session
+    // land on the desk view even without D7. The in-session switch it hoped for never fired
+    // (live probe 2026-10-07) — that part stays with upstream D7.
     useEffect(() => {
-      if (sid === undefined) return
-      // Pre-write view preference (before activateView reads it)
-      if (typeof localStorage !== 'undefined') {
-        try {
-          const key = 'dsh.conversation.' + sid
-          if (localStorage.getItem(key) === null) {
-            localStorage.setItem(key, JSON.stringify({ view: 'dsh-smart-assistant-desk-view' }))
-          }
-        } catch { /* localStorage unavailable */ }
-      }
-      // Auto-send the intake opener on fresh folder (once per session)
-      const walk = deskSlice(sid)
-      const memoryCount = walk.data?.counts?.memories
-      if (memoryCount === undefined || memoryCount === 0) {
-        // Fresh folder: the first-conversation skill will fire
-        const timer = setTimeout(() => { sendPrompt('你好', 'desktop-auto-start', 'desk', sid) }, 800)
-        return () => { clearTimeout(timer) }
-      }
+      if (sid === undefined || typeof localStorage === 'undefined') return
+      try {
+        const key = 'dsh.conversation.' + sid
+        if (localStorage.getItem(key) === null) {
+          localStorage.setItem(key, JSON.stringify({ view: 'dsh-smart-assistant-desk-view' }))
+        }
+      } catch { /* localStorage unavailable */ }
     }, [sid])
+    // (261007 Slice 1b) The Goal-1 auto-send — an 800ms timed '你好' — is retired. It read
+    // deskSlice(sid), which is ALWAYS empty on a brand-new session, so every page load
+    // re-fired it: six ghost sessions in ten minutes on the 2026-10-07 probe, each a real
+    // model round that re-opened with "初次见面" on a desk that already held content. The
+    // opening content is the deterministic brief below — zero tokens, idempotent across
+    // reloads, composed from the walk view the client already holds.
+    // The walk view is SUBSCRIBED (useDesk), not a one-shot deskSlice read: the walk read
+    // lands asynchronously after mount, and the old one-shot never re-rendered — the brief
+    // never appeared on a live reload (caught in the Slice 1 real-machine probe).
+    const walk = useDesk()
+    if (session?.blank !== true) return null
     const send = () => {
       const text = draft.trim()
       const sid = (session as { sessionId?: string })?.sessionId ?? (session as { id?: string })?.id
@@ -1578,9 +1597,8 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       setDraft('')
     }
 
-    // The walk view's desk data — on a blank session there is no session slice yet, so we
-    // read the global walk store to detect "has a desk at all" (a one-shot check, no memo).
-    const walk = deskSlice(undefined)
+    // The walk view's desk data — on a blank session there is no session slice yet, so the
+    // brief reads the shared walk view (subscribed above).
     const hasDesk = walk.data !== undefined && Object.keys(walk.data).length > 0
     const shell = (children: (string | ReturnType<typeof createElement> | undefined)[]): ReturnType<typeof createElement> =>
       createElement('div', {
@@ -1631,21 +1649,43 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       ])
     }
 
-    // Has a desk: compact summary — the first screen IS the working surface.
+    // Has a desk: the OPENING BRIEF (261007 Slice 1b) — spoken lines over the desk's state,
+    // each clickable into the matching action conversation (会话=桌面上的动作). Deterministic
+    // from the walk view: the product opens with what it already holds, not with a greeting
+    // that makes the principal start.
     const data = walk.data
     const decisions = (data?.decisions ?? []).filter(item => item.kind === 'business' || ((item.options ?? []).length > 0))
     const gaps = data?.gaps ?? []
     const actions = (data?.actions ?? []).filter(item => item.status !== 'done')
+    const briefRow = (label: string, run: () => void): ReturnType<typeof createElement> =>
+      createElement('button', {
+        key: label,
+        onClick: run,
+        style: {
+          border: '1px solid var(--dsw-alias-border-l2)', borderRadius: '8px',
+          background: 'var(--dsw-alias-bg-base)', cursor: 'pointer', textAlign: 'left' as const,
+          fontSize: '13px', color: 'inherit', padding: '10px 14px', lineHeight: 1.6,
+        },
+      }, label)
     return shell([
-      heading('这是你的一把手桌面'),
+      heading('这是你的一把手桌面——三句话，说完就办'),
       decisions.length > 0
-        ? body(`要你拍的 ${decisions.length} 件——最新：「${String(decisions[0]?.question ?? '').slice(0, 40)}」`)
+        ? briefRow(
+            `要你拍的：「${String(decisions[0]?.question ?? '').slice(0, 40)}」——点这里，把选项和代价摆出来`,
+            () => { askAboutDecision(String(decisions[0]?.question ?? ''), String(decisions[0]?.id ?? decisions[0]?.question ?? ''), sid) },
+          )
         : body('没有等你拍板的事。'),
       actions.length > 0
-        ? body(`在跟的 ${actions.length} 件——最近到期：「${String(actions[0]?.what ?? '').slice(0, 30)}」（${String(actions[0]?.due ?? '')}）`)
+        ? briefRow(
+            `在跟的：「${String(actions[0]?.what ?? '').slice(0, 30)}」（${String(actions[0]?.due ?? '')} 到期）——点这里，问一句进展`,
+            () => { askCheckIn(String(actions[0]?.what ?? ''), String(actions[0]?.due ?? ''), String(actions[0]?.id ?? actions[0]?.what ?? ''), sid) },
+          )
         : undefined,
       gaps.length > 0
-        ? body(`缺的数 ${gaps.length} 个——最挡路的：「${String(gaps[0]?.what ?? '').slice(0, 30)}」`)
+        ? briefRow(
+            `还缺一个数：「${String(gaps[0]?.what ?? '').slice(0, 30)}」——点这里，一起把它补上`,
+            () => { askAboutGap(String(gaps[0]?.what ?? ''), String(gaps[0]?.why ?? ''), String(gaps[0]?.id ?? gaps[0]?.what ?? ''), sid) },
+          )
         : undefined,
       createElement('div', { style: { display: 'flex', gap: '8px', alignItems: 'center' } },
         startButton('打开桌面全景', () => { openRoom?.('desk') }),
@@ -2618,7 +2658,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   }
 
   /** Slots this face occupies (single-occupant, root-scope, declared by the sidebar). */
-  const inject = ['slots', 'sidebarRightTabs', 'sidebarRight', 'sessions', 'remote', 'remote.agentPresets', 'remote.workspaceFiles', 'remote.session']
+  const inject = ['slots', 'sidebarRightTabs', 'sidebarRight', 'sessions', 'remote', 'remote.agentPresets', 'remote.workspaceFiles', 'remote.session', 'layout']
 
   /**
    * Build the typert contribution the client mounts for the knowledge-approve direct-call lane.
@@ -2652,11 +2692,14 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   let deskSessions: { list?: { getSnapshot: () => unknown, subscribe: (fn: () => void) => () => void } } | undefined
   /** The right-sidebar controller, so a page can open a room tab beside the conversation. */
   let deskSidebarRight: { openTab: (kind: string, options?: { params?: unknown }) => void } | undefined
+  /** The cross-plugin panel-action face (ctx.layout) — the dashboard's way back to the Conversation. */
+  let deskLayout: { selectPanel: (panelId: string | null) => void } | undefined
 
   function apply(ctx: ClientContext): void {
     deskRemote = (ctx as { remote?: Record<string, unknown> }).remote
     deskSessions = (ctx as { sessions?: typeof deskSessions }).sessions
     deskSidebarRight = ctx.sidebarRight
+    deskLayout = ctx.layout
     ensureThemeVars()
 
     // The knowledge-approve direct-call lane (approve-direct-call): mount our contribution so
@@ -2704,7 +2747,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       ctx.slots.register({
         name: 'main',
         key: 'dsh-smart-assistant-dashboard',
-        inject: (): { onAsk: () => void } => ({ onAsk: () => { window.dispatchEvent(new CustomEvent('dsh-navigate-to-session')) } }),
+        inject: (): { onAsk: () => void } => ({ onAsk: () => { deskLayout?.selectPanel(null) } }),
       }, DashboardMainPanel))
 
     ctx.slots.inject('sidebar.brand.mark', () =>

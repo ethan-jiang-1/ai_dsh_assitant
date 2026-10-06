@@ -12,7 +12,7 @@
  * The browser half is a classic script (zero imports/exports); the harness evaluates it
  * and materializes the factory — same as client-panels.spec.ts.
  */
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { inertReactShim, loadClientRegistration, materializeClient } from '../support/client-harness.ts'
 
 const registration = await loadClientRegistration()
@@ -130,5 +130,29 @@ describe('dashboard main panel', () => {
     expect(typeof exports.DashboardPanelIcon).toBe('function')
     const icon = (exports.DashboardPanelIcon as () => unknown)()
     expect(icon).toBeTruthy()
+  })
+
+  it('onAsk returns to the Conversation through ctx.layout (261007 Slice 1c)', () => {
+    const exports = materialize()
+    const selected: (string | null)[] = []
+    const registered: { key?: string, inject?: () => { onAsk: () => void } }[] = []
+    const ctx = {
+      slots: {
+        inject: (_name: string, contribute: () => unknown) => { contribute() },
+        register: (declaration: { key?: string, inject?: () => { onAsk: () => void } }) => {
+          registered.push(declaration)
+          return undefined
+        },
+      },
+      sidebarRightTabs: { register: () => undefined },
+      sidebarRight: { openTab: () => {} },
+      layout: { selectPanel: (id: string | null) => { selected.push(id) } },
+    }
+    ;(exports.apply as (ctx: unknown) => void)(ctx)
+    const main = registered.find(d => d.key === 'dsh-smart-assistant-dashboard')
+    expect(main).toBeTruthy()
+    main?.inject?.().onAsk()
+    // vendor ui-layout contract: null selects the Conversation (the panel's way back).
+    expect(selected).toEqual([null])
   })
 })

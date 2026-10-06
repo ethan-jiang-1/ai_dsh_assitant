@@ -132,6 +132,34 @@ describe('first-mile seats', () => {
     expect(textsOf(buttons[0]).join('')).toBe('开始第一件事')
   })
 
+  it('a returning principal opens on the brief, not a greeting (261007 Slice 1b)', () => {
+    const exports = materialize()
+    // Seeded walk view: the desk already holds one item per section (a Day-2 folder).
+    const store = exports.deskStore as { data: unknown }
+    store.data = {
+      generatedAt: '2026-10-07T09:00:00+08:00',
+      counts: { memories: 2, threads: 1 },
+      decisions: [{ id: 'd1', question: '老客户续约要不要涨价？', kind: 'business', options: [{ label: '涨 5%' }] }],
+      actions: [{ id: 'a1', what: '出续约方案草案', due: '2026-10-09', status: 'open' }],
+      gaps: [{ id: 'g1', what: '三家客户的毛利数', why: '没它算不出涨价后的账' }],
+    }
+    const dock = exports.FirstMileDock({ session: { blank: true }, openRoom: () => {} })
+    if (dock === null) throw new Error('the brief should render for a blank session with a desk')
+    const copy = textsOf(dock).join(' ')
+    // The brief speaks the desk's state (the design's "opening = there is content waiting for you"),
+    // composed deterministically from the walk view — the model is not consulted for the opener.
+    expect(copy).toContain('一把手桌面')
+    expect(copy).toContain('要你拍的')
+    expect(copy).toContain('老客户续约要不要涨价')
+    expect(copy).toContain('在跟的')
+    expect(copy).toContain('出续约方案草案')
+    expect(copy).toContain('还缺一个数')
+    // Each brief row is a button — clicking opens the matching action conversation.
+    const rows = elementsOf(dock, 'button').filter(b => textsOf(b.props.children).join('').includes('点这里'))
+    expect(rows.length).toBe(3)
+    expect(typeof rows[0]?.props.onClick).toBe('function')
+  })
+
   it('shows an unopenable desk on the chip the principal actually clicked (R9)', () => {
     const exports = materialize() as unknown as ClientExports & {
       AssistantDeskChip: () => Element

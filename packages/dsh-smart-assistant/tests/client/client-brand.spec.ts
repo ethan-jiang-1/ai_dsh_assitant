@@ -96,11 +96,13 @@ describe('client-module registration', () => {
     // the brand mark and the three rooms, sidebarRight to open the beside-conversation room
     // tabs, the Session store for the conversation list and the desk file's workspace, and the
     // three manifested Remote namespaces (a namespace the browser-side manifest does not list
-    // leaves the entry pending forever). The left-panel era's `layout` is gone: the rooms live
-    // as right-sidebar tabs (user steer, 2026-09-28), so panel jumps open tabs, not panels.
+    // leaves the entry pending forever). The left-panel era's `layout` was dropped in the
+    // right-sidebar steer (2026-09-28) and returns with a narrower job (261007 Slice 1c):
+    // the dashboard main panel's 「有问题？」 calls selectPanel(null) to get back to the
+    // Conversation — the only panel jump this face still makes.
     expect(exports.inject).toEqual([
       'slots', 'sidebarRightTabs', 'sidebarRight', 'sessions', 'remote',
-      'remote.agentPresets', 'remote.workspaceFiles', 'remote.session',
+      'remote.agentPresets', 'remote.workspaceFiles', 'remote.session', 'layout',
     ])
     const calls: string[] = []
     const registered: string[] = []

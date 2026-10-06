@@ -30,9 +30,9 @@
 ## 分步消化（四片，顺序执行，每片独立提交+验据）
 
 ### Slice 1：开屏弧线修复（三个 P0 同片收口）
-- 1a FirstMileDock hooks 违规重构（hooks 无条件化）+ style 正确清理 → composer 复活（断点 2）。
-- 1b **auto-send 退役**：has-desk 空白相位 → 客户端拿 walk view 确定性合成**三行播报卡**（要你拍的/到期在跟/挡路的缺数，每行可点进对应动作对话，复用面板代发拍板车道）；fresh → 保留 intake 卡。零 token、零等待、重载天然幂等（断点 1、4）。
-- 1c 「有问题？」接通：探索 vendor 导航缝（程序化回到会话面），死按钮变真入口（断点 3）。
+- 1a FirstMileDock hooks 违规重构（hooks 无条件化）+ **A1 隐藏 CSS 退役**（实施期发现：该 CSS 是自藏的——本 dock 渲染在 vendor composerStack 内部，藏 vendor composer 必然藏掉自己；blank 相位回到诚实堆叠 = hero + 播报卡 + vendor composer）→ composer 复活（断点 2）。
+- 1b **auto-send 退役**：has-desk 空白相位 → 客户端拿 walk view（useDesk 订阅——一次性 deskSlice 读不重渲染，真机抓到）确定性合成**三行播报卡**（要你拍的/到期在跟/挡路的缺数，每行可点进对应动作对话，复用面板代发拍板车道）；fresh → 保留 intake 卡。零 token、零等待、重载天然幂等（断点 1、4）。
+- 1c 「有问题？」接通：`ctx.layout.selectPanel(null)`（vendor ui-layout 正脸——inject 声明加 `'layout'`），死按钮变真入口（断点 3）。
 
 ### Slice 2：拍板感
 拍板句中文化（本人口吻：「拍：〈问题〉→〈选项〉」）+ 卡片即时状态（点击即「已拍，记账中」+ 按钮锁定）+ 回执仍由桌面刷新承载（已在）。
@@ -57,6 +57,7 @@ morning-brief 周变体（对账口径：上周拍的/在跟状态/缺的数/本
 4. **等 D7 再动开屏**——blank 相位是插件可占的（A1 已证明），把「第一眼」白等上游送掉不值。
 5. **仪表盘化第一屏**——中国 SME 调研红线（直觉型经营者）。
 6. **本卡内做输入边界**（坏消息通道/CSF/每周倒碎片）——真设计题，值得单独推敲卡，不搭车。
+7. **修好 A1 的 composer 隐藏 CSS**（2026-10-07 实施期否决）——几何探针实锤它是自藏的：本 dock 挂在 vendor `ConversationContent.tsx` 的 composerStack（hero + input.dock + inputBar）内部，`[data-chain-overlay-fallback]` 一藏藏全家；A1 时代的「7/7 关键词命中」走的是 DOM 大纲匹配，隐藏元素也在大纲里——**可见性从未被证明**。退役优于修补。
 
 ## 毕业门
 

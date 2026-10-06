@@ -15,7 +15,7 @@
 
 四片顺序实施（每片独立提交 + test-first 红绿收口；细节与取舍见 plan 卡）：
 
-- **Slice 1 开屏弧线修复**：① FirstMileDock hooks 无条件化 + style 正确清理（composer 复活）；② auto-send 退役——has-desk 空白相位由客户端拿 walk view 确定性合成三行口语化播报卡（要你拍的/到期在跟/挡路的缺数，每行可点进对应动作对话，复用面板代发车道），fresh 保留 intake 卡；③ 「有问题？」接通（探索 vendor 导航缝）。
+- **Slice 1 开屏弧线修复**：① FirstMileDock hooks 无条件化 + A1 隐藏 CSS 退役（实施期发现该 CSS 自藏——dock 在 vendor composerStack 内部）；② auto-send 退役——has-desk 空白相位由客户端拿 walk view（useDesk 订阅）确定性合成三行口语化播报卡（要你拍的/到期在跟/挡路的缺数，每行可点进对应动作对话，复用面板代发车道），fresh 保留 intake 卡；③ 「有问题？」经 `ctx.layout.selectPanel(null)` 接通（vendor ui-layout 正脸）。
 - **Slice 2 拍板感**：拍板句中文化（本人口吻）+ 卡片即时状态（点击即「已拍，记账中」+ 按钮锁定）。
 - **Slice 3 每周一坐**：morning-brief 周变体（对账口径、坏消息先行）+ vendor schedule 周期承载（能力实施期核实）+ 桌面节律文案。
 - **Slice 4 完整弧线终验**：见验收。
