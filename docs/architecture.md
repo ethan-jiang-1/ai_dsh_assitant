@@ -14,7 +14,7 @@
 | ① 让它看到该看的东西（上下文） | **桌面 / 抽屉**：常驻的是身份段（SOUL.md）+ 手册（AGENTS.md）+ 有界状态摘要（精选记忆 + 开放线索条数）；细节用工具取 |
 | ② 让它懂你的业务（隐性知识显性化） | `memory/` 房间：事实、偏好、决定 —— 一条一个文件，可读可审 |
 | ③ 让它有该有的本事（工具与边界） | 四个工具 + working folder 的写入边界（`src/domain/home/layout.ts` 是唯一 owner） |
-| ④ 让它按对的步骤走（工作流） | 过程性知识进**技能**（抽屉），不占常驻上下文；三档出口固定了线索的收束方式 |
+| ④ 让它按对的步骤走（工作流） | 过程性知识进**技能**（抽屉），不占常驻上下文；两档出口固定了线索的收束方式 |
 | ⑤ 让它经得起检查 | `curate`：**机器能跑的检查**（重复、悬空引用、预算、过期线索、缺理由的 drop、技能语法等——非穷举，完整面 = [`home.md`](home.md) §四） |
 
 **反过度工程**：不建向量库、不建后台自动学习循环。浏览器面只消费 vendor 的**通用** slot/座位
@@ -106,7 +106,7 @@ seam 的成色读数是**第二个真实 Provider 出现而 Consumer 一行不�
 | `src/domain/home/room.ts` | 房间存储：安全 id、原子写、归档、**列出失败文件** | frontmatter |
 | `src/domain/memory/record.ts` | 记忆记录词汇与校验（一条记录一个断言） | room 类型 |
 | `src/domain/memory/recall.ts` | 检索排序（确定性 + **给出命中理由**） | record |
-| `src/domain/research/thread.ts` | 线索词汇与三档出口（drop 必填理由由校验强制） | record（slugify） |
+| `src/domain/research/thread.ts` | 线索词汇与两档出口（drop 必填理由由校验强制） | record（slugify） |
 | `src/domain/skills/skill-file.ts` | `SKILL.md` 契约：名校验、草稿校验、写入、**provenance 盖章** | frontmatter |
 | `src/domain/knowledge/page.ts`、`search.ts`、`health.ts` | 知识页词汇（OKF 字段子集 + `[[互链]]` 解析/反链）、关键词检索排序、知识 findings —— 纯核 | frontmatter |
 | `src/domain/skills/scan.ts` | 按 provider 的规则回读技能房间，报出会被静默忽略的文件 | frontmatter |

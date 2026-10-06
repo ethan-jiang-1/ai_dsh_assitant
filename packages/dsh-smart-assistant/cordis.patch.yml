@@ -122,7 +122,7 @@
 # TRUST：这个 preset 能读写 agent 自己的 working folder（记忆、探索线索、技能、知识页）。任何 preset
 # 都是受信配置，因为它授权它所选插件的能力；挂它等于把 working folder 交给它。
 #
-# 四间房与三档出口的契约见 `docs/home.md`；身份名以 `docs/identity.md` 为唯一权威。
+# 四间房与两档出口的契约见 `docs/home.md`；身份名以 `docs/identity.md` 为唯一权威。
 
 # ── 身份 ────────────────────────────────────────────────────────────────────
 
@@ -167,7 +167,7 @@
           #
           # 四个工具的动词集互不重叠，所以不合并：
           #   assistant_memory   recall/save/forget/list/curate   —— 已确立的事实、偏好、决定
-          #   assistant_research open/update/park/drop/promote/list —— 未决的线索（backlog 三档出口）
+          #   assistant_research open/update/park/drop/promote/list —— 未决的线索（backlog 两档出口）
           #   assistant_reflect  brief/save_skill/retire_skill/save_page/promote_page/deprecate_page/
           #                      propose_skill/land_skill         —— 把经历变成记忆、技能与知识页
           #   assistant_knowledge search/get（只读）               —— 知识页检索（写入走 reflect/promote）
@@ -274,7 +274,7 @@
           # planning 是 isolate 组（`planMode` 键独立 realm）；`section` 文案逐字取自
           # `packages/bundle/web-app/presets/standard.patch.yml` —— plan 呈批是本仓开发流程
           # （根 AGENTS.md 硬规则 5）宣称依赖的机制，此前只挂了 todo 一半（adoption 卡
-          # notes/proposed/2026-09-30-stock-plugin-adoption.md A1 片）。
+          # notes/implemented/2026-09-30-stock-plugin-adoption.md A1 片）。
           - id: command-goal
             name: '@deepseek-ai/dsh-command-goal'
 

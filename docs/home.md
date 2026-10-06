@@ -58,7 +58,7 @@ learn 模块的 `tools/result` 订阅就给对应名字计数（用户 `/name` �
 | 房间 | 里面是什么 | 生命周期 | 谁写 |
 |---|---|---|---|
 | `memory/` | 跨会话仍然成立的事实、偏好、决定 | `active` → `superseded`（被新记录取代）/ `retired`（不再成立）→ `archive/` | `assistant_memory` |
-| `research/` | 还没想清楚的线索：问题、为什么值得追、试过什么、现在倾向什么 | `open` / `parked` → **三档出口**：`promoted`（成立）/ `dropped`（不成立，**理由必填**）→ `archive/` | `assistant_research` |
+| `research/` | 还没想清楚的线索：问题、为什么值得追、试过什么、现在倾向什么 | `open` / `parked`（房内挂起）→ **两档出口**：`promoted`（成立）/ `dropped`（不成立，**理由必填**）→ `archive/` | `assistant_research` |
 | `skills/` | 学到的做法（可复用、可被模型加载） | 由 DSH 技能 provider 发现与监听；被取代就改文件；**退役**（90 天未用阈值由 curate 报，`retire_skill` 执行）→ `skills/archive/`（不删、可恢复） | `assistant_reflect` |
 | `knowledge/` | 领域知识页：概念 / 实体 / 来源 / how-it-works，`[[互链]]` | `draft`（staged，不进搜索与摘要）→ **手改 status: stable 即人审** → `deprecated` 留在原地（链接必须继续解析，无 archive） | `assistant_reflect action=save_page`（写）+ `assistant_knowledge`（只读检索） |
 
@@ -179,7 +179,7 @@ bundles, M snapshots`，退役与快照都不删除、技能归档只增不减�
   行为零变化），**已有永不覆盖**；空文件不注入。身份段读它逐字进 system prompt（紧贴 persona
   stub，`assistant:soul`）；缺/空/坏 → **回退内置默认**（回退是替换不是叠加）。改人格 = 编辑
   这个文件，不用动插件源码。
-- **`AGENTS.md`（手册）**：working folder 怎么用——四房间、三档出口、退役、curate、盘上布局、首会话开场
+- **`AGENTS.md`（手册）**：working folder 怎么用——四房间、两档出口、退役、curate、盘上布局、首会话开场
   （first conversation）、协作边界等节（非穷举，正文以 `renderHomeManual` 为准），以及
   **桌面文件（`.desk/state.json`）的最小契约**（`generatedAt` + 各分区；面板的唯一数据源；字段级模板源 = `src/domain/home/home-map.ts` 的 `renderHomeManual`——运行时随家手册落盘，字段清单的家在家手册）.
   scaffold 缺则种（首行 `<!-- home-manual vN -->` 版本标记），永不覆盖；手册段

@@ -158,8 +158,8 @@ DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得
 1. preset 行加载的是**构建物**（package.json exports → `lib/`）——改 `src/` 后必须 `pnpm build`。
    setup.sh 用**裸路径 link**（pnpm 的 symlink 语义）装插件，所以不用重新 `plugin add`；
    `file:` 是复制语义，开发环禁用（改码必须重装）。
-2. preset 代际看**组合文件**（`cordis.patch.yml`）的 mtime+size —— 改 `presets/assistant/skills/*` 或
-   `preset.yml` 后要 `touch` 该文件，新会话才拿得到新代。
+2. preset 代际看**组合文件**（`cordis.patch.yml`）的 mtime+size —— 改 `presets/assistant/skills/*` 后
+   要 `touch` 该文件，新会话才拿得到新代。
 3. 换 vendor/dsh pin 后：`pnpm gen-paths` → 重跑第三节的 vendor 构建 → `pnpm typecheck`。
 
 ## 五、踩坑清单（每条都真踩过或有源码证据）
