@@ -1558,23 +1558,77 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     ])
   }
 
+  function DeskLandingOverride(props: Record<string, unknown>): ReturnType<typeof createElement> | null {
+    const session = props.session as { blank?: boolean } | undefined
+    if (session?.blank !== true) return null
+    const { useState, useEffect } = require('react') as typeof import('react')
+    const [draft, setDraft] = useState('')
+    // Force-hide the vendor's fallback using the data attribute the chain system provides
+    useEffect(() => {
+      const style = document.createElement('style')
+      style.textContent = "[data-chain-overlay-fallback='conversation.composer'] { display: none !important; }"
+      document.head.appendChild(style)
+      return () => { style.remove() }
+    }, [])
+    const send = () => {
+      const text = draft.trim()
+      const sid = props.sessionId as string | undefined
+      if (text === '' || !sid) return
+      sendPrompt(text, 'desktop-landing', 'desk', sid)
+      setDraft('')
+    }
+    const walk = deskSlice(undefined)
+    const hasDesk = walk.data !== undefined && Object.keys(walk.data).length > 0
+    const card = (children: (ReturnType<typeof createElement> | undefined)[]): ReturnType<typeof createElement> =>
+      createElement('div', {
+        style: {
+          display: 'flex', flexDirection: 'column', gap: '10px',
+          width: 'min(var(--dsh-composer-card-max-width, 952px), 100%)',
+          margin: '0 auto', padding: '24px 28px',
+          border: '1px solid var(--dsw-alias-border-l2)', borderRadius: '12px',
+          background: 'var(--dsw-alias-bg-layer-1)',
+        },
+      }, ...children)
+    const inputArea = createElement('textarea', {
+      value: draft,
+      onChange: (e: { target: { value: string } }) => { setDraft(e.target.value) },
+      onKeyDown: (e: { key: string, shiftKey: boolean, preventDefault: () => void }) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } },
+      placeholder: '说说你现在要处理的事…',
+      rows: 2,
+      style: { width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--dsw-alias-border-l2)', background: 'var(--dsw-alias-bg-base)', color: 'inherit', fontSize: '14px', resize: 'vertical' as const, fontFamily: 'inherit', boxSizing: 'border-box' as const },
+    })
+    const sendBtn = createElement('button', {
+      onClick: send,
+      style: { alignSelf: 'flex-end', padding: '8px 20px', borderRadius: '8px', cursor: 'pointer', border: 'none', fontSize: '14px', fontWeight: 600, background: MARK_TEAL, color: 'var(--dsw-alias-text-primary, #fff)' },
+    }, '发送')
+    if (!hasDesk) {
+      return card([
+        createElement('div', { style: { fontSize: '20px', fontWeight: 700 } }, '你的桌面'),
+        createElement('div', { style: { fontSize: '14px', color: 'var(--dsw-alias-label-secondary)', lineHeight: 1.7 } }, '说一句话，我开始问你——答完你就有第一份决策简报。'),
+        createElement('div', { style: { fontSize: '13px', color: 'var(--dsw-alias-label-secondary)' } }, '例：「我在想要不要给老客户涨价」'),
+        inputArea, sendBtn,
+      ])
+    }
+    const data = walk.data
+    const decisions = (data?.decisions ?? []).filter(item => item.kind === 'business' || ((item.options ?? []).length > 0))
+    const actions = (data?.actions ?? []).filter(item => item.status !== 'done')
+    return card([
+      createElement('div', { style: { fontSize: '20px', fontWeight: 700 } }, '你的桌面'),
+      decisions.length > 0
+        ? createElement('div', { style: { padding: '12px 16px', border: '1px solid ' + MARK_TEAL, borderRadius: '8px' } },
+            createElement('div', { style: { fontSize: '13px', fontWeight: 600 } }, String(decisions[0]?.question ?? '')))
+        : createElement('div', { style: { fontSize: '13px', color: 'var(--dsw-alias-label-secondary)' } }, '没有等你拍板的事。'),
+      ...(actions.length > 0 ? [createElement('div', { style: { fontSize: '13px' } }, '在跟的 ' + actions.length + ' 件')] : []),
+      inputArea, sendBtn,
+    ])
+  }
+
   function FirstMileDock({ session, openRoom }: {
     session?: { blank?: boolean, id?: string, sessionId?: string } | undefined
     openRoom?: (kind: RoomKind) => void
   }): ReturnType<typeof createElement> | null {
     if (session?.blank !== true) return null
-    // Form migration (2026-10-06): pre-write the view preference to the desk view so that
-    // when the session leaves the blank phase (after the first message), the desk view
-    // activates automatically — the principal sees the desk, not the chat transcript.
-    const sid = (session as { sessionId?: string }).sessionId ?? (session as { id?: string }).id
-    if (sid !== undefined && typeof localStorage !== 'undefined') {
-      try {
-        const key = 'dsh.conversation.' + sid
-        if (localStorage.getItem(key) === null) {
-          localStorage.setItem(key, JSON.stringify({ view: 'dsh-smart-assistant-desk-view' }))
-        }
-      } catch { /* localStorage unavailable — the desk is still reachable by tab */ }
-    }
+
     // The walk view's desk data — on a blank session there is no session slice yet, so we
     // read the global walk store to detect "has a desk at all" (a one-shot check, no memo).
     const walk = deskSlice(undefined)
@@ -2631,6 +2685,12 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // right-sidebar tab — it claims a first-class conversation view beside chat. See
     // DeskViewBody's docstring for the seam facts; order 5 keeps chat (0) first on the strip
     // while the desk tab stays one click away, remembered per session once chosen.
+    ctx.slots.inject('conversation.composer', () =>
+      ctx.slots.register({
+        name: 'conversation.composer',
+        id: 'dsh-smart-assistant-desk-landing',
+      }, DeskLandingOverride))
+
     ctx.slots.inject('conversation.view', () =>
       ctx.slots.register({
         name: 'conversation.view',
@@ -2669,7 +2729,20 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         name: 'conversation.input.dock',
         id: 'assistant-first-mile',
         order: -10,
-        inject: () => ({ openRoom: openBeside }),
+        inject: (sessionId?: string) => {
+          // Form migration: pre-write the view preference at session-binding time (before
+          // the view area activates and reads it). Without this, the preference write
+          // happens during render — after activateView already ran.
+          if (sessionId !== undefined && typeof localStorage !== 'undefined') {
+            try {
+              const key = 'dsh.conversation.' + sessionId
+              if (localStorage.getItem(key) === null) {
+                localStorage.setItem(key, JSON.stringify({ view: 'dsh-smart-assistant-desk-view' }))
+              }
+            } catch { /* localStorage unavailable */ }
+          }
+          return { openRoom: openBeside }
+        },
       }, FirstMileDock))
     // The pending-approval banner (first-open UX card round 16): the desk pointer's shallow
     // twin, visible above the composer in ANY session state whenever drafts wait. Rides the
