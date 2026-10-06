@@ -1702,6 +1702,130 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     )
   }
 
+  /** Sidebar icon for the desk main panel (Goal 1.5): a simple calendar/checklist glyph. */
+  function DashboardPanelIcon(): ReturnType<typeof createElement> {
+    return createElement('svg', {
+      width: 20, height: 20, viewBox: '0 0 20 20', fill: 'none',
+      style: { display: 'block' },
+    },
+    createElement('rect', { x: 2, y: 3, width: 16, height: 14, rx: 2, stroke: 'currentColor', strokeWidth: 1.5, fill: 'none' }),
+    createElement('line', { x1: 2, y1: 7, x2: 18, y2: 7, stroke: 'currentColor', strokeWidth: 1.5 }),
+    createElement('line', { x1: 5, y1: 10, x2: 12, y2: 10, stroke: 'currentColor', strokeWidth: 1.2 }),
+    createElement('line', { x1: 5, y1: 13, x2: 10, y2: 13, stroke: 'currentColor', strokeWidth: 1.2 }),
+    )
+  }
+
+  /**
+   * The desk as a MAIN-AREA PANEL (Goal 1.5): a standalone page occupying the entire main area —
+   * not a tab inside the chat shell. The principal sees their dashboard: decisions to make,
+   * actions being tracked, missing data, pending approvals — all at a glance, no chat required.
+   * The "有问题？" button is the entry point to conversation (the input channel).
+   */
+  function DashboardMainPanel(props: { onAsk?: () => void }): ReturnType<typeof createElement> {
+    const { useEffect } = require('react') as typeof import('react')
+    useEffect(() => { loadDeskFor(undefined) }, [])
+    const walk = deskSlice(undefined)
+    const data = walk.data
+    const { createElement: ce } = { createElement }
+    const sectionTitle = (text: string): ReturnType<typeof createElement> =>
+      ce('h2', { style: { margin: '0 0 8px', fontSize: '15px', fontWeight: 600, color: 'var(--dsw-alias-label-primary)' } }, text)
+    const muted = (text: string): ReturnType<typeof createElement> =>
+      ce('div', { style: { fontSize: '13px', color: 'var(--dsw-alias-label-secondary)' } }, text)
+    const card = (...children: (string | ReturnType<typeof createElement>)[]): ReturnType<typeof createElement> =>
+      ce('div', {
+        style: {
+          padding: '16px 20px', marginBottom: '12px',
+          border: '1px solid var(--dsw-alias-border-l2)', borderRadius: '10px',
+          background: 'var(--dsw-alias-bg-layer-1)',
+        },
+      }, ...children)
+
+    // Empty desk
+    if (data === undefined) {
+      return ce('div', { style: { padding: '32px', maxWidth: '680px', margin: '0 auto' } },
+        ce('h1', { style: { margin: '0 0 8px', fontSize: '22px' } }, '你的桌面'),
+        muted('桌面还是空的——跟助手说一件事，这里就会开始长出你的经营状态。'),
+        ce('button', {
+          onClick: props.onAsk,
+          style: { marginTop: '12px', padding: '8px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600, background: MARK_TEAL, color: 'var(--dsw-alias-text-primary, #fff)' },
+        }, '有问题？跟助手说'),
+      )
+    }
+
+    const decisions = (data.decisions ?? []).filter(item => item.kind === 'business' || ((item.options ?? []).length > 0))
+    const actions = (data.actions ?? []).filter(item => item.status !== 'done')
+    const gaps = data.gaps ?? []
+    const drafts = (data.knowledge ?? []).filter(item => item.status === 'draft')
+
+    return ce('div', { style: { padding: '24px 32px', maxWidth: '840px', margin: '0 auto', overflowY: 'auto' } },
+      // Header
+      ce('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' } },
+        ce('h1', { style: { margin: 0, fontSize: '22px' } }, '你的桌面'),
+        ce('button', {
+          onClick: props.onAsk,
+          style: { padding: '6px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, background: MARK_TEAL, color: 'var(--dsw-alias-text-primary, #fff)' },
+        }, '有问题？'),
+      ),
+      // Rhythm line
+      muted('这里是你的起点：来了先看「要你拍的」，拍完就走。'),
+
+      // Decisions
+      ce('div', { style: { marginTop: '20px' } },
+        sectionTitle(`要你拍的（${decisions.length}）`),
+        decisions.length === 0
+          ? muted('没有等你拍板的事。')
+          : ce('div', null, ...decisions.slice(0, 3).map((item, i) =>
+              card(
+                ce('div', { style: { fontSize: '15px', fontWeight: 600, marginBottom: '6px' }, key: 'q' }, String(item.question ?? '')),
+                ce('div', { style: { fontSize: '12px', color: 'var(--dsw-alias-label-secondary)', marginBottom: '10px' }, key: 'ctx' }, String(item.context ?? '')),
+                ...((item.options ?? []).map((opt, j) =>
+                  ce('button', {
+                    key: 'opt-' + j,
+                    style: {
+                      marginRight: '8px', marginBottom: '6px', padding: '6px 14px',
+                      borderRadius: '6px', border: '1px solid var(--dsw-alias-border-l3)',
+                      background: 'var(--dsw-alias-bg-base)', cursor: 'pointer',
+                      fontSize: '13px', color: MARK_TEAL,
+                    },
+                  }, String(opt.label ?? '') + (opt.irreversible ? ' ⚠' : '')),
+                )),
+              ))),
+      ),
+
+      // Actions
+      ce('div', { style: { marginTop: '16px' } },
+        sectionTitle(`在跟的（${actions.length}）`),
+        actions.length === 0
+          ? muted('没有在跟的事。')
+          : ce('div', null, ...actions.map(item =>
+              ce('div', { style: { display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--dsw-alias-border-l1)' } },
+                ce('span', { style: { fontSize: '14px' } }, String(item.what ?? '')),
+                ce('span', { style: { fontSize: '12px', color: 'var(--dsw-alias-label-secondary)' } }, `${String(item.due ?? '')} · ${String(item.status ?? '')}`),
+              ))),
+      ),
+
+      // Gaps
+      ce('div', { style: { marginTop: '16px' } },
+        sectionTitle(`缺的数（${gaps.length}）`),
+        gaps.length === 0
+          ? muted('没有卡住的事。')
+          : ce('div', null, ...gaps.map(g =>
+              ce('div', { style: { padding: '6px 0' } },
+                ce('span', { style: { fontSize: '14px', fontWeight: 500 } }, String(g.what ?? '')),
+                ce('span', { style: { fontSize: '12px', color: 'var(--dsw-alias-label-secondary)', marginLeft: '8px' } }, String(g.why ?? '')),
+              ))),
+      ),
+
+      // Approvals
+      ce('div', { style: { marginTop: '16px' } },
+        sectionTitle(`待你审批（${drafts.length}）`),
+        drafts.length === 0
+          ? muted('没有待审的知识草稿。')
+          : muted(`${drafts.length} 页知识草稿在等你审批——批准后才会成为它的判断依据。`),
+      ),
+    )
+  }
+
   /**
    * The pending-approval banner above the composer. The desk already points at the drafts (S4),
    * but that pointer sits one room deep — the second naive-CEO reading (first-open UX card,
@@ -2554,6 +2678,25 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     if (typeof process !== 'undefined' && process.env?.DSH_CLIENT_BUILD_PROFILE === 'official') {
       return
     }
+    // Goal 1.5 (2026-10-06): the desk as a MAIN-AREA PANEL — not a tab inside the chat shell,
+    // but a standalone page beside Settings and Tasks. This is the correct vehicle for
+    // "desktop as primary object": the principal opens it and sees their dashboard without
+    // needing a session, a message, or a chat at all. Conversation becomes an input channel
+    // (the "有问题？" button), not the primary surface.
+    ctx.slots.inject('sidebar.panellist', () =>
+      ctx.slots.register({
+        name: 'sidebar.panellist',
+        id: 'dsh-smart-assistant-dashboard',
+        order: 5,
+        label: () => '桌面',
+      }, DashboardPanelIcon))
+    ctx.slots.inject('main', () =>
+      ctx.slots.register({
+        name: 'main',
+        key: 'dsh-smart-assistant-dashboard',
+        inject: (): { onAsk: () => void } => ({ onAsk: () => { ctx.uiWorkspace.startSession() } }),
+      }, DashboardMainPanel))
+
     ctx.slots.inject('sidebar.brand.mark', () =>
       ctx.slots.inject('sidebar.brand.name', function* () {
         yield ctx.slots.register({ name: 'sidebar.brand.mark' }, AssistantBrandMark)
@@ -2731,7 +2874,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   return {
     inject, apply, AssistantBrandMark, AssistantBrandName,
     DeskPanel, KnowledgePanel, MemoryPanel, deskStore, deskSlice,
-    DeskTabBody, DeskViewBody, DeskSummaryDock, KnowledgeTabBody, MemoryTabBody, AssistantDeskChip, roomTabTitle,
+    DeskTabBody, DeskViewBody, DeskSummaryDock, DashboardPanelIcon, DashboardMainPanel, KnowledgeTabBody, MemoryTabBody, AssistantDeskChip, roomTabTitle,
     roomCommands, AssistantHeroMark, FirstMileDock, ApprovalDockBanner, expirePending, settlePending, loadDeskFor, retireStaleReceipt, looksLikeDesk,
   }
 }

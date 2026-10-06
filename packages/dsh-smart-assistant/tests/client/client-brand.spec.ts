@@ -137,6 +137,7 @@ describe('client-module registration', () => {
     // the first-mile strip and the approval banner (two dock seats).
     // No panellist/main pairs: the left main panels are retired.
     expect(calls).toEqual([
+      'sidebar.panellist', 'main',
       'sidebar.brand.mark', 'sidebar.brand.name',
       'sidebar.right.pane.tab', 'sidebar.right.pane.tab.title',
       'sidebar.right.pane.tab', 'sidebar.right.pane.tab.title',
@@ -148,6 +149,7 @@ describe('client-module registration', () => {
     // Each room registers its tab type, its keyed body, and its keyed tab title (the glyph chip);
     // the chip, the first-mile strip, and the approval banner close the set.
     expect(registered).toEqual([
+      'dsh-smart-assistant-dashboard', 'dsh-smart-assistant-dashboard',
       'sidebar.brand.mark', 'sidebar.brand.name',
       'tab:desk', 'dsh-smart-assistant-desk', 'dsh-smart-assistant-desk',
       'tab:knowledgeRoom', 'dsh-smart-assistant-knowledge', 'dsh-smart-assistant-knowledge',
