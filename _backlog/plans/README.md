@@ -17,6 +17,7 @@
 |---|---|---|
 | [261006-chief-of-staff-experience.md](261006-chief-of-staff-experience.md) | 一把手的总助——用户体验重设计：从「空白聊天框」到「打开即见简报+跟进+知识积累」 | 体验弧线分四阶段（晨报/跟进/知识/打磨），每阶段独立可验收 |
 | [261007-opening-brief-and-rhythm.md](261007-opening-brief-and-rhythm.md) | 它先开口——开屏播报（替换 auto-send）、拍板感、周节律：体验弧线行为层收口（2026-10-07 真机走查三 P0 断点 + 内容物错位的消化） | 四片全交付，implemented note 已落；剩用户终验即毕业 |
+| [261007-input-boundary.md](261007-input-boundary.md) | 输入边界——晨报与周坐的料从哪来（碎片收件箱/文件投递/CSF/纯仪式四候选；不接外部数据源红线下的喂入通道设计） | 推敲中；毕业出路 = proposed 卡呈批 |
 
 ## 🔒 保留卡（用户判触发）
 
