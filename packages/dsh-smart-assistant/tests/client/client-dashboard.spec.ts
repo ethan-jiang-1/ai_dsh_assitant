@@ -125,6 +125,36 @@ describe('dashboard main panel', () => {
     expect(askFired).toBe(true)
   })
 
+  it('option click proxies the decision in the principal-voice Chinese lane (261007 Slice 2)', () => {
+    const exports = materialize()
+    const prompts: { content: { text: string }[] }[] = []
+    const ctx = {
+      slots: { inject: () => {}, register: () => undefined },
+      sidebarRightTabs: { register: () => undefined },
+      sidebarRight: { openTab: () => {} },
+      layout: { selectPanel: () => {} },
+      remote: { session: { prompt: (req: { content: { text: string }[] }) => { prompts.push(req); return Promise.resolve({ ok: true }) } } },
+      sessions: { list: { getSnapshot: () => ({ ids: ['s1'], byId: { s1: { updatedAt: 1 } } }), subscribe: () => () => {} } },
+    }
+    ;(exports.apply as (ctx: unknown) => void)(ctx)
+    const store = exports.deskStore as { data: unknown }
+    store.data = populatedDesk
+    const panel = exports.DashboardMainPanel as (props?: { onAsk?: () => void }) => unknown
+    const tree = panel({ onAsk: () => {} })
+    const buttons = buttonsOf(tree)
+    const optBtn = buttons.find(b => textsOf(b.props.children).join('').includes('直接提价 10%'))
+    expect(optBtn).toBeTruthy()
+    optBtn?.props.onClick?.()
+    expect(prompts).toHaveLength(1)
+    const sent = prompts[0]?.content[0]?.text ?? ''
+    // The record reads as the panel speaking for the principal — the same lane the desk
+    // panels use — never as English machine prose in the principal's history.
+    expect(sent).toContain('桌面面板代本人拍板')
+    expect(sent).toContain('要不要给最大的老客户涨价')
+    expect(sent).toContain('直接提价 10%')
+    expect(sent).not.toContain('Dashboard panel decided')
+  })
+
   it('exports the sidebar icon component', () => {
     const exports = materialize()
     expect(typeof exports.DashboardPanelIcon).toBe('function')

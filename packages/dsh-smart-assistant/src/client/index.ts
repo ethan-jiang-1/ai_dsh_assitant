@@ -1762,9 +1762,14 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
    * The "有问题？" button is the entry point to conversation (the input channel).
    */
   function DashboardMainPanel(props: { onAsk?: () => void }): ReturnType<typeof createElement> {
-    const { useEffect } = require('react') as typeof import('react')
+    const { useEffect, useState } = require('react') as typeof import('react')
     const store = useDesk()
     useEffect(() => { reloadDesk(undefined) }, [])
+    // The decision the principal just clicked, keyed by decision row (261007 Slice 2): the card
+    // freezes at 「已拍」 the instant the click lands — the desk refresh (sendPrompt's poller)
+    // then retires the row, and with it the card. Component-private state: no other surface
+    // reads it, and it resets with the panel.
+    const [answered, setAnswered] = useState<Record<string, string>>({})
     const walk = store
     const data = walk.data
     const { createElement: ce } = { createElement }
@@ -1815,31 +1820,38 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         sectionTitle(`要你拍的（${decisions.length}）`),
         decisions.length === 0
           ? muted('没有等你拍板的事。')
-          : ce('div', null, ...decisions.slice(0, 3).map(item =>
-              card(
+          : ce('div', null, ...decisions.slice(0, 3).map(item => {
+              const rowId = String(item.id ?? item.question ?? '')
+              const chosen = answered[rowId]
+              return card(
                 ce('div', { style: { fontSize: '15px', fontWeight: 600, marginBottom: '6px' }, key: 'q' }, String(item.question ?? '')),
                 ce('div', { style: { fontSize: '12px', color: 'var(--dsw-alias-label-secondary)', marginBottom: '10px' }, key: 'ctx' }, String(item.context ?? '')),
-                ...((item.options ?? []).map((opt, j) =>
-                  ce('button', {
-                    key: 'opt-' + j,
-                    onClick: () => {
-                      // Goal 3 (2026-10-06): dashboard → conversation — the option click IS the
-                      // decision. Same panel-proxies-principal mechanism as the DeskPanel's
-                      // one-click options: sendPrompt carries the decision to the session.
-                      sendPrompt(
-                        `Dashboard panel decided on behalf of principal — pending decision "${String(item.question ?? '')}": ${String(opt.label ?? '')}. Record the decision and update the desk.`,
-                        '拍板', String(item.id ?? item.question ?? ''), undefined,
-                      )
-                    },
-                    style: {
-                      marginRight: '8px', marginBottom: '6px', padding: '6px 14px',
-                      borderRadius: '6px', border: '1px solid var(--dsw-alias-border-l3)',
-                      background: 'var(--dsw-alias-bg-base)', cursor: 'pointer',
-                      fontSize: '13px', color: MARK_TEAL,
-                    },
-                  }, String(opt.label ?? '') + (opt.irreversible ? ' ⚠' : '')),
-                )),
-              ))),
+                chosen !== undefined
+                  ? ce('div', {
+                      key: 'answered',
+                      style: { fontSize: '13px', fontWeight: 600, color: MARK_TEAL, padding: '6px 0' },
+                    }, `已拍：${chosen}——记账中，拍完这条会从「要你拍的」退场`)
+                  : ce('div', { key: 'opts' }, (item.options ?? []).map((opt, j) =>
+                      ce('button', {
+                        key: 'opt-' + j,
+                        onClick: () => {
+                          // (261007 Slice 2) The option click IS the decision — over the SAME
+                          // principal-voice lane the desk panels use (answerDecision), never
+                          // English machine prose in the principal's history. The card freezes
+                          // at 「已拍」 immediately; the desk refresh retires the row.
+                          setAnswered(prev => ({ ...prev, [rowId]: String(opt.label ?? '') }))
+                          answerDecision(String(item.question ?? ''), String(opt.label ?? ''), rowId, undefined)
+                        },
+                        style: {
+                          marginRight: '8px', marginBottom: '6px', padding: '6px 14px',
+                          borderRadius: '6px', border: '1px solid var(--dsw-alias-border-l3)',
+                          background: 'var(--dsw-alias-bg-base)', cursor: 'pointer',
+                          fontSize: '13px', color: MARK_TEAL,
+                        },
+                      }, String(opt.label ?? '') + (opt.irreversible ? ' ⚠' : '')),
+                    )),
+              )
+            })),
       ),
 
       // Actions
