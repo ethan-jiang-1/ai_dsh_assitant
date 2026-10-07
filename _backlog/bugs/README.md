@@ -11,7 +11,6 @@
 | Bug | 标题 | 严重级 | 发现 |
 |---|---|---|---|
 | [BUG-003-eval-floor-red.md](BUG-003-eval-floor-red.md) | eval 行为地板 2/5 红——breakdown-uses-skill 复发（BUG-001 同签名）+ first-open-intake 新红 | P1 | 2026-10-07 |
-| [BUG-004-approval-trust-root.md](BUG-004-approval-trust-root.md) | 审批门的信任根——promote_page 模型可直调（门只在 prose）+ 批准活路径是可伪造提示词 + 审计死码 | P1 | 2026-10-07 |
 | [BUG-005-destructive-contract-violations.md](BUG-005-destructive-contract-violations.md) | 破坏性契约违背——retireSkill rm 附属文件（nothing-is-deleted 假承诺）+ 重导入抹审批 | P1 | 2026-10-07 |
 | [BUG-006-budget-cjk-counting.md](BUG-006-budget-cjk-counting.md) | 字节与预算 CJK 缺陷——SOUL/手册快照按码元截断（中文面每请求超预算）+ digest 遗漏少报 + ingest 全文算段 | P1 | 2026-10-07 |
 | [BUG-007-concurrency-lifecycle-minors.md](BUG-007-concurrency-lifecycle-minors.md) | 并发与生命周期轻缺陷群——房间读改写无锁 / client 订阅定时器无拆卸 / settlePending 跨时钟冻结 | P2 | 2026-10-07 |

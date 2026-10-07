@@ -7,13 +7,14 @@
 > （`gen-notes-index --check`）守——改了卡没重生成即红。关键词不在标题里时，
 > `grep -il '<关键词>' notes/implemented/` 全文搜是兜底。
 
-## implemented（当前 rationale owner）（100）
+## implemented（当前 rationale owner）（101）
 
 | 日期 | 卡 |
 |---|---|
 | 2026-10-07 | [开屏播报、拍板感与周节律（行为层收口）](implemented/2026-10-07-opening-brief-and-rhythm.md) |
 | 2026-10-07 | [DSH 开发语料吸收落地：动态闭环三环补齐 + 驾驭者成本面瘦身](implemented/2026-10-07-dsh-corpus-absorption.md) |
 | 2026-10-07 | [驾驭者座舱：按问题出发的单页路由](implemented/2026-10-07-cockpit-page.md) |
+| 2026-10-07 | [BUG-004 修复：审批台账统一——从「门只在 prose」到「翻转永不隐形」](implemented/2026-10-07-bug-004-approval-ledger.md) |
 | 2026-10-06 | [SDLC 收口：处置表 v2、门禁预算制与证据阶梯定案（261005-sdlc-turnaround-cleanup 毕业收卷）](implemented/2026-10-06-sdlc-campaign-closeout.md) |
 | 2026-10-06 | [管线消化终记：_backlog/plans/ 活跃区清空 + Phase A 形态迁移收口 + D7 递交](implemented/2026-10-06-pipeline-digestion-complete.md) |
 | 2026-10-06 | [桌面主对象化（新 UX 第一刀）：桌面升为 Conversation View 主视图](implemented/2026-10-06-desk-primary-view.md) |
