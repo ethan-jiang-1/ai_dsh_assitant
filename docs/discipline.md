@@ -77,7 +77,7 @@
   standing instructions / 无意义 gate 假安全感 / 过细 Skill 仪式）+ **驾驭者认知成本**
   （用户一眼能否找到方向盘与仪表盘——语料判据全是 agent 参与视角，这一条是本仓自己的）
   过一遍；处置优先序同下（删>并>修>记），既有处置表与触发条件的家 =
-  [流程预算审计卡](../_backlog/plans/261007-process-budget-audit.md)（2026-10-07 B1）。
+  [流程预算审计卡](../_backlog/_done/_closed_plans/261007-process-budget-audit.md)（2026-10-07 B1）。
 - **新门禁必带反例**（负例控制；借 DSH「A guard only guards if the regression fails it」）：
   新增一条 `verify` 检查 = 同 diff 在 `tests/tooling/verify-gates.spec.mjs` 配一个"造红再证绿"夹具；
   只对新检查生效，不追旧账。

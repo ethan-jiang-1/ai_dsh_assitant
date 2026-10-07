@@ -1,6 +1,6 @@
 # DSH 开发语料吸收审计 · 收卷证据台账
 
-日期：2026-10-07 · 状态：已收卷（喂 [261007 调研卡](../../../_backlog/_done/_closed_plans/261007-dsh-corpus-absorption-audit.md) → [呈批卡](../../proposed/2026-10-07-dsh-corpus-absorption.md)）
+日期：2026-10-07 · 状态：已收卷（喂 [261007 调研卡](../../../_backlog/_done/_closed_plans/261007-dsh-corpus-absorption-audit.md) → [实施 note](../../implemented/2026-10-07-dsh-corpus-absorption.md)）
 
 ## 〇、审计设定
 
