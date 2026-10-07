@@ -61,8 +61,8 @@ pnpm install            # ① 并入 vendor/dsh 整树（首次较慢）
 bash dev/env/prepare.sh     # ② **首次必须先跑**：补齐 boot 需要的 vendor/dsh 产物（deps/native/lib/web，已在位即跳过）
 bash dev/env/setup.sh       # ③ **起服务的前置**：它才建 dev（web）+ dev-task（headless）两个 profile 并把 roster 指向本仓；
                         #    skip 它 = `profile "dev" does not exist`，而 DSH 那句报错会把你指向错的命令
-pnpm dsh --profile dev --port 0 --no-open   # ④ Web UI：preset 行为（四工具/persona/摘要）只在这里的会话里验；
-                        #    3080 被占则 `--port 0`（OS 分配端口 + token）；交给人之前先 `pnpm preflight '<URL>'`（绿了再交）
+pnpm dsh --profile dev --port 0 --no-open   # ④ Web UI：preset 行为（四工具/persona/摘要）的人面交互只在这里的会话里验
+                        #    （自动行为判决走 `pnpm eval`）；3080 被占则 `--port 0`（OS 分配端口 + token）；交给人之前先 `pnpm preflight '<URL>'`（绿了再交）
 pnpm dsh --profile dev-task "one task"   # ⑤ 只想冒烟 host 面（插件装载/scaffold/服务行）就跑它，进程自己退（不进 preset）
 ```
 

@@ -97,7 +97,7 @@ dsh plugin --profile <p> add file:./packages/dsh-smart-assistant   # <p>＝你�
 | 组合里到底有没有这一行 | `pnpm dsh --profile dev --dump-config`（路由见 [docs/dev.md](docs/dev.md) §六） |
 | 运行态现在长什么样（四房间、两个根文件） | [docs/home.md](docs/home.md)；实际文件在 `dev/harness-home/assistant/` |
 | 某次会话为什么答成这样 | [docs/dev.md](docs/dev.md) §六「逐事件复盘」行（过滤样例：[repo-live-probe](.agents/skills/repo-live-probe/SKILL.md)）；聚合视图 `pnpm usage` / `pnpm desk-loop` |
-| 我要改 X，最小验证是什么 | [docs/testing.md](docs/testing.md) 分层表；逐面表在 [.agents/skills/pre-push-evidence/](.agents/skills/pre-push-evidence/SKILL.md) |
+| 我要改 X，最小验证是什么、回归资产在哪 | [docs/testing.md](docs/testing.md) §一页证据地图（唯一表主）；判断细则与假绿清单在 [.agents/skills/pre-push-evidence/](.agents/skills/pre-push-evidence/SKILL.md) |
 | 改了为什么不生效 | [docs/dev.md](docs/dev.md) §四 三条纪律（build / preset 代际 / pin） |
 | 这个决定为什么这么定 | [notes/INDEX.md](notes/INDEX.md)（生成索引；关键词不在标题里再 `grep -il '<关键词>' notes/implemented/`，输掉的方案在同卡）；负知识在 `notes/rejected/` |
 

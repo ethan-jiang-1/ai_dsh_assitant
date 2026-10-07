@@ -7,18 +7,11 @@ whenToUse: Choosing what to run before a commit or handover; deciding whether a 
 # Pick evidence by change surface
 
 "Run everything" is not a plan when one of the commands silently proves nothing for your change
-(and a build-dependent test can pass against a stale artifact). Route by surface:
+(and a build-dependent test can pass against a stale artifact).
 
-| Surface you touched | Minimal credible evidence |
-|---|---|
-| pure core (`src/home`, `memory`, `research`, `skills`, `knowledge`, `tool-support`) | package `pnpm test` (the unit specs own these behaviors) |
-| `src/client/` browser half | the **whole package suite**, not just the spec you touched: `client-brand.spec.ts` asserts the complete slot-registration surface, so adding one registration reds a spec you never opened (this happened — P1-B landed red and the fixture followed two commits later) **+ both web-face scenes re-run** (`pnpm web-expected` against an isolated home) — unit green while a recorded scene went silently stale for a day (the approve-direct-call console change landed after blank-first-open was recorded; caught 2026-10-05 by building the second scene) |
-| model-visible surface (tool description, prompt section, persona, digest) | `pnpm build` **then** the real-composition test **then** a focused `pnpm eval --only` run (the behavioral regression verdict for this surface) — the live probe (`repo-live-probe`) is forensics for "the model didn't see it", not the regression asset |
-| `src/index.ts` service behavior | `pnpm test` (service-level specs construct a real cordis context) + the composition test |
-| `scripts/verify*.mjs` | the new/changed check's **red fixture** in `tests/tooling/verify-gates.spec.mjs` + `pnpm verify` |
-| `docs/` and `notes/` | `pnpm verify` (links, self-containment, notes shape, entry-file stability) |
-| `package.json` exports / patch rows / preset composition | `pnpm gen-catalog` (freshness) + `pnpm build` + `pnpm release-smoke` |
-| the pin (`vendor/`) | `pnpm sync-dsh -- --tag <tag>` owns its own chain; never hand-edit |
+The routing table — surface → minimal evidence command → regression-asset home → what it can and
+cannot prove — lives in [docs/testing.md](../../../docs/testing.md)'s「一页证据地图」(one fact,
+one home). Read it there; this skill owns the judgment rules the table cannot carry.
 
 ## Rules that keep the evidence honest
 
@@ -27,6 +20,12 @@ whenToUse: Choosing what to run before a commit or handover; deciding whether a 
   [docs/testing.md](../../../docs/testing.md)'s naming table (mechanically enforced by the
   `test assets:` verify gate). When the user names a lane, that table is what maps the word to a
   command and a regression semantics.
+- **The client suite is whole-package, not per-file.** `client-brand.spec.ts` asserts the complete
+  slot-registration surface, so adding one registration reds a spec you never opened (this happened
+  — P1-B landed red and the fixture followed two commits later); and a recorded web-face scene can
+  go silently stale while unit tests stay green (the approve-direct-call console change landed
+  after blank-first-open was recorded; caught 2026-10-05 by building the second scene) — re-run
+  **both** web-face scenes, not just the one you touched.
 - **Build before trusting `lib/`-consuming tests.** The composition and release-smoke specs read
   the built package; without `pnpm build` they assert yesterday's code and go green anyway.
 - **A new gate without a red fixture is a claim, not a guard.** Introduce the regression, watch it

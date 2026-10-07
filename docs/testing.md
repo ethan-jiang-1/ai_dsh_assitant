@@ -3,21 +3,30 @@
 > 本文件拥有**测试面合同**：证据形态分层、插件证据五台阶、政策条款、已定姿态与升级触发条件。
 > 命令 owner = 根 `AGENTS.md` 命令表 + `docs/dev.md` §四（开发环命令）；决策理由与输掉的方案 =
 > `notes/implemented/2026-10-04-test-strategy-adoption.md`；机制分层表 = `discipline.md` 六层反馈（不复制）。
-> 执行细则（改动面→最小证据的逐面表）= `.agents/skills/pre-push-evidence/`（本文不复制）。
+> 执行细则（逐面判断规则与已知假绿清单）= `.agents/skills/pre-push-evidence/`（路由表主在本文「一页证据地图」，技能不复制表）。
+> 路径基准：本文件中的 `tests/…` 一律**包内相对**（= `packages/dsh-smart-assistant/tests/…`），其余路径仓根相对。
 >
 > 入口分工：`pnpm test` 覆盖源码与服务级合同；真实 preset 装载使用 `preset-composition.spec.ts` 与 `dev/preset-runner*.patch.yml`；浏览器交互使用 `snapshots/web-face/`。三者分别回答规则、组合、界面问题，不把 end-to-end 当作唯一理解方式。
 
-## 证据形态分层（改什么 → 什么必须绿）
+## 一页证据地图（改什么 → 跑什么 → 回归资产在哪 → 谁能证明什么）
 
-| 改动面 | 证据 | 家 |
-|---|---|---|
-| 纯核 / 存储词汇 / 检索排序 | 单元 spec | `packages/dsh-smart-assistant/tests/**/*.spec.ts` |
-| 导出形态 / 组合行身份 | 台阶一守卫（现读 patch，新行自动被扫） | `tests/composition/export-shape.spec.mjs` |
-| 注册贡献的撤销 | 生命周期守卫（新注册面同 diff 加用例） | `tests/composition/registry-lifecycle.spec.ts` |
-| 组装后的组合（服务/段落/工具 scope） | 真实组合测试（真 Loader + built lib + 站立挂载；需 `pnpm build`） | `tests/composition/preset-composition.spec.ts` |
-| web 渲染面（首开/座位/文案） | 期望比对（隔离 home 真渲染，DOM 证据 diff） | `snapshots/web-face/` + `pnpm web-expected` |
-| 行为地板 / 领域质量 | `pnpm eval`（判决读会话日志）/ `eval:domain`（人判） | `dev/eval/` |
-| 发布物 / 依赖 / preset 包装 | `pnpm release-smoke`；真模型冒烟 `pnpm loop-probe`；keyless 回放 `dev/probes/session/preset-runner-replay.patch.yml` | `scripts/release/release-smoke.mjs` |
+本表是证据路由的**唯一表主**（pre-push-evidence 技能与根 README「按问题找」链接到此，不复制）；
+逐面**判断细则**与已知假绿清单 = [pre-push-evidence 技能](../.agents/skills/pre-push-evidence/SKILL.md)；目录轴的深表（目录=被测 interface）见下节。
+
+| 改动面 | 最小证据（命令） | 回归资产的家 | 能证明 / 不能证明 |
+|---|---|---|---|
+| 纯核（`src/domain`：布局/词汇/检索排序/渲染） | `pnpm test:domain` | `tests/domain/*.spec` | 规则与边界正例 / 组合装载、模型可见面 |
+| 服务行为（`src/host`：四房间读写、curate、根文件、品牌） | `pnpm test:host` | `tests/host/*.spec` | 服务级合同（真 cordis + 临时 home）/ 段落组装、装载 |
+| **模型可见面**（工具描述 / prompt 段落 / persona / digest）与 agent 面（养护回合） | `pnpm build` → `pnpm test:composition` → **`pnpm eval --only`**（行为判决；`repo-live-probe` 是取证非回归，见已定姿态） | `tests/agent/*.spec` + `dev/eval/` | 段落合同与行为地板 / 设计合理、领域质量（`eval:domain` 人判） |
+| client 面（`src/client`：注册与交互状态） | `pnpm test`（整包套件——`client-brand.spec` 断言全 slot 面，加一个注册会红没打开过的 spec）+ 两 web-face 场景 `pnpm web-expected` | `tests/client/*.spec` + `snapshots/web-face/` | 注册、组件树、色彩契约 / 真浏览器渲染（场景期望管） |
+| 导出形态 / 组合行身份 / 注册撤销 | 台阶①③守卫（现读 patch，新行自动被扫） | `tests/composition/export-shape` + `registry-lifecycle` | 行身份与生命周期 / 行为正确 |
+| 组装后组合（服务/段落/工具 scope） | `pnpm build` → `pnpm test:composition` | `tests/composition/preset-composition.spec` | 真 Loader 组装 / vendor rows、完整产品 boot |
+| web 渲染面（首开/座位/文案） | `pnpm web-expected`（隔离 home 真渲染；过目 diff 后 `--refresh`） | `snapshots/web-face/` 两场景 | 渲染期望 / 交互逻辑（client spec 管） |
+| 行为地板 / 领域质量 | `pnpm eval`（`--only` 聚焦）/ `pnpm eval:domain`（人判） | `dev/eval/` | 无害地板与人判质量 / 机器不判质量 |
+| 发布物 / 依赖 / preset 包装 / exports | `pnpm gen-catalog`（freshness）+ `pnpm build` + `pnpm release-smoke`；keyless 回放 `dev/probes/session/preset-runner-replay.patch.yml` | `scripts/release/release-smoke.mjs` | 安装形状与组合断言 / 长期行为 |
+| 仓库工具与门禁（`scripts/verify*`、checks、生成器） | 新检查的**红夹具**（prove-it-red）+ `pnpm verify` | `tests/tooling/verify-gates.spec` | 工具核接受/拒绝形状 / 门禁全量（verify 自身） |
+| docs / notes | `pnpm verify`（断链四连/命令互证/notes 形状） | — | 结构与链接 / 语义正确（漂移审计管） |
+| pin（`vendor/`） | `pnpm sync-dsh -- --tag <tag>`（自有全链，不手改） | `vendor/UPSTREAM.md` | pin 簿记与重校 / — |
 
 ## 插件证据五台阶（加 preset 行 / 工具 / client 面时逐级对表）
 
