@@ -18,7 +18,8 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { agentsMdStabilityProblems, backlogLivenessProblems, clientScriptSafetyProblems, commandAliasProblems, configParseProblems, dependencyPoseProblems, dshHomeInheritanceProblems, exportManualProblems, GRADUATED_STATUS, implementedAlternativesProblems, languageGuardProblems, notesNamingProblems, notesStateProblems, notesTopLevelProblems, pinProblems, relativeLinkProblems, skillFrontmatterProblems, startPathProblems, testAssetNamingProblems, textHygieneProblems, vendorClientFreshnessProblems } from './verify-checks.mjs'
+import { agentsMdStabilityProblems, backlogLivenessProblems, clientScriptSafetyProblems, commandAliasProblems, configParseProblems, dependencyPoseProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, GRADUATED_STATUS, implementedAlternativesProblems, languageGuardProblems, notesNamingProblems, notesStateProblems, notesTopLevelProblems, pinProblems, relativeLinkProblems, skillFrontmatterProblems, startPathProblems, testAssetNamingProblems, textHygieneProblems, vendorClientFreshnessProblems } from './verify-checks.mjs'
+import * as gateCores from './verify-checks.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const packageDir = join(repoRoot, 'packages', 'dsh-smart-assistant')
@@ -44,6 +45,11 @@ function walk(directory, extensions) {
 
 const checks = []
 const check = (name, run) => checks.push({ name, run })
+
+// The wiring gate reads this runner's own source: a core that exists in verify-checks.mjs but is
+// never invoked here guards nothing (imported-but-never-called collapses to a single occurrence).
+check('wiring: every check core is invoked by this command', () =>
+  gateWiringProblems({ exportedCores: gateCores, verifySource: read(fileURLToPath(import.meta.url)) }))
 
 // ── structure ───────────────────────────────────────────────────────────────────────────────────
 

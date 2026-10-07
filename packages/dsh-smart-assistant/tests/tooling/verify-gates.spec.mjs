@@ -37,6 +37,7 @@ import {
   textHygieneProblems,
   vendorClientFreshnessProblems,
 } from '../../../../scripts/checks/verify-checks.mjs'
+import * as gateCores from '../../../../scripts/checks/verify-checks.mjs'
 import { renderIndex } from '../../../../scripts/generate/gen-notes-index.mjs'
 
 const dirs = []
@@ -171,6 +172,42 @@ describe('verify relative-link corpus wiring', () => {
     expect(broken).not.toContain('_backlog/unowned.md links to')
     for (const file of active) writeFileSync(join(root, file, '..', 'missing.md'), '# destination\n')
     expect(run()).toContain(`ok   ${gate}`)
+  })
+})
+
+// A gate core that exists but is never invoked by the top-level command is a script, not a gate —
+// no invalid case could reach a real acceptance path (2026-10-07; the corpus's "a negative case
+// through the real runner" applied to our own wiring). Pinned against the REAL verify.mjs source:
+// the real wiring passes, and sabotaged copies (call sites erased, or the name erased everywhere)
+// flag exactly the unwired core — these are the prove-it-red halves of the wiring gate.
+describe('gateWiringProblems', () => {
+  const verifySource = readFileSync(join(import.meta.dirname, '..', '..', '..', '..', 'scripts', 'checks', 'verify.mjs'), 'utf8')
+
+  it('accepts the real runner: every exported function core occurs beyond the import line', () => {
+    expect(gateCores.gateWiringProblems({ exportedCores: gateCores, verifySource })).toEqual([])
+  })
+
+  it('flags a core reduced to its import line (call sites erased) as an unwired gate', () => {
+    const name = 'notesNamingProblems'
+    const first = verifySource.indexOf(name)
+    const head = verifySource.slice(0, first + name.length)
+    const tail = verifySource.slice(first + name.length).replaceAll(name, '')
+    const problems = gateCores.gateWiringProblems({ exportedCores: gateCores, verifySource: head + tail })
+    expect(problems).toHaveLength(1)
+    expect(problems[0]).toContain(name)
+    expect(problems[0]).toContain('never invoked')
+  })
+
+  it('flags a core named nowhere in the runner', () => {
+    const name = 'notesStateProblems'
+    const problems = gateCores.gateWiringProblems({ exportedCores: gateCores, verifySource: verifySource.replaceAll(name, '') })
+    expect(problems).toHaveLength(1)
+    expect(problems[0]).toContain(name)
+    expect(problems[0]).toContain('named nowhere')
+  })
+
+  it('reports an empty core module rather than passing silently', () => {
+    expect(gateCores.gateWiringProblems({ exportedCores: {}, verifySource }).join(' ')).toContain('no functions')
   })
 })
 
