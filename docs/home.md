@@ -24,11 +24,17 @@
 │   └── archive/snapshots/      #   覆盖写入前的旧版快照（每名留最新 3 份，手复制回去即恢复）
 ├── knowledge/                  # 房间四：领域知识（[[互链]] 页面，OKF 字段子集）
 │   └── <id>.md                 #   deprecated 页留在原地——链接必须继续解析
-└── skill-proposals/            # 技能提案收件箱（<name>.md，等人工评审；不是房间，是暂存区）
+├── skill-proposals/            # 技能提案收件箱（<name>.md，等人工评审；不是房间，是暂存区）
+└── deliverables/               # 模型写的业务交付稿（见下注；非房间，code 不 scaffold 它）
 ```
 
 **一个房间一个职责**，不许混：事实进 `memory/`，未决的线索进 `research/`，可复用的做法进 `skills/`，
 领域理解进 `knowledge/`。
+
+> **根下的 `deliverables/` 不是房间**：指令面没有这个约定——它是**模型自发**选的落点（把交付物写到
+> 盘上的会话留下的，典型是 cwd 即本 working folder 的会话；cwd=仓库根的会话写的是仓库工作区的
+> `deliverables/`，那是另一处现场产物）。它不在 `curate` 检查面内、无生命周期管理；人工按需归档或
+> 整体删除即可，别当第五个房间读，也别让新会话以为这里有什么契约。
 
 > **与 DSH 词汇的对应（避免两仓同读时错位）**：`memory/`+`research/`+`knowledge/` 对应 DSH 的**持久领域**
 > （session log 之外的仓库自有文件）；`skills/` 对应 DSH 的 **runtime Skill capability**（`ctx.skills`
