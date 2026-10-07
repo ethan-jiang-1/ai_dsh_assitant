@@ -111,8 +111,18 @@ if (proxyUrl !== '' && !proxyAlreadySet) {
 }
 
 // ── 从钉住的源码启动 CLI ─────────────────────────────────────────────────────
-const child = spawn(process.execPath, ['--import', 'tsx/esm', bin, ...process.argv.slice(2)], {
-  cwd: repoRoot,
+// 会话 workspace 默认钉在仓根（dev 会话就在本仓上工作，这是对的）。但评测与人手交接需要
+// 干净目录：仓根 cwd 会把本仓自己的 AGENTS.md 注入会话的 workspace 指令，跟助手 persona
+// 抢方向盘（BUG-003 实测：冷启动首开会话绕进仓库探索、不加载开场技能）。显式出口与
+// ASSISTANT_DSH_HOME 同款哲学：ASSISTANT_SESSION_CWD 指定时会话落在那里，不指定默认不变。
+const sessionCwd = process.env.ASSISTANT_SESSION_CWD !== undefined && process.env.ASSISTANT_SESSION_CWD !== ''
+  ? resolve(process.env.ASSISTANT_SESSION_CWD)
+  : repoRoot
+// `--import tsx/esm` 是裸包名，Node 按子进程 cwd 解析——session cwd 挪去仓外时找不到本仓的
+// node_modules。从启动器自身位置解析成绝对 file URL，cwd 无关。
+const tsxEntry = import.meta.resolve('tsx/esm')
+const child = spawn(process.execPath, ['--import', tsxEntry, bin, ...process.argv.slice(2)], {
+  cwd: sessionCwd,
   env: { ...process.env, TSX_TSCONFIG_PATH: join(repoRoot, 'tsconfig.tsx.json') },
   stdio: 'inherit',
 })

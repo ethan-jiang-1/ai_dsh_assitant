@@ -19,7 +19,7 @@
  */
 import { execFileSync } from 'node:child_process'
 import { tmpdir } from 'node:os'
-import { unlinkSync, writeFileSync } from 'node:fs'
+import { mkdtempSync, rmSync, unlinkSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { readEvents, sessionLogs } from '../reports/usage-report.mjs'
@@ -79,34 +79,56 @@ export function runPreset(prompt) {
   // `file-shape` uses this to reject a stale file: a leftover from an earlier session must not go green.
   const startedAt = started
   let launchFailure = ''
+  // Eval measures the product, not this repo's AGENTS.md. The launcher pins the session
+  // workspace to the repo root (right for dev sessions — they work ON this repo), which leaks
+  // the repo's own standing instructions into the session and competes with the assistant
+  // persona (measured, BUG-003 2026-10-07: the cold-start intake session wandered into repo
+  // exploration and never loaded the opener skill). Every task therefore gets its own
+  // throwaway workspace cwd via the launcher's explicit exit, like a real first conversation.
+  const workspace = mkdtempSync(join(tmpdir(), 'eval-workspace-'))
   try {
-    execFileSync('node', ['dev/env/dsh.mjs', '--profile', 'dev-task', '--patch', 'dev/probes/session/preset-runner.patch.yml', prompt], {
+    execFileSync('node', [
+      join(repoRoot, 'dev/env/dsh.mjs'),
+      '--profile', 'dev-task',
+      '--patch', join(repoRoot, 'dev/probes/session/preset-runner.patch.yml'),
+      prompt,
+    ], {
       cwd: repoRoot,
+      env: { ...process.env, ASSISTANT_SESSION_CWD: workspace },
       stdio: ['ignore', 'pipe', 'pipe'],
       timeout: 15 * 60 * 1000,
     })
   } catch (error) {
     launchFailure = error instanceof Error ? error.message.split('\n')[0] : String(error)
   }
+  // The workspace survives until the caller has judged against its files (file-shape reads
+  // `.desk/state.json` in there) — runTask and the domain runner clean it up after evaluation.
   const fresh = sessionLogs(harnessHome).filter(log => !before.has(log)).sort()
   const log = fresh.at(-1)
-  if (log === undefined) return { sessionId: '', observation: null, seconds: 0, launchFailure }
+  if (log === undefined) {
+    return { sessionId: '', observation: null, seconds: 0, launchFailure, workspaceRoot: workspace }
+  }
   return {
     sessionId: (/(?:^|\/)session-([0-9a-f-]+)(?:\/|$)/.exec(log)?.[1] ?? '').slice(0, 8),
-    observation: { ...observe(readEvents(log)), startedAt },
+    observation: { ...observe(readEvents(log)), startedAt, workspaceRoot: workspace },
     seconds: Math.round((Date.now() - started) / 1000),
     launchFailure,
+    workspaceRoot: workspace,
   }
 }
 
 function runTask(task) {
   const run = runPreset(task.prompt)
-  if (run.observation === null) {
-    const suffix = run.launchFailure === '' ? '' : ` (${run.launchFailure})`
-    return { task, verdict: { passed: false, reasons: [`no session log was produced${suffix}`] }, seconds: 0 }
+  try {
+    if (run.observation === null) {
+      const suffix = run.launchFailure === '' ? '' : ` (${run.launchFailure})`
+      return { task, verdict: { passed: false, reasons: [`no session log was produced${suffix}`] }, seconds: 0 }
+    }
+    const verdict = evaluateTask(task, run.observation)
+    return { task, verdict, seconds: run.seconds, observation: run.observation }
+  } finally {
+    rmSync(run.workspaceRoot, { recursive: true, force: true })
   }
-  const verdict = evaluateTask(task, run.observation)
-  return { task, verdict, seconds: run.seconds, observation: run.observation }
 }
 
 /**
@@ -115,8 +137,10 @@ function runTask(task) {
  * without polluting the task set with a task that is meant to fail.
  */
 function selfCheck() {
-  const task = TASKS[0]
-  // Failure shape matched to the first task's checks: scope-honesty's correct answer is
+  // Pinned by id, not array position: the suite order changes (first-open-intake must run first),
+  // and this incident is shaped for scope-honesty's checks.
+  const task = TASKS.find(candidate => candidate.id === 'scope-honesty')
+  // Failure shape matched to scope-honesty's checks: its correct answer is
   // "I cannot see it" — a lying "all clean" answer with no tools must FAIL.
   const incident = {
     toolCalls: [],

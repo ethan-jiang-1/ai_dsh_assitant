@@ -21,7 +21,12 @@ A problem the principal cannot act on has not been broken down yet. Break it bef
    your knowledge room). Where lenses disagree, **keep the disagreement visible**; flattening it at
    merge time destroys exactly the information the decision needs.
 4. **Actions.** Only after 1–3. Each action gets an owner, a timing, a metric, and a stop
-   condition (see the action-plan skill).
+   condition (see the action-plan skill). The stop condition is not optional and not implied by
+   the metric: label it explicitly on every action — including information-gathering steps, where
+   it is "what result makes this step pointless or reverses the plan". An action row without a
+   labeled stop condition is the layer most often quietly dropped; the principal cannot commit to
+   a step whose exit they cannot see.
+   <!-- 词汇（用户可见散文）：stop condition 一律写成「停止条件：…」，pivot 写「若…→…」——评测判这两形 -->
 
 ## Rules that keep it honest
 

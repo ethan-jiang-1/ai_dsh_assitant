@@ -21,7 +21,7 @@
  *
  * @module dev/eval/domain-run
  */
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -367,6 +367,8 @@ function main() {
       process.stdout.write(`${observed.retriedAfter === '' ? '' : '首跑启动失败，重试 '}`
         + `${run.observation === null ? '没跑出会话' : 'ok'} (${observed.seconds}s`
         + `${observed.rooms.length === 0 ? '，没问房间' : `，房间 ${observed.rooms.join('/')}`})\n`)
+      // The scoring sheet reads the parsed observation; the throwaway workspace is not needed after.
+      if (run.workspaceRoot !== undefined) rmSync(run.workspaceRoot, { recursive: true, force: true })
     }
   } finally {
     if (isolate !== undefined) isolate.restorePreBatch()

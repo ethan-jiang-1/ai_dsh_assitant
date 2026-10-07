@@ -121,8 +121,9 @@ Facts that save rounds:
 ## The loop
 
 1. Build (`pnpm build`) — the dev profile links the package and the composition consumes `lib/`.
-2. Restart the web UI from a **clean directory** (a repo cwd leaks the repo's AGENTS.md into the
-   session): `cd /tmp/desk && node <repo>/dev/env/dsh.mjs --profile dev --port 0 --no-open`.
+2. Restart the web UI with a **clean session cwd** (a repo cwd leaks the repo's AGENTS.md into the
+   session as workspace instructions; the launcher pins the session cwd to the repo root unless
+   overridden): `ASSISTANT_SESSION_CWD=$(mktemp -d) node <repo>/dev/env/dsh.mjs --profile dev --port 0 --no-open`.
 3. `node dev/probes/web/webui-preflight.mjs '<url with token>'` — must be green before a human opens it.
    It checks the auth flow, that every combo parses, that our bundle registers, that the boot graph
    is satisfiable, and that every `remote.<ns>` we inject exists in the Remote manifest.

@@ -1,6 +1,6 @@
 # BUG-003：eval 行为地板 2/5 红——breakdown-uses-skill 复发 + first-open-intake 新红
 
-> 严重级别：P1（重要——评测是行为回归的主仪表，红着的主仪表让每次交付都带噪声；与 BUG-001 同判据）｜发现：2026-10-07（巡检全量跑）｜状态：活跃
+> 严重级别：P1（重要——评测是行为回归的主仪表，红着的主仪表让每次交付都带噪声；与 BUG-001 同判据）｜发现：2026-10-07（巡检全量跑）｜状态：**fixed 2026-10-07**——三个环境性病灶（repo-cwd 泄漏/套内排序/判卷基点）+ 一个产品缺口（技能第 4 层停止条件遵从度），见 [修复 note](../../notes/implemented/2026-10-07-bug-003-eval-floor-environment.md)；验收 = 两个独立全新 home 连续两轮 5/5
 
 ## 症状
 
@@ -19,4 +19,4 @@
 
 ## 修复关联
 
-修复完成判据（沿用 BUG-001）：全新 home 上 5/5 且连续两轮全绿；证据面 = [语义扫描报告](../reference/tech-exploration/261007-semantic-sweep-src.md) 收口节 + 本卡。
+已修（`<commit 见 note>`）：[修复 note](../../notes/implemented/2026-10-07-bug-003-eval-floor-environment.md)——launcher `ASSISTANT_SESSION_CWD` 出口 + tsx 绝对解析；eval 每任务一次性 workspace + 判卷基点跟随；intake 套内第一；breakdown 判据认实质转向形式；management-breakdown 技能第 4 层停止条件显式化。验收（沿用 BUG-001 判据）：ACC4+ACC5 两个独立全新 home 连续两轮 **5/5**。

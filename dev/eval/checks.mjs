@@ -16,6 +16,7 @@
  */
 
 import { readFileSync, statSync } from 'node:fs'
+import { isAbsolute, join } from 'node:path'
 
 const WRITE_TOOLS = new Set(['edit', 'write', 'multi_edit', 'patch', 'apply_patch', 'notebook_edit'])
 
@@ -128,7 +129,13 @@ export function evaluateTask(task, observed) {
         break
       }
       case 'file-shape': {
-        const shape = fileShape(String(check.path ?? ''), Array.isArray(check.required) ? check.required : [], {
+        // The session runs in its own throwaway workspace (BUG-003): a relative check path
+        // belongs to that workspace, not to run.mjs's cwd.
+        const raw = String(check.path ?? '')
+        const target = observed.workspaceRoot !== undefined && !isAbsolute(raw)
+          ? join(observed.workspaceRoot, raw)
+          : raw
+        const shape = fileShape(target, Array.isArray(check.required) ? check.required : [], {
           anyOf: Array.isArray(check.anyOf) ? check.anyOf : [],
           since: typeof observed.startedAt === 'number' ? observed.startedAt : 0,
         })
