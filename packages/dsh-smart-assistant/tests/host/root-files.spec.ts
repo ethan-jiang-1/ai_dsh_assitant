@@ -46,6 +46,20 @@ describe('soulSnapshot (identity)', () => {
     writeFileSync(service.paths.soulFile, '   \n', 'utf8')
     expect(service.soulSnapshot()).toBe(DEFAULT_SOUL)
   })
+
+  it('truncates by UTF-8 bytes, not code units — a CJK soul over cap keeps a byte-bounded head and an honest marker', async () => {
+    const service = boot()
+    await service.ensureHome()
+    // BUG-006 F5 (2026-10-07): 3000 CJK chars = 9000 UTF-8 bytes against the 4096-byte soul
+    // cap. The code-unit slice returned ALL 3000 chars (9000 bytes) plus a lying
+    // "truncated 4904 bytes" marker — the byte-capped prompt contract silently failed for
+    // every Chinese owner-written soul.
+    writeFileSync(service.paths.soulFile, `${'好'.repeat(3000)}\n`, 'utf8')
+    const snapshot = service.soulSnapshot()
+    expect(Buffer.byteLength(snapshot, 'utf8')).toBeLessThanOrEqual(4096 + 120) // head ≤ cap + marker line
+    expect((snapshot.match(/好/g) ?? []).length).toBeLessThan(1400) // a real cut (cap / 3 bytes per char), not the whole file
+    expect(snapshot).toContain('truncated 4904 bytes')
+  })
 })
 
 describe('manualSnapshot (guidance)', () => {

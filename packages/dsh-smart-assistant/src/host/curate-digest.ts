@@ -45,7 +45,12 @@ function rootFileSnapshot(path: string, fallback: string, cap: number): string {
   if (trimmed.length === 0) return fallback
   const bytes = Buffer.byteLength(trimmed, 'utf8')
   if (bytes <= cap) return trimmed
-  return `${trimmed.slice(0, cap)}\n[… truncated ${String(bytes - cap)} bytes; edit the file to be shorter]`
+  // Byte-accurate cut (BUG-006 F5, 2026-10-07): `slice(0, cap)` counts UTF-16 code units, so a
+  // CJK soul of 9000 bytes against a 4096 cap came back whole with a lying marker. The subarray
+  // form is the same one ingest.ts uses; a cut landing mid-character costs at most one
+  // replacement character, never more than the cap.
+  const head = Buffer.from(trimmed, 'utf8').subarray(0, cap).toString('utf8')
+  return `${head}\n[… truncated ${String(bytes - cap)} bytes; edit the file to be shorter]`
 }
 
 /**
