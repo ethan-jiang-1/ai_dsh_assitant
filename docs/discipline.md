@@ -73,6 +73,11 @@
   事实一个出处），然后才是修与登记；判据 = 每处改动能指向它修复的具体误导或漏检，**不是**
   "文件数与总行数少了多少"。文档预算（若触发立案）同上游规则：**上限是护栏，不是减量目标**
   （`vendor/dsh/docs/AGENTS.md`「Wordcount budgets」）。
+- **流程面也过成本预算**：改动流程面/入口链时，按语料四成本形态（重复记录漂移 / 过长
+  standing instructions / 无意义 gate 假安全感 / 过细 Skill 仪式）+ **驾驭者认知成本**
+  （用户一眼能否找到方向盘与仪表盘——语料判据全是 agent 参与视角，这一条是本仓自己的）
+  过一遍；处置优先序同下（删>并>修>记），既有处置表与触发条件的家 =
+  [流程预算审计卡](../_backlog/plans/261007-process-budget-audit.md)（2026-10-07 B1）。
 - **新门禁必带反例**（负例控制；借 DSH「A guard only guards if the regression fails it」）：
   新增一条 `verify` 检查 = 同 diff 在 `tests/tooling/verify-gates.spec.mjs` 配一个"造红再证绿"夹具；
   只对新检查生效，不追旧账。
