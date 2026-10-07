@@ -166,7 +166,7 @@ reference/ 区与收卷台账的分工见上文调研材料区。依据：
 `pnpm verify` 链内三查（核在 [scripts/verify-checks.mjs](../scripts/checks/verify-checks.mjs)，
 红绿夹具在 verify-gates.spec）：
 
-1. **制度目录在场**：plans / bugs / reference / _done 五池——缺目录即红；
+1. **制度目录在场**：plans / bugs / reference 三个活跃目录 + `_done` 的五个归档子池——缺目录即红；
 2. **活跃卡户口**：每张活跃卡首 12 行内必有 `状态：` 行（死稿卡无处藏身）；
 3. **索引互查**：每张卡文件被其账本点名（plans/bugs 活跃名册、_closed_plans 索引、
    _done 归档行）——搬了卡忘更账本即红。活跃正文相对链接另由现有链接门覆盖本 README 与 plans/bugs/reference 递归语料；冻结 `_done` 不扩扫，索引互查不冒充正文断链检查。

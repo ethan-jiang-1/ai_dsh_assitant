@@ -43,7 +43,7 @@
 |---|---|---|
 | `memory/` | 已确立的事实 / 偏好 / 决定 | 被取代或退役 → `archive/` |
 | `research/` | **意图还不清晰的探索**（backlog） | `promote`（成立 → 记忆/技能/知识页）/ `drop`（不成立 → 归档并**必写理由**）；`park` 是房内挂起，不是出口 |
-| `skills/` | 学到的本事（DSH 技能格式） | 按需加载；退役 → `archive/`（不删可恢复）；提案车道 `propose_skill` → 人审 → `land_skill`，另有 `save_skill` 直接写入，详见 [当前契约](docs/home.md#L90) |
+| `skills/` | 学到的本事（DSH 技能格式） | 按需加载；退役 → `archive/`（不删可恢复）；提案车道 `propose_skill` → 人审 → `land_skill`，另有 `save_skill` 直接写入，详见 [当前契约](docs/home.md) §二（技能怎么提案） |
 | `knowledge/` | 领域知识页（概念/实体/来源，`[[互链]]`，OKF 字段子集） | `draft`（不进检索）→ 人审 `stable`；`deprecated` 留原地（链接不断） |
 
 **桌面与抽屉**：常驻上下文的只有一份**有界摘要**（精选记忆 + 开放线索 + 知识目录树）；

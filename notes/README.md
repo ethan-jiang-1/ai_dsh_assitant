@@ -100,7 +100,7 @@
 ## 四、与 DSH 的对齐与偏离登记
 
 **借（直接继承）**：生命周期四态与"目录↔状态词互校"；归档冻结（不可编辑）；rejected 留一行原因、失效即删；
-路径树即工作清单、不设集中索引；note 间相对链接；`implemented` 是**当前** rationale owner（随实现保持 current）；
+路径树即工作清单、集中索引只能是生成物（[INDEX.md](INDEX.md)）；note 间相对链接；`implemented` 是**当前** rationale owner（随实现保持 current）；
 `proposed → implemented` 是同 diff 的正文改写。
 
 **适配（同精神、异形态）**：DSH 用置顶三行 `# Agent Note: <title>` / 空行 / `Status: <status>`，

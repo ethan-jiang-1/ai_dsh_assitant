@@ -24,8 +24,8 @@ rejected 政策、命名——本文件不复制）；改行为、契约或开�
 交接即此链：AGENTS.md（本文件）→ `_backlog/plans/` 与 `notes/proposed/` → 各卡。
 
 同一个多步流程第三次被重新推演时，就把它立成一件开发技能（放 `.agents/skills/`）——这是"重复即建"的常设规则，不占工作面。
-**两类 Skill，别混**：`.agents/skills/` 是**开发用**（给改这个仓库的 agent：探针、归档判定、
-证据路由——由 DSH 原生 `project-agents` 根发现，进目录即入技能目录）；`packages/dsh-smart-assistant/presets/assistant/skills/`
+**两类 Skill，别混**：`.agents/skills/` 是**开发用**（给改这个仓库的 agent：证据路由、探针、
+审计、UI 贡献约束等——由 DSH 原生 `project-agents` 根发现，进目录即入技能目录）；`packages/dsh-smart-assistant/presets/assistant/skills/`
 是**模型用**（产品运行时技能，随 preset 走）。同名不同机制，不共享 registry。
 
 ## 布局（改动前先认领 owner 面）
@@ -45,7 +45,7 @@ rejected 政策、命名——本文件不复制）；改行为、契约或开�
 | `scripts/` | 机械门禁与生成器 —— 门禁三条纪律与 freshness 约定见其 `AGENTS.md` | 门禁问题动这里 |
 | `snapshots/` | 行为回归的证据面——只收边界与现状见其 `AGENTS.md` 与 `README.md` | 回归证据问题动这里 |
 | `_dist/` | **分发导出（生成物）**：`pnpm export-dist` 的 tgz（不入库）与《安装手册》 | 分发问题动这里；生成器 `scripts/release/export-dist.mjs` |
-| `.agents/` | **开发用 Skill 根**（探针、归档判定、证据路由——DSH 原生 `project-agents` 根发现） | 新开发技能动这里 |
+| `.agents/` | **开发用 Skill 根**（证据路由、探针、审计、UI 贡献约束等——DSH 原生 `project-agents` 根发现） | 新开发技能动这里 |
 | `deliverables/` · `.desk/` · `.tmp/` | **会话运行现场（git 忽略，不是仓库内容）**：cwd=仓根的会话留下的业务交付（未提交交接件）、My Desk 桌面状态、临时产物 | 不提交、不当文档读；语义见 `.gitignore` 注释 |
 | `vendor/dsh/` | **钉住的 DSH 源码（submodule）** | **永不改**；升级走 `pnpm sync-dsh` |
 | `tsconfig.base.json` / `tsconfig.tsx.json` | 两个 tsconfig 解析入口（编译期手维护 / 运行期 `pnpm gen-paths` 生成） | 引入新 `@deepseek-ai/*` import 或换 pin 时动这里（契约：`docs/dev.md` §二） |
@@ -62,7 +62,7 @@ bash dev/env/prepare.sh     # ② **首次必须先跑**：补齐 boot 需要的
 bash dev/env/setup.sh       # ③ **起服务的前置**：它才建 dev（web）+ dev-task（headless）两个 profile 并把 roster 指向本仓；
                         #    skip 它 = `profile "dev" does not exist`，而 DSH 那句报错会把你指向错的命令
 pnpm dsh --profile dev --port 0 --no-open   # ④ Web UI：preset 行为（四工具/persona/摘要）的人面交互只在这里的会话里验
-                        #    （自动行为判决走 `pnpm eval`）；3080 被占则 `--port 0`（OS 分配端口 + token）；交给人之前先 `pnpm preflight '<URL>'`（绿了再交）
+                        #    （自动行为判决走 `pnpm eval`）；`--port 0` = OS 分配端口 + token 鉴权（不占 3080、避撞车）；交给人之前先 `pnpm preflight '<URL>'`（绿了再交）
 pnpm dsh --profile dev-task "one task"   # ⑤ 只想冒烟 host 面（插件装载/scaffold/服务行）就跑它，进程自己退（不进 preset）
 ```
 
@@ -85,7 +85,7 @@ pnpm loop-probe '<URL>' --ask '<问句>'   # 首用闭环探针：首屏断言�
 pnpm dsh --profile dev --dump-config   # boot-free：组合里到底有没有这一行（排查 patch 落空/重复 id 的第一命令）
 pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner.patch.yml "<task>"   # preset 挂载的 one-shot（验证自动化驱动）
 pnpm typecheck          # 委派包级：tsc -b（编译期 paths 解析到 vendor/dsh 的 src，API 漂移编译期暴露）+ 测试工程
-pnpm test               # vitest：纯核（home/memory/research/skills/knowledge）+ 服务级合同（真 cordis 构造）
+pnpm test               # vitest 全量：六层 spec（纯核+服务合同+agent/client/composition/tooling；分层与层命令见 docs/testing.md）
 pnpm verify             # 机械门禁链：生成物 freshness + 自检 + 结构/身份/解析入口/自包含/技能语法/断链/文档命令互证/notes 形状等（清单以 scripts/checks/verify.mjs 为准）
 pnpm release-smoke      # pnpm pack → 干净 home → dsh plugin add → 组合断言（**改动发布物/依赖/preset 包装必跑**）
 pnpm export-dist        # 手动分发导出：pnpm pack → _dist/ 的 tgz + 清单边界断言 + 自动生成《安装手册》
@@ -93,7 +93,7 @@ pnpm sync-dsh -- --tag <dsh-tag>   # 换 submodule tag + SHA 簿记 + typecheck 
 pnpm usage              # 意图级仪表：会话/工具混合/自用率/摩擦/家的现状（读 dev home；dev 工具不得继承 DSH_HOME）
 pnpm desk-loop          # 培养循环摩擦报告：从真实会话日志读「点了没反应 / 反复点 / 答了多次 / 技能没加载」（读 dev home）
 pnpm eval               # 行为评测：真实请求经 preset 会话跑一遍，判定读会话日志（串行；任务集 dev/eval/tasks.mjs）
-pnpm eval:domain        # 领域评测集 v0（G2 关口）：本人出的真实经营问题逐题跑 → 给人打分的报告（题面格式 dev/eval/domain/TEMPLATE.md）
+pnpm eval:domain        # 领域评测集 v0（G2＝领域质量的人判终关）：本人出的真实经营问题逐题跑 → 给人打分的报告（题面格式 dev/eval/domain/TEMPLATE.md）
 ```
 
 ## 七条硬规则
@@ -137,8 +137,9 @@ pnpm eval:domain        # 领域评测集 v0（G2 关口）：本人出的真实
    产品口味反转；除此之外一律不停。**"等用户拍板"不是默认状态**：先把能自己定的定下来，
    真的只剩真人输入时才挂起等拍板（判据与原始话语在 [`README.md`](README.md)「方向判据」节所引的 intents-retired note）。
 
-## 探索路由（DSH 侧常用入口）
+## 探索路由（本仓侧与 DSH 侧常用入口）
 
+- **本仓侧**：证据路由（改什么 → 跑什么 → 回归资产在哪）= [`docs/testing.md`](docs/testing.md) §一页证据地图（唯一表主）；五条功能路由与三条链路 = [`docs/architecture.md`](docs/architecture.md) §七/§八
 - 组合层级（bundle → profile patch → home patch → `--patch`）：`vendor/dsh/docs/architecture.md`
 - preset 语义（roster/roots/遮蔽/standing mount）：`vendor/dsh/packages/preset/agent-preset/README.md`
 - 技能 provider 契约（本 repo 依赖它）：`vendor/dsh/docs/subsystems/skills.md`

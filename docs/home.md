@@ -110,7 +110,7 @@ learn 模块的 `tools/result` 订阅就给对应名字计数（用户 `/name` �
 - **桌面**（常驻上下文，三个段落讲一个顺序的故事：**你是谁 → working folder 怎么用 → 里面现在有什么**）：
   - 身份段（`assistant:soul`）：`SOUL.md` 逐字（缺/空回退内置默认身份——回退是替换不是叠加）；
   - 手册段（`assistant:home-manual`）：`AGENTS.md` 逐字（缺则现场渲染当前版，永不落后）；
-  - 状态摘要（`assistant:memory-digest`，**有界** `digestMaxBytes`，默认 6144——键挂在 host 服务行 `dsh-smart-assistant` 的 config（包根 `cordis.patch.yml`））：状态行 +
+  - 状态摘要（`assistant:memory-digest`，**有界** `digestMaxBytes`，默认 6144——键挂在 host 服务行 `assistant-memory` 的 config（包根 `cordis.patch.yml`））：状态行 +
     活跃记忆的精选 + **开放线索的条数与前几条标题** + **知识签树**（stable 页一行一页，作检索路标）。
     预算闸门（`save` 纯新增）：只在**记忆行本身被挤下桌面**时拒绝（消息给出路：retire 或 supersede）；
     线索/签树被挤只报 finding、不堵记忆写入门——堵了也修不好那部分（2026-10-02 校准与钥匙修复，
@@ -171,7 +171,7 @@ bundles, M snapshots`，退役与快照都不删除、技能归档只增不减�
 也看不见同一棵树里的并行会话**。所以"报 clean"只等于"房间干净"，不等于"现场干净"；在仓库里工作时
 这两者的差别要如实说出来（同一条纪律也在家手册的协作边界节）。
 
-**curate 不再只靠人记得**：host 侧节拍器（I14）每个 goal 的第 `maintenanceEveryRounds`
+**curate 不再只靠人记得**：host 侧节拍器（[maintenance-metronome](../notes/implemented/2026-09-24-maintenance-metronome.md)）每个 goal 的第 `maintenanceEveryRounds`
 （默认 5，`0` 关闭）轮自动插入一条养护 turn（plugin 源 user message，让路栅栏保证它是轮间
 安全空槽），指示跑 curate 并逐条处理发现项；非 goal 会话仍由 persona 纪律驱动。
 
