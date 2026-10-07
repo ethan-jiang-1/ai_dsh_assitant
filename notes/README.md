@@ -41,7 +41,10 @@
 
 ## 二、刻意不做
 
-- **不设集中索引**（无 `INDEX.md`）：生命周期目录树本身就是工作清单；第二份清单必然漂移。
+- **集中索引只能是生成物**：[`INDEX.md`](INDEX.md) 由 `pnpm gen-notes-index` 生成（只读文件名日期与首个
+  标题，正文一律链接过去），freshness 由 `pnpm verify`（`gen-notes-index --check`）守——改了卡没重生成
+  即红（2026-10-07 取代"完全不设"的旧裁决：旧裁决针对的是**手维护**清单必然漂移，生成物 + 门禁没有
+  漂移通道；手写清单仍然禁止）。
 - **不设 `postmortem/`**：事故记录属于"已交付决定"，进 `implemented/`（AGENTS.md 曾列该目录但从未存在，2026-09-25 删除该说法）。
 - **不采用 `{lifecycle}/{class}/` 两级路径**（DSH 用它）：偏离理由见 §四。
 - 提案过时转 `rejected/` 而非滞留 `proposed/`；`archived/` 只收已交付（implemented）的 note。

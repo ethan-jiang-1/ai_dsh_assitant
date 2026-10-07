@@ -86,8 +86,8 @@ export const GRADUATED_STATUS = /状态：\*\*(implemented|rejected|archived|已
 /** Directory names directly under notes/ that may hold notes (archived/research = wound-up survey ledger). */
 const NOTE_SUBDIRECTORIES = ['proposed', 'implemented', 'rejected', 'archived', 'archived/research']
 
-/** Every top-level entry notes/ may carry besides the note subdirectories. */
-const NOTES_ROOT_FILES = new Set(['README.md', '.gitkeep'])
+/** Every top-level entry notes/ may carry besides the note subdirectories. INDEX.md is the generated find-a-card index (gen-notes-index.mjs, freshness-gated in the verify chain) — the one admitted exception to "no hand-maintained list". */
+const NOTES_ROOT_FILES = new Set(['README.md', 'INDEX.md', '.gitkeep'])
 
 /** The status word each lifecycle directory's notes must carry (archived keeps implemented). */
 const LIFECYCLE_STATUS = {

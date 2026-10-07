@@ -99,7 +99,7 @@ dsh plugin --profile <p> add file:./packages/dsh-smart-assistant   # <p>＝你�
 | 某次会话为什么答成这样 | [docs/dev.md](docs/dev.md) §六「逐事件复盘」行（过滤样例：[repo-live-probe](.agents/skills/repo-live-probe/SKILL.md)）；聚合视图 `pnpm usage` / `pnpm desk-loop` |
 | 我要改 X，最小验证是什么 | [docs/testing.md](docs/testing.md) 分层表；逐面表在 [.agents/skills/pre-push-evidence/](.agents/skills/pre-push-evidence/SKILL.md) |
 | 改了为什么不生效 | [docs/dev.md](docs/dev.md) §四 三条纪律（build / preset 代际 / pin） |
-| 这个决定为什么这么定 | `notes/implemented/` 无索引——按机制名 `grep -il '<关键词>' notes/implemented/` 找卡（输掉的方案在同卡）；负知识在 `notes/rejected/` |
+| 这个决定为什么这么定 | [notes/INDEX.md](notes/INDEX.md)（生成索引；关键词不在标题里再 `grep -il '<关键词>' notes/implemented/`，输掉的方案在同卡）；负知识在 `notes/rejected/` |
 
 实际 preset 来源是 `package.json` 的 `dsh.bundle.patch` 指向 `packages/dsh-smart-assistant/cordis.patch.yml` 中的 `preset-assistant` 行。运行数据的 `DSH_HOME`、助手 `dataDir` 与源码 cwd 是三个不同根，详见 [开发手册](docs/dev.md)。
 
