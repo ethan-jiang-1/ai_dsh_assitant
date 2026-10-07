@@ -13,6 +13,16 @@
 **用隔离 home 跑实验必须建 profile 与起服务同 home**：profile 由 `dev/env/setup.sh` 建、由 `pnpm dsh` 读，
 两边不同就会看到 `profile "dev" does not exist`——而它说的是实话，只是没说"你建在另一个 home 了"。
 
+落到另一个 home 的完整命令串（对根 `AGENTS.md` 命令表的 ②③④⑤ **每一条**前置同一变量，
+漏加到任意一条就会踩上面那句报错）：
+
+```sh
+export ASSISTANT_DSH_HOME=/tmp/my-trial-home
+bash dev/env/prepare.sh && bash dev/env/setup.sh
+ls "$ASSISTANT_DSH_HOME/profiles"          # 判据：应见 dev 与 dev-task
+pnpm dsh --profile dev --port 0 --no-open  # 起服务与验证命令（preflight/shots/dump-config）同样带着这个变量
+```
+
 | 通道 | 是否随 DSH_HOME 隔离 | dev 的处理 |
 |---|---|---|
 | profiles / sessions / storages / attachments / settings / credentials / 技能用户根 / `.agent-presets` / assistant working folder 的 dataDir（默认值；显式 `dataDir` 覆盖例外，见 `docs/home.md`） | ✅ | 自动落在 dev home |

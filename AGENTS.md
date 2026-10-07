@@ -67,15 +67,8 @@ pnpm dsh --profile dev-task "one task"   # ⑤ 只想冒烟 host 面（插件装
 ```
 
 **要落到另一个 home（隔离实验/并行实例）**：给 ②③④⑤ **每一条都前置** `ASSISTANT_DSH_HOME=<dir>`
-（它对启动器与两个脚本一致生效；漏加到任意一条，就会得到 `profile "dev" does not exist`——
-因为 profile 建在一个 home、启动器去另一个找）：
-
-```sh
-export ASSISTANT_DSH_HOME=/tmp/my-trial-home
-bash dev/env/prepare.sh && bash dev/env/setup.sh
-ls "$ASSISTANT_DSH_HOME/profiles"          # 判据：应见 dev 与 dev-task
-pnpm dsh --profile dev --port 0 --no-open  # 起服务与验证命令（preflight/shots/dump-config）同样带着这个变量
-```
+（漏加到任意一条 = `profile "dev" does not exist`，机理见硬规则 1）；完整命令串与判据 =
+[`docs/dev.md`](docs/dev.md) §一（隔离模型 owner）。
 
 **开发环与舱内工具**（用①的 install 装好即可，与起服务无先后）：
 
