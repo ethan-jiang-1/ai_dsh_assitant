@@ -203,22 +203,49 @@ export function renderDigest(input: DigestInput): DigestResult {
       // cannot spare the room, the marker is dropped rather than the map.
       const reserve = Math.min(OMISSION_RESERVE_BYTES, Math.max(0, Math.floor(input.maxBytes / 4)))
       const reserved = renderPass(input, { compactKnowledge: true, reserveBytes: reserve })
-      const markers = omissionMarkers(reserved.omittedMemories, reserved.omittedPages)
       const blurbLines = input.statusBlurb.split('\n').length
       const lines = reserved.lines.slice()
-      let markerBytes = markers.reduce((total, marker) => total + bytes(`${marker}\n`), 0)
+      // Size the pop loop's marker room at the worst case (BUG-006 F7, 2026-10-07): the pops
+      // below can only push the omission counts UP to the totals, so markers budgeted at the
+      // totals always fit whatever the recount ends up announcing.
+      const activeMemories = input.memories.filter(record => record.status === 'active').length
+      const stablePages = input.pages.filter(page => page.status === 'stable').length
+      const markerBytes = omissionMarkers(activeMemories, stablePages)
+        .reduce((total, marker) => total + bytes(`${marker}\n`), 0)
       let used = reserved.used
+      // Classify what leaves the tree so the recount below is exact: knowledge data lines sit
+      // in the tail section (popped first, while their header is still in), memory data lines
+      // carry the `- [kind]` shape; thread lines have no omission marker of their own.
+      let droppedMemories = 0
+      let droppedPages = 0
       while (lines.length > blurbLines && used + markerBytes > input.maxBytes) {
         const dropped = lines.pop()
-        if (dropped !== undefined) used -= bytes(`${dropped}\n`)
+        if (dropped === undefined) break
+        used -= bytes(`${dropped}\n`)
+        if (dropped.startsWith('## Knowledge')) continue // the section header itself
+        if (lines.some(line => line.startsWith('## Knowledge'))) {
+          if (!dropped.startsWith('##')) droppedPages += 1
+        } else if (dropped.startsWith('- [')) {
+          droppedMemories += 1
+        }
       }
-      const fits = used + markerBytes <= input.maxBytes
-      if (fits) lines.push(...markers)
+      // Recount (BUG-006 F7): the reserved pass's counts predate the pops — the marker must not
+      // underreport, and memoryIds must not name records whose line was popped (they are the
+      // tail of the memory section, so the tail of the id list).
+      const omittedMemories = reserved.omittedMemories + droppedMemories
+      const omittedPages = reserved.omittedPages + droppedPages
+      const finalMarkers = omissionMarkers(omittedMemories, omittedPages)
+      const finalMarkerBytes = finalMarkers.reduce((total, marker) => total + bytes(`${marker}\n`), 0)
+      const fits = used + finalMarkerBytes <= input.maxBytes
+      if (fits) lines.push(...finalMarkers)
       chosen = {
         ...reserved,
         lines,
-        used: fits ? used + markerBytes : used,
+        used: fits ? used + finalMarkerBytes : used,
         truncated: true,
+        memoryIds: reserved.memoryIds.slice(0, reserved.memoryIds.length - droppedMemories),
+        omittedMemories,
+        omittedPages,
       }
     }
   }

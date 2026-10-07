@@ -1,6 +1,6 @@
 # BUG-006：字节与预算的 CJK/计数缺陷——SOUL/手册快照码元截断 + digest 遗漏少报 + ingest 截断后全文算段（F5/F7/F12）
 
-> 严重级别：P1（重要——F5 在中文用户面的每请求路径上：SOUL/AGENTS.md 是 owner 手编数据，byte-cap 契约对 CJK 失效最多 3× 超预算骑在 prompt 里）｜发现：2026-10-07（对抗性语义扫描，F5 已数值验证）｜状态：活跃
+> 严重级别：P1（重要——F5 在中文用户面的每请求路径上：SOUL/AGENTS.md 是 owner 手编数据，byte-cap 契约对 CJK 失效最多 3× 超预算骑在 prompt 里）｜发现：2026-10-07（对抗性语义扫描，F5 已数值验证）｜状态：**fixed 2026-10-07**——F5 字节精确截断（`d1707f2`）+ F7 marker 重算与 memoryIds 剪枝 + F12 按携带文本分段，见 [修复 note](../../notes/implemented/2026-10-07-bug-006-budget-cjk-counting.md)；三红三绿 + 全量 404 绿
 
 ## 症状
 

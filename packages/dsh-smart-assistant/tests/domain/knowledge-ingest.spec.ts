@@ -86,4 +86,16 @@ describe('planSourcePage', () => {
     expect(plan.body).toContain('truncated at 64 bytes of 200')
     expect(plan.body).toContain('big.txt')
   })
+
+  it('derives the description from the truncated body, never from text the page will not carry', () => {
+    // BUG-006 F12 (2026-10-07): the body was cut at the byte limit but sections were segmented
+    // from the FULL text — the description mined prose that is not on the page.
+    const plan = planSourcePage(
+      { ref: 'big3.txt', title: 'Big3', text: '# Head One\n# Head Two\nPROSE-PAST-CUT unique-marker\n' },
+      { truncatedAt: 22 },
+    )
+    expect(plan.body).toContain('truncated at 22 bytes of')
+    expect(plan.body).not.toContain('PROSE-PAST-CUT')
+    expect(plan.description).not.toContain('PROSE-PAST-CUT')
+  })
 })

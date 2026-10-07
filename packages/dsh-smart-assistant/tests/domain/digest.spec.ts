@@ -143,6 +143,25 @@ describe('renderDigest degradation', () => {
     expect(result.text).toContain(blurb)
   })
 
+  it('recounts what the marker-stage pops: the omission count never underreports and memoryIds stay inside the text', () => {
+    // BUG-006 F7 (2026-10-07): markers were sized from the reserved pass, then the pop loop
+    // dropped more memory lines without recounting — "+N more omitted" underreported and
+    // memoryIds named records whose line had been popped. The invariants, at any budget.
+    for (const maxBytes of [700, 660, 640, 580, 530, 520, 480, 410, 400, 360, 330, 300, 290, 260]) {
+      const result = renderDigest({ statusBlurb: blurb, memories: manyMemories, threads: [], pages, maxBytes })
+      const shown = manyMemories.filter(record => result.text.includes(`(${record.id})`)).length
+      // The announced count must equal what is actually missing.
+      expect(result.omittedMemories).toBe(manyMemories.length - shown)
+      const marker = /\(\+(\d+) more active records omitted/.exec(result.text)
+      if (manyMemories.length - shown > 0) {
+        expect(marker).not.toBeNull()
+        expect(Number(marker?.[1])).toBe(manyMemories.length - shown)
+      }
+      // Every id in memoryIds must still have its line in the text.
+      for (const id of result.memoryIds) expect(result.text).toContain(`(${id})`)
+    }
+  })
+
   it('keeps the map and drops the marker when there is no room for either', () => {
     const result = renderDigest({
       statusBlurb: blurb,

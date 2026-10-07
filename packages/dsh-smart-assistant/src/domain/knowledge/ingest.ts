@@ -138,10 +138,15 @@ export function segmentDocument(text: string): IngestSection[] {
 export function planSourcePage(document: SourceDocument, options: { truncatedAt?: number } = {}): SourcePagePlan {
   const limit = options.truncatedAt ?? BODY_LIMIT_BYTES
   const bytes = Buffer.byteLength(document.text, 'utf8')
-  const body = bytes > limit
-    ? `${Buffer.from(document.text, 'utf8').subarray(0, limit).toString('utf8')}\n\n<!-- truncated at ${limit} bytes of ${bytes}; the original stays at ${document.ref} -->`
+  // Segment what the page will actually carry, not the full source (BUG-006 F12, 2026-10-07):
+  // the description used to mine prose from beyond the byte cut — text the page never holds.
+  const carriedText = bytes > limit
+    ? Buffer.from(document.text, 'utf8').subarray(0, limit).toString('utf8')
     : document.text
-  const sections = segmentDocument(document.text)
+  const body = bytes > limit
+    ? `${carriedText}\n\n<!-- truncated at ${limit} bytes of ${bytes}; the original stays at ${document.ref} -->`
+    : document.text
+  const sections = segmentDocument(carriedText)
   const firstProse = sections
     .flatMap(section => section.body.split('\n'))
     .map(line => line.trim())
