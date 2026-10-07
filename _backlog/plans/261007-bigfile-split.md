@@ -1,6 +1,6 @@
 # 两大文件拆分：host 按房间切片，client 走 DSH 同款 tsdown 管线
 
-> 立卡：2026-10-07 ｜ 状态：**S1 已交付，S2 待拍板**｜毕业门 = S2 出口全绿（S1 已过其全套门）｜下一步 = 用户拍板 S2（build 加 tsdown，vendor 同款工具零新依赖）后照卡实施
+> 立卡：2026-10-07 ｜ 状态：**S1+S2 已交付**｜毕业门 = 已过（S2 活体门有一项如实阻断，见证据）｜下一步 = 场景夹具腐烂另立修复（snapshots owner 面，见"后续观察"）
 
 **S1 交付证据（2026-10-07，commit c803726）**：index.ts 1178 → 288 行薄壳；六模块 memory-room 141 /
 research-room 221 / skills-room 249 / knowledge-room 181 / curate-digest 238 / self-turns 104。
@@ -10,6 +10,25 @@ dump-config assistant 系 10 行 id 全在场、keyless replay 请求侧 `agentP
 关键判断记录：private → 包内可见的字段清单与 cordis overlay Reflect 转发语义核验（vendor
 cordis src/utils.ts:130-218，传 host 进自由函数与原 this 等价）；输入类型随房间模块走、
 index.ts `export type` 原位 re-export（`src/index.ts` 的 `export *` 公开面零变化）。
+
+**S2 交付证据（2026-10-07，commit 1f4e07e）**：src/client 2950 行单文件 → 13 职责模块（最大
+panels.ts 624 行 ≤800 判据）；tsdown iife（minify off）打 `lib/client/index.js` 单文件 classic
+bundle（103KB，`new Function` 解析过，头尾零 import/export），出口路径与 d.ts 不变；tests/client
+同步重组 68 用例 1:1（6 文件 → 10 文件，对齐新模块，client-desk-view 并入 entry/room-tabs 后删除）；
+classic-script 守卫换轨（源级：裸外部运行时 import 红、相对 import/type import/export 放行；产物级：
+new Function + facade 在场），负例夹具 5 件 prove-it-red（换轨前先实证旧检查对新树全红）；
+preflight 注册匹配格式无关化（tsdown 双引号 vs tsc 单引号——活体门抓到的第一处真咬合）。
+门实测：typecheck 零错、49 spec 393 tests 全绿零 skip（388 迁移 + 5 夹具）、verify 34、
+test:composition 6/6、release-smoke PASS、preflight 绿（隔离 home 真服务）。
+**如实阻断**：web-expected blank 场景 5 条漂移——A/B 实证（git stash 旧单文件 bundle、同一全新
+隔离 home 同协议）新旧 bundle **同型漂移**，S2 无罪；根因 = 夹具重录（7fe774a）时隐含"home 已有
+会话 + 工作区 .desk/state.json 有内容"前置、场景 README 未写，真·全新 home 走 first-mile 相位。
+按纪律不假绿：阻断 + 归因 + A/B 证据记录于此，修复归 snapshots owner 面另立。
+
+关键判断记录（S2）：react 等运行时依赖继续走 factory require（iife 下裸外部 import 会变全局引用，
+是错的）；devDeps 显式钉 `tsdown ^0.22.2`（与 vendor 同版——pnpm 严格布局下包内取 bin 的必要
+机制，release-smoke 因依赖面变化重跑已绿）；tsdown `clean:false` 保 tsc 的 d.ts，代价是
+lib/client 残留 24 个 tsc 中间 chunk 死文件（无引用、不进组合、如实接受）。
 
 残留③（2026-10-07 走查残留，goal 跟踪中）。结构判定与分段计划在这，实施各片独立提交锚点。
 
@@ -51,3 +70,11 @@ S2 的构建管线变更若 preflight/两场景炸且当日修不动，回退 = 
   43 件 spec 全绿、`verify` 34 全绿。
 - 行数判据：`src/host/index.ts` ≤ 300 行（薄壳）；client src 最大单文件 ≤ 800 行。
 - S2 出口：preflight 绿 + `web-expected` 两场景零 diff + release-smoke PASS。
+
+## 后续观察（未裁决，非本卡范围）
+
+- **web-expected blank 场景夹具前置腐烂**（S2 验证时 A/B 实证，2026-10-07）：夹具（7fe774a 重录）
+  编码了"home 已有会话 + 工作区 .desk/state.json 有内容"的状态，与场景 README「全新 home 第一次
+  打开」的契约矛盾——真·全新 home 渲染 first-mile 相位，任何 bundle 都不匹配。修复 = 重录（按
+  README 契约）或 README 写明前置（按 7fe774a 语义），二选一归 snapshots owner 面；修复前该门
+  对 blank 场景不可判。

@@ -18,7 +18,7 @@
 | [261006-chief-of-staff-experience.md](261006-chief-of-staff-experience.md) | 一把手的总助——用户体验重设计：从「空白聊天框」到「打开即见简报+跟进+知识积累」 | 四 Goal 全交付（形态层 note 已落，行为层由 261007 补完）；与 261007 共用「用户终验」毕业门 |
 | [261007-opening-brief-and-rhythm.md](261007-opening-brief-and-rhythm.md) | 它先开口——开屏播报（替换 auto-send）、拍板感、周节律：体验弧线行为层收口（2026-10-07 真机走查三 P0 断点 + 内容物错位的消化） | 四片全交付，implemented note 已落；剩用户终验即毕业 |
 | [261007-input-boundary.md](261007-input-boundary.md) | 输入边界——晨报与周坐的料从哪来（碎片收件箱/文件投递/CSF/纯仪式四候选；不接外部数据源红线下的喂入通道设计） | 推敲中；毕业出路 = proposed 卡呈批 |
-| [261007-bigfile-split.md](261007-bigfile-split.md) | 两大文件拆分——S1 host 切片已交付（index 1178→288，全套门绿，c803726）；S2 client 采纳 vendor 同款 tsdown 管线待拍板 | S2 待用户拍板 |
+| [261007-bigfile-split.md](261007-bigfile-split.md) | 两大文件拆分——S1 host 切片（index 1178→288）+ S2 client 拆分+tsdown（2950→13 模块）均已交付，全套门绿（web-expected 一项阻断如实归因：场景夹具前置腐烂，独立修复）；2026-10-07 走查残留③ | 已交付；待办 = blank 场景夹具修复归 snapshots owner |
 
 ## 🔒 保留卡（用户判触发）
 
