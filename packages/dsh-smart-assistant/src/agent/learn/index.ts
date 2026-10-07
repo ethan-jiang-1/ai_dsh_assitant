@@ -50,13 +50,15 @@ const DESCRIPTION = [
   '  loading immediately but stays recoverable. Use it when curate reports the skill is past its',
   '  use-by date, or when it is shadowed and not worth renaming.',
   '- save_page: distill a domain page into the knowledge room as a DRAFT. Drafts stay out of',
-  '  search and the digest until the principal approves them — you cannot approve your own page.',
+  '  search and the digest until the principal approves them — the approval is theirs (a panel',
+  '  click or their words), never your own judgement. Every promote/deprecate/land appends a',
+  '  line to the approval ledger (audit/approvals.jsonl), so treat those actions accordingly.',
   '  Sources are required — cite where the knowledge came from (memory:<id>, research:<id>, a',
   '  URL, a repo path). Link pages with [[wikilinks]]. Pinning a page into memory is',
   '  `assistant_memory save` with source knowledge:<page-id>; that is the whole bridge.',
   '- promote_page: flip one draft page to stable. Use it only when the principal has approved',
   '  that page (in so many words, or from their desk panel) — the approval is theirs, this is just',
-  '  the edit. Say which page you promoted so they can check the knowledge room.',
+  '  the edit, and it is audited. Say which page you promoted so they can check the knowledge room.',
   '- deprecate_page: mark one page past its use-by date. The page stays in place so links resolve',
   '  but stops counting as current knowledge. Use it when the principal says a page is wrong or',
   '  obsolete, or when curate reports it stale and they agree — never on your own judgement.',
@@ -304,6 +306,9 @@ export function apply(ctx: Context): void {
         page_path: '',
         proposal_status: '',
       }
+      // Lane context for the approval ledger: governance transitions (promote/deprecate/land)
+      // record the session they happened in, so a flip is never invisible (BUG-004, 2026-10-07).
+      const auditSessionId = exec.agent !== undefined ? String(exec.agent.session.id) : undefined
       switch (action) {
         case 'brief': {
           const agent = exec.agent
@@ -432,7 +437,7 @@ export function apply(ctx: Context): void {
         }
         case 'promote_page': {
           if (args.page_id === undefined) throw new Error('assistant_reflect promote_page requires page_id')
-          const promoted = await ctx.assistantMemory.promotePage(args.page_id)
+          const promoted = await ctx.assistantMemory.promotePage(args.page_id, { ...(auditSessionId !== undefined ? { sessionId: auditSessionId } : {}) })
           return {
             ...empty,
             summary: `Promoted "${promoted.id}" to stable (${promoted.path}). It now counts in search and the digest.`,
@@ -442,7 +447,7 @@ export function apply(ctx: Context): void {
         }
         case 'deprecate_page': {
           if (args.page_id === undefined) throw new Error('assistant_reflect deprecate_page requires page_id')
-          const deprecated = await ctx.assistantMemory.deprecatePage(args.page_id)
+          const deprecated = await ctx.assistantMemory.deprecatePage(args.page_id, { ...(auditSessionId !== undefined ? { sessionId: auditSessionId } : {}) })
           return {
             ...empty,
             summary: `Deprecated "${deprecated.id}" (${deprecated.path}). The page stays in place so links resolve; it stops counting as current knowledge.`,
@@ -500,7 +505,7 @@ export function apply(ctx: Context): void {
           if (args.name === undefined || args.name.trim().length === 0) {
             throw new Error('assistant_reflect land_skill requires name')
           }
-          const landed = await ctx.assistantMemory.landSkill(args.name)
+          const landed = await ctx.assistantMemory.landSkill(args.name, { ...(auditSessionId !== undefined ? { sessionId: auditSessionId } : {}) })
           return {
             ...empty,
             summary: `Landed approved proposal "${landed.name}" into the skills room; it is loadable now.`,

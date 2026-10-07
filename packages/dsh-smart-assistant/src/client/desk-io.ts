@@ -483,10 +483,13 @@ export function correctMemory(text: string, correction: string, rowId: string, s
  * is right, and the assistant promotes it so it starts counting in retrieval and the digest.
  *
  * Direct-call lane (approve-direct-call): the click IS the approval, so the flip goes straight
- * to the host service — seconds, not a model round trip — and the service writes the audit
- * record. Needs the session id (the audit lands in that session's log); without one, or before
- * the remote namespace mounts (first boot after install), it falls back to the legacy prompt
- * path, which is honest degradation rather than a silently lost approval.
+ * to the host service — seconds, not a model round trip — and the service writes the ledger
+ * line (audit/approvals.jsonl, source: panel-direct). Without a session id, or before the
+ * remote namespace mounts (first boot after install), it falls back to the legacy prompt path,
+ * which is honest degradation rather than a silently lost approval. The desk file itself still
+ * lists the row as a draft until the next desk-refresh turn rewrites it — a panel-side re-read
+ * of the room state is the direct-call card's open item, so the success branch reports the
+ * flip instead of pretending the desk already reflects it.
  */
 export function approveKnowledgePage(title: string, rowId: string, sessionId?: string): void {
   const namespace = deskRemote?.assistantKnowledge as { approvePage?: (request: unknown) => Promise<unknown> } | undefined
@@ -495,9 +498,18 @@ export function approveKnowledgePage(title: string, rowId: string, sessionId?: s
       const outcome = result as { ok?: boolean, error?: { message?: string } }
       if (outcome?.ok === false) {
         patchDesk({ note: outcome.error?.message ?? '批准未生效' })
+        return
       }
+      patchDesk({ note: `已批准：「${title}」入 stable（下次桌面刷新移出待审）` })
     }).catch((reason: unknown) => {
-      patchDesk({ note: `直调批准失败，回退指令通道：${String(reason)}` })
+      const text = String(reason)
+      if (text.includes('only drafts flip')) {
+        // Already stable — nothing to approve; the fallback prompt would ask the model to
+        // re-promote a promoted page (idempotent but misleading).
+        patchDesk({ note: '该页已是 stable，无需再批' })
+        return
+      }
+      patchDesk({ note: `直调批准失败，回退指令通道：${text}` })
       sendPrompt(
         `桌面面板代本人批准——知识页「${title}」已获批准：请把它从 draft 翻成 stable。${DESK_REFRESH_STEP}`,
         '批准', rowId, sessionId,

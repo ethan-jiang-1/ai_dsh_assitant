@@ -31,6 +31,7 @@ import { forgetMemory, listMemories, recall, saveMemory, type SaveMemoryInput } 
 import { dropThread, listThreads, openThread, parkThread, promoteThread, updateThread, type OpenThreadInput, type PromoteTarget, type ThreadUpdate } from './research-room.ts'
 import { landSkill, learnedSkillNames, listProposals, proposeSkill, recordSkillLoad, retireSkill, skillUsage, writeSkill } from './skills-room.ts'
 import { deprecatePage, listKnowledge, promotePage, readKnowledgePage, searchKnowledge, writePage, type WritePageInput } from './knowledge-room.ts'
+import type { ApprovalAuditOptions } from './approval-audit.ts'
 import { installSelfTurnSlots } from './self-turns.ts'
 import { DEFAULT_WEB_TITLE, webBrandingInjection } from './web-branding.ts'
 import { HOME_DIRECTORY_NAME, homePaths, scaffoldHome, ARCHIVE_DIRECTORY_NAME, type HomePaths, type ScaffoldResult } from '../domain/home/layout.ts'
@@ -227,8 +228,8 @@ export class AssistantMemory extends Service {
   /** Propose a skill: the entry side of the governance gate (inbox only, never the skills room). */
   async proposeSkill(input: Omit<SkillDraft, 'learnedAt'> & { readonly source?: string }): Promise<SkillProposal> { return proposeSkill(this, input) }
 
-  /** Land an approved proposal into the skills room. */
-  async landSkill(name: string): Promise<{ name: string, path: string }> { return landSkill(this, name) }
+  /** Land an approved proposal into the skills room; every land appends an approval-ledger line. */
+  async landSkill(name: string, audit?: ApprovalAuditOptions): Promise<{ name: string, path: string }> { return landSkill(this, name, audit) }
 
   /** Render the bounded digest. */
   async digest(): Promise<DigestResult> { return digestNow(this) }
@@ -258,11 +259,12 @@ export class AssistantMemory extends Service {
   /** List the names of the learned skills currently in the home's skills room. */
   async learnedSkillNames(): Promise<string[]> { return learnedSkillNames(this) }
 
-  /** Promote one knowledge page from draft to stable (the principal's approval, mechanized). */
-  async promotePage(id: string): Promise<{ id: string, path: string, status: PageStatus }> { return promotePage(this, id) }
+  /** Promote one knowledge page from draft to stable (the principal's approval, mechanized); every
+   * transition appends an approval-ledger line naming the page, the lane, and the session. */
+  async promotePage(id: string, audit?: ApprovalAuditOptions): Promise<{ id: string, path: string, status: PageStatus }> { return promotePage(this, id, audit) }
 
   /** Mark one knowledge page deprecated; the page stays in place so links keep resolving. */
-  async deprecatePage(id: string): Promise<{ id: string, path: string, status: PageStatus }> { return deprecatePage(this, id) }
+  async deprecatePage(id: string, audit?: ApprovalAuditOptions): Promise<{ id: string, path: string, status: PageStatus }> { return deprecatePage(this, id, audit) }
 
   /** List knowledge pages. */
   async listKnowledge(): Promise<RoomReadResult<KnowledgePage>> { return listKnowledge(this) }

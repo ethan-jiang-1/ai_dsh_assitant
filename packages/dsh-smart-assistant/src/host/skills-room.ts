@@ -16,6 +16,7 @@ import { parseFrontmatterDocument, renderFrontmatterDocument } from '../domain/h
 import { scanLearnedSkills } from '../domain/skills/scan.ts'
 import { auditLearnedSkill } from '../domain/skills/audit.ts'
 import { snapshotExistingSkill } from '../domain/skills/snapshot.ts'
+import { recordApproval, type ApprovalAuditOptions } from './approval-audit.ts'
 import {
   proposalFromEntry,
   proposalToDocument,
@@ -87,13 +88,15 @@ export async function proposeSkill(host: AssistantMemory, input: Omit<SkillDraft
 /**
  * Land an approved proposal into the skills room. The approval itself is a hand edit of the
  * proposal file's `status` — this function only materializes what a person already approved,
- * and stamps the landed skill's provenance with the proposal revision it came from.
+ * stamps the landed skill's provenance with the proposal revision it came from, and appends a
+ * line to the approval ledger (`audit/approvals.jsonl`) so the land is never invisible.
  * @param host - The home service whose proposal inbox and skills room are written.
  * @param name - Proposal (and skill) name.
+ * @param audit - Lane context for the ledger line; defaults to the reflect tool's model turn.
  * @returns The written bundle's name and path.
  * @throws when no proposal has that name, or its status is not `approved`.
  */
-export async function landSkill(host: AssistantMemory, name: string): Promise<{ name: string, path: string }> {
+export async function landSkill(host: AssistantMemory, name: string, audit: ApprovalAuditOptions = {}): Promise<{ name: string, path: string }> {
   const entry = await host.proposals.read(name)
   const proposal = entry === undefined ? undefined : proposalFromEntry(entry)
   if (proposal === undefined) throw new Error(`no skill proposal "${name}" in the inbox`)
@@ -109,6 +112,7 @@ export async function landSkill(host: AssistantMemory, name: string): Promise<{ 
   })
   const document = proposalToDocument({ ...proposal, status: 'landed', updated: new Date().toISOString() })
   await host.proposals.write(proposal.id, document.data, document.body)
+  await recordApproval(host, 'land', name, audit)
   return { name: written.name, path: written.path }
 }
 

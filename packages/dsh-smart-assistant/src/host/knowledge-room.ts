@@ -16,6 +16,7 @@ import { newThreadId } from '../domain/research/thread.ts'
 import { pageFromEntry, pageToDocument, parseWikiLinks, normalizeWikiLinks, backlinksOf, type KnowledgePage, type PageStatus } from '../domain/knowledge/page.ts'
 import { searchPages, type KnowledgeQuery } from '../domain/knowledge/search.ts'
 import { auditSkillCredentials } from '../domain/skills/audit.ts'
+import { recordApproval, type ApprovalAuditOptions } from './approval-audit.ts'
 
 /** Input for {@link AssistantMemory.writePage} (the shape is unchanged; it was inline on the method). */
 export interface WritePageInput {
@@ -93,15 +94,18 @@ export async function writePage(host: AssistantMemory, input: WritePageInput): P
 
 /**
  * Promote one knowledge page from draft to stable — the mechanical half of the principal's
- * approval. Nothing reaches this on the session's own judgement: `writePage` never promotes
- * itself, so the only way a draft leaves the staging area is a person saying so, and this
- * performs the edit they asked for.
+ * approval. `writePage` never promotes itself, but that closes only one path: whoever calls
+ * this decides, and both a conversation turn and the desk panel reach it (BUG-004, 2026-10-07).
+ * What this layer guarantees is visibility — every transition appends a line to the approval
+ * ledger (`audit/approvals.jsonl`) naming the page, the lane, and the session — not the
+ * judgement of who asked for it.
  * @param host - The home service whose knowledge room is written.
  * @param id - The page id to promote.
+ * @param audit - Lane context for the ledger line; defaults to the reflect tool's model turn.
  * @returns The page's id, absolute path, and the status it now carries.
  * @throws when no page carries that id, or the page does not parse.
  */
-export async function promotePage(host: AssistantMemory, id: string): Promise<{ id: string, path: string, status: PageStatus }> {
+export async function promotePage(host: AssistantMemory, id: string, audit: ApprovalAuditOptions = {}): Promise<{ id: string, path: string, status: PageStatus }> {
   await host.ensureHome()
   const listing = await host.knowledge.list()
   const entry = listing.entries.find(candidate => candidate.id === id)
@@ -112,19 +116,21 @@ export async function promotePage(host: AssistantMemory, id: string): Promise<{ 
   const promoted: KnowledgePage = { ...page, status: 'stable' }
   const document = pageToDocument(promoted)
   await host.knowledge.write(id, document.data, document.body)
+  await recordApproval(host, 'promote', id, audit)
   return { id, path: entry.path, status: 'stable' }
 }
 
 /**
  * Mark one knowledge page deprecated — the page stays in place so inbound links keep resolving,
- * but it stops counting as current knowledge. Like `promotePage`, this only performs an edit the
- * principal asked for: nothing here decides on its own that a page is past its use-by date.
+ * but it stops counting as current knowledge. Like `promotePage`, this performs the edit the
+ * principal asked for and appends a ledger line when a real transition happens.
  * @param host - The home service whose knowledge room is written.
  * @param id - The page id to deprecate.
+ * @param audit - Lane context for the ledger line; defaults to the reflect tool's model turn.
  * @returns The page's id, absolute path, and the status it now carries.
  * @throws when no page carries that id, or the page does not parse.
  */
-export async function deprecatePage(host: AssistantMemory, id: string): Promise<{ id: string, path: string, status: PageStatus }> {
+export async function deprecatePage(host: AssistantMemory, id: string, audit: ApprovalAuditOptions = {}): Promise<{ id: string, path: string, status: PageStatus }> {
   await host.ensureHome()
   const listing = await host.knowledge.list()
   const entry = listing.entries.find(candidate => candidate.id === id)
@@ -135,6 +141,7 @@ export async function deprecatePage(host: AssistantMemory, id: string): Promise<
   const deprecated: KnowledgePage = { ...page, status: 'deprecated' }
   const document = pageToDocument(deprecated)
   await host.knowledge.write(id, document.data, document.body)
+  await recordApproval(host, 'deprecate', id, audit)
   return { id, path: entry.path, status: 'deprecated' }
 }
 
