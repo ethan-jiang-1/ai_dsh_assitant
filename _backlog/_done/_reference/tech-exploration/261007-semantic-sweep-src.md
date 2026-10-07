@@ -1,6 +1,6 @@
 # 产品源码高风险语义扫描（sdlc 06 §4 清单 × src/ 全树，2026-10-07）
 
-喂 [BUG-003](../../_done/_fixed_bugs/BUG-003-eval-floor-red.md)～[BUG-007](../../bugs/BUG-007-concurrency-lifecycle-minors.md)。
+喂 [BUG-003](../../_fixed_bugs/BUG-003-eval-floor-red.md)～[BUG-007](../../_fixed_bugs/BUG-007-concurrency-lifecycle-minors.md)。
 方法：对抗性子代理逐读 `packages/dsh-smart-assistant/src/` 全部 54 文件 + 42 个 spec 按盲区比对；关键疑点 node 数值验证与 vendor 源码核对；承重发现（F1）由委派方亲验。清单改编自 DSH code-review skill 的高风险维度（错误/取消、生命周期、竞态、消费者泄漏、model-visible means logged、拒绝真的拒绝、派生状态、字节预算）。
 
 ## 中高级发现（喂 BUG-003～006）

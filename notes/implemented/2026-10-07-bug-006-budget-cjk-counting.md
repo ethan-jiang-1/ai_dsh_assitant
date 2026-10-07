@@ -3,7 +3,7 @@
 日期：2026-10-07 · 状态：**implemented**
 
 > 承接 [BUG-006 卡](../../_backlog/_done/_fixed_bugs/BUG-006-budget-cjk-counting.md)；证据底稿 =
-> [语义扫描报告](../../_backlog/reference/tech-exploration/261007-semantic-sweep-src.md) F5/F7/F12。
+> [语义扫描报告](../../_backlog/_done/_reference/tech-exploration/261007-semantic-sweep-src.md) F5/F7/F12。
 > 三处同根：预算/计数的正确性从未对着退化形态测过——红 spec 全部先造退化用例再修。
 
 ## 决定

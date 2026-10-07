@@ -59,6 +59,21 @@ describe('Room', () => {
     expect(listing.entries[0]?.body).toBe('New claim.')
   })
 
+  it('survives two concurrent writes of the same id — both resolve, the winner is whole', async () => {
+    // BUG-007 F8 (2026-10-07): the temp file name was fixed (`${path}.tmp`), so a concurrent
+    // write of the same id lost its temp to the other writer's rename (ENOENT) — the home is a
+    // cross-session shared folder, so this is a real (if rare) shape.
+    const room = await fixtureRoom()
+    const first = room.write('race-1', { id: 'race-1', status: 'active' }, 'First whole body.')
+    const second = room.write('race-1', { id: 'race-1', status: 'active' }, 'Second whole body.')
+    await expect(Promise.all([first, second])).resolves.toBeDefined()
+
+    const listing = await room.list()
+    expect(listing.failures).toEqual([])
+    expect(listing.entries).toHaveLength(1)
+    expect(['First whole body.', 'Second whole body.']).toContain(listing.entries[0]?.body)
+  })
+
   it('refuses to write an id that is not a safe file name', async () => {
     const room = await fixtureRoom()
 

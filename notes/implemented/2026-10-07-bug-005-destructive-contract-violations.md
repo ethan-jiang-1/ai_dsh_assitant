@@ -3,7 +3,7 @@
 日期：2026-10-07 · 状态：**implemented**
 
 > 承接 [BUG-005 卡](../../_backlog/_done/_fixed_bugs/BUG-005-destructive-contract-violations.md)；证据底稿 =
-> [语义扫描报告](../../_backlog/reference/tech-exploration/261007-semantic-sweep-src.md) F4/F10。
+> [语义扫描报告](../../_backlog/_done/_reference/tech-exploration/261007-semantic-sweep-src.md) F4/F10。
 > 两处同根：为某个消费者写的形状（单文件技能假设、import 的 draft 语义）泄漏进通用服务面，通用面按
 > 泄漏假设做了破坏性动作；且**旧 spec 把缺陷钉成了预期**（retirement spec 断言源目录消失；import spec
 > 从不在 stable 页上重导）——本轮同 diff 修测试的钉错。

@@ -10,7 +10,7 @@
 
 | Bug | 标题 | 严重级 | 发现 |
 |---|---|---|---|
-| [BUG-007-concurrency-lifecycle-minors.md](BUG-007-concurrency-lifecycle-minors.md) | 并发与生命周期轻缺陷群——房间读改写无锁 / client 订阅定时器无拆卸 / settlePending 跨时钟冻结 | P2 | 2026-10-07 |
+| （空——巡检五卡 2026-10-07 当日全毕业，见 [_done/_fixed_bugs](../_done/_fixed_bugs/README.md)） | | | |
 
 ## 卡片模板
 

@@ -45,4 +45,3 @@ reference → plans → proposed 是证据到裁决的关系，不是三份活�
 - [tech-exploration/261005-okf-wiki-tech-case.md](tech-exploration/261005-okf-wiki-tech-case.md)——OKF/WIKI 能力边界与实验候选（喂定位/自洽卡：schema affordance、可用性四格、等内容结构消融、隔离与未验证结果）
 - [tech-exploration/261005-dsh-native-first-tech-keynote.md](tech-exploration/261005-dsh-native-first-tech-keynote.md)——技术定调：OKF/VK 方向与 DSH 原生优先（组合→缝→自建三问尺、现有载体与机会面；收益未验证）
 - [261005-turnaround-evidence-audit.md](tech-exploration/261005-turnaround-evidence-audit.md)——本轮一手代码审计（喂定位/自洽卡：UI 审批实际车道、OV 外部存储/peer 与数据流、verify 漏扫 backlog 的事实/反证/待补跑）
-- [261007-semantic-sweep-src.md](tech-exploration/261007-semantic-sweep-src.md)——产品源码高风险语义扫描（喂 BUG-003～007：sdlc 06 §4 八维度 × src/ 54 文件，F1-F12 逐条带位置/风险/测试盲区；F1 承重发现委派方亲验；ov-shield 对照 vendor 核实无绕过）

@@ -7,13 +7,14 @@
 > （`gen-notes-index --check`）守——改了卡没重生成即红。关键词不在标题里时，
 > `grep -il '<关键词>' notes/implemented/` 全文搜是兜底。
 
-## implemented（当前 rationale owner）（104）
+## implemented（当前 rationale owner）（105）
 
 | 日期 | 卡 |
 |---|---|
 | 2026-10-07 | [开屏播报、拍板感与周节律（行为层收口）](implemented/2026-10-07-opening-brief-and-rhythm.md) |
 | 2026-10-07 | [DSH 开发语料吸收落地：动态闭环三环补齐 + 驾驭者成本面瘦身](implemented/2026-10-07-dsh-corpus-absorption.md) |
 | 2026-10-07 | [驾驭者座舱：按问题出发的单页路由](implemented/2026-10-07-cockpit-page.md) |
+| 2026-10-07 | [BUG-007 修复（部分）：房间写 tmp 唯一化；锁/拆卸/跨时钟三项触发登记延后](implemented/2026-10-07-bug-007-concurrency-lifecycle-minors.md) |
 | 2026-10-07 | [BUG-006 修复：字节与预算的三处失真——CJK 快照截断、digest 遗漏少报、ingest 截断后全文算段](implemented/2026-10-07-bug-006-budget-cjk-counting.md) |
 | 2026-10-07 | [BUG-005 修复：两处破坏性契约违背——retireSkill 删附属文件 + 重导入抹审批](implemented/2026-10-07-bug-005-destructive-contract-violations.md) |
 | 2026-10-07 | [BUG-004 修复：审批台账统一——从「门只在 prose」到「翻转永不隐形」](implemented/2026-10-07-bug-004-approval-ledger.md) |

@@ -3,7 +3,7 @@
 日期：2026-10-07 · 状态：**implemented**
 
 > 承接 [BUG-004 卡](../../_backlog/_done/_fixed_bugs/BUG-004-approval-trust-root.md)（对抗性语义扫描 F1 高 + F2/F3/F6 中）；证据底稿 =
-> [语义扫描报告](../../_backlog/reference/tech-exploration/261007-semantic-sweep-src.md)。方法 = test-first 证据环（用户拍板）：先造红（3 件新 spec 钉「无审计写入」的现状）再修复。
+> [语义扫描报告](../../_backlog/_done/_reference/tech-exploration/261007-semantic-sweep-src.md)。方法 = test-first 证据环（用户拍板）：先造红（3 件新 spec 钉「无审计写入」的现状）再修复。
 
 ## 决定
 
