@@ -237,9 +237,26 @@ export async function retireSkill(host: AssistantMemory, name: string, reason?: 
     : {}
   metadata.retiredAt = new Date().toISOString()
   if (trimmed !== undefined && trimmed.length > 0) metadata.retireReason = trimmed
-  const targetDir = isBundle ? join(host.paths.skillsArchiveDir, name) : host.paths.skillsArchiveDir
-  await mkdir(targetDir, { recursive: true })
-  const target = isBundle ? join(targetDir, SKILL_FILE_NAME) : join(targetDir, `${name}.md`)
+  if (isBundle) {
+    // Move the whole bundle, not just SKILL.md (BUG-005 F4, 2026-10-07): references/ and other
+    // side files are legal bundle content ("fix the path or ship the file"), and the promise
+    // "moving the bundle back restores it" holds only if nothing is deleted. The rename is
+    // atomic — no window where the skill exists in neither place; the stamp write happens
+    // inside the archive, and if it fails the bundle is still readable, just unstamped.
+    const targetDir = join(host.paths.skillsArchiveDir, name)
+    await mkdir(host.paths.skillsArchiveDir, { recursive: true })
+    if (await stat(targetDir).then(() => true).catch(() => false)) {
+      throw new Error(`skill "${name}" is already archived`)
+    }
+    await rename(bundleDir, targetDir)
+    const stampedPath = join(targetDir, SKILL_FILE_NAME)
+    const temporary = `${stampedPath}.tmp`
+    await writeFile(temporary, renderFrontmatterDocument({ ...document.data, metadata }, document.body), 'utf8')
+    await rename(temporary, stampedPath)
+    return { name, path: stampedPath }
+  }
+  const target = join(host.paths.skillsArchiveDir, `${name}.md`)
+  await mkdir(host.paths.skillsArchiveDir, { recursive: true })
   if (await stat(target).then(() => true).catch(() => false)) {
     throw new Error(`skill "${name}" is already archived`)
   }
@@ -248,6 +265,6 @@ export async function retireSkill(host: AssistantMemory, name: string, reason?: 
   const temporary = `${target}.tmp`
   await writeFile(temporary, renderFrontmatterDocument({ ...document.data, metadata }, document.body), 'utf8')
   await rename(temporary, target)
-  await rm(isBundle ? bundleDir : flatFile, { recursive: true, force: true })
+  await rm(flatFile, { force: true })
   return { name, path: target }
 }
