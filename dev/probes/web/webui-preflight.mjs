@@ -112,7 +112,9 @@ if (ours.length === 0) {
   let registered = false
   for (const combo of ours) {
     const response = await fetch(new URL(combo, base), { headers: cookies.length > 0 ? { cookie: cookies } : {} })
-    if ((await response.text()).includes("id: 'dsh-smart-assistant'")) registered = true
+    // 格式无关匹配：tsc 直出是 `id: 'dsh-smart-assistant'`，tsdown iife 是 `id: "dsh-smart-assistant"`
+    // （2026-10-07 S2 实测）——检查意图是「以本名注册」，不是引号风格。
+    if ((await response.text()).match(/id:\s*['"]dsh-smart-assistant['"]/)) registered = true
   }
   if (registered) ok('dsh-smart-assistant client bundle registers under its name')
   else fail('the combo carries our bundle but no __ModuleLoader__ registration for dsh-smart-assistant')

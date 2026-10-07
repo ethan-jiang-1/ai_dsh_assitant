@@ -11,7 +11,7 @@
  */
 import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
-import { dirname, join, resolve } from 'node:path'
+import { dirname, join, relative, resolve } from 'node:path'
 import { parse as parseYaml } from 'yaml'
 
 const read = path => readFileSync(path, 'utf8')
@@ -843,6 +843,86 @@ export function testAssetNamingProblems(repoRoot) {
           problems.push(`snapshots/web-face/${scenario}: missing ${required} — the scene contract must be recorded beside the fixture (snapshots/AGENTS.md)`)
         }
       }
+    }
+  }
+  return problems
+}
+
+// ── client classic-script safety ─────────────────────────────────────────────────────────────────
+
+/** Recursively collect .ts files under a directory (the client source tree is flat today). */
+function collectTsFiles(directory) {
+  const out = []
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    const full = join(directory, entry.name)
+    if (entry.isDirectory()) out.push(...collectTsFiles(full))
+    else if (entry.isFile() && entry.name.endsWith('.ts')) out.push(full)
+  }
+  return out
+}
+
+/**
+ * The browser half's classic-script safety, end to end (S2, 261007 bigfile-split).
+ *
+ * Since tsdown took over the client build, `src/client` is a multi-module source tree and the
+ * served artifact is the ONE classic script the entry compiles to (`lib/client/index.js`).
+ * The old per-file "no imports/exports at all" shape is gone; what still breaks the page is:
+ *   1. an empty src/client — package.json's dsh.client declaration promises a browser half;
+ *   2. a BARE EXTERNAL runtime import in any module (`from '<not ./ ../>'`, or a bare
+ *      `import '<not ./ ../>'`): every runtime dependency must come through the factory's
+ *      module-table require (runtime.ts), or the bundle either leaves it external (parse
+ *      error in the combo) or inlines code the page already carries. Relative imports are
+ *      expected — the bundler inlines them. Type-only imports in the `import type` form are
+ *      erased at emit and stay allowed (inline `{ type X }` specifiers are NOT exempt — the
+ *      unambiguous form is the gate). Runtime exports between modules are fine: the bundler
+ *      inlines them, and only the entry submits its surface, through `__ModuleLoader__.load`,
+ *      which the entry module must still name;
+ *   3. a bundle that exists but does not parse as a classic script or lost the facade call —
+ *      `new Function` is the honest check (`node --check` is a false negative under Node's
+ *      module-syntax detection). A missing lib is not a failure: verify runs on fresh clones
+ *      before the first build, and the source gate above is always active.
+ *
+ * @param {{ clientDir: string, bundlePath: string }} paths - the client source tree and the
+ *   expected single-file bundle.
+ * @returns {string[]} problem strings (empty = pass).
+ */
+export function clientScriptSafetyProblems({ clientDir, bundlePath }) {
+  const problems = []
+  const files = existsSync(clientDir) ? collectTsFiles(clientDir) : []
+  if (files.length === 0) {
+    return ['src/client is empty — the dsh.client declaration in package.json promises a browser half']
+  }
+  for (const path of files) {
+    const where = `src/client/${relative(clientDir, path)}`
+    const text = read(path)
+    // Clause imports: `import x from 'y'` / `import * as ns from 'y'` / `import { a } from 'y'`
+    // (braces may span lines, hence the [^'"]+ which crosses newlines). `import type` is exempt.
+    for (const match of text.matchAll(/^[ \t]*import\s+(?!type\b)[^'"]+?from\s*['"]([^'"]+)['"]/gm)) {
+      if (!/^[.]{1,2}\//.test(match[1])) {
+        problems.push(`${where} has a bare external runtime import ('${match[1]}') — the browser half takes every runtime dependency through the factory require; only relative imports and import type are allowed`)
+      }
+    }
+    // Bare side-effect imports: `import 'y'`.
+    for (const match of text.matchAll(/^[ \t]*import\s*['"]([^'"]+)['"]/gm)) {
+      if (!/^[.]{1,2}\//.test(match[1])) {
+        problems.push(`${where} has a bare external side-effect import ('${match[1]}') — the browser half takes every runtime dependency through the factory require`)
+      }
+    }
+    if (path === join(clientDir, 'index.ts') && !text.includes('__ModuleLoader__')) {
+      problems.push(`${where} never touches __ModuleLoader__ — the entry must submit a factory registration through the page-global facade`)
+    }
+  }
+  // A missing bundle is not a failure (fresh clones have no lib yet); when it exists it must
+  // carry the facade call and parse as a classic script.
+  if (existsSync(bundlePath)) {
+    const bundle = read(bundlePath)
+    if (!bundle.includes('__ModuleLoader__')) {
+      problems.push('lib/client/index.js never touches __ModuleLoader__ — run pnpm build after changing the browser half')
+    }
+    try {
+      void new Function(bundle)
+    } catch (error) {
+      problems.push(`lib/client/index.js does not parse as a classic script (${String(error)}) — the combo it rides in would kill every later registration at browser boot`)
     }
   }
   return problems

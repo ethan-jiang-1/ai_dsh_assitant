@@ -16,6 +16,7 @@ import { dirname, join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import {
   agentsMdStabilityProblems,
+  clientScriptSafetyProblems,
   commandAliasProblems,
   configParseProblems,
   dshHomeInheritanceProblems,
@@ -955,5 +956,82 @@ describe('testAssetNamingProblems', () => {
     const root = fakeRepo({ tests: ['AGENTS.md', 'README.md'] })
     rmSync(join(root, 'snapshots'), { recursive: true, force: true })
     expect(testAssetNamingProblems(root)).toEqual([])
+  })
+})
+
+// The client classic-script gate moved semantics with S2 (261007 bigfile-split): the source is
+// multi-module (relative imports inlined by tsdown), so the gate is "no bare external runtime
+// imports / entry names the facade / the bundle parses as a classic script". Every accepted and
+// rejected shape is pinned here on a throwaway src/client tree.
+describe('clientScriptSafetyProblems', () => {
+  const fixture = (files, bundle) => {
+    const root = temp('client-gate-')
+    const clientDir = join(root, 'src', 'client')
+    mkdirSync(clientDir, { recursive: true })
+    for (const [name, text] of Object.entries(files)) {
+      writeFileSync(join(clientDir, name), text, 'utf8')
+    }
+    let bundlePath
+    if (bundle !== undefined) {
+      bundlePath = join(root, 'lib', 'client', 'index.js')
+      mkdirSync(dirname(bundlePath), { recursive: true })
+      writeFileSync(bundlePath, bundle, 'utf8')
+    }
+    return { clientDir, bundlePath }
+  }
+  const entry = "const facade = globalThis['__ModuleLoader__']\nif (facade) facade.load({ id: 'x', factory: () => ({}) })\n"
+
+  it('rejects an empty src/client — the dsh.client declaration promises a browser half', () => {
+    const root = temp('client-gate-empty-')
+    const clientDir = join(root, 'src', 'client')
+    mkdirSync(clientDir, { recursive: true })
+    const problems = clientScriptSafetyProblems({ clientDir, bundlePath: join(root, 'lib', 'client', 'index.js') })
+    expect(problems).toHaveLength(1)
+    expect(problems[0]).toContain('src/client is empty')
+  })
+
+  it('rejects a bare external runtime import and a bare external side-effect import', () => {
+    const bare = fixture({ 'index.ts': entry, 'mod.ts': "import { createElement } from 'react'\nexport const x = createElement\n" })
+    const problems = clientScriptSafetyProblems(bare)
+    expect(problems.some(p => p.includes('mod.ts') && p.includes('bare external runtime import') && p.includes('react'))).toBe(true)
+
+    const sideEffect = fixture({ 'index.ts': entry, 'mod.ts': "import 'react'\n" })
+    const problems2 = clientScriptSafetyProblems(sideEffect)
+    expect(problems2.some(p => p.includes('mod.ts') && p.includes('side-effect import') && p.includes('react'))).toBe(true)
+  })
+
+  it('accepts relative runtime imports, import type (even external), and runtime exports', () => {
+    const ok = fixture({
+      'contracts.ts': 'export interface Foo { a: number }\n',
+      'mod.ts': "import type { Foo } from 'react'\nexport function make(): number { return 1 }\n",
+      'index.ts': `import { make } from './mod'\n${entry}`,
+    })
+    expect(clientScriptSafetyProblems(ok)).toEqual([])
+  })
+
+  it('rejects an entry that never touches __ModuleLoader__', () => {
+    const silent = fixture({ 'index.ts': 'export const x = 1\n' })
+    const problems = clientScriptSafetyProblems(silent)
+    expect(problems.some(p => p.includes('index.ts') && p.includes('__ModuleLoader__'))).toBe(true)
+  })
+
+  it('rejects a bundle that is not a classic script, accepts a classic bundle, and passes a fresh clone without lib', () => {
+    const esmBundle = fixture({ 'index.ts': entry }, "import { x } from './y'\nexport {}\n")
+    const problems = clientScriptSafetyProblems(esmBundle)
+    expect(problems.some(p => p.includes('does not parse as a classic script'))).toBe(true)
+
+    const missingFacade = fixture({ 'index.ts': entry }, 'const x = 1\n')
+    const problems2 = clientScriptSafetyProblems(missingFacade)
+    expect(problems2.some(p => p.includes('lib/client/index.js never touches __ModuleLoader__'))).toBe(true)
+
+    const classic = fixture(
+      { 'index.ts': entry },
+      "(function () { globalThis['__ModuleLoader__'].load({ id: 'x', factory: function () { return {} } }) })()\n",
+    )
+    expect(clientScriptSafetyProblems(classic)).toEqual([])
+
+    const freshClone = fixture({ 'index.ts': entry })
+    expect(freshClone.bundlePath).toBeUndefined()
+    expect(clientScriptSafetyProblems({ clientDir: freshClone.clientDir, bundlePath: join(freshClone.clientDir, '..', '..', 'lib', 'client', 'index.js') })).toEqual([])
   })
 })

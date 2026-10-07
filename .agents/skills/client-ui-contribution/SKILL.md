@@ -8,17 +8,31 @@ whenToUse: Adding or debugging a browser-side surface (sidebar panel, brand mark
 
 Four things bite, in this order. Check them in this order.
 
-## 1. The client bundle is a classic script, not an ESM module
+## 1. The client artifact is a classic script, not an ESM module
 
 The web shell concatenates client bundles into `<script>` combos. One `import`/`export`
-statement — including the `export {}` marker tsc synthesizes for an all-type import — is a parse
-error, and **one bad statement kills every later registration in the same combo**.
+statement in the SERVED ARTIFACT — including the `export {}` marker tsc synthesizes for an
+all-type import — is a parse error, and **one bad statement kills every later registration
+in the same combo**.
 
-- No imports. Mirror vendor types structurally; pull dependencies through the factory's `require`
-  (`'react'` is a baseline external every dynamic bundle may request).
-- Register through the page-global facade: `__ModuleLoader__.load({ id: '<package name>', factory })`.
+The source is deliberately multi-module (`src/client/*.ts`, relative imports only) and tsdown
+inlines the whole tree into the single classic script the entry compiles to
+(`lib/client/index.js`, the path the `./client` export points at). So the constraint is:
+
+- **No bare-runtime imports.** Every runtime dependency comes through the factory's
+  module-table `require` (`'react'` is a baseline external every dynamic bundle may request;
+  see `src/client/runtime.ts`). Relative imports between the modules are expected — the
+  bundler inlines them — and `import type` is erased at emit and always allowed. Runtime
+  `export`s between modules are fine too; only the entry submits its surface.
+- Register through the page-global facade: `__ModuleLoader__.load({ id: '<package name>', factory })`
+  (owned by `src/client/index.ts`).
 - Verify the emitted bundle parses: `node dev/probes/web/webui-preflight.mjs '<url>'` compiles each combo
-  as a classic-script body and fails loudly on the first ESM-looking line.
+  as a classic-script body and fails loudly on the first ESM-looking line. `pnpm verify` gates the
+  same property on the artifact itself (plus the no-bare-runtime-imports rule on the source).
+
+The classic-script constraint itself is unchanged and non-negotiable: the shell has no module
+loader for combo scripts, so a single ESM statement still breaks every later registration in
+the combo.
 
 ## 2. Everything visible goes through the slot system: `inject` + `register`
 

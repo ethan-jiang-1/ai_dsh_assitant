@@ -69,9 +69,10 @@ export function extractTool(source, label) {
   return { name, actions }
 }
 
-/** Extract the client seat surface from `src/client/index.ts`. Fails loud when the file
- *  carries no recognizable surface or when a room tab lacks its guide entry — a renamed
- *  helper or a not-discoverable tab must break the gate, not silently thin the catalog. */
+/** Extract the client seat surface from the `src/client/` module tree (all .ts, concatenated).
+ *  Fails loud when the tree carries no recognizable surface or when a room tab lacks its guide
+ *  entry — a renamed helper or a not-discoverable tab must break the gate, not silently thin the
+ *  catalog. */
 export function extractClientSurface(source) {
   const seats = [...source.matchAll(/ctx\.slots\.inject\('([a-z][a-z.]+)'/g)].map(match => match[1])
   const roomTabs = [...source.matchAll(/\{\s*\n\s*id: '([^']+)', kind: '([A-Za-z]+)',/g)]
@@ -115,9 +116,15 @@ export function collectCatalog(root = repoRoot) {
   const upstream = read(join(root, 'vendor', 'UPSTREAM.md'))
   const pin = /钉住的 tag \| `([^`]+)`/.exec(upstream)?.[1]
   if (pin === undefined) throw new Error('gen-catalog: vendor/UPSTREAM.md carries no pinned tag row')
-  const clientSurface = pkg.dsh?.client !== undefined
-    ? extractClientSurface(read(join(root, 'packages', 'dsh-smart-assistant', 'src', 'client', 'index.ts')))
+  const clientDir = join(root, 'packages', 'dsh-smart-assistant', 'src', 'client')
+  // S2 (261007 bigfile-split): the client is multi-module; the seat/tab/command surface is read
+  // across ALL modules (the entry owns the seat wiring, commands.ts owns the command rows), so a
+  // moved registration must keep the catalog honest instead of silently thinning it.
+  const clientSource = pkg.dsh?.client !== undefined
+    ? readdirSync(clientDir).filter(name => name.endsWith('.ts')).sort()
+        .map(name => readFileSync(join(clientDir, name), 'utf8')).join('\n')
     : undefined
+  const clientSurface = clientSource !== undefined ? extractClientSurface(clientSource) : undefined
   return {
     exports: Object.keys(pkg.exports ?? {}),
     hostRows,
@@ -164,7 +171,7 @@ export function renderCatalog(input) {
   lines.push('> **生成物，不手改**：本文件由 `scripts/generate/gen-catalog.mjs` 从 `package.json` 的 exports、')
   lines.push('> `cordis.patch.yml`（host 行 + `agent-preset` 行的 plugins）/ `dev/probes/session/preset-runner.patch.yml` 的组合行、')
   lines.push('> 四个工具源码的 name/ACTIONS、')
-  lines.push('> `src/client/index.ts` 的座位注册、')
+  lines.push('> `src/client/` 模块树（entry 注册面 + commands）的座位注册、')
   lines.push('> 策展技能目录与 `vendor/UPSTREAM.md` 的 pin 抽取而成；')
   lines.push('> freshness 由 `pnpm verify`（`gen-catalog --check`）守——改了源却没重生成即红。')
   lines.push('> 语义与改名代价的 owner 是 [`identity.md`](identity.md)；这里只回答"当前声明了什么"。')

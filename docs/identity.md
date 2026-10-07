@@ -18,7 +18,7 @@
 | 5 | SessionEventMap 事件名 | **day 0 不新增**（延后项表：`docs/architecture.md` §六） | 必须先声明 merging 进 map 才能写日志 | 事件名写进 JSONL | 旧日志读不出 = 格式迁移级 |
 | 6 | preset id | `assistant` | `[a-z0-9][a-z0-9-]*`；id 是 `agent-preset` 行的 `config.id`（0.1.7 起不再是目录名） | registry 解析；会话切换记录进日志 | 用户会话的 preset 引用断 |
 | 7 | settings namespace | `assistant`（**保留，day 0 不注册**） | 小写字母/数字/连字符 | 用户覆盖层按 namespace 持久化 | 用户设置被孤儿化 |
-| 8 | slot 域名 | **消费方清单 = 生成物** [`package-catalog.md`](package-catalog.md)「客户端座位面」节（生成器从 `src/client/index.ts` 抽取，freshness 门禁守）；都是 DSH 的域名，我们没有自有域名——不对外暴露注入面 | `<domain>.<entry>.<hole>`；消费方按注册方的键取值 | 注册方（vendor）与消费方的合约 | 换一个消费的槽位名＝改我们这一侧；自有域名将来若建，才需要一次命名 |
+| 8 | slot 域名 | **消费方清单 = 生成物** [`package-catalog.md`](package-catalog.md)「客户端座位面」节（生成器从 `src/client/` 模块树抽取，freshness 门禁守）；都是 DSH 的域名，我们没有自有域名——不对外暴露注入面 | `<domain>.<entry>.<hole>`；消费方按注册方的键取值 | 注册方（vendor）与消费方的合约 | 换一个消费的槽位名＝改我们这一侧；自有域名将来若建，才需要一次命名 |
 
 **避开 DSH 保留面**（不是我们的命名空间）：`@deepseek-ai` scope、核心 ctx 服务名（`ctx.agents` 等）、
 shipped preset id（`standard`/`ptc`/`cordis`/`minimal`）、保留 profile 名（`web`/`headless`/`sdk`/`sdk-minimal`/`acp`/`desktop`）、
@@ -27,7 +27,7 @@ shipped preset id（`standard`/`ptc`/`cordis`/`minimal`）、保留 profile 名�
 ## 二、皮肤（随时可改，零身份代价）
 
 preset 显示名与描述（`cordis.patch.yml` 的 `preset-assistant` 行 config）、一切 UI 文案（走 locale）、`SOUL.md`/`AGENTS.md` 的措辞与内置回退身份文本、技能正文、
-Web 壳的页标题、图标与侧栏品牌（`src/host/web-branding.ts` 注入行 + `src/client/index.ts` 的
+Web 壳的页标题、图标与侧栏品牌（`src/host/web-branding.ts` 注入行 + `src/client/brand.ts` 的
 `sidebar.brand.*` slot 占位；侧栏名 `BRAND_NAME`「智能助手」——页签标题仍带 "DSH Local assistant" 尾巴）。
 工具 **description 是中间地带**：名字是身份，description 是**模型可见输入** —— 改它不是改名，
 是**行为变更**，要走 model-visible 纪律（配快照）。

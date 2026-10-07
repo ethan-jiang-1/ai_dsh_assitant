@@ -1,12 +1,17 @@
 /**
- * Rendering smoke tests for the three desk panels.
+ * Rendering smoke tests for the three desk panels (`src/client/panels.ts`).
  *
- * The browser half is a classic script (zero imports/exports — see its file header), so the test
- * installs the page-global facade, evaluates the script, then materializes the factory with a
- * module-table require stub. The panels read one shared store, which the factory exposes for
- * exactly this: fill it and every section renders without a browser.
+ * The browser half is multi-module source (relative imports, tsdown-inlined into one classic
+ * script — see the entry's file header), so the test installs the page-global facade,
+ * evaluates the script, then materializes the factory with a module-table require stub. The
+ * panels read one shared store, which the factory exposes for exactly this: fill it and every
+ * section renders without a browser.
+ *
+ * Module-aligned splits out of this file: room tab bodies → client-room-tabs.spec.ts, store
+ * mechanics → client-desk-core.spec.ts, io/slice paths → client-desk-io.spec.ts, the color
+ * contract → client-theme.spec.ts.
  */
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { inertReactShim, loadClientRegistration, materializeClient } from '../support/client-harness.ts'
 
 const registration = await loadClientRegistration()
@@ -299,24 +304,6 @@ describe('desk panels', () => {
     expect(text.indexOf('你的偏好')).toBeLessThan(text.indexOf('事实（2）'))
   })
 
-  it('warns when the desk file lags the conversation, and stays quiet when it does not', () => {
-    const exports = materialize()
-    exports.deskStore.data = { generatedAt: '2026-09-26T13:00:00+08:00' }
-
-    // Five minutes of conversation after the file was written: the panel must not present a stale
-    // snapshot as current.
-    exports.deskStore.sessionUpdatedAt = new Date('2026-09-26T13:05:00+08:00').getTime()
-    const stale = textsOf(exports.DeskPanel()).join(' | ')
-    expect(stale).toContain('对话比这份桌面新')
-    expect(stale).toContain('刷新桌面')
-
-    // A file written within the same minute as the newest turn is current (the refresh itself
-    // takes a moment; a minute of slack keeps the warning honest).
-    exports.deskStore.sessionUpdatedAt = new Date('2026-09-26T13:00:30+08:00').getTime()
-    const fresh = textsOf(exports.DeskPanel()).join(' | ')
-    expect(fresh).not.toContain('对话比这份桌面新')
-  })
-
   it('says so when there is nothing yet instead of rendering empty sections', () => {
     const exports = materialize()
     exports.deskStore.data = {}
@@ -377,81 +364,6 @@ describe('desk panels', () => {
     expect(desk).toContain('目前没有需要你拍板的经营事项')
     expect(desk).toContain('助手自己的事（1）')
     expect(desk).not.toContain('先办这件')
-  })
-
-  it('binds each tab body to its own session instead of showing another session’s desk', () => {
-    const exports = materialize()
-    exports.deskStore.data = { counts: { memories: 7 } }
-    // The store currently holds session s1's desk; a tab living in session s2 must not present it.
-    exports.deskStore.sourceSession = 's1'
-    const foreign = textsOf(exports.DeskTabBody({ sessionId: 's2' })).join(' | ')
-    expect(foreign).toContain('正在读这个会话的桌面…')
-    expect(foreign).not.toContain('我的桌面')
-
-    // The matching session renders the full room, exactly like the main page.
-    const own = textsOf(exports.DeskTabBody({ sessionId: 's1' })).join(' | ')
-    expect(own).toContain('我的桌面')
-    expect(own).toContain('从这开始')
-    expect(own).toContain('目前没有需要你拍板的经营事项')
-
-    // The room rides inside its own scroller: the vendor pane body is a flex column with
-    // overflow hidden and no scroll of its own, so the seat content brings scrolling —
-    // without the wrapper the long desk was clipped at the fold with no way down
-    // (user on the real machine, right-sidebar era, 2026-09-28).
-    const root = exports.DeskTabBody({ sessionId: 's1' }) as unknown as
-      { props?: { style?: Record<string, unknown> } }
-    expect(root.props?.style?.overflowY).toBe('auto')
-    expect(root.props?.style?.minHeight).toBe('0')
-    // The "在对话旁打开" opener is retired with the left main panels: a room now renders only
-    // inside a right-sidebar tab, so that button opened the very tab it sat in — a no-op the
-    // principal rightly read as broken (real use, 2026-09-28). The openers that remain live
-    // outside the rooms: the "+" guide, the Session-header chip, and the first-mile dock.
-    const deskText = textsOf(exports.DeskTabBody({ sessionId: 's1' })).join(' | ')
-    expect(deskText).not.toContain('在对话旁打开')
-
-    // The tab strip carries each room's own glyph (user steer, 2026-09-28): the title reads the
-    // live tab title through the seat's hook, and falls back to the room's constant without one.
-    const Title = exports.roomTabTitle(() => textsOf.length >= 0 ? { type: 'svg', props: {} } : null, '我的桌面')
-    const withHook = Title({ useTabInfo: () => ({ tab: { title: '我的桌面 · 会话 A' } }) }) as unknown as { props: { children: unknown[] } }
-    expect(withHook.props.children.length).toBe(2)
-    const titleText = textsOf(withHook).join('')
-    expect(titleText).toContain('我的桌面 · 会话 A')
-    const withoutHook = Title({}) as unknown as { props: { children: unknown[] } }
-    expect(textsOf(withoutHook).join('')).toContain('我的桌面')
-
-    // The other rooms bind the same way.
-    const knowledge = textsOf(exports.KnowledgeTabBody({ sessionId: 's1' })).join(' | ')
-    expect(knowledge).toContain('知识室')
-    const memory = textsOf(exports.MemoryTabBody({ sessionId: 's1' })).join(' | ')
-    expect(memory).toContain('记忆室')
-  })
-
-  it('says so when a tab is not mounted inside any session', () => {
-    const exports = materialize()
-    const text = textsOf(exports.DeskTabBody({})).join(' | ')
-    expect(text).toContain('没有落在任何会话')
-  })
-
-  it('gives the bound tab an error-with-retry and an empty-state refresh button, not an eternal "reading"', () => {
-    const exports = materialize()
-    // A5: a corrupt file is an error with a way out.
-    exports.deskStore.readError = '桌面文件损坏（JSON 解析失败）'
-    const broken = textsOf(exports.DeskTabBody({ sessionId: 's1' })).join(' | ')
-    expect(broken).toContain('读桌面文件失败')
-    expect(broken).toContain('让助手重写一份')
-    // A6: the empty state is exactly the state that needs a one-click refresh.
-    // First-open UX card (2026-10-01): no raw file paths on the principal's surface — the
-    // state explains what the desk is and how it grows instead.
-    exports.deskStore.readError = undefined
-    exports.deskStore.misses.add('s1')
-    const empty = textsOf(exports.DeskTabBody({ sessionId: 's1' })).join(' | ')
-    expect(empty).toContain('桌面还空着')
-    expect(empty).toContain('开始第一件事')
-    // 2026-10-06 (real-user walk): the empty branch's next step is the first conversation,
-    // not a refresh — the start button invites it; the refresh button no longer appears here.
-    expect(empty).toContain('它会先问你最近要拍板')
-    expect(empty).not.toContain('刷新桌面')
-    expect(empty).not.toContain('.desk/state.json')
   })
 
   it('presents the three rooms as three QUESTIONS and lands the draft pointer on the drafts (S4)', () => {
@@ -617,35 +529,6 @@ describe('desk panels', () => {
     expect(textsOf(exports.DeskPanel()).join(' | ')).toContain('✓ 已更新')
   })
 
-  it('keeps the client on theme tokens, and the colour contract at or above AA on white (R8/R11)', async () => {
-    // A source-level guard, because the first R8 sweep missed two colours and only a reviewer caught
-    // them (R11, narrow review 2026-09-27). Anything the component tests cannot see, this can.
-    // Since the theme-token borrowing (R4 survey, 2026-09-27) the components carry no raw colour
-    // literals: neutrals ride the vendor `--dsw-alias-*` palette and warn/accent ride the
-    // `--dsha-*` contract block — so the AA claim is checked against that block's LIGHT values
-    // (the dark values ride vendor statics and the dark palette, not white).
-    const { readFileSync } = await import('node:fs')
-    const source = readFileSync(new URL('../../src/client/index.ts', import.meta.url), 'utf8')
-    const luminance = (colour: string): number => {
-      const hex = colour.replace('#', '')
-      const channels = [0, 2, 4].map(index => parseInt(hex.slice(index, index + 2), 16) / 255)
-      const linear = channels.map(value => value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4)
-      return 0.2126 * linear[0]! + 0.7152 * linear[1]! + 0.0722 * linear[2]!
-    }
-    const contrastOnWhite = (colour: string): number => (1.05) / (luminance(colour) + 0.05)
-    // The discipline: the only quoted hex left in the file is the brand-mark silhouette — a fixed
-    // logo colour that paints its own background and never sits on a theme surface.
-    const quoted = [...source.matchAll(/'(#[0-9a-fA-F]{3,8})'/g)].map(match => match[1] as string)
-    expect([...new Set(quoted)]).toEqual(['#ffffff'])
-    // The light-skin text colours from the contract block must each clear AA on white.
-    const lightBlock = source.slice(0, source.indexOf('body[data-ds-dark-theme]'))
-    const contract = [...lightBlock.matchAll(/--dsha-(?:warn|accent):(#[0-9a-fA-F]{6})/g)]
-      .map(match => match[1] as string)
-    expect(contract.length).toBeGreaterThanOrEqual(2)
-    const below = [...new Set(contract)].filter(colour => contrastOnWhite(colour) < 4.5)
-    expect(below).toEqual([])
-  })
-
   it('names a desk file that parses but is not a desk, instead of showing an empty room (R12)', () => {
     // Why R12 exists (friction report on the real sessions, 2026-09-27): panel messages name the
     // desk-refresh skill, the model writes the file, but in 5 of 7 real panel actions it never LOADED
@@ -665,21 +548,6 @@ describe('desk panels', () => {
     expect(desk).toContain('不像 desk-refresh 写的')
     const knowledge = textsOf(exports.KnowledgePanel()).join(' | ')
     expect(knowledge).toContain('不像 desk-refresh 写的')
-  })
-
-  it('lets a decision be answered again when the file still carries it (R11)', () => {
-    const exports = materialize()
-    const data = { generatedAt: '2026-09-27T12:00:00+08:00', decisions: [{ id: 'd1', question: '季末破价例外？' }] }
-    exports.deskStore.data = data
-    exports.deskStore.lastReceipt = { rowId: 'd1', action: '回答', at: new Date('2026-09-27T11:00:00+08:00').getTime() }
-    // The assistant re-opened the row (or the answer never landed): the file still lists it, so the
-    // receipt's "已回答" claim is stale and the row must be answerable again.
-    exports.retireStaleReceipt(data)
-    expect(exports.deskStore.lastReceipt).toBeUndefined()
-    // But a receipt for a row the file no longer carries stands: that is what "recorded" looks like.
-    exports.deskStore.lastReceipt = { rowId: 'd1', action: '回答', at: Date.now() }
-    exports.retireStaleReceipt({ generatedAt: '2026-09-27T12:05:00+08:00', decisions: [] })
-    expect(exports.deskStore.lastReceipt).toBeDefined()
   })
 
   it('gives an id-less row a stable identity from its own text (R11)', () => {
@@ -953,115 +821,5 @@ describe('desk panels', () => {
     exports.expirePending('s1')
     expect(s1.pending).toBeUndefined()
     expect(s1.stalled?.rowId).toBe('d1')
-  })
-})
-
-/**
- * The slice MECHANICS the R11 note claims (acceptance round 3, 2026-09-29): the fixture above pins
- * the cross-talk symptoms; these pin the mechanics behind them — the claiming path, the claim race
- * on the unowned flat, the walk re-homing carry, and the per-slice load sequence. All are driven
- * through the exported surface (`apply` + `loadDeskFor`) with a fake remote, never by poking the
- * internals, so they fail if the wiring moves even when the store shape stays.
- */
-describe('per-session slice mechanics (R11, acceptance round 2026-09-29)', () => {
-  /** A readable desk file for one session, stamped `generatedAt`. */
-  const deskFile = (generatedAt: string): { ok: boolean, value: { text: string } } => ({
-    ok: true,
-    value: { text: JSON.stringify({ generatedAt, decisions: [{ id: 'd1', question: '先办这件', kind: 'business' }] }) },
-  })
-  /** Microtask flush for the async read chains (real-timer tests). */
-  const flush = async (): Promise<void> => {
-    for (let i = 0; i < 6; i++) await new Promise((resolve) => setTimeout(resolve, 0))
-  }
-  const makeDeferred = (): { promise: Promise<unknown>, resolve: (value: unknown) => void } => {
-    let resolve!: (value: unknown) => void
-    const promise = new Promise<unknown>((r) => { resolve = r })
-    return { promise, resolve }
-  }
-  /** The fake browser ctx apply() needs: a controllable workspaceFiles.read, a mutable Session
-    * list, and no-op slot/tab registries (their registrations never fire without a real mount). */
-  const fakeCtx = (
-    read: (sessionId: string) => Promise<unknown>,
-    list: { getSnapshot: () => unknown, subscribe: (fn: () => void) => () => void },
-  ): unknown => ({
-    remote: { workspaceFiles: { read: (sessionId: string, _path: string, _options: unknown) => read(sessionId) } },
-    sessions: { list },
-    slots: { inject: () => {} },
-    sidebarRightTabs: { register: () => {} },
-  })
-  const inertList = { getSnapshot: () => ({ ids: [], byId: {} }), subscribe: () => () => {} }
-
-  it('an unowned flat slice serves anyone; the first targeted load claims it (R11 claim path)', async () => {
-    const exports = materialize()
-    exports.apply(fakeCtx(async (sid) => (sid === 's1' ? deskFile('2026-09-28T10:00:00+08:00') : { ok: false }), inertList))
-    // Pre-claim: no walk ever answered, so the flat fields serve whichever session asks first.
-    expect(exports.deskSlice('s2')).toBe(exports.deskStore)
-    exports.loadDeskFor('s1')
-    await flush()
-    expect(exports.deskStore.sourceSession).toBe('s1')
-    expect((exports.deskStore.data as { generatedAt?: string })?.generatedAt).toBe('2026-09-28T10:00:00+08:00')
-    // Post-claim: an owned flat never serves a stranger — s2 now reads its own slice.
-    expect(exports.deskSlice('s2')).not.toBe(exports.deskStore)
-  })
-
-  it('two first loads racing for the unowned flat: only the newest sequence writes (R11 claim race)', async () => {
-    const exports = materialize()
-    const deferred = { s1: makeDeferred(), s2: makeDeferred() }
-    exports.apply(fakeCtx((sid) => (deferred as Record<string, { promise: Promise<unknown> }>)[sid]?.promise ?? Promise.resolve({ ok: false }), inertList))
-    // Both fire while the flat is unowned, so both capture the flat slice — and its ONE sequence.
-    exports.loadDeskFor('s1')
-    exports.loadDeskFor('s2')
-    deferred.s1.resolve(deskFile('2026-09-28T10:00:00+08:00')) // the FIRST fire completes first
-    await flush()
-    expect(exports.deskStore.sourceSession).toBeUndefined() // stale seq: dropped, no claim, no write
-    expect(exports.deskStore.data).toBeUndefined()
-    deferred.s2.resolve(deskFile('2026-09-28T11:00:00+08:00')) // the newest sequence lands and claims
-    await flush()
-    expect(exports.deskStore.sourceSession).toBe('s2')
-    expect((exports.deskStore.data as { generatedAt?: string })?.generatedAt).toBe('2026-09-28T11:00:00+08:00')
-  })
-
-  it("one session's load no longer cancels another's in-flight read (R11 per-slice seq)", async () => {
-    const exports = materialize()
-    const deferred = { s1: makeDeferred(), s2: makeDeferred() }
-    exports.apply(fakeCtx((sid) => (deferred as Record<string, { promise: Promise<unknown> }>)[sid]?.promise ?? Promise.resolve({ ok: false }), inertList))
-    exports.deskStore.sourceSession = 's1' // flat owned by s1; s2 reads its own slice
-    exports.loadDeskFor('s1')              // in-flight on the primary slice…
-    exports.loadDeskFor('s2')              // …a later load for ANOTHER session
-    deferred.s2.resolve(deskFile('2026-09-28T11:00:00+08:00')) // completes first
-    await flush()
-    expect((exports.deskSlice('s2').data as { generatedAt?: string })?.generatedAt).toBe('2026-09-28T11:00:00+08:00')
-    expect(exports.deskStore.data).toBeUndefined() // the flat still waits on its own read
-    deferred.s1.resolve(deskFile('2026-09-28T10:00:00+08:00')) // the OLDER fire completes last…
-    await flush()
-    // …and lands: with the pre-slice single counter this completion was cancelled by s2's load.
-    expect((exports.deskStore.data as { generatedAt?: string })?.generatedAt).toBe('2026-09-28T10:00:00+08:00')
-  })
-
-  it("carries the previous owner's row state into its own slice when the walk re-homes (R11)", async () => {
-    vi.useFakeTimers()
-    try {
-      const exports = materialize()
-      const notified: Array<() => void> = []
-      let snapshot: { ids: string[], byId: Record<string, { updatedAt?: number, cwd?: string }> } =
-        { ids: ['s1'], byId: { s1: { updatedAt: 10, cwd: '/w1' } } }
-      const list = {
-        getSnapshot: () => snapshot,
-        subscribe: (fn: () => void) => { notified.push(fn); return () => {} },
-      }
-      exports.apply(fakeCtx(async (sid) => (sid === 's1' ? deskFile('2026-09-28T10:00:00+08:00') : sid === 's2' ? deskFile('2026-09-28T11:00:00+08:00') : { ok: false }), list))
-      for (let i = 0; i < 8; i++) await Promise.resolve() // the walk's read chain is all microtasks
-      expect(exports.deskStore.sourceSession).toBe('s1') // the newest-five walk answered s1
-      exports.deskStore.pending = { rowId: 'd1', at: 1, action: '看选项' }
-      snapshot = { ids: ['s1', 's2'], byId: { ...snapshot.byId, s2: { updatedAt: 99, cwd: '/w2' } } }
-      for (const fn of [...notified]) fn()               // s2's conversation settles
-      await vi.advanceTimersByTimeAsync(4000)            // the follow-the-conversation debounce
-      for (let i = 0; i < 8; i++) await Promise.resolve()
-      expect(exports.deskStore.sourceSession).toBe('s2') // the walk re-homed the flat fields…
-      expect(exports.deskStore.pending).toBeUndefined()  // …so s1's row state left the flat…
-      expect(exports.deskSlice('s1').pending?.rowId).toBe('d1') // …and rode into s1's own slice
-    } finally {
-      vi.useRealTimers()
-    }
   })
 })

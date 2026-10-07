@@ -5,7 +5,7 @@
 > **生成物，不手改**：本文件由 `scripts/generate/gen-catalog.mjs` 从 `package.json` 的 exports、
 > `cordis.patch.yml`（host 行 + `agent-preset` 行的 plugins）/ `dev/probes/session/preset-runner.patch.yml` 的组合行、
 > 四个工具源码的 name/ACTIONS、
-> `src/client/index.ts` 的座位注册、
+> `src/client/` 模块树（entry 注册面 + commands）的座位注册、
 > 策展技能目录与 `vendor/UPSTREAM.md` 的 pin 抽取而成；
 > freshness 由 `pnpm verify`（`gen-catalog --check`）守——改了源却没重生成即红。
 > 语义与改名代价的 owner 是 [`identity.md`](identity.md)；这里只回答"当前声明了什么"。

@@ -1,13 +1,15 @@
 /**
- * The first mile: the blank-session hero mark and the strip above the composer.
+ * The first mile: the blank-session dock and its sibling composer banners
+ * (`src/client/first-mile.ts`).
  *
- * These two seats are where a first-time principal looks, and the walkthrough (2026-09-26)
+ * These seats are where a first-time principal looks, and the walkthrough (2026-09-26)
  * found nothing of the product there. The test asserts the copy, the one action, and that
  * `apply` actually claims both seats.
  *
- * The browser half is a classic script (zero imports/exports — see its file header), so the
- * test installs the page-global facade, evaluates the script, and materializes the factory
- * with a module-table require stub, the same harness as client-panels.spec.ts.
+ * The browser half is multi-module source (relative imports, tsdown-inlined — see the
+ * entry's file header), so the test installs the page-global facade, evaluates the script,
+ * and materializes the factory with a module-table require stub, the same harness as
+ * client-panels.spec.ts.
  */
 import { describe, expect, it } from 'vitest'
 import { inertReactShim, loadClientRegistration, materializeClient } from '../support/client-harness.ts'
@@ -83,15 +85,6 @@ function recordingContext(): {
 }
 
 describe('first-mile seats', () => {
-  it('renders the deployment mark at the size the hero asks for', () => {
-    const mark = materialize().AssistantHeroMark({ size: 34, className: 'hero-mark' })
-    expect(mark.type).toBe('svg')
-    expect(mark.props.width).toBe(34)
-    expect(mark.props.height).toBe(34)
-    expect(mark.props.className).toBe('hero-mark')
-    expect(mark.props.children).toHaveLength(3)
-  })
-
   it('renders nothing once the session has any content', () => {
     // The owner renders this dock for EVERY session (only the hero chrome is hero-gated),
     // so the blank check is the component's own — a first-open strip above an ongoing
@@ -158,57 +151,6 @@ describe('first-mile seats', () => {
     const rows = elementsOf(dock, 'button').filter(b => textsOf(b.props.children).join('').includes('点这里'))
     expect(rows.length).toBe(3)
     expect(typeof rows[0]?.props.onClick).toBe('function')
-  })
-
-  it('shows an unopenable desk on the chip the principal actually clicked (R9)', () => {
-    const exports = materialize() as unknown as ClientExports & {
-      AssistantDeskChip: () => Element
-      deskStore: { openError?: string | undefined }
-    }
-    // Before R9 the failure only patched a note, which renders inside a panel body — invisible from
-    // the Session header where the click happened.
-    expect(textsOf(exports.AssistantDeskChip()).join('')).toBe('桌面')
-    exports.deskStore.openError = '开不了'
-    expect(textsOf(exports.AssistantDeskChip()).join('')).toBe('桌面（开不了）')
-  })
-
-  it('turns a failed desk read into a visible error with a retry, not an eternal reading state (R6)', async () => {
-    const views: string[] = []
-    const ctx = {
-      slots: { inject: (_name: string, contribute: () => unknown) => { contribute() }, register: () => undefined },
-      sidebarRightTabs: { register: () => undefined },
-      sidebarRight: { openTab: () => {} },
-      inject: () => undefined,
-      remote: { workspaceFiles: { read: () => { throw new Error('boom') } } },
-      sessions: {
-        list: {
-          getSnapshot: () => ({ ids: ['s1'], byId: { s1: { updatedAt: 1, cwd: '/tmp/ws' } } }),
-          subscribe: () => () => {},
-        },
-      },
-    }
-    const exports = materialize() as unknown as ClientExports & {
-      deskStore: { readError?: string | undefined, note?: string | undefined }
-      DeskTabBody: (props: { sessionId: string }) => unknown
-    }
-    exports.apply(ctx)
-    // Let apply()'s own walk finish, then clear its verdict: the assertion must depend on the TAB
-    // path alone (the main panels render notes, so their failure was never invisible).
-    await new Promise(resolve => { setTimeout(resolve, 0) })
-    exports.deskStore.readError = undefined
-    exports.deskStore.note = undefined
-    // Drive the tab path directly: this is the one whose failure used to be invisible, because the
-    // tab returns before any Panel renders notes.
-    ;(exports as unknown as { loadDeskFor: (sessionId: string) => void }).loadDeskFor('s1')
-    await new Promise(resolve => { setTimeout(resolve, 0) })
-
-    expect(exports.deskStore.readError).toContain('读桌面文件失败')
-    const tab = textsOf(exports.DeskTabBody({ sessionId: 's1' })).join(' | ')
-    // Before R6 a throwing read only patched a note, which this tab never renders: the pane sat on
-    // "正在读这个会话的桌面…" forever, with no retry anywhere.
-    expect(tab).toContain('读桌面文件失败')
-    expect(tab).not.toContain('正在读')
-    void views
   })
 
   it('claims the hero mark and the blank-session dock when applied', () => {

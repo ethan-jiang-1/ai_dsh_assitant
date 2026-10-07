@@ -28,7 +28,9 @@ export async function loadClientRegistration(): Promise<ClientRegistration> {
   ;(globalThis as Record<string, unknown>).__ModuleLoader__ = {
     load: (registration: ClientRegistration) => { registrations.push(registration) },
   }
-  // @ts-expect-error TS2306 the browser half is intentionally not a module
+  // S2 (261007 bigfile-split): the browser half is multi-module source bundled by tsdown,
+  // so the entry imports its sibling modules — vitest follows those relative imports and
+  // evaluates the tree the way the bundler would inline it.
   await import('../../src/client/index.ts')
   const registration = registrations[0]
   // The bundle must submit exactly one registration: two would mean the script ran twice
