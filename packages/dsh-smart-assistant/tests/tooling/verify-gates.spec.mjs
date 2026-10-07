@@ -177,14 +177,24 @@ describe('verify relative-link corpus wiring', () => {
 
 // A gate core that exists but is never invoked by the top-level command is a script, not a gate —
 // no invalid case could reach a real acceptance path (2026-10-07; the corpus's "a negative case
-// through the real runner" applied to our own wiring). Pinned against the REAL verify.mjs source:
-// the real wiring passes, and sabotaged copies (call sites erased, or the name erased everywhere)
-// flag exactly the unwired core — these are the prove-it-red halves of the wiring gate.
+// through the real runner" applied to our own wiring). The core must be *called* in the runner's
+// body: import lines prove nothing, and a namespace-style call (`gateCores.x(...)`, one mention)
+// is wired all the same. Pinned against the REAL verify.mjs source: the real wiring passes, a
+// namespace-wired shape passes, and sabotaged copies (call sites erased / name erased everywhere)
+// flag exactly the unwired core — the prove-it-red halves of the wiring gate.
 describe('gateWiringProblems', () => {
   const verifySource = readFileSync(join(import.meta.dirname, '..', '..', '..', '..', 'scripts', 'checks', 'verify.mjs'), 'utf8')
+  const functionCores = () => Object.entries(gateCores).filter(([, value]) => typeof value === 'function')
 
-  it('accepts the real runner: every exported function core occurs beyond the import line', () => {
+  it('accepts the real runner: every exported function core is invoked in the body', () => {
     expect(gateCores.gateWiringProblems({ exportedCores: gateCores, verifySource })).toEqual([])
+  })
+
+  it('accepts namespace-style wiring: one body call per core, no named imports', () => {
+    // The shape this gate must not false-positive (the first draft's occurrence-count rule did):
+    // a core called once via the namespace runs — it is wired.
+    const source = functionCores().map(([name]) => `checks.push(gateCores.${name}(...))`).join('\n')
+    expect(gateCores.gateWiringProblems({ exportedCores: gateCores, verifySource: source })).toEqual([])
   })
 
   it('flags a core reduced to its import line (call sites erased) as an unwired gate', () => {
@@ -195,7 +205,7 @@ describe('gateWiringProblems', () => {
     const problems = gateCores.gateWiringProblems({ exportedCores: gateCores, verifySource: head + tail })
     expect(problems).toHaveLength(1)
     expect(problems[0]).toContain(name)
-    expect(problems[0]).toContain('never invoked')
+    expect(problems[0]).toContain('never invoked in the body')
   })
 
   it('flags a core named nowhere in the runner', () => {
@@ -203,7 +213,7 @@ describe('gateWiringProblems', () => {
     const problems = gateCores.gateWiringProblems({ exportedCores: gateCores, verifySource: verifySource.replaceAll(name, '') })
     expect(problems).toHaveLength(1)
     expect(problems[0]).toContain(name)
-    expect(problems[0]).toContain('named nowhere')
+    expect(problems[0]).toContain('never invoked in the body')
   })
 
   it('reports an empty core module rather than passing silently', () => {

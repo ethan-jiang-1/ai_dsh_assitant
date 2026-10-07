@@ -30,9 +30,10 @@ function tryGit(args, cwd) {
 /**
  * A check core that exists in verify-checks.mjs but is never invoked by verify.mjs is a script,
  * not a gate — the top-level command would never run it, so no invalid case could reach a real
- * acceptance path. Named imports make "imported but never called" visible as a function name that
- * occurs only once in the runner's source (the import line); a wired core occurs at least twice.
- * Functions only — shared constants (e.g. a status regex) are data for cores and specs, not gates.
+ * acceptance path. The import statement itself proves nothing about invocation (and neither does
+ * a bare name in a comment), so import lines are stripped and the core must be *called* at least
+ * once in the runner's body — named import or namespace call both count as wired. Functions only:
+ * shared constants (e.g. a status regex) are data for cores and specs, not gates.
  *
  * @param {{ exportedCores: Record<string, unknown>, verifySource: string }} inputs
  */
@@ -40,12 +41,10 @@ export function gateWiringProblems({ exportedCores, verifySource }) {
   const problems = []
   const functions = Object.entries(exportedCores).filter(([, value]) => typeof value === 'function')
   if (functions.length === 0) return ['the core module exports no functions — the wiring check has nothing to see']
+  const body = verifySource.split('\n').filter(line => !/^\s*import\b/.test(line)).join('\n')
   for (const [name] of functions) {
-    const occurrences = verifySource.split(name).length - 1
-    if (occurrences === 0) {
-      problems.push(`${name} is exported by verify-checks.mjs but named nowhere in verify.mjs — a script that exists is not a gate that runs; wire the call or drop the export`)
-    } else if (occurrences === 1) {
-      problems.push(`${name} occurs once in verify.mjs (the import line only) — imported but never invoked is still an unwired gate`)
+    if (!body.includes(name)) {
+      problems.push(`${name} is exported by verify-checks.mjs but never invoked in the body of verify.mjs (the import line does not count) — a script that exists is not a gate that runs; wire the call or drop the export`)
     }
   }
   return problems

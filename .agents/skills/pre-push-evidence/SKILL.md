@@ -58,6 +58,7 @@ one home). Read it there; this skill owns the judgment rules the table cannot ca
 
 ## Finish line
 
-`pnpm typecheck && pnpm test && pnpm verify` is the floor for every slice. Add the rows above that
-apply, and stop there — the exhaustive matrix is not the goal, a red light that would actually
-have caught *this* regression is.
+`pnpm typecheck && pnpm test && pnpm verify` is the floor for every slice. Add the evidence-map
+rows that apply — the routing table lives in
+[docs/testing.md](../../../docs/testing.md)'s「一页证据地图」 — and stop there — the exhaustive
+matrix is not the goal, a red light that would actually have caught *this* regression is.
