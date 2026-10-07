@@ -5,6 +5,7 @@
 
 | 卡 | 标题 | 修复 | 日期 |
 |---|---|---|---|
+| [BUG-005](BUG-005-destructive-contract-violations.md) | 破坏性契约违背——retireSkill rm 附属文件 + 重导入抹审批 | 整目录原子归档（rename）+ 存在页保留治理 status；旧 spec 钉错预期同 diff 修正 | 2026-10-07 |
 | [BUG-006](BUG-006-budget-cjk-counting.md) | 字节与预算 CJK/计数缺陷（快照码元截断+digest 少报+ingest 全文算段） | 三处各自字节精确/重算/按携带文本分段，三红三绿 | 2026-10-07 |
 | [BUG-003](BUG-003-eval-floor-red.md) | eval 地板 2/5 红（复发+新红叠环境假象） | 三个环境病灶（repo-cwd 泄漏/套内排序/判卷基点）+ 技能停止条件显式化；两独立 home 连续两轮 5/5 | 2026-10-07 |
 | [BUG-004](BUG-004-approval-trust-root.md) | 审批门的信任根——门只在 prose + 批准活路径可伪造 + 审计死码 | 审批台账统一（三过渡 × 两 lane 同账，检测不预防——预防残留上游缝 261004） | 2026-10-07 |

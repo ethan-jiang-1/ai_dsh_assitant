@@ -5,7 +5,7 @@
  * stamped with when and why it died, and nothing is deleted.
  */
 
-import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Context } from '@deepseek-ai/cordis'
@@ -115,6 +115,30 @@ describe('retireSkill (service)', () => {
     expect(await service.learnedSkillNames()).toEqual([])
     expect((await scanLearnedSkills(service.paths.skillsDir)).failures).toEqual([])
     expect(existsSync(join(service.paths.skillsDir, 'dead-skill'))).toBe(false)
+  })
+
+  it('archives a multi-file bundle whole — side files ride along, nothing is deleted', async () => {
+    const service = boot()
+    await service.writeSkill({ name: 'bundle-with-refs', description: 'gone soon', body: 'steps' })
+    // Hand-craft the multi-file shape the audit code treats as legal ("fix the path or ship the
+    // file"): writeSkill only writes SKILL.md, so add the side file by hand.
+    mkdirSync(join(service.paths.skillsDir, 'bundle-with-refs', 'references'), { recursive: true })
+    writeFileSync(
+      join(service.paths.skillsDir, 'bundle-with-refs', 'references', 'cheatsheet.md'),
+      'side file that must survive retirement',
+      'utf8',
+    )
+
+    // BUG-005 F4 (2026-10-07): the old code archived only SKILL.md and then rm -rf'd the
+    // directory — "moving the bundle back restores it" was a false promise for any bundle
+    // with side files, and retirement silently deleted them.
+    const retired = await service.retireSkill('bundle-with-refs', 'test retirement')
+
+    const archivedSide = join(service.paths.skillsArchiveDir, 'bundle-with-refs', 'references', 'cheatsheet.md')
+    expect(existsSync(archivedSide)).toBe(true)
+    expect(readFileSync(archivedSide, 'utf8')).toContain('side file that must survive')
+    expect(readFileSync(retired.path, 'utf8')).toContain('retiredAt:')
+    expect(existsSync(join(service.paths.skillsDir, 'bundle-with-refs'))).toBe(false)
   })
 
   it('rejects unknown names, invalid names, and double retirement', async () => {

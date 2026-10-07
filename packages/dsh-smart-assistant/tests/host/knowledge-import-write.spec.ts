@@ -3,7 +3,7 @@
  * minting a second one (the generated form carries a random suffix), and the provenance stamp names
  * the caller that actually wrote it. Both are what makes an imported corpus governable.
  */
-import { mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs'
+import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Context } from '@deepseek-ai/cordis'
@@ -39,5 +39,33 @@ describe('writePage with an explicit id', () => {
     expect(text).toContain('by: process:import-knowledge')
     expect(text).toContain('status: draft')
     expect(text).toContain('docs/q3.md')
+  })
+
+  it('re-imports update content without rolling an approved page back to draft', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'import-write-'))
+    dirs.push(dir)
+    const service = new AssistantMemory(new Context(), { dataDir: dir })
+    const page = {
+      id: 'source-q4-margin-review-8ba0be12',
+      type: 'source',
+      title: 'Q4 Margin Review',
+      body: 'Margin held flat.',
+      sources: ['docs/q4.md'],
+      tags: ['imported'],
+      generatedBy: 'process:import-knowledge',
+    }
+    await service.writePage(page)
+    // The principal approved it: the hand flip of status is the approval.
+    const pagePath = join(dir, 'knowledge', `${page.id}.md`)
+    writeFileSync(pagePath, readFileSync(pagePath, 'utf8').replace('status: draft', 'status: stable'), 'utf8')
+
+    // BUG-005 F10 (2026-10-07): the re-import used to rewrite the whole file with
+    // `status: draft` — a mechanical content refresh silently undoing the approval.
+    await service.writePage({ ...page, body: 'Margin held flat (approved revision).' })
+
+    const text = readFileSync(pagePath, 'utf8')
+    expect(text).toContain('status: stable')
+    expect(text).toContain('Margin held flat (approved revision).')
+    expect((await service.readKnowledgePage(page.id))?.page.status).toBe('stable')
   })
 })

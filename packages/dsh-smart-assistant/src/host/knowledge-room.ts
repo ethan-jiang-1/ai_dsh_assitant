@@ -66,12 +66,17 @@ export async function writePage(host: AssistantMemory, input: WritePageInput): P
   await host.ensureHome()
   // Normalize links at the write boundary: a resolvable bare name link is rewritten into
   // `[[<id>|<title>]]`, the only form this room and Obsidian both resolve (knowledge/page.ts).
-  const linkedBody = normalizeWikiLinks(body, (await host.listKnowledge()).entries)
+  const listing = await host.listKnowledge()
+  const linkedBody = normalizeWikiLinks(body, listing.entries)
   const now = new Date()
   const id = input.id?.trim() ?? newThreadId(now, input.title ?? input.type, undefined, input.slug)
+  // Re-imports refresh content, not governance (BUG-005 F10, 2026-10-07): an existing page's
+  // status is the principal's act (a hand flip or a promote) — a mechanical re-import must not
+  // roll a stable page back to draft. Fresh pages are always drafts.
+  const existingPage = listing.entries.find(candidate => candidate.id === id)
   const page: KnowledgePage = {
     id,
-    status: 'draft',
+    status: existingPage?.status ?? 'draft',
     type,
     ...(input.title !== undefined && input.title.trim().length > 0 ? { title: input.title.trim() } : {}),
     ...(input.description !== undefined && input.description.trim().length > 0 ? { description: input.description.trim() } : {}),
