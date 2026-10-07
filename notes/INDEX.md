@@ -111,9 +111,11 @@
 | 2026-09-23 | [决策：不引入"dev-loop 指南"物种（ai_dsh_company guides/60 评估，四个指针登记）](implemented/2026-09-23-dev-loop-borrowing.md) |
 | 2026-09-23 | [决策：`pnpm dsh` 启动器强制 dev home（dev/env/dsh.mjs）](implemented/2026-09-23-dev-home-launcher.md) |
 
-## proposed（将来 · 待用户拍板）（0）
+## proposed（将来 · 待用户拍板）（1）
 
-（空）
+| 日期 | 卡 |
+|---|---|
+| 2026-10-07 | [DSH 开发语料吸收：动态闭环三环补齐 + 驾驭者成本面瘦身](proposed/2026-10-07-dsh-corpus-absorption.md) |
 
 ## rejected（被否决的提案 · 负知识）（1）
 

@@ -7,6 +7,7 @@
 
 | 卡 | 关闭日 | 判定 |
 |---|---|---|
+| [261007-dsh-corpus-absorption-audit.md](261007-dsh-corpus-absorption-audit.md) | 2026-10-07 | 毕业为该做（用户点名全量审计 + 瘦身方向）：三卷 230+ 机制六态对照收卷——静态层三问全 PASS，缺口定位动态闭环三环 + 驾驭者成本面 → [呈批卡](../../../notes/proposed/2026-10-07-dsh-corpus-absorption.md)；[收卷台账](../../../notes/archived/research/2026-10-07-dsh-corpus-absorption-audit.md) |
 | [261005-sdlc-turnaround-cleanup.md](261005-sdlc-turnaround-cleanup.md) | 2026-10-06 | 毕业为该做并执行完毕：六面收口（机制/数据处置表 v2、门禁预算表 v1 零退役、gen-catalog devPatch 修复、演示面并入新 UX、文档面五轮审计 8 修、两探索问题定案）→ [SDLC 收口 note](../../../notes/implemented/2026-10-06-sdlc-campaign-closeout.md) |
 | [261001-first-open-ux.md](261001-first-open-ux.md) | 2026-10-06 | 毕业为已消化：18 轮首开 UX 全部落地 + 上游 6/6 递交（#8939-#8944）+ 判据「打开不困惑」转移至 desk-primary-view → 各 implemented note |
 | [261005-open-value-deficit.md](261005-open-value-deficit.md) | 2026-10-06 | 毕业为方向已确认+切片已落地：一把手总助定位经 19 轮定案；Day-0 intake / 桌面主视图 / 晨报 v1 / 审批内联各有 implemented note；未落地候选为 deferred-with-trigger |
