@@ -73,5 +73,6 @@
 
 - **coverage**：新文件 per-file 100%，存量祖父豁免；先纪律后机器门（触发：第一处"删了才对"的死代码实证）。
 - **eval 节奏**：模型可见切片收尾 `--only` 聚焦跑，阶段收尾才全量。
+- **模型可见面回归的适配声明**（DSH testing policy 对独立插件仓的适配义务）：模型可见面的回归固定 = agent 面合同 spec（段落就绪/预算）+ `pnpm eval --only` 判决；`repo-live-probe` 是**取证动作不是回归资产**（复现「模型没看见」时用）；session 回放维持触发条件制（触发未到不预建，owner `snapshots/README.md`）。
 - **session 回放快照**：未建，触发条件 owner：`snapshots/README.md`（web 面期望已建，同树）。
 - **子进程 loader-smoke 中间层 / CI 矩阵**：刻意不采纳；触发条件见 implemented note（2026-10-04）。

@@ -13,7 +13,7 @@ whenToUse: Choosing what to run before a commit or handover; deciding whether a 
 |---|---|
 | pure core (`src/home`, `memory`, `research`, `skills`, `knowledge`, `tool-support`) | package `pnpm test` (the unit specs own these behaviors) |
 | `src/client/` browser half | the **whole package suite**, not just the spec you touched: `client-brand.spec.ts` asserts the complete slot-registration surface, so adding one registration reds a spec you never opened (this happened — P1-B landed red and the fixture followed two commits later) **+ both web-face scenes re-run** (`pnpm web-expected` against an isolated home) — unit green while a recorded scene went silently stale for a day (the approve-direct-call console change landed after blank-first-open was recorded; caught 2026-10-05 by building the second scene) |
-| model-visible surface (tool description, prompt section, persona, digest) | `pnpm build` **then** the real-composition test **then** a live probe (`repo-live-probe`) |
+| model-visible surface (tool description, prompt section, persona, digest) | `pnpm build` **then** the real-composition test **then** a focused `pnpm eval --only` run (the behavioral regression verdict for this surface) — the live probe (`repo-live-probe`) is forensics for "the model didn't see it", not the regression asset |
 | `src/index.ts` service behavior | `pnpm test` (service-level specs construct a real cordis context) + the composition test |
 | `scripts/verify*.mjs` | the new/changed check's **red fixture** in `tests/tooling/verify-gates.spec.mjs` + `pnpm verify` |
 | `docs/` and `notes/` | `pnpm verify` (links, self-containment, notes shape, entry-file stability) |
@@ -33,6 +33,9 @@ whenToUse: Choosing what to run before a commit or handover; deciding whether a 
   fail, revert — then report the gate as covering the case.
 - **Report only what actually ran.** A blocked or skipped check is reported as blocked with its
   reason; it never joins the green list.
+- **An environment-specific claim needs three records.** "It only fails here" is not established
+  until the exact command, the failing test name, and the platform difference are all written
+  down; with any of the three missing, treat the failure as unexplained — not environmental.
 - **Gate the commit on the gate's own verdict, not on the command having run.** `node scripts/checks/verify.mjs`
   prints its failure count and exits non-zero; `... ; echo VERIFY=$?` still commits if the next command
   is unconditional. Two red commits in this campaign came from exactly that (the shell printed
