@@ -1,6 +1,15 @@
 # 两大文件拆分：host 按房间切片，client 走 DSH 同款 tsdown 管线
 
-> 立卡：2026-10-07 ｜ 状态：**S1 已裁决实施，S2 待拍板**｜毕业门 = S1+S2 各片出口全绿（验收节）｜下一步 = S1 host 切片实施（本卡承重事实与门已齐，照做即可）
+> 立卡：2026-10-07 ｜ 状态：**S1 已交付，S2 待拍板**｜毕业门 = S2 出口全绿（S1 已过其全套门）｜下一步 = 用户拍板 S2（build 加 tsdown，vendor 同款工具零新依赖）后照卡实施
+
+**S1 交付证据（2026-10-07，commit c803726）**：index.ts 1178 → 288 行薄壳；六模块 memory-room 141 /
+research-room 221 / skills-room 249 / knowledge-room 181 / curate-digest 238 / self-turns 104。
+门实测：typecheck 零错、45 spec 388 tests 全绿零 skip、verify 34、test:composition 6/6、
+dump-config assistant 系 10 行 id 全在场、keyless replay 请求侧 `agentPreset: assistant` + 四工具
+（memory/research/knowledge/reflect）全在场、release-smoke PASS。
+关键判断记录：private → 包内可见的字段清单与 cordis overlay Reflect 转发语义核验（vendor
+cordis src/utils.ts:130-218，传 host 进自由函数与原 this 等价）；输入类型随房间模块走、
+index.ts `export type` 原位 re-export（`src/index.ts` 的 `export *` 公开面零变化）。
 
 残留③（2026-10-07 走查残留，goal 跟踪中）。结构判定与分段计划在这，实施各片独立提交锚点。
 
