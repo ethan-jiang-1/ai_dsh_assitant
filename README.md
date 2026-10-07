@@ -88,6 +88,19 @@ dsh plugin --profile <p> add file:./packages/dsh-smart-assistant   # <p>＝你�
 
 按功能找入口/主链/验证命令/失败定位：五条功能路由在 [docs/architecture.md](docs/architecture.md) §八（启动、模型请求、浏览器三条链路在 §七）。
 
+**按问题找**（纯路由，不复制正文）：
+
+| 你的问题 | 去哪儿 |
+|---|---|
+| 某个功能的主链、实现入口、最小验证 | [docs/architecture.md](docs/architecture.md) §八（五条功能路由） |
+| 一条命令 / 一条消息 / 一次点击进来经谁、哪里可观察 | [docs/architecture.md](docs/architecture.md) §七（三条链路 + 失败模式表） |
+| 组合里到底有没有这一行 | `pnpm dsh --profile dev --dump-config`（路由见 [docs/dev.md](docs/dev.md) §六） |
+| 运行态现在长什么样（四房间、两个根文件） | [docs/home.md](docs/home.md)；实际文件在 `dev/harness-home/assistant/` |
+| 某次会话为什么答成这样 | [docs/dev.md](docs/dev.md) §六「逐事件复盘」行（过滤样例：[repo-live-probe](.agents/skills/repo-live-probe/SKILL.md)）；聚合视图 `pnpm usage` / `pnpm desk-loop` |
+| 我要改 X，最小验证是什么 | [docs/testing.md](docs/testing.md) 分层表；逐面表在 [.agents/skills/pre-push-evidence/](.agents/skills/pre-push-evidence/SKILL.md) |
+| 改了为什么不生效 | [docs/dev.md](docs/dev.md) §四 三条纪律（build / preset 代际 / pin） |
+| 这个决定为什么这么定 | `notes/implemented/` 无索引——按机制名 `grep -il '<关键词>' notes/implemented/` 找卡（输掉的方案在同卡）；负知识在 `notes/rejected/` |
+
 实际 preset 来源是 `package.json` 的 `dsh.bundle.patch` 指向 `packages/dsh-smart-assistant/cordis.patch.yml` 中的 `preset-assistant` 行。运行数据的 `DSH_HOME`、助手 `dataDir` 与源码 cwd 是三个不同根，详见 [开发手册](docs/dev.md)。
 
 打包安装的形状（`pnpm pack` 出 tarball 再 `dsh plugin add <tarball>`）由 `pnpm release-smoke` 机械验证：

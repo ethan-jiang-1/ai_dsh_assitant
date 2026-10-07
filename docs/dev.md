@@ -209,6 +209,7 @@ DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得
 | 验 assistant preset | `pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner.patch.yml "one task"` | one-shot 挂载 preset 后的会话驱动 | 浏览器渲染 |
 | 验 Web 面 | `pnpm dsh --profile dev --port 0 --no-open` + `pnpm preflight '<URL>'` | Web boot、Remote、desk readiness | DOM 期望；再跑 `pnpm web-expected` |
 | 验请求侧组装 | `pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner-replay.patch.yml "probe"` | keyless replay 的 system/tools/session log | 固定回复代表模型自主选择 |
+| 逐事件复盘某次会话 | `zstd -dc "$DSH_HOME/sessions/<proj>/<id>/session.v*.jsonl.zstd"`（代数在文件名里：先列目录再选；过滤样例：`.agents/skills/repo-live-probe/`） | 请求侧 system/tools 与 tool/result 逐字日志 | 不证明模型自主选择（回放车道回复是录制的） |
 
 当前 assistant preset 的定义来源是安装包的 `dsh.bundle.patch`，实际文件为 `packages/dsh-smart-assistant/cordis.patch.yml` 中的 `preset-assistant` 行；headless profile 本身没有 roster，必须使用 `preset-runner.patch.yml` 才会挂载 assistant preset。
 
