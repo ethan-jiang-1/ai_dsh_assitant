@@ -4,7 +4,7 @@
 
 ## 背景 / 触发
 
-[呈批卡 2026-10-07-dsh-corpus-absorption](../../notes/proposed/2026-10-07-dsh-corpus-absorption.md) B1：把 2026-10-06 的门禁预算制扩展到 standing instructions / docs / skills 三面，判据 = 语料四成本形态（重复记录漂移 / 过长 standing instructions / 无意义 gate 假安全感 / 过细 Skill 仪式）+ 本仓新增第五形态「**驾驭者认知成本**」（语料全是 agent 参与视角；用户「驾驭无力」症状需要自己的判据：用户能不能一眼找到方向盘与仪表盘）。
+[呈批卡 2026-10-07-dsh-corpus-absorption](../../notes/implemented/2026-10-07-dsh-corpus-absorption.md) B1：把 2026-10-06 的门禁预算制扩展到 standing instructions / docs / skills 三面，判据 = 语料四成本形态（重复记录漂移 / 过长 standing instructions / 无意义 gate 假安全感 / 过细 Skill 仪式）+ 本仓新增第五形态「**驾驭者认知成本**」（语料全是 agent 参与视角；用户「驾驭无力」症状需要自己的判据：用户能不能一眼找到方向盘与仪表盘）。
 
 ## 处置表（审计产出；优先序 删 > 并 > 修 > 记，每行指向具体摩擦）
 

@@ -1,6 +1,6 @@
 # 推敲：DSH 开发语料吸收审计——流程 / 测试资产 / 质量保证差距对照
 
-> 立卡：2026-10-07 ｜ 状态：已毕业（该做 → 呈批卡，2026-10-07 当日收卷）｜毕业门判断 = 该做 ｜下一步 = [呈批卡 notes/proposed/2026-10-07-dsh-corpus-absorption.md](../../notes/proposed/2026-10-07-dsh-corpus-absorption.md) 待用户拍板；完整对照与证据 = [收卷台账](../../notes/archived/research/2026-10-07-dsh-corpus-absorption-audit.md)
+> 立卡：2026-10-07 ｜ 状态：已毕业（该做 → 呈批卡，2026-10-07 当日收卷）｜毕业门判断 = 该做 ｜下一步 = [实施 note notes/implemented/2026-10-07-dsh-corpus-absorption.md](../../notes/implemented/2026-10-07-dsh-corpus-absorption.md)（用户批准后八片落地）；完整对照与证据 = [收卷台账](../../notes/archived/research/2026-10-07-dsh-corpus-absorption-audit.md)
 
 ## 背景 / 触发
 
