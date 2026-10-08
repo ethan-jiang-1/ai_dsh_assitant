@@ -107,9 +107,12 @@ pnpm eval:domain        # 领域评测集 v0（G2＝领域质量的人判终关�
    `dev/env/env.sh` 是它们与手工调用时的兜底，**同样认 `ASSISTANT_DSH_HOME`**
    （用隔离 home 跑实验的人，脚本与启动器必须落在**同一个** home，否则 profile 建在一个 home、启动器去另一个找）。
    **任何情况下不碰日用的 `~/.dsh`。**
-2. **探索路由**：要 DSH 机制结论，读 `vendor/dsh/docs/architecture.md` → `vendor/dsh/docs/capability-seams.md` → 对应包 README；
-   要真实签名，读 `vendor/dsh/packages/**/src/`。**不猜 API，去读。**
-3. **窄证据**：一次交付 = 一个垂直切片（代码 + 测试 + docs/README + note 同 diff）；
+2. **探索路由**：DSH 平台事实读钉住的 `vendor/dsh`。机制从 `vendor/dsh/docs/architecture.md` 到
+   `vendor/dsh/docs/capability-seams.md` 再到包 README；真实签名读 `vendor/dsh/packages/**/src/`。
+   文档 tier、主仓 note 制度、主仓开发技能的页在下面「探索路由」。本仓只写差量：适配一行进
+   [`docs/discipline.md`](docs/discipline.md)，本仓才能执行的步骤进仓根 `.agents/skills/`，本仓取舍进
+   [`notes/`](notes/README.md)。平台段落留在 vendor 那一页。
+3. **窄证据**：一次交付 = 一个垂直切片（代码 + 测试 + 这次改动的合同同 diff）。note 只有 [`notes/README.md`](notes/README.md) §〇 要求留下时才进同一 diff；
    只跑"会为这次回归而失败"的最小检查；**报告里只列真跑过的命令**；
    **提交只 add 本次改动涉及的路径**（同仓可能有并行会话，`git add -A` 会把别人的未提交改动扫进你的提交）。
 4. **默认严格，偏离登记**：研发纪律的继承是**逐源枚举**过的，不是凭印象
@@ -143,9 +146,11 @@ pnpm eval:domain        # 领域评测集 v0（G2＝领域质量的人判终关�
 ## 探索路由（本仓侧与 DSH 侧常用入口）
 
 - **本仓侧**：证据路由（改什么 → 跑什么 → 回归资产在哪）= [`docs/testing.md`](docs/testing.md) §一页证据地图（唯一表主）；五条功能路由与三条链路 = [`docs/architecture.md`](docs/architecture.md) §七/§八
+- **平台事实的家**（读 vendor，本仓不复写正文）：文档 tier = `vendor/dsh/docs/AGENTS.md`；主仓 note 合同 = `vendor/dsh/.agents/notes/README.md`（本仓合同是 [`notes/README.md`](notes/README.md)，只写差量）；主仓开发技能 = `vendor/dsh/.agents/skills/`（发现根是本仓 `.git`，不进本仓技能目录；那些命令在主仓里跑）
 - 组合层级（bundle → profile patch → home patch → `--patch`）：`vendor/dsh/docs/architecture.md`
 - preset 语义（roster/roots/遮蔽/standing mount）：`vendor/dsh/packages/preset/agent-preset/README.md`
 - 技能 provider 契约（本 repo 依赖它）：`vendor/dsh/docs/subsystems/skills.md`
+- 从本包贡献 Web UI：机制读 `vendor/dsh/docs/subsystems/slots.md`、`vendor/dsh/docs/subsystems/web-client.md`、`vendor/dsh/docs/subsystems/sidebar-right.md`；本包的路径和验证在 [`.agents/skills/client-ui-contribution/SKILL.md`](.agents/skills/client-ui-contribution/SKILL.md)
 - 工具与卡片（`defineTool` / presenter / 日志税）：`vendor/dsh/docs/cookbook/adding-a-tool.md`
 - **"组合里到底有没有这一行"**（读源码答不了这个问题）：`pnpm dsh --profile dev --dump-config`（boot-free；
   行 id、disabled、realm 一目了然——排查 patch 落空/重复 id 的第一命令）

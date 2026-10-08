@@ -11,6 +11,7 @@
 | DSH 纪律（源头） | 本仓落点 | 状态 |
 |---|---|---|
 | 文档只写 now；一个事实一个出处；**入口文件只收常设指令与路由指针**——时变状态放进自动注入的文件，就是把最容易腐烂的东西放进最不被怀疑的地方（`vendor/dsh/AGENTS.md` / `vendor/dsh/docs/AGENTS.md` tier 表） | docs/ 只写现在，合同自足，不链接单篇 note；AGENTS.md 全时不变（无状态节、无进度标记、无 pin 号） | ✅ 照搬 |
+| 平台事实一个家在钉住的 vendor：文档 tier（`vendor/dsh/docs/AGENTS.md`）、主仓 note 制度（`vendor/dsh/.agents/notes/README.md`）、主仓开发技能（`vendor/dsh/.agents/skills/`）、client 机制（`vendor/dsh/docs/subsystems/`）。别处链接，不把段落再写一份 | 根 AGENTS.md 硬规则 2。本仓差量三处：适配一行在本表，本仓步骤在仓根 `.agents/skills/`，本仓取舍在 `notes/`。发现根是本仓 `.git`（`vendor/dsh/docs/subsystems/skills.md`），主仓 `dsh-*` 技能不进本仓目录，也不 symlink 过来——它们的命令和相对路径假设 cwd 是 deepseek-harness | ✅ 适配 |
 | 决策 Note same-PR；完成的条目离开队列、不许标 ✅ 留场（`.agents/notes/README.md`） | 一次切片一个 commit。还要人点头的提案住 `notes/proposed/`，推敲住 `_backlog/plans/`，方向判据住 README。完成即离队，不设第二进度台账 | ✅ 照搬 |
 | 上游 plan 状态不二次落盘（2026-07-22 note :54：轮内计划已由工具参数记录，log-only 持久层不再建 plan 目录——**针对轮内计划状态**，不禁 repo 级提案与队列，见 `.agents/notes/README.md` 的 proposed 格式） | 不建 plans/tasks 物种（轮内计划走 plan/todo 机制，见下行）；repo 级设计计划住 `notes/proposed/`（RFC）与 `_backlog/plans/`（推敲/触发卡） | ✅ 适配（来源适用范围收窄：轮内状态 ≠ repo 级提案） |
 | 会话日志即真相（log-only 持久层；复盘用日志 seq 重建，不凭自述） | 排查/复盘读 `dev/harness-home/sessions/**/session.v*.jsonl.zstd` 逐事件还原（`docs/dev.md` §五） | ✅ 照搬 |
@@ -23,7 +24,7 @@
 | 测试纪律：本地窄证据 + 非平凡改动 same-PR 更新快照；插件证据五台阶（导出守卫→行为→生命周期→真组合→组装转录）+ 政策禁令（mock 白名单 / 禁 hand-built 组装证据 / 禁自报探测 / 单跑才绿=spec 缺陷 / 禁掩盖修法 / prove-it-red） | 测试面合同成文于 [testing.md](testing.md)（证据分层表 + 五台阶表 + 禁令 + 已定姿态）；`pnpm test`（纯核 + 服务合同 + 导出守卫 + 生命周期）+ 真实组合 + web 渲染期望（`snapshots/web-face/`）+ eval 两级 + release-smoke | ✅ 照搬（按事故面采纳。session 回放快照、全量 coverage 门、子进程 loader-smoke、CI 矩阵四项刻意不采纳，触发条件写在 testing.md） |
 | 文档词数预算 + slop 门禁（`doc-budgets` manifest + `verify-doc-budgets`） | 刻意不做 | ⏸ 触发条件：docs 腐化实证（与来源仓同款推迟理由）。第二轮审计（2026-09-23）证据：轻度腐化——多重书写 ×2、内部矛盾 ×1、过期数字 ×1，一轮修完；暂不立案，再犯即触发；建时带**降限防回填**（每次削减后主动降 ceiling，反证 = 临时设更低值即红） |
 | Issue → PR 连续流 + Project 状态机（队列不积累历史） | 不适用：本地单人仓无协作面 | ⚠️ 适配：一次切片 = 一个 commit。工作流 = 用户本轮请求 + 还要人点头的提案（`notes/proposed/`）+ 推敲卡（`_backlog/plans/`）+ 方向判据（[`README.md`](../README.md)）。没有 ROADMAP，没有 intents.md。完成即离队（见「已声明的适配」2） |
-| 外部结果先行 + 交付判断四结果分离（DSH 语料 native-model 闭环 1/7 步：闭包从可观察结果开始；「能加载 ≠ 有行为证据 ≠ 能安装 ≠ 已获交付批准」各自观察记录；recorded-session 义务的独立插件仓适配声明） | 根 AGENTS.md「开工先定外部结果」三要素 standing order；[testing.md](testing.md) 一页证据地图唯一表主 + 已定姿态（模型可见面回归 = agent spec + `pnpm eval --only`，`repo-live-probe` 是取证非回归，session 回放维持触发条件制）；pre-push-evidence 只链接证据地图、不复制表 | ✅ 照搬 + 适配（钉版与 vendor 同为 dsh-v0.2.0-rc.2） |
+| 外部结果先行 + 交付判断四结果分离（DSH 语料 native-model 闭环 1/7 步：闭包从可观察结果开始；「能加载 ≠ 有行为证据 ≠ 能安装 ≠ 已获交付批准」各自观察记录；recorded-session 义务的独立插件仓适配声明） | 根 AGENTS.md「开工先定外部结果」三要素 standing order；[testing.md](testing.md) 一页证据地图唯一表主 + 已定姿态（各命令能证明什么以 [testing.md](testing.md) 那一格为准；`repo-live-probe` 是取证非回归，session 回放维持触发条件制）；pre-push-evidence 只链接证据地图、不复制表 | ✅ 照搬 + 适配（钉版与 vendor 同为 dsh-v0.2.0-rc.2） |
 
 ## 已声明的适配（约束 → 适配 → 证据）
 
@@ -53,6 +54,7 @@
    pairing——本仓语言分工是中文文档 × 英文模型面的**非对称**分工，不是双语对照；archived note 的 hash
    manifest——本地单人仓无对抗面；registry 三态幂等——本地 tgz 手动分发低风险（触发重评：export-dist
    同版本内容变的实证）。
+9. **平台语料留在 vendor**（约束：submodule 是平台事实的家；技能发现根是本仓 `.git`；`dsh-*` 技能的命令与相对路径假设 cwd 是 deepseek-harness）→ 读 vendor 对应页。本仓技能只写本仓路径、命令，以及 vendor 页上没有的差量。整段搬进 `docs/` 或 `.agents/skills/`，以及把 `dsh-*` symlink 进仓根技能目录，是输掉的做法。证据：`vendor/dsh/docs/subsystems/skills.md` 的发现根；`vendor/dsh/.agents/skills/dsh-pre-push-checks/SKILL.md` 写明服务对象是 deepseek-harness。
 
 ## 复查环（防"一次性快照再烂"）
 

@@ -97,6 +97,8 @@ plan 毕业不自动产生 note。切片记录、战役收口、收口数字、�
 
 ## 四、与 DSH 的对齐与偏离登记
 
+平台 note 制度的正文在 `vendor/dsh/.agents/notes/README.md`。本文件只登记本仓借了什么、改了什么。主仓的归档步骤在 `vendor/dsh/.agents/skills/dsh-archive-agent-notes/SKILL.md`，作用于主仓的 class 目录，不作用于本目录。
+
 **借（直接继承）**：生命周期四态与"目录↔状态词互校"；归档冻结（不可编辑）；rejected 留一行原因、失效即删；
 路径树即工作清单、不设集中索引；note 间相对链接；`implemented` 是**当前** rationale owner（随实现保持 current）；
 `proposed → implemented` 是同 diff 的正文改写。

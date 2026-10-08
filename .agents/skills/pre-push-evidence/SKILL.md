@@ -13,6 +13,10 @@ The routing table — surface → minimal evidence command → regression-asset 
 cannot prove — lives in [docs/testing.md](../../../docs/testing.md)'s「一页证据地图」(one fact,
 one home). Read it there; this skill owns the judgment rules the table cannot carry.
 
+Check selection for the harness repo lives in
+[dsh-pre-push-checks](../../../vendor/dsh/.agents/skills/dsh-pre-push-checks/SKILL.md) and runs
+harness commands. This skill selects this repo's commands.
+
 ## Rules that keep the evidence honest
 
 - **Name the lane by the file's suffix.** Test-asset shapes are the shared vocabulary —
@@ -41,8 +45,10 @@ one home). Read it there; this skill owns the judgment rules the table cannot ca
   `VERIFY=1` and the `&&` chain was not actually a chain). Make it mechanical: read the exit code AND
   count the `FAIL` lines before `git commit`, and when a red commit is already made, fix it and
   **amend** — local history stays green per commit, which is what the slice rule means.
-- **One slice, one vertical cut.** Code, test, docs/README and the note land together; if the
-  evidence needs a different slice, split the change instead of widening the evidence.
+- **One slice, one vertical cut.** Code, the test that would fail for this regression, and the
+  contract that owns the changed fact land together. A note lands in the same diff only when
+  [`notes/README.md`](../../../notes/README.md) §〇 says this change leaves a tradeoff those three
+  cannot hold. If the evidence needs a different slice, split the change instead of widening it.
 - **An evidence set that covers one state cannot catch a state bug.** Every screenshot of the
   first-mile strip was a blank session, so "renders only in the blank-session state" looked
   proven while the strip actually rendered in every session (the owner renders that dock for

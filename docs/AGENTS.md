@@ -7,6 +7,7 @@
 
 - **禁历史叙事**：不用 `previously / now / no longer / 曾经 / 已不再`；不写"以前是 X，现在改成 Y"。
 - **合同自足**：当前事实写在本目录。不链接单篇 note，也不把「见某篇决定」当成合同的一句。
+- **平台事实读 vendor**：DSH 怎么工作（机制、文档 tier、主仓技能、主仓 note 制度）的正文在 `vendor/dsh`。本目录只写本插件的合同。路由在根 [`AGENTS.md`](../AGENTS.md) 硬规则 2。
 - **合同与代码对齐**：`docs/` 的每一句"是什么"都必须与代码现况一致；不一致就是 bug。
 - **生成物不手改**：[`package-catalog.md`](package-catalog.md) 由 [`scripts/generate/gen-catalog.mjs`](../scripts/generate/gen-catalog.mjs) 生成（`pnpm gen-catalog`），改它等于改生成器。
 
