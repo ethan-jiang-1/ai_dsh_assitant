@@ -31,6 +31,7 @@ ai_deerflow_dr_v3 补借）。**同源整章对齐**，非另起炉灶。
 5. **`backlog-liveness` 门禁**（verify 31→32）：制度目录在场 / 活跃卡首 12 行有 `状态：` 户口 /
    索引互查（plans·bugs 活跃名册、_closed_plans 索引、_done 归档行）——核在
    verify-checks.mjs，红绿夹具三组在 verify-gates.spec（死稿卡 / 未点名 / 缺池 / 归档未点名）。
+   2026-10-08 续修其盲区：**liveness 只能证明卡"活着"，看不见"毕业了没走"**——见下节。
 6. **章程/账本二分** + "状态行是归档卡唯一会活的部分"（指向的 note 挪走时指针跟随更新）+
    带日期的负知识行（本表 `_suspended_*`/`_reference_` 两行翻案即此形态）。
 
@@ -47,6 +48,35 @@ ai_deerflow_dr_v3 补借）。**同源整章对齐**，非另起炉灶。
 - 调研卡形态规范与收卷台账机制；
 - 命名六位适配的用户拍板。
 
+## 续修：`backlog: graduated plans leave the active shelf`（2026-10-08，verify 35→36）
+
+**触发出处**：用户点名"拿 playbook 看看 `_backlog/plans` 里 plan 的质量，逐一敲打一遍"。读四张卡时
+发现的是**门禁与语料的错位**，不是卡写得差：`pnpm verify` 35 项全绿的同时，
+[261007-bigfile-split](../../_backlog/_done/_closed_plans/261007-bigfile-split.md)（当时在 plans/）
+状态行写着「S1+S2 已交付｜毕业门 = 已过」，`plans/README.md` 活跃名册仍列其为活跃卡。
+**门禁查的是"卡在不在目录里"，查不出"这张卡早该走了"。**
+
+**盲区的结构**：`GRADUATED_STATUS` 在 queue 检查里守着 `notes/proposed/`——已消化的提案不得滞留；
+`_backlog/plans/` 是**同一形状的第二条队列，却没有镜像的那一半**。liveness 越称职（能证明卡活着），
+越照不见毕业漂移。
+
+**判据选择（本切片唯一有判断量的地方）**：新核读的是 `毕业门` 字段而**不是** `状态`。
+- 卡上的 `状态：推敲中` 是**推敲**态，可以诚实地停在"推敲中"直到四门判完——用 `GRADUATED_STATUS`
+  匹配它会误杀等待中的卡；
+- `毕业门` 才承载判断，所以 `已过 / 已通过 / 已毕业` 出现在那里 = 卡已到站，迁移只是记账残尾；
+- `待定 / 待触发 / 倾向放弃 / 🔒` 都不是完成词，永不触发。
+- **人待不是完成词**：`261007-opening-brief-and-rhythm` 写「该做，四片全交付」+「剩毕业门最后一环：
+  用户终验」——全交付的算术看着像终局，但卡没完成。首版草稿用 `[^｜]*已交付` 匹配，**会误杀它**
+  （写这段时自己撞上，见夹具 'does not red-line partial delivery'）；终版把 `已交付` 收紧为必须
+  **终止状态字段**（`(?=｜|$)` 前瞻），并把 gate 判定锚在 `已过` 本身而非任何交付形容词上。
+
+**prove-it-red（真回归，非仅夹具）**：新检查对现仓跑出的第一条红正是
+`_backlog/plans/261007-bigfile-split.md declares its graduation gate satisfied but still sits in plans/
+and is still named by plans/README.md's active list`；同轮 261006 与 261007-opening **未被误报**
+（两张都带交付语言，但语义上是等待/未完成）——精确度与召回同轮实证。五组夹具在
+verify-gates.spec（放行四种未完成态 / 抓 毕业门=已过 / 抓 状态=完成词 / 不误杀部分交付 /
+报索引残尾且只读 hukou 段）。
+
 ## 验证（真跑过的命令）
 
 1. `pnpm verify`——32 项全绿（新门禁 `backlog liveness` 在列；institution 目录、状态行、
@@ -54,6 +84,9 @@ ai_deerflow_dr_v3 补借）。**同源整章对齐**，非另起炉灶。
 2. `pnpm test`（verify-gates 38 夹具含三组新红绿）——绿。
 3. 索引实态核对：plans 活跃清单 4 行、bugs 活跃表 BUG-001、_closed_plans 索引 ~30 行——
    门禁保证账本不落后于树。
+4. （2026-10-08 续修）`pnpm exec vitest run …/verify-gates.spec.mjs -t backlogGraduationProblems`
+   ——5 passed；`pnpm verify` 续修时 **36 项中 1 红且红在真卡**（prove-it-red）；
+   把该卡按规矩 `git mv` 进 `_done/_closed_plans/` 并补两处索引后 **36 项全绿**。
 
 ## 部分取代
 
@@ -74,3 +107,10 @@ ai_deerflow_dr_v3 补借）。**同源整章对齐**，非另起炉灶。
   失败）；借鉴源把门禁做进 verify 恰恰是这套治理能长期运转的原因——章程与门禁必须一起借。
 - **只做门禁、不动章程**：门禁的索引互查预设"章程声明了账本"——没有制度文本的账本是无源之水；
   两者互为成立条件，同 diff 落地。
+- **（2026-10-08 续修）复用 `GRADUATED_STATUS` 匹配 plan 卡的状态行**：那份正则要求
+  `状态：**完成词`，而 plan 卡的 `状态` 是推敲态、完成判断在 `毕业门` 字段——直接复用会把
+  "推敲中但四门已判该做、只差真人签收"的诚实卡判红，等于用门禁逼人谎报。故另立
+  `毕业门` 锚定的判据，不复用、不合并两份语义。
+- **（2026-10-08 续修）把"人待"也算毕业**：能让 `261007-opening-brief-and-rhythm` 提前归档，
+  名册更"干净"——但该卡的业务价值尚未由本人确认，归档它会把"等真人"这件**正在发生的事实**
+  从活跃面抹掉。门禁宁可少抓，不逼出假绿。

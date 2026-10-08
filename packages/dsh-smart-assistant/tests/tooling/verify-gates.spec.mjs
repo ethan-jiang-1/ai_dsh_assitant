@@ -26,6 +26,7 @@ import {
   languageGuardProblems,
   notesNamingProblems,
   notesStateProblems,
+  backlogGraduationProblems,
   backlogLivenessProblems,
   notesTopLevelProblems,
   pinProblems,
@@ -467,6 +468,69 @@ describe('backlogLivenessProblems', () => {
       '# 推敲：已毕业\n\n> 状态：已关闭\n', 'utf8')
     // _closed_plans README 不点名它
     expect(backlogLivenessProblems(backlog).some(p => p.includes('260928-gone.md') && p.includes('index'))).toBe(true)
+  })
+})
+
+// ── backlog graduation（2026-10-08 读四张卡发现：liveness 只能证明卡活着，看不见"毕业了没走"）──
+
+describe('backlogGraduationProblems', () => {
+  function bootPlans(dir) {
+    mkdirSync(join(dir, 'plans'), { recursive: true })
+    writeFileSync(join(dir, 'plans', 'README.md'), '# plans\n\n| 卡 |\n|---|\n', 'utf8')
+  }
+  const card = (dir, name, statusLine) =>
+    writeFileSync(join(dir, 'plans', name), `# 推敲：demo\n\n> ${statusLine}\n`, 'utf8')
+
+  it('accepts cards whose gate is still open, including the honest human-pending shape', () => {
+    const backlog = temp('grad-ok-')
+    bootPlans(backlog)
+    card(backlog, '261007-waiting.md', '立卡：2026-10-07 ｜ 状态：推敲中｜毕业门判断 = **该做，四片全交付**｜**剩毕业门最后一环：用户终验**')
+    card(backlog, '261007-input.md', '立卡：2026-10-07 ｜ 状态：推敲中｜毕业门判断 = 待定｜下一步 = 合成诉求')
+    card(backlog, '261007-trigger.md', '立卡：2026-10-07 ｜ 状态：推敲中｜毕业门判断 = 待触发（30 天判据）')
+    card(backlog, '261007-reserved.md', '立卡：2026-10-07 ｜ 状态：推敲中｜毕业门判断 = 待用户判触发（🔒）')
+    card(backlog, '261007-dropped.md', '立卡：2026-10-07 ｜ 状态：推敲中｜毕业门判断 = 倾向放弃')
+    expect(backlogGraduationProblems(backlog)).toEqual([])
+  })
+
+  it('rejects a card that declares its gate passed (毕业门 = 已过) but stays on the active shelf', () => {
+    const backlog = temp('grad-gate-')
+    bootPlans(backlog)
+    card(backlog, '261007-split.md', '立卡：2026-10-07 ｜ 状态：**S1+S2 已交付**｜毕业门 = 已过（S2 活体门有一项如实阻断）｜下一步 = 另立修复')
+    const problems = backlogGraduationProblems(backlog)
+    expect(problems).toHaveLength(1)
+    expect(problems[0]).toContain('261007-split.md')
+    expect(problems[0]).toContain('_done/_closed_plans')
+  })
+
+  it('rejects a status field that is itself a completion word', () => {
+    const backlog = temp('grad-status-')
+    bootPlans(backlog)
+    card(backlog, '261007-done.md', '立卡：2026-10-07 ｜ 状态：**已毕业**｜下一步 = 归档')
+    expect(backlogGraduationProblems(backlog).some(p => p.includes('261007-done.md'))).toBe(true)
+  })
+
+  it('does not red-line partial delivery: 已交付 must terminate the status field to count', () => {
+    const backlog = temp('grad-partial-')
+    bootPlans(backlog)
+    // S1 落地、S2 未动——这是活跃卡，不是毕业卡。旧写法（[^｜]*已交付）会误杀它。
+    card(backlog, '261007-half.md', '立卡：2026-10-07 ｜ 状态：**S1 已交付，S2 进行中**｜毕业门判断 = 待定')
+    expect(backlogGraduationProblems(backlog)).toEqual([])
+  })
+
+  it('reports the active-index residue and ignores completion talk below the hukou band', () => {
+    const backlog = temp('grad-band-')
+    bootPlans(backlog)
+    card(backlog, '261007-indexed.md', '立卡：2026-10-07 ｜ 状态：**已毕业**｜下一步 = 归档')
+    writeFileSync(join(backlog, 'plans', 'README.md'),
+      '# plans\n\n| 卡 |\n|---|\n| [261007-indexed.md](261007-indexed.md) |\n', 'utf8')
+    expect(backlogGraduationProblems(backlog)[0]).toContain('active list')
+
+    // 正文深处引用一个"已过"的门不构成毕业：只读 hukou 段（前 12 行）。
+    const deep = temp('grad-deep-')
+    bootPlans(deep)
+    writeFileSync(join(deep, 'plans', '261007-deep.md'),
+      `# 推敲：demo\n\n> 立卡：2026-10-07 ｜ 状态：推敲中｜毕业门判断 = 待定\n${'\n'.repeat(12)}## 证据面\n\nS1 的毕业门 = 已过，S2 待定。\n`, 'utf8')
+    expect(backlogGraduationProblems(deep)).toEqual([])
   })
 })
 

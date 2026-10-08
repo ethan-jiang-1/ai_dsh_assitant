@@ -18,7 +18,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { agentsMdStabilityProblems, backlogLivenessProblems, clientScriptSafetyProblems, commandAliasProblems, configParseProblems, dependencyPoseProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, GRADUATED_STATUS, implementedAlternativesProblems, languageGuardProblems, notesNamingProblems, notesStateProblems, notesTopLevelProblems, pinProblems, machineLocalPathProblems, playbookFrontmatterProblems, relativeLinkProblems, skillFrontmatterProblems, startPathProblems, testAssetNamingProblems, textHygieneProblems, vendorClientFreshnessProblems } from './verify-checks.mjs'
+import { agentsMdStabilityProblems, backlogGraduationProblems, backlogLivenessProblems, clientScriptSafetyProblems, commandAliasProblems, configParseProblems, dependencyPoseProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, GRADUATED_STATUS, implementedAlternativesProblems, languageGuardProblems, notesNamingProblems, notesStateProblems, notesTopLevelProblems, pinProblems, machineLocalPathProblems, playbookFrontmatterProblems, relativeLinkProblems, skillFrontmatterProblems, startPathProblems, testAssetNamingProblems, textHygieneProblems, vendorClientFreshnessProblems } from './verify-checks.mjs'
 import * as gateCores from './verify-checks.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
@@ -298,6 +298,12 @@ check('notes: note files follow YYYY-MM-DD-topic naming', () =>
 
 check('backlog: liveness (status lines, institution dirs, index membership)', () =>
   backlogLivenessProblems(join(repoRoot, '_backlog')))
+
+// The mirror of the notes/proposed queue check above: a plan card that judged its own gate
+// satisfied must not keep occupying the active shelf. Liveness proves a card is alive; this
+// proves it is not a graduate that forgot to leave.
+check('backlog: graduated plans leave the active shelf', () =>
+  backlogGraduationProblems(join(repoRoot, '_backlog')))
 
 check('structure: dev tooling never inherits DSH_HOME', () =>
   dshHomeInheritanceProblems(walk(join(repoRoot, 'dev'), ['.mjs'])))

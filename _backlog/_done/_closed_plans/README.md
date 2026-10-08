@@ -7,6 +7,7 @@
 
 | 卡 | 关闭日 | 判定 |
 |---|---|---|
+| [261007-bigfile-split.md](261007-bigfile-split.md) | 2026-10-08 | 毕业为已交付：S1 host 切片（`c803726`，index 1178→288）+ S2 client 拆分+tsdown（`1f4e07e`，2950→13 模块），行数判据与全套门达成。**一处阻断随卡冻结、不吸收**：`web-expected` blank 场景夹具前置腐烂（A/B 实证新旧 bundle 同型漂移，S2 无罪），修复归 snapshots owner 面，修复前该场景不可判。归档触发 = 新增 `backlog: graduated plans leave the active shelf` 门禁点名滞留 |
 | [261007-process-budget-audit.md](261007-process-budget-audit.md) | 2026-10-07 | 毕业为该做并执行完毕：处置表六行全交付（#1 AGENTS 隔离命令串下沉 dev.md、#2 地板张力判定不成立记触发、#3 五技能五要素核对全齐、#4 入口链走查 PASS、#5 docs 预算维持既有 ⏸、#6 驾驭者认知成本第五判据进 discipline 复查环）→ [实施 note](../../../notes/implemented/2026-10-07-dsh-corpus-absorption.md) B1 节；#2/#5 触发条件以本表为家 |
 | [261007-dsh-corpus-absorption-audit.md](261007-dsh-corpus-absorption-audit.md) | 2026-10-07 | 毕业为该做（用户点名全量审计 + 瘦身方向）：三卷 230+ 机制六态对照收卷——静态层三问全 PASS，缺口定位动态闭环三环 + 驾驭者成本面 → 用户批准后落地为 [实施 note](../../../notes/implemented/2026-10-07-dsh-corpus-absorption.md)；[收卷台账](../../../notes/archived/research/2026-10-07-dsh-corpus-absorption-audit.md) |
 | [261005-sdlc-turnaround-cleanup.md](261005-sdlc-turnaround-cleanup.md) | 2026-10-06 | 毕业为该做并执行完毕：六面收口（机制/数据处置表 v2、门禁预算表 v1 零退役、gen-catalog devPatch 修复、演示面并入新 UX、文档面五轮审计 8 修、两探索问题定案）→ [SDLC 收口 note](../../../notes/implemented/2026-10-06-sdlc-campaign-closeout.md) |

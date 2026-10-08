@@ -900,6 +900,65 @@ export function backlogLivenessProblems(backlogRoot) {
 }
 
 /**
+ * Backlog graduation: a plan card that has judged itself finished must leave the active shelf.
+ *
+ * This is the backlog's mirror of the queue check that evicts digested proposals from
+ * notes/proposed/. The hole it closes is real and was found by reading the four cards on
+ * 2026-10-08, not by a failure: `backlogLivenessProblems` proves a card is *alive* (status line,
+ * index membership) and can therefore never notice that a card judged itself done and stayed.
+ * Two cards sat in plans/ claiming completion while plans/README.md still listed them as active.
+ *
+ * Scope discipline — why this reads 毕业门 and not 状态:
+ *   · 状态 on a plan card is the *deliberation* state (推敲中) and may legitimately stay
+ *     "推敲中" for a card whose four gates judged 该做 but whose last row is a human sign-off.
+ *     Keying on GRADUATED_STATUS here would red-line honest waiting cards.
+ *   · 毕业门 is the field that carries the judgment, so 已过 / 已通过 / 已毕业 there means the card
+ *     has already reached its destination and the move to _done/ is a bookkeeping residue.
+ *   · A card whose gate says 待定 / 待触发 / 倾向放弃 / 🔒 is *not* finished and never trips this.
+ *
+ * Human-pending is deliberately NOT a completion word. "该做，四片全交付" + "剩毕业门最后一环：用户
+ * 终验" is a card that did all its slices and is waiting on a person — the arithmetic of "全交付"
+ * looks final, but the card is not done, so the pattern keys on the *gate field's own* verdict
+ * (已过) rather than on delivery adjectives appearing anywhere in the line.
+ *
+ * @param {string} backlogRoot - path of the _backlog/ directory.
+ */
+export function backlogGraduationProblems(backlogRoot) {
+  const problems = []
+  const plansDir = join(backlogRoot, 'plans')
+  if (!existsSync(plansDir)) return problems
+
+  // The gate field carries the judgment, so a satisfied gate is the primary signal.
+  const GATE_DONE = /毕业门(?:判断)?\s*[=＝]\s*\**\s*(?:已过|已通过|已毕业)/
+  // A status field that *is* a completion word ("状态：**已毕业**"). Anchored immediately after the
+  // field label, so "状态：推敲中｜毕业门判断 = 该做…" can never match by reaching across the ｜.
+  const STATUS_DONE = /状态：\**\s*(?:已全部实施|已消化|已毕业|已完成|已实施)/
+  // "已交付" is ordinary mid-flight wording ("S1 已交付，S2 进行中"), so it counts only as the
+  // *terminal* content of the status field — the shape a card uses once every slice has landed.
+  // Without the lookahead this pattern red-lines every partially delivered card and gets turned off.
+  const STATUS_DELIVERED = /状态：\**\s*[^｜|\n]*已交付\**\s*(?=｜|$)/
+  const signals = [GATE_DONE, STATUS_DONE, STATUS_DELIVERED]
+
+  const plansIndex = join(plansDir, 'README.md')
+  const index = existsSync(plansIndex) ? read(plansIndex) : ''
+
+  for (const entry of readdirSync(plansDir, { withFileTypes: true })) {
+    if (!entry.isFile() || !entry.name.endsWith('.md') || entry.name === 'README.md') continue
+    // Only the hukou band is read: a card may legitimately *discuss* completion deeper in its
+    // body (an evidence section quoting a passing gate) without being finished.
+    const head = read(join(plansDir, entry.name)).split('\n').slice(0, 12).join('\n')
+    if (!signals.some(pattern => pattern.test(head))) continue
+    const stillListed = index.includes(entry.name)
+    problems.push(
+      `_backlog/plans/${entry.name} declares its graduation gate satisfied but still sits in plans/` +
+      `${stillListed ? ' and is still named by plans/README.md\'s active list' : ''}` +
+      ` — graduate it with \`git mv\` to _backlog/_done/_closed_plans/ and add its index row`,
+    )
+  }
+  return problems
+}
+
+/**
  * Test-asset naming: the file shapes under the package tests tree and the web-face scene
  * tree must match the naming table in docs/testing.md ("新增测试资产形态先入本表再落文件").
  * Code files that are neither spec nor harness would still RUN or sit silently outside

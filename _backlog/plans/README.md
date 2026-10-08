@@ -10,6 +10,13 @@
 > 名册与树的互查由 `backlog-liveness` 门禁双向把守（2026-10-02 借鉴自 ai_dsh_loop_advisor：
 > 名册会漂移的老问题，靠"有门禁看守的名册"解决——notes/ 不设索引是因为那里没有这门禁，两者不矛盾）。
 > 毕业判断看各卡状态行。
+>
+> **毕业了就得走**：`状态` 是**推敲**态，完成判断在 `毕业门` 字段——一旦它写 `已过`，卡已到站，
+> 迁移只是记账残尾。`backlog: graduated plans leave the active shelf` 门禁（2026-10-08 补，见
+> [治理 note](../../notes/implemented/2026-10-02-backlog-governance-borrow.md)）会点名滞留者，
+> 因为 liveness 只能证明卡**活着**，看不见"毕业了没走"。
+> **人待不是完成词**：`该做，四片全交付` + `剩毕业门最后一环：用户终验` 仍是活跃卡——
+> 四门最后一环没走完前不得归档，门禁也不逼你谎报。
 
 ## 活跃清单
 
@@ -18,7 +25,6 @@
 | [261006-chief-of-staff-experience.md](261006-chief-of-staff-experience.md) | 一把手的总助——用户体验重设计：从「空白聊天框」到「打开即见简报+跟进+知识积累」 | 四 Goal 全交付（形态层 note 已落，行为层由 261007 补完）；与 261007 共用「用户终验」毕业门 |
 | [261007-opening-brief-and-rhythm.md](261007-opening-brief-and-rhythm.md) | 它先开口——开屏播报（替换 auto-send）、拍板感、周节律：体验弧线行为层收口（2026-10-07 真机走查三 P0 断点 + 内容物错位的消化） | 四片全交付，implemented note 已落；剩用户终验即毕业 |
 | [261007-input-boundary.md](261007-input-boundary.md) | 输入边界——晨报与周坐的料从哪来（碎片收件箱/文件投递/CSF/纯仪式四候选；不接外部数据源红线下的喂入通道设计） | 推敲中；毕业出路 = proposed 卡呈批 |
-| [261007-bigfile-split.md](261007-bigfile-split.md) | 两大文件拆分——S1 host 切片（index 1178→288）+ S2 client 拆分+tsdown（2950→13 模块）均已交付，全套门绿（web-expected 一项阻断如实归因：场景夹具前置腐烂，独立修复）；2026-10-07 走查残留③ | 已交付；待办 = blank 场景夹具修复归 snapshots owner |
 
 ## 🔒 保留卡（用户判触发）
 
