@@ -2,6 +2,10 @@
 
 日期：2026-10-08 · 状态：**implemented**
 
+本轮外部结果：触发 = 用户复核后授权校准，并要求按逻辑拆文；用户得到 = README 渐进披露入口
+与澄清/探针/收口三份 SKILL 形态草稿；完成条件 = 本仓产物落点、四门与授权边界正确，
+需求阶段没信心就请真人确认，链接/语法检查与独立场景复核通过。方法尚未经过真实事项试用。
+
 来源：用户指示"需要借鉴 `mattpocock-skills/_faq_on_digest/09_skills-for-requirements-engineering-of-agent-apps`
 ——我们的 `_backlog/` 下需要特别的 playbook 来帮助我们如何推敲出需求／寻找合理的结构等
 产品经理／架构师的东西，最后内容进入 plans"；并在形态追问上拍板："**还是放在 `_backlog/playbooks_plan/`
@@ -25,17 +29,18 @@
 
 ## 提案（已交付）
 
-1. **新推敲区 `_backlog/playbooks_plan/`**——`_backlog/` 的第四个家，装**方法本身**：
-   - `README.md`（账本 + 留区契约）：为什么有这个区（与 `plans/`/`reference/`/章程刻意不重叠的
-     判据表）、文件形态、命名、无状态行、**毕业即搬走**（`git mv` → `.agents/skills/<name>/SKILL.md`）、
-     与在役技能同名不许并存、**空想的方法不进**（须已在至少一轮真实推敲里被用过）。
-   - `requirements-elicitation.md`——SKILL 形态草稿（frontmatter `name`/`description`/`whenToUse`，
-     英文）。**形态 = 路由器**：主体是一张「哪种未知 → 哪个真技能」表（`grilling` / `domain-modeling`
-     / `prototype` / `research` / `to-questionnaire` / `codebase-design`），并显式声明
-     "**路由不复制、协议读技能本体**"；本仓自己的半边是产出落点（`plans/` → 毕业四门 →
-     `notes/proposed/`，**永不跳过、永不排期**）与 agent 应用专属提问类（**自主权边界**逐动作问 +
-     **失败路径**：答错/不确定/拒绝/幻觉）。
-   - **第二轮重写补进的承重机制**（首版全缺——它们只在技能源文件里，不在 FAQ 摘要里）：
+1. **推敲方法演练场** [playbooks_plan](../../_backlog/playbooks_plan/README.md)：
+   - README 是中文阶段路由、索引与留区契约；只在对应缺口出现时披露下一篇。
+   - [requirements-elicitation](../../_backlog/playbooks_plan/requirements-elicitation.md)：入口、
+     confidence gate、动态技能加载、访谈/术语映射、大想法决策地图。
+   - [requirements-probes](../../_backlog/playbooks_plan/requirements-probes.md)：research / questionnaire /
+     prototype 三探针与单独标明的 raw-request triage 入口，结果回消费卡。
+   - [requirements-synthesis](../../_backlog/playbooks_plan/requirements-synthesis.md)：编译、
+     在授权规划范围内评估候选切片、四门判断、跨会话依据保留。
+   - 三篇带 `name`/`description`/`whenToUse`，英文，输入/步骤/产物/完成或等待条件可识别。
+     有源但未试用的用户点名适配可以留区；真实试用是毕业条件。毕业时重校链接与调用方式，
+     不保留在役/草稿同名两份，不能宣称只要移动就零改动。
+   - **第二轮查证记录（机制曾内联进长稿，现改由各篇读取本体；以下是历史查证，不是当前协议）**：
      `grilling` 的**设计树**与轮次格式（编号 + 每题附推荐答案 + 前置未定的问题归后轮）、
      **facts-are-yours 且运行中的事实探查本身就是未定前置——只阻塞其下游问题、不阻塞本轮**、
      **完成判据 = frontier 空**（非"用户不再反对"）；`wayfinder` 的 **destination 先行 / fog of war
@@ -45,15 +50,15 @@
      blocking edges / 宽重构走 expand–contract / 向用户复核拆解**；`prototype` 的 **LOGIC 与 UI
      两分支、"一次性代码不等于一次性答案"——验完保留为 primary source**；`to-questionnaire` 的
      **面试「发出去」而非「主题」**；`domain-modeling` 的 **ADR 三条件**。
-   - **能力可得性如实标注**：本会话技能目录里可用的是 `grilling`/`domain-modeling`/`prototype`/
-     `research`/`codebase-design`/`writing-for-agents`；**`to-questionnaire` 与 `wayfinder` 不在**，
-     故这两项正文只承载本页摘要、并明说"不得暗示已运行它们"；全量源文件在
-     `/Users/bowhead/mattpocock-skills/skills/`，能读文件但不能调技能的会话可退到那里。
+   - **第二轮能力快照（仅历史；第四轮已撤出方法正文）**：当时 catalog 可用 `grilling` /
+     `domain-modeling` / `prototype` / `research` 等，未发现 `to-questionnaire`、`wayfinder`。
+     把这写成“正文摘要是唯一降级”是错法；当前动态核查，缺失先报告排查，可读完整本体时
+     显式采用读源适配，不能冒称注册调用。源码位置 `/Users/bowhead/mattpocock-skills/skills/`。
 2. **留区语法门 `playbookFrontmatterProblems`**（新纯核，`verify` 链内并入既有
    `contract: skill files carry valid frontmatter` 一查）：两个在役 home 是 `<name>/SKILL.md` bundle
    形态，`skillFrontmatterProblems` 够不到扁平 `<name>.md` 的演练场——**这是本切片自查时发现的
    真实缺口**：门原来不覆盖留区，草稿可以带着坏 frontmatter 躺到毕业那天才炸。新核对
-   `name` == 文件名 basename（保证毕业是纯 `git mv`）、`description`/`whenToUse` 非空、
+   `name` == 文件名 basename（保持未来技能名稳定；移动仍需重校链接与调用）、`description`/`whenToUse` 非空、
    YAML 可解析，`README.md` 豁免，目录缺失不算问题。
 3. **接线**：`_backlog/README.md` 章程加目录树行 + 「推敲方法区（playbooks_plan/）」一节；
    区 README 建索引。
@@ -94,6 +99,14 @@
    冻结区的历史正文按断链门同样惯例不动（`_done/` 留着当时的写法），只扫四个活区 + 区 README。
 10. **沿用内联逻辑、不给该查补夹具**：输给"内联闭包无法被驱动"——正因如此它此前零夹具；
     抽成 `machineLocalPathProblems(corpus)` 后语料与判据分离，才谈得上走真 runner 的接线夹具。
+11. **一篇逐条汇编上游协议并再次复制 do/don't**：输给实际操作不可见且上下文负担大；
+    用户要求逻辑拆文。入口/探针/收口按分支披露，各篇有独立输入与完成线，详细协议回本体。
+12. **需求不确定时用技术自主权拍板、缺技能时用摘要继续**：输给用户明确的 confidence gate
+    与上游发现前置；查证归 agent，不确定判断归真人，缺能力的事实必须公开，不能冒称已调用。
+13. **所有结果进入 proposed、所有候选必须多方案、空 frontier 即完成**：输给本仓四门与真实
+    证据；拒绝/延后/消化各有家，备选不能编造，待查事实阻断时无可答问题不等于完成。
+14. **按长度平均切文**：输给用户要求的逻辑切割；按工作阶段/证据缺口切，README 指明何时读，
+    三篇共享入口的 confidence/loading 规则而不在每篇各抄一套。
 
 ## 刻意不借（负知识，登记进区 README 留区契约）
 
@@ -131,7 +144,45 @@
   **上游 checkout 的绝对位置**（本仓纪律：只留 `notes/`）：
   `/Users/bowhead/mattpocock-skills`，技能源在 `skills/{engineering,productivity}/`。
 
+## 第四轮：从协议汇编改为本仓接力与渐进披露
+
+用户授权复核后调整，并补充“需求阶段，如果没有信心，还是依赖人”，随后要求把长篇按逻辑
+拆分、README 做渐进披露。本轮不安装技能、不加门禁、不改产品运行时。
+
+**约束 → 适配 → 依据**：
+
+- FAQ 嵌入指南的“引擎/容器、功能补短板、逐个验证” → README 按入口/探针/收口披露，
+  各篇只写本仓执行步骤与覆盖默认落点，不再两遍复述上游协议；完整本体和资源仍须读取。
+- 需求判断不确定 → 先查证能查事实，仍缺信心时明确疑点、影响、证据与要人确认的问题；
+  确认前不定案，独立工作可继续。技术自主权不绕 gate，假设被确认不等于事实被证实。
+  特别覆盖 prototype 本体的“人不在时按上下文猜”fallback，本仓需求阶段不按它猜。
+- 上游全局可发现前置 → 动态核 catalog，缺失作为发现故障只读排查；完整本体可读时
+  如实声明“读源适配、未调用注册技能”，不可读时阻断该分支。无会话名单缓存、无摘要模仿。
+- glossary/ADR/issue tracker/ready 标签 → 本仓卡、reference、现有 home/identity/architecture/
+  模块 owners 与 note 生命周期；候选不提前写当前合同，原型不默认并产品，ready 不等于授权。
+- 上游 no-paths 与连续上下文 → 禁易腐烂实施配方，但保留本仓证据链接与验收命令；
+  保持同份对齐依据、跨会话读卡与证据，不宣称能禁止 harness 自动压缩或固定 token 阈值。
+- frontier 空 → 无 pending 且 shared understanding 确认才算访谈完成；pending lookup/人答
+  使当前无可答问题只算等待。拒绝/决定延后不逼出完整建造 spec；四门及既有授权豁免仍在。
+- 留区需试用与“现有草稿尚未试用”的矛盾 → 有源用户点名适配可留草稿，真实试用才毕业；
+  毕业跨目录须修链接/披露路由，撤回“纯 git mv 即零改动”。章程与区契约同步。
+
+核查本体：`grill-with-docs` 的组合调用、`grilling` 的 shared-understanding 确认、
+`domain-modeling` 的文件默认、`research` 的来源与 repo convention、`to-questionnaire` 的 send、
+`prototype` 的分支资源/猜测 fallback/保留 primary source、`triage` 的五状态及否决记录、
+`wayfinder` 的决策图、`to-spec`/`to-tickets` 的编译/切片/publication、`ask-matt` 的上下文规则。
+基线仍 `fad9000`；这些是本体读取核查，不是声明上游技能都已注册或实际运行。
+
 ## 验证（真跑过的命令）
+
+**第四轮（仅文档，未改门禁/产品）**：`pnpm verify` → 35 checks passed，生成物 freshness 也绿；
+`pnpm typecheck` → exit 0；`pnpm test` → 50 files / 411 tests passed。
+独立只读复核已读三篇与 README，并按六场景逐项核对：低信心技术建议、缺技能但本体可读、
+外部 raw request、无 pending 的拒绝、pending lookup 导致 frontier 空、大想法跨会话。
+复核提出的独立 Input 和 gate/load 前置已补齐；引用路径另由门禁核对。
+这些只证明文档形状、路由与纸面边界，不替代真人真实事项试用。
+
+**此前轮次的原始证据**：
 
 - `node scripts/checks/verify.mjs` → **35 checks passed**（改动前 35、改动后 35：新核并入既有
   一查，不增检查条数）。
@@ -180,7 +231,8 @@
   用户得到 = `_backlog/playbooks_plan/` 下一份可调整的 SKILL 形态 playbook（README 契约 + 
   `requirements-elicitation.md` 草稿），以及留区草稿不再能带坏 frontmatter 的语法门；
   完成条件 = 方法成文、留区契约成文、语法门造红证绿、章程接线、`typecheck`+`test`+`verify` 全绿。
-- **签收方式**：待用户过目（本切片产出即"可调整"的草稿，调整本身就是它的用途）。
+- **本轮签收证据**：新上下文只读复核已完成，六个边界场景均有明确路由；机器证据见第四轮记录。
+  用户得到的仍是可调整草稿，真实事项试用未完成，不把文本审查说成需求效果已验证。
 - **未跑项如实列出**：`pnpm build` / `release-smoke` / `eval`（理由见上）；playbook 尚未在真实推敲
   里被用过一轮——**这是它仍留草稿区、未毕业为技能的原因**，毕业触发 = 一到两轮真实推敲的校准。
 - **复发追问**：本切片暴露的"新家建了但门没跟上"（门只扫两个在役 home、够不到新留区）是一类
