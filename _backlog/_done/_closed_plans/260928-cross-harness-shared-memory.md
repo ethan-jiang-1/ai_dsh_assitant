@@ -4,7 +4,7 @@
 
 ## 背景 / 触发
 memory 房间是人可读文件，天然可共享；问题在并发写与消费方契约。
-形态参照 [R1 的 memsearch 调研](../../../notes/archived/research/2026-09-24-r1-memory-ecosystem-survey.md)。
+形态参照 [R1 的 memsearch 调研](../../../notes/implemented/2026-09-24-session-log-memory.md)。
 
 ## 毕业门
 第二消费方立项 → 推敲共享契约（锁/格式/所有权），毕业为 RFC。

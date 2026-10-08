@@ -1,6 +1,6 @@
 # 2026-09-24 · 身份与引导文件：SOUL.md + AGENTS.md（抄 Hermes 的形状，落 DSH 的地）
 
-日期：2026-09-24 · 状态：**implemented（同日拍板 D1/D2/D3=a 并落地，红绿与真组合断言在案）** · 依据：[Hermes 调研 r4](../archived/research/2026-09-24-r4-hermes-identity-survey.md)
+日期：2026-09-24 · 状态：**implemented（同日拍板 D1/D2/D3=a 并落地，红绿与真组合断言在案）** · 依据：[Hermes 调研 r4](2026-09-24-soul-and-agents.md)
 
 ## 问题
 

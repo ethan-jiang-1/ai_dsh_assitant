@@ -2,7 +2,7 @@
 
 日期：2026-10-08 · 状态：**implemented**
 
-> 承接：[语料吸收审计](../archived/research/2026-10-07-dsh-corpus-absorption-audit.md) R2 的现场实证——
+> 承接：[语料吸收审计](2026-10-07-dsh-corpus-absorption.md) R2 的现场实证——
 > breakdown 同签名两度红（[BUG-001](../../_backlog/_done/_fixed_bugs/BUG-001-eval-behavior-tasks-red.md) →
 > [BUG-003](../../_backlog/_done/_fixed_bugs/BUG-003-eval-floor-red.md)）暴露「修复→判据钉住复发」缺一环；
 > 用户批准的 Goal A 切片 2/3（呈批对话 2026-10-08）。
@@ -16,7 +16,7 @@
    判据钉住复发了吗。推荐不门禁——与 A4 同口径（语义判断不门禁化，本 note 即 [A4 note](2026-10-07-dsh-corpus-absorption.md)
    的部分取代扩展，双方互链）。
 3. **扫描判据收卷**：第一轮对抗性语义扫描（12 发现）的八维判据清单收卷为
-   [research 台账](../archived/research/2026-10-07-semantic-sweep-criteria.md)；**立技能触发 =
+   [research 台账](2026-10-08-recurrence-tracking.md)；**立技能触发 =
    第三次同型扫描**（重复即建进度 1/3），届时按 DSH `dsh-code-review` 骨架立薄技能，在那之前不预建。
    本 note 是该触发条件的活家（deferred-with-trigger），冻结台账只存判据。
 

@@ -20,7 +20,7 @@
 **没有用户任务时不发明任务**——报告家况，或按点名的卡推敲/实施；不要从 git log 或记忆发明任务。
 重大未来工作先在 `_backlog/plans/` 推敲，成熟并进入跨会话实施前用 `notes/proposed/` 显式承载；已授权局部编辑与轮内交付决定的 note 义务按 `notes/README.md`，不为小修立空壳卡或重复呈批。
 **开工先定外部结果**：非机械任务动手前先落**外部结果三要素**——触发条件 / 用户看到或得到什么 / 完成条件（载体 = plan 呈批或切片卡首节；实现选择不先于意图定义，交付记录按它收口）；机械/局部编辑豁免（与 note 义务豁免同口径）。
-深评/调研卡住 `_backlog/plans/`，收卷证据台账住 `notes/archived/research/`，卡片链接之——看不见的工作等于没在做。
+深评/调研卡住 `_backlog/plans/`。收卷后还会被重提的事实写进决定 note，不另留调研目录——看不见的工作等于没在做。
 代码里的 `TODO/FIXME` 不立项，只在代码内；`_backlog/plans/` 调研卡是证据面，不是工作项。
 **Note 的义务、取代检查与生命周期以 [`notes/README.md`](notes/README.md) 为唯一权威**（何时写、输掉的方案、
 rejected 政策、命名——本文件不复制）；改行为、契约或开发流程前，按任务链接或机制名查相关 notes。
@@ -42,8 +42,8 @@ rejected 政策、命名——本文件不复制）；改行为、契约或开�
 |---|---|---|
 | `packages/dsh-smart-assistant/` | **插件包**（bundle）：入口×平面、自有四工具×动词、组合行、pin 与依赖姿态见生成物 `docs/package-catalog.md`；包内 owner 面与纪律见其 `AGENTS.md` | 改模型可见面 / 服务 / 布局动这里 |
 | `docs/` | **当前合同**（只写现在，无历史）—— 文档 tier 与"谁拥有什么"见其 `AGENTS.md` | 门禁住了的事实进这里 |
-| `notes/` | **开发记忆与证据链**（分类 owner：`notes/README.md`）：`proposed/` 将来 → `implemented/` 当前权威 → `archived/` 冻结历史（含 `research/` 收卷调研台账）；`rejected/` 存负知识与一行原因 | 决策与输掉的方案进这里 |
-| `_backlog/` | **推敲空间**：正式加工前的四问推敲（该不该/何时/次序/放弃）——plans 卡（`YYMMDD-slug`，含调研卡）+ bugs 卡，只装判断材料、**永不调度**；毕业四门与铁律见其 `README.md`；活触发器索引 `triggers.md`（收割/走查/收口扫一眼） | 收割/走查/对话中值得推敲但未到裁决的思考在此立卡 |
+| `notes/` | **开发记忆与证据链**（分类 owner：`notes/README.md`）：`proposed/` 将来 → `implemented/` 当前权威 → `archived/` 冻结历史；`rejected/` 存负知识与一行原因 | 决策与输掉的方案进这里 |
+| `_backlog/` | **推敲空间**：正式加工前的四问推敲（该不该/何时/次序/放弃）——plans 卡（`YYMMDD-slug`，含调研卡）+ bugs 卡，只装判断材料、**永不调度**；毕业四门与铁律见其 `README.md`；`triggers.md` 只收工作里会撞上的观察（收割/走查/收口扫这张短表） | 收割/走查/对话中值得推敲但未到裁决的思考在此立卡 |
 | `dev/` | 开发 home 与 profile patch —— 双 home 与两个 profile 的纪律见其 `AGENTS.md` | 环境问题动这里（手册 owner：`docs/dev.md`） |
 | `scripts/` | 机械门禁与生成器 —— 门禁三条纪律与 freshness 约定见其 `AGENTS.md` | 门禁问题动这里 |
 | `snapshots/` | 行为回归的证据面——只收边界与现状见其 `AGENTS.md` 与 `README.md` | 回归证据问题动这里 |

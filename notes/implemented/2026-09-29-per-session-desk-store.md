@@ -38,7 +38,7 @@ R11 实测：store 被所有绑定 tab 共享、行匹配只按裸 rowId——A 
   不结算 A 的 pending（settle 按 (session, generatedAt)）、回执只落 A 片、停滞过期只释放发送方；
 - `pnpm build` 后全套 **288/288** 与 `pnpm verify` **29/29**（client 面规则：整套包级套件、
   fresh lib 上跑——假绿防护来自先 build 后 test 的顺序）。
-- 验收三轮机制面补钉（2026-09-29，[台账](../archived/research/2026-09-29-desk-store-acceptance-audit.md)）：
+- 验收三轮机制面补钉（2026-09-29，[台账](2026-09-29-per-session-desk-store.md)）：
   四夹具经导出面（`apply` + `loadDeskFor` + 假 remote）驱动——①认领路径（无人认领的扁平片服务任意
   会话、首个定向加载成功即认领、认领后不再服务陌生会话）；②认领竞态（双首发共享扁平序列，只有最新
   序列写入并认领）；③walk 换主 carry——**红→绿**：新夹具当场抓到 carry 经 `deskSlice(previous)`

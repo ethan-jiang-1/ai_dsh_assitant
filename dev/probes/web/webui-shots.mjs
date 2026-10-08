@@ -32,8 +32,8 @@
  *     [--dom] [--lang <bcp47>]
  *
  *   --out     target directory (default /tmp/dsh-webui-shots, created if missing).
- *             Evidence you want to cite from a note goes to notes/archived/research/… instead —
- *             snapshots/ is session-replay fixtures only.
+ *             A one-off capture stays in that directory. notes/ holds decisions, not screenshot
+ *             folders. snapshots/ is session-replay fixtures only.
  *   --name    file base name (default shot-<unix-ms>); one pair per --size.
  *   --size    viewport, repeatable (default 1600x1000). Use a narrow one (e.g. 420x900)
  *             to approximate the right-sidebar pane width when a desk tab is open.

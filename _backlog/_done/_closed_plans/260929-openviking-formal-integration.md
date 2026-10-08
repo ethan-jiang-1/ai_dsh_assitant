@@ -5,7 +5,7 @@
 
 ## 背景 / 触发
 
-- RFC 拍 A（引入）时刻意把「正式接入 preset」划为独立决策切片：试点隔离在 ov-trial 裸 profile，六步全绿（[验收台账](../../notes/archived/research/2026-09-29-openviking-acceptance-audit.md)、[二轮](../../notes/archived/research/2026-09-29-openviking-acceptance-audit-round2.md)），助手本体（`packages/dsh-smart-assistant`）零 openviking 行。
+- RFC 拍 A（引入）时刻意把「正式接入 preset」划为独立决策切片：试点隔离在 ov-trial 裸 profile，六步全绿（[验收台账](../../../notes/implemented/2026-09-29-openviking-adoption-rfc.md)、[二轮](../../../notes/implemented/2026-09-29-openviking-adoption-rfc.md)），助手本体（`packages/dsh-smart-assistant`）零 openviking 行。
 - 2026-09-29 用户拍板「肯定需要融合」并要求深度分析缝法。本卡 = 该决策切片的推敲现场，结论全部带源码/实测引证（插件 0.5.8 逐文件读 + vendor/dsh 两路只读调查 + 本机 dump-config/curl 亲验）。
 
 ## 已知与未决

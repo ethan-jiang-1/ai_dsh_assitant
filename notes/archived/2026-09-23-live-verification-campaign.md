@@ -109,7 +109,7 @@ I14 拿到第一批使用数据；R1/R2 两条线索开进家的 research/ 房�
   digest 进 system prompt + 工具真调用）；② B 段一（save→list→recall→curate 四连，先按 persona
   加载 memory-hygiene；curate 清洁返回）；③ B 段二（**新进程** recall 命中同一 id——I2 跨进程
   持久）。对照证据顺带到手：patch 未生效时的诊断跑 = 裸 agent 工具表（无 assistant 工具）。
-- **战役抓到两只产品面真虫（已修，`notes/implemented/2026-09-24-tool-source-and-counts.md`）**：
+- **战役抓到两只产品面真虫（已修：save/open 补 source，curate 渲染 counts）**：
   ① `save`/`open` 工具面缺 `source` 入参（服务层支持、词汇表没接——I9 来源可追对工具路径失效）；
   ② `curate` 的 render 丢 counts（结构化有、模型可见无）。修复后 live 红绿在案（source 写入
   frontmatter、counts 行出现在模型文本）。

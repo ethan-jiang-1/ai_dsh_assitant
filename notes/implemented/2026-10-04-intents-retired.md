@@ -3,9 +3,9 @@
 日期：2026-10-04 · 状态：**implemented**
 
 来源：用户 2026-10-04 拍板——"删了 notes/intents.md，不得不的重要的东西移到 README"。当日
-fresh-agent 信噪比审计给出三案（整抛 / 抛噪留宪 / 只更新数字），用户先选留宪、后改整抛。部分取代
-[intents-slimming](2026-10-02-intents-slimming.md) 的「保留为纯方向判据文件」决定；其 I1–I15 冻结档
-与 §六指针化两项不受影响。
+fresh-agent 信噪比审计给出三案（整抛 / 抛噪留宪 / 只更新数字），用户先选留宪、后改整抛。这推翻了
+早先「保留一份纯方向判据文件」的中间决定。I1–I15 的历史仍在
+[mechanism-intents 冻结档](../archived/2026-09-23-mechanism-intents.md)。
 
 ## 决定
 

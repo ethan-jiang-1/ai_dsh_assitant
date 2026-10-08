@@ -1,6 +1,6 @@
 # repo 可驾驭性：入口、验证与职责的分阶段整理
 
-日期：2026-10-05 · 状态：**implemented**（全部六段交付收卷：P0-P5 各段 note 链见下表；收卷证据 = [P5 验收 note](./2026-10-05-p5-navigability-acceptance.md)——新上下文 7 分钟五路全 PASS，四个文档缺口当日修复）
+日期：2026-10-05 · 状态：**implemented**（P0–P5 已交付。合同在 docs/architecture.md 与 docs/testing.md。P5 由新上下文 7 分钟走完五路，四个文档缺口当日修复）
 
 > 承接自[推敲卡](../../_backlog/_done/_closed_plans/261005-repo-navigability.md)（2026-10-05 毕业为该做，用户确认分段实施）。完整推敲史、八条承重事实、五项硬要求映射、运行态心智模型、状态分层与 run bundle 候选、迁移归属表与回退纪律都在卡上（冻结可查）；本提案只携带实施所需的方案骨架与验收。两份调研底稿随卡归档：[入口与工具库存](../../_backlog/_done/_reference/tech-exploration/261005-repo-entry-tooling-audit.md)、[测试资产审计](../../_backlog/_done/_reference/tech-exploration/261005-repo-test-asset-audit.md)。
 
@@ -12,14 +12,14 @@
 
 | 阶段 | 内容 | 状态 |
 |---|---|---|
-| P0 真实入口与地图 | `docs/architecture.md` 三链导航（启动链/模型请求链/浏览器动作链，逐节点真实源码链接）；五条功能路由（记忆保存/检索、知识草稿/批准/检索、提示词摘要、桌面刷新、插件装载——各给规则与状态、实现入口、最低验证命令、失败看什么）；空 `agent.cordis.yml` 先搜消费者再处置 | **已交付**：大半随 `f25d686`；残尾（空文件处置 + 三链/路由）见 [P0 note](./2026-10-05-p0-entry-map-residue.md) |
-| P1 验证可信度 | 组合读真 shipped 配置、缺 build 显式红、资产守卫递归、runner 身份钉住 | **已交付**：[P1 note](./2026-10-05-p1-validation-trustworthiness.md) |
-| P2 研发工具归位 | scripts 与 dev 的工具按目的归位：dev 下分 env、profiles、probes（session/web）、fixtures、eval、reports、deploy、experiments 职责子目录，scripts 下分 checks、generate、release、maintenance 四类（精确迁移归属表见卡）；**先试点一片再扩展**；运行 home 原地保留 | **已交付**：五片 + 两处纪律适配，见 [P2 note](./2026-10-05-p2-tooling-home.md) |
-| P3 测试资产分层 | 按底稿逐 spec 迁入包测试树的 domain、host、agent、composition、client、tooling 职责子目录、support 单独；迁前后 Vitest 发现集合一一对应 | **已交付**：六片迁移 + 六层命令实跑 + 分层合同落 docs/testing.md，见 [P3 note](./2026-10-05-p3-test-asset-layering.md) |
+| P0 真实入口与地图 | `docs/architecture.md` 三链导航（启动链/模型请求链/浏览器动作链，逐节点真实源码链接）；五条功能路由（记忆保存/检索、知识草稿/批准/检索、提示词摘要、桌面刷新、插件装载——各给规则与状态、实现入口、最低验证命令、失败看什么）；空 `agent.cordis.yml` 先搜消费者再处置 | **已交付**：空壳 preset 文件删除；三链与五条路由在 architecture.md |
+| P1 验证可信度 | 组合读真 shipped 配置、缺 build 显式红、资产守卫递归、runner 身份钉住 | **已交付**：组合断言读 shipped 行；缺构建物报错而不是 skip |
+| P2 研发工具归位 | scripts 与 dev 的工具按目的归位：dev 下分 env、profiles、probes（session/web）、fixtures、eval、reports、deploy、experiments 职责子目录，scripts 下分 checks、generate、release、maintenance 四类（精确迁移归属表见卡）；**先试点一片再扩展**；运行 home 原地保留 | **已交付**：工具按职责分家，根命令名不变 |
+| P3 测试资产分层 | 按底稿逐 spec 迁入包测试树的 domain、host、agent、composition、client、tooling 职责子目录、support 单独；迁前后 Vitest 发现集合一一对应 | **已交付**：分层合同在 docs/testing.md |
 
 **P3 分层套路（设计要点，2026-10-05 与用户对齐；落地时正文进 `docs/testing.md`）**：分层轴 = **被测 interface × 真实依赖半径**，不用 unit/integration/e2e 标签（冻结卡已判为伪完成——同一标签下纯核与真 IO 的失败含义不同，标签回答不了"要什么前置"）。**双层寻址**：后缀 = 车道（`*.spec.{ts,mjs}` 等保持，不发明新后缀），目录 = 被测 interface 家。**每层声明能证明/不能证明**（证据合同，testing.md 拥有）：纯核（domain 规则，无 IO）→ host 服务合同（真 cordis 构造 + 临时 home）→ agent 面合同（工具/段落/provider）→ composition（真 Loader 读真 shipped YAML + built lib）→ client 合同（classic-script 装置，无浏览器）→ 渲染期望（snapshots 两场景，真浏览器）→ 行为评测（eval，真模型判日志）；E2E 只做跨层验收，失败报告先分层归因再上浮。**四条不变式**：默认 `pnpm test` keyless 全绿且发现集合迁移前后一一对应；mock 白名单 = LLM/网络/时钟（边界下游全真）；live/浏览器/模型走各自显式入口不混默认车道；一个 spec 归最主要 interface、跨层依赖文件头注明。
-| P4 产品源码职责 | 包 src 按 domain、host、agent、client、dev 切分职责子树，一次动一个；exports/组合行/工具语义不变 | **已交付**：四片迁移 + 段末出口四证（release-smoke、dump-config 行身份、keyless replay 查日志、tarball 12/12 exports 解析零旧布局残留），见 [P4 note](./2026-10-05-p4-source-responsibility.md) |
-| P5 驾驭验收 | 新上下文只从根文档完成五条功能定位/验证/失败定位，真实证据记 implemented | **已交付**：五路全 PASS（7 分钟、95 断言实跑、无死链），四缺口当日修复，见 [P5 note](./2026-10-05-p5-navigability-acceptance.md) |
+| P4 产品源码职责 | 包 src 按 domain、host、agent、client、dev 切分职责子树，一次动一个；exports/组合行/工具语义不变 | **已交付**：根 index 是薄导出；exports 键不变 |
+| P5 驾驭验收 | 新上下文只从根文档完成五条功能定位/验证/失败定位 | **已交付**：五路全 PASS（7 分钟、95 断言实跑、无死链），四个文档缺口当日修复 |
 
 **稳定的外部 interface**（全程不变）：包名、工具名/动词、preset/组合行 id、`ctx.assistantMemory`、既有 package exports 子路径、根 pnpm 命令名、两个 profile 语义、默认 home/dataDir、存储格式。运行 home（`dev/harness-home`、`trial-home`）原地保留——源码/工具归位与数据迁移是两件事。
 
@@ -40,6 +40,11 @@
 5. 加 coverage/CI/通用场景框架——指标不等于可理解；先修实际遗漏与假绿。
 6. 搬所有 dev home 让树纯净——改凭据/日志/试用状态定位，收益不值数据迁移风险。
 7. 顺手修审批/学习/OV 行为——不同验收、扩散半径；如实标注现状回对应 owner。
+8. 空壳 preset 文件留着并加「已失效」说明——迁移决定已是删除，墓志铭仍是误导。
+9. 把 architecture 的链路插进已有节号，或把五条路由拆进 testing.md——活指针会漂，路由是运行知识，testing 链接过去。
+10. 组合断言用手写行清单、缺构建物时 skip、只钉主 runner——读不到 shipped 配置，假绿。
+11. 为凑目录在 agent 层发明空住户，或让门禁从子路径猜 src 布局——猜不中要响亮失败；exports 键是合同，不随目录改。
+12. 驾驭验收由写文档的人自己答——测不出文档能不能被新上下文读懂。
 
 ## 验收
 
@@ -50,4 +55,4 @@
 - 第一段（P0 残尾 + P2）：五条功能从根入口可达、循链无需普查（verify、diff-check）；工具消费者与 repoRoot/patch/fixture 路径全闭合、根命令名不变（JS check/shell 语法 + tooling spec + verify）；隔离 home prepare/setup、dump-config、keyless preset probe 验启动链；浏览器探针迁移须两场景实跑。
 - 后续段逐段立 goal 时按卡上出口核对：P3 迁移前后发现集合一一对应、无误收 support、composition 先 build；P4 出口/组合行/工具语义一致 + release-smoke + 从新 tarball 安装逐个解析公开 exports + 至少一次 keyless replay 经真实 preset 装载；P5 由新上下文无指引完成。
 
-本提案全部段落交付后改写为 implemented（含各段 note 链与真实验证证据）。
+本决定的家是这一篇。各段的执行记录不另开 note。

@@ -4,7 +4,7 @@
 
 ## 背景 / 触发
 session-recall 技能的 rg 配方是现行检索面；b1（薄动词）/b2（后端）可用性待细查。
-家手册 Past conversations 节与 [r6 调研](../../../notes/archived/research/2026-09-24-r6-session-log-memory-survey.md) 是背景。
+家手册 Past conversations 节与 [r6 调研](../../../notes/implemented/2026-09-24-session-log-memory.md) 是背景。
 
 ## 毕业门
 用户点名 → 细查 b1/b2 后端，按结果推敲工具面。🔒 纪律：agent 只报告与建议。

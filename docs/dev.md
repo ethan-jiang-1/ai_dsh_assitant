@@ -56,7 +56,6 @@ pnpm dsh --profile dev --port 0 --no-open  # 起服务与验证命令（prefligh
 |---|---|---|
 | `tsconfig.tsx.json` | `scripts/generate/gen-paths.mjs`（`pnpm gen-paths`，从 vendor/dsh 全量别名） | `pnpm verify`「facade: the runtime tsconfig for the source launch is present and current」 |
 | `docs/package-catalog.md` | `scripts/generate/gen-catalog.mjs`（`pnpm gen-catalog`） | `pnpm verify`（`gen-catalog --check`，与 `gen-paths` 同形） |
-| `notes/INDEX.md`（找卡的生成索引：日期 + 标题，只链接不复制正文） | `scripts/generate/gen-notes-index.mjs`（`pnpm gen-notes-index`） | `pnpm verify`（`gen-notes-index --check`，与 `gen-catalog` 同形） |
 | `packages/dsh-smart-assistant/lib/` | `pnpm build`（`tsc -b` 出 d.ts 与各模块 js；`tsdown` 把 `src/client` 多模块打成 `lib/client/index.js` 单文件 classic script） | 无独立 freshness 门禁：组合测试与 `release-smoke` 消费它，过期即红 |
 | `dev/harness-home/`（scaffold 出的 SOUL/AGENTS 等） | 插件运行时 `ensureHome`（`src/domain/home/layout.ts` 是唯一 owner） | `curate` 的 `manual-stale-scaffold` finding |
 | `_dist/安装手册.md`（同目录 tgz 走 `*.tgz` ignore，不入库） | `scripts/release/export-dist.mjs`（`pnpm export-dist`：pnpm pack → 清单边界断言 → 手册注入版本/日期/条目数） | `pnpm verify`「release: the exported install manual matches the package」（手册版本行对包 manifest 防漂；无 `_dist/` 即无导出，门禁绿） |
@@ -192,7 +191,7 @@ DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得
 **自动化会话的协作边界**（常量 `COLLABORATION_BOUNDARY` 在 `src/dev/preset-runner/` 里逐会话前置 + 家手册协作边界同一节；**不写在 patch 的 `!!js` 表达式里**——配置层模板字面量会被 overlay 的 YAML 标签求解器拒绝，2026-09-25 真踩过，故新增 `structure: every composition file we own parses as YAML` 门禁）：会话**可以改工作树，
 但不得 `git commit`**（提交权属于人或开发会话）；卡上标 🔒 的保留项（`_backlog/plans/`）**不得自行判触发、不得删卡、不得实现**，
 只能报告并建议（机械门禁 `reserved items` 查标记形态）；单发会话无人可问时按推荐值拍板、标注可推翻、继续做完。
-依据：[真实使用基线](../notes/archived/research/2026-09-25-real-use-baseline.md) §二 F1/F3。
+依据：[长期责任圈](../notes/implemented/2026-09-25-owner-mandate-and-real-use-baseline.md)。
 
 **行为评测**：`pnpm eval` 把一组**真实请求**经 preset 会话跑一遍，判定读的是会话日志（不是 stdout）——
 任务在 `dev/eval/tasks.mjs`，判定核在 `dev/eval/checks.mjs`（每条任务至少一个正向检查，避免"什么都不做"也通过）；

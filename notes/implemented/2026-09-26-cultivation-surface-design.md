@@ -81,7 +81,7 @@
 **两轮整改均已交付**（不是"待拍板"）：第一轮＝[S1–S7](../implemented/2026-09-26-cultivation-remediation.md)
 （内容准入 / 异步闭环 / 机械缺陷 / 三室语义 / 着陆 / 已答只读）；第二轮＝
 [R1–R10](../implemented/2026-09-27-cultivation-remediation-round2.md)（两轴自主评审的发现）。
-两份外部评审的原文收卷在 [`archived/research/`](../archived/research/)（2026-09-26 对抗性设计评审 ·
+两份外部评审的原文收卷在 [`2026-09-28-research-absorbed-into-backlog.md`](2026-09-28-research-absorbed-into-backlog.md)（2026-09-26 对抗性设计评审 ·
 运行中页面独立体验反馈）——它们是这两轮的输入，不再是待办。
 
 **未决**（各有归宿）：
@@ -91,11 +91,11 @@
 - 命令菜单里的技能行（⏳ 首次给外人用时的噪声——研发期不做正式发行；客户端改不了，见 R10）；
 - 冷发现（自然语言请求的技能命中）——与摘要预算处置挂钩（⏸，ROADMAP）；
 - typert 底层集成（⏸ 用户后置）；
-- **外部 UX/UI 评审**（⏸ 等评审者；自足简报：[评审简报](../archived/research/2026-09-26-ux-review-brief.md)——平台约束、9 条困惑、期望的反馈形态）；
+- **外部 UX/UI 评审**（⏸ 等评审者；自足简报：[评审简报](2026-09-26-cultivation-surface-design.md)——平台约束、9 条困惑、期望的反馈形态）；
 - **发行组合的默认工作区**（平台层；2026-09-26 第一公里 P0-B 已查清）：**平台本身会给**——空注册表
   时客户端触发 `initializeDefault`，建 `<Documents>/deepseek-harness/default-workspace`（标题显示为
   本地化的"默认工作区"）；一次真机端到端见过三处一致，但**无法按需复现**（细节与复现配方见
-  [第一公里走查](../archived/research/2026-09-26-first-mile-walkthrough.md) §3/§4b）。用户当时问"是不是要选一个
+  [第一公里走查](2026-09-26-first-mile-landing.md) §3/§4b）。用户当时问"是不是要选一个
   工作目录"因此更可能是**affordance**（chip 长得像"必须选"）而不是缺默认；沙箱里看到的"选择工作区"
   占位是 agent 文件沙箱写不了 `~/Documents` 的假象。**发行组合是否要额外动作 → 转第一公里卡的用户拍板项。**
 
@@ -119,14 +119,14 @@
 
 - **本卡**：设计思路 owner（原则、架构、判据、未决）；
 - [活动卡](../archived/2026-09-25-ceo-sidebar-ux.md)：编年记录与逐圈证据（§四·X）＋当前状态一览（§〇）；
-- [handoff](../archived/research/2026-09-26-handoff-ceo-sidebar-cultivation.md)：新 Agent 上手入口（怎么跑、怎么验、环境快照）；
+- [handoff](2026-09-26-cultivation-surface-design.md)：新 Agent 上手入口（怎么跑、怎么验、环境快照）；
 - [`desk-refresh` 技能](../../packages/dsh-smart-assistant/presets/assistant/skills/desk-refresh/SKILL.md)：模型面字段契约（填法）；
 - [client-ui-contribution 技能](../../.agents/skills/client-ui-contribution/SKILL.md)：client 机制 how-to。
 
 ## 八、两份外部评审的综合（2026-09-26）
 
-两份独立评审：**[对抗性设计评审](../archived/research/2026-09-26-adversarial-design-review.md)**（不知情的新 agent，
-读代码 + 真实 desk 文件，开发者逐条核实）与**[运行中页面独立体验反馈](../archived/research/2026-09-26-ux-review-feedback.md)**
+两份独立评审：**[对抗性设计评审](2026-09-26-cultivation-remediation.md)**（不知情的新 agent，
+读代码 + 真实 desk 文件，开发者逐条核实）与**[运行中页面独立体验反馈](2026-09-26-cultivation-remediation.md)**
 （真机点过页面）。两者独立（一个读代码、一个动手点）：**一致处＝高置信信号；分歧处＝需要用户拍板的设计分叉。**
 
 ### 一致（高置信，按优先级）

@@ -69,7 +69,7 @@ learn 模块的 `tools/result` 订阅就给对应名字计数（用户 `/name` �
 | `skills/` | 学到的做法（可复用、可被模型加载） | 由 DSH 技能 provider 发现与监听；被取代就改文件；**退役**（90 天未用阈值由 curate 报，`retire_skill` 执行）→ `skills/archive/`（不删、可恢复） | `assistant_reflect` |
 | `knowledge/` | 领域知识页：概念 / 实体 / 来源 / how-it-works，`[[互链]]` | `draft`（staged，不进搜索与摘要）→ **手改 status: stable 即人审** → `deprecated` 留在原地（链接必须继续解析，无 archive） | `assistant_reflect action=save_page`（写）+ `assistant_knowledge`（只读检索） |
 
-**Obsidian 互通（[r5](../notes/archived/research/2026-09-24-r5-obsidian-interop-survey.md)）**：`[[互链]]` 语法双方同构，但**解析键不同**——我们 id→title，Obsidian 只认**文件名**（= 我们的 id）：`aliases` 只喂它的补全，裸别名与 `title` 属性都不是解析键（[1.12.7 实测](https://forum.obsidian.md/t/wikilink-resolution-does-not-honor-frontmatter-aliases-1-12-7/113902)）。所以页内链接统一写**两边都认的形态** `[[<id>|<title>]]`：`save_page` 写入时自动把可解析的裸名字链接规范成它，每页 `aliases` 镜像着自己的 title——人在 Obsidian 里打 `[[` + 名字，补全选中后写下的正是这一形态。窄用（单开 `knowledge/` 为 vault：graph/tags/draft→stable 手改即人审）三条纪律：**别手打裸名字链接、更别点它建页**（Obsidian 侧 unresolved，点了新建同名空页分叉图，回来被 curate 报 error）；目标页尚不存在的链接（curate 报"未写成的知识"）无法规范化、保持原样，也属此类；**嵌套 frontmatter 字段走 Source 模式编辑**。dsh-obsidian 外部 vault 桥 ⏳ 触发型（触发条件与理由：[obsidian-interop](../notes/implemented/2026-09-24-obsidian-interop.md) D2——用户真想让助手管某个外部 vault 时再议）。
+**Obsidian 互通（[决定](../notes/implemented/2026-09-24-obsidian-interop.md)）**：`[[互链]]` 语法双方同构，但**解析键不同**——我们 id→title，Obsidian 只认**文件名**（= 我们的 id）：`aliases` 只喂它的补全，裸别名与 `title` 属性都不是解析键（[1.12.7 实测](https://forum.obsidian.md/t/wikilink-resolution-does-not-honor-frontmatter-aliases-1-12-7/113902)）。所以页内链接统一写**两边都认的形态** `[[<id>|<title>]]`：`save_page` 写入时自动把可解析的裸名字链接规范成它，每页 `aliases` 镜像着自己的 title——人在 Obsidian 里打 `[[` + 名字，补全选中后写下的正是这一形态。窄用（单开 `knowledge/` 为 vault：graph/tags/draft→stable 手改即人审）三条纪律：**别手打裸名字链接、更别点它建页**（Obsidian 侧 unresolved，点了新建同名空页分叉图，回来被 curate 报 error）；目标页尚不存在的链接（curate 报"未写成的知识"）无法规范化、保持原样，也属此类；**嵌套 frontmatter 字段走 Source 模式编辑**。dsh-obsidian 外部 vault 桥 ⏳ 触发型（触发条件与理由：[obsidian-interop](../notes/implemented/2026-09-24-obsidian-interop.md) D2——用户真想让助手管某个外部 vault 时再议）。
 
 **为什么探索要单独一间房**：不清晰的意图如果没地方放，只会被硬塞进正式流程（污染记忆与技能、拉低信噪比）
 或者蒸发（下次从零重开同一个问题）。**分房是为了让"已确立的"保持干净。**
@@ -178,8 +178,8 @@ bundles, M snapshots`，退役与快照都不删除、技能归档只增不减�
 
 ## 五、working folder 根部的两个文件（`SOUL.md` 身份 + `AGENTS.md` 手册）
 
-抄 Hermes 的形状（调研 `notes/archived/research/2026-09-24-r4-hermes-identity-survey.md`；决定
-`notes/implemented/2026-09-24-soul-and-agents.md`，D1/D2/D3=a）：**身份与引导分文件**，
+抄 Hermes 的形状（决定
+[soul-and-agents](../notes/implemented/2026-09-24-soul-and-agents.md)，D1/D2/D3=a）：**身份与引导分文件**，
 分工一句话——到处适用的进 `SOUL.md`，属于这个 working folder 的进 `AGENTS.md`。
 
 - **`SOUL.md`（身份）**：agent 是谁、怎么说话。scaffold 缺则种（种子 = 内置默认身份，day 0

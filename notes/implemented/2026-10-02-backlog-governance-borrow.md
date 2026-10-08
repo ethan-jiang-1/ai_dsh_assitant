@@ -24,10 +24,8 @@ ai_deerflow_dr_v3 补借）。**同源整章对齐**，非另起炉灶。
    挂起跟显式指示走、agent 不得自行挂起；回活需显式新优先级决定；挂起卡不是实施授权）。
    2026-09-28 的否决（"另立第二事实家"）被其边界划分解掉：池只收**未裁决**暂停件，已裁决的
    该做不现在仍以决定 note 为家——不借表两行翻案（用户指示即翻案触发）。
-4. **reference/ 调研材料区**（活跃卡专用 + 随卡 `git mv` 至 `_done/_reference/`；无状态行；
-   价值超卡的材料归 notes/archived）：**调研卡的收卷证据台账不变**（仍是
-   notes/archived/research，2026-09-28 拍板机制）——两个家语义不重叠（喂活跃卡 vs 收卷已毕业
-   调研卡）。
+4. **reference/ 调研材料区**（活跃卡专用 + 随卡 `git mv` 至 `_done/_reference/`；无状态行）。
+   收卷后还会被重提的事实写进决定 note，不另留调研目录。
 5. **`backlog-liveness` 门禁**（verify 31→32）：制度目录在场 / 活跃卡首 12 行有 `状态：` 户口 /
    索引互查（plans·bugs 活跃名册、_closed_plans 索引、_done 归档行）——核在
    verify-checks.mjs，红绿夹具三组在 verify-gates.spec（死稿卡 / 未点名 / 缺池 / 归档未点名）。

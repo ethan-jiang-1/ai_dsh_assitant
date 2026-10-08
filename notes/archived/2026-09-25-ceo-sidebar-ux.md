@@ -7,7 +7,7 @@
 
 **设计思路（判据/原则/架构）**：[培养面设计思路](../implemented/2026-09-26-cultivation-surface-design.md)。
 **整改包（评审驱动的 S1–S5 切片与逐片验收）**：[培养面整改包](../implemented/2026-09-26-cultivation-remediation.md)。
-**接手入口（新 Agent 从这里开始）**：[handoff：CEO 助手的 Sidebar 培养面](../archived/research/2026-09-26-handoff-ceo-sidebar-cultivation.md)
+**接手入口（新 Agent 从这里开始）**：[handoff：CEO 助手的 Sidebar 培养面](../implemented/2026-09-26-cultivation-surface-design.md)
 ——一分钟上手、已完成/待办、架构与机制、关键文件、命令、纪律、下一圈候选、环境快照。
 
 | 项 | 状态 |
@@ -602,7 +602,7 @@ busy 即禁用 + 视觉降透明）+ busy 行写明"回复出现在对话里，�
 （毫秒级往返），而助手干活要几十秒到几分钟——冻结窗口＝受理窗口，不是工作窗口，"点了没反应"的
 成因原样存在。真实数据（17:40 的 desk 文件）还显示 A3 在 90 分钟内收到 **7 条互斥指令**、助手最终
 只能把该行"封存"——摩擦的真实代价。正确形态是**数据闸门**（行的 pending 时间戳 > 文件 `generatedAt`
-才解冻）。详见[对抗性设计评审 §0/§4](../archived/research/2026-09-26-adversarial-design-review.md)。
+才解冻）。详见[对抗性设计评审 §0/§4](../implemented/2026-09-26-cultivation-remediation.md)。
 
 ## 四·二十二、第 33 圈：真人二次实测——全链成立 + 着陆缺口（2026-09-26 22:47）
 
@@ -681,8 +681,7 @@ recentActivity 主动修剪到五条、还抓到自己编造的时间戳并纠�
 - 起 Web UI 必须从**干净目录**起（如 `/tmp/desk`），否则会话会读到开发仓的 AGENTS.md；
 - 查组合里有没有这一行（boot-free）：`node dev/env/dsh.mjs --profile dev --dump-config | grep -A3 '<row id>'`。
 
-（本节旧版复述的完整命令块与 pnpm 绕过法已删——绕过法在 peerDep 回退当天就过期；审计与拆法见
-[清理卡](../implemented/2026-09-26-signal-noise-sweep.md)。）
+（本节旧版复述的完整命令块与 pnpm 绕过法已删——绕过法在 peerDep 回退当天就过期。）
 
 关键文件：
 - `packages/dsh-smart-assistant/src/client/index.ts` —— client 面（品牌标记 + My Desk 面板）

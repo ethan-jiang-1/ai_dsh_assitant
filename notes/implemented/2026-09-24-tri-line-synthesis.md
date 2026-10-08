@@ -4,7 +4,7 @@
 
 > 依据：三线研究（R1 记忆 / R2 技能成长 / R3 知识层）已入档并亲验。本文只做合流：
 > 分阶段路线 + 决策点 + 尸体清单。判据对照、借用清单、淘汰理由全在报告内，本文只引用不复述。
-> 素材入口：`notes/archived/research/2026-09-24-r{1,2,3}-*.md`（survey ×3 + shortlist ×3）、
+> 三路调研的持久结论在本文（survey 与 shortlist 不另留文件）、
 > notes/intents.md（意图与判据）、`notes/implemented/2026-09-23-repo-structure.md`（day-0 输赢表）。
 
 ## 一、为什么是现在（四个已知缺口）
@@ -43,7 +43,7 @@
 | 1d | 写后审计 | 引用完整性 + 凭据检查（写时校验已挡 frontmatter，审计增量在引用与凭据）✅ implemented（`notes/implemented/2026-09-24-skill-post-write-audit.md`：`skill-broken-reference`/`skill-credential-leak` 双 finding，save_skill 写完即审注入 + curate 常驻并档，不阻断；scan/audit 共享枚举） | R2 §9.3-4 |
 | 1e | I14 节拍器 | curate 从被动变主动——决策已在 `notes/implemented/2026-09-23-iteration-rhythm.md`（b 层 host 节拍器为主，a 层纪律垫底）✅ implemented（`notes/implemented/2026-09-24-maintenance-metronome.md`：触发信号亲验修正为 `agent/inbox/inserted`（goal 轮消息源自带 goalId/round，无状态节拍），`maintenanceEveryRounds` 默认 5；live 两轮——第一轮否定结果如实保留并揪出 preset-runner 静止≠goal 结束的真 bug（已修），第二轮 6 轮 goal 第 5 轮触发、栅栏恢复、正常完成；I14 翻 implemented） | 该 note |
 | 1f | skills/ 快照 | 最轻回滚兜底（时间戳快照或 git init，三样板任选）✅ implemented（`notes/implemented/2026-09-24-skill-snapshots.md`：覆盖前时间戳快照到 skills/archive/snapshots/，每名留 3 份，save_skill 结果报路径，恢复=手复制；git init 方案因 .git 特判与 VCS 语义落选） | R2 §9.3-7 |
-| 1g | 格式对齐 spec 小步 | learned 技能补 `license`/`compatibility`（可空）——吃 Agent Skills 标准红利的小步 ✅ 审计结案（`notes/implemented/2026-09-24-spec-field-audit.md`）：亲验 provider（0.1.5-rc.2）**不读**这两字段（rg 零命中），写了即死重且绕门禁立意——不写；metadata provenance 本就是规范对齐的正确形态；延后触发=provider 读它们或第二消费方出现（在 ROADMAP） | R2 §9.3-6 |
+| 1g | 格式对齐 spec 小步 | learned 技能补 `license`/`compatibility`（可空）——吃 Agent Skills 标准红利的小步 ✅ 审计结案：亲验 provider（0.1.5-rc.2）**不读**这两字段（rg 零命中），写了即死重且绕门禁立意——不写；metadata provenance 本就是规范对齐的正确形态；延后触发=provider 读它们或第二消费方出现（在 ROADMAP） | R2 §9.3-6 |
 | 1h | 预算强制（可选） | digest/索引预算从纪律升为 `ctx.tools.guard()` 写入原语层拒绝 ✅ implemented（`notes/implemented/2026-09-24-digest-budget-enforcement.md`：落点改服务层拒绝（单写者纪律，登记偏离）；亲验揪出 over-budget finding 死代码（bytes 恒≤预算），判据改 `truncated`；纯新增在截断态被拒，supersede/forget 开放） | R1 §6-1 |
 
 ### 阶段 2 · 第四房间 knowledge/（家的最大结构变化）✅ 全部 implemented（2026-09-24）

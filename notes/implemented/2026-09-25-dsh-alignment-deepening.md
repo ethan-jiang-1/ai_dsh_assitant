@@ -1,8 +1,8 @@
 # DSH 对齐补课：借结构，不只是借术语
 
-日期：2026-09-25 · 状态：**implemented（五项全部落地：S1 92aeb0f、S2 138dee5、S3 5a3290e、S4 与毕业同提交、S5 并 92aeb0f；依据[自审档案](../archived/research/2026-09-25-dsh-alignment-audit.md)，红证据[档案](../archived/research/2026-09-25-old-gate-red-controls.md)）**
+日期：2026-09-25 · 状态：**implemented（五项全部落地：S1 92aeb0f、S2 138dee5、S3 5a3290e、S4 与毕业同提交、S5 并 92aeb0f；依据[自审档案](2026-09-25-dsh-alignment-deepening.md)，红证据[档案](2026-09-25-dsh-alignment-deepening.md)）**
 
-> 依据：[DSH 对齐自审](../archived/research/2026-09-25-dsh-alignment-audit.md)（`notes/archived/research/`，已收卷）——
+> 依据：[DSH 对齐自审](2026-09-25-dsh-alignment-deepening.md)（`notes/implemented/2026-09-28-research-absorbed-into-backlog.md`，已收卷）——
 > 上轮声称 vs 实际逐项对照，含两条被我在压缩证据时弄丢的借项（解析门面术语、房间/桌面/抽屉映射）。
 > 上轮的借鉴卡（[implemented](../implemented/2026-09-25-dsh-alignment-borrowables.md)）仍有效，其 B9 行按本卡修正为"部分落地"。
 
@@ -88,7 +88,7 @@
   （vendor `skill/skill-filesystem/src/index.ts:247`，rank 200）——**零接线**；实测本会话技能目录
   随文件落盘实时更新（三件技能当场出现在可用技能列表里），即"进目录即入目录"。
 - **S4 ✅**：四条高价值旧门禁的红证据（结构必需路径 / 身份名与 identity 表一致 / 自包含 /
-  docs-home 合同），手工造红 → 观察 FAIL → 还原，逐条原文入[证据档案](../archived/research/2026-09-25-old-gate-red-controls.md)；
+  docs-home 合同），手工造红 → 观察 FAIL → 还原，逐条原文入[证据档案](2026-09-25-dsh-alignment-deepening.md)；
   **副产物两条**：一次探针自己写错（门禁正确保持绿——不红先怀疑探针）、
   契约检查漏列第四个工具 `assistant_knowledge`（真缺口，同 diff 补齐）。
 

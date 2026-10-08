@@ -94,10 +94,13 @@ delivery: present tense, `## 输掉的方案`, and the commands that actually ra
 was produced before the fix. A check that did not run is written as blocked, with the reason.
 
 **Decided deferral.** Do not open `proposed/`. Write the trigger into the note that owns the decision.
-The trigger is an observation someone can check, and the place it shows up. "Later" and "when there is
-time" do not qualify. Add one pointer row to [`triggers.md`](../triggers.md) in the same change: the
-ruling, the observable condition, and the note that owns it. Close the plan into `_done/_closed_plans/`
-with a pointer at that note. When the condition arrives, open a new card that cites the closed one.
+The trigger is one observation someone can check, and the place it shows up. "Later" and "when there is
+time" do not qualify. A row in [`triggers.md`](../triggers.md) is not automatic. Add one only when leaving
+it off the index would let a later session redo the rejected option, and the condition is a single
+observation that shows up in the work: a run, a file, a vendor release, or an audit. A life event, a user
+nod, a bundle of maybes, or anything a standing order already watches stays on the owner and the closed
+plan. Close the plan into `_done/_closed_plans/` with a pointer at that note. When the condition arrives,
+open a new card that cites the closed one.
 
 **Rejection.** The lost option has to remain findable, or the same proposal returns. When an owner note
 already exists, add the alternative and why it lost to that note's `## 输掉的方案`, then close the plan.
@@ -175,8 +178,8 @@ note later stays the current owner or is frozen is [archive judgment](../../vend
 not this playbook.
 
 **Finish:** one destination is true. A proposed note is waiting for a nod. An implemented note records a
-decision that already shipped, with the commands that ran. A deferral's trigger sits on its owner and
-in `triggers.md`. A rejection is findable where the next proposal will be seen. Digestion points at the
+decision that already shipped, with the commands that ran. A deferral's trigger sits on its owner. A
+`triggers.md` row exists only when the index is what stops the rejected option from returning. A rejection is findable where the next proposal will be seen. Digestion points at the
 home that already holds the conclusion. Or no note was warranted, and that is the recorded result. The
 plan has left the active shelf with a pointer. If acceptance or a human confirmation is still missing,
 the card is still active and the gap is named. None of these outcomes authorize implementation by

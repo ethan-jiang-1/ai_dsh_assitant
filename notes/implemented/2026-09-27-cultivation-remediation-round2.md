@@ -12,7 +12,7 @@
   并量三处最高摩擦。
 
 两份独立、结论高度一致（一致处＝高置信）。**发现全部经开发者复核**（我逐条对着代码与 DOM 数字看过）。
-证据面：[截图目录](../archived/research/2026-09-26-first-mile-shots)（含 `.dom.json`）；上一轮整改的
+证据面：当时的真机画面与 DOM 读数（不入库）；上一轮整改的
 [已交付卡](../implemented/2026-09-26-cultivation-remediation.md)是这些面的第一轮。
 
 ## 切片与交付（R1–R13，按严重度；每片一个垂直切片、独立提交——逐片验收与证据见文末「进度」）
@@ -81,7 +81,7 @@ Markdown 原样直出（DOM 里能看到 `**已消解**`）、`来源` 只截 11
 （2026-09-27 当晚兑现"另算"：面板色值全部主题化——中性色走 vendor `--dsw-alias-*`、warn/accent 走
 `ensureThemeVars` 注入的 `--dsha-*` 契约块（暗值引用 vendor statics），暗色由选择器
 `body[data-ds-dark-theme]` 自动生效；AA 守卫测试随之升级为"组件零字面色 + 契约亮值逐个 ≥AA"。
-**证据对（截图 + 计算样式双读）**：[theme-shots](../archived/research/2026-09-27-theme-shots)——
+**证据对（当时的画面 + 计算样式双读）**：
 亮色 accent=rgb(15,118,110)/warn=#92400e/bg=#fff，暗色 accent=rgb(45,212,191)/warn=vendor amber-400/bg=bluish-950，
 两分支两变量全部按契约解析；**面板本体带真实数据双主题各验一遍**（17 行渲染，行文本亮=bluish-1000/暗=bluish-50，
 刷新按钮边框亮=#0f766e/暗=#2dd4bf，DOM 证据含先办这件/在办的事(5)/已办(2)）——空白会话视图之外的最后一个视觉盲区补齐。）
@@ -117,9 +117,9 @@ Permission/Model/Export) → 我们的三室 → **15 条英文技能**（`clien
   **验收实跑**：夹具三条（冻结时行按钮 disabled 且 `刷新桌面` 不在其中；`expirePending` 后 stalled 落在
   行上、无禁用按钮；文件移动后 stalled 结算为回执）＋**造红证明**（把 stalled 改成 undefined → 红）；
   真机走了一遍完整路径（dev home + 合成 desk 文件 + 黑洞模型端，**真实 desk 文件先备份后按 sha 还原**）：
-  [冻结中（行按钮 disabled、刷新桌面可用）](../archived/research/2026-09-26-first-mile-shots/r1-frozen-escape-hatch-live.png)
+  冻结中（行按钮 disabled、刷新桌面可用）
   → 等 ~175s →
-  [超时后（在飞状态消失、按钮全部回活）](../archived/research/2026-09-26-first-mile-shots/r1-released-after-timeout.png)。
+  超时后（在飞状态消失、按钮全部回活）。
   工具侧顺带：`pnpm shots --timeout <ms>`（等真实超时用，看门狗默认公式不再够用）、DOM 证据记录
   `disabled` 状态（否则"闸门开了没有"无法从证据里断言）。
 - [x] **R2「看选项」把决定自己吃掉**（2026-09-27 落地）——`answered` 从"这一行被任何动作碰过"收窄为
@@ -173,8 +173,8 @@ Permission/Model/Export) → 我们的三室 → **15 条英文技能**（`clien
   不再靠"越淡越次级"（那正是 AA 之下的来源）。③ 顺带补上 R7 欠的另一半：**`它记` 钳制**（3 行 + 展开；
   它是信任线，只钳不删）。
   **验收**：夹具（行按钮 geometry 与主色）+ **造红证明两条**（几何改回 18px → 红；主色改回旧值 → 红）；
-  前后真机截图：[改前](../archived/research/2026-09-26-first-mile-shots/p2b-actions-on-title-line.png)（18px 按钮、
-  浅灰文本）vs [改后](../archived/research/2026-09-26-first-mile-shots/r8-after-accessible-palette.png)（27px、
+  前后真机截图：改前（18px 按钮、
+  浅灰文本）vs 改后（27px、
   深色文本、`它记` 带「展开全部」）——DOM 证据里 `button h=27` 与改前的 `h=18` 直接可比。
 - [x] **R9 静默无操作与缺失状态**（2026-09-27 落地，五处）——① **撤下的行动有留痕**：新增折叠的
   「已撤（N）」组（暗色 + `它记` 原因）——此前它们"留在计划页"，但本人在**他动手的那个面上**看不到

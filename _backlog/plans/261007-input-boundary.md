@@ -18,9 +18,9 @@
 
 **我的推荐：先真用 30 天，不现在建通道。** 依据全部来自本卡已核实的证据，不是新增判断：
 
-1. **这条 30 天判据在本仓已是既有形态，不是新发明**：C 分身（30 天个性化承诺）等七项在
-   [pipeline-digestion 的 deferred 清单](../../notes/implemented/2026-10-06-pipeline-digestion-complete.md)
-   里就是"真用 30 天后验证"，家是 owner note、不是等待卡。照此办理是**沿用**，不是开新机制。
+1. **这条 30 天判据在本仓已是既有形态，不是新发明**：C 分身（30 天个性化承诺）写在
+   [定位卡](../_done/_closed_plans/261005-open-value-deficit.md) 的延后项上，家是 owner note、不是等待卡。
+   它不是工作里会自己撞上的一次观察，所以不进触发器索引。照此办理是**沿用**，不是开新机制。
 2. **本卡最硬的证据自己指向"先观察"**：第 14 行「信息洪流没有被人提炼，是因为那个岗位不存在」
    （五谷渔粉案例）——这是个**关于真人行为的假设**，而"真人会不会自发倒碎片"是它唯一的证伪机会。
    先建通道 = 先把答案建掉，之后再也测不出"没有通道时他会怎么做"。
@@ -87,7 +87,7 @@
 
 ## 喂给谁
 
-毕业判断的出路 = **proposed 卡呈批**（等拍板，不实施）；判读指标若成立，喂给 [261007 plan 卡](261007-opening-brief-and-rhythm.md)的后续切片与 30 天真用判据（[pipeline-digestion 的 deferred 清单](../../notes/implemented/2026-10-06-pipeline-digestion-complete.md)）。
+毕业判断的出路 = **proposed 卡呈批**（等拍板，不实施）；判读指标若成立，喂给 [261007 plan 卡](261007-opening-brief-and-rhythm.md)的后续切片与 30 天真用判据（[定位卡](../_done/_closed_plans/261005-open-value-deficit.md)）。
 
 ## 毕业门
 
@@ -102,7 +102,7 @@
 + 红线落档（✔）+ 「30 天先行 vs 立即做」有裁决依据（✔ 推荐已附理由）——**唯一缺口 = 本人那一句话**。
 
 **本人指定「30 天先行」时的去向**（按本仓既有 doctrine，不发明新机制）：本卡**关闭**，
-触发条件按 deferred-with-trigger 归 owner note（[pipeline-digestion deferred 清单](../../notes/implemented/2026-10-06-pipeline-digestion-complete.md)同款形态）——
+触发条件按 deferred-with-trigger 归 owner note（索引不自动收录，见 [plan-to-note](../playbooks_plan_and_validate/plan-to-note.md)）——
 触发条件 = **「30 天读数落账」**，即上表三组数收齐并记入台账；触发到场时以引用本卡的新 proposed 卡重进，
 **不复活本卡**（毕业卡永不重开，见 [`_backlog/README.md`](../README.md) 四门）。
 

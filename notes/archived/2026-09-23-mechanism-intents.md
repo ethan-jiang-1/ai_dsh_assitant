@@ -5,7 +5,7 @@
 已归档：2026-10-02（本档自 intents.md 冻结而来——机制意图的历史与证据指针完整保存在此，
 **冻结不再编辑**；该文件已于 2026-10-04 整体退役，现行判据的唯一权威是
 [`README.md`](../../README.md)「方向判据」节，退役档案 [intents-retired](../implemented/2026-10-04-intents-retired.md)。
-归档决定：[intents 台账瘦身](../implemented/2026-10-02-intents-slimming.md)。）
+归档之后的退役决定：[intents-retired](../implemented/2026-10-04-intents-retired.md)。）
 
 > 冻结时的原始头注（保留原样）：这是 dev-loop 第 1 阶段的落点：**一行动机 + 一行外部可观察行为**。
 > 用户一开始把意图一股脑给了，后续又补了四批。状态挡板（2026-09-23）：外部可观察行为要在真实会话
@@ -43,7 +43,7 @@
 | I6 | 家有**固定、可读的布局** | 一个目录一眼看懂：`HOME.md` 是地图；`memory/` 是长期记忆；`skills/` 是学到的本事；各有各的职责，不混 | implemented：会话 A/B 的助手正确报出三房间与状态（`e65ef210` 读 HOME.md；B 段盘上核验 `memory/` 单文件、`archive/` 空） |
 | I7 | agent 对家**很熟悉** | 家的地图与记忆摘要常驻上下文（桌面）；细节用工具取（抽屉）。agent 不需要猜"我这儿有什么" | implemented：digest blurb 逐字进 system prompt（全部 preset 会话日志）；会话 A 首轮"你好"即报出家况而未开文件。2026-09-25 战役补强：**首请求即保证**——冷启动竞态两轮修复（cordis `Service.init` 装载等待，[note](../implemented/2026-09-25-digest-cold-start-prewarm.md)），live 前后对照：前 271B blurb 自报"没有"，后 4004B 全量逐字报出（6 记忆+2 线索+10 页树，不调工具） |
 | I8 | 家要**整理与清理** | 一个**机器能跑的检查**（不是 AI 自己说）报出：重复/矛盾/过期记录、摘要是否超预算、孤儿文件；agent 据此合并/退役 | implemented：curate 机器检查真实运行（B 段：清洁返回 + counts 行 `2/2 active memories, … digest 821/4096 bytes`）；2026-09-24 起 counts 附带技能归档规模行 `N retired bundles, M snapshots`（只增不减的面可观察才可治理，[curate-archive-scale](../implemented/2026-09-24-curate-archive-scale.md)）；2026-09-25 战役实证：知识房从 0→10 页生长全程 curate 维持零发现、预算门三次真实咬合（3880→3110→4004/4096 均按设计内动作收敛，[战役卡 §八](../implemented/2026-09-25-smart-assistant-polish-campaign.md)） |
-| I9 | 家要**清晰可审** | 学到的东西全是人可读的文件（Markdown + frontmatter），可 git、可 diff、可手改、可删；来源可追（哪次会话学来的） | implemented：`memory/*.md` 人可读带 frontmatter（id/kind/tags/importance/created）；`source` 字段经工具面修复后写入读回成立（`20260923-note-ko0j.md`；缺口发现与修复见 [tool-source-and-counts](../implemented/2026-09-24-tool-source-and-counts.md)） |
+| I9 | 家要**清晰可审** | 学到的东西全是人可读的文件（Markdown + frontmatter），可 git、可 diff、可手改、可删；来源可追（哪次会话学来的） | implemented：`memory/*.md` 人可读带 frontmatter（id/kind/tags/importance/created）；`source` 字段经工具面修复后写入读回成立（`20260923-note-ko0j.md`） |
 
 ## 三、补充意图（2026-09-23 用户追加 · 探索与 backlog）
 

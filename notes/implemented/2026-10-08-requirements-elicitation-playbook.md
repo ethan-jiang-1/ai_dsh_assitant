@@ -282,7 +282,7 @@ ask-matt 阶段边界、triage 五状态、wayfinder fog/HITL-AFK、grilling fro
 
 ## 验证（真跑过的命令）
 
-**第五轮（文档 + 门禁注释，未改产品运行时）**：`pnpm gen-notes-index`（note 标题变更后重生成）；
+**第五轮（文档 + 门禁注释，未改产品运行时）**：note 标题变更后核对 `notes/` 目录树（不设集中索引）；
 `pnpm verify` → **35 checks passed**（含改名后发现式 playbook 区解析、frontmatter 门与
 机器本地路径语料）；`pnpm typecheck` → exit 0。
 `pnpm test` 三轮：首轮红 = `verify-gates` 夹具仍断言旧文案 `pure move`（本切片改了核的

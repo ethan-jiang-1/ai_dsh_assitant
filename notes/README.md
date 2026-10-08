@@ -3,15 +3,19 @@
 > **每个目录装什么、状态怎么读、由谁维护，以本文件为准**——职责由一个具名文件拥有，不由惯例拥有
 > （借自 DSH `.agents/notes/` 的分类学：`_agent_ready_development/repo-harness/08-repository-taxonomy.md`、
 > `sdlc-reference/01-agent-note-lifecycle.md`；对齐与偏离登记见 §四）。
-> **接下来做什么**：用户本轮请求优先；毕业待拍板的提案住 `proposed/`（问题/方案/验收；**用户点头才开工**
-> ——"批"发生在 proposed→implemented 之间，依据 [proposed-card-positioning](implemented/2026-10-04-proposed-card-positioning.md)），
-> 想法/触发型住 [`_backlog/plans/`](../_backlog/plans/README.md)（2026-09-28 起 ROADMAP 队列退役）。本目录只管已决与证据。
+> **接下来做什么**：用户本轮请求优先。还要等人点头的持久取舍住 `proposed/`（问题/方案/验收；**用户点头才开工**
+> ——"批"发生在 proposed→implemented 之间，依据 [proposed-card-positioning](implemented/2026-10-04-proposed-card-positioning.md)）。
+> 推敲与触发型住 [`_backlog/plans/`](../_backlog/plans/README.md)。本目录不装进行中的工作板，也不装调研底稿。
 
 ## 〇、何时写与取代检查（规则的唯一家在本文件；根 AGENTS.md 只留指针）
 
-- **义务范围**：note 只收**承载持久决定理由**的改动——代码、测试与现行文档说不清的 why 与放弃的备选；
-  机械或局部编辑豁免。决定随当前变更已交付的，直接写 `implemented/`，不必从 `proposed/` 开始；
-  非平凡改动同 diff 新增或更新相关 note；提案落地须改写为实际决定与证据，不能只搬目录。
+- **义务范围**：note 只收代码、测试和现行文档装不下的持久取舍。不写的话，后来的人会重提已被否的做法、
+  按现在的代码倒推理由、留下没人敢动的约束，或只能去翻 git。改动大小、是不是缺陷、加了测试、用户看得见，
+  本身都不是理由。机械或局部编辑不写。
+- **plan 毕业不自动产生 note。** 切片执行记录、战役收口、把行为修回既有契约的缺陷，家在关闭的 plan 或
+  bug 卡、测试和现行文档。新的、还要等人点头的取舍进 `proposed/`；已经交付且确实有持久取舍的，直接写
+  `implemented/`，不必先过 `proposed/`。已有 owner 就改那篇，不为一件事再开一篇。提案落地须把正文改写成
+  已交付事实，不能只搬目录。
 - **取代检查（每新增一篇 note 触发）**：搜活跃树找同决定/同机制的旧 note——完整取代则新 note
   吸收其独有理由/备选/后果/验证后**同 diff 删除旧的**（历史归 git）；部分取代则双方保留互链、
   更新仍有效的事实。同一决定的事实变化更新原文，反转决定即完整取代。
@@ -23,13 +27,12 @@
 
 | 位置 | 装什么 | 状态词（状态行里） | 读者怎么用 |
 |---|---|---|---|
-| `proposed/` | 未完成或仅部分完成的**重大未来工作**（提案） | `proposed` | 看问题/方案/验收/风险；**不能当已交付** |
+| `proposed/` | 毕业后、还要用户点头的持久取舍 | `proposed` | 看问题/方案/验收；**不能当已交付，也不是实施看板** |
 | `implemented/` | 已交付决定 + 它击败的备选 + 后果 | `implemented` | **当前 rationale owner**，随实现保持 current |
 | `rejected/` | 被否决的提案 + 一行拒绝原因 | `rejected` | 只在还能阻止同一个可信错误时保留；失效即删 |
-| `archived/` | 未来决策价值低的 implemented 历史 + **收卷调研证据台账**（`research/` 子目录） | `implemented`（台账 = `已收卷`）+ 一行 `已归档：YYYY-MM-DD`（台账行免） | 只作历史引用，**冻结不再编辑**，不是当前权威 |
+| `archived/` | 未来决策价值低的 implemented 历史 | `implemented` + 一行 `已归档：YYYY-MM-DD` | 只作历史引用，**冻结不再编辑**，不是当前权威 |
 
-> **调研层并入（用户 2026-09-28 拍板）**：进行中的调研/推敲住 [`_backlog/plans/`](../_backlog/plans/README.md)
-> （一个思考一个家）；收卷证据台账 = `archived/research/`（子目录深度与原路径一致，冻结文件内部链接零改）。
+> **调研不在本目录**：进行中的调研住 [`_backlog/plans/`](../_backlog/plans/README.md)。收卷之后，还会被重提的事实写进拥有该决定的 note；不另留调研目录。
 > 依据：[research-absorbed-into-backlog](implemented/2026-09-28-research-absorbed-into-backlog.md)。
 
 **命名**：`YYYY-MM-DD-<topic>.md`，日期是主题**首次提出**日（不是实现或归档日）。
@@ -41,11 +44,8 @@
 
 ## 二、刻意不做
 
-- **集中索引只能是生成物**：[`INDEX.md`](INDEX.md) 由 `pnpm gen-notes-index` 生成（只读文件名日期与首个
-  标题，正文一律链接过去），freshness 由 `pnpm verify`（`gen-notes-index --check`）守——改了卡没重生成
-  即红（2026-10-07 取代"完全不设"的旧裁决：旧裁决针对的是**手维护**清单必然漂移，生成物 + 门禁没有
-  漂移通道；手写清单仍然禁止）。
-- **不设 `postmortem/`**：事故记录属于"已交付决定"，进 `implemented/`（AGENTS.md 曾列该目录但从未存在，2026-09-25 删除该说法）。
+- **不设集中索引**。目录树就是清单：按生命周期目录浏览，或在仓库里搜。手写索引和生成索引都不留——生成物仍是每张卡都改到的同一份文件。
+- **不设 `postmortem/`**：把行为修回既有契约的缺陷，记录在 bug 卡和测试里。只有修复本身选出了以后还会被重提的做法，才写 note（AGENTS.md 曾列 postmortem 目录但从未存在，2026-09-25 删除该说法）。
 - **不采用 `{lifecycle}/{class}/` 两级路径**（DSH 用它）：偏离理由见 §四。
 - 提案过时转 `rejected/` 而非滞留 `proposed/`；`archived/` 只收已交付（implemented）的 note。
 - **延后归属按裁决分开**：未裁决的推敲/待用户判触发留 `_backlog/plans/`；已裁决“该做但不现在”的触发条件归决定 note（deferred-with-trigger），旧卡关闭，不另立等待卡。触发到场以引用旧卡的新卡/RFC 重进，不复活毕业卡；完整规则见 [backlog 毕业四门](../_backlog/README.md)，依据 [治理决定](implemented/2026-10-02-backlog-governance-borrow.md)。永不做的负知识留在输掉的方案。
@@ -84,9 +84,9 @@
 2. **循环 = 造红 → 实现 → 变绿**：允许迭代，但每轮以红绿收口；红绿机制的政策 owner 是
    [`docs/testing.md`](../docs/testing.md)（prove-it-red——新守卫造回归、看红、还原；
    禁掩盖修法——改断言迁就实现不是修法）。绿了才算做完一片。
-3. **implemented 只收真证据**：提案改写为 implemented 时，note 必须记录**真跑过的命令与
-   红绿形态**（含造红的红）；被阻断的检查如实写「阻断 + 原因」，不得写成绿；未验项不得写
-   implemented。改动面 → 最小可信证据的选择 owner =
+3. **真证据记在交付里，不靠另开一篇来装**：真跑过的命令与红绿形态写在该片的验收记录（卡或提交说明）。
+   被阻断的检查如实写「阻断 + 原因」，不得写成绿。只有 §〇 要求留下 note 时，验收节才把这些命令收进来；
+   没有持久取舍，不为记账开一篇。改动面 → 最小可信证据的选择 owner =
    [pre-push-evidence 技能](../.agents/skills/pre-push-evidence/SKILL.md)。
 4. **验收写不出 = 提案未成熟**：proposed 卡的「验收」节按 §二之二必须可执行；做不到就回
    [`_backlog/plans/`](../_backlog/plans/README.md) 继续推敲，不进实施。
@@ -103,7 +103,7 @@
 ## 四、与 DSH 的对齐与偏离登记
 
 **借（直接继承）**：生命周期四态与"目录↔状态词互校"；归档冻结（不可编辑）；rejected 留一行原因、失效即删；
-路径树即工作清单、集中索引只能是生成物（[INDEX.md](INDEX.md)）；note 间相对链接；`implemented` 是**当前** rationale owner（随实现保持 current）；
+路径树即工作清单、不设集中索引；note 间相对链接；`implemented` 是**当前** rationale owner（随实现保持 current）；
 `proposed → implemented` 是同 diff 的正文改写。
 
 **适配（同精神、异形态）**：DSH 用置顶三行 `# Agent Note: <title>` / 空行 / `Status: <status>`，
@@ -114,3 +114,4 @@
 ② 44 篇一次性迁移的 churn 与误分类风险大于可读性增益；
 ③ DSH `repo-harness/09-plugin-author-entry.md` 明说插件仓继承的是分类学**精神**（一个事实一个 owner、
 生成物有生成器、决定有记录），不强制复制其 Notes 机制。note 量级显著上升时重评此条。
+不设收卷调研目录：调研住 `_backlog/plans/`，持久结论进决定 note。

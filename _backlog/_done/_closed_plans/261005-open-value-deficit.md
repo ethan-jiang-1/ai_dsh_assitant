@@ -55,7 +55,7 @@ chat、空白相位 vendor 自持——「打开=桌面」的最后一步走上�
 
 这是**同一感受第三次出现**，前两次各立过档：
 
-1. 2026-09-25「不痛不痒」→ [总体思路](../../notes/archived/research/2026-09-25-grand-plan-enterprise-expert-assistant.md)
+1. 2026-09-25「不痛不痒」→ [总体思路](../../../notes/implemented/2026-09-25-owner-mandate-and-real-use-baseline.md)
    §一：诊断为自指闭环、把容器当产品；处方 = 换北极星 + 真用驱动。
 2. 2026-10-01「怎么看都好像不知道怎么用」→ [真用第一卡](../../notes/rejected/2026-10-01-real-use-first.md)：
    拍板 = 真用第一 + 无真实摩擦证据不动 UI。

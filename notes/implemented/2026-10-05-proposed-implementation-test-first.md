@@ -21,9 +21,9 @@ proposed 卡骨架（§二之二）同步要求「验收」节可执行。
 
 - 本决定自身按新纪律执行：章程文本落入 notes/README.md 后 `pnpm verify` 34 项全绿
   （notes 形状、相对链接、backtick 路径门禁全部审过新增文本）。
-- 决定前已按此形状工作的正例：P1 验证可信度 note（[本仓](2026-10-05-p1-validation-trustworthiness.md)）
-  记录两处真实造红（旧 runner id / 删 memory 行各使断言真红后恢复）；repo 可驾驭性提案毕业片
-  的红绿（目标树写成 backtick 路径被门禁抓红 → 改散文表述后绿）。
+- 决定前已按此形状工作的正例：[repo 可驾驭性](2026-10-05-repo-navigability.md) 的验证段
+  记录两处真实造红（旧 runner id / 删 memory 行各使断言真红后恢复）；同一决定的红绿
+  （目标树写成 backtick 路径被门禁抓红 → 改散文表述后绿）。
 
 ## 输掉的方案
 

@@ -21,7 +21,7 @@
 ```text
 _backlog/
 ├── README.md            # 本文件（规矩手册 = 章程）
-├── triggers.md            # 活触发器索引（账本）：deferred-with-trigger 的可见面，扫描义务见下文专节
+├── triggers.md            # 活触发器索引（账本）：只收工作里会撞上的观察，扫描义务见下文专节
 ├── plans/               # 推敲卡：设计 / 分析 / 调研
 ├── bugs/                # 缺陷卡：已发现、决定不当场修的缺陷（当场修掉的不建档）
 ├── reference/           # 服务于活跃卡片的调研材料（按主题子目录分装；随卡毕业迁 _done/_reference/）
@@ -88,15 +88,14 @@ _backlog/
 
 ## 活触发器索引（triggers.md，2026-10-08 借鉴）
 
-毕业四门第二、三门与 deferred-with-trigger 修复会产出**带活触发器的关闭件**——触发条件本身
-此前散在决定 note、冻结卡状态行与 `discipline.md` ⏸ 行，没有任何「定期扫一眼」的义务
-（立卡前的取代检查只在有人重提同一主题时才起作用，而「慢门禁出现」这类触发不是重提案）。
-[triggers.md](triggers.md) 是它们的**可见面账本**：每行 = 裁决 + 可判定触发条件 + 家的指针。
-借鉴 `ai_dsh_deep_research/_backlog/_postponed_plans` 的两个核心件（索引行 + 周期扫一眼义务），
-**不借其池**：卡不搬家，「位置即状态」「毕业卡永不复活」与挂起池边界不动——
-触发的事实家仍是它的决定 note / 冻结卡 / ⏸ 行，索引只是指针面，不构成第二事实家。
-**扫描义务**：收割、走查、阶段收口时扫一眼；立新卡前的取代检查也扫。
-写行与删行规则、收行门槛见该文件头部。依据：
+延后的句子写在决定 note 或关闭的卡上。[triggers.md](triggers.md) 不自动收录。
+一行只在这种时候才加：不在表上，后来的人会把已经否掉的做法再做一遍，而且条件是工作里自己会撞上的
+**一次观察**（一次跑、一份文件、一次 vendor 发布、一次审计）。常设指令已经在盯的、人生事件、用户点名、
+捆在一起的好几条，都不进表。扫的时候核对不了的行删掉，句子留在原家。
+借鉴 `ai_dsh_deep_research/_backlog/_postponed_plans` 的两个核心件（索引行 + 扫一眼），
+**不借其池**：卡不搬家。触发的事实家仍是决定 note / 冻结卡 / ⏸ 行。
+**扫描义务**：收割、走查、阶段收口时扫这张短表；立新卡前的取代检查也扫。
+写行与删行见该文件头部。依据：
 [postponed-trigger-index note](../notes/implemented/2026-10-08-postponed-trigger-index.md)。
 
 ## 挂起池：暂停，绝不假完成
@@ -119,9 +118,8 @@ _backlog/
 **跟着消费者走**（最后一张活跃卡毕业时 `git mv` 进 `_done/_reference/`，文件名与证据正文保留，相对链接随位置修复）；
 **无状态行**（纯约定）；**按主题子目录分装**（2026-10-05 用户拍板：`upstream/`、`positioning/`、
 `tech-exploration/` 等，搬迁保留证据正文并修相对链接，索引记含子目录路径，门禁递归互查）；**价值超过所有
-喂过的卡片的材料不在此**（调研卡的收卷证据台账仍是
-[`notes/archived/research/`](../notes/README.md)，既定机制不变——两者语义不重叠：一个喂活跃卡，
-一个收卷已毕业的调研卡）。
+喂过的卡片的材料不在此**。收卷后还会被重提的事实写进决定 note（[`notes/README.md`](../notes/README.md)），
+不另留调研目录。
 
 ## 需求与验收方法区（playbooks_plan_and_validate/）
 
@@ -156,9 +154,8 @@ SKILL 形态文档，长期在 `_backlog/` 里打磨。完整留区契约见
 ## 调研卡（原 notes/research 功能并入，用户 2026-09-28 拍板）
 
 一个思考一个家：进行中的调研/推敲都住 plans/，调研只是卡的一种性质（补「待答问题 / 待跑实验 /
-喂给谁」字段与形态规范，见 [plans/README.md](plans/README.md)）。**收卷证据台账** =
-[`notes/archived/research/`](../notes/README.md)（子目录深度与原路径一致，冻结文件内部链接零改）；
-reference/ 区与收卷台账的分工见上文调研材料区。依据：
+喂给谁」字段与形态规范，见 [plans/README.md](plans/README.md)）。收卷后还会被重提的事实写进决定 note，
+不另留调研目录。依据：
 [research-absorbed-into-backlog](../notes/implemented/2026-09-28-research-absorbed-into-backlog.md)
 ——此前「复发才升格、暂不并」的判断被拍板推翻，原判断留该 note 输掉的方案节。
 

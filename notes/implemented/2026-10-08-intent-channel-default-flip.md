@@ -2,7 +2,7 @@
 
 日期：2026-10-08 · 状态：**implemented**
 
-> 承接：[语料吸收审计 R4](../archived/research/2026-10-07-dsh-corpus-absorption-audit.md)（proposed 池闲置、
+> 承接：[语料吸收审计 R4](2026-10-07-dsh-corpus-absorption.md)（proposed 池闲置、
 > 两周 ~90 张 implemented 全部轮内直落——用户是点火器不是方向盘）→ 本决定以 proposed 卡呈批、
 > 用户 2026-10-08 点头（「点头」）→ 同 diff 实施。与
 > [proposed-card-positioning](2026-10-04-proposed-card-positioning.md) 构成部分取代：其「点名或点头

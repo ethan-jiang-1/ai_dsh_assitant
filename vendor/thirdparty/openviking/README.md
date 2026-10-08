@@ -11,7 +11,7 @@
 |---|---|
 | 包名 / 版本 | `@openviking/dsh-memory-plugin` 0.5.8（latest） |
 | 来源 | https://registry.npmjs.org/@openviking/dsh-memory-plugin/-/dsh-memory-plugin-0.5.8.tgz |
-| 发布日 | 2026-09-25（发布证明 npm publish attestation 2026-09-29 双源确认：sigstore 透明日志条目 + subject sha512 与本 tgz 逐位一致；注意 packument 面不显示 attestations 字段、须查专用端点，第一轮验收曾据此误判存疑，见[二轮台账](../../../notes/archived/research/2026-09-29-openviking-acceptance-audit-round2.md)） |
+| 发布日 | 2026-09-25（发布证明 npm publish attestation 2026-09-29 双源确认：sigstore 透明日志条目 + subject sha512 与本 tgz 逐位一致；注意 packument 面不显示 attestations 字段、须查专用端点，第一轮验收曾据此误判存疑，见[二轮台账](../../../notes/implemented/2026-09-29-openviking-adoption-rfc.md)） |
 | 完整性 | `sha512-S90WV24K4tdRm0rMa8UHmnvkqCzaqnWck7lGN5aGfg2M45kDv2/mPOgclfSepM9ZWuSxIl3ZrM2y26fMnK//Wg==`（= registry `dist.integrity`，本仓 2026-09-28 下载后独立重算一致） |
 | license | Apache-2.0（bundle 位于上游仓 `examples/`，license 分表载明；上游主项目 OpenViking 为 AGPL-3.0——独立进程 + HTTP/MCP 消费不构成链接，fork server 才触发） |
 | 上游源码 | https://github.com/volcengine/OpenViking （`examples/dsh-memory-plugin` 目录） |
@@ -104,7 +104,7 @@ opt-in 调试摘要、非外发上报。官方跑分用云端 Doubao——**本�
 - 流向：试点脚本读 `.env.local` → 写 `~/.openviking/ov.conf`（仓库之外，权限 0600）→ server；ov.conf 在用户家目录，天然不入库。
 - key 由用户亲手粘进 `.env.local`；agent 只做传递，不回显、不要求把 key 贴进对话（会话日志会留底）。
 
-## 试点运维负知识（2026-09-29 两轮验收实测，台账：[一轮](../../../notes/archived/research/2026-09-29-openviking-acceptance-audit.md) / [二轮](../../../notes/archived/research/2026-09-29-openviking-acceptance-audit-round2.md)）
+## 试点运维负知识（2026-09-29 两轮验收实测，台账：[一轮](../../../notes/implemented/2026-09-29-openviking-adoption-rfc.md) / [二轮](../../../notes/implemented/2026-09-29-openviking-adoption-rfc.md)）
 
 - **抽取时长波动大**：同语料三次 713s / 1110s / 603s(失败)——等待上限按 ≥25 分钟或纯轮询 task status，别按"6-8 分钟"定长。
 - **失败不回滚**：VLM 请求超时 → task `failed` 但部分写入已落库。健康检查看 `/api/v1/tasks` 状态而非只看 stats。

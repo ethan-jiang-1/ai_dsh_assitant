@@ -108,11 +108,11 @@ const NOTE_NAME_PATTERN = /^\d{4}-\d{2}-\d{2}-[a-z0-9][a-z0-9-]*\.md$/
 /** Status words that mean a proposal is done and must have left notes/proposed/. */
 export const GRADUATED_STATUS = /状态：\*\*(implemented|rejected|archived|已全部实施|已消化|已毕业|已完成|已实施)/
 
-/** Directory names directly under notes/ that may hold notes (archived/research = wound-up survey ledger). */
-const NOTE_SUBDIRECTORIES = ['proposed', 'implemented', 'rejected', 'archived', 'archived/research']
+/** Directory names directly under notes/ that may hold notes. */
+const NOTE_SUBDIRECTORIES = ['proposed', 'implemented', 'rejected', 'archived']
 
-/** Every top-level entry notes/ may carry besides the note subdirectories. INDEX.md is the generated find-a-card index (gen-notes-index.mjs, freshness-gated in the verify chain) — the one admitted exception to "no hand-maintained list". */
-const NOTES_ROOT_FILES = new Set(['README.md', 'INDEX.md', '.gitkeep'])
+/** Every top-level entry notes/ may carry besides the note subdirectories. The tree is the inventory; a root index is a second list. */
+const NOTES_ROOT_FILES = new Set(['README.md', '.gitkeep'])
 
 /** The status word each lifecycle directory's notes must carry (archived keeps implemented). */
 const LIFECYCLE_STATUS = {
@@ -147,8 +147,8 @@ export function notesNamingProblems(notesRoot) {
 }
 
 /**
- * notes/ is a closed classification tree: the lifecycle directories, the wound-up survey ledger
- * and two root files. An unknown directory is a second home for something and drifts (DSH taxonomy:
+ * notes/ is a closed classification tree: the lifecycle directories and README.md at the root.
+ * An unknown directory is a second home for something and drifts (DSH taxonomy:
  * the tree is the classification, checked by a gate rather than convention).
  *
  * @param {string} notesRoot - path of the notes/ directory.
@@ -166,14 +166,21 @@ export function notesTopLevelProblems(notesRoot) {
       problems.push(`notes/${name.name} is not a documented notes-root file — records belong in a lifecycle directory`)
     }
   }
+  for (const sub of ['proposed', 'implemented', 'rejected', 'archived']) {
+    const dir = join(notesRoot, sub)
+    if (!existsSync(dir)) continue
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue
+      problems.push(`notes/${sub}/${entry.name}/ is not a documented lifecycle directory — notes stay flat under the lifecycle folder`)
+    }
+  }
   return problems
 }
 
 /**
  * The state line makes the lifecycle readable at a glance, so the directory and the status word
  * must agree, the filename date must equal the status date, archived notes must carry their
- * freeze line, and rejected notes must carry the one-line reason that keeps them useful. The
- * wound-up survey ledger (`archived/research/`) keeps its own loose rule: a survey line says 已收卷.
+ * freeze line, and rejected notes must carry the one-line reason that keeps them useful.
  *
  * @param {string} notesRoot - path of the notes/ directory.
  */
@@ -203,15 +210,6 @@ export function notesStateProblems(notesRoot) {
       }
       if (dir === 'rejected' && !/状态：\*\*rejected\*\*（.+）/.test(line ?? '')) {
         problems.push(`notes/rejected/${name} carries no one-line rejection reason on its status line`)
-      }
-    }
-  }
-  const surveyLedger = join(notesRoot, 'archived', 'research')
-  if (existsSync(surveyLedger)) {
-    for (const name of readdirSync(surveyLedger)) {
-      if (!name.endsWith('.md') || name === 'README.md') continue
-      if (!/状态：[^\n]*已收卷/.test(read(join(surveyLedger, name)))) {
-        problems.push(`notes/archived/research/${name} must carry 状态：…已收卷 — an archived survey is wound up, not in progress`)
       }
     }
   }

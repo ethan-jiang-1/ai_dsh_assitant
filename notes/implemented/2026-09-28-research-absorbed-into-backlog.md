@@ -10,26 +10,22 @@
 
 ## 决定
 
-1. **notes/research（已退役） 目录退役**：进行中的调研 = `_backlog/plans/` 调研卡（补「待答问题 / 待跑实验 /
-   喂给谁」字段与形态规范，见 [_backlog/plans/README.md](../../_backlog/plans/README.md)）。
-2. **收卷证据台账 = `notes/archived/research/`**（原 notes/archived/research/ 整树 git mv）：
-   子目录深度与原路径一致（2 层），14 篇冻结调研的内部相对链接**零改动**；入站引用
-   （ROADMAP 残留指针、implemented 卡、docs）同 diff 修为 `notes/archived/research/`。
-3. **形态规范随迁**：一手引证 / 证据分级 / 版本基线 / 承重结论内联自足 / 普查亲验，落到
-   plans/README（调研卡按此写）；`research/` 的状态行户口检查改挂 `archived/research/`
-   （松口径 `已收卷`，冻结文件内容零改）。
-4. 当日唯一活跃稿（十维自评）随迁并收卷（结论已消化：[质量维持卡](2026-09-28-harness-quality-upkeep.md)）。
+1. **进行中的调研 = `_backlog/plans/` 调研卡**（补「待答问题 / 待跑实验 / 喂给谁」字段与形态规范，见
+   [_backlog/plans/README.md](../../_backlog/plans/README.md)）。`notes/` 下不设调研目录。
+2. **收卷不另留台账**。还会被重提的事实写进拥有该决定的 note；调查正文留在 git。引用改指向决定 note。
+3. **形态规范在 plans**：一手引证 / 证据分级 / 版本基线 / 承重结论内联自足 / 普查亲验，落到
+   plans/README（调研卡按此写）。
+4. 当日十维自评的结论在[质量维持卡](2026-09-28-harness-quality-upkeep.md)。
 
 ## 输掉的方案
 
 - **「复发才升格、暂不并」（本人原判断）**：理由是本仓 research 无死稿病、两家互链即可——被用户
   拍板推翻：功能重叠本身就是第二事实家，等病发再并 = 明知重叠还养着；本仓 research 与 plans 卡
   的差异只是字段侧重，并入后纠结消失。
-- **收卷台账并入 `_backlog/_done/`**：被队列条目与 implemented 卡**活引用**的证据（走查、grand-plan、
-  R1–R3）落进「fresh agent 默认忽略」的 `_done` = 埋掉活证据；notes/archived/research/ 保住
-  「可读可引的证据档案」语义。
-- **收卷台账平铺进 `notes/archived/`**：需改 14 篇冻结稿的状态行与内部链接（深度 3→2）才能过
-  状态门禁——违背「冻结不再编辑」；子目录方案零内容改动。
+- **收卷台账并入 `_backlog/_done/`**：活引用的证据落进「fresh agent 默认忽略」的 `_done` = 埋掉。
+- **收卷台账平铺进 `notes/archived/`**：需改冻结稿的状态行与内部链接才能过状态门禁。
+- **留下冻结收卷台账**（2026-09-28 当时的选择）：为了冻结稿零改、又怕放进 `_done` 会被忽略。
+  2026-10-08 撤掉——它仍是第二个家。活引用改指向决定 note，调查正文留在 git。
 
 ## 验证
 

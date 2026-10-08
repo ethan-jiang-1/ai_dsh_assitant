@@ -3,7 +3,7 @@
 日期：2026-10-07 · 状态：**implemented**
 
 > 承接链：[调研卡](../../_backlog/_done/_closed_plans/261007-dsh-corpus-absorption-audit.md)（当日审计毕业）
-> → [收卷台账](../archived/research/2026-10-07-dsh-corpus-absorption-audit.md)（三卷 230+ 机制六态对照、四症状 × 八根因）
+> → [收卷台账](2026-10-07-dsh-corpus-absorption.md)（三卷 230+ 机制六态对照、四症状 × 八根因）
 > → 用户批准（2026-10-07「可以」）→ 本 note（八片实施，逐片锚点提交）。
 > B1 处置表与 #2/#5 触发条件的家 = [流程预算审计卡](../../_backlog/_done/_closed_plans/261007-process-budget-audit.md)。
 
