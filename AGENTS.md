@@ -43,7 +43,7 @@ rejected 政策、命名——本文件不复制）；改行为、契约或开�
 | `packages/dsh-smart-assistant/` | **插件包**（bundle）：入口×平面、自有四工具×动词、组合行、pin 与依赖姿态见生成物 `docs/package-catalog.md`；包内 owner 面与纪律见其 `AGENTS.md` | 改模型可见面 / 服务 / 布局动这里 |
 | `docs/` | **当前合同**（只写现在，无历史）—— 文档 tier 与"谁拥有什么"见其 `AGENTS.md` | 门禁住了的事实进这里 |
 | `notes/` | **开发记忆与证据链**（分类 owner：`notes/README.md`）：`proposed/` 将来 → `implemented/` 当前权威 → `archived/` 冻结历史（含 `research/` 收卷调研台账）；`rejected/` 存负知识与一行原因 | 决策与输掉的方案进这里 |
-| `_backlog/` | **推敲空间**：正式加工前的四问推敲（该不该/何时/次序/放弃）——plans 卡（`YYMMDD-slug`，含调研卡）+ bugs 卡，只装判断材料、**永不调度**；毕业四门与铁律见其 `README.md` | 收割/走查/对话中值得推敲但未到裁决的思考在此立卡 |
+| `_backlog/` | **推敲空间**：正式加工前的四问推敲（该不该/何时/次序/放弃）——plans 卡（`YYMMDD-slug`，含调研卡）+ bugs 卡，只装判断材料、**永不调度**；毕业四门与铁律见其 `README.md`；活触发器索引 `triggers.md`（收割/走查/收口扫一眼） | 收割/走查/对话中值得推敲但未到裁决的思考在此立卡 |
 | `dev/` | 开发 home 与 profile patch —— 双 home 与两个 profile 的纪律见其 `AGENTS.md` | 环境问题动这里（手册 owner：`docs/dev.md`） |
 | `scripts/` | 机械门禁与生成器 —— 门禁三条纪律与 freshness 约定见其 `AGENTS.md` | 门禁问题动这里 |
 | `snapshots/` | 行为回归的证据面——只收边界与现状见其 `AGENTS.md` 与 `README.md` | 回归证据问题动这里 |

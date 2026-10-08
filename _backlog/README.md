@@ -21,10 +21,11 @@
 ```text
 _backlog/
 ├── README.md            # 本文件（规矩手册 = 章程）
+├── triggers.md            # 活触发器索引（账本）：deferred-with-trigger 的可见面，扫描义务见下文专节
 ├── plans/               # 推敲卡：设计 / 分析 / 调研
 ├── bugs/                # 缺陷卡：已发现、决定不当场修的缺陷（当场修掉的不建档）
 ├── reference/           # 服务于活跃卡片的调研材料（按主题子目录分装；随卡毕业迁 _done/_reference/）
-├── playbooks_plan_and_validate/ # 需求对齐与质量验收方法演练场（成熟后毕业为 .agents/skills/）
+├── playbooks_plan_and_validate/ # 需求对齐与质量验收方法实验场（本仓长期打磨）
 └── _done/               # 归档（位置即状态）：_closed_plans/ + _suspended_plans/
                          #   + _fixed_bugs/ + _suspended_bugs/ + _reference/
 ```
@@ -84,6 +85,19 @@ _backlog/
 （症状 / 根因假设 / 复现 / 严重级 / 修复关联），否则缺陷散在 note 里不可检索、无 triage 状态。
 把每个 bug 当**契约探针**——一个具体缺陷往往牵出一类失败，顺藤摸瓜值得横切排查。
 已有归宿的旧缺陷不迁移（例：`#digestCache` 症状签名已住质量维持卡轨 C，不另立卡）。
+
+## 活触发器索引（triggers.md，2026-10-08 借鉴）
+
+毕业四门第二、三门与 deferred-with-trigger 修复会产出**带活触发器的关闭件**——触发条件本身
+此前散在决定 note、冻结卡状态行与 `discipline.md` ⏸ 行，没有任何「定期扫一眼」的义务
+（立卡前的取代检查只在有人重提同一主题时才起作用，而「慢门禁出现」这类触发不是重提案）。
+[triggers.md](triggers.md) 是它们的**可见面账本**：每行 = 裁决 + 可判定触发条件 + 家的指针。
+借鉴 `ai_dsh_deep_research/_backlog/_postponed_plans` 的两个核心件（索引行 + 周期扫一眼义务），
+**不借其池**：卡不搬家，「位置即状态」「毕业卡永不复活」与挂起池边界不动——
+触发的事实家仍是它的决定 note / 冻结卡 / ⏸ 行，索引只是指针面，不构成第二事实家。
+**扫描义务**：收割、走查、阶段收口时扫一眼；立新卡前的取代检查也扫。
+写行与删行规则、收行门槛见该文件头部。依据：
+[postponed-trigger-index note](../notes/implemented/2026-10-08-postponed-trigger-index.md)。
 
 ## 挂起池：暂停，绝不假完成
 
