@@ -18,7 +18,7 @@
 ## harness 状态（诚实）
 
 - **web 渲染期望**：harness 已建（`dev/probes/web/webui-expected.mjs` + 纯核比对器，形态夹具在
-  `tests/webui-expected-core.spec.mjs`）；场景契约 owner 是各场景目录的 `README.md`。
+  `packages/dsh-smart-assistant/tests/tooling/webui-expected-core.spec.mjs`）；场景契约 owner 是各场景目录的 `README.md`。
 - **session 回放**：仍未建。升级触发条件（够用再升级，别提前造）、当前用什么顶、以及为什么：
   owner 是 [`README.md`](README.md)——本文件不复制它。
 

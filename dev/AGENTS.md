@@ -22,8 +22,9 @@
 | `dev-task` + [`preset-runner.patch.yml`](probes/session/preset-runner.patch.yml) | one-shot + preset 挂载 | 自动化验证驱动：让 headless 会话也进 preset（不带 patch 仍是裸 agent——vendor 明文契约） |
 
 **为什么不能合一**：headless 模板不组成 roster（没有 agent-presets 行），web 模板才有；
-`dev/profiles/profile-patch.yml` 用整行替换语义、`dev/harness-home/profiles/dev-task/cordis.patch.yml` 用 insert 语义，
+`dev/profiles/profile-patch.yml` 用整行替换语义、[`profile-patch-headless.yml`](profiles/profile-patch-headless.yml) 用 insert 语义，
 两者互换即失配（细节 owner：[`docs/dev.md`](../docs/dev.md) §四）。
+（两者由 `env/setup.sh` 拷成各自 home 的 `cordis.patch.yml`；那是运行拷贝，不是源头。）
 
 ## 布局（工具按职责分家；运行数据原地不动）
 
