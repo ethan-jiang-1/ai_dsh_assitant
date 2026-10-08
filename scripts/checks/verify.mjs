@@ -344,7 +344,7 @@ check('structure: every composition file we own parses as YAML', () =>
     ...walk(join(packageDir, 'presets'), ['.yml']),
   ]))
 
-check('entry files: every AGENTS.md stays standing orders (no dates, no progress marks)', () =>
+check('entry files: every AGENTS.md stays standing orders (no dates, no progress marks or prose)', () =>
   [
     join(repoRoot, 'AGENTS.md'),
     join(repoRoot, 'docs', 'AGENTS.md'),

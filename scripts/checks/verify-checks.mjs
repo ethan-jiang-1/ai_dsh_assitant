@@ -218,8 +218,15 @@ export function notesStateProblems(notesRoot) {
 
 /**
  * AGENTS.md is a standing-orders file (docs/discipline.md: no state sections, no progress marks,
- * no pin numbers). A dated line or a progress mark is exactly the state claim that belongs in
- * ROADMAP.md or a note, so the promise gets a command instead of being remembered.
+ * no pin numbers). Dated lines, progress marks and progress prose are all the same state claim —
+ * the kind that belongs in the file that owns that state (a README) or a note, so the promise gets
+ * a command instead of being remembered.
+ *
+ * The prose arm exists because the gate first shipped as a date-and-emoji regex and let a whole
+ * "harness 状态" section reading "已建"/"仍未建" stay green in snapshots/AGENTS.md (2026-10-08).
+ * Both patterns are deliberately narrow: the words alone are legitimate standing-order vocabulary
+ * ("无状态"、"桌面状态"、"TODO/FIXME 不立项"), so only a `## … 状态 …` heading and the built/not-built
+ * verbs are rejected — which is why the fixtures pin both directions.
  *
  * @param {string} agentsPath - path of the root AGENTS.md.
  */
@@ -232,7 +239,13 @@ export function agentsMdStabilityProblems(agentsPath) {
       problems.push(`AGENTS.md:${index + 1} carries a date — standing orders do not age; put the dated record in a note and link it`)
     }
     if (/[✅⏳⏸▶🧹]/.test(line)) {
-      problems.push(`AGENTS.md:${index + 1} carries a progress mark — progress lives in ROADMAP.md, not in the entry file`)
+      problems.push(`AGENTS.md:${index + 1} carries a progress mark — progress and state live in the file that owns them (a README or a note), not in the entry file`)
+    }
+    if (/^#{1,6}\s.*状态/.test(line)) {
+      problems.push(`AGENTS.md:${index + 1} is a state section — standing orders do not report progress; keep the steps here and let the owning README or note hold the state`)
+    }
+    if (/已建|未建|待建|尚未|仍未|已落地|未落地|已交付|未交付|进行中/.test(line)) {
+      problems.push(`AGENTS.md:${index + 1} carries progress prose — standing orders do not age; say what to do here, and let the owning README or note say how far it has got`)
     }
   }
   return problems

@@ -506,6 +506,46 @@ describe('agentsMdStabilityProblems', () => {
     expect(problems.some(p => p.includes('carries a date'))).toBe(true)
     expect(problems.some(p => p.includes('progress mark'))).toBe(true)
   })
+
+  // The gate shipped as a date-and-emoji regex, so state written as prose walked straight
+  // through: snapshots/AGENTS.md carried a whole "harness 状态" section reading "已建"/"仍未建"
+  // and stayed green (found 2026-10-08 by a semantic-drift audit). These two fixtures pin both
+  // halves of the widened boundary — what must now fail, and what must still pass, because the
+  // words alone also appear in real standing orders ("无状态"、"桌面状态"、"TODO/FIXME 不立项").
+  it('rejects prose-shaped state: a 状态 section heading, or 已建/未建 verbs', () => {
+    const dir = temp('agents-state-')
+
+    const sectionHeading = join(dir, 'section.md')
+    writeFileSync(sectionHeading, '## 规则\n- 别碰 ~/.dsh。\n\n## harness 状态（诚实）\n- 都齐了。\n', 'utf8')
+    expect(agentsMdStabilityProblems(sectionHeading).some(p => p.includes('state section'))).toBe(true)
+
+    const builtVerb = join(dir, 'built.md')
+    writeFileSync(builtVerb, '## 布局\n- harness 已建，比对器在旁边。\n', 'utf8')
+    expect(agentsMdStabilityProblems(builtVerb).some(p => p.includes('progress prose'))).toBe(true)
+
+    const unbuiltVerb = join(dir, 'unbuilt.md')
+    writeFileSync(unbuiltVerb, '## 布局\n- session 回放仍未建。\n', 'utf8')
+    expect(agentsMdStabilityProblems(unbuiltVerb).some(p => p.includes('progress prose'))).toBe(true)
+  })
+
+  it('still accepts the same words where they are standing orders, not state', () => {
+    const dir = temp('agents-clean-')
+    const clean = join(dir, 'AGENTS.md')
+    writeFileSync(
+      clean,
+      [
+        '## 一个事实一个家',
+        '`AGENTS.md` 只拥有常设指令与路由（无状态、无日期、无进度）；',
+        '`deliverables/` 是会话运行现场：桌面状态与临时产物都不提交。',
+        '代码里的 `TODO/FIXME` 不立项，只在代码内。',
+        '不要把 dev home 里的状态当仓库内容提交。',
+        '',
+      ].join('\n'),
+      'utf8',
+    )
+
+    expect(agentsMdStabilityProblems(clean)).toEqual([])
+  })
 })
 
 describe('implementedAlternativesProblems', () => {

@@ -15,11 +15,11 @@
 单元 / CLI / generator / 几何 / 其他纯函数期望输出**跟 owning 层走**
 （`packages/dsh-smart-assistant/tests/`、各自脚本旁）——集中目录只收真正同类的证据。
 
-## harness 状态（诚实）
+## harness 入口
 
-- **web 渲染期望**：harness 已建（`dev/probes/web/webui-expected.mjs` + 纯核比对器，形态夹具在
+- **web 渲染期望**：harness = `dev/probes/web/webui-expected.mjs`（+ 纯核比对器，形态夹具在
   `packages/dsh-smart-assistant/tests/tooling/webui-expected-core.spec.mjs`）；场景契约 owner 是各场景目录的 `README.md`。
-- **session 回放**：仍未建。升级触发条件（够用再升级，别提前造）、当前用什么顶、以及为什么：
+- **session 回放**：升级触发条件（够用再升级，别提前造）、当前用什么顶、以及为什么：
   owner 是 [`README.md`](README.md)——本文件不复制它。
 
 ## 加 fixture 时

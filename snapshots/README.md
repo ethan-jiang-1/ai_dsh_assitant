@@ -1,12 +1,16 @@
 # snapshots/ —— 行为回归的证据面
 
 DSH 的行为回归证据面按"录一次、keyless 重放比对"运转（一场景一目录 + 自己的 `snapshot.yml`）。
-本 repo 是隔离插件（方案 A），harness 自建最小版——**web 渲染期望已建两场景**：
-[`web-face/blank-first-open/`](web-face/blank-first-open/README.md)（裸首开态，harness 试点）与
-[`web-face/first-open-draft-banner/`](web-face/first-open-draft-banner/README.md)（有草稿待批的
-首开态，首屏审批横幅的耐久回归面）；harness 是
-[`dev/probes/web/webui-expected.mjs`](../dev/probes/web/webui-expected.mjs)（`--scenario` + `--wait-text`
-就绪令牌）。session 回放仍未建（见下）。
+本 repo 是隔离插件（方案 A），harness 自建最小版。
+
+**本树两类的现状**（状态归这里——`AGENTS.md` 只写入口与边界，不报进度）：
+
+- **web 渲染期望**：**已建两场景**——[`web-face/blank-first-open/`](web-face/blank-first-open/README.md)
+  （裸首开态，harness 试点）与 [`web-face/first-open-draft-banner/`](web-face/first-open-draft-banner/README.md)
+  （有草稿待批的首开态，首屏审批横幅的耐久回归面）。harness 是
+  [`dev/probes/web/webui-expected.mjs`](../dev/probes/web/webui-expected.mjs)
+  （`--scenario` + `--wait-text` 就绪令牌）。
+- **session 回放**：**仍未建**——升级触发条件见文末，当前用什么顶见下。
 
 **当前用什么顶**：
 
