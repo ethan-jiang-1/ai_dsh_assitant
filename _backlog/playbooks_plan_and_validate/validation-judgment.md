@@ -6,10 +6,12 @@ whenToUse: Implementation claims a plan is complete and its acceptance matrix an
 
 # Judge delivery against the plan
 
-**Input:** the confirmed plan, its acceptance matrix, implementation diff or fixed point, evidence from
-[validation-evidence](validation-evidence.md), and any named human judgment. Do not reopen settled
-requirements merely because implementation is inconvenient. If the matrix exposes a genuinely ambiguous
-product choice, stop that row and return it to the requirements chain for human confirmation.
+**Input:** the consuming record — the confirmed plan with its acceptance matrix while the card is active,
+otherwise the proposal→implemented record that carries the criteria — plus the implementation diff or
+fixed point, evidence from [validation-evidence](validation-evidence.md), and any named human judgment.
+Do not reopen settled requirements merely because implementation is inconvenient. If the matrix exposes a
+genuinely ambiguous product choice, stop that row and return it to the requirements chain for human
+confirmation.
 
 ## 1. Check the evidence, not the claim
 

@@ -31,7 +31,8 @@ their owning layer; session replay remains unbuilt until its documented trigger 
 This playbook designates, at plan time, which owner must prove each row and what it cannot prove. The
 final minimal evidence lane at implementation/push time is still picked by the repo's `pre-push-evidence`
 judgment rules and the evidence map: if a pre-written command has gone stale or over-broad, run what the
-current map requires and record the deviation in the plan row.
+current map requires and record the deviation in the consuming record — the plan row while the card is
+active, otherwise the proposal→implemented record the notes contract owns.
 
 ## 2. Make the evidence complementary and attributable
 

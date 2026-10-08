@@ -65,6 +65,10 @@ decided deferral, rejection and digestion. The selected gate determines the dest
 result becomes a proposal. Honor current-request and local-edit exemptions instead of re-proposing
 already authorized work. A card status, cleared frontier or upstream ready label never grants authority.
 
+When the exit is doing-now, carry the acceptance-matrix rows into the proposal's executable-acceptance
+content: the notes contract keeps a proposal self-contained, and implementation sessions read the
+proposal, not the frozen plan. The plan card remains the historical origin of the criteria.
+
 If evidence or human confirmation still blocks the judgment, keep the card active with next step and
 trigger. A decided deferral may leave future design to its trigger; rejection need not answer every
 hypothetical implementation question. Name what is unnecessary for this exit rather than inventing
