@@ -36,16 +36,22 @@ conclusion open; record the exact question and next step.
 
 ## 2. Submit a processing request
 
-Use the [downstream entry](../../notes/README.md) to submit the materials for handling. Write the request so
-the receiving session can understand the problem, conclusion, reasons and any acceptance criteria without
-this conversation. Source links support those statements; they do not replace them.
+Keep the complete request on the issue. Present it in the current reply with the card link, confirmed
+conclusion, and what downstream handling is requested. If the user has already named a receiving session
+or destination, submit there instead within the authorized scope. The receiver follows the
+[notes entry](../../notes/README.md); that README is a rules entry, not a request inbox.
 
-Record where the request was submitted and link it from the issue. Backlog does not decide whether to
-create, update or omit a note, and does not prescribe the receiving process's format or lifecycle.
-If no submission destination has been established, report that gap; do not claim that the handoff happened.
+Record the submission date, recipient or destination, and requested handling on the card. This makes the
+handoff reconstructable without relying on the conversation alone. Source links support the problem,
+conclusion and reasons; they do not replace those statements. Moving the card later must preserve the request.
 
-**Done:** the request is submitted and its destination is traceable. Waiting for downstream processing is
-separate from an unresolved backlog question. Submission itself grants no implementation authority.
+Backlog does not create a note as proof of submission, decide whether one is needed, or prescribe downstream
+format and lifecycle. Merely drafting the request on the card is preparation, not submission. If delivery
+could not happen, report the gap and do not claim it was submitted.
+
+**Done:** the request has been presented to the user or submitted to the designated receiver, and its
+submission is recorded. Waiting for downstream processing is separate from an unresolved backlog question.
+Submission itself grants no implementation authority.
 
 ## 3. Close the issue when its conditions are met
 

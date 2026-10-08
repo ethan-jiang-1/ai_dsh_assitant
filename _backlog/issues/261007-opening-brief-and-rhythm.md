@@ -106,7 +106,7 @@ owner 面**，故本卡不擅自把它们塞进 `snapshots/`（那是越界，�
 - 影响：#3、#6 的行在 `/tmp` 清空后**不可复核**——按
   [validation-judgment](../methods/validation-judgment.md) §1，证据不可复核 = **blocked，不是 pass**。
 - 已做的缓解：本表把每行的**断言对象与判读要点**写全（不依赖图片本身也能理解判了什么），
-  并把 commit 锚点（`7fe774a`/`636a4a6`/`532c19d`）写进状态行。
+  并把提交锚点（`7fe774a`/`636a4a6`/`532c19d`）列在开头的当前情况中。
 - **可重取的方法线索**：保留断言对象、提交锚点与日志读法，供后续补证据使用。排程落盘日志读法见 [`usage-report`](../../dev/reports/usage-report.mjs) 的 `sessionLogs` / `readEvents`。这些线索和截图都不能替代一次可复核的执行结果。
 - **触发条件**：同类"只有跑起来才看得出"的 model-visible/渲染证据**第二次**靠 `/tmp` 手工留存时，
   按 `snapshots/` 的升级触发精神立卡讨论第三类 admitted shape（或把走查协议固化进 probe 脚本），
