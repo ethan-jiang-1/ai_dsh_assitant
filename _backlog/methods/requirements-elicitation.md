@@ -13,7 +13,7 @@ selected skill's full instructions own its protocol.
 **Input:** the user's request or named card and authorized deliberation scope.
 **Output:** an issue card with confirmed answers, evidence links and a judgment-ready or blocked state.
 
-## Human confidence gate
+## Confirm uncertain requirements with the user
 
 **If you lack confidence in a requirements interpretation, trade-off or recommendation, ask the human
 before settling it.** Present what is confirmed, what is uncertain, its impact, the evidence and the
@@ -24,7 +24,7 @@ Facts are the agent's job: inspect accessible code, docs or experiments. If evid
 or contradictory, ask whether to investigate further, change direction or accept an explicit
 assumption. Confirmation of an assumption is not proof of a fact. Business goals, taste, acceptable
 risk and authority boundaries require human judgment. In-scope technical analysis can be agent-led,
-but technical autonomy never bypasses this gate. Silence is not approval; explicit "use the
+but technical autonomy never replaces this confirmation. Silence is not approval; explicit "use the
 recommendations" is confirmation. An interview ends with confirmed shared understanding.
 
 ## Load the named skills
@@ -35,8 +35,8 @@ Invoke only names available through the harness and permitted by its invocation 
 
 If a skill is not callable but its complete source and referenced resources are accessible, disclose
 **source-read adaptation, not a registered invocation**, and read them before proceeding. If neither
-route works, stop that branch and request access/repair; a FAQ summary is not a substitute. The
-[area ledger](README.md) links the provenance note with source locations and audited revisions.
+route works, report the missing source and stop only the dependent branch; a FAQ summary is not a
+substitute. The [method index](README.md) gives the source repository, audited revision and skill paths.
 
 ## 1. Establish scope and a card
 
@@ -74,7 +74,7 @@ Load `wayfinder` for a destination too foggy or large for one interview. Overrid
 automatic claims and task selection: use named decision sections in the scoped card, with destination,
 resolved decisions, precise questions/prerequisites, Not yet specified and Out of Scope. These are
 judgment dependencies, not an execution queue. The map indexes its records rather than copying them.
-Mark human judgments HITL and fact-finding AFK; uncertainty triggers the human confidence gate.
+Separate questions requiring the user's judgment from fact-finding the agent can do; confirm uncertain choices with the user.
 Work one human decision branch per session; independent research can proceed in parallel. Keep fog
 coarse until a question is precise, even if then blocked. Stay within the user's named scope.
 

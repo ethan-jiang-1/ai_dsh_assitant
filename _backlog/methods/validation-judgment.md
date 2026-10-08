@@ -6,9 +6,10 @@ whenToUse: Implementation claims a plan is complete and its acceptance matrix an
 
 # Judge delivery against the plan
 
-**Input:** the consuming record — the confirmed plan with its acceptance matrix while the card is active,
-otherwise the proposal→implemented record that carries the criteria — plus the implementation diff or
+**Input:** the existing record carrying the confirmed acceptance criteria, plus the implementation diff or
 fixed point, evidence from [validation-evidence](validation-evidence.md), and any named human judgment.
+This is a reusable evidence check. Backlog deliberation and downstream notes processing remain separate;
+this method does not decide where downstream records live or when a note changes state.
 Do not reopen settled requirements merely because implementation is inconvenient. If the matrix exposes a
 genuinely ambiguous product choice, stop that row and return it to the requirements chain for human
 confirmation.
@@ -26,7 +27,8 @@ Re-run the plan's stated command or inspect its retained artifact at the stated 
   claims remain explicitly human;
 - a technical green result is not silently promoted to product-value acceptance.
 
-A missing command, stale artifact, unrun human step, or unsupported interpretation is **blocked**, not pass.
+A missing command, stale artifact or unsupported interpretation is **blocked**, not pass. An unrun human
+step is **human judgment pending**; report it separately from technical evidence gaps.
 A failed criterion becomes a bug/plan follow-up according to the existing owner; do not create a second
 validation queue here.
 
@@ -62,7 +64,7 @@ queue. This keeps the gates evolving without a second retro mechanism.
 Do not rewrite the plan after a failed check to make the result green. If the intended behavior changed,
 return to requirements synthesis and record the new decision before revising the matrix.
 
-**Finish:** the consuming record carries row-level outcomes, evidence links/commands, limitations,
-attribution and any human decision. A not-yet-graduated card keeps them on the card; a card already
-graduated writes them to its proposal→implemented record under the notes contract — never into the frozen
-archive. The result is accepted, reworkable, waiting, or returned to requirements with an honest reason.
+**Finish:** report row-level outcomes, evidence links/commands, limitations, attribution and any human
+decision to the existing record that owns the work. Existing active cards carrying delivery keep the results
+on the card; after handoff, the downstream process decides where results belong. Keep frozen archives
+unchanged. The result is accepted, reworkable, waiting, or returned to requirements with an honest reason.

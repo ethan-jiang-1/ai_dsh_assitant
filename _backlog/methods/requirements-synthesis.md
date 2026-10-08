@@ -1,83 +1,69 @@
 ---
 name: requirements-synthesis
-description: Compile confirmed requirements and evidence into this repo's existing card/proposal shape, assess candidate vertical slices when authorized, and record the appropriate four-gate judgment.
-whenToUse: An issue card is ready for synthesis or a graduation judgment; a mature multi-session scope needs a reviewed breakdown. Not scheduling, automatic publication or implementation.
+description: Organize confirmed requirements and evidence, compare approaches, and record a supported conclusion and closure criteria on the issue.
+whenToUse: An issue has enough information to compare approaches or prepare a conclusion; an authorized planning scope may need independently verifiable steps. Not implementation or scheduling.
 ---
 
-# Synthesize and judge
+# Organize the approach and conclusion
 
-**Input:** the scoped card, confirmed answers/terms, evidence and prototype verdicts, alternatives,
-red lines and unresolved prerequisites. Before proceeding, read the entry's
-[confidence gate and skill-loading rules](requirements-elicitation.md). A missing fact or uncertain
-requirements judgment must not be guessed into a mature proposal.
+**Input:** the scoped card, confirmed answers and terms, evidence, prototype findings, alternatives,
+constraints and unresolved questions. Follow the [user-confirmation and skill-loading rules](requirements-elicitation.md).
+A missing fact or uncertain choice remains explicit.
 
-## 1. Compile aligned requirements
+## 1. Organize confirmed requirements
 
-Read `to-spec` in full when this functional step is needed. Supply existing owner vocabulary and
-related decisions. Override its tracker/setup, template and ready-for-agent publication defaults:
-write back to the card's existing sections, then the appropriate local graduation destination.
-Do not create a second spec store or treat publication as approval.
+Read `to-spec` in full when this step is needed. Supply existing owner vocabulary and related decisions.
+Override its tracker, setup, template and publication defaults: write back to the existing issue.
 
-Synthesize confirmed answers instead of restarting the interview. Cover the user's complete workflow
-and relevant failure/recovery scenarios; completeness matters, not a user-story count. For model-facing
-work include per-action authority, correction and behavior when the model is wrong, uncertain, refuses
-or hallucinates. Carry explicit Out of Scope and genuine alternatives/costs into the result.
+Synthesize the answers already obtained. Cover the user's workflow, intended result, relevant failure and
+recovery cases, scope and exclusions. For model-facing work include authority per action, correction, and
+behavior when the model is wrong, uncertain, refuses or hallucinates. Retain alternatives actually considered,
+their costs and supporting evidence.
 
-Use `codebase-design` only when module interfaces or test seams need analysis. Verify existing
-capabilities and prefer existing behavioral test seams. Technical analysis may be agent-led within
-scope, but uncertainty or a choice affecting requirements returns to human confirmation. If synthesis
-exposes a new gap, reopen that specific question, not the entire settled interview.
+Use `codebase-design` only when module interfaces or test seams need analysis. Verify existing capabilities
+and prefer established seams. If a new requirements gap appears, return to that specific question rather
+than restarting the entire discussion.
 
-Keep implementation decisions at the behavior/contract level. Override upstream's path ban where
-local evidence and executable acceptance need source links, commands and assertion targets; avoid
-brittle line-by-line implementation recipes. Decision-rich prototype snippets may be linked or
-included with provenance. A doing-now major proposal follows the
-[note shape and executable acceptance contract](../../notes/README.md).
+**Done:** another session can reconstruct the intended result, scope and reasons from the card without the
+conversation. For a do-it conclusion, prepare [acceptance criteria](validation-design.md) now, before comparing
+implementation steps or completing the conclusion below. Deferral, rejection and an existing conclusion do
+not require hypothetical implementation criteria. This prepares the handoff; it does not require downstream
+implementation or acceptance to have happened.
 
-**Done:** synthesis is traceable to confirmed answers and evidence, the intended behavior and exclusions
-are explicit, and another session can reconstruct the requirements from the card without the transcript.
-Do not add validation evidence here. If this judgment will point at a doing-now/proposal exit, run
-[validation-design](validation-design.md) next — the slice assessment and gate judgment below consume its
-matrix. Deferral, rejection and digestion exits need no acceptance matrix. Otherwise retain the named
-requirements blocker in the card.
+## 2. Compare approaches and steps where needed
 
-## 2. Assess slices only when needed and in scope
+Compare genuine candidates against the confirmed requirements, costs and evidence. Prefer behavior and
+contract descriptions over brittle line-by-line implementation recipes. Keep source paths and assertion
+targets where they make a fact or acceptance criterion checkable.
 
-For an authorized multi-session planning scope, read `to-tickets` and assess a candidate breakdown.
-Override tracker, `.scratch/` ticket files and ready labels: candidate slices live with the current
-card/proposal, not in a new execution queue. Each names delivered behavior, executable acceptance
-(from the acceptance matrix) and only its real blockers; it must be independently verifiable and fit a
-fresh context window.
-Use expand-contract for wide mechanical refactors that cannot stay green as vertical slices.
+For an authorized planning scope that needs multiple independently verifiable steps, read `to-tickets`.
+Keep candidate steps on the current card, not in new ticket files or an execution queue. Each names the
+result delivered, acceptance criteria and real prerequisites. A small problem needs no invented breakdown.
 
-Present the breakdown for human review: behavior delivered, granularity, blockers, merge/split options
-and remaining uncertainties. Even a confirmed breakdown records dependencies, not scheduling or
-start authority. A small scope or a justified rejection needs no hypothetical slice list.
+Present unresolved choices with evidence and a recommendation when supported. Human approval of a breakdown
+confirms that choice; it does not grant implementation authority beyond the user's actual request.
 
-**Done:** the needed breakdown is reviewed, or its precise confirmation gap is recorded. Implementation
-remains outside this playbook and follows the user's authorized scope.
+**Done:** the chosen approach and necessary steps are supported, or a precise fact/confirmation gap is recorded.
 
-## 3. Record the judgment, not an automatic next task
+## 3. Record the conclusion and prepare the handoff
 
-Read the [four graduation gates and card/evidence lifecycle](../README.md) and
-[note/authorization boundaries](../../notes/README.md). Keep all four exits available: doing-now,
-decided deferral, rejection and digestion. The selected gate determines the destination; not every
-result becomes a proposal. Honor current-request and local-edit exemptions instead of re-proposing
-already authorized work. A card status, cleared frontier or upstream ready label never grants authority.
+Use the [backlog closure criteria](../README.md). Answer whether to do it, when, in what order and what is
+excluded, only to the detail needed for the conclusion. Record one of:
 
-When the judgment is supported, hand the card to [issue-to-note](issue-to-note.md). That playbook
-turns the gate into a note, or into an explicit decision that no note is warranted, and rewrites a
-doing-now acceptance matrix into the proposal's `## 验收`. Synthesis stops at the judgment.
+- **Do it:** confirmed result, scope, approach, reasons and executable acceptance criteria.
+- **Do it later:** reason, observable reconsideration condition and its location; future design may remain open.
+- **Do not do it:** reason and applicable scope.
+- **An existing conclusion answers it:** destination link and the question it settles.
 
-If evidence or human confirmation still blocks the judgment, keep the card active with next step and
-trigger. A decided deferral may leave future design to its trigger; rejection need not answer every
-hypothetical implementation question. Name what is unnecessary for this exit rather than inventing
-answers. Move cards/evidence only under their owner lifecycle rules.
+If facts or user confirmation still block the conclusion, keep the issue active and name the exact gap and
+next step. A card status or an upstream ready label never grants authority.
 
-Preserve continuity from interview to synthesis where possible. Because the harness may compact
-and this repo works across sessions, persist confirmed answers, unresolved prerequisites, evidence
-and dependencies before a boundary. On resume, reread the card and linked artifacts; ask the human
-where reconstruction is uncertain. Do not claim an unbroken window or fixed token threshold.
+Use [the handoff method](issue-to-note.md) to request downstream handling when needed. Backlog prepares and
+submits the materials; [notes](../../notes/README.md) decides whether they become a note and how to handle
+them. Submission is not note creation or downstream completion. Do not maintain those rules here.
 
-**Finish:** the card carries a supported graduation judgment and destination, or an honest unresolved
-state with a concrete unblocker. This is judgment material, not a new implementation queue.
+Persist the confirmed answers, evidence and unresolved questions before a session boundary. On resume,
+reread the card and linked artifacts; ask the user only where reconstruction leaves a dependent choice uncertain.
+
+**Finish:** the card has a supported conclusion ready for handoff, or a concrete unresolved question. The
+card's closure follows the backlog rules, independently of downstream completion.

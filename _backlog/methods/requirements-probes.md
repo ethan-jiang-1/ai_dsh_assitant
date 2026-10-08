@@ -7,7 +7,7 @@ whenToUse: A requirements question cannot be settled by the current interview al
 # Probe a requirements unknown
 
 **Input:** a scoped issue card, the exact unknown, and the judgment it blocks. Before proceeding,
-read the entry's [confidence gate and skill-loading rules](requirements-elicitation.md).
+read the entry's [user-confirmation and skill-loading rules](requirements-elicitation.md).
 Read the chosen skill and its branch resources; use only the missing functional step.
 
 ## 1. Pick by the unknown
@@ -54,11 +54,11 @@ recipient input or human confirmation blocks its dependent judgment, not unrelat
 
 Keep short findings in the card's known/unresolved section. Retained research, experiment reports,
 questionnaires and replies serving active cards belong under a topic in
-[reference](../research/README.md), with its naming, ledger and consumer-linked lifecycle.
+[research](../research/README.md), with its naming, ledger and consumer-linked lifecycle.
 Link the evidence once; record which question it settles, source/version or artifact commit,
 limitations, attribution and what becomes answerable next. Temporary send/hand-off files are not a
 second cross-session authority; preserve any relied-on result in the card or retained evidence.
-A concluded research ledger follows the existing separate policy linked by the reference contract.
+Research follows the linked research lifecycle when its last active consumer closes.
 
 **Finish:** the consuming card has updated evidence and unresolved items. Return to the affected
 interview question in [requirements-elicitation](requirements-elicitation.md), or proceed to

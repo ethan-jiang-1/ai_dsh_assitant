@@ -1,88 +1,54 @@
-# methods/ · 需求对齐与验收方法演练场
+# methods/ · 按当前问题选择方法
 
-本区是本项目长期维护的 **SKILL 形态方法实验场**：把需求对齐与质量验收沉淀为本仓自己的
-可复用能力，服务 [issues](../issues/README.md) 的产出质量（需求清楚、验收有方）。
-它持续反复打磨，不发进 preset，也不自动进入技能发现目录；不追求适配各种项目，
-也不承诺 promote 成通用 `.agents/skills/`——SKILL 形态只是为了让 agent 容易消费。
-某件工作的判断住 issues，证据住 [research](../research/README.md)；四问、授权和生命周期
-以 [章程](../README.md) 与 [notes 契约](../../notes/README.md) 为准。
-这里不另立 tracker、排期或验收队列。
+这里的方法辅助 [backlog 流程](../README.md)：澄清需求、补事实、比较方案、准备验收标准、交接结论。先判断眼下缺什么，再读对应的一篇；每张卡不必跑完整套。
 
-## 按需要读取
+backlog 负责把问题想清楚，向 notes 申请后续处理，是前后两段。这里准备结论、依据和必要的验收标准；下游是否形成 note、怎么处理，由 [notes 流程](../../notes/README.md) 决定。申请提交不等于 note 已生成，也不等于下游完成。
 
-**先确定自己在哪条链，再按当前缺口展开；不是每张卡都跑完整套。**
+## 现在需要哪篇
 
-### 需求链：决定要做什么
-
-| 现在要解决什么 | 读取 | 留下什么 |
+| 当前情况 | 方法 | 结果写在哪里 |
 |---|---|---|
-| 意图模糊、词义冲突、判断没信心，或想法大到一次访谈装不下 | [requirements-elicitation](requirements-elicitation.md) | 本仓卡、人的确认边界、技能加载规则、澄清与决策地图 |
-| 需要查事实、问别人、摸原型；或外部原始请求需要先核实 | [requirements-probes](requirements-probes.md) | 补证据的三种探针及 raw-request 分诊入口；结论回写消费卡 |
-| 已对齐，需要编译、评估候选切片或作毕业判断 | [requirements-synthesis](requirements-synthesis.md) | 本仓需求规格、边界、候选拆解、四问里的哪一问，或具体阻塞 |
+| 需求不清楚，术语有歧义，或问题太大需要拆开讨论 | [澄清需求](requirements-elicitation.md) | 原卡上的目标、边界、已确认回答和待确认问题 |
+| 缺事实，需要调研、询问或试原型；收到的报告还未经核实 | [补充证据](requirements-probes.md) | 短结论回原卡，长依据进 [research](../research/README.md) 并链接 |
+| 需求已清楚，但不知道怎样算完成 | [设计验收标准](validation-design.md) | 原卡的验收标准，必要时用表格列明 |
+| 信息已齐，需要整理需求、比较方案或决定是否关闭 | [整理方案与结论](requirements-synthesis.md) | 原卡的方案、取舍、结论和关闭条件 |
+| 结论已确定，需要申请后续处理或指向已有决定 | [申请下游处理](issue-to-note.md) | 原卡的结论与申请去向；是否成为 note 由下游决定 |
 
-### 落笔记：判断已经做出
+通常先澄清需求、补齐事实，再整理方案。决定做的事项，整理方案时先补齐验收标准，再确定方案和必要的分步安排。决定延后、不做或指向已有结论的，不必设计尚未要做的实现验收。
 
-四问由 synthesis 做出。这一步把判断写成一篇以后还能挡住错误改法的 Note，或者写成一次明确的「不写」。
-不重新访谈，也不改验收矩阵里已经确认的行为。
+需要用户判断时，写清已知事实、选择的影响、建议和具体问题，等答复后再继续依赖该答复的部分。事实查证由 agent 完成；人的业务选择、品味和授权不能靠猜测补齐。
 
-| 现在要解决什么 | 读取 | 留下什么 |
+## 后续需要验证时
+
+这两篇是按需使用的辅助方法，不另立实施流程或验收队列。实施和 note 的维护遵循下游规则。
+
+| 当前情况 | 方法 | 用途 |
 |---|---|---|
-| 毕业判断已有，要决定写不写、写成提案、更新既有决定、记下触发、记下否决，还是消化进已有正文 | [issue-to-note](issue-to-note.md) | 一篇独立可读的 Note，或明确的不写；issue 按章程离场 |
+| 已有验收标准，需要知道用什么证据检查 | [选择证据](validation-evidence.md) | 按 [测试证据地图](../../docs/testing.md) 找已有命令或资产，说明它能证明什么 |
+| 声称做完，需要检查是否符合要求 | [判断验收结果](validation-judgment.md) | 逐项记录通过、不通过、证据不足或等待用户判断；结果回到承载该工作的现有记录 |
 
-### 验证链：判断做出来没有
+发现需求不清时，回到具体问题补充确认；发现实现不符合标准时，记录实际差异。不能改标准来迁就实现。
 
-验证链只消费已确认的 issue；不能替需求链补产品决定，也不能用验收结果偷偷改需求。
-**时序**：validation-design 在 synthesis 的切片评估与毕业判断**之前**。四问里只有「该做」需要验收矩阵。「该做但不现在」「不做」「消化」不写矩阵。
-issue-to-note 在毕业判断**之后**：把矩阵行改写成提案的「验收」，或按另外三问写成触发、否决、消化；也可以明确不写。validation-evidence 在实施前或实施中指定证据，validation-judgment 在实施后收货。
+## 方法的维护
 
-| 现在要解决什么 | 读取 | 留下什么 |
-|---|---|---|
-| 已确认的行为还没有可判定的完成条件 | [validation-design](validation-design.md) | 同一张 issue 内的验收矩阵、行为分类、负例/互补状态和真人判断点 |
-| 卡上已有判据，需要选择可信证据 | [validation-evidence](validation-evidence.md) | 现有测试、组合、渲染、eval 或真人证据 owner；不建新队列 |
-| 实施声称完成，需要逐行收货和归因 | [validation-judgment](validation-judgment.md) | pass/fail/blocked/human-pending 结果、限制、回退路径或需求缺口 |
+这些是持续打磨中的本仓方法，用英文供 agent 执行。文件保留 `name` / `description` / `whenToUse` frontmatter，正文写输入、步骤、结果位置和完成条件。它们不发进 preset，也不自动进入技能发现目录。
 
-需求链的缺口回到需求篇；验证链发现判据改变了意图时也回到需求链。需求入口的
-**Human confidence gate** 是两链共用的判断边界——验证链遇到不确定的产品选择同样回到人；
-**skill loading** 规则约束任何被点名的上游技能。验证链不重新进行访谈。
+方法依据应来自实际使用，或已经完整阅读的外部技能；未试用的适配须如实说明。文档自审和 `pnpm verify` 的形状检查不证明方法有效。问题和结论留在卡片，方法里不维护进度或待办。
 
-## 长期实验场契约
+## 外部技能的来源与读取
 
-- 每份方法文档用英文、`kebab-case.md`，正文按输入、步骤、产物落点、完成或等待条件组织；
-  frontmatter 保持 `name` / `description` / `whenToUse`，因为这是 agent 易于消费的形状，不是通用技能发行承诺。
-- **进来的是有可核来源的方法草稿**：重复推敲的实证，或用户点名借鉴且已经读过完整本体的项目适配。
-  后者可以尚未试用，但须如实标为未验证；摘要只能帮助定位本体，不能代替执行协议。
-- 本区无卡片编号/状态行。英文稿里写 playbook，指的就是本目录这些方法。`pnpm verify` 的 `playbookFrontmatterProblems` 只检查文档形状。
-  语法绿不证明方法有效，也不证明上游技能已能被 harness 发现。
-- **不设毕业线**：在本仓持续使用、复盘、拆分、合并和重写；真实事项试用是校准证据，
-  不是 promote 条件。若未来需要独立通用技能，另立明确决定，不把本区默认搬走或复制两份。
+表内技能的原始作者是 Matt Pocock；本仓适配所依据的版本位于 [ethan-jiang-1/skills](https://github.com/ethan-jiang-1/skills/tree/fad900074ddc0ce2f5e612e52ec75fda8a8f36d3)，基线 `fad900074ddc0ce2f5e612e52ec75fda8a8f36d3`。路径均相对此仓库根目录。原作者仓库为 [mattpocock/skills](https://github.com/mattpocock/skills)，本地适配版本不假定与它当前版本相同。
 
-当前需求三篇、落笔记一篇与验收三篇均是持续打磨中的项目适配草稿；文档自审不算真实事项试用。
+执行时先看当前技能目录：能调用就调用；未注册但能读取完整本体及分支资源的，说明是读源执行后再继续。可在现有技能安装目录或本地 checkout 找表中路径；没有本地副本时，可从上面的固定版本读取。两者都不可用就报告缺少哪个本体、阻断哪一步，继续不依赖它的工作。摘要和 FAQ 只帮助定位，不能替代执行说明。这里不安装技能、不修改全局发现配置。
 
-## 能力与依赖
-
-这些方法是**本仓自己的能力**：每篇独立定义本仓的输入、步骤、产物落点和完成线。
-点名了上游技能的篇，外部依赖是 **Matt Pocock 的 SKILL 本体**——写明执行时需要哪个技能、喂什么输入、
-结果回哪里；技能在会话目录里可调用就调用，不可调用但完整本体可读就读源并如实声明，
-两者都不可行就停住该分支。没有上游技能的篇，协议就是本篇加上它点名的本仓契约。
-本仓 owners（issues/notes/docs/testing/snapshots）负责落点、
-证据标准和授权；**需求阶段没信心就请真人确认**，技术自主权不能绕过。
-
-| 本仓能力 | 依赖的 SKILL 本体（相对上游 checkout） |
+| 方法 | 需要时读取的技能本体（相对上述版本根目录） |
 |---|---|
-| [requirements-elicitation](requirements-elicitation.md)：访谈、术语、大想法决策地图 | `skills/engineering/grill-with-docs/SKILL.md`、`skills/productivity/grilling/SKILL.md`、`skills/engineering/domain-modeling/SKILL.md`、`skills/engineering/wayfinder/SKILL.md` |
-| [requirements-probes](requirements-probes.md)：research/问卷/原型与 raw-request 核实 | `skills/engineering/research/SKILL.md`、`skills/productivity/to-questionnaire/SKILL.md`、`skills/engineering/prototype/SKILL.md`（含分支资源）、`skills/engineering/triage/SKILL.md`（含关联资源） |
-| [requirements-synthesis](requirements-synthesis.md)：编译需求、候选切片与四问 | `skills/engineering/to-spec/SKILL.md`、`skills/engineering/to-tickets/SKILL.md`、`skills/engineering/codebase-design/SKILL.md`、`skills/engineering/ask-matt/SKILL.md`（阶段边界资源） |
-| [issue-to-note](issue-to-note.md)：毕业判断写成 Note，或明确不写 | 无 Matt 技能。重读入口是钉住的 [DSH notes 规则](../../vendor/dsh/.agents/notes/README.md) 与同树 `dsh-prose-standard` / `dsh-trim-cot-leakage` / `dsh-archive-agent-notes`；落笔形状以 [notes 契约](../../notes/README.md) 为准 |
-| [validation-design](validation-design.md)：验收判据与矩阵 | `skills/engineering/tdd/SKILL.md`（红灯先行/独立预期值/垂直切片）、`skills/engineering/codebase-design/SKILL.md`（seam 词汇） |
-| [validation-evidence](validation-evidence.md)：证据路由 | 表主是本仓 [testing 证据地图](../../docs/testing.md)与现有 owners；上游无对应技能本体 |
-| [validation-judgment](validation-judgment.md)：收货与归因 | `skills/engineering/code-review/SKILL.md`（双轴分报）、`skills/engineering/diagnosing-bugs/SKILL.md`（失败归因回环）、`skills/engineering/retro/SKILL.md`（验收漏检沉淀为检查/标准） |
+| [澄清需求](requirements-elicitation.md) | `skills/engineering/grill-with-docs/SKILL.md`、`skills/productivity/grilling/SKILL.md`、`skills/engineering/domain-modeling/SKILL.md`、`skills/engineering/wayfinder/SKILL.md` |
+| [补充证据](requirements-probes.md) | `skills/engineering/research/SKILL.md`、`skills/productivity/to-questionnaire/SKILL.md`、`skills/engineering/prototype/SKILL.md`、`skills/engineering/triage/SKILL.md`，含各自点名的资源 |
+| [整理方案与结论](requirements-synthesis.md) | `skills/engineering/to-spec/SKILL.md`、`skills/engineering/to-tickets/SKILL.md`；需要分析模块接口时读 `skills/engineering/codebase-design/SKILL.md` |
+| [设计验收标准](validation-design.md) | `skills/engineering/tdd/SKILL.md`、`skills/engineering/codebase-design/SKILL.md` |
+| [选择证据](validation-evidence.md) | 无外部技能依赖；按本仓 [证据地图](../../docs/testing.md) |
+| [判断验收结果](validation-judgment.md) | 需要相应步骤时读 `skills/engineering/code-review/SKILL.md`、`skills/engineering/diagnosing-bugs/SKILL.md`、`skills/engineering/retro/SKILL.md` |
+| [申请下游处理](issue-to-note.md) | 无外部技能依赖；向 [notes 入口](../../notes/README.md) 申请处理 |
 
-表未列出的上游技能 = 本仓无对应功能位，取舍理由见决定记录（如 `pr` 的合并证据打包、
-`improve-codebase-architecture` 的结构门均不进 issue 验收）。
-
-上游 FAQ（`_faq_on_digest/09_…`、`10_…`）只用于定位 Matt 技能，不是能力依据。
-有技能本体的篇，协议与分支资源以本体为准。Note 质量的规则原文在钉住的
-[`vendor/dsh/.agents/notes/`](../../vendor/dsh/.agents/notes/README.md) 与同树技能里，判断已经写进
-[issue-to-note](issue-to-note.md)。
-基线 `fad9000`。方法就在本目录。
-上游更新时重读本表点名的本体及分支资源；不 vendor、不安装、不修改全局发现配置。
+来源更新时，重新核对实际使用的技能本体和分支资源，再调整本仓方法。技能的 tracker、模板和发布默认行为不替代本仓卡片位置或用户授权。

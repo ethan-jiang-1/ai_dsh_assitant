@@ -54,10 +54,10 @@ Before reporting such a row, take these three steps instead of inventing a bucke
 protocol named and its missing owner identified.
 
 This playbook designates, at plan time, which owner must prove each row and what it cannot prove. The
-final minimal evidence lane at implementation/push time is still picked by the repo's `pre-push-evidence`
-judgment rules and the evidence map: if a pre-written command has gone stale or over-broad, run what the
-current map requires and record the deviation in the consuming record — the plan row while the card is
-active, otherwise the proposal→implemented record the notes contract owns.
+implementation/push evidence is selected by the repo's `pre-push-evidence` rules and the evidence map.
+If a pre-written command has gone stale or over-broad, use the current map and report the deviation to the
+record that already owns the work. For existing active cards carrying delivery this is the card; after
+handoff, the downstream process owns the location. This method does not define note content or lifecycle.
 
 ## 2. Make the evidence complementary and attributable
 

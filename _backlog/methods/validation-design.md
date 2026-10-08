@@ -1,14 +1,14 @@
 ---
 name: validation-design
 description: Turn confirmed requirements into observable acceptance criteria before implementation, using this repo's evidence owners and human judgment boundaries.
-whenToUse: A confirmed issue card is heading for a doing-now/proposal judgment that needs executable acceptance; run before synthesis assesses slices or judges. Deferral, rejection and digestion exits need no matrix; not a test-plan tracker or implementation queue.
+whenToUse: Confirmed requirements need executable acceptance criteria before an approach is finalized and handed off. Deferral, rejection and links to existing conclusions need no implementation matrix.
 ---
 
 # Design acceptance before implementation
 
 **Input:** a scoped issue card with confirmed behavior, constraints, alternatives, failure or recovery paths,
 and explicit Out of Scope. Before proceeding, read [requirements-elicitation](requirements-elicitation.md)'s
-confidence and skill-loading rules.
+user-confirmation and skill-loading rules.
 
 The purpose is to make the plan **clear to build and possible to accept**. Do not invent acceptance criteria
 for an uncertain product choice: expose the uncertainty and ask the human. Technical evidence selection can be
@@ -25,11 +25,12 @@ For every behavior that matters to the user, classify it as one or more of:
 Do not use one end-to-end demo as proof for all three. A plan may have no model behavior; do not create an eval
 just because this is an agent product.
 
-## 2. Add the acceptance matrix to the same plan
+## 2. Write acceptance criteria on the issue
 
-Use one row per load-bearing behavior. Keep it in a dedicated `## 验收矩阵` section of the same plan; the
-`## 毕业门` section cites it as gate evidence rather than absorbing it. Do not create a second acceptance
-store. Each row names:
+Keep criteria in `## 验收标准` on the same issue. For a small scope a short list is enough; when behaviors
+need separate checks, use one table row per load-bearing behavior. Existing `## 验收矩阵` sections remain
+readable as criteria; new writing uses the common heading. `## 关闭条件` refers to the criteria without
+repeating them. Each criterion names:
 
 | Field | What to record |
 |---|---|
@@ -59,5 +60,6 @@ present, one happy-path example, or a passing demo is not by itself a pass condi
 
 **Done:** every load-bearing requirement has a behavior class, observable pass/fail signal, negative or
 complementary case, evidence owner, and an explicitly named human judgment or an explicit “none”.
-The matrix is written to travel. [issue-to-note](issue-to-note.md) rewrites its rows into a proposal's
-`## 验收` when the graduation gate is doing-now. The matrix itself stays on the plan.
+These criteria describe how downstream work will be judged; designing them does not require the work to
+have been implemented. Include them in the [handoff materials](issue-to-note.md); the receiving notes
+process owns how they are used there.

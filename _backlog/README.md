@@ -1,68 +1,59 @@
-# _backlog
+# _backlog · 把问题想清楚
 
-本地的议题板。GitHub 上是 Open 一张 Issue、讨论、Close；这里用文件夹做同一件事。还在想的停在外面，关掉的进 [`_archive/`](_archive/README.md)。决定要留下来、还要人点头的，跟进到 [`notes/`](../notes/README.md) 的 `proposed/`。没有点名，不要从这里开工。
+这里用卡片记录尚未确定的问题，收集依据，形成结论，再交接或关闭。做什么由用户本轮请求决定；没有点名，不从卡片清单里自行开工。
 
-## 三十秒读完
+**backlog 和 notes 是前后两段。** backlog 关心问题是否想清楚、结论是否有依据、申请下游处理的材料是否齐全；[notes](../notes/README.md) 接收申请后，决定是否形成 note、以什么方式处理。不是每张 issue 都会成为 note。backlog 申请已提交、去向已记录后可以按关闭条件结束卡片，不等待下游加工完成。
 
-一条事情这样走：
+## 一件事怎么走
 
-1. **还没定**，在 [`issues/`](issues/README.md) 开一张。这就是 Open issue。文件名 `YYMMDD-<slug>.md`。
-2. **是缺陷，而且这次不修**，在 [`bugs/`](bugs/README.md) 开一张。这就是 Open bug。文件名 `BUG-<NNN>-<slug>.md`。当场能修的不建卡。
-3. **证据太长**，写在 [`research/`](research/README.md)，卡上只留链接。调研喂 issue，也喂 bug。
-4. **四问有了答案**，关掉这张卡：`git mv` 进 `_archive/`，再把决定跟进到 note。做法在 [`issue-to-note`](methods/issue-to-note.md)。
-5. **被人叫停，答案还没有**，也搬进 `_archive/` 里标明叫停的那一格。这不是有了结论。
+1. **记录问题。** 先找已有的 [问题卡](issues/README.md)，没有合适的再新建。写清什么情况引出了问题、希望得到什么结果、怎么算完成，以及目前不知道什么。已经确认是缺陷、但这次不修的，记在 [缺陷卡](bugs/README.md)；当场修掉的不建卡。
+2. **弄清问题。** 缺事实就查资料、读代码或试原型；缺人的选择就说明依据、建议和要确认的问题。短结论写回卡片，较长的依据放在 [调研](research/README.md)。不知道当前这一步怎么做时，查 [方法导航](methods/README.md)。
+3. **形成结论。** 回答做不做、什么时候做、先做什么、哪些不做。决定做的事项，要先写清 [验收标准](methods/validation-design.md)；决定延后或不做的，写清条件或理由。
+4. **申请下游处理并关闭。** 需要后续处理的，按 [交接说明](methods/issue-to-note.md) 准备材料，向 [notes 流程](../notes/README.md) 提交申请；是否成为 note 由下游决定。已有结论足以回答问题、不需继续处理的，直接留下引用。满足关闭条件后归档。
 
-[`methods/`](methods/README.md) 是问清需求和验收的习惯，一直放在原地。[`triggers.md`](triggers.md) 只记以后干活会自己撞上的条件。前面带 `_` 的目录默认跳过。
+卡上的状态、方案或建议都不授予实施权限。已由用户授权的工作按授权范围继续，不重复请求批准。
 
-## 目录对照
+## 现在要找什么
 
-| 路径 | 本地放什么 | 按 GitHub 的习惯读 |
-|---|---|---|
-| [`issues/`](issues/README.md) | 还在推敲的事 | Open issue。`Feature` / `Task` / `未定` 写在正文状态行，像标签。旧卡不回填。不另开 features、tasks 两个目录 |
-| [`bugs/`](bugs/README.md) | 这次不修的缺陷 | Open bug。单独一个目录，是为了提交时只改这里。下一个号写在它的 README |
-| [`research/`](research/README.md) | 喂这些卡的调研 | Issue 正文装不下的证据。结论留在卡上 |
-| [`methods/`](methods/README.md) | 需求怎么问清、做完怎么算数 | 仓库里的做事习惯 |
-| [`triggers.md`](triggers.md) | 以后会自己撞上的条件 | 关掉「以后再说」时留下的观察。延后不自动加一行 |
-| [`_archive/`](_archive/README.md) | 已经离开活跃区 | Closed。去向写在子目录名上 |
-
-新文件的 frontmatter 写在各自目录的 README 里，标题就是 `frontmatter`。推敲和缺陷第一项是 `status`，调研第一项是 `topic`。
-
-## 关掉一张推敲，跟进到 note
-
-走完下面四问，卡进 [`_archive/settled_issues/`](_archive/settled_issues/README.md)。文件名不变，正文不改，`status` 改成 `已结`，状态行补去向。
-
-| 四问 | 关掉之后跟到哪 |
+| 要做什么 | 入口 |
 |---|---|
-| 该做 | [`notes/proposed/`](../notes/README.md)。写成问题、方案、验收。点头才做 |
-| 该做但不现在 | 触发条件写进拥有它的 note。条件到了再新开一张，链回这张旧卡 |
-| 不做 | 理由进那篇 note 的「输掉的方案」。还要单独挡住再犯，写 [`notes/rejected/`](../notes/README.md) |
-| 消化 | 结论已经在某篇 note 或合同里。卡上留下指向 |
+| 看还有哪些问题没结束 | [问题清单](issues/README.md) |
+| 记录这次不修的缺陷 | [缺陷清单与模板](bugs/README.md) |
+| 查事实或阅读依据 | 从卡片链接进入 [调研](research/README.md) |
+| 澄清需求、比较方案或准备验收 | [方法导航](methods/README.md) |
+| 查看工作中遇到什么条件需要重新讨论 | [触发条件索引](triggers.md) |
+| 查已经结束的讨论 | [归档](_archive/README.md)，按需要打开 |
 
-被人叫停、四问还没有答案：进 [`_archive/suspended_issues/`](_archive/suspended_issues/README.md)，`status` 改成 `叫停`。回到 `issues/` 要一次新的、说得清的决定。
+## 关闭条件
 
-## 关掉一张缺陷
+问题已有明确结论，所需确认已得到，需要的下游处理申请已提交并记录去向，才可以关闭；已有结论足以回答的，留下引用即可。不是每个问题都要实施，也不是每个问题都要成为 note。按结论检查：
 
-| 情况 | 去向 | `status` |
+| 结论 | 关闭前留下什么 |
+|---|---|
+| 做 | 问题、方案、范围、真实比较过的选择及理由、可执行的验收标准，以及下游处理申请的去向 |
+| 以后做 | 延后的理由、什么时候再看、到时观察什么。需要下游保留或处理的提交申请，记录去向；条件到了新开卡并引用旧卡 |
+| 不做 | 原因和适用范围；需要下游保留或处理的提交申请，记录去向 |
+| 结论已经在别处 | 指向已有决定或当前合同，说明它回答了本卡的什么问题 |
+
+现有卡中有已经实施、仍待终验的事项：它们保留到卡上原有的验收要求完成，并分别写清技术缺口和用户待确认项。这些记录不改变上面的正常交接流程，也不表示“实现落地”就可以关闭。
+
+有了结论的卡用 `git mv` 进 [已关闭问题](_archive/settled_issues/README.md)，文件名和讨论正文保留，frontmatter 的 `status` 改为 `已结`，状态行补结论与去向，修复相对链接并更新两边清单。以后出现新问题，新开卡引用旧卡。
+
+被用户明确叫停、还没有结论的，进 [叫停的问题](_archive/suspended_issues/README.md)，`status` 改为 `叫停`；回到活跃区需要一次明确的新决定。证据或答复尚缺时，留在活跃区并写明下一步。
+
+缺陷按 [缺陷规则](bugs/README.md) 处理：修好进 [已修缺陷](_archive/fixed_bugs/README.md)，查明但未修进 [待修缺陷](_archive/suspended_bugs/README.md)。调研在最后一张使用它的活卡离开时，随迁到 [调研归档](_archive/research/README.md)。
+
+## 文件与目录
+
+| 位置 | 放什么 | 文件约定 |
 |---|---|---|
-| 修好了 | [`_archive/fixed_bugs/`](_archive/fixed_bugs/README.md) | `已修` |
-| 查明了，还没修 | [`_archive/suspended_bugs/`](_archive/suspended_bugs/README.md) | `待修` |
+| [issues/](issues/README.md) | 尚未结束的问题 | `YYMMDD-<slug>.md`；新卡正文可写 `Feature` / `Task` / `未定`，旧卡不回填 |
+| [bugs/](bugs/README.md) | 这次不修的缺陷 | `BUG-<NNN>-<slug>.md`；下一个号在其 README |
+| [research/](research/README.md) | 卡片需要的较长依据 | 按主题分目录，卡片链接材料 |
+| [methods/](methods/README.md) | 各步骤按需使用的方法 | 留在原处，持续改进 |
+| [triggers.md](triggers.md) | 工作里会自然遇到的重新讨论条件 | 延后不自动加行，按该表规则收录 |
+| [_archive/](_archive/README.md) | 已离开活跃区的卡片和调研 | 子目录区分有结论、叫停、已修和待修 |
 
-原料在最后一张活卡离开时，跟着搬到 [`_archive/research/`](_archive/research/README.md)。`topic` 和 `intent` 不动。
+新文件的 frontmatter 在各目录 README 的 `frontmatter` 节。问题和缺陷第一项是 `status`，调研第一项是 `topic`。各 README 的清单须与目录一致，结构和链接由 `pnpm verify` 检查。卡已声明可关闭却仍在活跃区，也会被检查。
 
-## 关掉之后长这样
-
-```text
-_archive/
-├── settled_issues/      四问有了结论          status: 已结
-├── suspended_issues/    被人叫停，还没有结论   status: 叫停
-├── fixed_bugs/          修好了                status: 已修
-├── suspended_bugs/      查明了，还没修         status: 待修
-└── research/            原料随最后一张活卡离开  topic / intent 不动
-```
-
-## 一直成立
-
-- 这里不排期。做什么由用户本轮请求决定。位置就是开着还是关掉。
-- 卡记思考，note 记决定。下一个问题回这里新开一张。
-- 状态行带 🔒 的卡，只有用户能判触发。规则在 [`issues/README.md`](issues/README.md)。
-- 各 README 的名单和目录一致。`pnpm verify` 查这些目录在不在、frontmatter、每张卡有没有被名单点到。毕业门已经写「已过」还留在 `issues/` 的，也会被点名。
+状态行带 🔒 的卡，只有用户能判定触发，详见 [问题卡规则](issues/README.md)。归档默认不展开阅读；需要某个历史结论时，从卡片链接进入。
