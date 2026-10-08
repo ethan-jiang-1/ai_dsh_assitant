@@ -14,7 +14,6 @@
  * @module
  */
 import { appendFile, mkdir } from 'node:fs/promises'
-import { join } from 'node:path'
 
 /** Which lane caused a governance transition. */
 export type ApprovalSource = 'assistant_reflect' | 'panel-direct'
@@ -26,21 +25,20 @@ export interface ApprovalAuditOptions {
   readonly title?: string
 }
 
-/** The structural slice of the home service the ledger writes under. */
+/** The structural slice of the home service the ledger writes under (layout-owned paths). */
 interface AuditHost {
-  readonly paths: { readonly root: string }
+  readonly paths: { readonly auditDir: string; readonly approvalsLedgerFile: string }
 }
 
 /**
  * Append one transition to the approval ledger.
- * @param host - the home service whose dataDir carries the audit/ directory.
+ * @param host - the home service whose layout carries the audit paths.
  * @param kind - which transition happened (promote | deprecate | land).
  * @param id - the page or skill id the transition applied to.
  * @param options - lane context; `source` defaults to the reflect tool's model turn.
  */
 export async function recordApproval(host: AuditHost, kind: 'promote' | 'deprecate' | 'land', id: string, options: ApprovalAuditOptions = {}): Promise<void> {
-  const auditDir = join(host.paths.root, 'audit')
-  await mkdir(auditDir, { recursive: true })
+  await mkdir(host.paths.auditDir, { recursive: true })
   const line = JSON.stringify({
     at: new Date().toISOString(),
     kind,
@@ -49,5 +47,5 @@ export async function recordApproval(host: AuditHost, kind: 'promote' | 'depreca
     ...(options.sessionId !== undefined ? { sessionId: options.sessionId } : {}),
     source: options.source ?? 'assistant_reflect',
   }) + '\n'
-  await appendFile(join(auditDir, 'approvals.jsonl'), line, 'utf8')
+  await appendFile(host.paths.approvalsLedgerFile, line, 'utf8')
 }

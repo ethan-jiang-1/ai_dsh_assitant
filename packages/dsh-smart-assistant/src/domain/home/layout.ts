@@ -32,6 +32,12 @@ export const KNOWLEDGE_ROOM = 'knowledge'
 /** Directory holding skill proposals: drafts awaiting human review, one `<name>.md` per name. */
 export const SKILL_PROPOSALS_DIRECTORY_NAME = 'skill-proposals'
 
+/** Directory holding governance ledgers (not a room, never scaffolded; created on first approval). */
+export const AUDIT_DIRECTORY_NAME = 'audit'
+
+/** Append-only approval ledger inside the audit directory. */
+export const APPROVALS_LEDGER_FILE_NAME = 'approvals.jsonl'
+
 /** Subdirectory holding entries that left a room's active set. */
 export const ARCHIVE_DIRECTORY_NAME = 'archive'
 
@@ -67,6 +73,10 @@ export interface HomePaths {
   readonly knowledgeDir: string
   /** Skill proposals: one `<name>.md` per proposed name, awaiting human review. */
   readonly skillProposalsDir: string
+  /** Governance ledger directory (created on first approval, never scaffolded). */
+  readonly auditDir: string
+  /** Append-only approval ledger (`audit/approvals.jsonl`). */
+  readonly approvalsLedgerFile: string
 }
 
 /**
@@ -91,6 +101,8 @@ export function homePaths(root: string): HomePaths {
     skillsArchiveDir: join(skillsDir, ARCHIVE_DIRECTORY_NAME),
     knowledgeDir: join(root, KNOWLEDGE_ROOM),
     skillProposalsDir: join(root, SKILL_PROPOSALS_DIRECTORY_NAME),
+    auditDir: join(root, AUDIT_DIRECTORY_NAME),
+    approvalsLedgerFile: join(root, AUDIT_DIRECTORY_NAME, APPROVALS_LEDGER_FILE_NAME),
   }
 }
 

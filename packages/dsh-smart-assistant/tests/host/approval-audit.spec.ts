@@ -31,7 +31,7 @@ describe('approval audit ledger', () => {
   }
 
   async function ledger(service: AssistantMemory): Promise<Record<string, unknown>[]> {
-    const path = join(service.paths.root, 'audit', 'approvals.jsonl')
+    const path = service.paths.approvalsLedgerFile
     if (!existsSync(path)) return []
     return readFileSync(path, 'utf8').split('\n').filter(line => line.length > 0).map(line => JSON.parse(line))
   }

@@ -25,6 +25,7 @@
 ├── knowledge/                  # 房间四：领域知识（[[互链]] 页面，OKF 字段子集）
 │   └── <id>.md                 #   deprecated 页留在原地——链接必须继续解析
 ├── skill-proposals/            # 技能提案收件箱（<name>.md，等人工评审；不是房间，是暂存区）
+├── audit/                      # 治理台账：approvals.jsonl（promote/deprecate/land 逐行追加；非房间，code 不 scaffold 它——首次批准时自建）
 └── deliverables/               # 模型写的业务交付稿（见下注；非房间，code 不 scaffold 它）
 ```
 
