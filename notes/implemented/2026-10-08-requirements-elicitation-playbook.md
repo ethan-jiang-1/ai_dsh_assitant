@@ -113,12 +113,25 @@
     三篇共享入口的 confidence/loading 规则而不在每篇各抄一套。
 15. **把需求收口与验收设计绑在一段里（或反过来让验收改需求）**：输给"需求和验证是两种思考
     方式"——验证只消费已确认的 plan，判据暴露意图歧义只能回需求链，不能在验收端补产品判断。
+    （第六轮细化：validation-design 先于 synthesis 的切片/毕业判断且条件性需要——仅 doing-now/
+    proposal 出口要矩阵；把验证链呈现为需求链之后的独立顺序阶段是错位。）
 16. **把方法区叙述成"FAQ 的引擎/容器适配"**：输给用户拍板的独立能力观——playbook 是本仓
     自己的能力，唯一外部依赖是所点名的 SKILL 本体；FAQ 只当定位与查缺的索引，不进能力叙述。
 17. **默认毕业/promote 到通用技能目录**：输给项目性质——适配各种项目的通用技能难度太高；
     本区长期在本仓打磨，SKILL 形态只是消费格式，不是发行承诺。
-18. **为验收另建卡片或队列**：输给"一个事实一个家"——验收矩阵住在同一张 plan，
-    证据路由回本仓 owners（testing.md/snapshots/notes），收货结论回 plan 与既有生命周期。
+18. **为验收另建卡片或队列**：输给"一个事实一个家"——验收矩阵住在同一张 plan 的专设
+    `## 验收矩阵` 小节，证据路由回本仓 owners（testing.md/snapshots/notes）；收货结论按消费记录
+    落位（未毕业卡回卡，已毕业卡回 proposal→implemented 记录），与既有生命周期一致。
+19. **把验收矩阵塞进毕业门小节**：输给粒度混淆——毕业门装四门判据（该不该毕业、缺什么判据），
+    矩阵装行为级验收（每行怎么算过）；专设小节、毕业门引用，两处写法不再漂移。
+20. **把验收结果写回已毕业的归档卡**：输给冻结铁律（归档后历史解释冻结，状态行只记去向）——
+    实施发生在毕业之后，结果必须落消费记录而非冻结件。
+21. **把 plan 预写的证据命令当成最终选道**：输给硬规则 3（只跑会为这次回归而失败的最小检查）与
+    `pre-push-evidence` 的 push 时判断权——plan 时只指定 owner 与"能证明/不能证明"；
+    预写命令过时按当前地图跑并记录偏差。
+22. **依赖表点名正文没有的技能**：输给"点名就要真依赖"——retro 行要么删要么真有步骤；
+    选择在 judgment 收尾补"漏检沉淀"一步（机械漏检→既有检查候选、判断漏检→标准条文，
+    走既有 owner），不建第二 retro 机制。
 
 ## 刻意不借（负知识，登记进区 README 留区契约）
 
@@ -211,6 +224,29 @@
 - **门禁随目录改名**：`playbookStagingDir` 改为发现式解析（多候选报错、缺失回退），
   `playbookFrontmatterProblems` 的 label 取实际目录名；机器本地路径语料与夹具同步指向新目录。
   前述"毕业即纯 git mv"的门禁注释口径一并撤换（本区不再以毕业为目标）。
+
+## 第六轮：全量审计后的修订（2026-10-08 同日）
+
+用户要求以 Matt Pocock 全量 SKILL 本体（checkout 内 37 个：engineering/productivity/in-progress/misc）
+为参照系，整体审计本区的系统性/结构性/一致性。核对结果：依赖表 16 条上游路径全部真实存在；
+各篇声称借用的纪律与本体一致（tdd 红灯/独立预期值/垂直切片、code-review 双轴、to-spec 路径禁令
+与 ready 发布、to-tickets expand–contract、prototype 猜测 fallback、to-questionnaire 的 send、
+ask-matt 阶段边界、triage 五状态、wayfinder fog/HITL-AFK、grilling frontier）。发现并修订：
+
+- **时序理顺（P0）**：README 验证链写明 validation-design 先于 synthesis 的切片评估与毕业判断，
+  且**条件性需要**——仅当判断指向 doing-now/proposal（需要可执行验收）才要矩阵，deferred/
+  rejection/digestion 不需要；synthesis §1 Done、validation-design whenToUse 同步改口径，
+  三处不再互相矛盾。
+- **结果落点（P0）**：validation-judgment 的结果写回消费记录——未毕业卡写回卡，已毕业卡写回
+  proposal→implemented 记录（notes 契约），永不写入冻结归档；结果标签 implemented→accepted，
+  避免与 notes/implemented 生命周期撞名。
+- **矩阵专设 `## 验收矩阵` 小节**：毕业门只放四门判据并引用矩阵；plans 模板说明同步，
+  两处口径不再漂移。
+- **证据指定 vs 最终选道**：validation-evidence 声明 plan 时只指定 owner 与"能证明/不能证明"；
+  push 时最终最小证据选道仍归本仓 `pre-push-evidence` 与 testing 地图，预写命令过时按当前地图跑
+  并记录偏差。
+- **表文一致**：README 依赖表 retro 行与 judgment 正文对齐（收尾补"漏检沉淀"一步）；
+  probes 表头 Engine→Skill；README 补"未列 = 刻意不借"一行与"两链共用 confidence gate"的措辞。
 
 ## 验证（真跑过的命令）
 

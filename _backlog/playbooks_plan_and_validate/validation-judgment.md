@@ -47,14 +47,20 @@ Report at least these independent views when they apply:
 The delivery is accepted only when every required technical row passes and every required human judgment is
 recorded. Otherwise return the exact failing or blocked rows, evidence gap, owner and next trigger. Distinguish:
 
-- **implemented:** all applicable criteria and required human judgments pass;
+- **accepted:** all applicable criteria and required human judgments pass;
 - **rework/bug:** a criterion fails and has a concrete correction path;
 - **waiting:** evidence or human input is missing, including a pending complementary state;
 - **scope/requirements gap:** the criterion cannot be interpreted without changing the confirmed intent;
 - **not accepted:** the evidence contradicts the plan or an explicit human rejection applies.
 
+Also record what acceptance failed to catch: a mechanical miss becomes a candidate for an existing
+deterministic check; a judgment miss becomes a standards note — both through existing owners, never a new
+queue. This keeps the gates evolving without a second retro mechanism.
+
 Do not rewrite the plan after a failed check to make the result green. If the intended behavior changed,
 return to requirements synthesis and record the new decision before revising the matrix.
 
-**Finish:** the plan carries row-level outcomes, evidence links/commands, limitations, attribution and any
-human decision; the result is accepted, reworkable, waiting, or returned to requirements with an honest reason.
+**Finish:** the consuming record carries row-level outcomes, evidence links/commands, limitations,
+attribution and any human decision. A not-yet-graduated card keeps them on the card; a card already
+graduated writes them to its proposal→implemented record under the notes contract — never into the frozen
+archive. The result is accepted, reworkable, waiting, or returned to requirements with an honest reason.

@@ -36,8 +36,9 @@ included with provenance. A doing-now major proposal follows the
 
 **Done:** synthesis is traceable to confirmed answers and evidence, the intended behavior and exclusions
 are explicit, and another session can reconstruct the requirements from the card without the transcript.
-Do not add validation evidence here; if the behavior is not yet judgeable, hand off to
-[validation-design](validation-design.md) after the requirement is confirmed. Otherwise retain the named
+Do not add validation evidence here. If this judgment will point at a doing-now/proposal exit, run
+[validation-design](validation-design.md) next — the slice assessment and gate judgment below consume its
+matrix. Deferral, rejection and digestion exits need no acceptance matrix. Otherwise retain the named
 requirements blocker in the card.
 
 ## 2. Assess slices only when needed and in scope
@@ -45,7 +46,8 @@ requirements blocker in the card.
 For an authorized multi-session planning scope, read `to-tickets` and assess a candidate breakdown.
 Override tracker, `.scratch/` ticket files and ready labels: candidate slices live with the current
 card/proposal, not in a new execution queue. Each names delivered behavior, executable acceptance
-and only its real blockers; it must be independently verifiable and fit a fresh context window.
+(from the acceptance matrix) and only its real blockers; it must be independently verifiable and fit a
+fresh context window.
 Use expand-contract for wide mechanical refactors that cannot stay green as vertical slices.
 
 Present the breakdown for human review: behavior delivered, granularity, blockers, merge/split options

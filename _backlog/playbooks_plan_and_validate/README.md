@@ -23,6 +23,9 @@
 ### 验证链：判断做出来没有
 
 验证链只消费已确认的 plan；不能替需求链补产品决定，也不能用验收结果偷偷改需求。
+**时序**：validation-design 在 synthesis 的切片评估与毕业判断**之前**——仅当四门判断指向
+doing-now/proposal（需要可执行验收）才需要矩阵，deferred/rejection/digestion 出口不需要；
+validation-evidence 在实施前或实施中指定证据，validation-judgment 在实施后收货。
 
 | 现在要解决什么 | 读取 | 留下什么 |
 |---|---|---|
@@ -31,8 +34,8 @@
 | 实施声称完成，需要逐行收货和归因 | [validation-judgment](validation-judgment.md) | pass/fail/blocked/human-pending 结果、限制、回退路径或需求缺口 |
 
 需求链的缺口回到需求篇；验证链发现判据改变了意图时也回到需求链。需求入口的
-**Human confidence gate / skill loading** 规则约束需求支线；验证支线仍须尊重其中已确认的边界，
-但不重新进行访谈。
+**Human confidence gate** 是两链共用的判断边界——验证链遇到不确定的产品选择同样回到人；
+**skill loading** 规则约束任何被点名的上游技能。验证链不重新进行访谈。
 
 ## 长期实验场契约
 
@@ -62,7 +65,10 @@
 | [requirements-synthesis](requirements-synthesis.md)：编译需求、候选切片与四门判断 | `skills/engineering/to-spec/SKILL.md`、`skills/engineering/to-tickets/SKILL.md`、`skills/engineering/codebase-design/SKILL.md`、`skills/engineering/ask-matt/SKILL.md`（阶段边界资源） |
 | [validation-design](validation-design.md)：验收判据与矩阵 | `skills/engineering/tdd/SKILL.md`（红灯先行/独立预期值/垂直切片）、`skills/engineering/codebase-design/SKILL.md`（seam 词汇） |
 | [validation-evidence](validation-evidence.md)：证据路由 | 表主是本仓 [testing 证据地图](../../docs/testing.md)与现有 owners；上游无对应技能本体 |
-| [validation-judgment](validation-judgment.md)：收货与归因 | `skills/engineering/code-review/SKILL.md`（双轴分报）、`skills/engineering/diagnosing-bugs/SKILL.md`（失败归因回环）、`skills/engineering/retro/SKILL.md`（质量门进化） |
+| [validation-judgment](validation-judgment.md)：收货与归因 | `skills/engineering/code-review/SKILL.md`（双轴分报）、`skills/engineering/diagnosing-bugs/SKILL.md`（失败归因回环）、`skills/engineering/retro/SKILL.md`（验收漏检沉淀为检查/标准） |
+
+表未列出的上游技能 = 本仓无对应功能位，取舍理由见决定记录（如 `pr` 的合并证据打包、
+`improve-codebase-architecture` 的结构门均不进 plan 验收）。
 
 上游 FAQ（`_faq_on_digest/09_…`、`10_…`）只用于定位技能与发现缺口，不是能力依据；
 协议与分支资源以 SKILL 本体为准。基线 `fad9000`；checkout 位置、查证历史、纠错理由和

@@ -1,7 +1,7 @@
 ---
 name: validation-design
 description: Turn confirmed requirements into observable acceptance criteria before implementation, using this repo's evidence owners and human judgment boundaries.
-whenToUse: A plans card has a confirmed scope but its completion or acceptance is vague. Use before synthesis graduates the card. Not a test-plan tracker or implementation queue.
+whenToUse: A confirmed plans card is heading for a doing-now/proposal judgment that needs executable acceptance; run before synthesis assesses slices or judges. Deferral, rejection and digestion exits need no matrix; not a test-plan tracker or implementation queue.
 ---
 
 # Design acceptance before implementation
@@ -27,8 +27,9 @@ just because this is an agent product.
 
 ## 2. Add the acceptance matrix to the same plan
 
-Use one row per load-bearing behavior. Keep it in the plan's `## 毕业门` or a linked section; do not create a
-second acceptance store. Each row names:
+Use one row per load-bearing behavior. Keep it in a dedicated `## 验收矩阵` section of the same plan; the
+`## 毕业门` section cites it as gate evidence rather than absorbing it. Do not create a second acceptance
+store. Each row names:
 
 | Field | What to record |
 |---|---|

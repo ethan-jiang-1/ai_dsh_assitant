@@ -12,7 +12,7 @@ Read the chosen skill and its branch resources; use only the missing functional 
 
 ## 1. Pick by the unknown
 
-| Unknown | Engine and input | Result that must return |
+| Unknown | Skill and input | Result that must return |
 |---|---|---|
 | External fact | `research`: small decidable question, version and primary sources | Cited answer, counterevidence and limits, not merely a report |
 | Knowledge held by another person | `to-questionnaire`: who receives it and what facts/decisions are needed back | Sendable questions, then attributed replies feeding the interview |
