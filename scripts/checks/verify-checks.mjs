@@ -507,6 +507,56 @@ export function skillFrontmatterProblems(skillsDir) {
   return problems
 }
 
+/**
+ * Playbook drafts staged in `_backlog/playbooks_plan/` are flat `<name>.md` files carrying the
+ * same SKILL frontmatter they will need once they graduate to `.agents/skills/<name>/SKILL.md`.
+ *
+ * They need their own check because the two serving homes are `<name>/SKILL.md` bundles: the
+ * staging area's shape is different, so `skillFrontmatterProblems` cannot reach it. Without this,
+ * a draft could sit in `_backlog/` with unparsable or mismatched frontmatter and only fail at
+ * graduation — the moment the file must be trustworthy. The name must equal the file's basename
+ * so that `git mv` into the skill directory is a pure move, and the description must be non-empty
+ * because that is what the loader reads to decide whether the skill is ever invoked.
+ *
+ * @param {string} stagingDir - path of the `_backlog/playbooks_plan/` directory.
+ */
+export function playbookFrontmatterProblems(stagingDir) {
+  const problems = []
+  if (!existsSync(stagingDir)) return problems
+  for (const entry of readdirSync(stagingDir, { withFileTypes: true })) {
+    if (!entry.isFile() || !entry.name.endsWith('.md') || entry.name === 'README.md') continue
+    const file = join(stagingDir, entry.name)
+    const expected = entry.name.slice(0, -'.md'.length)
+    const text = read(file)
+    const block = frontmatterBlock(text)
+    if (block === undefined) {
+      problems.push(`_backlog/playbooks_plan/${entry.name} does not start with frontmatter (a playbook is SKILL-shaped from the start)`)
+      continue
+    }
+    let data
+    try {
+      data = parseYaml(block)
+    } catch (error) {
+      problems.push(`_backlog/playbooks_plan/${entry.name} frontmatter is not parsable YAML: ${String(error).split('\n')[0]}`)
+      continue
+    }
+    if (typeof data !== 'object' || data === null || Array.isArray(data)) {
+      problems.push(`_backlog/playbooks_plan/${entry.name} frontmatter is not a mapping`)
+      continue
+    }
+    if (data.name !== expected) {
+      problems.push(`_backlog/playbooks_plan/${entry.name} declares name ${typeof data.name === 'string' ? data.name : '(none)'} — graduation is a pure move only when the name matches the basename`)
+    }
+    if (typeof data.description !== 'string' || data.description.trim().length === 0) {
+      problems.push(`_backlog/playbooks_plan/${entry.name} has no description`)
+    }
+    if (typeof data.whenToUse !== 'string' || data.whenToUse.trim().length === 0) {
+      problems.push(`_backlog/playbooks_plan/${entry.name} has no whenToUse`)
+    }
+  }
+  return problems
+}
+
 // ── config files parse ──────────────────────────────────────────────────────────
 
 /** The overlay loader resolves `!!js` scalars; the gate only needs the YAML layer to accept them. */

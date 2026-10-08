@@ -29,6 +29,7 @@ import {
   backlogLivenessProblems,
   notesTopLevelProblems,
   pinProblems,
+  playbookFrontmatterProblems,
   implementedAlternativesProblems,
   relativeLinkProblems,
   skillFrontmatterProblems,
@@ -655,6 +656,47 @@ describe('skillFrontmatterProblems', () => {
     expect(problems.some(p => p.includes('inner-colon') && p.includes('not parsable YAML'))).toBe(true)
     expect(problems.some(p => p.includes('uses unsupported "disableModelInvocation"'))).toBe(true)
     expect(problems.some(p => p.includes('sets "user-invocable" to a non-boolean value'))).toBe(true)
+  })
+})
+
+describe('playbookFrontmatterProblems', () => {
+  // The staging area's shape is flat `<name>.md`, which the bundle-shaped core above cannot reach.
+  // Without this check a draft could rot in _backlog/ and only fail at graduation — exactly when
+  // the file has to be trustworthy, and after the reader has stopped expecting surprises.
+  it('accepts a SKILL-shaped draft and flags a basename/name mismatch, missing description, and missing frontmatter', () => {
+    const dir = temp('playbooks-')
+    writeFileSync(join(dir, 'good-playbook.md'),
+      '---\nname: good-playbook\ndescription: does a thing\nwhenToUse: when doing the thing\n---\n\nbody\n', 'utf8')
+    writeFileSync(join(dir, 'misnamed.md'),
+      '---\nname: something-else\ndescription: x\nwhenToUse: y\n---\n\nbody\n', 'utf8')
+    writeFileSync(join(dir, 'no-description.md'),
+      '---\nname: no-description\nwhenToUse: y\n---\n\nbody\n', 'utf8')
+    writeFileSync(join(dir, 'no-when-to-use.md'),
+      '---\nname: no-when-to-use\ndescription: x\n---\n\nbody\n', 'utf8')
+    writeFileSync(join(dir, 'naked.md'), '# no frontmatter at all\n', 'utf8')
+    // The area's own account book is not a playbook and must not be judged as one.
+    writeFileSync(join(dir, 'README.md'), '# the area index\n', 'utf8')
+
+    const problems = playbookFrontmatterProblems(dir)
+    expect(problems.some(p => p.includes('good-playbook'))).toBe(false)
+    expect(problems.some(p => p.includes('README.md'))).toBe(false)
+    expect(problems.some(p => p.includes('misnamed.md') && p.includes('pure move'))).toBe(true)
+    expect(problems.some(p => p.includes('no-description.md') && p.includes('has no description'))).toBe(true)
+    expect(problems.some(p => p.includes('no-when-to-use.md') && p.includes('has no whenToUse'))).toBe(true)
+    expect(problems.some(p => p.includes('naked.md') && p.includes('does not start with frontmatter'))).toBe(true)
+  })
+
+  it('rejects YAML the loader would skip, the same way the serving homes do', () => {
+    const dir = temp('playbooks-')
+    writeFileSync(join(dir, 'inner-colon.md'),
+      '---\nname: inner-colon\ndescription: ok\nwhenToUse: the execution shape: who does what\n---\n\nbody\n', 'utf8')
+
+    const problems = playbookFrontmatterProblems(dir)
+    expect(problems.some(p => p.includes('inner-colon.md') && p.includes('not parsable YAML'))).toBe(true)
+  })
+
+  it('treats an absent staging directory as no problems (the area is optional)', () => {
+    expect(playbookFrontmatterProblems(join(temp('playbooks-'), 'never-created'))).toEqual([])
   })
 })
 

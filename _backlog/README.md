@@ -24,6 +24,7 @@ _backlog/
 ├── plans/               # 推敲卡：设计 / 分析 / 调研
 ├── bugs/                # 缺陷卡：已发现、决定不当场修的缺陷（当场修掉的不建档）
 ├── reference/           # 服务于活跃卡片的调研材料（按主题子目录分装；随卡毕业迁 _done/_reference/）
+├── playbooks_plan/      # 推敲方法的演练场（SKILL 形态的方法草稿；成熟后毕业为 .agents/skills/）
 └── _done/               # 归档（位置即状态）：_closed_plans/ + _suspended_plans/
                          #   + _fixed_bugs/ + _suspended_bugs/ + _reference/
 ```
@@ -107,6 +108,16 @@ _backlog/
 喂过的卡片的材料不在此**（调研卡的收卷证据台账仍是
 [`notes/archived/research/`](../notes/README.md)，既定机制不变——两者语义不重叠：一个喂活跃卡，
 一个收卷已毕业的调研卡）。
+
+## 推敲方法区（playbooks_plan/）
+
+**方法本身**的家：把"这件事该怎么推敲"写成可复用的 SKILL 形态文档（提问纪律、探针路由、成文
+形态），先在 `_backlog/` 里打磨，成熟后毕业为**开发用技能**。完整留区契约见
+[其 README](playbooks_plan/README.md)。要点：**方法不属于任何单张卡**（卡片会被毕业，方法要在
+下一张卡上再用一遍——这正是根 AGENTS.md「重复即建」针对的情形）；**这里是技能毕业前的演练场**
+（成熟 = `git mv` 成 [`.agents/skills/<name>/SKILL.md`](../.agents/skills/)，技能 frontmatter 门
+对两处同一把尺，与在役技能同名时不许并存）；**空想的方法不进**（须已在至少一轮真实推敲里被用过）。
+本区不是卡片区，不设状态行，`backlog-liveness` 门禁的三查不覆盖它。
 
 ## 铁律
 
