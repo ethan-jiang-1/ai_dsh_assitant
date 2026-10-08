@@ -1,3 +1,8 @@
+---
+topic: 定位
+intent: "看公开的 CEO/CFO 十分钟演示怎么讲，借叙事骨架。"
+---
+
 # 面向 CEO/CFO 的「十分钟 AI 演示」叙事先例调研
 
 > 调研日期：2026-10-05。服务对象：dsh-smart-assistant 的"面向企业管理层的 AI 助手"十分钟演示叙事设计（喂 `_archive/settled_issues/261005-open-value-deficit` 一线的推敲，亦为独立叙事参考）。

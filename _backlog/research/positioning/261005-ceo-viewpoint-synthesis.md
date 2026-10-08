@@ -1,3 +1,8 @@
+---
+topic: 定位
+intent: "把三路资料和 trial 产物对照，分开证据和推论。"
+---
+
 # 典型一把手的视角与诉求（证据合成与适用边界）
 
 > 立档：2026-10-05 ｜ 喂 [定位卡](../../_archive/settled_issues/261005-open-value-deficit.md) 与 [自洽卡](../../_archive/settled_issues/261005-turnaround-coherence.md)。

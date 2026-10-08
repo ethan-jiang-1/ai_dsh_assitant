@@ -1,3 +1,8 @@
+---
+status: 已结
+opened: 2026-10-08
+---
+
 # 推敲：DSH 平台语料的家——vendor 留事实，本仓只写差量
 
 > 立卡：2026-10-08 ｜ 状态：已消化｜毕业门判断 = 已消化｜下一步 = 落点：根 AGENTS.md 硬规则 2 与探索路由；`docs/discipline.md` 表行与适配 9；`docs/AGENTS.md`；`notes/README.md` §四；`.agents/skills/client-ui-contribution`、`pre-push-evidence`、`note-archive-judgment`

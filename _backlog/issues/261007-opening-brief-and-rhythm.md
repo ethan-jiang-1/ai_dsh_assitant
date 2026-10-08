@@ -1,3 +1,8 @@
+---
+status: 推敲中
+opened: 2026-10-07
+---
+
 # 推敲：它先开口——开屏播报、拍板感与周节律（行为层收口）
 
 > 立卡：2026-10-07 ｜ 状态：推敲中｜毕业门判断 = **该做，四片全交付**（Slice 1 `7fe774a` / 2 `636a4a6` / 3 `532c19d`，implemented note = [notes/archived/2026-10-07-opening-brief-and-rhythm.md](../../notes/archived/2026-10-07-opening-brief-and-rhythm.md)）｜**机械面：6/7 行有证据、1 行现状阻断（#7 blank 夹具腐烂）；人面：0/3 已判**（#5 拍板语气 / #6 周坐口径 / R5 红线）｜**剩毕业门最后一环：用户终验**｜下一步 = 用户上手终验 → 过则卡毕业迁 `_archive/settled_issues/`

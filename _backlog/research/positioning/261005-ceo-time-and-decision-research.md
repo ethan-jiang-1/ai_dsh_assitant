@@ -1,3 +1,8 @@
+---
+topic: 定位
+intent: "用可查证的数据说明一把手的时间和决策负荷，不靠印象。"
+---
+
 # 一把手的时间与决策实证研究：为「一把手的总助」产品定位供弹药
 
 > 服务对象：产品定位推敲（喂 [261005-open-value-deficit](../../_archive/settled_issues/261005-open-value-deficit.md)）。

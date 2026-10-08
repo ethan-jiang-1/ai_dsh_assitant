@@ -24,7 +24,7 @@
 | 不做 | 理由进 owner note 的输掉的方案。还要防再犯，就另写 `notes/rejected/` |
 | 消化 | 结论已经在某篇 note 或合同里 |
 
-缺陷修完进 [`_archive/fixed_bugs/`](_archive/fixed_bugs/README.md)。还没结论、被明确搁置的，进 [`_archive/suspended_issues/`](_archive/suspended_issues/README.md)。挂起不是做完，也不是授权。
+缺陷修完进 [`_archive/fixed_bugs/`](_archive/fixed_bugs/README.md)。查明了、还没修的，进 [`_archive/suspended_bugs/`](_archive/suspended_bugs/README.md)。推敲被人叫停、还没有结论的，进 [`_archive/suspended_issues/`](_archive/suspended_issues/README.md)。挂起不是做完，也不是授权。
 
 原料在最后一张活卡离开时，跟着搬到 [`_archive/research/`](_archive/research/README.md)。
 
@@ -37,4 +37,4 @@
 - 当场修掉的缺陷不建卡。
 - 推敲卡用立卡日作文件名：`YYMMDD-<slug>.md`。缺陷用 `BUG-<NNN>-<slug>.md`，下一个号写在 [`bugs/README.md`](bugs/README.md)。提交缺陷只改 `bugs/`。
 - 状态行带 🔒 的卡，只有用户能判触发。规则在 [`issues/README.md`](issues/README.md)。
-- 各 README 的名单和目录必须一致。`pnpm verify` 查三件事：这些目录在不在、活跃卡前 12 行有没有 `状态：`、每张卡有没有被名单点到。毕业门已经写「已过」的卡还留在 `issues/`，也会被点名。
+- 各 README 的名单和目录必须一致。`pnpm verify` 查：这些目录在不在、卡和调研的 frontmatter、每张卡有没有被名单点到。推敲和缺陷的 frontmatter 第一项是 `status`。调研的第一项是 `topic`，第二项 `intent` 写背后那一句。毕业门已经写「已过」的卡还留在 `issues/`，也会被点名。

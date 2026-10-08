@@ -1,3 +1,8 @@
+---
+topic: 技术
+intent: "按高风险清单扫产品源码，把发现喂给缺陷卡。"
+---
+
 # 产品源码高风险语义扫描（sdlc 06 §4 清单 × src/ 全树，2026-10-07）
 
 喂 [BUG-003](../../fixed_bugs/BUG-003-eval-floor-red.md)～[BUG-007](../../fixed_bugs/BUG-007-concurrency-lifecycle-minors.md)。

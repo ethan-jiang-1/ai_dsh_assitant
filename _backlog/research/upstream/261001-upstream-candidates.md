@@ -1,3 +1,8 @@
+---
+topic: 上游
+intent: "把散在首开各轮的 vendor 候选收成一叠可递交的条目。"
+---
+
 # 上游（vendor 面）候选台账——喂 261001-first-open-ux
 
 > 立档：2026-10-05（首开 UX 第 18 轮）｜服务对象：[261001-first-open-ux](../../_archive/settled_issues/261001-first-open-ux.md)

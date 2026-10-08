@@ -1,3 +1,8 @@
+---
+status: 推敲中
+opened: 2026-10-06
+---
+
 # 推敲：一把手的总助——用户体验重设计
 
 > 立卡：2026-10-06 ｜ 状态：推敲中｜毕业门判断 = **该做，四 Goal 已交付**（形态层交付记录 = [notes/implemented/2026-10-06-desk-primary-view.md](../../notes/implemented/2026-10-06-desk-primary-view.md)；行为层收口 = [261007-opening-brief-and-rhythm](261007-opening-brief-and-rhythm.md)，其 implemented note 已落）｜下一步 = **用户终验「这回不一样了」**（两卡共用的毕业门最后一环；**这一环的记录家 = 261007**，过则两卡一并毕业归档）

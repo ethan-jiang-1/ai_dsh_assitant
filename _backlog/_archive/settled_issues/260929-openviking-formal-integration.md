@@ -1,3 +1,8 @@
+---
+status: 已结
+opened: 2026-09-29
+---
+
 # 推敲：OpenViking 正式接入 assistant 组合（融合缝法与边界语义）
 
 > 毕业去向：层 1 落地 → [implemented note](../../../notes/archived/2026-10-04-openviking-layer1-landing.md)（2026-10-04，AGPL delegated 闭合 + 四量测活体 + eval A/B + 安装器双验收）；层 2/3 门在 note 尾。本卡完整推敲史（八接缝/S1-S13 实弹/旋钮演化）随卡归档。

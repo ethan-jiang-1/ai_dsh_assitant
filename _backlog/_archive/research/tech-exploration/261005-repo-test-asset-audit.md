@@ -1,3 +1,8 @@
+---
+topic: 技术
+intent: "从源码核对测试层级和验证车道，没跑过的不写成绿。"
+---
+
 # Repo test-asset audit：可导航的测试层级、运行时与验证车道
 
 > 基线：`36f1f00d834ba931d10f0d728b7cabeca6beee9e`（2026-10-05）。本文件只记录源码可核验的能力、路径假设与建议；没有在本轮启动全量 Vitest、live model、Web 服务或 `pnpm eval`。

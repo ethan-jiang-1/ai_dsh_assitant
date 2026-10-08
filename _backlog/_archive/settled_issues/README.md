@@ -1,6 +1,6 @@
 # settled_issues/ · 四问有了结论
 
-推敲卡的四条出路在这里。文件名不变。结论看每张卡自己的状态行。修好的缺陷在 [`../fixed_bugs/`](../fixed_bugs/README.md)。
+推敲卡的四条出路在这里。文件名不变。进来时把 frontmatter 的 `status` 改成 `已结`，字段顺序不动。结论看每张卡自己的正文。修好的缺陷在 [`../fixed_bugs/`](../fixed_bugs/README.md)。
 
 ## 推敲卡（新 → 旧）
 

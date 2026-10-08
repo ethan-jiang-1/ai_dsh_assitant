@@ -1,3 +1,8 @@
+---
+topic: 定位
+intent: "用现行桌面状态走一遍打开到跟进，不发明新状态机。"
+---
+
 # UX 路径 v0：打开→给片段→看选项/缺数→拍板→看跟进（标注模拟走查）
 
 > 喂 [自洽卡](../../_archive/settled_issues/261005-turnaround-coherence.md) 阶段2 与 [定位卡](../../_archive/settled_issues/261005-open-value-deficit.md)。

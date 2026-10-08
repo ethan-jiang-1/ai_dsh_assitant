@@ -1,3 +1,8 @@
+---
+status: 已结
+opened: 2026-10-08
+---
+
 # 推敲：SDLC 对照后的可控性缺口——Note、衔接、测试各漏在哪
 
 > 立卡：2026-10-08 ｜ 状态：已消化｜毕业门判断 = 已消化｜下一步 = 落点：根 AGENTS.md 硬规则 3；`.agents/skills/note-archive-judgment/SKILL.md`；`docs/testing.md` 模型可见面「能证明」格。不造快照、不加格式门禁、不搬归档

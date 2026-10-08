@@ -1,6 +1,6 @@
 # fixed_bugs/ · 修好了
 
-从 [`../../bugs/`](../../bugs/README.md) 用 `git mv` 进来。文件名不变。下一个号仍在活跃目录的 README 取。
+从 [`../../bugs/`](../../bugs/README.md) 用 `git mv` 进来。文件名不变。进来时把 frontmatter 的 `status` 改成 `已修`，`severity` 和 `opened` 不动。下一个号仍在活跃目录的 README 取。
 
 | 卡 | 标题 | 修复 | 日期 |
 |---|---|---|---|

@@ -1,3 +1,8 @@
+---
+topic: 定位
+intent: "走一遍督办主线的十分钟脚本，供攻击，不是实施授权。"
+---
+
 # 十分钟走查记录与演示脚本候选 v0（督办主线）
 
 > 喂 [定位卡](../../_archive/settled_issues/261005-open-value-deficit.md) 与 [自洽卡](../../_archive/settled_issues/261005-turnaround-coherence.md)。性质：供攻击的候选脚本，不是实施授权，也不是现有能力清单。

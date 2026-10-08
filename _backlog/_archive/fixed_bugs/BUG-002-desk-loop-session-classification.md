@@ -1,3 +1,9 @@
+---
+status: 已修
+severity: P2
+opened: 2026-10-01
+---
+
 # BUG-002：desk-loop 把「以面板刷新文案开场」的真人会话误判成评测会话
 
 > 严重级别：P2（次要——读数污染，不阻断功能）｜发现：2026-10-01｜状态：活跃 — fixed 2026-10-05：evalRun 判定加第三条件（消息不走面板）——面板消息必带 `rpcId: desk-…` 而 headless 评测的 argv 提交是裸 `{kind:"user"}`（实测两类会话日志头无 cwd/launcher 差异，来源判别子就在消息 source 里）；self-check 双向钉（面板来源单刷点击≠评测、裸 source 题面仍=评测，prove-it-red 精确咬住）+ 真实报告读数复核。修复与本卡归档同 commit

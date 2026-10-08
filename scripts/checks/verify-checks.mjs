@@ -842,11 +842,11 @@ export function exportManualProblems({ manualPath, manifest }) {
  * they never judge a card's content:
  *
  * 1. the institution's directories exist (issues / bugs / research / methods and the _archive pools);
- * 2. every active issue card carries its status line (the hukou: 状态 within the first 12 lines) —
- *    a dead draft cannot hide;
- * 3. index membership both ways: every card or research file is named by its area's index
- *    (issues/ active list, research/ index, _archive/settled_issues and suspended indexes, archived
- *    research index) — a card moved without the index update is the drift the gate exists for.
+ * 2. every issue and bug card opens with frontmatter whose first field is status, plus opened
+ *    (and severity on a bug). Research files open with topic and a one-line intent.
+ * 3. index membership: every card or research file is named by its area's index. A card moved
+ *    without the index update is the drift the gate exists for. Missing link targets are the
+ *    relative-link gate.
  *
  * @param {string} backlogRoot - path of the _backlog/ directory.
  */
@@ -867,16 +867,54 @@ export function backlogLivenessProblems(backlogRoot) {
     .filter(entry => entry.isFile() && entry.name.endsWith('.md') && entry.name !== 'README.md')
     .map(entry => entry.name)
 
-  // Active cards: status line within the first 12 lines (the hukou), then index membership.
-  // Deliberation and defects are separate shelves so a bug filing only touches bugs/.
+  const cardStatus = {
+    issues: new Set(['推敲中', '等人拍板']),
+    bugs: new Set(['活跃']),
+    [join('_archive', 'settled_issues')]: new Set(['已结']),
+    [join('_archive', 'suspended_issues')]: new Set(['叫停']),
+    [join('_archive', 'fixed_bugs')]: new Set(['已修']),
+    [join('_archive', 'suspended_bugs')]: new Set(['待修']),
+  }
+  const topicByDir = { positioning: '定位', upstream: '上游', 'tech-exploration': '技术' }
+  const headProblems = (text, where, expect) => {
+    const block = frontmatterBlock(text)
+    if (block === undefined) {
+      problems.push(`${where} has no frontmatter`)
+      return
+    }
+    let data
+    try {
+      data = parseYaml(block)
+    } catch (error) {
+      problems.push(`${where} frontmatter is not parsable YAML: ${String(error).split('\n')[0]}`)
+      return
+    }
+    if (data === null || typeof data !== 'object' || Array.isArray(data)) {
+      problems.push(`${where} frontmatter is not a field map`)
+      return
+    }
+    const keys = Object.keys(data)
+    if (expect.kind === 'card') {
+      if (keys[0] !== 'status') problems.push(`${where} frontmatter must start with status`)
+      else if (!expect.statuses.has(String(data.status))) problems.push(`${where} status ${JSON.stringify(data.status)} is not a status of this shelf`)
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(String(data.opened ?? ''))) problems.push(`${where} frontmatter needs opened: YYYY-MM-DD`)
+      if (expect.bug && !['P0', 'P1', 'P2'].includes(data.severity)) problems.push(`${where} frontmatter needs severity: P0, P1, or P2`)
+    } else {
+      if (keys[0] !== 'topic') problems.push(`${where} frontmatter must start with topic`)
+      else if (expect.topic !== undefined && data.topic !== expect.topic) problems.push(`${where} topic ${JSON.stringify(data.topic)} does not match its directory (${expect.topic})`)
+      if (typeof data.intent !== 'string' || data.intent.trim() === '' || data.intent.includes('\n')) problems.push(`${where} frontmatter needs a one-line intent`)
+    }
+  }
+
+  // Active cards: frontmatter status first, then index membership.
   for (const area of ['issues', 'bugs']) {
     const areaDir = join(backlogRoot, area)
     if (!existsSync(areaDir)) continue
     const index = readFileSync(join(areaDir, 'README.md'), 'utf8')
     for (const name of cardNames(area)) {
-      const head = readFileSync(join(areaDir, name), 'utf8').split('\n').slice(0, 12).join('\n')
-      if (!head.includes('状态：')) problems.push(`_backlog/${area}/${name} carries no 状态： line in its first 12 lines (the hukou rule)`)
-      if (!index.includes(name)) problems.push(`_backlog/${area}/${name} is not named by ${area}/README.md's active index`)
+      const where = `_backlog/${area}/${name}`
+      headProblems(readFileSync(join(areaDir, name), 'utf8'), where, { kind: 'card', statuses: cardStatus[area], bug: area === 'bugs' })
+      if (!index.includes(name)) problems.push(`${where} is not named by ${area}/README.md's active index`)
     }
   }
 
@@ -895,7 +933,10 @@ export function backlogLivenessProblems(backlogRoot) {
     if (!existsSync(fullDir)) continue
     const index = readFileSync(join(backlogRoot, indexPath), 'utf8')
     for (const name of markdownNames(fullDir)) {
-      if (!index.includes(name)) problems.push(`_backlog/${dir}/${name} is not named by ${label}'s index`)
+      const where = `_backlog/${dir}/${name}`
+      const parent = name.includes('/') ? name.slice(0, name.indexOf('/')) : ''
+      headProblems(readFileSync(join(fullDir, name), 'utf8'), where, { kind: 'research', topic: topicByDir[parent] })
+      if (!index.includes(name)) problems.push(`${where} is not named by ${label}'s index`)
     }
   }
 
@@ -908,8 +949,11 @@ export function backlogLivenessProblems(backlogRoot) {
     if (!existsSync(fullDir)) continue
     const indexPath = join(dir, 'README.md')
     const index = readFileSync(join(backlogRoot, indexPath), 'utf8')
+    const bug = dir.endsWith('bugs')
     for (const name of cardNames(dir)) {
-      if (!index.includes(name)) problems.push(`_backlog/${dir}/${name} is not named by ${indexPath}'s index`)
+      const where = `_backlog/${dir}/${name}`
+      headProblems(readFileSync(join(fullDir, name), 'utf8'), where, { kind: 'card', statuses: cardStatus[dir], bug })
+      if (!index.includes(name)) problems.push(`${where} is not named by ${indexPath}'s index`)
     }
   }
   return problems

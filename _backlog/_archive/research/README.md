@@ -1,6 +1,6 @@
 # research/ · 跟卡离开的调研
 
-从 [`../../research/`](../../research/README.md) 随最后一张活卡搬来。文件名和证据正文保留。
+从 [`../../research/`](../../research/README.md) 随最后一张活卡搬来。文件名和证据正文保留。`topic` 和 `intent` 原样留下，不改成状态。
 
 | 文件 | 服务的卡 | 日期 |
 |---|---|---|

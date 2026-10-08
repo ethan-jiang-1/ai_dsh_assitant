@@ -385,7 +385,7 @@ describe('backlogLivenessProblems', () => {
     const backlog = temp('backlog-ok-')
     bootBacklog(backlog)
     writeFileSync(join(backlog, 'issues', '260928-demo.md'),
-      '# 推敲：demo\n\n> 立卡：2026-09-28 ｜ 状态：推敲中｜下一步 = 想清楚\n', 'utf8')
+      '---\nstatus: 推敲中\nopened: 2026-09-28\n---\n\n# 推敲：demo\n\n> 立卡：2026-09-28 ｜ 状态：推敲中｜下一步 = 想清楚\n', 'utf8')
     writeFileSync(join(backlog, 'issues', 'README.md'),
       '| 卡 |\n|---|\n| [260928-demo.md](260928-demo.md) |\n', 'utf8')
     expect(backlogLivenessProblems(backlog)).toEqual([])
@@ -400,7 +400,7 @@ describe('backlogLivenessProblems', () => {
     writeFileSync(join(backlog, 'bugs', 'BUG-008-unlisted.md'),
       '# BUG-008：漏登\n\n> 状态：活跃\n', 'utf8')
     const problems = backlogLivenessProblems(backlog)
-    expect(problems.some(p => p.includes('260928-dead.md') && p.includes('状态：'))).toBe(true)
+    expect(problems.some(p => p.includes('260928-dead.md') && p.includes('frontmatter'))).toBe(true)
     expect(problems.some(p => p.includes('260928-live.md') && p.includes('index'))).toBe(true)
     expect(problems.some(p => p.includes('bugs/BUG-008-unlisted.md') && p.includes('bugs/README.md'))).toBe(true)
 
@@ -411,7 +411,8 @@ describe('backlogLivenessProblems', () => {
   it('rejects research material missing from its index', () => {
     const backlog = temp('backlog-ref-')
     bootBacklog(backlog)
-    writeFileSync(join(backlog, 'research', '260928-survey.md'), '# 调研材料\n', 'utf8')
+    writeFileSync(join(backlog, 'research', '260928-survey.md'),
+      '---\ntopic: 定位\nintent: "补一条还没进索引的调研"\n---\n\n# 调研材料\n', 'utf8')
     expect(backlogLivenessProblems(backlog).some(p => p.includes('260928-survey.md') && p.includes('index'))).toBe(true)
     writeFileSync(join(backlog, 'research', 'README.md'), '# research\n\n| 文件 |\n|---|\n| [260928-survey.md](260928-survey.md) |\n', 'utf8')
     expect(backlogLivenessProblems(backlog)).toEqual([])
@@ -421,7 +422,8 @@ describe('backlogLivenessProblems', () => {
     const backlog = temp('backlog-refsub-')
     bootBacklog(backlog)
     mkdirSync(join(backlog, 'research', 'tech-exploration'), { recursive: true })
-    writeFileSync(join(backlog, 'research', 'tech-exploration', '261005-case.md'), '# 技术定调\n', 'utf8')
+    writeFileSync(join(backlog, 'research', 'tech-exploration', '261005-case.md'),
+      '---\ntopic: 技术\nintent: "先看 DSH 自己已经有的能力"\n---\n\n# 技术定调\n', 'utf8')
     expect(backlogLivenessProblems(backlog).some(p => p.includes('tech-exploration/261005-case.md') && p.includes('index'))).toBe(true)
     writeFileSync(join(backlog, 'research', 'README.md'), '# research\n\n| 文件 |\n|---|\n| [261005-case.md](tech-exploration/261005-case.md) |\n', 'utf8')
     expect(backlogLivenessProblems(backlog)).toEqual([])

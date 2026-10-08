@@ -1,3 +1,8 @@
+---
+topic: 上游
+intent: "把候选写成可递交的上游 issue 文本。"
+---
+
 # 上游 issue 递交草案（6 条）——喂 261001-first-open-ux
 
 > 立档：2026-10-05｜服务对象：[261001-upstream-candidates.md](261001-upstream-candidates.md)

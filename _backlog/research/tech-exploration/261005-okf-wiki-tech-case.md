@@ -1,3 +1,8 @@
+---
+topic: 技术
+intent: "分清 OKF/WIKI 的能力、当前实现和尚未验证的效果。"
+---
+
 # 技术定调：OKF/WIKI 的能力边界与可辨识实验
 
 > 立档：2026-10-05 ｜ 喂 [定位卡](../../_archive/settled_issues/261005-open-value-deficit.md) 与 [自洽卡](../../_archive/settled_issues/261005-turnaround-coherence.md)。

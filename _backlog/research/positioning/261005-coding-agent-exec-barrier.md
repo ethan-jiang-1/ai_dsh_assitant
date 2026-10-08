@@ -1,3 +1,8 @@
+---
+topic: 定位
+intent: "把管理层对 coding agent 的却步点收成可对照清单。"
+---
+
 # 261005 · 管理层为何对 coding agent 却步——我们的差异化论证基础
 
 > 调研问题：Codex / Claude Code（以及 Cursor 一类）coding agent 对执行层（工程师）体验极好，

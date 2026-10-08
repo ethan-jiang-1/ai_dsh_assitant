@@ -1,3 +1,8 @@
+---
+topic: 技术
+intent: "从源码核对运行入口和路径消费者，不冒充 live 证明。"
+---
+
 # Repo entry/tooling audit：运行入口、交互链与路径消费者
 
 > 基线：`36f1f00d834ba931d10f0d728b7cabeca6beee9e`（2026-10-05）。本底稿只记录可从源码/配置核验的入口、消费者与风险；未在本轮启动 Web 服务、模型、OV server 或迁移目录。
