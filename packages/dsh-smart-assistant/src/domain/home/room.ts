@@ -12,8 +12,9 @@
  * @module dsh-smart-assistant/home/room
  */
 
-import { mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
+import { mkdir, readdir, readFile, rm } from 'node:fs/promises'
 import { join } from 'node:path'
+import { atomicWriteFile } from './atomic-write.ts'
 import { parseFrontmatterDocument, renderFrontmatterDocument } from './frontmatter.ts'
 
 const ENTRY_SUFFIX = '.md'
@@ -116,12 +117,7 @@ export class Room {
     if (!isEntryId(id)) throw new Error(`room entry id "${id}" is not a safe file name`)
     await mkdir(this.dir, { recursive: true })
     const path = join(this.dir, `${id}${ENTRY_SUFFIX}`)
-    // A unique temp name per write (BUG-007 F8, 2026-10-07): the fixed `${path}.tmp` let a
-    // concurrent write of the same id lose its temp to the other writer's rename (ENOENT).
-    // The home is a cross-session shared folder, so the collision is a real, if rare, shape.
-    const temporary = `${path}.${process.pid.toString(36)}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}.tmp`
-    await writeFile(temporary, renderFrontmatterDocument(data, body), 'utf8')
-    await rename(temporary, path)
+    await atomicWriteFile(path, renderFrontmatterDocument(data, body))
     return { id, path, data, body: body.trim() }
   }
 
@@ -137,9 +133,7 @@ export class Room {
     await mkdir(this.archiveDir, { recursive: true })
     const target = join(this.archiveDir, `${id}${ENTRY_SUFFIX}`)
     const data = { ...entry.data, ...patch }
-    const temporary = `${target}.tmp`
-    await writeFile(temporary, renderFrontmatterDocument(data, entry.body), 'utf8')
-    await rename(temporary, target)
+    await atomicWriteFile(target, renderFrontmatterDocument(data, entry.body))
     await rm(entry.path, { force: true })
     return true
   }

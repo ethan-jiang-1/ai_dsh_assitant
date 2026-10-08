@@ -15,7 +15,8 @@
  * @module dsh-smart-assistant/skills/usage
  */
 
-import { readFile, rename, writeFile } from 'node:fs/promises'
+import { readFile } from 'node:fs/promises'
+import { atomicWriteFile } from '../home/atomic-write.ts'
 import { isSkillName } from './skill-file.ts'
 
 /** One skill's usage facts. */
@@ -161,14 +162,12 @@ export async function readSkillUsage(path: string): Promise<SkillUsageRead> {
 }
 
 /**
- * Write the ledger atomically (temporary file + rename), matching the room store's discipline.
+ * Write the ledger atomically, through the home's shared atomic-write discipline.
  * @param path - Ledger file path.
  * @param usage - Ledger contents.
  */
 export async function writeSkillUsage(path: string, usage: SkillUsage, since?: string): Promise<void> {
-  const temporary = `${path}.tmp`
-  await writeFile(temporary, renderSkillUsage(usage, since), 'utf8')
-  await rename(temporary, path)
+  await atomicWriteFile(path, renderSkillUsage(usage, since))
 }
 
 /**

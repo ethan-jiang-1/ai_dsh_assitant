@@ -7,11 +7,12 @@
  *
  * @module
  */
-import { mkdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, rename, rm, stat } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import type { AssistantMemory } from './index.ts'
 import { touchDigest } from './curate-digest.ts'
 import type { CurationFinding } from '../domain/home/health.ts'
+import { atomicWriteFile } from '../domain/home/atomic-write.ts'
 import { parseFrontmatterDocument, renderFrontmatterDocument } from '../domain/home/frontmatter.ts'
 import { scanLearnedSkills } from '../domain/skills/scan.ts'
 import { auditLearnedSkill } from '../domain/skills/audit.ts'
@@ -250,9 +251,7 @@ export async function retireSkill(host: AssistantMemory, name: string, reason?: 
     }
     await rename(bundleDir, targetDir)
     const stampedPath = join(targetDir, SKILL_FILE_NAME)
-    const temporary = `${stampedPath}.tmp`
-    await writeFile(temporary, renderFrontmatterDocument({ ...document.data, metadata }, document.body), 'utf8')
-    await rename(temporary, stampedPath)
+    await atomicWriteFile(stampedPath, renderFrontmatterDocument({ ...document.data, metadata }, document.body))
     return { name, path: stampedPath }
   }
   const target = join(host.paths.skillsArchiveDir, `${name}.md`)
@@ -262,9 +261,7 @@ export async function retireSkill(host: AssistantMemory, name: string, reason?: 
   }
   // Archive before removing the original: a failure leaves two readable copies (which curate's
   // duplicate scan and the shadow check would surface) instead of losing the skill.
-  const temporary = `${target}.tmp`
-  await writeFile(temporary, renderFrontmatterDocument({ ...document.data, metadata }, document.body), 'utf8')
-  await rename(temporary, target)
+  await atomicWriteFile(target, renderFrontmatterDocument({ ...document.data, metadata }, document.body))
   await rm(flatFile, { force: true })
   return { name, path: target }
 }
