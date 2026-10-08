@@ -19,7 +19,7 @@
  *      通过）。为什么不能写死进 home `.env`：代理进程不在时那两行会把一切出网——含模型
  *      调用——指向死端口。为什么需要注入：TUN 代理的 fake-ip DNS 把所有域名解析进
  *      198.18.0.0/15 保留段，直连 hop 的 SSRF 预解析全拒（机制与证据：
- *      `notes/implemented/2026-10-02-web-fetch-proxy-env.md`）。端口候选：`ASSISTANT_PROXY_URL`
+ *      `notes/archived/2026-10-02-web-fetch-proxy-env.md`）。端口候选：`ASSISTANT_PROXY_URL`
  *      显式指定（置空串=禁用注入）＞ 系统代理设置（macOS `scutil --proxy` 的 HTTP 口）＞
  *      常见混合口 7897，先探测先得；显式导出过 `HTTP(S)_PROXY` 的调用者不被覆盖。
  *

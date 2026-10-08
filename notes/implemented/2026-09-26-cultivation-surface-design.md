@@ -1,6 +1,6 @@
 # 培养面设计思路（设计 owner）
 
-日期：2026-09-26 · 状态：**implemented**（培养面的**当前设计权威**：判据、11 条设计原则、架构与现状盘点在此，随真实使用保持 current；两轮整改均已交付——[S1–S7](2026-09-26-cultivation-remediation.md) 与 [R1–R13](2026-09-27-cultivation-remediation-round2.md)；逐圈历史冻结在[编年卡](../archived/2026-09-25-ceo-sidebar-ux.md)）
+日期：2026-09-26 · 状态：**implemented**（培养面的**当前设计权威**：判据、11 条设计原则、架构与现状盘点在此，随真实使用保持 current；两轮整改均已交付——[S1–S7](../archived/2026-09-26-cultivation-remediation.md) 与 [R1–R13](../archived/2026-09-27-cultivation-remediation-round2.md)；逐圈历史冻结在[编年卡](../archived/2026-09-25-ceo-sidebar-ux.md)）
 
 ## 一、它是什么、为谁、怎样算好
 
@@ -31,7 +31,7 @@
    而契约没有排序/分类字段——真实数据里引导卡当前展示的正是**助手的家务问题**（"培养面接着做深，
    还是先停一停？"）。**已修（S1，2026-09-26）**：契约加 `kind: business|upkeep` + `rank`，引导卡
    只吃 business 第一条，无 business 时诚实显示"目前没有需要你拍板的经营事项"；实战检验：助手
-   首跑即正确分类（2 business / 2 upkeep）——见[整改卡](../implemented/2026-09-26-cultivation-remediation.md) S1。
+   首跑即正确分类（2 business / 2 upkeep）——见[整改卡](../archived/2026-09-26-cultivation-remediation.md) S1。
 4. **信任线**。每条记忆/知识页带出处（`source`/`sources`）；桌面带新鲜度（`generatedAt` +
    "对话比桌面新"告警）；技能里写死"没有出处就不要编造引用"、"陈旧或编造的清单比没有更糟"。
 5. **面板是控制器，不是只读展示**。动作以**普通消息**送回对话（`sendPrompt`），助手改记录并在
@@ -49,8 +49,8 @@
    理由：实测小模型冷发现不可靠（多次真跑里出现不加载技能而徒手做）；面板提示是零常驻成本的必走之路。
 10. **表达先于底层**（用户 2026-09-25 拍板）。先把表达/UX 想透、看得见，再落底层实现
     （typert 集成等后置——"UX 体验出来了之后，咱们再把底下落实的东西给落实了"）。
-11. **助手家务 vs 本人生意**（2026-09-27 判定闭环，理由在[S1](../implemented/2026-09-26-cultivation-remediation.md)
-    与 [R4](../implemented/2026-09-27-cultivation-remediation-round2.md)）：三条规则合起来回答了它——
+11. **助手家务 vs 本人生意**（2026-09-27 判定闭环，理由在[S1](../archived/2026-09-26-cultivation-remediation.md)
+    与 [R4](../archived/2026-09-27-cultivation-remediation-round2.md)）：三条规则合起来回答了它——
     ① `kind` 只让 business 上首办卡；② upkeep 折进「助手自己的事（N）」，不占首屏；③ **带 `options[]`
     的决定无论 `kind` 都上首办卡**（选项是助手为本人备好的抉择，把它折起来等于把唯一要他拍的事藏了）。
     于是"自指闭环在表达层重演"不再由人手排优先级，而由契约字段与这条取卡规则承担。
@@ -59,7 +59,7 @@
 
 | 层 | 现状 |
 |---|---|
-| 形态 | **三室住右侧栏**（用户 steer 2026-09-28，[迁卡](2026-09-28-rooms-to-right-sidebar.md)：房间=「+」向导里可添加的 tab，与浏览器/Terminal 并列，对话中多 tab 并开）——左主面板注册已退役；入口＝「+」向导 / 会话页头「桌面」chip |
+| 形态 | **三室住右侧栏**（用户 steer 2026-09-28，[迁卡](../archived/2026-09-28-rooms-to-right-sidebar.md)：房间=「+」向导里可添加的 tab，与浏览器/Terminal 并列，对话中多 tab 并开）——左主面板注册已退役；入口＝「+」向导 / 会话页头「桌面」chip |
 | 数据通道 | **desk 文件协议**：助手用文件工具维护会话工作区 `.desk/state.json`；面板经**清单内**的 `workspaceFiles` Remote 读——绕开"仓外插件开不了新 Remote 命名空间" |
 | 客户端 | classic script（无 import/export）；slot 系统 `inject`+`register`；vendor 类型结构化镜像 |
 | 模型面契约 | `desk-refresh` 技能：字段、填法、四类动作的回程、"给选项≠回答" |
@@ -73,14 +73,14 @@
 
 **已交付**：三室面板、右侧栏 tab、会话绑定读取与动作路由、四类对象就地循环、决定可就地回答、
 行动「在办 / 已办 / 已撤」三组、「先办这件」引导卡（取 business 第一条、无则取**带选项**的第一条——
-见[二轮整改卡](../implemented/2026-09-27-cultivation-remediation-round2.md) R4）、首开引导
+见[二轮整改卡](../archived/2026-09-27-cultivation-remediation-round2.md) R4）、首开引导
 （hero 自家标识 + 空会话引导条）、命令面（`/desk` `/knowledge` `/memory`）、数据闸门与**超时释放**
 （R1）、行内回执与只读已答（R2）、信任线（出处可展开 + 新鲜度 + 计数带时间，R7）、
 无障碍（24px 控件 + AA 对比度，R8）、preflight 关口、行为评测网、真人首测全链走通。
 
-**两轮整改均已交付**（不是"待拍板"）：第一轮＝[S1–S7](../implemented/2026-09-26-cultivation-remediation.md)
+**两轮整改均已交付**（不是"待拍板"）：第一轮＝[S1–S7](../archived/2026-09-26-cultivation-remediation.md)
 （内容准入 / 异步闭环 / 机械缺陷 / 三室语义 / 着陆 / 已答只读）；第二轮＝
-[R1–R10](../implemented/2026-09-27-cultivation-remediation-round2.md)（两轴自主评审的发现）。
+[R1–R10](../archived/2026-09-27-cultivation-remediation-round2.md)（两轴自主评审的发现）。
 两份外部评审的原文收卷在 [`2026-09-28-research-absorbed-into-backlog.md`](2026-09-28-research-absorbed-into-backlog.md)（2026-09-26 对抗性设计评审 ·
 运行中页面独立体验反馈）——它们是这两轮的输入，不再是待办。
 
@@ -95,7 +95,7 @@
 - **发行组合的默认工作区**（平台层；2026-09-26 第一公里 P0-B 已查清）：**平台本身会给**——空注册表
   时客户端触发 `initializeDefault`，建 `<Documents>/deepseek-harness/default-workspace`（标题显示为
   本地化的"默认工作区"）；一次真机端到端见过三处一致，但**无法按需复现**（细节与复现配方见
-  [第一公里走查](2026-09-26-first-mile-landing.md) §3/§4b）。用户当时问"是不是要选一个
+  [第一公里走查](../archived/2026-09-26-first-mile-landing.md) §3/§4b）。用户当时问"是不是要选一个
   工作目录"因此更可能是**affordance**（chip 长得像"必须选"）而不是缺默认；沙箱里看到的"选择工作区"
   占位是 agent 文件沙箱写不了 `~/Documents` 的假象。**发行组合是否要额外动作 → 转第一公里卡的用户拍板项。**
 
@@ -125,8 +125,8 @@
 
 ## 八、两份外部评审的综合（2026-09-26）
 
-两份独立评审：**[对抗性设计评审](2026-09-26-cultivation-remediation.md)**（不知情的新 agent，
-读代码 + 真实 desk 文件，开发者逐条核实）与**[运行中页面独立体验反馈](2026-09-26-cultivation-remediation.md)**
+两份独立评审：**[对抗性设计评审](../archived/2026-09-26-cultivation-remediation.md)**（不知情的新 agent，
+读代码 + 真实 desk 文件，开发者逐条核实）与**[运行中页面独立体验反馈](../archived/2026-09-26-cultivation-remediation.md)**
 （真机点过页面）。两者独立（一个读代码、一个动手点）：**一致处＝高置信信号；分歧处＝需要用户拍板的设计分叉。**
 
 ### 一致（高置信，按优先级）

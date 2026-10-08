@@ -4,7 +4,7 @@
 
 ## 背景 / 触发
 desk 文件协议目前靠技能契约约束字段；面板遇到不认识的字段时的行为未版本化
-（[整改卡 S3 的 A8 延后记录](../../../notes/implemented/2026-09-26-cultivation-remediation.md)）。
+（[整改卡 S3 的 A8 延后记录](../../../notes/archived/2026-09-26-cultivation-remediation.md)）。
 
 ## 毕业门
 真实不匹配出现 → schema 版本号切片（`generatedAt` 旁加 `schemaVersion`，面板按版本降级）。

@@ -1,7 +1,7 @@
 # 技能用量统计（治理环切片 1a）
 
 日期：2026-09-24 · 状态：**implemented**
-依据：三线合流提案 `notes/implemented/2026-09-24-tri-line-synthesis.md` 阶段 1 切片 1a；
+依据：三线合流提案 `notes/archived/2026-09-24-tri-line-synthesis.md` 阶段 1 切片 1a；
 R2 缺口清单第 1 项（`notes/implemented/2026-09-24-skill-usage-stats.md` §9.3-1——
 "用量统计是 J2/J4 第一优先，一切退役决策的数据面，Claude `/skill-doctor` 证明这是官方认可的
 最小治理件"）。

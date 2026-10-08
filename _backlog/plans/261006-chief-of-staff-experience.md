@@ -120,7 +120,7 @@ vendor 有一个被忽略的机制：**sidebar.panellist + main 槽系统**。
 
 **已知（带出处）**：
 - 四 Goal 的机械交付全部完成：形态层见 [desk-primary-view](../../notes/implemented/2026-10-06-desk-primary-view.md)，
-  行为层四片见 [opening-brief-and-rhythm](../../notes/implemented/2026-10-07-opening-brief-and-rhythm.md)（Slice 1 `7fe774a` / 2 `636a4a6` / 3 `532c19d`）。
+  行为层四片见 [opening-brief-and-rhythm](../../notes/archived/2026-10-07-opening-brief-and-rhythm.md)（Slice 1 `7fe774a` / 2 `636a4a6` / 3 `532c19d`）。
 - Step 1 换轨、Step 4 落 home 手册（见上文两条校正注）。
 - 走查证据（真机 DOM 逐帧）由 261007 毕业门节持有，本卡不复制。
 

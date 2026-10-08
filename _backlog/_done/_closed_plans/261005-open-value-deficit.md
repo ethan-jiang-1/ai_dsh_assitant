@@ -55,7 +55,7 @@ chat、空白相位 vendor 自持——「打开=桌面」的最后一步走上�
 
 这是**同一感受第三次出现**，前两次各立过档：
 
-1. 2026-09-25「不痛不痒」→ [总体思路](../../../notes/implemented/2026-09-25-owner-mandate-and-real-use-baseline.md)
+1. 2026-09-25「不痛不痒」→ [总体思路](../../../notes/archived/2026-09-25-owner-mandate-and-real-use-baseline.md)
    §一：诊断为自指闭环、把容器当产品；处方 = 换北极星 + 真用驱动。
 2. 2026-10-01「怎么看都好像不知道怎么用」→ [真用第一卡](../../notes/rejected/2026-10-01-real-use-first.md)：
    拍板 = 真用第一 + 无真实摩擦证据不动 UI。
@@ -485,7 +485,7 @@ a16z 文献；逐条标注一手/二手/未找到一手）。对前几轮判断�
    变可查）回答。A 的三个词都能在桌面上指认（拍板 = 决策卡、盯 = 行动表/到期、闭环 = 留痕），
    是脚本第一页的现成骨架。
 2. **reference/ 按主题子目录分装**（用户拍板；制度变更落
-   [note](../../notes/implemented/2026-10-05-reference-subdirs.md)）：`upstream/`（261001 两份）、
+   [note](../../../notes/archived/2026-10-05-reference-subdirs.md)）：`upstream/`（261001 两份）、
    `positioning/`（本卡四份调研 + 脚本 v0）、`tech-exploration/`（技术定调，本条第 3 点）；
    门禁递归升级 + 红绿夹具，spec 48 绿。
 3. **技术定调立档**：[tech-exploration/261005-okf-wiki-tech-case.md](../reference/tech-exploration/261005-okf-wiki-tech-case.md)

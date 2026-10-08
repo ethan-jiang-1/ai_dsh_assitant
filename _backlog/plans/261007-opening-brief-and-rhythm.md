@@ -1,6 +1,6 @@
 # 推敲：它先开口——开屏播报、拍板感与周节律（行为层收口）
 
-> 立卡：2026-10-07 ｜ 状态：推敲中｜毕业门判断 = **该做，四片全交付**（Slice 1 `7fe774a` / 2 `636a4a6` / 3 `532c19d`，implemented note = [notes/implemented/2026-10-07-opening-brief-and-rhythm.md](../../notes/implemented/2026-10-07-opening-brief-and-rhythm.md)；完整弧线真机走查通过——Day-2 与 Day-0 双弧线、重载幂等、composer 全相位存活、双排程落盘）｜**剩毕业门最后一环：用户终验「这回不一样了」**｜下一步 = 用户上手终验 → 过则卡毕业迁 `_done/_closed_plans/`
+> 立卡：2026-10-07 ｜ 状态：推敲中｜毕业门判断 = **该做，四片全交付**（Slice 1 `7fe774a` / 2 `636a4a6` / 3 `532c19d`，implemented note = [notes/archived/2026-10-07-opening-brief-and-rhythm.md](../../notes/archived/2026-10-07-opening-brief-and-rhythm.md)；完整弧线真机走查通过——Day-2 与 Day-0 双弧线、重载幂等、composer 全相位存活、双排程落盘）｜**剩毕业门最后一环：用户终验「这回不一样了」**｜下一步 = 用户上手终验 → 过则卡毕业迁 `_done/_closed_plans/`
 
 ## 背景 / 触发
 

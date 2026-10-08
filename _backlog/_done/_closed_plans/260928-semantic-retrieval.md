@@ -4,7 +4,7 @@
 
 ## 背景 / 触发
 现行检索 = 关键词 + 标签 + 反链现算（确定性、给命中理由）。embedding 届时经 `ctx.llm` 做，
-另开一缝。依据：[三线合流 §六](../../../notes/implemented/2026-09-24-tri-line-synthesis.md)、
+另开一缝。依据：[三线合流 §六](../../../notes/archived/2026-09-24-tri-line-synthesis.md)、
 [R1 §5](../../../notes/implemented/2026-09-24-session-log-memory.md)、
 [R3 §7.2](../../../notes/implemented/2026-09-24-obsidian-interop.md)。
 

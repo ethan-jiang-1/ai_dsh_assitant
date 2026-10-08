@@ -5,8 +5,8 @@
 ## 背景 / 触发
 机制已查清（空注册表时平台建 `<Documents>/deepseek-harness/default-workspace`）、一次真机端到端见过，
 但按需复现失败——配方与第一步（CDP Network 域抓 `workspace/initializeDefault`）在
-[第一公里走查 §4b](../../../notes/implemented/2026-09-26-first-mile-landing.md)。
-第一公里 P0–P3 本体已交付（[卡](../../../notes/implemented/2026-09-26-first-mile-landing.md)）。
+[第一公里走查 §4b](../../../notes/archived/2026-09-26-first-mile-landing.md)。
+第一公里 P0–P3 本体已交付（[卡](../../../notes/archived/2026-09-26-first-mile-landing.md)）。
 
 ## 毕业门
 触发成立 → 按走查配方复现一次，把「外人第一次打开」做成可重复验证；小修可直接开工。

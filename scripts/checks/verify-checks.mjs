@@ -754,7 +754,7 @@ function newestSrcMtime(packageDir) {
  * switch rewrites vendor sources and leaves the gitignored `lib/client.js` builds behind, and a
  * partially rebuilt client face set fractures the web boot (new client bundles against a stale
  * `api/remotes` assembly left a fresh home on a full-screen "Failed to load plugins" — evidence:
- * notes/implemented/2026-09-30-dsh-0-2-0-rc-2-pin.md, 2026-10-03 补正). Skips, and why:
+ * notes/archived/2026-09-30-dsh-0-2-0-rc-2-pin.md, 2026-10-03 补正). Skips, and why:
  *   - a package without `lib/client.js` has no built face yet (fresh clone; `prepare.sh` owns that);
  *   - `packages/experimental/` hosts preview-only faces whose packages declare no `bundle` script,
  *     so the rebuild playbook cannot refresh them and they are not in the served composition;

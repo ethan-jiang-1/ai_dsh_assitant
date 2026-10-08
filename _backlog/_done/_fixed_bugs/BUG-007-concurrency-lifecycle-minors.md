@@ -1,6 +1,10 @@
 # BUG-007：并发与生命周期轻缺陷群——房间读改写无锁 + client 拆卸缺失 + 跨时钟冻结（F8/F9/F11）
 
-> 严重级别：P2（次要——真实前提成立但触发条件少见，后果多为静默小丢失或自愈）｜发现：2026-10-07（对抗性语义扫描）｜状态：**fixed 2026-10-07（部分）**——F8 tmp 唯一化已修（并发双写红→绿）；F8 锁/预算闸、F9 client 拆卸（需先读 vendor 生命周期，不猜 API）、F11 跨时钟三项 deferred-with-trigger，见 [修复 note](../../notes/implemented/2026-10-07-bug-007-concurrency-lifecycle-minors.md)
+> 严重级别：P2（次要——真实前提成立但触发条件少见，后果多为静默小丢失或自愈）｜发现：2026-10-07（对抗性语义扫描）｜状态：**fixed 2026-10-07（部分）**——F8 tmp 唯一化已修（并发双写红→绿）。尚未做的三条，重提前先看下面的触发，不另开 note：
+>
+> 1. F8 其余（updateThread 读改写无锁、memory 预算闸 TOCTOU）——desk-loop 或真用出现并发同线程编辑或预算双写时再修；候选是房间写路径单飞队列。
+> 2. F9（client 订阅未拆、4s 定时器无拆卸、self-turns fired map 无界）——HMR/dev 摩擦出现，或读过 vendor client 生命周期契约之后再修。不猜 API。
+> 3. F11（浏览器时钟对比服务端 generatedAt）——远端 LAN 访问成为真实使用面时再修；本机同钟踩不到。
 
 ## 症状
 

@@ -1,7 +1,7 @@
 # 预算强制（治理环切片 1h）
 
 日期：2026-09-24 · 状态：**implemented**
-依据：三线合流提案 `notes/implemented/2026-09-24-tri-line-synthesis.md` 阶段 1 切片 1h；
+依据：三线合流提案 `notes/archived/2026-09-24-tri-line-synthesis.md` 阶段 1 切片 1h；
 R1 §6-1（借用 1：engramory 的"确定性预算强制"——"用 DSH 的 `ctx.tools.guard()` 单调否决
 把摘要/索引预算从纪律升级为写入原语层的拒绝（拒绝而非请求）"）。
 

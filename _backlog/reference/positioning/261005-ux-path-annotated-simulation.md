@@ -106,7 +106,7 @@
 - 首切建议（**as-built 修正，2026-10-05 实施时改序**）：**A' 先行**——细察 gaps 面板后发现它已就地闭环
   （CorrectableRow「补上」→ 回话落账），B 的增量比本档初估薄；A' 直答「无从下手」机制诊断（任务从三处来的
   第一处=它先开口），且三件套材料先成熟。A' 已交付
-  （[note](../../../notes/implemented/2026-10-05-day0-intake-first-conversation.md)，
+  （[note](../../../notes/archived/2026-10-05-day0-intake-first-conversation.md)，
   真模型 eval PASS）；B 降为可选打磨（待模拟走查发现真实缺口再议）；C 留给督办原型毕业。
 
 ## 5. A'（Day-0 intake「它先问」）方案草案——毕业提案的直接输入

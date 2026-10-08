@@ -1,7 +1,7 @@
 # 遮蔽可见性（治理环切片 1b）
 
 日期：2026-09-24 · 状态：**implemented**
-依据：三线合流提案 `notes/implemented/2026-09-24-tri-line-synthesis.md` 阶段 1 切片 1b
+依据：三线合流提案 `notes/archived/2026-09-24-tri-line-synthesis.md` 阶段 1 切片 1b
 （D3 已定参数：curate finding + brief 节，零新工具面）；R2 §9.3-2 与 §5.4——
 "遮蔽可见性是全生态无人做的空白（普查 481 个技能/成长类条目逐一过目），
 最低成本版本是 curate finding + brief 一节"。原始观察在战役 note 开跑补记：
@@ -10,7 +10,7 @@ save_skill 返回成功但被遮蔽技能静默不生效，落败方仅 logger w
 ## 问题
 
 学到技能与策展技能同名时，DSH 注册表按 rank/layer/注册序裁决名字归属（实测：rank 并列
-时注册序决定，策展 provider 先注册所以策展赢——`notes/implemented/2026-09-23-repo-structure.md`
+时注册序决定，策展 provider 先注册所以策展赢——`notes/archived/2026-09-23-repo-structure.md`
 验证项 8）。落败的学到技能：文件在家、`save_skill` 声称成功、但**永远不会出现在目录里**
 ——模型不可见，等于静默丢失。唯一痕迹是 provider 的 logger warn（人不看日志就不知道）。
 

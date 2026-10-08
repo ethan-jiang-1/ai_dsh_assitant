@@ -86,12 +86,12 @@ I14 拿到第一批使用数据；R1/R2 两条线索开进家的 research/ 房�
   旧 dev web 进程（本仓 cwd）仍持有空白 seed 会话 `e0ac2cf8` 的跨进程写锁；web 客户端开屏按
   workspace 最新会话自动恢复空白会话（ui-workspace navigation），新实例恢复撞锁。处置：kill
   旧进程（flock 随进程死亡释放，会话壳即刻可恢复）；坑位登记 `docs/dev.md` §五。同一切片顺手
-  落了用户要求的 Web 壳品牌注入（`notes/implemented/2026-09-23-web-branding.md`）。
+  落了用户要求的 Web 壳品牌注入（历史在 git）。
 - **战役首只产品面真虫（已修，等用户重试回填证据）**：步骤 1 的第一个真实 turn 在提示词组装
   阶段死亡（`Cannot read private member #digestCache …`，`e0ac2cf8` 两次重试同错）——根因是
   cordis 经属性代理解析服务时，方法以 shadow receiver 为 `this` 执行，JS `#` 私有字段的
   brand check 必炸；vendor 全部 Service 子类因此从不用 `#`（生态约定，逐类核对为零）。
-  修复 + 回归测试见 `notes/implemented/2026-09-23-service-shadow-private-fields.md`。
+  修复 + 回归测试见 历史在 git。
   顺带一证：**preset 挂载本身已被真实对话日志实证**（`e0ac2cf8` 会话事件
   `agentPreset: "assistant"`）。
 - **修复实证回填（全部日志在案，`e65ef210` 00:19）**：两个 turn 正常完成；session 事件
@@ -102,7 +102,7 @@ I14 拿到第一批使用数据；R1/R2 两条线索开进家的 research/ 房�
   I14 观察：两次 turn **零 curate 主动调用**（(a) 层第一个数据点：未主动）。对照会话未做
   （`3428f388` 是空壳）。
 - **载体扩展（2026-09-24）**：用户拍板"你来做吧"后建成 **preset-runner**（preset 挂载的
-  one-shot 驱动，`notes/implemented/2026-09-24-preset-runner.md`）——步骤 B/C/D 全部可自动化，
+  one-shot 驱动，`notes/archived/2026-09-24-preset-runner.md`）——步骤 B/C/D 全部可自动化，
   不再依赖浏览器真人操作。证据标准不变（真实 turn、逐字日志、组合可指认），载体从"Web UI
   会话"扩展为"任何真实 preset 会话"；intents.md 挡板已同步更新。
 - **步骤 B 完成（记忆环，全日志在案）**：① 介绍跑（`b04a36b5`：agentPreset 头 + persona +
@@ -120,7 +120,7 @@ I14 拿到第一批使用数据；R1/R2 两条线索开进家的 research/ 房�
   全链跑通；无理由 drop 被拒（I11）；**stale 夹具（54 天）被 curate 准确报出**（I13）。
   暴露：`park` 把文件归档（合同是留在 research/ 只离开摘要——可见性与位置被实现混为一谈，
   发现者：会话里的助手本人，读源码引行号）。红绿修复 + live 复验：
-  `notes/implemented/2026-09-24-park-stays-in-room.md`。I10–I13 全部翻 implemented。
+  历史在 git。I10–I13 全部翻 implemented。
 - **步骤 D 完成（技能与学习环）**：reflect brief + save_skill 落 SKILL.md 带 provenance；
   学到的技能**同会话即刻可见可加载**（I3）；遮蔽实录（验证项 8）：同 provider rank 并列
   （都走 customSkillDirs=300）时**注册序决定**——策展赢，落败方只在 logger warn 可见

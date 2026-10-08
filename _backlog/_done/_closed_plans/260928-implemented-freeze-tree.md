@@ -4,7 +4,7 @@
 
 ## 背景 / 触发
 当前 53 篇 implemented。吸收纪律见
-[agent-note-lifecycle-absorption](../../../notes/implemented/2026-09-24-agent-note-lifecycle-absorption.md)；
+[agent-note-lifecycle-absorption](../../../notes/archived/2026-09-24-agent-note-lifecycle-absorption.md)；
 archive-judgment 走 [note-archive-judgment 技能](../../../.agents/skills/note-archive-judgment/SKILL.md)。
 
 ## 毕业门

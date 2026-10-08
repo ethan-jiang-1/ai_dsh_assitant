@@ -25,10 +25,10 @@
 
 ## 问题（交付前可观察）
 
-主页与 tab 共用单 store、`sendSession` 全局单值（[整改卡 S3 的 A3 记录](../implemented/2026-09-26-cultivation-remediation.md)）；
+主页与 tab 共用单 store、`sendSession` 全局单值（[整改卡 S3 的 A3 记录](../archived/2026-09-26-cultivation-remediation.md)）；
 R11 实测：store 被所有绑定 tab 共享、行匹配只按裸 rowId——A 会话说一句会给 B 会话里同 id 的行盖上
 冻结与回执（`askRefresh` 的 rowId `'desk'` 在每个会话都相同，串扰是结构性的；
-[二轮整改卡 R11](../implemented/2026-09-27-cultivation-remediation-round2.md)）。
+[二轮整改卡 R11](../archived/2026-09-27-cultivation-remediation-round2.md)）。
 2026-09-29 用户确认多会话并行已是日常使用形态：缺陷从「待触发」变为「正在咬」。
 
 ## 证据

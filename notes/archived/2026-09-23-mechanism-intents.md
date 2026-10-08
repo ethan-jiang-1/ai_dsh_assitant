@@ -41,8 +41,8 @@
 | # | 意图 | 外部可观察行为 | 状态 |
 |---|---|---|---|
 | I6 | 家有**固定、可读的布局** | 一个目录一眼看懂：`HOME.md` 是地图；`memory/` 是长期记忆；`skills/` 是学到的本事；各有各的职责，不混 | implemented：会话 A/B 的助手正确报出三房间与状态（`e65ef210` 读 HOME.md；B 段盘上核验 `memory/` 单文件、`archive/` 空） |
-| I7 | agent 对家**很熟悉** | 家的地图与记忆摘要常驻上下文（桌面）；细节用工具取（抽屉）。agent 不需要猜"我这儿有什么" | implemented：digest blurb 逐字进 system prompt（全部 preset 会话日志）；会话 A 首轮"你好"即报出家况而未开文件。2026-09-25 战役补强：**首请求即保证**——冷启动竞态两轮修复（cordis `Service.init` 装载等待，[note](../implemented/2026-09-25-digest-cold-start-prewarm.md)），live 前后对照：前 271B blurb 自报"没有"，后 4004B 全量逐字报出（6 记忆+2 线索+10 页树，不调工具） |
-| I8 | 家要**整理与清理** | 一个**机器能跑的检查**（不是 AI 自己说）报出：重复/矛盾/过期记录、摘要是否超预算、孤儿文件；agent 据此合并/退役 | implemented：curate 机器检查真实运行（B 段：清洁返回 + counts 行 `2/2 active memories, … digest 821/4096 bytes`）；2026-09-24 起 counts 附带技能归档规模行 `N retired bundles, M snapshots`（只增不减的面可观察才可治理，[curate-archive-scale](../implemented/2026-09-24-curate-archive-scale.md)）；2026-09-25 战役实证：知识房从 0→10 页生长全程 curate 维持零发现、预算门三次真实咬合（3880→3110→4004/4096 均按设计内动作收敛，[战役卡 §八](../implemented/2026-09-25-smart-assistant-polish-campaign.md)） |
+| I7 | agent 对家**很熟悉** | 家的地图与记忆摘要常驻上下文（桌面）；细节用工具取（抽屉）。agent 不需要猜"我这儿有什么" | implemented：digest blurb 逐字进 system prompt（全部 preset 会话日志）；会话 A 首轮"你好"即报出家况而未开文件。2026-09-25 战役补强：**首请求即保证**——冷启动竞态两轮修复（cordis `Service.init` 装载等待，note），live 前后对照：前 271B blurb 自报"没有"，后 4004B 全量逐字报出（6 记忆+2 线索+10 页树，不调工具） |
+| I8 | 家要**整理与清理** | 一个**机器能跑的检查**（不是 AI 自己说）报出：重复/矛盾/过期记录、摘要是否超预算、孤儿文件；agent 据此合并/退役 | implemented：curate 机器检查真实运行（B 段：清洁返回 + counts 行 `2/2 active memories, … digest 821/4096 bytes`）；2026-09-24 起 counts 附带技能归档规模行 `N retired bundles, M snapshots`（只增不减的面可观察才可治理，curate-archive-scale）；2026-09-25 战役实证：知识房从 0→10 页生长全程 curate 维持零发现、预算门三次真实咬合（3880→3110→4004/4096 均按设计内动作收敛，[战役卡 §八](../archived/2026-09-25-smart-assistant-polish-campaign.md)） |
 | I9 | 家要**清晰可审** | 学到的东西全是人可读的文件（Markdown + frontmatter），可 git、可 diff、可手改、可删；来源可追（哪次会话学来的） | implemented：`memory/*.md` 人可读带 frontmatter（id/kind/tags/importance/created）；`source` 字段经工具面修复后写入读回成立（`20260923-note-ko0j.md`） |
 
 ## 三、补充意图（2026-09-23 用户追加 · 探索与 backlog）
@@ -59,7 +59,7 @@
 | # | 意图 | 外部可观察行为 | 状态 |
 |---|---|---|---|
 | I10 | 探索有**自己的房间** | 家的 `research/` 放开放线索：一条线索一个文件，带状态（`open`/`parked`）与"为什么值得追" | implemented：R1/R2 真实线索入住（一条一文件带 why/lean/source，`list` 可见；会话 C/D 日志 + 盘上文件） |
-| I11 | 探索有**三档出口** | `promote` → 变成记忆记录或技能（成立就留着）；`drop` → 进 `archive/` 并**必须写理由**（不成立就丢弃，留尸体）；`park` → 留在 `research/` 但不占桌面 | implemented：三档全绿——无理由 drop 被拒（日志）；带理由 drop 归档留尸体；promote 指向真实记忆并带 promotedTo；park 留房不占摘要（合同级 bug 红绿修复后复验，[park-stays-in-room](../implemented/2026-09-24-park-stays-in-room.md)） |
+| I11 | 探索有**三档出口** | `promote` → 变成记忆记录或技能（成立就留着）；`drop` → 进 `archive/` 并**必须写理由**（不成立就丢弃，留尸体）；`park` → 留在 `research/` 但不占桌面 | implemented：三档全绿——无理由 drop 被拒（日志）；带理由 drop 归档留尸体；promote 指向真实记忆并带 promotedTo；park 留房不占摘要（合同级 bug 红绿修复后复验，park-stays-in-room） |
 | I12 | agent **知道自己悬着什么** | 常驻摘要里有"开放线索 N 条 + 前几条标题"，不需要翻文件 | implemented：digest 段落含 `Open threads (N open, M parked)` 与线索标题行（R1/R2 入住后 2/2 同步显示；多会话日志） |
 | I13 | 悬着的线索**会烂，机器能发现** | `curate` 报出长期未更新的开放线索（建议 park 或 drop）与缺理由的 drop | implemented：手工造 54 天旧的 stale 夹具，curate 准确报出"open for more than 30 days: pick an exit"（info 级）；处置后 findings 清零（counts 前后对照在案） |
 
@@ -82,7 +82,7 @@ DSH 原生对迭代/队列的规划（已另立专项调研），但节奏本身
 
 | # | 意图 | 外部可观察行为 | 状态 |
 |---|---|---|---|
-| I15 | 家有**知识房间** | `knowledge/` 房间：概念/实体/来源页一条一文件，frontmatter 带 OKF 字段子集（type/generated/verified/status/stale_after/sources）+ `[[wikilink]]` 互链；`research` 的 `promote` 可指向知识页（sources 指回线索）；`curate` 报断链（三档）/孤页/stale_after finding；检索走关键词 + 反链现算（无索引服务）；agent 蒸馏的产出走 staged draft，人审才 stable | implemented（阶段 2 全切片：`notes/implemented/2026-09-24-knowledge-*.md` 四篇；live E2E `session-d417555d`：save_page staged→搜索不可见→手改 stable→检索/摘要命中→curate 报 unwritten 链→promote 线索→pin 记忆带 provenance→get 反链，七步逐字在案）。2026-09-25 战役补强：**真实生长**——本仓研发域 10 页 stable 经真实写路径长出（互链成网、search 命中带理由）；预算压力真实触发并按设计治理；wikilink 解析器修复（code span 内字面不再生幻影链）；学到技能 repo-to-knowledge 从三次真实蒸馏经验提炼（[战役卡](../implemented/2026-09-25-smart-assistant-polish-campaign.md)） |
+| I15 | 家有**知识房间** | `knowledge/` 房间：概念/实体/来源页一条一文件，frontmatter 带 OKF 字段子集（type/generated/verified/status/stale_after/sources）+ `[[wikilink]]` 互链；`research` 的 `promote` 可指向知识页（sources 指回线索）；`curate` 报断链（三档）/孤页/stale_after finding；检索走关键词 + 反链现算（无索引服务）；agent 蒸馏的产出走 staged draft，人审才 stable | implemented（阶段 2 全切片：`notes/implemented/2026-09-24-knowledge-*.md` 四篇；live E2E `session-d417555d`：save_page staged→搜索不可见→手改 stable→检索/摘要命中→curate 报 unwritten 链→promote 线索→pin 记忆带 provenance→get 反链，七步逐字在案）。2026-09-25 战役补强：**真实生长**——本仓研发域 10 页 stable 经真实写路径长出（互链成网、search 命中带理由）；预算压力真实触发并按设计治理；wikilink 解析器修复（code span 内字面不再生幻影链）；学到技能 repo-to-knowledge 从三次真实蒸馏经验提炼（[战役卡](../archived/2026-09-25-smart-assistant-polish-campaign.md)） |
 
 ## 六、判据（借 talk 的两句，用于决定"搭多厚"）——现行 owner 是 docs/architecture.md §一
 

@@ -4,7 +4,7 @@
 
 2026-10-05 处置：本稿保留用于防止再次把真人业务输入设成原型研发的阻塞条件，不再拥有进度或等待任务。当前推敲归 [自洽卡](../../_backlog/_done/_closed_plans/261005-turnaround-coherence.md) 与 [定位卡](../../_backlog/_done/_closed_plans/261005-open-value-deficit.md)；本轮采用可由 agent 完成的公开案例、情景重放与访谈框架设计。未来实际受众/决定的反馈可提升证据等级，不是现在的开工门。
 
-已交付事实归 [基座搬运](../implemented/2026-10-01-management-base-port.md)、[机器预评分](../implemented/2026-10-02-g2-machine-prescore.md)、[反馈管线](../implemented/2026-09-30-stock-plugin-adoption.md)、[OV 层 1](../implemented/2026-10-04-openviking-layer1-landing.md) 与 [首开 UX 卡](../../_backlog/_done/_closed_plans/261001-first-open-ux.md)。仍有意义的研究问题归当前 owner，不把真人抽检转成新等待队列；旧评分仍是机器读数，未经真人验证。
+已交付事实归 [基座搬运](../archived/2026-10-01-management-base-port.md)、[机器预评分](../archived/2026-10-02-g2-machine-prescore.md)、[反馈管线](../archived/2026-09-30-stock-plugin-adoption.md)、[OV 层 1](../archived/2026-10-04-openviking-layer1-landing.md) 与 [首开 UX 卡](../../_backlog/_done/_closed_plans/261001-first-open-ux.md)。仍有意义的研究问题归当前 owner，不把真人抽检转成新等待队列；旧评分仍是机器读数，未经真人验证。
 
 以下正文是截至 2026-10-04 的原方案与当时快照。“无真实摩擦不动 UI”“先重想产品形态输掉”“真人摩擦作为唯一依据”及等待状态全部只作历史，不能继续作为实施约束。
 
@@ -18,11 +18,11 @@
    层 1（[推敲卡](../../_backlog/_done/_closed_plans/260929-openviking-formal-integration.md)实弹验证版剖面已定稿，
    卡两道真人门）。诚实面：内容仍以研发域自指为主——"记得住"已解决，"记得都是用户的事"未开始。
 2. **能力面机制大件已齐**：`--dump-config` 实证 goal / plan-mode / 委派 subagent / jobs /
-   session-query / time-context / web 搜索抓取全部在场（[采纳卡](../implemented/2026-09-30-stock-plugin-adoption.md)）。
-   按[《总体思路》](../implemented/2026-09-25-owner-mandate-and-real-use-baseline.md) §2.4 八个支撑物对照，
+   session-query / time-context / web 搜索抓取全部在场（[采纳卡](../archived/2026-09-30-stock-plugin-adoption.md)）。
+   按[《总体思路》](../archived/2026-09-25-owner-mandate-and-real-use-baseline.md) §2.4 八个支撑物对照，
    缺口只剩：领域基座内容（0）、真实使用（0）、治理与触达的阶段 2 项。
 3. **真实使用 ≈ 0**：245 会话真人消息共 152 条（0.6 条/会话）；工具混合 bash×2328/read×601
-   表明绝大多数是开发代理会话。2026-09-26 [第一公里](../implemented/2026-09-26-first-mile-landing.md)修的是**发现性**
+   表明绝大多数是开发代理会话。2026-09-26 [第一公里](../archived/2026-09-26-first-mile-landing.md)修的是**发现性**
    （hero/命令/引导条），修完用户仍报同一感受 → 根因不在按钮位置，在"它是谁、替我干什么活"没立起来：
    领域内容为 0（打开像通用 LLM）、从未被真人用过（UX 无真实摩擦输入）、治理词汇（四房间/promote/park/drop）
    泄漏到用户面。**在没有真实使用输入前盲改 UX，只会重复第一公里的结局。**
@@ -39,16 +39,16 @@
    （材料仍在：[打分表](../../dev/eval/domain/sheet-2026-09-28-19-23.md) +
    [校准导览](../../dev/eval/domain/calibration-2026-09-29.md)；对应
    [评测卡](../../_backlog/_done/_closed_plans/260928-domain-eval-v0.md)）。每下 👎/每次卡壳
-   自动进 desk-loop 摩擦报告 §7（[C2](../implemented/2026-09-30-stock-plugin-adoption.md)）不变。
+   自动进 desk-loop 摩擦报告 §7（[C2](../archived/2026-09-30-stock-plugin-adoption.md)）不变。
 3. **并行（agent 自主）**：搬管理岗基座内容——`ai_dsh_company` 的角色技能（CEO/VP-Sales/CFO/COO）
    搬成本仓 preset 技能（模型用、英文），知识种子按治理写入路径落 `draft` 人审（[README 方向判据](../../README.md)
    既定：基座内容的来源=那边）。目标：打开它第一眼像懂管理的专家，不是白纸。
-   切片一已落地（2026-10-01）：[管理岗基座搬运](../implemented/2026-10-01-management-base-port.md)
+   切片一已落地（2026-10-01）：[管理岗基座搬运](../archived/2026-10-01-management-base-port.md)
    ——`market-sizing` / `project-economics` 两件入 preset 并 live 验证；其余 9 件的取舍理由与
    下一切片清单在彼。
 4. **挂起不阻塞**：OpenViking 层 1 的两道真人门（AGPL 复核 + §六旋钮剖面过目）等本人方便时点，
    不排在本主轴关键路径上。（**已了结，2026-10-04**：两道门经 delegated 双裁定认、层 1 落地——
-   见文末进度快照与 [openviking-layer1-landing](../implemented/2026-10-04-openviking-layer1-landing.md)。）
+   见文末进度快照与 [openviking-layer1-landing](../archived/2026-10-04-openviking-layer1-landing.md)。）
 5. **UX 下一轮改动的判据**：必须引用 desk-loop/feedback 报告里的具体摩擦条目；无摩擦证据不动。
 
 ## 输掉的方案
@@ -78,6 +78,6 @@
 - **线B 基座搬运**切片一至三落地：技能 5 件 + 知识种子 5 页；剩余唯一触发已到候选 =
   公司手册 AGENTS.md 的决策路由+审批纪律。
 - **OpenViking 层 1 毕业**：AGPL 双裁定认（delegated，复核三条件在案），层 1 落地——
-  [openviking-layer1-landing](../implemented/2026-10-04-openviking-layer1-landing.md)。
+  [openviking-layer1-landing](../archived/2026-10-04-openviking-layer1-landing.md)。
 - **评测集扩至 40 题**；**测试策略采纳五切片收官**（冻结豁免开发证据面，登记于
   [discipline.md 适配 6](../../docs/discipline.md)）。

@@ -1,6 +1,6 @@
 # RFC：引入 OpenViking 作为自成长基座（准入表 + 发布形态 + 验收标准）
 
-日期：2026-09-29 · 状态：**implemented**（全部验收闭合 2026-10-04：安装器双验收 ✓ · 往返/四量测活体 ✓ · AGPL delegated 裁定「认」 ✓ [双裁定](../implemented/2026-10-04-delegated-verdicts-agpl-and-ux-review.md) · 正式接入切片落地 → [层 1 note](../implemented/2026-10-04-openviking-layer1-landing.md)；原拍板：用户 2026-09-29 三选一拍 A）
+日期：2026-09-29 · 状态：**implemented**（全部验收闭合 2026-10-04：安装器双验收 ✓ · 往返/四量测活体 ✓ · AGPL delegated 裁定「认」 ✓ [双裁定](../implemented/2026-10-04-delegated-verdicts-agpl-and-ux-review.md) · 正式接入切片落地 → [层 1 note](../archived/2026-10-04-openviking-layer1-landing.md)；原拍板：用户 2026-09-29 三选一拍 A）
 
 毕业自两张卡（均已关闭归档）：[260928-self-growth-base-research](../../_backlog/_done/_closed_plans/260928-self-growth-base-research.md)（三选一拍板）与 [260928-openviking-install-release](../../_backlog/_done/_closed_plans/260928-openviking-install-release.md)（试点六步 + S2 细节草案）。
 

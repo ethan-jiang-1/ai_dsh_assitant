@@ -15,7 +15,7 @@
   [261004-approve-direct-call](../../_backlog/_done/_closed_plans/261004-approve-direct-call.md)、
   [261007-process-budget-audit](../../_backlog/_done/_closed_plans/261007-process-budget-audit.md)（明确写「触发条件以本表为家」）及 2026-09-29 批量清理批多卡；
 - 决定 note：[recurrence-tracking](2026-10-08-recurrence-tracking.md)、
-  [bug-007](2026-10-07-bug-007-concurrency-lifecycle-minors.md)、turnaround 阶段 4-5 各 owner note；
+  bug-007、turnaround 阶段 4-5 各 owner note；
 - `docs/discipline.md` ⏸ 行（docs 词数预算）。
 
 立卡前的取代检查只在有人**重提同一主题**时才起作用；「慢门禁出现」「docs 腐化再犯」这类

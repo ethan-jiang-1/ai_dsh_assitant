@@ -1,7 +1,7 @@
 # 写后审计（治理环切片 1d）
 
 日期：2026-09-24 · 状态：**implemented**
-依据：三线合流提案 `notes/implemented/2026-09-24-tri-line-synthesis.md` 阶段 1 切片 1d；
+依据：三线合流提案 `notes/archived/2026-09-24-tri-line-synthesis.md` 阶段 1 切片 1d；
 R2 §9.3-4（借 caesarloo 形态：写后审计、fail/warn 注入不阻断——"写时校验已挡住大部分
 frontmatter 问题，审计增量在**引用完整性与凭据**"）。
 

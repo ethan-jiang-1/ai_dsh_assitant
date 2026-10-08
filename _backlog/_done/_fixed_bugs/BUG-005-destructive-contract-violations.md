@@ -1,6 +1,6 @@
 # BUG-005：破坏性操作违背自订契约——retireSkill 删附属文件 + 重导入抹审批（F4/F10）
 
-> 严重级别：P1（重要——静默永久数据丢失 + 审批被机械动作无声回滚，均违背代码自订的显式契约）｜发现：2026-10-07（对抗性语义扫描）｜状态：**fixed 2026-10-07**——retireSkill 整目录原子归档（rename）+ writePage 存在页保留治理 status，见 [修复 note](../../notes/implemented/2026-10-07-bug-005-destructive-contract-violations.md)；两红两绿 + 全量 406 绿，旧 spec 钉错预期同 diff 修正
+> 严重级别：P1（重要——静默永久数据丢失 + 审批被机械动作无声回滚，均违背代码自订的显式契约）｜发现：2026-10-07（对抗性语义扫描）｜状态：**fixed 2026-10-07**——retireSkill 整目录原子归档（rename）+ writePage 存在页保留治理 status，见 修复 note；两红两绿 + 全量 406 绿，旧 spec 钉错预期同 diff 修正
 
 ## 症状
 

@@ -274,7 +274,7 @@
           # planning 是 isolate 组（`planMode` 键独立 realm）；`section` 文案逐字取自
           # `packages/bundle/web-app/presets/standard.patch.yml` —— plan 呈批是本仓开发流程
           # （根 AGENTS.md 硬规则 5）宣称依赖的机制，此前只挂了 todo 一半（adoption 卡
-          # notes/implemented/2026-09-30-stock-plugin-adoption.md A1 片）。
+          # notes/archived/2026-09-30-stock-plugin-adoption.md A1 片）。
           - id: command-goal
             name: '@deepseek-ai/dsh-command-goal'
 

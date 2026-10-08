@@ -21,7 +21,7 @@
   等）；换干净试用 home（`dev/trial-home`，expert-setup 装配管理岗身份 + 3 页知识种子）后侧栏为
   「No sessions yet」。
 - ✅ **工作区之问**：干净 home 首开报 `Unable to create default workspace`，CEO 被要求「选一个文件夹」
-  ——first-mile [P1-C 判定记录 3](../../notes/implemented/2026-09-26-first-mile-landing.md) 的触发条件
+  ——first-mile [P1-C 判定记录 3](../../../notes/archived/2026-09-26-first-mile-landing.md) 的触发条件
   （「真实安装出现选择工作区阻塞」）**于本日在干净 home 上稳定复现成立**。根因实测：macOS 上默认
   工作区解析到 `~/Documents`，进程无写权（`mkdir` → `Operation not permitted`）。修法 = P1-C 既定：
   profile patch 给 `workspace-controller` 行 config 指可写 `documentsDirectory`
@@ -133,7 +133,7 @@
   失败模式随崩溃修复一并消失。
 - **全新 home 首开竞态澄清**：默认工作区初始化是异步的（~10s），首帧会瞬时显示工作区之问
   并**原地自愈**（探针轮询证实，无需手动刷新）——非阻塞，记录为已知瞬态。
-- **探针能力扩展**（note：notes/implemented/2026-10-01-cdp-loop-probe-borrowed.md）：
+- **探针能力扩展**（note：notes/archived/2026-10-01-cdp-loop-probe-borrowed.md）：
   `--follow-up`（同会话第二轮，多轮连续性一次验证：追问 24s 且引用上一轮跟踪时点）、
   `--dislike`（👎+分类+备注，事件落盘验证）、粘贴重试（全新 home composer 就绪前静默丢文本）、
   顺序化 UI 流程（驱动 evaluate 不 awaitPromise——async IIFE 会被放弃在半路）。探针自身的
@@ -147,7 +147,7 @@
 - **审批行来源路径泄漏已修**（渲染层映射 `friendlySource`：`seeds/` 前缀 → 「内置基座种子页」，
   外部路径逐字保留——那才是真出处；真机验证友好标签在场、`packages/.../seeds` 零残留，301 测试绿，
   页面刷新即取新 bundle 无需重启）。选渲染层而非改种子 frontmatter：一处修好所有 home、存量数据
-  零迁移；备选记录于 [note](../../notes/implemented/2026-10-01-cdp-loop-probe-borrowed.md)。
+  零迁移；备选记录于 [note](../../../notes/archived/2026-10-01-cdp-loop-probe-borrowed.md)。
 
 
 **第 11 轮（2026-10-01，「批准」终点验证——在克隆环境上跑出的教训）**：

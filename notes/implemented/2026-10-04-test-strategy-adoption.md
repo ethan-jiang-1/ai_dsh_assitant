@@ -69,12 +69,11 @@
 
 ## 取代检查
 
-- **部分取代** `notes/implemented/2026-09-25-dsh-alignment-borrowables.md`：该卡第 12 条
+- **部分取代** `notes/archived/2026-09-25-dsh-alignment-borrowables.md`：该卡第 12 条
   （"snapshots 只收什么"边界句）与快照相关.borrowables 卡的"负例控制""窄证据"等条目仍有效——
   本 note 只收编**快照边界句的演进**（day 0 → 两类证据）与测试面的系统性采纳；borrowables 卡
   保留其余批次的记录，双方互链。
-- 与 `notes/implemented/2026-09-23-service-shadow-private-fields.md` 互链：`#digestCache` 事故
-  是本采纳的问题 1 的本仓证据，preset-composition.spec 的动机注释已回指。
+- `#digestCache` 事故是问题 1 的本仓证据，preset-composition.spec 的动机注释已回指。
 
 ## 输掉的方案
 

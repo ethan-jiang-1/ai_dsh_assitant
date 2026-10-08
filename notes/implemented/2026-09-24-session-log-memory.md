@@ -19,7 +19,7 @@
 - 深评结论：**原料齐全、可达、可查，瓶颈只是知识**——会话日志在 `<DSH_HOME>/sessions/
   --<规范化cwd>--/session-<id>/session.v<n>.jsonl.zstd`（zstd 压缩，`rg --pre` 两段式配方
   0.72s/34 会话实测；写者代次 `<n>` 随 pin 前移，读方按 `session.v*.jsonl.zstd` 发现——
-  写死一代的失效形态见[会话日志代次配方卡](2026-09-25-session-log-generation-recipe.md)）；
+  写死一代的失效形态见[会话日志代次配方卡](../archived/2026-09-25-session-log-generation-recipe.md)）；
   agent 的 fs/shell 读路径本就开放。DSH 自带 session-query 层
   （literal 过滤不依赖 FTS，sqlite 索引默认 openAt:never 关闭）；palimpsest 设计成熟但
   零社区单维护者（创建即最后 push，~4s/20 会话）。

@@ -1,7 +1,7 @@
 # 阈值退役（治理环切片 1c）
 
 日期：2026-09-24 · 状态：**implemented**
-依据：三线合流提案 `notes/implemented/2026-09-24-tri-line-synthesis.md` 阶段 1 切片 1c
+依据：三线合流提案 `notes/archived/2026-09-24-tri-line-synthesis.md` 阶段 1 切片 1c
 （D4 已定参数：30d 未用→stale、90d→archived，配置行可调，dsh-mind 样板；归档=移出 provider
 扫描目录、不删、可恢复）；R2 §9.3-3（"有用量统计后此件自然长出"——本片消费 1a 的数据面）。
 

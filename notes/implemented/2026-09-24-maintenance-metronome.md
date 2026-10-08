@@ -1,9 +1,8 @@
 # I14 节拍器（治理环切片 1e）
 
 日期：2026-09-24 · 状态：**implemented**
-依据：三线合流提案 `notes/implemented/2026-09-24-tri-line-synthesis.md` 阶段 1 切片 1e；
-设计定稿在 `notes/implemented/2026-09-23-iteration-rhythm.md`（b 层 host 节拍器为主、a 层
-persona 纪律垫底、c 层手动兜底）；意图 I14（加工 → 空槽 → 打扫，槽由加工节奏触发且可配置）。
+依据：三线合流提案 `notes/archived/2026-09-24-tri-line-synthesis.md` 阶段 1 切片 1e；
+设计是 host 节拍器为主、persona 纪律垫底、手动 /curate 不另立案。意图 I14：加工 → 空槽 → 打扫，槽由加工节奏触发且可配置。
 战役首批数据（两个数据点：助手不会主动跑 curate）证明 a 层不够，b 层的时间到了。
 
 ## 问题

@@ -110,7 +110,7 @@ pack → 干净 home → 装 → 组合断言。`file:` 这条路径本身实测
 装完只需把该 profile 的 `agent-preset-registry` 行的 `default` 设成 `assistant`（模板：`dev/profiles/profile-patch.yml`）。
 **0.1.7 起 registry 既不扫目录、也不接受 preset 路径**：`assistant` 的定义随包发（`package.json` 的
 `dsh.bundle.patch` → `cordis.patch.yml` 里的 `preset-assistant` 行），装包即进组合 —— 不必再指 `presets/`
-目录（那条在 0.1.5 成立，0.1.7 起是错的；依据 `notes/implemented/2026-09-25-dsh-0-1-7-migration.md`）。
+目录（那条在 0.1.5 成立，0.1.7 起是错的；依据 `notes/archived/2026-09-25-dsh-0-1-7-migration.md`）。
 
 **知识导入**（把文件/目录导成知识页草稿）：`pnpm import-knowledge -- --data-dir <assistant 目录> <文件或目录>… [--dry-run]`。
 
@@ -138,7 +138,7 @@ pnpm typecheck && pnpm test && pnpm verify
 
 首次进入到此为止。日常开发环（dev / dev-task 两个 profile 各自验什么、one-shot 与 Web UI 的分工、
 换 pin 的步骤）唯一出处是 `AGENTS.md` 命令表与 `docs/dev.md` —— 本段不复制它：这份重复已经烂过一次
-（`notes/implemented/2026-09-23-doc-consistency.md` 第 1 条）。
+（`notes/archived/2026-09-23-doc-consistency.md` 第 1 条）。
 
 契约在 `docs/`（`docs/home.md` 是 working folder 的契约，`docs/identity.md` 是身份名），
 决策与被否决的方案在 `notes/`，agent 的入口链在 `AGENTS.md`。

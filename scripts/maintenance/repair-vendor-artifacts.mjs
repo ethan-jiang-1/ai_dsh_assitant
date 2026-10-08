@@ -3,7 +3,7 @@
  * Rebuild the vendor build artifacts a clean checkout cannot produce, so `pnpm dsh` boots after a
  * pin move without the vendor's own (unbootstrappable) release build.
  *
- * Why this exists (evidence in notes/implemented/2026-09-25-dsh-0-1-7-migration.md §六/§十一):
+ * Why this exists (evidence in notes/archived/2026-09-25-dsh-0-1-7-migration.md §六/§十一):
  *   · `vendor/dsh/…/lib/` is gitignored build output. After a pin move it is stale, and the
  *     vendor's `build:lib` cannot run from a clean tree — its tsdown entry for the root package
  *     (`lib/types/{index,invariant,startup}.js`) is itself a build product no published script

@@ -37,7 +37,7 @@ DSH **没有 dev-loop 指南这个物种**。同一职责被 tier 系统分解�
 | §7 环境引导 | dev.md §二/§三 + README 首次进入 | 已落位 |
 | **§8 RPC 驱动 Web 会话**（curl session/create + prompt + 日志断言） | 无——I1–I14 的 live 验证挡板靠手工 Web UI 会话 | **指针**：清挡板 / 建"live 会话检查档"时的现成配方（对方踩通：RPC 信封与 args 命名、ask_user 不走 RPC、完成信号用 turn/end 持久事件、日志 zstd 多帧坑） |
 | **§9/9.1 门禁分层**（keyless 快档进迭代环；真模型/真浏览器只进认证档；layering 机械守卫扫 tests 层） | discipline 测试纪律 ⏳ 行 + `snapshots/README.md` | **指针**：快照 harness 触发时的形态参考（"先要它通"判据、layering 守卫的造红方式） |
-| **§10 自动化轻任务三上限**（墙钟 / 轮次 / 输出量、可中断、收口优先） | 无（day 0 无自动化） | **微采纳**：写进 iteration-rhythm note（I14 节拍器与未来自动复盘的约束） |
+| **§10 自动化轻任务三上限**（墙钟 / 轮次 / 输出量、可中断、收口优先） | 无单独自动化面 | **不单立**：I14 的空槽由节拍器 note 承担；三上限没有自己的产品面 |
 | §12 收尾程序 + 流程合同 | 硬规则 3 + discipline"已声明的适配" | 已落位（同物种）；"删>并>修>记"优先序**微采纳**进 discipline 复查环 |
 
 ## 刻意不做

@@ -4,7 +4,7 @@
 > （"你无法继承你从没清点过的东西"）。每行 = DSH 做法 → 本仓落点 → 状态
 > （✅ 照搬 / ⚠️ 带约束的适配 / ⏸ 刻意不做 + 触发条件 / ⏳ 部分 + 等待条件）。
 > 来源：`ai_dsh_company` 五轮实践的对齐复盘（仓外原文的出处与章节映射登记在
-> `notes/implemented/2026-09-23-discipline-alignment.md` 的输入节——合同文档不引仓外绝对路径）；
+> `notes/archived/2026-09-23-discipline-alignment.md` 的输入节——合同文档不引仓外绝对路径）；
 > 决策记录：同该 note。
 > **默认严格按本表走；偏离或裁剪不是错，但必须先登记（一行 note：约束 → 适配 → 证据）再动手。**
 
@@ -20,7 +20,7 @@
 | 默认翻转 + 适配声明：默认严格，偏离/裁剪须登记（镜像 "Require evidence for public choices"） | AGENTS.md 硬规则 4；每条适配登记于本文"已声明的适配" | ✅ 照搬 |
 | 窄证据 + 只报告实跑过的命令（根 AGENTS.md / `dsh-pre-push-checks` skill） | AGENTS.md 硬规则 3；**验证主张分级**——实证（命令/日志/盘上文件可指认）、推断（标注依据）、未验（如实标 ⏳），自述不作为证据 | ✅ 照搬 |
 | 机械门禁带反证（每条先造红再证绿） | `pnpm verify`（结构 / 身份一致 / 双解析入口 / 自包含 / 技能语法 / 断链 / notes 形状 / **文档命令与别名表互证** / 提交安全——检查清单以 `scripts/checks/verify.mjs` 为准，条数随缺口演进） | ✅ 照搬 |
-| 语义漂移探针：门禁抓不住"读起来过期"，用新上下文只读入口链答"现在"问题 | **已立成开发技能** [`.agents/skills/semantic-drift-audit/`](../.agents/skills/semantic-drift-audit/SKILL.md)（轮次与逐轮计数的档案在技能与各轮 note——本文不复写数字，数过即过期；技能里带"反复出现的类别"清单与"能机械化的就同轮加门禁"的收尾） | ✅ 适配（原触发"入口链长到值得单做"已由多轮实证满足：第二轮 2026-09-23 信噪比审计起职责面实证，[signal-tier-dedup](../notes/implemented/2026-09-23-signal-tier-dedup.md)；脚本化已知坑：**问句的期望也会过期**——期望锚到轮号，轮闭即红、同日重跑覆盖归档，期望锚定方案立项时必须定） |
+| 语义漂移探针：门禁抓不住"读起来过期"，用新上下文只读入口链答"现在"问题 | **已立成开发技能** [`.agents/skills/semantic-drift-audit/`](../.agents/skills/semantic-drift-audit/SKILL.md)（轮次与逐轮计数的档案在技能与各轮 note——本文不复写数字，数过即过期；技能里带"反复出现的类别"清单与"能机械化的就同轮加门禁"的收尾） | ✅ 适配（原触发"入口链长到值得单做"已由多轮实证满足：第二轮 2026-09-23 信噪比审计起职责面实证，[signal-tier-dedup](../notes/archived/2026-09-23-signal-tier-dedup.md)；脚本化已知坑：**问句的期望也会过期**——期望锚到轮号，轮闭即红、同日重跑覆盖归档，期望锚定方案立项时必须定） |
 | 继承跟 pin 走：升 pin 重校纪律表（vendor 的套路在演进，一次性快照会再烂） | `sync-dsh` 收尾清单第 4 步 + `pnpm verify` 强制本文存在 | ✅ 照搬 |
 | 测试纪律：本地窄证据 + 非平凡改动 same-PR 更新快照；插件证据五台阶（导出守卫→行为→生命周期→真组合→组装转录）+ 政策禁令（mock 白名单 / 禁 hand-built 组装证据 / 禁自报探测 / 单跑才绿=spec 缺陷 / 禁掩盖修法 / prove-it-red） | 测试面合同成文于 [testing.md](testing.md)（证据分层表 + 五台阶表 + 禁令 + 已定姿态）；`pnpm test`（纯核 + 服务合同 + 导出守卫 + 生命周期）+ 真实组合 + web 渲染期望（`snapshots/web-face/`）+ eval 两级 + release-smoke | ✅ 照搬（按事故面采纳：session 回放快照与 CI 矩阵等四项刻意不采纳带触发条件，登记于 testing.md 与 implemented note 2026-10-04） |
 | 文档词数预算 + slop 门禁（`doc-budgets` manifest + `verify-doc-budgets`） | 刻意不做 | ⏸ 触发条件：docs 腐化实证（与来源仓同款推迟理由）。第二轮审计（2026-09-23）证据：轻度腐化——多重书写 ×2、内部矛盾 ×1、过期数字 ×1，一轮修完；暂不立案，再犯即触发；建时带**降限防回填**（每次削减后主动降 ceiling，反证 = 临时设更低值即红） |
@@ -45,7 +45,7 @@
    （change-scope 触发重置后无第二次；「触发未到不动手」纪律在 AGENTS.md）。
 5. **手动分发打包用 `pnpm pack`，不用借来源的 `npm pack`**（约束：本包 peerDependencies 写
    `workspace:^`，只有 pnpm 在打包时改写成具体 semver；company 原设计靠源里写死 peer 版本才能用
-   npm。原判定：`notes/implemented/2026-09-23-repo-structure.md`）→ `export-dist` 与
+   npm。原判定：`notes/archived/2026-09-23-repo-structure.md`）→ `export-dist` 与
    `release-smoke` 用同一条 `pnpm pack`，且都对产物断言 peer 已具体化（证据：`release-smoke`
    对 tarball manifest 的逐 peer 断言；`workspace:` 原样出包没人能解析）。
 6. **开发证据按风险投入，UX路径主导切片**（次序见 [转向自洽卡](../_backlog/_done/_closed_plans/261005-turnaround-coherence.md)）：

@@ -5,7 +5,7 @@
 
 ## 背景
 
-用户指示把 research 文件（出处登记在 `notes/implemented/2026-09-23-discipline-alignment.md`
+用户指示把 research 文件（出处登记在 `notes/archived/2026-09-23-discipline-alignment.md`
 输入节）的精神借鉴过来、重读。重读发现文件较第一轮汲取时**新增 §十一**（追记：「当前状态」
 节整体拆除）——正是对本仓同样适用的教训。本切片吸收其三条新精神，并用其第四条（入口文件
 时不变）对本仓做了一次自检。

@@ -310,7 +310,7 @@ check('structure: dev tooling never inherits DSH_HOME', () =>
 
 // 升 pin 只换源不换产物：gitignore 的 lib/client.js 与 web dist 会停在旧 pin。部分重建还会把
 // web client 打碎（新 ui-user-questions 配旧 api/remotes 装配 = 全屏 Failed to load plugins，
-// 2026-10-03 实录）。机制与 playbook：notes/implemented/2026-09-30-dsh-0-2-0-rc-2-pin.md。
+// 2026-10-03 实录）。机制与 playbook：notes/archived/2026-09-30-dsh-0-2-0-rc-2-pin.md。
 check('vendor: client faces and web dist are not older than their sources', () =>
   vendorClientFreshnessProblems({ vendorPackagesRoot: join(vendorDsh, 'packages'), webAppRoot: join(vendorDsh, 'apps', 'web') }))
 

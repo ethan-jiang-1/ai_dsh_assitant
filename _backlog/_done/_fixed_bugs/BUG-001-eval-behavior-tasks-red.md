@@ -1,6 +1,6 @@
 # BUG-001：行为评测两任务既有红（breakdown-uses-skill / desk-refresh-loop）
 
-> 严重级别：P1（重要——评测是行为回归的主仪表，红着的主仪表让每次交付都带着噪声）｜发现：2026-10-01｜状态：活跃 — fixed 2026-10-02：两根因各自实证修复——①技能目录从未在会话上下文发布（<available_skills> system-reminder 缺席，模型无从知道技能存在；裸 one-shot host 层实例可发布、preset 行实例从不发布，全量历史日志统计坐实）→ tool-skill 移 host 行（组合层 L0）；②wrote-path 判定只认 JS/shell 写法、不认技能教的 python json.dump/open('w') → 判定核扩展。验收：5/5（连续两轮 breakdown+desk 各两绿）；修复 commit 与诊断证据见 [g2 后续切片 note](../../notes/implemented/2026-10-02-bug-001-skill-catalog-fix.md)
+> 严重级别：P1（重要——评测是行为回归的主仪表，红着的主仪表让每次交付都带着噪声）｜发现：2026-10-01｜状态：活跃 — fixed 2026-10-02：两根因各自实证修复——①技能目录从未在会话上下文发布（<available_skills> system-reminder 缺席，模型无从知道技能存在；裸 one-shot host 层实例可发布、preset 行实例从不发布，全量历史日志统计坐实）→ tool-skill 移 host 行（组合层 L0）；②wrote-path 判定只认 JS/shell 写法、不认技能教的 python json.dump/open('w') → 判定核扩展。验收：5/5（连续两轮 breakdown+desk 各两绿）；修复 commit 与诊断证据见 g2 后续切片 note
 
 ## 症状
 

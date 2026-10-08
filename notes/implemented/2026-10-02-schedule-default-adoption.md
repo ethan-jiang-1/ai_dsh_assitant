@@ -43,7 +43,7 @@
    - 本仓 dev home（assistant preset，干净重启后）：41 工具含四个 `schedule_*`，`web_search`/`web_fetch`
      底线面在场（adoption 卡常设守卫）。
    - 同批日志实证 digest 尾部带摆位（slice
-     [`2026-10-02-digested-recheck-chores.md`](2026-10-02-digested-recheck-chores.md)：模型自述 +
+     [`2026-10-02-digested-recheck-chores.md`](../archived/2026-10-02-digested-recheck-chores.md)：模型自述 +
      system/message 字节位——status 段位于全部工具段之后、persona 后缀之前）。
 4. `pnpm preflight '<dev URL>'`——绿（boot graph 67 entries、Remote manifest 27 namespaces）。
 5. 门禁链：`pnpm verify` / `pnpm test` / `pnpm release-smoke`（组合变化必跑）——绿，读数见提交时输出。
