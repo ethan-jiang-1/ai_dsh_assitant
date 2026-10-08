@@ -2,6 +2,16 @@
 
 > 严重级别：P2（次要——真实前提成立但触发条件少见，后果多为静默小丢失或自愈）｜发现：2026-10-07（对抗性语义扫描）｜状态：**fixed 2026-10-07（部分）**——F8 tmp 唯一化已修（并发双写红→绿）。尚未做的三条，重提前先看下面的触发，不另开 note：
 >
+> **2026-10-08 更正**：上面那句「F8 tmp 唯一化已修」当时只对了一半。修复只落在
+> `Room.write()` 一处，**同一模式的另外四个站点原样留着**（`Room.archive()`、
+> `domain/skills/usage.ts` 的 ledger、`host/skills-room.ts` 的两处归档写），
+> 而 archive 路径紧接着 `rm` 源文件——丢了 temp 不是丢一次改写，是把记录卡在半搬状态。
+> 测试面看不见的原因：只有 `write()` 配了并发用例，`archive()` 只有 happy path。
+> 根因是当时没有共享的原子写抽象，修法靠 copy-paste 传播，于是传漏了。
+> 已由 2026-10-08 的 `atomicWriteFile`（`domain/home/atomic-write.ts`）收成一个 owner 并补上
+> `archive()` 并发红→绿用例。**教训**：卡上写「已修」要写清修了几处 call site，
+> 否则下一个 agent 会把「已修」当成「这类都没了」。
+>
 > 1. F8 其余（updateThread 读改写无锁、memory 预算闸 TOCTOU）——desk-loop 或真用出现并发同线程编辑或预算双写时再修；候选是房间写路径单飞队列。
 > 2. F9（client 订阅未拆、4s 定时器无拆卸、self-turns fired map 无界）——HMR/dev 摩擦出现，或读过 vendor client 生命周期契约之后再修。不猜 API。
 > 3. F11（浏览器时钟对比服务端 generatedAt）——远端 LAN 访问成为真实使用面时再修；本机同钟踩不到。
