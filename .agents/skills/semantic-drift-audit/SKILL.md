@@ -9,8 +9,8 @@ whenToUse: After several slices that changed behaviour, commands, rows or verbs;
 The gates check structure, links, names and command aliases. They cannot see a sentence that is
 grammatically perfect and factually dead: a verb list that is two verbs short, an identity row that
 says "none" about a plane that shipped, a queue line that contradicts another line written the same
-day. Four rounds of this audit have produced 19 such drifts (zero, then six on 2026-09-23, seven
-on 2026-09-27, six on 2026-09-28) — every one of them invisible to `pnpm verify`.
+day. Five rounds of this audit have produced 22 such drifts (zero, then six on 2026-09-23, seven
+on 2026-09-27, six on 2026-09-28, three on 2026-10-08) — every one of them invisible to `pnpm verify`.
 
 ## The loop
 

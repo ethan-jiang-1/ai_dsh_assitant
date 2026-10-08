@@ -52,7 +52,7 @@ AGENT 面（`cordis.patch.yml` 的 `preset-assistant` 行 → agent preset）
 ├── assistant-knowledge-tool  工具 assistant_knowledge（只读检索：search/get 附反链）
 ├── tool-session-query        工具 session_query 族（原始会话证据检索；与 knowledge 房分工见 docs/home.md）
 ├── assistant-learn           工具 assistant_reflect + 挂载"学到的技能"provider
-├── assistant-ov-shield       治理遮蔽行（ov＝OpenViking 记忆插件：部署共装时拒其 mcp__openviking__* 工具前缀、遮蔽其同名技能——模型可见面保持本包四工具与策展技能目录；denyToolPrefix / shadowSkills 两 config 键）
+├── assistant-ov-shield       治理遮蔽行（ov＝OpenViking 记忆插件：部署共装时拒其 mcp__openviking__* 工具前缀、按 server 名拒资源、遮蔽其同名技能——模型可见面保持本包四工具与策展技能目录；denyToolPrefix / denyServerResources / shadowSkills 三 config 键）
 ├── skill-filesystem          策展技能（包内 `presets/assistant/skills/`，按包名解析后指过去）
 └── persona / agent-instructions / tool-fs / tool-fs-search / shell / ask-user /
     todo / goal（`tool-goal`+`command-goal`）/ plan-mode（isolate 组）/
@@ -164,7 +164,6 @@ assistant_knowledge ───→ ctx.assistantMemory.searchKnowledge / readKnowl
 | 自动后台复盘（`session/end` + `ctx.jobs`） | 有真实使用数据说明"每会话复盘"的收益大于 token 代价与同意成本 |
 | settings namespace `assistant` | 出现"用户要在设置页改"的真实需求（现在配置走 bundle/profile 的 Config） |
 | 专属 Web 卡片 | 通用卡不够用：先走 `tool.call.toolview` 槽，再走 `dsh.client.inject` |
-| 跨会话复盘（读历史会话） | 需要 `ctx.sessionQuery` + `tool-session-query` 行；现在只复盘当前会话 |
 | session 回放快照（web 渲染期望已建，同树） | 提示词组装面出现"只有跑起来才看得出"的回归，或同一 model-visible 面第三次靠手工探针钉回归（见 `snapshots/README.md`） |
 | 多专家复用（方案 D） | 第二个领域专家立项，且要复用骨架而不是各自重写 |
 
