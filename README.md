@@ -34,8 +34,7 @@
 **当前推敲与毕业边界按 owner 取用**：[定位卡](_backlog/_done/_closed_plans/261005-open-value-deficit.md) 与
 [自洽卡](_backlog/_done/_closed_plans/261005-turnaround-coherence.md)。已交付能力与证据归各自 implemented；
 [旧真用第一](notes/rejected/2026-10-01-real-use-first.md) 只作被取代方案的防错历史。推敲不构成新增产品能力或全部实施授权。研发姿态三条判据的常设指令在根
-`AGENTS.md`，用户原话存 [intents-retired](notes/implemented/2026-10-04-intents-retired.md)
-（本节承接已退役 intents.md 的判据面）。
+`AGENTS.md`。推敲不构成新增产品能力或全部实施授权。
 
 ## working folder 有四个房间
 
@@ -109,8 +108,7 @@ pack → 干净 home → 装 → 组合断言。`file:` 这条路径本身实测
 
 装完只需把该 profile 的 `agent-preset-registry` 行的 `default` 设成 `assistant`（模板：`dev/profiles/profile-patch.yml`）。
 **0.1.7 起 registry 既不扫目录、也不接受 preset 路径**：`assistant` 的定义随包发（`package.json` 的
-`dsh.bundle.patch` → `cordis.patch.yml` 里的 `preset-assistant` 行），装包即进组合 —— 不必再指 `presets/`
-目录（那条在 0.1.5 成立，0.1.7 起是错的；依据 `notes/archived/2026-09-25-dsh-0-1-7-migration.md`）。
+`dsh.bundle.patch` → `cordis.patch.yml` 里的 `preset-assistant` 行），装包即进组合 —— 不必再指 `presets/` 目录。
 
 **知识导入**（把文件/目录导成知识页草稿）：`pnpm import-knowledge -- --data-dir <assistant 目录> <文件或目录>… [--dry-run]`。
 
@@ -120,8 +118,7 @@ pack → 干净 home → 装 → 组合断言。`file:` 这条路径本身实测
 或**你明确批准后由助手 `promote_page` 执行那次翻转**（批准是你的，助手只做编辑）。
 
 **养护定时（默认带）**：本包的 host patch 直接挂 `schedule` + `ui-schedule` 两行（0.2.0 起 Schedule
-以 `schedule-bundle` 转正为可选 bundle，原"experimental 不默认带"的前提过期，2026-10-02 用户拍板反转
-——决定档案见 `notes/implemented/2026-10-02-schedule-default-adoption.md`）。Web 组合开箱即用：到期任务
+以 `schedule-bundle` 转正为可选 bundle，原「experimental 不默认带」的前提已过期，默认带上）。Web 组合开箱即用：到期任务
 以原会话 follow-up 消息投递、重启后仍生效，`schedule_create`（`prompt`+`title` 必填、`after_seconds`
 延时秒）即可建首个养护或提醒任务。**headless 组合例外**：`schedule` 依赖 web-app 层的
 `sessionController`，纯 headless 部署里挂上激活不了（隔离 home 实测判据：`pending (waiting for

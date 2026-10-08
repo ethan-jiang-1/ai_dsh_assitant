@@ -24,7 +24,7 @@
   （AGENTS.md 82 → 68 行）；净减少结算与处置序（删 > 并 > 修 > 记）今日已微采纳进
   discipline 复查环。
 - §十 的"诊断件销账后删除"：本仓登记的偏离（审计 note 是决策记录，住 implemented/）
-  维持不变，理由见 `notes/implemented/2026-09-23-dev-loop-borrowing.md` 的刻意不做节。
+  维持不变，理由见 历史在 git 的刻意不做节。
 
 ## 验证（真跑过）
 

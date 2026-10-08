@@ -3,7 +3,7 @@
 日期：2026-09-25 · 状态：**implemented（五项全部落地：S1 92aeb0f、S2 138dee5、S3 5a3290e、S4 与毕业同提交、S5 并 92aeb0f；依据[自审档案](2026-09-25-dsh-alignment-deepening.md)，红证据[档案](2026-09-25-dsh-alignment-deepening.md)）**
 已归档：2026-10-08（战役、审计或收口已结束；结论在现行合同或仍有效的决定里。本篇冻结，不再跟踪。）
 
-> 依据：[DSH 对齐自审](2026-09-25-dsh-alignment-deepening.md)（`notes/implemented/2026-09-28-research-absorbed-into-backlog.md`，已收卷）——
+> 依据：[DSH 对齐自审](2026-09-25-dsh-alignment-deepening.md)（历史在 git，已收卷）——
 > 上轮声称 vs 实际逐项对照，含两条被我在压缩证据时弄丢的借项（解析门面术语、房间/桌面/抽屉映射）。
 > 上轮的借鉴卡（[implemented](../archived/2026-09-25-dsh-alignment-borrowables.md)）仍有效，其 B9 行按本卡修正为"部分落地"。
 

@@ -20,7 +20,7 @@
 | **A2** ✅ 2026-09-30（不抄 `modelSelectionSettings`） | `delegation` 组：`tool-subagent`+`subagent_fork`+`tool-subagent-control`（in-process 后端；codex/claude-code 照抄 disabled 占位）＋`tool-jobs` | 同上 | 组合与请求侧已证。模型真实发起委派的端到端探针未跑 |
 | **B1** ✅ 2026-09-30 | `session-query-sqlite` 翻开（`openAt: first-search`+`path`）＋`tool-session-query` 挂 preset；与四房间关系写进 docs/home.md（memory=提炼事实 / session-query=原始证据） | host patch 行 + preset 行 | fixture 编排的 session_search 真实执行、索引库落盘 |
 | **B2** ✅ 2026-09-30（独立挂，不等 schedule） | `time-context`（时间感知进请求，不写死时区） | host 插入行，Config 全默认 | 请求文本含采样时间与时区 |
-| **C1** ✅ 2026-09-30 裁决「文档指引，不默认带」；**2026-10-02 反转为默认带**（0.2.0 里 schedule 转正、原 experimental 前提过期；现行决定档案：`implemented/2026-10-02-schedule-default-adoption.md`，原 C1 卡已完整取代删除） | `schedule-bundle` 打开方式裁决：文档指引（用户插件页一键开）vs 我们 profile patch 默认带；定案后把养护检查接 schedule（`schedule_create` 定时触发养护问答） | 裁决卡→实施 | 养护任务真实定时触发一次的日志证据 |（README 增"养护定时"段：三条隔离 home 实测边界 + ⏳ 标注 Web 端到端未验）
+| **C1** ✅ 2026-09-30 裁决「文档指引，不默认带」；**2026-10-02 反转为默认带**（0.2.0 里 schedule 转正、原 experimental 前提过期；现行决定档案：历史在 git，原 C1 卡已完整取代删除） | `schedule-bundle` 打开方式裁决：文档指引（用户插件页一键开）vs 我们 profile patch 默认带；定案后把养护检查接 schedule（`schedule_create` 定时触发养护问答） | 裁决卡→实施 | 养护任务真实定时触发一次的日志证据 |（README 增"养护定时"段：三条隔离 home 实测边界 + ⏳ 标注 Web 端到端未验）
 | **C2** ✅ 2026-09-30（出厂层已挂 stock 行，本片是消费侧） | `message-feedback`/`command-feedback` 赞踩信号进摩擦报告（desk-loop 的一类读数，不另起报告工具） | 消费侧改动 | desk-loop §7：计数、撤回对消、备注表 |
 
 ## 明确不做（触发条件登记，不排期）
@@ -47,7 +47,7 @@ A1→A2→B1→B2→C1→C2 顺序推进。各片取舍收在这一篇。组合�
   "你以为要写插件其实不用"的实证清单（inventory 消化稿 01 场景 A–E 全是这个形状）；自研只会慢且无上游红利。
 - **一次性大爆炸挂全部六片**：每片一 commit 才有可回退锚点（硬规则 6）；且 A2 的 fail-loud（modelSelectionSettings）
   证明分片让问题在最小半径内暴露。
-- **把 experimental 面（browser-use/语音）打进发布形状**：合同随时漂，进组合即接 upstream 的破坏半径。schedule 的现行挂法见 [schedule-default-adoption](../implemented/2026-10-02-schedule-default-adoption.md)。
+- **把 experimental 面（browser-use/语音）打进发布形状**：合同随时漂，进组合即接 upstream 的破坏半径。schedule 的现行挂法见 schedule-default-adoption。
 - **等有 key 再做探针，或自写 mock LLM**：keyless replay 是现货；挂上时必须同时禁用真实 adapter，否则真实 adapter 先接住流。
 - **为采样 UI 给 headless 补 web-app，或把 workflow 和委派一起挂**：headless 变厚；workflow 仍等编排需求出现。
 - **索引进程启动就开，或放进 working folder，或在 patch 里手拼 `DSH_HOME`**：`first-search` 让不检索的会话零成本；索引是 home 的派生文件，不进 working folder 合同；home 解析用现货 helper。

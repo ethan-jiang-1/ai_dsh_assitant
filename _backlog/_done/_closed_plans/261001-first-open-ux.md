@@ -104,7 +104,7 @@
 
 - **手册烤死绝对路径 bug 已修（v10）**：布局树根改符号占位，提示词任何段落不再出现机器路径
   （首版"尾部追加位置行"与"摘要头部位置行"两案均被评测 A/B 证伪——路径本身在内容丰富的 home
-  里是翻家邀请；详见[手册可移植化 note](../../notes/implemented/2026-10-01-home-manual-portable.md)）。
+  里是翻家邀请；详见手册可移植化 note）。
   存量 home 走既有 `manual-stale-scaffold` 版本通道再生。
 - **评测两任务既有红立 [BUG-001](../_done/_fixed_bugs/BUG-001-eval-behavior-tasks-red.md)**：A/B 矩阵（基线/在途 ×
   dev/fresh home）证明 `breakdown-uses-skill` 与 `desk-refresh-loop` 与当日改动无关；附带实测

@@ -69,7 +69,7 @@ learn 模块的 `tools/result` 订阅就给对应名字计数（用户 `/name` �
 | `skills/` | 学到的做法（可复用、可被模型加载） | 由 DSH 技能 provider 发现与监听；被取代就改文件；**退役**（90 天未用阈值由 curate 报，`retire_skill` 执行）→ `skills/archive/`（不删、可恢复） | `assistant_reflect` |
 | `knowledge/` | 领域知识页：概念 / 实体 / 来源 / how-it-works，`[[互链]]` | `draft`（staged，不进搜索与摘要）→ **手改 status: stable 即人审** → `deprecated` 留在原地（链接必须继续解析，无 archive） | `assistant_reflect action=save_page`（写）+ `assistant_knowledge`（只读检索） |
 
-**Obsidian 互通（[决定](../notes/implemented/2026-09-24-obsidian-interop.md)）**：`[[互链]]` 语法双方同构，但**解析键不同**——我们 id→title，Obsidian 只认**文件名**（= 我们的 id）：`aliases` 只喂它的补全，裸别名与 `title` 属性都不是解析键（[1.12.7 实测](https://forum.obsidian.md/t/wikilink-resolution-does-not-honor-frontmatter-aliases-1-12-7/113902)）。所以页内链接统一写**两边都认的形态** `[[<id>|<title>]]`：`save_page` 写入时自动把可解析的裸名字链接规范成它，每页 `aliases` 镜像着自己的 title——人在 Obsidian 里打 `[[` + 名字，补全选中后写下的正是这一形态。窄用（单开 `knowledge/` 为 vault：graph/tags/draft→stable 手改即人审）三条纪律：**别手打裸名字链接、更别点它建页**（Obsidian 侧 unresolved，点了新建同名空页分叉图，回来被 curate 报 error）；目标页尚不存在的链接（curate 报"未写成的知识"）无法规范化、保持原样，也属此类；**嵌套 frontmatter 字段走 Source 模式编辑**。dsh-obsidian 外部 vault 桥 ⏳ 触发型（触发条件与理由：[obsidian-interop](../notes/implemented/2026-09-24-obsidian-interop.md) D2——用户真想让助手管某个外部 vault 时再议）。
+**Obsidian 互通**：`[[互链]]` 语法双方同构，但**解析键不同**——我们 id→title，Obsidian 只认**文件名**（= 我们的 id）：`aliases` 只喂它的补全，裸别名与 `title` 属性都不是解析键（[1.12.7 实测](https://forum.obsidian.md/t/wikilink-resolution-does-not-honor-frontmatter-aliases-1-12-7/113902)）。所以页内链接统一写**两边都认的形态** `[[<id>|<title>]]`：`save_page` 写入时自动把可解析的裸名字链接规范成它，每页 `aliases` 镜像着自己的 title——人在 Obsidian 里打 `[[` + 名字，补全选中后写下的正是这一形态。窄用（单开 `knowledge/` 为 vault：graph/tags/draft→stable 手改即人审）三条纪律：**别手打裸名字链接、更别点它建页**（Obsidian 侧 unresolved，点了新建同名空页分叉图，回来被 curate 报 error）；目标页尚不存在的链接（curate 报"未写成的知识"）无法规范化、保持原样，也属此类；**嵌套 frontmatter 字段走 Source 模式编辑**。dsh-obsidian 外部 vault 桥先不做：用户真想让助手管某个外部 vault 时再议。
 
 **为什么探索要单独一间房**：不清晰的意图如果没地方放，只会被硬塞进正式流程（污染记忆与技能、拉低信噪比）
 或者蒸发（下次从零重开同一个问题）。**分房是为了让"已确立的"保持干净。**
@@ -114,8 +114,7 @@ learn 模块的 `tools/result` 订阅就给对应名字计数（用户 `/name` �
   - 状态摘要（`assistant:memory-digest`，**有界** `digestMaxBytes`，默认 6144——键挂在 host 服务行 `assistant-memory` 的 config（包根 `cordis.patch.yml`））：状态行 +
     活跃记忆的精选 + **开放线索的条数与前几条标题** + **知识签树**（stable 页一行一页，作检索路标）。
     预算闸门（`save` 纯新增）：只在**记忆行本身被挤下桌面**时拒绝（消息给出路：retire 或 supersede）；
-    线索/签树被挤只报 finding、不堵记忆写入门——堵了也修不好那部分（2026-10-02 校准与钥匙修复，
-    依据 `notes/implemented/2026-10-02-digest-budget-recalibration.md`）。
+    线索/签树被挤只报 finding、不堵记忆写入门——堵了也修不好那部分。
   身份与手册是**working folder 根部的数据文件**（人可改、可 git、scaffold 只在缺失时写）——身份是数据不是
   preset 代码；静态引导（跨请求稳定，cache 友好）与动态状态（摘要）分离。
   桌面只放"此刻最该在眼前的东西"。
@@ -172,14 +171,13 @@ bundles, M snapshots`，退役与快照都不删除、技能归档只增不减�
 也看不见同一棵树里的并行会话**。所以"报 clean"只等于"房间干净"，不等于"现场干净"；在仓库里工作时
 这两者的差别要如实说出来（同一条纪律也在家手册的协作边界节）。
 
-**curate 不再只靠人记得**：host 侧节拍器（[maintenance-metronome](../notes/implemented/2026-09-24-maintenance-metronome.md)）每个 goal 的第 `maintenanceEveryRounds`
+**curate 不再只靠人记得**：host 侧节拍器每个 goal 的第 `maintenanceEveryRounds`
 （默认 5，`0` 关闭）轮自动插入一条养护 turn（plugin 源 user message，让路栅栏保证它是轮间
 安全空槽），指示跑 curate 并逐条处理发现项；非 goal 会话仍由 persona 纪律驱动。
 
 ## 五、working folder 根部的两个文件（`SOUL.md` 身份 + `AGENTS.md` 手册）
 
-抄 Hermes 的形状（决定
-[soul-and-agents](../notes/implemented/2026-09-24-soul-and-agents.md)，D1/D2/D3=a）：**身份与引导分文件**，
+**身份与引导分文件**，
 分工一句话——到处适用的进 `SOUL.md`，属于这个 working folder 的进 `AGENTS.md`。
 
 - **`SOUL.md`（身份）**：agent 是谁、怎么说话。scaffold 缺则种（种子 = 内置默认身份，day 0

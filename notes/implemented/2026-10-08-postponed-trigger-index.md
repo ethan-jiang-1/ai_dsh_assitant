@@ -14,7 +14,7 @@
 - 冻结卡状态行：[260928-workflow-as-md](../../_backlog/_done/_closed_plans/260928-workflow-as-md.md)（「第三次重推演」）、
   [261004-approve-direct-call](../../_backlog/_done/_closed_plans/261004-approve-direct-call.md)、
   [261007-process-budget-audit](../../_backlog/_done/_closed_plans/261007-process-budget-audit.md)（明确写「触发条件以本表为家」）及 2026-09-29 批量清理批多卡；
-- 决定 note：[recurrence-tracking](2026-10-08-recurrence-tracking.md)、
+- 决定 note：recurrence-tracking、
   bug-007、turnaround 阶段 4-5 各 owner note；
 - `docs/discipline.md` ⏸ 行（docs 词数预算）。
 

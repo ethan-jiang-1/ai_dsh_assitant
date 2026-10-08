@@ -86,6 +86,5 @@ plan-to-note 在毕业判断**之后**：把矩阵行改写成提案的「验收
 有技能本体的篇，协议与分支资源以本体为准。Note 质量的规则原文在钉住的
 [`vendor/dsh/.agents/notes/`](../../vendor/dsh/.agents/notes/README.md) 与同树技能里，判断已经写进
 [plan-to-note](plan-to-note.md)。
-基线 `fad9000`；checkout 位置、查证历史、纠错理由和
-验证记录见 [决定记录](../../notes/implemented/2026-10-08-requirements-elicitation-playbook.md)。
+基线 `fad9000`。方法就在本目录。
 上游更新时重读本表点名的本体及分支资源；不 vendor、不安装、不修改全局发现配置。

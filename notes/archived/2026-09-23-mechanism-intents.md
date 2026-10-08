@@ -4,8 +4,8 @@
 
 已归档：2026-10-02（本档自 intents.md 冻结而来——机制意图的历史与证据指针完整保存在此，
 **冻结不再编辑**；该文件已于 2026-10-04 整体退役，现行判据的唯一权威是
-[`README.md`](../../README.md)「方向判据」节，退役档案 [intents-retired](../implemented/2026-10-04-intents-retired.md)。
-归档之后的退役决定：[intents-retired](../implemented/2026-10-04-intents-retired.md)。）
+[`README.md`](../../README.md)「方向判据」节，退役档案 intents-retired。
+归档之后的退役决定：intents-retired。）
 
 > 冻结时的原始头注（保留原样）：这是 dev-loop 第 1 阶段的落点：**一行动机 + 一行外部可观察行为**。
 > 用户一开始把意图一股脑给了，后续又补了四批。状态挡板（2026-09-23）：外部可观察行为要在真实会话
@@ -71,7 +71,7 @@ DSH 原生对迭代/队列的规划（已另立专项调研），但节奏本身
 
 | # | 意图 | 外部可观察行为 | 状态 |
 |---|---|---|---|
-| I14 | 迭代有节奏：加工 → **空槽** → 打扫 | 连续加工若干步后，流程里出现一个**明确的养护槽**：`curate` 被执行、发现项逐条处理或显式搁置（park/drop 留理由）；槽由加工节奏触发且**可配置**；打扫的产物（改动/搁置）与加工产物一样是人可读文件 | implemented：host 节拍器每个 goal 的第 `maintenanceEveryRounds` 轮（默认 5，0 关闭）插入 plugin 源养护 turn，让路栅栏保证轮间安全空槽，指示跑 curate 并逐条处理（[maintenance-metronome](../implemented/2026-09-24-maintenance-metronome.md)；live 实证 `session-a1127685`：6 轮 goal 第 5 轮触发、养护轮跑 curate、goal 正常恢复完成）；非 goal 会话由 persona 纪律覆盖（iteration-rhythm note 的 a 层） |
+| I14 | 迭代有节奏：加工 → **空槽** → 打扫 | 连续加工若干步后，流程里出现一个**明确的养护槽**：`curate` 被执行、发现项逐条处理或显式搁置（park/drop 留理由）；槽由加工节奏触发且**可配置**；打扫的产物（改动/搁置）与加工产物一样是人可读文件 | implemented：host 节拍器每个 goal 的第 `maintenanceEveryRounds` 轮（默认 5，0 关闭）插入 plugin 源养护 turn，让路栅栏保证轮间安全空槽，指示跑 curate 并逐条处理（maintenance-metronome；live 实证 `session-a1127685`：6 轮 goal 第 5 轮触发、养护轮跑 curate、goal 正常恢复完成）；非 goal 会话由 persona 纪律覆盖（iteration-rhythm note 的 a 层） |
 
 ## 五、补充意图（2026-09-24 用户追加 · 知识房间）
 

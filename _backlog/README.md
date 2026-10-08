@@ -156,7 +156,7 @@ SKILL 形态文档，长期在 `_backlog/` 里打磨。完整留区契约见
 一个思考一个家：进行中的调研/推敲都住 plans/，调研只是卡的一种性质（补「待答问题 / 待跑实验 /
 喂给谁」字段与形态规范，见 [plans/README.md](plans/README.md)）。收卷后还会被重提的事实写进决定 note，
 不另留调研目录。依据：
-[research-absorbed-into-backlog](../notes/implemented/2026-09-28-research-absorbed-into-backlog.md)
+research-absorbed-into-backlog
 ——此前「复发才升格、暂不并」的判断被拍板推翻，原判断留该 note 输掉的方案节。
 
 ## 谁写、谁读、何时读

@@ -31,7 +31,7 @@ architecture.md §八摘要路由补预算旋钮位置（`digestMaxBytes`/`recal
   任务 2 运行态布局（README→home.md §一→`dev/harness-home/assistant/` 实地对照，2 跳）**PASS**；
   任务 3 决定理由首轮**条件 PASS**（复跑者指出 98 张卡无索引、没说怎么找）→ 按其建议同 diff
   在表行内补 `grep -il` 方法 → 第二个新上下文复验（查"养护定时为什么默认带"，2 步 <1 分钟，
-  命中 [schedule-default-adoption](../implemented/2026-10-02-schedule-default-adoption.md)）**PASS**。
+  命中 schedule-default-adoption）**PASS**。
 
 ## 输掉的方案
 

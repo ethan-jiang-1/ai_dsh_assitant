@@ -30,7 +30,7 @@ pin 迁到 0.1.7 后写者前移到 **v4**，而本仓多处读方与给助手�
 | `src/home/home-map.ts` 手册"Past conversations"段 | 路径写 `session.v<n>.jsonl.zstd`，并明说 `<n>` 随 harness 前移、"列目录、别猜名字"；`HOME_MANUAL_VERSION` 5 → 6（既有 home 由 `curate` 的 `manual-stale-scaffold` 提示更新：删文件重生成，手改过的手册不动） |
 | `presets/assistant/skills/session-recall/SKILL.md` | 同一条事实、同一种写法；`rg` 配方本就用 `-g '*.zstd'` 发现，未动 |
 | `docs/dev.md` §五、`docs/discipline.md` 纪律表、`.agents/skills/repo-live-probe/SKILL.md` | 改用可用 glob `session.v*.jsonl.zstd` |
-| [`2026-09-24-session-log-memory.md`](../implemented/2026-09-24-session-log-memory.md) | 同一事实的当前值改为代次无关并链到本 note |
+| 历史在 git | 同一事实的当前值改为代次无关并链到本 note |
 
 红证据（同 diff）：`tests/domain/layout.spec.ts` 新增用例钉住两处模型可见面——文本必须含
 `session.v<n>.jsonl.zstd` 且**不得**出现 `session.v\d+.jsonl.zstd`。造红实测：把两处改回

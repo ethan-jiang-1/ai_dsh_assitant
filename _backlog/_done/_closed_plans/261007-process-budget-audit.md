@@ -1,10 +1,10 @@
 # 推敲：流程总预算审计——standing instructions / docs / skills 三面处置表
 
-> 立卡：2026-10-07 ｜ 状态：已毕业（处置表六行全交付：#1 并✅ / #2 记 / #3 核对✅全齐 / #4 记 PASS / #5 记维持 / #6 修✅）｜毕业门判断 = 该做 ｜下一步 = 总收口在 [实施 note](../../notes/implemented/2026-10-07-dsh-corpus-absorption.md)；#2/#5 触发条件以本表为家，重提前先读本表
+> 立卡：2026-10-07 ｜ 状态：已毕业（处置表六行全交付：#1 并✅ / #2 记 / #3 核对✅全齐 / #4 记 PASS / #5 记维持 / #6 修✅）｜毕业门判断 = 该做 ｜下一步 = 总收口在 实施 note；#2/#5 触发条件以本表为家，重提前先读本表
 
 ## 背景 / 触发
 
-[呈批卡 2026-10-07-dsh-corpus-absorption](../../notes/implemented/2026-10-07-dsh-corpus-absorption.md) B1：把 2026-10-06 的门禁预算制扩展到 standing instructions / docs / skills 三面，判据 = 语料四成本形态（重复记录漂移 / 过长 standing instructions / 无意义 gate 假安全感 / 过细 Skill 仪式）+ 本仓新增第五形态「**驾驭者认知成本**」（语料全是 agent 参与视角；用户「驾驭无力」症状需要自己的判据：用户能不能一眼找到方向盘与仪表盘）。
+呈批卡 2026-10-07-dsh-corpus-absorption B1：把 2026-10-06 的门禁预算制扩展到 standing instructions / docs / skills 三面，判据 = 语料四成本形态（重复记录漂移 / 过长 standing instructions / 无意义 gate 假安全感 / 过细 Skill 仪式）+ 本仓新增第五形态「**驾驭者认知成本**」（语料全是 agent 参与视角；用户「驾驭无力」症状需要自己的判据：用户能不能一眼找到方向盘与仪表盘）。
 
 ## 处置表（审计产出；优先序 删 > 并 > 修 > 记，每行指向具体摩擦）
 

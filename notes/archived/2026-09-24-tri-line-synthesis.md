@@ -38,25 +38,25 @@
 
 | # | 切片 | 一句话 | 素材 |
 |---|---|---|---|
-| 1a | 用量统计 | 技能被加载次数/最近使用进 curate 与 brief——一切退役与延后判据的数据面 ✅ implemented（`notes/implemented/2026-09-24-skill-usage-stats.md`：家根 `skill-usage.json` 账本 + learn 模块 `tools/result` 订阅 + curate/brief 双面回显） | R2 §9.3-1 |
-| 1b | 遮蔽可见性 | 同名遮蔽从 logger warn 升为模型可见（D3 已定：curate finding + brief 节）✅ implemented（`notes/implemented/2026-09-24-skill-shadow-visibility.md`：问注册表不复演规则——agent 面探 `ctx.skills.snapshot` join 房间扫描，`skill-shadowed` warn finding + brief `shadowed_skills` 节） | R2 §9.3-2、§5.4 |
-| 1c | 阈值退役 | 30d 未用→stale、90d→archived（D4 已定，配置行可调；归档=移出 provider 扫描目录，不删，可恢复）✅ implemented（`notes/implemented/2026-09-24-skill-retirement.md`：双档 finding + `retire_skill` 出口动词 + `skills/archive/` 布局；年龄锚点=账本 lastUsedAt 优先、learnedAt 兜底；不自动归档——检测归代码、动作归 agent） | R2 §9.3-3 |
-| 1d | 写后审计 | 引用完整性 + 凭据检查（写时校验已挡 frontmatter，审计增量在引用与凭据）✅ implemented（`notes/implemented/2026-09-24-skill-post-write-audit.md`：`skill-broken-reference`/`skill-credential-leak` 双 finding，save_skill 写完即审注入 + curate 常驻并档，不阻断；scan/audit 共享枚举） | R2 §9.3-4 |
-| 1e | I14 节拍器 | curate 从被动变主动——决策已在 历史在 git（b 层 host 节拍器为主，a 层纪律垫底）✅ implemented（`notes/implemented/2026-09-24-maintenance-metronome.md`：触发信号亲验修正为 `agent/inbox/inserted`（goal 轮消息源自带 goalId/round，无状态节拍），`maintenanceEveryRounds` 默认 5；live 两轮——第一轮否定结果如实保留并揪出 preset-runner 静止≠goal 结束的真 bug（已修），第二轮 6 轮 goal 第 5 轮触发、栅栏恢复、正常完成；I14 翻 implemented） | 该 note |
-| 1f | skills/ 快照 | 最轻回滚兜底（时间戳快照或 git init，三样板任选）✅ implemented（`notes/implemented/2026-09-24-skill-snapshots.md`：覆盖前时间戳快照到 skills/archive/snapshots/，每名留 3 份，save_skill 结果报路径，恢复=手复制；git init 方案因 .git 特判与 VCS 语义落选） | R2 §9.3-7 |
+| 1a | 用量统计 | 技能被加载次数/最近使用进 curate 与 brief——一切退役与延后判据的数据面 ✅ implemented（历史在 git：家根 `skill-usage.json` 账本 + learn 模块 `tools/result` 订阅 + curate/brief 双面回显） | R2 §9.3-1 |
+| 1b | 遮蔽可见性 | 同名遮蔽从 logger warn 升为模型可见（D3 已定：curate finding + brief 节）✅ implemented（历史在 git：问注册表不复演规则——agent 面探 `ctx.skills.snapshot` join 房间扫描，`skill-shadowed` warn finding + brief `shadowed_skills` 节） | R2 §9.3-2、§5.4 |
+| 1c | 阈值退役 | 30d 未用→stale、90d→archived（D4 已定，配置行可调；归档=移出 provider 扫描目录，不删，可恢复）✅ implemented（历史在 git：双档 finding + `retire_skill` 出口动词 + `skills/archive/` 布局；年龄锚点=账本 lastUsedAt 优先、learnedAt 兜底；不自动归档——检测归代码、动作归 agent） | R2 §9.3-3 |
+| 1d | 写后审计 | 引用完整性 + 凭据检查（写时校验已挡 frontmatter，审计增量在引用与凭据）✅ implemented（历史在 git：`skill-broken-reference`/`skill-credential-leak` 双 finding，save_skill 写完即审注入 + curate 常驻并档，不阻断；scan/audit 共享枚举） | R2 §9.3-4 |
+| 1e | I14 节拍器 | curate 从被动变主动——决策已在 历史在 git（b 层 host 节拍器为主，a 层纪律垫底）✅ implemented（历史在 git：触发信号亲验修正为 `agent/inbox/inserted`（goal 轮消息源自带 goalId/round，无状态节拍），`maintenanceEveryRounds` 默认 5；live 两轮——第一轮否定结果如实保留并揪出 preset-runner 静止≠goal 结束的真 bug（已修），第二轮 6 轮 goal 第 5 轮触发、栅栏恢复、正常完成；I14 翻 implemented） | 该 note |
+| 1f | skills/ 快照 | 最轻回滚兜底（时间戳快照或 git init，三样板任选）✅ implemented（历史在 git：覆盖前时间戳快照到 skills/archive/snapshots/，每名留 3 份，save_skill 结果报路径，恢复=手复制；git init 方案因 .git 特判与 VCS 语义落选） | R2 §9.3-7 |
 | 1g | 格式对齐 spec 小步 | learned 技能补 `license`/`compatibility`（可空）——吃 Agent Skills 标准红利的小步 ✅ 审计结案：亲验 provider（0.1.5-rc.2）**不读**这两字段（rg 零命中），写了即死重且绕门禁立意——不写；metadata provenance 本就是规范对齐的正确形态；延后触发=provider 读它们或第二消费方出现（在 ROADMAP） | R2 §9.3-6 |
-| 1h | 预算强制（可选） | digest/索引预算从纪律升为 `ctx.tools.guard()` 写入原语层拒绝 ✅ implemented（`notes/implemented/2026-09-24-digest-budget-enforcement.md`：落点改服务层拒绝（单写者纪律，登记偏离）；亲验揪出 over-budget finding 死代码（bytes 恒≤预算），判据改 `truncated`；纯新增在截断态被拒，supersede/forget 开放） | R1 §6-1 |
+| 1h | 预算强制（可选） | digest/索引预算从纪律升为 `ctx.tools.guard()` 写入原语层拒绝 ✅ implemented（历史在 git：落点改服务层拒绝（单写者纪律，登记偏离）；亲验揪出 over-budget finding 死代码（bytes 恒≤预算），判据改 `truncated`；纯新增在截断态被拒，supersede/forget 开放） | R1 §6-1 |
 
 ### 阶段 2 · 第四房间 knowledge/（家的最大结构变化）✅ 全部 implemented（2026-09-24）
 
 设计整体引用 R3 §7.2（每件标了借用来源），落地切片按 R3 §7.4：
 
 1. `src/home/layout.ts` 加房间 + scaffold + HOME.md 地图（布局唯一 owner 面改一处）✅（刻意无 archive——deprecated 留原地，链接必须继续解析）；
-2. frontmatter 词汇：OKF v0.2 子集（D5 已定：六字段）+ `[[wikilink]]` 解析自研（百行级，DSH 生态四处先例）✅ `notes/implemented/2026-09-24-knowledge-page-vocabulary.md`；
-3. curate 加 finding：断链三档 info/warn/error（D7 已定）、孤页、同名歧义、stale_after ✅ `notes/implemented/2026-09-24-knowledge-curation.md`（index.md 漂移不存在——index 不落盘，现场合成无物可漂移）；
-4. 检索面：digest 加目录树有界摘要（"file tree as signposts"）+ 最小只读工具 search/get 附 backlinks（D6 已定）；embedding 继续延后 ✅ `notes/implemented/2026-09-24-knowledge-retrieval.md`；
+2. frontmatter 词汇：OKF v0.2 子集（D5 已定：六字段）+ `[[wikilink]]` 解析自研（百行级，DSH 生态四处先例）✅ 历史在 git；
+3. curate 加 finding：断链三档 info/warn/error（D7 已定）、孤页、同名歧义、stale_after ✅ 历史在 git（index.md 漂移不存在——index 不落盘，现场合成无物可漂移）；
+4. 检索面：digest 加目录树有界摘要（"file tree as signposts"）+ 最小只读工具 search/get 附 backlinks（D6 已定）；embedding 继续延后 ✅ 历史在 git；
 5. research 的 promote 出口新增目标类型 knowledge（promotedTo 指页 id，sources 指回线索）；
-   memory↔knowledge 走 promote/pin 两条显式操作（D8 已定）；**自动产出走 staged draft**（status: draft 不参与召回，人审才 stable）✅ `notes/implemented/2026-09-24-knowledge-write-path.md`（桥落成 provenance 惯例，登记解释；draft→stable=手改文件即人审）；
+   memory↔knowledge 走 promote/pin 两条显式操作（D8 已定）；**自动产出走 staged draft**（status: draft 不参与召回，人审才 stable）✅ 历史在 git（桥落成 provenance 惯例，登记解释；draft→stable=手改文件即人审）；
 6. docs/home.md 契约更新 + 本 note 状态翻 implemented，同 diff ✅（docs/home.md 四房间合同 + I15 翻 implemented；live E2E `session-d417555d` 七步逐字在案）。
 
 ### 阶段 3 · 触发演进一格：手动 → 建议+人审（propose-only）✅ 全部 implemented（2026-09-24）
@@ -67,7 +67,7 @@
 | 3b | 草稿收件箱 | 候选不落房间、进待审区；不可变版本链；改稿=新版本，旧批准失效；批准才 save_skill ✅ `skill-proposals/` 收件箱 + propose_skill/land_skill；版本链=revision 计数器（审批绑定批准时刻内容，等效实现并登记解释）；人审=手改 status；悬批下拒绝改稿 | R2 §5.2 run2skill |
 | 3c | 默认 propose-only | 生态最谨慎同款（dsh-enhanced growth-experiments 默认值）；全自动蒸馏维持延后 ✅ 提案槽只教 propose_skill；save_skill 保留为手动通道；brief/curate 报收件箱状态 | R2 §6、§9.3-5 |
 
-全阶段档案：`notes/implemented/2026-09-24-proposal-inbox.md`（live E2E `session-138b867f`
+全阶段档案：历史在 git（live E2E `session-138b867f`
 提案→人审→落地逐字在案，模型无自批路径）。
 
 ### 顺序论证（为什么 1→2→3）

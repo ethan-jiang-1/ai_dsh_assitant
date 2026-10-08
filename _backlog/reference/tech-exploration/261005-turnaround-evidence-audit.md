@@ -72,4 +72,4 @@
 
 - [verify 的相对链接语料](../../../scripts/checks/verify.mjs#L483) 现在收原 markdownCorpus + `_backlog/README.md` + 活跃 plans/bugs/reference 递归 Markdown；`_done` 不扩扫。其他 backtick/section/机器路径门仍使用原 corpus，未改纯核或做历史全面治理。
 - [真实 runner 接线夹具](../../../packages/dsh-smart-assistant/tests/tooling/verify-gates.spec.mjs#L125) 对九个活跃路径造断链。旧接线漏报导致新增夹具红；新接线检出所有目标、补目标后链接门绿，冻结与未约定根材料作为负控制未扩扫。verify-gates 49/49 通过；pnpm verify 34 检查通过。
-- 父代理直接扫活跃 backlog 的22个 Markdown，缺失相对目标已清零，包含原 reference 和首开卡历史 BUG 指针；最终收尾证据归 [资料归位决定](../../../notes/implemented/2026-10-05-turnaround-deliberation-routing.md)。链接检查不验证 URL、anchors、引用行号、原始事实或产品效果。
+- 父代理直接扫活跃 backlog 的22个 Markdown，缺失相对目标已清零，包含原 reference 和首开卡历史 BUG 指针；最终收尾证据归 资料归位决定。链接检查不验证 URL、anchors、引用行号、原始事实或产品效果。

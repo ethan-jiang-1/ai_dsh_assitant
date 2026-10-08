@@ -19,14 +19,14 @@ knowledge/ 0 页、学到技能 1 个、SOUL.md 还是内置兜底文本、perso
    **按用户 2026-09-25 指令执行**（原话"这个术语最好是个淘汰的术语，就别再用了"）：
    活跃面全仓去「家」——中文面改「working folder（工作目录）」，英文模型面去 home 隐喻
    （`DEFAULT_SOUL`/手册/工具描述）；历史 notes 保留原词（档案记录当时事实，先例：
-   [HOME.md 概念清零](../implemented/2026-09-24-soul-and-agents.md)）。附带收益：**一词一义**——
+   HOME.md 概念清零）。附带收益：**一词一义**——
    "home" 从此只指 DSH harness home（`DSH_HOME`），助手的目录只叫 working folder，
    消除"两个 home"歧义（[session-recall 技能](../../packages/dsh-smart-assistant/presets/assistant/skills/session-recall/SKILL.md) 里本就写着"the harness home is the parent of your home"这种拧巴句子）。
 2. **「信噪比」讨论记在哪**（用户提问时口误为"性价比"，2026-09-25 亲自更正：**是信噪比**——
    "信号和噪声，对同一个概念有两个说法、或两个方向，那就是噪声"）：本仓权威记录 =
    [mechanism-intents 冻结档](../archived/2026-09-23-mechanism-intents.md)（talk `agent-101`：「主线是信噪比」）与 §六两判据
    （错了赔得起吗/错了多久能发现）+ 有界常驻（digest 4096B 预算、技能目录 500 字符 cap）
-   + 桌面/抽屉分层 + 常驻字节对账（[soul-and-agents note](../implemented/2026-09-24-soul-and-agents.md)
+   + 桌面/抽屉分层 + 常驻字节对账（soul-and-agents note
    的 +2.9KB 记账）。**这句更正同时立为本战役第一条设计纪律：一词一义，同义词=噪声**——
    §二.1 的家/working folder 双名并存正是活例，P1 术语切片是它的直接应用。
 
@@ -115,7 +115,7 @@ session-recall 的 rg 配方在 P4 真实够用（提案会话搜到 save_page �
 首批计数远低于任何收益阈值且无人审成本对照；E 名字链接/dsh-obsidian 挂桥/workflow-as-MD/
 跨 harness 共库/license 字段——无新触发数据。各 ⏳ 维持原判据。
 （2026-09-25 补记：**E 名字链接已触发并落地**——真实使用中报"链接在 Obsidian 点不开"，
-见 [obsidian-interop §落地](../implemented/2026-09-24-obsidian-interop.md)；其余维持原判据。）
+见 obsidian-interop §落地；其余维持原判据。）
 
 **留给用户的拍板点（战役中显式登记、未擅动）**：
 1. **digest 树行格式**：现 `- title — description (id)` 每行 118–159B，id 占 30–40%；

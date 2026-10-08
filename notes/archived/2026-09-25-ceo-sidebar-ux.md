@@ -1,13 +1,13 @@
 # CEO 助手的 Sidebar 培养面（用户拍板的当前 Goal）
 
-日期：2026-09-25 · 状态：**implemented**（培养面本体与整改包均已交付；设计 owner 在[设计 owner 卡](../implemented/2026-09-26-cultivation-surface-design.md)，本文件冻结为逐圈历史与证据）
+日期：2026-09-25 · 状态：**implemented**（培养面本体与整改包均已交付；设计 owner 在设计 owner 卡，本文件冻结为逐圈历史与证据）
 已归档：2026-09-27（历史记录，非当前权威；冻结不再编辑）
 
 ## 〇、当前状态一览（先读这里）
 
-**设计思路（判据/原则/架构）**：[培养面设计思路](../implemented/2026-09-26-cultivation-surface-design.md)。
+**设计思路（判据/原则/架构）**：培养面设计思路。
 **整改包（评审驱动的 S1–S5 切片与逐片验收）**：[培养面整改包](../archived/2026-09-26-cultivation-remediation.md)。
-**接手入口（新 Agent 从这里开始）**：[handoff：CEO 助手的 Sidebar 培养面](../implemented/2026-09-26-cultivation-surface-design.md)
+**接手入口（新 Agent 从这里开始）**：handoff：CEO 助手的 Sidebar 培养面
 ——一分钟上手、已完成/待办、架构与机制、关键文件、命令、纪律、下一圈候选、环境快照。
 
 | 项 | 状态 |
@@ -37,7 +37,7 @@
 2. **CEO 角色**——呈现的内容是 CEO 的助手该呈现的
 3. **用户要学**——通过看我们怎么设计，熟悉 DSH 的交互机制
 
-## 二、原始设计稿（2026-09-25；**现行设计原则见[设计 owner 卡](../implemented/2026-09-26-cultivation-surface-design.md)**）
+## 二、原始设计稿（2026-09-25；**现行设计原则见设计 owner 卡**）
 
 > 历史记录：这是开工前的三 Tab 设计稿（含当时的 ASCII 草图与数据来源设想）。落地过程中多处演进
 > （形态改右栏 tab、桌面加「先办这件」引导卡、交互从"编辑/删除"改为就地更正与就地处置等），

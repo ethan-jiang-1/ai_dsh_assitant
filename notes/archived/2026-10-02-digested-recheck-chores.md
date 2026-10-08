@@ -49,5 +49,5 @@
    新带位断言在场）。
 3. `pnpm verify`——31 项门禁全过。
 4. live probe（digest 尾部带 + schedule 工具进请求的端到端证据）与 release-smoke 随同日的
-   schedule 默认带切片（`2026-10-02-schedule-default-adoption.md`，彼卡回链本文）一起跑——
+   schedule 默认带切片（历史在 git，彼卡回链本文）一起跑——
    两切片共享一次探针，那里的日志同时证明本片的摆位落到了真实请求里。

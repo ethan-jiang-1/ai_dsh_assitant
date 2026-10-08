@@ -5,7 +5,7 @@
 ## 背景 / 触发
 采集工具已在场（skill-usage.json + usage 仪表）。人工复盘蒸馏已是常态
 （assistant_reflect）；自动化的净收益要用真实数据证。依据：
-[R2 缺口清单 §9.3-5](../../../notes/implemented/2026-09-24-skill-usage-stats.md)。
+R2 缺口清单 §9.3-5。
 
 ## 毕业门
 用量数据支撑 → 推敲自动复盘的触发面与同意面，毕业为 RFC。

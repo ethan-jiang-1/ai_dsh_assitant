@@ -3,8 +3,7 @@
 > **每个目录装什么、状态怎么读、由谁维护，以本文件为准**——职责由一个具名文件拥有，不由惯例拥有
 > （借自 DSH `.agents/notes/` 的分类学：`_agent_ready_development/repo-harness/08-repository-taxonomy.md`、
 > `sdlc-reference/01-agent-note-lifecycle.md`；对齐与偏离登记见 §四）。
-> **接下来做什么**：用户本轮请求优先。还要等人点头的持久取舍住 `proposed/`（问题/方案/验收；**用户点头才开工**
-> ——"批"发生在 proposed→implemented 之间，依据 [proposed-card-positioning](implemented/2026-10-04-proposed-card-positioning.md)）。
+> **接下来做什么**：用户本轮请求优先。还要等人点头的持久取舍住 `proposed/`（问题/方案/验收；**用户点头才开工**）。
 > 推敲与触发型住 [`_backlog/plans/`](../_backlog/plans/README.md)。本目录不装进行中的工作板，也不装调研底稿。
 
 ## 〇、什么是 note（规则的唯一家在本文件；根 AGENTS.md 只留指针）
@@ -39,7 +38,6 @@ plan 毕业不自动产生 note。切片记录、战役收口、收口数字、�
 | `archived/` | 未来决策价值低的 implemented 历史 | `implemented` + 一行 `已归档：YYYY-MM-DD` | 只作历史引用，**冻结不再编辑**，不是当前权威 |
 
 > **调研不在本目录**：进行中的调研住 [`_backlog/plans/`](../_backlog/plans/README.md)。收卷之后，还会被重提的事实写进拥有该决定的 note；不另留调研目录。
-> 依据：[research-absorbed-into-backlog](implemented/2026-09-28-research-absorbed-into-backlog.md)。
 
 **命名**：`YYYY-MM-DD-<topic>.md`，日期是主题**首次提出**日（不是实现或归档日）。
 **状态行**：文件前 6 行内一行 `日期：YYYY-MM-DD · 状态：**<状态词>**（说明可省）`；

@@ -38,7 +38,7 @@
 
 ## 本轮资料校准与后续合同边界
 
-以下是本轮已处理的资料面与仍需后续切片的边界，验证结论记录在 [归位决定](../../notes/implemented/2026-10-05-turnaround-deliberation-routing.md)。不是实施排期或第二工作队列。
+以下是本轮已处理的资料面与仍需后续切片的边界，验证结论记录在 归位决定。不是实施排期或第二工作队列。
 
 | 资料 | 本轮处置 / 后续边界 |
 |---|---|
@@ -52,7 +52,7 @@
 | [OKF 材料](../reference/tech-exploration/261005-okf-wiki-tech-case.md)、[DSH 原生定调](../reference/tech-exploration/261005-dsh-native-first-tech-keynote.md) | 分载体、schema affordance、实际调用与未验证收益；实验归因/隔离/拒答假设校准；晨报/碎片抽取保持机会面，不解除不做 IM |
 | [上游候选](../reference/upstream/261001-upstream-candidates.md)、[递交稿](../reference/upstream/261001-upstream-issue-drafts.md) | 档头记录的放行与未递状态统一，代理读数标注真实身份；旧 SHA/认证/渠道引用待递交前复核，本轮不发布 |
 | [旧提案](../../notes/rejected/2026-10-01-real-use-first.md)、[根入口](../../AGENTS.md)、[notes 规则](../../notes/README.md)、[backlog 规则](../README.md)、[纪律](../../docs/discipline.md) | 归位/豁免/已裁决延后与暂停规则一致；不重复向用户逐动作呈批，不复建 intents 队列 |
-| [README](../../README.md)、[intents-retired](../../notes/implemented/2026-10-04-intents-retired.md) | 本轮只校准进度路由，产品合同的方向迁移后续明确切片；现行能力不因候选叙事升格，P/O 保留，O2 行动计划不等组织已执行 |
+| [README](../../README.md)、intents-retired | 本轮只校准进度路由，产品合同的方向迁移后续明确切片；现行能力不因候选叙事升格，P/O 保留，O2 行动计划不等组织已执行 |
 | [OV 层 1 决定](../../../notes/archived/2026-10-04-openviking-layer1-landing.md)、[reference 分装](../../../notes/archived/2026-10-05-reference-subdirs.md) | 缺失 A/B 补记改未验，不伪造结果；易过期材料数量去实体化，历史理由保留 |
 | [身份](../../docs/identity.md)、[架构](../../docs/architecture.md)、[home](../../docs/home.md)、[测试](../../docs/testing.md)、[包入口](../../packages/dsh-smart-assistant/AGENTS.md)、[包形状](../../packages/dsh-smart-assistant/README.md) | 未改变对应行为/包边界就不重写；后续实现切片同 diff 回写，四工具/四房间不随叙事重构 |
 

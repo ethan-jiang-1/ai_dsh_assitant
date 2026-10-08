@@ -1,6 +1,6 @@
 # 推敲：DSH 开发语料吸收审计——流程 / 测试资产 / 质量保证差距对照
 
-> 立卡：2026-10-07 ｜ 状态：已毕业（该做 → 呈批卡，2026-10-07 当日收卷）｜毕业门判断 = 该做 ｜下一步 = [实施 note notes/implemented/2026-10-07-dsh-corpus-absorption.md](../../notes/implemented/2026-10-07-dsh-corpus-absorption.md)（用户批准后八片落地）；完整对照与证据 = [收卷台账](../../../notes/implemented/2026-10-07-dsh-corpus-absorption.md)
+> 立卡：2026-10-07 ｜ 状态：已毕业（该做 → 呈批卡，2026-10-07 当日收卷）｜毕业门判断 = 该做 ｜下一步 = 实施 note notes/implemented/2026-10-07-dsh-corpus-absorption.md（用户批准后八片落地）；完整对照与证据 = 收卷台账
 
 ## 背景 / 触发
 
@@ -42,7 +42,7 @@
 ### 喂给谁
 
 - 毕业产出 = `notes/proposed/` 呈批卡（问题/方案/验收/输掉的方案）：本仓流程、测试资产、质量保证内容的调整清单（含瘦身项）；
-- 收卷证据台账 = `notes/implemented/2026-10-07-dsh-corpus-absorption.md`（完整对照表）。
+- 收卷证据台账 = 历史在 git（完整对照表）。
 
 ## 候选与取舍
 

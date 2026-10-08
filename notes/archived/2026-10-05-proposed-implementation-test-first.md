@@ -15,7 +15,7 @@ proposed 卡骨架（§二之二）同步要求「验收」节可执行。
 （prove-it-red、禁掩盖修法）；改动面 → 最小可信证据的选择 owner 是
 [pre-push-evidence 技能](../../.agents/skills/pre-push-evidence/SKILL.md)；[proposed 卡定位]
 (2026-10-04-proposed-card-positioning.md) 拥有「批发生在 proposed→implemented 之间」的边界、
-[测试策略决定](../implemented/2026-10-04-test-strategy-adoption.md) 拥有测试哲学——本决定只拥有**生命周期层的
+测试策略决定 拥有测试哲学——本决定只拥有**生命周期层的
 执行纪律**，与三者互链不复制。
 
 ## 证据

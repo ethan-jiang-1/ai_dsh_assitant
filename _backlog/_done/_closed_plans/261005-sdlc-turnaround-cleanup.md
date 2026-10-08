@@ -123,7 +123,7 @@
 | [SDLC清理卡](261005-sdlc-turnaround-cleanup.md) | 拥有逐资产三问、消费者/损失/替代/回退和门禁退役程序 | 清理失去证据边界，容易变成无回退大扫除 | 保留高可见；本卡自己不裁掉消费者，随处置结果收卷 |
 | [定位卡](261005-open-value-deficit.md) | 拥有一把手定位、UX候选和未毕业边界 | 丢失用户原话、候选取舍和后续验收条件 | 保留当前 rationale；具体 UX 切片毕业后再拆 owner |
 | [首开UX卡](261001-first-open-ux.md) | 拥有首开摩擦、发行/上游候选和真实输入缺口 | 丢失上游锚点及“仍需真实输入”的边界 | 暂保留、降低桌面可见性；待首开判据或上游递交后归档/关闭 |
-| [转向归位note](../../notes/implemented/2026-10-05-turnaround-deliberation-routing.md) | 解释旧提案退役、当前分层和本轮范围 | 丢失为何不等真人、为何不把资料当能力证明 | 保留 current rationale owner；下一阶段若无新决策再归档判断 |
+| 转向归位note | 解释旧提案退役、当前分层和本轮范围 | 丢失为何不等真人、为何不把资料当能力证明 | 保留 current rationale owner；下一阶段若无新决策再归档判断 |
 | [旧真用第一](../../notes/rejected/2026-10-01-real-use-first.md) | 负知识：防止真人等待队列复活；不作当前入口 | 删除会丢弃冻结/等待方案的反例和退役理由 | 保留但降可见性；不从此处调度工作 |
 | 运行时学习载体（`assistant_reflect`/`save_skill`/`land_skill`） | `assistant-learn`、working-folder learned provider、技能目录和现有会话消费 | 删除会断现有学习/养护路径；save与proposal车道语义混淆 | 保留；缺口是行为/语义验证，不是机制不存在 |
 | verify 与模型用技能 | `pnpm verify`、CI/收尾链、负例夹具、`assistant_reflect`/curate 消费 | 断链/状态/技能语法等静默问题失去防护 | 保留；若产品面噪声，降低入口可见性，不删除防护 |

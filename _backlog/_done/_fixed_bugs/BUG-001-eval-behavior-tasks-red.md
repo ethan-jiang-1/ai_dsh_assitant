@@ -35,7 +35,7 @@ whenToUse 竞争加剧 / 手册技能加载清单扩长，模型对"该加载哪
 
 ## 修复关联
 
-- 诊断素材：今日 A/B 全记录在 [手册可移植化 note](../../notes/implemented/2026-10-01-home-manual-portable.md) §评测 A/B。
+- 诊断素材：今日 A/B 全记录在 手册可移植化 note §评测 A/B。
 - 修复方向候选（未裁）：① 任务侧——拆细判据（skill-loaded 与答案分层计分）、给 breakdown
   任务换不受既有材料影响的问法；② 组合侧——审查 whenToUse 的触发面与手册技能清单的措辞；
   ③ 基建侧——行为评测用受控 fixture home（隔离领域材料），评测会话写家后自动清场。
