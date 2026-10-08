@@ -132,12 +132,20 @@
 22. **依赖表点名正文没有的技能**：输给"点名就要真依赖"——retro 行要么删要么真有步骤；
     选择在 judgment 收尾补"漏检沉淀"一步（机械漏检→既有检查候选、判断漏检→标准条文，
     走既有 owner），不建第二 retro 机制。
+23. **让验收判据停在冻结卡里**：输给"实施会话读的是 proposed 卡"——判据必须随毕业旅行进
+    提案验收段（notes 契约的自足要求），否则收货时无据可依；plan 卡保留为判据的历史出处。
 
 ## 刻意不借（负知识，登记进区 README 留区契约）
 
 - **第二个 tracker/队列**：上游 FAQ 自己点名反对，与本仓 `_backlog/README.md`「明确不借」同款
   （D23 失败模式，本仓 ROADMAP 队列 2026-09-28 已退役）——playbook 只产判断材料，不排期。
 - **上游的 spec/ticket 模板与目录布局**：借纪律不借模板（见输掉的方案 5）。
+- **`pr` 的三段合并证据打包**：那是合并时给评审者的 PR body 格式，本仓无 PR 工作流；
+  收货证据格式由 validation-judgment 的消费记录承载。
+- **`improve-codebase-architecture` 结构门**：深化机会属于设计/重构推敲（codebase-design 词汇），
+  不是 plan 验收的门；本仓架构评审走既有纪律。
+- **`implement`/`implement-spec` 编排器**：本仓实施走 proposed 卡授权 + 用户范围，
+  不引入上游多 agent 编排。
 - **空想的方法**：无实证来源的 playbook 会用一套自洽话术伪造权威——故"须已被用过一轮"是进门条件。
 
 ## 第三轮：上游更新后的重校（2026-10-08 同日）
@@ -249,6 +257,25 @@ ask-matt 阶段边界、triage 五状态、wayfinder fog/HITL-AFK、grilling fro
   probes 表头 Engine→Skill；README 补"未列 = 刻意不借"一行与"两链共用 confidence gate"的措辞。
 
 **第六轮验证**：`pnpm verify` → 35 checks passed；`pnpm typecheck` → exit 0；
+`pnpm test` → 50 files / 411 tests passed（docs-only 改动，无源码/测试资产变更）。
+
+## 第七轮：第二遍全量复审（2026-10-08 同日）
+
+用户肯定时序修复为系统性考量并要求再 REVIEW 一遍。沿 lifecycle 全程（请求→卡→需求链→判据→
+毕业→提案→实施→证据→收货→note）走查，发现并修复：
+
+- **判据的"生命周期旅行"缺最后一跳（P0′）**：矩阵住 plan 卡，卡毕业即冻结；实施会话读的是
+  proposed 卡，notes 契约要求提案自足（问题/方案/验收）——没有显式旅行步骤，判据会搁浅在
+  冻结归档里、收货时无据可依。修法：doing-now 毕业时把矩阵行带进提案的验收段
+  （synthesis §3 补旅行步骤、validation-design Done 补"written to travel"），plan 卡保留为
+  判据的历史出处。
+- **消费记录规则的漏网（P1）**：validation-evidence 的"偏差记回 plan 行"与 judgment 的
+  Input"读 confirmed plan"都只覆盖未毕业卡——统一为消费记录规则（活跃卡回卡，已毕业卡回
+  proposal→implemented 记录），与第六轮的结果落点修法同源。
+- **悬空指针（P2）**：README 称 pr/improve-codebase-architecture 的取舍理由"见决定记录"，
+  刻意不借节实际没有——补齐三条（pr 三段、结构门、implement/implement-spec 编排器）。
+
+**第七轮验证**：`pnpm verify` → 35 checks passed；`pnpm typecheck` → exit 0；
 `pnpm test` → 50 files / 411 tests passed（docs-only 改动，无源码/测试资产变更）。
 
 ## 验证（真跑过的命令）
