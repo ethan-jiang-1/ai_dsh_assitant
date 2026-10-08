@@ -48,6 +48,12 @@
 - **什么进来**：把某个**反复出现的推敲动作**写成方法（提问纪律、证据路由、成文形态），
   且它已经在至少一轮真实推敲里被用过——**空想的方法不进**（无实证来源的 playbook
   会用一套自洽的话术伪造权威）。
+- **进门第二条件（2026-10-08 立，防复犯）**：凡"适配/借鉴某方法论"的 playbook，**必须读过它的
+  本体，并留下逐条引证台账**。二手摘要（FAQ、博客、别人的综述）只配当**索引**，不配当**权威**
+  ——首版 playbook 就是拿 FAQ 摘要重写协议，漏掉设计树、fog of war、expand–contract、
+  prototype 的两分支等承重机制，被用户一问才发现；事故留档见
+  [implemented note](../../notes/implemented/2026-10-08-requirements-elicitation-playbook.md)
+  输掉的方案 7。借的是**纪律与机制**，不是名字与模板。
 - **什么不进**：某一件具体工作的判断材料（→ [`plans/`](../plans/README.md)）；
   调研证据（→ [`reference/`](../reference/README.md)）；已经定稿且在役的方法（→
   [`.agents/skills/`](../../.agents/skills/)，直接建技能）。
@@ -61,4 +67,39 @@
 
 | Playbook | 一句话 | 状态 |
 |---|---|---|
-| [requirements-elicitation.md](requirements-elicitation.md) | 需求推敲——把模糊意图磨成能呈批的提案：frontier 提问纪律、fact/decision 分离、三类探针路由、自主权边界提问类，结论落 `plans/` → `proposed/` | 草稿（2026-10-08 立；待一到两轮真实推敲校准后毕业为 `.agents/skills/requirements-elicitation/`） |
+| [requirements-elicitation.md](requirements-elicitation.md) | 需求推敲——**路由到真技能**（`grilling`/`domain-modeling`/`prototype`/`research`/`to-questionnaire`），并把产出映射到 `plans/` → `proposed/` 管道；含设计树与 frontier、事实不阻塞轮次、fog of war、expand–contract、agent 应用专属提问类 | 草稿（2026-10-08 立；待一到两轮真实推敲校准后毕业为 `.agents/skills/requirements-elicitation/`） |
+
+## 来源（provenance）
+
+本区的 playbook **不是原创方法**，而是对上游 `mattpocock/skills` 的**路由式适配**：上游把
+需求工程拆成一串以斜杠命令调用的技能（`grilling` 面试原语、`wayfinder` 决策地图、`to-spec` /
+`to-tickets` 编译、`prototype` / `research` / `to-questionnaire` 三类探针、`domain-modeling`
+词汇层），本仓缺的不是这些方法，而是**把它们接到自己的管道上**（裁决点在 `notes/proposed/` +
+用户点头，术语与决策记录有自己的家，`plans/` 永不排期）。
+
+因此本区文件的两条硬纪律：
+
+1. **路由，不复制**：正文只写"哪种未知用哪个技能"与"产出落到本仓哪里"，具体协议一律**读技能本体**
+   ——凭摘要重写协议等于伪造权威（本区首版就犯过这个错：只读了 FAQ 的二手转述，漏掉设计树、
+   事实不阻塞轮次、fog of war、expand–contract、prototype 的 LOGIC/UI 分支等承重机制，
+   2026-10-08 读到真源码后重写）。
+2. **引证到源**：承重结论须能指回上游技能文件（下节台账），上游漂移时本区跟着重校。
+
+### 上游台账（查证基线）
+
+| 上游技能 | 本区借的是什么 | 仓位 |
+|---|---|---|
+| `grilling` | 设计树 / frontier / 轮次格式 / facts-are-yours / 事实不阻塞轮次 / frontier 空即完成 | `skills/productivity/grilling/SKILL.md` |
+| `wayfinder` | destination 先行 / 决策 ticket / fog of war / Out of scope / 只产决策 / 交接不建造 | `skills/engineering/wayfinder/SKILL.md` |
+| `to-spec` | 编译不重面试 / seam 检查 / 用户视角 / user stories 极详尽 / Out of Scope 单列 / 不写路径与片段 | `skills/engineering/to-spec/SKILL.md` |
+| `to-tickets` | 垂直切片 / blocking edges / expand–contract 例外 / 向用户复核拆解 | `skills/engineering/to-tickets/SKILL.md` |
+| `prototype` | 一次性代码 / LOGIC 与 UI 两分支 / 保留为 primary source | `skills/engineering/prototype/SKILL.md` |
+| `research` | 后台 agent / 一手来源 / 带引用 Markdown | `skills/engineering/research/SKILL.md` |
+| `to-questionnaire` | 面试「发出去」而非「主题」/ 瞄准信息缺口 | `skills/productivity/to-questionnaire/SKILL.md` |
+| `domain-modeling` | 术语挑战 / ADR 三条件 / 词汇层不当 spec | `skills/engineering/domain-modeling/SKILL.md` |
+| `ask-matt` | 主流程与三条入口的路由全貌 | `skills/engineering/ask-matt/SKILL.md` |
+
+基线：本地 checkout `/Users/bowhead/mattpocock-skills`（HEAD `7b2ad8f`，2026-10-08 读），
+FAQ 目录为 `_faq_on_digest/09_skills-for-requirements-engineering-of-agent-apps/`。
+**上游是外部仓，不 vendor、不装包**（根 `AGENTS.md` 硬规则 7：只借思路不引依赖）；
+上表是只读引证台账，上游漂移时重读并校准本区正文。

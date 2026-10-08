@@ -1,17 +1,31 @@
 ---
 name: requirements-elicitation
-description: How to grind a fuzzy idea into requirements this repo can actually act on — the frontier interview discipline, the fact/decision split, routing each unknown to the right probe, the autonomy-boundary question class, and where the result lands (a _backlog/plans/ card that can graduate into notes/proposed/). Use when a request arrives as a half-formed intention, when a plan card's 已知与未决 is thin, or when you are about to write a proposed card from a conversation that was never actually interrogated.
-whenToUse: Turning a vague idea, a stakeholder wish, or a one-line request into a card with real candidates and a real graduation judgment; stress-testing an existing plan card before it graduates. Not for scheduling the work, not for implementing it, and not a substitute for the probes it routes to.
+description: How to grind a fuzzy idea into requirements this repo can act on, by routing to the real elicitation skills (grilling, domain-modeling, prototype, research, to-questionnaire) and mapping their output onto this repo's pipeline (_backlog/plans/ card → notes/proposed/ → implement). Use when a request arrives as a half-formed intention, when a plan card's 已知与未决 is thin, when a plan card is too big for one session, or when you are about to write a proposed card from a conversation nobody actually interrogated.
+whenToUse: Turning a vague idea, a stakeholder wish, or a one-line request into a card with real candidates and a real graduation judgment; deciding which elicitation skill fits the unknown in front of you; stress-testing a plan card before it graduates. Not for scheduling the work, not for implementing it, and not a substitute for the skills it routes to — do not re-derive their protocols from memory.
 ---
 
-# Requirements elicitation: from fog to a card that can graduate
+# Requirements elicitation: route to the skills, land the result in a card
 
-The failure this prevents is not "we built the wrong thing because the user lied". It is
-**we wrote a confident card out of a conversation nobody interrogated** — a proposal whose
-acceptance criteria were invented downstream of the decision, whose candidates were never
-weighed, and whose riskiest assumption ("the model can probably do this") was never treated as
-a fact to go check. This repo's own [plans/](../../plans/README.md) template already asks for
-已知与未决 / 候选与取舍 / 毕业门; this playbook owns **how you fill those sections honestly**.
+**This playbook is a router, not a copy.** The elicitation protocols live in the skills themselves
+(`grilling`, `domain-modeling`, `prototype`, `research`, `to-questionnaire`, `codebase-design`,
+`writing-for-agents`). Read the skill; do not reconstruct it from a summary, and do not let this page
+stand in for it. What this page owns is the half the skills cannot own: **which one fits the unknown
+in front of you, and where the output lands in *this* repo.**
+
+**Check what you can actually load before planning around it.** Some of these are in a given session's
+catalog and some are not, and the set is not stable across sessions:
+`grilling`, `domain-modeling`, `prototype`, `research`, `codebase-design` and `writing-for-agents`
+were reachable in the session that wrote this page; **`to-questionnaire` and `wayfinder` were not** —
+so for those two this page's summary is all you have, and you must say so rather than imply you ran
+them. The full set also exists on disk at `/Users/bowhead/mattpocock-skills/skills/` (see the
+[upstream ledger](../README.md)) if a session can read files but not invoke skills.
+Never silently imitate a protocol you cannot read: an unconstrained impersonation produces ordinary
+prose with a confident label on it.
+
+The failure this prevents is not "we built the wrong thing because the user lied". It is **a
+confident card written out of a conversation nobody interrogated** — acceptance criteria invented
+downstream of the decision, candidates never weighed, and the riskiest assumption ("the model can
+probably do this") never treated as a fact to go check.
 
 ## Where the output lands (read this first)
 
@@ -22,120 +36,160 @@ fog ──elicitation──▶ _backlog/plans/ card ──毕业四门──▶ 
                           (推敲中)                (呈批)              (唯一授权点)
 ```
 
-- **Never skip to `notes/proposed/`.** A proposed card must carry 问题/方案/验收 with
-  **executable** acceptance ([notes/README.md](../../../notes/README.md) §二之三). Elicitation that
-  hasn't finished is a `plans/` card, not a thin proposal.
-- **Never schedule.** Ordering and start authority belong to the user's scope and the current
-  turn; producing a sequenced task list here rebuilds the second queue this repo has retired
-  twice ([_backlog/README.md](../../README.md) 主干 / 明确不借).
-- **One fact, one home.** Interview findings go in the card's 已知与未决; evidence-heavy material
-  goes to [`_backlog/reference/`](../../reference/README.md) and the card links it. Do not keep a
-  second copy of either.
+- **Never skip to `notes/proposed/`.** A proposed card must carry 问题/方案/验收 with **executable**
+  acceptance ([notes/README.md](../../../notes/README.md) §二之三). Elicitation that hasn't finished is
+  a `plans/` card, not a thin proposal.
+- **Never schedule.** Ordering and start authority belong to the user's scope and the current turn.
+  Producing a sequenced task list here rebuilds the second queue this repo has retired twice
+  ([_backlog/README.md](../../README.md) 主干 / 明确不借).
+- **One fact, one home.** Interview findings → the card's 已知与未决. Evidence-heavy material →
+  [`_backlog/reference/`](../../reference/README.md), linked from the card. Neither gets a second copy.
 
-## The interview discipline (the part that carries the value)
+## The router: unknown → skill
 
-**Frontier, one round at a time.** A *frontier* is the set of questions whose prerequisites are
-all now settled — questions you can answer *right now* without guessing at something undecided.
-Each round:
-
-1. Ask **the whole frontier at once**, not one question per turn (drip-feeding wastes the user's
-   attention and invites answers that go stale before the round closes).
-2. **Attach a recommended answer to every question.** A recommendation is what lets the user
-   answer with "yes" or "no, because…" instead of authoring an answer from scratch — and it forces
-   *you* to commit to a reading that can be corrected.
-3. When an answer opens new questions, they join the **next** round. Never ask a question whose
-   prerequisite is still open — that is how you get answers that have to be thrown away.
-
-**Split facts from decisions, and do the facts yourself.** This is the load-bearing rule.
-
-| Kind of unknown | Who resolves it | Where it goes |
-|---|---|---|
-| A **fact** — what the code does, whether an API supports it, what the vendor documents, what a package's affordance is | **You**, without asking | card 已知, with the read/command as its source |
-| A **decision** — what we want, what we will trade away, who the user is, what matters more | **The human**, always | card 候选与取舍 / 未决, not silently resolved |
-
-The characteristic failure of agent-app requirements work is asking the human a fact question in
-decision clothing: *"can the model reliably extract this field?"* is not a preference — it is a
-claim to be tested. Ask it of the code, the docs, or a prototype, and bring back the measurement.
-
-**Terminology drift is a bug.** When an interview settles what a word means here (a room, a
-"brief", a "slice"), write it down where the repo already keeps vocabulary rather than letting the
-next session re-litigate it. Do not stand up a parallel glossary if one exists.
-
-## Route each unknown to the right probe
-
-Three classes of unknown survive the interview. Each has a different probe — picking the wrong one
-is why "we researched it" sometimes settles nothing.
-
-| The unknown is… | Probe | What comes back | What it can never prove |
+| The unknown | Skill | Why this one | What it can never prove |
 |---|---|---|---|
-| An **external fact**: capability limits, API/schema behaviour, pricing, what upstream actually does | Source-level research, delegated to a background agent, against first-party sources | A Markdown with primary-source citations, graded [affordance]/[documented]/[observed] per [reference/ contract](../../reference/README.md) | That *our* design works, or that a stakeholder wants it |
-| An answer that lives **in someone else's head**: real user expectations, compliance constraints, data permissions | A questionnaire — interview the requester about **who to send it to and what to get back**, not about the answer | An artifact that can be sent asynchronously | Anything, until it comes back — mark it unknown, do not simulate it |
-| Something only **running it** can settle: does this state model feel right, does extraction hold on real input, what should this look like | A throwaway prototype — and to compare two candidates, build both and feed them the same inputs | A decision, plus the prototype archived as its evidence | Adoption, business value, or that a real audience exists |
+| The idea itself is fuzzy, or a card's 已知与未决 is thin | **`grilling`** | The interview primitive: rounds, the frontier, facts are the agent's job and decisions are the user's | Nothing to build — it settles *decisions*, not facts |
+| A term is overloaded, or two words are doing one job | **`domain-modeling`** | Challenges terms against the project's language, and records hard-to-reverse decisions | Not a spec and not a scratch pad — vocabulary only |
+| It must be *run* to be answered: does this state model feel right, does extraction hold, what should this look like | **`prototype`** | Throwaway code that answers one question; two distinct branches (logic vs UI) | Adoption, business value, or that a real audience exists |
+| An external fact: capability limits, API/schema behaviour, pricing, what upstream actually does | **`research`** | Background agent against **primary** sources; returns a cited Markdown | That *our* design works, or that anyone wants it |
+| The answer lives in **someone else's** head | **`to-questionnaire`** | Interviews you about the **send** (who, what back), then aims questions at the gap | Anything, until it comes back — mark it unknown; never simulate a human |
+| The effort is bigger than one session can hold | **`grilling` again, breadth-first**, then chart (§ The too-big case) | Fans out across the space instead of going deep on one thread | — |
+| A module's *shape* is the question (where the seam goes) | **`codebase-design`** | Deep-module vocabulary: module, interface, depth, seam | Not an elicitation tool; it shapes what you already decided to build |
 
-Probe results feed the card ([reference/](../../reference/README.md) for the evidence, the card's
-已知 for the conclusion). **A probe that never lands in the card did not happen.**
+## The discipline the router rests on
+
+Four properties of `grilling` carry most of the value, and all four change how you work the card:
+
+1. **A design tree, worked in rounds.** Every decision branches into the decisions hanging off it.
+   The **frontier** is every decision whose prerequisites are already settled — the questions you can
+   ask *now*. Ask the whole frontier in one round, **numbered, each with your recommended answer**,
+   then wait for the answers before the next round. A question whose answer depends on another still
+   open this round belongs to a **later** round. Each round's answers reshape the tree and push the
+   frontier outward.
+2. **Facts are yours; decisions are the user's.** Dispatch a sub-agent for any fact you could look
+   up yourself. Only decisions go to the human. The characteristic agent-app mistake is asking a fact
+   question in decision clothing — *"can the model reliably extract this field?"* is a claim to be
+   tested, not a preference.
+3. **A running fact-exploration is itself an unsettled prerequisite.** Do not block the round on it:
+   only the questions *downstream* of that fact wait for the sub-agent; ask the rest of the frontier
+   now. (This is the part most easily lost — treating a dispatched lookup as a reason to stall.)
+4. **Done means the frontier is empty** — every branch visited, nothing left silently assumed. Not
+   "the user stopped objecting", and not "we ran out of questions".
+
+## The too-big case: chart before you spec
+
+When the idea is **too big for one session**, do not interview it linearly — a long interview degrades
+and you lose the linked detail. The real mechanism (`wayfinder`) charts a **map of decision tickets**
+and works them **one per session**, producing **decisions, not deliverables**. The parts worth
+carrying over even when you use our own homes instead of a tracker:
+
+- **Name the destination first.** What reaching the end looks like — a spec, a locked decision, a
+  change in place. The destination fixes scope and shapes every ticket.
+- **Ticket when the question is already sharp, even if you can't act on it yet.** Do **not** pre-slice
+  what you can't yet phrase: that is *fog*, deliberately left coarse. One patch of fog may graduate
+  into several tickets, or none.
+- **Fog only gathers toward the destination.** Work beyond it is **out of scope** — scope, not
+  sharpness, puts it there; it never graduates, and it returns only if the destination is redrawn.
+- **The map is an index, not a store.** A decision lives in exactly one place; the map gists and links.
+- **Refer to tickets by name, never by bare id.** A wall of `#42, #43` is illegible.
+- **Hand off, don't build.** When the map clears, collapse it into a plan — looping a cleared map
+  straight into implementation throws away the linked detail.
+- **Claim before working**, so concurrent sessions don't collide.
+
+**Where the map lives here:** the tracking half is the gap. `wayfinder` assumes an issue tracker with
+child issues and native blocking; this repo's `_backlog/plans/` is explicitly **never a scheduler**.
+So for a too-big effort, use a `plans/` card as the **map** (destination, decisions-so-far, fog,
+out-of-scope as sections) and keep the ticket-by-ticket working in that card's own sections —
+**without inventing a second tracker**. If an effort genuinely needs parallel claimable tickets, that
+is a question for the user, not something to stand up unilaterally.
+
+## Compiling to a plan (the `to-spec` / `to-tickets` disciplines)
+
+When elicitation has settled enough, the compile step has its own rules. Borrow the disciplines, not
+the templates:
+
+- **Compile, do not re-interview.** This step synthesises what is already decided and must not reopen
+  the interview. Re-interviewing here is how aligned answers get quietly overwritten.
+- **Check the seam before writing.** Decide where this will be tested, and prefer the highest existing
+  seam; new seams are a design cost. Confirm the seams with the user before committing to a plan.
+- **Write from the user's perspective.** Problem and solution as the *user* experiences them — not a
+  layer-by-layer implementation list.
+- **User stories, extremely extensive.** A long numbered list, `As an <actor>, I want a <feature>, so
+  that <benefit>`. For agent apps this list must include the **failure paths** (§ below). Under-writing
+  this list is the documented way specs get thin.
+- **Out of Scope gets its own section** — a separate, explicit statement of what is *not* being done.
+- **No file paths or code snippets in the plan.** They go stale fastest. The one exception: a prototype
+  snippet that encodes a decision more precisely than prose (state machine, reducer, schema, type
+  shape) — inline the decision-rich part and note it came from a prototype.
+- **Vertical slices, not horizontal.** Each unit cuts a narrow but **complete** path through every layer,
+  is demoable/verifiable alone, and is sized to one fresh context window. Declare each one's **blocking
+  edges** explicitly — which units genuinely gate it.
+- **Wide refactors are the exception.** A mechanical change whose blast radius fans across the whole
+  codebase (a rename, a retype) cannot land green as one vertical slice: sequence it **expand → migrate
+  in batches → contract**, staying green batch to batch because the old form still exists.
+- **Quiz the user on the breakdown** — granularity right? edges correct? merge or split anything? —
+  before treating it as settled.
 
 ## The question class agent apps keep forgetting
 
-For anything model-facing, two families are requirements — not implementation details:
+For anything model-facing, two families are **requirements**, not implementation details:
 
-1. **Autonomy boundary.** For each action: does the agent decide it, recommend it, or ask first?
-   Answer it per-action, not once for the whole product — the boundary is usually jagged. A settled
-   boundary is a *hard-to-reverse decision*: record it where this repo records decisions, not in a
-   passing comment.
-2. **Failure paths.** What happens when the model is wrong, unsure, refuses, or hallucinates?
-   A user-story list for an agent app that only describes the happy path is incomplete, and this is
-   the single most common omission in cards written from a pleasant conversation.
+1. **Autonomy boundary.** Per action: does the agent decide it, recommend it, or ask first? Answer
+   per-action — the boundary is usually jagged, and answering it once for the whole product hides that.
+   A settled boundary is a **hard-to-reverse decision** (a `domain-modeling` ADR candidate).
+2. **Failure paths.** What happens when the model is wrong, unsure, refuses, or hallucinates? These
+   belong in the user-story list, and their absence is the single most common omission in a card
+   written from a pleasant conversation.
 
-Both belong in 已知与未决 like any other requirement. Neither is a fact you can research — they are
-decisions, and they need the human.
+Neither is researchable. Both need the human.
 
 ## Exit criteria: is the card actually ready?
 
-A `plans/` card has been elicited properly when all of the following hold. If any fails, it stays in
-推敲中 — a card that cannot name its own missing evidence is the failure mode.
+The card has been elicited properly when all of these hold. If any fails it stays 推敲中 — a card that
+cannot name its own missing evidence is the failure mode.
 
-- [ ] **四问 answerable**: 该不该做 / 何时 / 次序 / 放弃什么 each has an answer with its reason,
-      or is explicitly recorded as open with what would settle it.
-- [ ] **Candidates are real**: every candidate has a cost, and at least one plausible option was
-      written down and rejected **with its reason** (无论证不写入). A single-candidate card means
-      the search never happened.
-- [ ] **Red lines are on record**: what we will *never* do here is written down — this is the
-      negative knowledge that prevents the same argument from reopening next month.
-- [ ] **Every fact is sourced** (path, command, or URL) and every decision is attributed to the
-      human, not to your inference.
-- [ ] **毕业门 is written** as a test: what evidence would move it, and to which of the four exits
-      (该做 / 待触发 / 否决 / 消化).
-- [ ] **Autonomy and failure paths** are answered, if the work is model-facing.
+- [ ] **Frontier empty**: nothing left silently assumed; every open item is written down as open, with
+      what would settle it.
+- [ ] **四问 answerable**: 该不该做 / 何时 / 次序 / 放弃什么 each has an answer with its reason.
+- [ ] **Candidates are real**: every candidate has a cost, and at least one plausible option was written
+      down and rejected **with its reason**. A single-candidate card means no search happened.
+- [ ] **Red lines on record**: what we will never do here (negative knowledge, so the argument does not
+      reopen).
+- [ ] **Every fact is sourced** (path, command, or URL); every decision is attributed to the human, not
+      to your inference.
+- [ ] **毕业门 written as a test**: what evidence would move it, and to which of the four exits.
+- [ ] **Autonomy and failure paths** answered, if the work is model-facing.
 
-Meeting these makes the card **graduate-ready** — eligible for `notes/proposed/`. It does not make
-it authorized.
+Meeting these makes the card **graduate-ready** — eligible for `notes/proposed/`. It does not make it
+authorized.
 
 ## Hard-won details
 
-- **A recommendation is not a decision.** Attaching one to each question speeds the interview up;
-  never let it become the recorded answer without the human actually confirming it.
-- **Do not let "the user said X" end the search.** The stated want and the underlying want differ
-  most often exactly where the requester has already decided on a mechanism. Separate the need
-  from the proposed solution, and record both.
-- **Write the interview down as you go, in the card.** A well-run interview whose findings live
-  only in the transcript is worth nothing to the next session — this repo grades on cards.
-- **When a fact undercuts the premise, stop and re-open.** Finding out mid-way that the "obvious"
-  mechanism does not exist is a *result*: record it, and re-derive the candidates rather than
-  patching the old ones.
-- **Thin cards are cheaper than confident ones.** It is legitimate for a card to be mostly 未决.
-  What is not legitimate is filling 候选与取舍 with options that were never weighed.
-- **Never simulate a human.** If an answer needs a real person (a stakeholder, a user, a sign-off),
-  the honest output is a card field marked unknown plus a questionnaire — not a plausible-sounding
-  invention. This repo has been burned by exactly that; see the negative knowledge in
-  [notes/](../../../notes/README.md).
+- **A recommendation is not a decision.** Attaching one to each question speeds the round up; never let
+  it become the recorded answer without the human confirming it.
+- **Do not let "the user said X" end the search.** Stated want and underlying want diverge most often
+  exactly where the requester already picked a mechanism. Separate the need from the proposed solution.
+- **Write the interview into the card as you go.** Findings living only in a transcript are worth
+  nothing to the next session — this repo grades on cards.
+- **A prototype is throwaway code, not a throwaway answer.** Mark it clearly as a prototype and locate
+  it near what it prototypes; when done, fold the validated decision into the real thing and **keep the
+  prototype as a primary source** (a side branch, pointed at from the implementation record).
+  "Throwaway" constrains how the code is written — it is not a promise to destroy the evidence.
+- **When a fact undercuts the premise, stop and re-open.** Discovering mid-way that the "obvious"
+  mechanism does not exist is a *result*: record it and re-derive the candidates, rather than patching
+  the old ones.
+- **Thin cards are cheaper than confident ones.** Mostly-未决 is legitimate. Filling 候选与取舍 with
+  options never weighed is not.
+- **Never simulate a human.** If an answer needs a real person, the honest output is a field marked
+  unknown plus a questionnaire — not a plausible invention.
 
 ## Finish line
 
-A card in [`_backlog/plans/`](../../plans/README.md) that satisfies every exit criterion above,
-with its evidence linked from [`reference/`](../../reference/README.md), its status line naming the
-next step and trigger, and its 毕业门 naming the exit it would take. Then — and only then — the
-question of proposing it is a conversation with the user, not a formatting step.
+A card in [`_backlog/plans/`](../../plans/README.md) satisfying every exit criterion, its evidence
+linked from [`reference/`](../../reference/README.md), its status line naming next step and trigger,
+and its 毕业门 naming the exit it would take. Then — and only then — proposing it is a conversation with
+the user, not a formatting step.
 
 This playbook is a draft living in [playbooks_plan/](../README.md); it graduates to
 `.agents/skills/requirements-elicitation/` once one or two real deliberations have validated or

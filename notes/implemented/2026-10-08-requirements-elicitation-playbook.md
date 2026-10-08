@@ -7,6 +7,13 @@
 产品经理／架构师的东西，最后内容进入 plans"；并在形态追问上拍板："**还是放在 `_backlog/playbooks_plan/`
 这个子目录底下，有 README、有 SKILL 样子的 MD 等，这样好在这里调整**"。
 
+**第二轮修正（用户指出"要利用 matt pocock 的能力啊，你好像忘了?"）**：首版只读了那份 FAQ 的
+**二手转述**就动笔，把方法当成"从文本里提炼"的任务；实际上游技能本体就在本机
+（`/Users/bowhead/mattpocock-skills/skills/`，且 `grilling`/`domain-modeling`/`prototype`/`research`
+/`codebase-design`/`writing-for-agents` 已在会话技能目录里可用），**正确做法是路由到真技能、
+只写"哪种未知用哪个 + 产出落本仓哪里"**。用户这一问点出的不是漏读一个文件，而是**方法来源的
+层级错了**：拿摘要当权威。首版据此重写，并把上游台账与"路由不复制"升为本区硬纪律。
+
 ## 问题（可观察行为）
 
 `_backlog/` 有推敲**卡**（`plans/`）、有推敲**证据**（`reference/`）、有**制度**（章程 README），
@@ -23,12 +30,25 @@
      判据表）、文件形态、命名、无状态行、**毕业即搬走**（`git mv` → `.agents/skills/<name>/SKILL.md`）、
      与在役技能同名不许并存、**空想的方法不进**（须已在至少一轮真实推敲里被用过）。
    - `requirements-elicitation.md`——SKILL 形态草稿（frontmatter `name`/`description`/`whenToUse`，
-     英文），正文：产出落哪（`plans/` → 毕业四门 → `notes/proposed/`，**永不跳过、永不排期**）、
-     frontier 面试纪律（一轮问全 + 每题附推荐答案 + 不回问前置未定）、**fact/decision 分离表**
-     （事实自己查、决策只问人；"模型能不能稳定做到 X"是事实不是偏好）、三类探针路由表
-     （外部事实→一手调研 / 在别人脑子里的→问卷 / 只能跑起来才知道的→可丢弃原型，各带"它永远
-     证明不了什么"列）、agent 应用专属提问类（**自主权边界**逐动作问 + **失败路径**：答错/不确定/
-     拒绝/幻觉）、**毕业就绪六条 exit criteria**、硬细节（推荐答案不等于决策、不让人工智能冒充真人）。
+     英文）。**形态 = 路由器**：主体是一张「哪种未知 → 哪个真技能」表（`grilling` / `domain-modeling`
+     / `prototype` / `research` / `to-questionnaire` / `codebase-design`），并显式声明
+     "**路由不复制、协议读技能本体**"；本仓自己的半边是产出落点（`plans/` → 毕业四门 →
+     `notes/proposed/`，**永不跳过、永不排期**）与 agent 应用专属提问类（**自主权边界**逐动作问 +
+     **失败路径**：答错/不确定/拒绝/幻觉）。
+   - **第二轮重写补进的承重机制**（首版全缺——它们只在技能源文件里，不在 FAQ 摘要里）：
+     `grilling` 的**设计树**与轮次格式（编号 + 每题附推荐答案 + 前置未定的问题归后轮）、
+     **facts-are-yours 且运行中的事实探查本身就是未定前置——只阻塞其下游问题、不阻塞本轮**、
+     **完成判据 = frontier 空**（非"用户不再反对"）；`wayfinder` 的 **destination 先行 / fog of war
+     / Not yet specified / Out of scope（scope 而非 sharpness 决定归属）/ 只产决策不产交付 /
+     交接不建造 / 按名引用不按 id**；`to-spec` 的**编译不重面试 / seam 检查 / user stories 极详尽 /
+     Out of Scope 单列 / 承重计划不写文件路径与片段（原型片段除外）**；`to-tickets` 的**垂直切片 /
+     blocking edges / 宽重构走 expand–contract / 向用户复核拆解**；`prototype` 的 **LOGIC 与 UI
+     两分支、"一次性代码不等于一次性答案"——验完保留为 primary source**；`to-questionnaire` 的
+     **面试「发出去」而非「主题」**；`domain-modeling` 的 **ADR 三条件**。
+   - **能力可得性如实标注**：本会话技能目录里可用的是 `grilling`/`domain-modeling`/`prototype`/
+     `research`/`codebase-design`/`writing-for-agents`；**`to-questionnaire` 与 `wayfinder` 不在**，
+     故这两项正文只承载本页摘要、并明说"不得暗示已运行它们"；全量源文件在
+     `/Users/bowhead/mattpocock-skills/skills/`，能读文件但不能调技能的会话可退到那里。
 2. **留区语法门 `playbookFrontmatterProblems`**（新纯核，`verify` 链内并入既有
    `contract: skill files carry valid frontmatter` 一查）：两个在役 home 是 `<name>/SKILL.md` bundle
    形态，`skillFrontmatterProblems` 够不到扁平 `<name>.md` 的演练场——**这是本切片自查时发现的
@@ -57,6 +77,16 @@
    上游自己的嵌入指南也是这个立场。
 6. **同时做模型可见面技能**（`presets/assistant/skills/`）：轮内明确不做；那是模型可见面变更，
    需另立 proposed 卡呈批并配 `repo-live-probe` 证据。
+7. **⚠️ 首版的真实错法——拿 FAQ 摘要当权威，把方法"重新描述"一遍**（第二轮已推翻并重写）：
+   首版只读 `_faq_on_digest/09_.../` 的四份二手文本就动笔，产出的是**我自己措辞的近似协议**。
+   读到技能本体后确认至少漏掉/写错：设计树与轮次格式、**运行中的事实探查是未定前置（只阻塞
+   下游、不阻塞本轮）**、完成判据 = frontier 空、wayfinder 的 fog of war / Not yet specified /
+   Out of scope 区分、expand–contract 宽重构例外、`to-spec` 的 seam 检查与"不写路径与片段"、
+   prototype 的 LOGIC/UI 两分支与"保留为 primary source"（首版写成"可丢弃"，方向错）、
+   questionnaire 的"面试发送方而非主题"。**教训不是"多读一个文件"，而是方法来源的层级**：
+   有技能本体时，摘要只配当索引，不配当权威——这正是重写后升为区 README 硬纪律的那条
+   "**路由不复制**"。此条留档防复犯：本仓今后写任何"适配某方法论"的 playbook，进门条件里
+   必须包含"**读过本体并留引证台账**"。
 
 ## 刻意不借（负知识，登记进区 README 留区契约）
 
@@ -81,6 +111,11 @@
   缺 whenToUse、无 frontmatter、README 豁免、YAML 内层 `: ` 解析失败、目录缺失）。
 - `pnpm typecheck` → 绿（`tsc -b` + `tsc -p tsconfig.test.json`）。
 - `pnpm test` → **50 files / 410 tests passed**。
+- **上游台账逐路径核验**（第二轮）：对 README 台账点名的 9 个上游技能文件逐个 `[ -f ]` 检查 →
+  9/9 存在；`git rev-parse --short HEAD` → `7b2ad8f`（与台账记的基线一致）。台账非转述，可复核。
+- **能力可得性核验**：以本会话技能目录为准逐个对照——`grilling`/`domain-modeling`/`prototype`/
+  `research`/`codebase-design`/`writing-for-agents` **在**；`to-questionnaire`/`wayfinder` **不在**
+  （正文据实标注，不暗示已运行）。
 - 未跑：`pnpm build` / `pnpm release-smoke` / `pnpm eval`——本品未动发布物、依赖、preset 包装与
   模型可见面（无源码改动，只动 `scripts/checks/` 与 `_backlog/`、测试夹具），按
   [pre-push-evidence](../../.agents/skills/pre-push-evidence/SKILL.md) 不属必跑面。
