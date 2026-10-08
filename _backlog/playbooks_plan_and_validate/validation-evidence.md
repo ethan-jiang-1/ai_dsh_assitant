@@ -28,6 +28,31 @@ behavior actually being proven, not by the fact that the product uses an agent:
 Do not make `snapshots/` a general evidence bucket. Unit, CLI and generator expectations stay with
 their owning layer; session replay remains unbuilt until its documented trigger occurs.
 
+## 1b. When no owner exists, say so and name the reading protocol
+
+Some load-bearing behavior is only visible when the product actually runs (a geometry/visibility probe,
+a real-model turn's side effect such as a schedule landing on disk). This repo has no admitted owner for
+that shape: the two shapes `snapshots/` admits are session replay and web rendering expectations, and a
+screenshot is neither. **A file path is not an owner.** `/tmp`, a screenshot directory, or a chat
+attachment cannot carry a row, and a durable claim written next to volatile images is still volatile.
+
+Before reporting such a row, take these three steps instead of inventing a bucket:
+
+1. **Name the reading protocol, not the artifact.** Write down the assertion object, the input/state,
+   and the command or file that carries the *reading* (for this repo, side effects visible in a session
+   log are read through [`dev/reports/usage-report.mjs`](../../dev/reports/usage-report.mjs)'s
+   `sessionLogs`/`readEvents` — never a hardcoded `session.v<n>` generation). The protocol is what a
+   later session re-runs; the picture was only ever how one session looked at it.
+2. **Record the row as blocked, with the gap named.** Evidence that cannot be re-obtained at the stated
+   baseline is blocked, not pass ([validation-judgment](validation-judgment.md) §1). Do not let a
+   one-time pass stand as the current result.
+3. **If the observation class keeps recurring, its admission is a decided change, not a silent
+   promotion.** Prebuilding a third `snapshots/` shape from inside this playbook is out of bounds; name
+   the trigger (the second time the same class is hand-carried) and let the owner decide.
+
+**Done:** every row either points at an existing owner, or is explicitly blocked with its reading
+protocol named and its missing owner identified.
+
 This playbook designates, at plan time, which owner must prove each row and what it cannot prove. The
 final minimal evidence lane at implementation/push time is still picked by the repo's `pre-push-evidence`
 judgment rules and the evidence map: if a pre-written command has gone stale or over-broad, run what the

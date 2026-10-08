@@ -137,6 +137,16 @@ Settle ownership in the same change:
 
 - The same decision, with a fact now wrong: edit the owner. Write the fact as it is. Do not append a
   changelog of the note itself.
+- **The owner's fact moved, but the owner is already frozen in `notes/archived/`.** Archiving froze the
+  text; it did not move the decision away. Two cases, and the choice is not stylistic:
+  - *The decision is still current and this is a fact correction to it* — the freeze was premature.
+    Do not edit the frozen file and do not leave the wrong fact standing: write the correction where the
+    decision is still owned (a fresh note, or the current contract), link the frozen predecessor, and
+    say in one line what it still owns. A frozen note that is being cited as current authority is a
+    signal the archive judgment was wrong, not a reason to keep citing it.
+  - *The decision is genuinely historical* — repair the inbound links so they point where the decision
+    now lives, keep the frozen file as the record, and do not restate its content in the new home.
+    A dangling or frozen-pointer link in an active plan is a defect in the plan, not a footnote.
 - Part of an older decision is replaced, and the rest still stands: keep both notes, link each to the
   other, and say in each file what it still owns.
 - The older decision is fully replaced: absorb its unique rationale, alternatives, costs, required

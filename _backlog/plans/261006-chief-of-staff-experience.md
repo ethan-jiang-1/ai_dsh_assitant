@@ -2,11 +2,15 @@
 
 > 立卡：2026-10-06 ｜ 状态：推敲中｜毕业门判断 = **该做，四 Goal 已交付**（形态层交付记录 = [notes/implemented/2026-10-06-desk-primary-view.md](../../notes/implemented/2026-10-06-desk-primary-view.md)；行为层收口 = [261007-opening-brief-and-rhythm](261007-opening-brief-and-rhythm.md)，其 implemented note 已落）｜下一步 = **用户终验「这回不一样了」**（两卡共用的毕业门最后一环；**这一环的记录家 = 261007**，过则两卡一并毕业归档）
 >
-> **2026-10-08 交付实况校正**（用户点名"拿 playbook 敲打 plans 质量"时发现本卡正文与已交付事实漂移）：
+> **2026-10-08 交付实况校正**：
 > ① **Step 1「自动发晨报」已被取代**——261007 输掉的方案 #1 否决 auto-send（客套+反问的内容物本身不是设计要的「它先开口」），落地形态 = Slice 1b 客户端确定性三行播报卡（`7fe774a`）。「它先开口」的**意图达成，机制换轨**，故 Step 1 的"怎么做"入档为死路，不再照做。
 > ② **Step 4「知识回显」已交付**——不在 preset 技能里，而在 home 手册 [home-map.ts](../../packages/dsh-smart-assistant/src/domain/home/home-map.ts) §"Recall what you know — every answer"（`27f8c79`，2026-10-06）。本卡写的"manual 加一条指令"就是它。
 > ③ **本卡的家 = 设计意图与 Goal 史**；交付证据一律以两份 implemented note 为家，不在此复述（复述即第二份清单，必然漂移——本条校正正是漂移的现场）。
 > ④ 四门最后一环（用户终验）**未走完前不归档**；新门禁 `backlog: graduated plans leave the active shelf` 只抓"已声明过门却滞留"，本卡是**诚实等待**，不触发、也不该被手工归档。
+>
+> **「四 Goal 已交付」的口径**（2026-10-08 收紧，原措辞与正文的取代标记打架）：四个 Goal 的**意图全部达成**；
+> 其中 **Goal 1 的机制与卡上原写法不同**——Step 1 的 auto-send 被取代，由 Slice 1b 确定性播报卡承载（见①）。
+> 状态行说的是**意图交付**，不是"卡上四步照原样落地"。待终验的也是意图：判据表判的是行为结果，不是实现路径。
 
 ## 走偏了什么（诚实复盘）
 
@@ -89,17 +93,26 @@ vendor 有一个被忽略的机制：**sidebar.panellist + main 槽系统**。
 > 会话、每条 ~44.6K tok；且内容物（客套+反问）本身不是设计要的「它先开口」。落地形态 = has-desk 空白
 > 相位由客户端拿 walk view 确定性合成三行播报卡（零 token、天然幂等，`7fe774a`）。**本节只作历史与死路记录保留。**
 
-### Step 2：桌面视图=默认视图
+### Step 2：桌面视图=默认视图 ⚠️ **未交付（2026-10-08 核对）**
 **做什么**：说完第一句话后，自动切到桌面视图（view preference 已实现但时序不对——需要移到会话创建时就写入，而非渲染时）。
 **怎么做**：FirstMileDock 的 inject 回调在会话绑定时就把 view preference 写入 localStorage（在 activateView 读之前）。
 **自测**：说完第一句话 → 主区显示桌面（不是对话流）。
 
+> **实况（2026-10-08 核对）**：**未交付**——261007 断点 5「view preference 写入不生效（当轮主区仍落对话）」
+> 仍是 D7 未解；该卡明确把它列为非本卡范围（等上游 #8961）。本节是**未走完的路**，不是"已做的历史"。
+> 「打开=桌面」当前由面板入口 + 播报卡承载（Goal 1 的意图），**不是**由默认视图切换承载。
+
 ### Goal 2（已完成）：体验深度——substance 层
 结果：morning-brief 上下文简报 + 知识回显（真模型验证通过）
 
-### Goal 3（Goal 1.5 落地后）：dashboard 与对话的双向流通
+### Goal 3（Goal 1.5 落地后）：dashboard 与对话的双向流通 ⚠️ **半交付（2026-10-08 核对）**
 **做什么**：dashboard 里的决策卡点击 → 进入拍板对话；对话里的处理单 → 自动出现在 dashboard
 **自测**：dashboard → 点决策卡 → 切到对话 → 拍板 → 切回 dashboard → 决策状态更新
+
+> **实况（2026-10-08 核对）**：**两个方向不是同一个状态**——
+> 「dashboard → 对话」已交付（261007 Slice 1c：`ctx.layout.selectPanel(null)` 接通，死按钮变真入口）；
+> 「对话 → dashboard 自动回流」**未单独举证**（面板刷新车道 `desk-refresh` 是现成机制，
+> 但没有一行验收证据证明"对话里的处理单自动出现在 dashboard"）。本 Goal 未列入两份 implemented note 的交付清单。
 
 ### Step 3：晨报简报体验
 **做什么**：到期投递（schedule follow-up 到达）时，morning-brief 的简报不是一条「你有一件事到期」——而是一段**有用的摘要**：这件事的上下文、你上次拍了什么、还缺什么数、建议下一步。
@@ -116,18 +129,23 @@ vendor 有一个被忽略的机制：**sidebar.panellist + main 槽系统**。
 > room… weave it into your answer with a natural reference… The principal should never have to repeat
 > something they already told you."。本卡不再复述其正文。
 
-## 已知与未决（2026-10-08 补——原卡缺此节，判断材料无处落脚）
+## 已知与未决
 
 **已知（带出处）**：
-- 四 Goal 的机械交付全部完成：形态层见 [desk-primary-view](../../notes/implemented/2026-10-06-desk-primary-view.md)，
-  行为层四片见 [opening-brief-and-rhythm](../../notes/archived/2026-10-07-opening-brief-and-rhythm.md)（Slice 1 `7fe774a` / 2 `636a4a6` / 3 `532c19d`）。
-- Step 1 换轨、Step 4 落 home 手册（见上文两条校正注）。
+- 四 Goal 的**意图**全部达成；**实现路径逐条核对**（2026-10-08）：Step 1 换轨（auto-send → Slice 1b 播报卡）、
+  Step 4 落 home 手册、Goal 2 交付；**Step 2 未交付**（view preference / D7 未解）、
+  **Goal 3 半交付**（dashboard→对话已通，对话→dashboard 回流未单独举证）——逐条实况见各节标记。
+- 形态层交付记录 = [desk-primary-view](../../notes/implemented/2026-10-06-desk-primary-view.md)；
+  行为层四片 = [opening-brief-and-rhythm](../../notes/archived/2026-10-07-opening-brief-and-rhythm.md)
+  （Slice 1 `7fe774a` / 2 `636a4a6` / 3 `532c19d`）。
 - 走查证据（真机 DOM 逐帧）由 261007 毕业门节持有，本卡不复制。
 
 **未决（四问）**：
-1. **该不该**：已裁决 = 该做（四 Goal 已交付，只剩验收）。
+1. **该不该**：已裁决 = 该做（四 Goal 意图已达成，只剩验收）。
 2. **何时**：只剩"用户终验"这一环，等本人上手——**不是待触发，是待人**。
-3. **次序**：无剩余次序问题；若有后续体验工作，另立卡，不复活本卡（毕业卡永不重开）。
+3. **次序**：无剩余次序问题——**但 Step 2 与 Goal 3 的另一半是未走完的路**（不是"已交付"）：
+   若终验后发现它们仍是缺口，按 261007 的规则**另立卡**，不在本卡内复活
+   （D7 等上游 #8961 是 261007 已记的触发）。
 4. **放弃什么**：见「输掉的方案」；新增一条本次校正产出的负知识——**不在 plan 卡正文复述已交付实现**（Step 1/4 的漂移即此因）。
 
 **真正未决的一件事**：终验这一环**怎么算过**——见「毕业门」。
