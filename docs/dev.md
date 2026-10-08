@@ -224,6 +224,8 @@ DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得
 
 ## 七、组合的四个层（dev 里谁改谁生效）
 
+层的机制在 `vendor/dsh/docs/architecture.md`：bundle，然后 profile 的 `cordis.patch.yml`，然后 home 级 patch，然后 `--patch`；patch 按 id 整行替换 config，或插入新行。下面是本仓两个 profile 实际叠的链。id 没命中只 warn。
+
 ```text
 bundle 层（两个 profile 各自的链，刻意的——§四，web-app 与 headless 不可混进同一 profile）：
   dev      = @deepseek-ai/dsh-base → dsh-web-app  → dsh-smart-assistant
@@ -234,5 +236,4 @@ bundle 层（两个 profile 各自的链，刻意的——§四，web-app 与 he
   → --patch                              # 临时覆盖
 ```
 
-patch 是**整行 config 替换**（不是合并）；`insert` 追加行；id 没命中只 warn。
 诊断组合用 `pnpm dsh --profile dev --dump-config`（boot-free，输出整棵组合树）。

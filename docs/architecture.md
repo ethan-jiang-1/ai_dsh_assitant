@@ -23,7 +23,8 @@
 
 ## 二、两个平面（DSH 的组合纪律）
 
-DSH 的组合分两个平面，判据是"这东西是不是跨会话共享"：
+平面、bundle 和 patch 层的正文在 `vendor/dsh/docs/architecture.md` 与
+`vendor/dsh/packages/preset/agent-preset/README.md`。下面是本包实际挂上的行，判据是这东西是不是跨会话共享：
 
 ```text
 HOST 面（cordis.patch.yml → dsh.bundle.patch）
@@ -125,7 +126,7 @@ seam 的成色读数是**第二个真实 Provider 出现而 Consumer 一行不�
 
 ## 四、模型可见面（日志税）
 
-**model-visible ⟺ logged**：任何进入模型请求的东西都必须能从会话日志重建。
+平台规则在 `vendor/dsh/AGENTS.md`（model-visible ⟺ logged）：任何进入模型请求的东西都必须能从会话日志重建。下表是本包进入请求的四条。
 
 | 模型可见输入 | 由什么覆盖 |
 |---|---|
@@ -159,7 +160,7 @@ assistant_knowledge ───→ ctx.assistantMemory.searchKnowledge / readKnowl
 
 | 延后 | 触发条件 |
 |---|---|
-| 新增 SessionEventMap 事件（"记忆变更流"） | 出现要消费它的 UI/审计方：届时以 `assistant-memory/` 前缀声明（并决定 `ignorable`）——§四 的既有通道已覆盖全部模型可见状态，新增事件会拖进 `SESSION_FORMAT_VERSION` 迁移纪律 |
+| 新增 SessionEventMap 事件（"记忆变更流"） | 出现要消费它的 UI/审计方：届时以 `assistant-memory/` 前缀声明（并决定 `ignorable`）——§四 的既有通道已覆盖全部模型可见状态，新增事件会拖进 `SESSION_FORMAT_VERSION` 迁移纪律（格式权威：`vendor/dsh/docs/session-format-status.md`） |
 | 语义检索（embedding） | 关键词/标签检索出现真实漏召回；那时经 `ctx.llm` 做 embedding，另开一缝 |
 | 自动后台复盘（`session/end` + `ctx.jobs`） | 有真实使用数据说明"每会话复盘"的收益大于 token 代价与同意成本 |
 | settings namespace `assistant` | 出现"用户要在设置页改"的真实需求（现在配置走 bundle/profile 的 Config） |

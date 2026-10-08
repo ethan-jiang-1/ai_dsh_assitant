@@ -1,6 +1,6 @@
 ---
 name: semantic-drift-audit
-description: How to find prose that has gone stale — claims in AGENTS.md, ROADMAP.md, README.md and docs/ that no longer match the code and files they point at, which mechanical gates cannot see. Use at a stage close, or after a campaign that touched the entry chain, the docs tier, or a tool's verb set.
+description: How to find prose that has gone stale — claims in AGENTS.md, README.md, docs/, and _backlog/ READMEs that no longer match the code and files they point at, which mechanical gates cannot see. Use at a stage close, or after a campaign that touched the entry chain, the docs tier, or a tool's verb set.
 whenToUse: After several slices that changed behaviour, commands, rows or verbs; when a doc sentence is suspected of outliving its subject; when a fresh session would be misled by the entry chain. Not a substitute for the mechanical gates — run those first, and never report a suspicion you did not verify.
 ---
 

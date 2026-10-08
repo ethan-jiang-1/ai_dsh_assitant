@@ -116,8 +116,8 @@ pnpm eval:domain        # 领域评测集 v0（G2＝领域质量的人判终关�
    只跑"会为这次回归而失败"的最小检查；**报告里只列真跑过的命令**；
    **提交只 add 本次改动涉及的路径**（同仓可能有并行会话，`git add -A` 会把别人的未提交改动扫进你的提交）。
 4. **默认严格，偏离登记**：研发纪律的继承是**逐源枚举**过的，不是凭印象
-   （全表：`docs/discipline.md`）；偏离或裁剪不是错——先在 note 里登记一行
-   （约束 → 适配 → 证据），再动手。
+   （全表：`docs/discipline.md`）。偏离或裁剪先在该文件「已声明的适配」登记一行
+   （约束 → 适配 → 证据），再动手。另写 note 的条件只看 [`notes/README.md`](notes/README.md) §〇。
 5. **轮内任务面**：复杂任务开工用 plan 呈批、实施期用 todo 活清单（整表替换、完成即勾）、
    人可随时 steer —— 机制都在 base bundle 里，挂着不用等于白挂。
 6. **步步为营，死路回退**（用户拍板；带日期的原始记录在 0.1.7 迁移 note）：每个阶段评估达成了目的就**立刻提交**——
@@ -151,6 +151,9 @@ pnpm eval:domain        # 领域评测集 v0（G2＝领域质量的人判终关�
 - preset 语义（roster/roots/遮蔽/standing mount）：`vendor/dsh/packages/preset/agent-preset/README.md`
 - 技能 provider 契约（本 repo 依赖它）：`vendor/dsh/docs/subsystems/skills.md`
 - 从本包贡献 Web UI：机制读 `vendor/dsh/docs/subsystems/slots.md`、`vendor/dsh/docs/subsystems/web-client.md`、`vendor/dsh/docs/subsystems/sidebar-right.md`；本包的路径和验证在 [`.agents/skills/client-ui-contribution/SKILL.md`](.agents/skills/client-ui-contribution/SKILL.md)
+- Cordis 插件怎么挂：`vendor/dsh/docs/cordis-primer.md`。生命周期、并发、子进程：`vendor/dsh/docs/defensive-patterns.md`
+- 主仓测试政策：`vendor/dsh/docs/testing.md`。本仓证据地图是 [`docs/testing.md`](docs/testing.md)，不抄主仓的 coverage、snapshot、CI 台阶
+- 客户端样式：`vendor/dsh/docs/web-styling.md`。本包色值落点在 [`packages/dsh-smart-assistant/AGENTS.md`](packages/dsh-smart-assistant/AGENTS.md)
 - 工具与卡片（`defineTool` / presenter / 日志税）：`vendor/dsh/docs/cookbook/adding-a-tool.md`
 - **"组合里到底有没有这一行"**（读源码答不了这个问题）：`pnpm dsh --profile dev --dump-config`（boot-free；
   行 id、disabled、realm 一目了然——排查 patch 落空/重复 id 的第一命令）
