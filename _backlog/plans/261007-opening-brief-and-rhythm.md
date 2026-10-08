@@ -59,12 +59,59 @@ morning-brief 周变体（对账口径：上周拍的/在跟状态/缺的数/本
 6. **本卡内做输入边界**（坏消息通道/CSF/每周倒碎片）——真设计题，值得单独推敲卡，不搭车。
 7. **修好 A1 的 composer 隐藏 CSS**（2026-10-07 实施期否决）——几何探针实锤它是自藏的：本 dock 挂在 vendor `ConversationContent.tsx` 的 composerStack（hero + input.dock + inputBar）内部，`[data-chain-overlay-fallback]` 一藏藏全家；A1 时代的「7/7 关键词命中」走的是 DOM 大纲匹配，隐藏元素也在大纲里——**可见性从未被证明**。退役优于修补。
 
+## 验收矩阵（2026-10-08 补，用户点名敲打 plans 质量；方法 = [validation-design](../playbooks_plan_and_validate/validation-design.md)）
+
+**为什么要补**：本卡原来只有一个端到端走查当毕业门，而它同时声称证明了**确定性**（重载幂等、会话不增殖）、
+**编排**（composer 存活、面板接通）与**模型行为**（播报内容、拍板口吻）三类——`validation-design` §25
+明说"不要用一个端到端 demo 证明全部三类"。下表把三类拆开、各归各的 owner，毕业门只引用本表。
+
+| # | 行为（可观察结果 → 需求溯源） | 类 | 输入 / 状态 | 判 pass/fail 的信号 | 负例 / 互补状态 | 证据 owner（命令或路径）**能证明什么** | 真人判断 |
+|---|---|---|---|---|---|---|---|
+| 1 | 回来的一把手开屏见**三行业务播报**（要你拍的/在跟的/还缺一个数），非「你好」——它先开口（断点 4） | 确定性 | blank 会话 + walk view 有数据（decisions/actions/gaps 各一） | 文案含「一把手桌面」「要你拍的」「老客户续约要不要涨价」「在跟的」「还缺一个数」；三行各是 button 且带 onClick | **互补**：无数据 → 走 intake 卡（不是空播报、不是三行空壳）；fresh → 保留 intake | `packages/dsh-smart-assistant/tests/client/client-first-mile.spec.ts` »'a returning principal opens on the brief, not a greeting (261007 Slice 1b)' + »'renders nothing once the session has any content' + »'tells a first-time principal what to say and offers the desk' ——**证明**合成规则与分支；**不能证明**真实浏览器里它长得可读 | 播报话术是否符合"口语化语文题、不是仪表盘"红线（见下 R5） |
+| 2 | 重载 **不增殖、不重发**（day-2 打开不假装初次见面） | 确定性 | 同一 home 连续重载 ×3 | 会话数恒定、无 `[桌面] 你好`、播报常在 | **被取代的旧行为**：auto-send 版 10 分钟 6 个幽灵会话、每条 ~44.6K tok——夹具须覆盖"blank 且 has-desk 时**不**调 sendPrompt" | `client-first-mile.spec.ts`（blank+desk 路径不触发发送）；**行为级**实测 = 本卡走查记录（见毕业门"走查记录"）——**证明**客户端不再自发；**不能证明**长期使用下的多会话行为（归 eval/真用） | 无 |
+| 3 | 缺 composer 的相位**能打字**（主线不死锁，断点 2） | 编排 | blank 相位（Day-0 intake）与 has-desk 相位（Day-2 拍板） | vendor contenteditable 在场、真打字有反应 | **互补**：A1 隐藏 CSS 时代"能打字"是假绿——曾用 DOM 大纲匹配（隐藏元素也在大纲里）判 pass；负例须证明**可见性**而非存在性 | 走查记录（`/tmp/ux-shots/slice1-*`，几何/可见性探针）+ `snapshots/web-face/` 两场景（composer 在场入镜）——**证明**真渲染下可见可交互；**不能证明**其他相位 | 无 |
+| 4 | dashboard 的「有问题？」**真回对话**（死按钮变真入口，断点 3） | 编排 | 点击 dashboard 的 onAsk | `ctx.layout.selectPanel(null)` 被调用、主区回会话面 | **负例/死路**：`dsh-navigate-to-session` 事件全仓（含 vendor）**零监听者**——旧实现是断的，夹具须钉住走 `ctx.layout` 而非该事件 | `packages/dsh-smart-assistant/tests/client/client-dashboard.spec.ts` »'onAsk returns to the Conversation through ctx.layout (261007 Slice 1c)' ——**证明**路由对；**不能证明** vendor 侧真切了面板（归走查） | 无 |
+| 5 | 拍板记录**读起来是本人的话**（中文口吻，非英文机器腔） | 确定性 + 模型行为 | 点 dashboard 决策选项 | 入账语句形如「拍：〈问题〉→〈选项〉」、中文；卡片即时「已拍」锁定 | **互补**：英文机器腔版是**已修的病**（Slice 2 前）——夹具须覆盖"不出现英文机器腔"；回执退场后新决策上位 | `client-dashboard.spec.ts` »'option click proxies the decision in the principal-voice Chinese lane (261007 Slice 2)' ——**证明**车道与文案形态；**不能证明**模型侧是否真把这段话按本人语气记账（归 eval/真机） | **语气是否真像本人**（taste，机器不判）——终验项 |
+| 6 | 周坐排程落盘：周一 09:00 Asia/Shanghai + at 型 due | 确定性（调度）+ 模型行为（技能守约） | 真模型跑 morning-brief 周变体一节 | schedule 两条落盘、时区正确、同一回合不堆叠（`schedule_list` 防堆叠） | **互补**：重复触发不产生第二组排程（防堆叠）；`weekly` 为 vendor 原生承载（B1 实施期待核实，当时只有 `at` 型先例） | 走查记录（`/tmp/ux-shots/slice3-*`，真模型双排程落盘）+ `dev/eval/`（若 prompt 段变动）——**证明**该回合落盘正确；**不能证明**跨周边界行为（归 eval/真用） | 周坐这四个对账口径是不是一把手真想要的（业务价值） |
+| 7 | 桌面/面板**渲染期望不回归**（结构性外观） | 编排（渲染） | 隔离 home 真渲染，两场景 | `pnpm web-expected` 零 diff | **现状阻断**：blank 场景夹具前置腐烂（归 snapshots owner，见 [bigfile 卡"后续观察"](../_done/_closed_plans/261007-bigfile-split.md)）——**该行当前不可判，不得报绿** | `snapshots/web-face/` 两场景（`pnpm web-expected`）——**证明**渲染期望；**不能证明**交互逻辑（client spec 管） | 无 |
+
+**R5 产品红线（贯穿 #1、#5、#6 的真人判断）**：一把手是直觉型经营者不是仪表盘动物——播报是**三行口语化
+语文题 + 每行可点**，永远不做计数分区/图表。这条是[中国 SME 调研](../reference/positioning/261005-chinese-sme-boss.md)
+红线，机器只证明"有三行且可点"，**不得**把机械绿升级为红线通过。
+
+**矩阵的诚实边界**：上表 #1-#7 的机械行全绿**仍不等于**毕业——#5、#6 的真人判断与"这回不一样了"的
+总体体验终验是独立的第四条轴（见毕业门）。技术绿不被提升为产品验收（[validation-judgment](../playbooks_plan_and_validate/validation-judgment.md) §1）。
+
+**⚠️ 证据耐久性缺口（2026-10-08 如实登记，本卡不在轮内解决）**：上表 #3、#6 的走查证据住在
+`/tmp/ux-shots/`（49 个文件，31 个 slice 证据）——**`/tmp` 重启即失**。`snapshots/` 按
+[其契约](../../snapshots/README.md)只收 session 回放与 web 渲染期望两类，**走查截图不在任何已收编
+owner 面**，故本卡不擅自把它们塞进 `snapshots/`（那是越界，也是 `validation-evidence` §28 明禁的
+"把 snapshots 当通用证据桶"）。两处 walkthrough 证据因此**目前只活在易失路径上**：
+- 影响：#3、#6 的行在 `/tmp` 清空后**不可复核**——按 `validation-judgment` §29，证据不可复核 = **blocked，不是 pass**。
+- 已做的缓解：本表把每行的**断言对象与判读要点**写全（不依赖图片本身也能理解判了什么），
+  并把 commit 锚点（`7fe774a`/`636a4a6`/`532c19d`）写进状态行。
+- **触发条件**：同类"只有跑起来才看得出"的 model-visible/渲染证据**第二次**靠 `/tmp` 手工留存时，
+  按 `snapshots/` 的升级触发精神立卡讨论第三类 admitted shape（或把走查协议固化进 probe 脚本），
+  不提前预建。
+
 ## 毕业门
 
-完整弧线真机走查（干净 home、真模型、逐帧 DOM）每步可答「我在做什么/下一步是什么」：
-打开（桌有数据）→ 三行播报（非「你好」）→ 点播报项进拍板对话 → **能打字**（composer 活）→ 拍板中文句+卡片即时状态 → 切回桌面见回执 → 重载 3 次会话不增殖不重发 → fresh home 走 intake 弧线同样成立 → 「有问题」从 dashboard 真回对话。加：用户终验「这回不一样了」。
+**四门判据**（引用本卡上方 `## 验收矩阵` 节，不在此复述行）：
 
-**走查记录（2026-10-07，证据 /tmp/ux-shots/slice1-*…slice4-*）：**
+1. **该不该** = 该做（已裁决，四片交付）。
+2. **实现证据**：矩阵 #1-#7 逐行按各自 owner 取数；**#7 现状阻断**（blank 场景夹具腐烂，归
+   snapshots owner 面）——按 [`scripts/AGENTS.md`](../../scripts/AGENTS.md) 纪律**不得写成绿色**。
+3. **真人判断（唯一未走完的一环）**：用户终验。矩阵 #5（拍板语气像不像本人）、#6（周坐对账口径
+   是不是一把手真要的）与 R5 红线（不做仪表盘化）三条是**机器不判**的品味/业务判断。
+4. **归档后去向**：过则与 [261006](261006-chief-of-staff-experience.md) 一并迁 `_done/_closed_plans/`；
+   不过则按具体不过的矩阵行回流为缺陷卡（不重开本卡）。
+
+**终验锚点**（与 261006 共用一份可判清单，记录家在本卡）：终验 = 本人拿干净 home 走一遍，
+逐条对 [261006 毕业门](261006-chief-of-staff-experience.md)的五项判据（第一眼是内容不是空框 /
+说完话主区仍在桌面 / 拍板读起来是本人的话 / 它记得我 / 与旧版对照"不是同一个产品"）打勾或打叉。
+**不是**抽象地问"好不好"——原句「这回不一样了」无锚点，不同人读出不同结论，等于不可判。
+
+**弧线走查记录（2026-10-07，证据 `/tmp/ux-shots/slice1-*…slice4-*`，**证据耐久性缺口见矩阵尾注**）：**
 - 重载幂等：×3 重载会话数恒 2、无 `[桌面] 你好`、播报常在（对照修复前：10 分钟 6 条幽灵会话）✔
 - 播报卡：三行业务话术可见可点（y=408 实渲染），行点击进中文拍板对话 ✔
 - composer：全相位存活（vendor contenteditable），Day-2 拍板与 Day-0 intake 两轮真打字 ✔
@@ -72,5 +119,5 @@ morning-brief 周变体（对账口径：上周拍的/在跟状态/缺的数/本
 - 有问题：dashboard 点击 → `selectPanel(null)` → 主区回会话面 ✔
 - 周坐：真模型同回合双排程落盘（`weekly` 周一 09:00 Asia/Shanghai + `at` 10-10 due，prompt 逐字守约）✔
 - Day-0：Day-0 卡 → 「开始第一件事」→ intake 提问 → 打字回答 → 桌面长出首份决策 → 重载播报接班 ✔
-- web-expected 两场景重录 PASS；test 45 件 386 + verify 34 全绿 ✔
+- web-expected 两场景重录 PASS；test 45 件 386 + verify 34 全绿 ✔（历史门数；当前 = verify 36 / test 50 件 416）
 - **未勾：用户终验「这回不一样了」（毕业门最后一环，等本人上手）**
