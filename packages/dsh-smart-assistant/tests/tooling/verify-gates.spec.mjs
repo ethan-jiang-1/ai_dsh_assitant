@@ -176,6 +176,65 @@ describe('verify relative-link corpus wiring', () => {
   })
 })
 
+// The machine-local-path rule was an inline closure with no fixture and a corpus that stopped short
+// of `_backlog/`, so a playbook staged there cited the upstream checkout by absolute path and the
+// gate stayed green (found 2026-10-08). This drives the real runner over a throwaway tree, the same
+// "a negative case through the real runner" shape the link-corpus fixture uses.
+describe('verify machine-local-path corpus wiring', () => {
+  it('rejects an absolute path in every active backlog area, and leaves notes/ (the provenance home) alone', () => {
+    const root = temp('verify-machine-local-')
+    const scripts = join(root, 'scripts', 'checks')
+    mkdirSync(scripts, { recursive: true })
+    writeFileSync(join(scripts, 'verify.mjs'), readFileSync(join(import.meta.dirname, '../../../../scripts/checks/verify.mjs'), 'utf8'))
+    const core = new URL('../../../../scripts/checks/verify-checks.mjs', import.meta.url).href
+    writeFileSync(join(scripts, 'verify-checks.mjs'), `export * from ${JSON.stringify(core)}\n`)
+    for (const file of ['AGENTS.md', 'README.md']) writeFileSync(join(root, file), '# fixture\n')
+
+    const offending = [
+      '_backlog/README.md',
+      '_backlog/plans/README.md',
+      '_backlog/plans/261005-card.md',
+      '_backlog/bugs/README.md',
+      '_backlog/bugs/BUG-001-example.md',
+      '_backlog/reference/README.md',
+      '_backlog/reference/positioning/261005-nested.md',
+      // The area that motivated the rule: staged playbooks are shared prose too.
+      '_backlog/playbooks_plan/README.md',
+      '_backlog/playbooks_plan/some-playbook.md',
+    ]
+    for (const file of offending) {
+      const path = join(root, file)
+      mkdirSync(join(path, '..'), { recursive: true })
+      writeFileSync(path, 'Protocol lives at /Users/someone/checkout/skills/x/SKILL.md\n')
+    }
+    // Frozen history keeps its prose, notes/ is where external provenance is allowed to live, and a
+    // file outside the institution is not this rule's business.
+    for (const file of ['_backlog/_done/README.md', '_backlog/_done/_reference/261005-frozen.md', 'notes/implemented/2026-01-01-topic.md', '_backlog/unowned.md']) {
+      const path = join(root, file)
+      mkdirSync(join(path, '..'), { recursive: true })
+      writeFileSync(path, 'Protocol lives at /Users/someone/checkout/skills/x/SKILL.md\n')
+    }
+
+    const gate = 'links: contract docs cite no machine-local absolute paths'
+    const result = spawnSync(process.execPath, [join(scripts, 'verify.mjs')], { encoding: 'utf8' })
+    expect(result.error).toBeUndefined()
+    expect(result.signal).toBeNull()
+    // Full exit stays red for unrelated missing-fixture contracts; inspect this gate's real verdict.
+    expect(result.status).toBe(1)
+    expect(result.stdout).toContain(`FAIL ${gate}`)
+    for (const file of offending) expect(result.stdout).toContain(`${file} cites a machine-local absolute path`)
+    for (const file of ['_backlog/_done/README.md', '_backlog/_done/_reference/261005-frozen.md', 'notes/implemented/2026-01-01-topic.md', '_backlog/unowned.md']) {
+      expect(result.stdout).not.toContain(`${file} cites a machine-local absolute path`)
+    }
+
+    // Repaired: every offending file loses the absolute path, and the gate goes green.
+    for (const file of offending) {
+      writeFileSync(join(root, file), 'Protocol lives in the upstream checkout named in the ledger\n')
+    }
+    expect(spawnSync(process.execPath, [join(scripts, 'verify.mjs')], { encoding: 'utf8' }).stdout).toContain(`ok   ${gate}`)
+  })
+})
+
 // A gate core that exists but is never invoked by the top-level command is a script, not a gate —
 // no invalid case could reach a real acceptance path (2026-10-07; the corpus's "a negative case
 // through the real runner" applied to our own wiring). The core must be *called* in the runner's

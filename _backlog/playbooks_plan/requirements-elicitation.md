@@ -17,8 +17,9 @@ catalog and some are not, and the set is not stable across sessions:
 `grilling`, `domain-modeling`, `prototype`, `research`, `codebase-design` and `writing-for-agents`
 were reachable in the session that wrote this page; **`to-questionnaire` and `wayfinder` were not** —
 so for those two this page's summary is all you have, and you must say so rather than imply you ran
-them. The full set also exists on disk at `/Users/bowhead/mattpocock-skills/skills/` (see the
-[upstream ledger](../README.md)) if a session can read files but not invoke skills.
+them. The skills also live as plain `SKILL.md` files in the upstream `mattpocock/skills` checkout, so a
+session that can read the filesystem but not invoke the skill tool can still read the protocol — see
+the [upstream ledger](../README.md), where the checkout and its revision are recorded.
 Never silently imitate a protocol you cannot read: an unconstrained impersonation produces ordinary
 prose with a confident label on it.
 
@@ -76,6 +77,42 @@ Four properties of `grilling` carry most of the value, and all four change how y
    now. (This is the part most easily lost — treating a dispatched lookup as a reason to stall.)
 4. **Done means the frontier is empty** — every branch visited, nothing left silently assumed. Not
    "the user stopped objecting", and not "we ran out of questions".
+
+## Driving each skill to full capacity
+
+Routing to the right skill is necessary but not sufficient — a skill driven against its grain produces
+a mediocre result with a competent-looking wrapper. Three levers hold for all of them:
+
+1. **Outsource the fact-finding.** These skills assume facts are the agent's job. Give the agent
+   environment access (point at the file, the doc, the command) and what reaches the human is only
+   real decisions — the round completes far faster. Being your own search engine is the worst-value
+   usage in the whole method; it burns the human's scarcest resource on work the agent should have done.
+2. **Treat the recommended answer as the default.** Every question carries a ➡️. Where there is no
+   disagreement, "go with the recommendation" is a complete answer — it is what makes a ten-question
+   round answerable in one pass. Spend the human's decision budget only on real forks.
+3. **Let the artifacts flow.** Any one skill alone is just a good conversation. Maximum value comes
+   from the pipeline: terminology and decisions settled during the interview feed the plan; research
+   files and prototype verdicts feed back as facts into the interview or the plan; the plan feeds the
+   slices. **An artifact that never reaches the next stage did not happen** — which for this repo means
+   it is not in the card and not linked from [`reference/`](../../reference/README.md).
+
+Per skill, the lever that pays and the waste to avoid:
+
+| Skill | Do this | Not this |
+|---|---|---|
+| **`grilling`** | Answer the whole frontier per round ("per the recommendation" where there is no disagreement); write each term down the moment it settles and record hard-to-reverse decisions immediately; stop exactly when the frontier is empty | One question per turn (multiplies the interview's cost); doing the fact-finding yourself; calling it done early because it feels "close enough"; batching terminology to the end |
+| **`research`** | Cut small, decidable questions ("does version X of this tool support Y" beats "look into X for me"); fan several out in parallel; check the citation density on return; feed the file back into the interview as fact | One broad question then waiting serially; filing the report and moving on; accepting conclusions with no traceable source |
+| **`to-questionnaire`** | Write it the moment you find the answer is in someone else's head — async has the longest latency, so send early; settle the **send** (who, what back) before letting it draft; order by importance, assuming one pass | Waiting until the interview is fully blocked; skipping the send and asking straight for questions; treating replies as conclusions rather than as new interview input |
+| **`prototype`** | Decide the branch first (logic-feel vs UI-shape — getting this wrong wastes the whole prototype); for a two-candidate decision build both and feed identical inputs; let a non-technical stakeholder drive it; fold the verdict into the plan and keep the prototype as evidence | A UI prototype for a logic question (or the reverse); three "variants" that differ only in styling; writing it inline in the main thread; nursing prototype code as production |
+| **the plan** | Compile immediately after the interview, in the **same unbroken context**; before shipping, audit three things — are the user stories long enough (did the failure paths make it in), does Out of Scope pin the red lines, are the implementation decisions contracts rather than file paths | Cold-starting it (unaligned conversation yields a hollow plan); accepting five user stories; letting it hardcode paths and line numbers that rot |
+| **the slices** | Use the confirmation step as leverage: for each one ask "does it depend only on what genuinely blocks it" and "can it complete in a fresh window"; insist on vertical slices | Accepting horizontal slices (database, then API, then UI); leaving blocking edges empty and relying on default order; forcing one oversized slice into a window |
+| **charting (too-big)** | Only for a genuinely oversized idea; name the destination first and let it lock scope; fire the research tickets in parallel; questions only a human can settle must be worked with that human — the agent must not answer its own | Charting something one conversation could settle (pure overhead); several tickets per session; letting the agent stand in for the human's side |
+
+**One hard sequencing rule** (source: `ask-matt`, not the summary pages): keep the interview, the plan
+and the slices in **one unbroken context window** — do not clear or compact until the slices exist, so
+all three build on the same thinking. The limit is degradation, not tidiness: if the session approaches
+the point where reasoning sharpens poorly, do not push on degraded — compact **at a phase boundary** and
+carry on. Slices, by contrast, are designed to be worked fresh, one per context.
 
 ## The too-big case: chart before you spec
 

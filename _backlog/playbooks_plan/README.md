@@ -97,9 +97,19 @@
 | `research` | 后台 agent / 一手来源 / 带引用 Markdown | `skills/engineering/research/SKILL.md` |
 | `to-questionnaire` | 面试「发出去」而非「主题」/ 瞄准信息缺口 | `skills/productivity/to-questionnaire/SKILL.md` |
 | `domain-modeling` | 术语挑战 / ADR 三条件 / 词汇层不当 spec | `skills/engineering/domain-modeling/SKILL.md` |
-| `ask-matt` | 主流程与三条入口的路由全貌 | `skills/engineering/ask-matt/SKILL.md` |
+| `ask-matt` | 主流程与三条入口的路由全貌 / **访谈到拆票不 clear 不压缩（含 smart-zone 退化例外）** / 阶段边界五选项 | `skills/engineering/ask-matt/SKILL.md` |
 
-基线：本地 checkout `/Users/bowhead/mattpocock-skills`（HEAD `7b2ad8f`，2026-10-08 读），
-FAQ 目录为 `_faq_on_digest/09_skills-for-requirements-engineering-of-agent-apps/`。
+**FAQ 目录（二手，只当索引用）**：`_faq_on_digest/09_skills-for-requirements-engineering-of-agent-apps/`
+的 `answer.md` / `skill-mapping.md` / `embed-into-existing-system.md` / **`max-leverage.md`**。
+其中 `max-leverage.md`（2026-10-08 上游新增）是**"每环怎么用满"**的指南——三个通用杠杆
+（查证外包 / 推荐答案当默认值 / 让产物流动）+ 逐技能「这样用 / 别这样用」表；本区正文的
+「Driving each skill to full capacity」一节由它触发，但**承重规则仍回技能本体核对**
+（例：不 clear 的规则本体带 smart-zone 退化例外，FAQ 摘要未载，见上表 `ask-matt` 行）。
+
+基线：上游 `mattpocock/skills` 的**本地 checkout**（HEAD `fad9000`，2026-10-08 重校；上一基线
+`7b2ad8f`）——checkout 的绝对位置与各次重校的原始记录住
+[implemented note](../../notes/implemented/2026-10-08-requirements-elicitation-playbook.md)（本仓
+纪律：机器本地路径的 provenance 归 `notes/`，共享正文不写死路径）。FAQ 目录为
+`_faq_on_digest/09_skills-for-requirements-engineering-of-agent-apps/`。
 **上游是外部仓，不 vendor、不装包**（根 `AGENTS.md` 硬规则 7：只借思路不引依赖）；
 上表是只读引证台账，上游漂移时重读并校准本区正文。

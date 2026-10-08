@@ -323,6 +323,31 @@ export function relativeLinkProblems(corpus) {
 
 // ── language guard, text hygiene, dependency posture ─────────────────────────────
 
+/**
+ * Machine-local absolute paths must not appear in shared repo prose: a checkout path or home
+ * directory baked into a document breaks for everyone else, and it is the kind of provenance that
+ * belongs in `notes/` (the registered home for external sourcing) rather than in a contract or a
+ * card. The caller decides the corpus and keeps `notes/` out of it.
+ *
+ * Extracted from an inline closure in `verify.mjs` on 2026-10-08, when the rule was extended to the
+ * active deliberation space: the check had no fixture because nothing could exercise it. Corpus
+ * policy stays with the caller (per scripts/AGENTS.md, logic and corpus live apart).
+ *
+ * @param {Array<{file: string, where: string}>} corpus - files to scan, with display paths.
+ */
+export function machineLocalPathProblems(corpus) {
+  const problems = []
+  for (const { file, where } of corpus) {
+    if (MACHINE_LOCAL_PATH.test(read(file))) {
+      problems.push(`${where} cites a machine-local absolute path — provenance belongs in notes/`)
+    }
+  }
+  return problems
+}
+
+/** `/Users/...` (macOS) or a path-initial `/home/...` (Linux). Deliberately not matching `home/` mid-word. */
+const MACHINE_LOCAL_PATH = /\/Users\/|(?<![a-z])\/home\//
+
 /** CJK ideographs: the model-facing surface is English (AGENTS.md language split). */
 const CJK_TEXT = /[\u4e00-\u9fff]/
 

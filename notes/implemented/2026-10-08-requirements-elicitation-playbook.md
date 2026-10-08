@@ -95,6 +95,35 @@
 - **上游的 spec/ticket 模板与目录布局**：借纪律不借模板（见输掉的方案 5）。
 - **空想的方法**：无实证来源的 playbook 会用一套自洽话术伪造权威——故"须已被用过一轮"是进门条件。
 
+## 第三轮：上游更新后的重校（2026-10-08 同日）
+
+用户提示"_faq_on_digest/09_... 更新了一下，你看看，你再想办法解决"。核查结果：
+
+- **上游新增 `max-leverage.md`**（commit `fad9000`「add max-leverage guide and a full skill
+  inventory」，基线 `7b2ad8f` → `fad9000`）：讲**"每环怎么把技能用满"**——三个通用杠杆
+  （查证外包给 agent / 推荐答案当默认值 / 让产物流动）+ 逐技能「这样用 / 别这样用」表 + 两个
+  纠正器（`/wait-what`、`/ask-matt`）。另四条页面同时小改：补 HITL/AFK 标注、`spike` 与
+  `blocking edges` 术语就地解释、`/setup-matt-pocock-skills` 链接化、`/teach` 与
+  `/writing-for-agents` 归位清点（全套 27 个技能）。
+- **本区据本体重校并扩写**：新增「Driving each skill to full capacity」一节（三杠杆 + 逐技能
+  do/don't 表），并把上游那条**硬排序规则**写进去——**访谈到拆票期间不 clear、不压缩**。
+  该规则取自 `ask-matt` 本体第 36 行，**本体还带 FAQ 摘要没有的例外**：窗口逼近 smart zone
+  （约 150k tokens）时不许硬撑退化，应在**阶段边界** `/compact` 后继续。又一次印证"承重规则
+  回本体核对、摘要只当索引"的纪律。
+- **顺带发现并修掉一个真实门禁缺口**：本区 README 与 playbook 曾把上游 checkout 的
+  **机器本地绝对路径**写进共享正文，而门禁 `links: contract docs cite no machine-local absolute
+  paths` **没覆盖 `_backlog/`**（`markdownCorpus` 只含 `AGENTS.md`/`README.md`/`docs`/`notes`/
+  `snapshots`）——绝对路径静默过关。修法两步：① 正文改为"上游 checkout（rev 见台账）"，
+  绝对路径与重校原始记录只留本 note（本仓纪律：机器本地路径的 provenance 归 `notes/`）；
+  ② 该查**抽成可测纯核** `machineLocalPathProblems(corpus)`（`verify-checks.mjs`，语料与判据
+  分离），`verify.mjs` 的语料**扩到 `_backlog/` 四个活区**（`plans`/`bugs`/`reference`/
+  `playbooks_plan` + 区 README），并显式排除 `notes/`；冻结的 `_done/` 与未归属文件不扫
+  （与断链门的既有口径一致）。该查此前**没有任何夹具**——正因逻辑内联在 `verify.mjs` 里无法被
+  驱动；现补上走真 runner 的语料接线夹具。
+
+  **上游 checkout 的绝对位置**（本仓纪律：只留 `notes/`）：
+  `/Users/bowhead/mattpocock-skills`，技能源在 `skills/{engineering,productivity}/`。
+
 ## 验证（真跑过的命令）
 
 - `node scripts/checks/verify.mjs` → **35 checks passed**（改动前 35、改动后 35：新核并入既有
@@ -113,6 +142,24 @@
 - `pnpm test` → **50 files / 410 tests passed**。
 - **上游台账逐路径核验**（第二轮）：对 README 台账点名的 9 个上游技能文件逐个 `[ -f ]` 检查 →
   9/9 存在；`git rev-parse --short HEAD` → `7b2ad8f`（与台账记的基线一致）。台账非转述，可复核。
+- **上游重校**（2026-10-08，第三轮）：checkout HEAD 前进到 `fad9000`（上一基线 `7b2ad8f`）。
+  FAQ 目录新增 `max-leverage.md`（本轮正文「Driving each skill to full capacity」一节的触发来源），
+  其余四份（`answer.md`/`skill-mapping.md`/`embed-into-existing-system.md`/`question.md`）仍在位。
+  承重规则回本体核对：`ask-matt/SKILL.md` L36「one unbroken context window（don't compact or clear
+  until after `/to-tickets`）」与 L38 smart-zone 退化例外（临近窗口时 `/compact` 在最近阶段边界、
+  不硬撑降智）逐字确认，两处均为正文与台账 `ask-matt` 行的依据；FAQ 摘要未载该例外，故正文
+  采本体而非二手。checkout 绝对路径与各次重校原始记录住本节（共享正文不写死机器本地路径）。
+- **机器本地路径门禁扩面 + 抽核 + 新夹具**（第三轮）：
+  ① **造红**：向 `_backlog/playbooks_plan/requirements-elicitation.md` 追加一行
+  `/Users/bowhead/somewhere/SKILL.md` → `node scripts/checks/verify.mjs` 输出
+  `FAIL links: contract docs cite no machine-local absolute paths` /
+  `_backlog/playbooks_plan/requirements-elicitation.md cites a machine-local absolute path` /
+  `verify: 1 of 35 checks failed` → 还原（区内 `/Users/` 计数归 0）→ 35 passed。
+  ② **新夹具造红证绿**：`npx vitest run .../verify-gates.spec.mjs -t "machine-local"` → 1 passed；
+  再**故意从 `verify.mjs` 语料里删掉 `playbooks_plan` 那行**重跑 → 该夹具**失败**
+  （`AssertionError: expected ... to contain '_backlog/playbooks_plan/README.md cit…'`）→ 还原 → 1 passed。
+  即夹具真的守着语料接线，不是陪跑。
+- `pnpm test` → **50 files / 411 tests passed**（较上轮 410 增 1 = 新语料接线夹具）。
 - **能力可得性核验**：以本会话技能目录为准逐个对照——`grilling`/`domain-modeling`/`prototype`/
   `research`/`codebase-design`/`writing-for-agents` **在**；`to-questionnaire`/`wayfinder` **不在**
   （正文据实标注，不暗示已运行）。

@@ -18,7 +18,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { agentsMdStabilityProblems, backlogLivenessProblems, clientScriptSafetyProblems, commandAliasProblems, configParseProblems, dependencyPoseProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, GRADUATED_STATUS, implementedAlternativesProblems, languageGuardProblems, notesNamingProblems, notesStateProblems, notesTopLevelProblems, pinProblems, playbookFrontmatterProblems, relativeLinkProblems, skillFrontmatterProblems, startPathProblems, testAssetNamingProblems, textHygieneProblems, vendorClientFreshnessProblems } from './verify-checks.mjs'
+import { agentsMdStabilityProblems, backlogLivenessProblems, clientScriptSafetyProblems, commandAliasProblems, configParseProblems, dependencyPoseProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, GRADUATED_STATUS, implementedAlternativesProblems, languageGuardProblems, notesNamingProblems, notesStateProblems, notesTopLevelProblems, pinProblems, machineLocalPathProblems, playbookFrontmatterProblems, relativeLinkProblems, skillFrontmatterProblems, startPathProblems, testAssetNamingProblems, textHygieneProblems, vendorClientFreshnessProblems } from './verify-checks.mjs'
 import * as gateCores from './verify-checks.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
@@ -497,15 +497,20 @@ check('links: cross-file section references name a real section', () => {
 })
 
 check('links: contract docs cite no machine-local absolute paths', () => {
-  const problems = []
-  const machineLocal = /\/Users\/|(?<![a-z])\/home\//
-  for (const file of markdownCorpus) {
-    if (file.startsWith(join(repoRoot, 'notes'))) continue // notes/ is the registered home for external provenance
-    if (machineLocal.test(read(file))) {
-      problems.push(`${relative(repoRoot, file)} cites a machine-local absolute path — provenance belongs in notes/`)
-    }
-  }
-  return problems
+  // The active deliberation space routes readers the same way the contract docs do, so it is held
+  // to the same rule: a checkout path or home directory baked into `_backlog/` prose breaks for
+  // every other machine. Frozen `_done/` keeps its historical prose, exactly like the link gates.
+  // (Found 2026-10-08: a playbook staged under `_backlog/playbooks_plan/` cited the upstream
+  // checkout by absolute path and passed, because only relative links extended into `_backlog/`.)
+  const corpus = [
+    ...markdownCorpus,
+    join(repoRoot, '_backlog', 'README.md'),
+    ...walk(join(repoRoot, '_backlog', 'plans'), ['.md']),
+    ...walk(join(repoRoot, '_backlog', 'bugs'), ['.md']),
+    ...walk(join(repoRoot, '_backlog', 'reference'), ['.md']),
+    ...walk(join(repoRoot, '_backlog', 'playbooks_plan'), ['.md']),
+  ].filter(file => exists(file) && !file.startsWith(join(repoRoot, 'notes')))
+  return machineLocalPathProblems(corpus.map(file => ({ file, where: relative(repoRoot, file) })))
 })
 
 // ── commit safety ───────────────────────────────────────────────────────────────────────────────
