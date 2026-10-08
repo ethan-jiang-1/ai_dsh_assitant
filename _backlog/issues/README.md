@@ -7,11 +7,11 @@
 
 ## 活跃清单
 
-| 卡 | 一句话 | 毕业倾向 |
+| 卡 | 一句话 | 还开着的原因 |
 |---|---|---|
-| [261006-chief-of-staff-experience.md](261006-chief-of-staff-experience.md) | 一把手的总助——用户体验重设计：从「空白聊天框」到「打开即见简报+跟进+知识积累」 | 该做，四 Goal **意图**全达成（Step 1 换轨 / Step 2 未交付 / Goal 3 半交付 / Step 4 落 home 手册，2026-10-08 校正）；**待人**：与 261007 共用「用户终验」一环，记录家在 261007 |
-| [261007-opening-brief-and-rhythm.md](261007-opening-brief-and-rhythm.md) | 它先开口——开屏播报（替换 auto-send）、拍板感、周节律：体验弧线行为层收口（2026-10-07 真机走查三 P0 断点 + 内容物错位的消化） | 四片全交付（实现事实）；**验收面 6/7 行有证据、1 行阻断（#7 blank 夹具腐烂）、3 项人判未判**；剩用户终验即毕业 |
-| [261007-input-boundary.md](261007-input-boundary.md) | 输入边界——晨报与周坐的料从哪来（碎片收件箱/文件投递/CSF/纯仪式四候选；不接外部数据源红线下的喂入通道设计） | **等人拍板（两句话）**：① 30 天真用落在哪个 home（推荐专用试用 home）② 先真用 30 天再定形态（推荐先行，判读指标已定义）；点头则按推荐次序合成 proposed 卡 |
+| [261006-chief-of-staff-experience.md](261006-chief-of-staff-experience.md) | 一把手的总助——从空白聊天框到打开即见简报、跟进、知识积累 | 四 Goal 的意图已落地。与 [261007-opening-brief-and-rhythm](261007-opening-brief-and-rhythm.md) 共用用户终验，记录家在那张卡 |
+| [261007-opening-brief-and-rhythm.md](261007-opening-brief-and-rhythm.md) | 它先开口——开屏播报、拍板感、周节律 | 四片已落地。验收 6/7 行有证据，#7 blank 夹具阻断，3 项人判未判。剩用户终验 |
+| [261007-input-boundary.md](261007-input-boundary.md) | 输入边界——晨报与周坐的料从哪来 | 等人拍板两句：30 天真用落在哪个 home；先真用 30 天再定形态，还是现在做 |
 
 ## 🔒 只有用户能判触发
 
@@ -31,7 +31,7 @@ opened: YYYY-MM-DD
 
 | 字段 | 写什么 |
 |---|---|
-| `status` | 本目录只写 `推敲中`，或卡在真人拍板时写 `等人拍板` |
+| `status` | 本目录只写 `推敲中`，或卡在真人拍板时写 `等人拍板`。实现已经落地、毕业门还差用户终验的，仍写 `推敲中` |
 | `opened` | `YYYY-MM-DD`，与正文立卡日相同 |
 
 离开本目录时只改 `status`。四问有了结论，改成 `已结`，卡进 [`settled_issues/`](../_archive/settled_issues/README.md)。被人叫停、还没有结论，改成 `叫停`，卡进 [`suspended_issues/`](../_archive/suspended_issues/README.md)。正文里的状态句留着，不抄进 frontmatter。不写 id、标题、类型。

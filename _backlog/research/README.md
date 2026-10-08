@@ -40,25 +40,34 @@ intent: "背后那一句思路。"
 
 证据不必迎合方向。原始资料保留 URL、原句、样本/版本、获取限制与反证；合成档分开引用事实和产品推论。候选演示/实验写清实现状态，不从 schema、官网或代理读数推出收益/真实采纳。
 
-research 喂 `issues/` 和 `bugs/`。推敲有了结论才进 notes，缺陷修好才离开 `bugs/`。这是证据到裁决的关系，不是三份活计划。材料可喂多张卡，最后一个活跃消费者毕业后才随迁；校准可以加纠正说明，搬迁保留证据正文并修可解析链接。冻结的 `_archive/` 不纳入正文断链扫描。缺口与修复边界见 [技术审计](tech-exploration/261005-turnaround-evidence-audit.md)。
+research 喂 `issues/` 和 `bugs/`。推敲有了结论才进 notes，缺陷修好才离开 `bugs/`。材料可喂多张卡，最后一个活跃消费者毕业后才随迁。校准可以加纠正说明。搬迁保留证据正文，并修可解析链接。冻结的 `_archive/` 不纳入正文断链扫描。缺口与修复边界见 [技术审计](tech-exploration/261005-turnaround-evidence-audit.md)。
 
 ## 索引
 
-- [261005-prototype-cases-and-interview-method.md](positioning/261005-prototype-cases-and-interview-method.md)——公开一手来源线索与访问限制；正文未取回，具体案例验收未达；模拟变式支持原型设计，不作已核重放/真人证据
-- [261005-interview-learning-framework.md](positioning/261005-interview-learning-framework.md)——短访谈、案例记录与知识/偏好/技能积累候选：来源/范围/例外、前后/未见病例验证、现有载体与未建闭环
+按子目录排。活卡是现在 [`issues/`](../issues/README.md) 或 [`bugs/`](../bugs/README.md) 里还链着这篇的卡。原卡是立档时喂的那张，已经在 [`settled_issues/`](../_archive/settled_issues/README.md)。调研本身不写 `status`。最后一个活跃消费者毕业后，文件仍按上面的生命周期搬走；原卡行只写明它喂过谁。
 
-- [261001-upstream-candidates.md](upstream/261001-upstream-candidates.md)——vendor 面上游候选台账（喂 261001-first-open-ux：9 稳定 + 3 条件 + 2 已关闭，逐条带 vendor 锚点）
-- [261001-upstream-issue-drafts.md](upstream/261001-upstream-issue-drafts.md)——6 条上游 issue 递交草案（D1-D6，英文贴用文本 + 中文摘要；档头记录已放行，尚无已递链接，本轮不递交）
-- [261005-external-ux-patterns.md](positioning/261005-external-ux-patterns.md)——外部同类产品首跑 UX 模式调研（喂 261005-open-value-deficit：Clay/Martin/NotebookLM/Limitless 等的首跑、主动价值与主对象）
-- [261005-substitute-landscape.md](positioning/261005-substitute-landscape.md)——替代品格局调研（喂 261005-open-value-deficit：ChatGPT/Claude/Gemini 原生记忆现状、AI chief of staff 品类成败 → 我们的真实增量）
-- [261005-exec-demo-narratives.md](positioning/261005-exec-demo-narratives.md)——面向 CEO/CFO 的十分钟 AI 演示叙事调研（Lindy/Martin/Day/Reclaim/Huper 营销叙事骨架、向董事会演示 AI 的公开方法、CFO 采纳关注点、演示方法论 → 演示叙事的可借框架）
-- [261005-demo-walk-and-script-v0.md](positioning/261005-demo-walk-and-script-v0.md)——现状十分钟管理层走查 + 督办主线演示脚本骨架 v0（喂 261005-open-value-deficit 第 7-9 轮；供攻击的推敲材料）
-- [261005-ux-path-annotated-simulation.md](positioning/261005-ux-path-annotated-simulation.md)——UX 路径 v0 纸面走查（喂自洽卡阶段2：打开→给片段→看选项/缺数→拍板→看跟进 六步 × DeskData 现行载体 × 诚实状态标注；reversible-cost-v0 标注模拟场景；首切候选=入口/空态/引导）
-- [261005-coding-agent-exec-barrier.md](positioning/261005-coding-agent-exec-barrier.md)——管理层对 coding agent 的却步点调研（喂 261005-open-value-deficit：Codex/Claude Code/ChatGPT Enterprise 官方叙事取证 + 高管真实声音 + 权威调研阻力数字 → 三轴归纳「看不懂/管不住/说不清价值」）
-- [261005-chinese-sme-boss.md](positioning/261005-chinese-sme-boss.md)——中国中小企业一把手（含 BU 一把手）工作画像调研（喂 261005-open-value-deficit：时间节律/痛点榜 2024-2026/数字化 AI 采纳/信息流四类取证，附画像卡与未证实清单；web_fetch 受限处改用 curl 并注明）
-- [261005-ceo-voices.md](positioning/261005-ceo-voices.md)——真实一把手声音与 CoS 职业方法论调研（喂 261005-open-value-deficit：VandeHei 全司实测一手、三份官方 JD 提炼「雇总助买什么」、Buffett/Bezos/Horowitz 逐字诉求、失败模式 7 条 → 设计红线；BU 级盲区如实标注）
-- [261005-ceo-time-and-decision-research.md](positioning/261005-ceo-time-and-decision-research.md)——一把手时间分配与决策过程实证调研（喂 261005-open-value-deficit：CEO 时间研究 60,000 小时数据、pre-mortem/决策日志方法论、执行缺口 85%/27%/1/5 等硬数字、信息环境 MUM effect/CSF/BLUF 四类取证 + 十点产品推论 + 未证实清单；GM/BU 级证据单独标注；web_fetch DNS 故障全程 curl/r.jina.ai/Web Archive 并注明）
-- [261005-ceo-viewpoint-synthesis.md](positioning/261005-ceo-viewpoint-synthesis.md)——典型一把手视角与诉求合成档（喂 261005-open-value-deficit 第 17 轮：三路资料×trial 产物形态对照，非真人 n=1；分开样本/解释、诉求假设、十二条推论与引用边界）
-- [tech-exploration/261005-okf-wiki-tech-case.md](tech-exploration/261005-okf-wiki-tech-case.md)——OKF/WIKI 能力边界与实验候选（喂定位/自洽卡：schema affordance、可用性四格、等内容结构消融、隔离与未验证结果）
-- [tech-exploration/261005-dsh-native-first-tech-keynote.md](tech-exploration/261005-dsh-native-first-tech-keynote.md)——技术定调：OKF/VK 方向与 DSH 原生优先（组合→缝→自建三问尺、现有载体与机会面；收益未验证）
-- [261005-turnaround-evidence-audit.md](tech-exploration/261005-turnaround-evidence-audit.md)——本轮一手代码审计（喂定位/自洽卡：UI 审批实际车道、OV 外部存储/peer 与数据流、verify 漏扫 backlog 的事实/反证/待补跑）
+### positioning/
+
+- [261005-chinese-sme-boss.md](positioning/261005-chinese-sme-boss.md)——活卡：[261007-opening-brief-and-rhythm](../issues/261007-opening-brief-and-rhythm.md)、[261007-input-boundary](../issues/261007-input-boundary.md)。中国中小企业一把手工作画像
+- [261005-exec-demo-narratives.md](positioning/261005-exec-demo-narratives.md)——活卡：[261007-input-boundary](../issues/261007-input-boundary.md)。面向 CEO/CFO 的十分钟演示叙事
+- [261005-ceo-time-and-decision-research.md](positioning/261005-ceo-time-and-decision-research.md)——活卡：[261007-input-boundary](../issues/261007-input-boundary.md)。一把手时间分配与决策过程
+- [261005-ceo-viewpoint-synthesis.md](positioning/261005-ceo-viewpoint-synthesis.md)——原卡：[261005-open-value-deficit](../_archive/settled_issues/261005-open-value-deficit.md)。三路资料与 trial 产物的合成档
+- [261005-ceo-voices.md](positioning/261005-ceo-voices.md)——原卡：[261005-open-value-deficit](../_archive/settled_issues/261005-open-value-deficit.md)。一把手声音与 CoS 方法论
+- [261005-external-ux-patterns.md](positioning/261005-external-ux-patterns.md)——原卡：[261005-open-value-deficit](../_archive/settled_issues/261005-open-value-deficit.md)。外部同类产品首跑 UX
+- [261005-substitute-landscape.md](positioning/261005-substitute-landscape.md)——原卡：[261005-open-value-deficit](../_archive/settled_issues/261005-open-value-deficit.md)。替代品格局
+- [261005-coding-agent-exec-barrier.md](positioning/261005-coding-agent-exec-barrier.md)——原卡：[261005-open-value-deficit](../_archive/settled_issues/261005-open-value-deficit.md)。管理层对 coding agent 的却步点
+- [261005-demo-walk-and-script-v0.md](positioning/261005-demo-walk-and-script-v0.md)——原卡：[261005-open-value-deficit](../_archive/settled_issues/261005-open-value-deficit.md)。十分钟走查与演示脚本骨架
+- [261005-ux-path-annotated-simulation.md](positioning/261005-ux-path-annotated-simulation.md)——原卡：[261005-turnaround-coherence](../_archive/settled_issues/261005-turnaround-coherence.md)。UX 路径纸面走查
+- [261005-prototype-cases-and-interview-method.md](positioning/261005-prototype-cases-and-interview-method.md)——原卡：[261005-turnaround-coherence](../_archive/settled_issues/261005-turnaround-coherence.md)。公开案例线索与访谈方法，正文未取回
+- [261005-interview-learning-framework.md](positioning/261005-interview-learning-framework.md)——原卡：[261005-open-value-deficit](../_archive/settled_issues/261005-open-value-deficit.md)、[261005-turnaround-coherence](../_archive/settled_issues/261005-turnaround-coherence.md)。短访谈与积累候选
+
+### upstream/
+
+- [261001-upstream-candidates.md](upstream/261001-upstream-candidates.md)——原卡：[261001-first-open-ux](../_archive/settled_issues/261001-first-open-ux.md)。vendor 面上游候选台账
+- [261001-upstream-issue-drafts.md](upstream/261001-upstream-issue-drafts.md)——原卡：[261001-first-open-ux](../_archive/settled_issues/261001-first-open-ux.md)。6 条上游 issue 递交草案
+
+### tech-exploration/
+
+- [261005-okf-wiki-tech-case.md](tech-exploration/261005-okf-wiki-tech-case.md)——原卡：[261005-open-value-deficit](../_archive/settled_issues/261005-open-value-deficit.md)、[261005-turnaround-coherence](../_archive/settled_issues/261005-turnaround-coherence.md)。OKF/WIKI 能力边界
+- [261005-dsh-native-first-tech-keynote.md](tech-exploration/261005-dsh-native-first-tech-keynote.md)——原卡：[261005-open-value-deficit](../_archive/settled_issues/261005-open-value-deficit.md)。DSH 原生优先的技术定调
+- [261005-turnaround-evidence-audit.md](tech-exploration/261005-turnaround-evidence-audit.md)——原卡：[261005-open-value-deficit](../_archive/settled_issues/261005-open-value-deficit.md)、[261005-turnaround-coherence](../_archive/settled_issues/261005-turnaround-coherence.md)。一手代码审计

@@ -6,4 +6,4 @@
 |---|---|---|
 | [tech-exploration/261005-repo-entry-tooling-audit.md](tech-exploration/261005-repo-entry-tooling-audit.md) | [261005-repo-navigability](../settled_issues/261005-repo-navigability.md) | 2026-10-05 |
 | [tech-exploration/261005-repo-test-asset-audit.md](tech-exploration/261005-repo-test-asset-audit.md) | [261005-repo-navigability](../settled_issues/261005-repo-navigability.md) | 2026-10-05 |
-| [tech-exploration/261007-semantic-sweep-src.md](tech-exploration/261007-semantic-sweep-src.md) | [BUG-003～007](../fixed_bugs/BUG-007-concurrency-lifecycle-minors.md)（巡检五卡，全毕业） | 2026-10-07 |
+| [tech-exploration/261007-semantic-sweep-src.md](tech-exploration/261007-semantic-sweep-src.md) | [BUG-003～007](../fixed_bugs/BUG-007-concurrency-lifecycle-minors.md)（五张都在 fixed_bugs；007 那行写明只修了一部分） | 2026-10-07 |
