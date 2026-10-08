@@ -1,6 +1,6 @@
 # 推敲：它先开口——开屏播报、拍板感与周节律（行为层收口）
 
-> 立卡：2026-10-07 ｜ 状态：推敲中｜毕业门判断 = **该做，四片全交付**（Slice 1 `7fe774a` / 2 `636a4a6` / 3 `532c19d`，implemented note = [notes/archived/2026-10-07-opening-brief-and-rhythm.md](../../notes/archived/2026-10-07-opening-brief-and-rhythm.md)）｜**机械面：6/7 行有证据、1 行现状阻断（#7 blank 夹具腐烂）；人面：0/3 已判**（#5 拍板语气 / #6 周坐口径 / R5 红线）｜**剩毕业门最后一环：用户终验**｜下一步 = 用户上手终验 → 过则卡毕业迁 `_archive/closed/`
+> 立卡：2026-10-07 ｜ 状态：推敲中｜毕业门判断 = **该做，四片全交付**（Slice 1 `7fe774a` / 2 `636a4a6` / 3 `532c19d`，implemented note = [notes/archived/2026-10-07-opening-brief-and-rhythm.md](../../notes/archived/2026-10-07-opening-brief-and-rhythm.md)）｜**机械面：6/7 行有证据、1 行现状阻断（#7 blank 夹具腐烂）；人面：0/3 已判**（#5 拍板语气 / #6 周坐口径 / R5 红线）｜**剩毕业门最后一环：用户终验**｜下一步 = 用户上手终验 → 过则卡毕业迁 `_archive/settled_issues/`
 >
 > **2026-10-08 状态语气校正**：原状态行把"完整弧线真机走查通过"与"四片全交付"并排，读起来是完成态；
 > 而本卡 `## 验收矩阵` 自陈 #7 阻断、#5/#6 的真人判断未走、`/tmp` 走查证据不可复核（= blocked 不是 pass）。
@@ -78,7 +78,7 @@ morning-brief 周变体（对账口径：上周拍的/在跟状态/缺的数/本
 | 4 | dashboard 的「有问题？」**真回对话**（死按钮变真入口，断点 3） | 编排 | 点击 dashboard 的 onAsk | `ctx.layout.selectPanel(null)` 被调用、主区回会话面 | **负例/死路**：`dsh-navigate-to-session` 事件全仓（含 vendor）**零监听者**——旧实现是断的，夹具须钉住走 `ctx.layout` 而非该事件 | `packages/dsh-smart-assistant/tests/client/client-dashboard.spec.ts` »'onAsk returns to the Conversation through ctx.layout (261007 Slice 1c)' ——**证明**路由对；**不能证明** vendor 侧真切了面板（归走查） | 无 |
 | 5 | 拍板记录**读起来是本人的话**（中文口吻，非英文机器腔） | 确定性 + 模型行为 | 点 dashboard 决策选项 | 入账语句形如「拍：〈问题〉→〈选项〉」、中文；卡片即时「已拍」锁定 | **互补**：英文机器腔版是**已修的病**（Slice 2 前）——夹具须覆盖"不出现英文机器腔"；回执退场后新决策上位 | `client-dashboard.spec.ts` »'option click proxies the decision in the principal-voice Chinese lane (261007 Slice 2)' ——**证明**车道与文案形态；**不能证明**模型侧是否真把这段话按本人语气记账（归 eval/真机） | **语气是否真像本人**（taste，机器不判）——终验项 |
 | 6 | 周坐排程落盘：周一 09:00 Asia/Shanghai + at 型 due | 确定性（调度）+ 模型行为（技能守约） | 真模型跑 morning-brief 周变体一节 | schedule 两条落盘、时区正确、同一回合不堆叠（`schedule_list` 防堆叠） | **互补**：重复触发不产生第二组排程（防堆叠）；`weekly` 为 vendor 原生承载（B1 实施期待核实，当时只有 `at` 型先例） | **机械 half 缺耐久 owner**：排程落盘读的是会话日志（`session.v<n>.jsonl.zstd`，读法 owner = [`dev/reports/usage-report.mjs`](../../dev/reports/usage-report.mjs) `sessionLogs`/`readEvents`），但**未固化成一次性可复跑的命令**——本卡只有走查记录（`/tmp/ux-shots/slice3-*`）。**模型 half**：`pnpm eval --only <task-id>`（任务清单 `pnpm eval --list`；家 = `dev/eval/`，其 AGENTS 是 owner）——本卡未挂具体 task-id，**属未指定，不是已证明**。**证明**该回合落盘正确；**不能证明**跨周边界行为（归真用） | 周坐这四个对账口径是不是一把手真想要的（业务价值） |
-| 7 | 桌面/面板**渲染期望不回归**（结构性外观） | 编排（渲染） | 隔离 home 真渲染，两场景 | `pnpm web-expected` 零 diff | **现状阻断**：blank 场景夹具前置腐烂，owner = [`snapshots/`](../../snapshots/AGENTS.md)（**2026-10-08 校正**：原行归 [261007-bigfile-split](../_archive/closed/261007-bigfile-split.md)，而该卡归档时不吸收此观察、明写交回 snapshots——旧指针指给了一张拒收的卡）——**该行当前不可判，不得报绿** | `snapshots/web-face/` 两场景（`pnpm web-expected`）——**证明**渲染期望；**不能证明**交互逻辑（client spec 管） | 无 |
+| 7 | 桌面/面板**渲染期望不回归**（结构性外观） | 编排（渲染） | 隔离 home 真渲染，两场景 | `pnpm web-expected` 零 diff | **现状阻断**：blank 场景夹具前置腐烂，owner = [`snapshots/`](../../snapshots/AGENTS.md)（**2026-10-08 校正**：原行归 [261007-bigfile-split](../_archive/settled_issues/261007-bigfile-split.md)，而该卡归档时不吸收此观察、明写交回 snapshots——旧指针指给了一张拒收的卡）——**该行当前不可判，不得报绿** | `snapshots/web-face/` 两场景（`pnpm web-expected`）——**证明**渲染期望；**不能证明**交互逻辑（client spec 管） | 无 |
 
 **R5 产品红线（贯穿 #1、#5、#6 的真人判断）**：一把手是直觉型经营者不是仪表盘动物——播报是**三行口语化
 语文题 + 每行可点**，永远不做计数分区/图表。这条是[中国 SME 调研](../research/positioning/261005-chinese-sme-boss.md)
@@ -116,7 +116,7 @@ owner 面**，故本卡不擅自把它们塞进 `snapshots/`（那是越界，�
    纪律**不得写成绿色**。
 3. **真人判断（唯一未走完的一环）**：用户终验。矩阵 #5（拍板语气像不像本人）、#6（周坐对账口径
    是不是一把手真要的）与 R5 红线（不做仪表盘化）三条是**机器不判**的品味/业务判断。
-4. **归档后去向**：过则与 [261006](261006-chief-of-staff-experience.md) 一并迁 `_archive/closed/`；
+4. **归档后去向**：过则与 [261006](261006-chief-of-staff-experience.md) 一并迁 `_archive/settled_issues/`；
    不过则按具体不过的矩阵行回流为缺陷卡（不重开本卡）。
 
 **终验锚点**（与 261006 共用一份可判清单，记录家在本卡）：终验 = 本人拿干净 home 走一遍，

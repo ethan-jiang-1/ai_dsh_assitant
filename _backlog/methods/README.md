@@ -27,19 +27,19 @@
 
 | 现在要解决什么 | 读取 | 留下什么 |
 |---|---|---|
-| 毕业判断已有，要决定写不写、写成提案、更新既有决定、记下触发、记下否决，还是消化进已有正文 | [plan-to-note](plan-to-note.md) | 一篇独立可读的 Note，或明确的不写；plan 按章程离场 |
+| 毕业判断已有，要决定写不写、写成提案、更新既有决定、记下触发、记下否决，还是消化进已有正文 | [issue-to-note](issue-to-note.md) | 一篇独立可读的 Note，或明确的不写；issue 按章程离场 |
 
 ### 验证链：判断做出来没有
 
-验证链只消费已确认的 plan；不能替需求链补产品决定，也不能用验收结果偷偷改需求。
+验证链只消费已确认的 issue；不能替需求链补产品决定，也不能用验收结果偷偷改需求。
 **时序**：validation-design 在 synthesis 的切片评估与毕业判断**之前**——仅当四门判断指向
 doing-now/proposal（需要可执行验收）才需要矩阵，deferred/rejection/digestion 出口不需要。
-plan-to-note 在毕业判断**之后**：把矩阵行改写成提案的「验收」，或按另外三门写成触发、否决、消化、
+issue-to-note 在毕业判断**之后**：把矩阵行改写成提案的「验收」，或按另外三门写成触发、否决、消化、
 或不写。validation-evidence 在实施前或实施中指定证据，validation-judgment 在实施后收货。
 
 | 现在要解决什么 | 读取 | 留下什么 |
 |---|---|---|
-| 已确认的行为还没有可判定的完成条件 | [validation-design](validation-design.md) | 同一张 plan 内的验收矩阵、行为分类、负例/互补状态和真人判断点 |
+| 已确认的行为还没有可判定的完成条件 | [validation-design](validation-design.md) | 同一张 issue 内的验收矩阵、行为分类、负例/互补状态和真人判断点 |
 | 计划已有判据，需要选择可信证据 | [validation-evidence](validation-evidence.md) | 现有测试、组合、渲染、eval 或真人证据 owner；不建新队列 |
 | 实施声称完成，需要逐行收货和归因 | [validation-judgment](validation-judgment.md) | pass/fail/blocked/human-pending 结果、限制、回退路径或需求缺口 |
 
@@ -74,17 +74,17 @@ plan-to-note 在毕业判断**之后**：把矩阵行改写成提案的「验收
 | [requirements-elicitation](requirements-elicitation.md)：访谈、术语、大想法决策地图 | `skills/engineering/grill-with-docs/SKILL.md`、`skills/productivity/grilling/SKILL.md`、`skills/engineering/domain-modeling/SKILL.md`、`skills/engineering/wayfinder/SKILL.md` |
 | [requirements-probes](requirements-probes.md)：research/问卷/原型与 raw-request 核实 | `skills/engineering/research/SKILL.md`、`skills/productivity/to-questionnaire/SKILL.md`、`skills/engineering/prototype/SKILL.md`（含分支资源）、`skills/engineering/triage/SKILL.md`（含关联资源） |
 | [requirements-synthesis](requirements-synthesis.md)：编译需求、候选切片与四门判断 | `skills/engineering/to-spec/SKILL.md`、`skills/engineering/to-tickets/SKILL.md`、`skills/engineering/codebase-design/SKILL.md`、`skills/engineering/ask-matt/SKILL.md`（阶段边界资源） |
-| [plan-to-note](plan-to-note.md)：毕业判断写成 Note，或明确不写 | 无 Matt 技能。重读入口是钉住的 [DSH notes 规则](../../vendor/dsh/.agents/notes/README.md) 与同树 `dsh-prose-standard` / `dsh-trim-cot-leakage` / `dsh-archive-agent-notes`；落笔形状以 [notes 契约](../../notes/README.md) 为准 |
+| [issue-to-note](issue-to-note.md)：毕业判断写成 Note，或明确不写 | 无 Matt 技能。重读入口是钉住的 [DSH notes 规则](../../vendor/dsh/.agents/notes/README.md) 与同树 `dsh-prose-standard` / `dsh-trim-cot-leakage` / `dsh-archive-agent-notes`；落笔形状以 [notes 契约](../../notes/README.md) 为准 |
 | [validation-design](validation-design.md)：验收判据与矩阵 | `skills/engineering/tdd/SKILL.md`（红灯先行/独立预期值/垂直切片）、`skills/engineering/codebase-design/SKILL.md`（seam 词汇） |
 | [validation-evidence](validation-evidence.md)：证据路由 | 表主是本仓 [testing 证据地图](../../docs/testing.md)与现有 owners；上游无对应技能本体 |
 | [validation-judgment](validation-judgment.md)：收货与归因 | `skills/engineering/code-review/SKILL.md`（双轴分报）、`skills/engineering/diagnosing-bugs/SKILL.md`（失败归因回环）、`skills/engineering/retro/SKILL.md`（验收漏检沉淀为检查/标准） |
 
 表未列出的上游技能 = 本仓无对应功能位，取舍理由见决定记录（如 `pr` 的合并证据打包、
-`improve-codebase-architecture` 的结构门均不进 plan 验收）。
+`improve-codebase-architecture` 的结构门均不进 issue 验收）。
 
 上游 FAQ（`_faq_on_digest/09_…`、`10_…`）只用于定位 Matt 技能，不是能力依据。
 有技能本体的篇，协议与分支资源以本体为准。Note 质量的规则原文在钉住的
 [`vendor/dsh/.agents/notes/`](../../vendor/dsh/.agents/notes/README.md) 与同树技能里，判断已经写进
-[plan-to-note](plan-to-note.md)。
+[issue-to-note](issue-to-note.md)。
 基线 `fad9000`。方法就在本目录。
 上游更新时重读本表点名的本体及分支资源；不 vendor、不安装、不修改全局发现配置。

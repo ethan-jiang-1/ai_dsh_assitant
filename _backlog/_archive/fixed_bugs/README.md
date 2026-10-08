@@ -1,4 +1,4 @@
-# bugs/ · 修完的缺陷
+# fixed_bugs/ · 修好了
 
 从 [`../../bugs/`](../../bugs/README.md) 用 `git mv` 进来。文件名不变。下一个号仍在活跃目录的 README 取。
 

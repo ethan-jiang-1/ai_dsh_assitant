@@ -845,7 +845,7 @@ export function exportManualProblems({ manualPath, manifest }) {
  * 2. every active issue card carries its status line (the hukou: 状态 within the first 12 lines) —
  *    a dead draft cannot hide;
  * 3. index membership both ways: every card or research file is named by its area's index
- *    (issues/ active list, research/ index, _archive/closed and suspended indexes, archived
+ *    (issues/ active list, research/ index, _archive/settled_issues and suspended indexes, archived
  *    research index) — a card moved without the index update is the drift the gate exists for.
  *
  * @param {string} backlogRoot - path of the _backlog/ directory.
@@ -854,8 +854,9 @@ export function backlogLivenessProblems(backlogRoot) {
   const problems = []
   const requiredDirs = [
     'issues', 'bugs', 'research', 'methods',
-    join('_archive', 'closed'), join('_archive', 'bugs'),
-    join('_archive', 'suspended'), join('_archive', 'research'),
+    join('_archive', 'settled_issues'), join('_archive', 'suspended_issues'),
+    join('_archive', 'fixed_bugs'), join('_archive', 'suspended_bugs'),
+    join('_archive', 'research'),
   ]
   for (const dir of requiredDirs) {
     if (!existsSync(join(backlogRoot, dir))) problems.push(`_backlog/${dir} is missing (the institution's directories are part of the charter)`)
@@ -898,8 +899,11 @@ export function backlogLivenessProblems(backlogRoot) {
     }
   }
 
-  // Closed and suspended cards are flat files named by the pool README.
-  for (const dir of [join('_archive', 'closed'), join('_archive', 'bugs'), join('_archive', 'suspended')]) {
+  // Settled, suspended and fixed cards are flat files named by the pool README.
+  for (const dir of [
+    join('_archive', 'settled_issues'), join('_archive', 'suspended_issues'),
+    join('_archive', 'fixed_bugs'), join('_archive', 'suspended_bugs'),
+  ]) {
     const fullDir = join(backlogRoot, dir)
     if (!existsSync(fullDir)) continue
     const indexPath = join(dir, 'README.md')
@@ -925,7 +929,7 @@ export function backlogLivenessProblems(backlogRoot) {
  *     "推敲中" for a card whose four gates judged 该做 but whose last row is a human sign-off.
  *     Keying on GRADUATED_STATUS here would red-line honest waiting cards.
  *   · 毕业门 is the field that carries the judgment, so 已过 / 已通过 / 已毕业 there means the card
- *     has already reached its destination and the move to _archive/closed/ is a bookkeeping residue.
+ *     has already reached its destination and the move to _archive/settled_issues/ is a bookkeeping residue.
  *   · A card whose gate says 待定 / 待触发 / 倾向放弃 / 🔒 is *not* finished and never trips this.
  *
  * Human-pending is deliberately NOT a completion word. "该做，四片全交付" + "剩毕业门最后一环：用户
@@ -964,7 +968,7 @@ export function backlogGraduationProblems(backlogRoot) {
     problems.push(
       `_backlog/issues/${entry.name} declares its graduation gate satisfied but still sits in issues/` +
       `${stillListed ? ' and is still named by issues/README.md\'s active list' : ''}` +
-      ` — graduate it with \`git mv\` to _backlog/_archive/closed/ and add its index row`,
+      ` — graduate it with \`git mv\` to _backlog/_archive/settled_issues/ and add its index row`,
     )
   }
   return problems

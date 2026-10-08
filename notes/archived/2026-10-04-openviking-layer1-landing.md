@@ -3,7 +3,7 @@
 
 # OpenViking 层 1 正式落地：隐形引擎经 DSH 原生缝
 
-来源卡：[_backlog/_archive/closed/260929-openviking-formal-integration.md](../../_backlog/_archive/closed/260929-openviking-formal-integration.md)
+来源卡：[_backlog/_archive/settled_issues/260929-openviking-formal-integration.md](../../_backlog/_archive/settled_issues/260929-openviking-formal-integration.md)
 （位置即状态；卡的推敲全程、实弹台账 S1–S13、八接缝裁决、旋钮剖面演化 v1→v3 在彼，本文只记**决定**）。
 
 ## 决定

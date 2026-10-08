@@ -3,7 +3,7 @@
 日期：2026-10-05 · 状态：**implemented**（P0–P5 已交付。合同在 docs/architecture.md 与 docs/testing.md。P5 由新上下文 7 分钟走完五路，四个文档缺口当日修复）
 已归档：2026-10-08（决定已经在合同或代码里；下次改决定不用打开本篇。冻结，不再跟踪。）
 
-> 承接自[推敲卡](../../_backlog/_archive/closed/261005-repo-navigability.md)（2026-10-05 毕业为该做，用户确认分段实施）。完整推敲史、八条承重事实、五项硬要求映射、运行态心智模型、状态分层与 run bundle 候选、迁移归属表与回退纪律都在卡上（冻结可查）；本提案只携带实施所需的方案骨架与验收。两份调研底稿随卡归档：[入口与工具库存](../../_backlog/_archive/research/tech-exploration/261005-repo-entry-tooling-audit.md)、[测试资产审计](../../_backlog/_archive/research/tech-exploration/261005-repo-test-asset-audit.md)。
+> 承接自[推敲卡](../../_backlog/_archive/settled_issues/261005-repo-navigability.md)（2026-10-05 毕业为该做，用户确认分段实施）。完整推敲史、八条承重事实、五项硬要求映射、运行态心智模型、状态分层与 run bundle 候选、迁移归属表与回退纪律都在卡上（冻结可查）；本提案只携带实施所需的方案骨架与验收。两份调研底稿随卡归档：[入口与工具库存](../../_backlog/_archive/research/tech-exploration/261005-repo-entry-tooling-audit.md)、[测试资产审计](../../_backlog/_archive/research/tech-exploration/261005-repo-test-asset-audit.md)。
 
 ## 问题（可观察行为）
 
@@ -28,7 +28,7 @@
 
 **执行模式（用户 2026-10-05 拍板分段）**：本提案整体获确认，实施按段推进、段间回用户复核——第一段 = P0 残尾 + P2（先试点后扩展），验收后再立下一段；P3 → P4 → P5 的顺序由证据依赖决定（P1 先于 P3 已满足，P2/P3 先于 P4）。goal 管当前段，todo 管片内实施，本提案管方案与验收边界。
 
-相邻 owner：资产退役/保留判断归 [SDLC 清理卡](../../_backlog/_archive/closed/261005-sdlc-turnaround-cleanup.md)，产品转向总路线归[自洽卡](../../_backlog/_archive/closed/261005-turnaround-coherence.md)，测试哲学归测试策略决定——本提案只拥有导航与组织，不重写它们，也不按年龄删除能力。
+相邻 owner：资产退役/保留判断归 [SDLC 清理卡](../../_backlog/_archive/settled_issues/261005-sdlc-turnaround-cleanup.md)，产品转向总路线归[自洽卡](../../_backlog/_archive/settled_issues/261005-turnaround-coherence.md)，测试哲学归测试策略决定——本提案只拥有导航与组织，不重写它们，也不按年龄删除能力。
 
 ## 输掉的方案
 

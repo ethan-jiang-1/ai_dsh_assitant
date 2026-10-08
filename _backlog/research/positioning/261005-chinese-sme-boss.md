@@ -301,5 +301,5 @@ https://jingji.cctv.cn/2025/04/11/ARTIeLPato1J9iYao9DyGZKF250411.shtml
 
 ## 附：本卡服务对象与喂养关系
 
-- 服务：`_backlog/issues/` 中「一把手的总助」定位推敲卡（261005-open-value-deficit 线）。
+- 服务：[`261005-open-value-deficit`](../../_archive/settled_issues/261005-open-value-deficit.md) 那条定位线，活卡仍引用本文。
 - 本文是 `_backlog/research/positioning/` 的第 7 份材料；索引见 [`../README.md`](../README.md)。

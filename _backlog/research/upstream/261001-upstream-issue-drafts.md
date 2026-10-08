@@ -1,7 +1,7 @@
 # 上游 issue 递交草案（6 条）——喂 261001-first-open-ux
 
 > 立档：2026-10-05｜服务对象：[261001-upstream-candidates.md](261001-upstream-candidates.md)
-> （行号映射见下表）与 [首开 UX 卡](../../_archive/closed/261001-first-open-ux.md)。
+> （行号映射见下表）与 [首开 UX 卡](../../_archive/settled_issues/261001-first-open-ux.md)。
 > 状态：**已递交（2026-10-06 gh 认证恢复后经 gh api GraphQL 代发，6/6 成功，链接见下表）**——
 > 渠道 = `github.com/deepseek-ai/deepseek-harness` 的 **Discussions · Ideas** 分类
 > （CONTRIBUTING 明文外部反馈走 Discussions；issue 面留维护者）。两条执行路径：

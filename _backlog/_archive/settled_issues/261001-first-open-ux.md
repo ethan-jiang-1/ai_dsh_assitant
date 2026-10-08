@@ -106,7 +106,7 @@
   （首版"尾部追加位置行"与"摘要头部位置行"两案均被评测 A/B 证伪——路径本身在内容丰富的 home
   里是翻家邀请；详见手册可移植化 note）。
   存量 home 走既有 `manual-stale-scaffold` 版本通道再生。
-- **评测两任务既有红立 [BUG-001](../bugs/BUG-001-eval-behavior-tasks-red.md)**：A/B 矩阵（基线/在途 ×
+- **评测两任务既有红立 [BUG-001](../fixed_bugs/BUG-001-eval-behavior-tasks-red.md)**：A/B 矩阵（基线/在途 ×
   dev/fresh home）证明 `breakdown-uses-skill` 与 `desk-refresh-loop` 与当日改动无关；附带实测
   凭据文件 0600 权限陷阱。
 - **评测基础设施发现**：评测会话会写家（今日两条"签单"线索），行为评测读数必须注明 home 状态；

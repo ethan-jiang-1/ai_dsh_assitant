@@ -1,6 +1,6 @@
 # 推敲：implemented/ 冻结树与 class 子目录
 
-> 立卡：2026-09-28 ｜ 状态：推敲中｜毕业门判断 = 待触发｜下一步 = implemented/ 篇数过百或浏览开始碍事 ｜ **关闭：2026-09-29 用户拍板批量清理：方法住 note-archive-judgment 技能；53 篇未到阈值；去向 = _archive/closed 归档**
+> 立卡：2026-09-28 ｜ 状态：推敲中｜毕业门判断 = 待触发｜下一步 = implemented/ 篇数过百或浏览开始碍事 ｜ **关闭：2026-09-29 用户拍板批量清理：方法住 note-archive-judgment 技能；53 篇未到阈值；去向 = _archive/settled_issues 归档**
 
 ## 背景 / 触发
 当前 53 篇 implemented。吸收纪律见

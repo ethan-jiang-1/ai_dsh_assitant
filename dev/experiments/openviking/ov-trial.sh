@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # OpenViking 试点配置生成器（幂等）——从 .env.local 生成 ~/.openviking/ov.conf + ovcli.conf
-# 依据：_backlog/_archive/closed/260928-openviking-install-release.md 决策 D2；
+# 依据：_backlog/_archive/settled_issues/260928-openviking-install-release.md 决策 D2；
 #       密钥纪律见 vendor/thirdparty/openviking/README.md「密钥纪律」。
 # 红线：key 只从 .env.local 读取、只写入仓库外的 ~/.openviking/（0600），本脚本不回显任何密钥。
 set -euo pipefail

@@ -1,6 +1,6 @@
 # 一把手的时间与决策实证研究：为「一把手的总助」产品定位供弹药
 
-> 服务对象：产品定位推敲（喂 [261005-open-value-deficit](../../_archive/closed/261005-open-value-deficit.md)）。
+> 服务对象：产品定位推敲（喂 [261005-open-value-deficit](../../_archive/settled_issues/261005-open-value-deficit.md)）。
 > 回答的问题：**一把手的时间/注意力/决策负荷到底长什么样、痛点在哪**——用可查证的数据说话，不靠印象。
 > **查证日期：2026-10-05**（全部条目同日逐句核对）。
 > 方法：web_fetch 工具本会话 DNS 故障（解析到非公网 IP），全程改用 **curl 直连**（多数学术/官方 PDF 可直连）、

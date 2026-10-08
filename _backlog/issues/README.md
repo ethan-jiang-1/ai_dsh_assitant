@@ -1,8 +1,8 @@
-# issues/ · 还开着的工作项
+# issues/ · 还在推敲的事
 
 > 一文件一张卡，文件名 `YYMMDD-<slug>.md`。缺陷不进这里，进 [`../bugs/`](../bugs/README.md)。
-> 有结论就 `git mv` 到 [`../_archive/closed/`](../_archive/closed/README.md)，文件名不变，正文不改，状态行补去向。
-> 还没结论、被明确搁置的，进 [`../_archive/suspended/`](../_archive/suspended/README.md)。
+> 有结论就 `git mv` 到 [`../_archive/settled_issues/`](../_archive/settled_issues/README.md)，文件名不变，正文不改，状态行补去向。
+> 被人叫停、还没有结论的，进 [`../_archive/suspended_issues/`](../_archive/suspended_issues/README.md)。
 > 地图在 [`../README.md`](../README.md)。
 
 ## 活跃清单
@@ -16,7 +16,7 @@
 ## 🔒 只有用户能判触发
 
 状态行带 🔒 的卡，agent 只报告和建议，不得自行判触发、不得删卡、不得实现。
-样本卡 [260929-reserved-anchor-discipline](../_archive/closed/260929-reserved-anchor-discipline.md) 已由用户本人关闭。现在没有在役的 🔒 卡。新卡出现时，这条照旧。
+样本卡 [260929-reserved-anchor-discipline](../_archive/settled_issues/260929-reserved-anchor-discipline.md) 已由用户本人关闭。现在没有在役的 🔒 卡。新卡出现时，这条照旧。
 
 ## 推敲卡模板
 

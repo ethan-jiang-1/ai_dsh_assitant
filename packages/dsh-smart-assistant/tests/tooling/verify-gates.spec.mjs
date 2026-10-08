@@ -154,7 +154,7 @@ describe('verify relative-link corpus wiring', () => {
       '_backlog/methods/README.md',
       '_backlog/methods/some-method.md',
     ]
-    for (const file of [...active, '_backlog/_archive/README.md', '_backlog/_archive/research/261005-frozen.md', '_backlog/_archive/bugs/BUG-009-frozen.md', '_backlog/unowned.md']) {
+    for (const file of [...active, '_backlog/_archive/README.md', '_backlog/_archive/research/261005-frozen.md', '_backlog/_archive/fixed_bugs/BUG-009-frozen.md', '_backlog/unowned.md']) {
       const path = join(root, file)
       mkdirSync(join(path, '..'), { recursive: true })
       writeFileSync(path, '[route](missing.md)\n')
@@ -173,7 +173,7 @@ describe('verify relative-link corpus wiring', () => {
     for (const file of active) expect(broken).toContain(`${file} links to missing.md`)
     expect(broken).not.toContain('_backlog/_archive/README.md links to')
     expect(broken).not.toContain('_backlog/_archive/research/261005-frozen.md links to')
-    expect(broken).not.toContain('_backlog/_archive/bugs/BUG-009-frozen.md links to')
+    expect(broken).not.toContain('_backlog/_archive/fixed_bugs/BUG-009-frozen.md links to')
     expect(broken).not.toContain('_backlog/unowned.md links to')
     for (const file of active) writeFileSync(join(root, file, '..', 'missing.md'), '# destination\n')
     expect(run()).toContain(`ok   ${gate}`)
@@ -213,7 +213,7 @@ describe('verify machine-local-path corpus wiring', () => {
     }
     // Frozen history keeps its prose, notes/ is where external provenance is allowed to live, and a
     // file outside the institution is not this rule's business.
-    for (const file of ['_backlog/_archive/README.md', '_backlog/_archive/research/261005-frozen.md', '_backlog/_archive/bugs/BUG-009-frozen.md', 'notes/implemented/2026-01-01-topic.md', '_backlog/unowned.md']) {
+    for (const file of ['_backlog/_archive/README.md', '_backlog/_archive/research/261005-frozen.md', '_backlog/_archive/fixed_bugs/BUG-009-frozen.md', 'notes/implemented/2026-01-01-topic.md', '_backlog/unowned.md']) {
       const path = join(root, file)
       mkdirSync(join(path, '..'), { recursive: true })
       writeFileSync(path, 'Protocol lives at /Users/someone/checkout/skills/x/SKILL.md\n')
@@ -227,7 +227,7 @@ describe('verify machine-local-path corpus wiring', () => {
     expect(result.status).toBe(1)
     expect(result.stdout).toContain(`FAIL ${gate}`)
     for (const file of offending) expect(result.stdout).toContain(`${file} cites a machine-local absolute path`)
-    for (const file of ['_backlog/_archive/README.md', '_backlog/_archive/research/261005-frozen.md', '_backlog/_archive/bugs/BUG-009-frozen.md', 'notes/implemented/2026-01-01-topic.md', '_backlog/unowned.md']) {
+    for (const file of ['_backlog/_archive/README.md', '_backlog/_archive/research/261005-frozen.md', '_backlog/_archive/fixed_bugs/BUG-009-frozen.md', 'notes/implemented/2026-01-01-topic.md', '_backlog/unowned.md']) {
       expect(result.stdout).not.toContain(`${file} cites a machine-local absolute path`)
     }
 
@@ -368,14 +368,14 @@ describe('notesTopLevelProblems', () => {
 
 describe('backlogLivenessProblems', () => {
   function bootBacklog(dir) {
-    for (const sub of ['issues', 'bugs', 'research', 'methods', join('_archive', 'closed'), join('_archive', 'bugs'), join('_archive', 'suspended'), join('_archive', 'research')]) {
+    for (const sub of ['issues', 'bugs', 'research', 'methods', join('_archive', 'settled_issues'), join('_archive', 'suspended_issues'), join('_archive', 'fixed_bugs'), join('_archive', 'suspended_bugs'), join('_archive', 'research')]) {
       mkdirSync(join(dir, sub), { recursive: true })
     }
     writeFileSync(join(dir, 'issues', 'README.md'), '# issues\n\n| 卡 | 一句话 | 倾向 |\n|---|---|---|\n', 'utf8')
     writeFileSync(join(dir, 'bugs', 'README.md'), '# bugs\n\n| Bug | 标题 | 严重级 | 发现 |\n|---|---|---|---|\n', 'utf8')
     writeFileSync(join(dir, 'research', 'README.md'), '# research\n', 'utf8')
     writeFileSync(join(dir, 'methods', 'README.md'), '# methods\n', 'utf8')
-    for (const pool of ['closed', 'bugs', 'suspended', 'research']) {
+    for (const pool of ['settled_issues', 'suspended_issues', 'fixed_bugs', 'suspended_bugs', 'research']) {
       writeFileSync(join(dir, '_archive', pool, 'README.md'), `# ${pool}\n`, 'utf8')
     }
     writeFileSync(join(dir, '_archive', 'README.md'), '# _archive\n', 'utf8')
@@ -404,8 +404,8 @@ describe('backlogLivenessProblems', () => {
     expect(problems.some(p => p.includes('260928-live.md') && p.includes('index'))).toBe(true)
     expect(problems.some(p => p.includes('bugs/BUG-008-unlisted.md') && p.includes('bugs/README.md'))).toBe(true)
 
-    rmSync(join(backlog, '_archive', 'suspended'), { recursive: true, force: true })
-    expect(backlogLivenessProblems(backlog).some(p => p.includes('_archive/suspended'))).toBe(true)
+    rmSync(join(backlog, '_archive', 'suspended_issues'), { recursive: true, force: true })
+    expect(backlogLivenessProblems(backlog).some(p => p.includes('_archive/suspended_issues'))).toBe(true)
   })
 
   it('rejects research material missing from its index', () => {
@@ -430,12 +430,12 @@ describe('backlogLivenessProblems', () => {
   it('rejects an archived card missing from its pool index', () => {
     const backlog = temp('backlog-arch-')
     bootBacklog(backlog)
-    writeFileSync(join(backlog, '_archive', 'closed', '260928-gone.md'),
+    writeFileSync(join(backlog, '_archive', 'settled_issues', '260928-gone.md'),
       '# 推敲：已毕业\n\n> 状态：已关闭\n', 'utf8')
-    writeFileSync(join(backlog, '_archive', 'bugs', 'BUG-008-gone.md'),
+    writeFileSync(join(backlog, '_archive', 'fixed_bugs', 'BUG-008-gone.md'),
       '# BUG-008：已修\n\n> 状态：fixed\n', 'utf8')
-    expect(backlogLivenessProblems(backlog).some(p => p.includes('260928-gone.md') && p.includes('_archive/closed/README.md'))).toBe(true)
-    expect(backlogLivenessProblems(backlog).some(p => p.includes('BUG-008-gone.md') && p.includes('_archive/bugs/README.md'))).toBe(true)
+    expect(backlogLivenessProblems(backlog).some(p => p.includes('260928-gone.md') && p.includes('_archive/settled_issues/README.md'))).toBe(true)
+    expect(backlogLivenessProblems(backlog).some(p => p.includes('BUG-008-gone.md') && p.includes('_archive/fixed_bugs/README.md'))).toBe(true)
   })
 })
 
@@ -467,7 +467,7 @@ describe('backlogGraduationProblems', () => {
     const problems = backlogGraduationProblems(backlog)
     expect(problems).toHaveLength(1)
     expect(problems[0]).toContain('261007-split.md')
-    expect(problems[0]).toContain('_archive/closed')
+    expect(problems[0]).toContain('_archive/settled_issues')
   })
 
   it('rejects a status field that is itself a completion word', () => {

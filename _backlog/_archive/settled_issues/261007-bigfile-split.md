@@ -1,7 +1,7 @@
 # 两大文件拆分：host 按房间切片，client 走 DSH 同款 tsdown 管线
 
 > 立卡：2026-10-07 ｜ 状态：**S1+S2 已交付**｜毕业门 = 已过（S2 活体门有一项如实阻断，见证据）｜下一步 = 场景夹具腐烂另立修复（snapshots owner 面，见"后续观察"）
-> **关闭：2026-10-08（迁 `_archive/closed/`；用户点名"拿 playbook 敲打 plans 质量"时发现它早已到站却占活跃位）**——
+> **关闭：2026-10-08（迁 `_archive/settled_issues/`；用户点名"拿 playbook 敲打 plans 质量"时发现它早已到站却占活跃位）**——
 > 两条腿都已落地（S1 `c803726`、S2 `1f4e07e`），毕业判断成立；判定与证据保留在上文，正文不重写。
 > **归档不吸收"后续观察"**：blank 场景夹具腐烂仍归 [snapshots](../../../snapshots/README.md) owner 面，
 > 重录 / 写 README 二选一未裁决——修复前 `web-expected` 对 blank 场景**不可判（现状阻断）**，

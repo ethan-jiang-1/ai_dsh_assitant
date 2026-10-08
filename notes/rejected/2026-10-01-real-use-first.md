@@ -2,9 +2,9 @@
 
 日期：2026-10-01 · 状态：**rejected**（方案被取代：原型阶段不再以本人真用/抽检为推进前置，已交付部分归各自 implemented；拒绝的是旧推进方式）
 
-2026-10-05 处置：本稿保留用于防止再次把真人业务输入设成原型研发的阻塞条件，不再拥有进度或等待任务。当前推敲归 [自洽卡](../../_backlog/_archive/closed/261005-turnaround-coherence.md) 与 [定位卡](../../_backlog/_archive/closed/261005-open-value-deficit.md)；本轮采用可由 agent 完成的公开案例、情景重放与访谈框架设计。未来实际受众/决定的反馈可提升证据等级，不是现在的开工门。
+2026-10-05 处置：本稿保留用于防止再次把真人业务输入设成原型研发的阻塞条件，不再拥有进度或等待任务。当前推敲归 [自洽卡](../../_backlog/_archive/settled_issues/261005-turnaround-coherence.md) 与 [定位卡](../../_backlog/_archive/settled_issues/261005-open-value-deficit.md)；本轮采用可由 agent 完成的公开案例、情景重放与访谈框架设计。未来实际受众/决定的反馈可提升证据等级，不是现在的开工门。
 
-已交付事实归 [基座搬运](../archived/2026-10-01-management-base-port.md)、[机器预评分](../archived/2026-10-02-g2-machine-prescore.md)、[反馈管线](../archived/2026-09-30-stock-plugin-adoption.md)、[OV 层 1](../archived/2026-10-04-openviking-layer1-landing.md) 与 [首开 UX 卡](../../_backlog/_archive/closed/261001-first-open-ux.md)。仍有意义的研究问题归当前 owner，不把真人抽检转成新等待队列；旧评分仍是机器读数，未经真人验证。
+已交付事实归 [基座搬运](../archived/2026-10-01-management-base-port.md)、[机器预评分](../archived/2026-10-02-g2-machine-prescore.md)、[反馈管线](../archived/2026-09-30-stock-plugin-adoption.md)、[OV 层 1](../archived/2026-10-04-openviking-layer1-landing.md) 与 [首开 UX 卡](../../_backlog/_archive/settled_issues/261001-first-open-ux.md)。仍有意义的研究问题归当前 owner，不把真人抽检转成新等待队列；旧评分仍是机器读数，未经真人验证。
 
 以下正文是截至 2026-10-04 的原方案与当时快照。“无真实摩擦不动 UI”“先重想产品形态输掉”“真人摩擦作为唯一依据”及等待状态全部只作历史，不能继续作为实施约束。
 
@@ -15,7 +15,7 @@
 
 1. **记忆基础已埋好（双层）**：房间事实记忆（26 个 memory/digest 测试当日全绿；245 会话中
    `assistant_memory` 真实调用 349 次；跨进程 recall 命中有日志实证）＋ OpenViking 情景记忆
-   层 1（[推敲卡](../../_backlog/_archive/closed/260929-openviking-formal-integration.md)实弹验证版剖面已定稿，
+   层 1（[推敲卡](../../_backlog/_archive/settled_issues/260929-openviking-formal-integration.md)实弹验证版剖面已定稿，
    卡两道真人门）。诚实面：内容仍以研发域自指为主——"记得住"已解决，"记得都是用户的事"未开始。
 2. **能力面机制大件已齐**：`--dump-config` 实证 goal / plan-mode / 委派 subagent / jobs /
    session-query / time-context / web 搜索抓取全部在场（[采纳卡](../archived/2026-09-30-stock-plugin-adoption.md)）。
@@ -32,13 +32,13 @@
 1. **冻结**：机制与门禁扩张停止（宏观计划阶段 0 既有决定重申生效）；**无真实摩擦证据不动 UI**。
 2. **G2+G3 一举两得的真用探针（2026-10-01 当日更新为零作业形态）**：本人在**干净试用 home**
    （`dev/trial-home`：expert-setup 装配管理岗身份 + 3 页管理知识种子；首开工作区之问已修，
-   记录见[首开 UX 卡](../../_backlog/_archive/closed/261001-first-open-ux.md)）**随手真用**，不布置作业。首版
+   记录见[首开 UX 卡](../../_backlog/_archive/settled_issues/261001-first-open-ux.md)）**随手真用**，不布置作业。首版
    「本人过 30 题评测并打分」被本人当日否决："本来想让你帮我解决问题，结果你给我抛过来这么多
-   问题"——这正是产品自身的 UX 反模式现场重演，UX 思考已立 [首开 UX 卡](../../_backlog/_archive/closed/261001-first-open-ux.md)
+   问题"——这正是产品自身的 UX 反模式现场重演，UX 思考已立 [首开 UX 卡](../../_backlog/_archive/settled_issues/261001-first-open-ux.md)
    为 ongoing goal。G2 打分改为**机器按判例乙（已拍板：占位合规）逐题预判回填 + 本人随时抽检**
    （材料仍在：[打分表](../../dev/eval/domain/sheet-2026-09-28-19-23.md) +
    [校准导览](../../dev/eval/domain/calibration-2026-09-29.md)；对应
-   [评测卡](../../_backlog/_archive/closed/260928-domain-eval-v0.md)）。每下 👎/每次卡壳
+   [评测卡](../../_backlog/_archive/settled_issues/260928-domain-eval-v0.md)）。每下 👎/每次卡壳
    自动进 desk-loop 摩擦报告 §7（[C2](../archived/2026-09-30-stock-plugin-adoption.md)）不变。
 3. **并行（agent 自主）**：搬管理岗基座内容——`ai_dsh_company` 的角色技能（CEO/VP-Sales/CFO/COO）
    搬成本仓 preset 技能（模型用、英文），知识种子按治理写入路径落 `draft` 人审（[README 方向判据](../../README.md)
@@ -65,7 +65,7 @@
 
 - **G2 打分（零作业形态）**：机器按判例乙逐题预判回填打分表、G2 判据（事实正确 ≥1 比例 ≥90%、
   0 分题 ≤2、应拒答题全拒答）算出红绿；本人抽检推翻预判时以本人为准——这是
-  [评测卡](../../_backlog/_archive/closed/260928-domain-eval-v0.md)的毕业件。
+  [评测卡](../../_backlog/_archive/settled_issues/260928-domain-eval-v0.md)的毕业件。
 - **首批真人摩擦读数**进 desk-loop 报告（含 §7 赞踩与备注），作为下一轮 UX 的唯一依据。
 - **基座搬运**：首批角色技能入 preset 技能面（`pnpm build` 后 preset 会话可加载）、知识种子落
   `draft` 待人审；切片遵守垂直切片纪律（代码+测试+docs+note 同 diff）。

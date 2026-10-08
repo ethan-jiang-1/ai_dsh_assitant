@@ -20,7 +20,7 @@
 **我的推荐：① 另建专用试用 home，② 先真用 30 天，不现在建通道。** 依据全部来自本卡已核实的证据，不是新增判断：
 
 1. **这条 30 天判据在本仓已是既有形态，不是新发明**：C 分身（30 天个性化承诺）写在
-   [定位卡](../_archive/closed/261005-open-value-deficit.md) 的延后项上，家是 owner note、不是等待卡。
+   [定位卡](../_archive/settled_issues/261005-open-value-deficit.md) 的延后项上，家是 owner note、不是等待卡。
    它不是工作里会自己撞上的一次观察，所以不进触发器索引。照此办理是**沿用**，不是开新机制。
 2. **本卡最硬的证据自己指向"先观察"**：第 14 行「信息洪流没有被人提炼，是因为那个岗位不存在」
    （五谷渔粉案例）——这是个**关于真人行为的假设**，而"真人会不会自发倒碎片"是它唯一的证伪机会。
@@ -74,8 +74,8 @@
 **预记输掉的（红线落档）**：接微信/IM（拍板不做）；接日历/邮箱/CRM（同上——且 BYOK 治理是 Huper 的头号差异点，正面撞它最厚的墙）。
 
 > **⚠️ 红线的家（2026-10-08 核对，登记不解决）**：这两条红线**目前没有决定 note 承载**——它们只写在
-> 卡上（本卡此行 + [261006 约束](261006-chief-of-staff-experience.md) + [定位卡](../_archive/closed/261005-open-value-deficit.md)
-> 的正文与「不做清单」里，后者**已归档冻结**）。按 [plan-to-note](../methods/plan-to-note.md)
+> 卡上（本卡此行 + [261006 约束](261006-chief-of-staff-experience.md) + [定位卡](../_archive/settled_issues/261005-open-value-deficit.md)
+> 的正文与「不做清单」里，后者**已归档冻结**）。按 [issue-to-note](../methods/issue-to-note.md)
 > §2 的 rejection/deferral 支，一条"永远不做"的产品红线应当有一篇可指认的 owner note（否则下次有人重提
 > "接个微信群吧"时，找得到的是三张卡里的一句话，而不是一篇决定）。**本卡不擅自立 note**（那是产品级拍板，
 > 属重大新工作）——已列入本次敲打的建议清单，等本人点头。
@@ -123,7 +123,7 @@
 
 ## 喂给谁
 
-毕业判断的出路 = **proposed 卡呈批**（等拍板，不实施）；判读指标若成立，喂给 [261007 plan 卡](261007-opening-brief-and-rhythm.md)的后续切片与 30 天真用判据（[定位卡](../_archive/closed/261005-open-value-deficit.md)）。
+毕业判断的出路 = **proposed 卡呈批**（等拍板，不实施）；判读指标若成立，喂给 [261007 plan 卡](261007-opening-brief-and-rhythm.md)的后续切片与 30 天真用判据（[定位卡](../_archive/settled_issues/261005-open-value-deficit.md)）。
 
 ## 毕业门
 
@@ -143,7 +143,7 @@
 **本人指定「30 天先行」时的去向**（按本仓既有 doctrine，不发明新机制）：本卡**关闭**，
 触发条件按 deferred-with-trigger 归 **owner note**——**2026-10-08 校正：原写"归 owner note"但没点名哪一篇**；
 落定 home 与"先行"两个决定后，触发条件（= 30 天读数落账）写进**承载这两个决定的那篇 note**
-（由 [plan-to-note](../methods/plan-to-note.md) §2 的 decided-deferral 支决定；
+（由 [issue-to-note](../methods/issue-to-note.md) §2 的 decided-deferral 支决定；
 索引不自动收录）——
 触发条件 = **「30 天读数落账」**，即上表三组数收齐并记入台账；触发到场时以引用本卡的新 proposed 卡重进，
 **不复活本卡**（毕业卡永不重开，见 [`_backlog/README.md`](../README.md) 四门）。

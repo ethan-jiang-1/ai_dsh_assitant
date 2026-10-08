@@ -65,7 +65,7 @@ decided deferral, rejection and digestion. The selected gate determines the dest
 result becomes a proposal. Honor current-request and local-edit exemptions instead of re-proposing
 already authorized work. A card status, cleared frontier or upstream ready label never grants authority.
 
-When the judgment is supported, hand the card to [plan-to-note](plan-to-note.md). That playbook
+When the judgment is supported, hand the card to [issue-to-note](issue-to-note.md). That playbook
 turns the gate into a note, or into an explicit decision that no note is warranted, and rewrites a
 doing-now acceptance matrix into the proposal's `## 验收`. Synthesis stops at the judgment.
 

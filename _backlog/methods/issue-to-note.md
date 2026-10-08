@@ -1,5 +1,5 @@
 ---
-name: plan-to-note
+name: issue-to-note
 description: Turn a supported graduation judgment into this repo's note, or into an explicit decision that no note is warranted, with the local section shape and a quality check a later session can re-apply.
 whenToUse: Synthesis has already chosen a graduation gate for an issue card. Not interviewing, not designing the acceptance matrix, and not authorization to implement.
 ---
@@ -12,7 +12,7 @@ the acceptance matrix when [validation-design](validation-design.md) produced on
 [confidence gate](requirements-elicitation.md) before treating an uncertain tradeoff as settled.
 
 This playbook writes the decision a later session would otherwise have to reconstruct. Code says what the
-system does. Tests pin a behavior. The plan keeps the deliberation and, once the judgment is real, leaves
+system does. Tests pin a behavior. The issue keeps the deliberation and, once the judgment is real, leaves
 the active shelf with a pointer. The note keeps the tradeoff.
 
 The rule text this method is adapted from lives in the pinned DSH tree:
@@ -47,7 +47,7 @@ Search `notes/proposed/`, `notes/implemented/`, `notes/rejected/`, and [`_backlo
 for the same mechanism before opening a file. Then pick one:
 
 - **Nothing new was decided.** The change sits inside a decision that already exists: a defect returning
-  code to that decision, a mechanical edit, a local presentation change. Follow the plan's graduation
+  code to that decision, a mechanical edit, a local presentation change. Follow the issue's graduation
   rule. Do not open `notes/proposed/`.
 - **The decision is the same; a fact moved.** A path, name, default, or mechanism description is now
   wrong. Edit the owning note in the same change. A second file that repeats the decision is a duplicate,
@@ -73,15 +73,15 @@ the topic was first raised, matching the status line. The directory and the stat
 - `## 提案` — what will be true if this is accepted, what it rules out, and what it costs. One decision.
   Name what can go wrong and what the change knowingly gives up; this repo has no separate risks
   heading, and those two facts still belong in the proposal. The session that implements this will
-  read this file and not the frozen plan, so the behavior, the authority boundary, and the exclusions
+  read this file and not the frozen issue, so the behavior, the authority boundary, and the exclusions
   are written here in full.
 - `## 输掉的方案` — each alternative that was really on the table, as its own short block: what it was,
   and why it lost. The reason is a constraint, a cost, or evidence that failed. "Rejected in review" and
   "the user preferred the other one" are not reasons; write the constraint that made it lose. Do not
   invent a block to fill the heading. If no real alternative exists, return to section 1.
-- `## 验收` — the plan's `## 验收矩阵`, rewritten as checks. Each load-bearing row names the command or
+- `## 验收` — the issue's `## 验收矩阵`, rewritten as checks. Each load-bearing row names the command or
   diff check, the assertion, and what red looks like. Someone who never saw the chat can run it. A row
-  that cannot be written that way means the plan is not mature: leave the card active and return to
+  that cannot be written that way means the issue is not mature: leave the card active and return to
   [validation-design](validation-design.md). Do not file a proposal to hold a placeholder.
 
 Do not add a second status word (待拍板, 调研中, 待实施). The status line is the lifecycle. The cost of
@@ -99,25 +99,25 @@ time" do not qualify. A row in [`triggers.md`](../triggers.md) is not automatic.
 it off the index would let a later session redo the rejected option, and the condition is a single
 observation that shows up in the work: a run, a file, a vendor release, or an audit. A life event, a user
 nod, a bundle of maybes, or anything a standing order already watches stays on the owner and the closed
-plan. Close the plan into `_archive/closed/` with a pointer at that note. When the condition arrives,
+issue. Close the issue into `_archive/settled_issues/` with a pointer at that note. When the condition arrives,
 open a new card that cites the closed one.
 
 **Rejection.** The lost option has to remain findable, or the same proposal returns. When an owner note
-already exists, add the alternative and why it lost to that note's `## 输掉的方案`, then close the plan.
+already exists, add the alternative and why it lost to that note's `## 输掉的方案`, then close the issue.
 Open `notes/rejected/` when a standalone page is what will stop the re-argument. The status line says
 `rejected` and one line of why. Keep the problem, the proposal that lost, and the alternatives; a slogan
 in place of those sections will not stop the next proposal.
 
-**Digestion.** The conclusion already lives in a note or a current contract. Point the plan's status
-line at that home and close the plan. A second file that repeats the sentence is not a record.
+**Digestion.** The conclusion already lives in a note or a current contract. Point the issue's status
+line at that home and close the issue. A second file that repeats the sentence is not a record.
 
 **The judgment is not supported yet.** The card stays in `issues/`. Name the missing evidence or the
 human confirmation, and the next step. A missing acceptance matrix is unfinished work, not digestion.
 
-## 3. Carry the decision across; leave the deliberation on the plan
+## 3. Carry the decision across; leave the deliberation on the issue
 
-On a real graduation, `git mv` the plan to the closed pool named by the [backlog charter](../README.md).
-Keep the plan body: background, open questions, probe notes, and the argument about how to slice the
+On a real graduation, `git mv` the issue to [`_archive/settled_issues/`](../_archive/settled_issues/README.md), the pool named by the [backlog charter](../README.md).
+Keep the issue body: background, open questions, probe notes, and the argument about how to slice the
 work are the record of how the judgment was reached. Add a destination pointer on the status line and
 repair relative links in the same change.
 
@@ -130,7 +130,7 @@ Write the note as a new text. Carry only what the next session needs in order no
 - which earlier note this replaces in part or in full.
 
 A sentence whose subject is the conversation ("round two", "the reviewer", "as of this draft") does not
-carry. A link may point at the closed plan or at an owner file; the link does not stand in for the
+carry. A link may point at the closed issue or at an owner file; the link does not stand in for the
 sentence that states the behavior and how to know it is done.
 
 Settle ownership in the same change:
@@ -146,7 +146,7 @@ Settle ownership in the same change:
     signal the archive judgment was wrong, not a reason to keep citing it.
   - *The decision is genuinely historical* — repair the inbound links so they point where the decision
     now lives, keep the frozen file as the record, and do not restate its content in the new home.
-    A dangling or frozen-pointer link in an active plan is a defect in the plan, not a footnote.
+    A dangling or frozen-pointer link in an active issue is a defect in the issue, not a footnote.
 - Part of an older decision is replaced, and the rest still stands: keep both notes, link each to the
   other, and say in each file what it still owns.
 - The older decision is fully replaced: absorb its unique rationale, alternatives, costs, required
@@ -169,7 +169,7 @@ Read the draft as someone who does not have this chat. It is recorded when every
   unrun.
 - The file is one decision, and section 1's search is visible in the result: an edited owner, a
   cross-link, or an absorbed predecessor.
-- Behavior, exclusions, and acceptance are in the file. A later session does not need the plan or the
+- Behavior, exclusions, and acceptance are in the file. A later session does not need the issue or the
   transcript to start.
 - The status word, the directory, and the filename date agree.
 
@@ -191,6 +191,6 @@ not this playbook.
 decision that already shipped, with the commands that ran. A deferral's trigger sits on its owner. A
 `triggers.md` row exists only when the index is what stops the rejected option from returning. A rejection is findable where the next proposal will be seen. Digestion points at the
 home that already holds the conclusion. Or no note was warranted, and that is the recorded result. The
-plan has left the active shelf with a pointer. If acceptance or a human confirmation is still missing,
+issue has left the active shelf with a pointer. If acceptance or a human confirmation is still missing,
 the card is still active and the gap is named. None of these outcomes authorize implementation by
 themselves.

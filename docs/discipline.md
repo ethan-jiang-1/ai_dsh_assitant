@@ -42,7 +42,7 @@
    npm，本包不行）→ `export-dist` 与
    `release-smoke` 用同一条 `pnpm pack`，且都对产物断言 peer 已具体化（证据：`release-smoke`
    对 tarball manifest 的逐 peer 断言；`workspace:` 原样出包没人能解析）。
-6. **开发证据按风险投入，UX路径主导切片**（次序见 [转向自洽卡](../_backlog/_archive/closed/261005-turnaround-coherence.md)）：
+6. **开发证据按风险投入，UX路径主导切片**（次序见 [转向自洽卡](../_backlog/_archive/settled_issues/261005-turnaround-coherence.md)）：
    卫生有界先行，再围绕一条用户动作设计最小端到端体验，UI、行为和内容同片考虑；测试策略（见 [testing.md](testing.md)）
    按风险与实际消费者保留或退役，不以数量或演示可见性判断；技术承载优先组合与既有 DSH 扩展点，
    组合/扩展点不足才有证据地自建。
@@ -71,7 +71,7 @@
   standing instructions / 无意义 gate 假安全感 / 过细 Skill 仪式）+ **驾驭者认知成本**
   （用户一眼能否找到方向盘与仪表盘——语料判据全是 agent 参与视角，这一条是本仓自己的）
   过一遍；处置优先序同下（删>并>修>记），既有处置表与触发条件的家 =
-  [流程预算审计卡](../_backlog/_archive/closed/261007-process-budget-audit.md)（2026-10-07 B1）。
+  [流程预算审计卡](../_backlog/_archive/settled_issues/261007-process-budget-audit.md)（2026-10-07 B1）。
 - **新门禁必带反例**（负例控制；借 DSH「A guard only guards if the regression fails it」）：
   新增一条 `verify` 检查 = 同 diff 在 `tests/tooling/verify-gates.spec.mjs` 配一个"造红再证绿"夹具；
   只对新检查生效，不追旧账。

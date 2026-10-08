@@ -1,6 +1,6 @@
 # 转向承重技术主张：审批、OV 隔离与 verify 覆盖审计
 
-> 查证日：2026-10-05。喂 [转向自洽卡](../../_archive/closed/261005-turnaround-coherence.md) 与 [定位卡](../../_archive/closed/261005-open-value-deficit.md)。只读源码/配置与廉价检查；未改产品代码、未启动服务或模型评测、未读写日用 `~/.dsh` / `~/.openviking`。
+> 查证日：2026-10-05。喂 [转向自洽卡](../../_archive/settled_issues/261005-turnaround-coherence.md) 与 [定位卡](../../_archive/settled_issues/261005-open-value-deficit.md)。只读源码/配置与廉价检查；未改产品代码、未启动服务或模型评测、未读写日用 `~/.dsh` / `~/.openviking`。
 
 ## 查证基线与证据强度
 

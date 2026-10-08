@@ -1,6 +1,6 @@
 # UX 路径 v0：打开→给片段→看选项/缺数→拍板→看跟进（标注模拟走查）
 
-> 喂 [自洽卡](../../_archive/closed/261005-turnaround-coherence.md) 阶段2 与 [定位卡](../../_archive/closed/261005-open-value-deficit.md)。
+> 喂 [自洽卡](../../_archive/settled_issues/261005-turnaround-coherence.md) 阶段2 与 [定位卡](../../_archive/settled_issues/261005-open-value-deficit.md)。
 > 性质：纸面/可丢弃交互原型，不是实施授权；示例内容用 [标注模拟](261005-prototype-cases-and-interview-method.md)
 > 的 `reversible-cost-v0` 变式（明确标注 simulated，不冒充本人经营事实）。状态载体以现行
 > `.desk/state.json` 契约（`DeskData`，src/client/index.ts:242）为准——本路径不发明新状态机，只编排入口与边界。

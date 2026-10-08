@@ -2,11 +2,11 @@
 
 > 调研问题：Codex / Claude Code（以及 Cursor 一类）coding agent 对执行层（工程师）体验极好，
 > 但管理层（CEO/CFO/高管）看着却步——把「却步点」做成逐条、可对照的清单，作为
-> 「面向企业管理层的 AI 助手」定位推敲的证据半边。喂 [261005-open-value-deficit](../../_archive/closed/261005-open-value-deficit.md)。
+> 「面向企业管理层的 AI 助手」定位推敲的证据半边。喂 [261005-open-value-deficit](../../_archive/settled_issues/261005-open-value-deficit.md)。
 
 ## 本轮判读边界
 
-官网可证明公开叙事，不能证明所有功能/真实使用者，更不能证明“高管都却步”。本档三轴是解释假设；官方能力、个人实践、社区观察与二手调查分别保留等级，不能拼成统一需求发生率。已有竞品来源/审计/review 是反证。新增实际验证问题归 [自洽卡](../../_archive/closed/261005-turnaround-coherence.md)，本轮未逐 URL 重验。
+官网可证明公开叙事，不能证明所有功能/真实使用者，更不能证明“高管都却步”。本档三轴是解释假设；官方能力、个人实践、社区观察与二手调查分别保留等级，不能拼成统一需求发生率。已有竞品来源/审计/review 是反证。新增实际验证问题归 [自洽卡](../../_archive/settled_issues/261005-turnaround-coherence.md)，本轮未逐 URL 重验。
 
 ## 0 · 方法与查证说明
 

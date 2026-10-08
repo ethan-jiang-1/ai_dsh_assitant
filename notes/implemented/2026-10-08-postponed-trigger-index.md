@@ -11,9 +11,9 @@
 
 本仓四门给每张关闭卡都安排了家，但**触发条件本身没有可见面**，散在三处且无任何扫描义务：
 
-- 冻结卡状态行：[260928-workflow-as-md](../../_backlog/_archive/closed/260928-workflow-as-md.md)（「第三次重推演」）、
-  [261004-approve-direct-call](../../_backlog/_archive/closed/261004-approve-direct-call.md)、
-  [261007-process-budget-audit](../../_backlog/_archive/closed/261007-process-budget-audit.md)（明确写「触发条件以本表为家」）及 2026-09-29 批量清理批多卡；
+- 冻结卡状态行：[260928-workflow-as-md](../../_backlog/_archive/settled_issues/260928-workflow-as-md.md)（「第三次重推演」）、
+  [261004-approve-direct-call](../../_backlog/_archive/settled_issues/261004-approve-direct-call.md)、
+  [261007-process-budget-audit](../../_backlog/_archive/settled_issues/261007-process-budget-audit.md)（明确写「触发条件以本表为家」）及 2026-09-29 批量清理批多卡；
 - 决定 note：recurrence-tracking、
   bug-007、turnaround 阶段 4-5 各 owner note；
 - `docs/discipline.md` ⏸ 行（docs 词数预算）。
@@ -25,7 +25,7 @@
 ## 决定
 
 1. **账本 `_backlog/triggers.md` 只收会自己撞上的观察。** 延后的句子写在决定 note 或关闭的卡上，
-   不自动加行。加行的条件与 [plan-to-note](../../_backlog/methods/plan-to-note.md)
+   不自动加行。加行的条件与 [issue-to-note](../../_backlog/methods/issue-to-note.md)
    第 1 节同一条：不在表上就会把已经否掉的做法再做一遍，而且条件是一次观察、有它出现的地方
    （一次跑、一份文件、一次 vendor 发布、一次审计）。常设指令已经在盯的不收第二份。
    删行三条：触发到场后按写回规则重进；裁决被推翻；下次扫必须先想起这张表才知道看什么。
@@ -47,7 +47,7 @@
    「触发是否到场」依赖读家的语义，机械门禁只能查行存在性，会逼出凑格式行；先以义务运行，
    复发再议（复发才升格判据）。
 4. **每次延后都加一行，并把关闭卡成批灌进索引**——表只增不减，收割时要扫完整份关闭史。
-   输给 plan-to-note 第 1 节的四错：核对不了的、常设指令已经覆盖的、人生事件和点名，都不是索引的活。
+   输给 issue-to-note 第 1 节的四错：核对不了的、常设指令已经覆盖的、人生事件和点名，都不是索引的活。
 
 ## 交付收口
 

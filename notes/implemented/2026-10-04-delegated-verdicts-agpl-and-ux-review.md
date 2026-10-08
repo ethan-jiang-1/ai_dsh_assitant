@@ -25,13 +25,13 @@ review）。本文记录两项裁定的内容与依据，本人推翻权永久�
 5. 三个复核触发条件已在决策包钉死：我们分发 ov 二进制 / 修改 server 源码 / 上游换证。
 
 **执行后果**：层 1 正式落地（安装器幂等安装 + dev home 组合行即 sanctioned 态）；eval
-挂 ov 的 A/B 对照臂跑批；[推敲卡 260929](../../_backlog/_archive/closed/260929-openviking-formal-integration.md)
+挂 ov 的 A/B 对照臂跑批；[推敲卡 260929](../../_backlog/_archive/settled_issues/260929-openviking-formal-integration.md)
 层 1 毕业为 [implemented note](../archived/2026-10-04-openviking-layer1-landing.md)；[RFC](2026-09-29-openviking-adoption-rfc.md)
 验收 3（AGPL）以 delegated 形态闭合。
 
 ## 裁定二：CEO 摩擦报告 review——**7 条全认，三批修**
 
-对象：naive-CEO 第一读数的摩擦清单 7 条（[首开 UX 卡](../../_backlog/_archive/closed/261001-first-open-ux.md) 第 13 轮）。
+对象：naive-CEO 第一读数的摩擦清单 7 条（[首开 UX 卡](../../_backlog/_archive/settled_issues/261001-first-open-ux.md) 第 13 轮）。
 
 | 批 | 条目 | 处置 | 面 |
 |---|---|---|---|

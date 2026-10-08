@@ -52,7 +52,7 @@ ai_deerflow_dr_v3 补借）。**同源整章对齐**，非另起炉灶。
 
 **触发出处**：用户点名"拿 playbook 看看 `_backlog/issues` 里 plan 的质量，逐一敲打一遍"。读四张卡时
 发现的是**门禁与语料的错位**，不是卡写得差：`pnpm verify` 35 项全绿的同时，
-[261007-bigfile-split](../../_backlog/_archive/closed/261007-bigfile-split.md)（当时在 plans/）
+[261007-bigfile-split](../../_backlog/_archive/settled_issues/261007-bigfile-split.md)（当时在 plans/）
 状态行写着「S1+S2 已交付｜毕业门 = 已过」，`plans/README.md` 活跃名册仍列其为活跃卡。
 **门禁查的是"卡在不在目录里"，查不出"这张卡早该走了"。**
 
@@ -86,7 +86,7 @@ verify-gates.spec（放行四种未完成态 / 抓 毕业门=已过 / 抓 状态
    门禁保证账本不落后于树。
 4. （2026-10-08 续修）`pnpm exec vitest run …/verify-gates.spec.mjs -t backlogGraduationProblems`
    ——5 passed；`pnpm verify` 续修时 **36 项中 1 红且红在真卡**（prove-it-red）；
-   把该卡按规矩 `git mv` 进 `_archive/closed/` 并补两处索引后 **36 项全绿**。
+   把该卡按规矩 `git mv` 进 `_archive/settled_issues/` 并补两处索引后 **36 项全绿**。
 
 ## 部分取代
 

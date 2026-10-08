@@ -33,7 +33,7 @@ DSH [09](file:///Users/bowhead/deepseek-harness/_dsh_plugin_agent_ready_developm
 - [261006-chief-of-staff-experience](../../issues/261006-chief-of-staff-experience.md) 写：本卡的家是设计意图与 Goal 史，交付证据以 implemented note 为家。
 - 那篇 note 已归档，计划仍链着它。交付证据的家被标成「不要再打开」。
 
-开屏卡留下等真人终验，符合 plan-to-note：人的确认还缺，卡就留着。断的是归档把 why 抽走之后，261006 仍把那篇 note 写成交付证据的家。playbook 不升进技能目录是它自己的契约，不靠再复制一份来修。
+开屏卡留下等真人终验，符合 issue-to-note：人的确认还缺，卡就留着。断的是归档把 why 抽走之后，261006 仍把那篇 note 写成交付证据的家。playbook 不升进技能目录是它自己的契约，不靠再复制一份来修。
 
 ### 3. 测试：地图把三种不同的观察说成同一件回归资产
 
@@ -69,7 +69,7 @@ DSH [12](file:///Users/bowhead/deepseek-harness/_dsh_plugin_agent_ready_developm
 
 ### 第一次写错的吸纳（不再作为候选）
 
-1. **implemented 里看见 `## 提案` / `## 验收` 就让 verify 红。** 这条 2026-09-24 已经不吸。[吸收记录](../../../notes/archived/2026-09-24-agent-note-lifecycle-absorption.md) 在用户「点和吸纳，不要推翻」之下写明：全格式门禁不吸，只机械化「输掉的方案」。[`notes/README.md`](../../../notes/README.md) §二之二写明再钉正文结构会逼出凑节。[plan-to-note](../../methods/plan-to-note.md) §4 写明 verify 绿了，语义失败还在，这是故意的。
+1. **implemented 里看见 `## 提案` / `## 验收` 就让 verify 红。** 这条 2026-09-24 已经不吸。[吸收记录](../../../notes/archived/2026-09-24-agent-note-lifecycle-absorption.md) 在用户「点和吸纳，不要推翻」之下写明：全格式门禁不吸，只机械化「输掉的方案」。[`notes/README.md`](../../../notes/README.md) §二之二写明再钉正文结构会逼出凑节。[issue-to-note](../../methods/issue-to-note.md) §4 写明 verify 绿了，语义失败还在，这是故意的。
 2. **下次改模型可见面就用 replay patch 录一个场景。** 2026-10-05 [测试资产审计](../research/tech-exploration/261005-repo-test-asset-audit.md) 已把 [`preset-runner-replay.patch.yml`](../../../dev/probes/session/preset-runner-replay.patch.yml) 定为调试探针：行 id 写错或 `file` 形状错会静默不激活，真实模型照答，看起来像绿。它不是 DSH 那种「提交的 JSONL 既是回放输入又是预期结果」的快照。触发条件没被这次重挖证明已经响过。
 3. **把证据地图再拆成三格标签。** `testing.md`、`discipline.md`、`validation-evidence`、`snapshots/README.md`、`architecture.md` 已经各写了一遍适配。再写一格不改变实际跑的命令。
 
@@ -80,7 +80,7 @@ DSH [12](file:///Users/bowhead/deepseek-harness/_dsh_plugin_agent_ready_developm
 1. **把硬规则 3 里的 note 改成条件。** 根 [`AGENTS.md`](../../../AGENTS.md) 硬规则 3 写「一次交付 = 代码 + 测试 + docs/README + note 同 diff」。每个开工会话都读这句。2026-09-24 已经把写 note 的义务收成「代码、测试、现行文档装不下的 why」。收窄写在 [`notes/README.md`](../../../notes/README.md) §〇，硬规则没改完，所以每片仍交一篇，活动树胀了再整批归档。吸纳就是把硬规则 3 改成：note 只有 §〇 要写时才进同一 diff。不新加门禁。
 2. **归档理由改成「四个错误还会不会发生」。** [`docs/AGENTS.md`](../../../docs/AGENTS.md) 规定合同不链接单篇 note、只写现在做什么。于是「结论已经在合同或代码里」永远不能把 why 留在活动树，归档技能里「现行文档引用了它就留下」对 docs 也不会触发。2026-10-08 开屏 note 因此被冻住，而「第一句话由客户端合成」不在任何合同里。吸纳是改 [note-archive-judgment](../../../.agents/skills/note-archive-judgment/SKILL.md) 的归档条件：代码或合同里有这个行为，不算归档；四个错误（否掉的做法被再提、看着代码编理由改回去、说不清约束在保护什么、不翻 git 就不知道为什么）还有一个会在以后的改动上发生，就留在 `implemented/`。不把 45 篇搬回来。下一次归档用这个条件。已经冻住、why 又不在合同里的，另一次逐篇判断，不进这一片。
 
-衔接不用新门。开屏卡停在等人终验，符合 [plan-to-note](../../methods/plan-to-note.md)（人的确认还缺，卡就留着）。断的是那篇 note 被归档之后，[261006](../../issues/261006-chief-of-staff-experience.md) 仍写「交付证据以 implemented note 为家」。playbook 自己写了不升进 `.agents/skills/`。硬规则 3 改完，下一片就不会再把切片日志写成 note。
+衔接不用新门。开屏卡停在等人终验，符合 [issue-to-note](../../methods/issue-to-note.md)（人的确认还缺，卡就留着）。断的是那篇 note 被归档之后，[261006](../../issues/261006-chief-of-staff-experience.md) 仍写「交付证据以 implemented note 为家」。playbook 自己写了不升进 `.agents/skills/`。硬规则 3 改完，下一片就不会再把切片日志写成 note。
 
 测试也不新造资产。`pnpm eval` 的判决在 [`dev/eval/checks.mjs`](../../../dev/eval/checks.mjs)：伤害地板（不写文件、不 commit）、技能是否按名加载、对最终回答的正则。正则可以撞上凑巧的句子。段落有没有进请求，由 `tests/agent/` 的摘要断言或一次 `repo-live-probe` 证明，不由 eval 证明。领域质量的位置已经是 `pnpm eval:domain` 的人判。desk 是否真写了，eval 里的 `wrotePath` / `fileShape` 会重读文件，这是外部世界那一格里本仓已经有的部分。假的是 [`docs/testing.md`](../../../docs/testing.md) 模型可见面那一格的「能证明」：它写成「行为地板与段落到达」。这一格改成与 `checks.mjs` 一致。只改这一格，不改触发条件，不把 replay patch 升成快照。
 
@@ -89,7 +89,7 @@ DSH [12](file:///Users/bowhead/deepseek-harness/_dsh_plugin_agent_ready_developm
 输掉的做法：
 
 - **全格式门禁、class 目录、双语 triplet、hash manifest。** 2026-09-24 已登记不吸。
-- **把 plan-to-note 复制进 `.agents/skills/`。** 该区契约写明不设默认 promote。
+- **把 issue-to-note 复制进 `.agents/skills/`。** 该区契约写明不设默认 promote。
 - **再抄一遍 SDLC，或把台阶⑤一次建成主仓快照树。** 平台正文的家是 vendor（[261008-vendor-corpus-home](261008-vendor-corpus-home.md)）。replay patch 的静默失效还在。
 - **用覆盖率、变异测试或 CI 矩阵填质量。** 参考 12：覆盖率证明行跑过；变异测试在主仓仍是 proposed；本仓没有 CI。
 - **整批把归档搬回 implemented。** 战役收口本来就不是 note。

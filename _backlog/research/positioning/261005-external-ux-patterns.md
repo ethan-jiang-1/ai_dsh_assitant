@@ -8,7 +8,7 @@
 
 ## 本轮使用边界
 
-本档是 CRM、日程、知识工具的公开模式原料，官网动作不证明真实管理者采纳或本仓收益。连接邮箱/日历与本仓“不做 IM/只用已提供本地资料”不同；只借可见状态、成品入口、可关闭主动性，不直接复制连接数据源、天气/新闻、次数/时间为硬规格。原来源/获取限制保留，本轮未逐 URL 重验。喂 [定位卡](../../_archive/closed/261005-open-value-deficit.md) 与 [自洽卡](../../_archive/closed/261005-turnaround-coherence.md)。
+本档是 CRM、日程、知识工具的公开模式原料，官网动作不证明真实管理者采纳或本仓收益。连接邮箱/日历与本仓“不做 IM/只用已提供本地资料”不同；只借可见状态、成品入口、可关闭主动性，不直接复制连接数据源、天气/新闻、次数/时间为硬规格。原来源/获取限制保留，本轮未逐 URL 重验。喂 [定位卡](../../_archive/settled_issues/261005-open-value-deficit.md) 与 [自洽卡](../../_archive/settled_issues/261005-turnaround-coherence.md)。
 
 ## 1. Clay（clay.earth，现更名 Me.sh / Mesh）
 
