@@ -2,9 +2,12 @@
 
 日期：2026-10-08 · 状态：**implemented**
 
-本轮外部结果：触发 = 用户复核后授权校准，并要求按逻辑拆文；用户得到 = README 渐进披露入口
-与澄清/探针/收口三份 SKILL 形态草稿；完成条件 = 本仓产物落点、四门与授权边界正确，
-需求阶段没信心就请真人确认，链接/语法检查与独立场景复核通过。方法尚未经过真实事项试用。
+本轮外部结果：触发 = 用户引入 FAQ 10 并拍板"两头难：需求对齐与质量验收"，目录更名
+`playbooks_plan_and_validate`，需求链/验证链分割思考，且方法区定位为本仓独立能力、
+唯一外部依赖是 Matt Pocock 的 SKILL 本体、不设 promote；用户得到 = 需求三篇 + 验收三篇的
+渐进披露方法区，plans 卡可前置验收判据（需求清楚、验收有方）；完成条件 = 验证链只消费已确认
+需求、验收矩阵住同一张 plan、门禁随目录名解析、`verify`/`typecheck`/`test` 全绿。
+方法尚未经过真实事项试用。
 
 来源：用户指示"需要借鉴 `mattpocock-skills/_faq_on_digest/09_skills-for-requirements-engineering-of-agent-apps`
 ——我们的 `_backlog/` 下需要特别的 playbook 来帮助我们如何推敲出需求／寻找合理的结构等
@@ -210,6 +213,15 @@
   前述"毕业即纯 git mv"的门禁注释口径一并撤换（本区不再以毕业为目标）。
 
 ## 验证（真跑过的命令）
+
+**第五轮（文档 + 门禁注释，未改产品运行时）**：`pnpm gen-notes-index`（note 标题变更后重生成）；
+`pnpm verify` → **35 checks passed**（含改名后发现式 playbook 区解析、frontmatter 门与
+机器本地路径语料）；`pnpm typecheck` → exit 0。
+`pnpm test` 三轮：首轮红 = `verify-gates` 夹具仍断言旧文案 `pure move`（本切片改了核的
+提示词）→ 夹具改断言行为词 `declares name`，不再绑具体措辞；第二轮红 = host
+`skill-usage` 的 afterEach 临时目录 `ENOTEMPTY` 竞态一次（与本切片无关、代码未动）；
+复跑全量 → **50 files / 411 tests passed**。该竞态按证据纪律如实留档：单次偶发、复跑即绿，
+若再犯需按"三记录"立案，不当作已解决。
 
 **第四轮（仅文档，未改门禁/产品）**：`pnpm verify` → 35 checks passed，生成物 freshness 也绿；
 `pnpm typecheck` → exit 0；`pnpm test` → 50 files / 411 tests passed。
