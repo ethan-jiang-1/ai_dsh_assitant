@@ -4,7 +4,7 @@
  * importantly — reporting unreadable files instead of dropping them silently.
  */
 
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { chmod, mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -121,6 +121,26 @@ describe('Room', () => {
     expect(listing.entries.map(entry => entry.id)).toEqual(['good-1'])
     expect(listing.failures).toHaveLength(2)
     expect(listing.failures.map(failure => failure.reason).join(' ')).toMatch(/frontmatter|entry id/)
+  })
+
+  it('reports an unreadable directory as a failure rather than an empty room', async () => {
+    // The module promises "a silently skipped file would be an invisible loss of knowledge". A
+    // directory we are not allowed to read is the same loss at directory scale: reporting it as
+    // an empty room tells curate "nothing here", which is the opposite of the truth. A *missing*
+    // directory is genuinely empty (next test) — only permission-class errors are unknown.
+    const room = await fixtureRoom()
+    await room.write('a-1', { id: 'a-1' }, 'Claim.')
+    await chmod(room.dir, 0o000)
+
+    try {
+      const listing = await room.list()
+
+      expect(listing.entries).toEqual([])
+      expect(listing.failures).toHaveLength(1)
+      expect(listing.failures[0]?.path).toBe(room.dir)
+    } finally {
+      await chmod(room.dir, 0o700)
+    }
   })
 
   it('treats a missing directory as an empty room', async () => {

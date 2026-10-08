@@ -31,6 +31,18 @@ export function isEntryId(id: string): boolean {
   return ENTRY_ID.test(id)
 }
 
+/** Whether a filesystem error means "this path is not there", as opposed to "we may not look". */
+function isMissingPathError(error: unknown): boolean {
+  return (error as NodeJS.ErrnoException | null)?.code === 'ENOENT'
+}
+
+/** Render a filesystem error as the one-line reason a room failure carries. */
+function describeReadError(error: unknown): string {
+  const code = (error as NodeJS.ErrnoException | null)?.code
+  if (code === 'EACCES' || code === 'EPERM') return 'directory is not readable (permission denied)'
+  return code === undefined ? 'directory could not be read' : `directory could not be read (${code})`
+}
+
 /** One parsed entry in a room. */
 export interface RoomEntry {
   /** Entry id, equal to the file name without its suffix. */
@@ -158,8 +170,13 @@ export class Room {
     let names: string[]
     try {
       names = await readdir(directory)
-    } catch {
-      return { entries: [], failures: [] }
+    } catch (error) {
+      // A directory that does not exist yet is genuinely an empty room (a fresh home, or a room
+      // the caller has not scaffolded). Anything else — permission denied above all — is an
+      // *unknown* set, and reporting it as empty would tell curate "nothing here" when the truth
+      // is "we could not look", the same invisible loss the module promise forbids at file scale.
+      if (isMissingPathError(error)) return { entries: [], failures: [] }
+      return { entries: [], failures: [{ path: directory, reason: describeReadError(error) }] }
     }
     const entries: RoomEntry[] = []
     const failures: RoomReadFailure[] = []
