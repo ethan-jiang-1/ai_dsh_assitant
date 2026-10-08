@@ -72,5 +72,5 @@ roadmap-queue 部分相邻（都管 notes/ROADMAP 秩序），互链不
 ## 现行事实（2026-10-08 校正）
 
 2026-09-24 当晚把进行中的工作做成 `notes/proposed/` 看板（调研中 / 待拍板 / 待实施）。该做法已退出。
-推敲住 `_backlog/plans/`。`proposed/` 只收毕业后、问题 / 方案 / 验收齐、还要用户点头的提案。
-切片执行记录和战役收口不各写一篇。调研住 `_backlog/plans/`，不在 `notes/` 下另留目录。
+推敲住 `_backlog/issues/`。`proposed/` 只收毕业后、问题 / 方案 / 验收齐、还要用户点头的提案。
+切片执行记录和战役收口不各写一篇。调研住 `_backlog/issues/`，不在 `notes/` 下另留目录。

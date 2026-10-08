@@ -299,10 +299,10 @@ check('notes: note files follow YYYY-MM-DD-topic naming', () =>
 check('backlog: liveness (status lines, institution dirs, index membership)', () =>
   backlogLivenessProblems(join(repoRoot, '_backlog')))
 
-// The mirror of the notes/proposed queue check above: a plan card that judged its own gate
+// The mirror of the notes/proposed queue check above: an issue card that judged its own gate
 // satisfied must not keep occupying the active shelf. Liveness proves a card is alive; this
 // proves it is not a graduate that forgot to leave.
-check('backlog: graduated plans leave the active shelf', () =>
+check('backlog: graduated issues leave the active shelf', () =>
   backlogGraduationProblems(join(repoRoot, '_backlog')))
 
 check('structure: dev tooling never inherits DSH_HOME', () =>
@@ -388,9 +388,9 @@ check('contract: skill files carry valid frontmatter and match their directory',
   // the provider's `project-agents` root (vendor: skill-filesystem/src/index.ts, rank 200).
   ...skillFrontmatterProblems(join(packageDir, 'presets', 'assistant', 'skills')),
   ...skillFrontmatterProblems(join(repoRoot, '.agents', 'skills')),
-  // The long-lived playbook drafts are SKILL-shaped for agent consumption, so their frontmatter is
-  // checked now even though this project area is not a serving skill home.
-  ...playbookFrontmatterProblems(playbookStagingDir),
+  // Method drafts are SKILL-shaped for agent consumption, so their frontmatter is checked
+  // even though this area is not a serving skill home. A missing directory is an empty result.
+  ...playbookFrontmatterProblems(join(repoRoot, '_backlog', 'methods')),
 ])
 
 // ── reference integrity ─────────────────────────────────────────────────────────────────────────
@@ -422,28 +422,6 @@ const KNOWN_ROOT_BASENAMES = new Set([
   'pnpm-workspace.yaml', 'tsconfig.base.json', 'tsconfig.json', 'tsconfig.tsx.json',
 ])
 const KNOWN_PACKAGE_BASENAMES = new Set(['cordis.patch.yml'])
-
-/**
- * The long-lived playbook method area under `_backlog/`, resolved by discovery rather than by a
- * hardcoded name. A hardcoded path would silently stop covering it if the project reshapes the area.
- *
- * A fixture tree may stage no playbook area at all (the link-corpus and machine-local fixtures only
- * write the directories they exercise). That is not an error: the area is simply not part of that
- * corpus, so discovery returns a path that `walk`/`playbookFrontmatterProblems` both treat as absent.
- * More than one candidate is a real ambiguity and still throws.
- */
-const playbookStagingDir = (() => {
-  const backlog = join(repoRoot, '_backlog')
-  const fallback = join(backlog, 'playbooks_plan_and_validate')
-  if (!exists(backlog)) return fallback
-  const candidates = readdirSync(backlog, { withFileTypes: true })
-    .filter(entry => entry.isDirectory() && entry.name.startsWith('playbook'))
-    .map(entry => join(backlog, entry.name))
-  if (candidates.length > 1) {
-    throw new Error(`expected at most one playbook staging area under _backlog/, found ${candidates.length}`)
-  }
-  return candidates[0] ?? fallback
-})()
 
 const markdownCorpus = [
   join(repoRoot, 'AGENTS.md'),
@@ -484,14 +462,16 @@ check('links: backticked repo paths in markdown exist', () => {
   return problems
 })
 
-// Active deliberation needs resolving routes too; frozen evidence under _done keeps its
+// Active deliberation needs resolving routes too; frozen evidence under _archive keeps its
 // historical prose. Only relative links extend here — contract/path/section scopes stay intact.
 const relativeLinkCorpus = [
   ...markdownCorpus,
   join(repoRoot, '_backlog', 'README.md'),
-  ...walk(join(repoRoot, '_backlog', 'plans'), ['.md']),
+  join(repoRoot, '_backlog', 'triggers.md'),
+  ...walk(join(repoRoot, '_backlog', 'issues'), ['.md']),
   ...walk(join(repoRoot, '_backlog', 'bugs'), ['.md']),
-  ...walk(join(repoRoot, '_backlog', 'reference'), ['.md']),
+  ...walk(join(repoRoot, '_backlog', 'research'), ['.md']),
+  ...walk(join(repoRoot, '_backlog', 'methods'), ['.md']),
 ].filter(exists)
 
 check('links: relative markdown links point at existing files', () =>
@@ -527,16 +507,15 @@ check('links: cross-file section references name a real section', () => {
 check('links: contract docs cite no machine-local absolute paths', () => {
   // The active deliberation space routes readers the same way the contract docs do, so it is held
   // to the same rule: a checkout path or home directory baked into `_backlog/` prose breaks for
-  // every other machine. Frozen `_done/` keeps its historical prose, exactly like the link gates.
-  // (Found 2026-10-08: a playbook staged in the playbook area cited the upstream
-  // checkout by absolute path and passed, because only relative links extended into `_backlog/`.)
+  // every other machine. Frozen `_archive/` keeps its historical prose, exactly like the link gates.
   const corpus = [
     ...markdownCorpus,
     join(repoRoot, '_backlog', 'README.md'),
-    ...walk(join(repoRoot, '_backlog', 'plans'), ['.md']),
+    join(repoRoot, '_backlog', 'triggers.md'),
+    ...walk(join(repoRoot, '_backlog', 'issues'), ['.md']),
     ...walk(join(repoRoot, '_backlog', 'bugs'), ['.md']),
-    ...walk(join(repoRoot, '_backlog', 'reference'), ['.md']),
-    ...walk(playbookStagingDir, ['.md']),
+    ...walk(join(repoRoot, '_backlog', 'research'), ['.md']),
+    ...walk(join(repoRoot, '_backlog', 'methods'), ['.md']),
   ].filter(file => exists(file) && !file.startsWith(join(repoRoot, 'notes')))
   return machineLocalPathProblems(corpus.map(file => ({ file, where: relative(repoRoot, file) })))
 })

@@ -2,7 +2,7 @@
 
 > 性质：**离线钉存的第三方上游包**（用户拍板 2026-09-28：先拉下来落盘，防断网；发布物是否
 > 包含它 = 准入决定，试点过审后才定形状——见
-> [_backlog/_done/_closed_plans/260928-self-growth-base-research.md](../../../_backlog/_done/_closed_plans/260928-self-growth-base-research.md)）。
+> [_backlog/_archive/closed/260928-self-growth-base-research.md](../../../_backlog/_archive/closed/260928-self-growth-base-research.md)）。
 > 这里只放**一手来源、哈希可验**的原始工件，不放改造物。
 
 ## dsh-memory-plugin-0.5.8.tgz

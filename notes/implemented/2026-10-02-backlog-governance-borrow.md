@@ -2,6 +2,8 @@
 
 日期：2026-10-02 · 状态：**implemented**
 
+目录名在 2026-10-09 换过。四门、不调度、户口这三件仍以本文为准；架子的现名见 [2026-10-09-backlog-shelf-names](2026-10-09-backlog-shelf-names.md)。下文的 plans / bugs / reference / `_done` 是当天的名字。
+
 来源：用户指示"治理规矩要从 `ai_dsh_loop_advisor/_backlog` 学习来整理我们的 `_backlog/`，尽量借鉴，
 整个结构多少都是一样的"。对照通读两仓全部治理文本（章程 + 9 份子 README + 代表卡片）后落此切片。
 
@@ -24,7 +26,7 @@ ai_deerflow_dr_v3 补借）。**同源整章对齐**，非另起炉灶。
    挂起跟显式指示走、agent 不得自行挂起；回活需显式新优先级决定；挂起卡不是实施授权）。
    2026-09-28 的否决（"另立第二事实家"）被其边界划分解掉：池只收**未裁决**暂停件，已裁决的
    该做不现在仍以决定 note 为家——不借表两行翻案（用户指示即翻案触发）。
-4. **reference/ 调研材料区**（活跃卡专用 + 随卡 `git mv` 至 `_done/_reference/`；无状态行）。
+4. **reference/ 调研材料区**（活跃卡专用 + 随卡 `git mv` 至 `_archive/research/`；无状态行）。
    收卷后还会被重提的事实写进决定 note，不另留调研目录。
 5. **`backlog-liveness` 门禁**（verify 31→32）：制度目录在场 / 活跃卡首 12 行有 `状态：` 户口 /
    索引互查（plans·bugs 活跃名册、_closed_plans 索引、_done 归档行）——核在
@@ -48,14 +50,14 @@ ai_deerflow_dr_v3 补借）。**同源整章对齐**，非另起炉灶。
 
 ## 续修：`backlog: graduated plans leave the active shelf`（2026-10-08，verify 35→36）
 
-**触发出处**：用户点名"拿 playbook 看看 `_backlog/plans` 里 plan 的质量，逐一敲打一遍"。读四张卡时
+**触发出处**：用户点名"拿 playbook 看看 `_backlog/issues` 里 plan 的质量，逐一敲打一遍"。读四张卡时
 发现的是**门禁与语料的错位**，不是卡写得差：`pnpm verify` 35 项全绿的同时，
-[261007-bigfile-split](../../_backlog/_done/_closed_plans/261007-bigfile-split.md)（当时在 plans/）
+[261007-bigfile-split](../../_backlog/_archive/closed/261007-bigfile-split.md)（当时在 plans/）
 状态行写着「S1+S2 已交付｜毕业门 = 已过」，`plans/README.md` 活跃名册仍列其为活跃卡。
 **门禁查的是"卡在不在目录里"，查不出"这张卡早该走了"。**
 
 **盲区的结构**：`GRADUATED_STATUS` 在 queue 检查里守着 `notes/proposed/`——已消化的提案不得滞留；
-`_backlog/plans/` 是**同一形状的第二条队列，却没有镜像的那一半**。liveness 越称职（能证明卡活着），
+`_backlog/issues/` 是**同一形状的第二条队列，却没有镜像的那一半**。liveness 越称职（能证明卡活着），
 越照不见毕业漂移。
 
 **判据选择（本切片唯一有判断量的地方）**：新核读的是 `毕业门` 字段而**不是** `状态`。
@@ -69,7 +71,7 @@ ai_deerflow_dr_v3 补借）。**同源整章对齐**，非另起炉灶。
   **终止状态字段**（`(?=｜|$)` 前瞻），并把 gate 判定锚在 `已过` 本身而非任何交付形容词上。
 
 **prove-it-red（真回归，非仅夹具）**：新检查对现仓跑出的第一条红正是
-`_backlog/plans/261007-bigfile-split.md declares its graduation gate satisfied but still sits in plans/
+`_backlog/issues/261007-bigfile-split.md declares its graduation gate satisfied but still sits in plans/
 and is still named by plans/README.md's active list`；同轮 261006 与 261007-opening **未被误报**
 （两张都带交付语言，但语义上是等待/未完成）——精确度与召回同轮实证。五组夹具在
 verify-gates.spec（放行四种未完成态 / 抓 毕业门=已过 / 抓 状态=完成词 / 不误杀部分交付 /
@@ -84,7 +86,7 @@ verify-gates.spec（放行四种未完成态 / 抓 毕业门=已过 / 抓 状态
    门禁保证账本不落后于树。
 4. （2026-10-08 续修）`pnpm exec vitest run …/verify-gates.spec.mjs -t backlogGraduationProblems`
    ——5 passed；`pnpm verify` 续修时 **36 项中 1 红且红在真卡**（prove-it-red）；
-   把该卡按规矩 `git mv` 进 `_done/_closed_plans/` 并补两处索引后 **36 项全绿**。
+   把该卡按规矩 `git mv` 进 `_archive/closed/` 并补两处索引后 **36 项全绿**。
 
 ## 部分取代
 

@@ -9,7 +9,7 @@
 
 **隔离 home 的默认工作区里有 3 页知识草稿待审批时，首开会话的第一屏**：hero、首开引导条之外，
 composer 上方必须出现审批横幅——「⚠ 3 页知识草稿在等你审批——批准后才会成为它的判断依据」+
-「点这里去审批」按钮。这是[首开 UX](../../../_backlog/_done/_closed_plans/261001-first-open-ux.md) 第 17 轮
+「点这里去审批」按钮。这是[首开 UX](../../../_backlog/_archive/closed/261001-first-open-ux.md) 第 17 轮
 交付的 `assistant-approval-banner`（composer dock 第二注册）的耐久回归面：那一轮的
 before/出现/贯通/退场三态真机证据住在 /tmp（易失），本场景把它变成仓内可重放的期望。
 

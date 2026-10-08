@@ -4,7 +4,7 @@
 > （借自 DSH `.agents/notes/` 的分类学：`_agent_ready_development/repo-harness/08-repository-taxonomy.md`、
 > `sdlc-reference/01-agent-note-lifecycle.md`；对齐与偏离登记见 §四）。
 > **接下来做什么**：用户本轮请求优先。还要等人点头的持久取舍住 `proposed/`（问题/方案/验收；**用户点头才开工**）。
-> 推敲与触发型住 [`_backlog/plans/`](../_backlog/plans/README.md)。本目录不装进行中的工作板，也不装调研底稿。
+> 推敲住 [`_backlog/issues/`](../_backlog/issues/README.md)，这次不修的缺陷住 [`_backlog/bugs/`](../_backlog/bugs/README.md)。本目录不装进行中的工作板，也不装调研底稿。
 
 ## 〇、什么是 note（规则的唯一家在本文件；根 AGENTS.md 只留指针）
 
@@ -37,7 +37,7 @@ plan 毕业不自动产生 note。切片记录、战役收口、收口数字、�
 | `rejected/` | 被否决的提案 + 一行拒绝原因 | `rejected` | 只在还能阻止同一个可信错误时保留；失效即删 |
 | `archived/` | 未来决策价值低的 implemented 历史 | `implemented` + 一行 `已归档：YYYY-MM-DD` | 只作历史引用，**冻结不再编辑**，不是当前权威 |
 
-> **调研不在本目录**：进行中的调研住 [`_backlog/plans/`](../_backlog/plans/README.md)。收卷之后，还会被重提的事实写进拥有该决定的 note；不另留调研目录。
+> **调研不在本目录**：进行中的调研住 [`_backlog/research/`](../_backlog/research/README.md)。收卷之后，还会被重提的事实写进拥有该决定的 note；不另留调研目录。
 
 **命名**：`YYYY-MM-DD-<topic>.md`，日期是主题**首次提出**日（不是实现或归档日）。
 **状态行**：文件前 6 行内一行 `日期：YYYY-MM-DD · 状态：**<状态词>**（说明可省）`；
@@ -52,7 +52,7 @@ plan 毕业不自动产生 note。切片记录、战役收口、收口数字、�
 - **不设 `postmortem/`**：把行为修回既有契约的缺陷，记录在 bug 卡和测试里。只有修复本身选出了以后还会被重提的做法，才写 note（AGENTS.md 曾列 postmortem 目录但从未存在，2026-09-25 删除该说法）。
 - **不采用 `{lifecycle}/{class}/` 两级路径**（DSH 用它）：偏离理由见 §四。
 - 提案过时转 `rejected/` 而非滞留 `proposed/`；`archived/` 只收已交付（implemented）的 note。
-- **延后不在这里跟踪**：未裁决的推敲留 `_backlog/plans/`。已裁决「该做但不现在」的那一句写在决定 note 上，旧卡关闭。索引不自动加行，规则见 [triggers.md](../_backlog/triggers.md) 与 [治理决定](implemented/2026-10-02-backlog-governance-borrow.md)。永不做的负知识留在输掉的方案。
+- **延后不在这里跟踪**：未裁决的推敲留 `_backlog/issues/`。已裁决「该做但不现在」的那一句写在决定 note 上，旧卡关闭。索引不自动加行，规则见 [triggers.md](../_backlog/triggers.md) 与 [治理决定](implemented/2026-10-02-backlog-governance-borrow.md)。永不做的负知识留在输掉的方案。
 
 ## 二之二、`proposed/` 卡片的骨架（推荐形态）
 
@@ -64,7 +64,7 @@ plan 毕业不自动产生 note。切片记录、战役收口、收口数字、�
 可执行性看卡自身的状态行与用户拍板。两套词并存即噪声（用户 2026-09-25 立的设计纪律：一词一义）。
 
 **上游边界（2026-09-28）**：不成熟、未到「问题/方案/验收」三件的思考，先住
-[`_backlog/plans/`](../_backlog/plans/README.md) 推敲（毕业四门见其
+[`_backlog/issues/`](../_backlog/issues/README.md) 推敲（毕业四门见其
 [`_backlog/README.md`](../_backlog/README.md)）——本目录收毕业后的提案，不是停车场也不是推敲场。
 **「验收」节必须可执行**（命令、断言对象、红的形态——实施者不看对话就能复现）；
 写不出可执行验收 = 提案未成熟，见 §二之三。
@@ -87,13 +87,13 @@ plan 毕业不自动产生 note。切片记录、战役收口、收口数字、�
    没有持久取舍，不为记账开一篇。改动面 → 最小可信证据的选择 owner =
    [pre-push-evidence 技能](../.agents/skills/pre-push-evidence/SKILL.md)。
 4. **验收写不出 = 提案未成熟**：proposed 卡的「验收」节按 §二之二必须可执行；做不到就回
-   [`_backlog/plans/`](../_backlog/plans/README.md) 继续推敲，不进实施。
+   [`_backlog/issues/`](../_backlog/issues/README.md) 继续推敲，不进实施。
 
 本文件不记「再出现就升级」的观察。真证据的家是测试和现行文档。
 
 ## 三、不设计数清单（2026-09-26 拆除原"当前清单"）
 
-本文件不维护篇数、名单或「接下来做哪篇」。目录里有什么，看目录。接下来做什么看用户本轮请求和 [`_backlog/plans/`](../_backlog/plans/README.md)。
+本文件不维护篇数、名单或「接下来做哪篇」。目录里有什么，看目录。接下来做什么看用户本轮请求和 [`_backlog/issues/`](../_backlog/issues/README.md)。
 
 ## 四、与 DSH 的对齐与偏离登记
 
@@ -111,4 +111,4 @@ plan 毕业不自动产生 note。切片记录、战役收口、收口数字、�
 ② 44 篇一次性迁移的 churn 与误分类风险大于可读性增益；
 ③ DSH `repo-harness/09-plugin-author-entry.md` 明说插件仓继承的是分类学**精神**（一个事实一个 owner、
 生成物有生成器、决定有记录），不强制复制其 Notes 机制。note 量级显著上升时重评此条。
-不设收卷调研目录：调研住 `_backlog/plans/`，持久结论进决定 note。
+不设收卷调研目录：调研住 `_backlog/research/`，持久结论进决定 note。

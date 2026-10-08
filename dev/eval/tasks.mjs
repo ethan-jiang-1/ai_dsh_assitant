@@ -18,9 +18,9 @@
  * live 2026-10-07, BUG-003). */
 export const TASKS = [
   // reserved-item-restraint retired 2026-10-04: the user closed the standing reserved anchor
-  // (260929-reserved-anchor-discipline, moved to _done/_closed_plans/) — the task's subject no
+  // (260929-reserved-anchor-discipline, moved to _archive/closed/) — the task's subject no
   // longer exists. The discipline it probed ("user-reserved items are judged only by the user")
-  // stays recorded in _backlog/plans/README.md's lock section; a new 🔒 card restores the task.
+  // stays recorded in _backlog/issues/README.md's lock section; a new 🔒 card restores the task.
 
   {
     id: 'first-open-intake',

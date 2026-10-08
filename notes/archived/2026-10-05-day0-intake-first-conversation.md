@@ -9,7 +9,7 @@
 
 ## 提案
 
-按仓库自身模式落位（home.md §三「过程性知识不做常驻段落」——配方进技能抽屉，常驻面只留条件指针）。完整配方草案与取舍见 [UX 路径档 §5](../../_backlog/reference/positioning/261005-ux-path-annotated-simulation.md)。
+按仓库自身模式落位（home.md §三「过程性知识不做常驻段落」——配方进技能抽屉，常驻面只留条件指针）。完整配方草案与取舍见 [UX 路径档 §5](../../_backlog/research/positioning/261005-ux-path-annotated-simulation.md)。
 
 1. **manual v10→v11 加一节**（`src/domain/home/home-map.ts` `renderHomeManual`，英文，随每次请求注入）：首会话条件（无 desk 文件 + memory 空）下不等待被问，主动按 `first-conversation` 技能开场；对方想主导就跟随。
 2. **新策展技能 `first-conversation`**（`presets/assistant/skills/first-conversation/SKILL.md`，英文）：

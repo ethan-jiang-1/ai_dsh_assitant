@@ -13,18 +13,18 @@
 
 **意图从哪来**（两通道，各管各的）：① **用户本轮请求**——唯一外部通道，本轮范围由它决定；② **已立项的内部工作项**——
 `notes/proposed/` 的提案卡（毕业形态：问题/方案/验收三件齐——「输掉的方案」一节推荐带上、毕业为 implemented 时门禁强制，**待用户拍板**，正文与验收都在卡上；点名或点头即开工）
-与 `_backlog/plans/` 的推敲卡（触发型/用户点名才取用，毕业四门见 `_backlog/README.md`）。
+与 `_backlog/issues/` 的推敲卡（触发型/用户点名才取用，毕业四门见 `_backlog/README.md`）。这次不修的缺陷另记在 `_backlog/bugs/`，不是开工通道。
 **重大新工作默认先呈批**：跨切片的新工作 / 流程面改动 / 模型可见面新能力，开工前先立 proposed 卡等点头或点名
 （依据 intent-channel-default-flip note）；
 轮内直落只保留给豁免清单——机械与局部编辑（与 note 义务豁免同口径）、已授权切片的轮内延续、用户本轮明确点名的具体任务、bug 修复卡毕业。
 **没有用户任务时不发明任务**——报告家况，或按点名的卡推敲/实施；不要从 git log 或记忆发明任务。
-重大未来工作先在 `_backlog/plans/` 推敲，成熟并进入跨会话实施前用 `notes/proposed/` 显式承载；已授权局部编辑与轮内交付决定的 note 义务按 `notes/README.md`，不为小修立空壳卡或重复呈批。
+重大未来工作先在 `_backlog/issues/` 推敲，成熟并进入跨会话实施前用 `notes/proposed/` 显式承载；已授权局部编辑与轮内交付决定的 note 义务按 `notes/README.md`，不为小修立空壳卡或重复呈批。
 **开工先定外部结果**：非机械任务动手前先落**外部结果三要素**——触发条件 / 用户看到或得到什么 / 完成条件（载体 = plan 呈批或切片卡首节；实现选择不先于意图定义，交付记录按它收口）；机械/局部编辑豁免（与 note 义务豁免同口径）。
-深评/调研卡住 `_backlog/plans/`。收卷后还会被重提的事实写进决定 note，不另留调研目录——看不见的工作等于没在做。
-代码里的 `TODO/FIXME` 不立项，只在代码内；`_backlog/plans/` 调研卡是证据面，不是工作项。
+深评的原料住 `_backlog/research/`。收卷后还会被重提的事实写进决定 note，不另留调研目录——看不见的工作等于没在做。
+代码里的 `TODO/FIXME` 不立项，只在代码内。`_backlog/issues/` 里的卡是推敲，没有点名不要开工。
 **Note 的义务、取代检查与生命周期以 [`notes/README.md`](notes/README.md) 为唯一权威**（何时写、输掉的方案、
 rejected 政策、命名——本文件不复制）；改行为、契约或开发流程前，按任务链接或机制名查相关 notes。
-交接即此链：AGENTS.md（本文件）→ `_backlog/plans/` 与 `notes/proposed/` → 各卡。
+交接即此链：AGENTS.md（本文件）→ `_backlog/issues/`、`_backlog/bugs/` 与 `notes/proposed/` → 各卡。
 
 同一个多步流程第三次被重新推演时，就把它立成一件开发技能（放 `.agents/skills/`）——这是"重复即建"的常设规则，不占工作面。
 **两类 Skill，别混**：`.agents/skills/` 是**开发用**（给改这个仓库的 agent：证据路由、探针、
@@ -43,7 +43,7 @@ rejected 政策、命名——本文件不复制）；改行为、契约或开�
 | `packages/dsh-smart-assistant/` | **插件包**（bundle）：入口×平面、自有四工具×动词、组合行、pin 与依赖姿态见生成物 `docs/package-catalog.md`；包内 owner 面与纪律见其 `AGENTS.md` | 改模型可见面 / 服务 / 布局动这里 |
 | `docs/` | **当前合同**（只写现在，无历史）—— 文档 tier 与"谁拥有什么"见其 `AGENTS.md` | 门禁住了的事实进这里 |
 | `notes/` | **开发记忆与证据链**（分类 owner：`notes/README.md`）：`proposed/` 将来 → `implemented/` 当前权威 → `archived/` 冻结历史；`rejected/` 存负知识与一行原因 | 决策与输掉的方案进这里 |
-| `_backlog/` | **推敲空间**：正式加工前的四问推敲（该不该/何时/次序/放弃）——plans 卡（`YYMMDD-slug`，含调研卡）+ bugs 卡，只装判断材料、**永不调度**；毕业四门与铁律见其 `README.md`；`triggers.md` 只收工作里会撞上的观察（收割/走查/收口扫这张短表） | 收割/走查/对话中值得推敲但未到裁决的思考在此立卡 |
+| `_backlog/` | **推敲空间**：还没定的事在 `issues/`（`YYMMDD-`），这次不修的缺陷在 `bugs/`（`BUG-`），调研在 `research/`，方法在 `methods/`，离开活跃区的在 `_archive/`。只装判断材料、**永不调度**；地图与毕业四门见其 `README.md`；`triggers.md` 只收工作里会撞上的观察（收割/走查/收口扫这张短表） | 收割/走查/对话中值得推敲但未到裁决的思考在此立卡 |
 | `dev/` | 开发 home 与 profile patch —— 双 home 与两个 profile 的纪律见其 `AGENTS.md` | 环境问题动这里（手册 owner：`docs/dev.md`） |
 | `scripts/` | 机械门禁与生成器 —— 门禁三条纪律与 freshness 约定见其 `AGENTS.md` | 门禁问题动这里 |
 | `snapshots/` | 行为回归的证据面——只收边界与现状见其 `AGENTS.md` 与 `README.md` | 回归证据问题动这里 |

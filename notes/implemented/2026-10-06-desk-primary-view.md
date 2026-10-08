@@ -6,7 +6,7 @@
   隔离 home 需带凭据否则 API Key 弹窗入镜——seed 无 creds 子命令是 P2 已记缺口）。
 - **如实偏差**：桌面视图自身的持久场景未建——非空白会话的确定性种子设计（session 记录文件预置）是真设计题，记为后续切片；
   本片渲染证据 = shots --eval 交互态 DOM（点击链：开会话→点桌面→内容区渲染，/tmp/dsh-webui-shots/desk-view-final-*.dom.txt）。
-- D7 已记入上游台账（默认视图不可插件化），递交与否用户拍板。（用户 2026-10-06 点头推进并要求显性化追踪；方向 owner=[定位卡](../../_backlog/_done/_closed_plans/261005-open-value-deficit.md)，毕业门 owner=[自洽卡](../../_backlog/_done/_closed_plans/261005-turnaround-coherence.md) 形态迁移行，判据承接自[首开卡边界收口](../../_backlog/_done/_closed_plans/261001-first-open-ux.md)）
+- D7 已记入上游台账（默认视图不可插件化），递交与否用户拍板。（用户 2026-10-06 点头推进并要求显性化追踪；方向 owner=[定位卡](../../_backlog/_archive/closed/261005-open-value-deficit.md)，毕业门 owner=[自洽卡](../../_backlog/_archive/closed/261005-turnaround-coherence.md) 形态迁移行，判据承接自[首开卡边界收口](../../_backlog/_archive/closed/261001-first-open-ux.md)）
 
 ## 问题（可观察行为）
 
@@ -25,7 +25,7 @@
 
 **空白相位不动 vendor hero**（事实 3 限制）：我方首开条（composer dock）继续承担「打开第一眼」的引导，与 A' intake 衔接——首会话它先问；离开空白相位后桌面视图即可用。
 
-**会话降为动作的完整形态**（桌面为打开即见的默认落地）被事实 2/3 挡在 vendor 边界——**新增上游候选 D7**（默认视图可配置或插件可贡献落地视图/空白相位主区），记入[上游台账](../../_backlog/reference/upstream/261001-upstream-candidates.md)随下次递交；不阻塞本切片。
+**会话降为动作的完整形态**（桌面为打开即见的默认落地）被事实 2/3 挡在 vendor 边界——**新增上游候选 D7**（默认视图可配置或插件可贡献落地视图/空白相位主区），记入[上游台账](../../_backlog/research/upstream/261001-upstream-candidates.md)随下次递交；不阻塞本切片。
 
 **空态三步卡重写**（首开卡交接项）：新形态语境（桌面=视图、会话=动作）下重写三步文案，与 A' 的「它先问」一致（第一步不再是「你在对话里说句话」，而是它的开场问题）。
 

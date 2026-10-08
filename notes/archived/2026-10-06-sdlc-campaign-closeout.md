@@ -5,7 +5,7 @@
 
 ## 决定
 
-[SDLC 清理卡](../../_backlog/_done/_closed_plans/261005-sdlc-turnaround-cleanup.md) 六面收口（六片提交：
+[SDLC 清理卡](../../_backlog/_archive/closed/261005-sdlc-turnaround-cleanup.md) 六面收口（六片提交：
 `f3e8fb7`/`84e5f27`/`a338c70`/`1d641e1`/`ab0cad0`/`9d9dc7d`），卡按生命周期毕业迁 `_done`：
 
 1. **机制面（处置表 v2）**：四源证据（usage 仪表 + skill-usage 账本 + desk-loop 摩擦 + 代码触发面）——

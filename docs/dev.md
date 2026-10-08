@@ -189,7 +189,7 @@ DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得
 | `web_fetch` 全拒 `non-public IP` | 本机 TUN 代理的 **fake-ip DNS** 把所有域名解析到 198.18.0.0/15 保留段；`web-fetch-http` 的 SSRF 防护只对**直连** hop 做本机解析检查（走代理的 hop 由代理远端解析、**跳过检查**，`web-fetch-http/src/network.ts` 明文）；DSH 只认 env / home `.env` 的 `HTTP(S)_PROXY`——**系统代理（scutil）它不读**，无 env 时一切直连 ⇒ 全灭 | **不用手配**：启动器 `dev/env/dsh.mjs` 条件注入——探测本地代理口（`ASSISTANT_PROXY_URL` 显式指定＞scutil 系统代理口＞默认混合口 7897），活着才注入 `HTTP(S)_PROXY`、死了直连（**有没有 VPN 都能跑**；显式导出过的 env 不被覆盖，`ASSISTANT_PROXY_URL=""` 可禁用）。 |
 
 **自动化会话的协作边界**（常量 `COLLABORATION_BOUNDARY` 在 `src/dev/preset-runner/` 里逐会话前置 + 家手册协作边界同一节；**不写在 patch 的 `!!js` 表达式里**——配置层模板字面量会被 overlay 的 YAML 标签求解器拒绝，2026-09-25 真踩过，故新增 `structure: every composition file we own parses as YAML` 门禁）：会话**可以改工作树，
-但不得 `git commit`**（提交权属于人或开发会话）；卡上标 🔒 的保留项（`_backlog/plans/`）**不得自行判触发、不得删卡、不得实现**，
+但不得 `git commit`**（提交权属于人或开发会话）；卡上标 🔒 的保留项（`_backlog/issues/`）**不得自行判触发、不得删卡、不得实现**，
 只能报告并建议（机械门禁 `reserved items` 查标记形态）；单发会话无人可问时按推荐值拍板、标注可推翻、继续做完。
 
 **行为评测**：`pnpm eval` 把一组**真实请求**经 preset 会话跑一遍，判定读的是会话日志（不是 stdout）——

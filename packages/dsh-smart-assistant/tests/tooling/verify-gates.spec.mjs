@@ -130,7 +130,7 @@ describe('relativeLinkProblems', () => {
 // core cannot catch a directory omitted by verify.mjs. Run its unchanged source in a throwaway
 // repo, importing the real core; unrelated gates can fail in this deliberately minimal fixture.
 describe('verify relative-link corpus wiring', () => {
-  it('rejects broken routes in every active backlog area, accepts repaired routes, and leaves _done frozen', () => {
+  it('rejects broken routes in every active backlog area, accepts repaired routes, and leaves _archive frozen', () => {
     const root = temp('verify-link-wiring-')
     // Stage the runner at its real depth (scripts/checks/) — verify.mjs derives repoRoot
     // as two levels up from its own location, so the fixture tree must mirror the layout.
@@ -142,16 +142,19 @@ describe('verify relative-link corpus wiring', () => {
     for (const file of ['AGENTS.md', 'README.md']) writeFileSync(join(root, file), '# fixture\n')
     const active = [
       '_backlog/README.md',
-      '_backlog/plans/README.md',
-      '_backlog/plans/261005-card.md',
+      '_backlog/triggers.md',
+      '_backlog/issues/README.md',
+      '_backlog/issues/261005-card.md',
       '_backlog/bugs/README.md',
       '_backlog/bugs/BUG-001-example.md',
-      '_backlog/reference/README.md',
-      '_backlog/reference/261005-flat.md',
-      '_backlog/reference/positioning/261005-nested.md',
-      '_backlog/reference/tech-exploration/deeper/261005-deep.md',
+      '_backlog/research/README.md',
+      '_backlog/research/261005-flat.md',
+      '_backlog/research/positioning/261005-nested.md',
+      '_backlog/research/tech-exploration/deeper/261005-deep.md',
+      '_backlog/methods/README.md',
+      '_backlog/methods/some-method.md',
     ]
-    for (const file of [...active, '_backlog/_done/README.md', '_backlog/_done/_reference/261005-frozen.md', '_backlog/unowned.md']) {
+    for (const file of [...active, '_backlog/_archive/README.md', '_backlog/_archive/research/261005-frozen.md', '_backlog/_archive/bugs/BUG-009-frozen.md', '_backlog/unowned.md']) {
       const path = join(root, file)
       mkdirSync(join(path, '..'), { recursive: true })
       writeFileSync(path, '[route](missing.md)\n')
@@ -168,8 +171,9 @@ describe('verify relative-link corpus wiring', () => {
     const broken = run()
     expect(broken).toContain(`FAIL ${gate}`)
     for (const file of active) expect(broken).toContain(`${file} links to missing.md`)
-    expect(broken).not.toContain('_backlog/_done/README.md links to')
-    expect(broken).not.toContain('_backlog/_done/_reference/261005-frozen.md links to')
+    expect(broken).not.toContain('_backlog/_archive/README.md links to')
+    expect(broken).not.toContain('_backlog/_archive/research/261005-frozen.md links to')
+    expect(broken).not.toContain('_backlog/_archive/bugs/BUG-009-frozen.md links to')
     expect(broken).not.toContain('_backlog/unowned.md links to')
     for (const file of active) writeFileSync(join(root, file, '..', 'missing.md'), '# destination\n')
     expect(run()).toContain(`ok   ${gate}`)
@@ -192,15 +196,15 @@ describe('verify machine-local-path corpus wiring', () => {
 
     const offending = [
       '_backlog/README.md',
-      '_backlog/plans/README.md',
-      '_backlog/plans/261005-card.md',
+      '_backlog/triggers.md',
+      '_backlog/issues/README.md',
+      '_backlog/issues/261005-card.md',
       '_backlog/bugs/README.md',
       '_backlog/bugs/BUG-001-example.md',
-      '_backlog/reference/README.md',
-      '_backlog/reference/positioning/261005-nested.md',
-      // The area that motivated the rule: staged playbooks are shared prose too.
-      '_backlog/playbooks_plan_and_validate/README.md',
-      '_backlog/playbooks_plan_and_validate/some-playbook.md',
+      '_backlog/research/README.md',
+      '_backlog/research/positioning/261005-nested.md',
+      '_backlog/methods/README.md',
+      '_backlog/methods/some-method.md',
     ]
     for (const file of offending) {
       const path = join(root, file)
@@ -209,7 +213,7 @@ describe('verify machine-local-path corpus wiring', () => {
     }
     // Frozen history keeps its prose, notes/ is where external provenance is allowed to live, and a
     // file outside the institution is not this rule's business.
-    for (const file of ['_backlog/_done/README.md', '_backlog/_done/_reference/261005-frozen.md', 'notes/implemented/2026-01-01-topic.md', '_backlog/unowned.md']) {
+    for (const file of ['_backlog/_archive/README.md', '_backlog/_archive/research/261005-frozen.md', '_backlog/_archive/bugs/BUG-009-frozen.md', 'notes/implemented/2026-01-01-topic.md', '_backlog/unowned.md']) {
       const path = join(root, file)
       mkdirSync(join(path, '..'), { recursive: true })
       writeFileSync(path, 'Protocol lives at /Users/someone/checkout/skills/x/SKILL.md\n')
@@ -223,7 +227,7 @@ describe('verify machine-local-path corpus wiring', () => {
     expect(result.status).toBe(1)
     expect(result.stdout).toContain(`FAIL ${gate}`)
     for (const file of offending) expect(result.stdout).toContain(`${file} cites a machine-local absolute path`)
-    for (const file of ['_backlog/_done/README.md', '_backlog/_done/_reference/261005-frozen.md', 'notes/implemented/2026-01-01-topic.md', '_backlog/unowned.md']) {
+    for (const file of ['_backlog/_archive/README.md', '_backlog/_archive/research/261005-frozen.md', '_backlog/_archive/bugs/BUG-009-frozen.md', 'notes/implemented/2026-01-01-topic.md', '_backlog/unowned.md']) {
       expect(result.stdout).not.toContain(`${file} cites a machine-local absolute path`)
     }
 
@@ -364,24 +368,25 @@ describe('notesTopLevelProblems', () => {
 
 describe('backlogLivenessProblems', () => {
   function bootBacklog(dir) {
-    for (const sub of ['plans', 'bugs', 'reference', join('_done', '_closed_plans'), join('_done', '_fixed_bugs'), join('_done', '_suspended_plans'), join('_done', '_suspended_bugs'), join('_done', '_reference')]) {
+    for (const sub of ['issues', 'bugs', 'research', 'methods', join('_archive', 'closed'), join('_archive', 'bugs'), join('_archive', 'suspended'), join('_archive', 'research')]) {
       mkdirSync(join(dir, sub), { recursive: true })
     }
-    writeFileSync(join(dir, 'plans', 'README.md'), '# plans\n\n| 卡 | 一句话 | 倾向 |\n|---|---|---|\n', 'utf8')
+    writeFileSync(join(dir, 'issues', 'README.md'), '# issues\n\n| 卡 | 一句话 | 倾向 |\n|---|---|---|\n', 'utf8')
     writeFileSync(join(dir, 'bugs', 'README.md'), '# bugs\n\n| Bug | 标题 | 严重级 | 发现 |\n|---|---|---|---|\n', 'utf8')
-    writeFileSync(join(dir, 'reference', 'README.md'), '# reference\n', 'utf8')
-    for (const pool of ['_closed_plans', '_fixed_bugs', '_suspended_plans', '_suspended_bugs', '_reference']) {
-      writeFileSync(join(dir, '_done', pool, 'README.md'), `# ${pool}\n`, 'utf8')
+    writeFileSync(join(dir, 'research', 'README.md'), '# research\n', 'utf8')
+    writeFileSync(join(dir, 'methods', 'README.md'), '# methods\n', 'utf8')
+    for (const pool of ['closed', 'bugs', 'suspended', 'research']) {
+      writeFileSync(join(dir, '_archive', pool, 'README.md'), `# ${pool}\n`, 'utf8')
     }
-    writeFileSync(join(dir, '_done', 'README.md'), '# _done\n', 'utf8')
+    writeFileSync(join(dir, '_archive', 'README.md'), '# _archive\n', 'utf8')
   }
 
   it('accepts a live backlog: hukou lines present, every card indexed', () => {
     const backlog = temp('backlog-ok-')
     bootBacklog(backlog)
-    writeFileSync(join(backlog, 'plans', '260928-demo.md'),
+    writeFileSync(join(backlog, 'issues', '260928-demo.md'),
       '# 推敲：demo\n\n> 立卡：2026-09-28 ｜ 状态：推敲中｜下一步 = 想清楚\n', 'utf8')
-    writeFileSync(join(backlog, 'plans', 'README.md'),
+    writeFileSync(join(backlog, 'issues', 'README.md'),
       '| 卡 |\n|---|\n| [260928-demo.md](260928-demo.md) |\n', 'utf8')
     expect(backlogLivenessProblems(backlog)).toEqual([])
   })
@@ -389,44 +394,48 @@ describe('backlogLivenessProblems', () => {
   it('rejects a dead draft (no status line) and an unindexed card, and a missing pool', () => {
     const backlog = temp('backlog-red-')
     bootBacklog(backlog)
-    writeFileSync(join(backlog, 'plans', '260928-dead.md'), '# 推敲：死稿\n\n没有状态行。\n', 'utf8')
-    writeFileSync(join(backlog, 'plans', '260928-live.md'),
+    writeFileSync(join(backlog, 'issues', '260928-dead.md'), '# 推敲：死稿\n\n没有状态行。\n', 'utf8')
+    writeFileSync(join(backlog, 'issues', '260928-live.md'),
       '# 推敲：活卡\n\n> 状态：推敲中\n', 'utf8')
+    writeFileSync(join(backlog, 'bugs', 'BUG-008-unlisted.md'),
+      '# BUG-008：漏登\n\n> 状态：活跃\n', 'utf8')
     const problems = backlogLivenessProblems(backlog)
     expect(problems.some(p => p.includes('260928-dead.md') && p.includes('状态：'))).toBe(true)
     expect(problems.some(p => p.includes('260928-live.md') && p.includes('index'))).toBe(true)
+    expect(problems.some(p => p.includes('bugs/BUG-008-unlisted.md') && p.includes('bugs/README.md'))).toBe(true)
 
-    rmSync(join(backlog, '_done', '_suspended_plans'), { recursive: true, force: true })
-    expect(backlogLivenessProblems(backlog).some(p => p.includes('_suspended_plans'))).toBe(true)
+    rmSync(join(backlog, '_archive', 'suspended'), { recursive: true, force: true })
+    expect(backlogLivenessProblems(backlog).some(p => p.includes('_archive/suspended'))).toBe(true)
   })
 
-  it('rejects reference material missing from its index', () => {
+  it('rejects research material missing from its index', () => {
     const backlog = temp('backlog-ref-')
     bootBacklog(backlog)
-    writeFileSync(join(backlog, 'reference', '260928-survey.md'), '# 调研材料\n', 'utf8')
+    writeFileSync(join(backlog, 'research', '260928-survey.md'), '# 调研材料\n', 'utf8')
     expect(backlogLivenessProblems(backlog).some(p => p.includes('260928-survey.md') && p.includes('index'))).toBe(true)
-    writeFileSync(join(backlog, 'reference', 'README.md'), '# reference\n\n| 文件 |\n|---|\n| [260928-survey.md](260928-survey.md) |\n', 'utf8')
+    writeFileSync(join(backlog, 'research', 'README.md'), '# research\n\n| 文件 |\n|---|\n| [260928-survey.md](260928-survey.md) |\n', 'utf8')
     expect(backlogLivenessProblems(backlog)).toEqual([])
   })
 
   it('walks topic subdirectories: subdir material must be named by its subpath, else red', () => {
     const backlog = temp('backlog-refsub-')
     bootBacklog(backlog)
-    mkdirSync(join(backlog, 'reference', 'tech-exploration'), { recursive: true })
-    writeFileSync(join(backlog, 'reference', 'tech-exploration', '261005-case.md'), '# 技术定调\n', 'utf8')
-    // 2026-10-05 reference 分装子目录——子目录文件若脱离索引互查，检查就等于没守住那半边
+    mkdirSync(join(backlog, 'research', 'tech-exploration'), { recursive: true })
+    writeFileSync(join(backlog, 'research', 'tech-exploration', '261005-case.md'), '# 技术定调\n', 'utf8')
     expect(backlogLivenessProblems(backlog).some(p => p.includes('tech-exploration/261005-case.md') && p.includes('index'))).toBe(true)
-    writeFileSync(join(backlog, 'reference', 'README.md'), '# reference\n\n| 文件 |\n|---|\n| [261005-case.md](tech-exploration/261005-case.md) |\n', 'utf8')
+    writeFileSync(join(backlog, 'research', 'README.md'), '# research\n\n| 文件 |\n|---|\n| [261005-case.md](tech-exploration/261005-case.md) |\n', 'utf8')
     expect(backlogLivenessProblems(backlog)).toEqual([])
   })
 
   it('rejects an archived card missing from its pool index', () => {
     const backlog = temp('backlog-arch-')
     bootBacklog(backlog)
-    writeFileSync(join(backlog, '_done', '_closed_plans', '260928-gone.md'),
+    writeFileSync(join(backlog, '_archive', 'closed', '260928-gone.md'),
       '# 推敲：已毕业\n\n> 状态：已关闭\n', 'utf8')
-    // _closed_plans README 不点名它
-    expect(backlogLivenessProblems(backlog).some(p => p.includes('260928-gone.md') && p.includes('index'))).toBe(true)
+    writeFileSync(join(backlog, '_archive', 'bugs', 'BUG-008-gone.md'),
+      '# BUG-008：已修\n\n> 状态：fixed\n', 'utf8')
+    expect(backlogLivenessProblems(backlog).some(p => p.includes('260928-gone.md') && p.includes('_archive/closed/README.md'))).toBe(true)
+    expect(backlogLivenessProblems(backlog).some(p => p.includes('BUG-008-gone.md') && p.includes('_archive/bugs/README.md'))).toBe(true)
   })
 })
 
@@ -434,11 +443,11 @@ describe('backlogLivenessProblems', () => {
 
 describe('backlogGraduationProblems', () => {
   function bootPlans(dir) {
-    mkdirSync(join(dir, 'plans'), { recursive: true })
-    writeFileSync(join(dir, 'plans', 'README.md'), '# plans\n\n| 卡 |\n|---|\n', 'utf8')
+    mkdirSync(join(dir, 'issues'), { recursive: true })
+    writeFileSync(join(dir, 'issues', 'README.md'), '# issues\n\n| 卡 |\n|---|\n', 'utf8')
   }
   const card = (dir, name, statusLine) =>
-    writeFileSync(join(dir, 'plans', name), `# 推敲：demo\n\n> ${statusLine}\n`, 'utf8')
+    writeFileSync(join(dir, 'issues', name), `# 推敲：demo\n\n> ${statusLine}\n`, 'utf8')
 
   it('accepts cards whose gate is still open, including the honest human-pending shape', () => {
     const backlog = temp('grad-ok-')
@@ -458,7 +467,7 @@ describe('backlogGraduationProblems', () => {
     const problems = backlogGraduationProblems(backlog)
     expect(problems).toHaveLength(1)
     expect(problems[0]).toContain('261007-split.md')
-    expect(problems[0]).toContain('_done/_closed_plans')
+    expect(problems[0]).toContain('_archive/closed')
   })
 
   it('rejects a status field that is itself a completion word', () => {
@@ -480,14 +489,14 @@ describe('backlogGraduationProblems', () => {
     const backlog = temp('grad-band-')
     bootPlans(backlog)
     card(backlog, '261007-indexed.md', '立卡：2026-10-07 ｜ 状态：**已毕业**｜下一步 = 归档')
-    writeFileSync(join(backlog, 'plans', 'README.md'),
-      '# plans\n\n| 卡 |\n|---|\n| [261007-indexed.md](261007-indexed.md) |\n', 'utf8')
+    writeFileSync(join(backlog, 'issues', 'README.md'),
+      '# issues\n\n| 卡 |\n|---|\n| [261007-indexed.md](261007-indexed.md) |\n', 'utf8')
     expect(backlogGraduationProblems(backlog)[0]).toContain('active list')
 
     // 正文深处引用一个"已过"的门不构成毕业：只读 hukou 段（前 12 行）。
     const deep = temp('grad-deep-')
     bootPlans(deep)
-    writeFileSync(join(deep, 'plans', '261007-deep.md'),
+    writeFileSync(join(deep, 'issues', '261007-deep.md'),
       `# 推敲：demo\n\n> 立卡：2026-10-07 ｜ 状态：推敲中｜毕业门判断 = 待定\n${'\n'.repeat(12)}## 证据面\n\nS1 的毕业门 = 已过，S2 待定。\n`, 'utf8')
     expect(backlogGraduationProblems(deep)).toEqual([])
   })

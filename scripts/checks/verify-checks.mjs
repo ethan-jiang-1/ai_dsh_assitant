@@ -544,7 +544,7 @@ export function skillFrontmatterProblems(skillsDir) {
 }
 
 /**
- * Playbook drafts staged in the `_backlog/playbooks_plan_and_validate/` area are flat `<name>.md`
+ * Method drafts staged in `_backlog/methods/` are flat `<name>.md`
  * files carrying a small SKILL-shaped frontmatter contract for predictable agent consumption.
  *
  * They need their own check because this project's long-lived method area is not a serving skill home:
@@ -555,7 +555,7 @@ export function skillFrontmatterProblems(skillsDir) {
  * Problem text reports the area by its real directory name (derived from `stagingDir`), so renaming
  * the area cannot leave the gate pointing at a path that no longer exists.
  *
- * @param {string} stagingDir - path of the staging directory, e.g. `_backlog/playbooks_plan_and_validate/`.
+ * @param {string} stagingDir - path of the staging directory, `_backlog/methods/`.
  */
 export function playbookFrontmatterProblems(stagingDir) {
   const problems = []
@@ -841,21 +841,21 @@ export function exportManualProblems({ manualPath, manifest }) {
  * owner-directed): the deliberation space's own mechanical gate. Three checks, all structural —
  * they never judge a card's content:
  *
- * 1. the institution's directories exist (plans / bugs / reference and the five _done pools);
- * 2. every active card carries its status line (the hukou: 立卡 + 状态 within the first 12 lines,
- *    per the plans/ and bugs/ card templates) — a dead draft cannot hide;
- * 3. index membership both ways: every card file is named by its area's index (plans/ and bugs/
- *    active lists, _done/_closed_plans/ index, _done/README archive rows) — a card moved without
- *    the index update is the drift the gate exists for.
+ * 1. the institution's directories exist (issues / bugs / research / methods and the _archive pools);
+ * 2. every active issue card carries its status line (the hukou: 状态 within the first 12 lines) —
+ *    a dead draft cannot hide;
+ * 3. index membership both ways: every card or research file is named by its area's index
+ *    (issues/ active list, research/ index, _archive/closed and suspended indexes, archived
+ *    research index) — a card moved without the index update is the drift the gate exists for.
  *
  * @param {string} backlogRoot - path of the _backlog/ directory.
  */
 export function backlogLivenessProblems(backlogRoot) {
   const problems = []
   const requiredDirs = [
-    'plans', 'bugs', 'reference',
-    join('_done', '_closed_plans'), join('_done', '_fixed_bugs'),
-    join('_done', '_suspended_plans'), join('_done', '_suspended_bugs'), join('_done', '_reference'),
+    'issues', 'bugs', 'research', 'methods',
+    join('_archive', 'closed'), join('_archive', 'bugs'),
+    join('_archive', 'suspended'), join('_archive', 'research'),
   ]
   for (const dir of requiredDirs) {
     if (!existsSync(join(backlogRoot, dir))) problems.push(`_backlog/${dir} is missing (the institution's directories are part of the charter)`)
@@ -867,41 +867,42 @@ export function backlogLivenessProblems(backlogRoot) {
     .map(entry => entry.name)
 
   // Active cards: status line within the first 12 lines (the hukou), then index membership.
-  for (const area of ['plans', 'bugs']) {
-    const index = readFileSync(join(backlogRoot, area, 'README.md'), 'utf8')
+  // Deliberation and defects are separate shelves so a bug filing only touches bugs/.
+  for (const area of ['issues', 'bugs']) {
+    const areaDir = join(backlogRoot, area)
+    if (!existsSync(areaDir)) continue
+    const index = readFileSync(join(areaDir, 'README.md'), 'utf8')
     for (const name of cardNames(area)) {
-      const head = readFileSync(join(backlogRoot, area, name), 'utf8').split('\n').slice(0, 12).join('\n')
+      const head = readFileSync(join(areaDir, name), 'utf8').split('\n').slice(0, 12).join('\n')
       if (!head.includes('状态：')) problems.push(`_backlog/${area}/${name} carries no 状态： line in its first 12 lines (the hukou rule)`)
       if (!index.includes(name)) problems.push(`_backlog/${area}/${name} is not named by ${area}/README.md's active index`)
     }
   }
 
-  // reference/ material is named by its area's index (the contract in reference/README.md).
-  // Since 2026-10-05 material may live in topic subdirectories — the walk must follow the
-  // layout, or subdir files silently escape the index cross-check (coverage follows layout).
-  if (existsSync(join(backlogRoot, 'reference'))) {
-    const refIndex = readFileSync(join(backlogRoot, 'reference', 'README.md'), 'utf8')
-    const refNames = (dir, prefix = '') => readdirSync(dir, { withFileTypes: true }).flatMap(entry => {
-      if (entry.isDirectory()) return refNames(join(dir, entry.name), join(prefix, entry.name))
-      if (entry.isFile() && entry.name.endsWith('.md') && entry.name !== 'README.md') return [join(prefix, entry.name)]
-      return []
-    })
-    for (const name of refNames(join(backlogRoot, 'reference'))) {
-      if (!refIndex.includes(name)) problems.push(`_backlog/reference/${name} is not named by reference/README.md's index`)
+  // Research material is named by its area's index. Topic subdirectories are part of the
+  // layout, so the walk follows them; a nested file that escapes the index is an unlisted file.
+  const markdownNames = (dir, prefix = '') => readdirSync(dir, { withFileTypes: true }).flatMap(entry => {
+    if (entry.isDirectory()) return markdownNames(join(dir, entry.name), join(prefix, entry.name))
+    if (entry.isFile() && entry.name.endsWith('.md') && entry.name !== 'README.md') return [join(prefix, entry.name)]
+    return []
+  })
+  for (const [dir, indexPath, label] of [
+    ['research', join('research', 'README.md'), 'research/README.md'],
+    [join('_archive', 'research'), join('_archive', 'research', 'README.md'), '_archive/research/README.md'],
+  ]) {
+    const fullDir = join(backlogRoot, dir)
+    if (!existsSync(fullDir)) continue
+    const index = readFileSync(join(backlogRoot, indexPath), 'utf8')
+    for (const name of markdownNames(fullDir)) {
+      if (!index.includes(name)) problems.push(`_backlog/${dir}/${name} is not named by ${label}'s index`)
     }
   }
 
-  // Archive membership: every archived card is named by its pool's index.
-  const archiveIndexes = {
-    [join('_done', '_closed_plans')]: join('_done', '_closed_plans', 'README.md'),
-    [join('_done', '_fixed_bugs')]: join('_done', '_fixed_bugs', 'README.md'),
-    [join('_done', '_suspended_plans')]: join('_done', 'README.md'),
-    [join('_done', '_suspended_bugs')]: join('_done', 'README.md'),
-    [join('_done', '_reference')]: join('_done', 'README.md'),
-  }
-  for (const [dir, indexPath] of Object.entries(archiveIndexes)) {
+  // Closed and suspended cards are flat files named by the pool README.
+  for (const dir of [join('_archive', 'closed'), join('_archive', 'bugs'), join('_archive', 'suspended')]) {
     const fullDir = join(backlogRoot, dir)
     if (!existsSync(fullDir)) continue
+    const indexPath = join(dir, 'README.md')
     const index = readFileSync(join(backlogRoot, indexPath), 'utf8')
     for (const name of cardNames(dir)) {
       if (!index.includes(name)) problems.push(`_backlog/${dir}/${name} is not named by ${indexPath}'s index`)
@@ -917,14 +918,14 @@ export function backlogLivenessProblems(backlogRoot) {
  * notes/proposed/. The hole it closes is real and was found by reading the four cards on
  * 2026-10-08, not by a failure: `backlogLivenessProblems` proves a card is *alive* (status line,
  * index membership) and can therefore never notice that a card judged itself done and stayed.
- * Two cards sat in plans/ claiming completion while plans/README.md still listed them as active.
+ * Two cards sat on the active shelf claiming completion while the active index still listed them.
  *
  * Scope discipline — why this reads 毕业门 and not 状态:
  *   · 状态 on a plan card is the *deliberation* state (推敲中) and may legitimately stay
  *     "推敲中" for a card whose four gates judged 该做 but whose last row is a human sign-off.
  *     Keying on GRADUATED_STATUS here would red-line honest waiting cards.
  *   · 毕业门 is the field that carries the judgment, so 已过 / 已通过 / 已毕业 there means the card
- *     has already reached its destination and the move to _done/ is a bookkeeping residue.
+ *     has already reached its destination and the move to _archive/closed/ is a bookkeeping residue.
  *   · A card whose gate says 待定 / 待触发 / 倾向放弃 / 🔒 is *not* finished and never trips this.
  *
  * Human-pending is deliberately NOT a completion word. "该做，四片全交付" + "剩毕业门最后一环：用户
@@ -936,7 +937,7 @@ export function backlogLivenessProblems(backlogRoot) {
  */
 export function backlogGraduationProblems(backlogRoot) {
   const problems = []
-  const plansDir = join(backlogRoot, 'plans')
+  const plansDir = join(backlogRoot, 'issues')
   if (!existsSync(plansDir)) return problems
 
   // The gate field carries the judgment, so a satisfied gate is the primary signal.
@@ -950,7 +951,7 @@ export function backlogGraduationProblems(backlogRoot) {
   const STATUS_DELIVERED = /状态：\**\s*[^｜|\n]*已交付\**\s*(?=｜|$)/
   const signals = [GATE_DONE, STATUS_DONE, STATUS_DELIVERED]
 
-  const plansIndex = join(plansDir, 'README.md')
+  const plansIndex = join(plansDir, 'README.md') // issues/README.md, the active ledger
   const index = existsSync(plansIndex) ? read(plansIndex) : ''
 
   for (const entry of readdirSync(plansDir, { withFileTypes: true })) {
@@ -961,9 +962,9 @@ export function backlogGraduationProblems(backlogRoot) {
     if (!signals.some(pattern => pattern.test(head))) continue
     const stillListed = index.includes(entry.name)
     problems.push(
-      `_backlog/plans/${entry.name} declares its graduation gate satisfied but still sits in plans/` +
-      `${stillListed ? ' and is still named by plans/README.md\'s active list' : ''}` +
-      ` — graduate it with \`git mv\` to _backlog/_done/_closed_plans/ and add its index row`,
+      `_backlog/issues/${entry.name} declares its graduation gate satisfied but still sits in issues/` +
+      `${stillListed ? ' and is still named by issues/README.md\'s active list' : ''}` +
+      ` — graduate it with \`git mv\` to _backlog/_archive/closed/ and add its index row`,
     )
   }
   return problems

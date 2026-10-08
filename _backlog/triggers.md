@@ -16,8 +16,8 @@
 
 | 对象 | 裁决 | 触发条件（一次观察，出现在哪） | 家 |
 |---|---|---|---|
-| 检查地板张力 | 地板保留不裁 | 跑全量时单项 **>30s** | [冻结卡处置表](_done/_closed_plans/261007-process-budget-audit.md) |
+| 检查地板张力 | 地板保留不裁 | 跑全量时单项 **>30s** | [冻结卡处置表](_archive/closed/261007-process-budget-audit.md) |
 | 文档词数预算 | 刻意不做 | 文档审计里**同一类腐化再出现** | [discipline.md ⏸ 行](../docs/discipline.md) |
-| 技能许可字段 | 不写 | 读 vendor 时 provider **开始读** `license` / `compatibility`，或技能出现第二个消费方 | [冻结卡](_done/_closed_plans/260928-skill-license-fields.md) |
-| desk 文件字段 | 不预建版本 | 桌面文件里出现**面板不认识的字段** | [冻结卡](_done/_closed_plans/260928-desk-file-schema-version.md) |
+| 技能许可字段 | 不写 | 读 vendor 时 provider **开始读** `license` / `compatibility`，或技能出现第二个消费方 | [冻结卡](_archive/closed/260928-skill-license-fields.md) |
+| desk 文件字段 | 不预建版本 | 桌面文件里出现**面板不认识的字段** | [冻结卡](_archive/closed/260928-desk-file-schema-version.md) |
 | 桌面默认落地 | 插件边界内不做 | 上游**发布**默认视图可配置，或空白相位主区可插件贡献 | [desk-primary-view](../notes/implemented/2026-10-06-desk-primary-view.md) |

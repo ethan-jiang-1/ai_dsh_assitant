@@ -12,8 +12,8 @@
 |---|---|---|
 | 文档只写 now；一个事实一个出处；**入口文件只收常设指令与路由指针**——时变状态放进自动注入的文件，就是把最容易腐烂的东西放进最不被怀疑的地方（`vendor/dsh/AGENTS.md` / `vendor/dsh/docs/AGENTS.md` tier 表） | docs/ 只写现在，合同自足，不链接单篇 note；AGENTS.md 全时不变（无状态节、无进度标记、无 pin 号） | ✅ 照搬 |
 | 平台事实一个家在钉住的 vendor：文档 tier（`vendor/dsh/docs/AGENTS.md`）、主仓 note 制度（`vendor/dsh/.agents/notes/README.md`）、主仓开发技能（`vendor/dsh/.agents/skills/`）、client 机制（`vendor/dsh/docs/subsystems/`）。别处链接，不把段落再写一份 | 根 AGENTS.md 硬规则 2。本仓差量三处：适配一行在本表，本仓步骤在仓根 `.agents/skills/`，本仓取舍在 `notes/`。发现根是本仓 `.git`（`vendor/dsh/docs/subsystems/skills.md`），主仓 `dsh-*` 技能不进本仓目录，也不 symlink 过来——它们的命令和相对路径假设 cwd 是 deepseek-harness | ✅ 适配 |
-| 决策 Note same-PR；完成的条目离开队列、不许标 ✅ 留场（`.agents/notes/README.md`） | 一次切片一个 commit。还要人点头的提案住 `notes/proposed/`，推敲住 `_backlog/plans/`，方向判据住 README。完成即离队，不设第二进度台账 | ✅ 照搬 |
-| 上游 plan 状态不二次落盘（2026-07-22 note :54：轮内计划已由工具参数记录，log-only 持久层不再建 plan 目录——**针对轮内计划状态**，不禁 repo 级提案与队列，见 `.agents/notes/README.md` 的 proposed 格式） | 不建 plans/tasks 物种（轮内计划走 plan/todo 机制，见下行）；repo 级设计计划住 `notes/proposed/`（RFC）与 `_backlog/plans/`（推敲/触发卡） | ✅ 适配（来源适用范围收窄：轮内状态 ≠ repo 级提案） |
+| 决策 Note same-PR；完成的条目离开队列、不许标 ✅ 留场（`.agents/notes/README.md`） | 一次切片一个 commit。还要人点头的提案住 `notes/proposed/`，推敲住 `_backlog/issues/`，这次不修的缺陷住 `_backlog/bugs/`，方向判据住 README。完成即离队，不设第二进度台账 | ✅ 照搬 |
+| 上游 plan 状态不二次落盘（2026-07-22 note :54：轮内计划已由工具参数记录，log-only 持久层不再建 plan 目录——**针对轮内计划状态**，不禁 repo 级提案与队列，见 `.agents/notes/README.md` 的 proposed 格式） | 不建 plans/tasks 物种（轮内计划走 plan/todo 机制，见下行）；repo 级设计计划住 `notes/proposed/`（RFC）与 `_backlog/issues/`（推敲/触发卡），缺陷卡住 `_backlog/bugs/` | ✅ 适配（来源适用范围收窄：轮内状态 ≠ repo 级提案） |
 | 会话日志即真相（log-only 持久层；复盘用日志 seq 重建，不凭自述） | 排查/复盘读 `dev/harness-home/sessions/**/session.v*.jsonl.zstd` 逐事件还原（`docs/dev.md` §五） | ✅ 照搬 |
 | 轮内任务面：plan 呈批（反馈门①）+ `todo_write` 活清单（反馈门②）+ steer，机制在 base bundle 零接线 | 本 repo 开发流程见 AGENTS.md 硬规则 5；本插件 preset 已挂 `tool-todo` 且**连必填 config 一起抄**（`allowParallelInProgress: true`——不抄 config 会在挂载时炸且 UI 吞错误） | ✅ 适配（本地选择：具体工具与模式以当前会话所有为准，不宣称普适强制） |
 | 默认翻转 + 适配声明：默认严格，偏离/裁剪须登记（镜像 "Require evidence for public choices"） | AGENTS.md 硬规则 4；每条适配登记于本文"已声明的适配" | ✅ 照搬 |
@@ -23,13 +23,13 @@
 | 继承跟 pin 走：升 pin 重校纪律表（vendor 的套路在演进，一次性快照会再烂） | `sync-dsh` 收尾清单第 4 步 + `pnpm verify` 强制本文存在 | ✅ 照搬 |
 | 测试纪律：本地窄证据 + 非平凡改动 same-PR 更新快照；插件证据五台阶（导出守卫→行为→生命周期→真组合→组装转录）+ 政策禁令（mock 白名单 / 禁 hand-built 组装证据 / 禁自报探测 / 单跑才绿=spec 缺陷 / 禁掩盖修法 / prove-it-red） | 测试面合同成文于 [testing.md](testing.md)（证据分层表 + 五台阶表 + 禁令 + 已定姿态）；`pnpm test`（纯核 + 服务合同 + 导出守卫 + 生命周期）+ 真实组合 + web 渲染期望（`snapshots/web-face/`）+ eval 两级 + release-smoke | ✅ 照搬（按事故面采纳。session 回放快照、全量 coverage 门、子进程 loader-smoke、CI 矩阵四项刻意不采纳，触发条件写在 testing.md） |
 | 文档词数预算 + slop 门禁（`doc-budgets` manifest + `verify-doc-budgets`） | 刻意不做 | ⏸ 触发条件：docs 腐化实证（与来源仓同款推迟理由）。第二轮审计（2026-09-23）证据：轻度腐化——多重书写 ×2、内部矛盾 ×1、过期数字 ×1，一轮修完；暂不立案，再犯即触发；建时带**降限防回填**（每次削减后主动降 ceiling，反证 = 临时设更低值即红） |
-| Issue → PR 连续流 + Project 状态机（队列不积累历史） | 不适用：本地单人仓无协作面 | ⚠️ 适配：一次切片 = 一个 commit。工作流 = 用户本轮请求 + 还要人点头的提案（`notes/proposed/`）+ 推敲卡（`_backlog/plans/`）+ 方向判据（[`README.md`](../README.md)）。没有 ROADMAP，没有 intents.md。完成即离队（见「已声明的适配」2） |
+| Issue → PR 连续流 + Project 状态机（队列不积累历史） | 不适用：本地单人仓无协作面 | ⚠️ 适配：一次切片 = 一个 commit。工作流 = 用户本轮请求 + 还要人点头的提案（`notes/proposed/`）+ 推敲卡（`_backlog/issues/`）+ 缺陷卡（`_backlog/bugs/`）+ 方向判据（[`README.md`](../README.md)）。没有 ROADMAP，没有 intents.md。完成即离队（见「已声明的适配」2） |
 | 外部结果先行 + 交付判断四结果分离（DSH 语料 native-model 闭环 1/7 步：闭包从可观察结果开始；「能加载 ≠ 有行为证据 ≠ 能安装 ≠ 已获交付批准」各自观察记录；recorded-session 义务的独立插件仓适配声明） | 根 AGENTS.md「开工先定外部结果」三要素 standing order；[testing.md](testing.md) 一页证据地图唯一表主 + 已定姿态（各命令能证明什么以 [testing.md](testing.md) 那一格为准；`repo-live-probe` 是取证非回归，session 回放维持触发条件制）；pre-push-evidence 只链接证据地图、不复制表 | ✅ 照搬 + 适配（钉版与 vendor 同为 dsh-v0.2.0-rc.2） |
 
 ## 已声明的适配（约束 → 适配 → 证据）
 
 1. **无 GitHub 协作面**（约束：本地单人仓）→ 无 Issues/PR 流；等价物 = 一次切片一个 commit。
-2. **工作队列不落第二份文件**（上游否决的是轮内计划状态再存一份）→ 工作流 = 本轮请求 + `notes/proposed/` + `_backlog/plans/`。方向判据住 [`README.md`](../README.md)。没有 ROADMAP，没有 intents.md。交接文档仍只放 /tmp。
+2. **工作队列不落第二份文件**（上游否决的是轮内计划状态再存一份）→ 工作流 = 本轮请求 + `notes/proposed/` + `_backlog/issues/` + `_backlog/bugs/`。方向判据住 [`README.md`](../README.md)。没有 ROADMAP，没有 intents.md。交接文档仍只放 /tmp。
 3. **切片可以全新会话**（约束：上下文经济）→ 交接靠入口链（AGENTS.md → docs）与代码本身，
    不靠长活上下文。
 4. **门禁不做 hook/CI 机械接线**（约束：本地单人仓、无 CI runner；用户 2026-09-27 拍板不加
@@ -42,7 +42,7 @@
    npm，本包不行）→ `export-dist` 与
    `release-smoke` 用同一条 `pnpm pack`，且都对产物断言 peer 已具体化（证据：`release-smoke`
    对 tarball manifest 的逐 peer 断言；`workspace:` 原样出包没人能解析）。
-6. **开发证据按风险投入，UX路径主导切片**（次序见 [转向自洽卡](../_backlog/_done/_closed_plans/261005-turnaround-coherence.md)）：
+6. **开发证据按风险投入，UX路径主导切片**（次序见 [转向自洽卡](../_backlog/_archive/closed/261005-turnaround-coherence.md)）：
    卫生有界先行，再围绕一条用户动作设计最小端到端体验，UI、行为和内容同片考虑；测试策略（见 [testing.md](testing.md)）
    按风险与实际消费者保留或退役，不以数量或演示可见性判断；技术承载优先组合与既有 DSH 扩展点，
    组合/扩展点不足才有证据地自建。
@@ -71,7 +71,7 @@
   standing instructions / 无意义 gate 假安全感 / 过细 Skill 仪式）+ **驾驭者认知成本**
   （用户一眼能否找到方向盘与仪表盘——语料判据全是 agent 参与视角，这一条是本仓自己的）
   过一遍；处置优先序同下（删>并>修>记），既有处置表与触发条件的家 =
-  [流程预算审计卡](../_backlog/_done/_closed_plans/261007-process-budget-audit.md)（2026-10-07 B1）。
+  [流程预算审计卡](../_backlog/_archive/closed/261007-process-budget-audit.md)（2026-10-07 B1）。
 - **新门禁必带反例**（负例控制；借 DSH「A guard only guards if the regression fails it」）：
   新增一条 `verify` 检查 = 同 diff 在 `tests/tooling/verify-gates.spec.mjs` 配一个"造红再证绿"夹具；
   只对新检查生效，不追旧账。
