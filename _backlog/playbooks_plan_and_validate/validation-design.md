@@ -59,5 +59,5 @@ present, one happy-path example, or a passing demo is not by itself a pass condi
 
 **Done:** every load-bearing requirement has a behavior class, observable pass/fail signal, negative or
 complementary case, evidence owner, and an explicitly named human judgment or an explicit “none”.
-The matrix is written to travel: at a doing-now graduation its rows become the proposal's
-executable-acceptance content (see [requirements-synthesis](requirements-synthesis.md)).
+The matrix is written to travel. [plan-to-note](plan-to-note.md) rewrites its rows into a proposal's
+`## 验收` when the graduation gate is doing-now. The matrix itself stays on the plan.

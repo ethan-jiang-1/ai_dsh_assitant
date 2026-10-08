@@ -65,9 +65,9 @@ decided deferral, rejection and digestion. The selected gate determines the dest
 result becomes a proposal. Honor current-request and local-edit exemptions instead of re-proposing
 already authorized work. A card status, cleared frontier or upstream ready label never grants authority.
 
-When the exit is doing-now, carry the acceptance-matrix rows into the proposal's executable-acceptance
-content: the notes contract keeps a proposal self-contained, and implementation sessions read the
-proposal, not the frozen plan. The plan card remains the historical origin of the criteria.
+When the judgment is supported, hand the card to [plan-to-note](plan-to-note.md). That playbook
+turns the gate into a note, or into an explicit decision that no note is warranted, and rewrites a
+doing-now acceptance matrix into the proposal's `## 验收`. Synthesis stops at the judgment.
 
 If evidence or human confirmation still blocks the judgment, keep the card active with next step and
 trigger. A decided deferral may leave future design to its trigger; rejection need not answer every

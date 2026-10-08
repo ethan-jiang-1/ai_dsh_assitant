@@ -9,6 +9,8 @@
 需求、验收矩阵住同一张 plan、门禁随目录名解析、`verify`/`typecheck`/`test` 全绿。
 方法尚未经过真实事项试用。
 
+2026-10-08 续：用户点名 FAQ `20_agent-note-quality-bar`，要求把「哪些 plan 写成 Note、正文怎么写、怎样才算挡住下一次错误改法」收成可执行的方法。规则原文不读仓外摘要，读钉住的 [`vendor/dsh/.agents/notes/README.md`](../../vendor/dsh/.agents/notes/README.md) 与同树的 prose / trim / archive 技能。新增 [plan-to-note](../../_backlog/playbooks_plan_and_validate/plan-to-note.md)，接在毕业判断之后。先问不写会不会让人重提已被否的方案、按代码倒推理由、留下没人敢动的约束，或只能去翻 git；再按本仓骨架写成 proposed 四节（问题 / 提案 / 输掉的方案 / 验收，代价与明知放弃的东西写在提案里）、既有决定的事实修订、可判定触发、否决，或消化进已有正文。验收矩阵在这一步改写成「验收」。写成提案不是开工授权。这篇还没有在真实卡片上试用过。
+
 来源：用户指示"需要借鉴 `mattpocock-skills/_faq_on_digest/09_skills-for-requirements-engineering-of-agent-apps`
 ——我们的 `_backlog/` 下需要特别的 playbook 来帮助我们如何推敲出需求／寻找合理的结构等
 产品经理／架构师的东西，最后内容进入 plans"；并在形态追问上拍板："**还是放在 `_backlog/playbooks_plan/`
