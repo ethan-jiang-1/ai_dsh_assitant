@@ -11,7 +11,7 @@
  */
 import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
-import { dirname, join, relative, resolve } from 'node:path'
+import { basename, dirname, join, relative, resolve } from 'node:path'
 import { parse as parseYaml } from 'yaml'
 
 const read = path => readFileSync(path, 'utf8')
@@ -533,8 +533,9 @@ export function skillFrontmatterProblems(skillsDir) {
 }
 
 /**
- * Playbook drafts staged in `_backlog/playbooks_plan/` are flat `<name>.md` files carrying the
- * same SKILL frontmatter they will need once they graduate to `.agents/skills/<name>/SKILL.md`.
+ * Playbook drafts staged in the `_backlog/playbooks_plan_and_validate/` area are flat `<name>.md`
+ * files carrying the same SKILL frontmatter they will need once they graduate to
+ * `.agents/skills/<name>/SKILL.md`.
  *
  * They need their own check because the two serving homes are `<name>/SKILL.md` bundles: the
  * staging area's shape is different, so `skillFrontmatterProblems` cannot reach it. Without this,
@@ -543,11 +544,15 @@ export function skillFrontmatterProblems(skillsDir) {
  * so that `git mv` into the skill directory is a pure move, and the description must be non-empty
  * because that is what the loader reads to decide whether the skill is ever invoked.
  *
- * @param {string} stagingDir - path of the `_backlog/playbooks_plan/` directory.
+ * Problem text reports the area by its real directory name (derived from `stagingDir`), so renaming
+ * the area cannot leave the gate pointing at a path that no longer exists.
+ *
+ * @param {string} stagingDir - path of the staging directory, e.g. `_backlog/playbooks_plan_and_validate/`.
  */
 export function playbookFrontmatterProblems(stagingDir) {
   const problems = []
   if (!existsSync(stagingDir)) return problems
+  const label = `_backlog/${basename(stagingDir)}`
   for (const entry of readdirSync(stagingDir, { withFileTypes: true })) {
     if (!entry.isFile() || !entry.name.endsWith('.md') || entry.name === 'README.md') continue
     const file = join(stagingDir, entry.name)
@@ -555,28 +560,28 @@ export function playbookFrontmatterProblems(stagingDir) {
     const text = read(file)
     const block = frontmatterBlock(text)
     if (block === undefined) {
-      problems.push(`_backlog/playbooks_plan/${entry.name} does not start with frontmatter (a playbook is SKILL-shaped from the start)`)
+      problems.push(`${label}/${entry.name} does not start with frontmatter (a playbook is SKILL-shaped from the start)`)
       continue
     }
     let data
     try {
       data = parseYaml(block)
     } catch (error) {
-      problems.push(`_backlog/playbooks_plan/${entry.name} frontmatter is not parsable YAML: ${String(error).split('\n')[0]}`)
+      problems.push(`${label}/${entry.name} frontmatter is not parsable YAML: ${String(error).split('\n')[0]}`)
       continue
     }
     if (typeof data !== 'object' || data === null || Array.isArray(data)) {
-      problems.push(`_backlog/playbooks_plan/${entry.name} frontmatter is not a mapping`)
+      problems.push(`${label}/${entry.name} frontmatter is not a mapping`)
       continue
     }
     if (data.name !== expected) {
-      problems.push(`_backlog/playbooks_plan/${entry.name} declares name ${typeof data.name === 'string' ? data.name : '(none)'} — graduation is a pure move only when the name matches the basename`)
+      problems.push(`${label}/${entry.name} declares name ${typeof data.name === 'string' ? data.name : '(none)'} — graduation is a pure move only when the name matches the basename`)
     }
     if (typeof data.description !== 'string' || data.description.trim().length === 0) {
-      problems.push(`_backlog/playbooks_plan/${entry.name} has no description`)
+      problems.push(`${label}/${entry.name} has no description`)
     }
     if (typeof data.whenToUse !== 'string' || data.whenToUse.trim().length === 0) {
-      problems.push(`_backlog/playbooks_plan/${entry.name} has no whenToUse`)
+      problems.push(`${label}/${entry.name} has no whenToUse`)
     }
   }
   return problems

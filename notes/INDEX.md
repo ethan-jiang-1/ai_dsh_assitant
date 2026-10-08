@@ -11,7 +11,7 @@
 
 | 日期 | 卡 |
 |---|---|
-| 2026-10-08 | [需求推敲 playbook：`_backlog/playbooks_plan/` 演练场 + `requirements-elicitation` 草稿 + 留区语法门](implemented/2026-10-08-requirements-elicitation-playbook.md) |
+| 2026-10-08 | [需求推敲 playbook：`_backlog/playbooks_plan_and_validate/` 演练场 + `requirements-elicitation` 草稿 + 留区语法门](implemented/2026-10-08-requirements-elicitation-playbook.md) |
 | 2026-10-08 | [判据复发追踪：eval 注记 + 收口行追问 + 扫描判据收卷](implemented/2026-10-08-recurrence-tracking.md) |
 | 2026-10-08 | [意图通道默认翻转：重大新工作默认呈批](implemented/2026-10-08-intent-channel-default-flip.md) |
 | 2026-10-07 | [开屏播报、拍板感与周节律（行为层收口）](implemented/2026-10-07-opening-brief-and-rhythm.md) |

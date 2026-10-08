@@ -1,4 +1,4 @@
-# 需求推敲 playbook：`_backlog/playbooks_plan/` 演练场 + `requirements-elicitation` 草稿 + 留区语法门
+# 需求推敲 playbook：`_backlog/playbooks_plan_and_validate/` 演练场 + `requirements-elicitation` 草稿 + 留区语法门
 
 日期：2026-10-08 · 状态：**implemented**
 
@@ -29,13 +29,13 @@
 
 ## 提案（已交付）
 
-1. **推敲方法演练场** [playbooks_plan](../../_backlog/playbooks_plan/README.md)：
+1. **推敲方法演练场** [playbooks_plan_and_validate](../../_backlog/playbooks_plan_and_validate/README.md)：
    - README 是中文阶段路由、索引与留区契约；只在对应缺口出现时披露下一篇。
-   - [requirements-elicitation](../../_backlog/playbooks_plan/requirements-elicitation.md)：入口、
+   - [requirements-elicitation](../../_backlog/playbooks_plan_and_validate/requirements-elicitation.md)：入口、
      confidence gate、动态技能加载、访谈/术语映射、大想法决策地图。
-   - [requirements-probes](../../_backlog/playbooks_plan/requirements-probes.md)：research / questionnaire /
+   - [requirements-probes](../../_backlog/playbooks_plan_and_validate/requirements-probes.md)：research / questionnaire /
      prototype 三探针与单独标明的 raw-request triage 入口，结果回消费卡。
-   - [requirements-synthesis](../../_backlog/playbooks_plan/requirements-synthesis.md)：编译、
+   - [requirements-synthesis](../../_backlog/playbooks_plan_and_validate/requirements-synthesis.md)：编译、
      在授权规划范围内评估候选切片、四门判断、跨会话依据保留。
    - 三篇带 `name`/`description`/`whenToUse`，英文，输入/步骤/产物/完成或等待条件可识别。
      有源但未试用的用户点名适配可以留区；真实试用是毕业条件。毕业时重校链接与调用方式，
@@ -137,7 +137,7 @@
   绝对路径与重校原始记录只留本 note（本仓纪律：机器本地路径的 provenance 归 `notes/`）；
   ② 该查**抽成可测纯核** `machineLocalPathProblems(corpus)`（`verify-checks.mjs`，语料与判据
   分离），`verify.mjs` 的语料**扩到 `_backlog/` 四个活区**（`plans`/`bugs`/`reference`/
-  `playbooks_plan` + 区 README），并显式排除 `notes/`；冻结的 `_done/` 与未归属文件不扫
+  `playbooks_plan_and_validate` + 区 README），并显式排除 `notes/`；冻结的 `_done/` 与未归属文件不扫
   （与断链门的既有口径一致）。该查此前**没有任何夹具**——正因逻辑内联在 `verify.mjs` 里无法被
   驱动；现补上走真 runner 的语料接线夹具。
 
@@ -187,7 +187,7 @@
 - `node scripts/checks/verify.mjs` → **35 checks passed**（改动前 35、改动后 35：新核并入既有
   一查，不增检查条数）。
 - **造红证绿（新门的真证据）**：
-  ① 把 `_backlog/playbooks_plan/requirements-elicitation.md` 的 `name:` 改成
+  ① 把 `_backlog/playbooks_plan_and_validate/requirements-elicitation.md` 的 `name:` 改成
   `deliberately-wrong-name` → `node scripts/checks/verify.mjs` 输出
   `FAIL contract: skill files carry valid frontmatter and match their directory` /
   `verify: 1 of 35 checks failed` → 还原 → 35 passed。
@@ -208,14 +208,14 @@
   不硬撑降智）逐字确认，两处均为正文与台账 `ask-matt` 行的依据；FAQ 摘要未载该例外，故正文
   采本体而非二手。checkout 绝对路径与各次重校原始记录住本节（共享正文不写死机器本地路径）。
 - **机器本地路径门禁扩面 + 抽核 + 新夹具**（第三轮）：
-  ① **造红**：向 `_backlog/playbooks_plan/requirements-elicitation.md` 追加一行
+  ① **造红**：向 `_backlog/playbooks_plan_and_validate/requirements-elicitation.md` 追加一行
   `/Users/bowhead/somewhere/SKILL.md` → `node scripts/checks/verify.mjs` 输出
   `FAIL links: contract docs cite no machine-local absolute paths` /
-  `_backlog/playbooks_plan/requirements-elicitation.md cites a machine-local absolute path` /
+  `_backlog/playbooks_plan_and_validate/requirements-elicitation.md cites a machine-local absolute path` /
   `verify: 1 of 35 checks failed` → 还原（区内 `/Users/` 计数归 0）→ 35 passed。
   ② **新夹具造红证绿**：`npx vitest run .../verify-gates.spec.mjs -t "machine-local"` → 1 passed；
-  再**故意从 `verify.mjs` 语料里删掉 `playbooks_plan` 那行**重跑 → 该夹具**失败**
-  （`AssertionError: expected ... to contain '_backlog/playbooks_plan/README.md cit…'`）→ 还原 → 1 passed。
+  再**故意从 `verify.mjs` 语料里删掉 playbook 区那行**重跑 → 该夹具**失败**
+  （`AssertionError: expected ... to contain '_backlog/playbooks_plan_and_validate/README.md cit…'`）→ 还原 → 1 passed。
   即夹具真的守着语料接线，不是陪跑。
 - `pnpm test` → **50 files / 411 tests passed**（较上轮 410 增 1 = 新语料接线夹具）。
 - **能力可得性核验**：以本会话技能目录为准逐个对照——`grilling`/`domain-modeling`/`prototype`/
@@ -228,7 +228,7 @@
 ## 行为对齐
 
 - **外部结果三要素**：触发 = 需要把模糊意图磨成能呈批的提案时（或一张 `plans/` 卡要从对话里写出来时）；
-  用户得到 = `_backlog/playbooks_plan/` 下一份可调整的 SKILL 形态 playbook（README 契约 + 
+  用户得到 = `_backlog/playbooks_plan_and_validate/` 下一份可调整的 SKILL 形态 playbook（README 契约 + 
   `requirements-elicitation.md` 草稿），以及留区草稿不再能带坏 frontmatter 的语法门；
   完成条件 = 方法成文、留区契约成文、语法门造红证绿、章程接线、`typecheck`+`test`+`verify` 全绿。
 - **本轮签收证据**：新上下文只读复核已完成，六个边界场景均有明确路由；机器证据见第四轮记录。

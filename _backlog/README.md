@@ -24,7 +24,7 @@ _backlog/
 ├── plans/               # 推敲卡：设计 / 分析 / 调研
 ├── bugs/                # 缺陷卡：已发现、决定不当场修的缺陷（当场修掉的不建档）
 ├── reference/           # 服务于活跃卡片的调研材料（按主题子目录分装；随卡毕业迁 _done/_reference/）
-├── playbooks_plan/      # 推敲方法的演练场（SKILL 形态的方法草稿；成熟后毕业为 .agents/skills/）
+├── playbooks_plan_and_validate/ # 需求对齐与质量验收方法演练场（成熟后毕业为 .agents/skills/）
 └── _done/               # 归档（位置即状态）：_closed_plans/ + _suspended_plans/
                          #   + _fixed_bugs/ + _suspended_bugs/ + _reference/
 ```
@@ -109,16 +109,14 @@ _backlog/
 [`notes/archived/research/`](../notes/README.md)，既定机制不变——两者语义不重叠：一个喂活跃卡，
 一个收卷已毕业的调研卡）。
 
-## 推敲方法区（playbooks_plan/）
+## 需求与验收方法区（playbooks_plan_and_validate/）
 
-**方法本身**的家：把"这件事该怎么推敲"写成可复用的 SKILL 形态文档（提问纪律、探针路由、成文
-形态），先在 `_backlog/` 里打磨，成熟后毕业为**开发用技能**。完整留区契约见
-[其 README](playbooks_plan/README.md)。要点：**方法不属于任何单张卡**（卡片会被毕业，方法要在
-下一张卡上再用一遍——这正是根 AGENTS.md「重复即建」针对的情形）；**这里是技能毕业前的演练场**
-（成熟后移入 [开发技能目录](../.agents/skills/)，重校相对链接与披露指针，与在役技能同名时不许并存）；
-**有源草稿与实证毕业分开**：留区可收已读本体、用户点名借鉴但尚未试用的适配；
-毕业须经真实推敲校准，来源与验证纪律以区 README 为准。
-本区不是卡片区，不设状态行，`backlog-liveness` 门禁的三查不覆盖它。
+**方法本身**的家：把“需求如何对齐、计划如何留下可验收判据、交付如何取得可信证据”写成面向本仓的
+SKILL 形态文档，长期在 `_backlog/` 里打磨。完整留区契约见
+[其 README](playbooks_plan_and_validate/README.md)。这里不创建验收队列、不复制测试制度；每次使用的
+判断材料和验收矩阵仍归 [plans/](plans/README.md)，证据归现有 owners。它不是通用技能孵化器，
+不设默认 promote 路线，也不复制到 `.agents/skills/`；SKILL 形态只是 agent 消费格式。本区不是卡片区，
+不设状态行，`backlog-liveness` 门禁的三查不覆盖它。
 
 ## 铁律
 

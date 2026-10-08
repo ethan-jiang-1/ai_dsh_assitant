@@ -199,8 +199,8 @@ describe('verify machine-local-path corpus wiring', () => {
       '_backlog/reference/README.md',
       '_backlog/reference/positioning/261005-nested.md',
       // The area that motivated the rule: staged playbooks are shared prose too.
-      '_backlog/playbooks_plan/README.md',
-      '_backlog/playbooks_plan/some-playbook.md',
+      '_backlog/playbooks_plan_and_validate/README.md',
+      '_backlog/playbooks_plan_and_validate/some-playbook.md',
     ]
     for (const file of offending) {
       const path = join(root, file)

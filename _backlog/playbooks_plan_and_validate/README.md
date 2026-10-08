@@ -1,9 +1,11 @@
-# playbooks_plan/ · 推敲方法演练场
+# playbooks_plan_and_validate/ · 需求对齐与验收方法演练场
 
-本区存可调整的 **SKILL 形态开发方法草稿**，不发进 preset，也不自动进入技能发现目录。
-方法住这里，某件工作的判断住 [plans](../plans/README.md)，证据住
-[reference](../reference/README.md)；四门、授权和生命周期以 [章程](../README.md) 与
-[notes 契约](../../notes/README.md) 为准。这里不另立 tracker、排期或文档体系。
+本区是本项目长期维护的 **SKILL 形态方法实验场**：把上游能力适配到本仓的
+[plans](../plans/README.md)，持续反复打磨，不发进 preset，也不自动进入技能发现目录。
+它不追求适配各种项目，不承诺 promote 成通用 `.agents/skills/`；SKILL 形态只是为了让 agent
+更容易消费。方法住这里，某件工作的判断住 plans，证据住 [reference](../reference/README.md)；
+四门、授权和生命周期以 [章程](../README.md) 与 [notes 契约](../../notes/README.md) 为准。
+这里不另立 tracker、排期或验收队列。
 
 ## 按需要读取
 
@@ -13,24 +15,24 @@
 |---|---|---|
 | 意图模糊、词义冲突、判断没信心，或想法大到一次访谈装不下 | [requirements-elicitation](requirements-elicitation.md) | 本仓卡、人的确认边界、技能加载规则、澄清与决策地图 |
 | 需要查事实、问别人、摸原型；或外部原始请求需要先核实 | [requirements-probes](requirements-probes.md) | 补证据的三种探针及 raw-request 分诊入口；结论回写消费卡 |
-| 已对齐，需要编译、评估候选切片或作毕业判断 | [requirements-synthesis](requirements-synthesis.md) | 本仓规格/验收、在授权范围内的候选拆解、四门判断或具体阻塞 |
+| 已对齐，需要编译、设计验收、评估候选切片或作毕业判断 | [requirements-synthesis](requirements-synthesis.md) | 本仓规格/验收、在授权范围内的候选拆解、四门判断或具体阻塞 |
+| 需求已确认但“怎么算完成”仍模糊 | [validation-design](validation-design.md) | 同一张 plan 内的行为分类、验收矩阵、负例/互补状态、证据 owner 和真人判断点 |
 
 后两篇先读入口的 **Human confidence gate / Load engines**，具体步骤分别留在各篇。
 入口只在分支到场时引向它们；问卷与原型结果回到访谈，不自动变成规格或实施。
 
-## 留区与毕业
+## 长期实验场契约
 
-- 每份草稿用英文，文件名 `kebab-case.md` 与 frontmatter `name` 一致，带 `description` 和
-  `whenToUse`；正文按输入、步骤、产物落点、完成或等待条件组织。本 README 用中文。
-- **进来的是有可核来源的方法草稿**：重复推敲的实证，或用户点名借鉴且已经读过完整本体的适配。
+- 每份方法文档用英文、`kebab-case.md`，正文按输入、步骤、产物落点、完成或等待条件组织；
+  frontmatter 保持 `name` / `description` / `whenToUse`，因为这是 agent 易于消费的形状，不是通用技能发行承诺。
+- **进来的是有可核来源的方法草稿**：重复推敲的实证，或用户点名借鉴且已经读过完整本体的项目适配。
   后者可以尚未试用，但须如实标为未验证；摘要只能帮助定位本体，不能代替执行协议。
-- 本区无卡片编号/状态行；`pnpm verify` 的 `playbookFrontmatterProblems` 检查其留区语法。
+- 本区无卡片编号/状态行；`pnpm verify` 的 `playbookFrontmatterProblems` 只检查文档形状。
   语法绿不证明方法有效，也不证明上游技能已能被 harness 发现。
-- **毕业看真实使用**：至少一到两轮真实推敲验证输入、加载、产物流向和完成线，纠偏后再进入
-  [开发技能目录](../../.agents/skills/)。移动时重校相对链接、调用方式和披露指针，删本索引行；
-  不保留同名两份方法，也不把搬家说成无需修改的纯移动。
+- **不设毕业线**：在本仓持续使用、复盘、拆分、合并和重写；真实事项试用是校准证据，
+  不是 promote 条件。若未来需要独立通用技能，另立明确决定，不把本区默认搬走或复制两份。
 
-当前三篇均为草稿，尚未完成真实事项试用；拆文和文档自审不算试用证据。
+当前需求三篇与验收设计篇均是持续打磨中的项目适配草稿；文档自审不算真实事项试用。
 
 ## 上游与本仓适配
 
