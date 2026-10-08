@@ -13,7 +13,7 @@
 
 **意图从哪来**（两通道，各管各的）：① **用户本轮请求**——唯一外部通道，本轮范围由它决定；② **已立项的内部工作项**——
 `notes/proposed/` 的提案卡（毕业形态：问题/方案/验收三件齐——「输掉的方案」一节推荐带上、毕业为 implemented 时门禁强制，**待用户拍板**，正文与验收都在卡上；点名或点头即开工）
-与 `_backlog/issues/` 的推敲卡（触发型/用户点名才取用，毕业四门见 `_backlog/README.md`）。这次不修的缺陷另记在 `_backlog/bugs/`，不是开工通道。
+与 `_backlog/issues/` 的推敲卡（触发型/用户点名才取用，流程与关闭条件见 `_backlog/README.md`）。这次不修的缺陷另记在 `_backlog/bugs/`，不是开工通道。
 **重大新工作默认先呈批**：跨切片的新工作 / 流程面改动 / 模型可见面新能力，开工前先立 proposed 卡等点头或点名
 （依据 intent-channel-default-flip note）；
 轮内直落只保留给豁免清单——机械与局部编辑（与 note 义务豁免同口径）、已授权切片的轮内延续、用户本轮明确点名的具体任务、bug 修复卡毕业。
@@ -43,7 +43,7 @@ rejected 政策、命名——本文件不复制）；改行为、契约或开�
 | `packages/dsh-smart-assistant/` | **插件包**（bundle）：入口×平面、自有四工具×动词、组合行、pin 与依赖姿态见生成物 `docs/package-catalog.md`；包内 owner 面与纪律见其 `AGENTS.md` | 改模型可见面 / 服务 / 布局动这里 |
 | `docs/` | **当前合同**（只写现在，无历史）—— 文档 tier 与"谁拥有什么"见其 `AGENTS.md` | 门禁住了的事实进这里 |
 | `notes/` | **开发记忆与证据链**（分类 owner：`notes/README.md`）：`proposed/` 将来 → `implemented/` 当前权威 → `archived/` 冻结历史；`rejected/` 存负知识与一行原因 | 决策与输掉的方案进这里 |
-| `_backlog/` | **推敲空间**：还没定的事在 `issues/`（`YYMMDD-`），这次不修的缺陷在 `bugs/`（`BUG-`），调研在 `research/`，方法在 `methods/`，离开活跃区的在 `_archive/`。只装判断材料、**永不调度**；地图与毕业四门见其 `README.md`；`triggers.md` 只收工作里会撞上的观察（收割/走查/收口扫这张短表） | 收割/走查/对话中值得推敲但未到裁决的思考在此立卡 |
+| `_backlog/` | **推敲空间**：还没定的事在 `issues/`（`YYMMDD-`），这次不修的缺陷在 `bugs/`（`BUG-`），调研在 `research/`，方法在 `methods/`，离开活跃区的在 `_archive/`。只装判断材料、**永不调度**；流程与关闭条件见其 `README.md`；`triggers.md` 只收工作里会撞上的观察（收割/走查/收口扫这张短表） | 收割/走查/对话中值得推敲但未到裁决的思考在此立卡 |
 | `dev/` | 开发 home 与 profile patch —— 双 home 与两个 profile 的纪律见其 `AGENTS.md` | 环境问题动这里（手册 owner：`docs/dev.md`） |
 | `scripts/` | 机械门禁与生成器 —— 门禁三条纪律与 freshness 约定见其 `AGENTS.md` | 门禁问题动这里 |
 | `snapshots/` | 行为回归的证据面——只收边界与现状见其 `AGENTS.md` 与 `README.md` | 回归证据问题动这里 |

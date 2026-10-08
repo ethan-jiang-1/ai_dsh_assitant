@@ -1,44 +1,22 @@
-# issues/ · 还在推敲的事
+# issues/ · 还没结束的问题
 
-> 一文件一张卡，文件名 `YYMMDD-<slug>.md`。缺陷不进这里，进 [`../bugs/`](../bugs/README.md)。
-> 有结论就 `git mv` 到 [`../_archive/settled_issues/`](../_archive/settled_issues/README.md)，文件名不变，正文不改，frontmatter 的 `status` 改成 `已结`，状态行补去向。
-> 被人叫停、还没有结论的，进 [`../_archive/suspended_issues/`](../_archive/suspended_issues/README.md)。
-> 地图在 [`../README.md`](../README.md)。
+一文件一张卡。先找已有问题，用户点名后再推敲；缺陷记在 [bugs](../bugs/README.md)。完整流程与关闭条件在 [backlog 入口](../README.md)。
 
 ## 活跃清单
 
-| 卡 | 一句话 | 还开着的原因 |
+| 卡 | 要解决什么 | 还开着的原因 |
 |---|---|---|
-| [261006-chief-of-staff-experience.md](261006-chief-of-staff-experience.md) | 一把手的总助——从空白聊天框到打开即见简报、跟进、知识积累 | 四 Goal 的意图已落地。与 [261007-opening-brief-and-rhythm](261007-opening-brief-and-rhythm.md) 共用用户终验，记录家在那张卡 |
-| [261007-opening-brief-and-rhythm.md](261007-opening-brief-and-rhythm.md) | 它先开口——开屏播报、拍板感、周节律 | 四片已落地。验收 6/7 行有证据，#7 blank 夹具阻断，3 项人判未判。剩用户终验 |
-| [261007-input-boundary.md](261007-input-boundary.md) | 输入边界——晨报与周坐的料从哪来 | 等人拍板两句：30 天真用落在哪个 home；先真用 30 天再定形态，还是现在做 |
+| [261006-chief-of-staff-experience.md](261006-chief-of-staff-experience.md) | 从空白聊天框转向一把手的桌面、拍板与跟进 | 默认桌面未交付、对话回流未单独举证；与开屏卡共用后续验收，不能概括为全部达成 |
+| [261007-opening-brief-and-rhythm.md](261007-opening-brief-and-rhythm.md) | 开屏播报、拍板口吻和每周对账 | 实现已落地；重载、输入框、排程与渲染仍有证据缺口，另有用户判断未完成 |
+| [261007-input-boundary.md](261007-input-boundary.md) | 决定输入通道现在做，还是先观察真实使用 | 等用户确定 30 天使用环境与先后选择；观察的基线、周度记录方式还需落实 |
 
-## 🔒 只有用户能判触发
+前两张是已经实施、仍承载验收的旧卡，保留其未完成事项，不代表新的问题要等到下游实施完成才能关闭。
 
-状态行带 🔒 的卡，agent 只报告和建议，不得自行判触发、不得删卡、不得实现。
-样本卡 [260929-reserved-anchor-discipline](../_archive/settled_issues/260929-reserved-anchor-discipline.md) 已由用户本人关闭。现在没有在役的 🔒 卡。新卡出现时，这条照旧。
+## 写一张卡
 
-## frontmatter
+文件名为 `YYMMDD-<slug>.md`。开头先让下一位读者知道：解决什么、现在什么情况、还缺什么、下一步是什么。讨论中的事实、假设和建议分别写清，历史推演放在当前情况之后。
 
-新卡照这个写。文件第一行是 `---`，字段顺序固定，第一项是 `status`。
-
-```yaml
----
-status: 推敲中
-opened: YYYY-MM-DD
----
-```
-
-| 字段 | 写什么 |
-|---|---|
-| `status` | 本目录只写 `推敲中`，或卡在真人拍板时写 `等人拍板`。实现已经落地、毕业门还差用户终验的，仍写 `推敲中` |
-| `opened` | `YYYY-MM-DD`，与正文立卡日相同 |
-
-离开本目录时只改 `status`。四问有了结论，改成 `已结`，卡进 [`settled_issues/`](../_archive/settled_issues/README.md)。被人叫停、还没有结论，改成 `叫停`，卡进 [`suspended_issues/`](../_archive/suspended_issues/README.md)。正文里的状态句留着，不抄进 frontmatter。不写 id、标题、类型。
-
-## 推敲卡模板
-
-类型写在正文的状态行。还分不出 Feature 和 Task 就写未定。正文仍是推敲，不换成另一套表格。
+新卡参考下面的骨架；简单问题可以简写。`Feature` 表示可观察行为会变，`Task` 表示要交出代码、文档、配置或结论；还分不清就写 `未定`，旧卡不回填类型。
 
 ```markdown
 ---
@@ -48,15 +26,49 @@ opened: YYYY-MM-DD
 
 # 推敲：<标题>
 
-> 立卡：YYYY-MM-DD ｜ 状态：推敲中｜类型：Feature｜毕业门判断 = 待定｜下一步 = <动作或触发>
+> 立卡：YYYY-MM-DD ｜ 状态：推敲中 ｜ 类型：未定 ｜ 可关闭：否
 
-## 背景 / 触发
+**问题与期望结果：** 什么情况引出问题，用户应得到什么，怎么算完成。
+**当前情况：** 已经确定什么。
+**未决问题：** 还缺什么事实或选择。
+**下一步：** 谁来做什么，或等待什么具体条件。
 
 ## 已知与未决
 
-## 候选与取舍
+## 方案与取舍
 
-## 毕业门
+## 关闭条件
 ```
 
-`Feature`：可观察行为会变。`Task`：要交出代码、文档、配置或结论。需求确认之后，验收矩阵按 [验证设计](../methods/validation-design.md) 写在同一张卡的 `## 验收矩阵`，不另开一张卡。毕业门写成 `已过` / `已通过` / `已毕业` 之后，卡就要离开这个目录。
+决定做的事项，按 [验收设计](../methods/validation-design.md) 在同卡加 `## 验收标准`，可以是短清单或表格。它描述下游做成什么样算合格；backlog 关闭不要求这些未来检查已执行。
+
+## 关闭或叫停
+
+按 [入口的关闭条件](../README.md) 检查。需要后续处理的只申请下游处理，是否成为 note 由下游决定；卡上记录结论和申请去向。满足条件后，头部写 `可关闭：是` 并在同次改动中归档，不留在活跃清单。
+
+- 有结论：用 `git mv` 进 [settled_issues](../_archive/settled_issues/README.md)，`status` 改为 `已结`，状态行补结论与去向。
+- 被用户明确叫停、尚无结论：进 [suspended_issues](../_archive/suspended_issues/README.md)，`status` 改为 `叫停`。重新讨论需要用户明确的新决定。
+
+搬迁保留文件名和讨论正文，修相对链接，更新两边清单。`pnpm verify` 检查清单、frontmatter，以及已声明可以关闭却仍留在活跃区的卡；旧字段保持兼容。
+
+## frontmatter
+
+新卡第一行是 `---`，字段按下面顺序：
+
+```yaml
+---
+status: 推敲中
+opened: YYYY-MM-DD
+---
+```
+
+| 字段 | 内容 |
+|---|---|
+| `status` | 活跃区用 `推敲中`；等用户作选择时用 `等人拍板`。旧卡已经实施但验收未完成时仍用 `推敲中` |
+| `opened` | 立卡日，与正文一致 |
+
+离开目录时只改 frontmatter 的 `status`，其他字段保留。不把正文长说明复制进 frontmatter。
+
+## 🔒 只有用户能判定触发
+
+状态行带 🔒 的卡，agent 只报告和建议，不自行判定触发、删卡或实施。历史 [保留卡](../_archive/settled_issues/260929-reserved-anchor-discipline.md) 已由用户关闭；以后出现同类卡时仍遵守这条边界。

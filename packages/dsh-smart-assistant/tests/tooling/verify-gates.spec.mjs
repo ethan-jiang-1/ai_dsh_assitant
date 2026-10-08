@@ -472,6 +472,32 @@ describe('backlogGraduationProblems', () => {
     expect(problems[0]).toContain('_archive/settled_issues')
   })
 
+  it.each(['可关闭：是', '**可关闭：** 是', '关闭条件 = 已满足', '关闭条件判断 = 已通过'])(
+    'rejects an active issue declaring closure in common wording: %s', (closure) => {
+      const backlog = temp('closure-done-')
+      bootPlans(backlog)
+      card(backlog, '261010-ready.md', `立卡：2026-10-10 ｜ 状态：推敲中 ｜ ${closure}`)
+      expect(backlogGraduationProblems(backlog)).toHaveLength(1)
+    },
+  )
+
+  it.each(['可关闭：否', '可关闭：是非未定', '可关闭：是否取决于用户', '关闭条件 = 待确认', '可关闭：否 ｜ 关闭条件 = 尚未满足'])(
+    'accepts unresolved closure wording: %s', (closure) => {
+      const backlog = temp('closure-open-')
+      bootPlans(backlog)
+      card(backlog, '261010-open.md', `立卡：2026-10-10 ｜ 状态：推敲中 ｜ ${closure}`)
+      expect(backlogGraduationProblems(backlog)).toEqual([])
+    },
+  )
+
+  it('ignores closure declarations quoted in the discussion below the header', () => {
+    const backlog = temp('closure-quote-')
+    bootPlans(backlog)
+    writeFileSync(join(backlog, 'issues', '261010-quote.md'),
+      `# 推敲：demo\n\n> 立卡：2026-10-10 ｜ 状态：推敲中 ｜ 可关闭：否\n${'\n'.repeat(12)}## 历史讨论\n\n旧记录写“可关闭：是”，本轮证据不足。\n`, 'utf8')
+    expect(backlogGraduationProblems(backlog)).toEqual([])
+  })
+
   it('rejects a status field that is itself a completion word', () => {
     const backlog = temp('grad-status-')
     bootPlans(backlog)

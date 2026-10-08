@@ -299,10 +299,9 @@ check('notes: note files follow YYYY-MM-DD-topic naming', () =>
 check('backlog: liveness (status lines, institution dirs, index membership)', () =>
   backlogLivenessProblems(join(repoRoot, '_backlog')))
 
-// The mirror of the notes/proposed queue check above: an issue card that judged its own gate
-// satisfied must not keep occupying the active shelf. Liveness proves a card is alive; this
-// proves it is not a graduate that forgot to leave.
-check('backlog: graduated issues leave the active shelf', () =>
+// A completed deliberation must leave the active area independently of downstream notes processing.
+// Liveness only proves a card exists; the separate closure verdict prevents closed work from lingering.
+check('backlog: issues ready to close leave the active shelf', () =>
   backlogGraduationProblems(join(repoRoot, '_backlog')))
 
 check('structure: dev tooling never inherits DSH_HOME', () =>
