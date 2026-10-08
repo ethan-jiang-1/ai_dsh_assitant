@@ -248,6 +248,9 @@ ask-matt 阶段边界、triage 五状态、wayfinder fog/HITL-AFK、grilling fro
 - **表文一致**：README 依赖表 retro 行与 judgment 正文对齐（收尾补"漏检沉淀"一步）；
   probes 表头 Engine→Skill；README 补"未列 = 刻意不借"一行与"两链共用 confidence gate"的措辞。
 
+**第六轮验证**：`pnpm verify` → 35 checks passed；`pnpm typecheck` → exit 0；
+`pnpm test` → 50 files / 411 tests passed（docs-only 改动，无源码/测试资产变更）。
+
 ## 验证（真跑过的命令）
 
 **第五轮（文档 + 门禁注释，未改产品运行时）**：`pnpm gen-notes-index`（note 标题变更后重生成）；
