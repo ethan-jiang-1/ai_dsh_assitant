@@ -74,6 +74,11 @@ export const TASKS = [
       // condition) or the pivot form (若…→) both satisfy it — a substantively compliant answer
       // phrasing every action's pivot without the label is not a miss (found live 2026-10-07,
       // BUG-003: "若下滑高度分散 → 转向 H1/H5" in every action row failed the literal match).
+      // Recurrence history: this signature has red twice with DIFFERENT root causes — BUG-001
+      // (2026-10-01: the skill catalog was never published to the session, a composition gap)
+      // and BUG-003 (2026-10-07: environment leaks + this criterion's own literalness). Same
+      // signature ≠ same fix: re-diagnose before reaching for the previous remedy. The matching
+      // optional question lives in the 交付收口行 (notes/README §二之二).
       { kind: 'answer-matches', pattern: '停止条件|stop condition|若.{0,30}→' },
     ],
   },
