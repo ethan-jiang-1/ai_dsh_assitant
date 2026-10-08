@@ -382,8 +382,8 @@ check('contract: skill files carry valid frontmatter and match their directory',
   // the provider's `project-agents` root (vendor: skill-filesystem/src/index.ts, rank 200).
   ...skillFrontmatterProblems(join(packageDir, 'presets', 'assistant', 'skills')),
   ...skillFrontmatterProblems(join(repoRoot, '.agents', 'skills')),
-  // Staged playbook drafts are SKILL-shaped before they graduate, so they are held to the same
-  // frontmatter contract now — failing at graduation means failing at the moment it must be trusted.
+  // The long-lived playbook drafts are SKILL-shaped for agent consumption, so their frontmatter is
+  // checked now even though this project area is not a serving skill home.
   ...playbookFrontmatterProblems(playbookStagingDir),
 ])
 
@@ -418,9 +418,8 @@ const KNOWN_ROOT_BASENAMES = new Set([
 const KNOWN_PACKAGE_BASENAMES = new Set(['cordis.patch.yml'])
 
 /**
- * The playbook staging area under `_backlog/`, resolved by discovery rather than by a hardcoded
- * name. It was renamed once already (`playbooks_plan` → `playbooks_plan_and_validate`), and a
- * hardcoded path here would silently stop covering the area instead of failing loudly.
+ * The long-lived playbook method area under `_backlog/`, resolved by discovery rather than by a
+ * hardcoded name. A hardcoded path would silently stop covering it if the project reshapes the area.
  *
  * A fixture tree may stage no playbook area at all (the link-corpus and machine-local fixtures only
  * write the directories they exercise). That is not an error: the area is simply not part of that

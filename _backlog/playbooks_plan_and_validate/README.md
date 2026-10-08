@@ -1,25 +1,38 @@
 # playbooks_plan_and_validate/ · 需求对齐与验收方法演练场
 
-本区是本项目长期维护的 **SKILL 形态方法实验场**：把上游能力适配到本仓的
-[plans](../plans/README.md)，持续反复打磨，不发进 preset，也不自动进入技能发现目录。
-它不追求适配各种项目，不承诺 promote 成通用 `.agents/skills/`；SKILL 形态只是为了让 agent
-更容易消费。方法住这里，某件工作的判断住 plans，证据住 [reference](../reference/README.md)；
-四门、授权和生命周期以 [章程](../README.md) 与 [notes 契约](../../notes/README.md) 为准。
+本区是本项目长期维护的 **SKILL 形态方法实验场**：把需求对齐与质量验收沉淀为本仓自己的
+可复用能力，服务 [plans](../plans/README.md) 的产出质量（需求清楚、验收有方）。
+它持续反复打磨，不发进 preset，也不自动进入技能发现目录；不追求适配各种项目，
+也不承诺 promote 成通用 `.agents/skills/`——SKILL 形态只是为了让 agent 容易消费。
+某件工作的判断住 plans，证据住 [reference](../reference/README.md)；四门、授权和生命周期
+以 [章程](../README.md) 与 [notes 契约](../../notes/README.md) 为准。
 这里不另立 tracker、排期或验收队列。
 
 ## 按需要读取
 
-**先读入口，再按当前缺口展开；不是每张卡都跑完整套技能。**
+**先确定自己在哪条链，再按当前缺口展开；不是每张卡都跑完整套。**
+
+### 需求链：决定要做什么
 
 | 现在要解决什么 | 读取 | 留下什么 |
 |---|---|---|
 | 意图模糊、词义冲突、判断没信心，或想法大到一次访谈装不下 | [requirements-elicitation](requirements-elicitation.md) | 本仓卡、人的确认边界、技能加载规则、澄清与决策地图 |
 | 需要查事实、问别人、摸原型；或外部原始请求需要先核实 | [requirements-probes](requirements-probes.md) | 补证据的三种探针及 raw-request 分诊入口；结论回写消费卡 |
-| 已对齐，需要编译、设计验收、评估候选切片或作毕业判断 | [requirements-synthesis](requirements-synthesis.md) | 本仓规格/验收、在授权范围内的候选拆解、四门判断或具体阻塞 |
-| 需求已确认但“怎么算完成”仍模糊 | [validation-design](validation-design.md) | 同一张 plan 内的行为分类、验收矩阵、负例/互补状态、证据 owner 和真人判断点 |
+| 已对齐，需要编译、评估候选切片或作毕业判断 | [requirements-synthesis](requirements-synthesis.md) | 本仓需求规格、边界、候选拆解、四门判断或具体阻塞 |
 
-后两篇先读入口的 **Human confidence gate / Load engines**，具体步骤分别留在各篇。
-入口只在分支到场时引向它们；问卷与原型结果回到访谈，不自动变成规格或实施。
+### 验证链：判断做出来没有
+
+验证链只消费已确认的 plan；不能替需求链补产品决定，也不能用验收结果偷偷改需求。
+
+| 现在要解决什么 | 读取 | 留下什么 |
+|---|---|---|
+| 已确认的行为还没有可判定的完成条件 | [validation-design](validation-design.md) | 同一张 plan 内的验收矩阵、行为分类、负例/互补状态和真人判断点 |
+| 计划已有判据，需要选择可信证据 | [validation-evidence](validation-evidence.md) | 现有测试、组合、渲染、eval 或真人证据 owner；不建新队列 |
+| 实施声称完成，需要逐行收货和归因 | [validation-judgment](validation-judgment.md) | pass/fail/blocked/human-pending 结果、限制、回退路径或需求缺口 |
+
+需求链的缺口回到需求篇；验证链发现判据改变了意图时也回到需求链。需求入口的
+**Human confidence gate / skill loading** 规则约束需求支线；验证支线仍须尊重其中已确认的边界，
+但不重新进行访谈。
 
 ## 长期实验场契约
 
@@ -32,29 +45,26 @@
 - **不设毕业线**：在本仓持续使用、复盘、拆分、合并和重写；真实事项试用是校准证据，
   不是 promote 条件。若未来需要独立通用技能，另立明确决定，不把本区默认搬走或复制两份。
 
-当前需求三篇与验收设计篇均是持续打磨中的项目适配草稿；文档自审不算真实事项试用。
+当前需求三篇与验收三篇均是持续打磨中的项目适配草稿；文档自审不算真实事项试用。
 
-## 上游与本仓适配
+## 能力与依赖
 
-汲取的是 FAQ 09 的 **“技能是引擎，本仓流程是容器”**：按功能补短板，逐个引入；
-用完整协议喂输入、把产物接回下一环，让事实查证由 agent 承担，判断和授权不被技能接管。
-“查证外包 / 按推荐确认 / 产物流动”的实际操作分别落在上述三篇，不在此复制协议。
-**需求阶段没信心就请真人确认**；技术自主权不能绕过这一边界。
+这些 playbook 是**本仓自己的能力**：每篇独立定义本仓的输入、步骤、产物落点和完成线。
+唯一的外部依赖是 **Matt Pocock 的 SKILL 本体**——各篇写明执行时需要哪个技能、喂什么输入、
+结果回哪里；技能在会话目录里可调用就调用，不可调用但完整本体可读就读源并如实声明，
+两者都不可行就停住该分支。本仓 owners（plans/notes/docs/testing/snapshots）负责落点、
+证据标准和授权；**需求阶段没信心就请真人确认**，技术自主权不能绕过。
 
-| 上游协议（相对上游 checkout） | 本仓借用及适配位置 |
+| 本仓能力 | 依赖的 SKILL 本体（相对上游 checkout） |
 |---|---|
-| `skills/engineering/grill-with-docs/SKILL.md`、`skills/productivity/grilling/SKILL.md`、`skills/engineering/domain-modeling/SKILL.md` | 入口篇：组合访谈引擎；术语/取舍回本仓卡与现有 owners，不新建 glossary/ADR |
-| `skills/engineering/wayfinder/SKILL.md` | 入口篇：大想法的决策地图；用卡内问题/依赖，不建 tracker、不自动取任务 |
-| `skills/engineering/research/SKILL.md`、`skills/productivity/to-questionnaire/SKILL.md`、`skills/engineering/prototype/SKILL.md`（含分支资源） | 探针篇：按未知补证据，明确消费者；原型保留来源，判断不确定时不猜 |
-| `skills/engineering/triage/SKILL.md`（含关联资源） | 探针篇：只作外部 raw-request 核实入口，复用本仓拒绝/缺陷记录与授权边界 |
-| `skills/engineering/to-spec/SKILL.md`、`skills/engineering/to-tickets/SKILL.md` | 收口篇：编译和切片纪律写回本仓模板；保留必要证据路径/验收命令，不发布 ready 标签 |
-| `skills/engineering/ask-matt/SKILL.md`（含阶段边界资源） | 收口篇：保持对齐依据；适配自动压缩和跨会话，不承诺上下文永不中断 |
+| [requirements-elicitation](requirements-elicitation.md)：访谈、术语、大想法决策地图 | `skills/engineering/grill-with-docs/SKILL.md`、`skills/productivity/grilling/SKILL.md`、`skills/engineering/domain-modeling/SKILL.md`、`skills/engineering/wayfinder/SKILL.md` |
+| [requirements-probes](requirements-probes.md)：research/问卷/原型与 raw-request 核实 | `skills/engineering/research/SKILL.md`、`skills/productivity/to-questionnaire/SKILL.md`、`skills/engineering/prototype/SKILL.md`（含分支资源）、`skills/engineering/triage/SKILL.md`（含关联资源） |
+| [requirements-synthesis](requirements-synthesis.md)：编译需求、候选切片与四门判断 | `skills/engineering/to-spec/SKILL.md`、`skills/engineering/to-tickets/SKILL.md`、`skills/engineering/codebase-design/SKILL.md`、`skills/engineering/ask-matt/SKILL.md`（阶段边界资源） |
+| [validation-design](validation-design.md)：验收判据与矩阵 | `skills/engineering/tdd/SKILL.md`（红灯先行/独立预期值/垂直切片）、`skills/engineering/codebase-design/SKILL.md`（seam 词汇） |
+| [validation-evidence](validation-evidence.md)：证据路由 | 表主是本仓 [testing 证据地图](../../docs/testing.md)与现有 owners；上游无对应技能本体 |
+| [validation-judgment](validation-judgment.md)：收货与归因 | `skills/engineering/code-review/SKILL.md`（双轴分报）、`skills/engineering/diagnosing-bugs/SKILL.md`（失败归因回环）、`skills/engineering/retro/SKILL.md`（质量门进化） |
 
-FAQ 查证范围：上游 `_faq_on_digest/09_skills-for-requirements-engineering-of-agent-apps/` 的
-`question.md`、`answer.md`、`skill-mapping.md`、`embed-into-existing-system.md`、
-`max-leverage.md`。FAQ 负责功能位与嵌入精神，技能源负责运行协议；本仓 owners 负责落点、
-证据标准和授权，三者有冲突时明确适配，而不是把上游默认当成本仓新制度。
-
-基线 `fad9000`；checkout 位置、查证历史、纠错理由和验证记录见
-[决定记录](../../notes/implemented/2026-10-08-requirements-elicitation-playbook.md)。
-上游更新时重读所用协议及分支资源；本轮不 vendor、不安装、不修改全局发现配置。
+上游 FAQ（`_faq_on_digest/09_…`、`10_…`）只用于定位技能与发现缺口，不是能力依据；
+协议与分支资源以 SKILL 本体为准。基线 `fad9000`；checkout 位置、查证历史、纠错理由和
+验证记录见 [决定记录](../../notes/implemented/2026-10-08-requirements-elicitation-playbook.md)。
+上游更新时重读本表点名的本体及分支资源；不 vendor、不安装、不修改全局发现配置。

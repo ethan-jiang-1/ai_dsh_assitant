@@ -720,8 +720,8 @@ describe('skillFrontmatterProblems', () => {
 
 describe('playbookFrontmatterProblems', () => {
   // The staging area's shape is flat `<name>.md`, which the bundle-shaped core above cannot reach.
-  // Without this check a draft could rot in _backlog/ and only fail at graduation — exactly when
-  // the file has to be trustworthy, and after the reader has stopped expecting surprises.
+  // The area is this project's long-lived method home (not a serving skill home), so a draft's
+  // frontmatter is checked where it lives — failing only "later" means failing when trusted.
   it('accepts a SKILL-shaped draft and flags a basename/name mismatch, missing description, and missing frontmatter', () => {
     const dir = temp('playbooks-')
     writeFileSync(join(dir, 'good-playbook.md'),
@@ -739,7 +739,7 @@ describe('playbookFrontmatterProblems', () => {
     const problems = playbookFrontmatterProblems(dir)
     expect(problems.some(p => p.includes('good-playbook'))).toBe(false)
     expect(problems.some(p => p.includes('README.md'))).toBe(false)
-    expect(problems.some(p => p.includes('misnamed.md') && p.includes('pure move'))).toBe(true)
+    expect(problems.some(p => p.includes('misnamed.md') && p.includes('declares name'))).toBe(true)
     expect(problems.some(p => p.includes('no-description.md') && p.includes('has no description'))).toBe(true)
     expect(problems.some(p => p.includes('no-when-to-use.md') && p.includes('has no whenToUse'))).toBe(true)
     expect(problems.some(p => p.includes('naked.md') && p.includes('does not start with frontmatter'))).toBe(true)

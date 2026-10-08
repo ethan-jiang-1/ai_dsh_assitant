@@ -8,7 +8,7 @@ whenToUse: A plans card is ready for synthesis or a graduation judgment; a matur
 
 **Input:** the scoped card, confirmed answers/terms, evidence and prototype verdicts, alternatives,
 red lines and unresolved prerequisites. Before proceeding, read the entry's
-[confidence gate and engine-loading rules](requirements-elicitation.md). A missing fact or uncertain
+[confidence gate and skill-loading rules](requirements-elicitation.md). A missing fact or uncertain
 requirements judgment must not be guessed into a mature proposal.
 
 ## 1. Compile aligned requirements
@@ -34,8 +34,11 @@ brittle line-by-line implementation recipes. Decision-rich prototype snippets ma
 included with provenance. A doing-now major proposal follows the
 [note shape and executable acceptance contract](../../notes/README.md).
 
-**Done:** synthesis is traceable to confirmed answers and evidence, exclusions are explicit, and
-acceptance can be reproduced without the transcript. Otherwise retain the named blocker in the card.
+**Done:** synthesis is traceable to confirmed answers and evidence, the intended behavior and exclusions
+are explicit, and another session can reconstruct the requirements from the card without the transcript.
+Do not add validation evidence here; if the behavior is not yet judgeable, hand off to
+[validation-design](validation-design.md) after the requirement is confirmed. Otherwise retain the named
+requirements blocker in the card.
 
 ## 2. Assess slices only when needed and in scope
 

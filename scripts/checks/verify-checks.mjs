@@ -534,15 +534,12 @@ export function skillFrontmatterProblems(skillsDir) {
 
 /**
  * Playbook drafts staged in the `_backlog/playbooks_plan_and_validate/` area are flat `<name>.md`
- * files carrying the same SKILL frontmatter they will need once they graduate to
- * `.agents/skills/<name>/SKILL.md`.
+ * files carrying a small SKILL-shaped frontmatter contract for predictable agent consumption.
  *
- * They need their own check because the two serving homes are `<name>/SKILL.md` bundles: the
- * staging area's shape is different, so `skillFrontmatterProblems` cannot reach it. Without this,
- * a draft could sit in `_backlog/` with unparsable or mismatched frontmatter and only fail at
- * graduation — the moment the file must be trustworthy. The name must equal the file's basename
- * so that `git mv` into the skill directory is a pure move, and the description must be non-empty
- * because that is what the loader reads to decide whether the skill is ever invoked.
+ * They need their own check because this project's long-lived method area is not a serving skill home:
+ * `skillFrontmatterProblems` cannot reach its flat files. Without this, a draft could sit in
+ * `_backlog/` with unparsable or mismatched frontmatter. The name must equal the file's basename so
+ * references remain stable, and the description must be non-empty because it is the routing summary.
  *
  * Problem text reports the area by its real directory name (derived from `stagingDir`), so renaming
  * the area cannot leave the gate pointing at a path that no longer exists.
@@ -575,7 +572,7 @@ export function playbookFrontmatterProblems(stagingDir) {
       continue
     }
     if (data.name !== expected) {
-      problems.push(`${label}/${entry.name} declares name ${typeof data.name === 'string' ? data.name : '(none)'} — graduation is a pure move only when the name matches the basename`)
+      problems.push(`${label}/${entry.name} declares name ${typeof data.name === 'string' ? data.name : '(none)'} — the method area's stable name must match the basename`)
     }
     if (typeof data.description !== 'string' || data.description.trim().length === 0) {
       problems.push(`${label}/${entry.name} has no description`)

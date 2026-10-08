@@ -8,7 +8,7 @@ whenToUse: A plans card has a confirmed scope but its completion or acceptance i
 
 **Input:** a scoped plans card with confirmed behavior, constraints, alternatives, failure or recovery paths,
 and explicit Out of Scope. Before proceeding, read [requirements-elicitation](requirements-elicitation.md)'s
-confidence and engine-loading rules.
+confidence and skill-loading rules.
 
 The purpose is to make the plan **clear to build and possible to accept**. Do not invent acceptance criteria
 for an uncertain product choice: expose the uncertainty and ask the human. Technical evidence selection can be

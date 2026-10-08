@@ -1,4 +1,4 @@
-# 需求推敲 playbook：`_backlog/playbooks_plan_and_validate/` 演练场 + `requirements-elicitation` 草稿 + 留区语法门
+# 需求对齐与验收 playbook：`_backlog/playbooks_plan_and_validate/` 项目方法实验场 + 留区语法门
 
 日期：2026-10-08 · 状态：**implemented**
 
@@ -9,7 +9,8 @@
 来源：用户指示"需要借鉴 `mattpocock-skills/_faq_on_digest/09_skills-for-requirements-engineering-of-agent-apps`
 ——我们的 `_backlog/` 下需要特别的 playbook 来帮助我们如何推敲出需求／寻找合理的结构等
 产品经理／架构师的东西，最后内容进入 plans"；并在形态追问上拍板："**还是放在 `_backlog/playbooks_plan/`
-这个子目录底下，有 README、有 SKILL 样子的 MD 等，这样好在这里调整**"。
+这个子目录底下，有 README、有 SKILL 样子的 MD 等，这样好在这里调整**"；后续又明确该区应扩展为
+`playbooks_plan_and_validate`，面向本项目长期打磨，不以通用技能 promote 为目标。
 
 **第二轮修正（用户指出"要利用 matt pocock 的能力啊，你好像忘了?"）**：首版只读了那份 FAQ 的
 **二手转述**就动笔，把方法当成"从文本里提炼"的任务；实际上游技能本体就在本机
@@ -37,9 +38,9 @@
      prototype 三探针与单独标明的 raw-request triage 入口，结果回消费卡。
    - [requirements-synthesis](../../_backlog/playbooks_plan_and_validate/requirements-synthesis.md)：编译、
      在授权规划范围内评估候选切片、四门判断、跨会话依据保留。
-   - 三篇带 `name`/`description`/`whenToUse`，英文，输入/步骤/产物/完成或等待条件可识别。
-     有源但未试用的用户点名适配可以留区；真实试用是毕业条件。毕业时重校链接与调用方式，
-     不保留在役/草稿同名两份，不能宣称只要移动就零改动。
+   - 现有三篇与新增验收设计篇均带 `name`/`description`/`whenToUse`，英文，输入/步骤/产物/完成或等待条件可识别。
+     有源但未试用的用户点名适配可以留区；真实试用是校准证据，不是 promote 条件。本区长期保留项目适配，
+     不默认搬入通用技能目录或复制第二份。
    - **第二轮查证记录（机制曾内联进长稿，现改由各篇读取本体；以下是历史查证，不是当前协议）**：
      `grilling` 的**设计树**与轮次格式（编号 + 每题附推荐答案 + 前置未定的问题归后轮）、
      **facts-are-yours 且运行中的事实探查本身就是未定前置——只阻塞其下游问题、不阻塞本轮**、
@@ -107,6 +108,14 @@
     证据；拒绝/延后/消化各有家，备选不能编造，待查事实阻断时无可答问题不等于完成。
 14. **按长度平均切文**：输给用户要求的逻辑切割；按工作阶段/证据缺口切，README 指明何时读，
     三篇共享入口的 confidence/loading 规则而不在每篇各抄一套。
+15. **把需求收口与验收设计绑在一段里（或反过来让验收改需求）**：输给"需求和验证是两种思考
+    方式"——验证只消费已确认的 plan，判据暴露意图歧义只能回需求链，不能在验收端补产品判断。
+16. **把方法区叙述成"FAQ 的引擎/容器适配"**：输给用户拍板的独立能力观——playbook 是本仓
+    自己的能力，唯一外部依赖是所点名的 SKILL 本体；FAQ 只当定位与查缺的索引，不进能力叙述。
+17. **默认毕业/promote 到通用技能目录**：输给项目性质——适配各种项目的通用技能难度太高；
+    本区长期在本仓打磨，SKILL 形态只是消费格式，不是发行承诺。
+18. **为验收另建卡片或队列**：输给"一个事实一个家"——验收矩阵住在同一张 plan，
+    证据路由回本仓 owners（testing.md/snapshots/notes），收货结论回 plan 与既有生命周期。
 
 ## 刻意不借（负知识，登记进区 README 留区契约）
 
@@ -172,6 +181,33 @@
 `prototype` 的分支资源/猜测 fallback/保留 primary source、`triage` 的五状态及否决记录、
 `wayfinder` 的决策图、`to-spec`/`to-tickets` 的编译/切片/publication、`ask-matt` 的上下文规则。
 基线仍 `fad9000`；这些是本体读取核查，不是声明上游技能都已注册或实际运行。
+
+## 第五轮：验收支线、目录改名与"独立能力"定位（2026-10-08 同日）
+
+用户引入 FAQ 10（`_faq_on_digest/10_skills-for-accepting-and-evaluating-ai-built-software/`）并拍板：
+"软件开发两头难，需求对齐和最后的质量验收"；目录更名 `playbooks_plan_and_validate`，目标是
+**借助方法区让 `_backlog/plans/` 产出高质量 plan：需求清楚、验收有方**。
+
+- **需求链与验证链分离（用户："需求和验证最好分割思考……比较思考方式不一样"）**：
+  需求链（elicitation/probes/synthesis）回答要解决什么、对谁有价值、做什么/不做什么；
+  验证链（validation-design/evidence/judgment）只消费已确认的 plan，回答怎么算对、用什么证据、
+  实施后是否相符。验证不能反向替需求做决定；判据暴露意图歧义只能回需求链，不得在验收端补产品判断。
+- **验收判据前置进同一张 plan**：validation-design 产出行为分类（确定性逻辑/模型行为/编排接线）、
+  验收矩阵（含负例/互补状态、证据 owner、真人判断点），住在 plan 的毕业门/链接段落，
+  不另建验收卡；validation-evidence 只路由本仓既有证据 owner（testing.md 为表主）；
+  validation-judgment 做 pass/fail/blocked/human-pending 的逐行收货与归因。
+  不把 repo-live-probe 一次通过、eval 分数或"命令跑完"当成通过条件；真人终验边界保留。
+- **不设毕业/promote 线（用户："'成熟后毕业为 .agents/skills/' 是不需要，我们会在这儿一直
+  反复打磨的，而且没有必要 promote 全 skill"）**：本区是本项目的长期实验场，不为"适配各种项目"
+  设计；SKILL 形态只是 agent 消费格式，不是发行承诺。
+- **能力叙述改写（用户："'技能是引擎，本仓流程是容器'这个说法意义不大……这些是要独立成为
+  这里的能力，依赖只要 Matt Pocock 的 SKILL 就行"）**：README 改为「能力与依赖」——
+  每篇 playbook 是本仓自己的能力，唯一外部依赖 = 所点名的 SKILL 本体（可调用则调用，
+  不可调用且本体可读则读源并如实声明）；FAQ 09/10 降级为"定位技能与发现缺口的索引"，
+  不再作为能力依据写进叙述。"Load engines" 措辞同步改为 skill loading。
+- **门禁随目录改名**：`playbookStagingDir` 改为发现式解析（多候选报错、缺失回退），
+  `playbookFrontmatterProblems` 的 label 取实际目录名；机器本地路径语料与夹具同步指向新目录。
+  前述"毕业即纯 git mv"的门禁注释口径一并撤换（本区不再以毕业为目标）。
 
 ## 验证（真跑过的命令）
 

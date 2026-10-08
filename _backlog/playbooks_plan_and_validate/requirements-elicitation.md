@@ -1,13 +1,14 @@
 ---
 name: requirements-elicitation
-description: Clarify a vague request or an incomplete plans card using Matt Pocock's interview engines, adapted to this repo's owners. Use for uncertain requirements, overloaded terms, or an effort too large for one interview.
+description: Clarify a vague request or an incomplete plans card through Matt Pocock's interview skills applied to this repo. Use for uncertain requirements, overloaded terms, or an effort too large for one interview.
 whenToUse: User-directed requirements deliberation; settle the scope and questions, record answers in _backlog/plans/, and ask the human when judgment lacks confidence. Not implementation or scheduling.
 ---
 
 # Clarify requirements
 
-Use upstream skills as engines and this repo's documents as their container. This draft owns local
-routing and overrides; the selected skill's full instructions own its protocol.
+This playbook is a capability of this repo, not a paraphrase of an upstream document; its only external
+dependency is the Matt Pocock skill bodies named below. This draft owns local routing and overrides; the
+selected skill's full instructions own its protocol.
 
 **Input:** the user's request or named card and authorized deliberation scope.
 **Output:** a plans card with confirmed answers, evidence links and a judgment-ready or blocked state.
@@ -26,7 +27,7 @@ risk and authority boundaries require human judgment. In-scope technical analysi
 but technical autonomy never bypasses this gate. Silence is not approval; explicit "use the
 recommendations" is confirmation. An interview ends with confirmed shared understanding.
 
-## Load engines
+## Load the named skills
 
 Check the current catalog. Missing expected skills are a discovery fault: report the name and inspect
 installed files and discovery roots read-only. Do not install or change global configuration here.

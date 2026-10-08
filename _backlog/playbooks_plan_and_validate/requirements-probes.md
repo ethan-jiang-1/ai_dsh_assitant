@@ -7,7 +7,7 @@ whenToUse: A requirements question cannot be settled by the current interview al
 # Probe a requirements unknown
 
 **Input:** a scoped plans/bug card, the exact unknown, and the judgment it blocks. Before proceeding,
-read the entry's [confidence gate and engine-loading rules](requirements-elicitation.md).
+read the entry's [confidence gate and skill-loading rules](requirements-elicitation.md).
 Read the chosen skill and its branch resources; use only the missing functional step.
 
 ## 1. Pick by the unknown
