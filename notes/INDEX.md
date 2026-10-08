@@ -7,10 +7,11 @@
 > （`gen-notes-index --check`）守——改了卡没重生成即红。关键词不在标题里时，
 > `grep -il '<关键词>' notes/implemented/` 全文搜是兜底。
 
-## implemented（当前 rationale owner）（105）
+## implemented（当前 rationale owner）（106）
 
 | 日期 | 卡 |
 |---|---|
+| 2026-10-08 | [判据复发追踪：eval 注记 + 收口行追问 + 扫描判据收卷](implemented/2026-10-08-recurrence-tracking.md) |
 | 2026-10-07 | [开屏播报、拍板感与周节律（行为层收口）](implemented/2026-10-07-opening-brief-and-rhythm.md) |
 | 2026-10-07 | [DSH 开发语料吸收落地：动态闭环三环补齐 + 驾驭者成本面瘦身](implemented/2026-10-07-dsh-corpus-absorption.md) |
 | 2026-10-07 | [驾驭者座舱：按问题出发的单页路由](implemented/2026-10-07-cockpit-page.md) |
@@ -117,9 +118,11 @@
 | 2026-09-23 | [决策：不引入"dev-loop 指南"物种（ai_dsh_company guides/60 评估，四个指针登记）](implemented/2026-09-23-dev-loop-borrowing.md) |
 | 2026-09-23 | [决策：`pnpm dsh` 启动器强制 dev home（dev/env/dsh.mjs）](implemented/2026-09-23-dev-home-launcher.md) |
 
-## proposed（将来 · 待用户拍板）（0）
+## proposed（将来 · 待用户拍板）（1）
 
-（空）
+| 日期 | 卡 |
+|---|---|
+| 2026-10-08 | [意图通道默认翻转：重大新工作默认呈批](proposed/2026-10-08-intent-channel-default-flip.md) |
 
 ## rejected（被否决的提案 · 负知识）（1）
 
