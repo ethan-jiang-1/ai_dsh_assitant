@@ -41,4 +41,4 @@
 
 ## 范围与后果
 
-现在为真的事实：开工先定外部结果是 standing order（机械/局部编辑豁免）；模型可见面的最小证据 = build → composition → **eval --only**（probe 是取证非回归，session 回放触发未到）；证据路由唯一表主 = [testing.md](../../docs/testing.md) §一页证据地图（路径基准：`tests/` 一律包内相对）；implemented note 骨架带交付收口行（不门禁化，阶段收尾语义审计轮抽查）；verify 35 门含 wiring 自证（存在脚本 ≠ 门禁在跑，语料「负例接入真实接受路径」的自举）；流程面改动按语料四成本形态 + 驾驭者认知成本过预算（discipline 复查环）。B1 #2/#5 的重评触发住审计卡处置表，重提前先读。
+现在为真的事实：开工先定外部结果是 standing order（机械/局部编辑豁免）；模型可见面的最小证据 = build → composition → **eval --only**（probe 是取证非回归，session 回放触发未到）；证据路由唯一表主 = [testing.md](../../docs/testing.md) §一页证据地图（路径基准：`tests/` 一律包内相对）；implemented note 骨架带交付收口行（不门禁化，阶段收尾语义审计轮抽查）；verify 35 门含 wiring 自证（存在脚本 ≠ 门禁在跑，语料「负例接入真实接受路径」的自举）；流程面改动按语料四成本形态 + 驾驭者认知成本过预算（discipline 复查环）。B1 #2/#5 的重评触发住审计卡处置表，重提前先读。2026-10-08 扩展（部分取代，双方互链）：收口行增可选项「复发追问」，见 [recurrence-tracking](2026-10-08-recurrence-tracking.md)。
