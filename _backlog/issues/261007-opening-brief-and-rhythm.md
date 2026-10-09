@@ -19,17 +19,19 @@ opened: 2026-10-07
 
 ## 约束
 
-- 插件边界内做——不改 vendor；D7（默认视图）继续等上游 #8961。
-- 不接外部数据源；不做仪表盘化。
+- 插件边界内做——不改 vendor；D7 / #8961 的等待只适用于会话内默认 view/blank 贡献，不限制独立全局主区的默认选择，见 [总助卡可行性](261006-chief-of-staff-experience.md#方案与可行性)。
+- 不接外部数据源；不以图表/计数堆砌代替可操作的经营内容。宽屏列表＋详情、窄屏分层与完整事项列表按 [总助卡已确认要求](261006-chief-of-staff-experience.md#已知与未决) 承接。
 - 每片 test-first：开工先答「怎么算对」（可红命令/断言对象），红→绿收口。
 
 ## 验收标准
 
 标准于 2026-10-08 按 [验收设计](../methods/validation-design.md) 拆分。确定性逻辑、浏览器编排和模型行为分别取证；一次端到端演示不能替代全部检查。下表保留已有证据及其限制，不把历史走查升级为当前通过。
 
+**本轮确认的承接：** 用户把“三行口语播报”定为待看具体界面的假设，不是不可更改的最终版式；首用从一件眼前的事开始，不必先完成公司画像/固定三问；桌面事项处理时允许留在对话，成功读回才返回。[总助卡 R1–R7/A1–A9](261006-chief-of-staff-experience.md#验收标准)拥有这些结果。下表 #1 的三行与 intake 断言只是当前实现变体的回归证据，#4 只证明通用回调，#5 的即时“已拍”只表示点击反馈，均不足以证明新目标已通过。其余原技术缺口与真人判断保留。
+
 | # | 行为（可观察结果 → 需求溯源） | 类 | 输入 / 状态 | 判 pass/fail 的信号 | 负例 / 互补状态 | 证据 owner（命令或路径）**能证明什么** | 真人判断 |
 |---|---|---|---|---|---|---|---|
-| 1 | 回来的一把手开屏见**三行业务播报**（要你拍的/在跟的/还缺一个数），非「你好」——它先开口（断点 4） | 确定性 | blank 会话 + walk view 有数据（decisions/actions/gaps 各一） | 文案含「一把手桌面」「要你拍的」「老客户续约要不要涨价」「在跟的」「还缺一个数」；三行各是 button 且带 onClick | **互补**：无数据 → 走 intake 卡（不是空播报、不是三行空壳）；fresh → 保留 intake | `packages/dsh-smart-assistant/tests/client/client-first-mile.spec.ts` »'a returning principal opens on the brief, not a greeting (261007 Slice 1b)' + »'renders nothing once the session has any content' + »'tells a first-time principal what to say and offers the desk' ——**证明**合成规则与分支；**不能证明**真实浏览器里它长得可读 | 播报话术是否符合"口语化语文题、不是仪表盘"红线（见下 R5） |
+| 1 | 当前三行业务播报变体的回归（非最终版式）：有业务内容、非「你好」（断点 4） | 确定性 | blank 会话 + walk view 有数据（decisions/actions/gaps 各一） | 文案含「一把手桌面」「要你拍的」「老客户续约要不要涨价」「在跟的」「还缺一个数」；三行各是 button 且带 onClick | **互补**：无数据 → 走 intake 卡（不是空播报、不是三行空壳）；fresh → 保留 intake | `packages/dsh-smart-assistant/tests/client/client-first-mile.spec.ts` »'a returning principal opens on the brief, not a greeting (261007 Slice 1b)' + »'renders nothing once the session has any content' + »'tells a first-time principal what to say and offers the desk' ——**证明**合成规则与分支；**不能证明**真实浏览器里它长得可读 | 播报是否口语、清楚且可操作（见下 R5）；三行数量不是人判通过条件 |
 | 2 | 重载 **不增殖、不重发**（day-2 打开不假装初次见面） | 确定性 + 编排 | 同一 home 连续重载 ×3 | 会话数恒定、无 `[桌面] 你好`、播报常在 | **被取代的旧行为**：auto-send 版 10 分钟 6 个幽灵会话、每条 ~44.6K tok | **客户端 half（机械，在场）**：`client-first-mile.spec.ts` »'a returning principal opens on the brief, not a greeting (261007 Slice 1b)'——**只证明** blank+has-desk 时渲染的是决定性播报卡。**2026-10-08 校正**：原行声称"夹具须覆盖 blank 且 has-desk 时不调 sendPrompt"——**夹具并不覆盖**：该 spec 面 `sendPrompt` 零引用，"不重发"在机械层**无断言**。**行为 half**：走查记录（`/tmp/ux-shots/slice1-*`）的 ×3 重载——**证明**当时那次不增殖；**不能证明**长期多会话行为（归 eval/真用） | 无 |
 | 3 | 缺 composer 的相位**能打字**（主线不死锁，断点 2） | 编排 | blank 相位（Day-0 intake）与 has-desk 相位（Day-2 拍板） | vendor contenteditable 在场、真打字有反应 | **互补**：A1 隐藏 CSS 时代"能打字"是假绿——曾用 DOM 大纲匹配（隐藏元素也在大纲里）判 pass；负例须证明**可见性**而非存在性 | **几何/可见性探针**（`/tmp/ux-shots/slice1-*`，一次性走查，无耐久 owner——见矩阵尾注）；渲染面的耐久 owner 是 `snapshots/web-face/`（`pnpm web-expected`）——**只证明**所录场景的 DOM 结构与外观字段符合期望；**不能证明** contenteditable 输入框可见或真打字有反应，需另取几何/可见性及真输入证据，也不能覆盖其他相位。⚠️ blank 场景当前夹具腐烂（同 #7） | 无 |
 | 4 | dashboard 的「有问题？」**真回对话**（死按钮变真入口，断点 3） | 编排 | 点击 dashboard 的 onAsk | `ctx.layout.selectPanel(null)` 被调用、主区回会话面 | **负例/死路**：`dsh-navigate-to-session` 事件全仓（含 vendor）**零监听者**——旧实现是断的，夹具须钉住走 `ctx.layout` 而非该事件 | `packages/dsh-smart-assistant/tests/client/client-dashboard.spec.ts` »'onAsk returns to the Conversation through ctx.layout (261007 Slice 1c)' ——**证明**路由对；**不能证明** vendor 侧真切了面板（归走查） | 无 |
@@ -37,9 +39,7 @@ opened: 2026-10-07
 | 6 | 周坐排程落盘：周一 09:00 Asia/Shanghai + at 型 due | 确定性（调度）+ 模型行为（技能守约） | 真模型跑 morning-brief 周变体一节 | schedule 两条落盘、时区正确、同一回合不堆叠（`schedule_list` 防堆叠） | **互补**：重复触发不产生第二组排程（防堆叠）；`weekly` 为 vendor 原生承载（B1 实施期待核实，当时只有 `at` 型先例） | **机械 half 缺耐久 owner**：排程落盘读的是会话日志（`session.v<n>.jsonl.zstd`，读法 owner = [`dev/reports/usage-report.mjs`](../../dev/reports/usage-report.mjs) `sessionLogs`/`readEvents`），但**未固化成一次性可复跑的命令**——本卡只有走查记录（`/tmp/ux-shots/slice3-*`）。**模型 half**：`pnpm eval --only <task-id>`（任务清单 `pnpm eval --list`；家 = `dev/eval/`，其 AGENTS 是 owner）——本卡未挂具体 task-id，**属未指定，不是已证明**。**证明**该回合落盘正确；**不能证明**跨周边界行为（归真用） | 周坐这四个对账口径是不是一把手真想要的（业务价值） |
 | 7 | 桌面/面板**渲染期望不回归**（结构性外观） | 编排（渲染） | 隔离 home 真渲染，两场景 | `pnpm web-expected` 零 diff | **现状阻断**：blank 场景夹具前置腐烂，owner = [`snapshots/`](../../snapshots/AGENTS.md)（**2026-10-08 校正**：原行归 [261007-bigfile-split](../_archive/settled_issues/261007-bigfile-split.md)，而该卡归档时不吸收此观察、明写交回 snapshots——旧指针指给了一张拒收的卡）——**该行当前不可判，不得报绿** | `snapshots/web-face/` 两场景（`pnpm web-expected`）——**证明**渲染期望；**不能证明**交互逻辑（client spec 管） | 无 |
 
-**R5 产品红线（贯穿 #1、#5、#6 的真人判断）**：一把手是直觉型经营者不是仪表盘动物——播报是**三行口语化
-语文题 + 每行可点**，永远不做计数分区/图表。这条是[中国 SME 调研](../research/positioning/261005-chinese-sme-boss.md)
-红线，机器只证明"有三行且可点"，**不得**把机械绿升级为红线通过。
+**R5 待本人判断（贯穿 #1、#5、#6）**：口语化、看得懂且可操作的业务内容是否适合本人，仍须真人判断。[中国 SME 调研](../research/positioning/261005-chinese-sme-boss.md)曾据此提出“三行口语题、不仪表盘化”；研究推论不能取代本人的选择。本轮已确认三行只是呈现假设，完整事项列表与宽/窄层级由总助卡承接；不再以“永远三行/永远不显示计数分区”卡死版式。机器证明的是当前分支/文案，不是产品价值通过。
 
 **判定边界**：即使上表技术检查全部通过，#5、#6 与 R5 的用户判断也仍需单独记录。技术通过不能代替产品验收，见 [验收结果判断](../methods/validation-judgment.md)。
 
@@ -71,7 +71,7 @@ owner 面**，故本卡不擅自把它们塞进 `snapshots/`（那是越界，�
 | #3 输入框 | 无数据 intake 与 has-desk 两种相位；明确几何/可见性读法及真输入步骤。blank 渲染夹具的修复归 [snapshots](../../snapshots/AGENTS.md) | 分别记录可见、可输入的信号；DOM 中存在元素不足以判通过 |
 | #6 周坐 | 指定或补齐具体 eval 任务，写明运行命令与日志读法；首次触发和重复触发使用同一环境，检查 weekly 与 at 两条排程 | 记录实际任务 ID、时间/时区、两次触发前后排程和日志依据；具体任务与可复跑命令目前仍待补 |
 | #7 渲染 | 先查明并处理 blank 夹具前置失效，再按 [snapshots 规则](../../snapshots/AGENTS.md)运行 `pnpm web-expected` 两场景 | 记录基线、场景与 diff；夹具阻断期间该项不可判 |
-| 共同验收：对话回流 | 在同一工作区内给出能生成处理单的对话输入，明确切回桌面或自动刷新时的观察步骤 | 记录桌面出现与更新的实际结果，关联 [总助卡的 Goal 3](261006-chief-of-staff-experience.md#接手分支)；既有刷新机制本身不算通过 |
+| 共同验收：事项对话与读回返回 | 按 [总助卡 A4–A6](261006-chief-of-staff-experience.md#逐项矩阵)固定 A 的输入与处理 Session，先追问/等待，再更新并读回；穿插无关 B 刷新、失败与旧修订 | 记录仍在对话/成功后自动回桌面及同一事项状态的实际结果；手动切回、有刷新机制或时间戳变新均不能单独判通过。共同结果在本卡保留并互链，不重复维护 |
 | #5/#6/R5 与总体体验 | 准备拍板记录、周坐内容、播报和旧版对照，附技术结果与未完成项 | 用户逐项判断；旧版对照不可重现时写明限制，技术结果不能代替用户判断 |
 
 执行前为每项明确结果的保留位置与读取步骤。已有耐久 owner 的用该 owner；无 owner 的按 [选择证据](../methods/validation-evidence.md#1b-when-no-owner-exists-say-so-and-name-the-reading-protocol) 记录读法与缺口，仅有易失截图时不能报当前通过。复跑所得结果回写本卡的「验收结果与证据缺口」，默认桌面的处置仍按 [总助卡的接手分支](261006-chief-of-staff-experience.md#接手分支) 记录。
@@ -83,6 +83,7 @@ owner 面**，故本卡不擅自把它们塞进 `snapshots/`（那是越界，�
 | 项目 | 已有依据 | 尚缺什么 |
 |---|---|---|
 | #1 播报分支、#4 回对话、#5 中文代发文案 | 指定客户端测试记录 | 仅证明分支、路由与文案形态，浏览器体验和本人语气未因此通过 |
+| [共同 A4–A6：指定事项对话、等待与读回返回](261006-chief-of-staff-experience.md#逐项矩阵) | 通用 onAsk 回调与既有刷新/轮询机制的窄证据 | 来源/处理 Session 的正确路由、追问时留在对话、同事项同次操作成功读回及自动返回均未证明；无关刷新/失败/旧修订反例未运行 |
 | #2 重载 | 当时 ×3 走查记录 | 不重发的机械断言、可复核的重载证据 |
 | #3 输入框 | 历史可见性与真打字记录 | 可重取的几何/交互证据；blank 夹具也有阻断 |
 | #6 周坐 | 历史排程落盘记录及日志读法 | 可复跑命令、具体 eval 任务与重复触发证据 |
