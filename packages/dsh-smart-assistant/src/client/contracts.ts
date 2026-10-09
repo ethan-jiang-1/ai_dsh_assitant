@@ -23,16 +23,20 @@ export interface SlotsRegistry {
 
 /** The browser root-context surface this face uses. */
 export interface ClientContext {
+  /** Stable Client application identity shared by every plugin scope. */
+  readonly root: object
   slots: SlotsRegistry
   sidebarRightTabs: SidebarRightTabsRegistry
   /** The right-sidebar controller, so a page can open a room tab beside the conversation. */
   sidebarRight?: { openTab: (kind: string, options?: { params?: unknown }) => void }
   /**
-   * The cross-plugin panel-action face (ctx.layout, vendor ui-layout): selectPanel(null)
-   * returns the main area to the Conversation. The dead-button fix (261007 Slice 1c) — the
-   * dashboard's 「有问题？」 used to dispatch a CustomEvent nobody listens to.
+   * Root-scoped navigation face: panelInfo supplies the initial default decision;
+   * selectPanel(null) returns the main area to Conversation without changing the Session.
    */
-  layout?: { selectPanel: (panelId: string | null) => void }
+  layout?: {
+    readonly panelInfo: { getSnapshot: () => { readonly activePanelId: string | null } }
+    selectPanel: (panelId: string | null) => void
+  }
   /**
    * Scoped dependency injection. The command registry is reached this way instead of
    * through the plugin's own `inject` list: the rooms must render whether or not the

@@ -47,6 +47,25 @@ const inject = ['slots', 'sidebarRightTabs', 'sidebarRight', 'sessions', 'remote
 let deskLayout: { selectPanel: (panelId: string | null) => void } | undefined
 
 /**
+ * Default selection is consumed once per Client root. Keeping weak root identities on the page
+ * realm makes slot/layout remounts and client HMR idempotent; a document reload gets a fresh root.
+ */
+function selectDashboardByDefault(ctx: ClientContext): void {
+  const layout = ctx.layout
+  const panelInfo = layout?.panelInfo
+  if (layout === undefined || panelInfo === undefined) return
+  const pageState = globalThis as typeof globalThis & {
+    __DSH_SMART_ASSISTANT_DEFAULT_PANEL_ROOTS__?: WeakSet<object>
+  }
+  const defaultPanelRoots = pageState.__DSH_SMART_ASSISTANT_DEFAULT_PANEL_ROOTS__ ??= new WeakSet<object>()
+  if (defaultPanelRoots.has(ctx.root)) return
+  defaultPanelRoots.add(ctx.root)
+  if (panelInfo.getSnapshot().activePanelId === null) {
+    layout.selectPanel('dsh-smart-assistant-dashboard')
+  }
+}
+
+/**
  * Build the typert contribution the client mounts for the knowledge-approve direct-call lane.
  * Hand-written (the vendor generator targets tsdown builds; this package's classic-script
  * face carries it inline), and using the `src-json` codec mode — TypertCodec's union offers
@@ -127,12 +146,15 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         order: 5,
         label: () => '桌面',
       }, DashboardPanelIcon))
-    ctx.slots.inject('main', () =>
-      ctx.slots.register({
+    ctx.slots.inject('main', () => {
+      const registration = ctx.slots.register({
         name: 'main',
         key: 'dsh-smart-assistant-dashboard',
         inject: (): { onAsk: () => void } => ({ onAsk: () => { deskLayout?.selectPanel(null) } }),
-      }, DashboardMainPanel))
+      }, DashboardMainPanel)
+      selectDashboardByDefault(ctx)
+      return registration
+    })
 
     ctx.slots.inject('sidebar.brand.mark', () =>
       ctx.slots.inject('sidebar.brand.name', function* () {

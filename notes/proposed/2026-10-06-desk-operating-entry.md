@@ -1,6 +1,6 @@
 # 全局总助桌面：事项全貌、指定对话与成功读回
 
-日期：2026-10-06 · 状态：**proposed**（主题首次提出日；2026-10-09 授权下游提案准备，产品实施未授权）
+日期：2026-10-06 · 状态：**proposed**（主题首次提出日；用户已点名授权产品实施，K1 推进中，完整验收尚未成立）
 
 ## 问题（可观察行为）
 
@@ -8,7 +8,7 @@
 
 [总助体验卡](../../_backlog/issues/261006-chief-of-staff-experience.md#已确认的用户结果与原要求的承接)已确认 R1–R7：冷启动进入全局桌面；可看完整事项并自选；宽主区列表/详情并看、窄主区分层；处理时保留对话，只有对应更新成功读回后返回；首用直接交代眼前一事；多会话输入同一权威账本并留来源；本人决定保持中文且重载不重复代拍。三行摘要、推荐语气与密度须经具体呈现比较，未成为固定版式。
 
-当前注册的全局面板不是冷启动默认；最近五个 Session 的工作区快照不是统一账本；通用“有问题”回调不绑定选中事项；更晚的 generatedAt 不能证明本次操作成功。静态事实与源码位置由 [现状复核](../../_backlog/research/positioning/261008-ceo-value-contract-review.md#八本轮主区入口与会话数据路径的静态可行性)拥有。A1–A9 尚无新增产品通过证据，旧交付也未终验。
+实施前，全局面板不是冷启动默认；默认入口子切片使用全局 main 的一次性初始化选择解除这个限制。最近五个 Session 的工作区快照仍不是统一账本；通用“有问题”回调不绑定选中事项；更晚的 generatedAt 不能证明本次操作成功。静态事实与源码位置由 [现状复核](../../_backlog/research/positioning/261008-ceo-value-contract-review.md#八本轮主区入口与会话数据路径的静态可行性)拥有。A1–A9 尚无新增产品通过证据，旧交付也未终验。
 
 ## 提案
 
@@ -99,4 +99,6 @@ asset 引用以本仓命名纪律为准，不新增 snapshots 通用证据桶。
 
 ### 本轮状态与实施准入
 
-2026-10-09 用户要求 setup goal 后推进，授权的是下游提案准备。当前产品代码、profile、模型面与服务未修改；K1–K4、A1–A9 及新增资产均未执行/未建立，静态接口查证不补产品通过。实施在用户点名/批准本提案后按真实依赖推进；不重复确认 R1–R7、回款情景或既定更新权限。届时先落具体任务/探针与红断言，再实现，阶段收尾只呈本人不可替代的体验判断。
+2026-10-09 的授权仅限下游提案准备；其后用户明确点名继续本提案，授权按 K1–K4 实施，并确认“账本”指跨 Session 的持续经营事项、依据与变更记录，非会计总账。权威记录由独立 Host `dataDir` 托管，不放入 Agent working folder；只读投影接受当前 Harness 全部已认证操作者的信任范围，不声明用户/事项级 ACL。K1 的固定投影不代建经营 writer，K3 仍需真实持久接口。
+
+K1 默认入口子步骤已按红绿测试推进：未选面板时原代码不选择桌面（红）；更换布局/重新物化时仅按布局身份记忆会重选（红）。实现以页面内 WeakSet 记录 Cordis 根上下文的默认机会，主面板注册完成后只消费一次，首次看到其他面板也消费而不跳转；不保存业务数据，不修改公开导航方法。当前 pin 无法区分插件首次激活前的显式 null 与 pristine null；不使用 `beginNavigation` 探测，以免取消已有异步导航。slot/布局重挂和 HMR 的不抢焦点由该一次性决定保护；完整重载以新根重新尝试。可执行合同为 [client-entry.spec.ts](../../packages/dsh-smart-assistant/tests/client/client-entry.spec.ts) 与 [构建物生命周期组合](../../packages/dsh-smart-assistant/tests/composition/client-entry-lifecycle.spec.mjs)：后者通过真实 Cordis/Loader/SlotRegistry/LayoutController/store 覆盖注册先于选择、声明撤销/重挂、Loader 重挂、同 realm 脚本重求值与新根。删除已消费守卫的内存回归输入精确使重复选择断言红，原构建物为绿；不冒充真实 HMR receiver 或 AppFrame bootstrap 证据。隔离 home 下 [blank 默认入口](../../snapshots/web-face/blank-first-open/README.md) 已移除共享业务数据污染并重放 PASS；[草稿横幅](../../snapshots/web-face/first-open-draft-banner/README.md) 经真实点击进入 Conversation，沿用原期望 PASS。默认首屏没有新建业务 Session，点击通用入口返回 Conversation 不证明事项绑定。无桌面文件的 preflight desk-readiness 仍报红，不记为绿；PNG 已采集但当前模型无法视觉审阅，仅 DOM、控制面与无 console/network 错误可计证据。完整 `pnpm build && pnpm typecheck && pnpm test && pnpm verify` 通过。固定下载路由尚未实现，A1–A9 不新增完整 PASS。未修改当前 profile、日用数据、vendor/pin 或模型面；用户另批准一次性隔离测试服务。

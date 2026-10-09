@@ -8,6 +8,7 @@
  *   sidebarRight, sessions, remote namespaces, layout).
  * - The dashboard's panellist/main pair, both sidebar brand slots, and the desk primary
  *   view's `conversation.view` claim are wired by apply with their exact ids/orders.
+ * - Dashboard defaults once per Client root and never reopens after explicit navigation/remount.
  *
  * The browser half is multi-module source (relative imports, tsdown-inlined into one
  * classic script), so the harness evaluates the entry through vitest after installing the
@@ -41,10 +42,8 @@ describe('client-module registration', () => {
     // the brand mark and the three rooms, sidebarRight to open the beside-conversation room
     // tabs, the Session store for the conversation list and the desk file's workspace, and the
     // three manifested Remote namespaces (a namespace the browser-side manifest does not list
-    // leaves the entry pending forever). The left-panel era's `layout` was dropped in the
-    // right-sidebar steer (2026-09-28) and returns with a narrower job (261007 Slice 1c):
-    // the dashboard main panel's 「有问题？」 calls selectPanel(null) to get back to the
-    // Conversation — the only panel jump this face still makes.
+    // leaves the entry pending forever). Layout owns the initial dashboard default and
+    // the dashboard's 「有问题？」 return to Conversation via selectPanel(null).
     expect(exports.inject).toEqual([
       'slots', 'sidebarRightTabs', 'sidebarRight', 'sessions', 'remote',
       'remote.agentPresets', 'remote.workspaceFiles', 'remote.session', 'layout',
@@ -122,6 +121,7 @@ function recordingContext(): {
 } {
   const registered: { name: string, declaration: Record<string, unknown> }[] = []
   const ctx = {
+    root: {},
     slots: {
       inject: (_name: string, contribute: () => unknown) => { contribute() },
       register: (declaration: { name: string }) => {
@@ -137,6 +137,84 @@ function recordingContext(): {
 }
 
 describe('desk primary view', () => {
+  it('opens the dashboard by default when no main panel is selected', () => {
+    const selected: (string | null)[] = []
+    const { ctx, registered } = recordingContext()
+    ;(ctx as { layout?: unknown }).layout = {
+      panelInfo: { getSnapshot: () => ({ activePanelId: null }) },
+      selectPanel: (id: string | null) => selected.push(id),
+    }
+
+    materialize().apply(ctx)
+
+    expect(registered.some(entry => entry.name === 'main' && entry.declaration.key === 'dsh-smart-assistant-dashboard')).toBe(true)
+    expect(selected).toEqual(['dsh-smart-assistant-dashboard'])
+  })
+
+  it('preserves an explicit main-panel selection during plugin initialization', () => {
+    const selected: (string | null)[] = []
+    const { ctx } = recordingContext()
+    ;(ctx as { layout?: unknown }).layout = {
+      panelInfo: { getSnapshot: () => ({ activePanelId: 'settings' }) },
+      selectPanel: (id: string | null) => selected.push(id),
+    }
+
+    materialize().apply(ctx)
+
+    expect(selected).toEqual([])
+  })
+
+  it('consumes the default opportunity once across main-slot remounts', () => {
+    const selected: (string | null)[] = []
+    let activePanelId: string | null = null
+    let remountMain: (() => unknown) | undefined
+    const { ctx } = recordingContext()
+    Object.assign(ctx as object, {
+      layout: {
+        panelInfo: { getSnapshot: () => ({ activePanelId }) },
+        selectPanel: (id: string | null) => {
+          selected.push(id)
+          activePanelId = id
+        },
+      },
+      slots: {
+        inject: (name: string, contribute: () => unknown) => {
+          if (name === 'main') remountMain = contribute
+          contribute()
+        },
+        register: () => undefined,
+      },
+    })
+
+    materialize().apply(ctx)
+    activePanelId = null
+    remountMain?.()
+
+    expect(selected).toEqual(['dsh-smart-assistant-dashboard'])
+  })
+
+  it('does not reopen the desk when the layout and plugin rematerialize on the same page', () => {
+    const selected: (string | null)[] = []
+    const { ctx } = recordingContext()
+    const root = {}
+    const setLayout = () => {
+      Object.assign(ctx as object, {
+        root,
+        layout: {
+          panelInfo: { getSnapshot: () => ({ activePanelId: null }) },
+          selectPanel: (id: string | null) => selected.push(id),
+        },
+      })
+    }
+
+    setLayout()
+    materialize().apply(ctx)
+    setLayout()
+    materialize().apply(ctx)
+
+    expect(selected).toEqual(['dsh-smart-assistant-dashboard'])
+  })
+
   it('claims exactly one conversation.view entry beside the room tabs', () => {
     const { ctx, registered } = recordingContext()
     materialize().apply(ctx)

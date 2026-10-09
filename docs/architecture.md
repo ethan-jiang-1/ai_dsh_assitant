@@ -224,6 +224,8 @@ pnpm dsh …（package.json scripts → dev/env/dsh.mjs，唯一启动器：
 
 ### 浏览器动作链：一次点击 → 可见的桌面变化
 
+客户端在 `main` 声明可用并完成桌面注册后，每个 Client 根上下文只尝试一次默认选择：当前 `activePanelId` 为 null 时选全局桌面，否则保留已选面板。显式回到 Conversation、归档引发的回退、slot/布局重挂及客户端 HMR 不重选；完整页面重载的新根上下文重新尝试。默认机会只在页面内记录，不保存导航偏好或业务数据。插件首次激活前的显式 null 与启动 null 无法由当前公开快照区分；桌面数据仍走工作区快照读取，默认入口本身不创建业务 Session。
+
 ```text
 浏览器点击（三室面板 / 首开审批横幅 / composer）
   └ client classic script（packages/dsh-smart-assistant：src/client 多模块源，

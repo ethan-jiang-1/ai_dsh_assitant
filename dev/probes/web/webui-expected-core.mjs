@@ -1,7 +1,7 @@
 /**
  * Pure core for the web-face expected-comparison pilot (test-strategy adoption, slice 2).
  *
- * Owns exactly two decisions, so the CLI shell (`webui-expected.mjs`) stays thin and the
+ * Owns comparison and scene capture arguments, so the CLI shell (`webui-expected.mjs`) stays thin and the
  * spec (`tests/tooling/webui-expected-core.spec.mjs`) can pin every accepted/rejected shape on fixtures:
  *
  *   1. normalizeDomEvidence — strip/rename the fields that CANNOT be part of the expected
@@ -108,6 +108,15 @@ export function buildWaitSnippet(needle, timeoutMs = 15_000) {
     '  }, 200)',
     '})',
   ].join('\n')
+}
+
+/** Forward ordered scene actions before the readiness wait; shots owns their execution. */
+export function buildCaptureEvalArgs(args, waitText) {
+  const evalArgs = args.flatMap((arg, index) => arg === '--eval' && index + 1 < args.length
+    ? ['--eval', args[index + 1]]
+    : [])
+  if (waitText !== undefined) evalArgs.push('--eval', buildWaitSnippet(waitText))
+  return evalArgs
 }
 
 /**

@@ -13,7 +13,17 @@
  * `tsc -p tsconfig.test.json` does not include non-TS files.
  */
 import { describe, expect, it } from 'vitest'
-import { buildWaitSnippet, compareEvidence, normalizeDomEvidence } from '../../../../dev/probes/web/webui-expected-core.mjs'
+import { buildCaptureEvalArgs, buildWaitSnippet, compareEvidence, normalizeDomEvidence } from '../../../../dev/probes/web/webui-expected-core.mjs'
+
+describe('capture actions precede asynchronous content readiness', () => {
+  it('forwards scene evals in order before the wait token', () => {
+    const result = buildCaptureEvalArgs(['--eval', 'openConversation()', '--size', '1600x1000', '--eval', 'inspectBounds()'], '待审批')
+    expect(result.slice(0, 4)).toEqual(['--eval', 'openConversation()', '--eval', 'inspectBounds()'])
+    expect(result[4]).toBe('--eval')
+    expect(result[5]).toContain("const needle = '待审批'")
+    expect(buildCaptureEvalArgs([], undefined)).toEqual([])
+  })
+})
 
 /** A minimal well-formed capture: complete, right viewport, empty failure lists. */
 function evidence(overrides = {}) {

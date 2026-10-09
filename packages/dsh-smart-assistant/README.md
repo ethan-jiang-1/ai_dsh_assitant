@@ -20,6 +20,8 @@
 
 装法、身份名、working folder 的契约分别在仓库的 `README.md`、`docs/identity.md`、`docs/home.md`。
 
+Web 客户端贡献独立全局桌面、会话内桌面视图与右栏三室。默认主面板选择只在页面初始化时尝试，不随重挂覆盖用户导航；导航与数据读取的当前合同在 [浏览器动作链](../../docs/architecture.md#浏览器动作链一次点击--可见的桌面变化)。客户端不拥有经营权威数据。
+
 ## 依赖姿态
 
 `@deepseek-ai/*` 一律 **peerDependencies**：DSH 的公开 API 仍是 pre-stable，

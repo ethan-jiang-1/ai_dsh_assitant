@@ -7,7 +7,7 @@
 
 ## 场景是什么
 
-**隔离 home 的默认工作区里有 3 页知识草稿待审批时，首开会话的第一屏**：hero、首开引导条之外，
+**隔离 home 的默认工作区里有 3 页知识草稿待审批时，从默认桌面点击「有问题」进入 Conversation 的第一屏**：hero、首开引导条之外，
 composer 上方必须出现审批横幅——「⚠ 3 页知识草稿在等你审批——批准后才会成为它的判断依据」+
 「点这里去审批」按钮。这是[首开 UX](../../../_backlog/_archive/settled_issues/261001-first-open-ux.md) 第 17 轮
 交付的 `assistant-approval-banner`（composer dock 第二注册）的耐久回归面：那一轮的
@@ -31,16 +31,17 @@ node snapshots/web-face/first-open-draft-banner/seed.mjs patch "$ASSISTANT_DSH_H
 # ③ 起服务（后台；URL 带 token）
 pnpm dsh --profile dev --port 0 --no-open
 
-# ④ 首拍一次（--refresh 或直接比对均可）——默认工作区是**首次 UI 连接**才懒创建的，
-#    这一拍就是触发器；工作区出现在 <home>/workspaces/<owner>/default-workspace
-pnpm web-expected '<url>' --scenario snapshots/web-face/first-open-draft-banner --refresh
+# ④ 用 shots 触发首个 UI 连接（不录不存在横幅的期望）。
+pnpm shots '<url>' --dom --size 1600x1000
 
 # ⑤ 种桌面文件（3 草稿 + 2 已确认；内部轮询工作区 ≤30s，固定时间戳）
 node snapshots/web-face/first-open-draft-banner/seed.mjs desk "$ASSISTANT_DSH_HOME"
 
 # ⑥ 重录期望（--refresh，肉眼过 PNG）或直接比对（漂移即 exit 1）
 pnpm web-expected '<url>' --scenario snapshots/web-face/first-open-draft-banner \
-  --wait-text '在等你审批' --refresh
+  --eval "(() => { const buttons = [...document.querySelectorAll('button')]; buttons.find(b => b.textContent.trim() === '稍后配置')?.click(); const ask = buttons.find(b => b.textContent.includes('有问题')); if (!ask) throw new Error('default desk missing'); ask.click(); return 'Conversation opened'; })()" \
+  --wait-text '在等你审批'
+# 只有观察到有意渲染变化且过目 DOM 差异，才在上条命令追加 --refresh。
 ```
 
 **`--wait-text` 是本场景的合同件**：settle 是固定时钟，而横幅数据走桌面 walk view 的异步读，

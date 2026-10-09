@@ -24,7 +24,7 @@
  * Usage:
  *   node dev/probes/web/webui-expected.mjs '<url-with-token>' [--scenario <dir>] [--refresh]
  *        [--size <WxH>]   (default 1600x1000, must match the committed expectation)
- *        [--wait-text <substring>]   (readiness token polled before capture; scenes pinning
+ *        [--eval <js>] [--wait-text <substring>]   (readiness token polled before capture; scenes pinning
  *                                     async-loaded content declare theirs in snapshot.yml)
  */
 import { spawnSync } from 'node:child_process'
@@ -32,7 +32,7 @@ import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { buildWaitSnippet, compareEvidence, normalizeDomEvidence } from './webui-expected-core.mjs'
+import { buildCaptureEvalArgs, compareEvidence, normalizeDomEvidence } from './webui-expected-core.mjs'
 
 const args = process.argv.slice(2)
 const targetUrl = args.find(a => !a.startsWith('--'))
@@ -49,7 +49,7 @@ const refresh = args.includes('--refresh')
 const waitText = option('wait-text')
 
 if (targetUrl === undefined) {
-  console.error('usage: node dev/probes/web/webui-expected.mjs <url-with-token> [--scenario <dir>] [--refresh] [--size <WxH>] [--wait-text <substring>]')
+  console.error('usage: node dev/probes/web/webui-expected.mjs <url-with-token> [--scenario <dir>] [--refresh] [--size <WxH>] [--eval <js>] [--wait-text <substring>]')
   process.exit(1)
 }
 const expectedPath = join(scenarioDir, 'expected.dom.json')
@@ -66,7 +66,7 @@ try {
 }
 
 const workDir = mkdtempSync(join(tmpdir(), 'webui-expected-'))
-const evalArgs = waitText === undefined ? [] : ['--eval', buildWaitSnippet(waitText)]
+const evalArgs = buildCaptureEvalArgs(args, waitText)
 const capture = spawnSync(process.execPath, [
   join(scriptRoot, 'webui-shots.mjs'),
   targetUrl,

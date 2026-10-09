@@ -7,8 +7,7 @@
 
 ## 场景是什么
 
-**全新 home 第一次打开 web UI 的状态**：空会话列表、首开引导条（hero + 「第一次来？」行）、
-右栏桌面入口——[首开 UX](../../../_backlog/_archive/settled_issues/261001-first-open-ux.md) 反复打磨的那个面。
+**全新 home 第一次打开 web UI 的状态**：主区默认是全局桌面，显示「你的桌面」、真实无数据时的空态与「有问题？跟助手说」入口；首开预览版说明在场。不预置 `.desk/state.json`，不含真实经营事项或草稿。Conversation 的首用引导与审批横幅不在这个默认主区内，由进入 Conversation 的场景验证。
 共享 dev home 的"空白态"不空白（侧边栏列着真实会话与每分钟变化的相对时间戳），所以本场景
 **必须起在隔离 home**——这也正是"首开"的真义。
 
@@ -16,8 +15,11 @@
 
 ```sh
 # ① 起隔离 home 服务（幂等；vendor 产物在位时 ≈6s）
-ASSISTANT_DSH_HOME=/tmp/dsh-expected-home bash dev/env/prepare.sh && bash dev/env/setup.sh
-ASSISTANT_DSH_HOME=/tmp/dsh-expected-home pnpm dsh --profile dev --port 0 --no-open
+export ASSISTANT_DSH_HOME=$(mktemp -d /tmp/desk-blank-XXXXXX)
+bash dev/env/prepare.sh && bash dev/env/setup.sh
+# overlay 只固定工作区到隔离 home；不确认首开声明、不复制凭据、不种桌面。
+printf -- '- id: workspace-controller\n  name: "@deepseek-ai/dsh-api-workspace-controller"\n  config:\n    documentsDirectory: %s/workspaces\n' "$ASSISTANT_DSH_HOME" > "$ASSISTANT_DSH_HOME/workspace.patch.yml"
+pnpm dsh --profile dev --patch "$ASSISTANT_DSH_HOME/workspace.patch.yml" --port 0 --no-open
 
 # ② 比对（漂移即 exit 1，逐条 diff + PNG 路径供人工过目）
 pnpm web-expected '<server 打印的 URL>'
@@ -25,6 +27,8 @@ pnpm web-expected '<server 打印的 URL>'
 # 有意的 UI 变更：过目 diff 后重录期望（重录的 PNG 在临时目录，肉眼核过再提交 JSON）
 pnpm web-expected '<server 打印的 URL>' --refresh
 ```
+
+未种桌面的首开态会被 `pnpm preflight` 的 desk-readiness 检查拒绝；本场景不把该拒绝写成全绿交付。认证、bundle 注册和 boot 图可单独读其结果，DOM 比对仍须无 console/network 错误。K1 默认入口的记录已去除存量期望里的共享工作区经营数据污染；这不是经营账本空态通过证据，当前组件仍读 legacy 工作区快照。
 
 ## 比对什么（判据）
 
