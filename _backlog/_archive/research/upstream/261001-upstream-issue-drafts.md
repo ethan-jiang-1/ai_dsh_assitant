@@ -6,13 +6,11 @@ intent: "把候选写成可递交的上游 issue 文本。"
 # 上游 issue 递交草案（6 条）——喂 261001-first-open-ux
 
 > 立档：2026-10-05｜服务对象：[261001-upstream-candidates.md](261001-upstream-candidates.md)
-> （行号映射见下表）与 [首开 UX 卡](../../_archive/settled_issues/261001-first-open-ux.md)。
+> （行号映射见下表）与 [首开 UX 卡](../../settled_issues/261001-first-open-ux.md)。
 > 状态：**已递交（2026-10-06 gh 认证恢复后经 gh api GraphQL 代发，6/6 成功，链接见下表）**——
 > 渠道 = `github.com/deepseek-ai/deepseek-harness` 的 **Discussions · Ideas** 分类
-> （CONTRIBUTING 明文外部反馈走 Discussions；issue 面留维护者）。两条执行路径：
-> ① 用户 `gh auth login -h github.com` 重认证（现 token invalid）→ agent 经 gh api 代发 6 帖；
-> ② 用户手贴——每帖 = 下表标题 + 对应草案正文块（即贴即用）。
-> 原稿锚点版本记为 dsh v0.2.0-rc.2 / c1857a8；当前源码 pin 见 [vendor 簿记](../../../vendor/UPSTREAM.md) 与 [技术审计](../tech-exploration/261005-turnaround-evidence-audit.md)，递交前核对旧行号/构建是否仍适用，不把原稿 SHA 当当前。
+> （CONTRIBUTING 明文外部反馈走 Discussions；issue 面留维护者）。已走路径①，六帖链接见下表。
+> 原稿锚点版本记为 dsh v0.2.0-rc.2 / c1857a8；当时 pin 见 [vendor 簿记](../../../../vendor/UPSTREAM.md) 与 [技术审计](../tech-exploration/261005-turnaround-evidence-audit.md)。递交时核对过行号；以后重提再对当前 pin，不把原稿 SHA 当成当前版本。
 > 证据出处：安装界面的 delegated naive-CEO 角色读数与 agent 取证，不是真实非开发者用户测试。外发文字中的 naive-user/non-developer 已如实说明是代理模拟（正文原样带「not human usability sessions」限定）。锚点 pin 本会话 verify 的 submodule 检查全程绿（v0.2.0-rc.2 未动），递交前核对成立。
 
 | 草案 | 台账行 | 标题（英文贴用） | 状态 |
@@ -144,9 +142,9 @@ gets from it, not what the machine calls it).
 
 ---
 
-## 递交清单（放行后执行）
+## 递交清单（2026-10-06 已执行）
 
 1. ~~你指定渠道~~ 已定：deepseek-harness **Discussions · Ideas**（2026-10-05 查证，README/CONTRIBUTING 明文路由）。
-2. 执行路径：① `gh auth login -h github.com` 重认证后 agent 经 gh api 代发 6 帖；或 ② 手贴（标题取下表、正文取对应块）。
-3. 贴完在本档与台账逐条记「已递 + 链接」，台账行状态 稳定候选 → 已递交。
-4. D3 若上游倾向拆分（遥测与思考流两事），拆两帖的文本我已备好口径。
+2. 已走路径①：gh api 代发 6 帖。链接见上表。
+3. 台账已逐条记下「已递 + 链接」。
+4. D3 若上游倾向拆分（遥测与思考流两事），拆两帖的文本当时已备好口径。

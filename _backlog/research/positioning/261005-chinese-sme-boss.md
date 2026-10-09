@@ -304,7 +304,7 @@ https://jingji.cctv.cn/2025/04/11/ARTIeLPato1J9iYao9DyGZKF250411.shtml
 
 ---
 
-## 附：本卡服务对象与喂养关系
+## 附：本档服务对象
 
-- 服务：[`261005-open-value-deficit`](../../_archive/settled_issues/261005-open-value-deficit.md) 那条定位线，活卡仍引用本文。
-- 本文是 `_backlog/research/positioning/` 的第 7 份材料；索引见 [`../README.md`](../README.md)。
+- 活卡：[开屏与节律](../../issues/261007-opening-brief-and-rhythm.md) 用本文的口语化红线；[输入边界](../../issues/261007-input-boundary.md) 用五谷渔粉案例作需求线索，不证明本人会自发投递。
+- 原卡：[`261005-open-value-deficit`](../../_archive/settled_issues/261005-open-value-deficit.md)。

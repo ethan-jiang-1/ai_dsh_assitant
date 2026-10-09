@@ -5,7 +5,7 @@ intent: "走一遍督办主线的十分钟脚本，供攻击，不是实施授�
 
 # 十分钟走查记录与演示脚本候选 v0（督办主线）
 
-> 喂 [定位卡](../../_archive/settled_issues/261005-open-value-deficit.md) 与 [自洽卡](../../_archive/settled_issues/261005-turnaround-coherence.md)。性质：供攻击的候选脚本，不是实施授权，也不是现有能力清单。
+> 喂 [定位卡](../../settled_issues/261005-open-value-deficit.md) 与 [自洽卡](../../settled_issues/261005-turnaround-coherence.md)。性质：供攻击的候选脚本，不是实施授权，也不是现有能力清单。
 > 原走查依赖 blank-first-open 快照、trial 产物与 delegated naive-CEO 读数。代理评价不是实际管理层反应，trial 账面不是本人两周经营证据。本轮校准脚本的状态/数据边界，未重新运行浏览器或真人演示。
 
 ## 一、历史走查：已记录观察与解释
@@ -24,7 +24,7 @@ intent: "走一遍督办主线的十分钟脚本，供攻击，不是实施授�
 
 ## 二、目标脚本：状态逐段分开
 
-框架来自 [演示叙事研究](261005-exec-demo-narratives.md)：结果先行、少量清晰动作、人审/出处、具体下一步。营销演示、董事会汇报与实际上手不同；Atlassian +90% 是转引，不作本产品采纳因果依据，CFO 审计页是主线的支撑不是第二主线。
+框架来自 [演示叙事研究](../../../research/positioning/261005-exec-demo-narratives.md)：结果先行、少量清晰动作、人审/出处、具体下一步。营销演示、董事会汇报与实际上手不同；Atlassian +90% 是转引，不作本产品采纳因果依据，CFO 审计页是主线的支撑不是第二主线。
 
 | 段 | 候选动作 | 当前状态 / 展示条件 |
 |---|---|---|

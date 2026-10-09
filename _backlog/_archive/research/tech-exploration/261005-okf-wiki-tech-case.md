@@ -5,12 +5,12 @@ intent: "分清 OKF/WIKI 的能力、当前实现和尚未验证的效果。"
 
 # 技术定调：OKF/WIKI 的能力边界与可辨识实验
 
-> 立档：2026-10-05 ｜ 喂 [定位卡](../../_archive/settled_issues/261005-open-value-deficit.md) 与 [自洽卡](../../_archive/settled_issues/261005-turnaround-coherence.md)。
+> 立档：2026-10-05 ｜ 喂 [定位卡](../../settled_issues/261005-open-value-deficit.md) 与 [自洽卡](../../settled_issues/261005-turnaround-coherence.md)。
 > 用户选定探索方向：有组织的知识、技能和事件信息能帮一把手什么；OKF/VK 与 DSH 原生优先已确认。选择方向不是测得收益，本档区分 schema 能力、当前实现与效果假设。
 
 ## 一、两类记忆与当前资产
 
-- OV 的情景记忆面承载会话经历/召回；[层 1 决定](../../../notes/archived/2026-10-04-openviking-layer1-landing.md) 记录安装、组合和有限跨会话证据，不是管理价值对照结果。
+- OV 的情景记忆面承载会话经历/召回；[层 1 决定](../../../../notes/archived/2026-10-04-openviking-layer1-landing.md) 记录安装、组合和有限跨会话证据，不是管理价值对照结果。
 - OKF 子集的语义知识页承载口径、来源与生命周期；memory/knowledge/skills/research 是现有布局，不等于“突发事件管理系统”已实现，也不等于公司决定对象/状态机已完备。
 - 底层字段来自既有知识页 schema；实际审批/审计/OV 隔离的源码事实归 [技术审计](261005-turnaround-evidence-audit.md)，本档不维护第二份代码台账。
 

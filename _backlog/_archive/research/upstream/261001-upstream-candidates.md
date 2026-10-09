@@ -5,11 +5,10 @@ intent: "把散在首开各轮的 vendor 候选收成一叠可递交的条目。
 
 # 上游（vendor 面）候选台账——喂 261001-first-open-ux
 
-> 立档：2026-10-05（首开 UX 第 18 轮）｜服务对象：[261001-first-open-ux](../../_archive/settled_issues/261001-first-open-ux.md)
-> ｜性质：调研材料（随卡毕业迁 `_archive/research/`）。
+> 立档：2026-10-05（首开 UX 第 18 轮）｜原卡：[261001-first-open-ux](../../settled_issues/261001-first-open-ux.md)（已结）。
+> D1–D6 与 D7 已于 2026-10-06 递交。本档是递交记录，不再等待是否递交的拍板；后续只看上游回复。
 > 为什么立档：vendor 面候选散在卡面第 1/3/8/12/13/14/16 轮各处，散读变不成一叠可递交的 issue；
-> 本档一处收敛，每条带首报轮次与 vendor 代码锚点。**纪律不变：vendor 源码永不改（硬规则 1），
-> 本档只备料——递不递、何时递、怎么措辞，由用户拍板。**
+> 本档一处收敛，每条带首报轮次与 vendor 代码锚点。**纪律不变：vendor 源码永不改（硬规则 1）。**
 
 ## 稳定候选（多轮读数反复命中，或带代码锚可直接立 issue）
 
@@ -18,7 +17,7 @@ intent: "把散在首开各轮的 vendor 候选收成一叠可递交的条目。
   resolveActiveView 只回退 chat；空白相位（未说话）视图区渲染 null（DefaultConversationViews.tsx:49），
   EmptyHero+composer vendor 自持。插件可贡献 conversation.view 标签但不能设默认视图或占空白相位主区。
 - **诉求**：默认视图可配置（或插件可贡献 landing view / 空白相位主区座位）——一把手定位的产品
-  （打开=桌面，会话是动作）需要它。锚点以本仓 pin 为准；递交与否用户拍板。
+  （打开=桌面，会话是动作）需要它。锚点以本仓 pin 为准。已递交，能力是否发布以上游讨论为准。
 
 > 递交草案：[261001-upstream-issue-drafts.md](261001-upstream-issue-drafts.md)（D1-D6 覆盖下行 #1/#2/#3+#9/#5/#6/#7；2026-10-05 文本放行，2026-10-06 已全部递交：D1→[discussions/8939](https://github.com/deepseek-ai/deepseek-harness/discussions/8939)、D2→[8940](https://github.com/deepseek-ai/deepseek-harness/discussions/8940)、D3→[8941](https://github.com/deepseek-ai/deepseek-harness/discussions/8941)、D4→[8942](https://github.com/deepseek-ai/deepseek-harness/discussions/8942)、D5→[8943](https://github.com/deepseek-ai/deepseek-harness/discussions/8943)、D6→[8944](https://github.com/deepseek-ai/deepseek-harness/discussions/8944)；后续状态以上游回复为准）。
 
@@ -40,7 +39,7 @@ intent: "把散在首开各轮的 vendor 候选收成一叠可递交的条目。
 |---|---|---|---|
 | 10 | transcriptView src/lib 同 tag 漂移 | 上游发布物确认是否带 `?? defaultMode` 兜底（我方预置行的退役条件） | R3 定罪；升 pin 本地重建后本地崩溃已关（2026-10-03 复验在卡） |
 | 11 | 升级档位缺「只读域外」中间档 | 正常部署不受影响；沙箱后端不可用环境一回合 14 次 danger-full-access 升级 | R12 升级风暴观察（喂上游候选/摩擦报告） |
-| 12 | 直调缝：bundle 插件 client 半面受控 remote 贡献聚合 / zod codec 可达性 | 本人拍板重提批准流直调时 | [261004-approve-direct-call](../../_archive/settled_issues/261004-approve-direct-call.md) §切片 1 三层实锤 |
+| 12 | 直调缝：bundle 插件 client 半面受控 remote 贡献聚合 / zod codec 可达性 | 本人拍板重提批准流直调时 | [261004-approve-direct-call](../../settled_issues/261004-approve-direct-call.md) §切片 1 三层实锤 |
 
 ## 已关闭不再追（第 18 轮定罪，处置详情在卡）
 

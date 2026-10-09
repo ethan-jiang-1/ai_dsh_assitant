@@ -7,7 +7,7 @@ intent: "OKF/VK 方向对，技术面先用足 DSH 自己的插件能力。"
 
 > 立档：2026-10-05 ｜ 性质：**技术定调**（用户拍板原话："OKF 和 VK 肯定是对的；一个就是
 > 充分的利用 DSH 自身的能力——尤其是插件这里，其实是技术面上我对他的诉求"）｜ 喂
-> [261005-open-value-deficit](../../_archive/settled_issues/261005-open-value-deficit.md) 第 5/11/19 轮。
+> [261005-open-value-deficit](../../settled_issues/261005-open-value-deficit.md) 第 5/11/19 轮。
 > 姊妹档：[261005-okf-wiki-tech-case.md](261005-okf-wiki-tech-case.md)（OKF 注的完整论证与实验设计）。
 
 ## 一、技术注确认（两注已定，不再摇摆）
@@ -28,7 +28,7 @@ intent: "OKF/VK 方向对，技术面先用足 DSH 自己的插件能力。"
 2. **缝优先**：不能只配置时，能不能挂既有扩展点/seam（`ctx.*`、slots、事件、schedule、
    jobs、approval、workspaceFiles、subagent）？挂缝 = 可配置、可关闭、可记日志。
 3. **自建须举证**：以上都不行才自建，且 note 里必须附"DSH 载体不可用"的证据（"不发明"
-   原则，grand plan §3.1 心法 2；[discipline](../../../docs/discipline.md) 逐源枚举既有登记）。
+   原则，grand plan §3.1 心法 2；[discipline](../../../../docs/discipline.md) 逐源枚举既有登记）。
 
 **插件机制用足的具体含义**：我们的交付物本身就是 bundle（cordis.patch.yml 的行）——功能
 优先表现为**多一行**而不是多一个模块；client 面 = slot 注册；host 面 = Service + provider

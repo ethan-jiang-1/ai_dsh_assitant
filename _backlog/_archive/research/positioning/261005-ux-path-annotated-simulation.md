@@ -5,7 +5,7 @@ intent: "用现行桌面状态走一遍打开到跟进，不发明新状态机�
 
 # UX 路径 v0：打开→给片段→看选项/缺数→拍板→看跟进（标注模拟走查）
 
-> 喂 [自洽卡](../../_archive/settled_issues/261005-turnaround-coherence.md) 阶段2 与 [定位卡](../../_archive/settled_issues/261005-open-value-deficit.md)。
+> 喂 [自洽卡](../../settled_issues/261005-turnaround-coherence.md) 阶段2 与 [定位卡](../../settled_issues/261005-open-value-deficit.md)。
 > 性质：纸面/可丢弃交互原型，不是实施授权；示例内容用 [标注模拟](261005-prototype-cases-and-interview-method.md)
 > 的 `reversible-cost-v0` 变式（明确标注 simulated，不冒充本人经营事实）。状态载体以现行
 > `.desk/state.json` 契约（`DeskData`，src/client/index.ts:242）为准——本路径不发明新状态机，只编排入口与边界。
@@ -111,7 +111,7 @@ intent: "用现行桌面状态走一遍打开到跟进，不发明新状态机�
 - 首切建议（**as-built 修正，2026-10-05 实施时改序**）：**A' 先行**——细察 gaps 面板后发现它已就地闭环
   （CorrectableRow「补上」→ 回话落账），B 的增量比本档初估薄；A' 直答「无从下手」机制诊断（任务从三处来的
   第一处=它先开口），且三件套材料先成熟。A' 已交付
-  （[note](../../../notes/archived/2026-10-05-day0-intake-first-conversation.md)，
+  （[note](../../../../notes/archived/2026-10-05-day0-intake-first-conversation.md)，
   真模型 eval PASS）；B 降为可选打磨（待模拟走查发现真实缺口再议）；C 留给督办原型毕业。
 
 ## 5. A'（Day-0 intake「它先问」）方案草案——毕业提案的直接输入

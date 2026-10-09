@@ -5,7 +5,7 @@ intent: "用公开案例和短访谈框架推进原型，不等真人交作业�
 
 # 原型候选：访谈、案例重放与可验证的能力积累
 
-> 服务 [定位卡](../../_archive/settled_issues/261005-open-value-deficit.md) 和 [自洽卡](../../_archive/settled_issues/261005-turnaround-coherence.md)。这是可直接使用的访谈/记录/评估框架；未安装成运行时技能，也未证明访谈能提高决策效果。一手材料定位与访问限制归 [案例研究](261005-prototype-cases-and-interview-method.md)，本档拥有产品框架，不复制来源综述。
+> 服务 [定位卡](../../settled_issues/261005-open-value-deficit.md) 和 [自洽卡](../../settled_issues/261005-turnaround-coherence.md)。这是可直接使用的访谈/记录/评估框架；未安装成运行时技能，也未证明访谈能提高决策效果。一手材料定位与访问限制归 [案例研究](261005-prototype-cases-and-interview-method.md)，本档拥有产品框架，不复制来源综述。
 
 ## 1. 原型现在如何推进
 
@@ -86,9 +86,9 @@ rollback: 旧版本和引用修复方式
 
 ## 4. 与现有载体的关系：可承载，不代表自动闭环已建
 
-代码/当前合同依据：[working folder](../../../docs/home.md#L72)、[reflect description](../../../packages/dsh-smart-assistant/src/agent/learn/index.ts#L41)、[提案落地](../../../packages/dsh-smart-assistant/src/index.ts#L678)、[服务测试](../../../packages/dsh-smart-assistant/tests/host/skill-proposals.spec.ts#L47)。已存在来源必填的draft页、研究/记忆房间、propose/land和可恢复技能版本载体。
+代码/当前合同依据：[working folder](../../../../docs/home.md#L72)、[reflect description](../../../../packages/dsh-smart-assistant/src/agent/learn/index.ts#L41)、[提案落地](../../../../packages/dsh-smart-assistant/src/index.ts#L678)、[服务测试](../../../../packages/dsh-smart-assistant/tests/host/skill-proposals.spec.ts#L47)。已存在来源必填的draft页、研究/记忆房间、propose/land和可恢复技能版本载体。
 
-但 `save_skill` 可以直接写可加载技能（[实现](../../../packages/dsh-smart-assistant/src/agent/learn/index.ts#L394)），提案车道不是所有写入的不可绕过守卫；`landSkill` 检查 approved 状态，不运行语义/行为回归。现有用量计数测加载，不能证明正确性或收益。完整访谈蒸馏/自动评分/受控启用还未实现，知识审批也有 [审计中指出的边界](../tech-exploration/261005-turnaround-evidence-audit.md)。
+但 `save_skill` 可以直接写可加载技能（[实现](../../../../packages/dsh-smart-assistant/src/agent/learn/index.ts#L394)），提案车道不是所有写入的不可绕过守卫；`landSkill` 检查 approved 状态，不运行语义/行为回归。现有用量计数测加载，不能证明正确性或收益。完整访谈蒸馏/自动评分/受控启用还未实现，知识审批也有 [审计中指出的边界](../tech-exploration/261005-turnaround-evidence-audit.md)。
 
 原型先用本框架做纸面/离线验证，开发材料留repo reference，不写日用dataDir。后续如要接运行时，毕业为有界实施提案：访谈输入/来源记录、四房间路由、验证集和预算、批准范围、失败/撤回/日志语义。可自主做的核查与提案生成不逐条请人；本人不可替代的是其标准、适用范围和实际纠正，不把大批评分作业抛回用户。
 
