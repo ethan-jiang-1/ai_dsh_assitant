@@ -45,15 +45,15 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
         ce('div', { className: 'dsha-matter-list', role: 'list', onScroll: (event: { currentTarget: { scrollTop: number } }) => props.actions.rememberListPosition(event.currentTarget.scrollTop) },
           ...data.matters.map(matter => ce('article', { key: matter.id, role: 'listitem' },
             ce('button', { type: 'button', onClick: () => props.actions.selectMatter(matter.id), style: { display: 'block', width: '100%', textAlign: 'left', overflowWrap: 'anywhere' } },
-              ce('strong', {}, matter.title), ce('span', {}, ` · ${matter.status === 'active' ? '在办' : '已完成'}`)),
+              ce('strong', {}, matter.title), ce('span', {}, ` · ${matter.status === 'active' ? '在办' : matter.status === 'completed' ? '已完成' : '已放弃'}`)),
             ce('p', {}, matter.summary))),
         ),
         ce('div', { className: 'dsha-matter-detail', 'aria-live': 'polite' }, selected === undefined
           ? view.selectedId === null ? ce('p', {}, '选择一项查看详情。') : ce('p', {}, '所选事项不在当前投影中。')
           : ce('article', {}, ce('button', { className: 'dsha-back', type: 'button', onClick: props.actions.showList }, '返回事项列表'),
-            ce('h2', {}, selected.title), ce('p', {}, selected.summary), ce('p', {}, selected.status === 'active' ? '在办' : '已完成'),
+            ce('h2', {}, selected.title), ce('p', {}, selected.summary), ce('p', {}, selected.status === 'active' ? '在办' : selected.status === 'completed' ? '已完成' : '已放弃'),
             selected.evidence.length === 0 ? ce('p', {}, '暂无可核对依据。') : ce('ul', {}, ...selected.evidence.map(evidence => ce('li', { key: evidence.id },
-              ce('p', {}, evidence.quote), ce('small', {}, `${evidence.sessionId} / ${evidence.eventId}`))))),
+              ce('p', {}, evidence.note), ce('small', {}, `${evidence.sessionId} / ${evidence.eventId ?? '无事件定位'}`))))),
         )),
   )
 }

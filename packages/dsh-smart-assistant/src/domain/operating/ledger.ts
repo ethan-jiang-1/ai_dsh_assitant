@@ -190,6 +190,22 @@ export interface LedgerState {
 export const EMPTY_LEDGER: LedgerState = { version: 1, matters: {}, operations: {}, unclaimed: {}, nextMatterSeq: 1, nextUnclaimedSeq: 1 }
 
 /**
+ * Revive a persisted ledger state: validate the version and backfill fields added after the
+ * first slices (no released ledgers predate them).
+ * @param parsed - The parsed `ledger.json` content.
+ * @returns The complete state.
+ * @throws When the value is not a v1 ledger state.
+ */
+export function reviveLedgerState(parsed: unknown): LedgerState {
+  if (typeof parsed !== 'object' || parsed === null || (parsed as { version?: unknown }).version !== 1) {
+    throw new Error('not a v1 operating ledger state')
+  }
+  const state = parsed as LedgerState
+  const matters = Object.fromEntries(Object.entries(state.matters).map(([id, matter]) => [id, { ...matter, proposals: matter.proposals ?? [] }]))
+  return { ...state, matters, unclaimed: state.unclaimed ?? {}, nextUnclaimedSeq: state.nextUnclaimedSeq ?? 1 }
+}
+
+/**
  * Canonical JSON with recursively sorted object keys, so retry comparison is key-order-blind.
  * @param value - JSON-compatible value.
  * @returns Its canonical serialization.

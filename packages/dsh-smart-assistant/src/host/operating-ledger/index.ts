@@ -20,7 +20,7 @@ import { expandHomePath, resolveDshHome } from '@deepseek-ai/dsh-home-paths'
 import { closeSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, renameSync, rmSync, writeFileSync, writeSync } from 'node:fs'
 import { hostname } from 'node:os'
 import { join } from 'node:path'
-import { EMPTY_LEDGER, applyOperation, type LedgerOperation, type LedgerState, type MatterRecord, type OperationReceipt, type UnclaimedMaterial } from '../../domain/operating/ledger.ts'
+import { EMPTY_LEDGER, applyOperation, reviveLedgerState, type LedgerOperation, type LedgerState, type MatterRecord, type OperationReceipt, type UnclaimedMaterial } from '../../domain/operating/ledger.ts'
 
 declare module '@deepseek-ai/cordis' {
   interface Context {
@@ -131,13 +131,11 @@ function loadState(dataDir: string): LedgerState {
   } catch (error) {
     throw new Error(`operating ledger state at ${path} is corrupt (${(error as Error).message}); refusing to treat it as empty`)
   }
-  if (typeof parsed !== 'object' || parsed === null || (parsed as { version?: unknown }).version !== 1) {
+  try {
+    return reviveLedgerState(parsed)
+  } catch {
     throw new Error(`operating ledger state at ${path} is not a v1 ledger; refusing to treat it as empty`)
   }
-  const state = parsed as LedgerState
-  // Backfill fields added after the first slices; no released ledgers predate them.
-  const matters = Object.fromEntries(Object.entries(state.matters).map(([id, matter]) => [id, { ...matter, proposals: matter.proposals ?? [] }]))
-  return { ...state, matters, unclaimed: state.unclaimed ?? {}, nextUnclaimedSeq: state.nextUnclaimedSeq ?? 1 }
 }
 
 /**

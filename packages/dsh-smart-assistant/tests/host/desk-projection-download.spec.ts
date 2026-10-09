@@ -76,3 +76,43 @@ describe('fixed independent desk projection download', () => {
     expect(await readFile(join(home, 'desk-projection.json'), 'utf8')).toBe(literal)
   })
 })
+
+describe('ledger-rendered projection (K3 slice E)', () => {
+  it('serves the v2 projection rendered from the authoritative ledger in preference to a fixture', async () => {
+    const home = await mkdtemp(join(tmpdir(), 'desk-download-'))
+    homes.push(home)
+    const { Context } = await import('@deepseek-ai/cordis')
+    const { default: AssistantOperatingLedger } = await import('../../src/host/operating-ledger/index.ts')
+    const service = new AssistantOperatingLedger(new Context(), { dataDir: home })
+    const receipt = await service.submitOperation({
+      kind: 'create', operationId: 'op-dl-1', title: 'NB-02 第二期回款',
+      source: { sessionId: 'session-A', quote: '帮我盯着' },
+    })
+    await service.stop()
+    // A stale fixture must not win over the authoritative ledger.
+    await writeFile(join(home, 'desk-projection.json'), JSON.stringify({ schemaVersion: 1, ledgerId: 'fixture', revision: 0, matters: [] }))
+
+    const response = await createDeskProjectionRoute(home).fetch(new Request('http://localhost/api/assistant/desk-projection'))
+    expect(response.status).toBe(200)
+    const body: any = await response.json()
+    expect(body.schemaVersion).toBe(2)
+    expect(body.matters[0].id).toBe(receipt.matterId)
+    expect(body.matters[0].evidence[0].sessionId).toBe('session-A')
+    expect(body.receipts).toEqual([{ operationId: 'op-dl-1', matterId: receipt.matterId, submittedAt: body.receipts[0].submittedAt, status: 'committed', revision: 1 }])
+  })
+
+  it('reports a corrupt authoritative ledger loudly instead of silently serving the fixture', async () => {
+    const home = await mkdtemp(join(tmpdir(), 'desk-download-'))
+    homes.push(home)
+    await writeFile(join(home, 'ledger.json'), '{corrupt')
+    await writeFile(join(home, 'desk-projection.json'), JSON.stringify({ schemaVersion: 1, ledgerId: 'fixture', revision: 0, matters: [] }))
+    const response = await createDeskProjectionRoute(home).fetch(new Request('http://localhost/api/assistant/desk-projection'))
+    expect(response.status).toBe(422)
+    expect(await response.json()).toEqual({ error: 'projection-invalid-json' })
+    // A structurally wrong (non-v1) ledger is a version problem, not a silent fallback.
+    await writeFile(join(home, 'ledger.json'), '{"version":99}')
+    const wrongVersion = await createDeskProjectionRoute(home).fetch(new Request('http://localhost/api/assistant/desk-projection'))
+    expect(wrongVersion.status).toBe(422)
+    expect(await wrongVersion.json()).toEqual({ error: 'projection-invalid' })
+  })
+})

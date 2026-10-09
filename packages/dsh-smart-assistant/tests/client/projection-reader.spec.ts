@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 // Platform-composition seam consumes pinned built store/declarations (build prerequisite).
 import { createSnapshotStore } from '../../../../vendor/dsh/packages/client/store/lib/types/index.js'
 import { createProjectionReader } from '../../src/client/projection-reader.ts'
+import { parseOperatingProjection } from '../../src/client/operating-projection.ts'
 import type { ProjectionDownload } from '../../src/client/projection-reader.ts'
 
 const projection = (revision: number) => ({ schemaVersion: 1 as const, ledgerId: 'ledger-a', revision, matters: [] })
@@ -33,11 +34,11 @@ describe('Web projection reader', () => {
     f.state.set('connected')
     f.request(0).resolve(new Response(JSON.stringify(valid)))
     await flush()
-    expect(f.snapshot.getSnapshot()).toEqual({ status: 'ready', data: valid })
+    expect(f.snapshot.getSnapshot()).toEqual({ status: 'ready', data: parseOperatingProjection(valid) })
     f.reader.refresh()
     f.request(1).resolve(new Response('{"revision":2}'))
     await flush()
-    expect(f.snapshot.getSnapshot()).toEqual({ status: 'error', error: 'projection-invalid', data: valid, stale: true })
+    expect(f.snapshot.getSnapshot()).toEqual({ status: 'error', error: 'projection-invalid', data: parseOperatingProjection(valid), stale: true })
     f.reader.dispose()
   })
 
@@ -66,11 +67,11 @@ describe('Web projection reader', () => {
     f.reader.refresh()
     f.request(1).resolve(new Response('', { status: 401 }))
     await flush()
-    expect(f.snapshot.getSnapshot()).toEqual({ status: 'error', error: 'authentication-required', data: projection(1), stale: true })
+    expect(f.snapshot.getSnapshot()).toEqual({ status: 'error', error: 'authentication-required', data: parseOperatingProjection(projection(1)), stale: true })
     f.reader.refresh()
     f.request(2).resolve(new Response(JSON.stringify(projection(2))))
     await flush()
-    expect(f.snapshot.getSnapshot()).toEqual({ status: 'ready', data: projection(2) })
+    expect(f.snapshot.getSnapshot()).toEqual({ status: 'ready', data: parseOperatingProjection(projection(2)) })
     f.reader.dispose()
   })
 
@@ -84,7 +85,7 @@ describe('Web projection reader', () => {
     await flush()
     f.request(0).reject(new Error('obsolete failure'))
     await flush()
-    expect(f.snapshot.getSnapshot()).toEqual({ status: 'ready', data: projection(2) })
+    expect(f.snapshot.getSnapshot()).toEqual({ status: 'ready', data: parseOperatingProjection(projection(2)) })
     f.reader.dispose()
   })
 
@@ -118,7 +119,7 @@ describe('Web projection reader', () => {
     f.generation.set(undefined)
     f.state.set('connecting')
     expect(f.request(1).options.signal?.aborted).toBe(true)
-    expect(f.snapshot.getSnapshot()).toEqual({ status: 'disconnected', data: projection(1), stale: true })
+    expect(f.snapshot.getSnapshot()).toEqual({ status: 'disconnected', data: parseOperatingProjection(projection(1)), stale: true })
     f.generation.set({ id: 2 })
     f.state.set('connected')
     expect(f.requests).toHaveLength(3)
@@ -126,7 +127,7 @@ describe('Web projection reader', () => {
     await flush()
     f.request(1).resolve(new Response(JSON.stringify(projection(0))))
     await flush()
-    expect(f.snapshot.getSnapshot()).toEqual({ status: 'ready', data: projection(2) })
+    expect(f.snapshot.getSnapshot()).toEqual({ status: 'ready', data: parseOperatingProjection(projection(2)) })
     f.reader.refresh()
     f.reader.dispose()
     const afterDispose = f.snapshot.getSnapshot()
@@ -146,7 +147,7 @@ describe('Web projection reader', () => {
     expect(f.request(0).options).toMatchObject({ method: 'GET', credentials: 'same-origin', cache: 'no-store', redirect: 'error' })
     f.request(0).resolve(new Response(JSON.stringify(projection(7))))
     await flush()
-    expect(f.snapshot.getSnapshot()).toEqual({ status: 'ready', data: projection(7) })
+    expect(f.snapshot.getSnapshot()).toEqual({ status: 'ready', data: parseOperatingProjection(projection(7)) })
     f.reader.dispose()
   })
 })

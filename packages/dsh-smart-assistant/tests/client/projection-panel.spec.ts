@@ -22,9 +22,9 @@ describe('global projection panel', () => {
   it('renders only the selected matter evidence and reports vanished selection without switching target', () => {
     const view = createProjectionViewStore(defineStore).create()
     view.actions.selectMatter('b')
-    const value: ProjectionDownload = { status: 'ready', data: { schemaVersion: 1, ledgerId: 'test', revision: 2, matters: [
-      { id: 'a', title: '事项 A', status: 'active', summary: 'A 摘要', evidence: [{ id: 'ea', sessionId: 'sa', eventId: 'xa', quote: 'A 来源' }] },
-      { id: 'b', title: '事项 B', status: 'active', summary: 'B 摘要', evidence: [{ id: 'eb', sessionId: 'sb', eventId: 'xb', quote: 'B 来源' }] },
+    const value: ProjectionDownload = { status: 'ready', data: { schemaVersion: 1, ledgerId: 'test', revision: 2, receipts: [], unclaimed: [], matters: [
+      { id: 'a', title: '事项 A', status: 'active', summary: 'A 摘要', revision: 1, times: {}, proposals: [], evidence: [{ id: 'ea', sessionId: 'sa', eventId: 'xa', quote: 'A 来源', note: 'A 来源' }] },
+      { id: 'b', title: '事项 B', status: 'active', summary: 'B 摘要', revision: 1, times: {}, proposals: [], evidence: [{ id: 'eb', sessionId: 'sb', eventId: 'xb', quote: 'B 来源', note: 'B 来源' }] },
     ] } }
     const props = { useProjection: <S,>(select: (value: ProjectionDownload) => S): S => select(value), useStore: <S,>(select: (value: ReturnType<typeof view.getSnapshot>) => S): S => select(view.getSnapshot()), actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn() }
     const output = text(ProjectionPanel(props))
@@ -41,7 +41,7 @@ describe('global projection panel', () => {
     expect(render({ status: 'error' })).not.toContain('还没有经营事项')
   })
   it('shows all eight matters, completed history and stale fixture notice', () => {
-    const output = render({ status: 'disconnected', stale: true, data: { schemaVersion: 1, ledgerId: 'simulated', revision: 7, fixture: true, matters: Array.from({ length: 8 }, (_, index) => ({ id: `m${String(index)}`, title: `事项${String(index)}`, status: index === 7 ? 'completed' : 'active', summary: '待核对', evidence: [] })) } })
+    const output = render({ status: 'disconnected', stale: true, data: { schemaVersion: 1, ledgerId: 'simulated', revision: 7, fixture: true, receipts: [], unclaimed: [], matters: Array.from({ length: 8 }, (_, index) => ({ id: `m${String(index)}`, title: `事项${String(index)}`, status: index === 7 ? 'completed' : 'active', summary: '待核对', revision: 1, times: {}, proposals: [], evidence: [] })) } })
     for (let index = 0; index < 8; index++) expect(output).toContain(`事项${String(index)}`)
     expect(output).toContain('已完成')
     expect(output).toContain('尚未刷新')
