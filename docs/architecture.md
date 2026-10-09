@@ -228,6 +228,8 @@ pnpm dsh …（package.json scripts → dev/env/dsh.mjs，唯一启动器：
 
 独立 Host 行 `assistant-desk-projection` 提供固定只读 `GET api/assistant/desk-projection` 文件下载，目录 Config `dataDir` 默认 `<dshHome>/assistant-operating`，固定文件 `desk-projection.json`。它不创建目录/文件，不读取 Agent working folder，不接受 query/path 参数，不提供写入。认证与 Host/Origin 检查由 Connection 物理 carrier 承接；响应 `no-store`，完整文件 byte cap 默认 1 MiB，可通过 `maxProjectionBytes` 配置。缺失 404、超限 413、无效 UTF-8/JSON 422、其他 I/O 500；JSON 业务 schema 不由下载器校验。客户端主区仍未消费此下载，经营 writer 和事项读回不由该路由提供。入口为 [Host 插件](../packages/dsh-smart-assistant/src/host/desk-projection/index.ts)，物理 HTTP 验证使用 [只读探针](../dev/probes/web/desk-projection-download.mjs)，以明确标注模拟的 [固定资料](../dev/fixtures/desk-projection/desk-projection.json) 为独立字节预期。
 
+Client 的 [下载对象](../packages/dsh-smart-assistant/src/client/projection-reader.ts)通过 Connection generation/state 观察就绪与丢失，URL 使用 document-relative `api/assistant/desk-projection`，同源 cookie、不复制 token、不接受跨源 base 或重定向。最后成功 JSON 在断连/失败时保留并标陈旧；代际与请求身份阻止刷新替换、断连或 dispose 后的迟到结果发布，dispose 撤销订阅并取消请求。HTTP 缺失、认证、拒绝、损坏、超限与下载失败分别进入状态，不将错误体作为数据。该对象尚未在 apply 注册/注入主区，`ready` 仅表示 JSON 下载完成，不表示账本 schema 有效或业务操作成功；可执行合同为 [读取测试](../packages/dsh-smart-assistant/tests/client/projection-reader.spec.mjs)。
+
 ```text
 浏览器点击（三室面板 / 首开审批横幅 / composer）
   └ client classic script（packages/dsh-smart-assistant：src/client 多模块源，
