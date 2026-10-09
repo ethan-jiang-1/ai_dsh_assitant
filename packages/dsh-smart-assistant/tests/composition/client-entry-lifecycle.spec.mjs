@@ -87,6 +87,10 @@ async function clientRoot(initialPanel = null) {
   ctx.provide('sidebarRightTabs', { register: () => () => {} })
   ctx.provide('sidebarRight', {})
   ctx.provide('sessions', {})
+  ctx.provide('uiSession', {
+    sessionStatus: { getSnapshot: () => new Map(), subscribe: () => () => {} },
+    current: { value: {} },
+  })
   ctx.provide('connection', { generation: createSnapshotStore(undefined), state: createSnapshotStore(undefined) })
   ctx.provide('remote', { $mount: async () => null })
   for (const namespace of ['agentPresets', 'workspaceFiles', 'session']) {
@@ -105,6 +109,7 @@ async function clientRoot(initialPanel = null) {
       ctx.loader.builtins['assistant-client'] = plugin
       await ctx.loader.root.update([{ id: 'assistant-client', name: 'cordis:assistant-client' }])
       await ctx.loader.await()
+
     },
     async unmount() {
       await ctx.loader.root.update([])

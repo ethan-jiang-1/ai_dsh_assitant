@@ -43,9 +43,10 @@ import { ProjectionPanel } from './projection-panel'
 import { mountProjectionReader } from './projection-lifecycle'
 import type { ProjectionDownload } from './projection-reader'
 import { createProjectionViewStore } from './projection-view'
+import { bindProcessPath, judgeReturn, type ProcessingPath } from './desk-process'
 
 /** Slots this face occupies (single-occupant, root-scope, declared by the sidebar). */
-const inject = ['slots', 'sidebarRightTabs', 'sidebarRight', 'sessions', 'remote', 'remote.agentPresets', 'remote.workspaceFiles', 'remote.session', 'layout', 'connection']
+const inject = ['slots', 'sidebarRightTabs', 'sidebarRight', 'sessions', 'remote', 'remote.agentPresets', 'remote.workspaceFiles', 'remote.session', 'layout', 'connection', 'uiSession']
 
 /**
  * Default selection is consumed once per Client root. Keeping weak root identities on the page
@@ -155,12 +156,65 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       baseURI: document.baseURI, origin: location.origin, fetch: globalThis.fetch.bind(globalThis),
     })
     const viewStore = projection === undefined || storeApi === undefined ? undefined : createProjectionViewStore(storeApi.defineStore)
+    // The explicit processing path (K3 slice F): one bound matter + processing session. The
+    // path is in-memory by design — a reload reads the authoritative projection first and
+    // never replays a path or re-submits. The slot store survives panel switches, so the
+    // selection the principal left behind is exactly what the auto-return returns to.
+    const processPath = storeApi?.createSnapshotStore<ProcessingPath | undefined>(undefined)
+    let processReference: { release(): void } | undefined
+    const processMatter = (matterId: string): void => {
+      const data = projection?.getSnapshot().data
+      const observed = data?.matters.find(matter => matter.id === matterId)?.revision
+      void (async () => {
+        const sessionId = await ctx.sessions?.create()
+        if (sessionId === undefined) return
+        processReference?.release()
+        processReference = ctx.sessions?.retain(sessionId, { source: 'mainView' })
+        if (processPath !== undefined && observed !== undefined) {
+          processPath.set(bindProcessPath(matterId, sessionId, observed))
+        }
+        ctx.layout?.selectPanel(null)
+      })()
+    }
+    const evaluateReturn = (): void => {
+      const path = processPath?.getSnapshot()
+      const data = projection?.getSnapshot().data
+      if (path === undefined || data === undefined) return
+      const panel = ctx.layout?.panelInfo.getSnapshot()
+      const currentKey = ctx.uiSession?.current.value.key
+      const status = ctx.uiSession?.sessionStatus.getSnapshot().get(path.sessionId)
+      const decision = judgeReturn(path, {
+        projection: { receipts: data.receipts, matterIds: new Set(data.matters.map(matter => matter.id)) },
+        // The client cannot observe turn settlement separately: it derives from the known
+        // running state, and an unknown running state fails closed as running.
+        session: { running: status?.running, turnSettled: status?.running === false, pendingInteraction: status?.pendingInteraction !== undefined },
+        onPath: panel?.activePanelId === null && String(currentKey ?? '') === path.sessionId,
+        reminders: 'synced',
+      })
+      if (decision.decision === 'return') {
+        processPath?.set(undefined)
+        ctx.layout?.selectPanel('dsh-smart-assistant-dashboard')
+      }
+    }
+    // Subscriptions ride the browser-only path: headless client contexts carry no `effect`
+    // (the reader mount follows the same boundary).
+    if (processPath !== undefined && projection !== undefined) {
+      ctx.effect(() => {
+        const disposes: Array<(() => void) | undefined> = [
+          projection.subscribe(evaluateReturn),
+          ctx.uiSession?.sessionStatus.subscribe(evaluateReturn),
+          ctx.layout?.panelInfo.subscribe(evaluateReturn),
+          ctx.sessions?.list.subscribe(evaluateReturn),
+        ]
+        return () => { for (const dispose of disposes) dispose?.() }
+      })
+    }
     ctx.slots.inject('main', () => {
       const registration = ctx.slots.register({
         name: 'main',
         key: 'dsh-smart-assistant-dashboard',
         ...(viewStore === undefined ? {} : { store: viewStore }),
-        inject: () => ({ hooks: projection === undefined ? {} : { projection }, refreshProjection: () => { reader?.refresh() }, onAsk: () => { ctx.layout?.selectPanel(null) } }),
+        inject: () => ({ hooks: projection === undefined ? {} : { projection }, refreshProjection: () => { reader?.refresh() }, onAsk: () => { ctx.layout?.selectPanel(null) }, onProcess: processMatter }),
       }, projection === undefined ? DashboardMainPanel : ProjectionPanel)
       selectDashboardByDefault(ctx)
       return registration
