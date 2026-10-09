@@ -325,4 +325,183 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
     })
     expect(replay).toEqual(claim)
   })
+
+  it('records a forecast change alone without moving the commitment or checkpoint', async () => {
+    const service = boot()
+    const created = await service.submitOperation({
+      kind: 'create',
+      operationId: 'op-v3-create',
+      title: 'NB-02 第二期回款',
+      times: { promisedDeadline: '2026-10-13', nextCheckpoint: '2026-10-13' },
+      source: { sessionId: 'session-A', quote: '约定 10/13，当日核对' },
+    })
+
+    // 财务给了一个更晚的预测，但没有重约承诺：预测单独记录，承诺与核对点不被顺延。
+    const forecast = await service.submitOperation({
+      kind: 'update',
+      operationId: 'op-v3-forecast',
+      matterId: created.matterId,
+      observedRevision: 1,
+      forecast: { at: '2026-10-15', source: { sessionId: 'session-B', quote: '财务预测可能 10/15' } },
+      source: { sessionId: 'session-B', quote: '财务预测可能 10/15' },
+    })
+    expect(forecast.outcome).toEqual({ status: 'committed', revision: 1 })
+
+    const matter = await service.readMatter(created.matterId)
+    expect(matter?.times.promisedDeadline).toBe('2026-10-13')
+    expect(matter?.times.nextCheckpoint).toBe('2026-10-13')
+    expect(matter?.times.forecastAt).toBe('2026-10-15')
+    expect(matter?.times.forecastSource?.sessionId).toBe('session-B')
+  })
+
+  it('applies an explicit re-commitment and an explicit checkpoint change separately', async () => {
+    const service = boot()
+    const created = await service.submitOperation({
+      kind: 'create',
+      operationId: 'op-v3-create-2',
+      title: 'NB-02 第二期回款',
+      times: { promisedDeadline: '2026-10-13', nextCheckpoint: '2026-10-13' },
+      source: { sessionId: 'session-A' },
+    })
+
+    // Explicit re-commitment: the promise moves, the checkpoint does not ride along.
+    const recommit = await service.submitOperation({
+      kind: 'update',
+      operationId: 'op-v3-recommit',
+      matterId: created.matterId,
+      observedRevision: 1,
+      times: { promisedDeadline: '2026-10-20' },
+      source: { sessionId: 'session-A', quote: '客户明确重约到 10/20' },
+    })
+    expect(recommit.outcome).toEqual({ status: 'committed', revision: 2 })
+    let matter = await service.readMatter(created.matterId)
+    expect(matter?.times.promisedDeadline).toBe('2026-10-20')
+    expect(matter?.times.nextCheckpoint).toBe('2026-10-13')
+
+    // Explicit checkpoint change: the checkpoint moves, the promise does not.
+    const checkpoint = await service.submitOperation({
+      kind: 'update',
+      operationId: 'op-v3-checkpoint',
+      matterId: created.matterId,
+      observedRevision: 2,
+      times: { nextCheckpoint: '2026-10-16' },
+      source: { sessionId: 'session-A', quote: '核对点改到 10/16' },
+    })
+    expect(checkpoint.outcome).toEqual({ status: 'committed', revision: 3 })
+    matter = await service.readMatter(created.matterId)
+    expect(matter?.times.promisedDeadline).toBe('2026-10-20')
+    expect(matter?.times.nextCheckpoint).toBe('2026-10-16')
+  })
+
+  it('completes only with evidence and corrects a mis-associated completion by reopening', async () => {
+    const service = boot()
+    const created = await service.submitOperation({
+      kind: 'create',
+      operationId: 'op-v3-create-3',
+      title: 'NB-02 第二期回款',
+      source: { sessionId: 'session-A' },
+    })
+
+    const completed = await service.submitOperation({
+      kind: 'complete',
+      operationId: 'op-v3-complete',
+      matterId: created.matterId,
+      observedRevision: 1,
+      evidence: { note: '到账回单', source: { sessionId: 'session-B', eventId: 'e-paid', quote: '银行回单：NB-02 第二期已到账' } },
+      source: { sessionId: 'session-B', quote: '已到账，见回单' },
+    })
+    expect(completed.outcome).toEqual({ status: 'committed', revision: 2 })
+    let matter = await service.readMatter(created.matterId)
+    expect(matter?.status).toBe('completed')
+    expect(matter?.materials.at(-1)?.note).toBe('到账回单')
+
+    // The evidence turned out to belong to another contract: reopen corrects the association.
+    const reopened = await service.submitOperation({
+      kind: 'reopen',
+      operationId: 'op-v3-reopen',
+      matterId: created.matterId,
+      observedRevision: 2,
+      reason: '回单属于 NX-01，误关联',
+      source: { sessionId: 'session-A', quote: '刚才那张回单不是这笔' },
+    })
+    expect(reopened.outcome).toEqual({ status: 'committed', revision: 3 })
+    matter = await service.readMatter(created.matterId)
+    expect(matter?.status).toBe('active')
+    expect(matter?.materials.at(-1)?.note).toBe('回单属于 NX-01，误关联')
+  })
+
+  it('holds model-inferred major changes as pending proposals until an explicit confirm', async () => {
+    const service = boot()
+    const created = await service.submitOperation({
+      kind: 'create',
+      operationId: 'op-c2-create',
+      title: 'NB-02 第二期回款',
+      times: { promisedDeadline: '2026-10-13' },
+      source: { sessionId: 'session-A' },
+    })
+
+    // The model infers a re-commitment from a verbal hint: proposal only, confirmed fields stand.
+    const proposed = await service.submitOperation({
+      kind: 'propose',
+      operationId: 'op-c2-propose',
+      matterId: created.matterId,
+      change: { kind: 'reschedule', promisedDeadline: '2026-10-20' },
+      source: { sessionId: 'session-B', quote: '客户口头说可能推迟到 10/20' },
+    })
+    expect(proposed.outcome).toEqual({ status: 'proposed', proposalId: 'p-1' })
+    let matter = await service.readMatter(created.matterId)
+    expect(matter?.times.promisedDeadline).toBe('2026-10-13')
+    expect(matter?.revision).toBe(1)
+    expect(matter?.proposals[0]?.status).toBe('pending')
+
+    // The principal's explicit confirm applies it; the proposal is kept for audit.
+    const confirmed = await service.submitOperation({
+      kind: 'confirm',
+      operationId: 'op-c2-confirm',
+      matterId: created.matterId,
+      proposalId: 'p-1',
+      source: { sessionId: 'session-A', quote: '确认重约到 10/20' },
+    })
+    expect(confirmed.outcome).toEqual({ status: 'committed', revision: 2 })
+    matter = await service.readMatter(created.matterId)
+    expect(matter?.times.promisedDeadline).toBe('2026-10-20')
+    expect(matter?.proposals[0]?.status).toBe('confirmed')
+
+    // Confirming an unknown proposal is refused.
+    const unknown = await service.submitOperation({
+      kind: 'confirm',
+      operationId: 'op-c2-confirm-2',
+      matterId: created.matterId,
+      proposalId: 'p-404',
+      source: { sessionId: 'session-A' },
+    })
+    expect(unknown.outcome).toEqual({ status: 'rejected', reason: 'unknown-proposal' })
+  })
+
+  it('applies a confirmed abandonment proposal as its own status', async () => {
+    const service = boot()
+    const created = await service.submitOperation({
+      kind: 'create',
+      operationId: 'op-c2-create-2',
+      title: 'NB-02 第二期回款',
+      source: { sessionId: 'session-A' },
+    })
+    await service.submitOperation({
+      kind: 'propose',
+      operationId: 'op-c2-propose-abandon',
+      matterId: created.matterId,
+      change: { kind: 'abandon' },
+      source: { sessionId: 'session-B', quote: '客户说这期不付了，走法务' },
+    })
+    const confirmed = await service.submitOperation({
+      kind: 'confirm',
+      operationId: 'op-c2-confirm-abandon',
+      matterId: created.matterId,
+      proposalId: 'p-1',
+      source: { sessionId: 'session-A', quote: '同意放弃这期，走法务' },
+    })
+    expect(confirmed.outcome).toEqual({ status: 'committed', revision: 2 })
+    const matter = await service.readMatter(created.matterId)
+    expect(matter?.status).toBe('abandoned')
+  })
 })

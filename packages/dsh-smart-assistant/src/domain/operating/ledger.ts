@@ -41,25 +41,43 @@ export interface MaterialRecord {
 export interface MatterRecord {
   readonly id: string
   readonly title: string
-  readonly status: 'active' | 'completed'
+  readonly status: 'active' | 'completed' | 'abandoned'
   readonly summary: string
   readonly responsible: string
   readonly revision: number
   readonly times: MatterTimes
   readonly materials: readonly MaterialRecord[]
+  readonly proposals: readonly ProposalRecord[]
   readonly createdAt: string
   readonly updatedAt: string
+}
+
+/** A major inferred change held for the principal's confirmation (the confirmed permission split). */
+export type ProposedChange =
+  | { readonly kind: 'reschedule'; readonly promisedDeadline: string }
+  | { readonly kind: 'checkpoint'; readonly nextCheckpoint: string }
+  | { readonly kind: 'complete'; readonly evidence: { readonly note: string; readonly source: LedgerSource } }
+  | { readonly kind: 'abandon' }
+
+/** One pending or confirmed proposal on a matter; kept after confirmation for audit. */
+export interface ProposalRecord {
+  readonly id: string
+  readonly change: ProposedChange
+  readonly source: LedgerSource
+  readonly proposedAt: string
+  readonly status: 'pending' | 'confirmed'
 }
 
 /** Outcome of one operation, as persisted in its receipt. */
 export type OperationOutcome =
   | { readonly status: 'committed'; readonly revision: number }
   | { readonly status: 'retained'; readonly unclaimedId: string }
+  | { readonly status: 'proposed'; readonly proposalId: string }
   | { readonly status: 'conflict'; readonly observedRevision: number; readonly currentRevision: number }
   | { readonly status: 'rejected'; readonly reason: RejectionReason }
 
 /** Why an operation was refused without changing confirmed state. */
-export type RejectionReason = 'operation-content-mismatch' | 'unknown-matter' | 'unknown-material'
+export type RejectionReason = 'operation-content-mismatch' | 'unknown-matter' | 'unknown-material' | 'unknown-proposal'
 
 /** Durable read-back record of one operation (V7: the unit of successful read-back). */
 export interface OperationReceipt {
@@ -103,6 +121,10 @@ export type LedgerOperation =
       readonly title?: string
       readonly summary?: string
       readonly responsible?: string
+      /** Confirmed time changes (V3): commitment and checkpoint; they consume a revision. */
+      readonly times?: { readonly promisedDeadline?: string; readonly nextCheckpoint?: string }
+      /** Current estimate (V3): recorded like ordinary progress, never a confirmed change. */
+      readonly forecast?: { readonly at: string; readonly source: LedgerSource }
       readonly materials?: readonly { readonly note: string; readonly source: LedgerSource }[]
       readonly source: LedgerSource
     }
@@ -117,6 +139,40 @@ export type LedgerOperation =
       readonly operationId: string
       readonly unclaimedId: string
       readonly matterId: string
+      readonly source: LedgerSource
+    }
+  | {
+      /** Complete with the arrival evidence attached (V3): no evidence, no completion. */
+      readonly kind: 'complete'
+      readonly operationId: string
+      readonly matterId: string
+      readonly observedRevision: number
+      readonly evidence: { readonly note: string; readonly source: LedgerSource }
+      readonly source: LedgerSource
+    }
+  | {
+      /** Reopen a mis-associated completion (V3); the reason is retained as a material. */
+      readonly kind: 'reopen'
+      readonly operationId: string
+      readonly matterId: string
+      readonly observedRevision: number
+      readonly reason: string
+      readonly source: LedgerSource
+    }
+  | {
+      /** Hold a major inferred change for the principal's confirmation; changes nothing confirmed. */
+      readonly kind: 'propose'
+      readonly operationId: string
+      readonly matterId: string
+      readonly change: ProposedChange
+      readonly source: LedgerSource
+    }
+  | {
+      /** Apply one pending proposal as an explicit instruction; consumes a revision. */
+      readonly kind: 'confirm'
+      readonly operationId: string
+      readonly matterId: string
+      readonly proposalId: string
       readonly source: LedgerSource
     }
 
@@ -197,6 +253,7 @@ export function applyOperation(
       revision: 1,
       times: operation.times ?? {},
       materials: [{ id: `mat-${id}-1`, source: operation.source, note: summary || operation.title, receivedAt: submittedAt }],
+      proposals: [],
       createdAt: submittedAt,
       updatedAt: submittedAt,
     }
@@ -231,9 +288,18 @@ export function applyOperation(
       }
     }
     // Materials always auto-retain (ordinary material is never lost to a conflict); they are
-    // not confirmed state, so retention alone does not consume a revision.
+    // not confirmed state, so retention alone does not consume a revision. A forecast rides
+    // the same lane: it records the current estimate and never moves the other times.
     const withMaterials = appendMaterials(matter, operation.materials ?? [], submittedAt)
-    const changesState = operation.title !== undefined || operation.summary !== undefined || operation.responsible !== undefined
+    const withForecast = operation.forecast === undefined
+      ? withMaterials
+      : {
+          ...withMaterials,
+          times: { ...withMaterials.times, forecastAt: operation.forecast.at, forecastSource: operation.forecast.source },
+          updatedAt: submittedAt,
+        }
+    const confirmedTimeChange = operation.times?.promisedDeadline !== undefined || operation.times?.nextCheckpoint !== undefined
+    const changesState = operation.title !== undefined || operation.summary !== undefined || operation.responsible !== undefined || confirmedTimeChange
     const conflict = changesState && matter.revision !== operation.observedRevision
     const receipt: OperationReceipt = {
       operationId: operation.operationId,
@@ -243,18 +309,24 @@ export function applyOperation(
         ? { status: 'conflict', observedRevision: operation.observedRevision, currentRevision: matter.revision }
         : { status: 'committed', revision: matter.revision + (changesState ? 1 : 0) },
     }
+    const confirmedTimes: MatterTimes = {
+      ...withForecast.times,
+      ...(operation.times?.promisedDeadline !== undefined ? { promisedDeadline: operation.times.promisedDeadline } : {}),
+      ...(operation.times?.nextCheckpoint !== undefined ? { nextCheckpoint: operation.times.nextCheckpoint } : {}),
+    }
     const nextMatter = conflict
-      ? withMaterials
+      ? withForecast
       : changesState
         ? {
-            ...withMaterials,
-            title: operation.title ?? withMaterials.title,
-            summary: operation.summary ?? withMaterials.summary,
-            responsible: operation.responsible ?? withMaterials.responsible,
+            ...withForecast,
+            title: operation.title ?? withForecast.title,
+            summary: operation.summary ?? withForecast.summary,
+            responsible: operation.responsible ?? withForecast.responsible,
+            times: confirmedTimes,
             revision: matter.revision + 1,
             updatedAt: submittedAt,
           }
-        : withMaterials
+        : withForecast
     return {
       state: {
         ...state,
@@ -336,6 +408,173 @@ export function applyOperation(
         ...state,
         matters: { ...state.matters, [matter.id]: attached },
         unclaimed,
+        operations: { ...state.operations, [operation.operationId]: { operation, receipt } },
+      },
+      receipt,
+    }
+  }
+  if (operation.kind === 'complete' || operation.kind === 'reopen') {
+    const matter = state.matters[operation.matterId]
+    if (matter === undefined) {
+      const receipt: OperationReceipt = {
+        operationId: operation.operationId,
+        matterId: operation.matterId,
+        submittedAt,
+        outcome: { status: 'rejected', reason: 'unknown-matter' },
+      }
+      return {
+        state: { ...state, operations: { ...state.operations, [operation.operationId]: { operation, receipt } } },
+        receipt,
+      }
+    }
+    // The evidence (or correction reason) is retained material even when the change conflicts.
+    const evidence = operation.kind === 'complete'
+      ? { note: operation.evidence.note, source: operation.evidence.source }
+      : { note: operation.reason, source: operation.source }
+    const withEvidence = appendMaterials(matter, [evidence], submittedAt)
+    const target = operation.kind === 'complete' ? 'completed' : 'active'
+    if (matter.revision !== operation.observedRevision || matter.status === target) {
+      const receipt: OperationReceipt = {
+        operationId: operation.operationId,
+        matterId: matter.id,
+        submittedAt,
+        outcome: matter.revision !== operation.observedRevision
+          ? { status: 'conflict', observedRevision: operation.observedRevision, currentRevision: matter.revision }
+          : { status: 'committed', revision: matter.revision },
+      }
+      return {
+        state: {
+          ...state,
+          matters: { ...state.matters, [matter.id]: withEvidence },
+          operations: { ...state.operations, [operation.operationId]: { operation, receipt } },
+        },
+        receipt,
+      }
+    }
+    const nextMatter: MatterRecord = { ...withEvidence, status: target, revision: matter.revision + 1, updatedAt: submittedAt }
+    const receipt: OperationReceipt = {
+      operationId: operation.operationId,
+      matterId: matter.id,
+      submittedAt,
+      outcome: { status: 'committed', revision: matter.revision + 1 },
+    }
+    return {
+      state: {
+        ...state,
+        matters: { ...state.matters, [matter.id]: nextMatter },
+        operations: { ...state.operations, [operation.operationId]: { operation, receipt } },
+      },
+      receipt,
+    }
+  }
+  if (operation.kind === 'propose') {
+    const matter = state.matters[operation.matterId]
+    if (matter === undefined) {
+      const receipt: OperationReceipt = {
+        operationId: operation.operationId,
+        matterId: operation.matterId,
+        submittedAt,
+        outcome: { status: 'rejected', reason: 'unknown-matter' },
+      }
+      return {
+        state: { ...state, operations: { ...state.operations, [operation.operationId]: { operation, receipt } } },
+        receipt,
+      }
+    }
+    // A proposal changes nothing confirmed: no field moves and no revision is consumed.
+    const proposal: ProposalRecord = {
+      id: `p-${matter.proposals.length + 1}`,
+      change: operation.change,
+      source: operation.source,
+      proposedAt: submittedAt,
+      status: 'pending',
+    }
+    const receipt: OperationReceipt = {
+      operationId: operation.operationId,
+      matterId: matter.id,
+      submittedAt,
+      outcome: { status: 'proposed', proposalId: proposal.id },
+    }
+    return {
+      state: {
+        ...state,
+        matters: { ...state.matters, [matter.id]: { ...matter, proposals: [...matter.proposals, proposal] } },
+        operations: { ...state.operations, [operation.operationId]: { operation, receipt } },
+      },
+      receipt,
+    }
+  }
+  if (operation.kind === 'confirm') {
+    const matter = state.matters[operation.matterId]
+    if (matter === undefined) {
+      const receipt: OperationReceipt = {
+        operationId: operation.operationId,
+        matterId: operation.matterId,
+        submittedAt,
+        outcome: { status: 'rejected', reason: 'unknown-matter' },
+      }
+      return {
+        state: { ...state, operations: { ...state.operations, [operation.operationId]: { operation, receipt } } },
+        receipt,
+      }
+    }
+    const proposal = matter.proposals.find(proposal => proposal.id === operation.proposalId)
+    if (proposal === undefined) {
+      const receipt: OperationReceipt = {
+        operationId: operation.operationId,
+        matterId: matter.id,
+        submittedAt,
+        outcome: { status: 'rejected', reason: 'unknown-proposal' },
+      }
+      return {
+        state: { ...state, operations: { ...state.operations, [operation.operationId]: { operation, receipt } } },
+        receipt,
+      }
+    }
+    if (proposal.status === 'confirmed') {
+      // The principal's intent already holds; a repeated confirm is a committed no-op.
+      const receipt: OperationReceipt = {
+        operationId: operation.operationId,
+        matterId: matter.id,
+        submittedAt,
+        outcome: { status: 'committed', revision: matter.revision },
+      }
+      return {
+        state: { ...state, operations: { ...state.operations, [operation.operationId]: { operation, receipt } } },
+        receipt,
+      }
+    }
+    let next = { ...matter }
+    if (proposal.change.kind === 'reschedule') {
+      next = { ...next, times: { ...next.times, promisedDeadline: proposal.change.promisedDeadline } }
+    } else if (proposal.change.kind === 'checkpoint') {
+      next = { ...next, times: { ...next.times, nextCheckpoint: proposal.change.nextCheckpoint } }
+    } else if (proposal.change.kind === 'complete') {
+      next = { ...next, status: 'completed' }
+      next = appendMaterials(next, [{ note: proposal.change.evidence.note, source: proposal.change.evidence.source }], submittedAt)
+    } else if (proposal.change.kind === 'abandon') {
+      next = { ...next, status: 'abandoned' }
+    } else {
+      return assertNever(proposal.change)
+    }
+    const receipt: OperationReceipt = {
+      operationId: operation.operationId,
+      matterId: matter.id,
+      submittedAt,
+      outcome: { status: 'committed', revision: matter.revision + 1 },
+    }
+    return {
+      state: {
+        ...state,
+        matters: {
+          ...state.matters,
+          [matter.id]: {
+            ...next,
+            revision: matter.revision + 1,
+            updatedAt: submittedAt,
+            proposals: matter.proposals.map(proposal => proposal.id === operation.proposalId ? { ...proposal, status: 'confirmed' as const } : proposal),
+          },
+        },
         operations: { ...state.operations, [operation.operationId]: { operation, receipt } },
       },
       receipt,

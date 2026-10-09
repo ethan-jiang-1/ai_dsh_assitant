@@ -135,8 +135,9 @@ function loadState(dataDir: string): LedgerState {
     throw new Error(`operating ledger state at ${path} is not a v1 ledger; refusing to treat it as empty`)
   }
   const state = parsed as LedgerState
-  // Backfill fields added after the first slice; no released ledgers predate them.
-  return { ...state, unclaimed: state.unclaimed ?? {}, nextUnclaimedSeq: state.nextUnclaimedSeq ?? 1 }
+  // Backfill fields added after the first slices; no released ledgers predate them.
+  const matters = Object.fromEntries(Object.entries(state.matters).map(([id, matter]) => [id, { ...matter, proposals: matter.proposals ?? [] }]))
+  return { ...state, matters, unclaimed: state.unclaimed ?? {}, nextUnclaimedSeq: state.nextUnclaimedSeq ?? 1 }
 }
 
 /**
