@@ -1,4 +1,4 @@
-# research/ · 喂活跃卡片的调研
+# research/ · 卡片的调研依据
 
 > 原料堆：为 [`issues/`](../issues/README.md) 和 [`bugs/`](../bugs/README.md) 里的卡收集的证据阅读、综述、机制笔记。
 > 短结论写回卡片，较长的依据放这里。先从卡片链接读取需要的材料，不必通读目录；流程在 [backlog 入口](../README.md)。
@@ -43,16 +43,30 @@ research 为问题和缺陷提供依据。问题按 [关闭条件](../README.md)
 
 ## 索引
 
-按子目录排。“活卡”表示正文直接引用；“间接使用”写明引用链和用途。“原卡”只说明立档背景，不证明现在还有使用者。尚未找到当前活卡使用者的材料标为“当前用途待核实”，不把它们列成新人的必读材料，也不凭索引缺一行就搬迁。核实确无活跃用途后按上方规则归档；本次保留研究正文。调研不写 `status`。
+先按当前使用关系分组，历史材料再按主题排列。“活卡”表示正文直接引用；“间接使用”写明引用链和用途。“原卡”只说明立档背景，不证明现在还有使用者。尚未找到当前活卡使用者的材料标为“当前用途待核实”，不把它们列成新人的必读材料，也不凭索引缺一行就搬迁。核实确无活跃用途后按上方规则归档；本次保留研究正文。调研不写 `status`。
 
-### positioning/
+### 活卡直接使用
+
+从活卡链接进入，按正在解决的问题选读。
 
 - [261005-chinese-sme-boss.md](positioning/261005-chinese-sme-boss.md)——活卡：[261007-opening-brief-and-rhythm](../issues/261007-opening-brief-and-rhythm.md)、[261007-input-boundary](../issues/261007-input-boundary.md)。中国中小企业一把手工作画像
 - [261005-exec-demo-narratives.md](positioning/261005-exec-demo-narratives.md)——活卡：[261007-input-boundary](../issues/261007-input-boundary.md)。面向 CEO/CFO 的十分钟演示叙事
 - [261005-ceo-time-and-decision-research.md](positioning/261005-ceo-time-and-decision-research.md)——活卡：[261007-input-boundary](../issues/261007-input-boundary.md)。一把手时间分配与决策过程
+
+### 间接使用
+
+只在需要核实对应引用链时进入。
+
+- [261005-external-ux-patterns.md](positioning/261005-external-ux-patterns.md)——间接使用：[输入边界卡](../issues/261007-input-boundary.md) → [演示叙事](positioning/261005-exec-demo-narratives.md) → 本篇，仅作资料抓取限制的旁证；原卡：[261005-open-value-deficit](../_archive/settled_issues/261005-open-value-deficit.md)。外部同类产品首跑 UX
+
+### 当前用途待核实的历史材料
+
+这些材料的原卡已经关闭，当前活跃用途尚未核实；不属于新会话的背景必读。保留原文与索引，核实消费关系后再按生命周期决定去留。下面按主题列出。
+
+#### positioning/
+
 - [261005-ceo-viewpoint-synthesis.md](positioning/261005-ceo-viewpoint-synthesis.md)——当前用途待核实；原卡：[261005-open-value-deficit](../_archive/settled_issues/261005-open-value-deficit.md)。三路资料与 trial 产物的合成档
 - [261005-ceo-voices.md](positioning/261005-ceo-voices.md)——当前用途待核实；原卡：[261005-open-value-deficit](../_archive/settled_issues/261005-open-value-deficit.md)。一把手声音与 CoS 方法论
-- [261005-external-ux-patterns.md](positioning/261005-external-ux-patterns.md)——间接使用：[输入边界卡](../issues/261007-input-boundary.md) → [演示叙事](positioning/261005-exec-demo-narratives.md) → 本篇，仅作资料抓取限制的旁证；原卡：[261005-open-value-deficit](../_archive/settled_issues/261005-open-value-deficit.md)。外部同类产品首跑 UX
 - [261005-substitute-landscape.md](positioning/261005-substitute-landscape.md)——当前用途待核实；原卡：[261005-open-value-deficit](../_archive/settled_issues/261005-open-value-deficit.md)。替代品格局
 - [261005-coding-agent-exec-barrier.md](positioning/261005-coding-agent-exec-barrier.md)——当前用途待核实；原卡：[261005-open-value-deficit](../_archive/settled_issues/261005-open-value-deficit.md)。管理层对 coding agent 的却步点
 - [261005-demo-walk-and-script-v0.md](positioning/261005-demo-walk-and-script-v0.md)——当前用途待核实；原卡：[261005-open-value-deficit](../_archive/settled_issues/261005-open-value-deficit.md)。十分钟走查与演示脚本骨架
@@ -60,12 +74,12 @@ research 为问题和缺陷提供依据。问题按 [关闭条件](../README.md)
 - [261005-prototype-cases-and-interview-method.md](positioning/261005-prototype-cases-and-interview-method.md)——当前用途待核实；原卡：[261005-turnaround-coherence](../_archive/settled_issues/261005-turnaround-coherence.md)。公开案例线索与访谈方法，正文未取回
 - [261005-interview-learning-framework.md](positioning/261005-interview-learning-framework.md)——当前用途待核实；原卡：[261005-open-value-deficit](../_archive/settled_issues/261005-open-value-deficit.md)、[261005-turnaround-coherence](../_archive/settled_issues/261005-turnaround-coherence.md)。短访谈与积累候选
 
-### upstream/
+#### upstream/
 
 - [261001-upstream-candidates.md](upstream/261001-upstream-candidates.md)——当前用途待核实；原卡：[261001-first-open-ux](../_archive/settled_issues/261001-first-open-ux.md)。vendor 面上游候选台账
 - [261001-upstream-issue-drafts.md](upstream/261001-upstream-issue-drafts.md)——当前用途待核实；原卡：[261001-first-open-ux](../_archive/settled_issues/261001-first-open-ux.md)。6 条上游 issue 递交草案
 
-### tech-exploration/
+#### tech-exploration/
 
 - [261005-okf-wiki-tech-case.md](tech-exploration/261005-okf-wiki-tech-case.md)——当前用途待核实；原卡：[261005-open-value-deficit](../_archive/settled_issues/261005-open-value-deficit.md)、[261005-turnaround-coherence](../_archive/settled_issues/261005-turnaround-coherence.md)。OKF/WIKI 能力边界
 - [261005-dsh-native-first-tech-keynote.md](tech-exploration/261005-dsh-native-first-tech-keynote.md)——当前用途待核实；原卡：[261005-open-value-deficit](../_archive/settled_issues/261005-open-value-deficit.md)。DSH 原生优先的技术定调

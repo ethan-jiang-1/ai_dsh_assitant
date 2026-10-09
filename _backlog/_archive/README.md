@@ -6,7 +6,7 @@
 
 | 目录 | 放什么 |
 |---|---|
-| [`settled_issues/`](settled_issues/README.md) | 推敲的四问有了结论 |
+| [`settled_issues/`](settled_issues/README.md) | 问题已有结论，满足 [关闭条件](../README.md#关闭条件) |
 | [`suspended_issues/`](suspended_issues/README.md) | 推敲被人叫停，还没有结论 |
 | [`fixed_bugs/`](fixed_bugs/README.md) | 缺陷修好了 |
 | [`suspended_bugs/`](suspended_bugs/README.md) | 缺陷查明了，还没修 |
