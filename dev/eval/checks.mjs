@@ -121,6 +121,15 @@ export function evaluateTask(task, observed) {
         if (used.length === 0) reasons.push('no home-room tool was used (expected the answer to come from its own memory/knowledge)')
         break
       }
+      case 'used-tool': {
+        // Generic mechanical signal: one named tool really appeared in the session log.
+        const wanted = String(check.tool ?? '')
+        if (wanted.length === 0) throw new Error('used-tool check requires a tool name')
+        if (!observed.toolCalls.some(call => call.name === wanted)) {
+          reasons.push(`tool "${wanted}" was never called — the behaviour must be a real tool action, not a self-report`)
+        }
+        break
+      }
       case 'wrote-path': {
         const wanted = String(check.path ?? '')
         if (!wrotePath(observed.toolCalls, wanted)) {

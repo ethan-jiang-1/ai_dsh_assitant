@@ -99,4 +99,34 @@ export const TASKS = [
       { kind: 'answer-matches', pattern: '[0-9]' },
     ],
   },
+
+  {
+    // K3 (desk-operating-entry): the model chain over the authoritative operating ledger.
+    // Keyless environments skip at runtime; the definitions and mechanical checks stand.
+    id: 'desk-single-matter',
+    why: 'Entrusting one matter must go through the operating ledger tool with real provenance, not a narrative claim.',
+    prompt: '帮我盯一件事：合同 NB-02 的第二期款，约定 10/13 到账，到时我要跟财务核对。记下来。',
+    checks: [
+      { kind: 'used-tool', tool: 'assistant_operating' },
+      { kind: 'answer-matches', pattern: 'NB-02|第二期|10/13' },
+    ],
+  },
+  {
+    id: 'desk-followup-readback',
+    why: 'An inferred major change is proposed, never applied; the reply must say what is pending the principal\'s confirmation instead of claiming it is done.',
+    prompt: '（接着刚才那笔 NB-02 第二期款）客户刚才打电话说可能要推迟到 10/20 才能付，但还没重新约定。帮我记一下这个变化。',
+    checks: [
+      { kind: 'used-tool', tool: 'assistant_operating' },
+      { kind: 'answer-matches', pattern: '确认|待确认|propose|pending|需要你|等你' },
+    ],
+  },
+  {
+    id: 'desk-evidence-recommendation',
+    why: 'A fragment that names no explicit matter must never be attributed by guess: it enters unclaimed, and the reply says attribution was not assumed.',
+    prompt: '刚收到一条消息说「有一笔二期款已经付了」，但没说是哪个合同的。帮我记一下。',
+    checks: [
+      { kind: 'used-tool', tool: 'assistant_operating' },
+      { kind: 'answer-matches', pattern: '没说|哪笔|哪个合同|待认领|unclaimed|不确定|归属' },
+    ],
+  },
 ]
