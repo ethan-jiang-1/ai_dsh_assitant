@@ -4,6 +4,8 @@ import { describe, expect, it, vi } from 'vitest'
 import { bindClientRequire } from '../../src/client/runtime'
 import { ProjectionPanel } from '../../src/client/projection-panel'
 import type { ProjectionDownload } from '../../src/client/projection-reader'
+import { createProjectionViewStore } from '../../src/client/projection-view'
+import { defineStore } from '../../../../vendor/dsh/packages/client/store/lib/types/index.js'
 
 bindClientRequire(() => ({ createElement }))
 function text(node: unknown): string {
@@ -13,9 +15,26 @@ function text(node: unknown): string {
   return ''
 }
 function render(value: ProjectionDownload): string {
-  return text(ProjectionPanel({ useProjection: select => select(value), refreshProjection: vi.fn(), onAsk: vi.fn() }))
+  const view = createProjectionViewStore(defineStore).create()
+  return text(ProjectionPanel({ useProjection: select => select(value), useStore: select => select(view.getSnapshot()), actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn() }))
 }
 describe('global projection panel', () => {
+  it('renders only the selected matter evidence and reports vanished selection without switching target', () => {
+    const view = createProjectionViewStore(defineStore).create()
+    view.actions.selectMatter('b')
+    const value: ProjectionDownload = { status: 'ready', data: { schemaVersion: 1, ledgerId: 'test', revision: 2, matters: [
+      { id: 'a', title: '事项 A', status: 'active', summary: 'A 摘要', evidence: [{ id: 'ea', sessionId: 'sa', eventId: 'xa', quote: 'A 来源' }] },
+      { id: 'b', title: '事项 B', status: 'active', summary: 'B 摘要', evidence: [{ id: 'eb', sessionId: 'sb', eventId: 'xb', quote: 'B 来源' }] },
+    ] } }
+    const props = { useProjection: <S,>(select: (value: ProjectionDownload) => S): S => select(value), useStore: <S,>(select: (value: ReturnType<typeof view.getSnapshot>) => S): S => select(view.getSnapshot()), actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn() }
+    const output = text(ProjectionPanel(props))
+    expect(output).toContain('B 来源')
+    expect(output).not.toContain('A 来源')
+    view.actions.selectMatter('gone')
+    expect(text(ProjectionPanel(props))).toContain('所选事项不在当前投影中')
+    expect(view.getSnapshot().selectedId).toBe('gone')
+  })
+
   it('separates missing from damaged ledger', () => {
     expect(render({ status: 'missing' })).toContain('还没有经营事项资料')
     expect(render({ status: 'error', error: 'projection-invalid' })).toContain('损坏或版本不支持')

@@ -22,7 +22,7 @@ node dev/probes/web/desk-projection-download.mjs '<authenticated-url>' dev/fixtu
 node dev/probes/web/projection-panel.mjs '<url>' '模拟资料'
 ```
 
-空集合资料为上面的 JSON；[八事项](eight-matters.json)预期含 payment-a/payment-b/contract-c/delivery-d/overdue-e/dependency-f/unknown-g 七在办和 completed-h 完成记录，不按页面输出反推集合。将它复制到隔离目录的固定文件后，以 `完成记录 H` 为浏览器就绪断言；额外集合完整性由组件测试钉住。测试缺失需服务目录没有固定文件，预期 `还没有经营事项资料`；测试 JSON 有效但 schema 损坏用 `{"revision":2}`，预期 `桌面资料损坏或版本不支持`。只改隔离资料，不改本资料源。恢复后点击重读可重新下载；断连旧数据拒绝在读取对象测试验证，本探针单次页面不冒充 live 断连/HMR/proxy mount 证据。
+空集合资料为上面的 JSON；[八事项](eight-matters.json)预期含 payment-a/payment-b/contract-c/delivery-d/overdue-e/dependency-f/unknown-g 七在办和 completed-h 完成记录，不按页面输出反推集合。将它复制到隔离目录的固定文件后，以 `完成记录 H` 为浏览器就绪断言；额外集合完整性由组件测试钉住。测试缺失需服务目录没有固定文件，预期 `还没有经营事项资料`；测试 JSON 有效但 schema 损坏用 `{"revision":2}`，预期 `桌面资料损坏或版本不支持`。只改隔离资料，不改本资料源。恢复后点击重读可重新下载；将八事项文件复制到隔离目录后，运行 [选择探针](../../probes/web/projection-selection.mjs) 断言点击回款 A 显示 quote 和 Session/event 定位，且浏览器 console/network 清洁。窄视口的列表/详情 CSS 由同一组件的 container query 控制，组件测试和该探针共同覆盖；断连旧数据拒绝在读取对象测试验证，本探针单次页面不冒充 live 断连/HMR/proxy mount 证据。
 
 ## 注册与错误复验
 

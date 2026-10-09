@@ -35,6 +35,11 @@ export function bindClientRequire(require: ClientRequire): void {
  * inline `const { useState } = require('react')` inside component bodies.
  * @returns the react surface of the bound module-table require.
  */
+export function clientRequire<T = unknown>(specifier: string): T {
+  if (boundRequire === undefined) throw new Error('client factory not materialized — no module-table require is bound')
+  return boundRequire(specifier) as T
+}
+
 export function reactSurface(): typeof import('react') {
   if (boundRequire === undefined) {
     throw new Error('client factory not materialized — no module-table require is bound')

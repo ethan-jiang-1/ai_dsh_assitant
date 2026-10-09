@@ -8,7 +8,7 @@
  */
 import { createElement } from 'react'
 import { vi } from 'vitest'
-import { createSnapshotStore } from '../../../../vendor/dsh/packages/client/store/lib/types/index.js'
+import { createSnapshotStore, defineStore } from '../../../../vendor/dsh/packages/client/store/lib/types/index.js'
 
 /** One bundle registration as it arrives through the page-global facade. */
 export interface ClientRegistration {
@@ -55,7 +55,7 @@ export function materializeClient(
 ): Record<string, unknown> {
   return registration.factory((spec) => {
     if (spec === 'react') return react
-    if (spec === '@deepseek-ai/dsh-client-store') return { createSnapshotStore }
+    if (spec === '@deepseek-ai/dsh-client-store') return { createSnapshotStore, defineStore }
     throw new Error(`unexpected module-table require: ${spec}`)
   })
 }

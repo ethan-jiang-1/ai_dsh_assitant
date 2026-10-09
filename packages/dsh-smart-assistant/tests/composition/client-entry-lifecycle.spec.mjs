@@ -42,7 +42,7 @@ function page(scriptText) {
       expect(registrations[0].id).toBe('dsh-smart-assistant')
       return registrations[0].factory(specifier => {
         if (specifier === 'react') return React
-        if (specifier === '@deepseek-ai/dsh-client-store') return { createSnapshotStore }
+        if (specifier === '@deepseek-ai/dsh-client-store') return { createSnapshotStore, defineStore }
         throw new Error(`unexpected classic client dependency: ${specifier}`)
       })
     },

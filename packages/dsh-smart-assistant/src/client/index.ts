@@ -37,11 +37,12 @@ import { DashboardMainPanel, DashboardPanelIcon } from './dashboard'
 import { ApprovalDockBanner, DeskSummaryDock, FirstMileDock } from './first-mile'
 import { AssistantDeskChip, DeskTabBody, DeskViewBody, KnowledgeTabBody, MemoryTabBody, roomTabTitle } from './room-tabs'
 import { DeskIcon, DeskPanel, KnowledgeIcon, KnowledgePanel, MemoryIcon, MemoryPanel } from './panels'
-import { bindClientRequire } from './runtime'
+import { bindClientRequire, clientRequire } from './runtime'
 import { ensureThemeVars } from './theme'
 import { ProjectionPanel } from './projection-panel'
 import { mountProjectionReader } from './projection-lifecycle'
 import type { ProjectionDownload } from './projection-reader'
+import { createProjectionViewStore } from './projection-view'
 
 /** Slots this face occupies (single-occupant, root-scope, declared by the sidebar). */
 const inject = ['slots', 'sidebarRightTabs', 'sidebarRight', 'sessions', 'remote', 'remote.agentPresets', 'remote.workspaceFiles', 'remote.session', 'layout', 'connection']
@@ -145,19 +146,34 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         order: 5,
         label: () => '桌面',
       }, DashboardPanelIcon))
-    const storeApi = require('@deepseek-ai/dsh-client-store') as {
-      createSnapshotStore<T>(initial: T): { getSnapshot(): T; subscribe(listener: () => void): () => void; set(value: T): void }
+    if (typeof document === 'undefined') {
+      ctx.slots.inject('main', () => {
+        const registration = ctx.slots.register({
+          name: 'main',
+          key: 'dsh-smart-assistant-dashboard',
+          inject: () => ({ onAsk: () => { ctx.layout?.selectPanel(null) } }),
+        }, DashboardMainPanel)
+        selectDashboardByDefault(ctx)
+        return registration
+      })
+      return
     }
-    const projection = storeApi.createSnapshotStore<ProjectionDownload>({ status: 'disconnected' })
-    const reader = typeof document === 'undefined' ? undefined : mountProjectionReader(ctx, ctx.connection, projection, {
+    const storeApi = clientRequire<{
+      createSnapshotStore<T>(initial: T): { getSnapshot(): T; subscribe(listener: () => void): () => void; set(value: T): void }
+      defineStore: import('./projection-view').DefineProjectionViewStore
+    }>('@deepseek-ai/dsh-client-store')
+    const projection = typeof document === 'undefined' ? undefined : storeApi.createSnapshotStore<ProjectionDownload>({ status: 'disconnected' })
+    const reader = projection === undefined ? undefined : mountProjectionReader(ctx, ctx.connection, projection, {
       baseURI: document.baseURI, origin: location.origin, fetch: globalThis.fetch.bind(globalThis),
     })
+    const viewStore = projection === undefined ? undefined : createProjectionViewStore(storeApi.defineStore)
     ctx.slots.inject('main', () => {
       const registration = ctx.slots.register({
         name: 'main',
         key: 'dsh-smart-assistant-dashboard',
-        inject: () => ({ hooks: { projection }, refreshProjection: () => { reader?.refresh() }, onAsk: () => { ctx.layout?.selectPanel(null) } }),
-      }, ProjectionPanel)
+        ...(viewStore === undefined ? {} : { store: viewStore }),
+        inject: () => ({ hooks: projection === undefined ? {} : { projection }, refreshProjection: () => { reader?.refresh() }, onAsk: () => { ctx.layout?.selectPanel(null) } }),
+      }, typeof document === 'undefined' ? DashboardMainPanel : ProjectionPanel)
       selectDashboardByDefault(ctx)
       return registration
     })
