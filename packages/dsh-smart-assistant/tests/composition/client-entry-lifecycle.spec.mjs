@@ -11,6 +11,7 @@ import { createContext, Script } from 'node:vm'
 import { Context } from '@deepseek-ai/cordis'
 import Loader from '@deepseek-ai/cordis-plugin-loader'
 import * as React from 'react'
+import { createSnapshotStore } from '../../../../vendor/dsh/packages/client/store/src/index.ts'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { SlotRegistry } from '../../../../vendor/dsh/packages/client/ui-renderer/src/client/registry.ts'
 import { LayoutController } from '../../../../vendor/dsh/packages/client/ui-layout/src/client/service.ts'
@@ -41,6 +42,7 @@ function page(scriptText) {
       expect(registrations[0].id).toBe('dsh-smart-assistant')
       return registrations[0].factory(specifier => {
         if (specifier === 'react') return React
+        if (specifier === '@deepseek-ai/dsh-client-store') return { createSnapshotStore }
         throw new Error(`unexpected classic client dependency: ${specifier}`)
       })
     },
@@ -85,6 +87,7 @@ async function clientRoot(initialPanel = null) {
   ctx.provide('sidebarRightTabs', { register: () => () => {} })
   ctx.provide('sidebarRight', {})
   ctx.provide('sessions', {})
+  ctx.provide('connection', { generation: createSnapshotStore(undefined), state: createSnapshotStore(undefined) })
   ctx.provide('remote', { $mount: async () => null })
   for (const namespace of ['agentPresets', 'workspaceFiles', 'session']) {
     ctx.provide(`remote.${namespace}`, {})

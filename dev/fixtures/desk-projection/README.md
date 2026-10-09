@@ -14,6 +14,16 @@ node dev/probes/web/desk-projection-download.mjs '<authenticated-url>' dev/fixtu
 
 探针不写业务文件，不打印 token/cookie：匿名/直接在 API 携带 token 为 401；index 登录交换得 cookie 后读取固定 JSON，与独立资料逐字比对；异域 Origin 403；调用者 path query 400；POST 不返回成功下载。验证结束停止服务。该探针不证明 mount proxy、Web Client 断连取消、UI 空/错态、Session 或业务持久成功。
 
+## 真实 Client 主区复验
+
+[主区探针](../../probes/web/projection-panel.mjs)使用 shots 的真实 CDP 浏览器，断言独立预期文本与 console/network 清洁，失败非零。固定服务指向独立模拟目录，执行：
+
+```sh
+node dev/probes/web/projection-panel.mjs '<url>' '模拟资料'
+```
+
+空集合资料为上面的 JSON；[八事项](eight-matters.json)预期含 payment-a/payment-b/contract-c/delivery-d/overdue-e/dependency-f/unknown-g 七在办和 completed-h 完成记录，不按页面输出反推集合。将它复制到隔离目录的固定文件后，以 `完成记录 H` 为浏览器就绪断言；额外集合完整性由组件测试钉住。测试缺失需服务目录没有固定文件，预期 `还没有经营事项资料`；测试 JSON 有效但 schema 损坏用 `{"revision":2}`，预期 `桌面资料损坏或版本不支持`。只改隔离资料，不改本资料源。恢复后点击重读可重新下载；断连旧数据拒绝在读取对象测试验证，本探针单次页面不冒充 live 断连/HMR/proxy mount 证据。
+
 ## 注册与错误复验
 
 ```sh

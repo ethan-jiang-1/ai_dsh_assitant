@@ -7,7 +7,7 @@
 
 ## 场景是什么
 
-**全新 home 第一次打开 web UI 的状态**：主区默认是全局桌面，显示「你的桌面」、真实无数据时的空态与「有问题？跟助手说」入口；首开预览版说明在场。不预置 `.desk/state.json`，不含真实经营事项或草稿。Conversation 的首用引导与审批横幅不在这个默认主区内，由进入 Conversation 的场景验证。
+**全新 home 第一次打开 web UI 的状态**：主区默认是全局桌面，显示「你的桌面」、固定 Host 投影缺失的「还没有经营事项资料」、重读与「有问题？跟助手说」入口；首开预览版说明在场。不预置 `.desk/state.json`，不含真实经营事项或草稿。Conversation 的首用引导与审批横幅不在这个默认主区内，由进入 Conversation 的场景验证。
 共享 dev home 的"空白态"不空白（侧边栏列着真实会话与每分钟变化的相对时间戳），所以本场景
 **必须起在隔离 home**——这也正是"首开"的真义。
 
@@ -22,13 +22,13 @@ printf -- '- id: workspace-controller\n  name: "@deepseek-ai/dsh-api-workspace-c
 pnpm dsh --profile dev --patch "$ASSISTANT_DSH_HOME/workspace.patch.yml" --port 0 --no-open
 
 # ② 比对（漂移即 exit 1，逐条 diff + PNG 路径供人工过目）
-pnpm web-expected '<server 打印的 URL>'
+pnpm web-expected '<server 打印的 URL>' --wait-text '还没有经营事项资料'
 
 # 有意的 UI 变更：过目 diff 后重录期望（重录的 PNG 在临时目录，肉眼核过再提交 JSON）
-pnpm web-expected '<server 打印的 URL>' --refresh
+pnpm web-expected '<server 打印的 URL>' --wait-text '还没有经营事项资料' --refresh
 ```
 
-未种桌面的首开态会被 `pnpm preflight` 的 desk-readiness 检查拒绝；本场景不把该拒绝写成全绿交付。认证、bundle 注册和 boot 图可单独读其结果，DOM 比对仍须无 console/network 错误。K1 默认入口的记录已去除存量期望里的共享工作区经营数据污染；这不是经营账本空态通过证据，当前组件仍读 legacy 工作区快照。
+未种桌面的首开态会被 `pnpm preflight` 的 desk-readiness 检查拒绝；本场景不把该拒绝写成全绿交付。认证、bundle 注册和 boot 图可单独读其结果，DOM 比对仍须无 console/network 错误。K1 默认入口的记录已去除存量期望里的共享工作区经营数据污染；这不是经营账本空态通过证据，当前全局组件读取独立 Host 固定投影，缺失与有效空集合分开；这不证明经营 writer 或持久操作结果。
 
 ## 比对什么（判据）
 

@@ -46,7 +46,7 @@ describe('client-module registration', () => {
     // the dashboard's 「有问题？」 return to Conversation via selectPanel(null).
     expect(exports.inject).toEqual([
       'slots', 'sidebarRightTabs', 'sidebarRight', 'sessions', 'remote',
-      'remote.agentPresets', 'remote.workspaceFiles', 'remote.session', 'layout',
+      'remote.agentPresets', 'remote.workspaceFiles', 'remote.session', 'layout', 'connection',
     ])
     const calls: string[] = []
     const registered: string[] = []

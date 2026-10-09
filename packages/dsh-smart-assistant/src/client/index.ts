@@ -39,12 +39,12 @@ import { AssistantDeskChip, DeskTabBody, DeskViewBody, KnowledgeTabBody, MemoryT
 import { DeskIcon, DeskPanel, KnowledgeIcon, KnowledgePanel, MemoryIcon, MemoryPanel } from './panels'
 import { bindClientRequire } from './runtime'
 import { ensureThemeVars } from './theme'
+import { ProjectionPanel } from './projection-panel'
+import { mountProjectionReader } from './projection-lifecycle'
+import type { ProjectionDownload } from './projection-reader'
 
 /** Slots this face occupies (single-occupant, root-scope, declared by the sidebar). */
-const inject = ['slots', 'sidebarRightTabs', 'sidebarRight', 'sessions', 'remote', 'remote.agentPresets', 'remote.workspaceFiles', 'remote.session', 'layout']
-
-/** The cross-plugin panel-action face (ctx.layout) — the dashboard's way back to the Conversation. */
-let deskLayout: { selectPanel: (panelId: string | null) => void } | undefined
+const inject = ['slots', 'sidebarRightTabs', 'sidebarRight', 'sessions', 'remote', 'remote.agentPresets', 'remote.workspaceFiles', 'remote.session', 'layout', 'connection']
 
 /**
  * Default selection is consumed once per Client root. Keeping weak root identities on the page
@@ -101,7 +101,6 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
 
   function apply(ctx: ClientContext): void {
     bindDeskEnv(ctx)
-    deskLayout = ctx.layout
     ensureThemeVars()
 
     // The knowledge-approve direct-call lane (approve-direct-call): mount our contribution so
@@ -146,12 +145,19 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         order: 5,
         label: () => '桌面',
       }, DashboardPanelIcon))
+    const storeApi = require('@deepseek-ai/dsh-client-store') as {
+      createSnapshotStore<T>(initial: T): { getSnapshot(): T; subscribe(listener: () => void): () => void; set(value: T): void }
+    }
+    const projection = storeApi.createSnapshotStore<ProjectionDownload>({ status: 'disconnected' })
+    const reader = typeof document === 'undefined' ? undefined : mountProjectionReader(ctx, ctx.connection, projection, {
+      baseURI: document.baseURI, origin: location.origin, fetch: globalThis.fetch.bind(globalThis),
+    })
     ctx.slots.inject('main', () => {
       const registration = ctx.slots.register({
         name: 'main',
         key: 'dsh-smart-assistant-dashboard',
-        inject: (): { onAsk: () => void } => ({ onAsk: () => { deskLayout?.selectPanel(null) } }),
-      }, DashboardMainPanel)
+        inject: () => ({ hooks: { projection }, refreshProjection: () => { reader?.refresh() }, onAsk: () => { ctx.layout?.selectPanel(null) } }),
+      }, ProjectionPanel)
       selectDashboardByDefault(ctx)
       return registration
     })

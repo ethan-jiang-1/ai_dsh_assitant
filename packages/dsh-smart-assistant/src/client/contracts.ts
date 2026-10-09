@@ -25,6 +25,8 @@ export interface SlotsRegistry {
 export interface ClientContext {
   /** Stable Client application identity shared by every plugin scope. */
   readonly root: object
+  effect: (install: () => () => void) => unknown
+  connection: Parameters<typeof import('./projection-reader').createProjectionReader>[0]
   slots: SlotsRegistry
   sidebarRightTabs: SidebarRightTabsRegistry
   /** The right-sidebar controller, so a page can open a room tab beside the conversation. */
