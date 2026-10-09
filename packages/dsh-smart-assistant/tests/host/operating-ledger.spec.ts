@@ -1,5 +1,5 @@
 /**
- * The authoritative operating ledger service (desk-operating-entry K3, slice A; V2 of the
+ * The authoritative operating ledger service (desk-operating-entry K3, slices A+B; V1/V2 of the
  * settled CEO operating-loop card): the single Host writer over the separate
  * `assistant-operating` data directory.
  *
@@ -10,7 +10,12 @@
  *    is rejected without overwriting the original receipt.
  * 4. Two submissions on the same observed revision: one commits, the other conflicts, and the
  *    losing submission's materials are still retained on the matter.
- * 5. A second writer (same process, and a live foreign process) is refused with a clear report.
+ * 5. A second writer (same process, and a live foreign process) is refused with a clear report;
+ *    a dead holder's claim is taken over.
+ * 6. Cross-session continuation rides the explicit matter id and survives renames; same-named
+ *    different matters stay apart (identity is never title-derived).
+ * 7. A fragment with no explicit matter reference is retained unclaimed until an explicit claim
+ *    attaches it (original source and time preserved); re-claiming is refused.
  */
 
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
@@ -220,5 +225,104 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
 
     const service = boot(dataDir)
     expect(await service.listMatters()).toEqual([])
+  })
+
+  it('continues the same matter across sessions by explicit reference and survives renames', async () => {
+    const service = boot()
+    const created = await service.submitOperation({
+      kind: 'create',
+      operationId: 'op-v1-create',
+      title: 'NB-02 第二期回款',
+      source: { sessionId: 'session-A', quote: '帮我盯着' },
+    })
+    const renamed = await service.submitOperation({
+      kind: 'update',
+      operationId: 'op-v1-rename',
+      matterId: created.matterId,
+      observedRevision: 1,
+      title: 'NB-02 二期货款（客户改名）',
+      source: { sessionId: 'session-B', quote: '他们现在叫这个' },
+    })
+    expect(renamed.outcome).toEqual({ status: 'committed', revision: 2 })
+
+    const matter = await service.readMatter(created.matterId)
+    expect(matter?.title).toBe('NB-02 二期货款（客户改名）')
+    expect(await service.listMatters()).toHaveLength(1)
+  })
+
+  it('keeps same-named different matters apart (no title merge)', async () => {
+    const service = boot()
+    const first = await service.submitOperation({
+      kind: 'create',
+      operationId: 'op-v1-a',
+      title: 'NX-01 回款',
+      source: { sessionId: 'session-A' },
+    })
+    const second = await service.submitOperation({
+      kind: 'create',
+      operationId: 'op-v1-b',
+      title: 'NX-01 回款',
+      source: { sessionId: 'session-B' },
+    })
+    expect(first.matterId).not.toBe(second.matterId)
+    expect(await service.listMatters()).toHaveLength(2)
+  })
+
+  it('keeps an ambiguous fragment unclaimed until an explicit claim attaches it', async () => {
+    const service = boot()
+    const created = await service.submitOperation({
+      kind: 'create',
+      operationId: 'op-v1-create-2',
+      title: 'NB-02 第二期回款',
+      source: { sessionId: 'session-A' },
+    })
+
+    // A fragment with no explicit matter reference: retained, never title-matched.
+    const noted = await service.submitOperation({
+      kind: 'note',
+      operationId: 'op-v1-note',
+      note: '有人说第二期款已经付了，但没说是哪笔合同',
+      source: { sessionId: 'session-C', quote: '款已经付了' },
+    })
+    expect(noted.outcome).toEqual({ status: 'retained', unclaimedId: 'u-1' })
+    let unclaimed = await service.readUnclaimed()
+    expect(unclaimed).toHaveLength(1)
+    expect((await service.readMatter(created.matterId))?.materials).toHaveLength(1)
+
+    // The explicit claim attaches it to the matter with its original source and time.
+    const claim = await service.submitOperation({
+      kind: 'claim',
+      operationId: 'op-v1-claim',
+      unclaimedId: 'u-1',
+      matterId: created.matterId,
+      source: { sessionId: 'session-C', quote: '是 NB-02 的' },
+    })
+    expect(claim.outcome).toEqual({ status: 'committed', revision: 1 })
+    expect(await service.readUnclaimed()).toEqual([])
+    const matter = await service.readMatter(created.matterId)
+    expect(matter?.materials).toHaveLength(2)
+    expect(matter?.materials[1]?.note).toContain('没说是哪笔合同')
+    expect(matter?.materials[1]?.source.sessionId).toBe('session-C')
+    expect(matter?.materials[1]?.receivedAt).toBe(noted.submittedAt)
+
+    // A second claim of the same material under a new operation id is refused.
+    const reClaim = await service.submitOperation({
+      kind: 'claim',
+      operationId: 'op-v1-claim-2',
+      unclaimedId: 'u-1',
+      matterId: created.matterId,
+      source: { sessionId: 'session-C' },
+    })
+    expect(reClaim.outcome).toEqual({ status: 'rejected', reason: 'unknown-material' })
+
+    // Retrying the original claim operation id replays its receipt.
+    const replay = await service.submitOperation({
+      kind: 'claim',
+      operationId: 'op-v1-claim',
+      unclaimedId: 'u-1',
+      matterId: created.matterId,
+      source: { sessionId: 'session-C', quote: '是 NB-02 的' },
+    })
+    expect(replay).toEqual(claim)
   })
 })

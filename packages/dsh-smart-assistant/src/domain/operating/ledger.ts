@@ -54,15 +54,17 @@ export interface MatterRecord {
 /** Outcome of one operation, as persisted in its receipt. */
 export type OperationOutcome =
   | { readonly status: 'committed'; readonly revision: number }
+  | { readonly status: 'retained'; readonly unclaimedId: string }
   | { readonly status: 'conflict'; readonly observedRevision: number; readonly currentRevision: number }
   | { readonly status: 'rejected'; readonly reason: RejectionReason }
 
 /** Why an operation was refused without changing confirmed state. */
-export type RejectionReason = 'operation-content-mismatch' | 'unknown-matter'
+export type RejectionReason = 'operation-content-mismatch' | 'unknown-matter' | 'unknown-material'
 
 /** Durable read-back record of one operation (V7: the unit of successful read-back). */
 export interface OperationReceipt {
   readonly operationId: string
+  /** The matter this operation touched; `''` when it touches none (an unclaimed note). */
   readonly matterId: string
   readonly submittedAt: string
   readonly outcome: OperationOutcome
@@ -72,6 +74,14 @@ export interface OperationReceipt {
 export interface OperationRecord {
   readonly operation: LedgerOperation
   readonly receipt: OperationReceipt
+}
+
+/** A retained material with no explicit matter reference, waiting for an explicit claim (V1). */
+export interface UnclaimedMaterial {
+  readonly id: string
+  readonly note: string
+  readonly source: LedgerSource
+  readonly receivedAt: string
 }
 
 /** A caller-submitted operation; `operationId` is the idempotency key. */
@@ -96,17 +106,32 @@ export type LedgerOperation =
       readonly materials?: readonly { readonly note: string; readonly source: LedgerSource }[]
       readonly source: LedgerSource
     }
+  | {
+      readonly kind: 'note'
+      readonly operationId: string
+      readonly note: string
+      readonly source: LedgerSource
+    }
+  | {
+      readonly kind: 'claim'
+      readonly operationId: string
+      readonly unclaimedId: string
+      readonly matterId: string
+      readonly source: LedgerSource
+    }
 
 /** Full ledger state, version 1. */
 export interface LedgerState {
   readonly version: 1
   readonly matters: Readonly<Record<string, MatterRecord>>
   readonly operations: Readonly<Record<string, OperationRecord>>
+  readonly unclaimed: Readonly<Record<string, UnclaimedMaterial>>
   readonly nextMatterSeq: number
+  readonly nextUnclaimedSeq: number
 }
 
 /** A ledger with no matters and no operations yet. */
-export const EMPTY_LEDGER: LedgerState = { version: 1, matters: {}, operations: {}, nextMatterSeq: 1 }
+export const EMPTY_LEDGER: LedgerState = { version: 1, matters: {}, operations: {}, unclaimed: {}, nextMatterSeq: 1, nextUnclaimedSeq: 1 }
 
 /**
  * Canonical JSON with recursively sorted object keys, so retry comparison is key-order-blind.
@@ -234,6 +259,83 @@ export function applyOperation(
       state: {
         ...state,
         matters: { ...state.matters, [matter.id]: nextMatter },
+        operations: { ...state.operations, [operation.operationId]: { operation, receipt } },
+      },
+      receipt,
+    }
+  }
+  if (operation.kind === 'note') {
+    // No explicit matter reference: retain in the unclaimed lane — never match by title.
+    const id = `u-${state.nextUnclaimedSeq}`
+    const material: UnclaimedMaterial = { id, note: operation.note, source: operation.source, receivedAt: submittedAt }
+    const receipt: OperationReceipt = {
+      operationId: operation.operationId,
+      matterId: '',
+      submittedAt,
+      outcome: { status: 'retained', unclaimedId: id },
+    }
+    return {
+      state: {
+        ...state,
+        nextUnclaimedSeq: state.nextUnclaimedSeq + 1,
+        unclaimed: { ...state.unclaimed, [id]: material },
+        operations: { ...state.operations, [operation.operationId]: { operation, receipt } },
+      },
+      receipt,
+    }
+  }
+  if (operation.kind === 'claim') {
+    const matter = state.matters[operation.matterId]
+    if (matter === undefined) {
+      const receipt: OperationReceipt = {
+        operationId: operation.operationId,
+        matterId: operation.matterId,
+        submittedAt,
+        outcome: { status: 'rejected', reason: 'unknown-matter' },
+      }
+      return {
+        state: { ...state, operations: { ...state.operations, [operation.operationId]: { operation, receipt } } },
+        receipt,
+      }
+    }
+    const material = state.unclaimed[operation.unclaimedId]
+    if (material === undefined) {
+      const receipt: OperationReceipt = {
+        operationId: operation.operationId,
+        matterId: matter.id,
+        submittedAt,
+        outcome: { status: 'rejected', reason: 'unknown-material' },
+      }
+      return {
+        state: { ...state, operations: { ...state.operations, [operation.operationId]: { operation, receipt } } },
+        receipt,
+      }
+    }
+    // Attaching a retained material is attribution, not a confirmed-state change: the
+    // original source and retention time move with it, and the matter's revision stands.
+    const unclaimed = { ...state.unclaimed }
+    delete unclaimed[material.id]
+    const attached: MatterRecord = {
+      ...matter,
+      materials: [...matter.materials, {
+        id: `mat-${matter.id}-${matter.materials.length + 1}`,
+        source: material.source,
+        note: material.note,
+        receivedAt: material.receivedAt,
+      }],
+      updatedAt: submittedAt,
+    }
+    const receipt: OperationReceipt = {
+      operationId: operation.operationId,
+      matterId: matter.id,
+      submittedAt,
+      outcome: { status: 'committed', revision: matter.revision },
+    }
+    return {
+      state: {
+        ...state,
+        matters: { ...state.matters, [matter.id]: attached },
+        unclaimed,
         operations: { ...state.operations, [operation.operationId]: { operation, receipt } },
       },
       receipt,

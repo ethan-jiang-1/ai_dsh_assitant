@@ -20,7 +20,7 @@ import { expandHomePath, resolveDshHome } from '@deepseek-ai/dsh-home-paths'
 import { closeSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, renameSync, rmSync, writeFileSync, writeSync } from 'node:fs'
 import { hostname } from 'node:os'
 import { join } from 'node:path'
-import { EMPTY_LEDGER, applyOperation, type LedgerOperation, type LedgerState, type MatterRecord, type OperationReceipt } from '../../domain/operating/ledger.ts'
+import { EMPTY_LEDGER, applyOperation, type LedgerOperation, type LedgerState, type MatterRecord, type OperationReceipt, type UnclaimedMaterial } from '../../domain/operating/ledger.ts'
 
 declare module '@deepseek-ai/cordis' {
   interface Context {
@@ -134,7 +134,9 @@ function loadState(dataDir: string): LedgerState {
   if (typeof parsed !== 'object' || parsed === null || (parsed as { version?: unknown }).version !== 1) {
     throw new Error(`operating ledger state at ${path} is not a v1 ledger; refusing to treat it as empty`)
   }
-  return parsed as LedgerState
+  const state = parsed as LedgerState
+  // Backfill fields added after the first slice; no released ledgers predate them.
+  return { ...state, unclaimed: state.unclaimed ?? {}, nextUnclaimedSeq: state.nextUnclaimedSeq ?? 1 }
 }
 
 /**
@@ -199,6 +201,14 @@ export class AssistantOperatingLedger extends Service {
    */
   async listMatters(): Promise<readonly MatterRecord[]> {
     return Object.values(this.state.matters)
+  }
+
+  /**
+   * List retained materials that no explicit claim has attached to a matter yet.
+   * @returns Every unclaimed material in retention order.
+   */
+  async readUnclaimed(): Promise<readonly UnclaimedMaterial[]> {
+    return Object.values(this.state.unclaimed)
   }
 
   /**
