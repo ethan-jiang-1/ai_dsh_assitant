@@ -39,6 +39,9 @@
       "path": "../../vendor/dsh/packages/host/webserver"
     },
     {
+      "path": "../../vendor/dsh/packages/client/connection/tsconfig.host.json"
+    },
+    {
       "path": "../../vendor/dsh/packages/core/agent"
     },
     {

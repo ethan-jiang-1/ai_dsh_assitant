@@ -27,6 +27,10 @@
         recallLimit: 20
         staleResearchDays: 30
 
+    # 独立 Host 经营目录的只读下载；不创建账本，不接收任意文件路径。
+    - id: assistant-desk-projection
+      name: dsh-smart-assistant/desk-projection
+
     # ── 知识批准直调（approve-direct-call 卡，2026-10-04）──────────────────────────
     #
     # 首开 UX 摩擦 1：批准曾是「面板发指令 → 模型跑一轮（promote + desk-refresh，60-90s）」，

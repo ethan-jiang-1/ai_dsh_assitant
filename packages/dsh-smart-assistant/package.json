@@ -55,6 +55,10 @@
       "types": "./lib/host/knowledge-approve-remote/index.d.ts",
       "default": "./lib/host/knowledge-approve-remote/index.js"
     },
+    "./desk-projection": {
+      "types": "./lib/host/desk-projection/index.d.ts",
+      "default": "./lib/host/desk-projection/index.js"
+    },
     "./preset-runner": {
       "types": "./lib/dev/preset-runner/index.d.ts",
       "default": "./lib/dev/preset-runner/index.js"
@@ -106,6 +110,7 @@
     "@deepseek-ai/dsh-agent-loop": "workspace:^",
     "@deepseek-ai/dsh-agent-preset-registry": "workspace:^",
     "@deepseek-ai/dsh-brand": "workspace:^",
+    "@deepseek-ai/dsh-client-connection": "workspace:^",
     "@deepseek-ai/dsh-goal": "workspace:^",
     "@deepseek-ai/dsh-home-paths": "workspace:^",
     "@deepseek-ai/dsh-host-webserver": "workspace:^",

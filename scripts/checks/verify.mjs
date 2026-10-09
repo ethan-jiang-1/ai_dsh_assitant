@@ -18,7 +18,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { agentsMdStabilityProblems, backlogGraduationProblems, backlogLivenessProblems, clientScriptSafetyProblems, commandAliasProblems, configParseProblems, dependencyPoseProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, GRADUATED_STATUS, implementedAlternativesProblems, languageGuardProblems, notesNamingProblems, notesStateProblems, notesTopLevelProblems, pinProblems, machineLocalPathProblems, playbookFrontmatterProblems, relativeLinkProblems, skillFrontmatterProblems, startPathProblems, testAssetNamingProblems, textHygieneProblems, vendorClientFreshnessProblems } from './verify-checks.mjs'
+import { agentsMdStabilityProblems, backlogGraduationProblems, backlogLivenessProblems, clientScriptSafetyProblems, commandAliasProblems, configParseProblems, dependencyPoseProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, GRADUATED_STATUS, implementedAlternativesProblems, languageGuardProblems, notesNamingProblems, notesStateProblems, notesTopLevelProblems, pinProblems, machineLocalPathProblems, playbookFrontmatterProblems, projectReferenceMatches, relativeLinkProblems, skillFrontmatterProblems, startPathProblems, testAssetNamingProblems, textHygieneProblems, vendorClientFreshnessProblems } from './verify-checks.mjs'
 import * as gateCores from './verify-checks.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
@@ -167,7 +167,7 @@ check('resolution: every @deepseek-ai import has a tsconfig paths entry and a pr
     // project is the package directory the `src` tree belongs to.
     const srcSplit = target.indexOf('/src/')
     const projectDir = resolve(repoRoot, srcSplit === -1 ? target.replace(/\/src$/, '') : target.slice(0, srcSplit))
-    if (!references.has(projectDir)) {
+    if (!projectReferenceMatches(projectDir, references)) {
       problems.push(`${specifier} resolves to ${relative(repoRoot, projectDir)}, which packages/dsh-smart-assistant/tsconfig.json does not reference`)
     }
     if (!exists(join(repoRoot, target, 'index.ts'))) {

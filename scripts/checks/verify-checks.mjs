@@ -16,6 +16,14 @@ import { parse as parseYaml } from 'yaml'
 
 const read = path => readFileSync(path, 'utf8')
 
+/** Accept an owning project or its explicit pinned compiler face, not an arbitrary JSON file. */
+export function projectReferenceMatches(projectDir, references) {
+  const owner = resolve(projectDir)
+  return [...references].some(reference => reference === owner
+    || reference === join(owner, 'tsconfig.host.json')
+    || reference === join(owner, 'tsconfig.client.json'))
+}
+
 /** Run git in a directory; undefined (not a crash) when git cannot answer. */
 function tryGit(args, cwd) {
   try {

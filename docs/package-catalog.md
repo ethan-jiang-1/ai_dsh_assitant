@@ -10,11 +10,12 @@
 > freshness 由 `pnpm verify`（`gen-catalog --check`）守——改了源却没重生成即红。
 > 语义与改名代价的 owner 是 [`identity.md`](identity.md)；这里只回答"当前声明了什么"。
 
-## 入口与平面（11 个 plugin 子路径 = host 2 + agent 8 + client 1）
+## 入口与平面（12 个 plugin 子路径 = host 3 + agent 8 + client 1）
 
 | 入口 | 平面 | 组合行 id |
 |---|---|---|
 | `.` | HOST | assistant-memory |
+| `./desk-projection` | HOST | assistant-desk-projection |
 | `./knowledge-approve-remote` | HOST | assistant-knowledge-approve |
 | `./home-preamble` | AGENT | assistant-home-preamble |
 | `./memory-digest` | AGENT | assistant-memory-digest |
@@ -33,6 +34,7 @@
 | 文件 | id | plugin | 状态 |
 |---|---|---|---|
 | cordis.patch.yml（host 面） | `assistant-memory` | `dsh-smart-assistant` | 启用 |
+| cordis.patch.yml（host 面） | `assistant-desk-projection` | `dsh-smart-assistant/desk-projection` | 启用 |
 | cordis.patch.yml（host 面） | `assistant-knowledge-approve` | `dsh-smart-assistant/knowledge-approve-remote` | 启用 |
 | cordis.patch.yml（agent 面 = preset 行的 plugins） | `assistant-home-preamble` | `dsh-smart-assistant/home-preamble` | 启用 |
 | cordis.patch.yml（agent 面 = preset 行的 plugins） | `assistant-memory-digest` | `dsh-smart-assistant/memory-digest` | 启用 |

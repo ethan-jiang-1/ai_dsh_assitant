@@ -22,9 +22,11 @@
 
 Web 客户端贡献独立全局桌面、会话内桌面视图与右栏三室。默认主面板选择只在页面初始化时尝试，不随重挂覆盖用户导航；导航与数据读取的当前合同在 [浏览器动作链](../../docs/architecture.md#浏览器动作链一次点击--可见的桌面变化)。客户端不拥有经营权威数据。
 
+Host 的 `./desk-projection` 是固定 JSON 文件下载，不是经营 writer 或通用文件读取。Config `dataDir` 与 agent working folder 独立；缺失、损坏和 I/O 错误分别返回错误，且 fiber 卸载撤销路由。目录/状态码/限额合同由上面的浏览器动作链拥有；此入口不向模型添加工具或提示词。
+
 ## 依赖姿态
 
-`@deepseek-ai/*` 一律 **peerDependencies**：DSH 的公开 API 仍是 pre-stable，
+Host 运行期 `@deepseek-ai/*` 使用 **peerDependencies**；仅类型关系（例如 Connection 下载声明）使用开发依赖：DSH 的公开 API 仍是 pre-stable，
 精确钉死会让每次上游同步都变成一次发版。验证过的 release 记在 `dsh.compatibility.dshReleases`。
 `yaml` 是唯一的运行时 dependency。
 

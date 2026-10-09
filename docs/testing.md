@@ -17,6 +17,7 @@
 |---|---|---|---|
 | 纯核（`src/domain`：布局/词汇/检索排序/渲染） | `pnpm test:domain` | `tests/domain/*.spec` | 规则与边界正例 / 组合装载、模型可见面 |
 | 服务行为（`src/host`：四房间读写、curate、根文件、品牌） | `pnpm test:host` | `tests/host/*.spec` | 服务级合同（真 cordis + 临时 home）/ 段落组装、装载 |
+| 固定只读投影下载（独立 Host 文件，非经营 writer） | `pnpm build` → `pnpm test:host` + `pnpm test:composition`；隔离服务运行 `node dev/probes/web/desk-projection-download.mjs '<url>' dev/fixtures/desk-projection/desk-projection.json` | `tests/host/desk-projection-download.spec.ts` + `tests/composition/desk-projection-lifecycle.spec.mjs` + `dev/fixtures/desk-projection/` | 固定字节、错误/限额、真实注册撤销；HTTP 探针额外证明认证拒绝与 cookie 下载 / 不证明业务 schema、Client mount/断连/呈现或持久经营写 |
 | **模型可见面**（工具描述 / prompt 段落 / persona / digest） | `pnpm build` → `pnpm test:composition` → **`pnpm eval --only <task-id>`**（行为判决，任务清单 `pnpm eval --list`；`repo-live-probe` 是取证非回归，见已定姿态） | `tests/agent/*.spec` + `dev/eval/` | agent spec：段落合同。eval：伤害地板、技能按名加载、回答正则（可凑巧命中）/ 段落是否进入请求、组装转录、领域质量（`eval:domain` 人判） |
 | agent 面合同（段落预算 / 养护回合的合同层） | `pnpm test:agent`（真服务 + 临时 home）；改动同时触模型可见面时按上一行加链 | `tests/agent/*.spec` | 段落就绪 / 预算 / 回合占位等合同 / Loader 组装、UI 读回 |
 | client 面（`src/client`：注册与交互状态） | `pnpm test`（整包套件——`client-brand.spec` 断言全 slot 面，加一个注册会红没打开过的 spec）+ 两 web-face 场景 `pnpm web-expected` | `tests/client/*.spec` + `snapshots/web-face/` | 注册、组件树、色彩契约 / 真浏览器渲染（场景期望管） |

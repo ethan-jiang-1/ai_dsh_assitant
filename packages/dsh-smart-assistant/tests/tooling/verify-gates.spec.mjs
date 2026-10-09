@@ -41,6 +41,18 @@ import {
 } from '../../../../scripts/checks/verify-checks.mjs'
 import * as gateCores from '../../../../scripts/checks/verify-checks.mjs'
 
+describe('project references accept pinned face leaves only in their owning package', () => {
+  it('accepts root/Host/Client references and rejects a sibling or arbitrary config', () => {
+    const owner = '/fixture/vendor/connection'
+    expect(gateCores.projectReferenceMatches(owner, [owner])).toBe(true)
+    expect(gateCores.projectReferenceMatches(owner, [join(owner, 'tsconfig.host.json')])).toBe(true)
+    expect(gateCores.projectReferenceMatches(owner, [join(owner, 'tsconfig.client.json')])).toBe(true)
+    expect(gateCores.projectReferenceMatches(owner, ['/fixture/vendor/other/tsconfig.host.json'])).toBe(false)
+    expect(gateCores.projectReferenceMatches(owner, [join(owner, 'unrelated.json')])).toBe(false)
+    expect(gateCores.projectReferenceMatches(owner, [])).toBe(false)
+  })
+})
+
 const dirs = []
 
 afterEach(() => {

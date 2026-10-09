@@ -67,6 +67,9 @@ importers:
       '@deepseek-ai/dsh-brand':
         specifier: workspace:^
         version: link:../../vendor/dsh/packages/util/brand
+      '@deepseek-ai/dsh-client-connection':
+        specifier: workspace:^
+        version: link:../../vendor/dsh/packages/client/connection
       '@deepseek-ai/dsh-goal':
         specifier: workspace:^
         version: link:../../vendor/dsh/packages/goal/goal
