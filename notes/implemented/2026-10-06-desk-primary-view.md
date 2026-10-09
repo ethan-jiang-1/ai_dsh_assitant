@@ -8,6 +8,8 @@
   本片渲染证据 = shots --eval 交互态 DOM（点击链：开会话→点桌面→内容区渲染，/tmp/dsh-webui-shots/desk-view-final-*.dom.txt）。
 - D7 已记入上游台账（默认视图不可插件化），递交与否用户拍板。（用户 2026-10-06 点头推进并要求显性化追踪；方向 owner=[定位卡](../../_backlog/_archive/settled_issues/261005-open-value-deficit.md)，毕业门 owner=[自洽卡](../../_backlog/_archive/settled_issues/261005-turnaround-coherence.md) 形态迁移行，判据承接自[首开卡边界收口](../../_backlog/_archive/settled_issues/261001-first-open-ux.md)）
 
+- **当前取代检查**：本篇仍拥有已交付的会话内 view、偏好记忆、locale/审批与既有回归事实。[全局总助桌面提案](../proposed/2026-10-06-desk-operating-entry.md)部分反转本篇关于全局冷启动默认入口与 D7 依赖的取舍；提案尚未实施，不改变当前运行事实。若该提案获准并交付，只改写被取代的职责并修复双方链接，其他本篇决定继续有效。
+
 ## 问题（可观察行为）
 
 用户打开产品看到的是「空 composer + vendor hero」——**主对象是会话，桌面只是右栏一个 tab**。定位卡诊断：一把手的主对象应是「桌面」（要你拍的/缺什么/在跟的事），会话降为桌面上的一种动作（点决策卡进拍板会话）。当前桌面有全部数据载体（DeskData 契约）却只有侧栏位置。
@@ -31,9 +33,9 @@
 
 ## 验收
 
-- client spec：视图注册（id/label/组件经 classic-script 装置物化）、正文组件树、既有 desk 断言不回归；
-- build + `pnpm preflight`（组合解析/boot 图）+ web-expected：新增「桌面视图」场景期望（非空白会话点开桌面视图的 DOM 证据），既有两场景不回归；
-- 真机演示：干净 home 起服务，判据 = **「本人判定打开不困惑」**（首开卡转移判据，挂在新形态：空白相位引导 + 首会话 intake + 桌面视图的合成体验）；
+- client spec：视图注册（id/label/组件经 classic-script 装置物化）、正文组件树、既有 desk 断言不回归；真实资产见 [client-entry.spec.ts](../../packages/dsh-smart-assistant/tests/client/client-entry.spec.ts#L139-L160)、[client-room-tabs.spec.ts](../../packages/dsh-smart-assistant/tests/client/client-room-tabs.spec.ts#L59-L73) 与 [client-desk-core.spec.ts](../../packages/dsh-smart-assistant/tests/client/client-desk-core.spec.ts#L44-L77)；
+- build + `pnpm preflight`（组合解析/boot 图）+ web-expected：仓内已有 `blank-first-open` 与 `first-open-draft-banner` 两场景，但**非空白会话点开桌面视图的专用场景期望尚未建立**，因此这部分不能记为已验收；
+- 真机演示：干净 home 起服务，判据 = **「本人判定打开不困惑」**（首开卡转移判据，挂在新形态：空白相位引导 + 首会话 intake + 桌面视图的合成体验）；当时的桌面视图交互 DOM 证据是 `/tmp` 一次性产物，不是仓内可重放资产，真人判断也未完成；
 - 自洽卡四件门逐件闭合记录：入口证据=本卡事实 1-4；旧会话回路=视图是 UI 层叠加、会话数据与既有 right-tab 面板不动（回归由既有 client spec 守）；示例/真实边界=沿用 desk 数据标注纪律；审批/撤销=沿用面板既有动作路径（remote.session.prompt 车道，不新增直调）。
 - DeskData 契约不动；四工具/persona/组合行零变化（非模型可见面）。
 
