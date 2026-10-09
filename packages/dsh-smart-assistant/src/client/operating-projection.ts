@@ -78,7 +78,7 @@ function matterV2(value: unknown): value is OperatingMatter {
     && new Set(value.proposals.map(item => (item as { id: string }).id)).size === value.proposals.length
 }
 function receipt(value: unknown): value is ProjectionReceipt {
-  return record(value) && text(value.operationId) && typeof value.matterId === 'string' && text(value.submittedAt) && text(value.status)
+  return record(value) && text(value.operationId) && typeof value.matterId === 'string' && text(value.sessionId) && text(value.submittedAt) && text(value.status)
     && (value.revision === undefined || revision(value.revision))
     && (value.unclaimedId === undefined || text(value.unclaimedId))
     && (value.proposalId === undefined || text(value.proposalId))

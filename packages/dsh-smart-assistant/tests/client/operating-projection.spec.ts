@@ -49,7 +49,7 @@ describe('v2 ledger-render envelope (K3 slice E)', () => {
       evidence: [{ id: 'mat-m-1-1', sessionId: 'session-a', note: '到账回单', quote: '银行回单：已到账' }],
       proposals: [{ id: 'p-1', kind: 'reschedule', status: 'pending' }],
     }],
-    receipts: [{ operationId: 'op-1', matterId: 'm-1', submittedAt: '2026-10-10T08:00:00.000Z', status: 'committed', revision: 2 }],
+    receipts: [{ operationId: 'op-1', matterId: 'm-1', sessionId: 'session-a', submittedAt: '2026-10-10T08:00:00.000Z', status: 'committed', revision: 2 }],
     unclaimed: [{ id: 'u-1', note: '有人说款已付', sessionId: 'session-c' }],
     reminders: [],
   }
@@ -63,7 +63,7 @@ describe('v2 ledger-render envelope (K3 slice E)', () => {
     expect(parsed.matters[0]?.evidence[0]?.note).toBe('到账回单')
     expect(parsed.matters[0]?.evidence[0]?.eventId).toBeUndefined()
     expect(parsed.matters[0]?.proposals).toEqual([{ id: 'p-1', kind: 'reschedule', status: 'pending' }])
-    expect(parsed.receipts[0]).toEqual({ operationId: 'op-1', matterId: 'm-1', submittedAt: '2026-10-10T08:00:00.000Z', status: 'committed', revision: 2 })
+    expect(parsed.receipts[0]).toEqual({ operationId: 'op-1', matterId: 'm-1', sessionId: 'session-a', submittedAt: '2026-10-10T08:00:00.000Z', status: 'committed', revision: 2 })
     expect(parsed.unclaimed).toEqual([{ id: 'u-1', note: '有人说款已付', sessionId: 'session-c' }])
   })
 

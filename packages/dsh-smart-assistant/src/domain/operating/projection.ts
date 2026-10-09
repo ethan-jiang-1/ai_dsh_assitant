@@ -27,10 +27,12 @@ export interface ProjectionProposal {
   readonly status: string
 }
 
-/** One flattened operation receipt — the read-back unit: operation, matter, outcome. */
+/** One flattened operation receipt — the read-back unit: operation, matter, outcome, source session. */
 export interface ProjectionReceipt {
   readonly operationId: string
   readonly matterId: string
+  /** The session that submitted the operation (provenance for path matching). */
+  readonly sessionId: string
   readonly submittedAt: string
   readonly status: string
   readonly revision?: number
@@ -97,11 +99,12 @@ export function renderLedgerProjection(state: LedgerState, ledgerId: string, gen
     evidence: evidence(matter),
     proposals: matter.proposals.map(proposal => ({ id: proposal.id, kind: proposal.change.kind, status: proposal.status })),
   }))
-  const receipts = Object.values(state.operations).map(({ receipt }) => {
+  const receipts = Object.values(state.operations).map(({ operation, receipt }) => {
     const outcome = receipt.outcome
     return {
       operationId: receipt.operationId,
       matterId: receipt.matterId,
+      sessionId: operation.source.sessionId,
       submittedAt: receipt.submittedAt,
       ...flattenOutcome(outcome),
     }

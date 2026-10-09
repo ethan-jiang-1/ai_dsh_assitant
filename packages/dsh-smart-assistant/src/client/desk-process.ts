@@ -18,6 +18,8 @@
 export interface JudgeReceipt {
   readonly operationId: string
   readonly matterId: string
+  /** The session that submitted the operation; the wiring layer matches paths by it. */
+  readonly sessionId?: string
   readonly status: string
   readonly revision?: number
 }

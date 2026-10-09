@@ -98,7 +98,7 @@ describe('ledger-rendered projection (K3 slice E)', () => {
     expect(body.schemaVersion).toBe(2)
     expect(body.matters[0].id).toBe(receipt.matterId)
     expect(body.matters[0].evidence[0].sessionId).toBe('session-A')
-    expect(body.receipts).toEqual([{ operationId: 'op-dl-1', matterId: receipt.matterId, submittedAt: body.receipts[0].submittedAt, status: 'committed', revision: 1 }])
+    expect(body.receipts).toEqual([{ operationId: 'op-dl-1', matterId: receipt.matterId, sessionId: 'session-A', submittedAt: body.receipts[0].submittedAt, status: 'committed', revision: 1 }])
   })
 
   it('reports a corrupt authoritative ledger loudly instead of silently serving the fixture', async () => {
