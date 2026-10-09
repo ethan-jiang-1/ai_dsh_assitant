@@ -141,14 +141,18 @@ function loadState(dataDir: string): LedgerState {
 }
 
 /**
- * The operating ledger service. One instance per process, mounted from the host composition;
- * construction claims the writer role on the resolved directory.
+ * The operating ledger service. One instance per process, mounted from the host composition.
+ * Boot is side-effect free: the writer claim is taken at the first mutating operation (so a
+ * web profile and a one-shot task on the same home coexist until one of them writes), and
+ * reads always reload the persisted state.
  */
 export class AssistantOperatingLedger extends Service {
   /** Resolved ledger directory. */
   readonly dataDir: string
 
   private state: LedgerState
+
+  private claimed = false
 
   /**
    * @param ctx - Owning context.
@@ -159,17 +163,24 @@ export class AssistantOperatingLedger extends Service {
     this.dataDir = config.dataDir === undefined || config.dataDir.trim() === ''
       ? join(resolveDshHome(), 'assistant-operating')
       : expandHomePath(config.dataDir)
-    claimWriter(this.dataDir)
     this.state = loadState(this.dataDir)
-    ctx.effect(() => () => releaseWriter(this.dataDir))
+    ctx.effect(() => () => {
+      if (this.claimed) releaseWriter(this.dataDir)
+    })
   }
 
   /**
-   * Submit one operation; the receipt is durable once returned.
+   * Submit one operation; the receipt is durable once returned. The first mutating call takes
+   * the single-writer claim; a second writer (this process or a live foreign one) is refused
+   * here with a clear report.
    * @param operation - The caller-submitted operation; `operationId` is the idempotency key.
    * @returns The receipt for this submission.
    */
   async submitOperation(operation: LedgerOperation): Promise<OperationReceipt> {
+    if (!this.claimed) {
+      claimWriter(this.dataDir)
+      this.claimed = true
+    }
     const { state, receipt } = applyOperation(this.state, operation, new Date().toISOString())
     if (state !== this.state) {
       this.persist(state)
@@ -184,7 +195,7 @@ export class AssistantOperatingLedger extends Service {
    * @returns The receipt, or `undefined` when no such operation was submitted.
    */
   async readOperation(operationId: string): Promise<OperationReceipt | undefined> {
-    return this.state.operations[operationId]?.receipt
+    return this.current().operations[operationId]?.receipt
   }
 
   /**
@@ -193,7 +204,7 @@ export class AssistantOperatingLedger extends Service {
    * @returns The matter, or `undefined` when no such matter exists.
    */
   async readMatter(id: string): Promise<MatterRecord | undefined> {
-    return this.state.matters[id]
+    return this.current().matters[id]
   }
 
   /**
@@ -201,7 +212,7 @@ export class AssistantOperatingLedger extends Service {
    * @returns Every matter in the ledger.
    */
   async listMatters(): Promise<readonly MatterRecord[]> {
-    return Object.values(this.state.matters)
+    return Object.values(this.current().matters)
   }
 
   /**
@@ -209,14 +220,27 @@ export class AssistantOperatingLedger extends Service {
    * @returns Every unclaimed material in retention order.
    */
   async readUnclaimed(): Promise<readonly UnclaimedMaterial[]> {
-    return Object.values(this.state.unclaimed)
+    return Object.values(this.current().unclaimed)
   }
 
   /**
-   * Release the writer role; safe to call more than once.
+   * Release the writer role; safe to call more than once and when never claimed.
    */
   async stop(): Promise<void> {
-    releaseWriter(this.dataDir)
+    if (this.claimed) {
+      releaseWriter(this.dataDir)
+      this.claimed = false
+    }
+  }
+
+  /**
+   * Reload the persisted state, so reads see the latest durable truth even when another
+   * process wrote since this instance booted.
+   * @returns The freshly loaded state.
+   */
+  private current(): LedgerState {
+    this.state = loadState(this.dataDir)
+    return this.state
   }
 
   /**

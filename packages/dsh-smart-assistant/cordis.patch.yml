@@ -31,6 +31,15 @@
     - id: assistant-desk-projection
       name: dsh-smart-assistant/desk-projection
 
+    # ── 权威经营账本（desk-operating-entry K3，2026-10-10）────────────────────────
+    #
+    # 单 Host writer：独立 `assistant-operating` dataDir、writer.lock 跨进程独占（惰性认领——
+    # 首次写才抢锁，所以同 home 的 web 与 one-shot 两 profile 可共存到其中之一写入）。
+    # 语义遵循归档卡 261008 的 V1–V3（V4/V5 提醒协调随后）；模型面入口在同文件
+    # `preset-assistant` 的 `assistant-operating-tool` 行。dataDir 省略 → <dshHome>/assistant-operating。
+    - id: assistant-operating-ledger
+      name: dsh-smart-assistant/operating-ledger
+
     # ── 知识批准直调（approve-direct-call 卡，2026-10-04）──────────────────────────
     #
     # 首开 UX 摩擦 1：批准曾是「面板发指令 → 模型跑一轮（promote + desk-refresh，60-90s）」，
@@ -181,6 +190,14 @@
 
           - id: assistant-research-tool
             name: dsh-smart-assistant/tool-research
+
+          # ── 经营账本工具（desk-operating-entry K3）────────────────────────────────
+          #
+          # 消费 host 行 assistant-operating-ledger 的服务。权限分界全部在 description 里：
+          # 普通进展 report/note 恒安全；revise/complete/reopen/confirm 只走本人明确指令；
+          # 推断的重大变化只能 propose。溯源由工具盖章（真实 session id），模型不可伪造。
+          - id: assistant-operating-tool
+            name: dsh-smart-assistant/tool-operating
 
           # ── working folder：知识（第四房间，只读检索面）──────────────────────────────
           #

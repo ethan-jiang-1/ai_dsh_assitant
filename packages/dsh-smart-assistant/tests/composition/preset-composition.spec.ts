@@ -131,6 +131,13 @@ async function harness(preset = ownPreset): Promise<Context> {
   // exactly like the deployment loads it.
   const approveRemote = await import(pathToFileURL(join(packageRoot, 'lib', 'host', 'knowledge-approve-remote', 'index.js')).href)
   await ctx.plugin(approveRemote.default)
+  // The operating-ledger host row (desk-operating-entry K3): the authoritative single writer
+  // the operating tool consumes. Boot is side-effect free (lazy claim), and the harness gives
+  // it an isolated data directory exactly like a deployment's separate assistant-operating home.
+  const operatingLedger = await import(pathToFileURL(join(packageRoot, 'lib', 'host', 'operating-ledger', 'index.js')).href)
+  const operatingDir = mkdtempSync(join(tmpdir(), 'assistant-operating-ledger-'))
+  dirs.push(operatingDir)
+  await ctx.plugin(operatingLedger.default, { dataDir: operatingDir })
   // 0.1.7: preset = registry row (default) + definition row (plugins). No directory, no roots.
   await ctx.plugin(AgentPresetRegistry, { default: 'assistant' })
   expect(preset.name).toBe('@deepseek-ai/dsh-agent-preset')
@@ -238,7 +245,7 @@ describe('real composition: loader + preset standing mount + joined agent', () =
     expect(ctx.tools.schemas(agent).map(schema => schema.name)).not.toContain('assistant_memory')
   })
 
-  it('registers this package\'s four tools on the joined agent, and only there', async () => {
+  it('registers this package\'s five tools on the joined agent, and only there', async () => {
     const ctx = await harness()
     const captured: Context[] = []
     const { agent } = await agentOnPreset(ctx, captured)
@@ -250,6 +257,7 @@ describe('real composition: loader + preset standing mount + joined agent', () =
     expect(names(agent)).toEqual([
       'assistant_knowledge',
       'assistant_memory',
+      'assistant_operating',
       'assistant_reflect',
       'assistant_research',
     ])

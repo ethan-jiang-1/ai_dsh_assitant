@@ -366,7 +366,7 @@ export function operatingTool(ctx: Context) {
             if (typeof args.evidence_quote !== 'string' || args.evidence_quote.trim().length === 0) {
               throw new Error('assistant_operating propose complete requires evidence_quote')
             }
-            change = { kind: 'complete', evidence: { note: args.note ?? '到账依据', source: source(args.evidence_quote) } }
+            change = { kind: 'complete', evidence: { note: args.note ?? 'arrival evidence', source: source(args.evidence_quote) } }
           } else {
             change = { kind: 'abandon' }
           }
@@ -406,7 +406,7 @@ export function operatingTool(ctx: Context) {
             operationId: operationId!,
             matterId: args.matter_id,
             observedRevision: args.observed_revision,
-            evidence: { note: args.note ?? '到账依据', source: source(args.evidence_quote) },
+            evidence: { note: args.note ?? 'arrival evidence', source: source(args.evidence_quote) },
             source: source(quote),
           }, `Completed ${args.matter_id} on arrival evidence.`)
         }

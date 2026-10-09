@@ -177,13 +177,35 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
     dirs.push(dataDir)
     const first = new AssistantOperatingLedger(new Context(), { dataDir })
     services.push(first)
-    expect(() => new AssistantOperatingLedger(new Context(), { dataDir }))
-      .toThrow(/refusing a second writer/)
-    await first.stop()
+    // The writer claim is taken at the first mutating operation, so two services can boot side
+    // by side (a web profile and a one-shot task on the same home) until one of them writes.
+    const committed = await first.submitOperation({
+      kind: 'create',
+      operationId: 'op-w-1',
+      title: 'NB-02 第二期回款',
+      source: { sessionId: 'session-A' },
+    })
+    expect(committed.outcome).toEqual({ status: 'committed', revision: 1 })
 
+    const second = new AssistantOperatingLedger(new Context(), { dataDir })
+    services.push(second)
+    await expect(second.submitOperation({
+      kind: 'create',
+      operationId: 'op-w-2',
+      title: 'NX-01 首期回款',
+      source: { sessionId: 'session-B' },
+    })).rejects.toThrow(/refusing a second writer/)
+
+    await first.stop()
     const reopened = new AssistantOperatingLedger(new Context(), { dataDir })
     services.push(reopened)
-    expect(await reopened.listMatters()).toEqual([])
+    const again = await reopened.submitOperation({
+      kind: 'create',
+      operationId: 'op-w-3',
+      title: 'NX-01 首期回款',
+      source: { sessionId: 'session-B' },
+    })
+    expect(again.outcome).toEqual({ status: 'committed', revision: 1 })
   })
 
   it('refuses a live foreign-process writer and claims an unclaimed directory across processes', async () => {
@@ -193,20 +215,22 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
       const { default: Ledger } = await import(${JSON.stringify(servicePath)})
       const { Context } = await import('@deepseek-ai/cordis')
       const service = new Ledger(new Context(), { dataDir: ${JSON.stringify(dataDir)} })
+      await service.submitOperation({ kind: 'create', operationId: 'child-op', title: 'child probe', source: { sessionId: 'child' } })
       console.log('CHILD-CLAIMED')
       await service.stop()
     `], { cwd: packageRoot, encoding: 'utf8' })
 
-    // Unclaimed directory: the child really claims (the probe exercises the claim path).
+    // Unclaimed directory: the child really claims by writing (the probe exercises the claim path).
     const free = mkdtempSync(join(tmpdir(), 'assistant-operating-ledger-'))
     dirs.push(free)
     expect(childProbe(free).stdout).toContain('CHILD-CLAIMED')
 
-    // Parent holds the claim: the child process is refused, with the holder named.
+    // Parent holds the claim: the child process is refused at its write, with the holder named.
     const held = mkdtempSync(join(tmpdir(), 'assistant-operating-ledger-'))
     dirs.push(held)
     const holder = new AssistantOperatingLedger(new Context(), { dataDir: held })
     services.push(holder)
+    await holder.submitOperation({ kind: 'create', operationId: 'op-held', title: '持有写权', source: { sessionId: 'session-A' } })
     const refused = childProbe(held)
     expect(`${refused.stdout}${refused.stderr}`).toContain('refusing a second writer')
     expect(`${refused.stdout}${refused.stderr}`).toContain(`pid ${process.pid}`)
@@ -224,7 +248,13 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
     })}\n`)
 
     const service = boot(dataDir)
-    expect(await service.listMatters()).toEqual([])
+    const committed = await service.submitOperation({
+      kind: 'create',
+      operationId: 'op-takeover',
+      title: 'NB-02 第二期回款',
+      source: { sessionId: 'session-A' },
+    })
+    expect(committed.outcome).toEqual({ status: 'committed', revision: 1 })
   })
 
   it('continues the same matter across sessions by explicit reference and survives renames', async () => {

@@ -59,6 +59,14 @@
       "types": "./lib/host/desk-projection/index.d.ts",
       "default": "./lib/host/desk-projection/index.js"
     },
+    "./operating-ledger": {
+      "types": "./lib/host/operating-ledger/index.d.ts",
+      "default": "./lib/host/operating-ledger/index.js"
+    },
+    "./tool-operating": {
+      "types": "./lib/agent/tool-operating/index.d.ts",
+      "default": "./lib/agent/tool-operating/index.js"
+    },
     "./preset-runner": {
       "types": "./lib/dev/preset-runner/index.d.ts",
       "default": "./lib/dev/preset-runner/index.js"
