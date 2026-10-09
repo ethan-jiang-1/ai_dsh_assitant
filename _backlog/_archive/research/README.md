@@ -4,6 +4,8 @@
 
 | 文件 | 服务的卡 | 日期 |
 |---|---|---|
+| [positioning/261009-ceo-operating-practices.md](positioning/261009-ceo-operating-practices.md) | [持续助理](../settled_issues/261008-ceo-operating-loop.md)：外部有界检索与正文获取限制；一手实践未核 | 2026-10-09 |
+| [tech-exploration/261009-operating-loop-feasibility.md](tech-exploration/261009-operating-loop-feasibility.md) | [持续助理](../settled_issues/261008-ceo-operating-loop.md)：静态断点、Host 候选与恢复/验收，未实施 | 2026-10-09 |
 | [tech-exploration/261005-repo-entry-tooling-audit.md](tech-exploration/261005-repo-entry-tooling-audit.md) | [261005-repo-navigability](../settled_issues/261005-repo-navigability.md) | 2026-10-05 |
 | [tech-exploration/261005-repo-test-asset-audit.md](tech-exploration/261005-repo-test-asset-audit.md) | [261005-repo-navigability](../settled_issues/261005-repo-navigability.md) | 2026-10-05 |
 | [tech-exploration/261007-semantic-sweep-src.md](tech-exploration/261007-semantic-sweep-src.md) | [BUG-003～007](../fixed_bugs/BUG-007-concurrency-lifecycle-minors.md)（五张都在 fixed_bugs；007 那行写明只修了一部分） | 2026-10-07 |

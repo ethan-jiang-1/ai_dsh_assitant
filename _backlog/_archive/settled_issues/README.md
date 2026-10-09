@@ -6,6 +6,7 @@
 
 | 卡 | 关闭日 | 判定 |
 |---|---|---|
+| [261008-ceo-operating-loop.md](261008-ceo-operating-loop.md) | 2026-10-09 | 回款情景与更新权限已确认；Host 可信更新/提醒协调/读回第一切片、后续建议/经验/净收益范围及 V1–V9 验收已定。下游设计/验证申请已在本轮回复向当前用户提出；尚未实施，经营价值未验证 |
 | [261008-vendor-corpus-home.md](261008-vendor-corpus-home.md) | 2026-10-08 | 消化：平台事实留在钉住的 vendor；本仓只写差量。落点 = 根 AGENTS.md 硬规则 2 与探索路由、`docs/discipline.md` 表行与适配 9、`docs/AGENTS.md`、`notes/README.md` §四；`client-ui-contribution` 改为链接加本包路径与验证，`pre-push-evidence` 与 `note-archive-judgment` 指向主仓对应技能 |
 | [261008-sdlc-control-gap.md](261008-sdlc-control-gap.md) | 2026-10-08 | 消化：硬规则 3 的 note 改为按 notes/README §〇 才进同一 diff；归档技能改为「行为已在代码或合同里」不算归档理由；testing.md 模型可见面「能证明」与 eval 判决对齐。不造快照、不加格式门禁、不搬归档 |
 | [261007-bigfile-split.md](261007-bigfile-split.md) | 2026-10-08 | 毕业为已交付：S1 host 切片（`c803726`，index 1178→288）+ S2 client 拆分+tsdown（`1f4e07e`，2950→13 模块），行数判据与全套门达成。**一处阻断随卡冻结、不吸收**：`web-expected` blank 场景夹具前置腐烂（A/B 实证新旧 bundle 同型漂移，S2 无罪），修复归 snapshots owner 面，修复前该场景不可判。归档触发 = 新增 `backlog: graduated issues leave the active shelf` 门禁点名滞留 |
