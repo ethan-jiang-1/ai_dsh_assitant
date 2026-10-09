@@ -182,7 +182,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // Follow the conversation: when the newest Session settles a turn, re-read the desk file after
     // a short settle delay. A refresh the assistant performed during that turn then lands on its
     // own — the principal should not have to click to see what just changed.
-    const store = (ctx as { sessions?: { list?: { getSnapshot: () => unknown, subscribe: (fn: () => void) => () => void } } }).sessions?.list
+    const store = ctx.sessions?.list as { getSnapshot: () => unknown, subscribe: (fn: () => void) => () => void } | undefined
     if (store !== undefined) {
       let lastStamp = 0
       let pending: ReturnType<typeof setTimeout> | undefined

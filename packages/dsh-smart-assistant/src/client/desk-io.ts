@@ -30,7 +30,7 @@ let deskSidebarRight: { openTab: (kind: string, options?: { params?: unknown }) 
  */
 export function bindDeskEnv(ctx: ClientContext): void {
   deskRemote = (ctx as { remote?: Record<string, unknown> }).remote
-  deskSessions = (ctx as { sessions?: typeof deskSessions }).sessions
+  deskSessions = ctx.sessions as typeof deskSessions | undefined
   deskSidebarRight = ctx.sidebarRight
 }
 

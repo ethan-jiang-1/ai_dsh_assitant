@@ -36,8 +36,32 @@ export interface ClientContext {
    * selectPanel(null) returns the main area to Conversation without changing the Session.
    */
   layout?: {
-    readonly panelInfo: { getSnapshot: () => { readonly activePanelId: string | null } }
+    readonly panelInfo: {
+      getSnapshot: () => { readonly activePanelId: string | null }
+      subscribe(listener: () => void): () => void
+    }
     selectPanel: (panelId: string | null) => void
+  }
+  /**
+   * The session-controller client face: processing paths create or adopt a session, retain it
+   * as the main view (the retained-by-mainView session is the current Conversation), and
+   * observe the catalog for binding changes.
+   */
+  sessions?: {
+    create(opts?: { readonly workspaceId?: string, readonly cwd?: string, readonly sessionId?: string }): Promise<string>
+    retain(target: string, options: { readonly source: string }): { release(): void }
+    readonly list: { subscribe(listener: () => void): () => void }
+  }
+  /**
+   * The ui-session binding face: per-session status facts (running fails closed when absent,
+   * a pending interaction is any non-undefined value) and the current main-view binding key.
+   */
+  uiSession?: {
+    readonly sessionStatus: {
+      getSnapshot(): ReadonlyMap<string, { readonly running?: boolean, readonly pendingInteraction?: unknown }>
+      subscribe(listener: () => void): () => void
+    }
+    readonly current: { readonly value: { readonly key?: unknown } }
   }
   /**
    * Scoped dependency injection. The command registry is reached this way instead of

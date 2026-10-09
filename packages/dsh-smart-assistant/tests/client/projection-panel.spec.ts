@@ -14,9 +14,10 @@ function text(node: unknown): string {
   if (node !== null && typeof node === 'object' && 'props' in node) return text((node as { props: { children?: unknown } }).props.children)
   return ''
 }
+const noop = (): void => {}
 function render(value: ProjectionDownload): string {
   const view = createProjectionViewStore(defineStore).create()
-  return text(ProjectionPanel({ useProjection: select => select(value), useStore: select => select(view.getSnapshot()), actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn() }))
+  return text(ProjectionPanel({ useProjection: select => select(value), useStore: select => select(view.getSnapshot()), actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop }))
 }
 describe('global projection panel', () => {
   it('renders only the selected matter evidence and reports vanished selection without switching target', () => {
@@ -26,10 +27,12 @@ describe('global projection panel', () => {
       { id: 'a', title: '事项 A', status: 'active', summary: 'A 摘要', revision: 1, times: {}, proposals: [], evidence: [{ id: 'ea', sessionId: 'sa', eventId: 'xa', quote: 'A 来源', note: 'A 来源' }] },
       { id: 'b', title: '事项 B', status: 'active', summary: 'B 摘要', revision: 1, times: {}, proposals: [], evidence: [{ id: 'eb', sessionId: 'sb', eventId: 'xb', quote: 'B 来源', note: 'B 来源' }] },
     ] } }
-    const props = { useProjection: <S,>(select: (value: ProjectionDownload) => S): S => select(value), useStore: <S,>(select: (value: ReturnType<typeof view.getSnapshot>) => S): S => select(view.getSnapshot()), actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn() }
+    const process = vi.fn()
+    const props = { useProjection: <S,>(select: (value: ProjectionDownload) => S): S => select(value), useStore: <S,>(select: (value: ReturnType<typeof view.getSnapshot>) => S): S => select(view.getSnapshot()), actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: process }
     const output = text(ProjectionPanel(props))
     expect(output).toContain('B 来源')
     expect(output).not.toContain('A 来源')
+    expect(output).toContain('处理这件事')
     view.actions.selectMatter('gone')
     expect(text(ProjectionPanel(props))).toContain('所选事项不在当前投影中')
     expect(view.getSnapshot().selectedId).toBe('gone')

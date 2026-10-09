@@ -10,6 +10,8 @@ export interface ProjectionPanelProps {
   actions: { selectMatter(id: string): void; showList(): void; rememberListPosition(position: number): void }
   refreshProjection(): void
   onAsk(): void
+  /** Open the explicit processing path for one matter; absent until the wiring layer lands. */
+  onProcess?(matterId: string): void
 }
 const errors: Record<string, string> = {
   'authentication-required': '登录已失效，请重新登录后再读取。',
@@ -51,6 +53,7 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
         ce('div', { className: 'dsha-matter-detail', 'aria-live': 'polite' }, selected === undefined
           ? view.selectedId === null ? ce('p', {}, '选择一项查看详情。') : ce('p', {}, '所选事项不在当前投影中。')
           : ce('article', {}, ce('button', { className: 'dsha-back', type: 'button', onClick: props.actions.showList }, '返回事项列表'),
+            ce('button', { type: 'button', onClick: () => props.onProcess?.(selected.id) }, '处理这件事'),
             ce('h2', {}, selected.title), ce('p', {}, selected.summary), ce('p', {}, selected.status === 'active' ? '在办' : selected.status === 'completed' ? '已完成' : '已放弃'),
             selected.evidence.length === 0 ? ce('p', {}, '暂无可核对依据。') : ce('ul', {}, ...selected.evidence.map(evidence => ce('li', { key: evidence.id },
               ce('p', {}, evidence.note), ce('small', {}, `${evidence.sessionId} / ${evidence.eventId ?? '无事件定位'}`))))),
