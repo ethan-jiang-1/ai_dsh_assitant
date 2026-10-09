@@ -51,6 +51,8 @@ research 为问题和缺陷提供依据。问题按 [关闭条件](../README.md)
 
 - [261008-ceo-value-historical-review.md](positioning/261008-ceo-value-historical-review.md)——活卡：[持续助理](../issues/261008-ceo-operating-loop.md)、[总助体验](../issues/261006-chief-of-staff-experience.md)。回看归档诉求、研究洞见与关闭依据，检查提醒/建议、跟踪、学习是否进入产品结果与验收
 - [261008-ceo-value-contract-review.md](positioning/261008-ceo-value-contract-review.md)——活卡：[持续助理](../issues/261008-ceo-operating-loop.md)、[总助体验](../issues/261006-chief-of-staff-experience.md)。静态核对 CEO 价值证据边界，附当前 pin 的全局主区、无会话输入/导航与账本承载可行性
+- [261009-ceo-operating-practices.md](positioning/261009-ceo-operating-practices.md)——活卡：[持续助理](../issues/261008-ceo-operating-loop.md)。科技公司负责人实践的有界检索与待核证据；正文获取受限，不称四组一手实践已核
+- [261009-operating-loop-feasibility.md](tech-exploration/261009-operating-loop-feasibility.md)——活卡：[持续助理](../issues/261008-ceo-operating-loop.md)。事项更新、原 Session 排程、来源与成功读回的静态断点，有界 Host 候选、恢复窗口与最低验证
 - [261005-chinese-sme-boss.md](positioning/261005-chinese-sme-boss.md)——活卡：[261007-opening-brief-and-rhythm](../issues/261007-opening-brief-and-rhythm.md) 用口语化红线；[261007-input-boundary](../issues/261007-input-boundary.md) 用五谷渔粉案例作需求线索。中国中小企业一把手工作画像
 - [261005-exec-demo-narratives.md](positioning/261005-exec-demo-narratives.md)——活卡：[261007-input-boundary](../issues/261007-input-boundary.md) 只用它划清 Huper 式全量接入的边界。面向 CEO/CFO 的十分钟演示叙事
 - [261005-ceo-time-and-decision-research.md](positioning/261005-ceo-time-and-decision-research.md)——活卡：[261007-input-boundary](../issues/261007-input-boundary.md) 用它说明时间碎片和输入特点。一把手时间分配与决策过程
