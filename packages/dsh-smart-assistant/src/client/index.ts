@@ -146,34 +146,22 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         order: 5,
         label: () => '桌面',
       }, DashboardPanelIcon))
-    if (typeof document === 'undefined') {
-      ctx.slots.inject('main', () => {
-        const registration = ctx.slots.register({
-          name: 'main',
-          key: 'dsh-smart-assistant-dashboard',
-          inject: () => ({ onAsk: () => { ctx.layout?.selectPanel(null) } }),
-        }, DashboardMainPanel)
-        selectDashboardByDefault(ctx)
-        return registration
-      })
-      return
-    }
-    const storeApi = clientRequire<{
+    const storeApi = typeof document === 'undefined' ? undefined : clientRequire<{
       createSnapshotStore<T>(initial: T): { getSnapshot(): T; subscribe(listener: () => void): () => void; set(value: T): void }
       defineStore: import('./projection-view').DefineProjectionViewStore
     }>('@deepseek-ai/dsh-client-store')
-    const projection = typeof document === 'undefined' ? undefined : storeApi.createSnapshotStore<ProjectionDownload>({ status: 'disconnected' })
+    const projection = storeApi?.createSnapshotStore<ProjectionDownload>({ status: 'disconnected' })
     const reader = projection === undefined ? undefined : mountProjectionReader(ctx, ctx.connection, projection, {
       baseURI: document.baseURI, origin: location.origin, fetch: globalThis.fetch.bind(globalThis),
     })
-    const viewStore = projection === undefined ? undefined : createProjectionViewStore(storeApi.defineStore)
+    const viewStore = projection === undefined || storeApi === undefined ? undefined : createProjectionViewStore(storeApi.defineStore)
     ctx.slots.inject('main', () => {
       const registration = ctx.slots.register({
         name: 'main',
         key: 'dsh-smart-assistant-dashboard',
         ...(viewStore === undefined ? {} : { store: viewStore }),
         inject: () => ({ hooks: projection === undefined ? {} : { projection }, refreshProjection: () => { reader?.refresh() }, onAsk: () => { ctx.layout?.selectPanel(null) } }),
-      }, typeof document === 'undefined' ? DashboardMainPanel : ProjectionPanel)
+      }, projection === undefined ? DashboardMainPanel : ProjectionPanel)
       selectDashboardByDefault(ctx)
       return registration
     })
