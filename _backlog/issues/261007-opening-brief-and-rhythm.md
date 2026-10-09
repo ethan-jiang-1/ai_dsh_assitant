@@ -31,7 +31,7 @@ opened: 2026-10-07
 |---|---|---|---|---|---|---|---|
 | 1 | 回来的一把手开屏见**三行业务播报**（要你拍的/在跟的/还缺一个数），非「你好」——它先开口（断点 4） | 确定性 | blank 会话 + walk view 有数据（decisions/actions/gaps 各一） | 文案含「一把手桌面」「要你拍的」「老客户续约要不要涨价」「在跟的」「还缺一个数」；三行各是 button 且带 onClick | **互补**：无数据 → 走 intake 卡（不是空播报、不是三行空壳）；fresh → 保留 intake | `packages/dsh-smart-assistant/tests/client/client-first-mile.spec.ts` »'a returning principal opens on the brief, not a greeting (261007 Slice 1b)' + »'renders nothing once the session has any content' + »'tells a first-time principal what to say and offers the desk' ——**证明**合成规则与分支；**不能证明**真实浏览器里它长得可读 | 播报话术是否符合"口语化语文题、不是仪表盘"红线（见下 R5） |
 | 2 | 重载 **不增殖、不重发**（day-2 打开不假装初次见面） | 确定性 + 编排 | 同一 home 连续重载 ×3 | 会话数恒定、无 `[桌面] 你好`、播报常在 | **被取代的旧行为**：auto-send 版 10 分钟 6 个幽灵会话、每条 ~44.6K tok | **客户端 half（机械，在场）**：`client-first-mile.spec.ts` »'a returning principal opens on the brief, not a greeting (261007 Slice 1b)'——**只证明** blank+has-desk 时渲染的是决定性播报卡。**2026-10-08 校正**：原行声称"夹具须覆盖 blank 且 has-desk 时不调 sendPrompt"——**夹具并不覆盖**：该 spec 面 `sendPrompt` 零引用，"不重发"在机械层**无断言**。**行为 half**：走查记录（`/tmp/ux-shots/slice1-*`）的 ×3 重载——**证明**当时那次不增殖；**不能证明**长期多会话行为（归 eval/真用） | 无 |
-| 3 | 缺 composer 的相位**能打字**（主线不死锁，断点 2） | 编排 | blank 相位（Day-0 intake）与 has-desk 相位（Day-2 拍板） | vendor contenteditable 在场、真打字有反应 | **互补**：A1 隐藏 CSS 时代"能打字"是假绿——曾用 DOM 大纲匹配（隐藏元素也在大纲里）判 pass；负例须证明**可见性**而非存在性 | **几何/可见性探针**（`/tmp/ux-shots/slice1-*`，一次性走查，无耐久 owner——见矩阵尾注）；渲染面的耐久 owner 是 `snapshots/web-face/`（`pnpm web-expected`）——**证明**真渲染下可见可交互；**不能证明**其他相位。⚠️ blank 场景当前夹具腐烂（同 #7） | 无 |
+| 3 | 缺 composer 的相位**能打字**（主线不死锁，断点 2） | 编排 | blank 相位（Day-0 intake）与 has-desk 相位（Day-2 拍板） | vendor contenteditable 在场、真打字有反应 | **互补**：A1 隐藏 CSS 时代"能打字"是假绿——曾用 DOM 大纲匹配（隐藏元素也在大纲里）判 pass；负例须证明**可见性**而非存在性 | **几何/可见性探针**（`/tmp/ux-shots/slice1-*`，一次性走查，无耐久 owner——见矩阵尾注）；渲染面的耐久 owner 是 `snapshots/web-face/`（`pnpm web-expected`）——**只证明**所录场景的 DOM 结构与外观字段符合期望；**不能证明** contenteditable 输入框可见或真打字有反应，需另取几何/可见性及真输入证据，也不能覆盖其他相位。⚠️ blank 场景当前夹具腐烂（同 #7） | 无 |
 | 4 | dashboard 的「有问题？」**真回对话**（死按钮变真入口，断点 3） | 编排 | 点击 dashboard 的 onAsk | `ctx.layout.selectPanel(null)` 被调用、主区回会话面 | **负例/死路**：`dsh-navigate-to-session` 事件全仓（含 vendor）**零监听者**——旧实现是断的，夹具须钉住走 `ctx.layout` 而非该事件 | `packages/dsh-smart-assistant/tests/client/client-dashboard.spec.ts` »'onAsk returns to the Conversation through ctx.layout (261007 Slice 1c)' ——**证明**路由对；**不能证明** vendor 侧真切了面板（归走查） | 无 |
 | 5 | 拍板记录**读起来是本人的话**（中文口吻，非英文机器腔） | 确定性 + 模型行为 | 点 dashboard 决策选项 | 入账语句形如「拍：〈问题〉→〈选项〉」、中文；卡片即时「已拍」锁定 | **互补**：英文机器腔版是**已修的病**（Slice 2 前）——夹具须覆盖"不出现英文机器腔"；回执退场后新决策上位 | `client-dashboard.spec.ts` »'option click proxies the decision in the principal-voice Chinese lane (261007 Slice 2)' ——**证明**车道与文案形态；**不能证明**模型侧是否真把这段话按本人语气记账（归 eval/真机） | **语气是否真像本人**（taste，机器不判）——终验项 |
 | 6 | 周坐排程落盘：周一 09:00 Asia/Shanghai + at 型 due | 确定性（调度）+ 模型行为（技能守约） | 真模型跑 morning-brief 周变体一节 | schedule 两条落盘、时区正确、同一回合不堆叠（`schedule_list` 防堆叠） | **互补**：重复触发不产生第二组排程（防堆叠）；`weekly` 为 vendor 原生承载（B1 实施期待核实，当时只有 `at` 型先例） | **机械 half 缺耐久 owner**：排程落盘读的是会话日志（`session.v<n>.jsonl.zstd`，读法 owner = [`dev/reports/usage-report.mjs`](../../dev/reports/usage-report.mjs) `sessionLogs`/`readEvents`），但**未固化成一次性可复跑的命令**——本卡只有走查记录（`/tmp/ux-shots/slice3-*`）。**模型 half**：`pnpm eval --only <task-id>`（任务清单 `pnpm eval --list`；家 = `dev/eval/`，其 AGENTS 是 owner）——本卡未挂具体 task-id，**属未指定，不是已证明**。**证明**该回合落盘正确；**不能证明**跨周边界行为（归真用） | 周坐这四个对账口径是不是一把手真想要的（业务价值） |
@@ -43,7 +43,9 @@ opened: 2026-10-07
 
 **判定边界**：即使上表技术检查全部通过，#5、#6 与 R5 的用户判断也仍需单独记录。技术通过不能代替产品验收，见 [验收结果判断](../methods/validation-judgment.md)。
 
-**证据保存限制（2026-10-08 记录）**：上表 #3、#6 的走查证据住在
+### 证据保存限制
+
+2026-10-08 记录：上表 #3、#6 的走查证据住在
 `/tmp/ux-shots/`（49 个文件，31 个 slice 证据）——**`/tmp` 重启即失**。`snapshots/` 按
 [其契约](../../snapshots/AGENTS.md)只收 session 回放与 web 渲染期望两类，**走查截图不在任何已收编
 owner 面**，故本卡不擅自把它们塞进 `snapshots/`（那是越界，也是

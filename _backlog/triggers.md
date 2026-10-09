@@ -21,3 +21,4 @@
 | 技能许可字段 | 不写 | 读 vendor 时 provider **开始读** `license` / `compatibility`，或技能出现第二个消费方 | [冻结卡](_archive/settled_issues/260928-skill-license-fields.md) |
 | desk 文件字段 | 不预建版本 | 桌面文件里出现**面板不认识的字段** | [冻结卡](_archive/settled_issues/260928-desk-file-schema-version.md) |
 | 桌面默认落地 | 插件边界内不做 | 上游**发布**默认视图可配置，或空白相位主区可插件贡献 | [desk-primary-view](../notes/implemented/2026-10-06-desk-primary-view.md) |
+| 走查证据保存 | 不预建第三类证据形态 | 走查或收口时，发现同类 model-visible/渲染证据**第二次只靠 `/tmp` 手工留存** | [开屏卡的证据保存限制](issues/261007-opening-brief-and-rhythm.md#证据保存限制) |
