@@ -24,7 +24,7 @@ Web 客户端贡献独立全局桌面、会话内桌面视图与右栏三室。�
 
 Host 的 `./desk-projection` 是固定 JSON 文件下载，不是经营 writer 或通用文件读取。Config `dataDir` 与 agent working folder 独立；缺失、损坏和 I/O 错误分别返回错误，且 fiber 卸载撤销路由。目录/状态码/限额合同由上面的浏览器动作链拥有；此入口不向模型添加工具或提示词。
 
-Client 内部下载对象处理连接代际、手动重读、陈旧缓存与迟到结果拒绝，使用平台 snapshot publisher；由未来 apply 消费方承担 effect disposal。它未接入主面板，也未校验经营 schema；`ready` 不等于业务成功。对象无持久缓存，组件不自行订阅或发起下载。
+Client 内部下载对象处理连接代际、手动重读、陈旧缓存与迟到结果拒绝，使用平台 snapshot publisher；由未来 apply 消费方承担 effect disposal。它固定使用经营 v1 解析器验证身份、修订、事项状态及证据定位；解析失败保留最后有效内容。它未接入主面板；`ready` 不等于业务成功。对象无持久缓存，组件不自行订阅或发起下载。
 
 ## 依赖姿态
 

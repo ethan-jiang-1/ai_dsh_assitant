@@ -1,8 +1,10 @@
 /**
- * Web-only fixed JSON download object. Schema validation belongs to its consumer.
- * Preserves last successful JSON across disconnect/failure; ready means downloaded JSON,
- * not a validated ledger or successful business operation. No persistence or automatic retries.
+ * Web-only fixed v1 operating projection reader. Retains last valid projection on failure.
+ * Ready means wire validation succeeded, not a durable business operation or verified sources.
+ * No persistence or automatic retries.
  */
+import { parseOperatingProjection } from './operating-projection'
+import type { OperatingProjection } from './operating-projection'
 export interface Observable<T> {
   getSnapshot(): T
   subscribe(listener: () => void): () => void
@@ -10,7 +12,7 @@ export interface Observable<T> {
 
 export interface ProjectionDownload {
   readonly status: 'disconnected' | 'loading' | 'ready' | 'missing' | 'error'
-  readonly data?: unknown
+  readonly data?: OperatingProjection
   readonly error?: string
   readonly stale?: boolean
 }
@@ -43,7 +45,7 @@ export function createProjectionReader(connection: Connection, snapshot: Publish
   let activeGeneration: number | undefined
   let request: AbortController | undefined
   let requestId = 0
-  let lastData: unknown
+  let lastData: OperatingProjection | undefined
   let disposed = false
 
   const refresh = (): void => {
@@ -73,9 +75,9 @@ export function createProjectionReader(connection: Connection, snapshot: Publish
             : response.status === 413 ? 'projection-too-large' : 'download-failed')
           return
         }
-        let data: unknown
+        let data: OperatingProjection
         try {
-          data = await response.json()
+          data = parseOperatingProjection(await response.json())
         } catch (error) {
           void error
           publishFailure('error', 'projection-invalid')
