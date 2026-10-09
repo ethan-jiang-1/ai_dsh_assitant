@@ -199,6 +199,14 @@
           - id: assistant-operating-tool
             name: dsh-smart-assistant/tool-operating
 
+          # ── 经营账本提示词段落（K3 行为修复，2026-10-10）───────────────────────────
+          #
+          # 首轮 eval 发现：工具在场但模型用散文应答交代请求。工具没人介绍=模型合理跳过。
+          # 本段是介绍：受托经营事项必须走 assistant_operating，推断的重大变化只能
+          # propose、完成需逐字依据、无归属片段 note 待认领。稳定指令带（manual 300 后）。
+          - id: assistant-operating-brief
+            name: dsh-smart-assistant/operating-brief
+
           # ── working folder：知识（第四房间，只读检索面）──────────────────────────────
           #
           # 写入走 reflect（save_page，staged draft）与 research promote——本工具刻意只读（D6 定值）：

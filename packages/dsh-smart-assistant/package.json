@@ -79,7 +79,11 @@
       "types": "./lib/client/index.d.ts",
       "default": "./lib/client/index.js"
     },
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./operating-brief": {
+      "types": "./lib/agent/operating-brief/index.d.ts",
+      "default": "./lib/agent/operating-brief/index.js"
+    }
   },
   "files": [
     "lib",
