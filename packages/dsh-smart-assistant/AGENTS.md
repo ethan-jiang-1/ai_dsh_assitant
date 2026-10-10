@@ -19,7 +19,7 @@
 
 - 三个平面别混：**HOST**（服务 = Service Definition + 同包唯一 Provider）、**AGENT**（preset 的 agent 行，
   model-facing：工具与提示词段落）、**CLIENT**（浏览器面，皮肤，模型不可见）。
-- **四个工具不合并**：动词集互不重叠，合并只会让模型在错误的房间找东西。
+- **工具不合并**：动词集互不重叠，合并只会让模型在错误的房间找东西。
 - **改模型可见面**（工具 description、提示词段落、persona 文本）必须同 diff 做三件事：
   ① 语言用英文（根 `AGENTS.md` 语言分工）；② `model-visible means logged`——必须能从会话日志重建；
   ③ 在 [`docs/identity.md`](../../docs/identity.md) 登记面与名，并配快照或真实组合断言。
@@ -32,7 +32,8 @@
 | `src/domain/home/layout.ts` | **working folder 布局的唯一 owner**：路径、scaffold、种子文件、健康检查 |
 | `src/domain/home/` 其余 | frontmatter、Room 存储抽象、摘要渲染、手册渲染、节拍器、curate findings |
 | `src/domain/memory/` `src/domain/research/` `src/domain/skills/` `src/domain/knowledge/` | 四个房间的**词汇与纯核**（校验、生命周期、检索排序、findings） |
-| `src/agent/`（`tool-*`、`tool-support`、`memory-digest`、`home-preamble`、`learn`、`ov-shield`） | agent 面入口：四工具、共享 presenter 管道（`presentationMeta` 投影与读回）、段落贡献、学习 provider、遮蔽盾 |
+| `src/domain/operating/` + `src/host/operating-ledger/` + `src/host/desk-projection/` | **经营账本与投影**（第二持久化面）：纯核归约、单 writer 服务、固定只读下载（契约 = [`docs/operating.md`](../../docs/operating.md)） |
+| `src/agent/`（`tool-*`、`tool-support`、`memory-digest`、`home-preamble`、`learn`、`ov-shield`） | agent 面入口：五工具、共享 presenter 管道（`presentationMeta` 投影与读回）、段落贡献、学习 provider、遮蔽盾 |
 | `src/dev/preset-runner/` | 验证驱动（非产品能力；`./preset-runner` 公开出口保留，dev patch 按包名解析不受路径影响） |
 | `src/host/index.ts` | 服务实现（host 面）：四个房间的读写、curate、digest、提案收件箱；根 `src/index.ts` 是它的薄导出稳定入口（同 class 身份，不持第二份实现） |
 | `presets/assistant/` | 策展技能（`skills/`，**模型用**）；shipped preset 组合由包根 `cordis.patch.yml` 的 `preset-assistant` 行拥有 |

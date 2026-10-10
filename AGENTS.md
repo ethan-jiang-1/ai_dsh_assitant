@@ -14,8 +14,7 @@
 **意图从哪来**（两通道，各管各的）：① **用户本轮请求**——唯一外部通道，本轮范围由它决定；② **已立项的内部工作项**——
 `notes/proposed/` 的提案卡（毕业形态：问题/方案/验收三件齐——「输掉的方案」一节推荐带上、毕业为 implemented 时门禁强制，**待用户拍板**，正文与验收都在卡上；点名或点头即开工）
 与 `_backlog/issues/` 的推敲卡（触发型/用户点名才取用，流程与关闭条件见 `_backlog/README.md`）。这次不修的缺陷另记在 `_backlog/bugs/`，不是开工通道。
-**重大新工作默认先呈批**：跨切片的新工作 / 流程面改动 / 模型可见面新能力，开工前先立 proposed 卡等点头或点名
-（依据 intent-channel-default-flip note）；
+**重大新工作默认先呈批**：跨切片的新工作 / 流程面改动 / 模型可见面新能力，开工前先立 proposed 卡等点头或点名；
 轮内直落只保留给豁免清单——机械与局部编辑（与 note 义务豁免同口径）、已授权切片的轮内延续、用户本轮明确点名的具体任务、bug 修复卡毕业。
 **没有用户任务时不发明任务**——报告家况，或按点名的卡推敲/实施；不要从 git log 或记忆发明任务。
 重大未来工作先在 `_backlog/issues/` 推敲，成熟并进入跨会话实施前用 `notes/proposed/` 显式承载；已授权局部编辑与轮内交付决定的 note 义务按 `notes/README.md`，不为小修立空壳卡或重复呈批。
@@ -40,7 +39,7 @@ rejected 政策、命名——本文件不复制）；改行为、契约或开�
 
 | 路径 | 是什么 | 谁能改 |
 |---|---|---|
-| `packages/dsh-smart-assistant/` | **插件包**（bundle）：入口×平面、自有四工具×动词、组合行、pin 与依赖姿态见生成物 `docs/package-catalog.md`；包内 owner 面与纪律见其 `AGENTS.md` | 改模型可见面 / 服务 / 布局动这里 |
+| `packages/dsh-smart-assistant/` | **插件包**（bundle）：入口×平面、自有工具×动词、组合行、pin 与依赖姿态见生成物 `docs/package-catalog.md`；包内 owner 面与纪律见其 `AGENTS.md` | 改模型可见面 / 服务 / 布局动这里 |
 | `docs/` | **当前合同**（只写现在，无历史）—— 文档 tier 与"谁拥有什么"见其 `AGENTS.md` | 门禁住了的事实进这里 |
 | `notes/` | **开发记忆与证据链**（分类 owner：`notes/README.md`）：`proposed/` 将来 → `implemented/` 当前权威 → `archived/` 冻结历史；`rejected/` 存负知识与一行原因 | 决策与输掉的方案进这里 |
 | `_backlog/` | **推敲空间**：还没定的事在 `issues/`（`YYMMDD-`），这次不修的缺陷在 `bugs/`（`BUG-`），调研在 `research/`，方法在 `methods/`，离开活跃区的在 `_archive/`。只装判断材料、**永不调度**；流程与关闭条件见其 `README.md`；`triggers.md` 只收工作里会撞上的观察（收割/走查/收口扫这张短表） | 收割/走查/对话中值得推敲但未到裁决的思考在此立卡 |
@@ -64,7 +63,7 @@ pnpm install            # ① 并入 vendor/dsh 整树（首次较慢）
 bash dev/env/prepare.sh     # ② **首次必须先跑**：补齐 boot 需要的 vendor/dsh 产物（deps/native/lib/web，已在位即跳过）
 bash dev/env/setup.sh       # ③ **起服务的前置**：它才建 dev（web）+ dev-task（headless）两个 profile 并把 roster 指向本仓；
                         #    skip 它 = `profile "dev" does not exist`，而 DSH 那句报错会把你指向错的命令
-pnpm dsh --profile dev --port 0 --no-open   # ④ Web UI：preset 行为（四工具/persona/摘要）的人面交互只在这里的会话里验
+pnpm dsh --profile dev --port 0 --no-open   # ④ Web UI：preset 行为（工具/persona/摘要段落）的人面交互只在这里的会话里验
                         #    （自动行为判决走 `pnpm eval`）；`--port 0` = OS 分配端口 + token 鉴权（不占 3080、避撞车）；交给人之前先 `pnpm preflight '<URL>'`（绿了再交）
 pnpm dsh --profile dev-task "one task"   # ⑤ 只想冒烟 host 面（插件装载/scaffold/服务行）就跑它，进程自己退（不进 preset）
 ```
@@ -145,7 +144,7 @@ pnpm eval:domain        # 领域评测集 v0（G2＝领域质量的人判终关�
 
 ## 探索路由（本仓侧与 DSH 侧常用入口）
 
-- **本仓侧**：证据路由（改什么 → 跑什么 → 回归资产在哪）= [`docs/testing.md`](docs/testing.md) §一页证据地图（唯一表主）；五条功能路由与三条链路 = [`docs/architecture.md`](docs/architecture.md) §七/§八
+- **本仓侧**：证据路由（改什么 → 跑什么 → 回归资产在哪）= [`docs/testing.md`](docs/testing.md) §一页证据地图（唯一表主）；六条功能路由与三条链路 = [`docs/architecture.md`](docs/architecture.md) §八/§七
 - **平台事实的家**（读 vendor，本仓不复写正文）：文档 tier = `vendor/dsh/docs/AGENTS.md`；主仓 note 合同 = `vendor/dsh/.agents/notes/README.md`（本仓合同是 [`notes/README.md`](notes/README.md)，只写差量）；主仓开发技能 = `vendor/dsh/.agents/skills/`（发现根是本仓 `.git`，不进本仓技能目录；那些命令在主仓里跑）
 - 组合层级（bundle → profile patch → home patch → `--patch`）：`vendor/dsh/docs/architecture.md`
 - preset 语义（roster/roots/遮蔽/standing mount）：`vendor/dsh/packages/preset/agent-preset/README.md`

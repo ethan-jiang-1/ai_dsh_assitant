@@ -45,11 +45,11 @@
 | `skills/` | 学到的本事（DSH 技能格式） | 按需加载；退役 → `archive/`（不删可恢复）；提案车道 `propose_skill` → 人审 → `land_skill`，另有 `save_skill` 直接写入，详见 [当前契约](docs/home.md) §二（技能怎么提案） |
 | `knowledge/` | 领域知识页（概念/实体/来源，`[[互链]]`，OKF 字段子集） | `draft`（不进检索）→ 人审 `stable`；`deprecated` 留原地（链接不断） |
 
-**桌面与抽屉**：常驻上下文的只有一份**有界摘要**（精选记忆 + 开放线索 + 知识目录树）；
-完整记录、归档、技能正文都在抽屉里，用工具取。过程性知识（怎么写记忆、怎么养护、怎么复盘）
+**桌面与抽屉**：常驻上下文 = 身份（SOUL.md）+ 手册 + 一份**有界摘要**（精选记忆 + 开放线索 +
+知识目录树）+ 经营账本段；完整记录、归档、技能正文都在抽屉里，用工具取。过程性知识（怎么写记忆、怎么养护、怎么复盘）
 一律放技能，不占常驻上下文。
 
-## 四个工具
+## 工具
 
 | 工具 | 动词 |
 |---|---|
@@ -57,11 +57,12 @@
 | `assistant_research` | `open` `update` `park` `drop` `promote` `list` |
 | `assistant_reflect` | `brief` `save_skill` `retire_skill` `save_page` `promote_page` `deprecate_page` `propose_skill` `land_skill` |
 | `assistant_knowledge` | `search` `get`（只读检索，附反链） |
+| `assistant_operating` | `desk` `read` `entrust` `report` `revise` `propose` `confirm` `note` `claim` `complete` `reopen`（经营账本 11 动作；独立 `assistant-operating` dataDir，契约 = [docs/operating.md](docs/operating.md)） |
 
 `curate` 是**机器能跑的养护检查**（重复、悬空引用、摘要预算、过期线索、技能遮蔽/退役/断链/凭据、
 知识页治理等——**非穷举**，完整检查面 = [`docs/home.md`](docs/home.md) §四）—— 能让代码查的，别让 AI 自己说。
 
-这四个是本插件的**自有**工具；同一组合里还有 DSH 现货工具在场——`session_query` 族（原始会话
+这些是本插件的**自有**工具；同一组合里还有 DSH 现货工具在场——`session_query` 族（原始会话
 检索）、`schedule_*` 定时四件、`skill`（技能加载）等，完整组合见 `docs/architecture.md` §二。
 
 ## 装法
@@ -85,13 +86,13 @@ dsh plugin --profile <p> add file:./packages/dsh-smart-assistant   # <p>＝你�
 | Web 交互 | `pnpm dsh --profile dev --port 0 --no-open` | Web preset 行为；交给人前先跑 `pnpm preflight '<URL>'` |
 | 测试/构建 | `pnpm typecheck && pnpm test` | 类型、纯核和服务级合同；组合与发行物另需 `pnpm build` / `pnpm release-smoke` |
 
-按功能找入口/主链/验证命令/失败定位：五条功能路由在 [docs/architecture.md](docs/architecture.md) §八（启动、模型请求、浏览器三条链路在 §七）。
+按功能找入口/主链/验证命令/失败定位：六条功能路由在 [docs/architecture.md](docs/architecture.md) §八（启动、模型请求、浏览器三条链路在 §七）。
 
 **按问题找**（纯路由，不复制正文）：
 
 | 你的问题 | 去哪儿 |
 |---|---|
-| 某个功能的主链、实现入口、最小验证 | [docs/architecture.md](docs/architecture.md) §八（五条功能路由） |
+| 某个功能的主链、实现入口、最小验证 | [docs/architecture.md](docs/architecture.md) §八（六条功能路由） |
 | 一条命令 / 一条消息 / 一次点击进来经谁、哪里可观察 | [docs/architecture.md](docs/architecture.md) §七（三条链路 + 失败模式表） |
 | 组合里到底有没有这一行 | `pnpm dsh --profile dev --dump-config`（路由见 [docs/dev.md](docs/dev.md) §六） |
 | 运行态现在长什么样（四房间、两个根文件） | [docs/home.md](docs/home.md)；实际文件在 `dev/harness-home/assistant/` |
@@ -103,8 +104,8 @@ dsh plugin --profile <p> add file:./packages/dsh-smart-assistant   # <p>＝你�
 实际 preset 来源是 `package.json` 的 `dsh.bundle.patch` 指向 `packages/dsh-smart-assistant/cordis.patch.yml` 中的 `preset-assistant` 行。运行数据的 `DSH_HOME`、助手 `dataDir` 与源码 cwd 是三个不同根，详见 [开发手册](docs/dev.md)。
 
 打包安装的形状（`pnpm pack` 出 tarball 再 `dsh plugin add <tarball>`）由 `pnpm release-smoke` 机械验证：
-pack → 干净 home → 装 → 组合断言。`file:` 这条路径本身实测过：装进干净 home 3.1s，`--dump-config` 里能看到
-`preset-assistant` 行与四个工具行。
+pack → 干净 home → 装 → 组合断言。`file:` 这条路径本身实测过：装进干净 home 后
+`--dump-config` 里能看到 `preset-assistant` 行与全部自有工具行。
 
 装完只需把该 profile 的 `agent-preset-registry` 行的 `default` 设成 `assistant`（模板：`dev/profiles/profile-patch.yml`）。
 **0.1.7 起 registry 既不扫目录、也不接受 preset 路径**：`assistant` 的定义随包发（`package.json` 的

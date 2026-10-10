@@ -6,7 +6,7 @@
 > 执行细则（逐面判断规则与已知假绿清单）= `.agents/skills/pre-push-evidence/`（路由表主在本文「一页证据地图」，技能不复制表）。
 > 路径基准：本文件中的 `tests/…` 一律**包内相对**（= `packages/dsh-smart-assistant/tests/…`），其余路径仓根相对。
 >
-> 入口分工：`pnpm test` 覆盖源码与服务级合同；真实 preset 装载使用 `preset-composition.spec.ts` 与 `dev/preset-runner*.patch.yml`；浏览器交互使用 `snapshots/web-face/`。三者分别回答规则、组合、界面问题，不把 end-to-end 当作唯一理解方式。
+> 入口分工：`pnpm test` 覆盖源码与服务级合同；真实 preset 装载使用 `preset-composition.spec.ts` 与 `dev/probes/session/preset-runner*.patch.yml`；浏览器交互使用 `snapshots/web-face/`。三者分别回答规则、组合、界面问题，不把 end-to-end 当作唯一理解方式。
 
 ## 一页证据地图（改什么 → 跑什么 → 回归资产在哪 → 谁能证明什么）
 
@@ -26,7 +26,7 @@
 | web 渲染面（首开/座位/文案） | `pnpm web-expected`（隔离 home 真渲染；过目 diff 后 `--refresh`） | `snapshots/web-face/` 两场景 | 渲染期望 / 交互逻辑（client spec 管） |
 | 行为地板 / 领域质量 | `pnpm eval`（`--only` 聚焦）/ `pnpm eval:domain`（人判） | `dev/eval/` | 无害地板与人判质量 / 机器不判质量 |
 | 发布物 / 依赖 / preset 包装 / exports | `pnpm gen-catalog`（freshness）+ `pnpm build` + `pnpm release-smoke`；keyless 回放 `dev/probes/session/preset-runner-replay.patch.yml` | `scripts/release/release-smoke.mjs` | 安装形状与组合断言 / 长期行为 |
-| 仓库工具与门禁（`scripts/verify*`、checks、生成器） | 新检查的**红夹具**（prove-it-red）+ `pnpm verify` | `tests/tooling/verify-gates.spec` | 工具核接受/拒绝形状 / 门禁全量（verify 自身） |
+| 仓库工具与门禁（`scripts/checks/verify.mjs` 及 checks 核、生成器） | 新检查的**红夹具**（prove-it-red）+ `pnpm verify` | `tests/tooling/verify-gates.spec` | 工具核接受/拒绝形状 / 门禁全量（verify 自身） |
 | docs / notes | `pnpm verify`（断链四连/命令互证/notes 形状） | — | 结构与链接 / 语义正确（漂移审计管） |
 | pin（`vendor/`） | `pnpm sync-dsh -- --tag <tag>`（自有全链，不手改） | `vendor/UPSTREAM.md` | pin 簿记与重校 / — |
 

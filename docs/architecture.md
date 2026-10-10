@@ -42,7 +42,7 @@ HOST 面（cordis.patch.yml → dsh.bundle.patch）
                             + session-query-sqlite 翻开行（`first-search` + 持久索引库，原始会话检索）
                             + time-context 行（当前时间/时区/经过时长随请求注入）
                             + schedule + ui-schedule 行（定时面：到期任务以原会话 follow-up 投递；
-                              schedule_create/list/update/delete 四工具只挂 root agents——Web 组合默认带，
+                              schedule_create/list/update/delete 定时四件只挂 root agents——Web 组合默认带，
                               headless 组合由 profile 层显式 disabled，它依赖 web-app 层的 sessionController）
                             + ui-chat 行（首开预置 transcriptView: detailed——vendor 预构建 client lib 落后其 src，
                               全新 home 无存档时 mode=undefined 会使 conversation.view 槽崩溃；退役条件=上游发布物确认带兜底）
@@ -103,7 +103,7 @@ client 的三室 tab 读的就是同一个实例；preset 里的服务行必须�
 （→ 走 `docs/identity.md` 的 model-visible 纪律，配快照与日志）？
 
 **服务的三角色**：`assistantMemory` 是 Service Definition，**同一包同一文件**里给出唯一 Provider
-（所以不存在独立的 provider 包可找）；Consumer 是各 agent 面入口（四个工具、摘要段落、复盘）——按
+（所以不存在独立的 provider 包可找）；Consumer 是各 agent 面入口（五个工具、摘要段落、经营账本、复盘）——按
 `inject` 声明消费，不依赖具体实现。
 **主干 service ≠ 竞聘 seam**：`assistantMemory` 是单 Provider、多 Consumer 的主干 service 形态；
 seam 的成色读数是**第二个真实 Provider 出现而 Consumer 一行不改**——没有第二实现预期时，不为
