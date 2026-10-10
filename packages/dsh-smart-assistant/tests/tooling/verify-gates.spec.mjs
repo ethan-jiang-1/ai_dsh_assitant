@@ -24,7 +24,9 @@ import {
   exportManualProblems,
   GRADUATED_STATUS,
   languageGuardProblems,
+  markdownCorpusFromTracked,
   notesNamingProblems,
+  notePointerProblems,
   notesStateProblems,
   backlogGraduationProblems,
   backlogLivenessProblems,
@@ -141,6 +143,15 @@ describe('relativeLinkProblems', () => {
 // The production runner's corpus is part of the contract: passing files directly to the pure
 // core cannot catch a directory omitted by verify.mjs. Run its unchanged source in a throwaway
 // repo, importing the real core; unrelated gates can fail in this deliberately minimal fixture.
+
+/** The corpus is built from `git ls-files`, so a real-runner fixture must be a real git repo. */
+const trackFixtureRepo = root => {
+  const git = (...args) => spawnSync('git', ['-C', root, '-c', 'user.email=fixture@example.test', '-c', 'user.name=fixture', ...args], { encoding: 'utf8' })
+  git('init', '-q')
+  git('add', '-A')
+  git('commit', '-qm', 'fixture')
+}
+
 describe('verify relative-link corpus wiring', () => {
   it('rejects broken routes in every active backlog area, accepts repaired routes, and leaves _archive frozen', () => {
     const root = temp('verify-link-wiring-')
@@ -165,12 +176,16 @@ describe('verify relative-link corpus wiring', () => {
       '_backlog/research/tech-exploration/deeper/261005-deep.md',
       '_backlog/methods/README.md',
       '_backlog/methods/some-method.md',
+      // Loose tracked markdown in the deliberation space routes readers too — the tracked-corpus
+      // gate covers it (the old hand-picked corpus omitted exactly this shape).
+      '_backlog/unowned.md',
     ]
-    for (const file of [...active, '_backlog/_archive/README.md', '_backlog/_archive/research/261005-frozen.md', '_backlog/_archive/fixed_bugs/BUG-009-frozen.md', '_backlog/unowned.md']) {
+    for (const file of [...active, '_backlog/_archive/README.md', '_backlog/_archive/research/261005-frozen.md', '_backlog/_archive/fixed_bugs/BUG-009-frozen.md']) {
       const path = join(root, file)
       mkdirSync(join(path, '..'), { recursive: true })
       writeFileSync(path, '[route](missing.md)\n')
     }
+    trackFixtureRepo(root)
     const gate = 'links: relative markdown links point at existing files'
     const run = () => {
       const result = spawnSync(process.execPath, [join(scripts, 'verify.mjs')], { encoding: 'utf8' })
@@ -186,7 +201,6 @@ describe('verify relative-link corpus wiring', () => {
     expect(broken).not.toContain('_backlog/_archive/README.md links to')
     expect(broken).not.toContain('_backlog/_archive/research/261005-frozen.md links to')
     expect(broken).not.toContain('_backlog/_archive/fixed_bugs/BUG-009-frozen.md links to')
-    expect(broken).not.toContain('_backlog/unowned.md links to')
     for (const file of active) writeFileSync(join(root, file, '..', 'missing.md'), '# destination\n')
     expect(run()).toContain(`ok   ${gate}`)
   })
@@ -217,19 +231,21 @@ describe('verify machine-local-path corpus wiring', () => {
       '_backlog/research/positioning/261005-nested.md',
       '_backlog/methods/README.md',
       '_backlog/methods/some-method.md',
+      // Loose tracked markdown in the deliberation space is held to the same rule (tracked-corpus).
+      '_backlog/unowned.md',
     ]
     for (const file of offending) {
       const path = join(root, file)
       mkdirSync(join(path, '..'), { recursive: true })
       writeFileSync(path, 'Protocol lives at /Users/someone/checkout/skills/x/SKILL.md\n')
     }
-    // Frozen history keeps its prose, notes/ is where external provenance is allowed to live, and a
-    // file outside the institution is not this rule's business.
-    for (const file of ['_backlog/_archive/README.md', '_backlog/_archive/research/261005-frozen.md', '_backlog/_archive/fixed_bugs/BUG-009-frozen.md', 'notes/implemented/2026-01-01-topic.md', '_backlog/unowned.md']) {
+    // Frozen history keeps its prose, notes/ is where external provenance is allowed to live.
+    for (const file of ['_backlog/_archive/README.md', '_backlog/_archive/research/261005-frozen.md', '_backlog/_archive/fixed_bugs/BUG-009-frozen.md', 'notes/implemented/2026-01-01-topic.md']) {
       const path = join(root, file)
       mkdirSync(join(path, '..'), { recursive: true })
       writeFileSync(path, 'Protocol lives at /Users/someone/checkout/skills/x/SKILL.md\n')
     }
+    trackFixtureRepo(root)
 
     const gate = 'links: contract docs cite no machine-local absolute paths'
     const result = spawnSync(process.execPath, [join(scripts, 'verify.mjs')], { encoding: 'utf8' })
@@ -239,7 +255,7 @@ describe('verify machine-local-path corpus wiring', () => {
     expect(result.status).toBe(1)
     expect(result.stdout).toContain(`FAIL ${gate}`)
     for (const file of offending) expect(result.stdout).toContain(`${file} cites a machine-local absolute path`)
-    for (const file of ['_backlog/_archive/README.md', '_backlog/_archive/research/261005-frozen.md', '_backlog/_archive/fixed_bugs/BUG-009-frozen.md', 'notes/implemented/2026-01-01-topic.md', '_backlog/unowned.md']) {
+    for (const file of ['_backlog/_archive/README.md', '_backlog/_archive/research/261005-frozen.md', '_backlog/_archive/fixed_bugs/BUG-009-frozen.md', 'notes/implemented/2026-01-01-topic.md']) {
       expect(result.stdout).not.toContain(`${file} cites a machine-local absolute path`)
     }
 
@@ -548,6 +564,13 @@ describe('agentsMdStabilityProblems', () => {
     const clean = join(dir, 'AGENTS.md')
     writeFileSync(clean, '## 规则\n- 永远不要碰日用的 ~/.dsh。\n', 'utf8')
     expect(agentsMdStabilityProblems(clean)).toEqual([])
+
+    // A date inside a markdown link target is the sanctioned shape — the gate's own message sends
+    // dated records into notes and asks for a link (found 2026-10-10: linking the 0.1.7 migration
+    // note tripped the bare regex).
+    const linked = join(dir, 'LINKED.md')
+    writeFileSync(linked, '## 规则\n- 原始记录在 [迁移 note](notes/archived/2026-09-25-x.md)。\n', 'utf8')
+    expect(agentsMdStabilityProblems(linked)).toEqual([])
 
     const dirty = join(dir, 'DIRTY.md')
     writeFileSync(dirty, '## 规则\n- （用户拍板 2026-09-24）开工即立卡。\n- 队列标记：▶ 可开工。\n', 'utf8')
@@ -1045,47 +1068,142 @@ describe('dshHomeInheritanceProblems', () => {
 
 describe('exportManualProblems', () => {
   const manifest = { name: 'dsh-smart-assistant', version: '1.2.3' }
+  const PIN = 'dsh-v9.9.9'
   // Rows mirror the exact shape export-dist.mjs generates (安装包 carries a suffix after the
   // filename) — the first red run of this gate was a fixture/reality mismatch on that suffix.
-  const manual = (version, tarball) => [
+  const manual = (version, tarball, baseline = PIN) => [
     '# 手册',
     '',
     '| | |',
     '|---|---|',
     `| 版本 | ${version === undefined ? '（缺行）' : `\`${version}\``} |`,
     `| 安装包 | \`${tarball}\`（与本手册同目录） |`,
+    `| 验证基线 | ${baseline === undefined ? '（缺行）' : `DSH \`${baseline}\`（Node ≥ 22）`} |`,
     '',
   ].join('\n')
+  const call = file => exportManualProblems({ manualPath: file, manifest, upstreamTag: PIN })
 
-  it('accepts a missing manual (nothing exported yet) and a manual that matches the manifest', () => {
-    expect(exportManualProblems({ manualPath: join(temp('dist-'), 'absent.md'), manifest })).toEqual([])
+  it('accepts a missing manual (nothing exported yet) and a manual that matches manifest and pin', () => {
+    expect(call(join(temp('dist-'), 'absent.md'))).toEqual([])
     const dir = temp('dist-')
     const file = join(dir, '安装手册.md')
     writeFileSync(file, manual('1.2.3', 'dsh-smart-assistant-1.2.3.tgz'), 'utf8')
-    expect(exportManualProblems({ manualPath: file, manifest })).toEqual([])
+    expect(call(file)).toEqual([])
   })
 
   it('rejects a manual whose version no longer matches the package (bump without re-export)', () => {
     const dir = temp('dist-')
     const file = join(dir, '安装手册.md')
     writeFileSync(file, manual('1.2.2', 'dsh-smart-assistant-1.2.3.tgz'), 'utf8')
-    const problems = exportManualProblems({ manualPath: file, manifest })
+    const problems = call(file)
     expect(problems).toHaveLength(1)
     expect(problems[0]).toContain('says 1.2.2')
     expect(problems[0]).toContain('pnpm export-dist')
   })
 
-  it('rejects a manual whose tarball name or missing header rows drift from the manifest', () => {
+  it('rejects a manual whose tarball name drifts from the manifest', () => {
     const dir = temp('dist-')
     const file = join(dir, '安装手册.md')
     writeFileSync(file, manual('1.2.3', 'dsh-smart-assistant-9.9.9.tgz'), 'utf8')
-    expect(exportManualProblems({ manualPath: file, manifest })[0]).toContain('expected dsh-smart-assistant-1.2.3.tgz')
+    expect(call(file)[0]).toContain('expected dsh-smart-assistant-1.2.3.tgz')
+  })
 
+  it('rejects a stale 验证基线 row (pin bumped without a re-export) — the 0.1.7→0.2.0 escape', () => {
+    const dir = temp('dist-')
+    const file = join(dir, '安装手册.md')
+    writeFileSync(file, manual('1.2.3', 'dsh-smart-assistant-1.2.3.tgz', 'dsh-v0.1.7-rc.2'), 'utf8')
+    const problems = call(file)
+    expect(problems).toHaveLength(1)
+    expect(problems[0]).toContain('验证基线')
+    expect(problems[0]).toContain('dsh-v0.1.7-rc.2')
+    expect(problems[0]).toContain('pnpm export-dist')
+  })
+
+  it('rejects a manual missing any pinned header row (版本 / 安装包 / 验证基线)', () => {
+    const dir = temp('dist-')
     const bare = join(dir, 'bare.md')
     writeFileSync(bare, '没有表头的手册\n', 'utf8')
-    const problems = exportManualProblems({ manualPath: bare, manifest })
-    expect(problems).toHaveLength(2)
+    const problems = call(bare)
+    expect(problems).toHaveLength(3)
     expect(problems[0]).toContain('says nothing')
+    expect(problems[2]).toContain('验证基线 row is missing')
+  })
+})
+
+describe('markdownCorpusFromTracked', () => {
+  it('keeps every tracked entry-chain file and drops the frozen _archive pool', () => {
+    const root = temp('corpus-')
+    const tracked = [
+      'AGENTS.md',
+      'dev/AGENTS.md',
+      'packages/dsh-smart-assistant/README.md',
+      'scripts/checks/README.md',
+      '.agents/skills/x/SKILL.md',
+      '_backlog/issues/261001-card.md',
+      '_backlog/_archive/settled_issues/260929-card.md',
+      'notes/archived/2026-09-30-note.md',
+      'package.json', // non-markdown is not corpus
+    ]
+    const corpus = markdownCorpusFromTracked(tracked, root)
+    expect(corpus).toHaveLength(7)
+    expect(corpus.some(path => path.includes(join('_archive', 'settled_issues')))).toBe(false)
+    expect(corpus.some(path => path.endsWith(join('dev', 'AGENTS.md')))).toBe(true)
+    expect(corpus.some(path => path.endsWith('SKILL.md'))).toBe(true)
+  })
+})
+
+describe('notePointerProblems', () => {
+  /** A throwaway "repo" with one real note: existence checks resolve against it. */
+  const setup = () => {
+    const root = temp('note-ptr-')
+    mkdirSync(join(root, 'notes', 'implemented'), { recursive: true })
+    writeFileSync(join(root, 'notes', 'implemented', '2099-01-01-real.md'), 'real\n', 'utf8')
+    return root
+  }
+
+  it('flags a note path that does not exist, wherever it hides (patch-YAML comment class)', () => {
+    const root = setup()
+    const problems = notePointerProblems({
+      repoRoot: root,
+      files: [{ file: join(root, 'patch.yml'), where: 'patch.yml', text: '# 决定 notes/implemented/2099-01-01-gone.md，D1=a' }],
+    })
+    expect(problems).toHaveLength(1)
+    expect(problems[0]).toContain('2099-01-01-gone.md')
+    expect(problems[0]).toContain('does not exist')
+  })
+
+  it('accepts resolving pointers in any file type and markdown links inside notes/', () => {
+    const root = setup()
+    const problems = notePointerProblems({
+      repoRoot: root,
+      files: [
+        { file: join(root, 'patch.yml'), where: 'patch.yml', text: '# 决定 notes/implemented/2099-01-01-real.md，D1=a' },
+        { file: join(root, 'notes', 'implemented', 'other.md'), where: 'notes/implemented/other.md', text: '见 [另一形态](notes/implemented/2099-01-01-real.md)。' },
+      ],
+    })
+    expect(problems).toEqual([])
+  })
+
+  it('rejects bare full-filename mentions inside notes/ (the tree links, not quotes)', () => {
+    const root = setup()
+    const problems = notePointerProblems({
+      repoRoot: root,
+      files: [{ file: join(root, 'notes', 'implemented', 'other.md'), where: 'notes/implemented/other.md', text: '现行决定在 notes/implemented/2099-01-01-real.md 里。' }],
+    })
+    expect(problems).toHaveLength(1)
+    expect(problems[0]).toContain('bare text')
+  })
+
+  it('ignores note paths that are tails of external or vendor paths (not our pointers)', () => {
+    const root = setup()
+    const problems = notePointerProblems({
+      repoRoot: root,
+      files: [
+        { file: join(root, 'notes', 'archived', 'x.md'), where: 'notes/archived/x.md', text: '出处：/Users/someone/ai_dsh_company/notes/archived/research/2099-01-01-elsewhere.md' },
+        { file: join(root, 'docs', 'x.md'), where: 'docs/x.md', text: '规则见 [implemented 事实维护](../../vendor/dsh/.agents/notes/implemented/AGENTS.md)' },
+      ],
+    })
+    expect(problems).toEqual([])
   })
 })
 

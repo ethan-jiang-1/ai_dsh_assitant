@@ -243,7 +243,10 @@ export function agentsMdStabilityProblems(agentsPath) {
   if (!existsSync(agentsPath)) return problems
   const lines = read(agentsPath).split('\n')
   for (const [index, line] of lines.entries()) {
-    if (/\b20\d{2}-\d{2}-\d{2}\b/.test(line)) {
+    // The date ban covers the instruction text, not the address of the dated record: the message
+    // itself sends dated records into notes, so a date inside a markdown link target is the
+    // sanctioned shape (found 2026-10-10: linking the 0.1.7 migration note tripped the bare regex).
+    if (/\b20\d{2}-\d{2}-\d{2}\b/.test(line.replace(/\]\([^)]*\)/g, '()'))) {
       problems.push(`AGENTS.md:${index + 1} carries a date — standing orders do not age; put the dated record in a note and link it`)
     }
     if (/[✅⏳⏸▶🧹]/.test(line)) {
@@ -825,7 +828,7 @@ export function vendorClientFreshnessProblems({ vendorPackagesRoot, webAppRoot }
  * header table to the package manifest. No manual = nothing exported yet = nothing to check (the
  * gate must stay green on fresh clones, where `_dist/` does not exist).
  */
-export function exportManualProblems({ manualPath, manifest }) {
+export function exportManualProblems({ manualPath, manifest, upstreamTag }) {
   if (!existsSync(manualPath)) return []
   const text = read(manualPath)
   const problems = []
@@ -840,6 +843,14 @@ export function exportManualProblems({ manualPath, manifest }) {
   const tarball = /^\| 安装包 \| `([^`]+)`/m.exec(text)?.[1]?.trim()
   if (tarball !== expected) {
     problems.push(`manual 安装包 row says ${tarball ?? 'nothing'}, expected ${expected}`)
+  }
+  // The 验证基线 row pins the DSH tag the manual was verified against. It went stale once for
+  // real (0.1.7 → 0.2.0 pin bump without a re-export) because only the version row was gated.
+  const baseline = /^\| 验证基线 \| DSH `([^`|]+)`/m.exec(text)?.[1]?.trim()
+  if (!baseline) {
+    problems.push('manual 验证基线 row is missing — rerun `pnpm export-dist`')
+  } else if (upstreamTag && baseline !== upstreamTag) {
+    problems.push(`manual 验证基线 row says ${baseline}, vendor/UPSTREAM.md pins ${upstreamTag} — rerun \`pnpm export-dist\``)
   }
   return problems
 }
@@ -1140,6 +1151,57 @@ export function clientScriptSafetyProblems({ clientDir, bundlePath }) {
       void new Function(bundle)
     } catch (error) {
       problems.push(`lib/client/index.js does not parse as a classic script (${String(error)}) — the combo it rides in would kill every later registration at browser boot`)
+    }
+  }
+  return problems
+}
+
+// ── corpus shape & note-card pointers ───────────────────────────────────────────────────────────
+
+/**
+ * The markdown corpus = every tracked .md file, minus the frozen deliberation pool
+ * (`_backlog/_archive/`: archived cards keep their historical prose by policy —
+ * research/README.md「归档默认不展开阅读」). The previous hand-picked corpus (root + docs + notes +
+ * snapshots) left the dev/, packages/, scripts/ and .agents/ entry files unchecked, and both live
+ * broken links found by the 2026-10-10 audit hid exactly there — the corpus must move with the
+ * repo, not with a remembered list of "the files that matter".
+ *
+ * @param {string[]} trackedPaths - `git ls-files` output (repo-relative, forward slashes).
+ * @param {string} repoRoot
+ */
+export function markdownCorpusFromTracked(trackedPaths, repoRoot) {
+  return trackedPaths
+    .filter(path => path.endsWith('.md'))
+    .filter(path => !path.split('/').includes('_archive'))
+    .map(path => join(repoRoot, ...path.split('/')))
+}
+
+/**
+ * Note-card pointers must resolve wherever they hide, and inside notes/ they must be markdown
+ * links. Two escape classes found by audit live here: a `notes/…​.md` path inside a patch YAML
+ * comment (no link gate scans non-markdown — the 2026-09-28 and 2026-10-08 escapes both rode
+ * that blind spot), and a bare full-filename mention in prose that outlives the file it names
+ * (notes/README.md:「note 之间只用相对 Markdown 链接」).
+ *
+ * @param {{ repoRoot: string, files: Array<{file: string, where: string, text: string}> }} input
+ */
+export function notePointerProblems({ repoRoot, files }) {
+  const problems = []
+  // The lookbehind keeps repo-relative pointers in scope and tails of larger paths out of it:
+  // `/Users/other/ai_dsh_company/notes/…` (external provenance) and
+  // `vendor/dsh/.agents/notes/implemented/AGENTS.md` (a vendor link target) are not our pointers.
+  const pathPattern = /(?<![A-Za-z0-9._/-])notes\/(?:proposed|implemented|archived|rejected)\/[A-Za-z0-9._/-]+\.md/g
+  for (const { file, where, text } of files) {
+    const inNotes = file.split(/[/\\]/).includes('notes')
+    for (const match of text.matchAll(pathPattern)) {
+      if (!existsSync(join(repoRoot, ...match[0].split('/')))) {
+        problems.push(`${where} references \`${match[0]}\`, which does not exist — repoint it (or inline the reason) in the same diff that deletes or moves the note`)
+        continue
+      }
+      const linked = match.index >= 2 && text.slice(match.index - 2, match.index) === ']('
+      if (inNotes && !linked) {
+        problems.push(`${where} mentions \`${match[0]}\` as bare text — note references use relative markdown links (notes/README.md)`)
+      }
     }
   }
   return problems

@@ -18,7 +18,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { agentsMdStabilityProblems, backlogGraduationProblems, backlogLivenessProblems, clientScriptSafetyProblems, commandAliasProblems, configParseProblems, dependencyPoseProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, GRADUATED_STATUS, implementedAlternativesProblems, languageGuardProblems, notesNamingProblems, notesStateProblems, notesTopLevelProblems, pinProblems, machineLocalPathProblems, playbookFrontmatterProblems, projectReferenceMatches, relativeLinkProblems, skillFrontmatterProblems, startPathProblems, testAssetNamingProblems, textHygieneProblems, vendorClientFreshnessProblems } from './verify-checks.mjs'
+import { agentsMdStabilityProblems, backlogGraduationProblems, backlogLivenessProblems, clientScriptSafetyProblems, commandAliasProblems, configParseProblems, dependencyPoseProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, GRADUATED_STATUS, implementedAlternativesProblems, languageGuardProblems, markdownCorpusFromTracked, notesNamingProblems, notePointerProblems, notesStateProblems, notesTopLevelProblems, pinProblems, machineLocalPathProblems, playbookFrontmatterProblems, projectReferenceMatches, relativeLinkProblems, skillFrontmatterProblems, startPathProblems, testAssetNamingProblems, textHygieneProblems, vendorClientFreshnessProblems } from './verify-checks.mjs'
 import * as gateCores from './verify-checks.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
@@ -377,6 +377,9 @@ check('release: the exported install manual matches the package', () =>
   exportManualProblems({
     manualPath: join(repoRoot, '_dist', '安装手册.md'),
     manifest: JSON.parse(read(join(packageDir, 'package.json'))),
+    // The manual's 验证基线 row must track the pin, not the last re-export date: a pin bump
+    // without a re-export used to leave the manual advertising the previous DSH baseline.
+    upstreamTag: /^\| 钉住的 tag \| `([^`|]+)` \|$/m.exec(read(join(repoRoot, 'vendor', 'UPSTREAM.md')))?.[1]?.trim(),
   }))
 
 check('notes: implemented notes carry what they beat (输掉的方案)', () =>
@@ -422,13 +425,13 @@ const KNOWN_ROOT_BASENAMES = new Set([
 ])
 const KNOWN_PACKAGE_BASENAMES = new Set(['cordis.patch.yml'])
 
-const markdownCorpus = [
-  join(repoRoot, 'AGENTS.md'),
-  join(repoRoot, 'README.md'),
-  ...walk(join(repoRoot, 'docs'), ['.md']),
-  ...walk(join(repoRoot, 'notes'), ['.md']),
-  ...walk(join(repoRoot, 'snapshots'), ['.md']),
-]
+// The corpus is every tracked markdown file (minus the frozen `_archive` pool), not a remembered
+// list: the 2026-10-10 audit found both live broken links in files the previous hand-picked
+// corpus (root + docs + notes + snapshots) never covered — dev/, packages/, scripts/, .agents/.
+const markdownCorpus = markdownCorpusFromTracked(
+  execFileSync('git', ['ls-files', '*.md'], { cwd: repoRoot }).toString().split('\n').filter(Boolean),
+  repoRoot,
+)
 
 /** Resolve a backticked token to a repo path it may legitimately name, or null when out of scope. */
 function resolveMarkdownPathReference(token) {
@@ -462,19 +465,24 @@ check('links: backticked repo paths in markdown exist', () => {
 })
 
 // Active deliberation needs resolving routes too; frozen evidence under _archive keeps its
-// historical prose. Only relative links extend here — contract/path/section scopes stay intact.
-const relativeLinkCorpus = [
-  ...markdownCorpus,
-  join(repoRoot, '_backlog', 'README.md'),
-  join(repoRoot, '_backlog', 'triggers.md'),
-  ...walk(join(repoRoot, '_backlog', 'issues'), ['.md']),
-  ...walk(join(repoRoot, '_backlog', 'bugs'), ['.md']),
-  ...walk(join(repoRoot, '_backlog', 'research'), ['.md']),
-  ...walk(join(repoRoot, '_backlog', 'methods'), ['.md']),
-].filter(exists)
+// historical prose (excluded by the corpus builder). Only relative links extend here —
+// contract/path/section scopes stay intact.
+const relativeLinkCorpus = markdownCorpus
 
 check('links: relative markdown links point at existing files', () =>
   relativeLinkProblems(relativeLinkCorpus.map(file => ({ file, where: relative(repoRoot, file) }))))
+
+// Note-card pointers hide outside markdown too (patch YAML comments) — both audit escapes lived
+// there; inside notes/ the tree's own contract demands relative markdown links.
+check('notes: note-card pointers resolve and are linked inside notes/', () =>
+  notePointerProblems({
+    repoRoot,
+    files: [
+      ...markdownCorpus.map(file => ({ file, where: relative(repoRoot, file), text: read(file) })),
+      { file: join(packageDir, 'cordis.patch.yml'), where: 'packages/dsh-smart-assistant/cordis.patch.yml', text: read(join(packageDir, 'cordis.patch.yml')) },
+      ...walk(join(repoRoot, 'dev', 'probes'), ['.yml']).map(file => ({ file, where: relative(repoRoot, file), text: read(file) })),
+    ],
+  }))
 
 check('test assets: only admitted shapes in the tests tree, scene contracts beside web-face fixtures', () =>
   testAssetNamingProblems(repoRoot))
@@ -505,18 +513,13 @@ check('links: cross-file section references name a real section', () => {
 
 check('links: contract docs cite no machine-local absolute paths', () => {
   // The active deliberation space routes readers the same way the contract docs do, so it is held
-  // to the same rule: a checkout path or home directory baked into `_backlog/` prose breaks for
-  // every other machine. Frozen `_archive/` keeps its historical prose, exactly like the link gates.
-  const corpus = [
-    ...markdownCorpus,
-    join(repoRoot, '_backlog', 'README.md'),
-    join(repoRoot, '_backlog', 'triggers.md'),
-    ...walk(join(repoRoot, '_backlog', 'issues'), ['.md']),
-    ...walk(join(repoRoot, '_backlog', 'bugs'), ['.md']),
-    ...walk(join(repoRoot, '_backlog', 'research'), ['.md']),
-    ...walk(join(repoRoot, '_backlog', 'methods'), ['.md']),
-  ].filter(file => exists(file) && !file.startsWith(join(repoRoot, 'notes')))
-  return machineLocalPathProblems(corpus.map(file => ({ file, where: relative(repoRoot, file) })))
+  // to the same rule: a checkout path or home directory baked into tracked prose breaks for
+  // every other machine. Frozen `_archive/` keeps its historical prose (the corpus builder's
+  // exclusion); `notes/` is the registered provenance home and stays exempt.
+  const corpus = markdownCorpus
+    .filter(file => !file.startsWith(join(repoRoot, 'notes')))
+    .map(file => ({ file, where: relative(repoRoot, file) }))
+  return machineLocalPathProblems(corpus)
 })
 
 // ── commit safety ───────────────────────────────────────────────────────────────────────────────
