@@ -1484,6 +1484,57 @@ describe('identity names: docs/identity.md and the code agree in both directions
   })
 })
 
+describe('package subpaths: every patch that references our package names a real export', () => {
+  const exported = { './tool-memory': {}, './preset-runner': {} }
+
+  it('accepts dev and bundle patches that reference exported subpaths', () => {
+    const sources = [
+      { file: 'cordis.patch.yml', text: "          - id: assistant-memory-tool\n            name: dsh-smart-assistant/tool-memory\n" },
+      { file: 'dev/probes/session/preset-runner.patch.yml', text: "    - id: assistant-preset-runner\n      name: dsh-smart-assistant/preset-runner\n" },
+    ]
+    expect(gateCores.packageSubpathProblems({ sources, exported })).toEqual([])
+  })
+
+  it('goes red when a DEV patch references a subpath package.json does not export', () => {
+    // The audited gap: the exports check read only cordis.patch.yml, which never references
+    // `preset-runner` — so renaming that export broke every dev runner with verify still green.
+    const sources = [
+      { file: 'cordis.patch.yml', text: "            name: dsh-smart-assistant/tool-memory\n" },
+      { file: 'dev/probes/session/preset-runner.patch.yml', text: "      name: dsh-smart-assistant/preset-runner-gone\n" },
+    ]
+    const problems = gateCores.packageSubpathProblems({ sources, exported })
+    expect(problems.some(problem => problem.includes('preset-runner-gone') && problem.includes('preset-runner.patch.yml'))).toBe(true)
+  })
+
+  it('goes red for the bundle patch too, and reads quoted and bare names alike', () => {
+    const sources = [
+      { file: 'cordis.patch.yml', text: "      name: 'dsh-smart-assistant/tool-ghost'\n" },
+      { file: 'dev/probes/session/recall-probe.patch.yml', text: '      name: dsh-smart-assistant/tool-memory\n' },
+    ]
+    const problems = gateCores.packageSubpathProblems({ sources, exported })
+    expect(problems.some(problem => problem.includes('tool-ghost') && problem.includes('cordis.patch.yml'))).toBe(true)
+    expect(problems.filter(problem => problem.includes('tool-memory')).length).toBe(0)
+  })
+
+  it('does not mistake another package, a bare import or a doc path for our subpath', () => {
+    const sources = [{
+      file: 'cordis.patch.yml',
+      text: [
+        "      name: '@deepseek-ai/dsh-agent-preset'",
+        "      name: 'other-package/tool-memory'",
+        '      # see packages/dsh-smart-assistant/src/agent/tool-memory/index.ts',
+        "      name: 'dsh-smart-assistant/tool-memory'",
+      ].join('\n'),
+    }]
+    expect(gateCores.packageSubpathProblems({ sources, exported })).toEqual([])
+  })
+
+  it('fails loud when no patch references the package at all', () => {
+    const problems = gateCores.packageSubpathProblems({ sources: [{ file: 'cordis.patch.yml', text: 'nothing here\n' }], exported })
+    expect(problems.some(problem => problem.includes('no patch references'))).toBe(true)
+  })
+})
+
 describe('composition rows: architecture §二 plane trees and the bundle patch agree', () => {
   /** A §二 slice with the tree lines given; §三 follows so the slice boundary is exercised. */
   const archWith = (...treeLines) =>

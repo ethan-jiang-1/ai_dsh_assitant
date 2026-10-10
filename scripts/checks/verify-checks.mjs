@@ -633,6 +633,41 @@ export function configParseProblems(files) {
   return problems
 }
 
+// ── package subpaths ───────────────────────────────────────────────────────────
+
+/**
+ * Every patch in this repo that names one of our package subpaths is a load-bearing reference:
+ * a dev probe that resolves `dsh-smart-assistant/preset-runner` at runtime breaks the moment that
+ * export is renamed, with no compile-time signal.
+ *
+ * The historical exports check read only `cordis.patch.yml`, which never references `preset-runner`
+ * at all — so the four dev runner patches were unguarded, and renaming that single export would have
+ * broken all of them while `verify` stayed green (found by audit, 2026-10-10).
+ *
+ * The corpus is passed in rather than discovered here: `verify.mjs` owns "what counts as corpus",
+ * and a caller that forgets a patch is a visible gap instead of a silent one.
+ *
+ * @param options - `{ sources, exported }`; `sources` is `[{ file, text }]`, `exported` the manifest's
+ *   `exports` keys.
+ * @returns problem strings, empty when every referenced subpath is exported.
+ */
+export function packageSubpathProblems({ sources, exported }) {
+  const problems = []
+  const subpaths = new Set(Object.keys(exported).map(key => key.replace(/^\.\//, '')).filter(key => key !== '' && key !== 'package.json'))
+  let references = 0
+  for (const { file, text } of sources) {
+    for (const match of text.matchAll(/name:\s*'?(dsh-smart-assistant\/[a-z0-9-]+)'?/g)) {
+      references++
+      const subpath = match[1].slice('dsh-smart-assistant/'.length)
+      if (!subpaths.has(subpath)) {
+        problems.push(`${file} references dsh-smart-assistant/${subpath}, which package.json does not export — renaming an export breaks every patch that names it`)
+      }
+    }
+  }
+  if (references === 0) problems.push('no patch references a dsh-smart-assistant subpath — the exports check has nothing to compare against')
+  return problems
+}
+
 // ── identity names ─────────────────────────────────────────────────────────────
 
 /**

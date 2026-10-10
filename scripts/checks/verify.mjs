@@ -18,7 +18,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { agentsMdStabilityProblems, backlogGraduationProblems, backlogLivenessProblems, clientScriptSafetyProblems, commandAliasProblems, compositionRowProblems, configParseProblems, dependencyPoseProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, GRADUATED_STATUS, implementedAlternativesProblems, identityNameProblems, languageGuardProblems, markdownCorpusFromTracked, notesNamingProblems, notePointerProblems, notesStateProblems, notesTopLevelProblems, pinProblems, machineLocalPathProblems, playbookFrontmatterProblems, projectReferenceMatches, relativeLinkProblems, skillFrontmatterProblems, startPathProblems, testAssetNamingProblems, textHygieneProblems, vendorClientFreshnessProblems } from './verify-checks.mjs'
+import { agentsMdStabilityProblems, backlogGraduationProblems, backlogLivenessProblems, clientScriptSafetyProblems, commandAliasProblems, compositionRowProblems, configParseProblems, dependencyPoseProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, GRADUATED_STATUS, implementedAlternativesProblems, identityNameProblems, languageGuardProblems, markdownCorpusFromTracked, notesNamingProblems, notePointerProblems, notesStateProblems, notesTopLevelProblems, pinProblems, machineLocalPathProblems, packageSubpathProblems, playbookFrontmatterProblems, projectReferenceMatches, relativeLinkProblems, skillFrontmatterProblems, startPathProblems, testAssetNamingProblems, textHygieneProblems, vendorClientFreshnessProblems } from './verify-checks.mjs'
 import * as gateCores from './verify-checks.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
@@ -107,16 +107,13 @@ check('identity: package name, bundle patch, and exports agree with the preset',
   if (typeof patch !== 'string') problems.push('package.json declares no dsh.bundle.patch')
   else if (!exists(join(packageDir, patch))) problems.push(`dsh.bundle.patch points at missing ${patch}`)
   // 0.1.7: the agent rows live inside the bundle patch's `agent-preset` row, so the exports
-  // consistency check reads the file a deployment actually composes.
-  const preset = read(join(packageDir, 'cordis.patch.yml'))
-  const referenced = [...preset.matchAll(new RegExp(`name: '?${PACKAGE_NAME}/([a-z-]+)'?`, 'g'))]
-    .map(match => match[1])
-  for (const subpath of new Set(referenced)) {
-    if (manifest.exports?.[`./${subpath}`] === undefined) {
-      problems.push(`preset references ${PACKAGE_NAME}/${subpath}, which package.json does not export`)
-    }
-  }
-  return problems
+  // consistency check reads the file a deployment actually composes — plus every dev probe patch,
+  // which resolves our subpaths at runtime and had no coverage until the 2026-10-10 audit.
+  const patchFiles = [...walk(join(repoRoot, 'dev', 'probes'), ['.yml']), join(packageDir, 'cordis.patch.yml')]
+  return problems.concat(packageSubpathProblems({
+    sources: patchFiles.map(file => ({ file: relative(repoRoot, file), text: read(file) })),
+    exported: manifest.exports ?? {},
+  }))
 })
 
 check('identity: docs/identity.md and the code name the same rows and tools, in both directions', () => {
