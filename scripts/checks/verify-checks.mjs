@@ -13,6 +13,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve } from 'node:path'
 import { parse as parseYaml } from 'yaml'
+import { parseRows } from '../generate/gen-catalog.mjs'
 
 const read = path => readFileSync(path, 'utf8')
 
@@ -627,6 +628,62 @@ export function configParseProblems(files) {
     } catch (error) {
       const message = error instanceof Error ? error.message.split('\n')[0] : String(error)
       problems.push(`${file} does not parse as YAML: ${message}`)
+    }
+  }
+  return problems
+}
+
+// ── composition rows: the hand-copied plane trees ───────────────────────────────
+
+/**
+ * `docs/architecture.md` §二 is a hand-copied diff of the generated catalog's 组合行 table: two
+ * plane trees naming the rows `cordis.patch.yml` mounts. Prose has no freshness check, and this
+ * copy has the most surface to rot — the audited drift class is "the composition grew, the tree
+ * stayed short" (a row mounts with no line in the picture). Two directions, both mechanical:
+ *
+ *   · every row the patch mounts under our own package name must be named by a §二 tree line;
+ *   · every row id those tree lines name must be a real row in the patch.
+ *
+ * Only the §二 fenced blocks count: they are the composition picture; a prose mention elsewhere is
+ * not one. Capture covers both shapes the trees use — `├── id` / `└── id` and the indented `+ id 行`
+ * continuation — so a restyled tree fails loud instead of passing by naming nothing.
+ *
+ * @param options - `{ patchText, architectureText }`.
+ * @returns problem strings, empty when the trees and the patch agree.
+ */
+export function compositionRowProblems({ patchText, architectureText }) {
+  const problems = []
+  const rows = parseRows(patchText)
+  const mounted = new Set(rows.map(row => row.id))
+  const ourRows = rows
+    .filter(row => row.name !== undefined && /^dsh-smart-assistant(\/|$)/.test(row.name))
+    .map(row => row.id)
+
+  const start = architectureText.indexOf('## 二、')
+  const end = architectureText.indexOf('\n## 三、', start)
+  if (start < 0 || end < 0) {
+    return ['docs/architecture.md carries no §二/§三 heading pair — the composition-tree slice cannot be cut; restore the section titles before trusting this gate']
+  }
+  const named = new Set()
+  let inFence = false
+  for (const line of architectureText.slice(start, end).split('\n')) {
+    if (line.startsWith('```')) {
+      inFence = !inFence
+      continue
+    }
+    if (!inFence) continue
+    const match = /^\s*(?:[├└]──|[+])\s*([a-z][a-z0-9-]*)/.exec(line)
+    if (match !== null) named.add(match[1])
+  }
+
+  for (const id of ourRows) {
+    if (!named.has(id)) {
+      problems.push(`composition: cordis.patch.yml mounts row ${id} but no §二 plane-tree line in docs/architecture.md names it — the composition grew and the hand copy stayed short`)
+    }
+  }
+  for (const id of named) {
+    if (!mounted.has(id)) {
+      problems.push(`composition: docs/architecture.md §二 names row ${id} but cordis.patch.yml mounts no such row — the hand copy kept a row that is gone`)
     }
   }
   return problems

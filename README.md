@@ -57,8 +57,9 @@
 `assistant_knowledge`（只读检索）、`assistant_operating`（经营账本；独立 `assistant-operating` dataDir，契约 = [docs/operating.md](docs/operating.md)）。
 各工具的**动词与完整清单以生成物 [`docs/package-catalog.md`](docs/package-catalog.md)「工具 × 动词」节为准**，此处不复制。
 
-`curate` 是**机器能跑的养护检查**（重复、悬空引用、摘要预算、过期线索、技能遮蔽/退役/断链/凭据、
-知识页治理等——**非穷举**，完整检查面 = [`docs/home.md`](docs/home.md) §四）—— 能让代码查的，别让 AI 自己说。
+`curate`（`assistant_memory` 的一个动词，不是第六个工具；另有一条 host 节拍器按轮自动插入养护 turn，
+见 [`docs/home.md`](docs/home.md) §四）是**机器能跑的养护检查**（重复、悬空引用、摘要预算、过期线索、
+技能遮蔽/退役/断链/凭据、知识页治理等——**非穷举**，完整检查面 = [`docs/home.md`](docs/home.md) §四）—— 能让代码查的，别让 AI 自己说。
 
 这些是本插件的**自有**工具；同一组合里还有 DSH 现货工具在场——`session_query` 族（原始会话
 检索）、`schedule_*` 定时四件、`skill`（技能加载）等，完整组合见 `docs/architecture.md` §二。

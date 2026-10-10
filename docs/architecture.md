@@ -24,7 +24,8 @@
 ## 二、两个平面（DSH 的组合纪律）
 
 平面、bundle 和 patch 层的正文在 `vendor/dsh/docs/architecture.md` 与
-`vendor/dsh/packages/preset/agent-preset/README.md`。下面是本包实际挂上的行，判据是这东西是不是跨会话共享：
+`vendor/dsh/packages/preset/agent-preset/README.md`。下面是本包实际挂上的行，判据是这东西是不是跨会话共享；
+**本包自有行凡挂必在此列名，此处列名的行必真实在组合里**——这两个方向由 `pnpm verify` 机械互证：
 
 ```text
 HOST 面（cordis.patch.yml → dsh.bundle.patch）

@@ -1413,3 +1413,101 @@ describe('clientScriptSafetyProblems', () => {
     expect(clientScriptSafetyProblems({ clientDir: freshClone.clientDir, bundlePath: join(freshClone.clientDir, '..', '..', 'lib', 'client', 'index.js') })).toEqual([])
   })
 })
+
+describe('composition rows: architecture §二 plane trees and the bundle patch agree', () => {
+  /** A §二 slice with the tree lines given; §三 follows so the slice boundary is exercised. */
+  const archWith = (...treeLines) =>
+    [
+      '# 架构（当前合同）',
+      '## 二、两个平面（DSH 的组合纪律）',
+      '```text',
+      ...treeLines,
+      '```',
+      '## 三、部件与 owner 面',
+      '（§三正文提到 assistant-memory 不算进树：树才是组合的picture。）',
+    ].join('\n')
+
+  const greenPatch = [
+    '- insert:',
+    '    - id: assistant-memory',
+    '      name: dsh-smart-assistant',
+    '    - id: preset-assistant',
+    "      name: '@deepseek-ai/dsh-agent-preset'",
+    '      config:',
+    '        id: assistant',
+    '        plugins:',
+    '          - id: assistant-learn',
+    '            name: dsh-smart-assistant/learn',
+    '          - id: skill-filesystem',
+    "            name: '@deepseek-ai/dsh-skill-filesystem'",
+  ].join('\n')
+  const growPatchWithDeskProjection = patch =>
+    patch.replace(
+      '    - id: preset-assistant',
+      '    - id: assistant-desk-projection\n      name: dsh-smart-assistant/desk-projection\n    - id: preset-assistant',
+    )
+  const greenTrees = archWith(
+    'HOST 面',
+    '└── assistant-memory        服务：working folder',
+    'AGENT 面',
+    '├── assistant-learn            工具 assistant_reflect',
+    '├── skill-filesystem           策展技能',
+  )
+
+  it('accepts a patch whose mounted rows are exactly the rows the §二 trees name', () => {
+    expect(gateCores.compositionRowProblems({ patchText: greenPatch, architectureText: greenTrees })).toEqual([])
+  })
+
+  it('goes red when the composition grows and the hand-copied tree stays short (the audited drift class)', () => {
+    const problems = gateCores.compositionRowProblems({
+      patchText: growPatchWithDeskProjection(greenPatch),
+      architectureText: greenTrees,
+    })
+    expect(problems.some(problem => problem.includes('assistant-desk-projection') && problem.includes('§二'))).toBe(true)
+  })
+
+  it('goes red when a tree names a row the patch no longer mounts, including vendor rows and an indented "+ row" line', () => {
+    const ghost = archWith('HOST 面', '└── assistant-memory        服务', '+ assistant-ghost 行（不再存在）', 'AGENT 面', '├── assistant-learn            工具')
+    expect(gateCores.compositionRowProblems({ patchText: greenPatch, architectureText: ghost }).some(problem => problem.includes('assistant-ghost'))).toBe(true)
+
+    const phantom = archWith('HOST 面', '└── assistant-memory        服务', '    + tool-phantom 行（vendor 现货）', 'AGENT 面', '├── assistant-learn            工具')
+    expect(gateCores.compositionRowProblems({ patchText: greenPatch, architectureText: phantom }).some(problem => problem.includes('tool-phantom'))).toBe(true)
+  })
+
+  it('counts the indented "+ row" continuation shape the real HOST tree uses', () => {
+    const indented = archWith(
+      'HOST 面',
+      '└── assistant-memory        服务：working folder',
+      '                            + assistant-desk-projection 行（固定只读投影）',
+      'AGENT 面',
+      '├── assistant-learn            工具 assistant_reflect',
+      '├── skill-filesystem           策展技能',
+    )
+    expect(gateCores.compositionRowProblems({ patchText: growPatchWithDeskProjection(greenPatch), architectureText: indented })).toEqual([])
+  })
+
+  it('counts only the §二 fenced trees — mentions elsewhere are not the composition picture', () => {
+    const mentionedOutside = [
+      '# 架构（当前合同）',
+      '## 一、判据',
+      '```text',
+      '└── assistant-memory        服务',
+      '```',
+      '## 二、两个平面（DSH 的组合纪律）',
+      '```text',
+      'HOST 面（正文提到 assistant-memory 不算进树）',
+      '（树为空）',
+      '```',
+      '## 三、部件与 owner 面',
+    ].join('\n')
+    const problems = gateCores.compositionRowProblems({ patchText: greenPatch, architectureText: mentionedOutside })
+    expect(problems.some(problem => problem.includes('assistant-memory'))).toBe(true)
+    expect(problems.some(problem => problem.includes('assistant-learn'))).toBe(true)
+  })
+
+  it('fails loud when the §二/§三 slice cannot be found at all', () => {
+    const renamed = '# 架构（当前合同）\n## 二 两个平面\n```text\n└── assistant-memory\n```\n## 三 部件\n'
+    const problems = gateCores.compositionRowProblems({ patchText: greenPatch, architectureText: renamed })
+    expect(problems.some(problem => problem.includes('§二') && problem.includes('§三'))).toBe(true)
+  })
+})
