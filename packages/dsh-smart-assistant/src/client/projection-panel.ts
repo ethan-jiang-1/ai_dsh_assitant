@@ -107,7 +107,22 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
     : `${matters.filter(matter => matter.status === 'active').length} 件在办`
       + (pendingProposals > 0 ? ` · ${pendingProposals} 条等你确认` : '')
       + (unclaimed.length > 0 ? ` · ${unclaimed.length} 条待认领` : '')
-  return ce('main', { className: 'dsha-desk', 'data-assistant-operating-desk': true },
+  // ⑧ of the K1/K2 accepted-limitation list (spec-card source verification 2026-10-10): the
+  // desk ROOT is the scroll container — the list never scrolls itself — so the record path
+  // rides the root's onScroll, and the restore path is this post-render DOM effect on the
+  // root ref. The view store survives panel switches (the processing flow's auto-return
+  // remounts the whole panel), the DOM does not; the guard keeps re-render invocations off a
+  // live scroll position, and a principal who scrolled back to top has already zeroed the
+  // store through onScroll.
+  const restoreRootScroll = (element: { scrollTop: number } | null): void => {
+    if (element !== null && element.scrollTop === 0 && view.listScrollTop > 0) element.scrollTop = view.listScrollTop
+  }
+  return ce('main', {
+    className: 'dsha-desk',
+    'data-assistant-operating-desk': true,
+    ref: restoreRootScroll,
+    onScroll: (event: { currentTarget: { scrollTop: number } }) => props.actions.rememberListPosition(event.currentTarget.scrollTop),
+  },
     ce('style', {}, STYLES),
     ce('header', { className: 'dsha-head' },
       ce('div', {},

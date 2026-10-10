@@ -147,9 +147,21 @@ export async function launchCdpBrowser({ url, chromeBin, windowSize = '1600,1000
     return 'clicked';
   })()`);
 
+  // Viewport emulation: the projection panel's narrow-pane layout is container-query driven,
+  // so a real metrics override — not a CSS trick — is the honest resize.
+  const setViewport = (width, height) => send('Emulation.setDeviceMetricsOverride', {
+    width, height, deviceScaleFactor: 1, mobile: false,
+  });
+  // Offline/online emulation for live Connection disconnect/recovery probes: the page's
+  // fetch and event channel fail while offline and re-establish when back online.
+  const setNetworkOffline = (offline) => send('Network.enable').then(() =>
+    send('Network.emulateNetworkConditions', { offline, latency: 0, downloadThroughput: 0, uploadThroughput: 0 }));
+
   const handle = {
     evaluate,
     click,
+    setViewport,
+    setNetworkOffline,
     consoleProblems: problems,
     exceptions,
     profileDir,
