@@ -52,6 +52,13 @@ export interface ClientContext {
     retain(target: string, options: { readonly source: string }): { release(): void }
     readonly list: { subscribe(listener: () => void): () => void }
   }
+  /** The workspace catalog face: processing sessions are created inside the designated workspace. */
+  workspaces?: {
+    readonly list: {
+      getSnapshot(): { readonly items: readonly { readonly workspaceId: string, readonly sessionIds: readonly string[] }[] }
+      subscribe(listener: () => void): () => void
+    }
+  }
   /**
    * The ui-session binding face: per-session status facts (running fails closed when absent,
    * a pending interaction is any non-undefined value) and the current main-view binding key.

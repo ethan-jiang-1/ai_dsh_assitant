@@ -87,6 +87,7 @@ async function clientRoot(initialPanel = null) {
   ctx.provide('sidebarRightTabs', { register: () => () => {} })
   ctx.provide('sidebarRight', {})
   ctx.provide('sessions', {})
+  ctx.provide('workspaces', { list: { getSnapshot: () => ({ items: [] }), subscribe: () => () => {} } })
   ctx.provide('uiSession', {
     sessionStatus: { getSnapshot: () => new Map(), subscribe: () => () => {} },
     current: { value: {} },

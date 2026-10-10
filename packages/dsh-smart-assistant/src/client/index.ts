@@ -46,7 +46,7 @@ import { createProjectionViewStore } from './projection-view'
 import { bindProcessPath, judgeReturn, type ProcessingPath } from './desk-process'
 
 /** Slots this face occupies (single-occupant, root-scope, declared by the sidebar). */
-const inject = ['slots', 'sidebarRightTabs', 'sidebarRight', 'sessions', 'remote', 'remote.agentPresets', 'remote.workspaceFiles', 'remote.session', 'layout', 'connection', 'uiSession']
+const inject = ['slots', 'sidebarRightTabs', 'sidebarRight', 'sessions', 'remote', 'remote.agentPresets', 'remote.workspaceFiles', 'remote.session', 'layout', 'connection', 'uiSession', 'workspaces']
 
 /**
  * Default selection is consumed once per Client root. Keeping weak root identities on the page
@@ -166,7 +166,13 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       const data = projection?.getSnapshot().data
       const observed = data?.matters.find(matter => matter.id === matterId)?.revision
       void (async () => {
-        const sessionId = await ctx.sessions?.create()
+        // Inherit the designated workspace (the current session's, else the most recent) —
+        // the shell's own startSession resolution; creating bare pops a from-scratch picker.
+        const catalog = ctx.workspaces?.list.getSnapshot()
+        const currentKey = ctx.uiSession?.current.value.key
+        const workspaceId = catalog?.items.find(item => currentKey !== undefined && item.sessionIds.includes(String(currentKey)))?.workspaceId
+          ?? catalog?.items[0]?.workspaceId
+        const sessionId = await ctx.sessions?.create(workspaceId === undefined ? undefined : { workspaceId })
         if (sessionId === undefined) return
         processReference?.release()
         processReference = ctx.sessions?.retain(sessionId, { source: 'mainView' })
