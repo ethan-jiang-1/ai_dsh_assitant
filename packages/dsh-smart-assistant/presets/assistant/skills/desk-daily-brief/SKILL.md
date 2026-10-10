@@ -37,7 +37,7 @@ memory of past conversations. Sections, in this order, skipping empty ones:
    three options (push / reschedule / abandon) as a question, not a recommendation.
 5. **Overnight material** — materials retained since the previous brief.
 
-Tone: 有事逐条，无事一句话 (one short line when there is nothing). Never mark a matter done
+Tone: itemised when there is something, one short line when there is nothing. Never mark a matter done
 because a sentence sounded final; completion rides the tool with verbatim evidence.
 
 ## 3. The reply is the instruction
