@@ -6,7 +6,7 @@
 
 | 卡 | 要解决什么 | 当前环节与未完成项 |
 |---|---|---|
-| [261006-chief-of-staff-experience.md](261006-chief-of-staff-experience.md) | 全局主区桌面、完整事项与空间层级、事项对话处理后成功读回返回 | **需求结论已交接至 [proposed](../../notes/proposed/2026-10-06-desk-operating-entry.md)**：K1–K4、接口依赖与负例已形成；产品实施未授权，九项验收与旧交付终验仍未完成 |
+| [261006-chief-of-staff-experience.md](261006-chief-of-staff-experience.md) | 全局主区桌面、完整事项与空间层级、事项对话处理后成功读回返回 | **需求结论已交接至 [proposed](../../notes/proposed/2026-10-06-desk-operating-entry.md)（实施已获点名授权）**：K1–K3 已落证、K4 阶段性停点（收口卡 [261010](261010-desk-k4-closure.md)）；九项验收与旧交付终验仍未完成 |
 | [261007-opening-brief-and-rhythm.md](261007-opening-brief-and-rhythm.md) | 开屏播报、拍板口吻和每周对账 | **已有实现，验收未完**：重载、输入框、排程与渲染有证据缺口，另有用户判断未完成 |
 | [261010-desk-k4-closure.md](261010-desk-k4-closure.md) | 章鱼管家 K4 收口：处理流判断、端到端探针、K1/K2 限制补证、提醒协调与 vendor 文案限制 | **阶段性停点（本人喊停）**：K3 技术链与首屏已过（权威状态见 [proposed 规格卡](../../notes/proposed/2026-10-06-desk-operating-entry.md)）；处理流判断与限制补证未闭合 |
 | [261007-input-boundary.md](261007-input-boundary.md) | 决定输入通道现在做，还是先观察真实使用 | **待用户选择**：30 天使用环境与先后选择未定；选择观察后还需落实基线与周度记录 |
