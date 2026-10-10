@@ -11,9 +11,9 @@
 
 | 那一圈的五件事 | 本插件的落点 |
 |---|---|
-| ① 让它看到该看的东西（上下文） | **桌面 / 抽屉**：常驻的是身份段（SOUL.md）+ 手册（AGENTS.md）+ 有界状态摘要（精选记忆 + 开放线索条数）；细节用工具取 |
+| ① 让它看到该看的东西（上下文） | **桌面 / 抽屉**：常驻四段——身份段（SOUL.md）+ 手册（AGENTS.md）+ 有界状态摘要（精选记忆 + 开放线索条数）+ 经营账本段；细节用工具取 |
 | ② 让它懂你的业务（隐性知识显性化） | `memory/` 房间：事实、偏好、决定 —— 一条一个文件，可读可审 |
-| ③ 让它有该有的本事（工具与边界） | 四个工具 + working folder 的写入边界（`src/domain/home/layout.ts` 是唯一 owner） |
+| ③ 让它有该有的本事（工具与边界） | 五个工具 + working folder 的写入边界（`src/domain/home/layout.ts` 是唯一 owner；经营账本另走独立 dataDir，契约 = [operating.md](operating.md)） |
 | ④ 让它按对的步骤走（工作流） | 过程性知识进**技能**（抽屉），不占常驻上下文；两档出口固定了线索的收束方式 |
 | ⑤ 让它经得起检查 | `curate`：**机器能跑的检查**（重复、悬空引用、预算、过期线索、缺理由的 drop、技能语法等——非穷举，完整面 = [`home.md`](home.md) §四） |
 
@@ -30,6 +30,12 @@
 HOST 面（cordis.patch.yml → dsh.bundle.patch）
 └── assistant-memory        服务：working folder 的布局 + 四个房间的存储 + 摘要计算 + 养护检查
                             ctx.assistantMemory（唯一服务键）
+                            + assistant-operating-ledger 行（权威经营账本：单 Host writer、独立
+                              `assistant-operating` dataDir、`writer.lock` 惰性认领、`ledger.json`
+                              原子持久——契约 = [operating.md](operating.md)）
+                            + assistant-desk-projection 行（固定只读投影下载：GET
+                              api/assistant/desk-projection，优先活渲染账本 v2 投影——契约 =
+                              [operating.md](operating.md) §三）
                             + assistant-knowledge-approve 行（host 知识批准服务：draft→stable 的机械翻转
                               client Remote mount 因 codec 不兼容失败，UI 回退模型提示路径；无 config，随包分发）
                             + tool-skill 行（DSH 技能目录与加载器；host 实例使 one-shot 首请求可发现技能目录）
@@ -50,10 +56,12 @@ AGENT 面（`cordis.patch.yml` 的 `preset-assistant` 行 → agent preset）
 ├── assistant-memory-digest   提示词段落：有界摘要（桌面）
 ├── assistant-memory-tool     工具 assistant_memory
 ├── assistant-research-tool   工具 assistant_research
+├── assistant-operating-tool  工具 assistant_operating（经营账本 11 动作，消费 host 行服务——契约 = [operating.md](operating.md) §二）
+├── assistant-operating-brief 提示词段落：经营事项走账本（order 400，稳定指令带）
 ├── assistant-knowledge-tool  工具 assistant_knowledge（只读检索：search/get 附反链）
 ├── tool-session-query        工具 session_query 族（原始会话证据检索；与 knowledge 房分工见 docs/home.md）
 ├── assistant-learn           工具 assistant_reflect + 挂载"学到的技能"provider
-├── assistant-ov-shield       治理遮蔽行（ov＝OpenViking 记忆插件：部署共装时拒其 mcp__openviking__* 工具前缀、按 server 名拒资源、遮蔽其同名技能——模型可见面保持本包四工具与策展技能目录；denyToolPrefix / denyServerResources / shadowSkills 三 config 键）
+├── assistant-ov-shield       治理遮蔽行（ov＝OpenViking 记忆插件：部署共装时拒其 mcp__openviking__* 工具前缀、按 server 名拒资源、遮蔽其同名技能——模型可见面保持本包五工具与策展技能目录；denyToolPrefix / denyServerResources / shadowSkills 三 config 键）
 ├── skill-filesystem          策展技能（包内 `presets/assistant/skills/`，按包名解析后指过去）
 └── persona / agent-instructions / tool-fs / tool-fs-search / shell / ask-user /
     todo / goal（`tool-goal`+`command-goal`）/ plan-mode（isolate 组）/
@@ -65,8 +73,10 @@ AGENT 面（`cordis.patch.yml` 的 `preset-assistant` 行 → agent preset）
 座位与命令的精确清单是生成物：[`package-catalog.md`](package-catalog.md)「客户端座位面」节
 （生成器从 `src/client/` 模块树抽取，freshness 由 `pnpm verify` 守——散文清单在生成物面前
 四轮漂移三轮同根，已退役为指针）。语义要点：官方品牌包只在 official 构建档案下注册，本地
-构建里品牌 slot 空置；三室是「+」向导里可添加的右栏 tab；首里引导座位开聊即隐——不是 §六 延后的
-"专属 Web 卡片"（那是通用卡不够用时的 client 插件面，触发条件未到）。
+构建里品牌 slot 空置；三室是「+」向导里可添加的右栏 tab；首里引导座位开聊即隐；全局经营
+桌面的主区投影消费 `main` 座位（读回链 = [`operating.md`](operating.md) §三）——这些消费的
+全是 vendor 通用座位，§六 延后的"专属 Web 卡片"指**跨出通用座位的自有卡面**（自有 slot 域名），
+未立项。
 
 **为什么服务在 host 面**：working folder 是**跨会话持久化**，与持久化/沙箱/模型路由同类；
 client 的三室 tab 读的就是同一个实例；preset 里的服务行必须包在 isolate realm 里，
@@ -113,13 +123,16 @@ seam 的成色读数是**第二个真实 Provider 出现而 Consumer 一行不�
 | `src/domain/skills/scan.ts` | 按 provider 的规则回读技能房间，报出会被静默忽略的文件 | frontmatter |
 | `src/domain/home/digest.ts` | 有界摘要（桌面），按 UTF-8 字节裁剪 | record/thread 类型 |
 | `src/domain/home/health.ts` | **纯函数**养护检查：输入是解析结果，输出是 findings | 类型 |
+| `src/domain/operating/`（`ledger.ts`、`projection.ts`） | 经营账本**纯核**：事项/操作/回执/待认领词汇与归约、v2 投影渲染（契约 = [`operating.md`](operating.md)） | 无（最底层） |
 | `src/index.ts` | 稳定包入口：`src/host/index.ts` 服务实现的薄导出（同 class 身份；`ctx.assistantMemory` 增广随实现加载） | 全部 |
 | `src/host/index.ts` | 服务实现：把领域模块组装成 `ctx.assistantMemory` | 全部 |
-| `src/agent/tool-support/presentation.ts` | 四个工具共享的 presenter 管道：`presentationMeta` 投影摘要 → `presentResult` 从 `result.meta` 读回（完成卡读不到规范值，只能读持久化载荷） | dsh-tools 类型 |
+| `src/agent/tool-support/presentation.ts` | agent 面工具共享的 presenter 管道：`presentationMeta` 投影摘要 → `presentResult` 从 `result.meta` 读回（完成卡读不到规范值，只能读持久化载荷） | dsh-tools 类型 |
 | `src/host/web-branding.ts` | Web 壳品牌注入行：页标题 + 图标（纯函数；经 `webserver/index-inject` 事件进浏览器，皮肤面） | dsh-host-webserver（仅类型） |
-| `src/client/`（多模块，`index.ts` 为主注册面） | 浏览器面：座位与命令注册（精确清单 = 生成物 [`package-catalog.md`](package-catalog.md)「客户端座位面」节；皮肤面，不进模型上下文） | react + ui-renderer/ui-sidebar（仅类型） |
+| `src/host/operating-ledger/index.ts` | 服务实现：`ctx.assistantOperatingLedger` 单 writer 认领（`writer.lock` 惰性认领 + 死进程接管）、`ledger.json` 原子持久、读路径恒重读（契约 = [`operating.md`](operating.md) §一） | domain/operating + dsh-home-paths |
+| `src/host/desk-projection/`（+ `desk-projection-download.ts`） | 固定只读投影下载行：GET route 优先活渲染账本、回退固定夹具、错误态分明（契约 = [`operating.md`](operating.md) §三） | domain/operating + dsh-client-connection（仅类型） |
+| `src/client/`（多模块，`index.ts` 为主注册面） | 浏览器面：座位与命令注册（精确清单 = 生成物 [`package-catalog.md`](package-catalog.md)「客户端座位面」节；皮肤面，不进模型上下文）+ 经营桌面投影读回链（`projection-reader` / `operating-projection` / `projection-lifecycle` / `projection-panel`，契约 = [`operating.md`](operating.md) §三） | react + ui-renderer/ui-sidebar（仅类型） |
 |  `src/dev/preset-runner/index.ts` | **preset 挂载的 one-shot 驱动**（dev 验证自动化：`agentPresets.resolve`→`mount` 进 agent setup，会话头记录 `agentPreset`；经 `dev/probes/session/preset-runner.patch.yml` 替换 headless-runner 行启用） | dsh-agent / dsh-agent-preset-registry / dsh-llm / dsh-session / dsh-brand |
-| `src/agent/`（`tool-memory`、`tool-research`、`tool-knowledge`、`memory-digest`、`home-preamble`、`learn`、`ov-shield`） | agent 面入口：薄适配器（校验跨字段规则 → 调服务 → 返回规范值 + presenter） | cordis/tools |
+| `src/agent/`（`tool-memory`、`tool-research`、`tool-operating`、`tool-knowledge`、`learn`、`memory-digest`、`home-preamble`、`operating-brief`、`ov-shield`） | agent 面入口：薄适配器（校验跨字段规则 → 调服务 → 返回规范值 + presenter）与常驻段落 | cordis/tools |
 
 **依赖方向单向向下**，纯核（home/memory/research/skills）**不 import DSH 运行时** ——
 所以它们能被 vitest 直接测，不需要挂 harness。
@@ -130,8 +143,8 @@ seam 的成色读数是**第二个真实 Provider 出现而 Consumer 一行不�
 
 | 模型可见输入 | 由什么覆盖 |
 |---|---|
-| 身份/手册/摘要三段落（SOUL.md + AGENTS.md + 精选记忆与线索条数） | 系统提示词组装随请求记录；内容由 working folder 的文件（外部状态）决定 |
-| 四个工具的调用与结果 | `tool/call` / `tool/result` 逐字进日志 |
+| 身份/手册/摘要/经营账本四段落（SOUL.md + AGENTS.md + 精选记忆与线索条数 + 经营事项走账本） | 系统提示词组装随请求记录；身份/手册/摘要内容由 working folder 的文件（外部状态）决定 |
+| 五个工具的调用与结果 | `tool/call` / `tool/result` 逐字进日志 |
 | 技能目录（学到的技能出现/消失） | 目录随请求组装记录；`skills/change` 是注册表失效事件 |
 | 工具 description | 属于模型可见输入：改它是**行为变更**，不是改名 |
 
@@ -146,6 +159,10 @@ assistant_research ────┼─→ ctx.assistantMemory ─→ Room（memor
 assistant_reflect ─────┘   （save_page 写 knowledge/ 的 staged draft，手改 stable 即人审）
                            └─→ skills/<name>/SKILL.md
 assistant_knowledge ───→ ctx.assistantMemory.searchKnowledge / readKnowledgePage（只读检索，反链现算）
+assistant_operating ───→ ctx.assistantOperatingLedger ─→ 经营账本（独立 assistant-operating dataDir：
+                                                        ledger.json 原子持久，单 writer）
+                                                        └─→ 桌面投影：GET api/assistant/desk-projection
+                                                            活渲染 v2 → client 读回（契约 = operating.md）
                                                           │
                         ┌─────────────────────────────────┘
                         ↓（provider 监听目录，改动即刻可见）
@@ -164,7 +181,7 @@ assistant_knowledge ───→ ctx.assistantMemory.searchKnowledge / readKnowl
 | 语义检索（embedding） | 关键词/标签检索出现真实漏召回；那时经 `ctx.llm` 做 embedding，另开一缝 |
 | 自动后台复盘（`session/end` + `ctx.jobs`） | 有真实使用数据说明"每会话复盘"的收益大于 token 代价与同意成本 |
 | settings namespace `assistant` | 出现"用户要在设置页改"的真实需求（现在配置走 bundle/profile 的 Config） |
-| 专属 Web 卡片 | 通用卡不够用：先走 `tool.call.toolview` 槽，再走 `dsh.client.inject` |
+| 专属 Web 卡片（跨出通用座位的自有卡面 / 自有 slot 域名） | 通用座位与其 inject 缝表达不了：`tool.call.toolview` 槽与 `dsh.client.inject`（品牌、三室 tab、经营桌面投影已消费这两级——见 `package-catalog.md`「客户端座位面」）之后的下一级，自有域名届时按 `identity.md` §一 第 8 行命名 |
 | session 回放快照（web 渲染期望已建，同树） | 提示词组装面出现"只有跑起来才看得出"的回归，或同一 model-visible 面第三次靠手工探针钉回归（见 `snapshots/README.md`） |
 | 多专家复用（方案 D） | 第二个领域专家立项，且要复用骨架而不是各自重写 |
 
@@ -226,9 +243,11 @@ pnpm dsh …（package.json scripts → dev/env/dsh.mjs，唯一启动器：
 
 客户端在 `main` 声明可用并完成桌面注册后，每个 Client 根上下文只尝试一次默认选择：当前 `activePanelId` 为 null 时选全局桌面，否则保留已选面板。显式回到 Conversation、归档引发的回退、slot/布局重挂及客户端 HMR 不重选；完整页面重载的新根上下文重新尝试。默认机会只在页面内记录，不保存导航偏好或业务数据。插件首次激活前的显式 null 与启动 null 无法由当前公开快照区分；全局桌面读取独立 Host 固定投影，会话侧旧视图仍读取工作区快照；默认入口本身不创建业务 Session。
 
-独立 Host 行 `assistant-desk-projection` 提供固定只读 `GET api/assistant/desk-projection` 文件下载，目录 Config `dataDir` 默认 `<dshHome>/assistant-operating`，固定文件 `desk-projection.json`。它不创建目录/文件，不读取 Agent working folder，不接受 query/path 参数，不提供写入。认证与 Host/Origin 检查由 Connection 物理 carrier 承接；响应 `no-store`，完整文件 byte cap 默认 1 MiB，可通过 `maxProjectionBytes` 配置。缺失 404、超限 413、无效 UTF-8/JSON 422、其他 I/O 500；JSON 业务 schema 不由下载器校验。客户端主区消费此下载，经营 writer 和事项操作读回不由该路由提供。入口为 [Host 插件](../packages/dsh-smart-assistant/src/host/desk-projection/index.ts)，物理 HTTP 验证使用 [只读探针](../dev/probes/web/desk-projection-download.mjs)，以明确标注模拟的 [固定资料](../dev/fixtures/desk-projection/desk-projection.json) 为独立字节预期。
+独立 Host 行 `assistant-desk-projection` 提供固定只读投影下载：经营 dataDir 里有 `ledger.json` 时**活渲染账本 v2 投影**，无账本才回退固定 `desk-projection.json` 模拟输入；端点边界、认证、错误态与 byte cap 的完整契约 = [`operating.md`](operating.md) §三（唯一权威，本文不复述）。物理 HTTP 验证使用 [只读探针](../dev/probes/web/desk-projection-download.mjs)，以明确标注模拟的 [固定资料](../dev/fixtures/desk-projection/desk-projection.json) 为独立字节预期。
 
-Client 的 [下载对象](../packages/dsh-smart-assistant/src/client/projection-reader.ts)通过 Connection generation/state 观察就绪与丢失，URL 使用 document-relative `api/assistant/desk-projection`，同源 cookie、不复制 token、不接受跨源 base 或重定向。最后成功 JSON 在断连/失败时保留并标陈旧；代际与请求身份阻止刷新替换、断连或 dispose 后的迟到结果发布，dispose 撤销订阅并取消请求。HTTP 缺失、认证、拒绝、损坏、超限与下载失败分别进入状态，不将错误体作为数据。下载对象固定调用经营 v1 解析器，不接受外部 decoder，解析拒绝不覆盖最后有效内容。经营 [v1 解析器](../packages/dsh-smart-assistant/src/client/operating-projection.ts)要求 `schemaVersion:1`、非空 `ledgerId`、非负安全整数 `revision`、唯一事项 `id`、标题、`active/completed` 状态、summary 与 evidence 集合；每条证据须有唯一 id、Session/event 定位和 quote。空证据可表达未知，不推断来源存在、不做业务状态迁移。`fixture` 若提供必须为 boolean；额外 envelope 字段不进入返回值。apply 通过 [生命周期绑定](../packages/dsh-smart-assistant/src/client/projection-lifecycle.ts)持有读取对象和稳定平台 snapshot publisher，在主区 inject 的 `hooks.projection` 注入；[主区组件](../packages/dsh-smart-assistant/src/client/projection-panel.ts)只读框架 `useProjection`，重读与返回通过 plain callback。fiber 卸载取消请求/撤销订阅，Slot 重挂复用该源；全局列表显示完整集合及模拟/陈旧标识；选择事项后显示摘要、状态和 evidence 的 quote、Session/event 定位，选择只保存在 Slot view store，投影仍由 reader 持有。宽主区使用列表/详情双栏，窄容器切换为单 pane，返回列表保留选择和列表滚动位置；当前没有业务写入或操作回执。缺失、真空集合、损坏分别呈现，组件不发请求或订阅。`ready` 表示下载已通过经营 v1 解析，不表示持久业务操作成功；可执行合同为 [读取测试](../packages/dsh-smart-assistant/tests/client/projection-reader.spec.ts)。
+客户端读回链（下载对象的代际/陈旧语义、经营 v1/v2 解析器、`hooks.projection` 生命周期绑定、面板形态与 `ready` 语义）的合同同在 [`operating.md`](operating.md) §三；可执行合同 = [读取测试](../packages/dsh-smart-assistant/tests/client/projection-reader.spec.ts)与其同族 spec。
+
+Client 的 [下载对象](../packages/dsh-smart-assistant/src/client/projection-reader.ts)通过 Connection generation/state 观察就绪与丢失；断连保留、迟到发布防护、解析器契约与生命周期绑定的现况由 [`operating.md`](operating.md) §三 拥有，此处不再复制第二份。
 
 ```text
 浏览器点击（三室面板 / 首开审批横幅 / composer）
@@ -251,7 +270,7 @@ Client 的 [下载对象](../packages/dsh-smart-assistant/src/client/projection-
 | 直调挂载被拒 | console.info 诊断 + 回退提示（设计状态） | 同上 + `pnpm web-expected` 两场景的 console 契约 |
 | 模型做了但 UI 没显示 | desk 文件没动或没读回 | 对照会话日志与工作区 `.desk/state.json` 生成时间 |
 
-## 八、五条功能路由
+## 八、六条功能路由
 
 拿功能找入口的速查表：每条给主链、实现入口、最低 keyless 验证、失败先看、live 边界。四房间规则与状态的 owner = [`home.md`](home.md)；证据阶梯与政策的 owner = [`testing.md`](testing.md)——本表只做路由，不复制规则。
 
@@ -260,5 +279,6 @@ Client 的 [下载对象](../packages/dsh-smart-assistant/src/client/projection-
 | 记忆保存/检索 | 模型请求链 | `assistant_memory`（`src/agent/tool-memory/`）→ `ctx.assistantMemory` → memory/ 房间；词汇 `src/domain/memory/record.ts`、排序 `src/domain/memory/recall.ts` | `pnpm --filter dsh-smart-assistant exec vitest run tests/domain/record.spec.ts tests/domain/recall.spec.ts` | 房间文件 frontmatter；digest 缓存 touch 失效（§五） | 规则与排序确定性无模型；真实措辞与召回选择才在模型回合 |
 | 知识草稿/批准/检索 | 模型 + 浏览器链 | 草稿 = `assistant_reflect` 的 save_page（staged）；批准 = 浏览器两车道 → host `promotePage`（`src/host/index.ts`）；检索 = `assistant_knowledge`（`src/agent/tool-knowledge/`；host 面 `searchKnowledge`/`readKnowledgePage`，§五） | `pnpm --filter dsh-smart-assistant exec vitest run tests/host/knowledge-write.spec.ts`（草稿/批准/检索/摘要全链） | draft→stable 翻转与会话审计；直调挂载回退提示 | 批准按钮与回退车道要浏览器；草稿内容生成在模型回合 |
 | 提示词摘要 | 模型请求链 | `assistant-memory-digest` 段落（`src/agent/memory-digest/`）← `ctx.assistantMemory.digest()` 缓存 + 写操作 touch 失效（§五）；预算旋钮（`digestMaxBytes`/`recallLimit`）= host 行 `assistant-memory` 的 config（`cordis.patch.yml` 头部） | `pnpm --filter dsh-smart-assistant exec vitest run tests/domain/digest.spec.ts tests/agent/digest-prewarm.spec.ts` | 缓存失效时序与段落同步 `text` 契约 | 摘要计算无模型；真实会话的段落组装用 keyless 回放看 |
+| 经营事项（账本/投影/读回） | 模型请求链 + 浏览器动作链 | `assistant_operating`（`src/agent/tool-operating/`）→ `ctx.assistantOperatingLedger`（`src/host/operating-ledger/`）→ `ledger.json`；投影 = `src/host/desk-projection/` → client `projection-*`（契约 owner = [`operating.md`](operating.md)） | `pnpm --filter dsh-smart-assistant exec vitest run tests/host/operating-ledger.spec.ts tests/client/projection-reader.spec.ts`（组合面：`pnpm build` → `pnpm test:composition`） | 权限三分与幂等回执；投影 `ready` ≠ 业务成功；客户端 v1/v2 解析 | 工具动作语义无模型；真实交代→读回在模型回合与浏览器（eval `desk-*` 任务集） |
 | 桌面刷新 | 浏览器 → 模型 → 读回 | `sendPrompt`（`src/client/desk-io.ts`）→ 模型回合 → `.desk/state.json` → 轮询越过 pending.at | `pnpm --filter dsh-smart-assistant exec vitest run tests/client/client-panels.spec.ts tests/client/client-commands.spec.ts` | `.desk/state.json` 生成时间 vs pending.at；会话日志 | 全链要真会话与渲染：`pnpm web-expected` 两场景；真问真答 `pnpm loop-probe` |
 | 插件装载 | 启动链 | `cordis.patch.yml` 行 → built `lib/` → profile（`dev/env/setup.sh` 装包 + profile patch 设 default） | `pnpm test:composition`（先 build）+ `pnpm --filter dsh-smart-assistant exec vitest run tests/composition/export-shape.spec.mjs` | lib freshness（never started）；行 id/patch 落空（dump-config） | Web UI 行为要 `pnpm preflight` + 两场景 |

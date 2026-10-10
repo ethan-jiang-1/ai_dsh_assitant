@@ -28,13 +28,15 @@ shipped preset id（`standard`/`ptc`/`cordis`/`minimal`）、保留 profile 名�
 
 preset 显示名与描述（`cordis.patch.yml` 的 `preset-assistant` 行 config）、一切 UI 文案（走 locale）、`SOUL.md`/`AGENTS.md` 的措辞与内置回退身份文本、技能正文、
 Web 壳的页标题、图标与侧栏品牌（`src/host/web-branding.ts` 注入行 + `src/client/brand.ts` 的
-`sidebar.brand.*` slot 占位；侧栏名 `BRAND_NAME`「智能助手」——页签标题仍带 "DSH Local assistant" 尾巴）。
+`sidebar.brand.*` slot 占位；侧栏名 `BRAND_NAME`「章鱼管家」，页签标题 `DEFAULT_WEB_TITLE`「章鱼管家 · 本地经营总管」）。
 工具 **description 是中间地带**：名字是身份，description 是**模型可见输入** —— 改它不是改名，
 是**行为变更**，要走 model-visible 纪律（配快照）。
 
 ## 三、刻意不做（第 0 天）
 
-三个"刻意不做"——**不新增 SessionEventMap 成员、不注册 settings namespace、不做专属 Web 卡片**——
+三个"刻意不做"——**不新增 SessionEventMap 成员、不注册 settings namespace、不做跨出通用座位的专属 Web 卡面**
+（＝自有 slot 域名；品牌、三室 tab 与经营桌面投影消费的都是 DSH 通用座位，清单见生成物
+[`package-catalog.md`](package-catalog.md)「客户端座位面」节）——
 都是**延后**而非永久否决。理由与触发条件的唯一出处是 `docs/architecture.md` 第六节延后项表；
 本表只管身份面：触发后按 §一 的文法与代价登记新行，涉及模型可见文案时按第二节走 model-visible 纪律。
 
