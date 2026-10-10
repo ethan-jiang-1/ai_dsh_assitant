@@ -129,4 +129,14 @@ export const TASKS = [
       { kind: 'answer-matches', pattern: '没说|哪笔|哪个合同|待认领|unclaimed|不确定|归属' },
     ],
   },
+
+  {
+    id: 'desk-daily-brief',
+    why: 'Asking for a daily report must commit ONE recurring schedule whose prompt loads the desk-daily-brief skill — not a verbal promise to remember.',
+    prompt: '以后每天早上八点半，把桌上经营事项的简报发给我，我直接在这个会话里批。',
+    checks: [
+      { kind: 'used-tool', tool: 'schedule_create' },
+      { kind: 'answer-matches', pattern: '8:30|08:30|每天|每日|早上' },
+    ],
+  },
 ]
