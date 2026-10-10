@@ -71,6 +71,16 @@ export interface ClientContext {
     readonly current: { readonly value: { readonly key?: unknown } }
   }
   /**
+   * The workspace navigation face: `openSession` is the shell's own "select a Session and
+   * show its Conversation" action (retain + selection + previous-reference release + reveal).
+   * The processing path must go through it — retaining alone leaves the selection on the
+   * already-mainView-retained current session, and the principal would type into the OLD
+   * conversation (probed, desk-process-e2e, 2026-10-10).
+   */
+  uiWorkspace?: {
+    openSession(target: string): void
+  }
+  /**
    * Scoped dependency injection. The command registry is reached this way instead of
    * through the plugin's own `inject` list: the rooms must render whether or not the
    * composition carries a command surface, so the panels must not wait on it.

@@ -69,6 +69,10 @@ if (!existsSync(seedLedger)) throw new Error(`seed ledger missing: ${seedLedger}
 if (!existsSync(join(home, 'profiles'))) throw new Error(`probe home not set up (no profiles/): ${home} — run prepare.sh + setup.sh with ASSISTANT_DSH_HOME`)
 
 // —— 编排：清旧服务 → 恢复种子账本 → 起服务 → 等 URL ——
+// 直连 vendor CLI bin（绕过 dev/env/dsh.mjs 启动器，先例＝release-smoke/setup.sh，硬规则 1
+// 允许 tooling 自设 DSH_HOME）：启动器只是参数透传层，经它 SIGTERM 会只杀启动器、把真服务
+// 留成孤儿继续持有 writer.lock（首轮实测：第二跑的 report/propose 全被「owned by another
+// writer」拒绝）。直连后探针的子进程就是真服务，优雅退出即释放锁。
 const pidFile = join(home, '.desk-process-e2e-service.pid')
 if (existsSync(pidFile)) {
   const stale = Number(readFileSync(pidFile, 'utf8'))
@@ -79,9 +83,18 @@ const operatingDir = join(home, 'assistant-operating')
 mkdirSync(operatingDir, { recursive: true })
 copyFileSync(seedLedger, join(operatingDir, 'ledger.json'))
 
-const service = spawn(process.execPath, ['dev/env/dsh.mjs', '--profile', 'dev', '--patch', 'dev/probes/web/replay-adapter.patch.yml', '--port', '0', '--no-open'], {
+const vendorBin = join(repoRoot, 'vendor', 'dsh', 'apps', 'cli', 'src', 'bin.ts')
+const tsxEntry = import.meta.resolve('tsx/esm')
+const service = spawn(process.execPath, ['--import', tsxEntry, vendorBin, '--profile', 'dev', '--patch', 'dev/probes/web/replay-adapter.patch.yml', '--port', '0', '--no-open'], {
   cwd: repoRoot,
-  env: { ...process.env, ASSISTANT_DSH_HOME: home, REPLAY_PRIMARY: replaySource },
+  env: {
+    ...process.env,
+    DSH_HOME: home,
+    DSH_AGENTS_HOME: join(home, 'agents-home'),
+    DSH_TELEMETRY_DISABLED: '1',
+    TSX_TSCONFIG_PATH: join(repoRoot, 'tsconfig.tsx.json'),
+    REPLAY_PRIMARY: replaySource,
+  },
   stdio: ['ignore', 'pipe', 'pipe'],
 })
 writeFileSync(pidFile, String(service.pid))
@@ -99,34 +112,46 @@ if (url === undefined) {
 }
 verdict.url = url
 
+let browser = undefined
 const teardown = () => {
   rmSync(pidFile, { force: true })
+  browser?.close()
   if (!keepService) service.kill('SIGTERM')
 }
 process.on('exit', teardown)
+process.on('SIGINT', () => { teardown(); process.exit(130) })
+process.on('SIGTERM', () => { teardown(); process.exit(143) })
 
 // —— 浏览器全链 ——
-const handle = await launchCdpBrowser({ url })
-if (handle.failed !== undefined) {
+browser = await launchCdpBrowser({ url })
+if (browser.failed !== undefined) {
   teardown()
-  verdict.error = handle.failed
+  verdict.error = browser.failed
   console.log(JSON.stringify(verdict, null, 2))
   process.exit(1)
 }
-const { evaluate, consoleProblems, exceptions } = handle
+const { evaluate, consoleProblems, exceptions } = browser
 const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms) })
 const deskPresent = `document.querySelector('[data-assistant-operating-desk]') !== null`
 const deskText = `(() => { const root = document.querySelector('[data-assistant-operating-desk]'); return root === null ? null : root.innerText })()`
 
-// 相位 1：桌面挂载 + 种子事项可见（投影 live 读到 m-1）。
-let deskTextValue = null
-for (let i = 0; i < 60 && deskTextValue === null; i++) {
-  deskTextValue = await evaluate(deskText)
-  if (deskTextValue === null) await sleep(500)
+// 相位 1：桌面挂载 + 种子事项可见（投影 live 读到 m-1）。启动竞态下首帧可能是
+// loading/disconnected 横幅——轮询到 m-1 出现或超时，不把竞态当失败。
+let deskReady = null
+for (let i = 0; i < 120 && deskReady === null; i++) {
+  const text = await evaluate(deskText)
+  if (text !== null && text.includes('合同 NB-02 第二期款到账核对') && text.includes('1 件在办')) deskReady = text
+  else if (i < 119) await sleep(700)
 }
-if (deskTextValue === null) { teardown(); fail('desk-boot', { waitedMs: 30000 }) }
-if (!deskTextValue.includes('合同 NB-02 第二期款到账核对') || !deskTextValue.includes('1 件在办')) {
-  teardown(); fail('matter-list', { text: deskTextValue.slice(0, 400) })
+if (deskReady === null) {
+  const lastState = await evaluate(`(() => ({
+    readyState: document.readyState,
+    hasBody: document.body !== null,
+    bodyHead: (document.body?.textContent ?? '').slice(0, 200),
+    desk: document.querySelector('[data-assistant-operating-desk]') !== null,
+  }))()`)
+  teardown()
+  fail('matter-list', { waitedMs: 84000, lastState })
 }
 pass('matter-list', { matter: 'm-1' })
 
@@ -157,11 +182,23 @@ for (let i = 0; i < 40 && !conversationActive; i++) {
   conversationActive = await evaluate(`document.querySelector('[data-assistant-operating-desk]') === null && document.querySelector('[data-composer-input="true"]') !== null`) === true
   if (!conversationActive) await sleep(500)
 }
-if (!conversationActive) { teardown(); fail('conversation-switch', { waitedMs: 20000 }) }
+if (!conversationActive) {
+  const state = await evaluate(`(() => ({
+    desk: document.querySelector('[data-assistant-operating-desk]') !== null,
+    composer: document.querySelector('[data-composer-input="true"]') !== null,
+    navCount: performance.getEntriesByType('navigation').length,
+    hasDebugGlobal: '__deskProcessDebug' in globalThis,
+    processLog: (globalThis.__deskProcessDebug ?? []).slice(-4),
+    notice: (document.body?.innerText ?? '').slice(0, 250),
+  }))()`)
+  teardown()
+  fail('conversation-switch', { waitedMs: 20000, state })
+}
 pass('conversation-switch', {})
 
-// 相位 4：发一句话 → 回放回合真跑（真工具真账本）。粘贴/发送习语来自 webui-loop-probe
-// （composer 拒绝 execCommand，合成 ClipboardEvent paste 是已验证的插入方式）。
+// 相位 4+5（本探针的存在理由）：发一句话 → 回放回合真跑（真工具真账本）→ 读回 → 自动返回。
+// 粘贴/发送习语来自 webui-loop-probe（composer 拒绝 execCommand，合成 ClipboardEvent paste
+// 是已验证的插入方式）。
 const pasteOnce = `(() => {
   const composer = document.querySelector('[data-composer-input="true"]');
   if (composer === null) return 'no-composer';
@@ -193,19 +230,15 @@ const sent = await evaluate(`(() => {
 })()`)
 if (sent !== 'sent') { teardown(); fail('send', { sent }) }
 
-// done 信号 = 回合结束：停止按钮消失，或录制终答文本出现（burst 回放可能在轮询间隙跑完）。
-const turnDone = `(() => {
-  const stop = [...document.querySelectorAll('button')].some(b => {
-    const label = b.getAttribute('aria-label') ?? '';
-    return label === '停止生成' || label === 'Stop generating';
-  });
-  const body = document.body.textContent ?? '';
-  return !stop && body.includes(${JSON.stringify(finalReplyMarker)});
-})()`
+// 完成信号 = 桌面重新挂载——它蕴含「回合已结算＋回执已读回＋judge 判 return」整链；
+// 不能把「终答文本可见」当门槛：自动返回会把会话视图换走、标记随之离开 body，
+// 两个信号在赛跑，标记必输（实测：return 在回合结束后 100ms 触发，标记窗口没有
+// 任何一个 1.5s 轮询拍抓到）。终答标记降级为过程遥测（sawTurnActivity），不作判据。
 let approvals = 0
-let done = false
-const turnStartedAt = Date.now()
-for (let i = 0; i < 160 && !done; i++) {
+let sawTurnActivity = false
+const flowStartedAt = Date.now()
+let returnText = null
+for (let i = 0; i < 200 && returnText === null; i++) {
   await sleep(1500)
   // 审批门：回放回合里的 bash 等工具会停在「允许一次」等真人——探针就地点掉并计数。
   const approval = await evaluate(`(() => {
@@ -214,32 +247,42 @@ for (let i = 0; i < 160 && !done; i++) {
     b.click(); return 'clicked';
   })()`)
   if (approval === 'clicked') approvals += 1
-  done = await evaluate(turnDone) === true
-}
-if (!done) { teardown(); fail('turn-settle', { waitedMs: Date.now() - turnStartedAt, approvals }) }
-pass('turn-settle', { approvals, seconds: Math.round((Date.now() - turnStartedAt) / 1000) })
-
-// 相位 5（本探针的存在理由）：读回 → 自动返回。settle-follow 刷新投影（4s 防抖）→
-// evaluateReturn → judgeReturn → selectPanel(桌面)。等桌面重新挂载，断言原选择保留
-// 且回执落地（report 的材料 + propose 的「等你确认」提案）。
-let returned = false
-let returnText = null
-const returnStartedAt = Date.now()
-for (let i = 0; i < 40 && !returned; i++) {
+  if (!sawTurnActivity) {
+    sawTurnActivity = await evaluate(`(() => {
+      const stop = [...document.querySelectorAll('button')].some(b => {
+        const label = b.getAttribute('aria-label') ?? '';
+        return label === '停止生成' || label === 'Stop generating';
+      });
+      return stop || (document.body.textContent ?? '').includes(${JSON.stringify(finalReplyMarker)});
+    })()`) === true
+  }
   returnText = await evaluate(deskText)
-  returned = returnText !== null
-  if (!returned) await sleep(700)
 }
-if (!returned) {
-  // 区分两种红：账本没动（回放没真执行）vs 账本动了但返回没触发（刷新/判定接线缺口）。
+if (returnText === null) {
+  // 区分三种红：回放没真执行（账本没动）vs 回合没结算 vs 返回链断了（账本动了、
+  // 回合结束了、桌面没回来）。judgeLog 与 fetch 时间线是零侵入取证。
+  const state = await evaluate(`(() => ({
+    stopButton: [...document.querySelectorAll('button')].some(b => {
+      const label = b.getAttribute('aria-label') ?? '';
+      return label === '停止生成' || label === 'Stop generating';
+    }),
+    bodyHasMarker: (document.body.textContent ?? '').includes(${JSON.stringify(finalReplyMarker)}),
+    processLog: (globalThis.__deskProcessDebug ?? []).slice(-6),
+    fetches: performance.getEntriesByType('resource').filter(e => e.name.includes('desk-projection')).map(e => Math.round(e.startTime)),
+  }))()`)
   const ledger = JSON.parse(readFileSync(join(operatingDir, 'ledger.json'), 'utf8'))
   const ops = Object.values(ledger.operations ?? {})
   teardown()
   fail('auto-return', {
-    waitedMs: Date.now() - returnStartedAt,
-    ledgerOperations: ops.map((op) => `${op.kind ?? op.action ?? '?'}:${op.status ?? '?'}`).slice(0, 6),
+    waitedMs: Date.now() - flowStartedAt,
+    approvals,
+    sawTurnActivity,
+    ledgerOperations: ops.map((entry) => `${entry.operation?.kind ?? '?'}:${entry.receipt?.outcome?.status ?? '?'}`),
+    state,
   })
 }
+pass('turn-settle', { approvals, sawTurnActivity, seconds: Math.round((Date.now() - flowStartedAt) / 1000) })
+pass('auto-return', { waitedMs: Math.round((Date.now() - flowStartedAt) / 1000) })
 if (!returnText.includes('合同 NB-02 第二期款')) {
   teardown(); fail('return-selection', { text: returnText.slice(0, 400) })
 }
@@ -250,7 +293,6 @@ const readback = {
 if (!readback.materialLanded || !readback.proposalPending) {
   teardown(); fail('readback-visible', { readback, text: returnText.slice(0, 600) })
 }
-pass('auto-return', { waitedMs: Date.now() - returnStartedAt })
 pass('return-selection', {})
 pass('readback-visible', readback)
 

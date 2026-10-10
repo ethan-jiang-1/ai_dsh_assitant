@@ -43,10 +43,12 @@ describe('client-module registration', () => {
     // tabs, the Session store for the conversation list and the desk file's workspace, and the
     // three manifested Remote namespaces (a namespace the browser-side manifest does not list
     // leaves the entry pending forever). Layout owns the initial dashboard default and
-    // the dashboard's 「有问题？」 return to Conversation via selectPanel(null).
+    // the dashboard's 「有问题？」 return to Conversation via selectPanel(null). uiWorkspace
+    // owns the processing path's openSession — the shell's own session-selection action
+    // (retaining alone leaves the selection on the already-mainView-retained session).
     expect(exports.inject).toEqual([
       'slots', 'sidebarRightTabs', 'sidebarRight', 'sessions', 'remote',
-      'remote.agentPresets', 'remote.workspaceFiles', 'remote.session', 'layout', 'connection', 'uiSession', 'workspaces',
+      'remote.agentPresets', 'remote.workspaceFiles', 'remote.session', 'layout', 'connection', 'uiSession', 'workspaces', 'uiWorkspace',
     ])
     const calls: string[] = []
     const registered: string[] = []

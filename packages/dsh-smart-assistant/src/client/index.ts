@@ -46,7 +46,7 @@ import { createProjectionViewStore } from './projection-view'
 import { bindProcessPath, judgeReturn, type ProcessingPath } from './desk-process'
 
 /** Slots this face occupies (single-occupant, root-scope, declared by the sidebar). */
-const inject = ['slots', 'sidebarRightTabs', 'sidebarRight', 'sessions', 'remote', 'remote.agentPresets', 'remote.workspaceFiles', 'remote.session', 'layout', 'connection', 'uiSession', 'workspaces']
+const inject = ['slots', 'sidebarRightTabs', 'sidebarRight', 'sessions', 'remote', 'remote.agentPresets', 'remote.workspaceFiles', 'remote.session', 'layout', 'connection', 'uiSession', 'workspaces', 'uiWorkspace']
 
 /**
  * Default selection is consumed once per Client root. Keeping weak root identities on the page
@@ -161,7 +161,6 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // never replays a path or re-submits. The slot store survives panel switches, so the
     // selection the principal left behind is exactly what the auto-return returns to.
     const processPath = storeApi?.createSnapshotStore<ProcessingPath | undefined>(undefined)
-    let processReference: { release(): void } | undefined
     const processMatter = (matterId: string): void => {
       const data = projection?.getSnapshot().data
       const observed = data?.matters.find(matter => matter.id === matterId)?.revision
@@ -174,12 +173,16 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
           ?? catalog?.items[0]?.workspaceId
         const sessionId = await ctx.sessions?.create(workspaceId === undefined ? undefined : { workspaceId })
         if (sessionId === undefined) return
-        processReference?.release()
-        processReference = ctx.sessions?.retain(sessionId, { source: 'mainView' })
+        // Open the processing session as the main view's conversation through the shell's own
+        // navigation action. Retaining alone does not switch the selection when the current
+        // session is itself mainView-retained (the restored last session on load): the
+        // principal would type into the OLD conversation, the receipt would land under the
+        // old session, and the auto-return could never fire (probed, desk-process-e2e,
+        // 2026-10-10). openSession = retain + selection + previous-reference release + reveal.
+        ctx.uiWorkspace?.openSession(sessionId)
         if (processPath !== undefined && observed !== undefined) {
           processPath.set(bindProcessPath(matterId, sessionId, observed))
         }
-        ctx.layout?.selectPanel(null)
       })()
     }
     const evaluateReturn = (): void => {
@@ -202,13 +205,31 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         ctx.layout?.selectPanel('dsh-smart-assistant-dashboard')
       }
     }
+    // The settle signal the desk file's quiet-gap proxy cannot see: session-list `updatedAt`
+    // bumps ONLY on user messages (vendor api-session/activity), so a settle-follow keyed to it
+    // fires mid-turn and never again after the turn ends. The running→false edge of the bound
+    // processing session is the real settlement signal (the same store the stop button reads):
+    // pull the projection on each settle so the receipt this turn committed enters the client
+    // and judgeReturn can decide the auto-return (probed red→green, desk-process-e2e, 2026-10-10).
+    let settlePathKey: string | undefined
+    let lastRunning: boolean | undefined
+    const refreshOnSettle = (): void => {
+      const path = processPath?.getSnapshot()
+      if (path === undefined) { settlePathKey = undefined; lastRunning = undefined; return }
+      const key = `${path.sessionId}@${path.boundAt}`
+      if (key !== settlePathKey) { settlePathKey = key; lastRunning = undefined }
+      const running = ctx.uiSession?.sessionStatus.getSnapshot().get(path.sessionId)?.running
+      if (running === lastRunning) return
+      lastRunning = running
+      if (running === false) reader?.refresh()
+    }
     // Subscriptions ride the browser-only path: headless client contexts carry no `effect`
     // (the reader mount follows the same boundary).
     if (processPath !== undefined && projection !== undefined) {
       ctx.effect(() => {
         const disposes: Array<(() => void) | undefined> = [
           projection.subscribe(evaluateReturn),
-          ctx.uiSession?.sessionStatus.subscribe(evaluateReturn),
+          ctx.uiSession?.sessionStatus.subscribe(() => { refreshOnSettle(); evaluateReturn() }),
           ctx.layout?.panelInfo.subscribe(evaluateReturn),
           ctx.sessions?.list.subscribe(evaluateReturn),
         ]
@@ -239,9 +260,12 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // One load feeds all three rooms; the store notifies them as it settles.
     loadDesk()
 
-    // Follow the conversation: when the newest Session settles a turn, re-read the desk file after
-    // a short settle delay. A refresh the assistant performed during that turn then lands on its
-    // own — the principal should not have to click to see what just changed.
+    // Follow the conversation: when the newest Session settles a turn, re-read the desk file AND
+    // the operating projection after a short settle delay. A refresh the assistant performed
+    // during that turn then lands on its own — the principal should not have to click to see what
+    // changed. The projection half is the K4 processing readback (2026-10-10, desk-process-e2e
+    // probe): without it the receipt committed by the processing turn never re-enters the client,
+    // judgeReturn stays on 'receipt-not-read-back', and the auto-return to the desk never fires.
     const store = ctx.sessions?.list as { getSnapshot: () => unknown, subscribe: (fn: () => void) => () => void } | undefined
     if (store !== undefined) {
       let lastStamp = 0
@@ -258,6 +282,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         pending = setTimeout(() => {
           if (getDeskStore().boundSessions.size === 0) loadDesk()
           for (const bound of getDeskStore().boundSessions) loadDeskFor(bound)
+          reader?.refresh()
         }, 4000)
       })
     }

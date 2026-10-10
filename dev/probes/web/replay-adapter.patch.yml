@@ -30,6 +30,11 @@
       name: '@deepseek-ai/dsh-llm-replay'
       config:
         file: !!js process.env.REPLAY_PRIMARY || process.cwd() + '/dev/fixtures/desk-process/followup/session.v4.jsonl'
+        # 逐 chunk 延迟把回合拉过「用户消息后 4s 静默刷新」的窗口：report 回执在静默
+        # fetch 之后才落账，只有结算边沿刷新（refreshOnSettle）能把它带进客户端——
+        # 这让 desk-process-e2e 对 settle 边沿层是诚实守卫（关掉该层必红），
+        # 而不是被 4s 静默层顺带覆盖（首轮负例实测教训，2026-10-10）。
+        paceMs: 25
         providers:
           - id: deepseek-official
             name: DeepSeek (replay)

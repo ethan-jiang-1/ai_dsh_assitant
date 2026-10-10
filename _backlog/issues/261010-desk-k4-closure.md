@@ -18,12 +18,12 @@ opened: 2026-10-10
 - 品牌与命名：本人三轮口味收敛定为「章鱼管家」（`1812c30`），preset 显示名/网页标题/章鱼剪影已换装，两 web-face 场景重录。
 
 **开放面（回头再看的清单，每项含没做的原因）：**
-1. **K4 处理流实走判断**——真人步骤（交代→处理→读回→返回＋话术/确认负担），卡上只有判读材料；演示 home `/tmp/eval-desk-gTg2`（临时，消失后 live 证据降级，可重建）。
-2. **浏览器端到端探针**——处理按钮→会话→读回→返回的确定性部分未探针化（本轮预算耗在行为验证上）。
-3. **K1/K2 八项已接受限制补证**——清单在规格卡（反代挂载/live 断连/Session 审计/窄视口覆盖/探针独立性/入口分叉/独立 review/滚动保留实现）；逐项补或转正为产品决定。
+1. **K4 处理流实走判断**——真人步骤（交代→处理→读回→返回＋话术/确认负担），卡上只有判读材料；演示 home `/tmp/eval-desk-gTg2`（临时，消失后 live 证据降级，可重建；2026-10-10 晚服务已重启、preflight 绿、URL 已交本人）。
+2. ~~浏览器端到端探针~~ **已闭合（2026-10-10）**：`dev/probes/web/desk-process-e2e.mjs` 自包含编排（种子账本恢复→直连 CLI bin 起服务→CDP 全链→拆服务），处理按钮→会话→读回→返回的确定性全链全绿；回放素材 = K3 eval 真实回合（`dev/fixtures/desk-process/`，llm-replay 派生），工具执行/账本/投影/判定/导航全真。**探针抓出并修复两处真缺口**：①`processMatter` 只 retain 不选会话——常见路径（已有 mainView 保留会话）下回合跑进旧会话、回执落在旧会话名下、自动返回必然卡死（修：`ctx.uiWorkspace.openSession` ＋ inject 声明 ＋ contracts 镜像）；②settle-follow 的触发源（list `updatedAt`）只在**用户消息**时 bump（vendor `api-session/activity`），回合结算后没有任何信号再触发投影刷新（修：绑定会话 running→false 边沿触发 `reader.refresh()`；另在 4s 防抖里补投影刷新作快回合层）。prove-it-red 双负例：关 openSession（会话错位红）与关结算刷新（带速回放下 `receipt-not-read-back` 红）；`paceMs: 25` 让回执落在 4s 静默窗口之后，探针对结算边沿层是诚实守卫（快回放会被静默层顺带覆盖——首轮负例实测教训）。
+3. **K1/K2 八项已接受限制补证**——清单在规格卡（反代挂载/live 断连/Session 审计/窄视口覆盖/探针独立性/入口分叉/独立 review/滚动保留实现）；逐项补或转正为产品决定。⑤（探针独立性）已部分推进：desk-process-e2e 的断言全落相位 verdict、eval 异常＝相位失败、双负例证明敏感度。
 4. **V4/V5 提醒协调**——投影 reminders 恒空占位；提醒协调与恢复协议按归档卡 261008 承接。
 5. **vendor 文案限制**——首屏 hero 标题「探索未至之境」无部署覆盖口（EmptyHero 直渲、locale Config 无字典覆盖口）；是否向上游提 headline 槽位/覆盖口，待推敲。
 
-**本轮试出的经验（复走时少踩坑）：** key 在凭证服务 `~/.dsh/.credentials.yaml`（eval 以环境变量注入，勿回显）；eval 前目标 home 必须跑过 prepare/setup；`tsc -b` 会把 ESM 覆盖进 classic bundle 输出路径，typecheck 后必须重跑 build；web-face 重录必须在**对应契约的 home** 上（blank 场景曾在 eval home 误录真实业务数据，靠契约检查抓回）。
+**本轮试出的经验（复走时少踩坑）：** key 在凭证服务 `~/.dsh/.credentials.yaml`（eval 以环境变量注入，勿回显）；eval 前目标 home 必须跑过 prepare/setup；`tsc -b` 会把 ESM 覆盖进 classic bundle 输出路径，typecheck 后必须重跑 build；web-face 重录必须在**对应契约的 home** 上（blank 场景曾在 eval home 误录真实业务数据，靠契约检查抓回）。探针轮新增（2026-10-10 晚）：**`pnpm build | tail` 管道吞退出码**——tsdown 失败后 tsc 的 ESM 覆盖留在 lib/client、classic bundle 消失，`&&` 照跑、探针全灭而 client 测试仍绿（源码级测试不走 lib）；链命令必须裸跑看 exit。**cordis 属性代理对未声明 inject 的服务直接抛**（不是返回 undefined）——`ctx.uiWorkspace` 未进 inject 清单时整个 async 体静默死，而 spec 的普通对象 mock 全绿：浏览器专属回归，只有真浏览器探针抓得住。**经启动器 SIGTERM 只杀启动器**——真服务成孤儿继续持有 writer.lock，下一轮 report/propose 全被「owned by another writer」拒；服务编排要直连 vendor CLI bin（先例＝release-smoke）。**CLI 旗标边界**：launcher 解析到第一个不认识的 token 为止，`--patch` 必须放在 `--port` 这类 app 旗标**之前**。**探针完成信号设计**：自动返回本身会把会话视图换走——等「终答文本可见」的探针和被测的返回在赛跑，标记必输；完成信号要用「桌面重新挂载」（蕴含整链）。llm-replay 的 title-llm 调用实测**不吃**脚本条目（对齐无虞）。
 
 **重启条件与关闭条件：** 本人点名继续即复走；真实使用出新哏点、或 pin 升级影响相关 seam 时本卡提前回看。关闭条件：K4 判断收口＋开放面逐项补证或转正为产品决定，按 [backlog 条件](../README.md)交接/关闭；在此之前任何「K3–K4 完整通过」声明都不成立。
