@@ -9,6 +9,7 @@
 | [261006-chief-of-staff-experience.md](261006-chief-of-staff-experience.md) | 全局主区桌面、完整事项与空间层级、事项对话处理后成功读回返回 | **需求结论已交接至 [proposed](../../notes/proposed/2026-10-06-desk-operating-entry.md)（实施已获点名授权）**：K1–K3 已落证、K4 阶段性停点（收口卡 [261010](261010-desk-k4-closure.md)）；九项验收与旧交付终验仍未完成 |
 | [261007-opening-brief-and-rhythm.md](261007-opening-brief-and-rhythm.md) | 开屏播报、拍板口吻和每周对账 | **已有实现，验收未完**：重载、输入框、排程与渲染有证据缺口，另有用户判断未完成 |
 | [261010-desk-k4-closure.md](261010-desk-k4-closure.md) | 章鱼管家 K4 收口：处理流判断、端到端探针、K1/K2 限制补证、提醒协调与 vendor 文案限制 | **阶段性停点（本人喊停）**：K3 技术链与首屏已过（权威状态见 [proposed 规格卡](../../notes/proposed/2026-10-06-desk-operating-entry.md)）；处理流判断与限制补证未闭合 |
+| [261010-desk-lead-rule.md](261010-desk-lead-rule.md) | 把右侧桌面「先办这件」的分拣和已回答判定从渲染里提出来，屏幕行为不变 | **等点名才改代码**：范围只限 `panels.ts` 这一处；提示词表、主区/首用过滤、拆文件都不做 |
 | [261007-input-boundary.md](261007-input-boundary.md) | 决定输入通道现在做，还是先观察真实使用 | **待用户选择**：30 天使用环境与先后选择未定；选择观察后还需落实基线与周度记录 |
 
 总助体验与开屏节律是已经实施、仍承载验收的旧卡，保留其未完成事项，不代表新的问题要等到下游实施完成才能关闭。
