@@ -44,10 +44,11 @@
     #
     # 首开 UX 摩擦 1：批准曾是「面板发指令 → 模型跑一轮（promote + desk-refresh，60-90s）」，
     # 而批准本体是机械翻转（draft→stable），不需要模型智能。本行把翻转经 Typert Remote
-    # 暴露给 client 直调：秒级生效；审计不丢——每次批准写 `knowledge/approve` 事件进
-    # 批准会话的日志（事件形状见 src/host/knowledge-approve-remote/index.ts）。
-    # 依赖 assistantMemory（host 行先挂，Loader 顺序即本文件顺序）+ sessionPersistence/
-    # sessions/typert（vendor host 组合自带）。
+    # 暴露给 client 直调：秒级生效；审计不丢——每次批准经 `promotePage` 追加一行进共享
+    # 批准台账 `<dataDir>/audit/approvals.jsonl`（`source: 'panel-direct'` 区分点击与模型
+    # 回合；session 事件方案已推翻——未知事件类型带不了 `ignorable`，会毒化日志；修订记录
+    # 见 src/host/knowledge-approve-remote/index.ts 头注）。
+    # 依赖 assistantMemory（host 行先挂，Loader 顺序即本文件顺序）+ typert（Remote 协议本体）。
     - id: assistant-knowledge-approve
       name: dsh-smart-assistant/knowledge-approve-remote
 

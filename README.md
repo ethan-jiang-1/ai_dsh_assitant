@@ -76,7 +76,8 @@ dsh plugin --profile <p> add file:./packages/dsh-smart-assistant   # <p>＝你�
 
 ## 从哪个入口开始
 
-命令与判据的**唯一清单** = 根 [`AGENTS.md`](AGENTS.md) 命令表（起服务五步、开发环、验证链、评测都在那里，本 README 不复述）。
+起服务五步、开发环、验证链、评测的命令与判据，**唯一清单** = 根 [`AGENTS.md`](AGENTS.md) 命令表
+（本 README 不复述；唯一例外是下面「知识导入」与「专家部署装配」两条部署 CLI，家在本文）。
 
 **按问题找**（纯路由，不复制正文）：
 

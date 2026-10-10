@@ -4,7 +4,7 @@
 > （借自 DSH 的 Agent Notes 分类学：主仓语料消化稿 `_agent_ready_development/repo-harness/08-repository-taxonomy.md`、
 > `sdlc-reference/01-agent-note-lifecycle.md`——**不在本 pin 的 vendor 树内**；本 pin 树内的机制正文 =
 > [`vendor/dsh/.agents/notes/README.md`](../vendor/dsh/.agents/notes/README.md)。对齐与偏离登记见 §四）。
-> **接下来做什么**：用户本轮请求优先。还要等人点头的持久取舍住 `proposed/`（问题/方案/验收；**用户点头才开工**）。
+> **接下来做什么**：用户本轮请求优先。还要等人点头的持久取舍住 `proposed/`（问题/方案/验收；**点名或点头才开工**，与根 `AGENTS.md`「意图从哪来」同一条规则）。
 > 推敲住 [`_backlog/issues/`](../_backlog/issues/README.md)，这次不修的缺陷住 [`_backlog/bugs/`](../_backlog/bugs/README.md)。本目录不装进行中的工作板，也不装调研底稿。
 
 ## 〇、什么是 note（规则的唯一家在本文件；根 AGENTS.md 只留指针）
