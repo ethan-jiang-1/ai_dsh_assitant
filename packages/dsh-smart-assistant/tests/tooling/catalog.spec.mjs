@@ -182,3 +182,27 @@ describe('collectCatalog reads the real dev runner patch (devRows never silently
     expect(catalog.devRows.some(row => (row.name ?? '').includes('preset-runner'))).toBe(true)
   })
 })
+
+describe('collectCatalog discovers tools by wire name across the whole src/agent tree', () => {
+  // Red proof 2026-10-10: the reader hardcoded four tool dirs, so the mounted fifth tool
+  // (assistant_operating, src/agent/tool-operating/) never reached the shipped catalog's
+  // tool table while the freshness gate stayed green — an undercount no gate could see.
+  // Discovery rule: an index.ts carrying a wire name (`name: 'assistant_<snake>'`) is a tool;
+  // section/shield rows declare kebab plugin names (`export const name = 'assistant-…'`) and
+  // must never be picked up.
+  const catalog = collectCatalog()
+  const wireNames = catalog.tools.map(tool => tool.name)
+
+  for (const wireName of ['assistant_memory', 'assistant_research', 'assistant_knowledge', 'assistant_reflect', 'assistant_operating']) {
+    it(`extracts ${wireName} (identity.md §一 row 4)`, () => {
+      expect(wireNames, `tools found: ${wireNames.join(', ')}`).toContain(wireName)
+    })
+  }
+
+  it('picks up no non-tool agent module (kebab plugin names are not wire names)', () => {
+    expect(catalog.tools.length).toBeGreaterThan(0)
+    for (const tool of catalog.tools) {
+      expect(tool.name).toMatch(/^assistant_[a-z_]+$/)
+    }
+  })
+})

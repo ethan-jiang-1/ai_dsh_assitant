@@ -4,7 +4,7 @@
 
 > **生成物，不手改**：本文件由 `scripts/generate/gen-catalog.mjs` 从 `package.json` 的 exports、
 > `cordis.patch.yml`（host 行 + `agent-preset` 行的 plugins）/ `dev/probes/session/preset-runner.patch.yml` 的组合行、
-> 四个工具源码的 name/ACTIONS、
+> `src/agent/` 各模块（凡声明工具 wire 名者）的 name/ACTIONS、
 > `src/client/` 模块树（entry 注册面 + commands）的座位注册、
 > 策展技能目录与 `vendor/UPSTREAM.md` 的 pin 抽取而成；
 > freshness 由 `pnpm verify`（`gen-catalog --check`）守——改了源却没重生成即红。
@@ -55,10 +55,11 @@
 
 | 工具 | 动词 | 源码 |
 |---|---|---|
-| `assistant_memory` | `recall` `save` `forget` `list` `curate` | src/agent/tool-memory/index.ts |
-| `assistant_research` | `open` `update` `park` `drop` `promote` `list` | src/agent/tool-research/index.ts |
 | `assistant_knowledge` | `search` `get` | src/agent/tool-knowledge/index.ts |
+| `assistant_memory` | `recall` `save` `forget` `list` `curate` | src/agent/tool-memory/index.ts |
+| `assistant_operating` | `desk` `read` `entrust` `report` `revise` `propose` `confirm` `note` `claim` `complete` `reopen` | src/agent/tool-operating/index.ts |
 | `assistant_reflect` | `brief` `save_skill` `retire_skill` `save_page` `promote_page` `deprecate_page` `propose_skill` `land_skill` | src/agent/learn/index.ts |
+| `assistant_research` | `open` `update` `park` `drop` `promote` `list` | src/agent/tool-research/index.ts |
 
 ## 策展技能（模型用，15 个）
 

@@ -13,7 +13,9 @@
  *   packages/dsh-smart-assistant/package.json            exports, dsh bundle/client/compatibility
  *   packages/dsh-smart-assistant/cordis.patch.yml        host rows
  *   packages/dsh-smart-assistant/cordis.patch.yml        host row + the `agent-preset` row's plugins
- *   packages/dsh-smart-assistant/src/agent/{tool-*,learn}/index.ts          tool names + action verbs
+ *   packages/dsh-smart-assistant/src/agent/<module>/index.ts   tool names + action verbs
+ *                                                             (any module carrying a wire
+ *                                                             name — discovered, not listed)
  *   packages/dsh-smart-assistant/presets/assistant/skills/*\/SKILL.md  curated skill names
  *   vendor/UPSTREAM.md                                   pinned upstream tag
  *
@@ -69,6 +71,29 @@ export function extractTool(source, label) {
   return { name, actions }
 }
 
+/** Discover every tool under `src/agent/` by its wire name instead of a hand-listed dir set —
+ *  the hardcoded four-dir list shipped a catalog whose tool table stayed four rows after
+ *  assistant_operating mounted (red-proofed in tests/tooling/catalog.spec.mjs, 2026-10-10).
+ *  A module is a tool iff its index.ts declares a wire name (`name: 'assistant_<snake>'`);
+ *  section/shield rows declare kebab plugin names (`export const name = 'assistant-…'`) and
+ *  never match. Zero tools = the layout changed = fail loud, never a silently empty table. */
+export function discoverTools(agentDir, read) {
+  const tools = readdirSync(agentDir)
+    .filter(dir => existsSync(join(agentDir, dir, 'index.ts')))
+    .map(dir => {
+      const label = `src/agent/${dir}/index.ts`
+      const source = read(join(agentDir, dir, 'index.ts'))
+      return /name:\s*'assistant_[a-z_]*'/.test(source) ? { label, source } : undefined
+    })
+    .filter(entry => entry !== undefined)
+    .map(({ label, source }) => ({ label, ...extractTool(source, label) }))
+    .sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))
+  if (tools.length === 0) {
+    throw new Error('gen-catalog: src/agent/ carries no tool wire names — the agent-face layout changed')
+  }
+  return tools
+}
+
 /** Extract the client seat surface from the `src/client/` module tree (all .ts, concatenated).
  *  Fails loud when the tree carries no recognizable surface or when a room tab lacks its guide
  *  entry — a renamed helper or a not-discoverable tab must break the gate, not silently thin the
@@ -105,10 +130,7 @@ export function collectCatalog(root = repoRoot) {
   const devRows = existsSync(devPatch)
     ? parseRows(read(devPatch)).filter(row => (row.name ?? '').startsWith('dsh-smart-assistant'))
     : []
-  const tools = ['tool-memory', 'tool-research', 'tool-knowledge', 'learn'].map(dir => ({
-    label: `src/agent/${dir}/index.ts`,
-    ...extractTool(read(join(root, 'packages', 'dsh-smart-assistant', 'src', 'agent', dir, 'index.ts')), `src/agent/${dir}/index.ts`),
-  }))
+  const tools = discoverTools(join(root, 'packages', 'dsh-smart-assistant', 'src', 'agent'), read)
   const skillsDir = join(root, 'packages', 'dsh-smart-assistant', 'presets', 'assistant', 'skills')
   const skills = existsSync(skillsDir)
     ? readdirSync(skillsDir).filter(name => existsSync(join(skillsDir, name, 'SKILL.md'))).sort()
@@ -170,7 +192,7 @@ export function renderCatalog(input) {
   lines.push('')
   lines.push('> **生成物，不手改**：本文件由 `scripts/generate/gen-catalog.mjs` 从 `package.json` 的 exports、')
   lines.push('> `cordis.patch.yml`（host 行 + `agent-preset` 行的 plugins）/ `dev/probes/session/preset-runner.patch.yml` 的组合行、')
-  lines.push('> 四个工具源码的 name/ACTIONS、')
+  lines.push('> `src/agent/` 各模块（凡声明工具 wire 名者）的 name/ACTIONS、')
   lines.push('> `src/client/` 模块树（entry 注册面 + commands）的座位注册、')
   lines.push('> 策展技能目录与 `vendor/UPSTREAM.md` 的 pin 抽取而成；')
   lines.push('> freshness 由 `pnpm verify`（`gen-catalog --check`）守——改了源却没重生成即红。')
