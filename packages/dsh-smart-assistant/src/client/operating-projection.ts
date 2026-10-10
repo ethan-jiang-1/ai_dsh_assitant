@@ -19,6 +19,7 @@ export interface OperatingMatter {
   readonly title: string
   readonly status: 'active' | 'completed' | 'abandoned'
   readonly summary: string
+  readonly responsible: string
   readonly revision: number
   readonly times: { readonly promisedDeadline?: string; readonly forecastAt?: string; readonly nextCheckpoint?: string }
   readonly evidence: readonly OperatingEvidence[]
@@ -70,7 +71,8 @@ function times(value: unknown): value is OperatingMatter['times'] {
 function matterV2(value: unknown): value is OperatingMatter {
   return record(value) && text(value.id) && text(value.title)
     && (value.status === 'active' || value.status === 'completed' || value.status === 'abandoned')
-    && typeof value.summary === 'string' && typeof value.revision === 'number' && Number.isSafeInteger(value.revision) && value.revision >= 1
+    && typeof value.summary === 'string' && typeof value.responsible === 'string'
+    && typeof value.revision === 'number' && Number.isSafeInteger(value.revision) && value.revision >= 1
     && times(value.times)
     && Array.isArray(value.evidence) && value.evidence.every(evidenceV2)
     && new Set(value.evidence.map(item => (item as { id: string }).id)).size === value.evidence.length
@@ -114,7 +116,7 @@ export function parseOperatingProjection(input: unknown): OperatingProjection {
       ledgerId: input.ledgerId,
       revision: input.revision,
       matters: Object.freeze(input.matters.map(item => Object.freeze({
-        id: item.id, title: item.title, status: item.status, summary: item.summary, revision: 1,
+        id: item.id, title: item.title, status: item.status, summary: item.summary, responsible: '', revision: 1,
         times: Object.freeze({}),
         evidence: Object.freeze(item.evidence.map(source => Object.freeze({
           id: source.id, sessionId: source.sessionId, eventId: source.eventId, quote: source.quote, note: source.quote,
@@ -139,7 +141,7 @@ export function parseOperatingProjection(input: unknown): OperatingProjection {
       ledgerId: input.ledgerId,
       revision: input.revision,
       matters: Object.freeze(input.matters.map(item => Object.freeze({
-        id: item.id, title: item.title, status: item.status, summary: item.summary, revision: item.revision,
+        id: item.id, title: item.title, status: item.status, summary: item.summary, responsible: item.responsible, revision: item.revision,
         times: Object.freeze({ ...item.times }),
         evidence: Object.freeze(item.evidence.map(source => Object.freeze({ ...source }))),
         proposals: Object.freeze(item.proposals.map(proposal => Object.freeze({ ...proposal }))),
