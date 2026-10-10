@@ -6,6 +6,7 @@
 
 | 卡 | 关闭日 | 判定 |
 |---|---|---|
+| [261010-desk-lead-rule.md](261010-desk-lead-rule.md) | 2026-10-10 | 毕业为已实施（用户点名）：分拣与已回答两条规则从渲染立即执行体提出为模块层具名函数（`splitDeskDecisions` / `deskRowAnswered`），屏幕行为不变——五条既有断言未改，`pnpm test:client` 114/114 全绿；无 note（局部搬家，无新产品取舍） |
 | [261008-ceo-operating-loop.md](261008-ceo-operating-loop.md) | 2026-10-09 | 回款情景与更新权限已确认；Host 可信更新/提醒协调/读回第一切片、后续建议/经验/净收益范围及 V1–V9 验收已定。下游设计/验证申请已在本轮回复向当前用户提出；尚未实施，经营价值未验证 |
 | [261008-vendor-corpus-home.md](261008-vendor-corpus-home.md) | 2026-10-08 | 消化：平台事实留在钉住的 vendor；本仓只写差量。落点 = 根 AGENTS.md 硬规则 2 与探索路由、`docs/discipline.md` 表行与适配 9、`docs/AGENTS.md`、`notes/README.md` §四；`client-ui-contribution` 改为链接加本包路径与验证，`pre-push-evidence` 与 `note-archive-judgment` 指向主仓对应技能 |
 | [261008-sdlc-control-gap.md](261008-sdlc-control-gap.md) | 2026-10-08 | 消化：硬规则 3 的 note 改为按 notes/README §〇 才进同一 diff；归档技能改为「行为已在代码或合同里」不算归档理由；testing.md 模型可见面「能证明」与 eval 判决对齐。不造快照、不加格式门禁、不搬归档 |

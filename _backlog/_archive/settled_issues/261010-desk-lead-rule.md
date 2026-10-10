@@ -1,11 +1,11 @@
 ---
-status: 推敲中
+status: 已结
 opened: 2026-10-10
 ---
 
 # 推敲：把桌面头条规则从渲染里提出来
 
-> 立卡：2026-10-10 ｜ 状态：推敲中 ｜ 类型：Task ｜ 可关闭：否
+> 立卡：2026-10-10 ｜ 关闭：2026-10-10 ｜ 状态：已结 ｜ 类型：Task ｜ 结论：已实施——分拣与已回答两条规则提出为模块层具名函数，屏幕行为不变 ｜ 去向：交付于 `src/client/panels.ts`（`splitDeskDecisions` / `deskRowAnswered`，2026-10-10 提交）；按卡上约定不写 note（局部搬家，无新产品取舍）
 
 **问题与期望结果：** `DeskPanel` 里「先办这件」的分拣和「这一行算不算已回答」写在渲染函数的立即执行体中（`src/client/panels.ts` 约 118–168 行）。这条规则已经错过两次：头条取了模型写在最前的内务（rank / kind），以及「看选项」的回执被当成已回答（R2）。期望：规则成为同文件里的具名函数，`DeskPanel` 只负责调用和画；屏幕上的字、按钮、折叠和会话范围与现在相同。
 
@@ -43,7 +43,7 @@ opened: 2026-10-10
 
 ## 验收标准
 
-证据主人：`pnpm test:client`（[`docs/testing.md`](../../docs/testing.md) 分层表：`tests/client/` 能证明组件树与回调，不能证明真实浏览器）。本片的负载断言都在 `tests/client/client-panels.spec.ts`，断言文本保持不动。
+证据主人：`pnpm test:client`（[`docs/testing.md`](../../../docs/testing.md) 分层表：`tests/client/` 能证明组件树与回调，不能证明真实浏览器）。本片的负载断言都在 `tests/client/client-panels.spec.ts`，断言文本保持不动。
 
 | 行为 | 类 | 输入 | 通过信号（现有断言，不改） | 反例 | 人判 |
 |---|---|---|---|---|---|
@@ -59,4 +59,4 @@ opened: 2026-10-10
 
 ## 关闭条件
 
-用户点名实施，且上表五条在未改断言的前提下仍绿。然后按 [backlog 关闭条件](../README.md) 归档。未点名之前，本卡不授予改 `panels.ts` 的权限。
+用户点名实施，且上表五条在未改断言的前提下仍绿。然后按 [backlog 关闭条件](../../README.md) 归档。未点名之前，本卡不授予改 `panels.ts` 的权限。

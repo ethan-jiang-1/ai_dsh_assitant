@@ -59,6 +59,51 @@ export function MemoryIcon({ size }: { size: number }): unknown {
   )
 }
 
+/** Row identity (R11): `id` when the decision carries one, else the question text — a row
+ *  without an id still gets a stable identity from its own text. */
+const rowIdOf = (item: DeskDecision): string => String(item.id ?? item.question)
+
+/** The lead triage as a named rule, not render-body logic (issue 261010-desk-lead-rule: this
+ *  rule went stale twice while living inside the render function). Business decisions lead by
+ *  rank; with none waiting, the first options-bearing decision leads whatever its kind says. */
+const splitDeskDecisions = (decisions: DeskDecision[]): {
+  lead: DeskDecision | undefined
+  rest: DeskDecision[]
+  upkeep: DeskDecision[]
+} => {
+  const byRank = (left: DeskDecision, right: DeskDecision): number =>
+    Number(left.rank ?? 0) - Number(right.rank ?? 0)
+  const business = decisions.filter(item => item.kind === 'business').slice().sort(byRank)
+  const waiting = decisions
+    .filter(item => item.kind !== 'business' && (item.options ?? []).length > 0)
+    .slice()
+    .sort(byRank)
+  const lead = business[0] ?? waiting[0]
+  // Whatever leads leaves the fold: the same row must not appear twice.
+  const upkeep = decisions.filter(item =>
+    item.kind !== 'business' && (lead === undefined || rowIdOf(item) !== rowIdOf(lead)))
+  return { lead, rest: business.slice(1), upkeep }
+}
+
+// S7: once THIS row has been ANSWERED it stops looking answerable — a real trial answered
+// one decision three times because the row kept its buttons through the assistant's
+// multi-step rewrite window.
+//
+// R2 (self-review, 2026-09-27): "answered" must mean the 回答 action, not "any action
+// touched this row". The row used to go read-only on ANY receipt — including the one from
+// 看选项, which is a READ: the principal asked to see the options and lost both the options
+// and the ability to answer, with a false "已回答" line on top. Only 回答 closes a row; a
+// receipt from 看选项/修改 leaves it live, and options always render for a live decision.
+const deskRowAnswered = (
+  rowId: string,
+  pending: { rowId: string, action: string } | undefined,
+  lastReceipt: { rowId: string, action: string } | undefined,
+): boolean => {
+  const inFlight = pending?.rowId === rowId ? pending.action : undefined
+  const settled = lastReceipt?.rowId === rowId ? lastReceipt.action : undefined
+  return inFlight === '回答' || (inFlight === undefined && settled === '回答')
+}
+
 /** Panel 1 — the desk: what is being tracked, what changed, and the working-folder counts. */
 export function DeskPanel(props?: { sessionId?: string }): unknown {
   const session = props?.sessionId
@@ -120,20 +165,8 @@ export function DeskPanel(props?: { sessionId?: string }): unknown {
       const decisions = data?.decisions ?? []
       const [showRest, setShowRest] = useState(false)
       const [showUpkeep, setShowUpkeep] = useState(false)
-      const byRank = (left: DeskDecision, right: DeskDecision): number =>
-        Number(left.rank ?? 0) - Number(right.rank ?? 0)
-      const business = decisions.filter(item => item.kind === 'business').slice().sort(byRank)
-      const rowIdOf = (item: DeskDecision): string => String(item.id ?? item.question)
-      const waiting = decisions
-        .filter(item => item.kind !== 'business' && (item.options ?? []).length > 0)
-        .slice()
-        .sort(byRank)
+      const { lead, rest, upkeep } = splitDeskDecisions(decisions)
       const draftCount = data?.counts?.knowledgeDraft ?? 0
-      const lead = business[0] ?? waiting[0]
-      const rest = business.slice(1)
-      // Whatever leads leaves the fold: the same row must not appear twice.
-      const upkeep = decisions.filter(item =>
-        item.kind !== 'business' && (lead === undefined || rowIdOf(item) !== rowIdOf(lead)))
       // Options the assistant presented become one-click answers on the row — the principal
       // picks instead of copying the answer back from the conversation.
       const optionButtons = (item: DeskDecision, rowId: string): ReturnType<typeof createElement> | null =>
@@ -151,21 +184,8 @@ export function DeskPanel(props?: { sessionId?: string }): unknown {
                   border: `1px solid ${MARK_TEAL}`, background: 'var(--dsw-alias-bg-base)', color: MARK_TEAL,
                 },
               }, String(option.label ?? ''))))
-      // S7: once THIS row has been ANSWERED it stops looking answerable — a real trial answered
-      // one decision three times because the row kept its buttons through the assistant's
-      // multi-step rewrite window.
-      //
-      // R2 (self-review, 2026-09-27): "answered" must mean the 回答 action, not "any action
-      // touched this row". The row used to go read-only on ANY receipt — including the one from
-      // 看选项, which is a READ: the principal asked to see the options and lost both the options
-      // and the ability to answer, with a false "已回答" line on top. Only 回答 closes a row; a
-      // receipt from 看选项/修改 leaves it live, and options always render for a live decision.
-      const answered = (item: DeskDecision): boolean => {
-        const rowId = rowIdOf(item)
-        const inFlight = store.pending?.rowId === rowId ? store.pending.action : undefined
-        const settled = store.lastReceipt?.rowId === rowId ? store.lastReceipt.action : undefined
-        return inFlight === '回答' || (inFlight === undefined && settled === '回答')
-      }
+      const answered = (item: DeskDecision): boolean =>
+        deskRowAnswered(rowIdOf(item), store.pending, store.lastReceipt)
       const row = (item: DeskDecision, compact: boolean): ReturnType<typeof createElement> => {
         const rowId = rowIdOf(item)
         return createElement(CorrectableRow, {
