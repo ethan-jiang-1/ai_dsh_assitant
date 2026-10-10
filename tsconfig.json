@@ -1,5 +1,6 @@
 {
-  // 仓库级聚合工程：`pnpm typecheck` 从这里出发，按项目引用构建。
+  // 仓库级聚合工程：references 列出包工程，供 IDE / 工具整仓解析。
+  // `pnpm typecheck` 不从本文件出发——它委派包级 `tsc -b`（见根 package.json scripts）。
   "files": [],
   "references": [
     {

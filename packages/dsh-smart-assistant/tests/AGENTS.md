@@ -1,6 +1,6 @@
 # AGENTS.md —— `tests/` 子树常设指令
 
-> 根 [`AGENTS.md`](../../AGENTS.md) 管全仓规则；包层 [`AGENTS.md`](../AGENTS.md) 管包纪律；
+> 根 [`AGENTS.md`](../../../AGENTS.md) 管全仓规则；包层 [`AGENTS.md`](../AGENTS.md) 管包纪律；
 > 本文件拥有**测试树的资产形态规则**——进这个目录写测试前先读。
 
 ## 命名即车道

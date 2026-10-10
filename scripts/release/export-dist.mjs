@@ -34,6 +34,15 @@ const report = (name, ok, detail) => {
 const manifest = JSON.parse(readFileSync(join(packageDir, 'package.json'), 'utf8'))
 const tarballName = `${manifest.name}-${manifest.version}.tgz`
 
+// 手册的验证基线行锚定 vendor/UPSTREAM.md 的钉住 tag（唯一出处）。它曾是硬编码字面量，
+// 0.1.7→0.2.0 换 pin 时烂掉一次（手册落后一个基线）——verify 的 export-manual 门现钉这一行。
+const upstreamTag = /^\| 钉住的 tag \| `([^`|]+)` \|$/m
+  .exec(readFileSync(join(repoRoot, 'vendor', 'UPSTREAM.md'), 'utf8'))?.[1]?.trim()
+if (!upstreamTag) {
+  console.error('vendor/UPSTREAM.md has no 钉住的 tag row — fix the pin bookkeeping before exporting')
+  process.exit(2)
+}
+
 // lib/ 是 gitignore 的构建产物：不 build 就 pack 会静默导出旧代码或空包，先把它变成响亮的错。
 if (!existsSync(join(packageDir, 'lib', 'index.js'))) {
   console.error('packages/dsh-smart-assistant/lib/index.js is missing — run `pnpm build` first')
@@ -103,7 +112,7 @@ const manual = `# dsh-smart-assistant 手动安装手册
 | 版本 | ${manifest.version} |
 | 安装包 | \`${tarballName}\`（与本手册同目录） |
 | 打包日期 | ${date} |
-| 验证基线 | DSH \`dsh-v0.1.7-rc.2\`（Node ≥ 22） |
+| 验证基线 | DSH \`${upstreamTag}\`（Node ≥ 22） |
 
 这个安装包是自包含的：bundle 补丁（\`cordis.patch.yml\`，含 \`assistant\` preset 的完整组合）、
 编译产物（\`lib/\`，含浏览器端桌面面板）、策展技能（\`presets/assistant/skills/\`）、README，

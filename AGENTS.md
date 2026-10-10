@@ -29,6 +29,7 @@ rejected 政策、命名——本文件不复制）；改行为、契约或开�
 **两类 Skill，别混**：`.agents/skills/` 是**开发用**（给改这个仓库的 agent：证据路由、探针、
 审计、UI 贡献约束等——由 DSH 原生 `project-agents` 根发现，进目录即入技能目录）；`packages/dsh-smart-assistant/presets/assistant/skills/`
 是**模型用**（产品运行时技能，随 preset 走）。同名不同机制，不共享 registry。
+**方法不是技能**：`_backlog/methods/` 的方法文件同为 agent 执行面（英文、SKILL 式 frontmatter），但它是推敲方法、住 backlog，不进任何技能发现根——见 [`_backlog/methods/README.md`](_backlog/methods/README.md)。
 
 ## 布局（改动前先认领 owner 面）
 
@@ -48,17 +49,18 @@ rejected 政策、命名——本文件不复制）；改行为、契约或开�
 | `snapshots/` | 行为回归的证据面——只收边界与现状见其 `AGENTS.md` 与 `README.md` | 回归证据问题动这里 |
 | `_dist/` | **分发导出（生成物）**：`pnpm export-dist` 的 tgz（不入库）与《安装手册》 | 分发问题动这里；生成器 `scripts/release/export-dist.mjs` |
 | `.agents/` | **开发用 Skill 根**（证据路由、探针、审计、UI 贡献约束等——DSH 原生 `project-agents` 根发现） | 新开发技能动这里 |
-| `deliverables/` · `.desk/` · `.tmp/` | **会话运行现场（git 忽略，不是仓库内容）**：cwd=仓根的会话留下的业务交付（未提交交接件）、My Desk 桌面状态、临时产物 | 不提交、不当文档读；语义见 `.gitignore` 注释 |
+| `deliverables/` · `.desk/` · `.tmp/` · `.pi/` | **会话运行现场（git 忽略或机器本地，不是仓库内容）**：cwd=仓根的会话留下的业务交付（未提交交接件）、My Desk 桌面状态、临时产物、DSH 会话任务持久化（`.pi/tasks/`） | 不提交、不当文档读；语义见 `.gitignore` 注释 |
 | `vendor/dsh/` | **钉住的 DSH 源码（submodule）** | **永不改**；升级走 `pnpm sync-dsh` |
 | `tsconfig.base.json` / `tsconfig.tsx.json` | 两个 tsconfig 解析入口（编译期手维护 / 运行期 `pnpm gen-paths` 生成） | 引入新 `@deepseek-ai/*` import 或换 pin 时动这里（契约：`docs/dev.md` §二） |
 
-**语言分工**：人与本仓文档（docs/notes/AGENTS.md）用中文；进模型上下文的（persona、SKILL.md、工具 description）用英文；代码与脚本注释随所在文件现状，不整批改写。
+**语言分工**：人与本仓文档（docs/notes/AGENTS.md）用中文；进模型上下文的（persona、SKILL.md、工具 description、backlog 方法文件）用英文；代码与脚本注释随所在文件现状，不整批改写。
 
 ## 命令表
 
-**要起服务，这一串按序跑到底**（②③ 都幂等，重跑安全）：
+**要起服务，这一串按序跑到底**（⓪②③ 都幂等，重跑安全）：
 
 ```sh
+git submodule update --init   # ⓪ 首次：拉起 vendor/dsh（pin 的唯一出处：`vendor/UPSTREAM.md`；vendor 空时 ② 会死在无关报错）
 pnpm install            # ① 并入 vendor/dsh 整树（首次较慢）
 bash dev/env/prepare.sh     # ② **首次必须先跑**：补齐 boot 需要的 vendor/dsh 产物（deps/native/lib/web，已在位即跳过）
 bash dev/env/setup.sh       # ③ **起服务的前置**：它才建 dev（web）+ dev-task（headless）两个 profile 并把 roster 指向本仓；
@@ -80,16 +82,19 @@ pnpm dsh --profile dev-task "one task"   # ⑤ 只想冒烟 host 面（插件装
 
 ```sh
 pnpm gen-paths          # 从 vendor/dsh 重新生成运行期解析入口 tsconfig.tsx.json（换 pin 后必跑）
+pnpm gen-catalog        # 重新生成 docs/package-catalog.md（改组合行/exports/工具动词后必跑；freshness 门禁守）
 pnpm build              # tsc 出 lib/：改 src 后必跑——preset 行加载的是构建物，不是源码
 pnpm preflight '<URL>'  # 开屏前门禁：证明装得上（auth/boot 图/每个 combo 可解析）；不证明渲染出来
-pnpm shots '<URL>' --dom --size 1600x1000   # 渲染证据：headless Chrome 经 CDP 出 PNG + DOM 证据；`--eval` 拿交互态
+pnpm shots '<URL>' --dom --size 1600x1000 --name <名字>   # 渲染证据：headless Chrome 经 CDP 出 PNG + DOM 证据（默认落 /tmp/dsh-webui-shots）；`--eval` 拿交互态
+pnpm web-expected '<URL>'   # web 面期望比对：真拍一张与已提交期望比对（漂移 exit 1）；`--refresh` 重录期望（场景契约与判据：snapshots/web-face/<场景>/README.md）
 pnpm loop-probe '<URL>' --ask '<问句>'   # 首用闭环探针：首屏断言（中文首开/无黑话/工作区就绪）+ 真发问真等回复，JSON 判决（驱动借自 ai_dsh_loop_advisor；`--ask` 会真建会话，指向一次性 home）
 pnpm dsh --profile dev --dump-config   # boot-free：组合里到底有没有这一行（排查 patch 落空/重复 id 的第一命令）
 pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner.patch.yml "<task>"   # preset 挂载的 one-shot（验证自动化驱动）
+pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner-replay.patch.yml "<task>"   # 同上但 keyless：llm-replay 回放替掉真实 adapter，无 key 出真实会话日志（形状与坑见 patch 头注）
 pnpm typecheck          # 委派包级：tsc -b（编译期 paths 解析到 vendor/dsh 的 src，API 漂移编译期暴露）+ 测试工程
-pnpm test               # vitest 全量：六层 spec（纯核+服务合同+agent/client/composition/tooling；分层与层命令见 docs/testing.md）
+pnpm test               # vitest 全量：分层 spec（纯核+服务合同+agent/client/composition/tooling；层命令与各层能证明什么见 docs/testing.md 分层表）
 pnpm verify             # 机械门禁链：生成物 freshness + 自检 + 结构/身份/解析入口/自包含/技能语法/断链/文档命令互证/notes 形状等（清单以 scripts/checks/verify.mjs 为准）
-pnpm release-smoke      # pnpm pack → 干净 home → dsh plugin add → 组合断言（**改动发布物/依赖/preset 包装必跑**）
+pnpm release-smoke      # pnpm pack → 干净 home → dsh plugin add → 组合断言（**改动发布物/依赖/preset 包装/工具面必跑**）
 pnpm export-dist        # 手动分发导出：pnpm pack → _dist/ 的 tgz + 清单边界断言 + 自动生成《安装手册》
 pnpm sync-dsh -- --tag <dsh-tag>   # 换 submodule tag + SHA 簿记 + typecheck + 对照 docs/discipline.md 重校纪律表
 pnpm usage              # 意图级仪表：会话/工具混合/自用率/摩擦/家的现状（读 dev home；dev 工具不得继承 DSH_HOME）
@@ -119,13 +124,13 @@ pnpm eval:domain        # 领域评测集 v0（G2＝领域质量的人判终关�
    （约束 → 适配 → 证据），再动手。另写 note 的条件只看 [`notes/README.md`](notes/README.md) §〇。
 5. **轮内任务面**：复杂任务开工用 plan 呈批、实施期用 todo 活清单（整表替换、完成即勾）、
    人可随时 steer —— 机制都在 base bundle 里，挂着不用等于白挂。
-6. **步步为营，死路回退**（用户拍板；带日期的原始记录在 0.1.7 迁移 note）：每个阶段评估达成了目的就**立刻提交**——
+6. **步步为营，死路回退**（用户拍板；带日期的原始记录在 [0.1.7 迁移 note](notes/archived/2026-09-25-dsh-0-1-7-migration.md)）：每个阶段评估达成了目的就**立刻提交**——
    一次探索一个可回退的锚点，不攒大提交；往前探索怎么都过不去时，**用 git 回退**到上一个锚点，
    把死路与原因记进 note，而不是把半成品留在工作树里。环境修复也要固化成可重跑的脚本提交
    （范式：`pnpm repair-vendor`），修复只存在于手上＝没修复。
 7. **生态插件只借思路，不装包**（用户拍板）：引入第三方插件有真实代价（维护断供、安全、组合兼容、
    升级漂移）；除非它有**已验证的声誉**（多人维护、活跃提交、社区口碑），否则**读它的源码、抄它的设计**，
-   不引入依赖。先看 popularity 与内部思路再决定；装之前必须过准入表。
+   不引入依赖。先看 popularity 与内部思路再决定；装之前必须过[准入表](notes/implemented/2026-09-29-openviking-adoption-rfc.md)。
 
 ## 研发姿态（用户拍板，常设）
 
@@ -144,7 +149,7 @@ pnpm eval:domain        # 领域评测集 v0（G2＝领域质量的人判终关�
 
 ## 探索路由（本仓侧与 DSH 侧常用入口）
 
-- **本仓侧**：证据路由（改什么 → 跑什么 → 回归资产在哪）= [`docs/testing.md`](docs/testing.md) §一页证据地图（唯一表主）；六条功能路由与三条链路 = [`docs/architecture.md`](docs/architecture.md) §八/§七
+- **本仓侧**：证据路由（改什么 → 跑什么 → 回归资产在哪）= [`docs/testing.md`](docs/testing.md) §一页证据地图（唯一表主）；功能路由与运行链路的速查 = [`docs/architecture.md`](docs/architecture.md) §八/§七
 - **平台事实的家**（读 vendor，本仓不复写正文）：文档 tier = `vendor/dsh/docs/AGENTS.md`；主仓 note 合同 = `vendor/dsh/.agents/notes/README.md`（本仓合同是 [`notes/README.md`](notes/README.md)，只写差量）；主仓开发技能 = `vendor/dsh/.agents/skills/`（发现根是本仓 `.git`，不进本仓技能目录；那些命令在主仓里跑）
 - 组合层级（bundle → profile patch → home patch → `--patch`）：`vendor/dsh/docs/architecture.md`
 - preset 语义（roster/roots/遮蔽/standing mount）：`vendor/dsh/packages/preset/agent-preset/README.md`
@@ -156,5 +161,5 @@ pnpm eval:domain        # 领域评测集 v0（G2＝领域质量的人判终关�
 - 工具与卡片（`defineTool` / presenter / 日志税）：`vendor/dsh/docs/cookbook/adding-a-tool.md`
 - **"组合里到底有没有这一行"**（读源码答不了这个问题）：`pnpm dsh --profile dev --dump-config`（boot-free；
   行 id、disabled、realm 一目了然——排查 patch 落空/重复 id 的第一命令）
-- **"活进程里注册了什么"**：切到 shipped `cordis` preset 用它的只读 inspect 工具（我们的 `assistant`
-  preset 刻意不挂这两个工具——那是模型可见面变更，为开发期需求不划算）
+- **"活进程里注册了什么"**：shipped `cordis` preset 自带只读 inspect 工具（`SessionInspect` 一族，见 `vendor/dsh/docs/subsystems/session.md`）；要用它就起一个不挂本仓 roster patch 的 profile——本仓 `assistant`
+  preset 刻意不挂它们（那是模型可见面变更，为开发期需求不划算）

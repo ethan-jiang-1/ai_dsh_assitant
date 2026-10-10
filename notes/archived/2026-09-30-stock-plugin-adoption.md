@@ -1,6 +1,6 @@
 # DSH 0.2.0 现货插件采纳：六片全部落地，assistant 能力面补齐
 
-日期：2026-09-30 · 状态：**implemented**（六片 A1/A2/B1/B2/C1/C2 全部落地。C1 曾拍板不默认带，2026-10-02 反转，现行决定在 schedule-default-adoption）
+日期：2026-09-30 · 状态：**implemented**（六片 A1/A2/B1/B2/C1/C2 全部落地。C1 曾拍板不默认带，2026-10-02 反转；现行合同 = docs/architecture.md §二 的 schedule 行——原承载 note 已于 2026-10-08 随「合同自足」战役删除，此处指针随之修复）
 已归档：2026-10-08（决定已经在合同或代码里；下次改决定不用打开本篇。冻结，不再跟踪。）
 
 来源：`/Users/bowhead/deepseek-harness/_digested/plugin-inventory/`（基线 `639ed015` = 本仓当前 pin，快照可直接用）。
@@ -47,7 +47,7 @@ A1→A2→B1→B2→C1→C2 顺序推进。各片取舍收在这一篇。组合�
   "你以为要写插件其实不用"的实证清单（inventory 消化稿 01 场景 A–E 全是这个形状）；自研只会慢且无上游红利。
 - **一次性大爆炸挂全部六片**：每片一 commit 才有可回退锚点（硬规则 6）；且 A2 的 fail-loud（modelSelectionSettings）
   证明分片让问题在最小半径内暴露。
-- **把 experimental 面（browser-use/语音）打进发布形状**：合同随时漂，进组合即接 upstream 的破坏半径。schedule 的现行挂法见 schedule-default-adoption。
+- **把 experimental 面（browser-use/语音）打进发布形状**：合同随时漂，进组合即接 upstream 的破坏半径。schedule 的现行挂法 = docs/architecture.md §二 的 schedule 行（原承载 note 已删，2026-10-08）。
 - **等有 key 再做探针，或自写 mock LLM**：keyless replay 是现货；挂上时必须同时禁用真实 adapter，否则真实 adapter 先接住流。
 - **为采样 UI 给 headless 补 web-app，或把 workflow 和委派一起挂**：headless 变厚；workflow 仍等编排需求出现。
 - **索引进程启动就开，或放进 working folder，或在 patch 里手拼 `DSH_HOME`**：`first-search` 让不检索的会话零成本；索引是 home 的派生文件，不进 working folder 合同；home 解析用现货 helper。

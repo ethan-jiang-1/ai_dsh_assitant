@@ -4,7 +4,8 @@
 
 - **四个房间**：`memory/`（已确立的事实/偏好/决定）、`research/`（未决线索，backlog 语义）、
   `skills/`（学到的本事）、`knowledge/`（领域知识页，`[[互链]]`）。
-- **四个工具**：`assistant_memory`、`assistant_research`、`assistant_reflect`、`assistant_knowledge`。
+- **自有工具**：`assistant_memory`、`assistant_research`、`assistant_reflect`、`assistant_knowledge`、`assistant_operating`
+  （动词清单以生成物 catalog 为准）。
 - **一个机器能跑的养护检查**：`assistant_memory action=curate`。
 - **一个 agent preset**：`assistant`（挂上它，这个会话就是"有 working folder 的助手"）。
 
@@ -12,11 +13,11 @@
 
 **当前声明了什么，以生成物为准**：[`docs/package-catalog.md`](../../docs/package-catalog.md)
 （由 `scripts/generate/gen-catalog.mjs` 从 exports、组合行、工具源码与技能目录抽取；`pnpm verify` 守 freshness）。
-这里只留一句形状概括，不再手维护清单——手维护的入口表在本仓漂移过两次：
+这里只留一句形状概括，不再手维护清单（手维护的清单必然漂移）：
 
-- plugin 子路径按 host / agent / client 三平面分布（host 含知识批准服务，agent 含四工具、提示词段落、
+- plugin 子路径按 host / agent / client 三平面分布（host 含知识批准服务，agent 含自有工具、常驻段落、
   learn 与遮蔽盾），另有非 plugin 导出（`./preset-runner`、`./package.json`）。**计数与逐行清单以
-  [生成物 catalog](../../docs/package-catalog.md) 为准——本句不携带数字，数字在这里烂过一次**（第五轮漂移审计 #1）。
+  [生成物 catalog](../../docs/package-catalog.md) 为准——本句不携带数字。**
 
 装法、身份名、working folder 的契约分别在仓库的 `README.md`、`docs/identity.md`、`docs/home.md`。
 

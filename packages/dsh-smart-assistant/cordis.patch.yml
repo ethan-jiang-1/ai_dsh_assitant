@@ -163,10 +163,11 @@
 
           # ── working folder：桌面上方的常驻面（身份 + 手册 + 有界状态）──────────────────
           #
-          # 三个段落讲一个顺序的故事：你是谁（SOUL.md，紧贴 persona stub）→ working folder 怎么用（AGENTS.md）
-          # → 里面现在有什么（有界摘要）。身份与手册是 working folder 根部的两个文件——拥有者的数据，不是
-          # preset 代码（决定 notes/implemented/2026-09-24-soul-and-agents.md，D1/D2/D3=a）。每段各自成行，
-          # 部署可独立关掉或替换 —— 上下文控制是一等公民。
+          # 桌面常驻段落中的前三段在此，讲一个顺序的故事：你是谁（SOUL.md，紧贴 persona stub）→
+          # working folder 怎么用（AGENTS.md）→ 里面现在有什么（有界摘要）；第四段（经营账本）在
+          # assistant-operating-brief 行。身份与手册是 working folder 根部的两个文件——拥有者的数据，
+          # 不是 preset 代码（现行合同 = docs/home.md §三「桌面与抽屉」与 §五「根部的两个文件」）。
+          # 每段各自成行，部署可独立关掉或替换 —— 上下文控制是一等公民。
           # 摆位分两带（2026-10-02 起）：稳定内容（soul 100 / manual 300）留在前带紧贴身份；**易变内容
           # （digest，每次记忆写入都变）移到尾部带 10150**（环境事实 10000/10100 之后、persona 后缀 10200
           # 之前）——DSH 的 KV 前缀纪律：易变内容坐在工具段前面，一次 save 就把全部可共享前缀作废。
@@ -179,7 +180,7 @@
 
           # ── working folder：抽屉（工具）──────────────────────────────────────────────
           #
-          # 四个工具的动词集互不重叠，所以不合并：
+          # 自有工具的动词集互不重叠，所以不合并（完整清单 = docs/package-catalog.md）：
           #   assistant_memory   recall/save/forget/list/curate   —— 已确立的事实、偏好、决定
           #   assistant_research open/update/park/drop/promote/list —— 未决的线索（backlog 两档出口）
           #   assistant_reflect  brief/save_skill/retire_skill/save_page/promote_page/deprecate_page/

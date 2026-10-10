@@ -2,8 +2,8 @@
 # pnpm-lock.yaml        可复现性产物 —— 提交，绝不 ignore
 # .gitmodules           submodule 定义
 # vendor/UPSTREAM.md    钉住的 SHA 簿记
-# dev/env.sh            dev 双 home 兜底（只有 dev/harness-home/ 是残留）
-# dev/profile-patch.yml 把 roster 指向本 repo 的 presets/
+# dev/env/env.sh        dev 双 home 兜底（只有 dev/harness-home/ 是残留）
+# dev/profiles/profile-patch.yml  把 roster 指向本 repo 的 presets/
 # snapshots/            录制会话与预期（证据，不是产物）
 
 # ── 构建产物 ────────────────────────────────────────────────────────────────
@@ -20,7 +20,7 @@ node_modules/
 
 # ── 运行残留 ────────────────────────────────────────────────────────────────
 # 开发 home：会话日志、settings、**凭据**、profile 自己的 node_modules —— 全都不入库。
-# 精确到子目录（不是 dev/）：dev/env.sh 与 dev/profile-patch.yml 必须入库。
+# 精确到子目录（不是 dev/）：dev/env/env.sh 与 dev/profiles/profile-patch.yml 必须入库。
 dev/harness-home/
 # 真用试用 home（2026-10-01 起，ASSISTANT_DSH_HOME 隔离实例：本人的真用发生地，同为运行态）
 dev/trial-home/
@@ -33,6 +33,9 @@ dev/trial-home/
 
 # 助手维护的桌面状态文件（My Desk 面板读的就是它）——会话工作区里的运行残留，不入库
 .desk/
+
+# DSH 会话任务持久化（todo/goal 工具的 .pi/tasks/）——机器本地运行态，不入库
+.pi/
 
 # ── 密钥 / 本地环境（防御性，本 repo 目前不需要 .env）────────────────────────
 .env

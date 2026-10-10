@@ -23,9 +23,8 @@ DSH 的行为回归证据面按"录一次、keyless 重放比对"运转（一场
 3. **会话 JSONL 日志 diff**（落在 `dev/harness-home/sessions/`，gitignore）：
    调试上下文组装时**读日志，不猜**（model-visible ⟺ logged）。
 
-**本树只收什么**（边界）：两类同类证据——session 回放 fixture 与 web 渲染期望
-（owner 是 [`AGENTS.md`](AGENTS.md)）；单元/CLI/generator 的纯函数期望输出**跟 owning 层走**
-（`tests/`、各自脚本旁），不进这里——集中目录只收真正同类的证据。
+**本树只收什么**（边界）：两类同类证据，owner 是 [`AGENTS.md`](AGENTS.md)——边界全文在那里，此处不复制；
+单元/CLI/generator 的纯函数期望输出跟 owning 层走（`tests/`、各自脚本旁），不进这里。
 
 **session 回放的升级触发条件**（够用再升级，别提前造）：提示词组装面出现"只有跑起来才看得出"
 的回归，或同一 model-visible 面第三次靠手工探针钉回归——再按 DSH 的形状建

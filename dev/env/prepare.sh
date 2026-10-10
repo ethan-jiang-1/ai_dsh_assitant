@@ -19,6 +19,13 @@ repo_root="$(git rev-parse --show-toplevel)"
 source "$repo_root/dev/env/env.sh"
 cd "$repo_root"
 
+# fresh clone 的第一坑：submodule 没拉起时，下面的 vendor 探测会全部落空、
+# `pnpm --dir vendor/dsh install` 死在一句无关的 "no package.json"——在这里 fail loud 指回正解。
+if [ ! -f vendor/dsh/package.json ]; then
+  echo "✗ vendor/dsh is empty — the submodule is not initialized. Run: git submodule update --init" >&2
+  exit 1
+fi
+
 # 与 setup.sh 的守卫同一约定：不碰日用 home（本脚本自己不装 profile，但保持一致，免得抄错改坏）。
 if [ -z "${ASSISTANT_DSH_HOME:-}" ] && [ "$DSH_HOME" = "$HOME/.dsh" ]; then
   echo "✗ DSH_HOME resolves to the daily ~/.dsh — refusing to touch it." >&2

@@ -2,7 +2,7 @@
 
 > 本文件拥有**本仓测试面合同**：一页证据地图、插件证据五台阶、本仓执行的政策条款、已定姿态与升级触发条件。
 > 主仓测试政策的正文在 `vendor/dsh/docs/testing.md`。本文件不抄它的 coverage 门、snapshot 车道和 CI 矩阵；刻意不采纳的项在「已定姿态」与 [`discipline.md`](discipline.md)。
-> 命令 owner = 根 `AGENTS.md` 命令表 + `docs/dev.md` §四（开发环命令）。机制分层表 = `discipline.md` 六层反馈（不复制）。
+> 命令清单 owner = 根 `AGENTS.md` 命令表（展开细节在 `docs/dev.md` §四，不复述清单）。机制分层表 = `discipline.md` 六层反馈（不复制）。
 > 执行细则（逐面判断规则与已知假绿清单）= `.agents/skills/pre-push-evidence/`（路由表主在本文「一页证据地图」，技能不复制表）。
 > 路径基准：本文件中的 `tests/…` 一律**包内相对**（= `packages/dsh-smart-assistant/tests/…`），其余路径仓根相对。
 >
@@ -20,7 +20,7 @@
 | 固定只读投影下载（独立 Host 文件，非经营 writer） | `pnpm build` → `pnpm test:host` + `pnpm test:composition`；隔离服务运行 `node dev/probes/web/desk-projection-download.mjs '<url>' dev/fixtures/desk-projection/desk-projection.json` | `tests/host/desk-projection-download.spec.ts` + `tests/composition/desk-projection-lifecycle.spec.mjs` + `dev/fixtures/desk-projection/` | 固定字节、错误/限额、真实注册撤销；HTTP 探针额外证明认证拒绝与 cookie 下载 / 不证明业务 schema、Client mount/断连/呈现或持久经营写 |
 | **模型可见面**（工具描述 / prompt 段落 / persona / digest） | `pnpm build` → `pnpm test:composition` → **`pnpm eval --only <task-id>`**（行为判决，任务清单 `pnpm eval --list`；`repo-live-probe` 是取证非回归，见已定姿态） | `tests/agent/*.spec` + `dev/eval/` | agent spec：段落合同。eval：伤害地板、技能按名加载、回答正则（可凑巧命中）/ 段落是否进入请求、组装转录、领域质量（`eval:domain` 人判） |
 | agent 面合同（段落预算 / 养护回合的合同层） | `pnpm test:agent`（真服务 + 临时 home）；改动同时触模型可见面时按上一行加链 | `tests/agent/*.spec` | 段落就绪 / 预算 / 回合占位等合同 / Loader 组装、UI 读回 |
-| client 面（`src/client`：注册与交互状态） | `pnpm test`（整包套件——`client-brand.spec` 断言全 slot 面，加一个注册会红没打开过的 spec）+ 两 web-face 场景 `pnpm web-expected` | `tests/client/*.spec` + `snapshots/web-face/` | 注册、组件树、色彩契约 / 真浏览器渲染（场景期望管） |
+| client 面（`src/client`：注册与交互状态） | `pnpm test`（整包套件——`client-entry.spec` 断言全 slot 面，加一个注册会红没打开过的 spec）+ 两 web-face 场景 `pnpm web-expected` | `tests/client/*.spec` + `snapshots/web-face/` | 注册、组件树、色彩契约 / 真浏览器渲染（场景期望管） |
 | 导出形态 / 组合行身份 / 注册撤销 | 台阶①③守卫（现读 patch，新行自动被扫） | `tests/composition/export-shape` + `registry-lifecycle` | 行身份与生命周期 / 行为正确 |
 | 组装后组合（服务/段落/工具 scope） | `pnpm build` → `pnpm test:composition` | `tests/composition/preset-composition.spec` | 真 Loader 组装 / vendor rows、完整产品 boot |
 | web 渲染面（首开/座位/文案） | `pnpm web-expected`（隔离 home 真渲染；过目 diff 后 `--refresh`） | `snapshots/web-face/` 两场景 | 渲染期望 / 交互逻辑（client spec 管） |

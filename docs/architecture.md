@@ -43,7 +43,9 @@ HOST 面（cordis.patch.yml → dsh.bundle.patch）
                             + time-context 行（当前时间/时区/经过时长随请求注入）
                             + schedule + ui-schedule 行（定时面：到期任务以原会话 follow-up 投递；
                               schedule_create/list/update/delete 定时四件只挂 root agents——Web 组合默认带，
-                              headless 组合由 profile 层显式 disabled，它依赖 web-app 层的 sessionController）
+                              headless 组合由 profile 层显式 disabled，它依赖 web-app 层的 sessionController；
+                              不禁用时的形态 = 常驻 `pending (waiting for service: sessionController)`
+                              warning，淹没真实激活失败——隔离 home 实测判据）
                             + ui-chat 行（首开预置 transcriptView: detailed——vendor 预构建 client lib 落后其 src，
                               全新 home 无存档时 mode=undefined 会使 conversation.view 槽崩溃；退役条件=上游发布物确认带兜底）
                             + locale 行（首开预置 preference: zh——无偏好时首开语言随浏览器协商落回 en；
@@ -56,7 +58,7 @@ AGENT 面（`cordis.patch.yml` 的 `preset-assistant` 行 → agent preset）
 ├── assistant-memory-digest   提示词段落：有界摘要（桌面）
 ├── assistant-memory-tool     工具 assistant_memory
 ├── assistant-research-tool   工具 assistant_research
-├── assistant-operating-tool  工具 assistant_operating（经营账本 11 动作，消费 host 行服务——契约 = [operating.md](operating.md) §二）
+├── assistant-operating-tool  工具 assistant_operating（经营账本动作，消费 host 行服务——契约 = [operating.md](operating.md) §二）
 ├── assistant-operating-brief 提示词段落：经营事项走账本（order 400，稳定指令带）
 ├── assistant-knowledge-tool  工具 assistant_knowledge（只读检索：search/get 附反链）
 ├── tool-session-query        工具 session_query 族（原始会话证据检索；与 knowledge 房分工见 docs/home.md）

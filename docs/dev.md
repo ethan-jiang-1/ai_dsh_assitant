@@ -89,23 +89,16 @@ pnpm --dir vendor/dsh run build:web       # 只有跑 Web UI 才需要（前端 
 
 ## 四、开发环（日常）
 
+命令清单的**唯一表主** = 根 `AGENTS.md` 命令表（起服务链、开发环、验证与评测命令都在那里）。
+本节只收**表上没有的行**——两处各持一份清单必然漂移：
+
 ```sh
-bash dev/env/setup.sh          # 幂等：建 dev（web）+ dev-task（headless）两个 profile + link 装插件
-pnpm dsh --profile dev-task "one task"   # one-shot 任务（headless）＝ host 面冒烟；不进 preset（§五）
-pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner.patch.yml "<task>"   # preset 挂载的 one-shot（验证自动化；行替换形状见该 patch 头注）
-pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner-replay.patch.yml "<task>"   # 同上但 keyless：现货 `llm-replay` 整脚本回放替掉真实 DeepSeek adapter，无 API key 也能产出真实会话日志（请求侧 system/tools 进日志＝live 探针的被测面）；形状与坑见该 patch 头注
-pnpm dsh --profile dev --port 0 --no-open   # Web UI：**不自动开浏览器**
-pnpm preflight '<server 打印的 URL>'    # 开屏前检查；绿了才把 URL 交给浏览器
-pnpm shots '<server 打印的 URL>' --dom --size 1600x1000 --name <名字>   # 渲染证据：PNG + DOM 证据（默认落 /tmp/dsh-webui-shots）
-pnpm web-expected '<server 打印的 URL>'   # web 面期望比对：真拍一张与已提交期望比对（漂移 exit 1）；`--refresh` 重录期望（场景契约与判据：snapshots/web-face/blank-first-open/README.md）
-pnpm loop-probe '<server 打印的 URL>' --ask '<问句>'   # 首用闭环探针：无头 Chrome 真点真发问真等回复，JSON 判决（首屏断言 + 全产品环；驱动借自 ai_dsh_loop_advisor，`--ask` 会真建会话——指向一次性 home）
-pnpm desk-loop              # 培养循环摩擦报告：从真实会话日志读「点了没反应 / 反复点 / 答了多次 / 技能没加载」
-pnpm eval:domain            # 领域评测集 v0（G2）：把本人出的真实经营问题逐题跑一遍，产出**给人打分**的报告（题目格式见 dev/eval/domain/TEMPLATE.md）
 pnpm ov-trial-rt            # OpenViking 试点第 5/6 步驱动：server 级记忆往返 + 抽取质量抽评（建会话→塞哨兵语料→commit→等抽取→找回→读抽取物；前提 server 在 127.0.0.1:1933）
 pnpm test:composition       # 先 pnpm build，再跑真实 shipped preset 组合 spec
 pnpm test:domain / pnpm test:host / pnpm test:agent / pnpm test:client / pnpm test:tooling   # 层入口：只跑对应 tests/<layer>（各层能/不能证明什么见 docs/testing.md 分层表）
-pnpm typecheck && pnpm test && pnpm verify
 ```
+
+（keyless 回放与 web-expected 在命令表上有行；replay 的形状与坑在该 patch 头注。）
 
 **`pnpm eval:domain` 证明什么**：`pnpm eval` 守的是机械地板（技能有没有按名加载、文件有没有真写、该不该动保留项），
 它判不了"这个答案对公司对不对"。领域评测集补这一层：**题目由本人出**（真实经营问题），工具逐题跑一次真实 preset
@@ -190,7 +183,7 @@ DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得
 
 **自动化会话的协作边界**（常量 `COLLABORATION_BOUNDARY` 在 `src/dev/preset-runner/` 里逐会话前置 + 家手册协作边界同一节；**不写在 patch 的 `!!js` 表达式里**——配置层模板字面量会被 overlay 的 YAML 标签求解器拒绝，2026-09-25 真踩过，故新增 `structure: every composition file we own parses as YAML` 门禁）：会话**可以改工作树，
 但不得 `git commit`**（提交权属于人或开发会话）；卡上标 🔒 的保留项（`_backlog/issues/`）**不得自行判触发、不得删卡、不得实现**，
-只能报告并建议（机械门禁 `reserved items` 查标记形态）；单发会话无人可问时按推荐值拍板、标注可推翻、继续做完。
+只能报告并建议（行为面由 `pnpm eval` 的 🔒 事故回归钉住——见下「行为评测」）；单发会话无人可问时按推荐值拍板、标注可推翻、继续做完。
 
 **行为评测**：`pnpm eval` 把一组**真实请求**经 preset 会话跑一遍，判定读的是会话日志（不是 stdout）——
 任务在 `dev/eval/tasks.mjs`，判定核在 `dev/eval/checks.mjs`（每条任务至少一个正向检查，避免"什么都不做"也通过）；

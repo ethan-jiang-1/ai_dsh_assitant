@@ -102,7 +102,7 @@ I14 拿到第一批使用数据；R1/R2 两条线索开进家的 research/ 房�
   I14 观察：两次 turn **零 curate 主动调用**（(a) 层第一个数据点：未主动）。对照会话未做
   （`3428f388` 是空壳）。
 - **载体扩展（2026-09-24）**：用户拍板"你来做吧"后建成 **preset-runner**（preset 挂载的
-  one-shot 驱动，`notes/archived/2026-09-24-preset-runner.md`）——步骤 B/C/D 全部可自动化，
+  one-shot 驱动，[2026-09-24-preset-runner.md](2026-09-24-preset-runner.md)）——步骤 B/C/D 全部可自动化，
   不再依赖浏览器真人操作。证据标准不变（真实 turn、逐字日志、组合可指认），载体从"Web UI
   会话"扩展为"任何真实 preset 会话"；intents.md 挡板已同步更新。
 - **步骤 B 完成（记忆环，全日志在案）**：① 介绍跑（`b04a36b5`：agentPreset 头 + persona +

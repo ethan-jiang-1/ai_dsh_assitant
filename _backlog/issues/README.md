@@ -72,4 +72,4 @@ opened: YYYY-MM-DD
 
 ## 🔒 只有用户能判定触发
 
-状态行带 🔒 的卡，agent 只报告和建议，不自行判定触发、删卡或实施。历史 [保留卡](../_archive/settled_issues/260929-reserved-anchor-discipline.md) 已由用户关闭；以后出现同类卡时仍遵守这条边界。
+状态行带 🔒 的卡，agent 只报告和建议，不自行判定触发、删卡或实施。

@@ -6,7 +6,7 @@
 > 依据：三线研究（R1 记忆 / R2 技能成长 / R3 知识层）已入档并亲验。本文只做合流：
 > 分阶段路线 + 决策点 + 尸体清单。判据对照、借用清单、淘汰理由全在报告内，本文只引用不复述。
 > 三路调研的持久结论在本文（survey 与 shortlist 不另留文件）、
-> notes/intents.md（意图与判据）、`notes/archived/2026-09-23-repo-structure.md`（day-0 输赢表）。
+> notes/intents.md（意图与判据）、[2026-09-23-repo-structure.md](2026-09-23-repo-structure.md)（day-0 输赢表）。
 
 ## 一、为什么是现在（四个已知缺口）
 
@@ -15,7 +15,7 @@
 2. **遮蔽静默**：学到技能被策展同名遮蔽只报 logger warn，模型不可见——全生态无人做
    （R2 §5.4 普查 481 个条目逐一过目的结论），是可自研的小切口空白。
 3. **curate 被动执行**（I14 首批数据点）：战役两 turn 零主动调用
-   （`notes/archived/2026-09-23-live-verification-campaign.md` 开跑补记）——家的养护靠人提醒。
+   ([2026-09-23-live-verification-campaign.md](2026-09-23-live-verification-campaign.md) 开跑补记）——家的养护靠人提醒。
 4. **知识无房间**：领域理解只能塞 memory/（短事实容器装长资料，拉低摘要信噪比）、塞 skills/
    （程序容器装陈述性知识）或蒸发（R3 §7.1——与"不清晰的意图没地方放会污染记忆"同构）。
 
@@ -111,7 +111,7 @@
 
 ## 五、尸体清单（明确不做什么，防重议；一行一具）
 
-**day-0 已否决（输赢表：`notes/archived/2026-09-23-repo-structure.md`，不重议）**
+**day-0 已否决（输赢表：[2026-09-23-repo-structure.md](2026-09-23-repo-structure.md)，不重议）**
 
 | 不做 | 为什么 |
 |---|---|
