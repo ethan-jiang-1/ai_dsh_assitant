@@ -144,13 +144,11 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
               }).join(' · '))
             : null,
           matter.summary.length > 0 ? ce('p', { className: 'dsha-card-summary' }, matter.summary) : null,
-          matter.proposals.some(proposal => proposal.status === 'pending') ? ce('p', { className: 'dsha-card-meta' }, chip('warn', '等你确认')) : null))),
-        unclaimed.length > 0 ? ce('div', { className: 'dsha-list' },
-          ce('p', { className: 'dsha-list-label' }, '待认领——还没说清是哪件事，不猜'),
+          matter.proposals.some(proposal => proposal.status === 'pending') ? ce('p', { className: 'dsha-card-meta' }, chip('warn', '等你确认')) : null)),
+          unclaimed.length > 0 ? ce('p', { className: 'dsha-list-label' }, '待认领——还没说清是哪件事，不猜') : null,
           unclaimed.map(fragment => ce('div', { key: fragment.id, className: 'dsha-card' },
             ce('span', { className: 'dsha-card-title' }, chip('warn', '待认领'), ce('span', {}, fragment.note)),
-            ce('p', { className: 'dsha-card-meta' }, `来自 ${fragment.sessionId}`))))
-          : null,
+            ce('p', { className: 'dsha-card-meta' }, `来自 ${fragment.sessionId}`)))),
         ce('div', { className: 'dsha-matter-detail dsha-detail' }, selected === undefined
           ? view.selectedId === null ? ce('p', { className: 'dsha-detail-hint' }, '选择一项查看详情。') : ce('p', { className: 'dsha-detail-hint' }, '所选事项不在当前投影中。')
           : ce('article', {},
