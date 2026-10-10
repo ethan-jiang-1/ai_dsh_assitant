@@ -133,7 +133,16 @@ for (let i = 0; i < 120 && deskReady === null; i++) {
   else if (i < 119) await sleep(700)
 }
 if (deskReady === null) { teardown(); fail('boot-fixture', { waitedMs: 84000 }) }
-pass('boot-fixture', {})
+// ① 的精确 request URL 半边：投影下载的真实请求 URL（相对 baseURI 解析后的完整地址），
+// 直接记入判决——子路径挂载半边属平台部署关切（vendor 无挂载配置面），维持已接受限制。
+const projectionRequestUrl = await evaluate(`(() => {
+  const entry = performance.getEntriesByType('resource').find(e => e.name.includes('desk-projection'));
+  return entry === undefined ? null : entry.name;
+})()`)
+if (projectionRequestUrl === null || !projectionRequestUrl.includes('/api/assistant/desk-projection')) {
+  teardown(); fail('projection-request-url', { projectionRequestUrl })
+}
+pass('boot-fixture', { projectionRequestUrl })
 
 // 相位 2（④ 窄视口）：420x900 单 pane——点击进详情 → 返回导航 → 选择保留 → 无横向溢出。
 await setViewport(420, 900)
