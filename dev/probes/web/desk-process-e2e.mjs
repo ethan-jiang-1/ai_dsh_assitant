@@ -25,7 +25,7 @@
 // 已知假绿面（K1/K2 限制 ⑤）：本探针的断言全部落在相位 verdict 里，eval 异常 =
 // 相位失败 = exit 1，不依赖 shots 的旁路产物；console/network 异常单独失败。
 import { spawn } from 'node:child_process'
-import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { launchCdpBrowser } from './cdp-driver.mjs'
@@ -171,12 +171,26 @@ if (detailText === null || !detailText.includes('处理这件事') || !detailTex
 pass('matter-detail', {})
 
 // 相位 3：「处理这件事」→ 处理会话接管主区（桌面卸载、composer 挂载）。
+// 规格负例「双击发送两次」：同一次 evaluate 里连点两下（落在面板卸载窗口内），
+// 复用守卫必须吞掉第二击——服务端会话计数只允许 +1。
+const countProbeSessions = () => {
+  let count = 0
+  const sessionsDir = join(home, 'sessions')
+  for (const workspace of readdirSync(sessionsDir, { withFileTypes: true })) {
+    if (!workspace.isDirectory()) continue
+    for (const entry of readdirSync(join(sessionsDir, workspace.name), { withFileTypes: true })) {
+      if (entry.isDirectory() && entry.name.startsWith('session-')) count += 1
+    }
+  }
+  return count
+}
+const sessionsBeforeProcess = countProbeSessions()
 if (await evaluate(`(() => {
   const root = document.querySelector('[data-assistant-operating-desk]');
   const process = [...(root?.querySelectorAll('button') ?? [])].find(b => (b.textContent ?? '') === '处理这件事');
   if (process === undefined) return 'button-not-found';
-  process.click(); return 'clicked';
-})()`) !== 'clicked') { teardown(); fail('process-click', {}) }
+  process.click(); process.click(); return 'double-clicked';
+})()`) !== 'double-clicked') { teardown(); fail('process-click', {}) }
 let conversationActive = false
 for (let i = 0; i < 40 && !conversationActive; i++) {
   conversationActive = await evaluate(`document.querySelector('[data-assistant-operating-desk]') === null && document.querySelector('[data-composer-input="true"]') !== null`) === true
@@ -195,6 +209,9 @@ if (!conversationActive) {
   fail('conversation-switch', { waitedMs: 20000, state })
 }
 pass('conversation-switch', {})
+// 双击负例的服务端判据：整个处理流结束时（会话已建、回合已跑）新会话数必须恰好 +1。
+// 计数放在回合之后：create 是异步的，卸载窗口内读数会与 in-flight 竞态。
+verdict.sessionsBeforeProcess = sessionsBeforeProcess
 
 // 相位 4+5（本探针的存在理由）：发一句话 → 回放回合真跑（真工具真账本）→ 读回 → 自动返回。
 // 粘贴/发送习语来自 webui-loop-probe（composer 拒绝 execCommand，合成 ClipboardEvent paste
@@ -295,6 +312,14 @@ if (!readback.materialLanded || !readback.proposalPending) {
 }
 pass('return-selection', {})
 pass('readback-visible', readback)
+
+// 双击负例终判（规格「双击发送两次」）：整个流结束时新会话数恰好 +1。
+const sessionsAfterFlow = countProbeSessions()
+if (sessionsAfterFlow !== sessionsBeforeProcess + 1) {
+  teardown()
+  fail('double-click-single-session', { sessionsBeforeProcess, sessionsAfterFlow })
+}
+pass('double-click-single-session', { created: sessionsAfterFlow - sessionsBeforeProcess })
 
 // —— 控制台与网络面（与 projection 探针同口径）——
 verdict.consoleProblems = consoleProblems

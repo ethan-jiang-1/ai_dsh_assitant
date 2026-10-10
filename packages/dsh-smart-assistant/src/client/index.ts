@@ -18,8 +18,10 @@
  * Module map: contracts (type mirrors) / runtime (factory require binding) / theme
  * (color contract) / desk-core (store) / desk-io (workspace reads + prompt sends) /
  * dom-utils (row + panel chrome) / brand / commands / room-tabs / panels / dashboard /
- * first-mile — this entry owns the facade registration, the `apply` seat wiring, and the
- * dependency list.
+ * first-mile / desk-process (processing-path bind & return judge) / projection-panel +
+ * projection-lifecycle + projection-reader + projection-view + operating-projection
+ * (the read-only operating desk) — this entry owns the facade registration, the `apply`
+ * seat wiring, and the dependency list.
  *
  * @module dsh-smart-assistant/client
  */
@@ -161,27 +163,46 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // never replays a path or re-submits. The slot store survives panel switches, so the
     // selection the principal left behind is exactly what the auto-return returns to.
     const processPath = storeApi?.createSnapshotStore<ProcessingPath | undefined>(undefined)
+    // Reuse-or-create (spec: 「可复用明确可用的处理 Session，否则显式创建/绑定」; the
+    // double-click negative 双击发送两次: a second click must not create a second processing
+    // session — 会话增殖 is the losing option 4). Same matter → re-open the bound session; a
+    // launch in flight swallows further clicks until its path binds (the create is async, so
+    // the bound-path check alone cannot cover the double-click window); a different matter
+    // replaces the path with a fresh session.
+    let processLaunchInFlight = false
     const processMatter = (matterId: string): void => {
+      const existing = processPath?.getSnapshot()
+      if (existing !== undefined && existing.matterId === matterId) {
+        ctx.uiWorkspace?.openSession(existing.sessionId)
+        return
+      }
+      if (processLaunchInFlight) return
+      processLaunchInFlight = true
       const data = projection?.getSnapshot().data
       const observed = data?.matters.find(matter => matter.id === matterId)?.revision
       void (async () => {
-        // Inherit the designated workspace (the current session's, else the most recent) —
-        // the shell's own startSession resolution; creating bare pops a from-scratch picker.
-        const catalog = ctx.workspaces?.list.getSnapshot()
-        const currentKey = ctx.uiSession?.current.value.key
-        const workspaceId = catalog?.items.find(item => currentKey !== undefined && item.sessionIds.includes(String(currentKey)))?.workspaceId
-          ?? catalog?.items[0]?.workspaceId
-        const sessionId = await ctx.sessions?.create(workspaceId === undefined ? undefined : { workspaceId })
-        if (sessionId === undefined) return
-        // Open the processing session as the main view's conversation through the shell's own
-        // navigation action. Retaining alone does not switch the selection when the current
-        // session is itself mainView-retained (the restored last session on load): the
-        // principal would type into the OLD conversation, the receipt would land under the
-        // old session, and the auto-return could never fire (probed, desk-process-e2e,
-        // 2026-10-10). openSession = retain + selection + previous-reference release + reveal.
-        ctx.uiWorkspace?.openSession(sessionId)
-        if (processPath !== undefined && observed !== undefined) {
-          processPath.set(bindProcessPath(matterId, sessionId, observed))
+        try {
+          // Inherit the designated workspace (the current session's, else the first in host
+          // workspace order — the vendor list is host-ordered, not recency-ordered) — the
+          // shell's own startSession resolution; creating bare pops a from-scratch picker.
+          const catalog = ctx.workspaces?.list.getSnapshot()
+          const currentKey = ctx.uiSession?.current.value.key
+          const workspaceId = catalog?.items.find(item => currentKey !== undefined && item.sessionIds.includes(String(currentKey)))?.workspaceId
+            ?? catalog?.items[0]?.workspaceId
+          const sessionId = await ctx.sessions?.create(workspaceId === undefined ? undefined : { workspaceId })
+          if (sessionId === undefined) return
+          // Open the processing session as the main view's conversation through the shell's own
+          // navigation action. Retaining alone does not switch the selection when the current
+          // session is itself mainView-retained (the restored last session on load): the
+          // principal would type into the OLD conversation, the receipt would land under the
+          // old session, and the auto-return could never fire (probed, desk-process-e2e,
+          // 2026-10-10). openSession = retain + selection + previous-reference release + reveal.
+          ctx.uiWorkspace?.openSession(sessionId)
+          if (processPath !== undefined && observed !== undefined) {
+            processPath.set(bindProcessPath(matterId, sessionId, observed))
+          }
+        } finally {
+          processLaunchInFlight = false
         }
       })()
     }
@@ -198,6 +219,9 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         // running state, and an unknown running state fails closed as running.
         session: { running: status?.running, turnSettled: status?.running === false, pendingInteraction: status?.pendingInteraction !== undefined },
         onPath: panel?.activePanelId === null && String(currentKey ?? '') === path.sessionId,
+        // V4/V5 提醒协调 is a deferred face (the projection's reminders are an empty
+        // placeholder until then) — this input stays 'synced' and flips when the reminder
+        // channel lands; judgeReturn already reports the unsynced notice on its output.
         reminders: 'synced',
       })
       if (decision.decision === 'return') {

@@ -11,8 +11,8 @@ export interface ProjectionPanelProps {
   actions: { selectMatter(id: string): void; showList(): void; rememberListPosition(position: number): void }
   refreshProjection(): void
   onAsk(): void
-  /** Open the explicit processing path for one matter; absent until the wiring layer lands. */
-  onProcess?(matterId: string): void
+  /** Open the explicit processing path for one matter (bound to the entry's processMatter). */
+  onProcess(matterId: string): void
 }
 const errors: Record<string, string> = {
   'authentication-required': '登录已失效，请重新登录后再读取。',
