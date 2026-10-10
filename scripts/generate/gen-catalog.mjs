@@ -196,6 +196,7 @@ export function renderCatalog(input) {
   lines.push('> `src/client/` 模块树（entry 注册面 + commands）的座位注册、')
   lines.push('> 策展技能目录与 `vendor/UPSTREAM.md` 的 pin 抽取而成；')
   lines.push('> freshness 由 `pnpm verify`（`gen-catalog --check`）守——改了源却没重生成即红。')
+  lines.push('> 下文路径基准：工具「源码」列为包内相对（= `packages/dsh-smart-assistant/`），其余仓根相对。')
   lines.push('> 语义与改名代价的 owner 是 [`identity.md`](identity.md)；这里只回答"当前声明了什么"。')
   lines.push('')
   lines.push(`## 入口与平面（${pluginEntries.size} 个 plugin 子路径 = host ${countOf('HOST')} + agent ${countOf('AGENT')} + client ${countOf('CLIENT')}）`)

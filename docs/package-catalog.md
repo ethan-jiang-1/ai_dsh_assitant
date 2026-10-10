@@ -8,6 +8,7 @@
 > `src/client/` 模块树（entry 注册面 + commands）的座位注册、
 > 策展技能目录与 `vendor/UPSTREAM.md` 的 pin 抽取而成；
 > freshness 由 `pnpm verify`（`gen-catalog --check`）守——改了源却没重生成即红。
+> 下文路径基准：工具「源码」列为包内相对（= `packages/dsh-smart-assistant/`），其余仓根相对。
 > 语义与改名代价的 owner 是 [`identity.md`](identity.md)；这里只回答"当前声明了什么"。
 
 ## 入口与平面（15 个 plugin 子路径 = host 4 + agent 10 + client 1）
