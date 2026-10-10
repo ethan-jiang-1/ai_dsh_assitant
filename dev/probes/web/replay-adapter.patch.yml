@@ -1,0 +1,38 @@
+# keyless web 回放 patch：把 dev（web）profile 的真实 DeepSeek adapter 换成 llm-replay，
+# 让 K4 处理流端到端探针（desk-process-e2e.mjs）在没有 DEEPSEEK_API_KEY 的机器上跑
+# 「处理按钮→会话→读回→返回」的确定性全链——模型的选择来自录制回合，其余（工具执行、
+# 账本写入、投影下载、返回判定、导航）全是真的。
+#
+# 用法（repo 根，由 desk-process-e2e.mjs 自动拼装；手工起服务同形）：
+#   ASSISTANT_DSH_HOME=<probe-home> \
+#   REPLAY_PRIMARY=$PWD/dev/fixtures/desk-process/followup/session.v4.jsonl \
+#   pnpm dsh --profile dev --port 0 --no-open --patch dev/probes/web/replay-adapter.patch.yml
+#
+# 行形状（继承 dev/probes/session/preset-runner-replay.patch.yml 的实测教训，2026-10-10）：
+# - 必须禁掉真实 adapter 的两个入口行（llm-deepseek / llm-deepseek-account）：同名 provider
+#   双注册时真实 adapter 先接住流，replay 永远不被调用，探针看着“绿”其实什么都没测。
+#   ⚠️ 行 id 随 pin 漂移；换 pin 后先
+#   `pnpm dsh --profile dev --patch dev/probes/web/replay-adapter.patch.yml --dump-config
+#    | grep -A1 dsh-llm-deepseek` 校对本行 id。
+# - 不设 overrideFile（默认 $DSH_SNAPSHOT_OVERRIDE 未设时跳过 override），脚本由
+#   `file`（录制的会话 JSONL）经 parseSessionFixture + deriveReplayScript 派生——
+#   录制回合里的 desk/read/report/propose 工具调用块会原样重放，真工具真执行。
+# - replay provider 注册 deepseek-official / deepseek-flash——与 base 的
+#   agent-default-model 行（vendor bundle base cordis.patch.yml）同名，会话的默认
+#   模型选择直接落进回放 adapter。
+# - web profile 不插 headless-runner / preset-runner 行（那是 dev-task 的形状）。
+- id: llm-deepseek
+  disabled: true
+- id: llm-deepseek-account
+  disabled: true
+- insert:
+    - id: llm-replay
+      name: '@deepseek-ai/dsh-llm-replay'
+      config:
+        file: !!js process.env.REPLAY_PRIMARY || process.cwd() + '/dev/fixtures/desk-process/followup/session.v4.jsonl'
+        providers:
+          - id: deepseek-official
+            name: DeepSeek (replay)
+            models:
+              - id: deepseek-flash
+                contextWindow: 128000
