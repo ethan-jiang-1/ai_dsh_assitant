@@ -37,8 +37,8 @@ function evidence(overrides = {}) {
     readyState: 'complete',
     bootEntries: 67,
     elementCount: 600,
-    visibleText: '智能助手\n新会话',
-    textOutline: ['span h=24: 智能助手', 'span h=22: 新会话'],
+    visibleText: '章鱼管家\n新会话',
+    textOutline: ['span h=24: 章鱼管家', 'span h=22: 新会话'],
     controls: ['button h=24: 新建会话', 'button h=28: 设置'],
     consoleErrors: [],
     networkFailures: [],
@@ -55,7 +55,7 @@ describe('normalizeDomEvidence keeps only the compared contract', () => {
     expect(normalized.title).toBe('DSH 本地构建')
     expect(normalized.viewport).toBe('1600x1000')
     expect(normalized.readyState).toBe('complete')
-    expect(normalized.visibleText).toBe('智能助手\n新会话')
+    expect(normalized.visibleText).toBe('章鱼管家\n新会话')
   })
 
   it('tokenizes the per-serve origin inside compared strings', () => {
@@ -89,7 +89,7 @@ describe('compareEvidence accepts the matching state and bites on every compared
 
   it('bites on visible-text drift and names the change', () => {
     const problems = compareEvidence(
-      normalizeDomEvidence(evidence({ visibleText: '智能助手\n再见' })),
+      normalizeDomEvidence(evidence({ visibleText: '章鱼管家\n再见' })),
       normalizeDomEvidence(evidence()),
     )
     expect(problems.some(p => p.startsWith('visibleText:'))).toBe(true)

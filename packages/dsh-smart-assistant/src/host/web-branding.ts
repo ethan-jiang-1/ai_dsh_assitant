@@ -17,7 +17,7 @@ import type { IndexInjection } from '@deepseek-ai/dsh-host-webserver'
 export type ScriptInjection = Extract<IndexInjection, { kind: 'script' }>
 
 /** Default tab title: names the assistant, keeps the local-build marker. */
-export const DEFAULT_WEB_TITLE = '聪明助手 · DSH Local assistant'
+export const DEFAULT_WEB_TITLE = '章鱼管家 · 本地经营总管'
 
 /** Inline favicon: a white house on a teal rounded square — the assistant's home. */
 const FAVICON_SVG =

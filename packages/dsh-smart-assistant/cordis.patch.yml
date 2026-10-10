@@ -144,9 +144,9 @@
       name: '@deepseek-ai/dsh-agent-preset'
       config:
         id: assistant
-        name: 智能助手
+        name: 章鱼管家
         order: 5
-        description: 有自己的 working folder（跨会话的工作目录）：长期记忆、探索线索、领域知识页、自己写的技能，以及机器能跑的养护检查。
+        description: 替你盯经营事项的章鱼管家——桌面全貌、持续跟踪、主动提醒：受托的事进权威账本，事事有着落。
         plugins:
           - id: persona
             name: '@deepseek-ai/dsh-persona'

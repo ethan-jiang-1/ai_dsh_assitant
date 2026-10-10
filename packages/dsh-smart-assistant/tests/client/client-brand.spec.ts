@@ -1,5 +1,5 @@
 /**
- * The brand occupants (`src/client/brand.ts`): the house mark, the deployment name, and the
+ * The brand occupants (`src/client/brand.ts`): the octopus mark, the deployment name, and the
  * blank-session hero mark.
  *
  * The registration id and the seat wiring live with the entry (client-entry.spec.ts);
@@ -11,6 +11,7 @@
  */
 import { describe, expect, it } from 'vitest'
 import { inertReactShim, loadClientRegistration, materializeClient } from '../support/client-harness.ts'
+import { MARK_TEAL } from '../../src/client/theme'
 
 const registration = await loadClientRegistration()
 
@@ -31,8 +32,10 @@ describe('client-module registration', () => {
     expect(svg.props.width).toBe(24)
     expect(svg.props.height).toBe(24)
     expect(svg.props.viewBox).toBe('0 0 64 64')
-    // Background square, house silhouette, door: three shapes, same as the tab favicon.
-    expect(svg.props.children).toHaveLength(3)
+    // Background tile, then the shared octopus silhouette: head, two eyes, tentacle strokes.
+    const [tile, ...silhouette] = svg.props.children as [{ props: { fill?: string } }, ...{ props: { fill?: string } }[]]
+    expect(tile.props.fill).toBe(MARK_TEAL)
+    expect(silhouette).toHaveLength(4)
   })
 
   it('names the deployment in the fallback-brand size', () => {
@@ -43,9 +46,8 @@ describe('client-module registration', () => {
     }
     const span = name()
     expect(span.type).toBe('span')
-    // 2026-10-04 delegated review: the brand is 智能助手 (zh-first product; the mixed-language
-    // sidebar read as garbage to the CEO first-reading).
-    expect(span.props.children).toBe('智能助手')
+    // 2026-10-10 renamed with the principal: 章鱼管家 — many arms tracking many matters.
+    expect(span.props.children).toBe('章鱼管家')
     expect(span.props.style.fontSize).toBe('17px')
     expect(span.props.style.whiteSpace).toBe('nowrap')
   })
@@ -59,6 +61,6 @@ describe('client-module registration', () => {
     expect(mark.props.width).toBe(34)
     expect(mark.props.height).toBe(34)
     expect(mark.props.className).toBe('hero-mark')
-    expect(mark.props.children).toHaveLength(3)
+    expect(mark.props.children).toHaveLength(5)
   })
 })
