@@ -1414,6 +1414,76 @@ describe('clientScriptSafetyProblems', () => {
   })
 })
 
+describe('identity names: docs/identity.md and the code agree in both directions', () => {
+  const patchText = [
+    '- insert:',
+    '    - id: assistant-memory',
+    '      name: dsh-smart-assistant',
+    '    - id: preset-assistant',
+    "      name: '@deepseek-ai/dsh-agent-preset'",
+    '      config:',
+    '        plugins:',
+    '          - id: assistant-learn',
+    '            name: dsh-smart-assistant/learn',
+  ].join('\n')
+  const srcSources = { 'tool-memory/index.ts': "name: 'assistant_memory'" }
+
+  it('accepts an identity page that names exactly the mounted rows and declared tools', () => {
+    const identity = [
+      '# 身份与命名',
+      '| 2 | 插件行 id（前缀 `assistant-`） | `assistant-memory`（host）<br>`assistant-learn`（agent） | 无强制文法 | patch | overlay 落空 |',
+      '| 3 | ctx 服务键 | `assistantMemory` |',
+      '| 4 | 工具 wire 名 | `assistant_memory` |',
+    ].join('\n')
+    expect(gateCores.identityNameProblems({ patchText, avatars: srcSources, identityText: identity })).toEqual([])
+  })
+
+  it('goes red when a mounted row is absent from the identity page (the forward direction that already existed)', () => {
+    const identity = [
+      '| 2 | 插件行 id | `assistant-memory`（host） |',
+      '| 3 | ctx 服务键 | `assistantMemory` |',
+      '| 4 | 工具 wire 名 | `assistant_memory` |',
+    ].join('\n')
+    const problems = gateCores.identityNameProblems({ patchText, avatars: srcSources, identityText: identity })
+    expect(problems.some(problem => problem.includes('assistant-learn') && problem.includes('not in docs/identity.md'))).toBe(true)
+  })
+
+  it('goes red when the identity page keeps a row id the patch no longer mounts (the reverse gap)', () => {
+    const identity = [
+      '| 2 | 插件行 id | `assistant-memory`（host）<br>`assistant-learn`（agent）<br>`assistant-dead-row`（agent；已改名，死 id 留存） |',
+      '| 3 | ctx 服务键 | `assistantMemory` |',
+      '| 4 | 工具 wire 名 | `assistant_memory` |',
+    ].join('\n')
+    const problems = gateCores.identityNameProblems({ patchText, avatars: srcSources, identityText: identity })
+    expect(problems.some(problem => problem.includes('assistant-dead-row'))).toBe(true)
+  })
+
+  it('goes red for a tool wire name the sources no longer declare, and accepts prose inside the id cell', () => {
+    const staleTool = [
+      '| 2 | 插件行 id | `assistant-memory`（host）<br>`assistant-learn`（agent） |',
+      '| 3 | ctx 服务键 | `assistantMemory` |',
+      '| 4 | 工具 wire 名 | `assistant_memory`、`assistant_gone` |',
+    ].join('\n')
+    const problems = gateCores.identityNameProblems({ patchText, avatars: srcSources, identityText: staleTool })
+    expect(problems.some(problem => problem.includes('assistant_gone'))).toBe(true)
+
+    // The cell carries non-row vocabulary in backticks (prefix, dataDir, config keys) and an
+    // unannotated counter-example; none of it is a claim, so none of it may red the check.
+    const wordy = [
+      '| 2 | 插件行 id（前缀 `assistant-`） | `assistant-memory`（host；独立 `assistant-operating` dataDir，`denyToolPrefix` 三 config 键）<br>`assistant-learn`（agent；工具与段落行，`inject` 无）——不要写成 `assistant-Memory` 或 `assistant-memory-tool` |',
+      '| 3 | ctx 服务键 | `assistantMemory`（其他插件的 inject 都引用它） |',
+      '| 4 | 工具 wire 名 | `assistant_memory`（唯一动词 recall/save/forget/list/curate） |',
+    ].join('\n')
+    expect(gateCores.identityNameProblems({ patchText, avatars: srcSources, identityText: wordy })).toEqual([])
+  })
+
+  it('fails loud when the identity page declares no row ids at all', () => {
+    const empty = ['# 身份与命名', '| 2 | 插件行 id | （待补） |', '| 3 | ctx 服务键 | `assistantMemory` |', '| 4 | 工具 wire 名 | `assistant_memory` |'].join('\n')
+    const problems = gateCores.identityNameProblems({ patchText, avatars: srcSources, identityText: empty })
+    expect(problems.some(problem => problem.includes('declares no') && problem.includes('assistant-'))).toBe(true)
+  })
+})
+
 describe('composition rows: architecture §二 plane trees and the bundle patch agree', () => {
   /** A §二 slice with the tree lines given; §三 follows so the slice boundary is exercised. */
   const archWith = (...treeLines) =>

@@ -18,7 +18,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { agentsMdStabilityProblems, backlogGraduationProblems, backlogLivenessProblems, clientScriptSafetyProblems, commandAliasProblems, compositionRowProblems, configParseProblems, dependencyPoseProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, GRADUATED_STATUS, implementedAlternativesProblems, languageGuardProblems, markdownCorpusFromTracked, notesNamingProblems, notePointerProblems, notesStateProblems, notesTopLevelProblems, pinProblems, machineLocalPathProblems, playbookFrontmatterProblems, projectReferenceMatches, relativeLinkProblems, skillFrontmatterProblems, startPathProblems, testAssetNamingProblems, textHygieneProblems, vendorClientFreshnessProblems } from './verify-checks.mjs'
+import { agentsMdStabilityProblems, backlogGraduationProblems, backlogLivenessProblems, clientScriptSafetyProblems, commandAliasProblems, compositionRowProblems, configParseProblems, dependencyPoseProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, GRADUATED_STATUS, implementedAlternativesProblems, identityNameProblems, languageGuardProblems, markdownCorpusFromTracked, notesNamingProblems, notePointerProblems, notesStateProblems, notesTopLevelProblems, pinProblems, machineLocalPathProblems, playbookFrontmatterProblems, projectReferenceMatches, relativeLinkProblems, skillFrontmatterProblems, startPathProblems, testAssetNamingProblems, textHygieneProblems, vendorClientFreshnessProblems } from './verify-checks.mjs'
 import * as gateCores from './verify-checks.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
@@ -119,25 +119,14 @@ check('identity: package name, bundle patch, and exports agree with the preset',
   return problems
 })
 
-check('identity: every declared identity name appears in docs/identity.md', () => {
-  const problems = []
-  const identity = read(join(repoRoot, 'docs', 'identity.md'))
-  const patch = read(join(packageDir, 'cordis.patch.yml'))
-  const rowIds = new Set([...patch.matchAll(/^\s*-\s*id:\s*([a-z0-9-]+)/gm)].map(match => match[1]))
-  for (const id of rowIds) {
-    if (id.startsWith('assistant-') && !identity.includes(id)) problems.push(`row id ${id} is not in docs/identity.md`)
-  }
-  const sources = walk(join(packageDir, 'src'), ['.ts'])
-  const toolNames = new Set()
-  for (const path of sources) {
-    for (const match of read(path).matchAll(/name:\s*'(assistant_[a-z_]+)'/g)) toolNames.add(match[1])
-  }
-  for (const name of toolNames) {
-    if (!identity.includes(name)) problems.push(`tool name ${name} is not in docs/identity.md`)
-  }
-  if (toolNames.size === 0) problems.push('no assistant_* tool names found in src')
-  if (!identity.includes('assistantMemory')) problems.push('docs/identity.md does not record the ctx key')
-  return problems
+check('identity: docs/identity.md and the code name the same rows and tools, in both directions', () => {
+  const avatars = {}
+  for (const path of walk(join(packageDir, 'src'), ['.ts'])) avatars[path] = read(path)
+  return identityNameProblems({
+    patchText: read(join(packageDir, 'cordis.patch.yml')),
+    avatars,
+    identityText: read(join(repoRoot, 'docs', 'identity.md')),
+  })
 })
 
 // ── resolution facade ───────────────────────────────────────────────────────────────────────────
