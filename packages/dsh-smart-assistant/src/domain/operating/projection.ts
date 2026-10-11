@@ -8,7 +8,7 @@
  * The reminders lane is a fixed empty placeholder until V4/V5 reminder coordination lands.
  */
 
-import type { LedgerState, MatterRecord, MaterialRecord, OperationOutcome as OperationOutcomeWire } from './ledger.ts'
+import type { LedgerSource, LedgerState, MatterRecord, MaterialRecord, OperationOutcome as OperationOutcomeWire } from './ledger.ts'
 
 /** One read-only evidence entry; event positioning is a claim carried when present. */
 export interface ProjectionEvidence {
@@ -20,11 +20,14 @@ export interface ProjectionEvidence {
   readonly receivedAt: string
 }
 
-/** One proposal on a matter, pending or confirmed, kept for audit in both states. */
+/** One proposal on a matter, retained with its source and explicit resolution link. */
 export interface ProjectionProposal {
   readonly id: string
   readonly kind: string
   readonly status: string
+  readonly proposedAt: string
+  readonly source: LedgerSource
+  readonly resolutionOperationId?: string
 }
 
 /** One flattened operation receipt — the read-back unit: operation, matter, outcome, source session. */
@@ -97,7 +100,14 @@ export function renderLedgerProjection(state: LedgerState, ledgerId: string, gen
       ...(matter.times.nextCheckpoint !== undefined ? { nextCheckpoint: matter.times.nextCheckpoint } : {}),
     },
     evidence: evidence(matter),
-    proposals: matter.proposals.map(proposal => ({ id: proposal.id, kind: proposal.change.kind, status: proposal.status })),
+    proposals: matter.proposals.map(proposal => ({
+      id: proposal.id,
+      kind: proposal.change.kind,
+      status: proposal.status,
+      proposedAt: proposal.proposedAt,
+      source: proposal.source,
+      ...(proposal.resolutionOperationId !== undefined ? { resolutionOperationId: proposal.resolutionOperationId } : {}),
+    })),
   }))
   const receipts = Object.values(state.operations).map(({ operation, receipt }) => {
     const outcome = receipt.outcome
@@ -129,7 +139,16 @@ export function renderLedgerProjection(state: LedgerState, ledgerId: string, gen
  * @returns The discriminating status plus its fields, spread-ready.
  */
 function flattenOutcome(outcome: OperationOutcomeWire): { status: string } & Record<string, string | number> {
-  if (outcome.status === 'committed') return { status: outcome.status, revision: outcome.revision }
+  if (outcome.status === 'committed') {
+    return {
+      status: outcome.status,
+      revision: outcome.revision,
+      ...(outcome.proposalId !== undefined ? { proposalId: outcome.proposalId } : {}),
+    }
+  }
+  if (outcome.status === 'proposal-rejected') {
+    return { status: outcome.status, proposalId: outcome.proposalId, revision: outcome.revision }
+  }
   if (outcome.status === 'retained') return { status: outcome.status, unclaimedId: outcome.unclaimedId }
   if (outcome.status === 'proposed') return { status: outcome.status, proposalId: outcome.proposalId }
   if (outcome.status === 'conflict') {

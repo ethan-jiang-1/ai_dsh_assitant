@@ -27,6 +27,8 @@ interface ClientExports {
   FirstMileDock: (props: {
     session?: { blank?: boolean } | undefined
     openRoom?: (kind: string) => void
+    processingMatter?: { matterId: string, title: string, summary: string }
+    t?: (key: string) => string | undefined
   }) => Element | null
   ApprovalDockBanner: (props: {
     openRoom?: (kind: string) => void
@@ -96,6 +98,26 @@ describe('first-mile seats', () => {
     expect(exports.FirstMileDock({ session: { blank: true }, openRoom: () => {} })).not.toBe(null)
   })
 
+  it('shows visual-only matter context instead of first-time intake for a processing session', () => {
+    const dock = materialize().FirstMileDock({
+      session: { blank: true },
+      processingMatter: { matterId: 'm-A', title: 'NB-02：客户验收节点', summary: '客户可能推迟到 10/20。' },
+      t: key => ({
+        'processing.title': '正在处理这件事',
+        'processing.label': '当前对话对应桌面事项：',
+        'processing.visualOnly': '事项信息只显示在界面上；需要助手参考时，请在对话里明确告诉它。',
+      }[key]),
+    })
+    if (dock === null) throw new Error('processing context should render for a blank session')
+    const copy = textsOf(dock).join(' ')
+    expect(copy).toContain('NB-02：客户验收节点')
+    expect(copy).toContain('客户可能推迟到 10/20。')
+    expect(copy).toContain('只显示在界面上')
+    expect(copy).not.toContain('第一次来')
+    expect(copy).not.toContain('例：')
+    expect(elementsOf(dock, 'button')).toHaveLength(0)
+  })
+
   it('tells a first-time principal what to say and offers the desk', () => {
     const opened: string[] = []
     const dock = materialize().FirstMileDock({ session: { blank: true }, openRoom: kind => { opened.push(kind) } })
@@ -162,6 +184,7 @@ describe('first-mile seats', () => {
     expect(names).toContain('conversation.input.dock')
     const dock = registered.find(entry => entry.declaration.id === 'assistant-first-mile')
     expect(dock?.declaration.name).toBe('conversation.input.dock')
+    expect(dock?.declaration.locale).toBe('assistantFirstMile')
     // The dock's action must reach the opener through the inject face, not a closure over ctx.
     expect(typeof (dock?.declaration.inject as () => unknown)()).toBe('object')
   })

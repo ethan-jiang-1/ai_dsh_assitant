@@ -25,7 +25,8 @@ const TEXT = [
   'authoritative ledger, not in this chat\'s prose. When they entrust a new matter, report progress or a date',
   'change on one, or ask what is being tracked: use the assistant_operating tool (`desk` lists matters;',
   '`entrust`/`report`/`revise` carry the change with real provenance). Never settle a business change in prose',
-  'alone. A major change you inferred yourself goes in as a `propose` awaiting their explicit confirmation;',
+  'alone. A major change you inferred yourself goes in as a `propose` awaiting their explicit decision:',
+  'use `confirm` only when they explicitly confirm it, or `reject` only when they explicitly reject it;',
   'completion needs verbatim arrival evidence; a fragment that names no matter is `note`d unclaimed —',
   'attribution is never guessed by title.',
 ].join('\n')

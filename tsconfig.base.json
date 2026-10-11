@@ -53,7 +53,9 @@
       "@deepseek-ai/dsh-session": ["./vendor/dsh/packages/core/session/src"],
       "@deepseek-ai/dsh-typert-protocol": ["./vendor/dsh/packages/typert/protocol/src"],
       "@deepseek-ai/dsh-typert-registry": ["./vendor/dsh/packages/typert/registry/src"],
-      "@deepseek-ai/dsh-session-persistence-jsonl": ["./vendor/dsh/packages/session/session-persistence-jsonl/src"]
+      "@deepseek-ai/dsh-session-persistence-jsonl": ["./vendor/dsh/packages/session/session-persistence-jsonl/src"],
+      "@deepseek-ai/dsh-client-ui-slots": ["./vendor/dsh/packages/client/ui-slots/src"],
+      "@deepseek-ai/dsh-client-ui-conversation/client": ["./vendor/dsh/packages/client/ui-conversation/src/client"]
     }
   }
 }

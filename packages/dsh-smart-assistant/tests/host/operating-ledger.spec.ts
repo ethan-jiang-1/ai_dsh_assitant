@@ -492,7 +492,7 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
       proposalId: 'p-1',
       source: { sessionId: 'session-A', quote: '确认重约到 10/20' },
     })
-    expect(confirmed.outcome).toEqual({ status: 'committed', revision: 2 })
+    expect(confirmed.outcome).toEqual({ status: 'committed', revision: 2, proposalId: 'p-1' })
     matter = await service.readMatter(created.matterId)
     expect(matter?.times.promisedDeadline).toBe('2026-10-20')
     expect(matter?.proposals[0]?.status).toBe('confirmed')
@@ -506,6 +506,44 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
       source: { sessionId: 'session-A' },
     })
     expect(unknown.outcome).toEqual({ status: 'rejected', reason: 'unknown-proposal' })
+  })
+
+  it('rejects a pending proposal with durable source and receipt without changing confirmed times', async () => {
+    const dataDir = mkdtempSync(join(tmpdir(), 'assistant-operating-ledger-'))
+    dirs.push(dataDir)
+    const first = boot(dataDir)
+    const created = await first.submitOperation({
+      kind: 'create', operationId: 'op-reject-create', title: 'NB-02 第二期回款',
+      times: { promisedDeadline: '2026-10-13', nextCheckpoint: '2026-10-13' },
+      source: { sessionId: 'session-A' },
+    })
+    await first.submitOperation({
+      kind: 'propose', operationId: 'op-reject-propose', matterId: created.matterId,
+      change: { kind: 'reschedule', promisedDeadline: '2026-10-20' },
+      source: { sessionId: 'session-B', quote: '客户口头说可能推迟到 10/20' },
+    })
+
+    const rejected = await first.submitOperation({
+      kind: 'reject', operationId: 'op-reject-proposal', matterId: created.matterId, proposalId: 'p-1',
+      source: { sessionId: 'session-A', quote: '不接受重约；按 10/13 约定核对' },
+    })
+    expect(rejected.outcome).toEqual({ status: 'proposal-rejected', proposalId: 'p-1', revision: 1 })
+    const matter = await first.readMatter(created.matterId)
+    expect(matter?.times).toEqual({ promisedDeadline: '2026-10-13', nextCheckpoint: '2026-10-13' })
+    expect(matter?.revision).toBe(1)
+    expect(matter?.proposals[0]).toMatchObject({ status: 'rejected', resolutionOperationId: 'op-reject-proposal' })
+
+    await first.stop()
+    const restarted = boot(dataDir)
+    const readBack = await restarted.readOperationRecord('op-reject-proposal')
+    expect(readBack).toEqual({
+      operation: {
+        kind: 'reject', operationId: 'op-reject-proposal', matterId: created.matterId, proposalId: 'p-1',
+        source: { sessionId: 'session-A', quote: '不接受重约；按 10/13 约定核对' },
+      },
+      receipt: rejected,
+    })
+    expect((await restarted.readMatter(created.matterId))?.proposals[0]?.status).toBe('rejected')
   })
 
   it('applies a confirmed abandonment proposal as its own status', async () => {
@@ -530,7 +568,7 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
       proposalId: 'p-1',
       source: { sessionId: 'session-A', quote: '同意放弃这期，走法务' },
     })
-    expect(confirmed.outcome).toEqual({ status: 'committed', revision: 2 })
+    expect(confirmed.outcome).toEqual({ status: 'committed', revision: 2, proposalId: 'p-1' })
     const matter = await service.readMatter(created.matterId)
     expect(matter?.status).toBe('abandoned')
   })

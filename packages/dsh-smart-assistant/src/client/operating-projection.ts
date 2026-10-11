@@ -12,7 +12,10 @@ export interface OperatingEvidence {
 export interface OperatingProposal {
   readonly id: string
   readonly kind: string
-  readonly status: string
+  readonly status: 'pending' | 'confirmed' | 'rejected'
+  readonly proposedAt?: string
+  readonly source?: { readonly sessionId: string; readonly eventId?: string; readonly quote?: string }
+  readonly resolutionOperationId?: string
 }
 export interface OperatingMatter {
   readonly id: string
@@ -53,8 +56,17 @@ function evidenceV2(value: unknown): value is OperatingEvidence {
     && (value.quote === undefined || text(value.quote))
     && (value.receivedAt === undefined || text(value.receivedAt))
 }
+function proposalSource(value: unknown): value is NonNullable<OperatingProposal['source']> {
+  return record(value) && text(value.sessionId)
+    && (value.eventId === undefined || text(value.eventId))
+    && (value.quote === undefined || text(value.quote))
+}
 function proposal(value: unknown): value is OperatingProposal {
-  return record(value) && text(value.id) && text(value.kind) && text(value.status)
+  return record(value) && text(value.id) && text(value.kind)
+    && (value.status === 'pending' || value.status === 'confirmed' || value.status === 'rejected')
+    && (value.proposedAt === undefined || text(value.proposedAt))
+    && (value.source === undefined || proposalSource(value.source))
+    && (value.resolutionOperationId === undefined || text(value.resolutionOperationId))
 }
 function matterV1(value: unknown): value is { id: string, title: string, status: 'active' | 'completed', summary: string, evidence: { id: string, sessionId: string, eventId: string, quote: string }[] } {
   return record(value) && text(value.id) && text(value.title)

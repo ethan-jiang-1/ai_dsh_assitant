@@ -1,13 +1,11 @@
 #!/usr/bin/env node
 // K4 处理流确定性端到端探针（_backlog/issues/261010-desk-k4-closure.md 开放面 2）。
 //
-// 链路：桌面(m-1) → 选中事项 → 「处理这件事」→ 处理会话 → 发一句话 → [回放的真实回合：
-// 真工具执行 report/propose，真账本写入] → 回合结算 → settle-follow 刷新经营投影 →
-// judgeReturn 判定 → 自动返回桌面（原选择保留）。
+// 链路：桌面(m-1) → 处理会话 → 回放 report/propose → 留在对话 → 显式拒绝 p-1 →
+// 真工具写拒绝回执 → 投影读回 → 自动返回桌面（日期仍为 10/13）。
 //
-// 为什么它是确定性的：唯一被脚本化的是**模型的选择**——来自录制的 followup 会话
-// （dev/fixtures/desk-process/followup/session.v4.jsonl，经 llm-replay 派生回放）；
-// 工具执行、账本写入、投影下载、返回判定、面板导航全部走真实产品链路。
+// 录制的前四个模型调用和首轮答复来自 followup JSONL。明确拒绝这一轮是为确定性验收
+// 编写的回放续段，不是录制或真实模型行为；工具执行、账本、投影、回程判定和导航都是真的。
 // 新会话的 running 状态由回放回合真实建立（true→false），满足 judgeReturn 的
 // fail-closed 前提（没有回合的会话 running 未知，返回被正确挡住——这正是设计行为）。
 //
@@ -28,12 +26,14 @@ import { spawn } from 'node:child_process'
 import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { deriveReplayScript, parseSessionLog } from '../../../vendor/dsh/packages/test-support/llm-replay/lib/index.js'
 import { launchCdpBrowser } from './cdp-driver.mjs'
 
 const repoRoot = join(fileURLToPath(new URL('.', import.meta.url)), '..', '..', '..')
 const fixtures = join(repoRoot, 'dev', 'fixtures', 'desk-process')
 const replaySource = join(fixtures, 'followup', 'session.v4.jsonl')
 const seedLedger = join(fixtures, 'seed-ledger.json')
+const shotDir = join(repoRoot, '.tmp', 'desk-process-e2e')
 
 const args = process.argv.slice(2)
 const option = (name, fallback) => {
@@ -62,7 +62,7 @@ const fail = (phase, detail) => {
   console.log(JSON.stringify(verdict, null, 2))
   process.exit(1)
 }
-const pass = (phase, detail) => { verdict.phases[phase] = { pass: true, ...detail } }
+const pass = (phase, detail) => { verdict.phases[phase] = { pass: true, ...detail }; console.log('PASS ' + phase) }
 
 if (!existsSync(replaySource)) throw new Error(`replay fixture missing: ${replaySource}`)
 if (!existsSync(seedLedger)) throw new Error(`seed ledger missing: ${seedLedger}`)
@@ -83,6 +83,18 @@ const operatingDir = join(home, 'assistant-operating')
 mkdirSync(operatingDir, { recursive: true })
 copyFileSync(seedLedger, join(operatingDir, 'ledger.json'))
 
+const rejectPrompt = '拒绝改期提案 p-1，约定到账日和核对点仍保留 2026-10-13。'
+const overrideFile = join(home, 'desk-process-authored-replay.json')
+const recorded = deriveReplayScript(parseSessionLog(readFileSync(replaySource, 'utf8')))
+const blockEntry = (block, reason) => ({ kind: 'chunks', chunks: [
+  { type: 'block-start', block }, { type: 'block-end', block },
+  { type: 'finish', reason: { kind: reason } },
+] })
+writeFileSync(overrideFile, JSON.stringify([...recorded,
+  blockEntry({ type: 'tool-call', id: 'authored-reject-p1', name: 'assistant_operating', arguments: JSON.stringify({ action: 'reject', matter_id: 'm-1', proposal_id: 'p-1', operation_id: 'op-authored-reject-p1', quote: rejectPrompt }) }, 'tool-calls'),
+  blockEntry({ type: 'text', text: '已拒绝改期提案 p-1。约定到账日与核对点仍为 2026-10-13。' }, 'stop'),
+]))
+
 const vendorBin = join(repoRoot, 'vendor', 'dsh', 'apps', 'cli', 'src', 'bin.ts')
 const tsxEntry = import.meta.resolve('tsx/esm')
 const service = spawn(process.execPath, ['--import', tsxEntry, vendorBin, '--profile', 'dev', '--patch', 'dev/probes/web/replay-adapter.patch.yml', '--port', '0', '--no-open'], {
@@ -94,6 +106,7 @@ const service = spawn(process.execPath, ['--import', tsxEntry, vendorBin, '--pro
     DSH_TELEMETRY_DISABLED: '1',
     TSX_TSCONFIG_PATH: join(repoRoot, 'tsconfig.tsx.json'),
     REPLAY_PRIMARY: replaySource,
+    DSH_SNAPSHOT_OVERRIDE: overrideFile,
   },
   stdio: ['ignore', 'pipe', 'pipe'],
 })
@@ -247,71 +260,39 @@ const sent = await evaluate(`(() => {
 })()`)
 if (sent !== 'sent') { teardown(); fail('send', { sent }) }
 
-// 完成信号 = 桌面重新挂载——它蕴含「回合已结算＋回执已读回＋judge 判 return」整链；
-// 不能把「终答文本可见」当门槛：自动返回会把会话视图换走、标记随之离开 body，
-// 两个信号在赛跑，标记必输（实测：return 在回合结束后 100ms 触发，标记窗口没有
-// 任何一个 1.5s 轮询拍抓到）。终答标记降级为过程遥测（sawTurnActivity），不作判据。
-let approvals = 0
-let sawTurnActivity = false
-const flowStartedAt = Date.now()
+const stopped = `![...document.querySelectorAll('button')].some(b => ['停止生成','Stop generating'].includes(b.getAttribute('aria-label') ?? ''))`
+let settled = false
+for (let i = 0; i < 600 && !settled; i++) {
+  await sleep(500)
+  await evaluate(`(() => { const b = [...document.querySelectorAll('button')].find(x => (x.textContent ?? '').trim() === '允许一次'); b?.click(); })()`)
+  if (await evaluate(deskPresent)) fail('pending-stays-in-chat', { reason: 'returned before explicit decision' })
+  settled = await evaluate(`(${stopped}) && (document.body.innerText ?? '').includes(${JSON.stringify(finalReplyMarker)})`) === true
+}
+if (!settled) fail('first-turn-settle', {})
+const beforeReject = JSON.parse(readFileSync(join(operatingDir, 'ledger.json'), 'utf8'))
+const matterBefore = Object.values(beforeReject.matters).find(m => m.id === 'm-1')
+if (!matterBefore?.proposals.some(p => p.id === 'p-1' && p.status === 'pending')) fail('pending-proposal', { matterBefore })
+pass('pending-stays-in-chat', {})
+mkdirSync(shotDir, { recursive: true })
+writeFileSync(join(shotDir, '1-pending-stays-in-chat.png'), await browser.captureScreenshot())
+await evaluate(pasteOnce.replace(JSON.stringify(followupPrompt), JSON.stringify(rejectPrompt)))
+await sleep(500)
+if (!await evaluate(sendEnabled)) fail('reject-composer', {})
+await evaluate(`(() => { [...document.querySelectorAll('button')].find(b => ['发送消息','Send message'].includes(b.getAttribute('aria-label') ?? ''))?.click(); })()`)
 let returnText = null
-for (let i = 0; i < 200 && returnText === null; i++) {
-  await sleep(1500)
-  // 审批门：回放回合里的 bash 等工具会停在「允许一次」等真人——探针就地点掉并计数。
-  const approval = await evaluate(`(() => {
-    const b = [...document.querySelectorAll('button')].find(x => (x.textContent ?? '').trim() === '允许一次');
-    if (b === undefined) return 'none';
-    b.click(); return 'clicked';
-  })()`)
-  if (approval === 'clicked') approvals += 1
-  if (!sawTurnActivity) {
-    sawTurnActivity = await evaluate(`(() => {
-      const stop = [...document.querySelectorAll('button')].some(b => {
-        const label = b.getAttribute('aria-label') ?? '';
-        return label === '停止生成' || label === 'Stop generating';
-      });
-      return stop || (document.body.textContent ?? '').includes(${JSON.stringify(finalReplyMarker)});
-    })()`) === true
-  }
-  returnText = await evaluate(deskText)
-}
-if (returnText === null) {
-  // 区分三种红：回放没真执行（账本没动）vs 回合没结算 vs 返回链断了（账本动了、
-  // 回合结束了、桌面没回来）。judgeLog 与 fetch 时间线是零侵入取证。
-  const state = await evaluate(`(() => ({
-    stopButton: [...document.querySelectorAll('button')].some(b => {
-      const label = b.getAttribute('aria-label') ?? '';
-      return label === '停止生成' || label === 'Stop generating';
-    }),
-    bodyHasMarker: (document.body.textContent ?? '').includes(${JSON.stringify(finalReplyMarker)}),
-    processLog: (globalThis.__deskProcessDebug ?? []).slice(-6),
-    fetches: performance.getEntriesByType('resource').filter(e => e.name.includes('desk-projection')).map(e => Math.round(e.startTime)),
-  }))()`)
-  const ledger = JSON.parse(readFileSync(join(operatingDir, 'ledger.json'), 'utf8'))
-  const ops = Object.values(ledger.operations ?? {})
-  teardown()
-  fail('auto-return', {
-    waitedMs: Date.now() - flowStartedAt,
-    approvals,
-    sawTurnActivity,
-    ledgerOperations: ops.map((entry) => `${entry.operation?.kind ?? '?'}:${entry.receipt?.outcome?.status ?? '?'}`),
-    state,
-  })
-}
-pass('turn-settle', { approvals, sawTurnActivity, seconds: Math.round((Date.now() - flowStartedAt) / 1000) })
-pass('auto-return', { waitedMs: Math.round((Date.now() - flowStartedAt) / 1000) })
-if (!returnText.includes('合同 NB-02 第二期款')) {
-  teardown(); fail('return-selection', { text: returnText.slice(0, 400) })
-}
-const readback = {
-  materialLanded: /客户电话告知|推迟到 10\/20|口头/.test(returnText),
-  proposalPending: returnText.includes('等你确认'),
-}
-if (!readback.materialLanded || !readback.proposalPending) {
-  teardown(); fail('readback-visible', { readback, text: returnText.slice(0, 600) })
-}
+for (let i = 0; i < 120 && returnText === null; i++) { await sleep(500); returnText = await evaluate(deskText) }
+if (returnText === null) fail('reject-auto-return', { body: await evaluate('document.body.innerText') })
+const afterReject = JSON.parse(readFileSync(join(operatingDir, 'ledger.json'), 'utf8'))
+const matterAfter = Object.values(afterReject.matters).find(m => m.id === 'm-1')
+const rejection = afterReject.operations['op-authored-reject-p1']
+if (rejection?.receipt.outcome.status !== 'proposal-rejected' || !matterAfter?.proposals.some(p => p.id === 'p-1' && p.status === 'rejected')) fail('durable-rejection', { rejection, matterAfter })
+if (matterAfter.times.promisedDeadline !== '2026-10-13' || matterAfter.times.nextCheckpoint !== '2026-10-13' || matterAfter.revision !== matterBefore.revision) fail('confirmed-dates-unchanged', { matterAfter })
+if (!returnText.includes('合同 NB-02 第二期款') || returnText.includes('等你确认')) fail('return-selection', { returnText })
+pass('reject-auto-return', {})
+pass('durable-rejection', { outcome: rejection.receipt.outcome })
+pass('confirmed-dates-unchanged', { times: matterAfter.times, revision: matterAfter.revision })
 pass('return-selection', {})
-pass('readback-visible', readback)
+writeFileSync(join(shotDir, '2-returned-after-reject.png'), await browser.captureScreenshot())
 
 // 双击负例终判（规格「双击发送两次」）：整个流结束时新会话数恰好 +1。
 const sessionsAfterFlow = countProbeSessions()

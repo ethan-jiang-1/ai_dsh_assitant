@@ -25,8 +25,11 @@ export interface SlotsRegistry {
 export interface ClientContext {
   /** Stable Client application identity shared by every plugin scope. */
   readonly root: object
-  effect: (install: () => () => void) => unknown
+  effect: (install: () => () => void, label?: string) => unknown
   connection: Parameters<typeof import('./projection-reader').createProjectionReader>[0]
+  locale?: {
+    register(namespace: string, dictionaries: { readonly zh: Readonly<Record<string, string>>, readonly en: Readonly<Record<string, string>> }): () => void
+  }
   slots: SlotsRegistry
   sidebarRightTabs: SidebarRightTabsRegistry
   /** The right-sidebar controller, so a page can open a room tab beside the conversation. */

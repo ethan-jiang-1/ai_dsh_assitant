@@ -47,7 +47,10 @@ describe('v2 ledger-render envelope (K3 slice E)', () => {
       id: 'm-1', title: '回款 A', status: 'abandoned', summary: '等待核对', responsible: '财务', revision: 2,
       times: { promisedDeadline: '2026-10-13', forecastAt: '2026-10-15' },
       evidence: [{ id: 'mat-m-1-1', sessionId: 'session-a', note: '到账回单', quote: '银行回单：已到账' }],
-      proposals: [{ id: 'p-1', kind: 'reschedule', status: 'pending' }],
+      proposals: [{
+         id: 'p-1', kind: 'reschedule', status: 'pending', proposedAt: '2026-10-10T09:00:00.000Z',
+         source: { sessionId: 'session-b', quote: '客户可能推迟到 10/20' },
+       }],
     }],
     receipts: [{ operationId: 'op-1', matterId: 'm-1', sessionId: 'session-a', submittedAt: '2026-10-10T08:00:00.000Z', status: 'committed', revision: 2 }],
     unclaimed: [{ id: 'u-1', note: '有人说款已付', sessionId: 'session-c' }],
@@ -63,15 +66,22 @@ describe('v2 ledger-render envelope (K3 slice E)', () => {
     expect(parsed.matters[0]?.responsible).toBe('财务')
     expect(parsed.matters[0]?.evidence[0]?.note).toBe('到账回单')
     expect(parsed.matters[0]?.evidence[0]?.eventId).toBeUndefined()
-    expect(parsed.matters[0]?.proposals).toEqual([{ id: 'p-1', kind: 'reschedule', status: 'pending' }])
+    expect(parsed.matters[0]?.proposals).toEqual([{
+      id: 'p-1', kind: 'reschedule', status: 'pending', proposedAt: '2026-10-10T09:00:00.000Z',
+      source: { sessionId: 'session-b', quote: '客户可能推迟到 10/20' },
+    }])
     expect(parsed.receipts[0]).toEqual({ operationId: 'op-1', matterId: 'm-1', sessionId: 'session-a', submittedAt: '2026-10-10T08:00:00.000Z', status: 'committed', revision: 2 })
     expect(parsed.unclaimed).toEqual([{ id: 'u-1', note: '有人说款已付', sessionId: 'session-c' }])
   })
 
   it('rejects note-less evidence, unknown statuses, and a non-empty reminders lane', () => {
-    expect(() => parseOperatingProjection({ ...v2, matters: [{ ...v2.matters[0], evidence: [{ id: 'e1', sessionId: 's', quote: 'q' }] }] })).toThrow()
-    expect(() => parseOperatingProjection({ ...v2, matters: [{ ...v2.matters[0], status: 'paused' }] })).toThrow()
+    const matter = v2.matters[0]!
+    const proposal = matter.proposals[0]!
+    expect(() => parseOperatingProjection({ ...v2, matters: [{ ...matter, evidence: [{ id: 'e1', sessionId: 's', quote: 'q' }] }] })).toThrow()
+    expect(() => parseOperatingProjection({ ...v2, matters: [{ ...matter, status: 'paused' }] })).toThrow()
     expect(() => parseOperatingProjection({ ...v2, reminders: [{ anything: true }] })).toThrow()
+    expect(() => parseOperatingProjection({ ...v2, matters: [{ ...matter, proposals: [{ ...proposal, status: 'dismissed' }] }] })).toThrow()
+    expect(() => parseOperatingProjection({ ...v2, matters: [{ ...matter, proposals: [{ ...proposal, source: { sessionId: '' } }] }] })).toThrow()
   })
 
   it('rejects duplicate receipt identities and a missing revision on a v2 matter', () => {

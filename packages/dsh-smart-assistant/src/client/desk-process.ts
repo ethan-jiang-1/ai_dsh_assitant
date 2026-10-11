@@ -4,8 +4,9 @@
  * One explicit processing path = one bound matter + one processing session + the revision
  * observed at binding time. The judge crosses the durable receipts in the projection with
  * the live session state; a settled turn and an idle session are necessary, never
- * sufficient — only the processing session's own committed receipt, read back at a revision
- * at least as fresh as the observed one and submitted after the binding, returns the desk.
+ * sufficient — a fresh committed receipt or matched proposal-rejection receipt from the
+ * processing session, read back at a revision at least as fresh as the observed one and
+ * submitted after binding, returns the desk only when this path has no pending proposal.
  * The composer is an owner-only chain slot, so the client cannot mint the operation identity
  * into the message; the association rides the receipt's source session instead. The
  * principal leaving the path always wins over a late success: the matter may refresh, the
@@ -26,7 +27,19 @@ export interface JudgeReceipt {
   readonly sessionId: string
   readonly status: string
   readonly revision?: number
+  readonly proposalId?: string
   readonly submittedAt: string
+}
+
+/** Proposal attribution and resolution fields carried by the operating projection. */
+export interface JudgeProposal {
+  readonly id: string
+  readonly matterId: string
+  /** Source session and creation time establish whether the proposal belongs to this path. */
+  readonly sessionId?: string
+  readonly proposedAt?: string
+  readonly status: string
+  readonly resolutionOperationId?: string
 }
 
 /** The narrow session state view the judge needs (from the platform session-status hook). */
@@ -40,7 +53,13 @@ export interface JudgeSession {
 
 /** What the judge is allowed to look at. */
 export interface ReturnJudgeInput {
-  readonly projection: { readonly receipts: readonly JudgeReceipt[]; readonly matterIds: ReadonlySet<string> }
+  readonly projection: {
+    readonly status: string
+    readonly stale?: boolean
+    readonly receipts: readonly JudgeReceipt[]
+    readonly matterIds: ReadonlySet<string>
+    readonly proposals: readonly JudgeProposal[]
+  }
   readonly session: JudgeSession
   /** Whether the principal is still on this processing path. */
   readonly onPath: boolean
@@ -65,6 +84,8 @@ export interface ProcessingPath {
   readonly boundAt: string
   /** The matter revision observed at binding; read-back must be at least this fresh. */
   readonly observedRevision: number
+  /** Visual-only matter details shown in the bound session; never submitted to the model. */
+  readonly displayContext?: { readonly title: string; readonly summary: string }
 }
 
 /**
@@ -84,10 +105,11 @@ export function bindProcessPath(matterId: string, sessionId: string, observedRev
  * Judge whether this path may return to the desk now.
  *
  * Returns only when ALL hold: the principal is still on the path; the session is known to be
- * not running, its turn settled, and no interaction pending; the processing session's own
- * receipt for the bound matter is committed at a revision at least as fresh as the observed
- * one, submitted after the binding; and the matter still exists. Reminder sync does not block
- * the return but is reported as an unsynced notice.
+ * not running, its turn settled, and no interaction pending; the projection is ready and fresh;
+ * the processing session has a committed receipt or a proposal-rejection receipt linked to the
+ * resolved proposal, at a revision at least as fresh as the observed one and submitted after
+ * binding; no proposal created on this path remains pending; and the matter still exists.
+ * Reminder sync does not block the return but is reported as an unsynced notice.
  *
  * @param path - The bound processing path.
  * @param input - The projection receipts, session state, presence, and reminder sync.
@@ -99,14 +121,39 @@ export function judgeReturn(path: ProcessingPath, input: ReturnJudgeInput): Retu
   if (input.session.running !== false) reasons.push('session-running')
   if (!input.session.turnSettled) reasons.push('turn-open')
   if (input.session.pendingInteraction) reasons.push('pending-interaction')
+  if (input.projection.status !== 'ready') reasons.push('projection-not-ready')
+  if (input.projection.stale === true) reasons.push('projection-stale')
+
   const own = input.projection.receipts.filter(receipt => receipt.matterId === path.matterId && receipt.sessionId === path.sessionId)
+  const pathProposals = input.projection.proposals.filter(proposal =>
+    proposal.matterId === path.matterId && proposal.sessionId === path.sessionId
+      && proposal.proposedAt !== undefined && proposal.proposedAt >= path.boundAt)
+  const fresh = (receipt: JudgeReceipt): boolean =>
+    (receipt.revision ?? 0) >= path.observedRevision && receipt.submittedAt >= path.boundAt
+  const resolutionReadBack = (proposal: JudgeProposal): boolean => {
+    if (proposal.resolutionOperationId === undefined) return false
+    return own.some(receipt => receipt.operationId === proposal.resolutionOperationId
+      && receipt.proposalId === proposal.id
+      && fresh(receipt)
+      && ((proposal.status === 'confirmed' && receipt.status === 'committed')
+        || (proposal.status === 'rejected' && receipt.status === 'proposal-rejected')))
+  }
+  const pending = pathProposals.some(proposal => proposal.status === 'pending')
+  if (pending) reasons.push('pending-proposal')
+  if (pathProposals.some(proposal => proposal.status !== 'pending' && !resolutionReadBack(proposal))) {
+    reasons.push('proposal-resolution-not-read-back')
+  }
+
+  const eligibleReceipts = own.filter(receipt => receipt.status === 'committed'
+    || (receipt.status === 'proposal-rejected' && pathProposals.some(proposal =>
+      proposal.id === receipt.proposalId && proposal.status === 'rejected' && proposal.resolutionOperationId === receipt.operationId)))
   if (own.length === 0) {
     reasons.push('receipt-not-read-back')
-  } else if (!own.some(receipt => receipt.status === 'committed')) {
+  } else if (eligibleReceipts.length === 0) {
     reasons.push(`receipt-${own[0]?.status}`)
-  } else if (!own.some(receipt => receipt.status === 'committed' && (receipt.revision ?? 0) >= path.observedRevision)) {
+  } else if (!eligibleReceipts.some(receipt => (receipt.revision ?? 0) >= path.observedRevision)) {
     reasons.push('receipt-stale-revision')
-  } else if (!own.some(receipt => receipt.status === 'committed' && (receipt.revision ?? 0) >= path.observedRevision && receipt.submittedAt >= path.boundAt)) {
+  } else if (!eligibleReceipts.some(receipt => fresh(receipt))) {
     reasons.push('receipt-before-binding')
   }
   if (!input.projection.matterIds.has(path.matterId)) reasons.push('matter-vanished')

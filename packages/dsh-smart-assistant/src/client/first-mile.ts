@@ -7,11 +7,14 @@
  * @module dsh-smart-assistant/client/first-mile
  */
 
+import type { PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
+import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
 import type { RoomKind } from './contracts'
 import { deskSlice, patchDesk, useDesk } from './desk-core'
 import { askAboutDecision, askAboutGap, askCheckIn, askStart, sendPrompt } from './desk-io'
 import { createElement, reactSurface } from './runtime'
 import { MARK_TEAL } from './theme'
+import type {} from './locales'
 
 /**
  * The first-open strip above the composer, for a session that has no content yet: it
@@ -123,17 +126,26 @@ function DeskLandingOverride(props: Record<string, unknown>): ReturnType<typeof 
   ])
 }
 
-export function FirstMileDock({ session, openRoom }: {
-  session?: { blank?: boolean, id?: string, sessionId?: string } | undefined
-  openRoom?: (kind: RoomKind) => void
-}): ReturnType<typeof createElement> | null {
+interface ProcessingMatterContext {
+  readonly matterId: string
+  readonly title: string
+  readonly summary: string
+}
+
+interface FirstMileInjected {
+  readonly openRoom?: (kind: RoomKind) => void
+  readonly processingMatter?: ProcessingMatterContext
+}
+
+type FirstMileDockProps = PropsRuntime<'conversation.input.dock'> & FirstMileInjected & PropsLocale<'assistantFirstMile'>
+
+export function FirstMileDock({ session, openRoom, processingMatter, t }: FirstMileDockProps): ReturnType<typeof createElement> | null {
   // Hooks stay UNCONDITIONAL (React rules): the 2026-10-07 live probe caught the early
   // return below them leaking the composer-hiding style past unmount — an ongoing session
   // was left with no input box at all while the model waited for an answer.
   const { useEffect, useState } = reactSurface()
   const [draft, setDraft] = useState('')
-  const sid = (session as { sessionId?: string })?.sessionId
-    ?? (session as { id?: string })?.id
+  const sid = session?.sessionId
   // (261007 Slice 1a) The A1-era hiding CSS — "[data-chain-overlay-fallback='conversation.composer']
   // { display:none }" — is RETIRED, not fixed. The live probe (2026-10-07) showed WHY it could
   // never work: this dock renders INSIDE that fallback wrapper (vendor ConversationContent.tsx:
@@ -145,14 +157,14 @@ export function FirstMileDock({ session, openRoom }: {
   // land on the desk view even without D7. The in-session switch it hoped for never fired
   // (live probe 2026-10-07) — that part stays with upstream D7.
   useEffect(() => {
-    if (sid === undefined || typeof localStorage === 'undefined') return
+    if (processingMatter !== undefined || sid === undefined || typeof localStorage === 'undefined') return
     try {
       const key = 'dsh.conversation.' + sid
       if (localStorage.getItem(key) === null) {
         localStorage.setItem(key, JSON.stringify({ view: 'dsh-smart-assistant-desk-view' }))
       }
     } catch { /* localStorage unavailable */ }
-  }, [sid])
+  }, [sid, processingMatter?.matterId])
   // (261007 Slice 1b) The Goal-1 auto-send — an 800ms timed '你好' — is retired. It read
   // deskSlice(sid), which is ALWAYS empty on a brand-new session, so every page load
   // re-fired it: six ghost sessions in ten minutes on the 2026-10-07 probe, each a real
@@ -163,10 +175,9 @@ export function FirstMileDock({ session, openRoom }: {
   // lands asynchronously after mount, and the old one-shot never re-rendered — the brief
   // never appeared on a live reload (caught in the Slice 1 real-machine probe).
   const walk = useDesk()
-  if (session?.blank !== true) return null
   const send = () => {
     const text = draft.trim()
-    const sid = (session as { sessionId?: string })?.sessionId ?? (session as { id?: string })?.id
+    const sid = session?.sessionId
     if (text === '' || !sid) return
     sendPrompt(text, 'desktop-landing', 'desk', sid)
     setDraft('')
@@ -198,6 +209,17 @@ export function FirstMileDock({ session, openRoom }: {
       },
     }, label)
 
+  if (processingMatter !== undefined) {
+    return shell([
+      heading(t('processing.title')),
+      body(t('processing.label')),
+      heading(processingMatter.title),
+      ...(processingMatter.summary.trim() === '' ? [] : [body(processingMatter.summary)]),
+      body(t('processing.visualOnly')),
+    ])
+  }
+  if (session?.blank !== true) return null
+
   if (!hasDesk) {
     // Day-0: the arc, the promise, and the start.
     return shell([
@@ -207,7 +229,7 @@ export function FirstMileDock({ session, openRoom }: {
       createElement('div', { style: { fontSize: '12px', color: 'var(--dsw-alias-label-secondary)' } },
         '例：「这个月签单为什么慢」「我在想要不要给老客户涨价」'),
       startButton('开始第一件事', () => {
-        if (session?.id !== undefined) { askStart(session.id) }
+        if (sid !== undefined) { askStart(sid) }
       }),
       createElement('textarea', {
         value: draft,

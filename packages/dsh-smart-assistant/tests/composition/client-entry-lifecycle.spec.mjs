@@ -93,6 +93,12 @@ async function clientRoot(initialPanel = null) {
     current: { value: {} },
   })
   ctx.provide('connection', { generation: createSnapshotStore(undefined), state: createSnapshotStore(undefined) })
+  // The entry declares these two as hard inject entries, so the plugin stays pending without
+  // them: uiWorkspace owns the processing path's session navigation, locale backs the typed
+  // `t` seat on the processing-context dock. Both are inert inputs here — this suite asserts
+  // declaration-before-selection, not session navigation or copy.
+  ctx.provide('uiWorkspace', { openSession: () => {} })
+  ctx.provide('locale', { register: () => () => {} })
   ctx.provide('remote', { $mount: async () => null })
   for (const namespace of ['agentPresets', 'workspaceFiles', 'session']) {
     ctx.provide(`remote.${namespace}`, {})

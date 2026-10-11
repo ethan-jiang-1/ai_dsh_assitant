@@ -98,6 +98,34 @@ describe('assistant_operating (tool adapter over the authoritative ledger)', () 
     expect(desk.matters?.[0]?.promised_deadline).toBe('2026-10-13')
   })
 
+  it('rejects a pending proposal and reads back its source with the durable receipt', async () => {
+    const tool = boot()
+    const entrusted = await tool.execute({
+      action: 'entrust', operation_id: 'op-tool-reject-create', title: 'NB-02 第二期回款',
+      promised_deadline: '2026-10-13', quote: '帮我盯着 NB-02，约定 10/13 到账',
+    }, exec) as OperatingOutput
+    const matterId = entrusted.receipt!.matterId
+    await tool.execute({
+      action: 'propose', operation_id: 'op-tool-reject-propose', matter_id: matterId,
+      change_kind: 'reschedule', change_deadline: '2026-10-20', quote: '客户可能推迟，但尚未重新约定',
+    }, exec)
+
+    const rejected = await tool.execute({
+      action: 'reject', operation_id: 'op-tool-reject', matter_id: matterId, proposal_id: 'p-1',
+      quote: '不接受改期，仍按 10/13 核对',
+    }, exec) as OperatingOutput
+    expect(rejected.receipt?.outcome).toEqual({ status: 'proposal-rejected', proposalId: 'p-1', revision: 1 })
+    expect(rejected.source).toEqual({ sessionId: 'spec-session', quote: '不接受改期，仍按 10/13 核对' })
+
+    const readBack = await tool.execute({ action: 'read', operation_id: 'op-tool-reject' }, exec) as OperatingOutput
+    expect(readBack.receipt).toEqual(rejected.receipt)
+    expect(readBack.source).toEqual(rejected.source)
+    const matter = await tool.execute({ action: 'read', matter_id: matterId }, exec) as OperatingOutput
+    expect(matter.matters?.[0]?.promised_deadline).toBe('2026-10-13')
+    expect(matter.proposals?.[0]?.status).toBe('rejected')
+    expect(matter.proposals?.[0]?.resolution_operation_id).toBe('op-tool-reject')
+  })
+
   it('only proposes inferred major changes; the explicit confirm applies them', async () => {
     const tool = boot()
     const entrusted = await tool.execute({
@@ -127,6 +155,6 @@ describe('assistant_operating (tool adapter over the authoritative ledger)', () 
       proposal_id: 'p-1',
       quote: '本人确认重约到 10/20',
     }, exec) as OperatingOutput
-    expect(confirmed.receipt?.outcome).toEqual({ status: 'committed', revision: 2 })
+    expect(confirmed.receipt?.outcome).toEqual({ status: 'committed', revision: 2, proposalId: 'p-1' })
   })
 })

@@ -19,7 +19,7 @@
 - 每次状态变更是一个**操作**：调用方带身份与 `operationId`（幂等键——同键同内容重试=复用原回执，
   同键异内容=拒绝），返回**持久回执**；版本冲突回报告当前 revision，重读后以**新** operationId 表达新判断。
 
-## 二、模型工具（`assistant_operating`，11 动作）
+## 二、模型工具（`assistant_operating`，12 动作）
 
 | 动作 | 语义 | 权限档 |
 |---|---|---|
@@ -30,6 +30,7 @@
 | `revise` | 确认后的变更（标题/摘要/负责人/承诺期限/核对点），需 observed revision | 明确指令 |
 | `propose` | 自己推断出的重大变化（改期/核对点/完成/放弃）挂提案，**不直接生效** | 提案通道 |
 | `confirm` | 应用一张 pending 提案，仅限本人明确确认后 | 明确指令 |
+| `reject` | 本人明确拒绝后关闭一张 pending 提案；**不改**已确认期限、核对点或事项 revision，留下持久 `proposal-rejected` 回执 | 明确指令 |
 | `note` | 留存没点名事项的片段（**归属永不按标题猜**） | 常规（进待认领） |
 | `claim` | 把待认领片段挂到事项，需明确依据 | 明确指令 |
 | `complete` | 完成一个事项——必须附**逐字到达证据**（"应该已经付了"不算证据） | 明确指令 |
@@ -67,6 +68,12 @@
 - 生命周期绑定经主区 inject 的 `hooks.projection` 暴露为 `useProjection`：组件零网络/零订阅；
   fiber 卸载取消请求/撤销订阅，Slot 重挂复用该源。宽主区列表/详情双栏，窄容器单 pane；
   选择只保存在 Slot view store。`ready` = 下载已通过解析，**不**表示持久业务操作成功。
+- **处理路径回桌面**（`src/client/desk-process.ts`）：本人仍在绑定路径、绑定会话已停跑且轮次结束、
+  无待处理交互、事项仍存在，且投影为**新鲜的 `ready`** 才可返回；必须读回绑定会话在绑定后提交、
+  revision 不低于绑定时 observed revision 的 `committed` 回执，或与已拒绝提案匹配的 `proposal-rejected` 回执。
+  绑定会话在绑定后为该事项创建的任一 pending 提案都**阻止返回**；已解决提案必须读回同会话、同事项、
+  同 proposal id、匹配 `resolutionOperationId` 且状态一致的确认/拒绝回执。对话答复或普通 `proposed` 回执不算解决；
+  提醒未同步只显示提示，不阻止返回。
 
 **与三室面板的分工（两份"桌面"文件，别混）**：全局经营桌面读**独立 Host 固定投影**（本节）；
 会话侧三室面板读 working folder 根的 `.desk/state.json`（[`home.md`](home.md) §五）。

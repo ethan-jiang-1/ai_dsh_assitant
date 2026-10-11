@@ -48,7 +48,7 @@ describe('client-module registration', () => {
     // (retaining alone leaves the selection on the already-mainView-retained session).
     expect(exports.inject).toEqual([
       'slots', 'sidebarRightTabs', 'sidebarRight', 'sessions', 'remote',
-      'remote.agentPresets', 'remote.workspaceFiles', 'remote.session', 'layout', 'connection', 'uiSession', 'workspaces', 'uiWorkspace',
+      'remote.agentPresets', 'remote.workspaceFiles', 'remote.session', 'layout', 'connection', 'uiSession', 'workspaces', 'uiWorkspace', 'locale',
     ])
     const calls: string[] = []
     const registered: string[] = []

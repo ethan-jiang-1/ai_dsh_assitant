@@ -1,7 +1,7 @@
 /**
  * `assistant_operating`: the model-facing tool over the authoritative operating ledger.
  *
- * One tool with eleven actions, because they share one vocabulary (matters, operations,
+ * One tool with twelve actions, because they share one vocabulary (matters, operations,
  * revisions) and the catalog is a context cost the model pays on every request. The tool is a
  * thin adapter: it stamps every submission with the real session id (the model cannot fake
  * provenance), enforces the cross-field rules the schema cannot express (evidence for
@@ -10,7 +10,8 @@
  * Permission split (confirmed business choice, settled CEO operating-loop card): ordinary
  * progress (`report`, `note`) always retains; confirmed changes (`revise`, `complete`,
  * `reopen`, `confirm`) ride explicit principal instructions only; major inferred changes go
- * through `propose` and never apply directly. Attribution is never guessed: ambiguous
+ * through `propose` and never apply directly; the principal may explicitly confirm or reject a
+ * pending proposal. Attribution is never guessed: ambiguous
  * fragments enter the unclaimed lane and only an explicit `claim` attaches them.
  *
  * @module dsh-smart-assistant/tool-operating
@@ -24,7 +25,7 @@ export const name = 'assistant-operating-tool'
 
 export const inject = ['assistantOperatingLedger', 'tools']
 
-const ACTIONS = ['desk', 'read', 'entrust', 'report', 'revise', 'propose', 'confirm', 'note', 'claim', 'complete', 'reopen'] as const
+const ACTIONS = ['desk', 'read', 'entrust', 'report', 'revise', 'propose', 'confirm', 'reject', 'note', 'claim', 'complete', 'reopen'] as const
 
 type Action = (typeof ACTIONS)[number]
 
@@ -46,6 +47,8 @@ const DESCRIPTION = [
   '  principal\'s confirmation. Use this whenever you inferred the change yourself; it never',
   '  applies anything.',
   '- confirm: apply one pending proposal. ONLY when the principal explicitly confirmed it.',
+  '- reject: permanently decline one pending proposal. ONLY when the principal explicitly rejected it;',
+  '  the confirmed matter and its dates stay unchanged. The rejection receipt retains its source.',
   '- note: retain a fragment that names no explicit matter (never guess attribution by title).',
   '- claim: attach an unclaimed fragment to a matter, only with an explicit basis.',
   '- complete: mark a matter completed. Requires verbatim arrival evidence; "should have',
@@ -71,10 +74,11 @@ export interface OperatingOutput {
   action: string
   summary: string
   receipt?: { operationId: string; matterId: string; submittedAt: string; outcome: { status: string; revision?: number; unclaimedId?: string; proposalId?: string; observedRevision?: number; currentRevision?: number; reason?: string } }
+  source?: LedgerSource
   matters?: DeskItem[]
   unclaimed?: { id: string; note: string; sessionId: string }[]
   materials?: { id: string; note: string; sessionId: string; quote?: string }[]
-  proposals?: { id: string; kind: string; status: string }[]
+  proposals?: { id: string; kind: string; status: string; proposed_at: string; source: LedgerSource; resolution_operation_id?: string }[]
 }
 
 function deskItem(matter: MatterRecord): DeskItem {
@@ -106,7 +110,10 @@ function render(_args: { action: Action }, value: OperatingOutput): { type: 'tex
     lines.push(`- material ${material.id} (${material.sessionId}): ${material.note}`)
   }
   for (const proposal of value.proposals ?? []) {
-    lines.push(`- proposal ${proposal.id} ${proposal.kind} [${proposal.status}]`)
+    lines.push(`- proposal ${proposal.id} ${proposal.kind} [${proposal.status}] (proposed ${proposal.proposed_at}; source ${proposal.source.sessionId}${proposal.source.quote !== undefined ? `: ${proposal.source.quote}` : ''}${proposal.resolution_operation_id !== undefined ? `; resolution ${proposal.resolution_operation_id}` : ''})`)
+  }
+  if (value.source !== undefined) {
+    lines.push(`- source ${value.source.sessionId}${value.source.quote !== undefined ? `: ${value.source.quote}` : ''}`)
   }
   if (value.receipt !== undefined) {
     lines.push(`- receipt ${value.receipt.operationId} on ${value.receipt.matterId || 'no matter'}: ${JSON.stringify(value.receipt.outcome)}`)
@@ -127,9 +134,9 @@ export function operatingTool(ctx: Context) {
       action: { type: 'string', required: true, enum: ACTIONS, description: ACTIONS.join(' | ') },
       operation_id: { type: 'string', description: 'mutating actions: one id per submission intent; reuse it to retry the same submission.' },
       quote: { type: 'string', description: 'mutating actions: the principal\'s words or the material, verbatim.' },
-      matter_id: { type: 'string', description: 'read | report | revise | propose | confirm | complete | reopen | claim: the matter.' },
+      matter_id: { type: 'string', description: 'read | report | revise | propose | confirm | reject | complete | reopen | claim: the matter.' },
       unclaimed_id: { type: 'string', description: 'claim: the unclaimed fragment to attach.' },
-      proposal_id: { type: 'string', description: 'confirm: the pending proposal to apply.' },
+      proposal_id: { type: 'string', description: 'confirm | reject: the pending proposal to resolve.' },
       observed_revision: { type: 'number', description: 'revise | complete | reopen: the revision you last read.' },
       title: { type: 'string', description: 'entrust: the matter\'s title. revise: a rename.' },
       summary: { type: 'string', description: 'entrust | revise: what the matter is, one or two sentences.' },
@@ -150,6 +157,15 @@ export function operatingTool(ctx: Context) {
         properties: {
           action: { type: 'string', required: true },
           summary: { type: 'string', required: true },
+           source: {
+             type: 'object',
+             additionalProperties: false,
+             properties: {
+               sessionId: { type: 'string', required: true },
+               eventId: { type: 'string' },
+               quote: { type: 'string' },
+             },
+           },
           receipt: {
             type: 'object',
             additionalProperties: false,
@@ -157,7 +173,7 @@ export function operatingTool(ctx: Context) {
               operationId: { type: 'string', required: true },
               matterId: { type: 'string', required: true },
               submittedAt: { type: 'string', required: true },
-              outcome: {
+             outcome: {
                 type: 'object',
                 required: true,
                 additionalProperties: false,
@@ -222,6 +238,12 @@ export function operatingTool(ctx: Context) {
               properties: {
                 id: { type: 'string', required: true },
                 kind: { type: 'string', required: true },
+                 proposed_at: { type: 'string', required: true },
+                 source: {
+                   type: 'object', additionalProperties: false,
+                   properties: { sessionId: { type: 'string', required: true }, eventId: { type: 'string' }, quote: { type: 'string' } },
+                 },
+                 resolution_operation_id: { type: 'string' },
                 status: { type: 'string', required: true },
               },
             },
@@ -247,7 +269,7 @@ export function operatingTool(ctx: Context) {
       }
       const submit = async (operation: LedgerOperation, summary: string): Promise<OperatingOutput> => {
         const receipt = await ledger.submitOperation(operation)
-        return { action, summary, receipt: { operationId: receipt.operationId, matterId: receipt.matterId, submittedAt: receipt.submittedAt, outcome: receipt.outcome } }
+        return { action, summary, source: operation.source, receipt: { operationId: receipt.operationId, matterId: receipt.matterId, submittedAt: receipt.submittedAt, outcome: receipt.outcome } }
       }
       switch (action) {
         case 'desk': {
@@ -273,15 +295,24 @@ export function operatingTool(ctx: Context) {
                 sessionId: material.source.sessionId,
                 ...(material.source.quote !== undefined ? { quote: material.source.quote } : {}),
               })),
-              proposals: matter.proposals.map(proposal => ({ id: proposal.id, kind: proposal.change.kind, status: proposal.status })),
+              proposals: matter.proposals.map(proposal => ({
+                 id: proposal.id,
+                 kind: proposal.change.kind,
+                 status: proposal.status,
+                 proposed_at: proposal.proposedAt,
+                 source: proposal.source,
+                 ...(proposal.resolutionOperationId !== undefined ? { resolution_operation_id: proposal.resolutionOperationId } : {}),
+               })),
             }
           }
           if (typeof args.operation_id === 'string' && args.operation_id.trim().length > 0) {
-            const receipt = await ledger.readOperation(args.operation_id)
-            if (receipt === undefined) throw new Error(`no operation receipt "${args.operation_id}"`)
+            const record = await ledger.readOperationRecord(args.operation_id)
+            if (record === undefined) throw new Error(`no operation receipt "${args.operation_id}"`)
+             const { operation, receipt } = record
             return {
               action,
               summary: `Receipt ${receipt.operationId} on ${receipt.matterId || 'no matter'}:`,
+               source: operation.source,
               receipt: { operationId: receipt.operationId, matterId: receipt.matterId, submittedAt: receipt.submittedAt, outcome: receipt.outcome },
             }
           }
@@ -379,6 +410,13 @@ export function operatingTool(ctx: Context) {
           }
           return submit({ kind: 'confirm', operationId: operationId!, matterId: args.matter_id, proposalId: args.proposal_id, source: source(quote) },
             `Confirmed ${args.proposal_id} on ${args.matter_id} on the principal's explicit instruction.`)
+        }
+        case 'reject': {
+          if (typeof args.matter_id !== 'string' || typeof args.proposal_id !== 'string') {
+            throw new Error('assistant_operating reject requires matter_id and proposal_id')
+          }
+          return submit({ kind: 'reject', operationId: operationId!, matterId: args.matter_id, proposalId: args.proposal_id, source: source(quote) },
+            `Rejected ${args.proposal_id} on ${args.matter_id} on the principal's explicit instruction.`)
         }
         case 'note': {
           if (typeof args.note !== 'string' || args.note.trim().length === 0) {

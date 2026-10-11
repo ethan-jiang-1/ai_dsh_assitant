@@ -46,9 +46,10 @@ import { mountProjectionReader } from './projection-lifecycle'
 import type { ProjectionDownload } from './projection-reader'
 import { createProjectionViewStore } from './projection-view'
 import { bindProcessPath, judgeReturn, type ProcessingPath } from './desk-process'
+import { en as firstMileEn, zh as firstMileZh } from './locales'
 
 /** Slots this face occupies (single-occupant, root-scope, declared by the sidebar). */
-const inject = ['slots', 'sidebarRightTabs', 'sidebarRight', 'sessions', 'remote', 'remote.agentPresets', 'remote.workspaceFiles', 'remote.session', 'layout', 'connection', 'uiSession', 'workspaces', 'uiWorkspace']
+const inject = ['slots', 'sidebarRightTabs', 'sidebarRight', 'sessions', 'remote', 'remote.agentPresets', 'remote.workspaceFiles', 'remote.session', 'layout', 'connection', 'uiSession', 'workspaces', 'uiWorkspace', 'locale']
 
 /**
  * Default selection is consumed once per Client root. Keeping weak root identities on the page
@@ -106,6 +107,9 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   function apply(ctx: ClientContext): void {
     bindDeskEnv(ctx)
     ensureThemeVars()
+    if (ctx.locale !== undefined) {
+      ctx.effect(() => ctx.locale!.register('assistantFirstMile', { zh: firstMileZh, en: firstMileEn }), 'assistant-first-mile: dictionaries')
+    }
 
     // The knowledge-approve direct-call lane (approve-direct-call): mount our contribution so
     // `remote.assistantKnowledge.approvePage` reaches the host service without a model round
@@ -177,9 +181,14 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         return
       }
       if (processLaunchInFlight) return
+      const snapshot = projection?.getSnapshot()
+      if (snapshot?.status !== 'ready' || snapshot.stale === true || snapshot.data === undefined) {
+        reader?.refresh()
+        return
+      }
+      const matter = snapshot.data.matters.find(item => item.id === matterId)
+      if (matter === undefined) return
       processLaunchInFlight = true
-      const data = projection?.getSnapshot().data
-      const observed = data?.matters.find(matter => matter.id === matterId)?.revision
       void (async () => {
         try {
           // Inherit the designated workspace (the current session's, else the first in host
@@ -191,16 +200,17 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
             ?? catalog?.items[0]?.workspaceId
           const sessionId = await ctx.sessions?.create(workspaceId === undefined ? undefined : { workspaceId })
           if (sessionId === undefined) return
-          // Open the processing session as the main view's conversation through the shell's own
-          // navigation action. Retaining alone does not switch the selection when the current
-          // session is itself mainView-retained (the restored last session on load): the
-          // principal would type into the OLD conversation, the receipt would land under the
-          // old session, and the auto-return could never fire (probed, desk-process-e2e,
-          // 2026-10-10). openSession = retain + selection + previous-reference release + reveal.
-          ctx.uiWorkspace?.openSession(sessionId)
-          if (processPath !== undefined && observed !== undefined) {
-            processPath.set(bindProcessPath(matterId, sessionId, observed))
+          // Bind before navigation so the session's first render receives this matter's
+          // visual context and is not mistaken for an unrelated first-time conversation.
+          if (processPath !== undefined) {
+            processPath.set({
+              ...bindProcessPath(matterId, sessionId, matter.revision),
+              displayContext: { title: matter.title, summary: matter.summary },
+            })
           }
+          // Open through the shell's own selection action; retaining alone leaves the old
+          // main-view session selected, so the principal would type into the wrong conversation.
+          ctx.uiWorkspace?.openSession(sessionId)
         } finally {
           processLaunchInFlight = false
         }
@@ -208,13 +218,27 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     }
     const evaluateReturn = (): void => {
       const path = processPath?.getSnapshot()
-      const data = projection?.getSnapshot().data
-      if (path === undefined || data === undefined) return
+      const snapshot = projection?.getSnapshot()
+      const data = snapshot?.data
+      if (path === undefined || snapshot?.status !== 'ready' || snapshot.stale === true || data === undefined) return
       const panel = ctx.layout?.panelInfo.getSnapshot()
       const currentKey = ctx.uiSession?.current.value.key
       const status = ctx.uiSession?.sessionStatus.getSnapshot().get(path.sessionId)
       const decision = judgeReturn(path, {
-        projection: { receipts: data.receipts, matterIds: new Set(data.matters.map(matter => matter.id)) },
+        projection: {
+          status: snapshot.status,
+          ...(snapshot.stale === undefined ? {} : { stale: snapshot.stale }),
+          receipts: data.receipts,
+          matterIds: new Set(data.matters.map(matter => matter.id)),
+          proposals: data.matters.flatMap(matter => matter.proposals.map(proposal => ({
+            id: proposal.id,
+            matterId: matter.id,
+            status: proposal.status,
+            ...(proposal.source === undefined ? {} : { sessionId: proposal.source.sessionId }),
+            ...(proposal.proposedAt === undefined ? {} : { proposedAt: proposal.proposedAt }),
+            ...(proposal.resolutionOperationId === undefined ? {} : { resolutionOperationId: proposal.resolutionOperationId }),
+          }))),
+        },
         // The client cannot observe turn settlement separately: it derives from the known
         // running state, and an unknown running state fails closed as running.
         session: { running: status?.running, turnSettled: status?.running === false, pendingInteraction: status?.pendingInteraction !== undefined },
@@ -406,11 +430,16 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         name: 'conversation.input.dock',
         id: 'assistant-first-mile',
         order: -10,
+        locale: 'assistantFirstMile',
         inject: (sessionId?: string) => {
-          // Form migration: pre-write the view preference at session-binding time (before
-          // the view area activates and reads it). Without this, the preference write
-          // happens during render — after activateView already ran.
-          if (sessionId !== undefined && typeof localStorage !== 'undefined') {
+          const path = processPath?.getSnapshot()
+          const processingMatter = path !== undefined && sessionId !== undefined
+            && path.sessionId === sessionId && path.displayContext !== undefined
+            ? { matterId: path.matterId, ...path.displayContext }
+            : undefined
+          // Ordinary blank sessions open on the desk view. A processing session must keep Chat
+          // selected; absence of a stored preference resolves to the platform's Chat default.
+          if (processingMatter === undefined && sessionId !== undefined && typeof localStorage !== 'undefined') {
             try {
               const key = 'dsh.conversation.' + sessionId
               if (localStorage.getItem(key) === null) {
@@ -418,7 +447,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
               }
             } catch { /* localStorage unavailable */ }
           }
-          return { openRoom: openBeside }
+          return { openRoom: openBeside, ...(processingMatter === undefined ? {} : { processingMatter }) }
         },
       }, FirstMileDock))
     // The pending-approval banner (first-open UX card round 16): the desk pointer's shallow

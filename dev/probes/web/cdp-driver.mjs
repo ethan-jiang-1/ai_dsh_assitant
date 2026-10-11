@@ -161,6 +161,12 @@ export async function launchCdpBrowser({ url, chromeBin, windowSize = '1600,1000
     evaluate,
     click,
     setViewport,
+    captureScreenshot: async () => {
+      await send('Page.enable');
+      const reply = await send('Page.captureScreenshot', { format: 'png' });
+      if (typeof reply.result?.data !== 'string') throw new Error('CDP screenshot failed');
+      return Buffer.from(reply.result.data, 'base64');
+    },
     setNetworkOffline,
     consoleProblems: problems,
     exceptions,

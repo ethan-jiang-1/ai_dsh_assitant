@@ -59,25 +59,27 @@ export type ProposedChange =
   | { readonly kind: 'complete'; readonly evidence: { readonly note: string; readonly source: LedgerSource } }
   | { readonly kind: 'abandon' }
 
-/** One pending or confirmed proposal on a matter; kept after confirmation for audit. */
+/** One pending or resolved proposal on a matter; retained with its source and resolution link. */
 export interface ProposalRecord {
   readonly id: string
   readonly change: ProposedChange
   readonly source: LedgerSource
   readonly proposedAt: string
-  readonly status: 'pending' | 'confirmed'
+  readonly status: 'pending' | 'confirmed' | 'rejected'
+  readonly resolutionOperationId?: string
 }
 
 /** Outcome of one operation, as persisted in its receipt. */
 export type OperationOutcome =
-  | { readonly status: 'committed'; readonly revision: number }
+  | { readonly status: 'committed'; readonly revision: number; readonly proposalId?: string }
+  | { readonly status: 'proposal-rejected'; readonly proposalId: string; readonly revision: number }
   | { readonly status: 'retained'; readonly unclaimedId: string }
   | { readonly status: 'proposed'; readonly proposalId: string }
   | { readonly status: 'conflict'; readonly observedRevision: number; readonly currentRevision: number }
   | { readonly status: 'rejected'; readonly reason: RejectionReason }
 
 /** Why an operation was refused without changing confirmed state. */
-export type RejectionReason = 'operation-content-mismatch' | 'unknown-matter' | 'unknown-material' | 'unknown-proposal'
+export type RejectionReason = 'operation-content-mismatch' | 'unknown-matter' | 'unknown-material' | 'unknown-proposal' | 'proposal-not-pending'
 
 /** Durable read-back record of one operation (V7: the unit of successful read-back). */
 export interface OperationReceipt {
@@ -170,6 +172,14 @@ export type LedgerOperation =
   | {
       /** Apply one pending proposal as an explicit instruction; consumes a revision. */
       readonly kind: 'confirm'
+      readonly operationId: string
+      readonly matterId: string
+      readonly proposalId: string
+      readonly source: LedgerSource
+    }
+  | {
+      /** Record the principal's explicit rejection of one pending proposal; confirmed fields stand. */
+      readonly kind: 'reject'
       readonly operationId: string
       readonly matterId: string
       readonly proposalId: string
@@ -547,13 +557,25 @@ export function applyOperation(
         receipt,
       }
     }
-    if (proposal.status === 'confirmed') {
-      // The principal's intent already holds; a repeated confirm is a committed no-op.
+    if (proposal.status !== 'pending') {
+      if (proposal.status === 'confirmed') {
+        // The principal's intent already holds; a repeated confirm is a committed no-op.
+        const receipt: OperationReceipt = {
+          operationId: operation.operationId,
+          matterId: matter.id,
+          submittedAt,
+          outcome: { status: 'committed', revision: matter.revision, proposalId: proposal.id },
+        }
+        return {
+          state: { ...state, operations: { ...state.operations, [operation.operationId]: { operation, receipt } } },
+          receipt,
+        }
+      }
       const receipt: OperationReceipt = {
         operationId: operation.operationId,
         matterId: matter.id,
         submittedAt,
-        outcome: { status: 'committed', revision: matter.revision },
+        outcome: { status: 'rejected', reason: 'proposal-not-pending' },
       }
       return {
         state: { ...state, operations: { ...state.operations, [operation.operationId]: { operation, receipt } } },
@@ -577,7 +599,7 @@ export function applyOperation(
       operationId: operation.operationId,
       matterId: matter.id,
       submittedAt,
-      outcome: { status: 'committed', revision: matter.revision + 1 },
+      outcome: { status: 'committed', revision: matter.revision + 1, proposalId: proposal.id },
     }
     return {
       state: {
@@ -588,13 +610,48 @@ export function applyOperation(
             ...next,
             revision: matter.revision + 1,
             updatedAt: submittedAt,
-            proposals: matter.proposals.map(proposal => proposal.id === operation.proposalId ? { ...proposal, status: 'confirmed' as const } : proposal),
+            proposals: matter.proposals.map(proposal => proposal.id === operation.proposalId
+              ? { ...proposal, status: 'confirmed' as const, resolutionOperationId: operation.operationId }
+              : proposal),
           },
         },
         operations: { ...state.operations, [operation.operationId]: { operation, receipt } },
       },
       receipt,
     }
+  }
+  if (operation.kind === 'reject') {
+    const matter = state.matters[operation.matterId]
+    const proposal = matter?.proposals.find(candidate => candidate.id === operation.proposalId)
+    const outcome: OperationOutcome = matter === undefined
+      ? { status: 'rejected', reason: 'unknown-matter' }
+      : proposal === undefined
+        ? { status: 'rejected', reason: 'unknown-proposal' }
+        : proposal.status !== 'pending'
+          ? { status: 'rejected', reason: 'proposal-not-pending' }
+          : { status: 'proposal-rejected', proposalId: proposal.id, revision: matter.revision }
+    const receipt: OperationReceipt = {
+      operationId: operation.operationId,
+      matterId: matter?.id ?? operation.matterId,
+      submittedAt,
+      outcome,
+    }
+    const nextState: LedgerState = {
+      ...state,
+      ...(proposal?.status === 'pending' && matter !== undefined ? {
+        matters: {
+          ...state.matters,
+          [matter.id]: {
+            ...matter,
+            proposals: matter.proposals.map(candidate => candidate.id === proposal.id
+              ? { ...candidate, status: 'rejected' as const, resolutionOperationId: operation.operationId }
+              : candidate),
+          },
+        },
+      } : {}),
+      operations: { ...state.operations, [operation.operationId]: { operation, receipt } },
+    }
+    return { state: nextState, receipt }
   }
   return assertNever(operation)
 }

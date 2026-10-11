@@ -64,6 +64,12 @@
     },
     {
       "path": "../../vendor/dsh/packages/core/session"
+    },
+    {
+      "path": "../../vendor/dsh/packages/client/ui-slots"
+    },
+    {
+      "path": "../../vendor/dsh/packages/client/ui-conversation/tsconfig.client.json"
     }
   ]
 }

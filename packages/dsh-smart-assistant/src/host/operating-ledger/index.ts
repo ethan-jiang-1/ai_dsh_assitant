@@ -20,7 +20,7 @@ import { expandHomePath, resolveDshHome } from '@deepseek-ai/dsh-home-paths'
 import { closeSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, renameSync, rmSync, writeFileSync, writeSync } from 'node:fs'
 import { hostname } from 'node:os'
 import { join } from 'node:path'
-import { EMPTY_LEDGER, applyOperation, reviveLedgerState, type LedgerOperation, type LedgerState, type MatterRecord, type OperationReceipt, type UnclaimedMaterial } from '../../domain/operating/ledger.ts'
+import { EMPTY_LEDGER, applyOperation, reviveLedgerState, type LedgerOperation, type LedgerState, type MatterRecord, type OperationReceipt, type OperationRecord, type UnclaimedMaterial } from '../../domain/operating/ledger.ts'
 
 declare module '@deepseek-ai/cordis' {
   interface Context {
@@ -194,6 +194,15 @@ export class AssistantOperatingLedger extends Service {
    */
   async readOperation(operationId: string): Promise<OperationReceipt | undefined> {
     return this.current().operations[operationId]?.receipt
+  }
+
+  /**
+   * Read the durable operation and its receipt, including the source needed for audit.
+   * @param operationId - Operation id.
+   * @returns The submitted operation and receipt, or `undefined` when no such operation exists.
+   */
+  async readOperationRecord(operationId: string): Promise<OperationRecord | undefined> {
+    return this.current().operations[operationId]
   }
 
   /**

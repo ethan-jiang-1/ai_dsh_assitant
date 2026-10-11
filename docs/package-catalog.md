@@ -58,7 +58,7 @@
 |---|---|---|
 | `assistant_knowledge` | `search` `get` | src/agent/tool-knowledge/index.ts |
 | `assistant_memory` | `recall` `save` `forget` `list` `curate` | src/agent/tool-memory/index.ts |
-| `assistant_operating` | `desk` `read` `entrust` `report` `revise` `propose` `confirm` `note` `claim` `complete` `reopen` | src/agent/tool-operating/index.ts |
+| `assistant_operating` | `desk` `read` `entrust` `report` `revise` `propose` `confirm` `reject` `note` `claim` `complete` `reopen` | src/agent/tool-operating/index.ts |
 | `assistant_reflect` | `brief` `save_skill` `retire_skill` `save_page` `promote_page` `deprecate_page` `propose_skill` `land_skill` | src/agent/learn/index.ts |
 | `assistant_research` | `open` `update` `park` `drop` `promote` `list` | src/agent/tool-research/index.ts |
 

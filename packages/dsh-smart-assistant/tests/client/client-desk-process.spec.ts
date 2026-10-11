@@ -4,8 +4,9 @@
  * The seam is the pure client core: an explicitly bound matter + processing session + the
  * revision observed at binding time. The judge crosses the durable receipts in the projection
  * with the live session state; a settled turn and an idle session are necessary, never
- * sufficient — only the processing session's own committed receipt, read back at a revision
- * at least as fresh as the observed one and submitted after the binding, returns the desk.
+ * sufficient — only the processing session's own committed or proposal-rejection receipt,
+ * read back at a revision at least as fresh as the observed one and submitted after binding,
+ * with no pending proposal created on this path, returns the desk.
  * The composer is an owner-only chain slot, so the client cannot mint the operation identity
  * into the message; association rides the receipt's source session instead. The negative
  * matrix is the spec card's own list — each `it` is one row, red before green:
@@ -21,20 +22,25 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { bindProcessPath, judgeReturn, type JudgeSession } from '../../src/client/desk-process.ts'
+import { bindProcessPath, judgeReturn, type JudgeProposal, type JudgeSession } from '../../src/client/desk-process.ts'
 
-interface Receipt { operationId: string, matterId: string, sessionId: string, status: string, revision?: number, submittedAt: string }
+interface Receipt { operationId: string, matterId: string, sessionId: string, status: string, revision?: number, proposalId?: string, submittedAt: string }
 
 const BOUND_AT = '2026-10-10T12:00:00.000Z'
 const boundA = (observedRevision = 2) => bindProcessPath('m-A', 'session-1', observedRevision, BOUND_AT)
 /** The judge session view; `running: undefined` models the unknown state failing closed. */
 const session = (over: { running?: boolean | undefined, turnSettled?: boolean | undefined, pendingInteraction?: boolean } = {}): JudgeSession =>
   ({ running: false, turnSettled: true, pendingInteraction: false, ...over })
-const judge = (path: ReturnType<typeof boundA>, receipts: Receipt[], extra: Partial<Parameters<typeof judgeReturn>[1]> = {}) =>
-  judgeReturn(path, {
-    projection: { receipts, matterIds: new Set(['m-A']) },
-    session: session(), onPath: true, reminders: 'synced', ...extra,
-  })
+const judge = (
+  path: ReturnType<typeof boundA>,
+  receipts: Receipt[],
+  extra: Partial<Parameters<typeof judgeReturn>[1]> = {},
+  proposals: readonly JudgeProposal[] = [],
+  freshness: { status: string, stale: boolean } = { status: 'ready', stale: false },
+) => judgeReturn(path, {
+  projection: { receipts, matterIds: new Set(['m-A']), proposals, ...freshness },
+  session: session(), onPath: true, reminders: 'synced', ...extra,
+})
 const freshCommitted = (over: Partial<Receipt> = {}): Receipt => ({
   operationId: 'op-f', matterId: 'm-A', sessionId: 'session-1', status: 'committed', revision: 3,
   submittedAt: '2026-10-10T12:05:00.000Z', ...over,
@@ -88,6 +94,65 @@ describe('auto-return judge (the negative matrix)', () => {
     const decision = judge(boundA(), [freshCommitted()], { onPath: false })
     expect(decision.decision).toBe('stay')
     expect(decision.reasons).toContain('user-left-path')
+  })
+
+  it('stays when this processing path leaves a proposal awaiting a decision', () => {
+    const proposal: JudgeProposal = {
+      id: 'p-1', matterId: 'm-A', sessionId: 'session-1', proposedAt: '2026-10-10T12:02:00.000Z', status: 'pending',
+    }
+    const decision = judge(boundA(), [freshCommitted()], {}, [proposal])
+    expect(decision.decision).toBe('stay')
+    expect(decision.reasons).toContain('pending-proposal')
+  })
+
+  it('returns only after this path reads back the explicit confirmation of its proposal', () => {
+    const proposal: JudgeProposal = {
+      id: 'p-1', matterId: 'm-A', sessionId: 'session-1', proposedAt: '2026-10-10T12:02:00.000Z',
+      status: 'confirmed', resolutionOperationId: 'op-confirm',
+    }
+    const confirmed = freshCommitted({ operationId: 'op-confirm', proposalId: 'p-1' })
+    expect(judge(boundA(), [confirmed], {}, [proposal]).decision).toBe('return')
+
+    const unlinked = freshCommitted({ operationId: 'op-confirm', proposalId: 'p-other' })
+    const decision = judge(boundA(), [unlinked], {}, [proposal])
+    expect(decision.decision).toBe('stay')
+    expect(decision.reasons).toContain('proposal-resolution-not-read-back')
+  })
+
+  it('returns only after this path reads back the explicit rejection of its proposal', () => {
+    const proposal: JudgeProposal = {
+      id: 'p-1', matterId: 'm-A', sessionId: 'session-1', proposedAt: '2026-10-10T12:02:00.000Z',
+      status: 'rejected', resolutionOperationId: 'op-reject',
+    }
+    const rejected: Receipt = {
+      operationId: 'op-reject', matterId: 'm-A', sessionId: 'session-1', status: 'proposal-rejected',
+      proposalId: 'p-1', revision: 2, submittedAt: '2026-10-10T12:06:00.000Z',
+    }
+    const decision = judge(boundA(), [freshCommitted({ revision: 2 }), rejected], {}, [proposal])
+    expect(decision.decision).toBe('return')
+
+    const unlinked = judge(boundA(), [freshCommitted({ revision: 2 }), { ...rejected, operationId: 'op-other' }], {}, [proposal])
+    expect(unlinked.decision).toBe('stay')
+    expect(unlinked.reasons).toContain('proposal-resolution-not-read-back')
+  })
+
+  it('does not block on a proposal from another processing path', () => {
+    const otherPath: JudgeProposal = {
+      id: 'p-other', matterId: 'm-A', sessionId: 'session-other', proposedAt: '2026-10-10T12:02:00.000Z', status: 'pending',
+    }
+    const prior: JudgeProposal = {
+      id: 'p-prior', matterId: 'm-A', sessionId: 'session-1', proposedAt: '2026-10-10T11:59:59.999Z', status: 'pending',
+    }
+    expect(judge(boundA(), [freshCommitted()], {}, [otherPath, prior]).decision).toBe('return')
+  })
+
+  it('fails closed when the projection is stale or not ready', () => {
+    const stale = judge(boundA(), [freshCommitted()], {}, [], { status: 'ready', stale: true })
+    expect(stale.decision).toBe('stay')
+    expect(stale.reasons).toContain('projection-stale')
+    const loading = judge(boundA(), [freshCommitted()], {}, [], { status: 'loading', stale: false })
+    expect(loading.decision).toBe('stay')
+    expect(loading.reasons).toContain('projection-not-ready')
   })
 
   it('returns with an explicit unsynced-reminders notice, never as overall success', () => {
