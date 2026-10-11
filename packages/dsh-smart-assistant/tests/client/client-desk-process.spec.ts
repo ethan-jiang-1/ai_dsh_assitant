@@ -255,8 +255,10 @@ describe('intake path (交代首事 arm)', () => {
     expect(early.decision).toBe('stay')
     expect(early.reasons).toContain('matter-not-entrusted')
 
+    // The projection status is part of the judge's fail-closed contract: this row is about a
+    // creation that vanished, so the projection is ready and only the matter is gone.
     const vanished = judgeIntakeReturn(intake(), {
-      projection: { receipts: [createdReceipt()], matterIds: new Set(['m-A', 'm-B']), proposals: [] },
+      projection: { status: 'ready', stale: false, receipts: [createdReceipt()], matterIds: new Set(['m-A', 'm-B']), proposals: [] },
       session: session(), onPath: true, reminders: 'synced',
     })
     expect(vanished.decision).toBe('stay')
