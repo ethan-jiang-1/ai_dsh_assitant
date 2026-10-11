@@ -184,7 +184,7 @@ assistant_operating ───→ ctx.assistantOperatingLedger ─→ 经营账�
 | 语义检索（embedding） | 关键词/标签检索出现真实漏召回；那时经 `ctx.llm` 做 embedding，另开一缝 |
 | 自动后台复盘（`session/end` + `ctx.jobs`） | 有真实使用数据说明"每会话复盘"的收益大于 token 代价与同意成本 |
 | settings namespace `assistant` | 出现"用户要在设置页改"的真实需求（现在配置走 bundle/profile 的 Config） |
-| 专属 Web 卡片（跨出通用座位的自有卡面 / 自有 slot 域名） | 通用座位与其 inject 缝表达不了：`tool.call.toolview` 槽与 `dsh.client.inject`（品牌、三室 tab、经营桌面投影已消费这两级——见 `package-catalog.md`「客户端座位面」）之后的下一级，自有域名届时按 `identity.md` §一 第 8 行命名 |
+| 专属 Web 卡片（跨出通用座位的自有卡面 / 自有 slot 域名） | 通用座位与其 inject 缝表达不了：`tool.call.toolview` 槽与 `dsh.client.inject`（品牌、房间 tab、经营桌面投影已消费这两级——见 `package-catalog.md`「客户端座位面」）之后的下一级，自有域名届时按 `identity.md` §一 第 8 行命名 |
 | session 回放快照（web 渲染期望已建，同树） | 提示词组装面出现"只有跑起来才看得出"的回归，或同一 model-visible 面第三次靠手工探针钉回归（见 `snapshots/README.md`） |
 | 多专家复用（方案 D） | 第二个领域专家立项，且要复用骨架而不是各自重写 |
 
