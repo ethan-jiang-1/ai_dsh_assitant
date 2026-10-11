@@ -3,6 +3,18 @@
 > 这份手册回答：怎么在不碰日用 DSH 的前提下，从零跑起本插件的 dev 实例。
 > working folder 的布局契约在 `docs/home.md`；插件架构在 `docs/architecture.md`。
 
+## 默认启动动作
+
+在本仓库语境里，“启动一下这个”“启动一下”都指起动本插件的隔离 `dev` Web 实例，用于反复调试：按 §一 的准备链跑完，确认服务返回可访问 URL，并在交给人使用前运行 `pnpm preflight '<URL>'`。
+
+以下是三个邻近但不同的入口，除非用户明确点名不走：
+
+| 入口 | 实际起动什么 | 什么时候用 |
+|---|---|---|
+| `dev-task`（§四） | 无 Web 的 headless one-shot：只装 host 面，进程自己退 | 只冒烟插件装载 / 服务行 / scaffold |
+| `--patch dev/probes/session/preset-runner.patch.yml`（§四） | 同上但挂 preset | 自动化 preset 探针 |
+| `pnpm --dir vendor/dsh run dev:web` | vendor 的客户端 bundle watcher（重建 web 产物），不建 home、不选 profile、不起本插件会话 | 改浏览器面源码时配合已起的实例用 |
+
 ## 一、隔离模型（什么被隔离、什么没有被隔离）
 
 一切持久化的根是 `DSH_HOME`（解析优先级：显式配置 > `$DSH_HOME` > `~/.dsh`）。

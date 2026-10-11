@@ -58,6 +58,10 @@ rejected 政策、命名——本文件不复制）；改行为、契约或开�
 
 ## 命令表
 
+**“启动一下这个 / 启动一下”** 在本仓库语境中默认指：在本仓隔离 home 里备好并起动 `dev` Web 实例（下表 ②③④），返回可访问 URL，交给人之前跑 `pnpm preflight '<URL>'`——不需要再追问“启动什么”。
+
+只有用户明确点名才换入口：`dev-task` 是无 Web 的 host 装载冒烟；`--patch ...preset-runner...` 是自动化 preset 探针；`vendor/dsh` 的 `dev:web`（`pnpm --dir vendor/dsh run dev:web`）只重建客户端 bundle 产物，不是起动本插件实例——三个入口的判据见 [`docs/dev.md`](docs/dev.md) §四。
+
 **要起服务，这一串按序跑到底**（⓪②③ 都幂等，重跑安全）：
 
 ```sh
