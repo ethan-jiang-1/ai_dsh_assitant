@@ -4,7 +4,7 @@
 
 提交只改这个目录：新建 `BUG-<NNN>-<slug>.md`，并在下面的表加一行。号在本文件取，不和 [`../issues/`](../issues/README.md) 的推敲卡混。
 
-**下一个缺陷号**：已分配到 BUG-007，Next BUG ID = 8。本目录、[`../_archive/fixed_bugs/`](../_archive/fixed_bugs/README.md) 和 [`../_archive/suspended_bugs/`](../_archive/suspended_bugs/README.md) 一起算，取最大号加一。
+**下一个缺陷号**：已分配到 BUG-008，Next BUG ID = 9。本目录、[`../_archive/fixed_bugs/`](../_archive/fixed_bugs/README.md) 和 [`../_archive/suspended_bugs/`](../_archive/suspended_bugs/README.md) 一起算，取最大号加一。
 
 修完就 `git mv` 到 [`../_archive/fixed_bugs/`](../_archive/fixed_bugs/README.md)，文件名不变，正文不改，frontmatter 的 `status` 改成 `已修`，状态行补修复，并把这一行挪到那边的表。
 
