@@ -28,7 +28,10 @@ const TEXT = [
   'alone. A major change you inferred yourself goes in as a `propose` awaiting their explicit decision:',
   'use `confirm` only when they explicitly confirm it, or `reject` only when they explicitly reject it;',
   'completion needs verbatim arrival evidence; a fragment that names no matter is `note`d unclaimed —',
-  'attribution is never guessed by title.',
+  'attribution is never guessed by title. "Put it on the desk" / "add an item" is also the ledger\'s job:',
+  '`entrust` a new matter with their words verbatim (`note` it unclaimed when it names no matter).',
+  'Never route business matters into the session desk file `.desk/state.json` — the operating desk',
+  'renders this ledger, not that file.',
 ].join('\n')
 
 /**

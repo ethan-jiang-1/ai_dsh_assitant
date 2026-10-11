@@ -11,23 +11,14 @@
 
 import type { CommandContribution, RoomKind } from './contracts'
 
-/** The desk room's command/dock label, shared so the two surfaces cannot drift apart. */
-export const DESK_LABEL = '打开我的桌面'
-
 /**
  * The rooms as discoverable commands.
  * @param open - opens one room's right-sidebar tab by kind.
- * @returns the three contributions, in menu order.
+ * @returns the contributions, in menu order. The desk room has no command: the session desk
+ * is retired (principal decision, 2026-10-11) and the one "桌面" is the main-panel ledger desk.
  */
 export function roomCommands(open: (kind: RoomKind) => void): CommandContribution[] {
   return [
-    {
-      name: 'desk',
-      label: () => DESK_LABEL,
-      description: () => '现在要采取什么行动：等你拍板、在办的事、缺什么',
-      available: () => true,
-      ui: { kind: 'action', run: () => { open('desk') } },
-    },
     {
       name: 'knowledge',
       label: () => '打开知识室',

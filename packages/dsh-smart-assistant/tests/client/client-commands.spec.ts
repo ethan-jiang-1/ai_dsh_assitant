@@ -51,7 +51,7 @@ describe('room commands', () => {
     const opened: string[] = []
     const commands = materialize().roomCommands(kind => { opened.push(kind) })
 
-    expect(commands.map(command => command.name)).toEqual(['desk', 'knowledge', 'memory'])
+    expect(commands.map(command => command.name)).toEqual(['knowledge', 'memory'])
     for (const command of commands) {
       // `action` is the kind that consumes the trigger token without sending a message.
       expect(command.ui.kind).toBe('action')
@@ -60,20 +60,20 @@ describe('room commands', () => {
       expect(command.description?.()).toBeTruthy()
       command.ui.run({})
     }
-    expect(opened).toEqual(['desk', 'knowledgeRoom', 'memoryRoom'])
+    expect(opened).toEqual(['knowledgeRoom', 'memoryRoom'])
   })
 
   it('registers every command with the client command registry from apply', () => {
     const registered: string[] = []
     materialize().apply(fakeContext(contribution => { registered.push(contribution.name) }))
-    expect(registered).toEqual(['desk', 'knowledge', 'memory'])
+    expect(registered).toEqual(['knowledge', 'memory'])
   })
 
   it('keeps the rooms independent of the command registry being composed', () => {
     const exports = materialize()
     // The decision under test: discovery is additive, so the command surface is reached by
     // scoped injection and never by the plugin's own inject list — otherwise a composition
-    // without ui-commands would leave the three rooms pending too.
+    // without ui-commands would leave the rooms pending too.
     expect(exports.inject).not.toContain('commandUi')
     expect(() => { exports.apply(fakeContext()) }).not.toThrow()
   })

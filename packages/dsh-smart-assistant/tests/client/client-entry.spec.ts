@@ -81,35 +81,28 @@ describe('client-module registration', () => {
     }
     ;(exports.apply as (ctx: unknown) => void)(ctx)
     // Brand slots first, then each room's tab body and tab title in loop order, then the
-    // Session-header chip, then the desk primary view (conversation.view, 2026-10-06), then
-    // the first-mile strip and the approval banner (two dock seats).
-    // No panellist/main pairs: the left main panels are retired.
+    // first-mile strip and the approval banner (two dock seats). The session desk is retired
+    // (principal decision, 2026-10-11): no desk room tab, no desk view, no header chip, no
+    // summary dock — the main-panel ledger desk is the only "桌面".
     expect(calls).toEqual([
       'sidebar.panellist', 'main',
       'sidebar.brand.mark', 'sidebar.brand.name',
       'sidebar.right.pane.tab', 'sidebar.right.pane.tab.title',
       'sidebar.right.pane.tab', 'sidebar.right.pane.tab.title',
-      'sidebar.right.pane.tab', 'sidebar.right.pane.tab.title',
-      'conversation.view',
-      'conversation.session.header.utilities',
-      'conversation.hero.brand.mark', 'conversation.input.dock', 'conversation.input.dock', 'conversation.input.dock',
+      'conversation.hero.brand.mark', 'conversation.input.dock', 'conversation.input.dock',
     ])
     // Each room registers its tab type, its keyed body, and its keyed tab title (the glyph chip);
-    // the chip, the first-mile strip, and the approval banner close the set.
+    // the first-mile strip and the approval banner close the set.
     expect(registered).toEqual([
       'dsh-smart-assistant-dashboard', 'dsh-smart-assistant-dashboard',
       'sidebar.brand.mark', 'sidebar.brand.name',
-      'tab:desk', 'dsh-smart-assistant-desk', 'dsh-smart-assistant-desk',
       'tab:knowledgeRoom', 'dsh-smart-assistant-knowledge', 'dsh-smart-assistant-knowledge',
       'tab:memoryRoom', 'dsh-smart-assistant-memory', 'dsh-smart-assistant-memory',
-      'dsh-smart-assistant-desk-view',
-      'assistant-desk-chip',
-      'conversation.hero.brand.mark', 'assistant-first-mile', 'assistant-approval-banner', 'assistant-desk-summary',
+      'conversation.hero.brand.mark', 'assistant-first-mile', 'assistant-approval-banner',
     ])
     // The steer's whole point: each room contributes a guide entry, so the "+" picker lists
     // the rooms beside the browser and terminal tabs.
     expect(guideEntries).toEqual([
-      'dsh-smart-assistant-desk-guide',
       'dsh-smart-assistant-knowledge-guide',
       'dsh-smart-assistant-memory-guide',
     ])
@@ -217,25 +210,11 @@ describe('desk primary view', () => {
     expect(selected).toEqual(['dsh-smart-assistant-dashboard'])
   })
 
-  it('claims exactly one conversation.view entry beside the room tabs', () => {
+  it('registers no conversation.view: the session desk view is retired', () => {
     const { ctx, registered } = recordingContext()
     materialize().apply(ctx)
 
     const views = registered.filter(entry => entry.name === 'conversation.view')
-    expect(views).toHaveLength(1)
-    const declaration = views[0]?.declaration
-    expect(declaration?.id).toBe('dsh-smart-assistant-desk-view')
-    expect(declaration?.order).toBe(5)
-    expect(typeof declaration?.label).toBe('function')
-    expect((declaration?.label as () => string)()).toBe('桌面')
-  })
-
-  it('supplies the body its session identity through the inject face, not a closure', () => {
-    const { ctx, registered } = recordingContext()
-    materialize().apply(ctx)
-    const declaration = registered.find(entry => entry.name === 'conversation.view')?.declaration
-    const inject = declaration?.inject as (sessionId: string) => { sessionId: string }
-    expect(typeof inject).toBe('function')
-    expect(inject('session-1')).toEqual({ sessionId: 'session-1' })
+    expect(views).toHaveLength(0)
   })
 })

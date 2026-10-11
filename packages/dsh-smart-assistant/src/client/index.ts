@@ -38,7 +38,7 @@ import { roomCommands } from './commands'
 import { DashboardMainPanel, DashboardPanelIcon } from './dashboard'
 import { ApprovalDockBanner, DeskSummaryDock, FirstMileDock } from './first-mile'
 import { AssistantDeskChip, DeskTabBody, DeskViewBody, KnowledgeTabBody, MemoryTabBody, roomTabTitle } from './room-tabs'
-import { DeskIcon, DeskPanel, KnowledgeIcon, KnowledgePanel, MemoryIcon, MemoryPanel } from './panels'
+import { DeskPanel, KnowledgeIcon, KnowledgePanel, MemoryIcon, MemoryPanel } from './panels'
 import { bindClientRequire, clientRequire } from './runtime'
 import { ensureThemeVars } from './theme'
 import { ProjectionPanel } from './projection-panel'
@@ -342,12 +342,11 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // definition's id. The guide entries (user steer, 2026-09-28) put the rooms in the "+"
     // picker beside the browser and terminal tabs, so opening one no longer depends on knowing
     // the chip or the panel button: the rooms are first-class addable tabs of the right sidebar.
+    // The session desk room is RETIRED (principal decision, 2026-10-11): the ledger's global
+    // desk is the one "桌面" — a second desk reading .desk/state.json split the principal's
+    // mental model, and the live model routed business items into it. The room components stay
+    // exported for their specs; deleting the session-desk subsystem is a follow-up slice.
     const roomTabs = [
-      {
-        id: 'dsh-smart-assistant-desk', kind: 'desk', title: '我的桌面', body: DeskTabBody,
-        description: '现在要采取什么行动：等你拍板、在办的事、缺什么',
-        icon: DeskIcon, order: 10,
-      },
       {
         id: 'dsh-smart-assistant-knowledge', kind: 'knowledgeRoom', title: '知识室', body: KnowledgeTabBody,
         description: '它凭什么这样判断：知识页、出处与待你审批的草稿',
@@ -387,27 +386,8 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // (below) is the plugin boundary's best shot. Full form migration needs upstream D7.
 
 
-    // Desk primary view (desk-primary-view proposal, 2026-10-06): the desk stops being only a
-    // right-sidebar tab — it claims a first-class conversation view beside chat. See
-    // DeskViewBody's docstring for the seam facts; order 5 keeps chat (0) first on the strip
-    // while the desk tab stays one click away, remembered per session once chosen.
-
-    ctx.slots.inject('conversation.view', () =>
-      ctx.slots.register({
-        name: 'conversation.view',
-        id: 'dsh-smart-assistant-desk-view',
-        order: 5,
-        label: () => '桌面',
-        inject: (sessionId: string) => ({ sessionId }),
-      }, DeskViewBody))
-
-    // The opener the principal sees where they already are: a chip in the Session header.
-    ctx.slots.inject('conversation.session.header.utilities', () =>
-      ctx.slots.register({
-        name: 'conversation.session.header.utilities',
-        id: 'assistant-desk-chip',
-        order: -6,
-      }, AssistantDeskChip))
+    // The session desk VIEW tab is retired with the room (same principal decision): no
+    // second surface may carry the "桌面" name — the main-panel desk is the only one.
 
     // Discovery (P1-A, 2026-09-26): the `/` menu and the composer's `+` menu list these,
     // so "what can this thing do" stops depending on the principal guessing at a prompt.
@@ -437,23 +417,11 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
             && path.sessionId === sessionId && path.displayContext !== undefined
             ? { matterId: path.matterId, ...path.displayContext }
             : undefined
-          // Ordinary blank sessions open on the desk view. A processing session must keep Chat
-          // selected; absence of a stored preference resolves to the platform's Chat default.
-          if (processingMatter === undefined && sessionId !== undefined && typeof localStorage !== 'undefined') {
-            try {
-              const key = 'dsh.conversation.' + sessionId
-              if (localStorage.getItem(key) === null) {
-                localStorage.setItem(key, JSON.stringify({ view: 'dsh-smart-assistant-desk-view' }))
-              }
-            } catch { /* localStorage unavailable */ }
-          }
           return { openRoom: openBeside, ...(processingMatter === undefined ? {} : { processingMatter }) }
         },
       }, FirstMileDock))
-    // The pending-approval banner (first-open UX card round 16): the desk pointer's shallow
-    // twin, visible above the composer in ANY session state whenever drafts wait. Rides the
-    // same dock as the first-mile strip; the two coexist (a first open with pending approvals
-    // shows both — each answers a different question: how do I start vs what needs my call).
+    // The approval banner (first-open UX card round 16) rides the same dock seat as the
+    // first-mile strip; the two coexist (each answers a different question).
     ctx.slots.inject('conversation.input.dock', () =>
       ctx.slots.register({
         name: 'conversation.input.dock',
@@ -462,15 +430,6 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         inject: () => ({ openRoom: openBeside }),
       }, ApprovalDockBanner))
 
-    // A2' (2026-10-06): the persistent desk summary — rides every non-blank session above
-    // the composer. Same dock seat, one order slot below the approval banner.
-    ctx.slots.inject('conversation.input.dock', () =>
-      ctx.slots.register({
-        name: 'conversation.input.dock',
-        id: 'assistant-desk-summary',
-        order: -7,
-        inject: () => ({ openDeskView: () => { openBeside('desk') } }),
-      }, DeskSummaryDock))
   }
 
   // The occupants, the three panels, and the shared store are exposed for tests: the store is the

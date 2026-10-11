@@ -9,7 +9,8 @@
 | [261006-chief-of-staff-experience.md](261006-chief-of-staff-experience.md) | 全局主区桌面、完整事项与空间层级、事项对话处理后成功读回返回 | **需求结论已交接至 [proposed](../../notes/proposed/2026-10-06-desk-operating-entry.md)（实施已获点名授权）**：K1–K3 已落证；K4 技术链与补证已完成，真人体验判断仍开放（收口卡 [261010](261010-desk-k4-closure.md)）；九项验收与旧交付终验仍未完成 |
 | [261007-opening-brief-and-rhythm.md](261007-opening-brief-and-rhythm.md) | 开屏播报、拍板口吻和每周对账 | **已有实现，验收未完**：重载、输入框、排程与渲染有证据缺口，另有用户判断未完成 |
 | [261010-desk-k4-closure.md](261010-desk-k4-closure.md) | 章鱼管家 K4 收口：处理流判断、端到端探针、K1/K2 限制补证、提醒协调与 vendor 文案限制 | **真人验收仍开放**：端到端探针与 K1/K2 补证已完成；2026-10-11 代理浏览器走查已记录（不替本人验收），仍待本人判断处理流话术、层级、确认负担；V4/V5 提醒协调延后 |
-| [261007-input-boundary.md](261007-input-boundary.md) | 决定输入通道现在做，还是先观察真实使用 | **待用户选择**：30 天使用环境与先后选择未定；选择观察后还需落实基线与周度记录 |
+| [261007-input-boundary.md](261007-input-boundary.md) | 决定输入通道现在做，还是先观察真实使用 | **已裁决（2026-10-11 本人拍板）**：专用试用环境 + 先观察 30 天；剩落实观察准备（基线、每周快照、记录位置、试用环境创建约定） |
+| [261011-session-desk-cleanup.md](261011-session-desk-cleanup.md) | 会话桌面子系统清理：退役后的组件、spec 与 web-face 场景收尾 | **触发型，未开工**：入口已下架（[唯一桌面 note](../../notes/implemented/2026-10-11-one-operating-desk.md)），组件与 spec 暂留；下次动 client 桌面相关文件或 pin 升级触碰 `conversation.view`/`sidebarRight` seam 时执行删除与重录 |
 
 总助体验与开屏节律是已经实施、仍承载验收的旧卡，保留其未完成事项，不代表新的问题要等到下游实施完成才能关闭。
 

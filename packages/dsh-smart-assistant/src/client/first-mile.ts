@@ -143,28 +143,17 @@ export function FirstMileDock({ session, openRoom, processingMatter, t }: FirstM
   // Hooks stay UNCONDITIONAL (React rules): the 2026-10-07 live probe caught the early
   // return below them leaking the composer-hiding style past unmount — an ongoing session
   // was left with no input box at all while the model waited for an answer.
-  const { useEffect, useState } = reactSurface()
+  const { useState } = reactSurface()
   const [draft, setDraft] = useState('')
-  const sid = session?.sessionId
-  // (261007 Slice 1a) The A1-era hiding CSS — "[data-chain-overlay-fallback='conversation.composer']
+  const sid = session?.sessionId  // (261007 Slice 1a) The A1-era hiding CSS — "[data-chain-overlay-fallback='conversation.composer']
   // { display:none }" — is RETIRED, not fixed. The live probe (2026-10-07) showed WHY it could
   // never work: this dock renders INSIDE that fallback wrapper (vendor ConversationContent.tsx:
   // composerStack = hero + input.dock + inputBar), so hiding the vendor composer hid this card
   // too — the blank-phase takeover hid itself, and an unmount leak left ongoing sessions with
   // no input box at all. The blank phase now shows the honest stack: vendor hero + this card +
   // the vendor composer (the input channel the card's copy points at).
-  // View preference pre-write (kept from Goal 1, 2026-10-06): makes REOPENING this session
-  // land on the desk view even without D7. The in-session switch it hoped for never fired
-  // (live probe 2026-10-07) — that part stays with upstream D7.
-  useEffect(() => {
-    if (processingMatter !== undefined || sid === undefined || typeof localStorage === 'undefined') return
-    try {
-      const key = 'dsh.conversation.' + sid
-      if (localStorage.getItem(key) === null) {
-        localStorage.setItem(key, JSON.stringify({ view: 'dsh-smart-assistant-desk-view' }))
-      }
-    } catch { /* localStorage unavailable */ }
-  }, [sid, processingMatter?.matterId])
+  // (2026-10-11) The view preference pre-write is retired with the session desk view itself:
+  // the main-panel ledger desk is the one "桌面", and sessions open on Chat.
   // (261007 Slice 1b) The Goal-1 auto-send — an 800ms timed '你好' — is retired. It read
   // deskSlice(sid), which is ALWAYS empty on a brand-new session, so every page load
   // re-fired it: six ghost sessions in ten minutes on the 2026-10-07 probe, each a real

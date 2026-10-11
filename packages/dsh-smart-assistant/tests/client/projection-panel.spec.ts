@@ -19,6 +19,21 @@ function render(value: ProjectionDownload): string {
   const view = createProjectionViewStore(defineStore).create()
   return text(ProjectionPanel({ useProjection: select => select(value), useStore: select => select(view.getSnapshot()), actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop }))
 }
+function findButton(node: unknown, label: string): { onClick?: () => void } | undefined {
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const hit = findButton(child, label)
+      if (hit !== undefined) return hit
+    }
+    return undefined
+  }
+  if (node !== null && typeof node === 'object' && 'props' in node) {
+    const props = (node as { props: { children?: unknown, onClick?: () => void } }).props
+    if (text(node) === label && props.onClick !== undefined) return props
+    return findButton(props.children, label)
+  }
+  return undefined
+}
 describe('global projection panel', () => {
   it('renders only the selected matter evidence and reports vanished selection without switching target', () => {
     const view = createProjectionViewStore(defineStore).create()
@@ -42,6 +57,15 @@ describe('global projection panel', () => {
     expect(render({ status: 'missing' })).toContain('还没有经营事项资料')
     expect(render({ status: 'error', error: 'projection-invalid' })).toContain('损坏或版本不支持')
     expect(render({ status: 'error' })).not.toContain('还没有经营事项')
+  })
+
+  it('offers a visible add-matter entry routed to the conversation (2026-10-11 principal could not find one)', () => {
+    const onAsk = vi.fn()
+    const view = createProjectionViewStore(defineStore).create()
+    const output = ProjectionPanel({ useProjection: select => select({ status: 'missing' }), useStore: select => select(view.getSnapshot()), actions: view.actions, refreshProjection: vi.fn(), onAsk, onProcess: noop })
+    expect(text(output)).toContain('＋ 交代新事项')
+    findButton(output, '＋ 交代新事项')?.onClick?.()
+    expect(onAsk).toHaveBeenCalledTimes(1)
   })
   it('shows all eight matters, completed history and stale fixture notice', () => {
     const output = render({ status: 'disconnected', stale: true, data: { schemaVersion: 1, ledgerId: 'simulated', revision: 7, fixture: true, receipts: [], unclaimed: [], matters: Array.from({ length: 8 }, (_, index) => ({ id: `m${String(index)}`, title: `事项${String(index)}`, status: index === 7 ? 'completed' : 'active', summary: '待核对', responsible: '', revision: 1, times: {}, proposals: [], evidence: [] })) } })

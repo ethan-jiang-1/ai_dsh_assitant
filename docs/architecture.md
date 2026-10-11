@@ -76,13 +76,13 @@ AGENT 面（`cordis.patch.yml` 的 `preset-assistant` 行 → agent preset）
 座位与命令的精确清单是生成物：[`package-catalog.md`](package-catalog.md)「客户端座位面」节
 （生成器从 `src/client/` 模块树抽取，freshness 由 `pnpm verify` 守——散文清单在生成物面前
 四轮漂移三轮同根，已退役为指针）。语义要点：官方品牌包只在 official 构建档案下注册，本地
-构建里品牌 slot 空置；三室（右栏可加的三个面板：desk / knowledge / memory）是「+」向导里可添加的右栏 tab；首里引导座位开聊即隐；全局经营
+构建里品牌 slot 空置；两室（右栏可加的两个面板：knowledge / memory）是「+」向导里可添加的右栏 tab；首里引导座位开聊即隐；全局经营
 桌面的主区投影消费 `main` 座位（读回链 = [`operating.md`](operating.md) §三）——这些消费的
 全是 vendor 通用座位，§六 延后的"专属 Web 卡片"指**跨出通用座位的自有卡面**（自有 slot 域名），
 未立项。
 
 **为什么服务在 host 面**：working folder 是**跨会话持久化**，与持久化/沙箱/模型路由同类；
-client 的三室 tab 读的就是同一个实例；preset 里的服务行必须包在 isolate realm 里，
+client 的房间 tab 读的就是同一个实例；preset 里的服务行必须包在 isolate realm 里，
 否则与别的 preset 撞名（`dsh-agent-presets` 挂载时直接拒绝）。
 **为什么工具在 agent 面**：它们是一个会话贡献给注册表的东西（DSH 的 preset 语义）。
 
@@ -253,7 +253,7 @@ pnpm dsh …（package.json scripts → dev/env/dsh.mjs，唯一启动器：
 Client 的 [下载对象](../packages/dsh-smart-assistant/src/client/projection-reader.ts)通过 Connection generation/state 观察就绪与丢失；断连保留、迟到发布防护、解析器契约与生命周期绑定的现况由 [`operating.md`](operating.md) §三 拥有，此处不再复制第二份。
 
 ```text
-浏览器点击（三室面板 / 首开审批横幅 / composer）
+浏览器点击（房间面板 / 首开审批横幅 / composer）
   └ client classic script（packages/dsh-smart-assistant：src/client 多模块源，
     tsdown 打成 lib/client/index.js 单文件 classic script = ./client；经 bundle 行
     被 client-modules 自动发现，注册进 vendor 通用座位——皮肤面，不进模型上下文）

@@ -197,6 +197,11 @@ describe('real composition: loader + preset standing mount + joined agent', () =
     expect(byName.get('assistant:soul')).toContain('You are a long-lived assistant')
     expect(byName.get('assistant:home-manual')).toContain('# Your working folder — operating manual')
     expect(byName.get('assistant:memory-digest')).toContain('Live status of your working folder')
+    // The operating brief is the standing instruction that business matters — including a vague
+    // "put it on the desk" — ride the ledger, never the session desk file (live-turn finding
+    // 2026-10-11: the model wrote .desk/state.json instead of calling assistant_operating).
+    expect(names).toContain('assistant:operating-brief')
+    expect(byName.get('assistant:operating-brief')).toContain('Never route business matters into the session desk file')
 
   })
 
