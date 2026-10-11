@@ -61,7 +61,7 @@ describe('summarizeEvents', () => {
       { type: 'user/message', data: { content: [{ type: 'text', text: '<system-reminder>\nAdditional instructions from: dev/AGENTS.md' }] } },
       { type: 'user/message', data: { content: [{ type: 'text', text: 'Current runtime context. This snapshot supersedes earlier snapshots.' }] } },
       { type: 'user/message', data: { content: [{ type: 'text', text: '季末签单的事我想好了。' }] } },
-      { type: 'user/message', data: { content: [{ type: 'text', text: '[桌面] 行动「台账」已经办完了。请记录结果。' }] } },
+      { type: 'user/message', data: { content: [{ type: 'text', text: '[面板] 行动「台账」已经办完了。请记录结果。' }] } },
     ])
     expect(summary.userMessages).toBe(5)
     expect(summary.injectedUserMessages).toBe(3)

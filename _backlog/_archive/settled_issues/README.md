@@ -6,7 +6,8 @@
 
 | 卡 | 关闭日 | 判定 |
 |---|---|---|
-| [261011-session-desk-cleanup.md](261011-session-desk-cleanup.md) | 2026-10-11 | 五条清单全闭合：退役组件与 specs 真删（`panels.ts` 644→235、25 个断言块下线并把 staleness 断言改挂 `MemoryPanel`）、`desk-io` 五个只服务退役面板的动作与 `DeskSummaryDock` 一并删、client 口径收窄到「房间数据」（面板口播/刷新/空态/错误文案 + `askRefresh` 的模型可见提示）；web-face 两场景复绿（真红原因是投影读回被自家 abort 的 canceled 请求，见卡第 3 条）；家手册那节改 `### Room data` 并 bump v15。两处残差移交 [261011-post-retirement-residue](../../issues/261011-post-retirement-residue.md) |
+| [261011-post-retirement-residue.md](261011-post-retirement-residue.md) | 2026-10-11 | 两条残差都落地：机器标记改 `[面板] `（连带两个 dev 报告与夹具）；`dashboard` 回退面板与 `first-mile` 首开条不再读退役分区，首开条的「打开桌面全景」从退役房间改接主区账本桌面（原来是死按钮），并删掉不可达的 `DeskLandingOverride`、`counts.threads` 单元格与四个只服务退役行的 desk-io 动作。裁决留痕：**没有**顺手加回账本摘要条（那是被退役的形态，要加另立案） |
+| [261011-session-desk-cleanup.md](261011-session-desk-cleanup.md) | 2026-10-11 | 五条清单全闭合：退役组件与 specs 真删（`panels.ts` 644→235、25 个断言块下线并把 staleness 断言改挂 `MemoryPanel`）、`desk-io` 五个只服务退役面板的动作与 `DeskSummaryDock` 一并删、client 口径收窄到「房间数据」（面板口播/刷新/空态/错误文案 + `askRefresh` 的模型可见提示）；web-face 两场景复绿（真红原因是投影读回被自家 abort 的 canceled 请求，见卡第 3 条）；家手册那节改 `### Room data` 并 bump v15。两处残差移交 [261011-post-retirement-residue](261011-post-retirement-residue.md) |
 | [261010-desk-lead-rule.md](261010-desk-lead-rule.md) | 2026-10-10 | 毕业为已实施（用户点名）：分拣与已回答两条规则从渲染立即执行体提出为模块层具名函数（`splitDeskDecisions` / `deskRowAnswered`），屏幕行为不变——五条既有断言未改，`pnpm test:client` 114/114 全绿；无 note（局部搬家，无新产品取舍） |
 | [261008-ceo-operating-loop.md](261008-ceo-operating-loop.md) | 2026-10-09 | 回款情景与更新权限已确认；Host 可信更新/提醒协调/读回第一切片、后续建议/经验/净收益范围及 V1–V9 验收已定。下游设计/验证申请已在本轮回复向当前用户提出；尚未实施，经营价值未验证 |
 | [261008-vendor-corpus-home.md](261008-vendor-corpus-home.md) | 2026-10-08 | 消化：平台事实留在钉住的 vendor；本仓只写差量。落点 = 根 AGENTS.md 硬规则 2 与探索路由、`docs/discipline.md` 表行与适配 9、`docs/AGENTS.md`、`notes/README.md` §四；`client-ui-contribution` 改为链接加本包路径与验证，`pre-push-evidence` 与 `note-archive-judgment` 指向主仓对应技能 |

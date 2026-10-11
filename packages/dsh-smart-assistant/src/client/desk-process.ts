@@ -177,7 +177,7 @@ export interface ProcessingContextMatter {
 
 /**
  * The visible context note seeded into a fresh processing session (principal decision,
- * 2026-10-11: the matter IS the session's context). The sender prefixes the `[桌面]` marker
+ * 2026-10-11: the matter IS the session's context). The sender prefixes the `[面板]` marker
  * so the log keeps machine-written prompts apart from the principal's own words.
  * @param matter - the bound matter from the projection snapshot.
  * @returns the seed message text, principal-visible and logged.

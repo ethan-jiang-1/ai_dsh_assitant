@@ -1,13 +1,12 @@
 /**
- * Dashboard main panel (Goal 1.5 + Goal 3, 2026-10-06): the desk as a standalone sidebar
- * panel — not a tab inside the chat shell. This spec pins:
+ * The desk's fallback main panel: rendered only when the client store module is absent, so the
+ * ledger projection cannot be read. This spec pins:
  *
- * 1. The panel's four content sections (decisions / actions / gaps / approvals) each
- *    render at least one item from a populated desk fixture.
- * 2. Option buttons carry an onClick that proxies the principal's decision via sendPrompt
- *    (dashboard → conversation, Goal 3).
- * 3. The "有问题？" (onAsk) button fires the injected callback (conversation entry point).
- * 4. Empty desk shows the honest empty state with the "有问题？" CTA.
+ * 1. It says the projection is missing instead of dressing room data up as desk state.
+ * 2. The retired session-desk sections (decisions / actions / gaps) never render here — they
+ *    live in the ledger, and a populated legacy file must not resurrect them.
+ * 3. The knowledge-draft queue still renders (room data this client can read).
+ * 4. The "有问题？" (onAsk) button fires the injected callback, in both states.
  *
  * The browser half is a classic script (zero imports/exports); the harness evaluates it
  * and materializes the factory — same as client-panels.spec.ts.
@@ -19,7 +18,7 @@ const registration = await loadClientRegistration()
 const materialize = (): Record<string, unknown> =>
   materializeClient(registration, inertReactShim()) as unknown as Record<string, unknown>
 
-/** A populated desk fixture with one item per section. */
+/** A populated legacy room-data file: one item per retired section plus a draft. */
 const populatedDesk = {
   generatedAt: '2026-10-06T18:00:00+08:00',
   counts: { memories: 3, threads: 1 },
@@ -75,87 +74,47 @@ function buttonsOf(node: unknown): { props: { onClick?: () => void, children?: u
 }
 
 describe('dashboard main panel', () => {
-  it('renders the four content sections from a populated desk', () => {
+  it('says the projection is missing, and renders the draft queue it can read', () => {
     const exports = materialize()
-    // Inject the populated desk into the store so useDesk() returns it
     const store = exports.deskStore as { data: typeof populatedDesk | undefined }
     store.data = populatedDesk
     const panel = exports.DashboardMainPanel as (props?: { onAsk?: () => void }) => unknown
     const text = textsOf(panel({ onAsk: () => {} })).join(' | ')
-
-    // Decisions section
-    expect(text).toContain('要不要给最大的老客户涨价')
-    expect(text).toContain('直接提价 10%')
-    // Actions section
-    expect(text).toContain('跟合伙人碰涨价方案')
-    expect(text).toContain('2026-10-10')
-    // Gaps section
-    expect(text).toContain('客户占你总收入的比重')
-    // Header + conversation entry
     expect(text).toContain('你的桌面')
+    expect(text).toContain('读不到账本投影')
+    expect(text).toContain('1 页知识草稿在等你审批')
     expect(text).toContain('有问题')
-    // The weekly rhythm line (261007 Slice 3): the standing sit is named where the principal
-    // already looks, not only in the skill drawer.
-    expect(text).toContain('每周一早')
   })
 
-  it('option buttons carry onClick that proxies the decision', () => {
+  it('never resurrects the retired session-desk sections from a legacy file', () => {
     const exports = materialize()
     const store = exports.deskStore as { data: typeof populatedDesk | undefined }
     store.data = populatedDesk
     const panel = exports.DashboardMainPanel as (props?: { onAsk?: () => void }) => unknown
-    const tree = panel({ onAsk: () => {} })
-    const buttons = buttonsOf(tree)
-    // At least the three option buttons + the "有问题？" button
-    expect(buttons.length).toBeGreaterThanOrEqual(4)
-    // The first option button's onClick should exist (it proxies via sendPrompt)
-    expect(typeof buttons[0]?.props.onClick).toBe('function')
+    const text = textsOf(panel({ onAsk: () => {} })).join(' | ')
+    // The legacy fixture carries all three sections; the ledger owns them now.
+    expect(text).not.toContain('要不要给最大的老客户涨价')
+    expect(text).not.toContain('直接提价 10%')
+    expect(text).not.toContain('跟合伙人碰涨价方案')
+    expect(text).not.toContain('客户占你总收入的比重')
+    expect(text).not.toContain('要你拍的')
+    expect(text).not.toContain('缺的数')
   })
 
-  it('shows the honest empty state with CTA when desk has no data', () => {
+  it('shows the honest empty state with CTA when there is nothing to read at all', () => {
     const exports = materialize()
     const store = exports.deskStore as { data: unknown }
     store.data = undefined
     const panel = exports.DashboardMainPanel as (props?: { onAsk?: () => void }) => unknown
     let askFired = false
     const text = textsOf(panel({ onAsk: () => { askFired = true } })).join(' | ')
-    expect(text).toContain('桌面还是空的')
+    expect(text).toContain('读不到账本投影')
     expect(text).toContain('有问题')
     // The CTA button should call onAsk
     const buttons = buttonsOf(panel({ onAsk: () => { askFired = true } }))
     const askButton = buttons.find(b => textsOf(b.props.children).some(t => t.includes('有问题')))
     askButton?.props.onClick?.()
     expect(askFired).toBe(true)
-  })
-
-  it('option click proxies the decision in the principal-voice Chinese lane (261007 Slice 2)', () => {
-    const exports = materialize()
-    const prompts: { content: { text: string }[] }[] = []
-    const ctx = {
-      slots: { inject: () => {}, register: () => undefined },
-      sidebarRightTabs: { register: () => undefined },
-      sidebarRight: { openTab: () => {} },
-      layout: { selectPanel: () => {} },
-      remote: { session: { prompt: (req: { content: { text: string }[] }) => { prompts.push(req); return Promise.resolve({ ok: true }) } } },
-      sessions: { list: { getSnapshot: () => ({ ids: ['s1'], byId: { s1: { updatedAt: 1 } } }), subscribe: () => () => {} } },
-    }
-    ;(exports.apply as (ctx: unknown) => void)(ctx)
-    const store = exports.deskStore as { data: unknown }
-    store.data = populatedDesk
-    const panel = exports.DashboardMainPanel as (props?: { onAsk?: () => void }) => unknown
-    const tree = panel({ onAsk: () => {} })
-    const buttons = buttonsOf(tree)
-    const optBtn = buttons.find(b => textsOf(b.props.children).join('').includes('直接提价 10%'))
-    expect(optBtn).toBeTruthy()
-    optBtn?.props.onClick?.()
-    expect(prompts).toHaveLength(1)
-    const sent = prompts[0]?.content[0]?.text ?? ''
-    // The record reads as the panel speaking for the principal — the same lane the desk
-    // panels use — never as English machine prose in the principal's history.
-    expect(sent).toContain('面板代本人拍板')
-    expect(sent).toContain('要不要给最大的老客户涨价')
-    expect(sent).toContain('直接提价 10%')
-    expect(sent).not.toContain('Dashboard panel decided')
   })
 
   it('exports the sidebar icon component', () => {

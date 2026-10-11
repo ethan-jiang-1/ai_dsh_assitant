@@ -26,7 +26,7 @@ interface ClientExports {
   AssistantHeroMark: (props: { size: number, className?: string }) => Element
   FirstMileDock: (props: {
     session?: { blank?: boolean } | undefined
-    openRoom?: (kind: string) => void
+    openDesk?: () => void
     processingMatter?: { matterId: string, title: string, summary: string }
     t?: (key: string) => string | undefined
   }) => Element | null
@@ -93,9 +93,9 @@ describe('first-mile seats', () => {
     // conversation would be wrong content in the wrong place. Guarded here because every
     // screenshot in the evidence set is a blank session and cannot catch a regression.
     const exports = materialize()
-    expect(exports.FirstMileDock({ session: { blank: false }, openRoom: () => {} })).toBe(null)
-    expect(exports.FirstMileDock({ openRoom: () => {} })).toBe(null)
-    expect(exports.FirstMileDock({ session: { blank: true }, openRoom: () => {} })).not.toBe(null)
+    expect(exports.FirstMileDock({ session: { blank: false }, openDesk: () => {} })).toBe(null)
+    expect(exports.FirstMileDock({ openDesk: () => {} })).toBe(null)
+    expect(exports.FirstMileDock({ session: { blank: true }, openDesk: () => {} })).not.toBe(null)
   })
 
   it('shows visual-only matter context instead of first-time intake for a processing session', () => {
@@ -119,8 +119,7 @@ describe('first-mile seats', () => {
   })
 
   it('tells a first-time principal what to say and offers the desk', () => {
-    const opened: string[] = []
-    const dock = materialize().FirstMileDock({ session: { blank: true }, openRoom: kind => { opened.push(kind) } })
+    const dock = materialize().FirstMileDock({ session: { blank: true }, openDesk: () => {} })
 
     if (dock === null) throw new Error('the strip should render for a blank session')
     const copy = textsOf(dock).join(' ')
@@ -147,9 +146,10 @@ describe('first-mile seats', () => {
     expect(textsOf(buttons[0]).join('')).toBe('开始第一件事')
   })
 
-  it('a returning principal opens on the brief, not a greeting (261007 Slice 1b)', () => {
+  it('a returning principal gets the desk door, not a brief rebuilt from the retired file', () => {
     const exports = materialize()
-    // Seeded walk view: the desk already holds one item per section (a Day-2 folder).
+    // Seeded walk view: the legacy file still carries the retired sections (a Day-2 folder that
+    // predates the one-desk decision). They must NOT come back as an opening brief.
     const store = exports.deskStore as { data: unknown }
     store.data = {
       generatedAt: '2026-10-07T09:00:00+08:00',
@@ -158,21 +158,23 @@ describe('first-mile seats', () => {
       actions: [{ id: 'a1', what: '出续约方案草案', due: '2026-10-09', status: 'open' }],
       gaps: [{ id: 'g1', what: '三家客户的毛利数', why: '没它算不出涨价后的账' }],
     }
-    const dock = exports.FirstMileDock({ session: { blank: true }, openRoom: () => {} })
-    if (dock === null) throw new Error('the brief should render for a blank session with a desk')
+    const opened: string[] = []
+    const dock = exports.FirstMileDock({ session: { blank: true }, openDesk: () => { opened.push('desk') } })
+    if (dock === null) throw new Error('the strip should render for a blank session with room data')
     const copy = textsOf(dock).join(' ')
-    // The brief speaks the desk's state (the design's "opening = there is content waiting for you"),
-    // composed deterministically from the walk view — the model is not consulted for the opener.
+    // The one desk is the ledger projection in the main area: the strip names it and hands over
+    // the door instead of speaking retired sections the room-data file no longer carries.
     expect(copy).toContain('一把手桌面')
-    expect(copy).toContain('要你拍的')
-    expect(copy).toContain('老客户续约要不要涨价')
-    expect(copy).toContain('在跟的')
-    expect(copy).toContain('出续约方案草案')
-    expect(copy).toContain('还缺一个数')
-    // Each brief row is a button — clicking opens the matching action conversation.
-    const rows = elementsOf(dock, 'button').filter(b => textsOf(b.props.children).join('').includes('点这里'))
-    expect(rows.length).toBe(3)
-    expect(typeof rows[0]?.props.onClick).toBe('function')
+    expect(copy).toContain('桌面全景')
+    expect(copy).toContain('账本')
+    expect(copy).not.toContain('老客户续约要不要涨价')
+    expect(copy).not.toContain('出续约方案草案')
+    expect(copy).not.toContain('三家客户的毛利数')
+
+    const buttons = elementsOf(dock, 'button')
+    expect(textsOf(buttons[0]).join('')).toBe('打开桌面全景')
+    ;(buttons[0]?.props.onClick as (() => void) | undefined)?.()
+    expect(opened).toEqual(['desk'])
   })
 
   it('claims the hero mark and the blank-session dock when applied', () => {

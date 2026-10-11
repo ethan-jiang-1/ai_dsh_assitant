@@ -1,6 +1,6 @@
 /**
- * The first mile and the composer's docks: the blank-session landing (hero + the rich card
- * above the composer) and the pending-approval banner. The session desk summary bar that used
+ * The first mile and the composer's docks: the blank-session strip above the composer and the
+ * pending-approval banner. The session desk summary bar that used
  * to ride here is retired with the session desk itself (one 桌面 = the ledger's, 2026-10-11).
  * These are the surfaces a first-time principal (and every session's composer) sees; the
  * hero MARK itself lives in brand.ts.
@@ -11,8 +11,8 @@
 import type { PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
 import type { RoomKind } from './contracts'
-import { deskSlice, patchDesk, useDesk } from './desk-core'
-import { askAboutDecision, askAboutGap, askCheckIn, askStart, sendPrompt } from './desk-io'
+import { patchDesk, useDesk } from './desk-core'
+import { askStart, sendPrompt } from './desk-io'
 import { createElement, reactSurface } from './runtime'
 import { MARK_TEAL } from './theme'
 import type {} from './locales'
@@ -46,87 +46,6 @@ import type {} from './locales'
  * Vendor seam facts this rides: `conversation.input.dock` is a list slot with no height limit,
  * rendered between HeroShell and the composer bar in the blank phase (ConversationContent.tsx:165-168).
  */
-/**
- * DeskLandingOverride: the FULL blank-phase takeover (2026-10-06 form migration).
- * Registered on `conversation.composer` (chain, overlay:true) — when elected, the vendor's
- * HeroShell + workspace chip + input bar get hidden and this component owns the entire area.
- *
- * The vendor's CSS module (.composerStack { display:flex }) overrides the chain's display:none,
- * so this component injects a <style> tag targeting the data-chain-overlay-fallback attribute
- * to enforce the hide. This is the vendor's own extensibility mechanism (the data attribute
- * exists specifically for consumers to target the fallback).
- *
- * For non-blank sessions, returns null so the vendor's normal rendering continues.
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-void DeskLandingOverride; // retained for future chain-slot authorization
-
-
-function DeskLandingOverride(props: Record<string, unknown>): ReturnType<typeof createElement> | null {
-  const session = props.session as { blank?: boolean } | undefined
-  if (session?.blank !== true) return null
-  const { useState, useEffect } = reactSurface()
-  const [draft, setDraft] = useState('')
-  // Force-hide the vendor's fallback using the data attribute the chain system provides
-  useEffect(() => {
-    const style = document.createElement('style')
-    style.textContent = "[data-chain-overlay-fallback='conversation.composer'] { display: none !important; }"
-    document.head.appendChild(style)
-    return () => { style.remove() }
-  }, [])
-  const send = () => {
-    const text = draft.trim()
-    const sid = props.sessionId as string | undefined
-    if (text === '' || !sid) return
-    sendPrompt(text, 'desktop-landing', 'desk', sid)
-    setDraft('')
-  }
-  const walk = deskSlice(undefined)
-  const hasDesk = walk.data !== undefined && Object.keys(walk.data).length > 0
-  const card = (children: (ReturnType<typeof createElement> | undefined)[]): ReturnType<typeof createElement> =>
-    createElement('div', {
-      style: {
-        display: 'flex', flexDirection: 'column', gap: '10px',
-        width: 'min(var(--dsh-composer-card-max-width, 952px), 100%)',
-        margin: '0 auto', padding: '24px 28px',
-        border: '1px solid var(--dsw-alias-border-l2)', borderRadius: '12px',
-        background: 'var(--dsw-alias-bg-layer-1)',
-      },
-    }, ...children)
-  const inputArea = createElement('textarea', {
-    value: draft,
-    onChange: (e: { target: { value: string } }) => { setDraft(e.target.value) },
-    onKeyDown: (e: { key: string, shiftKey: boolean, preventDefault: () => void }) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } },
-    placeholder: '说说你现在要处理的事…',
-    rows: 2,
-    style: { width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--dsw-alias-border-l2)', background: 'var(--dsw-alias-bg-base)', color: 'inherit', fontSize: '14px', resize: 'vertical' as const, fontFamily: 'inherit', boxSizing: 'border-box' as const },
-  })
-  const sendBtn = createElement('button', {
-    onClick: send,
-    style: { alignSelf: 'flex-end', padding: '8px 20px', borderRadius: '8px', cursor: 'pointer', border: 'none', fontSize: '14px', fontWeight: 600, background: MARK_TEAL, color: 'var(--dsw-alias-text-primary, #fff)' },
-  }, '发送')
-  if (!hasDesk) {
-    return card([
-      createElement('div', { style: { fontSize: '20px', fontWeight: 700 } }, '你的桌面'),
-      createElement('div', { style: { fontSize: '14px', color: 'var(--dsw-alias-label-secondary)', lineHeight: 1.7 } }, '说一句话，我开始问你——答完你就有第一份决策简报。'),
-      createElement('div', { style: { fontSize: '13px', color: 'var(--dsw-alias-label-secondary)' } }, '例：「我在想要不要给老客户涨价」'),
-      inputArea, sendBtn,
-    ])
-  }
-  const data = walk.data
-  const decisions = (data?.decisions ?? []).filter(item => item.kind === 'business' || ((item.options ?? []).length > 0))
-  const actions = (data?.actions ?? []).filter(item => item.status !== 'done')
-  return card([
-    createElement('div', { style: { fontSize: '20px', fontWeight: 700 } }, '你的桌面'),
-    decisions.length > 0
-      ? createElement('div', { style: { padding: '12px 16px', border: '1px solid ' + MARK_TEAL, borderRadius: '8px' } },
-          createElement('div', { style: { fontSize: '13px', fontWeight: 600 } }, String(decisions[0]?.question ?? '')))
-      : createElement('div', { style: { fontSize: '13px', color: 'var(--dsw-alias-label-secondary)' } }, '没有等你拍板的事。'),
-    ...(actions.length > 0 ? [createElement('div', { style: { fontSize: '13px' } }, '在跟的 ' + actions.length + ' 件')] : []),
-    inputArea, sendBtn,
-  ])
-}
-
 interface ProcessingMatterContext {
   readonly matterId: string
   readonly title: string
@@ -134,13 +53,14 @@ interface ProcessingMatterContext {
 }
 
 interface FirstMileInjected {
-  readonly openRoom?: (kind: RoomKind) => void
+  /** Bring the ledger desk to the main area — the one 桌面 (the session desk room is retired). */
+  readonly openDesk?: () => void
   readonly processingMatter?: ProcessingMatterContext
 }
 
 type FirstMileDockProps = PropsRuntime<'conversation.input.dock'> & FirstMileInjected & PropsLocale<'assistantFirstMile'>
 
-export function FirstMileDock({ session, openRoom, processingMatter, t }: FirstMileDockProps): ReturnType<typeof createElement> | null {
+export function FirstMileDock({ session, openDesk, processingMatter, t }: FirstMileDockProps): ReturnType<typeof createElement> | null {
   // Hooks stay UNCONDITIONAL (React rules): the 2026-10-07 live probe caught the early
   // return below them leaking the composer-hiding style past unmount — an ongoing session
   // was left with no input box at all while the model waited for an answer.
@@ -215,7 +135,7 @@ export function FirstMileDock({ session, openRoom, processingMatter, t }: FirstM
     return shell([
       heading('第一次来？说一句话，它先问你。'),
       body('你开了口，它会先问你最近要拍板、还要跟进的一件事——然后三个短问（什么逼出了决定、当时知道什么、哪里没底）。'),
-      body('答完，你的桌面就有了第一份决策简报：带代价的选项、还缺的数、一个复查日期。之后每次来，先看桌面——要你拍的、在跟的、缺的，一目了然。'),
+      body('答完，你的桌面就有了第一份决策简报：带代价的选项、还缺的数、一个复查日期。之后每次来先看桌面——在办的事项、等你确认的、快到期的，一目了然。'),
       createElement('div', { style: { fontSize: '12px', color: 'var(--dsw-alias-label-secondary)' } },
         '例：「这个月签单为什么慢」「我在想要不要给老客户涨价」'),
       startButton('开始第一件事', () => {
@@ -236,46 +156,15 @@ export function FirstMileDock({ session, openRoom, processingMatter, t }: FirstM
     ])
   }
 
-  // Has a desk: the OPENING BRIEF (261007 Slice 1b) — spoken lines over the desk's state,
-  // each clickable into the matching action conversation (会话=桌面上的动作). Deterministic
-  // from the walk view: the product opens with what it already holds, not with a greeting
-  // that makes the principal start.
-  const data = walk.data
-  const decisions = (data?.decisions ?? []).filter(item => item.kind === 'business' || ((item.options ?? []).length > 0))
-  const gaps = data?.gaps ?? []
-  const actions = (data?.actions ?? []).filter(item => item.status !== 'done')
-  const briefRow = (label: string, run: () => void): ReturnType<typeof createElement> =>
-    createElement('button', {
-      key: label,
-      onClick: run,
-      style: {
-        border: '1px solid var(--dsw-alias-border-l2)', borderRadius: '8px',
-        background: 'var(--dsw-alias-bg-base)', cursor: 'pointer', textAlign: 'left' as const,
-        fontSize: '13px', color: 'inherit', padding: '10px 14px', lineHeight: 1.6,
-      },
-    }, label)
+  // Has data on disk: a short pointer at the desk itself. The brief that used to speak the
+  // retired file's decisions/actions/gaps (261007 Slice 1b) is gone with those sections — the
+  // one desk is the ledger projection in the main area, and the client's room-data file no
+  // longer carries anything to brief from.
   return shell([
     heading('这是你的一把手桌面——三句话，说完就办'),
-    decisions.length > 0
-      ? briefRow(
-          `要你拍的：「${String(decisions[0]?.question ?? '').slice(0, 40)}」——点这里，把选项和代价摆出来`,
-          () => { askAboutDecision(String(decisions[0]?.question ?? ''), String(decisions[0]?.id ?? decisions[0]?.question ?? ''), sid) },
-        )
-      : body('没有等你拍板的事。'),
-    actions.length > 0
-      ? briefRow(
-          `在跟的：「${String(actions[0]?.what ?? '').slice(0, 30)}」（${String(actions[0]?.due ?? '')} 到期）——点这里，问一句进展`,
-          () => { askCheckIn(String(actions[0]?.what ?? ''), String(actions[0]?.due ?? ''), String(actions[0]?.id ?? actions[0]?.what ?? ''), sid) },
-        )
-      : undefined,
-    gaps.length > 0
-      ? briefRow(
-          `还缺一个数：「${String(gaps[0]?.what ?? '').slice(0, 30)}」——点这里，一起把它补上`,
-          () => { askAboutGap(String(gaps[0]?.what ?? ''), String(gaps[0]?.why ?? ''), String(gaps[0]?.id ?? gaps[0]?.what ?? ''), sid) },
-        )
-      : undefined,
+    body('在办的事项、等你确认的、快到期的，都在桌面全景里——那是账本的投影，唯一的桌面。'),
     createElement('div', { style: { display: 'flex', gap: '8px', alignItems: 'center' } },
-      startButton('打开桌面全景', () => { openRoom?.('desk') }),
+      startButton('打开桌面全景', () => { openDesk?.() }),
       createElement('span', { style: { fontSize: '12px', color: 'var(--dsw-alias-label-secondary)' } },
         '· 有新的事，直接在下面说'),
     ),

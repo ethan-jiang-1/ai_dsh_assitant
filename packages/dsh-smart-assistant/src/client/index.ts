@@ -221,7 +221,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
               requestId: `desk-process-context-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
               sessionId,
               mode: 'queue',
-              content: [{ type: 'text', text: `[桌面] ${processingContextMessage(matter)}` }],
+              content: [{ type: 'text', text: `[面板] ${processingContextMessage(matter)}` }],
             })
           }
         } finally {
@@ -442,7 +442,12 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
             && path.sessionId === sessionId && path.displayContext !== undefined
             ? { matterId: path.matterId, ...path.displayContext }
             : undefined
-          return { openRoom: openBeside, ...(processingMatter === undefined ? {} : { processingMatter }) }
+          return {
+            // The one desk is a MAIN panel (the ledger projection), not a room tab — this is
+            // what the dock's 「打开桌面全景」 switches to.
+            openDesk: () => { ctx.layout?.selectPanel('dsh-smart-assistant-dashboard') },
+            ...(processingMatter === undefined ? {} : { processingMatter }),
+          }
         },
       }, FirstMileDock))
     // The approval banner (first-open UX card round 16) rides the same dock seat as the

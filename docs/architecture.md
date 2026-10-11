@@ -258,7 +258,7 @@ Client 的 [下载对象](../packages/dsh-smart-assistant/src/client/projection-
     tsdown 打成 lib/client/index.js 单文件 classic script = ./client；经 bundle 行
     被 client-modules 自动发现，注册进 vendor 通用座位——皮肤面，不进模型上下文）
       ├ 会话车道（房间数据刷新与首开引导）：sendPrompt → remote.session.prompt
-      │ （mode:queue、[桌面] 标记）→ 走模型请求链 → 助手按 desk-refresh 技能把
+      │ （mode:queue、[面板] 标记）→ 走模型请求链 → 助手按 desk-refresh 技能把
       │ 工作区 .desk/state.json（记忆/知识两间的数据文件）重写一遍
       └ 直调车道（仅知识批准，「两条合法批准路径」见 [home.md](home.md) §二）：approveKnowledgePage →
         remote.assistantKnowledge.approvePage → host promotePage（draft→stable

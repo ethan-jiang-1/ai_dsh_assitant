@@ -134,8 +134,8 @@ export function summarizeEvents(events) {
           : String(content ?? '')
         if (/^\s*(\[Collaboration boundary\]|<system-reminder>|Current runtime context)/.test(text)) {
           summary.injectedUserMessages += 1
-        } else if (/^\s*\[桌面\]/.test(text)) {
-          // Panel-written prompts carry the [桌面] marker (client A10): without this they count
+        } else if (/^\s*\[面板\]/.test(text)) {
+          // Panel-written prompts carry the [面板] marker (client A10): without this they count
           // as the principal's own words and the meter self-certifies real use.
           summary.panelMessages += 1
         } else {

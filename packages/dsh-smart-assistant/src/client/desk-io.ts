@@ -263,7 +263,7 @@ export function sendPrompt(text: string, action: string, rowId: string, sessionI
   // A10: panel messages carry a marker so the conversation log (and the usage meter) can tell
   // machine-written prompts from the principal's own words — otherwise the principal's history
   // fills with assertions they never typed, and the meter counts the panel as the human.
-  const marked = `[桌面] ${text}`
+  const marked = `[面板] ${text}`
   void prompt({
     requestId: `desk-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     sessionId: target,
@@ -379,38 +379,6 @@ export function askRejectProposal(name: string, reason: string, sessionId?: stri
     `面板代本人拒绝技能提案「${name}」：请把提案文件的 status 改为 rejected（理由：${reason}）。${DESK_REFRESH_STEP}`,
     '拒绝提案', name, sessionId,
   )
-}
-
-/**
- * Answer one open decision. The mirror of a correction: there the principal says a record is
- * wrong, here they say what they have decided — and the assistant records the call and moves.
- */
-export function answerDecision(question: string, answer: string, rowId: string, sessionId?: string): void {
-  sendPrompt(
-    `面板代本人拍板——待决事项「${question}」的决定：${answer}。请把决定记入记忆并据此更新判断。${DESK_REFRESH_STEP}`,
-    '回答', rowId, sessionId,
-  )
-}
-
-/** Put one open decision to the assistant and ask for options with their costs. */
-export function askAboutDecision(question: string, rowId: string, sessionId?: string): void {
-  sendPrompt(`面板代本人提问——待决事项「${question}」：请给两三个选项，每个选项的代价与不可逆程度，以及你的建议。`,
-    '看选项', rowId, sessionId)
-}
-
-/**
- * Briefing-row check-in (261007 Slice 1b): the opening brief's action row opens the matching
- * conversation — the principal asks about progress without composing the question.
- */
-export function askCheckIn(what: string, due: string, rowId: string, sessionId?: string): void {
-  sendPrompt(`面板代本人过问——在跟的事「${what}」（${due} 到期）：现在到哪一步了？有没有要我拍板或补的数？`,
-    '过问', rowId, sessionId)
-}
-
-/** The briefing's gap row: open a conversation about closing this missing reading. */
-export function askAboutGap(what: string, why: string, rowId: string, sessionId?: string): void {
-  sendPrompt(`面板代本人过问——缺的数「${what}」（${why}）：怎么把它补上？需要我提供什么，还是先告诉我去哪里拿？`,
-    '补缺', rowId, sessionId)
 }
 
 /**

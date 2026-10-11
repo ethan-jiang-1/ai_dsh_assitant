@@ -214,6 +214,8 @@ export function MemoryPanel(props?: { sessionId?: string }): unknown {
     sectionTitle('规模'),
     createElement('div', null,
       cell('记忆', store.data?.counts?.memories === undefined ? '—' : String(store.data.counts.memories)),
-      cell('在跟的事', store.data?.counts?.threads === undefined ? '—' : String(store.data.counts.threads))),
+      // `counts.threads` went with the retired desk sections (the room-data file carries
+      // memories / knowledge / skills now); the skill count is the memory room's other half.
+      cell('技能', store.data?.counts?.skills === undefined ? '—' : String(store.data.counts.skills))),
     ...panelAlerts(store))
 }

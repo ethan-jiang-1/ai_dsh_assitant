@@ -2,13 +2,13 @@
 /**
  * `pnpm desk-loop` —— 从**真实会话日志**里读培养循环的健康度（摩擦在这里长什么样）。
  *
- * 为什么存在：本产品的"摩擦"多数是**循环**事实——本人点一行 → 面板发一条带 `[桌面] ` 标记的消息 →
+ * 为什么存在：本产品的"摩擦"多数是**循环**事实——本人点一行 → 面板发一条带 `[面板] ` 标记的消息 →
  * 助手应当重写 `.desk/state.json` → 面板跟着变。这条链断在哪，本人的体验就是"它没理我"，于是他
  * **再点一次**。这段读法如果留给未来的会话临场发明，摩擦就永远只能靠碰巧被发现；本工具把读法钉下来，
  * 好让发现直接变成切片。
  *
  * 读什么（全部来自会话日志，不读 stdout，也不读面板内部状态）：
- *   · `user/message` 的 content 文本块 —— 面板自己的消息带 `[桌面] ` 标记（A10），本人的话没有；
+ *   · `user/message` 的 content 文本块 —— 面板自己的消息带 `[面板] ` 标记（A10），本人的话没有；
  *   · `tool/call` 的 name/arguments —— 桌面写入（谓词与评测器共用：[`wrotePath`](eval/checks.mjs)）
  *     与技能加载（`skill` 工具点名 `desk-refresh`）；
  *   · `feedback/message-put` / `feedback/message-delete` —— 消息赞踩（adoption 卡 C2 片）：本人点在
@@ -38,7 +38,7 @@ const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 // 与 dev/env/dsh.mjs 同一条硬规则：永不继承 DSH_HOME（见 dev/usage-report.mjs 的同名说明）
 const harnessHome = resolve(process.env.ASSISTANT_DSH_HOME ?? join(repoRoot, 'dev', 'harness-home'))
 
-const PANEL_MARKER = '[桌面] '
+const PANEL_MARKER = '[面板] '
 const SKILL = 'desk-refresh'
 const DESK_PATH = '.desk/state.json'
 const REPEAT_WINDOW_MS = 15 * 60 * 1000
@@ -125,7 +125,7 @@ function speakerOf(event) {
  * 前言是 harness 注入的，落盘时挂在第一条 user/message 的正文前面（`source.kind` 仍是 `'user'`，
  * 所以结构判定分不出来——这是第四个被真机抓出来的读数缺陷，2026-09-27）：它会整段冒充"本人的话"
  * （§5/§6 里出现一串 `[Collaboration boundary] You may change the working tree…`），也会把面板消息的
- * `[桌面] ` 前缀顶掉。剥法是机械的：以该标记开头 ⇒ 丢掉第一个空行（含）之前的部分；剩下的才是他说的话。
+ * `[面板] ` 前缀顶掉。剥法是机械的：以该标记开头 ⇒ 丢掉第一个空行（含）之前的部分；剩下的才是他说的话。
  * @param text - 消息纯文本。
  * @returns 剥掉前言后的正文（可能为空＝这一轮没有人的内容）。
  */
