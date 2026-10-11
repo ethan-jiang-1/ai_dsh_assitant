@@ -4,6 +4,7 @@
 
 | 卡 | 标题 | 修复 | 日期 |
 |---|---|---|---|
+| [BUG-009](BUG-009-probe-under-load.md) | 会话挂载相位的判据面随负载变红（evaluate 超时不可配、失败不自解释，底下压着两处真竞态） | ①判据面：`cdp-driver` 加 `evaluateTimeoutMs`、探针加 `--eval-timeout`（默认 60s）+ 饱和警告 + 判决带 `host{loadavg}` + 失败 `hostHint`（机制红绿：1ms 必超时 / 30s 得值）；②粘贴前新增 `conversation-idle` 相位（回合中 composer 是停止态、粘贴会被丢）；③回放脚本第一格服务「种子回合」（它排在主轮之前，不加就整体错位一格——探针自 `1abaa93` 起一直红而无人重跑）。绿证据：全套相位 exit 0（含交代臂三轮） | 2026-10-11 |
 | [BUG-010](BUG-010-loop-probe-stale-first-screen.md) | 首用闭环探针的首屏断言停在「打开即对话」时代（唯一桌面之后首屏是桌面页） | 场景契约改成两步：首屏判**桌面页**（`deskFirstScreen`/`deskCopyZh`/无黑话/工作区就绪），要跑回合时走桌面自己的门「＋ 交代新事项」进会话再判 composer 与引导条；surface-only 运行不建会话。同一改动**当场抓到并修掉**一个真缺陷（`startIntake` 要求投影 ready ⇒ 全新 home 上「＋ 交代新事项」是死按钮；`missing` 视为「没有事项」、真未知不绑路径但门照开，`5a7c00a` + client-entry 守卫）。证据：全新一次性 home 上由红转绿，`--ask` 真回合 17s、exit 0 | 2026-10-11 |
 | [BUG-008](BUG-008-schedule-tools-missing.md) | 评测断言了它自己托管不了的能力——`desk-daily-brief` 出生即不可能 PASS，note 记了不可复现的 PASS | 任务声明 `requires: 'web'` + runner 新增 `partitionTasks()` 报 **NOT EVALUATED**（不算通过＝假绿、不算失败＝替组合面背锅）+ `--self-check` 红绿对照进 `pnpm verify`；更正晨报提案卡的假 PASS 与验收表、`docs/dev.md` §四补「能力边界」。web-session 驱动列为升级路径（触发：第二条 web-only 任务或本人要求 web 面出分） | 2026-10-11 |
 | [BUG-007](BUG-007-concurrency-lifecycle-minors.md) | 并发与生命周期轻缺陷群（房间无锁/拆卸缺失/跨时钟） | 部分：F8 tmp 唯一化（红→绿）；锁/拆卸/跨时钟三项 deferred-with-trigger 住修复 note | 2026-10-07 |
