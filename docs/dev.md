@@ -201,6 +201,7 @@ DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得
 | llm-replay 不吃 title 条目 | 会话标题生成的 LLM 调用不走回放脚本条目（走真实 adapter 或直接失败），不影响主回合对齐 | 回放探针只断言主回合的请求侧（system/tools）与会话日志，别把 title 调用算进脚本条目 |
 | web-face 重录的 home 必须与场景契约一致 | 在 eval home 上给 blank 场景 `--refresh` 会把真实业务数据录进期望（曾发生，靠契约检查抓回） | 按场景 README 起**该场景自己的隔离 home** 再重录；重录只提交 DOM JSON，PNG 留临时目录人工过目 |
 | 浏览器探针在会话挂载相位红 | 该相位含「会话首屏挂载 + 回放 burst」，机器被压满时（实测 load 20–50 / 10 核，来自**别的仓库**的 Playwright/Chrome）任何实现都会假红；探针自己还起过一个回合，回合中 composer 是停止态（没有发送键、粘贴被丢） | `desk-process-e2e.mjs` 的判决带 `host { ncpu, loadavg, evalTimeoutMs }` 与失败 `hostHint`——**红之前先看它**，再决定是否当回归查；预算不够给 `--eval-timeout <ms>`（默认 60s）；粘贴前的 idle 等待是相位 `conversation-idle`，别绕过它 |
+| 推送 GitHub：SSH 被出网代理关闭 | 本机 DNS 走 fake-IP（`github.com` → `198.18.0.67`），22 端口连接被掐（`Connection closed by 2001:2::43 port 22`），`ssh -T git@github.com` 同病；HTTPS 正常 | 推送走 HTTPS：`git push https://github.com/<owner>/<repo>.git <branch>`（本机 keychain 已有凭据，非交互可用）；本仓 `origin` 已改指 HTTPS 以便 `git fetch`/`git push` 直接可用，要回 SSH 用 `git remote set-url origin git@github.com:…` |
 
 **自动化会话的协作边界**（常量 `COLLABORATION_BOUNDARY` 在 `src/dev/preset-runner/` 里逐会话前置 + 家手册协作边界同一节；**不写在 patch 的 `!!js` 表达式里**——配置层模板字面量会被 overlay 的 YAML 标签求解器拒绝，2026-09-25 真踩过，故新增 `structure: every composition file we own parses as YAML` 门禁）：会话**可以改工作树，
 但不得 `git commit`**（提交权属于人或开发会话）；卡上标 🔒 的保留项（`_backlog/issues/`）**不得自行判触发、不得删卡、不得实现**，
