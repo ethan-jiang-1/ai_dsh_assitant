@@ -4,6 +4,15 @@
 // the first-open surface this repo promises, and — with --ask — drive the
 // full product loop (type a real question, send it, wait for the real reply).
 //
+// WHAT THE FIRST SCREEN IS (rewritten 2026-10-11, BUG-010): the 唯一桌面 decision made the
+// ledger desk page the default main area, so the first-open surface is
+// `[data-assistant-operating-desk]` — not a conversation. The composer, the vendor hero and our
+// first-mile strip live INSIDE a conversation, so this probe now asserts the desk first, then
+// (only when a turn is requested, because that is what creates a session) walks in through the
+// desk's own door 「＋ 交代新事项」 and asserts the composer and the strip there. Before this the
+// probe red-flagged a perfectly healthy instance: composerMounted/firstMileStripShown/zhHero were
+// false by design on the desk page.
+//
 // Why this exists: the 2026-10-01 first-open UX campaign rehearsed exactly
 // this loop by hand — six separate `pnpm shots` invocations with fragile
 // inline JS, one finding per run (composer rejects execCommand; the send/
@@ -68,6 +77,9 @@ const quiet = flag('--quiet');
 const dislike = flag('--dislike');
 const approve = flag('--approve');
 const say = (message) => { if (!quiet) console.error(`  ..  ${message}`) };
+// Whether this run drives real turns — those are the runs that enter a conversation (creating a
+// session); a surface-only run must stay side-effect-free.
+const wantsTurn = ask !== undefined || followUp !== undefined || (walk !== undefined && walk.length > 0) || dislike;
 
 if (guiUrl === undefined || !/^https?:\/\//.test(guiUrl) || !guiUrl.includes('token=')) {
   console.error("webui-loop-probe: PASS a booted GUI URL like 'http://127.0.0.1:<port>/?token=<t>'");
@@ -80,12 +92,17 @@ if (ask !== undefined && ask.trim().length === 0) {
 
 const verdict = {
   booted: false,
-  // First-open surface (product-owned promises, see the UX card 261001):
-  composerMounted: false,
-  firstMileStripShown: false,
+  // First-open surface (product-owned promises): the ledger desk page is the default main area
+  // since the 唯一桌面 decision (2026-10-11) — these four describe THAT screen.
+  deskFirstScreen: false,
+  deskCopyZh: null,
   noRoomJargon: null,
   workspaceReady: null,
-  zhHero: null,
+  // Conversation surface — asserted after the desk's own door is used, and only when a turn runs
+  // (entering a conversation creates a session, so a surface-only run stays side-effect-free).
+  entry: undefined,
+  composerMounted: null,
+  firstMileStripShown: null,
   // --ask loop:
   askQuestion: undefined,
   pasted: undefined,
@@ -108,18 +125,11 @@ verdict.consoleProblems = consoleProblems;
 verdict.exceptions = exceptions;
 
 try {
-  // Boot wait: the composer is the first mount this probe needs. A fixed
-  // settle + single read proved steadier than a fast poll (driver doc §判定轮询).
-  let composerMounted = false;
-  for (let i = 0; i < 40 && !composerMounted; i++) {
-    composerMounted = await evaluate(`document.querySelector('[data-composer-input="true"]') !== null`) === true;
-    if (!composerMounted) await new Promise((resolve) => { setTimeout(resolve, 500) });
-  }
-  verdict.composerMounted = composerMounted;
-
-  // The blank-session guidance strip is this repo's own copy (hardcoded zh),
-  // so its presence is locale-independent. The room-jargon guard pins the
-  // first-open UX card's fix: governance vocabulary never leaks back.
+  // Boot wait: the DESK PAGE is the first mount this probe needs (唯一桌面, 2026-10-11). A fixed
+  // settle + poll proved steadier than a one-shot read (driver doc §判定轮询).
+  // The room-jargon guard pins the first-open UX card's fix: governance vocabulary never leaks back.
+  // Our own desk copy in Chinese is what says the first screen is OURS and localized, now that the
+  // vendor hero (whose zh string used to carry that role) is one click deeper.
   // The default-workspace initialization is ASYNC on a fresh home (osascript +
   // mkdir): the first paint can transiently show the workspace question and
   // self-heal once initialization lands. Whether it self-heals IN PLACE (the
@@ -134,35 +144,53 @@ try {
   // it absent on a healthy home (live DOM showed the strip rendered). Any
   // marker still failing may be mid-hydration; only a failure that persists
   // the full budget is a real failure.
-  let surface = await evaluate(`(() => {
+  const deskSurface = `(() => {
+    const root = document.querySelector('[data-assistant-operating-desk]');
     const text = document.body.textContent ?? '';
     return {
-      firstMile: text.includes('第一次来'),
+      desk: root !== null && (root.textContent ?? '').includes('你的桌面'),
+      deskCopy: text.includes('重新读取') && text.includes('交代新事项'),
       roomJargon: text.includes('三室'),
       workspaceStuck: text.includes('Choose a workspace to start')
         || text.includes('Unable to create default workspace'),
-      zhHero: text.includes('探索未至之境'),
     };
-  })()`);
+  })()`;
+  let surface = await evaluate(deskSurface);
   for (let i = 0; i < 8; i++) {
-    if (surface?.firstMile === true && surface?.zhHero === true
+    if (surface?.desk === true && surface?.deskCopy === true
       && surface?.roomJargon === false && surface?.workspaceStuck === false) break
     await new Promise((resolve) => { setTimeout(resolve, 1500) });
-    surface = await evaluate(`(() => {
-      const text = document.body.textContent ?? '';
-      return {
-        firstMile: text.includes('第一次来'),
-        roomJargon: text.includes('三室'),
-        workspaceStuck: text.includes('Choose a workspace to start')
-          || text.includes('Unable to create default workspace'),
-        zhHero: text.includes('探索未至之境'),
-      };
-    })()`);
+    surface = await evaluate(deskSurface);
   }
   verdict.workspaceReady = surface?.workspaceStuck === false;
-  verdict.firstMileStripShown = surface?.firstMile === true;
   verdict.noRoomJargon = surface?.roomJargon === false;
-  verdict.zhHero = surface?.zhHero === true;
+  verdict.deskFirstScreen = surface?.desk === true;
+  verdict.deskCopyZh = surface?.deskCopy === true;
+
+  // 进会话（只在要跑回合时）：走桌面自己的门——「＋ 交代新事项」（它同时也是交代首事臂的入口），
+  // 没有它才退到「新建会话」。进了之后才判 composer 与首开引导条。
+  if (wantsTurn) {
+    verdict.entry = await evaluate(`(() => {
+      const root = document.querySelector('[data-assistant-operating-desk]');
+      const door = [...(root?.querySelectorAll('button') ?? [])].find(b => (b.textContent ?? '').includes('交代新事项'));
+      if (door !== undefined) { door.click(); return 'desk-intake' }
+      const fresh = [...document.querySelectorAll('button')].find(b => (b.textContent ?? '').includes('新建会话'));
+      if (fresh !== undefined) { fresh.click(); return 'new-session' }
+      return 'no-entry';
+    })()`);
+    let composerMounted = false;
+    for (let i = 0; i < 40 && !composerMounted; i++) {
+      composerMounted = await evaluate(`document.querySelector('[data-composer-input="true"]') !== null`) === true;
+      if (!composerMounted) await new Promise((resolve) => { setTimeout(resolve, 500) });
+    }
+    verdict.composerMounted = composerMounted;
+    // 首开引导条是我们自己的中文文案，两种变体都算在场（全新 home 是「第一次来」，有数据的是
+    // 「这是你的一把手桌面」）——按 home 新旧二选一判会把健康 home 判红。
+    verdict.firstMileStripShown = await evaluate(`(() => {
+      const text = document.body.textContent ?? '';
+      return text.includes('第一次来') || text.includes('这是你的一把手桌面');
+    })()`) === true;
+  }
 
   // The full product loop. The composer is a framework contenteditable that
   // REJECTS execCommand('insertText') (returns false, editor state unmoved) —
@@ -302,7 +330,7 @@ try {
     return result;
   };
 
-  if (ask !== undefined && composerMounted) {
+  if (ask !== undefined && verdict.composerMounted === true) {
     verdict.ask = await runTurn(ask);
     // Multi-turn continuity (P2): a follow-up turn in the SAME session must
     // reach the prior turn's context without re-explaining the setup.
@@ -366,8 +394,9 @@ try {
 console.log(JSON.stringify(verdict, null, 2));
 let exitCode = 0;
 if (verdict.booted === false || verdict.error !== undefined) exitCode = 1;
-if (verdict.composerMounted === false || verdict.firstMileStripShown === false) exitCode = 1;
+if (verdict.deskFirstScreen === false || verdict.deskCopyZh === false) exitCode = 1;
 if (verdict.noRoomJargon === false || verdict.workspaceReady === false) exitCode = 1;
+if (wantsTurn && (verdict.composerMounted !== true || verdict.firstMileStripShown !== true)) exitCode = 1;
 const askOk = verdict.ask !== undefined
   && verdict.ask.pasted === 'pasted' && verdict.ask.composerReady === true
   && verdict.ask.sent === 'sent' && typeof verdict.ask.replySeconds === 'number'
