@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// K4 处理流确定性端到端探针（_backlog/issues/261010-desk-k4-closure.md 开放面 2）。
+// K4 处理流确定性端到端探针（_backlog/_archive/settled_issues/261010-desk-k4-closure.md 开放面 2）。
 //
 // 链路：桌面(m-1) → 处理会话 → 回放 report/propose → 留在对话 → 显式拒绝 p-1 →
 // 真工具写拒绝回执 → 投影读回 → 自动返回桌面（日期仍为 10/13）→ 第三轮走**交代首事臂**：

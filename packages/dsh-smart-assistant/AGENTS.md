@@ -37,7 +37,7 @@
 | `src/dev/preset-runner/` | 验证驱动（非产品能力；`./preset-runner` 公开出口保留，dev patch 按包名解析不受路径影响） |
 | `src/host/index.ts` | 服务实现（host 面）：四个房间的读写、curate、digest、提案收件箱；根 `src/index.ts` 是它的薄导出稳定入口（同 class 身份，不持第二份实现） |
 | `presets/assistant/` | 策展技能（`skills/`，**模型用**）；shipped preset 组合由包根 `cordis.patch.yml` 的 `preset-assistant` 行拥有 |
-| `tests/` | 纯核 + 服务级合同 + 真实组合装载（服务级用真 cordis 构造，不依赖 DSH 运行时） |
+| `tests/` | 纯核 + 服务级合同 + 真实组合装载（服务级用真 cordis 构造，不依赖 DSH 运行时）；测试树的资产形态规则住其门牌 [`tests/AGENTS.md`](tests/AGENTS.md) |
 
 ## 本子树的纪律
 

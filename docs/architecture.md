@@ -11,7 +11,7 @@
 
 | 那一圈的五件事 | 本插件的落点 |
 |---|---|
-| ① 让它看到该看的东西（上下文） | **桌面 / 抽屉**：常驻四段——身份段（SOUL.md）+ 手册（AGENTS.md）+ 有界状态摘要（精选记忆 + 开放线索条数）+ 经营账本段；细节用工具取 |
+| ① 让它看到该看的东西（上下文） | **桌面 / 抽屉**：常驻四段——身份段（SOUL.md）+ 手册（AGENTS.md）+ 有界状态摘要（精选记忆 + 开放线索 + 知识签树）+ 经营账本段；细节用工具取 |
 | ② 让它懂你的业务（隐性知识显性化） | `memory/` 房间：事实、偏好、决定 —— 一条一个文件，可读可审 |
 | ③ 让它有该有的本事（工具与边界） | 五个工具 + working folder 的写入边界（`src/domain/home/layout.ts` 是唯一 owner；经营账本另走独立 dataDir，契约 = [operating.md](operating.md)） |
 | ④ 让它按对的步骤走（工作流） | 过程性知识进**技能**（抽屉），不占常驻上下文；两档出口固定了线索的收束方式 |
@@ -186,7 +186,7 @@ assistant_operating ───→ ctx.assistantOperatingLedger ─→ 经营账�
 | settings namespace `assistant` | 出现"用户要在设置页改"的真实需求（现在配置走 bundle/profile 的 Config） |
 | 专属 Web 卡片（跨出通用座位的自有卡面 / 自有 slot 域名） | 通用座位与其 inject 缝表达不了：`tool.call.toolview` 槽与 `dsh.client.inject`（品牌、房间 tab、经营桌面投影已消费这两级——见 `package-catalog.md`「客户端座位面」）之后的下一级，自有域名届时按 `identity.md` §一 第 8 行命名 |
 | session 回放快照（web 渲染期望已建，同树） | 提示词组装面出现"只有跑起来才看得出"的回归，或同一 model-visible 面第三次靠手工探针钉回归（见 `snapshots/README.md`） |
-| 多专家复用（方案 D） | 第二个领域专家立项，且要复用骨架而不是各自重写 |
+| 多专家复用 | 第二个领域专家立项，且要复用骨架而不是各自重写 |
 
 ## 七、三条真实链路（谁调用谁）
 

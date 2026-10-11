@@ -7,13 +7,14 @@
  * (`assistant_reflect save_page`) once an evaluation set exists to judge them against.
  *
  * Usage:
- *   node scripts/import-knowledge.mjs --data-dir <assistant dir> <file-or-dir>... [--dry-run]
+ *   node dev/deploy/import-knowledge.mjs --data-dir <assistant dir> <file-or-dir>... [--dry-run]
+ *   (repo alias: `pnpm import-knowledge -- --data-dir …`)
  *
  * Deliberately takes an explicit `--data-dir` (no `DSH_HOME` inheritance, matching the repo's
  * double-home rule) and imports only text/markdown for now — docx/pdf conversion waits for a real
- * document set (see notes/implemented/2026-09-25-knowledge-ingest-core.md §四).
+ * document set.
  *
- * @module scripts/import-knowledge
+ * @module dev/deploy/import-knowledge
  */
 import { readdir, readFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'

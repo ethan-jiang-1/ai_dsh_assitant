@@ -5,7 +5,7 @@
  * "Cannot read private member #digestCache from an object whose class did not declare it" —
  * a bug invisible to every suite that constructs the service by hand, because only the real
  * composition consumes `ctx.assistantMemory` through the cordis property proxy inside a
- * preset standing scope (notes/implemented/2026-09-23-service-shadow-private-fields.md).
+ * preset standing scope.
  * tests/host/service-shadow-access.spec.ts covers the proxy in isolation; this suite covers the
  * combination: the real Loader, the vendor registries, the agent-presets roster with a
  * standing mount, and a real Agent joining it — then the production paths themselves

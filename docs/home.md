@@ -71,7 +71,13 @@ learn 模块的 `tools/result` 订阅就给对应名字计数（用户 `/name` �
 | `skills/` | 学到的做法（可复用、可被模型加载） | 由 DSH 技能 provider 发现与监听；被取代就改文件；**退役**（90 天未用阈值由 curate 报，`retire_skill` 执行）→ `skills/archive/`（不删、可恢复） | `assistant_reflect` |
 | `knowledge/` | 领域知识页：概念 / 实体 / 来源 / how-it-works，`[[互链]]` | `draft`（staged，不进搜索与摘要）→ **手改 status: stable 即人审** → `deprecated` 留在原地（链接必须继续解析，无 archive） | `assistant_reflect action=save_page`（写）+ `assistant_knowledge`（只读检索） |
 
-**Obsidian 互通**：`[[互链]]` 语法双方同构，但**解析键不同**——我们 id→title，Obsidian 只认**文件名**（= 我们的 id）：`aliases` 只喂它的补全，裸别名与 `title` 属性都不是解析键（[1.12.7 实测](https://forum.obsidian.md/t/wikilink-resolution-does-not-honor-frontmatter-aliases-1-12-7/113902)）。所以页内链接统一写**两边都认的形态** `[[<id>|<title>]]`：`save_page` 写入时自动把可解析的裸名字链接规范成它，每页 `aliases` 镜像着自己的 title——人在 Obsidian 里打 `[[` + 名字，补全选中后写下的正是这一形态。窄用（单开 `knowledge/` 为 vault：graph/tags/draft→stable 手改即人审）三条纪律：**别手打裸名字链接、更别点它建页**（Obsidian 侧 unresolved，点了新建同名空页分叉图，回来被 curate 报 error）；目标页尚不存在的链接（curate 报"未写成的知识"）无法规范化、保持原样，也属此类；**嵌套 frontmatter 字段走 Source 模式编辑**。dsh-obsidian 外部 vault 桥先不做：用户真想让助手管某个外部 vault 时再议。
+**Obsidian 互通**：`[[互链]]` 语法双方同构，但**解析键不同**——我们 id→title，Obsidian 只认**文件名**（= 我们的 id）：`aliases` 只喂它的补全，裸别名与 `title` 属性都不是解析键（[1.12.7 实测](https://forum.obsidian.md/t/wikilink-resolution-does-not-honor-frontmatter-aliases-1-12-7/113902)）。所以页内链接统一写**两边都认的形态** `[[<id>|<title>]]`：`save_page` 写入时自动把可解析的裸名字链接规范成它，每页 `aliases` 镜像着自己的 title——人在 Obsidian 里打 `[[` + 名字，补全选中后写下的正是这一形态。窄用（单开 `knowledge/` 为 vault：graph/tags/draft→stable 手改即人审）三条纪律：
+
+- **别手打裸名字链接、更别点它建页**——Obsidian 侧 unresolved，点了新建同名空页分叉图，回来被 curate 报 error；
+- 目标页尚不存在的链接（curate 报"未写成的知识"）无法规范化、保持原样，也属此类；
+- **嵌套 frontmatter 字段走 Source 模式编辑**。
+
+dsh-obsidian 外部 vault 桥先不做：用户真想让助手管某个外部 vault 时再议。
 
 **为什么探索要单独一间房**：不清晰的意图如果没地方放，只会被硬塞进正式流程（污染记忆与技能、拉低信噪比）
 或者蒸发（下次从零重开同一个问题）。**分房是为了让"已确立的"保持干净。**
@@ -122,7 +128,7 @@ learn 模块的 `tools/result` 订阅就给对应名字计数（用户 `/name` �
     线索/签树被挤只报 finding、不堵记忆写入门——堵了也修不好那部分。
   身份与手册是**working folder 根部的数据文件**（人可改、可 git、scaffold 只在缺失时写）——身份是数据不是
   preset 代码；静态引导（跨请求稳定，cache 友好）与动态状态（摘要）分离。
-  桌面只放"此刻最该在眼前的东西"。
+  桌面只放"此刻最该在眼前的东西"。（本节的「桌面」是常驻上下文的**比喻**；UI 主区的「经营桌面」面板是另一物，契约 = [`operating.md`](operating.md) §三。）
 - **抽屉**（要用再拿）：完整记录、归档、知识页、技能正文 —— 用 `assistant_memory` / `assistant_research` /
   `assistant_knowledge` / `skill` 工具取；`assistant_reflect`（§二）管写入面与复盘简报（`brief`）。
 
@@ -157,7 +163,7 @@ learn 模块的 `tools/result` 订阅就给对应名字计数（用户 `/name` �
 | 知识无源 | stable 页无 `sources`（`page-unproven`，warn） | 无源知识冒充已确立——"无 sources 不进 stable" |
 | 提案待落地 | 提案 status=approved 但未 land（`proposal-awaiting-land`，info） | 决定已做未执行——跑 land_skill 收口 |
 | 提案老化 | 提案超过 30 天无人处置（`proposal-stale`，info） | 决定悬着没人做——人改 status 挑出口 |
-| 技能凭据泄漏 | 技能文本里有疑似活凭据（私钥块/AKIA/sk-/gh_/`api_key:` 式长赋值）（`skill-credential-leak`，warn） | 写入面即攻击面（ClawHavoc 教训）：技能是会到处走的纯文件 |
+| 技能凭据泄漏 | 技能文本里有疑似活凭据（私钥块/AKIA/sk-/gh_/`api_key:` 式长赋值）（`skill-credential-leak`，warn） | 写入面即攻击面：技能是会到处走的纯文件 |
 | 用量账本可读性 | `skill-usage.json` 存在但解析不了 | 静默读零会误导退役决策 |
 
 简报同时附带两个**数据面**（不是 finding）：**技能用量**——每个学到技能的加载次数与最近使用

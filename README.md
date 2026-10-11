@@ -33,7 +33,7 @@
 本人的经营事实、判断标准与数据边界由本人提供或确认；原型可先用公开案例与标注模拟验证方法和机制，不等真人回访。
 **当前推敲与毕业边界按 owner 取用**：[定位卡](_backlog/_archive/settled_issues/261005-open-value-deficit.md) 与
 [自洽卡](_backlog/_archive/settled_issues/261005-turnaround-coherence.md)。已交付能力与证据归各自 implemented；
-[旧真用第一](notes/rejected/2026-10-01-real-use-first.md) 只作被取代方案的防错历史。推敲不构成新增产品能力或全部实施授权；研发姿态三条判据的常设指令在根
+[旧真用第一](notes/rejected/2026-10-01-real-use-first.md) 只作被取代方案的防错历史。推敲不构成新增产品能力或全部实施授权；研发姿态判据的常设指令在根
 `AGENTS.md`。
 
 ## working folder 有四个房间
@@ -48,7 +48,7 @@
 （四房间的路径、生命周期与出口的**合同** = [`docs/home.md`](docs/home.md) §一/§二；本表只做产品概览。）
 
 **桌面与抽屉**：常驻上下文 = 身份（SOUL.md）+ 手册 + 一份**有界摘要**（精选记忆 + 开放线索 +
-知识目录树）+ 经营账本段；完整记录、归档、技能正文都在抽屉里，用工具取。过程性知识（怎么写记忆、怎么养护、怎么复盘）
+知识签树）+ 经营账本段；完整记录、归档、技能正文都在抽屉里，用工具取。过程性知识（怎么写记忆、怎么养护、怎么复盘）
 一律放技能，不占常驻上下文。
 
 ## 工具
@@ -118,7 +118,7 @@ pack → 干净 home → 装 → 组合断言。装完只需把该 profile 的 `
 ## 开发
 
 ```sh
-git submodule update --init     # vendor/dsh submodule（pin 的唯一出处：`vendor/UPSTREAM.md`，`pnpm verify` 强制一致）
+git submodule update --init     # vendor/dsh submodule（pin 出处见上「装法」）
 pnpm install
 pnpm typecheck && pnpm test && pnpm verify
 ```

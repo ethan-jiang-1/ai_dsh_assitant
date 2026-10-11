@@ -9,8 +9,9 @@ whenToUse: After several slices that changed behaviour, commands, rows or verbs;
 The gates check structure, links, names and command aliases. They cannot see a sentence that is
 grammatically perfect and factually dead: a verb list that is two verbs short, an identity row that
 says "none" about a plane that shipped, a queue line that contradicts another line written the same
-day. Five rounds of this audit have produced 22 such drifts (zero, then six on 2026-09-23, seven
-on 2026-09-27, six on 2026-09-28, three on 2026-10-08) — every one of them invisible to `pnpm verify`.
+day. Successive rounds of this audit keep producing such drifts — the round ledger lives in git
+history (`git log --oneline --grep="audit round"`), not in this file, because counts in prose
+expire silently. Every drift found so far was invisible to `pnpm verify`.
 
 ## The loop
 

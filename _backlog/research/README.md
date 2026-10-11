@@ -11,7 +11,7 @@
 - **命名**：`YYMMDD-<slug>.md`（本仓推敲卡的日期格式），以它服务的卡或主题起名；卡片链接它。
 - **主题子目录（2026-10-05 用户拍板）**：材料按主题分装进子目录（`upstream/` = DSH 上游递交面、
   `positioning/` = 定位与打动管理层、`tech-exploration/` = 技术定调与技术实验、`usage/` = 真实使用观察），**文件名与证据正文保留，相对链接随位置修复**；新主题开新子目录，根目录不再平铺。
-  子目录**随材料在档而在**（最后一张活卡关闭即整目录随迁）：当前活跃 `positioning/`、`tech-exploration/`、`usage/`，`upstream/` 已迁入调研归档，再需要时新开同名目录即可。
+  子目录**随材料在档而在**（材料不再被取用即整目录随迁，见「使用与校准」）：当前在档 `positioning/`、`usage/`；`upstream/`、`tech-exploration/` 已迁入调研归档，再需要时新开同名目录即可。
   索引记**含子目录的路径**。
 - **无状态行**：不把原料伪装成结论。制度级索引互查要求本区文件（含主题子目录）被本 README 点名；活跃正文的相对链接复用 verify 现有纯核。该结构检查不验证证据质量、URL/anchors 或实现/效果，对活跃 `issues/` 和 `bugs/` 同样适用。
 - **生命周期——跟着卡片走**：最后一张使用它的活卡关闭时 `git mv` 到
@@ -44,18 +44,18 @@ research 为问题和缺陷提供依据。问题按 [关闭条件](../README.md)
 
 ## 索引
 
-先按当前使用关系分组。“活卡”表示正文直接引用；“间接使用”写明引用链和用途。“原卡”只说明立档背景，不证明现在还有使用者。没有任何活卡正文引用的材料，随迁到 [调研归档](../_archive/research/README.md)。调研不写 `status`。
+先按当前使用关系分组。**引用卡**（下表「引用卡：」）= 正文直接引用该材料的卡——多已结档，但结论仍被 [`README.md`](../../README.md) 的方向判据或活触发行取用，故材料留在活跃区；`usage/` 的 30 天读数档是**活观察**（被 [triggers.md](../triggers.md) 点名），观察期结束前不迁。「间接使用」写明引用链和用途。「原卡」只说明立档背景，不证明现在还有使用者。引用它的卡全部结档、且结论已不再被任何方向判据或触发行取用的材料，随迁到 [调研归档](../_archive/research/README.md)。调研不写 `status`。
 
-### 活卡直接使用
+### 直接引用
 
-从活卡链接进入，按正在解决的问题选读。
+从引用卡链接进入，按正在解决的问题选读。
 
-- [261008-ceo-value-historical-review.md](positioning/261008-ceo-value-historical-review.md)——活卡：[总助体验](../_archive/settled_issues/261006-chief-of-staff-experience.md)；原卡：[持续助理](../_archive/settled_issues/261008-ceo-operating-loop.md)。回看归档诉求、研究洞见与关闭依据，检查提醒/建议、跟踪、学习是否进入产品结果与验收
-- [261008-ceo-value-contract-review.md](positioning/261008-ceo-value-contract-review.md)——活卡：[总助体验](../_archive/settled_issues/261006-chief-of-staff-experience.md)；原卡：[持续助理](../_archive/settled_issues/261008-ceo-operating-loop.md)。静态核对 CEO 价值证据边界，附当前 pin 的全局主区、无会话输入/导航与账本承载可行性
-- [261005-chinese-sme-boss.md](positioning/261005-chinese-sme-boss.md)——活卡：[261007-opening-brief-and-rhythm](../_archive/settled_issues/261007-opening-brief-and-rhythm.md) 用口语化红线；[261007-input-boundary](../_archive/settled_issues/261007-input-boundary.md) 用五谷渔粉案例作需求线索。中国中小企业一把手工作画像
-- [261011-input-observation.md](usage/261011-input-observation.md)——活卡：[输入边界](../_archive/settled_issues/261007-input-boundary.md)。30 天输入观察的读数档：A 自发投递 / B 时长 / C 入口后的操作的口径、剔除规则、环境创建约定与每周快照（读数命令 `pnpm observe`）
-- [261005-exec-demo-narratives.md](positioning/261005-exec-demo-narratives.md)——活卡：[261007-input-boundary](../_archive/settled_issues/261007-input-boundary.md) 只用它划清 Huper 式全量接入的边界。面向 CEO/CFO 的十分钟演示叙事
-- [261005-ceo-time-and-decision-research.md](positioning/261005-ceo-time-and-decision-research.md)——活卡：[261007-input-boundary](../_archive/settled_issues/261007-input-boundary.md) 用它说明时间碎片和输入特点。一把手时间分配与决策过程
+- [261008-ceo-value-historical-review.md](positioning/261008-ceo-value-historical-review.md)——引用卡：[总助体验](../_archive/settled_issues/261006-chief-of-staff-experience.md)；原卡：[持续助理](../_archive/settled_issues/261008-ceo-operating-loop.md)。回看归档诉求、研究洞见与关闭依据，检查提醒/建议、跟踪、学习是否进入产品结果与验收
+- [261008-ceo-value-contract-review.md](positioning/261008-ceo-value-contract-review.md)——引用卡：[总助体验](../_archive/settled_issues/261006-chief-of-staff-experience.md)；原卡：[持续助理](../_archive/settled_issues/261008-ceo-operating-loop.md)。静态核对 CEO 价值证据边界，附当前 pin 的全局主区、无会话输入/导航与账本承载可行性
+- [261005-chinese-sme-boss.md](positioning/261005-chinese-sme-boss.md)——引用卡：[261007-opening-brief-and-rhythm](../_archive/settled_issues/261007-opening-brief-and-rhythm.md) 用口语化红线；[261007-input-boundary](../_archive/settled_issues/261007-input-boundary.md) 用五谷渔粉案例作需求线索。中国中小企业一把手工作画像
+- [261011-input-observation.md](usage/261011-input-observation.md)——引用卡：[输入边界](../_archive/settled_issues/261007-input-boundary.md)（**活观察**：读数档被 [triggers.md](../triggers.md) 的触发行点名，30 天观察期结束前留在活跃区）。30 天输入观察的读数档：A 自发投递 / B 时长 / C 入口后的操作的口径、剔除规则、环境创建约定与每周快照（读数命令 `pnpm observe`）
+- [261005-exec-demo-narratives.md](positioning/261005-exec-demo-narratives.md)——引用卡：[261007-input-boundary](../_archive/settled_issues/261007-input-boundary.md) 只用它划清 Huper 式全量接入的边界。面向 CEO/CFO 的十分钟演示叙事
+- [261005-ceo-time-and-decision-research.md](positioning/261005-ceo-time-and-decision-research.md)——引用卡：[261007-input-boundary](../_archive/settled_issues/261007-input-boundary.md) 用它说明时间碎片和输入特点。一把手时间分配与决策过程
 
 ### 间接使用
 

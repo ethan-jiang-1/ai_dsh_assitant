@@ -10,7 +10,7 @@
 1. **session 回放 fixture**：输入 JSONL + 期望投影（一场景一目录 + 自己的 `snapshot.yml` 声明
    profile 与录制）。
 2. **web 渲染期望**：真渲染一次的 DOM 证据比对（一场景一目录 + `snapshot.yml` + 契约 README；
-   harness = `dev/probes/web/webui-expected.mjs`，首场景 `web-face/blank-first-open/`）。
+   harness = `dev/probes/web/webui-expected.mjs`；当前已有场景见 [`README.md`](README.md)）。
 
 单元 / CLI / generator / 几何 / 其他纯函数期望输出**跟 owning 层走**
 （`packages/dsh-smart-assistant/tests/`、各自脚本旁）——集中目录只收真正同类的证据。

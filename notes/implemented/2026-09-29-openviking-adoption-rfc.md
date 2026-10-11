@@ -42,7 +42,7 @@
 1. 干净 home 跑一遍 ov-install.sh（拟建，见提案 2）→ doctor 全绿 + dump-config 断言 + 「会话有记忆」（开箱测试）；
 2. 记忆往返 + 找回命中（`pnpm ov-trial-rt` 形状，哨兵语料判分）；
 3. AGPL 合规复核通过（真人）；
-4. 正式接入面的决策切片另立（preset 组合行怎么挂、与自研三房间的开关关系）——已立卡推敲：[_backlog/issues/260929-openviking-formal-integration.md](../../_backlog/_archive/settled_issues/260929-openviking-formal-integration.md)（缝法 + 旋钮剖面 + 0.5.8 负知识）。
+4. 正式接入面的决策切片另立（preset 组合行怎么挂、与自研三房间的开关关系）——已立卡推敲：[260929-openviking-formal-integration](../../_backlog/_archive/settled_issues/260929-openviking-formal-integration.md)（缝法 + 旋钮剖面 + 0.5.8 负知识）。
 
 ## 遗留与边界
 

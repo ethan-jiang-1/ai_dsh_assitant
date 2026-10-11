@@ -1,9 +1,10 @@
 # notes/ —— 开发记忆与证据链（本目录的分类 owner）
 
 > **每个目录装什么、状态怎么读、由谁维护，以本文件为准**——职责由一个具名文件拥有，不由惯例拥有
-> （借自 DSH 的 Agent Notes 分类学：主仓语料消化稿 `_agent_ready_development/repo-harness/08-repository-taxonomy.md`、
-> `sdlc-reference/01-agent-note-lifecycle.md`——**不在本 pin 的 vendor 树内**；本 pin 树内的机制正文 =
-> [`vendor/dsh/.agents/notes/README.md`](../vendor/dsh/.agents/notes/README.md)。对齐与偏离登记见 §四）。
+> （借自 DSH 的 Agent Notes 分类学：主仓语料消化稿——主仓 checkout `deepseek-harness` 的
+> `_dsh_plugin_agent_ready_development/repo-harness/08-repository-taxonomy.md` 与
+> `_dsh_plugin_agent_ready_development/sdlc-reference/01-agent-note-lifecycle.md`，**不在本 pin 的 vendor 树内**；
+> 本 pin 树内的机制正文 = [`vendor/dsh/.agents/notes/README.md`](../vendor/dsh/.agents/notes/README.md)。对齐与偏离登记见 §四）。
 > **接下来做什么**：用户本轮请求优先。还要等人点头的持久取舍住 `proposed/`（问题/方案/验收；**点名或点头才开工**，与根 `AGENTS.md`「意图从哪来」同一条规则）。
 > 推敲住 [`_backlog/issues/`](../_backlog/issues/README.md)，这次不修的缺陷住 [`_backlog/bugs/`](../_backlog/bugs/README.md)。本目录不装进行中的工作板，也不装调研底稿。
 
@@ -45,7 +46,7 @@ plan 毕业不自动产生 note。切片记录、战役收口、收口数字、�
 目录与状态词必须一致（机械门禁）。文件名的日期必须等于状态行的日期。
 **互引**：note 之间只用**相对 Markdown 链接**（不用裸文字或编号）——可机械检查，且跨目录移动后仍然有效。
 **生命周期是移动不是复制**：`proposed → implemented` 必须把正文改写成已交付事实（删迁移计划、未来时态和剩余清单）；
-`proposed → rejected` 在状态行写一行原因；`implemented → archived` 在决定不再指导下次改动时冻结，状态词仍是 `implemented`，加一行 `已归档：YYYY-MM-DD`。
+`proposed → rejected` 在状态行写一行原因；`implemented → archived` 在决定不再指导下次改动时冻结，状态词仍是 `implemented`，加一行 `已归档：YYYY-MM-DD`（要不要冻结、怎么移、入链怎么修 = [`.agents/skills/note-archive-judgment/SKILL.md`](../.agents/skills/note-archive-judgment/SKILL.md)）。
 
 ## 二、刻意不做
 
@@ -68,7 +69,7 @@ plan 毕业不自动产生 note。切片记录、战役收口、收口数字、�
 切片推进、停点与证据缺口住 [`_backlog/issues/`](../_backlog/issues/README.md) 的收口卡，
 卡正文仍只承载问题/方案/取舍/验收——毕业（implemented）时才把正文整体改写为已交付事实。
 
-**上游边界（2026-09-28）**：不成熟、未到「问题/方案/验收」三件的思考，先住
+**上游边界（2026-09-28）**：不成熟、未到「问题/提案/验收」三件的思考，先住
 [`_backlog/issues/`](../_backlog/issues/README.md) 推敲（结论、交接与关闭按
 [backlog 关闭条件](../_backlog/README.md#关闭条件)处理）——本目录收毕业后的提案，不是停车场也不是推敲场。
 **「验收」节必须可执行**（命令、断言对象、红的形态——实施者不看对话就能复现）；
@@ -113,7 +114,7 @@ plan 毕业不自动产生 note。切片记录、战役收口、收口数字、�
 
 **偏离（记录理由）**：不采用 DSH 的 `{lifecycle}/{class}/` 两级路径——
 ① 本仓需求的可见性是"当前/将来/过去式"的**生命周期**轴，class（feature/bug-fix/process/…）是正交的第二轴；
-② 44 篇一次性迁移的 churn 与误分类风险大于可读性增益；
+② 全量一次性迁移的 churn 与误分类风险大于可读性增益；
 ③ DSH 主仓语料 `repo-harness/09-plugin-author-entry.md`（不在本 pin 树内）明说插件仓继承的是分类学**精神**（一个事实一个 owner、
 生成物有生成器、决定有记录），不强制复制其 Notes 机制。note 量级显著上升时重评此条。
 不设收卷调研目录：调研住 `_backlog/research/`，持久结论进决定 note。

@@ -1,7 +1,7 @@
 # snapshots/ —— 行为回归的证据面
 
 DSH 的行为回归证据面按"录一次、keyless 重放比对"运转（一场景一目录 + 自己的 `snapshot.yml`）。
-本 repo 是隔离插件（方案 A），harness 自建最小版。
+本 repo 是隔离插件仓，harness 自建最小版。
 
 **本树两类的现状**（状态归这里——`AGENTS.md` 只写入口与边界，不报进度）：
 
@@ -15,7 +15,7 @@ DSH 的行为回归证据面按"录一次、keyless 重放比对"运转（一场
 **当前用什么顶**：
 
 1. **测试**（`packages/dsh-smart-assistant/tests/`）：纯核函数的行为断言 ——
-   布局、frontmatter、存储、检索、三档出口、养护检查、摘要预算，
+   布局、frontmatter、存储、检索、两档出口、养护检查、摘要预算，
    以及真实组合装载（Loader + preset 站立挂载 + 经属性代理消费服务，keyless）。
    这是"会为这次回归而失败"的最小证据，覆盖绝大多数改动。
 2. **web 渲染期望**（本树，已建）：隔离 home 真·首开态的 DOM 证据比对——

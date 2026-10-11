@@ -5,23 +5,13 @@
 
 ## 这里是什么
 
-还没有裁决的问题住 [issues/](issues/README.md)（`YYMMDD-<slug>.md`），这次不修的缺陷住 [bugs/](bugs/README.md)（`BUG-<NNN>-<slug>.md`），喂卡的调研住 [research/](research/README.md)，方法住 [methods/](methods/README.md)，离开活跃区的住 [_archive/](_archive/README.md)。完整走法、关闭条件与目录表在[入口 README](README.md)——那是唯一家。
-
-## 两条车道，一张票
-
-- 问题卡：分诊 → 推敲 → 结论四门（做 / 以后做 / 不做 / 已在别处）→ 申请下游 → 关闭归档。
-- 缺陷卡：当场修掉不建卡；建卡即决定这次不修 → 排查 → 修复就绪 → 修复落地 → 已修归档。
-- **入场票两轨同一张**：问题清楚（什么情况引出、期望什么、怎么算完成）+ 验收手段（做的事项写 `## 验收标准`，缺陷卡写 `## 修好定义`）——由格式承载，缺半张不算立起来。
-- 修复授权的边界与 severity 的消费方在 [缺陷卡规则](bugs/README.md) 的修复通道节。
-
-## 卡的户口与翻转
-
-- frontmatter `status` 是当前阶段的唯一家；状态行镜像它、拥有历史（结论追加、出口补结论与去向）。
-- 翻转表（守卫 / 谁 / 记录）：问题卡见 [问题卡规则](issues/README.md)，缺陷卡见 [缺陷卡规则](bugs/README.md)；共享法在[入口 README](README.md#卡的生命周期)。
-- 状态行可带「毕业：」倾向字段，头必须是闭集 `未定 | 做现在 | 以后做 | 不做 | 已在别处`。
-- 沉默不翻转；出口值只在归档的那次改动里翻；清单、frontmatter、镜像与闭头由 `pnpm verify` 机械互查。
+问题卡住 [issues/](issues/README.md)、缺陷卡住 [bugs/](bugs/README.md)、调研住 [research/](research/README.md)、方法住 [methods/](methods/README.md)、离开活跃区的住 [_archive/](_archive/README.md)。完整走法、关闭条件与目录表在[入口 README](README.md)——那是唯一家。
 
 ## 两条铁律
 
-1. 卡上的状态、方案或建议不授予实施权限（例外：修复就绪的缺陷卡自带修复授权，边界见缺陷卡规则）。
+1. 卡上的状态、方案或建议不授予实施权限（唯一例外：修复就绪的缺陷卡自带修复授权，边界见 [缺陷卡规则](bugs/README.md) 修复通道节）。
 2. 没有用户点名，不从卡片清单自行开工。
+
+## 立卡与翻转
+
+两轨的入场票（问题清楚 + 验收手段，缺半张不算立起来）与各自翻转表在 [问题卡规则](issues/README.md) 与 [缺陷卡规则](bugs/README.md)；共享翻转法、frontmatter 户口与「毕业：」闭集在[入口 README](README.md#卡的生命周期)。

@@ -12,24 +12,36 @@
 
 ## 新会话开工（先读这段）
 
-**意图从哪来**（两通道，各管各的）：① **用户本轮请求**——唯一外部通道，本轮范围由它决定；② **已立项的内部工作项**——
-`notes/proposed/` 的提案卡（毕业形态：问题/方案/验收三件齐——「输掉的方案」一节推荐带上、毕业为 implemented 时门禁强制；**待用户拍板**：点名或点头即开工，正文与验收都在卡上）
-与 `_backlog/issues/` 的问题卡（触发型/用户点名才取用，流程与关闭条件见 `_backlog/README.md`）。这次不修的缺陷另记在 `_backlog/bugs/`，不是开工通道。
-**重大新工作默认先呈批**：跨切片的新工作 / 流程面改动 / 模型可见面新能力，开工前先立 proposed 卡等点头或点名；
-轮内直落只保留给豁免清单——机械与局部编辑（与 note 义务豁免同口径）、已授权切片的轮内延续、用户本轮明确点名的具体任务、bug 修复卡毕业。
-**没有用户任务时不发明任务**——报告家况，或按点名的卡推敲/实施；不要从 git log 或记忆发明任务。
-重大未来工作先在 `_backlog/issues/` 推敲，成熟并进入跨会话实施前用 `notes/proposed/` 显式承载；已授权局部编辑与轮内交付决定的 note 义务按 `notes/README.md`，不为小修立空壳卡或重复呈批。
-**开工先定外部结果**：非机械任务动手前先落**外部结果三要素**——触发条件 / 用户看到或得到什么 / 完成条件（载体 = plan 呈批或切片卡首节；实现选择不先于意图定义，交付记录按它收口）；机械/局部编辑豁免（与 note 义务豁免同口径）。
+**意图从哪来**（两通道，各管各的）：① **用户本轮请求**——唯一外部通道，本轮范围由它决定；
+② **已立项的内部工作项**——`notes/proposed/` 的提案卡（**待用户拍板**：点名或点头即开工；卡片骨架与毕业门禁以 [`notes/README.md`](notes/README.md) §二之二 为准）
+与 `_backlog/issues/` 的问题卡（只有用户点名才开工，流程与关闭条件见 [`_backlog/README.md`](_backlog/README.md)）。
+缺陷当场修掉不建卡；这次不修的记 `_backlog/bugs/`（默认不修，唯一的自授权例外通道见其 README）。
+
+**能不能不经呈批直接开工**（此表只做单一判断，范围细则在各 owner）：
+
+| 本轮工作 | 直接开工？ |
+|---|---|
+| 用户本轮明确点名的具体任务 | 能——范围 = 本轮请求 |
+| 已授权切片的轮内延续（授权记在 proposed 卡状态行） | 能——按卡上范围 |
+| 翻到修复就绪的缺陷卡（P1/P2 且不触例外清单） | 能——翻转即授权，边界见 [`_backlog/bugs/README.md`](_backlog/bugs/README.md) 修复通道节 |
+| 机械与局部编辑（口径 = note 义务豁免，[`notes/README.md`](notes/README.md) §〇） | 能 |
+| 跨切片的新工作 / 流程面改动 / 模型可见面新能力 | 不能——先立 proposed 卡呈批，等点头或点名 |
+
+**没有用户任务时不发明任务**——报告家况（`pnpm usage`），或按点名的卡推敲/实施；不要从 git log 或记忆发明任务。
+重大未来工作先在 `_backlog/issues/` 推敲，成熟并进入跨会话实施前用 `notes/proposed/` 显式承载；不为小修立空壳卡或重复呈批。
+
+**开工先定外部结果**：非机械任务动手前先落**外部结果三要素**——触发条件 / 用户看到或得到什么 / 完成条件（载体 = plan 呈批，或承载该切片的收口卡首节——收口卡是什么见 [`_backlog/issues/README.md`](_backlog/issues/README.md)）；实现选择不先于意图定义，交付记录按它收口；机械/局部编辑豁免（同上表）。
 深评的原料住 `_backlog/research/`。收卷后还会被重提的事实写进决定 note，不另留调研目录——看不见的工作等于没在做。
-代码里的 `TODO/FIXME` 不立项，只在代码内。`_backlog/issues/` 里的卡是推敲，没有点名不要开工。
+代码里的 `TODO/FIXME` 不立项，只在代码内。
 **Note 的义务、取代检查与生命周期以 [`notes/README.md`](notes/README.md) 为唯一权威**（何时写、输掉的方案、
 rejected 政策、命名——本文件不复制）；改行为、契约或开发流程前，按任务链接或机制名查相关 notes。
-交接即此链：AGENTS.md（本文件）→ `_backlog/issues/`、`_backlog/bugs/` 与 `notes/proposed/` → 各卡。
+交接即此链：AGENTS.md（本文件）→ 三个卡清单（`_backlog/issues/`、`_backlog/bugs/`、`notes/proposed/`——清单为空 = 无待续工作）→ 各卡。
 
 同一个多步流程第三次被重新推演时，就把它立成一件开发技能（放 `.agents/skills/`）——这是"重复即建"的常设规则，不占工作面。
 **两类 Skill，别混**：`.agents/skills/` 是**开发用**（给改这个仓库的 agent：证据路由、探针、
 审计、UI 贡献约束等——由 DSH 原生 `project-agents` 根发现，进目录即入技能目录）；`packages/dsh-smart-assistant/presets/assistant/skills/`
-是**模型用**（产品运行时技能，随 preset 走）。同名不同机制，不共享 registry。
+是**模型用**（**策展技能**，随 preset 走）；working folder 的 skills/ 房间里还有**学到的技能**（第三处，合同 = [`docs/home.md`](docs/home.md)）。
+同名不同机制，不共享 registry。
 **方法不是技能**：`_backlog/methods/` 的方法文件同为 agent 执行面（英文、SKILL 式 frontmatter），但它是推敲方法、住 backlog，不进任何技能发现根——见 [`_backlog/methods/README.md`](_backlog/methods/README.md)。
 
 ## 布局（改动前先认领 owner 面）
@@ -44,15 +56,17 @@ rejected 政策、命名——本文件不复制）；改行为、契约或开�
 | `packages/dsh-smart-assistant/` | **插件包**（bundle）：入口×平面、自有工具×动词、组合行、pin 与依赖姿态见生成物 `docs/package-catalog.md`；包内 owner 面与纪律见其 `AGENTS.md` | 改模型可见面 / 服务 / 布局动这里 |
 | `docs/` | **当前合同**（只写现在，无历史）—— 文档 tier 与"谁拥有什么"见其 `AGENTS.md` | 门禁住了的事实进这里 |
 | `notes/` | **开发记忆与证据链**（分类 owner：`notes/README.md`）：`proposed/` 将来 → `implemented/` 当前权威 → `archived/` 冻结历史；`rejected/` 存负知识与一行原因 | 决策与输掉的方案进这里 |
-| `_backlog/` | **推敲空间**（门牌 [`_backlog/AGENTS.md`](_backlog/AGENTS.md)：落进区域的 agent 先读）：还没定的事在 `issues/`（`YYMMDD-`），这次不修的缺陷在 `bugs/`（`BUG-`），调研在 `research/`，方法在 `methods/`，离开活跃区的在 `_archive/`。只装判断材料、**永不调度**；流程与关闭条件见其 `README.md`；`triggers.md` 只收工作里会撞上的观察（收割/走查/收口扫这张短表） | 收割/走查/对话中值得推敲但未到裁决的思考在此立卡 |
+| `_backlog/` | **推敲空间**（门牌 [`_backlog/AGENTS.md`](_backlog/AGENTS.md)：落进区域的 agent 先读）：还没定的事在 `issues/`（`YYMMDD-`），这次不修的缺陷在 `bugs/`（`BUG-`），调研在 `research/`，方法在 `methods/`，离开活跃区的在 `_archive/`。只装判断材料、**永不调度**；流程与关闭条件见其 `README.md`；`triggers.md` 只收工作里会撞上的观察（批量推进、真机走查、阶段收口时扫这张短表） | 收割/走查/对话中值得推敲但未到裁决的思考在此立卡 |
 | `dev/` | 开发 home 与 profile patch —— 双 home 与两个 profile 的纪律见其 `AGENTS.md` | 环境问题动这里（手册 owner：`docs/dev.md`） |
 | `scripts/` | 机械门禁与生成器 —— 门禁三条纪律与 freshness 约定见其 `AGENTS.md` | 门禁问题动这里 |
 | `snapshots/` | 行为回归的证据面——只收边界与现状见其 `AGENTS.md` 与 `README.md` | 回归证据问题动这里 |
 | `_dist/` | **分发导出（生成物）**：`pnpm export-dist` 的 tgz（不入库）与《安装手册》 | 分发问题动这里；生成器 `scripts/release/export-dist.mjs` |
 | `.agents/` | **开发用 Skill 根**（证据路由、探针、审计、UI 贡献约束等——DSH 原生 `project-agents` 根发现） | 新开发技能动这里 |
 | `deliverables/` · `.desk/` · `.tmp/` · `.pi/` | **会话运行现场（git 忽略或机器本地，不是仓库内容）**：cwd=仓根的会话留下的业务交付（未提交交接件）、My Desk 桌面状态、临时产物、DSH 会话任务持久化（`.pi/tasks/`） | 不提交、不当文档读；语义见 `.gitignore` 注释 |
-| `vendor/dsh/` | **钉住的 DSH 源码（submodule）** | **永不改**；升级走 `pnpm sync-dsh` |
-| `tsconfig.base.json` / `tsconfig.tsx.json` | 两个 tsconfig 解析入口（编译期手维护 / 运行期 `pnpm gen-paths` 生成） | 引入新 `@deepseek-ai/*` import 或换 pin 时动这里（契约：`docs/dev.md` §二） |
+| `vendor/dsh/` · `vendor/thirdparty/` | **钉住的外部源码**：DSH 源码（submodule）与钉存的第三方上游包（只读证据物，如 OpenViking，见其 README） | **永不改**；升级 DSH 走 `pnpm sync-dsh` |
+| `tsconfig.base.json` / `tsconfig.tsx.json` / `tsconfig.json` / `pnpm-workspace.yaml` | 根配置：两个 tsconfig **解析入口**（编译期手维护 / 运行期 `pnpm gen-paths` 生成）+ IDE 整仓聚合（`tsconfig.json`，typecheck 不经它）+ pnpm 工作区面 | 引入新 `@deepseek-ai/*` import 或换 pin 时动解析入口（契约：`docs/dev.md` §二） |
+
+`CLAUDE.md` 是 `AGENTS.md` 的 symlink（Claude 系工具的惯例名），同源无第二份。
 
 **语言分工**：人与本仓文档（docs/notes/AGENTS.md）用中文；进模型上下文的（persona、SKILL.md、工具 description、backlog 方法文件）用英文；代码与脚本注释随所在文件现状，不整批改写。
 
@@ -60,7 +74,7 @@ rejected 政策、命名——本文件不复制）；改行为、契约或开�
 
 **“启动一下这个 / 启动一下”** 在本仓库语境中默认指：在本仓隔离 home 里备好并起动 `dev` Web 实例（下表 ②③④），返回可访问 URL，交给人之前跑 `pnpm preflight '<URL>'`——不需要再追问“启动什么”。
 
-只有用户明确点名才换入口：`dev-task` 是无 Web 的 host 装载冒烟；`--patch ...preset-runner...` 是自动化 preset 探针；`vendor/dsh` 的 `dev:web`（`pnpm --dir vendor/dsh run dev:web`）只重建客户端 bundle 产物，不是起动本插件实例——三个入口的判据见 [`docs/dev.md`](docs/dev.md) §四。
+只有用户明确点名才换入口：`dev-task` 是无 Web 的 host 装载冒烟；`--patch ...preset-runner...` 是自动化 preset 探针；`vendor/dsh` 的 `dev:web`（`pnpm --dir vendor/dsh run dev:web`）只重建客户端 bundle 产物，不是起动本插件实例——三个入口的判据见 [`docs/dev.md`](docs/dev.md) 首节「默认启动动作」。
 
 **要起服务，这一串按序跑到底**（⓪②③ 都幂等，重跑安全）：
 
@@ -76,13 +90,13 @@ pnpm dsh --profile dev-task "one task"   # ⑤ 只想冒烟 host 面（插件装
 ```
 
 **要落到另一个 home（隔离实验/并行实例）**：给 ②③④⑤ **每一条都前置** `ASSISTANT_DSH_HOME=<dir>`
-（漏加到任意一条 = `profile "dev" does not exist`，机理见硬规则 1）；完整命令串与判据 =
+（漏加到任意一条 = profile 找不到的报错，机理见硬规则 1）；完整命令串与判据 =
 [`docs/dev.md`](docs/dev.md) §一（隔离模型 owner）。
 
 **开发环与舱内工具**（用①的 install 装好即可，与起服务无先后）：
 
-先判据、别瞎跑：① 装好了 = `node_modules/.modules.yaml` 在（或 `pnpm store` 里已有本次解析）；
-② 建好了 = `vendor/dsh/packages/boot/app-boot/lib/index.js`、`.../client/modules/lib/client.js`、
+先判据、别瞎跑：**装好了** = `node_modules/.modules.yaml` 在（或 `pnpm store` 里已有本次解析）；
+**建好了** = `vendor/dsh/packages/boot/app-boot/lib/index.js`、`.../client/modules/lib/client.js`、
 `vendor/dsh/apps/web/dist/index.html` 三个都在（`--dump-config`/`--help` 不加载 lib，**不能**当判据）。
 
 ```sh
@@ -94,7 +108,7 @@ pnpm shots '<URL>' --dom --size 1600x1000 --name <名字>   # 渲染证据：hea
 pnpm web-expected '<URL>'   # web 面期望比对：真拍一张与已提交期望比对（漂移 exit 1）；`--refresh` 重录期望（场景契约与判据：snapshots/web-face/<场景>/README.md）
 pnpm loop-probe '<URL>' --ask '<问句>'   # 首用闭环探针：**首屏=桌面页**（你的桌面/中文文案/无黑话/工作区就绪）→ 走「＋ 交代新事项」进会话 → 真发问真等回复，JSON 判决（借自 ai_dsh_loop_advisor；`--ask` 会真建会话，指向一次性 home）
 pnpm desk-walk '<URL>' [--home <dir>]   # 处理流真机走查（真模型）：首屏桌面→处理一件事→一句进展→返回不变量→交代新事；产出屏幕文本+截图供人判话术/层级（`--home` 才能核账本身份与「回来⇒无待确认」）
-pnpm dsh --profile dev --dump-config   # boot-free：组合里到底有没有这一行（排查 patch 落空/重复 id 的第一命令）
+pnpm dsh --profile dev --dump-config   # boot-free 查组合树：行 id、disabled、realm 一目了然（什么情况用 = 下「探索路由」同名条目）
 pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner.patch.yml "<task>"   # preset 挂载的 one-shot（验证自动化驱动）
 pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner-replay.patch.yml "<task>"   # 同上但 keyless：llm-replay 回放替掉真实 adapter，无 key 出真实会话日志（形状与坑见 patch 头注）
 pnpm typecheck          # 委派包级：tsc -b（编译期 paths 解析到 vendor/dsh 的 src，API 漂移编译期暴露）+ 测试工程
@@ -124,7 +138,7 @@ pnpm eval:domain        # 领域评测集 v0（G2＝领域质量的人判终关�
    [`docs/discipline.md`](docs/discipline.md)，本仓才能执行的步骤进仓根 `.agents/skills/`，本仓取舍进
    [`notes/`](notes/README.md)。平台段落留在 vendor 那一页。
 3. **窄证据**：一次交付 = 一个垂直切片（代码 + 测试 + 这次改动的合同同 diff）。note 只有 [`notes/README.md`](notes/README.md) §〇 要求留下时才进同一 diff；
-   只跑"会为这次回归而失败"的最小检查；**报告里只列真跑过的命令**；
+   只跑"会为这次回归而失败"的最小检查（改动面 → 最小可信证据的判断细则 = [`.agents/skills/pre-push-evidence/SKILL.md`](.agents/skills/pre-push-evidence/SKILL.md)）；**报告里只列真跑过的命令**；
    **提交只 add 本次改动涉及的路径**（同仓可能有并行会话，`git add -A` 会把别人的未提交改动扫进你的提交）。
 4. **默认严格，偏离登记**：研发纪律的继承是**逐源枚举**过的，不是凭印象
    （全表：`docs/discipline.md`）。偏离或裁剪先在该文件「已声明的适配」登记一行
@@ -142,9 +156,8 @@ pnpm eval:domain        # 领域评测集 v0（G2＝领域质量的人判终关�
    探针与评测产物、插件运行时的 spill、**进模型上下文的指令里的路径**——只准落在**仓根 `.tmp/<用途>/`** 下，
    这是仓内**唯一**的临时文件形式（一个用途一个子目录，清扫即回收全部）。**为什么不是洁癖**：文件沙箱只放行
    会话工作目录，仓外写（系统临时根、`os.tmpdir`、`$HOME`）会被挡下并转成一次人工 approval——每写一次临时文件
-   就要人点一次同意，流程就废了。机制：仓内脚本用 `dev/env/tmp.mjs` 的 `tmpDir`/`mkTmpDir`；dev 启动器把
-   `TMPDIR`/`TMP`/`TEMP` 收进 `<repo>/.tmp/host/`，vendor 的 spill 随之入仓；测试进程由
-   `packages/dsh-smart-assistant/vitest.config.ts` 收进 `.tmp/vitest/`；`pnpm verify` 有门禁守这条。
+   就要人点一次同意，流程就废了。机制：仓内脚本用 `dev/env/tmp.mjs` 的 `tmpDir`/`mkTmpDir`（哪个环节收进哪个
+   子目录 = [`docs/dev.md`](docs/dev.md) §一 spill 行）；`pnpm verify` 有门禁守这条。
    模型可见指令（SKILL.md 那一类）在别人机器上跑，口径是"写会话工作目录下的 `.tmp/`"，不是本仓绝对路径。
 
 ## 研发姿态（用户拍板，常设）
@@ -164,8 +177,8 @@ pnpm eval:domain        # 领域评测集 v0（G2＝领域质量的人判终关�
 
 ## 探索路由（本仓侧与 DSH 侧常用入口）
 
-- **本仓侧**：证据路由（改什么 → 跑什么 → 回归资产在哪）= [`docs/testing.md`](docs/testing.md) §一页证据地图（唯一表主）；功能路由与运行链路的速查 = [`docs/architecture.md`](docs/architecture.md) §八/§七
-- **平台事实的家**（读 vendor，本仓不复写正文）：文档 tier = `vendor/dsh/docs/AGENTS.md`；主仓 note 合同 = `vendor/dsh/.agents/notes/README.md`（本仓合同是 [`notes/README.md`](notes/README.md)，只写差量）；主仓开发技能 = `vendor/dsh/.agents/skills/`（发现根是本仓 `.git`，不进本仓技能目录；那些命令在主仓里跑）
+- **本仓侧**：产品合同（working folder 四房间 = [`docs/home.md`](docs/home.md)，经营账本与桌面投影 = [`docs/operating.md`](docs/operating.md)）；证据路由（改什么 → 跑什么 → 回归资产在哪）= [`docs/testing.md`](docs/testing.md) §一页证据地图（唯一表主）；功能路由与运行链路的速查 = [`docs/architecture.md`](docs/architecture.md) §八/§七；出了问题先查 [`docs/dev.md`](docs/dev.md) §五踩坑清单（每条真踩过）
+- **平台事实的家**（读 vendor，本仓不复写正文）：文档 tier = `vendor/dsh/docs/AGENTS.md`；主仓 note 合同 = `vendor/dsh/.agents/notes/README.md`（本仓合同是 [`notes/README.md`](notes/README.md)，只写差量）；主仓开发技能 = `vendor/dsh/.agents/skills/`（技能发现根 = 所在工作树的 `.git` 所在仓，各仓只发现自己的 `.agents/skills/`——所以主仓技能留在主仓跑，不进本仓技能目录）
 - 组合层级（bundle → profile patch → home patch → `--patch`）：`vendor/dsh/docs/architecture.md`
 - preset 语义（roster/roots/遮蔽/standing mount）：`vendor/dsh/packages/preset/agent-preset/README.md`
 - 技能 provider 契约（本 repo 依赖它）：`vendor/dsh/docs/subsystems/skills.md`

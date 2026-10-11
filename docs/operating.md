@@ -48,7 +48,7 @@
 
 - `GET api/assistant/desk-projection`，固定只读，`requestBody: buffered`：
   **有 `ledger.json` 时优先读真账本并即时渲染 v2 投影**（永不持久第二份可写真相；夹具文件压不过权威账本）；
-  无账本时回退固定 `desk-projection.json` 模拟输入（K1/K2 场景）。两者都缺 = 404。
+  无账本时回退固定 `desk-projection.json` 模拟输入（无账本的评估与首开场景）。两者都缺 = 404。
 - 不创建目录/文件、不读 agent working folder、不接受 query（带 query = 400）与 path 参数、不提供写入；
   业务 schema 的校验在客户端解析器，不在下载器。
 - 认证与 Host/Origin 检查由 Connection 物理 carrier 承接；响应 `no-store` + `nosniff`；
@@ -65,7 +65,7 @@
   唯一事项 `id`、标题、`active/completed` 状态、summary 与 evidence 集合——每条证据须有唯一 id、
   Session/event 定位和 quote；空证据表达未知，不推断来源存在；`fixture` 若提供必须为 boolean；
   额外 envelope 字段不进入返回值；不兼容版本或畸形身份/证据抛错，**不覆盖**最后有效内容。
-  v2 的 reminders 通道是**恒空占位**（V4/V5 提醒协调落地前的诚实空态）。
+  v2 的 reminders 通道是**恒空占位**（提醒协调落地前的诚实空态）。
 - 生命周期绑定经主区 inject 的 `hooks.projection` 暴露为 `useProjection`：组件零网络/零订阅；
   fiber 卸载取消请求/撤销订阅，Slot 重挂复用该源。宽主区列表/详情双栏，窄容器单 pane；
   选择只保存在 Slot view store。`ready` = 下载已通过解析，**不**表示持久业务操作成功。

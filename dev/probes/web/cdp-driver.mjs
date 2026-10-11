@@ -4,9 +4,10 @@
  * the page's own console problems and uncaught exceptions.
  *
  * This module is project-agnostic — copy it into any repo that ships a web
- * UI and write a scenario against it (see scripts/cdp-probe.mjs for the
- * loop-advisor scenario and docs/cdp-probe.md for the pattern and the
- * environment gotchas this driver already handles).
+ * UI and write a scenario against it (in the source repo `ai_dsh_loop_advisor`,
+ * see its scripts/cdp-probe.mjs for the loop-advisor scenario and its
+ * docs/cdp-probe.md for the pattern and the environment gotchas this driver
+ * already handles — those paths are that repo's, not this one's).
  *
  * Provenance: borrowed verbatim from the sibling repo `ai_dsh_loop_advisor`
  * (scripts/lib/cdp-driver.mjs, 2026-10-01) at the owner's instruction — the

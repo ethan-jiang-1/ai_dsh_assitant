@@ -1426,10 +1426,11 @@ export function markdownCorpusFromTracked(trackedPaths, repoRoot) {
 }
 
 /**
- * Note-card pointers must resolve wherever they hide, and inside notes/ they must be markdown
- * links. Two escape classes found by audit live here: a `notes/…​.md` path inside a patch YAML
- * comment (no link gate scans non-markdown — the 2026-09-28 and 2026-10-08 escapes both rode
- * that blind spot), and a bare full-filename mention in prose that outlives the file it names
+ * Note- and backlog-card pointers must resolve wherever they hide, and inside notes/ note
+ * references must be markdown links. Escape classes found by audit live here: a `notes/…​.md`
+ * or `_backlog/…​.md` path inside a patch-YAML comment or dev script header (no link gate scans
+ * non-markdown — the 2026-09-28, 2026-10-08 and 2026-10-12 escapes all rode that blind spot),
+ * and a bare full-filename mention in prose that outlives the file it names
  * (notes/README.md:「note 之间只用相对 Markdown 链接」).
  *
  * @param {{ repoRoot: string, files: Array<{file: string, where: string, text: string}> }} input
@@ -1439,17 +1440,34 @@ export function notePointerProblems({ repoRoot, files }) {
   // The lookbehind keeps repo-relative pointers in scope and tails of larger paths out of it:
   // `/Users/other/ai_dsh_company/notes/…` (external provenance) and
   // `vendor/dsh/.agents/notes/implemented/AGENTS.md` (a vendor link target) are not our pointers.
-  const pathPattern = /(?<![A-Za-z0-9._/-])notes\/(?:proposed|implemented|archived|rejected)\/[A-Za-z0-9._/-]+\.md/g
+  // Two pointer families, same existence rule. The second (backlog cards) exists because cards
+  // move into _archive/ when they close — a comment that cites `_backlog/issues/<card>.md` goes
+  // stale the moment that card settles (the 2026-10-12 round found exactly that in dev/*.mjs);
+  // the link-form rule stays notes/-internal, so it applies to the notes family only.
+  const pointerPatterns = [
+    {
+      re: /(?<![A-Za-z0-9._/-])notes\/(?:proposed|implemented|archived|rejected)\/[A-Za-z0-9._/-]+\.md/g,
+      linkedRule: true,
+    },
+    {
+      re: /(?<![A-Za-z0-9._/-])_backlog\/(?:issues|bugs|research|methods|_archive)\/[A-Za-z0-9._/-]+\.md/g,
+      linkedRule: false,
+    },
+  ]
   for (const { file, where, text } of files) {
     const inNotes = file.split(/[/\\]/).includes('notes')
-    for (const match of text.matchAll(pathPattern)) {
-      if (!existsSync(join(repoRoot, ...match[0].split('/')))) {
-        problems.push(`${where} references \`${match[0]}\`, which does not exist — repoint it (or inline the reason) in the same diff that deletes or moves the note`)
-        continue
-      }
-      const linked = match.index >= 2 && text.slice(match.index - 2, match.index) === ']('
-      if (inNotes && !linked) {
-        problems.push(`${where} mentions \`${match[0]}\` as bare text — note references use relative markdown links (notes/README.md)`)
+    for (const { re, linkedRule } of pointerPatterns) {
+      re.lastIndex = 0
+      for (const match of text.matchAll(re)) {
+        if (!existsSync(join(repoRoot, ...match[0].split('/')))) {
+          problems.push(`${where} references \`${match[0]}\`, which does not exist — repoint it (or inline the reason) in the same diff that deletes or moves the target`)
+          continue
+        }
+        if (!linkedRule) continue
+        const linked = match.index >= 2 && text.slice(match.index - 2, match.index) === ']('
+        if (inNotes && !linked) {
+          problems.push(`${where} mentions \`${match[0]}\` as bare text — note references use relative markdown links (notes/README.md)`)
+        }
       }
     }
   }

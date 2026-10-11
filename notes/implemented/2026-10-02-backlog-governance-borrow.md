@@ -71,8 +71,9 @@ ai_deerflow_dr_v3 补借）。**同源整章对齐**，非另起炉灶。
   **终止状态字段**（`(?=｜|$)` 前瞻），并把 gate 判定锚在 `已过` 本身而非任何交付形容词上。
 
 **prove-it-red（真回归，非仅夹具）**：新检查对现仓跑出的第一条红正是
-`_backlog/issues/261007-bigfile-split.md declares its graduation gate satisfied but still sits in plans/
-and is still named by plans/README.md's active list`；同轮 261006 与 261007-opening **未被误报**
+`261007-bigfile-split declares its graduation gate satisfied but still sits in plans/
+and is still named by plans/README.md's active list`（卡当时在 `_backlog/issues/`，今已结档于
+[settled_issues](../../_backlog/_archive/settled_issues/261007-bigfile-split.md)）；同轮 261006 与 261007-opening **未被误报**
 （两张都带交付语言，但语义上是等待/未完成）——精确度与召回同轮实证。五组夹具在
 verify-gates.spec（放行四种未完成态 / 抓 毕业门=已过 / 抓 状态=完成词 / 不误杀部分交付 /
 报索引残尾且只读 hukou 段）。

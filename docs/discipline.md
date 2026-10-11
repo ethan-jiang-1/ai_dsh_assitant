@@ -4,6 +4,8 @@
 > （"你无法继承你从没清点过的东西"）。每行 = DSH 做法 → 本仓落点 → 状态
 > （✅ 照搬 / ⚠️ 带约束的适配 / ⏸ 刻意不做 + 触发条件 / ⏳ 部分 + 等待条件）。
 > 来源：`ai_dsh_company` 五轮实践的对齐复盘。
+> 语料引用编号（`repo-harness/…`、`sdlc-reference/…`、native-model）的家 = 主仓 checkout `deepseek-harness` 的
+> `_dsh_plugin_agent_ready_development/`（native-model 即其 `native-development-model/`；不在本 pin 树内，编号相对该目录）。
 > **默认严格按本表走；偏离或裁剪不是错，但必须先在下面「已声明的适配」登记一行（约束 → 适配 → 证据）再动手。**
 
 ## 表
@@ -35,7 +37,7 @@
 4. **门禁不做 hook/CI 机械接线**（约束：本地单人仓、无 CI runner；用户 2026-09-27 拍板不加
    pre-push hook，不让流程再长一层）→ 纪律靠 [pre-push-evidence](../.agents/skills/pre-push-evidence/SKILL.md)
    （报告只列真跑过的命令、证据要覆盖改动面）与「被阻断的检查不得写成绿色证据」条承担；
-   备选（hook、CI）在此记录为输掉方案 → 证据：P1-B 漏跑整包的教训进技能后，同类摩擦未再现
+   备选（hook、CI）在此记录为输掉方案 → 证据：一次漏跑整包的教训进技能后，同类摩擦未再现
    （change-scope 触发重置后无第二次；「触发未到不动手」纪律在 AGENTS.md）。
 5. **手动分发打包用 `pnpm pack`，不用借来源的 `npm pack`**（约束：本包 peerDependencies 写
    `workspace:^`，只有 pnpm 在打包时改写成具体 semver；company 靠源里写死 peer 版本才能用
@@ -73,7 +75,7 @@
   standing instructions / 无意义 gate 假安全感 / 过细 Skill 仪式）+ **驾驭者认知成本**
   （用户一眼能否找到方向盘与仪表盘——语料判据全是 agent 参与视角，这一条是本仓自己的）
   过一遍；处置优先序同下（删>并>修>记），既有处置表与触发条件的家 =
-  [流程预算审计卡](../_backlog/_archive/settled_issues/261007-process-budget-audit.md)（2026-10-07 B1）。
+  [流程预算审计卡](../_backlog/_archive/settled_issues/261007-process-budget-audit.md)（2026-10-07 拍板）。
 - **新门禁必带反例**（负例控制；借 DSH「A guard only guards if the regression fails it」）：
   新增一条 `verify` 检查 = 同 diff 在 `tests/tooling/verify-gates.spec.mjs` 配一个"造红再证绿"夹具；
   只对新检查生效，不追旧账。

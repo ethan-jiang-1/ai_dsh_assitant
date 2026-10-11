@@ -1324,6 +1324,30 @@ describe('notePointerProblems', () => {
     })
     expect(problems).toEqual([])
   })
+
+  it('flags a backlog card pointer whose card settled into _archive (stale issues/ path in a dev script header)', () => {
+    const root = setup()
+    mkdirSync(join(root, '_backlog', '_archive', 'settled_issues'), { recursive: true })
+    writeFileSync(join(root, '_backlog', '_archive', 'settled_issues', '261001-card.md'), 'settled\n', 'utf8')
+    const problems = notePointerProblems({
+      repoRoot: root,
+      files: [{ file: join(root, 'probe.mjs'), where: 'dev/probes/web/probe.mjs', text: '// K4 probe (_backlog/issues/261001-card.md open item 2).' }],
+    })
+    expect(problems).toHaveLength(1)
+    expect(problems[0]).toContain('_backlog/issues/261001-card.md')
+    expect(problems[0]).toContain('does not exist')
+  })
+
+  it('accepts resolving backlog pointers as bare text — the link-form rule stays notes-internal', () => {
+    const root = setup()
+    mkdirSync(join(root, '_backlog', 'issues'), { recursive: true })
+    writeFileSync(join(root, '_backlog', 'issues', '261001-card.md'), 'active\n', 'utf8')
+    const problems = notePointerProblems({
+      repoRoot: root,
+      files: [{ file: join(root, 'notes', 'implemented', 'n.md'), where: 'notes/implemented/n.md', text: '推进台账住 _backlog/issues/261001-card.md。' }],
+    })
+    expect(problems).toEqual([])
+  })
 })
 
 // ── vendor client-face freshness ────────────────────────────────────────────────────────────────

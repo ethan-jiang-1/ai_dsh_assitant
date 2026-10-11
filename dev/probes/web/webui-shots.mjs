@@ -8,7 +8,7 @@
  * a real render) was right, but nobody in this repo could produce the render. The dev
  * machine has Chrome, and a headless capture of the served page IS a real render. This
  * turns "waiting for a human to bring a screenshot" into "produce the evidence yourself"
- * (see notes/proposed/2026-09-26-first-mile-landing.md).
+ * (see notes/archived/2026-09-26-first-mile-landing.md).
  *
  * Two outputs per viewport, because the two readers differ:
  *   <name>-<WxH>.png      the render itself — for humans, reviews, and image-capable models.

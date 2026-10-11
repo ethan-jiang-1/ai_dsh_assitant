@@ -466,15 +466,27 @@ const relativeLinkCorpus = markdownCorpus
 check('links: relative markdown links point at existing files', () =>
   relativeLinkProblems(relativeLinkCorpus.map(file => ({ file, where: relative(repoRoot, file) }))))
 
-// Note-card pointers hide outside markdown too (patch YAML comments) — both audit escapes lived
-// there; inside notes/ the tree's own contract demands relative markdown links.
+// Note- and backlog-card pointers hide outside markdown too (patch-YAML comments, dev script
+// headers) — every audit escape so far lived there; inside notes/ the tree's own contract
+// demands relative markdown links. The corpus is every tracked .mjs/.yml/.yaml outside:
+// vendor/ (not ours), test fixtures (synthetic pointer-shaped paths by design — the gate's
+// own spec lives there), scripts/checks/ (the checker's own source strings), and the pnpm
+// lock/workspace files (generated). The prior narrower corpus (cordis.patch.yml +
+// dev/probes/*.yml) missed the five stale dev/*.mjs pointers the 2026-10-12 round found.
+const pointerCorpus = execFileSync('git', ['ls-files', '*.mjs', '*.yml', '*.yaml'], { cwd: repoRoot })
+  .toString().split('\n').filter(Boolean)
+  .filter(path => !path.startsWith('vendor/')
+    && !path.split('/').includes('tests')
+    && !path.startsWith('scripts/checks/')
+    && path !== 'pnpm-lock.yaml'
+    && path !== 'pnpm-workspace.yaml')
+  .map(path => ({ file: join(repoRoot, path), where: path, text: read(join(repoRoot, path)) }))
 check('notes: note-card pointers resolve and are linked inside notes/', () =>
   notePointerProblems({
     repoRoot,
     files: [
       ...markdownCorpus.map(file => ({ file, where: relative(repoRoot, file), text: read(file) })),
-      { file: join(packageDir, 'cordis.patch.yml'), where: 'packages/dsh-smart-assistant/cordis.patch.yml', text: read(join(packageDir, 'cordis.patch.yml')) },
-      ...walk(join(repoRoot, 'dev', 'probes'), ['.yml']).map(file => ({ file, where: relative(repoRoot, file), text: read(file) })),
+      ...pointerCorpus,
     ],
   }))
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 输入边界 30 天观察的读数脚本 —— 对应 _backlog/issues/261007-input-boundary.md 的观察方案 A/B/C。
+// 输入边界 30 天观察的读数脚本 —— 对应 _backlog/_archive/settled_issues/261007-input-boundary.md 的观察方案 A/B/C。
 //
 // 为什么长这样：读数必须机械、可重算、可复核，且**不许另造一套证据系统**
 // （_backlog/methods/validation-evidence.md §1：按行为选既有 owner）。所以：
@@ -20,7 +20,7 @@
 //   node dev/reports/input-observation.mjs [--home <dir>] [--label baseline|<yyyy-mm-dd>] [--json]
 //     --home   观察环境；默认 ASSISTANT_DSH_HOME，否则 dev/harness-home
 //     --label  读数标签（基线用 baseline，之后每周用日期）
-// 输出：可直接粘进 `_backlog/research/261011-input-observation.md` 的 Markdown 块；`--json` 出机器可读件。
+// 输出：可直接粘进 `_backlog/research/usage/261011-input-observation.md` 的 Markdown 块；`--json` 出机器可读件。
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import process from 'node:process'
