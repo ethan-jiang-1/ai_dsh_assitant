@@ -495,7 +495,7 @@ describe('backlogLivenessProblems', () => {
     writeFileSync(join(backlog, 'issues', '260928-live.md'),
       '# 推敲：活卡\n\n> 状态：推敲中\n', 'utf8')
     writeFileSync(join(backlog, 'bugs', 'BUG-008-unlisted.md'),
-      '# BUG-008：漏登\n\n> 状态：活跃\n', 'utf8')
+      '# BUG-008：漏登\n\n> 状态：排查中\n', 'utf8')
     const problems = backlogLivenessProblems(backlog)
     expect(problems.some(p => p.includes('260928-dead.md') && p.includes('frontmatter'))).toBe(true)
     expect(problems.some(p => p.includes('260928-live.md') && p.includes('index'))).toBe(true)
@@ -535,6 +535,56 @@ describe('backlogLivenessProblems', () => {
       '# BUG-008：已修\n\n> 状态：fixed\n', 'utf8')
     expect(backlogLivenessProblems(backlog).some(p => p.includes('260928-gone.md') && p.includes('_archive/settled_issues/README.md'))).toBe(true)
     expect(backlogLivenessProblems(backlog).some(p => p.includes('BUG-008-gone.md') && p.includes('_archive/fixed_bugs/README.md'))).toBe(true)
+  })
+
+  // ── 2026-10-12 backlog-process-made-explicit：bug 四值生命周期 + 镜像法 + 「毕业：」闭头 ──
+
+  it('accepts the bug lifecycle vocabulary mirroring frontmatter (排查中/修复就绪/修复落地/等人拍板)', () => {
+    const backlog = temp('backlog-lifecycle-')
+    bootBacklog(backlog)
+    const statuses = ['排查中', '修复就绪', '修复落地', '等人拍板']
+    const rows = []
+    for (const [i, status] of statuses.entries()) {
+      writeFileSync(join(backlog, 'bugs', `BUG-01${i}-lane.md`),
+        `---\nstatus: ${status}\nseverity: P1\nopened: 2026-10-12\n---\n\n# BUG-01${i}：车道\n\n> 严重级别：P1｜发现：2026-10-12｜状态：${status}｜下一步 = 按翻转表走\n`, 'utf8')
+      rows.push(`| [BUG-01${i}-lane.md](BUG-01${i}-lane.md) |`)
+    }
+    writeFileSync(join(backlog, 'bugs', 'README.md'),
+      `# bugs\n\n| Bug |\n|---|\n${rows.join('\n')}\n`, 'utf8')
+    expect(backlogLivenessProblems(backlog)).toEqual([])
+  })
+
+  it('rejects the retired 活跃 value, a status line that forks from the frontmatter, and a head with no 状态 line', () => {
+    const backlog = temp('backlog-mirror-')
+    bootBacklog(backlog)
+    writeFileSync(join(backlog, 'bugs', 'BUG-012-retired.md'),
+      '---\nstatus: 活跃\nseverity: P2\nopened: 2026-10-12\n---\n\n# BUG-012：旧词\n\n> 严重级别：P2｜发现：2026-10-12｜状态：活跃\n', 'utf8')
+    writeFileSync(join(backlog, 'issues', '260928-fork.md'),
+      '---\nstatus: 推敲中\nopened: 2026-09-28\n---\n\n# 推敲：分叉\n\n> 立卡：2026-09-28 ｜ 状态：等人拍板\n', 'utf8')
+    writeFileSync(join(backlog, 'issues', '260928-bare.md'),
+      '---\nstatus: 推敲中\nopened: 2026-09-28\n---\n\n# 推敲：无行\n\n没有状态行。\n', 'utf8')
+    const problems = backlogLivenessProblems(backlog)
+    expect(problems.some(p => p.includes('BUG-012-retired.md') && p.includes('not a status of this shelf'))).toBe(true)
+    expect(problems.some(p => p.includes('260928-fork.md') && p.includes('mirrors'))).toBe(true)
+    expect(problems.some(p => p.includes('260928-bare.md') && p.includes('no 状态： line'))).toBe(true)
+  })
+
+  it('accepts a closed 毕业 head, rejects a wild one, and leaves archived heads exempt', () => {
+    const backlog = temp('backlog-leaning-')
+    bootBacklog(backlog)
+    writeFileSync(join(backlog, 'issues', '260928-head-ok.md'),
+      '---\nstatus: 推敲中\nopened: 2026-09-28\n---\n\n# 推敲：好头\n\n> 立卡：2026-09-28 ｜ 状态：推敲中 ｜ 毕业：做现在（等终验）\n', 'utf8')
+    writeFileSync(join(backlog, 'issues', '260928-head-wild.md'),
+      '---\nstatus: 推敲中\nopened: 2026-09-28\n---\n\n# 推敲：野头\n\n> 立卡：2026-09-28 ｜ 状态：推敲中 ｜ 毕业：尽快\n', 'utf8')
+    // The archive's dated 毕业 record predates the closed head; the mirror law and the
+    // closed-head check must not reach it (shelf + frontmatter already pin it).
+    writeFileSync(join(backlog, '_archive', 'settled_issues', '260928-old.md'),
+      '---\nstatus: 已结\nopened: 2026-09-28\n---\n\n# 推敲：旧毕业\n\n> 状态：已毕业 ｜ 毕业：2026-09-29 用户拍板 A\n', 'utf8')
+    writeFileSync(join(backlog, 'issues', 'README.md'),
+      '| 卡 |\n|---|\n| [260928-head-ok.md](260928-head-ok.md) |\n| [260928-head-wild.md](260928-head-wild.md) |\n', 'utf8')
+    writeFileSync(join(backlog, '_archive', 'settled_issues', 'README.md'),
+      '# settled_issues\n\n| 卡 |\n|---|\n| [260928-old.md](260928-old.md) |\n', 'utf8')
+    expect(backlogLivenessProblems(backlog)).toEqual([expect.stringContaining('260928-head-wild.md')])
   })
 })
 

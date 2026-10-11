@@ -1103,12 +1103,23 @@ export function backlogLivenessProblems(backlogRoot) {
 
   const cardStatus = {
     issues: new Set(['推敲中', '等人拍板']),
-    bugs: new Set(['活跃']),
+    // Bugs carry a four-value active vocabulary since the 2026-10-12 process card (borrowed
+    // from ai_dsh_loop_advisor's same-day card): 活跃 was renamed 排查中 because "active"
+    // collides with the manual's own 活跃区 once several active values coexist, and the
+    // gerund restores symmetry with 推敲中. 修复就绪 carries the fix ticket AND its
+    // authorization in one flip; 修复落地 makes "implementation is not acceptance" visible;
+    // 等人拍板 is shared with issues. The exits (已修/待修) keep their meaning — 待修 is an
+    // archived known-unfixed pool, deliberately NOT fix-ready.
+    bugs: new Set(['排查中', '修复就绪', '修复落地', '等人拍板']),
     [join('_archive', 'settled_issues')]: new Set(['已结']),
     [join('_archive', 'suspended_issues')]: new Set(['叫停']),
     [join('_archive', 'fixed_bugs')]: new Set(['已修']),
     [join('_archive', 'suspended_bugs')]: new Set(['待修']),
   }
+  // The closed leaning heads (2026-10-12): the four doors are the closing table's own rows,
+  // so a wild head means the leaning was never routed through them. Legacy 毕业门判断 fields
+  // predate the law and stay free-form by design; only the 毕业： token is checked.
+  const GRADUATION_LEANING_HEADS = new Set(['未定', '做现在', '以后做', '不做', '已在别处'])
   const topicByDir = { positioning: '定位', upstream: '上游', 'tech-exploration': '技术' }
   const headProblems = (text, where, expect) => {
     const block = frontmatterBlock(text)
@@ -1138,17 +1149,40 @@ export function backlogLivenessProblems(backlogRoot) {
       else if (expect.topic !== undefined && data.topic !== expect.topic) problems.push(`${where} topic ${JSON.stringify(data.topic)} does not match its directory (${expect.topic})`)
       if (typeof data.intent !== 'string' || data.intent.trim() === '' || data.intent.includes('\n')) problems.push(`${where} frontmatter needs a one-line intent`)
     }
+    // The parsed map feeds the mirror law below; failure paths already pushed their problem.
+    return data
   }
 
-  // Active cards: frontmatter status first, then index membership.
+  // Active cards: frontmatter status first, then index membership, then the mirror law.
   for (const area of ['issues', 'bugs']) {
     const areaDir = join(backlogRoot, area)
     if (!existsSync(areaDir)) continue
     const index = readFileSync(join(areaDir, 'README.md'), 'utf8')
     for (const name of cardNames(area)) {
       const where = `_backlog/${area}/${name}`
-      headProblems(readFileSync(join(areaDir, name), 'utf8'), where, { kind: 'card', statuses: cardStatus[area], bug: area === 'bugs' })
+      const text = readFileSync(join(areaDir, name), 'utf8')
+      const data = headProblems(text, where, { kind: 'card', statuses: cardStatus[area], bug: area === 'bugs' })
       if (!index.includes(name)) problems.push(`${where} is not named by ${area}/README.md's active index`)
+      // The mirror law (2026-10-12, borrowed with the process card): on the ACTIVE shelves
+      // the status line must mirror the frontmatter — frontmatter is the one home of the
+      // current phase, the line mirrors it and owns the history (verdict appends, former
+      // status at exit). Archived cards stay exempt: their historical line variants
+      // (已毕业 where frontmatter says 已结, dated 毕业 records) are records, not drift, and
+      // shelf + frontmatter already pin them. Only the head's first 12 lines are read, the
+      // same hukou segment the graduation check trusts.
+      if (data) {
+        const head = text.split('\n').slice(0, 12).join('\n')
+        const mirrored = /状态：\s*\**([^｜|\n（(]+)/.exec(head)?.[1]?.replaceAll('*', '').trim()
+        if (mirrored === undefined) {
+          problems.push(`${where} has no 状态： line — an active card mirrors its frontmatter in the head`)
+        } else if (mirrored !== String(data.status)) {
+          problems.push(`${where} status line says ${JSON.stringify(mirrored)} but frontmatter says ${JSON.stringify(String(data.status))} — the line mirrors the frontmatter; history appends, it does not fork`)
+        }
+        const leaning = /毕业：\s*\**([^｜|\n（(]+)/.exec(head)?.[1]?.replaceAll('*', '').trim()
+        if (leaning !== undefined && !GRADUATION_LEANING_HEADS.has(leaning)) {
+          problems.push(`${where} 毕业 head ${JSON.stringify(leaning)} is not one of 未定|做现在|以后做|不做|已在别处`)
+        }
+      }
     }
   }
 

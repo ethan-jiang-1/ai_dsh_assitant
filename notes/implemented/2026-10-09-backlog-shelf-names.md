@@ -6,9 +6,9 @@
 
 缺陷单独成架，是为了提交时只改 `bugs/`。新卡写进这个目录，下一个号和活跃表都在 [`bugs/README.md`](../../_backlog/bugs/README.md)，修完 `git mv` 到 [`_archive/fixed_bugs/`](../../_backlog/_archive/fixed_bugs/README.md)。推敲收成 note 的方法是 [`issue-to-note`](../../_backlog/methods/issue-to-note.md)。该做但不现在：触发写在拥有它的 note 上，卡进 `settled_issues/`，不另开延后池。
 
-卡和调研都以 frontmatter 开头。推敲和缺陷第一项是 `status`，跟着 `opened`；缺陷再加 `severity`。`status` 跟所在目录走：推敲中、等人拍板、已结、叫停、活跃、已修、待修。调研第一项是 `topic`（定位 / 上游 / 技术），`intent` 是背后那一句。正文里的状态句和证据不改写。旧卡不补 Feature / Task。
+卡和调研都以 frontmatter 开头。推敲和缺陷第一项是 `status`，跟着 `opened`；缺陷再加 `severity`。`status` 跟所在目录走：推敲中、等人拍板、已结、叫停；缺陷侧 2026-10-12 起为 排查中、修复就绪、修复落地、等人拍板，出口已修、待修（`活跃` 改名 `排查中`；翻转法与理由见 [流程显式化](2026-10-12-backlog-process-made-explicit.md)）。调研第一项是 `topic`（定位 / 上游 / 技术），`intent` 是背后那一句。正文里的状态句和证据不改写。旧卡不补 Feature / Task。
 
-四门、不调度还在。毕业门禁的检查名是 `backlog: graduated issues leave the active shelf`，只扫 `issues/`。部分前身是 [2026-10-02 的治理借鉴](2026-10-02-backlog-governance-borrow.md)：那篇拥有四门和不调度，这篇拥有现在的目录名和 frontmatter。
+四门、不调度还在。毕业门禁的检查名现为 `backlog: issues ready to close leave the active shelf`，只扫 `issues/`。部分前身是 [2026-10-02 的治理借鉴](2026-10-02-backlog-governance-borrow.md)：那篇拥有四门和不调度，这篇拥有现在的目录名和 frontmatter，缺陷侧词汇的现行 owner 是 [流程显式化](2026-10-12-backlog-process-made-explicit.md)。
 
 ## 输掉的方案
 
