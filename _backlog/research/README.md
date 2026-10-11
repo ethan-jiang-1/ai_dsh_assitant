@@ -52,13 +52,13 @@ research 为问题和缺陷提供依据。问题按 [关闭条件](../README.md)
 
 - [261008-ceo-value-historical-review.md](positioning/261008-ceo-value-historical-review.md)——活卡：[总助体验](../issues/261006-chief-of-staff-experience.md)；原卡：[持续助理](../_archive/settled_issues/261008-ceo-operating-loop.md)。回看归档诉求、研究洞见与关闭依据，检查提醒/建议、跟踪、学习是否进入产品结果与验收
 - [261008-ceo-value-contract-review.md](positioning/261008-ceo-value-contract-review.md)——活卡：[总助体验](../issues/261006-chief-of-staff-experience.md)；原卡：[持续助理](../_archive/settled_issues/261008-ceo-operating-loop.md)。静态核对 CEO 价值证据边界，附当前 pin 的全局主区、无会话输入/导航与账本承载可行性
-- [261005-chinese-sme-boss.md](positioning/261005-chinese-sme-boss.md)——活卡：[261007-opening-brief-and-rhythm](../issues/261007-opening-brief-and-rhythm.md) 用口语化红线；[261007-input-boundary](../issues/261007-input-boundary.md) 用五谷渔粉案例作需求线索。中国中小企业一把手工作画像
-- [261011-input-observation.md](usage/261011-input-observation.md)——活卡：[输入边界](../issues/261007-input-boundary.md)。30 天输入观察的读数档：A 自发投递 / B 时长 / C 入口后的操作的口径、剔除规则、环境创建约定与每周快照（读数命令 `pnpm observe`）
-- [261005-exec-demo-narratives.md](positioning/261005-exec-demo-narratives.md)——活卡：[261007-input-boundary](../issues/261007-input-boundary.md) 只用它划清 Huper 式全量接入的边界。面向 CEO/CFO 的十分钟演示叙事
-- [261005-ceo-time-and-decision-research.md](positioning/261005-ceo-time-and-decision-research.md)——活卡：[261007-input-boundary](../issues/261007-input-boundary.md) 用它说明时间碎片和输入特点。一把手时间分配与决策过程
+- [261005-chinese-sme-boss.md](positioning/261005-chinese-sme-boss.md)——活卡：[261007-opening-brief-and-rhythm](../issues/261007-opening-brief-and-rhythm.md) 用口语化红线；[261007-input-boundary](../_archive/settled_issues/261007-input-boundary.md) 用五谷渔粉案例作需求线索。中国中小企业一把手工作画像
+- [261011-input-observation.md](usage/261011-input-observation.md)——活卡：[输入边界](../_archive/settled_issues/261007-input-boundary.md)。30 天输入观察的读数档：A 自发投递 / B 时长 / C 入口后的操作的口径、剔除规则、环境创建约定与每周快照（读数命令 `pnpm observe`）
+- [261005-exec-demo-narratives.md](positioning/261005-exec-demo-narratives.md)——活卡：[261007-input-boundary](../_archive/settled_issues/261007-input-boundary.md) 只用它划清 Huper 式全量接入的边界。面向 CEO/CFO 的十分钟演示叙事
+- [261005-ceo-time-and-decision-research.md](positioning/261005-ceo-time-and-decision-research.md)——活卡：[261007-input-boundary](../_archive/settled_issues/261007-input-boundary.md) 用它说明时间碎片和输入特点。一把手时间分配与决策过程
 
 ### 间接使用
 
 只在需要核实对应引用链时进入。
 
-- [261005-external-ux-patterns.md](positioning/261005-external-ux-patterns.md)——间接使用：[输入边界卡](../issues/261007-input-boundary.md) → [演示叙事](positioning/261005-exec-demo-narratives.md) → 本篇，仅作资料抓取限制的旁证；原卡：[261005-open-value-deficit](../_archive/settled_issues/261005-open-value-deficit.md)。外部同类产品首跑 UX
+- [261005-external-ux-patterns.md](positioning/261005-external-ux-patterns.md)——间接使用：[输入边界卡](../_archive/settled_issues/261007-input-boundary.md) → [演示叙事](positioning/261005-exec-demo-narratives.md) → 本篇，仅作资料抓取限制的旁证；原卡：[261005-open-value-deficit](../_archive/settled_issues/261005-open-value-deficit.md)。外部同类产品首跑 UX

@@ -5,7 +5,7 @@ intent: "把输入边界 30 天观察的读数落在一处：口径、过滤规�
 
 # 输入边界 30 天观察的读数记录
 
-> 立档：2026-10-11 ｜ 拥有它的卡：[输入边界](../../issues/261007-input-boundary.md)（本人 2026-10-11 拍板：专用试用环境 + 先观察 30 天）
+> 立档：2026-10-11 ｜ 拥有它的卡：[输入边界](../../_archive/settled_issues/261007-input-boundary.md)（本人 2026-10-11 拍板：专用试用环境 + 先观察 30 天）
 > 读数命令：`pnpm observe --home <dir>`（脚本 [dev/reports/input-observation.mjs](../../../dev/reports/input-observation.mjs)）
 
 ## 口径（2026-10-11 定）
@@ -22,8 +22,12 @@ intent: "把输入边界 30 天观察的读数落在一处：口径、过滤规�
 
 **环境创建约定**（可重跑）：
 
+**每周快照机制（2026-10-11 定，不占本人时间）**：agent 在本仓会话开始时扫一眼本档；最后一行读数距今 >7 天就用
+`pnpm observe --home dev/trial-home-30d` 补摘一行追加在下（触发条件在 [triggers.md](../../triggers.md)）。
+不在产品里挂每周排程——那会让产品自己在观察环境里发消息，而 A/C 两项正是要数机器行为。
+
 ```sh
-export ASSISTANT_DSH_HOME=<repo>/dev/<选定的试用 home>
+export ASSISTANT_DSH_HOME=<repo>/dev/trial-home-30d
 bash dev/env/prepare.sh && bash dev/env/setup.sh      # 幂等
 pnpm dsh --profile dev --port 0 --no-open             # 交给人之前先 pnpm preflight '<URL>'
 pnpm observe --home "$ASSISTANT_DSH_HOME" --label baseline

@@ -6,9 +6,7 @@
 
 | 卡 | 要解决什么 | 当前环节与未完成项 |
 |---|---|---|
-| [261006-chief-of-staff-experience.md](261006-chief-of-staff-experience.md) | 全局主区桌面、完整事项与空间层级、事项对话处理后成功读回返回 | **2026-10-11 复判（A1–A9 逐行对账，技术面已清）**：A1/A3/A4/A5/A6/A7 pass（owner＝live-mechanics 探针、desk-process e2e、client spec、真机走查）；A2 半通过（**推荐/排序未交付**，属范围变化待本人接受）；A8 机械面 pass、语气人判；A9 人判挂起（触发＝本人日常使用）。P1–P4 四条分支均无待定可行性未知；需求结论已交接至 [proposed](../../notes/proposed/2026-10-06-desk-operating-entry.md) || [261007-opening-brief-and-rhythm.md](261007-opening-brief-and-rhythm.md) | 开屏播报、拍板口吻和每周对账 | **2026-10-11 复判（技术面已清，等人判）**：技术行 2/3/4/6(机械)/7 通过（owner 换到 live-mechanics `session-audit`、`pnpm loop-probe`、两场景、client spec）；#1 三行播报随唯一桌面**被取代**；#5 车道退役**已重定范围**。只剩人判三项（#5 语气、#6 周坐业务口径、R5 话术）+ 跨卡项（默认桌面/回流，归总助卡） || [261007-input-boundary.md](261007-input-boundary.md) | 决定输入通道现在做，还是先观察真实使用 | **已裁决（2026-10-11 本人拍板）**：专用试用环境 + 先观察 30 天；剩落实观察准备（基线、每周快照、记录位置、试用环境创建约定） |
-| [261011-vendor-hero-headline.md](261011-vendor-hero-headline.md) | 首屏 hero 标题「探索未至之境」部署层改不了（vendor 直渲、无覆盖口） | **2026-10-11 整理结论**：前提复核仍成立（vendor 包内静态 locale 键、无字典口）；**新事实**＝唯一桌面后它不再是首屏，只在主动开空会话时出现。三候选已比较，**推荐候选 3（接受现状 + 触发：上游发布带来标题槽位）**；决定权在本人，已并入人判批次 |
-总助体验与开屏节律是已经实施、仍承载验收的旧卡，保留其未完成事项，不代表新的问题要等到下游实施完成才能关闭。
+| [261006-chief-of-staff-experience.md](261006-chief-of-staff-experience.md) | 全局主区桌面、完整事项与空间层级、事项对话处理后成功读回返回 | **2026-10-11 复判（A1–A9 逐行对账，技术面已清）**：A1/A3/A4/A5/A6/A7 pass（owner＝live-mechanics 探针、desk-process e2e、client spec、真机走查）；A2 半通过（**推荐/排序未交付**，属范围变化待本人接受）；A8 机械面 pass、语气人判；A9 人判挂起（触发＝本人日常使用）。P1–P4 四条分支均无待定可行性未知；需求结论已交接至 [proposed](../../notes/proposed/2026-10-06-desk-operating-entry.md) || [261007-opening-brief-and-rhythm.md](261007-opening-brief-and-rhythm.md) | 开屏播报、拍板口吻和每周对账 | **2026-10-11 复判（技术面已清，等人判）**：技术行 2/3/4/6(机械)/7 通过（owner 换到 live-mechanics `session-audit`、`pnpm loop-probe`、两场景、client spec）；#1 三行播报随唯一桌面**被取代**；#5 车道退役**已重定范围**。只剩人判三项（#5 语气、#6 周坐业务口径、R5 话术）+ 跨卡项（默认桌面/回流，归总助卡） |总助体验与开屏节律是已经实施、仍承载验收的旧卡，保留其未完成事项，不代表新的问题要等到下游实施完成才能关闭。
 
 ## 写一张卡
 

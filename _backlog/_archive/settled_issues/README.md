@@ -6,6 +6,8 @@
 
 | 卡 | 关闭日 | 判定 |
 |---|---|---|
+| [261007-input-boundary.md](261007-input-boundary.md) | 2026-10-11 | **输入通道现在不做**：专用试用环境 `dev/trial-home-30d` + 先观察 30 天。观察准备全落地：读数命令 `pnpm observe`、[读数档](../../research/usage/261011-input-observation.md)、口径与剔除规则（机器轮次按 `source.kind`/`rpcId` 结构排除）、基线（真人使用前，三项全空）、每周快照触发（agent 扫读数档，>7 天补摘）；指标 B 改基为账本两段时长（旧口径的桌面 gaps 已退役）。下游申请已随回复提交给 notes |
+| [261011-vendor-hero-headline.md](261011-vendor-hero-headline.md) | 2026-10-11 | **以后做**（接受现状）：唯一桌面后 hero 不再是首屏，影响缩到主动开空会话时的一行 vendor 品牌语；标题是 vendor 包内静态 locale 键，本包无合法改动口。触发＝上游发布带来标题槽位/覆盖口（triggers.md）；本人说一声要改即重开 |
 | [261011-evidence-shape-third.md](261011-evidence-shape-third.md) | 2026-10-11 | **不做第三类证据形态**：能脚本化的一律脚本化（三例已落地：live-mechanics `session-audit`、`loop-probe`、两场景），剩下的一次性读数按 validation-evidence §1b 的「读法协议 + 读数写进拥有它的卡」；候选 C（给 `snapshots/` 加第三类 shape）与收窄契约冲突、属过度预建。不写新触发行——同类第三次再现时新开卡引用本卡 |
 | [261010-desk-k4-closure.md](261010-desk-k4-closure.md) | 2026-10-11 | 技术面收口：②交代首事臂补齐（`IntakePath`/`judgeIntakeReturn` + 桌面「＋ 交代新事项」绑定 + 返回选中新事项）③第四种业务时间（`completedAt` 账本自盖、reopen 清除、投影/解析/详情打通）④窄视口「所选消失恢复」探针落证（`selection-vanish-and-recover` PASS）。①本人的体验裁决**转正为[规格卡](../../notes/proposed/2026-10-06-desk-operating-entry.md) §验收的开放行**——只有本人能给的口味输入，不再压在一张会烂长的验收卡上。探针负载敏感与首用探针断言过时两条另立 BUG-009/BUG-010 |
 | [261011-post-retirement-residue.md](261011-post-retirement-residue.md) | 2026-10-11 | 两条残差都落地：机器标记改 `[面板] `（连带两个 dev 报告与夹具）；`dashboard` 回退面板与 `first-mile` 首开条不再读退役分区，首开条的「打开桌面全景」从退役房间改接主区账本桌面（原来是死按钮），并删掉不可达的 `DeskLandingOverride`、`counts.threads` 单元格与四个只服务退役行的 desk-io 动作。裁决留痕：**没有**顺手加回账本摘要条（那是被退役的形态，要加另立案） |
