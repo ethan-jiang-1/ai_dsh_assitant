@@ -144,6 +144,33 @@ opened: 2026-10-06
 
 本轮只做静态查证与文档修改，未针对上述新增标准执行 D/C/M/G/L 产品验证、未构建原型；已有仓库 typecheck/test/verify 自检不替代这些结果。后续取证先确定耐久 owner；没有 owner 的行保留 blocked 并沿上述协议重取，不把临时截图、绿色 `verify` 或一次演示升级为通过。结果逐行记录 pass/fail/blocked/human judgment pending；既有共同结果仍落 [开屏卡](261007-opening-brief-and-rhythm.md#验收结果与证据缺口)，本卡新增 A1–A9 的结果与对应原项互链，不维护重复结果账。
 
+## 2026-10-11 复判：A1–A9 逐行对账（按[判断验收结果](../methods/validation-judgment.md)）
+
+本卡的「当前可判状态」列写于 2026-10-06（当时多数行是「未实现/无 owner」）。此后落地了唯一桌面、账本投影面板、
+处理流与 K1–K4 的证据面，故本轮逐行重判，**只引今天可复核的 owner**；不复述历史结论，也不改标准迁就实现。
+
+| # | 本轮判定 | 今天可复核的 owner 与证据（2026-10-11） | 仍不能证明 / 待办 |
+|---|---|---|---|
+| A1 默认桌面与返回记住内容 | **pass** | 默认主入口与「显式导航不被抢回」：`tests/composition/client-entry-lifecycle.spec.mjs`（未声明不默认、每 Client root 只消费一次、`selectPanel(null)` 后重挂不抢回）+ `client-entry.spec.ts` »'preserves an explicit main-panel selection…'；挂载/重挂/断连/尺寸：`projection-live-mechanics.mjs`（`boot-fixture`/`resize-survival`/`disconnect-recovery` 全 PASS）；S0 空态与错态：`client-dashboard.spec.ts` »'shows the honest empty state with CTA…' + 读取器的 missing/empty/damaged 分支 | S2「最近 Session 属另一工作区」未单独取值；读失败与真无数据的分开已由探针覆盖，长期多会话行为归真用 |
+| A2 全貌、推荐与本人自选 | **半通过**（集合/选择/来源 pass；**推荐/排序未交付**） | 无截断集合与独立清单一致、任一事项可选、详情对应、来源可定位：K1/K2 的 7 在办＋1 完成固定资料（`projection-live-mechanics.mjs`、`desk-projection` 夹具 README）+ `projection-panel.spec.ts`；「未知不假排序」= 面板不做排序/推荐，只呈现账本事实 | **推荐与轻重排序这一半没有实现**（K4 收口轮已标 V4/V5 非阻塞）。按本卡关闭条件 1，范围变化须本人明确接受——见下方待判 |
+| A3 随可用空间分层 | **pass** | `projection-live-mechanics.mjs`：`narrow-viewport`（列表→详情→返回、`selectionKept`、`noOverflow`）、`resize-survival`、`scroll-restore`（256→256）、`selection-vanish-and-recover`（所选消失不误显示别的事项）；宽窄层级与长标题：`projection-panel.spec.ts` + 固定资料 | 几何为样本而非已确认断点；密度/层级是否清楚仍由人判（并入 A9） |
+| A4 桌面发起指定事项对话 | **pass** | `desk-process-e2e.mjs` 相位 `conversation-switch`（处理按钮 → 处理会话接管主区）；**不偷发到 B 的负例**：`client-desk-process.spec.ts` »'binds each matter to its own path; B\'s receipt never settles A\'s path'；真机走查（`.tmp/desk-walkthrough/`）：选 NB-02 →「处理这件事」→ 会话首屏带事项上下文 | 打开/创建失败时保留输入与 A 的具体形态未单独取值；来源/处理 Session 各自可追由绑定与种子消息给出 |
+| A5 追问、审批等待与未完回合留在对话 | **pass** | `desk-process-e2e.mjs` 相位 `pending-stays-in-chat`（混合回合 + 审批横幅期间桌面**未**挂载）+ 新相位 `conversation-idle`（回合未完时不粘贴、不返回）；状态合同负例：`client-desk-process.spec.ts` 覆盖 `turn-open`/`pending-interaction`/`pending-proposal` 全部 stay | 「模型取消/失败、本人暂不回复」未单独取值；旧 composer 证据已不承担本行 |
+| A6 同事项更新成功读回后才返回 | **pass** | `desk-process-e2e.mjs`：`reject-auto-return`、`durable-rejection`、`confirmed-dates-unchanged`、`return-selection`；负例矩阵 22 件（错事项/旧修订/绑定前/事项消失/`receipt-<status>`）；真机走查：延迟落成 `预测 2026-10-20`、承诺 2026-10-13 未动、返回仍选中 NB-02 | 「用户另行导航后迟到结果不抢焦点」由判定器 `user-left-path` 覆盖，未取真机时序；成功定义已归账本 owner |
+| A7 单事首用与可恢复输入 | **pass**（本轮补上的那一臂） | `desk-process-e2e.mjs` 交代臂三轮：`intake-entry`/`intake-auto-return`/`intake-return-selection`；真机走查（真模型）：＋ 交代新事项 → 说出新事 → 建成 m-4 → 返回并**选中新建的那件**；双击提交负例：`double-click-single-session`（`created: 1`）；初始化失败（全新 home 无账本）：Day-0 修复 + `client-entry.spec.ts` 无投影守卫 | 「不能要求固定三问/示例冒充真实事项」由 prompt 与技能面守约（`pnpm eval` 的 desk 任务），本行不重复举证 |
+| A8 中文拍板与重载一致 | **机械面 pass；语气待人判** | 账本为唯一 writer、客户端无写路径；重载不代拍、不造业务对话：`confirmed-dates-unchanged`（e2e）＋账本/投影结构测试；回执保留本人原话（quote）：`client-desk-process.spec.ts` 与账本结构测试；中文形态：工具与回执文案测试 | 「语气是否真像本人」= taste（与 [开屏卡 #5](261007-opening-brief-and-rhythm.md) 同一条人判，范围已改指现行车道）；长期学习归 261008 |
+| A9 具体任务上的总助体验 | **human judgment pending（已挂起）** | 本轮真机走查留下素材：`.tmp/desk-walkthrough/`（桌面 → 详情 → 处理 → 回桌面 / 交代 → 新事项上桌），账本与截图可复核 | 只有本人能给；裁决已按 2026-10-11 本人的话**挂起**（触发＝本人日常使用），不重复推 |
+
+**接手分支的结论（P1–P4）**：P1 全局默认与无会话首事 —— 已交付并有隔离证据（`client-entry-lifecycle` + 真机走查），
+且「偷偷发问候/抢焦点」两条否定条件都未发生；P2 多会话更新消费 —— 已按账本回执实现（同事项同次操作、旧修订与
+错事项都不结算），不再有「语义未定」的阻断；P3 空间与全貌 —— 宽窄分层与无溢出有探针相位，是否清楚归人判；
+P4 处理返回对应同一件事 —— 判定器负例矩阵 + e2e 已覆盖「仅凭时间戳/回合结束返回」「把 B 读成 A」「吞掉未完追问」
+三条否定条件。**四条分支都不再有待定的可行性未知**（对应关闭条件 1）。
+
+**本轮判定汇总**：A1/A3/A4/A5/A6/A7 pass；A2 半通过（推荐/排序未交付，属范围变化，待本人接受）；A8 机械面 pass、
+语气待人判；A9 人判挂起。按 [validation-judgment](../methods/validation-judgment.md) §3 本卡属 **waiting**：
+技术面已清，只剩一批人判（与 [开屏卡](261007-opening-brief-and-rhythm.md) 及 K4 裁决行合并为同一批）。
+
 ## 关闭条件
 
 1. 当前可行性未知有有界结论；默认主入口、事项会话路由与权威账本依赖不能仍以“有 API”代替可交付判断。若决定延后/不做某项，须由用户明确接受结果范围的变化，保留原因和触发。
