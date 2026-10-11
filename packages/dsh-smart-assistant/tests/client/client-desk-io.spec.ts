@@ -24,7 +24,7 @@ const registration = await loadClientRegistration()
 interface ClientExports {
   apply: (ctx: unknown) => void
   loadDeskFor: (sessionId: string) => void
-  DeskTabBody: (props: { sessionId?: string }) => unknown
+  KnowledgeTabBody: (props: { sessionId?: string }) => unknown
   deskStore: {
     data?: Record<string, unknown> | undefined
     readError?: string | undefined
@@ -82,11 +82,11 @@ describe('desk io: the read paths', () => {
     exports.loadDeskFor('s1')
     await new Promise(resolve => { setTimeout(resolve, 0) })
 
-    expect(exports.deskStore.readError).toContain('读桌面文件失败')
-    const tab = textsOf(exports.DeskTabBody({ sessionId: 's1' })).join(' | ')
+    expect(exports.deskStore.readError).toContain('读房间数据文件失败')
+    const tab = textsOf(exports.KnowledgeTabBody({ sessionId: 's1' })).join(' | ')
     // Before R6 a throwing read only patched a note, which this tab never renders: the pane sat on
-    // "正在读这个会话的桌面…" forever, with no retry anywhere.
-    expect(tab).toContain('读桌面文件失败')
+    // "正在读这个会话的房间数据…" forever, with no retry anywhere.
+    expect(tab).toContain('读房间数据文件失败')
     expect(tab).not.toContain('正在读')
   })
 })

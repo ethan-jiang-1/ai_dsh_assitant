@@ -152,7 +152,7 @@ describe('dashboard main panel', () => {
     const sent = prompts[0]?.content[0]?.text ?? ''
     // The record reads as the panel speaking for the principal — the same lane the desk
     // panels use — never as English machine prose in the principal's history.
-    expect(sent).toContain('桌面面板代本人拍板')
+    expect(sent).toContain('面板代本人拍板')
     expect(sent).toContain('要不要给最大的老客户涨价')
     expect(sent).toContain('直接提价 10%')
     expect(sent).not.toContain('Dashboard panel decided')

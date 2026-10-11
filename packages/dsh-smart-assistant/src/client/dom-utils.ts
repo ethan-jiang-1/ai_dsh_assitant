@@ -221,7 +221,7 @@ export function CorrectableRow(props: {
     // purpose — a row that looks untouched reads as "nothing happened" (R1).
     stalled === undefined ? null : createElement('div', {
       style: { fontSize: '12px', color: 'var(--dsha-warn)', marginTop: '4px' },
-    }, `已发出 · ${shortTime(new Date(stalled.at).toISOString())} · ${stalled.action}——桌面还没跟上，点「刷新桌面」再试（动作不会被撤销）`),
+    }, `已发出 · ${shortTime(new Date(stalled.at).toISOString())} · ${stalled.action}——房间数据还没跟上，点「刷新房间数据」再试（动作不会被撤销）`),
     receipt === undefined ? null : createElement('div', {
       style: { fontSize: '12px', color: MARK_TEAL, marginTop: '4px' },
     }, `✓ 已更新 · ${shortTime(new Date(receipt.at).toISOString())}`),
@@ -306,11 +306,11 @@ export function refreshRow(store: DeskStore, session?: string): ReturnType<typeo
         border: `1px solid ${MARK_TEAL}`, background: 'var(--dsw-alias-bg-base)',
         color: MARK_TEAL,
       },
-    }, '刷新桌面'),
+    }, '刷新房间数据'),
     inFlight === false
       ? null
       : createElement('span', { style: { marginLeft: '10px', fontSize: '12px', color: 'var(--dsw-alias-label-secondary)' } },
-          `已交给助手 · ${shortTime(new Date(store.pending?.at ?? Date.now()).toISOString())} · ${String(store.pending?.action ?? '')}——回复出现在对话里，桌面更新后自动跟上`),
+          `已交给助手 · ${shortTime(new Date(store.pending?.at ?? Date.now()).toISOString())} · ${String(store.pending?.action ?? '')}——回复出现在对话里，房间数据更新后自动跟上`),
     // A7: freshness belongs to every room, not only the desk — the room the principal is
     // reading in is exactly where "this snapshot is stale" must be said out loud.
     staleWarning(store) === undefined

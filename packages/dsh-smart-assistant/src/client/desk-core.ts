@@ -244,23 +244,23 @@ export function pendingInFlight(store: DeskStore): boolean {
 }
 
 /**
- * Release the data gate when the poller gives up waiting for the assistant to rewrite the desk
- * file. Leaving `pending` set froze every action button in all three rooms behind a "正在处理"
- * that never ended, while the escape hatch (刷新桌面) was disabled by that same flag — the live
- * desk was 13 h stale in exactly that state (self-review R1, 2026-09-27). Expiry is honest: the
- * action was sent and is not revoked; only the "still working" claim stops.
+ * Release the data gate when the poller gives up waiting for the assistant to rewrite the room
+ * data file. Leaving `pending` set froze every action button behind a "正在处理" that never ended,
+ * while the escape hatch (刷新房间数据) was disabled by that same flag — the data was 13 h stale in
+ * exactly that state (self-review R1, 2026-09-27). Expiry is honest: the action was sent and is not
+ * revoked; only the "still working" claim stops.
  */
 export function expirePending(sessionId?: string): void {
   const slice = deskSlice(sessionId)
   const pending = slice.pending
   patchSlice(slice, {
     pending: undefined,
-    // The row keeps an honest, durable state: the action DID leave, the desk just has not caught
+    // The row keeps an honest, durable state: the action DID leave, the file just has not caught
     // up. A transient note would be wiped by the next successful load (verified live: the note
     // was gone by the time the release was captured), and silence would read as "done".
     stalled: pending === undefined ? undefined : { ...pending },
   })
-  patchDesk({ note: '它还没重写桌面——点「刷新桌面」再试一次（动作已发出，不会被撤销）' })
+  patchDesk({ note: '它还没重写房间数据——点「刷新房间数据」再试一次（动作已发出，不会被撤销）' })
 }
 
 /**
@@ -322,7 +322,7 @@ export function settlePending(generatedAt: string | undefined, sessionId?: strin
 }
 
 /**
- * Whether the desk file lags the conversation. The desk is only as fresh as the assistant's last
+ * Whether the room data file lags the conversation. It is only as fresh as the assistant's last
  * refresh, so when the newest turn is newer than the file the panels say so instead of presenting
  * a stale snapshot as current (a minute of slack absorbs the refresh itself).
  * @param store - The shared desk store.
@@ -335,7 +335,7 @@ export function staleWarning(store: DeskStore): string | undefined {
   const generatedAt = new Date(generated).getTime()
   if (Number.isNaN(generatedAt)) return undefined
   if (sessionAt - generatedAt <= 60_000) return undefined
-  return `对话比这份桌面新（对话 ${shortTime(new Date(sessionAt).toISOString())}，桌面 ${shortTime(generated)}）——点「刷新桌面」让它跟上`
+  return `对话比这份房间数据新（对话 ${shortTime(new Date(sessionAt).toISOString())}，房间数据 ${shortTime(generated)}）——点「刷新房间数据」让它跟上`
 }
 
 /**

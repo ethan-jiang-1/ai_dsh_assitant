@@ -20,6 +20,6 @@
 ## 约束以后的后果
 
 - 任何新面叫「桌面」、或让用户以为存在第二张桌面，都是回归本决定。
-- 组件级删除（`DeskPanel`/`DeskTabBody`/`DeskViewBody`/`AssistantDeskChip`/`DeskSummaryDock` 及其 spec，已下架暂留）与 web-face 场景重录 = [会话桌面子系统清理卡](../../_backlog/issues/261011-session-desk-cleanup.md)；删除时不得复活任何「桌面」命名的会话侧入口。
+- 组件级删除（`DeskPanel`/`DeskTabBody`/`DeskViewBody`/`AssistantDeskChip`/`DeskSummaryDock` 及其 spec，已下架暂留）与 web-face 场景重录 = [会话桌面子系统清理卡](../../_backlog/_archive/settled_issues/261011-session-desk-cleanup.md)；删除时不得复活任何「桌面」命名的会话侧入口。
 - [桌面主对象化](2026-10-06-desk-primary-view.md) 中被本篇取代的部分：会话内「桌面」视图、`DeskSummaryDock` 摘要条、视图偏好预写；其缝探索事实（`conversation.view` 槽机制）与 Phase A 历史仍有效。
 - 规格卡（[desk-operating-entry](../proposed/2026-10-06-desk-operating-entry.md)）与 [K4 收口卡](../../_backlog/issues/261010-desk-k4-closure.md) 持有走查发现与验收。

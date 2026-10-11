@@ -67,7 +67,7 @@ export function loadDesk(): void {
     .sort((left, right) => Number(byId[right]?.updatedAt ?? 0) - Number(byId[left]?.updatedAt ?? 0))
     .slice(0, 5)
   if (ordered.length === 0) {
-    patchDesk({ note: '还没有会话——先和助手说句话，再点刷新桌面' })
+    patchDesk({ note: '还没有会话——先和助手说句话，再点刷新房间数据' })
     return
   }
   const newest = ids.reduce((max, id) => Math.max(max, Number(byId[id]?.updatedAt ?? 0)), 0)
@@ -83,10 +83,10 @@ export function loadDesk(): void {
     if (seq !== seqOf.current()) return
     if (index >= ordered.length) {
       if (readFailures > 0) {
-        patchDesk({ readError: `读桌面文件失败（${readFailures} 个工作区都读不到）——点「刷新桌面」重试`, note: undefined })
+        patchDesk({ readError: `读房间数据文件失败（${readFailures} 个工作区都读不到）——点「刷新房间数据」重试`, note: undefined })
         return
       }
-      patchDesk({ note: '最近 5 个会话的工作区里都没有 .desk/state.json——点「刷新桌面」让助手写一份' })
+      patchDesk({ note: '最近 5 个会话的工作区里都没有 .desk/state.json——点「刷新房间数据」让助手写一份' })
       return
     }
     const sessionId = ordered[index] as string
@@ -115,7 +115,7 @@ export function loadDesk(): void {
       parsed = JSON.parse(text) as DeskData
     } catch {
       if (seq === seqOf.current()) {
-        patchDesk({ note: `桌面文件损坏（${byId[sessionId]?.cwd ?? sessionId}）——点「刷新桌面」让助手重写一份` })
+        patchDesk({ note: `房间数据文件损坏（${byId[sessionId]?.cwd ?? sessionId}）——点「刷新房间数据」让助手重写一份` })
       }
       return
     }
@@ -126,7 +126,7 @@ export function loadDesk(): void {
       carryRowStateTo(getDeskStore().sourceSession ?? sessionId, sessionId)
       patchDesk({
         data: undefined,
-        readError: '这份桌面文件不像 desk-refresh 写的（没有 generatedAt、也没有任何分区）——点「刷新桌面」让助手按契约重写',
+        readError: '这份房间数据文件不像 desk-refresh 写的（没有 generatedAt、也没有任何分区）——点「刷新房间数据」让助手按契约重写',
         source: byId[sessionId]?.cwd ?? '', sourceSession: sessionId, jumpError: undefined,
       })
       return
@@ -177,11 +177,11 @@ export function loadDeskFor(sessionId: string): void {
       text = wrapped?.ok === false ? undefined : wrapped?.value?.text
     } catch {
       // R6 (self-review, 2026-09-27): a throw used to land only in `note`, and the right-pane tab
-      // returns before any Panel renders notes — so a failed read showed "正在读这个会话的桌面…"
+      // returns before any Panel renders notes — so a failed read showed "正在读这个会话的房间数据…"
       // forever, with no retry anywhere. `readError` is the field the tab and the panels both
       // render an error-and-retry from, so a failure reaches the principal wherever he is.
       if (seq === seqOf.current()) {
-        patchSlice(slice, { readError: `读桌面文件失败（${cwd === '' ? '本会话工作区' : cwd}）` })
+        patchSlice(slice, { readError: `读房间数据文件失败（${cwd === '' ? '本会话工作区' : cwd}）` })
       }
       return
     }
@@ -196,14 +196,14 @@ export function loadDeskFor(sessionId: string): void {
       parsed = JSON.parse(text) as DeskData
     } catch {
       getDeskStore().misses.delete(sessionId)
-      patchSlice(slice, { readError: '桌面文件损坏（JSON 解析失败）', data: undefined, pending: undefined })
+      patchSlice(slice, { readError: '房间数据文件损坏（JSON 解析失败）', data: undefined, pending: undefined })
       return
     }
     getDeskStore().misses.delete(sessionId)
     if (!looksLikeDesk(parsed)) {
       patchSlice(slice, {
         data: undefined,
-        readError: '这份桌面文件不像 desk-refresh 写的（没有 generatedAt、也没有任何分区）——点「刷新桌面」让助手按契约重写',
+        readError: '这份房间数据文件不像 desk-refresh 写的（没有 generatedAt、也没有任何分区）——点「刷新房间数据」让助手按契约重写',
         source: cwd,
       })
       return
@@ -331,7 +331,7 @@ export function openBeside(kind: RoomKind): void {
     // R11 (narrow review, 2026-09-27): clearing openError BEFORE the call and leaving the call
     // uncaught meant a throwing openTab showed nothing at all — the exact failure this marker was
     // added for.
-    patchDesk({ openError: '开不了', note: `打开桌面失败：${String(reason)}` })
+    patchDesk({ openError: '开不了', note: `打开面板失败：${String(reason)}` })
   }
 }
 
@@ -341,12 +341,12 @@ export function openBeside(kind: RoomKind): void {
  * on a small model (measured 2026-09-26: cold discovery skipped the skill on 2 of 3 live runs).
  * The panel and the skill ship together; the pairing is recorded on the campaign card §四·十九.
  */
-const DESK_REFRESH_STEP = '完成后加载 desk-refresh 技能，把桌面文件重写一遍。'
+const DESK_REFRESH_STEP = '完成后加载 desk-refresh 技能，把房间数据文件重写一遍。'
 export { DESK_REFRESH_STEP }
 
-/** Ask the assistant to refresh the desk file; the poller re-reads until it actually moves. */
+/** Ask the assistant to refresh the room data file; the poller re-reads until it actually moves. */
 export function askRefresh(sessionId?: string): void {
-  sendPrompt('刷新我的桌面：加载 desk-refresh 技能，严格按它把桌面文件重写一遍。', '刷新桌面', 'desk', sessionId)
+  sendPrompt('刷新房间数据：加载 desk-refresh 技能，严格按它把房间数据文件（.desk/state.json）重写一遍。', '刷新房间数据', 'desk', sessionId)
 }
 
 /**
@@ -368,7 +368,7 @@ export function askStart(sessionId?: string): void {
  */
 export function askApproveProposal(name: string, sessionId?: string): void {
   sendPrompt(
-    `桌面面板代本人批准技能提案「${name}」：请把提案文件的 status 改为 approved，然后立刻 land_skill 落地。${DESK_REFRESH_STEP}`,
+    `面板代本人批准技能提案「${name}」：请把提案文件的 status 改为 approved，然后立刻 land_skill 落地。${DESK_REFRESH_STEP}`,
     '批准提案', name, sessionId,
   )
 }
@@ -376,7 +376,7 @@ export function askApproveProposal(name: string, sessionId?: string): void {
 /** The rejection twin: the proposal is rejected with the principal's one-line reason. */
 export function askRejectProposal(name: string, reason: string, sessionId?: string): void {
   sendPrompt(
-    `桌面面板代本人拒绝技能提案「${name}」：请把提案文件的 status 改为 rejected（理由：${reason}）。${DESK_REFRESH_STEP}`,
+    `面板代本人拒绝技能提案「${name}」：请把提案文件的 status 改为 rejected（理由：${reason}）。${DESK_REFRESH_STEP}`,
     '拒绝提案', name, sessionId,
   )
 }
@@ -387,14 +387,14 @@ export function askRejectProposal(name: string, reason: string, sessionId?: stri
  */
 export function answerDecision(question: string, answer: string, rowId: string, sessionId?: string): void {
   sendPrompt(
-    `桌面面板代本人拍板——待决事项「${question}」的决定：${answer}。请把决定记入记忆并据此更新判断。${DESK_REFRESH_STEP}`,
+    `面板代本人拍板——待决事项「${question}」的决定：${answer}。请把决定记入记忆并据此更新判断。${DESK_REFRESH_STEP}`,
     '回答', rowId, sessionId,
   )
 }
 
 /** Put one open decision to the assistant and ask for options with their costs. */
 export function askAboutDecision(question: string, rowId: string, sessionId?: string): void {
-  sendPrompt(`桌面面板代本人提问——待决事项「${question}」：请给两三个选项，每个选项的代价与不可逆程度，以及你的建议。`,
+  sendPrompt(`面板代本人提问——待决事项「${question}」：请给两三个选项，每个选项的代价与不可逆程度，以及你的建议。`,
     '看选项', rowId, sessionId)
 }
 
@@ -403,68 +403,14 @@ export function askAboutDecision(question: string, rowId: string, sessionId?: st
  * conversation — the principal asks about progress without composing the question.
  */
 export function askCheckIn(what: string, due: string, rowId: string, sessionId?: string): void {
-  sendPrompt(`桌面面板代本人过问——在跟的事「${what}」（${due} 到期）：现在到哪一步了？有没有要我拍板或补的数？`,
+  sendPrompt(`面板代本人过问——在跟的事「${what}」（${due} 到期）：现在到哪一步了？有没有要我拍板或补的数？`,
     '过问', rowId, sessionId)
 }
 
 /** The briefing's gap row: open a conversation about closing this missing reading. */
 export function askAboutGap(what: string, why: string, rowId: string, sessionId?: string): void {
-  sendPrompt(`桌面面板代本人过问——缺的数「${what}」（${why}）：怎么把它补上？需要我提供什么，还是先告诉我去哪里拿？`,
+  sendPrompt(`面板代本人过问——缺的数「${what}」（${why}）：怎么把它补上？需要我提供什么，还是先告诉我去哪里拿？`,
     '补缺', rowId, sessionId)
-}
-
-/**
- * Close one action: the principal reports it is done, and the assistant records the outcome
- * rather than leaving a finished item sitting in flight.
- */
-export function finishAction(what: string, rowId: string, sessionId?: string): void {
-  sendPrompt(
-    `桌面面板代本人回执——行动「${what}」已经办完了。请记录结果（度量上发生了什么）。${DESK_REFRESH_STEP}`,
-    '办完了', rowId, sessionId,
-  )
-}
-
-/**
- * Hand the missing reading to the assistant in place (R5, self-review 2026-09-27): the gap row
- * used to be inert text, so the one thing only the principal could supply had no way to reach him
- * except back through the conversation.
- * @param what - the gap's headline, so the assistant knows which entry is being filled.
- * @param value - the reading the principal typed.
- * @param rowId - the row the receipt lands on.
- */
-export function fillGap(what: string, value: string, rowId: string, sessionId?: string): void {
-  sendPrompt(
-    `桌面面板代本人补数——缺口「${what}」的原始读数：${value}。请据此更新相关记录，并把这条从 gaps 里拿掉（或写明还缺什么）。${DESK_REFRESH_STEP}`,
-    '补上', rowId, sessionId,
-  )
-}
-
-/** Drop one action: no longer worth doing — the assistant records why and takes it off the list. */
-export function dropAction(what: string, rowId: string, sessionId?: string): void {
-  sendPrompt(
-    `桌面面板代本人回执——行动「${what}」决定不办了：请记一行原因（写进在跟的事或记忆）。${DESK_REFRESH_STEP}`,
-    '不办了', rowId, sessionId,
-  )
-}
-
-/**
- * Park one thread: still valid, not now. The research room's middle exit, offered where the
- * principal sees the thread rather than only in chat.
- */
-export function parkThread(title: string, rowId: string, sessionId?: string): void {
-  sendPrompt(
-    `桌面面板代本人操作——在跟的事「${title}」先放一放（park）：现在不推，但别丢。${DESK_REFRESH_STEP}`,
-    '先放放', rowId, sessionId,
-  )
-}
-
-/** Close one thread: answered, moot, or not worth it — the assistant promotes or drops it. */
-export function closeThread(title: string, rowId: string, sessionId?: string): void {
-  sendPrompt(
-    `桌面面板代本人操作——在跟的事「${title}」可以收了：请判断该 promote（变成记忆/知识页/技能）还是 drop（写一行原因），`
-    + `做完告诉我你归到了哪里。${DESK_REFRESH_STEP}`,
-    '收了', rowId, sessionId,
-  )
 }
 
 /**
@@ -500,7 +446,7 @@ export function approveKnowledgePage(title: string, rowId: string, sessionId?: s
         patchDesk({ note: outcome.error?.message ?? '批准未生效' })
         return
       }
-      patchDesk({ note: `已批准：「${title}」入 stable（下次桌面刷新移出待审）` })
+      patchDesk({ note: `已批准：「${title}」入 stable（下次房间数据刷新移出待审）` })
     }).catch((reason: unknown) => {
       const text = String(reason)
       if (text.includes('only drafts flip')) {
@@ -511,14 +457,14 @@ export function approveKnowledgePage(title: string, rowId: string, sessionId?: s
       }
       patchDesk({ note: `直调批准失败，回退指令通道：${text}` })
       sendPrompt(
-        `桌面面板代本人批准——知识页「${title}」已获批准：请把它从 draft 翻成 stable。${DESK_REFRESH_STEP}`,
+        `面板代本人批准——知识页「${title}」已获批准：请把它从 draft 翻成 stable。${DESK_REFRESH_STEP}`,
         '批准', rowId, sessionId,
       )
     })
     return
   }
   sendPrompt(
-    `桌面面板代本人批准——知识页「${title}」已获批准：请把它从 draft 翻成 stable。${DESK_REFRESH_STEP}`,
+    `面板代本人批准——知识页「${title}」已获批准：请把它从 draft 翻成 stable。${DESK_REFRESH_STEP}`,
     '批准', rowId, sessionId,
   )
 }

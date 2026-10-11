@@ -1,6 +1,7 @@
 /**
  * The first mile and the composer's docks: the blank-session landing (hero + the rich card
- * above the composer), the persistent desk summary bar, and the pending-approval banner.
+ * above the composer) and the pending-approval banner. The session desk summary bar that used
+ * to ride here is retired with the session desk itself (one 桌面 = the ledger's, 2026-10-11).
  * These are the surfaces a first-time principal (and every session's composer) sees; the
  * hero MARK itself lives in brand.ts.
  *
@@ -279,53 +280,6 @@ export function FirstMileDock({ session, openRoom, processingMatter, t }: FirstM
         '· 有新的事，直接在下面说'),
     ),
   ])
-}
-
-/**
- * A2' (2026-10-06 stepwise form migration): the persistent desk summary bar in every
- * non-blank session. The composer's dock (conversation.input.dock, scope: session) is the
- * one surface that rides every conversation, so the desk's key numbers are always one
- * glance above the composer — pending decisions, due actions, blocking gaps — with a
- * one-click switch to the full desk view tab. This is the plugin boundary's answer to
- * "the desk is always visible" (the auto-view-switch needs vendor's DEFAULT_VIEW_ID
- * change, upstream candidate D7).
- * @param props - The dock-injected `openDeskView` callback (sidebarRight.openTab).
- * @returns The compact summary bar, or null when there is nothing to show.
- */
-export function DeskSummaryDock({ openDeskView }: {
-  openDeskView?: () => void
-}): ReturnType<typeof createElement> | null {
-  const walk = deskSlice(undefined)
-  const data = walk.data
-  if (data === undefined) return null
-  const decisions = (data.decisions ?? []).filter(item => item.kind === 'business' || ((item.options ?? []).length > 0))
-  const actions = (data.actions ?? []).filter(item => item.status !== 'done')
-  const gaps = data.gaps ?? []
-  if (decisions.length === 0 && actions.length === 0 && gaps.length === 0) return null
-  const chips: ReturnType<typeof createElement>[] = []
-  if (decisions.length > 0) chips.push(createElement('span', { key: 'dec', style: { fontSize: '12px' } }, `要拍 ${decisions.length}`))
-  if (actions.length > 0) chips.push(createElement('span', { key: 'act', style: { fontSize: '12px' } }, `在跟 ${actions.length}`))
-  if (gaps.length > 0) chips.push(createElement('span', { key: 'gap', style: { fontSize: '12px' } }, `缺 ${gaps.length}`))
-  return createElement('div', {
-    style: {
-      display: 'flex', gap: '10px', alignItems: 'center',
-      width: 'min(var(--dsh-composer-card-max-width, 952px), 100%)',
-      margin: '0 auto 4px', padding: '4px 14px',
-      border: '1px solid var(--dsw-alias-border-l2)', borderRadius: '8px',
-      background: 'var(--dsw-alias-bg-layer-1)',
-      fontSize: '12px', color: 'var(--dsw-alias-label-secondary)',
-    },
-  },
-  ...chips,
-  createElement('button', {
-    onClick: () => { openDeskView?.() },
-    style: {
-      border: 'none', background: 'transparent', cursor: 'pointer',
-      fontSize: '12px', color: MARK_TEAL, padding: '2px 8px', borderRadius: '4px',
-      textDecoration: 'underline',
-    },
-  }, '桌面 →'),
-  )
 }
 
 /**

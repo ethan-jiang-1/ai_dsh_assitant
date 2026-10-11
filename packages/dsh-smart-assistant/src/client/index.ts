@@ -36,9 +36,9 @@ import { bindDeskEnv, getDeskRemote, loadDesk, loadDeskFor, openBeside } from '.
 import { AssistantBrandMark, AssistantBrandName, AssistantHeroMark } from './brand'
 import { roomCommands } from './commands'
 import { DashboardMainPanel, DashboardPanelIcon } from './dashboard'
-import { ApprovalDockBanner, DeskSummaryDock, FirstMileDock } from './first-mile'
-import { AssistantDeskChip, DeskTabBody, DeskViewBody, KnowledgeTabBody, MemoryTabBody, roomTabTitle } from './room-tabs'
-import { DeskPanel, KnowledgeIcon, KnowledgePanel, MemoryIcon, MemoryPanel } from './panels'
+import { ApprovalDockBanner, FirstMileDock } from './first-mile'
+import { KnowledgeTabBody, MemoryTabBody, roomTabTitle } from './room-tabs'
+import { KnowledgeIcon, KnowledgePanel, MemoryIcon, MemoryPanel } from './panels'
 import { bindClientRequire, clientRequire } from './runtime'
 import { ensureThemeVars } from './theme'
 import { ProjectionPanel } from './projection-panel'
@@ -457,15 +457,15 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
 
   }
 
-  // The occupants, the three panels, and the shared store are exposed for tests: the store is the
-  // panels' only input, so a test that fills it can render every section without a browser.
+  // The occupants, the two room panels, and the shared store are exposed for tests: the store is
+  // the panels' only input, so a test that fills it can render every section without a browser.
   // `roomCommands` is exposed the same way — its contributions are pure values, so a test can
   // assert names, copy, and the room each one opens without a browser context. The first-mile
   // components are exposed because their copy and their button are the deliverable.
   return {
     inject, apply, AssistantBrandMark, AssistantBrandName,
-    DeskPanel, KnowledgePanel, MemoryPanel, deskStore, deskSlice,
-    DeskTabBody, DeskViewBody, DeskSummaryDock, DashboardPanelIcon, DashboardMainPanel, KnowledgeTabBody, MemoryTabBody, AssistantDeskChip, roomTabTitle,
+    KnowledgePanel, MemoryPanel, deskStore, deskSlice,
+    DashboardPanelIcon, DashboardMainPanel, KnowledgeTabBody, MemoryTabBody, roomTabTitle,
     roomCommands, AssistantHeroMark, FirstMileDock, ApprovalDockBanner, expirePending, settlePending, loadDeskFor, retireStaleReceipt, looksLikeDesk,
   }
 }

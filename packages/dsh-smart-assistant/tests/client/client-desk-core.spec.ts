@@ -1,11 +1,11 @@
 /**
- * The desk store mechanics (`src/client/desk-core.ts`): the staleness rule and the stale
+ * The room-data store mechanics (`src/client/desk-core.ts`): the staleness rule and the stale
  * receipt retirement, pinned against the exported store functions.
  *
  * Acceptance points:
  * - staleWarning speaks only when the conversation is newer than the file, with a minute of
- *   slack for the refresh itself (assertions render through DeskPanel — the rule is the
- *   store's, the panel is only the readout).
+ *   slack for the refresh itself (assertions render through the memory room panel — the rule is
+ *   the store's, the panel is only the readout).
  * - retireStaleReceipt lets a decision be answered again when the file still carries it, and
  *   keeps the receipt when the file no longer lists the row ("recorded" stands).
  */
@@ -15,7 +15,7 @@ import { inertReactShim, loadClientRegistration, materializeClient } from '../su
 const registration = await loadClientRegistration()
 
 interface ClientExports {
-  DeskPanel: (props?: { sessionId?: string }) => unknown
+  MemoryPanel: (props?: { sessionId?: string }) => unknown
   /** Retire a receipt whose decision is still open in the file (R11). */
   retireStaleReceipt: (data: Record<string, unknown> | undefined, sessionId?: string) => void
   deskStore: {
@@ -42,22 +42,22 @@ const materialize = (): ClientExports =>
   materializeClient(registration, inertReactShim()) as unknown as ClientExports
 
 describe('desk store mechanics', () => {
-  it('warns when the desk file lags the conversation, and stays quiet when it does not', () => {
+  it('warns when the room data file lags the conversation, and stays quiet when it does not', () => {
     const exports = materialize()
     exports.deskStore.data = { generatedAt: '2026-09-26T13:00:00+08:00' }
 
     // Five minutes of conversation after the file was written: the panel must not present a stale
     // snapshot as current.
     exports.deskStore.sessionUpdatedAt = new Date('2026-09-26T13:05:00+08:00').getTime()
-    const stale = textsOf(exports.DeskPanel()).join(' | ')
-    expect(stale).toContain('对话比这份桌面新')
-    expect(stale).toContain('刷新桌面')
+    const stale = textsOf(exports.MemoryPanel()).join(' | ')
+    expect(stale).toContain('对话比这份房间数据新')
+    expect(stale).toContain('刷新房间数据')
 
     // A file written within the same minute as the newest turn is current (the refresh itself
     // takes a moment; a minute of slack keeps the warning honest).
     exports.deskStore.sessionUpdatedAt = new Date('2026-09-26T13:00:30+08:00').getTime()
-    const fresh = textsOf(exports.DeskPanel()).join(' | ')
-    expect(fresh).not.toContain('对话比这份桌面新')
+    const fresh = textsOf(exports.MemoryPanel()).join(' | ')
+    expect(fresh).not.toContain('对话比这份房间数据新')
   })
 
   it('lets a decision be answered again when the file still carries it (R11)', () => {
