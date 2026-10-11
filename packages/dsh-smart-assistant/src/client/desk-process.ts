@@ -166,3 +166,27 @@ export function judgeReturn(path: ProcessingPath, input: ReturnJudgeInput): Retu
     remindersUnsynced,
   }
 }
+
+/** The matter fields the processing-session seed needs (structural view of a projection matter). */
+export interface ProcessingContextMatter {
+  readonly id: string
+  readonly title: string
+  readonly summary: string
+  readonly times: { readonly promisedDeadline?: string; readonly nextCheckpoint?: string }
+}
+
+/**
+ * The visible context note seeded into a fresh processing session (principal decision,
+ * 2026-10-11: the matter IS the session's context). The sender prefixes the `[桌面]` marker
+ * so the log keeps machine-written prompts apart from the principal's own words.
+ * @param matter - the bound matter from the projection snapshot.
+ * @returns the seed message text, principal-visible and logged.
+ */
+export function processingContextMessage(matter: ProcessingContextMatter): string {
+  const times = [
+    matter.times.promisedDeadline !== undefined ? `承诺 ${matter.times.promisedDeadline}` : undefined,
+    matter.times.nextCheckpoint !== undefined ? `核对 ${matter.times.nextCheckpoint}` : undefined,
+  ].filter(part => part !== undefined).join('、')
+  const head = `正在处理事项「${matter.title}」（${matter.id}）`
+  return `${head}${times === '' ? '' : `：${times}`}。${matter.summary} 请先用 assistant_operating read ${matter.id} 核对台账详情，然后等我具体指令。`
+}

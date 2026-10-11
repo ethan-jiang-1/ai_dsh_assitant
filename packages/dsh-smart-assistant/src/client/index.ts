@@ -45,7 +45,7 @@ import { ProjectionPanel } from './projection-panel'
 import { mountProjectionReader } from './projection-lifecycle'
 import type { ProjectionDownload } from './projection-reader'
 import { createProjectionViewStore } from './projection-view'
-import { bindProcessPath, judgeReturn, type ProcessingPath } from './desk-process'
+import { bindProcessPath, judgeReturn, processingContextMessage, type ProcessingPath } from './desk-process'
 import { en as firstMileEn, zh as firstMileZh } from './locales'
 
 /** Slots this face occupies (single-occupant, root-scope, declared by the sidebar). */
@@ -211,6 +211,19 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
           // Open through the shell's own selection action; retaining alone leaves the old
           // main-view session selected, so the principal would type into the wrong conversation.
           ctx.uiWorkspace?.openSession(sessionId)
+          // The matter IS this session's context (principal decision, 2026-10-11): seed it as a
+          // visible, logged message through the same panel channel — the model starts knowing
+          // what it is processing instead of reconstructing intent from the filesystem. Once per
+          // created session; reopening a bound session never re-seeds.
+          const prompt = (getDeskRemote()?.['session'] as { prompt?: (request: unknown) => Promise<unknown> } | undefined)?.prompt
+          if (prompt !== undefined) {
+            void prompt({
+              requestId: `desk-process-context-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+              sessionId,
+              mode: 'queue',
+              content: [{ type: 'text', text: `[桌面] ${processingContextMessage(matter)}` }],
+            })
+          }
         } finally {
           processLaunchInFlight = false
         }
@@ -273,14 +286,26 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     }
     // Subscriptions ride the browser-only path: headless client contexts carry no `effect`
     // (the reader mount follows the same boundary).
-    if (processPath !== undefined && projection !== undefined) {
+    if (projection !== undefined) {
       ctx.effect(() => {
-        const disposes: Array<(() => void) | undefined> = [
-          projection.subscribe(evaluateReturn),
-          ctx.uiSession?.sessionStatus.subscribe(() => { refreshOnSettle(); evaluateReturn() }),
-          ctx.layout?.panelInfo.subscribe(evaluateReturn),
-          ctx.sessions?.list.subscribe(evaluateReturn),
-        ]
+        const disposes: Array<(() => void) | undefined> = []
+        if (processPath !== undefined) {
+          disposes.push(
+            projection.subscribe(evaluateReturn),
+            ctx.uiSession?.sessionStatus.subscribe(() => { refreshOnSettle(); evaluateReturn() }),
+            ctx.layout?.panelInfo.subscribe(evaluateReturn),
+            ctx.sessions?.list.subscribe(evaluateReturn),
+          )
+        }
+        // Periodic desk refresh (principal ask, 2026-10-11): the ledger can move from any
+        // session, and a desk left open must not go stale between conversation settles. The
+        // tick skips a backgrounded page; the reader's own state machine dates the panel.
+        if (reader !== undefined) {
+          const timer = setInterval(() => {
+            if (typeof document === 'undefined' || document.visibilityState === 'visible') reader.refresh()
+          }, 30_000)
+          disposes.push(() => { clearInterval(timer) })
+        }
         return () => { for (const dispose of disposes) dispose?.() }
       })
     }

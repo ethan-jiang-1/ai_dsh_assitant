@@ -129,7 +129,7 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
         ce('h1', { className: 'dsha-title' }, '你的桌面'),
         counts === undefined ? null : ce('div', { className: 'dsha-sub' }, counts)),
       ce('div', { className: 'dsha-actions' },
-        ce('button', { className: 'dsha-btn', onClick: props.refreshProjection }, '重新读取'),
+        ce('button', { className: 'dsha-btn', onClick: props.refreshProjection, disabled: download.status === 'loading', title: download.status === 'loading' ? '正在读取桌面…' : '重新读取桌面' }, '重新读取'),
         ce('button', { className: 'dsha-btn', onClick: props.onAsk }, '有问题？跟助手说'),
         ce('button', { className: 'dsha-btn dsha-btn-primary', onClick: props.onAsk }, '＋ 交代新事项'))),
     download.status === 'disconnected' ? ce('p', { className: 'dsha-banner', role: 'status' }, message) : null,

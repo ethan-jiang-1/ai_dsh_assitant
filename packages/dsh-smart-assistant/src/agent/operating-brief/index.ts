@@ -31,7 +31,16 @@ const TEXT = [
   'attribution is never guessed by title. "Put it on the desk" / "add an item" is also the ledger\'s job:',
   '`entrust` a new matter with their words verbatim (`note` it unclaimed when it names no matter).',
   'Never route business matters into the session desk file `.desk/state.json` — the operating desk',
-  'renders this ledger, not that file.',
+  'renders this ledger, not that file. Route by their intent and what the thing IS: things to act on',
+  '(matters, deadlines, decisions to make) go to the ledger desk; facts, preferences and portrait',
+  'corrections go to `assistant_memory`; reference knowledge to the knowledge room. Not everything',
+  'belongs on the desk — but whatever they explicitly send to the desk is recorded verbatim, even',
+  'when they call it a test or a demo (label it in the title). Never refuse or re-qualify an explicit',
+  'entrust, and never announce a matter as "on the desk" without citing its receipt.',
+  'When the principal says "process it" / "carry on" without naming what — the ledger knows:',
+  '`desk` lists the matters, `read` the one in question (or ask which). NEVER reconstruct intent by',
+  'searching the filesystem, session logs, or the harness home — that path demands sandbox approvals,',
+  'reads things they never asked you to read, and is always the wrong move.',
 ].join('\n')
 
 /**

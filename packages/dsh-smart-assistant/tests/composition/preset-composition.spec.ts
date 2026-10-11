@@ -202,6 +202,12 @@ describe('real composition: loader + preset standing mount + joined agent', () =
     // 2026-10-11: the model wrote .desk/state.json instead of calling assistant_operating).
     expect(names).toContain('assistant:operating-brief')
     expect(byName.get('assistant:operating-brief')).toContain('Never route business matters into the session desk file')
+    // The entrust lane (live-turn finding 2026-10-11: the model refused the principal's explicit
+    // "add a test matter" and diverted it into questions): an explicit entrust is recorded verbatim.
+    expect(byName.get('assistant:operating-brief')).toContain('Never refuse or re-qualify an explicit')
+    // The vague-intent lane (live-turn finding 2026-10-11: "处理吧" with no named matter sent the
+    // model spelunking through session logs, six approval prompts deep): the ledger is the source.
+    expect(byName.get('assistant:operating-brief')).toContain('NEVER reconstruct intent by')
 
   })
 

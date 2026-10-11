@@ -104,15 +104,15 @@ describe('first-mile seats', () => {
       processingMatter: { matterId: 'm-A', title: 'NB-02：客户验收节点', summary: '客户可能推迟到 10/20。' },
       t: key => ({
         'processing.title': '正在处理这件事',
-        'processing.label': '当前对话对应桌面事项：',
-        'processing.visualOnly': '事项信息只显示在界面上；需要助手参考时，请在对话里明确告诉它。',
+        'processing.label': '桌面事项',
+        'processing.visualOnly': '助手能从台账读到这件事的详情；直接说要做什么就行，它会先核对台账再动手。',
       }[key]),
     })
     if (dock === null) throw new Error('processing context should render for a blank session')
     const copy = textsOf(dock).join(' ')
     expect(copy).toContain('NB-02：客户验收节点')
     expect(copy).toContain('客户可能推迟到 10/20。')
-    expect(copy).toContain('只显示在界面上')
+    expect(copy).toContain('台账')
     expect(copy).not.toContain('第一次来')
     expect(copy).not.toContain('例：')
     expect(elementsOf(dock, 'button')).toHaveLength(0)

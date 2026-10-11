@@ -19,7 +19,7 @@ function render(value: ProjectionDownload): string {
   const view = createProjectionViewStore(defineStore).create()
   return text(ProjectionPanel({ useProjection: select => select(value), useStore: select => select(view.getSnapshot()), actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop }))
 }
-function findButton(node: unknown, label: string): { onClick?: () => void } | undefined {
+function findButton(node: unknown, label: string): { onClick?: () => void, disabled?: boolean } | undefined {
   if (Array.isArray(node)) {
     for (const child of node) {
       const hit = findButton(child, label)
@@ -28,7 +28,7 @@ function findButton(node: unknown, label: string): { onClick?: () => void } | un
     return undefined
   }
   if (node !== null && typeof node === 'object' && 'props' in node) {
-    const props = (node as { props: { children?: unknown, onClick?: () => void } }).props
+    const props = (node as { props: { children?: unknown, onClick?: () => void, disabled?: boolean } }).props
     if (text(node) === label && props.onClick !== undefined) return props
     return findButton(props.children, label)
   }
@@ -66,6 +66,21 @@ describe('global projection panel', () => {
     expect(text(output)).toContain('＋ 交代新事项')
     findButton(output, '＋ 交代新事项')?.onClick?.()
     expect(onAsk).toHaveBeenCalledTimes(1)
+  })
+
+  it('grays the refresh button while a read is in flight — auto or manual — and recovers after', () => {
+    const view = createProjectionViewStore(defineStore).create()
+    const props = (status: ProjectionDownload['status']) => ({
+      useProjection: <S,>(select: (value: ProjectionDownload) => S): S => select({ status }),
+      useStore: <S,>(select: (value: ReturnType<typeof view.getSnapshot>) => S): S => select(view.getSnapshot()),
+      actions: view.actions,
+      refreshProjection: (): void => {},
+      onAsk: (): void => {},
+      onProcess: noop,
+    })
+    expect(findButton(ProjectionPanel(props('loading')), '重新读取')?.disabled).toBe(true)
+    expect(findButton(ProjectionPanel(props('ready')), '重新读取')?.disabled).toBe(false)
+    expect(findButton(ProjectionPanel(props('ready')), '重新读取')?.onClick).toBeDefined()
   })
   it('shows all eight matters, completed history and stale fixture notice', () => {
     const output = render({ status: 'disconnected', stale: true, data: { schemaVersion: 1, ledgerId: 'simulated', revision: 7, fixture: true, receipts: [], unclaimed: [], matters: Array.from({ length: 8 }, (_, index) => ({ id: `m${String(index)}`, title: `事项${String(index)}`, status: index === 7 ? 'completed' : 'active', summary: '待核对', responsible: '', revision: 1, times: {}, proposals: [], evidence: [] })) } })

@@ -22,7 +22,7 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { bindProcessPath, judgeReturn, type JudgeProposal, type JudgeSession } from '../../src/client/desk-process.ts'
+import { bindProcessPath, judgeReturn, processingContextMessage, type JudgeProposal, type JudgeSession } from '../../src/client/desk-process.ts'
 
 interface Receipt { operationId: string, matterId: string, sessionId: string, status: string, revision?: number, proposalId?: string, submittedAt: string }
 
@@ -170,5 +170,20 @@ describe('auto-return judge (the negative matrix)', () => {
   it('fails closed while the session is running or its state is unknown', () => {
     expect(judge(boundA(), [freshCommitted()], { session: session({ running: true, turnSettled: false }) }).reasons).toContain('session-running')
     expect(judge(boundA(), [freshCommitted()], { session: session({ running: undefined, turnSettled: undefined }) }).reasons).toContain('session-running')
+  })
+})
+
+describe('processing-session context seed (principal decision 2026-10-11: the matter IS the context)', () => {
+  it('carries the matter identity, confirmed times and the ledger-verification instruction', () => {
+    const message = processingContextMessage({ id: 'm-1', title: '合同 NB-02 第二期款到账核对', summary: '第二期款约 2026-10-13 到账。', times: { promisedDeadline: '2026-10-13', nextCheckpoint: '2026-10-13' } })
+    expect(message).toContain('正在处理事项「合同 NB-02 第二期款到账核对」（m-1）')
+    expect(message).toContain('承诺 2026-10-13、核对 2026-10-13')
+    expect(message).toContain('assistant_operating read m-1')
+  })
+
+  it('omits the times clause when the matter has none', () => {
+    const bare = processingContextMessage({ id: 'm-2', title: 'T', summary: 'S', times: {} })
+    expect(bare).not.toContain('承诺')
+    expect(bare).toContain('正在处理事项「T」（m-2）')
   })
 })
