@@ -33,6 +33,34 @@ pnpm observe --home "$ASSISTANT_DSH_HOME" --label baseline
 
 基线与每周快照都贴在这里（读数块由 `pnpm observe` 直接输出；只追加，不改历史）。
 
+### 基线：`dev/trial-home-30d`，2026-10-11（环境建好、尚未使用）
+
+专用试用环境 `dev/trial-home-30d`（gitignore 覆盖；另建，不碰日用 home 与 dev home）。基线在**任何真人会话之前**摘，
+因此三项读数全为空——这正是第 0 天的正确形态；之后每有一周真人使用，就追加一行读数。
+
+**开始日的两次动作（按这个顺序，别颠倒）**：
+
+1. **环境初始化（机器，会在 C 里留一条入口）**：新 home 的工作区注册表为空、`.desk/state.json` 还没生成，
+   所以 `pnpm preflight` 对全新 home 会如实报红（`registers no workspaces` / `no .desk/state.json`）。
+   正式交给本人之前，在那个 home 跑一次桌面初始化（助手按 `desk-refresh` 写一份骨架），再重跑 preflight 至绿——
+   **这一步排在基线之后**（基线必须是无任何活动的空环境），它产生的机器入口不进 A（结构判据排除）。
+2. **交给本人开始用**：从 `pnpm dsh --profile dev --port 0 --no-open`（带 `ASSISTANT_DSH_HOME`）拿 URL 并 `pnpm preflight` 复核；
+   首条真人会话即第 0 天之后的第 1 天读数起点。
+
+### 读数 baseline（2026-10-11 15:54）
+
+环境：`dev/trial-home-30d` ｜ 会话 0 个 ｜ 本人轮次 0 ｜ `[面板]` 标记 0 ｜ 注入前言 0
+
+**A 自发投递（候选 0 条，"是否业务碎片"由人判）**
+- （无：该环境还没有本人轮次）
+
+**B 时长**
+- （该环境还没有账本）
+
+**C 入口后的操作（0 次入口）**
+- （无：该环境还没有面板写入的入口消息）
+
+
 ### 干跑（**不是基线**）：旧 `dev/trial-home`，2026-10-11
 
 用途：验证读数命令在真日志上算得对。该 home 是 2026-10-01~10-05 的旧现场（4 个会话、无账本），
