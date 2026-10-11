@@ -113,7 +113,11 @@ owner 面**，故本卡不擅自把它们塞进 `snapshots/`（那是越界，�
 | 6 | **机械面 pass + 互补面 waiting** | 阅读协议（**不是** `pnpm eval`，见 BUG-008）：`dev/reports/usage-report.mjs` 的 `sessionLogs`/`readEvents` 读会话日志里的 `schedule_*` 调用，代次用 `session.v<n>` 通配。实读一次真实 web 会话（真模型）：`schedule_create` 带 `weekly {time 09:00:00, time_zone: Asia/Shanghai, weekdays [1]}`（周一 09:00 沪时）2 例、at 型到期提醒多例；**防堆叠**：同一回合内 `schedule_list` 先于 `schedule_create`（2 例） | **跨周真的触发一次** = waiting（需真实一周）；一次性真实会话读数不是耐久夹具，重取要再跑一次真会话 |
 | 7 | **pass**（阻断解除） | `pnpm web-expected` 两场景本轮各 2 采样复跑零 diff（blank 场景 2026-10-11 由红转绿并有意重录）；交互侧由 `pnpm test:client` 覆盖 | 只证明所录场景的 DOM/外观；几何与真输入由 #3 的 owner 与走查覆盖 |
 
-**人判（与技术要求分开；未判不能算通过）**：#5 语气是否真像本人（范围已改指现行车道）、#6 周坐四个对账口径是不是一把手真想要的（业务价值）、R5 播报与门的话术是否口语/清楚/可操作。
+**人判（与技术要求分开；未判不能算通过）**——**2026-10-11 起逐条回收**：
+
+- **R5 话术：本人裁定「行，就现在这个说法」→ 通过**（2026-10-11）。
+- #5 语气是否真像本人（范围已改指现行车道）——待本人。
+- #6 周坐四个对账口径是不是一把手真想要的（业务价值）——待本人。
 
 **人判的读数路径（2026-10-11 固化）**：`pnpm desk-walk '<URL>' --home <dir>`（[desk-flow-walk.mjs](../../dev/probes/web/desk-flow-walk.mjs)）用真模型走
 「首屏桌面 → 处理一件事 → 说一句进展 → 返回不变量 → ＋ 交代新事项 → 返回选中新事」，把每屏屏幕文本与截图落
