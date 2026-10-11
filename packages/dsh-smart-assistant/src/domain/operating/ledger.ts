@@ -18,7 +18,7 @@ export interface LedgerSource {
   readonly quote?: string
 }
 
-/** The four business times, kept separate (V3): commitment, estimate, checkpoint. */
+/** The four business times, kept separate (V3): commitment, estimate, checkpoint, completion. */
 export interface MatterTimes {
   /** 约定期限 — a promise made to or by the principal. */
   readonly promisedDeadline?: string
@@ -27,6 +27,25 @@ export interface MatterTimes {
   readonly forecastSource?: LedgerSource
   /** 下一核对点 — when the principal or an authorized rule looks again. */
   readonly nextCheckpoint?: string
+  /** 完成时刻 — stamped when the matter is completed, cleared when a reopen corrects it.
+   *  It is a business time, not bookkeeping: the detail pane shows it beside the other three, and
+   *  a completed matter without it would be the only state the spec's "four times" could not show. */
+  readonly completedAt?: string
+}
+
+/** Carry the business times forward, optionally stamping or clearing the completion time.
+ *  @param times - the times to carry.
+ *  @param completedAt - the completion stamp; `undefined` leaves the matter uncompleted.
+ *  @returns a fresh times object holding only the fields that exist.
+ */
+function carryTimes(times: MatterTimes, completedAt?: string): MatterTimes {
+  return {
+    ...(times.promisedDeadline === undefined ? {} : { promisedDeadline: times.promisedDeadline }),
+    ...(times.forecastAt === undefined ? {} : { forecastAt: times.forecastAt }),
+    ...(times.forecastSource === undefined ? {} : { forecastSource: times.forecastSource }),
+    ...(times.nextCheckpoint === undefined ? {} : { nextCheckpoint: times.nextCheckpoint }),
+    ...(completedAt === undefined ? {} : { completedAt }),
+  }
 }
 
 /** A retained raw material on a matter; retention is not confirmation. */
@@ -477,7 +496,15 @@ export function applyOperation(
         receipt,
       }
     }
-    const nextMatter: MatterRecord = { ...withEvidence, status: target, revision: matter.revision + 1, updatedAt: submittedAt }
+    // The completion time rides the status: stamped by `complete`, cleared by `reopen` — a
+    // correction must not leave the detail saying both "active" and "completed at …".
+    const nextMatter: MatterRecord = {
+      ...withEvidence,
+      times: carryTimes(withEvidence.times, operation.kind === 'complete' ? submittedAt : undefined),
+      status: target,
+      revision: matter.revision + 1,
+      updatedAt: submittedAt,
+    }
     const receipt: OperationReceipt = {
       operationId: operation.operationId,
       matterId: matter.id,
@@ -588,7 +615,7 @@ export function applyOperation(
     } else if (proposal.change.kind === 'checkpoint') {
       next = { ...next, times: { ...next.times, nextCheckpoint: proposal.change.nextCheckpoint } }
     } else if (proposal.change.kind === 'complete') {
-      next = { ...next, status: 'completed' }
+      next = { ...next, status: 'completed', times: carryTimes(next.times, submittedAt) }
       next = appendMaterials(next, [{ note: proposal.change.evidence.note, source: proposal.change.evidence.source }], submittedAt)
     } else if (proposal.change.kind === 'abandon') {
       next = { ...next, status: 'abandoned' }

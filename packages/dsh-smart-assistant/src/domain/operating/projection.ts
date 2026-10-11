@@ -54,7 +54,7 @@ export interface ProjectionMatter {
   readonly summary: string
   readonly responsible: string
   readonly revision: number
-  readonly times: { readonly promisedDeadline?: string; readonly forecastAt?: string; readonly nextCheckpoint?: string }
+  readonly times: { readonly promisedDeadline?: string; readonly forecastAt?: string; readonly nextCheckpoint?: string; readonly completedAt?: string }
   readonly evidence: readonly ProjectionEvidence[]
   readonly proposals: readonly ProjectionProposal[]
 }
@@ -98,6 +98,7 @@ export function renderLedgerProjection(state: LedgerState, ledgerId: string, gen
       ...(matter.times.promisedDeadline !== undefined ? { promisedDeadline: matter.times.promisedDeadline } : {}),
       ...(matter.times.forecastAt !== undefined ? { forecastAt: matter.times.forecastAt } : {}),
       ...(matter.times.nextCheckpoint !== undefined ? { nextCheckpoint: matter.times.nextCheckpoint } : {}),
+      ...(matter.times.completedAt !== undefined ? { completedAt: matter.times.completedAt } : {}),
     },
     evidence: evidence(matter),
     proposals: matter.proposals.map(proposal => ({

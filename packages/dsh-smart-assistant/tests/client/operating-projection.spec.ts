@@ -45,7 +45,7 @@ describe('v2 ledger-render envelope (K3 slice E)', () => {
     schemaVersion: 2, ledgerId: 'assistant-operating', revision: 3, generatedAt: '2026-10-10T11:00:00.000Z',
     matters: [{
       id: 'm-1', title: '回款 A', status: 'abandoned', summary: '等待核对', responsible: '财务', revision: 2,
-      times: { promisedDeadline: '2026-10-13', forecastAt: '2026-10-15' },
+      times: { promisedDeadline: '2026-10-13', forecastAt: '2026-10-15', completedAt: '2026-10-16T04:00:00.000Z' },
       evidence: [{ id: 'mat-m-1-1', sessionId: 'session-a', note: '到账回单', quote: '银行回单：已到账' }],
       proposals: [{
          id: 'p-1', kind: 'reschedule', status: 'pending', proposedAt: '2026-10-10T09:00:00.000Z',
@@ -63,6 +63,7 @@ describe('v2 ledger-render envelope (K3 slice E)', () => {
     expect(parsed.matters[0]?.status).toBe('abandoned')
     expect(parsed.matters[0]?.revision).toBe(2)
     expect(parsed.matters[0]?.times.promisedDeadline).toBe('2026-10-13')
+    expect(parsed.matters[0]?.times.completedAt).toBe('2026-10-16T04:00:00.000Z')
     expect(parsed.matters[0]?.responsible).toBe('财务')
     expect(parsed.matters[0]?.evidence[0]?.note).toBe('到账回单')
     expect(parsed.matters[0]?.evidence[0]?.eventId).toBeUndefined()

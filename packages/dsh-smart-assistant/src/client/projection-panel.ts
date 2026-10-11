@@ -76,11 +76,12 @@ function statusChip(status: string) {
   return chip(status === 'active' ? 'active' : status === 'completed' ? 'completed' : 'abandoned', STATUS_LABEL[status] ?? status)
 }
 
-function timeParts(times: { readonly promisedDeadline?: string; readonly forecastAt?: string; readonly nextCheckpoint?: string }): string[] {
+function timeParts(times: { readonly promisedDeadline?: string; readonly forecastAt?: string; readonly nextCheckpoint?: string; readonly completedAt?: string }): string[] {
   const parts: string[] = []
   if (times.promisedDeadline !== undefined) parts.push(`承诺 ${times.promisedDeadline}`)
   if (times.forecastAt !== undefined) parts.push(`预测 ${times.forecastAt}`)
   if (times.nextCheckpoint !== undefined) parts.push(`核对 ${times.nextCheckpoint}`)
+  if (times.completedAt !== undefined) parts.push(`完成 ${times.completedAt}`)
   return parts
 }
 

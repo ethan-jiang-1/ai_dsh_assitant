@@ -54,6 +54,8 @@ describe('renderLedgerProjection (v2 read-only view of the ledger)', () => {
     expect(matter.status).toBe('active')
     expect(matter.revision).toBe(1)
     expect(matter.times).toEqual({ promisedDeadline: '2026-10-13', forecastAt: '2026-10-15', nextCheckpoint: '2026-10-13' })
+    // 第四种时间在投影里也要有一条路：未完成的事项没有 completedAt（不猜）。
+    expect('completedAt' in matter.times).toBe(false)
     expect(matter.evidence.map(item => item.note)).toEqual(['合同 NB-02 第二期款', '财务已收到发票'])
     expect(matter.evidence[0]?.eventId).toBeUndefined()
     expect(matter.evidence[0]?.quote).toBe('约定 10/13，帮我盯着')

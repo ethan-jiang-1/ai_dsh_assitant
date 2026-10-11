@@ -53,6 +53,24 @@ describe('global projection panel', () => {
     expect(view.getSnapshot().selectedId).toBe('gone')
   })
 
+  it('shows the completion time on a completed matter — the fourth business time', () => {
+    const view = createProjectionViewStore(defineStore).create()
+    const base = { schemaVersion: 2 as const, ledgerId: 'test', revision: 4, receipts: [], unclaimed: [] }
+    const completed = {
+      id: 'c1', title: '已收尾的事', status: 'completed' as const, summary: '做完', responsible: '', revision: 2,
+      times: { promisedDeadline: '2026-10-13', forecastAt: '2026-10-15', nextCheckpoint: '2026-10-13', completedAt: '2026-10-16T04:00:00.000Z' },
+      proposals: [], evidence: [{ id: 'e1', sessionId: 's1', eventId: 'x1', quote: '到账回单', note: '到账回单' }],
+    }
+    view.actions.selectMatter('c1')
+    const props = { useProjection: <S,>(select: (value: ProjectionDownload) => S): S => select({ status: 'ready', data: { ...base, matters: [completed] } }), useStore: <S,>(select: (value: ReturnType<typeof view.getSnapshot>) => S): S => select(view.getSnapshot()), actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop }
+    const output = text(ProjectionPanel(props))
+    // 四种时间各占一段：承诺/预测/核对/完成。
+    expect(output).toContain('承诺 2026-10-13')
+    expect(output).toContain('预测 2026-10-15')
+    expect(output).toContain('核对 2026-10-13')
+    expect(output).toContain('完成 2026-10-16T04:00:00.000Z')
+  })
+
   it('separates missing from damaged ledger', () => {
     expect(render({ status: 'missing' })).toContain('还没有经营事项资料')
     expect(render({ status: 'error', error: 'projection-invalid' })).toContain('损坏或版本不支持')

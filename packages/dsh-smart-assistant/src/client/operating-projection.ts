@@ -24,7 +24,7 @@ export interface OperatingMatter {
   readonly summary: string
   readonly responsible: string
   readonly revision: number
-  readonly times: { readonly promisedDeadline?: string; readonly forecastAt?: string; readonly nextCheckpoint?: string }
+  readonly times: { readonly promisedDeadline?: string; readonly forecastAt?: string; readonly nextCheckpoint?: string; readonly completedAt?: string }
   readonly evidence: readonly OperatingEvidence[]
   readonly proposals: readonly OperatingProposal[]
 }
@@ -79,6 +79,7 @@ function times(value: unknown): value is OperatingMatter['times'] {
   return (value.promisedDeadline === undefined || text(value.promisedDeadline))
     && (value.forecastAt === undefined || text(value.forecastAt))
     && (value.nextCheckpoint === undefined || text(value.nextCheckpoint))
+    && (value.completedAt === undefined || text(value.completedAt))
 }
 function matterV2(value: unknown): value is OperatingMatter {
   return record(value) && text(value.id) && text(value.title)

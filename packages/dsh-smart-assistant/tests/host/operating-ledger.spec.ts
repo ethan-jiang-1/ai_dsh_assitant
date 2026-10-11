@@ -444,6 +444,9 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
     let matter = await service.readMatter(created.matterId)
     expect(matter?.status).toBe('completed')
     expect(matter?.materials.at(-1)?.note).toBe('到账回单')
+    // 第四种业务时间：完成时刻由完成这一刻盖下，不靠模型自报（规格「四种时间」的第四种）。
+    expect(matter?.times.completedAt).toBeDefined()
+    const completedAt = matter?.times.completedAt
 
     // The evidence turned out to belong to another contract: reopen corrects the association.
     const reopened = await service.submitOperation({
@@ -458,6 +461,9 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
     matter = await service.readMatter(created.matterId)
     expect(matter?.status).toBe('active')
     expect(matter?.materials.at(-1)?.note).toBe('回单属于 NX-01，误关联')
+    // reopen 是同一次纠正：完成时刻随状态一起撤销，详情不会同时说「在做」和「完成于 …」。
+    expect(matter?.times.completedAt).toBeUndefined()
+    expect(completedAt).toBeDefined()
   })
 
   it('holds model-inferred major changes as pending proposals until an explicit confirm', async () => {
