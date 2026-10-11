@@ -250,11 +250,16 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       }
       if (processLaunchInFlight) return
       const snapshot = projection?.getSnapshot()
-      if (snapshot?.status !== 'ready' || snapshot.stale === true || snapshot.data === undefined) {
-        reader?.refresh()
-        return
-      }
-      const observed = new Set(snapshot.data.matters.map(matter => matter.id))
+      const readable = snapshot?.status === 'ready' && snapshot.stale !== true && snapshot.data !== undefined
+      // `missing` is the 404 the download answers when no ledger exists — that is "no matters",
+      // not "unknown", so the ids at binding are honestly empty. Anything else (loading, error,
+      // disconnected) is genuinely unknown: the path is then left unbound rather than bound on a
+      // guess, but the door still opens — a Day-0 principal clicking 「＋ 交代新事项」 on a fresh
+      // home must never meet a dead button (the loop probe caught exactly that, 2026-10-11).
+      const noLedger = snapshot?.status === 'missing'
+      if (!readable && !noLedger) reader?.refresh()
+      const observed = readable ? new Set(snapshot.data.matters.map(matter => matter.id)) : new Set<string>()
+      const binds = readable || noLedger
       processLaunchInFlight = true
       void (async () => {
         try {
@@ -266,7 +271,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
             sessionId = await ctx.sessions?.create(workspaceId === undefined ? undefined : { workspaceId })
           }
           if (sessionId === undefined) return
-          deskPath?.set(bindIntakePath(sessionId, observed))
+          if (binds) deskPath?.set(bindIntakePath(sessionId, observed))
           ctx.uiWorkspace?.openSession(sessionId)
         } finally {
           processLaunchInFlight = false

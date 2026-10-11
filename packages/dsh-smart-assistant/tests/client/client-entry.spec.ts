@@ -131,6 +131,37 @@ function recordingContext(): {
   return { ctx, registered }
 }
 
+describe('the desk「＋ 交代新事项」 door', () => {
+  it('opens a conversation even when no projection is readable (a fresh home has no ledger)', async () => {
+    // The Day-0 case: nothing on disk yet, so the projection download answers 404 (`missing`) or
+    // the store module is absent. The door must still open — the loop probe caught it doing
+    // nothing at all on a fresh home (2026-10-11), which reads to the principal as a dead button.
+    const opened: string[] = []
+    const asked: string[] = []
+    const { ctx, registered } = recordingContext()
+    ;(ctx as { sessions?: unknown }).sessions = { create: async () => 'session-day0' }
+    ;(ctx as { uiWorkspace?: unknown }).uiWorkspace = { openSession: (id: string) => { opened.push(id) } }
+    ;(ctx as { uiSession?: unknown }).uiSession = {
+      current: { value: {} },
+      sessionStatus: { getSnapshot: () => new Map(), subscribe: () => () => {} },
+    }
+    ;(ctx as { layout?: unknown }).layout = {
+      panelInfo: { getSnapshot: () => ({ activePanelId: 'dsh-smart-assistant-dashboard' }) },
+      selectPanel: (id: string | null) => { asked.push(String(id)) },
+    }
+
+    materialize().apply(ctx)
+
+    const main = registered.find(entry => entry.name === 'main')
+    const inject = main?.declaration.inject as (() => { onEntrust?: () => void }) | undefined
+    expect(typeof inject?.().onEntrust).toBe('function')
+    inject?.().onEntrust?.()
+    // The launch is async (session creation); one macrotask turn is enough for the fake.
+    await new Promise(resolve => { setTimeout(resolve, 0) })
+    expect(opened).toEqual(['session-day0'])
+  })
+})
+
 describe('desk primary view', () => {
   it('opens the dashboard by default when no main panel is selected', () => {
     const selected: (string | null)[] = []
