@@ -20,18 +20,21 @@ loop that answers "did it actually ride in the request?" without guessing.
    ```
    Root matters: the launcher pins `DSH_HOME` and resolves the profile relative to the cwd; run it
    from a package directory and you get `profile does not exist`.
-   Redirect to a file when you care about the whole output (`> /tmp/probe.log 2>&1`); piping into
-   `head` can swallow the lines you need.
+   Redirect to a file when you care about the whole output (`> .tmp/probe.log 2>&1`, from the repo
+   root — scratch lives under the repo's `.tmp/`, hard rule 8); piping into `head` can swallow the
+   lines you need.
 3. **Write the probe task so it can only answer from resident context** — e.g. "do not call any
    tool; answer only from what is already in front of you; if it is not there, say so." That turns
    the request into the measurement: an honest "I do not have it" is a finding, not a failure.
-4. **Find the newest session and unpack it**:
+4. **Find the newest session and unpack it** (paths start at the repo root; the sessions tree sits
+   three levels down, so the repo's `.tmp/` stays reachable as `../../../.tmp/`):
    ```sh
    cd dev/harness-home/sessions
    ls -t ./--Users-...--/            # the ./ prefix is REQUIRED: dir names start with --
-   zstd -dc ./--<cwd-dir>--/<session-id>/session.v*.jsonl.zstd > /tmp/probe.jsonl   # the generation in the name moves with the pin: list the dir, do not assume it
+   zstd -dc ./--<cwd-dir>--/<session-id>/session.v*.jsonl.zstd > ../../../.tmp/probe.jsonl   # the generation in the name moves with the pin: list the dir, do not assume it
    ```
-   For bulk searches prefer the wrapper form (`printf '#!/bin/sh\nexec zstd -dc "$@"\n' > /tmp/zstd-cat`)
+   For bulk searches prefer the wrapper form (write it from the repo root, then hand `--pre` the
+   absolute path it prints: `printf '#!/bin/sh\nexec zstd -dc -- "$@"\n' > .tmp/zstd-cat && chmod +x .tmp/zstd-cat`)
    because `rg --pre` cannot take a command with spaces.
 5. **Enumerate the event types before reading any field.** The shapes differ per event and guessing
    costs a round trip (paid twice):

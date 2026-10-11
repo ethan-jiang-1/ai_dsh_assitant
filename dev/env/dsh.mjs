@@ -22,6 +22,8 @@
  *      `notes/archived/2026-10-02-web-fetch-proxy-env.md`）。端口候选：`ASSISTANT_PROXY_URL`
  *      显式指定（置空串=禁用注入）＞ 系统代理设置（macOS `scutil --proxy` 的 HTTP 口）＞
  *      常见混合口 7897，先探测先得；显式导出过 `HTTP(S)_PROXY` 的调用者不被覆盖。
+ *   5. 临时文件收进仓内：三个临时根变量指向 `<repo>/.tmp/host/`（硬规则 8：仓外写会被
+ *      文件沙箱挡成 approval）。显式导出过的调用者不被覆盖。
  *
  * 不经过本启动器的调用方（release-smoke / dev/env/setup.sh）自己负责设置 `DSH_HOME`。
  */
@@ -29,7 +31,7 @@ import { spawn, execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { join, resolve } from 'node:path'
 import { homedir } from 'node:os'
-import { existsSync } from 'node:fs'
+import { existsSync, mkdirSync } from 'node:fs'
 import { connect } from 'node:net'
 
 const repoRoot = fileURLToPath(new URL('../..', import.meta.url))
@@ -67,6 +69,17 @@ console.error(`[dsh] DSH_HOME=${process.env.DSH_HOME} (dev home; ~/.dsh untouche
 process.env.DSH_AGENTS_HOME ??= join(process.env.DSH_HOME, 'agents-home')
 // dev 不出遥测（默认 FEEDBACK_ONLY；显式设置过就尊重）。
 process.env.DSH_TELEMETRY_DISABLED ??= '1'
+
+// ── 临时文件收进仓内（硬规则 8）──────────────────────────────────────────────
+// 文件沙箱只放行会话工作目录：vendor 默认把 spill 写进系统临时根，dev 会话里那就是仓外，
+// 每次落盘都要人点一次 approval。启动器把三个临时根变量指到 `.tmp/host/`，spill 与任何
+// 走 TMPDIR 的临时产物随之入仓；`TMP`/`TEMP` 是 Windows 与部分工具的取值名。
+// 显式导出过的人不被覆盖（与出网代理同款哲学：只补默认，不夺方向盘）。
+const hostTmp = join(repoRoot, '.tmp', 'host')
+mkdirSync(hostTmp, { recursive: true })
+process.env.TMPDIR ??= hostTmp
+process.env.TMP ??= hostTmp
+process.env.TEMP ??= hostTmp
 
 // ── 出网代理条件注入（规则见文件头第 4 条）──────────────────────────────────
 const probe = (host, port) => new Promise(resolveProbe => {

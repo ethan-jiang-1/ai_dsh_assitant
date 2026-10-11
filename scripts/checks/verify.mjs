@@ -18,7 +18,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { agentsMdStabilityProblems, backlogGraduationProblems, backlogLivenessProblems, clientScriptSafetyProblems, commandAliasProblems, compositionRowProblems, configParseProblems, dependencyPoseProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, GRADUATED_STATUS, implementedAlternativesProblems, identityNameProblems, languageGuardProblems, markdownCorpusFromTracked, notesNamingProblems, notePointerProblems, notesStateProblems, notesTopLevelProblems, pinProblems, machineLocalPathProblems, packageSubpathProblems, playbookFrontmatterProblems, projectReferenceMatches, relativeLinkProblems, skillFrontmatterProblems, startPathProblems, testAssetNamingProblems, textHygieneProblems, vendorClientFreshnessProblems } from './verify-checks.mjs'
+import { agentsMdStabilityProblems, backlogGraduationProblems, backlogLivenessProblems, clientScriptSafetyProblems, commandAliasProblems, compositionRowProblems, configParseProblems, dependencyPoseProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, GRADUATED_STATUS, implementedAlternativesProblems, identityNameProblems, languageGuardProblems, markdownCorpusFromTracked, notesNamingProblems, notePointerProblems, notesStateProblems, notesTopLevelProblems, pinProblems, machineLocalPathProblems, packageSubpathProblems, playbookFrontmatterProblems, projectReferenceMatches, relativeLinkProblems, scratchPathProblems, skillFrontmatterProblems, startPathProblems, testAssetNamingProblems, textHygieneProblems, vendorClientFreshnessProblems } from './verify-checks.mjs'
 import * as gateCores from './verify-checks.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
@@ -514,6 +514,37 @@ check('links: contract docs cite no machine-local absolute paths', () => {
     .filter(file => !file.startsWith(join(repoRoot, 'notes')))
     .map(file => ({ file, where: relative(repoRoot, file) }))
   return machineLocalPathProblems(corpus)
+})
+
+// Scratch paths: every temporary file this repo produces belongs under `<repo>/.tmp/` (hard rule 8),
+// because a write outside the session workspace comes back as a sandbox approval. The corpus is the
+// live, repo-owned surface taken from git: `notes/` and `_backlog/` keep the evidence of their day,
+// `vendor/dsh` ships its own policy, and ignored runtime dirs (`.tmp/`, `.pnpm-store/`, homes) are
+// untracked by construction. Root files are listed because they carry the commands people copy.
+check('scratch: temporary files stay under the repo .tmp/', () => {
+  const directoryPrefixes = ['dev/', 'scripts/', 'docs/', 'snapshots/', 'packages/', '.agents/']
+  // The gate names the forms it forbids, so its own directory is out of its corpus (nothing there
+  // writes scratch: the fixtures that do live under `packages/…/tests/`).
+  const excludedPrefixes = ['scripts/checks/']
+  const rootFiles = new Set([
+    'AGENTS.md', 'README.md', 'CLAUDE.md', 'package.json', '.gitignore',
+    'pnpm-workspace.yaml', 'tsconfig.base.json', 'tsconfig.json',
+  ])
+  // Tests may hand scratch paths to `os.tmpdir()` only while the package's vitest config redirects
+  // that root into the repo: the exemption is the redirect's shadow, so deleting the redirect (or
+  // running the same spec outside vitest) removes it instead of silently keeping the allowance.
+  const vitestConfig = read(join(packageDir, 'vitest.config.ts'))
+  const testsRunInRepo = vitestConfig.includes('TMPDIR') && vitestConfig.includes('.tmp')
+  const testsPrefix = join('packages', 'dsh-smart-assistant', 'tests') + '/'
+  const corpus = execFileSync('git', ['ls-files'], { cwd: repoRoot }).toString().split('\n').filter(Boolean)
+    .filter(path => directoryPrefixes.some(prefix => path.startsWith(prefix)) || rootFiles.has(path))
+    .filter(path => !excludedPrefixes.some(prefix => path.startsWith(prefix)))
+    .map(path => ({
+      file: join(repoRoot, path),
+      where: path,
+      allowTmpdir: testsRunInRepo && path.startsWith(testsPrefix),
+    }))
+  return scratchPathProblems(corpus)
 })
 
 // ── commit safety ───────────────────────────────────────────────────────────────────────────────

@@ -28,10 +28,10 @@
  */
 
 import { execFileSync } from 'node:child_process'
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
+import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, isAbsolute, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { mkTmpDir } from '../../dev/env/tmp.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const packageDir = join(repoRoot, 'packages', 'dsh-smart-assistant')
@@ -65,7 +65,7 @@ function dshCommand() {
   return { command: process.execPath, prefix: ['--import', 'tsx/esm', bin] }
 }
 
-const home = mkdtempSync(join(tmpdir(), 'assistant-smoke-'))
+const home = mkTmpDir('release-smoke', 'assistant-smoke-')
 const env = {
   ...process.env,
   DSH_HOME: home,

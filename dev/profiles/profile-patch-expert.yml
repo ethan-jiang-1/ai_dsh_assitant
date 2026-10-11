@@ -6,7 +6,7 @@
 # danger-full-access），这里只改新会话的默认值——patch 是整行 config 替换，故整表重述一遍。
 #
 # 与 preset-runner 搭配跑真实会话（验证"家照常能写、仓库写被拒"）：
-#   pnpm dsh --profile dev-task --patch /tmp/expert-probe.patch.yml "<task>"
+#   pnpm dsh --profile dev-task --patch dev/probes/session/expert-probe.patch.yml "<task>"
 - id: permission
   config:
     presets:

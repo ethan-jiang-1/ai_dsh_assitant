@@ -65,7 +65,7 @@ describe('desk io: the read paths', () => {
       remote: { workspaceFiles: { read: () => { throw new Error('boom') } } },
       sessions: {
         list: {
-          getSnapshot: () => ({ ids: ['s1'], byId: { s1: { updatedAt: 1, cwd: '/tmp/ws' } } }),
+          getSnapshot: () => ({ ids: ['s1'], byId: { s1: { updatedAt: 1, cwd: '.tmp/ws' } } }),
           subscribe: () => () => {},
         },
       },

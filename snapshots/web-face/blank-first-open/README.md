@@ -15,7 +15,7 @@
 
 ```sh
 # ① 起隔离 home 服务（幂等；vendor 产物在位时 ≈6s）
-export ASSISTANT_DSH_HOME=$(mktemp -d /tmp/desk-blank-XXXXXX)
+mkdir -p .tmp && export ASSISTANT_DSH_HOME=$(mktemp -d "$PWD/.tmp/desk-blank-XXXXXX")
 bash dev/env/prepare.sh && bash dev/env/setup.sh
 # overlay 只固定工作区到隔离 home；不确认首开声明、不复制凭据、不种桌面。
 printf -- '- id: workspace-controller\n  name: "@deepseek-ai/dsh-api-workspace-controller"\n  config:\n    documentsDirectory: %s/workspaces\n' "$ASSISTANT_DSH_HOME" > "$ASSISTANT_DSH_HOME/workspace.patch.yml"

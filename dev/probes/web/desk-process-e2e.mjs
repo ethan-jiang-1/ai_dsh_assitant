@@ -15,7 +15,7 @@
 //
 // Usage（repo 根）:
 //   node dev/probes/web/desk-process-e2e.mjs [--home <dir>] [--keep-service]
-//     --home          探针 home（默认 /tmp/k4-probe-home；首次需跑过 prepare+setup）
+//     --home          探针 home（默认 <repo>/.tmp/probe-home/k4-probe-home；首次需跑过 prepare+setup）
 //     --keep-service  结束后保留服务进程（调试用）
 //
 // 前置：`pnpm build` 已跑（服务装载 lib/client 构建物——改过客户端源码必须先重跑）。
@@ -27,20 +27,21 @@ import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync,
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { deriveReplayScript, parseSessionLog } from '../../../vendor/dsh/packages/test-support/llm-replay/lib/index.js'
+import { tmpDir } from '../../env/tmp.mjs'
 import { launchCdpBrowser } from './cdp-driver.mjs'
 
 const repoRoot = join(fileURLToPath(new URL('.', import.meta.url)), '..', '..', '..')
 const fixtures = join(repoRoot, 'dev', 'fixtures', 'desk-process')
 const replaySource = join(fixtures, 'followup', 'session.v4.jsonl')
 const seedLedger = join(fixtures, 'seed-ledger.json')
-const shotDir = join(repoRoot, '.tmp', 'desk-process-e2e')
+const shotDir = tmpDir('desk-process-e2e')
 
 const args = process.argv.slice(2)
 const option = (name, fallback) => {
   const i = args.indexOf(`--${name}`)
   return i >= 0 && i + 1 < args.length ? args[i + 1] : fallback
 }
-const home = option('home', '/tmp/k4-probe-home')
+const home = option('home', join(tmpDir('probe-home'), 'k4-probe-home'))
 const keepService = args.includes('--keep-service')
 
 const verdict = {

@@ -18,10 +18,10 @@
  * @module dev/eval/run
  */
 import { execFileSync } from 'node:child_process'
-import { tmpdir } from 'node:os'
-import { mkdtempSync, rmSync, unlinkSync, writeFileSync } from 'node:fs'
+import { rmSync, unlinkSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { mkTmpDir, tmpDir } from '../env/tmp.mjs'
 import { readEvents, sessionLogs } from '../reports/usage-report.mjs'
 import { argumentsText, evaluateTask, fileShape, wrotePath } from './checks.mjs'
 import { TASKS } from './tasks.mjs'
@@ -85,7 +85,7 @@ export function runPreset(prompt) {
   // persona (measured, BUG-003 2026-10-07: the cold-start intake session wandered into repo
   // exploration and never loaded the opener skill). Every task therefore gets its own
   // throwaway workspace cwd via the launcher's explicit exit, like a real first conversation.
-  const workspace = mkdtempSync(join(tmpdir(), 'eval-workspace-'))
+  const workspace = mkTmpDir('eval', 'workspace-')
   try {
     execFileSync('node', [
       join(repoRoot, 'dev/env/dsh.mjs'),
@@ -161,7 +161,7 @@ function selfCheck() {
   }
   // file-shape 的红绿对照：一个缺契约字段的文件必须被判负，一个带 generatedAt 的必须过。
   // 不这么验，"形状检查"可能只是一句永远成立的装饰（2026-09-27）。
-  const scratch = join(tmpdir(), `dsh-eval-shape-${String(process.pid)}.json`)
+  const scratch = join(tmpDir('eval'), `dsh-eval-shape-${String(process.pid)}.json`)
   writeFileSync(scratch, JSON.stringify({ hello: 'world' }))
   const shapeless = fileShape(scratch, ['generatedAt'])
   writeFileSync(scratch, JSON.stringify({ generatedAt: new Date().toISOString() }))

@@ -75,8 +75,9 @@
   同 proposal id、匹配 `resolutionOperationId` 且状态一致的确认/拒绝回执。对话答复或普通 `proposed` 回执不算解决；
   提醒未同步只显示提示，不阻止返回。
 
-**与三室面板的分工（两份"桌面"文件，别混）**：全局经营桌面读**独立 Host 固定投影**（本节）；
-会话侧三室面板读 working folder 根的 `.desk/state.json`（[`home.md`](home.md) §五）。
+**与记忆/知识两间的分工（两个数据面，别混）**：全局经营桌面（唯一「桌面」）读**独立 Host 固定投影**（本节）；
+记忆/知识两间的面板读 working folder 根的 `.desk/state.json`——那是**房间数据**，业务事项不进它
+（[`home.md`](home.md) §五、[`architecture.md`](architecture.md) §七）。
 
 ## 四、验证入口（keyless 最低证据）
 

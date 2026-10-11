@@ -69,15 +69,19 @@ describe('manualSnapshot (guidance)', () => {
     const manual = service.manualSnapshot()
     expect(manual).toContain('# Your working folder — operating manual')
     expect(manual).toContain(`home-manual v${String(HOME_MANUAL_VERSION)}`)
-    // R13: the manual carries the desk panel's minimum contract, so a refresh that never loaded the
-    // `desk-refresh` skill still writes a shaped file (live reading: 13 of 23 panel actions skipped the
-    // skill while still writing the file). Pinned here because the manual is the surface that always
-    // rides in the prompt — dropping this section silently re-opens "a shapeless desk renders as an
-    // empty one", and only a package-level assertion catches it before a principal does.
-    expect(manual).toContain('### The desk file')
+    // R13: the manual carries the room-data file's minimum contract, so a refresh that never
+    // loaded the `desk-refresh` skill still writes a shaped file (live reading: 13 of 23 panel
+    // actions skipped the skill while still writing the file). Pinned here because the manual is
+    // the surface that always rides in the prompt — dropping this section silently re-opens "a
+    // shapeless file leaves the rooms looking empty", and only a package-level assertion catches
+    // it before a principal does. The retirement (2026-10-11) renamed the section: the manual used
+    // to call this file "The desk file … your principal's sidebar panel renders this file", which
+    // contradicted the desk-refresh skill rewritten in the same decision.
+    expect(manual).toContain('### Room data (`.desk/state.json`)')
+    expect(manual).toContain('It is not the desk')
     expect(manual).toContain('generatedAt')
-    expect(manual).toContain('`decisions`')
     expect(manual).toContain('desk-refresh')
+    expect(manual).not.toContain('The desk file')
   })
 
   it('returns a hand-edited manual verbatim, and the prompt never names the dataDir path', async () => {

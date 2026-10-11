@@ -196,6 +196,13 @@ describe('real composition: loader + preset standing mount + joined agent', () =
     // voice either way — the race between scaffold and first assembly is invisible by design.
     expect(byName.get('assistant:soul')).toContain('You are a long-lived assistant')
     expect(byName.get('assistant:home-manual')).toContain('# Your working folder — operating manual')
+    // The manual's room-data section used to teach the retired concept — "The desk file
+    // (.desk/state.json) … your principal's sidebar panel renders this file" — which contradicted
+    // the desk-refresh skill rewritten in the same retirement. Both halves are model-visible, so
+    // the pair is pinned here: one desk (the ledger), and .desk/state.json as room data.
+    expect(byName.get('assistant:home-manual')).toContain('### Room data (`.desk/state.json`)')
+    expect(byName.get('assistant:home-manual')).toContain('It is not the desk')
+    expect(byName.get('assistant:home-manual')).not.toContain('The desk file')
     expect(byName.get('assistant:memory-digest')).toContain('Live status of your working folder')
     // The operating brief is the standing instruction that business matters — including a vague
     // "put it on the desk" — ride the ledger, never the session desk file (live-turn finding

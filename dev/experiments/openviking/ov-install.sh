@@ -17,12 +17,14 @@
 #       AGPL 边界=独立进程 + HTTP/MCP 消费（RFC 提案 6，复核在案后方可对发行 profile 执行本脚本）。
 set -euo pipefail
 
-REPO="$(cd "$(dirname "$0")/../../.." REPO="$(cd "$(dirname "$0")/.." && pwd)"REPO="$(cd "$(dirname "$0")/.." && pwd)" pwd)"
-PROFILE="${1:?用法: bash dev/ov-install.sh <profile> [dsh-home]}"
+REPO="$(cd "$(dirname "$0")/../../.." && pwd)"
+PROFILE="${1:?用法: bash dev/experiments/openviking/ov-install.sh <profile> [dsh-home]}"
 HOME_DIR="${2:-${ASSISTANT_DSH_HOME:-$REPO/dev/harness-home}}"
 TGZ="$REPO/vendor/thirdparty/openviking/dsh-memory-plugin-0.5.8.tgz"
 OV_VERSION="0.4.22"
 PLUGIN_ID="openviking-memory-runtime"
+# 日志落仓内临时根（硬规则 8：仓外写会被文件沙箱挡下，转成一次人工 approval）
+LOG="$REPO/.tmp/openviking/ov-server-install.log"
 
 say() { printf '  ov-install: %s\n' "$*"; }
 
@@ -47,13 +49,14 @@ if curl -s --max-time 3 http://127.0.0.1:1933/health 2>/dev/null | grep -q '"hea
   say "3/7 server 已在线（1933 healthy）"
 else
   say "3/7 起 server（后台）并等健康门（≤30s）"
-  nohup openviking-server --config "$HOME/.openviking/ov.conf" >/tmp/ov-server-install.log 2>&1 &
+  mkdir -p "$(dirname "$LOG")"
+  nohup openviking-server --config "$HOME/.openviking/ov.conf" >"$LOG" 2>&1 &
   ok=""
   for _ in $(seq 1 30); do
     sleep 1
     if curl -s --max-time 2 http://127.0.0.1:1933/health 2>/dev/null | grep -q '"healthy": *true'; then ok=1; break; fi
   done
-  [ -n "$ok" ] || { echo "健康门未过——看 /tmp/ov-server-install.log" >&2; exit 1; }
+  [ -n "$ok" ] || { echo "健康门未过——看 $LOG" >&2; exit 1; }
   say "3/7 健康门通过"
 fi
 

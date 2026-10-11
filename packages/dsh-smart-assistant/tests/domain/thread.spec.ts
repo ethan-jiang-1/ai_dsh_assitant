@@ -82,7 +82,7 @@ describe('thread round trip', () => {
     const parsed = parseFrontmatterDocument(renderFrontmatterDocument(document.data, document.body))
     const restored = threadFromEntry({
       id: original.id,
-      path: '/tmp/t.md',
+      path: '.tmp/t.md',
       data: parsed?.data ?? {},
       body: parsed?.body ?? '',
     })

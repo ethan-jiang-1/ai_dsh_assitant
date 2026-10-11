@@ -1,7 +1,7 @@
 # 探针：会话日志配方的**代次无关性**（会话日志代次配方卡 §五.4 的 live 验收）
 #
 # 用法（repo 根）：
-#   rm -rf /tmp/assistant-recall-probe
+#   rm -rf .tmp/recall-probe
 #   pnpm dsh --profile dev-task --patch dev/probes/session/recall-probe.patch.yml "<按手册配方回忆一条历史会话>"
 #
 # 与 preset-runner.patch.yml / expert-probe.patch.yml 的差别只有一点：把宿主行 `assistant-memory`
@@ -10,7 +10,7 @@
 # 日志位置不变（探针测的是读日志，不是换 home）：会话仍在 dev home 的 sessions/ 下。
 - id: assistant-memory
   config:
-    dataDir: /tmp/assistant-recall-probe/assistant
+    dataDir: .tmp/recall-probe/assistant
     digestMaxBytes: 4096
     recallLimit: 20
     staleResearchDays: 30

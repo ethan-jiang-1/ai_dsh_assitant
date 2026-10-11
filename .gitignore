@@ -29,6 +29,8 @@ dev/trial-home/
 *.tgz
 # 例外：vendor/thirdparty/ 的钉存上游包是证据/离线安装物，不是打包残留（见其 README）
 !vendor/thirdparty/openviking/*.tgz
+# 仓内唯一的临时落点（硬规则 8）：脚本、探针、评测、测试夹具、插件运行时的临时产物都写这里。
+# 写仓外会被文件沙箱挡下并转成人工 approval——所以这里必须留得住、也必须只有这一种形式。
 .tmp/
 
 # 助手维护的桌面状态文件（My Desk 面板读的就是它）——会话工作区里的运行残留，不入库

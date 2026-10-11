@@ -371,6 +371,55 @@ export function machineLocalPathProblems(corpus) {
 /** `/Users/...` (macOS) or a path-initial `/home/...` (Linux). Deliberately not matching `home/` mid-word. */
 const MACHINE_LOCAL_PATH = /\/Users\/|(?<![a-z])\/home\//
 
+/**
+ * Temporary files live under `<repo>/.tmp/` (root AGENTS.md hard rule 8): the file sandbox only
+ * permits the session workspace, so a write to the system temp root comes back as a permission
+ * prompt — one human click per stray file, which is what makes a fully automatic run impossible.
+ * This flags the two forms that would do it from a live repo-owned surface: an explicit temp-root
+ * path literal, and a Node `os.tmpdir()` call that takes whatever the environment hands over.
+ * Historical prose in `notes/` and `_backlog/` stays out of the caller's corpus, and `vendor/dsh`
+ * ships its own policy.
+ *
+ * `allowTmpdir` is per file and exists for surfaces whose whole run redirects `TMPDIR` into the
+ * repo (the package's vitest config does that for tests) — the exemption tracks that mechanism
+ * rather than a list of forgiven filenames, so removing the redirect turns the calls red again.
+ *
+ * @param {Array<{file: string, where: string, allowTmpdir?: boolean}>} corpus - files to scan.
+ */
+export function scratchPathProblems(corpus) {
+  const problems = []
+  for (const { file, where, allowTmpdir = false } of corpus) {
+    // Comments describe the rule instead of doing the write ("we redirect the temp root because a
+    // write there is denied"); the same carve-out the language guard makes. Markdown has no
+    // comment syntax the reader would skip, so a heading or prose line that spells out a path
+    // still counts there.
+    const skipComments = !file.endsWith('.md')
+    const lines = read(file).split('\n')
+    for (const [index, line] of lines.entries()) {
+      if (skipComments && COMMENT_LINE.test(line)) continue
+      const literal = SCRATCH_PATH_LITERAL.test(line)
+      const tmpdirCall = !allowTmpdir && SCRATCH_TMPDIR_CALL.test(line)
+      // A shell `mktemp` builds its directory wherever it is told to; with no repo path on the line
+      // that is the system temp root again. Written plainly because the corpus excludes this
+      // directory: the gate names the forms it forbids, so it must not police its own source.
+      const shellMktemp = SCRATCH_MKTEMP.test(line) && !line.includes('.tmp')
+      if (literal || tmpdirCall || shellMktemp) {
+        problems.push(`${where}:${index + 1} points at scratch outside the repo — temporary files belong under the repo's .tmp/ (hard rule 8)`)
+      }
+    }
+  }
+  return problems
+}
+
+/** An absolute temp-root path with a name under it — that path is outside the workspace by definition. */
+const SCRATCH_PATH_LITERAL = /(?<![\w.])[/\\]tmp[/\\][\w.-]/
+
+/** A `tmpdir()` call, bare or as `os.tmpdir()`: fine only where the run redirects that root (see `allowTmpdir`). */
+const SCRATCH_TMPDIR_CALL = /(?<![\w.$])tmpdir\s*\(\)/
+
+/** The shell verb that creates a temp directory: legitimate only with a `.tmp/` target on the same line. */
+const SCRATCH_MKTEMP = /\bmktemp\b/
+
 /** CJK ideographs: the model-facing surface is English (AGENTS.md language split). */
 const CJK_TEXT = /[\u4e00-\u9fff]/
 

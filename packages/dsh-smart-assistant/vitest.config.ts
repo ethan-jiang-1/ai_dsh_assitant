@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, readdirSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, readdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { defineConfig } from 'vitest/config'
@@ -21,6 +21,34 @@ import { defineConfig } from 'vitest/config'
  *      `@deepseek-ai/cordis-plugin-group`), and skip targets whose source does not exist.
  */
 const repositoryRoot = new URL('../../', import.meta.url)
+
+/**
+ * Temporary root for the test process, inside the repo: `<repo>/.tmp/vitest/`.
+ *
+ * Why in-repo (root `AGENTS.md` hard rule 8): the file sandbox only allows the session workspace, so
+ * every write to the system temp root (`os.tmpdir()` → `/tmp`, `/var/folders/...`, `%TEMP%`) is
+ * denied and turns into one human approval prompt **per write**. `<repo>/.tmp/<purpose>/` is
+ * therefore the only temporary location this repo uses; `.gitignore` ignores `.tmp/`.
+ *
+ * Why one edit here instead of ~30 call sites: `os.tmpdir()` re-reads the environment on **every**
+ * call (POSIX: `TMPDIR`), so the fixtures in `tests/` keep calling it unchanged — every `mkdtemp`
+ * they create lands under this root, and the package has one owner for the convention. `TMP`/`TEMP`
+ * are the Windows/macOS spellings of the same knob; setting all three keeps the redirect
+ * platform-independent.
+ *
+ * Why `test.env` (verified against the installed vitest, not assumed): the pool merges it **last**
+ * into each worker's spawn env (`{ ...process.env, ...options.env, ...ctx.config.env, ...project.config.env }`),
+ * so it overrides an inherited `TMPDIR` instead of losing to it — a `??=`-style fallback would have
+ * silently kept the system temp root. `setupFiles` is the fallback only if a future pool stops
+ * forwarding config env. Verified end-to-end: a spec's `mkdtemp` leaf landed at
+ * `<repo>/.tmp/vitest/assistant-layout-*` while the system temp root gained nothing.
+ *
+ * The parent must exist before any spec runs: `mkdtemp` creates the leaf but not its parents, so a
+ * missing `.tmp/vitest/` fails with ENOENT. Creating it at config load also covers `--run` (the
+ * config is evaluated in the main process before any worker spawns).
+ */
+const temporaryRoot = fileURLToPath(new URL('.tmp/vitest', repositoryRoot))
+mkdirSync(temporaryRoot, { recursive: true })
 
 /** Prefer the package's source entry; fall back to the directory when there is no `index.ts`. */
 function entryOf(directoryUrl) {
@@ -101,6 +129,15 @@ function subpathAliases() {
 const escape = text => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 export default defineConfig({
+  // Fixture temp roots land in `<repo>/.tmp/vitest/` — see `temporaryRoot` above for why, and for
+  // why this one knob is enough for every `mkdtemp` fixture in `tests/`.
+  test: {
+    env: {
+      TMPDIR: temporaryRoot,
+      TMP: temporaryRoot,
+      TEMP: temporaryRoot,
+    },
+  },
   resolve: {
     // Longest specifier first so `@scope/a` cannot shadow `@scope/a-longer`. Exact subpath
     // entries (string find = exact match) sort before every prefix regex by their length.

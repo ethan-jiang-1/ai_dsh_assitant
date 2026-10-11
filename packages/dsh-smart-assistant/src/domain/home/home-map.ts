@@ -18,7 +18,7 @@
 export const AGENTS_FILE_NAME = 'AGENTS.md'
 
 /** Version of the generated manual; bump when the generated content changes meaningfully. */
-export const HOME_MANUAL_VERSION = 14
+export const HOME_MANUAL_VERSION = 15
 
 /** The version marker stamped as the file's first line (an HTML comment: invisible when rendered). */
 export const HOME_MANUAL_MARKER = `<!-- home-manual v${String(HOME_MANUAL_VERSION)} -->`
@@ -63,15 +63,16 @@ This directory outlives every session. What you keep here is what you will still
 what you do not keep is gone. Four rooms, one job each — do not mix them. Who you are lives in
 \`SOUL.md\` next to this file; this manual is how the working folder works.
 
-### The desk file (\`.desk/state.json\`)
+### Room data (\`.desk/state.json\`)
 
-Your principal's sidebar panel renders this file, and the file is its **only** data source. Keep it
-shaped: \`generatedAt\` (ISO-8601, the moment you wrote it) plus the sections you actually have —
-\`counts\`, \`decisions\`, \`actions\`, \`gaps\`, \`threads\`, \`recentActivity\`, \`memories\`,
-\`knowledge\`, \`skills\`. Load the \`desk-refresh\` skill for the full contract, and end any session
-that changed memories, threads, knowledge or skills by writing the file. A file that parses but carries
-none of that shape renders as an empty desk, and the principal cannot tell it apart from "nothing
-happened".
+The memory and knowledge room panels read this file in the session workspace, and it is their
+**only** data source. It is not the desk, and business matters never go here: a matter, deadline,
+decision-to-make or proposal lives in the authoritative operating ledger (\`assistant_operating\`),
+and the principal's desk renders that ledger. Keep the file shaped: \`generatedAt\` (ISO-8601, the
+moment you wrote it) plus the room sections you actually have — the \`desk-refresh\` skill owns the
+field contract. End any session that changed the memory or knowledge rooms or the skill catalog by
+writing the file. A file that parses but carries none of that shape leaves the rooms looking empty,
+and the principal cannot tell it apart from "nothing happened".
 
 | Room | Holds | Lifecycle |
 |---|---|---|
@@ -82,8 +83,9 @@ happened".
 
 ## Dated commitments are scheduled
 
-A desk action with a \`due\` is a promise; a promise nobody pings is a calendar entry the principal
-must remember to open. When you write a dated action, create its reminder in the same turn
+A matter's promise (\`promised_deadline\`) is a commitment; a commitment nobody pings is a calendar
+entry the principal must remember to open. When you record a dated promise in the ledger, create
+its reminder in the same turn
 (\`schedule_create\`, 09:00 of the due date when no time is given), and when a scheduled follow-up
 arrives in the conversation, that arrival is the brief moment — load the \`morning-brief\` skill and
 present what is due, briefly. Defer and silence are the principal's words for it (any language);
@@ -102,16 +104,16 @@ just answer normally — do not force a reference where none exists.
 ## The first conversation
 
 A fresh working folder (the memory room has no active records) is where a principal closes the tab:
-they do not know what to say first. Freshness is the memory room — a desk file may be stale residue
-from an earlier workspace and must not silence you. On a fresh folder, load the
+they do not know what to say first. Freshness is the memory room — room data left behind by an
+earlier workspace may be stale residue and must not silence you. On a fresh folder, load the
 \`first-conversation\` skill and follow it: open by asking instead of waiting to be asked, one
 question at a time, land each answer as it comes, and aim to leave them holding their first decision
 brief. If they would rather drive, follow their lead.
 
 ## Your last message is the deliverable
 
-Bookkeeping is not an answer. Room writes, thread merges, curate findings, even the desk rewrite
-are housekeeping; none of them answers the person. Whatever else a session did, its final message
+Bookkeeping is not an answer. Room writes, thread merges, curate findings, even the room-data
+rewrite are housekeeping; none of them answers the person. Whatever else a session did, its final message
 answers the principal's last question in full — report room changes alongside the answer or after
 it, never instead of it. (Eval-found 2026-09-28: a question was analyzed correctly, the answer
 filed into memory, and the session closed by reporting a thread merge — the principal got

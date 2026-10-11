@@ -244,7 +244,7 @@ pnpm dsh …（package.json scripts → dev/env/dsh.mjs，唯一启动器：
 
 ### 浏览器动作链：一次点击 → 可见的桌面变化
 
-客户端在 `main` 声明可用并完成桌面注册后，每个 Client 根上下文只尝试一次默认选择：当前 `activePanelId` 为 null 时选全局桌面，否则保留已选面板。显式回到 Conversation、归档引发的回退、slot/布局重挂及客户端 HMR 不重选；完整页面重载的新根上下文重新尝试。默认机会只在页面内记录，不保存导航偏好或业务数据。插件首次激活前的显式 null 与启动 null 无法由当前公开快照区分；全局桌面读取独立 Host 固定投影，会话侧旧视图仍读取工作区快照；默认入口本身不创建业务 Session。
+客户端在 `main` 声明可用并完成桌面注册后，每个 Client 根上下文只尝试一次默认选择：当前 `activePanelId` 为 null 时选全局桌面，否则保留已选面板。显式回到 Conversation、归档引发的回退、slot/布局重挂及客户端 HMR 不重选；完整页面重载的新根上下文重新尝试。默认机会只在页面内记录，不保存导航偏好或业务数据。插件首次激活前的显式 null 与启动 null 无法由当前公开快照区分；全局桌面读取独立 Host 固定投影，记忆/知识两间读工作区的房间数据文件（`.desk/state.json`，见 [home.md](home.md) §五）；默认入口本身不创建业务 Session。
 
 独立 Host 行 `assistant-desk-projection` 提供固定只读投影下载：经营 dataDir 里有 `ledger.json` 时**活渲染账本 v2 投影**，无账本才回退固定 `desk-projection.json` 模拟输入；端点边界、认证、错误态与 byte cap 的完整契约 = [`operating.md`](operating.md) §三（唯一权威，本文不复述）。物理 HTTP 验证使用 [只读探针](../dev/probes/web/desk-projection-download.mjs)，以明确标注模拟的 [固定资料](../dev/fixtures/desk-projection/desk-projection.json) 为独立字节预期。
 
@@ -253,12 +253,13 @@ pnpm dsh …（package.json scripts → dev/env/dsh.mjs，唯一启动器：
 Client 的 [下载对象](../packages/dsh-smart-assistant/src/client/projection-reader.ts)通过 Connection generation/state 观察就绪与丢失；断连保留、迟到发布防护、解析器契约与生命周期绑定的现况由 [`operating.md`](operating.md) §三 拥有，此处不再复制第二份。
 
 ```text
-浏览器点击（房间面板 / 首开审批横幅 / composer）
+浏览器点击（房间 tab 的「刷新」/ 首开引导条 / 知识批准 / composer）
   └ client classic script（packages/dsh-smart-assistant：src/client 多模块源，
     tsdown 打成 lib/client/index.js 单文件 classic script = ./client；经 bundle 行
     被 client-modules 自动发现，注册进 vendor 通用座位——皮肤面，不进模型上下文）
-      ├ 会话车道（多数动作）：sendPrompt → remote.session.prompt（mode:queue、
-      │ [桌面] 标记）→ 走模型请求链 → 助手经工具写工作区 .desk/state.json
+      ├ 会话车道（房间数据刷新与首开引导）：sendPrompt → remote.session.prompt
+      │ （mode:queue、[桌面] 标记）→ 走模型请求链 → 助手按 desk-refresh 技能把
+      │ 工作区 .desk/state.json（记忆/知识两间的数据文件）重写一遍
       └ 直调车道（仅知识批准，「两条合法批准路径」见 [home.md](home.md) §二）：approveKnowledgePage →
         remote.assistantKnowledge.approvePage → host promotePage（draft→stable
         机械翻转 + 写该会话审计）；本 pin 确定性拒绝该挂载（strict codec vs
@@ -271,7 +272,7 @@ Client 的 [下载对象](../packages/dsh-smart-assistant/src/client/projection-
 |---|---|---|
 | remote 未成形 | 面板 note 直接提示 | `pnpm --filter dsh-smart-assistant exec vitest run tests/client/client-panels.spec.ts tests/client/client-commands.spec.ts`（无浏览器） |
 | 直调挂载被拒 | console.info 诊断 + 回退提示（设计状态） | 同上 + `pnpm web-expected` 两场景的 console 契约 |
-| 模型做了但 UI 没显示 | desk 文件没动或没读回 | 对照会话日志与工作区 `.desk/state.json` 生成时间 |
+| 模型做了但 UI 没显示 | 房间数据文件没动或没读回 | 对照会话日志与工作区 `.desk/state.json` 生成时间 |
 
 ## 八、六条功能路由
 
@@ -283,5 +284,5 @@ Client 的 [下载对象](../packages/dsh-smart-assistant/src/client/projection-
 | 知识草稿/批准/检索 | 模型 + 浏览器链 | 草稿 = `assistant_reflect` 的 save_page（staged）；批准 = 浏览器两车道 → host `promotePage`（`src/host/index.ts`）；检索 = `assistant_knowledge`（`src/agent/tool-knowledge/`；host 面 `searchKnowledge`/`readKnowledgePage`，§五） | `pnpm --filter dsh-smart-assistant exec vitest run tests/host/knowledge-write.spec.ts`（草稿/批准/检索/摘要全链） | draft→stable 翻转与会话审计；直调挂载回退提示 | 批准按钮与回退车道要浏览器；草稿内容生成在模型回合 |
 | 提示词摘要 | 模型请求链 | `assistant-memory-digest` 段落（`src/agent/memory-digest/`）← `ctx.assistantMemory.digest()` 缓存 + 写操作 touch 失效（§五）；预算旋钮（`digestMaxBytes`/`recallLimit`）= host 行 `assistant-memory` 的 config（`cordis.patch.yml` 头部） | `pnpm --filter dsh-smart-assistant exec vitest run tests/domain/digest.spec.ts tests/agent/digest-prewarm.spec.ts` | 缓存失效时序与段落同步 `text` 契约 | 摘要计算无模型；真实会话的段落组装用 keyless 回放看 |
 | 经营事项（账本/投影/读回） | 模型请求链 + 浏览器动作链 | `assistant_operating`（`src/agent/tool-operating/`）→ `ctx.assistantOperatingLedger`（`src/host/operating-ledger/`）→ `ledger.json`；投影 = `src/host/desk-projection/` → client `projection-*`（契约 owner = [`operating.md`](operating.md)） | `pnpm --filter dsh-smart-assistant exec vitest run tests/host/operating-ledger.spec.ts tests/client/projection-reader.spec.ts`（组合面：`pnpm build` → `pnpm test:composition`） | 权限三分与幂等回执；投影 `ready` ≠ 业务成功；客户端 v1/v2 解析 | 工具动作语义无模型；真实交代→读回在模型回合与浏览器（eval `desk-*` 任务集） |
-| 桌面刷新 | 浏览器 → 模型 → 读回 | `sendPrompt`（`src/client/desk-io.ts`）→ 模型回合 → `.desk/state.json` → 轮询越过 pending.at | `pnpm --filter dsh-smart-assistant exec vitest run tests/client/client-panels.spec.ts tests/client/client-commands.spec.ts` | `.desk/state.json` 生成时间 vs pending.at；会话日志 | 全链要真会话与渲染：`pnpm web-expected` 两场景；真问真答 `pnpm loop-probe` |
+| 房间数据刷新（记忆/知识两间） | 浏览器 → 模型 → 读回 | 房间 tab 的「刷新」→ `askRefresh` → `sendPrompt`（`src/client/desk-io.ts`）→ 模型回合按 `desk-refresh` 技能重写 → `.desk/state.json` → 轮询越过 pending.at | `pnpm --filter dsh-smart-assistant exec vitest run tests/client/client-room-tabs.spec.ts tests/client/client-desk-io.spec.ts` | `.desk/state.json` 生成时间 vs pending.at；会话日志 | 全链要真会话与渲染：`pnpm web-expected` 两场景；真问真答 `pnpm loop-probe` |
 | 插件装载 | 启动链 | `cordis.patch.yml` 行 → built `lib/` → profile（`dev/env/setup.sh` 装包 + profile patch 设 default） | `pnpm test:composition`（先 build）+ `pnpm --filter dsh-smart-assistant exec vitest run tests/composition/export-shape.spec.mjs` | lib freshness（never started）；行 id/patch 落空（dump-config） | Web UI 行为要 `pnpm preflight` + 两场景 |

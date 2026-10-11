@@ -31,7 +31,7 @@
  *     [--out <dir>] [--name <base>] [--size <WxH>]... [--budget <ms>] [--settle <ms>]
  *     [--dom] [--lang <bcp47>]
  *
- *   --out     target directory (default /tmp/dsh-webui-shots, created if missing).
+ *   --out     target directory (default <repo>/.tmp/shots via dev/env/tmp.mjs, created if missing).
  *             A one-off capture stays in that directory. notes/ holds decisions, not screenshot
  *             folders. snapshots/ is session-replay fixtures only.
  *   --name    file base name (default shot-<unix-ms>); one pair per --size.
@@ -65,6 +65,7 @@
 import { spawn } from 'node:child_process'
 import { mkdirSync, existsSync, statSync, writeFileSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
+import { tmpDir } from '../../env/tmp.mjs'
 
 const args = process.argv.slice(2)
 const targetUrl = args.find(a => !a.startsWith('--'))
@@ -80,7 +81,7 @@ const option = (name, fallback) => {
 const sizes = args.flatMap((a, i) => (a === '--size' && i + 1 < args.length ? [args[i + 1]] : []))
 const evals = args.flatMap((a, i) => (a === '--eval' && i + 1 < args.length ? [args[i + 1]] : []))
 
-const outDir = option('out', '/tmp/dsh-webui-shots')
+const outDir = option('out', tmpDir('shots'))
 const name = option('name', `shot-${Date.now()}`)
 const budget = Number(option('budget', '20000'))
 const settle = Number(option('settle', '4000'))
@@ -450,8 +451,8 @@ for (const viewport of viewports) {
   } finally {
     clearTimeout(watchdog)
     // Kill the whole group, then insist: a parent-only SIGTERM leaves Chrome's helpers
-    // running (see the spawn comment). A profile that still refuses deletion is /tmp
-    // residue, not a failure of the capture — leave it rather than crashing the run.
+    // running (see the spawn comment). A profile that still refuses deletion is residue in
+    // the out dir, not a failure of the capture — leave it rather than crashing the run.
     const killGroup = signal => { try { process.kill(-proc.pid, signal) } catch { /* already gone */ } }
     killGroup('SIGTERM')
     await new Promise(resolve => {
@@ -461,7 +462,7 @@ for (const viewport of viewports) {
     killGroup('SIGKILL')
     try {
       rmSync(userDataDir, { recursive: true, force: true })
-    } catch { /* residue in /tmp; harmless */ }
+    } catch { /* residue in the out dir; harmless */ }
   }
 
   if (existsSync(target) && statSync(target).size > 0) {

@@ -28,10 +28,10 @@
  *                                     async-loaded content declare theirs in snapshot.yml)
  */
 import { spawnSync } from 'node:child_process'
-import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { mkTmpDir } from '../../env/tmp.mjs'
 import { buildCaptureEvalArgs, compareEvidence, normalizeDomEvidence } from './webui-expected-core.mjs'
 
 const args = process.argv.slice(2)
@@ -65,7 +65,7 @@ try {
   process.exit(1)
 }
 
-const workDir = mkdtempSync(join(tmpdir(), 'webui-expected-'))
+const workDir = mkTmpDir('web-expected', 'webui-expected-')
 const evalArgs = buildCaptureEvalArgs(args, waitText)
 const capture = spawnSync(process.execPath, [
   join(scriptRoot, 'webui-shots.mjs'),

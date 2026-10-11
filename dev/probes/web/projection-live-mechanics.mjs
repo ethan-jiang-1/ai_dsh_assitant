@@ -9,7 +9,7 @@
 //   ⑧ 滚动位置保留——桌面根（真正的滚动容器）滚动后经面板卸载重挂（会话视图往返），
 //      位置由 view store 恢复（记录＝根 onScroll，恢复＝根 ref 的渲染后 DOM 效应）。
 //
-// 自包含编排：共享探针 home（默认 /tmp/k4-probe-home，需跑过 prepare/setup）种子为
+// 自包含编排：共享探针 home（默认 <repo>/.tmp/probe-home/k4-probe-home，需跑过 prepare/setup）种子为
 // eight-matters 固定夹具（无 ledger → fixture 态；desk-process-e2e 重放 ledger 时不冲突——
 // ledger 优先）。无回放、无模型回合；服务直连 vendor CLI bin（启动器层会让 SIGTERM
 // 孤儿化真服务，writer.lock 教训见 desk-process-e2e 头注）。
@@ -20,6 +20,7 @@ import { spawn } from 'node:child_process'
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { tmpDir } from '../../env/tmp.mjs'
 import { launchCdpBrowser } from './cdp-driver.mjs'
 
 const repoRoot = join(fileURLToPath(new URL('.', import.meta.url)), '..', '..', '..')
@@ -30,7 +31,7 @@ const option = (name, fallback) => {
   const i = args.indexOf(`--${name}`)
   return i >= 0 && i + 1 < args.length ? args[i + 1] : fallback
 }
-const home = option('home', '/tmp/k4-probe-home')
+const home = option('home', join(tmpDir('probe-home'), 'k4-probe-home'))
 const keepService = args.includes('--keep-service')
 
 const verdict = { probe: 'projection-live-mechanics', home, phases: {} }

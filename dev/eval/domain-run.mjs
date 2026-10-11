@@ -21,10 +21,10 @@
  *
  * @module dev/eval/domain-run
  */
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
+import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { mkTmpDir } from '../env/tmp.mjs'
 import { runPreset } from './run.mjs'
 
 
@@ -182,7 +182,7 @@ export function renderSheet(questions, runs, { title, home, isolation }) {
 
 /** 解析器的自检：合成题目 → 已知结果（含续行与无效题）。 */
 export function selfCheck() {
-  const scratch = mkdtempSync(join(tmpdir(), 'dsh-domain-'))
+  const scratch = mkTmpDir('domain-eval', 'dsh-domain-')
   const file = join(scratch, 'questions.md')
   writeFileSync(file, [
     '# 合成题集',

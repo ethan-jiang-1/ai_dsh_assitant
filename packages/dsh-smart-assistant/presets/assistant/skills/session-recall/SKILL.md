@@ -31,15 +31,21 @@ compressed, and yours to search. Nothing needs to be re-derived from scratch.
 `rg --pre` cannot take a command with spaces, so write the wrapper once per machine. The `--` is
 required: the paths rg hands over start with `--`, which `zstd` otherwise reads as its own options.
 
+Write the wrapper inside your session workspace under `.tmp/`, and note the absolute path it prints:
+the file sandbox only permits the workspace (anything outside comes back as a permission prompt),
+while `--pre` takes an absolute command path — so the wrapper can live in the workspace even when the
+search itself runs from the sessions directory.
+
 ```sh
-printf '#!/bin/sh\nexec zstd -dc -- "$@"\n' > /tmp/zstd-cat && chmod +x /tmp/zstd-cat
+mkdir -p .tmp && printf '#!/bin/sh\nexec zstd -dc -- "$@"\n' > .tmp/zstd-cat \
+  && chmod +x .tmp/zstd-cat && echo "$PWD/.tmp/zstd-cat"
 ```
 
 Then search every session of the current project (derive the directory name from your cwd, and
 pick a distinctive keyword for `<word>`):
 
 ```sh
-rg --pre /tmp/zstd-cat -g '*.zstd' -l '<word>' './--<normalized-cwd>--/'
+rg --pre '<workspace>/.tmp/zstd-cat' -g '*.zstd' -l '<word>' './--<normalized-cwd>--/'
 ```
 
 - The `./` prefix is **required**: directory names start with `--`, which rg would read as flags.

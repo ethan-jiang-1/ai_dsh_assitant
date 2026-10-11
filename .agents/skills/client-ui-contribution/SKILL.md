@@ -32,7 +32,7 @@ Worked registrations to copy from, not to restate: `vendor/dsh/packages/client/u
 
 1. `pnpm build` — the dev profile links the package and the composition consumes `lib/`.
 2. Restart the web UI with a clean session cwd. A repo cwd leaks this repo's AGENTS.md into the session; the launcher pins the session cwd to the repo root unless overridden:
-   `ASSISTANT_SESSION_CWD=$(mktemp -d) node <repo>/dev/env/dsh.mjs --profile dev --port 0 --no-open`.
+   `mkdir -p .tmp && ASSISTANT_SESSION_CWD=$(mktemp -d "$PWD/.tmp/session-cwd-XXXXXX") node <repo>/dev/env/dsh.mjs --profile dev --port 0 --no-open`.
 3. `node dev/probes/web/webui-preflight.mjs '<url with token>'` — green before a human opens it. It checks auth, that every combo parses, that our bundle registers, that the boot graph is satisfiable, and that every `remote.<ns>` we inject exists in the Remote manifest. Pass `--dsh-home` of the service home when the check reads a desk; without it, it scans the runner's home.
 4. Hand over the URL only after that.
 

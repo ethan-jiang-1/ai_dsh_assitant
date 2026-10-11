@@ -32,8 +32,8 @@
  */
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
+import { mkTmpDir } from '../../env/tmp.mjs';
 
 const CHROME_CANDIDATES = [
   process.env.DSH_PROBE_CHROME,
@@ -57,7 +57,7 @@ export function findChromeBinary() {
 export async function launchCdpBrowser({ url, chromeBin, windowSize = '1600,1000', bootTimeoutMs = 20000 } = {}) {
   const bin = chromeBin ?? findChromeBinary();
   if (bin === undefined) throw new Error('no Chrome/Edge binary found (set DSH_PROBE_CHROME)');
-  const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cdp-driver-'));
+  const profileDir = mkTmpDir('chrome-profile', 'cdp-driver-');
   const chrome = spawn(bin, [
     '--headless=new',
     '--no-sandbox',

@@ -81,7 +81,7 @@ describe('memory round trip', () => {
     const parsed = parseFrontmatterDocument(text)
     const restored = memoryFromEntry({
       id: original.id,
-      path: '/tmp/x.md',
+      path: '.tmp/x.md',
       data: parsed?.data ?? {},
       body: parsed?.body ?? '',
     })
@@ -90,7 +90,7 @@ describe('memory round trip', () => {
   })
 
   it('rejects an entry whose body is empty', () => {
-    expect(memoryFromEntry({ id: 'a-1', path: '/tmp/a.md', data: { ...memoryToDocument(record()).data }, body: '' }))
+    expect(memoryFromEntry({ id: 'a-1', path: '.tmp/a.md', data: { ...memoryToDocument(record()).data }, body: '' }))
       .toBeUndefined()
   })
 })

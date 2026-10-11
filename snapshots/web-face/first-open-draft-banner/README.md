@@ -11,7 +11,7 @@
 composer 上方必须出现审批横幅——「⚠ 3 页知识草稿在等你审批——批准后才会成为它的判断依据」+
 「点这里去审批」按钮。这是[首开 UX](../../../_backlog/_archive/settled_issues/261001-first-open-ux.md) 第 17 轮
 交付的 `assistant-approval-banner`（composer dock 第二注册）的耐久回归面：那一轮的
-before/出现/贯通/退场三态真机证据住在 /tmp（易失），本场景把它变成仓内可重放的期望。
+before/出现/贯通/退场三态真机证据当时的落点易失（仓外临时目录），本场景把它变成仓内可重放的期望。
 
 **为什么选它当第二场景**（而非试点 README 点名的提示词组装面）：横幅是首开 UX 最近一次 UI
 交付，其行为断言（client-first-mile 5 案）已钉注册与计数逻辑，缺的是**渲染进真组合**的那半
@@ -20,7 +20,7 @@ before/出现/贯通/退场三态真机证据住在 /tmp（易失），本场景
 ## 怎么跑
 
 ```sh
-export ASSISTANT_DSH_HOME=/tmp/dsh-expected-banner-home
+export ASSISTANT_DSH_HOME="$PWD/.tmp/dsh-expected-banner-home"
 
 # ① 隔离 home（幂等；vendor 产物在位时 ≈13s）
 bash dev/env/prepare.sh && bash dev/env/setup.sh

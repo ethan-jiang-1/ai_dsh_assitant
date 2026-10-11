@@ -267,6 +267,75 @@ describe('verify machine-local-path corpus wiring', () => {
   })
 })
 
+// Scratch paths (hard rule 8: everything temporary stays under the repo's .tmp/) are only held by a
+// machine. This drives the real runner over a throwaway repo: an out-of-repo temp literal and a
+// bare `os.tmpdir()` call both go red, the tmpdir exemption appears only once the package's vitest
+// config actually redirects TMPDIR into the repo, historical prose under notes/ is out of the
+// corpus, and the repaired literal goes green.
+describe('verify scratch-path corpus wiring', () => {
+  it('rejects out-of-repo scratch, ties the tmpdir exemption to the vitest redirect, and leaves notes/ alone', () => {
+    const root = temp('verify-scratch-')
+    const scripts = join(root, 'scripts', 'checks')
+    mkdirSync(scripts, { recursive: true })
+    writeFileSync(join(scripts, 'verify.mjs'), readFileSync(join(import.meta.dirname, '../../../../scripts/checks/verify.mjs'), 'utf8'))
+    const core = new URL('../../../../scripts/checks/verify-checks.mjs', import.meta.url).href
+    writeFileSync(join(scripts, 'verify-checks.mjs'), `export * from ${JSON.stringify(core)}\n`)
+    for (const file of ['AGENTS.md', 'README.md']) writeFileSync(join(root, file), '# fixture\n')
+
+    const packageDir = join(root, 'packages', 'dsh-smart-assistant')
+    const tests = join(packageDir, 'tests')
+    mkdirSync(tests, { recursive: true })
+    // The fixture text is assembled instead of written out: the forbidden forms must live in the
+    // throwaway file, and a contiguous copy in this spec would make the gate flag its own test.
+    const outside = ['', 'tmp', 'fixture-scratch'].join('/')
+    const tmpdirCall = ['tmpdir', '()'].join('')
+    const shellMktemp = ['home=$(mk', 'temp -d)'].join('')
+    const literalUser = join(tests, 'scratch.spec.ts')
+    writeFileSync(literalUser, `const dir = '${outside}'\n`)
+    const tmpdirUser = join(tests, 'fixture.spec.ts')
+    writeFileSync(tmpdirUser, `import { tmpdir } from 'node:os'\nconst dir = ${tmpdirCall}\n`)
+    const shellUser = join(root, 'dev', 'fixture.sh')
+    mkdirSync(join(shellUser, '..'), { recursive: true })
+    writeFileSync(shellUser, `${shellMktemp}\n`)
+    // History keeps the paths of its day; only live surfaces are held to the rule.
+    const historical = join(root, 'notes', 'implemented', '2026-01-01-old.md')
+    mkdirSync(join(historical, '..'), { recursive: true })
+    writeFileSync(historical, `Evidence sat in '${outside}'\n`)
+    // No redirect yet: the same tmpdir() call is scratch outside the repo.
+    writeFileSync(join(packageDir, 'vitest.config.ts'), 'export default {}\n')
+    trackFixtureRepo(root)
+
+    const gate = 'scratch: temporary files stay under the repo .tmp/'
+    const run = () => spawnSync(process.execPath, [join(scripts, 'verify.mjs')], { encoding: 'utf8' })
+    // Match this gate's own finding text: the fixture's note path also shows up in unrelated
+    // problems (the notes-shape gates read the same throwaway tree).
+    const finding = (where, line) => `${where}:${line} points at scratch outside the repo`
+    const literalLine = finding('packages/dsh-smart-assistant/tests/scratch.spec.ts', 1)
+    const tmpdirLine = finding('packages/dsh-smart-assistant/tests/fixture.spec.ts', 2)
+    const mktempLine = finding('dev/fixture.sh', 1)
+    const first = run()
+    expect(first.error).toBeUndefined()
+    expect(first.stdout).toContain(`FAIL ${gate}`)
+    expect(first.stdout).toContain(literalLine)
+    expect(first.stdout).toContain(tmpdirLine)
+    expect(first.stdout).toContain(mktempLine)
+    expect(first.stdout).not.toContain(finding('notes/implemented/2026-01-01-old.md', 1))
+
+    // The redirect exists now, so the calls it covers stop being violations — the literal and the
+    // bare shell `mktemp` (which no test-process env can redirect) stay violations.
+    writeFileSync(join(packageDir, 'vitest.config.ts'), "export default { test: { env: { TMPDIR: '.tmp/vitest' } } }\n")
+    const second = run()
+    expect(second.stdout).toContain(`FAIL ${gate}`)
+    expect(second.stdout).not.toContain(tmpdirLine)
+    expect(second.stdout).toContain(literalLine)
+    expect(second.stdout).toContain(mktempLine)
+
+    writeFileSync(literalUser, "const dir = '.tmp/fixture-scratch'\n")
+    writeFileSync(shellUser, 'home=$(mktemp -d "$PWD/.tmp/home-XXXXXX")\n')
+    expect(run().stdout).toContain(`ok   ${gate}`)
+  })
+})
+
 // A gate core that exists but is never invoked by the top-level command is a script, not a gate —
 // no invalid case could reach a real acceptance path (2026-10-07; the corpus's "a negative case
 // through the real runner" applied to our own wiring). The core must be *called* in the runner's
@@ -965,9 +1034,9 @@ describe('dev env.sh: the isolation exit is honoured by the shell scripts too', 
     const isolated = join(temp('env-iso-'), 'home')
     expect(resolvedHome(isolated)).toContain(`RESOLVED=${isolated}`)
     // The unset case is the safety net: whatever DSH_HOME the calling shell had, the default wins.
-    const fallback = resolvedHome(undefined, { DSH_HOME: '/tmp/env-should-not-win' })
+    const fallback = resolvedHome(undefined, { DSH_HOME: '.tmp/env-should-not-win' })
     expect(fallback).toContain('RESOLVED=')
-    expect(fallback).not.toContain('RESOLVED=/tmp/env-should-not-win')
+    expect(fallback).not.toContain('RESOLVED=.tmp/env-should-not-win')
     expect(fallback).toMatch(/RESOLVED=\S*\/dev\/harness-home\n/)
   })
 })

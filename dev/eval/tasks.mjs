@@ -25,7 +25,8 @@ export const TASKS = [
   {
     id: 'first-open-intake',
     // Run condition: the intake trigger needs a FRESH working folder. Two consequences:
-    //  1. Standalone: run with a throwaway home (`ASSISTANT_DSH_HOME=$(mktemp -d) pnpm eval --
+    //  1. Standalone: run with a throwaway home (`mkdir -p .tmp && ASSISTANT_DSH_HOME=$(mktemp -d
+    //     "$PWD/.tmp/eval-home-XXXXXX") pnpm eval --
     //     --only first-open-intake` after dev/env setup there); the shared dev home carries
     //     memories, so the trigger never fires there.
     //  2. Full suite: this task runs first — later tasks' sessions write memories into the shared

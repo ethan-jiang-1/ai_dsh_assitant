@@ -457,9 +457,9 @@ function feedbackDelete(at, messageId) {
  * @returns 出错时抛，正常时返回一句人话。
  */
 export function selfCheck() {
-  const logA = '/tmp/home/sessions/--proj--/session-aaaaaaaa-1111-2222-3333-444444444444/session.v4.jsonl.zstd'
-  const logB = '/tmp/home/sessions/--proj--/session-bbbbbbbb-1111-2222-3333-444444444444/session.v4.jsonl.zstd'
-  const logC = '/tmp/home/sessions/--proj--/session-cccccccc-1111-2222-3333-444444444444/session.v4.jsonl.zstd'
+  const logA = '/harness/sessions/--proj--/session-aaaaaaaa-1111-2222-3333-444444444444/session.v4.jsonl.zstd'
+  const logB = '/harness/sessions/--proj--/session-bbbbbbbb-1111-2222-3333-444444444444/session.v4.jsonl.zstd'
+  const logC = '/harness/sessions/--proj--/session-cccccccc-1111-2222-3333-444444444444/session.v4.jsonl.zstd'
   const desk = { kind: 'user', rpcId: 'desk-1-abc' }
 
   const sessionA = buildSession(logA, [
@@ -497,7 +497,7 @@ export function selfCheck() {
   const sessionC = buildSession(logC, [userMessage(T0, TASK_PROMPTS[0] ?? 'eval task')])
   // BUG-002 回归钉：题面命中 + 单消息窗，但那条消息是**面板发的**（rpcId desk-…）——真人点了一下
   // 刷新再没说话的会话（2026-10-01 真实命中）。headless 评测发不出这个形状：不得判成评测。
-  const logD = '/tmp/home/sessions/--proj--/session-dddddddd-1111-2222-3333-444444444444/session.v4.jsonl.zstd'
+  const logD = '/harness/sessions/--proj--/session-dddddddd-1111-2222-3333-444444444444/session.v4.jsonl.zstd'
   const sessionD = buildSession(logD, [
     userMessage(T0, TASK_PROMPTS.find(prompt => prompt.includes('刷新我的桌面')) ?? 'panel refresh copy', desk),
   ])

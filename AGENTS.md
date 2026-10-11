@@ -90,7 +90,7 @@ pnpm gen-paths          # 从 vendor/dsh 重新生成运行期解析入口 tscon
 pnpm gen-catalog        # 重新生成 docs/package-catalog.md（改组合行/exports/工具动词后必跑；freshness 门禁守）
 pnpm build              # tsc 出 lib/：改 src 后必跑——preset 行加载的是构建物，不是源码
 pnpm preflight '<URL>'  # 开屏前门禁：证明装得上（auth/boot 图/每个 combo 可解析）；不证明渲染出来
-pnpm shots '<URL>' --dom --size 1600x1000 --name <名字>   # 渲染证据：headless Chrome 经 CDP 出 PNG + DOM 证据（默认落 /tmp/dsh-webui-shots）；`--eval` 拿交互态
+pnpm shots '<URL>' --dom --size 1600x1000 --name <名字>   # 渲染证据：headless Chrome 经 CDP 出 PNG + DOM 证据（默认落仓内 .tmp/shots/）；`--eval` 拿交互态
 pnpm web-expected '<URL>'   # web 面期望比对：真拍一张与已提交期望比对（漂移 exit 1）；`--refresh` 重录期望（场景契约与判据：snapshots/web-face/<场景>/README.md）
 pnpm loop-probe '<URL>' --ask '<问句>'   # 首用闭环探针：首屏断言（中文首开/无黑话/工作区就绪）+ 真发问真等回复，JSON 判决（驱动借自 ai_dsh_loop_advisor；`--ask` 会真建会话，指向一次性 home）
 pnpm dsh --profile dev --dump-config   # boot-free：组合里到底有没有这一行（排查 patch 落空/重复 id 的第一命令）
@@ -108,7 +108,7 @@ pnpm eval               # 行为评测：真实请求经 preset 会话跑一遍�
 pnpm eval:domain        # 领域评测集 v0（G2＝领域质量的人判终关）：本人出的真实经营问题逐题跑 → 给人打分的报告（题面格式 dev/eval/domain/TEMPLATE.md）
 ```
 
-## 七条硬规则
+## 八条硬规则
 
 1. **双 home**：`pnpm dsh` 经 `dev/env/dsh.mjs` 启动，**永远强制** `DSH_HOME=<repo>/dev/harness-home`
    （覆盖任何继承来的值，包括日用的 `~/.dsh`；显式出口是 `ASSISTANT_DSH_HOME`）。
@@ -136,6 +136,14 @@ pnpm eval:domain        # 领域评测集 v0（G2＝领域质量的人判终关�
 7. **生态插件只借思路，不装包**（用户拍板）：引入第三方插件有真实代价（维护断供、安全、组合兼容、
    升级漂移）；除非它有**已验证的声誉**（多人维护、活跃提交、社区口碑），否则**读它的源码、抄它的设计**，
    不引入依赖。先看 popularity 与内部思路再决定；装之前必须过[准入表](notes/implemented/2026-09-29-openviking-adoption-rfc.md)。
+8. **临时文件只落仓内 `.tmp/`**（用户拍板）：这个 repo 产生的一切临时/中间产物——脚本默认落点、测试夹具、
+   探针与评测产物、插件运行时的 spill、**进模型上下文的指令里的路径**——只准落在**仓根 `.tmp/<用途>/`** 下，
+   这是仓内**唯一**的临时文件形式（一个用途一个子目录，清扫即回收全部）。**为什么不是洁癖**：文件沙箱只放行
+   会话工作目录，仓外写（系统临时根、`os.tmpdir`、`$HOME`）会被挡下并转成一次人工 approval——每写一次临时文件
+   就要人点一次同意，流程就废了。机制：仓内脚本用 `dev/env/tmp.mjs` 的 `tmpDir`/`mkTmpDir`；dev 启动器把
+   `TMPDIR`/`TMP`/`TEMP` 收进 `<repo>/.tmp/host/`，vendor 的 spill 随之入仓；测试进程由
+   `packages/dsh-smart-assistant/vitest.config.ts` 收进 `.tmp/vitest/`；`pnpm verify` 有门禁守这条。
+   模型可见指令（SKILL.md 那一类）在别人机器上跑，口径是"写会话工作目录下的 `.tmp/`"，不是本仓绝对路径。
 
 ## 研发姿态（用户拍板，常设）
 

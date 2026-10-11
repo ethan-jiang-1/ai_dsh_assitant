@@ -29,7 +29,7 @@ roster 行可替换、两个 profile patch 语义不可互换），此处不复�
 
 | 目录 | 装什么 |
 |---|---|
-| `env/` | 启动器（`dsh.mjs`）、env 兜底、prepare/setup——起服务的那串全在这 |
+| `env/` | 启动器（`dsh.mjs`：home 强制 + 临时根收口）、env 兜底、prepare/setup、仓内临时根 helper（`tmp.mjs`）——起服务的那串全在这 |
 | `profiles/` | 基础 profile patch（setup 拷贝进 home 的源） |
 | `probes/session/` | one-shot 探针 patch（preset-runner / expert / recall / replay） |
 | `probes/web/` | 浏览器探针（preflight / shots / web-expected / loop-probe + CDP 驱动 + 比对纯核） |
