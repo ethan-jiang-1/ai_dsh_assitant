@@ -57,9 +57,13 @@ owner 面**，故本卡不擅自把它们塞进 `snapshots/`（那是越界，�
 - 已做的缓解：本表把每行的**断言对象与判读要点**写全（不依赖图片本身也能理解判了什么），
   并把提交锚点（`7fe774a`/`636a4a6`/`532c19d`）列在开头的当前情况中。
 - **可重取的方法线索**：保留断言对象、提交锚点与日志读法，供后续补证据使用。排程落盘日志读法见 [`usage-report`](../../dev/reports/usage-report.mjs) 的 `sessionLogs` / `readEvents`。这些线索和截图都不能替代一次可复核的执行结果。
-- **触发条件**：同类"只有跑起来才看得出"的 model-visible/渲染证据**第二次**靠 `/tmp` 手工留存时，
-  按 `snapshots/` 的升级触发精神立卡讨论第三类 admitted shape（或把走查协议固化进 probe 脚本），
-  不提前预建。
+- **触发条件（2026-10-11 已到场，行已从 [triggers.md](../triggers.md) 删除）**：同类"只有跑起来才看得出"的
+  model-visible/渲染证据**第二次**靠 `/tmp` 手工留存时，按 `snapshots/` 的升级触发精神立卡讨论第三类 admitted shape
+  （或把走查协议固化进 probe 脚本），不提前预建。第二次的实例 = #6 的排程读数从 `/tmp/k4-agent-walkthrough-*/`
+  的会话日志读出（读数已写进本卡）；已按写回规则另立 [证据形态第三类卡](261011-evidence-shape-third.md)。
+- **已固化的部分（2026-10-11）**：#2 → `projection-live-mechanics.mjs` 的 `session-audit`；#3 → `pnpm loop-probe`；
+  #7 → `snapshots/web-face` 两场景；场景探针的临时 home 也从 `/tmp` 收进仓内 `.tmp/scene-homes/`。残留的易失面
+  只剩「一次性真实会话读数」。
 
 ## 补证据前的准备
 
@@ -91,6 +95,29 @@ owner 面**，故本卡不擅自把它们塞进 `snapshots/`（那是越界，�
 | #5/#6/R5 用户判断 | 已列明要判断的语气、业务口径和产品红线 | 尚未判定，不能算通过 |
 
 断言对象、提交锚点和日志读法让人知道如何补证据，但本身不证明对应行为通过。技术检查逐项通过、用户逐项明确判断后，才可以报告共同验收完成。
+
+## 2026-10-11 复判（按[判断验收结果](../methods/validation-judgment.md)）
+
+本卡写于 session-desk 时代，本轮先做前提刷新再逐行重判。**三处前提已死**：三行播报卡取自退役的
+`.desk/state.json` 三段（decisions/actions/gaps）——随唯一桌面拆除；`[桌面] ` 标记改名 `[面板] `；
+排程工具的评测路径被 [BUG-008](../_archive/fixed_bugs/BUG-008-schedule-tools-missing.md) 判为 web-only
+（headless runner 托管不了，`pnpm eval` 不能判它）。
+
+| # | 本轮判定 | 依据（本轮真跑/真读，2026-10-11） | 仍不能证明 |
+|---|---|---|---|
+| 1 | **被取代**（不作 pass） | 三行播报变体随唯一桌面拆除；同座位现行 owner = `packages/dsh-smart-assistant/tests/client/client-first-mile.spec.ts` »'a returning principal gets the desk door, not a brief rebuilt from the retired file'（`pnpm test:client` 16 文件 / 106 件绿） | 原三行文案已不存在；不能凭旧记录报 pass，其回归价值由新 owner 与 banner 场景承接 |
+| 2 | **pass** | ① 不重发：auto-send 于 `7fe774a` 退役，blank/banner 两场景期望 DOM 无问候（本轮零 diff）；② 不增殖：`node dev/probes/web/projection-live-mechanics.mjs` 相位 `session-audit` = 三次重载、会话 11→11（本轮 PASS） | 只到三次重载与两场景；长期多会话行为归真用 |
+| 3 | **pass**（owner 换到真输入） | `pnpm loop-probe '<fresh-home-url>' --ask '你好'`：`composerMounted: true` + 真粘贴/真发送/17s 真回复、`consoleProblems: []`、exit 0（本轮在全新一次性 home 上跑） | 需能渲染的实例与 key；A1 隐藏 CSS 时代的「存在性假绿」随该 CSS 退役而消失 |
+| 4 | **pass** | `client-dashboard.spec.ts` »'onAsk returns to the Conversation through ctx.layout (261007 Slice 1c)'（仍在，本轮绿）——断言 `selectPanel(null)` 被调用 | 只证明路由；vendor 侧真切面板由走查覆盖 |
+| 5 | **对象已退役 → 重定范围，仍待人判** | dashboard 的 decisions 段与 `answerDecision` 车道随唯一桌面拆除；现行对应物 = 提案经处理会话确认/拒绝 + 账本回执保留本人原话。机械面现行 owner = `tests/client/client-desk-process.spec.ts`（22 件）与账本/投影结构测试 | 「语气是否真像本人」= taste，留本人判（范围已改指现行车道） |
+| 6 | **机械面 pass + 互补面 waiting** | 阅读协议（**不是** `pnpm eval`，见 BUG-008）：`dev/reports/usage-report.mjs` 的 `sessionLogs`/`readEvents` 读会话日志里的 `schedule_*` 调用，代次用 `session.v<n>` 通配。实读一次真实 web 会话（真模型）：`schedule_create` 带 `weekly {time 09:00:00, time_zone: Asia/Shanghai, weekdays [1]}`（周一 09:00 沪时）2 例、at 型到期提醒多例；**防堆叠**：同一回合内 `schedule_list` 先于 `schedule_create`（2 例） | **跨周真的触发一次** = waiting（需真实一周）；一次性真实会话读数不是耐久夹具，重取要再跑一次真会话 |
+| 7 | **pass**（阻断解除） | `pnpm web-expected` 两场景本轮各 2 采样复跑零 diff（blank 场景 2026-10-11 由红转绿并有意重录）；交互侧由 `pnpm test:client` 覆盖 | 只证明所录场景的 DOM/外观；几何与真输入由 #3 的 owner 与走查覆盖 |
+
+**人判（与技术要求分开；未判不能算通过）**：#5 语气是否真像本人（范围已改指现行车道）、#6 周坐四个对账口径是不是一把手真想要的（业务价值）、R5 播报与门的话术是否口语/清楚/可操作。
+
+**本轮补上的机械漏**：#3 的「能打字」长期只有 `/tmp` 一次性走查——现已由 `pnpm loop-probe` 承接；#2 的「不增殖」由 live-mechanics 的 `session-audit` 承接。这正是本卡关闭条件 1 里「阻断项得到处理」的实质内容，也把两行从 blocked 救回 pass。
+
+**结论**：技术行 2/3/4/6(机械)/7 通过、#1 被取代、#5 重定范围；卡保持**活跃**——只剩人判三项与跨卡项（总助卡的默认桌面与回流，归 [总助体验卡](261006-chief-of-staff-experience.md)）。按 [validation-judgment](../methods/validation-judgment.md) §3 属 **waiting**（技术面已清，人等输入）。
 
 ## 关闭条件
 
