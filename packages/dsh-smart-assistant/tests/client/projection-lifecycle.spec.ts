@@ -33,7 +33,10 @@ describe('projection reader apply lifecycle', () => {
       generation.set({ id: 3 })
       expect(fetch).toHaveBeenCalledTimes(3)
       await second.dispose()
-      expect(signals.every(signal => signal.aborted)).toBe(true)
+      // Disposal cancels the read still on the wire; the middle one was superseded by the
+      // generation change and is left to settle (late results are ignored — reader spec).
+      expect(signals.at(-1)?.aborted).toBe(true)
+      expect(signals[1]?.aborted).toBe(false)
     } finally { await root.fiber.dispose() }
   })
 })

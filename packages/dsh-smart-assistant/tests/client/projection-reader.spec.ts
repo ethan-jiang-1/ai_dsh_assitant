@@ -75,18 +75,56 @@ describe('Web projection reader', () => {
     f.reader.dispose()
   })
 
-  it('cancels replaced refreshes within one generation and ignores their late errors', async () => {
+  it('supersedes a replaced read without aborting it, and ignores its late result', async () => {
     const f = fixture()
     f.generation.set({ id: 1 })
     f.state.set('connected')
     f.reader.refresh()
-    expect(f.request(0).options.signal?.aborted).toBe(true)
+    // Not aborted on purpose: `current()` is what keeps a replaced read out of the snapshot, and
+    // the cancel itself surfaced as a canceled request in the harness's network evidence (the
+    // web-face scenes pin `networkFailures` empty) — racily, because a busy renderer can delay a
+    // response's continuation past the next refresh.
+    expect(f.request(0).options.signal?.aborted).toBe(false)
     f.request(1).resolve(new Response(JSON.stringify(projection(2))))
     await flush()
     f.request(0).reject(new Error('obsolete failure'))
     await flush()
     expect(f.snapshot.getSnapshot()).toEqual({ status: 'ready', data: parseOperatingProjection(projection(2)) })
     f.reader.dispose()
+  })
+
+  it('settles a failed response body rather than leaving its transfer open', async () => {
+    const f = fixture()
+    f.generation.set({ id: 1 })
+    f.state.set('connected')
+    const response = new Response('{"error":"server detail"}', { status: 404 })
+    f.request(0).resolve(response)
+    await flush()
+    // The failure reaches the panel without waiting on bytes nobody wants…
+    expect(f.snapshot.getSnapshot()).toEqual({ status: 'missing' })
+    // …and the body is consumed. An unread body leaves the transfer unfinished, and the next
+    // refresh's abort of it then surfaces as a canceled request — which is exactly what turned
+    // both web-face scenes red ("networkFailures must be empty") on a home with no ledger.
+    expect(response.bodyUsed).toBe(true)
+    f.reader.dispose()
+  })
+
+  it('cancels only an unanswered read at teardown', async () => {
+    const unanswered = fixture()
+    unanswered.generation.set({ id: 1 })
+    unanswered.state.set('connected')
+    unanswered.reader.dispose()
+    expect(unanswered.request(0).options.signal?.aborted).toBe(true)
+
+    const answered = fixture()
+    answered.generation.set({ id: 1 })
+    answered.state.set('connected')
+    answered.request(0).resolve(new Response('', { status: 404 }))
+    await flush()
+    answered.reader.dispose()
+    // Nothing will consume it, but it already produced its response: settling beats canceling
+    // (see `discardBody`), and the abort would only report a canceled request.
+    expect(answered.request(0).options.signal?.aborted).toBe(false)
   })
 
   it.each([[404, 'missing', undefined], [401, 'error', 'authentication-required'], [403, 'error', 'download-forbidden'], [422, 'error', 'projection-invalid'], [500, 'error', 'download-failed']])('separates HTTP %s from successful data', async (status, expectedStatus, error) => {
@@ -118,7 +156,9 @@ describe('Web projection reader', () => {
     f.reader.refresh()
     f.generation.set(undefined)
     f.state.set('connecting')
-    expect(f.request(1).options.signal?.aborted).toBe(true)
+    // The in-flight read is orphaned rather than aborted: the disconnected state publishes
+    // without it, and its late result is ignored (asserted below).
+    expect(f.request(1).options.signal?.aborted).toBe(false)
     expect(f.snapshot.getSnapshot()).toEqual({ status: 'disconnected', data: parseOperatingProjection(projection(1)), stale: true })
     f.generation.set({ id: 2 })
     f.state.set('connected')
