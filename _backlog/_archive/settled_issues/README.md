@@ -6,6 +6,7 @@
 
 | 卡 | 关闭日 | 判定 |
 |---|---|---|
+| [261011-evidence-shape-third.md](261011-evidence-shape-third.md) | 2026-10-11 | **不做第三类证据形态**：能脚本化的一律脚本化（三例已落地：live-mechanics `session-audit`、`loop-probe`、两场景），剩下的一次性读数按 validation-evidence §1b 的「读法协议 + 读数写进拥有它的卡」；候选 C（给 `snapshots/` 加第三类 shape）与收窄契约冲突、属过度预建。不写新触发行——同类第三次再现时新开卡引用本卡 |
 | [261010-desk-k4-closure.md](261010-desk-k4-closure.md) | 2026-10-11 | 技术面收口：②交代首事臂补齐（`IntakePath`/`judgeIntakeReturn` + 桌面「＋ 交代新事项」绑定 + 返回选中新事项）③第四种业务时间（`completedAt` 账本自盖、reopen 清除、投影/解析/详情打通）④窄视口「所选消失恢复」探针落证（`selection-vanish-and-recover` PASS）。①本人的体验裁决**转正为[规格卡](../../notes/proposed/2026-10-06-desk-operating-entry.md) §验收的开放行**——只有本人能给的口味输入，不再压在一张会烂长的验收卡上。探针负载敏感与首用探针断言过时两条另立 BUG-009/BUG-010 |
 | [261011-post-retirement-residue.md](261011-post-retirement-residue.md) | 2026-10-11 | 两条残差都落地：机器标记改 `[面板] `（连带两个 dev 报告与夹具）；`dashboard` 回退面板与 `first-mile` 首开条不再读退役分区，首开条的「打开桌面全景」从退役房间改接主区账本桌面（原来是死按钮），并删掉不可达的 `DeskLandingOverride`、`counts.threads` 单元格与四个只服务退役行的 desk-io 动作。裁决留痕：**没有**顺手加回账本摘要条（那是被退役的形态，要加另立案） |
 | [261011-session-desk-cleanup.md](261011-session-desk-cleanup.md) | 2026-10-11 | 五条清单全闭合：退役组件与 specs 真删（`panels.ts` 644→235、25 个断言块下线并把 staleness 断言改挂 `MemoryPanel`）、`desk-io` 五个只服务退役面板的动作与 `DeskSummaryDock` 一并删、client 口径收窄到「房间数据」（面板口播/刷新/空态/错误文案 + `askRefresh` 的模型可见提示）；web-face 两场景复绿（真红原因是投影读回被自家 abort 的 canceled 请求，见卡第 3 条）；家手册那节改 `### Room data` 并 bump v15。两处残差移交 [261011-post-retirement-residue](261011-post-retirement-residue.md) |

@@ -60,7 +60,7 @@ owner 面**，故本卡不擅自把它们塞进 `snapshots/`（那是越界，�
 - **触发条件（2026-10-11 已到场，行已从 [triggers.md](../triggers.md) 删除）**：同类"只有跑起来才看得出"的
   model-visible/渲染证据**第二次**靠 `/tmp` 手工留存时，按 `snapshots/` 的升级触发精神立卡讨论第三类 admitted shape
   （或把走查协议固化进 probe 脚本），不提前预建。第二次的实例 = #6 的排程读数从 `/tmp/k4-agent-walkthrough-*/`
-  的会话日志读出（读数已写进本卡）；已按写回规则另立 [证据形态第三类卡](261011-evidence-shape-third.md)。
+  的会话日志读出（读数已写进本卡）；已按写回规则另立 [证据形态第三类卡](../_archive/settled_issues/261011-evidence-shape-third.md)。
 - **已固化的部分（2026-10-11）**：#2 → `projection-live-mechanics.mjs` 的 `session-audit`；#3 → `pnpm loop-probe`；
   #7 → `snapshots/web-face` 两场景；场景探针的临时 home 也从 `/tmp` 收进仓内 `.tmp/scene-homes/`。残留的易失面
   只剩「一次性真实会话读数」。
