@@ -10,6 +10,13 @@
 // 新会话的 running 状态由回放回合真实建立（true→false），满足 judgeReturn 的
 // fail-closed 前提（没有回合的会话 running 未知，返回被正确挡住——这正是设计行为）。
 //
+// 回放脚本的**对齐契约**（2026-10-11 两次实测教训，见 BUG-009）：处理会话一挂载，注入的
+// 「正在处理事项…」消息就起了一个真实模型回合，它排在主轮之前——脚本第一格必须服务它
+// （一句「读到了、等指令」，不产生工具调用），否则后面每一轮都错位一格：粘贴那一轮会拿到
+// 拒绝续段、提案当场被拒，探针期望的「留在对话」必红，而产品行为其实完全正确。
+// 同理，粘贴之前必须等这个会话 idle（相位 `conversation-idle`）：回合运行中 vendor 的 composer
+// 是「停止」态（没有发送键、粘贴会被丢），不等它，判据就退化成「那个回合多快跑完」这个纯负载量。
+//
 // 自包含编排：每次运行 ①恢复种子账本（post-entrust 快照，report/propose 的
 // operation_id 尚不存在，本轮回放可以真提交）→ ②在探针 home 上起带回放 patch 的
 // web 服务 → ③CDP 驱动全链 → ④拆服务。重跑安全；账本快照让每次运行从同一态出发。
@@ -105,7 +112,13 @@ const blockEntry = (block, reason) => ({ kind: 'chunks', chunks: [
 ] })
 // 交代首事臂（规格 K3 的另一侧）的续段：作者回合真调 entrust 建一件新事项。
 const intakePrompt = '新的一件：供应商对账单这个月多出一笔，帮我盯着核对一下。'
-writeFileSync(overrideFile, JSON.stringify([...recorded,
+// 第一格服务「种子回合」：处理会话挂载时注入的「正在处理事项…」消息会起一个真实模型回合，
+// 它排在主轮之前。不给它一格，记录里的第一组（report+propose）就被它吃掉，后面每一轮都错位一格
+// （2026-10-11 实测：粘贴那一轮拿到的是拒绝续段，提案当场被拒 → 未读回→ 探针期望「留在对话」必红，
+// 而产品行为其实是对的）。种子只该回一句「读到了、等指令」，不产生任何工具调用。
+writeFileSync(overrideFile, JSON.stringify([
+  blockEntry({ type: 'text', text: '读到了台账 m-1：约定到账日 2026-10-13、核对点 2026-10-13。等你的具体指令。' }, 'stop'),
+  ...recorded,
   blockEntry({ type: 'tool-call', id: 'authored-reject-p1', name: 'assistant_operating', arguments: JSON.stringify({ action: 'reject', matter_id: 'm-1', proposal_id: 'p-1', operation_id: 'op-authored-reject-p1', quote: rejectPrompt }) }, 'tool-calls'),
   blockEntry({ type: 'text', text: '已拒绝改期提案 p-1。约定到账日与核对点仍为 2026-10-13。' }, 'stop'),
   blockEntry({ type: 'tool-call', id: 'authored-entrust', name: 'assistant_operating', arguments: JSON.stringify({ action: 'entrust', operation_id: 'op-authored-entrust', title: '供应商对账单：本月多出一笔待核', summary: '对账单多出一笔，需核对来源与金额。', quote: intakePrompt }) }, 'tool-calls'),
@@ -245,6 +258,29 @@ pass('conversation-switch', {})
 // 计数放在回合之后：create 是异步的，卸载窗口内读数会与 in-flight 竞态。
 verdict.sessionsBeforeProcess = sessionsBeforeProcess
 
+// 相位 3b（BUG-009 的真病根）：粘贴前等这个会话 idle。
+// 处理会话一挂载，注入的「正在处理事项…」消息就起了一个回合；回合运行中 vendor 的 composer
+// 是「停止」态——没有发送键、粘贴会被丢掉（失败取证实测：composer 在、valueLength 0、send false）。
+// 不等它，判据就变成「那个回合多快跑完」——一个纯负载相关的量（本探针因此在空闲机上绿、
+// 在负载机上红）。完成信号用「停止键消失 + 发送键回来」，与 loop-probe 同一习语；
+// 审批门（「允许一次」）就地点掉，别让回合停在等真人上。
+const turnRunning = `[...document.querySelectorAll('button')].some(b => ['停止生成','Stop generating'].includes(b.getAttribute('aria-label') ?? ''))`
+const sendPresent = `[...document.querySelectorAll('button')].some(b => ['发送消息','Send message'].includes(b.getAttribute('aria-label') ?? ''))`
+let conversationIdle = false
+for (let i = 0; i < 240 && !conversationIdle; i++) {
+  await sleep(500)
+  await evaluate(`(() => { const b = [...document.querySelectorAll('button')].find(x => (x.textContent ?? '').trim() === '允许一次'); b?.click(); })()`)
+  conversationIdle = await evaluate(`(${turnRunning}) === false && (${sendPresent}) === true`) === true
+}
+if (!conversationIdle) {
+  const state = await evaluate(`(() => ({
+    turnRunning: (${turnRunning}), sendPresent: (${sendPresent}),
+    visibleText: (document.body?.innerText ?? '').slice(0, 300),
+  }))()`)
+  teardown(); fail('conversation-idle', { waitedMs: 120000, state })
+}
+pass('conversation-idle', {})
+
 // 相位 4+5（本探针的存在理由）：发一句话 → 回放回合真跑（真工具真账本）→ 读回 → 自动返回。
 // 粘贴/发送习语来自 webui-loop-probe（composer 拒绝 execCommand，合成 ClipboardEvent paste
 // 是已验证的插入方式）。
@@ -275,6 +311,8 @@ const composerState = `(() => {
     sendDisabled: send === undefined ? null : send.disabled,
     activeTag: document.activeElement?.tagName ?? null,
     activeComposer: document.activeElement === composer,
+    turnRunning: [...document.querySelectorAll('button')].some(b => ['停止生成','Stop generating'].includes(b.getAttribute('aria-label') ?? '')),
+    sendPresent: send !== undefined,
     visibleText: (document.body?.innerText ?? '').slice(0, 200),
   };
 })()`
