@@ -1,15 +1,15 @@
 ---
-status: 推敲中
+status: 已结
 opened: 2026-10-07
 ---
 
 # 推敲：它先开口——开屏播报、拍板感与周节律（行为层收口）
 
-> 立卡：2026-10-07 ｜ 状态：推敲中 ｜ 可关闭：否
+> 立卡：2026-10-07 ｜ 状态：已结（2026-10-11）｜ 结论：技术面清零（#1 被取代、#2/#3/#4/#6机械/#7 pass，owner 换到 live-mechanics `session-audit`、`loop-probe`、两场景、client spec）；三条人判（R5 话术、#5 语气、#6 周坐四段口径）**本人 2026-10-11 全部裁定通过**；写法换账本词汇的技术面另记 [BUG-011](../../../../bugs/BUG-011-morning-brief-stale-desk-vocabulary.md)
 
 **问题与期望结果：** 返回产品时看到可操作的业务播报，拍板记录有本人口吻，并能按周对账。
 
-**当前情况：** 开屏、拍板与周坐实现已有提交（`7fe774a` / `636a4a6` / `532c19d`），完整走查发生在 2026-10-07；[已归档 note](../../notes/archived/2026-10-07-opening-brief-and-rhythm.md)作历史引用。这不等于当前验收通过。
+**当前情况：** 开屏、拍板与周坐实现已有提交（`7fe774a` / `636a4a6` / `532c19d`），完整走查发生在 2026-10-07；[已归档 note](../../../../../notes/archived/2026-10-07-opening-brief-and-rhythm.md)作历史引用。这不等于当前验收通过。
 
 **未决问题：** #2 重载没有机械断言，#3 输入框可见性与 #6 排程依赖易失走查，#7 blank 渲染夹具阻断；#5/#6 及 R5 还待用户判断。不能概括为“6/7 通过、只剩用户终验”。
 
@@ -25,7 +25,7 @@ opened: 2026-10-07
 
 ## 验收标准
 
-标准于 2026-10-08 按 [验收设计](../methods/validation-design.md) 拆分。确定性逻辑、浏览器编排和模型行为分别取证；一次端到端演示不能替代全部检查。下表保留已有证据及其限制，不把历史走查升级为当前通过。
+标准于 2026-10-08 按 [验收设计](../../../../methods/validation-design.md) 拆分。确定性逻辑、浏览器编排和模型行为分别取证；一次端到端演示不能替代全部检查。下表保留已有证据及其限制，不把历史走查升级为当前通过。
 
 **本轮确认的承接：** 用户把“三行口语播报”定为待看具体界面的假设，不是不可更改的最终版式；首用从一件眼前的事开始，不必先完成公司画像/固定三问；桌面事项处理时允许留在对话，成功读回才返回。[总助卡 R1–R7/A1–A9](261006-chief-of-staff-experience.md#验收标准)拥有这些结果。下表 #1 的三行与 intake 断言只是当前实现变体的回归证据，#4 只证明通用回调，#5 的即时“已拍”只表示点击反馈，均不足以证明新目标已通过。其余原技术缺口与真人判断保留。
 
@@ -36,53 +36,53 @@ opened: 2026-10-07
 | 3 | 缺 composer 的相位**能打字**（主线不死锁，断点 2） | 编排 | blank 相位（Day-0 intake）与 has-desk 相位（Day-2 拍板） | vendor contenteditable 在场、真打字有反应 | **互补**：A1 隐藏 CSS 时代"能打字"是假绿——曾用 DOM 大纲匹配（隐藏元素也在大纲里）判 pass；负例须证明**可见性**而非存在性 | **几何/可见性探针**（`/tmp/ux-shots/slice1-*`，一次性走查，无耐久 owner——见矩阵尾注）；渲染面的耐久 owner 是 `snapshots/web-face/`（`pnpm web-expected`）——**只证明**所录场景的 DOM 结构与外观字段符合期望；**不能证明** contenteditable 输入框可见或真打字有反应，需另取几何/可见性及真输入证据，也不能覆盖其他相位。⚠️ blank 场景当前夹具腐烂（同 #7） | 无 |
 | 4 | dashboard 的「有问题？」**真回对话**（死按钮变真入口，断点 3） | 编排 | 点击 dashboard 的 onAsk | `ctx.layout.selectPanel(null)` 被调用、主区回会话面 | **负例/死路**：`dsh-navigate-to-session` 事件全仓（含 vendor）**零监听者**——旧实现是断的，夹具须钉住走 `ctx.layout` 而非该事件 | `packages/dsh-smart-assistant/tests/client/client-dashboard.spec.ts` »'onAsk returns to the Conversation through ctx.layout (261007 Slice 1c)' ——**证明**路由对；**不能证明** vendor 侧真切了面板（归走查） | 无 |
 | 5 | 拍板记录**读起来是本人的话**（中文口吻，非英文机器腔） | 确定性 + 模型行为 | 点 dashboard 决策选项 | 入账语句形如「拍：〈问题〉→〈选项〉」、中文；卡片即时「已拍」锁定 | **互补**：英文机器腔版是**已修的病**（Slice 2 前）——夹具须覆盖"不出现英文机器腔"；回执退场后新决策上位 | `client-dashboard.spec.ts` »'option click proxies the decision in the principal-voice Chinese lane (261007 Slice 2)' ——**证明**车道与文案形态；**不能证明**模型侧是否真把这段话按本人语气记账（归 eval/真机） | **语气是否真像本人**（taste，机器不判）——终验项 |
-| 6 | 周坐排程落盘：周一 09:00 Asia/Shanghai + at 型 due | 确定性（调度）+ 模型行为（技能守约） | 真模型跑 morning-brief 周变体一节 | schedule 两条落盘、时区正确、同一回合不堆叠（`schedule_list` 防堆叠） | **互补**：重复触发不产生第二组排程（防堆叠）；`weekly` 为 vendor 原生承载（B1 实施期待核实，当时只有 `at` 型先例） | **机械 half 缺耐久 owner**：排程落盘读的是会话日志（`session.v<n>.jsonl.zstd`，读法 owner = [`dev/reports/usage-report.mjs`](../../dev/reports/usage-report.mjs) `sessionLogs`/`readEvents`），但**未固化成一次性可复跑的命令**——本卡只有走查记录（`/tmp/ux-shots/slice3-*`）。**模型 half**：`pnpm eval --only <task-id>`（任务清单 `pnpm eval --list`；家 = `dev/eval/`，其 AGENTS 是 owner）——本卡未挂具体 task-id，**属未指定，不是已证明**。**证明**该回合落盘正确；**不能证明**跨周边界行为（归真用） | 周坐这四个对账口径是不是一把手真想要的（业务价值） |
-| 7 | 桌面/面板**渲染期望不回归**（结构性外观） | 编排（渲染） | 隔离 home 真渲染，两场景 | `pnpm web-expected` 零 diff | **现状阻断**：blank 场景夹具前置腐烂，owner = [`snapshots/`](../../snapshots/AGENTS.md)（**2026-10-08 校正**：原行归 [261007-bigfile-split](../_archive/settled_issues/261007-bigfile-split.md)，而该卡归档时不吸收此观察、明写交回 snapshots——旧指针指给了一张拒收的卡）——**该行当前不可判，不得报绿** | `snapshots/web-face/` 两场景（`pnpm web-expected`）——**证明**渲染期望；**不能证明**交互逻辑（client spec 管） | 无 |
+| 6 | 周坐排程落盘：周一 09:00 Asia/Shanghai + at 型 due | 确定性（调度）+ 模型行为（技能守约） | 真模型跑 morning-brief 周变体一节 | schedule 两条落盘、时区正确、同一回合不堆叠（`schedule_list` 防堆叠） | **互补**：重复触发不产生第二组排程（防堆叠）；`weekly` 为 vendor 原生承载（B1 实施期待核实，当时只有 `at` 型先例） | **机械 half 缺耐久 owner**：排程落盘读的是会话日志（`session.v<n>.jsonl.zstd`，读法 owner = [`dev/reports/usage-report.mjs`](../../../../../dev/reports/usage-report.mjs) `sessionLogs`/`readEvents`），但**未固化成一次性可复跑的命令**——本卡只有走查记录（`/tmp/ux-shots/slice3-*`）。**模型 half**：`pnpm eval --only <task-id>`（任务清单 `pnpm eval --list`；家 = `dev/eval/`，其 AGENTS 是 owner）——本卡未挂具体 task-id，**属未指定，不是已证明**。**证明**该回合落盘正确；**不能证明**跨周边界行为（归真用） | 周坐这四个对账口径是不是一把手真想要的（业务价值） |
+| 7 | 桌面/面板**渲染期望不回归**（结构性外观） | 编排（渲染） | 隔离 home 真渲染，两场景 | `pnpm web-expected` 零 diff | **现状阻断**：blank 场景夹具前置腐烂，owner = [`snapshots/`](../../../../../snapshots/AGENTS.md)（**2026-10-08 校正**：原行归 [261007-bigfile-split](../../../../_archive/settled_issues/261007-bigfile-split.md)，而该卡归档时不吸收此观察、明写交回 snapshots——旧指针指给了一张拒收的卡）——**该行当前不可判，不得报绿** | `snapshots/web-face/` 两场景（`pnpm web-expected`）——**证明**渲染期望；**不能证明**交互逻辑（client spec 管） | 无 |
 
-**R5 待本人判断（贯穿 #1、#5、#6）**：口语化、看得懂且可操作的业务内容是否适合本人，仍须真人判断。[中国 SME 调研](../research/positioning/261005-chinese-sme-boss.md)曾据此提出“三行口语题、不仪表盘化”；研究推论不能取代本人的选择。本轮已确认三行只是呈现假设，完整事项列表与宽/窄层级由总助卡承接；不再以“永远三行/永远不显示计数分区”卡死版式。机器证明的是当前分支/文案，不是产品价值通过。
+**R5 待本人判断（贯穿 #1、#5、#6）**：口语化、看得懂且可操作的业务内容是否适合本人，仍须真人判断。[中国 SME 调研](../../../../research/positioning/261005-chinese-sme-boss.md)曾据此提出“三行口语题、不仪表盘化”；研究推论不能取代本人的选择。本轮已确认三行只是呈现假设，完整事项列表与宽/窄层级由总助卡承接；不再以“永远三行/永远不显示计数分区”卡死版式。机器证明的是当前分支/文案，不是产品价值通过。
 
-**判定边界**：即使上表技术检查全部通过，#5、#6 与 R5 的用户判断也仍需单独记录。技术通过不能代替产品验收，见 [验收结果判断](../methods/validation-judgment.md)。
+**判定边界**：即使上表技术检查全部通过，#5、#6 与 R5 的用户判断也仍需单独记录。技术通过不能代替产品验收，见 [验收结果判断](../../../../methods/validation-judgment.md)。
 
 ### 证据保存限制
 
 2026-10-08 记录：上表 #3、#6 的走查证据住在
 `/tmp/ux-shots/`（49 个文件，31 个 slice 证据）——**`/tmp` 重启即失**。`snapshots/` 按
-[其契约](../../snapshots/AGENTS.md)只收 session 回放与 web 渲染期望两类，**走查截图不在任何已收编
+[其契约](../../../../../snapshots/AGENTS.md)只收 session 回放与 web 渲染期望两类，**走查截图不在任何已收编
 owner 面**，故本卡不擅自把它们塞进 `snapshots/`（那是越界，也是
-[validation-evidence](../methods/validation-evidence.md) 明禁的"把 snapshots 当通用证据桶"）。
+[validation-evidence](../../../../methods/validation-evidence.md) 明禁的"把 snapshots 当通用证据桶"）。
 两处 walkthrough 证据因此**只活在易失路径上**：
 
 - 影响：#3、#6 的行在 `/tmp` 清空后**不可复核**——按
-  [validation-judgment](../methods/validation-judgment.md) §1，证据不可复核 = **blocked，不是 pass**。
+  [validation-judgment](../../../../methods/validation-judgment.md) §1，证据不可复核 = **blocked，不是 pass**。
 - 已做的缓解：本表把每行的**断言对象与判读要点**写全（不依赖图片本身也能理解判了什么），
   并把提交锚点（`7fe774a`/`636a4a6`/`532c19d`）列在开头的当前情况中。
-- **可重取的方法线索**：保留断言对象、提交锚点与日志读法，供后续补证据使用。排程落盘日志读法见 [`usage-report`](../../dev/reports/usage-report.mjs) 的 `sessionLogs` / `readEvents`。这些线索和截图都不能替代一次可复核的执行结果。
-- **触发条件（2026-10-11 已到场，行已从 [triggers.md](../triggers.md) 删除）**：同类"只有跑起来才看得出"的
+- **可重取的方法线索**：保留断言对象、提交锚点与日志读法，供后续补证据使用。排程落盘日志读法见 [`usage-report`](../../../../../dev/reports/usage-report.mjs) 的 `sessionLogs` / `readEvents`。这些线索和截图都不能替代一次可复核的执行结果。
+- **触发条件（2026-10-11 已到场，行已从 [triggers.md](../../../../triggers.md) 删除）**：同类"只有跑起来才看得出"的
   model-visible/渲染证据**第二次**靠 `/tmp` 手工留存时，按 `snapshots/` 的升级触发精神立卡讨论第三类 admitted shape
   （或把走查协议固化进 probe 脚本），不提前预建。第二次的实例 = #6 的排程读数从 `/tmp/k4-agent-walkthrough-*/`
-  的会话日志读出（读数已写进本卡）；已按写回规则另立 [证据形态第三类卡](../_archive/settled_issues/261011-evidence-shape-third.md)。
+  的会话日志读出（读数已写进本卡）；已按写回规则另立 [证据形态第三类卡](../../../../_archive/settled_issues/261011-evidence-shape-third.md)。
 - **已固化的部分（2026-10-11）**：#2 → `projection-live-mechanics.mjs` 的 `session-audit`；#3 → `pnpm loop-probe`；
   #7 → `snapshots/web-face` 两场景；场景探针的临时 home 也从 `/tmp` 收进仓内 `.tmp/scene-homes/`。残留的易失面
   只剩「一次性真实会话读数」。
 
 ## 补证据前的准备
 
-接手先按 [开发说明](../../docs/dev.md) 确定隔离 home 与工作区，并记下代码基线、构建版本和种子数据。无数据首次使用与已有数据返回必须分开；下面列的是复跑准备和待补项，不是已执行结果。
+接手先按 [开发说明](../../../../../docs/dev.md) 确定隔离 home 与工作区，并记下代码基线、构建版本和种子数据。无数据首次使用与已有数据返回必须分开；下面列的是复跑准备和待补项，不是已执行结果。
 
 | 项目 | 复跑前需明确 | 结果记法 |
 |---|---|---|
 | #2 重载 | 同一 home、同一工作区，已有业务数据的 blank 会话；记录重载前会话数，明确 ×3 重载的执行与计数步骤。不重发的机械断言仍需补齐 | 比较前后会话数、是否出现 `[桌面] 你好` 及播报是否持续；保存可复核步骤和结果，客户端分支测试不能代替重载观察 |
-| #3 输入框 | 无数据 intake 与 has-desk 两种相位；明确几何/可见性读法及真输入步骤。blank 渲染夹具的修复归 [snapshots](../../snapshots/AGENTS.md) | 分别记录可见、可输入的信号；DOM 中存在元素不足以判通过 |
+| #3 输入框 | 无数据 intake 与 has-desk 两种相位；明确几何/可见性读法及真输入步骤。blank 渲染夹具的修复归 [snapshots](../../../../../snapshots/AGENTS.md) | 分别记录可见、可输入的信号；DOM 中存在元素不足以判通过 |
 | #6 周坐 | 指定或补齐具体 eval 任务，写明运行命令与日志读法；首次触发和重复触发使用同一环境，检查 weekly 与 at 两条排程 | 记录实际任务 ID、时间/时区、两次触发前后排程和日志依据；具体任务与可复跑命令目前仍待补 |
-| #7 渲染 | 先查明并处理 blank 夹具前置失效，再按 [snapshots 规则](../../snapshots/AGENTS.md)运行 `pnpm web-expected` 两场景 | 记录基线、场景与 diff；夹具阻断期间该项不可判 |
+| #7 渲染 | 先查明并处理 blank 夹具前置失效，再按 [snapshots 规则](../../../../../snapshots/AGENTS.md)运行 `pnpm web-expected` 两场景 | 记录基线、场景与 diff；夹具阻断期间该项不可判 |
 | 共同验收：事项对话与读回返回 | 按 [总助卡 A4–A6](261006-chief-of-staff-experience.md#逐项矩阵)固定 A 的输入与处理 Session，先追问/等待，再更新并读回；穿插无关 B 刷新、失败与旧修订 | 记录仍在对话/成功后自动回桌面及同一事项状态的实际结果；手动切回、有刷新机制或时间戳变新均不能单独判通过。共同结果在本卡保留并互链，不重复维护 |
 | #5/#6/R5 与总体体验 | 准备拍板记录、周坐内容、播报和旧版对照，附技术结果与未完成项 | 用户逐项判断；旧版对照不可重现时写明限制，技术结果不能代替用户判断 |
 
-执行前为每项明确结果的保留位置与读取步骤。已有耐久 owner 的用该 owner；无 owner 的按 [选择证据](../methods/validation-evidence.md#1b-when-no-owner-exists-say-so-and-name-the-reading-protocol) 记录读法与缺口，仅有易失截图时不能报当前通过。复跑所得结果回写本卡的「验收结果与证据缺口」，默认桌面的处置仍按 [总助卡的接手分支](261006-chief-of-staff-experience.md#接手分支) 记录。
+执行前为每项明确结果的保留位置与读取步骤。已有耐久 owner 的用该 owner；无 owner 的按 [选择证据](../../../../methods/validation-evidence.md#1b-when-no-owner-exists-say-so-and-name-the-reading-protocol) 记录读法与缺口，仅有易失截图时不能报当前通过。复跑所得结果回写本卡的「验收结果与证据缺口」，默认桌面的处置仍按 [总助卡的接手分支](261006-chief-of-staff-experience.md#接手分支) 记录。
 
 ## 验收结果与证据缺口
 
-下表保留原有材料的窄范围。全局固定投影读取切片已补真浏览器证据：缺失/空集合/schema 损坏/七在办＋一完成可分别呈现，console/network 清洁；blank 新默认状态先红 5 drift 后有意更新并复绿，审批横幅经真实点击回 Conversation 沿用原期望绿。可复跑 [读取资料与探针](../../dev/fixtures/desk-projection/README.md)，详细限制见 [实施提案](../../notes/proposed/2026-10-06-desk-operating-entry.md#本轮状态与实施准入)。它不证明事项处理、持久读回、live 断连/三次重载或本人体验，A1–A9 不新增完整 PASS。
+下表保留原有材料的窄范围。全局固定投影读取切片已补真浏览器证据：缺失/空集合/schema 损坏/七在办＋一完成可分别呈现，console/network 清洁；blank 新默认状态先红 5 drift 后有意更新并复绿，审批横幅经真实点击回 Conversation 沿用原期望绿。可复跑 [读取资料与探针](../../../../../dev/fixtures/desk-projection/README.md)，详细限制见 [实施提案](../../../../../notes/proposed/2026-10-06-desk-operating-entry.md#本轮状态与实施准入)。它不证明事项处理、持久读回、live 断连/三次重载或本人体验，A1–A9 不新增完整 PASS。
 
 | 项目 | 已有依据 | 尚缺什么 |
 |---|---|---|
@@ -91,16 +91,16 @@ owner 面**，故本卡不擅自把它们塞进 `snapshots/`（那是越界，�
 | #2 重载 | 当时 ×3 走查记录 | 不重发的机械断言、可复核的重载证据 |
 | #3 输入框 | 历史可见性与真打字记录 | 可重取的几何/交互证据；blank 夹具也有阻断 |
 | #6 周坐 | 历史排程落盘记录及日志读法 | 可复跑命令、具体 eval 任务与重复触发证据 |
-| #7 渲染 | 历史两场景通过记录 | 固定投影主区、blank 期望、事项选择/证据详情和宽窄 pane 已有真实浏览器证据；同一 workspace 三次重载通过；处理/输入几何尚缺，处理面见 [snapshots 规则](../../snapshots/AGENTS.md) |
+| #7 渲染 | 历史两场景通过记录 | 固定投影主区、blank 期望、事项选择/证据详情和宽窄 pane 已有真实浏览器证据；同一 workspace 三次重载通过；处理/输入几何尚缺，处理面见 [snapshots 规则](../../../../../snapshots/AGENTS.md) |
 | #5/#6/R5 用户判断 | 已列明要判断的语气、业务口径和产品红线 | 尚未判定，不能算通过 |
 
 断言对象、提交锚点和日志读法让人知道如何补证据，但本身不证明对应行为通过。技术检查逐项通过、用户逐项明确判断后，才可以报告共同验收完成。
 
-## 2026-10-11 复判（按[判断验收结果](../methods/validation-judgment.md)）
+## 2026-10-11 复判（按[判断验收结果](../../../../methods/validation-judgment.md)）
 
 本卡写于 session-desk 时代，本轮先做前提刷新再逐行重判。**三处前提已死**：三行播报卡取自退役的
 `.desk/state.json` 三段（decisions/actions/gaps）——随唯一桌面拆除；`[桌面] ` 标记改名 `[面板] `；
-排程工具的评测路径被 [BUG-008](../_archive/fixed_bugs/BUG-008-schedule-tools-missing.md) 判为 web-only
+排程工具的评测路径被 [BUG-008](../../../../_archive/fixed_bugs/BUG-008-schedule-tools-missing.md) 判为 web-only
 （headless runner 托管不了，`pnpm eval` 不能判它）。
 
 | # | 本轮判定 | 依据（本轮真跑/真读，2026-10-11） | 仍不能证明 |
@@ -117,16 +117,17 @@ owner 面**，故本卡不擅自把它们塞进 `snapshots/`（那是越界，�
 
 - **R5 话术：本人裁定「行，就现在这个说法」→ 通过**（2026-10-11）。
 - **#5 语气：本人裁定「像，这样记就行」→ 通过**（2026-10-11；范围＝现行车道：账本引原话 + 中文回读 + 不动已确认的承诺）。
-- #6 周坐四个对账口径是不是一把手真想要的（业务价值）——待本人。
+- **#6 周坐四段口径：本人裁定「四段就是我要的」→ 通过**（2026-10-11）。写法换到账本词汇的技术面另记 [BUG-011](../../../../bugs/BUG-011-morning-brief-stale-desk-vocabulary.md)。
+- **② 的三条人判至此全部有结果**（R5/#5/#6 均通过）。剩下的是跨卡项：③ 的共同体验判断（A9，已按其 2026-10-11 的话挂起）与 A2 范围变化（待本人）——两卡按本卡关闭条件 4「一并归档」。
 
-**人判的读数路径（2026-10-11 固化）**：`pnpm desk-walk '<URL>' --home <dir>`（[desk-flow-walk.mjs](../../dev/probes/web/desk-flow-walk.mjs)）用真模型走
+**人判的读数路径（2026-10-11 固化）**：`pnpm desk-walk '<URL>' --home <dir>`（[desk-flow-walk.mjs](../../../../../dev/probes/web/desk-flow-walk.mjs)）用真模型走
 「首屏桌面 → 处理一件事 → 说一句进展 → 返回不变量 → ＋ 交代新事项 → 返回选中新事」，把每屏屏幕文本与截图落
 `.tmp/desk-walkthrough/<时间戳>/`。本卡 #5/R5 的话术素材就读它；导航契约（含「桌面回来 ⇒ 账本无待确认」）是它的断言，
 措辞好坏仍由本人判。
 
 **本轮补上的机械漏**：#3 的「能打字」长期只有 `/tmp` 一次性走查——现已由 `pnpm loop-probe` 承接；#2 的「不增殖」由 live-mechanics 的 `session-audit` 承接。这正是本卡关闭条件 1 里「阻断项得到处理」的实质内容，也把两行从 blocked 救回 pass。
 
-**结论**：技术行 2/3/4/6(机械)/7 通过、#1 被取代、#5 重定范围；卡保持**活跃**——只剩人判三项与跨卡项（总助卡的默认桌面与回流，归 [总助体验卡](261006-chief-of-staff-experience.md)）。按 [validation-judgment](../methods/validation-judgment.md) §3 属 **waiting**（技术面已清，人等输入）。
+**结论**：技术行 2/3/4/6(机械)/7 通过、#1 被取代、#5 重定范围；卡保持**活跃**——只剩人判三项与跨卡项（总助卡的默认桌面与回流，归 [总助体验卡](261006-chief-of-staff-experience.md)）。按 [validation-judgment](../../../../methods/validation-judgment.md) §3 属 **waiting**（技术面已清，人等输入）。
 
 ## 关闭条件
 

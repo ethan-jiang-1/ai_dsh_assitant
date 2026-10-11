@@ -1,6 +1,6 @@
 # 开屏播报、拍板感与周节律（行为层收口）
 
-日期：2026-10-07 · 状态：**implemented**（四片全交付：Slice 1 `7fe774a` / Slice 2 `636a4a6` / Slice 3 `532c19d` / 本收口同 diff——每片 test-first 红绿收口 + 真机走查；完整弧线走查记录见 plan 卡毕业门节。用户终验（plan 卡毕业门的最后一环）仍待本人上手。推敲与证据面：[_backlog/issues/261007-opening-brief-and-rhythm.md](../../_backlog/issues/261007-opening-brief-and-rhythm.md)）
+日期：2026-10-07 · 状态：**implemented**（四片全交付：Slice 1 `7fe774a` / Slice 2 `636a4a6` / Slice 3 `532c19d` / 本收口同 diff——每片 test-first 红绿收口 + 真机走查；完整弧线走查记录见 plan 卡毕业门节。用户终验（plan 卡毕业门的最后一环）仍待本人上手。推敲与证据面：[_backlog/_archive/settled_issues/261007-opening-brief-and-rhythm.md](../../_backlog/_archive/settled_issues/261007-opening-brief-and-rhythm.md)）
 已归档：2026-10-08（决定已经在合同或代码里；下次改决定不用打开本篇。冻结，不再跟踪。）
 
 ## 问题（已观察行为 → 已消除）

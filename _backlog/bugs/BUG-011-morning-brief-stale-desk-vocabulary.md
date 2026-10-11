@@ -23,7 +23,7 @@ opened: 2026-10-11
 ## 为什么仍算缺陷（行为没坏，但判据面是错的）
 
 真机观察里行为**是通的**：走查 home 的真实会话出现过 `schedule_create` 带 `[due follow-up]` 与
-`weekly {time 09:00:00, time_zone Asia/Shanghai, weekdays [1]}`（见 [开屏卡](261007-opening-brief-and-rhythm.md)
+`weekly {time 09:00:00, time_zone Asia/Shanghai, weekdays [1]}`（见 [开屏卡](../_archive/settled_issues/261007-opening-brief-and-rhythm.md)
 #6 的读数；读法＝`dev/reports/usage-report.mjs` 的 `sessionLogs`/`readEvents`）。也就是说**模型自行泛化**把
 「事项有了到期日」映射到了技能的意图上。
 

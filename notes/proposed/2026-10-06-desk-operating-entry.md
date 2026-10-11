@@ -6,7 +6,7 @@
 
 **外部结果三要素：** 触发＝打开/重载产品，或本人选择、交代、处理一件经营事项；本人得到＝完整可选事项、当前依据与未知、对应详情/对话，以及处理后可核对的结果；完成条件＝按下方切片形成可复核技术证据，最后由本人在具体任务上判断清楚程度与负担。本次交付是这份提案与交接记录，不是产品结果已经通过。
 
-[总助体验卡](../../_backlog/issues/261006-chief-of-staff-experience.md#已确认的用户结果与原要求的承接)已确认 R1–R7：冷启动进入全局桌面；可看完整事项并自选；宽主区列表/详情并看、窄主区分层；处理时保留对话，只有对应更新成功读回后返回；首用直接交代眼前一事；多会话输入同一权威账本并留来源；本人决定保持中文且重载不重复代拍。三行摘要、推荐语气与密度须经具体呈现比较，未成为固定版式。
+[总助体验卡](../../_backlog/_archive/settled_issues/261006-chief-of-staff-experience.md#已确认的用户结果与原要求的承接)已确认 R1–R7：冷启动进入全局桌面；可看完整事项并自选；宽主区列表/详情并看、窄主区分层；处理时保留对话，只有对应更新成功读回后返回；首用直接交代眼前一事；多会话输入同一权威账本并留来源；本人决定保持中文且重载不重复代拍。三行摘要、推荐语气与密度须经具体呈现比较，未成为固定版式。
 
 实施前，全局面板不是冷启动默认；默认入口子切片使用全局 main 的一次性初始化选择解除这个限制。最近五个 Session 的工作区快照仍不是统一账本；通用“有问题”回调不绑定选中事项；更晚的 generatedAt 不能证明本次操作成功。静态事实与源码位置的当前合同 = [`docs/operating.md`](../../docs/operating.md)；[现状复核](../../_backlog/research/positioning/261008-ceo-value-contract-review.md#八本轮主区入口与会话数据路径的静态可行性)保留为当时的判读材料。A1–A9 尚无新增产品通过证据，旧交付也未终验。
 
@@ -52,7 +52,7 @@ Web Client 使用实际应用挂载地址解析下载 URL，沿同源 cookie 认
 
 检索 proposed/implemented/rejected 后，同决定的当前 owner 为 [2026-10-06 桌面主对象化](../implemented/2026-10-06-desk-primary-view.md)：会话内 view＋偏好、默认落地等待 D7，与此处独立全局入口是**部分反转**。新提案未实施前保留旧 owner 与运行事实，双方互链；其发行 locale/环境决定、既有审批和历史证据不由本提案取代。实施成立时才将被取代的职责同步改写/归档，不提前标 implemented。
 
-[开屏节律 note](../archived/2026-10-07-opening-brief-and-rhythm.md)、[首用 note](../archived/2026-10-05-day0-intake-first-conversation.md)为冻结历史，不改正文或据其当时 PASS 宣称本轮通过。旧验收继续由 [261006](../../_backlog/issues/261006-chief-of-staff-experience.md#关闭条件)和 [261007](../../_backlog/issues/261007-opening-brief-and-rhythm.md#验收结果与证据缺口)承担，共同项在 261007 记结果并互链，不复制第二份结果账。
+[开屏节律 note](../archived/2026-10-07-opening-brief-and-rhythm.md)、[首用 note](../archived/2026-10-05-day0-intake-first-conversation.md)为冻结历史，不改正文或据其当时 PASS 宣称本轮通过。旧验收继续由 [261006](../../_backlog/_archive/settled_issues/261006-chief-of-staff-experience.md#关闭条件)和 [261007](../../_backlog/_archive/settled_issues/261007-opening-brief-and-rhythm.md#验收结果与证据缺口)承担，共同项在 261007 记结果并互链，不复制第二份结果账。
 
 本提案 excludes：vendor/pin 修改、历史全量迁移、多个经营账本/公司切换、外部数据/IM/对外动作、自动周期催办、完整优先级引擎与长期学习机制。三行摘要可比较，但完整事项和本人自选不可让步。经验/净收益的 [V6/V8/V9 后续范围](../../_backlog/_archive/settled_issues/261008-ceo-operating-loop.md#业务选择与下游交接判断)继续由持续助理交接结论承接；本次接手不撤销、不宣称其已完成。
 
@@ -98,7 +98,7 @@ K1/K2 与经营 writer 的准备可独立开展；K3 必须消费其接口，不
 
 ### 可执行检查与失败形态
 
-固定材料使用 [S0–S5](../../_backlog/issues/261006-chief-of-staff-experience.md#固定输入独立预期与状态读法)，事前冻结事项集合/来源/状态与各反例的结果。主矩阵 [A1–A9](../../_backlog/issues/261006-chief-of-staff-experience.md#逐项矩阵)拥有完整通过条件；下表落实执行入口和缺失资产，不重复维护 PASS 表。路径/ID 是**拟新增**，先创建真实资产才能运行，不是本轮结果。
+固定材料使用 [S0–S5](../../_backlog/_archive/settled_issues/261006-chief-of-staff-experience.md#固定输入独立预期与状态读法)，事前冻结事项集合/来源/状态与各反例的结果。主矩阵 [A1–A9](../../_backlog/_archive/settled_issues/261006-chief-of-staff-experience.md#逐项矩阵)拥有完整通过条件；下表落实执行入口和缺失资产，不重复维护 PASS 表。路径/ID 是**拟新增**，先创建真实资产才能运行，不是本轮结果。
 
 | 检查 owner | 命令与拟新增资产 | 必须会失败的行为 |
 |---|---|---|

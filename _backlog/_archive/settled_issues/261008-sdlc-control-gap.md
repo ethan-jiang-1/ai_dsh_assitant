@@ -33,9 +33,9 @@ DSH [09](file:///Users/bowhead/deepseek-harness/_dsh_plugin_agent_ready_developm
 
 本仓四门写在 [`_backlog/README.md`](../../README.md)，纸面上是对的：卡记思考，note 记决定，毕业就走。活的反例是开屏：
 
-- [261007-opening-brief-and-rhythm](../../issues/261007-opening-brief-and-rhythm.md) 状态仍是「推敲中」，毕业门写「四片全交付」，下一步是用户终验。
+- [261007-opening-brief-and-rhythm](../../_archive/settled_issues/261007-opening-brief-and-rhythm.md) 状态仍是「推敲中」，毕业门写「四片全交付」，下一步是用户终验。
 - [`plans/README.md`](../../issues/README.md) 把「四片全交付 + 等人终验」定义成合法活跃卡。
-- [261006-chief-of-staff-experience](../../issues/261006-chief-of-staff-experience.md) 写：本卡的家是设计意图与 Goal 史，交付证据以 implemented note 为家。
+- [261006-chief-of-staff-experience](../../_archive/settled_issues/261006-chief-of-staff-experience.md) 写：本卡的家是设计意图与 Goal 史，交付证据以 implemented note 为家。
 - 那篇 note 已归档，计划仍链着它。交付证据的家被标成「不要再打开」。
 
 开屏卡留下等真人终验，符合 issue-to-note：人的确认还缺，卡就留着。断的是归档把 why 抽走之后，261006 仍把那篇 note 写成交付证据的家。playbook 不升进技能目录是它自己的契约，不靠再复制一份来修。
@@ -85,7 +85,7 @@ DSH [12](file:///Users/bowhead/deepseek-harness/_dsh_plugin_agent_ready_developm
 1. **把硬规则 3 里的 note 改成条件。** 根 [`AGENTS.md`](../../../AGENTS.md) 硬规则 3 写「一次交付 = 代码 + 测试 + docs/README + note 同 diff」。每个开工会话都读这句。2026-09-24 已经把写 note 的义务收成「代码、测试、现行文档装不下的 why」。收窄写在 [`notes/README.md`](../../../notes/README.md) §〇，硬规则没改完，所以每片仍交一篇，活动树胀了再整批归档。吸纳就是把硬规则 3 改成：note 只有 §〇 要写时才进同一 diff。不新加门禁。
 2. **归档理由改成「四个错误还会不会发生」。** [`docs/AGENTS.md`](../../../docs/AGENTS.md) 规定合同不链接单篇 note、只写现在做什么。于是「结论已经在合同或代码里」永远不能把 why 留在活动树，归档技能里「现行文档引用了它就留下」对 docs 也不会触发。2026-10-08 开屏 note 因此被冻住，而「第一句话由客户端合成」不在任何合同里。吸纳是改 [note-archive-judgment](../../../.agents/skills/note-archive-judgment/SKILL.md) 的归档条件：代码或合同里有这个行为，不算归档；四个错误（否掉的做法被再提、看着代码编理由改回去、说不清约束在保护什么、不翻 git 就不知道为什么）还有一个会在以后的改动上发生，就留在 `implemented/`。不把 45 篇搬回来。下一次归档用这个条件。已经冻住、why 又不在合同里的，另一次逐篇判断，不进这一片。
 
-衔接不用新门。开屏卡停在等人终验，符合 [issue-to-note](../../methods/issue-to-note.md)（人的确认还缺，卡就留着）。断的是那篇 note 被归档之后，[261006](../../issues/261006-chief-of-staff-experience.md) 仍写「交付证据以 implemented note 为家」。playbook 自己写了不升进 `.agents/skills/`。硬规则 3 改完，下一片就不会再把切片日志写成 note。
+衔接不用新门。开屏卡停在等人终验，符合 [issue-to-note](../../methods/issue-to-note.md)（人的确认还缺，卡就留着）。断的是那篇 note 被归档之后，[261006](../../_archive/settled_issues/261006-chief-of-staff-experience.md) 仍写「交付证据以 implemented note 为家」。playbook 自己写了不升进 `.agents/skills/`。硬规则 3 改完，下一片就不会再把切片日志写成 note。
 
 测试也不新造资产。`pnpm eval` 的判决在 [`dev/eval/checks.mjs`](../../../dev/eval/checks.mjs)：伤害地板（不写文件、不 commit）、技能是否按名加载、对最终回答的正则。正则可以撞上凑巧的句子。段落有没有进请求，由 `tests/agent/` 的摘要断言或一次 `repo-live-probe` 证明，不由 eval 证明。领域质量的位置已经是 `pnpm eval:domain` 的人判。desk 是否真写了，eval 里的 `wrotePath` / `fileShape` 会重读文件，这是外部世界那一格里本仓已经有的部分。假的是 [`docs/testing.md`](../../../docs/testing.md) 模型可见面那一格的「能证明」：它写成「行为地板与段落到达」。这一格改成与 `checks.mjs` 一致。只改这一格，不改触发条件，不把 replay patch 升成快照。
 

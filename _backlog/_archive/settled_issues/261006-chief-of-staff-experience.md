@@ -1,31 +1,31 @@
 ---
-status: 推敲中
+status: 已结
 opened: 2026-10-06
 ---
 
 # 推敲：一把手的总助——用户体验重设计
 
-> 立卡：2026-10-06 ｜ 状态：推敲中 ｜ 可关闭：否
+> 立卡：2026-10-06 ｜ 状态：已结（2026-10-11，与开屏卡一并归档）｜ 结论：A1–A9 逐行对账完成——A1/A3/A4/A5/A6/A7 pass、A2 半通过且**本人接受不做推荐**、A8 语气通过、A9 按本人话挂起（触发＝日常使用）；P1–P4 接手分支无待定可行性未知；需求结论已交接至 [proposed](../../../notes/proposed/2026-10-06-desk-operating-entry.md)
 
 **问题与期望结果：** 用户反馈原桌面看不清到底要做什么，使 CEO 无所适从；这是已得到的体验反馈，具体布局根因尚无任务观察验证。打开产品应先进入总助桌面；让一把手看清完整经营事项、各自为什么有轻重、可选的下一步和依据，并能自己选择处理哪件事。桌面发起某件事的对话后，助手追问或等本人补充时留在对话；只有该事项更新成功读回后才回到桌面，显示同一事项的新状态。界面应利用可用空间组织全貌和所选事项，不把所有信息堆在一列或一张大卡里。
 
 **外部结果三要素：** 触发＝打开/重载产品，或从桌面选择、交代、处理一件事；用户得到＝可以扫视和选择的事项全貌、有依据的建议、所选事项的详情与对话、读回后可核对的结果；完成条件＝本轮交出对照现状的需求、可行性判断与逐项验收，不改产品代码，不以卡片写完替代产品终验。
 
-**当前情况：** 仓内已有 root-scoped 全局桌面面板、决定/行动/缺口数据、会话内 view 偏好和部分对话入口；全局面板状态初始为 Conversation，桌面并非冷启动默认。桌面从最近会话工作区寻找一份快照；面板动作使用最新会话或传入会话，没有可靠地绑定所选事项。时间戳轮询可解除 pending，但没有自动返回全局桌面的路径。具体限制见下方现状对照；统一账本由 [CEO 持续助理卡](../_archive/settled_issues/261008-ceo-operating-loop.md) 拥有。
+**当前情况：** 仓内已有 root-scoped 全局桌面面板、决定/行动/缺口数据、会话内 view 偏好和部分对话入口；全局面板状态初始为 Conversation，桌面并非冷启动默认。桌面从最近会话工作区寻找一份快照；面板动作使用最新会话或传入会话，没有可靠地绑定所选事项。时间戳轮询可解除 pending，但没有自动返回全局桌面的路径。具体限制见下方现状对照；统一账本由 [CEO 持续助理卡](../../../../_archive/settled_issues/261008-ceo-operating-loop.md) 拥有。
 
 **已确认需求：** 用户选择主区桌面作为产品入口（包括冷启动）；事项全貌按有依据的优先级形成推荐列表，CEO 可以自己选择，证据不足时标为未能判断并让 CEO 选择；单一权威经营账本可汇入多个会话的事项并保留来源；从桌面处理事项后，只有对应事项成功更新并读回才自动返回桌面；新环境从一件眼前要处理的事开始，不以完整公司画像/固定三问为门槛；三行口语播报暂为体验假设，须看具体界面后判断；界面随空间响应，宽屏支持列表与所选事项详情，窄屏一次聚焦一个层级。
 
 **需求结论：** R1–R7 与 A1–A9 已足以交接，不再泛问桌面形态或重开需求讨论。独立全局面板为拟推进路径；账本身份/修订/权限/读回语义由持续助理结论承接。默认入口、只读传输、实际路由与返回机制仍需后续技术验证，层级/语气/推荐价值需在具体体验阶段由本人判断。
 
-**下一步：** 用户 2026-10-09 点名 setup goal 后推进，已授权下游提案准备。[全局总助桌面提案](../../notes/proposed/2026-10-06-desk-operating-entry.md)承载 K1–K4、依赖与可执行证据设计；产品实施未获授权。申请记录见下方。本卡因承载旧交付终验保持活跃，未来检查未执行不阻止提出下游申请，也不等于本卡可归档。
+**下一步：** 用户 2026-10-09 点名 setup goal 后推进，已授权下游提案准备。[全局总助桌面提案](../../../../../notes/proposed/2026-10-06-desk-operating-entry.md)承载 K1–K4、依赖与可执行证据设计；产品实施未获授权。申请记录见下方。本卡因承载旧交付终验保持活跃，未来检查未执行不阻止提出下游申请，也不等于本卡可归档。
 
 ## 本轮阅读反馈与依据
 
 用户要求把“提醒或者是主动的建议”“事物跟踪”“经验沉淀和学习”放回 CEO 繁忙的工作过程，并强调“推敲的时候要跟现实状况对照一下”“要聪明地利用界面大小”“可行不可行”“怎么验证”。本卡不是再加一层漂亮面板：要解释此前为什么没有兑现，并给出可以否定候选方案的检查。
 
-- [历史诉求复核](../research/positioning/261008-ceo-value-historical-review.md)说明研究如何在转卡、实施和验收中变弱；[当前合同复核](../research/positioning/261008-ceo-value-contract-review.md)区分能力、局部交付与 CEO 价值。
-- [本轮 API 可行性附录](../research/positioning/261008-ceo-value-contract-review.md#八本轮主区入口与会话数据路径的静态可行性)拥有当前 pin 的源码依据。以下结论是静态核验，不是浏览器或真模型实测。
-- 使用 [需求澄清](../methods/requirements-elicitation.md)、[补证据](../methods/requirements-probes.md)、[整理方案](../methods/requirements-synthesis.md)、[验收设计](../methods/validation-design.md)与[证据选择](../methods/validation-evidence.md)。`to-spec` 未在当前目录注册，采用本地完整本体读源适配；只整理已有回答，保留原卡，不发布 tracker、不自动标记可实施。
+- [历史诉求复核](../../../../research/positioning/261008-ceo-value-historical-review.md)说明研究如何在转卡、实施和验收中变弱；[当前合同复核](../../../../research/positioning/261008-ceo-value-contract-review.md)区分能力、局部交付与 CEO 价值。
+- [本轮 API 可行性附录](../../../../research/positioning/261008-ceo-value-contract-review.md#八本轮主区入口与会话数据路径的静态可行性)拥有当前 pin 的源码依据。以下结论是静态核验，不是浏览器或真模型实测。
+- 使用 [需求澄清](../../../../methods/requirements-elicitation.md)、[补证据](../../../../methods/requirements-probes.md)、[整理方案](../../../../methods/requirements-synthesis.md)、[验收设计](../../../../methods/validation-design.md)与[证据选择](../../../../methods/validation-evidence.md)。`to-spec` 未在当前目录注册，采用本地完整本体读源适配；只整理已有回答，保留原卡，不发布 tracker、不自动标记可实施。
 
 ## 已知与未决
 
@@ -38,21 +38,21 @@ opened: 2026-10-06
 | R3 | 宽屏＝列表与所选事项详情并看；窄屏＝列表→详情→返回，一次一个层级；保留所选事项 | “三行口语播报”是待比较的呈现假设，不是不可变版式；不靠堆图表或计数证明价值 |
 | R4 | 从桌面处理明确事项时进入对应对话；助手追问、等本人输入或回合未完时留在对话；对应事项成功读回后才自动回桌面 | 用户已明确细化旧“说完话主区仍在桌面”：不是禁止对话，也不是任何一轮结束就切回 |
 | R5 | 无业务数据时直接交代一件眼前的事；不先完成公司画像或固定三问 | 历史 Day-0 访谈脚本不再是必经流程；确实需要的信息在该事项中补 |
-| R6 | 一个权威经营账本接收多个 Session 输入，事项保留来源 Session/原始记录；返回仍是同一事项及其最新已确认状态 | 账本和来源规则由 [持续助理卡](../_archive/settled_issues/261008-ceo-operating-loop.md#统一经营账本与多会话输入已确认)拥有，本卡消费它们，不把最近会话文件当全量 |
+| R6 | 一个权威经营账本接收多个 Session 输入，事项保留来源 Session/原始记录；返回仍是同一事项及其最新已确认状态 | 账本和来源规则由 [持续助理卡](../../../../_archive/settled_issues/261008-ceo-operating-loop.md#统一经营账本与多会话输入已确认)拥有，本卡消费它们，不把最近会话文件当全量 |
 | R7 | 拍板记录保持中文本人口吻；重载不用重讲已有背景，不凭空创建业务对话或调用模型 | 保留旧“拍板是本人的话”“它记得我”；长期跟踪和经验迁移的价值不由一次 UI 重载验收 |
 
-提醒筛选、主动建议、进展/完成依据和条件经验由 [持续助理结论与下游申请](../_archive/settled_issues/261008-ceo-operating-loop.md#业务选择与下游交接判断) 承接：回款情景/更新权限已确认，Host 候选与 V1–V9 已形成，业务运行未验证。本卡消费该方案的身份/来源/操作读回语义；它尚未实现，不解除本卡 A2/A4/A6 的证据缺口。
+提醒筛选、主动建议、进展/完成依据和条件经验由 [持续助理结论与下游申请](../../../../_archive/settled_issues/261008-ceo-operating-loop.md#业务选择与下游交接判断) 承接：回款情景/更新权限已确认，Host 候选与 V1–V9 已形成，业务运行未验证。本卡消费该方案的身份/来源/操作读回语义；它尚未实现，不解除本卡 A2/A4/A6 的证据缺口。
 
 ### 现状对照：已有能力不等于已交付结果
 
 | 路径 | 当前可核实事实 | 缺口与为何此前没解决 |
 |---|---|---|
-| 全局入口 | [主区注册](../../packages/dsh-smart-assistant/src/client/index.ts#L123-L135)已存在；[布局初始状态](../../vendor/dsh/packages/client/ui-layout/src/client/stores.ts)为 `activePanelId: null` | 注册了入口但没有选为冷启动默认。旧 Step 2 在会话 view 偏好上尝试，没有交付全局入口 |
-| 全貌与空间 | [dashboard](../../packages/dsh-smart-assistant/src/client/dashboard.ts#L73-L95)限制 840px 单列，只显示前三条决策，行动/缺口/审批继续纵向堆叠；没有列表—所选事项详情结构 | 壳已是主区，信息结构仍按数据分区展示。源码能指出差距，不能证明这是 CEO 不满意的唯一原因 |
-| 读取范围 | [loadDesk](../../packages/dsh-smart-assistant/src/client/desk-io.ts#L42-L70)从最近五个 Session 寻找工作区快照 | 不构成权威账本与全量查询；换到无关会话/工作区可能改变所见数据，不能靠补 CSS 解决 |
-| 桌面→对话 | “有问题？”[只调用 `selectPanel(null)`](../../packages/dsh-smart-assistant/src/client/index.ts#L130-L135)，不选择/创建 Session；[选项按钮](../../packages/dsh-smart-assistant/src/client/dashboard.ts#L109-L115)直接代发且未传 Session | 开屏卡证明的是通用按钮回调，不是围绕选中事项绑定对话。最新 Session fallback 不等于来源 Session 或处理 Session |
-| 回话→读回→返回 | [订阅刷新](../../packages/dsh-smart-assistant/src/client/index.ts#L150-L170)与[轮询](../../packages/dsh-smart-assistant/src/client/desk-io.ts#L259-L305)已有；时间戳新于发送时刻可解除 pending | 没有同一事项/同次操作的成功确认，也没有自动选回全局桌面。别的事项刷新也可能推进时间戳，刷新不等于完成 |
-| 既有测试 | [dashboard spec](../../packages/dsh-smart-assistant/tests/client/client-dashboard.spec.ts#L131-L189)断言中文代发与 `selectPanel(null)` 回调 | classic-script/React shim 不证明真实订阅、导航、输入可见、几何或模型记账；不能由这些绿灯判产品闭环已成 |
+| 全局入口 | [主区注册](../../../../../packages/dsh-smart-assistant/src/client/index.ts#L123-L135)已存在；[布局初始状态](../../../../../vendor/dsh/packages/client/ui-layout/src/client/stores.ts)为 `activePanelId: null` | 注册了入口但没有选为冷启动默认。旧 Step 2 在会话 view 偏好上尝试，没有交付全局入口 |
+| 全貌与空间 | [dashboard](../../../../../packages/dsh-smart-assistant/src/client/dashboard.ts#L73-L95)限制 840px 单列，只显示前三条决策，行动/缺口/审批继续纵向堆叠；没有列表—所选事项详情结构 | 壳已是主区，信息结构仍按数据分区展示。源码能指出差距，不能证明这是 CEO 不满意的唯一原因 |
+| 读取范围 | [loadDesk](../../../../../packages/dsh-smart-assistant/src/client/desk-io.ts#L42-L70)从最近五个 Session 寻找工作区快照 | 不构成权威账本与全量查询；换到无关会话/工作区可能改变所见数据，不能靠补 CSS 解决 |
+| 桌面→对话 | “有问题？”[只调用 `selectPanel(null)`](../../../../../packages/dsh-smart-assistant/src/client/index.ts#L130-L135)，不选择/创建 Session；[选项按钮](../../../../../packages/dsh-smart-assistant/src/client/dashboard.ts#L109-L115)直接代发且未传 Session | 开屏卡证明的是通用按钮回调，不是围绕选中事项绑定对话。最新 Session fallback 不等于来源 Session 或处理 Session |
+| 回话→读回→返回 | [订阅刷新](../../../../../packages/dsh-smart-assistant/src/client/index.ts#L150-L170)与[轮询](../../../../../packages/dsh-smart-assistant/src/client/desk-io.ts#L259-L305)已有；时间戳新于发送时刻可解除 pending | 没有同一事项/同次操作的成功确认，也没有自动选回全局桌面。别的事项刷新也可能推进时间戳，刷新不等于完成 |
+| 既有测试 | [dashboard spec](../../../../../packages/dsh-smart-assistant/tests/client/client-dashboard.spec.ts#L131-L189)断言中文代发与 `selectPanel(null)` 回调 | classic-script/React shim 不证明真实订阅、导航、输入可见、几何或模型记账；不能由这些绿灯判产品闭环已成 |
 
 ### 历史失败与本轮取舍
 
@@ -68,7 +68,7 @@ opened: 2026-10-06
 
 - 只在本插件边界内，不改 vendor、不升级 pin 来绕过问题；不做 IM、不接外部数据源。
 - 一个权威账本不等于把 Session 日志或四个房间合并。原始来源、事实/经验及 UI 投影的职责仍需区分；不另造第二份可写经营真相。
-- 本轮只推敲并修改文档，不启动服务、不做生产原型或实现；未来有界原型按 [补证据方法](../methods/requirements-probes.md) 的隔离分支与回收要求处理。
+- 本轮只推敲并修改文档，不启动服务、不做生产原型或实现；未来有界原型按 [补证据方法](../../../../methods/requirements-probes.md) 的隔离分支与回收要求处理。
 - 不在本卡设计完整提醒算法、组织协作、外部执行、长期学习或数据接入；不把多个经营账本/公司切换当作已确认功能。
 - 三行文案、固定分区数、固定像素断点不是用户已定答案；具体选择须有呈现比较。代码切片获授权后独立提交、自测、verify。
 
@@ -80,8 +80,8 @@ opened: 2026-10-06
 | 独立全局 `main` 面板作为主入口，Conversation 作为事项处理面 | **推荐继续验证的技术路径，不是已可交付结论。** 当前有注册和 `ILayout.selectPanel`，无需 Session 绑定；工作区 startup restore 使用 `preserve`，不主动切掉全局面板。仍须验证注册后选中、卸载/重挂、冷启动/重载；当前会话被归档等 `clearMain` 路径会选回 Conversation，须纳入反例，不能循环抢焦点 |
 | 继续让 CEO 手动点桌面、或自动问候后再找桌面 | 手动入口可留作显式导航，但不满足 R1；auto-send 已有失败证据，不作为默认替代或临时补丁 |
 | 一个推荐事项/三行摘要替代全貌 | 认知负担小但会隐藏未选事项，违反 R2。可作为列表上方的简报候选，不能封死 CEO 自选 |
-| 宽屏列表＋详情，窄屏列表→详情→返回 | 用户已确认的层级；插件可在自己的主区布局。代价是选中态、滚动位置和实际剩余宽度的响应。分界不能只看窗口宽度：[平台外框](../../vendor/dsh/packages/client/ui-layout/src/client/AppFrame.tsx#L129-L174)还会扣左栏/右栏；[列宽规则](../../vendor/dsh/packages/client/ui-layout/src/client/columns.ts#L52-L58)不保证桌面内部的两栏始终放得下 |
-| 最近 Session 的快照当经营账本 | 维持现状容易，但不满足多会话完整性与来源。共享 `dataDir` 是已有持久承载；[261008 结论](../_archive/settled_issues/261008-ceo-operating-loop.md#技术路线比较与恢复边界)已有 Host owner、操作幂等/修订和单 writer 候选，但尚未实现，不能把“能写文件”称为账本已可用 |
+| 宽屏列表＋详情，窄屏列表→详情→返回 | 用户已确认的层级；插件可在自己的主区布局。代价是选中态、滚动位置和实际剩余宽度的响应。分界不能只看窗口宽度：[平台外框](../../../../../vendor/dsh/packages/client/ui-layout/src/client/AppFrame.tsx#L129-L174)还会扣左栏/右栏；[列宽规则](../../../../../vendor/dsh/packages/client/ui-layout/src/client/columns.ts#L52-L58)不保证桌面内部的两栏始终放得下 |
+| 最近 Session 的快照当经营账本 | 维持现状容易，但不满足多会话完整性与来源。共享 `dataDir` 是已有持久承载；[261008 结论](../../../../_archive/settled_issues/261008-ceo-operating-loop.md#技术路线比较与恢复边界)已有 Host owner、操作幂等/修订和单 writer 候选，但尚未实现，不能把“能写文件”称为账本已可用 |
 
 **可行性结论分层：** 主区入口、面板选择、Session 创建/保有、工作区导航和 prompt 提交都有公开 API 路径；当前插件尚未把这些连成事项导航，尤其未声明使用 `uiWorkspace`。无活动 Session 不妨碍显示全局面板，但工作区文件读取仍需 Session 地址，不能把当前 `workspaceFiles` 当任意全局读文件接口。共享账本的 Host 读写路径、权限与多写者规则需要插件内设计。空间布局可在面板内试验；优先级是否有足够事实、模型能否正确更新、用户是否觉得清楚，均未由 API 证明。
 
@@ -92,25 +92,25 @@ opened: 2026-10-06
 | 有界问题 | 输入与做法 | 哪个结果会否定候选；落点 |
 |---|---|---|
 | P1 全局默认及无会话首事能否闭合 | 当前 pin、隔离 home；先查注册/恢复/注销，再在获授权的隔离原型中走新环境、已有账本但无打开 Session、恢复旧 Session、归档当前 Session、重挂。分别观察选中面板、Session 绑定、草稿与一次提交 | 如果只能在每次渲染抢焦点、偷偷发问候/造业务对话、改 vendor 或发到错误 Session 才成立，当前路径失败；结果回本卡，不归为等 D7 |
-| P2 多会话更新怎样被本卡正确消费 | [261008](../_archive/settled_issues/261008-ceo-operating-loop.md#技术路线比较与恢复边界)已给候选语义；下游提案接收其持久结果与只读投影，至少两个 Session 同事项更新及相似不同事项 | 没有真实接口与持久证据，就不能承诺自动返回；不再把语义分析标成完全未定，本卡不另造合并规则 |
+| P2 多会话更新怎样被本卡正确消费 | [261008](../../../../_archive/settled_issues/261008-ceo-operating-loop.md#技术路线比较与恢复边界)已给候选语义；下游提案接收其持久结果与只读投影，至少两个 Session 同事项更新及相似不同事项 | 没有真实接口与持久证据，就不能承诺自动返回；不再把语义分析标成完全未定，本卡不另造合并规则 |
 | P3 空间与全貌是否清楚 | 同一组材料、同一信息量对照现有单列与候选；宽主区列表/详情、窄主区分层，包含无数据/单事项/多事项、长中文标题、未知优先级和错误状态 | 必须能找到未推荐事项、看依据、换选、返回。若宽屏仍只是一条长列，或窄屏需左右拖找按钮/丢选择，候选返工；只漂亮的截图不算通过 |
 | P4 处理返回是否对应同一件事 | 桌面发起 A，经历追问、补充、成功更新；穿插 B 刷新、请求失败、超时、读回失败和用户离开 | 任何仅凭时间戳/回合结束回桌面、把 B 读成 A、吞掉未完追问，都否定候选。用户离开后的迟到结果不应抢回焦点；提案已将此列为负例，具体实现仍须按真实交互状态取证 |
 
 ### 下游处理申请（已提交）
 
-2026-10-09，本轮向当前用户提交下游处理申请，去向为[全局总助桌面提案](../../notes/proposed/2026-10-06-desk-operating-entry.md)。请求接手 R1–R7/A1–A9 的有界实现与验证设计：先验证 Host 固定投影的只读传输、全局入口和响应式列表/详情，再在持续助理结论提供真实账本接口后验证指定事项对话、操作身份、成功修订读回和安全返回。提案保留 K1–K4、失败形态、261008 的 V1–V5/V7 依赖与 V6/V8/V9 后续范围。
+2026-10-09，本轮向当前用户提交下游处理申请，去向为[全局总助桌面提案](../../../../../notes/proposed/2026-10-06-desk-operating-entry.md)。请求接手 R1–R7/A1–A9 的有界实现与验证设计：先验证 Host 固定投影的只读传输、全局入口和响应式列表/详情，再在持续助理结论提供真实账本接口后验证指定事项对话、操作身份、成功修订读回和安全返回。提案保留 K1–K4、失败形态、261008 的 V1–V5/V7 依赖与 V6/V8/V9 后续范围。
 
 申请明确不等于 note 已获准实施、产品行为已通过或下游已完成；本卡继续承载旧交付的 A1–A9 与[开屏节律卡](261007-opening-brief-and-rhythm.md)共同验收，未来证据不足不能被本次提案替换或降低。
 
 ## 验收标准
 
-以下把确认结果变成下游可执行验收；不是本轮执行报告。原五项分别由 A1/A2、A4–A6、A8、A1/A7/A8、A9 承接；R4 的变化与三行版式降为假设来自本轮用户确认，不是为迁就现有实现改绿。证据路线以 [测试证据地图](../../docs/testing.md) 为准。
+以下把确认结果变成下游可执行验收；不是本轮执行报告。原五项分别由 A1/A2、A4–A6、A8、A1/A7/A8、A9 承接；R4 的变化与三行版式降为假设来自本轮用户确认，不是为迁就现有实现改绿。证据路线以 [测试证据地图](../../../../../docs/testing.md) 为准。
 
 ### 固定输入、独立预期与状态读法
 
 - **S0**：无业务数据、无已有 Session；区分平台初始化的空白 Session 与业务对话。**S1**：已有账本、无打开 Session；**S2**：同一账本已有多个 Session，最近 Session 无关或属于另一工作区。
 - **S3（明确标注的模拟资料）**：账本含 7 件在办事项，其中 4 件等拍板、1 件已到期未完成、1 件有跨事项依赖、1 件证据不足；另放 1 件已完成事项供核对历史，标题包含长中文。独立列出期望事项集合、来源与状态；不能从页面渲染结果反推“应有集合”。7 件用于超过当前三条截断，不是产品数量上限。
-- **S4**：Session 甲/乙同一事项的新旧进展、同名但不同事项、互相冲突的日期、无关事项刷新；使用可识别来源与不同修订。账本并入的独立预期取自 [261008 身份/冲突规则](../_archive/settled_issues/261008-ceo-operating-loop.md#技术路线比较与恢复边界)；真实接口与资产尚未建立，相关证据仍阻断，但不再称语义完全未定，也不让测试自己发明答案。
+- **S4**：Session 甲/乙同一事项的新旧进展、同名但不同事项、互相冲突的日期、无关事项刷新；使用可识别来源与不同修订。账本并入的独立预期取自 [261008 身份/冲突规则](../../../../_archive/settled_issues/261008-ceo-operating-loop.md#技术路线比较与恢复边界)；真实接口与资产尚未建立，相关证据仍阻断，但不再称语义完全未定，也不让测试自己发明答案。
 - **S5**：同一资料中写明关键期限/影响/依赖及出处，再移除证据或加入冲突；预先列可支持、可反对与尚不支持的主张，不预置一套未经确认的永久权重。比较关键条件变化前后的建议及解释，不能原样复制已失效理由。排序不靠输出里有没有“建议”判绿：已知依据须可追，未知不能装成确定；建议轻重是否合理仍由本人判断。
 - 每次运行记录源码/构建基线、pin、profile/home/workspace、预置 Session 数和账本修订、实际命令/场景。先验行为期望与之后观察分别记录；模拟、模型观察、用户判断不混写。
 - **成功的含义**：本卡自动返回指此次事项处理已经结束、对应更新成功读回；不等于整件经营事项已完成。一次补数/延期/拍板后，事项可能仍在跟踪，完成状态及后续提醒继续由 261008 的业务规则决定。
@@ -135,16 +135,16 @@ opened: 2026-10-06
 
 | 路线 | 已有 owner 与应执行的检查 | 能证明什么；不能冒充什么 |
 |---|---|---|
-| D：确定性行为 | [现有 client tests](../../packages/dsh-smart-assistant/tests/client/client-dashboard.spec.ts)、domain/host/agent 层按被测接口接收新行为断言；[测试层表](../../docs/testing.md)决定归属。新守卫须先看负例变红再还原 | 集合、选择、路由、pending/失败/恢复与账本服务合同；现有 inert hooks 夹具须能真实驱动变化或选合适测试层，不能假装验证订阅 |
-| C：组合与客户端 | `pnpm build` → `pnpm test:composition`；client 改动跑 `pnpm test` 加两场景 `pnpm web-expected`，取证前按 [client UI 入口](../../.agents/skills/client-ui-contribution/SKILL.md) 核构建与 preflight | 注册/范围/生命周期及所录渲染；不证明真实导航、真输入、所有宽度。已有 blank 夹具阻断见 [开屏卡 #7](261007-opening-brief-and-rhythm.md#验收标准)，不得只跑另一场景称通过 |
-| M：模型 | 在 [行为任务](../../dev/eval/tasks.mjs)新增有界首事、优先级/缺证据、追问、同事项更新与来源用例；`pnpm build` → `pnpm test:composition` → `pnpm eval --only <task-id>` | 各用例读取外部记录/日志核事实和更新；本卡未分配具体 ID/判读器，故当前 blocked。未来须先落任务再运行，不把占位命令当结果；业务建议质量另由 H 判 |
+| D：确定性行为 | [现有 client tests](../../../../../packages/dsh-smart-assistant/tests/client/client-dashboard.spec.ts)、domain/host/agent 层按被测接口接收新行为断言；[测试层表](../../../../../docs/testing.md)决定归属。新守卫须先看负例变红再还原 | 集合、选择、路由、pending/失败/恢复与账本服务合同；现有 inert hooks 夹具须能真实驱动变化或选合适测试层，不能假装验证订阅 |
+| C：组合与客户端 | `pnpm build` → `pnpm test:composition`；client 改动跑 `pnpm test` 加两场景 `pnpm web-expected`，取证前按 [client UI 入口](../../../../../.agents/skills/client-ui-contribution/SKILL.md) 核构建与 preflight | 注册/范围/生命周期及所录渲染；不证明真实导航、真输入、所有宽度。已有 blank 夹具阻断见 [开屏卡 #7](261007-opening-brief-and-rhythm.md#验收标准)，不得只跑另一场景称通过 |
+| M：模型 | 在 [行为任务](../../../../../dev/eval/tasks.mjs)新增有界首事、优先级/缺证据、追问、同事项更新与来源用例；`pnpm build` → `pnpm test:composition` → `pnpm eval --only <task-id>` | 各用例读取外部记录/日志核事实和更新；本卡未分配具体 ID/判读器，故当前 blocked。未来须先落任务再运行，不把占位命令当结果；业务建议质量另由 H 判 |
 | G：几何与真交互 | `pnpm shots '<URL>' --dom --size 1600x1000` 作检查入口；同材料比较 1280×800、390×844，并记录实际主区宽度，左栏/右栏状态及 resize。通过 `--eval` 或同 owner 的探针读取 bounding rect、可见/可点击状态，执行列表选取、返回、真输入、读回 | 场景是技术检查样本，不是已确认断点。截图/DOM 大纲不证明未被遮挡或能输入；几何、真输入与导航断言尚无耐久 owner，当前 blocked，不能把截图塞进 snapshots 当通用资产 |
-| L：运行副作用与持久结果 | 使用 [usage-report](../../dev/reports/usage-report.mjs) 的 `sessionLogs`/`readEvents` 读真实日志，对照 Session 列表、账本前后修订、输入/工具/模型请求、操作目标与成功读回；首次与重复提交/重载分别统计 | 不手造日志。平台允许初始化空白 Session 不等于业务对话增殖；逐个解释新增项。当前没有对应一次性命令/耐久断言，须补该协议的实现与保留位置后判定 |
+| L：运行副作用与持久结果 | 使用 [usage-report](../../../../../dev/reports/usage-report.mjs) 的 `sessionLogs`/`readEvents` 读真实日志，对照 Session 列表、账本前后修订、输入/工具/模型请求、操作目标与成功读回；首次与重复提交/重载分别统计 | 不手造日志。平台允许初始化空白 Session 不等于业务对话增殖；逐个解释新增项。当前没有对应一次性命令/耐久断言，须补该协议的实现与保留位置后判定 |
 | H：本人判断 | 同资料、同截止时点和信息量，对照现有单列、列表详情候选及可选三行摘要；给出技术未过项、输入与动作负担，由本人判层级/话术/推荐是否有用 | 原型只回答版式/过程，模拟不证明采纳、经营收益或长期学习。仅在此阶段呈现具体差异，不再次泛问“想不想要桌面” |
 
 本轮只做静态查证与文档修改，未针对上述新增标准执行 D/C/M/G/L 产品验证、未构建原型；已有仓库 typecheck/test/verify 自检不替代这些结果。后续取证先确定耐久 owner；没有 owner 的行保留 blocked 并沿上述协议重取，不把临时截图、绿色 `verify` 或一次演示升级为通过。结果逐行记录 pass/fail/blocked/human judgment pending；既有共同结果仍落 [开屏卡](261007-opening-brief-and-rhythm.md#验收结果与证据缺口)，本卡新增 A1–A9 的结果与对应原项互链，不维护重复结果账。
 
-## 2026-10-11 复判：A1–A9 逐行对账（按[判断验收结果](../methods/validation-judgment.md)）
+## 2026-10-11 复判：A1–A9 逐行对账（按[判断验收结果](../../../../methods/validation-judgment.md)）
 
 本卡的「当前可判状态」列写于 2026-10-06（当时多数行是「未实现/无 owner」）。此后落地了唯一桌面、账本投影面板、
 处理流与 K1–K4 的证据面，故本轮逐行重判，**只引今天可复核的 owner**；不复述历史结论，也不改标准迁就实现。
@@ -152,13 +152,13 @@ opened: 2026-10-06
 | # | 本轮判定 | 今天可复核的 owner 与证据（2026-10-11） | 仍不能证明 / 待办 |
 |---|---|---|---|
 | A1 默认桌面与返回记住内容 | **pass** | 默认主入口与「显式导航不被抢回」：`tests/composition/client-entry-lifecycle.spec.mjs`（未声明不默认、每 Client root 只消费一次、`selectPanel(null)` 后重挂不抢回）+ `client-entry.spec.ts` »'preserves an explicit main-panel selection…'；挂载/重挂/断连/尺寸：`projection-live-mechanics.mjs`（`boot-fixture`/`resize-survival`/`disconnect-recovery` 全 PASS）；S0 空态与错态：`client-dashboard.spec.ts` »'shows the honest empty state with CTA…' + 读取器的 missing/empty/damaged 分支 | S2「最近 Session 属另一工作区」未单独取值；读失败与真无数据的分开已由探针覆盖，长期多会话行为归真用 |
-| A2 全貌、推荐与本人自选 | **半通过**（集合/选择/来源 pass；**推荐/排序未交付**） | 无截断集合与独立清单一致、任一事项可选、详情对应、来源可定位：K1/K2 的 7 在办＋1 完成固定资料（`projection-live-mechanics.mjs`、`desk-projection` 夹具 README）+ `projection-panel.spec.ts`；「未知不假排序」= 面板不做排序/推荐，只呈现账本事实 | **推荐与轻重排序这一半没有实现**（K4 收口轮已标 V4/V5 非阻塞）。按本卡关闭条件 1，范围变化须本人明确接受——见下方待判 |
+| A2 全貌、推荐与本人自选 | **半通过 + 范围已由本人接受**（集合/选择/来源 pass；推荐/排序**本人 2026-10-11 裁定「不用，就这样」**） | 无截断集合与独立清单一致、任一事项可选、详情对应、来源可定位：K1/K2 的 7 在办＋1 完成固定资料（`projection-live-mechanics.mjs`、`desk-projection` 夹具 README）+ `projection-panel.spec.ts`；「未知不假排序」= 面板不做排序/推荐，只呈现账本事实 | **推荐与轻重排序这一半没有实现**，K4 收口轮已标 V4/V5 非阻塞；**本人 2026-10-11 明确接受这一范围变化**（「不用，就这样」）——关闭条件 1 的范围变化要求至此满足 |
 | A3 随可用空间分层 | **pass** | `projection-live-mechanics.mjs`：`narrow-viewport`（列表→详情→返回、`selectionKept`、`noOverflow`）、`resize-survival`、`scroll-restore`（256→256）、`selection-vanish-and-recover`（所选消失不误显示别的事项）；宽窄层级与长标题：`projection-panel.spec.ts` + 固定资料 | 几何为样本而非已确认断点；密度/层级是否清楚仍由人判（并入 A9） |
 | A4 桌面发起指定事项对话 | **pass** | `desk-process-e2e.mjs` 相位 `conversation-switch`（处理按钮 → 处理会话接管主区）；**不偷发到 B 的负例**：`client-desk-process.spec.ts` »'binds each matter to its own path; B\'s receipt never settles A\'s path'；真机走查（`.tmp/desk-walkthrough/`）：选 NB-02 →「处理这件事」→ 会话首屏带事项上下文 | 打开/创建失败时保留输入与 A 的具体形态未单独取值；来源/处理 Session 各自可追由绑定与种子消息给出 |
 | A5 追问、审批等待与未完回合留在对话 | **pass** | `desk-process-e2e.mjs` 相位 `pending-stays-in-chat`（混合回合 + 审批横幅期间桌面**未**挂载）+ 新相位 `conversation-idle`（回合未完时不粘贴、不返回）；状态合同负例：`client-desk-process.spec.ts` 覆盖 `turn-open`/`pending-interaction`/`pending-proposal` 全部 stay | 「模型取消/失败、本人暂不回复」未单独取值；旧 composer 证据已不承担本行 |
 | A6 同事项更新成功读回后才返回 | **pass** | `desk-process-e2e.mjs`：`reject-auto-return`、`durable-rejection`、`confirmed-dates-unchanged`、`return-selection`；负例矩阵 22 件（错事项/旧修订/绑定前/事项消失/`receipt-<status>`）；真机走查：延迟落成 `预测 2026-10-20`、承诺 2026-10-13 未动、返回仍选中 NB-02 | 「用户另行导航后迟到结果不抢焦点」由判定器 `user-left-path` 覆盖，未取真机时序；成功定义已归账本 owner |
 | A7 单事首用与可恢复输入 | **pass**（本轮补上的那一臂） | `desk-process-e2e.mjs` 交代臂三轮：`intake-entry`/`intake-auto-return`/`intake-return-selection`；真机走查（真模型）：＋ 交代新事项 → 说出新事 → 建成 m-4 → 返回并**选中新建的那件**；双击提交负例：`double-click-single-session`（`created: 1`）；初始化失败（全新 home 无账本）：Day-0 修复 + `client-entry.spec.ts` 无投影守卫 | 「不能要求固定三问/示例冒充真实事项」由 prompt 与技能面守约（`pnpm eval` 的 desk 任务），本行不重复举证 |
-| A8 中文拍板与重载一致 | **机械面 pass；语气待人判** | 账本为唯一 writer、客户端无写路径；重载不代拍、不造业务对话：`confirmed-dates-unchanged`（e2e）＋账本/投影结构测试；回执保留本人原话（quote）：`client-desk-process.spec.ts` 与账本结构测试；中文形态：工具与回执文案测试 | 「语气是否真像本人」= taste（与 [开屏卡 #5](261007-opening-brief-and-rhythm.md) 同一条人判，范围已改指现行车道）；长期学习归 261008 |
+| A8 中文拍板与重载一致 | **机械面 pass；语气＝已判通过** | 账本为唯一 writer、客户端无写路径；重载不代拍、不造业务对话：`confirmed-dates-unchanged`（e2e）＋账本/投影结构测试；回执保留本人原话（quote）：`client-desk-process.spec.ts` 与账本结构测试；中文形态：工具与回执文案测试 | 语气行**已回收**：本人 2026-10-11 对同一件东西（账本回读那句话）裁定「像，这样记就行」→ 通过（与 [开屏卡 #5](261007-opening-brief-and-rhythm.md) 共用同一裁定）；长期学习归 261008 |
 | A9 具体任务上的总助体验 | **human judgment pending（已挂起）** | 读数路径已固化：`pnpm desk-walk '<URL>' --home <dir>`（真模型走两条路，断言导航契约，产出屏幕文本+截图；2026-10-11 在走查实例上全绿：`return-invariant` pending 0、`intake-return` 建成并选中 m-6） | 只有本人能给；裁决已按 2026-10-11 本人的话**挂起**（触发＝本人日常使用），不重复推 |
 
 **接手分支的结论（P1–P4）**：P1 全局默认与无会话首事 —— 已交付并有隔离证据（`client-entry-lifecycle` + 真机走查），
@@ -168,7 +168,7 @@ P4 处理返回对应同一件事 —— 判定器负例矩阵 + e2e 已覆盖�
 三条否定条件。**四条分支都不再有待定的可行性未知**（对应关闭条件 1）。
 
 **本轮判定汇总**：A1/A3/A4/A5/A6/A7 pass；A2 半通过（推荐/排序未交付，属范围变化，待本人接受）；A8 机械面 pass、
-语气待人判；A9 人判挂起。按 [validation-judgment](../methods/validation-judgment.md) §3 本卡属 **waiting**：
+语气待人判；A9 人判挂起。按 [validation-judgment](../../../../methods/validation-judgment.md) §3 本卡属 **waiting**：
 技术面已清，只剩一批人判（与 [开屏卡](261007-opening-brief-and-rhythm.md) 及 K4 裁决行合并为同一批）。
 
 ## 关闭条件
@@ -290,7 +290,7 @@ vendor 有一个被忽略的机制：**sidebar.panellist + main 槽系统**。
 
 #### Step 3：晨报简报体验
 
-> **已交付（2026-10-06 B1）。** 到期投递写成简报（到期 / 要拍板 / 阻塞缺口），记录在 [desk-primary-view](../../notes/implemented/2026-10-06-desk-primary-view.md)。下面是当时的做法，不是待办。
+> **已交付（2026-10-06 B1）。** 到期投递写成简报（到期 / 要拍板 / 阻塞缺口），记录在 [desk-primary-view](../../../../../notes/implemented/2026-10-06-desk-primary-view.md)。下面是当时的做法，不是待办。
 
 **做什么**：到期投递（schedule follow-up 到达）时，morning-brief 的简报不是一条「你有一件事到期」——而是一段**有用的摘要**：这件事的上下文、你上次拍了什么、还缺什么数、建议下一步。
 **怎么做**：morning-brief 技能扩展——到期时读桌面全部数据（不只当前 action），结合记忆房的上下文，输出一份有个性的简报。
@@ -301,7 +301,7 @@ vendor 有一个被忽略的机制：**sidebar.panellist + main 槽系统**。
 **怎么做**：manual 加一条指令：「回答时检查记忆房间是否有相关上下文，有则主动引用」。
 **自测**：第一轮给信息 → 第二轮问相关问题 → 回答引用了第一轮的信息。
 
-> **已交付（2026-10-08 补指针）**：落在 home 手册 [home-map.ts](../../packages/dsh-smart-assistant/src/domain/home/home-map.ts)
+> **已交付（2026-10-08 补指针）**：落在 home 手册 [home-map.ts](../../../../../packages/dsh-smart-assistant/src/domain/home/home-map.ts)
 > §"Recall what you know — every answer"（`27f8c79`）——"Before answering any question, check the memory
 > room… weave it into your answer with a natural reference… The principal should never have to repeat
 > something they already told you."。本卡不再复述其正文。

@@ -20,6 +20,6 @@
 | 文档词数预算 | 刻意不做 | 文档审计里**同一类腐化再出现** | [discipline.md ⏸ 行](../docs/discipline.md) |
 | 技能许可字段 | 不写 | 读 vendor 时 provider **开始读** `license` / `compatibility`，或技能出现第二个消费方 | [冻结卡](_archive/settled_issues/260928-skill-license-fields.md) |
 | desk 文件字段 | 不预建版本 | 桌面文件里出现**面板不认识的字段** | [冻结卡](_archive/settled_issues/260928-desk-file-schema-version.md) |
-| 会话内桌面默认 view / blank 贡献 | 该路径插件边界内不做，不涵盖全局 `main` 默认入口 | 上游**发布**默认视图可配置，或空白相位主区可插件贡献 | [原决定](../notes/implemented/2026-10-06-desk-primary-view.md)；[全局入口的当前分流](issues/261006-chief-of-staff-experience.md#方案与可行性) |
+| 会话内桌面默认 view / blank 贡献 | 该路径插件边界内不做，不涵盖全局 `main` 默认入口 | 上游**发布**默认视图可配置，或空白相位主区可插件贡献 | [原决定](../notes/implemented/2026-10-06-desk-primary-view.md)；[全局入口的当前分流](_archive/settled_issues/261006-chief-of-staff-experience.md#方案与可行性) |
 | hero 标题覆盖口 | 接受现状（本包不改 vendor 品牌语） | 读 vendor 时，上游发布带来 hero 标题槽位或 locale 覆盖口 | [首屏 hero 标题卡](_archive/settled_issues/261011-vendor-hero-headline.md) |
 | 输入观察的每周快照 | 先观察 30 天（专用环境 + 见现有入口） | 本仓会话开始时扫读数档，最后一行读数距今 **>7 天** | [读数档](research/usage/261011-input-observation.md) |

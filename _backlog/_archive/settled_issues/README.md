@@ -6,6 +6,8 @@
 
 | 卡 | 关闭日 | 判定 |
 |---|---|---|
+| [261007-opening-brief-and-rhythm.md](261007-opening-brief-and-rhythm.md) | 2026-10-11 | **技术面清零 + 三条人判全通过**：#1 三行播报随唯一桌面被取代；#2 不增殖（live-mechanics `session-audit` 三次重载 11→11）、#3 能打字（`pnpm loop-probe` 真输入真回复）、#4 路由、#6机械（真会话里 `weekly {09:00, Asia/Shanghai, weekdays[1]}` + `schedule_list` 防堆叠）、#7 两场景零 diff；人判：R5 话术／#5 语气／#6 周坐四段口径——本人 2026-10-11 全部裁定通过。写法换账本词汇的技术面另记 [BUG-011](../../bugs/BUG-011-morning-brief-stale-desk-vocabulary.md) |
+| [261006-chief-of-staff-experience.md](261006-chief-of-staff-experience.md) | 2026-10-11 | **A1–A9 逐行对账后与开屏卡一并归档**：A1/A3/A4/A5/A6/A7 pass（owner＝live-mechanics 四相位、desk-process e2e 十三相位、judge 负例 22 件、client spec、真机走查）；A2 半通过且**本人接受不做推荐**；A8 语气通过（与开屏卡 #5 共用裁定）；A9 按本人话挂起（触发＝本人日常使用）。P1–P4 接手分支的可行性未知全部清零；需求结论在 [proposed](../../../notes/proposed/2026-10-06-desk-operating-entry.md) |
 | [261007-input-boundary.md](261007-input-boundary.md) | 2026-10-11 | **输入通道现在不做**：专用试用环境 `dev/trial-home-30d` + 先观察 30 天。观察准备全落地：读数命令 `pnpm observe`、[读数档](../../research/usage/261011-input-observation.md)、口径与剔除规则（机器轮次按 `source.kind`/`rpcId` 结构排除）、基线（真人使用前，三项全空）、每周快照触发（agent 扫读数档，>7 天补摘）；指标 B 改基为账本两段时长（旧口径的桌面 gaps 已退役）。下游申请已随回复提交给 notes |
 | [261011-vendor-hero-headline.md](261011-vendor-hero-headline.md) | 2026-10-11 | **以后做**（接受现状）：唯一桌面后 hero 不再是首屏，影响缩到主动开空会话时的一行 vendor 品牌语；标题是 vendor 包内静态 locale 键，本包无合法改动口。触发＝上游发布带来标题槽位/覆盖口（triggers.md）；本人说一声要改即重开 |
 | [261011-evidence-shape-third.md](261011-evidence-shape-third.md) | 2026-10-11 | **不做第三类证据形态**：能脚本化的一律脚本化（三例已落地：live-mechanics `session-audit`、`loop-probe`、两场景），剩下的一次性读数按 validation-evidence §1b 的「读法协议 + 读数写进拥有它的卡」；候选 C（给 `snapshots/` 加第三类 shape）与收窄契约冲突、属过度预建。不写新触发行——同类第三次再现时新开卡引用本卡 |

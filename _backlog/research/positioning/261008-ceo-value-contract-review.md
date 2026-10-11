@@ -11,7 +11,7 @@ intent: "窄范围核对一把手总助的当前价值合同、历史关闭依�
 >
 > 补充范围：直接静态对照当前技能与源代码；本报告服务于[持续经营回路卡](../../_archive/settled_issues/261008-ceo-operating-loop.md)，实施/复验安排由该卡承载，本报告不授予实施权限。
 
-> 静态可行性附录的消费者：[总助体验卡](../../issues/261006-chief-of-staff-experience.md)核对主区默认入口、首次会话与读回限制；[持续经营回路卡](../../_archive/settled_issues/261008-ceo-operating-loop.md)核对跨会话账本承载与未决的更新规则。见[第八节](#八本轮主区入口与会话数据路径的静态可行性)。
+> 静态可行性附录的消费者：[总助体验卡](../../_archive/settled_issues/261006-chief-of-staff-experience.md)核对主区默认入口、首次会话与读回限制；[持续经营回路卡](../../_archive/settled_issues/261008-ceo-operating-loop.md)核对跨会话账本承载与未决的更新规则。见[第八节](#八本轮主区入口与会话数据路径的静态可行性)。
 
 ## 结论摘要
 
@@ -19,9 +19,9 @@ intent: "窄范围核对一把手总助的当前价值合同、历史关闭依�
 
 2. **领域能力证据是目前最硬的一段，但它证明的是“会答、会查、会拒答、能落动作”，不是“CEO 会回来并把真事交给它”。** 2026-10-02 的 30 题批次机器预判为事实正确 ≥1：30/30、0 分题 0、应拒答 8/8；材料同时明确机器只填查房间/技能/耗时，质量由人打（[`calibration-2026-10-02.md:7-24`](../../../dev/eval/domain/calibration-2026-10-02.md#L7-L24)）。题面本身要求真实经营问题、依赖公司盘真实数字，且模板明写“机器只守地板，不判质量”（[`TEMPLATE.md:8-18`](../../../dev/eval/domain/TEMPLATE.md#L8-L18)）。这能支持管理岗基座的事实核验、出处、拒答和行动建议地板；不能支持采纳、留存、决策质量改善、跟进闭环率或相对真人助理的净收益。
 
-3. **历史“已交付/implemented”关闭的是实现切片与当次走查，不是价值合同。** 归档 note 将四片写成“全交付”，并列出 `pnpm test`、build/typecheck、verify、web-expected 和真机走查（[`2026-10-07-opening-brief-and-rhythm.md:1-4`](../../../notes/archived/2026-10-07-opening-brief-and-rhythm.md#L1-L4)、[`2026-10-07-opening-brief-and-rhythm.md:32-36`](../../../notes/archived/2026-10-07-opening-brief-and-rhythm.md#L32-L36)）。但活跃的验收卡明确纠偏：#2 重载没有机械断言，#3/#6 依赖易失走查，#7 blank 渲染夹具阻断，#5/#6/R5 和用户体验仍待判断，不能概括为“6/7 通过”（[`261007-opening-brief-and-rhythm.md`](../../issues/261007-opening-brief-and-rhythm.md#验收标准)）。总助卡进一步明确默认桌面未交付、对话处理单自动回流未独立举证（[`261006-chief-of-staff-experience.md`](../../issues/261006-chief-of-staff-experience.md#已知与未决)）。所以历史关闭真实兑现了若干交互/编排改动，但没有证明“打开就是总助桌面”或“它持续盯到闭环”。默认视图缺口首先影响可见入口和状态回流的可见性，不能单凭它推出跟踪逻辑本身已失败。
+3. **历史“已交付/implemented”关闭的是实现切片与当次走查，不是价值合同。** 归档 note 将四片写成“全交付”，并列出 `pnpm test`、build/typecheck、verify、web-expected 和真机走查（[`2026-10-07-opening-brief-and-rhythm.md:1-4`](../../../notes/archived/2026-10-07-opening-brief-and-rhythm.md#L1-L4)、[`2026-10-07-opening-brief-and-rhythm.md:32-36`](../../../notes/archived/2026-10-07-opening-brief-and-rhythm.md#L32-L36)）。但活跃的验收卡明确纠偏：#2 重载没有机械断言，#3/#6 依赖易失走查，#7 blank 渲染夹具阻断，#5/#6/R5 和用户体验仍待判断，不能概括为“6/7 通过”（[`261007-opening-brief-and-rhythm.md`](../../_archive/settled_issues/261007-opening-brief-and-rhythm.md#验收标准)）。总助卡进一步明确默认桌面未交付、对话处理单自动回流未独立举证（[`261006-chief-of-staff-experience.md`](../../_archive/settled_issues/261006-chief-of-staff-experience.md#已知与未决)）。所以历史关闭真实兑现了若干交互/编排改动，但没有证明“打开就是总助桌面”或“它持续盯到闭环”。默认视图缺口首先影响可见入口和状态回流的可见性，不能单凭它推出跟踪逻辑本身已失败。
 
-4. **“历史关闭是否真实兑现用户价值”的直接答案：部分兑现，且核心总助价值仍是 blocked / human judgment pending，而不是 pass。** 代码和测试可证明播报分支、按钮路由、中文拍板文案、排程写入等局部行为；活卡逐行标明这些证据不能证明浏览器可读性、用户语气、跨周行为、对话回流或产品红线（[`261007-opening-brief-and-rhythm.md`](../../issues/261007-opening-brief-and-rhythm.md#验收标准)）。方法学还规定：缺命令、陈旧 artifact 或不支持的解释必须判 blocked；技术绿不能升级为产品价值接受（[`validation-judgment.md:17-31`](../../methods/validation-judgment.md#L17-L31)）。
+4. **“历史关闭是否真实兑现用户价值”的直接答案：部分兑现，且核心总助价值仍是 blocked / human judgment pending，而不是 pass。** 代码和测试可证明播报分支、按钮路由、中文拍板文案、排程写入等局部行为；活卡逐行标明这些证据不能证明浏览器可读性、用户语气、跨周行为、对话回流或产品红线（[`261007-opening-brief-and-rhythm.md`](../../_archive/settled_issues/261007-opening-brief-and-rhythm.md#验收标准)）。方法学还规定：缺命令、陈旧 artifact 或不支持的解释必须判 blocked；技术绿不能升级为产品价值接受（[`validation-judgment.md:17-31`](../../methods/validation-judgment.md#L17-L31)）。
 
 5. **相对普通聊天的优势已有“结构候选”和局部能力证据，但没有相对基线的真实验证。** 架构合同确实有工作区四房间、四个自有工具、摘要、技能、机器养护和会话可重建日志（[`architecture.md:7-22`](../../../docs/architecture.md#L7-L22)、[`architecture.md:127-139`](../../../docs/architecture.md#L127-L139)）。领域题也反复展示出处、缺数、可推翻判断和 owner/时限/指标/停止条件；Q1 的事实维最新盲打为 1（机器预判 2 被从严纠正），不能再把它写成事实 2（[`sheet-2026-10-02-15-04.md:11-18`](../../../dev/eval/domain/sheet-2026-10-02-15-04.md#L11-L18)、[`260928-domain-eval-v0.md:21-39`](../../_archive/settled_issues/260928-domain-eval-v0.md#L21-L39)）。但没有同题普通聊天基线、真人助理对照、随机/受控分流、真实 CEO 采纳读数或业务结果读数。因此“比普通聊天好”目前是可解释的设计假设，不是已验证的优势。
 
@@ -78,9 +78,9 @@ O1-O6 的结果合同涵盖：按“现象→原因假设→取舍标准→行�
 - 某次真模型回合写入 weekly + at 排程；
 - Day-0/Day-2 走查弧线当时走通。
 
-这些内容见冻结 note 的实现摘要（[`2026-10-07-opening-brief-and-rhythm.md:6-20`](../../../notes/archived/2026-10-07-opening-brief-and-rhythm.md#L6-L20)）。但活卡逐项重新标注了证据限制：重载无机械断言；截图在 `/tmp`，重启即失；#7 blank 夹具阻断；对话→桌面回流没有独立证据；用户的语气、周坐口径和总体体验尚未判定（[`261007-opening-brief-and-rhythm.md`](../../issues/261007-opening-brief-and-rhythm.md#验收标准)、[`261007-opening-brief-and-rhythm.md:46-62`](../../issues/261007-opening-brief-and-rhythm.md#L46-L62)、[`261007-opening-brief-and-rhythm.md:79-101`](../../issues/261007-opening-brief-and-rhythm.md#L79-L101)）。
+这些内容见冻结 note 的实现摘要（[`2026-10-07-opening-brief-and-rhythm.md:6-20`](../../../notes/archived/2026-10-07-opening-brief-and-rhythm.md#L6-L20)）。但活卡逐项重新标注了证据限制：重载无机械断言；截图在 `/tmp`，重启即失；#7 blank 夹具阻断；对话→桌面回流没有独立证据；用户的语气、周坐口径和总体体验尚未判定（[`261007-opening-brief-and-rhythm.md`](../../_archive/settled_issues/261007-opening-brief-and-rhythm.md#验收标准)、[`261007-opening-brief-and-rhythm.md:46-62`](../../_archive/settled_issues/261007-opening-brief-and-rhythm.md#L46-L62)、[`261007-opening-brief-and-rhythm.md:79-101`](../../_archive/settled_issues/261007-opening-brief-and-rhythm.md#L79-L101)）。
 
-总助卡明确默认桌面 Step 2 未交付，Goal 3 的“对话产生处理单后自动回流桌面”未单独举证（[总助卡接手分支](../../issues/261006-chief-of-staff-experience.md#接手分支)）。前者首先影响打开时的可见性，后者是状态变化可见回流的验收缺口；二者都不能单独证明持续跟踪的领域逻辑失败，更不能以 UI 缺口代替核心回路诊断。
+总助卡明确默认桌面 Step 2 未交付，Goal 3 的“对话产生处理单后自动回流桌面”未单独举证（[总助卡接手分支](../../_archive/settled_issues/261006-chief-of-staff-experience.md#接手分支)）。前者首先影响打开时的可见性，后者是状态变化可见回流的验收缺口；二者都不能单独证明持续跟踪的领域逻辑失败，更不能以 UI 缺口代替核心回路诊断。
 
 ### 4. 旧定位卡自身已经记录“能力有、回来理由没有”
 
@@ -108,7 +108,7 @@ O1-O6 的结果合同涵盖：按“现象→原因假设→取舍标准→行�
 CEO 的负担不止“把一个问题分析出来”，还包括：持续掌握事情进展，筛选现在谁该介入，带依据给出建议或提醒，收到反馈后更新跟踪，直到决定有结果。当前材料对这条回路有结构性承载，但没有完整价值验证。
 
 - **已存在的承载字段/动作**：历史验收和领域题反复使用 `owner`、`due`、指标、停止条件、缺口、出处、decision/action/thread 状态；Q1 的答案也能把判断写成 owner/时限/指标/停止条件表。这证明输出可以成为可跟进对象，不只是聊天段落，但不证明 owner 真的介入或事项真的完成。
-- **排程与主动提醒**：定位设计把“它先开口”定义为到期驱动的晨报/提醒，并明确 v1 不承诺新信息，而承诺“你批过的事推到该发生的那天”（[`261005-open-value-deficit.md:143-152`](../../_archive/settled_issues/261005-open-value-deficit.md#L143-L152)）。活卡 #6 要求 `schedule_list` 防堆叠、weekly + at 两条排程，但存档只有某次真模型回合落盘的历史记录，缺可复跑命令、具体 eval task、重复触发前后对照，不能证明长期提醒稳定（[`261007-opening-brief-and-rhythm.md`](../../issues/261007-opening-brief-and-rhythm.md#验收标准)、[`261007-opening-brief-and-rhythm.md`](../../issues/261007-opening-brief-and-rhythm.md#补证据前的准备)）。
+- **排程与主动提醒**：定位设计把“它先开口”定义为到期驱动的晨报/提醒，并明确 v1 不承诺新信息，而承诺“你批过的事推到该发生的那天”（[`261005-open-value-deficit.md:143-152`](../../_archive/settled_issues/261005-open-value-deficit.md#L143-L152)）。活卡 #6 要求 `schedule_list` 防堆叠、weekly + at 两条排程，但存档只有某次真模型回合落盘的历史记录，缺可复跑命令、具体 eval task、重复触发前后对照，不能证明长期提醒稳定（[`261007-opening-brief-and-rhythm.md`](../../_archive/settled_issues/261007-opening-brief-and-rhythm.md#验收标准)、[`261007-opening-brief-and-rhythm.md`](../../_archive/settled_issues/261007-opening-brief-and-rhythm.md#补证据前的准备)）。
 - **不重复、延期、撤回、条件改变**：工作区/桌面历史整改曾为 action/thread 状态、`done`/`dropped`、撤下留痕、未知状态诚实分组、过期回执和重复动作写过机械规则与夹具；这些说明“状态可表达、撤回可留痕、动作可结算”是被设计和局部验证过的机制面（[`2026-09-27-cultivation-remediation-round2.md:94-99`](../../../notes/archived/2026-09-27-cultivation-remediation-round2.md#L94-L99)、[`2026-09-27-cultivation-remediation-round2.md:126-148`](../../../notes/archived/2026-09-27-cultivation-remediation-round2.md#L126-L148)、[`2026-09-27-cultivation-remediation-round2.md:180-204`](../../../notes/archived/2026-09-27-cultivation-remediation-round2.md#L180-L204)）。但当前 CEO 价值证据没有把同一事项的稳定身份、负责人变更、延期/撤回/重新开启、条件改变后的提醒语义串成一个跨周闭环；也没有证明它能避免重复提醒、在延期后只提醒新 due、撤回后停止提醒、条件变化后更新建议。
 - **反馈更新**：已有“补上缺口→更新相关记录→从 gaps 移除或改写”的回程规则（[`2026-09-27-cultivation-remediation-round2.md:143-148`](../../../notes/archived/2026-09-27-cultivation-remediation-round2.md#L143-L148)），但这是单个缺口动作的契约/夹具证据，不是 CEO 反馈后跨轮持续掌握进展的真实结果。
 
@@ -124,10 +124,10 @@ CEO 的负担不止“把一个问题分析出来”，还包括：持续掌握�
 
 ### 不能算“已兑现”的部分
 
-- **默认总助桌面**：活卡明确 Step 2 未交付；实现桌面视图不等于打开即见桌面（[`261006-chief-of-staff-experience.md:46-52`](../../issues/261006-chief-of-staff-experience.md#L46-L52)）。
-- **持续督办/回流**：已有刷新机制不等于“对话处理单自动出现在 dashboard”；没有独立验收证据（[`261007-opening-brief-and-rhythm.md:37-38`](../../issues/261007-opening-brief-and-rhythm.md#L37-L38)、[`261007-opening-brief-and-rhythm.md`](../../issues/261007-opening-brief-and-rhythm.md#补证据前的准备)）。
-- **不增殖、不重发的长期可靠性**：历史 ×3 走查是易失证据；客户端 spec 没有 `sendPrompt` 引用，不能证明不重发（[`261007-opening-brief-and-rhythm.md:32-34`](../../issues/261007-opening-brief-and-rhythm.md#L32-L34)）。
-- **用户自己的声音与产品红线**：机器只断言中文形态/三行可点；“像不像本人”“是不是口语化语文题而非仪表盘”“周坐内容是否真想要”仍是人判（[`261007-opening-brief-and-rhythm.md:36-44`](../../issues/261007-opening-brief-and-rhythm.md#L36-L44)）。
+- **默认总助桌面**：活卡明确 Step 2 未交付；实现桌面视图不等于打开即见桌面（[`261006-chief-of-staff-experience.md:46-52`](../../_archive/settled_issues/261006-chief-of-staff-experience.md#L46-L52)）。
+- **持续督办/回流**：已有刷新机制不等于“对话处理单自动出现在 dashboard”；没有独立验收证据（[`261007-opening-brief-and-rhythm.md:37-38`](../../_archive/settled_issues/261007-opening-brief-and-rhythm.md#L37-L38)、[`261007-opening-brief-and-rhythm.md`](../../_archive/settled_issues/261007-opening-brief-and-rhythm.md#补证据前的准备)）。
+- **不增殖、不重发的长期可靠性**：历史 ×3 走查是易失证据；客户端 spec 没有 `sendPrompt` 引用，不能证明不重发（[`261007-opening-brief-and-rhythm.md:32-34`](../../_archive/settled_issues/261007-opening-brief-and-rhythm.md#L32-L34)）。
+- **用户自己的声音与产品红线**：机器只断言中文形态/三行可点；“像不像本人”“是不是口语化语文题而非仪表盘”“周坐内容是否真想要”仍是人判（[`261007-opening-brief-and-rhythm.md:36-44`](../../_archive/settled_issues/261007-opening-brief-and-rhythm.md#L36-L44)）。
 - **真实采用与经营结果**：没有真实管理层受众的“看完复述/愿意碰真事/持续回来/采用产物/业务结果”证据。定位卡自己把“打动”判据列为待收敛，并警告打动由真实管理层判，不由自跑探针判；真用仍是说服力本钱（[`261005-open-value-deficit.md:325-354`](../../_archive/settled_issues/261005-open-value-deficit.md#L325-L354)）。
 
 因此，“implemented”在冻结 note 中应理解为**切片实现完成的历史记录**，不能理解为“CEO 价值验收完成”。这不是对历史实现的否定，而是对证据层级的纠正。
