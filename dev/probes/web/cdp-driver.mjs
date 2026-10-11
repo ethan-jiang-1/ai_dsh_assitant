@@ -54,7 +54,7 @@ export function findChromeBinary() {
  * @param {number} [options.bootTimeoutMs] - how long to wait for CDP + the page.
  * @returns {Promise<object>} handle: { evaluate, click, consoleProblems, exceptions, close }.
  */
-export async function launchCdpBrowser({ url, chromeBin, windowSize = '1600,1000', bootTimeoutMs = 20000 } = {}) {
+export async function launchCdpBrowser({ url, chromeBin, windowSize = '1600,1000', bootTimeoutMs = 20000, evaluateTimeoutMs = 20000 } = {}) {
   const bin = chromeBin ?? findChromeBinary();
   if (bin === undefined) throw new Error('no Chrome/Edge binary found (set DSH_PROBE_CHROME)');
   const profileDir = mkTmpDir('chrome-profile', 'cdp-driver-');
@@ -122,13 +122,17 @@ export async function launchCdpBrowser({ url, chromeBin, windowSize = '1600,1000
     const id = ++seq;
     pending.set(id, resolve);
     ws.send(JSON.stringify({ id, method, params }));
-    // A dropped CDP socket must fail the call, not hang the probe forever.
+    // A dropped CDP socket must fail the call, not hang the probe forever. The budget is the
+    // caller's: a heavy mount (a conversation's first render, a replay burst) can legitimately
+    // need more than the 20s default on a loaded machine, and a probe that reds there blames the
+    // code for the host (BUG-009, 2026-10-11: load 20-26 on 10 cores reproduced it on two
+    // different code revisions).
     setTimeout(() => {
       if (pending.has(id)) {
         pending.delete(id);
-        resolve({ result: { exceptionDetails: { text: `CDP evaluate timed out: ${method}` } } });
+        resolve({ result: { exceptionDetails: { text: `CDP evaluate timed out after ${evaluateTimeoutMs}ms: ${method}` } } });
       }
-    }, 20000);
+    }, evaluateTimeoutMs);
   });
 
   await send('Runtime.enable');

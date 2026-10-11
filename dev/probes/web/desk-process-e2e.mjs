@@ -15,15 +15,20 @@
 // web 服务 → ③CDP 驱动全链 → ④拆服务。重跑安全；账本快照让每次运行从同一态出发。
 //
 // Usage（repo 根）:
-//   node dev/probes/web/desk-process-e2e.mjs [--home <dir>] [--keep-service]
+//   node dev/probes/web/desk-process-e2e.mjs [--home <dir>] [--keep-service] [--eval-timeout <ms>]
 //     --home          探针 home（默认 <repo>/.tmp/probe-home/k4-probe-home；首次需跑过 prepare+setup）
 //     --keep-service  结束后保留服务进程（调试用）
+//     --eval-timeout  CDP evaluate 的预算（毫秒，默认 60000）：本探针的相位含「会话首屏挂载 +
+//                     回放 burst」，机器被压满时驱动通用的 20s 默认会把健康实现判红（BUG-009，
+//                     2026-10-11：load 20–26 / 10 核，且在两个不同代码版本上同样复现）。
+//                     判决里的 `host` 字段记着当时负载——红之前先看它。
 //
 // 前置：`pnpm build` 已跑（服务装载 lib/client 构建物——改过客户端源码必须先重跑）。
 // 判定输出：JSON verdict，逐相位；任一相位失败 exit 1。
 // 已知假绿面（K1/K2 限制 ⑤）：本探针的断言全部落在相位 verdict 里，eval 异常 =
 // 相位失败 = exit 1，不依赖 shots 的旁路产物；console/network 异常单独失败。
 import { spawn } from 'node:child_process'
+import os from 'node:os'
 import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -44,6 +49,10 @@ const option = (name, fallback) => {
 }
 const home = option('home', join(tmpDir('probe-home'), 'k4-probe-home'))
 const keepService = args.includes('--keep-service')
+// The phases that mount a conversation are the heavy ones; the generic driver default (20s) is
+// tuned for cheap reads (see the header note and BUG-009).
+const evalTimeout = Number(option('eval-timeout', '60000'))
+if (!Number.isFinite(evalTimeout) || evalTimeout <= 0) throw new Error(`--eval-timeout must be a positive number of milliseconds, got "${option('eval-timeout', '')}"`)
 
 const verdict = {
   probe: 'desk-process-e2e',
@@ -51,6 +60,8 @@ const verdict = {
   phases: {},
   consoleProblems: [],
   exceptions: [],
+  // 判据面的环境凭据：红之前先看它（BUG-009 的教训——同一份代码在 2× 超载下会假红）。
+  host: { ncpu: os.cpus().length, loadavg: os.loadavg().map(value => Math.round(value * 100) / 100), evalTimeoutMs: evalTimeout },
 }
 
 // The recorded followup task (dev/eval/tasks.mjs desk-followup-readback) and a stable
@@ -142,7 +153,7 @@ process.on('SIGINT', () => { teardown(); process.exit(130) })
 process.on('SIGTERM', () => { teardown(); process.exit(143) })
 
 // —— 浏览器全链 ——
-browser = await launchCdpBrowser({ url })
+browser = await launchCdpBrowser({ url, evaluateTimeoutMs: evalTimeout })
 if (browser.failed !== undefined) {
   teardown()
   verdict.error = browser.failed
@@ -274,7 +285,17 @@ for (let i = 0; i < 10 && !ready; i++) {
   await sleep(800)
   ready = await evaluate(sendEnabled) === true
 }
-if (!ready) { teardown(); fail('composer-accept', { pasteResult, state: await evaluate(composerState) }) }
+if (!ready) {
+  const state = await evaluate(composerState)
+  const saturated = os.loadavg()[0] >= os.cpus().length
+  teardown()
+  fail('composer-accept', {
+    pasteResult,
+    state,
+    // 会话挂载期相位：这条红在超载主机上不构成回归（BUG-009 的两个回退实证）。
+    ...(saturated ? { hostHint: `loadavg ${os.loadavg()[0].toFixed(1)} on ${String(os.cpus().length)} cores — saturated host, treat as environmental until re-run idle` } : {}),
+  })
+}
 await sleep(600)
 const sent = await evaluate(`(() => {
   const send = [...document.querySelectorAll('button')].find(b =>
