@@ -29,9 +29,9 @@ A plan is a promise with a stop condition. Lists without owners are not plans.
 
 ## Land the plan so it outlives the conversation
 
-A plan that lives only in this reply is gone the moment the session ends, and the principal's desk
-tracks actions from the working folder — not from your recollection. So once the shape is agreed (or
-the principal asks for it to be recorded):
+A plan that lives only in this reply is gone the moment the session ends, and the desk renders the
+**operating ledger** — not your recollection, and not the room file. So once the shape is agreed
+(or the principal asks for it to be recorded):
 
 1. `assistant_reflect save_page` with `type: plan`, a `title` naming what it commits to, and the plan
    as the body: the four things per action, the sequence and dependencies, the deferrals with their
@@ -39,8 +39,11 @@ the principal asks for it to be recorded):
    the plan came from.
 2. It lands as a **draft**. The principal approves it from the knowledge room when they accept the
    plan, and that approval is what makes it count as current knowledge.
-3. Then refresh the desk (the `desk-refresh` skill) so the actions appear where the principal looks
-   for them.
+3. Anything in the plan the principal has to act on becomes a **matter in the ledger**
+   (`assistant_operating` `entrust`, provenance quoted from the principal), because the ledger is the
+   only surface the desk renders; a dated one gets its reminder in the same turn per the
+   `morning-brief` skill. Never write these into `.desk/state.json` — that file carries room data
+   only (see the `desk-refresh` skill).
 
 If the plan changes later, write the page again under the same title and say what changed — a plan
 tracker that drifts silently is worse than no tracker.

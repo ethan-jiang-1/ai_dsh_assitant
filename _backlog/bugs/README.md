@@ -14,7 +14,6 @@
 
 | Bug | 标题 | 严重级 | 发现 |
 |---|---|---|---|
-| [BUG-011](BUG-011-morning-brief-stale-desk-vocabulary.md) | `morning-brief` 技能仍按退役的 `actions[]`/decisions/gaps 写触发与对账口径（模型可见面） | P2 | 2026-10-11 |
 
 ## frontmatter
 
