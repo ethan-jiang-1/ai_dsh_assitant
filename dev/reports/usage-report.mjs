@@ -78,6 +78,60 @@ export function readEvents(log) {
 }
 
 /**
+ * 一条 `user/message` 的纯文本。
+ * @param event - 事件对象。
+ * @returns 拼接后的文本（非文本块忽略）。
+ */
+export function userMessageText(event) {
+  const content = event?.data?.content
+  return Array.isArray(content)
+    ? content.filter(part => part && part.type === 'text').map(part => String(part.text ?? '')).join(' ')
+    : String(content ?? '')
+}
+
+/**
+ * 一条 `user/message` 是谁说的：`'panel'`（面板经 RPC 写入的机器文本）| `'injected'`（harness 注入的前言）
+ * | `'principal'`（本人的话）。
+ *
+ * 判据**结构优先**：`data.source.kind` 只要不是 `'user'` 就是注入前言（`runtime-context` / `skill-catalog` /
+ * `time-context` / `agent-instructions` …）；`kind: 'user'` 里 `rpcId` 以 `desk-` 开头的是面板写的
+ * （RPC 由面板发起），其余是本人的话。**两代面板标记都靠这一条**：2026-10-11 之前面板写 `[桌面] `、
+ * 之后写 `[面板] `，而 `rpcId` 两代都是 `desk-…`——按文本前缀判会把旧日志里的机器文本算成本人的话。
+ * 缺 `source` 的旧日志退回文本前缀（两种标记与前缀式前言都认）。
+ *
+ * 为什么必须只有一份：三个读数都按它分类 —— 本仪表、[`desk-loop-report`](desk-loop-report.mjs)、
+ * [`input-observation`](input-observation.mjs)。各写一份已经在真机上漂移过两次：2026-09-26 注入前言被算成
+ * 「本人在用面板」，2026-10-11 `time-context` 前言（每回合一条）与旧标记 `[桌面] ` 又被纯文本判据漏掉。
+ * @param event - 一条 `user/message` 事件。
+ * @returns 说话方分类。
+ */
+export function classifyUserMessage(event) {
+  const raw = event?.data?.source
+  let source = raw
+  if (typeof raw === 'string') {
+    try {
+      source = JSON.parse(raw)
+    } catch {
+      source = undefined
+    }
+  }
+  const kind = source !== null && typeof source === 'object' ? String(source.kind ?? '') : ''
+  if (kind !== '') {
+    if (kind !== 'user') return 'injected'
+    return typeof source.rpcId === 'string' && source.rpcId.startsWith('desk-') ? 'panel' : 'principal'
+  }
+  const text = userMessageText(event)
+  if (/^\s*(\[Collaboration boundary\]|<system-reminder>|Current runtime context|Time sampled while preparing)/.test(text)) return 'injected'
+  if (/^\s*\[(面板|桌面)\]/.test(text)) return 'panel'
+  return 'principal'
+}
+
+/** 剥掉面板消息开头的标记（两代都认）；不是面板消息则原样返回。 */
+export function stripPanelMarker(text) {
+  return text.replace(/^\s*\[(?:面板|桌面)\]\s?/u, '')
+}
+
+/**
  * 单个会话日志的读数（纯函数，可夹具）。
  * @param events - 该会话的事件序列。
  */
@@ -128,19 +182,12 @@ export function summarizeEvents(events) {
         // workspace instructions, runtime context) — the meter's job is real use, so they count
         // separately instead of inflating the principal's side. Real misread this fixes: a run of
         // injected preambles looked like "the principal tested the panel" (2026-09-26).
-        const content = data.content
-        const text = Array.isArray(content)
-          ? content.filter(part => part && part.type === 'text').map(part => String(part.text ?? '')).join(' ')
-          : String(content ?? '')
-        if (/^\s*(\[Collaboration boundary\]|<system-reminder>|Current runtime context)/.test(text)) {
-          summary.injectedUserMessages += 1
-        } else if (/^\s*\[面板\]/.test(text)) {
-          // Panel-written prompts carry the [面板] marker (client A10): without this they count
-          // as the principal's own words and the meter self-certifies real use.
-          summary.panelMessages += 1
-        } else {
-          summary.principalMessages += 1
-        }
+        // 分类只有一份判据（结构优先）：见 classifyUserMessage 的注释——文本前缀判据在真机上漏过
+        // 两代标记与 time-context 前言。
+        const speaker = classifyUserMessage(event)
+        if (speaker === 'injected') summary.injectedUserMessages += 1
+        else if (speaker === 'panel') summary.panelMessages += 1
+        else summary.principalMessages += 1
         break
       }
       case 'assistant/message':

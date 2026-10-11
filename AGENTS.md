@@ -104,6 +104,7 @@ pnpm export-dist        # 手动分发导出：pnpm pack → _dist/ 的 tgz + �
 pnpm sync-dsh -- --tag <dsh-tag>   # 换 submodule tag + SHA 簿记 + typecheck + 对照 docs/discipline.md 重校纪律表
 pnpm usage              # 意图级仪表：会话/工具混合/自用率/摩擦/家的现状（读 dev home；dev 工具不得继承 DSH_HOME）
 pnpm desk-loop          # 培养循环摩擦报告：从真实会话日志读「点了没反应 / 反复点 / 答了多次 / 技能没加载」（读 dev home）
+pnpm observe [--home <dir>]   # 输入边界 30 天观察的读数：A 自发投递 / B 时长 / C 入口后的操作（口径、剔除规则与每周快照落 `_backlog/research/usage/`）
 pnpm eval               # 行为评测：真实请求经 preset 会话跑一遍，判定读会话日志（串行；任务集 dev/eval/tasks.mjs）
 pnpm eval:domain        # 领域评测集 v0（G2＝领域质量的人判终关）：本人出的真实经营问题逐题跑 → 给人打分的报告（题面格式 dev/eval/domain/TEMPLATE.md）
 ```

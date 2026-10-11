@@ -7,7 +7,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { homeCounts, mergeSummaries, renderReport, sessionLogs, summarizeEvents } from '../../../../dev/reports/usage-report.mjs'
+import { classifyUserMessage, homeCounts, mergeSummaries, renderReport, sessionLogs, summarizeEvents } from '../../../../dev/reports/usage-report.mjs'
 
 const dirs = []
 
@@ -66,6 +66,39 @@ describe('summarizeEvents', () => {
     expect(summary.userMessages).toBe(5)
     expect(summary.injectedUserMessages).toBe(3)
     expect(summary.panelMessages).toBe(1)
+    expect(summary.principalMessages).toBe(1)
+  })
+
+  it('classifies by source structure, and falls back to text for logs that carry none', () => {
+    // 2026-10-11: two real shapes were being misread as the principal's own words.
+    //  (a) the `time-context` preamble ("Time sampled while preparing turn 1, step 1: …") — a
+    //      harness injection, one per turn, so it inflated the principal's side systematically;
+    //  (b) the panel marker's first generation `[桌面] ` — panel-written prompts from before the
+    //      2026-10-11 rename, which text matching on `[面板] ` alone counted as the principal's.
+    // The robust judge is structural: `data.source.kind` (`'user'` means a person or the panel)
+    // plus `rpcId` (`desk-…` = written by the panel over RPC). Both generations carry that.
+    expect(classifyUserMessage({ data: { source: { kind: 'user', rpcId: 'desk-1791110465472-t4qtjt' }, content: [{ type: 'text', text: '[桌面] 刷新我的桌面' }] } })).toBe('panel')
+    expect(classifyUserMessage({ data: { source: { kind: 'user', rpcId: '8ca67eea-ac48-4c90-969e-cd303f702e98' }, content: [{ type: 'text', text: '季末签单的事我想好了。' }] } })).toBe('principal')
+    expect(classifyUserMessage({ data: { source: { kind: 'time-context', form: 'snapshot' }, content: [{ type: 'text', text: 'Time sampled while preparing turn 1, step 1: 2026-10-11T23:26:33+08:00' }] } })).toBe('injected')
+    // Serialized-source logs (desk-loop's shape) parse the same way.
+    expect(classifyUserMessage({ data: { source: '{"kind":"user","rpcId":"desk-1-abc"}' } })).toBe('panel')
+    // No source at all: the text fallback still has to know both marker generations and the
+    // time-sample preamble.
+    expect(classifyUserMessage({ data: { content: [{ type: 'text', text: 'Time sampled while preparing turn 2, step 1: 2026-10-04T18:33:08+08:00' }] } })).toBe('injected')
+    expect(classifyUserMessage({ data: { content: [{ type: 'text', text: '[桌面] 我批准知识页「管理视角 · 财务」。' }] } })).toBe('panel')
+    expect(classifyUserMessage({ data: { content: [{ type: 'text', text: '大客户要求再让 5 个点。' }] } })).toBe('principal')
+  })
+
+  it('counts structural shapes correctly in the summary (panel, injections, principal)', () => {
+    const summary = summarizeEvents([
+      { type: 'user/message', data: { source: { kind: 'runtime-context' }, content: [{ type: 'text', text: 'Current runtime context.' }] } },
+      { type: 'user/message', data: { source: { kind: 'time-context' }, content: [{ type: 'text', text: 'Time sampled while preparing turn 1, step 1: 2026-10-11T23:26:33+08:00' }] } },
+      { type: 'user/message', data: { source: { kind: 'user', rpcId: 'desk-process-context-1' }, content: [{ type: 'text', text: '[面板] 正在处理事项「X」。' }] } },
+      { type: 'user/message', data: { source: { kind: 'user', rpcId: 'desk-1791110465472-t4qtjt' }, content: [{ type: 'text', text: '[桌面] 刷新我的桌面' }] } },
+      { type: 'user/message', data: { source: { kind: 'user', rpcId: 'uuid-1' }, content: [{ type: 'text', text: '这件事就这么定了。' }] } },
+    ])
+    expect(summary.injectedUserMessages).toBe(2)
+    expect(summary.panelMessages).toBe(2)
     expect(summary.principalMessages).toBe(1)
   })
 

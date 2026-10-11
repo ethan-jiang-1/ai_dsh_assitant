@@ -30,7 +30,7 @@
  */
 import { join, resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { readEvents, sessionLogs } from './usage-report.mjs'
+import { classifyUserMessage, stripPanelMarker, readEvents, sessionLogs } from './usage-report.mjs'
 import { argumentsText, wrotePath } from '../eval/checks.mjs'
 import { TASKS } from '../eval/tasks.mjs'
 
@@ -105,18 +105,11 @@ function textOf(event) {
  * @returns `'panel' | 'injected' | 'human'`。
  */
 function speakerOf(event) {
-  const raw = event.data?.source
-  let source = raw
-  if (typeof raw === 'string') {
-    try {
-      source = JSON.parse(raw)
-    } catch {
-      source = undefined
-    }
-  }
-  const kind = String(source?.kind ?? '')
-  if (kind !== 'user') return 'injected'
-  return typeof source?.rpcId === 'string' && source.rpcId.startsWith('desk-') ? 'panel' : 'human'
+  // 分类判据只有一份（结构优先）：`user` + `rpcId: desk-…` = 面板，其它 kind = 注入前言，其余 = 本人的话。
+  // 以前这里自己写了一份；两代面板标记（`[桌面] `/`[面板] `）与 time-context 前言在真机上把它漏过两次，
+  // 所以统一到 usage-report 的 classifyUserMessage（见那里的注释）。
+  const speaker = classifyUserMessage(event)
+  return speaker === 'principal' ? 'human' : speaker
 }
 
 /**
@@ -279,9 +272,9 @@ export function analyzeSessions(sessions, { includeEval = false } = {}) {
         continue
       }
       panelActions += 1
-      const body = window.message.startsWith(PANEL_MARKER)
-        ? window.message.slice(PANEL_MARKER.length)
-        : window.message
+      // 两代面板标记都剥（2026-10-11 前的 `[桌面] `、之后的 `[面板] `），否则旧日志的正文解析
+      // 会把标记当内容。分类不靠这个前缀——那由 classifyUserMessage 的结构判据负责。
+      const body = stripPanelMarker(window.message)
       const action = {
         session: session.id, at: window.at, action: actionOf(body),
         rowKey: rowKeyOf(body, actionOf(body)), asksRefresh: body.includes(SKILL),

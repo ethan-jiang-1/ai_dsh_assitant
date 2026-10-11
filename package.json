@@ -35,6 +35,7 @@
     "web-expected": "node dev/probes/web/webui-expected.mjs",
     "loop-probe": "node dev/probes/web/webui-loop-probe.mjs",
     "desk-loop": "node dev/reports/desk-loop-report.mjs",
+    "observe": "node dev/reports/input-observation.mjs",
     "sync-dsh": "node scripts/maintenance/sync-dsh.mjs",
     "repair-vendor": "TSX_TSCONFIG_PATH=tsconfig.tsx.json node --import tsx/esm scripts/maintenance/repair-vendor-artifacts.mjs"
   },
