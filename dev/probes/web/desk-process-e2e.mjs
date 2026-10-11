@@ -2,7 +2,8 @@
 // K4 处理流确定性端到端探针（_backlog/issues/261010-desk-k4-closure.md 开放面 2）。
 //
 // 链路：桌面(m-1) → 处理会话 → 回放 report/propose → 留在对话 → 显式拒绝 p-1 →
-// 真工具写拒绝回执 → 投影读回 → 自动返回桌面（日期仍为 10/13）。
+// 真工具写拒绝回执 → 投影读回 → 自动返回桌面（日期仍为 10/13）→ 第三轮走**交代首事臂**：
+// 桌面「＋ 交代新事项」→ 对话里说一件新事 → 回放真调 entrust → 读回 → 返回并选中新建的那件。
 //
 // 录制的前四个模型调用和首轮答复来自 followup JSONL。明确拒绝这一轮是为确定性验收
 // 编写的回放续段，不是录制或真实模型行为；工具执行、账本、投影、回程判定和导航都是真的。
@@ -91,9 +92,13 @@ const blockEntry = (block, reason) => ({ kind: 'chunks', chunks: [
   { type: 'block-start', block }, { type: 'block-end', block },
   { type: 'finish', reason: { kind: reason } },
 ] })
+// 交代首事臂（规格 K3 的另一侧）的续段：作者回合真调 entrust 建一件新事项。
+const intakePrompt = '新的一件：供应商对账单这个月多出一笔，帮我盯着核对一下。'
 writeFileSync(overrideFile, JSON.stringify([...recorded,
   blockEntry({ type: 'tool-call', id: 'authored-reject-p1', name: 'assistant_operating', arguments: JSON.stringify({ action: 'reject', matter_id: 'm-1', proposal_id: 'p-1', operation_id: 'op-authored-reject-p1', quote: rejectPrompt }) }, 'tool-calls'),
   blockEntry({ type: 'text', text: '已拒绝改期提案 p-1。约定到账日与核对点仍为 2026-10-13。' }, 'stop'),
+  blockEntry({ type: 'tool-call', id: 'authored-entrust', name: 'assistant_operating', arguments: JSON.stringify({ action: 'entrust', operation_id: 'op-authored-entrust', title: '供应商对账单：本月多出一笔待核', summary: '对账单多出一笔，需核对来源与金额。', quote: intakePrompt }) }, 'tool-calls'),
+  blockEntry({ type: 'text', text: '记下了：供应商对账单多出一笔，已放进桌面，等你核对。' }, 'stop'),
 ]))
 
 const vendorBin = join(repoRoot, 'vendor', 'dsh', 'apps', 'cli', 'src', 'bin.ts')
@@ -188,8 +193,10 @@ pass('matter-detail', {})
 // 规格负例「双击发送两次」：同一次 evaluate 里连点两下（落在面板卸载窗口内），
 // 复用守卫必须吞掉第二击——服务端会话计数只允许 +1。
 const countProbeSessions = () => {
-  let count = 0
   const sessionsDir = join(home, 'sessions')
+  // 全新 home 还没被 boot 过就没有这个目录——0 个会话是正确答案，不是错误。
+  if (!existsSync(sessionsDir)) return 0
+  let count = 0
   for (const workspace of readdirSync(sessionsDir, { withFileTypes: true })) {
     if (!workspace.isDirectory()) continue
     for (const entry of readdirSync(join(sessionsDir, workspace.name), { withFileTypes: true })) {
@@ -244,13 +251,30 @@ const sendEnabled = `(() => {
     (b.getAttribute('aria-label') ?? '') === '发送消息' || (b.getAttribute('aria-label') ?? '') === 'Send message');
   return send !== undefined && send.disabled === false;
 })()`
+// 失败时带上状态取证：composer 在不在、paste 有没有落进去、发送键为什么是灰的——
+// 只报「没接受」的探针下一次还得从头查（2026-10-11 实测教训）。
+const composerState = `(() => {
+  const composer = document.querySelector('[data-composer-input="true"]');
+  const send = [...document.querySelectorAll('button')].find(b =>
+    (b.getAttribute('aria-label') ?? '') === '发送消息' || (b.getAttribute('aria-label') ?? '') === 'Send message');
+  return {
+    composer: composer !== null,
+    valueLength: composer === null ? null : String(composer.value ?? '').length,
+    send: send !== undefined,
+    sendDisabled: send === undefined ? null : send.disabled,
+    activeTag: document.activeElement?.tagName ?? null,
+    activeComposer: document.activeElement === composer,
+    visibleText: (document.body?.innerText ?? '').slice(0, 200),
+  };
+})()`
 let ready = false
+let pasteResult = null
 for (let i = 0; i < 10 && !ready; i++) {
-  await evaluate(pasteOnce)
+  pasteResult = await evaluate(pasteOnce)
   await sleep(800)
   ready = await evaluate(sendEnabled) === true
 }
-if (!ready) { teardown(); fail('composer-accept', {}) }
+if (!ready) { teardown(); fail('composer-accept', { pasteResult, state: await evaluate(composerState) }) }
 await sleep(600)
 const sent = await evaluate(`(() => {
   const send = [...document.querySelectorAll('button')].find(b =>
@@ -294,6 +318,52 @@ pass('durable-rejection', { outcome: rejection.receipt.outcome })
 pass('confirmed-dates-unchanged', { times: matterAfter.times, revision: matterAfter.revision })
 pass('return-selection', {})
 writeFileSync(join(shotDir, '2-returned-after-reject.png'), await browser.captureScreenshot())
+
+// 相位 6（规格 K3 的交代首事臂）：桌面「＋ 交代新事项」→ 在对话里说一件事 → 回放回合真提交
+// `entrust` → 读回 → 自动返回**并选中新建的那件事**（这一臂的「返回仍选 A」）。
+const intakeEntry = await evaluate(`(() => {
+  const root = document.querySelector('[data-assistant-operating-desk]');
+  const button = [...(root?.querySelectorAll('button') ?? [])].find(b => (b.textContent ?? '').includes('交代新事项'));
+  if (button === undefined) return 'button-not-found';
+  button.click(); return 'clicked';
+})()`)
+if (intakeEntry !== 'clicked') { teardown(); fail('intake-entry', { intakeEntry }) }
+let intakeConversation = false
+for (let i = 0; i < 40 && !intakeConversation; i++) {
+  intakeConversation = await evaluate(`document.querySelector('[data-assistant-operating-desk]') === null && document.querySelector('[data-composer-input="true"]') !== null`) === true
+  if (!intakeConversation) await sleep(500)
+}
+if (!intakeConversation) { teardown(); fail('intake-conversation', {}) }
+pass('intake-entry', {})
+let intakeReady = false
+for (let i = 0; i < 10 && !intakeReady; i++) {
+  await evaluate(pasteOnce.replace(JSON.stringify(followupPrompt), JSON.stringify(intakePrompt)))
+  await sleep(800)
+  intakeReady = await evaluate(sendEnabled) === true
+}
+if (!intakeReady) { teardown(); fail('intake-composer', {}) }
+await sleep(600)
+if (await evaluate(`(() => {
+  const send = [...document.querySelectorAll('button')].find(b => ['发送消息','Send message'].includes(b.getAttribute('aria-label') ?? ''));
+  if (send === undefined || send.disabled) return 'not-sent';
+  send.click(); return 'sent';
+})()`) !== 'sent') { teardown(); fail('intake-send', {}) }
+let intakeReturnText = null
+for (let i = 0; i < 180 && intakeReturnText === null; i++) { await sleep(500); intakeReturnText = await evaluate(deskText) }
+if (intakeReturnText === null) fail('intake-auto-return', { body: await evaluate('document.body.innerText') })
+const afterIntake = JSON.parse(readFileSync(join(operatingDir, 'ledger.json'), 'utf8'))
+const entrusted = Object.values(afterIntake.matters).find(m => String(m.title).includes('供应商对账单'))
+const entrustReceipt = afterIntake.operations['op-authored-entrust']
+if (entrusted === undefined || entrustReceipt?.receipt.outcome.status !== 'committed') {
+  fail('intake-durable', { entrusted, entrustReceipt })
+}
+// 「返回仍选 A」：返回后详情停在新事项上（标题 + 处理入口），不是停在列表或旧事项。
+if (!intakeReturnText.includes('供应商对账单') || !intakeReturnText.includes('处理这件事')) {
+  fail('intake-return-selection', { intakeReturnText })
+}
+pass('intake-auto-return', { matter: entrusted.id })
+pass('intake-return-selection', { title: '供应商对账单：本月多出一笔待核' })
+writeFileSync(join(shotDir, '3-entrusted-and-selected.png'), await browser.captureScreenshot())
 
 // 双击负例终判（规格「双击发送两次」）：整个流结束时新会话数恰好 +1。
 const sessionsAfterFlow = countProbeSessions()

@@ -11,6 +11,9 @@ export interface ProjectionPanelProps {
   actions: { selectMatter(id: string): void; showList(): void; rememberListPosition(position: number): void }
   refreshProjection(): void
   onAsk(): void
+  /** The 「＋ 交代新事项」 entry. Falls back to `onAsk` where no intake path is wired (tests,
+   *  environments without the desk path store) so the button never goes dead. */
+  onEntrust?(): void
   /** Open the explicit processing path for one matter (bound to the entry's processMatter). */
   onProcess(matterId: string): void
 }
@@ -132,7 +135,7 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
       ce('div', { className: 'dsha-actions' },
         ce('button', { className: 'dsha-btn', onClick: props.refreshProjection, disabled: download.status === 'loading', title: download.status === 'loading' ? '正在读取桌面…' : '重新读取桌面' }, '重新读取'),
         ce('button', { className: 'dsha-btn', onClick: props.onAsk }, '有问题？跟助手说'),
-        ce('button', { className: 'dsha-btn dsha-btn-primary', onClick: props.onAsk }, '＋ 交代新事项'))),
+        ce('button', { className: 'dsha-btn dsha-btn-primary', onClick: props.onEntrust ?? props.onAsk }, '＋ 交代新事项'))),
     download.status === 'disconnected' ? ce('p', { className: 'dsha-banner', role: 'status' }, message) : null,
     download.stale ? ce('p', { className: 'dsha-banner', role: 'status' }, '以下是上次读到的内容，尚未刷新。') : null,
     download.status === 'error' ? ce('p', { className: 'dsha-banner', role: 'alert' }, message) : null,

@@ -45,7 +45,7 @@ import { ProjectionPanel } from './projection-panel'
 import { mountProjectionReader } from './projection-lifecycle'
 import type { ProjectionDownload } from './projection-reader'
 import { createProjectionViewStore } from './projection-view'
-import { bindProcessPath, judgeReturn, processingContextMessage, type ProcessingPath } from './desk-process'
+import { bindIntakePath, bindProcessPath, judgeIntakeReturn, judgeReturn, processingContextMessage, type DeskPath } from './desk-process'
 import { en as firstMileEn, zh as firstMileZh } from './locales'
 
 /** Slots this face occupies (single-occupant, root-scope, declared by the sidebar). */
@@ -166,7 +166,9 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // path is in-memory by design — a reload reads the authoritative projection first and
     // never replays a path or re-submits. The slot store survives panel switches, so the
     // selection the principal left behind is exactly what the auto-return returns to.
-    const processPath = storeApi?.createSnapshotStore<ProcessingPath | undefined>(undefined)
+    // One desk→conversation path at a time, either arm (spec K3): an existing matter being
+    // processed, or the intake of a matter the principal is about to describe.
+    const deskPath = storeApi?.createSnapshotStore<DeskPath | undefined>(undefined)
     // Reuse-or-create (spec: 「可复用明确可用的处理 Session，否则显式创建/绑定」; the
     // double-click negative 双击发送两次: a second click must not create a second processing
     // session — 会话增殖 is the losing option 4). Same matter → re-open the bound session; a
@@ -174,9 +176,14 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // the bound-path check alone cannot cover the double-click window); a different matter
     // replaces the path with a fresh session.
     let processLaunchInFlight = false
+    // The live desk store's actions, handed to this entry's own inject face by the render
+    // machinery (vendor runInject passes the baked actions of the instance it created). The
+    // intake arm needs them for one thing only: selecting the matter it just created on return —
+    // the matter arm's selection is the principal's own click, which the store already holds.
+    let deskViewActions: { selectMatter(id: string): void } | undefined
     const processMatter = (matterId: string): void => {
-      const existing = processPath?.getSnapshot()
-      if (existing !== undefined && existing.matterId === matterId) {
+      const existing = deskPath?.getSnapshot()
+      if (existing !== undefined && existing.kind === 'matter' && existing.matterId === matterId) {
         ctx.uiWorkspace?.openSession(existing.sessionId)
         return
       }
@@ -202,8 +209,8 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
           if (sessionId === undefined) return
           // Bind before navigation so the session's first render receives this matter's
           // visual context and is not mistaken for an unrelated first-time conversation.
-          if (processPath !== undefined) {
-            processPath.set({
+          if (deskPath !== undefined) {
+            deskPath.set({
               ...bindProcessPath(matterId, sessionId, matter.revision),
               displayContext: { title: matter.title, summary: matter.summary },
             })
@@ -229,15 +236,52 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         }
       })()
     }
+    // The intake arm (spec K3's 交代首事 side): the desk's 「＋ 交代新事项」 opens a conversation in
+    // which the principal says the matter, and the desk comes back once the ledger holds it —
+    // selecting the new matter. The bound session is the current one (explicit, never guessed);
+    // a fresh folder with no session yet gets one through the same workspace resolution
+    // processMatter uses. The ids present at binding are what later tells a creation apart from
+    // an update, so the projection must be readable first — otherwise the path is not bound.
+    const startIntake = (): void => {
+      const existing = deskPath?.getSnapshot()
+      if (existing !== undefined && existing.kind === 'intake') {
+        ctx.uiWorkspace?.openSession(existing.sessionId)
+        return
+      }
+      if (processLaunchInFlight) return
+      const snapshot = projection?.getSnapshot()
+      if (snapshot?.status !== 'ready' || snapshot.stale === true || snapshot.data === undefined) {
+        reader?.refresh()
+        return
+      }
+      const observed = new Set(snapshot.data.matters.map(matter => matter.id))
+      processLaunchInFlight = true
+      void (async () => {
+        try {
+          const current = ctx.uiSession?.current.value.key
+          let sessionId = current === undefined ? undefined : String(current)
+          if (sessionId === undefined) {
+            const catalog = ctx.workspaces?.list.getSnapshot()
+            const workspaceId = catalog?.items[0]?.workspaceId
+            sessionId = await ctx.sessions?.create(workspaceId === undefined ? undefined : { workspaceId })
+          }
+          if (sessionId === undefined) return
+          deskPath?.set(bindIntakePath(sessionId, observed))
+          ctx.uiWorkspace?.openSession(sessionId)
+        } finally {
+          processLaunchInFlight = false
+        }
+      })()
+    }
     const evaluateReturn = (): void => {
-      const path = processPath?.getSnapshot()
+      const path = deskPath?.getSnapshot()
       const snapshot = projection?.getSnapshot()
       const data = snapshot?.data
       if (path === undefined || snapshot?.status !== 'ready' || snapshot.stale === true || data === undefined) return
       const panel = ctx.layout?.panelInfo.getSnapshot()
       const currentKey = ctx.uiSession?.current.value.key
       const status = ctx.uiSession?.sessionStatus.getSnapshot().get(path.sessionId)
-      const decision = judgeReturn(path, {
+      const judgeInput = {
         projection: {
           status: snapshot.status,
           ...(snapshot.stale === undefined ? {} : { stale: snapshot.stale }),
@@ -260,9 +304,13 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         // placeholder until then) — this input stays 'synced' and flips when the reminder
         // channel lands; judgeReturn already reports the unsynced notice on its output.
         reminders: 'synced',
-      })
+      } as const
+      const decision = path.kind === 'matter' ? judgeReturn(path, judgeInput) : judgeIntakeReturn(path, judgeInput)
       if (decision.decision === 'return') {
-        processPath?.set(undefined)
+        deskPath?.set(undefined)
+        // The matter arm returns to a selection the store already holds; the intake arm has to
+        // select the matter it just created — that is this arm's "返回仍选 A".
+        if (path.kind === 'intake' && decision.matterId !== undefined) deskViewActions?.selectMatter(decision.matterId)
         ctx.layout?.selectPanel('dsh-smart-assistant-dashboard')
       }
     }
@@ -275,7 +323,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     let settlePathKey: string | undefined
     let lastRunning: boolean | undefined
     const refreshOnSettle = (): void => {
-      const path = processPath?.getSnapshot()
+      const path = deskPath?.getSnapshot()
       if (path === undefined) { settlePathKey = undefined; lastRunning = undefined; return }
       const key = `${path.sessionId}@${path.boundAt}`
       if (key !== settlePathKey) { settlePathKey = key; lastRunning = undefined }
@@ -289,7 +337,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     if (projection !== undefined) {
       ctx.effect(() => {
         const disposes: Array<(() => void) | undefined> = []
-        if (processPath !== undefined) {
+        if (deskPath !== undefined) {
           disposes.push(
             projection.subscribe(evaluateReturn),
             ctx.uiSession?.sessionStatus.subscribe(() => { refreshOnSettle(); evaluateReturn() }),
@@ -314,7 +362,15 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         name: 'main',
         key: 'dsh-smart-assistant-dashboard',
         ...(viewStore === undefined ? {} : { store: viewStore }),
-        inject: () => ({ hooks: projection === undefined ? {} : { projection }, refreshProjection: () => { reader?.refresh() }, onAsk: () => { ctx.layout?.selectPanel(null) }, onProcess: processMatter }),
+        // Positional convention from the render machinery: a session-scoped registration gets
+        // `(sessionId, actions)`, a root-scoped one gets `(actions)` alone (`main` is root-scoped).
+        // Take whichever argument actually carries the baked actions instead of trusting position.
+        inject: (...args: unknown[]) => {
+          const actions = args.find((argument): argument is { selectMatter(id: string): void } =>
+            typeof argument === 'object' && argument !== null && typeof (argument as { selectMatter?: unknown }).selectMatter === 'function')
+          deskViewActions = actions ?? deskViewActions
+          return { hooks: projection === undefined ? {} : { projection }, refreshProjection: () => { reader?.refresh() }, onAsk: () => { ctx.layout?.selectPanel(null) }, onEntrust: startIntake, onProcess: processMatter }
+        },
       }, projection === undefined ? DashboardMainPanel : ProjectionPanel)
       selectDashboardByDefault(ctx)
       return registration
@@ -437,8 +493,8 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         order: -10,
         locale: 'assistantFirstMile',
         inject: (sessionId?: string) => {
-          const path = processPath?.getSnapshot()
-          const processingMatter = path !== undefined && sessionId !== undefined
+          const path = deskPath?.getSnapshot()
+          const processingMatter = path !== undefined && path.kind === 'matter' && sessionId !== undefined
             && path.sessionId === sessionId && path.displayContext !== undefined
             ? { matterId: path.matterId, ...path.displayContext }
             : undefined

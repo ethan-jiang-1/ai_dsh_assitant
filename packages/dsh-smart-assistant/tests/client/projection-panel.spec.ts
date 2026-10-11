@@ -77,6 +77,24 @@ describe('global projection panel', () => {
     expect(render({ status: 'error' })).not.toContain('还没有经营事项')
   })
 
+  it('routes 「＋ 交代新事项」 to the intake callback when one is wired (and to onAsk without it)', () => {
+    const view = createProjectionViewStore(defineStore).create()
+    const value: ProjectionDownload = { status: 'ready', data: { schemaVersion: 1, ledgerId: 'test', revision: 2, receipts: [], unclaimed: [], matters: [
+      { id: 'a', title: '事项 A', status: 'active', summary: 'A 摘要', responsible: '', revision: 1, times: {}, proposals: [], evidence: [] },
+    ] } }
+    const base = { useProjection: <S,>(select: (value: ProjectionDownload) => S): S => select(value), useStore: <S,>(select: (value: ReturnType<typeof view.getSnapshot>) => S): S => select(view.getSnapshot()), actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop }
+    const entrust = vi.fn()
+    // Wired: the entry hands the intake path binder through inject; the button must use it.
+    findButton(ProjectionPanel({ ...base, onEntrust: entrust }), '＋ 交代新事项')?.onClick?.()
+    expect(entrust).toHaveBeenCalledTimes(1)
+    expect(base.onAsk).not.toHaveBeenCalled()
+    // Not wired (tests, environments without the desk path store): the button still opens the
+    // conversation rather than going dead.
+    const fallbackAsk = vi.fn()
+    findButton(ProjectionPanel({ ...base, onAsk: fallbackAsk }), '＋ 交代新事项')?.onClick?.()
+    expect(fallbackAsk).toHaveBeenCalledTimes(1)
+  })
+
   it('offers a visible add-matter entry routed to the conversation (2026-10-11 principal could not find one)', () => {
     const onAsk = vi.fn()
     const view = createProjectionViewStore(defineStore).create()

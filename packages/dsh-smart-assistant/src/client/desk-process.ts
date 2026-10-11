@@ -1,8 +1,16 @@
 /**
  * The desk processing path and its auto-return judge (desk-operating-entry K3, slice F).
  *
- * One explicit processing path = one bound matter + one processing session + the revision
- * observed at binding time. The judge crosses the durable receipts in the projection with
+ * TWO ARMS, one rule set. The spec's K3 row asks for both: "本人交代首事**或**选择回款 A →
+ * 明确 Session → 追问补充 → Host 持久提交 → 读回同操作 → 返回仍选 A".
+ * - the **matter arm**: one bound matter + one processing session + the revision observed at
+ *   binding; settled by a fresh committed receipt for that matter in that session;
+ * - the **intake arm**: a conversation the principal opened from the desk to tell it about a
+ *   matter that does not exist yet; settled by a committed receipt for a matter id that was not
+ *   in the projection at binding — the same reconstructible association, one step earlier.
+ * Both arms share the gates below (session settled and idle, no pending interaction, projection
+ * ready and fresh, the principal still on the path) and both refuse to return while anything
+ * waits on the principal (a pending proposal from this session, an open interaction). The judge crosses the durable receipts in the projection with
  * the live session state; a settled turn and an idle session are necessary, never
  * sufficient — a fresh committed receipt or matched proposal-rejection receipt from the
  * processing session, read back at a revision at least as fresh as the observed one and
@@ -70,7 +78,9 @@ export interface ReturnJudgeInput {
 /** The outcome: return to the desk (still selecting the bound matter) or stay, with reasons. */
 export interface ReturnDecision {
   readonly decision: 'return' | 'stay'
-  readonly matterId: string
+  /** The matter to select on return: the bound one (matter arm) or the newly created one
+   *  (intake arm). Absent while an intake path stays — there is nothing to select yet. */
+  readonly matterId?: string
   /** Why the path stays; on return, notices like 'reminders-unsynced'. */
   readonly reasons: readonly string[]
   readonly remindersUnsynced: boolean
@@ -78,6 +88,7 @@ export interface ReturnDecision {
 
 /** One explicit processing path: the matter, its processing session, and what was observed. */
 export interface ProcessingPath {
+  readonly kind: 'matter'
   readonly matterId: string
   readonly sessionId: string
   /** Binding instant (ISO); receipts submitted before it never settle this path. */
@@ -98,7 +109,37 @@ export interface ProcessingPath {
  * @returns The bound path.
  */
 export function bindProcessPath(matterId: string, sessionId: string, observedRevision: number, boundAt: string = new Date().toISOString()): ProcessingPath {
-  return { matterId, sessionId, boundAt, observedRevision }
+  return { kind: 'matter', matterId, sessionId, boundAt, observedRevision }
+}
+
+/**
+ * The intake arm: the principal opened a conversation from the desk to tell it about a matter
+ * that does not exist yet. There is no matter and no revision to observe; what settles the path
+ * is the first committed receipt in that session for a matter id that was not in the projection
+ * when the path was bound — a creation, established from the projection instead of guessed from
+ * the model's words.
+ */
+export interface IntakePath {
+  readonly kind: 'intake'
+  readonly sessionId: string
+  /** Binding instant (ISO); receipts submitted before it never settle this path. */
+  readonly boundAt: string
+  /** Matter ids present in the projection at binding; anything outside is this path's creation. */
+  readonly observedMatterIds: ReadonlySet<string>
+}
+
+/** Either arm of the desk→conversation path. */
+export type DeskPath = ProcessingPath | IntakePath
+
+/**
+ * Bind the intake arm.
+ * @param sessionId - The conversation the principal will tell the matter to.
+ * @param observedMatterIds - The matter ids the projection held at binding (ready, not stale).
+ * @param boundAt - Binding instant (ISO); defaults to now.
+ * @returns The bound intake path.
+ */
+export function bindIntakePath(sessionId: string, observedMatterIds: ReadonlySet<string>, boundAt: string = new Date().toISOString()): IntakePath {
+  return { kind: 'intake', sessionId, boundAt, observedMatterIds }
 }
 
 /**
@@ -162,6 +203,58 @@ export function judgeReturn(path: ProcessingPath, input: ReturnJudgeInput): Retu
   return {
     decision: 'return',
     matterId: path.matterId,
+    reasons: remindersUnsynced ? ['reminders-unsynced'] : [],
+    remindersUnsynced,
+  }
+}
+
+/**
+ * Judge whether the intake arm may return to the desk, and to which matter.
+ *
+ * Same gates as the matter arm (principal still on the path; session known idle with its turn
+ * settled and nothing waiting on the principal; projection ready and fresh), and the same refusal
+ * to return while this session still has a pending proposal — a first reply that only asks
+ * questions, or that entrusts and then proposes a change, leaves the principal in the
+ * conversation. The settle is the first committed receipt in this session for a matter id outside
+ * the ids observed at binding, and that matter must still be in the projection: the desk then
+ * reopens **selecting the new matter**, which is what "返回仍选 A" means on this arm.
+ *
+ * @param path - The bound intake path.
+ * @param input - The projection receipts/matters, session state, presence, and reminder sync.
+ * @returns The decision with machine-readable reasons; `matterId` is set on return.
+ */
+export function judgeIntakeReturn(path: IntakePath, input: ReturnJudgeInput): ReturnDecision {
+  const reasons: string[] = []
+  if (!input.onPath) reasons.push('user-left-path')
+  if (input.session.running !== false) reasons.push('session-running')
+  if (!input.session.turnSettled) reasons.push('turn-open')
+  if (input.session.pendingInteraction) reasons.push('pending-interaction')
+  if (input.projection.status !== 'ready') reasons.push('projection-not-ready')
+  if (input.projection.stale === true) reasons.push('projection-stale')
+
+  const created = input.projection.receipts
+    .filter(receipt => receipt.sessionId === path.sessionId
+      && receipt.status === 'committed'
+      && receipt.submittedAt >= path.boundAt
+      && !path.observedMatterIds.has(receipt.matterId))
+    .slice()
+    .sort((left, right) => left.submittedAt.localeCompare(right.submittedAt))
+  const target = created.at(-1)
+  // A pending proposal this session raised against the new matter is something to decide, so the
+  // desk must not pull the principal out of the conversation (same rule as the matter arm).
+  const pendingOnTarget = target !== undefined && input.projection.proposals.some(proposal =>
+    proposal.matterId === target.matterId && proposal.sessionId === path.sessionId
+      && proposal.status === 'pending' && proposal.proposedAt !== undefined && proposal.proposedAt >= path.boundAt)
+  if (pendingOnTarget) reasons.push('pending-proposal')
+
+  const remindersUnsynced = input.reminders !== 'synced'
+  // Nothing was entrusted yet (a first reply that only asks questions lands here): stay.
+  if (target === undefined) return { decision: 'stay', reasons: [...reasons, 'matter-not-entrusted'], remindersUnsynced }
+  if (!input.projection.matterIds.has(target.matterId)) reasons.push('matter-vanished')
+  if (reasons.length > 0) return { decision: 'stay', reasons, remindersUnsynced }
+  return {
+    decision: 'return',
+    matterId: target.matterId,
     reasons: remindersUnsynced ? ['reminders-unsynced'] : [],
     remindersUnsynced,
   }

@@ -19,10 +19,17 @@
  * 6. The principal left the path: a late success may refresh the matter but never navigates back.
  * 7. Unsycned reminders allow the return but carry the notice, never "overall success".
  * Plus the positive chain: everything holds — return, still selecting the same matter.
+ *
+ * The intake arm (spec K3's other side: 交代首事 → 明确 Session → 追问补充 → 持久提交 → 读回 →
+ * 返回仍选 A) shares those gates; what settles it is a committed receipt for a matter id that was
+ * NOT in the projection at binding. Its own negative rows: a first reply that only asks questions
+ * (no receipt), a receipt for a matter that already existed (an update, not a creation), a
+ * creation that then proposes a change (something waits on the principal), and the same
+ * session/presence/readiness gates.
  */
 
 import { describe, expect, it } from 'vitest'
-import { bindProcessPath, judgeReturn, processingContextMessage, type JudgeProposal, type JudgeSession } from '../../src/client/desk-process.ts'
+import { bindIntakePath, bindProcessPath, judgeIntakeReturn, judgeReturn, processingContextMessage, type JudgeProposal, type JudgeSession } from '../../src/client/desk-process.ts'
 
 interface Receipt { operationId: string, matterId: string, sessionId: string, status: string, revision?: number, proposalId?: string, submittedAt: string }
 
@@ -185,5 +192,74 @@ describe('processing-session context seed (principal decision 2026-10-11: the ma
     const bare = processingContextMessage({ id: 'm-2', title: 'T', summary: 'S', times: {} })
     expect(bare).not.toContain('承诺')
     expect(bare).toContain('正在处理事项「T」（m-2）')
+  })
+})
+
+describe('intake path (交代首事 arm)', () => {
+  const observed = new Set(['m-A', 'm-B'])
+  const intake = (boundAt = BOUND_AT) => bindIntakePath('session-1', observed, boundAt)
+  const judgeIntake = (
+    path: ReturnType<typeof intake>,
+    receipts: Receipt[],
+    extra: Partial<Parameters<typeof judgeIntakeReturn>[1]> = {},
+    proposals: readonly JudgeProposal[] = [],
+    freshness: { status: string, stale: boolean } = { status: 'ready', stale: false },
+  ) => judgeIntakeReturn(path, {
+    projection: { receipts, matterIds: new Set(['m-A', 'm-B', 'm-C']), proposals, ...freshness },
+    session: session(), onPath: true, reminders: 'synced', ...extra,
+  })
+  const createdReceipt = (over: Partial<Receipt> = {}): Receipt => ({
+    operationId: 'op-new', matterId: 'm-C', sessionId: 'session-1', status: 'committed', revision: 1,
+    submittedAt: '2026-10-10T12:05:00.000Z', ...over,
+  })
+
+  it('returns to the desk selecting the matter this conversation created', () => {
+    const decision = judgeIntake(intake(), [createdReceipt()])
+    expect(decision.decision).toBe('return')
+    expect(decision.matterId).toBe('m-C')
+  })
+
+  it('stays while the first reply only asked questions (settled turn, no receipt)', () => {
+    const decision = judgeIntake(intake(), [])
+    expect(decision.decision).toBe('stay')
+    expect(decision.reasons).toContain('matter-not-entrusted')
+  })
+
+  it('never settles on an update to a matter that already existed', () => {
+    // A committed receipt — but for m-A, which was in the projection when the path was bound:
+    // that is progress on an existing matter, not the intake this path is waiting for.
+    const decision = judgeIntake(intake(), [createdReceipt({ matterId: 'm-A', operationId: 'op-update' })])
+    expect(decision.decision).toBe('stay')
+    expect(decision.reasons).toContain('matter-not-entrusted')
+  })
+
+  it('stays when the new matter still has a pending proposal from this session', () => {
+    const proposal: JudgeProposal = { id: 'p-9', matterId: 'm-C', sessionId: 'session-1', status: 'pending', proposedAt: '2026-10-10T12:05:30.000Z' }
+    const decision = judgeIntake(intake(), [createdReceipt()], {}, [proposal])
+    expect(decision.decision).toBe('stay')
+    expect(decision.reasons).toContain('pending-proposal')
+  })
+
+  it('keeps the same gates: a running session, an open turn, the principal leaving, a stale or unready projection', () => {
+    expect(judgeIntake(intake(), [createdReceipt()], { session: session({ running: true }) }).decision).toBe('stay')
+    expect(judgeIntake(intake(), [createdReceipt()], { session: session({ running: undefined }) }).reasons).toContain('session-running')
+    expect(judgeIntake(intake(), [createdReceipt()], { session: session({ turnSettled: false }) }).reasons).toContain('turn-open')
+    expect(judgeIntake(intake(), [createdReceipt()], { session: session({ pendingInteraction: true }) }).reasons).toContain('pending-interaction')
+    expect(judgeIntake(intake(), [createdReceipt()], { onPath: false }).reasons).toContain('user-left-path')
+    expect(judgeIntake(intake(), [createdReceipt()], {}, [], { status: 'ready', stale: true }).reasons).toContain('projection-stale')
+    expect(judgeIntake(intake(), [createdReceipt()], {}, [], { status: 'loading', stale: false }).reasons).toContain('projection-not-ready')
+  })
+
+  it('ignores receipts submitted before the binding, and reports a creation that vanished', () => {
+    const early = judgeIntake(intake(), [createdReceipt({ submittedAt: '2026-10-10T11:59:00.000Z' })])
+    expect(early.decision).toBe('stay')
+    expect(early.reasons).toContain('matter-not-entrusted')
+
+    const vanished = judgeIntakeReturn(intake(), {
+      projection: { receipts: [createdReceipt()], matterIds: new Set(['m-A', 'm-B']), proposals: [] },
+      session: session(), onPath: true, reminders: 'synced',
+    })
+    expect(vanished.decision).toBe('stay')
+    expect(vanished.reasons).toContain('matter-vanished')
   })
 })
