@@ -5,7 +5,8 @@
 //   ② live Connection 断连/恢复——CDP 离线仿真：断连横幅出现 → 恢复在线 → 重连刷新、横幅消失、事项可见。
 //   ③ 重载前后 Session 数量审计——磁盘会话数在 3 次页面重载前后相等（不增殖）。
 //   ④ 窄视口逐项——420x900（容器查询驱动单 pane）：点击进详情 → 「返回事项列表」导航 →
-//      选择保留；resize 回宽区面板存活；窄区无横向溢出。
+//      选择保留；resize 回宽区面板存活；窄区无横向溢出；**所选事项从投影消失/回来**时
+//      详情如实说它不在（不静默退回列表、不错显示别的事项），回来后选择仍指着同一条。
 //   ⑧ 滚动位置保留——桌面根（真正的滚动容器）滚动后经面板卸载重挂（会话视图往返），
 //      位置由 view store 恢复（记录＝根 onScroll，恢复＝根 ref 的渲染后 DOM 效应）。
 //
@@ -61,8 +62,11 @@ rmSync(join(operatingDir, 'ledger.json'), { force: true })
 copyFileSync(fixture, join(operatingDir, 'desk-projection.json'))
 
 const countSessions = () => {
+  const root = join(home, 'sessions')
+  // 全新 home 还没被 boot 过就没有这个目录——0 个会话是正确答案，不是错误。
+  if (!existsSync(root)) return 0
   let count = 0
-  for (const workspace of readdirSync(join(home, 'sessions'), { withFileTypes: true })) {
+  for (const workspace of readdirSync(root, { withFileTypes: true })) {
     if (!workspace.isDirectory()) continue
     for (const entry of readdirSync(join(home, 'sessions', workspace.name), { withFileTypes: true })) {
       if (entry.isDirectory() && entry.name.startsWith('session-')) count += 1
@@ -70,7 +74,6 @@ const countSessions = () => {
   }
   return count
 }
-const sessionsBefore = countSessions()
 
 const vendorBin = join(repoRoot, 'vendor', 'dsh', 'apps', 'cli', 'src', 'bin.ts')
 const tsxEntry = import.meta.resolve('tsx/esm')
@@ -187,6 +190,63 @@ if (afterBack?.listBack !== true || afterBack?.selectionKept !== true) {
 if (afterBack.horizontalOverflow === true) { teardown(); fail('narrow-overflow', { afterBack }) }
 pass('narrow-viewport', { back: true, selectionKept: true, noOverflow: true })
 
+// 相位 2b（④ 子项「所选消失恢复」）：所选事项从投影里消失时，详情如实说它不在，而不是
+// 静静地退回列表或错显示别的事项；它回来以后，选择仍然指着同一条（view store 的 selectedId
+// 不被一次缺席清掉）。做法是改服务端那份投影资料再点「重新读取」——读者每次真重新下载。
+const matterFile = join(operatingDir, 'desk-projection.json')
+const fullProjection = readFileSync(fixture, 'utf8')
+const selectedAgain = await evaluate(`(() => {
+  const root = document.querySelector('[data-assistant-operating-desk]');
+  const button = [...(root?.querySelectorAll('button') ?? [])].find(b => (b.textContent ?? '').includes('回款 A'));
+  if (button === undefined) return 'card-not-found';
+  button.click(); return 'selected';
+})()`)
+if (selectedAgain !== 'selected') { teardown(); fail('selection-vanish-select', { selectedAgain }) }
+await sleep(600)
+const parseFixture = JSON.parse(fullProjection)
+const withoutMatter = { ...parseFixture, revision: Number(parseFixture.revision ?? 0) + 1, matters: parseFixture.matters.filter(matter => !String(matter.title).includes('回款 A')) }
+writeFileSync(matterFile, JSON.stringify(withoutMatter))
+const reloadClicked = await evaluate(`(() => {
+  const root = document.querySelector('[data-assistant-operating-desk]');
+  const button = [...(root?.querySelectorAll('button') ?? [])].find(b => (b.textContent ?? '').includes('重新读取'));
+  if (button === undefined) return 'reload-not-found';
+  button.click(); return 'clicked';
+})()`)
+if (reloadClicked !== 'clicked') { teardown(); fail('selection-vanish-reload', { reloadClicked }) }
+let vanishedText = null
+for (let i = 0; i < 20; i++) {
+  vanishedText = await evaluate(deskText)
+  if (vanishedText !== null && vanishedText.includes('所选事项不在当前投影中')) break
+  await sleep(500)
+}
+if (vanishedText === null || !vanishedText.includes('所选事项不在当前投影中')) {
+  teardown(); fail('selection-vanish-state', { text: String(vanishedText).slice(0, 300) })
+}
+const vanishedOverflow = await evaluate(`(() => {
+  const root = document.querySelector('[data-assistant-operating-desk]');
+  return root === null ? null : { horizontalOverflow: root.scrollWidth > root.clientWidth + 1,
+    wrongMatter: root.innerText.includes('回款 B') };
+})()`)
+if (vanishedOverflow === null || vanishedOverflow.horizontalOverflow === true || vanishedOverflow.wrongMatter === true) {
+  teardown(); fail('selection-vanish-honesty', { vanishedOverflow })
+}
+writeFileSync(matterFile, JSON.stringify({ ...parseFixture, revision: Number(parseFixture.revision ?? 0) + 2 }))
+await evaluate(`(() => {
+  const root = document.querySelector('[data-assistant-operating-desk]');
+  const button = [...(root?.querySelectorAll('button') ?? [])].find(b => (b.textContent ?? '').includes('重新读取'));
+  button?.click(); return 'clicked';
+})()`)
+let recoveredText = null
+for (let i = 0; i < 20; i++) {
+  recoveredText = await evaluate(deskText)
+  if (recoveredText !== null && recoveredText.includes('处理这件事')) break
+  await sleep(500)
+}
+if (recoveredText === null || !recoveredText.includes('回款 A') || !recoveredText.includes('处理这件事')) {
+  teardown(); fail('selection-recovery', { text: String(recoveredText).slice(0, 300) })
+}
+pass('selection-vanish-and-recover', { saidNotInProjection: true, noWrongMatter: true, selectionSurvivedAbsence: true })
+
 // 相位 3（④ resize 存活）：回宽区，面板与选择都活着。
 await setViewport(1280, 800)
 await sleep(1200)
@@ -266,6 +326,9 @@ if (!recovered) { teardown(); fail('reconnect-recovery', { waitedMs: 31500 }) }
 pass('disconnect-recovery', {})
 
 // 相位 6（③ Session 审计）：三次页面重载，磁盘会话数不变。
+// 基线的位置就是这条审计的语义：取在本次运行已经把「会建会话的交互」走完之后
+// （相位 4 的会话视图往返会创建全新 home 的第一个会话），之后再数三次重载——重载才是被测对象。
+const sessionsBefore = countSessions()
 for (let round = 0; round < 3; round++) {
   await evaluate('location.reload()')
   let back = null
