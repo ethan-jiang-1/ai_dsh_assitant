@@ -93,6 +93,7 @@ pnpm preflight '<URL>'  # 开屏前门禁：证明装得上（auth/boot 图/每�
 pnpm shots '<URL>' --dom --size 1600x1000 --name <名字>   # 渲染证据：headless Chrome 经 CDP 出 PNG + DOM 证据（默认落仓内 .tmp/shots/）；`--eval` 拿交互态
 pnpm web-expected '<URL>'   # web 面期望比对：真拍一张与已提交期望比对（漂移 exit 1）；`--refresh` 重录期望（场景契约与判据：snapshots/web-face/<场景>/README.md）
 pnpm loop-probe '<URL>' --ask '<问句>'   # 首用闭环探针：**首屏=桌面页**（你的桌面/中文文案/无黑话/工作区就绪）→ 走「＋ 交代新事项」进会话 → 真发问真等回复，JSON 判决（借自 ai_dsh_loop_advisor；`--ask` 会真建会话，指向一次性 home）
+pnpm desk-walk '<URL>' [--home <dir>]   # 处理流真机走查（真模型）：首屏桌面→处理一件事→一句进展→返回不变量→交代新事；产出屏幕文本+截图供人判话术/层级（`--home` 才能核账本身份与「回来⇒无待确认」）
 pnpm dsh --profile dev --dump-config   # boot-free：组合里到底有没有这一行（排查 patch 落空/重复 id 的第一命令）
 pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner.patch.yml "<task>"   # preset 挂载的 one-shot（验证自动化驱动）
 pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner-replay.patch.yml "<task>"   # 同上但 keyless：llm-replay 回放替掉真实 adapter，无 key 出真实会话日志（形状与坑见 patch 头注）

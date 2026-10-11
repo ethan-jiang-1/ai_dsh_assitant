@@ -159,7 +159,7 @@ opened: 2026-10-06
 | A6 同事项更新成功读回后才返回 | **pass** | `desk-process-e2e.mjs`：`reject-auto-return`、`durable-rejection`、`confirmed-dates-unchanged`、`return-selection`；负例矩阵 22 件（错事项/旧修订/绑定前/事项消失/`receipt-<status>`）；真机走查：延迟落成 `预测 2026-10-20`、承诺 2026-10-13 未动、返回仍选中 NB-02 | 「用户另行导航后迟到结果不抢焦点」由判定器 `user-left-path` 覆盖，未取真机时序；成功定义已归账本 owner |
 | A7 单事首用与可恢复输入 | **pass**（本轮补上的那一臂） | `desk-process-e2e.mjs` 交代臂三轮：`intake-entry`/`intake-auto-return`/`intake-return-selection`；真机走查（真模型）：＋ 交代新事项 → 说出新事 → 建成 m-4 → 返回并**选中新建的那件**；双击提交负例：`double-click-single-session`（`created: 1`）；初始化失败（全新 home 无账本）：Day-0 修复 + `client-entry.spec.ts` 无投影守卫 | 「不能要求固定三问/示例冒充真实事项」由 prompt 与技能面守约（`pnpm eval` 的 desk 任务），本行不重复举证 |
 | A8 中文拍板与重载一致 | **机械面 pass；语气待人判** | 账本为唯一 writer、客户端无写路径；重载不代拍、不造业务对话：`confirmed-dates-unchanged`（e2e）＋账本/投影结构测试；回执保留本人原话（quote）：`client-desk-process.spec.ts` 与账本结构测试；中文形态：工具与回执文案测试 | 「语气是否真像本人」= taste（与 [开屏卡 #5](261007-opening-brief-and-rhythm.md) 同一条人判，范围已改指现行车道）；长期学习归 261008 |
-| A9 具体任务上的总助体验 | **human judgment pending（已挂起）** | 本轮真机走查留下素材：`.tmp/desk-walkthrough/`（桌面 → 详情 → 处理 → 回桌面 / 交代 → 新事项上桌），账本与截图可复核 | 只有本人能给；裁决已按 2026-10-11 本人的话**挂起**（触发＝本人日常使用），不重复推 |
+| A9 具体任务上的总助体验 | **human judgment pending（已挂起）** | 读数路径已固化：`pnpm desk-walk '<URL>' --home <dir>`（真模型走两条路，断言导航契约，产出屏幕文本+截图；2026-10-11 在走查实例上全绿：`return-invariant` pending 0、`intake-return` 建成并选中 m-6） | 只有本人能给；裁决已按 2026-10-11 本人的话**挂起**（触发＝本人日常使用），不重复推 |
 
 **接手分支的结论（P1–P4）**：P1 全局默认与无会话首事 —— 已交付并有隔离证据（`client-entry-lifecycle` + 真机走查），
 且「偷偷发问候/抢焦点」两条否定条件都未发生；P2 多会话更新消费 —— 已按账本回执实现（同事项同次操作、旧修订与
