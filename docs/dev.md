@@ -203,6 +203,10 @@ DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得
 `answer-matches` 是正则（会误判措辞）、检查断言的是"没有造成伤害"、任务可能"通过但没用"。
 **串行跑**（同仓同 home，并发会互相污染）。`pnpm eval -- --self-check` 是**live 红控**：把真实事故形态喂给判定核、
 要求它判红，并同时要求合规回答判绿——它不跑会话（毫秒级），已接进 `pnpm verify` 链，作为"守卫的守卫"。
+**能力边界**：runner 驱动 headless one-shot（`--profile dev-task`），web 绑定插件的能力在那套组合里不注册
+（例：`schedule` 要 `sessionController` → `fileUploads` → 浏览器 `connection`，四个 `schedule_*` 工具只在 web 组合出现）；
+任务用 `requires: 'web'` 声明这种依赖，runner 对它报 **NOT EVALUATED** 并从 pass/fail 计数里剔除——既不算通过（假绿）
+也不算失败（替组合面背锅）。见 `pnpm eval --list` 的标注与 [BUG-008](../_backlog/_archive/fixed_bugs/BUG-008-schedule-tools-missing.md) 的升级路径（web-session 驱动）。
 
 **意图级仪表**：`pnpm usage` 读 dev home 的会话日志与 working folder，报会话数、工具混合、自用率、
 摩擦（非完成轮/重试）、家的条目数与职责圈事件数；`pnpm usage -- --types` 打印事件类型直方图（形状变了先看它）。

@@ -10,6 +10,15 @@
  * and prefer a mechanical signal over a regex. Domain knowledge deliberately does not appear here —
  * the set measures how the assistant behaves, which holds whatever domain it is pointed at.
  *
+ * `requires: 'web'` marks a task whose capability exists only in the web composition. This runner
+ * drives headless one-shot sessions (`--profile dev-task`), and some plugins are web-bound: the
+ * schedule plugin injects `sessionController`, which needs `fileUploads`, which needs the browser
+ * `connection` service — so its four tools never register headless (measured 2026-10-11: web
+ * sessions carry 39 tools including schedule_create/list/update/delete, headless carries 36
+ * without them). Such a task is reported as NOT EVALUATED rather than FAIL: a task that fails
+ * because the harness cannot host its capability teaches nothing, and calling it a pass is how a
+ * false green gets recorded (the 2026-10-10 daily-brief note did exactly that).
+ *
  * @module dev/eval/tasks
  */
 
@@ -133,6 +142,10 @@ export const TASKS = [
 
   {
     id: 'desk-daily-brief',
+    // Web-only: `schedule_create` comes from a web-bound plugin (see the module header), so the
+    // headless runner reports this task as not evaluated. Scoring it needs a web-session driver —
+    // the upgrade path and its trigger live on the closed BUG-008 card.
+    requires: 'web',
     why: 'Asking for a daily report must commit ONE recurring schedule whose prompt loads the desk-daily-brief skill — not a verbal promise to remember.',
     prompt: '以后每天早上八点半，把桌上经营事项的简报发给我，我直接在这个会话里批。',
     checks: [

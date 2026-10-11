@@ -63,6 +63,23 @@ export function observe(events) {
   return { toolCalls, answerText: answerParts.join('\n\n') }
 }
 
+/**
+ * Split the selected tasks by whether this runner can host their capability.
+ *
+ * This runner drives headless one-shot sessions, so `requires: 'web'` tasks cannot be scored here
+ * (see the task-set header). They leave the pass/fail arithmetic entirely: counting an unevaluated
+ * task as passed is how a false green gets recorded, and counting it as failed blames the model for
+ * a harness gap.
+ * @param tasks - the selected task objects.
+ * @returns `{ evaluable, skipped }`, each keeping the input order.
+ */
+export function partitionTasks(tasks) {
+  return {
+    evaluable: tasks.filter(task => task.requires === undefined),
+    skipped: tasks.filter(task => task.requires === 'web'),
+  }
+}
+
 /** Run one task and read its session back. Returns the task, the observation and the verdict. */
 /**
  * Run one prompt through a preset-mounted session and read the session back.
@@ -231,9 +248,30 @@ function selfCheck() {
     process.stderr.write('eval --self-check: FAIL — wrote-path accepted a read-only command\n')
     process.exit(1)
   }
+  // The capability partition (BUG-008): a web-only task must leave the pass/fail arithmetic — the
+  // failure mode this pins is a task counted as passed (or failed) where nothing was evaluated.
+  const partition = partitionTasks([
+    { id: 'a' },
+    { id: 'web-only', requires: 'web' },
+    { id: 'b' },
+  ])
+  if (partition.evaluable.map(task => task.id).join(',') !== 'a,b') {
+    process.stderr.write(`eval --self-check: FAIL — partitionTasks kept a web-only task in the evaluable set: ${partition.evaluable.map(task => task.id).join(',')}\n`)
+    process.exit(1)
+  }
+  if (partition.skipped.map(task => task.id).join(',') !== 'web-only') {
+    process.stderr.write('eval --self-check: FAIL — partitionTasks did not single out the web-only task\n')
+    process.exit(1)
+  }
+  const realSkip = partitionTasks(TASKS).skipped.map(task => task.id)
+  if (!realSkip.includes('desk-daily-brief')) {
+    process.stderr.write('eval --self-check: FAIL — desk-daily-brief no longer declares requires: web (it cannot be scored headless)\n')
+    process.exit(1)
+  }
   process.stdout.write(`eval --self-check: ok — the evaluator fails the incident task (${task.id}) and passes a compliant answer;`
     + ' file-shape fails a shapeless file, a header-only file, a stale file and an unreadable path, and passes a shaped one;'
-    + ' observe keeps the substantive answer on a present-turn, excludes reasoning, and is unchanged for single answers\n')
+    + ' observe keeps the substantive answer on a present-turn, excludes reasoning, and is unchanged for single answers;'
+    + ' the capability partition leaves web-only tasks out of the pass/fail arithmetic\n')
 }
 
 function main() {
@@ -242,7 +280,10 @@ function main() {
     return
   }
   if (process.argv.includes('--list')) {
-    for (const task of TASKS) process.stdout.write(`${task.id}\n    ${task.why}\n`)
+    for (const task of TASKS) {
+      const needs = task.requires === undefined ? '' : `  [needs ${String(task.requires)} — not evaluated by this runner]`
+      process.stdout.write(`${task.id}${needs}\n    ${task.why}\n`)
+    }
     return
   }
   const onlyIndex = process.argv.indexOf('--only')
@@ -252,8 +293,14 @@ function main() {
     process.exit(2)
   }
 
+  const { evaluable, skipped } = partitionTasks(selected)
+  for (const task of skipped) {
+    process.stdout.write(`▶ ${task.id} … NOT EVALUATED\n`)
+    process.stdout.write(`    · needs the web composition (requires: ${String(task.requires)}) — this runner drives headless one-shot sessions, where that capability never registers\n`)
+  }
+
   const results = []
-  for (const task of selected) {
+  for (const task of evaluable) {
     process.stdout.write(`▶ ${task.id} … `)
     const result = runTask(task)
     results.push(result)
@@ -262,7 +309,11 @@ function main() {
   }
 
   const passed = results.filter(result => result.verdict.passed).length
-  process.stdout.write(`\neval: ${passed}/${results.length} tasks passed (${harnessHome})\n`)
+  const skipNote = skipped.length === 0 ? '' : ` · ${String(skipped.length)} not evaluated (web-only)`
+  process.stdout.write(`\neval: ${passed}/${results.length} tasks passed${skipNote} (${harnessHome})\n`)
+  if (skipped.length > 0) {
+    process.stdout.write(`eval: not evaluated here — ${skipped.map(task => task.id).join(', ')} (needs the web composition; a web-session driver is the upgrade path)\n`)
+  }
   const failed = results.filter(result => !result.verdict.passed).map(result => result.task.id)
   if (failed.length > 0) {
     process.stdout.write(`eval: failing — ${failed.join(', ')}\n`)
