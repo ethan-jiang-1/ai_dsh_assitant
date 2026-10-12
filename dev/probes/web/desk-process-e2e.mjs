@@ -345,9 +345,9 @@ if (scenario === 'claim') {
   // 相位（桌面历史视角卡 261012 ③）：流水视角——切到流水，操作按天倒序在场（今天的认领
   // 在种子账本 10-10 的交办立项之前），点认领条目跳转回看板并选中归属事项。
   const activitySwitch = await evaluate(`(() => {
-    const chip = [...document.querySelectorAll('button.dsha-filter-chip')].find(b => (b.textContent ?? '').trim() === '流水');
-    if (chip === undefined) return 'mode-chip-not-found';
-    chip.click(); return 'switched';
+    const tab = [...document.querySelectorAll('button.dsha-tab')].find(b => (b.textContent ?? '').trim() === '流水');
+    if (tab === undefined) return 'mode-tab-not-found';
+    tab.click(); return 'switched';
   })()`)
   if (activitySwitch !== 'switched') { teardown(); fail('activity-switch', { activitySwitch }) }
   const feedText = await evaluate(deskText)
