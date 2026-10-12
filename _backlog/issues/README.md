@@ -6,7 +6,6 @@
 
 | 卡 | 要解决什么 | 当前环节与未完成项 |
 |---|---|---|
-| [261012-desk-selection-contract-attach-ux](261012-desk-selection-contract-attach-ux.md) | 桌面选择契约：任何 item 选中即有相称动作；认领（Attach）动作的 UX 推敲 | 契约已决并落地（事项臂＋待认领臂）；未决＝认领全链 e2e、Attach UX 形态、未来 item 类型逐类裁决 |
 
 ## 写一张卡
 
