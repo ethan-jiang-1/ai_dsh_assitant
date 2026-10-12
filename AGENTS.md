@@ -23,9 +23,11 @@
 |---|---|
 | 用户本轮明确点名的具体任务 | 能——范围 = 本轮请求 |
 | 已授权切片的轮内延续（授权记在 proposed 卡状态行） | 能——按卡上范围 |
-| 翻到修复就绪的缺陷卡（P1/P2 且不触例外清单） | 能——翻转即授权，边界见 [`_backlog/bugs/README.md`](_backlog/bugs/README.md) 修复通道节 |
+| 翻到修复就绪的缺陷卡 | 能——翻转即授权（范围与例外清单 = [`_backlog/bugs/README.md`](_backlog/bugs/README.md) 修复通道节） |
 | 机械与局部编辑（口径 = note 义务豁免，[`notes/README.md`](notes/README.md) §〇） | 能 |
 | 跨切片的新工作 / 流程面改动 / 模型可见面新能力 | 不能——先立 proposed 卡呈批，等点头或点名 |
+
+**呈批**（两个载体，别混）：本轮复杂任务的步骤 = plan 呈批（硬规则 5）；跨切片新工作的授权 = proposed 卡呈批（上表末行）。呈批是把决定权显式交给人——等答复的那部分停，能自定的照常推进（研发姿态 4）。
 
 **没有用户任务时不发明任务**——报告家况（`pnpm usage`），或按点名的卡推敲/实施；不要从 git log 或记忆发明任务。
 重大未来工作先在 `_backlog/issues/` 推敲，成熟并进入跨会话实施前用 `notes/proposed/` 显式承载；不为小修立空壳卡或重复呈批。
@@ -35,7 +37,7 @@
 代码里的 `TODO/FIXME` 不立项，只在代码内。
 **Note 的义务、取代检查与生命周期以 [`notes/README.md`](notes/README.md) 为唯一权威**（何时写、输掉的方案、
 rejected 政策、命名——本文件不复制）；改行为、契约或开发流程前，按任务链接或机制名查相关 notes。
-交接即此链：AGENTS.md（本文件）→ 三个卡清单（`_backlog/issues/`、`_backlog/bugs/`、`notes/proposed/`——清单为空 = 无待续工作）→ 各卡。
+交接即此链：AGENTS.md（本文件）→ 三个卡清单（`_backlog/issues/`、`_backlog/bugs/`、`notes/proposed/`——清单为空 = 无待续工作）→ 各卡；收尾时把停点与授权变化写回承载它的卡（收口卡或 proposed 卡状态行），无卡无 note 的机械收尾无写义务。
 
 同一个多步流程第三次被重新推演时，就把它立成一件开发技能（放 `.agents/skills/`）——这是"重复即建"的常设规则，不占工作面。
 **两类 Skill，别混**：`.agents/skills/` 是**开发用**（给改这个仓库的 agent：证据路由、探针、
@@ -57,13 +59,13 @@ rejected 政策、命名——本文件不复制）；改行为、契约或开�
 | `docs/` | **当前合同**（只写现在，无历史）—— 文档 tier 与"谁拥有什么"见其 `AGENTS.md` | 门禁住了的事实进这里 |
 | `notes/` | **开发记忆与证据链**（分类 owner：`notes/README.md`）：`proposed/` 将来 → `implemented/` 当前权威 → `archived/` 冻结历史；`rejected/` 存负知识与一行原因 | 决策与输掉的方案进这里 |
 | `_backlog/` | **推敲空间**（门牌 [`_backlog/AGENTS.md`](_backlog/AGENTS.md)：落进区域的 agent 先读）：还没定的事在 `issues/`（`YYMMDD-`），这次不修的缺陷在 `bugs/`（`BUG-`），调研在 `research/`，方法在 `methods/`，离开活跃区的在 `_archive/`。只装判断材料、**永不调度**；流程与关闭条件见其 `README.md`；`triggers.md` 只收工作里会撞上的观察（批量推进、真机走查、阶段收口时扫这张短表） | 收割/走查/对话中值得推敲但未到裁决的思考在此立卡 |
-| `dev/` | 开发 home 与 profile patch —— 双 home 与两个 profile 的纪律见其 `AGENTS.md` | 环境问题动这里（手册 owner：`docs/dev.md`） |
+| `dev/` | 开发环境树：双 home、profile patch、探针/评测/夹具/部署 CLI——纪律与抽屉表见其 `AGENTS.md` | 环境与验证工具动这里（手册 owner：`docs/dev.md`） |
 | `scripts/` | 机械门禁与生成器 —— 门禁三条纪律与 freshness 约定见其 `AGENTS.md` | 门禁问题动这里 |
 | `snapshots/` | 行为回归的证据面——只收边界与现状见其 `AGENTS.md` 与 `README.md` | 回归证据问题动这里 |
 | `_dist/` | **分发导出（生成物）**：`pnpm export-dist` 的 tgz（不入库）与《安装手册》 | 分发问题动这里；生成器 `scripts/release/export-dist.mjs` |
 | `.agents/` | **开发用 Skill 根**（证据路由、探针、审计、UI 贡献约束等——DSH 原生 `project-agents` 根发现） | 新开发技能动这里 |
 | `deliverables/` · `.desk/` · `.tmp/` · `.pi/` | **会话运行现场（git 忽略或机器本地，不是仓库内容）**：cwd=仓根的会话留下的业务交付（未提交交接件）、My Desk 桌面状态、临时产物、DSH 会话任务持久化（`.pi/tasks/`） | 不提交、不当文档读；语义见 `.gitignore` 注释 |
-| `vendor/dsh/` · `vendor/thirdparty/` | **钉住的外部源码**：DSH 源码（submodule）与钉存的第三方上游包（只读证据物，如 OpenViking，见其 README） | **永不改**；升级 DSH 走 `pnpm sync-dsh` |
+| `vendor/dsh/` · `vendor/thirdparty/` | **钉住的外部源码**：DSH 源码（submodule）与钉存的第三方上游包（只读证据物，如 OpenViking，见 `vendor/thirdparty/openviking/README.md`） | **永不改**；升级 DSH 走 `pnpm sync-dsh` |
 | `tsconfig.base.json` / `tsconfig.tsx.json` / `tsconfig.json` / `pnpm-workspace.yaml` | 根配置：两个 tsconfig **解析入口**（编译期手维护 / 运行期 `pnpm gen-paths` 生成）+ IDE 整仓聚合（`tsconfig.json`，typecheck 不经它）+ pnpm 工作区面 | 引入新 `@deepseek-ai/*` import 或换 pin 时动解析入口（契约：`docs/dev.md` §二） |
 
 `CLAUDE.md` 是 `AGENTS.md` 的 symlink（Claude 系工具的惯例名），同源无第二份。

@@ -55,7 +55,7 @@ opened: YYYY-MM-DD
 | 字段 | 写什么 |
 |---|---|
 | `status` | 活跃四值：`排查中` / `修复就绪` / `修复落地` / `等人拍板`，何时翻见上面的表 |
-| `severity` | `P0` 阻断，`P1` 重要，`P2` 次要——它是修复通道的分岔口（P0 走本人） |
+| `severity` | `P0` 阻断，`P1` 重要，`P2` 次要——它是修复通道的分岔口（P0 走本人）。此 P 编号是**缺陷严重级**，与 [`README.md`](../../README.md) 的 P1–P3 产品判据无关 |
 | `opened` | `YYYY-MM-DD`，与正文发现日相同 |
 
 离开本目录时只改 `status`。修好了改成 `已修`，卡进 [`fixed_bugs/`](../_archive/fixed_bugs/README.md)。查明了、还没修，改成 `待修`，卡进 [`suspended_bugs/`](../_archive/suspended_bugs/README.md)。`severity` 和 `opened` 不动。正文里的状态句留着，不抄进 frontmatter。

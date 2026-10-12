@@ -11,6 +11,7 @@
 ## 一页证据地图（改什么 → 跑什么 → 回归资产在哪 → 谁能证明什么）
 
 本表是证据路由的**唯一表主**（pre-push-evidence 技能与根 README「按问题找」链接到此，不复制）；
+每个切片的**收尾地板** = `pnpm typecheck && pnpm test && pnpm verify` 全绿，本表回答的是地板之上按改动面还要加跑什么；
 逐面**判断细则**与已知假绿清单 = [pre-push-evidence 技能](../.agents/skills/pre-push-evidence/SKILL.md)；目录轴的深表（目录=被测 interface）见下节。
 
 | 改动面 | 最小证据（命令） | 回归资产的家 | 能证明 / 不能证明 |
