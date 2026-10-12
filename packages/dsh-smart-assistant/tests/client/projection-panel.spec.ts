@@ -64,11 +64,17 @@ describe('global projection panel', () => {
     view.actions.selectMatter('c1')
     const props = { useProjection: <S,>(select: (value: ProjectionDownload) => S): S => select({ status: 'ready', data: { ...base, matters: [completed] } }), useStore: <S,>(select: (value: ReturnType<typeof view.getSnapshot>) => S): S => select(view.getSnapshot()), actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop }
     const output = text(ProjectionPanel(props))
-    // 四种时间各占一段：承诺/预测/核对/完成。
+    // 四种时间各占一段：承诺/预测/核对/完成。Zoned stamps render viewer-local, so the
+    // expectation is computed through the same Date API instead of a fixed wall clock.
     expect(output).toContain('承诺 2026-10-13')
     expect(output).toContain('预测 2026-10-15')
     expect(output).toContain('核对 2026-10-13')
-    expect(output).toContain('完成 2026-10-16T04:00:00.000Z')
+    const stamp = '2026-10-16T04:00:00.000Z'
+    const at = new Date(stamp)
+    const pad = (n: number): string => String(n).padStart(2, '0')
+    const local = `${at.getFullYear()}-${pad(at.getMonth() + 1)}-${pad(at.getDate())} ${pad(at.getHours())}:${pad(at.getMinutes())}`
+    expect(output).toContain(`完成 ${local}`)
+    expect(output).not.toContain(stamp)
   })
 
   it('separates missing from damaged ledger', () => {

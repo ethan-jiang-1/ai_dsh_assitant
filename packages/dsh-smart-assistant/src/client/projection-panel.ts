@@ -53,7 +53,8 @@ const STYLES = [
   '.dsha-chip-abandoned{background:var(--dsw-alias-bg-layer-3);color:var(--dsw-alias-label-tertiary);}',
   '.dsha-chip-warn{background:var(--dsha-warn-tint);color:var(--dsha-warn);}',
   '.dsha-detail{min-width:0;border:0.5px solid var(--dsw-alias-border-l2);border-radius:10px;background:var(--dsw-alias-bg-layer-1);padding:14px 16px;overflow-wrap:anywhere;}',
-  '.dsha-detail h2{margin:8px 0 4px;font-size:17px;color:var(--dsw-alias-label-primary);overflow-wrap:anywhere;}',
+  '.dsha-detail h2{display:flex;align-items:center;gap:8px;margin:8px 0 4px;font-size:17px;font-weight:600;color:var(--dsw-alias-label-primary);}',
+  '.dsha-detail h2 span{overflow-wrap:anywhere;min-width:0;}',
   '.dsha-meta{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px;}',
   '.dsha-proposal{margin:10px 0;background:var(--dsha-warn-tint);border:0;border-radius:8px;padding:10px 12px;}',
   '.dsha-evidence{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:8px;}',
@@ -79,12 +80,35 @@ function statusChip(status: string) {
   return chip(status === 'active' ? 'active' : status === 'completed' ? 'completed' : 'abandoned', STATUS_LABEL[status] ?? status)
 }
 
+/** The detail's plain-text meta line: responsible plus the four business times, in the list
+ * card's meta shape — pills are reserved for status, not for every fact in the header. */
+function metaLine(responsible: string, times: Parameters<typeof timeParts>[0]) {
+  const parts = (responsible.length > 0 ? [`责任 ${responsible}`] : []).concat(timeParts(times))
+  return parts.length === 0 ? null : ce('p', { className: 'dsha-card-meta' }, parts.join(' · '))
+}
+
+/** A full machine timestamp (T separator, seconds, zone offset) reads as noise on the desk.
+ * Zone-bearing values (Z or ±HH:MM) render in the viewer's local wall time — the ledger stamps
+ * completion in UTC while deadlines/checkpoints carry an explicit offset. Zone-less values
+ * (bare dates, naive datetimes) stay verbatim: their wall-clock intent is already local. */
+function humanTime(value: string): string {
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})$/.test(value)) {
+    const at = new Date(value)
+    if (!Number.isNaN(at.getTime())) {
+      const pad = (n: number): string => String(n).padStart(2, '0')
+      return `${at.getFullYear()}-${pad(at.getMonth() + 1)}-${pad(at.getDate())} ${pad(at.getHours())}:${pad(at.getMinutes())}`
+    }
+  }
+  const naive = /^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/.exec(value)
+  return naive === null ? value : `${naive[1]} ${naive[2]}`
+}
+
 function timeParts(times: { readonly promisedDeadline?: string; readonly forecastAt?: string; readonly nextCheckpoint?: string; readonly completedAt?: string }): string[] {
   const parts: string[] = []
-  if (times.promisedDeadline !== undefined) parts.push(`承诺 ${times.promisedDeadline}`)
-  if (times.forecastAt !== undefined) parts.push(`预测 ${times.forecastAt}`)
-  if (times.nextCheckpoint !== undefined) parts.push(`核对 ${times.nextCheckpoint}`)
-  if (times.completedAt !== undefined) parts.push(`完成 ${times.completedAt}`)
+  if (times.promisedDeadline !== undefined) parts.push(`承诺 ${humanTime(times.promisedDeadline)}`)
+  if (times.forecastAt !== undefined) parts.push(`预测 ${humanTime(times.forecastAt)}`)
+  if (times.nextCheckpoint !== undefined) parts.push(`核对 ${humanTime(times.nextCheckpoint)}`)
+  if (times.completedAt !== undefined) parts.push(`完成 ${humanTime(times.completedAt)}`)
   return parts
 }
 
@@ -174,11 +198,11 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
           : ce('article', {},
             ce('div', { className: 'dsha-meta' },
               ce('button', { className: 'dsha-btn dsha-back', type: 'button', onClick: props.actions.showList }, '返回事项列表'),
-              ce('button', { className: 'dsha-btn dsha-btn-primary', type: 'button', onClick: () => props.onProcess?.(selected.id) }, '处理这件事'),
-              statusChip(selected.status),
-              selected.responsible.length > 0 ? chip('abandoned', `责任 ${selected.responsible}`) : null,
-              timeParts(selected.times).map(part => chip('abandoned', part))),
-            ce('h2', {}, selected.title),
+              ce('button', { className: 'dsha-btn dsha-btn-primary', type: 'button', onClick: () => props.onProcess?.(selected.id) }, '处理这件事')),
+            // Status rides the title line (same shape as the list card) so it stops reading as a
+            // second action button beside 「处理这件事」; facts render as the plain meta line below.
+            ce('h2', {}, statusChip(selected.status), ce('span', {}, selected.title)),
+            metaLine(selected.responsible, selected.times),
             selected.summary.length > 0 ? ce('p', { className: 'dsha-card-summary' }, selected.summary) : null,
             selected.proposals.filter(proposal => proposal.status === 'pending').map(proposal => ce('div', { key: proposal.id, className: 'dsha-proposal' },
               chip('warn', `等你确认 · ${CHANGE_LABEL[proposal.kind] ?? proposal.kind}`))),
