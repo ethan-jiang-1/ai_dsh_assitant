@@ -69,6 +69,28 @@ describe('global projection panel', () => {
     expect(view.getSnapshot().selected).toEqual({ kind: 'matter', id: 'gone' })
   })
 
+  it('filters matters by status chips while the unclaimed inbox stays put (history views ②)', () => {
+    const view = createProjectionViewStore(defineStore).create()
+    const value: ProjectionDownload = { status: 'ready', data: { schemaVersion: 2 as const, ledgerId: 'test', revision: 2, receipts: [], unclaimed: [{ id: 'u-1', note: '有条片段', sessionId: 's9' }], matters: [
+      { id: 'a', title: '在办的事A', status: 'active', summary: '', responsible: '', revision: 1, times: {}, proposals: [], evidence: [] },
+      { id: 'b', title: '办结的事B', status: 'completed', summary: '', responsible: '', revision: 1, times: {}, proposals: [], evidence: [] },
+    ] } }
+    const props = { useProjection: <S,>(select: (value: ProjectionDownload) => S): S => select(value), useStore: <S,>(select: (value: ReturnType<typeof view.getSnapshot>) => S): S => select(view.getSnapshot()), actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop, onClaim: noop }
+    // Default = 全部: today's behavior, nothing hidden.
+    expect(text(ProjectionPanel(props))).toContain('办结的事B')
+    view.actions.setFilter('active')
+    const active = text(ProjectionPanel(props))
+    expect(active).toContain('在办的事A')
+    expect(active).not.toContain('办结的事B')
+    expect(active).toContain('有条片段')
+    view.actions.setFilter('settled')
+    const settled = text(ProjectionPanel(props))
+    expect(settled).toContain('办结的事B')
+    expect(settled).not.toContain('在办的事A')
+    view.actions.setFilter('all')
+    expect(text(ProjectionPanel(props))).toContain('办结的事B')
+  })
+
   it('renders the matter biography: the actions section lists this matter\'s operations newest-first with kind labels, quotes and sessions', () => {
     const view = createProjectionViewStore(defineStore).create()
     view.actions.selectMatter('a')

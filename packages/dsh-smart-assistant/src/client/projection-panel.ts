@@ -8,7 +8,7 @@ import type { ProjectionView } from './projection-view'
 export interface ProjectionPanelProps {
   useProjection<S>(select: (value: ProjectionDownload) => S): S
   useStore<S>(select: (view: ProjectionView) => S): S
-  actions: { selectMatter(id: string): void; selectFragment(id: string): void; showList(): void; rememberListPosition(position: number): void }
+  actions: { selectMatter(id: string): void; selectFragment(id: string): void; showList(): void; rememberListPosition(position: number): void; setFilter(filter: ProjectionView['filter']): void }
   refreshProjection(): void
   onAsk(): void
   /** The 「＋ 交代新事项」 entry. Falls back to `onAsk` where no intake path is wired (tests,
@@ -38,6 +38,7 @@ const OP_LABEL: Record<string, string> = {
 const OP_STATUS_NOTE: Record<string, string> = {
   retained: '存入待认领', conflict: '冲突未生效', rejected: '未生效',
 }
+const FILTER_LABEL: Record<'all' | 'active' | 'settled', string> = { all: '全部', active: '在办', settled: '已了结' }
 
 const STYLES = [
   '.dsha-desk{display:flex;flex-direction:column;gap:16px;padding:20px 24px;overflow-y:auto;min-width:0;container-type:inline-size;height:100%;box-sizing:border-box;}',
@@ -52,6 +53,9 @@ const STYLES = [
   '.dsha-note{margin:0;font-size:13px;color:var(--dsw-alias-label-secondary);background:var(--dsw-alias-bg-layer-1);border:0;border-radius:8px;padding:8px 12px;}',
   '.dsha-matters{display:grid;grid-template-columns:minmax(260px,2fr) minmax(0,3fr);gap:16px;align-items:start;}',
   '.dsha-list{display:flex;flex-direction:column;gap:8px;min-width:0;}',
+  '.dsha-filter{display:flex;gap:6px;flex-wrap:wrap;}',
+  '.dsha-filter-chip{border:0.5px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-secondary);border-radius:999px;padding:2px 10px;font-size:12px;cursor:pointer;font:inherit;}',
+  '.dsha-filter-chip[data-on="true"]{background:var(--dsha-accent-tint);color:var(--dsha-accent);border-color:var(--dsha-accent-tint);}',
   '.dsha-list-label{font-size:12px;color:var(--dsw-alias-label-tertiary);margin:4px 0 0;}',
   '.dsha-card{display:block;width:100%;text-align:left;background:var(--dsw-alias-bg-layer-1);border:0.5px solid var(--dsw-alias-border-l2);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;}',
   '.dsha-card:hover{background:var(--dsw-alias-bg-layer-2);}',
@@ -156,6 +160,11 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
     : download.status === 'error' ? (errors[download.error ?? 'download-failed'] ?? errors['download-failed']) : undefined
   const matters = data?.matters ?? []
   const unclaimed = data?.unclaimed ?? []
+  // The board's status filter (history views ②): 全部 preserves today's list; 在办/已了结 narrow
+  // it. The unclaimed inbox is not matter state and ignores the filter.
+  const visibleMatters = view.filter === 'active' ? matters.filter(matter => matter.status === 'active')
+    : view.filter === 'settled' ? matters.filter(matter => matter.status !== 'active')
+    : matters
   const counts = data === undefined ? undefined
     : `${matters.filter(matter => matter.status === 'active').length} 件在办`
       + (pendingProposals > 0 ? ` · ${pendingProposals} 条等你确认` : '')
@@ -196,7 +205,15 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
         download.status === 'missing' ? '还没有经营事项资料。交代一件试试——它会被记进权威账本，事事有着落。' : '还没有经营事项。交代一件试试——它会被记进权威账本，事事有着落。'))
       : ce('section', { className: 'dsha-matters', 'data-pane': view.pane },
         ce('div', { className: 'dsha-matter-list dsha-list', onScroll: (event: { currentTarget: { scrollTop: number } }) => props.actions.rememberListPosition(event.currentTarget.scrollTop) },
-          matters.map(matter => ce('button', {
+          matters.length > 0 ? ce('div', { className: 'dsha-filter' },
+            (['all', 'active', 'settled'] as const).map(filter => ce('button', {
+              key: filter,
+              type: 'button',
+              className: 'dsha-filter-chip',
+              'data-on': String(view.filter === filter),
+              onClick: () => props.actions.setFilter(filter),
+            }, FILTER_LABEL[filter]))) : null,
+          visibleMatters.map(matter => ce('button', {
             key: matter.id,
             type: 'button',
             className: 'dsha-card',
