@@ -31,9 +31,14 @@
 | O6 | **管得住（权限与数据）** | 知识变更可追溯；数据不出企业边界；对外内容需本人过目 |
 
 本人的经营事实、判断标准与数据边界由本人提供或确认；原型可先用公开案例与标注模拟验证方法和机制，不等真人回访。
-**当前推敲与毕业边界按 owner 取用**：[定位卡](_backlog/_archive/settled_issues/261005-open-value-deficit.md) 与
-[自洽卡](_backlog/_archive/settled_issues/261005-turnaround-coherence.md)。已交付能力与证据归各自 implemented；
-[旧真用第一](notes/rejected/2026-10-01-real-use-first.md) 只作被取代方案的防错历史。推敲不构成新增产品能力或全部实施授权；研发姿态判据的常设指令在根
+**当前边界**（本节是它的家）：方向已定案——一把手总助定位（19 轮推敲），已落地切片各有 implemented note；
+阶段 4-5（信息积累与能力验证、检查与继续取舍）是**持续实践**，不是待交付物。未落地候选全部是**带触发条件的延后项**：
+①C 分身（真用 30 天后触发验证）②OKF/VK 仪器（第一次需要证明「越用越好」时触发）③督办完整契约（真用出现状态歧义时触发）
+④一句话定位 A/B/C 排序（用户真用后自然选择，不催）。方向与技术偏好已确认 ≠ 效果已验证 ≠ 整个路线获实施授权；
+推敲结论不构成新增产品能力的授权。推敲史与用户原话在
+[定位卡](_backlog/_archive/settled_issues/261005-open-value-deficit.md) 与
+[自洽卡](_backlog/_archive/settled_issues/261005-turnaround-coherence.md)（冻结档案，作出处与史据引用）；
+[旧真用第一](notes/rejected/2026-10-01-real-use-first.md) 只作被取代方案的防错历史；研发姿态判据的常设指令在根
 `AGENTS.md`。
 
 ## working folder 有四个房间
