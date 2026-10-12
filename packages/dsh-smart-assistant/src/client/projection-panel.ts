@@ -90,7 +90,7 @@ const STYLES = [
   '.dsha-card-summary{margin:4px 0 0;font-size:13px;color:var(--dsw-alias-label-secondary);overflow-wrap:anywhere;}',
   '.dsha-chip{display:inline-block;flex:none;font-size:12px;line-height:18px;border-radius:999px;padding:0 8px;}',
   '.dsha-chip-active{background:var(--dsha-accent-tint);color:var(--dsha-accent);}',
-  '.dsha-chip-completed{background:var(--dsw-alias-state-success-secondary);color:var(--dsw-alias-state-success-primary);}',
+  '.dsha-chip-completed{background:var(--dsha-success-tint);color:var(--dsha-success);}',
   '.dsha-chip-abandoned{background:var(--dsw-alias-bg-layer-3);color:var(--dsw-alias-label-tertiary);}',
   '.dsha-chip-warn{background:var(--dsha-warn-tint);color:var(--dsha-warn);}',
   '.dsha-detail{min-width:0;border:0.5px solid var(--dsw-alias-border-l2);border-radius:10px;background:var(--dsw-alias-bg-layer-1);padding:14px 16px;overflow-wrap:anywhere;}',

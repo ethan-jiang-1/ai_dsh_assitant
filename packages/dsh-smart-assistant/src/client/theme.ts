@@ -1,11 +1,11 @@
 /**
  * The panel color contract, injected once per page.
  *
- * Neutral roles consume the vendor theme aliases (`--dsw-alias-*`) directly; the warn and
- * accent roles ride these `dsha-` variables because the vendor amber scale has no step
- * meeting the AA bar this package committed to on light surfaces (R8: ≥4.5:1) and the teal
- * is this assistant's own brand identity (the vendor palette has no teal). Dark values
- * reference vendor statics where one fits. The AA contract is held by
+ * Neutral roles consume the vendor theme aliases (`--dsw-alias-*`) directly; the warn, accent,
+ * and success roles ride these `dsha-` variables because the vendor scales offer no readable
+ * chip pairing on light surfaces (R8: ≥4.5:1) — vendor success pairs green-500 text onto a
+ * green-400 fill (1.2:1) and even its tertiary tint tops out at 2.1:1. Dark values reference
+ * vendor statics where one fits. The AA contract is held by
  * `tests/client/client-theme.spec.ts` (component zero literal colour + contract light
  * values each ≥4.5:1).
  *
@@ -28,10 +28,12 @@ export function ensureThemeVars(): void {
   style.id = 'dsha-theme-vars'
   style.textContent = [
     'body{--dsha-warn:#92400e;--dsha-warn-tint:#fff7e6;'
-      + '--dsha-accent:#0f766e;--dsha-accent-tint:#f0fdfa}',
+      + '--dsha-accent:#0f766e;--dsha-accent-tint:#f0fdfa;'
+      + '--dsha-success:#15803d;--dsha-success-tint:var(--dsw-alias-state-success-tertiary)}',
     'body[data-ds-dark-theme]{--dsha-warn:var(--dsw-static-amber-400);'
       + '--dsha-warn-tint:var(--dsw-static-amber-900);'
-      + '--dsha-accent:#2dd4bf;--dsha-accent-tint:rgba(45,212,191,0.12)}',
+      + '--dsha-accent:#2dd4bf;--dsha-accent-tint:rgba(45,212,191,0.12);'
+      + '--dsha-success:var(--dsw-static-green-400);--dsha-success-tint:rgba(34,197,94,0.14)}',
   ].join('')
   document.head.appendChild(style)
 }

@@ -38,9 +38,9 @@ describe('color contract (R8/R11)', () => {
     expect([...new Set(quoted)]).toEqual(['#ffffff'])
     // The light-skin text colours from the contract block must each clear AA on white.
     const lightBlock = source.slice(0, source.indexOf('body[data-ds-dark-theme]'))
-    const contract = [...lightBlock.matchAll(/--dsha-(?:warn|accent):(#[0-9a-fA-F]{6})/g)]
+    const contract = [...lightBlock.matchAll(/--dsha-(?:warn|accent|success):(#[0-9a-fA-F]{6})/g)]
       .map(match => match[1] as string)
-    expect(contract.length).toBeGreaterThanOrEqual(2)
+    expect(contract.length).toBeGreaterThanOrEqual(3)
     const below = [...new Set(contract)].filter(colour => contrastOnWhite(colour) < 4.5)
     expect(below).toEqual([])
   })
