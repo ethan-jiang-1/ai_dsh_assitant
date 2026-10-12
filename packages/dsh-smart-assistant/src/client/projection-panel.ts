@@ -40,6 +40,23 @@ const OP_STATUS_NOTE: Record<string, string> = {
 }
 const FILTER_LABEL: Record<'all' | 'active' | 'settled', string> = { all: '全部', active: '在办', settled: '已了结' }
 
+/** Inline stroke glyphs for the desk's switches — self-contained (no vendor icon components in
+ *  this standalone bundle), currentColor keeps them on the theme. Builders, not values: `ce`
+ *  resolves its underlying createElement lazily, so glyphs must be built at render time. */
+function glyph(children: ReturnType<typeof ce>[]): ReturnType<typeof ce> {
+  return ce('svg', { className: 'dsha-glyph', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': true }, ...children)
+}
+const GLYPHS: Record<string, () => ReturnType<typeof ce>[]> = {
+  board: () => [ce('path', { d: 'M4 4h4v16H4zM10 4h4v16h-4zM16 4h4v16h-4z' })],
+  activity: () => [ce('path', { d: 'M3 12a9 9 0 1 0 2.6-6.4' }), ce('path', { d: 'M3 4v4h4' }), ce('path', { d: 'M12 7v5l3 2' })],
+  all: () => [ce('path', { d: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z' })],
+  active: () => [ce('circle', { cx: 12, cy: 12, r: 4, fill: 'currentColor' })],
+  settled: () => [ce('circle', { cx: 12, cy: 12, r: 9 }), ce('path', { d: 'M8 12l3 3 5-6' })],
+}
+function glyphFor(name: string): ReturnType<typeof ce> {
+  return glyph((GLYPHS[name] ?? (() => []))())
+}
+
 const STYLES = [
   '.dsha-desk{display:flex;flex-direction:column;gap:16px;padding:20px 24px;overflow-y:auto;min-width:0;container-type:inline-size;height:100%;box-sizing:border-box;}',
   '.dsha-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}',
@@ -55,8 +72,11 @@ const STYLES = [
   '.dsha-matters{display:grid;grid-template-columns:minmax(260px,2fr) minmax(0,3fr);gap:16px;align-items:start;}',
   '.dsha-list{display:flex;flex-direction:column;gap:8px;min-width:0;}',
   '.dsha-filter{display:flex;gap:6px;flex-wrap:wrap;}',
-  '.dsha-filter-chip{border:0.5px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-secondary);border-radius:999px;padding:2px 10px;font-size:12px;cursor:pointer;font:inherit;}',
+  '.dsha-filter-chip{display:inline-flex;align-items:center;gap:4px;border:0.5px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-secondary);border-radius:999px;padding:2px 10px;font-size:12px;cursor:pointer;font:inherit;}',
   '.dsha-filter-chip[data-on="true"]{background:var(--dsha-accent-tint);color:var(--dsha-accent);border-color:var(--dsha-accent-tint);}',
+  '.dsha-glyph{width:13px;height:13px;flex:none;}',
+  '.dsha-chip-count{color:var(--dsw-alias-label-tertiary);}',
+  '.dsha-filter-chip[data-on="true"] .dsha-chip-count{color:var(--dsha-accent);}',
   '.dsha-list-label{font-size:12px;color:var(--dsw-alias-label-tertiary);margin:4px 0 0;}',
   '.dsha-card{display:block;width:100%;text-align:left;background:var(--dsw-alias-bg-layer-1);border:0.5px solid var(--dsw-alias-border-l2);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;}',
   '.dsha-card:hover{background:var(--dsw-alias-bg-layer-2);}',
@@ -244,7 +264,7 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
           className: 'dsha-filter-chip',
           'data-on': String(view.mode === mode),
           onClick: () => props.actions.setMode(mode),
-        }, mode === 'board' ? '看板' : '流水'))) : null,
+        }, glyphFor(mode), ce('span', {}, mode === 'board' ? '看板' : '流水')))) : null,
       ce('div', { className: 'dsha-actions' },
         ce('button', { className: 'dsha-btn', onClick: props.refreshProjection, disabled: download.status === 'loading', title: download.status === 'loading' ? '正在读取桌面…' : '重新读取桌面' }, '重新读取'),
         ce('button', { className: 'dsha-btn', onClick: props.onAsk }, '有问题？跟助手说'),
@@ -282,7 +302,15 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
               className: 'dsha-filter-chip',
               'data-on': String(view.filter === filter),
               onClick: () => props.actions.setFilter(filter),
-            }, FILTER_LABEL[filter]))) : null,
+            },
+            glyphFor(filter),
+            ce('span', {}, FILTER_LABEL[filter]),
+            ce('span', { className: 'dsha-chip-count' }, String(filter === 'active'
+              ? matters.filter(matter => matter.status === 'active').length
+              : filter === 'settled' ? matters.filter(matter => matter.status !== 'active').length : matters.length))))) : null,
+          visibleMatters.length === 0 && view.filter === 'settled' ? ce('p', { className: 'dsha-card-meta' },
+            '还没有办结的事项——了结要在对话里说清楚「办完了」加上依据，它才会落到这里；关掉会话窗口不算。')
+            : visibleMatters.length === 0 && view.filter === 'active' ? ce('p', { className: 'dsha-card-meta' }, '没有在办事项。') : null,
           visibleMatters.map(matter => ce('button', {
             key: matter.id,
             type: 'button',
