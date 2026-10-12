@@ -106,24 +106,24 @@ pnpm gen-paths          # 从 vendor/dsh 重新生成运行期解析入口 tscon
 pnpm gen-catalog        # 重新生成 docs/package-catalog.md（改组合行/exports/工具动词后必跑；freshness 门禁守）
 pnpm build              # tsc 出 lib/：改 src 后必跑——preset 行加载的是构建物，不是源码
 pnpm preflight '<URL>'  # 开屏前门禁：证明装得上（auth/boot 图/每个 combo 可解析）；不证明渲染出来
-pnpm shots '<URL>' --dom --size 1600x1000 --name <名字>   # 渲染证据：headless Chrome 经 CDP 出 PNG + DOM 证据（默认落仓内 .tmp/shots/）；`--eval` 拿交互态
-pnpm web-expected '<URL>'   # web 面期望比对：真拍一张与已提交期望比对（漂移 exit 1）；`--refresh` 重录期望（场景契约与判据：snapshots/web-face/<场景>/README.md）
-pnpm loop-probe '<URL>' --ask '<问句>'   # 首用闭环探针：**首屏=桌面页**（你的桌面/中文文案/无黑话/工作区就绪）→ 走「＋ 交代新事项」进会话 → 真发问真等回复，JSON 判决（借自 ai_dsh_loop_advisor；`--ask` 会真建会话，指向一次性 home）
-pnpm desk-walk '<URL>' [--home <dir>]   # 处理流真机走查（真模型）：首屏桌面→处理一件事→一句进展→返回不变量→交代新事；产出屏幕文本+截图供人判话术/层级（`--home` 才能核账本身份与「回来⇒无待确认」）
+pnpm shots '<URL>' --dom --size 1600x1000 --name <名字>   # 渲染证据：PNG + DOM 两件（落仓内 .tmp/shots/）；`--eval` 拿交互态（机理 = docs/dev.md §四）
+pnpm web-expected '<URL>'   # web 渲染期望比对（漂移 exit 1）；重录 `--refresh`（场景契约 = snapshots/web-face/<场景>/README.md）
+pnpm loop-probe '<URL>' --ask '<问句>'   # 首用闭环探针：真发问真等回复，JSON 判决（`--ask` 真建会话，指向一次性 home；弧线 = docs/dev.md §四）
+pnpm desk-walk '<URL>' [--home <dir>]   # 处理流真机走查（真模型）：屏幕文本+截图供人判话术/层级（弧线与 `--home` 判据 = docs/dev.md §四）
 pnpm dsh --profile dev --dump-config   # boot-free 查组合树：行 id、disabled、realm 一目了然（什么情况用 = 下「探索路由」同名条目）
 pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner.patch.yml "<task>"   # preset 挂载的 one-shot（验证自动化驱动）
 pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner-replay.patch.yml "<task>"   # 同上但 keyless：llm-replay 回放替掉真实 adapter，无 key 出真实会话日志（形状与坑见 patch 头注）
 pnpm typecheck          # 委派包级：tsc -b（编译期 paths 解析到 vendor/dsh 的 src，API 漂移编译期暴露）+ 测试工程
 pnpm test               # vitest 全量：分层 spec（纯核+服务合同+agent/client/composition/tooling；层命令与各层能证明什么见 docs/testing.md 分层表）
-pnpm verify             # 机械门禁链：生成物 freshness + 自检 + 结构/身份/解析入口/自包含/技能语法/断链/文档命令互证/notes 形状等（清单以 scripts/checks/verify.mjs 为准）
+pnpm verify             # 机械门禁链（覆盖面清单 = scripts/checks/verify.mjs）
 pnpm release-smoke      # pnpm pack → 干净 home → dsh plugin add → 组合断言（**改动发布物/依赖/preset 包装/工具面必跑**）
 pnpm export-dist        # 手动分发导出：pnpm pack → _dist/ 的 tgz + 清单边界断言 + 自动生成《安装手册》
 pnpm sync-dsh -- --tag <dsh-tag>   # 换 submodule tag + SHA 簿记 + typecheck + 对照 docs/discipline.md 重校纪律表
-pnpm usage              # 意图级仪表：会话/工具混合/自用率/摩擦/家的现状（读 dev home；dev 工具不得继承 DSH_HOME）
-pnpm desk-loop          # 培养循环摩擦报告：从真实会话日志读「点了没反应 / 反复点 / 答了多次 / 技能没加载」（读 dev home）
-pnpm observe [--home <dir>]   # 输入边界 30 天观察的读数：A 自发投递 / B 时长 / C 入口后的操作（口径、剔除规则与每周快照落 `_backlog/research/usage/`）
-pnpm eval               # 行为评测：真实请求经 preset 会话跑一遍，判定读会话日志（串行；任务集 dev/eval/tasks.mjs）
-pnpm eval:domain        # 领域评测集 v0（G2＝领域质量的人判终关）：本人出的真实经营问题逐题跑 → 给人打分的报告（题面格式 dev/eval/domain/TEMPLATE.md）
+pnpm usage              # 意图级仪表：会话/工具混合/自用率/摩擦（读 dev home；口径与硬规则 = docs/dev.md §四）
+pnpm desk-loop          # 培养循环摩擦报告（读 dev home 会话日志；读什么与口径 = docs/dev.md §四）
+pnpm observe [--home <dir>]   # 输入边界 30 天观察读数（A/B/C 口径与读数档 = docs/dev.md §四）
+pnpm eval               # 行为评测：真实请求经 preset 会话，判定读会话日志（串行；详见 docs/dev.md §四）
+pnpm eval:domain        # 领域评测：本人出题逐题跑 → 人打分的报告（判据与题面格式 = dev/eval/domain/TEMPLATE.md）
 ```
 
 ## 八条硬规则
