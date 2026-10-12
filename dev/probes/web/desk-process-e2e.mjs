@@ -65,7 +65,7 @@ const keepService = args.includes('--keep-service')
 // 服务与回放脚本，认领会话在该场景里就是第一个调用会话，按位绑定主脚本。两个场景各自
 // 完整走「恢复种子账本 → 起服务 → CDP 驱动 → 拆服务」。
 const scenario = option('scenario', 'flow')
-if (!['flow', 'claim'].includes(scenario)) throw new Error(`--scenario must be "flow" or "claim", got "${scenario}"`)
+if (!['flow', 'claim', 'wake'].includes(scenario)) throw new Error(`--scenario must be "flow", "claim" or "wake", got "${scenario}"`)
 // The phases that mount a conversation are the heavy ones; the generic driver default (20s) is
 // tuned for cheap reads (see the header note and BUG-009).
 const evalTimeout = Number(option('eval-timeout', '60000'))
@@ -124,6 +124,8 @@ const blockEntry = (block, reason) => ({ kind: 'chunks', chunks: [
 const intakePrompt = '新的一件：供应商对账单这个月多出一笔，帮我盯着核对一下。'
 // 认领臂（桌面选择契约卡 261012）的指归属回合：本人一句话把片段认领到既有事项。
 const claimPrompt = '那条「二期款已经付了」就是 NB-02 的，认领到它名下。'
+// 唤醒轮（状态门控动作卡 261012）的指变化回合：本人说明什么变了，模型带原因 reopen。
+const wakePrompt = '客户反馈九月对账有一笔漏核，需要重新打开核对。'
 // 第一格服务「种子回合」：处理会话挂载时注入的「正在处理事项…」消息会起一个真实模型回合，
 // 它排在主轮之前。不给它一格，记录里的第一组（report+propose）就被它吃掉，后面每一轮都错位一格
 // （2026-10-11 实测：粘贴那一轮拿到的是拒绝续段，提案当场被拒 → 未读回→ 探针期望「留在对话」必红，
@@ -135,6 +137,12 @@ writeFileSync(overrideFile, JSON.stringify(scenario === 'claim' ? [
   blockEntry({ type: 'text', text: '读到了待认领片段 u-1：「有一笔二期款已经付了」。它还没归户——请告诉我它属于哪件在办事项，还是应当立为新事项；未经你确认我不会归户。' }, 'stop'),
   blockEntry({ type: 'tool-call', id: 'authored-claim-u1', name: 'assistant_operating', arguments: JSON.stringify({ action: 'claim', matter_id: 'm-1', unclaimed_id: 'u-1', operation_id: 'op-authored-claim-u1', quote: claimPrompt }) }, 'tool-calls'),
   blockEntry({ type: 'text', text: '已把 u-1 认领到「合同 NB-02 第二期款到账核对」名下，原文与来源随附，桌面待认领已清空。' }, 'stop'),
+] : scenario === 'wake' ? [
+  // 唤醒轮（状态门控动作卡 261012）：已完成事项 m-2 的唤醒——种子回合吃一格；指变化那一轮
+  // 真调 reopen（带原因），事项回在办、completedAt 清掉，按钮随之变回「处理这件事」。
+  blockEntry({ type: 'text', text: '读到了已完成事项「九月银行对账单核对」（m-2）。重新打开它需要一个理由——请告诉我是什么变化需要唤醒它；未经你确认我不会自行 reopen。' }, 'stop'),
+  blockEntry({ type: 'tool-call', id: 'authored-reopen-m2', name: 'assistant_operating', arguments: JSON.stringify({ action: 'reopen', matter_id: 'm-2', observed_revision: 2, reason: '客户反馈九月对账有一笔漏核', operation_id: 'op-authored-reopen-m2', quote: wakePrompt }) }, 'tool-calls'),
+  blockEntry({ type: 'text', text: '已重新打开 m-2，原因已作为材料入账，事项回到在办。' }, 'stop'),
 ] : [
   blockEntry({ type: 'text', text: '读到了台账 m-1：约定到账日 2026-10-13、核对点 2026-10-13。等你的具体指令。' }, 'stop'),
   ...recorded,
@@ -254,6 +262,7 @@ const sendEnabled = `(() => {
 // 回放真调 claim 消费 u-1 → 片段离开待认领通道 + 本会话 committed 回执读回 →
 // 自动返回并**选中归属事项**（「这条落在哪」的桌面回答）。认领臂总建自己的会话
 // （当前会话可能正是产生歧义的那一个），单会话守卫与处理流同一口径。
+if (scenario !== 'flow') {
 if (scenario === 'claim') {
   const claimCard = await evaluate(`(() => {
     const root = document.querySelector('[data-assistant-operating-desk]');
@@ -375,6 +384,101 @@ if (scenario === 'claim') {
   }
   console.log(`PASS desk claim flow e2e: ${JSON.stringify(verdict.phases)}`)
   process.exit(0)
+  }
+if (scenario === 'wake') {
+  // 相位（状态门控动作卡 261012）：状态决定合法动作——已完成事项的动作是「唤醒这件事」，
+  // 不是「处理这件事」；唤醒走真 reopen（带原因），事项回在办后按钮变回「处理这件事」。
+  const settledSelect = await evaluate(`(() => {
+    const root = document.querySelector('[data-assistant-operating-desk]');
+    const card = [...(root?.querySelectorAll('button.dsha-card') ?? [])].find(b => (b.textContent ?? '').includes('九月银行对账单核对'));
+    if (card === undefined) return 'settled-card-not-found';
+    card.click(); return 'selected';
+  })()`)
+  if (settledSelect !== 'selected') { teardown(); fail('settled-select', { settledSelect }) }
+  const settledDetail = await evaluate(`(() => {
+    const root = document.querySelector('[data-assistant-operating-desk]');
+    const text = root?.innerText ?? '';
+    const wake = [...(root?.querySelectorAll('button') ?? [])].find(b => (b.textContent ?? '').includes('唤醒这件事'));
+    const process = [...(root?.querySelectorAll('button') ?? [])].find(b => (b.textContent ?? '').trim() === '处理这件事');
+    return { wakePresent: wake !== undefined, processPresent: process !== undefined };
+  })()`)
+  if (settledDetail?.wakePresent !== true || settledDetail?.processPresent !== false) {
+    fail('settled-action-gate', { settledDetail })
+  }
+  pass('settled-action-gate', { detail: settledDetail })
+
+  const sessionsBeforeWake = countProbeSessions()
+  const wakeEntry = await evaluate(`(() => {
+    const button = [...document.querySelectorAll('button')].find(b => (b.textContent ?? '').includes('唤醒这件事'));
+    if (button === undefined) return 'button-not-found';
+    button.click(); return 'clicked';
+  })()`)
+  if (wakeEntry !== 'clicked') { teardown(); fail('wake-entry', { wakeEntry }) }
+  let wakeConversation = false
+  for (let i = 0; i < 40 && !wakeConversation; i++) {
+    wakeConversation = await evaluate(`document.querySelector('[data-assistant-operating-desk]') === null && document.querySelector('[data-composer-input="true"]') !== null`) === true
+    if (!wakeConversation) await sleep(500)
+  }
+  if (!wakeConversation) { teardown(); fail('wake-conversation', {}) }
+  pass('wake-entry', {})
+  let wakeSeedSettled = false
+  for (let i = 0; i < 240 && !wakeSeedSettled; i++) {
+    await sleep(500)
+    await evaluate(`(() => { const b = [...document.querySelectorAll('button')].find(x => (x.textContent ?? '').trim() === '允许一次'); b?.click(); })()`)
+    wakeSeedSettled = await evaluate(`(${stopped}) && (document.body.innerText ?? '').includes('重新打开它需要一个理由')`) === true
+  }
+  if (!wakeSeedSettled) fail('wake-seed-turn', {})
+  pass('wake-seed-turn', {})
+  let wakeReady = false
+  let wakePasteResult = null
+  for (let i = 0; i < 10 && !wakeReady; i++) {
+    wakePasteResult = await evaluate(pasteOnce.replace(JSON.stringify(followupPrompt), JSON.stringify(wakePrompt)))
+    await sleep(800)
+    wakeReady = await evaluate(sendEnabled) === true
+  }
+  if (!wakeReady) { teardown(); fail('wake-composer', { wakePasteResult }) }
+  await sleep(600)
+  if (await evaluate(`(() => {
+    const send = [...document.querySelectorAll('button')].find(b => ['发送消息','Send message'].includes(b.getAttribute('aria-label') ?? ''));
+    if (send === undefined || send.disabled) return 'not-sent';
+    send.click(); return 'sent';
+  })()`) !== 'sent') { teardown(); fail('wake-send', {}) }
+  let wakeReturnText = null
+  for (let i = 0; i < 180 && wakeReturnText === null; i++) {
+    await sleep(500)
+    await evaluate(`(() => { const b = [...document.querySelectorAll('button')].find(x => (x.textContent ?? '').trim() === '允许一次'); b?.click(); })()`)
+    wakeReturnText = await evaluate(deskText)
+  }
+  if (wakeReturnText === null) fail('wake-auto-return', { body: await evaluate('document.body.innerText') })
+  const afterWake = JSON.parse(readFileSync(join(operatingDir, 'ledger.json'), 'utf8'))
+  const reopenReceipt = afterWake.operations['op-authored-reopen-m2']
+  if (reopenReceipt?.receipt.outcome.status !== 'committed') fail('wake-durable', { reopenReceipt })
+  const woken = afterWake.matters['m-2']
+  if (woken?.status !== 'active' || woken.times.completedAt !== undefined) fail('wake-status-active', { status: woken?.status, times: woken?.times })
+  if (!woken.materials.some(m => (m.note ?? '').includes('漏核'))) fail('wake-reason-material', { materials: woken.materials })
+  // 状态机闭合的可见证明：唤醒回在办后，详情的动作按钮变回「处理这件事」。
+  if (!wakeReturnText.includes('九月银行对账单核对') || !wakeReturnText.includes('处理这件事')) fail('wake-return-selection', { wakeReturnText })
+  pass('wake-auto-return', {})
+  pass('wake-durable', { outcome: reopenReceipt.receipt.outcome })
+  pass('wake-state-machine-closed', { status: woken.status, completedAt: woken.times.completedAt ?? null })
+  writeFileSync(join(shotDir, '6-woken-and-processing.png'), await browser.captureScreenshot())
+  const sessionsAfterWake = countProbeSessions()
+  if (sessionsAfterWake !== sessionsBeforeWake + 1) {
+    teardown()
+    fail('wake-single-session', { sessionsBeforeWake, sessionsAfterWake })
+  }
+  pass('wake-single-session', { created: sessionsAfterWake - sessionsBeforeWake })
+
+  verdict.consoleProblems = consoleProblems
+  verdict.exceptions = exceptions
+  teardown()
+  if (consoleProblems.length > 0 || exceptions.length > 0) {
+    console.log(JSON.stringify(verdict, null, 2))
+    process.exit(1)
+  }
+  console.log(`PASS desk wake flow e2e: ${JSON.stringify(verdict.phases)}`)
+  process.exit(0)
+  }
 }
 
 // 相位 2：选事项 → 详情（处理按钮 + 来源依据可见）。

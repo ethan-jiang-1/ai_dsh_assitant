@@ -26,6 +26,41 @@
       "proposals": [],
       "createdAt": "2026-10-10T14:16:05.318Z",
       "updatedAt": "2026-10-10T14:16:05.318Z"
+    },
+    "m-2": {
+      "id": "m-2",
+      "title": "九月银行对账单核对",
+      "status": "completed",
+      "summary": "九月银行对账单与账面逐笔核对，确认无差异。",
+      "responsible": "本人",
+      "revision": 2,
+      "times": {
+        "promisedDeadline": "2026-10-09",
+        "completedAt": "2026-10-09T15:30:00.000Z"
+      },
+      "materials": [
+        {
+          "id": "mat-m-2-1",
+          "source": {
+            "sessionId": "session-seed-m2",
+            "quote": "九月的对账单核对这件事，立一下。"
+          },
+          "note": "九月银行对账单与账面逐笔核对，确认无差异。",
+          "receivedAt": "2026-10-08T09:00:00.000Z"
+        },
+        {
+          "id": "mat-m-2-2",
+          "source": {
+            "sessionId": "session-seed-m2",
+            "quote": "九月对账全部核对完毕，账实相符"
+          },
+          "note": "对账单与银行流水逐笔核对一致",
+          "receivedAt": "2026-10-09T15:30:00.000Z"
+        }
+      ],
+      "proposals": [],
+      "createdAt": "2026-10-08T09:00:00.000Z",
+      "updatedAt": "2026-10-09T15:30:00.000Z"
     }
   },
   "operations": {
@@ -54,6 +89,56 @@
           "revision": 1
         }
       }
+    },
+    "op-seed-m2-create": {
+      "operation": {
+        "kind": "create",
+        "operationId": "op-seed-m2-create",
+        "title": "九月银行对账单核对",
+        "summary": "九月银行对账单与账面逐笔核对，确认无差异。",
+        "responsible": "本人",
+        "source": {
+          "sessionId": "session-seed-m2",
+          "quote": "九月的对账单核对这件事，立一下。"
+        }
+      },
+      "receipt": {
+        "operationId": "op-seed-m2-create",
+        "matterId": "m-2",
+        "submittedAt": "2026-10-08T09:00:00.000Z",
+        "outcome": {
+          "status": "committed",
+          "revision": 1
+        }
+      }
+    },
+    "op-seed-m2-complete": {
+      "operation": {
+        "kind": "complete",
+        "operationId": "op-seed-m2-complete",
+        "matterId": "m-2",
+        "observedRevision": 1,
+        "evidence": {
+          "note": "对账单与银行流水逐笔核对一致",
+          "source": {
+            "sessionId": "session-seed-m2",
+            "quote": "九月对账全部核对完毕，账实相符"
+          }
+        },
+        "source": {
+          "sessionId": "session-seed-m2",
+          "quote": "九月对账核对完了，账实相符，办结。"
+        }
+      },
+      "receipt": {
+        "operationId": "op-seed-m2-complete",
+        "matterId": "m-2",
+        "submittedAt": "2026-10-09T15:30:00.000Z",
+        "outcome": {
+          "status": "committed",
+          "revision": 2
+        }
+      }
     }
   },
   "unclaimed": {
@@ -67,6 +152,6 @@
       "receivedAt": "2026-10-12T10:00:00.000Z"
     }
   },
-  "nextMatterSeq": 2,
+  "nextMatterSeq": 3,
   "nextUnclaimedSeq": 2
 }
