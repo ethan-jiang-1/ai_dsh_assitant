@@ -18,7 +18,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { agentsMdStabilityProblems, backlogGraduationProblems, backlogLivenessProblems, clientScriptSafetyProblems, commandAliasProblems, compositionRowProblems, configParseProblems, dependencyPoseProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, GRADUATED_STATUS, implementedAlternativesProblems, identityNameProblems, languageGuardProblems, markdownCorpusFromTracked, notesNamingProblems, notePointerProblems, notesStateProblems, notesTopLevelProblems, pinProblems, machineLocalPathProblems, packageSubpathProblems, playbookFrontmatterProblems, projectReferenceMatches, relativeLinkProblems, scratchPathProblems, skillFrontmatterProblems, startPathProblems, testAssetNamingProblems, textHygieneProblems, vendorClientFreshnessProblems } from './verify-checks.mjs'
+import { agentsMdStabilityProblems, backlogGraduationProblems, backlogLivenessProblems, clientScriptSafetyProblems, commandAliasProblems, compositionRowProblems, configParseProblems, dependencyPoseProblems, devDrawerCoverageProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, GRADUATED_STATUS, implementedAlternativesProblems, identityNameProblems, languageGuardProblems, markdownCorpusFromTracked, notesNamingProblems, notePointerProblems, notesStateProblems, notesTopLevelProblems, pinProblems, machineLocalPathProblems, packageSubpathProblems, playbookFrontmatterProblems, projectReferenceMatches, relativeLinkProblems, researchSubdirProblems, scratchPathProblems, skillFrontmatterProblems, startPathProblems, testAssetNamingProblems, textHygieneProblems, vendorClientFreshnessProblems } from './verify-checks.mjs'
 import * as gateCores from './verify-checks.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
@@ -289,6 +289,26 @@ check('backlog: liveness (status lines, institution dirs, index membership)', ()
 // Liveness only proves a card exists; the separate closure verdict prevents closed work from lingering.
 check('backlog: issues ready to close leave the active shelf', () =>
   backlogGraduationProblems(join(repoRoot, '_backlog')))
+
+// Drawer maps and the research index are prose→tree claims; both drifted silently until the
+// 2026-10-12 round (three unnamed dev/ drawers, one claimed-active research theme with zero
+// materials). Entries come from disk so even gitignored runtime homes must be covered by a row.
+check('structure: dev/ tree entries are all named in the dev drawer map', () =>
+  devDrawerCoverageProblems({
+    entries: readdirSync(join(repoRoot, 'dev'), { withFileTypes: true }).map(dirent => dirent.name),
+    drawerText: read(join(repoRoot, 'dev', 'AGENTS.md')),
+  }))
+
+check('backlog research: theme dirs on disk match the research README index', () =>
+  researchSubdirProblems({
+    subdirs: readdirSync(join(repoRoot, '_backlog', 'research'), { withFileTypes: true })
+      .filter(dirent => dirent.isDirectory())
+      .map(dirent => dirent.name),
+    readmeText: read(join(repoRoot, '_backlog', 'research', 'README.md')),
+    trackedRelPaths: execFileSync('git', ['ls-files', '_backlog/research/'], { cwd: repoRoot })
+      .toString().split('\n').filter(Boolean)
+      .map(path => path.replace(/^_backlog\/research\//, '')),
+  }))
 
 check('structure: dev tooling never inherits DSH_HOME', () =>
   dshHomeInheritanceProblems(walk(join(repoRoot, 'dev'), ['.mjs'])))
