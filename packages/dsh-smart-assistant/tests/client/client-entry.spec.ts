@@ -153,9 +153,11 @@ describe('the desk「＋ 交代新事项」 door', () => {
     materialize().apply(ctx)
 
     const main = registered.find(entry => entry.name === 'main')
-    const inject = main?.declaration.inject as (() => { onEntrust?: () => void }) | undefined
+    const inject = main?.declaration.inject as (() => { onEntrust?: () => void, onClaim?: (id: string) => void }) | undefined
     expect(typeof inject?.().onEntrust).toBe('function')
     inject?.().onEntrust?.()
+    // The claim arm rides the same inject face: the fragment detail's button must be wired.
+    expect(typeof inject?.().onClaim).toBe('function')
     // The launch is async (session creation); one macrotask turn is enough for the fake.
     await new Promise(resolve => { setTimeout(resolve, 0) })
     expect(opened).toEqual(['session-day0'])

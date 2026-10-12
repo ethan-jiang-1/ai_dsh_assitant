@@ -45,7 +45,7 @@ import { ProjectionPanel } from './projection-panel'
 import { mountProjectionReader } from './projection-lifecycle'
 import type { ProjectionDownload } from './projection-reader'
 import { createProjectionViewStore } from './projection-view'
-import { bindIntakePath, bindProcessPath, judgeIntakeReturn, judgeReturn, processingContextMessage, type DeskPath } from './desk-process'
+import { bindClaimPath, bindIntakePath, bindProcessPath, claimContextMessage, judgeClaimReturn, judgeIntakeReturn, judgeReturn, processingContextMessage, type DeskPath } from './desk-process'
 import { en as firstMileEn, zh as firstMileZh } from './locales'
 
 /** Slots this face occupies (single-occupant, root-scope, declared by the sidebar). */
@@ -181,6 +181,31 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // intake arm needs them for one thing only: selecting the matter it just created on return —
     // the matter arm's selection is the principal's own click, which the store already holds.
     let deskViewActions: { selectMatter(id: string): void } | undefined
+    // Shared by the matter and claim arms: create one session in the designated workspace (the
+    // current session's, else the first in host workspace order — the vendor list is
+    // host-ordered, not recency-ordered) — the shell's own startSession resolution; creating
+    // bare pops a from-scratch picker. The intake arm does not use this: it reuses the current
+    // session when one exists, a different explicit shape.
+    const createSessionInDesignatedWorkspace = async (): Promise<string | undefined> => {
+      const catalog = ctx.workspaces?.list.getSnapshot()
+      const currentKey = ctx.uiSession?.current.value.key
+      const workspaceId = catalog?.items.find(item => currentKey !== undefined && item.sessionIds.includes(String(currentKey)))?.workspaceId
+        ?? catalog?.items[0]?.workspaceId
+      return ctx.sessions?.create(workspaceId === undefined ? undefined : { workspaceId })
+    }
+    // The panel-seeded context note rides the same remote prompt channel for every arm: one
+    // queued, logged user message per created session; reopening a bound session never re-seeds.
+    const seedPanelMessage = (requestKind: string, sessionId: string, text: string): void => {
+      const prompt = (getDeskRemote()?.['session'] as { prompt?: (request: unknown) => Promise<unknown> } | undefined)?.prompt
+      if (prompt !== undefined) {
+        void prompt({
+          requestId: `${requestKind}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          sessionId,
+          mode: 'queue',
+          content: [{ type: 'text', text: `[面板] ${text}` }],
+        })
+      }
+    }
     const processMatter = (matterId: string): void => {
       const existing = deskPath?.getSnapshot()
       if (existing !== undefined && existing.kind === 'matter' && existing.matterId === matterId) {
@@ -198,14 +223,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       processLaunchInFlight = true
       void (async () => {
         try {
-          // Inherit the designated workspace (the current session's, else the first in host
-          // workspace order — the vendor list is host-ordered, not recency-ordered) — the
-          // shell's own startSession resolution; creating bare pops a from-scratch picker.
-          const catalog = ctx.workspaces?.list.getSnapshot()
-          const currentKey = ctx.uiSession?.current.value.key
-          const workspaceId = catalog?.items.find(item => currentKey !== undefined && item.sessionIds.includes(String(currentKey)))?.workspaceId
-            ?? catalog?.items[0]?.workspaceId
-          const sessionId = await ctx.sessions?.create(workspaceId === undefined ? undefined : { workspaceId })
+          const sessionId = await createSessionInDesignatedWorkspace()
           if (sessionId === undefined) return
           // Bind before navigation so the session's first render receives this matter's
           // visual context and is not mistaken for an unrelated first-time conversation.
@@ -222,15 +240,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
           // visible, logged message through the same panel channel — the model starts knowing
           // what it is processing instead of reconstructing intent from the filesystem. Once per
           // created session; reopening a bound session never re-seeds.
-          const prompt = (getDeskRemote()?.['session'] as { prompt?: (request: unknown) => Promise<unknown> } | undefined)?.prompt
-          if (prompt !== undefined) {
-            void prompt({
-              requestId: `desk-process-context-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-              sessionId,
-              mode: 'queue',
-              content: [{ type: 'text', text: `[面板] ${processingContextMessage(matter)}` }],
-            })
-          }
+          seedPanelMessage('desk-process-context', sessionId, processingContextMessage(matter))
         } finally {
           processLaunchInFlight = false
         }
@@ -278,6 +288,40 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         }
       })()
     }
+    // The claim arm (principal direction, 2026-10-12: every desk item selects into a contextual
+    // action): an unclaimed fragment opens the conversation in which the principal decides its
+    // home — claim to an existing matter or entrust a new one — and the desk returns once the
+    // fragment leaves the unclaimed lane and this session reads back its committed receipt.
+    // Unlike the intake arm this needs the projection readable (the fragment must exist to bind),
+    // and it always creates its own session — the current conversation may be the one that
+    // produced the ambiguity.
+    const claimFragment = (fragmentId: string): void => {
+      const existing = deskPath?.getSnapshot()
+      if (existing !== undefined && existing.kind === 'claim' && existing.fragmentId === fragmentId) {
+        ctx.uiWorkspace?.openSession(existing.sessionId)
+        return
+      }
+      if (processLaunchInFlight) return
+      const snapshot = projection?.getSnapshot()
+      if (snapshot?.status !== 'ready' || snapshot.stale === true || snapshot.data === undefined) {
+        reader?.refresh()
+        return
+      }
+      const fragment = snapshot.data.unclaimed.find(item => item.id === fragmentId)
+      if (fragment === undefined) return
+      processLaunchInFlight = true
+      void (async () => {
+        try {
+          const sessionId = await createSessionInDesignatedWorkspace()
+          if (sessionId === undefined) return
+          deskPath?.set(bindClaimPath(fragmentId, sessionId))
+          ctx.uiWorkspace?.openSession(sessionId)
+          seedPanelMessage('desk-claim-context', sessionId, claimContextMessage(fragment))
+        } finally {
+          processLaunchInFlight = false
+        }
+      })()
+    }
     const evaluateReturn = (): void => {
       const path = deskPath?.getSnapshot()
       const snapshot = projection?.getSnapshot()
@@ -310,12 +354,15 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         // channel lands; judgeReturn already reports the unsynced notice on its output.
         reminders: 'synced',
       } as const
-      const decision = path.kind === 'matter' ? judgeReturn(path, judgeInput) : judgeIntakeReturn(path, judgeInput)
+      const decision = path.kind === 'matter' ? judgeReturn(path, judgeInput)
+        : path.kind === 'intake' ? judgeIntakeReturn(path, judgeInput)
+        : judgeClaimReturn(path, { ...judgeInput, unclaimedIds: new Set(data.unclaimed.map(item => item.id)) })
       if (decision.decision === 'return') {
         deskPath?.set(undefined)
-        // The matter arm returns to a selection the store already holds; the intake arm has to
-        // select the matter it just created — that is this arm's "返回仍选 A".
-        if (path.kind === 'intake' && decision.matterId !== undefined) deskViewActions?.selectMatter(decision.matterId)
+        // The matter arm returns to a selection the store already holds; the intake and claim
+        // arms have to select where the work landed — the created matter, or the one the
+        // fragment was claimed into ("返回仍选 A" / the claim's answer to 「这条落在哪」).
+        if (path.kind !== 'matter' && decision.matterId !== undefined) deskViewActions?.selectMatter(decision.matterId)
         ctx.layout?.selectPanel('dsh-smart-assistant-dashboard')
       }
     }
@@ -374,7 +421,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
           const actions = args.find((argument): argument is { selectMatter(id: string): void } =>
             typeof argument === 'object' && argument !== null && typeof (argument as { selectMatter?: unknown }).selectMatter === 'function')
           deskViewActions = actions ?? deskViewActions
-          return { hooks: projection === undefined ? {} : { projection }, refreshProjection: () => { reader?.refresh() }, onAsk: () => { ctx.layout?.selectPanel(null) }, onEntrust: startIntake, onProcess: processMatter }
+          return { hooks: projection === undefined ? {} : { projection }, refreshProjection: () => { reader?.refresh() }, onAsk: () => { ctx.layout?.selectPanel(null) }, onEntrust: startIntake, onProcess: processMatter, onClaim: claimFragment }
         },
       }, projection === undefined ? DashboardMainPanel : ProjectionPanel)
       selectDashboardByDefault(ctx)

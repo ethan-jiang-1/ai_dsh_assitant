@@ -17,7 +17,7 @@ function text(node: unknown): string {
 const noop = (): void => {}
 function render(value: ProjectionDownload): string {
   const view = createProjectionViewStore(defineStore).create()
-  return text(ProjectionPanel({ useProjection: select => select(value), useStore: select => select(view.getSnapshot()), actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop }))
+  return text(ProjectionPanel({ useProjection: select => select(value), useStore: select => select(view.getSnapshot()), actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop, onClaim: noop }))
 }
 function findButton(node: unknown, label: string): { onClick?: () => void, disabled?: boolean } | undefined {
   if (Array.isArray(node)) {
@@ -34,6 +34,22 @@ function findButton(node: unknown, label: string): { onClick?: () => void, disab
   }
   return undefined
 }
+/** Card labels are their full text; cards (unlike action buttons) are located by substring. */
+function findButtonBySubstring(node: unknown, label: string): { onClick?: () => void } | undefined {
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const hit = findButtonBySubstring(child, label)
+      if (hit !== undefined) return hit
+    }
+    return undefined
+  }
+  if (node !== null && typeof node === 'object' && 'props' in node) {
+    const props = (node as { props: { children?: unknown, onClick?: () => void } }).props
+    if (text(node).includes(label) && props.onClick !== undefined) return props
+    return findButtonBySubstring(props.children, label)
+  }
+  return undefined
+}
 describe('global projection panel', () => {
   it('renders only the selected matter evidence and reports vanished selection without switching target', () => {
     const view = createProjectionViewStore(defineStore).create()
@@ -43,14 +59,14 @@ describe('global projection panel', () => {
       { id: 'b', title: '事项 B', status: 'active', summary: 'B 摘要', responsible: '', revision: 1, times: {}, proposals: [], evidence: [{ id: 'eb', sessionId: 'sb', eventId: 'xb', quote: 'B 来源', note: 'B 来源' }] },
     ] } }
     const process = vi.fn()
-    const props = { useProjection: <S,>(select: (value: ProjectionDownload) => S): S => select(value), useStore: <S,>(select: (value: ReturnType<typeof view.getSnapshot>) => S): S => select(view.getSnapshot()), actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: process }
+    const props = { useProjection: <S,>(select: (value: ProjectionDownload) => S): S => select(value), useStore: <S,>(select: (value: ReturnType<typeof view.getSnapshot>) => S): S => select(view.getSnapshot()), actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: process, onClaim: noop }
     const output = text(ProjectionPanel(props))
     expect(output).toContain('B 来源')
     expect(output).not.toContain('A 来源')
     expect(output).toContain('处理这件事')
     view.actions.selectMatter('gone')
     expect(text(ProjectionPanel(props))).toContain('所选事项不在当前投影中')
-    expect(view.getSnapshot().selectedId).toBe('gone')
+    expect(view.getSnapshot().selected).toEqual({ kind: 'matter', id: 'gone' })
   })
 
   it('shows the completion time on a completed matter — the fourth business time', () => {
@@ -62,7 +78,7 @@ describe('global projection panel', () => {
       proposals: [], evidence: [{ id: 'e1', sessionId: 's1', eventId: 'x1', quote: '到账回单', note: '到账回单' }],
     }
     view.actions.selectMatter('c1')
-    const props = { useProjection: <S,>(select: (value: ProjectionDownload) => S): S => select({ status: 'ready', data: { ...base, matters: [completed] } }), useStore: <S,>(select: (value: ReturnType<typeof view.getSnapshot>) => S): S => select(view.getSnapshot()), actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop }
+    const props = { useProjection: <S,>(select: (value: ProjectionDownload) => S): S => select({ status: 'ready', data: { ...base, matters: [completed] } }), useStore: <S,>(select: (value: ReturnType<typeof view.getSnapshot>) => S): S => select(view.getSnapshot()), actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop, onClaim: noop }
     const output = text(ProjectionPanel(props))
     // 四种时间各占一段：承诺/预测/核对/完成。Zoned stamps render viewer-local, so the
     // expectation is computed through the same Date API instead of a fixed wall clock.
@@ -88,7 +104,7 @@ describe('global projection panel', () => {
     const value: ProjectionDownload = { status: 'ready', data: { schemaVersion: 1, ledgerId: 'test', revision: 2, receipts: [], unclaimed: [], matters: [
       { id: 'a', title: '事项 A', status: 'active', summary: 'A 摘要', responsible: '', revision: 1, times: {}, proposals: [], evidence: [] },
     ] } }
-    const base = { useProjection: <S,>(select: (value: ProjectionDownload) => S): S => select(value), useStore: <S,>(select: (value: ReturnType<typeof view.getSnapshot>) => S): S => select(view.getSnapshot()), actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop }
+    const base = { useProjection: <S,>(select: (value: ProjectionDownload) => S): S => select(value), useStore: <S,>(select: (value: ReturnType<typeof view.getSnapshot>) => S): S => select(view.getSnapshot()), actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop, onClaim: noop }
     const entrust = vi.fn()
     // Wired: the entry hands the intake path binder through inject; the button must use it.
     findButton(ProjectionPanel({ ...base, onEntrust: entrust }), '＋ 交代新事项')?.onClick?.()
@@ -104,7 +120,7 @@ describe('global projection panel', () => {
   it('offers a visible add-matter entry routed to the conversation (2026-10-11 principal could not find one)', () => {
     const onAsk = vi.fn()
     const view = createProjectionViewStore(defineStore).create()
-    const output = ProjectionPanel({ useProjection: select => select({ status: 'missing' }), useStore: select => select(view.getSnapshot()), actions: view.actions, refreshProjection: vi.fn(), onAsk, onProcess: noop })
+    const output = ProjectionPanel({ useProjection: select => select({ status: 'missing' }), useStore: select => select(view.getSnapshot()), actions: view.actions, refreshProjection: vi.fn(), onAsk, onProcess: noop, onClaim: noop })
     expect(text(output)).toContain('＋ 交代新事项')
     findButton(output, '＋ 交代新事项')?.onClick?.()
     expect(onAsk).toHaveBeenCalledTimes(1)
@@ -119,6 +135,7 @@ describe('global projection panel', () => {
       refreshProjection: (): void => {},
       onAsk: (): void => {},
       onProcess: noop,
+      onClaim: noop,
     })
     expect(findButton(ProjectionPanel(props('loading')), '重新读取')?.disabled).toBe(true)
     expect(findButton(ProjectionPanel(props('ready')), '重新读取')?.disabled).toBe(false)
@@ -130,5 +147,53 @@ describe('global projection panel', () => {
     expect(output).toContain('已完成')
     expect(output).toContain('尚未刷新')
     expect(output).toContain('模拟资料')
+  })
+})
+
+describe('unclaimed fragments are first-class selectable items (principal direction 2026-10-12)', () => {
+  const fragment = { id: 'u-1', note: '2026-10-11 19:20 收到口头转述：「有一笔二期款已经付了」…', sessionId: 'session-src' }
+  const claimFixture = (): ProjectionDownload => ({ status: 'ready', data: { schemaVersion: 2 as const, ledgerId: 'test', revision: 3, receipts: [], unclaimed: [fragment], matters: [
+    { id: 'a', title: '事项 A', status: 'active', summary: 'A 摘要', responsible: '', revision: 1, times: {}, proposals: [], evidence: [] },
+  ] } })
+  const claimProps = (view: ReturnType<ReturnType<typeof createProjectionViewStore>['create']>, onClaim: (id: string) => void) => ({
+    useProjection: <S,>(select: (value: ProjectionDownload) => S): S => select(claimFixture()),
+    useStore: <S,>(select: (value: ReturnType<typeof view.getSnapshot>) => S): S => select(view.getSnapshot()),
+    actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop, onClaim,
+  })
+
+  it('renders the fragment card as a selectable button whose detail carries note, source and the claim action', () => {
+    const view = createProjectionViewStore(defineStore).create()
+    const onClaim = vi.fn()
+    const output = ProjectionPanel(claimProps(view, onClaim))
+    const card = findButtonBySubstring(output, '二期款已经付了')
+    expect(card).toBeDefined()
+    card?.onClick?.()
+    const detail = ProjectionPanel(claimProps(view, onClaim))
+    expect(text(detail)).toContain('二期款已经付了')
+    expect(text(detail)).toContain('来自 session-src')
+    const claimButton = findButton(detail, '认领这件事')
+    expect(claimButton).toBeDefined()
+    claimButton?.onClick?.()
+    expect(onClaim).toHaveBeenCalledWith('u-1')
+  })
+
+  it('selecting a matter again clears the fragment selection (one selection, not two)', () => {
+    const view = createProjectionViewStore(defineStore).create()
+    const onClaim = vi.fn()
+    ProjectionPanel(claimProps(view, onClaim))
+    view.actions.selectFragment('u-1')
+    expect(view.getSnapshot().selected).toEqual({ kind: 'fragment', id: 'u-1' })
+    view.actions.selectMatter('a')
+    expect(view.getSnapshot().selected).toEqual({ kind: 'matter', id: 'a' })
+    expect(text(ProjectionPanel(claimProps(view, onClaim)))).toContain('事项 A')
+  })
+
+  it('reports a vanished fragment selection instead of silently falling back', () => {
+    const view = createProjectionViewStore(defineStore).create()
+    const onClaim = vi.fn()
+    view.actions.selectFragment('gone')
+    const value: ProjectionDownload = { status: 'ready', data: { schemaVersion: 2 as const, ledgerId: 'test', revision: 1, receipts: [], unclaimed: [], matters: [] } }
+    const output = text(ProjectionPanel({ useProjection: select => select(value), useStore: select => select(view.getSnapshot()), actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop, onClaim }))
+    expect(output).toContain('所选片段不在当前投影中')
   })
 })

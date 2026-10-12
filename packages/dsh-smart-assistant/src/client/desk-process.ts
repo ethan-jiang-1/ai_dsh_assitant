@@ -128,8 +128,33 @@ export interface IntakePath {
   readonly observedMatterIds: ReadonlySet<string>
 }
 
-/** Either arm of the desk→conversation path. */
-export type DeskPath = ProcessingPath | IntakePath
+/** Every arm of the desk→conversation path. */
+export type DeskPath = ProcessingPath | IntakePath | ClaimPath
+
+/**
+ * The claim arm (principal direction, 2026-10-12: every desk item selects into a contextual
+ * action): an unclaimed fragment bound to one conversation in which the principal decides its
+ * home. There is no revision to observe — what settles the path is the fragment leaving the
+ * unclaimed lane together with this session's own committed receipt after binding.
+ */
+export interface ClaimPath {
+  readonly kind: 'claim'
+  readonly fragmentId: string
+  readonly sessionId: string
+  /** Binding instant (ISO); receipts submitted before it never settle this path. */
+  readonly boundAt: string
+}
+
+/**
+ * Bind the claim arm.
+ * @param fragmentId - The unclaimed fragment being resolved.
+ * @param sessionId - The conversation in which the principal decides its home.
+ * @param boundAt - Binding instant (ISO); defaults to now.
+ * @returns The bound claim path.
+ */
+export function bindClaimPath(fragmentId: string, sessionId: string, boundAt: string = new Date().toISOString()): ClaimPath {
+  return { kind: 'claim', fragmentId, sessionId, boundAt }
+}
 
 /**
  * Bind the intake arm.
@@ -260,6 +285,64 @@ export function judgeIntakeReturn(path: IntakePath, input: ReturnJudgeInput): Re
   }
 }
 
+/** What the claim judge needs beyond the shared input: the unclaimed ids as currently projected. */
+export interface ClaimJudgeInput extends ReturnJudgeInput {
+  /** Fragment ids still unresolved in the projection; the bound fragment leaving this set is
+   *  the consumption signal (a committed claim's flattened receipt does not carry the id). */
+  readonly unclaimedIds: ReadonlySet<string>
+}
+
+/**
+ * Judge whether the claim arm may return to the desk, and to which matter.
+ *
+ * Same shared gates as the other arms (principal still on the path; session known idle with its
+ * turn settled and nothing waiting on the principal; projection ready and fresh), and the same
+ * refusal while this session leaves a pending proposal on the target. The settle is the bound
+ * fragment leaving the unclaimed lane **plus** this session's own committed receipt submitted
+ * after binding — a claim consumes the fragment without carrying its id in the flattened
+ * receipt, so consumption is read from the lane and the association from the source session,
+ * the same reconstructible pattern as the intake arm. The return target is the latest such
+ * receipt's matter: claim-to-existing selects that matter, claim-by-creating selects the new
+ * one. The desk then reopens **selecting that matter**, which is where the fragment landed.
+ *
+ * @param path - The bound claim path.
+ * @param input - The shared judge input plus the currently projected unclaimed ids.
+ * @returns The decision with machine-readable reasons; `matterId` is set on return.
+ */
+export function judgeClaimReturn(path: ClaimPath, input: ClaimJudgeInput): ReturnDecision {
+  const reasons: string[] = []
+  if (!input.onPath) reasons.push('user-left-path')
+  if (input.session.running !== false) reasons.push('session-running')
+  if (!input.session.turnSettled) reasons.push('turn-open')
+  if (input.session.pendingInteraction) reasons.push('pending-interaction')
+  if (input.projection.status !== 'ready') reasons.push('projection-not-ready')
+  if (input.projection.stale === true) reasons.push('projection-stale')
+
+  const own = input.projection.receipts
+    .filter(receipt => receipt.sessionId === path.sessionId && receipt.status === 'committed' && receipt.submittedAt >= path.boundAt)
+    .slice()
+    .sort((left, right) => left.submittedAt.localeCompare(right.submittedAt))
+  const target = own.at(-1)
+  if (input.unclaimedIds.has(path.fragmentId)) reasons.push('fragment-not-claimed')
+  if (target === undefined) reasons.push('claim-receipt-not-read-back')
+  // A pending proposal this session raised against the target is something to decide, so the
+  // desk must not pull the principal out of the conversation (same rule as the other arms).
+  const pendingOnTarget = target !== undefined && input.projection.proposals.some(proposal =>
+    proposal.matterId === target.matterId && proposal.sessionId === path.sessionId
+      && proposal.status === 'pending' && proposal.proposedAt !== undefined && proposal.proposedAt >= path.boundAt)
+  if (pendingOnTarget) reasons.push('pending-proposal')
+  if (target !== undefined && !input.projection.matterIds.has(target.matterId)) reasons.push('matter-vanished')
+
+  const remindersUnsynced = input.reminders !== 'synced'
+  if (reasons.length > 0 || target === undefined) return { decision: 'stay', reasons, remindersUnsynced }
+  return {
+    decision: 'return',
+    matterId: target.matterId,
+    reasons: remindersUnsynced ? ['reminders-unsynced'] : [],
+    remindersUnsynced,
+  }
+}
+
 /** The matter fields the processing-session seed needs (structural view of a projection matter). */
 export interface ProcessingContextMatter {
   readonly id: string
@@ -282,4 +365,25 @@ export function processingContextMessage(matter: ProcessingContextMatter): strin
   ].filter(part => part !== undefined).join('、')
   const head = `正在处理事项「${matter.title}」（${matter.id}）`
   return `${head}${times === '' ? '' : `：${times}`}。${matter.summary} 请先用 assistant_operating read ${matter.id} 核对台账详情，然后等我具体指令。`
+}
+
+/** The unclaimed-fragment fields the claim-session seed needs (structural projection view). */
+export interface ClaimContextFragment {
+  readonly id: string
+  readonly note: string
+  readonly sessionId: string
+}
+
+/**
+ * The visible context note seeded into a claim session (principal direction, 2026-10-12: the
+ * fragment IS the session's context). The decision the desk cannot make — which matter this is,
+ * or that it is a new one — is the conversation's whole point; the seed names the fragment,
+ * states the no-guess rule, and points at the tool path. Like the matter seed, the sender
+ * prefixes the `[面板]` marker so the log keeps machine-written prompts apart from the
+ * principal's own words.
+ * @param fragment - the bound fragment from the projection snapshot.
+ * @returns the seed message text, principal-visible and logged.
+ */
+export function claimContextMessage(fragment: ClaimContextFragment): string {
+  return `正在处理待认领片段（unclaimed ${fragment.id}，来自 ${fragment.sessionId}）：「${fragment.note}」。这条信息还没归户——请先与我确认它属于哪件在办事项、还是应当立为新事项；等我明确答复后，再用 assistant_operating claim（带 unclaimed_id ${fragment.id}）或 entrust 落账，并保留原文与来源。未经我确认不要自行归户。`
 }

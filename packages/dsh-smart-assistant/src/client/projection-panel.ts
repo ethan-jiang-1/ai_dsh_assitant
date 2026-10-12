@@ -8,7 +8,7 @@ import type { ProjectionView } from './projection-view'
 export interface ProjectionPanelProps {
   useProjection<S>(select: (value: ProjectionDownload) => S): S
   useStore<S>(select: (view: ProjectionView) => S): S
-  actions: { selectMatter(id: string): void; showList(): void; rememberListPosition(position: number): void }
+  actions: { selectMatter(id: string): void; selectFragment(id: string): void; showList(): void; rememberListPosition(position: number): void }
   refreshProjection(): void
   onAsk(): void
   /** The 「＋ 交代新事项」 entry. Falls back to `onAsk` where no intake path is wired (tests,
@@ -16,6 +16,8 @@ export interface ProjectionPanelProps {
   onEntrust?(): void
   /** Open the explicit processing path for one matter (bound to the entry's processMatter). */
   onProcess(matterId: string): void
+  /** Open the explicit claim path for one unclaimed fragment (bound to the entry's claimFragment). */
+  onClaim(fragmentId: string): void
 }
 const errors: Record<string, string> = {
   'authentication-required': '登录已失效，请重新登录后再读取。',
@@ -123,7 +125,9 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
   const download = props.useProjection(value => value)
   const data = download.data
   const view = props.useStore(value => value)
-  const selected = data?.matters.find(matter => matter.id === view.selectedId)
+  const selection = view.selected
+  const selected = selection?.kind === 'matter' ? data?.matters.find(matter => matter.id === selection.id) : undefined
+  const selectedFragment = selection?.kind === 'fragment' ? data?.unclaimed.find(fragment => fragment.id === selection.id) : undefined
   const pendingProposals = data?.matters.reduce((count, matter) => count + matter.proposals.filter(proposal => proposal.status === 'pending').length, 0) ?? 0
   const message = download.status === 'disconnected' ? '连接已断开，恢复连接后重新读取。'
     : download.status === 'loading' ? '正在读取桌面…'
@@ -175,7 +179,7 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
             key: matter.id,
             type: 'button',
             className: 'dsha-card',
-            'data-selected': String(view.selectedId === matter.id),
+            'data-selected': String(selection?.kind === 'matter' && selection.id === matter.id),
             onClick: () => props.actions.selectMatter(matter.id),
           },
           ce('span', { className: 'dsha-card-title' },
@@ -190,12 +194,23 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
           matter.summary.length > 0 ? ce('p', { className: 'dsha-card-summary' }, matter.summary) : null,
           matter.proposals.some(proposal => proposal.status === 'pending') ? ce('p', { className: 'dsha-card-meta' }, chip('warn', '等你确认')) : null)),
           unclaimed.length > 0 ? ce('p', { className: 'dsha-list-label' }, '待认领——还没说清是哪件事，不猜') : null,
-          unclaimed.map(fragment => ce('div', { key: fragment.id, className: 'dsha-card' },
-            ce('span', { className: 'dsha-card-title' }, chip('warn', '待认领'), ce('span', {}, fragment.note)),
-            ce('p', { className: 'dsha-card-meta' }, `来自 ${fragment.sessionId}`)))),
-        ce('div', { className: 'dsha-matter-detail dsha-detail' }, selected === undefined
-          ? view.selectedId === null ? ce('p', { className: 'dsha-detail-hint' }, '选择一项查看详情。') : ce('p', { className: 'dsha-detail-hint' }, '所选事项不在当前投影中。')
-          : ce('article', {},
+          unclaimed.map(fragment => ce('button', {
+            key: fragment.id,
+            type: 'button',
+            className: 'dsha-card',
+            'data-selected': String(selection?.kind === 'fragment' && selection.id === fragment.id),
+            onClick: () => props.actions.selectFragment(fragment.id),
+          },
+          ce('span', { className: 'dsha-card-title' }, chip('warn', '待认领'), ce('span', {}, fragment.note)),
+          ce('p', { className: 'dsha-card-meta' }, `来自 ${fragment.sessionId}`)))),
+        ce('div', { className: 'dsha-matter-detail dsha-detail' },
+          selectedFragment !== undefined ? ce('article', {},
+            ce('div', { className: 'dsha-meta' },
+              ce('button', { className: 'dsha-btn dsha-back', type: 'button', onClick: props.actions.showList }, '返回事项列表'),
+              ce('button', { className: 'dsha-btn dsha-btn-primary', type: 'button', onClick: () => props.onClaim(selectedFragment.id) }, '认领这件事')),
+            ce('h2', {}, chip('warn', '待认领'), ce('span', {}, selectedFragment.note)),
+            ce('p', { className: 'dsha-card-meta' }, `来自 ${selectedFragment.sessionId} · 还没说清是哪件事——认领后原文与来源随附入账`))
+          : selected !== undefined ? ce('article', {},
             ce('div', { className: 'dsha-meta' },
               ce('button', { className: 'dsha-btn dsha-back', type: 'button', onClick: props.actions.showList }, '返回事项列表'),
               ce('button', { className: 'dsha-btn dsha-btn-primary', type: 'button', onClick: () => props.onProcess?.(selected.id) }, '处理这件事')),
@@ -209,6 +224,9 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
             selected.evidence.length === 0 ? ce('p', { className: 'dsha-card-summary' }, '暂无可核对依据。')
               : ce('ul', { className: 'dsha-evidence' }, ...selected.evidence.map(item => ce('li', { key: item.id },
                 ce('p', {}, item.note),
-                ce('small', {}, `${item.sessionId}${item.eventId !== undefined ? ` / ${item.eventId}` : ''}${item.quote !== undefined && item.quote !== item.note ? ` ·「${item.quote}」` : ''}`))))))),
+                ce('small', {}, `${item.sessionId}${item.eventId !== undefined ? ` / ${item.eventId}` : ''}${item.quote !== undefined && item.quote !== item.note ? ` ·「${item.quote}」` : ''}`)))))
+          : selection === null ? ce('p', { className: 'dsha-detail-hint' }, '选择一项查看详情。')
+          : selection.kind === 'fragment' ? ce('p', { className: 'dsha-detail-hint' }, '所选片段不在当前投影中。')
+          : ce('p', { className: 'dsha-detail-hint' }, '所选事项不在当前投影中。'))),
   )
 }

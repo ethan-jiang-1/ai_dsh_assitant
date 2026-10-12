@@ -29,7 +29,7 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { bindIntakePath, bindProcessPath, judgeIntakeReturn, judgeReturn, processingContextMessage, type JudgeProposal, type JudgeSession } from '../../src/client/desk-process.ts'
+import { bindClaimPath, bindIntakePath, bindProcessPath, claimContextMessage, judgeClaimReturn, judgeIntakeReturn, judgeReturn, processingContextMessage, type JudgeProposal, type JudgeSession } from '../../src/client/desk-process.ts'
 
 interface Receipt { operationId: string, matterId: string, sessionId: string, status: string, revision?: number, proposalId?: string, submittedAt: string }
 
@@ -263,5 +263,95 @@ describe('intake path (交代首事 arm)', () => {
     })
     expect(vanished.decision).toBe('stay')
     expect(vanished.reasons).toContain('matter-vanished')
+  })
+})
+
+/**
+ * The claim arm (principal direction, 2026-10-12: every desk item selects into a contextual
+ * action). An unclaimed fragment binds like a matter; what settles it is the fragment leaving
+ * the unclaimed lane (a committed claim consumes it — the flattened committed receipt does not
+ * carry the fragment id) together with this session's own committed receipt after binding, whose
+ * matter is the return target — the same reconstructible association as the intake arm, one
+ * resolution later.
+ */
+describe('claim path (待认领 arm: the fragment IS the context, the claim IS the settle)', () => {
+  const boundClaim = () => bindClaimPath('u-1', 'session-1', BOUND_AT)
+  const claimJudge = (
+    receipts: Receipt[],
+    unclaimedIds: ReadonlySet<string> = new Set(['u-1']),
+    extra: Partial<Parameters<typeof judgeClaimReturn>[1]> = {},
+    proposals: readonly JudgeProposal[] = [],
+    freshness: { status: string, stale: boolean } = { status: 'ready', stale: false },
+  ) => judgeClaimReturn(boundClaim(), {
+    projection: { receipts, matterIds: new Set(['m-A', 'm-new']), proposals, ...freshness },
+    session: session(), onPath: true, reminders: 'synced', unclaimedIds, ...extra,
+  })
+
+  it('binds the fragment, session and instant into its own path kind', () => {
+    expect(boundClaim()).toMatchObject({ kind: 'claim', fragmentId: 'u-1', sessionId: 'session-1', boundAt: BOUND_AT })
+  })
+
+  it('stays while the fragment is still unclaimed, even when the session committed other work', () => {
+    const decision = claimJudge([freshCommitted({ matterId: 'm-A' })])
+    expect(decision.decision).toBe('stay')
+    expect(decision.reasons).toContain('fragment-not-claimed')
+  })
+
+  it('stays when the fragment vanished but this session read back nothing (resolved elsewhere)', () => {
+    const decision = claimJudge([], new Set())
+    expect(decision.decision).toBe('stay')
+    expect(decision.reasons).toContain('claim-receipt-not-read-back')
+  })
+
+  it('stays when the only receipt predates the binding — the claim did not happen on this path', () => {
+    const decision = claimJudge([freshCommitted({ submittedAt: '2026-10-10T11:00:00.000Z' })], new Set())
+    expect(decision.decision).toBe('stay')
+    expect(decision.reasons).toContain('claim-receipt-not-read-back')
+  })
+
+  it('returns when the fragment is consumed and this session reads back a committed receipt, selecting the claimed matter', () => {
+    const decision = claimJudge([freshCommitted({ matterId: 'm-A' })], new Set())
+    expect(decision).toEqual({ decision: 'return', matterId: 'm-A', reasons: [], remindersUnsynced: false })
+  })
+
+  it('targets the latest committed receipt when the resolution created a new matter', () => {
+    const decision = claimJudge([
+      freshCommitted({ matterId: 'm-A', operationId: 'op-1', submittedAt: '2026-10-10T12:01:00.000Z' }),
+      freshCommitted({ matterId: 'm-new', operationId: 'op-new', submittedAt: '2026-10-10T12:06:00.000Z' }),
+    ], new Set())
+    expect(decision.decision).toBe('return')
+    expect(decision.matterId).toBe('m-new')
+  })
+
+  it('stays while this path leaves a pending proposal on the target matter', () => {
+    const proposal: JudgeProposal = { id: 'p-1', matterId: 'm-A', sessionId: 'session-1', proposedAt: '2026-10-10T12:02:00.000Z', status: 'pending' }
+    const decision = claimJudge([freshCommitted()], new Set(), {}, [proposal])
+    expect(decision.decision).toBe('stay')
+    expect(decision.reasons).toContain('pending-proposal')
+  })
+
+  it('keeps the shared gates: principal leaving, running session, stale projection', () => {
+    expect(claimJudge([freshCommitted()], new Set(), { onPath: false }).reasons).toContain('user-left-path')
+    expect(claimJudge([freshCommitted()], new Set(), { session: session({ running: true, turnSettled: false }) }).reasons).toContain('session-running')
+    expect(claimJudge([freshCommitted()], new Set(), {}, [], { status: 'ready', stale: true }).reasons).toContain('projection-stale')
+  })
+
+  it('reports a claimed matter that vanished instead of returning onto a ghost', () => {
+    const decision = judgeClaimReturn(boundClaim(), {
+      projection: { status: 'ready', stale: false, receipts: [freshCommitted()], matterIds: new Set(), proposals: [] },
+      session: session(), onPath: true, reminders: 'synced', unclaimedIds: new Set(),
+    })
+    expect(decision.decision).toBe('stay')
+    expect(decision.reasons).toContain('matter-vanished')
+  })
+
+  it('seeds the conversation with the fragment identity, the no-guess rule and the tool path', () => {
+    const message = claimContextMessage({ id: 'u-1', note: '有一笔二期款已经付了', sessionId: 'session-src' })
+    expect(message).toContain('待认领片段')
+    expect(message).toContain('「有一笔二期款已经付了」')
+    expect(message).toContain('u-1')
+    expect(message).toContain('assistant_operating')
+    expect(message).toContain('claim')
+    expect(message).toContain('未经')
   })
 })
