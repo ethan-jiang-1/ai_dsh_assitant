@@ -342,6 +342,30 @@ if (scenario === 'claim') {
   }
   pass('claim-single-session', { created: sessionsAfterClaim - sessionsBeforeClaim })
 
+  // 相位（桌面历史视角卡 261012 ③）：流水视角——切到流水，操作按天倒序在场（今天的认领
+  // 在种子账本 10-10 的交办立项之前），点认领条目跳转回看板并选中归属事项。
+  const activitySwitch = await evaluate(`(() => {
+    const chip = [...document.querySelectorAll('button.dsha-filter-chip')].find(b => (b.textContent ?? '').trim() === '流水');
+    if (chip === undefined) return 'mode-chip-not-found';
+    chip.click(); return 'switched';
+  })()`)
+  if (activitySwitch !== 'switched') { teardown(); fail('activity-switch', { activitySwitch }) }
+  const feedText = await evaluate(deskText)
+  if (feedText === null || !feedText.includes('认领归户') || !feedText.includes('交办立项')) fail('activity-feed', { feedText: String(feedText).slice(0, 300) })
+  if (feedText.indexOf('认领归户') > feedText.indexOf('交办立项')) fail('activity-order', { feedText: String(feedText).slice(0, 300) })
+  const entryJump = await evaluate(`(() => {
+    const entry = [...document.querySelectorAll('button.dsha-activity-entry')].find(b => (b.textContent ?? '').includes('认领归户'));
+    if (entry === undefined) return 'entry-not-found';
+    entry.click(); return 'jumped';
+  })()`)
+  if (entryJump !== 'jumped') { teardown(); fail('activity-jump', { entryJump }) }
+  const jumpedText = await evaluate(deskText)
+  if (jumpedText === null || !jumpedText.includes('处理这件事') || !jumpedText.includes('合同 NB-02 第二期款')) {
+    fail('activity-jump-selection', { jumpedText: String(jumpedText).slice(0, 200) })
+  }
+  pass('activity-feed-and-jump', {})
+  writeFileSync(join(shotDir, '5-activity-feed.png'), await browser.captureScreenshot())
+
   verdict.consoleProblems = consoleProblems
   verdict.exceptions = exceptions
   teardown()
