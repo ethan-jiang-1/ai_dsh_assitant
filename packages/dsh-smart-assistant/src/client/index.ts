@@ -34,7 +34,7 @@ import {
 import type { DeskStore } from './desk-core'
 import { bindDeskEnv, getDeskRemote, loadDesk, loadDeskFor, openBeside } from './desk-io'
 import { AssistantBrandMark, AssistantBrandName, AssistantHeroMark } from './brand'
-import { roomCommands } from './commands'
+import { deskCommands, roomCommands } from './commands'
 import { DashboardMainPanel, DashboardPanelIcon } from './dashboard'
 import { ApprovalDockBanner, FirstMileDock } from './first-mile'
 import { KnowledgeTabBody, MemoryTabBody, roomTabTitle } from './room-tabs'
@@ -181,6 +181,10 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // intake arm needs them for one thing only: selecting the matter it just created on return —
     // the matter arm's selection is the principal's own click, which the store already holds.
     let deskViewActions: { selectMatter(id: string): void } | undefined
+    // The command palette's 「打开桌面·流水」 parks its intent here; the desk's next render
+    // consumes it through the baked actions (the same handoff the return navigation uses) —
+    // the command itself runs outside any render, so it cannot reach the store directly.
+    let pendingDeskMode: 'activity' | undefined
     // Shared by the matter and claim arms: create one session in the designated workspace (the
     // current session's, else the first in host workspace order — the vendor list is
     // host-ordered, not recency-ordered) — the shell's own startSession resolution; creating
@@ -418,9 +422,14 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         // `(sessionId, actions)`, a root-scoped one gets `(actions)` alone (`main` is root-scoped).
         // Take whichever argument actually carries the baked actions instead of trusting position.
         inject: (...args: unknown[]) => {
-          const actions = args.find((argument): argument is { selectMatter(id: string): void } =>
+          const actions = args.find((argument): argument is { selectMatter(id: string): void, setMode(mode: 'activity'): void } =>
             typeof argument === 'object' && argument !== null && typeof (argument as { selectMatter?: unknown }).selectMatter === 'function')
           deskViewActions = actions ?? deskViewActions
+          // The command palette's parked intent: switch the freshly rendered desk to the feed.
+          if (pendingDeskMode !== undefined && actions !== undefined) {
+            actions.setMode(pendingDeskMode)
+            pendingDeskMode = undefined
+          }
           return { hooks: projection === undefined ? {} : { projection }, refreshProjection: () => { reader?.refresh() }, onAsk: () => { ctx.layout?.selectPanel(null) }, onEntrust: startIntake, onProcess: processMatter, onClaim: claimFragment }
         },
       }, projection === undefined ? DashboardMainPanel : ProjectionPanel)
@@ -529,7 +538,10 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     ctx.inject?.(['commandUi'], (scope) => {
       const commandUi = scope.get('commandUi') as CommandUiRegistry | undefined
       if (commandUi === undefined) return
-      for (const contribution of roomCommands(openBeside)) commandUi.register(contribution)
+      for (const contribution of [...roomCommands(openBeside), ...deskCommands(() => {
+        pendingDeskMode = 'activity'
+        ctx.layout?.selectPanel('dsh-smart-assistant-dashboard')
+      })]) commandUi.register(contribution)
     })
 
     // First-mile identity and guidance (P1-B, 2026-09-26). Two seats the shell leaves open

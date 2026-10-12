@@ -8,7 +8,7 @@ import type { ProjectionView } from './projection-view'
 export interface ProjectionPanelProps {
   useProjection<S>(select: (value: ProjectionDownload) => S): S
   useStore<S>(select: (view: ProjectionView) => S): S
-  actions: { selectMatter(id: string): void; selectFragment(id: string): void; showList(): void; rememberListPosition(position: number): void; setFilter(filter: ProjectionView['filter']): void }
+  actions: { selectMatter(id: string): void; selectFragment(id: string): void; showList(): void; rememberListPosition(position: number): void; setFilter(filter: ProjectionView['filter']): void; setMode(mode: ProjectionView['mode']): void; revealMoreActivity(): void }
   refreshProjection(): void
   onAsk(): void
   /** The 「＋ 交代新事项」 entry. Falls back to `onAsk` where no intake path is wired (tests,
@@ -43,6 +43,7 @@ const FILTER_LABEL: Record<'all' | 'active' | 'settled', string> = { all: '全�
 const STYLES = [
   '.dsha-desk{display:flex;flex-direction:column;gap:16px;padding:20px 24px;overflow-y:auto;min-width:0;container-type:inline-size;height:100%;box-sizing:border-box;}',
   '.dsha-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}',
+  '.dsha-modes{display:flex;gap:6px;}',
   '.dsha-title{margin:0;font-size:19px;font-weight:600;color:var(--dsw-alias-label-primary);}',
   '.dsha-sub{font-size:13px;color:var(--dsw-alias-label-secondary);}',
   '.dsha-actions{margin-left:auto;display:flex;gap:8px;}',
@@ -75,6 +76,13 @@ const STYLES = [
   '.dsha-proposal{margin:10px 0;background:var(--dsha-warn-tint);border:0;border-radius:8px;padding:10px 12px;}',
   '.dsha-evidence{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:8px;}',
   '.dsha-evidence li{border-left:0.5px solid var(--dsw-alias-border-l3);padding-left:10px;}',
+  '.dsha-activity{display:flex;flex-direction:column;gap:12px;min-width:0;}',
+  '.dsha-activity-day{display:flex;flex-direction:column;gap:6px;}',
+  '.dsha-activity-date{margin:0;font-size:12px;color:var(--dsw-alias-label-tertiary);}',
+  '.dsha-activity-entry{display:block;width:100%;text-align:left;background:var(--dsw-alias-bg-layer-1);border:0.5px solid var(--dsw-alias-border-l2);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;}',
+  'button.dsha-activity-entry:hover{background:var(--dsw-alias-bg-layer-2);}',
+  '.dsha-activity-line{margin:0;font-size:13px;color:var(--dsw-alias-label-primary);overflow-wrap:anywhere;}',
+  '.dsha-activity-more{align-self:flex-start;}',
   '.dsha-ops{margin:12px 0 0;display:flex;flex-direction:column;gap:6px;}',
   '.dsha-ops-title{margin:0;font-size:12px;color:var(--dsw-alias-label-tertiary);}',
   '.dsha-op{border-left:0.5px solid var(--dsw-alias-border-l3);padding-left:10px;}',
@@ -125,6 +133,24 @@ function humanTime(value: string): string {
   return naive === null ? value : `${naive[1]} ${naive[2]}`
 }
 
+/** Local wall-clock helpers for the activity feed's day grouping (viewer's zone, like humanTime). */
+function localDateKey(value: string): string {
+  const at = new Date(value)
+  if (Number.isNaN(at.getTime())) return value
+  const pad = (n: number): string => String(n).padStart(2, '0')
+  return `${at.getFullYear()}-${pad(at.getMonth() + 1)}-${pad(at.getDate())}`
+}
+function localDateLabel(value: string): string {
+  const at = new Date(value)
+  if (Number.isNaN(at.getTime())) return value
+  return `${at.getMonth() + 1}月${at.getDate()}日 周${'日一二三四五六'[at.getDay()]}`
+}
+function localTimeLabel(value: string): string {
+  const at = new Date(value)
+  if (Number.isNaN(at.getTime())) return value
+  return `${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')}`
+}
+
 function timeParts(times: { readonly promisedDeadline?: string; readonly forecastAt?: string; readonly nextCheckpoint?: string; readonly completedAt?: string }): string[] {
   const parts: string[] = []
   if (times.promisedDeadline !== undefined) parts.push(`承诺 ${humanTime(times.promisedDeadline)}`)
@@ -153,6 +179,19 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
     ? (data?.receipts ?? []).filter(receipt => receipt.matterId === selection.id)
       .slice().sort((left, right) => right.submittedAt.localeCompare(left.submittedAt))
     : []
+  // The activity feed (history views ③): every operation newest first, grouped by the viewer's
+  // local day, revealed progressively — the whole ledger is already downloaded, so revealing is
+  // pure rendering. Entries whose matter is gone (or that touch none, matterId '') render inert.
+  const activityEntries = (data?.receipts ?? []).slice().sort((left, right) => right.submittedAt.localeCompare(left.submittedAt))
+  const shownActivity = activityEntries.slice(0, Math.max(1, view.activityLimit))
+  const titleOfMatter = (matterId: string): string => data?.matters.find(matter => matter.id === matterId)?.title ?? matterId
+  const activityGroups: { key: string; label: string; entries: typeof shownActivity }[] = []
+  for (const receipt of shownActivity) {
+    const key = localDateKey(receipt.submittedAt)
+    const group = activityGroups.at(-1)
+    if (group !== undefined && group.key === key) group.entries.push(receipt)
+    else activityGroups.push({ key, label: localDateLabel(receipt.submittedAt), entries: [receipt] })
+  }
   const pendingProposals = data?.matters.reduce((count, matter) => count + matter.proposals.filter(proposal => proposal.status === 'pending').length, 0) ?? 0
   const message = download.status === 'disconnected' ? '连接已断开，恢复连接后重新读取。'
     : download.status === 'loading' ? '正在读取桌面…'
@@ -171,25 +210,41 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
       + (unclaimed.length > 0 ? ` · ${unclaimed.length} 条待认领` : '')
   // ⑧ of the K1/K2 accepted-limitation list (spec-card source verification 2026-10-10): the
   // desk ROOT is the scroll container — the list never scrolls itself — so the record path
-  // rides the root's onScroll, and the restore path is this post-render DOM effect on the
+  // rides the root's onScroll (board mode only: scrolling the activity feed must not corrupt
+  // the board's saved position), and the restore path is this post-render DOM effect on the
   // root ref. The view store survives panel switches (the processing flow's auto-return
   // remounts the whole panel), the DOM does not; the guard keeps re-render invocations off a
   // live scroll position, and a principal who scrolled back to top has already zeroed the
-  // store through onScroll.
+  // store through onScroll. Activity mode always presents itself from the top.
   const restoreRootScroll = (element: { scrollTop: number } | null): void => {
-    if (element !== null && element.scrollTop === 0 && view.listScrollTop > 0) element.scrollTop = view.listScrollTop
+    if (element === null) return
+    if (view.mode === 'activity') {
+      if (element.scrollTop !== 0) element.scrollTop = 0
+      return
+    }
+    if (element.scrollTop === 0 && view.listScrollTop > 0) element.scrollTop = view.listScrollTop
   }
   return ce('main', {
     className: 'dsha-desk',
     'data-assistant-operating-desk': true,
     ref: restoreRootScroll,
-    onScroll: (event: { currentTarget: { scrollTop: number } }) => props.actions.rememberListPosition(event.currentTarget.scrollTop),
+    onScroll: (event: { currentTarget: { scrollTop: number } }) => {
+      if (view.mode === 'board') props.actions.rememberListPosition(event.currentTarget.scrollTop)
+    },
   },
     ce('style', {}, STYLES),
     ce('header', { className: 'dsha-head' },
       ce('div', {},
         ce('h1', { className: 'dsha-title' }, '你的桌面'),
         counts === undefined ? null : ce('div', { className: 'dsha-sub' }, counts)),
+      data !== undefined ? ce('div', { className: 'dsha-modes' },
+        (['board', 'activity'] as const).map(mode => ce('button', {
+          key: mode,
+          type: 'button',
+          className: 'dsha-filter-chip',
+          'data-on': String(view.mode === mode),
+          onClick: () => props.actions.setMode(mode),
+        }, mode === 'board' ? '看板' : '流水'))) : null,
       ce('div', { className: 'dsha-actions' },
         ce('button', { className: 'dsha-btn', onClick: props.refreshProjection, disabled: download.status === 'loading', title: download.status === 'loading' ? '正在读取桌面…' : '重新读取桌面' }, '重新读取'),
         ce('button', { className: 'dsha-btn', onClick: props.onAsk }, '有问题？跟助手说'),
@@ -203,6 +258,21 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
       ce(AssistantBrandMark, { size: 44 }),
       ce('p', { className: 'dsha-detail-hint' },
         download.status === 'missing' ? '还没有经营事项资料。交代一件试试——它会被记进权威账本，事事有着落。' : '还没有经营事项。交代一件试试——它会被记进权威账本，事事有着落。'))
+      : view.mode === 'activity' && data !== undefined ? ce('section', { className: 'dsha-activity' },
+        activityEntries.length === 0 ? ce('p', { className: 'dsha-detail-hint' }, '还没有做过任何动作——交代第一件事试试。') : null,
+        ...activityGroups.map(group => ce('div', { key: group.key, className: 'dsha-activity-day' },
+          ce('p', { className: 'dsha-activity-date' }, group.label),
+          ...group.entries.map(receipt => {
+            const known = receipt.matterId !== '' && data.matters.some(matter => matter.id === receipt.matterId)
+            const entryLine = ce('span', { className: 'dsha-activity-line' },
+              `${localTimeLabel(receipt.submittedAt)} ${OP_LABEL[receipt.kind ?? ''] ?? '操作'}${OP_STATUS_NOTE[receipt.status] !== undefined ? `（${OP_STATUS_NOTE[receipt.status]}）` : ''}${known ? ` · ${titleOfMatter(receipt.matterId)}` : ''}`)
+            const quote = receipt.quote !== undefined ? ce('p', { className: 'dsha-op-quote' }, `「${receipt.quote}」`) : null
+            return known
+              ? ce('button', { key: receipt.operationId, type: 'button', className: 'dsha-activity-entry',
+                  onClick: () => { props.actions.setMode('board'); props.actions.selectMatter(receipt.matterId) } }, entryLine, quote)
+              : ce('div', { key: receipt.operationId, className: 'dsha-activity-entry' }, entryLine, quote)
+          }))),
+        activityEntries.length > shownActivity.length ? ce('button', { type: 'button', className: 'dsha-btn dsha-activity-more', onClick: () => props.actions.revealMoreActivity() }, '显示更早') : null)
       : ce('section', { className: 'dsha-matters', 'data-pane': view.pane },
         ce('div', { className: 'dsha-matter-list dsha-list', onScroll: (event: { currentTarget: { scrollTop: number } }) => props.actions.rememberListPosition(event.currentTarget.scrollTop) },
           matters.length > 0 ? ce('div', { className: 'dsha-filter' },

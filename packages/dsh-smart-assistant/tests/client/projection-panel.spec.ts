@@ -91,6 +91,48 @@ describe('global projection panel', () => {
     expect(text(ProjectionPanel(props))).toContain('办结的事B')
   })
 
+  it('activity mode renders the operations feed grouped newest-first and an entry click jumps to its matter (history views ③)', () => {
+    const view = createProjectionViewStore(defineStore).create()
+    view.actions.setMode('activity')
+    const value: ProjectionDownload = { status: 'ready', data: { schemaVersion: 2 as const, ledgerId: 'test', revision: 3, receipts: [
+      { operationId: 'op-1', matterId: 'a', sessionId: 's1', submittedAt: '2026-10-12T01:00:00.000Z', status: 'committed', revision: 1, kind: 'create' },
+      { operationId: 'op-2', matterId: 'b', sessionId: 's2', submittedAt: '2026-10-13T05:00:00.000Z', status: 'committed', revision: 1, kind: 'claim', quote: '那条就是它的' },
+    ], unclaimed: [], matters: [
+      { id: 'a', title: '事项A', status: 'active', summary: '', responsible: '', revision: 1, times: {}, proposals: [], evidence: [] },
+      { id: 'b', title: '事项B', status: 'active', summary: '', responsible: '', revision: 1, times: {}, proposals: [], evidence: [] },
+    ] } }
+    const output = ProjectionPanel({ useProjection: select => select(value), useStore: select => select(view.getSnapshot()), actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop, onClaim: noop })
+    const flat = text(output)
+    // Newest first across matters: the 10-13 claim precedes the 10-12 creation.
+    expect(flat.indexOf('认领归户')).toBeLessThan(flat.indexOf('交办立项'))
+    expect(flat).toContain('事项B')
+    expect(flat).toContain('「那条就是它的」')
+    // The entry is a button that jumps: board mode back on, the matter selected in detail.
+    const entry = findButtonBySubstring(output, '认领归户')
+    expect(entry).toBeDefined()
+    entry?.onClick?.()
+    expect(view.getSnapshot().mode).toBe('board')
+    expect(view.getSnapshot().selected).toEqual({ kind: 'matter', id: 'b' })
+  })
+
+  it('progressively reveals older operations inside the activity feed', () => {
+    const view = createProjectionViewStore(defineStore).create()
+    view.actions.setMode('activity')
+    const receipts = Array.from({ length: 60 }, (_, index) => ({
+      operationId: `op-${String(index)}`, matterId: 'a', sessionId: 's', submittedAt: new Date(Date.UTC(2026, 9, 1, 0, index)).toISOString(), status: 'committed', revision: index + 1, kind: 'update',
+    }))
+    const value: ProjectionDownload = { status: 'ready', data: { schemaVersion: 2 as const, ledgerId: 'test', revision: 60, receipts, unclaimed: [], matters: [
+      { id: 'a', title: '事项A', status: 'active', summary: '', responsible: '', revision: 1, times: {}, proposals: [], evidence: [] },
+    ] } }
+    const props = { useProjection: <S,>(select: (value: ProjectionDownload) => S): S => select(value), useStore: <S,>(select: (value: ReturnType<typeof view.getSnapshot>) => S): S => select(view.getSnapshot()), actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop, onClaim: noop }
+    // The default limit reveals the newest 50; the rest waits behind 「显示更早」.
+    expect((text(ProjectionPanel(props)).match(/更新事项/g) ?? []).length).toBe(50)
+    const more = findButton(ProjectionPanel(props), '显示更早')
+    expect(more).toBeDefined()
+    more?.onClick?.()
+    expect((text(ProjectionPanel(props)).match(/更新事项/g) ?? []).length).toBe(60)
+  })
+
   it('renders the matter biography: the actions section lists this matter\'s operations newest-first with kind labels, quotes and sessions', () => {
     const view = createProjectionViewStore(defineStore).create()
     view.actions.selectMatter('a')

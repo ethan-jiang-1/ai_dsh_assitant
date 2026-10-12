@@ -35,3 +35,22 @@ export function roomCommands(open: (kind: RoomKind) => void): CommandContributio
     },
   ]
 }
+
+/**
+ * The desk's history view as a discoverable command (history views ③, card 261012): the
+ * operations feed is the retrieval surface for "what has been done" — reachable without
+ * remembering to open the desk first.
+ * @param openActivity - opens the desk main panel switched to the activity feed.
+ * @returns the contribution.
+ */
+export function deskCommands(openActivity: () => void): CommandContribution[] {
+  return [
+    {
+      name: 'desk-activity',
+      label: () => '打开桌面·流水',
+      description: () => '做过的每一件事：账本操作的倒序流水，点条目跳到那件事',
+      available: () => true,
+      ui: { kind: 'action', run: openActivity },
+    },
+  ]
+}
