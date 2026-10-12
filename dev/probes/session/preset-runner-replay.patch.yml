@@ -37,6 +37,10 @@
   disabled: true
 - id: llm-deepseek-account
   disabled: true
+  # 同 replay-adapter.patch.yml 的教训（2026-10-12）：标题调用与 agent 回合走同一 llm 服务、
+  # 同一 sessionId，会按位吃掉脚本里的下一格——one-shot 里同样必须禁掉，回放对齐才是确定的。
+- id: session-title-llm
+  disabled: true
 - insert:
     - id: assistant-preset-runner
       name: dsh-smart-assistant/preset-runner
