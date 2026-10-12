@@ -20,10 +20,17 @@
 # - replay provider 注册 deepseek-official / deepseek-flash——与 base 的
 #   agent-default-model 行（vendor bundle base cordis.patch.yml）同名，会话的默认
 #   模型选择直接落进回放 adapter。
+# - 必须同时禁掉 session-title-llm（首提示标题的 LLM provider 行）：标题调用与 agent
+#   回合走同一 llm 服务、同一 sessionId，会按位吃掉该会话脚本里的下一格（2026-10-12
+#   实测：认领臂的 tool-call 格被标题调用吃掉，指归属回合拿到文本续段、工具从未执行）。
+#   禁用后标题走 fallback（首条消息截断），回放对齐不再依赖「粘贴与标题调用谁先到」
+#   的竞速——flow 场景此前只是恰好每次都赢了这个竞速。
 # - web profile 不插 headless-runner / preset-runner 行（那是 dev-task 的形状）。
 - id: llm-deepseek
   disabled: true
 - id: llm-deepseek-account
+  disabled: true
+- id: session-title-llm
   disabled: true
 - insert:
     - id: llm-replay

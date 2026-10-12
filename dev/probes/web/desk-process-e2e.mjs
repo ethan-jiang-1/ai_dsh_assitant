@@ -3,7 +3,9 @@
 //
 // 链路：桌面(m-1) → 处理会话 → 回放 report/propose → 留在对话 → 显式拒绝 p-1 →
 // 真工具写拒绝回执 → 投影读回 → 自动返回桌面（日期仍为 10/13）→ 第三轮走**交代首事臂**：
-// 桌面「＋ 交代新事项」→ 对话里说一件新事 → 回放真调 entrust → 读回 → 返回并选中新建的那件。
+// 桌面「＋ 交代新事项」→ 对话里说一件新事 → 回放真调 entrust → 读回 → 返回并选中新建的那件 →
+// 第四轮走**认领臂**（桌面选择契约卡 261012）：桌面选待认领片段 → 「认领这件事」→ 新会话 →
+// 指归属 → 回放真调 claim 消费 u-1 → 片段离开通道 → 返回并选中归属事项。
 //
 // 录制的前四个模型调用和首轮答复来自 followup JSONL。明确拒绝这一轮是为确定性验收
 // 编写的回放续段，不是录制或真实模型行为；工具执行、账本、投影、回程判定和导航都是真的。
@@ -56,6 +58,14 @@ const option = (name, fallback) => {
 }
 const home = option('home', join(tmpDir('probe-home'), 'k4-probe-home'))
 const keepService = args.includes('--keep-service')
+// 场景切分（llm-replay 的会话绑定模型）：回放脚本按「首个发起模型调用的活会话」按位绑定，
+// 且回放适配器拒绝未录制会话的调用。处理流三臂共用一个会话（交代臂复用当前会话），一个
+// 单会话场景即可承载；认领臂**总是新建会话**（当前会话可能正是产生歧义的那一个），所以
+// 它是第二个调用会话 —— 单会话场景装不下，必须独立成场景：`--scenario claim` 起自己的
+// 服务与回放脚本，认领会话在该场景里就是第一个调用会话，按位绑定主脚本。两个场景各自
+// 完整走「恢复种子账本 → 起服务 → CDP 驱动 → 拆服务」。
+const scenario = option('scenario', 'flow')
+if (!['flow', 'claim'].includes(scenario)) throw new Error(`--scenario must be "flow" or "claim", got "${scenario}"`)
 // The phases that mount a conversation are the heavy ones; the generic driver default (20s) is
 // tuned for cheap reads (see the header note and BUG-009).
 const evalTimeout = Number(option('eval-timeout', '60000'))
@@ -112,11 +122,20 @@ const blockEntry = (block, reason) => ({ kind: 'chunks', chunks: [
 ] })
 // 交代首事臂（规格 K3 的另一侧）的续段：作者回合真调 entrust 建一件新事项。
 const intakePrompt = '新的一件：供应商对账单这个月多出一笔，帮我盯着核对一下。'
+// 认领臂（桌面选择契约卡 261012）的指归属回合：本人一句话把片段认领到既有事项。
+const claimPrompt = '那条「二期款已经付了」就是 NB-02 的，认领到它名下。'
 // 第一格服务「种子回合」：处理会话挂载时注入的「正在处理事项…」消息会起一个真实模型回合，
 // 它排在主轮之前。不给它一格，记录里的第一组（report+propose）就被它吃掉，后面每一轮都错位一格
 // （2026-10-11 实测：粘贴那一轮拿到的是拒绝续段，提案当场被拒 → 未读回→ 探针期望「留在对话」必红，
 // 而产品行为其实是对的）。种子只该回一句「读到了、等指令」，不产生任何工具调用。
-writeFileSync(overrideFile, JSON.stringify([
+// 认领场景（--scenario claim）的脚本独立成组：认领会话在该场景里是第一个调用会话，
+// 其种子回合（不产生工具调用）吃第一格，指归属那一轮真调 claim 消费 u-1 ——
+// 片段离开待认领通道、原文与来源随附入账。
+writeFileSync(overrideFile, JSON.stringify(scenario === 'claim' ? [
+  blockEntry({ type: 'text', text: '读到了待认领片段 u-1：「有一笔二期款已经付了」。它还没归户——请告诉我它属于哪件在办事项，还是应当立为新事项；未经你确认我不会归户。' }, 'stop'),
+  blockEntry({ type: 'tool-call', id: 'authored-claim-u1', name: 'assistant_operating', arguments: JSON.stringify({ action: 'claim', matter_id: 'm-1', unclaimed_id: 'u-1', operation_id: 'op-authored-claim-u1', quote: claimPrompt }) }, 'tool-calls'),
+  blockEntry({ type: 'text', text: '已把 u-1 认领到「合同 NB-02 第二期款到账核对」名下，原文与来源随附，桌面待认领已清空。' }, 'stop'),
+] : [
   blockEntry({ type: 'text', text: '读到了台账 m-1：约定到账日 2026-10-13、核对点 2026-10-13。等你的具体指令。' }, 'stop'),
   ...recorded,
   blockEntry({ type: 'tool-call', id: 'authored-reject-p1', name: 'assistant_operating', arguments: JSON.stringify({ action: 'reject', matter_id: 'm-1', proposal_id: 'p-1', operation_id: 'op-authored-reject-p1', quote: rejectPrompt }) }, 'tool-calls'),
@@ -198,6 +217,142 @@ if (deskReady === null) {
 }
 pass('matter-list', { matter: 'm-1' })
 
+// —— 两场景共享的浏览器习语（粘贴/发送/idle 判据，来自 webui-loop-probe）——
+const countProbeSessions = () => {
+  const sessionsDir = join(home, 'sessions')
+  // 全新 home 还没被 boot 过就没有这个目录——0 个会话是正确答案，不是错误。
+  if (!existsSync(sessionsDir)) return 0
+  let count = 0
+  for (const workspace of readdirSync(sessionsDir, { withFileTypes: true })) {
+    if (!workspace.isDirectory()) continue
+    for (const entry of readdirSync(join(sessionsDir, workspace.name), { withFileTypes: true })) {
+      if (entry.isDirectory() && entry.name.startsWith('session-')) count += 1
+    }
+  }
+  return count
+}
+const turnRunning = `[...document.querySelectorAll('button')].some(b => ['停止生成','Stop generating'].includes(b.getAttribute('aria-label') ?? ''))`
+const sendPresent = `[...document.querySelectorAll('button')].some(b => ['发送消息','Send message'].includes(b.getAttribute('aria-label') ?? ''))`
+const stopped = `!(${turnRunning})`
+const pasteOnce = `(() => {
+  const composer = document.querySelector('[data-composer-input="true"]');
+  if (composer === null) return 'no-composer';
+  composer.focus();
+  const data = new DataTransfer();
+  data.setData('text/plain', ${JSON.stringify(followupPrompt)});
+  composer.dispatchEvent(new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true }));
+  return 'pasted';
+})()`
+const sendEnabled = `(() => {
+  const send = [...document.querySelectorAll('button')].find(b =>
+    (b.getAttribute('aria-label') ?? '') === '发送消息' || (b.getAttribute('aria-label') ?? '') === 'Send message');
+  return send !== undefined && send.disabled === false;
+})()`
+
+// —— 认领臂场景（--scenario claim，桌面选择契约卡 261012）：桌面选待认领片段 →
+// 「认领这件事」→ 新会话（种子回合吃主脚本第一格，对齐契约同上）→ 本人指归属 →
+// 回放真调 claim 消费 u-1 → 片段离开待认领通道 + 本会话 committed 回执读回 →
+// 自动返回并**选中归属事项**（「这条落在哪」的桌面回答）。认领臂总建自己的会话
+// （当前会话可能正是产生歧义的那一个），单会话守卫与处理流同一口径。
+if (scenario === 'claim') {
+  const claimCard = await evaluate(`(() => {
+    const root = document.querySelector('[data-assistant-operating-desk]');
+    const card = [...(root?.querySelectorAll('button.dsha-card') ?? [])].find(b => (b.textContent ?? '').includes('二期款已经付了'));
+    if (card === undefined) return 'fragment-card-not-found';
+    card.click(); return 'selected';
+  })()`)
+  if (claimCard !== 'selected') { teardown(); fail('claim-fragment-selection', { claimCard }) }
+  const claimDetail = await evaluate(`(() => {
+    const root = document.querySelector('[data-assistant-operating-desk]');
+    const text = root?.innerText ?? '';
+    const claim = [...(root?.querySelectorAll('button') ?? [])].find(b => (b.textContent ?? '').trim() === '认领这件事');
+    return { noteVisible: text.includes('二期款已经付了'), sourceVisible: text.includes('来自 session-e2e-fragment-source'), claimButtonPresent: claim !== undefined };
+  })()`)
+  if (claimDetail?.noteVisible !== true || claimDetail?.claimButtonPresent !== true) {
+    teardown(); fail('claim-detail', { claimDetail })
+  }
+  pass('claim-fragment-detail', { detail: claimDetail })
+
+  const sessionsBeforeClaim = countProbeSessions()
+  const claimEntry = await evaluate(`(() => {
+    const root = document.querySelector('[data-assistant-operating-desk]');
+    const button = [...(root?.querySelectorAll('button') ?? [])].find(b => (b.textContent ?? '').trim() === '认领这件事');
+    if (button === undefined) return 'button-not-found';
+    button.click(); return 'clicked';
+  })()`)
+  if (claimEntry !== 'clicked') { teardown(); fail('claim-entry', { claimEntry }) }
+  let claimConversation = false
+  for (let i = 0; i < 40 && !claimConversation; i++) {
+    claimConversation = await evaluate(`document.querySelector('[data-assistant-operating-desk]') === null && document.querySelector('[data-composer-input="true"]') !== null`) === true
+    if (!claimConversation) await sleep(500)
+  }
+  if (!claimConversation) { teardown(); fail('claim-conversation', {}) }
+  pass('claim-entry', {})
+  // 种子回合对齐：等「正在处理待认领片段…」那一轮跑完（其答复含「还没归户」）再粘贴，
+  // 否则粘贴那轮会吃错回放格（BUG-009 的教训在认领臂同样成立）。
+  let claimSeedSettled = false
+  for (let i = 0; i < 240 && !claimSeedSettled; i++) {
+    await sleep(500)
+    await evaluate(`(() => { const b = [...document.querySelectorAll('button')].find(x => (x.textContent ?? '').trim() === '允许一次'); b?.click(); })()`)
+    claimSeedSettled = await evaluate(`(${stopped}) && (document.body.innerText ?? '').includes('还没归户')`) === true
+  }
+  if (!claimSeedSettled) fail('claim-seed-turn', {})
+  pass('claim-seed-turn', {})
+  let claimReady = false
+  let claimPasteResult = null
+  for (let i = 0; i < 10 && !claimReady; i++) {
+    claimPasteResult = await evaluate(pasteOnce.replace(JSON.stringify(followupPrompt), JSON.stringify(claimPrompt)))
+    await sleep(800)
+    claimReady = await evaluate(sendEnabled) === true
+  }
+  if (!claimReady) { teardown(); fail('claim-composer', { claimPasteResult }) }
+  await sleep(600)
+  if (await evaluate(`(() => {
+    const send = [...document.querySelectorAll('button')].find(b => ['发送消息','Send message'].includes(b.getAttribute('aria-label') ?? ''));
+    if (send === undefined || send.disabled) return 'not-sent';
+    send.click(); return 'sent';
+  })()`) !== 'sent') { teardown(); fail('claim-send', {}) }
+  let claimReturnText = null
+  for (let i = 0; i < 180 && claimReturnText === null; i++) {
+    await sleep(500)
+    await evaluate(`(() => { const b = [...document.querySelectorAll('button')].find(x => (x.textContent ?? '').trim() === '允许一次'); b?.click(); })()`)
+    claimReturnText = await evaluate(deskText)
+  }
+  if (claimReturnText === null) fail('claim-auto-return', { body: await evaluate('document.body.innerText') })
+  const afterClaim = JSON.parse(readFileSync(join(operatingDir, 'ledger.json'), 'utf8'))
+  const claimReceipt = afterClaim.operations['op-authored-claim-u1']
+  if (claimReceipt?.receipt.outcome.status !== 'committed') fail('claim-durable', { claimReceipt })
+  if (afterClaim.unclaimed['u-1'] !== undefined) fail('claim-fragment-consumed', { unclaimed: afterClaim.unclaimed })
+  const claimedMatter = Object.values(afterClaim.matters).find(m => m.id === 'm-1')
+  if (!claimedMatter?.materials.some(m => (m.note ?? '').includes('二期款已经付了'))) fail('claim-material-attached', { materials: claimedMatter?.materials })
+  // 「这条落在哪」：返回后详情停在归属事项上；「通道清空」的信号是计数行不再有
+  // 「条待认领」、列表标签消失——片段的原文此时作为**已附着的材料**出现在归属事项的
+  // 依据里（来源与原文随附），那是成功态而不是未清态。
+  if (!claimReturnText.includes('合同 NB-02 第二期款') || !claimReturnText.includes('处理这件事')) fail('claim-return-selection', { claimReturnText })
+  if (claimReturnText.includes('条待认领') || claimReturnText.includes('还没说清是哪件事')) fail('claim-lane-cleared', { claimReturnText })
+  pass('claim-auto-return', {})
+  pass('claim-durable', { outcome: claimReceipt.receipt.outcome })
+  pass('claim-lane-cleared-and-selected', { matter: 'm-1' })
+  mkdirSync(shotDir, { recursive: true })
+  writeFileSync(join(shotDir, '4-claimed-and-selected.png'), await browser.captureScreenshot())
+  const sessionsAfterClaim = countProbeSessions()
+  if (sessionsAfterClaim !== sessionsBeforeClaim + 1) {
+    teardown()
+    fail('claim-single-session', { sessionsBeforeClaim, sessionsAfterClaim })
+  }
+  pass('claim-single-session', { created: sessionsAfterClaim - sessionsBeforeClaim })
+
+  verdict.consoleProblems = consoleProblems
+  verdict.exceptions = exceptions
+  teardown()
+  if (consoleProblems.length > 0 || exceptions.length > 0) {
+    console.log(JSON.stringify(verdict, null, 2))
+    process.exit(1)
+  }
+  console.log(`PASS desk claim flow e2e: ${JSON.stringify(verdict.phases)}`)
+  process.exit(0)
+}
+
 // 相位 2：选事项 → 详情（处理按钮 + 来源依据可见）。
 const selectMatter = `(() => {
   const root = document.querySelector('[data-assistant-operating-desk]');
@@ -216,19 +371,6 @@ pass('matter-detail', {})
 // 相位 3：「处理这件事」→ 处理会话接管主区（桌面卸载、composer 挂载）。
 // 规格负例「双击发送两次」：同一次 evaluate 里连点两下（落在面板卸载窗口内），
 // 复用守卫必须吞掉第二击——服务端会话计数只允许 +1。
-const countProbeSessions = () => {
-  const sessionsDir = join(home, 'sessions')
-  // 全新 home 还没被 boot 过就没有这个目录——0 个会话是正确答案，不是错误。
-  if (!existsSync(sessionsDir)) return 0
-  let count = 0
-  for (const workspace of readdirSync(sessionsDir, { withFileTypes: true })) {
-    if (!workspace.isDirectory()) continue
-    for (const entry of readdirSync(join(sessionsDir, workspace.name), { withFileTypes: true })) {
-      if (entry.isDirectory() && entry.name.startsWith('session-')) count += 1
-    }
-  }
-  return count
-}
 const sessionsBeforeProcess = countProbeSessions()
 if (await evaluate(`(() => {
   const root = document.querySelector('[data-assistant-operating-desk]');
@@ -264,8 +406,6 @@ verdict.sessionsBeforeProcess = sessionsBeforeProcess
 // 不等它，判据就变成「那个回合多快跑完」——一个纯负载相关的量（本探针因此在空闲机上绿、
 // 在负载机上红）。完成信号用「停止键消失 + 发送键回来」，与 loop-probe 同一习语；
 // 审批门（「允许一次」）就地点掉，别让回合停在等真人上。
-const turnRunning = `[...document.querySelectorAll('button')].some(b => ['停止生成','Stop generating'].includes(b.getAttribute('aria-label') ?? ''))`
-const sendPresent = `[...document.querySelectorAll('button')].some(b => ['发送消息','Send message'].includes(b.getAttribute('aria-label') ?? ''))`
 let conversationIdle = false
 for (let i = 0; i < 240 && !conversationIdle; i++) {
   await sleep(500)
@@ -283,21 +423,7 @@ pass('conversation-idle', {})
 
 // 相位 4+5（本探针的存在理由）：发一句话 → 回放回合真跑（真工具真账本）→ 读回 → 自动返回。
 // 粘贴/发送习语来自 webui-loop-probe（composer 拒绝 execCommand，合成 ClipboardEvent paste
-// 是已验证的插入方式）。
-const pasteOnce = `(() => {
-  const composer = document.querySelector('[data-composer-input="true"]');
-  if (composer === null) return 'no-composer';
-  composer.focus();
-  const data = new DataTransfer();
-  data.setData('text/plain', ${JSON.stringify(followupPrompt)});
-  composer.dispatchEvent(new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true }));
-  return 'pasted';
-})()`
-const sendEnabled = `(() => {
-  const send = [...document.querySelectorAll('button')].find(b =>
-    (b.getAttribute('aria-label') ?? '') === '发送消息' || (b.getAttribute('aria-label') ?? '') === 'Send message');
-  return send !== undefined && send.disabled === false;
-})()`
+// 是已验证的插入方式）；习语定义在两场景共享段。
 // 失败时带上状态取证：composer 在不在、paste 有没有落进去、发送键为什么是灰的——
 // 只报「没接受」的探针下一次还得从头查（2026-10-11 实测教训）。
 const composerState = `(() => {
@@ -344,7 +470,6 @@ const sent = await evaluate(`(() => {
 })()`)
 if (sent !== 'sent') { teardown(); fail('send', { sent }) }
 
-const stopped = `![...document.querySelectorAll('button')].some(b => ['停止生成','Stop generating'].includes(b.getAttribute('aria-label') ?? ''))`
 let settled = false
 for (let i = 0; i < 600 && !settled; i++) {
   await sleep(500)
