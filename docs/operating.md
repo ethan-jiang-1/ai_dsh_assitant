@@ -51,6 +51,8 @@
   无账本时回退固定 `desk-projection.json` 模拟输入（无账本的评估与首开场景）。两者都缺 = 404。
 - 不创建目录/文件、不读 agent working folder、不接受 query（带 query = 400）与 path 参数、不提供写入；
   业务 schema 的校验在客户端解析器，不在下载器。
+- v2 回执逐条带**操作语义**：`kind`（域层操作类型）与 `quote`（提交者当时的原话，可省）——桌面详情的
+  「动作」段与流水视角据此渲染人类标签与依据行。additive 字段，不 bump envelope。
 - 认证与 Host/Origin 检查由 Connection 物理 carrier 承接；响应 `no-store` + `nosniff`；
   完整文件 byte cap 默认 1 MiB（`maxProjectionBytes`）。超限 413；无效 UTF-8/JSON 422；
   结构错（非 v1 账本）422 且**绝不静默回退**；其他 I/O 500。

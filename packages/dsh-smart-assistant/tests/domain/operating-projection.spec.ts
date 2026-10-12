@@ -92,6 +92,7 @@ describe('renderLedgerProjection (v2 read-only view of the ledger)', () => {
     expect(projection.receipts.find(receipt => receipt.operationId === 'op-projection-reject')).toEqual({
       operationId: 'op-projection-reject', matterId: created.receipt.matterId, sessionId: 'session-B',
       submittedAt: '2026-10-10T10:00:00.000Z', status: 'proposal-rejected', proposalId: 'p-1', revision: 1,
+      kind: 'reject', quote: '明确拒绝改期',
     })
   })
 
@@ -118,6 +119,7 @@ describe('renderLedgerProjection (v2 read-only view of the ledger)', () => {
     expect(projection.receipts.find(receipt => receipt.operationId === 'op-projection-confirm')).toEqual({
       operationId: 'op-projection-confirm', matterId: created.receipt.matterId, sessionId: 'session-B',
       submittedAt: '2026-10-10T10:00:00.000Z', status: 'committed', revision: 2, proposalId: 'p-1',
+      kind: 'confirm',
     })
   })
 
@@ -146,15 +148,15 @@ describe('renderLedgerProjection (v2 read-only view of the ledger)', () => {
     expect(projection.receipts.map(receipt => receipt.operationId)).toEqual(['op-e-10', 'op-e-11', 'op-e-12', 'op-e-13'])
     expect(projection.receipts[1]).toEqual({
       operationId: 'op-e-11', matterId: created.receipt.matterId, sessionId: 'session-B', submittedAt: '2026-10-10T09:00:00.000Z',
-      status: 'committed', revision: 2,
+      status: 'committed', revision: 2, kind: 'update',
     })
     expect(projection.receipts[2]).toEqual({
       operationId: 'op-e-12', matterId: created.receipt.matterId, sessionId: 'session-C', submittedAt: '2026-10-10T09:30:00.000Z',
-      status: 'conflict', observedRevision: 1, currentRevision: 2,
+      status: 'conflict', observedRevision: 1, currentRevision: 2, kind: 'update',
     })
     expect(projection.receipts[3]).toEqual({
       operationId: 'op-e-13', matterId: '', sessionId: 'session-C', submittedAt: '2026-10-10T10:00:00.000Z',
-      status: 'retained', unclaimedId: 'u-1',
+      status: 'retained', unclaimedId: 'u-1', kind: 'note', quote: '已经付了',
     })
     expect(projection.unclaimed).toEqual([{ id: 'u-1', note: '有人说款已付，没说哪笔合同', sessionId: 'session-C' }])
   })

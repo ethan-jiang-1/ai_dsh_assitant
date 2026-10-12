@@ -69,8 +69,29 @@ describe('global projection panel', () => {
     expect(view.getSnapshot().selected).toEqual({ kind: 'matter', id: 'gone' })
   })
 
-  it('shows the completion time on a completed matter — the fourth business time', () => {
+  it('renders the matter biography: the actions section lists this matter\'s operations newest-first with kind labels, quotes and sessions', () => {
     const view = createProjectionViewStore(defineStore).create()
+    view.actions.selectMatter('a')
+    const value: ProjectionDownload = { status: 'ready', data: { schemaVersion: 2 as const, ledgerId: 'test', revision: 3, receipts: [
+      { operationId: 'op-1', matterId: 'a', sessionId: 's1', submittedAt: '2026-10-12T01:00:00.000Z', status: 'committed', revision: 1, kind: 'create' },
+      { operationId: 'op-2', matterId: 'a', sessionId: 's2', submittedAt: '2026-10-12T05:00:00.000Z', status: 'committed', revision: 2, kind: 'claim', quote: '那条就是 NB-02 的' },
+      { operationId: 'op-9', matterId: 'b', sessionId: 's3', submittedAt: '2026-10-12T06:00:00.000Z', status: 'committed', revision: 1, kind: 'create' },
+    ], unclaimed: [], matters: [
+      { id: 'a', title: '事项 A', status: 'active', summary: 'A 摘要', responsible: '', revision: 2, times: {}, proposals: [], evidence: [] },
+    ] } }
+    const output = text(ProjectionPanel({ useProjection: select => select(value), useStore: select => select(view.getSnapshot()), actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop, onClaim: noop }))
+    expect(output).toContain('动作')
+    expect(output).toContain('认领归户')
+    expect(output).toContain('交办立项')
+    // Newest first: the 05:00 claim precedes the 01:00 creation.
+    expect(output.indexOf('认领归户')).toBeLessThan(output.indexOf('交办立项'))
+    expect(output).toContain('「那条就是 NB-02 的」')
+    expect(output).toContain('s2')
+    // Another matter's operation must not leak into this biography (its session id is the tell).
+    expect(output.indexOf('s3')).toBe(-1)
+  })
+
+  it('shows the completion time on a completed matter — the fourth business time', () => {    const view = createProjectionViewStore(defineStore).create()
     const base = { schemaVersion: 2 as const, ledgerId: 'test', revision: 4, receipts: [], unclaimed: [] }
     const completed = {
       id: 'c1', title: '已收尾的事', status: 'completed' as const, summary: '做完', responsible: '', revision: 2,

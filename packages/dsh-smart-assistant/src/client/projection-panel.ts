@@ -28,6 +28,16 @@ const errors: Record<string, string> = {
 }
 const STATUS_LABEL: Record<string, string> = { active: '在办', completed: '已完成', abandoned: '已放弃' }
 const CHANGE_LABEL: Record<string, string> = { reschedule: '重约承诺', checkpoint: '改核对点', complete: '办结', abandon: '放弃' }
+/** Operation kinds as the biography's human labels (ledger domain kinds; the tool's report and
+ *  revise both submit `update`, so the label stays neutral). */
+const OP_LABEL: Record<string, string> = {
+  create: '交办立项', update: '更新事项', note: '记一笔', claim: '认领归户', complete: '办结',
+  reopen: '重开', propose: '提出请示', confirm: '确认', reject: '拒绝',
+}
+/** Outcome annotations for receipts whose status says more than the kind does. */
+const OP_STATUS_NOTE: Record<string, string> = {
+  retained: '存入待认领', conflict: '冲突未生效', rejected: '未生效',
+}
 
 const STYLES = [
   '.dsha-desk{display:flex;flex-direction:column;gap:16px;padding:20px 24px;overflow-y:auto;min-width:0;container-type:inline-size;height:100%;box-sizing:border-box;}',
@@ -61,6 +71,12 @@ const STYLES = [
   '.dsha-proposal{margin:10px 0;background:var(--dsha-warn-tint);border:0;border-radius:8px;padding:10px 12px;}',
   '.dsha-evidence{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:8px;}',
   '.dsha-evidence li{border-left:0.5px solid var(--dsw-alias-border-l3);padding-left:10px;}',
+  '.dsha-ops{margin:12px 0 0;display:flex;flex-direction:column;gap:6px;}',
+  '.dsha-ops-title{margin:0;font-size:12px;color:var(--dsw-alias-label-tertiary);}',
+  '.dsha-op{border-left:0.5px solid var(--dsw-alias-border-l3);padding-left:10px;}',
+  '.dsha-op-line{margin:0;font-size:13px;color:var(--dsw-alias-label-primary);overflow-wrap:anywhere;}',
+  '.dsha-op-quote{margin:0;font-size:13px;color:var(--dsw-alias-label-secondary);overflow-wrap:anywhere;}',
+  '.dsha-op-src{font-size:12px;color:var(--dsw-alias-label-tertiary);}',
   '.dsha-evidence p{margin:0;font-size:13px;color:var(--dsw-alias-label-primary);overflow-wrap:anywhere;}',
   '.dsha-evidence small{font-size:12px;color:var(--dsw-alias-label-tertiary);}',
   '.dsha-empty{display:flex;flex-direction:column;align-items:center;gap:10px;padding:36px 0;color:var(--dsw-alias-label-secondary);}',
@@ -128,6 +144,11 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
   const selection = view.selected
   const selected = selection?.kind === 'matter' ? data?.matters.find(matter => matter.id === selection.id) : undefined
   const selectedFragment = selection?.kind === 'fragment' ? data?.unclaimed.find(fragment => fragment.id === selection.id) : undefined
+  // The biography's decision half: only the selected matter's own operations, newest first.
+  const matterOps = selection?.kind === 'matter'
+    ? (data?.receipts ?? []).filter(receipt => receipt.matterId === selection.id)
+      .slice().sort((left, right) => right.submittedAt.localeCompare(left.submittedAt))
+    : []
   const pendingProposals = data?.matters.reduce((count, matter) => count + matter.proposals.filter(proposal => proposal.status === 'pending').length, 0) ?? 0
   const message = download.status === 'disconnected' ? '连接已断开，恢复连接后重新读取。'
     : download.status === 'loading' ? '正在读取桌面…'
@@ -224,7 +245,16 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
             selected.evidence.length === 0 ? ce('p', { className: 'dsha-card-summary' }, '暂无可核对依据。')
               : ce('ul', { className: 'dsha-evidence' }, ...selected.evidence.map(item => ce('li', { key: item.id },
                 ce('p', {}, item.note),
-                ce('small', {}, `${item.sessionId}${item.eventId !== undefined ? ` / ${item.eventId}` : ''}${item.quote !== undefined && item.quote !== item.note ? ` ·「${item.quote}」` : ''}`)))))
+                ce('small', {}, `${item.sessionId}${item.eventId !== undefined ? ` / ${item.eventId}` : ''}${item.quote !== undefined && item.quote !== item.note ? ` ·「${item.quote}」` : ''}`)))),
+            // The biography's decision half: this matter's own operations, newest first — labels,
+            // the submitter's words and the source session (desk history views, card 261012).
+            matterOps.length > 0 ? ce('section', { className: 'dsha-ops' },
+              ce('p', { className: 'dsha-ops-title' }, '动作'),
+              ...matterOps.map(op => ce('div', { key: op.operationId, className: 'dsha-op' },
+                ce('p', { className: 'dsha-op-line' },
+                  `${OP_LABEL[op.kind ?? ''] ?? '操作'}${OP_STATUS_NOTE[op.status] !== undefined ? `（${OP_STATUS_NOTE[op.status]}）` : ''} · ${humanTime(op.submittedAt)}`),
+                op.quote !== undefined ? ce('p', { className: 'dsha-op-quote' }, `「${op.quote}」`) : null,
+                ce('small', { className: 'dsha-op-src' }, op.sessionId)))) : null)
           : selection === null ? ce('p', { className: 'dsha-detail-hint' }, '选择一项查看详情。')
           : selection.kind === 'fragment' ? ce('p', { className: 'dsha-detail-hint' }, '所选片段不在当前投影中。')
           : ce('p', { className: 'dsha-detail-hint' }, '所选事项不在当前投影中。'))),

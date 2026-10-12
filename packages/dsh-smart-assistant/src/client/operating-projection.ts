@@ -100,6 +100,8 @@ function receipt(value: unknown): value is ProjectionReceipt {
     && (value.observedRevision === undefined || revision(value.observedRevision))
     && (value.currentRevision === undefined || revision(value.currentRevision))
     && (value.reason === undefined || text(value.reason))
+    && (value.kind === undefined || text(value.kind))
+    && (value.quote === undefined || text(value.quote))
 }
 function unclaimed(value: unknown): value is { id: string, note: string, sessionId: string } {
   return record(value) && text(value.id) && text(value.note) && text(value.sessionId)

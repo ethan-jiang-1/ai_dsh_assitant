@@ -44,6 +44,10 @@ export interface ProjectionReceipt {
   readonly observedRevision?: number
   readonly currentRevision?: number
   readonly reason?: string
+  /** The operation's semantic kind — the biography's human label (desk history views, 261012). */
+  readonly kind: string
+  /** The submitter's own words at operation time, when spoken (the biography's basis line). */
+  readonly quote?: string
 }
 
 /** One matter as the desk sees it: identity, revision, times, evidence, proposals. */
@@ -117,6 +121,8 @@ export function renderLedgerProjection(state: LedgerState, ledgerId: string, gen
       matterId: receipt.matterId,
       sessionId: operation.source.sessionId,
       submittedAt: receipt.submittedAt,
+      kind: operation.kind,
+      ...(operation.source.quote !== undefined ? { quote: operation.source.quote } : {}),
       ...flattenOutcome(outcome),
     }
   })
