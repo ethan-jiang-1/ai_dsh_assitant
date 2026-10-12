@@ -1,6 +1,7 @@
 /** Global projection presentation. Renderer supplies the sole live-data hook. */
 import { createElement as ce } from './runtime'
 import { AssistantBrandMark } from './brand'
+import { canProcess } from './desk-process'
 import type { ProjectionDownload } from './projection-reader'
 import type { ProjectionView } from './projection-view'
 
@@ -18,6 +19,8 @@ export interface ProjectionPanelProps {
   onProcess(matterId: string): void
   /** Open the explicit claim path for one unclaimed fragment (bound to the entry's claimFragment). */
   onClaim(fragmentId: string): void
+  /** Open the explicit wake path for one settled matter (bound to the entry's wakeMatter). */
+  onWake(matterId: string): void
 }
 const errors: Record<string, string> = {
   'authentication-required': '登录已失效，请重新登录后再读取。',
@@ -52,6 +55,7 @@ const GLYPHS: Record<string, () => ReturnType<typeof ce>[]> = {
   all: () => [ce('path', { d: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z' })],
   active: () => [ce('circle', { cx: 12, cy: 12, r: 4, fill: 'currentColor' })],
   settled: () => [ce('circle', { cx: 12, cy: 12, r: 9 }), ce('path', { d: 'M8 12l3 3 5-6' })],
+  wake: () => [ce('path', { d: 'M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9' }), ce('path', { d: 'M13.73 21a2 2 0 0 1-3.46 0' })],
 }
 function glyphFor(name: string): ReturnType<typeof ce> {
   return glyph((GLYPHS[name] ?? (() => []))())
@@ -71,6 +75,8 @@ const STYLES = [
   '.dsha-btn{border:0.5px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;}',
   '.dsha-btn:hover{background:var(--dsw-alias-interactive-bg-hover-accent);}',
   '.dsha-btn-primary{background:var(--dsha-accent-tint);color:var(--dsha-accent);border:0;}',
+  '.dsha-btn-wake{background:var(--dsha-warn-tint);color:var(--dsha-warn);border:0;}',
+  '.dsha-btn-wake .dsha-glyph{width:14px;height:14px;}',
   '.dsha-banner{margin:0;font-size:13px;color:var(--dsha-warn);background:var(--dsha-warn-tint);border:0;border-radius:8px;padding:8px 12px;}',
   '.dsha-note{margin:0;font-size:13px;color:var(--dsw-alias-label-secondary);background:var(--dsw-alias-bg-layer-1);border:0;border-radius:8px;padding:8px 12px;}',
   '.dsha-matters{display:grid;grid-template-columns:minmax(260px,2fr) minmax(0,3fr);gap:16px;align-items:start;}',
@@ -358,7 +364,12 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
           : selected !== undefined ? ce('article', {},
             ce('div', { className: 'dsha-meta' },
               ce('button', { className: 'dsha-btn dsha-back', type: 'button', onClick: props.actions.showList }, '返回事项列表'),
-              ce('button', { className: 'dsha-btn dsha-btn-primary', type: 'button', onClick: () => props.onProcess?.(selected.id) }, '处理这件事')),
+              // State decides the legal action (principal direction, 2026-10-12): an active
+              // matter processes; a settled matter's only legal action is waking it — the
+              // state machine never offers 「再处理」 on finished work.
+              canProcess(selected.status)
+                ? ce('button', { className: 'dsha-btn dsha-btn-primary', type: 'button', onClick: () => props.onProcess?.(selected.id) }, '处理这件事')
+                : ce('button', { className: 'dsha-btn dsha-btn-wake', type: 'button', onClick: () => props.onWake(selected.id) }, glyphFor('wake'), '唤醒这件事')),
             // Status rides the title line (same shape as the list card) so it stops reading as a
             // second action button beside 「处理这件事」; facts render as the plain meta line below.
             ce('h2', {}, statusChip(selected.status), ce('span', {}, selected.title)),

@@ -129,7 +129,40 @@ export interface IntakePath {
 }
 
 /** Every arm of the desk→conversation path. */
-export type DeskPath = ProcessingPath | IntakePath | ClaimPath
+export type DeskPath = ProcessingPath | IntakePath | ClaimPath | WakePath
+
+/** Whether a matter may open a processing path: only an active one. A settled matter's sole
+ *  legal action is waking it (the state machine never offers 「再处理」 on finished work). */
+export function canProcess(status: string): boolean {
+  return status === 'active'
+}
+
+/**
+ * The wake arm (principal direction, 2026-10-12: state decides the legal action set). A settled
+ * matter binds to one conversation in which the principal states what changed; the model reopens
+ * it explicitly, the cause lands as a material, and the matter returns to active — only then does
+ * it own the 处理 action again.
+ */
+export interface WakePath {
+  readonly kind: 'wake'
+  readonly matterId: string
+  readonly sessionId: string
+  readonly boundAt: string
+  /** The status observed at binding (completed or abandoned) — the settle is it leaving this state. */
+  readonly observedStatus: 'completed' | 'abandoned'
+}
+
+/**
+ * Bind the wake arm.
+ * @param matterId - The settled matter being woken.
+ * @param sessionId - The conversation in which the principal states the cause.
+ * @param observedStatus - The matter's status at binding (completed or abandoned).
+ * @param boundAt - Binding instant (ISO); defaults to now.
+ * @returns The bound wake path.
+ */
+export function bindWakePath(matterId: string, sessionId: string, observedStatus: 'completed' | 'abandoned', boundAt: string = new Date().toISOString()): WakePath {
+  return { kind: 'wake', matterId, sessionId, boundAt, observedStatus }
+}
 
 /**
  * The claim arm (principal direction, 2026-10-12: every desk item selects into a contextual
@@ -343,6 +376,59 @@ export function judgeClaimReturn(path: ClaimPath, input: ClaimJudgeInput): Retur
   }
 }
 
+/** What the wake judge needs beyond the shared input: each matter's current projected status. */
+export interface WakeJudgeInput extends ReturnJudgeInput {
+  /** Matter id → status as currently projected; the settle is the bound matter reading back active. */
+  readonly matterStatuses: ReadonlyMap<string, string>
+}
+
+/**
+ * Judge whether the wake arm may return to the desk.
+ *
+ * Same shared gates as the other arms (principal still on the path; session known idle with its
+ * turn settled and nothing waiting on the principal; projection ready and fresh), and the same
+ * refusal while this session leaves a pending proposal on the matter. The settle is BOTH halves
+ * of "woken": this session's own committed receipt submitted after binding (the explicit reopen)
+ * AND the matter's projected status back to active — a reopen receipt alone does not return if
+ * the matter still reads settled, and an active reading alone does not return without this
+ * session's receipt (the wake may have happened elsewhere).
+ *
+ * @param path - The bound wake path.
+ * @param input - The shared judge input plus the currently projected matter statuses.
+ * @returns The decision with machine-readable reasons; `matterId` is set on return.
+ */
+export function judgeWakeReturn(path: WakePath, input: WakeJudgeInput): ReturnDecision {
+  const reasons: string[] = []
+  if (!input.onPath) reasons.push('user-left-path')
+  if (input.session.running !== false) reasons.push('session-running')
+  if (!input.session.turnSettled) reasons.push('turn-open')
+  if (input.session.pendingInteraction) reasons.push('pending-interaction')
+  if (input.projection.status !== 'ready') reasons.push('projection-not-ready')
+  if (input.projection.stale === true) reasons.push('projection-stale')
+
+  const own = input.projection.receipts
+    .filter(receipt => receipt.sessionId === path.sessionId && receipt.status === 'committed' && receipt.submittedAt >= path.boundAt)
+  const activeAgain = input.matterStatuses.get(path.matterId) === 'active'
+  if (!activeAgain) reasons.push('wake-not-effective')
+  if (own.length === 0) reasons.push('wake-receipt-not-read-back')
+  // A pending proposal this session raised against the matter is something to decide, so the
+  // desk must not pull the principal out of the conversation (same rule as the other arms).
+  const pendingOnMatter = input.projection.proposals.some(proposal =>
+    proposal.matterId === path.matterId && proposal.sessionId === path.sessionId
+      && proposal.status === 'pending' && proposal.proposedAt !== undefined && proposal.proposedAt >= path.boundAt)
+  if (pendingOnMatter) reasons.push('pending-proposal')
+  if (!input.projection.matterIds.has(path.matterId)) reasons.push('matter-vanished')
+
+  const remindersUnsynced = input.reminders !== 'synced'
+  if (reasons.length > 0) return { decision: 'stay', matterId: path.matterId, reasons, remindersUnsynced }
+  return {
+    decision: 'return',
+    matterId: path.matterId,
+    reasons: remindersUnsynced ? ['reminders-unsynced'] : [],
+    remindersUnsynced,
+  }
+}
+
 /** The matter fields the processing-session seed needs (structural view of a projection matter). */
 export interface ProcessingContextMatter {
   readonly id: string
@@ -386,4 +472,26 @@ export interface ClaimContextFragment {
  */
 export function claimContextMessage(fragment: ClaimContextFragment): string {
   return `正在处理待认领片段（unclaimed ${fragment.id}，来自 ${fragment.sessionId}）：「${fragment.note}」。这条信息还没归户——请先与我确认它属于哪件在办事项、还是应当立为新事项；等我明确答复后，再用 assistant_operating claim（带 unclaimed_id ${fragment.id}）或 entrust 落账，并保留原文与来源。未经我确认不要自行归户。`
+}
+
+/** The settled-matter fields the wake-session seed needs (structural projection view). */
+export interface WakeContextMatter {
+  readonly id: string
+  readonly title: string
+  readonly status: 'completed' | 'abandoned'
+  readonly summary: string
+}
+
+/**
+ * The visible context note seeded into a wake session (principal direction, 2026-10-12: waking
+ * always has a cause — something changed). The seed names the settled matter, states the
+ * cause-first rule (the reason becomes a ledger material), and points at the reopen tool path.
+ * Like the other seeds, the sender prefixes the `[面板]` marker so the log keeps machine-written
+ * prompts apart from the principal's own words.
+ * @param matter - the bound matter from the projection snapshot.
+ * @returns the seed message text, principal-visible and logged.
+ */
+export function wakeContextMessage(matter: WakeContextMatter): string {
+  const stateLabel = matter.status === 'completed' ? '已完成' : '已放弃'
+  return `正在唤醒一件${stateLabel}的事项「${matter.title}」（${matter.id}）。重新打开它需要一个理由——请先与我确认是什么变化需要唤醒它（比如出现了新的情况、之前的了结有误）；等我明确答复后，先用 assistant_operating read ${matter.id} 核对台账，再用 assistant_operating reopen（带上变化原因）落账，原因会作为材料入账。未经我确认不要自行 reopen。`
 }

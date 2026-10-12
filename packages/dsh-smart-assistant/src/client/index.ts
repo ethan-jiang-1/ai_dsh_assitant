@@ -45,7 +45,7 @@ import { ProjectionPanel } from './projection-panel'
 import { mountProjectionReader } from './projection-lifecycle'
 import type { ProjectionDownload } from './projection-reader'
 import { createProjectionViewStore } from './projection-view'
-import { bindClaimPath, bindIntakePath, bindProcessPath, claimContextMessage, judgeClaimReturn, judgeIntakeReturn, judgeReturn, processingContextMessage, type DeskPath } from './desk-process'
+import { bindClaimPath, bindIntakePath, bindProcessPath, bindWakePath, canProcess, claimContextMessage, judgeClaimReturn, judgeIntakeReturn, judgeReturn, judgeWakeReturn, processingContextMessage, wakeContextMessage, type DeskPath } from './desk-process'
 import { en as firstMileEn, zh as firstMileZh } from './locales'
 
 /** Slots this face occupies (single-occupant, root-scope, declared by the sidebar). */
@@ -326,6 +326,42 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         }
       })()
     }
+    // The wake arm (state-gated actions, card 261012): a settled matter's only legal action is
+    // waking it — the conversation exists to state what changed, the model reopens explicitly,
+    // and the desk returns once the matter reads back active with this session's receipt.
+    // Unlike the claim arm the matter must be readable AND settled: an active matter wakes
+    // nothing (its action is 处理).
+    const wakeMatter = (matterId: string): void => {
+      const existing = deskPath?.getSnapshot()
+      if (existing !== undefined && existing.kind === 'wake' && existing.matterId === matterId) {
+        ctx.uiWorkspace?.openSession(existing.sessionId)
+        return
+      }
+      if (processLaunchInFlight) return
+      const snapshot = projection?.getSnapshot()
+      if (snapshot?.status !== 'ready' || snapshot.stale === true || snapshot.data === undefined) {
+        reader?.refresh()
+        return
+      }
+      const matter = snapshot.data.matters.find(item => item.id === matterId)
+      if (matter === undefined) return
+      // The fault-tolerance layer: a settled matter's status gates the binding itself — even a
+      // bypassed caller cannot open a 处理 path on finished work.
+      if (canProcess(matter.status)) return
+      const observedStatus = matter.status === 'abandoned' ? 'abandoned' as const : 'completed' as const
+      processLaunchInFlight = true
+      void (async () => {
+        try {
+          const sessionId = await createSessionInDesignatedWorkspace()
+          if (sessionId === undefined) return
+          deskPath?.set(bindWakePath(matterId, sessionId, observedStatus))
+          ctx.uiWorkspace?.openSession(sessionId)
+          seedPanelMessage('desk-wake-context', sessionId, wakeContextMessage({ id: matter.id, title: matter.title, status: observedStatus, summary: matter.summary }))
+        } finally {
+          processLaunchInFlight = false
+        }
+      })()
+    }
     const evaluateReturn = (): void => {
       const path = deskPath?.getSnapshot()
       const snapshot = projection?.getSnapshot()
@@ -360,7 +396,8 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       } as const
       const decision = path.kind === 'matter' ? judgeReturn(path, judgeInput)
         : path.kind === 'intake' ? judgeIntakeReturn(path, judgeInput)
-        : judgeClaimReturn(path, { ...judgeInput, unclaimedIds: new Set(data.unclaimed.map(item => item.id)) })
+        : path.kind === 'claim' ? judgeClaimReturn(path, { ...judgeInput, unclaimedIds: new Set(data.unclaimed.map(item => item.id)) })
+        : judgeWakeReturn(path, { ...judgeInput, matterStatuses: new Map(data.matters.map(matter => [matter.id, matter.status])) })
       if (decision.decision === 'return') {
         deskPath?.set(undefined)
         // The matter arm returns to a selection the store already holds; the intake and claim
@@ -430,7 +467,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
             actions.setMode(pendingDeskMode)
             pendingDeskMode = undefined
           }
-          return { hooks: projection === undefined ? {} : { projection }, refreshProjection: () => { reader?.refresh() }, onAsk: () => { ctx.layout?.selectPanel(null) }, onEntrust: startIntake, onProcess: processMatter, onClaim: claimFragment }
+          return { hooks: projection === undefined ? {} : { projection }, refreshProjection: () => { reader?.refresh() }, onAsk: () => { ctx.layout?.selectPanel(null) }, onEntrust: startIntake, onProcess: processMatter, onClaim: claimFragment, onWake: wakeMatter }
         },
       }, projection === undefined ? DashboardMainPanel : ProjectionPanel)
       selectDashboardByDefault(ctx)

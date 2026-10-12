@@ -29,7 +29,7 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { bindClaimPath, bindIntakePath, bindProcessPath, claimContextMessage, judgeClaimReturn, judgeIntakeReturn, judgeReturn, processingContextMessage, type JudgeProposal, type JudgeSession } from '../../src/client/desk-process.ts'
+import { bindClaimPath, bindIntakePath, bindProcessPath, bindWakePath, canProcess, claimContextMessage, judgeClaimReturn, judgeIntakeReturn, judgeReturn, judgeWakeReturn, processingContextMessage, wakeContextMessage, type JudgeProposal, type JudgeSession } from '../../src/client/desk-process.ts'
 
 interface Receipt { operationId: string, matterId: string, sessionId: string, status: string, revision?: number, proposalId?: string, submittedAt: string }
 
@@ -352,6 +352,86 @@ describe('claim path (待认领 arm: the fragment IS the context, the claim IS t
     expect(message).toContain('u-1')
     expect(message).toContain('assistant_operating')
     expect(message).toContain('claim')
+    expect(message).toContain('未经')
+  })
+})
+
+/**
+ * The wake arm (principal direction, 2026-10-12: state decides the legal action set — a
+ * completed matter cannot be "processed again"; the only legal action is waking it, and waking
+ * always has a cause: something changed). Settle = this session's own committed receipt after
+ * binding AND the matter's status back to active in the projection.
+ */
+describe('wake path (已完成/已放弃 only wakes, never re-processes)', () => {
+  const boundWake = () => bindWakePath('m-2', 'session-1', 'completed', BOUND_AT)
+  const wakeJudge = (
+    receipts: Receipt[],
+    matterStatuses: ReadonlyMap<string, string> = new Map([['m-2', 'completed']]),
+    extra: Partial<Parameters<typeof judgeWakeReturn>[1]> = {},
+    proposals: readonly JudgeProposal[] = [],
+    freshness: { status: string, stale: boolean } = { status: 'ready', stale: false },
+  ) => judgeWakeReturn(boundWake(), {
+    projection: { receipts, matterIds: new Set(['m-2']), proposals, ...freshness },
+    session: session(), onPath: true, reminders: 'synced', matterStatuses, ...extra,
+  })
+  const committedOnM2 = () => freshCommitted({ matterId: 'm-2' })
+
+  it('binds the matter, session, observed status and instant into its own path kind', () => {
+    expect(boundWake()).toMatchObject({ kind: 'wake', matterId: 'm-2', sessionId: 'session-1', observedStatus: 'completed', boundAt: BOUND_AT })
+  })
+
+  it('gates processing by status: only an active matter may open a processing path', () => {
+    expect(canProcess('active')).toBe(true)
+    expect(canProcess('completed')).toBe(false)
+    expect(canProcess('abandoned')).toBe(false)
+  })
+
+  it('stays while the matter is still settled — waking has not taken effect', () => {
+    const decision = wakeJudge([committedOnM2()])
+    expect(decision.decision).toBe('stay')
+    expect(decision.reasons).toContain('wake-not-effective')
+  })
+
+  it('stays when the matter is active again but this session read back nothing (woke elsewhere)', () => {
+    const decision = wakeJudge([], new Map([['m-2', 'active']]))
+    expect(decision.decision).toBe('stay')
+    expect(decision.reasons).toContain('wake-receipt-not-read-back')
+  })
+
+  it('returns when the matter is active again and this session reads back its committed reopen receipt', () => {
+    const decision = wakeJudge([committedOnM2()], new Map([['m-2', 'active']]))
+    expect(decision).toEqual({ decision: 'return', matterId: 'm-2', reasons: [], remindersUnsynced: false })
+  })
+
+  it('stays while this path leaves a pending proposal on the matter', () => {
+    const proposal: JudgeProposal = { id: 'p-1', matterId: 'm-2', sessionId: 'session-1', proposedAt: '2026-10-12T13:00:00.000Z', status: 'pending' }
+    const decision = wakeJudge([committedOnM2()], new Map([['m-2', 'active']]), {}, [proposal])
+    expect(decision.decision).toBe('stay')
+    expect(decision.reasons).toContain('pending-proposal')
+  })
+
+  it('keeps the shared gates: principal leaving, running session, stale projection', () => {
+    expect(wakeJudge([committedOnM2()], new Map([['m-2', 'active']]), { onPath: false }).reasons).toContain('user-left-path')
+    expect(wakeJudge([committedOnM2()], new Map([['m-2', 'active']]), { session: session({ running: true, turnSettled: false }) }).reasons).toContain('session-running')
+    expect(wakeJudge([committedOnM2()], new Map([['m-2', 'active']]), {}, [], { status: 'ready', stale: true }).reasons).toContain('projection-stale')
+  })
+
+  it('reports a woken matter that vanished instead of returning onto a ghost', () => {
+    const decision = judgeWakeReturn(boundWake(), {
+      projection: { status: 'ready', stale: false, receipts: [committedOnM2()], matterIds: new Set(), proposals: [] },
+      session: session(), onPath: true, reminders: 'synced', matterStatuses: new Map([['m-2', 'active']]),
+    })
+    expect(decision.decision).toBe('stay')
+    expect(decision.reasons).toContain('matter-vanished')
+  })
+
+  it('seeds the conversation with the completed identity, the cause-first rule and the reopen tool path', () => {
+    const message = wakeContextMessage({ id: 'm-2', title: '九月银行对账单核对', status: 'completed', summary: '九月对账单与账面逐笔核对。' })
+    expect(message).toContain('已完成')
+    expect(message).toContain('九月银行对账单核对')
+    expect(message).toContain('什么变化')
+    expect(message).toContain('assistant_operating')
+    expect(message).toContain('reopen')
     expect(message).toContain('未经')
   })
 })
