@@ -5,7 +5,7 @@ intent: "回读已归档的一把手定位、模拟与关闭记录，判断 CEO 
 
 # 261008 · CEO 价值历史材料回读诊断
 
-> 本篇是 2026-10-08 本轮历史原始材料阅读诊断，服务 [CEO 持续助理卡](../../_archive/settled_issues/261008-ceo-operating-loop.md)。它只回读仓内已归档 issue、positioning research、methods 与已落地 note；不执行实测，也不把历史运行记录重新表述为本轮验证。当前实现路径与证据边界另见 [现状复核](261008-ceo-value-contract-review.md)。
+> 本篇是 2026-10-08 本轮历史原始材料阅读诊断，服务 [CEO 持续助理卡](../../../_archive/settled_issues/261008-ceo-operating-loop.md)。它只回读仓内已归档 issue、positioning research、methods 与已落地 note；不执行实测，也不把历史运行记录重新表述为本轮验证。当前实现路径与证据边界另见 [现状复核](261008-ceo-value-contract-review.md)。
 >
 > **阅读推断**：历史材料并不缺 CEO 诉求，缺的是把诉求翻译成可证伪的业务价值验收，并在关闭 issue 时保持这条证据等级。许多卡已经充分回答了“方向是否清楚”“切片是否交付”“机制是否可运行”，但没有回答“真实的一把手是否因此愿意把一件自己的决定交给它、是否反复使用、决定后的业务跟进是否变好”。因此，“长期开发却打不动 CEO”更像研究到结果/验收的翻译损耗与自证闭环，而不是单纯没有做需求研究。
 

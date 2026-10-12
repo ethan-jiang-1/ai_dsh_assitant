@@ -4,6 +4,9 @@
 
 | 文件 | 服务的卡 | 日期 |
 |---|---|---|
+| [positioning/261005-chinese-sme-boss.md](positioning/261005-chinese-sme-boss.md) | [开屏节律](../settled_issues/261007-opening-brief-and-rhythm.md)（口语化红线）、[输入边界](../settled_issues/261007-input-boundary.md)（五谷渔粉案例） | 2026-10-05 |
+| [positioning/261008-ceo-value-contract-review.md](positioning/261008-ceo-value-contract-review.md) | [总助体验](../settled_issues/261006-chief-of-staff-experience.md)、[持续助理](../settled_issues/261008-ceo-operating-loop.md)：静态核对价值证据边界（现由 [规格卡](../../../notes/proposed/2026-10-06-desk-operating-entry.md) 作史据引用） | 2026-10-08 |
+| [positioning/261008-ceo-value-historical-review.md](positioning/261008-ceo-value-historical-review.md) | [总助体验](../settled_issues/261006-chief-of-staff-experience.md)、[持续助理](../settled_issues/261008-ceo-operating-loop.md)：历史材料回读诊断 | 2026-10-08 |
 | [positioning/261009-ceo-operating-practices.md](positioning/261009-ceo-operating-practices.md) | [持续助理](../settled_issues/261008-ceo-operating-loop.md)：外部有界检索与正文获取限制；一手实践未核 | 2026-10-09 |
 | [tech-exploration/261009-operating-loop-feasibility.md](tech-exploration/261009-operating-loop-feasibility.md) | [持续助理](../settled_issues/261008-ceo-operating-loop.md)：静态断点、Host 候选与恢复/验收，未实施 | 2026-10-09 |
 | [tech-exploration/261005-repo-entry-tooling-audit.md](tech-exploration/261005-repo-entry-tooling-audit.md) | [261005-repo-navigability](../settled_issues/261005-repo-navigability.md) | 2026-10-05 |
