@@ -19,7 +19,7 @@
 
 import type { Context } from '@deepseek-ai/cordis'
 import { defineTool } from '@deepseek-ai/dsh-tools'
-import type { LedgerOperation, LedgerSource, MatterRecord, ProposedChange } from '../../domain/operating/ledger.ts'
+import type { LedgerOperation, LedgerSource, MatterRecord, OperationRecord, ProposedChange } from '../../domain/operating/ledger.ts'
 
 export const name = 'assistant-operating-tool'
 
@@ -36,8 +36,8 @@ const DESCRIPTION = [
   '(payments, commitments, risks) with their sources, revisions, and durable receipts.',
   'Actions:',
   '- desk: list every matter (id, title, status, revision, times) and unclaimed fragments.',
-  '- read: one matter in full (materials, proposals) by matter_id, or one receipt by',
-  '  operation_id.',
+  '- read: one matter in full (current fields, entrust source, materials, complete proposals,',
+  '  ordered operation outcomes and sources) by matter_id, or one receipt by operation_id.',
   '- entrust: the principal designates a new matter; quote them verbatim.',
   '- report: ordinary progress on a known matter (a material note and/or a forecast). Always',
   '  safe: it retains the material and never moves the promised deadline or checkpoint.',
@@ -65,9 +65,31 @@ interface DeskItem {
   title: string
   status: string
   revision: number
+  summary?: string
+  responsible?: string
   promised_deadline?: string
   forecast_at?: string
+  forecast_source?: LedgerSource
   next_checkpoint?: string
+  completed_at?: string
+}
+
+interface OperationSummary {
+  operationId: string
+  kind: string
+  submittedAt: string
+  outcome: OperationRecord['receipt']['outcome']
+  source: LedgerSource
+}
+
+interface MatterProposalSummary {
+  id: string
+  kind: string
+  status: string
+  proposed_at: string
+  change: ProposedChange
+  source: LedgerSource
+  resolution_operation_id?: string
 }
 
 export interface OperatingOutput {
@@ -77,8 +99,10 @@ export interface OperatingOutput {
   source?: LedgerSource
   matters?: DeskItem[]
   unclaimed?: { id: string; note: string; sessionId: string }[]
-  materials?: { id: string; note: string; sessionId: string; quote?: string }[]
-  proposals?: { id: string; kind: string; status: string; proposed_at: string; source: LedgerSource; resolution_operation_id?: string }[]
+  materials?: { id: string; note: string; sessionId: string; eventId?: string; quote?: string }[]
+  proposals?: MatterProposalSummary[]
+  entrust?: { operation_id: string; sessionId: string; eventId?: string; quote?: string }
+  operations?: OperationSummary[]
 }
 
 function deskItem(matter: MatterRecord): DeskItem {
@@ -87,9 +111,13 @@ function deskItem(matter: MatterRecord): DeskItem {
     title: matter.title,
     status: matter.status,
     revision: matter.revision,
+    summary: matter.summary,
+    responsible: matter.responsible,
     ...(matter.times.promisedDeadline !== undefined ? { promised_deadline: matter.times.promisedDeadline } : {}),
     ...(matter.times.forecastAt !== undefined ? { forecast_at: matter.times.forecastAt } : {}),
+    ...(matter.times.forecastSource !== undefined ? { forecast_source: matter.times.forecastSource } : {}),
     ...(matter.times.nextCheckpoint !== undefined ? { next_checkpoint: matter.times.nextCheckpoint } : {}),
+    ...(matter.times.completedAt !== undefined ? { completed_at: matter.times.completedAt } : {}),
   }
 }
 
@@ -98,25 +126,32 @@ function render(_args: { action: Action }, value: OperatingOutput): { type: 'tex
   for (const item of value.matters ?? []) {
     const times = [
       item.promised_deadline !== undefined ? `promised ${item.promised_deadline}` : '',
-      item.forecast_at !== undefined ? `forecast ${item.forecast_at}` : '',
+      item.forecast_at !== undefined ? `forecast ${item.forecast_at}${item.forecast_source !== undefined ? ` from ${item.forecast_source.sessionId}${item.forecast_source.eventId !== undefined ? `/${item.forecast_source.eventId}` : ''}${item.forecast_source.quote !== undefined ? `: ${item.forecast_source.quote}` : ''}` : ''}` : '',
       item.next_checkpoint !== undefined ? `checkpoint ${item.next_checkpoint}` : '',
+      item.completed_at !== undefined ? `completed ${item.completed_at}` : '',
     ].filter(part => part.length > 0).join(', ')
-    lines.push(`- [${item.status}] ${item.title} (${item.id}, revision ${item.revision}${times.length > 0 ? `; ${times}` : ''})`)
+    lines.push(`- [${item.status}] ${item.title} (${item.id}, revision ${item.revision}${times.length > 0 ? `; ${times}` : ''}${item.responsible !== undefined && item.responsible !== '' ? `; responsible ${item.responsible}` : ''}${item.summary !== undefined && item.summary !== '' ? `; ${item.summary}` : ''})`)
   }
   for (const fragment of value.unclaimed ?? []) {
     lines.push(`- unclaimed ${fragment.id} (${fragment.sessionId}): ${fragment.note}`)
   }
   for (const material of value.materials ?? []) {
-    lines.push(`- material ${material.id} (${material.sessionId}): ${material.note}`)
+    lines.push(`- material ${material.id} (${material.sessionId}${material.eventId !== undefined ? `/${material.eventId}` : ''}): ${material.note}${material.quote !== undefined ? `; quote: ${material.quote}` : ''}`)
+  }
+  if (value.entrust !== undefined) {
+    lines.push(`- entrust ${value.entrust.operation_id} (${value.entrust.sessionId}${value.entrust.eventId !== undefined ? `/${value.entrust.eventId}` : ''}): ${value.entrust.quote ?? ''}`)
+  }
+  for (const operation of value.operations ?? []) {
+    lines.push(`- operation ${operation.operationId} ${operation.kind} [${JSON.stringify(operation.outcome)}] (${operation.submittedAt}; ${operation.source.sessionId}${operation.source.eventId !== undefined ? `/${operation.source.eventId}` : ''}${operation.source.quote !== undefined ? `: ${operation.source.quote}` : ''})`)
   }
   for (const proposal of value.proposals ?? []) {
-    lines.push(`- proposal ${proposal.id} ${proposal.kind} [${proposal.status}] (proposed ${proposal.proposed_at}; source ${proposal.source.sessionId}${proposal.source.quote !== undefined ? `: ${proposal.source.quote}` : ''}${proposal.resolution_operation_id !== undefined ? `; resolution ${proposal.resolution_operation_id}` : ''})`)
+    lines.push(`- proposal ${proposal.id} ${proposal.kind} [${proposal.status}] (change ${JSON.stringify(proposal.change)}; proposed ${proposal.proposed_at}; source ${proposal.source.sessionId}${proposal.source.eventId !== undefined ? `/${proposal.source.eventId}` : ''}${proposal.source.quote !== undefined ? `: ${proposal.source.quote}` : ''}${proposal.resolution_operation_id !== undefined ? `; resolution ${proposal.resolution_operation_id}` : ''})`)
   }
   if (value.source !== undefined) {
-    lines.push(`- source ${value.source.sessionId}${value.source.quote !== undefined ? `: ${value.source.quote}` : ''}`)
+    lines.push(`- source ${value.source.sessionId}${value.source.eventId !== undefined ? `/${value.source.eventId}` : ''}${value.source.quote !== undefined ? `: ${value.source.quote}` : ''}`)
   }
   if (value.receipt !== undefined) {
-    lines.push(`- receipt ${value.receipt.operationId} on ${value.receipt.matterId || 'no matter'}: ${JSON.stringify(value.receipt.outcome)}`)
+    lines.push(`- receipt ${value.receipt.operationId} on ${value.receipt.matterId || 'no matter'} (${value.receipt.submittedAt}): ${JSON.stringify(value.receipt.outcome)}`)
   }
   return [{ type: 'text', text: lines.join('\n') }]
 }
@@ -199,9 +234,16 @@ export function operatingTool(ctx: Context) {
                 title: { type: 'string', required: true },
                 status: { type: 'string', required: true },
                 revision: { type: 'integer', required: true },
+                summary: { type: 'string' },
+                responsible: { type: 'string' },
                 promised_deadline: { type: 'string' },
                 forecast_at: { type: 'string' },
+                forecast_source: {
+                  type: 'object', additionalProperties: false,
+                  properties: { sessionId: { type: 'string', required: true }, eventId: { type: 'string' }, quote: { type: 'string' } },
+                },
                 next_checkpoint: { type: 'string' },
+                completed_at: { type: 'string' },
               },
             },
           },
@@ -230,6 +272,42 @@ export function operatingTool(ctx: Context) {
               },
             },
           },
+          entrust: {
+            type: 'object', additionalProperties: false,
+            properties: {
+              operation_id: { type: 'string', required: true },
+              sessionId: { type: 'string', required: true },
+              eventId: { type: 'string' },
+              quote: { type: 'string' },
+            },
+          },
+          operations: {
+            type: 'array',
+            items: {
+              type: 'object', additionalProperties: false,
+              properties: {
+                operationId: { type: 'string', required: true },
+                kind: { type: 'string', required: true },
+                submittedAt: { type: 'string', required: true },
+                outcome: {
+                  type: 'object', required: true, additionalProperties: false,
+                  properties: {
+                    status: { type: 'string', required: true },
+                    revision: { type: 'integer' },
+                    proposalId: { type: 'string' },
+                    unclaimedId: { type: 'string' },
+                    observedRevision: { type: 'integer' },
+                    currentRevision: { type: 'integer' },
+                    reason: { type: 'string' },
+                  },
+                },
+                source: {
+                  type: 'object', additionalProperties: false,
+                  properties: { sessionId: { type: 'string', required: true }, eventId: { type: 'string' }, quote: { type: 'string' } },
+                },
+              },
+            },
+          },
           proposals: {
             type: 'array',
             items: {
@@ -238,8 +316,26 @@ export function operatingTool(ctx: Context) {
               properties: {
                 id: { type: 'string', required: true },
                 kind: { type: 'string', required: true },
-                 proposed_at: { type: 'string', required: true },
-                 source: {
+                proposed_at: { type: 'string', required: true },
+                change: {
+                  type: 'object', required: true, additionalProperties: false,
+                  properties: {
+                    kind: { type: 'string', required: true },
+                    promisedDeadline: { type: 'string' },
+                    nextCheckpoint: { type: 'string' },
+                    evidence: {
+                      type: 'object', additionalProperties: false,
+                      properties: {
+                        note: { type: 'string', required: true },
+                        source: {
+                          type: 'object', additionalProperties: false,
+                          properties: { sessionId: { type: 'string', required: true }, eventId: { type: 'string' }, quote: { type: 'string' } },
+                        },
+                      },
+                    },
+                  },
+                },
+                source: {
                    type: 'object', additionalProperties: false,
                    properties: { sessionId: { type: 'string', required: true }, eventId: { type: 'string' }, quote: { type: 'string' } },
                  },
@@ -283,12 +379,18 @@ export function operatingTool(ctx: Context) {
         }
         case 'read': {
           if (args.matter_id !== undefined) {
-            const matter = await ledger.readMatter(args.matter_id)
-            if (matter === undefined) throw new Error(`no operating matter "${args.matter_id}"`)
+            const snapshot = await ledger.readMatterSnapshot(args.matter_id)
+            if (snapshot === undefined) throw new Error(`no operating matter "${args.matter_id}"`)
+            const { matter, operations } = snapshot
+            const entrustRecord = operations.find(record => record.operation.kind === 'create')
             return {
               action,
               summary: `${matter.title} (${matter.id}, revision ${matter.revision}, ${matter.status}); ${matter.materials.length} material(s), ${matter.proposals.filter(proposal => proposal.status === 'pending').length} pending proposal(s):`,
               matters: [deskItem(matter)],
+              ...(entrustRecord?.operation.kind === 'create' ? { entrust: {
+                operation_id: entrustRecord.operation.operationId,
+                ...entrustRecord.operation.source,
+              } } : {}),
               materials: matter.materials.map(material => ({
                 id: material.id,
                 note: material.note,
@@ -296,13 +398,21 @@ export function operatingTool(ctx: Context) {
                 ...(material.source.quote !== undefined ? { quote: material.source.quote } : {}),
               })),
               proposals: matter.proposals.map(proposal => ({
-                 id: proposal.id,
-                 kind: proposal.change.kind,
-                 status: proposal.status,
-                 proposed_at: proposal.proposedAt,
-                 source: proposal.source,
-                 ...(proposal.resolutionOperationId !== undefined ? { resolution_operation_id: proposal.resolutionOperationId } : {}),
-               })),
+                id: proposal.id,
+                kind: proposal.change.kind,
+                status: proposal.status,
+                proposed_at: proposal.proposedAt,
+                change: proposal.change,
+                source: proposal.source,
+                ...(proposal.resolutionOperationId !== undefined ? { resolution_operation_id: proposal.resolutionOperationId } : {}),
+              })),
+              operations: operations.map(({ operation, receipt }) => ({
+                operationId: receipt.operationId,
+                kind: operation.kind,
+                submittedAt: receipt.submittedAt,
+                outcome: receipt.outcome,
+                source: operation.source,
+              })),
             }
           }
           if (typeof args.operation_id === 'string' && args.operation_id.trim().length > 0) {

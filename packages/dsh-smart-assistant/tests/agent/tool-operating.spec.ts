@@ -126,6 +126,73 @@ describe('assistant_operating (tool adapter over the authoritative ledger)', () 
     expect(matter.proposals?.[0]?.resolution_operation_id).toBe('op-tool-reject')
   })
 
+  it('reads back current matter ownership, times, entrust source and proposal change', async () => {
+    const tool = boot()
+    const entrusted = await tool.execute({
+      action: 'entrust', operation_id: 'op-readback-create', title: 'NB-02 二期回款',
+      summary: '跟进第二期付款。', responsible: '财务陈琳',
+      promised_deadline: '2026-10-13', next_checkpoint: '2026-10-12',
+      quote: '帮我盯 NB-02，13 号应到账，12 号跟陈琳核对。',
+    }, exec) as OperatingOutput
+    const matterId = entrusted.receipt!.matterId
+    await tool.execute({ action: 'report', operation_id: 'op-readback-report', matter_id: matterId,
+      note: '客户预测 10/15 到账，未重新约定。', forecast_at: '2026-10-15',
+      quote: '客户说预计 10/15，但还没重约。' }, exec)
+    await tool.execute({ action: 'propose', operation_id: 'op-readback-propose', matter_id: matterId,
+      change_kind: 'reschedule', change_deadline: '2026-10-20', quote: '可能改到 10/20，等确认。' }, exec)
+
+    const read = await tool.execute({ action: 'read', matter_id: matterId }, exec) as OperatingOutput
+    expect(read.matters?.[0]).toMatchObject({
+      id: matterId, title: 'NB-02 二期回款', status: 'active', summary: '跟进第二期付款。',
+      responsible: '财务陈琳', revision: 1, promised_deadline: '2026-10-13',
+      forecast_at: '2026-10-15', next_checkpoint: '2026-10-12',
+    })
+    expect(read.entrust).toEqual({
+      operation_id: 'op-readback-create', sessionId: 'spec-session',
+      quote: '帮我盯 NB-02，13 号应到账，12 号跟陈琳核对。',
+    })
+    expect(read.proposals?.[0]).toMatchObject({
+      id: 'p-1', kind: 'reschedule', status: 'pending',
+      change: { kind: 'reschedule', promisedDeadline: '2026-10-20' },
+      source: { sessionId: 'spec-session', quote: '可能改到 10/20，等确认。' },
+    })
+    expect(read.operations?.map(operation => operation.operationId)).toEqual([
+      'op-readback-create', 'op-readback-report', 'op-readback-propose',
+    ])
+    expect(read.operations?.map(operation => operation.outcome.status)).toEqual(['committed', 'committed', 'proposed'])
+    expect(read.operations?.every(operation => operation.source.sessionId === 'spec-session')).toBe(true)
+    const rendered = tool.output.render({ action: 'read' }, JSON.parse(JSON.stringify(read)))
+      .filter(part => part.type === 'text')
+      .map(part => part.text)
+      .join('\n')
+    expect(rendered).toContain('帮我盯 NB-02，13 号应到账，12 号跟陈琳核对。')
+    expect(rendered).toContain('客户说预计 10/15，但还没重约。')
+    expect(rendered).toContain('"promisedDeadline":"2026-10-20"')
+  })
+
+  it('carries the event-level locator on materials, like the sibling projection does', async () => {
+    const tool = boot()
+    const service = services[services.length - 1]!
+    const entrusted = await tool.execute({
+      action: 'entrust', operation_id: 'op-event-create', title: 'NB-02 二期回款', quote: '帮我盯 NB-02',
+    }, exec) as OperatingOutput
+    const matterId = entrusted.receipt!.matterId
+    await service.submitOperation({
+      kind: 'update', operationId: 'op-event-report', matterId, observedRevision: 1,
+      materials: [{ note: '客户致电', source: { sessionId: 'spec-session', eventId: 'ev-42', quote: '客户说预计 10/15。' } }],
+      source: { sessionId: 'spec-session', eventId: 'ev-42' },
+    })
+
+    const read = await tool.execute({ action: 'read', matter_id: matterId }, exec) as OperatingOutput
+    expect(read.materials?.find(material => material.note === '客户致电')?.eventId).toBe('ev-42')
+    const rendered = tool.output.render({ action: 'read' }, JSON.parse(JSON.stringify(read)))
+      .filter(part => part.type === 'text')
+      .map(part => part.text)
+      .join('\n')
+    expect(rendered).toContain('(spec-session/ev-42)')
+    expect(rendered).toContain('"status":"proposed"')
+  })
+
   it('only proposes inferred major changes; the explicit confirm applies them', async () => {
     const tool = boot()
     const entrusted = await tool.execute({

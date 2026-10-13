@@ -215,6 +215,25 @@ export class AssistantOperatingLedger extends Service {
   }
 
   /**
+   * Read a matter with its durable operation history from one ledger revision.
+   * @param matterId - Matter whose snapshot is requested.
+   * @returns The matter and only its ordered operation records, or `undefined` when absent.
+   */
+  async readMatterSnapshot(matterId: string): Promise<{
+    readonly matter: MatterRecord
+    readonly operations: readonly OperationRecord[]
+  } | undefined> {
+    const state = this.current()
+    const matter = state.matters[matterId]
+    if (matter === undefined) return undefined
+    const operations = Object.values(state.operations)
+      .filter(record => record.receipt.matterId === matterId)
+      .sort((left, right) => left.receipt.submittedAt.localeCompare(right.receipt.submittedAt)
+        || left.receipt.operationId.localeCompare(right.receipt.operationId))
+    return { matter, operations }
+  }
+
+  /**
    * List all matters in creation order.
    * @returns Every matter in the ledger.
    */

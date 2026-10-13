@@ -450,7 +450,7 @@ export function processingContextMessage(matter: ProcessingContextMatter): strin
     matter.times.nextCheckpoint !== undefined ? `核对 ${matter.times.nextCheckpoint}` : undefined,
   ].filter(part => part !== undefined).join('、')
   const head = `正在处理事项「${matter.title}」（${matter.id}）`
-  return `${head}${times === '' ? '' : `：${times}`}。${matter.summary} 请先用 assistant_operating read ${matter.id} 核对台账详情，然后等我具体指令。`
+  return `${head}${times === '' ? '' : `：${times}`}。${matter.summary} 首次回应前先成功读取绑定事项：assistant_operating read ${matter.id}。读回失败时明确说明无法核实，不能写入或假装完整。成功后按六类交接：目的与委托原话、进展事实、已定决定及其依据、承诺/预测/核对/完成四种时间、业务未知或待裁决、已有下一步；无记录就说未知，建议须与已定下一步分开。材料里的预测不改变承诺，待确认提案不能说成已决定。随后等我具体指令；普通进展仍按既有规则留存，明确变更与推断提案遵循各自权限。`
 }
 
 /** The unclaimed-fragment fields the claim-session seed needs (structural projection view). */

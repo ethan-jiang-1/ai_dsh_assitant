@@ -76,6 +76,31 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
     })
   })
 
+  it('reads a matter and its ordered operation history from one scoped snapshot', async () => {
+    const service = boot()
+    const created = await service.submitOperation({
+      kind: 'create', operationId: 'op-snapshot-create', title: 'Snapshot target',
+      source: { sessionId: 'session-A', quote: '委托原话' },
+    })
+    await service.submitOperation({
+      kind: 'update', operationId: 'op-snapshot-update', matterId: created.matterId,
+      observedRevision: 1, materials: [{ note: '进展材料', source: { sessionId: 'session-B', quote: '进展原话' } }],
+      source: { sessionId: 'session-B', quote: '进展原话' },
+    })
+    const unrelated = await service.submitOperation({
+      kind: 'create', operationId: 'op-snapshot-other', title: 'Same title is not identity',
+      source: { sessionId: 'session-C' },
+    })
+
+    const snapshot = await service.readMatterSnapshot(created.matterId)
+    expect(snapshot?.matter.id).toBe(created.matterId)
+    expect(snapshot?.matter.revision).toBe(1)
+    expect(snapshot?.operations.map(record => record.receipt.operationId)).toEqual([
+      'op-snapshot-create', 'op-snapshot-update',
+    ])
+    expect(snapshot?.operations.some(record => record.receipt.matterId === unrelated.matterId)).toBe(false)
+  })
+
   it('retrieves the original receipt and matter after a restart on the same directory', async () => {
     const dataDir = mkdtempSync(join(tmpdir(), 'assistant-operating-ledger-'))
     dirs.push(dataDir)

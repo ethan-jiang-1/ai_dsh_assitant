@@ -6,7 +6,7 @@
 
 | 卡 | 要解决什么 | 当前环节与未完成项 |
 |---|---|---|
-| [261012-operating-continuity-value.md](261012-operating-continuity-value.md) | 经营事项跨时接续是否值得成为助手主价值 | 推敲中；Q9–Q14 已接受，隔离原型/设计默认/分层验收已交付（A 为 agent 暂荐）；42 项原型浏览器检查、verify 41 项通过；生产实施未授权，目标角色价值观察无样本（10/27 复看） |
+| [261012-operating-continuity-value.md](261012-operating-continuity-value.md) | 经营事项跨时接续是否值得成为助手主价值 | 推敲中；Q9–Q14 已接受，原型已交付；首个只读接续读回切片已授权实施并完成（实现/证据见 [implemented note](../../notes/implemented/2026-10-13-operating-continuity-readback.md)）；Agent 行为、真机 UX、自然事项/目标角色价值仍未验证（10/27 复看） |
 
 ## 写一张卡
 

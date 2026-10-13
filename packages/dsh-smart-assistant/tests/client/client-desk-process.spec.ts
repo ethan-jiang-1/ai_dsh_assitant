@@ -186,11 +186,15 @@ describe('processing-session context seed (principal decision 2026-10-11: the ma
     expect(message).toContain('正在处理事项「合同 NB-02 第二期款到账核对」（m-1）')
     expect(message).toContain('承诺 2026-10-13、核对 2026-10-13')
     expect(message).toContain('assistant_operating read m-1')
+    expect(message).toContain('先成功读取绑定事项')
+    expect(message).toContain('六类')
+    expect(message).toContain('待确认提案不能说成已决定')
+    expect(message).toContain('读回失败时明确说明无法核实，不能写入或假装完整')
   })
 
   it('omits the times clause when the matter has none', () => {
     const bare = processingContextMessage({ id: 'm-2', title: 'T', summary: 'S', times: {} })
-    expect(bare).not.toContain('承诺')
+    expect(bare).not.toContain('：承诺')
     expect(bare).toContain('正在处理事项「T」（m-2）')
   })
 })
