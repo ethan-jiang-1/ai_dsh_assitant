@@ -18,7 +18,7 @@ opened: 2026-10-12
 - 正确的呈现时点是什么？定时晨报未获验证；机制近邻研究提示泛化辅助未必有效，提醒应贴合具体事项与触发时点。
 - 判断结果适用于当前本人/试用场景，还是可以谨慎外推到目标用户？单用户证据不得冒充市场验证。
 
-**下一步：** Q9–Q14 已接受；本人明确不是 CEO，已委托 agent 自定可逆产品默认并交可操作原型。本轮隔离原型、设计默认与分层验收已交付，供本人体验后 steer；不再以逐题问卷阻塞。原型的首选布局为 A「行动概览」：同屏呈现在办事项与单件现状，再进入同一桌面的处理会话；B 三列工作台信息密度较高，C 对话优先但桌面概览较弱。此为 agent 的可逆口味判断，未经本人或目标角色 UX 判断。HTML 主源在 throwaway branch `prototype/operating-continuity-2026-10-13`，commit `ee4985f3b977a2c2fdaf0717b28a2f97fb2939a9`；工作树快照在仓内 `.tmp/prototypes/operating-continuity/prototype.html`。浏览器覆盖桌面/手机三布局与 42 项模拟交互，`pnpm verify` 41 项通过；证据只证明原型候选能运行，不是生产产品验收。2026-10-13 至 2026-10-27 为自然观察复看窗口，不启动自动提醒；尚无目标用户与真实事项，不把本人产品判断或模拟演示当目标用户价值证据。自然出现事项时先明确参与者角色、材料使用边界与真实跨时条件，再按本卡观察口径记录行为/成本与参与者判断；现有读回/触发/恢复缺口如实记 blocked 或 fail，不偷偷改生产功能补齐。到期未触发只记无证据，由本人决定明确延长、延后或暂缺证据结束。本人于 2026-10-13 再次点名本卡并明确要求「按我们的流程落地」，授权首个最小切片：只读权威事项接续包与绑定处理首回合主动交接；实现记录见[接续读回决定](../../notes/implemented/2026-10-13-operating-continuity-readback.md)。该授权不含提醒、持久 schema 扩张、写权限变更或新桌面。
+**下一步：** Q9–Q14 已接受；本人明确不是 CEO，已委托 agent 自定可逆产品默认并交可操作原型。本轮隔离原型、设计默认与分层验收已交付，供本人体验后 steer；不再以逐题问卷阻塞。原型的首选布局为 A「行动概览」：同屏呈现在办事项与单件现状，再进入同一桌面的处理会话；B 三列工作台信息密度较高，C 对话优先但桌面概览较弱。此为 agent 的可逆口味判断，未经本人或目标角色 UX 判断。HTML 主源在 throwaway branch `prototype/operating-continuity-2026-10-13`，commit `ee4985f3b977a2c2fdaf0717b28a2f97fb2939a9`；工作树快照在仓内 `.tmp/prototypes/operating-continuity/prototype.html`。浏览器覆盖桌面/手机三布局与 42 项模拟交互，`pnpm verify` 41 项通过；证据只证明原型候选能运行，不是生产产品验收。2026-10-13 至 2026-10-27 为自然观察复看窗口，不启动自动提醒；尚无目标用户与真实事项，不把本人产品判断或模拟演示当目标用户价值证据。自然出现事项时先明确参与者角色、材料使用边界与真实跨时条件，再按本卡观察口径记录行为/成本与参与者判断；现有读回/触发/恢复缺口如实记 blocked 或 fail，不偷偷改生产功能补齐。到期未触发只记无证据，由本人决定明确延长、延后或暂缺证据结束。本人于 2026-10-13 再次点名本卡并明确要求「按我们的流程落地」，授权首个最小切片：只读权威事项接续包与绑定处理首回合主动交接；实现记录见[接续读回决定](../../notes/implemented/2026-10-13-operating-continuity-readback.md)。该授权不含提醒、持久 schema 扩张、写权限变更或新桌面。同日本人再点名本卡要求按 `_backlog/methods/` 流程处理并继续落地：第二切片（validation-evidence → validation-judgment）补齐 A1/A2 点名的隔离 eval 证据资产（`pnpm eval:continuity`，四类负例红绿对照进 verify 链）、以两连红→修复→绿落地副入口首回合只读协议（operating-brief）、完成真机走查与确定性失败/恢复态走查，行级判决见下方「第二切片判决」节；顺带修掉两个 born-red 并更正首切片 note 的测试声明。剩余缺口：重开绑定会话续接触发（Q11）、web 主入口模型行为回归资产、V1/V2 自然观察（🔒 本人，10-27 复看）、UX 真人体验判断。
 
 ## 本轮需求澄清
 
@@ -223,6 +223,27 @@ opened: 2026-10-12
 | 地板 | `pnpm typecheck && pnpm test && pnpm verify` | — | 既有回归全绿（驱动 self-check 挂 verify 后由其机械执行） |
 
 无 key / fixture 缺失 / 所需能力缺位 → 驱动记 **BLOCKED** 并以非零退出，不合并绿项（对应下方「测试前置与独立期望」）。运行资料全部落仓内 `.tmp/`，不碰日用 home。
+
+### 第二切片判决（validation-judgment · 2026-10-13：隔离 eval 资产 + 副入口协议 + 真机走查）
+
+按上方路由建齐资产后逐行判决；命令与证据均为当次真实运行，非自报。红→绿的完整弧线本身就是资产有效性的证明。
+
+| 行 | 判决 | 证据与限制 |
+|---|---|---|
+| A1 事项身份正确、首次续接主动 | **pass**（副入口 headless + 主入口 web 的模型行为部分） | `pnpm eval:continuity` 修复前**两连红**、修复后两过（判据全程相同：read 对 m-1 → 工具结果带种子独有原话标记 → 先读后答 seq 序）；desk-walk 处理臂首回合经种子+brief 双通道主动交包（全文见 `.tmp/desk-walkthrough/2026-10-13T13-06-42/2-processing-session.txt`，transient，可按下节命令重取）。**限制**：复用既有绑定会话（重开不重发种子，Q11 已知缺口）的续接触发仍未覆盖——client spec 断言的是新会话种子路径，记 gap 待后续切片 |
+| A2 六类内容与来源忠实 | **pass**（机械可判部分）+ 人的判断 pending | 工具结果带委托原话标记（`12.8 万/王会计` 只在账本不在提示里，鹦鹉学舌造不了假）；desk-walk 首回合全文六类齐全：原话逐字、材料带 op id 与来源、已定与待确认严格分开（「承诺日仍为 2026-10-20」「它要等你明确确认才生效」）、四种时间含不适用的诚实表达、未知/待裁决单列、已定下一步与标注建议分开、结尾「本轮为只读交接，未向台账写入任何内容」。**目的复述不变意归人判（pending）** |
+| A4 最少维护且权限正确 | **pass**（本切片范围）+ 发现已修 | 两连红抓到实缺陷：副入口形状下模型交包后把 pending 提案的来源原话**重新 report 成新材料**并自造预测覆盖既有预测（无授权写入+重复记录）；根因 = operating-brief 只教 desk/read 没教续接首回合协议。修复 = brief 补协议（交包内容、等指令、回访不是进展、不重复记录已有内容、真进展例外），同判据转绿（mutating 0、账本字节不变）。修复是提示词级，eval 是回归网——不是硬保证 |
+| A5 真提交才成功返回 | **pass**（确定性 + 真机各半） | `node dev/probes/web/desk-process-e2e.mjs` 13 相位绿：pending-stays-in-chat（待裁决不伪返回）、reject-auto-return、durable-rejection、confirmed-dates-unchanged（拒绝不动已确认日期）、return-selection、double-click-single-session（重复入口不重复建）；真机 say-turn：普通进展 report（材料留存、明说「承诺日 2026-10-20 不变」、revision 不动）后自动返回并选中该事项 |
+| A8 首屏与信息层级可用 | **机械部分 pass** + **人的判断 pending（本人未看过实物）** | 返回桌面头部「2 件在办 · 1 条等你确认 · 1 条待认领」+ m-1 卡片「等你确认」徽标——待裁决不藏（截图与屏幕文本 `.tmp/desk-walkthrough/2026-10-13T13-06-42/`，transient）；走查话术素材在 `2-processing-session.txt`。窄宽容器、键盘焦点等未在本轮逐项走查——记为本人体验时的观察点，不以本判决替代 |
+| A3/A6/A7/A9 | 未重跑专属正反例（本切片未触其改动面）；地板全绿 | `pnpm test` 581（62 files）、`pnpm test:composition` 6、`pnpm typecheck`、`pnpm verify` 41 |
+
+**走查不变量红的裁决（不是产品缺陷）**：desk-walk 的「桌面回来了 ⇒ 无待确认」不变量假设起始账本无 pending；本切片种子场景刻意预置 p-1 测首回合呈现，返回后桌面以「等你确认」徽标露出待裁决——预置 pending 的正确行为恰是回桌面且可见。不变量对「回合内新产生提案」的防护由 e2e 的 pending-stays-in-chat 相位守，仍绿。
+
+**顺带修复（born-red，干净 HEAD 复跑证伪非本切片引入）**：read 材料映射漏 `eventId`（类型/投影兄弟面/测试三者一致期待，实现漏带）；该测试尾行 `"status":"proposed"` 为邻测拷贝、本夹具永不可能绑上。两处同 diff 修掉；首切片 note 的「64 tests 通过」声明因此证伪，note 内已补带日期更正。教训：提交时的证据声明必须来自对最终代码的当次运行。
+
+**剩余缺口（不阻塞本切片收口）**：重开绑定会话的续接触发（Q11）；web 主入口模型行为的回归资产（desk-walk 是一次性取证非回归）；价值层 V1/V2 等自然事项观察（窗口至 2026-10-27，🔒 本人）；UX 真人体验判断（本人看实物后 steer）。
+
+**重取走查现场的命令**（transient 证据的复现协议，非资产）：`mkdir -p .tmp/desk-walk-home && ASSISTANT_DSH_HOME="$PWD/.tmp/desk-walk-home" bash dev/env/setup.sh`，拷 `dev/harness-home/.credentials.yaml` 与种子账本到该 home 的 `assistant-operating/ledger.json`，`ASSISTANT_DSH_HOME=… pnpm dsh --profile dev --port 0 --no-open`，`pnpm preflight '<URL>'` 后 `pnpm desk-walk '<URL>' --home … --matter '尾款' --say '…'`。
 
 ## 已知与未决
 
