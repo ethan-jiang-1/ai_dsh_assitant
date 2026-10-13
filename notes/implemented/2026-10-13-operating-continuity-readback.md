@@ -25,6 +25,8 @@
 
 全量 `pnpm eval` 执行为 7/8 可执行任务通过、1 个 web-only 任务未评估，命令因 `first-open-intake` 失败而退出 1（未加载 `first-conversation` 且答案未命中判据）。`continuity-from-home`、`desk-single-matter`、`desk-followup-readback` 均通过，但这些任务依赖共享 dev home，不构成隔离事项的首回合接续验收；在最终 presenter 改动后单独重跑 `pnpm eval --only desk-single-matter` 也通过（1/1）。现有 eval 没有专门独立 fixture 的首回合接续任务。渲染输出保留 quote/source/event id/change/完整 outcome，schema 能由真 preset composition 装载。静态与现有行为证据不替代真实浏览器话术层级、目标角色体验或自然业务价值判断。
 
+**更正（2026-10-13，连续性第二切片发现）**：上文"3 files，64 tests"的通过声明不成立——`carries the event-level locator on materials` 测试**生来就红**且在本 note 落笔的提交上就是红的（干净 HEAD 复跑证伪）：read 的材料映射漏带 `eventId`（实现缺陷），且测试尾行 `"status":"proposed"` 是从邻测拷来的、在本测试的夹具下永远不可能绑上（测试缺陷）。两处已在第二切片同 diff 修掉（映射补 `eventId`；断言改为绑得住的 `"status":"committed"` 并注明来历），修复后全量 `pnpm test` 581 tests（62 files）通过。教训进本 note 而不改写上文：提交时的证据声明必须来自**当次**对最终代码的运行，先跑后改的顺序会把过期的绿记进档案。
+
 ## 输掉的方案
 
 - 把 `MatterRecord.summary` 当完整现场包：它是可覆盖的一段摘要，不保留初始委托/全部材料/操作来源，丢失不可见。

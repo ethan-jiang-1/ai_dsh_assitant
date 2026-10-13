@@ -211,6 +211,19 @@ opened: 2026-10-12
 
 **本轮判决与停点（2026-10-13）：** 本人已委托 agent 做可逆设计默认并授权出原型，原型、需求默认和分层验收已交付；不再挂逐题问卷。推荐 A 行动概览进入单件处理路径，理由是第一屏同时承载组合状态和事项入口、上下文明确，仍需本人看实物后 steer。浏览器检查 42 项覆盖 1440/390 宽度三种布局、六件包、只读无回执、普通进展无额外确认、手动导航、待裁决不伪成功、歧义/缺资料/读回失败/安全停止和恢复缺口；最新截图见仓内 `.tmp/prototypes/operating-continuity/`。原型主 HTML 存于 throwaway branch `prototype/operating-continuity-2026-10-13`（`ee4985f3b977a2c2fdaf0717b28a2f97fb2939a9`）；浏览器脚本/运行状态不是永久回归资产，未增加测试套件。最后 `pnpm verify` 41 项全通过。以上只确认原型渲染/模拟状态，不确认生产 DSH 链路、目标角色可用性或自然业务价值。生产实施仍未授权；目标用户业务价值观察尚无样本，观察窗口至 2026-10-27，到期无样本的关闭仍需本人决定。
 
+### 本切片证据路由（validation-evidence · 2026-10-13 第二切片：隔离接续 eval 与 UX 走查资产）
+
+按方法把缺失资产先立再动手。本切片不实现新产品能力，只补 A1/A2 点名的隔离 eval 证据资产与 A8 真机走查：
+
+| 行 | 资产（新建/复用） | 命令 | 证明 / 不证明 |
+|---|---|---|---|
+| A1/A2 模型首回合接续（隔离 fixture） | `dev/eval/continuity-run.mjs`（新驱动，复用 `runPreset`）+ `dev/fixtures/eval-continuity/seed-ledger.json`（已知事项 id/revision、委托原话、四时间、pending 提案、相似事项 distractor、未认领片段） | `pnpm eval:continuity`（一次性 home：仓内 `.tmp/` 自备 profiles+插件链接，拷 dev home credentials，种子账本前置断言先跑） | 模型在续接首回合：read 对事项 → 读回权威快照（结果含种子独有原话）→ 先读后答 → 回复带承诺期限/委托原话/待确认提案 → 全程无授权写入（无 mutating 调用 + 账本字节前后不变）。不证明：UX 层级、真实业务价值、web 主入口种子链路（归 client spec/真组合/desk-walk） |
+| 评估器自身 | `--self-check` 红绿对照：无读调用的完整答案（后来追问补全/鹦鹉学舌）、错事项、读失败仍作答、无授权写入——全部必须判 FAIL | `node dev/eval/continuity-run.mjs --self-check`（并入 `pnpm verify` 链） | 判据真的会拒绝卡上四类负例 / 不证明模型行为本身 |
+| A8 真机 UX | `pnpm desk-walk` + `pnpm shots`（既有资产；走查须含失败/恢复态，不只成功截图） | 见[证据地图](../../docs/testing.md)渲染面行 | 渲染与导航规则在场、供本人判话术与信息层级 / 不证明价值与模型准确性 |
+| 地板 | `pnpm typecheck && pnpm test && pnpm verify` | — | 既有回归全绿（驱动 self-check 挂 verify 后由其机械执行） |
+
+无 key / fixture 缺失 / 所需能力缺位 → 驱动记 **BLOCKED** 并以非零退出，不合并绿项（对应下方「测试前置与独立期望」）。运行资料全部落仓内 `.tmp/`，不碰日用 home。
+
 ## 已知与未决
 
 ### 已知事实

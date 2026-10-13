@@ -190,7 +190,12 @@ describe('assistant_operating (tool adapter over the authoritative ledger)', () 
       .map(part => part.text)
       .join('\n')
     expect(rendered).toContain('(spec-session/ev-42)')
-    expect(rendered).toContain('"status":"proposed"')
+    // No proposal exists in this fixture (entrust + one update only), so the outcome that must
+    // render is the update's committed receipt. The '"status":"proposed"' line this test was
+    // born with was a copy-over from the neighbour test and could never bind here (born-red;
+    // found red on a clean HEAD by the continuity slice 2026-10-13 and fixed with the missing
+    // eventId mapping in the same slice).
+    expect(rendered).toContain('"status":"committed"')
   })
 
   it('only proposes inferred major changes; the explicit confirm applies them', async () => {

@@ -1,0 +1,301 @@
+{
+  "version": 1,
+  "matters": {
+    "m-1": {
+      "id": "m-1",
+      "title": "合同 XR-09 尾款收回",
+      "status": "active",
+      "summary": "客户约定 2026-10-20 前付清 XR-09 尾款 12.8 万；到账后与王会计核对收款记录，核对无误再开尾款发票。",
+      "responsible": "本人盯到账；王会计核对收款记录并确认金额。",
+      "revision": 3,
+      "times": {
+        "promisedDeadline": "2026-10-20",
+        "forecastAt": "2026-10-17",
+        "forecastSource": {
+          "sessionId": "session-eval-seed-a",
+          "quote": "客户 10-11 来电：财务这周五统一安排付款，预计 10-17 前后到账。"
+        },
+        "nextCheckpoint": "2026-10-21"
+      },
+      "materials": [
+        {
+          "id": "mat-1-1",
+          "source": {
+            "sessionId": "session-eval-seed-a",
+            "quote": "帮我盯一件事：合同 XR-09 的尾款，对方答应 10 月 20 日前付清，一共 12.8 万，到账后我要跟王会计核一遍再开票。记下来。"
+          },
+          "note": "立事项：XR-09 尾款 12.8 万，约 10-20 前付清；到账后与王会计核对，核对无误再开票。",
+          "receivedAt": "2026-10-09T02:11:00.000Z"
+        },
+        {
+          "id": "mat-1-2",
+          "source": {
+            "sessionId": "session-eval-seed-a",
+            "quote": "客户刚才来电话，说他们财务这周五统一安排付款。"
+          },
+          "note": "客户 10-11 来电：财务周五统一安排付款，预计 10-17 前后到账。",
+          "receivedAt": "2026-10-11T09:40:00.000Z"
+        }
+      ],
+      "proposals": [
+        {
+          "id": "p-1",
+          "change": {
+            "kind": "reschedule",
+            "promisedDeadline": "2026-10-24"
+          },
+          "source": {
+            "sessionId": "session-eval-seed-a",
+            "quote": "微信里客户改口说尾款可能要推迟到下周一付，还没重新约定。"
+          },
+          "proposedAt": "2026-10-12T08:05:00.000Z",
+          "status": "pending"
+        }
+      ],
+      "createdAt": "2026-10-09T02:11:00.000Z",
+      "updatedAt": "2026-10-12T08:05:00.000Z"
+    },
+    "m-2": {
+      "id": "m-2",
+      "title": "合同 XR-09 预付款开票",
+      "status": "active",
+      "summary": "XR-09 预付款 5 万已开票并寄出，等对方签收确认；与尾款（m-1）是两笔不同的钱。",
+      "responsible": "本人；对方采购签收。",
+      "revision": 1,
+      "times": {
+        "promisedDeadline": "2026-09-30",
+        "nextCheckpoint": "2026-10-08"
+      },
+      "materials": [
+        {
+          "id": "mat-2-1",
+          "source": {
+            "sessionId": "session-eval-seed-a",
+            "quote": "XR-09 的预付款发票今天寄出了，顺丰到付，到了让对方采购签收一下。"
+          },
+          "note": "预付款发票 09-30 寄出，等采购签收。",
+          "receivedAt": "2026-09-30T07:20:00.000Z"
+        }
+      ],
+      "proposals": [],
+      "createdAt": "2026-09-30T07:20:00.000Z",
+      "updatedAt": "2026-09-30T07:20:00.000Z"
+    },
+    "m-3": {
+      "id": "m-3",
+      "title": "九月社保缴纳",
+      "status": "completed",
+      "summary": "九月员工社保已缴，扣款成功，回单已归档。",
+      "responsible": "本人",
+      "revision": 2,
+      "times": {
+        "promisedDeadline": "2026-10-09",
+        "completedAt": "2026-10-09T03:30:00.000Z"
+      },
+      "materials": [
+        {
+          "id": "mat-3-1",
+          "source": {
+            "sessionId": "session-eval-seed-a",
+            "quote": "九月社保这周记得缴。"
+          },
+          "note": "九月社保 10-09 前缴纳。",
+          "receivedAt": "2026-10-06T01:00:00.000Z"
+        },
+        {
+          "id": "mat-3-2",
+          "source": {
+            "sessionId": "session-eval-seed-a",
+            "quote": "扣款成功，回单编号 SHE-2609-114。"
+          },
+          "note": "扣款成功，回单编号 SHE-2609-114，已归档。",
+          "receivedAt": "2026-10-09T03:30:00.000Z"
+        }
+      ],
+      "proposals": [],
+      "createdAt": "2026-10-06T01:00:00.000Z",
+      "updatedAt": "2026-10-09T03:30:00.000Z"
+    }
+  },
+  "operations": {
+    "op-seed-m1-create": {
+      "operation": {
+        "kind": "create",
+        "operationId": "op-seed-m1-create",
+        "title": "合同 XR-09 尾款收回",
+        "summary": "客户约定 2026-10-20 前付清 XR-09 尾款 12.8 万；到账后与王会计核对收款记录，核对无误再开尾款发票。",
+        "responsible": "本人盯到账；王会计核对收款记录并确认金额。",
+        "times": {
+          "promisedDeadline": "2026-10-20",
+          "nextCheckpoint": "2026-10-21"
+        },
+        "source": {
+          "sessionId": "session-eval-seed-a",
+          "quote": "帮我盯一件事：合同 XR-09 的尾款，对方答应 10 月 20 日前付清，一共 12.8 万，到账后我要跟王会计核一遍再开票。记下来。"
+        }
+      },
+      "receipt": {
+        "operationId": "op-seed-m1-create",
+        "matterId": "m-1",
+        "submittedAt": "2026-10-09T02:11:00.000Z",
+        "outcome": {
+          "status": "committed",
+          "revision": 1
+        }
+      }
+    },
+    "op-seed-m1-progress": {
+      "operation": {
+        "kind": "update",
+        "operationId": "op-seed-m1-progress",
+        "matterId": "m-1",
+        "observedRevision": 1,
+        "forecast": {
+          "at": "2026-10-17",
+          "source": {
+            "sessionId": "session-eval-seed-a",
+            "quote": "客户 10-11 来电：财务这周五统一安排付款，预计 10-17 前后到账。"
+          }
+        },
+        "materials": [
+          {
+            "note": "客户 10-11 来电：财务周五统一安排付款，预计 10-17 前后到账。",
+            "source": {
+              "sessionId": "session-eval-seed-a",
+              "quote": "客户刚才来电话，说他们财务这周五统一安排付款。"
+            }
+          }
+        ],
+        "source": {
+          "sessionId": "session-eval-seed-a",
+          "quote": "客户刚才来电话，说他们财务这周五统一安排付款。"
+        }
+      },
+      "receipt": {
+        "operationId": "op-seed-m1-progress",
+        "matterId": "m-1",
+        "submittedAt": "2026-10-11T09:40:00.000Z",
+        "outcome": {
+          "status": "committed",
+          "revision": 2
+        }
+      }
+    },
+    "op-seed-m1-propose": {
+      "operation": {
+        "kind": "propose",
+        "operationId": "op-seed-m1-propose",
+        "matterId": "m-1",
+        "change": {
+          "kind": "reschedule",
+          "promisedDeadline": "2026-10-24"
+        },
+        "source": {
+          "sessionId": "session-eval-seed-a",
+          "quote": "微信里客户改口说尾款可能要推迟到下周一付，还没重新约定。"
+        }
+      },
+      "receipt": {
+        "operationId": "op-seed-m1-propose",
+        "matterId": "m-1",
+        "submittedAt": "2026-10-12T08:05:00.000Z",
+        "outcome": {
+          "status": "proposed",
+          "proposalId": "p-1"
+        }
+      }
+    },
+    "op-seed-m2-create": {
+      "operation": {
+        "kind": "create",
+        "operationId": "op-seed-m2-create",
+        "title": "合同 XR-09 预付款开票",
+        "summary": "XR-09 预付款 5 万已开票并寄出，等对方签收确认；与尾款（m-1）是两笔不同的钱。",
+        "responsible": "本人；对方采购签收。",
+        "times": {
+          "promisedDeadline": "2026-09-30",
+          "nextCheckpoint": "2026-10-08"
+        },
+        "source": {
+          "sessionId": "session-eval-seed-a",
+          "quote": "XR-09 的预付款发票今天寄出了，顺丰到付，到了让对方采购签收一下。"
+        }
+      },
+      "receipt": {
+        "operationId": "op-seed-m2-create",
+        "matterId": "m-2",
+        "submittedAt": "2026-09-30T07:20:00.000Z",
+        "outcome": {
+          "status": "committed",
+          "revision": 1
+        }
+      }
+    },
+    "op-seed-m3-create": {
+      "operation": {
+        "kind": "create",
+        "operationId": "op-seed-m3-create",
+        "title": "九月社保缴纳",
+        "summary": "九月员工社保已缴，扣款成功，回单已归档。",
+        "responsible": "本人",
+        "times": {
+          "promisedDeadline": "2026-10-09"
+        },
+        "source": {
+          "sessionId": "session-eval-seed-a",
+          "quote": "九月社保这周记得缴。"
+        }
+      },
+      "receipt": {
+        "operationId": "op-seed-m3-create",
+        "matterId": "m-3",
+        "submittedAt": "2026-10-06T01:00:00.000Z",
+        "outcome": {
+          "status": "committed",
+          "revision": 1
+        }
+      }
+    },
+    "op-seed-m3-complete": {
+      "operation": {
+        "kind": "complete",
+        "operationId": "op-seed-m3-complete",
+        "matterId": "m-3",
+        "observedRevision": 1,
+        "evidence": {
+          "note": "扣款成功，回单编号 SHE-2609-114，已归档。",
+          "source": {
+            "sessionId": "session-eval-seed-a",
+            "quote": "扣款成功，回单编号 SHE-2609-114。"
+          }
+        },
+        "source": {
+          "sessionId": "session-eval-seed-a",
+          "quote": "社保扣款成功了，回单编号 SHE-2609-114，办结。"
+        }
+      },
+      "receipt": {
+        "operationId": "op-seed-m3-complete",
+        "matterId": "m-3",
+        "submittedAt": "2026-10-09T03:30:00.000Z",
+        "outcome": {
+          "status": "committed",
+          "revision": 2
+        }
+      }
+    }
+  },
+  "unclaimed": {
+    "u-1": {
+      "id": "u-1",
+      "note": "2026-10-12 微信：客户说「尾款那笔我们安排了」，没说是哪份合同、也没说金额与到账日。",
+      "source": {
+        "sessionId": "session-eval-seed-b",
+        "quote": "尾款那笔我们安排了"
+      },
+      "receivedAt": "2026-10-12T12:00:00.000Z"
+    }
+  },
+  "nextMatterSeq": 4,
+  "nextUnclaimedSeq": 2
+}

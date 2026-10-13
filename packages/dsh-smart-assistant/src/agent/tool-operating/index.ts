@@ -395,6 +395,7 @@ export function operatingTool(ctx: Context) {
                 id: material.id,
                 note: material.note,
                 sessionId: material.source.sessionId,
+                ...(material.source.eventId !== undefined ? { eventId: material.source.eventId } : {}),
                 ...(material.source.quote !== undefined ? { quote: material.source.quote } : {}),
               })),
               proposals: matter.proposals.map(proposal => ({
