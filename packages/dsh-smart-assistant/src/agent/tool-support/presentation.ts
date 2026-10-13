@@ -1,5 +1,8 @@
 /**
- * Shared presentation plumbing for the three model-facing tools.
+ * Shared presentation plumbing for the model-facing tools that project a summary into their
+ * result payload (tool-memory, tool-knowledge, tool-research, learn). `assistant_operating`
+ * is deliberately not one of them: its desk card renders through the tool's own output
+ * projector, and no summary rides its persisted payload.
  *
  * A completed card cannot read the canonical return value — `ToolResult` carries only model-facing
  * content, the error flag, and the tool-private payload its `output.presentationMeta` projector

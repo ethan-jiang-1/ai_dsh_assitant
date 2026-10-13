@@ -25,13 +25,11 @@ import { scanLearnedSkills } from '../../domain/skills/scan.ts'
 import { shadowedLearnedSkills } from '../../domain/skills/shadow.ts'
 import { skillLoadFromResult, skillUsageLines } from '../../domain/skills/usage.ts'
 import { callCard, presentationMeta, resultCard } from '../tool-support/presentation.ts'
+import { LEARNED_PROVIDER_NAME } from '../tool-support/learned-provider.ts'
 
 export const name = 'assistant-learn'
 
 export const inject = ['assistantMemory', 'skills', 'tools']
-
-/** Provider name for the learned-skills root, distinct from the curated provider's default. */
-export const LEARNED_PROVIDER_NAME = 'assistant-learned'
 
 const MAX_ASKS = 5
 const MAX_TOOL_KINDS = 12

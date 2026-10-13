@@ -1,10 +1,10 @@
 /**
- * Shared principal-facing building blocks: the row component every room reuses, clamping,
- * inline markdown, provenance formatting, and the panel chrome (headings, muted lines,
- * quick actions, refresh row, alert lines, jump cells).
+ * Shared principal-facing building blocks: the row component every room reuses, inline
+ * markdown, provenance formatting, and the panel chrome (headings, muted lines, refresh
+ * row, alert lines, jump cells).
  *
  * These are the pieces the three room panels (panels.ts) and the dashboard compose; the
- * actions they render all route through desk-io (sendPrompt / openBeside) and the store
+ * actions they render all route through desk-io (askRefresh / openBeside) and the store
  * (desk-core).
  *
  * @module dsh-smart-assistant/client/dom-utils
@@ -13,7 +13,7 @@
 import type { RoomKind } from './contracts'
 import { patchDesk, pendingInFlight, shortTime, staleWarning, useDesk } from './desk-core'
 import type { DeskStore } from './desk-core'
-import { askRefresh, openBeside, sendPrompt } from './desk-io'
+import { askRefresh, openBeside } from './desk-io'
 import { createElement, reactSurface } from './runtime'
 import { MARK_TEAL } from './theme'
 
@@ -49,39 +49,6 @@ export function inlineMarkdown(text: string): (string | ReturnType<typeof create
   }
   if (last < text.length) parts.push(text.slice(last))
   return parts
-}
-
-/**
- * Long free text clamps to a few lines with a one-click expander. Measured on the live desk: one
- * thread's `lean` rendered 345 px tall — 35% of the 530 px pane — and pushed the rest of the room
- * off-screen (self-review R7, 2026-09-27). Clamping, never deleting: every word stays one click away.
- * @param props - the text, the clamp height, and the style of the containing line.
- * @returns the clamped line with its expander when the text is long.
- */
-export function ClampedText({ text, maxLines = 3, style }: {
-  text: string
-  maxLines?: number
-  style?: Record<string, unknown>
-}): ReturnType<typeof createElement> {
-  const { useState } = reactSurface()
-  const [open, setOpen] = useState(false)
-  if (text.length <= 220) return createElement('div', { style }, ...inlineMarkdown(text))
-  return createElement('div', { style },
-    createElement('div', {
-      style: {
-        overflowWrap: 'anywhere',
-        ...(open
-          ? {}
-          : { display: '-webkit-box', WebkitLineClamp: maxLines, WebkitBoxOrient: 'vertical', overflow: 'hidden' }),
-      },
-    }, ...inlineMarkdown(text)),
-    createElement('button', {
-      onClick: () => { setOpen(!open) },
-      style: {
-        marginTop: '2px', padding: '4px 8px', fontSize: '11px', cursor: 'pointer',
-        border: '1px solid var(--dsw-alias-border-l3)', borderRadius: '4px', background: 'var(--dsw-alias-bg-base)', color: 'var(--dsw-alias-label-secondary)',
-      },
-    }, open ? '收起' : '展开全部'))
 }
 
 /**
@@ -264,27 +231,6 @@ export function muted(text: string): ReturnType<typeof createElement> {
 /** A section heading. */
 export function sectionTitle(text: string): ReturnType<typeof createElement> {
   return createElement('h3', { style: { margin: '20px 0 8px', fontSize: '13px', color: 'var(--dsw-alias-label-secondary)', fontWeight: 600 } }, text)
-}
-
-/** One quick-action button in the shared row. */
-export function quickButton(label: string, hint: string, run: () => void): ReturnType<typeof createElement> {
-  return createElement('button', {
-    onClick: run,
-    title: hint,
-    style: {
-      marginRight: '8px', padding: '5px 12px', fontSize: '12px', cursor: 'pointer',
-      border: '1px solid var(--dsw-alias-border-l3)', borderRadius: '6px', background: 'var(--dsw-alias-bg-base)', color: 'var(--dsw-alias-label-secondary)',
-    },
-  }, label)
-}
-
-/** The quick actions every panel carries: the whole-point-of-a-desk prompts, one click each. */
-export function quickActions(session?: string): ReturnType<typeof createElement> {
-  return createElement('div', { style: { marginTop: '8px' } },
-    quickButton('回顾一下', '让助手回顾最近的决定、在跟的事与它新学到的东西',
-      () => { sendPrompt('回顾一下：我们最近决定了什么、还有什么在跟、你新学到了什么？', '回顾', 'desk', session) }),
-    quickButton('体检', '让助手跑一次 curate，报告家的现状与需要你处理的事',
-      () => { sendPrompt('跑一次 curate，报告家的现状与需要我处理的事。', '体检', 'desk', session) }))
 }
 
 /** The refresh button plus its status line, and — where the room can — the jump to the beside-conversation tab. */
