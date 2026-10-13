@@ -184,7 +184,7 @@ check('resolution: the runtime tsconfig for the source launch is present and cur
 })
 
 check('client: the browser half registers via the loader facade and stays classic-script-safe', () => {
-  // Pure core in verify-checks.mjs (fixture-pinned in tests/tooling/verify-gates.spec.mjs):
+  // Pure core in gates/docs-commands.mjs (fixture-pinned in tests/tooling/docs-commands.spec.mjs):
   // since S2 the client is a multi-module source tree bundled by tsdown, so the gate is
   // "no bare external runtime imports + entry names the facade + the served bundle parses
   // as a classic script", not per-file "no imports/exports at all".
@@ -424,7 +424,7 @@ check('contract: skill files carry valid frontmatter and match their directory',
 //     resolve to an existing file (standard markdown semantics: relative to the linking file).
 //     Anchors/query strings are stripped but NOT validated (heading slugs are out of scope), and
 //     prose placeholders (`(url)`, `(…)`) are out of scope by the path-shape rule. Fixtures pin
-//     both sides: scripts' verify-checks.mjs ↔ tests/tooling/verify-gates.spec.mjs.
+//     both sides: scripts/checks/gates/<family>.mjs ↔ tests/tooling/<family>.spec.mjs (same name).
 //   · sections — cross-file references only ("`docs/x.md` §三" / "x.md 第三节"). A trailing
 //     「anchor」 must appear in the target heading, which is the branch that catches retargeted
 //     numbers, not just removed ones. Same-file §N and pointers living in code comments are out

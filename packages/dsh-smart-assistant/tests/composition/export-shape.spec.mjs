@@ -23,7 +23,7 @@
  * legacy probe rows intentionally keep `preset-runner`; the main and replay patches use
  * `assistant-preset-runner`.
  *
- * Deliberately plain .mjs (like verify-gates.spec.mjs): it imports the untyped
+ * Deliberately plain .mjs (like the tooling specs): it imports the untyped
  * gen-catalog script module, and `tsc -p tsconfig.test.json` does not include non-TS
  * files, so the type gate pays nothing for that import.
  */

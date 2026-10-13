@@ -77,7 +77,8 @@
   过一遍；处置优先序同下（删>并>修>记），既有处置表与触发条件的家 =
   [流程预算审计卡](../_backlog/_archive/settled_issues/261007-process-budget-audit.md)（2026-10-07 拍板）。
 - **新门禁必带反例**（负例控制；借 DSH「A guard only guards if the regression fails it」）：
-  新增一条 `verify` 检查 = 同 diff 在 `tests/tooling/verify-gates.spec.mjs` 配一个"造红再证绿"夹具；
+  新增一条 `verify` 检查 = 同 diff 在 `tests/tooling/` 里该核所属族的对名 spec（`<family>.spec.mjs`，
+  与 `scripts/checks/gates/<family>.mjs` 同名对齐）配一个"造红再证绿"夹具；
   只对新检查生效，不追旧账。
 - **被阻断的检查不得写成绿色证据**：跑不了或没跑完的检查，在报告与 note 里如实标
   "阻断 + 原因"，不得并入"通过"。

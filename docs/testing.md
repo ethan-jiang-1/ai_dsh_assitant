@@ -27,7 +27,7 @@
 | web 渲染面（首开/座位/文案） | `pnpm web-expected`（隔离 home 真渲染；过目 diff 后 `--refresh`） | `snapshots/web-face/` 两场景 | 渲染期望 / 交互逻辑（client spec 管） |
 | 行为地板 / 领域质量 | `pnpm eval`（`--only` 聚焦）/ `pnpm eval:continuity`（隔离 fixture 的首回合续接地板：一次性 home + 种子账本 + 前置断言 + 会话日志判据，无授权写入与账本字节不变为负例；评估器红绿对照挂 `pnpm verify`）/ `pnpm eval:domain`（人判） | `dev/eval/`（任务集 `tasks.mjs`、领域题 `domain/`、续接驱动 + `dev/fixtures/eval-continuity/`） | 无害地板、续接行为地板与人判质量 / 机器不判质量 |
 | 发布物 / 依赖 / preset 包装 / exports | `pnpm gen-catalog`（freshness）+ `pnpm build` + `pnpm release-smoke`；keyless 回放 `dev/probes/session/preset-runner-replay.patch.yml` | `scripts/release/release-smoke.mjs` | 安装形状与组合断言 / 长期行为 |
-| 仓库工具与门禁（`scripts/checks/verify.mjs` 及 checks 核、生成器） | 新检查的**红夹具**（prove-it-red）+ `pnpm verify` | `tests/tooling/verify-gates.spec` | 工具核接受/拒绝形状 / 门禁全量（verify 自身） |
+| 仓库工具与门禁（`scripts/checks/verify.mjs` 及 checks 核、生成器） | 新检查的**红夹具**（prove-it-red）+ `pnpm verify` | `tests/tooling/<family>.spec.mjs`（门禁族 spec，与 `scripts/checks/gates/` 同名对齐） | 工具核接受/拒绝形状 / 门禁全量（verify 自身） |
 | docs / notes | `pnpm verify`（断链四连/命令互证/notes 形状） | — | 结构与链接 / 语义正确（漂移审计管） |
 | pin（`vendor/`） | `pnpm sync-dsh -- --tag <tag>`（自有全链，不手改） | `vendor/UPSTREAM.md` | pin 簿记与重校 / — |
 
@@ -48,7 +48,7 @@
 - **禁对 agent 自报的关键词探测**：断言落在会话日志、文件系统、注册表状态等外部事实。
 - **单跑才绿 = spec 自身缺陷**，不是 runner 不稳；资源自己获取、afterEach 自己清。
 - **禁掩盖修法**：加 sleep、加 retry、弱化断言、全文件串行都不是修法；等显式就绪状态，timeout 只界定等待。
-- **新守卫必须 prove-it-red**：造回归、看红、还原，才许报绿（verify 检查的负例夹具：`tests/tooling/verify-gates.spec.mjs`）。
+- **新守卫必须 prove-it-red**：造回归、看红、还原，才许报绿（verify 检查的负例夹具：`tests/tooling/` 的门禁族 spec `<family>.spec.mjs`，与核的 `scripts/checks/gates/<family>.mjs` 同名）。
 - **测试描述行为**：行为命题命名；client spec 文件头 docstring 逐条列验收点。
 - **scoped 注册的断言必须带 scope key**（与 createScope 同一引用对象）；`assemble({ scope })` 可免 agent 栈。
 
@@ -57,13 +57,13 @@
 | 文件形态 | 层 | 命令 | 进 regression 的方式 |
 |---|---|---|---|
 | `tests/**/*.spec.{ts,mjs}` | 单元 / 合同 / 守卫（含导出与生命周期守卫） | `pnpm test`（全量，每次收尾必绿） | 行为改动同 diff 更新对应 spec |
-| `tests/**/*harness.ts` | 共享夹具——刻意不被任何 include 选中 | — | — |
+| `tests/**/*harness.{ts,mjs}` | 共享夹具——刻意不被任何 include 选中 | — | — |
 | `snapshots/web-face/<场景>/` | web 渲染期望（场景目录 = snapshot.yml + 契约 README + expected.dom.json；脚本门，非 vitest） | `pnpm web-expected` | web 可见面改动：过目 diff 后 `--refresh` |
 | `*.e2e.ts`（预留） | 真模型车道，无 key 自跳 | 未建 | 触发条件 owner：`snapshots/README.md` |
 | `*.snapshot.ts`（预留） | session 回放驱动 | 未建 | 同上 |
 | `*.bench.ts` / `*.perf.ts`（预留） | 性能门（独占）/ 手动诊断 | 未建 | 第一处性能回归实证后立案 |
 
-期望文件一律叫 `expected`，不叫 `golden`（上游"命名即所有权"门的口径）；新增测试资产形态先入本表再落文件——由 `verify` 的 `test assets:` 门机械执行（负例夹具：`tests/tooling/verify-gates.spec.mjs`）。
+期望文件一律叫 `expected`，不叫 `golden`（上游"命名即所有权"门的口径）；新增测试资产形态先入本表再落文件——由 `verify` 的 `test assets:` 门机械执行（负例夹具：`tests/tooling/` 的门禁族 spec，与核同名对齐）。
 
 ## 测试层：目录即被测 interface（双层寻址——后缀 = 车道，目录 = interface 家）
 
@@ -77,7 +77,7 @@
 | `tests/composition/` | 配置装载、注册与范围合同 | 真 Loader + shipped YAML + built `lib/` | 行身份、导出形态、注册撤销、scope 语义、本包组合 seam | vendor rows、完整产品 boot（release-smoke 的事） | `pnpm test:composition`（先 build） |
 | `tests/client/` | 浏览器注册与交互状态合同 | classic-script 装置 + React shim，无浏览器 | 注册、组件树、回调、色彩契约 | 真实 web boot 与渲染（`pnpm web-expected` 两场景） | `pnpm test:client` |
 | `tests/tooling/` | 仓库工具核（verify 门禁、eval 判决、catalog 生成器、报告、DOM 比较核） | 脚本直读 + throwaway 夹具 | 工具核的接受/拒绝形状（含 prove-it-red 负例） | 真实会话/渲染/门禁全量（`pnpm verify` 的事） | `pnpm test:tooling` |
-| `tests/support/` | 共享夹具（`*harness.ts`） | — | — | 刻意不被任何 include 选中（门禁豁免容器） | — |
+| `tests/support/` | 共享夹具（`*harness.{ts,mjs}`） | — | — | 刻意不被任何 include 选中（门禁豁免容器） | — |
 
 失败报告先按本表分层归因再上浮：配置 / 构建物 / 领域规则 / 服务行为 / 模型回合 / UI 读回，不混称"测试挂了"。
 

@@ -9,7 +9,7 @@
  * ignored field is truly ignored, each compared field truly bites, and unknown fields
  * surface instead of sneaking past.
  *
- * Deliberately plain .mjs, like verify-gates.spec.mjs: vitest runs it, while
+ * Deliberately plain .mjs, like the other tooling specs: vitest runs it, while
  * `tsc -p tsconfig.test.json` does not include non-TS files.
  */
 import { describe, expect, it } from 'vitest'

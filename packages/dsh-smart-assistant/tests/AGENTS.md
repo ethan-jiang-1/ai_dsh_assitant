@@ -6,7 +6,7 @@
 ## 命名即车道
 
 - 每个代码文件必须匹配 [docs/testing.md](../../../docs/testing.md) 命名表的**已收编形态**：
-  `*.spec.{ts,mjs}`（单元/合同/守卫）或 `*harness.ts`（共享夹具，刻意不被任何 include 选中）。
+  `*.spec.{ts,mjs}`（单元/合同/守卫）或 `*harness.{ts,mjs}`（共享夹具，刻意不被任何 include 选中）。
   `verify` 的 test-asset 门机械执行这条——新形态（`*.e2e.ts`、`*.snapshot.ts`、`*.bench.ts`…）
   **先入 testing.md 的表、同 diff 更新门禁豁免，再落文件**。
 - 测试文件名与**被测模块对齐**（`webui-expected-core.spec.mjs` 测 `webui-expected-core.mjs`）；
@@ -20,8 +20,8 @@
 
 ## 树内纪律（与包层纪律互补，不重复）
 
-- 共享夹具放 `*harness.ts` 或将来 `fixtures/`——**绝不 import 另一个 spec**（会重复注册、重复副作用）。
+- 共享夹具放 `*harness.{ts,mjs}` 或将来 `fixtures/`——**绝不 import 另一个 spec**（会重复注册、重复副作用）。
 - scoped 注册断言必须带与 `createScope` 同一引用的 scope key；`assemble({ scope })` 免 agent 全家桶
   （实证记录：`composition/registry-lifecycle.spec.ts` 头注释）。
 - 新守卫（含 `verify` 检查）必须 prove-it-red：造回归、看红、还原（负例夹具的家：
-  `tooling/verify-gates.spec.mjs`）。
+  `tooling/` 里该核所属族的对名 spec `<family>.spec.mjs`，与 `scripts/checks/gates/<family>.mjs` 同名对齐）。

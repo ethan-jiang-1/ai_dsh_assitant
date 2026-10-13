@@ -21,7 +21,7 @@
 | 插件运行时 | `dev/env/dsh.mjs` 把 `TMPDIR`/`TMP`/`TEMP` 收进 `<repo>/.tmp/host/`，vendor 的 spill 随之入仓；显式导出过的人不被覆盖 |
 | 测试进程 | `packages/dsh-smart-assistant/vitest.config.ts` 用 `test.env` 把临时根收进 `.tmp/vitest/` |
 | 模型可见面 | `session-recall` 技能教模型把 wrapper 写进**会话工作目录**的 `.tmp/`（运行时在别人机器上，不能用本仓绝对路径） |
-| 门禁 | `pnpm verify` 的 `scratch: temporary files stay under the repo .tmp/`（纯核 `scratchPathProblems`，负例夹具在 `tests/tooling/verify-gates.spec.mjs`） |
+| 门禁 | `pnpm verify` 的 `scratch: temporary files stay under the repo .tmp/`（纯核 `scratchPathProblems`，负例夹具在 `tests/tooling/corpus-links.spec.mjs`（门禁族 spec）） |
 
 **门禁语料是"活的可执行面"**：git 跟踪的 `dev/ scripts/ docs/ snapshots/ packages/ .agents/` + 根入口文件。
 `notes/` 与 `_backlog/` 保留当日路径（历史证据），`vendor/` 自带政策，被 ignore 的运行目录天然不在语料里，

@@ -41,7 +41,7 @@ expire silently. Every drift found so far was invisible to `pnpm verify`.
    `pnpm verify` (and `pnpm test` if you touched a package file).
 6. **Mechanize the class you can.** When a drift class turns out to be checkable, add a gate for it in
    the same campaign — that is how the *docs ↔ alias table* check was born (it found two real drifts
-   on its first run). Adding a gate means a red-green fixture in `tests/tooling/verify-gates.spec.mjs`.
+   on its first run). Adding a gate means a red-green fixture in the matching family spec (`tests/tooling/<family>.spec.mjs`, named after `scripts/checks/gates/<family>.mjs`).
 
 ## Hard-won details
 
