@@ -453,6 +453,24 @@ export function processingContextMessage(matter: ProcessingContextMatter): strin
   return `${head}${times === '' ? '' : `：${times}`}。${matter.summary} 首次回应前先成功读取绑定事项：assistant_operating read ${matter.id}。读回失败时明确说明无法核实，不能写入或假装完整。成功后按六类交接：目的与委托原话、进展事实、已定决定及其依据、承诺/预测/核对/完成四种时间、业务未知或待裁决、已有下一步；无记录就说未知，建议须与已定下一步分开。材料里的预测不改变承诺，待确认提案不能说成已决定。随后等我具体指令；普通进展仍按既有规则留存，明确变更与推断提案遵循各自权限。`
 }
 
+/**
+ * The resume seed for a bound processing session the principal re-entered from the desk
+ * (Q11, confirmed 2026-10-12: a desk 处理 click on an already-bound matter is an explicit
+ * continuation intent — new-session and reused-session bindings carry the same contract).
+ *
+ * Unlike the fresh seed this carries NO cached facts: the session's own history may be stale
+ * or compacted away, so the resume contract points at the authoritative ledger and forbids
+ * answering from the conversation's memory of the matter. The title is sourced from the
+ * projection read (displayContext stays visual-only); the id alone is enough when the
+ * projection cannot supply one.
+ * @param matter - `{ id, title? }` from the projection snapshot.
+ * @returns the seed message text, principal-visible and logged.
+ */
+export function resumeContextMessage(matter: { readonly id: string; readonly title?: string }): string {
+  const head = matter.title !== undefined && matter.title !== '' ? `继续处理事项「${matter.title}」（${matter.id}）` : `继续处理这件事（${matter.id}）`
+  return `${head}。回到这件事时先成功读取最新台账：assistant_operating read ${matter.id}——不要凭这段对话里的旧印象作答。读回失败时明确说明无法核实，不能写入或假装完整。读回成功后按六类交接现状：目的与委托原话、进展事实、已定决定及其依据、承诺/预测/核对/完成四种时间、业务未知或待裁决、下一步或等待条件；无记录就说未知，建议须与已定下一步分开，待确认提案不能说成已定。随后等我具体指令。`
+}
+
 /** The unclaimed-fragment fields the claim-session seed needs (structural projection view). */
 export interface ClaimContextFragment {
   readonly id: string

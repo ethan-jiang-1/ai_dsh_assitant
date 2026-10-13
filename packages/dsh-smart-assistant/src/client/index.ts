@@ -45,7 +45,7 @@ import { ProjectionPanel } from './projection-panel'
 import { mountProjectionReader } from './projection-lifecycle'
 import type { ProjectionDownload } from './projection-reader'
 import { createProjectionViewStore } from './projection-view'
-import { bindClaimPath, bindIntakePath, bindProcessPath, bindWakePath, canProcess, claimContextMessage, judgeClaimReturn, judgeIntakeReturn, judgeReturn, judgeWakeReturn, processingContextMessage, wakeContextMessage, type DeskPath } from './desk-process'
+import { bindClaimPath, bindIntakePath, bindProcessPath, bindWakePath, canProcess, claimContextMessage, judgeClaimReturn, judgeIntakeReturn, judgeReturn, judgeWakeReturn, processingContextMessage, resumeContextMessage, wakeContextMessage, type DeskPath } from './desk-process'
 import { en as firstMileEn, zh as firstMileZh } from './locales'
 
 /** Slots this face occupies (single-occupant, root-scope, declared by the sidebar). */
@@ -198,7 +198,9 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       return ctx.sessions?.create(workspaceId === undefined ? undefined : { workspaceId })
     }
     // The panel-seeded context note rides the same remote prompt channel for every arm: one
-    // queued, logged user message per created session; reopening a bound session never re-seeds.
+    // queued, logged user message per created session — and, per Q11 (confirmed 2026-10-12),
+    // one resume note each time the principal re-enters a bound matter from the desk: a 处理
+    // click is an explicit continuation intent whether the binding is fresh or reused.
     const seedPanelMessage = (requestKind: string, sessionId: string, text: string): void => {
       const prompt = (getDeskRemote()?.['session'] as { prompt?: (request: unknown) => Promise<unknown> } | undefined)?.prompt
       if (prompt !== undefined) {
@@ -214,6 +216,16 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       const existing = deskPath?.getSnapshot()
       if (existing !== undefined && existing.kind === 'matter' && existing.matterId === matterId) {
         ctx.uiWorkspace?.openSession(existing.sessionId)
+        // Q11: re-entering a bound matter from the desk is a continuation intent — seed the
+        // resume contract (fresh ledger read, six-category handover, then wait) so the
+        // returning principal gets the package without asking. A plain sidebar open of the
+        // old chat seeds nothing; only the desk's 处理 action does. The title comes from the
+        // projection read (displayContext stays visual-only, never submitted to the model).
+        const matter = projection?.getSnapshot().data?.matters.find(item => item.id === matterId)
+        seedPanelMessage('desk-process-resume', existing.sessionId, resumeContextMessage({
+          id: matterId,
+          ...(matter?.title !== undefined ? { title: matter.title } : {}),
+        }))
         return
       }
       if (processLaunchInFlight) return
@@ -243,7 +255,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
           // The matter IS this session's context (principal decision, 2026-10-11): seed it as a
           // visible, logged message through the same panel channel — the model starts knowing
           // what it is processing instead of reconstructing intent from the filesystem. Once per
-          // created session; reopening a bound session never re-seeds.
+          // created session; re-entering from the desk later seeds the resume note (Q11, above).
           seedPanelMessage('desk-process-context', sessionId, processingContextMessage(matter))
         } finally {
           processLaunchInFlight = false

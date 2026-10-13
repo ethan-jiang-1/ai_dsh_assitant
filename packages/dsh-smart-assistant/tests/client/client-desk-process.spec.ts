@@ -29,7 +29,7 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { bindClaimPath, bindIntakePath, bindProcessPath, bindWakePath, canProcess, claimContextMessage, judgeClaimReturn, judgeIntakeReturn, judgeReturn, judgeWakeReturn, processingContextMessage, wakeContextMessage, type JudgeProposal, type JudgeSession } from '../../src/client/desk-process.ts'
+import { bindClaimPath, bindIntakePath, bindProcessPath, bindWakePath, canProcess, claimContextMessage, judgeClaimReturn, judgeIntakeReturn, judgeReturn, judgeWakeReturn, processingContextMessage, resumeContextMessage, wakeContextMessage, type JudgeProposal, type JudgeSession } from '../../src/client/desk-process.ts'
 
 interface Receipt { operationId: string, matterId: string, sessionId: string, status: string, revision?: number, proposalId?: string, submittedAt: string }
 
@@ -196,6 +196,29 @@ describe('processing-session context seed (principal decision 2026-10-11: the ma
     const bare = processingContextMessage({ id: 'm-2', title: 'T', summary: 'S', times: {} })
     expect(bare).not.toContain('：承诺')
     expect(bare).toContain('正在处理事项「T」（m-2）')
+  })
+
+  it('re-seeds a bound matter with a resume contract, not a replay of the fresh seed (Q11)', () => {
+    // Q11 (confirmed 2026-10-12): a desk 处理 click on an already-bound matter is an explicit
+    // continuation intent — the model must re-read the ledger and hand over the package again,
+    // never answer from the session's own (possibly stale, possibly compacted) history.
+    const message = resumeContextMessage({ id: 'm-1', title: '合同 XR-09 尾款收回' })
+    expect(message).toContain('继续处理事项「合同 XR-09 尾款收回」（m-1）')
+    expect(message).toContain('assistant_operating read m-1')
+    expect(message).toContain('旧印象')
+    expect(message).toContain('六类')
+    expect(message).toContain('待确认提案不能说成已定')
+    expect(message).toContain('读回失败')
+    expect(message).toContain('等我')
+    // The resume seed carries no cached facts: times and progress come from the fresh read.
+    expect(message).not.toContain('承诺 20')
+    expect(message).not.toContain('summary')
+  })
+
+  it('seeds the resume without a title when the projection cannot supply one', () => {
+    const bare = resumeContextMessage({ id: 'm-2' })
+    expect(bare).toContain('（m-2）')
+    expect(bare).not.toContain('「')
   })
 })
 

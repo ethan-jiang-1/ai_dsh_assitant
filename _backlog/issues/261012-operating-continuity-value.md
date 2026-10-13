@@ -18,7 +18,7 @@ opened: 2026-10-12
 - 正确的呈现时点是什么？定时晨报未获验证；机制近邻研究提示泛化辅助未必有效，提醒应贴合具体事项与触发时点。
 - 判断结果适用于当前本人/试用场景，还是可以谨慎外推到目标用户？单用户证据不得冒充市场验证。
 
-**下一步：** Q9–Q14 已接受；本人明确不是 CEO，已委托 agent 自定可逆产品默认并交可操作原型。本轮隔离原型、设计默认与分层验收已交付，供本人体验后 steer；不再以逐题问卷阻塞。原型的首选布局为 A「行动概览」：同屏呈现在办事项与单件现状，再进入同一桌面的处理会话；B 三列工作台信息密度较高，C 对话优先但桌面概览较弱。此为 agent 的可逆口味判断，未经本人或目标角色 UX 判断。HTML 主源在 throwaway branch `prototype/operating-continuity-2026-10-13`，commit `ee4985f3b977a2c2fdaf0717b28a2f97fb2939a9`；工作树快照在仓内 `.tmp/prototypes/operating-continuity/prototype.html`。浏览器覆盖桌面/手机三布局与 42 项模拟交互，`pnpm verify` 41 项通过；证据只证明原型候选能运行，不是生产产品验收。2026-10-13 至 2026-10-27 为自然观察复看窗口，不启动自动提醒；尚无目标用户与真实事项，不把本人产品判断或模拟演示当目标用户价值证据。自然出现事项时先明确参与者角色、材料使用边界与真实跨时条件，再按本卡观察口径记录行为/成本与参与者判断；现有读回/触发/恢复缺口如实记 blocked 或 fail，不偷偷改生产功能补齐。到期未触发只记无证据，由本人决定明确延长、延后或暂缺证据结束。本人于 2026-10-13 再次点名本卡并明确要求「按我们的流程落地」，授权首个最小切片：只读权威事项接续包与绑定处理首回合主动交接；实现记录见[接续读回决定](../../notes/implemented/2026-10-13-operating-continuity-readback.md)。该授权不含提醒、持久 schema 扩张、写权限变更或新桌面。同日本人再点名本卡要求按 `_backlog/methods/` 流程处理并继续落地：第二切片（validation-evidence → validation-judgment）补齐 A1/A2 点名的隔离 eval 证据资产（`pnpm eval:continuity`，四类负例红绿对照进 verify 链）、以两连红→修复→绿落地副入口首回合只读协议（operating-brief）、完成真机走查与确定性失败/恢复态走查，行级判决见下方「第二切片判决」节；顺带修掉两个 born-red 并更正首切片 note 的测试声明。剩余缺口：重开绑定会话续接触发（Q11）、web 主入口模型行为回归资产、V1/V2 自然观察（🔒 本人，10-27 复看）、UX 真人体验判断。
+**下一步：** Q9–Q14 已接受；本人明确不是 CEO，已委托 agent 自定可逆产品默认并交可操作原型。本轮隔离原型、设计默认与分层验收已交付，供本人体验后 steer；不再以逐题问卷阻塞。原型的首选布局为 A「行动概览」：同屏呈现在办事项与单件现状，再进入同一桌面的处理会话；B 三列工作台信息密度较高，C 对话优先但桌面概览较弱。此为 agent 的可逆口味判断，未经本人或目标角色 UX 判断。HTML 主源在 throwaway branch `prototype/operating-continuity-2026-10-13`，commit `ee4985f3b977a2c2fdaf0717b28a2f97fb2939a9`；工作树快照在仓内 `.tmp/prototypes/operating-continuity/prototype.html`。浏览器覆盖桌面/手机三布局与 42 项模拟交互，`pnpm verify` 41 项通过；证据只证明原型候选能运行，不是生产产品验收。2026-10-13 至 2026-10-27 为自然观察复看窗口，不启动自动提醒；尚无目标用户与真实事项，不把本人产品判断或模拟演示当目标用户价值证据。自然出现事项时先明确参与者角色、材料使用边界与真实跨时条件，再按本卡观察口径记录行为/成本与参与者判断；现有读回/触发/恢复缺口如实记 blocked 或 fail，不偷偷改生产功能补齐。到期未触发只记无证据，由本人决定明确延长、延后或暂缺证据结束。本人于 2026-10-13 再次点名本卡并明确要求「按我们的流程落地」，授权首个最小切片：只读权威事项接续包与绑定处理首回合主动交接；实现记录见[接续读回决定](../../notes/implemented/2026-10-13-operating-continuity-readback.md)。该授权不含提醒、持久 schema 扩张、写权限变更或新桌面。同日本人再点名本卡要求按 `_backlog/methods/` 流程处理并继续落地：第二切片（validation-evidence → validation-judgment）补齐 A1/A2 点名的隔离 eval 证据资产（`pnpm eval:continuity`，四类负例红绿对照进 verify 链）、以两连红→修复→绿落地副入口首回合只读协议（operating-brief）、完成真机走查与确定性失败/恢复态走查，行级判决见下方「第二切片判决」节；顺带修掉两个 born-red 并更正首切片 note 的测试声明。第三切片同日闭环 Q11 重开续接触发（重开分支发续接种子，spec 红绿 + e2e 无回归 + desk-walk 真机 resume-reopen 相位通过，见「第三切片记录」节）。剩余缺口：web 主入口模型行为回归资产、V1/V2 自然观察（🔒 本人，10-27 复看）、UX 真人体验判断。
 
 ## 本轮需求澄清
 
@@ -129,7 +129,7 @@ opened: 2026-10-12
 这些是源码事实，不是修改本人已确认的目标；旧方案中对应的“已具备”说法以这里的核查为准。
 
 1. **保存了 ≠ 模型能按事项完整读回。** [事项 read](../../packages/dsh-smart-assistant/src/agent/tool-operating/index.ts#L284) 返回事项摘要结构、材料和提案摘要，不返回初始 create/entrust 原话、已确认变更的完整操作历史与可遍历 operation id；[deskItem](../../packages/dsh-smart-assistant/src/agent/tool-operating/index.ts#L84) 也不返回 summary、responsible、forecastSource、completedAt，提案摘要不返回具体 change 目标值。[按 operation id 回查](../../packages/dsh-smart-assistant/src/agent/tool-operating/index.ts#L308) 需要先知道 id；全局待认领只能由 `desk` 取得，不能因标题相似列作本事项材料。故六件套第 1/3/4/5/6 件有读回或业务资料缺口，不能宣称一次 `read` 的“台账全文”已能交出完整现场包；真实观察必须如实记缺失，不能偷偷改功能补齐。
-2. **主入口会话新旧有条件。** [processMatter](../../packages/dsh-smart-assistant/src/client/index.ts#L213) 若已有同事项的内存绑定则重开该会话，不重发种子；否则新建会话并绑定。[种子指令](../../packages/dsh-smart-assistant/src/client/desk-process.ts#L447) 是先读台账再等具体指令，没有主动六件套要求。刷新后绑定路径不重放；“回来就主动交出”在复用会话、跨日回访和只读首轮的触发语义仍需确认，不能称所有续接场景现成支持。
+2. **主入口会话新旧有条件。** [processMatter](../../packages/dsh-smart-assistant/src/client/index.ts#L213) 若已有同事项的内存绑定则重开该会话，不重发种子；否则新建会话并绑定。[种子指令](../../packages/dsh-smart-assistant/src/client/desk-process.ts#L447) 是先读台账再等具体指令，没有主动六件套要求。刷新后绑定路径不重放；“回来就主动交出”在复用会话、跨日回访和只读首轮的触发语义仍需确认，不能称所有续接场景现成支持。**（2026-10-13 第三切片更新：重开不重发种子的缺口已按 Q11 修复——重开分支现发续接种子，见下方第三切片记录；刷新后路径不重放仍是有意设计，刷新后点「处理」走新会话+完整种子。）**
 3. **纠错不是统一撤销。** [claim](../../packages/dsh-smart-assistant/src/domain/operating/ledger.ts#L404) 从待认领中取材料并消费该片段，不提供解除既有归属/迁移已挂材料的动作；[reject](../../packages/dsh-smart-assistant/src/domain/operating/ledger.ts#L650) 仅对 pending 提案生效，不撤已确认变更。回复误述可重读更正；已写错状态只有工具实际支持的 revise/reopen 等才能纠正，不支持的必须记恢复缺口，不能承诺“claim/reject 即可恢复”。
 4. **权限三分不等于只有三种自然表达。** 已确认的三分是自动进展、明确指令、推断提案。原方案第五节若按“仅三种本人动作”字面验收，会排除原方案第四节必要的明确委托、revise 指示和纠错理由。建议负担衡量针对额外重复录入、重复确认与维护劳动，正常业务指示单列；尚不擅自替换本人已确认的负担上限。
 5. **现有 eval 不证明跨时六件套。** [runPreset](../../dev/eval/run.mjs#L93) 每题新建工作目录/会话，但共享所选 dev home，串行不等于隔离账本；[observe](../../dev/eval/run.mjs#L44) 当前提取工具调用与拼接回答，不能直接判首轮时序、成功读回结果或字段与来源准确性。聚焦题目还须明确台账前置、独立会话、结果判定与清理；缺检查不能用回答关键词补成通过。
@@ -230,7 +230,7 @@ opened: 2026-10-12
 
 | 行 | 判决 | 证据与限制 |
 |---|---|---|
-| A1 事项身份正确、首次续接主动 | **pass**（副入口 headless + 主入口 web 的模型行为部分） | `pnpm eval:continuity` 修复前**两连红**、修复后两过（判据全程相同：read 对 m-1 → 工具结果带种子独有原话标记 → 先读后答 seq 序）；desk-walk 处理臂首回合经种子+brief 双通道主动交包（全文见 `.tmp/desk-walkthrough/2026-10-13T13-06-42/2-processing-session.txt`，transient，可按下节命令重取）。**限制**：复用既有绑定会话（重开不重发种子，Q11 已知缺口）的续接触发仍未覆盖——client spec 断言的是新会话种子路径，记 gap 待后续切片 |
+| A1 事项身份正确、首次续接主动 | **pass**（副入口 headless + 主入口 web 的模型行为部分） | `pnpm eval:continuity` 修复前**两连红**、修复后两过（判据全程相同：read 对 m-1 → 工具结果带种子独有原话标记 → 先读后答 seq 序）；desk-walk 处理臂首回合经种子+brief 双通道主动交包（全文见 `.tmp/desk-walkthrough/2026-10-13T13-06-42/2-processing-session.txt`，transient，可按下节命令重取）。**限制**：复用既有绑定会话的续接触发已由第三切片闭环（见下方「第三切片记录」）；跨日真实回访价值仍归自然观察 |
 | A2 六类内容与来源忠实 | **pass**（机械可判部分）+ 人的判断 pending | 工具结果带委托原话标记（`12.8 万/王会计` 只在账本不在提示里，鹦鹉学舌造不了假）；desk-walk 首回合全文六类齐全：原话逐字、材料带 op id 与来源、已定与待确认严格分开（「承诺日仍为 2026-10-20」「它要等你明确确认才生效」）、四种时间含不适用的诚实表达、未知/待裁决单列、已定下一步与标注建议分开、结尾「本轮为只读交接，未向台账写入任何内容」。**目的复述不变意归人判（pending）** |
 | A4 最少维护且权限正确 | **pass**（本切片范围）+ 发现已修 | 两连红抓到实缺陷：副入口形状下模型交包后把 pending 提案的来源原话**重新 report 成新材料**并自造预测覆盖既有预测（无授权写入+重复记录）；根因 = operating-brief 只教 desk/read 没教续接首回合协议。修复 = brief 补协议（交包内容、等指令、回访不是进展、不重复记录已有内容、真进展例外），同判据转绿（mutating 0、账本字节不变）。修复是提示词级，eval 是回归网——不是硬保证 |
 | A5 真提交才成功返回 | **pass**（确定性 + 真机各半） | `node dev/probes/web/desk-process-e2e.mjs` 13 相位绿：pending-stays-in-chat（待裁决不伪返回）、reject-auto-return、durable-rejection、confirmed-dates-unchanged（拒绝不动已确认日期）、return-selection、double-click-single-session（重复入口不重复建）；真机 say-turn：普通进展 report（材料留存、明说「承诺日 2026-10-20 不变」、revision 不动）后自动返回并选中该事项 |
@@ -241,9 +241,17 @@ opened: 2026-10-12
 
 **顺带修复（born-red，干净 HEAD 复跑证伪非本切片引入）**：read 材料映射漏 `eventId`（类型/投影兄弟面/测试三者一致期待，实现漏带）；该测试尾行 `"status":"proposed"` 为邻测拷贝、本夹具永不可能绑上。两处同 diff 修掉；首切片 note 的「64 tests 通过」声明因此证伪，note 内已补带日期更正。教训：提交时的证据声明必须来自对最终代码的当次运行。
 
-**剩余缺口（不阻塞本切片收口）**：重开绑定会话的续接触发（Q11）；web 主入口模型行为的回归资产（desk-walk 是一次性取证非回归）；价值层 V1/V2 等自然事项观察（窗口至 2026-10-27，🔒 本人）；UX 真人体验判断（本人看实物后 steer）。
+**剩余缺口（第二切片时点；Q11 已由第三切片闭环）**：web 主入口模型行为的回归资产（desk-walk 是一次性取证非回归，含 resume-reopen 相位）；价值层 V1/V2 等自然事项观察（窗口至 2026-10-27，🔒 本人）；UX 真人体验判断（本人看实物后 steer）。
 
 **重取走查现场的命令**（transient 证据的复现协议，非资产）：`mkdir -p .tmp/desk-walk-home && ASSISTANT_DSH_HOME="$PWD/.tmp/desk-walk-home" bash dev/env/setup.sh`，拷 `dev/harness-home/.credentials.yaml` 与种子账本到该 home 的 `assistant-operating/ledger.json`，`ASSISTANT_DSH_HOME=… pnpm dsh --profile dev --port 0 --no-open`，`pnpm preflight '<URL>'` 后 `pnpm desk-walk '<URL>' --home … --matter '尾款' --say '…'`。
+
+### 第三切片记录（Q11 重开续接触发 · 2026-10-13：闭环 A1 剩余的缺口）
+
+上方 A1 行的「重开绑定会话续接触发未覆盖」缺口按 Q11 已确认语义（桌面「处理」无论新建或复用绑定会话都表达一次续接意图；普通侧栏打开旧聊天不播报）在本切片闭环：
+
+- **实现**：`processMatter` 重开分支现经同一面板通道发续接种子——[resumeContextMessage](../../packages/dsh-smart-assistant/src/client/desk-process.ts) 只带事项身份与合同（先成功读最新台账、**不凭对话旧印象作答**、读回失败明说、六类交接、待确认不说成已定、随后等指令），不带任何缓存事实（会话历史可能过时或已被压缩）；标题取自投影读（displayContext 仍不进模型面）。普通侧栏打开旧聊天不触发；返回后自动清路径，再点「处理」走新会话+完整种子（有意设计）。
+- **证据**：spec 先红后绿（`resumeContextMessage` 两测：续接合同各要素 + 无标题降级，583 tests 全绿）；`desk-process-e2e` 13 相位无回归（双击负例仍单会话——双击被 in-flight 守卫挡下，不走重开分支）；desk-walk 新增 `resume-reopen` 相位**真机通过**：手动回桌面（路径仍绑定）→ 再点「处理」→ 重开同一会话 → `[面板] 继续处理事项` 种子在场 → 模型**重新读取**台账并诚实说「与上次读取一致（无新增记录）」再交六件套、只读（话术与截图 `.tmp/desk-walkthrough/2026-10-13T13-30-24/2b-resume-reopen.txt`，transient）。
+- **不证明**：跨日真实回访的价值（等自然观察）；种子重复的口味问题（每次桌面「处理」都交包是 Q11 确认的语义，可逆默认，本人可 steer）。
 
 ## 已知与未决
 

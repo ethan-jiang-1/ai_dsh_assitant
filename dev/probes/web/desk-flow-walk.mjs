@@ -134,6 +134,53 @@ const idle = await waitIdle()
 await record('2-processing-session')
 pass('processing-session', { picked, idle })
 
+// —— 相位 2b：手动回桌面 → 再点同一件事「处理」→ 复用绑定会话 + 续接种子（Q11，2026-10-12 确认）——
+// 此刻路径仍绑定（回合刚落定、返回判定还没跑）：侧栏手动回桌面不碰路径，再点同一件事的
+// 「处理」是明确的续接意图——应重开同一会话并带 [面板] 续接种子，模型重新读台账交包，
+// 不凭对话旧印象作答。普通侧栏打开旧聊天不在此相位（那不该播报）。
+{
+  const deskNav = await evaluate(`(() => { const b = [...document.querySelectorAll('button')].find(x => (x.textContent ?? '').includes('桌面')); if (b === undefined) return 'no-desk-button'; b.click(); return 'clicked'; })()`)
+  let deskBack = false
+  for (let i = 0; i < 40 && !deskBack; i++) {
+    deskBack = await evaluate(`document.querySelector('[data-assistant-operating-desk]') !== null`) === true
+    if (!deskBack) await sleep(500)
+  }
+  let resumeOutcome = { deskNav, deskBack, resumed: 'not-tried', resumeClicked: 'not-tried', backInConversation: false, resumeSeeded: false, resumeIdle: false }
+  if (deskNav === 'clicked' && deskBack) {
+    const resumed = await evaluate(`(() => {
+      const cards = [...document.querySelectorAll('[data-assistant-operating-desk] button.dsha-card')];
+      const card = ${matterHint === '' ? 'cards[0]' : `cards.find(b => (b.textContent ?? '').includes(${JSON.stringify(matterHint)}))`};
+      if (card === undefined) return 'no-card';
+      card.click(); return 'picked';
+    })()`)
+    resumeOutcome.resumed = resumed
+    if (resumed === 'picked') {
+      await sleep(800)
+      resumeOutcome.resumeClicked = await evaluate(`(() => {
+        const button = [...document.querySelectorAll('[data-assistant-operating-desk] button')].find(b => (b.textContent ?? '') === '处理这件事');
+        if (button === undefined) return 'no-process-button';
+        button.click(); return 'clicked';
+      })()`)
+      for (let i = 0; i < 60 && !resumeOutcome.backInConversation; i++) {
+        resumeOutcome.backInConversation = await evaluate(`document.querySelector('[data-assistant-operating-desk]') === null && document.querySelector('[data-composer-input="true"]') !== null`) === true
+        if (!resumeOutcome.backInConversation) await sleep(500)
+      }
+      if (resumeOutcome.backInConversation) {
+        resumeOutcome.resumeIdle = await waitIdle()
+        await record('2b-resume-reopen')
+        const resumeText = String(await evaluate('document.body.innerText') ?? '')
+        resumeOutcome.resumeSeeded = resumeText.includes('[面板] 继续处理')
+      }
+    }
+  }
+  if (resumeOutcome.backInConversation && resumeOutcome.resumeSeeded && resumeOutcome.resumeIdle) {
+    pass('resume-reopen', { seeded: true, idle: true })
+  } else {
+    fail('resume-reopen', resumeOutcome)
+    // 不退出：后面的进展臂照走，素材仍有价值。
+  }
+}
+
 // —— 相位 3：说一句进展 → 回合跑完 → 桌面回没回（并核「回来 ⇒ 无待确认」的不变量） ——
 if (await pasteAndSend(say) !== 'sent') { fail('say-turn', { note: '发送失败' }); await browser.settle(); process.exit() }
 let settled = false
