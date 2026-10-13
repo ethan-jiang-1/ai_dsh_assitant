@@ -44,6 +44,7 @@ import { ensureThemeVars } from './theme'
 import { ProjectionPanel } from './projection-panel'
 import { mountProjectionReader } from './projection-lifecycle'
 import type { ProjectionDownload } from './projection-reader'
+import type { OperatingProjection } from './operating-projection'
 import { createProjectionViewStore } from './projection-view'
 import { bindClaimPath, bindIntakePath, bindProcessPath, bindWakePath, canProcess, claimContextMessage, judgeClaimReturn, judgeIntakeReturn, judgeReturn, judgeWakeReturn, processingContextMessage, resumeContextMessage, wakeContextMessage, type DeskPath } from './desk-process'
 import { en as firstMileEn, zh as firstMileZh } from './locales'
@@ -212,168 +213,162 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         })
       }
     }
-    const processMatter = (matterId: string): void => {
+    // The four desk→conversation arms (spec K3 + principal-direction cards) share one launch
+    // skeleton — guard the bound path, take the launch lock, demand a readable projection,
+    // resolve the arm's subject, then create/steer the session, bind the path, open it, and
+    // seed the context note — and differ only in the declarative parts below. The shared
+    // skeleton is what keeps the double-click negative (双击发送两次) and the one-path-at-a-time
+    // rule (spec K3) true for every arm at once: the launch lock lives here, not in four copies.
+    // The intake arm is the deliberate outlier: it keeps opening its door when the projection
+    // is unreadable (`toleratesMissing`) — a Day-0 principal clicking 「＋ 交代新事项」 on a fresh
+    // home must never meet a dead button (the loop probe caught exactly that, 2026-10-11) —
+    // reuses the CURRENT session when one exists, and seeds nothing: the principal's own words
+    // are the context.
+    const launchDeskArm = <S>(arm: {
+      /** True when the currently bound path is this arm's subject re-entered. */
+      reentry: (existing: DeskPath) => boolean
+      /** The resume-side effect of a re-entry (only the matter arm has one — Q11). */
+      reentrySeed?: (existing: DeskPath) => void
+      /** The arm's subject from a readable projection; undefined = not on this desk now. */
+      subject: (data: OperatingProjection) => S | undefined
+      /** Open the door even when the projection is unreadable (intake only). When given, it is
+       *  called for every unreadable state and decides whether the path still binds. */
+      unreadableSubject?: (status: ProjectionDownload['status'] | undefined) => S
+      /** How this arm obtains its session. */
+      session: () => Promise<string | undefined>
+      /** Bind the path, open the session, and seed the context note. */
+      engage: (sessionId: string, subject: S) => void
+    }): void => {
       const existing = deskPath?.getSnapshot()
-      if (existing !== undefined && existing.kind === 'matter' && existing.matterId === matterId) {
+      if (existing !== undefined && arm.reentry(existing)) {
         ctx.uiWorkspace?.openSession(existing.sessionId)
-        // Q11: re-entering a bound matter from the desk is a continuation intent — seed the
-        // resume contract (fresh ledger read, six-category handover, then wait) so the
-        // returning principal gets the package without asking. A plain sidebar open of the
-        // old chat seeds nothing; only the desk's 处理 action does. The title comes from the
-        // projection read (displayContext stays visual-only, never submitted to the model).
-        const matter = projection?.getSnapshot().data?.matters.find(item => item.id === matterId)
-        seedPanelMessage('desk-process-resume', existing.sessionId, resumeContextMessage({
-          id: matterId,
-          ...(matter?.title !== undefined ? { title: matter.title } : {}),
-        }))
-        return
-      }
-      if (processLaunchInFlight) return
-      const snapshot = projection?.getSnapshot()
-      if (snapshot?.status !== 'ready' || snapshot.stale === true || snapshot.data === undefined) {
-        reader?.refresh()
-        return
-      }
-      const matter = snapshot.data.matters.find(item => item.id === matterId)
-      if (matter === undefined) return
-      processLaunchInFlight = true
-      void (async () => {
-        try {
-          const sessionId = await createSessionInDesignatedWorkspace()
-          if (sessionId === undefined) return
-          // Bind before navigation so the session's first render receives this matter's
-          // visual context and is not mistaken for an unrelated first-time conversation.
-          if (deskPath !== undefined) {
-            deskPath.set({
-              ...bindProcessPath(matterId, sessionId, matter.revision),
-              displayContext: { title: matter.title, summary: matter.summary },
-            })
-          }
-          // Open through the shell's own selection action; retaining alone leaves the old
-          // main-view session selected, so the principal would type into the wrong conversation.
-          ctx.uiWorkspace?.openSession(sessionId)
-          // The matter IS this session's context (principal decision, 2026-10-11): seed it as a
-          // visible, logged message through the same panel channel — the model starts knowing
-          // what it is processing instead of reconstructing intent from the filesystem. Once per
-          // created session; re-entering from the desk later seeds the resume note (Q11, above).
-          seedPanelMessage('desk-process-context', sessionId, processingContextMessage(matter))
-        } finally {
-          processLaunchInFlight = false
-        }
-      })()
-    }
-    // The intake arm (spec K3's 交代首事 side): the desk's 「＋ 交代新事项」 opens a conversation in
-    // which the principal says the matter, and the desk comes back once the ledger holds it —
-    // selecting the new matter. The bound session is the current one (explicit, never guessed);
-    // a fresh folder with no session yet gets one through the same workspace resolution
-    // processMatter uses. The ids present at binding are what later tells a creation apart from
-    // an update, so the projection must be readable first — otherwise the path is not bound.
-    const startIntake = (): void => {
-      const existing = deskPath?.getSnapshot()
-      if (existing !== undefined && existing.kind === 'intake') {
-        ctx.uiWorkspace?.openSession(existing.sessionId)
+        arm.reentrySeed?.(existing)
         return
       }
       if (processLaunchInFlight) return
       const snapshot = projection?.getSnapshot()
       const readable = snapshot?.status === 'ready' && snapshot.stale !== true && snapshot.data !== undefined
-      // `missing` is the 404 the download answers when no ledger exists — that is "no matters",
-      // not "unknown", so the ids at binding are honestly empty. Anything else (loading, error,
-      // disconnected) is genuinely unknown: the path is then left unbound rather than bound on a
-      // guess, but the door still opens — a Day-0 principal clicking 「＋ 交代新事项」 on a fresh
-      // home must never meet a dead button (the loop probe caught exactly that, 2026-10-11).
-      const noLedger = snapshot?.status === 'missing'
-      if (!readable && !noLedger) reader?.refresh()
-      const observed = readable ? new Set(snapshot.data.matters.map(matter => matter.id)) : new Set<string>()
-      const binds = readable || noLedger
+      const missing = snapshot?.status === 'missing'
+      // Refresh on an unreadable projection — except for a `missing` that the arm tolerates:
+      // `missing` is the 404 the download answers when no ledger exists, which is "no matters",
+      // not "unknown", so a tolerating arm does not re-ask. Anything else (loading, error,
+      // disconnected) is genuinely unknown: the subject arms close their door and leave the
+      // path unbound rather than binding on a guess; a tolerating arm opens it unbound.
+      if (!readable && !(missing === true && arm.unreadableSubject !== undefined)) reader?.refresh()
+      const subject = readable
+        ? arm.subject(snapshot.data)
+        : arm.unreadableSubject !== undefined ? arm.unreadableSubject(snapshot?.status) : undefined
+      if (subject === undefined) return
       processLaunchInFlight = true
       void (async () => {
         try {
-          const current = ctx.uiSession?.current.value.key
-          let sessionId = current === undefined ? undefined : String(current)
-          if (sessionId === undefined) {
-            const catalog = ctx.workspaces?.list.getSnapshot()
-            const workspaceId = catalog?.items[0]?.workspaceId
-            sessionId = await ctx.sessions?.create(workspaceId === undefined ? undefined : { workspaceId })
-          }
+          const sessionId = await arm.session()
           if (sessionId === undefined) return
-          if (binds) deskPath?.set(bindIntakePath(sessionId, observed))
-          ctx.uiWorkspace?.openSession(sessionId)
+          arm.engage(sessionId, subject)
         } finally {
           processLaunchInFlight = false
         }
       })()
     }
+
+    // The matter arm (explicit processing, K3 slice F): one bound matter + processing session.
+    const processMatter = (matterId: string): void => launchDeskArm({
+      reentry: path => path.kind === 'matter' && path.matterId === matterId,
+      // Q11: re-entering a bound matter from the desk is a continuation intent — seed the
+      // resume contract (fresh ledger read, six-category handover, then wait) so the
+      // returning principal gets the package without asking. A plain sidebar open of the
+      // old chat seeds nothing; only the desk's 处理 action does. The title comes from the
+      // projection read (displayContext stays visual-only, never submitted to the model).
+      reentrySeed: existing => {
+        const matter = projection?.getSnapshot().data?.matters.find(item => item.id === matterId)
+        seedPanelMessage('desk-process-resume', existing.sessionId, resumeContextMessage({
+          id: matterId,
+          ...(matter?.title !== undefined ? { title: matter.title } : {}),
+        }))
+      },
+      subject: data => data.matters.find(item => item.id === matterId),
+      session: createSessionInDesignatedWorkspace,
+      engage: (sessionId, matter) => {
+        // Bind before navigation so the session's first render receives this matter's
+        // visual context and is not mistaken for an unrelated first-time conversation.
+        if (deskPath !== undefined) {
+          deskPath.set({
+            ...bindProcessPath(matterId, sessionId, matter.revision),
+            displayContext: { title: matter.title, summary: matter.summary },
+          })
+        }
+        // Open through the shell's own selection action; retaining alone leaves the old
+        // main-view session selected, so the principal would type into the wrong conversation.
+        ctx.uiWorkspace?.openSession(sessionId)
+        // The matter IS this session's context (principal decision, 2026-10-11): seed it as a
+        // visible, logged message through the same panel channel — the model starts knowing
+        // what it is processing instead of reconstructing intent from the filesystem. Once per
+        // created session; re-entering from the desk later seeds the resume note (Q11, above).
+        seedPanelMessage('desk-process-context', sessionId, processingContextMessage(matter))
+      },
+    })
+
+    // The intake arm (spec K3's 交代首事 side): the desk's 「＋ 交代新事项」 opens a conversation in
+    // which the principal says the matter, and the desk comes back once the ledger holds it —
+    // selecting the new matter. The bound session is the current one (explicit, never guessed);
+    // a fresh folder with no session yet gets one through the first workspace. The ids present
+    // at binding are what later tells a creation apart from an update, so the path binds only
+    // where those ids are honestly known: readable (the real ids) or a 404-missing ledger
+    // (honestly empty) — on any other unreadable state the door opens but the path stays unbound.
+    const startIntake = (): void => launchDeskArm({
+      reentry: path => path.kind === 'intake',
+      subject: data => ({ observed: new Set(data.matters.map(matter => matter.id)), binds: true }),
+      unreadableSubject: status => ({ observed: new Set<string>(), binds: status === 'missing' }),
+      session: async (): Promise<string | undefined> => {
+        const current = ctx.uiSession?.current.value.key
+        if (current !== undefined) return String(current)
+        const catalog = ctx.workspaces?.list.getSnapshot()
+        const workspaceId = catalog?.items[0]?.workspaceId
+        return ctx.sessions?.create(workspaceId === undefined ? undefined : { workspaceId })
+      },
+      engage: (sessionId, { observed, binds }) => {
+        if (binds) deskPath?.set(bindIntakePath(sessionId, observed))
+        ctx.uiWorkspace?.openSession(sessionId)
+      },
+    })
+
     // The claim arm (principal direction, 2026-10-12: every desk item selects into a contextual
     // action): an unclaimed fragment opens the conversation in which the principal decides its
     // home — claim to an existing matter or entrust a new one — and the desk returns once the
     // fragment leaves the unclaimed lane and this session reads back its committed receipt.
-    // Unlike the intake arm this needs the projection readable (the fragment must exist to bind),
-    // and it always creates its own session — the current conversation may be the one that
-    // produced the ambiguity.
-    const claimFragment = (fragmentId: string): void => {
-      const existing = deskPath?.getSnapshot()
-      if (existing !== undefined && existing.kind === 'claim' && existing.fragmentId === fragmentId) {
-        ctx.uiWorkspace?.openSession(existing.sessionId)
-        return
-      }
-      if (processLaunchInFlight) return
-      const snapshot = projection?.getSnapshot()
-      if (snapshot?.status !== 'ready' || snapshot.stale === true || snapshot.data === undefined) {
-        reader?.refresh()
-        return
-      }
-      const fragment = snapshot.data.unclaimed.find(item => item.id === fragmentId)
-      if (fragment === undefined) return
-      processLaunchInFlight = true
-      void (async () => {
-        try {
-          const sessionId = await createSessionInDesignatedWorkspace()
-          if (sessionId === undefined) return
-          deskPath?.set(bindClaimPath(fragmentId, sessionId))
-          ctx.uiWorkspace?.openSession(sessionId)
-          seedPanelMessage('desk-claim-context', sessionId, claimContextMessage(fragment))
-        } finally {
-          processLaunchInFlight = false
-        }
-      })()
-    }
+    // It always creates its own session — the current conversation may be the one that produced
+    // the ambiguity.
+    const claimFragment = (fragmentId: string): void => launchDeskArm({
+      reentry: path => path.kind === 'claim' && path.fragmentId === fragmentId,
+      subject: data => data.unclaimed.find(item => item.id === fragmentId),
+      session: createSessionInDesignatedWorkspace,
+      engage: (sessionId, fragment) => {
+        deskPath?.set(bindClaimPath(fragmentId, sessionId))
+        ctx.uiWorkspace?.openSession(sessionId)
+        seedPanelMessage('desk-claim-context', sessionId, claimContextMessage(fragment))
+      },
+    })
+
     // The wake arm (state-gated actions, card 261012): a settled matter's only legal action is
     // waking it — the conversation exists to state what changed, the model reopens explicitly,
     // and the desk returns once the matter reads back active with this session's receipt.
-    // Unlike the claim arm the matter must be readable AND settled: an active matter wakes
-    // nothing (its action is 处理).
-    const wakeMatter = (matterId: string): void => {
-      const existing = deskPath?.getSnapshot()
-      if (existing !== undefined && existing.kind === 'wake' && existing.matterId === matterId) {
-        ctx.uiWorkspace?.openSession(existing.sessionId)
-        return
-      }
-      if (processLaunchInFlight) return
-      const snapshot = projection?.getSnapshot()
-      if (snapshot?.status !== 'ready' || snapshot.stale === true || snapshot.data === undefined) {
-        reader?.refresh()
-        return
-      }
-      const matter = snapshot.data.matters.find(item => item.id === matterId)
-      if (matter === undefined) return
-      // The fault-tolerance layer: a settled matter's status gates the binding itself — even a
-      // bypassed caller cannot open a 处理 path on finished work.
-      if (canProcess(matter.status)) return
-      const observedStatus = matter.status === 'abandoned' ? 'abandoned' as const : 'completed' as const
-      processLaunchInFlight = true
-      void (async () => {
-        try {
-          const sessionId = await createSessionInDesignatedWorkspace()
-          if (sessionId === undefined) return
-          deskPath?.set(bindWakePath(matterId, sessionId, observedStatus))
-          ctx.uiWorkspace?.openSession(sessionId)
-          seedPanelMessage('desk-wake-context', sessionId, wakeContextMessage({ id: matter.id, title: matter.title, status: observedStatus, summary: matter.summary }))
-        } finally {
-          processLaunchInFlight = false
-        }
-      })()
-    }
+    // The matter must be readable AND settled: an active matter wakes nothing (its action is
+    // 处理). The fault-tolerance layer: a settled matter's status gates the binding itself —
+    // even a bypassed caller cannot open a 处理 path on finished work.
+    const wakeMatter = (matterId: string): void => launchDeskArm({
+      reentry: path => path.kind === 'wake' && path.matterId === matterId,
+      subject: data => {
+        const matter = data.matters.find(item => item.id === matterId)
+        return matter !== undefined && !canProcess(matter.status) ? matter : undefined
+      },
+      session: createSessionInDesignatedWorkspace,
+      engage: (sessionId, matter) => {
+        const observedStatus = matter.status === 'abandoned' ? 'abandoned' as const : 'completed' as const
+        deskPath?.set(bindWakePath(matterId, sessionId, observedStatus))
+        ctx.uiWorkspace?.openSession(sessionId)
+        seedPanelMessage('desk-wake-context', sessionId, wakeContextMessage({ id: matter.id, title: matter.title, status: observedStatus, summary: matter.summary }))
+      },
+    })
     const evaluateReturn = (): void => {
       const path = deskPath?.getSnapshot()
       const snapshot = projection?.getSnapshot()
