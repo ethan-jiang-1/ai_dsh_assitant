@@ -10,7 +10,7 @@
  * section renders without a browser.
  *
  * Module-aligned splits out of this file: room tab bodies → client-room-tabs.spec.ts, store
- * mechanics → client-desk-core.spec.ts, io/slice paths → client-desk-io.spec.ts, the color
+ * mechanics → client-room-data-core.spec.ts, io/slice paths → client-room-data-io.spec.ts, the color
  * contract → client-theme.spec.ts.
  */
 import { describe, expect, it } from 'vitest'

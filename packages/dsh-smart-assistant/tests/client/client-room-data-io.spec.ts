@@ -1,5 +1,5 @@
 /**
- * The desk I/O paths (`src/client/desk-io.ts`): the workspace reads (walk + targeted
+ * The room-data I/O paths (`src/client/room-data-io.ts`): the workspace reads (walk + targeted
  * `loadDeskFor`), the controller-bound `openBeside`, and the per-session slice mechanics
  * the R11 acceptance rounds pinned on them.
  *

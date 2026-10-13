@@ -4,16 +4,16 @@
  * row, alert lines, jump cells).
  *
  * These are the pieces the three room panels (panels.ts) and the dashboard compose; the
- * actions they render all route through desk-io (askRefresh / openBeside) and the store
- * (desk-core).
+ * actions they render all route through room-data-io (askRefresh / openBeside) and the store
+ * (room-data-core).
  *
  * @module dsh-smart-assistant/client/dom-utils
  */
 
 import type { RoomKind } from './contracts'
-import { patchDesk, pendingInFlight, shortTime, staleWarning, useDesk } from './desk-core'
-import type { DeskStore } from './desk-core'
-import { askRefresh, openBeside } from './desk-io'
+import { patchDesk, pendingInFlight, shortTime, staleWarning, useDesk } from './room-data-core'
+import type { DeskStore } from './room-data-core'
+import { askRefresh, openBeside } from './room-data-io'
 import { createElement, reactSurface } from './runtime'
 import { MARK_TEAL } from './theme'
 

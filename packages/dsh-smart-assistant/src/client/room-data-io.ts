@@ -1,21 +1,26 @@
 /**
- * The desk's I/O: reading `.desk/state.json` out of the workspaces, sending the principal's
- * panel actions into the conversation, and the pollers/retry budgets around both.
+ * The room data's I/O: reading `.desk/state.json` out of the workspaces, sending the
+ * principal's panel actions into the conversation, and the pollers/retry budgets around both.
+ *
+ * Terminology (renamed 2026-10-14): this file serves the ROOM DATA file (`.desk/state.json`)
+ * — per the manual, "It is not the desk". The desktop surface itself is the operating-ledger
+ * projection (`projection-panel.ts`); the desk's conversation arms (process/intake/claim/
+ * wake) live in `desk-process.ts`.
  *
  * Everything the browser face reaches through a manifested Remote or the client Session
  * store is captured once by the entry's `apply` (bindDeskEnv) and kept here — the store
- * mechanics those reads feed live in desk-core, and the principal-facing copy of every
+ * mechanics those reads feed live in room-data-core, and the principal-facing copy of every
  * action lands in the conversation in the product voice.
  *
- * @module dsh-smart-assistant/client/desk-io
+ * @module dsh-smart-assistant/client/room-data-io
  */
 
 import type { ClientContext, RoomKind } from './contracts'
 import {
   carryRowStateTo, deskGeneratedAtMs, deskSlice, expirePending, getDeskStore, looksLikeDesk,
   patchDesk, patchSlice, retireStaleReceipt, settlePending, sliceSeq,
-} from './desk-core'
-import type { DeskData, DeskSlice } from './desk-core'
+} from './room-data-core'
+import type { DeskData, DeskSlice } from './room-data-core'
 
 /** The remote layer captured in apply; DeskPanel reads manifested namespaces through it. */
 let deskRemote: Record<string, unknown> | undefined

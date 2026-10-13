@@ -7,12 +7,12 @@
  * @module dsh-smart-assistant/client/panels
  */
 
-import type { DeskData } from './desk-core'
-import { patchDesk, shortTime, useDesk } from './desk-core'
+import type { DeskData } from './room-data-core'
+import { patchDesk, shortTime, useDesk } from './room-data-core'
 import {
   approveKnowledgePage, askApproveProposal, askRejectProposal, correctMemory, deprecateKnowledgePage,
   flagKnowledgePage,
-} from './desk-io'
+} from './room-data-io'
 import { cell, CorrectableRow, muted, panelAlerts, refreshRow, sectionTitle } from './dom-utils'
 import { createElement, reactSurface } from './runtime'
 import { MARK_TEAL } from './theme'

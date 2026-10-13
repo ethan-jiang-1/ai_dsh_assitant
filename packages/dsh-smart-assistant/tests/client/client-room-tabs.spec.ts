@@ -10,8 +10,8 @@
  *   and the empty state starts the conversation instead of refreshing nothing (A6).
  * - The room rides inside its own scroller (the vendor pane body does not scroll).
  *
- * Cross-module note: the tab bodies' session slices are desk-core mechanics and their retry
- * buttons ride desk-io's askRefresh — this file owns the tab-body interface itself.
+ * Cross-module note: the tab bodies' session slices are room-data-core mechanics and their retry
+ * buttons ride room-data-io's askRefresh — this file owns the tab-body interface itself.
  */
 import { describe, expect, it } from 'vitest'
 import { inertReactShim, loadClientRegistration, materializeClient, textsOf } from '../support/client-harness.ts'

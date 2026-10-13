@@ -16,11 +16,13 @@
  * emitted bundle is gated by scripts/checks/verify.mjs (clientScriptSafetyProblems).
  *
  * Module map: contracts (type mirrors) / runtime (factory require binding) / theme
- * (color contract) / desk-core (store) / desk-io (workspace reads + prompt sends) /
+ * (color contract) / room-data-core + room-data-io (the `.desk/state.json` room-data file:
+ * store + workspace reads & prompt sends — "It is not the desk", per the manual) /
  * dom-utils (row + panel chrome) / brand / commands / room-tabs / panels / dashboard /
- * first-mile / desk-process (processing-path bind & return judge) / projection-panel +
- * projection-lifecycle + projection-reader + projection-view + operating-projection
- * (the read-only operating desk) — this entry owns the facade registration, the `apply`
+ * first-mile / desk-process (the operating desk's conversation arms: process/intake/
+ * claim/wake bind & return judges) / projection-panel + projection-lifecycle +
+ * projection-reader + projection-view + operating-projection (the desktop itself — the
+ * read-only operating desk) — this entry owns the facade registration, the `apply`
  * seat wiring, and the dependency list.
  *
  * @module dsh-smart-assistant/client
@@ -30,9 +32,9 @@ import type { ClientContext, ClientRequire, CommandUiRegistry, ModuleLoaderFacad
 import {
   deskSlice, expirePending, getDeskStore, initDeskStore, looksLikeDesk,
   patchDesk, retireStaleReceipt, settlePending,
-} from './desk-core'
-import type { DeskStore } from './desk-core'
-import { bindDeskEnv, getDeskRemote, loadDesk, loadDeskFor, openBeside } from './desk-io'
+} from './room-data-core'
+import type { DeskStore } from './room-data-core'
+import { bindDeskEnv, getDeskRemote, loadDesk, loadDeskFor, openBeside } from './room-data-io'
 import { AssistantBrandMark, AssistantBrandName, AssistantHeroMark } from './brand'
 import { deskCommands, roomCommands } from './commands'
 import { DashboardMainPanel, DashboardPanelIcon } from './dashboard'

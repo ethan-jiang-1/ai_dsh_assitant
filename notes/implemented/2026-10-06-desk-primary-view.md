@@ -34,7 +34,7 @@
 
 ## 验收
 
-- client spec：视图注册（id/label/组件经 classic-script 装置物化）、正文组件树、既有 desk 断言不回归；真实资产见 [client-entry.spec.ts](../../packages/dsh-smart-assistant/tests/client/client-entry.spec.ts#L139-L160)、[client-room-tabs.spec.ts](../../packages/dsh-smart-assistant/tests/client/client-room-tabs.spec.ts#L59-L73) 与 [client-desk-core.spec.ts](../../packages/dsh-smart-assistant/tests/client/client-desk-core.spec.ts#L44-L77)；
+- client spec：视图注册（id/label/组件经 classic-script 装置物化）、正文组件树、既有 desk 断言不回归；真实资产见 [client-entry.spec.ts](../../packages/dsh-smart-assistant/tests/client/client-entry.spec.ts#L139-L160)、[client-room-tabs.spec.ts](../../packages/dsh-smart-assistant/tests/client/client-room-tabs.spec.ts#L59-L73) 与 [client-room-data-core.spec.ts](../../packages/dsh-smart-assistant/tests/client/client-room-data-core.spec.ts#L44-L77)；
 - build + `pnpm preflight`（组合解析/boot 图）+ web-expected：仓内已有 `blank-first-open` 与 `first-open-draft-banner` 两场景，但**非空白会话点开桌面视图的专用场景期望尚未建立**，因此这部分不能记为已验收；
 - 真机演示：干净 home 起服务，判据 = **「本人判定打开不困惑」**（首开卡转移判据，挂在新形态：空白相位引导 + 首会话 intake + 桌面视图的合成体验）；当时的桌面视图交互 DOM 证据是 `/tmp` 一次性产物，不是仓内可重放资产，真人判断也未完成；
 - 自洽卡四件门逐件闭合记录：入口证据=本卡事实 1-4；旧会话回路=视图是 UI 层叠加、会话数据与既有 right-tab 面板不动（回归由既有 client spec 守）；示例/真实边界=沿用 desk 数据标注纪律；审批/撤销=沿用面板既有动作路径（remote.session.prompt 车道，不新增直调）。

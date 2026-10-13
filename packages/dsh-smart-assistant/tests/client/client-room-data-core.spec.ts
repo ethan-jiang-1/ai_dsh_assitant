@@ -1,5 +1,5 @@
 /**
- * The room-data store mechanics (`src/client/desk-core.ts`): the staleness rule and the stale
+ * The room-data store mechanics (`src/client/room-data-core.ts`): the staleness rule and the stale
  * receipt retirement, pinned against the exported store functions.
  *
  * Acceptance points:

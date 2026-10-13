@@ -10,8 +10,8 @@
  * @module dsh-smart-assistant/client/room-tabs
  */
 
-import { deskSlice, getDeskStore, useDesk } from './desk-core'
-import { askRefresh, askStart, loadDeskFor } from './desk-io'
+import { deskSlice, getDeskStore, useDesk } from './room-data-core'
+import { askRefresh, askStart, loadDeskFor } from './room-data-io'
 import { muted } from './dom-utils'
 import { createElement, reactSurface } from './runtime'
 import { MARK_TEAL } from './theme'

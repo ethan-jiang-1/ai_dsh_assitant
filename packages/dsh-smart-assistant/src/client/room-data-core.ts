@@ -1,12 +1,17 @@
 /**
- * The desk store: the shared state the three rooms, the tab bodies and the docks read.
+ * The room-data store: the shared state the three rooms, the tab bodies and the docks read.
  *
- * One loader feeds it (see desk-io); the store notifies its subscribers, and the slices
+ * Terminology (renamed 2026-10-14, the manual's own words): `.desk/state.json` is the ROOM
+ * DATA file — "It is not the desk". The desktop the principal sees is the operating-ledger
+ * projection panel (`projection-panel.ts`); this module and `room-data-io.ts` serve the
+ * room-data file the three room tabs render.
+ *
+ * One loader feeds it (see room-data-io); the store notifies its subscribers, and the slices
  * keep each bound session's row-scoped facts apart (R11). Pure store mechanics live here —
  * reading, patching, settling, expiring — while the I/O (workspace reads, prompt sends,
- * the pollers) lives in desk-io.
+ * the pollers) lives in room-data-io.
  *
- * @module dsh-smart-assistant/client/desk-core
+ * @module dsh-smart-assistant/client/room-data-core
  */
 
 import { reactSurface } from './runtime'
