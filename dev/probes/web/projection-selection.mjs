@@ -9,6 +9,7 @@
 // console/network problems each fail the run. The screenshot artifact the old shape
 // produced as a side effect is gone: the assertion verdict is the probe's product.
 import { launchCdpBrowser } from './cdp-driver.mjs'
+import { sleep } from './probe-utils.mjs'
 
 const [url] = process.argv.slice(2)
 if (!url) throw new Error('usage: projection-selection.mjs <url>')
@@ -19,7 +20,6 @@ if (handle.failed !== undefined) {
   process.exit(1)
 }
 const { evaluate, consoleProblems, exceptions } = handle
-const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms) })
 const problems = () => ({ consoleProblems, exceptions })
 
 // Readiness: the desk panel with the fixture matter (回款 A), then click its card.

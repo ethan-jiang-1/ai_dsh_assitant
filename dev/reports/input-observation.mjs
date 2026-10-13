@@ -25,15 +25,12 @@ import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import process from 'node:process'
 import { classifyUserMessage, readEvents, sessionLogs, stripPanelMarker, summarizeEvents, userMessageText } from './usage-report.mjs'
+import { option } from '../probes/web/probe-utils.mjs'
 
 const args = process.argv.slice(2)
-const option = (name, fallback) => {
-  const at = args.indexOf(`--${name}`)
-  return at >= 0 && at + 1 < args.length ? args[at + 1] : fallback
-}
 const asJson = args.includes('--json')
-const home = option('home', process.env.ASSISTANT_DSH_HOME ?? join(process.cwd(), 'dev', 'harness-home'))
-const label = option('label', new Date().toISOString().slice(0, 10))
+const home = option(args, 'home', process.env.ASSISTANT_DSH_HOME ?? join(process.cwd(), 'dev', 'harness-home'))
+const label = option(args, 'label', new Date().toISOString().slice(0, 10))
 
 // 分类不在这里定义：一律用 usage-report 导出的共用判据（结构优先，两代面板标记与注入前言都认）。
 // 另立一份必然漂移——2026-10-11 的实测就是教训（本脚本初版用文本前缀判，把旧 `[桌面] ` 机器消息

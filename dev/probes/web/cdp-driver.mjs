@@ -38,6 +38,8 @@ import { mkTmpDir } from '../../env/tmp.mjs';
 
 const CHROME_CANDIDATES = [
   process.env.DSH_PROBE_CHROME,
+  // Legacy alias webui-shots documented before the shared resolver existed; both names work.
+  process.env.CHROME_BIN,
   '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
   '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
 ].filter(Boolean);
@@ -57,7 +59,7 @@ export function findChromeBinary() {
  */
 export async function launchCdpBrowser({ url, chromeBin, windowSize = '1600,1000', bootTimeoutMs = 20000, evaluateTimeoutMs = 20000 } = {}) {
   const bin = chromeBin ?? findChromeBinary();
-  if (bin === undefined) throw new Error('no Chrome/Edge binary found (set DSH_PROBE_CHROME)');
+  if (bin === undefined) throw new Error('no Chrome/Edge binary found (set DSH_PROBE_CHROME or CHROME_BIN)');
   const profileDir = mkTmpDir('chrome-profile', 'cdp-driver-');
   const chrome = spawn(bin, [
     '--headless=new',

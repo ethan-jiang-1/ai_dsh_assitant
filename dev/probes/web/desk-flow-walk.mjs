@@ -25,29 +25,26 @@ import { launchCdpBrowser } from './cdp-driver.mjs'
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpDir } from '../../env/tmp.mjs'
+import { option, sleep } from './probe-utils.mjs'
+import {
+  conversationActive, deskPresent, deskText, dismissApproval, pasteUntilSendable,
+  pollUntil, sendClick, sendPresent, turnStopped,
+} from './dialogue.mjs'
 
 const args = process.argv.slice(2)
-const option = (name, fallback) => {
-  const at = args.indexOf(`--${name}`)
-  return at >= 0 && at + 1 < args.length ? args[at + 1] : fallback
-}
 const url = args.find(argument => !argument.startsWith('--'))
 if (url === undefined) throw new Error("usage: desk-flow-walk.mjs '<gui-url>' [--home <dir>] [--matter <substring>]")
-const home = option('home')
-const matterHint = option('matter', '')
-const say = option('say', '客户刚才打电话说要推迟到 10/20 才能付，还没重新约定具体日子，先记一下。')
-const entrust = option('entrust', '新添一件：商标续展材料 11 月 20 日前要递交，代理所说这次得先补使用证据。')
+const home = option(args, 'home')
+const matterHint = option(args, 'matter', '')
+const say = option(args, 'say', '客户刚才打电话说要推迟到 10/20 才能付，还没重新约定具体日子，先记一下。')
+const entrust = option(args, 'entrust', '新添一件：商标续展材料 11 月 20 日前要递交，代理所说这次得先补使用证据。')
 const skipIntake = args.includes('--skip-intake')
-const outDir = option('out', join(tmpDir('desk-walkthrough'), new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)))
+const outDir = option(args, 'out', join(tmpDir('desk-walkthrough'), new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)))
 mkdirSync(outDir, { recursive: true })
 
 const browser = await launchCdpBrowser({ url, windowSize: '1440,900' })
 if (browser.failed !== undefined) throw new Error(String(browser.failed))
 const { evaluate, captureScreenshot, consoleProblems, exceptions } = browser
-const sleep = milliseconds => new Promise(resolve => { setTimeout(resolve, milliseconds) })
-const deskText = `(() => { const root = document.querySelector('[data-assistant-operating-desk]'); return root === null ? null : root.innerText })()`
-const turnRunning = `[...document.querySelectorAll('button')].some(b => ['停止生成','Stop generating'].includes(b.getAttribute('aria-label') ?? ''))`
-const sendPresent = `[...document.querySelectorAll('button')].some(b => ['发送消息','Send message'].includes(b.getAttribute('aria-label') ?? ''))`
 const verdict = { url, home, outDir, phases: {}, consoleProblems: [], exceptions: [] }
 const record = async (name) => {
   const text = String(await evaluate('document.body.innerText') ?? '')
@@ -64,47 +61,21 @@ const fail = (phase, detail) => {
 }
 const pass = (phase, detail = {}) => { verdict.phases[phase] = { pass: true, ...detail } }
 
-/** 等会话 idle：停止键消失、发送键回来（顺路点掉审批门）——与 desk-process-e2e 同一习语。 */
-const waitIdle = async (budget = 240) => {
-  for (let i = 0; i < budget; i++) {
-    await sleep(500)
-    await evaluate(`(() => { const b = [...document.querySelectorAll('button')].find(x => (x.textContent ?? '').trim() === '允许一次'); b?.click(); })()`)
-    if (await evaluate(`(${turnRunning}) === false && (${sendPresent}) === true`) === true) return true
-  }
-  return false
-}
+/** 等会话 idle：停止键消失、发送键回来（顺路点掉审批门）——共享习语（dialogue.mjs）。 */
+const waitIdle = (budget = 240) => pollUntil(evaluate, `(${turnStopped}) && (${sendPresent})`, { budget, eachCycle: dismissApproval })
+/** 粘贴到 composer 接受（重试）→ 点发送；返回 'sent' 或失败原因（对话习语见 dialogue.mjs 头注）。 */
 const pasteAndSend = async (text) => {
-  for (let i = 0; i < 12; i++) {
-    await evaluate(`(() => {
-      const composer = document.querySelector('[data-composer-input="true"]');
-      if (composer === null) return 'no-composer';
-      composer.focus();
-      const data = new DataTransfer();
-      data.setData('text/plain', ${JSON.stringify(text)});
-      composer.dispatchEvent(new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true }));
-      return 'pasted';
-    })()`)
-    await sleep(700)
-    if (await evaluate(`(() => {
-      const send = [...document.querySelectorAll('button')].find(b => ['发送消息','Send message'].includes(b.getAttribute('aria-label') ?? ''));
-      return send !== undefined && send.disabled === false;
-    })()`) === true) break
-  }
-  return await evaluate(`(() => {
-    const send = [...document.querySelectorAll('button')].find(b => ['发送消息','Send message'].includes(b.getAttribute('aria-label') ?? ''));
-    if (send === undefined || send.disabled) return 'not-sent';
-    send.click(); return 'sent';
-  })()`)
+  const { sendable } = await pasteUntilSendable(evaluate, text, { attempts: 12, gapMs: 700 })
+  if (!sendable) return 'not-sent'
+  return await evaluate(sendClick)
 }
 
 // —— 相位 1：首屏＝账本桌面 ——
-let desk = null
-for (let i = 0; i < 120 && desk === null; i++) {
-  const text = await evaluate(deskText)
-  if (text !== null && text.includes('你的桌面')) desk = text
-  else await sleep(700)
-}
-if (desk === null) { fail('desk-first-screen', { note: '桌面未挂载' }); await browser.settle(); process.exit() }
+const desk = await pollUntil(evaluate, deskText, {
+  intervalMs: 700, budget: 120, checkFirst: true,
+  isDone: text => text !== null && text.includes('你的桌面'),
+})
+if (desk === null || desk.includes('你的桌面') === false) { fail('desk-first-screen', { note: '桌面未挂载' }); await browser.settle(); process.exit() }
 await record('1-desk-first-screen')
 const mattersBefore = await evaluate(`[...document.querySelectorAll('[data-assistant-operating-desk] button.dsha-card')].map(b => (b.textContent ?? '').slice(0, 40))`)
 pass('desk-first-screen', { matters: mattersBefore?.length ?? 0 })
@@ -124,12 +95,8 @@ const started = await evaluate(`(() => {
   button.click(); return 'clicked';
 })()`)
 if (started !== 'clicked') { fail('matter-detail', { picked, started }); await browser.settle(); process.exit() }
-let conversation = false
-for (let i = 0; i < 60 && !conversation; i++) {
-  conversation = await evaluate(`document.querySelector('[data-assistant-operating-desk]') === null && document.querySelector('[data-composer-input="true"]') !== null`) === true
-  if (!conversation) await sleep(500)
-}
-if (!conversation) { fail('processing-session', { picked, note: '处理会话没接管主区' }); await browser.settle(); process.exit() }
+let conversation = await pollUntil(evaluate, conversationActive, { checkFirst: true, budget: 60 })
+if (conversation !== true) { fail('processing-session', { picked, note: '处理会话没接管主区' }); await browser.settle(); process.exit() }
 const idle = await waitIdle()
 await record('2-processing-session')
 pass('processing-session', { picked, idle })
@@ -140,11 +107,7 @@ pass('processing-session', { picked, idle })
 // 不凭对话旧印象作答。普通侧栏打开旧聊天不在此相位（那不该播报）。
 {
   const deskNav = await evaluate(`(() => { const b = [...document.querySelectorAll('button')].find(x => (x.textContent ?? '').includes('桌面')); if (b === undefined) return 'no-desk-button'; b.click(); return 'clicked'; })()`)
-  let deskBack = false
-  for (let i = 0; i < 40 && !deskBack; i++) {
-    deskBack = await evaluate(`document.querySelector('[data-assistant-operating-desk]') !== null`) === true
-    if (!deskBack) await sleep(500)
-  }
+  const deskBack = await pollUntil(evaluate, deskPresent, { checkFirst: true, budget: 40 })
   let resumeOutcome = { deskNav, deskBack, resumed: 'not-tried', resumeClicked: 'not-tried', backInConversation: false, resumeSeeded: false, resumeIdle: false }
   if (deskNav === 'clicked' && deskBack) {
     const resumed = await evaluate(`(() => {
@@ -161,10 +124,7 @@ pass('processing-session', { picked, idle })
         if (button === undefined) return 'no-process-button';
         button.click(); return 'clicked';
       })()`)
-      for (let i = 0; i < 60 && !resumeOutcome.backInConversation; i++) {
-        resumeOutcome.backInConversation = await evaluate(`document.querySelector('[data-assistant-operating-desk]') === null && document.querySelector('[data-composer-input="true"]') !== null`) === true
-        if (!resumeOutcome.backInConversation) await sleep(500)
-      }
+      resumeOutcome.backInConversation = await pollUntil(evaluate, conversationActive, { checkFirst: true, budget: 60 }) === true
       if (resumeOutcome.backInConversation) {
         resumeOutcome.resumeIdle = await waitIdle()
         await record('2b-resume-reopen')
@@ -183,12 +143,7 @@ pass('processing-session', { picked, idle })
 
 // —— 相位 3：说一句进展 → 回合跑完 → 桌面回没回（并核「回来 ⇒ 无待确认」的不变量） ——
 if (await pasteAndSend(say) !== 'sent') { fail('say-turn', { note: '发送失败' }); await browser.settle(); process.exit() }
-let settled = false
-for (let i = 0; i < 300 && !settled; i++) {
-  await sleep(500)
-  await evaluate(`(() => { const b = [...document.querySelectorAll('button')].find(x => (x.textContent ?? '').trim() === '允许一次'); b?.click(); })()`)
-  settled = await evaluate(turnRunning) === false
-}
+const settled = await pollUntil(evaluate, turnStopped, { budget: 300, eachCycle: dismissApproval })
 await sleep(2500)
 const returnedText = await evaluate(deskText)
 const returned = returnedText !== null
@@ -215,7 +170,7 @@ if (!skipIntake) {
   if (!returned) {
     // 还留在对话里就先手动回桌面（走查工具不去猜怎么回；这一步如实记录）
     await evaluate(`(() => { const b = [...document.querySelectorAll('button')].find(x => (x.textContent ?? '').includes('桌面')); b?.click(); })()`)
-    for (let i = 0; i < 40; i++) { await sleep(500); if (await evaluate(deskText) !== null) break }
+    await pollUntil(evaluate, deskText, { budget: 40, isDone: text => text !== null })
   }
   // 身份按**账本 id** 判（标题可能撞车：同一次走查重复说同一件事时，模型会照样新建一件事，
   // 而标题与上一次那条几乎一样——2026-10-11 首跑就是这样把「新建成功」误判成「没新建」）。
@@ -233,16 +188,11 @@ if (!skipIntake) {
     button.click(); return 'clicked';
   })()`)
   if (opened !== 'clicked') { fail('intake-entry', { opened }); await browser.settle(); process.exit() }
-  let intakeConversation = false
-  for (let i = 0; i < 60 && !intakeConversation; i++) {
-    intakeConversation = await evaluate(`document.querySelector('[data-assistant-operating-desk]') === null && document.querySelector('[data-composer-input="true"]') !== null`) === true
-    if (!intakeConversation) await sleep(500)
-  }
-  if (!intakeConversation) { fail('intake-entry', { opened, note: '交代入口没开会话' }); await browser.settle(); process.exit() }
+  const intakeConversation = await pollUntil(evaluate, conversationActive, { checkFirst: true, budget: 60 })
+  if (intakeConversation !== true) { fail('intake-entry', { opened, note: '交代入口没开会话' }); await browser.settle(); process.exit() }
   await waitIdle(60)
   if (await pasteAndSend(entrust) !== 'sent') { fail('intake-entry', { note: '交代消息发送失败' }); await browser.settle(); process.exit() }
-  let intakeReturned = null
-  for (let i = 0; i < 300 && intakeReturned === null; i++) { await sleep(500); intakeReturned = await evaluate(deskText) }
+  const intakeReturned = await pollUntil(evaluate, deskText, { budget: 300, isDone: text => text !== null })
   if (intakeReturned === null) { fail('intake-return', { note: '交代后没有返回桌面' }); await browser.settle(); process.exit() }
   const selected = String(await evaluate(`(() => {
     const card = document.querySelector('[data-assistant-operating-desk] button.dsha-card[data-selected="true"]');

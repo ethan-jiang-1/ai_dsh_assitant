@@ -58,7 +58,10 @@
  *             is the Chinese one, and a fresh headless profile would otherwise render
  *             en-US. Sets both the Chrome UI language and the page's locale override.
  *
- * Chrome resolution order: $CHROME_BIN, then Google Chrome, then Edge (macOS app paths).
+ * Chrome resolution: the shared resolver in cdp-driver.mjs ($DSH_PROBE_CHROME, then the
+ * legacy alias $CHROME_BIN, then Google Chrome, then Edge — macOS app paths). This script
+ * kept its own resolver (and its own env name) before 2026-10-14; a user who set only
+ * CHROME_BIN kept working through the alias.
  * No npm dependency — child process + Node's built-in fetch/WebSocket (see
  * scripts/AGENTS.md: Node built-ins + repo-internal only).
  */
@@ -66,6 +69,8 @@ import { spawn } from 'node:child_process'
 import { mkdirSync, existsSync, statSync, writeFileSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpDir } from '../../env/tmp.mjs'
+import { findChromeBinary } from './cdp-driver.mjs'
+import { option, sleep } from './probe-utils.mjs'
 
 const args = process.argv.slice(2)
 const targetUrl = args.find(a => !a.startsWith('--'))
@@ -74,34 +79,23 @@ if (targetUrl === undefined) {
   process.exit(1)
 }
 
-const option = (name, fallback) => {
-  const i = args.indexOf(`--${name}`)
-  return i >= 0 && i + 1 < args.length ? args[i + 1] : fallback
-}
 const sizes = args.flatMap((a, i) => (a === '--size' && i + 1 < args.length ? [args[i + 1]] : []))
 const evals = args.flatMap((a, i) => (a === '--eval' && i + 1 < args.length ? [args[i + 1]] : []))
 
-const outDir = option('out', tmpDir('shots'))
-const name = option('name', `shot-${Date.now()}`)
-const budget = Number(option('budget', '20000'))
-const settle = Number(option('settle', '4000'))
-const lang = option('lang', 'zh-CN')
+const outDir = option(args, 'out', tmpDir('shots'))
+const name = option(args, 'name', `shot-${Date.now()}`)
+const budget = Number(option(args, 'budget', '20000'))
+const settle = Number(option(args, 'settle', '4000'))
+const lang = option(args, 'lang', 'zh-CN')
 const wantDom = args.includes('--dom')
 const plain = args.includes('--plain')
 const viewports = sizes.length > 0 ? sizes : ['1600x1000']
 
-const chromeCandidates = [
-  process.env.CHROME_BIN,
-  '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-  '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
-].filter(Boolean)
-const chrome = chromeCandidates.find(p => existsSync(p))
+const chrome = findChromeBinary()
 if (chrome === undefined) {
-  console.error(`no Chrome/Edge binary found (tried: ${chromeCandidates.join(', ')}); set CHROME_BIN`)
+  console.error('no Chrome/Edge binary found (set DSH_PROBE_CHROME or CHROME_BIN)')
   process.exit(1)
 }
-
-const sleep = ms => new Promise(resolve => { setTimeout(resolve, ms) })
 
 /** Resolve once Chrome prints its DevTools endpoint on stderr; fail after 20s. */
 function waitForDevToolsUrl(proc) {
@@ -289,7 +283,7 @@ for (const viewport of viewports) {
     // rejects every pending response and lands the failure in the catch below.
     // `--timeout` exists because an awaited promise eval (a real wait for a timeout to expire,
     // a turn to settle) can legitimately outlive any formula over budget/settle/eval count.
-    const watchdogMs = Number(option('timeout', String(budget + settle + evals.length * 1500 + 30_000)))
+    const watchdogMs = Number(option(args, 'timeout', String(budget + settle + evals.length * 1500 + 30_000)))
     watchdog = setTimeout(() => {
       console.error(`  !!   watchdog: no capture after ${watchdogMs}ms — killing chrome`)
       // A killed Chrome does not reliably close the DevTools socket, so a pending CDP

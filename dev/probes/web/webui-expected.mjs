@@ -33,20 +33,17 @@ import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { mkTmpDir } from '../../env/tmp.mjs'
 import { buildCaptureEvalArgs, compareEvidence, normalizeDomEvidence } from './webui-expected-core.mjs'
+import { option } from './probe-utils.mjs'
 
 const args = process.argv.slice(2)
 const targetUrl = args.find(a => !a.startsWith('--'))
-const option = (name, fallback) => {
-  const i = args.indexOf(`--${name}`)
-  return i >= 0 && i + 1 < args.length ? args[i + 1] : fallback
-}
 const scriptRoot = fileURLToPath(new URL('.', import.meta.url))
-const scenarioDir = resolve(option('scenario', join(scriptRoot, '..', '..', '..', 'snapshots', 'web-face', 'blank-first-open')))
-const size = option('size', '1600x1000')
+const scenarioDir = resolve(option(args, 'scenario', join(scriptRoot, '..', '..', '..', 'snapshots', 'web-face', 'blank-first-open')))
+const size = option(args, 'size', '1600x1000')
 const refresh = args.includes('--refresh')
 // Scenes pinning async-loaded content declare their readiness token; the polling eval
 // replaces a longer settle guess (see buildWaitSnippet for the flake it closes).
-const waitText = option('wait-text')
+const waitText = option(args, 'wait-text')
 
 if (targetUrl === undefined) {
   console.error('usage: node dev/probes/web/webui-expected.mjs <url-with-token> [--scenario <dir>] [--refresh] [--size <WxH>] [--eval <js>] [--wait-text <substring>]')

@@ -55,14 +55,13 @@
 // hard-won material (2026-10-01, first-open UX campaign).
 import { launchCdpBrowser } from './cdp-driver.mjs';
 import process from 'node:process';
+import { flag, option, sleep } from './probe-utils.mjs';
+import { pasteUntilSendable, pollUntil, sendClick, sendEnabled, turnRunning } from './dialogue.mjs';
 
 const args = process.argv.slice(2);
 const guiUrl = args.find(a => !a.startsWith('--'));
-const flag = (name) => args.includes(name);
-const askIndex = args.indexOf('--ask');
-const ask = askIndex >= 0 ? (args[askIndex + 1] ?? undefined) : undefined;
-const followUpIndex = args.indexOf('--follow-up');
-const followUp = followUpIndex >= 0 ? (args[followUpIndex + 1] ?? undefined) : undefined;
+const ask = option(args, 'ask');
+const followUp = option(args, 'follow-up');
 const walkIndex = args.indexOf('--walk');
 let walk = undefined;
 if (walkIndex >= 0) {
@@ -70,12 +69,11 @@ if (walkIndex >= 0) {
   catch { walk = undefined }
   if (walk === undefined) { console.error('loop-probe: --walk expects a JSON array of strings'); process.exit(2) }
 }
-const sizeIndex = args.indexOf('--size');
-const size = sizeIndex >= 0 ? (args[sizeIndex + 1] ?? '1600,1000') : '1600,1000';
-const keepBrowser = flag('--keep-browser');
-const quiet = flag('--quiet');
-const dislike = flag('--dislike');
-const approve = flag('--approve');
+const size = option(args, 'size', '1600,1000');
+const keepBrowser = flag(args, 'keep-browser');
+const quiet = flag(args, 'quiet');
+const dislike = flag(args, 'dislike');
+const approve = flag(args, 'approve');
 const say = (message) => { if (!quiet) console.error(`  ..  ${message}`) };
 // Whether this run drives real turns — those are the runs that enter a conversation (creating a
 // session); a surface-only run must stay side-effect-free.
@@ -154,14 +152,12 @@ try {
       workspaceStuck: text.includes('Choose a workspace to start')
         || text.includes('Unable to create default workspace'),
     };
-  })()`;
-  let surface = await evaluate(deskSurface);
-  for (let i = 0; i < 8; i++) {
-    if (surface?.desk === true && surface?.deskCopy === true
-      && surface?.roomJargon === false && surface?.workspaceStuck === false) break
-    await new Promise((resolve) => { setTimeout(resolve, 1500) });
-    surface = await evaluate(deskSurface);
-  }
+  })()`
+  const surface = await pollUntil(evaluate, deskSurface, {
+    intervalMs: 1500, budget: 8, checkFirst: true,
+    isDone: state => state?.desk === true && state?.deskCopy === true
+      && state?.roomJargon === false && state?.workspaceStuck === false,
+  });
   verdict.workspaceReady = surface?.workspaceStuck === false;
   verdict.noRoomJargon = surface?.roomJargon === false;
   verdict.deskFirstScreen = surface?.desk === true;
@@ -178,12 +174,8 @@ try {
       if (fresh !== undefined) { fresh.click(); return 'new-session' }
       return 'no-entry';
     })()`);
-    let composerMounted = false;
-    for (let i = 0; i < 40 && !composerMounted; i++) {
-      composerMounted = await evaluate(`document.querySelector('[data-composer-input="true"]') !== null`) === true;
-      if (!composerMounted) await new Promise((resolve) => { setTimeout(resolve, 500) });
-    }
-    verdict.composerMounted = composerMounted;
+    const composerMounted = await pollUntil(evaluate, `document.querySelector('[data-composer-input="true"]') !== null`, { checkFirst: true, budget: 40 })
+    verdict.composerMounted = composerMounted === true;
     // 首开引导条是我们自己的中文文案，两种变体都算在场（全新 home 是「第一次来」，有数据的是
     // 「这是你的一把手桌面」）——按 home 新旧二选一判会把健康 home 判红。
     verdict.firstMileStripShown = await evaluate(`(() => {
@@ -211,48 +203,17 @@ try {
   // (observed 2026-10-01).
   const runTurn = async (text) => {
     const result = { question: text, pasted: undefined, composerReady: false, sent: undefined, replySeconds: null, replyTail: '', waitSamples: [], approvals: 0, approvalPending: false };
-    const pasteOnce = `(() => {
-      const composer = document.querySelector('[data-composer-input="true"]');
-      if (composer === null) return 'no-composer';
-      composer.focus();
-      const data = new DataTransfer();
-      data.setData('text/plain', ${JSON.stringify(text)});
-      composer.dispatchEvent(new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true }));
-      return 'pasted';
-    })()`;
-    const sendEnabled = `(() => {
-      const send = [...document.querySelectorAll('button')].find(b =>
-        (b.getAttribute('aria-label') ?? '') === '发送消息'
-        || (b.getAttribute('aria-label') ?? '') === 'Send message');
-      return send !== undefined && send.disabled === false;
-    })()`;
-    let sendReady = false;
-    for (let i = 0; i < 6 && !sendReady; i++) {
-      result.pasted = await evaluate(pasteOnce);
-      await new Promise((resolve) => { setTimeout(resolve, 1000) });
-      sendReady = await evaluate(sendEnabled) === true;
-    }
-    result.composerReady = sendReady;
-    if (!sendReady) { result.sent = 'composer-never-accepted-text'; return result; }
-    await new Promise((resolve) => { setTimeout(resolve, 800) });
-    result.sent = await evaluate(`(() => {
-      const send = [...document.querySelectorAll('button')].find(b =>
-        (b.getAttribute('aria-label') ?? '') === '发送消息'
-        || (b.getAttribute('aria-label') ?? '') === 'Send message');
-      if (send === undefined) return 'no-send-button';
-      if (send.disabled) return 'send-disabled';
-      send.click();
-      return 'sent';
-    })()`);
+    const { pasteResult, sendable } = await pasteUntilSendable(evaluate, text, { attempts: 6, gapMs: 1000 });
+    result.pasted = pasteResult;
+    result.composerReady = sendable;
+    if (!sendable) { result.sent = 'composer-never-accepted-text'; return result; }
+    await sleep(800);
+    result.sent = await evaluate(sendClick);
     if (result.sent !== 'sent') return result;
-    const stopPresent = `[...document.querySelectorAll('button')].some(b => {
-      const label = b.getAttribute('aria-label') ?? '';
-      return label === '停止生成' || label === 'Stop generating';
-    })`;
     let started = false;
     for (let i = 0; i < 20 && !started; i++) {
-      started = await evaluate(stopPresent) === true;
-      if (!started) await new Promise((resolve) => { setTimeout(resolve, 300) });
+      started = await evaluate(turnRunning) === true;
+      if (!started) await sleep(300);
     }
     if (!started) { result.sent = 'sent-but-no-stop-button (turn may have failed instantly)'; return result; }
     const startedAt = Date.now();
@@ -263,8 +224,8 @@ try {
     // locale preference is per-home.
     let done = false;
     for (let i = 0; i < 300 && !done; i++) {
-      await new Promise((resolve) => { setTimeout(resolve, 1500) });
-      done = await evaluate(stopPresent) === false;
+      await sleep(1500);
+      done = await evaluate(turnRunning) === false;
       if (i % 3 === 0 && !done) {
         result.waitSamples.push(await evaluate(`(() => {
           const text = document.body.textContent ?? '';
@@ -313,7 +274,7 @@ try {
     // 看警告是立刻消失（诚实显示）还是滞留（重读滞后 = 要修的是面板，不是文案）。
     result.postTurnSamples = [];
     for (let i = 0; i < 8; i++) {
-      await new Promise((resolve) => { setTimeout(resolve, 1500) });
+      await sleep(1500);
       result.postTurnSamples.push(await evaluate(`(() => {
         const text = document.body.textContent ?? '';
         return {
@@ -359,7 +320,7 @@ try {
           buttons[buttons.length - 1].click();
           return 'clicked';
         })()`);
-        await new Promise((resolve) => { setTimeout(resolve, 1500) });
+        await sleep(1500);
         await evaluate(`(() => {
           const cat = [...document.querySelectorAll('button')].find(b => (b.textContent ?? '').trim() === '其他' || (b.textContent ?? '').trim() === 'Other');
           if (cat) cat.click();
@@ -373,14 +334,14 @@ try {
           ta.dispatchEvent(new Event('input', { bubbles: true }));
           return 'remark-set';
         })()`);
-        await new Promise((resolve) => { setTimeout(resolve, 800) });
+        await sleep(800);
         const submit = await evaluate(`(() => {
           const submit = [...document.querySelectorAll('button')].find(b => (b.textContent ?? '').trim() === '提交' || (b.textContent ?? '').trim().toLowerCase() === 'submit');
           if (submit === undefined) return 'no-submit';
           submit.click();
           return 'submitted';
         })()`);
-        await new Promise((resolve) => { setTimeout(resolve, 2000) });
+        await sleep(2000);
         verdict.dislike = submit;
       }
     }

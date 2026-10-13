@@ -17,22 +17,20 @@
 //
 // Usage（repo 根）:
 //   node dev/probes/web/projection-live-mechanics.mjs [--home <dir>] [--keep-service]
-import { spawn } from 'node:child_process'
-import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { tmpDir } from '../../env/tmp.mjs'
 import { launchCdpBrowser } from './cdp-driver.mjs'
+import { option, sleep } from './probe-utils.mjs'
+import { deskText, pollUntil } from './dialogue.mjs'
+import { countSessions, registerProbeTeardown, startProbeService, stopStaleProbeServices } from './probe-service.mjs'
 
 const repoRoot = join(fileURLToPath(new URL('.', import.meta.url)), '..', '..', '..')
 const fixture = join(repoRoot, 'dev', 'fixtures', 'desk-projection', 'eight-matters.json')
 
 const args = process.argv.slice(2)
-const option = (name, fallback) => {
-  const i = args.indexOf(`--${name}`)
-  return i >= 0 && i + 1 < args.length ? args[i + 1] : fallback
-}
-const home = option('home', join(tmpDir('probe-home'), 'k4-probe-home'))
+const home = option(args, 'home', join(tmpDir('probe-home'), 'k4-probe-home'))
 const keepService = args.includes('--keep-service')
 
 const verdict = { probe: 'projection-live-mechanics', home, phases: {} }
@@ -46,73 +44,19 @@ const fail = (phase, detail) => {
 if (!existsSync(fixture)) throw new Error(`fixture missing: ${fixture}`)
 if (!existsSync(join(home, 'profiles'))) throw new Error(`probe home not set up: ${home}`)
 
-// —— 编排：清旧服务（两个探针共用 home，两份 pid 记录都查）→ 种子夹具态 → 起服务 ——
-for (const pidName of ['.desk-process-e2e-service.pid', '.projection-live-mechanics.pid']) {
-  const pidFile = join(home, pidName)
-  if (existsSync(pidFile)) {
-    const stale = Number(readFileSync(pidFile, 'utf8'))
-    if (Number.isInteger(stale)) { try { process.kill(stale, 'SIGTERM') } catch { /* already gone */ } }
-    rmSync(pidFile)
-  }
-}
+// —— 编排：清旧服务（共享 home 的 pid 登记单点在 probe-service.mjs）→ 种子夹具态 → 起服务 ——
+stopStaleProbeServices(home)
 const operatingDir = join(home, 'assistant-operating')
 mkdirSync(operatingDir, { recursive: true })
 // fixture 态：无 ledger（有则移走），固定模拟资料在场。
 rmSync(join(operatingDir, 'ledger.json'), { force: true })
 copyFileSync(fixture, join(operatingDir, 'desk-projection.json'))
 
-const countSessions = () => {
-  const root = join(home, 'sessions')
-  // 全新 home 还没被 boot 过就没有这个目录——0 个会话是正确答案，不是错误。
-  if (!existsSync(root)) return 0
-  let count = 0
-  for (const workspace of readdirSync(root, { withFileTypes: true })) {
-    if (!workspace.isDirectory()) continue
-    for (const entry of readdirSync(join(home, 'sessions', workspace.name), { withFileTypes: true })) {
-      if (entry.isDirectory() && entry.name.startsWith('session-')) count += 1
-    }
-  }
-  return count
-}
-
-const vendorBin = join(repoRoot, 'vendor', 'dsh', 'apps', 'cli', 'src', 'bin.ts')
-const tsxEntry = import.meta.resolve('tsx/esm')
-const service = spawn(process.execPath, ['--import', tsxEntry, vendorBin, '--profile', 'dev', '--port', '0', '--no-open'], {
-  cwd: repoRoot,
-  env: {
-    ...process.env,
-    DSH_HOME: home,
-    DSH_AGENTS_HOME: join(home, 'agents-home'),
-    DSH_TELEMETRY_DISABLED: '1',
-    TSX_TSCONFIG_PATH: join(repoRoot, 'tsconfig.tsx.json'),
-  },
-  stdio: ['ignore', 'pipe', 'pipe'],
-})
-const pidFile = join(home, '.projection-live-mechanics.pid')
-writeFileSync(pidFile, String(service.pid))
-let url = undefined
-let bootError = undefined
-service.stdout.on('data', (chunk) => {
-  const match = /dsh web: (http:\/\/\S+)/.exec(String(chunk))
-  if (match !== null) url = match[1]
-})
-service.stderr.on('data', (chunk) => { bootError = String(chunk) })
-for (let i = 0; i < 120 && url === undefined; i++) await new Promise((resolve) => { setTimeout(resolve, 500) })
-if (url === undefined) {
-  service.kill('SIGTERM')
-  throw new Error(`service never printed its URL (stderr tail: ${String(bootError).slice(-400)})`)
-}
+const { service, url, pidFile } = await startProbeService({ repoRoot, home, pidName: '.projection-live-mechanics.pid' })
 verdict.url = url
 
 let browser = undefined
-const teardown = () => {
-  rmSync(pidFile, { force: true })
-  browser?.close()
-  if (!keepService) service.kill('SIGTERM')
-}
-process.on('exit', teardown)
-process.on('SIGINT', () => { teardown(); process.exit(130) })
-process.on('SIGTERM', () => { teardown(); process.exit(143) })
+const teardown = registerProbeTeardown({ service, pidFile, getBrowser: () => browser, keepService })
 
 browser = await launchCdpBrowser({ url, windowSize: '1280,800' })
 if (browser.failed !== undefined) {
@@ -122,21 +66,17 @@ if (browser.failed !== undefined) {
   process.exit(1)
 }
 const { evaluate, setViewport, setNetworkOffline, consoleProblems, exceptions } = browser
-const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms) })
-const deskText = `(() => { const root = document.querySelector('[data-assistant-operating-desk]'); return root === null ? null : root.innerText })()`
 const deskRootState = `(() => {
   const root = document.querySelector('[data-assistant-operating-desk]');
   return root === null ? null : { scrollTop: root.scrollTop, scrollWidth: root.scrollWidth, clientWidth: root.clientWidth };
 })()`
 
 // 相位 1：夹具态挂载（模拟资料横幅 + 回款 A 可见）。启动竞态按 desk-process-e2e 教训轮询。
-let deskReady = null
-for (let i = 0; i < 120 && deskReady === null; i++) {
-  const text = await evaluate(deskText)
-  if (text !== null && text.includes('回款 A') && text.includes('模拟资料')) deskReady = text
-  else if (i < 119) await sleep(700)
-}
-if (deskReady === null) { teardown(); fail('boot-fixture', { waitedMs: 84000 }) }
+const deskReady = await pollUntil(evaluate, deskText, {
+  intervalMs: 700, budget: 120, checkFirst: true,
+  isDone: text => text !== null && text.includes('回款 A') && text.includes('模拟资料'),
+})
+if (deskReady === null || !deskReady.includes('回款 A')) { teardown(); fail('boot-fixture', { waitedMs: 84000 }) }
 // ① 的精确 request URL 半边：投影下载的真实请求 URL（相对 baseURI 解析后的完整地址），
 // 直接记入判决——子路径挂载半边属平台部署关切（vendor 无挂载配置面），维持已接受限制。
 const projectionRequestUrl = await evaluate(`(() => {
@@ -151,11 +91,7 @@ pass('boot-fixture', { projectionRequestUrl })
 // 相位 2（④ 窄视口）：420x900 单 pane——点击进详情 → 返回导航 → 选择保留 → 无横向溢出。
 await setViewport(420, 900)
 await sleep(1200)
-let narrowText = null
-for (let i = 0; i < 20 && narrowText === null; i++) {
-  narrowText = await evaluate(deskText)
-  if (narrowText === null) await sleep(500)
-}
+const narrowText = await pollUntil(evaluate, deskText, { checkFirst: true, budget: 20, isDone: text => text !== null })
 if (narrowText === null) { teardown(); fail('narrow-boot', {}) }
 const narrowClicked = await evaluate(`(() => {
   const root = document.querySelector('[data-assistant-operating-desk]');
@@ -213,12 +149,9 @@ const reloadClicked = await evaluate(`(() => {
   button.click(); return 'clicked';
 })()`)
 if (reloadClicked !== 'clicked') { teardown(); fail('selection-vanish-reload', { reloadClicked }) }
-let vanishedText = null
-for (let i = 0; i < 20; i++) {
-  vanishedText = await evaluate(deskText)
-  if (vanishedText !== null && vanishedText.includes('所选事项不在当前投影中')) break
-  await sleep(500)
-}
+const vanishedText = await pollUntil(evaluate, deskText, {
+  budget: 20, isDone: text => text !== null && text.includes('所选事项不在当前投影中'),
+})
 if (vanishedText === null || !vanishedText.includes('所选事项不在当前投影中')) {
   teardown(); fail('selection-vanish-state', { text: String(vanishedText).slice(0, 300) })
 }
@@ -236,12 +169,9 @@ await evaluate(`(() => {
   const button = [...(root?.querySelectorAll('button') ?? [])].find(b => (b.textContent ?? '').includes('重新读取'));
   button?.click(); return 'clicked';
 })()`)
-let recoveredText = null
-for (let i = 0; i < 20; i++) {
-  recoveredText = await evaluate(deskText)
-  if (recoveredText !== null && recoveredText.includes('处理这件事')) break
-  await sleep(500)
-}
+const recoveredText = await pollUntil(evaluate, deskText, {
+  budget: 20, isDone: text => text !== null && text.includes('处理这件事'),
+})
 if (recoveredText === null || !recoveredText.includes('回款 A') || !recoveredText.includes('处理这件事')) {
   teardown(); fail('selection-recovery', { text: String(recoveredText).slice(0, 300) })
 }
@@ -284,12 +214,8 @@ await evaluate(`(() => {
   if (ask === undefined) return 'ask-not-found';
   ask.click(); return 'asked';
 })()`)
-let deskGone = false
-for (let i = 0; i < 20 && !deskGone; i++) {
-  deskGone = await evaluate(`document.querySelector('[data-assistant-operating-desk]') === null`) === true
-  if (!deskGone) await sleep(500)
-}
-if (!deskGone) { teardown(); fail('scroll-unmount', { note: 'conversation view never took over' }) }
+const deskGone = await pollUntil(evaluate, `document.querySelector('[data-assistant-operating-desk]') === null`, { checkFirst: true, budget: 20 })
+if (deskGone !== true) { teardown(); fail('scroll-unmount', { note: 'conversation view never took over' }) }
 await sleep(600)
 const returnedToDesk = await evaluate(`(() => {
   const button = [...document.querySelectorAll('button')].find(b => (b.textContent ?? '').trim() === '桌面');
@@ -297,11 +223,7 @@ const returnedToDesk = await evaluate(`(() => {
   button.click(); return 'clicked';
 })()`)
 if (returnedToDesk !== 'clicked') { teardown(); fail('scroll-remount-nav', { returnedToDesk }) }
-let restored = null
-for (let i = 0; i < 30 && restored === null; i++) {
-  restored = await evaluate(deskRootState)
-  if (restored === null) await sleep(500)
-}
+const restored = await pollUntil(evaluate, deskRootState, { checkFirst: true, budget: 30, isDone: state => state !== null })
 if (restored === null) { teardown(); fail('scroll-remount', { note: 'desk never remounted' }) }
 if (Math.abs(restored.scrollTop - scrolled.recorded) > 2) {
   teardown(); fail('scroll-restore', { scrolled: scrolled.recorded, restored: restored.scrollTop })
@@ -310,35 +232,23 @@ pass('scroll-restore', { recorded: scrolled.recorded, restored: restored.scrollT
 
 // 相位 5（② 断连/恢复）：离线 → 断连横幅；恢复在线 → 重连代际变化 → 自动刷新、横幅消失。
 await setNetworkOffline(true)
-let disconnected = false
-for (let i = 0; i < 30 && !disconnected; i++) {
-  disconnected = await evaluate(`(() => { const root = document.querySelector('[data-assistant-operating-desk]'); return root !== null && root.innerText.includes('连接已断开') })()`) === true
-  if (!disconnected) await sleep(700)
-}
-if (!disconnected) { teardown(); fail('disconnect-banner', { waitedMs: 21000 }) }
+const disconnected = await pollUntil(evaluate, `(() => { const root = document.querySelector('[data-assistant-operating-desk]'); return root !== null && root.innerText.includes('连接已断开') })()`, { checkFirst: true, intervalMs: 700, budget: 30 })
+if (disconnected !== true) { teardown(); fail('disconnect-banner', { waitedMs: 21000 }) }
 await setNetworkOffline(false)
-let recovered = false
-for (let i = 0; i < 45 && !recovered; i++) {
-  recovered = await evaluate(`(() => { const root = document.querySelector('[data-assistant-operating-desk]'); return root !== null && !root.innerText.includes('连接已断开') && root.innerText.includes('回款 A') })()`) === true
-  if (!recovered) await sleep(700)
-}
-if (!recovered) { teardown(); fail('reconnect-recovery', { waitedMs: 31500 }) }
+const recovered = await pollUntil(evaluate, `(() => { const root = document.querySelector('[data-assistant-operating-desk]'); return root !== null && !root.innerText.includes('连接已断开') && root.innerText.includes('回款 A') })()`, { checkFirst: true, intervalMs: 700, budget: 45 })
+if (recovered !== true) { teardown(); fail('reconnect-recovery', { waitedMs: 31500 }) }
 pass('disconnect-recovery', {})
 
 // 相位 6（③ Session 审计）：三次页面重载，磁盘会话数不变。
 // 基线的位置就是这条审计的语义：取在本次运行已经把「会建会话的交互」走完之后
 // （相位 4 的会话视图往返会创建全新 home 的第一个会话），之后再数三次重载——重载才是被测对象。
-const sessionsBefore = countSessions()
+const sessionsBefore = countSessions(home)
 for (let round = 0; round < 3; round++) {
   await evaluate('location.reload()')
-  let back = null
-  for (let i = 0; i < 40 && back === null; i++) {
-    back = await evaluate(`(() => { const root = document.querySelector('[data-assistant-operating-desk]'); return root === null ? null : root.innerText.includes('回款 A') })()`)
-    if (back === null) await sleep(700)
-  }
+  const back = await pollUntil(evaluate, `(() => { const root = document.querySelector('[data-assistant-operating-desk]'); return root === null ? null : root.innerText.includes('回款 A') })()`, { checkFirst: true, intervalMs: 700, budget: 40, isDone: value => value !== null })
   if (back !== true) { teardown(); fail('reload-boot', { round }) }
 }
-const sessionsAfter = countSessions()
+const sessionsAfter = countSessions(home)
 if (sessionsAfter !== sessionsBefore) {
   teardown(); fail('session-audit', { sessionsBefore, sessionsAfter })
 }

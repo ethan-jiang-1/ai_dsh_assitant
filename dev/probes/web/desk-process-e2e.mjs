@@ -36,14 +36,19 @@
 // 判定输出：JSON verdict，逐相位；任一相位失败 exit 1。
 // 已知假绿面（K1/K2 限制 ⑤）：本探针的断言全部落在相位 verdict 里，eval 异常 =
 // 相位失败 = exit 1，不依赖 shots 的旁路产物；console/network 异常单独失败。
-import { spawn } from 'node:child_process'
 import os from 'node:os'
-import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { deriveReplayScript, parseSessionLog } from '../../../vendor/dsh/packages/test-support/llm-replay/lib/index.js'
 import { tmpDir } from '../../env/tmp.mjs'
 import { launchCdpBrowser } from './cdp-driver.mjs'
+import { option, sleep } from './probe-utils.mjs'
+import {
+  conversationActive, deskPresent, deskText, dismissApproval, pasteExpression,
+  pasteUntilSendable, pollUntil, sendClick, sendEnabled, sendPresent, turnStopped, turnRunning,
+} from './dialogue.mjs'
+import { countSessions, registerProbeTeardown, startProbeService, stopStaleProbeServices } from './probe-service.mjs'
 
 const repoRoot = join(fileURLToPath(new URL('.', import.meta.url)), '..', '..', '..')
 const fixtures = join(repoRoot, 'dev', 'fixtures', 'desk-process')
@@ -52,11 +57,7 @@ const seedLedger = join(fixtures, 'seed-ledger.json')
 const shotDir = tmpDir('desk-process-e2e')
 
 const args = process.argv.slice(2)
-const option = (name, fallback) => {
-  const i = args.indexOf(`--${name}`)
-  return i >= 0 && i + 1 < args.length ? args[i + 1] : fallback
-}
-const home = option('home', join(tmpDir('probe-home'), 'k4-probe-home'))
+const home = option(args, 'home', join(tmpDir('probe-home'), 'k4-probe-home'))
 const keepService = args.includes('--keep-service')
 // 场景切分（llm-replay 的会话绑定模型）：回放脚本按「首个发起模型调用的活会话」按位绑定，
 // 且回放适配器拒绝未录制会话的调用。处理流三臂共用一个会话（交代臂复用当前会话），一个
@@ -64,12 +65,12 @@ const keepService = args.includes('--keep-service')
 // 它是第二个调用会话 —— 单会话场景装不下，必须独立成场景：`--scenario claim` 起自己的
 // 服务与回放脚本，认领会话在该场景里就是第一个调用会话，按位绑定主脚本。两个场景各自
 // 完整走「恢复种子账本 → 起服务 → CDP 驱动 → 拆服务」。
-const scenario = option('scenario', 'flow')
+const scenario = option(args, 'scenario', 'flow')
 if (!['flow', 'claim', 'wake'].includes(scenario)) throw new Error(`--scenario must be "flow", "claim" or "wake", got "${scenario}"`)
 // The phases that mount a conversation are the heavy ones; the generic driver default (20s) is
 // tuned for cheap reads (see the header note and BUG-009).
-const evalTimeout = Number(option('eval-timeout', '60000'))
-if (!Number.isFinite(evalTimeout) || evalTimeout <= 0) throw new Error(`--eval-timeout must be a positive number of milliseconds, got "${option('eval-timeout', '')}"`)
+const evalTimeout = Number(option(args, 'eval-timeout', '60000'))
+if (!Number.isFinite(evalTimeout) || evalTimeout <= 0) throw new Error(`--eval-timeout must be a positive number of milliseconds, got "${option(args, 'eval-timeout', '')}"`)
 
 const verdict = {
   probe: 'desk-process-e2e',
@@ -98,17 +99,12 @@ if (!existsSync(replaySource)) throw new Error(`replay fixture missing: ${replay
 if (!existsSync(seedLedger)) throw new Error(`seed ledger missing: ${seedLedger}`)
 if (!existsSync(join(home, 'profiles'))) throw new Error(`probe home not set up (no profiles/): ${home} — run prepare.sh + setup.sh with ASSISTANT_DSH_HOME`)
 
-// —— 编排：清旧服务 → 恢复种子账本 → 起服务 → 等 URL ——
-// 直连 vendor CLI bin（绕过 dev/env/dsh.mjs 启动器，先例＝release-smoke/setup.sh，硬规则 1
+// —— 编排：清旧服务（共享 home 的 pid 登记单点在 probe-service.mjs）→ 恢复种子账本 → 起服务 ——
+// 服务直连 vendor CLI bin（绕过 dev/env/dsh.mjs 启动器，先例＝release-smoke/setup.sh，硬规则 1
 // 允许 tooling 自设 DSH_HOME）：启动器只是参数透传层，经它 SIGTERM 会只杀启动器、把真服务
 // 留成孤儿继续持有 writer.lock（首轮实测：第二跑的 report/propose 全被「owned by another
 // writer」拒绝）。直连后探针的子进程就是真服务，优雅退出即释放锁。
-const pidFile = join(home, '.desk-process-e2e-service.pid')
-if (existsSync(pidFile)) {
-  const stale = Number(readFileSync(pidFile, 'utf8'))
-  if (Number.isInteger(stale)) { try { process.kill(stale, 'SIGTERM') } catch { /* already gone */ } }
-  rmSync(pidFile)
-}
+stopStaleProbeServices(home)
 const operatingDir = join(home, 'assistant-operating')
 mkdirSync(operatingDir, { recursive: true })
 copyFileSync(seedLedger, join(operatingDir, 'ledger.json'))
@@ -152,45 +148,20 @@ writeFileSync(overrideFile, JSON.stringify(scenario === 'claim' ? [
   blockEntry({ type: 'text', text: '记下了：供应商对账单多出一笔，已放进桌面，等你核对。' }, 'stop'),
 ]))
 
-const vendorBin = join(repoRoot, 'vendor', 'dsh', 'apps', 'cli', 'src', 'bin.ts')
-const tsxEntry = import.meta.resolve('tsx/esm')
-const service = spawn(process.execPath, ['--import', tsxEntry, vendorBin, '--profile', 'dev', '--patch', 'dev/probes/web/replay-adapter.patch.yml', '--port', '0', '--no-open'], {
-  cwd: repoRoot,
-  env: {
-    ...process.env,
-    DSH_HOME: home,
-    DSH_AGENTS_HOME: join(home, 'agents-home'),
-    DSH_TELEMETRY_DISABLED: '1',
-    TSX_TSCONFIG_PATH: join(repoRoot, 'tsconfig.tsx.json'),
+const { service, url, pidFile } = await startProbeService({
+  repoRoot,
+  home,
+  pidName: '.desk-process-e2e-service.pid',
+  patch: 'dev/probes/web/replay-adapter.patch.yml',
+  extraEnv: {
     REPLAY_PRIMARY: replaySource,
     DSH_SNAPSHOT_OVERRIDE: overrideFile,
   },
-  stdio: ['ignore', 'pipe', 'pipe'],
 })
-writeFileSync(pidFile, String(service.pid))
-let url = undefined
-let bootError = undefined
-service.stdout.on('data', (chunk) => {
-  const match = /dsh web: (http:\/\/\S+)/.exec(String(chunk))
-  if (match !== null) url = match[1]
-})
-service.stderr.on('data', (chunk) => { bootError = String(chunk) })
-for (let i = 0; i < 120 && url === undefined; i++) await new Promise((resolve) => { setTimeout(resolve, 500) })
-if (url === undefined) {
-  service.kill('SIGTERM')
-  throw new Error(`service never printed its URL (stderr tail: ${String(bootError).slice(-400)})`)
-}
 verdict.url = url
 
 let browser = undefined
-const teardown = () => {
-  rmSync(pidFile, { force: true })
-  browser?.close()
-  if (!keepService) service.kill('SIGTERM')
-}
-process.on('exit', teardown)
-process.on('SIGINT', () => { teardown(); process.exit(130) })
-process.on('SIGTERM', () => { teardown(); process.exit(143) })
+const teardown = registerProbeTeardown({ service, pidFile, getBrowser: () => browser, keepService })
 
 // —— 浏览器全链 ——
 browser = await launchCdpBrowser({ url, evaluateTimeoutMs: evalTimeout })
@@ -201,19 +172,14 @@ if (browser.failed !== undefined) {
   process.exit(1)
 }
 const { evaluate, consoleProblems, exceptions } = browser
-const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms) })
-const deskPresent = `document.querySelector('[data-assistant-operating-desk]') !== null`
-const deskText = `(() => { const root = document.querySelector('[data-assistant-operating-desk]'); return root === null ? null : root.innerText })()`
 
 // 相位 1：桌面挂载 + 种子事项可见（投影 live 读到 m-1）。启动竞态下首帧可能是
 // loading/disconnected 横幅——轮询到 m-1 出现或超时，不把竞态当失败。
-let deskReady = null
-for (let i = 0; i < 120 && deskReady === null; i++) {
-  const text = await evaluate(deskText)
-  if (text !== null && text.includes('合同 NB-02 第二期款到账核对') && text.includes('1 件在办')) deskReady = text
-  else if (i < 119) await sleep(700)
-}
-if (deskReady === null) {
+const deskReady = await pollUntil(evaluate, deskText, {
+  intervalMs: 700, budget: 120, checkFirst: true,
+  isDone: text => text !== null && text.includes('合同 NB-02 第二期款到账核对') && text.includes('1 件在办'),
+})
+if (deskReady === null || !deskReady.includes('合同 NB-02 第二期款到账核对')) {
   const lastState = await evaluate(`(() => ({
     readyState: document.readyState,
     hasBody: document.body !== null,
@@ -225,37 +191,8 @@ if (deskReady === null) {
 }
 pass('matter-list', { matter: 'm-1' })
 
-// —— 两场景共享的浏览器习语（粘贴/发送/idle 判据，来自 webui-loop-probe）——
-const countProbeSessions = () => {
-  const sessionsDir = join(home, 'sessions')
-  // 全新 home 还没被 boot 过就没有这个目录——0 个会话是正确答案，不是错误。
-  if (!existsSync(sessionsDir)) return 0
-  let count = 0
-  for (const workspace of readdirSync(sessionsDir, { withFileTypes: true })) {
-    if (!workspace.isDirectory()) continue
-    for (const entry of readdirSync(join(sessionsDir, workspace.name), { withFileTypes: true })) {
-      if (entry.isDirectory() && entry.name.startsWith('session-')) count += 1
-    }
-  }
-  return count
-}
-const turnRunning = `[...document.querySelectorAll('button')].some(b => ['停止生成','Stop generating'].includes(b.getAttribute('aria-label') ?? ''))`
-const sendPresent = `[...document.querySelectorAll('button')].some(b => ['发送消息','Send message'].includes(b.getAttribute('aria-label') ?? ''))`
-const stopped = `!(${turnRunning})`
-const pasteOnce = `(() => {
-  const composer = document.querySelector('[data-composer-input="true"]');
-  if (composer === null) return 'no-composer';
-  composer.focus();
-  const data = new DataTransfer();
-  data.setData('text/plain', ${JSON.stringify(followupPrompt)});
-  composer.dispatchEvent(new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true }));
-  return 'pasted';
-})()`
-const sendEnabled = `(() => {
-  const send = [...document.querySelectorAll('button')].find(b =>
-    (b.getAttribute('aria-label') ?? '') === '发送消息' || (b.getAttribute('aria-label') ?? '') === 'Send message');
-  return send !== undefined && send.disabled === false;
-})()`
+// —— 两场景共享的浏览器习语住 dialogue.mjs（粘贴/发送/idle 判据的原产地注释也在那）；
+// 会话计数是服务侧的，住 probe-service.mjs 的 countSessions(home) ——
 
 // —— 认领臂场景（--scenario claim，桌面选择契约卡 261012）：桌面选待认领片段 →
 // 「认领这件事」→ 新会话（种子回合吃主脚本第一格，对齐契约同上）→ 本人指归属 →
@@ -282,7 +219,7 @@ if (scenario === 'claim') {
   }
   pass('claim-fragment-detail', { detail: claimDetail })
 
-  const sessionsBeforeClaim = countProbeSessions()
+  const sessionsBeforeClaim = countSessions(home)
   const claimEntry = await evaluate(`(() => {
     const root = document.querySelector('[data-assistant-operating-desk]');
     const button = [...(root?.querySelectorAll('button') ?? [])].find(b => (b.textContent ?? '').trim() === '认领这件事');
@@ -290,43 +227,19 @@ if (scenario === 'claim') {
     button.click(); return 'clicked';
   })()`)
   if (claimEntry !== 'clicked') { teardown(); fail('claim-entry', { claimEntry }) }
-  let claimConversation = false
-  for (let i = 0; i < 40 && !claimConversation; i++) {
-    claimConversation = await evaluate(`document.querySelector('[data-assistant-operating-desk]') === null && document.querySelector('[data-composer-input="true"]') !== null`) === true
-    if (!claimConversation) await sleep(500)
-  }
-  if (!claimConversation) { teardown(); fail('claim-conversation', {}) }
+  const claimConversation = await pollUntil(evaluate, conversationActive, { checkFirst: true, budget: 40 })
+  if (claimConversation !== true) { teardown(); fail('claim-conversation', {}) }
   pass('claim-entry', {})
   // 种子回合对齐：等「正在处理待认领片段…」那一轮跑完（其答复含「还没归户」）再粘贴，
   // 否则粘贴那轮会吃错回放格（BUG-009 的教训在认领臂同样成立）。
-  let claimSeedSettled = false
-  for (let i = 0; i < 240 && !claimSeedSettled; i++) {
-    await sleep(500)
-    await evaluate(`(() => { const b = [...document.querySelectorAll('button')].find(x => (x.textContent ?? '').trim() === '允许一次'); b?.click(); })()`)
-    claimSeedSettled = await evaluate(`(${stopped}) && (document.body.innerText ?? '').includes('还没归户')`) === true
-  }
-  if (!claimSeedSettled) fail('claim-seed-turn', {})
+  const claimSeedSettled = await pollUntil(evaluate, `(${turnStopped}) && (document.body.innerText ?? '').includes('还没归户')`, { budget: 240, eachCycle: dismissApproval })
+  if (claimSeedSettled !== true) fail('claim-seed-turn', {})
   pass('claim-seed-turn', {})
-  let claimReady = false
-  let claimPasteResult = null
-  for (let i = 0; i < 10 && !claimReady; i++) {
-    claimPasteResult = await evaluate(pasteOnce.replace(JSON.stringify(followupPrompt), JSON.stringify(claimPrompt)))
-    await sleep(800)
-    claimReady = await evaluate(sendEnabled) === true
-  }
+  const { pasteResult: claimPasteResult, sendable: claimReady } = await pasteUntilSendable(evaluate, claimPrompt, { attempts: 10, gapMs: 800 })
   if (!claimReady) { teardown(); fail('claim-composer', { claimPasteResult }) }
   await sleep(600)
-  if (await evaluate(`(() => {
-    const send = [...document.querySelectorAll('button')].find(b => ['发送消息','Send message'].includes(b.getAttribute('aria-label') ?? ''));
-    if (send === undefined || send.disabled) return 'not-sent';
-    send.click(); return 'sent';
-  })()`) !== 'sent') { teardown(); fail('claim-send', {}) }
-  let claimReturnText = null
-  for (let i = 0; i < 180 && claimReturnText === null; i++) {
-    await sleep(500)
-    await evaluate(`(() => { const b = [...document.querySelectorAll('button')].find(x => (x.textContent ?? '').trim() === '允许一次'); b?.click(); })()`)
-    claimReturnText = await evaluate(deskText)
-  }
+  if (await evaluate(sendClick) !== 'sent') { teardown(); fail('claim-send', {}) }
+  const claimReturnText = await pollUntil(evaluate, deskText, { budget: 180, eachCycle: dismissApproval, isDone: text => text !== null })
   if (claimReturnText === null) fail('claim-auto-return', { body: await evaluate('document.body.innerText') })
   const afterClaim = JSON.parse(readFileSync(join(operatingDir, 'ledger.json'), 'utf8'))
   const claimReceipt = afterClaim.operations['op-authored-claim-u1']
@@ -344,7 +257,7 @@ if (scenario === 'claim') {
   pass('claim-lane-cleared-and-selected', { matter: 'm-1' })
   mkdirSync(shotDir, { recursive: true })
   writeFileSync(join(shotDir, '4-claimed-and-selected.png'), await browser.captureScreenshot())
-  const sessionsAfterClaim = countProbeSessions()
+  const sessionsAfterClaim = countSessions(home)
   if (sessionsAfterClaim !== sessionsBeforeClaim + 1) {
     teardown()
     fail('claim-single-session', { sessionsBeforeClaim, sessionsAfterClaim })
@@ -407,48 +320,24 @@ if (scenario === 'wake') {
   }
   pass('settled-action-gate', { detail: settledDetail })
 
-  const sessionsBeforeWake = countProbeSessions()
+  const sessionsBeforeWake = countSessions(home)
   const wakeEntry = await evaluate(`(() => {
     const button = [...document.querySelectorAll('button')].find(b => (b.textContent ?? '').includes('唤醒这件事'));
     if (button === undefined) return 'button-not-found';
     button.click(); return 'clicked';
   })()`)
   if (wakeEntry !== 'clicked') { teardown(); fail('wake-entry', { wakeEntry }) }
-  let wakeConversation = false
-  for (let i = 0; i < 40 && !wakeConversation; i++) {
-    wakeConversation = await evaluate(`document.querySelector('[data-assistant-operating-desk]') === null && document.querySelector('[data-composer-input="true"]') !== null`) === true
-    if (!wakeConversation) await sleep(500)
-  }
-  if (!wakeConversation) { teardown(); fail('wake-conversation', {}) }
+  const wakeConversation = await pollUntil(evaluate, conversationActive, { checkFirst: true, budget: 40 })
+  if (wakeConversation !== true) { teardown(); fail('wake-conversation', {}) }
   pass('wake-entry', {})
-  let wakeSeedSettled = false
-  for (let i = 0; i < 240 && !wakeSeedSettled; i++) {
-    await sleep(500)
-    await evaluate(`(() => { const b = [...document.querySelectorAll('button')].find(x => (x.textContent ?? '').trim() === '允许一次'); b?.click(); })()`)
-    wakeSeedSettled = await evaluate(`(${stopped}) && (document.body.innerText ?? '').includes('重新打开它需要一个理由')`) === true
-  }
-  if (!wakeSeedSettled) fail('wake-seed-turn', {})
+  const wakeSeedSettled = await pollUntil(evaluate, `(${turnStopped}) && (document.body.innerText ?? '').includes('重新打开它需要一个理由')`, { budget: 240, eachCycle: dismissApproval })
+  if (wakeSeedSettled !== true) fail('wake-seed-turn', {})
   pass('wake-seed-turn', {})
-  let wakeReady = false
-  let wakePasteResult = null
-  for (let i = 0; i < 10 && !wakeReady; i++) {
-    wakePasteResult = await evaluate(pasteOnce.replace(JSON.stringify(followupPrompt), JSON.stringify(wakePrompt)))
-    await sleep(800)
-    wakeReady = await evaluate(sendEnabled) === true
-  }
+  const { pasteResult: wakePasteResult, sendable: wakeReady } = await pasteUntilSendable(evaluate, wakePrompt, { attempts: 10, gapMs: 800 })
   if (!wakeReady) { teardown(); fail('wake-composer', { wakePasteResult }) }
   await sleep(600)
-  if (await evaluate(`(() => {
-    const send = [...document.querySelectorAll('button')].find(b => ['发送消息','Send message'].includes(b.getAttribute('aria-label') ?? ''));
-    if (send === undefined || send.disabled) return 'not-sent';
-    send.click(); return 'sent';
-  })()`) !== 'sent') { teardown(); fail('wake-send', {}) }
-  let wakeReturnText = null
-  for (let i = 0; i < 180 && wakeReturnText === null; i++) {
-    await sleep(500)
-    await evaluate(`(() => { const b = [...document.querySelectorAll('button')].find(x => (x.textContent ?? '').trim() === '允许一次'); b?.click(); })()`)
-    wakeReturnText = await evaluate(deskText)
-  }
+  if (await evaluate(sendClick) !== 'sent') { teardown(); fail('wake-send', {}) }
+  const wakeReturnText = await pollUntil(evaluate, deskText, { budget: 180, eachCycle: dismissApproval, isDone: text => text !== null })
   if (wakeReturnText === null) fail('wake-auto-return', { body: await evaluate('document.body.innerText') })
   const afterWake = JSON.parse(readFileSync(join(operatingDir, 'ledger.json'), 'utf8'))
   const reopenReceipt = afterWake.operations['op-authored-reopen-m2']
@@ -462,7 +351,7 @@ if (scenario === 'wake') {
   pass('wake-durable', { outcome: reopenReceipt.receipt.outcome })
   pass('wake-state-machine-closed', { status: woken.status, completedAt: woken.times.completedAt ?? null })
   writeFileSync(join(shotDir, '6-woken-and-processing.png'), await browser.captureScreenshot())
-  const sessionsAfterWake = countProbeSessions()
+  const sessionsAfterWake = countSessions(home)
   if (sessionsAfterWake !== sessionsBeforeWake + 1) {
     teardown()
     fail('wake-single-session', { sessionsBeforeWake, sessionsAfterWake })
@@ -499,19 +388,15 @@ pass('matter-detail', {})
 // 相位 3：「处理这件事」→ 处理会话接管主区（桌面卸载、composer 挂载）。
 // 规格负例「双击发送两次」：同一次 evaluate 里连点两下（落在面板卸载窗口内），
 // 复用守卫必须吞掉第二击——服务端会话计数只允许 +1。
-const sessionsBeforeProcess = countProbeSessions()
+const sessionsBeforeProcess = countSessions(home)
 if (await evaluate(`(() => {
   const root = document.querySelector('[data-assistant-operating-desk]');
   const process = [...(root?.querySelectorAll('button') ?? [])].find(b => (b.textContent ?? '') === '处理这件事');
   if (process === undefined) return 'button-not-found';
   process.click(); process.click(); return 'double-clicked';
 })()`) !== 'double-clicked') { teardown(); fail('process-click', {}) }
-let conversationActive = false
-for (let i = 0; i < 40 && !conversationActive; i++) {
-  conversationActive = await evaluate(`document.querySelector('[data-assistant-operating-desk]') === null && document.querySelector('[data-composer-input="true"]') !== null`) === true
-  if (!conversationActive) await sleep(500)
-}
-if (!conversationActive) {
+const conversationTookOver = await pollUntil(evaluate, conversationActive, { checkFirst: true, budget: 40 })
+if (conversationTookOver !== true) {
   const state = await evaluate(`(() => ({
     desk: document.querySelector('[data-assistant-operating-desk]') !== null,
     composer: document.querySelector('[data-composer-input="true"]') !== null,
@@ -537,7 +422,7 @@ verdict.sessionsBeforeProcess = sessionsBeforeProcess
 let conversationIdle = false
 for (let i = 0; i < 240 && !conversationIdle; i++) {
   await sleep(500)
-  await evaluate(`(() => { const b = [...document.querySelectorAll('button')].find(x => (x.textContent ?? '').trim() === '允许一次'); b?.click(); })()`)
+  await evaluate(dismissApproval)
   conversationIdle = await evaluate(`(${turnRunning}) === false && (${sendPresent}) === true`) === true
 }
 if (!conversationIdle) {
@@ -573,7 +458,7 @@ const composerState = `(() => {
 let ready = false
 let pasteResult = null
 for (let i = 0; i < 10 && !ready; i++) {
-  pasteResult = await evaluate(pasteOnce)
+  pasteResult = await evaluate(pasteExpression(followupPrompt))
   await sleep(800)
   ready = await evaluate(sendEnabled) === true
 }
@@ -589,21 +474,15 @@ if (!ready) {
   })
 }
 await sleep(600)
-const sent = await evaluate(`(() => {
-  const send = [...document.querySelectorAll('button')].find(b =>
-    (b.getAttribute('aria-label') ?? '') === '发送消息' || (b.getAttribute('aria-label') ?? '') === 'Send message');
-  if (send === undefined) return 'no-send-button';
-  if (send.disabled) return 'send-disabled';
-  send.click(); return 'sent';
-})()`)
+const sent = await evaluate(sendClick)
 if (sent !== 'sent') { teardown(); fail('send', { sent }) }
 
 let settled = false
 for (let i = 0; i < 600 && !settled; i++) {
   await sleep(500)
-  await evaluate(`(() => { const b = [...document.querySelectorAll('button')].find(x => (x.textContent ?? '').trim() === '允许一次'); b?.click(); })()`)
+  await evaluate(dismissApproval)
   if (await evaluate(deskPresent)) fail('pending-stays-in-chat', { reason: 'returned before explicit decision' })
-  settled = await evaluate(`(${stopped}) && (document.body.innerText ?? '').includes(${JSON.stringify(finalReplyMarker)})`) === true
+  settled = await evaluate(`(${turnStopped}) && (document.body.innerText ?? '').includes(${JSON.stringify(finalReplyMarker)})`) === true
 }
 if (!settled) fail('first-turn-settle', {})
 const beforeReject = JSON.parse(readFileSync(join(operatingDir, 'ledger.json'), 'utf8'))
@@ -612,12 +491,11 @@ if (!matterBefore?.proposals.some(p => p.id === 'p-1' && p.status === 'pending')
 pass('pending-stays-in-chat', {})
 mkdirSync(shotDir, { recursive: true })
 writeFileSync(join(shotDir, '1-pending-stays-in-chat.png'), await browser.captureScreenshot())
-await evaluate(pasteOnce.replace(JSON.stringify(followupPrompt), JSON.stringify(rejectPrompt)))
+await evaluate(pasteExpression(rejectPrompt))
 await sleep(500)
 if (!await evaluate(sendEnabled)) fail('reject-composer', {})
-await evaluate(`(() => { [...document.querySelectorAll('button')].find(b => ['发送消息','Send message'].includes(b.getAttribute('aria-label') ?? ''))?.click(); })()`)
-let returnText = null
-for (let i = 0; i < 120 && returnText === null; i++) { await sleep(500); returnText = await evaluate(deskText) }
+await evaluate(sendClick)
+const returnText = await pollUntil(evaluate, deskText, { budget: 120, isDone: text => text !== null })
 if (returnText === null) fail('reject-auto-return', { body: await evaluate('document.body.innerText') })
 const afterReject = JSON.parse(readFileSync(join(operatingDir, 'ledger.json'), 'utf8'))
 const matterAfter = Object.values(afterReject.matters).find(m => m.id === 'm-1')
@@ -640,28 +518,14 @@ const intakeEntry = await evaluate(`(() => {
   button.click(); return 'clicked';
 })()`)
 if (intakeEntry !== 'clicked') { teardown(); fail('intake-entry', { intakeEntry }) }
-let intakeConversation = false
-for (let i = 0; i < 40 && !intakeConversation; i++) {
-  intakeConversation = await evaluate(`document.querySelector('[data-assistant-operating-desk]') === null && document.querySelector('[data-composer-input="true"]') !== null`) === true
-  if (!intakeConversation) await sleep(500)
-}
-if (!intakeConversation) { teardown(); fail('intake-conversation', {}) }
+const intakeConversation = await pollUntil(evaluate, conversationActive, { checkFirst: true, budget: 40 })
+if (intakeConversation !== true) { teardown(); fail('intake-conversation', {}) }
 pass('intake-entry', {})
-let intakeReady = false
-for (let i = 0; i < 10 && !intakeReady; i++) {
-  await evaluate(pasteOnce.replace(JSON.stringify(followupPrompt), JSON.stringify(intakePrompt)))
-  await sleep(800)
-  intakeReady = await evaluate(sendEnabled) === true
-}
+const { sendable: intakeReady } = await pasteUntilSendable(evaluate, intakePrompt, { attempts: 10, gapMs: 800 })
 if (!intakeReady) { teardown(); fail('intake-composer', {}) }
 await sleep(600)
-if (await evaluate(`(() => {
-  const send = [...document.querySelectorAll('button')].find(b => ['发送消息','Send message'].includes(b.getAttribute('aria-label') ?? ''));
-  if (send === undefined || send.disabled) return 'not-sent';
-  send.click(); return 'sent';
-})()`) !== 'sent') { teardown(); fail('intake-send', {}) }
-let intakeReturnText = null
-for (let i = 0; i < 180 && intakeReturnText === null; i++) { await sleep(500); intakeReturnText = await evaluate(deskText) }
+if (await evaluate(sendClick) !== 'sent') { teardown(); fail('intake-send', {}) }
+const intakeReturnText = await pollUntil(evaluate, deskText, { budget: 180, isDone: text => text !== null })
 if (intakeReturnText === null) fail('intake-auto-return', { body: await evaluate('document.body.innerText') })
 const afterIntake = JSON.parse(readFileSync(join(operatingDir, 'ledger.json'), 'utf8'))
 const entrusted = Object.values(afterIntake.matters).find(m => String(m.title).includes('供应商对账单'))
@@ -678,7 +542,7 @@ pass('intake-return-selection', { title: '供应商对账单：本月多出一�
 writeFileSync(join(shotDir, '3-entrusted-and-selected.png'), await browser.captureScreenshot())
 
 // 双击负例终判（规格「双击发送两次」）：整个流结束时新会话数恰好 +1。
-const sessionsAfterFlow = countProbeSessions()
+const sessionsAfterFlow = countSessions(home)
 if (sessionsAfterFlow !== sessionsBeforeProcess + 1) {
   teardown()
   fail('double-click-single-session', { sessionsBeforeProcess, sessionsAfterFlow })
