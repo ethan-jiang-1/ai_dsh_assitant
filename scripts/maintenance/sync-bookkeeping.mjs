@@ -52,3 +52,19 @@ export function releaseClaim({ typecheckRequested, typecheckPassed }) {
   }
   return { value: 'verified', reason: undefined }
 }
+
+/**
+ * The pinned DSH tag from a vendor/UPSTREAM.md bookkeeping table, or undefined.
+ *
+ * Single owner of that row's parse: five call sites had grown three handwritten regexes for
+ * the same fact (verify's pin and dependency-pose gates, the export manual, gen-catalog), so
+ * a table-shape change would have rotted them at three different speeds. The strict full-row
+ * form is the one the export manual and its verify gate already required; the looser forms
+ * agreed with it on every well-formed file and only diverged on files that were already red.
+ *
+ * @param {string} text - vendor/UPSTREAM.md content.
+ * @returns {string | undefined} the tag inside the `钉住的 tag` row.
+ */
+export function pinnedTagFrom(text) {
+  return /^\| 钉住的 tag \| `([^`|]+)` \|$/m.exec(text)?.[1]?.trim()
+}

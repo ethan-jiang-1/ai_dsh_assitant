@@ -24,6 +24,7 @@
 import { readFileSync, readdirSync, existsSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { pinnedTagFrom } from '../maintenance/sync-bookkeeping.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const packageDir = join(repoRoot, 'packages', 'dsh-smart-assistant')
@@ -136,7 +137,7 @@ export function collectCatalog(root = repoRoot) {
     ? readdirSync(skillsDir).filter(name => existsSync(join(skillsDir, name, 'SKILL.md'))).sort()
     : []
   const upstream = read(join(root, 'vendor', 'UPSTREAM.md'))
-  const pin = /钉住的 tag \| `([^`]+)`/.exec(upstream)?.[1]
+  const pin = pinnedTagFrom(upstream)
   if (pin === undefined) throw new Error('gen-catalog: vendor/UPSTREAM.md carries no pinned tag row')
   const clientDir = join(root, 'packages', 'dsh-smart-assistant', 'src', 'client')
   // S2 (261007 bigfile-split): the client is multi-module; the seat/tab/command surface is read

@@ -16,6 +16,7 @@ import type { SkillUsage, SkillUsageLine, SkillUsageReadFailure } from '../skill
 import { skillUsageLines } from '../skills/usage.ts'
 import type { RoomReadFailure } from './room.ts'
 import { HOME_MANUAL_VERSION } from './home-map.ts'
+import { MS_PER_DAY } from './time.ts'
 
 /** Machine-readable finding kinds, stable enough for a caller to filter on. */
 export type FindingCode =
@@ -169,7 +170,6 @@ export function compareFindings(
 
 const NEAR_DUPLICATE_THRESHOLD = 0.6
 const MAX_DUPLICATE_PAIRS = 10
-const MS_PER_DAY = 24 * 60 * 60 * 1000
 
 function tokens(text: string): Set<string> {
   const set = new Set<string>()

@@ -12,12 +12,13 @@ import { readFileSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import type { AssistantMemory } from './index.ts'
 import { renderDigest, type DigestResult } from '../domain/home/digest.ts'
-import { compareFindings, curateHome, type CurationBrief, type CurationFinding } from '../domain/home/health.ts'
+import { compareFindings, curateHome, type CurationBrief } from '../domain/home/health.ts'
 import { HOME_STATUS_BLURB, parseManualVersion, renderHomeManual } from '../domain/home/home-map.ts'
 import { DEFAULT_SOUL } from '../domain/home/soul.ts'
 import { curateKnowledge } from '../domain/knowledge/health.ts'
 import { scanLearnedSkills, scanSkillArchiveScale } from '../domain/skills/scan.ts'
 import { auditSkillsRoom } from '../domain/skills/audit.ts'
+import { proposalFindings } from '../domain/skills/proposal.ts'
 import { readSkillUsage } from '../domain/skills/usage.ts'
 
 /** Byte cap for the identity file riding in the prompt. */
@@ -177,6 +178,7 @@ export async function runCuration(host: AssistantMemory, shadowedBy?: Readonly<R
     ...threads.archived.map(thread => thread.id),
   ]
   const archivedSet = new Set(archivedIds)
+  const now = new Date()
   const brief = curateHome({
     memories: memories.entries,
     threads: threads.entries,
@@ -200,7 +202,7 @@ export async function runCuration(host: AssistantMemory, shadowedBy?: Readonly<R
     staleResearchDays: host.staleResearchDays,
     staleSkillDays: host.staleSkillDays,
     retireSkillDays: host.retireSkillDays,
-    now: new Date(),
+    now,
   })
   // Post-write audit findings join the brief: the pure room check and the content audit are
   // two passes over the same home, and the model should read one brief.
@@ -211,33 +213,13 @@ export async function runCuration(host: AssistantMemory, shadowedBy?: Readonly<R
     now: new Date(),
     staleResearchDays: host.staleResearchDays,
   })
-  // The proposal inbox is part of the home's health: an approved proposal waiting to land is
-  // a decision made and not executed; an aging proposal is a decision nobody is making.
+  // The proposal inbox is part of the home's health: the proposal-* finding rules live with
+  // the rest of the inbox's vocabulary (domain/skills/proposal.ts) — this module only feeds
+  // them the room and the thresholds.
   const proposals = await host.listProposals()
-  const proposalFindings: CurationFinding[] = []
-  for (const proposal of proposals.entries) {
-    if (proposal.status === 'approved') {
-      proposalFindings.push({
-        code: 'proposal-awaiting-land',
-        severity: 'info',
-        message: `proposal "${proposal.id}" (r${String(proposal.revision)}) is approved and waiting to land — `
-          + 'run assistant_reflect action=land_skill to write it into the skills room',
-        refs: [proposal.id],
-      })
-    }
-    const age = (Date.now() - Date.parse(proposal.updated)) / (24 * 60 * 60 * 1000)
-    if (Number.isFinite(age) && age > host.staleResearchDays && (proposal.status === 'proposed' || proposal.status === 'approved')) {
-      proposalFindings.push({
-        code: 'proposal-stale',
-        severity: 'info',
-        message: `proposal "${proposal.id}" has sat ${String(Math.floor(age))} days in ${proposal.status} — `
-          + 'pick an exit: a person edits its status (approve/reject), or it keeps waiting',
-        refs: [proposal.id],
-      })
-    }
-  }
+  const inbox = proposalFindings(proposals.entries, now, host.staleResearchDays)
   return {
     ...brief,
-    findings: [...brief.findings, ...audit, ...pages, ...proposalFindings].sort(compareFindings),
+    findings: [...brief.findings, ...audit, ...pages, ...inbox].sort(compareFindings),
   }
 }

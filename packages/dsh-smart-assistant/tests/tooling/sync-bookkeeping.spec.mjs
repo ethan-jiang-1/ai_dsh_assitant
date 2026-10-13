@@ -1,13 +1,15 @@
 /**
- * Fixtures for the pure sync-dsh bookkeeping (scripts/maintenance/sync-bookkeeping.mjs) — the two fragile
+ * Fixtures for the pure sync-dsh bookkeeping (scripts/maintenance/sync-bookkeeping.mjs) — the fragile
  * spots of an upgrade: rewriting the vendor/UPSTREAM.md rows (a drifted table must refuse, not
- * silently no-op) and the rule that the manifest's "verified" claim exists only after a
- * typecheck that ran and passed. Real pins are never moved by this suite.
+ * silently no-op), the rule that the manifest's "verified" claim exists only after a
+ * typecheck that ran and passed, and the single owner of the pinned-tag row's parse
+ * (pinnedTagFrom — five call sites across verify/export/catalog previously had three
+ * handwritten regexes for the same fact). Real pins are never moved by this suite.
  *
  * Plain .mjs on purpose: vitest runs it, `tsc -p tsconfig.test.json` does not type-check it.
  */
 import { describe, expect, it } from 'vitest'
-import { applyUpstreamRecord, releaseClaim } from '../../../../scripts/maintenance/sync-bookkeeping.mjs'
+import { applyUpstreamRecord, pinnedTagFrom, releaseClaim } from '../../../../scripts/maintenance/sync-bookkeeping.mjs'
 
 const UPSTREAM = [
   '# vendor/dsh 的簿记（钉住的 DSH 源码）',
@@ -60,6 +62,23 @@ describe('releaseClaim', () => {
     const claim = releaseClaim({ typecheckRequested: true, typecheckPassed: false })
     expect(claim.value).toBeUndefined()
     expect(claim.reason).toContain('typecheck failed')
+  })
+})
+
+describe('pinnedTagFrom', () => {
+  it('reads the tag from the bookkeeping table row', () => {
+    expect(pinnedTagFrom(UPSTREAM)).toBe('dsh-v0.1.5-rc.2')
+  })
+
+  it('returns undefined when the row is missing — never falls back to a prose mention', () => {
+    const proseOnly = UPSTREAM.replace('| 钉住的 tag | `dsh-v0.1.5-rc.2` |\n', '')
+      + '\nprose: the first pin ever was `dsh-v0.1.4`\n'
+    expect(pinnedTagFrom(proseOnly)).toBeUndefined()
+  })
+
+  it('rejects a malformed row instead of half-matching it', () => {
+    const missingTrailingCell = UPSTREAM.replace('| 钉住的 tag | `dsh-v0.1.5-rc.2` |', '| 钉住的 tag | `dsh-v0.1.5-rc.2`')
+    expect(pinnedTagFrom(missingTrailingCell)).toBeUndefined()
   })
 })
 

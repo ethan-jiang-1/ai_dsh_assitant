@@ -9,6 +9,7 @@
  */
 
 import type { MemoryKind, MemoryRecord } from './record.ts'
+import { MS_PER_DAY } from '../home/time.ts'
 
 /** What a caller is looking for. */
 export interface RecallQuery {
@@ -36,7 +37,6 @@ const TAG_SCORE = 3
 const TERM_SCORE = 2
 const RECENT_DAYS = 7
 const STALE_DAYS = 30
-const MS_PER_DAY = 24 * 60 * 60 * 1000
 const MAX_COUNTED_TERMS = 4
 /**
  * Importance dominates recency, so recall ranks records in the same spirit as the digest (strongest

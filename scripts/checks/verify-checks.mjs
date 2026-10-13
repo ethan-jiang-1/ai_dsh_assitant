@@ -14,6 +14,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve } from 'node:path'
 import { parse as parseYaml } from 'yaml'
 import { parseRows } from '../generate/gen-catalog.mjs'
+import { pinnedTagFrom } from '../maintenance/sync-bookkeeping.mjs'
 
 const read = path => readFileSync(path, 'utf8')
 
@@ -85,7 +86,7 @@ export function pinProblems(repoRoot) {
   const gitmodules = existsSync(join(repoRoot, '.gitmodules')) ? read(join(repoRoot, '.gitmodules')) : ''
   if (!gitmodules.includes('vendor/dsh')) problems.push('.gitmodules does not declare vendor/dsh')
   const upstream = existsSync(join(repoRoot, 'vendor', 'UPSTREAM.md')) ? read(join(repoRoot, 'vendor', 'UPSTREAM.md')) : ''
-  const tag = /`(dsh-v[0-9][^`]*)`/.exec(upstream)?.[1]
+  const tag = pinnedTagFrom(upstream)
   const sha = /`([0-9a-f]{40})`/.exec(upstream)?.[1]
   if (tag === undefined) problems.push('vendor/UPSTREAM.md does not record the pinned tag')
   if (sha === undefined) problems.push('vendor/UPSTREAM.md does not record the exact SHA')
@@ -493,7 +494,7 @@ export function dependencyPoseProblems(packageJsonPath, upstreamPath) {
       }
     }
   }
-  const tag = /钉住的 tag \| `([^`]+)`/.exec(read(upstreamPath))?.[1]
+  const tag = pinnedTagFrom(read(upstreamPath))
   const pinned = tag === undefined ? undefined : tag.replace(/^dsh-v/, '')
   const releases = Object.keys(pkg.dsh?.compatibility?.dshReleases ?? {})
   if (pinned !== undefined && !releases.includes(pinned)) {

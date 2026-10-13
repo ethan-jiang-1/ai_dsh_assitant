@@ -13,6 +13,7 @@
 
 import type { CurationFinding } from '../home/health.ts'
 import type { RoomReadFailure } from '../home/room.ts'
+import { MS_PER_DAY } from '../home/time.ts'
 import { backlinksOf, resolveWikiLink, type KnowledgePage } from './page.ts'
 
 /** What the knowledge check reads. */
@@ -26,8 +27,6 @@ export interface KnowledgeCurationInput {
   /** Age at which a draft page is reported as stalled (mirrors the research room). */
   readonly staleResearchDays: number
 }
-
-const MS_PER_DAY = 24 * 60 * 60 * 1000
 
 function ageInDays(stamp: string, now: Date): number | undefined {
   const at = Date.parse(stamp)

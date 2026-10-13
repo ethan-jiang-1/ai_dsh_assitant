@@ -17,6 +17,7 @@
 
 import { readFile } from 'node:fs/promises'
 import { atomicWriteFile } from '../home/atomic-write.ts'
+import { MS_PER_DAY } from '../home/time.ts'
 import { isSkillName } from './skill-file.ts'
 
 /** One skill's usage facts. */
@@ -68,8 +69,6 @@ export interface SkillUsageLine {
 
 /** Ledger file format version. */
 const LEDGER_VERSION = 1
-
-const MS_PER_DAY = 24 * 60 * 60 * 1000
 
 function parseEntry(value: unknown): SkillUsageEntry | undefined {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) return undefined

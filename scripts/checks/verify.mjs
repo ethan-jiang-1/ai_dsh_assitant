@@ -20,6 +20,7 @@ import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { agentsMdStabilityProblems, backlogGraduationProblems, backlogLivenessProblems, clientScriptSafetyProblems, commandAliasProblems, compositionRowProblems, configParseProblems, dependencyPoseProblems, devDrawerCoverageProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, GRADUATED_STATUS, implementedAlternativesProblems, identityNameProblems, languageGuardProblems, markdownCorpusFromTracked, notesNamingProblems, notePointerProblems, notesStateProblems, notesTopLevelProblems, pinProblems, machineLocalPathProblems, packageSubpathProblems, playbookFrontmatterProblems, projectReferenceMatches, relativeLinkProblems, researchSubdirProblems, scratchPathProblems, skillFrontmatterProblems, startPathProblems, testAssetNamingProblems, textHygieneProblems, vendorClientFreshnessProblems } from './verify-checks.mjs'
 import * as gateCores from './verify-checks.mjs'
+import { pinnedTagFrom } from '../maintenance/sync-bookkeeping.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const packageDir = join(repoRoot, 'packages', 'dsh-smart-assistant')
@@ -393,7 +394,7 @@ check('release: the exported install manual matches the package', () =>
     manifest: JSON.parse(read(join(packageDir, 'package.json'))),
     // The manual's 验证基线 row must track the pin, not the last re-export date: a pin bump
     // without a re-export used to leave the manual advertising the previous DSH baseline.
-    upstreamTag: /^\| 钉住的 tag \| `([^`|]+)` \|$/m.exec(read(join(repoRoot, 'vendor', 'UPSTREAM.md')))?.[1]?.trim(),
+    upstreamTag: pinnedTagFrom(read(join(repoRoot, 'vendor', 'UPSTREAM.md'))),
   }))
 
 check('notes: implemented notes carry what they beat (输掉的方案)', () =>

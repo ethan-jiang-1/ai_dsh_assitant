@@ -19,6 +19,7 @@ import { execFileSync, spawnSync } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, isAbsolute, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { pinnedTagFrom } from '../maintenance/sync-bookkeeping.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const packageDir = join(repoRoot, 'packages', 'dsh-smart-assistant')
@@ -36,8 +37,8 @@ const tarballName = `${manifest.name}-${manifest.version}.tgz`
 
 // 手册的验证基线行锚定 vendor/UPSTREAM.md 的钉住 tag（唯一出处）。它曾是硬编码字面量，
 // 0.1.7→0.2.0 换 pin 时烂掉一次（手册落后一个基线）——verify 的 export-manual 门现钉这一行。
-const upstreamTag = /^\| 钉住的 tag \| `([^`|]+)` \|$/m
-  .exec(readFileSync(join(repoRoot, 'vendor', 'UPSTREAM.md'), 'utf8'))?.[1]?.trim()
+// 行解析的家：sync-bookkeeping.mjs 的 pinnedTagFrom（五个消费方的唯一出处）。
+const upstreamTag = pinnedTagFrom(readFileSync(join(repoRoot, 'vendor', 'UPSTREAM.md'), 'utf8'))
 if (!upstreamTag) {
   console.error('vendor/UPSTREAM.md has no 钉住的 tag row — fix the pin bookkeeping before exporting')
   process.exit(2)

@@ -14,6 +14,8 @@
  */
 
 import type { RoomEntry } from '../home/room.ts'
+import type { CurationFinding } from '../home/health.ts'
+import { MS_PER_DAY } from '../home/time.ts'
 
 /** Proposal lifecycle. */
 export const PROPOSAL_STATUSES = ['proposed', 'approved', 'rejected', 'landed'] as const
@@ -122,4 +124,44 @@ export function renderProposalPrompt(): string {
     'to review — NOT in your skills. Proposing the same name again revises the proposal (the',
     'revision bumps and the old text is replaced). If nothing was reusable, say so in one line.',
   ].join('\n')
+}
+
+/**
+ * Curation findings for the proposal inbox. An approved proposal waiting to land is a
+ * decision made and not executed; an aging proposal is a decision nobody is making.
+ *
+ * The `proposal-*` codes are named in the findings vocabulary (domain/home/health.ts);
+ * they are generated here, with the rest of the proposal inbox's rules — this moved out
+ * of the host layer (2026-10-14) so every code's generator lives in the domain, and the
+ * host stops being the path of least resistance for the next check.
+ *
+ * @param proposals - The inbox's current entries.
+ * @param now - The curation instant (the host passes the same `now` the home check sees).
+ * @param staleDays - Age in whole days after which a pending proposal is called stale.
+ * @returns Findings in inbox order.
+ */
+export function proposalFindings(proposals: readonly SkillProposal[], now: Date, staleDays: number): CurationFinding[] {
+  const findings: CurationFinding[] = []
+  for (const proposal of proposals) {
+    if (proposal.status === 'approved') {
+      findings.push({
+        code: 'proposal-awaiting-land',
+        severity: 'info',
+        message: `proposal "${proposal.id}" (r${String(proposal.revision)}) is approved and waiting to land — `
+          + 'run assistant_reflect action=land_skill to write it into the skills room',
+        refs: [proposal.id],
+      })
+    }
+    const age = (now.getTime() - Date.parse(proposal.updated)) / MS_PER_DAY
+    if (Number.isFinite(age) && age > staleDays && (proposal.status === 'proposed' || proposal.status === 'approved')) {
+      findings.push({
+        code: 'proposal-stale',
+        severity: 'info',
+        message: `proposal "${proposal.id}" has sat ${String(Math.floor(age))} days in ${proposal.status} — `
+          + 'pick an exit: a person edits its status (approve/reject), or it keeps waiting',
+        refs: [proposal.id],
+      })
+    }
+  }
+  return findings
 }
