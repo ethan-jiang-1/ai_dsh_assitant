@@ -6,12 +6,10 @@
  * end-to-end session.
  */
 
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
+import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { Context } from '@deepseek-ai/cordis'
-import { afterEach, describe, expect, it } from 'vitest'
-import AssistantMemory from '../../src/index.ts'
+import { describe, expect, it } from 'vitest'
+import { memoryPool } from '../support/host-harness.ts'
 import { renderDigest } from '../../src/domain/home/digest.ts'
 import { searchPages } from '../../src/domain/knowledge/search.ts'
 import type { KnowledgePage } from '../../src/domain/knowledge/page.ts'
@@ -52,21 +50,10 @@ describe('searchPages (pure ranking)', () => {
 })
 
 describe('knowledge retrieval (service + digest tree)', () => {
-  const dirs: string[] = []
-
-  afterEach(() => {
-    for (const dir of dirs) rmSync(dir, { recursive: true, force: true })
-    dirs.length = 0
-  })
-
-  function boot(): AssistantMemory {
-    const dir = mkdtempSync(join(tmpdir(), 'assistant-knowledge-retrieval-'))
-    dirs.push(dir)
-    return new AssistantMemory(new Context(), { dataDir: dir })
-  }
+  const boot = memoryPool('assistant-knowledge-retrieval-')
 
   it('searches, reads with backlinks, and keeps drafts readable by id but hidden from search', async () => {
-    const service = boot()
+    const { service } = boot()
     const knowledgeDir = service.paths.knowledgeDir
     mkdirSync(knowledgeDir, { recursive: true })
     const write = (id: string, frontmatter: string[], body: string): void => {

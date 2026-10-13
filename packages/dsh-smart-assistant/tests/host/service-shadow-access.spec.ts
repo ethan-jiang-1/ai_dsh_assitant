@@ -1,9 +1,7 @@
-import { mkdtempSync, rmSync } from 'node:fs'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
 import { Context } from '@deepseek-ai/cordis'
-import { afterEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import AssistantMemory from '../../src/index.ts'
+import { dirPool } from '../support/host-harness.ts'
 
 /**
  * Cordis resolves `ctx.assistantMemory` through caller-bound shadow receivers: a method called
@@ -16,17 +14,13 @@ import AssistantMemory from '../../src/index.ts'
  * failure (first live turn inside the assistant preset, 2026-09-23).
  */
 describe('service access through the cordis property proxy', () => {
-  const dirs: string[] = []
-
-  afterEach(() => {
-    for (const dir of dirs) rmSync(dir, { recursive: true, force: true })
-    dirs.length = 0
-  })
+  // The service is bound to the spec's own context (the proxy path is the subject), so the
+  // pool stops at the directory and boot stays local.
+  const mkDir = dirPool('assistant-shadow-')
 
   function boot(): Context {
     const ctx = new Context()
-    const dir = mkdtempSync(join(tmpdir(), 'assistant-shadow-'))
-    dirs.push(dir)
+    const dir = mkDir()
     new AssistantMemory(ctx, { dataDir: dir })
     return ctx
   }

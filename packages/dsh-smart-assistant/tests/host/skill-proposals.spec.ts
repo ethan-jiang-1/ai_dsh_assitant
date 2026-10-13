@@ -5,12 +5,9 @@
  */
 
 import { readFileSync, writeFileSync } from 'node:fs'
-import { mkdtempSync, rmSync } from 'node:fs'
-import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { Context } from '@deepseek-ai/cordis'
-import { afterEach, describe, expect, it } from 'vitest'
-import AssistantMemory from '../../src/index.ts'
+import { describe, expect, it } from 'vitest'
+import { memoryPool } from '../support/host-harness.ts'
 import { proposalFromEntry, proposalToDocument, renderProposalPrompt, validateProposalData, type SkillProposal } from '../../src/domain/skills/proposal.ts'
 
 describe('proposal vocabulary (pure core)', () => {
@@ -31,21 +28,10 @@ describe('proposal vocabulary (pure core)', () => {
 })
 
 describe('the proposal inbox (service)', () => {
-  const dirs: string[] = []
-
-  afterEach(() => {
-    for (const dir of dirs) rmSync(dir, { recursive: true, force: true })
-    dirs.length = 0
-  })
-
-  function boot(): AssistantMemory {
-    const dir = mkdtempSync(join(tmpdir(), 'assistant-proposals-'))
-    dirs.push(dir)
-    return new AssistantMemory(new Context(), { dataDir: dir })
-  }
+  const boot = memoryPool('assistant-proposals-')
 
   it('proposes without touching the skills room, revises by name, and never lands unapproved', async () => {
-    const service = boot()
+    const { service } = boot()
     const first = await service.proposeSkill({
       name: 'staging-reset',
       description: 'how to reset staging safely',
@@ -97,7 +83,7 @@ describe('the proposal inbox (service)', () => {
   })
 
   it('rejects drafts the skill contract would reject', async () => {
-    const service = boot()
+    const { service } = boot()
     await expect(service.proposeSkill({ name: 'Bad Name', description: 'x', body: 'y' }))
       .rejects.toThrow('proposal rejected')
     await expect(service.proposeSkill({ name: 'ok-name', description: '', body: 'y' }))
@@ -105,7 +91,7 @@ describe('the proposal inbox (service)', () => {
   })
 
   it('surfaces waiting decisions in the curate brief', async () => {
-    const service = boot()
+    const { service } = boot()
     await service.proposeSkill({ name: 'waiting-skill', description: 'x', body: 'y' })
     let brief = await service.curate()
     // Freshly proposed: not yet aging, not approved — no finding, just counts of the room's health.

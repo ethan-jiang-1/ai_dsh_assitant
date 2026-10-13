@@ -14,20 +14,15 @@
  * request shipped 271 bytes where ~1530 belonged.
  */
 
-import { mkdtempSync, rmSync } from 'node:fs'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
 import { Context, Service } from '@deepseek-ai/cordis'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import AssistantMemory from '../../src/index.ts'
+import { dirPool } from '../support/host-harness.ts'
 
 describe('digest prewarm (service)', () => {
-  const dirs: string[] = []
-
-  afterEach(() => {
-    for (const dir of dirs) rmSync(dir, { recursive: true, force: true })
-    dirs.length = 0
-  })
+  // Construction itself is the mechanism under test, so the pool stops at the directory:
+  // bootIn stays local — an implicit service from a pool would warm the digest and mask it.
+  const mkDir = dirPool('assistant-prewarm-')
 
   function bootIn(dir: string): AssistantMemory {
     return new AssistantMemory(new Context(), { dataDir: dir })
@@ -36,8 +31,7 @@ describe('digest prewarm (service)', () => {
   it('warms the digest at construction without any write or curate call on the instance', async () => {
     // Seed the home through a first service instance, then boot a second one on the same
     // directory: its cache starts cold, and nothing on this instance would trigger a refresh.
-    const dir = mkdtempSync(join(tmpdir(), 'assistant-prewarm-'))
-    dirs.push(dir)
+    const dir = mkDir()
     const seeder = bootIn(dir)
     await seeder.saveMemory({ text: 'prewarm probe claim', importance: 5 })
 
@@ -48,8 +42,7 @@ describe('digest prewarm (service)', () => {
   })
 
   it('keeps the digest warm after a write without an intervening curate', async () => {
-    const dir = mkdtempSync(join(tmpdir(), 'assistant-prewarm-'))
-    dirs.push(dir)
+    const dir = mkDir()
     const service = bootIn(dir)
     await service.saveMemory({ text: 'first claim stays warm', importance: 5 })
     await vi.waitFor(() => {
@@ -65,8 +58,7 @@ describe('digest prewarm (service)', () => {
   it('awaits the cordis init hook: the loader-await is the warm guarantee, no polling', async () => {
     // Seed through a first instance, then boot a second one on the same directory and await the
     // lifecycle hook the plugin loader awaits — after that the digest is warm deterministically.
-    const dir = mkdtempSync(join(tmpdir(), 'assistant-prewarm-'))
-    dirs.push(dir)
+    const dir = mkDir()
     const seeder = bootIn(dir)
     await seeder.saveMemory({ text: 'init hook warms deterministically', importance: 5 })
 

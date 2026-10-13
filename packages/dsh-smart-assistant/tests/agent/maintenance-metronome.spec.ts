@@ -7,14 +7,12 @@
  * plugin-sourced followup message.
  */
 
-import { mkdtempSync, rmSync } from 'node:fs'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
 import { Context } from '@deepseek-ai/cordis'
 import type { Agent } from '@deepseek-ai/dsh-agent'
 import { createUserMessage } from '@deepseek-ai/dsh-llm'
-import { afterEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import AssistantMemory from '../../src/index.ts'
+import { dirPool } from '../support/host-harness.ts'
 import { isMaintenanceRound, renderMaintenancePrompt } from '../../src/domain/home/metronome.ts'
 
 describe('isMaintenanceRound (pure)', () => {
@@ -41,18 +39,14 @@ describe('isMaintenanceRound (pure)', () => {
 })
 
 describe('maintenance metronome (service wiring)', () => {
-  const dirs: string[] = []
-
-  afterEach(() => {
-    for (const dir of dirs) rmSync(dir, { recursive: true, force: true })
-    dirs.length = 0
-  })
+  // The service is bound to the spec's own context (the fake agent rides it), so the pool
+  // stops at the directory and boot stays local.
+  const mkDir = dirPool('assistant-metronome-')
 
   interface Captured { text: string, source: unknown }
 
   function boot(maintenanceEveryRounds: number): { ctx: Context, agent: Agent, calls: Captured[] } {
-    const dir = mkdtempSync(join(tmpdir(), 'assistant-metronome-'))
-    dirs.push(dir)
+    const dir = mkDir()
     const ctx = new Context()
     const calls: Captured[] = []
     // A fake agent is enough: the metronome reads the inbox event and calls followup.

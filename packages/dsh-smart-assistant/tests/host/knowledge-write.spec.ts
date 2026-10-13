@@ -6,29 +6,16 @@
  * conventions over existing verbs.
  */
 
-import { mkdirSync, mkdtempSync, rmSync } from 'node:fs'
-import { tmpdir } from 'node:os'
+import { mkdirSync } from 'node:fs'
 import { join } from 'node:path'
-import { Context } from '@deepseek-ai/cordis'
-import { afterEach, describe, expect, it } from 'vitest'
-import AssistantMemory from '../../src/index.ts'
+import { describe, expect, it } from 'vitest'
+import { memoryPool } from '../support/host-harness.ts'
 
 describe('writePage (staged draft write path)', () => {
-  const dirs: string[] = []
-
-  afterEach(() => {
-    for (const dir of dirs) rmSync(dir, { recursive: true, force: true })
-    dirs.length = 0
-  })
-
-  function boot(): AssistantMemory {
-    const dir = mkdtempSync(join(tmpdir(), 'assistant-page-write-'))
-    dirs.push(dir)
-    return new AssistantMemory(new Context(), { dataDir: dir })
-  }
+  const boot = memoryPool('assistant-page-write-')
 
   it('writes a draft with provenance stamps, out of search until reviewed by hand', async () => {
-    const service = boot()
+    const { service } = boot()
     const written = await service.writePage({
       type: 'how-it-works',
       title: 'Deploy pipeline',
@@ -61,7 +48,7 @@ describe('writePage (staged draft write path)', () => {
   })
 
   it('promotePage flips one draft to stable, idempotently, and fails loudly on an unknown id', async () => {
-    const service = boot()
+    const { service } = boot()
     const written = await service.writePage({
       type: 'how-it-works',
       title: 'Promotion path',
@@ -85,7 +72,7 @@ describe('writePage (staged draft write path)', () => {
   })
 
   it('deprecatePage keeps the page in place and out of current knowledge', async () => {
-    const service = boot()
+    const { service } = boot()
     const written = await service.writePage({
       type: 'concept',
       title: 'Retired concept',
@@ -106,7 +93,7 @@ describe('writePage (staged draft write path)', () => {
   })
 
   it('normalizes links into the form Obsidian also clicks, and mirrors the title into aliases', async () => {
-    const service = boot()
+    const { service } = boot()
     const first = await service.writePage({ type: 'concept', title: 'Staging Gate', body: 'the gate', sources: ['repo'] })
     const second = await service.writePage({
       type: 'how-it-works',
@@ -129,7 +116,7 @@ describe('writePage (staged draft write path)', () => {
   })
 
   it('requires a body, a type, and at least one source', async () => {
-    const service = boot()
+    const { service } = boot()
     await expect(service.writePage({ type: 'concept', body: 'text', sources: [] }))
       .rejects.toThrow('requires sources')
     await expect(service.writePage({ type: 'concept', body: '', sources: ['x'] }))
@@ -139,7 +126,7 @@ describe('writePage (staged draft write path)', () => {
   })
 
   it('audits credentials on pages the same as on skills', async () => {
-    const service = boot()
+    const { service } = boot()
     const written = await service.writePage({
       type: 'source',
       body: 'the key was sk-abcdefghijklmnopqrstuvwx',
@@ -150,17 +137,11 @@ describe('writePage (staged draft write path)', () => {
 })
 
 describe('research promote into knowledge', () => {
-  const dirs: string[] = []
-
-  afterEach(() => {
-    for (const dir of dirs) rmSync(dir, { recursive: true, force: true })
-    dirs.length = 0
-  })
+  const bootPromote = memoryPool('assistant-page-promote-')
+  const bootPin = memoryPool('assistant-page-pin-')
 
   it('accepts a knowledge page as the destination, and rejects unknown ones', async () => {
-    const dir = mkdtempSync(join(tmpdir(), 'assistant-page-promote-'))
-    dirs.push(dir)
-    const service = new AssistantMemory(new Context(), { dataDir: dir })
+    const { service } = bootPromote()
     const thread = await service.openThread({
       question: 'how should deploys work?',
       why: 'the pipeline keeps surprising people',
@@ -181,9 +162,7 @@ describe('research promote into knowledge', () => {
   })
 
   it('pins a page into memory as a plain save with provenance (the bridge convention)', async () => {
-    const dir = mkdtempSync(join(tmpdir(), 'assistant-page-pin-'))
-    dirs.push(dir)
-    const service = new AssistantMemory(new Context(), { dataDir: dir })
+    const { service } = bootPin()
     mkdirSync(service.paths.knowledgeDir, { recursive: true })
     const page = await service.writePage({ type: 'concept', title: 'Staging', body: 'gate', sources: ['repo'] })
     // knowledge_pin is a convention, not a verb: save with source=knowledge:<id> links both rooms.

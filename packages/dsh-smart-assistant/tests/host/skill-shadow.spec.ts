@@ -5,12 +5,8 @@
  * service's plumbing of the probe result into the curation brief.
  */
 
-import { mkdtempSync, rmSync } from 'node:fs'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
-import { Context } from '@deepseek-ai/cordis'
-import { afterEach, describe, expect, it } from 'vitest'
-import AssistantMemory from '../../src/index.ts'
+import { describe, expect, it } from 'vitest'
+import { memoryPool } from '../support/host-harness.ts'
 import { shadowedLearnedSkills } from '../../src/domain/skills/shadow.ts'
 
 const LEARNED = 'assistant-learned'
@@ -40,21 +36,10 @@ describe('shadowedLearnedSkills (pure join)', () => {
 })
 
 describe('shadow visibility (service plumbing)', () => {
-  const dirs: string[] = []
-
-  afterEach(() => {
-    for (const dir of dirs) rmSync(dir, { recursive: true, force: true })
-    dirs.length = 0
-  })
-
-  function boot(): AssistantMemory {
-    const dir = mkdtempSync(join(tmpdir(), 'assistant-shadow-'))
-    dirs.push(dir)
-    return new AssistantMemory(new Context(), { dataDir: dir })
-  }
+  const boot = memoryPool('assistant-shadow-')
 
   it('surfaces probe results as warn findings, and reports none without a probe', async () => {
-    const service = boot()
+    const { service } = boot()
     await service.writeSkill({ name: 'home-curation', description: 'collides on purpose', body: 'steps' })
 
     // Without a registry probe (tests, host-side maintenance): no shadow findings.

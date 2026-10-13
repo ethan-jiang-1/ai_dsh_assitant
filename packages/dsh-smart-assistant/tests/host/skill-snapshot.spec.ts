@@ -4,26 +4,19 @@
  * before the write, newest few kept, restorable by hand.
  */
 
-import { readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
-import { mkdtempSync } from 'node:fs'
-import { tmpdir } from 'node:os'
+import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { Context } from '@deepseek-ai/cordis'
-import { afterEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import AssistantMemory from '../../src/index.ts'
+import { dirPool } from '../support/host-harness.ts'
 import { SNAPSHOTS_DIRECTORY_NAME, SNAPSHOTS_KEPT, snapshotExistingSkill } from '../../src/domain/skills/snapshot.ts'
 
 describe('snapshotExistingSkill (pure core)', () => {
-  const dirs: string[] = []
-
-  afterEach(() => {
-    for (const dir of dirs) rmSync(dir, { recursive: true, force: true })
-    dirs.length = 0
-  })
+  const mkRoot = dirPool('assistant-snapshot-')
 
   function room(): { root: string, skillsDir: string, skillsArchiveDir: string } {
-    const root = mkdtempSync(join(tmpdir(), 'assistant-snapshot-'))
-    dirs.push(root)
+    const root = mkRoot()
     return { root, skillsDir: join(root, 'skills'), skillsArchiveDir: join(root, 'skills', 'archive') }
   }
 

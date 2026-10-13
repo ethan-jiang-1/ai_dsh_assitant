@@ -56,7 +56,10 @@ function elementsOf(node: unknown, tag: string): Element[] {
   return [...own, ...elementsOf(element.props?.children, tag)]
 }
 
-/** Every string in a tree, so copy can be asserted without a DOM. */
+/** Every string in a tree, so copy can be asserted without a DOM.
+ * Local on purpose: no custom-component invocation (unlike support/client-harness's textsOf) —
+ * the first-mile tree is rendered host components only, and unifying the walkers would
+ * silently change what this spec asserts on. */
 function textsOf(node: unknown): string[] {
   if (typeof node === 'string') return [node]
   if (node === null || node === undefined || typeof node !== 'object') return []

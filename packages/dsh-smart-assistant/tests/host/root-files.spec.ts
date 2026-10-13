@@ -5,50 +5,37 @@
  * version marker predates the current one without fighting hand edits.
  */
 
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
-import { Context } from '@deepseek-ai/cordis'
-import { afterEach, describe, expect, it } from 'vitest'
-import AssistantMemory from '../../src/index.ts'
+import { rmSync, writeFileSync } from 'node:fs'
+import { describe, expect, it } from 'vitest'
+import { memoryPool } from '../support/host-harness.ts'
 import { DEFAULT_SOUL } from '../../src/domain/home/soul.ts'
 import { HOME_MANUAL_VERSION } from '../../src/domain/home/home-map.ts'
 
-const dirs: string[] = []
-
-afterEach(() => {
-  for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true })
-})
-
-function boot(): AssistantMemory {
-  const dir = mkdtempSync(join(tmpdir(), 'assistant-root-files-'))
-  dirs.push(dir)
-  return new AssistantMemory(new Context(), { dataDir: dir })
-}
+const boot = memoryPool('assistant-root-files-')
 
 describe('soulSnapshot (identity)', () => {
   it('seeds the built-in default, so day 0 the voice is exactly the shipped one', async () => {
-    const service = boot()
+    const { service } = boot()
     await service.ensureHome()
     expect(service.soulSnapshot()).toBe(DEFAULT_SOUL)
   })
 
   it('returns a hand-edited voice verbatim', async () => {
-    const service = boot()
+    const { service } = boot()
     await service.ensureHome()
     writeFileSync(service.paths.soulFile, 'my own voice — terse and calm\n', 'utf8')
     expect(service.soulSnapshot()).toBe('my own voice — terse and calm')
   })
 
   it('falls back to the default when the file is empty or deleted', async () => {
-    const service = boot()
+    const { service } = boot()
     await service.ensureHome()
     writeFileSync(service.paths.soulFile, '   \n', 'utf8')
     expect(service.soulSnapshot()).toBe(DEFAULT_SOUL)
   })
 
   it('truncates by UTF-8 bytes, not code units — a CJK soul over cap keeps a byte-bounded head and an honest marker', async () => {
-    const service = boot()
+    const { service } = boot()
     await service.ensureHome()
     // BUG-006 F5 (2026-10-07): 3000 CJK chars = 9000 UTF-8 bytes against the 4096-byte soul
     // cap. The code-unit slice returned ALL 3000 chars (9000 bytes) plus a lying
@@ -64,7 +51,7 @@ describe('soulSnapshot (identity)', () => {
 
 describe('manualSnapshot (guidance)', () => {
   it('seeds the generated manual with the current version marker', async () => {
-    const service = boot()
+    const { service } = boot()
     await service.ensureHome()
     const manual = service.manualSnapshot()
     expect(manual).toContain('# Your working folder — operating manual')
@@ -85,7 +72,7 @@ describe('manualSnapshot (guidance)', () => {
   })
 
   it('returns a hand-edited manual verbatim, and the prompt never names the dataDir path', async () => {
-    const service = boot()
+    const { service } = boot()
     await service.ensureHome()
     writeFileSync(service.paths.agentsFile, '# my own manual\n', 'utf8')
     // The manual text is the owner's and rides verbatim. NO prompt section carries the machine's
@@ -97,7 +84,7 @@ describe('manualSnapshot (guidance)', () => {
   })
 
   it('renders a current manual when the file is absent — the fallback cannot go stale', async () => {
-    const service = boot()
+    const { service } = boot()
     await service.ensureHome()
     rmSync(service.paths.agentsFile)
     expect(service.manualSnapshot()).toContain(`home-manual v${String(HOME_MANUAL_VERSION)}`)
@@ -106,7 +93,7 @@ describe('manualSnapshot (guidance)', () => {
 
 describe('curate reports manual scaffold drift', () => {
   it('flags a manual that predates the current scaffold version', async () => {
-    const service = boot()
+    const { service } = boot()
     await service.ensureHome()
     // A hand-written or old manual carries no marker (or an old one): version 0.
     writeFileSync(service.paths.agentsFile, '# my own manual\n', 'utf8')
@@ -118,7 +105,7 @@ describe('curate reports manual scaffold drift', () => {
   })
 
   it('stays quiet when the manual carries the current marker', async () => {
-    const service = boot()
+    const { service } = boot()
     await service.ensureHome()
 
     const brief = await service.curate()

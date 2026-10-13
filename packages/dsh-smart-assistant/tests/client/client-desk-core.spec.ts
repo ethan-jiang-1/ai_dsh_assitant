@@ -10,7 +10,7 @@
  *   keeps the receipt when the file no longer lists the row ("recorded" stands).
  */
 import { describe, expect, it } from 'vitest'
-import { inertReactShim, loadClientRegistration, materializeClient } from '../support/client-harness.ts'
+import { inertReactShim, loadClientRegistration, materializeClient, textsOf } from '../support/client-harness.ts'
 
 const registration = await loadClientRegistration()
 
@@ -23,19 +23,6 @@ interface ClientExports {
     sessionUpdatedAt?: number | undefined
     lastReceipt?: { rowId: string, action: string, at: number } | undefined
   }
-}
-
-/** Every string in a rendered element tree, for asserting on copy without a DOM. */
-function textsOf(node: unknown): string[] {
-  if (node === null || node === undefined || typeof node === 'boolean') return []
-  if (typeof node === 'string') return [node]
-  if (typeof node === 'number') return [String(node)]
-  if (Array.isArray(node)) return node.flatMap(textsOf)
-  const element = node as { type?: unknown, props?: { children?: unknown } }
-  if (typeof element.type === 'function') {
-    return textsOf((element.type as (props: unknown) => unknown)(element.props))
-  }
-  return element.props === undefined ? [] : textsOf(element.props.children)
 }
 
 const materialize = (): ClientExports =>

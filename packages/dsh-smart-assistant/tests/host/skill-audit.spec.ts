@@ -5,12 +5,10 @@
  * `save_skill` injection, and the curation merge.
  */
 
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
+import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { Context } from '@deepseek-ai/cordis'
-import { afterEach, describe, expect, it } from 'vitest'
-import AssistantMemory from '../../src/index.ts'
+import { describe, expect, it } from 'vitest'
+import { dirPool, memoryPool } from '../support/host-harness.ts'
 import { auditSkillCredentials, auditSkillReferences } from '../../src/domain/skills/audit.ts'
 
 describe('auditSkillCredentials (pure)', () => {
@@ -40,16 +38,10 @@ describe('auditSkillCredentials (pure)', () => {
 })
 
 describe('auditSkillReferences (relative pointers)', () => {
-  const dirs: string[] = []
-
-  afterEach(() => {
-    for (const dir of dirs) rmSync(dir, { recursive: true, force: true })
-    dirs.length = 0
-  })
+  const mkBundleDir = dirPool('assistant-audit-')
 
   function bundle(body: string, extraFiles: readonly string[] = []): string {
-    const dir = mkdtempSync(join(tmpdir(), 'assistant-audit-'))
-    dirs.push(dir)
+    const dir = mkBundleDir()
     mkdirSync(join(dir, 'x-skill'), { recursive: true })
     writeFileSync(join(dir, 'x-skill', 'SKILL.md'), `---\nname: x-skill\ndescription: x\n---\n\n${body}\n`, 'utf8')
     for (const file of extraFiles) {
@@ -79,21 +71,10 @@ describe('auditSkillReferences (relative pointers)', () => {
 })
 
 describe('post-write audit (service)', () => {
-  const dirs: string[] = []
-
-  afterEach(() => {
-    for (const dir of dirs) rmSync(dir, { recursive: true, force: true })
-    dirs.length = 0
-  })
-
-  function boot(): AssistantMemory {
-    const dir = mkdtempSync(join(tmpdir(), 'assistant-audit-svc-'))
-    dirs.push(dir)
-    return new AssistantMemory(new Context(), { dataDir: dir })
-  }
+  const boot = memoryPool('assistant-audit-svc-')
 
   it('rides the save_skill result immediately and joins the curate brief', async () => {
-    const service = boot()
+    const { service } = boot()
     const written = await service.writeSkill({
       name: 'pointer-skill',
       description: 'points somewhere missing',
@@ -115,7 +96,7 @@ describe('post-write audit (service)', () => {
   })
 
   it('stays silent for a clean skill', async () => {
-    const service = boot()
+    const { service } = boot()
     const clean = await service.writeSkill({
       name: 'clean-skill',
       description: 'no pointers, no secrets',

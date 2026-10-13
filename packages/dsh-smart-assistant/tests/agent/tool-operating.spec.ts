@@ -13,29 +13,15 @@
  * 4. Inferred major changes only propose; an explicit confirm applies them.
  */
 
-import { mkdtempSync, rmSync } from 'node:fs'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
-import { Context } from '@deepseek-ai/cordis'
-import { afterEach, describe, expect, it } from 'vitest'
-import AssistantOperatingLedger from '../../src/host/operating-ledger/index.ts'
+import { describe, expect, it } from 'vitest'
 import { operatingTool, type OperatingOutput } from '../../src/agent/tool-operating/index.ts'
+import { ledgerPool } from '../support/host-harness.ts'
 
 describe('assistant_operating (tool adapter over the authoritative ledger)', () => {
-  const dirs: string[] = []
-  const services: AssistantOperatingLedger[] = []
-
-  afterEach(async () => {
-    for (const service of services.splice(0)) await service.stop()
-    for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true })
-  })
+  const bootLedger = ledgerPool('assistant-operating-tool-')
 
   function boot(): ReturnType<typeof operatingTool> {
-    const dataDir = mkdtempSync(join(tmpdir(), 'assistant-operating-tool-'))
-    dirs.push(dataDir)
-    const ctx = new Context()
-    const service = new AssistantOperatingLedger(ctx, { dataDir })
-    services.push(service)
+    const { ctx } = bootLedger()
     return operatingTool(ctx)
   }
 
@@ -171,8 +157,10 @@ describe('assistant_operating (tool adapter over the authoritative ledger)', () 
   })
 
   it('carries the event-level locator on materials, like the sibling projection does', async () => {
-    const tool = boot()
-    const service = services[services.length - 1]!
+    // This test drives both faces of the same boot: the tool adapter and the ledger
+    // service behind it (yesterday's services[] peek, now the pool's own return).
+    const { service, ctx } = bootLedger()
+    const tool = operatingTool(ctx)
     const entrusted = await tool.execute({
       action: 'entrust', operation_id: 'op-event-create', title: 'NB-02 二期回款', quote: '帮我盯 NB-02',
     }, exec) as OperatingOutput

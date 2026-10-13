@@ -9,26 +9,14 @@
  * ledger is detection, not prevention: a forged prompt can still cause a flip, but no flip can
  * happen without a durable, human-readable record.
  */
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { Context } from '@deepseek-ai/cordis'
-import { afterEach, describe, expect, it } from 'vitest'
-import AssistantMemory from '../../src/index.ts'
+import { describe, expect, it } from 'vitest'
+import type AssistantMemory from '../../src/index.ts'
+import { memoryPool } from '../support/host-harness.ts'
 
 describe('approval audit ledger', () => {
-  const dirs: string[] = []
-
-  afterEach(() => {
-    for (const dir of dirs) rmSync(dir, { recursive: true, force: true })
-    dirs.length = 0
-  })
-
-  function boot(): AssistantMemory {
-    const dir = mkdtempSync(join(tmpdir(), 'assistant-approval-audit-'))
-    dirs.push(dir)
-    return new AssistantMemory(new Context(), { dataDir: dir })
-  }
+  const boot = memoryPool('assistant-approval-audit-')
 
   async function ledger(service: AssistantMemory): Promise<Record<string, unknown>[]> {
     const path = service.paths.approvalsLedgerFile
@@ -48,7 +36,7 @@ describe('approval audit ledger', () => {
   }
 
   it('records every promote/deprecate/land transition with its lane', async () => {
-    const service = boot()
+    const { service } = boot()
     const page = await draftPage(service, 'Audit one')
 
     await service.promotePage(page)
@@ -74,7 +62,7 @@ describe('approval audit ledger', () => {
   })
 
   it('writes no ledger line for idempotent no-op transitions', async () => {
-    const service = boot()
+    const { service } = boot()
     const page = await draftPage(service, 'Idempotent')
     await service.promotePage(page)
     await service.promotePage(page) // already stable: no second transition, no second line
@@ -85,7 +73,7 @@ describe('approval audit ledger', () => {
   })
 
   it('audits landing an approved skill proposal', async () => {
-    const service = boot()
+    const { service } = boot()
     await service.proposeSkill({
       name: 'audit-ledger-probe',
       description: 'probing the land audit',

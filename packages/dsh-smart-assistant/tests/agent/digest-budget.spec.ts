@@ -16,30 +16,16 @@
  * dead code. `truncated` is the truth, and these tests pin both halves.
  */
 
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
-import { Context } from '@deepseek-ai/cordis'
-import { afterEach, describe, expect, it } from 'vitest'
-import AssistantMemory from '../../src/index.ts'
+import { readFileSync, writeFileSync } from 'node:fs'
+import { describe, expect, it } from 'vitest'
+import { memoryPool } from '../support/host-harness.ts'
 
 describe('digest budget enforcement (service)', () => {
-  const dirs: string[] = []
-
-  afterEach(() => {
-    for (const dir of dirs) rmSync(dir, { recursive: true, force: true })
-    dirs.length = 0
-  })
-
-  function boot(digestMaxBytes: number): AssistantMemory {
-    const dir = mkdtempSync(join(tmpdir(), 'assistant-budget-'))
-    dirs.push(dir)
-    return new AssistantMemory(new Context(), { dataDir: dir, digestMaxBytes })
-  }
+  const boot = memoryPool('assistant-budget-')
 
   it('refuses pure additions once memory lines are squeezed off, keeps replacing writes open', async () => {
     // A budget small enough that a few records overflow it.
-    const service = boot(900)
+    const { service } = boot({ digestMaxBytes: 900 })
     const first = await service.saveMemory({ text: 'first claim that fits', importance: 5 })
     let omitted = 0
     for (let index = 0; index < 20 && omitted === 0; index += 1) {
@@ -79,7 +65,7 @@ describe('digest budget enforcement (service)', () => {
   it('knowledge-signpost truncation does NOT close the memory gate (the 2026-10-02 misfire shape)', async () => {
     // A home where every memory rides the desktop but the knowledge tree is cut short: the
     // digest is truncated (knowledge lines omitted) while omittedMemories === 0.
-    const service = boot(1100)
+    const { service } = boot({ digestMaxBytes: 1100 })
     await service.saveMemory({ text: 'a claim that rides the desktop', importance: 5 })
     // Stable pages via the sanctioned review path: writePage stages a draft, a hand edit of the
     // status field is the human review (docs/home.md governance write path).
@@ -111,7 +97,7 @@ describe('digest budget enforcement (service)', () => {
   })
 
   it('saves freely while the digest fits', async () => {
-    const service = boot(6144)
+    const { service } = boot({ digestMaxBytes: 6144 })
     await service.saveMemory({ text: 'a normal claim' })
     expect((await service.digest()).truncated).toBe(false)
     await service.saveMemory({ text: 'another normal claim' })

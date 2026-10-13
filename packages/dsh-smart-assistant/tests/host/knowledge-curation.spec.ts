@@ -4,13 +4,10 @@
  * plus orphans, due stale_after stamps, aging drafts, and stable pages without sources.
  */
 
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
-import { mkdirSync } from 'node:fs'
-import { tmpdir } from 'node:os'
+import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { Context } from '@deepseek-ai/cordis'
-import { afterEach, describe, expect, it } from 'vitest'
-import AssistantMemory from '../../src/index.ts'
+import { describe, expect, it } from 'vitest'
+import { memoryPool } from '../support/host-harness.ts'
 import { curateKnowledge } from '../../src/domain/knowledge/health.ts'
 import type { KnowledgePage } from '../../src/domain/knowledge/page.ts'
 
@@ -85,17 +82,10 @@ describe('curateKnowledge (pure graph check)', () => {
 })
 
 describe('knowledge curation (service plumbing)', () => {
-  const dirs: string[] = []
-
-  afterEach(() => {
-    for (const dir of dirs) rmSync(dir, { recursive: true, force: true })
-    dirs.length = 0
-  })
+  const boot = memoryPool('assistant-knowledge-')
 
   it('reads the room through the service and merges findings into the curate brief', async () => {
-    const dir = mkdtempSync(join(tmpdir(), 'assistant-knowledge-'))
-    dirs.push(dir)
-    const service = new AssistantMemory(new Context(), { dataDir: dir })
+    const { service } = boot()
     const knowledgeDir = service.paths.knowledgeDir
     mkdirSync(knowledgeDir, { recursive: true })
     writeFileSync(join(knowledgeDir, 'deploy-pipeline.md'), [

@@ -18,37 +18,25 @@
  *    attaches it (original source and time preserved); re-claiming is refused.
  */
 
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { writeFileSync } from 'node:fs'
 import { spawnSync } from 'node:child_process'
 import { hostname } from 'node:os'
-import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { Context } from '@deepseek-ai/cordis'
-import { afterEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import AssistantOperatingLedger from '../../src/host/operating-ledger/index.ts'
+import { dirPool, ledgerPool } from '../support/host-harness.ts'
 
 describe('AssistantOperatingLedger (authoritative single writer)', () => {
-  const dirs: string[] = []
-  const services: AssistantOperatingLedger[] = []
-
-  afterEach(async () => {
-    for (const service of services) await service.stop()
-    services.length = 0
-    for (const dir of dirs) rmSync(dir, { recursive: true, force: true })
-    dirs.length = 0
-  })
-
-  function boot(dir?: string): AssistantOperatingLedger {
-    const dataDir = dir ?? mkdtempSync(join(tmpdir(), 'assistant-operating-ledger-'))
-    if (!dirs.includes(dataDir)) dirs.push(dataDir)
-    const service = new AssistantOperatingLedger(new Context(), { dataDir })
-    services.push(service)
-    return service
-  }
+  // dirPool declared before ledgerPool on purpose: afterEach runs LIFO, so every tracked
+  // ledger is stopped before any pool removes a directory — the order this suite had
+  // when it was one hook doing "stop all, then remove all".
+  const mkDir = dirPool('assistant-operating-ledger-')
+  const boot = ledgerPool('assistant-operating-ledger-')
 
   it('commits an entrusted matter with a revision-1 receipt and retains the source verbatim', async () => {
-    const service = boot()
+    const { service } = boot()
     const receipt = await service.submitOperation({
       kind: 'create',
       operationId: 'op-entrust-1',
@@ -77,7 +65,7 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
   })
 
   it('reads a matter and its ordered operation history from one scoped snapshot', async () => {
-    const service = boot()
+    const { service } = boot()
     const created = await service.submitOperation({
       kind: 'create', operationId: 'op-snapshot-create', title: 'Snapshot target',
       source: { sessionId: 'session-A', quote: '委托原话' },
@@ -102,8 +90,7 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
   })
 
   it('retrieves the original receipt and matter after a restart on the same directory', async () => {
-    const dataDir = mkdtempSync(join(tmpdir(), 'assistant-operating-ledger-'))
-    dirs.push(dataDir)
+    const dataDir = mkDir()
     const first = new AssistantOperatingLedger(new Context(), { dataDir })
     const receipt = await first.submitOperation({
       kind: 'create',
@@ -114,8 +101,7 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
     })
     await first.stop()
 
-    const second = new AssistantOperatingLedger(new Context(), { dataDir })
-    services.push(second)
+    const second = boot(dataDir).service
     const readBack = await second.readOperation('op-entrust-2')
     expect(readBack).toEqual(receipt)
 
@@ -126,7 +112,7 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
   })
 
   it('retries the same operation identity idempotently and rejects the same key with different content', async () => {
-    const service = boot()
+    const { service } = boot()
     const operation = {
       kind: 'create',
       operationId: 'op-entrust-3',
@@ -153,7 +139,7 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
   })
 
   it('commits one same-revision update, conflicts the other, and retains the losing materials', async () => {
-    const service = boot()
+    const { service } = boot()
     const created = await service.submitOperation({
       kind: 'create',
       operationId: 'op-4-create',
@@ -198,10 +184,8 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
   })
 
   it('refuses a second writer in the same process and reopens after release', async () => {
-    const dataDir = mkdtempSync(join(tmpdir(), 'assistant-operating-ledger-'))
-    dirs.push(dataDir)
-    const first = new AssistantOperatingLedger(new Context(), { dataDir })
-    services.push(first)
+    const dataDir = mkDir()
+    const first = boot(dataDir).service
     // The writer claim is taken at the first mutating operation, so two services can boot side
     // by side (a web profile and a one-shot task on the same home) until one of them writes.
     const committed = await first.submitOperation({
@@ -212,8 +196,7 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
     })
     expect(committed.outcome).toEqual({ status: 'committed', revision: 1 })
 
-    const second = new AssistantOperatingLedger(new Context(), { dataDir })
-    services.push(second)
+    const second = boot(dataDir).service
     await expect(second.submitOperation({
       kind: 'create',
       operationId: 'op-w-2',
@@ -222,8 +205,7 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
     })).rejects.toThrow(/refusing a second writer/)
 
     await first.stop()
-    const reopened = new AssistantOperatingLedger(new Context(), { dataDir })
-    services.push(reopened)
+    const reopened = boot(dataDir).service
     const again = await reopened.submitOperation({
       kind: 'create',
       operationId: 'op-w-3',
@@ -246,15 +228,12 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
     `], { cwd: packageRoot, encoding: 'utf8' })
 
     // Unclaimed directory: the child really claims by writing (the probe exercises the claim path).
-    const free = mkdtempSync(join(tmpdir(), 'assistant-operating-ledger-'))
-    dirs.push(free)
+    const free = mkDir()
     expect(childProbe(free).stdout).toContain('CHILD-CLAIMED')
 
     // Parent holds the claim: the child process is refused at its write, with the holder named.
-    const held = mkdtempSync(join(tmpdir(), 'assistant-operating-ledger-'))
-    dirs.push(held)
-    const holder = new AssistantOperatingLedger(new Context(), { dataDir: held })
-    services.push(holder)
+    const held = mkDir()
+    const holder = boot(held).service
     await holder.submitOperation({ kind: 'create', operationId: 'op-held', title: '持有写权', source: { sessionId: 'session-A' } })
     const refused = childProbe(held)
     expect(`${refused.stdout}${refused.stderr}`).toContain('refusing a second writer')
@@ -262,8 +241,7 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
   })
 
   it('takes over the writer claim left by a dead process on the same host', async () => {
-    const dataDir = mkdtempSync(join(tmpdir(), 'assistant-operating-ledger-'))
-    dirs.push(dataDir)
+    const dataDir = mkDir()
     const dead = spawnSync(process.execPath, ['-e', ''])
     expect(typeof dead.pid).toBe('number')
     writeFileSync(join(dataDir, 'writer.lock'), `${JSON.stringify({
@@ -272,7 +250,7 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
       acquiredAt: '2026-10-10T00:00:00.000Z',
     })}\n`)
 
-    const service = boot(dataDir)
+    const service = boot(dataDir).service
     const committed = await service.submitOperation({
       kind: 'create',
       operationId: 'op-takeover',
@@ -283,7 +261,7 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
   })
 
   it('continues the same matter across sessions by explicit reference and survives renames', async () => {
-    const service = boot()
+    const { service } = boot()
     const created = await service.submitOperation({
       kind: 'create',
       operationId: 'op-v1-create',
@@ -306,7 +284,7 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
   })
 
   it('keeps same-named different matters apart (no title merge)', async () => {
-    const service = boot()
+    const { service } = boot()
     const first = await service.submitOperation({
       kind: 'create',
       operationId: 'op-v1-a',
@@ -324,7 +302,7 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
   })
 
   it('keeps an ambiguous fragment unclaimed until an explicit claim attaches it', async () => {
-    const service = boot()
+    const { service } = boot()
     const created = await service.submitOperation({
       kind: 'create',
       operationId: 'op-v1-create-2',
@@ -382,7 +360,7 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
   })
 
   it('records a forecast change alone without moving the commitment or checkpoint', async () => {
-    const service = boot()
+    const { service } = boot()
     const created = await service.submitOperation({
       kind: 'create',
       operationId: 'op-v3-create',
@@ -410,7 +388,7 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
   })
 
   it('applies an explicit re-commitment and an explicit checkpoint change separately', async () => {
-    const service = boot()
+    const { service } = boot()
     const created = await service.submitOperation({
       kind: 'create',
       operationId: 'op-v3-create-2',
@@ -449,7 +427,7 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
   })
 
   it('completes only with evidence and corrects a mis-associated completion by reopening', async () => {
-    const service = boot()
+    const { service } = boot()
     const created = await service.submitOperation({
       kind: 'create',
       operationId: 'op-v3-create-3',
@@ -492,7 +470,7 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
   })
 
   it('holds model-inferred major changes as pending proposals until an explicit confirm', async () => {
-    const service = boot()
+    const { service } = boot()
     const created = await service.submitOperation({
       kind: 'create',
       operationId: 'op-c2-create',
@@ -540,9 +518,8 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
   })
 
   it('rejects a pending proposal with durable source and receipt without changing confirmed times', async () => {
-    const dataDir = mkdtempSync(join(tmpdir(), 'assistant-operating-ledger-'))
-    dirs.push(dataDir)
-    const first = boot(dataDir)
+    const dataDir = mkDir()
+    const first = boot(dataDir).service
     const created = await first.submitOperation({
       kind: 'create', operationId: 'op-reject-create', title: 'NB-02 第二期回款',
       times: { promisedDeadline: '2026-10-13', nextCheckpoint: '2026-10-13' },
@@ -565,7 +542,7 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
     expect(matter?.proposals[0]).toMatchObject({ status: 'rejected', resolutionOperationId: 'op-reject-proposal' })
 
     await first.stop()
-    const restarted = boot(dataDir)
+    const restarted = boot(dataDir).service
     const readBack = await restarted.readOperationRecord('op-reject-proposal')
     expect(readBack).toEqual({
       operation: {
@@ -578,7 +555,7 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
   })
 
   it('applies a confirmed abandonment proposal as its own status', async () => {
-    const service = boot()
+    const { service } = boot()
     const created = await service.submitOperation({
       kind: 'create',
       operationId: 'op-c2-create-2',

@@ -73,3 +73,26 @@ export function inertReactShim(): Record<string, unknown> {
     useRef: <T,>(initial: T): { current: T } => ({ current: initial }),
   }
 }
+
+/**
+ * Collect every text node a React tree renders, invoking custom components the way
+ * React would so rows delegated to other components (CorrectableRow) contribute
+ * their copy. Booleans render nothing; numbers render their digits — both branches
+ * are load-bearing for specs that assert on rendered copy.
+ *
+ * Specs whose traversal differs on purpose (no component invocation, different
+ * filtering) keep a local walker instead of bending this one to match: unifying
+ * them would silently change what those specs assert on.
+ */
+export function textsOf(node: unknown): string[] {
+  if (node === null || node === undefined || typeof node === 'boolean') return []
+  if (typeof node === 'string') return [node]
+  if (typeof node === 'number') return [String(node)]
+  if (Array.isArray(node)) return node.flatMap(textsOf)
+  const element = node as { type?: unknown, props?: { children?: unknown } }
+  // A custom component is an element whose type is a function: invoke it the way React would.
+  if (typeof element.type === 'function') {
+    return textsOf((element.type as (props: unknown) => unknown)(element.props))
+  }
+  return element.props === undefined ? [] : textsOf(element.props.children)
+}

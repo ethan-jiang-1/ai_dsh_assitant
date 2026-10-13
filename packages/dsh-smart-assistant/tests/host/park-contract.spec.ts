@@ -1,9 +1,5 @@
-import { mkdtempSync, rmSync } from 'node:fs'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
-import { Context } from '@deepseek-ai/cordis'
-import { afterEach, describe, expect, it } from 'vitest'
-import AssistantMemory from '../../src/index.ts'
+import { describe, expect, it } from 'vitest'
+import { memoryPool } from '../support/host-harness.ts'
 
 /**
  * The park contract (I11): a parked thread stays in the active `research/` room — digest
@@ -12,21 +8,10 @@ import AssistantMemory from '../../src/index.ts'
  * which also broke the later drop. This is the regression test.
  */
 describe('park keeps the thread in the active room', () => {
-  const dirs: string[] = []
-
-  afterEach(() => {
-    for (const dir of dirs) rmSync(dir, { recursive: true, force: true })
-    dirs.length = 0
-  })
-
-  function boot(): AssistantMemory {
-    const dir = mkdtempSync(join(tmpdir(), 'assistant-park-'))
-    dirs.push(dir)
-    return new AssistantMemory(new Context(), { dataDir: dir })
-  }
+  const boot = memoryPool('assistant-park-')
 
   it('parks without archiving, and the parked thread can still be dropped', async () => {
-    const service = boot()
+    const { service } = boot()
     const thread = await service.openThread({
       question: 'park roundtrip contract',
       why: 'the campaign found park archiving the file',

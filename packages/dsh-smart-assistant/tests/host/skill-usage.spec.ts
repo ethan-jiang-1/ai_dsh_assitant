@@ -5,12 +5,12 @@
  * the tools/result subscription feeds, and the service's record/read behavior.
  */
 
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
+import { readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { Context } from '@deepseek-ai/cordis'
-import { afterEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import AssistantMemory from '../../src/index.ts'
+import { dirPool } from '../support/host-harness.ts'
 import {
   parseSkillUsage,
   parseSkillUsageFile,
@@ -87,18 +87,7 @@ describe('skill usage ledger (pure core)', () => {
 })
 
 describe('skill usage ledger (service)', () => {
-  const dirs: string[] = []
-
-  afterEach(() => {
-    for (const dir of dirs) rmSync(dir, { recursive: true, force: true })
-    dirs.length = 0
-  })
-
-  function bootDir(): string {
-    const dir = mkdtempSync(join(tmpdir(), 'assistant-usage-'))
-    dirs.push(dir)
-    return dir
-  }
+  const bootDir = dirPool('assistant-usage-')
 
   it('records loads durably across service instances and surfaces them in curate', async () => {
     const dir = bootDir()
@@ -153,10 +142,7 @@ describe('skill usage ledger (service)', () => {
 })
 
 describe('the ledger coverage window', () => {
-  const windows: string[] = []
-  afterEach(() => {
-    for (const dir of windows.splice(0)) rmSync(dir, { recursive: true, force: true })
-  })
+  const mkWindow = dirPool('skill-window-')
 
   // Measured case: a learned skill showed count 0 in the ledger while session logs held two loads,
   // both predating the ledger. A bare "0 = never used" invites retiring a live skill, so the
@@ -186,8 +172,7 @@ describe('the ledger coverage window', () => {
   })
 
   it('seeds the window on the first recorded load and keeps it afterwards', async () => {
-    const dir = mkdtempSync(join(tmpdir(), 'skill-window-'))
-    windows.push(dir)
+    const dir = mkWindow()
     const service = new AssistantMemory(new Context(), { dataDir: dir })
     await service.recordSkillLoad('alpha')
     const first = await service.skillUsage()

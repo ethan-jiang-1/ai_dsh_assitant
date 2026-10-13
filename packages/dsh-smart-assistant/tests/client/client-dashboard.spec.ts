@@ -42,6 +42,9 @@ const populatedDesk = {
   ],
 }
 
+// Local walker on purpose: unlike support/client-harness's textsOf this one does not invoke
+// custom components and also walks a bare `children` field — unifying them would silently
+// change what this spec asserts on.
 function textsOf(node: unknown): string[] {
   if (node === null || node === undefined) return []
   if (typeof node === 'string') return [node]

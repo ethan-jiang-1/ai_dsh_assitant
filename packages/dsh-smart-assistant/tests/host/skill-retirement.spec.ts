@@ -5,12 +5,10 @@
  * stamped with when and why it died, and nothing is deleted.
  */
 
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { Context } from '@deepseek-ai/cordis'
-import { afterEach, describe, expect, it } from 'vitest'
-import AssistantMemory from '../../src/index.ts'
+import { describe, expect, it } from 'vitest'
+import { dirPool, memoryPool } from '../support/host-harness.ts'
 import { scaffoldHome, homePaths } from '../../src/domain/home/layout.ts'
 import { scanLearnedSkills, scanSkillArchiveScale } from '../../src/domain/skills/scan.ts'
 import { SNAPSHOTS_DIRECTORY_NAME } from '../../src/domain/skills/snapshot.ts'
@@ -18,16 +16,11 @@ import { SNAPSHOTS_DIRECTORY_NAME } from '../../src/domain/skills/snapshot.ts'
 const OLD_LEARNED_AT = '2026-06-15T00:00:00.000Z'
 
 describe('skills scanner over an archived room', () => {
-  const dirs: string[] = []
-
-  afterEach(() => {
-    for (const dir of dirs) rmSync(dir, { recursive: true, force: true })
-    dirs.length = 0
-  })
+  const mkScanDir = dirPool('assistant-retire-scan-')
+  const mkScaleDir = dirPool('assistant-archive-scale-')
 
   it('skips the archive directory and reads metadata.learnedAt', async () => {
-    const dir = mkdtempSync(join(tmpdir(), 'assistant-retire-scan-'))
-    dirs.push(dir)
+    const dir = mkScanDir()
     const paths = homePaths(dir)
     await scaffoldHome(paths)
     // An archived bundle: retired stamp, no SKILL.md directly under skills/archive/.
@@ -56,8 +49,7 @@ describe('skills scanner over an archived room', () => {
   })
 
   it('counts retired bundles and snapshot files, ignoring layout and stray files', async () => {
-    const dir = mkdtempSync(join(tmpdir(), 'assistant-archive-scale-'))
-    dirs.push(dir)
+    const dir = mkScaleDir()
     const paths = homePaths(dir)
     await scaffoldHome(paths)
     const { mkdirSync, writeFileSync } = await import('node:fs')
@@ -84,21 +76,10 @@ describe('skills scanner over an archived room', () => {
 })
 
 describe('retireSkill (service)', () => {
-  const dirs: string[] = []
-
-  afterEach(() => {
-    for (const dir of dirs) rmSync(dir, { recursive: true, force: true })
-    dirs.length = 0
-  })
-
-  function boot(): AssistantMemory {
-    const dir = mkdtempSync(join(tmpdir(), 'assistant-retire-'))
-    dirs.push(dir)
-    return new AssistantMemory(new Context(), { dataDir: dir })
-  }
+  const boot = memoryPool('assistant-retire-')
 
   it('moves a bundle to the archive, stamps the corpse, and drops it from the room', async () => {
-    const service = boot()
+    const { service } = boot()
     await service.writeSkill({ name: 'dead-skill', description: 'gone soon', body: 'steps' })
     await service.recordSkillLoad('dead-skill')
 
@@ -118,7 +99,7 @@ describe('retireSkill (service)', () => {
   })
 
   it('archives a multi-file bundle whole — side files ride along, nothing is deleted', async () => {
-    const service = boot()
+    const { service } = boot()
     await service.writeSkill({ name: 'bundle-with-refs', description: 'gone soon', body: 'steps' })
     // Hand-craft the multi-file shape the audit code treats as legal ("fix the path or ship the
     // file"): writeSkill only writes SKILL.md, so add the side file by hand.
@@ -142,7 +123,7 @@ describe('retireSkill (service)', () => {
   })
 
   it('rejects unknown names, invalid names, and double retirement', async () => {
-    const service = boot()
+    const { service } = boot()
     await service.writeSkill({ name: 'once-only', description: 'x', body: 'steps' })
 
     await expect(service.retireSkill('missing-skill')).rejects.toThrow('no learned skill')
@@ -152,7 +133,7 @@ describe('retireSkill (service)', () => {
   })
 
   it('reports the archive scale in the curation brief', async () => {
-    const service = boot()
+    const { service } = boot()
     // A fresh home: nothing retired, nothing snapshotted.
     expect(await service.curate()).toMatchObject({ counts: { retiredSkillBundles: 0, skillSnapshots: 0 } })
 
@@ -165,7 +146,7 @@ describe('retireSkill (service)', () => {
   })
 
   it('retires a flat-file skill to a flat archive copy', async () => {
-    const service = boot()
+    const { service } = boot()
     await service.ensureHome()
     const { writeFileSync } = await import('node:fs')
     writeFileSync(join(service.paths.skillsDir, 'flat-skill.md'), [

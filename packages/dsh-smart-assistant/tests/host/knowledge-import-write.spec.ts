@@ -3,23 +3,16 @@
  * minting a second one (the generated form carries a random suffix), and the provenance stamp names
  * the caller that actually wrote it. Both are what makes an imported corpus governable.
  */
-import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
+import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { Context } from '@deepseek-ai/cordis'
-import { afterEach, describe, expect, it } from 'vitest'
-import AssistantMemory from '../../src/index.ts'
+import { describe, expect, it } from 'vitest'
+import { memoryPool } from '../support/host-harness.ts'
 
-const dirs: string[] = []
-afterEach(() => {
-  for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true })
-})
+const boot = memoryPool('import-write-')
 
 describe('writePage with an explicit id', () => {
   it('keeps the id across re-imports, so a second run updates instead of duplicating', async () => {
-    const dir = mkdtempSync(join(tmpdir(), 'import-write-'))
-    dirs.push(dir)
-    const service = new AssistantMemory(new Context(), { dataDir: dir })
+    const { service, dataDir: dir } = boot()
     const page = {
       id: 'source-q3-sales-review-4afaab80',
       type: 'source',
@@ -42,9 +35,7 @@ describe('writePage with an explicit id', () => {
   })
 
   it('re-imports update content without rolling an approved page back to draft', async () => {
-    const dir = mkdtempSync(join(tmpdir(), 'import-write-'))
-    dirs.push(dir)
-    const service = new AssistantMemory(new Context(), { dataDir: dir })
+    const { service, dataDir: dir } = boot()
     const page = {
       id: 'source-q4-margin-review-8ba0be12',
       type: 'source',
