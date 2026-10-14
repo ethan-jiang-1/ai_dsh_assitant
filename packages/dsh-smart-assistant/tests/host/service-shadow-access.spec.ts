@@ -37,6 +37,19 @@ describe('service access through the cordis property proxy', () => {
     expect(ctx.assistantMemory.manualSnapshot()).toContain('# Your working folder — operating manual')
   })
 
+  it('lists active and archived research threads through the proxy', async () => {
+    const ctx = boot()
+    const opened = await ctx.assistantMemory.openThread({ question: 'the room proxy lists threads', why: 'verify the real service path' })
+    const active = await ctx.assistantMemory.listThreads()
+    expect(active.entries.map(thread => thread.id)).toContain(opened.id)
+    expect(active.archived.map(thread => thread.id)).not.toContain(opened.id)
+
+    await ctx.assistantMemory.dropThread(opened.id, 'the proxy listing contract is verified')
+    const closed = await ctx.assistantMemory.listThreads()
+    expect(closed.entries.map(thread => thread.id)).not.toContain(opened.id)
+    expect(closed.archived).toContainEqual(expect.objectContaining({ id: opened.id, status: 'dropped' }))
+  })
+
   it('serves the tool verbs through the proxy and the digest reflects writes', async () => {
     const ctx = boot()
     const saved = await ctx.assistantMemory.saveMemory({ text: 'the proxy path works', kind: 'fact' })

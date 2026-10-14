@@ -1,14 +1,14 @@
 /**
  * Research room of the home: unresolved questions and their threads (`research/`, archived as
- * `research/archive/`). Functions here are the moved bodies of the {@link AssistantMemory}
- * research methods; they take the host instance (the service itself or the cordis shadow overlay,
- * which forwards field access) so the class methods stay one-line delegates.
+ * `research/archive/`). Functions here implement {@link AssistantMemory}'s research methods;
+ * `listThreads` accepts only the room-listing operations it reads. Cordis may pass its forwarding
+ * shadow as the host, and the public class methods remain one-line delegates.
  *
  * @module
  */
 import type { AssistantMemory, RoomReadResult } from './index.ts'
 import { touchDigest } from './curate-digest.ts'
-import type { RoomEntry } from '../domain/home/room.ts'
+import type { Room, RoomEntry } from '../domain/home/room.ts'
 import {
   CLOSED_THREAD_STATUSES,
   newThreadId,
@@ -17,6 +17,11 @@ import {
   type ResearchThread,
 } from '../domain/research/thread.ts'
 import { scanLearnedSkills } from '../domain/skills/scan.ts'
+
+/** Read the research room's active and archived entries. */
+interface ResearchRoomReader {
+  readonly research: Pick<Room, 'list' | 'listArchived'>
+}
 
 /** Input for {@link AssistantMemory.openThread}. */
 export interface OpenThreadInput {
@@ -95,7 +100,7 @@ async function setThreadStatus(
  * @param host - The home service whose research room is read.
  * @returns Active threads, archived threads, and unreadable files.
  */
-export async function listThreads(host: AssistantMemory): Promise<RoomReadResult<ResearchThread> & { readonly archived: readonly ResearchThread[] }> {
+export async function listThreads(host: ResearchRoomReader): Promise<RoomReadResult<ResearchThread> & { readonly archived: readonly ResearchThread[] }> {
   const active = await host.research.list()
   const archived = await host.research.listArchived()
   return {
