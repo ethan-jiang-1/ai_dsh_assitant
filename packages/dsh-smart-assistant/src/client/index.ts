@@ -22,8 +22,8 @@
  * first-mile / desk-process (the operating desk's conversation arms: process/intake/
  * claim/wake bind & return judges) / projection-panel + projection-lifecycle +
  * projection-reader + projection-view + operating-projection (the desktop itself — the
- * read-only operating desk) — this entry owns the facade registration, the `apply`
- * seat wiring, and the dependency list.
+ * read-only operating desk) — this entry owns the facade registration, `apply` seat wiring,
+ * plugin-fiber effects, and the dependency list.
  *
  * @module dsh-smart-assistant/client
  */
@@ -502,25 +502,36 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // changed. The projection half is the K4 processing readback (2026-10-10, desk-process-e2e
     // probe): without it the receipt committed by the processing turn never re-enters the client,
     // judgeReturn stays on 'receipt-not-read-back', and the auto-return to the desk never fires.
+    // Room-data refresh also serves headless apply contexts, which may not expose effect. Keep
+    // their historical direct subscription; browser Client fibers own teardown when available.
     const store = ctx.sessions?.list as { getSnapshot: () => unknown, subscribe: (fn: () => void) => () => void } | undefined
     if (store !== undefined) {
-      let lastStamp = 0
-      let pending: ReturnType<typeof setTimeout> | undefined
-      store.subscribe(() => {
-        const state = store.getSnapshot() as { ids?: string[], byId?: Record<string, { updatedAt?: number }> }
-        const ids = state?.ids ?? []
-        const byId = state?.byId ?? {}
-        const newest = ids.reduce((max, id) => Math.max(max, Number(byId[id]?.updatedAt ?? 0)), 0)
-        if (newest === lastStamp) return
-        lastStamp = newest
-        if (pending !== undefined) clearTimeout(pending)
-        // R11: refresh every bound session's own desk; with no bound tab, walk the newest five.
-        pending = setTimeout(() => {
-          if (getDeskStore().boundSessions.size === 0) loadDesk()
-          for (const bound of getDeskStore().boundSessions) loadDeskFor(bound)
-          reader?.refresh()
-        }, 4000)
-      })
+      const installSessionRefresh = (): (() => void) => {
+        let lastStamp = 0
+        let pending: ReturnType<typeof setTimeout> | undefined
+        const unsubscribe = store.subscribe(() => {
+          const state = store.getSnapshot() as { ids?: string[], byId?: Record<string, { updatedAt?: number }> }
+          const ids = state?.ids ?? []
+          const byId = state?.byId ?? {}
+          const newest = ids.reduce((max, id) => Math.max(max, Number(byId[id]?.updatedAt ?? 0)), 0)
+          if (newest === lastStamp) return
+          lastStamp = newest
+          if (pending !== undefined) clearTimeout(pending)
+          // R11: refresh every bound session's own desk; with no bound tab, walk the newest five.
+          pending = setTimeout(() => {
+            pending = undefined
+            if (getDeskStore().boundSessions.size === 0) loadDesk()
+            for (const bound of getDeskStore().boundSessions) loadDeskFor(bound)
+            reader?.refresh()
+          }, 4000)
+        })
+        return () => {
+          unsubscribe()
+          if (pending !== undefined) clearTimeout(pending)
+        }
+      }
+      if (typeof ctx.effect === 'function') ctx.effect(installSessionRefresh, 'assistant-client: Session settle refresh')
+      else installSessionRefresh()
     }
 
     // The rooms live beside the conversation as right-sidebar tabs, each bound to the session

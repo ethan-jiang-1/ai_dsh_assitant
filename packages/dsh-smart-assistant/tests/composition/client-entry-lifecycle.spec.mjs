@@ -2,6 +2,7 @@
  * Built classic client entry + real Cordis Loader + renderer SlotRegistry lifecycle.
  * Requires `pnpm build`: evaluates lib/client/index.js through its page facade, never src.
  * Pins declaration-before-selection, one default per Client root, disposal, and HMR/remount.
+ * Also pins Session-list observer and settle-timer cleanup to the Loader-managed plugin fiber.
  * The slot owner declares only main/panellist; unrelated slots remain pending. The pinned
  * LayoutController and layout store drive selection; other services are inert external inputs.
  * No DOM, browser navigation, authenticated transport, or Session/business completion is asserted.
@@ -32,6 +33,8 @@ function page(scriptText) {
   const registrations = []
   const realm = createContext({
     console: { info() {}, warn() {}, error: console.error },
+    setTimeout,
+    clearTimeout,
     __ModuleLoader__: { load: registration => registrations.push(registration) },
   })
   return {
@@ -62,7 +65,7 @@ function layoutInstance() {
 }
 
 /** Genuine Loader/slots and layout action/store lifecycle; no rendered shell. */
-async function clientRoot(initialPanel = null) {
+async function clientRoot(initialPanel = null, sessions = {}, remote = {}) {
   const ctx = new Context()
   contexts.push(ctx)
   await ctx.plugin(Loader)
@@ -86,7 +89,7 @@ async function clientRoot(initialPanel = null) {
   ctx.provide('layout', layout)
   ctx.provide('sidebarRightTabs', { register: () => () => {} })
   ctx.provide('sidebarRight', {})
-  ctx.provide('sessions', {})
+  ctx.provide('sessions', { ...sessions })
   ctx.provide('workspaces', { list: { getSnapshot: () => ({ items: [] }), subscribe: () => () => {} } })
   ctx.provide('uiSession', {
     sessionStatus: { getSnapshot: () => new Map(), subscribe: () => () => {} },
@@ -99,7 +102,7 @@ async function clientRoot(initialPanel = null) {
   // declaration-before-selection, not session navigation or copy.
   ctx.provide('uiWorkspace', { openSession: () => {} })
   ctx.provide('locale', { register: () => () => {} })
-  ctx.provide('remote', { $mount: async () => null })
+  ctx.provide('remote', { $mount: async () => null, ...remote })
   for (const namespace of ['agentPresets', 'workspaceFiles', 'session']) {
     ctx.provide(`remote.${namespace}`, {})
   }
@@ -164,6 +167,42 @@ async function defaultLifecycle(scriptText) {
 }
 
 describe('built client default entry through Loader and real slots', () => {
+  it('unsubscribes the Session list and cancels its pending settle refresh when unloaded', async () => {
+    vi.useFakeTimers()
+    try {
+      let snapshot = { ids: [], byId: {} }
+      let notify
+      const unsubscribe = vi.fn()
+      const read = vi.fn(async () => ({ ok: false }))
+      const client = await clientRoot(null, {
+        list: {
+          getSnapshot: () => snapshot,
+          subscribe: listener => { notify = listener; return unsubscribe },
+        },
+      }, { workspaceFiles: { read } })
+      client.declareSeats()
+      await client.mount(page(builtScript).evaluate())
+
+      snapshot = { ids: ['session-1'], byId: { 'session-1': { updatedAt: 1, cwd: '.tmp/workspace' } } }
+      notify()
+      await vi.advanceTimersByTimeAsync(3999)
+      const pendingTimersBeforeDispose = vi.getTimerCount()
+      const readCallsBeforeSettle = read.mock.calls.length
+      await client.unmount()
+      const cleanup = { unsubscribed: unsubscribe.mock.calls.length, pendingTimers: vi.getTimerCount() }
+      await vi.advanceTimersByTimeAsync(4000)
+
+      expect({ pendingTimersBeforeDispose, readCallsBeforeSettle, cleanup, readCallsAfterDispose: read.mock.calls.length }).toEqual({
+        pendingTimersBeforeDispose: 1,
+        readCallsBeforeSettle: 0,
+        cleanup: { unsubscribed: 1, pendingTimers: 0 },
+        readCallsAfterDispose: 0,
+      })
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('defaults after main registration once per root and preserves manual navigation through remount/HMR', async () => {
     await defaultLifecycle(builtScript)
   })

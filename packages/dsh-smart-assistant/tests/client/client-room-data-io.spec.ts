@@ -6,6 +6,7 @@
  * Acceptance points:
  * - openBeside calls THROUGH the sidebarRight controller — a detached openTab loses the
  *   receiver (runtime-proven 2026-09-26).
+ * - The apply path keeps Session-list refresh working in a headless context without `ctx.effect`.
  * - A failed read surfaces as readError wherever the principal is (R6).
  * - An unowned flat slice serves anyone; the first targeted load claims it (R11 claim path).
  * - Two first loads racing for the unowned flat: only the newest sequence writes (claim race).
@@ -56,6 +57,7 @@ describe('desk io: the read paths', () => {
           subscribe: () => () => {},
         },
       },
+      effect: (install: () => () => void) => { install() },
     }
     const exports = materialize() as unknown as ClientExports
     exports.apply(ctx)
@@ -104,13 +106,38 @@ describe('per-session slice mechanics (R11, acceptance round 2026-09-29)', () =>
   const fakeCtx = (
     read: (sessionId: string) => Promise<unknown>,
     list: { getSnapshot: () => unknown, subscribe: (fn: () => void) => () => void },
+    withEffect = true,
   ): unknown => ({
     remote: { workspaceFiles: { read: (sessionId: string, _path: string, _options: unknown) => read(sessionId) } },
     sessions: { list },
+    ...(withEffect ? { effect: (install: () => () => void) => { install() } } : {}),
     slots: { inject: () => {} },
     sidebarRightTabs: { register: () => {} },
   })
   const inertList = { getSnapshot: () => ({ ids: [], byId: {} }), subscribe: () => () => {} }
+
+  it('keeps the headless Session refresh path when the context has no effect owner', async () => {
+    vi.useFakeTimers()
+    try {
+      let snapshot: { ids: string[], byId: Record<string, { updatedAt?: number, cwd?: string }> } = { ids: [], byId: {} }
+      const notified: Array<() => void> = []
+      const read = vi.fn(async () => ({ ok: false }))
+      const list = {
+        getSnapshot: () => snapshot,
+        subscribe: (notify: () => void) => { notified.push(notify); return () => {} },
+      }
+      const exports = materialize()
+      expect(() => exports.apply(fakeCtx(read, list, false))).not.toThrow()
+
+      snapshot = { ids: ['s1'], byId: { s1: { updatedAt: 1, cwd: '.tmp/ws' } } }
+      for (const notify of notified) notify()
+      await vi.advanceTimersByTimeAsync(4000)
+
+      expect(read).toHaveBeenCalledWith('s1')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
 
   it('an unowned flat slice serves anyone; the first targeted load claims it (R11 claim path)', async () => {
     const exports = materialize()
