@@ -1,13 +1,14 @@
 /**
  * Memory room of the home: durable records the agent keeps across sessions
- * (`memory/`, archived as `memory/archive/`). Functions here are the moved bodies of the
- * {@link AssistantMemory} memory methods; they take the host instance (the service itself or the
- * cordis shadow overlay, which forwards field access) so the class methods stay one-line delegates.
+ * (`memory/`, archived as `memory/archive/`). Functions here implement {@link AssistantMemory}'s
+ * memory methods; `listMemories` accepts only the room-listing operations it reads. Cordis may pass
+ * its forwarding shadow as the host, and the public class methods remain one-line delegates.
  *
  * @module
  */
 import type { AssistantMemory, RoomReadResult } from './index.ts'
 import { touchDigest } from './curate-digest.ts'
+import type { Room } from '../domain/home/room.ts'
 import {
   DEFAULT_IMPORTANCE,
   IMPORTANCE_RANGE,
@@ -19,7 +20,12 @@ import {
 } from '../domain/memory/record.ts'
 import { recallMemories, type RecallHit, type RecallQuery } from '../domain/memory/recall.ts'
 
-/** Input for {@link AssistantMemory.saveMemory}. */
+/** Read the memory room's active and archived entries. */
+interface MemoryRoomReader {
+  readonly memory: Pick<Room, 'list' | 'listArchived'>
+}
+
+/** Input for memory save. */
 export interface SaveMemoryInput {
   /** The claim: one sentence or two, phrased so it can be falsified later. */
   readonly text: string
@@ -39,10 +45,10 @@ export interface SaveMemoryInput {
 
 /**
  * List memory records, active and archived.
- * @param host - The home service whose memory room is read.
+ * @param host - The home service's active and archived memory listings.
  * @returns Active and archived records with the files that failed to parse.
  */
-export async function listMemories(host: AssistantMemory): Promise<RoomReadResult<MemoryRecord> & { readonly archived: readonly MemoryRecord[] }> {
+export async function listMemories(host: MemoryRoomReader): Promise<RoomReadResult<MemoryRecord> & { readonly archived: readonly MemoryRecord[] }> {
   const active = await host.memory.list()
   const archived = await host.memory.listArchived()
   return {

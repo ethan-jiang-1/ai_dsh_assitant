@@ -41,6 +41,7 @@ describe('service access through the cordis property proxy', () => {
     const ctx = boot()
     const saved = await ctx.assistantMemory.saveMemory({ text: 'the proxy path works', kind: 'fact' })
     expect(saved.id).toContain('the-proxy-path-works')
+    expect((await ctx.assistantMemory.listMemories()).entries.map(record => record.id)).toContain(saved.id)
 
     await ctx.assistantMemory.digest()
     expect(ctx.assistantMemory.digestSnapshot()).toContain('the proxy path works')

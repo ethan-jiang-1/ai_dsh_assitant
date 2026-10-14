@@ -13,9 +13,9 @@
  *
  * The class is a thin shell over the room modules beside it (`memory-room.ts`, `research-room.ts`,
  * `skills-room.ts`, `knowledge-room.ts`, `curate-digest.ts`, `self-turns.ts`): every method is a
- * one-line delegate onto a function that takes the host instance, so the class identity, public
- * method signatures, Config, and cordis augmentation stay in this one file. Method contracts
- * (JSDoc) live on the room functions they delegate to.
+ * one-line delegate, while helpers accept the host instance or only the capabilities they use.
+ * This keeps the class identity, public method signatures, Config, and cordis augmentation in this
+ * one file. Method contracts (JSDoc) live on the room functions they delegate to.
  *
  * @module dsh-smart-assistant
  */
