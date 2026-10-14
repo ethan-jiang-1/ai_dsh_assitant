@@ -1,44 +1,35 @@
 /** Versioned Web read projection, separate from ledger writes and operation receipts. */
-import type { ProjectionReceipt } from '../domain/operating/projection.ts'
+import type {
+  OperatingProjectionV2,
+  ProjectionEvidence,
+  ProjectionMatter,
+  ProjectionProposal,
+  ProjectionReceipt,
+} from '../domain/operating/projection.ts'
 
-export interface OperatingEvidence {
-  readonly id: string
-  readonly sessionId: string
-  readonly eventId?: string
-  readonly quote?: string
-  readonly note: string
-  readonly receivedAt?: string
-}
-export interface OperatingProposal {
-  readonly id: string
+/** Client accepts earlier v2 envelopes that omit the additive receipt timestamp. */
+export type OperatingEvidence = Omit<ProjectionEvidence, 'receivedAt'> & { readonly receivedAt?: ProjectionEvidence['receivedAt'] }
+
+/** Older envelopes may omit proposal provenance; kind stays open for forward-compatible labels. */
+export type OperatingProposal = Omit<ProjectionProposal, 'kind' | 'proposedAt' | 'source'> & {
   readonly kind: string
-  readonly status: 'pending' | 'confirmed' | 'rejected'
-  readonly proposedAt?: string
-  readonly source?: { readonly sessionId: string; readonly eventId?: string; readonly quote?: string }
-  readonly resolutionOperationId?: string
+  readonly proposedAt?: ProjectionProposal['proposedAt']
+  readonly source?: ProjectionProposal['source']
 }
-export interface OperatingMatter {
-  readonly id: string
-  readonly title: string
-  readonly status: 'active' | 'completed' | 'abandoned'
-  readonly summary: string
-  readonly responsible: string
-  readonly revision: number
-  readonly times: { readonly promisedDeadline?: string; readonly forecastAt?: string; readonly nextCheckpoint?: string; readonly completedAt?: string }
+
+export type OperatingMatter = Omit<ProjectionMatter, 'evidence' | 'proposals'> & {
   readonly evidence: readonly OperatingEvidence[]
   readonly proposals: readonly OperatingProposal[]
 }
 
 /** Client receipt view: additive v2 biography fields may be absent in earlier envelopes. */
-export type OperatingReceipt = Omit<ProjectionReceipt, 'kind'> & { readonly kind?: string }
+export type OperatingReceipt = Omit<ProjectionReceipt, 'kind'> & { readonly kind?: ProjectionReceipt['kind'] }
 
-export interface OperatingProjection {
+/** Parsed, normalized projection: envelope-only host fields are consumed and v1 gets fixed defaults. */
+export type OperatingProjection = Omit<OperatingProjectionV2, 'schemaVersion' | 'generatedAt' | 'reminders' | 'matters' | 'receipts'> & {
   readonly schemaVersion: 1 | 2
-  readonly ledgerId: string
-  readonly revision: number
   readonly matters: readonly OperatingMatter[]
   readonly receipts: readonly OperatingReceipt[]
-  readonly unclaimed: readonly { readonly id: string; readonly note: string; readonly sessionId: string }[]
   readonly fixture?: boolean
 }
 

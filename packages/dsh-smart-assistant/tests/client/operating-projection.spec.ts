@@ -1,11 +1,46 @@
-/** Wire JSON validation: fixed envelope, explicit identities, unique matters and traceable evidence. */
+/** Wire JSON validation: fixed envelope, identities, and traceable evidence; cross-layer Host renderer → Client parser contract. */
 import { describe, expect, it } from 'vitest'
 import { parseOperatingProjection, type OperatingProjection } from '../../src/client/operating-projection'
+import { applyOperation, EMPTY_LEDGER } from '../../src/domain/operating/ledger.ts'
+import { renderLedgerProjection } from '../../src/domain/operating/projection.ts'
 
 const empty = { schemaVersion: 1, ledgerId: 'ledger-a', revision: 7, matters: [] }
 const matter = { id: 'payment-a', title: '回款 A', status: 'active', summary: '等待核对', evidence: [{ id: 'source-a', sessionId: 'session-a', eventId: 'event-a', quote: '下周核对' }] }
 
 describe('operating projection wire parser', () => {
+  it('accepts the Host renderer envelope through the shared Client wire contract', () => {
+    const wire: OperatingProjection = renderLedgerProjection(EMPTY_LEDGER, 'ledger-a', '2026-10-10T11:00:00.000Z')
+    expect(parseOperatingProjection(wire)).toEqual({
+      schemaVersion: 2, ledgerId: 'ledger-a', revision: 0, matters: [], receipts: [], unclaimed: [],
+    })
+  })
+
+  it('accepts and preserves Host-rendered matter evidence, proposal provenance, and receipt biography', () => {
+    const created = applyOperation(EMPTY_LEDGER, {
+      kind: 'create', operationId: 'op-create', title: '回款 A', summary: '首笔材料',
+      source: { sessionId: 'session-a', quote: '下周核对' },
+    }, '2026-10-10T08:00:00.000Z')
+    const proposed = applyOperation(created.state, {
+      kind: 'propose', operationId: 'op-propose', matterId: created.receipt.matterId,
+      change: { kind: 'reschedule', promisedDeadline: '2026-10-20' },
+      source: { sessionId: 'session-b', quote: '客户推迟到 10/20' },
+    }, '2026-10-10T09:00:00.000Z')
+    const wire: OperatingProjection = renderLedgerProjection(proposed.state, 'ledger-a', '2026-10-10T11:00:00.000Z')
+    const parsed = parseOperatingProjection(wire)
+
+    expect(parsed.matters[0]?.evidence[0]).toEqual({
+      id: 'mat-m-1-1', sessionId: 'session-a', quote: '下周核对', note: '首笔材料', receivedAt: '2026-10-10T08:00:00.000Z',
+    })
+    expect(parsed.matters[0]?.proposals[0]).toEqual({
+      id: 'p-1', kind: 'reschedule', status: 'pending', proposedAt: '2026-10-10T09:00:00.000Z',
+      source: { sessionId: 'session-b', quote: '客户推迟到 10/20' },
+    })
+    expect(parsed.receipts).toEqual([
+      { operationId: 'op-create', matterId: 'm-1', sessionId: 'session-a', submittedAt: '2026-10-10T08:00:00.000Z', status: 'committed', revision: 1, kind: 'create', quote: '下周核对' },
+      { operationId: 'op-propose', matterId: 'm-1', sessionId: 'session-b', submittedAt: '2026-10-10T09:00:00.000Z', status: 'proposed', proposalId: 'p-1', kind: 'propose', quote: '客户推迟到 10/20' },
+    ])
+  })
+
   it('owns an immutable projection independent of mutable wire objects', () => {
     const input = { ...empty, matters: [{ ...matter, evidence: matter.evidence.map(item => ({ ...item })) }] }
     const parsed = parseOperatingProjection(input)

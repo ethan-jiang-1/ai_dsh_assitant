@@ -8,7 +8,7 @@
  * The reminders lane is a fixed empty placeholder until V4/V5 reminder coordination lands.
  */
 
-import type { LedgerSource, LedgerState, MatterRecord, MaterialRecord, OperationOutcome as OperationOutcomeWire } from './ledger.ts'
+import type { LedgerSource, LedgerState, MatterRecord, MaterialRecord, OperationOutcome as OperationOutcomeWire, ProposalRecord } from './ledger.ts'
 
 /** One read-only evidence entry; event positioning is a claim carried when present. */
 export interface ProjectionEvidence {
@@ -23,8 +23,8 @@ export interface ProjectionEvidence {
 /** One proposal on a matter, retained with its source and explicit resolution link. */
 export interface ProjectionProposal {
   readonly id: string
-  readonly kind: string
-  readonly status: string
+  readonly kind: ProposalRecord['change']['kind']
+  readonly status: ProposalRecord['status']
   readonly proposedAt: string
   readonly source: LedgerSource
   readonly resolutionOperationId?: string

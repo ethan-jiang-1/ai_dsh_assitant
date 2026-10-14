@@ -63,11 +63,14 @@
   不接受跨源 base 或重定向。
 - 代际与请求身份阻止刷新替换、断连或 dispose 后的迟到结果发布；dispose 撤销订阅并取消请求。
   最后成功 JSON 在断连/失败时保留并**标陈旧**；HTTP 缺失/认证/拒绝/损坏/超限分别进入状态，错误体不当数据。
-- 解析器收 **v1/v2 双信封**（`schemaVersion: 1|2`）：共同约束非空 `ledgerId`、非负安全整数 `revision`、
-  唯一事项 `id`、标题、`active/completed` 状态、summary 与 evidence 集合——每条证据须有唯一 id、
-  Session/event 定位和 quote；空证据表达未知，不推断来源存在；`fixture` 若提供必须为 boolean；
-  额外 envelope 字段不进入返回值；不兼容版本或畸形身份/证据抛错，**不覆盖**最后有效内容。
-  v2 的 reminders 通道是**恒空占位**（提醒协调落地前的诚实空态）。
+- 解析器收 v1/v2 双信封；共同要求非空 `ledgerId`、非负安全整数 `revision`、唯一事项 `id`，并在出现时要求 `fixture` 为 boolean。
+  v1 固定资料要求事项标题、`active/completed` 状态、summary 与 evidence；每条证据有唯一 id、Session/event 定位和 quote。
+  v2 要求事项负责人、正整数事项 revision、四种可选业务时间、唯一 evidence/proposal id 与合法提案状态；evidence 以
+  `id/sessionId/note` 为必填，event、quote、receivedAt 可选。空 evidence 表示没有已知依据，不推断来源存在。
+  v2 的 `proposedAt/source` 与回执 `kind/quote` 可省略，以兼容较早信封；存在时按字段校验。`reminders` 必须是空数组，
+  `generatedAt` 若出现必须为非空文本。v1 被提升为固定的 Client 事项视图（`responsible: ''`、`revision: 1`、
+  `note = quote`、空时间/提案/回执/待认领）；v2 的 envelope-only 字段不进入解析结果。
+  其它不兼容版本或畸形身份/证据抛错，**不覆盖**最后有效内容。
 - 生命周期绑定经主区 inject 的 `hooks.projection` 暴露为 `useProjection`：组件零网络/零订阅；
   fiber 卸载取消请求/撤销订阅，Slot 重挂复用该源。宽主区列表/详情双栏，窄容器单 pane；
   选择只保存在 Slot view store。`ready` = 下载已通过解析，**不**表示持久业务操作成功。
