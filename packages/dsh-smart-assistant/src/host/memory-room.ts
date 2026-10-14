@@ -25,6 +25,11 @@ interface MemoryRoomReader {
   readonly memory: Pick<Room, 'list' | 'listArchived'>
 }
 
+/** The memory listing plus the configured default recall limit. */
+interface MemoryRecallReader extends MemoryRoomReader {
+  readonly recallLimit: number
+}
+
 /** Input for memory save. */
 export interface SaveMemoryInput {
   /** The claim: one sentence or two, phrased so it can be falsified later. */
@@ -140,7 +145,7 @@ export async function forgetMemory(host: AssistantMemory, id: string): Promise<b
  * @param query - What to look for; `limit` defaults to the configured recall limit.
  * @returns Ranked hits with match reasons.
  */
-export async function recall(host: AssistantMemory, query: Omit<RecallQuery, 'limit'> & { readonly limit?: number }): Promise<readonly RecallHit[]> {
+export async function recall(host: MemoryRecallReader, query: Omit<RecallQuery, 'limit'> & { readonly limit?: number }): Promise<readonly RecallHit[]> {
   const listing = await listMemories(host)
   const now = new Date()
   return recallMemories(listing.entries, { ...query, limit: query.limit ?? host.recallLimit }, now)
