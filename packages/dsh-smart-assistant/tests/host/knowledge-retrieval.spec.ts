@@ -14,7 +14,7 @@ import { memoryPool } from '../support/host-harness.ts'
 import { renderDigest } from '../../src/domain/home/digest.ts'
 import { searchPages } from '../../src/domain/knowledge/search.ts'
 import type { RoomListing } from '../../src/domain/home/room.ts'
-import { listKnowledge } from '../../src/host/knowledge-room.ts'
+import { listKnowledge, readKnowledgePage, searchKnowledge } from '../../src/host/knowledge-room.ts'
 import type { KnowledgePage } from '../../src/domain/knowledge/page.ts'
 
 function page(overrides: Partial<KnowledgePage> & { id: string }): KnowledgePage {
@@ -88,6 +88,13 @@ describe('listKnowledge narrow reader', () => {
       links: ['staging-gate'],
     }])
     expect(result.failures).toEqual([listFailure])
+  })
+
+  it('searches and reads pages through the same knowledge-only reader', async () => {
+    await expect(searchKnowledge(narrowKnowledgeReader, { text: 'deploy' }))
+      .resolves.toMatchObject([{ page: { id: 'deploy-pipeline' } }])
+    await expect(readKnowledgePage(narrowKnowledgeReader, 'deploy-pipeline'))
+      .resolves.toMatchObject({ page: { id: 'deploy-pipeline' }, backlinks: [] })
   })
 })
 

@@ -178,7 +178,7 @@ export async function listKnowledge(host: KnowledgeRoomReader): Promise<RoomRead
  * @param query - Terms, required tags, and an optional limit.
  * @returns Ranked hits with match reasons.
  */
-export async function searchKnowledge(host: AssistantMemory, query: KnowledgeQuery): Promise<readonly { page: KnowledgePage, why: readonly string[] }[]> {
+export async function searchKnowledge(host: KnowledgeRoomReader, query: KnowledgeQuery): Promise<readonly { page: KnowledgePage, why: readonly string[] }[]> {
   const listing = await listKnowledge(host)
   return searchPages(listing.entries, query)
 }
@@ -191,7 +191,7 @@ export async function searchKnowledge(host: AssistantMemory, query: KnowledgeQue
  * @returns The page and the ids of pages linking to it, or `undefined` when the page does
  * not exist or does not parse.
  */
-export async function readKnowledgePage(host: AssistantMemory, id: string): Promise<{ page: KnowledgePage, backlinks: readonly string[] } | undefined> {
+export async function readKnowledgePage(host: KnowledgeRoomReader, id: string): Promise<{ page: KnowledgePage, backlinks: readonly string[] } | undefined> {
   const listing = await listKnowledge(host)
   const page = listing.entries.find(candidate => candidate.id === id)
   if (page === undefined) return undefined
