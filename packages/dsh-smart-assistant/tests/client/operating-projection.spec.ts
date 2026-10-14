@@ -1,6 +1,6 @@
 /** Wire JSON validation: fixed envelope, explicit identities, unique matters and traceable evidence. */
 import { describe, expect, it } from 'vitest'
-import { parseOperatingProjection } from '../../src/client/operating-projection'
+import { parseOperatingProjection, type OperatingProjection } from '../../src/client/operating-projection'
 
 const empty = { schemaVersion: 1, ledgerId: 'ledger-a', revision: 7, matters: [] }
 const matter = { id: 'payment-a', title: '回款 A', status: 'active', summary: '等待核对', evidence: [{ id: 'source-a', sessionId: 'session-a', eventId: 'event-a', quote: '下周核对' }] }
@@ -73,6 +73,23 @@ describe('v2 ledger-render envelope (K3 slice E)', () => {
     }])
     expect(parsed.receipts[0]).toEqual({ operationId: 'op-1', matterId: 'm-1', sessionId: 'session-a', submittedAt: '2026-10-10T08:00:00.000Z', status: 'committed', revision: 2 })
     expect(parsed.unclaimed).toEqual([{ id: 'u-1', note: '有人说款已付', sessionId: 'session-c' }])
+  })
+
+  it('keeps additive receipt semantics optional for earlier v2 envelopes', () => {
+    const receiptWithoutAdditions = {
+      operationId: 'op-1', matterId: 'm-1', sessionId: 'session-a', submittedAt: '2026-10-10T08:00:00.000Z', status: 'committed', revision: 2,
+    }
+    const typedLegacyReceipt: OperatingProjection['receipts'][number] = receiptWithoutAdditions
+    void typedLegacyReceipt
+
+    const parsed = parseOperatingProjection({ ...v2, receipts: [receiptWithoutAdditions] })
+    expect(parsed.receipts[0]).toEqual(receiptWithoutAdditions)
+
+    const receiptWithAdditions = { ...receiptWithoutAdditions, kind: 'create', quote: '本人委托' }
+    const typedCurrentReceipt: OperatingProjection['receipts'][number] = receiptWithAdditions
+    void typedCurrentReceipt
+    const parsedWithAdditions = parseOperatingProjection({ ...v2, receipts: [receiptWithAdditions] })
+    expect(parsedWithAdditions.receipts[0]).toEqual(receiptWithAdditions)
   })
 
   it('rejects note-less evidence, unknown statuses, and a non-empty reminders lane', () => {

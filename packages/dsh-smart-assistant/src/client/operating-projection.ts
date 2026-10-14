@@ -28,12 +28,16 @@ export interface OperatingMatter {
   readonly evidence: readonly OperatingEvidence[]
   readonly proposals: readonly OperatingProposal[]
 }
+
+/** Client receipt view: additive v2 biography fields may be absent in earlier envelopes. */
+export type OperatingReceipt = Omit<ProjectionReceipt, 'kind'> & { readonly kind?: string }
+
 export interface OperatingProjection {
   readonly schemaVersion: 1 | 2
   readonly ledgerId: string
   readonly revision: number
   readonly matters: readonly OperatingMatter[]
-  readonly receipts: readonly ProjectionReceipt[]
+  readonly receipts: readonly OperatingReceipt[]
   readonly unclaimed: readonly { readonly id: string; readonly note: string; readonly sessionId: string }[]
   readonly fixture?: boolean
 }
@@ -92,7 +96,7 @@ function matterV2(value: unknown): value is OperatingMatter {
     && Array.isArray(value.proposals) && value.proposals.every(proposal)
     && new Set(value.proposals.map(item => (item as { id: string }).id)).size === value.proposals.length
 }
-function receipt(value: unknown): value is ProjectionReceipt {
+function receipt(value: unknown): value is OperatingReceipt {
   return record(value) && text(value.operationId) && typeof value.matterId === 'string' && text(value.sessionId) && text(value.submittedAt) && text(value.status)
     && (value.revision === undefined || revision(value.revision))
     && (value.unclaimedId === undefined || text(value.unclaimedId))
