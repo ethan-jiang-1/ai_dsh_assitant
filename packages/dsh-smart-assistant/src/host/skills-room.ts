@@ -12,6 +12,7 @@ import { dirname, join } from 'node:path'
 import type { AssistantMemory } from './index.ts'
 import { touchDigest } from './curate-digest.ts'
 import type { CurationFinding } from '../domain/home/health.ts'
+import type { Room } from '../domain/home/room.ts'
 import { atomicWriteFile } from '../domain/home/atomic-write.ts'
 import { parseFrontmatterDocument, renderFrontmatterDocument } from '../domain/home/frontmatter.ts'
 import { scanLearnedSkills } from '../domain/skills/scan.ts'
@@ -33,12 +34,17 @@ import {
 } from '../domain/skills/usage.ts'
 import type { RoomReadResult } from './index.ts'
 
+/** Read only the skill proposal inbox entries and failures. */
+interface ProposalRoomReader {
+  readonly proposals: Pick<Room, 'list'>
+}
+
 /**
  * List skill proposals.
  * @param host - The home service whose proposal inbox is read.
  * @returns Parsed proposals and the files that failed to parse.
  */
-export async function listProposals(host: AssistantMemory): Promise<RoomReadResult<SkillProposal>> {
+export async function listProposals(host: ProposalRoomReader): Promise<RoomReadResult<SkillProposal>> {
   const listing = await host.proposals.list()
   return {
     entries: listing.entries

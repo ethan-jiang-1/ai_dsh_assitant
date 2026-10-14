@@ -9,6 +9,54 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { memoryPool } from '../support/host-harness.ts'
 import { proposalFromEntry, proposalToDocument, renderProposalPrompt, validateProposalData, type SkillProposal } from '../../src/domain/skills/proposal.ts'
+import type { RoomListing } from '../../src/domain/home/room.ts'
+import { listProposals } from '../../src/host/skills-room.ts'
+
+const listedProposalEntry: RoomListing['entries'][number] = {
+  id: 'staging-reset',
+  path: '/home/skills/proposals/staging-reset.md',
+  data: {
+    description: 'how to reset staging safely',
+    status: 'proposed',
+    revision: 1,
+    created: '2026-09-24T00:00:00.000Z',
+    updated: '2026-09-24T00:00:00.000Z',
+  },
+  body: 'Stop the workers first.',
+}
+const invalidProposalEntry: RoomListing['entries'][number] = {
+  id: 'invalid-proposal',
+  path: '/home/skills/proposals/invalid-proposal.md',
+  data: {},
+  body: 'Missing required fields.',
+}
+const proposalReadFailure: RoomListing['failures'][number] = {
+  path: '/home/skills/proposals/broken.md',
+  reason: 'no frontmatter',
+}
+const proposalListing: RoomListing = {
+  entries: [listedProposalEntry, invalidProposalEntry],
+  failures: [proposalReadFailure],
+}
+const narrowProposalReader = {
+  proposals: { list: async (): Promise<RoomListing> => proposalListing },
+} satisfies Parameters<typeof listProposals>[0]
+
+describe('listProposals narrow reader', () => {
+  it('maps valid proposals, filters invalid entries, and preserves Room listing failures', async () => {
+    const inbox = await listProposals(narrowProposalReader)
+    expect(inbox.entries).toEqual([{
+      id: 'staging-reset',
+      status: 'proposed',
+      revision: 1,
+      description: 'how to reset staging safely',
+      created: '2026-09-24T00:00:00.000Z',
+      updated: '2026-09-24T00:00:00.000Z',
+      body: 'Stop the workers first.',
+    }])
+    expect(inbox.failures).toEqual([proposalReadFailure])
+  })
+})
 
 describe('proposal vocabulary (pure core)', () => {
   it('validates the required shape and renders the proposal slot prompt', () => {
