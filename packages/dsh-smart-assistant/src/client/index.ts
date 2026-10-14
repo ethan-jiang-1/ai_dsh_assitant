@@ -21,7 +21,8 @@
  * dom-utils (row + panel chrome) / desk-view-actions (deferred activity mode intent) /
  * brand / commands / room-tabs / panels / dashboard /
  * first-mile / desk-process (the operating desk's conversation arms: process/intake/
- * claim/wake bind & return judges) / projection-panel + projection-lifecycle +
+ * claim/wake bind & return judges) / desk-process-lifecycle (settlement refresh edge owner) /
+ * projection-panel + projection-lifecycle +
  * projection-reader + projection-view + operating-projection (the desktop itself — the
  * read-only operating desk) — this entry owns the facade registration, `apply` seat wiring,
  * plugin-fiber effects, and the dependency list.
@@ -51,6 +52,7 @@ import type { ProjectionDownload } from './projection-reader'
 import type { OperatingProjection } from './operating-projection'
 import { createProjectionViewStore } from './projection-view'
 import { bindClaimPath, bindIntakePath, bindProcessPath, bindWakePath, canProcess, claimContextMessage, judgeClaimReturn, judgeIntakeReturn, judgeReturn, judgeWakeReturn, processingContextMessage, resumeContextMessage, wakeContextMessage, type DeskPath } from './desk-process'
+import { createSettleRefreshObserver } from './desk-process-lifecycle'
 import { en as firstMileEn, zh as firstMileZh } from './locales'
 
 /** Slots this face occupies (single-occupant, root-scope, declared by the sidebar). */
@@ -421,17 +423,13 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // processing session is the real settlement signal (the same store the stop button reads):
     // pull the projection on each settle so the receipt this turn committed enters the client
     // and judgeReturn can decide the auto-return (probed red→green, desk-process-e2e, 2026-10-10).
-    let settlePathKey: string | undefined
-    let lastRunning: boolean | undefined
+    const observeSettle = createSettleRefreshObserver(() => reader?.refresh())
     const refreshOnSettle = (): void => {
       const path = deskPath?.getSnapshot()
-      if (path === undefined) { settlePathKey = undefined; lastRunning = undefined; return }
-      const key = `${path.sessionId}@${path.boundAt}`
-      if (key !== settlePathKey) { settlePathKey = key; lastRunning = undefined }
-      const running = ctx.uiSession?.sessionStatus.getSnapshot().get(path.sessionId)?.running
-      if (running === lastRunning) return
-      lastRunning = running
-      if (running === false) reader?.refresh()
+      const running = path === undefined
+        ? undefined
+        : ctx.uiSession?.sessionStatus.getSnapshot().get(path.sessionId)?.running
+      observeSettle(path, running)
     }
     // Subscriptions ride the browser-only path: headless client contexts carry no `effect`
     // (the reader mount follows the same boundary).
