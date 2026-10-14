@@ -20,6 +20,7 @@ import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { agentsMdStabilityProblems, backtickedRepoPathProblems, backlogGraduationProblems, backlogLivenessProblems, clientScriptSafetyProblems, commandAliasProblems, compositionRowProblems, configParseProblems, crossFileSectionProblems, dependencyPoseProblems, devDrawerCoverageProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, GRADUATED_STATUS, implementedAlternativesProblems, identityNameProblems, languageGuardProblems, markdownCorpusFromTracked, notesNamingProblems, notePointerProblems, notesStateProblems, notesTopLevelProblems, pinProblems, machineLocalPathProblems, packageSubpathProblems, playbookFrontmatterProblems, projectReferenceMatches, relativeLinkProblems, researchSubdirProblems, scratchPathProblems, skillFrontmatterProblems, startPathProblems, testAssetNamingProblems, textHygieneProblems, vendorClientFreshnessProblems } from './verify-checks.mjs'
 import * as gateCores from './verify-checks.mjs'
+import { runChecks } from './run-gates.mjs'
 import { pinnedTagFrom } from '../maintenance/sync-bookkeeping.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
@@ -549,23 +550,4 @@ check('commit safety: residue and credentials are ignored', () => {
 
 // ── run ─────────────────────────────────────────────────────────────────────────────────────────
 
-let failed = 0
-for (const { name, run } of checks) {
-  let problems
-  try {
-    problems = run()
-  } catch (error) {
-    problems = [`check threw: ${error instanceof Error ? error.message : String(error)}`]
-  }
-  if (problems.length === 0) {
-    console.log(`  ok   ${name}`)
-  } else {
-    failed += 1
-    console.log(`  FAIL ${name}`)
-    for (const problem of problems) console.log(`         ${problem}`)
-  }
-}
-
-console.log('')
-console.log(failed === 0 ? `verify: ${checks.length} checks passed` : `verify: ${failed} of ${checks.length} checks failed`)
-process.exit(failed === 0 ? 0 : 1)
+process.exit(runChecks(checks, line => console.log(line)))

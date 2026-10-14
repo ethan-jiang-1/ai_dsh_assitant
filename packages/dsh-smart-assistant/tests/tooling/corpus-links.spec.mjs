@@ -67,6 +67,8 @@ describe('verify relative-link corpus wiring', () => {
     writeFileSync(join(scripts, 'verify.mjs'), readFileSync(join(import.meta.dirname, '../../../../scripts/checks/verify.mjs'), 'utf8'))
     const core = new URL('../../../../scripts/checks/verify-checks.mjs', import.meta.url).href
     writeFileSync(join(scripts, 'verify-checks.mjs'), `export * from ${JSON.stringify(core)}\n`)
+    const runner = new URL('../../../../scripts/checks/run-gates.mjs', import.meta.url).href
+    writeFileSync(join(scripts, 'run-gates.mjs'), `export * from ${JSON.stringify(runner)}\n`)
     // The runner also reads the pin bookkeeping's parse (pinnedTagFrom) — stage that stub at
     // its real depth too, or the copied verify.mjs dies on import and proves nothing.
     const bookkeeping = new URL('../../../../scripts/maintenance/sync-bookkeeping.mjs', import.meta.url).href
@@ -124,6 +126,8 @@ describe('verify machine-local-path corpus wiring', () => {
     writeFileSync(join(scripts, 'verify.mjs'), readFileSync(join(import.meta.dirname, '../../../../scripts/checks/verify.mjs'), 'utf8'))
     const core = new URL('../../../../scripts/checks/verify-checks.mjs', import.meta.url).href
     writeFileSync(join(scripts, 'verify-checks.mjs'), `export * from ${JSON.stringify(core)}\n`)
+    const runner = new URL('../../../../scripts/checks/run-gates.mjs', import.meta.url).href
+    writeFileSync(join(scripts, 'run-gates.mjs'), `export * from ${JSON.stringify(runner)}\n`)
     // The runner also reads the pin bookkeeping's parse (pinnedTagFrom) — stage that stub at
     // its real depth too, or the copied verify.mjs dies on import and proves nothing.
     const bookkeeping = new URL('../../../../scripts/maintenance/sync-bookkeeping.mjs', import.meta.url).href
@@ -186,6 +190,8 @@ describe('verify scratch-path corpus wiring', () => {
     writeFileSync(join(scripts, 'verify.mjs'), readFileSync(join(import.meta.dirname, '../../../../scripts/checks/verify.mjs'), 'utf8'))
     const core = new URL('../../../../scripts/checks/verify-checks.mjs', import.meta.url).href
     writeFileSync(join(scripts, 'verify-checks.mjs'), `export * from ${JSON.stringify(core)}\n`)
+    const runner = new URL('../../../../scripts/checks/run-gates.mjs', import.meta.url).href
+    writeFileSync(join(scripts, 'run-gates.mjs'), `export * from ${JSON.stringify(runner)}\n`)
     // The runner also reads the pin bookkeeping's parse (pinnedTagFrom) — stage that stub at
     // its real depth too, or the copied verify.mjs dies on import and proves nothing.
     const bookkeeping = new URL('../../../../scripts/maintenance/sync-bookkeeping.mjs', import.meta.url).href
