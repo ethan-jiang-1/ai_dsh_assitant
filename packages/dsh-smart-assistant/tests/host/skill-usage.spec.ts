@@ -5,11 +5,13 @@
  * the tools/result subscription feeds, and the service's record/read behavior.
  */
 
-import { readFileSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { Context } from '@deepseek-ai/cordis'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import AssistantMemory from '../../src/index.ts'
+import { recordSkillLoad as recordSkillLoadForHome } from '../../src/host/skills-room.ts'
 import { dirPool } from '../support/host-harness.ts'
 import {
   parseSkillUsage,
@@ -23,6 +25,11 @@ import {
 } from '../../src/domain/skills/usage.ts'
 
 const NOW = new Date('2026-09-24T12:00:00.000Z')
+const repoTmp = fileURLToPath(new URL('../../../../.tmp/', import.meta.url))
+const capabilityDirs: string[] = []
+afterEach(() => {
+  for (const dir of capabilityDirs.splice(0)) rmSync(dir, { recursive: true, force: true })
+})
 
 describe('skill usage ledger (pure core)', () => {
   it('roundtrips render → parse with sorted names and stable text', () => {
@@ -88,6 +95,25 @@ describe('skill usage ledger (pure core)', () => {
 
 describe('skill usage ledger (service)', () => {
   const bootDir = dirPool('assistant-usage-')
+
+  it('records through only the ledger path and warning capability', async () => {
+    mkdirSync(repoTmp, { recursive: true })
+    const dir = mkdtempSync(join(repoTmp, 'assistant-usage-capability-'))
+    capabilityDirs.push(dir)
+    const skillUsageFile = join(dir, 'skill-usage.json')
+    writeFileSync(skillUsageFile, '{ not a ledger', 'utf8')
+    const warnings: string[] = []
+    const entry = await recordSkillLoadForHome({
+      paths: { skillUsageFile },
+      ctx: { logger: { warn: (message: string) => warnings.push(message) } },
+    }, 'through-capability')
+
+    expect(entry).toMatchObject({ count: 1, lastUsedAt: expect.any(String) })
+    expect(JSON.parse(readFileSync(skillUsageFile, 'utf8'))).toMatchObject({
+      usage: { 'through-capability': { count: 1 } },
+    })
+    expect(warnings).toEqual(['skill-usage ledger unreadable at ' + skillUsageFile + ' (not a valid skill-usage ledger (version or entries wrong)) — counts reset'])
+  })
 
   it('records loads durably across service instances and surfaces them in curate', async () => {
     const dir = bootDir()

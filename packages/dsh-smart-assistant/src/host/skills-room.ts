@@ -9,6 +9,7 @@
  */
 import { mkdir, readFile, rename, rm, stat } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
+import type { Context } from '@deepseek-ai/cordis'
 import type { AssistantMemory } from './index.ts'
 import { touchDigest } from './curate-digest.ts'
 import type { CurationFinding } from '../domain/home/health.ts'
@@ -43,6 +44,12 @@ interface LearnedSkillsReader {
 /** Read only the skill proposal inbox entries and failures. */
 interface ProposalRoomReader {
   readonly proposals: Pick<Room, 'list'>
+}
+
+/** Read only the ledger path and warning logger needed to record a successful load. */
+interface SkillUsageWriter {
+  readonly paths: Pick<HomePaths, 'skillUsageFile'>
+  readonly ctx: { readonly logger: Pick<Context['logger'], 'warn'> }
 }
 
 /**
@@ -133,12 +140,12 @@ export async function landSkill(host: AssistantMemory, name: string, audit: Appr
  * Record one successful `skill`-tool load into the home's usage ledger. The learn module's
  * `tools/result` subscription calls this for every load in a session running the preset;
  * counts are advisory (last writer wins on a concurrent write, a deleted file resets to zero).
- * @param host - The home service whose ledger is written.
+ * @param host - The home service's ledger path and warning logger.
  * @param name - Skill name; must satisfy the skill-name grammar.
  * @returns The ledger entry after the increment.
  * @throws when the name is not a valid skill name.
  */
-export async function recordSkillLoad(host: AssistantMemory, name: string): Promise<SkillUsageEntry> {
+export async function recordSkillLoad(host: SkillUsageWriter, name: string): Promise<SkillUsageEntry> {
   if (!isSkillName(name)) throw new Error(`"${name}" is not a valid skill name`)
   const now = new Date()
   const read = await readSkillUsage(host.paths.skillUsageFile)
