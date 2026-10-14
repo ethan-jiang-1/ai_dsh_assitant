@@ -18,7 +18,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { agentsMdStabilityProblems, backlogGraduationProblems, backlogLivenessProblems, clientScriptSafetyProblems, commandAliasProblems, compositionRowProblems, configParseProblems, dependencyPoseProblems, devDrawerCoverageProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, GRADUATED_STATUS, implementedAlternativesProblems, identityNameProblems, languageGuardProblems, markdownCorpusFromTracked, notesNamingProblems, notePointerProblems, notesStateProblems, notesTopLevelProblems, pinProblems, machineLocalPathProblems, packageSubpathProblems, playbookFrontmatterProblems, projectReferenceMatches, relativeLinkProblems, researchSubdirProblems, scratchPathProblems, skillFrontmatterProblems, startPathProblems, testAssetNamingProblems, textHygieneProblems, vendorClientFreshnessProblems } from './verify-checks.mjs'
+import { agentsMdStabilityProblems, backtickedRepoPathProblems, backlogGraduationProblems, backlogLivenessProblems, clientScriptSafetyProblems, commandAliasProblems, compositionRowProblems, configParseProblems, crossFileSectionProblems, dependencyPoseProblems, devDrawerCoverageProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, GRADUATED_STATUS, implementedAlternativesProblems, identityNameProblems, languageGuardProblems, markdownCorpusFromTracked, notesNamingProblems, notePointerProblems, notesStateProblems, notesTopLevelProblems, pinProblems, machineLocalPathProblems, packageSubpathProblems, playbookFrontmatterProblems, projectReferenceMatches, relativeLinkProblems, researchSubdirProblems, scratchPathProblems, skillFrontmatterProblems, startPathProblems, testAssetNamingProblems, textHygieneProblems, vendorClientFreshnessProblems } from './verify-checks.mjs'
 import * as gateCores from './verify-checks.mjs'
 import { pinnedTagFrom } from '../maintenance/sync-bookkeeping.mjs'
 
@@ -413,32 +413,9 @@ check('contract: skill files carry valid frontmatter and match their directory',
 // ── reference integrity ─────────────────────────────────────────────────────────────────────────
 //
 // Markdown is this repo's routing surface: AGENTS.md and docs/ point at files and sections the
-// reader is meant to reach, so a pointer naming a moved file or a vanished section is a dead route
-// the gate should catch. Scope is deliberately narrow (the honest line between what this catches
-// and what stays probe territory is registered in the absorb note):
-//   · paths — backticked tokens whose first segment is a repo top-level directory, plus a small
-//     allowlist of root/package basenames. External material (URLs, absolute paths, $VARS, globs)
-//     and home-internal bare names (HOME.md, SKILL.md) are out of scope; dev/harness-home is
-//     runtime residue created by dev/env/setup.sh and exempt.
-//   · relative markdown links — `[text](path)` targets that are relative and path-shaped must
-//     resolve to an existing file (standard markdown semantics: relative to the linking file).
-//     Anchors/query strings are stripped but NOT validated (heading slugs are out of scope), and
-//     prose placeholders (`(url)`, `(…)`) are out of scope by the path-shape rule. Fixtures pin
-//     both sides: scripts/checks/gates/<family>.mjs ↔ tests/tooling/<family>.spec.mjs (same name).
-//   · sections — cross-file references only ("`docs/x.md` §三" / "x.md 第三节"). A trailing
-//     「anchor」 must appear in the target heading, which is the branch that catches retargeted
-//     numbers, not just removed ones. Same-file §N and pointers living in code comments are out
-//     of scope: their staleness is semantic, which is audit/probe territory.
-//   · absolute paths — contract docs (AGENTS.md, README.md, docs/) must not cite machine-local
-//     absolute paths; notes/ is the registered home for external provenance.
-
-const CHINESE_NUMERALS = '一二三四五六七八九十'
-const TOP_LEVEL_DIRECTORIES = new Set(['docs', 'notes', 'packages', 'scripts', 'vendor', 'dev', 'snapshots'])
-const KNOWN_ROOT_BASENAMES = new Set([
-  'AGENTS.md', 'README.md', 'CLAUDE.md', 'package.json', 'pnpm-lock.yaml',
-  'pnpm-workspace.yaml', 'tsconfig.base.json', 'tsconfig.json', 'tsconfig.tsx.json',
-])
-const KNOWN_PACKAGE_BASENAMES = new Set(['cordis.patch.yml'])
+// reader is meant to reach. Gate cores own parsing and diagnostics; this runner owns the tracked
+// corpus and exclusions, so rule scope remains explicit where the repository selects its inputs.
+// Relative links resolve against their source file. The corpus excludes the frozen _archive pool.
 
 // The corpus is every tracked markdown file (minus the frozen `_archive` pool), not a remembered
 // list: the 2026-10-10 audit found both live broken links in files the previous hand-picked
@@ -448,35 +425,14 @@ const markdownCorpus = markdownCorpusFromTracked(
   repoRoot,
 )
 
-/** Resolve a backticked token to a repo path it may legitimately name, or null when out of scope. */
-function resolveMarkdownPathReference(token) {
-  if (token.includes(' ') || /[*<>~$@:'"()]/.test(token)) return null
-  if (token.includes('…') || token.includes('...')) return null // abbreviated paths, same class as globs
-  if (token.startsWith('/') || token.startsWith('.')) return null
-  if (token === 'dev/harness-home' || token.startsWith('dev/harness-home/')) return null
-  const [firstSegment] = token.split('/')
-  if (token.includes('/')) {
-    if (!TOP_LEVEL_DIRECTORIES.has(firstSegment)) return null
-    return join(repoRoot, token)
-  }
-  if (KNOWN_ROOT_BASENAMES.has(token)) return join(repoRoot, token)
-  if (KNOWN_PACKAGE_BASENAMES.has(token)) return join(packageDir, token)
-  return null
-}
-
 check('links: backticked repo paths in markdown exist', () => {
-  const problems = []
   const vendorPresent = exists(join(vendorDsh, 'packages', 'core', 'tools', 'src', 'index.ts'))
-  for (const file of markdownCorpus) {
-    const where = relative(repoRoot, file)
-    for (const match of read(file).matchAll(/`([^`\n]+)`/g)) {
-      const target = resolveMarkdownPathReference(match[1])
-      if (target === null) continue
-      if (!vendorPresent && target.startsWith(`${vendorDsh}/`)) continue
-      if (!exists(target)) problems.push(`${where} references \`${match[1]}\`, which does not exist`)
-    }
-  }
-  return problems
+  return backtickedRepoPathProblems({
+    repoRoot,
+    packageDir,
+    corpus: markdownCorpus.map(file => ({ file, where: relative(repoRoot, file) })),
+    vendorPresent,
+  })
 })
 
 // Active deliberation needs resolving routes too; frozen evidence under _archive keeps its
@@ -514,29 +470,8 @@ check('notes: note-card pointers resolve and are linked inside notes/', () =>
 check('test assets: only admitted shapes in the tests tree, scene contracts beside web-face fixtures', () =>
   testAssetNamingProblems(repoRoot))
 
-check('links: cross-file section references name a real section', () => {
-  const problems = []
-  const reference = new RegExp(
-    '`?([\\w./-]+\\.md)`?\\s*(?:§|第)([' + CHINESE_NUMERALS + ']+)(?:节)?(?:「([^」]+)」)?',
-    'g',
-  )
-  for (const file of markdownCorpus) {
-    const where = relative(repoRoot, file)
-    for (const occurrence of read(file).matchAll(reference)) {
-      const [, referenced, numeral, anchor] = occurrence
-      const target = resolve(repoRoot, referenced)
-      if (!exists(target)) continue // the path check owns missing-file reports
-      const headings = [...read(target).matchAll(new RegExp(`^#{1,3}\\s*${numeral}、.*$`, 'gm'))]
-        .map(heading => heading[0].replace(/^#+\s*/, ''))
-      if (headings.length === 0) {
-        problems.push(`${where} references ${referenced} §${numeral}, which has no such section`)
-      } else if (anchor !== undefined && !headings.some(heading => heading.includes(anchor))) {
-        problems.push(`${where} anchors ${referenced} §${numeral} on 「${anchor}」, but the section is "${headings[0]}"`)
-      }
-    }
-  }
-  return problems
-})
+check('links: cross-file section references name a real section', () =>
+  crossFileSectionProblems({ repoRoot, corpus: markdownCorpus.map(file => ({ file, where: relative(repoRoot, file) })) }))
 
 check('links: contract docs cite no machine-local absolute paths', () => {
   // The active deliberation space routes readers the same way the contract docs do, so it is held

@@ -1,7 +1,8 @@
 /**
- * Fixtures for the tracked-markdown-corpus cores
- * (scripts/checks/gates/corpus-links.mjs), including the three 'real runner' wiring
+ * Fixtures for the tracked-markdown corpus gate cores, including three 'real runner' wiring
  * fixtures that drive the actual verify.mjs over a throwaway staged tree.
+ * Acceptance points: repo-path scope and vendor-absence handling, relative-link resolution, and
+ * cross-file numbered sections with optional heading anchors.
  *
  * Plain .mjs on purpose: vitest runs it, `tsc -p tsconfig.test.json` does not type-check it
  * (same contract as the other tooling specs).
@@ -9,13 +10,15 @@
 import { spawnSync } from 'node:child_process'
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { dirname, join } from 'node:path'
+import { join } from 'node:path'
 import { describe, expect, it, afterEach } from 'vitest'
 import {
+  backtickedRepoPathProblems,
+  crossFileSectionProblems,
   markdownCorpusFromTracked,
   notePointerProblems,
   relativeLinkProblems,
-} from '../../../../scripts/checks/gates/corpus-links.mjs'
+} from '../../../../scripts/checks/verify-checks.mjs'
 import { temp, disposeTempDirs } from './verify-gates-harness.mjs'
 
 afterEach(disposeTempDirs)
@@ -241,6 +244,59 @@ describe('verify scratch-path corpus wiring', () => {
     writeFileSync(literalUser, "const dir = '.tmp/fixture-scratch'\n")
     writeFileSync(shellUser, 'home=$(mktemp -d "$PWD/.tmp/home-XXXXXX")\n')
     expect(run().stdout).toContain(`ok   ${gate}`)
+  })
+})
+
+describe('backtickedRepoPathProblems', () => {
+  it('preserves path scope, known basenames, and optional-vendor behavior', () => {
+    const root = temp('backticked-paths-')
+    mkdirSync(join(root, 'docs'), { recursive: true })
+    const packageDir = join(root, 'packages', 'dsh-smart-assistant')
+    mkdirSync(packageDir, { recursive: true })
+    writeFileSync(join(root, 'README.md'), '# Root\n', 'utf8')
+    writeFileSync(join(packageDir, 'cordis.patch.yml'), 'patch\n', 'utf8')
+    writeFileSync(join(root, 'docs', 'guide.md'), [
+      '`README.md`', '`cordis.patch.yml`', '`docs/existing.md`',
+      '`docs/missing.md`', '`vendor/dsh/packages/core/tools/src/missing.ts`',
+      '`HOME.md`', '`SKILL.md`', '`/absolute/path.md`', '`https://example.test/docs/guide.md`',
+      '`$HOME/docs/guide.md`', '`docs/*.md`', '`docs/…/guide.md`', '`docs/.../guide.md`',
+      '`./docs/existing.md`', '`dev/harness-home/sessions/x.jsonl`', '`docs/with space.md`',
+    ].join('\n'), 'utf8')
+    writeFileSync(join(root, 'docs', 'existing.md'), '# Existing\n', 'utf8')
+
+    const corpus = [{ file: join(root, 'docs', 'guide.md'), where: 'docs/guide.md' }]
+    expect(backtickedRepoPathProblems({ repoRoot: root, packageDir, corpus, vendorPresent: false }))
+      .toEqual(['docs/guide.md references `docs/missing.md`, which does not exist'])
+    expect(backtickedRepoPathProblems({ repoRoot: root, packageDir, corpus, vendorPresent: true }))
+      .toEqual([
+        'docs/guide.md references `docs/missing.md`, which does not exist',
+        'docs/guide.md references `vendor/dsh/packages/core/tools/src/missing.ts`, which does not exist',
+      ])
+  })
+})
+
+describe('crossFileSectionProblems', () => {
+  it('checks numbered sections and optional heading anchors in other markdown files', () => {
+    const root = temp('sections-')
+    mkdirSync(join(root, 'docs'), { recursive: true })
+    const source = join(root, 'README.md')
+    const target = join(root, 'docs', 'guide.md')
+    writeFileSync(source, [
+      '`docs/guide.md` §二',
+      '`docs/guide.md` §二「现行契约」',
+      '`docs/guide.md` §二「错误锚点」',
+      'docs/guide.md 第四节',
+      '`docs/guide.md` §三',
+      '`docs/missing.md` §一',
+      '同文件 §九不在跨文件检查范围。',
+    ].join('\n'), 'utf8')
+    writeFileSync(target, '# 一、开篇\n## 二、现行契约\n### 四、扩展入口\n', 'utf8')
+
+    expect(crossFileSectionProblems({ repoRoot: root, corpus: [{ file: source, where: 'README.md' }] }))
+      .toEqual([
+        'README.md anchors docs/guide.md §二 on 「错误锚点」, but the section is "二、现行契约"',
+        'README.md references docs/guide.md §三, which has no such section',
+      ])
   })
 })
 

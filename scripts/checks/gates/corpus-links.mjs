@@ -1,10 +1,91 @@
 /**
- * Gate cores over the tracked markdown corpus: relative links, machine-local
- * absolute paths, scratch-path confinement, corpus shape, and note-card pointers.
+ * Gate cores over the tracked markdown corpus: backticked paths, relative links, section
+ * references, machine-local absolute paths, scratch-path confinement, corpus shape, and note-card pointers.
  */
 import { existsSync } from 'node:fs'
 import { dirname, join, relative, resolve } from 'node:path'
 import { read, COMMENT_LINE } from './shared.mjs'
+
+// ── backticked repo paths ─────────────────────────────────────────────────────────────────────────
+
+// Only repo-shaped directory paths and an explicit basename allowlist are checked: backticks also
+// hold examples, home-local names, and runtime residue that are not repository routes.
+const TOP_LEVEL_DIRECTORIES = new Set(['docs', 'notes', 'packages', 'scripts', 'vendor', 'dev', 'snapshots'])
+const KNOWN_ROOT_BASENAMES = new Set([
+  'AGENTS.md', 'README.md', 'CLAUDE.md', 'package.json', 'pnpm-lock.yaml',
+  'pnpm-workspace.yaml', 'tsconfig.base.json', 'tsconfig.json', 'tsconfig.tsx.json',
+])
+const KNOWN_PACKAGE_BASENAMES = new Set(['cordis.patch.yml'])
+
+/** Resolve a backticked token to a repo path it may legitimately name, or null when out of scope. */
+function resolveMarkdownPathReference(token, repoRoot, packageDir) {
+  if (token.includes(' ') || /[*<>~$@:'"()]/.test(token)) return null
+  if (token.includes('…') || token.includes('...')) return null // abbreviated paths, same class as globs
+  if (token.startsWith('/') || token.startsWith('.')) return null
+  if (token === 'dev/harness-home' || token.startsWith('dev/harness-home/')) return null
+  const [firstSegment] = token.split('/')
+  if (token.includes('/')) {
+    if (!TOP_LEVEL_DIRECTORIES.has(firstSegment)) return null
+    return join(repoRoot, token)
+  }
+  if (KNOWN_ROOT_BASENAMES.has(token)) return join(repoRoot, token)
+  if (KNOWN_PACKAGE_BASENAMES.has(token)) return join(packageDir, token)
+  return null
+}
+
+/**
+ * Check repository paths written in backticks. The runner supplies corpus membership, roots, and
+ * vendor presence; this core owns path interpretation and existence diagnostics so each branch can
+ * be exercised against a throwaway tree.
+ *
+ * @param {{repoRoot: string, packageDir: string, corpus: Array<{file: string, where: string}>, vendorPresent: boolean}} input
+ */
+export function backtickedRepoPathProblems({ repoRoot, packageDir, corpus, vendorPresent }) {
+  const problems = []
+  const vendorDsh = join(repoRoot, 'vendor', 'dsh')
+  for (const { file, where } of corpus) {
+    for (const match of read(file).matchAll(/`([^`\n]+)`/g)) {
+      const target = resolveMarkdownPathReference(match[1], repoRoot, packageDir)
+      if (target === null) continue
+      if (!vendorPresent && target.startsWith(`${vendorDsh}/`)) continue
+      if (!existsSync(target)) problems.push(`${where} references \`${match[1]}\`, which does not exist`)
+    }
+  }
+  return problems
+}
+
+// ── cross-file markdown sections ─────────────────────────────────────────────────────────────────
+
+const CHINESE_NUMERALS = '一二三四五六七八九十'
+
+/**
+ * Check numbered sections behind explicit Markdown file references. Bare section mentions have no
+ * target file and stay outside this rule because their meaning is contextual.
+ *
+ * @param {{repoRoot: string, corpus: Array<{file: string, where: string}>}} input
+ */
+export function crossFileSectionProblems({ repoRoot, corpus }) {
+  const problems = []
+  const reference = new RegExp(
+    '`?([\\w./-]+\\.md)`?\\s*(?:§|第)([' + CHINESE_NUMERALS + ']+)(?:节)?(?:「([^」]+)」)?',
+    'g',
+  )
+  for (const { file, where } of corpus) {
+    for (const occurrence of read(file).matchAll(reference)) {
+      const [, referenced, numeral, anchor] = occurrence
+      const target = resolve(repoRoot, referenced)
+      if (!existsSync(target)) continue // the path check owns missing-file reports
+      const headings = [...read(target).matchAll(new RegExp(`^#{1,3}\\s*${numeral}、.*$`, 'gm'))]
+        .map(heading => heading[0].replace(/^#+\s*/, ''))
+      if (headings.length === 0) {
+        problems.push(`${where} references ${referenced} §${numeral}, which has no such section`)
+      } else if (anchor !== undefined && !headings.some(heading => heading.includes(anchor))) {
+        problems.push(`${where} anchors ${referenced} §${numeral} on 「${anchor}」, but the section is "${headings[0]}"`)
+      }
+    }
+  }
+  return problems
+}
 
 // ── relative markdown links ─────────────────────────────────────────────────────────────────────
 
@@ -12,8 +93,7 @@ import { read, COMMENT_LINE } from './shared.mjs'
  * A markdown link target counts as a repo path pointer only when it is relative and path-shaped
  * (contains "/" or ends in .md). That keeps prose placeholders like `(url)` or `(…)` out of
  * scope. Anchors and query strings are stripped before the existence check but are NOT
- * validated — heading slugs are out of scope for this gate, as recorded in verify.mjs's scope
- * note.
+ * validated — heading slugs remain outside this gate's scope.
  *
  * @param {string} target - raw link target from `[text](target)`.
  * @returns {string | null} the path to resolve against the linking file, or null when out of scope.
