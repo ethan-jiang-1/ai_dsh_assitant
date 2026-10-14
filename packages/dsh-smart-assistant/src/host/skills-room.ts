@@ -12,6 +12,7 @@ import { dirname, join } from 'node:path'
 import type { AssistantMemory } from './index.ts'
 import { touchDigest } from './curate-digest.ts'
 import type { CurationFinding } from '../domain/home/health.ts'
+import type { HomePaths } from '../domain/home/layout.ts'
 import type { Room } from '../domain/home/room.ts'
 import { atomicWriteFile } from '../domain/home/atomic-write.ts'
 import { parseFrontmatterDocument, renderFrontmatterDocument } from '../domain/home/frontmatter.ts'
@@ -33,6 +34,11 @@ import {
   type SkillUsageRead,
 } from '../domain/skills/usage.ts'
 import type { RoomReadResult } from './index.ts'
+
+/** Read only the learned skill directory. */
+interface LearnedSkillsReader {
+  readonly paths: Pick<HomePaths, 'skillsDir'>
+}
 
 /** Read only the skill proposal inbox entries and failures. */
 interface ProposalRoomReader {
@@ -164,7 +170,7 @@ export async function skillUsage(host: AssistantMemory): Promise<SkillUsageRead>
  * @returns Kebab-case skill names; broken bundles contribute nothing (their findings come
  * from the scan itself).
  */
-export async function learnedSkillNames(host: AssistantMemory): Promise<string[]> {
+export async function learnedSkillNames(host: LearnedSkillsReader): Promise<string[]> {
   const scan = await scanLearnedSkills(host.paths.skillsDir)
   return scan.skills.flatMap(skill => skill.name !== undefined ? [skill.name] : [])
 }
