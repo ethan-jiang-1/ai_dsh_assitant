@@ -4,6 +4,7 @@
  * read path (`searchKnowledge` / `readKnowledgePage` with on-demand backlinks) is covered here;
  * the `assistant_knowledge` tool is a thin adapter over these, verified live in the phase-2
  * end-to-end session.
+ * The exported listing helper is also pinned to the narrow capability it consumes.
  */
 
 import { mkdirSync, writeFileSync } from 'node:fs'
@@ -12,6 +13,8 @@ import { describe, expect, it } from 'vitest'
 import { memoryPool } from '../support/host-harness.ts'
 import { renderDigest } from '../../src/domain/home/digest.ts'
 import { searchPages } from '../../src/domain/knowledge/search.ts'
+import type { RoomListing } from '../../src/domain/home/room.ts'
+import { listKnowledge } from '../../src/host/knowledge-room.ts'
 import type { KnowledgePage } from '../../src/domain/knowledge/page.ts'
 
 function page(overrides: Partial<KnowledgePage> & { id: string }): KnowledgePage {
@@ -25,6 +28,27 @@ function page(overrides: Partial<KnowledgePage> & { id: string }): KnowledgePage
     ...overrides,
   }
 }
+
+const listedEntry: RoomListing['entries'][number] = {
+  id: 'deploy-pipeline',
+  path: '/home/knowledge/deploy-pipeline.md',
+  data: { type: 'how-it-works', status: 'stable', title: 'Deploy pipeline' },
+  body: 'Starts at [[staging-gate]].',
+}
+const unreadablePage: RoomListing['entries'][number] = {
+  id: 'invalid-page',
+  path: '/home/knowledge/invalid-page.md',
+  data: {},
+  body: 'Missing the required type.',
+}
+const listFailure: RoomListing['failures'][number] = {
+  path: '/home/knowledge/broken.md',
+  reason: 'no frontmatter',
+}
+const knowledgeListing: RoomListing = { entries: [listedEntry, unreadablePage], failures: [listFailure] }
+const narrowKnowledgeReader = {
+  knowledge: { list: async (): Promise<RoomListing> => knowledgeListing },
+} satisfies Parameters<typeof listKnowledge>[0]
 
 describe('searchPages (pure ranking)', () => {
   const pages: KnowledgePage[] = [
@@ -46,6 +70,24 @@ describe('searchPages (pure ranking)', () => {
     expect(searchPages(pages, { text: 'deploys' }).map(hit => hit.page.id)).not.toContain('hidden-draft')
     expect(searchPages(pages, { tags: ['gate'] }).map(hit => hit.page.id)).toEqual(['staging-gate'])
     expect(searchPages(pages, {})).toEqual([])
+  })
+})
+
+describe('listKnowledge narrow reader', () => {
+  it('maps valid pages, filters invalid entries, and preserves Room listing failures', async () => {
+    const result = await listKnowledge(narrowKnowledgeReader)
+    expect(result.entries).toEqual([{
+      id: 'deploy-pipeline',
+      status: 'stable',
+      type: 'how-it-works',
+      title: 'Deploy pipeline',
+      aliases: ['Deploy pipeline'],
+      sources: [],
+      tags: [],
+      body: 'Starts at [[staging-gate]].',
+      links: ['staging-gate'],
+    }])
+    expect(result.failures).toEqual([listFailure])
   })
 })
 

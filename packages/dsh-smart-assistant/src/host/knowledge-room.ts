@@ -11,6 +11,7 @@ import { join } from 'node:path'
 import type { AssistantMemory, RoomReadResult } from './index.ts'
 import { touchDigest } from './curate-digest.ts'
 import type { CurationFinding } from '../domain/home/health.ts'
+import type { Room } from '../domain/home/room.ts'
 import { renderFrontmatterDocument } from '../domain/home/frontmatter.ts'
 import { newThreadId } from '../domain/research/thread.ts'
 import { pageFromEntry, pageToDocument, parseWikiLinks, normalizeWikiLinks, backlinksOf, type KnowledgePage, type PageStatus } from '../domain/knowledge/page.ts'
@@ -150,12 +151,17 @@ export async function deprecatePage(host: AssistantMemory, id: string, audit: Ap
   return { id, path: entry.path, status: 'deprecated' }
 }
 
+/** Read only the knowledge room's parsed entries and failures. */
+interface KnowledgeRoomReader {
+  readonly knowledge: Pick<Room, 'list'>
+}
+
 /**
  * List knowledge pages.
  * @param host - The home service whose knowledge room is read.
  * @returns Parsed pages and the files that failed to parse.
  */
-export async function listKnowledge(host: AssistantMemory): Promise<RoomReadResult<KnowledgePage>> {
+export async function listKnowledge(host: KnowledgeRoomReader): Promise<RoomReadResult<KnowledgePage>> {
   const listing = await host.knowledge.list()
   return {
     entries: listing.entries
