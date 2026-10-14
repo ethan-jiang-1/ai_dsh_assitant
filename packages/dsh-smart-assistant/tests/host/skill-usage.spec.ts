@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url'
 import { Context } from '@deepseek-ai/cordis'
 import { afterEach, describe, expect, it } from 'vitest'
 import AssistantMemory from '../../src/index.ts'
-import { recordSkillLoad as recordSkillLoadForHome } from '../../src/host/skills-room.ts'
+import { recordSkillLoad as recordSkillLoadForHome, skillUsage as skillUsageForHome } from '../../src/host/skills-room.ts'
 import { dirPool } from '../support/host-harness.ts'
 import {
   parseSkillUsage,
@@ -113,6 +113,20 @@ describe('skill usage ledger (service)', () => {
       usage: { 'through-capability': { count: 1 } },
     })
     expect(warnings).toEqual(['skill-usage ledger unreadable at ' + skillUsageFile + ' (not a valid skill-usage ledger (version or entries wrong)) — counts reset'])
+  })
+
+  it('reads through only the ledger path capability', async () => {
+    mkdirSync(repoTmp, { recursive: true })
+    const dir = mkdtempSync(join(repoTmp, 'assistant-usage-read-'))
+    capabilityDirs.push(dir)
+    const skillUsageFile = join(dir, 'skill-usage.json')
+    const missing = await skillUsageForHome({ paths: { skillUsageFile } })
+    expect(missing).toEqual({ usage: {} })
+
+    writeFileSync(skillUsageFile, 'not json', 'utf8')
+    const corrupt = await skillUsageForHome({ paths: { skillUsageFile } })
+    expect(corrupt.usage).toEqual({})
+    expect(corrupt.failure?.path).toBe(skillUsageFile)
   })
 
   it('records loads durably across service instances and surfaces them in curate', async () => {

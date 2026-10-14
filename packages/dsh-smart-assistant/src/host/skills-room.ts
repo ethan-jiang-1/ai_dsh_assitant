@@ -52,6 +52,11 @@ interface SkillUsageWriter {
   readonly ctx: { readonly logger: Pick<Context['logger'], 'warn'> }
 }
 
+/** Read only the ledger path. */
+interface SkillUsageReader {
+  readonly paths: Pick<HomePaths, 'skillUsageFile'>
+}
+
 /**
  * List skill proposals.
  * @param host - The home service whose proposal inbox is read.
@@ -164,10 +169,10 @@ export async function recordSkillLoad(host: SkillUsageWriter, name: string): Pro
 
 /**
  * Read the skill-usage ledger.
- * @param host - The home service whose ledger is read.
+ * @param host - The home service's ledger path.
  * @returns The parsed map, plus the failure when the file exists but is unusable.
  */
-export async function skillUsage(host: AssistantMemory): Promise<SkillUsageRead> {
+export async function skillUsage(host: SkillUsageReader): Promise<SkillUsageRead> {
   return readSkillUsage(host.paths.skillUsageFile)
 }
 
