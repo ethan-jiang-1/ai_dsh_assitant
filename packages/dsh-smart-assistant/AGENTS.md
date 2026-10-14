@@ -33,7 +33,7 @@
 | `src/domain/home/` 其余 | frontmatter、Room 存储抽象、摘要渲染、手册渲染、节拍器、curate findings |
 | `src/domain/memory/` `src/domain/research/` `src/domain/skills/` `src/domain/knowledge/` | 四个房间的**词汇与纯核**（校验、生命周期、检索排序、findings） |
 | `src/domain/operating/` + `src/host/operating-ledger/` + `src/host/desk-projection/` | **经营账本与投影**（第二持久化面）：纯核归约、单 writer 服务、固定只读下载（契约 = [`docs/operating.md`](../../docs/operating.md)） |
-| `src/agent/`（`tool-*`、`tool-support`、`memory-digest`、`home-preamble`、`operating-brief`、`learn`、`ov-shield`） | agent 面入口：自有工具、共享 presenter 管道（`presentationMeta` 投影与读回）、段落贡献、学习 provider、遮蔽盾 |
+| `src/agent/`（`tool-*`、`tool-support`、`memory-digest`、`home-preamble`、`operating-brief`、`learn`、`learned-skills`、`ov-shield`） | agent 面入口：自有工具、共享 presenter 管道（`presentationMeta` 投影与读回）、段落贡献、学到的技能 provider 与加载记账、遮蔽盾 |
 | `src/dev/preset-runner/` | 验证驱动（非产品能力；`./preset-runner` 公开出口保留，dev patch 按包名解析不受路径影响） |
 | `src/host/index.ts` | 服务实现（host 面）：四个房间的读写、curate、digest、提案收件箱；根 `src/index.ts` 是它的薄导出稳定入口（同 class 身份，不持第二份实现） |
 | `presets/assistant/` | 策展技能（`skills/`，**模型用**）；shipped preset 组合由包根 `cordis.patch.yml` 的 `preset-assistant` 行拥有 |

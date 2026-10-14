@@ -1,31 +1,21 @@
 /**
- * `assistant_reflect`: the learning flow, plus the skill provider that makes its output live.
+ * `assistant_reflect`: gather evidence for reflection, then write validated skills and knowledge.
  *
- * Two halves that belong together:
- *
- * 1. The `assistant_reflect` tool gathers evidence for a reflection (`brief`) and writes a validated,
- *    provenance-stamped skill (`save_skill`). The distillation itself stays the model's judgement —
- *    the tool never decides what is worth keeping, because that is exactly the judgement a
- *    reflection is supposed to exercise.
- * 2. Mounting the harness skill provider over the home's `skills/` room. It is mounted from *here*
- *    rather than configured in the preset because this module injects `assistantMemory` and can read
- *    the resolved path directly: no duplicated home resolution, no config interpolation that breaks
- *    when the service is absent. The provider gets its own `providerName`, so a learned skill and a
- *    curated one are distinguishable by origin without moving files into a root the provider would
- *    not scan.
+ * The model keeps responsibility for deciding what is reusable. This module validates and persists
+ * the chosen skill or page, and reports the resulting audit findings and durable paths.
  *
  * @module dsh-smart-assistant/learn
  */
 
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-skill'
-import * as skillFilesystem from '@deepseek-ai/dsh-skill-filesystem'
 import { defineTool } from '@deepseek-ai/dsh-tools'
 import { scanLearnedSkills } from '../../domain/skills/scan.ts'
 import { shadowedLearnedSkills } from '../../domain/skills/shadow.ts'
-import { skillLoadFromResult, skillUsageLines } from '../../domain/skills/usage.ts'
+import { skillUsageLines } from '../../domain/skills/usage.ts'
 import { callCard, presentationMeta, resultCard } from '../tool-support/presentation.ts'
 import { LEARNED_PROVIDER_NAME } from '../tool-support/learned-provider.ts'
+import { installLearnedSkills } from '../learned-skills.ts'
 
 export const name = 'assistant-learn'
 
@@ -236,31 +226,11 @@ function render(_args: unknown, value: ReflectOutput): { type: 'text', text: str
 }
 
 /**
- * Register the reflection tool and the learned-skills provider.
+ * Register the reflection tool and learned-skill observer/provider.
  * @param ctx - Agent-plane context.
  */
 export function apply(ctx: Context): void {
-  ctx.plugin(skillFilesystem, {
-    providerName: LEARNED_PROVIDER_NAME,
-    includeDefaultRoots: false,
-    customSkillDirs: [ctx.assistantMemory.paths.skillsDir],
-    watch: true,
-  })
-
-  // Usage ledger (tri-line proposal 2026-09-24, slice 1a): every successful `skill`-tool load in
-  // a session running this preset is counted into the home's shared ledger — the data plane for
-  // retirement decisions and the deferred auto-distill criterion. The user's `/<name>` slash
-  // invocation injects skill content without a tool call and is deliberately not counted here.
-  // The subscription rides this session's scope and dies with it; concurrent sessions may lose a
-  // race on a single increment (last writer wins), which advisory counts tolerate.
-  ctx.on('tools/result', (exec, result): undefined => {
-    const name = skillLoadFromResult(exec.name, exec.arguments, result.isError)
-    if (name === undefined) return undefined
-    void ctx.assistantMemory.recordSkillLoad(name).catch((error: unknown) => {
-      ctx.logger.warn(`skill usage record failed for "${name}": ${String(error)}`)
-    })
-    return undefined
-  })
+  installLearnedSkills(ctx)
 
   ctx.tools.register(defineTool({
     name: 'assistant_reflect',

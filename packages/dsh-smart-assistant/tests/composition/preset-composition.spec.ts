@@ -263,6 +263,28 @@ describe('real composition: loader + preset standing mount + joined agent', () =
     expect(ctx.tools.schemas(agent).map(schema => schema.name)).not.toContain('assistant_memory')
   })
 
+  it('exposes learned skills through the learned provider in the joined agent catalog', async () => {
+    const ctx = await harness()
+    await ctx.assistantMemory.writeSkill({
+      name: 'composition-checklist',
+      description: 'A checklist learned from a previous task.',
+      body: 'Check the evidence, then record the result.',
+    })
+    const captured: Context[] = []
+    await agentOnPreset(ctx, captured)
+    const agentCtx = captured[0]
+    if (agentCtx === undefined) throw new Error('agent context was not captured')
+
+    const skills = await ctx.skills.list({ scope: scopeOf(agentCtx) })
+    expect(skills.find(skill => skill.name === 'composition-checklist')).toMatchObject({
+      name: 'composition-checklist',
+      description: 'A checklist learned from a previous task.',
+      source: 'custom',
+      provider: 'assistant-learned',
+      invocation: { modelInvocable: true, userInvocable: true },
+    })
+  })
+
   it('registers this package\'s five tools on the joined agent, and only there', async () => {
     const ctx = await harness()
     const captured: Context[] = []
