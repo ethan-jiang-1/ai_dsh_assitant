@@ -9,6 +9,7 @@
  * - The dashboard's panellist/main pair, both sidebar brand slots, and the desk primary
  *   view's `conversation.view` claim are wired by apply with their exact ids/orders.
  * - Dashboard defaults once per Client root and never reopens after explicit navigation/remount.
+ * - The desk activity command selects the dashboard immediately and its deferred mode intent is consumed once.
  *
  * The browser half is multi-module source (relative imports, tsdown-inlined into one
  * classic script), so the harness evaluates the entry through vitest after installing the
@@ -106,6 +107,75 @@ describe('client-module registration', () => {
       'dsh-smart-assistant-knowledge-guide',
       'dsh-smart-assistant-memory-guide',
     ])
+  })
+})
+
+interface ActivityCommand {
+  name: string
+  ui: { run: () => void }
+}
+
+function activityHandoffContext() {
+  const selected: (string | null)[] = []
+  const modes: string[] = []
+  const commands: ActivityCommand[] = []
+  const declarations: Record<string, unknown>[] = []
+  const ctx = {
+    root: {},
+    slots: {
+      inject: (_name: string, contribute: () => unknown) => { contribute() },
+      register: (declaration: Record<string, unknown>) => { declarations.push(declaration); return undefined },
+    },
+    sidebarRightTabs: { register: () => undefined },
+    sidebarRight: { openTab: () => {} },
+    inject: (_deps: string[], callback: (scope: { get: () => unknown }) => void) => {
+      callback({ get: () => ({ register: (command: ActivityCommand) => { commands.push(command) } }) })
+      return undefined
+    },
+    layout: {
+      panelInfo: { getSnapshot: () => ({ activePanelId: 'settings' }) },
+      selectPanel: (id: string | null) => { selected.push(id) },
+    },
+  }
+  return { ctx, selected, modes, commands, declarations }
+}
+
+describe('desk activity command handoff', () => {
+  it('selects the dashboard immediately and applies activity once when main actions arrive', () => {
+    const { ctx, selected, modes, commands, declarations } = activityHandoffContext()
+    materialize().apply(ctx)
+
+    commands.find(command => command.name === 'desk-activity')?.ui.run()
+    expect(selected).toEqual(['dsh-smart-assistant-dashboard'])
+    expect(modes).toEqual([])
+
+    const main = declarations.find(declaration => declaration.name === 'main')
+    const inject = main?.inject as ((actions: { selectMatter(id: string): void, setMode(mode: 'activity'): void }) => unknown) | undefined
+    const actions = { selectMatter: (_id: string) => {}, setMode: (mode: 'activity') => { modes.push(mode) } }
+    inject?.(actions)
+    expect(modes).toEqual(['activity'])
+
+    inject?.(actions)
+    expect(modes).toEqual(['activity'])
+  })
+
+  it('waits for the next main injection when actions were already available', () => {
+    const { ctx, selected, modes, commands, declarations } = activityHandoffContext()
+    materialize().apply(ctx)
+    const main = declarations.find(declaration => declaration.name === 'main')
+    const inject = main?.inject as ((actions: { selectMatter(id: string): void, setMode(mode: 'activity'): void }) => unknown) | undefined
+    const actions = { selectMatter: (_id: string) => {}, setMode: (mode: 'activity') => { modes.push(mode) } }
+    inject?.(actions)
+    expect(modes).toEqual([])
+
+    commands.find(command => command.name === 'desk-activity')?.ui.run()
+    expect(selected).toEqual(['dsh-smart-assistant-dashboard'])
+    expect(modes).toEqual([])
+
+    inject?.(actions)
+    expect(modes).toEqual(['activity'])
+    inject?.(actions)
+    expect(modes).toEqual(['activity'])
   })
 })
 

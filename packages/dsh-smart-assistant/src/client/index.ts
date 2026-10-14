@@ -18,7 +18,8 @@
  * Module map: contracts (type mirrors) / runtime (factory require binding) / theme
  * (color contract) / room-data-core + room-data-io (the `.desk/state.json` room-data file:
  * store + workspace reads & prompt sends — "It is not the desk", per the manual) /
- * dom-utils (row + panel chrome) / brand / commands / room-tabs / panels / dashboard /
+ * dom-utils (row + panel chrome) / desk-view-actions (deferred activity mode intent) /
+ * brand / commands / room-tabs / panels / dashboard /
  * first-mile / desk-process (the operating desk's conversation arms: process/intake/
  * claim/wake bind & return judges) / projection-panel + projection-lifecycle +
  * projection-reader + projection-view + operating-projection (the desktop itself — the
@@ -37,6 +38,7 @@ import type { DeskStore } from './room-data-core'
 import { bindDeskEnv, getDeskRemote, loadDesk, loadDeskFor, openBeside } from './room-data-io'
 import { AssistantBrandMark, AssistantBrandName, AssistantHeroMark } from './brand'
 import { deskCommands, roomCommands } from './commands'
+import { createDeskActivityHandoff } from './desk-view-actions'
 import { DashboardMainPanel, DashboardPanelIcon } from './dashboard'
 import { ApprovalDockBanner, FirstMileDock } from './first-mile'
 import { KnowledgeTabBody, MemoryTabBody, roomTabTitle } from './room-tabs'
@@ -184,10 +186,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // intake arm needs them for one thing only: selecting the matter it just created on return —
     // the matter arm's selection is the principal's own click, which the store already holds.
     let deskViewActions: { selectMatter(id: string): void } | undefined
-    // The command palette's 「打开桌面·流水」 parks its intent here; the desk's next render
-    // consumes it through the baked actions (the same handoff the return navigation uses) —
-    // the command itself runs outside any render, so it cannot reach the store directly.
-    let pendingDeskMode: 'activity' | undefined
+    const deskActivity = createDeskActivityHandoff()
     // Shared by the matter and claim arms: create one session in the designated workspace (the
     // current session's, else the first in host workspace order — the vendor list is
     // host-ordered, not recency-ordered) — the shell's own startSession resolution; creating
@@ -471,11 +470,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
           const actions = args.find((argument): argument is { selectMatter(id: string): void, setMode(mode: 'activity'): void } =>
             typeof argument === 'object' && argument !== null && typeof (argument as { selectMatter?: unknown }).selectMatter === 'function')
           deskViewActions = actions ?? deskViewActions
-          // The command palette's parked intent: switch the freshly rendered desk to the feed.
-          if (pendingDeskMode !== undefined && actions !== undefined) {
-            actions.setMode(pendingDeskMode)
-            pendingDeskMode = undefined
-          }
+          deskActivity.receive(actions)
           return { hooks: projection === undefined ? {} : { projection }, refreshProjection: () => { reader?.refresh() }, onAsk: () => { ctx.layout?.selectPanel(null) }, onEntrust: startIntake, onProcess: processMatter, onClaim: claimFragment, onWake: wakeMatter }
         },
       }, projection === undefined ? DashboardMainPanel : ProjectionPanel)
@@ -596,7 +591,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       const commandUi = scope.get('commandUi') as CommandUiRegistry | undefined
       if (commandUi === undefined) return
       for (const contribution of [...roomCommands(openBeside), ...deskCommands(() => {
-        pendingDeskMode = 'activity'
+        deskActivity.requestActivity()
         ctx.layout?.selectPanel('dsh-smart-assistant-dashboard')
       })]) commandUi.register(contribution)
     })
