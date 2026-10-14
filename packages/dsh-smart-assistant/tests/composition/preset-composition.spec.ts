@@ -31,17 +31,18 @@ import LlmRuntime from '@deepseek-ai/dsh-llm'
 import SessionStore, { SessionId } from '@deepseek-ai/dsh-session'
 import SessionProjectionRegistry from '@deepseek-ai/dsh-session-projection'
 import SystemPrompt from '@deepseek-ai/dsh-system-prompt'
-import ToolRuntime from '@deepseek-ai/dsh-tools'
+import ToolRuntime, { type ToolExecution, type ToolExecutionToken } from '@deepseek-ai/dsh-tools'
 import SkillRegistry from '@deepseek-ai/dsh-skill'
 import AgentRegistry, { assembleContextFor } from '@deepseek-ai/dsh-agent'
 import AgentLoop from '@deepseek-ai/dsh-agent-loop'
 import AgentPresetRegistry from '@deepseek-ai/dsh-agent-preset-registry'
 import AgentPreset from '@deepseek-ai/dsh-agent-preset'
 import SessionPersistenceJsonl from '@deepseek-ai/dsh-session-persistence-jsonl'
+import { ToolCallId } from '@deepseek-ai/dsh-llm'
 import TypertRegistry from '@deepseek-ai/dsh-typert-registry'
 import { DIGEST_SECTION_ORDER } from '../../src/agent/memory-digest/index.ts'
 import * as yaml from 'js-yaml'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 const packageRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const built = existsSync(join(packageRoot, 'lib', 'index.js'))
@@ -155,6 +156,18 @@ async function agentOnPreset(ctx: Context, captured: Context[]) {
       await ctx.agentPresets.mount(agentCtx, 'assistant')
     },
   })
+}
+
+/** Mint a minimal root execution for emitting `tools/result` at the observer seam. */
+function stubExecution(callId: ToolCallId, name: string, args: unknown): ToolExecution {
+  return {
+    callId,
+    rootCallId: callId,
+    token: Symbol('composition-spec-execution') as ToolExecutionToken,
+    signal: new AbortController().signal,
+    name,
+    arguments: args,
+  }
 }
 
 describe('real composition: loader + preset standing mount + joined agent', () => {
@@ -282,6 +295,27 @@ describe('real composition: loader + preset standing mount + joined agent', () =
       source: 'custom',
       provider: 'assistant-learned',
       invocation: { modelInvocable: true, userInvocable: true },
+    })
+  })
+
+  it('records successful skill loads into the usage ledger through the joined preset observer', async () => {
+    const ctx = await harness()
+    const captured: Context[] = []
+    await agentOnPreset(ctx, captured)
+    const agentCtx = captured[0]
+    if (agentCtx === undefined) throw new Error('agent context was not captured')
+
+    // The learn row's tools/result subscription is the glue between the harness tool pipeline
+    // and the home's usage ledger: a successful `skill` load records, a failed one and a
+    // non-skill tool record nothing. The observer writes fire-and-forget, so the assertion
+    // waits on the ledger's own readiness instead of a sleep.
+    agentCtx.emit('tools/result', stubExecution(ToolCallId('c1'), 'skill', { name: 'glue-probe' }), { isError: false, value: null, content: [] })
+    agentCtx.emit('tools/result', stubExecution(ToolCallId('c2'), 'skill', { name: 'glue-probe' }), { isError: true, error: { message: 'composition-spec failure' }, content: [] })
+    agentCtx.emit('tools/result', stubExecution(ToolCallId('c3'), 'assistant_memory', { name: 'glue-probe' }), { isError: false, value: null, content: [] })
+
+    await vi.waitFor(async () => {
+      const usage = await ctx.assistantMemory.skillUsage()
+      expect(usage.usage['glue-probe']?.count).toBe(1)
     })
   })
 
