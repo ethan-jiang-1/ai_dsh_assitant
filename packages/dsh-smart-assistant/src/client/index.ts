@@ -19,7 +19,7 @@
  * (color contract) / room-data-core + room-data-io (the `.desk/state.json` room-data file:
  * store + workspace reads & prompt sends — "It is not the desk", per the manual) /
  * dom-utils (row + panel chrome) / desk-view-actions (deferred activity mode intent) /
- * brand / commands / room-tabs / panels / dashboard /
+ * default-panel-selection (one root-scoped cold-start choice) / brand / commands / room-tabs / panels / dashboard /
  * first-mile / desk-process (the operating desk's conversation arms: process/intake/
  * claim/wake bind & return judges) / desk-process-lifecycle (settlement refresh edge owner) /
  * projection-panel + projection-lifecycle +
@@ -53,29 +53,11 @@ import type { OperatingProjection } from './operating-projection'
 import { createProjectionViewStore } from './projection-view'
 import { bindClaimPath, bindIntakePath, bindProcessPath, bindWakePath, canProcess, claimContextMessage, judgeClaimReturn, judgeIntakeReturn, judgeReturn, judgeWakeReturn, processingContextMessage, resumeContextMessage, wakeContextMessage, type DeskPath } from './desk-process'
 import { createSettleRefreshObserver } from './desk-process-lifecycle'
+import { selectDashboardByDefault } from './default-panel-selection'
 import { en as firstMileEn, zh as firstMileZh } from './locales'
 
 /** Slots this face occupies (single-occupant, root-scope, declared by the sidebar). */
 const inject = ['slots', 'sidebarRightTabs', 'sidebarRight', 'sessions', 'remote', 'remote.agentPresets', 'remote.workspaceFiles', 'remote.session', 'layout', 'connection', 'uiSession', 'workspaces', 'uiWorkspace', 'locale']
-
-/**
- * Default selection is consumed once per Client root. Keeping weak root identities on the page
- * realm makes slot/layout remounts and client HMR idempotent; a document reload gets a fresh root.
- */
-function selectDashboardByDefault(ctx: ClientContext): void {
-  const layout = ctx.layout
-  const panelInfo = layout?.panelInfo
-  if (layout === undefined || panelInfo === undefined) return
-  const pageState = globalThis as typeof globalThis & {
-    __DSH_SMART_ASSISTANT_DEFAULT_PANEL_ROOTS__?: WeakSet<object>
-  }
-  const defaultPanelRoots = pageState.__DSH_SMART_ASSISTANT_DEFAULT_PANEL_ROOTS__ ??= new WeakSet<object>()
-  if (defaultPanelRoots.has(ctx.root)) return
-  defaultPanelRoots.add(ctx.root)
-  if (panelInfo.getSnapshot().activePanelId === null) {
-    layout.selectPanel('dsh-smart-assistant-dashboard')
-  }
-}
 
 /**
  * Build the typert contribution the client mounts for the knowledge-approve direct-call lane.
