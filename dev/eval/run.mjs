@@ -106,6 +106,12 @@ export function runPreset(prompt) {
   // exploration and never loaded the opener skill). Every task therefore gets its own
   // throwaway workspace cwd via the launcher's explicit exit, like a real first conversation.
   const workspace = mkTmpDir('eval', 'workspace-')
+  // BUG-013 (2026-10-15): the instruction chain walks up from the session cwd to the first `.git`
+  // ancestor — without this, that ancestor is THIS repo, and the eval session inherits the repo's
+  // AGENTS.md and .agents/skills as workspace instructions, competing with the assistant persona
+  // (first-open-intake spent its turn analyzing the environment instead of greeting). The
+  // workspace becomes its own project root, so the platform's own discovery stops here.
+  execFileSync('git', ['init', '--quiet', workspace], { cwd: repoRoot, stdio: ['ignore', 'pipe', 'pipe'] })
   try {
     execFileSync('node', [
       join(repoRoot, 'dev/env/dsh.mjs'),
