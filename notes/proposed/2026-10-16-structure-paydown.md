@@ -33,8 +33,8 @@
 ### P1 主包（价值最高，先行）
 
 **片 1 · agent 工具 schema 抽离（机械，热身）**
-`tool-operating/index.ts` 的输出**契约**整体抽 `tool-operating/schema.ts`：`output.schema`（177–350 行，~174 行）+ 伴生类型 `DeskItem`/`OperationSummary`/`MatterProposalSummary`/`OperatingOutput` + 常量 `CHANGE_KINDS`（同一份契约，一个家）；工具定义与 DESCRIPTION 留 index.ts（catalog 的源码列不变）。**`CHANGE_KINDS` 必须随迁**——它同时被留下的 `parameters` 块引用，反向 import 会造出 index↔schema 的 ESM 循环（模块求值期消费的 `const` 数组）。586 → ~370。
-门：地板（`pnpm typecheck && pnpm test && pnpm verify`）+ `pnpm test:agent` + **搬家逐字证明**（新文件内容 vs `HEAD` 原块的 byte-diff）——该 schema 不被任何 spec 钉住（`tool-operating.spec.ts` 对 `schema` 零引用），逐字证明是唯一硬证据。
+`tool-operating/index.ts` 的输出 schema（**189–348 行 = 160 行**，自足：块内零引用本地常量或类型）整体抽 `tool-operating/schema.ts`，导出 `OPERATING_OUTPUT_SCHEMA`；工具定义、DESCRIPTION、`parameters` 块与伴生输出类型（`DeskItem`/`OperationSummary`/`MatterProposalSummary`/`OperatingOutput`）都留在 index.ts（catalog 的源码列不变）。586 → 428（实测，验收断言 ≤450）。
+门：地板（`pnpm typecheck && pnpm test && pnpm verify`）+ `pnpm test:agent` + **搬家逐字证明**（新文件内容 vs `HEAD` 原块**去缩进后**的 byte-diff）——该 schema 不被任何 spec 钉住（`tool-operating.spec.ts` 对 `schema` 零引用），逐字证明是唯一硬证据；再加 `pnpm test:composition` 兜住注册期的 `assertSupportedJsonSchema`（schema 破损会在注册时抛错）。
 
 **片 2 · ledger 归约器重构**
 applyOperation 改每操作 handler 表；提 `rejectWith` / `recordOperation` 辅助消 6 处 `unknown-matter` 拒绝样板；领域词汇（15–208 行类型）抽 `domain/operating/types.ts`，ledger.ts 原位 re-export 保持 import 面零变化（import 面恰好 5 个文件，实测）。708 → ~450 + ~250。`operations` 展开样板实测 **13 处**、两种惯用形（`state: {…}` 包裹式与裸式）→ helper 返回 operations 记录、由调用方摆放。

@@ -18,7 +18,9 @@ opened: 2026-10-16
 
 ## 核验结论（2026-10-16 实测，规格卡七处修正）
 
-1. **片 1 有真隐患，卡的"纯声明数据、抽离零风险"不成立。** `output.schema`（177–350 行 ≈174 行）引用 `CHANGE_KINDS`（32 行），而该常量同时被留下的 `parameters` 块使用 → 朴素抽取会造出 index↔schema 的 **ESM 循环**（模块求值期消费的 `const` 数组）。**`CHANGE_KINDS` 必须随 schema 一起进 `schema.ts`**，由 index.ts 反向 import。另：`output.schema` 不进标准工具面投影（`schemaOf` 只取 name/description/parameters/deferLoading），但经 `sdkSchemas()` 进 **PTC 模式 SDK 契约**（`ts-types.ts`/`py-types.ts` 生成模型读的类型声明）；本包未声明 PTC，故暴露是条件性的。注册期 `assertSupportedJsonSchema` 是粗错兜底。
+1. **片 1 的跨度与自足性（含一次自我更正）。** 输出 schema 的真实跨度 = **189–348 行（160 行**；`schema: {` 到 `} as const,`，对象体 190–347 共 158 行），**块内零引用本地标识符**（`CHANGE_KINDS` / `ACTIONS` 各 0 次）→ 规格卡"纯声明数据、抽离零风险、586 → ~420"成立（实测产物 428 行）。
+   **更正记录**：首轮核验把 `parameters` 块尾部算进跨度（177–350），据此误报"`CHANGE_KINDS` 必须随迁、否则 index↔schema ESM 循环"——**该结论不成立**：`CHANGE_KINDS`（32 行）只被留在 index.ts 的 `parameters` 块使用（183 行），输出 schema 不引用它。伴生输出类型按卡的授权范围留在 index.ts（随迁属超范围的"顺手改进"；`schema.ts` 与原模块同目录，可导航性不受损）。
+   仍然成立的核验：`output.schema` 不进标准工具面投影（`schemaOf` 只取 name/description/parameters/deferLoading），但经 `sdkSchemas()` 进 **PTC 模式 SDK 契约**（`ts-types.ts`/`py-types.ts` 生成模型读的类型声明）；本包未声明 PTC，故该暴露是条件性的。注册期 `assertSupportedJsonSchema` 是兜底 → `pnpm test:composition` 是这条的真门（已跑：8 用例绿）。
 2. **片 1 的证据缺口确认：没有任何 spec 钉住该 schema。** `tests/agent/tool-operating.spec.ts` 对 `schema` 零引用；`tests/composition/preset-composition.spec.ts:322-341` 只用 `ctx.tools.schemas()` 断言工具**名**。→ 搬家逐字证明是唯一硬证据（形态见验收标准第 1 行）。
 3. **片 2 前置确认触发，且样板多于卡载。** `unknown-matter` 6 处（328/411/468/530/567/654，= 卡的 ×6 ✓）与 `proposal-not-pending` 2 处（605/658）spec 覆盖**均为 0**（spec 只断言 5 个拒绝原因里的 3 个）；`operations` 展开样板实为 **13 处**（卡写 ~10），且有 `state: {…}` 包裹式与裸式两种惯用形。类型块 15–208 行；ledger 的 import 面**恰好 5 个文件** → 原位 re-export 让这 5 个零改动。
 4. **片 3 卡完全正确，且接缝干净。** `ClaimJudgeInput`/`WakeJudgeInput` 均 `extends ReturnJudgeInput` → 四 judge 同一输入类型，217–224 与 284–291 逐字相同（6 行）；`sharedGateReasons(input: ReturnJudgeInput)` 零类型体操。附带好处：四段 docstring 现在用散文承诺 "Same shared gates as the other arms"，抽取把注释承诺变成受门禁保护的代码。
@@ -33,7 +35,7 @@ opened: 2026-10-16
 
 | # | 行为（追溯到规格卡） | Class | 输入/状态 | 通过信号 | 负例/补集 | 证据 owner | 人的判断 |
 |---|---|---|---|---|---|---|---|
-| 1 | 工具输出契约逐字不变，仅换文件（片 1） | deterministic + orchestration | HEAD 的 `output.schema` 块 + 4 个伴生类型 + `CHANGE_KINDS` | 搬家块与新文件内容 byte-diff 为空；`pnpm test:agent` 绿；地板绿 | 字段改名/漏项 → 逐字 diff 非空；契约破损 → 注册期 `assertSupportedJsonSchema` 抛错 | `tests/agent/tool-operating.spec.ts` + `tests/composition/preset-composition.spec.ts`（工具名面）；逐字证明为**新增**证据 | 无 |
+| 1 | 工具输出契约逐字不变，仅换文件（片 1） | deterministic + orchestration | `HEAD` 的 `output.schema` 块（189–348 行） | 搬家块与新文件内容**去缩进后** byte-diff 为空；`pnpm test:agent` 绿；`pnpm test:composition` 绿（注册期校验）；地板绿 | 字段改名/漏项 → 逐字 diff 非空；契约破损 → 注册期 `assertSupportedJsonSchema` 抛错、组合 spec 红 | `tests/agent/tool-operating.spec.ts` + `tests/composition/preset-composition.spec.ts`（真 Loader）；逐字证明为**新增**证据 | 无 |
 | 2 | 账本归约行为不变：回执序、拒绝原因、operation 记录（片 2） | deterministic | 全部 9 个 operation kind + 5 个拒绝原因 | 地板 + `test:domain`/`test:host`/`test:agent` 绿，`operating-ledger.spec.ts` **零改动**通过 | **先补** `unknown-matter` 与 `proposal-not-pending` 两条特征测试（当前覆盖为 0）——造红→绿后才许动样板 | `tests/host/operating-ledger.spec.ts`（583 行行为锚） | 无 |
 | 3 | 四臂返回判据语义不变；时间格式化输出不变（片 3） | deterministic + client rendering | 6 条共享门 ×4 judge；`pad` 族 + `shortTime` | 地板 + `test:client` 绿；**两场景** `pnpm web-expected` 无漂移 | 门语义变 → `client-desk-process.spec.ts`（464 行）逐条红；格式变 → web-face DOM 漂移 | `tests/client/client-desk-process.spec.ts` + `snapshots/web-face/` 两场景 | 无 |
 | 4 | 房间数据读取/发送行为不变（片 4） | deterministic + client rendering | 两读取器共享序列；8 个文案包装；prompt 调用形状 | 地板 + `test:client` 绿；两场景 `web-expected` 无漂移；`docs/architecture.md` 刷新链路径同 diff 更新 | io spec 红 = 读取/发送变；路径句不更新 = docs 与代码不一致（`verify` 查不出，靠本行守） | `tests/client/client-room-data-io.spec.ts` + `docs/architecture.md:288` | 无 |
@@ -51,8 +53,8 @@ opened: 2026-10-16
 
 | 片 | 提交 | 状态 | 真证据（命令 → 结果） |
 |---|---|---|---|
-| ① | — | 待做 | 本卡 + 活跃清单 + 规格卡授权指针（零代码） |
-| 片 1 | — | 未开工 | — |
+| ① | `e4e9378` | 已交付 | 本卡 + 活跃清单 + 规格卡授权指针（零代码）；`pnpm verify` 41 项绿 |
+| 片 1 | 本片提交 `refactor(agent): isolate tool-operating output schema` | 已交付 | 逐字证明：原块去缩进后与新文件 **158 行 0 差异**；楼层门 `typecheck` / `test:agent` 17 / `build`+`test:composition` 8 / `test` 613 / `verify` 41 全绿；`index.ts` 586 → 428 行 |
 | 片 2 | — | 未开工 | — |
 | 片 3 | — | 未开工 | — |
 | 片 4 | — | 未开工 | — |
