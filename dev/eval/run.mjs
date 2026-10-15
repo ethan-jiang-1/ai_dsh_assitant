@@ -18,7 +18,7 @@
  * @module dev/eval/run
  */
 import { execFileSync } from 'node:child_process'
-import { rmSync, unlinkSync, writeFileSync } from 'node:fs'
+import { chmodSync, copyFileSync, existsSync, rmSync, unlinkSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { mkTmpDir, tmpDir } from '../env/tmp.mjs'
@@ -29,7 +29,10 @@ import { TASKS } from './tasks.mjs'
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 
 // ── 与 dev/env/dsh.mjs 同一条硬规则：永不继承 DSH_HOME（见 dev/reports/usage-report.mjs 的同名说明） ──
-const harnessHome = resolve(process.env.ASSISTANT_DSH_HOME ?? join(repoRoot, 'dev', 'harness-home'))
+// BUG-012（2026-10-15）：这个 home 由 main() 在每次评测 run 时供给——默认是一次性 home，显式
+// `ASSISTANT_DSH_HOME` 才落到既有 home。默认落 dev home 时，任务会话读的是真实工作文件夹里的
+// 真实事项/记忆/交付物，判据采样到的是被污染的行为（breakdown 当场读了真实经营账本）。
+let harnessHome = resolve(process.env.ASSISTANT_DSH_HOME ?? join(repoRoot, 'dev', 'harness-home'))
 
 /**
  * Observe one session log: the tool calls it made and the full text the model said to the user.
@@ -111,7 +114,7 @@ export function runPreset(prompt) {
       prompt,
     ], {
       cwd: repoRoot,
-      env: { ...process.env, ASSISTANT_SESSION_CWD: workspace },
+      env: { ...process.env, ASSISTANT_DSH_HOME: harnessHome, ASSISTANT_SESSION_CWD: workspace },
       stdio: ['ignore', 'pipe', 'pipe'],
       timeout: 15 * 60 * 1000,
     })
@@ -274,6 +277,41 @@ function selfCheck() {
     + ' the capability partition leaves web-only tasks out of the pass/fail arithmetic\n')
 }
 
+/**
+ * Provision the DSH home this run's sessions run against.
+ *
+ * Default is a throwaway home under `.tmp/eval/home-*` (per-run, kept for post-mortem until the
+ * `.tmp` sweep): `dev/env/setup.sh` builds the profiles there, and the dev home's credential store
+ * is copied in (mode 0600 — BUG-001's lesson) so the model transport resolves. An explicit
+ * `ASSISTANT_DSH_HOME` stays the exit for runs that deliberately target a prepared home; it is
+ * used as-is, with no provisioning and no credential copy.
+ * @returns the home directory this run's sessions must use.
+ */
+function provisionRunHome() {
+  const explicit = process.env.ASSISTANT_DSH_HOME
+  if (explicit !== undefined && explicit !== '') return resolve(explicit)
+  const runHome = mkTmpDir('eval', 'home-')
+  const credentials = join(repoRoot, 'dev', 'harness-home', '.credentials.yaml')
+  if (!existsSync(credentials)) {
+    process.stderr.write('eval: no credential store at dev/harness-home/.credentials.yaml to provision the throwaway home — prepare the dev home once, or set ASSISTANT_DSH_HOME to a prepared home\n')
+    process.exit(2)
+  }
+  try {
+    execFileSync('bash', [join(repoRoot, 'dev', 'env', 'setup.sh')], {
+      cwd: repoRoot,
+      env: { ...process.env, ASSISTANT_DSH_HOME: runHome },
+      stdio: ['ignore', 'pipe', 'pipe'],
+    })
+  } catch (error) {
+    const detail = error instanceof Error ? error.message.split('\n').slice(0, 4).join('\n') : String(error)
+    process.stderr.write(`eval: provisioning the throwaway home failed — ${detail}\n`)
+    process.exit(2)
+  }
+  copyFileSync(credentials, join(runHome, '.credentials.yaml'))
+  chmodSync(join(runHome, '.credentials.yaml'), 0o600)
+  return runHome
+}
+
 function main() {
   if (process.argv.includes('--self-check')) {
     selfCheck()
@@ -294,6 +332,9 @@ function main() {
   }
 
   const { evaluable, skipped } = partitionTasks(selected)
+  const explicitHome = process.env.ASSISTANT_DSH_HOME !== undefined && process.env.ASSISTANT_DSH_HOME !== ''
+  harnessHome = provisionRunHome()
+  process.stdout.write(`eval: home ${harnessHome}${explicitHome ? ' (explicit ASSISTANT_DSH_HOME)\n' : ' (throwaway, provisioned this run; post-mortem until the .tmp sweep)\n'}`)
   for (const task of skipped) {
     process.stdout.write(`▶ ${task.id} … NOT EVALUATED\n`)
     process.stdout.write(`    · needs the web composition (requires: ${String(task.requires)}) — this runner drives headless one-shot sessions, where that capability never registers\n`)

@@ -39,7 +39,6 @@ frontmatter `status` 是当前阶段的唯一家；状态行镜像它（`状态�
 
 | Bug | 标题 | 严重级 | 发现 |
 |---|---|---|---|
-| [BUG-012](BUG-012-eval-session-reads-outside-workspace.md) | `pnpm eval` 会话能读到隔离工作区之外的真实数据，行为判据被污染 | P1 | 2026-10-15 |
 
 ## frontmatter
 
