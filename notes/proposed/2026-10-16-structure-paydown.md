@@ -1,0 +1,112 @@
+# 结构还清：主包尾部拆分与 dev 共享库归位
+
+日期：2026-10-16 · 状态：**proposed**（2026-10-16 本人拍板范围 **P1+P2**——片 1-7，P3 片 8 不做；同日**已获点名授权实施**，推进/停点/证据缺口台账 = [结构还清收口卡](../../_backlog/issues/261016-structure-paydown-closure.md)；卡正文的实测修正见该卡「核验结论」，实施形态按它走）
+
+## 问题（可观察行为）
+
+**外部结果三要素：** 触发＝本人点名或点头本卡；本人得到＝「搜得到、改得动」的结构面——① 改桌面交互、账本归约或工具输出时定位进单一职责文件（≤ ~450 行），不再翻 633 行组合根与四个 500+ 行混杂文件；② dev 探针改动不翻 561 行三合一文件，会话日志判据与接续判据各有唯一家；③ 全程行为零变化（既有 spec 与门禁证明，模型可见面零触碰）。完成条件＝选定范围逐片验收绿、每片一提交锚点、收尾 `release-smoke` 绿。
+
+2026-10-16 全仓结构评估（src/scripts/tests/dev 逐文件深读 + 分层依赖机械验证）结论：结构与分层是强项（76/76 文件头注、依赖方向零违规、测试树镜像源码、[261007-bigfile-split](../../_backlog/_archive/settled_issues/261007-bigfile-split.md) 已拆 host 1178→288 与 client 2950→13 模块、自设门全达标、TODO/FIXME 近零）。剩余阻力集中在以下尾部（行数实测）：
+
+**主包（P1）：**
+
+1. `src/client/index.ts` 633 行——组合根本可长，但 apply() 内嵌**四臂编排子系统**（launchDeskArm + 四臂 + evaluateReturn 分发 + settle 订阅与 30s 刷新，~290 行 ≈ 半文件），是 bigfile-split 未拆完的尾巴；seedPanelMessage 与 room-data-io 的 sendPrompt 重复同一条 prompt 调用形状。
+2. `src/domain/operating/ledger.ts` 708 行——applyOperation 425 行单函数 if 链；"unknown-matter 拒绝 + 记录操作"样板逐字重复 ×6，operations 展开样板 ~×10。
+3. `src/agent/tool-operating/index.ts` 586 行——~40% 为手写输出 schema 与模型文案（纯声明数据，抽离零风险）。
+4. `src/client/desk-process.ts` 515 行——6 条共享门在 4 个 judge 内逐字复制 ×4；四条种子文案与判逻辑混居。
+5. `src/client/room-data-io.ts` 462 行——两读取器重复 ~30 行"解析→校验→报告→settle"序列；7 个动作文案包装混杂 I/O。
+6. 时间格式化 4 份（projection-panel 内 pad 族 ×3 + room-data-core.shortTime 跨文件同款）。
+
+**dev 面（P2）：**
+
+7. `dev/reports/usage-report.mjs` 抽屉错位——名为报告，实为被 5 个文件跨目录 import 的会话日志库（`classifyUserMessage` 注释自证"判据必须只有一份，各写一份已漂移过两次"）；`dev/eval/continuity-run.mjs` 的判据核被 probes/web 反向 import——dev 缺一个共享库抽屉。
+8. `dev/probes/web/desk-process-e2e.mjs` 561 行单文件装 flow/claim/wake 三个探针，相位骨架重复 ×3；"按文案找按钮"内联表达式在 6 个探针 ×28 处（~100-150 行）；DSH_HOME 解析样板连同解释注释 ×5。
+
+**可选（P3，拍板时裁）：**
+
+9. `scripts/checks/verify.mjs` 553 行——~150 行内联检查体（resolution facade / self-containment / home 文档合同 / skill-name 语法 / commit safety）违背 scripts 分层纪律（"纯核放 `gates/<family>.mjs`，verify 只管语料/退出码"）。
+
+## 提案
+
+三波八片，每片＝一次独立提交（硬规则 6 锚点）+ 窄证据门；全部为行为零变化重构（不改合同/文案/导出面；不动模型可见面 → 不需要 eval 与 gen-catalog）。逐片验收状态记在本卡验收节（本人 2026-10-12 拍板允许授权卡自带验收视图）。
+
+### P1 主包（价值最高，先行）
+
+**片 1 · agent 工具 schema 抽离（机械，热身）**
+`tool-operating/index.ts` 的输出**契约**整体抽 `tool-operating/schema.ts`：`output.schema`（177–350 行，~174 行）+ 伴生类型 `DeskItem`/`OperationSummary`/`MatterProposalSummary`/`OperatingOutput` + 常量 `CHANGE_KINDS`（同一份契约，一个家）；工具定义与 DESCRIPTION 留 index.ts（catalog 的源码列不变）。**`CHANGE_KINDS` 必须随迁**——它同时被留下的 `parameters` 块引用，反向 import 会造出 index↔schema 的 ESM 循环（模块求值期消费的 `const` 数组）。586 → ~370。
+门：地板（`pnpm typecheck && pnpm test && pnpm verify`）+ `pnpm test:agent` + **搬家逐字证明**（新文件内容 vs `HEAD` 原块的 byte-diff）——该 schema 不被任何 spec 钉住（`tool-operating.spec.ts` 对 `schema` 零引用），逐字证明是唯一硬证据。
+
+**片 2 · ledger 归约器重构**
+applyOperation 改每操作 handler 表；提 `rejectWith` / `recordOperation` 辅助消 6 处 `unknown-matter` 拒绝样板；领域词汇（15–208 行类型）抽 `domain/operating/types.ts`，ledger.ts 原位 re-export 保持 import 面零变化（import 面恰好 5 个文件，实测）。708 → ~450 + ~250。`operations` 展开样板实测 **13 处**、两种惯用形（`state: {…}` 包裹式与裸式）→ helper 返回 operations 记录、由调用方摆放。
+前置（已实测触发）：`unknown-matter`（6 处）与 `proposal-not-pending`（2 处）在 operating-ledger.spec 中**零覆盖**（spec 只断言 5 个拒绝原因里的 3 个）——**先补这两条特征测试、造红→绿**，再动样板。
+门：地板（`pnpm typecheck && pnpm test && pnpm verify`）+ `pnpm test:domain && pnpm test:host && pnpm test:agent`（operating-ledger.spec 583 行是行为锚）。
+
+**片 3 · desk-process 门去重 + 时间格式化收敛**
+提 `sharedGateReasons`（6 门 ×4 judge）、`pendingOnTarget/Matter`、`remindersUnsynced` 尾巴；四条种子文案抽 `desk-process-messages.ts`（文案与逻辑分家）。新 `client/format.ts` 收敛 pad/humanTime/localDate* 族 + room-data-core.shortTime（消费方 panels/dom-utils 的 import 同 diff 更新）。desk-process 515 → ~380。
+门：`pnpm typecheck && pnpm test:client`。
+
+**片 4 · room-data-io 分簇**
+两读取器共享的"解析→looksLikeDesk→readError→settlePending/retireStaleReceipt"序列提 helper；**8 个**动作文案包装（askRefresh / askStart / askApproveProposal / askRejectProposal / correctMemory / approveKnowledgePage / deprecateKnowledgePage / flagKnowledgePage）抽 `room-data-actions.ts`；prompt 调用形状（requestId 生成/queue 模式/面板前缀）收成单一 helper 供片 5b 复用（即 seedPanelMessage 的合并点）——前缀必须作**入参**（`desk-` vs 各臂的 `requestKind`），否则不是零变化。462 → ~350 + ~110。
+同 diff 义务：[`docs/architecture.md`](../../docs/architecture.md) 的刷新链行写死了 `askRefresh` → `sendPrompt`（`src/client/room-data-io.ts`），搬家后必须更新（`verify` 只查链接存在，查不出句义漂移）。
+门：地板 + `pnpm test:client` + 两场景 `pnpm web-expected`。
+
+**片 5a · knowledge-approve 挂载外迁（低风险，先行锚点）**
+`buildApproveContribution()`（纯函数）+ 挂载体抽 `client/approve-mount.ts`——挂载体**零 ctx**（只用 `getDeskRemote()` + `patchDesk()`）。它的回归资产恰是 web-face 的**空控制台契约**（日志级别由 info 抬成 error 会红；2026-10-05 被 `first-open-draft-banner` 抓到过）。
+门：地板 + `pnpm test:client` + 两场景 `pnpm web-expected`。
+
+**片 5b · client 四臂子系统外迁（本波收口，风险最高片）**
+新 `client/desk-arms.ts`：launchDeskArm + 四臂（process/intake/claim/wake）+ seedPanelMessage（并入片 4 的 prompt helper）+ evaluateReturn 四裁判分发 + settle 观察器接线 + 四路订阅 + 30s 定时刷新，~290 行整体外迁；`client/index.ts` 回归 ~200 行纯接线（facade 注册 + 座位接线 + 依赖表），头注 module map 同 diff 更新（它现在声称 desk-process 拥有四臂）。
+形态 = **依赖参数化**（~9 项 deps：`uiWorkspace`/`uiSession`/`layout`/`workspaces`/`sessions`/`effect` + 闭包 `projection`/`deskPath`/`reader`），**逐项保留可选性**（`ctx.effect` 有无决定订阅走不走浏览器路）；面向 vendor 的依赖必须全走参数——文件头 5–16 行的硬约束是经典脚本里"**无裸运行时 import**"，由 `verify` 的 `clientScriptSafetyProblems` 守。
+前置（已实测触发，但比"零覆盖"窄）：`client-entry.spec.ts` 已覆盖 intake 臂发射与 claim 臂接线面，**未覆盖** process 臂（Q11 重入）/claim 臂发射/wake 臂/`evaluateReturn` 分发与结算 → 先补特征 spec（新 `client-*harness.ts` 夹具；`tests/AGENTS.md` 禁止 import 另一个 spec；形态照 `default-panel-selection` 先例），断言当前行为、造红。
+门：地板 + `pnpm test:client` + `pnpm build` + `pnpm test:composition` + 两场景 `pnpm web-expected` + `pnpm preflight '<URL>'`（起服务串 = 根 AGENTS.md 命令表）+ `pnpm shots '<URL>' --dom --size 1600x1000 --name desk-arms-extract`。
+
+### P2 dev 面
+
+**片 6 · probes/web 去重 + e2e 拆分**
+`dialogue.mjs` 增 `clickByText` / `buttonByText`（**12 处 / 5 文件**内联表达式下沉；实测修正——原写 28 处 / 6 探针不实）；`desk-process-e2e.mjs` 拆成 dispatcher（CLI 面 `--scenario` 与判决 JSON 形状不变）+ 三场景模块 + 共享臂执行器（入口→seed→send→return→assert 六步参数化）；DSH_HOME 解析样板收进 `dev/env/` 一个 `devHome()`（注释归一份），**该 helper 不得读 `process.env.DSH_HOME`**（门禁扫 `dev/**/*.mjs`，只按精确路径放行 `dev/env/dsh.mjs`）。新建的场景模块文件与 `dev/AGENTS.md` 抽屉表同 diff（dev-tree gate 守）。
+门：地板 + `pnpm test:tooling`；`node dev/probes/web/desk-process-e2e.mjs --scenario flow` 一次性 home 真跑一次退出码 0（探针自身判决即验据，走 keyless 回放夹具）。
+
+**片 7 · dev/lib/ 共享库抽屉**
+新 `session-logs.mjs`（sessionLogs / readEvents / classifyUserMessage / stripPanelMarker / userMessageText 从 usage-report 移出 ~100 行）；新 `continuity-core.mjs`（analyzeContinuity / assertSeed / ledgerProblems / sessionExpectations）；两文件落在新建的 dev/lib/ 抽屉；usage-report 回归纯报告 CLI、continuity-run 回归跑器；7 处消费方 import 更新；`dev/AGENTS.md` 抽屉表加 `lib/` 行（dev-tree gate 同 diff）。
+门：`pnpm test:tooling && pnpm verify && pnpm usage`（真读 dev home 出报告即绿）。
+
+### P3 可选（拍板时裁）
+
+**片 8 · verify.mjs 内联检查体族核化**
+五个内联检查体抽 `gates/<family>.mjs` + 负例夹具（prove-it-red：先夹具红、抽出后绿）。553 → ~300。
+门：`pnpm test:tooling && pnpm verify`；新夹具红绿形态记在提交说明。
+
+### 收尾（P1 完成即做一次；P2/P3 不动发布物）
+
+`pnpm release-smoke`（主包片累积改了 lib/ 产物）。`gen-catalog` 不需要——动词/组合行/exports 零变化，verify 的 freshness 门守着，意外红了即停。
+
+### 推进纪律
+
+- 每片一提交、只 add 本片路径（硬规则 3/6）；死路即 revert 单片提交回锚点，原因记提交说明。
+- 纯重构片的红绿机制 = 既有 spec 零改动全绿；覆盖缺口先补特征测试（片 2/片 5 前置）。
+- 门实测（真跑过的命令）写提交说明，不回填本卡正文。
+
+## 输掉的方案
+
+- **client/ 子目录分组**（projection-\* / desk-\* / room-data-\* 三族进子目录）：现在做是纯 churn——命名前缀已可导航、tsdown 内联后 import 面收益为零、23 文件连同 tests import 的改动面不成比例。触发条件：client/ 文件数 > 30 或出现第四族。
+- **learn/index.ts 的 schema 抽离**：评估结论"大而合理"（一工具 8 动作、写 case 同构薄适配）。触发条件：超 ~550 行再拆。
+- **webui-shots 与 cdp-driver 两份 CDP 客户端合并**：重叠 60-90 行属实，但能力矩阵真有差（域启用/超时语义/发现通道/进程清理），合并是设计工作非机械抽取。触发条件：出现第三份 CDP 客户端或两份行为分歧出 bug，届时单独立卡。
+- **ledger 用 mixin/继承拆**：消费面与类型身份耦合，handler 表 + 辅助函数比继承层次可测（bigfile-split S1 输掉的同款理由）。
+- **单文件 tool-\*/ 目录扁平化**：每目录一 index.ts 统一可导航，扁平化零收益。
+- **desk-process-e2e 只抽执行器不拆文件**：治样板不治导航——三场景仍混一文件；拆三模块 + dispatcher 保命令面不变，两者兼得。
+
+## 验收
+
+| 片 | 可执行验收（命令 → 断言） | 红的形态 | 状态 |
+|---|---|---|---|
+| 1 | `pnpm typecheck && pnpm test:agent` 全绿；`wc -l packages/dsh-smart-assistant/src/agent/tool-operating/index.ts` ≤ 450 | typecheck 红（import 断）或 tool-operating.spec 红（schema 形状变） | 未开工 |
+| 2 | `pnpm typecheck && pnpm test:domain && pnpm test:host && pnpm test:agent` 全绿，operating-ledger.spec 零改动通过 | 任一层红 = 归约行为变（回执序 / operation 记录） | 未开工 |
+| 3 | `pnpm typecheck && pnpm test:client` 全绿；共享门字面量在 desk-process.ts 内各只剩一处定义 | judge 相关 spec 红 = 门语义变 | 未开工 |
+| 4 | `pnpm typecheck && pnpm test:client` 全绿，room-data-io spec 零改动通过 | io spec 红 = 读取/发送行为变 | 未开工 |
+| 5 | 全链绿：typecheck → test:client → build → test:composition → verify → preflight → shots 落仓 | 任一环红 = 迁移丢接线 / 裸运行时 import / bundle 形状变 | 未开工 |
+| 6 | `pnpm test:tooling && pnpm verify` 绿；`node dev/probes/web/desk-process-e2e.mjs --scenario flow` 退出码 0 | 探针 verdict fail = 拆分丢相位或丢断言 | 未开工 |
+| 7 | `pnpm test:tooling && pnpm verify` 绿；`pnpm usage` 真读 dev home 出报告 | usage 空报告/抛错 = 日志读取层搬家丢行为 | 未开工 |
+| 8 | `pnpm test:tooling && pnpm verify` 绿；新负例夹具先红后绿（记录在提交说明） | 夹具造不出红 = 抽离未保语义 | 不在本轮范围（P3 未授权） |
+| 收尾 | `pnpm release-smoke` PASS | add/装载/组合断言红 | — |
+
+排除：不做任何行为/合同/文案变更（含"顺手改进"）；不动 vendor/；不动运行 home；不整批改写既有注释语言。

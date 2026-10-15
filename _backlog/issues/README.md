@@ -6,6 +6,7 @@
 
 | 卡 | 要解决什么 | 当前环节与未完成项 |
 |---|---|---|
+| [261016-structure-paydown-closure.md](261016-structure-paydown-closure.md) | 结构还清 P1+P2 落地：主包尾部拆分（片 1–5）与 dev 共享库归位（片 6–7） | 已授权实施（2026-10-16 点名）；验收标准（8 行矩阵）与逐片台账在卡上；未开工 |
 | [261012-operating-continuity-value.md](261012-operating-continuity-value.md) | 经营事项跨时接续是否值得成为助手主价值 | 推敲中；Q9–Q14 已接受，原型已交付；三个切片完成：只读接续读回（首片）、隔离 eval 资产 `pnpm eval:continuity` + 副入口首回合只读协议 + 真机走查判决（第二片，A1/A2/A4/A5 机械面 pass、A8 话术已取证）、Q11 重开续接触发闭环（第三片，resume-reopen 真机通过）；实现/证据见 [implemented note](../../notes/implemented/2026-10-13-operating-continuity-readback.md) 与卡上「第二切片判决」「第三切片记录」节。剩余：web 主入口模型行为回归资产、UX 真人体验判断、自然事项/目标角色价值观察（10/27 复看，🔒） |
 
 ## 写一张卡
