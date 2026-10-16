@@ -75,7 +75,8 @@ prompt 形状收成 `panelPromptRequest(prefix, sessionId, text)`（`[面板] ` 
 片 6 分两次提交落地（同片 5 的锚点纪律）：**6a = 去重 + home 解析**（本次），**6b = e2e 拆分**。
 **6a**：`dialogue.mjs` 增 `buttonByText` / `clickByText`（按 trim 后**精确**匹配为默认——子串匹配会被侧栏会话标题毒化，与文件头同一条教训；`exact:false` 与 `within` 是显式选择，`notFound` 让每个探针保住自己的措辞），把 **10 处**内联「按文案找/点按钮」下沉到 4 个探针文件；剩下 4 处不动且理由明确（3 处是按 aria-label 找发送键——另一种习语；1 处是 `'提交' || toLowerCase()==='submit'` 的大小写不敏感变体，本 helper 表达不了）。
 DSH_HOME 解析样板收进 `dev/env/home.mjs` 的 `devHome(explicit)`（**6 个消费方**接上：preflight / eval:run / eval:domain-run / observe / desk-loop / usage；空串按"没给"处理，与 `eval/run.mjs` 原有判法一致），注释归一份；**该 helper 不读 `process.env.DSH_HOME`**（门禁扫 `dev/**/*.mjs`，只按精确路径放行 `dev/env/dsh.mjs`）。
-**6b**：`desk-process-e2e.mjs`（561 行）拆 dispatcher（CLI 面 `--scenario` 与判决 JSON 形状不变）+ 三场景模块 + 共享前置；新建文件与 `dev/AGENTS.md` 抽屉表同 diff（dev-tree gate 守）。
+**6b**：`desk-process-e2e.mjs`（557 行）拆成 dispatcher（222 行：CLI 面 `--scenario`、共享前置、判决 JSON 形状都不变）+ 三个场景模块（flow 191 / claim 100 / wake 69）；新建文件与 `dev/AGENTS.md` 抽屉表同 diff（dev-tree gate 守）。三段场景正文**逐字搬迁**（87+56+178 = 321 行，`diff` 0 差异、无归一化），只多了解构上下文一行与结尾的 `finish()` 调用。
+**卡上"六步参数化臂执行器"本片不做**（有意的收窄，理由）：读过实际代码后确认它不是"三个平行骨架"——claim/wake 是提前 return 的条件支路、flow 是主体，且四个臂入口在**作用域**（desk 根 vs 全局）、**有无种子回合**、**投票选项**、**断言集**与**失败相位名**上都不同；真正的样板是"按文案找/点按钮"（6a 已下沉 10 处）与"退出尾巴 ×3"（本片抽成唯一一份 `finish()`）。再抽一个八参数执行器会把可 grep 的显式代码换成间接层，收益为负；这与[输掉的方案](#输掉的方案)里"只抽执行器不拆文件"被否的方向不冲突——导航与样板各自按真实重复处理。
 门：地板 + `pnpm test:tooling`；6b 另跑 `node dev/probes/web/desk-process-e2e.mjs --scenario flow` 一次性 home 真跑退出码 0（探针自身判决即验据，走 keyless 回放夹具）。
 
 **片 7 · dev/lib/ 共享库抽屉**

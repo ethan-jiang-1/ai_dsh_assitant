@@ -44,10 +44,10 @@ import { deriveReplayScript, parseSessionLog } from '../../../vendor/dsh/package
 import { tmpDir } from '../../env/tmp.mjs'
 import { launchCdpBrowser } from './cdp-driver.mjs'
 import { option, sleep } from './probe-utils.mjs'
-import {
-  clickByText, conversationActive, deskPresent, deskText, dismissApproval, pasteExpression,
-  pasteUntilSendable, pollUntil, sendClick, sendEnabled, sendPresent, turnStopped, turnRunning,
-} from './dialogue.mjs'
+import { deskText, pollUntil } from './dialogue.mjs'
+import { runClaim } from './desk-process-e2e-claim.mjs'
+import { runFlow } from './desk-process-e2e-flow.mjs'
+import { runWake } from './desk-process-e2e-wake.mjs'
 import { countSessions, registerProbeTeardown, startProbeService, stopStaleProbeServices } from './probe-service.mjs'
 
 const repoRoot = join(fileURLToPath(new URL('.', import.meta.url)), '..', '..', '..')
@@ -194,364 +194,29 @@ pass('matter-list', { matter: 'm-1' })
 // —— 两场景共享的浏览器习语住 dialogue.mjs（粘贴/发送/idle 判据的原产地注释也在那）；
 // 会话计数是服务侧的，住 probe-service.mjs 的 countSessions(home) ——
 
-// —— 认领臂场景（--scenario claim，桌面选择契约卡 261012）：桌面选待认领片段 →
-// 「认领这件事」→ 新会话（种子回合吃主脚本第一格，对齐契约同上）→ 本人指归属 →
-// 回放真调 claim 消费 u-1 → 片段离开待认领通道 + 本会话 committed 回执读回 →
-// 自动返回并**选中归属事项**（「这条落在哪」的桌面回答）。认领臂总建自己的会话
-// （当前会话可能正是产生歧义的那一个），单会话守卫与处理流同一口径。
-if (scenario !== 'flow') {
-if (scenario === 'claim') {
-  const claimCard = await evaluate(`(() => {
-    const root = document.querySelector('[data-assistant-operating-desk]');
-    const card = [...(root?.querySelectorAll('button.dsha-card') ?? [])].find(b => (b.textContent ?? '').includes('二期款已经付了'));
-    if (card === undefined) return 'fragment-card-not-found';
-    card.click(); return 'selected';
-  })()`)
-  if (claimCard !== 'selected') { teardown(); fail('claim-fragment-selection', { claimCard }) }
-  const claimDetail = await evaluate(`(() => {
-    const root = document.querySelector('[data-assistant-operating-desk]');
-    const text = root?.innerText ?? '';
-    const claim = [...(root?.querySelectorAll('button') ?? [])].find(b => (b.textContent ?? '').trim() === '认领这件事');
-    return { noteVisible: text.includes('二期款已经付了'), sourceVisible: text.includes('来自 session-e2e-fragment-source'), claimButtonPresent: claim !== undefined };
-  })()`)
-  if (claimDetail?.noteVisible !== true || claimDetail?.claimButtonPresent !== true) {
-    teardown(); fail('claim-detail', { claimDetail })
-  }
-  pass('claim-fragment-detail', { detail: claimDetail })
 
-  const sessionsBeforeClaim = countSessions(home)
-  const claimEntry = await evaluate(`(() => {
-    const root = document.querySelector('[data-assistant-operating-desk]');
-    const button = [...(root?.querySelectorAll('button') ?? [])].find(b => (b.textContent ?? '').trim() === '认领这件事');
-    if (button === undefined) return 'button-not-found';
-    button.click(); return 'clicked';
-  })()`)
-  if (claimEntry !== 'clicked') { teardown(); fail('claim-entry', { claimEntry }) }
-  const claimConversation = await pollUntil(evaluate, conversationActive, { checkFirst: true, budget: 40 })
-  if (claimConversation !== true) { teardown(); fail('claim-conversation', {}) }
-  pass('claim-entry', {})
-  // 种子回合对齐：等「正在处理待认领片段…」那一轮跑完（其答复含「还没归户」）再粘贴，
-  // 否则粘贴那轮会吃错回放格（BUG-009 的教训在认领臂同样成立）。
-  const claimSeedSettled = await pollUntil(evaluate, `(${turnStopped}) && (document.body.innerText ?? '').includes('还没归户')`, { budget: 240, eachCycle: dismissApproval })
-  if (claimSeedSettled !== true) fail('claim-seed-turn', {})
-  pass('claim-seed-turn', {})
-  const { pasteResult: claimPasteResult, sendable: claimReady } = await pasteUntilSendable(evaluate, claimPrompt, { attempts: 10, gapMs: 800 })
-  if (!claimReady) { teardown(); fail('claim-composer', { claimPasteResult }) }
-  await sleep(600)
-  if (await evaluate(sendClick) !== 'sent') { teardown(); fail('claim-send', {}) }
-  const claimReturnText = await pollUntil(evaluate, deskText, { budget: 180, eachCycle: dismissApproval, isDone: text => text !== null })
-  if (claimReturnText === null) fail('claim-auto-return', { body: await evaluate('document.body.innerText') })
-  const afterClaim = JSON.parse(readFileSync(join(operatingDir, 'ledger.json'), 'utf8'))
-  const claimReceipt = afterClaim.operations['op-authored-claim-u1']
-  if (claimReceipt?.receipt.outcome.status !== 'committed') fail('claim-durable', { claimReceipt })
-  if (afterClaim.unclaimed['u-1'] !== undefined) fail('claim-fragment-consumed', { unclaimed: afterClaim.unclaimed })
-  const claimedMatter = Object.values(afterClaim.matters).find(m => m.id === 'm-1')
-  if (!claimedMatter?.materials.some(m => (m.note ?? '').includes('二期款已经付了'))) fail('claim-material-attached', { materials: claimedMatter?.materials })
-  // 「这条落在哪」：返回后详情停在归属事项上；「通道清空」的信号是计数行不再有
-  // 「条待认领」、列表标签消失——片段的原文此时作为**已附着的材料**出现在归属事项的
-  // 依据里（来源与原文随附），那是成功态而不是未清态。
-  if (!claimReturnText.includes('合同 NB-02 第二期款') || !claimReturnText.includes('处理这件事')) fail('claim-return-selection', { claimReturnText })
-  if (claimReturnText.includes('条待认领') || claimReturnText.includes('还没说清是哪件事')) fail('claim-lane-cleared', { claimReturnText })
-  pass('claim-auto-return', {})
-  pass('claim-durable', { outcome: claimReceipt.receipt.outcome })
-  pass('claim-lane-cleared-and-selected', { matter: 'm-1' })
-  mkdirSync(shotDir, { recursive: true })
-  writeFileSync(join(shotDir, '4-claimed-and-selected.png'), await browser.captureScreenshot())
-  const sessionsAfterClaim = countSessions(home)
-  if (sessionsAfterClaim !== sessionsBeforeClaim + 1) {
-    teardown()
-    fail('claim-single-session', { sessionsBeforeClaim, sessionsAfterClaim })
-  }
-  pass('claim-single-session', { created: sessionsAfterClaim - sessionsBeforeClaim })
-
-  // 相位（桌面历史视角卡 261012 ③）：流水视角——切到流水，操作按天倒序在场（今天的认领
-  // 在种子账本 10-10 的交办立项之前），点认领条目跳转回看板并选中归属事项。
-  const activitySwitch = await evaluate(`(() => {
-    const tab = [...document.querySelectorAll('button.dsha-tab')].find(b => (b.textContent ?? '').trim() === '流水');
-    if (tab === undefined) return 'mode-tab-not-found';
-    tab.click(); return 'switched';
-  })()`)
-  if (activitySwitch !== 'switched') { teardown(); fail('activity-switch', { activitySwitch }) }
-  const feedText = await evaluate(deskText)
-  if (feedText === null || !feedText.includes('认领归户') || !feedText.includes('交办立项')) fail('activity-feed', { feedText: String(feedText).slice(0, 300) })
-  if (feedText.indexOf('认领归户') > feedText.indexOf('交办立项')) fail('activity-order', { feedText: String(feedText).slice(0, 300) })
-  const entryJump = await evaluate(`(() => {
-    const entry = [...document.querySelectorAll('button.dsha-activity-entry')].find(b => (b.textContent ?? '').includes('认领归户'));
-    if (entry === undefined) return 'entry-not-found';
-    entry.click(); return 'jumped';
-  })()`)
-  if (entryJump !== 'jumped') { teardown(); fail('activity-jump', { entryJump }) }
-  const jumpedText = await evaluate(deskText)
-  if (jumpedText === null || !jumpedText.includes('处理这件事') || !jumpedText.includes('合同 NB-02 第二期款')) {
-    fail('activity-jump-selection', { jumpedText: String(jumpedText).slice(0, 200) })
-  }
-  pass('activity-feed-and-jump', {})
-  writeFileSync(join(shotDir, '5-activity-feed.png'), await browser.captureScreenshot())
-
-  verdict.consoleProblems = consoleProblems
-  verdict.exceptions = exceptions
+/**
+ * The console/network tail every scenario ended with: publish the collected problems, tear the
+ * service down, and exit on the verdict. One copy, so a scenario cannot drift in how it reports.
+ * @param {string} label - the PASS line's label.
+ */
+const finish = (label) => {
+  verdict.consoleProblems = browser.consoleProblems
+  verdict.exceptions = browser.exceptions
   teardown()
-  if (consoleProblems.length > 0 || exceptions.length > 0) {
+  if (browser.consoleProblems.length > 0 || browser.exceptions.length > 0) {
     console.log(JSON.stringify(verdict, null, 2))
     process.exit(1)
   }
-  console.log(`PASS desk claim flow e2e: ${JSON.stringify(verdict.phases)}`)
+  console.log(`PASS ${label}: ${JSON.stringify(verdict.phases)}`)
   process.exit(0)
-  }
-if (scenario === 'wake') {
-  // 相位（状态门控动作卡 261012）：状态决定合法动作——已完成事项的动作是「唤醒这件事」，
-  // 不是「处理这件事」；唤醒走真 reopen（带原因），事项回在办后按钮变回「处理这件事」。
-  const settledSelect = await evaluate(`(() => {
-    const root = document.querySelector('[data-assistant-operating-desk]');
-    const card = [...(root?.querySelectorAll('button.dsha-card') ?? [])].find(b => (b.textContent ?? '').includes('九月银行对账单核对'));
-    if (card === undefined) return 'settled-card-not-found';
-    card.click(); return 'selected';
-  })()`)
-  if (settledSelect !== 'selected') { teardown(); fail('settled-select', { settledSelect }) }
-  const settledDetail = await evaluate(`(() => {
-    const root = document.querySelector('[data-assistant-operating-desk]');
-    const text = root?.innerText ?? '';
-    const wake = [...(root?.querySelectorAll('button') ?? [])].find(b => (b.textContent ?? '').includes('唤醒这件事'));
-    const process = [...(root?.querySelectorAll('button') ?? [])].find(b => (b.textContent ?? '').trim() === '处理这件事');
-    return { wakePresent: wake !== undefined, processPresent: process !== undefined };
-  })()`)
-  if (settledDetail?.wakePresent !== true || settledDetail?.processPresent !== false) {
-    fail('settled-action-gate', { settledDetail })
-  }
-  pass('settled-action-gate', { detail: settledDetail })
-
-  const sessionsBeforeWake = countSessions(home)
-  const wakeEntry = await evaluate(clickByText('唤醒这件事', { exact: false }))
-  if (wakeEntry !== 'clicked') { teardown(); fail('wake-entry', { wakeEntry }) }
-  const wakeConversation = await pollUntil(evaluate, conversationActive, { checkFirst: true, budget: 40 })
-  if (wakeConversation !== true) { teardown(); fail('wake-conversation', {}) }
-  pass('wake-entry', {})
-  const wakeSeedSettled = await pollUntil(evaluate, `(${turnStopped}) && (document.body.innerText ?? '').includes('重新打开它需要一个理由')`, { budget: 240, eachCycle: dismissApproval })
-  if (wakeSeedSettled !== true) fail('wake-seed-turn', {})
-  pass('wake-seed-turn', {})
-  const { pasteResult: wakePasteResult, sendable: wakeReady } = await pasteUntilSendable(evaluate, wakePrompt, { attempts: 10, gapMs: 800 })
-  if (!wakeReady) { teardown(); fail('wake-composer', { wakePasteResult }) }
-  await sleep(600)
-  if (await evaluate(sendClick) !== 'sent') { teardown(); fail('wake-send', {}) }
-  const wakeReturnText = await pollUntil(evaluate, deskText, { budget: 180, eachCycle: dismissApproval, isDone: text => text !== null })
-  if (wakeReturnText === null) fail('wake-auto-return', { body: await evaluate('document.body.innerText') })
-  const afterWake = JSON.parse(readFileSync(join(operatingDir, 'ledger.json'), 'utf8'))
-  const reopenReceipt = afterWake.operations['op-authored-reopen-m2']
-  if (reopenReceipt?.receipt.outcome.status !== 'committed') fail('wake-durable', { reopenReceipt })
-  const woken = afterWake.matters['m-2']
-  if (woken?.status !== 'active' || woken.times.completedAt !== undefined) fail('wake-status-active', { status: woken?.status, times: woken?.times })
-  if (!woken.materials.some(m => (m.note ?? '').includes('漏核'))) fail('wake-reason-material', { materials: woken.materials })
-  // 状态机闭合的可见证明：唤醒回在办后，详情的动作按钮变回「处理这件事」。
-  if (!wakeReturnText.includes('九月银行对账单核对') || !wakeReturnText.includes('处理这件事')) fail('wake-return-selection', { wakeReturnText })
-  pass('wake-auto-return', {})
-  pass('wake-durable', { outcome: reopenReceipt.receipt.outcome })
-  pass('wake-state-machine-closed', { status: woken.status, completedAt: woken.times.completedAt ?? null })
-  writeFileSync(join(shotDir, '6-woken-and-processing.png'), await browser.captureScreenshot())
-  const sessionsAfterWake = countSessions(home)
-  if (sessionsAfterWake !== sessionsBeforeWake + 1) {
-    teardown()
-    fail('wake-single-session', { sessionsBeforeWake, sessionsAfterWake })
-  }
-  pass('wake-single-session', { created: sessionsAfterWake - sessionsBeforeWake })
-
-  verdict.consoleProblems = consoleProblems
-  verdict.exceptions = exceptions
-  teardown()
-  if (consoleProblems.length > 0 || exceptions.length > 0) {
-    console.log(JSON.stringify(verdict, null, 2))
-    process.exit(1)
-  }
-  console.log(`PASS desk wake flow e2e: ${JSON.stringify(verdict.phases)}`)
-  process.exit(0)
-  }
 }
 
-// 相位 2：选事项 → 详情（处理按钮 + 来源依据可见）。
-const selectMatter = `(() => {
-  const root = document.querySelector('[data-assistant-operating-desk]');
-  const card = [...(root?.querySelectorAll('button.dsha-card') ?? [])].find(b => (b.textContent ?? '').includes('合同 NB-02 第二期款'));
-  if (card === undefined) return 'card-not-found';
-  card.click(); return 'selected';
-})()`
-if (await evaluate(selectMatter) !== 'selected') { teardown(); fail('matter-select', {}) }
-await sleep(600)
-const detailText = await evaluate(deskText)
-if (detailText === null || !detailText.includes('处理这件事') || !detailText.includes('来源') && !detailText.includes('session-')) {
-  teardown(); fail('matter-detail', { text: String(detailText).slice(0, 400) })
+// The three scenario bodies live in their own modules (片 6b); this file owns the CLI face,
+// the shared preamble and the verdict shape.
+const ctx = {
+  browser, claimPrompt, countSessions, evaluate, fail, finalReplyMarker, finish, followupPrompt,
+  home, intakePrompt, operatingDir, pass, pollUntil, rejectPrompt, shotDir, sleep, teardown,
+  verdict, wakePrompt,
 }
-pass('matter-detail', {})
-
-// 相位 3：「处理这件事」→ 处理会话接管主区（桌面卸载、composer 挂载）。
-// 规格负例「双击发送两次」：同一次 evaluate 里连点两下（落在面板卸载窗口内），
-// 复用守卫必须吞掉第二击——服务端会话计数只允许 +1。
-const sessionsBeforeProcess = countSessions(home)
-if (await evaluate(`(() => {
-  const root = document.querySelector('[data-assistant-operating-desk]');
-  const process = [...(root?.querySelectorAll('button') ?? [])].find(b => (b.textContent ?? '') === '处理这件事');
-  if (process === undefined) return 'button-not-found';
-  process.click(); process.click(); return 'double-clicked';
-})()`) !== 'double-clicked') { teardown(); fail('process-click', {}) }
-const conversationTookOver = await pollUntil(evaluate, conversationActive, { checkFirst: true, budget: 40 })
-if (conversationTookOver !== true) {
-  const state = await evaluate(`(() => ({
-    desk: document.querySelector('[data-assistant-operating-desk]') !== null,
-    composer: document.querySelector('[data-composer-input="true"]') !== null,
-    navCount: performance.getEntriesByType('navigation').length,
-    hasDebugGlobal: '__deskProcessDebug' in globalThis,
-    processLog: (globalThis.__deskProcessDebug ?? []).slice(-4),
-    notice: (document.body?.innerText ?? '').slice(0, 250),
-  }))()`)
-  teardown()
-  fail('conversation-switch', { waitedMs: 20000, state })
-}
-pass('conversation-switch', {})
-// 双击负例的服务端判据：整个处理流结束时（会话已建、回合已跑）新会话数必须恰好 +1。
-// 计数放在回合之后：create 是异步的，卸载窗口内读数会与 in-flight 竞态。
-verdict.sessionsBeforeProcess = sessionsBeforeProcess
-
-// 相位 3b（BUG-009 的真病根）：粘贴前等这个会话 idle。
-// 处理会话一挂载，注入的「正在处理事项…」消息就起了一个回合；回合运行中 vendor 的 composer
-// 是「停止」态——没有发送键、粘贴会被丢掉（失败取证实测：composer 在、valueLength 0、send false）。
-// 不等它，判据就变成「那个回合多快跑完」——一个纯负载相关的量（本探针因此在空闲机上绿、
-// 在负载机上红）。完成信号用「停止键消失 + 发送键回来」，与 loop-probe 同一习语；
-// 审批门（「允许一次」）就地点掉，别让回合停在等真人上。
-let conversationIdle = false
-for (let i = 0; i < 240 && !conversationIdle; i++) {
-  await sleep(500)
-  await evaluate(dismissApproval)
-  conversationIdle = await evaluate(`(${turnRunning}) === false && (${sendPresent}) === true`) === true
-}
-if (!conversationIdle) {
-  const state = await evaluate(`(() => ({
-    turnRunning: (${turnRunning}), sendPresent: (${sendPresent}),
-    visibleText: (document.body?.innerText ?? '').slice(0, 300),
-  }))()`)
-  teardown(); fail('conversation-idle', { waitedMs: 120000, state })
-}
-pass('conversation-idle', {})
-
-// 相位 4+5（本探针的存在理由）：发一句话 → 回放回合真跑（真工具真账本）→ 读回 → 自动返回。
-// 粘贴/发送习语来自 webui-loop-probe（composer 拒绝 execCommand，合成 ClipboardEvent paste
-// 是已验证的插入方式）；习语定义在两场景共享段。
-// 失败时带上状态取证：composer 在不在、paste 有没有落进去、发送键为什么是灰的——
-// 只报「没接受」的探针下一次还得从头查（2026-10-11 实测教训）。
-const composerState = `(() => {
-  const composer = document.querySelector('[data-composer-input="true"]');
-  const send = [...document.querySelectorAll('button')].find(b =>
-    (b.getAttribute('aria-label') ?? '') === '发送消息' || (b.getAttribute('aria-label') ?? '') === 'Send message');
-  return {
-    composer: composer !== null,
-    valueLength: composer === null ? null : String(composer.value ?? '').length,
-    send: send !== undefined,
-    sendDisabled: send === undefined ? null : send.disabled,
-    activeTag: document.activeElement?.tagName ?? null,
-    activeComposer: document.activeElement === composer,
-    turnRunning: [...document.querySelectorAll('button')].some(b => ['停止生成','Stop generating'].includes(b.getAttribute('aria-label') ?? '')),
-    sendPresent: send !== undefined,
-    visibleText: (document.body?.innerText ?? '').slice(0, 200),
-  };
-})()`
-let ready = false
-let pasteResult = null
-for (let i = 0; i < 10 && !ready; i++) {
-  pasteResult = await evaluate(pasteExpression(followupPrompt))
-  await sleep(800)
-  ready = await evaluate(sendEnabled) === true
-}
-if (!ready) {
-  const state = await evaluate(composerState)
-  const saturated = os.loadavg()[0] >= os.cpus().length
-  teardown()
-  fail('composer-accept', {
-    pasteResult,
-    state,
-    // 会话挂载期相位：这条红在超载主机上不构成回归（BUG-009 的两个回退实证）。
-    ...(saturated ? { hostHint: `loadavg ${os.loadavg()[0].toFixed(1)} on ${String(os.cpus().length)} cores — saturated host, treat as environmental until re-run idle` } : {}),
-  })
-}
-await sleep(600)
-const sent = await evaluate(sendClick)
-if (sent !== 'sent') { teardown(); fail('send', { sent }) }
-
-let settled = false
-for (let i = 0; i < 600 && !settled; i++) {
-  await sleep(500)
-  await evaluate(dismissApproval)
-  if (await evaluate(deskPresent)) fail('pending-stays-in-chat', { reason: 'returned before explicit decision' })
-  settled = await evaluate(`(${turnStopped}) && (document.body.innerText ?? '').includes(${JSON.stringify(finalReplyMarker)})`) === true
-}
-if (!settled) fail('first-turn-settle', {})
-const beforeReject = JSON.parse(readFileSync(join(operatingDir, 'ledger.json'), 'utf8'))
-const matterBefore = Object.values(beforeReject.matters).find(m => m.id === 'm-1')
-if (!matterBefore?.proposals.some(p => p.id === 'p-1' && p.status === 'pending')) fail('pending-proposal', { matterBefore })
-pass('pending-stays-in-chat', {})
-mkdirSync(shotDir, { recursive: true })
-writeFileSync(join(shotDir, '1-pending-stays-in-chat.png'), await browser.captureScreenshot())
-await evaluate(pasteExpression(rejectPrompt))
-await sleep(500)
-if (!await evaluate(sendEnabled)) fail('reject-composer', {})
-await evaluate(sendClick)
-const returnText = await pollUntil(evaluate, deskText, { budget: 120, isDone: text => text !== null })
-if (returnText === null) fail('reject-auto-return', { body: await evaluate('document.body.innerText') })
-const afterReject = JSON.parse(readFileSync(join(operatingDir, 'ledger.json'), 'utf8'))
-const matterAfter = Object.values(afterReject.matters).find(m => m.id === 'm-1')
-const rejection = afterReject.operations['op-authored-reject-p1']
-if (rejection?.receipt.outcome.status !== 'proposal-rejected' || !matterAfter?.proposals.some(p => p.id === 'p-1' && p.status === 'rejected')) fail('durable-rejection', { rejection, matterAfter })
-if (matterAfter.times.promisedDeadline !== '2026-10-13' || matterAfter.times.nextCheckpoint !== '2026-10-13' || matterAfter.revision !== matterBefore.revision) fail('confirmed-dates-unchanged', { matterAfter })
-if (!returnText.includes('合同 NB-02 第二期款') || returnText.includes('等你确认')) fail('return-selection', { returnText })
-pass('reject-auto-return', {})
-pass('durable-rejection', { outcome: rejection.receipt.outcome })
-pass('confirmed-dates-unchanged', { times: matterAfter.times, revision: matterAfter.revision })
-pass('return-selection', {})
-writeFileSync(join(shotDir, '2-returned-after-reject.png'), await browser.captureScreenshot())
-
-// 相位 6（规格 K3 的交代首事臂）：桌面「＋ 交代新事项」→ 在对话里说一件事 → 回放回合真提交
-// `entrust` → 读回 → 自动返回**并选中新建的那件事**（这一臂的「返回仍选 A」）。
-const intakeEntry = await evaluate(`(() => {
-  const root = document.querySelector('[data-assistant-operating-desk]');
-  const button = [...(root?.querySelectorAll('button') ?? [])].find(b => (b.textContent ?? '').includes('交代新事项'));
-  if (button === undefined) return 'button-not-found';
-  button.click(); return 'clicked';
-})()`)
-if (intakeEntry !== 'clicked') { teardown(); fail('intake-entry', { intakeEntry }) }
-const intakeConversation = await pollUntil(evaluate, conversationActive, { checkFirst: true, budget: 40 })
-if (intakeConversation !== true) { teardown(); fail('intake-conversation', {}) }
-pass('intake-entry', {})
-const { sendable: intakeReady } = await pasteUntilSendable(evaluate, intakePrompt, { attempts: 10, gapMs: 800 })
-if (!intakeReady) { teardown(); fail('intake-composer', {}) }
-await sleep(600)
-if (await evaluate(sendClick) !== 'sent') { teardown(); fail('intake-send', {}) }
-const intakeReturnText = await pollUntil(evaluate, deskText, { budget: 180, isDone: text => text !== null })
-if (intakeReturnText === null) fail('intake-auto-return', { body: await evaluate('document.body.innerText') })
-const afterIntake = JSON.parse(readFileSync(join(operatingDir, 'ledger.json'), 'utf8'))
-const entrusted = Object.values(afterIntake.matters).find(m => String(m.title).includes('供应商对账单'))
-const entrustReceipt = afterIntake.operations['op-authored-entrust']
-if (entrusted === undefined || entrustReceipt?.receipt.outcome.status !== 'committed') {
-  fail('intake-durable', { entrusted, entrustReceipt })
-}
-// 「返回仍选 A」：返回后详情停在新事项上（标题 + 处理入口），不是停在列表或旧事项。
-if (!intakeReturnText.includes('供应商对账单') || !intakeReturnText.includes('处理这件事')) {
-  fail('intake-return-selection', { intakeReturnText })
-}
-pass('intake-auto-return', { matter: entrusted.id })
-pass('intake-return-selection', { title: '供应商对账单：本月多出一笔待核' })
-writeFileSync(join(shotDir, '3-entrusted-and-selected.png'), await browser.captureScreenshot())
-
-// 双击负例终判（规格「双击发送两次」）：整个流结束时新会话数恰好 +1。
-const sessionsAfterFlow = countSessions(home)
-if (sessionsAfterFlow !== sessionsBeforeProcess + 1) {
-  teardown()
-  fail('double-click-single-session', { sessionsBeforeProcess, sessionsAfterFlow })
-}
-pass('double-click-single-session', { created: sessionsAfterFlow - sessionsBeforeProcess })
-
-// —— 控制台与网络面（与 projection 探针同口径）——
-verdict.consoleProblems = consoleProblems
-verdict.exceptions = exceptions
-teardown()
-if (consoleProblems.length > 0 || exceptions.length > 0) {
-  console.log(JSON.stringify(verdict, null, 2))
-  process.exit(1)
-}
-console.log(`PASS desk processing flow e2e: ${JSON.stringify(verdict.phases)}`)
-process.exit(0)
+await { flow: runFlow, claim: runClaim, wake: runWake }[scenario](ctx)
