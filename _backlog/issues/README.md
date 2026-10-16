@@ -6,7 +6,7 @@
 
 | 卡 | 要解决什么 | 当前环节与未完成项 |
 |---|---|---|
-| [261012-operating-continuity-value.md](261012-operating-continuity-value.md) | 经营事项跨时接续是否值得成为助手主价值 | 推敲中；Q9–Q14 已接受，原型已交付；三个切片完成：只读接续读回（首片）、隔离 eval 资产 `pnpm eval:continuity` + 副入口首回合只读协议 + 真机走查判决（第二片，A1/A2/A4/A5 机械面 pass、A8 话术已取证）、Q11 重开续接触发闭环（第三片，resume-reopen 真机通过）；实现/证据见 [implemented note](../../notes/implemented/2026-10-13-operating-continuity-readback.md) 与卡上「第二切片判决」「第三切片记录」节。技术面四切片全部交付（只读接续读回 / 隔离 eval + 副入口协议 / Q11 重开闭环 / **web 主入口回归资产**——2026-10-16 复跑 `passed: true`）；UX 可机械判属性审计已代跑（判决书在卡上，一条真缺陷另立 [BUG-015](../bugs/BUG-015-model-time-vocabulary-drift.md)；另一条（走查文本截断/空文件）经复核**为非缺陷**——两次症状都是查证人的测量假象，已归档为[负知识](../_archive/suspended_bugs/BUG-014-desk-walk-text-capture-truncates.md)）；**真人观察装置已落**（`continuity-observation`）。剩余全是本人面：**5 条口味问题**待答、自然事项/目标角色价值观察（10/27 复看，🔒）、UX 真人体验判断（🔒） |
+| [261012-operating-continuity-value.md](261012-operating-continuity-value.md) | 经营事项跨时接续是否值得成为助手主价值 | 推敲中；Q9–Q14 已接受，原型已交付；三个切片完成：只读接续读回（首片）、隔离 eval 资产 `pnpm eval:continuity` + 副入口首回合只读协议 + 真机走查判决（第二片，A1/A2/A4/A5 机械面 pass、A8 话术已取证）、Q11 重开续接触发闭环（第三片，resume-reopen 真机通过）；实现/证据见 [implemented note](../../notes/implemented/2026-10-13-operating-continuity-readback.md) 与卡上「第二切片判决」「第三切片记录」节。技术面四切片全部交付（只读接续读回 / 隔离 eval + 副入口协议 / Q11 重开闭环 / **web 主入口回归资产**——2026-10-16 复跑 `passed: true`）；UX 可机械判属性审计已代跑（判决书在卡上，一条真缺陷另立 [BUG-015](../_archive/fixed_bugs/BUG-015-model-time-vocabulary-drift.md)；另一条（走查文本截断/空文件）经复核**为非缺陷**——两次症状都是查证人的测量假象，已归档为[负知识](../_archive/suspended_bugs/BUG-014-desk-walk-text-capture-truncates.md)）；**真人观察装置已落**（`continuity-observation`）。剩余全是本人面：**5 条口味问题**待答、自然事项/目标角色价值观察（10/27 复看，🔒）、UX 真人体验判断（🔒） |
 
 ## 写一张卡
 

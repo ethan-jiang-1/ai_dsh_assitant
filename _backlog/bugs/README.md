@@ -39,7 +39,6 @@ frontmatter `status` 是当前阶段的唯一家；状态行镜像它（`状态�
 
 | Bug | 标题 | 严重级 | 发现 |
 |---|---|---|---|
-| [BUG-015](BUG-015-model-time-vocabulary-drift.md) | 模型面时点术语/日期格式漂移（合同「核对点」vs 简报「检查点」） | P2 | 2026-10-16 |
 
 ## frontmatter
 
