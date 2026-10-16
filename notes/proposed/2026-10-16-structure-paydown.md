@@ -63,10 +63,11 @@ prompt 形状收成 `panelPromptRequest(prefix, sessionId, text)`（`[面板] ` 
 门（实测顺序）：地板（`typecheck → build → test → verify`）+ `pnpm test:client` + **两场景** `pnpm web-expected`（含空控制台契约，各自全新隔离 home + `--wait-text`）。
 
 **片 5b · client 四臂子系统外迁（本波收口，风险最高片）**
-新 `client/desk-arms.ts`：launchDeskArm + 四臂（process/intake/claim/wake）+ seedPanelMessage（并入片 4 的 prompt helper）+ evaluateReturn 四裁判分发 + settle 观察器接线 + 四路订阅 + 30s 定时刷新，~290 行整体外迁；`client/index.ts` 回归 ~200 行纯接线（facade 注册 + 座位接线 + 依赖表），头注 module map 同 diff 更新（它现在声称 desk-process 拥有四臂）。
-形态 = **依赖参数化**（~9 项 deps：`uiWorkspace`/`uiSession`/`layout`/`workspaces`/`sessions`/`effect` + 闭包 `projection`/`deskPath`/`reader`），**逐项保留可选性**（`ctx.effect` 有无决定订阅走不走浏览器路）；面向 vendor 的依赖必须全走参数——文件头 5–16 行的硬约束是经典脚本里"**无裸运行时 import**"，由 `verify` 的 `clientScriptSafetyProblems` 守。
-前置（已实测触发，但比"零覆盖"窄）：`client-entry.spec.ts` 已覆盖 intake 臂发射与 claim 臂接线面，**未覆盖** process 臂（Q11 重入）/claim 臂发射/wake 臂/`evaluateReturn` 分发与结算 → 先补特征 spec（新 `client-*harness.ts` 夹具；`tests/AGENTS.md` 禁止 import 另一个 spec；形态照 `default-panel-selection` 先例），断言当前行为、造红。
-门：地板 + `pnpm test:client` + `pnpm build` + `pnpm test:composition` + 两场景 `pnpm web-expected` + `pnpm preflight '<URL>'`（起服务串 = 根 AGENTS.md 命令表）+ `pnpm shots '<URL>' --dom --size 1600x1000 --name desk-arms-extract`。
+新 `client/desk-arms.ts`（384 行，导出 `createDeskArms(deps)` 一个工厂）：launchDeskArm + 四臂（process/intake/claim/wake）+ seedPanelMessage（用片 4 的 prompt helper）+ evaluateReturn 四裁判分发 + settle 观察器 + 四路订阅 + 30s 定时刷新整体外迁。`client/index.ts` 594 → **339** 行（入口剩 facade 注册、座位接线、依赖表与工厂调用）；头注 module map 同 diff 更新（原称 desk-process 拥有四臂，现改为 desk-process = 臂的路径与判据、desk-arms = 四臂本身）。
+形态 = **依赖参数化**，实测 **10 项** deps（`projection`/`reader`/`deskPath`/`uiWorkspace`/`uiSession`/`layout`/`workspaces`/`sessions`/`effect`/`viewActions()`），**逐项保留可选性**（如 `ctx.effect` 的有无仍决定订阅走不走浏览器路）；**工厂而非模块态**是本片的关键决定——launch 锁与绑定必须**每次 materialization 一份**，落模块级会被同页多个实例共享。`subscribe()` 由入口在原 effect 位置调用（注册与 dispose 顺序不变）。
+面向 vendor 的依赖全走参数：经典脚本"无裸运行时 import"的硬约束由 `verify` 的 `clientScriptSafetyProblems` 守（本片绿）。
+前置（已实测触发，但比"零覆盖"窄）：`client-entry.spec.ts` 已覆盖 intake 臂发射与 claim 臂接线面，**未覆盖** process 臂（Q11 重入）/claim 臂发射/wake 臂/`evaluateReturn` 分发与结算 → 先补特征 spec 并逐条造红（`865087a`），夹具留在 spec 内（只有一个消费者，不另立 harness；`tests/AGENTS.md` 禁止 spec 互相 import）。
+门（实测顺序）：地板（`typecheck → build → test → verify`）+ `pnpm test:client` + `pnpm test:composition` + `pnpm preflight '<URL>'` + **两场景** `pnpm web-expected`（各自全新隔离 home + `--wait-text`）+ `pnpm shots '<URL>' --dom --size 1600x1000 --name desk-arms-extract` 落仓。
 
 ### P2 dev 面
 

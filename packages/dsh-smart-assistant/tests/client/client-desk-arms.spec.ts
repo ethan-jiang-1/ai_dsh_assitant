@@ -157,7 +157,8 @@ function fixture(payload: Record<string, unknown> = envelope()): Fixture {
 
 /** Apply the client to a fixture context, bring the connection up, and hand back the arm faces. */
 async function mount(f: Fixture): Promise<ReturnType<Fixture['armFaces']>> {
-  materializeClient(registration, inertReactShim()).apply(f.ctx)
+  const client = materializeClient(registration, inertReactShim()) as unknown as { apply: (ctx: unknown) => void }
+  client.apply(f.ctx)
   f.connect()
   await flush()
   const faces = f.armFaces()

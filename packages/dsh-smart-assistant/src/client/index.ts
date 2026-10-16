@@ -23,8 +23,10 @@
  * approve-mount (the knowledge-approve direct-call lane's mount) /
  * desk-view-actions (deferred activity mode intent) /
  * default-panel-selection (one root-scoped cold-start choice) / brand / commands / room-tabs / panels / dashboard /
- * first-mile / desk-process (the operating desk's conversation arms: process/intake/
- * claim/wake bind & return judges) / desk-process-messages (those arms' four seed texts) /
+ * first-mile / desk-process (the operating desk's arm paths: bind & return judges) /
+ * desk-arms (the four arms themselves: one launch skeleton, the seed notes, the return
+ * dispatch — one factory per materialization, this entry calls its `subscribe`) /
+ * desk-process-messages (those arms' four seed texts) /
  * desk-process-lifecycle (settlement refresh edge owner) /
  * projection-panel + projection-lifecycle +
  * projection-reader + projection-view + operating-projection (the desktop itself — the
@@ -41,7 +43,7 @@ import {
   retireStaleReceipt, settlePending,
 } from './room-data-core'
 import type { DeskStore } from './room-data-core'
-import { bindDeskEnv, getDeskRemote, loadDesk, loadDeskFor, openBeside, panelPromptRequest } from './room-data-io'
+import { bindDeskEnv, loadDesk, loadDeskFor, openBeside } from './room-data-io'
 import { AssistantBrandMark, AssistantBrandName, AssistantHeroMark } from './brand'
 import { deskCommands, roomCommands } from './commands'
 import { createDeskActivityHandoff } from './desk-view-actions'
@@ -54,11 +56,9 @@ import { ensureThemeVars } from './theme'
 import { ProjectionPanel } from './projection-panel'
 import { mountProjectionReader } from './projection-lifecycle'
 import type { ProjectionDownload } from './projection-reader'
-import type { OperatingProjection } from './operating-projection'
 import { createProjectionViewStore } from './projection-view'
-import { bindClaimPath, bindIntakePath, bindProcessPath, bindWakePath, canProcess, judgeClaimReturn, judgeIntakeReturn, judgeReturn, judgeWakeReturn, type DeskPath } from './desk-process'
-import { createSettleRefreshObserver } from './desk-process-lifecycle'
-import { claimContextMessage, processingContextMessage, resumeContextMessage, wakeContextMessage } from './desk-process-messages'
+import type { DeskPath } from './desk-process'
+import { createDeskArms } from './desk-arms'
 import { selectDashboardByDefault } from './default-panel-selection'
 import { en as firstMileEn, zh as firstMileZh } from './locales'
 
@@ -122,283 +122,30 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // One desk→conversation path at a time, either arm (spec K3): an existing matter being
     // processed, or the intake of a matter the principal is about to describe.
     const deskPath = storeApi?.createSnapshotStore<DeskPath | undefined>(undefined)
-    // Reuse-or-create (spec: 「可复用明确可用的处理 Session，否则显式创建/绑定」; the
-    // double-click negative 双击发送两次: a second click must not create a second processing
-    // session — 会话增殖 is the losing option 4). Same matter → re-open the bound session; a
-    // launch in flight swallows further clicks until its path binds (the create is async, so
-    // the bound-path check alone cannot cover the double-click window); a different matter
-    // replaces the path with a fresh session.
-    let processLaunchInFlight = false
     // The live desk store's actions, handed to this entry's own inject face by the render
     // machinery (vendor runInject passes the baked actions of the instance it created). The
     // intake arm needs them for one thing only: selecting the matter it just created on return —
     // the matter arm's selection is the principal's own click, which the store already holds.
     let deskViewActions: { selectMatter(id: string): void } | undefined
     const deskActivity = createDeskActivityHandoff()
-    // Shared by the matter and claim arms: create one session in the designated workspace (the
-    // current session's, else the first in host workspace order — the vendor list is
-    // host-ordered, not recency-ordered) — the shell's own startSession resolution; creating
-    // bare pops a from-scratch picker. The intake arm does not use this: it reuses the current
-    // session when one exists, a different explicit shape.
-    const createSessionInDesignatedWorkspace = async (): Promise<string | undefined> => {
-      const catalog = ctx.workspaces?.list.getSnapshot()
-      const currentKey = ctx.uiSession?.current.value.key
-      const workspaceId = catalog?.items.find(item => currentKey !== undefined && item.sessionIds.includes(String(currentKey)))?.workspaceId
-        ?? catalog?.items[0]?.workspaceId
-      return ctx.sessions?.create(workspaceId === undefined ? undefined : { workspaceId })
-    }
-    // The panel-seeded context note rides the same remote prompt channel for every arm: one
-    // queued, logged user message per created session — and, per Q11 (confirmed 2026-10-12),
-    // one resume note each time the principal re-enters a bound matter from the desk: a 处理
-    // click is an explicit continuation intent whether the binding is fresh or reused.
-    const seedPanelMessage = (requestKind: string, sessionId: string, text: string): void => {
-      const prompt = (getDeskRemote()?.['session'] as { prompt?: (request: unknown) => Promise<unknown> } | undefined)?.prompt
-      if (prompt !== undefined) {
-        // The request shape is shared with every panel action (see panelPromptRequest); a seed is
-        // fire-and-forget — nothing on the desk freezes waiting for it.
-        void prompt(panelPromptRequest(requestKind, sessionId, text))
-      }
-    }
-    // The four desk→conversation arms (spec K3 + principal-direction cards) share one launch
-    // skeleton — guard the bound path, take the launch lock, demand a readable projection,
-    // resolve the arm's subject, then create/steer the session, bind the path, open it, and
-    // seed the context note — and differ only in the declarative parts below. The shared
-    // skeleton is what keeps the double-click negative (双击发送两次) and the one-path-at-a-time
-    // rule (spec K3) true for every arm at once: the launch lock lives here, not in four copies.
-    // The intake arm is the deliberate outlier: it keeps opening its door when the projection
-    // is unreadable (`toleratesMissing`) — a Day-0 principal clicking 「＋ 交代新事项」 on a fresh
-    // home must never meet a dead button (the loop probe caught exactly that, 2026-10-11) —
-    // reuses the CURRENT session when one exists, and seeds nothing: the principal's own words
-    // are the context.
-    const launchDeskArm = <S>(arm: {
-      /** True when the currently bound path is this arm's subject re-entered. */
-      reentry: (existing: DeskPath) => boolean
-      /** The resume-side effect of a re-entry (only the matter arm has one — Q11). */
-      reentrySeed?: (existing: DeskPath) => void
-      /** The arm's subject from a readable projection; undefined = not on this desk now. */
-      subject: (data: OperatingProjection) => S | undefined
-      /** Open the door even when the projection is unreadable (intake only). When given, it is
-       *  called for every unreadable state and decides whether the path still binds. */
-      unreadableSubject?: (status: ProjectionDownload['status'] | undefined) => S
-      /** How this arm obtains its session. */
-      session: () => Promise<string | undefined>
-      /** Bind the path, open the session, and seed the context note. */
-      engage: (sessionId: string, subject: S) => void
-    }): void => {
-      const existing = deskPath?.getSnapshot()
-      if (existing !== undefined && arm.reentry(existing)) {
-        ctx.uiWorkspace?.openSession(existing.sessionId)
-        arm.reentrySeed?.(existing)
-        return
-      }
-      if (processLaunchInFlight) return
-      const snapshot = projection?.getSnapshot()
-      const readable = snapshot?.status === 'ready' && snapshot.stale !== true && snapshot.data !== undefined
-      const missing = snapshot?.status === 'missing'
-      // Refresh on an unreadable projection — except for a `missing` that the arm tolerates:
-      // `missing` is the 404 the download answers when no ledger exists, which is "no matters",
-      // not "unknown", so a tolerating arm does not re-ask. Anything else (loading, error,
-      // disconnected) is genuinely unknown: the subject arms close their door and leave the
-      // path unbound rather than binding on a guess; a tolerating arm opens it unbound.
-      if (!readable && !(missing === true && arm.unreadableSubject !== undefined)) reader?.refresh()
-      const subject = readable
-        ? arm.subject(snapshot.data)
-        : arm.unreadableSubject !== undefined ? arm.unreadableSubject(snapshot?.status) : undefined
-      if (subject === undefined) return
-      processLaunchInFlight = true
-      void (async () => {
-        try {
-          const sessionId = await arm.session()
-          if (sessionId === undefined) return
-          arm.engage(sessionId, subject)
-        } finally {
-          processLaunchInFlight = false
-        }
-      })()
-    }
-
-    // The matter arm (explicit processing, K3 slice F): one bound matter + processing session.
-    const processMatter = (matterId: string): void => launchDeskArm({
-      reentry: path => path.kind === 'matter' && path.matterId === matterId,
-      // Q11: re-entering a bound matter from the desk is a continuation intent — seed the
-      // resume contract (fresh ledger read, six-category handover, then wait) so the
-      // returning principal gets the package without asking. A plain sidebar open of the
-      // old chat seeds nothing; only the desk's 处理 action does. The title comes from the
-      // projection read (displayContext stays visual-only, never submitted to the model).
-      reentrySeed: existing => {
-        const matter = projection?.getSnapshot().data?.matters.find(item => item.id === matterId)
-        seedPanelMessage('desk-process-resume', existing.sessionId, resumeContextMessage({
-          id: matterId,
-          ...(matter?.title !== undefined ? { title: matter.title } : {}),
-        }))
-      },
-      subject: data => data.matters.find(item => item.id === matterId),
-      session: createSessionInDesignatedWorkspace,
-      engage: (sessionId, matter) => {
-        // Bind before navigation so the session's first render receives this matter's
-        // visual context and is not mistaken for an unrelated first-time conversation.
-        if (deskPath !== undefined) {
-          deskPath.set({
-            ...bindProcessPath(matterId, sessionId, matter.revision),
-            displayContext: { title: matter.title, summary: matter.summary },
-          })
-        }
-        // Open through the shell's own selection action; retaining alone leaves the old
-        // main-view session selected, so the principal would type into the wrong conversation.
-        ctx.uiWorkspace?.openSession(sessionId)
-        // The matter IS this session's context (principal decision, 2026-10-11): seed it as a
-        // visible, logged message through the same panel channel — the model starts knowing
-        // what it is processing instead of reconstructing intent from the filesystem. Once per
-        // created session; re-entering from the desk later seeds the resume note (Q11, above).
-        seedPanelMessage('desk-process-context', sessionId, processingContextMessage(matter))
-      },
+    // The four desk→conversation arms (spec K3 + principal-direction cards) live in
+    // ./desk-arms: one factory per materialization, so the launch lock and the bound-path
+    // access keep the lifecycle they had inside apply. Subscriptions are registered below,
+    // where the effect used to be, so lifecycle ordering is unchanged.
+    const arms = createDeskArms({
+      projection,
+      reader,
+      deskPath,
+      uiWorkspace: ctx.uiWorkspace,
+      uiSession: ctx.uiSession,
+      layout: ctx.layout,
+      workspaces: ctx.workspaces,
+      sessions: ctx.sessions,
+      effect: (install: () => () => void) => ctx.effect(install),
+      viewActions: () => deskViewActions,
     })
 
-    // The intake arm (spec K3's 交代首事 side): the desk's 「＋ 交代新事项」 opens a conversation in
-    // which the principal says the matter, and the desk comes back once the ledger holds it —
-    // selecting the new matter. The bound session is the current one (explicit, never guessed);
-    // a fresh folder with no session yet gets one through the first workspace. The ids present
-    // at binding are what later tells a creation apart from an update, so the path binds only
-    // where those ids are honestly known: readable (the real ids) or a 404-missing ledger
-    // (honestly empty) — on any other unreadable state the door opens but the path stays unbound.
-    const startIntake = (): void => launchDeskArm({
-      reentry: path => path.kind === 'intake',
-      subject: data => ({ observed: new Set(data.matters.map(matter => matter.id)), binds: true }),
-      unreadableSubject: status => ({ observed: new Set<string>(), binds: status === 'missing' }),
-      session: async (): Promise<string | undefined> => {
-        const current = ctx.uiSession?.current.value.key
-        if (current !== undefined) return String(current)
-        const catalog = ctx.workspaces?.list.getSnapshot()
-        const workspaceId = catalog?.items[0]?.workspaceId
-        return ctx.sessions?.create(workspaceId === undefined ? undefined : { workspaceId })
-      },
-      engage: (sessionId, { observed, binds }) => {
-        if (binds) deskPath?.set(bindIntakePath(sessionId, observed))
-        ctx.uiWorkspace?.openSession(sessionId)
-      },
-    })
-
-    // The claim arm (principal direction, 2026-10-12: every desk item selects into a contextual
-    // action): an unclaimed fragment opens the conversation in which the principal decides its
-    // home — claim to an existing matter or entrust a new one — and the desk returns once the
-    // fragment leaves the unclaimed lane and this session reads back its committed receipt.
-    // It always creates its own session — the current conversation may be the one that produced
-    // the ambiguity.
-    const claimFragment = (fragmentId: string): void => launchDeskArm({
-      reentry: path => path.kind === 'claim' && path.fragmentId === fragmentId,
-      subject: data => data.unclaimed.find(item => item.id === fragmentId),
-      session: createSessionInDesignatedWorkspace,
-      engage: (sessionId, fragment) => {
-        deskPath?.set(bindClaimPath(fragmentId, sessionId))
-        ctx.uiWorkspace?.openSession(sessionId)
-        seedPanelMessage('desk-claim-context', sessionId, claimContextMessage(fragment))
-      },
-    })
-
-    // The wake arm (state-gated actions, card 261012): a settled matter's only legal action is
-    // waking it — the conversation exists to state what changed, the model reopens explicitly,
-    // and the desk returns once the matter reads back active with this session's receipt.
-    // The matter must be readable AND settled: an active matter wakes nothing (its action is
-    // 处理). The fault-tolerance layer: a settled matter's status gates the binding itself —
-    // even a bypassed caller cannot open a 处理 path on finished work.
-    const wakeMatter = (matterId: string): void => launchDeskArm({
-      reentry: path => path.kind === 'wake' && path.matterId === matterId,
-      subject: data => {
-        const matter = data.matters.find(item => item.id === matterId)
-        return matter !== undefined && !canProcess(matter.status) ? matter : undefined
-      },
-      session: createSessionInDesignatedWorkspace,
-      engage: (sessionId, matter) => {
-        const observedStatus = matter.status === 'abandoned' ? 'abandoned' as const : 'completed' as const
-        deskPath?.set(bindWakePath(matterId, sessionId, observedStatus))
-        ctx.uiWorkspace?.openSession(sessionId)
-        seedPanelMessage('desk-wake-context', sessionId, wakeContextMessage({ id: matter.id, title: matter.title, status: observedStatus, summary: matter.summary }))
-      },
-    })
-    const evaluateReturn = (): void => {
-      const path = deskPath?.getSnapshot()
-      const snapshot = projection?.getSnapshot()
-      const data = snapshot?.data
-      if (path === undefined || snapshot?.status !== 'ready' || snapshot.stale === true || data === undefined) return
-      const panel = ctx.layout?.panelInfo.getSnapshot()
-      const currentKey = ctx.uiSession?.current.value.key
-      const status = ctx.uiSession?.sessionStatus.getSnapshot().get(path.sessionId)
-      const judgeInput = {
-        projection: {
-          status: snapshot.status,
-          ...(snapshot.stale === undefined ? {} : { stale: snapshot.stale }),
-          receipts: data.receipts,
-          matterIds: new Set(data.matters.map(matter => matter.id)),
-          proposals: data.matters.flatMap(matter => matter.proposals.map(proposal => ({
-            id: proposal.id,
-            matterId: matter.id,
-            status: proposal.status,
-            ...(proposal.source === undefined ? {} : { sessionId: proposal.source.sessionId }),
-            ...(proposal.proposedAt === undefined ? {} : { proposedAt: proposal.proposedAt }),
-            ...(proposal.resolutionOperationId === undefined ? {} : { resolutionOperationId: proposal.resolutionOperationId }),
-          }))),
-        },
-        // The client cannot observe turn settlement separately: it derives from the known
-        // running state, and an unknown running state fails closed as running.
-        session: { running: status?.running, turnSettled: status?.running === false, pendingInteraction: status?.pendingInteraction !== undefined },
-        onPath: panel?.activePanelId === null && String(currentKey ?? '') === path.sessionId,
-        // V4/V5 提醒协调 is a deferred face (the projection's reminders are an empty
-        // placeholder until then) — this input stays 'synced' and flips when the reminder
-        // channel lands; judgeReturn already reports the unsynced notice on its output.
-        reminders: 'synced',
-      } as const
-      const decision = path.kind === 'matter' ? judgeReturn(path, judgeInput)
-        : path.kind === 'intake' ? judgeIntakeReturn(path, judgeInput)
-        : path.kind === 'claim' ? judgeClaimReturn(path, { ...judgeInput, unclaimedIds: new Set(data.unclaimed.map(item => item.id)) })
-        : judgeWakeReturn(path, { ...judgeInput, matterStatuses: new Map(data.matters.map(matter => [matter.id, matter.status])) })
-      if (decision.decision === 'return') {
-        deskPath?.set(undefined)
-        // The matter arm returns to a selection the store already holds; the intake and claim
-        // arms have to select where the work landed — the created matter, or the one the
-        // fragment was claimed into ("返回仍选 A" / the claim's answer to 「这条落在哪」).
-        if (path.kind !== 'matter' && decision.matterId !== undefined) deskViewActions?.selectMatter(decision.matterId)
-        ctx.layout?.selectPanel('dsh-smart-assistant-dashboard')
-      }
-    }
-    // The settle signal the desk file's quiet-gap proxy cannot see: session-list `updatedAt`
-    // bumps ONLY on user messages (vendor api-session/activity), so a settle-follow keyed to it
-    // fires mid-turn and never again after the turn ends. The running→false edge of the bound
-    // processing session is the real settlement signal (the same store the stop button reads):
-    // pull the projection on each settle so the receipt this turn committed enters the client
-    // and judgeReturn can decide the auto-return (probed red→green, desk-process-e2e, 2026-10-10).
-    const observeSettle = createSettleRefreshObserver(() => reader?.refresh())
-    const refreshOnSettle = (): void => {
-      const path = deskPath?.getSnapshot()
-      const running = path === undefined
-        ? undefined
-        : ctx.uiSession?.sessionStatus.getSnapshot().get(path.sessionId)?.running
-      observeSettle(path, running)
-    }
-    // Subscriptions ride the browser-only path: headless client contexts carry no `effect`
-    // (the reader mount follows the same boundary).
-    if (projection !== undefined) {
-      ctx.effect(() => {
-        const disposes: Array<(() => void) | undefined> = []
-        if (deskPath !== undefined) {
-          disposes.push(
-            projection.subscribe(evaluateReturn),
-            ctx.uiSession?.sessionStatus.subscribe(() => { refreshOnSettle(); evaluateReturn() }),
-            ctx.layout?.panelInfo.subscribe(evaluateReturn),
-            ctx.sessions?.list.subscribe(evaluateReturn),
-          )
-        }
-        // Periodic desk refresh (principal ask, 2026-10-11): the ledger can move from any
-        // session, and a desk left open must not go stale between conversation settles. The
-        // tick skips a backgrounded page; the reader's own state machine dates the panel.
-        if (reader !== undefined) {
-          const timer = setInterval(() => {
-            if (typeof document === 'undefined' || document.visibilityState === 'visible') reader.refresh()
-          }, 30_000)
-          disposes.push(() => { clearInterval(timer) })
-        }
-        return () => { for (const dispose of disposes) dispose?.() }
-      })
-    }
+    arms.subscribe()
     ctx.slots.inject('main', () => {
       const registration = ctx.slots.register({
         name: 'main',
@@ -412,7 +159,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
             typeof argument === 'object' && argument !== null && typeof (argument as { selectMatter?: unknown }).selectMatter === 'function')
           deskViewActions = actions ?? deskViewActions
           deskActivity.receive(actions)
-          return { hooks: projection === undefined ? {} : { projection }, refreshProjection: () => { reader?.refresh() }, onAsk: () => { ctx.layout?.selectPanel(null) }, onEntrust: startIntake, onProcess: processMatter, onClaim: claimFragment, onWake: wakeMatter }
+          return { hooks: projection === undefined ? {} : { projection }, refreshProjection: () => { reader?.refresh() }, onAsk: () => { ctx.layout?.selectPanel(null) }, onEntrust: arms.startIntake, onProcess: arms.processMatter, onClaim: arms.claimFragment, onWake: arms.wakeMatter }
         },
       }, projection === undefined ? DashboardMainPanel : ProjectionPanel)
       selectDashboardByDefault(ctx)
