@@ -18,7 +18,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { agentsMdStabilityProblems, backtickedRepoPathProblems, backlogGraduationProblems, backlogLivenessProblems, clientScriptSafetyProblems, commandAliasProblems, commitSafetyProblems, compositionRowProblems, configParseProblems, crossFileSectionProblems, dependencyPoseProblems, devDrawerCoverageProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, GRADUATED_STATUS, homeDocContractProblems, implementedAlternativesProblems, identityNameProblems, languageGuardProblems, markdownCorpusFromTracked, notesNamingProblems, notePointerProblems, notesStateProblems, importResolutionProblems, notesTopLevelProblems, pinProblems, machineLocalPathProblems, packageSubpathProblems, playbookFrontmatterProblems,
+import { agentsMdStabilityProblems, backtickedRepoPathProblems, backlogGraduationProblems, backlogLivenessProblems, clientScriptSafetyProblems, commandAliasProblems, commitSafetyProblems, compositionRowProblems, configParseProblems, crossFileSectionProblems, dependencyPoseProblems, devDrawerCoverageProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, graduatedProposalProblems, homeDocContractProblems, implementedAlternativesProblems, identityNameProblems, languageGuardProblems, markdownCorpusFromTracked, notesNamingProblems, notePointerProblems, notesStateProblems, importResolutionProblems, notesTopLevelProblems, pinProblems, machineLocalPathProblems, packageSubpathProblems, playbookFrontmatterProblems,
   runtimeTsconfigProblems, selfContainmentProblems, skillFrontmatterKeyProblems, skillNameGrammarProblems, relativeLinkProblems, researchSubdirProblems, scratchPathProblems, skillFrontmatterProblems, startPathProblems, testAssetNamingProblems, textHygieneProblems, vendorClientFreshnessProblems } from './verify-checks.mjs'
 import * as gateCores from './verify-checks.mjs'
 import { runChecks } from './run-gates.mjs'
@@ -211,16 +211,13 @@ check('contract: docs/home.md lists the rooms and archives the layout creates', 
 
 // ── queue discipline ────────────────────────────────────────────────────────────────────────────
 
-check('queue: digested proposals graduate out of notes/proposed/', () => {
-  const problems = []
-  for (const file of walk(join(repoRoot, 'notes', 'proposed'), ['.md'])) {
-    const status = /状态：\*\*([^*]*)\*/.exec(read(file))?.[1] ?? ''
-    if (GRADUATED_STATUS.test(status)) {
-      problems.push(`${relative(repoRoot, file)} says it is done but still sits in notes/proposed/ — graduate it to notes/implemented/`)
-    }
-  }
-  return problems
-})
+check('queue: digested proposals graduate out of notes/proposed/', () =>
+  // Pure core in gates/backlog.mjs (fixture-pinned in tests/tooling/backlog.spec.mjs): the runner
+  // owns the corpus (every note still on the shelf), the core applies the graduated words to it.
+  graduatedProposalProblems({
+    files: walk(join(repoRoot, 'notes', 'proposed'), ['.md'])
+      .map(path => ({ where: relative(repoRoot, path), text: read(path) })),
+  }))
 
 check('notes: top-level entries are the documented lifecycle set', () =>
   notesTopLevelProblems(join(repoRoot, 'notes')))

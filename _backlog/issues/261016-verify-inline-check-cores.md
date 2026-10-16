@@ -41,7 +41,7 @@ opened: 2026-10-16
 | self-containment | `refactor(scripts): give self-containment its own core` | 已交付 | 27 行核化为 `selfContainmentProblems({ repoRoot, packageDir, files })`（runner 走树 + 读文件）；夹具 4 案（绿 / 越包导入 / 提 vendor / 多文件都报）；`test:tooling` 200 绿 · `verify` 41 绿；`verify.mjs` 517 → **505** |
 | home-doc-contract | 与本族 2 同一次提交（barrel 与 runner 是两族共用文件，分开提交需部分暂存） | 已交付 | 19 行核化为 `homeDocContractProblems({ layoutText, documentText, roomConstants, tools })`；夹具 4 案（绿 / 未声明的常量 / 文档没提的房间值 / 文档没提的工具——含 assistant_knowledge 那条红控）；`verify.mjs` 505 → **500** |
 | commit-safety | 本族提交 `refactor(scripts): give commit safety its own core` | 已交付 | 34 行核化为 `commitSafetyProblems({ mustIgnore, mustTrack, isIgnored })`（两份清单留 runner 作语料/配置 owner；`git check-ignore` 子进程作注入谓词——I/O 不进核）；夹具 3 案（绿 / 该忽略却会被提交 / 该跟踪却被忽略）；`verify.mjs` 500 → **499** |
-| queue | — | 未开工 | — |
+| queue | 本族提交 `refactor(scripts): move the proposed-shelf rule into the backlog core` | 已交付 | 11 行核化为 `graduatedProposalProblems({ files })`，住 `backlog.mjs`（判据词 `GRADUATED_STATUS` 的注释本身就是这条规则）；**夹具咬出真缺陷**：旧内联体把捕到的词（`implemented`）喂给自带 `状态：**` 前缀的 `GRADUATED_STATUS` → 永不匹配、**这条门是死代码**（实测 `test(词)=false` / `test(整行)=true`）；已修（改测状态行）并同 diff 记档；夹具 2 案；`verify.mjs` 499 → **496** |
 | 收尾 | — | 未开工 | — |
 
 真证据（真跑过的命令、夹具红形态、行数实测）记在**该族的提交说明**；本表只留族的状态与指针。

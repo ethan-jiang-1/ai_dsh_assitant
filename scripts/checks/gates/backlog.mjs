@@ -10,6 +10,28 @@ import { read, frontmatterBlock } from './shared.mjs'
 export const GRADUATED_STATUS = /状态：\*\*(implemented|rejected|archived|已全部实施|已消化|已毕业|已完成|已实施)/
 
 /**
+ * A note that says it is done must have left the proposed shelf — the queue is a staging shelf,
+ * not a second archive.
+ * @param {{ files: { where: string, text: string }[] }} inputs - every note on the shelf, already
+ * read by the runner (the runner owns the corpus; this core owns the rule).
+ * @returns {string[]} one problem per graduated note still sitting there.
+ */
+export function graduatedProposalProblems({ files }) {
+  const problems = []
+  for (const file of files) {
+    // The pattern is anchored on the `状态：**…` head, so it is tested against the STATUS LINE —
+    // the previous inline body fed it the captured word alone, which can never match: the gate
+    // was dead code and a graduated note could sit on the shelf forever (found by this family's
+    // fixture, 2026-10-16). The line is also where notes/README.md puts the status.
+    const statusLine = file.text.split('\n').find(line => line.startsWith('日期：')) ?? ''
+    if (GRADUATED_STATUS.test(statusLine)) {
+      problems.push(`${file.where} says it is done but still sits in notes/proposed/ — graduate it to notes/implemented/`)
+    }
+  }
+  return problems
+}
+
+/**
  * Backlog liveness (borrowed 2026-10-02 from ai_dsh_loop_advisor/_backlog's `backlog-liveness`,
  * owner-directed): the deliberation space's own mechanical gate. Three checks, all structural —
  * they never judge a card's content:

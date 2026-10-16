@@ -11,6 +11,7 @@ import { join } from 'node:path'
 import { describe, expect, it, afterEach } from 'vitest'
 import {
   GRADUATED_STATUS,
+  graduatedProposalProblems,
   backlogGraduationProblems,
   backlogLivenessProblems,
 } from '../../../../scripts/checks/gates/backlog.mjs'
@@ -227,6 +228,33 @@ describe('backlogGraduationProblems', () => {
     writeFileSync(join(deep, 'issues', '261007-deep.md'),
       `# 推敲：demo\n\n> 立卡：2026-10-07 ｜ 状态：推敲中｜毕业门判断 = 待定\n${'\n'.repeat(12)}## 证据面\n\nS1 的毕业门 = 已过，S2 待定。\n`, 'utf8')
     expect(backlogGraduationProblems(deep)).toEqual([])
+  })
+})
+
+describe('graduatedProposalProblems', () => {
+  it('accepts notes still on the shelf and flags one that already says it is done', () => {
+    expect(graduatedProposalProblems({
+      files: [{ where: 'notes/proposed/a.md', text: '日期：2026-10-16 · 状态：**proposed**（等点头）' }],
+    })).toEqual([])
+    const problems = graduatedProposalProblems({
+      files: [{ where: 'notes/proposed/b.md', text: '日期：2026-10-16 · 状态：**implemented**' }],
+    })
+    expect(problems).toHaveLength(1)
+    expect(problems[0]).toContain('notes/proposed/b.md says it is done')
+    expect(problems[0]).toContain('graduate it to notes/implemented/')
+  })
+
+  it('reads the status through the same words as the shelf gate, and reports every offender', () => {
+    const problems = graduatedProposalProblems({
+      files: [
+        { where: 'notes/proposed/c.md', text: '日期：2026-10-16 · 状态：**已毕业**' },
+        { where: 'notes/proposed/d.md', text: '日期：2026-10-16 · 状态：**rejected**（原因）' },
+        { where: 'notes/proposed/e.md', text: '日期：2026-10-16 · 状态：**proposed**' },
+      ],
+    })
+    expect(problems).toHaveLength(2)
+    expect(problems[0]).toContain('notes/proposed/c.md')
+    expect(problems[1]).toContain('notes/proposed/d.md')
   })
 })
 
