@@ -24,6 +24,7 @@
 import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { devHome } from '../env/home.mjs'
 import { mkTmpDir } from '../env/tmp.mjs'
 import { runPreset } from './run.mjs'
 
@@ -33,7 +34,7 @@ const domainDir = join(repoRoot, 'dev', 'eval', 'domain')
 const defaultQuestions = join(domainDir, 'questions.local.md')
 // 与 dev/env/dsh.mjs 同一条硬规则：dev 工具**永不继承 DSH_HOME**（见 dev/reports/usage-report.mjs 的同名说明）。
 // 这里只用它来在打分表头上写清"跑的是哪个 home"。
-const harnessHome = resolve(process.env.ASSISTANT_DSH_HOME ?? join(repoRoot, 'dev', 'harness-home'))
+const harnessHome = devHome()
 
 /** 家的四房间工具：用来回答"这一轮它有没有问过自己的房间"。 */
 const HOME_TOOLS = new Set(['assistant_memory', 'assistant_knowledge', 'assistant_research', 'assistant_reflect'])

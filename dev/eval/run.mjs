@@ -21,6 +21,7 @@ import { execFileSync } from 'node:child_process'
 import { chmodSync, copyFileSync, existsSync, rmSync, unlinkSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { devHome } from '../env/home.mjs'
 import { mkTmpDir, tmpDir } from '../env/tmp.mjs'
 import { readEvents, sessionLogs } from '../reports/usage-report.mjs'
 import { argumentsText, evaluateTask, fileShape, wrotePath } from './checks.mjs'
@@ -32,7 +33,7 @@ const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 // BUG-012（2026-10-15）：这个 home 由 main() 在每次评测 run 时供给——默认是一次性 home，显式
 // `ASSISTANT_DSH_HOME` 才落到既有 home。默认落 dev home 时，任务会话读的是真实工作文件夹里的
 // 真实事项/记忆/交付物，判据采样到的是被污染的行为（breakdown 当场读了真实经营账本）。
-let harnessHome = resolve(process.env.ASSISTANT_DSH_HOME ?? join(repoRoot, 'dev', 'harness-home'))
+let harnessHome = devHome()
 
 /**
  * Observe one session log: the tool calls it made and the full text the model said to the user.

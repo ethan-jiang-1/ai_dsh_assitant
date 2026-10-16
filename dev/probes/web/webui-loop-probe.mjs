@@ -56,7 +56,7 @@
 import { launchCdpBrowser } from './cdp-driver.mjs';
 import process from 'node:process';
 import { flag, option, sleep } from './probe-utils.mjs';
-import { pasteUntilSendable, pollUntil, sendClick, sendEnabled, turnRunning } from './dialogue.mjs';
+import { buttonByText, clickByText, pasteUntilSendable, pollUntil, sendClick, sendEnabled, turnRunning } from './dialogue.mjs';
 
 const args = process.argv.slice(2);
 const guiUrl = args.find(a => !a.startsWith('--'));
@@ -168,9 +168,9 @@ try {
   if (wantsTurn) {
     verdict.entry = await evaluate(`(() => {
       const root = document.querySelector('[data-assistant-operating-desk]');
-      const door = [...(root?.querySelectorAll('button') ?? [])].find(b => (b.textContent ?? '').includes('交代新事项'));
+      const door = ${buttonByText('交代新事项', { exact: false, within: '[data-assistant-operating-desk]' })};
       if (door !== undefined) { door.click(); return 'desk-intake' }
-      const fresh = [...document.querySelectorAll('button')].find(b => (b.textContent ?? '').includes('新建会话'));
+      const fresh = ${buttonByText('新建会话', { exact: false })};
       if (fresh !== undefined) { fresh.click(); return 'new-session' }
       return 'no-entry';
     })()`);
@@ -244,19 +244,10 @@ try {
       // 审批门（2026-10-04）：回合可能停在 approval/asked 上等真人——UI 出现「允许一次」。
       // --approve 就地点掉并计数（探针冻结审批闭环的挂账能力，首开 UX 卡第 11 轮）；
       // 不带旗标则如实上报 parked，不再伪装成普通超时。
-      const approvalState = await evaluate(`(() => {
-        const b = [...document.querySelectorAll('button')].find(x => (x.textContent ?? '').trim() === '允许一次');
-        if (b === undefined) return 'none';
-        return 'present';
-      })()`);
+      const approvalState = await evaluate(`(${buttonByText('允许一次')}) === undefined ? 'none' : 'present'`);
       if (approvalState === 'present') {
         if (approve) {
-          const clicked = await evaluate(`(() => {
-            const b = [...document.querySelectorAll('button')].find(x => (x.textContent ?? '').trim() === '允许一次');
-            if (b === undefined) return 'gone';
-            b.click();
-            return 'clicked';
-          })()`);
+          const clicked = await evaluate(clickByText('允许一次', { notFound: 'gone' }));
           if (clicked === 'clicked') result.approvals = (result.approvals ?? 0) + 1;
         } else {
           result.approvalPending = true;
@@ -321,11 +312,7 @@ try {
           return 'clicked';
         })()`);
         await sleep(1500);
-        await evaluate(`(() => {
-          const cat = [...document.querySelectorAll('button')].find(b => (b.textContent ?? '').trim() === '其他' || (b.textContent ?? '').trim() === 'Other');
-          if (cat) cat.click();
-          return cat ? 'category-clicked' : 'no-category';
-        })()`);
+        await evaluate(clickByText(['其他', 'Other'], { notFound: 'no-category' }));
         await evaluate(`(() => {
           const ta = document.querySelector('[role=dialog] textarea, [class*=dialog] textarea, [class*=Feedback] textarea');
           if (ta === null) return 'no-textarea';

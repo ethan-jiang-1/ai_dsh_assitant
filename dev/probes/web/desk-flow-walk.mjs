@@ -27,7 +27,7 @@ import { join } from 'node:path'
 import { tmpDir } from '../../env/tmp.mjs'
 import { option, sleep } from './probe-utils.mjs'
 import {
-  conversationActive, deskPresent, deskText, dismissApproval, pasteUntilSendable,
+  clickByText, conversationActive, deskPresent, deskText, dismissApproval, pasteUntilSendable,
   pollUntil, sendClick, sendPresent, turnStopped,
 } from './dialogue.mjs'
 
@@ -106,7 +106,7 @@ pass('processing-session', { picked, idle })
 // 「处理」是明确的续接意图——应重开同一会话并带 [面板] 续接种子，模型重新读台账交包，
 // 不凭对话旧印象作答。普通侧栏打开旧聊天不在此相位（那不该播报）。
 {
-  const deskNav = await evaluate(`(() => { const b = [...document.querySelectorAll('button')].find(x => (x.textContent ?? '').includes('桌面')); if (b === undefined) return 'no-desk-button'; b.click(); return 'clicked'; })()`)
+  const deskNav = await evaluate(clickByText('桌面', { exact: false, notFound: 'no-desk-button' }))
   const deskBack = await pollUntil(evaluate, deskPresent, { checkFirst: true, budget: 40 })
   let resumeOutcome = { deskNav, deskBack, resumed: 'not-tried', resumeClicked: 'not-tried', backInConversation: false, resumeSeeded: false, resumeIdle: false }
   if (deskNav === 'clicked' && deskBack) {
@@ -169,7 +169,7 @@ if (returned && home !== undefined) {
 if (!skipIntake) {
   if (!returned) {
     // 还留在对话里就先手动回桌面（走查工具不去猜怎么回；这一步如实记录）
-    await evaluate(`(() => { const b = [...document.querySelectorAll('button')].find(x => (x.textContent ?? '').includes('桌面')); b?.click(); })()`)
+    await evaluate(clickByText('桌面', { exact: false }))
     await pollUntil(evaluate, deskText, { budget: 40, isDone: text => text !== null })
   }
   // 身份按**账本 id** 判（标题可能撞车：同一次走查重复说同一件事时，模型会照样新建一件事，

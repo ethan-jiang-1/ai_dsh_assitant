@@ -37,8 +37,47 @@ export const sendPresent = `[...document.querySelectorAll('button')].some(b => [
 
 export const turnStopped = `!(${turnRunning})`
 
+/**
+ * Expression: the first `<button>` whose trimmed text matches, or undefined.
+ *
+ * `texts` may be one label or several (any of them matches). By default the trimmed text is
+ * compared for EQUALITY: substring matching is poisoned by sidebar session titles that merely
+ * contain the words (see the header), so pass `exact: false` only where a loose match is the
+ * intent. `within` narrows the search to one selector's subtree, for labels that exist both on
+ * the desk and in the chat chrome.
+ * @param {string|string[]} texts - the label(s) to match.
+ * @param {{ exact?: boolean, within?: string }} [options] - match and scope options.
+ * @returns {string} an expression returning the element or undefined.
+ */
+export function buttonByText(texts, { exact = true, within } = {}) {
+  const wanted = (Array.isArray(texts) ? texts : [texts])
+    .map(text => exact ? `t === ${JSON.stringify(text)}` : `t.includes(${JSON.stringify(text)})`)
+    .join(' || ')
+  const root = within === undefined ? 'document' : `document.querySelector(${JSON.stringify(within)})`
+  return `(() => {
+  const root = ${root};
+  const buttons = [...(root?.querySelectorAll('button') ?? [])];
+  return buttons.find(b => { const t = (b.textContent ?? '').trim(); return ${wanted}; });
+})()`
+}
+
+/**
+ * Expression: click the first button matching `texts`, reporting what happened.
+ * @param {string|string[]} texts - the label(s) to match.
+ * @param {{ exact?: boolean, within?: string, notFound?: string }} [options] - match options plus
+ * the token to report when nothing matches, so each probe keeps its own wording.
+ * @returns {string} an expression returning 'clicked' or the not-found token.
+ */
+export function clickByText(texts, { notFound = 'button-not-found', ...match } = {}) {
+  return `(() => {
+  const button = ${buttonByText(texts, match)};
+  if (button === undefined) return ${JSON.stringify(notFound)};
+  button.click(); return 'clicked';
+})()`
+}
+
 /** Fire-and-forget dismissal of the 「允许一次」 approval gate, when one is showing. */
-export const dismissApproval = `(() => { const b = [...document.querySelectorAll('button')].find(x => (x.textContent ?? '').trim() === '允许一次'); b?.click(); })()`
+export const dismissApproval = clickByText('允许一次')
 
 export const sendEnabled = `(() => {
   const send = [...document.querySelectorAll('button')].find(b => ['发送消息','Send message'].includes(b.getAttribute('aria-label') ?? ''));

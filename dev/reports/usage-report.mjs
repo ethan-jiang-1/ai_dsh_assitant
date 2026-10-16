@@ -20,6 +20,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readdirSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { devHome } from '../env/home.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 
@@ -27,7 +28,7 @@ const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 // 一律指向仓内 dev home；显式出口只有 `ASSISTANT_DSH_HOME`。
 // 这条不是洁癖：本工具第一次运行就读错 home（读到日用的 ~/.dsh，553 个会话）——
 // 报告头会打印实际读取的 home，就是为了让这种默认值可见。
-const harnessHome = resolve(process.env.ASSISTANT_DSH_HOME ?? join(repoRoot, 'dev', 'harness-home'))
+const harnessHome = devHome()
 
 /**
  * 会话目录名把 cwd 里的 `/` 与 `.` 换成 `-`（`./` 前缀是路径安全用的）。

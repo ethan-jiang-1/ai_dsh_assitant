@@ -72,8 +72,11 @@ prompt 形状收成 `panelPromptRequest(prefix, sessionId, text)`（`[面板] ` 
 ### P2 dev 面
 
 **片 6 · probes/web 去重 + e2e 拆分**
-`dialogue.mjs` 增 `clickByText` / `buttonByText`（**12 处 / 5 文件**内联表达式下沉；实测修正——原写 28 处 / 6 探针不实）；`desk-process-e2e.mjs` 拆成 dispatcher（CLI 面 `--scenario` 与判决 JSON 形状不变）+ 三场景模块 + 共享臂执行器（入口→seed→send→return→assert 六步参数化）；DSH_HOME 解析样板收进 `dev/env/` 一个 `devHome()`（注释归一份），**该 helper 不得读 `process.env.DSH_HOME`**（门禁扫 `dev/**/*.mjs`，只按精确路径放行 `dev/env/dsh.mjs`）。新建的场景模块文件与 `dev/AGENTS.md` 抽屉表同 diff（dev-tree gate 守）。
-门：地板 + `pnpm test:tooling`；`node dev/probes/web/desk-process-e2e.mjs --scenario flow` 一次性 home 真跑一次退出码 0（探针自身判决即验据，走 keyless 回放夹具）。
+片 6 分两次提交落地（同片 5 的锚点纪律）：**6a = 去重 + home 解析**（本次），**6b = e2e 拆分**。
+**6a**：`dialogue.mjs` 增 `buttonByText` / `clickByText`（按 trim 后**精确**匹配为默认——子串匹配会被侧栏会话标题毒化，与文件头同一条教训；`exact:false` 与 `within` 是显式选择，`notFound` 让每个探针保住自己的措辞），把 **10 处**内联「按文案找/点按钮」下沉到 4 个探针文件；剩下 4 处不动且理由明确（3 处是按 aria-label 找发送键——另一种习语；1 处是 `'提交' || toLowerCase()==='submit'` 的大小写不敏感变体，本 helper 表达不了）。
+DSH_HOME 解析样板收进 `dev/env/home.mjs` 的 `devHome(explicit)`（**6 个消费方**接上：preflight / eval:run / eval:domain-run / observe / desk-loop / usage；空串按"没给"处理，与 `eval/run.mjs` 原有判法一致），注释归一份；**该 helper 不读 `process.env.DSH_HOME`**（门禁扫 `dev/**/*.mjs`，只按精确路径放行 `dev/env/dsh.mjs`）。
+**6b**：`desk-process-e2e.mjs`（561 行）拆 dispatcher（CLI 面 `--scenario` 与判决 JSON 形状不变）+ 三场景模块 + 共享前置；新建文件与 `dev/AGENTS.md` 抽屉表同 diff（dev-tree gate 守）。
+门：地板 + `pnpm test:tooling`；6b 另跑 `node dev/probes/web/desk-process-e2e.mjs --scenario flow` 一次性 home 真跑退出码 0（探针自身判决即验据，走 keyless 回放夹具）。
 
 **片 7 · dev/lib/ 共享库抽屉**
 新 `session-logs.mjs`（sessionLogs / readEvents / classifyUserMessage / stripPanelMarker / userMessageText 从 usage-report 移出 ~100 行）；新 `continuity-core.mjs`（analyzeContinuity / assertSeed / ledgerProblems / sessionExpectations）；两文件落在新建的 dev/lib/ 抽屉；usage-report 回归纯报告 CLI、continuity-run 回归跑器；7 处消费方 import 更新；`dev/AGENTS.md` 抽屉表加 `lib/` 行（dev-tree gate 同 diff）。

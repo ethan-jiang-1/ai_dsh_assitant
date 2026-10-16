@@ -45,7 +45,7 @@ import { tmpDir } from '../../env/tmp.mjs'
 import { launchCdpBrowser } from './cdp-driver.mjs'
 import { option, sleep } from './probe-utils.mjs'
 import {
-  conversationActive, deskPresent, deskText, dismissApproval, pasteExpression,
+  clickByText, conversationActive, deskPresent, deskText, dismissApproval, pasteExpression,
   pasteUntilSendable, pollUntil, sendClick, sendEnabled, sendPresent, turnStopped, turnRunning,
 } from './dialogue.mjs'
 import { countSessions, registerProbeTeardown, startProbeService, stopStaleProbeServices } from './probe-service.mjs'
@@ -321,11 +321,7 @@ if (scenario === 'wake') {
   pass('settled-action-gate', { detail: settledDetail })
 
   const sessionsBeforeWake = countSessions(home)
-  const wakeEntry = await evaluate(`(() => {
-    const button = [...document.querySelectorAll('button')].find(b => (b.textContent ?? '').includes('唤醒这件事'));
-    if (button === undefined) return 'button-not-found';
-    button.click(); return 'clicked';
-  })()`)
+  const wakeEntry = await evaluate(clickByText('唤醒这件事', { exact: false }))
   if (wakeEntry !== 'clicked') { teardown(); fail('wake-entry', { wakeEntry }) }
   const wakeConversation = await pollUntil(evaluate, conversationActive, { checkFirst: true, budget: 40 })
   if (wakeConversation !== true) { teardown(); fail('wake-conversation', {}) }

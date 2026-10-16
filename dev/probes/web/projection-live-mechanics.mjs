@@ -23,7 +23,7 @@ import { fileURLToPath } from 'node:url'
 import { tmpDir } from '../../env/tmp.mjs'
 import { launchCdpBrowser } from './cdp-driver.mjs'
 import { option, sleep } from './probe-utils.mjs'
-import { deskText, pollUntil } from './dialogue.mjs'
+import { clickByText, deskText, pollUntil } from './dialogue.mjs'
 import { countSessions, registerProbeTeardown, startProbeService, stopStaleProbeServices } from './probe-service.mjs'
 
 const repoRoot = join(fileURLToPath(new URL('.', import.meta.url)), '..', '..', '..')
@@ -217,11 +217,7 @@ await evaluate(`(() => {
 const deskGone = await pollUntil(evaluate, `document.querySelector('[data-assistant-operating-desk]') === null`, { checkFirst: true, budget: 20 })
 if (deskGone !== true) { teardown(); fail('scroll-unmount', { note: 'conversation view never took over' }) }
 await sleep(600)
-const returnedToDesk = await evaluate(`(() => {
-  const button = [...document.querySelectorAll('button')].find(b => (b.textContent ?? '').trim() === '桌面');
-  if (button === undefined) return 'desk-button-not-found';
-  button.click(); return 'clicked';
-})()`)
+const returnedToDesk = await evaluate(clickByText('桌面', { notFound: 'desk-button-not-found' }))
 if (returnedToDesk !== 'clicked') { teardown(); fail('scroll-remount-nav', { returnedToDesk }) }
 const restored = await pollUntil(evaluate, deskRootState, { checkFirst: true, budget: 30, isDone: state => state !== null })
 if (restored === null) { teardown(); fail('scroll-remount', { note: 'desk never remounted' }) }

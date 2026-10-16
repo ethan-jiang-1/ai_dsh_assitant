@@ -23,6 +23,7 @@
  */
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
+import { devHome } from '../../env/home.mjs'
 
 const positional = process.argv.slice(2)
 const given = positional.find(argument => !argument.startsWith('--'))
@@ -211,7 +212,7 @@ if (bootStart < 0) {
 // not read — that inheritance is the wrong-home trap the dev-tree structure gate forbids. The
 // scanned home is printed in the verdict so a wrong-home pass is visible instead of silently
 // green.
-const home = dshHomeFlag ?? process.env.ASSISTANT_DSH_HOME ?? new URL('../../harness-home/', import.meta.url).pathname
+const home = devHome(dshHomeFlag)
 const registryPath = join(home, 'storages', 'workspace.json')
 let deskFound = ''
 try {
