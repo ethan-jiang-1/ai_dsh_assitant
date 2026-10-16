@@ -160,7 +160,26 @@ try {
   const composerMounted = await pollUntil(evaluate, `document.querySelector('[data-composer-input="true"]') !== null`, { checkFirst: true, budget: 40 })
   if (composerMounted !== true) fail('composer-mounted', {})
   const { sendable } = await pasteUntilSendable(evaluate, task.prompt, { attempts: 90, gapMs: 1000 })
-  if (sendable !== true) fail('ask-paste', { sendable })
+  if (sendable !== true) {
+    // 新鲜 home 的 composer 在默认 workspace 落地前**静默丢文本**；超时要能自证"当时是什么状态"，
+    // 而不是只丢一个 sendable:false 让人猜（2026-10-16 负载 42/10 核时连续三次只看到它）。
+    const state = await evaluate(`(() => {
+      const input = document.querySelector('[data-composer-input="true"]');
+      const send = [...document.querySelectorAll('button')].find(b => {
+        const label = b.getAttribute('aria-label') ?? '';
+        return label.includes('发送') || label.toLowerCase().includes('send');
+      });
+      const body = document.body.textContent ?? '';
+      return {
+        composerPresent: input !== null,
+        composerText: (input?.textContent ?? '').slice(0, 80),
+        sendPresent: send !== undefined,
+        sendDisabled: send?.disabled ?? null,
+        firstMileStrip: body.includes('第一次来') || body.includes('这是你的一把手桌面'),
+      };
+    })()`)
+    fail('ask-paste', { sendable, state })
+  }
   if (await evaluate(sendClick) !== 'sent') fail('ask-send', {})
   pass('ask-entry', { chars: task.prompt.length })
 
