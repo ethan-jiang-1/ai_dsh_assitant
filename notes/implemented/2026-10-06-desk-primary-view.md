@@ -8,7 +8,7 @@
   本片渲染证据 = shots --eval 交互态 DOM（点击链：开会话→点桌面→内容区渲染，/tmp/dsh-webui-shots/desk-view-final-*.dom.txt）。
 - D7 已记入上游台账（默认视图不可插件化），递交与否用户拍板。（用户 2026-10-06 点头推进并要求显性化追踪；方向 owner=[定位卡](../../_backlog/_archive/settled_issues/261005-open-value-deficit.md)，毕业门 owner=[自洽卡](../../_backlog/_archive/settled_issues/261005-turnaround-coherence.md) 形态迁移行，判据承接自[首开卡边界收口](../../_backlog/_archive/settled_issues/261001-first-open-ux.md)）
 
-- **当前取代检查**：本篇仍拥有已交付的会话内 view、偏好记忆、locale/审批与既有回归事实。[全局总助桌面提案](../proposed/2026-10-06-desk-operating-entry.md)部分反转本篇关于全局冷启动默认入口与 D7 依赖的取舍：默认入口子切片已通过真实构建物 Cordis/Loader/slots/layout 组合与两场景浏览器 DOM 复验，全局 main 默认入口不再依赖 D7。这里只取代入口选择；统一经营投影与事项处理读回尚未交付，不能把它们或本篇历史全链结论视为新提案通过。其他本篇决定继续有效。
+- **当前取代检查**：本篇仍拥有已交付的会话内 view、偏好记忆、locale/审批与既有回归事实。[全局总助桌面提案](2026-10-06-desk-operating-entry.md)部分反转本篇关于全局冷启动默认入口与 D7 依赖的取舍：默认入口子切片已通过真实构建物 Cordis/Loader/slots/layout 组合与两场景浏览器 DOM 复验，全局 main 默认入口不再依赖 D7。这里只取代入口选择；统一经营投影与事项处理读回尚未交付，不能把它们或本篇历史全链结论视为新提案通过。其他本篇决定继续有效。
 - **2026-10-11 部分反转**：[唯一桌面](2026-10-11-one-operating-desk.md) 下架本篇落地的会话内「桌面」视图、`DeskSummaryDock` 摘要条与视图偏好预写——真人走查证实两张桌面分不清、真模型把业务内容路由进 `.desk/state.json`；账本投影成为唯一「桌面」。本篇的缝探索事实与历史保留，被反转面的删除清单在 [清理卡](../../_backlog/_archive/settled_issues/261011-session-desk-cleanup.md)。
 
 ## 问题（可观察行为）
@@ -55,7 +55,7 @@
 - **A2' 常驻桌面摘要条**（`69b7bf5`）：`conversation.input.dock`（scope=session）在每条非空白会话 composer 上方注册 DeskSummaryDock——三 chip（要拍/在跟/缺）+「桌面→」一键切桌面 tab；空桌面 return null 不占位。
 - **A3 自测走查全通**（真模型 + 无头浏览器逐帧 DOM 证据）：帧 1 空白相位富落地卡 7/7 关键词命中 ✓；帧 2 种桌面文件后非空白会话摘要条 4/4 命中（`要拍 1·在跟 1·缺 2·桌面→`）✓；帧 3 桌面视图 tab 点击后主区 6/6 命中（节律句/首个决策/选项/due）✓；preflight 绿 ✓。
 - **Phase B**（上游 D7——默认视图可配置 / 空白相位主区可插件贡献）：已入上游台账，vendor 改后触发。
-- **Phase C 的入口依赖已被部分取代**：独立全局 main 可默认桌面，不以 D7 为触发。事项绑定会话与持久读回属于[全局总助桌面提案](../proposed/2026-10-06-desk-operating-entry.md)，尚未由默认入口证据覆盖。
+- **Phase C 的入口依赖已被部分取代**：独立全局 main 可默认桌面，不以 D7 为触发。事项绑定会话与持久读回属于[全局总助桌面提案](2026-10-06-desk-operating-entry.md)，尚未由默认入口证据覆盖。
 
 ## 发行预置拍板（2026-10-06 定案：用户读数确认形态操作面，维持现状即证据支持的形状）
 
