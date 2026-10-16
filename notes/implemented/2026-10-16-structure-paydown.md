@@ -32,7 +32,7 @@
 - **每 apply 一份，不落模块态**：臂的 launch 锁与绑定、desk store、settle 观察器都是**每次 materialization 一份**（`createDeskArms` / `createSettleRefreshObserver` 的工厂形态）——落模块级会被同页多实例共享。
 - **纯搬迁的证据形态**（后续同类重构照此选）：逐字 diff（含浏览器侧字符串里的空白）、字面量多重集核对、特征 spec 跨搬迁零改动、生成表达式在假 DOM 上真跑；结构等价还要能"数得出来"（如 18 个写点 ↔ 10 + 8）。
 - **测试与被测模块同名对齐**：搬走逻辑时同 diff 搬或拆对名 spec（`tests/tooling/session-logs.spec.mjs` 就是这么从 `usage-report.spec.mjs` 拆出来的）。
-- **删导入按运行验，不按印象**：本战役两次同类自伤（`readdirSync`、场景模块的习语导入）都是静态检查全过、真跑才暴露。
+- **改导入/删导入按运行验，不按印象**：本战役三次同类自伤（`readdirSync`、场景模块的习语导入、以及片 7 漏改 `desk-continuity-live.mjs` 的**第二个** import 块——`node --check` 不解析 import、没有测试跑那个探针，于是"回归资产 import 就崩"一路绿灯，直到后来真跑才咬出）都是静态检查全过、真跑才暴露。**一个文件里有多处 import 时，逐处核对**；纯搬迁后对每个消费方至少做一次"真加载"。
 
 ## 输掉的方案
 

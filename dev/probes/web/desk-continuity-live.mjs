@@ -32,7 +32,7 @@ import { mkTmpDir } from '../../env/tmp.mjs'
 import { readEvents, sessionLogs } from '../../lib/session-logs.mjs'
 import {
   analyzeContinuity, assertSeed, ledgerProblems, SEED_EXPECTATIONS, sessionExpectations, sha256,
-} from '../../eval/continuity-run.mjs'
+} from '../../lib/continuity-core.mjs'
 import { launchCdpBrowser } from './cdp-driver.mjs'
 import { option } from './probe-utils.mjs'
 import { registerProbeTeardown, startProbeService, stopStaleProbeServices } from './probe-service.mjs'
