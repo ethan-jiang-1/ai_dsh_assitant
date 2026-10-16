@@ -80,6 +80,19 @@ await record('1-desk-first-screen')
 const mattersBefore = await evaluate(`[...document.querySelectorAll('[data-assistant-operating-desk] button.dsha-card')].map(b => (b.textContent ?? '').slice(0, 40))`)
 pass('desk-first-screen', { matters: mattersBefore?.length ?? 0 })
 
+// 返回契约的对象是**本次处理期间新增**的 pending 提案（合同原文：绑定会话在绑定后为该事项创建的
+// 任一 pending 提案才阻止返回）。事项**本来**挂着的旧提案不该把每一次处理都扣住——2026-10-16 首跑
+// 就是被种子夹具里 10-12 就存在的 p-1 假红了一发；所以在进入处理会话之前取一次快照，之后只算新增。
+const pendingSnapshot = () => {
+  if (home === undefined) return undefined
+  const path = join(home, 'assistant-operating', 'ledger.json')
+  if (!existsSync(path)) return undefined
+  const ledger = JSON.parse(readFileSync(path, 'utf8'))
+  return Object.values(ledger.matters ?? {}).flatMap(matter =>
+    (matter.proposals ?? []).filter(proposal => proposal.status === 'pending').map(proposal => `${String(matter.id)}/${String(proposal.id)}`))
+}
+const pendingBefore = pendingSnapshot()
+
 // —— 相位 2：选一件事 →「处理这件事」→ 处理会话接管 ——
 const picked = await evaluate(`(() => {
   const cards = [...document.querySelectorAll('[data-assistant-operating-desk] button.dsha-card')];
@@ -153,13 +166,13 @@ pass('say-turn', { settled, returned })
 // 不变量（给 --home 才核）：桌面回来了 ⇒ 该 home 的账本里没有 pending 提案。
 // 「留在对话」不判失败——那是「有东西等你」的正确形态；脚本把待确认项如实报出来。
 if (returned && home !== undefined) {
-  const ledgerPath = join(home, 'assistant-operating', 'ledger.json')
-  if (existsSync(ledgerPath)) {
-    const ledger = JSON.parse(readFileSync(ledgerPath, 'utf8'))
-    const pending = Object.values(ledger.matters ?? {}).flatMap(matter =>
-      (matter.proposals ?? []).filter(proposal => proposal.status === 'pending').map(proposal => ({ matter: matter.id, proposal: proposal.id })))
-    if (pending.length > 0) fail('return-invariant', { note: '桌面回来了，但账本还有 pending 提案', pending })
-    else pass('return-invariant', { pending: 0 })
+  const pending = pendingSnapshot() ?? []
+  const added = pending.filter(key => !(pendingBefore ?? []).includes(key))
+  if (added.length > 0) {
+    fail('return-invariant', { note: '桌面回来了，但本次处理期间账本新增了 pending 提案（合同：绑定后创建的提案必须扣住返回）', added, pendingStillOpen: pending })
+  } else {
+    // 旧提案仍在不算违规（它早于本次会话）；如实报出来，便于人判当下是否"有事等你"。
+    pass('return-invariant', { added: 0, pendingStillOpen: pending })
   }
 } else if (!returned) {
   verdict.stayedWithPendingText = String(returnedText ?? (await evaluate('document.body.innerText')) ?? '').slice(0, 400)
