@@ -378,6 +378,8 @@ desk-process-e2e）：供给一次性 home（setup.sh + 凭据 0600，BUG-012 �
 
 ### 2026-10-27 复看包（可执行；agent 不能替本人下结论）
 
+**读数附件（2026-10-16 实跑，agent 代跑）**：`.tmp/continuity-readings-devhome.txt`（dev home；`m-1` 跨 6 个会话、m-2 跨 2 个 —— **开发期使用** ✗，按本卡红线不算真实证据）与 `.tmp/continuity-readings-tastehome.txt`（隔离 home；各事项均「否（同一会话）」⇒ **尚无跨会话观察**）。两份都是运行产物：消失后源码可复跑（`node dev/reports/continuity-observation.mjs`）。
+
 **复看时看三样读数**（缺一即记"证据不足"，不补造）：
 
 1. **真实使用台账**：是否有**真实经营事项**跨 ≥2 个独立会话或日期继续（参与者角色写明、不制造业务、原型不入样本）；记录重讲/查找/追问与恢复起止，用户劳动 / 模型等待 / 外部等待**分开记**，实测与估计分开；
