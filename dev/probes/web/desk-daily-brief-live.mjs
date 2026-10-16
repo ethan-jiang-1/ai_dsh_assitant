@@ -17,9 +17,8 @@
 // 两个相位：
 //   相位 1「建排程」：发任务原句 → 判 `used-tool: schedule_create` + `answer-matches`（任务的 checks）。
 //   相位 2「简报内容纪律」：手发排程 prompt 的形状（`[daily desk brief] …`，技能里钉死的触发语）
-//     → 判：先读 `assistant_operating desk` 后作答 · 简报带出投影真有的两类行（逾期无进展 + 待认领
-//     片段）· 全程无授权写入 · 账本字节不变。技能文本钉的是"只呈现不代拍"，所以写入即红。
-//     （"等你确认的提案"那行**不判**：投影不含 proposals，见下方 EXPIRED_MARKERS 前的注释。）
+//     → 判：先读 `assistant_operating desk` 后作答 · 简报带出工具真给的类行（逾期无进展 + 待认领
+//     片段 + 待确认提案）· 全程无授权写入 · 账本字节不变。技能文本钉的是"只呈现不代拍"，写入即红。
 //
 // 前置：web 会话的工具表必须真含四个 `schedule_*`（否则判据空转——BUG-008 的教训），本探针把它
 // 作为**前置断言**而不是默认假设。创建的排程是真副作用，但落在那次性 home 里，随 home 一起丢弃。
@@ -62,16 +61,18 @@ if (task.requires !== 'web') throw new Error(`task desk-daily-brief no longer de
 const BRIEF_PROMPT = '[daily desk brief] Present the operating desk brief per the desk-daily-brief skill'
 // 判"这条会话是本次问句那条"的标记（不发散：任务原句里最独特的一段）。
 const ASK_MARKER = '每天早上八点半'
-// 相位 2 的可判事实，全部取自 `assistant_operating desk` 的**真实载荷**（2026-10-16 实测：
-// 逐条事项（含 times/materials）+ 未归属片段；**不含 proposals**）：
+// 相位 2 的可判事实，全部取自 `assistant_operating desk` 的**真实载荷**：
 //   · 逾期无进展那条（m-2：承诺 09-30、复核点 10-08 均已过）；
-//   · 待认领片段的原话。
+//   · 待认领片段的原话；
+//   · **待你确认的提案**（2026-10-16 起 `desk` 摘要带 pending 提案索引——
+//     `notes/proposed/2026-10-16-desk-pending-proposal-index.md`；本条判据在那之前**不可判**，
+//     因为工具给不出，模型无从列出；源缺口一修好就加回来了）。
 // 集合而不是单一字面量——真模型措辞每次都可能不同（判据钉行为地板，不钉措辞）。
-// **不可判并因此不判**：技能汇报清单里的"等你确认的提案（逐条给默认动作）"——投影当前不暴露
-// 提案，模型看不到也就无从列出。这是产品面的源缺口，已记在晨报卡的验收节（开放项），
-// 不在本探针里放宽或伪造判据（第一次真跑就是这么发现它的）。
-const EXPIRED_MARKERS = ['m-2', '预付款开票']
+// 标记只取**账本事实词**，不取标题整串：真模型会自由改写标题（2026-10-16 实测把"合同 XR-09
+// 预付款开票"写成"XR-09 预付款 5 万开票"，整串匹配当场假红）。'预付款' 足以区分 m-2 与 m-1（尾款）。
+const EXPIRED_MARKERS = ['预付款', '09-30', '9/30']
 const UNCLAIMED_MARKER = '尾款那笔我们安排了'
+const PENDING_MARKERS = ['p-1', '2026-10-24', '10-24', '下周一']
 // 接续判据核把 `desk`/`read` 当只读；这里同理——简报只呈现，任何其它动作都是代拍。
 const READ_ONLY_ACTIONS = new Set(['desk', 'read'])
 
@@ -230,6 +231,9 @@ if (bound.length !== 1) {
       briefProblems.push(`the brief never surfaced the overdue/no-progress matter (looked for any of ${EXPIRED_MARKERS.join(' / ')}) — that row comes straight from the projection and must be listed`)
     }
     if (!briefText.includes(UNCLAIMED_MARKER)) briefProblems.push(`the brief never surfaced the unclaimed fragment (${UNCLAIMED_MARKER}) — unclaimed items must be listed`)
+    if (!PENDING_MARKERS.some(marker => briefText.includes(marker))) {
+      briefProblems.push(`the brief never surfaced the pending proposal (looked for any of ${PENDING_MARKERS.join(' / ')}) — the desk summary carries it, so the brief must list it`)
+    }
   }
   // 不代拍：整条会话里 `assistant_operating` 只允许只读动作（接续判据核把 desk/read 当只读，同理）。
   const mutating = events.filter(event => event.type === 'tool/call' && event.data?.name === 'assistant_operating'

@@ -24,8 +24,11 @@
   ⏳ pending (NOT in effect — the principal has not confirmed): p-1 reschedule → promised_deadline 2026-10-24, proposed 2026-10-12
 ```
 
-- **结构化面**：`DeskItem` 增 `pending_proposals: [{ id, kind, proposed_at, change? }]`（`change` 只带该 kind 真有的目标字段，沿用工具既有的 snake_case：`promised_deadline` / `next_checkpoint`）；无 pending 时**省略**该字段（与既有可选字段同一写法）。
-- **文本面**：渲染层为每条 pending 提案出一行，**行内必须自带"尚未生效/待你确认"的标注**（措辞是本次改动唯一的新风险面：模型可能把提案当既成事实）。
+**实施后的定稿形态**（比上面那版更小：读实现面时发现**渲染层早就有提案行**，`desk` 只是不填 `proposals` 而已）：
+
+- **结构化面**：`desk` 动作填既有的 `proposals` 字段 = 全体事项里**仅 pending** 的提案，每条带 `matter_id`（多事项列表里必须可归属）；`read` 的完整提案列表不变（已解决/已拒绝仍只在 `read`）。`read` 与 `desk` 共用新抽的 `proposalSummary()` 构造器，避免两种拼法漂移。**不新增字段**（原计划的 `DeskItem.pending_proposals` 取消）。
+- **文本面**：既有渲染行的 pending 状态改成 **`pending — NOT in effect until the principal confirms`**，带归属时渲染成 `- proposal <id> for <matter_id> …`（措辞是本次改动唯一的新风险面：模型可能把提案当既成事实；spec 同时断言**不含**裸 `[pending]`）。
+- 输出 JSON schema 的提案项加可选 `matter_id`（该 schema `additionalProperties: false`，不同步就会在校验期红）。
 - 同 diff：工具描述里 `- desk: …` 那一行点名"含每件事的 pending 提案"· `docs/operating.md` 的 `desk` 行 · 生成物 `pnpm gen-catalog`。
 
 **不动的**：账本本身、权限三分、`read` 的载荷与合同、桌面投影（UI 那份）、`confirm`/`reject` 的语义。
@@ -43,9 +46,9 @@
 
 | 检查 | 通过形态 | 会失败的行为 |
 |---|---|---|
-| 工具输出（deterministic） | `pnpm test:agent` 绿：`tests/agent/tool-operating.spec.ts` 新增断言钉住 `pending_proposals` 的字段与"仅 pending、无则省略"；`pnpm test:composition` 绿（注册期 schema 校验） | 把已拒绝/已确认的提案也塞进索引；无 pending 时吐空数组；`change` 字段名与工具既有 snake_case 不一致 |
-| 措辞不得说成既成事实（deterministic） | spec 钉渲染行内**含显式未生效标注**（"NOT in effect" / 中文等价），且该行不出现"已改期""已确认"这类完成态说法 | 渲染成"promised 2026-10-24"却不标 pending → 模型会把提案当生效期限 |
-| 真模型简报（模型行为） | `node dev/probes/web/desk-daily-brief-live.mjs` 真跑 `passed: true`，**相位 2 的提案判据已加回**（简报必须带出 `p-1` 或它改到的日期） | 摘要带上了而简报仍不提 → 是模型/技能的问题，不再是源缺口；此时本卡退回并另立技能面切片 |
+| 工具输出（deterministic） | ✅ `pnpm test:agent` 8/8 绿：断言 `desk.proposals` 恰为该条 pending、带 `matter_id` 与 `change.promisedDeadline`；confirm 之后归空（解决的离开板子） | 把已拒绝/已确认的提案也塞进板子；`matter_id` 缺失（多事项列表里无法归属） |
+| 措辞不得说成既成事实（deterministic） | ✅ 同一 spec 断言渲染文本**含** `[pending — NOT in effect until the principal confirms]` 整行、且**不含**裸 `[pending]`（`render` 导出为纯核供夹具直接钉） | 渲染成生效期限或不带标注 → 模型会把提案当既成事实 |
+| 真模型简报（模型行为） | ⏳ `node dev/probes/web/desk-daily-brief-live.mjs` 真跑（相位 2 的提案判据已加回：简报须带出 `p-1` 或它改到的日期） | 摘要带上了而简报仍不提 → 是模型/技能的问题，不再是源缺口；此时本卡退回并另立技能面切片 |
 | 发布面 | `pnpm release-smoke` PASS（工具描述与输出契约都在发布物里）· `pnpm gen-catalog` 后 freshness 门绿 | 描述改了没重生成 → freshness 门红 |
 
 **排除：** 不改账本/权限模型/`read` 载荷/桌面投影；不动 `vendor/`；不新增工具动词；不改晨报技能的清单（它的要求本来就是对的）。
@@ -53,6 +56,6 @@
 ## 推进
 
 - 提交①：本卡 + `_backlog/issues/` 无需新卡（切片台账住本卡，收口记录写在「验收」表的状态列）。
-- 提交②：`schema.ts` + `deskItem` + 渲染 + 工具描述 + `docs/operating.md` + spec 断言 + gen-catalog。
+- 提交②（`7c89545`，已交付）：`proposalSummary()` + `desk` 填 `proposals` + 渲染措辞 + 工具描述 + `docs/operating.md` + 输出 schema 的 `matter_id` + spec 断言；门 = typecheck/build/test **644**/verify 41 全绿。
 - 提交③：探针相位 2 判据加回 + 真跑 `passed: true`；`pnpm release-smoke`。
 - 收口：晨报卡（[`2026-10-10-desk-daily-brief.md`](2026-10-10-desk-daily-brief.md)）的「源缺口，开放项」转已交付并指向本卡；本卡按 notes 生命周期在实施后改写为已交付事实（`implemented`）。
