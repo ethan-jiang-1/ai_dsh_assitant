@@ -20,6 +20,7 @@
  * room-data file: store + workspace reads & prompt sends + the panel actions' wordings — "It is
  * not the desk", per the manual) /
  * dom-utils (row + panel chrome) / format (the time formatting family) /
+ * approve-mount (the knowledge-approve direct-call lane's mount) /
  * desk-view-actions (deferred activity mode intent) /
  * default-panel-selection (one root-scoped cold-start choice) / brand / commands / room-tabs / panels / dashboard /
  * first-mile / desk-process (the operating desk's conversation arms: process/intake/
@@ -34,9 +35,10 @@
  */
 
 import type { ClientContext, ClientRequire, CommandUiRegistry, ModuleLoaderFacade } from './contracts'
+import { mountApproveRemote } from './approve-mount'
 import {
   deskSlice, expirePending, getDeskStore, initDeskStore, looksLikeDesk,
-  patchDesk, retireStaleReceipt, settlePending,
+  retireStaleReceipt, settlePending,
 } from './room-data-core'
 import type { DeskStore } from './room-data-core'
 import { bindDeskEnv, getDeskRemote, loadDesk, loadDeskFor, openBeside, panelPromptRequest } from './room-data-io'
@@ -63,27 +65,6 @@ import { en as firstMileEn, zh as firstMileZh } from './locales'
 /** Slots this face occupies (single-occupant, root-scope, declared by the sidebar). */
 const inject = ['slots', 'sidebarRightTabs', 'sidebarRight', 'sessions', 'remote', 'remote.agentPresets', 'remote.workspaceFiles', 'remote.session', 'layout', 'connection', 'uiSession', 'workspaces', 'uiWorkspace', 'locale']
 
-/**
- * Build the typert contribution the client mounts for the knowledge-approve direct-call lane.
- * Hand-written (the vendor generator targets tsdown builds; this package's classic-script
- * face carries it inline), and using the `src-json` codec mode — TypertCodec's union offers
- * a no-schema shape exactly so a plain-JSON caller does not need a materialized zod schema,
- * which a classic-script contribution cannot reach.
- */
-function buildApproveContribution(): unknown {
-  return {
-    package: 'dsh-smart-assistant',
-    descriptors: [{
-      id: 'dsh-smart-assistant#knowledgeApproveRemote/approvePage',
-      service: 'knowledgeApproveRemote',
-      namespace: 'assistantKnowledge',
-      method: 'approvePage',
-      invocation: { kind: 'direct' },
-      parameters: [{ name: 'request', wire: 'request', source: 'json', codec: { mode: 'src-json' } }],
-      result: { mode: 'src-json' },
-    }],
-  }
-}
 
 /**
  * Build the plugin surface and the brand occupants against a module-table require.
@@ -104,30 +85,9 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       ctx.effect(() => ctx.locale!.register('assistantFirstMile', { zh: firstMileZh, en: firstMileEn }), 'assistant-first-mile: dictionaries')
     }
 
-    // The knowledge-approve direct-call lane (approve-direct-call): mount our contribution so
-    // `remote.assistantKnowledge.approvePage` reaches the host service without a model round
-    // trip. Failure degrades approveKnowledgePage to the legacy prompt path, announced in-panel.
-    // This pin deterministically rejects the mount (strict codec vs classic-script contribution,
-    // 261004-approve-direct-call) — the designed state until upstream moves, so the diagnostic
-    // stays at info level: an error here would pollute every first open and trip the web-face
-    // scenes' empty-console contract (first-open-draft-banner caught this on 2026-10-05).
-    const deskRemote = getDeskRemote()
-    if (typeof (deskRemote as { $mount?: unknown })?.$mount === 'function') {
-      // TypertCodec's `src-json` mode needs no zod schema, so a classic-script contribution
-      // can carry plain-JSON codecs without reaching the shell's module table.
-      const contribution = buildApproveContribution()
-      void Promise.resolve(
-        (deskRemote as { $mount: (c: unknown) => Promise<unknown> }).$mount(contribution),
-      ).then(() => {
-        // Mount evidence: the approve button's direct-call branch reads this namespace.
-        console.info('assistantKnowledge remote mounted')
-      }).catch((reason: unknown) => {
-        console.info('assistantKnowledge mount failed (fallback prompt path stays):', String(reason))
-        patchDesk({ note: `批准直调通道未挂载（回退指令通道）：${String(reason)}` })
-      })
-    } else {
-      console.warn('assistantKnowledge mount skipped: no $mount on the client remote service')
-    }
+    // The knowledge-approve direct-call lane: mount our contribution (contract and console
+    // levels live in approve-mount.ts — an error there would trip the web-face scenes).
+    mountApproveRemote()
 
     // The official build's brand package occupies these slots under its own build profile;
     // step aside there. A browser has no `process`, so the guard reads false and we register.

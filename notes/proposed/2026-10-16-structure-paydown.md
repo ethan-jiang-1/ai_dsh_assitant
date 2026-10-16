@@ -57,8 +57,10 @@ prompt 形状收成 `panelPromptRequest(prefix, sessionId, text)`（`[面板] ` 
 门（实测顺序）：地板（`typecheck → build → test → verify`）+ `pnpm test:client` + **两场景** `pnpm web-expected`（各自隔离 home + `--wait-text`）。
 
 **片 5a · knowledge-approve 挂载外迁（低风险，先行锚点）**
-`buildApproveContribution()`（纯函数）+ 挂载体抽 `client/approve-mount.ts`——挂载体**零 ctx**（只用 `getDeskRemote()` + `patchDesk()`）。它的回归资产恰是 web-face 的**空控制台契约**（日志级别由 info 抬成 error 会红；2026-10-05 被 `first-open-draft-banner` 抓到过）。
-门：地板 + `pnpm test:client` + 两场景 `pnpm web-expected`。
+`buildApproveContribution()`（纯函数，14 行）+ 挂载体（17 行，含 `const deskRemote = getDeskRemote()`）抽 `client/approve-mount.ts`，导出 `mountApproveRemote()`；入口改为一次调用。挂载体**零 ctx**（只用 `getDeskRemote()` + `patchDesk()`），故搬迁只需两处逐字搬运、无需参数化。
+逐字证明：两段分别 `diff -u` → buildApproveContribution **IDENTICAL（14 行）**；挂载体连同 `const deskRemote` 行 **IDENTICAL（17 行）**，唯一差异是搬出 `apply()` 后的整体缩进（证明里归一）。三处 `console` 级别逐字保留（info / info / warn）——这是本片的承重面。搬走后入口不再用 `patchDesk`，其 import 同 diff 移除（编译器报出）。
+实测：index.ts 634 → 593，新增 approve-mount.ts 62；入口 module map 同 diff 点名 `approve-mount`。
+门（实测顺序）：地板（`typecheck → build → test → verify`）+ `pnpm test:client` + **两场景** `pnpm web-expected`（含空控制台契约，各自全新隔离 home + `--wait-text`）。
 
 **片 5b · client 四臂子系统外迁（本波收口，风险最高片）**
 新 `client/desk-arms.ts`：launchDeskArm + 四臂（process/intake/claim/wake）+ seedPanelMessage（并入片 4 的 prompt helper）+ evaluateReturn 四裁判分发 + settle 观察器接线 + 四路订阅 + 30s 定时刷新，~290 行整体外迁；`client/index.ts` 回归 ~200 行纯接线（facade 注册 + 座位接线 + 依赖表），头注 module map 同 diff 更新（它现在声称 desk-process 拥有四臂）。
