@@ -14,7 +14,7 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { operatingTool, type OperatingOutput } from '../../src/agent/tool-operating/index.ts'
+import { operatingTool, render, type OperatingOutput } from '../../src/agent/tool-operating/index.ts'
 import { ledgerPool } from '../support/host-harness.ts'
 
 describe('assistant_operating (tool adapter over the authoritative ledger)', () => {
@@ -82,6 +82,38 @@ describe('assistant_operating (tool adapter over the authoritative ledger)', () 
     const desk = await tool.execute({ action: 'desk' }, exec) as OperatingOutput
     expect(desk.matters?.[0]?.forecast_at).toBe('2026-10-15')
     expect(desk.matters?.[0]?.promised_deadline).toBe('2026-10-13')
+  })
+
+  /**
+   * 261016 card: a brief built from ONE `desk` read must be able to list every pending proposal —
+   * a pending proposal blocks the matter's return and is the only ledger item that needs the
+   * principal's decision. The wording is the risk: it must never read as an effective change.
+   */
+  it('desk carries every pending proposal tagged with its matter, and never reads as effective', async () => {
+    const tool = boot()
+    const entrusted = await tool.execute({ action: 'entrust', operation_id: 'op-desk-pending', title: '合同 XR-09 尾款收回', note: '盯 XR-09 尾款', quote: '盯 XR-09 尾款' }, exec) as OperatingOutput
+    const matterId = entrusted.receipt!.matterId
+    const proposed = await tool.execute({
+      action: 'propose', operation_id: 'op-desk-pending-propose', matter_id: matterId, change_kind: 'reschedule', change_deadline: '2026-10-24',
+      quote: '客户改口说可能要推迟到下周一付',
+    }, exec) as OperatingOutput
+    const proposalId = proposed.receipt!.outcome.proposalId
+
+    const desk = await tool.execute({ action: 'desk' }, exec) as OperatingOutput
+    expect(desk.proposals).toEqual([expect.objectContaining({
+      id: proposalId, kind: 'reschedule', status: 'pending', matter_id: matterId,
+    })])
+    expect(desk.proposals?.[0]?.change).toEqual(expect.objectContaining({ promisedDeadline: '2026-10-24' }))
+
+    const text = render({ action: 'desk' }, desk).map(block => block.text).join('\n')
+    expect(text).toContain(`- proposal ${String(proposalId)} for ${matterId} reschedule [pending — NOT in effect until the principal confirms]`)
+    expect(text).not.toContain('[pending]')
+
+    // Resolved proposals stay on `read`: the board lists what needs deciding, not the history.
+    const confirmed = await tool.execute({ action: 'confirm', operation_id: 'op-desk-pending-confirm', matter_id: matterId, proposal_id: proposalId, quote: '确认改到 10-24' }, exec) as OperatingOutput
+    expect(confirmed.receipt?.outcome.status).toBe('committed')
+    const after = await tool.execute({ action: 'desk' }, exec) as OperatingOutput
+    expect(after.proposals).toEqual([])
   })
 
   it('rejects a pending proposal and reads back its source with the durable receipt', async () => {

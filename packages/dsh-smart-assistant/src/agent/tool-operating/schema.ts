@@ -138,6 +138,7 @@ export const OPERATING_OUTPUT_SCHEMA = {
           id: { type: 'string', required: true },
           kind: { type: 'string', required: true },
           proposed_at: { type: 'string', required: true },
+          matter_id: { type: 'string' },
           change: {
             type: 'object', required: true, additionalProperties: false,
             properties: {

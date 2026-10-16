@@ -36,7 +36,8 @@ const DESCRIPTION = [
   'Read and update the operating ledger: the cross-session matters the principal entrusted',
   '(payments, commitments, risks) with their sources, revisions, and durable receipts.',
   'Actions:',
-  '- desk: list every matter (id, title, status, revision, times) and unclaimed fragments.',
+  '- desk: list every matter (id, title, status, revision, times), every PENDING proposal awaiting',
+  '  the principal (id, matter, what it would change, when it was proposed), and unclaimed fragments.',
   '- read: one matter in full (current fields, entrust source, materials, complete proposals,',
   '  ordered operation outcomes and sources) by matter_id, or one receipt by operation_id.',
   '- entrust: the principal designates a new matter; quote them verbatim.',
@@ -91,6 +92,24 @@ interface MatterProposalSummary {
   change: ProposedChange
   source: LedgerSource
   resolution_operation_id?: string
+  /** Set when the proposal rides a multi-matter list (the desk summary) so a line is attributable. */
+  matter_id?: string
+}
+
+/**
+ * One proposal as the model reads it. Shared by `read` (one matter's full list) and `desk`
+ * (every pending proposal, each tagged with its matter) so the two spellings cannot drift.
+ */
+function proposalSummary(proposal: MatterRecord['proposals'][number]): MatterProposalSummary {
+  return {
+    id: proposal.id,
+    kind: proposal.change.kind,
+    status: proposal.status,
+    proposed_at: proposal.proposedAt,
+    change: proposal.change,
+    source: proposal.source,
+    ...(proposal.resolutionOperationId !== undefined ? { resolution_operation_id: proposal.resolutionOperationId } : {}),
+  }
 }
 
 export interface OperatingOutput {
@@ -122,7 +141,12 @@ function deskItem(matter: MatterRecord): DeskItem {
   }
 }
 
-function render(_args: { action: Action }, value: OperatingOutput): { type: 'text', text: string }[] {
+/**
+ * The model-visible text of one result. Exported for the fixture: the wording of a pending
+ * proposal line is a contract (a pending change must never read as effective), so a spec pins it
+ * against the pure renderer instead of against a live session.
+ */
+export function render(_args: { action: Action }, value: OperatingOutput): { type: 'text', text: string }[] {
   const lines = [value.summary]
   for (const item of value.matters ?? []) {
     const times = [
@@ -146,7 +170,10 @@ function render(_args: { action: Action }, value: OperatingOutput): { type: 'tex
     lines.push(`- operation ${operation.operationId} ${operation.kind} [${JSON.stringify(operation.outcome)}] (${operation.submittedAt}; ${operation.source.sessionId}${operation.source.eventId !== undefined ? `/${operation.source.eventId}` : ''}${operation.source.quote !== undefined ? `: ${operation.source.quote}` : ''})`)
   }
   for (const proposal of value.proposals ?? []) {
-    lines.push(`- proposal ${proposal.id} ${proposal.kind} [${proposal.status}] (change ${JSON.stringify(proposal.change)}; proposed ${proposal.proposed_at}; source ${proposal.source.sessionId}${proposal.source.eventId !== undefined ? `/${proposal.source.eventId}` : ''}${proposal.source.quote !== undefined ? `: ${proposal.source.quote}` : ''}${proposal.resolution_operation_id !== undefined ? `; resolution ${proposal.resolution_operation_id}` : ''})`)
+    // A pending proposal is NOT an effective change: the line says so in words, because the model
+    // reads this text and must not report an unconfirmed reschedule as the promised deadline.
+    const status = proposal.status === 'pending' ? 'pending — NOT in effect until the principal confirms' : proposal.status
+    lines.push(`- proposal ${proposal.id}${proposal.matter_id !== undefined ? ` for ${proposal.matter_id}` : ''} ${proposal.kind} [${status}] (change ${JSON.stringify(proposal.change)}; proposed ${proposal.proposed_at}; source ${proposal.source.sessionId}${proposal.source.eventId !== undefined ? `/${proposal.source.eventId}` : ''}${proposal.source.quote !== undefined ? `: ${proposal.source.quote}` : ''}${proposal.resolution_operation_id !== undefined ? `; resolution ${proposal.resolution_operation_id}` : ''})`)
   }
   if (value.source !== undefined) {
     lines.push(`- source ${value.source.sessionId}${value.source.eventId !== undefined ? `/${value.source.eventId}` : ''}${value.source.quote !== undefined ? `: ${value.source.quote}` : ''}`)
@@ -216,6 +243,13 @@ export function operatingTool(ctx: Context) {
             action,
             summary: `${matters.length} matter(s), ${unclaimed.length} unclaimed fragment(s):`,
             matters: matters.map(deskItem),
+            // Pending proposals ride the desk summary (261016 card): a pending proposal blocks the
+            // matter's return and is the only ledger item that requires the principal's decision,
+            // so a brief built from ONE desk read must be able to list them. Resolved proposals
+            // stay on `read` (their full history belongs to the matter, not to the board).
+            proposals: matters.flatMap(matter => matter.proposals
+              .filter(proposal => proposal.status === 'pending')
+              .map(proposal => ({ ...proposalSummary(proposal), matter_id: matter.id }))),
             unclaimed: unclaimed.map(fragment => ({ id: fragment.id, note: fragment.note, sessionId: fragment.source.sessionId })),
           }
         }
@@ -240,15 +274,7 @@ export function operatingTool(ctx: Context) {
                 ...(material.source.eventId !== undefined ? { eventId: material.source.eventId } : {}),
                 ...(material.source.quote !== undefined ? { quote: material.source.quote } : {}),
               })),
-              proposals: matter.proposals.map(proposal => ({
-                id: proposal.id,
-                kind: proposal.change.kind,
-                status: proposal.status,
-                proposed_at: proposal.proposedAt,
-                change: proposal.change,
-                source: proposal.source,
-                ...(proposal.resolutionOperationId !== undefined ? { resolution_operation_id: proposal.resolutionOperationId } : {}),
-              })),
+              proposals: matter.proposals.map(proposalSummary),
               operations: operations.map(({ operation, receipt }) => ({
                 operationId: receipt.operationId,
                 kind: operation.kind,

@@ -39,7 +39,7 @@
 
 ## 验收
 
-行为分类（[validation-design](../methods/validation-design.md)）：**deterministic（工具输出契约）+ 模型行为（简报内容）**。不建新 eval 任务——复用既有晨报资产。
+行为分类（[validation-design](../../_backlog/methods/validation-design.md)）：**deterministic（工具输出契约）+ 模型行为（简报内容）**。不建新 eval 任务——复用既有晨报资产。
 
 | 检查 | 通过形态 | 会失败的行为 |
 |---|---|---|
