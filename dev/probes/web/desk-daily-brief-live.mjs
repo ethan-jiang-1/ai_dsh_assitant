@@ -82,6 +82,14 @@ const CONFIRMED_DEADLINE = '2026-10-24'
 const REPLY_MARKER = '这条是我的明确指令'
 
 const verdict = { phases: {}, judge: undefined, brief: undefined, scheduleTools: undefined, ledger: undefined, session: undefined, host: undefined }
+// 环境健康：这台机器上这条探针有两类失败（新 home 的 composer 丢文本 / 模型回合空转），
+// 都由资源饥饿引起（2026-10-16 诊断结论）。**在失败之前**就记下来，免得把"环境饿了"误读成
+// "探针坏了"——失败路径跑不到结尾，末尾的 verdict.host 是看不见的。
+{
+  const ncpu = os.cpus().length
+  const loadavg = os.loadavg().map(value => Number(value.toFixed(2)))
+  verdict.health = { ncpu, loadavg, starved: loadavg[0] > ncpu }
+}
 const fail = (phase, detail) => {
   verdict.phases[phase] = { pass: false, ...detail }
   console.log(JSON.stringify(verdict, null, 2))
@@ -273,7 +281,7 @@ if (bound.length !== 1) {
   const firstBrief = (replyAt === -1 ? answered : answered.filter(({ index }) => index < replyAt)).at(-1)
   const last = firstBrief
   const briefProblems = []
-  if (last === undefined) briefProblems.push('the session produced no assistant message')
+  if (last === undefined) briefProblems.push(`the session produced no assistant message — under starvation the model turn can settle with no output (health: loadavg ${verdict.health.loadavg.join('/')} on ${verdict.health.ncpu} cores${verdict.health.starved ? ', starved' : ''})`)
   const briefText = (last?.event.data?.message?.content ?? [])
     .filter(block => block?.type === 'text').map(block => String(block.text)).join('\n')
   const deskBefore = events.some((event, index) => last !== undefined && index < last.index
