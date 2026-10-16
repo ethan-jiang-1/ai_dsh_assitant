@@ -13,7 +13,7 @@ import { shortTime } from './format'
 import {
   approveKnowledgePage, askApproveProposal, askRejectProposal, correctMemory, deprecateKnowledgePage,
   flagKnowledgePage,
-} from './room-data-io'
+} from './room-data-actions'
 import { cell, CorrectableRow, muted, panelAlerts, refreshRow, sectionTitle } from './dom-utils'
 import { createElement, reactSurface } from './runtime'
 import { MARK_TEAL } from './theme'

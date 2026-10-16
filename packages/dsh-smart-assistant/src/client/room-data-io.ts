@@ -44,19 +44,70 @@ export function getDeskRemote(): Record<string, unknown> | undefined {
   return deskRemote
 }
 
+/** One workspace-file read: the manifested `remote.workspaceFiles.read` signature. */
+type WorkspaceFileRead = (sessionId: string, path: string, options: unknown) => Promise<unknown>
+
+/**
+ * Resolve the workspace-file reader, reporting the absent remote on the desk.
+ * @returns The reader, or undefined after the missing-remote note has been raised.
+ */
+function deskReadFn(): WorkspaceFileRead | undefined {
+  const read = (deskRemote?.['workspaceFiles'] as { read?: WorkspaceFileRead } | undefined)?.read
+  if (read === undefined) patchDesk({ note: 'remote.workspaceFiles did not materialize' })
+  return read
+}
+
+/**
+ * One read of a session's desk file. R6 (self-review, 2026-09-27): "the read threw" and "the file
+ * is absent" are different facts, so the throw is reported separately instead of collapsing into
+ * an absent text the caller would then misread.
+ */
+type DeskReadResult =
+  | { readonly ok: true; readonly text: string | undefined }
+  | { readonly ok: false }
+
+/**
+ * Read `.desk/state.json` through the given reader and unwrap the manifest envelope.
+ * @param read - The workspace-file reader.
+ * @param sessionId - The session whose workspace is read.
+ * @returns The unwrapped text, or the fact that the read threw.
+ */
+async function readDeskText(read: WorkspaceFileRead, sessionId: string): Promise<DeskReadResult> {
+  try {
+    const result = await read(sessionId, '.desk/state.json', {})
+    const wrapped = result as { ok?: boolean, value?: { text?: string } }
+    return { ok: true, text: wrapped?.ok === false ? undefined : wrapped?.value?.text }
+  } catch {
+    return { ok: false }
+  }
+}
+
+/**
+ * The one message for a file that parses but carries none of the contract's shape. It would
+ * otherwise render as a legitimately empty desk — every section honest "（没有…）" while the
+ * assistant believes it just refreshed the principal.
+ */
+const NOT_A_DESK_MESSAGE = '这份房间数据文件不像 desk-refresh 写的（没有 generatedAt、也没有任何分区）——点「刷新房间数据」让助手按契约重写'
+
+/**
+ * Adopt one accepted desk file: settle the pending action it answers and retire a receipt it has
+ * moved past. Both read paths end here, so "the file moved" means the same thing to both.
+ * @param parsed - The validated desk file.
+ * @param sessionId - The session the file belongs to.
+ */
+function settleLoadedDesk(parsed: DeskData, sessionId: string): void {
+  settlePending(parsed.generatedAt, sessionId)
+  retireStaleReceipt(parsed, sessionId)
+}
+
 /**
  * Read `.desk/state.json` for the newest Session that has one. The file is per-workspace, so
  * walk the recent Sessions and say which workspace answered — a silent miss reads as breakage.
  */
 export function loadDesk(): void {
-  const read = (deskRemote?.['workspaceFiles'] as {
-    read?: (sessionId: string, path: string, options: unknown) => Promise<unknown>
-  } | undefined)?.read
+  const read = deskReadFn()
+  if (read === undefined) return
   const store = deskSessions?.list
-  if (read === undefined) {
-    patchDesk({ note: 'remote.workspaceFiles did not materialize' })
-    return
-  }
   if (store === undefined) {
     patchDesk({ note: 'the client Session store is not available' })
     return
@@ -98,21 +149,16 @@ export function loadDesk(): void {
     // Only the READ may fall through to the next session (the file is simply absent). A file
     // that is PRESENT but corrupt must stop and say so: silently rendering an older session's
     // desk as the present is exactly how a CEO gets lied to (A4).
-    let text: string | undefined
-    try {
-      const result = await read(sessionId, '.desk/state.json', {})
-      if (seq !== seqOf.current()) return
-      const wrapped = result as { ok?: boolean, value?: { text?: string } }
-      text = wrapped?.ok === false ? undefined : wrapped?.value?.text
-    } catch {
-      if (seq === seqOf.current()) {
-        readFailures += 1
-        await attempt(index + 1)
-      }
+    const outcome = await readDeskText(read, sessionId)
+    if (seq !== seqOf.current()) return
+    if (!outcome.ok) {
+      readFailures += 1
+      await attempt(index + 1)
       return
     }
+    const text = outcome.text
     if (typeof text !== 'string' || text.trim() === '') {
-      if (seq === seqOf.current()) await attempt(index + 1)
+      await attempt(index + 1)
       return
     }
     let parsed: DeskData
@@ -125,13 +171,10 @@ export function loadDesk(): void {
       return
     }
     if (!looksLikeDesk(parsed)) {
-      // A file that parses but carries none of the contract's shape would render as a legitimately
-      // empty desk: every section shows its honest "（没有…）" and the principal reads "nothing is
-      // happening" while the assistant believes it just refreshed him.
       carryRowStateTo(getDeskStore().sourceSession ?? sessionId, sessionId)
       patchDesk({
         data: undefined,
-        readError: '这份房间数据文件不像 desk-refresh 写的（没有 generatedAt、也没有任何分区）——点「刷新房间数据」让助手按契约重写',
+        readError: NOT_A_DESK_MESSAGE,
         source: byId[sessionId]?.cwd ?? '', sourceSession: sessionId, jumpError: undefined,
       })
       return
@@ -141,8 +184,7 @@ export function loadDesk(): void {
     carryRowStateTo(getDeskStore().sourceSession ?? sessionId, sessionId)
     patchDesk({ data: parsed, note: undefined, source: byId[sessionId]?.cwd ?? '', sourceSession: sessionId, readError: undefined, jumpError: undefined })
     getDeskStore().misses.delete(sessionId)
-    settlePending(parsed.generatedAt, sessionId)
-    retireStaleReceipt(parsed, sessionId)
+    settleLoadedDesk(parsed, sessionId)
   }
   void attempt(0)
 }
@@ -154,13 +196,8 @@ export function loadDesk(): void {
  * rather than spinning on a reload that will never answer.
  */
 export function loadDeskFor(sessionId: string): void {
-  const read = (deskRemote?.['workspaceFiles'] as {
-    read?: (sessionId: string, path: string, options: unknown) => Promise<unknown>
-  } | undefined)?.read
-  if (read === undefined) {
-    patchDesk({ note: 'remote.workspaceFiles did not materialize' })
-    return
-  }
+  const read = deskReadFn()
+  if (read === undefined) return
   // R11: the target session's own slice and load sequence — a load for one session no longer
   // cancels an in-flight read for another.
   const slice = deskSlice(sessionId)
@@ -174,22 +211,17 @@ export function loadDeskFor(sessionId: string): void {
     const updatedAt = state?.byId?.[sessionId]?.updatedAt
     if (seq !== seqOf.current()) return
     if (updatedAt !== undefined) patchSlice(slice, { sessionUpdatedAt: Number(updatedAt) })
-    let text: string | undefined
-    try {
-      const result = await read(sessionId, '.desk/state.json', {})
-      if (seq !== seqOf.current()) return
-      const wrapped = result as { ok?: boolean, value?: { text?: string } }
-      text = wrapped?.ok === false ? undefined : wrapped?.value?.text
-    } catch {
+    const outcome = await readDeskText(read, sessionId)
+    if (seq !== seqOf.current()) return
+    if (!outcome.ok) {
       // R6 (self-review, 2026-09-27): a throw used to land only in `note`, and the right-pane tab
       // returns before any Panel renders notes — so a failed read showed "正在读这个会话的房间数据…"
       // forever, with no retry anywhere. `readError` is the field the tab and the panels both
       // render an error-and-retry from, so a failure reaches the principal wherever he is.
-      if (seq === seqOf.current()) {
-        patchSlice(slice, { readError: `读房间数据文件失败（${cwd === '' ? '本会话工作区' : cwd}）` })
-      }
+      patchSlice(slice, { readError: `读房间数据文件失败（${cwd === '' ? '本会话工作区' : cwd}）` })
       return
     }
+    const text = outcome.text
     if (typeof text !== 'string' || text.trim() === '') {
       getDeskStore().misses.add(sessionId)
       return
@@ -208,7 +240,7 @@ export function loadDeskFor(sessionId: string): void {
     if (!looksLikeDesk(parsed)) {
       patchSlice(slice, {
         data: undefined,
-        readError: '这份房间数据文件不像 desk-refresh 写的（没有 generatedAt、也没有任何分区）——点「刷新房间数据」让助手按契约重写',
+        readError: NOT_A_DESK_MESSAGE,
         source: cwd,
       })
       return
@@ -220,8 +252,7 @@ export function loadDeskFor(sessionId: string): void {
     if (slice === (getDeskStore() as DeskSlice) && getDeskStore().sourceSession === undefined) {
       patchDesk({ sourceSession: sessionId })
     }
-    settlePending(parsed.generatedAt, sessionId)
-    retireStaleReceipt(parsed, sessionId)
+    settleLoadedDesk(parsed, sessionId)
   })()
 }
 
@@ -231,6 +262,37 @@ export function newestSessionId(): string | undefined {
   const ids = state?.ids ?? []
   const byId = state?.byId ?? {}
   return ids.slice().sort((left, right) => Number(byId[right]?.updatedAt ?? 0) - Number(byId[left]?.updatedAt ?? 0))[0]
+}
+
+/**
+ * The marker every machine-written panel line carries (A10): without it the conversation log —
+ * and the usage meter — cannot tell a panel's assertion from the principal's own words, so his
+ * history fills with text he never typed and the meter counts the panel as the human.
+ */
+const PANEL_MARKER = '[面板] '
+
+/**
+ * Build one panel prompt request. The principal's panel actions (this module) and the desk arms'
+ * seed notes (the entry, later its own module) ride the same remote channel with the same marker
+ * and the same queue mode — so that shape is stated once, and each caller keeps only its own send
+ * semantics (fire-and-forget for a seed, tracked-and-polled for an action).
+ * @param prefix - The requestId prefix naming the sender ('desk' for panel actions, an arm's kind for a seed).
+ * @param sessionId - The conversation the line lands in.
+ * @param text - The line, without the panel marker.
+ * @returns The prompt request body `remote.session.prompt` takes.
+ */
+export function panelPromptRequest(prefix: string, sessionId: string, text: string): {
+  readonly requestId: string
+  readonly sessionId: string
+  readonly mode: 'queue'
+  readonly content: readonly { readonly type: 'text', readonly text: string }[]
+} {
+  return {
+    requestId: `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    sessionId,
+    mode: 'queue',
+    content: [{ type: 'text', text: `${PANEL_MARKER}${text}` }],
+  }
 }
 
 /**
@@ -265,16 +327,7 @@ export function sendPrompt(text: string, action: string, rowId: string, sessionI
   // `stalled` is deliberately NOT cleared here: it is an earlier action's unconfirmed trace, and
   // only the desk file moving past its `at` may retire it (R11, narrow review 2026-09-27).
   patchSlice(slice, { pending: { rowId, at: Date.now(), action }, lastReceipt: undefined })
-  // A10: panel messages carry a marker so the conversation log (and the usage meter) can tell
-  // machine-written prompts from the principal's own words — otherwise the principal's history
-  // fills with assertions they never typed, and the meter counts the panel as the human.
-  const marked = `[面板] ${text}`
-  void prompt({
-    requestId: `desk-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-    sessionId: target,
-    mode: 'queue',
-    content: [{ type: 'text', text: marked }],
-  }).then((result: unknown) => {
+  void prompt(panelPromptRequest('desk', target, text)).then((result: unknown) => {
     const wrapped = result as { ok?: boolean, error?: { message?: string } }
     if (wrapped?.ok === false) {
       patchSlice(slice, { pending: undefined })
@@ -338,125 +391,4 @@ export function openBeside(kind: RoomKind): void {
     // added for.
     patchDesk({ openError: '开不了', note: `打开面板失败：${String(reason)}` })
   }
-}
-
-/**
- * Every desk action ends the same way: the desk-refresh skill owns the rewrite. Naming the
- * skill in the message makes the model's path explicit instead of hoping skill discovery fires
- * on a small model (measured 2026-09-26: cold discovery skipped the skill on 2 of 3 live runs).
- * The panel and the skill ship together; the pairing is recorded on the campaign card §四·十九.
- */
-const DESK_REFRESH_STEP = '完成后加载 desk-refresh 技能，把房间数据文件重写一遍。'
-export { DESK_REFRESH_STEP }
-
-/** Ask the assistant to refresh the room data file; the poller re-reads until it actually moves. */
-export function askRefresh(sessionId?: string): void {
-  sendPrompt('刷新房间数据：加载 desk-refresh 技能，严格按它把房间数据文件（.desk/state.json）重写一遍。', '刷新房间数据', 'desk', sessionId)
-}
-
-/**
- * Day-0's true start (real-user walk finding, 2026-10-06): on a desk-less folder the
- * refresh button produced an honest zero-report loop with no meaning — the principal
- * clicked it three times "not knowing what I'm doing". The empty desk's next step is the
- * first conversation, not a refresh; this invites that conversation in this session (on a
- * fresh folder the first-conversation skill takes it from here).
- */
-export function askStart(sessionId?: string): void {
-  sendPrompt('开始第一件事：从最近要我拍板、还要跟进的一件事说起。', '开始第一件事', 'desk', sessionId)
-}
-
-/**
- * Inline skill-proposal approval (B2, 2026-10-06): the click IS the approval — the prompt
- * asks the assistant to edit the proposal file's status to approved and then land_skill it
- * in the same turn. Same one-click shape as the knowledge draft's 批准 button, so every
- * review queue on the principal's surface is in-place, not a separate chore.
- */
-export function askApproveProposal(name: string, sessionId?: string): void {
-  sendPrompt(
-    `面板代本人批准技能提案「${name}」：请把提案文件的 status 改为 approved，然后立刻 land_skill 落地。${DESK_REFRESH_STEP}`,
-    '批准提案', name, sessionId,
-  )
-}
-
-/** The rejection twin: the proposal is rejected with the principal's one-line reason. */
-export function askRejectProposal(name: string, reason: string, sessionId?: string): void {
-  sendPrompt(
-    `面板代本人拒绝技能提案「${name}」：请把提案文件的 status 改为 rejected（理由：${reason}）。${DESK_REFRESH_STEP}`,
-    '拒绝提案', name, sessionId,
-  )
-}
-
-/**
- * Correct one memory record. This is the cultivation loop: the principal says which line is
- * wrong and what is right, and the assistant rewrites the record and refreshes the desk.
- */
-export function correctMemory(text: string, correction: string, rowId: string, sessionId?: string): void {
-  sendPrompt(
-    `请更正这条记忆。原记录：「${text}」。正确的是：${correction}。${DESK_REFRESH_STEP}`,
-    '更正', rowId, sessionId,
-  )
-}
-
-/**
- * Approve one draft knowledge page. The counterpart of a correction: the principal says the page
- * is right, and the assistant promotes it so it starts counting in retrieval and the digest.
- *
- * Direct-call lane (approve-direct-call): the click IS the approval, so the flip goes straight
- * to the host service — seconds, not a model round trip — and the service writes the ledger
- * line (audit/approvals.jsonl, source: panel-direct). Without a session id, or before the
- * remote namespace mounts (first boot after install), it falls back to the legacy prompt path,
- * which is honest degradation rather than a silently lost approval. The desk file itself still
- * lists the row as a draft until the next desk-refresh turn rewrites it — a panel-side re-read
- * of the room state is the direct-call card's open item, so the success branch reports the
- * flip instead of pretending the desk already reflects it.
- */
-export function approveKnowledgePage(title: string, rowId: string, sessionId?: string): void {
-  const namespace = deskRemote?.assistantKnowledge as { approvePage?: (request: unknown) => Promise<unknown> } | undefined
-  if (typeof namespace?.approvePage === 'function' && sessionId !== undefined) {
-    void namespace.approvePage({ pageId: rowId, sessionId, title }).then((result: unknown) => {
-      const outcome = result as { ok?: boolean, error?: { message?: string } }
-      if (outcome?.ok === false) {
-        patchDesk({ note: outcome.error?.message ?? '批准未生效' })
-        return
-      }
-      patchDesk({ note: `已批准：「${title}」入 stable（下次房间数据刷新移出待审）` })
-    }).catch((reason: unknown) => {
-      const text = String(reason)
-      if (text.includes('only drafts flip')) {
-        // Already stable — nothing to approve; the fallback prompt would ask the model to
-        // re-promote a promoted page (idempotent but misleading).
-        patchDesk({ note: '该页已是 stable，无需再批' })
-        return
-      }
-      patchDesk({ note: `直调批准失败，回退指令通道：${text}` })
-      sendPrompt(
-        `面板代本人批准——知识页「${title}」已获批准：请把它从 draft 翻成 stable。${DESK_REFRESH_STEP}`,
-        '批准', rowId, sessionId,
-      )
-    })
-    return
-  }
-  sendPrompt(
-    `面板代本人批准——知识页「${title}」已获批准：请把它从 draft 翻成 stable。${DESK_REFRESH_STEP}`,
-    '批准', rowId, sessionId,
-  )
-}
-
-/**
- * Mark one stable knowledge page past its use-by date. The page stays in place (links resolve)
- * but stops counting as current — the third lifecycle step beside approval and correction.
- */
-export function deprecateKnowledgePage(title: string, rowId: string, sessionId?: string): void {
-  sendPrompt(
-    `知识页「${title}」过时了，请把它标记为 deprecated（保留在原处以便链接解析）。${DESK_REFRESH_STEP}`,
-    '过时了', rowId, sessionId,
-  )
-}
-
-/** Tell the assistant what is wrong with one knowledge page. */
-export function flagKnowledgePage(title: string, problem: string, rowId: string, sessionId?: string): void {
-  sendPrompt(
-    `知识页「${title}」有问题：${problem}。请核对并更正这一页。${DESK_REFRESH_STEP}`,
-    '提意见', rowId, sessionId,
-  )
 }

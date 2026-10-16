@@ -11,7 +11,8 @@
  */
 
 import { deskSlice, getDeskStore, useDesk } from './room-data-core'
-import { askRefresh, askStart, loadDeskFor } from './room-data-io'
+import { askRefresh, askStart } from './room-data-actions'
+import { loadDeskFor } from './room-data-io'
 import { muted } from './dom-utils'
 import { createElement, reactSurface } from './runtime'
 import { MARK_TEAL } from './theme'

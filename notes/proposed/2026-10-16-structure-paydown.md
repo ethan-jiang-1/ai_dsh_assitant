@@ -49,9 +49,12 @@ applyOperation 由 414 行单函数改为「每操作具名 handler + 判别标�
 顺序纪律（本仓已记的坑，[`docs/dev.md`](../../docs/dev.md) §五）：`tsc -b` 把 ESM 写进 `lib/client/index.js`、覆盖 tsdown 的 classic bundle——**改过 `src/client` 的片必须先 `pnpm build` 再跑 lib/ 消费型测试与 verify**；正确顺序 `typecheck → build → test → verify`。
 
 **片 4 · room-data-io 分簇**
-两读取器共享的"解析→looksLikeDesk→readError→settlePending/retireStaleReceipt"序列提 helper；**8 个**动作文案包装（askRefresh / askStart / askApproveProposal / askRejectProposal / correctMemory / approveKnowledgePage / deprecateKnowledgePage / flagKnowledgePage）抽 `room-data-actions.ts`；prompt 调用形状（requestId 生成/queue 模式/面板前缀）收成单一 helper 供片 5b 复用（即 seedPanelMessage 的合并点）——前缀必须作**入参**（`desk-` vs 各臂的 `requestKind`），否则不是零变化。462 → ~350 + ~110。
-同 diff 义务：[`docs/architecture.md`](../../docs/architecture.md) 的刷新链行写死了 `askRefresh` → `sendPrompt`（`src/client/room-data-io.ts`），搬家后必须更新（`verify` 只查链接存在，查不出句义漂移）。
-门：地板 + `pnpm test:client` + 两场景 `pnpm web-expected`。
+8 个动作文案包装（askRefresh / askStart / askApproveProposal / askRejectProposal / correctMemory / approveKnowledgePage / deprecateKnowledgePage / flagKnowledgePage）抽 `room-data-actions.ts`（消费方 panels / dom-utils / room-tabs / first-mile 的 import 同 diff 更新）。搬迁逐字证明：120 行里只差一行——`approveKnowledgePage` 原来直接读本模块私有的 `deskRemote`，迁出后改读导出的 `getDeskRemote()`（同一值、同一调用时机；编译器在迁移当场报出这处）。
+两读取器共享的四件事各收成一份：`deskReadFn()`（取 reader + 缺 remote 的同一句提示）、`readDeskText()`（拆信封，并把「读抛了」与「文件不在」分开报——R6 的区分）、`NOT_A_DESK_MESSAGE`（同一句「不像 desk-refresh 写的」）、`settleLoadedDesk()`（settlePending + retireStaleReceipt 尾巴）。两个读取器**不合并**：走查态与绑定态的 seq/slice/misses 语义不同，合并即改行为。
+prompt 形状收成 `panelPromptRequest(prefix, sessionId, text)`（`[面板] ` 前缀 + `mode: 'queue'` + `<prefix>-<ts>-<rand>`），**本片即完成合并**（`sendPrompt` 与入口的 `seedPanelMessage` 都用它）——比卡上"留给片 5b"早一步，好处是 helper 当场有两个调用方而不是预建；片 5b 只需搬走 seedPanelMessage。
+实测：room-data-io 462 → 394，新增 actions 132；入口 module map 同 diff 点名 `room-data-actions`。
+同 diff 义务（卡上已标）：[`docs/architecture.md`](../../docs/architecture.md) 刷新链行的路径句已改为「`askRefresh`（`room-data-actions.ts`）→ `sendPrompt`（`room-data-io.ts`）」。
+门（实测顺序）：地板（`typecheck → build → test → verify`）+ `pnpm test:client` + **两场景** `pnpm web-expected`（各自隔离 home + `--wait-text`）。
 
 **片 5a · knowledge-approve 挂载外迁（低风险，先行锚点）**
 `buildApproveContribution()`（纯函数）+ 挂载体抽 `client/approve-mount.ts`——挂载体**零 ctx**（只用 `getDeskRemote()` + `patchDesk()`）。它的回归资产恰是 web-face 的**空控制台契约**（日志级别由 info 抬成 error 会红；2026-10-05 被 `first-open-draft-banner` 抓到过）。

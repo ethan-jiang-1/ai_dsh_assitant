@@ -16,8 +16,9 @@
  * emitted bundle is gated by scripts/checks/verify.mjs (clientScriptSafetyProblems).
  *
  * Module map: contracts (type mirrors) / runtime (factory require binding) / theme
- * (color contract) / room-data-core + room-data-io (the `.desk/state.json` room-data file:
- * store + workspace reads & prompt sends — "It is not the desk", per the manual) /
+ * (color contract) / room-data-core + room-data-io + room-data-actions (the `.desk/state.json`
+ * room-data file: store + workspace reads & prompt sends + the panel actions' wordings — "It is
+ * not the desk", per the manual) /
  * dom-utils (row + panel chrome) / format (the time formatting family) /
  * desk-view-actions (deferred activity mode intent) /
  * default-panel-selection (one root-scoped cold-start choice) / brand / commands / room-tabs / panels / dashboard /
@@ -38,7 +39,7 @@ import {
   patchDesk, retireStaleReceipt, settlePending,
 } from './room-data-core'
 import type { DeskStore } from './room-data-core'
-import { bindDeskEnv, getDeskRemote, loadDesk, loadDeskFor, openBeside } from './room-data-io'
+import { bindDeskEnv, getDeskRemote, loadDesk, loadDeskFor, openBeside, panelPromptRequest } from './room-data-io'
 import { AssistantBrandMark, AssistantBrandName, AssistantHeroMark } from './brand'
 import { deskCommands, roomCommands } from './commands'
 import { createDeskActivityHandoff } from './desk-view-actions'
@@ -193,12 +194,9 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     const seedPanelMessage = (requestKind: string, sessionId: string, text: string): void => {
       const prompt = (getDeskRemote()?.['session'] as { prompt?: (request: unknown) => Promise<unknown> } | undefined)?.prompt
       if (prompt !== undefined) {
-        void prompt({
-          requestId: `${requestKind}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-          sessionId,
-          mode: 'queue',
-          content: [{ type: 'text', text: `[面板] ${text}` }],
-        })
+        // The request shape is shared with every panel action (see panelPromptRequest); a seed is
+        // fire-and-forget — nothing on the desk freezes waiting for it.
+        void prompt(panelPromptRequest(requestKind, sessionId, text))
       }
     }
     // The four desk→conversation arms (spec K3 + principal-direction cards) share one launch
