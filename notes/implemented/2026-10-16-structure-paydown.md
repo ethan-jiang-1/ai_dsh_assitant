@@ -21,6 +21,7 @@
 | 6a | `dev/probes/web/dialogue.mjs` 拥有按文案找/点按钮（`buttonByText`/`clickByText`，默认精确匹配）；`dev/env/home.mjs` 拥有 home 解析（`devHome`） | 生成的表达式在假 DOM 上 9 案全过；6 个消费方真跑 |
 | 6b | `dev/probes/web/desk-process-e2e.mjs` 是 dispatcher（222 行）+ 三个场景模块（191/100/69） | 三段正文 321 行逐字；三场景各真跑 exit 0，判决 JSON 形状不变 |
 | 7 | `dev/lib/session-logs.mjs` 与 `dev/lib/continuity-core.mjs` 是跨目录共享库（报告/评测/探针同用一份判据） | session-logs 101 行逐字；核单跑 `--self-check` 红绿对照绿 |
+| 8 | `scripts/checks/verify.mjs` 只拥有语料/退出码/逐条报告；8 个内联检查体（159 行逻辑）进 `gates/` 的族核（resolution 扩 4 件 + 新增 self-containment / home-doc-contract / commit-safety，queue 并入 `backlog.mjs`），helper `projectReferenceMatches` 进 `gates/shared.mjs` | 逐族同名负例夹具（13 案）先造红；**夹具咬出一条死门**：`GRADUATED_STATUS` 是行锚定模式，旧内联体却喂给它捕到的单词，于是"毕业提案仍在架上"从来没报过——已修（改测状态行） |
 
 收尾：主包片累积改过 `lib/` 产物后 `pnpm release-smoke` 通过（pack → 干净 home → `dsh plugin add` → 组合读回）。P2 只动 `dev/`，不进发布物。
 
@@ -44,6 +45,9 @@
 - **片 1 连伴生类型一起搬**：把 `OperatingOutput`/`DeskItem` 等与 schema 同迁看似"一份契约一个家"，但 schema 块自足（零引用本地标识符），类型留在同目录 `index.ts` 一样可导航；最小切分换来零风险与可逐字证明。
 - **片 6b 的"六步参数化臂执行器"**：读过实际代码后确认不是三个平行骨架——claim/wake 是提前 return 的条件支路、flow 是主体，四臂入口在作用域（desk 根 vs 全局）、有无种子回合、投票选项、断言集与失败相位名上都不同。真正的样板是按文案找按钮（6a 下沉 10 处）与退出尾巴 ×3（抽成唯一 `finish()`）；再抽一个八参数执行器会把可 grep 的显式代码换成间接层。
 
-## 不做（延后）
+## 收尾数字（片 8，同日追加）
 
-**片 8 · `verify.mjs` 内联检查体族核化**（P3）：**延后句子已被触发**——2026-10-16 本人在对话中点名推进，推进台账 = [verify 内联检查体核化卡](../../_backlog/issues/261016-verify-inline-check-cores.md)。前提实测两处修正：内联体是 **8–9 个**（不是 5 个）、共 **~167 行**，收敛目标是 **~420 行**（不是 ~300）——`scripts/AGENTS.md` 纪律 2 的合同（可夹具化的纯核进 `gates/`）就是本条要还的债。落地后本条改写成已交付一行。
+P3 片 8 于同日经本人点名推进并落地（[收口卡已归档](../../_backlog/_archive/settled_issues/261016-verify-inline-check-cores.md)）：`verify.mjs`
+**553 → 496** 行，runner 内**未委托核的检查体从 8 个（159 行）降到 0 个**——逻辑全部进 `gates/` 族核 + 同名负例夹具。
+两处实测修正记在这里：内联体是 8–9 个（原估 5 个）、行数收敛到 496（原估 ~420，差在 runner 现在显式备语料，每处多几行）；
+真正的验收指标是"内联逻辑归零"，不是总行数。附带收益：队列门从死代码变活。
