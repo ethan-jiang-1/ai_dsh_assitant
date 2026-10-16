@@ -4,6 +4,7 @@
  * that verify.mjs does not invoke, and helpers are nobody's gate.
  */
 import { readFileSync } from 'node:fs'
+import { join, resolve } from 'node:path'
 
 export const read = path => readFileSync(path, 'utf8')
 
@@ -30,3 +31,11 @@ export function frontmatterBlock(text) {
 
 /** Comment-only lines are not model-visible; the language rule leaves existing comments as-is. */
 export const COMMENT_LINE = /^\s*(\/\/|\/\*|\*|#)/
+
+/** Accept an owning project or its explicit pinned compiler face, not an arbitrary JSON file. */
+export function projectReferenceMatches(projectDir, references) {
+  const owner = resolve(projectDir)
+  return [...references].some(reference => reference === owner
+    || reference === join(owner, 'tsconfig.host.json')
+    || reference === join(owner, 'tsconfig.client.json'))
+}

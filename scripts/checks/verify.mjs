@@ -18,7 +18,8 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { agentsMdStabilityProblems, backtickedRepoPathProblems, backlogGraduationProblems, backlogLivenessProblems, clientScriptSafetyProblems, commandAliasProblems, compositionRowProblems, configParseProblems, crossFileSectionProblems, dependencyPoseProblems, devDrawerCoverageProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, GRADUATED_STATUS, implementedAlternativesProblems, identityNameProblems, languageGuardProblems, markdownCorpusFromTracked, notesNamingProblems, notePointerProblems, notesStateProblems, notesTopLevelProblems, pinProblems, machineLocalPathProblems, packageSubpathProblems, playbookFrontmatterProblems, projectReferenceMatches, relativeLinkProblems, researchSubdirProblems, scratchPathProblems, skillFrontmatterProblems, startPathProblems, testAssetNamingProblems, textHygieneProblems, vendorClientFreshnessProblems } from './verify-checks.mjs'
+import { agentsMdStabilityProblems, backtickedRepoPathProblems, backlogGraduationProblems, backlogLivenessProblems, clientScriptSafetyProblems, commandAliasProblems, compositionRowProblems, configParseProblems, crossFileSectionProblems, dependencyPoseProblems, devDrawerCoverageProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, GRADUATED_STATUS, implementedAlternativesProblems, identityNameProblems, languageGuardProblems, markdownCorpusFromTracked, notesNamingProblems, notePointerProblems, notesStateProblems, importResolutionProblems, notesTopLevelProblems, pinProblems, machineLocalPathProblems, packageSubpathProblems, playbookFrontmatterProblems,
+  runtimeTsconfigProblems, skillFrontmatterKeyProblems, skillNameGrammarProblems, relativeLinkProblems, researchSubdirProblems, scratchPathProblems, skillFrontmatterProblems, startPathProblems, testAssetNamingProblems, textHygieneProblems, vendorClientFreshnessProblems } from './verify-checks.mjs'
 import * as gateCores from './verify-checks.mjs'
 import { runChecks } from './run-gates.mjs'
 import { pinnedTagFrom } from '../maintenance/sync-bookkeeping.mjs'
@@ -130,58 +131,27 @@ check('identity: docs/identity.md and the code name the same rows and tools, in 
 
 // ── resolution facade ───────────────────────────────────────────────────────────────────────────
 
-check('resolution: every @deepseek-ai import has a tsconfig paths entry and a project reference', () => {
-  const problems = []
-  const base = read(join(repoRoot, 'tsconfig.base.json'))
-  const pathsKeys = new Set([...base.matchAll(/^\s*"(@deepseek-ai\/[^"]+)":/gm)].map(match => match[1]))
-  const projectConfig = read(join(packageDir, 'tsconfig.json'))
-  // References are written relative to the package directory; compare absolute paths so the two
-  // spellings of the same project cannot look like a mismatch.
-  const references = new Set([...projectConfig.matchAll(/"path":\s*"([^"]+)"/g)]
-    .map(match => resolve(packageDir, match[1])))
-  const imported = new Set()
-  for (const path of walk(join(packageDir, 'src'), ['.ts'])) {
-    for (const match of read(path).matchAll(/from\s+'(@deepseek-ai\/[^']+)'/g)) imported.add(match[1])
-  }
-  for (const specifier of imported) {
-    if (!pathsKeys.has(specifier)) {
-      problems.push(`${specifier} is imported but has no paths entry in tsconfig.base.json`)
-      continue
-    }
-    const target = new RegExp(`"${specifier.replace(/[/\\^$*+?.()|[\]{}]/g, '\\$&')}":\\s*\\["([^"]+)"\\]`).exec(base)?.[1]
-    if (target === undefined) continue
-    // Package-root entries end at a `src` directory; client-face entries end at `src/<subpath>`
-    // (the vendor convention, e.g. `pkg/client` → `<pkg>/src/client`). In both cases the owning
-    // project is the package directory the `src` tree belongs to.
-    const srcSplit = target.indexOf('/src/')
-    const projectDir = resolve(repoRoot, srcSplit === -1 ? target.replace(/\/src$/, '') : target.slice(0, srcSplit))
-    if (!projectReferenceMatches(projectDir, references)) {
-      problems.push(`${specifier} resolves to ${relative(repoRoot, projectDir)}, which packages/dsh-smart-assistant/tsconfig.json does not reference`)
-    }
-    if (!exists(join(repoRoot, target, 'index.ts'))) {
-      problems.push(`${specifier} paths entry ${target} has no index.ts`)
-    }
-  }
-  return problems
-})
+check('resolution: every @deepseek-ai import has a tsconfig paths entry and a project reference', () =>
+  // Pure core in gates/resolution.mjs (fixture-pinned in tests/tooling/resolution.spec.mjs):
+  // the runner owns the corpus (both config texts + every package source), the core judges it.
+  importResolutionProblems({
+    repoRoot,
+    packageDir,
+    baseText: read(join(repoRoot, 'tsconfig.base.json')),
+    projectConfigText: read(join(packageDir, 'tsconfig.json')),
+    sources: walk(join(packageDir, 'src'), ['.ts']).map(path => ({ path, text: read(path) })),
+    exists,
+  }))
 
 check('resolution: the runtime tsconfig for the source launch is present and current', () => {
-  const problems = []
   const runtime = join(repoRoot, 'tsconfig.tsx.json')
   if (!exists(runtime)) return ['tsconfig.tsx.json is missing — run `pnpm gen-paths`']
-  const text = read(runtime)
-  if (!text.includes('GENERATED by scripts/generate/gen-paths.mjs')) problems.push('tsconfig.tsx.json is not the generated file')
-  // Spot-check a package the harness loads by name at boot, so a stale facade cannot pass silently.
-  for (const name of ['@deepseek-ai/dsh-app-boot', '@deepseek-ai/dsh-agent-preset-registry']) {
-    if (!text.includes(`"${name}"`)) problems.push(`tsconfig.tsx.json has no alias for ${name}`)
-  }
-  // The source launch goes through dev/env/dsh.mjs (which also enforces the dev home);
-  // the gate follows the contract there, not the one-line package.json script.
-  const launcher = read(join(repoRoot, 'dev', 'env', 'dsh.mjs'))
-  if (!launcher.includes('tsconfig.tsx.json') || !launcher.includes('TSX_TSCONFIG_PATH')) {
-    problems.push('dev/env/dsh.mjs does not point tsx at tsconfig.tsx.json')
-  }
-  return problems
+  return runtimeTsconfigProblems({
+    runtimeText: read(runtime),
+    launcherText: read(join(repoRoot, 'dev', 'env', 'dsh.mjs')),
+    // Spot-check packages the harness loads by name at boot, so a stale facade cannot pass silently.
+    loadedByBoot: ['@deepseek-ai/dsh-app-boot', '@deepseek-ai/dsh-agent-preset-registry'],
+  })
 })
 
 check('client: the browser half registers via the loader facade and stays classic-script-safe', () => {
@@ -196,25 +166,19 @@ check('client: the browser half registers via the loader facade and stays classi
 })
 
 check('resolution: skill-name grammar matches the harness registry', () => {
-  const ours = /SKILL_NAME_PATTERN = (\/.*\/)/.exec(read(join(packageDir, 'src', 'domain', 'skills', 'skill-file.ts')))?.[1]
   const registryPath = join(vendorDsh, 'packages', 'skill', 'skill', 'src', 'index.ts')
   if (!exists(registryPath)) return ['vendor/dsh skill registry source is missing']
-  const theirs = /const SKILL_NAME = (\/.*\/)/.exec(read(registryPath))?.[1]
-  if (ours === undefined || theirs === undefined) return ['could not read one of the skill-name patterns']
-  return ours === theirs ? [] : [`our pattern ${ours} differs from the registry's ${theirs}`]
+  return skillNameGrammarProblems({
+    ourSource: read(join(packageDir, 'src', 'domain', 'skills', 'skill-file.ts')),
+    registrySource: read(registryPath),
+  })
 })
 
-check('resolution: skill frontmatter keys we write are keys the provider reads', () => {
-  const provider = read(join(vendorDsh, 'packages', 'skill', 'skill-filesystem', 'src', 'index.ts'))
-  const problems = []
-  // The provider reads fields by property access (`data.metadata`), so match the identifier.
-  for (const key of ['name', 'description', 'whenToUse', 'metadata']) {
-    if (!new RegExp(`\\b${key}\\b`).test(provider)) {
-      problems.push(`provider source never reads frontmatter key ${key}`)
-    }
-  }
-  return problems
-})
+check('resolution: skill frontmatter keys we write are keys the provider reads', () =>
+  skillFrontmatterKeyProblems({
+    providerSource: read(join(vendorDsh, 'packages', 'skill', 'skill-filesystem', 'src', 'index.ts')),
+    keys: ['name', 'description', 'whenToUse', 'metadata'],
+  }))
 
 // ── self-containment ────────────────────────────────────────────────────────────────────────────
 
