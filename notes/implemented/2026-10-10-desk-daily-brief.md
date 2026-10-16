@@ -1,0 +1,31 @@
+# 章鱼管家晨报：每日汇报与请示（账本驱动的 daily brief）
+
+日期：2026-10-10 · 状态：**implemented**
+
+## 问题（可观察行为）
+
+**外部结果三要素：** 触发＝本人说「每天早上给我汇报」（或指定时刻）；本人得到＝每个工作日早上在一个固定会话里收到一段简报——今天到期的承诺/核对点、等你确认的提案（含默认动作）、待认领片段、逾期无进展、昨晚以来的新进展——**回复简报即成为明确指令走账本**；完成条件＝有机器判据证明「请求晨报→建每日排程」与「送达后读账本出简报」两个行为，**并且**本人实走一次判断话术与确认负担。
+
+## 交付
+
+- **技能**（模型面的唯一家）：[`desk-daily-brief/SKILL.md`](../../packages/dsh-smart-assistant/presets/assistant/skills/desk-daily-brief/SKILL.md)——三半都钉死：**一个常态排程**（`schedule_create`，`every` 86400s 对齐本人指定时刻，prompt = `[daily desk brief] Present the operating desk brief per the desk-daily-brief skill`，落点＝建它的那个会话，换地方＝显式重排）、**简报从账本读**（`assistant_operating desk` 一次读全量 → 五行清单：今日到期 / 等你确认的提案 / 待认领片段 / 逾期无进展 / 昨日以来新进展）、**本人的回复即指令**（只呈现不代拍，权限模型不变）。
+- **数据源是权威经营账本**，不是工作区桌面文件；沿用已验证的 morning-brief 模式（commit＝schedule 同回合、日期变动→update、完成→delete）。
+- **行为资产**（2026-10-16）：[`dev/probes/web/desk-daily-brief-live.mjs`](../../dev/probes/web/desk-daily-brief-live.mjs)——真模型 web 会话驱动，**判据一个字不重写**：问句与 checks 取自 [`dev/eval/tasks.mjs`](../../dev/eval/tasks.mjs) 的 `desk-daily-brief` 任务，评测器 = [`dev/eval/checks.mjs`](../../dev/eval/checks.mjs) 的 `evaluateTask`，观察对象 = [`dev/eval/run.mjs`](../../dev/eval/run.mjs) 的 `observe`；前置断言会话 `request/header.tools` 真含四个 `schedule_*`（缺了就是在一个托管不了该能力的组合里评分）。相位 1 判"真的建了排程"，相位 2 判简报内容纪律（先读 `desk` 后作答、三类行逐条在场、不代拍、账本字节不变）。真跑 `passed: true`，真模型那一轮的简报逐行为：今天该动的 / **等你拍板（1 件，尚未生效）** / 未认领 / 逾期且无新消息。
+- **源缺口同日闭环**（2026-10-16）：首跑发现 `desk` 载荷不含提案 → 汇报清单里「等你确认的提案」那一行无源；本人拍板让 `desk` 摘要带出每件事的 pending 提案，当天实施、真跑复验。决定与以后约束 = [desk 摘要带 pending 提案索引](2026-10-16-desk-pending-proposal-index.md)。
+
+## 验收面（本人的）
+
+- **真人实走（未走）**：本人在晨报会话里回复一条请示，账本出现对应操作且下一份简报反映。机器面已判（探针 `passed: true`），这一行判的是**真实节奏与话术负担**——只有本人能给；2026-10-16 本人拍板毕业，本行作为**本人的验收面**保留，触发＝本人日常使用或点名。
+
+## 输掉的方案
+
+- **账本原生提醒协调**（V4/V5 正路：意图 token、原 Session 绑定、恢复协议）：工程量大、故障窗口矩阵未验，按 261008 归档卡的节奏后置。**不是弃路**：本方案的数据源就是账本，V4 落地后展示层原样复用。
+- **推送式 host 主动生成简报**（不经模型回合）：绕开"模型无值班面"这一事实，且违反「简报是可回复的会话回合」的请示闭环。
+- **固定每天必发长文**：无事长文是负担；采用「有事逐条、无事一句话」。
+
+## 还会约束以后的后果
+
+- **web-only 能力不要塞进 headless runner**：`schedule` 是 web 绑定插件链（`schedule` → `sessionController` → `fileUploads` → 浏览器的 `connection`），headless one-shot 里四个 `schedule_*` 永不注册；这类任务声明 `requires: 'web'`、runner **诚实报 NOT EVALUATED**，要评就另建 web-session 驱动（本卡的探针就是范式）。教训原文 = [BUG-008](../../_backlog/_archive/fixed_bugs/BUG-008-schedule-tools-missing.md)：一次"在一个托管不了该能力的组合里评分"，让笔记记下过不可能出现的 PASS。
+- **排程落点固定**：建在哪个会话就永远在哪个会话，不散落；要换地方＝显式重排。
+- **加汇报清单的行之前，先确认工具给得出**：清单的每一行都要有源（本卡 2026-10-16 的源缺口就是这么发现的——模型没列不是偷懒，是摘要没给）。
+- **判据钉账本事实，不钉模型措辞**：探针的标记集只取账本里的词（如 `预付款`），不取会被自由改写的标题整串。
