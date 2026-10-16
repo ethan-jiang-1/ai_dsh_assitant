@@ -37,9 +37,10 @@
 门：地板（`pnpm typecheck && pnpm test && pnpm verify`）+ `pnpm test:agent` + **搬家逐字证明**（新文件内容 vs `HEAD` 原块**去缩进后**的 byte-diff）——该 schema 不被任何 spec 钉住（`tool-operating.spec.ts` 对 `schema` 零引用），逐字证明是唯一硬证据；再加 `pnpm test:composition` 兜住注册期的 `assertSupportedJsonSchema`（schema 破损会在注册时抛错）。
 
 **片 2 · ledger 归约器重构**
-applyOperation 改每操作 handler 表；提 `rejectWith` / `recordOperation` 辅助消 6 处 `unknown-matter` 拒绝样板；领域词汇（15–208 行类型）抽 `domain/operating/types.ts`，ledger.ts 原位 re-export 保持 import 面零变化（import 面恰好 5 个文件，实测）。708 → ~450 + ~250。`operations` 展开样板实测 **13 处**、两种惯用形（`state: {…}` 包裹式与裸式）→ helper 返回 operations 记录、由调用方摆放。
-前置（已实测触发）：`unknown-matter`（6 处）与 `proposal-not-pending`（2 处）在 operating-ledger.spec 中**零覆盖**（spec 只断言 5 个拒绝原因里的 3 个）——**先补这两条特征测试、造红→绿**，再动样板。
-门：地板（`pnpm typecheck && pnpm test && pnpm verify`）+ `pnpm test:domain && pnpm test:host && pnpm test:agent`（operating-ledger.spec 583 行是行为锚）。
+applyOperation 由 414 行单函数改为「每操作具名 handler + 判别标签 switch 分发」（闭集以 `assertNever` 收口），提 `rejectWith` / `recordOperation` 消 8 处拒绝样板与 10 处状态写点；领域词汇（15–216 行）抽 `domain/operating/types.ts`（块内唯一的非类型函数 `carryTimes` 归位到 ledger.ts 底部助手区），ledger.ts 原位 re-export 保持 import 面零变化（import 面恰好 5 个文件，实测）。**708 → 519 + 196**（实测；总行数近乎持平——收益在定位：414 行函数变 24 行分发 + 8 个窄 handler）。
+形态选择：映射式 handler 表在 `strict` 下需要一次函数型断言（参数逆变），故改用闭集 switch——每个 handler 保住自己收窄后的类型，并符合本仓/上游「判别标签用 switch、闭集以 `assertNever` 收口」的既有约定。
+前置（已实测触发）：`unknown-matter`（6 处）与 `proposal-not-pending`（2 处）在 operating-ledger.spec 中**零覆盖**（spec 只断言 5 个拒绝原因里的 3 个）；另补第三条守 `reject` 分支自身的负例（缺席 matter 的理由与 matterId 回显、重复 reject 不得覆盖既有 resolution）——三条均造红→绿。
+门：地板（`pnpm typecheck && pnpm test && pnpm verify`）+ `pnpm test:domain && pnpm test:host && pnpm test:agent`（operating-ledger.spec 是行为锚，原有断言零改动、只增三条）。
 
 **片 3 · desk-process 门去重 + 时间格式化收敛**
 提 `sharedGateReasons`（6 门 ×4 judge）、`pendingOnTarget/Matter`、`remindersUnsynced` 尾巴；四条种子文案抽 `desk-process-messages.ts`（文案与逻辑分家）。新 `client/format.ts` 收敛 pad/humanTime/localDate* 族 + room-data-core.shortTime（消费方 panels/dom-utils 的 import 同 diff 更新）。desk-process 515 → ~380。

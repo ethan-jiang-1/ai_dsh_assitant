@@ -16,6 +16,12 @@
  *    different matters stay apart (identity is never title-derived).
  * 7. A fragment with no explicit matter reference is retained unclaimed until an explicit claim
  *    attaches it (original source and time preserved); re-claiming is refused.
+ * 8. A refusal that names an absent matter is durable: the receipt says `unknown-matter`, the same
+ *    identity replays that receipt, and no matter appears.
+ * 9. A proposal the principal already rejected can no longer be confirmed: the late confirm is
+ *    refused as `proposal-not-pending` and leaves the confirmed fields untouched.
+ * 10. A rejection that cannot resolve anything still records itself and names the caller's matter
+ *    id, and re-rejecting a resolved proposal leaves the first resolution in place.
  */
 
 import { writeFileSync } from 'node:fs'
@@ -136,6 +142,25 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
     matters = await service.listMatters()
     expect(matters).toHaveLength(1)
     expect(matters[0]?.revision).toBe(1)
+  })
+
+  it('refuses an operation naming an absent matter and keeps that refusal replayable', async () => {
+    const { service } = boot()
+    const receipt = await service.submitOperation({
+      kind: 'update',
+      operationId: 'op-absent-matter',
+      matterId: 'm-404',
+      observedRevision: 1,
+      summary: '不该落地的改动',
+      source: { sessionId: 'session-A', quote: '改一下' },
+    })
+
+    expect(receipt.outcome).toEqual({ status: 'rejected', reason: 'unknown-matter' })
+    expect(receipt.matterId).toBe('m-404')
+    // The refusal is recorded like any other outcome: retrying the identity replays it, and the
+    // refused content never becomes a matter.
+    expect(await service.readOperation('op-absent-matter')).toEqual(receipt)
+    expect(await service.listMatters()).toEqual([])
   })
 
   it('commits one same-revision update, conflicts the other, and retains the losing materials', async () => {
@@ -552,6 +577,74 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
       receipt: rejected,
     })
     expect((await restarted.readMatter(created.matterId))?.proposals[0]?.status).toBe('rejected')
+  })
+
+  it('refuses to confirm a proposal the principal already rejected, leaving confirmed fields untouched', async () => {
+    const { service } = boot()
+    const created = await service.submitOperation({
+      kind: 'create', operationId: 'op-late-confirm-create', title: 'NB-02 第二期回款',
+      times: { promisedDeadline: '2026-10-13' },
+      source: { sessionId: 'session-A' },
+    })
+    await service.submitOperation({
+      kind: 'propose', operationId: 'op-late-confirm-propose', matterId: created.matterId,
+      change: { kind: 'reschedule', promisedDeadline: '2026-10-20' },
+      source: { sessionId: 'session-B' },
+    })
+    const rejected = await service.submitOperation({
+      kind: 'reject', operationId: 'op-late-confirm-reject', matterId: created.matterId, proposalId: 'p-1',
+      source: { sessionId: 'session-A' },
+    })
+    expect(rejected.outcome).toEqual({ status: 'proposal-rejected', proposalId: 'p-1', revision: 1 })
+
+    // The rejection is the principal's last word on this proposal: a later confirm cannot revive it.
+    const late = await service.submitOperation({
+      kind: 'confirm', operationId: 'op-late-confirm-confirm', matterId: created.matterId, proposalId: 'p-1',
+      source: { sessionId: 'session-A' },
+    })
+    expect(late.outcome).toEqual({ status: 'rejected', reason: 'proposal-not-pending' })
+    const matter = await service.readMatter(created.matterId)
+    expect(matter?.times.promisedDeadline).toBe('2026-10-13')
+    expect(matter?.revision).toBe(1)
+    expect(matter?.proposals[0]).toMatchObject({ status: 'rejected', resolutionOperationId: 'op-late-confirm-reject' })
+  })
+
+  it('records a rejection that resolves nothing, and never overwrites an earlier resolution', async () => {
+    const { service } = boot()
+    // Nothing to resolve and no matter to name: the refusal is still recorded, and the receipt
+    // echoes the caller's own matter id rather than inventing one.
+    const absent = await service.submitOperation({
+      kind: 'reject', operationId: 'op-reject-absent', matterId: 'm-404', proposalId: 'p-1',
+      source: { sessionId: 'session-A' },
+    })
+    expect(absent.outcome).toEqual({ status: 'rejected', reason: 'unknown-matter' })
+    expect(absent.matterId).toBe('m-404')
+    expect(await service.readOperation('op-reject-absent')).toEqual(absent)
+
+    const created = await service.submitOperation({
+      kind: 'create', operationId: 'op-reject-twice-create', title: 'NB-02 第二期回款',
+      source: { sessionId: 'session-A' },
+    })
+    await service.submitOperation({
+      kind: 'propose', operationId: 'op-reject-twice-propose', matterId: created.matterId,
+      change: { kind: 'reschedule', promisedDeadline: '2026-10-20' },
+      source: { sessionId: 'session-B' },
+    })
+    const first = await service.submitOperation({
+      kind: 'reject', operationId: 'op-reject-twice-1', matterId: created.matterId, proposalId: 'p-1',
+      source: { sessionId: 'session-A' },
+    })
+    expect(first.outcome.status).toBe('proposal-rejected')
+
+    // The second rejection changes nothing: the proposal is already resolved, and the resolution
+    // still points at the operation that actually resolved it.
+    const second = await service.submitOperation({
+      kind: 'reject', operationId: 'op-reject-twice-2', matterId: created.matterId, proposalId: 'p-1',
+      source: { sessionId: 'session-A' },
+    })
+    expect(second.outcome).toEqual({ status: 'rejected', reason: 'proposal-not-pending' })
+    expect((await service.readMatter(created.matterId))?.proposals[0])
+      .toMatchObject({ status: 'rejected', resolutionOperationId: 'op-reject-twice-1' })
   })
 
   it('applies a confirmed abandonment proposal as its own status', async () => {
