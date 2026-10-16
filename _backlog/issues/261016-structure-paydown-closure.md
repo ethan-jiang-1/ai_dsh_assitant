@@ -64,7 +64,7 @@ opened: 2026-10-16
 | 片 6a | 本片提交 `refactor(dev): share the button matchers and the home resolver` | 已交付 | 10 处下沉（4 个探针文件）、剩 4 处各有理由（3 aria-label + 1 大小写不敏感 `submit`）；表达式在假 DOM 上 **9 案全过**；6 个 home 消费方接上 `devHome()`，`pnpm usage`/`observe`/`desk-loop` 真跑绿；`typecheck` / `test:tooling` 187 / `test` 621 / `verify` 41 全绿；11 个触碰文件 `node --check` 全过 |
 | 片 6b | 本片提交 `refactor(dev): split the desk e2e probe into a dispatcher and three scenarios` | 已交付 | 三段正文逐字搬迁 321 行 **0 差异**（无归一化）；退出尾巴 ×3 抽成唯一 `finish()`；**三场景各真跑一次全绿**：flow 13 相位 / claim 9 相位 / wake 8 相位，各 exit 0、判决 JSON 形状不变；`typecheck` / `test:tooling` 187 / `test` 621 / `verify` 41 全绿；557 行 → 222 + 191 + 100 + 69 |
 | 片 6（收窄项） | — | 已记录 | 卡上"六步参数化臂执行器"**不做**，理由写在规格卡片 6 节（四臂差异真实、真正样板已由 6a 的 matcher 与本片 `finish()` 处理） |
-| 片 7 | — | 未开工 | — |
+| 片 7 | 本片提交 `refactor(dev): give the shared dev judgements their own drawer` | 已交付 | session-logs 逐字 **101 行 0 差异**、continuity-core 仅差 `OPERATING_TOOL` 的 `export`；核单跑 `--self-check` 绿（合规 + 四类负例 + 先答后读 + 编造 + 种子前置）；`pnpm usage`/`observe`/`desk-loop` 真跑绿；`typecheck` / `test:tooling` 187 / `test` 621 / `verify` 41 全绿；usage-report 341 → 240 + 核 118，continuity-run 533 → 302 + 核 246；测试按模块对齐拆出 `session-logs.spec.mjs` |
 | 收尾（P1 完成时） | — | 已交付 | `pnpm release-smoke` **passed**（pack → 干净 home → `dsh plugin add` → 组合读回：host 行在树、preset 为 profile 默认、keyless 一行档在组合里；有 key 的真回合自跳），即卡上"P1 完成即做一次"。P2（片 6/7）只动 `dev/`，不进发布物，故不再重跑 |
 
 真证据（真跑过的命令、红绿形态、三处尺寸实测值）记在**该片的提交说明**；本表只留片的状态与指针，不复述命令输出（[notes/README.md](../../notes/README.md) §二之三第 3 条）。

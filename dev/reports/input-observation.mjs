@@ -24,7 +24,8 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import process from 'node:process'
-import { classifyUserMessage, readEvents, sessionLogs, stripPanelMarker, summarizeEvents, userMessageText } from './usage-report.mjs'
+import { classifyUserMessage, readEvents, sessionLogs, stripPanelMarker, userMessageText } from '../lib/session-logs.mjs'
+import { summarizeEvents } from './usage-report.mjs'
 import { devHome } from '../env/home.mjs'
 import { option } from '../probes/web/probe-utils.mjs'
 

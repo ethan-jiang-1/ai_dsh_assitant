@@ -23,7 +23,7 @@ import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { devHome } from '../env/home.mjs'
 import { mkTmpDir, tmpDir } from '../env/tmp.mjs'
-import { readEvents, sessionLogs } from '../reports/usage-report.mjs'
+import { readEvents, sessionLogs } from '../lib/session-logs.mjs'
 import { argumentsText, evaluateTask, fileShape, wrotePath } from './checks.mjs'
 import { TASKS } from './tasks.mjs'
 

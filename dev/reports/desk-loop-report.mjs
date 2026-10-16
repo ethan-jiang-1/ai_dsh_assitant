@@ -30,7 +30,7 @@
  */
 import { join, resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { classifyUserMessage, stripPanelMarker, readEvents, sessionLogs } from './usage-report.mjs'
+import { classifyUserMessage, readEvents, sessionLogs, stripPanelMarker } from '../lib/session-logs.mjs'
 import { devHome } from '../env/home.mjs'
 import { argumentsText, wrotePath } from '../eval/checks.mjs'
 import { TASKS } from '../eval/tasks.mjs'

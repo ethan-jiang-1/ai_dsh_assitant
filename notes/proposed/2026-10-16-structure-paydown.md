@@ -80,8 +80,12 @@ DSH_HOME 解析样板收进 `dev/env/home.mjs` 的 `devHome(explicit)`（**6 个
 门：地板 + `pnpm test:tooling`；6b 另跑 `node dev/probes/web/desk-process-e2e.mjs --scenario flow` 一次性 home 真跑退出码 0（探针自身判决即验据，走 keyless 回放夹具）。
 
 **片 7 · dev/lib/ 共享库抽屉**
-新 `session-logs.mjs`（sessionLogs / readEvents / classifyUserMessage / stripPanelMarker / userMessageText 从 usage-report 移出 ~100 行）；新 `continuity-core.mjs`（analyzeContinuity / assertSeed / ledgerProblems / sessionExpectations）；两文件落在新建的 dev/lib/ 抽屉；usage-report 回归纯报告 CLI、continuity-run 回归跑器；7 处消费方 import 更新；`dev/AGENTS.md` 抽屉表加 `lib/` 行（dev-tree gate 同 diff）。
-门：`pnpm test:tooling && pnpm verify && pnpm usage`（真读 dev home 出报告即绿）。
+新 `dev/lib/session-logs.mjs`（118 行）：`sessionLogs` / `readEvents` / `userMessageText` / `classifyUserMessage` / `stripPanelMarker` 从 usage-report 移出（**逐字 101 行 0 差异**）。
+新 `dev/lib/continuity-core.mjs`（246 行）：接续判据核整体移出——除卡上点名的 `analyzeContinuity` / `assertSeed` / `ledgerProblems` / `sessionExpectations` 外，还必须有 `parseOperatingCall` / `sha256` / `SEED_EXPECTATIONS`（它们被前四者使用；留在跑器里会造出 **lib → eval 的反向 import**，正是本片要消除的方向），另加 `OPERATING_TOOL`（跑器的自检夹具要用，故升级为导出；搬迁 diff 里唯一的差异就是它的 `export` 关键字）。核保持纯：无会话、无文件系统、无 home。
+usage-report 回归纯报告 CLI（341 → 240）、continuity-run 回归跑器（533 → 302：自检夹具 + 自检 + CLI）；6 处消费方 import 更新（desk-loop / input-observation / eval:run / continuity-run / desk-continuity-live，共 5 个文件 6 行）。
+`dev/AGENTS.md` 抽屉表加 `lib/` 行（谁都不属于、只被 import）。
+测试面：`tests/tooling/usage-report.spec.mjs` 里有两个用例其实测的是搬走的核 → 按"测试文件名与被测模块对齐"拆出 `tests/tooling/session-logs.spec.mjs`（classifyUserMessage + sessionLogs 两族），报告 spec 只留自己的主体（208 → 166）。
+门（实测）：地板（`typecheck → build → test → verify`）+ `pnpm test:tooling` + `pnpm usage` 真读 dev home 出报告 + `pnpm eval:continuity --self-check` 绿（它带着夹具真跑核：合规续接 + 四类负例 + 先答后读 + 编造 + 种子前置逐项），另跑 `pnpm observe` / `pnpm desk-loop` 两个消费方。
 
 ### P3 可选（拍板时裁）
 
