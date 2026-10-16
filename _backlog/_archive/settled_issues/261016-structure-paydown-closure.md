@@ -1,13 +1,13 @@
 ---
-status: 推敲中
+status: 已结
 opened: 2026-10-16
 ---
 
 # 推敲：结构还清收口——P1+P2 片 1–7 推进台账
 
-> 立卡：2026-10-16 ｜ 状态：推敲中 ｜ 类型：Task ｜ 可关闭：否 ｜ 授权：2026-10-16 本人点名实施[结构还清规格卡](../../notes/proposed/2026-10-16-structure-paydown.md)的范围 **P1+P2（片 1–7）**，P3 片 8 不在本轮。本卡是该授权的**推进台账**（切片推进、停点与证据缺口住这里）；规格卡正文只承载问题/方案/取舍/验收（分工 = [收口卡节](README.md#收口卡)）。
+> 立卡：2026-10-16 ｜ 状态：已结（2026-10-16 关闭）｜ 类型：Task ｜ 可关闭：是 ｜ 结论：P1+P2 七片逐片落地、每片一提交锚点，行为零变化由逐字 diff / 字面量核对 / 特征 spec 跨搬迁零改动 / 两场景 web-face 证明，`release-smoke` 通过；设计与后果住[结构还清 note](../../../notes/implemented/2026-10-16-structure-paydown.md)。原始授权指针见下（授权：2026-10-16 本人点名实施[结构还清规格卡](../../../notes/implemented/2026-10-16-structure-paydown.md)的范围 **P1+P2（片 1–7）**，P3 片 8 不在本轮。本卡是该授权的**推进台账**（切片推进、停点与证据缺口住这里）；规格卡正文只承载问题/方案/取舍/验收（分工 = [收口卡节](../README.md#收口卡)）。
 
-**问题与期望结果：** 全仓结构评估的尾部阻力已毕业为[规格卡](../../notes/proposed/2026-10-16-structure-paydown.md)四节齐全的提案，本卡只负责把它推成已交付事实。
+**问题与期望结果：** 全仓结构评估的尾部阻力已毕业为[规格卡](../../../notes/implemented/2026-10-16-structure-paydown.md)四节齐全的提案，本卡只负责把它推成已交付事实。
 外部结果三要素（动手前定，交付按它收口）：**触发** = 本人点名（2026-10-16 已给）；**本人得到** = 「搜得到、改得动」的结构面——① 改桌面交互、账本归约或工具输出时定位进单一职责文件（≤ ~450 行），不再翻 633 行组合根与 500+ 行混杂文件；② dev 探针改动不翻 561 行三合一文件，会话日志判据与接续判据各有唯一家；③ 全程行为零变化（既有 spec 与门禁证明，模型可见面零触碰）。**完成条件** = 片 1–7 逐片验收绿、每片一提交锚点、收尾 `pnpm release-smoke` 绿。
 
 **当前情况：** 动手前做过一轮独立核验（2026-10-16，逐条实测）：规格卡的行数与结构事实**全部吻合**（586/708/633/515/462/561/553、4 judge、6 门 ×4、applyOperation 414 行、usage-report 5 个 importer 等），并核出 **7 处前提修正与 2 处规格卡未载的义务**，全部落进下面的「核验结论」与验收标准；实现形态按核验后版本走，不按规格卡的原始形状走。基线已实测：`pnpm verify` 41 检查绿、`pnpm usage` 真出报告。
@@ -31,7 +31,7 @@ opened: 2026-10-16
 
 ## 验收标准
 
-行为分类（[validation-design](../../_backlog/methods/validation-design.md)）：七片全部是 **deterministic logic / orchestration**——无 model behavior（故**不建 eval**），无 human judgment（故不设本人裁决行）。每片的"通过信号"都是同一个总判据的实例：**既有 spec 与门禁零改动即绿**；差别只在"该改动面按证据地图加跑什么"。
+行为分类（[validation-design](../../methods/validation-design.md)）：七片全部是 **deterministic logic / orchestration**——无 model behavior（故**不建 eval**），无 human judgment（故不设本人裁决行）。每片的"通过信号"都是同一个总判据的实例：**既有 spec 与门禁零改动即绿**；差别只在"该改动面按证据地图加跑什么"。
 
 | # | 行为（追溯到规格卡） | Class | 输入/状态 | 通过信号 | 负例/补集 | 证据 owner | 人的判断 |
 |---|---|---|---|---|---|---|---|
@@ -46,7 +46,7 @@ opened: 2026-10-16
 | 7 | 会话日志判据与接续判据各有唯一家，行为不变（片 7） | deterministic（tooling） | `session-logs.mjs`/`continuity-core.mjs`（dev/lib/）；5 + 全部消费方 | 地板 + `test:tooling` 绿；`pnpm usage` 真读 dev home 出报告 | 日志读取层搬家丢行为 → usage 空报告/抛错；`continuity-run --self-check` 红 | `dev/reports/usage-report.mjs`（命令面）+ `dev/eval/continuity-run.mjs --self-check`（挂在 `pnpm verify`）+ `dev/AGENTS.md` 加 `lib/` 行 | 无 |
 | 收尾 | 主包片累积未破坏发布物 | orchestration | `lib/` 产物 + 组合断言 | `pnpm release-smoke` PASS | add/装载/组合断言红 | `scripts/release/release-smoke.mjs` | 无 |
 
-**地板**（每片收尾必绿）= `pnpm typecheck && pnpm test && pnpm verify`（[docs/testing.md](../../docs/testing.md) §一页证据地图首段）；上表只列地板**之上**按改动面加跑的项。client 面加跑"**两**场景"而非一场景，依据同表 client 行与 [validation-evidence](../../_backlog/methods/validation-evidence.md) 的路由表。
+**地板**（每片收尾必绿）= `pnpm typecheck && pnpm test && pnpm verify`（[docs/testing.md](../../../docs/testing.md) §一页证据地图首段）；上表只列地板**之上**按改动面加跑的项。client 面加跑"**两**场景"而非一场景，依据同表 client 行与 [validation-evidence](../../methods/validation-evidence.md) 的路由表。
 
 **排除（本轮不做）：** P3 片 8；任何行为/合同/文案变更（含"顺手改进"）；`vendor/`；运行 home；整批改写既有注释语言；`gen-catalog` 重生成（动词/组合行/exports 零变化，freshness 门守着，意外红了即停）；`pnpm build` 的产物入库。
 
@@ -71,9 +71,9 @@ opened: 2026-10-16
 
 ## 证据索引（不复述，点进去看）
 
-- 规格卡（问题/方案/输掉的方案/逐片验收）：[结构还清规格卡](../../notes/proposed/2026-10-16-structure-paydown.md)
-- 证据路由：[docs/testing.md](../../docs/testing.md) §一页证据地图；判断细则与假绿清单 = [pre-push-evidence 技能](../../.agents/skills/pre-push-evidence/SKILL.md)
+- 规格卡（问题/方案/输掉的方案/逐片验收）：[结构还清规格卡](../../../notes/implemented/2026-10-16-structure-paydown.md)
+- 证据路由：[docs/testing.md](../../../docs/testing.md) §一页证据地图；判断细则与假绿清单 = [pre-push-evidence 技能](../../../.agents/skills/pre-push-evidence/SKILL.md)
 - 抽法先例（依赖参数化的纯核模块 + 同名 spec）：`refactor(client): isolate default panel selection`、`refactor(client): isolate desk settle refresh lifecycle`
-- 合同面（被移动结构涉及的 docs）：[docs/architecture.md](../../docs/architecture.md)（§七/§八 运行链路与功能路由）、[docs/operating.md](../../docs/operating.md) §三
+- 合同面（被移动结构涉及的 docs）：[docs/architecture.md](../../../docs/architecture.md)（§七/§八 运行链路与功能路由）、[docs/operating.md](../../../docs/operating.md) §三
 
 **关闭条件：** 片 1–7 逐片验收绿 + 收尾 `pnpm release-smoke` PASS → 规格卡正文改写为已交付事实（`proposed` → `implemented`），本卡头部写 `可关闭：是` 并按 [backlog 关闭条件](../README.md)归档进 `_archive/settled_issues/`。
