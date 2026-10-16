@@ -159,7 +159,7 @@ try {
   // 粘贴之后的证明，不能拿来当等待条件。
   const composerMounted = await pollUntil(evaluate, `document.querySelector('[data-composer-input="true"]') !== null`, { checkFirst: true, budget: 40 })
   if (composerMounted !== true) fail('composer-mounted', {})
-  const { sendable } = await pasteUntilSendable(evaluate, task.prompt, { attempts: 90, gapMs: 1000 })
+  const { sendable } = await pasteUntilSendable(evaluate, task.prompt, { attempts: 300, gapMs: 1000 })
   if (sendable !== true) {
     // 新鲜 home 的 composer 在默认 workspace 落地前**静默丢文本**；超时要能自证"当时是什么状态"，
     // 而不是只丢一个 sendable:false 让人猜（2026-10-16 负载 42/10 核时连续三次只看到它）。
@@ -238,6 +238,9 @@ for (const log of fresh) {
   })
   if (hasAsk) bound.push({ log, events })
 }
+// 相位 3 的判据要用到"哪条是本人的回复"+整条会话的事件，而它们原本作用域在下面的 else 块里；
+// 用一个显式载体带出来（2026-10-16 首跑真机时被 ReferenceError 抓到的正是这个作用域错）。
+let judged = { events: [], replyAt: -1 }
 if (bound.length !== 1) {
   verdict.judge = { passed: false, reasons: [`session-selection: expected exactly 1 session carrying the ask (marker "${ASK_MARKER}"), got ${String(bound.length)} of ${String(fresh.length)} new session(s)`] }
 } else {
@@ -266,6 +269,7 @@ if (bound.length !== 1) {
   // 否则提案已解决、第一份的 pending 判据会被第二份的形态反噬。
   const replyAt = events.findIndex(event => event.type === 'user/message'
     && JSON.stringify(event.data?.message?.content ?? event.data ?? {}).includes(REPLY_MARKER))
+  judged = { events, replyAt }
   const firstBrief = (replyAt === -1 ? answered : answered.filter(({ index }) => index < replyAt)).at(-1)
   const last = firstBrief
   const briefProblems = []
@@ -287,7 +291,9 @@ if (bound.length !== 1) {
     }
   }
   // 不代拍：整条会话里 `assistant_operating` 只允许只读动作（接续判据核把 desk/read 当只读，同理）。
-  const mutating = events.filter(event => event.type === 'tool/call' && event.data?.name === 'assistant_operating'
+  // 只算"本人明确指令之前"：相位 3 的 confirm 是本人自己的指令（技能：回复即指令），不该算代拍。
+  const beforeReply = events.slice(0, replyAt === -1 ? events.length : replyAt)
+  const mutating = beforeReply.filter(event => event.type === 'tool/call' && event.data?.name === 'assistant_operating'
     && !READ_ONLY_ACTIONS.has(/"(?:action|tool)"\s*:\s*"([a-z-]+)"/.exec(String(event.data?.arguments ?? ''))?.[1] ?? ''))
   if (mutating.length > 0) briefProblems.push(`the session wrote through assistant_operating (${mutating.length} non-read call(s)) — the brief presents, the principal decides`)
   verdict.brief = { problems: briefProblems, chars: briefText.length }
@@ -299,15 +305,21 @@ const promised = ledger.matters?.['m-1']?.times?.promisedDeadline
 const replyProblems = []
 if (proposal?.status === 'pending') replyProblems.push('the explicit confirm never landed: p-1 is still pending in the ledger')
 if (promised !== CONFIRMED_DEADLINE) replyProblems.push(`the matter's promised deadline is ${String(promised)}, expected ${CONFIRMED_DEADLINE} after the confirm`)
-const afterEvents = replyAt === -1 ? [] : events.slice(replyAt)
+const { events: judgedEvents, replyAt: judgedReplyAt } = judged
+const afterEvents = judgedReplyAt === -1 ? [] : judgedEvents.slice(judgedReplyAt)
 const deskResults = afterEvents.filter((event, index) => event.type === 'tool/result'
   && afterEvents.slice(0, index).some(earlier => earlier.type === 'tool/call' && earlier.data?.name === 'assistant_operating'))
   .map(event => JSON.stringify(event.data ?? {})).join(' ')
-if (replyAt === -1) replyProblems.push('the principal\'s reply never reached the session as a user message')
+if (judgedReplyAt === -1) replyProblems.push('the principal\'s reply never reached the session as a user message')
 else if (!deskResults.includes(CONFIRMED_DEADLINE)) replyProblems.push(`the re-collected brief's desk read never shows the new promised deadline ${CONFIRMED_DEADLINE}`)
 verdict.reply = { problems: replyProblems, proposalStatus: proposal?.status ?? null, promisedDeadline: promised ?? null }
 const ledgerAfter = sha256(readFileSync(join(operatingDir, 'ledger.json')))
-verdict.ledger = { problems: ledgerProblems(ledgerBefore, ledgerAfter) }
+// 全会话"字节不变"在相位 3 之后必然不成立（本人指令合法地写了账本）；不变量拆成两段：
+// 简报阶段（相位 1–2）必须只读 = ledgerBeforeReply；相位 3 的变更是**授权变更**，如实报出而非判违规。
+verdict.ledger = {
+  problems: verdict.ledgerBeforeReply.problems,
+  changedByPrincipalInstruction: ledgerBefore !== ledgerAfter,
+}
 if (verdict.judge.passed === true && verdict.brief?.problems?.length === 0
   && verdict.reply?.problems?.length === 0 && verdict.ledgerBeforeReply?.problems?.length === 0
   && verdict.ledger.problems.length === 0) {
