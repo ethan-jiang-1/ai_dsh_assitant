@@ -75,6 +75,11 @@ const UNCLAIMED_MARKER = '尾款那笔我们安排了'
 const PENDING_MARKERS = ['p-1', '2026-10-24', '10-24', '下周一']
 // 接续判据核把 `desk`/`read` 当只读；这里同理——简报只呈现，任何其它动作都是代拍。
 const READ_ONLY_ACTIONS = new Set(['desk', 'read'])
+// 相位 3：以本人身份回一条**明确请示**（技能：简报只呈现，本人的回复才是指令），然后复收一份简报
+// 确认变化被反映。判据走确定性面（账本 + desk 载荷），措辞留给人判。
+const REPLY_PROMPT = '确认把 XR-09 尾款的承诺日改到 2026-10-24，这条是我的明确指令。'
+const CONFIRMED_DEADLINE = '2026-10-24'
+const REPLY_MARKER = '这条是我的明确指令'
 
 const verdict = { phases: {}, judge: undefined, brief: undefined, scheduleTools: undefined, ledger: undefined, session: undefined, host: undefined }
 const fail = (phase, detail) => {
@@ -154,7 +159,7 @@ try {
   // 粘贴之后的证明，不能拿来当等待条件。
   const composerMounted = await pollUntil(evaluate, `document.querySelector('[data-composer-input="true"]') !== null`, { checkFirst: true, budget: 40 })
   if (composerMounted !== true) fail('composer-mounted', {})
-  const { sendable } = await pasteUntilSendable(evaluate, task.prompt, { attempts: 40, gapMs: 1000 })
+  const { sendable } = await pasteUntilSendable(evaluate, task.prompt, { attempts: 90, gapMs: 1000 })
   if (sendable !== true) fail('ask-paste', { sendable })
   if (await evaluate(sendClick) !== 'sent') fail('ask-send', {})
   pass('ask-entry', { chars: task.prompt.length })
@@ -174,6 +179,28 @@ try {
   const briefSettled = await pollUntil(evaluate, turnStopped, { intervalMs: 2000, budget: 300, checkFirst: false, eachCycle: dismissApproval })
   if (briefSettled !== true) fail('brief-turn', { waitedMs: Date.now() - briefStarted })
   pass('brief-turn', { seconds: Math.round((Date.now() - briefStarted) / 1000) })
+
+  // ── 相位 3：回一条明确请示 → 账本落操作 → 再收一份简报确认它被反映。
+  const ledgerMid = sha256(readFileSync(join(operatingDir, 'ledger.json')))
+  const { sendable: replySendable } = await pasteUntilSendable(evaluate, REPLY_PROMPT, { attempts: 10, gapMs: 800 })
+  if (replySendable !== true) fail('reply-paste', { replySendable })
+  if (await evaluate(sendClick) !== 'sent') fail('reply-send', {})
+  const replyStarted = Date.now()
+  await pollUntil(evaluate, turnRunning, { intervalMs: 1000, budget: 90, checkFirst: true, eachCycle: dismissApproval })
+  const replySettled = await pollUntil(evaluate, turnStopped, { intervalMs: 2000, budget: 300, checkFirst: false, eachCycle: dismissApproval })
+  if (replySettled !== true) fail('reply-turn', { waitedMs: Date.now() - replyStarted })
+  pass('reply-turn', { seconds: Math.round((Date.now() - replyStarted) / 1000) })
+
+  const { sendable: againSendable } = await pasteUntilSendable(evaluate, BRIEF_PROMPT, { attempts: 10, gapMs: 800 })
+  if (againSendable !== true) fail('brief-again-paste', { againSendable })
+  if (await evaluate(sendClick) !== 'sent') fail('brief-again-send', {})
+  const againStarted = Date.now()
+  await pollUntil(evaluate, turnRunning, { intervalMs: 1000, budget: 90, checkFirst: true, eachCycle: dismissApproval })
+  const againSettled = await pollUntil(evaluate, turnStopped, { intervalMs: 2000, budget: 300, checkFirst: false, eachCycle: dismissApproval })
+  if (againSettled !== true) fail('brief-again-turn', { waitedMs: Date.now() - againStarted })
+  pass('brief-again', { seconds: Math.round((Date.now() - againStarted) / 1000) })
+  // 相位 1/2 期间账本必须字节不变（简报只读）；相位 3 的那次写入是本人明确指令，另行判。
+  verdict.ledgerBeforeReply = ledgerMid === ledgerBefore ? { problems: [] } : { problems: ['the ledger changed before the principal\'s explicit instruction — a brief must not write'] }
 
   verdict.host = { ncpu: os.cpus().length, loadavg: os.loadavg().map(value => Number(value.toFixed(2))) }
 } finally {
@@ -216,7 +243,12 @@ if (bound.length !== 1) {
   // 会被拼进该回合的 inbox（日志里 `agent/inbox/spliced`），于是它在日志上出现在第一回合的答案
   // **之前**——按 user 消息切会把两段答案混在一起（2026-10-16 实测踩到）。
   const answered = events.map((event, index) => ({ event, index })).filter(({ event }) => event.type === 'assistant/message')
-  const last = answered.at(-1)
+  // 相位 3 加了第二份简报：第一份（相位 2 的简报）按"回复之前"的最后一条 assistant 消息判，
+  // 否则提案已解决、第一份的 pending 判据会被第二份的形态反噬。
+  const replyAt = events.findIndex(event => event.type === 'user/message'
+    && JSON.stringify(event.data?.message?.content ?? event.data ?? {}).includes(REPLY_MARKER))
+  const firstBrief = (replyAt === -1 ? answered : answered.filter(({ index }) => index < replyAt)).at(-1)
+  const last = firstBrief
   const briefProblems = []
   if (last === undefined) briefProblems.push('the session produced no assistant message')
   const briefText = (last?.event.data?.message?.content ?? [])
@@ -241,9 +273,25 @@ if (bound.length !== 1) {
   if (mutating.length > 0) briefProblems.push(`the session wrote through assistant_operating (${mutating.length} non-read call(s)) — the brief presents, the principal decides`)
   verdict.brief = { problems: briefProblems, chars: briefText.length }
 }
+// ── 相位 3 判据（确定性面）：账本出现对应操作 + 再收的那份简报的 desk 载荷反映新承诺日。
+const ledger = JSON.parse(readFileSync(join(operatingDir, 'ledger.json')))
+const proposal = (ledger.matters?.['m-1']?.proposals ?? []).find(candidate => candidate.id === 'p-1')
+const promised = ledger.matters?.['m-1']?.times?.promisedDeadline
+const replyProblems = []
+if (proposal?.status === 'pending') replyProblems.push('the explicit confirm never landed: p-1 is still pending in the ledger')
+if (promised !== CONFIRMED_DEADLINE) replyProblems.push(`the matter's promised deadline is ${String(promised)}, expected ${CONFIRMED_DEADLINE} after the confirm`)
+const afterEvents = replyAt === -1 ? [] : events.slice(replyAt)
+const deskResults = afterEvents.filter((event, index) => event.type === 'tool/result'
+  && afterEvents.slice(0, index).some(earlier => earlier.type === 'tool/call' && earlier.data?.name === 'assistant_operating'))
+  .map(event => JSON.stringify(event.data ?? {})).join(' ')
+if (replyAt === -1) replyProblems.push('the principal\'s reply never reached the session as a user message')
+else if (!deskResults.includes(CONFIRMED_DEADLINE)) replyProblems.push(`the re-collected brief's desk read never shows the new promised deadline ${CONFIRMED_DEADLINE}`)
+verdict.reply = { problems: replyProblems, proposalStatus: proposal?.status ?? null, promisedDeadline: promised ?? null }
 const ledgerAfter = sha256(readFileSync(join(operatingDir, 'ledger.json')))
 verdict.ledger = { problems: ledgerProblems(ledgerBefore, ledgerAfter) }
-if (verdict.judge.passed === true && verdict.brief?.problems?.length === 0 && verdict.ledger.problems.length === 0) {
+if (verdict.judge.passed === true && verdict.brief?.problems?.length === 0
+  && verdict.reply?.problems?.length === 0 && verdict.ledgerBeforeReply?.problems?.length === 0
+  && verdict.ledger.problems.length === 0) {
   verdict.passed = true
   console.log(JSON.stringify(verdict, null, 2))
 } else {
