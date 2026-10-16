@@ -40,7 +40,7 @@ opened: 2026-10-16
 | resolution | 本族提交 `refactor(scripts): move the resolution checks into their family core` | 已交付 | 四件核化（import/paths/reference 35 → 核 43 行；runtime tsconfig 19；skill-name 语法 8；frontmatter keys 14）；`projectReferenceMatches` 按"helper 不进 barrel"搬进 `gates/shared.mjs`（barrel 刻意不导出它——wiring 门当场抓出它成了未被调用的导出）；夹具 `resolution.spec.mjs` 9 → **15 案**（每核红绿两侧，含 pinned host/client face）；`test:tooling` 196 绿 · `verify` 41 绿；`verify.mjs` 553 → **517** |
 | self-containment | `refactor(scripts): give self-containment its own core` | 已交付 | 27 行核化为 `selfContainmentProblems({ repoRoot, packageDir, files })`（runner 走树 + 读文件）；夹具 4 案（绿 / 越包导入 / 提 vendor / 多文件都报）；`test:tooling` 200 绿 · `verify` 41 绿；`verify.mjs` 517 → **505** |
 | home-doc-contract | 与本族 2 同一次提交（barrel 与 runner 是两族共用文件，分开提交需部分暂存） | 已交付 | 19 行核化为 `homeDocContractProblems({ layoutText, documentText, roomConstants, tools })`；夹具 4 案（绿 / 未声明的常量 / 文档没提的房间值 / 文档没提的工具——含 assistant_knowledge 那条红控）；`verify.mjs` 505 → **500** |
-| commit-safety | — | 未开工 | — |
+| commit-safety | 本族提交 `refactor(scripts): give commit safety its own core` | 已交付 | 34 行核化为 `commitSafetyProblems({ mustIgnore, mustTrack, isIgnored })`（两份清单留 runner 作语料/配置 owner；`git check-ignore` 子进程作注入谓词——I/O 不进核）；夹具 3 案（绿 / 该忽略却会被提交 / 该跟踪却被忽略）；`verify.mjs` 500 → **499** |
 | queue | — | 未开工 | — |
 | 收尾 | — | 未开工 | — |
 

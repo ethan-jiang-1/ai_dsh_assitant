@@ -18,7 +18,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { agentsMdStabilityProblems, backtickedRepoPathProblems, backlogGraduationProblems, backlogLivenessProblems, clientScriptSafetyProblems, commandAliasProblems, compositionRowProblems, configParseProblems, crossFileSectionProblems, dependencyPoseProblems, devDrawerCoverageProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, GRADUATED_STATUS, homeDocContractProblems, implementedAlternativesProblems, identityNameProblems, languageGuardProblems, markdownCorpusFromTracked, notesNamingProblems, notePointerProblems, notesStateProblems, importResolutionProblems, notesTopLevelProblems, pinProblems, machineLocalPathProblems, packageSubpathProblems, playbookFrontmatterProblems,
+import { agentsMdStabilityProblems, backtickedRepoPathProblems, backlogGraduationProblems, backlogLivenessProblems, clientScriptSafetyProblems, commandAliasProblems, commitSafetyProblems, compositionRowProblems, configParseProblems, crossFileSectionProblems, dependencyPoseProblems, devDrawerCoverageProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, GRADUATED_STATUS, homeDocContractProblems, implementedAlternativesProblems, identityNameProblems, languageGuardProblems, markdownCorpusFromTracked, notesNamingProblems, notePointerProblems, notesStateProblems, importResolutionProblems, notesTopLevelProblems, pinProblems, machineLocalPathProblems, packageSubpathProblems, playbookFrontmatterProblems,
   runtimeTsconfigProblems, selfContainmentProblems, skillFrontmatterKeyProblems, skillNameGrammarProblems, relativeLinkProblems, researchSubdirProblems, scratchPathProblems, skillFrontmatterProblems, startPathProblems, testAssetNamingProblems, textHygieneProblems, vendorClientFreshnessProblems } from './verify-checks.mjs'
 import * as gateCores from './verify-checks.mjs'
 import { runChecks } from './run-gates.mjs'
@@ -465,35 +465,34 @@ check('scratch: temporary files stay under the repo .tmp/', () => {
 
 // ── commit safety ───────────────────────────────────────────────────────────────────────────────
 
-check('commit safety: residue and credentials are ignored', () => {
-  const mustIgnore = [
-    'dev/harness-home/.credentials.yaml',
-    'dev/harness-home/sessions/example.jsonl',
-    'node_modules/example/index.js',
-    '.pnpm-store/v11/index.db',
-    'packages/dsh-smart-assistant/lib/index.js',
-    '.env',
-  ]
-  const mustTrack = [
-    'dev/env/env.sh',
-    'dev/profiles/profile-patch.yml',
-    'vendor/UPSTREAM.md',
-    'docs/home.md',
-    'pnpm-workspace.yaml',
-  ]
-  const problems = []
-  const isIgnored = path => {
-    try {
-      execFileSync('git', ['check-ignore', '-q', path], { cwd: repoRoot, stdio: 'ignore' })
-      return true
-    } catch {
-      return false
-    }
-  }
-  for (const path of mustIgnore) if (!isIgnored(path)) problems.push(`${path} must be ignored but is not`)
-  for (const path of mustTrack) if (isIgnored(path)) problems.push(`${path} must be tracked but is ignored`)
-  return problems
-})
+check('commit safety: residue and credentials are ignored', () =>
+  // Pure core in gates/commit-safety.mjs (fixture-pinned in tests/tooling/commit-safety.spec.mjs):
+  // the runner owns the lists and the git call, the core judges which side each path landed on.
+  commitSafetyProblems({
+    mustIgnore: [
+      'dev/harness-home/.credentials.yaml',
+      'dev/harness-home/sessions/example.jsonl',
+      'node_modules/example/index.js',
+      '.pnpm-store/v11/index.db',
+      'packages/dsh-smart-assistant/lib/index.js',
+      '.env',
+    ],
+    mustTrack: [
+      'dev/env/env.sh',
+      'dev/profiles/profile-patch.yml',
+      'vendor/UPSTREAM.md',
+      'docs/home.md',
+      'pnpm-workspace.yaml',
+    ],
+    isIgnored: path => {
+      try {
+        execFileSync('git', ['check-ignore', '-q', path], { cwd: repoRoot, stdio: 'ignore' })
+        return true
+      } catch {
+        return false
+      }
+    },
+  }))
 
 // ── run ─────────────────────────────────────────────────────────────────────────────────────────
 

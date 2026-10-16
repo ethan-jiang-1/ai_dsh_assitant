@@ -14,6 +14,7 @@
  */
 export * from './gates/backlog.mjs'
 export * from './gates/corpus-links.mjs'
+export * from './gates/commit-safety.mjs'
 export * from './gates/dev-tree.mjs'
 export * from './gates/docs-commands.mjs'
 export * from './gates/frontmatter-config.mjs'
