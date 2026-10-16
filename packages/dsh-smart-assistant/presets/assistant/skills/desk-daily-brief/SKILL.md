@@ -47,3 +47,23 @@ is an explicit instruction: apply it through `assistant_operating` in the same t
 proposal by its id, claim a fragment to its matter, revise on their word — with a fresh operation
 id and the observed revision), and say what the ledger now records. If their words are ambiguous
 about WHICH matter, ask — do not pick.
+
+## Time vocabulary (say when the same way every time)
+
+The ledger's vocabulary is the product's vocabulary — never invent a synonym for it. These are the
+three terms the product's own screens show, verbatim (the CJK lines below are vocabulary to reuse,
+not prose to translate):
+
+<!-- promised deadline = 承诺日  (tool field: promised_deadline) -->
+<!-- forecast        = 预测到账 (tool field: forecast_at) — an outside expectation, never a commitment -->
+<!-- next checkpoint = 下一次核对点 (tool field: next_checkpoint) — when to look again -->
+<!-- never write 检查点 / 截止日 / 到期日 or any other synonym for these three -->
+
+**Dates are ISO (`YYYY-MM-DD`).** Relative phrasing may appear **only inside a verbatim quote** of
+someone's own words — never as the brief's own way of saying when something is due. Recognize (do not
+reuse as your own wording):
+
+<!-- relative phrasings to recognize only: 下周一 / 明天 / 本周 / 这周五 -->
+
+A pending proposal is not an effective date: say it is waiting for the principal and keep the promised
+date as it stands until they confirm (the tool marks those lines `pending — NOT in effect`).
