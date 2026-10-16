@@ -273,6 +273,13 @@ desk-process-e2e）：供给一次性 home（setup.sh + 凭据 0600，BUG-012 �
 - **不证明**：桌面返回/导航契约（client spec 与确定性 e2e 的事）、话术与层级（desk-walk 与
   本人）、跨日真实回访价值（自然观察）；真模型措辞每次可能不同，判据钉的是行为地板。
 
+**2026-10-16 重构后复跑（本人点名）**：结构还清 P1+P2（片 1–8）落地后重跑本资产一次——
+`passed: true`，五条判据全绿（`operatingCalls: 1`、`mutatingActions: []`、先读后答
+`readResultSeq: 21`、`answerChars: 1043`、账本字节不变、恰好 1 个绑定会话、console/network 零异常）。
+这次复跑是本资产自 2026-10-15 交付后的**首次外部确认**，也是那批"零行为变化"重构在主入口真模型
+面上的对照证据。复跑前先修了一处破损：片 7 搬 `continuity-core` 时漏改本探针的第二个 import 块
+（见提交 `fix(dev): repair the continuity probe's import after the dev/lib move`）。
+
 ## 已知与未决
 
 ### 已知事实
