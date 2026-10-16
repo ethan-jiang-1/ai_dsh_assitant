@@ -18,8 +18,8 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { agentsMdStabilityProblems, backtickedRepoPathProblems, backlogGraduationProblems, backlogLivenessProblems, clientScriptSafetyProblems, commandAliasProblems, compositionRowProblems, configParseProblems, crossFileSectionProblems, dependencyPoseProblems, devDrawerCoverageProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, GRADUATED_STATUS, implementedAlternativesProblems, identityNameProblems, languageGuardProblems, markdownCorpusFromTracked, notesNamingProblems, notePointerProblems, notesStateProblems, importResolutionProblems, notesTopLevelProblems, pinProblems, machineLocalPathProblems, packageSubpathProblems, playbookFrontmatterProblems,
-  runtimeTsconfigProblems, skillFrontmatterKeyProblems, skillNameGrammarProblems, relativeLinkProblems, researchSubdirProblems, scratchPathProblems, skillFrontmatterProblems, startPathProblems, testAssetNamingProblems, textHygieneProblems, vendorClientFreshnessProblems } from './verify-checks.mjs'
+import { agentsMdStabilityProblems, backtickedRepoPathProblems, backlogGraduationProblems, backlogLivenessProblems, clientScriptSafetyProblems, commandAliasProblems, compositionRowProblems, configParseProblems, crossFileSectionProblems, dependencyPoseProblems, devDrawerCoverageProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, GRADUATED_STATUS, homeDocContractProblems, implementedAlternativesProblems, identityNameProblems, languageGuardProblems, markdownCorpusFromTracked, notesNamingProblems, notePointerProblems, notesStateProblems, importResolutionProblems, notesTopLevelProblems, pinProblems, machineLocalPathProblems, packageSubpathProblems, playbookFrontmatterProblems,
+  runtimeTsconfigProblems, selfContainmentProblems, skillFrontmatterKeyProblems, skillNameGrammarProblems, relativeLinkProblems, researchSubdirProblems, scratchPathProblems, skillFrontmatterProblems, startPathProblems, testAssetNamingProblems, textHygieneProblems, vendorClientFreshnessProblems } from './verify-checks.mjs'
 import * as gateCores from './verify-checks.mjs'
 import { runChecks } from './run-gates.mjs'
 import { pinnedTagFrom } from '../maintenance/sync-bookkeeping.mjs'
@@ -182,49 +182,32 @@ check('resolution: skill frontmatter keys we write are keys the provider reads',
 
 // ── self-containment ────────────────────────────────────────────────────────────────────────────
 
-check('self-containment: published files never reach outside the package', () => {
-  const problems = []
-  const published = [
-    ...walk(join(packageDir, 'src'), ['.ts']),
-    ...walk(join(packageDir, 'presets'), ['.yml', '.md']),
-    join(packageDir, 'cordis.patch.yml'),
-  ]
-  for (const path of published) {
-    const text = read(path)
-    const where = relative(repoRoot, path)
-    // Relative imports are fine as long as they resolve inside the package: the published tarball
-    // has no repo around it, so `../../` past the package root is the failure being checked.
-    for (const match of text.matchAll(/from\s+'(\.[^']+)'/g)) {
-      const target = resolve(dirname(path), match[1])
-      if (target !== packageDir && !target.startsWith(`${packageDir}/`)) {
-        problems.push(`${where} imports ${match[1]}, which escapes the package`)
-      }
-    }
-    if (/\bvendor\//.test(text)) {
-      problems.push(`${where} mentions vendor/ — the published package must not depend on the submodule`)
-    }
-  }
-  return problems
-})
+check('self-containment: published files never reach outside the package', () =>
+  // Pure core in gates/self-containment.mjs (fixture-pinned in tests/tooling/self-containment.spec.mjs):
+  // the runner owns what counts as published, the core judges escapes and vendor mentions.
+  selfContainmentProblems({
+    repoRoot,
+    packageDir,
+    files: [
+      ...walk(join(packageDir, 'src'), ['.ts']),
+      ...walk(join(packageDir, 'presets'), ['.yml', '.md']),
+      join(packageDir, 'cordis.patch.yml'),
+    ].map(path => ({ path, text: read(path) })),
+  }))
 
 // ── documentation contracts ─────────────────────────────────────────────────────────────────────
 
-check('contract: docs/home.md lists the rooms and archives the layout creates', () => {
-  const problems = []
-  const layout = read(join(packageDir, 'src', 'domain', 'home', 'layout.ts'))
-  const document = read(join(repoRoot, 'docs', 'home.md'))
-  for (const constant of ['MEMORY_ROOM', 'RESEARCH_ROOM', 'SKILLS_ROOM', 'KNOWLEDGE_ROOM', 'ARCHIVE_DIRECTORY_NAME']) {
-    const value = new RegExp(`export const ${constant} = '([a-z]+)'`).exec(layout)?.[1]
-    if (value === undefined) problems.push(`layout.ts does not declare ${constant}`)
-    else if (!document.includes(value)) problems.push(`docs/home.md never mentions ${value}`)
-  }
-  // All four tools: the fourth room's tool was missing from this list until a red-control run
-  // showed the contract could drop assistant_knowledge without a word.
-  for (const tool of ['assistant_memory', 'assistant_research', 'assistant_reflect', 'assistant_knowledge']) {
-    if (!document.includes(tool)) problems.push(`docs/home.md never mentions ${tool}`)
-  }
-  return problems
-})
+check('contract: docs/home.md lists the rooms and archives the layout creates', () =>
+  // Pure core in gates/home-doc-contract.mjs (fixture-pinned in
+  // tests/tooling/home-doc-contract.spec.mjs): the runner reads both files, the core judges them.
+  homeDocContractProblems({
+    layoutText: read(join(packageDir, 'src', 'domain', 'home', 'layout.ts')),
+    documentText: read(join(repoRoot, 'docs', 'home.md')),
+    roomConstants: ['MEMORY_ROOM', 'RESEARCH_ROOM', 'SKILLS_ROOM', 'KNOWLEDGE_ROOM', 'ARCHIVE_DIRECTORY_NAME'],
+    // All four tools: the fourth room's tool was missing from this list until a red-control run
+    // showed the contract could drop assistant_knowledge without a word.
+    tools: ['assistant_memory', 'assistant_research', 'assistant_reflect', 'assistant_knowledge'],
+  }))
 
 // ── queue discipline ────────────────────────────────────────────────────────────────────────────
 
