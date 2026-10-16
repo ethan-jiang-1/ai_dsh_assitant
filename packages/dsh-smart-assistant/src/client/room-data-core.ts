@@ -14,6 +14,7 @@
  * @module dsh-smart-assistant/client/room-data-core
  */
 
+import { shortTime } from './format'
 import { reactSurface } from './runtime'
 
 /** One desk snapshot as the assistant writes it (see the desk-refresh skill). */
@@ -341,17 +342,4 @@ export function staleWarning(store: DeskStore): string | undefined {
   if (Number.isNaN(generatedAt)) return undefined
   if (sessionAt - generatedAt <= 60_000) return undefined
   return `对话比这份房间数据新（对话 ${shortTime(new Date(sessionAt).toISOString())}，房间数据 ${shortTime(generated)}）——点「刷新房间数据」让它跟上`
-}
-
-/**
- * A timestamp the principal can read at a glance. ISO strings ("2026-09-26T05:10:02.454Z") are
- * for machines; a desk shows "09-26 13:10". Unparseable values pass through untouched rather
- * than turning into "Invalid Date".
- */
-export function shortTime(value: string | undefined): string {
-  if (value === undefined || value.trim() === '') return ''
-  const parsed = new Date(value)
-  if (Number.isNaN(parsed.getTime())) return value
-  const pad = (part: number): string => String(part).padStart(2, '0')
-  return `${pad(parsed.getMonth() + 1)}-${pad(parsed.getDate())} ${pad(parsed.getHours())}:${pad(parsed.getMinutes())}`
 }

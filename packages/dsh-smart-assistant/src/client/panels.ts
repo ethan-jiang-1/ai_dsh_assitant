@@ -8,7 +8,8 @@
  */
 
 import type { DeskData } from './room-data-core'
-import { patchDesk, shortTime, useDesk } from './room-data-core'
+import { patchDesk, useDesk } from './room-data-core'
+import { shortTime } from './format'
 import {
   approveKnowledgePage, askApproveProposal, askRejectProposal, correctMemory, deprecateKnowledgePage,
   flagKnowledgePage,

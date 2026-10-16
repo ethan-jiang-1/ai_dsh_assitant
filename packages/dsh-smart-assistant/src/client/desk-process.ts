@@ -201,6 +201,25 @@ export function bindIntakePath(sessionId: string, observedMatterIds: ReadonlySet
 }
 
 /**
+ * The gates all four arms share: the principal is still on the path; the bound session is known
+ * to be not running, its turn settled, and no interaction pending; the projection is ready and
+ * fresh. Each arm appends its own settle conditions to these reasons — keeping the shared six in
+ * one place is what makes "same gates as the other arms" enforced rather than promised in prose.
+ * @param input - The projection, session state, presence, and reminder sync of one bound path.
+ * @returns The shared refusal reasons, in the order every judge reports them.
+ */
+function sharedGateReasons(input: ReturnJudgeInput): string[] {
+  const reasons: string[] = []
+  if (!input.onPath) reasons.push('user-left-path')
+  if (input.session.running !== false) reasons.push('session-running')
+  if (!input.session.turnSettled) reasons.push('turn-open')
+  if (input.session.pendingInteraction) reasons.push('pending-interaction')
+  if (input.projection.status !== 'ready') reasons.push('projection-not-ready')
+  if (input.projection.stale === true) reasons.push('projection-stale')
+  return reasons
+}
+
+/**
  * Judge whether this path may return to the desk now.
  *
  * Returns only when ALL hold: the principal is still on the path; the session is known to be
@@ -215,13 +234,7 @@ export function bindIntakePath(sessionId: string, observedMatterIds: ReadonlySet
  * @returns The decision with machine-readable reasons.
  */
 export function judgeReturn(path: ProcessingPath, input: ReturnJudgeInput): ReturnDecision {
-  const reasons: string[] = []
-  if (!input.onPath) reasons.push('user-left-path')
-  if (input.session.running !== false) reasons.push('session-running')
-  if (!input.session.turnSettled) reasons.push('turn-open')
-  if (input.session.pendingInteraction) reasons.push('pending-interaction')
-  if (input.projection.status !== 'ready') reasons.push('projection-not-ready')
-  if (input.projection.stale === true) reasons.push('projection-stale')
+  const reasons = sharedGateReasons(input)
 
   const own = input.projection.receipts.filter(receipt => receipt.matterId === path.matterId && receipt.sessionId === path.sessionId)
   const pathProposals = input.projection.proposals.filter(proposal =>
@@ -282,13 +295,7 @@ export function judgeReturn(path: ProcessingPath, input: ReturnJudgeInput): Retu
  * @returns The decision with machine-readable reasons; `matterId` is set on return.
  */
 export function judgeIntakeReturn(path: IntakePath, input: ReturnJudgeInput): ReturnDecision {
-  const reasons: string[] = []
-  if (!input.onPath) reasons.push('user-left-path')
-  if (input.session.running !== false) reasons.push('session-running')
-  if (!input.session.turnSettled) reasons.push('turn-open')
-  if (input.session.pendingInteraction) reasons.push('pending-interaction')
-  if (input.projection.status !== 'ready') reasons.push('projection-not-ready')
-  if (input.projection.stale === true) reasons.push('projection-stale')
+  const reasons = sharedGateReasons(input)
 
   const created = input.projection.receipts
     .filter(receipt => receipt.sessionId === path.sessionId
@@ -343,13 +350,7 @@ export interface ClaimJudgeInput extends ReturnJudgeInput {
  * @returns The decision with machine-readable reasons; `matterId` is set on return.
  */
 export function judgeClaimReturn(path: ClaimPath, input: ClaimJudgeInput): ReturnDecision {
-  const reasons: string[] = []
-  if (!input.onPath) reasons.push('user-left-path')
-  if (input.session.running !== false) reasons.push('session-running')
-  if (!input.session.turnSettled) reasons.push('turn-open')
-  if (input.session.pendingInteraction) reasons.push('pending-interaction')
-  if (input.projection.status !== 'ready') reasons.push('projection-not-ready')
-  if (input.projection.stale === true) reasons.push('projection-stale')
+  const reasons = sharedGateReasons(input)
 
   const own = input.projection.receipts
     .filter(receipt => receipt.sessionId === path.sessionId && receipt.status === 'committed' && receipt.submittedAt >= path.boundAt)
@@ -398,13 +399,7 @@ export interface WakeJudgeInput extends ReturnJudgeInput {
  * @returns The decision with machine-readable reasons; `matterId` is set on return.
  */
 export function judgeWakeReturn(path: WakePath, input: WakeJudgeInput): ReturnDecision {
-  const reasons: string[] = []
-  if (!input.onPath) reasons.push('user-left-path')
-  if (input.session.running !== false) reasons.push('session-running')
-  if (!input.session.turnSettled) reasons.push('turn-open')
-  if (input.session.pendingInteraction) reasons.push('pending-interaction')
-  if (input.projection.status !== 'ready') reasons.push('projection-not-ready')
-  if (input.projection.stale === true) reasons.push('projection-stale')
+  const reasons = sharedGateReasons(input)
 
   const own = input.projection.receipts
     .filter(receipt => receipt.sessionId === path.sessionId && receipt.status === 'committed' && receipt.submittedAt >= path.boundAt)
@@ -427,89 +422,4 @@ export function judgeWakeReturn(path: WakePath, input: WakeJudgeInput): ReturnDe
     reasons: remindersUnsynced ? ['reminders-unsynced'] : [],
     remindersUnsynced,
   }
-}
-
-/** The matter fields the processing-session seed needs (structural view of a projection matter). */
-export interface ProcessingContextMatter {
-  readonly id: string
-  readonly title: string
-  readonly summary: string
-  readonly times: { readonly promisedDeadline?: string; readonly nextCheckpoint?: string }
-}
-
-/**
- * The visible context note seeded into a fresh processing session (principal decision,
- * 2026-10-11: the matter IS the session's context). The sender prefixes the `[面板]` marker
- * so the log keeps machine-written prompts apart from the principal's own words.
- * @param matter - the bound matter from the projection snapshot.
- * @returns the seed message text, principal-visible and logged.
- */
-export function processingContextMessage(matter: ProcessingContextMatter): string {
-  const times = [
-    matter.times.promisedDeadline !== undefined ? `承诺 ${matter.times.promisedDeadline}` : undefined,
-    matter.times.nextCheckpoint !== undefined ? `核对 ${matter.times.nextCheckpoint}` : undefined,
-  ].filter(part => part !== undefined).join('、')
-  const head = `正在处理事项「${matter.title}」（${matter.id}）`
-  return `${head}${times === '' ? '' : `：${times}`}。${matter.summary} 首次回应前先成功读取绑定事项：assistant_operating read ${matter.id}。读回失败时明确说明无法核实，不能写入或假装完整。成功后按六类交接：目的与委托原话、进展事实、已定决定及其依据、承诺/预测/核对/完成四种时间、业务未知或待裁决、已有下一步；无记录就说未知，建议须与已定下一步分开。材料里的预测不改变承诺，待确认提案不能说成已决定。随后等我具体指令；普通进展仍按既有规则留存，明确变更与推断提案遵循各自权限。`
-}
-
-/**
- * The resume seed for a bound processing session the principal re-entered from the desk
- * (Q11, confirmed 2026-10-12: a desk 处理 click on an already-bound matter is an explicit
- * continuation intent — new-session and reused-session bindings carry the same contract).
- *
- * Unlike the fresh seed this carries NO cached facts: the session's own history may be stale
- * or compacted away, so the resume contract points at the authoritative ledger and forbids
- * answering from the conversation's memory of the matter. The title is sourced from the
- * projection read (displayContext stays visual-only); the id alone is enough when the
- * projection cannot supply one.
- * @param matter - `{ id, title? }` from the projection snapshot.
- * @returns the seed message text, principal-visible and logged.
- */
-export function resumeContextMessage(matter: { readonly id: string; readonly title?: string }): string {
-  const head = matter.title !== undefined && matter.title !== '' ? `继续处理事项「${matter.title}」（${matter.id}）` : `继续处理这件事（${matter.id}）`
-  return `${head}。回到这件事时先成功读取最新台账：assistant_operating read ${matter.id}——不要凭这段对话里的旧印象作答。读回失败时明确说明无法核实，不能写入或假装完整。读回成功后按六类交接现状：目的与委托原话、进展事实、已定决定及其依据、承诺/预测/核对/完成四种时间、业务未知或待裁决、下一步或等待条件；无记录就说未知，建议须与已定下一步分开，待确认提案不能说成已定。随后等我具体指令。`
-}
-
-/** The unclaimed-fragment fields the claim-session seed needs (structural projection view). */
-export interface ClaimContextFragment {
-  readonly id: string
-  readonly note: string
-  readonly sessionId: string
-}
-
-/**
- * The visible context note seeded into a claim session (principal direction, 2026-10-12: the
- * fragment IS the session's context). The decision the desk cannot make — which matter this is,
- * or that it is a new one — is the conversation's whole point; the seed names the fragment,
- * states the no-guess rule, and points at the tool path. Like the matter seed, the sender
- * prefixes the `[面板]` marker so the log keeps machine-written prompts apart from the
- * principal's own words.
- * @param fragment - the bound fragment from the projection snapshot.
- * @returns the seed message text, principal-visible and logged.
- */
-export function claimContextMessage(fragment: ClaimContextFragment): string {
-  return `正在处理待认领片段（unclaimed ${fragment.id}，来自 ${fragment.sessionId}）：「${fragment.note}」。这条信息还没归户——请先与我确认它属于哪件在办事项、还是应当立为新事项；等我明确答复后，再用 assistant_operating claim（带 unclaimed_id ${fragment.id}）或 entrust 落账，并保留原文与来源。未经我确认不要自行归户。`
-}
-
-/** The settled-matter fields the wake-session seed needs (structural projection view). */
-export interface WakeContextMatter {
-  readonly id: string
-  readonly title: string
-  readonly status: 'completed' | 'abandoned'
-  readonly summary: string
-}
-
-/**
- * The visible context note seeded into a wake session (principal direction, 2026-10-12: waking
- * always has a cause — something changed). The seed names the settled matter, states the
- * cause-first rule (the reason becomes a ledger material), and points at the reopen tool path.
- * Like the other seeds, the sender prefixes the `[面板]` marker so the log keeps machine-written
- * prompts apart from the principal's own words.
- * @param matter - the bound matter from the projection snapshot.
- * @returns the seed message text, principal-visible and logged.
- */
-export function wakeContextMessage(matter: WakeContextMatter): string {
-  const stateLabel = matter.status === 'completed' ? '已完成' : '已放弃'
-  return `正在唤醒一件${stateLabel}的事项「${matter.title}」（${matter.id}）。重新打开它需要一个理由——请先与我确认是什么变化需要唤醒它（比如出现了新的情况、之前的了结有误）；等我明确答复后，先用 assistant_operating read ${matter.id} 核对台账，再用 assistant_operating reopen（带上变化原因）落账，原因会作为材料入账。未经我确认不要自行 reopen。`
 }

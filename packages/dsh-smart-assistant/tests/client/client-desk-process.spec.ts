@@ -29,7 +29,8 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { bindClaimPath, bindIntakePath, bindProcessPath, bindWakePath, canProcess, claimContextMessage, judgeClaimReturn, judgeIntakeReturn, judgeReturn, judgeWakeReturn, processingContextMessage, resumeContextMessage, wakeContextMessage, type JudgeProposal, type JudgeSession } from '../../src/client/desk-process.ts'
+import { bindClaimPath, bindIntakePath, bindProcessPath, bindWakePath, canProcess, judgeClaimReturn, judgeIntakeReturn, judgeReturn, judgeWakeReturn, type JudgeProposal, type JudgeSession } from '../../src/client/desk-process.ts'
+import { claimContextMessage, processingContextMessage, resumeContextMessage, wakeContextMessage } from '../../src/client/desk-process-messages.ts'
 
 interface Receipt { operationId: string, matterId: string, sessionId: string, status: string, revision?: number, proposalId?: string, submittedAt: string }
 

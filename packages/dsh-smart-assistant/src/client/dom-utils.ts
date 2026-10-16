@@ -11,7 +11,8 @@
  */
 
 import type { RoomKind } from './contracts'
-import { patchDesk, pendingInFlight, shortTime, staleWarning, useDesk } from './room-data-core'
+import { patchDesk, pendingInFlight, staleWarning, useDesk } from './room-data-core'
+import { shortTime } from './format'
 import type { DeskStore } from './room-data-core'
 import { askRefresh, openBeside } from './room-data-io'
 import { createElement, reactSurface } from './runtime'

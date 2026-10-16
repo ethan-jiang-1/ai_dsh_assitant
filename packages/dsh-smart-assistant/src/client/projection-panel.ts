@@ -2,6 +2,7 @@
 import { createElement as ce } from './runtime'
 import { AssistantBrandMark } from './brand'
 import { canProcess } from './desk-process'
+import { humanTime, localDateKey, localDateLabel, localTimeLabel } from './format'
 import type { ProjectionDownload } from './projection-reader'
 import type { ProjectionView } from './projection-view'
 
@@ -145,40 +146,6 @@ function statusChip(status: string) {
 function metaLine(responsible: string, times: Parameters<typeof timeParts>[0]) {
   const parts = (responsible.length > 0 ? [`责任 ${responsible}`] : []).concat(timeParts(times))
   return parts.length === 0 ? null : ce('p', { className: 'dsha-card-meta' }, parts.join(' · '))
-}
-
-/** A full machine timestamp (T separator, seconds, zone offset) reads as noise on the desk.
- * Zone-bearing values (Z or ±HH:MM) render in the viewer's local wall time — the ledger stamps
- * completion in UTC while deadlines/checkpoints carry an explicit offset. Zone-less values
- * (bare dates, naive datetimes) stay verbatim: their wall-clock intent is already local. */
-function humanTime(value: string): string {
-  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})$/.test(value)) {
-    const at = new Date(value)
-    if (!Number.isNaN(at.getTime())) {
-      const pad = (n: number): string => String(n).padStart(2, '0')
-      return `${at.getFullYear()}-${pad(at.getMonth() + 1)}-${pad(at.getDate())} ${pad(at.getHours())}:${pad(at.getMinutes())}`
-    }
-  }
-  const naive = /^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/.exec(value)
-  return naive === null ? value : `${naive[1]} ${naive[2]}`
-}
-
-/** Local wall-clock helpers for the activity feed's day grouping (viewer's zone, like humanTime). */
-function localDateKey(value: string): string {
-  const at = new Date(value)
-  if (Number.isNaN(at.getTime())) return value
-  const pad = (n: number): string => String(n).padStart(2, '0')
-  return `${at.getFullYear()}-${pad(at.getMonth() + 1)}-${pad(at.getDate())}`
-}
-function localDateLabel(value: string): string {
-  const at = new Date(value)
-  if (Number.isNaN(at.getTime())) return value
-  return `${at.getMonth() + 1}月${at.getDate()}日 周${'日一二三四五六'[at.getDay()]}`
-}
-function localTimeLabel(value: string): string {
-  const at = new Date(value)
-  if (Number.isNaN(at.getTime())) return value
-  return `${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')}`
 }
 
 function timeParts(times: { readonly promisedDeadline?: string; readonly forecastAt?: string; readonly nextCheckpoint?: string; readonly completedAt?: string }): string[] {

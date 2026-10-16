@@ -43,8 +43,10 @@ applyOperation 由 414 行单函数改为「每操作具名 handler + 判别标�
 门：地板（`pnpm typecheck && pnpm test && pnpm verify`）+ `pnpm test:domain && pnpm test:host && pnpm test:agent`（operating-ledger.spec 是行为锚，原有断言零改动、只增三条）。
 
 **片 3 · desk-process 门去重 + 时间格式化收敛**
-提 `sharedGateReasons`（6 门 ×4 judge）、`pendingOnTarget/Matter`、`remindersUnsynced` 尾巴；四条种子文案抽 `desk-process-messages.ts`（文案与逻辑分家）。新 `client/format.ts` 收敛 pad/humanTime/localDate* 族 + room-data-core.shortTime（消费方 panels/dom-utils 的 import 同 diff 更新）。desk-process 515 → ~380。
-门：`pnpm typecheck && pnpm test:client`。
+提 `sharedGateReasons(input: ReturnJudgeInput)`：6 条共享门从四个 judge 里各一份收成唯一一份（四 judge 同取 `ReturnJudgeInput`，claim/wake 是它的子类型，接缝零类型体操）；四条种子文案连同三个输入类型抽 `desk-process-messages.ts`（**逐字搬迁 84 行**），judge 逻辑与交付文案分家。新 `client/format.ts` 收 5 个同族但输出各异的渲染（`humanTime`/`localDateKey`/`localDateLabel`/`localTimeLabel`/`shortTime`）+ 唯一 `pad2`——它们**不是同一个函数**，收敛的是家与 padding 重复 ×3，不是输出格式（消费方 projection-panel / room-data-core / panels / dom-utils 的 import 同 diff 更新）。入口 module map 同 diff 点名两个新模块。
+实测：desk-process 515 → 425，room-data-core 357 → 345；新增 messages 94 + format 84。
+门（实测顺序）：地板（`pnpm typecheck && pnpm test && pnpm verify`）+ `pnpm test:client` + **两场景** `pnpm web-expected`（各自隔离 home + 场景契约里的 `--wait-text`）。
+顺序纪律（本仓已记的坑，[`docs/dev.md`](../../docs/dev.md) §五）：`tsc -b` 把 ESM 写进 `lib/client/index.js`、覆盖 tsdown 的 classic bundle——**改过 `src/client` 的片必须先 `pnpm build` 再跑 lib/ 消费型测试与 verify**；正确顺序 `typecheck → build → test → verify`。
 
 **片 4 · room-data-io 分簇**
 两读取器共享的"解析→looksLikeDesk→readError→settlePending/retireStaleReceipt"序列提 helper；**8 个**动作文案包装（askRefresh / askStart / askApproveProposal / askRejectProposal / correctMemory / approveKnowledgePage / deprecateKnowledgePage / flagKnowledgePage）抽 `room-data-actions.ts`；prompt 调用形状（requestId 生成/queue 模式/面板前缀）收成单一 helper 供片 5b 复用（即 seedPanelMessage 的合并点）——前缀必须作**入参**（`desk-` vs 各臂的 `requestKind`），否则不是零变化。462 → ~350 + ~110。

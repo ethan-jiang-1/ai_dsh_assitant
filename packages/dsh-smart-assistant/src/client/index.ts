@@ -18,10 +18,12 @@
  * Module map: contracts (type mirrors) / runtime (factory require binding) / theme
  * (color contract) / room-data-core + room-data-io (the `.desk/state.json` room-data file:
  * store + workspace reads & prompt sends — "It is not the desk", per the manual) /
- * dom-utils (row + panel chrome) / desk-view-actions (deferred activity mode intent) /
+ * dom-utils (row + panel chrome) / format (the time formatting family) /
+ * desk-view-actions (deferred activity mode intent) /
  * default-panel-selection (one root-scoped cold-start choice) / brand / commands / room-tabs / panels / dashboard /
  * first-mile / desk-process (the operating desk's conversation arms: process/intake/
- * claim/wake bind & return judges) / desk-process-lifecycle (settlement refresh edge owner) /
+ * claim/wake bind & return judges) / desk-process-messages (those arms' four seed texts) /
+ * desk-process-lifecycle (settlement refresh edge owner) /
  * projection-panel + projection-lifecycle +
  * projection-reader + projection-view + operating-projection (the desktop itself — the
  * read-only operating desk) — this entry owns the facade registration, `apply` seat wiring,
@@ -51,8 +53,9 @@ import { mountProjectionReader } from './projection-lifecycle'
 import type { ProjectionDownload } from './projection-reader'
 import type { OperatingProjection } from './operating-projection'
 import { createProjectionViewStore } from './projection-view'
-import { bindClaimPath, bindIntakePath, bindProcessPath, bindWakePath, canProcess, claimContextMessage, judgeClaimReturn, judgeIntakeReturn, judgeReturn, judgeWakeReturn, processingContextMessage, resumeContextMessage, wakeContextMessage, type DeskPath } from './desk-process'
+import { bindClaimPath, bindIntakePath, bindProcessPath, bindWakePath, canProcess, judgeClaimReturn, judgeIntakeReturn, judgeReturn, judgeWakeReturn, type DeskPath } from './desk-process'
 import { createSettleRefreshObserver } from './desk-process-lifecycle'
+import { claimContextMessage, processingContextMessage, resumeContextMessage, wakeContextMessage } from './desk-process-messages'
 import { selectDashboardByDefault } from './default-panel-selection'
 import { en as firstMileEn, zh as firstMileZh } from './locales'
 
