@@ -62,7 +62,7 @@ opened: 2026-10-16
 | 片 5b | 本片提交 `refactor(client): move the desk arms out of the entry` | 已交付 | **前置特征 spec 跨搬迁零改动通过**（5 案，`865087a` 已逐条造红）；字面量核对：旧块 27 个字面量**无一丢失**、新增 6 个全是新模块的 import 路径；`typecheck` / `build` / `test` 621 / `verify` 41 / `test:client` 152 / `test:composition` 8 全绿；`preflight` 绿；**两场景 `web-expected` 各 PASS**（全新隔离 home）；`shots --name desk-arms-extract` 落仓；index.ts 594 → 339 + desk-arms 384；10 项 deps |
 | 片 6 | — | 未开工 | — |
 | 片 7 | — | 未开工 | — |
-| 收尾 | — | 未开工 | — |
+| 收尾（P1 完成时） | — | 已交付 | `pnpm release-smoke` **passed**（pack → 干净 home → `dsh plugin add` → 组合读回：host 行在树、preset 为 profile 默认、keyless 一行档在组合里；有 key 的真回合自跳），即卡上"P1 完成即做一次"。P2（片 6/7）只动 `dev/`，不进发布物，故不再重跑 |
 
 真证据（真跑过的命令、红绿形态、三处尺寸实测值）记在**该片的提交说明**；本表只留片的状态与指针，不复述命令输出（[notes/README.md](../../notes/README.md) §二之三第 3 条）。
 
