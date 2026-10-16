@@ -53,9 +53,23 @@ const addTouch = (matterId, sessionId, what, at) => {
 for (const matter of Object.values(ledger.matters ?? {})) {
   for (const material of matter.materials ?? []) addTouch(matter.id, material.source?.sessionId, '材料', material.receivedAt)
   for (const proposal of matter.proposals ?? []) addTouch(matter.id, proposal.source?.sessionId, `提案(${String(proposal.status)})`, proposal.proposedAt)
-  for (const receipt of Object.values(matter.operations ?? {})) addTouch(matter.id, receipt.sessionId, `回执(${String(receipt.outcome?.status ?? '')})`, receipt.submittedAt)
 }
 for (const fragment of Object.values(ledger.unclaimed ?? {})) addTouch(`待认领 ${String(fragment.id)}`, fragment.source?.sessionId, '待认领片段', fragment.receivedAt)
+
+// 操作在**账本顶层**：`operations` 是 opId → {operation, receipt} 的映射，事项链接在 `receipt.matterId`、
+// 会话在 `operation.source.sessionId`、时间在 `receipt.submittedAt`、动作在 `operation.kind`
+// （2026-10-16 实测；此前这里读的是 `matter.operations`，那个键不存在，整段是空转 ✗）。
+const kindCounts = new Map()
+for (const entry of Object.values(ledger.operations ?? {})) {
+  const kind = String(entry?.operation?.kind ?? '?')
+  const matterId = entry?.receipt?.matterId
+  addTouch(typeof matterId === 'string' && matterId !== '' ? matterId : '（无 matterId）', entry?.operation?.source?.sessionId, `操作(${kind})`, entry?.receipt?.submittedAt)
+  if (typeof matterId === 'string' && matterId !== '') {
+    const byKind = kindCounts.get(matterId) ?? new Map()
+    byKind.set(kind, (byKind.get(kind) ?? 0) + 1)
+    kindCounts.set(matterId, byKind)
+  }
+}
 
 const logs = sessionLogs(home)
 const logOf = sessionId => logs.find(log => log.includes(sessionId))
@@ -85,6 +99,17 @@ for (const [matterId, byMatter] of touches) {
     console.log(`| ${matterId} | ${sessions.length} | ${sessions.length > 1 ? '**是**' : '否（同一会话）'} | \`${sessionId.slice(0, 18)}…\` | ${list.map(x => `${x.what}${x.at === undefined ? '' : ` @${x.at.slice(0, 10)}`}`).join('；')} |`)
   }
 }
+
+console.log(`\n## 成本侧：每事项的操作次数（账本顶层 operations 的机械计数；字段缺失即留空）\n`)
+console.log('| 事项 | 操作总数 | 按 kind |')
+console.log('|---|---|---|')
+for (const [matterId, byKind] of kindCounts) {
+  const parts = [...byKind.entries()].sort((a, b) => b[1] - a[1]).map(([kind, n]) => `${kind}×${String(n)}`)
+  const total = [...byKind.values()].reduce((a, b) => a + b, 0)
+  console.log(`| ${matterId} | ${String(total)} | ${parts.join(' · ')} |`)
+}
+if (kindCounts.size === 0) console.log('| （本 home 的账本没有 operations） | — | — |')
+console.log('\n> 这是**机械计数**（谁在账本上做了什么动作各几次），不含语义判定：哪句话算"重讲/追问"仍由人判。')
 
 console.log(`\n## 本人在这些事项-会话里说了什么（逐条原话，供人判"重讲/追问"）\n`)
 for (const [matterId, byMatter] of touches) {
