@@ -1,6 +1,6 @@
 # 章鱼管家晨报：每日汇报与请示（账本驱动的 daily brief）
 
-日期：2026-10-10 · 状态：**proposed**（本人结构化拍板走方案 A，本轮开工；实现已落：技能 + 首轮真模型回合在 **web 会话**里真建过每日排程（`schedule_create` 实调，见下）；「真人实走」验收行开放，待本人在自己的会话里说一句「每天早上给我汇报」并实收一次简报）
+日期：2026-10-10 · 状态：**proposed**（本人结构化拍板走方案 A，本轮开工；实现已落：技能 + 首轮真模型回合在 **web 会话**里真建过每日排程（`schedule_create` 实调，见下）；「真人实走」验收行开放，待本人在自己的会话里说一句「每天早上给我汇报」并实收一次简报；**行为资产 2026-10-16 已落**：`dev/probes/web/desk-daily-brief-live.mjs` 用真模型 web 会话驱动本任务的 prompt 与 checks + 简报内容纪律）
 
 > **2026-10-11 更正（BUG-008）**：本卡原写「实现与 eval 已落：`desk-daily-brief` PASS 162s」——那句不成立，`pnpm eval` 至今**无法**评这个任务，而 162s 那次只能是 web 会话里的观察（与下面列出的 `schedule_create` 实调同类）。机理：`schedule` 是 **web 绑定**插件（它 inject `sessionController`，后者要 `fileUploads`，再要浏览器的 `connection` 服务），而 eval runner 驱动的是 headless one-shot（`--profile dev-task`），那套组合里四个 schedule 工具永远不注册（实测：web 会话 39 个工具含四个 schedule，headless 36 个不含）。现在任务已声明 `requires: 'web'`，runner 报 **NOT EVALUATED** 而不是 FAIL/PASS。**评分这个任务需要 web-session 驱动**（可复用 `dev/probes/web/` 的 CDP 基建）——升级路径与触发条件见 [BUG-008](../../_backlog/_archive/fixed_bugs/BUG-008-schedule-tools-missing.md)。
 
@@ -24,8 +24,10 @@
 
 | 检查 | 通过形态 | 会失败的行为 |
 |---|---|---|
-| eval `desk-daily-brief` | **本轮不可评**（web-only 能力；runner 报 NOT EVALUATED）。要评需 web-session 驱动；在那之前以**web 会话的真实工具调用**为准：2026-10-11 走查 home（`/tmp/k4-agent-walkthrough-manual-629f088`）里真模型回合实调过 `schedule_create`（含 `schedule_list`）——取证面 = 会话日志的 `tool/call`，对照面 = 同一 home 的 `request/header.tools` 含四个 `schedule_*`（web 39 工具 vs headless 36） | 只口头答应不建排程；建了但 prompt 不指向晨报技能（这条判据在能评它的环境里仍然成立） |
+| eval `desk-daily-brief` | **驱动已落（2026-10-16）**：`dev/probes/web/desk-daily-brief-live.mjs` 在真模型 web 会话里跑**本任务原样的 prompt 与 checks**（判据不重写：问句/checks 住本表上方的任务定义，评测器 = `dev/eval/checks.mjs`），并先断言会话 `request/header.tools` 含四个 `schedule_*`；相位 2 另判简报内容纪律（先读 desk 后作答、待确认提案与待认领逐条、不代拍、账本字节不变）。**`pnpm eval` 仍诚实报 NOT EVALUATED**（headless 组合托管不了它）。此前的取证：2026-10-11 走查 home（`/tmp/k4-agent-walkthrough-manual-629f088`）里真模型回合实调过 `schedule_create`（含 `schedule_list`）——取证面 = 会话日志的 `tool/call`，对照面 = 同一 home 的 `request/header.tools` 含四个 `schedule_*`（web 39 工具 vs headless 36） | 只口头答应不建排程；建了但 prompt 不指向晨报技能（这条判据在能评它的环境里仍然成立） |
 | 简报内容纪律（技能文本钉死，行为 eval 后补） | 简报必须来自 `assistant_operating desk` 读数；pending 提案/待认领逐条呈现且不代拍；无事一句话 | 凭记忆编简报；替本人确认提案；漏待认领 |
+
+**2026-10-16 真跑发现（源缺口，开放项）**：`assistant_operating action=desk` 的载荷**不含 proposals**（实测 951 字：逐条事项含 times/materials + 未归属片段，`p-1`/`pending`/`proposal` 全无）。于是本卡汇报清单里「等你确认的提案（逐条给默认动作）」这一行**当前无源**——模型看不到，简报里也就不会出现（首跑真模型确实没列它，同时它正确列出了投影真有的「逾期无新进展」与「待认领片段」，说明不是模型偷懒）。要还这行，得在**投影**里暴露提案（或改技能清单的措辞）——两者都是产品决定，故记在此处等人拍板；探针对这一行**不判**（不放宽也不伪造），见 `dev/probes/web/desk-daily-brief-live.mjs` 的判据注释。
 | 真人实走 | 本人在晨报会话里回复一条请示，账本出现对应操作且下一份简报反映 | 回复后账本无变化 |
 
 排除：多账本、固定模板长度、催办升级策略（未定不预设）。

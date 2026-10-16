@@ -143,8 +143,11 @@ export const TASKS = [
   {
     id: 'desk-daily-brief',
     // Web-only: `schedule_create` comes from a web-bound plugin (see the module header), so the
-    // headless runner reports this task as not evaluated. Scoring it needs a web-session driver —
-    // the upgrade path and its trigger live on the closed BUG-008 card.
+    // headless runner reports this task as not evaluated. The driver for THESE checks is
+    // `dev/probes/web/desk-daily-brief-live.mjs`: it sends this task's prompt in a real web session,
+    // scores it with `evaluateTask`/`observe`, and first asserts the session's request header
+    // carries the four `schedule_*` (BUG-008: scoring it in a composition that cannot host the
+    // capability is how a note once recorded an impossible PASS).
     requires: 'web',
     why: 'Asking for a daily report must commit ONE recurring schedule whose prompt loads the desk-daily-brief skill — not a verbal promise to remember.',
     prompt: '以后每天早上八点半，把桌上经营事项的简报发给我，我直接在这个会话里批。',
