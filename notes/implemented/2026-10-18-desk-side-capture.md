@@ -18,7 +18,7 @@
 
 ### 片 1 — 桌面受理位与状态显性化 ✅
 
-受理位常驻一行（Enter 提交、提交即清草稿）；投递走 queue 通道带 `[桌面] ` 独立来源标记、**不 `openSession`**；在途条由客户端回执驱动、三态接**原生 `SessionStatus`**（纯核 `captureWait`：pendingInteraction 优先、刷新不丢）；虚线形态不复用事项卡；两门重量文案。
+受理位常驻一行（Enter 提交、提交即清草稿）；投递走 queue 通道带 `[桌面] ` 独立来源标记、**不 `openSession`**；在途条由客户端回执驱动、状态接**原生 `SessionStatus`**（纯核 `captureWait`：pendingInteraction 优先）；虚线形态不复用事项卡；两门重量文案。回执的终态与 Q5 失配行卫生在 [2026-10-19-desk-receipt-terminal-state](./2026-10-19-desk-receipt-terminal-state.md) 里补全：账本移动与"看得到的回合结束"都是合法收口，且行永远有「关闭」。
 
 ### 片 2 — 助手侧默认与「要问就正经问」✅
 
