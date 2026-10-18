@@ -70,4 +70,10 @@ describe('operating-brief desk capture lane (261018 desk-side-capture 片 2)', (
   it('keeps the heavy-door path for entrusts spoken in conversation', () => {
     expect(OPERATING_BRIEF_TEXT).toContain('(the heavy door) keeps the path above')
   })
+
+  it('treats a desk action line as a command: no note of the instruction, exactly one watch schedule (BUG-020)', () => {
+    expect(OPERATING_BRIEF_TEXT).toContain('Desk action lines')
+    expect(OPERATING_BRIEF_TEXT).toContain('do not `note` the instruction itself')
+    expect(OPERATING_BRIEF_TEXT).toContain('create exactly ONE schedule')
+  })
 })

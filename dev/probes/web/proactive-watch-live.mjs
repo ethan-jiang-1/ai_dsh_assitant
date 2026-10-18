@@ -68,6 +68,7 @@ if (!existsSync(join(home, 'profiles'))) throw new Error(`probe home not set up:
 const operatingDir = join(home, 'assistant-operating')
 mkdirSync(operatingDir, { recursive: true })
 copyFileSync(join(repoRoot, 'dev', 'fixtures', 'desk-process', 'seed-ledger.json'), join(operatingDir, 'ledger.json'))
+const ledgerPath = join(operatingDir, 'ledger.json')
 const schedulePath = join(home, 'storages', 'schedule.json')
 mkdirSync(join(home, 'storages'), { recursive: true })
 const emptySchedule = { unit: { name: 'schedule', version: 1 }, global: null, tables: { tasks: {} } }
@@ -161,8 +162,9 @@ try {
   if (trialUi.disabled !== false || trialUi.close !== true || trialUi.claimsPending !== false || trialUi.sessionPointer !== true) fail('trial-terminal', trialUi)
   pass('trial-terminal', trialUi)
 
-  // ── 相位 2：替我盯上（一键建、title 可读、无重复、桌面行 3 呈现）。
+  // ── 相位 2：替我盯上（一键建、恰好一条、title 可读、不把指令记进待认领、桌面行 3 呈现）。
   // Baseline re-read AFTER the trial settled: the watch turn may land in the SAME session.
+  const unclaimedBefore = Object.keys(JSON.parse(readFileSync(ledgerPath, 'utf8')).unclaimed ?? {}).length
   const postTrialBaseline = await readBaseline()
   if (await evaluate(clickByText('替我盯上')) !== 'clicked') fail('watch-click', {})
   const watch = await pollForFreshTurn(postTrialBaseline, 240)
@@ -172,16 +174,19 @@ try {
   if (!created) fail('watch-schedule-create', { toolCalls: watchSeen.toolCalls.map(call => call.name).slice(0, 8) })
   pass('watch-create', { tools: watchSeen.toolCalls.map(call => call.name).slice(0, 8), answerHead: String(watchSeen.answerText ?? '').slice(0, 120) })
 
-  // 排程存储判据：title 可读、同 prompt 唯一。
+  // 排程存储判据：恰好一条（一次接受=一条盯守）、title 可读；指令本身不落待认领。
   const scheduleAfter = JSON.parse(readFileSync(schedulePath, 'utf8'))
   const tasks = Object.values(scheduleAfter.tables?.tasks ?? {})
   if (tasks.length === 0) fail('watch-storage', { hint: 'no tasks in storage after schedule_create' })
+  if (tasks.length !== 1) fail('watch-one-schedule', { count: tasks.length, titles: tasks.map(task => task.record?.title) })
   const readable = tasks.filter(task => typeof task.record?.title === 'string' && task.record.title.trim().length >= 2)
   if (readable.length !== tasks.length) fail('watch-title-readable', { titles: tasks.map(task => task.record?.title) })
   const prompts = tasks.map(task => String(task.record?.prompt ?? ''))
   const duplicatePrompts = prompts.filter((prompt, index) => prompts.indexOf(prompt) !== index)
   if (duplicatePrompts.length > 0) fail('watch-no-duplicate', { duplicatePrompts: [...new Set(duplicatePrompts)].slice(0, 3) })
-  pass('watch-storage', { count: tasks.length, titles: tasks.map(task => task.record?.title) })
+  const unclaimedAfter = Object.keys(JSON.parse(readFileSync(ledgerPath, 'utf8')).unclaimed ?? {}).length
+  if (unclaimedAfter !== unclaimedBefore) fail('watch-no-instruction-note', { before: unclaimedBefore, after: unclaimedAfter })
+  pass('watch-storage', { count: tasks.length, titles: tasks.map(task => task.record?.title), unclaimed: `${unclaimedBefore}→${unclaimedAfter}` })
 
   // 桌面回读：行 3 呈现新排程（"它下次替你看：<title>"）。
   const deskAfter = await pollUntil(evaluate, deskText, { intervalMs: 1000, budget: 60, checkFirst: true, isDone: text => text !== null && text.includes('它下次替你看') })
