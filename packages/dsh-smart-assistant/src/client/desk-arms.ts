@@ -22,9 +22,10 @@
 import { bindClaimPath, bindDiscardPath, bindIntakePath, bindProcessPath, bindWakePath, canProcess, judgeClaimReturn, judgeDiscardReturn, judgeIntakeReturn, judgeReturn, judgeWakeReturn, type DeskPath } from './desk-process'
 import { claimContextMessage, discardContextMessage, processingContextMessage, resumeContextMessage, wakeContextMessage } from './desk-process-messages'
 import { createSettleRefreshObserver } from './desk-process-lifecycle'
-import { getDeskRemote, panelPromptRequest } from './room-data-io'
+import { deskCaptureRequest, getDeskRemote, panelPromptRequest } from './room-data-io'
 import type { OperatingProjection } from './operating-projection'
 import type { ProjectionDownload } from './projection-reader'
+import type { DeskCaptureReceipt } from './projection-view'
 
 /** The slice of a client snapshot store the arms read: a value, a subscription, a setter. */
 interface DeskArmStore<T> {
@@ -72,7 +73,7 @@ export interface DeskArmDeps {
   /** The browser lifecycle owner (the entry's `ctx.effect`), called where the effect used to be. */
   readonly effect: (install: () => () => void) => unknown
   /** The live desk view actions, set by the render machinery when it injects the main slot. */
-  readonly viewActions: () => { selectMatter(id: string): void } | undefined
+  readonly viewActions: () => { selectMatter(id: string): void; setCaptureReceipt?(receipt: DeskCaptureReceipt | null): void } | undefined
 }
 
 /** The arm faces the entry wires into the desk's main slot, plus its subscription entry point. */
@@ -85,6 +86,8 @@ export interface DeskArms {
   claimFragment(fragmentId: string): void
   /** 判为噪音: open the conversation in which the principal records why a fragment is dropped. */
   discardFragment(fragmentId: string): void
+  /** 桌面受理位: deliver the principal's own words to the intake conversation without leaving the desk. */
+  captureFromDesk(text: string): void
   /** 唤醒: open the conversation that states what changed about a settled matter. */
   wakeMatter(matterId: string): void
   /**
@@ -282,6 +285,31 @@ export function createDeskArms(deps: DeskArmDeps): DeskArms {
     },
   })
 
+  // 片 1 (261018): the desk's capture row. The principal's own words go into the intake
+  // conversation WITHOUT taking the desk away — the whole difference from `startIntake`, which
+  // opens the session because the principal chose to go and talk there. The row remembers what it
+  // delivered (a receipt), and the desk keeps showing it as in flight until the projection's
+  // revision moves past the submission: acceptance by the queue is not completion (the gate
+  // room-data-io learned on 2026-09-26 — a fixed delay mis-advises and leaves contradictions).
+  // The receipt is a delivery fact only; the words are durable in the conversation, and the
+  // ledger stays the only authority on what exists.
+  const captureFromDesk = (text: string): void => {
+    const trimmed = text.trim()
+    if (trimmed === '') return
+    void (async () => {
+      const current = deps.uiSession?.current.value.key
+      const sessionId = current !== undefined ? String(current) : await createSessionInDesignatedWorkspace()
+      if (sessionId === undefined) return
+      const prompt = (getDeskRemote()?.['session'] as { prompt?: (request: unknown) => Promise<unknown> } | undefined)?.prompt
+      if (prompt === undefined) return
+      const request = deskCaptureRequest(sessionId, trimmed)
+      const result = await prompt(request).catch(() => undefined) as { ok?: boolean } | undefined
+      if (result?.ok === false) return
+      const revision = deps.projection?.getSnapshot().data?.revision ?? 0
+      deps.viewActions()?.setCaptureReceipt?.({ requestId: request.requestId, sessionId, text: trimmed, observedRevision: revision })
+    })()
+  }
+
   // The wake arm (state-gated actions, card 261012): a settled matter's only legal action is
   // waking it — the conversation exists to state what changed, the model reopens explicitly,
   // and the desk returns once the matter reads back active with this session's receipt.
@@ -370,6 +398,7 @@ export function createDeskArms(deps: DeskArmDeps): DeskArms {
     startIntake,
     claimFragment,
     discardFragment,
+    captureFromDesk,
     wakeMatter,
     subscribe: (): void => {
       const projection = deps.projection

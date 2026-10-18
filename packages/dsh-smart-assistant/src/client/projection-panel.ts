@@ -4,18 +4,20 @@ import { AssistantBrandMark } from './brand'
 import { canProcess } from './desk-process'
 import { humanTime, localDateKey, localDateLabel, localTimeLabel } from './format'
 import type { ProjectionDownload } from './projection-reader'
-import type { ProjectionView } from './projection-view'
+import type { DeskCaptureReceipt, ProjectionView } from './projection-view'
 
 /** Structural mirror of the pinned PropsHooks snapshot selector (no component subscriptions). */
 export interface ProjectionPanelProps {
   useProjection<S>(select: (value: ProjectionDownload) => S): S
   useStore<S>(select: (view: ProjectionView) => S): S
-  actions: { selectMatter(id: string): void; selectFragment(id: string): void; showList(): void; rememberListPosition(position: number): void; setFilter(filter: ProjectionView['filter']): void; setMode(mode: ProjectionView['mode']): void; revealMoreActivity(): void }
+  actions: { selectMatter(id: string): void; selectFragment(id: string): void; showList(): void; rememberListPosition(position: number): void; setFilter(filter: ProjectionView['filter']): void; setMode(mode: ProjectionView['mode']): void; revealMoreActivity(): void; setCaptureDraft(text: string): void; setCaptureReceipt(receipt: DeskCaptureReceipt | null): void }
   refreshProjection(): void
   onAsk(): void
   /** The 「＋ 交代新事项」 entry. Falls back to `onAsk` where no intake path is wired (tests,
    *  environments without the desk path store) so the button never goes dead. */
   onEntrust?(): void
+  /** Deliver the principal's own words from the desk's capture row (261018 片 1), staying here. */
+  onCapture(text: string): void
   /** Open the explicit processing path for one matter (bound to the entry's processMatter). */
   onProcess(matterId: string): void
   /** Open the explicit claim path for one unclaimed fragment (bound to the entry's claimFragment). */
@@ -67,6 +69,16 @@ function glyphFor(name: string): ReturnType<typeof ce> {
 const STYLES = [
   '.dsha-desk{display:flex;flex-direction:column;gap:16px;padding:20px 24px;overflow-y:auto;min-width:0;container-type:inline-size;height:100%;box-sizing:border-box;}',
   '.dsha-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}',
+  /* 片 1: the capture row. Accent-bordered because it is the desk's own input, not a control. */
+  '.dsha-capture{display:flex;flex-direction:column;gap:6px;border:1px solid var(--dsha-accent);border-radius:10px;padding:10px 12px;background:var(--dsw-alias-bg-base);}',
+  '.dsha-capture-input{flex:1;border:0;outline:0;font:inherit;font-size:14px;background:transparent;color:var(--dsw-alias-label-primary);min-width:0;}',
+  '.dsha-capture-hint{margin:0;font-size:12px;color:var(--dsw-alias-label-tertiary);}',
+  '.dsha-capture > .dsha-btn{align-self:flex-end;}',
+  /* The in-flight row: dashed and grey ON PURPOSE — it must not read as a matter or a fragment. */
+  '.dsha-inflight{border:1px dashed var(--dsw-alias-border-l3);border-radius:10px;padding:10px 12px;background:var(--dsw-alias-bg-layer-2);display:flex;flex-direction:column;gap:4px;}',
+  '.dsha-inflight-line{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--dsw-alias-label-secondary);}',
+  '.dsha-chip-wait{background:var(--dsw-alias-bg-layer-3);color:var(--dsw-alias-label-secondary);}',
+  '.dsha-inflight-said{margin:0;font-size:13px;color:var(--dsw-alias-label-primary);overflow-wrap:anywhere;}',
   '.dsha-tabs{display:flex;gap:2px;border-bottom:1px solid var(--dsw-alias-border-l2);}',
   '.dsha-tab{display:inline-flex;align-items:center;gap:6px;border:0;background:none;padding:7px 14px;font-size:13px;color:var(--dsw-alias-label-secondary);cursor:pointer;font:inherit;border-bottom:2px solid transparent;margin-bottom:-1px;}',
   '.dsha-tab:hover{color:var(--dsw-alias-label-primary);}',
@@ -171,6 +183,19 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
   const data = download.data
   const view = props.useStore(value => value)
   const selection = view.selected
+  // 片 1: the capture row's in-flight state. The receipt is a DELIVERY fact, so it stops being
+  // shown the moment the projection's revision moves past the submission — the ledger has
+  // spoken, and whatever it says (a new fragment, a new matter) takes over the desk. While it is
+  // shown, the row is deliberately NOT shaped like a matter or a fragment: the desk must never
+  // claim content it cannot back.
+  const receipt = view.captureReceipt
+  const inflight = receipt !== null && (data?.revision ?? 0) <= receipt.observedRevision
+  const submitCapture = (): void => {
+    const text = view.captureDraft.trim()
+    if (text === '' || inflight) return
+    props.actions.setCaptureDraft('')
+    props.onCapture(text)
+  }
   const selected = selection?.kind === 'matter' ? data?.matters.find(matter => matter.id === selection.id) : undefined
   const selectedFragment = selection?.kind === 'fragment' ? data?.unclaimed.find(fragment => fragment.id === selection.id) : undefined
   // The biography's decision half: only the selected matter's own operations, newest first.
@@ -240,6 +265,39 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
         ce('button', { className: 'dsha-btn', onClick: props.refreshProjection, disabled: download.status === 'loading', title: download.status === 'loading' ? '正在读取桌面…' : '重新读取桌面' }, '重新读取'),
         ce('button', { className: 'dsha-btn', onClick: props.onAsk }, '有问题？跟助手说'),
         ce('button', { className: 'dsha-btn dsha-btn-primary', onClick: props.onEntrust ?? props.onAsk }, '＋ 交代新事项'))),
+    // 片 1 (261018): the desk's own capture row. The principal's intent to add something arises
+    // WHILE looking at the desk, so the desk has to be able to take it — before this, the only
+    // door was 「＋ 交代新事项」, which opens a conversation and takes the reminder surface away.
+    // Two doors, and the copy says which weight each one carries.
+    ce('div', { className: 'dsha-capture' },
+      ce('input', {
+        className: 'dsha-capture-input',
+        type: 'text',
+        value: view.captureDraft,
+        placeholder: '有新的事，直接说…',
+        'aria-label': '在桌面直接交代一件新事',
+        disabled: inflight,
+        onInput: (event: { target: { value: string } }) => props.actions.setCaptureDraft(event.target.value),
+        onKeyDown: (event: { key: string, preventDefault: () => void }) => {
+          if (event.key === 'Enter') { event.preventDefault(); submitCapture() }
+        },
+      }),
+      ce('button', {
+        className: 'dsha-btn dsha-btn-primary',
+        type: 'button',
+        disabled: inflight || view.captureDraft.trim() === '',
+        onClick: submitCapture,
+      }, '交给助手'),
+      ce('p', { className: 'dsha-capture-hint' },
+        inflight
+          ? '已交给助手，还没进账——账本真出现这一条，它才会以事项或待认领的样子回来。'
+          : '轻的走这里（记一下：助手会先记成一笔、再问要不要立项）；要正式立项用「＋ 交代新事项」当面谈。')),
+    inflight && receipt !== null ? ce('div', { className: 'dsha-inflight', role: 'status' },
+      ce('div', { className: 'dsha-inflight-line' },
+        ce('span', { className: 'dsha-chip dsha-chip-wait' }, '在途'),
+        ce('span', {}, '还没进账')),
+      ce('p', { className: 'dsha-inflight-said' }, `「${receipt.text}」`),
+      ce('p', { className: 'dsha-capture-hint' }, '来自：桌面直接交代 · 话已进会话日志')) : null,
     // The desk's two top-level views as real tabs (principal UX direction, 2026-10-12): the
     // divider line makes the split legible, the active underline sits ON the line, and the
     // glyphs carry the memory — this is not another row of filter pills.

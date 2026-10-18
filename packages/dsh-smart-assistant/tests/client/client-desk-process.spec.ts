@@ -452,7 +452,8 @@ describe('discard path (the fragment\'s terminal state needs a door)', () => {
     expect(message).toContain('assistant_operating')
     expect(message).toContain('discard')
     expect(message).toContain('reason')
-    expect(message).toContain('未经')
+    expect(message).toContain("先问我一句为什么")
+    expect(message).toContain("不要替我想理由")
   })
 })
 

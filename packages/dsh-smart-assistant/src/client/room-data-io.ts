@@ -272,16 +272,24 @@ export function newestSessionId(): string | undefined {
 const PANEL_MARKER = '[面板] '
 
 /**
+ * The desk's own intake marker (261018 片 1). A line the principal typed into the desk's capture
+ * row is not a panel action: the log must keep the two apart, because the model treats them
+ * differently (a panel action is the desk acting; this is the principal speaking from the desk).
+ */
+const DESK_CAPTURE_MARKER = '[桌面] '
+
+/**
  * Build one panel prompt request. The principal's panel actions (this module) and the desk arms'
  * seed notes (the entry, later its own module) ride the same remote channel with the same marker
  * and the same queue mode — so that shape is stated once, and each caller keeps only its own send
  * semantics (fire-and-forget for a seed, tracked-and-polled for an action).
  * @param prefix - The requestId prefix naming the sender ('desk' for panel actions, an arm's kind for a seed).
  * @param sessionId - The conversation the line lands in.
- * @param text - The line, without the panel marker.
+ * @param text - The line, without the marker.
+ * @param marker - Which provenance marker the line carries; defaults to the panel marker.
  * @returns The prompt request body `remote.session.prompt` takes.
  */
-export function panelPromptRequest(prefix: string, sessionId: string, text: string): {
+export function panelPromptRequest(prefix: string, sessionId: string, text: string, marker: string = PANEL_MARKER): {
   readonly requestId: string
   readonly sessionId: string
   readonly mode: 'queue'
@@ -291,8 +299,20 @@ export function panelPromptRequest(prefix: string, sessionId: string, text: stri
     requestId: `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     sessionId,
     mode: 'queue',
-    content: [{ type: 'text', text: `${PANEL_MARKER}${text}` }],
+    content: [{ type: 'text', text: `${marker}${text}` }],
   }
+}
+
+/**
+ * The desk-side capture request (261018 片 1): the principal's own words typed on the desk, sent
+ * into the intake conversation with the desk marker. One shape, so the arm cannot drift from the
+ * marker the model is taught to read.
+ * @param sessionId - The conversation the line lands in.
+ * @param text - The principal's words, verbatim.
+ * @returns The prompt request body `remote.session.prompt` takes.
+ */
+export function deskCaptureRequest(sessionId: string, text: string): ReturnType<typeof panelPromptRequest> {
+  return panelPromptRequest('desk-capture', sessionId, text, DESK_CAPTURE_MARKER)
 }
 
 /**

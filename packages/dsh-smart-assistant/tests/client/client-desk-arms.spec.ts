@@ -17,6 +17,9 @@
  * 4. 唤醒 seeds the wake note for a SETTLED matter and does nothing for an active one.
  * 5. The return dispatch clears the path, selects the desk, and hands the landed matter to the
  *    view actions once the bound session's receipt has landed.
+ * 6. 桌面受理位 (261018 片 1): the principal's words reach the intake conversation as a
+ *    `[桌面]`-marked queued line WITHOUT creating or opening a session when one is current, and
+ *    the delivery receipt records the projection revision the row will wait on.
  */
 
 import { afterEach, describe, expect, it } from 'vitest'
@@ -58,6 +61,8 @@ interface Fixture {
   panels: (string | null)[]
   prompts: { requestId: string, sessionId: string, text: string }[]
   selected: string[]
+  /** Capture receipts the entry's view actions recorded (261018 片 1). */
+  receipts: ({ requestId: string, sessionId: string, text: string, observedRevision: number } | null)[]
   /** Fire one panel-info notification, the way a layout change would. */
   notifyPanel: () => void
   /** Bring the connection up so the reader performs its first fetch and the projection turns ready. */
@@ -67,6 +72,8 @@ interface Fixture {
     onEntrust?: () => void
     onProcess?: (id: string) => void
     onClaim?: (id: string) => void
+    onDiscard?: (id: string) => void
+    onCapture?: (text: string) => void
     onWake?: (id: string) => void
     hooks?: { projection?: { getSnapshot(): { status?: string } } }
   }
@@ -82,6 +89,7 @@ function fixture(payload: Record<string, unknown> = envelope()): Fixture {
   const created: (string | undefined)[] = []
   const panels: (string | null)[] = []
   const selected: string[] = []
+  const receipts: Fixture['receipts'] = []
   const prompts: Fixture['prompts'] = []
   const panelListeners: (() => void)[] = []
   const registrations: { name: string, declaration: Record<string, unknown> }[] = []
@@ -145,12 +153,16 @@ function fixture(payload: Record<string, unknown> = envelope()): Fixture {
     panels,
     prompts,
     selected,
+    receipts,
     notifyPanel: () => { for (const listener of panelListeners) listener() },
     connect: () => { generation.set({ id: 1 }); connectionState.set('connected') },
     armFaces: () => {
       const main = registrations.find(entry => entry.name === 'main')
-      const inject = main?.declaration.inject as ((actions: { selectMatter(id: string): void, setMode(mode: 'string'): void }) => ReturnType<Fixture['armFaces']>) | undefined
-      return inject?.({ selectMatter: (id: string) => { selected.push(id) }, setMode: () => {} }) ?? {}
+      const inject = main?.declaration.inject as ((actions: { selectMatter(id: string): void, setMode(mode: 'string'): void, setCaptureDraft(text: string): void, setCaptureReceipt(receipt: { requestId: string, sessionId: string, text: string, observedRevision: number } | null): void }) => ReturnType<Fixture['armFaces']>) | undefined
+      return inject?.({
+        selectMatter: (id: string) => { selected.push(id) }, setMode: () => {},
+        setCaptureDraft: () => {}, setCaptureReceipt: receipt => { receipts.push(receipt) },
+      }) ?? {}
     },
   }
 }
@@ -264,5 +276,52 @@ describe('desk arms through the entry', () => {
     f.notifyPanel()
 
     expect(f.panels).toEqual(['dsh-smart-assistant-dashboard'])
+  })
+  it('桌面受理位 delivers into the CURRENT session without creating or opening one, and receipts it', async () => {
+    const f = fixture()
+    const faces = await mount(f)
+    await flush()
+    // A conversation is already the principal's context; capturing must not disturb it.
+    ;(f.ctx.uiSession as { current: { value: { key: string | undefined } } }).current.value.key = 'session-current'
+
+    faces.onCapture?.('记得问一下小王那个报价到底批了没')
+    await flush()
+
+    expect(f.created).toEqual([])
+    expect(f.opened).toEqual([])
+    expect(f.prompts).toHaveLength(1)
+    expect(f.prompts[0]?.sessionId).toBe('session-current')
+    expect(f.prompts[0]?.text).toBe('[桌面] 记得问一下小王那个报价到底批了没')
+    expect(f.receipts).toHaveLength(1)
+    expect(f.receipts[0]).toMatchObject({
+      sessionId: 'session-current', text: '记得问一下小王那个报价到底批了没', observedRevision: 1,
+    })
+    expect(f.receipts[0]?.requestId.startsWith('desk-capture-')).toBe(true)
+  })
+
+  it('桌面受理位 creates a session when none is current — and still does not open it', async () => {
+    const f = fixture()
+    const faces = await mount(f)
+    await flush()
+
+    faces.onCapture?.('十月供应商那笔运费差异要问一下')
+    await flush()
+
+    expect(f.created).toEqual(['ws-1'])
+    expect(f.opened).toEqual([])
+    expect(f.prompts[0]?.sessionId).toBe('session-new')
+    expect(f.receipts[0]?.observedRevision).toBe(1)
+  })
+
+  it('桌面受理位 sends nothing for whitespace', async () => {
+    const f = fixture()
+    const faces = await mount(f)
+    await flush()
+
+    faces.onCapture?.('   ')
+    await flush()
+
+    expect(f.prompts).toEqual([])
+    expect(f.receipts).toEqual([])
   })
 })

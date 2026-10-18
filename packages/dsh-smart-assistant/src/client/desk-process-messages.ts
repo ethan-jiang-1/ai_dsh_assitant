@@ -82,7 +82,7 @@ export function claimContextMessage(fragment: ClaimContextFragment): string {
  * @returns the seed message text, principal-visible and logged.
  */
 export function discardContextMessage(fragment: ClaimContextFragment): string {
-  return `正在处理待认领片段（unclaimed ${fragment.id}，来自 ${fragment.sessionId}）：「${fragment.note}」。我判它是噪音、不归户——请用 assistant_operating discard（带 unclaimed_id ${fragment.id} 与一行 reason）落账：这条会离开待认领通道，理由留在账本，片段原话仍留在当初的记录里。若我改口说它其实属于某件事，改走 claim 或 entrust。未经我确认不要 discard。`
+  return `正在处理待认领片段（unclaimed ${fragment.id}，来自 ${fragment.sessionId}）：「${fragment.note}」。我判它是噪音、不归户——**先问我一句为什么**（一行就够），再把我的原话当作 reason，用 assistant_operating discard（带 unclaimed_id ${fragment.id}）落账：这条会离开待认领通道，理由留在账本，片段原话仍留在当初的记录里。若我改口说它其实属于某件事，改走 claim 或 entrust。未经我确认不要 discard，也不要替我想理由。`
 }
 
 /** The settled-matter fields the wake-session seed needs (structural projection view). */
