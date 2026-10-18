@@ -25,19 +25,22 @@ function render(value: ProjectionDownload): string {
 /** Render with the proactive catalog hook (261018 片 1 row 3) and the tasks deep-link. */
 type CatalogState = import('../../src/client/proactive-face-source').ProactiveCatalogState
 type UiState = import('../../src/client/proactive-face').ProactiveUiState
-function renderWithCatalog(value: ProjectionDownload, catalog: CatalogState, ui: UiState = { ignored: [], accepted: [] }): { tree: string, openTasks: ReturnType<typeof vi.fn>, suggestAction: ReturnType<typeof vi.fn>, suggestDismiss: ReturnType<typeof vi.fn>, watchForget: ReturnType<typeof vi.fn>, node: unknown } {
+type StatusMap = ReadonlyMap<string, { running?: boolean, pendingInteraction?: { kind?: string } | undefined, completionUnread?: boolean }>
+function renderWithCatalog(value: ProjectionDownload, catalog: CatalogState, ui: UiState = { ignored: [], accepted: [] }, statuses: StatusMap = new Map()): { tree: string, view: ReturnType<ReturnType<typeof createProjectionViewStore>['create']>, openTasks: ReturnType<typeof vi.fn>, openSession: ReturnType<typeof vi.fn>, suggestAction: ReturnType<typeof vi.fn>, suggestDismiss: ReturnType<typeof vi.fn>, watchForget: ReturnType<typeof vi.fn>, node: unknown } {
   const view = createProjectionViewStore(defineStore).create()
   const openTasks = vi.fn()
+  const openSession = vi.fn()
   const suggestAction = vi.fn()
   const suggestDismiss = vi.fn()
   const watchForget = vi.fn()
   const node = ProjectionPanel({
-    useProjection: select => select(value), useStore: select => select(view.getSnapshot()), useSessionStatus: noStatuses,
+    useProjection: select => select(value), useStore: select => select(view.getSnapshot()),
+    useSessionStatus: <S,>(select: (value: StatusMap) => S): S => select(statuses),
     useCatalog: <S,>(select: (state: CatalogState) => S): S => select(catalog),
     useProactiveUi: <S,>(select: (state: UiState) => S): S => select(ui),
-    actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop, onClaim: noop, onDiscard: noop, onCapture: noop, onOpenSession: noop, onWake: noop, onOpenTasks: openTasks, onSuggestAction: suggestAction, onSuggestDismiss: suggestDismiss, onWatchForget: watchForget,
+    actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop, onClaim: noop, onDiscard: noop, onCapture: noop, onOpenSession: openSession, onWake: noop, onOpenTasks: openTasks, onSuggestAction: suggestAction, onSuggestDismiss: suggestDismiss, onWatchForget: watchForget,
   })
-  return { tree: text(node), openTasks, suggestAction, suggestDismiss, watchForget, node }
+  return { tree: text(node), view, openTasks, openSession, suggestAction, suggestDismiss, watchForget, node }
 }
 /** Collect every string attribute value matching a key anywhere in the tree (data-* assertions). */
 function collectAttr(node: unknown, key: string, into: string[] = []): string[] {
@@ -504,6 +507,34 @@ describe('the desk\'s capture row: takes the words here, and never overstates wh
     expect(findByClass(output, 'dsha-capture-input')?.disabled).toBe(false)
     expect(findButton(output, '关闭')).toBeDefined()
   })
+
+  it('suggestion actions are shut while a delivery is in flight (BUG-018)', () => {
+    const view = createProjectionViewStore(defineStore).create()
+    view.actions.setCaptureReceipt({ requestId: 'desk-capture-9', sessionId: 's-1', text: '记得问一下小王', observedRevision: 3 })
+    const running = {
+      ...props(view, 3, noop),
+      useSessionStatus: <S,>(select: (value: ReadonlyMap<string, { running?: boolean }>) => S): S => select(new Map([['s-1', { running: true }]])),
+    }
+    const busy = ProjectionPanel(running)
+    expect(findButton(busy, '替我盯上')?.disabled).toBe(true)
+    expect(findButton(busy, '先试跑一次')?.disabled).toBe(true)
+
+    const clearView = createProjectionViewStore(defineStore).create()
+    const idle = ProjectionPanel({ ...props(clearView, 3, noop), useSessionStatus: noStatuses })
+    expect(findButton(idle, '替我盯上')?.disabled).toBe(false)
+  })
+
+  it('the capture session\'s own question stays with the in-flight row (no double count, BUG-016)', () => {
+    const view = createProjectionViewStore(defineStore).create()
+    view.actions.setCaptureReceipt({ requestId: 'desk-capture-q', sessionId: 's-1', text: '记得问一下小王', observedRevision: 3 })
+    const statuses: ReadonlyMap<string, { running?: boolean, pendingInteraction?: { kind?: string } | undefined }> = new Map([['s-1', { running: true, pendingInteraction: { kind: 'question' } }]])
+    const output = ProjectionPanel({
+      ...props(view, 3, noop),
+      useSessionStatus: <S,>(select: (value: typeof statuses) => S): S => select(statuses),
+    })
+    expect(text(output)).toContain('轮到我')
+    expect(text(output)).not.toContain('句等你答')
+  })
 })
 
 describe('proactive face rows (261018 片 1)', () => {
@@ -523,6 +554,37 @@ describe('proactive face rows (261018 片 1)', () => {
     expect(findButton(node, '看这件事')).toBeDefined()
   })
 
+  it('row 1 a matter due minutes ago says 今天到期, never 到期 0 天 (BUG-023)', () => {
+    const justDue: OperatingMatter = { ...overdueMatter, id: 'm-0', times: { nextCheckpoint: new Date(Date.now() - 30 * 60_000).toISOString() } }
+    const { tree } = renderWithCatalog(download([justDue]), catalog([]))
+    expect(tree).toContain('今天到期')
+    expect(tree).not.toContain('到期 0 天')
+  })
+
+  it('row 1 action from the activity tab returns to the board and selects the matter (BUG-019)', () => {
+    const { view, node } = renderWithCatalog(download([overdueMatter]), catalog([]))
+    view.actions.setMode('activity')
+    findButton(node, '看这件事')?.onClick?.()
+    expect(view.getSnapshot().mode).toBe('board')
+    expect(view.getSnapshot().selected).toEqual({ kind: 'matter', id: 'm-1' })
+  })
+
+  it('row 2 去处理 goes to the first waiting thing, and returns to the board (BUG-019)', () => {
+    const { view, node } = renderWithCatalog(download([], [], [{ id: 'u-7', note: '待认领片段', sessionId: 's1' }]), catalog([]))
+    view.actions.setMode('activity')
+    findButton(node, '去处理')?.onClick?.()
+    expect(view.getSnapshot().mode).toBe('board')
+    expect(view.getSnapshot().selected).toEqual({ kind: 'fragment', id: 'u-7' })
+  })
+
+  it('row 3 a past scheduled instant is stated as late, not as a future look (BUG-023)', () => {
+    const entry = { id: 's-past', kind: 'weekly', title: '每周对账', prompt: 'x', scheduledAt: daysAgo(2), sessionId: 'sa', status: 'active' as const }
+    const { tree } = renderWithCatalog(download([]), catalog([entry]))
+    expect(tree).toContain('它该在')
+    expect(tree).toContain('还没看到它动')
+    expect(tree).not.toContain('它下次替你看：每周对账')
+  })
+
   it('all-empty state renders no proactive block at all', () => {
     const { tree, node } = renderWithCatalog(download([]), catalog([]))
     expect(tree).not.toContain('它替你看')
@@ -536,6 +598,16 @@ describe('proactive face rows (261018 片 1)', () => {
     expect(tree).toContain('它在等你：1 条要确认 · 1 条待认领')
     expect(findButton(node, '去处理')).toBeDefined()
     expect(findButton(node, '看这件事')).toBeUndefined()
+  })
+
+  it('row 2 counts a pending question from another session and opens it (BUG-016)', () => {
+    const statuses: StatusMap = new Map([['session-q', { running: false, pendingInteraction: { kind: 'question' } }]])
+    const { tree, node, openSession } = renderWithCatalog(download([]), catalog([]), { ignored: [], accepted: [] }, statuses)
+    expect(tree).toContain('它在等你：1 句等你答')
+    const go = findButton(node, '去答问题')
+    expect(go).toBeDefined()
+    go?.onClick?.()
+    expect(openSession).toHaveBeenCalledWith('session-q')
   })
 
   it('row 3 states the next look, the late delivery as fact, duplicates with the deep link', () => {

@@ -44,6 +44,40 @@ export interface ProjectionView {
   /** The line delivered but not yet read back from the ledger; null = nothing in flight. */
   captureReceipt: DeskCaptureReceipt | null
 }
+/**
+ * The delivery receipt survives a page reload through `sessionStorage` (261019, BUG-016).
+ * It is still per-tab and still a DELIVERY fact, not a content truth — but it used to be the
+ * only pointer to a turn that asked a question, and a reload silently erased it. The stored
+ * shape is re-validated on read; anything malformed is treated as "nothing in flight".
+ */
+const CAPTURE_RECEIPT_KEY = 'dsha-capture-receipt-v1'
+function readStoredReceipt(): DeskCaptureReceipt | null {
+  try {
+    if (typeof sessionStorage === 'undefined') return null
+    const raw = sessionStorage.getItem(CAPTURE_RECEIPT_KEY)
+    if (raw === null) return null
+    const value = JSON.parse(raw) as Partial<DeskCaptureReceipt> | null
+    if (value === null || typeof value !== 'object') return null
+    if (typeof value.requestId !== 'string' || typeof value.sessionId !== 'string'
+      || typeof value.text !== 'string' || typeof value.observedRevision !== 'number') return null
+    return {
+      requestId: value.requestId, sessionId: value.sessionId, text: value.text, observedRevision: value.observedRevision,
+      ...(value.lane === 'action' || value.lane === 'capture' ? { lane: value.lane } : {}),
+      ...(typeof value.label === 'string' ? { label: value.label } : {}),
+    }
+  } catch {
+    return null
+  }
+}
+function writeStoredReceipt(receipt: DeskCaptureReceipt | null): void {
+  try {
+    if (typeof sessionStorage === 'undefined') return
+    if (receipt === null) sessionStorage.removeItem(CAPTURE_RECEIPT_KEY)
+    else sessionStorage.setItem(CAPTURE_RECEIPT_KEY, JSON.stringify(receipt))
+  } catch {
+    // Storage is a convenience; the in-memory receipt still works without it.
+  }
+}
 export const projectionViewActions = {
   selectMatter(draft: ProjectionView, id: string): void { draft.selected = { kind: 'matter', id }; draft.pane = 'detail' },
   selectFragment(draft: ProjectionView, id: string): void { draft.selected = { kind: 'fragment', id }; draft.pane = 'detail' },
@@ -53,7 +87,7 @@ export const projectionViewActions = {
   setMode(draft: ProjectionView, mode: DeskMode): void { draft.mode = mode },
   revealMoreActivity(draft: ProjectionView): void { draft.activityLimit = draft.activityLimit + 50 },
   setCaptureDraft(draft: ProjectionView, text: string): void { draft.captureDraft = text },
-  setCaptureReceipt(draft: ProjectionView, receipt: DeskCaptureReceipt | null): void { draft.captureReceipt = receipt },
+  setCaptureReceipt(draft: ProjectionView, receipt: DeskCaptureReceipt | null): void { draft.captureReceipt = receipt; writeStoredReceipt(receipt) },
 }
 export type ProjectionViewActions = typeof projectionViewActions
 export type DefineProjectionViewStore = (spec: { init(): ProjectionView; actions: ProjectionViewActions }) => ProjectionViewHandle
@@ -71,5 +105,5 @@ export interface ProjectionViewHandle {
  * @returns Nonpersistent handle shared across main Slot declaration lifetimes.
  */
 export function createProjectionViewStore(define: (spec: { init(): ProjectionView; actions: ProjectionViewActions }) => ProjectionViewHandle): ProjectionViewHandle {
-  return define({ init: () => ({ selected: null, pane: 'list', listScrollTop: 0, filter: 'all' as const, mode: 'board' as const, activityLimit: 50, captureDraft: '', captureReceipt: null }), actions: projectionViewActions })
+  return define({ init: () => ({ selected: null, pane: 'list', listScrollTop: 0, filter: 'all' as const, mode: 'board' as const, activityLimit: 50, captureDraft: '', captureReceipt: readStoredReceipt() }), actions: projectionViewActions })
 }

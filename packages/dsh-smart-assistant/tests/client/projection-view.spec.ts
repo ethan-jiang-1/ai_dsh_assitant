@@ -23,4 +23,27 @@ describe('projection viewing state', () => {
     view.actions.setCaptureReceipt(null)
     expect(view.getSnapshot().captureReceipt).toBeNull()
   })
+
+  it('a delivery receipt survives a fresh store through sessionStorage, and clearing removes it (BUG-016)', () => {
+    const stored = new Map<string, string>()
+    const fake = {
+      getItem: (key: string) => stored.get(key) ?? null,
+      setItem: (key: string, value: string) => { stored.set(key, value) },
+      removeItem: (key: string) => { stored.delete(key) },
+    }
+    ;(globalThis as unknown as { sessionStorage?: unknown }).sessionStorage = fake
+    try {
+      const receipt = { requestId: 'desk-capture-2', sessionId: 's-2', text: '刷新还在', observedRevision: 7, lane: 'action' as const, label: '先试跑「x」' }
+      const first = createProjectionViewStore(defineStore).create()
+      first.actions.setCaptureReceipt(receipt)
+      // A fresh store is what a reload creates: the receipt (and its label) must still be there.
+      const reloaded = createProjectionViewStore(defineStore).create()
+      expect(reloaded.getSnapshot().captureReceipt).toEqual(receipt)
+      reloaded.actions.setCaptureReceipt(null)
+      const cleared = createProjectionViewStore(defineStore).create()
+      expect(cleared.getSnapshot().captureReceipt).toBeNull()
+    } finally {
+      delete (globalThis as unknown as { sessionStorage?: unknown }).sessionStorage
+    }
+  })
 })

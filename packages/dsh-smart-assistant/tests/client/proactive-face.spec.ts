@@ -53,16 +53,34 @@ describe('proactive face derivation', () => {
     expect(due).toMatchObject({ matterId: 'm-1', title: '合同 NB-02 二期款核对', daysOverdue: 5 })
   })
 
-  it('row 1: a receipt submitted after the passed moment clears the row (回执之后 semantics)', () => {
-    const rows = deriveProactiveFace({
-      projection: projection({
-        matters: [matter()],
-        receipts: [receipt()],
-      }),
+  it('row 1: only a RESULT-bearing receipt after the passed moment clears the row', () => {
+    // The 2026-10-19 live ledger shape: updates/claims after the due, none of them a result.
+    // The row's copy says "账上没有结果", so a claim or a status update must not hide it.
+    const update = deriveProactiveFace({
+      projection: projection({ matters: [matter()], receipts: [receipt({ kind: 'update', status: 'committed' })] }),
       catalog: [],
       now: NOW,
     })
-    expect(rows.some(row => row.kind === 'due-no-result')).toBe(false)
+    expect(update.some(row => row.kind === 'due-no-result')).toBe(true)
+    const claim = deriveProactiveFace({
+      projection: projection({ matters: [matter()], receipts: [receipt({ kind: 'claim', status: 'committed' })] }),
+      catalog: [],
+      now: NOW,
+    })
+    expect(claim.some(row => row.kind === 'due-no-result')).toBe(true)
+    const complete = deriveProactiveFace({
+      projection: projection({ matters: [matter()], receipts: [receipt({ kind: 'complete', status: 'committed' })] }),
+      catalog: [],
+      now: NOW,
+    })
+    expect(complete.some(row => row.kind === 'due-no-result')).toBe(false)
+    // A complete that did NOT commit (rejected/conflict) is not a result either.
+    const rejected = deriveProactiveFace({
+      projection: projection({ matters: [matter()], receipts: [receipt({ kind: 'complete', status: 'rejected' })] }),
+      catalog: [],
+      now: NOW,
+    })
+    expect(rejected.some(row => row.kind === 'due-no-result')).toBe(true)
   })
 
   it('row 1: a receipt submitted BEFORE the passed moment does not clear the row', () => {
@@ -153,6 +171,18 @@ describe('proactive face derivation', () => {
       now: NOW,
     })
     expect(rows.find(row => row.kind === 'next-look')).toMatchObject({ title: '每周对账', nextAt: '2026-10-19T01:00:00.000Z' })
+  })
+
+  it('row 3: a scheduled instant already in the past is stated as overdue, not as a future look (BUG-023)', () => {
+    const rows = deriveProactiveFace({
+      projection: projection(),
+      catalog: [catalogEntry({ scheduledAt: '2026-10-13T01:00:00.000Z' })],
+      now: NOW,
+    })
+    const row = rows.find(row => row.kind === 'next-look')
+    expect(row).toMatchObject({ nextAt: '2026-10-13T01:00:00.000Z' })
+    expect(row).toHaveProperty('overdueByMs')
+    expect((row as { overdueByMs?: number }).overdueByMs).toBeGreaterThan(0)
   })
 
   it('row 3: a delivery later than its target by more than LATE_DELIVERY_MS gets a late note stating the fact only', () => {

@@ -239,6 +239,14 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
     : capturePhase(receipt.observedRevision, data?.revision ?? 0, receiptStatus)
   const capturePending = phase === 'running' || phase === 'queued'
   const isActionLane = receipt?.lane === 'action'
+  // 261019 (BUG-016): questions the capture row does not own still need a desk surface — a
+  // reload (or a turn delivered elsewhere) used to leave them invisible. While the capture row
+  // is visible it owns its session's question, so that one is not counted twice.
+  const captureOwnsSession = receipt !== null && phase !== undefined && phase !== 'resolved' ? receipt.sessionId : undefined
+  const pendingQuestionSessions = [...sessionStatuses]
+    .filter(([id, status]) => status.pendingInteraction !== undefined && id !== captureOwnsSession)
+    .map(([id]) => id)
+  const openQuestions = pendingQuestionSessions.length
   const PHASE_LABEL: Record<string, string> = {
     running: '等助手', queued: '已交给助手', suspended: '轮到我', settled: '它说完了',
   }
@@ -291,6 +299,7 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
     ...(data !== undefined ? { projection: data } : {}),
     ...(catalogState.status === 'entries' ? { catalog: catalogState.entries } : {}),
     ...(proactiveUi.accepted.length > 0 ? { acceptedWatches: proactiveUi.accepted } : {}),
+    ...(openQuestions > 0 ? { openQuestions } : {}),
     now: new Date(),
   })
   const openSuggestions = PROACTIVE_SUGGESTIONS.filter(suggestion => !proactiveUi.ignored.includes(suggestion.id))
@@ -307,18 +316,36 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
   },
     ...proactiveVisible.map(row => {
       if (row.kind === 'due-no-result') {
+        const dueLabel = row.daysOverdue === 0 ? '今天到期' : `到期 ${row.daysOverdue} 天`
         return ce('div', { key: 'due', className: 'dsha-proactive-row dsha-proactive-due' },
-          ce('span', {}, `${row.title} · 到期 ${row.daysOverdue} 天，账上没有结果${row.extraCount !== undefined ? `（另有 ${row.extraCount} 件同样到期）` : ''}`),
-          ce('button', { className: 'dsha-btn', type: 'button', onClick: () => { props.actions.selectMatter(row.matterId) } }, '看这件事'))
+          ce('span', {}, `${row.title} · ${dueLabel}，账上没有结果${row.extraCount !== undefined ? `（另有 ${row.extraCount} 件同样到期）` : ''}`),
+          ce('button', { className: 'dsha-btn', type: 'button', onClick: () => { props.actions.setMode('board'); props.actions.selectMatter(row.matterId) } }, '看这件事'))
       }
       if (row.kind === 'waiting-for-you') {
         const waiting: string[] = []
         if (row.pendingProposals > 0) waiting.push(`${row.pendingProposals} 条要确认`)
         if (row.unclaimed > 0) waiting.push(`${row.unclaimed} 条待认领`)
         if (row.openQuestions > 0) waiting.push(`${row.openQuestions} 句等你答`)
+        // 261019 (BUG-019): "去处理" must actually take the principal to the waiting thing. It
+        // used to set pane='list' only — a no-op on a board that already shows the list while
+        // the unclaimed inbox sat below the fold. Land on the board with the first waiting item
+        // selected (fragment first, then a pending proposal); the row still carries one action.
+        const goWaiting = (): void => {
+          // A blocked question is the most urgent thing in this row: the assistant cannot move
+          // until the principal answers, so the single action goes there first.
+          if (openQuestions > 0 && pendingQuestionSessions[0] !== undefined) {
+            props.onOpenSession(pendingQuestionSessions[0])
+            return
+          }
+          props.actions.setMode('board')
+          const firstUnclaimed = data?.unclaimed[0]
+          if (firstUnclaimed !== undefined) { props.actions.selectFragment(firstUnclaimed.id); return }
+          const firstPending = data?.matters.find(matter => matter.proposals.some(proposal => proposal.status === 'pending'))
+          if (firstPending !== undefined) props.actions.selectMatter(firstPending.id)
+        }
         return ce('div', { key: 'waiting', className: 'dsha-proactive-row' },
           ce('span', {}, `它在等你：${waiting.join(' · ')}`),
-          ce('button', { className: 'dsha-btn', type: 'button', onClick: () => { props.actions.showList() } }, '去处理'))
+          ce('button', { className: 'dsha-btn', type: 'button', onClick: goWaiting }, openQuestions > 0 ? '去答问题' : '去处理'))
       }
       if (row.kind === 'watch-mismatch') {
         // Q5: state the fact (no attribution) and offer the two honest ways out: retry the lane,
@@ -328,14 +355,16 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
           ce('span', {}, `说了替你盯但没盯上：${row.title}`),
           ce('div', { className: 'dsha-proactive-actions' },
             props.onSuggestAction !== undefined
-              ? ce('button', { className: 'dsha-btn', type: 'button', onClick: () => { props.onSuggestAction?.('watch', `retry:${row.title}`) } }, '再试一次')
+              ? ce('button', { className: 'dsha-btn', type: 'button', disabled: capturePending, onClick: () => { props.onSuggestAction?.('watch', `retry:${row.title}`) } }, '再试一次')
               : null,
             props.onWatchForget !== undefined
               ? ce('button', { className: 'dsha-btn', type: 'button', 'aria-label': `忽略：${row.title}`, onClick: () => { props.onWatchForget?.(row.title) } }, '忽略')
               : null))
       }
       return ce('div', { key: 'next', className: 'dsha-proactive-row' },
-        ce('span', {}, `它下次替你看：${row.title} · ${humanTime(row.nextAt)}${row.lateByMs !== undefined ? `（上次迟了 ${lateNote(row.lateByMs)}）` : ''}${row.duplicates !== undefined ? ` — 发现 ${row.duplicates} 条重复盯守` : ''}`),
+        ce('span', {}, row.overdueByMs !== undefined
+          ? `它该在 ${humanTime(row.nextAt)} 看「${row.title}」，还没看到它动${row.lateByMs !== undefined ? `（上次迟了 ${lateNote(row.lateByMs)}）` : ''}${row.duplicates !== undefined ? ` — 发现 ${row.duplicates} 条重复盯守` : ''}`
+          : `它下次替你看：${row.title} · ${humanTime(row.nextAt)}${row.lateByMs !== undefined ? `（上次迟了 ${lateNote(row.lateByMs)}）` : ''}${row.duplicates !== undefined ? ` — 发现 ${row.duplicates} 条重复盯守` : ''}`),
         row.duplicates !== undefined && props.onOpenTasks !== undefined
           ? ce('button', { className: 'dsha-btn', type: 'button', onClick: props.onOpenTasks }, '去任务页')
           : null)
@@ -351,8 +380,8 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
         ce('span', { className: 'dsha-suggest-name' }, suggestion.name),
         ce('span', { className: 'dsha-suggest-hint' }, suggestion.hint)),
       ce('div', { className: 'dsha-suggest-actions' },
-        ce('button', { className: 'dsha-btn', type: 'button', onClick: () => { props.onSuggestAction?.('trial', suggestion.id) } }, '先试跑一次'),
-        ce('button', { className: 'dsha-btn dsha-btn-primary', type: 'button', onClick: () => { props.onSuggestAction?.('watch', suggestion.id) } }, '替我盯上'),
+        ce('button', { className: 'dsha-btn', type: 'button', disabled: capturePending, onClick: () => { props.onSuggestAction?.('trial', suggestion.id) } }, '先试跑一次'),
+        ce('button', { className: 'dsha-btn dsha-btn-primary', type: 'button', disabled: capturePending, onClick: () => { props.onSuggestAction?.('watch', suggestion.id) } }, '替我盯上'),
         ce('button', { className: 'dsha-btn dsha-suggest-x', type: 'button', title: '不再提这条', 'aria-label': `忽略：${suggestion.name}`, onClick: () => { props.onSuggestDismiss?.(suggestion.id) } }, '×')))))
   const message = download.status === 'disconnected' ? '连接已断开，恢复连接后重新读取。'
     : download.status === 'loading' ? '正在读取桌面…'

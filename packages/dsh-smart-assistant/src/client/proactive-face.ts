@@ -4,10 +4,11 @@
  * plus a caller-supplied `now`. Zero model calls, zero writes, zero persistence —
  * the schedule facts stay owned by the platform schedule storage (no second truth).
  *
- * Row contract (frozen by the 261018 adjudication):
+ * Row contract (frozen by the 261018 adjudication, 行 1 refined 2026-10-19):
  * - 行 1 due-no-result: active matter past `nextCheckpoint`/`promisedDeadline`
- *   with NO receipt after that moment; several overdue matters collapse to the
- *   most overdue one plus `extraCount`. Settled matters never appear.
+ *   with NO committed RESULT after that moment (a claim or a status update is not a
+ *   result); several overdue matters collapse to the most overdue one plus `extraCount`.
+ *   Settled matters never appear.
  * - 行 2 waiting-for-you: pending proposals + unclaimed fragments (+ open
  *   questions once 片2 lands) aggregated into ONE row, split from the capture
  *   in-flight row by the "matter vs session" division the adjudication fixed.
@@ -18,6 +19,11 @@
 
 /** Delivery later than its target by more than this gets the honest late note (10 min). */
 export const LATE_DELIVERY_MS = 10 * 60_000
+
+/** Operation kinds that can make a due matter "have a result". A claim moves a fragment into a
+ *  matter; an update reports status (often "still nothing"); a rejected/conflicting operation
+ *  changed nothing. Only a committed completion answers "到期没结果" (261019, BUG-017). */
+const RESULT_RECEIPT_KINDS: ReadonlySet<string> = new Set(['complete'])
 
 /** Narrow structural view of the platform catalog entry this core consumes. */
 export interface ProactiveCatalogEntry {
@@ -42,7 +48,14 @@ export interface ProactiveProjectionView {
     readonly times: { readonly promisedDeadline?: string, readonly forecastAt?: string, readonly nextCheckpoint?: string, readonly completedAt?: string }
     readonly proposals: readonly { readonly status: string }[]
   }[]
-  readonly receipts: readonly { readonly matterId: string, readonly submittedAt: string }[]
+  readonly receipts: readonly {
+    readonly matterId: string
+    readonly submittedAt: string
+    /** The operation's semantic kind (the projection carries it; older ones may omit it). */
+    readonly kind?: string
+    /** The operation outcome; only `committed` operations can be results. */
+    readonly status?: string
+  }[]
   readonly unclaimed: readonly unknown[]
 }
 
@@ -82,8 +95,9 @@ export interface ProactiveFaceInput {
   /** Locally remembered watch acceptances; each one whose title never appears in the catalog
    * renders the honest "说了替你盯但没盯上" row (Q5 minimal failure visibility). */
   readonly acceptedWatches?: readonly AcceptedWatch[]
-  /** Unanswered proactive questions (reserved; the adjudication's "matter vs session" split
-   * keeps session-side pendingInteractions with the capture in-flight row, not here). */
+  /** Unanswered questions in sessions the capture row does NOT own (261019). The capture row
+   *  keeps its own session's pending interaction to avoid a double count; the panel wires these
+   *  from the platform's SessionStatus map. */
   readonly openQuestions?: number
   readonly now: Date
 }
@@ -91,7 +105,7 @@ export interface ProactiveFaceInput {
 export type ProactiveRow =
   | { readonly kind: 'due-no-result', readonly matterId: string, readonly title: string, readonly dueAt: string, readonly daysOverdue: number, readonly extraCount?: number }
   | { readonly kind: 'waiting-for-you', readonly pendingProposals: number, readonly unclaimed: number, readonly openQuestions: number }
-  | { readonly kind: 'next-look', readonly title: string, readonly nextAt: string, readonly lateByMs?: number, readonly duplicates?: number }
+  | { readonly kind: 'next-look', readonly title: string, readonly nextAt: string, readonly lateByMs?: number, readonly overdueByMs?: number, readonly duplicates?: number }
   | { readonly kind: 'watch-mismatch', readonly title: string }
   | { readonly kind: 'next-look-unavailable' }
 
@@ -117,9 +131,15 @@ export function deriveProactiveFace(input: ProactiveFaceInput): ProactiveRow[] {
         .sort((left, right) => Date.parse(left) - Date.parse(right))
       const dueAt = passed[0]
       if (dueAt === undefined) return undefined
-      const settledAfterDue = projection.receipts.some(receipt =>
-        receipt.matterId === matter.id && Date.parse(receipt.submittedAt) > Date.parse(dueAt))
-      if (settledAfterDue) return undefined
+      // 261019: "no result in the ledger" means no committed RESULT, not no activity. The live
+      // m-1 case had a claim and two updates after its promised date — all saying "still not
+      // arrived" — and the old any-receipt rule hid exactly the row this feature exists to show.
+      const resultAfterDue = projection.receipts.some(receipt =>
+        receipt.matterId === matter.id
+        && (receipt.status === undefined || receipt.status === 'committed')
+        && receipt.kind !== undefined && RESULT_RECEIPT_KINDS.has(receipt.kind)
+        && Date.parse(receipt.submittedAt) > Date.parse(dueAt))
+      if (resultAfterDue) return undefined
       return { matter, dueAt }
     })
     .filter((entry): entry is NonNullable<typeof entry> => entry !== undefined)
@@ -163,11 +183,16 @@ export function deriveProactiveFace(input: ProactiveFaceInput): ProactiveRow[] {
       const lateByMs = earliest.lastDelivery !== undefined
         ? Date.parse(earliest.lastDelivery.deliveredAt) - Date.parse(earliest.lastDelivery.scheduledAt)
         : 0
+      // 261019 (BUG-023): an active rule whose stored instant is already past and that has no
+      // delivery record would otherwise be announced as "它下次替你看：… · <past>". State the
+      // fact (the look is late) instead of claiming a future look; the desk never acts on it.
+      const overdueByMs = nowMs - earliestAt
       rows.push({
         kind: 'next-look',
         title: earliest.title,
         nextAt: earliest.scheduledAt,
         ...(lateByMs > LATE_DELIVERY_MS ? { lateByMs } : {}),
+        ...(overdueByMs > 0 ? { overdueByMs } : {}),
         ...(duplicates >= 2 ? { duplicates } : {}),
       })
     }
