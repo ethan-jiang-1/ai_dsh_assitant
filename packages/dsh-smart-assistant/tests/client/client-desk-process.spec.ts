@@ -32,7 +32,7 @@ import { describe, expect, it } from 'vitest'
 import { bindClaimPath, bindDiscardPath, bindIntakePath, bindProcessPath, bindWakePath, canProcess, captureWait, judgeClaimReturn, judgeDiscardReturn, judgeIntakeReturn, judgeReturn, judgeWakeReturn, type JudgeProposal, type JudgeSession } from '../../src/client/desk-process.ts'
 import { claimContextMessage, discardContextMessage, processingContextMessage, resumeContextMessage, wakeContextMessage } from '../../src/client/desk-process-messages.ts'
 
-interface Receipt { operationId: string, matterId: string, sessionId: string, status: string, revision?: number, proposalId?: string, submittedAt: string }
+interface Receipt { operationId: string, matterId: string, sessionId: string, status: string, revision?: number, proposalId?: string, submittedAt: string, unclaimedId?: string }
 
 const BOUND_AT = '2026-10-10T12:00:00.000Z'
 const boundA = (observedRevision = 2) => bindProcessPath('m-A', 'session-1', observedRevision, BOUND_AT)
@@ -276,6 +276,20 @@ describe('intake path (交代首事 arm)', () => {
     expect(judgeIntake(intake(), [createdReceipt()], { onPath: false }).reasons).toContain('user-left-path')
     expect(judgeIntake(intake(), [createdReceipt()], {}, [], { status: 'ready', stale: true }).reasons).toContain('projection-stale')
     expect(judgeIntake(intake(), [createdReceipt()], {}, [], { status: 'loading', stale: false }).reasons).toContain('projection-not-ready')
+  })
+
+  it('never settles on a capture note delivered into the bound session (261018 片 3 restated)', () => {
+    // The desk capture lane may deliver a "[桌面] " line into the CURRENT session — which can be
+    // a bound intake session. The model's 片-2 default lands a NOTE (status retained, an
+    // unclaimed fragment, no matter): that is the capture lane's result taking over on the desk,
+    // never the creation signal this arm waits for.
+    const retained: Receipt = {
+      operationId: 'op-capture-note', matterId: '', sessionId: 'session-1', status: 'retained',
+      revision: 1, submittedAt: '2026-10-10T12:06:00.000Z', unclaimedId: 'u-9',
+    }
+    const decision = judgeIntake(intake(), [retained])
+    expect(decision.decision).toBe('stay')
+    expect(decision.reasons).toContain('matter-not-entrusted')
   })
 
   it('ignores receipts submitted before the binding, and reports a creation that vanished', () => {
