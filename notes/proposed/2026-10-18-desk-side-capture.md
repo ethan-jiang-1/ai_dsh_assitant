@@ -1,6 +1,6 @@
 # 桌面侧受理新事项（受理位 + 状态显性化 + 待认领栏卫生）
 
-日期：2026-10-18 · 状态：**proposed**
+日期：2026-10-18 · 状态：**proposed**（已授权实施 2026-10-18；推进台账 = [`_backlog/issues/261018-desk-side-capture-closure.md`](../../_backlog/issues/261018-desk-side-capture-closure.md)）
 
 ## 问题（可观察行为）
 
