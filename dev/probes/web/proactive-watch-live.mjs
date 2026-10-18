@@ -78,25 +78,39 @@ const scheduleBefore = sha256hex(readFileSync(schedulePath))
 
 stopStaleProbeServices(home)
 const sessionsBefore = new Set(sessionLogs(home))
+let turnBaseline = undefined
 let browser = undefined
 const { service, url, pidFile } = await startProbeService({ repoRoot, home, pidName: '.proactive-watch-live.pid' })
 const teardown = registerProbeTeardown({ service, pidFile, getBrowser: () => browser, keepService })
 
 // The capture lane's turns run in BACKGROUND sessions — nothing to poll in the conversation UI.
-// Poll the session logs instead: a fresh log whose event stream ends with turn/end.
-const freshSettledLog = async (baseline) => {
+// Deliveries land in the CURRENT session (which may be shared between the two actions), so a
+// "fresh log file" detector is wrong: count settle signals per log (turn/end, or an ask-family
+// tool call — a turn suspended on a question never writes turn/end) and diff against the phase's
+// own baseline; the new events slice is exactly this phase's turn.
+const isAskCall = event => event.type === 'tool/call' && /ask/i.test(String(event.data?.name ?? event.data?.tool ?? ''))
+const settledCount = events => events.filter(event => event.type === 'turn/end').length + events.filter(isAskCall).length
+const readBaseline = async () => {
+  const map = new Map()
   for (const log of sessionLogs(home)) {
-    if (baseline.has(log)) continue
     const events = await readEvents(log)
-    if (events.some(event => event.type === 'turn/end')) return { log, events }
+    map.set(log, { length: events.length, signals: settledCount(events) })
   }
-  return undefined
+  return map
 }
 const pollForFreshTurn = async (baseline, budgetSeconds) => {
   const deadline = Date.now() + budgetSeconds * 1000
   while (Date.now() < deadline) {
-    const found = await freshSettledLog(baseline)
-    if (found !== undefined) return found
+    for (const log of sessionLogs(home)) {
+      const events = await readEvents(log)
+      const base = baseline.get(log)
+      const signals = settledCount(events)
+      if (base === undefined) {
+        if (signals > 0) return { log, events }
+      } else if (signals > base.signals) {
+        return { log, events: events.slice(base.length) }
+      }
+    }
     await new Promise(resolve => setTimeout(resolve, 2000))
   }
   return undefined
@@ -112,10 +126,12 @@ try {
   const deskReady = await pollUntil(evaluate, deskText, { intervalMs: 700, budget: 120, checkFirst: true, isDone: text => text !== null && text.includes('合同 NB-02') && text.includes('让它替你盯') })
   if (deskReady === null) fail('desk-mount', { lastState: String(deskReady).slice(0, 200) })
   pass('desk-mount', {})
+  // Phase baselines read after the desk mounts (functions above are now defined).
+  turnBaseline = await readBaseline()
 
   // ── 相位 1：先试跑一次（真读真判断、不建排程）。
   if (await evaluate(clickByText('先试跑一次')) !== 'clicked') fail('trial-click', {})
-  const trial = await pollForFreshTurn(sessionsBefore, 240)
+  const trial = await pollForFreshTurn(turnBaseline, 240)
   if (trial === undefined) fail('trial-turn', { hint: 'no fresh settled session log within 240s' })
   const trialSeen = observe(trial.events)
   const trialRead = trialSeen.toolCalls.some(call => String(call.name ?? '').includes('assistant_operating'))
@@ -126,8 +142,10 @@ try {
   pass('trial', { tools: trialSeen.toolCalls.map(call => call.name).slice(0, 6), answerHead: String(trialSeen.answerText ?? '').slice(0, 120) })
 
   // ── 相位 2：替我盯上（一键建、title 可读、无重复、桌面行 3 呈现）。
+  // Baseline re-read AFTER the trial settled: the watch turn may land in the SAME session.
+  const postTrialBaseline = await readBaseline()
   if (await evaluate(clickByText('替我盯上')) !== 'clicked') fail('watch-click', {})
-  const watch = await pollForFreshTurn(new Set([...sessionsBefore, trial.log]), 240)
+  const watch = await pollForFreshTurn(postTrialBaseline, 240)
   if (watch === undefined) fail('watch-turn', { hint: 'no second fresh settled session log within 240s' })
   const watchSeen = observe(watch.events)
   const created = watchSeen.toolCalls.some(call => String(call.name ?? '') === 'schedule_create')
