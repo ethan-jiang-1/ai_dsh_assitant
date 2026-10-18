@@ -1,11 +1,11 @@
 ---
-status: 推敲中
+status: 已结
 opened: 2026-10-18
 ---
 
 # 推敲：桌面侧发起——新事项在桌面上就能被收下
 
-> 立卡：2026-10-18 ｜ 状态：推敲中 ｜ 类型：Feature ｜ 可关闭：否 ｜ 结论：4 项判定经逐条过、**本人全部拍板**（2026-10-18，均照 agent 判定；第 3 条为拍板第 2 条后修订的版本）。下一步据此出实施切片并立 proposed 卡呈批——**卡上判定不授予实施权限**。
+> 立卡：2026-10-18 ｜ 状态：已结（2026-10-18 关闭）｜ 类型：Feature ｜ 可关闭：是 ｜ 结论：4 项判定经逐条过、**本人全部拍板**（2026-10-18，均照 agent 判定；第 3 条为拍板第 2 条后修订的版本）——默认记一笔→待认领／最小信号（在途→轮到我，显形它那一句问话）／客户端回执 + 原生 `SessionStatus` 三格／两门并存且重量写在文案上。**去向**：实施切片落 [proposed 卡](../../../notes/proposed/2026-10-18-desk-side-capture.md)（五片 + 可执行验收），实施另需授权——卡上判定与提案均不授予实施权限。
 
 **问题与期望结果：** 本人在真机桌面上提出（原话）：「桌面上要有新的 ITEM，这个流程是如何弄？原来是靠对话的，但这个切换…看着桌面有点想不起来」，并要求「东西都要显性化」。期望结果：本人**看着桌面**想起一件事时，**在桌面上就能把它收下**；收下之后，桌面**看得见它处在哪一态**（还没交出去／已交给助手还没进账／已进待认领／已成事项），既不必靠记忆，也不会被"切换"把提示源夺走。
 
@@ -23,13 +23,13 @@ opened: 2026-10-18
 
 ### 现在是什么样（真机与代码证据）
 
-- **入口是门，不是位子**：`＋ 交代新事项` → intake 臂 `startIntake()`（[desk-arms.ts](../../packages/dsh-smart-assistant/src/client/desk-arms.ts)）复用/新建会话并 `openSession` 把主区切走；本人要在**另一个面**里把话说出来。
+- **入口是门，不是位子**：`＋ 交代新事项` → intake 臂 `startIntake()`（[desk-arms.ts](../../../packages/dsh-smart-assistant/src/client/desk-arms.ts)）复用/新建会话并 `openSession` 把主区切走；本人要在**另一个面**里把话说出来。
 - **桌面没有就地输入位**：`pnpm shots` 的真机 DOM 里 `textarea`／`textbox`／`contenteditable` 计数全为 0；截图上桌面主区只有看板/流水与右侧详情空态（证据：`.tmp/shots/desk-intake-1600x1000.{png,dom.txt}`，仓内临时面）。
-- **Day-0 反而有，而且做法不同**：[first-mile.ts](../../packages/dsh-smart-assistant/src/client/first-mile.ts) 有 `说说你现在要处理的事…` + 发送，`send()` 走 `sendPrompt(text, 'desktop-landing', 'desk', sid)`——**把话投进会话，人不离开当前面**。同一意图，两个年龄的界面两种待遇。
-- **"捕获但未归类"账本已有一等状态**：`note` 操作在没有事项归属时被 `retain` 成 `UnclaimedMaterial`（[ledger.ts](../../packages/dsh-smart-assistant/src/domain/operating/ledger.ts) `applyNote`，"绝不按标题匹配"）；桌面已有「待认领——还没说清是哪件事，不猜」一栏，卡片带原话、徽标、来源会话。
-- **客户端→会话的投递通道已有**：`panelPromptRequest`（[room-data-io.ts](../../packages/dsh-smart-assistant/src/client/room-data-io.ts)，`mode: 'queue'` + 来源标记 `[面板] `）；面板动作与臂的种子都走它，**不等主区切换**。
+- **Day-0 反而有，而且做法不同**：[first-mile.ts](../../../packages/dsh-smart-assistant/src/client/first-mile.ts) 有 `说说你现在要处理的事…` + 发送，`send()` 走 `sendPrompt(text, 'desktop-landing', 'desk', sid)`——**把话投进会话，人不离开当前面**。同一意图，两个年龄的界面两种待遇。
+- **"捕获但未归类"账本已有一等状态**：`note` 操作在没有事项归属时被 `retain` 成 `UnclaimedMaterial`（[ledger.ts](../../../packages/dsh-smart-assistant/src/domain/operating/ledger.ts) `applyNote`，"绝不按标题匹配"）；桌面已有「待认领——还没说清是哪件事，不猜」一栏，卡片带原话、徽标、来源会话。
+- **客户端→会话的投递通道已有**：`panelPromptRequest`（[room-data-io.ts](../../../packages/dsh-smart-assistant/src/client/room-data-io.ts)，`mode: 'queue'` + 来源标记 `[面板] `）；面板动作与臂的种子都走它，**不等主区切换**。
 - **"在途 vs 完成"本仓已解过**：面板动作以 `pending` 冻在 DATA GATE 后，等**投影真的动了**才解冻；同处注释记录了固定延迟的代价（一条动作收到七条自相矛盾指令，2026-09-26）。
-- **动作词汇已有**（[projection-panel.ts](../../packages/dsh-smart-assistant/src/client/projection-panel.ts)）：`交办立项／更新事项／记一笔／认领归户／办结`，以及 `存入待认领`。本卡要提的不是新词，是给已有语义接一个桌面入口。
+- **动作词汇已有**（[projection-panel.ts](../../../packages/dsh-smart-assistant/src/client/projection-panel.ts)）：`交办立项／更新事项／记一笔／认领归户／办结`，以及 `存入待认领`。本卡要提的不是新词，是给已有语义接一个桌面入口。
 
 ### 三轮同源、结论在变
 
@@ -40,14 +40,14 @@ opened: 2026-10-18
 
 ### 被否的（不重提，理由在案）
 
-- **桌面表单直写账本**：客户端不拥有经营权威；写入必须走 `assistant_operating` 带逐字引用与来源会话（[2026-10-11-one-operating-desk.md](../../notes/implemented/2026-10-11-one-operating-desk.md) 输掉的方案 3）。
-- **桌面内联下拉选归属 + 自动代发指令**：把桌面变成写入口、替本人**偷发**，且归属确认本身可能是一问一答，对话不该被跳过（[261012-desk-selection-contract-attach-ux.md](../_archive/settled_issues/261012-desk-selection-contract-attach-ux.md) 输掉的方案 1）。
+- **桌面表单直写账本**：客户端不拥有经营权威；写入必须走 `assistant_operating` 带逐字引用与来源会话（[2026-10-11-one-operating-desk.md](../../../notes/implemented/2026-10-11-one-operating-desk.md) 输掉的方案 3）。
+- **桌面内联下拉选归属 + 自动代发指令**：把桌面变成写入口、替本人**偷发**，且归属确认本身可能是一问一答，对话不该被跳过（[261012-desk-selection-contract-attach-ux.md](261012-desk-selection-contract-attach-ux.md) 输掉的方案 1）。
 - **只加提示文案教本人去会话说**：死胡同依旧、负担没动（同上，输掉的方案 2）。
 - **两张桌面并存 / 会话侧桌面改名保留**：同名面在本人脑海里只有一张。
 
 ### 停在别处的（不混进本卡）
 
-- **碎片收件箱＝推迟而非否决**：随「输入边界」的 30 天观察（[261007-input-boundary.md](../_archive/settled_issues/261007-input-boundary.md)），重开条件＝读数落账。
+- **碎片收件箱＝推迟而非否决**：随「输入边界」的 30 天观察（[261007-input-boundary.md](261007-input-boundary.md)），重开条件＝读数落账。
 - **本轮读数为空**：`pnpm observe --home dev/trial-home-30d` 报会话 0、本人轮次 0、无账本、0 次入口。该条件**尚未产生证据**——本卡因此以本人证词为依据，并把"证词要与那台仪器对齐"写进验收标准（见下）。
 - **待认领没有噪音出口**（"是噪音、不归户"无处可去）与 Attach UX 深化：归各自 owner，触发＝真实摩擦。
 
@@ -57,7 +57,7 @@ opened: 2026-10-18
 
 ### 1. 默认去处：`note`（→ 待认领），不是 `entrust`（立项）——**本人已拍板 2026-10-18：照此**
 
-- **账本纪律**：`entrust` 的必填是 `title` + `summary`——默认立项等于让助手**在一句半成形的话上替本人命名**；而账本的既有纪律恰是"归属永不按标题猜"（[ledger.ts](../../packages/dsh-smart-assistant/src/domain/operating/ledger.ts) 的 `applyNote` 注释；认领臂"未经本人确认不自行归户"，[261012 选择契约](../_archive/settled_issues/261012-desk-selection-contract-attach-ux.md)）。且账本**没有**"提议归户"这条路：`propose` 是**事项内**变更（reschedule/checkpoint/complete/abandon），所以"这条该不该成为事项"只能由人在对话里一句话定。
+- **账本纪律**：`entrust` 的必填是 `title` + `summary`——默认立项等于让助手**在一句半成形的话上替本人命名**；而账本的既有纪律恰是"归属永不按标题猜"（[ledger.ts](../../../packages/dsh-smart-assistant/src/domain/operating/ledger.ts) 的 `applyNote` 注释；认领臂"未经本人确认不自行归户"，[261012 选择契约](261012-desk-selection-contract-attach-ux.md)）。且账本**没有**"提议归户"这条路：`propose` 是**事项内**变更（reschedule/checkpoint/complete/abandon），所以"这条该不该成为事项"只能由人在对话里一句话定。
 - **外部同向（旁证）**：成熟做法把"捕获"与"归类"分成两步、且要求捕获侧无摩擦（GTD 的 Capture → Clarify 分步、inbox → triage 模式）。默认立项＝把第二步塞进第一步。旁证：[GTD 五步](https://www.taskade.com/wiki/productivity-methods/getting-things-done-gtd)、[inbox capture/triage 模式](https://davidamitchell.github.io/Research/research/2026-03-08-inbox-folder-capture-triage-pattern.html)。
 - **代价（我接受了什么）**：待认领栏会长东西——**所以"栏卫生 + 噪音出口"是这条判定的前置**，不是可选项（见「B 的三个前置」2）。
 - **可推翻点**：若读数显示桌面捕获绝大多数本就是正经事项（待认领→立项转化率高、弃置率低），默认可翻成"立项草案 + 等你确认"。

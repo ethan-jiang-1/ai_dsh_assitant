@@ -40,4 +40,4 @@
 - **`pnpm start` 是默认启动动作**：`docs/dev.md` 首节与根 `AGENTS.md` 命令表首段都指它；它红了不交 URL，所以"交出来的实例"从此隐含"产物与源码一致 + preflight 绿"两条不变量。要偏离（只起服务、不起自证）就显式走 `pnpm dsh`。
 - **scratch 用途分家**：verify 用 `.tmp/verify-bundle/`、启动自证用 `.tmp/build-check/`，并行跑不互踩（`dev/env/tmp.mjs` 的"一个用途一个目录"）。
 - **`verify.mjs` 的顶层 import 面被夹具镜像**：`tests/tooling/corpus-links.spec.mjs` 把 runner 按文本拷进 throwaway 树，只为它的每个顶层 import 在真实深度打桩（`verify-checks` / `run-gates` / `sync-bookkeeping`，本片又加了 `dev/env/tmp.mjs`）。**新增顶层 import 必须同 diff 补桩**，否则三条 wiring 测试的症状是"stdout 空串"而不是指名失败——本片真踩过一次（3 红，全在同一文件）。
-- **`notes/implemented/2026-10-16-structure-paydown.md` 的那条纪律仍然成立**（`tsc -b` 会把 ESM 写进 `lib/client/index.js` 覆盖 classic bundle，推荐顺序仍是 `typecheck → build → test → verify`）——本片只是给它加了一条门禁兜底，两篇互不矛盾、各留其位。
+- **[结构还清 note](2026-10-16-structure-paydown.md) 的那条纪律仍然成立**（`tsc -b` 会把 ESM 写进 `lib/client/index.js` 覆盖 classic bundle，推荐顺序仍是 `typecheck → build → test → verify`）——本片只是给它加了一条门禁兜底，两篇互不矛盾、各留其位。
