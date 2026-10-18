@@ -22,10 +22,10 @@
 **现状（逐条可复现；完整出处见[事实表](../../_backlog/research/positioning/261018-proactivity-baseline.md)）**
 
 1. 今天有 **8 件事**在无人开口时发生，其中 4 条各走一次真模型回合（养护节拍器 / 提案槽 / goal 自动续跑 / 到期排程投递）——**唯一主对象「桌面」里一条痕迹都没有**；节拍器与 `curate` 任何界面都没有（[事实表](../../_backlog/research/positioning/261018-proactivity-baseline.md) §一/§五）。
-2. 主动产出落在会话时间线：2026-10-13 的到期简报（投递迟到 **7h24m**）在会话里问了本人两句，**零回复**；5 天后该事项仍停在"到期、无结果"（`dev/harness-home/sessions/…/session-45e89f04…` 事件序列 `PrUrtSt`；同 `storages/schedule.json` 的 `deliveryHistory`）。
+2. 主动产出落在会话时间线：2026-10-13 的到期简报（投递迟到 **7h24m**）在会话里问了本人两句，**零回复**；5 天后该事项仍停在"到期、无结果"（`dev/harness-home/sessions/…/session-45e89f04…`：`[SCHEDULE REMINDER]` user/message @2026-10-13T08:24:48Z 之后 turn 2 末两问句、此后无真人消息；同 `storages/schedule.json` 的 `deliveryHistory`）。
 3. 排程只有 `create/list/update/delete` + `active/inactive`：**没有暂停、没有静默时段、不能绑事项**；`schedule_list` 只看当前会话（vendor `schedule/schedule/src/tools.ts:175`），于是**跨会话重复已经发生**——dev home 里两条同 prompt、同周一 09:00 的 weekly（`storages/schedule.json`）。
 4. 主动性没有可开关的清单：vendor 任务页**没有创建表单**（"a new reminder starts in a Session"），本包出货**零默认排程**，主动能力以散文形式藏在技能与家手册里（[事实表](../../_backlog/research/positioning/261018-proactivity-baseline.md) §二/§五）。
-5. 桌面头部现在只有计数：`N 件在办 · N 条等你确认 · N 条待认领`（[`projection-panel.ts:231-234`](../../packages/dsh-smart-assistant/src/client/projection-panel.ts#L231-L234)）；首屏那条会说话的播报卡已随旧 desk 退役，现在只是指针（[`first-mile.ts:160-172`](../../packages/dsh-smart-assistant/src/client/first-mile.ts#L160-L172)）。
+5. 桌面头部现在只有计数：`N 件在办 · N 条等你确认 · N 条待认领`（构建于 [`projection-panel.ts:247-250`](../../packages/dsh-smart-assistant/src/client/projection-panel.ts#L247-L250)、头部块 :276-283——行号随 desk-side-capture 推进漂移，以结构定位为准）；首屏那条会说话的播报卡已随旧 desk 退役，现在只是指针（[`first-mile.ts:160-172`](../../packages/dsh-smart-assistant/src/client/first-mile.ts#L160-L172)）。
 
 **已拍板的边界（不动）**：提醒只按本案明确委托的核对点/已确认条件触发，**不预设固定节律、不回复不升级**（[261008](../../_backlog/_archive/settled_issues/261008-ceo-operating-loop.md) L267）；对外内容本人过目、不做 IM；推送式（不经模型回合）主动生成已被否（[晨报 note](../implemented/2026-10-10-desk-daily-brief.md) 输掉的方案）；治理永远人工。
 
@@ -37,14 +37,14 @@
 
 - **两个只读源，客户端合并展示，不新增第二份真相**：
   - 账本投影 v2（已有）：`matters[].times.{nextCheckpoint,promisedDeadline}`、`status`、`proposals[].status`、`receipts[].submittedAt`、`unclaimed`；
-  - 平台排程**全局**目录（已有）：`ctx.remote.schedule.catalog()`（active+inactive、`sessionId`、`lastDelivery`）——本包 client 已注入 `remote`（[`client/index.ts:66`](../../packages/dsh-smart-assistant/src/client/index.ts#L66)），vendor `ui-schedule` 用的就是 `list: () => ctx.remote.schedule.catalog()`（`vendor/dsh/packages/client/ui-schedule/src/client/index.ts:93`）。
+  - 平台排程**全局**目录（已有）：`ctx.remote.schedule.catalog()`（active+inactive、`sessionId`、`lastDelivery`）——本包 client 已注入 `remote`（[`client/index.ts:66`](../../packages/dsh-smart-assistant/src/client/index.ts#L66)），vendor `ui-schedule` 用的就是 `list: () => ctx.remote.schedule.catalog()`（`vendor/dsh/packages/client/ui-schedule/src/client/index.ts:93`）。**待核（2026-10-18 首轮核验发现）**：本包 inject 只声明 `'remote'`、无 `'remote.schedule'` 子面，而 vendor `ui-schedule` 两个都声明——子面是否需单独注入属组合可行性，评审中。
 - **派生写成纯函数**（新增 `src/client/proactive-face.ts`）：输入 = 投影 + 目录 + `now` → 输出三行的行模型；keyless 可测，**这是本片的主要断言对象**。
-- **三行判据（写死）**：
-  - **L1 到期没结果**：`status==='active'` 且 `nextCheckpoint` 或 `promisedDeadline` **任一已过**，且该时刻之后没有回执 →「合同 NB-02 二期款核对 · 到期 5 天，账上没有结果」；点进该事项。
-  - **L2 它在等你**：pending 提案（已有计数）＋未答请示（片 2 产物）＋待认领（已有）→ 一行，点进对应事项/片段。
-  - **L3 它下次看**：目录里最早的 active 排程（标题＋下次时间）；`deliveredAt − scheduledAt` 超阈值 → 附一句诚实说明；同一 `title`+同一时刻 ≥2 条 → 标「重复」并给平台自动化任务页深链（**不在这里删**）。
+- **三行判据（写死；编号用"行 1/2/3"，不与综合档四层坐标系 L1–L4 混用）**：
+  - **行 1 到期没结果**：`status==='active'` 且 `nextCheckpoint` 或 `promisedDeadline` **任一已过**，且该时刻之后没有回执 →「合同 NB-02 二期款核对 · 到期 5 天，账上没有结果」；点进该事项。
+  - **行 2 它在等你**：pending 提案（已有计数）＋未答请示（片 2 产物）＋待认领（已有）→ 一行，点进对应事项/片段。
+  - **行 3 它下次看**：目录里最早的 active 排程（标题＋下次时间）；`deliveredAt − scheduledAt` 超阈值 → 附一句诚实说明；同一 `title`+同一时刻 ≥2 条 → 标「重复」并给平台自动化任务页深链（**不在这里删**）。
 - **行文案遵守 261008 四问**（什么变了 / 为什么现在 / 缺什么或建议 / 要不要你介入），每行 ≤1 行 + 恰一个动作。
-- **形态**：坐在头部计数行（[`projection-panel.ts:260-267`](../../packages/dsh-smart-assistant/src/client/projection-panel.ts#L260-L267)）与桌面受理行（[`:272-294`](../../packages/dsh-smart-assistant/src/client/projection-panel.ts#L272-L294)）之间，是**一条**，不是卡；三行全空则不渲染（不占位）。主对象仍是事项列表。
+- **形态**：坐在头部块（[`projection-panel.ts:276-283`](../../packages/dsh-smart-assistant/src/client/projection-panel.ts#L276-L283)＝h1＋计数行＋按钮）与桌面受理行（`dsha-capture`，[:288-310](../../packages/dsh-smart-assistant/src/client/projection-panel.ts#L288-L310)；**结构定位——两卡以行号互指会互相作废锚点，以 class 锚为准**）之间，是**一条**，不是卡；三行全空则不渲染（不占位）。主对象仍是事项列表。
 - **不做**：不写账本、不改排程、不调模型、不新增模型可见工具（本片是"变化门"——先跑便宜的判定，只有本人点下去才叫醒模型）。
 - **依据**：dots 的只读巡检只被产品化为"只读"；四家的送达面都是"放进待看的地方"；变更检测优先于定时汇报；Pulse 复盘判据 `steerable by the user`（[UX 机制档](../../_backlog/research/positioning/261018-proactive-ux-mechanics.md) §三）；变化门与零 LLM 档（[开源机制档](../../_backlog/research/positioning/261018-oss-proactivity-mechanisms.md) M1）。
 
@@ -56,7 +56,7 @@
   - **替我盯上**：一键建（文案写明这是"以后都这样"，与一次性动作区分——对外部样本里"Approve 只改这一次 / Always allow 改规则"的吸收）。
 - **建排程走既有面板代发车道**（按钮→下一句话确认；不直调 RPC，沿用既有先例），由模型按既有技能建 `schedule_create`，`title` 用本人看得懂的话；同回合回一句"已替你盯上，每周一 09:00；不想收就说一声"。
 - **忽略（×）＝封口**：这条建议不再出现（客户端本地记住即可；不新增存储面）。
-- **答得上**：主动投递需要本人给一句话时，走平台 question 交互（`tool-ask-user` 在 dev 组合在场，已核 `pnpm dsh --profile dev --dump-config`）→ 产生 `pendingInteraction`，侧栏行显示「轮到你」，回答即指令；未答期间由片 1 的 L2 常驻。
+- **答得上**：主动投递需要本人给一句话时，走平台 question 交互（`tool-ask-user` 在 dev 组合在场，已核 `pnpm dsh --profile dev --dump-config`）→ 产生 `pendingInteraction`，侧栏行显示「轮到你」，回答即指令；未答期间由片 1 的行 2 常驻。
 - **不做**：不默认开（出厂仍零默认排程）；不做静默时段/暂停/改频（平台没有这些概念，见输掉的方案 7）；不新建任务管理器。
 
 ### 片 3 — 无人值守 turn 的红线（模型可见面，英文，同 diff 登记 + eval）
@@ -93,11 +93,11 @@
 |---|---|---|---|
 | 1 | `pnpm --filter dsh-smart-assistant exec vitest run tests/client/proactive-face.spec.ts` | 新纯核：行派生矩阵（逾期无结果 / 迟到 / 重复 / 空态 / `now` 边界 / 已了结不出现） | 任一负例未拒或该出现的行缺席 = 红 |
 | 1 | `pnpm build && pnpm test:client` | 面板渲染三态、空态不渲染、行内恰一个动作 | 空态占位或两行动作数不对 = 红 |
-| 1 | `pnpm shots '<URL>' --dom --size 1500x1000 --name proactive-face-{due,quiet,dup}` | 三态各有其形；DOM 含三行文案、迟到说明、重复标与深链 | 任一态缺形或缺文 = 红 |
-| 1 | 真机前后比对（同 `desk-walk`/探针口径） | 会话数不增、`ledger.json` 字节不变（零模型调用、零写入） | 新增会话或账本字节变化 = 红 |
-| 2 | `pnpm shots '<URL>' --eval` 或 `node dev/probes/web/desk-process-e2e.mjs --scenario flow` | 「先试跑一次」只在会话里产生一轮读、排程目录不变；「替我盯上」后目录出现 title 可读的新排程**且无重复** | 试跑写了排程 / 接受后重复 = 红 |
-| 2 | `pnpm eval` | 主动请求走 question 交互时产生 `pendingInteraction`（侧栏「轮到你」）；回答即指令、账本落对 | 只在正文问、无 pendingInteraction = 红 |
-| 3 | `pnpm eval` + `pnpm test:composition` | 红线段落在场；无人值守 turn 不调用 `confirm/reject/complete/revise/discard/claim/promote_page/land_skill`，不建常态排程 | 段落缺席或无人值守 turn 建了排程 = 红 |
+| 1 | `pnpm shots '<URL>' --dom --size 1500x1000 --name proactive-face-due`（`…-quiet`、`…-dup` **各跑一条**——brace 展开会静默丢两态且 exit 0） | 三态各有其形；DOM 含三行文案、迟到说明、重复标与深链；跑完 grep 对应 `*.dom.txt` 断言三态文案各自在场 | 任一态缺形或缺文 = 红；只出 1/3 张图也 = 红 |
+| 1 | 真机前后比对（**前置：受控 home——无 active 排程、无 mid-run goal，否则到期投递/goal 续跑会在窗口内自发建会话造成假红；无现成命令，实施时以最小脚本落 `dev/probes/web/`，口径 = `<home>/assistant-operating/ledger.json` 字节 + `sessions/` 计数**） | 会话数不增、`ledger.json` 字节不变（零模型调用、零写入，无需真 key） | 新增会话或账本字节变化 = 红 |
+| 2 | `pnpm shots '<URL>' --eval '<JS 片段>'`（`--eval` 置尾无参会**静默降级**为普通截图且 exit 0）或 `node dev/probes/web/desk-process-e2e.mjs --scenario flow`（**待扩**：现 flow 场景测处理流受理，不含"先试跑/替我盯上"） | 「先试跑一次」只在会话里产生一轮读、排程目录不变；「替我盯上」后目录出现 title 可读的新排程**且无重复** | 试跑写了排程 / 接受后重复 = 红 |
+| 2 | `pnpm eval`（**2026-10-18 评审：此行按现仓库不可复现**——`pendingInteraction` 是 web UI 态而 eval 走 headless one-shot，且 checks.mjs 现有 8 种判据不含它；需 web 驱动 + 新 check kind，见[评审卡·评审记录](../../_backlog/issues/261018-proactive-direction.md)·评测） | 主动请求走 question 交互时产生 `pendingInteraction`（侧栏「轮到你」）；回答即指令、账本落对 | 只在正文问、无 pendingInteraction = 红 |
+| 3 | `pnpm test:agent`（红线段落合同的门）+ `pnpm test:composition`（行装载）+ `pnpm eval`（**无人值守半行 2026-10-18 评审：不可复现**——eval 全任务用户发起、无采样通道，schedule_* 是 web-bound；需“种将到期排程→等投递→判会话日志无七动词/无 schedule_create”的 web 驱动，见[评审卡·评审记录](../../_backlog/issues/261018-proactive-direction.md)·评测） | 红线段落在场；无人值守 turn 不调用 `confirm/reject/complete/revise/discard/claim/promote_page/land_skill`，不建常态排程 | 段落缺席或无人值守 turn 建了排程 = 红 |
 | 全 | `pnpm build && pnpm test && pnpm verify`；改模型可见面另加 `pnpm eval` | 收尾三连（[`scripts/AGENTS.md`](../../scripts/AGENTS.md)） | 任一红即未完成 |
 
 **本人的验收面（不代判）**：一眼是否知道它在盯什么、在等什么；「先试跑一次」的输出是否让人敢点「替我盯上」；行文案是否像人话（口味面，触发＝本人日常使用或点名）。

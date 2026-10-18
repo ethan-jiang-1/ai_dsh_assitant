@@ -18,7 +18,7 @@ intent: "把本仓今天已有的主动性机制、用户手上的开关、历�
 
 ## 一、今天"没人开口也会发生"的事
 
-八条。前三条是"会走模型回合"的（花钱），其余是机械刷新（不调模型）。
+八条。前四条是"会走模型回合"的（花钱），其余是机械刷新（不调模型）。
 「能调什么工具」一栏：前三条与第四条都是**普通模型回合**，会话里的全工具面（五个自有工具 + `session_query` 族 + `schedule_*` + 技能等）都在场，没有按来源收窄。
 
 | # | 触发者 | 频率 / 条件 | 能看到什么上下文 | 能调什么工具 | 用户在哪感知到它 | 花钱 |
@@ -121,7 +121,7 @@ intent: "把本仓今天已有的主动性机制、用户手上的开关、历�
 - 桌面已知缺口（如实记）：滚动位置保留**未实现**；`turnSettled` 客户端不可得；**提醒通道恒 `synced`（V4/V5 未实现，投影 reminders 恒空）**；A2 推荐质量未定版 = [desk-operating-entry note:57](../../../notes/implemented/2026-10-06-desk-operating-entry.md#L57)；"自动周期催办"在该卡的排除项 = 同 note [:58](../../../notes/implemented/2026-10-06-desk-operating-entry.md#L58)。
 - 261008 的 V1–V9 验收：**新增资产均未建**，权限/范围的确认"不是模拟或产品价值通过" = [261008:236](../../_archive/settled_issues/261008-ceo-operating-loop.md#L236)、[:262](../../_archive/settled_issues/261008-ceo-operating-loop.md#L262)；提醒协调的故障窗口"故障注入尚未执行，证据不足时不称可靠恢复已成立" = 同卡 [:230](../../_archive/settled_issues/261008-ceo-operating-loop.md#L230)。
 - 节拍器 / 提案槽：本档只读到代码与 `tests/agent/maintenance-metronome.spec.ts`、`tests/host/skill-proposals.spec.ts` 这一层断言，**未见真模型端到端探针**；[desk-daily-brief note:35](../../../notes/implemented/2026-10-10-desk-daily-brief.md#L35) 记的先例（BUG-008：在托管不了该能力的组合里评分，让笔记记下过不可能出现的 PASS）说明这类"没跑过就当通过"是真踩过的坑。【推断】两条自发 turn 的实际产出质量（是否净收益、是否打断 goal）目前无实测读数。
-- **当前在推的切片不算已完成**：`261018-desk-side-capture` 台账 = 片 0 落地（**余真模型端到端走查**）、片 1a 落地而 **1b 未开始**、片 2/3/4 未开始 = [261018 收口卡:26-30](../../issues/261018-desk-side-capture-closure.md#L26-L30)；它自己是"桌面自己收下一句话从未被裁决"的补裁决 = [proposed 卡:14](../../../notes/proposed/2026-10-18-desk-side-capture.md#L14)，其"账本收件箱"仍被 30 天观察推迟 = [:66](../../../notes/proposed/2026-10-18-desk-side-capture.md#L66)。
+- **当前在推的切片不算已完成**：`261018-desk-side-capture` 台账（快照 2026-10-18，**活状态以收口卡为准**）= 片 0 落地（余真模型端到端走查）、片 1（1a+1b）落地（余真模型端到端走查）、片 2/3/4 未开始 = [261018 收口卡:26-30](../../issues/261018-desk-side-capture-closure.md#L26-L30)；它自己是"桌面自己收下一句话从未被裁决"的补裁决 = [proposed 卡:14](../../../notes/proposed/2026-10-18-desk-side-capture.md#L14)，其"账本收件箱"仍被 30 天观察推迟 = [:66](../../../notes/proposed/2026-10-18-desk-side-capture.md#L66)。
 
 ## 五、缺口表（只写现状与缺口）
 
