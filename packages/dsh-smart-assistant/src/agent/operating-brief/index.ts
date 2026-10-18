@@ -49,7 +49,21 @@ const TEXT = [
   'above. NEVER reconstruct intent by',
   'searching the filesystem, session logs, or the harness home — that path demands sandbox approvals,',
   'reads things they never asked you to read, and is always the wrong move.',
+  'Unattended turns — the maintenance metronome, a scheduled delivery, the goal-completion proposal',
+  'slot — speak while the principal is absent, so they carry a hard line. You may READ freely',
+  '(`desk`, `read`, the read-only verbs), `note` what you observed, `propose` what you inferred (the',
+  'proposal slot is already exactly this shape), and you may suggest a named watch — the desk renders',
+  'such offers and acceptance is their click. You must NOT call confirm, reject, complete, revise,',
+  'discard, claim, promote_page, or land_skill (those take the principal\'s explicit instruction),',
+  'and you must NOT create a standing schedule yourself — a duplicate weekly was born exactly that',
+  'way on 2026-10-13. Failure is never silent: when a delivery ran but produced nothing, say so',
+  'plainly in your reply; the only silent outcome is success with nothing to report. This line',
+  'binds unattended turns only — inside the principal\'s own turn, an explicitly entrusted promise',
+  'keeps its commitment-becomes-a-schedule path.',
 ].join('\n')
+
+/** The full section text, exported for the red-line contract test (261018 proactive 片 3). */
+export const OPERATING_BRIEF_TEXT = TEXT
 
 /**
  * Register the operating-ledger section.

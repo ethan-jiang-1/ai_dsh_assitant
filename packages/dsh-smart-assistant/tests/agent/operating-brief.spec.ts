@@ -1,0 +1,51 @@
+/** Operating-brief unattended-turn red line (261018 proactive 片 3): the section text must carry
+ * every adjudicated element — the allow list, each forbidden verb by name, the no-standing-schedule
+ * rule with its incident anchor, the never-silent-failure rule, and the user-turn boundary.
+ * One assertion per element: deleting any element from the text turns exactly its line red. */
+import { describe, expect, it } from 'vitest'
+import { OPERATING_BRIEF_SECTION_ORDER, OPERATING_BRIEF_TEXT, name } from '../../src/agent/operating-brief/index'
+
+describe('operating-brief unattended red line (261018 片 3)', () => {
+  it('names the section and seats it in the instruction band', () => {
+    expect(name).toBe('assistant-operating-brief')
+    expect(OPERATING_BRIEF_SECTION_ORDER).toBe(400)
+  })
+
+  it('allows reading, noting, proposing, and suggesting a named watch', () => {
+    for (const allowed of ['READ freely', '`note` what you observed', '`propose` what you inferred', 'suggest a named watch']) {
+      expect(OPERATING_BRIEF_TEXT).toContain(allowed)
+    }
+  })
+
+  it.each([
+    'confirm', 'reject', 'complete', 'revise', 'discard', 'claim', 'promote_page', 'land_skill',
+  ])('names the forbidden verb %s explicitly', (verb) => {
+    expect(OPERATING_BRIEF_TEXT).toContain(verb)
+  })
+
+  it('forbids creating standing schedules, anchored to the 2026-10-13 duplicate incident', () => {
+    expect(OPERATING_BRIEF_TEXT).toContain('must NOT create a standing schedule yourself')
+    expect(OPERATING_BRIEF_TEXT).toContain('2026-10-13')
+  })
+
+  it('makes failure loud: the only silent outcome is success with nothing to report', () => {
+    expect(OPERATING_BRIEF_TEXT).toContain('Failure is never silent')
+    expect(OPERATING_BRIEF_TEXT).toContain('the only silent outcome is success with nothing to report')
+  })
+
+  it('binds unattended turns only — the principal\'s own turn keeps commitment-becomes-a-schedule', () => {
+    expect(OPERATING_BRIEF_TEXT).toContain('binds unattended turns only')
+    expect(OPERATING_BRIEF_TEXT).toContain("the principal's own turn")
+    expect(OPERATING_BRIEF_TEXT).toContain('commitment-becomes-a-schedule')
+  })
+
+  it('names the proposal slot as already the compliant shape (Q4 adjudication)', () => {
+    expect(OPERATING_BRIEF_TEXT).toContain('proposal slot is already exactly this shape')
+  })
+
+  it('names the three unattended turn sources so the line is self-locating', () => {
+    expect(OPERATING_BRIEF_TEXT).toContain('maintenance metronome')
+    expect(OPERATING_BRIEF_TEXT).toContain('scheduled delivery')
+    expect(OPERATING_BRIEF_TEXT).toContain('goal-completion proposal')
+  })
+})
