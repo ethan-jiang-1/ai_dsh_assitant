@@ -29,7 +29,7 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { bindClaimPath, bindDiscardPath, bindIntakePath, bindProcessPath, bindWakePath, canProcess, captureWait, judgeClaimReturn, judgeDiscardReturn, judgeIntakeReturn, judgeReturn, judgeWakeReturn, type JudgeProposal, type JudgeSession } from '../../src/client/desk-process.ts'
+import { bindClaimPath, bindDiscardPath, bindIntakePath, bindProcessPath, bindWakePath, canProcess, capturePhase, captureWait, judgeClaimReturn, judgeDiscardReturn, judgeIntakeReturn, judgeReturn, judgeWakeReturn, type JudgeProposal, type JudgeSession } from '../../src/client/desk-process.ts'
 import { claimContextMessage, discardContextMessage, processingContextMessage, resumeContextMessage, wakeContextMessage } from '../../src/client/desk-process-messages.ts'
 
 interface Receipt { operationId: string, matterId: string, sessionId: string, status: string, revision?: number, proposalId?: string, submittedAt: string, unclaimedId?: string }
@@ -569,5 +569,37 @@ describe('captureWait (the capture row\'s "whose turn" reading)', () => {
 
   it('fails to "idle" rather than inventing a turn when the status is unknown', () => {
     expect(captureWait(undefined)).toEqual({ wait: 'idle' })
+  })
+})
+
+/**
+ * 261019: the delivery receipt's terminal state. The row used to end ONLY when the ledger moved;
+ * an action lane that writes no ledger by design (先试跑一次) therefore stayed "in flight" forever
+ * and kept the capture input disabled. The phase adds the turn-end terminal state without giving
+ * up the ledger as the authority: a moved revision still wins, and a session never seen running
+ * stays queued rather than being invented as finished.
+ */
+describe('capturePhase (the receipt\'s terminal state)', () => {
+  it('the ledger moving past the receipt resolves it, whatever the session says', () => {
+    expect(capturePhase(3, 4, { running: true })).toBe('resolved')
+    expect(capturePhase(3, 4, undefined)).toBe('resolved')
+  })
+
+  it('a pending question suspends before a running turn does — the principal must answer', () => {
+    expect(capturePhase(3, 3, { running: true, pendingInteraction: { kind: 'question' } })).toBe('suspended')
+  })
+
+  it('a running turn is still in flight', () => {
+    expect(capturePhase(3, 3, { running: true })).toBe('running')
+  })
+
+  it('a finished turn settles even when the ledger never moves — the 先试跑 terminal state', () => {
+    expect(capturePhase(3, 3, { running: false, completionUnread: true })).toBe('settled')
+    expect(capturePhase(3, 3, { running: false, seenRunning: true })).toBe('settled')
+  })
+
+  it('never invents a finished turn: an unknown session stays queued', () => {
+    expect(capturePhase(3, 3, undefined)).toBe('queued')
+    expect(capturePhase(3, 3, { running: false })).toBe('queued')
   })
 })

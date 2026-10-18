@@ -175,12 +175,40 @@ export function deriveProactiveFace(input: ProactiveFaceInput): ProactiveRow[] {
 
   // Q5 (adjudicated minimal failure visibility): a remembered acceptance whose title never
   // shows up in the catalog says so — one honest row per orphaned acceptance, no attribution.
+  // 261019: one row per TITLE, not per click. Retrying appended another acceptance for the same
+  // title, which stacked identical rows (and collided on their React keys) with no way to clear
+  // them; repeated acceptances of one watch are still one watch.
   if (catalog !== undefined && input.acceptedWatches !== undefined) {
     const knownTitles = new Set(catalog.map(entry => entry.title))
+    const reported = new Set<string>()
     for (const accepted of input.acceptedWatches) {
-      if (!knownTitles.has(accepted.title)) rows.push({ kind: 'watch-mismatch', title: accepted.title })
+      if (knownTitles.has(accepted.title) || reported.has(accepted.title)) continue
+      reported.add(accepted.title)
+      rows.push({ kind: 'watch-mismatch', title: accepted.title })
     }
   }
 
   return rows
+}
+
+/**
+ * Remember one watch acceptance, keeping at most one per title (261019). Re-accepting the same
+ * watch replaces the remembered click instead of appending a second identical failure row.
+ * @param state - The current client-local UI state.
+ * @param watch - The acceptance just recorded (the retry lane's id carries the title itself).
+ * @returns A new state; `ignored` is carried through unchanged.
+ */
+export function rememberAcceptedWatch(state: ProactiveUiState, watch: AcceptedWatch): ProactiveUiState {
+  return { ignored: state.ignored, accepted: [...state.accepted.filter(item => item.title !== watch.title), watch] }
+}
+
+/**
+ * Drop every remembered acceptance for one title — the mismatch row's 忽略. The schedules
+ * themselves are untouched: only the client's memory of a failed acceptance is forgotten.
+ * @param state - The current client-local UI state.
+ * @param title - The watch title to forget.
+ * @returns A new state without that title; `ignored` is carried through unchanged.
+ */
+export function forgetAcceptedWatch(state: ProactiveUiState, title: string): ProactiveUiState {
+  return { ignored: state.ignored, accepted: state.accepted.filter(item => item.title !== title) }
 }

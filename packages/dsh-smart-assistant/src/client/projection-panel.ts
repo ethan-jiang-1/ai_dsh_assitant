@@ -1,7 +1,7 @@
 /** Global projection presentation. Renderer supplies the sole live-data hook. */
 import { createElement as ce } from './runtime'
 import { AssistantBrandMark } from './brand'
-import { canProcess, captureWait, type CaptureStatus } from './desk-process'
+import { canProcess, capturePhase, type CaptureStatus } from './desk-process'
 import { humanTime, localDateKey, localDateLabel, localTimeLabel } from './format'
 import { deriveProactiveFace, PROACTIVE_SUGGESTIONS, type ProactiveUiState } from './proactive-face'
 import type { ProactiveCatalogState } from './proactive-face-source'
@@ -22,6 +22,8 @@ export interface ProjectionPanelProps {
   onSuggestAction?(kind: 'trial' | 'watch', id: string): void
   /** Dismiss one suggestion for good (片 2's 忽略封口). */
   onSuggestDismiss?(id: string): void
+  /** Forget a failed acceptance whose watch never materialized (the Q5 row's 忽略, 261019). */
+  onWatchForget?(title: string): void
   actions: { selectMatter(id: string): void; selectFragment(id: string): void; showList(): void; rememberListPosition(position: number): void; setFilter(filter: ProjectionView['filter']): void; setMode(mode: ProjectionView['mode']): void; revealMoreActivity(): void; setCaptureDraft(text: string): void; setCaptureReceipt(receipt: DeskCaptureReceipt | null): void }
   refreshProjection(): void
   onAsk(): void
@@ -93,6 +95,8 @@ const STYLES = [
   /* The in-flight row: dashed and grey ON PURPOSE — it must not read as a matter or a fragment. */
   '.dsha-inflight{border:1px dashed var(--dsw-alias-border-l3);border-radius:10px;padding:10px 12px;background:var(--dsw-alias-bg-layer-2);display:flex;flex-direction:column;gap:4px;}',
   '.dsha-inflight-line{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--dsw-alias-label-secondary);}',
+  '.dsha-inflight-close{margin-left:auto;font-size:12px;padding:2px 8px;}',
+  '.dsha-inflight > .dsha-btn{align-self:flex-start;}',
   '.dsha-chip-wait{background:var(--dsw-alias-bg-layer-3);color:var(--dsw-alias-label-secondary);}',
   '.dsha-inflight-said{margin:0;font-size:13px;color:var(--dsw-alias-label-primary);overflow-wrap:anywhere;}',
   '.dsha-proactive{display:flex;flex-direction:column;gap:4px;border:1px solid var(--dsw-alias-border-l3);border-radius:10px;padding:8px 12px;background:var(--dsw-alias-bg-layer-2);}',
@@ -100,6 +104,8 @@ const STYLES = [
   '.dsha-proactive-row > span{min-width:0;overflow-wrap:anywhere;}',
   '.dsha-proactive-due{border-left:2px solid var(--dsha-warn);padding-left:8px;}',
   '.dsha-proactive-row > .dsha-btn{margin-left:auto;flex:none;font-size:12px;padding:2px 8px;}',
+  '.dsha-proactive-actions{display:flex;gap:4px;flex:none;margin-left:auto;}',
+  '.dsha-proactive-actions > .dsha-btn{font-size:12px;padding:2px 8px;}',
   '.dsha-suggest{display:flex;flex-direction:column;gap:6px;border:1px dashed var(--dsw-alias-border-l3);border-radius:10px;padding:8px 12px;background:var(--dsw-alias-bg-base);}',
   '.dsha-suggest-title{font-size:12px;color:var(--dsw-alias-label-tertiary);}',
   '.dsha-suggest-item{display:flex;align-items:baseline;gap:8px;}',
@@ -219,22 +225,34 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
   // shown, the row is deliberately NOT shaped like a matter or a fragment: the desk must never
   // claim content it cannot back.
   const receipt = view.captureReceipt
-  const inflight = receipt !== null && (data?.revision ?? 0) <= receipt.observedRevision
   // 片 1b: whose turn it is comes from the platform's SessionStatus, not from anything the desk
   // remembers — so a reload keeps it. The receipt answers "not in the ledger yet"; this answers
   // "who is being waited on".
   const sessionStatuses = props.useSessionStatus(value => value)
-  const wait = receipt === null ? undefined : captureWait(sessionStatuses.get(receipt.sessionId))
-  const WAIT_LABEL: Record<string, string> = { me: '轮到我', assistant: '等助手', unread: '它说完了', idle: '已交给助手' }
-  const WAIT_DETAIL: Record<string, string> = {
-    me: '助手在会话里问了话（等你回答）——点「去会话」接着答，桌面这边不会替你答。',
-    assistant: '它正在处理你这句话。',
-    unread: '它已经停了，你还没看——结果还没进账。',
-    idle: '排着队，等它接手。',
+  const receiptStatus = receipt === null ? undefined : sessionStatuses.get(receipt.sessionId)
+  // 261019: the send row now has a terminal state that is not the ledger. The action lanes
+  // (先试跑/替我盯上) write no ledger entry by design, so waiting for a revision would leave the
+  // row — and the desk's own input — shut forever. A watched turn that has ended settles it;
+  // a session never seen running stays queued rather than being invented as finished.
+  const phase = receipt === null
+    ? undefined
+    : capturePhase(receipt.observedRevision, data?.revision ?? 0, receiptStatus)
+  const capturePending = phase === 'running' || phase === 'queued'
+  const isActionLane = receipt?.lane === 'action'
+  const PHASE_LABEL: Record<string, string> = {
+    running: '等助手', queued: '已交给助手', suspended: '轮到我', settled: '它说完了',
+  }
+  const PHASE_DETAIL: Record<string, string> = {
+    running: '它正在处理你这句话。',
+    queued: '排着队，等它接手。',
+    suspended: '助手在会话里问了话（等你回答）——点「去会话」接着答，桌面这边不会替你答。',
+    settled: isActionLane
+      ? '它跑完了，结论在会话里——桌面这边不会替你收下。'
+      : '它说完了，但账本没有新东西——点「去会话」看它说了什么。',
   }
   const submitCapture = (): void => {
     const text = view.captureDraft.trim()
-    if (text === '' || inflight) return
+    if (text === '' || capturePending) return
     props.actions.setCaptureDraft('')
     props.onCapture(text)
   }
@@ -303,12 +321,18 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
           ce('button', { className: 'dsha-btn', type: 'button', onClick: () => { props.actions.showList() } }, '去处理'))
       }
       if (row.kind === 'watch-mismatch') {
-        // Q5: state the fact (no attribution) and offer exactly one action — try the lane again.
+        // Q5: state the fact (no attribution) and offer the two honest ways out: retry the lane,
+        // or forget this failed acceptance. Retrying without a forget made the row permanent
+        // (261019) — a failed watch could only be re-failed, never acknowledged.
         return ce('div', { key: `mismatch-${row.title}`, className: 'dsha-proactive-row dsha-proactive-due' },
           ce('span', {}, `说了替你盯但没盯上：${row.title}`),
-          props.onSuggestAction !== undefined
-            ? ce('button', { className: 'dsha-btn', type: 'button', onClick: () => { props.onSuggestAction?.('watch', `retry:${row.title}`) } }, '再试一次')
-            : null)
+          ce('div', { className: 'dsha-proactive-actions' },
+            props.onSuggestAction !== undefined
+              ? ce('button', { className: 'dsha-btn', type: 'button', onClick: () => { props.onSuggestAction?.('watch', `retry:${row.title}`) } }, '再试一次')
+              : null,
+            props.onWatchForget !== undefined
+              ? ce('button', { className: 'dsha-btn', type: 'button', 'aria-label': `忽略：${row.title}`, onClick: () => { props.onWatchForget?.(row.title) } }, '忽略')
+              : null))
       }
       return ce('div', { key: 'next', className: 'dsha-proactive-row' },
         ce('span', {}, `它下次替你看：${row.title} · ${humanTime(row.nextAt)}${row.lateByMs !== undefined ? `（上次迟了 ${lateNote(row.lateByMs)}）` : ''}${row.duplicates !== undefined ? ` — 发现 ${row.duplicates} 条重复盯守` : ''}`),
@@ -394,7 +418,7 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
         value: view.captureDraft,
         placeholder: '有新的事，直接说…',
         'aria-label': '在桌面直接交代一件新事',
-        disabled: inflight,
+        disabled: capturePending,
         onInput: (event: { target: { value: string } }) => props.actions.setCaptureDraft(event.target.value),
         onKeyDown: (event: { key: string, preventDefault: () => void }) => {
           if (event.key === 'Enter') { event.preventDefault(); submitCapture() }
@@ -403,23 +427,33 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
       ce('button', {
         className: 'dsha-btn dsha-btn-primary',
         type: 'button',
-        disabled: inflight || view.captureDraft.trim() === '',
+        disabled: capturePending || view.captureDraft.trim() === '',
         onClick: submitCapture,
       }, '交给助手'),
       ce('p', { className: 'dsha-capture-hint' },
-        inflight
+        capturePending
           ? '已交给助手，还没进账——账本真出现这一条，它才会以事项或待认领的样子回来。'
           : '轻的走这里（记一下：助手会先记成一笔、再问要不要立项）；要正式立项用「＋ 交代新事项」当面谈。')),
-    inflight && receipt !== null ? ce('div', { className: 'dsha-inflight', role: 'status' },
+    phase !== undefined && phase !== 'resolved' && receipt !== null ? ce('div', { className: 'dsha-inflight', role: 'status' },
       ce('div', { className: 'dsha-inflight-line' },
-        ce('span', { className: `dsha-chip ${wait?.wait === 'me' ? 'dsha-chip-me' : 'dsha-chip-wait'}` }, WAIT_LABEL[wait?.wait ?? 'idle'] ?? '已交给助手'),
-        ce('span', {}, '还没进账')),
-      ce('p', { className: 'dsha-inflight-said' }, `「${receipt.text}」`),
-      ce('p', { className: 'dsha-capture-hint' }, WAIT_DETAIL[wait?.wait ?? 'idle'] ?? ''),
-      wait?.wait === 'me' || wait?.wait === 'unread'
+        ce('span', { className: `dsha-chip ${phase === 'suspended' ? 'dsha-chip-me' : 'dsha-chip-wait'}` }, PHASE_LABEL[phase] ?? '已交给助手'),
+        ce('span', {}, phase === 'settled'
+          ? (isActionLane ? '结果在会话里' : '账本没有新东西')
+          : '还没进账'),
+        // 261019: always an explicit way out. A receipt that can only end on a ledger move is a
+        // trap for the action lanes, whose whole point is not to write one.
+        ce('button', {
+          className: 'dsha-btn dsha-inflight-close', type: 'button', 'aria-label': '关闭这条提示',
+          onClick: () => props.actions.setCaptureReceipt(null),
+        }, '关闭')),
+      ce('p', { className: 'dsha-inflight-said' }, receipt.label ?? `「${receipt.text}」`),
+      ce('p', { className: 'dsha-capture-hint' }, PHASE_DETAIL[phase] ?? ''),
+      phase === 'suspended' || phase === 'settled'
         ? ce('button', { className: 'dsha-btn', type: 'button', onClick: () => props.onOpenSession(receipt.sessionId) }, '去会话')
         : null,
-      ce('p', { className: 'dsha-capture-hint' }, '来自：桌面直接交代 · 话已进会话日志')) : null,
+      ce('p', { className: 'dsha-capture-hint' }, isActionLane
+        ? '来自：桌面按钮 · 话已进会话日志'
+        : '来自：桌面直接交代 · 话已进会话日志')) : null,
     // The desk's two top-level views as real tabs (principal UX direction, 2026-10-12): the
     // divider line makes the split legible, the active underline sits ON the line, and the
     // glyphs carry the memory — this is not another row of filter pills.

@@ -141,6 +141,26 @@ try {
   if (String(trialSeen.answerText ?? '').trim() === '') fail('trial-answer', { hint: 'expected a one-line conclusion' })
   pass('trial', { tools: trialSeen.toolCalls.map(call => call.name).slice(0, 6), answerHead: String(trialSeen.answerText ?? '').slice(0, 120) })
 
+  // ── 相位 1b：试跑的无账本终态（261019）。先试跑按定义不写账本，所以回执不能等 revision：
+  // 回合结束后输入必须解禁、行改说「结果在会话里」、给「去会话」与「关闭」。修之前这里会永远
+  // 停在「还没进账」且输入 disabled——真机证据见 .tmp/shots/trial-inflight-after-turn.png。
+  const trialUi = await pollUntil(evaluate, `(() => {
+    const row = document.querySelector('.dsha-inflight');
+    if (row === null) return null;
+    const chip = row.querySelector('.dsha-chip')?.innerText ?? '';
+    if (chip !== '它说完了') return null;
+    return {
+      disabled: document.querySelector('.dsha-capture-input')?.disabled ?? null,
+      close: [...row.querySelectorAll('button')].some(b => b.innerText === '关闭'),
+      claimsPending: row.innerText.includes('还没进账'),
+      sessionPointer: [...row.querySelectorAll('button')].some(b => b.innerText === '去会话'),
+      rowHead: row.innerText.replace(/\\s+/g, ' ').slice(0, 160),
+    };
+  })()`, { intervalMs: 1000, budget: 90, checkFirst: true, isDone: value => value !== null })
+  if (trialUi === null) fail('trial-terminal', { hint: 'the desk never reached the settled receipt state within 90s' })
+  if (trialUi.disabled !== false || trialUi.close !== true || trialUi.claimsPending !== false || trialUi.sessionPointer !== true) fail('trial-terminal', trialUi)
+  pass('trial-terminal', trialUi)
+
   // ── 相位 2：替我盯上（一键建、title 可读、无重复、桌面行 3 呈现）。
   // Baseline re-read AFTER the trial settled: the watch turn may land in the SAME session.
   const postTrialBaseline = await readBaseline()

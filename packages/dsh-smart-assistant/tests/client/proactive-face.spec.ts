@@ -1,6 +1,6 @@
 /** Proactive face pure core (261018 片1): three honest rows from read-only sources, zero model calls. */
 import { describe, expect, it } from 'vitest'
-import { deriveProactiveFace, type ProactiveCatalogEntry, type ProactiveProjectionView } from '../../src/client/proactive-face'
+import { deriveProactiveFace, forgetAcceptedWatch, rememberAcceptedWatch, type ProactiveCatalogEntry, type ProactiveProjectionView } from '../../src/client/proactive-face'
 
 const NOW = new Date('2026-10-18T04:00:00.000Z')
 
@@ -230,6 +230,33 @@ describe('proactive face derivation', () => {
       now: NOW,
     })
     expect(rows.some(row => row.kind === 'watch-mismatch')).toBe(false)
+  })
+
+  it('Q5: repeated acceptances of one title make ONE row, not a growing stack', () => {
+    const rows = deriveProactiveFace({
+      projection: projection(),
+      catalog: [catalogEntry()],
+      acceptedWatches: [
+        { id: 'retry:每天看一遍桌面', title: '每天看一遍桌面', at: NOW.toISOString() },
+        { id: 'retry:每天看一遍桌面', title: '每天看一遍桌面', at: new Date(NOW.getTime() + 1000).toISOString() },
+      ],
+      now: NOW,
+    })
+    expect(rows.filter(row => row.kind === 'watch-mismatch')).toHaveLength(1)
+  })
+
+  it('remembers one acceptance per title, and forgets it on request', () => {
+    const empty = { ignored: [], accepted: [] }
+    const once = rememberAcceptedWatch(empty, { id: 'retry:X', title: 'X', at: NOW.toISOString() })
+    expect(once.accepted).toHaveLength(1)
+    const twice = rememberAcceptedWatch(once, { id: 'retry:X', title: 'X', at: new Date(NOW.getTime() + 1000).toISOString() })
+    expect(twice.accepted).toHaveLength(1)
+    expect(twice.accepted[0]?.at).not.toBe(once.accepted[0]?.at)
+    expect(forgetAcceptedWatch(twice, 'X').accepted).toEqual([])
+    // Distinct titles are independent; forgetting one keeps the other.
+    const two = rememberAcceptedWatch(once, { id: 'retry:Y', title: 'Y', at: NOW.toISOString() })
+    expect(two.accepted).toHaveLength(2)
+    expect(forgetAcceptedWatch(two, 'X').accepted.map(watch => watch.title)).toEqual(['Y'])
   })
 
   it('empty state: no projection data means no rows at all', () => {

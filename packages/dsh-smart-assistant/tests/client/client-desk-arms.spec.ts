@@ -54,6 +54,16 @@ function envelope(overrides: Record<string, unknown> = {}): Record<string, unkno
   }
 }
 
+/** What the entry hands the panel as a delivery receipt (261018; lane/label added 261019). */
+interface CaptureReceiptView {
+  requestId: string
+  sessionId: string
+  text: string
+  observedRevision: number
+  lane?: 'capture' | 'action'
+  label?: string
+}
+
 interface Fixture {
   ctx: Record<string, unknown>
   opened: string[]
@@ -62,7 +72,7 @@ interface Fixture {
   prompts: { requestId: string, sessionId: string, text: string }[]
   selected: string[]
   /** Capture receipts the entry's view actions recorded (261018 片 1). */
-  receipts: ({ requestId: string, sessionId: string, text: string, observedRevision: number } | null)[]
+  receipts: (CaptureReceiptView | null)[]
   /** Fire one panel-info notification, the way a layout change would. */
   notifyPanel: () => void
   /** Bring the connection up so the reader performs its first fetch and the projection turns ready. */
@@ -75,6 +85,7 @@ interface Fixture {
     onDiscard?: (id: string) => void
     onCapture?: (text: string) => void
     onWake?: (id: string) => void
+    onSuggestAction?: (kind: 'trial' | 'watch', id: string) => void
     hooks?: { projection?: { getSnapshot(): { status?: string } } }
   }
 }
@@ -158,7 +169,7 @@ function fixture(payload: Record<string, unknown> = envelope()): Fixture {
     connect: () => { generation.set({ id: 1 }); connectionState.set('connected') },
     armFaces: () => {
       const main = registrations.find(entry => entry.name === 'main')
-      const inject = main?.declaration.inject as ((actions: { selectMatter(id: string): void, setMode(mode: 'string'): void, setCaptureDraft(text: string): void, setCaptureReceipt(receipt: { requestId: string, sessionId: string, text: string, observedRevision: number } | null): void }) => ReturnType<Fixture['armFaces']>) | undefined
+      const inject = main?.declaration.inject as ((actions: { selectMatter(id: string): void, setMode(mode: 'string'): void, setCaptureDraft(text: string): void, setCaptureReceipt(receipt: CaptureReceiptView | null): void }) => ReturnType<Fixture['armFaces']>) | undefined
       return inject?.({
         selectMatter: (id: string) => { selected.push(id) }, setMode: () => {},
         setCaptureDraft: () => {}, setCaptureReceipt: receipt => { receipts.push(receipt) },
@@ -311,6 +322,22 @@ describe('desk arms through the entry', () => {
     expect(f.opened).toEqual([])
     expect(f.prompts[0]?.sessionId).toBe('session-new')
     expect(f.receipts[0]?.observedRevision).toBe(1)
+  })
+
+  it('the watch suggestions ride the same lane but carry a human label and the action lane', async () => {
+    const f = fixture()
+    const faces = await mount(f)
+    await flush()
+    ;(f.ctx.uiSession as { current: { value: { key: string | undefined } } }).current.value.key = 'session-current'
+
+    faces.onSuggestAction?.('trial', 'due-check')
+    await flush()
+    expect(f.prompts[0]?.text).toContain('[桌面] 先试跑一次「到期日到了替我核一遍账」')
+    expect(f.receipts[0]).toMatchObject({ lane: 'action', label: '先试跑「到期日到了替我核一遍账」' })
+
+    faces.onSuggestAction?.('watch', 'weekly-recon')
+    await flush()
+    expect(f.receipts[1]).toMatchObject({ lane: 'action', label: '替你盯上「每周一替我对一次账」' })
   })
 
   it('桌面受理位 sends nothing for whitespace', async () => {

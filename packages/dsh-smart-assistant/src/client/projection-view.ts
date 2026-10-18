@@ -24,6 +24,12 @@ export interface DeskCaptureReceipt {
   readonly text: string
   /** The projection revision observed when the line was sent; the row clears once it moves past. */
   readonly observedRevision: number
+  /** Which door produced the line (261019). `action` = a desk button (先试跑/替我盯上), whose
+   *  turn is expected to write no ledger entry — its terminal copy must not claim "还没进账". */
+  readonly lane?: 'capture' | 'action'
+  /** A human label for an action lane (the button the principal pressed). When present the row
+   *  echoes this instead of the canned instruction text, which is prompt engineering, not their words. */
+  readonly label?: string
 }
 
 export interface ProjectionView {

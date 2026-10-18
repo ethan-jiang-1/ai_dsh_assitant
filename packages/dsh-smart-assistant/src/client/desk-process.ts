@@ -139,6 +139,9 @@ export interface CaptureStatus {
   readonly running?: boolean
   readonly pendingInteraction?: { readonly kind?: string } | undefined
   readonly completionUnread?: boolean
+  /** True once this page has observed the session running. Lets a turn that produced no ledger
+   *  write settle without pretending an unknown session finished (261019). */
+  readonly seenRunning?: boolean
 }
 
 /**
@@ -163,6 +166,51 @@ export function captureWait(status: CaptureStatus | undefined): { wait: CaptureW
   if (status?.running === true) return { wait: 'assistant' }
   if (status?.completionUnread === true) return { wait: 'unread' }
   return { wait: 'idle' }
+}
+
+/** The delivery receipt's lifecycle phase (261019). */
+export type CapturePhase =
+  /** The ledger moved past the receipt: whatever it says takes over the desk. */
+  | 'resolved'
+  /** The assistant's turn is running: still in flight, the desk's own input stays shut. */
+  | 'running'
+  /** The assistant asked something: the turn is suspended on the principal, not on the desk. */
+  | 'suspended'
+  /** The turn ended without a ledger write (the action lanes, or a reply with no note). */
+  | 'settled'
+  /** Delivered, and the desk has not seen the session run yet: keep waiting, do not invent. */
+  | 'queued'
+
+/**
+ * The receipt's phase: the ledger remains the authority, but it is no longer the ONLY way out
+ * (261019 fix for the action lanes).
+ *
+ * Before this, the row ended only when the operating projection's revision moved past the
+ * receipt. 「先试跑一次」 is defined as "read, judge, write nothing", and 「替我盯上」 creates a
+ * schedule rather than a ledger entry, so both stayed "还没进账" forever and kept the desk's
+ * input disabled — a report that says "it ran" could never arrive. The turn ending is now a
+ * terminal signal too, but only for a session this page actually watched run (`seenRunning` or
+ * `completionUnread`): an unknown session stays queued, so the desk never claims a finish it
+ * cannot back.
+ *
+ * @param observedRevision - The projection revision recorded when the line was delivered.
+ * @param revision - The projection revision now (0 while it has not loaded).
+ * @param status - The bound session's platform status, or undefined while nothing is known.
+ * @returns The phase the row renders.
+ */
+export function capturePhase(
+  observedRevision: number,
+  revision: number,
+  status: CaptureStatus | undefined,
+): CapturePhase {
+  if (revision > observedRevision) return 'resolved'
+  const wait = captureWait(status)
+  if (wait.wait === 'me') return 'suspended'
+  if (wait.wait === 'assistant') return 'running'
+  if (wait.wait === 'unread') return 'settled'
+  // The platform sometimes loses the unread mark after a background turn (observed in the
+  // 先试跑 lane); having seen the session run is enough to know the turn is over.
+  return status?.seenRunning === true ? 'settled' : 'queued'
 }
 
 /** Whether a matter may open a processing path: only an active one. A settled matter's sole

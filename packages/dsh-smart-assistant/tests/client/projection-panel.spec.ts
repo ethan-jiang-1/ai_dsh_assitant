@@ -25,18 +25,19 @@ function render(value: ProjectionDownload): string {
 /** Render with the proactive catalog hook (261018 片 1 row 3) and the tasks deep-link. */
 type CatalogState = import('../../src/client/proactive-face-source').ProactiveCatalogState
 type UiState = import('../../src/client/proactive-face').ProactiveUiState
-function renderWithCatalog(value: ProjectionDownload, catalog: CatalogState, ui: UiState = { ignored: [], accepted: [] }): { tree: string, openTasks: ReturnType<typeof vi.fn>, suggestAction: ReturnType<typeof vi.fn>, suggestDismiss: ReturnType<typeof vi.fn>, node: unknown } {
+function renderWithCatalog(value: ProjectionDownload, catalog: CatalogState, ui: UiState = { ignored: [], accepted: [] }): { tree: string, openTasks: ReturnType<typeof vi.fn>, suggestAction: ReturnType<typeof vi.fn>, suggestDismiss: ReturnType<typeof vi.fn>, watchForget: ReturnType<typeof vi.fn>, node: unknown } {
   const view = createProjectionViewStore(defineStore).create()
   const openTasks = vi.fn()
   const suggestAction = vi.fn()
   const suggestDismiss = vi.fn()
+  const watchForget = vi.fn()
   const node = ProjectionPanel({
     useProjection: select => select(value), useStore: select => select(view.getSnapshot()), useSessionStatus: noStatuses,
     useCatalog: <S,>(select: (state: CatalogState) => S): S => select(catalog),
     useProactiveUi: <S,>(select: (state: UiState) => S): S => select(ui),
-    actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop, onClaim: noop, onDiscard: noop, onCapture: noop, onOpenSession: noop, onWake: noop, onOpenTasks: openTasks, onSuggestAction: suggestAction, onSuggestDismiss: suggestDismiss,
+    actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop, onClaim: noop, onDiscard: noop, onCapture: noop, onOpenSession: noop, onWake: noop, onOpenTasks: openTasks, onSuggestAction: suggestAction, onSuggestDismiss: suggestDismiss, onWatchForget: watchForget,
   })
-  return { tree: text(node), openTasks, suggestAction, suggestDismiss, node }
+  return { tree: text(node), openTasks, suggestAction, suggestDismiss, watchForget, node }
 }
 /** Collect every string attribute value matching a key anywhere in the tree (data-* assertions). */
 function collectAttr(node: unknown, key: string, into: string[] = []): string[] {
@@ -457,6 +458,52 @@ describe('the desk\'s capture row: takes the words here, and never overstates wh
     // the substance is not in the ledger yet.
     expect(text(idle)).toContain('还没进账')
   })
+
+  it('an action lane settles when the turn ends without a ledger write — input back on, honest terminal line', () => {
+    const view = createProjectionViewStore(defineStore).create()
+    const onOpenSession = vi.fn()
+    // The watch/trial lanes deliver a canned instruction, not the principal's words: the row
+    // must echo the human LABEL, never the prompt engineering behind it.
+    view.actions.setCaptureReceipt({
+      requestId: 'desk-capture-3', sessionId: 's-1', lane: 'action', label: '先试跑「到期日到了替我核一遍账」',
+      text: '先试跑一次「到期日到了替我核一遍账」：真读真判断、不建排程、不写账本', observedRevision: 3,
+    })
+    const settled = {
+      ...props(view, 3, noop),
+      useSessionStatus: <S,>(select: (value: ReadonlyMap<string, { running?: boolean, completionUnread?: boolean }>) => S): S => select(new Map([['s-1', { running: false, completionUnread: true }]])),
+      onOpenSession,
+    }
+    const output = ProjectionPanel(settled)
+    expect(text(output)).toContain('它说完了')
+    expect(text(output)).toContain('结果在会话里')
+    // The ledger did not move by design — claiming "还没进账" would be a permanent lie.
+    expect(text(output)).not.toContain('还没进账')
+    expect(text(output)).toContain('先试跑「到期日到了替我核一遍账」')
+    expect(text(output)).not.toContain('真读真判断')
+    // The turn is over: the desk's own input is usable again (this is the P0 the fix targets).
+    expect(findByClass(output, 'dsha-capture-input')?.disabled).toBe(false)
+    expect(findButton(output, '去会话')).toBeDefined()
+
+    const close = findButton(output, '关闭')
+    expect(close).toBeDefined()
+    close?.onClick?.()
+    expect(view.getSnapshot().captureReceipt).toBe(null)
+  })
+
+  it('a capture that ends with no ledger write says so, and still offers the way out', () => {
+    const view = createProjectionViewStore(defineStore).create()
+    view.actions.setCaptureReceipt({ requestId: 'desk-capture-4', sessionId: 's-1', text: '记得问一下小王那个报价', observedRevision: 3 })
+    const settled = {
+      ...props(view, 3, noop),
+      useSessionStatus: <S,>(select: (value: ReadonlyMap<string, { running?: boolean, completionUnread?: boolean }>) => S): S => select(new Map([['s-1', { running: false, completionUnread: true }]])),
+    }
+    const output = ProjectionPanel(settled)
+    expect(text(output)).toContain('它说完了')
+    expect(text(output)).toContain('账本没有新东西')
+    expect(text(output)).toContain('「记得问一下小王那个报价」')
+    expect(findByClass(output, 'dsha-capture-input')?.disabled).toBe(false)
+    expect(findButton(output, '关闭')).toBeDefined()
+  })
 })
 
 describe('proactive face rows (261018 片 1)', () => {
@@ -546,6 +593,26 @@ describe('proactive face rows (261018 片 1)', () => {
     expect(retry).toBeDefined()
     retry?.onClick?.()
     expect(suggestAction).toHaveBeenCalledWith('watch', 'retry:每个早上替我看一遍桌面')
+  })
+
+  it('Q5 repeated acceptances render ONE row, and 忽略 forgets it', () => {
+    const now = new Date().toISOString()
+    const { tree, node, watchForget } = renderWithCatalog(
+      download([]),
+      catalog([]),
+      {
+        ignored: [],
+        accepted: [
+          { id: 'retry:X', title: 'X', at: now },
+          { id: 'retry:X', title: 'X', at: new Date(Date.parse(now) + 1000).toISOString() },
+        ],
+      })
+    const occurrences = tree.split('说了替你盯但没盯上：X').length - 1
+    expect(occurrences).toBe(1)
+    const forget = findButton(node, '忽略')
+    expect(forget).toBeDefined()
+    forget?.onClick?.()
+    expect(watchForget).toHaveBeenCalledWith('X')
   })
 
   it('an unavailable catalog degrades row 3 to the explicit marker, never a guess', () => {

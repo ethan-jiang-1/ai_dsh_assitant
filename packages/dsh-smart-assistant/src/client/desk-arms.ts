@@ -86,8 +86,10 @@ export interface DeskArms {
   claimFragment(fragmentId: string): void
   /** 判为噪音: open the conversation in which the principal records why a fragment is dropped. */
   discardFragment(fragmentId: string): void
-  /** 桌面受理位: deliver the principal's own words to the intake conversation without leaving the desk. */
-  captureFromDesk(text: string): void
+  /** 桌面受理位: deliver the principal's own words to the intake conversation without leaving the desk.
+   *  The action lane (`先试跑`/`替我盯上`) rides the same delivery channel but carries a human
+   *  label and is allowed to settle without a ledger write (261019). */
+  captureFromDesk(text: string, options?: { lane?: 'capture' | 'action', label?: string }): void
   /** 唤醒: open the conversation that states what changed about a settled matter. */
   wakeMatter(matterId: string): void
   /**
@@ -293,7 +295,7 @@ export function createDeskArms(deps: DeskArmDeps): DeskArms {
   // room-data-io learned on 2026-09-26 — a fixed delay mis-advises and leaves contradictions).
   // The receipt is a delivery fact only; the words are durable in the conversation, and the
   // ledger stays the only authority on what exists.
-  const captureFromDesk = (text: string): void => {
+  const captureFromDesk = (text: string, options?: { lane?: 'capture' | 'action', label?: string }): void => {
     const trimmed = text.trim()
     if (trimmed === '') return
     void (async () => {
@@ -306,7 +308,11 @@ export function createDeskArms(deps: DeskArmDeps): DeskArms {
       const result = await prompt(request).catch(() => undefined) as { ok?: boolean } | undefined
       if (result?.ok === false) return
       const revision = deps.projection?.getSnapshot().data?.revision ?? 0
-      deps.viewActions()?.setCaptureReceipt?.({ requestId: request.requestId, sessionId, text: trimmed, observedRevision: revision })
+      deps.viewActions()?.setCaptureReceipt?.({
+        requestId: request.requestId, sessionId, text: trimmed, observedRevision: revision,
+        ...(options?.lane !== undefined ? { lane: options.lane } : {}),
+        ...(options?.label !== undefined ? { label: options.label } : {}),
+      })
     })()
   }
 
