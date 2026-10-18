@@ -1,12 +1,12 @@
 ---
-status: 排查中
+status: 已修
 severity: P1
 opened: 2026-10-19
 ---
 
 # BUG-016：桌面投递回执刷新即失，挂起的问题在桌面上没有任何入口
 
-> 严重级别：P1（重要）｜发现：2026-10-19｜状态：排查中
+> 严重级别：P1（重要）｜发现：2026-10-19｜状态：已修
 
 ## 症状
 
@@ -27,3 +27,9 @@ opened: 2026-10-19
 ## 修好定义
 
 刷新后：仍在跑的投递仍显示在途（或至少会话状态）；挂起的问题在桌面上有一个可点的入口（行 2 的"等你答"或等价物）；组件/纯核各一条判据，且真机刷新复验。
+
+## 修复（2026-10-19）
+
+- 回执（含 lane/label）落 `sessionStorage`（per tab，读取时重新校验形状），关闭时删除；刷新后在途/终态行仍在。
+- `openQuestions` 从 `SessionStatus.pendingInteraction` 接线；在途条可见时其所属会话不计入，避免双计；行 2 有挂起问题时动作变「去答问题」，直接打开那个会话。
+- 判据：`tests/client/projection-view.spec.ts` 刷新持久化 1 案、`tests/client/projection-panel.spec.ts` 计数与不双计 2 案；真机：自制探针刷新后 `inflightAfterReload: true`；`desk-capture-live` 真车道桌面出现「1 句等你答 / 去答问题」。

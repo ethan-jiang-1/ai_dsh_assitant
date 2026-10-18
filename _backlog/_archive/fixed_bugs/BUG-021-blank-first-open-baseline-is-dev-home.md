@@ -1,12 +1,12 @@
 ---
-status: 等人拍板
+status: 已修
 severity: P1
 opened: 2026-10-19
 ---
 
 # BUG-021：blank-first-open 基线录的是 dev home，场景契约已失效
 
-> 严重级别：P1（重要）｜发现：2026-10-19｜状态：等人拍板
+> 严重级别：P1（重要）｜发现：2026-10-19｜状态：已修
 
 ## 症状
 
@@ -27,3 +27,9 @@ opened: 2026-10-19
 ## 修好定义
 
 按场景 README 的隔离 home 重录并通过；readiness 超时成为硬失败（负例独红）；基线不再依赖一次性弹窗与 live 时刻（或在场景里显式确认弹窗/固定时刻）。
+
+## 修复（2026-10-19）
+
+- `webui-shots` 新增 `--require-eval <text>`：最后一次 eval 的返回值必须包含文本，否则在截图前非零退出；`webui-expected` 把 `--wait-text` 翻译成 `--require-eval 'ready: <token>'`，readiness 超时不再静默拍错状态。
+- `blank-first-open` 基线在一个全新隔离 home 上重录（工作区「默认工作区」、零事项、`还没有经营事项资料`、首开预览说明），并在第二个全新 home 上 `pnpm web-expected` PASS。
+- 负例：`--wait-text 'this-token-never-appears-xyz'` → `timeout:` → shots exit 1，不写期望；场景 README 记录 readiness 硬门与重录来源。

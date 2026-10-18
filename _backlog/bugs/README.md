@@ -42,14 +42,6 @@ frontmatter `status` 是当前阶段的唯一家；状态行镜像它（`状态�
 
 | Bug | 标题 | 严重级 | 发现 |
 |---|---|---|---|
-| [BUG-016](BUG-016-capture-receipt-lost-on-reload.md) | 桌面投递回执刷新即失，挂起的问题在桌面上没有任何入口 | P1 | 2026-10-19 |
-| [BUG-017](BUG-017-due-row-cleared-by-any-receipt.md) | 「到期没结果」行被任何回执清掉——claim/update 也算"看过" | P1 | 2026-10-19 |
-| [BUG-018](BUG-018-suggestion-buttons-no-inflight-guard.md) | 建议按钮没有在途闸——连点「替我盯上」可发两条 | P1 | 2026-10-19 |
-| [BUG-019](BUG-019-proactive-actions-noop-across-modes.md) | 主动行的动作在「流水」下是 no-op，「去处理」也不滚动 | P1 | 2026-10-19 |
-| [BUG-020](BUG-020-watch-acceptance-creates-two-schedules.md) | 一次「替我盯上」建出两条排程，还把指令本身记进待认领 | P1 | 2026-10-19 |
-| [BUG-021](BUG-021-blank-first-open-baseline-is-dev-home.md) | blank-first-open 基线录的是 dev home，场景契约已失效 | P1 | 2026-10-19 |
-| [BUG-022](BUG-022-takeover-frame-shot-too-early.md) | 走查「结果接管」帧拍早了，readback 断言太弱 | P2 | 2026-10-19 |
-| [BUG-023](BUG-023-proactive-time-copy-edges.md) | 到期 0 天；「下次替你看」可能指向过去 | P2 | 2026-10-19 |
 
 ## frontmatter
 

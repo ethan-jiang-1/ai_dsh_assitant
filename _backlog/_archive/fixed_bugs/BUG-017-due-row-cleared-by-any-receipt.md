@@ -1,12 +1,12 @@
 ---
-status: 等人拍板
+status: 已修
 severity: P1
 opened: 2026-10-19
 ---
 
 # BUG-017：「到期没结果」行被任何回执清掉——claim/update 也算"看过"
 
-> 严重级别：P1（重要）｜发现：2026-10-19｜状态：等人拍板
+> 严重级别：P1（重要）｜发现：2026-10-19｜状态：已修
 
 ## 症状
 
@@ -27,3 +27,7 @@ m-1（合同 NB-02 第二期款）承诺/核对都在 2026-10-13，到期 6 天�
 ## 修好定义
 
 本人选定判据后：m-1 这种"到期后有 claim/update 但无结果"的形状要么出现在到期行、要么文案不再声称"没结果"；新增一条正例/负例判据，真机桌面上可见。
+
+## 修复（2026-10-19）
+
+本人指令「都修了」后选定口径：只有 **committed 的 `complete` 回执**能清到期行；`claim` / `update`（含"仍未到账"报告）不再清。收窄 `ProactiveProjectionView.receipts` 的窄视图（kind/status）；纯核 1 案覆盖 update/claim/complete/rejected 四种。live 投影（m-1，到期后只有 claim/update）现在产出 `due-no-result`；真车道桌面出现「到期 5 天，账上没有结果」。
