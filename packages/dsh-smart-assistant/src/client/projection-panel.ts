@@ -3,7 +3,7 @@ import { createElement as ce } from './runtime'
 import { AssistantBrandMark } from './brand'
 import { canProcess, captureWait, type CaptureStatus } from './desk-process'
 import { humanTime, localDateKey, localDateLabel, localTimeLabel } from './format'
-import { deriveProactiveFace } from './proactive-face'
+import { deriveProactiveFace, PROACTIVE_SUGGESTIONS, type ProactiveUiState } from './proactive-face'
 import type { ProactiveCatalogState } from './proactive-face-source'
 import type { ProjectionDownload } from './projection-reader'
 import type { DeskCaptureReceipt, ProjectionView } from './projection-view'
@@ -16,6 +16,12 @@ export interface ProjectionPanelProps {
   useSessionStatus<S>(select: (value: ReadonlyMap<string, CaptureStatus>) => S): S
   /** The platform schedule catalog (261018 proactive 片 1) for「它替你看过」row 3; absent = degrade. */
   useCatalog?<S>(select: (state: ProactiveCatalogState) => S): S
+  /** Client-local proactive UI state (片 2): dismissed suggestions + remembered acceptances. */
+  useProactiveUi?<S>(select: (state: ProactiveUiState) => S): S
+  /** Hand one suggestion action to the desk's delivery lane (「先试跑一次」/「替我盯上」, 片 2). */
+  onSuggestAction?(kind: 'trial' | 'watch', id: string): void
+  /** Dismiss one suggestion for good (片 2's 忽略封口). */
+  onSuggestDismiss?(id: string): void
   actions: { selectMatter(id: string): void; selectFragment(id: string): void; showList(): void; rememberListPosition(position: number): void; setFilter(filter: ProjectionView['filter']): void; setMode(mode: ProjectionView['mode']): void; revealMoreActivity(): void; setCaptureDraft(text: string): void; setCaptureReceipt(receipt: DeskCaptureReceipt | null): void }
   refreshProjection(): void
   onAsk(): void
@@ -94,6 +100,15 @@ const STYLES = [
   '.dsha-proactive-row > span{min-width:0;overflow-wrap:anywhere;}',
   '.dsha-proactive-due{border-left:2px solid var(--dsha-warn);padding-left:8px;}',
   '.dsha-proactive-row > .dsha-btn{margin-left:auto;flex:none;font-size:12px;padding:2px 8px;}',
+  '.dsha-suggest{display:flex;flex-direction:column;gap:6px;border:1px dashed var(--dsw-alias-border-l3);border-radius:10px;padding:8px 12px;background:var(--dsw-alias-bg-base);}',
+  '.dsha-suggest-title{font-size:12px;color:var(--dsw-alias-label-tertiary);}',
+  '.dsha-suggest-item{display:flex;align-items:baseline;gap:8px;}',
+  '.dsha-suggest-body{display:flex;flex-direction:column;min-width:0;flex:1;gap:2px;}',
+  '.dsha-suggest-name{color:var(--dsw-alias-label-primary);font-size:13px;}',
+  '.dsha-suggest-hint{color:var(--dsw-alias-label-tertiary);font-size:12px;}',
+  '.dsha-suggest-actions{display:flex;gap:4px;flex:none;}',
+  '.dsha-suggest-actions .dsha-btn{font-size:12px;padding:2px 8px;}',
+  '.dsha-suggest-x{padding:2px 6px;}',
   '.dsha-tabs{display:flex;gap:2px;border-bottom:1px solid var(--dsw-alias-border-l2);}',
   '.dsha-tab{display:inline-flex;align-items:center;gap:6px;border:0;background:none;padding:7px 14px;font-size:13px;color:var(--dsw-alias-label-secondary);cursor:pointer;font:inherit;border-bottom:2px solid transparent;margin-bottom:-1px;}',
   '.dsha-tab:hover{color:var(--dsw-alias-label-primary);}',
@@ -251,11 +266,16 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
   const catalogState: ProactiveCatalogState = props.useCatalog !== undefined
     ? props.useCatalog(value => value)
     : { status: 'unavailable' }
+  const proactiveUi: ProactiveUiState = props.useProactiveUi !== undefined
+    ? props.useProactiveUi(value => value)
+    : { ignored: [], accepted: [] }
   const proactiveRows = deriveProactiveFace({
     ...(data !== undefined ? { projection: data } : {}),
     ...(catalogState.status === 'entries' ? { catalog: catalogState.entries } : {}),
+    ...(proactiveUi.accepted.length > 0 ? { acceptedWatches: proactiveUi.accepted } : {}),
     now: new Date(),
   })
+  const openSuggestions = PROACTIVE_SUGGESTIONS.filter(suggestion => !proactiveUi.ignored.includes(suggestion.id))
   const proactiveCatalogNote = proactiveRows.some(row => row.kind === 'next-look-unavailable')
   const proactiveVisible = proactiveRows.filter(row => row.kind !== 'next-look-unavailable')
   const lateNote = (lateByMs: number): string => {
@@ -282,12 +302,34 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
           ce('span', {}, `它在等你：${waiting.join(' · ')}`),
           ce('button', { className: 'dsha-btn', type: 'button', onClick: () => { props.actions.showList() } }, '去处理'))
       }
+      if (row.kind === 'watch-mismatch') {
+        // Q5: state the fact (no attribution) and offer exactly one action — try the lane again.
+        return ce('div', { key: `mismatch-${row.title}`, className: 'dsha-proactive-row dsha-proactive-due' },
+          ce('span', {}, `说了替你盯但没盯上：${row.title}`),
+          props.onSuggestAction !== undefined
+            ? ce('button', { className: 'dsha-btn', type: 'button', onClick: () => { props.onSuggestAction?.('watch', `retry:${row.title}`) } }, '再试一次')
+            : null)
+      }
       return ce('div', { key: 'next', className: 'dsha-proactive-row' },
         ce('span', {}, `它下次替你看：${row.title} · ${humanTime(row.nextAt)}${row.lateByMs !== undefined ? `（上次迟了 ${lateNote(row.lateByMs)}）` : ''}${row.duplicates !== undefined ? ` — 发现 ${row.duplicates} 条重复盯守` : ''}`),
         row.duplicates !== undefined && props.onOpenTasks !== undefined
           ? ce('button', { className: 'dsha-btn', type: 'button', onClick: props.onOpenTasks }, '去任务页')
           : null)
     }))
+  // 片 2 (261018 proactive):「让它替你盯」— three named suggestions in the adjudicated ②③①
+  // order, each with two actions through the desk's own delivery lane (a model round the
+  // principal explicitly clicked), and an × that seals that suggestion for good (local only).
+  // All dismissed → the whole block disappears; the desk keeps today's silhouette.
+  const suggestFace = openSuggestions.length === 0 ? null : ce('div', { className: 'dsha-suggest', role: 'region', 'aria-label': '让它替你盯' },
+    ce('div', { className: 'dsha-suggest-title' }, '让它替你盯'),
+    ...openSuggestions.map(suggestion => ce('div', { key: suggestion.id, className: 'dsha-suggest-item' },
+      ce('div', { className: 'dsha-suggest-body' },
+        ce('span', { className: 'dsha-suggest-name' }, suggestion.name),
+        ce('span', { className: 'dsha-suggest-hint' }, suggestion.hint)),
+      ce('div', { className: 'dsha-suggest-actions' },
+        ce('button', { className: 'dsha-btn', type: 'button', onClick: () => { props.onSuggestAction?.('trial', suggestion.id) } }, '先试跑一次'),
+        ce('button', { className: 'dsha-btn dsha-btn-primary', type: 'button', onClick: () => { props.onSuggestAction?.('watch', suggestion.id) } }, '替我盯上'),
+        ce('button', { className: 'dsha-btn dsha-suggest-x', type: 'button', title: '不再提这条', 'aria-label': `忽略：${suggestion.name}`, onClick: () => { props.onSuggestDismiss?.(suggestion.id) } }, '×')))))
   const message = download.status === 'disconnected' ? '连接已断开，恢复连接后重新读取。'
     : download.status === 'loading' ? '正在读取桌面…'
     : download.status === 'missing' ? '还没有经营事项资料。'
@@ -340,6 +382,7 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
     // structural anchor, not line numbers (the two 261018 cards invalidate each other's anchors).
     // All-empty state renders nothing; each row carries at most one action (noise cap R2).
     proactiveFace,
+    suggestFace,
     // 片 1 (261018): the desk's own capture row. The principal's intent to add something arises
     // WHILE looking at the desk, so the desk has to be able to take it — before this, the only
     // door was 「＋ 交代新事项」, which opens a conversation and takes the reminder surface away.

@@ -46,12 +46,44 @@ export interface ProactiveProjectionView {
   readonly unclaimed: readonly unknown[]
 }
 
+/** A locally remembered "替我盯上" acceptance — the Q5 mismatch check's input (片 2). */
+export interface AcceptedWatch {
+  readonly id: string
+  readonly title: string
+  readonly at: string
+}
+
+/** Client-local proactive UI state: dismissed suggestions + remembered acceptances (片 2).
+ * Deliberately NOT a second truth about schedules — it only remembers the principal's own
+ * clicks; the schedule facts stay in the platform storage. */
+export interface ProactiveUiState {
+  readonly ignored: readonly string[]
+  readonly accepted: readonly AcceptedWatch[]
+}
+
+/** The three named watch suggestions, in the adjudicated order ②③① (Q3 拍板 2026-10-18). */
+export const PROACTIVE_SUGGESTIONS: readonly {
+  readonly id: string
+  readonly name: string
+  readonly hint: string
+  /** Carries the informed-consent note: denser than the principal's "每周一坐" rhythm. */
+  readonly dense?: boolean
+}[] = [
+  { id: 'due-check', name: '到期日到了替我核一遍账', hint: '到期那天替你核一遍：账上有结果没说一声，没有也来说一声' },
+  { id: 'weekly-recon', name: '每周一替我对一次账', hint: '贴合你的每周一坐——周一早上先把料备好' },
+  { id: 'daily-look', name: '每个早上替我看一遍桌面', hint: '比「每周一坐」密——点了就是你自己把节律改成每天', dense: true },
+]
+
 export interface ProactiveFaceInput {
   /** The desk's read-only projection; absent means the desk has nothing yet (empty state). */
   readonly projection?: ProactiveProjectionView
   /** Platform schedule catalog; absent means the subface did not materialize (explicit degrade). */
   readonly catalog?: readonly ProactiveCatalogEntry[]
-  /** Unanswered proactive questions (片2 lands the producer; the core only counts). */
+  /** Locally remembered watch acceptances; each one whose title never appears in the catalog
+   * renders the honest "说了替你盯但没盯上" row (Q5 minimal failure visibility). */
+  readonly acceptedWatches?: readonly AcceptedWatch[]
+  /** Unanswered proactive questions (reserved; the adjudication's "matter vs session" split
+   * keeps session-side pendingInteractions with the capture in-flight row, not here). */
   readonly openQuestions?: number
   readonly now: Date
 }
@@ -60,6 +92,7 @@ export type ProactiveRow =
   | { readonly kind: 'due-no-result', readonly matterId: string, readonly title: string, readonly dueAt: string, readonly daysOverdue: number, readonly extraCount?: number }
   | { readonly kind: 'waiting-for-you', readonly pendingProposals: number, readonly unclaimed: number, readonly openQuestions: number }
   | { readonly kind: 'next-look', readonly title: string, readonly nextAt: string, readonly lateByMs?: number, readonly duplicates?: number }
+  | { readonly kind: 'watch-mismatch', readonly title: string }
   | { readonly kind: 'next-look-unavailable' }
 
 const DAY_MS = 86_400_000
@@ -137,6 +170,15 @@ export function deriveProactiveFace(input: ProactiveFaceInput): ProactiveRow[] {
         ...(lateByMs > LATE_DELIVERY_MS ? { lateByMs } : {}),
         ...(duplicates >= 2 ? { duplicates } : {}),
       })
+    }
+  }
+
+  // Q5 (adjudicated minimal failure visibility): a remembered acceptance whose title never
+  // shows up in the catalog says so — one honest row per orphaned acceptance, no attribution.
+  if (catalog !== undefined && input.acceptedWatches !== undefined) {
+    const knownTitles = new Set(catalog.map(entry => entry.title))
+    for (const accepted of input.acceptedWatches) {
+      if (!knownTitles.has(accepted.title)) rows.push({ kind: 'watch-mismatch', title: accepted.title })
     }
   }
 

@@ -60,6 +60,7 @@ import { createProjectionViewStore } from './projection-view'
 import type { CaptureStatus, DeskPath } from './desk-process'
 import { createDeskArms } from './desk-arms'
 import { createProactiveCatalogSource, type ProactiveCatalogState, type ProactiveRemoteLike } from './proactive-face-source'
+import { PROACTIVE_SUGGESTIONS, type AcceptedWatch, type ProactiveUiState } from './proactive-face'
 import { selectDashboardByDefault } from './default-panel-selection'
 import { en as firstMileEn, zh as firstMileZh } from './locales'
 
@@ -139,16 +140,64 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       const status = ctx.uiSession.sessionStatus
       ctx.effect(() => status.subscribe(() => { sessionStatuses.set(readStatuses()) }))
     }
-    // 片 1 (261018 proactive): the schedule catalog bridge. Stage-0 finding: declaring the
-    // `'remote.schedule'` subface in inject kills the whole client entry, so this reads the
-    // namespace structurally off the already-injected remote (room-data-io precedent) and
-    // mirrors it into a snapshot store; a namespace that never materializes degrades row 3
-    // to an explicit marker instead of a guess.
+    // 片 1 (261018 proactive): the schedule catalog bridge. Wiring verdict (stage-0, three
+    // binary-search rounds): the `'remote.schedule'` subface inject works ONLY together with
+    // the `"@deepseek-ai/dsh-schedule"` peer declaration (vendor ui-schedule is wired the same
+    // way); either piece alone kills the whole client entry at runtime with zero type-level
+    // warning. The source degrades to an explicit marker when the namespace never materializes.
     const proactiveCatalog = storeApi?.createSnapshotStore<ProactiveCatalogState>({ status: 'fetching' })
     if (proactiveCatalog !== undefined) {
       const remoteFace = ctx.remote as ProactiveRemoteLike | undefined
       const source = createProactiveCatalogSource({ effect: install => ctx.effect(install), remote: remoteFace })
       ctx.effect(() => source.subscribe(() => { proactiveCatalog.set(source.getSnapshot()) }))
+    }
+    // 片 2 (261018 proactive):「让它替你盯」UI state — dismissed suggestions and remembered
+    // acceptances. Client-local by adjudication (忽略封口 + Q5 acceptance trace): it remembers
+    // the principal's own clicks and nothing about schedules; localStorage when available.
+    const PROACTIVE_UI_KEY = 'dsha-proactive-ui-v1'
+    const readProactiveUi = (): ProactiveUiState => {
+      try {
+        const raw = typeof localStorage === 'undefined' ? null : localStorage.getItem(PROACTIVE_UI_KEY)
+        if (raw === null) return { ignored: [], accepted: [] }
+        const parsed = JSON.parse(raw) as { ignored?: unknown, accepted?: unknown }
+        return {
+          ignored: Array.isArray(parsed.ignored) ? parsed.ignored.filter((id): id is string => typeof id === 'string') : [],
+          accepted: Array.isArray(parsed.accepted)
+            ? parsed.accepted.filter((item): item is AcceptedWatch =>
+                typeof item === 'object' && item !== null && typeof (item as AcceptedWatch).id === 'string' && typeof (item as AcceptedWatch).title === 'string')
+            : [],
+        }
+      } catch {
+        return { ignored: [], accepted: [] }
+      }
+    }
+    const writeProactiveUi = (state: ProactiveUiState): void => {
+      try { if (typeof localStorage !== 'undefined') localStorage.setItem(PROACTIVE_UI_KEY, JSON.stringify(state)) } catch { /* memory-only */ }
+    }
+    const proactiveUi = storeApi?.createSnapshotStore<ProactiveUiState>(readProactiveUi())
+    const suggestName = (id: string): string | undefined => PROACTIVE_SUGGESTIONS.find(suggestion => suggestion.id === id)?.name
+    const onSuggestAction = (kind: 'trial' | 'watch', id: string): void => {
+      // The retry path carries the orphaned title itself (Q5's「再试一次」).
+      const name = suggestName(id) ?? (id.startsWith('retry:') ? id.slice('retry:'.length) : undefined)
+      if (name === undefined) return
+      if (kind === 'trial') {
+        arms.captureFromDesk(`先试跑一次「${name}」：现在就按这个口径替我看一遍——真读真判断、不建排程、不写账本，看完用一句话说结论，并说明想停的时候怎么说。`)
+        return
+      }
+      if (proactiveUi !== undefined) {
+        const current = proactiveUi.getSnapshot()
+        const next: ProactiveUiState = { ignored: current.ignored, accepted: [...current.accepted, { id, title: name, at: new Date().toISOString() }] }
+        proactiveUi.set(next)
+        writeProactiveUi(next)
+      }
+      arms.captureFromDesk(`替我盯上「${name}」：按既有技能替我建对应的排程（title 用本人看得懂的话），建完同回合回一句盯守口径，并说明不想收的时候怎么说一声就停。`)
+    }
+    const onSuggestDismiss = (id: string): void => {
+      if (proactiveUi === undefined) return
+      const current = proactiveUi.getSnapshot()
+      const next: ProactiveUiState = { ignored: [...current.ignored, id], accepted: current.accepted }
+      proactiveUi.set(next)
+      writeProactiveUi(next)
     }
     // The explicit processing path (K3 slice F): one bound matter + processing session. The
     // path is in-memory by design — a reload reads the authoritative projection first and
@@ -198,8 +247,9 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
             ...(projection === undefined ? {} : { projection }),
             ...(sessionStatuses === undefined ? {} : { sessionStatus: sessionStatuses }),
             ...(proactiveCatalog === undefined ? {} : { catalog: proactiveCatalog }),
+            ...(proactiveUi === undefined ? {} : { proactiveUi }),
           }
-          return { hooks, refreshProjection: () => { reader?.refresh() }, onAsk: () => { ctx.layout?.selectPanel(null) }, onEntrust: arms.startIntake, onProcess: arms.processMatter, onClaim: arms.claimFragment, onDiscard: arms.discardFragment, onCapture: arms.captureFromDesk, onOpenSession: (sessionId: string) => { ctx.uiWorkspace?.openSession(sessionId) }, onWake: arms.wakeMatter, onOpenTasks: () => { ctx.layout?.selectPanel('schedules') } }
+          return { hooks, refreshProjection: () => { reader?.refresh() }, onAsk: () => { ctx.layout?.selectPanel(null) }, onEntrust: arms.startIntake, onProcess: arms.processMatter, onClaim: arms.claimFragment, onDiscard: arms.discardFragment, onCapture: arms.captureFromDesk, onOpenSession: (sessionId: string) => { ctx.uiWorkspace?.openSession(sessionId) }, onWake: arms.wakeMatter, onOpenTasks: () => { ctx.layout?.selectPanel('schedules') }, onSuggestAction, onSuggestDismiss }
         },
       }, projection === undefined ? DashboardMainPanel : ProjectionPanel)
       selectDashboardByDefault(ctx)

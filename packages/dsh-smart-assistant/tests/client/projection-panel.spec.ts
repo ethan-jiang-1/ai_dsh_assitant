@@ -23,15 +23,20 @@ function render(value: ProjectionDownload): string {
   return text(ProjectionPanel({ useProjection: select => select(value), useStore: select => select(view.getSnapshot()), useSessionStatus: noStatuses, actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop, onClaim: noop, onDiscard: noop, onCapture: noop, onOpenSession: noop, onWake: noop }))
 }
 /** Render with the proactive catalog hook (261018 片 1 row 3) and the tasks deep-link. */
-function renderWithCatalog(value: ProjectionDownload, catalog: import('../../src/client/proactive-face-source').ProactiveCatalogState): { tree: string, openTasks: ReturnType<typeof vi.fn>, node: unknown } {
+type CatalogState = import('../../src/client/proactive-face-source').ProactiveCatalogState
+type UiState = import('../../src/client/proactive-face').ProactiveUiState
+function renderWithCatalog(value: ProjectionDownload, catalog: CatalogState, ui: UiState = { ignored: [], accepted: [] }): { tree: string, openTasks: ReturnType<typeof vi.fn>, suggestAction: ReturnType<typeof vi.fn>, suggestDismiss: ReturnType<typeof vi.fn>, node: unknown } {
   const view = createProjectionViewStore(defineStore).create()
   const openTasks = vi.fn()
+  const suggestAction = vi.fn()
+  const suggestDismiss = vi.fn()
   const node = ProjectionPanel({
     useProjection: select => select(value), useStore: select => select(view.getSnapshot()), useSessionStatus: noStatuses,
-    useCatalog: <S,>(select: (state: import('../../src/client/proactive-face-source').ProactiveCatalogState) => S): S => select(catalog),
-    actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop, onClaim: noop, onDiscard: noop, onCapture: noop, onOpenSession: noop, onWake: noop, onOpenTasks: openTasks,
+    useCatalog: <S,>(select: (state: CatalogState) => S): S => select(catalog),
+    useProactiveUi: <S,>(select: (state: UiState) => S): S => select(ui),
+    actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop, onClaim: noop, onDiscard: noop, onCapture: noop, onOpenSession: noop, onWake: noop, onOpenTasks: openTasks, onSuggestAction: suggestAction, onSuggestDismiss: suggestDismiss,
   })
-  return { tree: text(node), openTasks, node }
+  return { tree: text(node), openTasks, suggestAction, suggestDismiss, node }
 }
 /** Collect every string attribute value matching a key anywhere in the tree (data-* assertions). */
 function collectAttr(node: unknown, key: string, into: string[] = []): string[] {
@@ -497,6 +502,50 @@ describe('proactive face rows (261018 片 1)', () => {
     expect(go).toBeDefined()
     go?.onClick?.()
     expect(openTasks).toHaveBeenCalled()
+  })
+
+  it('suggests three named watches in the adjudiced ②③① order, each with two actions and a dismiss', () => {
+    const { tree, node, suggestAction } = renderWithCatalog(download([]), catalog([]))
+    expect(tree).toContain('让它替你盯')
+    expect(tree.indexOf('到期日到了替我核一遍账')).toBeLessThan(tree.indexOf('每周一替我对一次账'))
+    expect(tree.indexOf('每周一替我对一次账')).toBeLessThan(tree.indexOf('每个早上替我看一遍桌面'))
+    expect(tree).toContain('比「每周一坐」密')
+    const trial = findButton(node, '先试跑一次')
+    expect(trial).toBeDefined()
+    trial?.onClick?.()
+    expect(suggestAction).toHaveBeenCalledWith('trial', 'due-check')
+    const watch = findButton(node, '替我盯上')
+    expect(watch).toBeDefined()
+    watch?.onClick?.()
+    expect(suggestAction).toHaveBeenCalledWith('watch', 'due-check')
+  })
+
+  it('a dismissed suggestion disappears; all dismissed hides the whole suggest block', () => {
+    const one = renderWithCatalog(download([]), catalog([]), { ignored: ['due-check'], accepted: [] })
+    expect(one.tree).toContain('每周一替我对一次账')
+    expect(one.tree).not.toContain('到期日到了替我核一遍账')
+    const all = renderWithCatalog(download([]), catalog([]), { ignored: ['due-check', 'weekly-recon', 'daily-look'], accepted: [] })
+    expect(all.tree).not.toContain('让它替你盯')
+  })
+
+  it('the dismiss × seals via the callback', () => {
+    const { node, suggestDismiss } = renderWithCatalog(download([]), catalog([]))
+    const dismiss = findButton(node, '×')
+    expect(dismiss).toBeDefined()
+    dismiss?.onClick?.()
+    expect(suggestDismiss).toHaveBeenCalledWith('due-check')
+  })
+
+  it('Q5 mismatch row states the fact and retries through the watch lane', () => {
+    const { tree, node, suggestAction } = renderWithCatalog(
+      download([]),
+      catalog([]),
+      { ignored: [], accepted: [{ id: 'daily-look', title: '每个早上替我看一遍桌面', at: new Date().toISOString() }] })
+    expect(tree).toContain('说了替你盯但没盯上：每个早上替我看一遍桌面')
+    const retry = findButton(node, '再试一次')
+    expect(retry).toBeDefined()
+    retry?.onClick?.()
+    expect(suggestAction).toHaveBeenCalledWith('watch', 'retry:每个早上替我看一遍桌面')
   })
 
   it('an unavailable catalog degrades row 3 to the explicit marker, never a guess', () => {

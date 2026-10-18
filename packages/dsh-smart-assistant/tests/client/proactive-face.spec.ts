@@ -203,6 +203,35 @@ describe('proactive face derivation', () => {
     expect(rows).toContainEqual(expect.objectContaining({ kind: 'next-look-unavailable' }))
   })
 
+  it('Q5: an accepted watch whose title never appears in the catalog says so honestly', () => {
+    const rows = deriveProactiveFace({
+      projection: projection(),
+      catalog: [catalogEntry()],
+      acceptedWatches: [{ id: 'w-1', title: '每天看一遍桌面', at: NOW.toISOString() }],
+      now: NOW,
+    })
+    expect(rows).toContainEqual({ kind: 'watch-mismatch', title: '每天看一遍桌面' })
+  })
+
+  it('Q5: an accepted watch whose title IS in the catalog raises no row', () => {
+    const rows = deriveProactiveFace({
+      projection: projection(),
+      catalog: [catalogEntry()],
+      acceptedWatches: [{ id: 'w-1', title: '每周对账', at: NOW.toISOString() }],
+      now: NOW,
+    })
+    expect(rows.some(row => row.kind === 'watch-mismatch')).toBe(false)
+  })
+
+  it('Q5: an undefined catalog judges nothing (no guess, no false alarm)', () => {
+    const rows = deriveProactiveFace({
+      projection: projection(),
+      acceptedWatches: [{ id: 'w-1', title: '每天看一遍桌面', at: NOW.toISOString() }],
+      now: NOW,
+    })
+    expect(rows.some(row => row.kind === 'watch-mismatch')).toBe(false)
+  })
+
   it('empty state: no projection data means no rows at all', () => {
     const rows = deriveProactiveFace({ catalog: [], now: NOW })
     expect(rows).toEqual([])
