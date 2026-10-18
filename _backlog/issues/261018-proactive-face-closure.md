@@ -11,9 +11,24 @@ opened: 2026-10-18
 
 **当前情况：** 裁决已完成（路线 A，六问拍板：一条三行式＋空态不渲染＋"事 vs 会话"分工去重；建议排序 ②到期核对→③每周对账→①每天一遍（①带"比每周一坐密"标注）；路线 D 挂触发不立卡；暂停入口不要、删了重建）；四片全部未开始。
 
+**阶段 0 结论（2026-10-18，前置验证完成）**
+
+- **0a 注入面：子面注入不可行（实证）**——inject 声明 `'remote.schedule'` 后 typecheck **全绿**但运行时整个 client 激活失败（`import failed`；二分定因：＋注入→挂，回滚＋rebuild→活；改动经 start.sh 自证自动 rebuild 即达组合）。替代路径按成本序：① 不声明子面、直接 `ctx.remote.schedule?.catalog()` 可选链（remote 本体可能即 RPC 代理；运行时可达性并入片 1 行 3 渲染验收判定，room-data-io 式不物化降级）② host service 桥（评审预案）。**教训**：类型层对 inject key 合法性零预警——"tests pass ≠ 运行时活"的又一实例。
+- **0b 基线：blank-first-open 确已腐烂（实证）**——`web-expected` 红的漂移内容正是 desk-side-capture 片 1 的受理位（`input: 在桌面直接交代一件新事`、`button: 交给助手`、流水 +29 行）。处置＝片 1 diff 内同 diff `--refresh` 重录（受理行＋主动行一起收进），并在 capture 收口卡台账记一笔。
+
 **未决问题：** 见 proposed 卡各片；另有一条实施前置——**注入面验证**：本包 inject 增补 `'remote.schedule'` 后 `catalog()` 是否可达，不通则走 service 层 RPC 桥（评审卡·评审记录·架构）。
 
-**下一步：** 按片推进（刀口：片 1 先落，片 2 其次，片 3 与片 2 同批或紧随，片 4 按触发立卡）；每片先答"怎么算对"（造红 → 实现 → 变绿）；片间证据记在本卡台账。与 `261018-desk-side-capture` 的共存三件事（四层堆叠走查、`pendingInteraction` 去重、web-expected 基线刷新时机）在片 1 实施与验收时显式处理。
+**下一步：** 按下面刀口推进；每片先答"怎么算对"（造红 → 实现 → 变绿）；片间证据记在本卡台账。与 `261018-desk-side-capture` 的共存三件事（四层堆叠走查、`pendingInteraction` 去重、web-expected 基线刷新时机）在片 1 实施与验收时显式处理。
+
+**推进计划（2026-10-18 定，用户拍板"我都需要"）**
+
+| 阶段 | 内容 | 怎么算对 |
+|---|---|---|
+| 0 前置 | ①注入面：inject 增补 `'remote.schedule'` 后 `catalog()` 可达性（不通走 service RPC 桥）；②基线现状：跑 `web-expected` 探 blank-first-open 是否已被受理行腐烂——处置＝片 1 diff 内同 diff 重录基线，并在 capture 收口卡台账记一笔 | 两个结论写回本卡"当前情况"，各有实证 |
+| 1 片 1 | 纯核 `src/client/proactive-face.ts`（行派生矩阵 keyless）→ 面板插入（结构锚：`dsha-head` 与 `dsha-capture` 之间；空态不渲染；每行恰一动作）→ spec + shots 三态（seed 夹具）→ 前后比对最小脚本（受控 home）→ 基线重录同 diff | proposed 卡验收表片 1 四行全绿 |
+| 2 车道+片 2 | 车道先行：seed 夹具（due/quiet/dup）→ e2e watch 场景（先试跑不建排程／替我盯上目录无重复；replay 先行）→ 前后比对脚本落 `dev/probes/web/`；片 2：三条具名建议（②③①＋①标注）＋两动作＋忽略封口＋答得上＋ Q5 对照检查 | proposed 卡验收表片 2 行全绿（不可复现行此时应已可复现） |
+| 3 片 3 | 红线段落进 `operating-brief`（英文；禁七动词＋不自动建常态排程；点名提案槽属此类；只约束无人值守 turn）→ `test:agent` + `test:composition` → 无人值守端到端（live 式 web 驱动＋会话日志禁词）→ **改模型可见面必跑 `pnpm eval`** | proposed 卡验收表片 3 行全绿 |
+| 4 收口 | 逐片真证据进台账 → `pnpm build && test && verify`（+eval）→ proposed 卡毕业（正文改写为已交付事实）＋本卡归档，同 diff | 全部门禁绿 + 两卡毕业归档 |
 
 ## 验收标准
 
