@@ -6,7 +6,7 @@ intent: "用户说老的 Hermes 有主动性但上手难、我们场景窄——
 # 261018 · 开源 agent 的主动性机制：Hermes 深挖与同类可搬运清单
 
 > 调研日期 2026-10-18。方法：先读本仓已有的 Hermes 身份与引导调研底稿
-> （`notes/research/2026-09-24-r4-hermes-identity-survey.md`，**该路径已不在工作树，属历史档案**，
+> （历史档案 notes/research/2026-09-24-r4-hermes-identity-survey.md，**该路径已不在工作树**，
 > 取法 `git -C <repo> show c335eeb45f7339ce4114d80f11797e7d373b1e28:notes/research/2026-09-24-r4-hermes-identity-survey.md`；
 > 它覆盖 SOUL.md / AGENTS.md / 家的布局，**本文不重复**），再只补"主动性/成长/自运转"这一面；
 > 同类项目用 `api.github.com` 树与 contents API 取一手文档与源码正文。
@@ -238,7 +238,7 @@ https://hermes-agent.nousresearch.com/docs/user-guide/features/memory-providers 
 - **[documented] Heartbeat = 一条 system-owned automation。**「Under the hood, heartbeat cadence is owned by the Automations scheduler: the gateway maintains **one system-owned automation job per heartbeat-enabled agent** (visible in `openclaw cron list --all` as `Heartbeat (agent-id)`). Heartbeat config remains the desired-state input, while the persisted monitor schedule owns the actual tick…」「Edit `agents.*.heartbeat`, not the automation job.」
 - **[documented] 默认节律**：`30m`；解析到 Anthropic OAuth/token 认证时抬到 `1h`（只在 `heartbeat.every` 未设时）。`"0m"` 只关循环节拍，**定点事件唤醒仍可用**。
 - **[documented] 提示词逐字作为定时 user 消息发送**；心跳运行**共用**普通 turn 的 system prompt，**没有**心跳专属的 system-prompt 段落。
-- **[documented] Automations（= cron）** 六种 schedule kind（`docs/automation/cron-jobs/schedules.md`）：
+- **[documented] Automations（= cron）** 六种 schedule kind（OpenClaw 文档的 automation/cron-jobs 一节，非本仓路径）：
 
   | kind | CLI | 说明 |
   |---|---|---|
@@ -413,7 +413,7 @@ https://hermes-agent.nousresearch.com/docs/user-guide/features/memory-providers 
 3. **Hermes 的静默时段 / 免打扰窗口、投递预算（每日上限）**：在本次抓取的 8 个文档页（heartbeat / cron / automate-with-cron / daily-briefing-bot / configuration / memory / skills / cron-internals）与 heartbeat/cron/curator 相关源码中**未见一等概念**。我没有通读 511 个文档页，所以只能说"未能证实其存在"，**不能**说"它没有"。
 4. **Hermes 心跳的配置面未获源码复核**：`cli-config.yaml.example`（2352 行）里只有 `cron:` 一个键 `catch_up_missed`，没有 heartbeat 块；heartbeat 的键名与默认值全部取自功能文档，未定位其 config schema 定义文件。
 5. **Hermes 的 `goals` / `loops` / `hooks` / `kanban-multi-gateway` 四个文档页未深读**（`hooks.md` 有 130KB）；它们在"主动性"里的位置只能记作未评估，本文未据其下任何结论。
-6. **Home Assistant 的"静默时段 / 免打扰"**：未在 `docs/automation/modes/` 与 `integrations/notify/` 两页中找到一等概念；我**没有**抓 companion app 的通知文档，故记为未能证实，正文未据此下结论。HA 的"主动性 = 用户自写规则"这一条是【推断】，基于它文档里给出的 trigger/condition/action 形状，不是文档明说。
+6. **Home Assistant 的"静默时段 / 免打扰"**：未在 Home Assistant 文档的 automation modes 与 notify 集成两页中找到一等概念；我**没有**抓 companion app 的通知文档，故记为未能证实，正文未据此下结论。HA 的"主动性 = 用户自写规则"这一条是【推断】，基于它文档里给出的 trigger/condition/action 形状，不是文档明说。
 7. **Letta 的旧 MemGPT 论文期结论未核**：OpenClaw 文档称其 dreaming「is informed by sleep-time compute (arXiv:2504.13171)」并引"Generative Agents"的记忆框架——**这是 OpenClaw 的说法**，我没有读这两篇论文原文。`letta-ai/letta` 主仓 `main` 只剩 15 个文件（README 指向 `letta-ai/letta-code`，V1 API server 在 `archive` 分支）；我读的是 `letta-code` 的树与 `docs.letta.com`，未核 `archive` 分支的历史实现。
 8. **Khoj 的自动化服务端机制未取得一手描述**：其 automations 文档只有 14 行，未说明调度器、存储位置、并发语义或静默/预算；我只掌握了"定时跑查询 + 邮件投递 + 自托管需 Resend"三点。
 9. **"上手难度"读数没有任何一手用户研究支持**：本文只给**可指认的结构性代价**（配置页数/节数、概念数、必须自备的外部件、"不跑 gateway 就没有主动性"这类硬门槛）。**把"上手难"换算成时间、放弃率或学习曲线的说法，本文一条都没有**，也不应从上述结构性代价推出使用效果。

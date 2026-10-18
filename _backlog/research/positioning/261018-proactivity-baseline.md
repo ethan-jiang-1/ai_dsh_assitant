@@ -105,7 +105,7 @@ intent: "把本仓今天已有的主动性机制、用户手上的开关、历�
 | 观察期新行 | — | **未见读数**（档内此后再无新行） | — |
 
 - 读数档现状：基线（2026-10-11 15:54，**三项全空**）之后是同日旧 home 干跑，**此后再无新行** = [261011-input-observation.md:40-95](../usage/261011-input-observation.md#L40-L95)。补摘触发条件（最后一行读数 >7 天）在 2026-10-18 正好到期 = [triggers.md:25](../../triggers.md#L25)。
-- **本档实测（2026-10-18）**：`dev/trial-home-30d/sessions` 下 `session.v*.jsonl*` **0 个**；`dev/trial-home-30d/storages/workspace.json` 的 `workspaceIds: []`（无 workspace 注册）；`assistant/` 四房间只有 scaffold 的 `SOUL.md`/`AGENTS.md`，无记忆/线索/知识/提案文件。对照：dev home 有 407 个会话日志、旧 `dev/trial-home` 有 4 个。
+- **本档实测（2026-10-18）**：`dev/trial-home-30d/` 下没有会话目录（`session.v*.jsonl*` 日志 **0 个**）；`dev/trial-home-30d/storages/workspace.json` 的 `workspaceIds: []`（无 workspace 注册）；`assistant/` 四房间只有 scaffold 的 `SOUL.md`/`AGENTS.md`，无记忆/线索/知识/提案文件。对照：dev home 有 407 个会话日志、旧 `dev/trial-home` 有 4 个。
 - 口径与判读（A 自发投递 / B 账本两段时长 / C 入口后的操作，剔除规则按结构判据）= [261011-input-observation.md:11-21](../usage/261011-input-observation.md#L11-L21)、[261007-input-boundary.md:103-105](../../_archive/settled_issues/261007-input-boundary.md#L103-L105)；重新讨论条件 = "30 天读数落账"（[261007:121](../../_archive/settled_issues/261007-input-boundary.md#L121)）。
 - 【推断】"第 0 天 = 首条真人会话"（[261011-input-observation.md:51-52](../usage/261011-input-observation.md#L51-L52)）从未发生，所以 30 天窗口还没开始走；A/B/C **无任何真人读数**，不能拿它支持或反对任何输入通道候选。
 - 干跑（旧 `dev/trial-home`，2026-10-01~05，**不是基线**）读到的旧信号：本人轮次 2、`[面板]` 标记 9、注入前言 13、9 次入口里 **1 次零工具调用**；并按结构判据纠正了"按文本前缀判会把 9 条机器消息 + 13 条注入前言算成本人的话" = [261011-input-observation.md:68-95](../usage/261011-input-observation.md#L68-L95)。这是口径校准证据，不是产品结论。

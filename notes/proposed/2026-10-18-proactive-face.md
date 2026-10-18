@@ -2,10 +2,12 @@
 
 日期：2026-10-18 · 状态：**proposed**（待拍板；不改 [`261018-desk-side-capture`](2026-10-18-desk-side-capture.md) 的范围，只与它相邻）
 
-> **依据**（同 diff 新增三档，索引已在 [`_backlog/research/README.md`](../../_backlog/research/README.md) 登记）：
+> **依据**（同 diff 新增三档 + 一档合成，索引已在 [`_backlog/research/README.md`](../../_backlog/research/README.md) 登记）：
 > [主动性 UX 机制](../../_backlog/research/positioning/261018-proactive-ux-mechanics.md)（近月 personal agent 的主动性怎么被做成产品面）｜
-> [开源 agent 的主动性机制](../../_backlog/research/positioning/261018-oss-proactivity-mechanics.md)（Hermes 深挖 + OpenClaw/Letta/… 可搬运清单）｜
+> [开源 agent 的主动性机制](../../_backlog/research/positioning/261018-oss-proactivity-mechanisms.md)（Hermes 深挖 + OpenClaw/Letta/… 可搬运清单）｜
 > [本仓主动性现状事实表](../../_backlog/research/positioning/261018-proactivity-baseline.md)（8 条无人值守事实、开关清单、缺口表、未验证读数）。
+> **评审入口**：[主动性方向评审卡](../../_backlog/issues/261018-proactive-direction.md)（分角色可勾选清单 + 开放问题 Q1–Q8）；
+> **完整推理链**：[主动性综合](../../_backlog/research/positioning/261018-proactivity-synthesis.md)（四层拆解、候选路线判据矩阵、逐条约束对账、反证与风险）。
 > **前作**：[261012 personal agent 机制级对照](../../_backlog/research/positioning/261012-personal-agent-differentiation.md) §三（借鉴清单 1–9）。
 > 本卡是它的"主动性 UX"续篇：只写增量与落点，不重述。
 
