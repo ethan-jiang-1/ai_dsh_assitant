@@ -161,3 +161,82 @@ describe('renderLedgerProjection (v2 read-only view of the ledger)', () => {
     expect(projection.unclaimed).toEqual([{ id: 'u-1', note: '有人说款已付，没说哪笔合同', sessionId: 'session-C' }])
   })
 })
+
+/**
+ * The fragment's terminal state (261018 片 0): a fragment the principal judges to be noise leaves
+ * the unclaimed lane, and the ledger keeps the decision with its one-line reason — the same shape
+ * a matter takes through `abandon`: a terminal state, never a silent delete. The principal's own
+ * words stay where they entered (the `note` operation's quote), so nothing is un-said by parity
+ * with "we never guess attribution".
+ */
+describe('discard: the unclaimed fragment\'s terminal state', () => {
+  /** One retained fragment, ready to be discarded. */
+  const withFragment = () => {
+    const noted = applyOperation(EMPTY_LEDGER, {
+      kind: 'note', operationId: 'op-d-1', note: '有人说款已付，没说哪笔合同',
+      source: { sessionId: 'session-A', quote: '已经付了' },
+    }, '2026-10-18T08:00:00.000Z')
+    return { state: noted.state, fragmentId: noted.receipt.outcome.status === 'retained' ? noted.receipt.outcome.unclaimedId : '' }
+  }
+
+  it('leaves the lane, keeps the reason, and keeps the original words', () => {
+    const { state, fragmentId } = withFragment()
+    const discarded = applyOperation(state, {
+      kind: 'discard', operationId: 'op-d-2', unclaimedId: fragmentId, reason: '本人判为噪音：同一条消息的重复转述',
+      source: { sessionId: 'session-A', quote: '这条是噪音' },
+    }, '2026-10-18T09:00:00.000Z')
+
+    expect(discarded.receipt.outcome).toEqual({ status: 'committed', revision: 2 })
+    expect(discarded.state.unclaimed).toEqual({})
+    // The decision is durable history with its reason, and the fragment's own words survive in
+    // the `note` that entered them — discard is not a delete.
+    expect(discarded.state.operations['op-d-2']?.operation).toMatchObject({
+      kind: 'discard', unclaimedId: fragmentId, reason: '本人判为噪音：同一条消息的重复转述',
+    })
+    expect(discarded.state.operations['op-d-1']?.operation).toMatchObject({ kind: 'note', note: '有人说款已付，没说哪笔合同' })
+  })
+
+  it('rejects an unknown fragment and an empty reason, leaving the lane untouched', () => {
+    const { state, fragmentId } = withFragment()
+    const unknown = applyOperation(state, {
+      kind: 'discard', operationId: 'op-d-3', unclaimedId: 'u-999', reason: '噪音',
+      source: { sessionId: 'session-A' },
+    }, '2026-10-18T09:00:00.000Z')
+    expect(unknown.receipt.outcome).toEqual({ status: 'rejected', reason: 'unknown-material' })
+
+    const unreasoned = applyOperation(state, {
+      kind: 'discard', operationId: 'op-d-4', unclaimedId: fragmentId, reason: '   ',
+      source: { sessionId: 'session-A' },
+    }, '2026-10-18T09:00:00.000Z')
+    expect(unreasoned.receipt.outcome).toEqual({ status: 'rejected', reason: 'operation-content-mismatch' })
+
+    expect(unreasoned.state.unclaimed[fragmentId]).toBeDefined()
+  })
+
+  it('rejects a second discard of the same fragment (the lane is the only home)', () => {
+    const { state, fragmentId } = withFragment()
+    const once = applyOperation(state, {
+      kind: 'discard', operationId: 'op-d-5', unclaimedId: fragmentId, reason: '噪音',
+      source: { sessionId: 'session-A' },
+    }, '2026-10-18T09:00:00.000Z')
+    const twice = applyOperation(once.state, {
+      kind: 'discard', operationId: 'op-d-6', unclaimedId: fragmentId, reason: '再说一次',
+      source: { sessionId: 'session-A' },
+    }, '2026-10-18T09:10:00.000Z')
+    expect(twice.receipt.outcome).toEqual({ status: 'rejected', reason: 'unknown-material' })
+  })
+
+  it('drops the fragment from the projection and keeps the receipt readable', () => {
+    const { state, fragmentId } = withFragment()
+    const discarded = applyOperation(state, {
+      kind: 'discard', operationId: 'op-d-7', unclaimedId: fragmentId, reason: '本人判为噪音',
+      source: { sessionId: 'session-A', quote: '这条是噪音' },
+    }, '2026-10-18T09:00:00.000Z')
+
+    const projection = renderLedgerProjection(discarded.state, 'assistant-operating', '2026-10-18T10:00:00.000Z')
+    expect(projection.unclaimed).toEqual([])
+    expect(projection.receipts[1]).toMatchObject({
+      operationId: 'op-d-7', matterId: '', sessionId: 'session-A', status: 'committed', kind: 'discard',
+    })
+  })
+})

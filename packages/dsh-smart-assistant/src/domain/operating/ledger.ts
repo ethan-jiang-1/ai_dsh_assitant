@@ -251,6 +251,38 @@ function applyClaim(
 }
 
 /**
+ * The fragment's terminal state (261018 片 0): judged noise, it leaves the unclaimed lane with the
+ * reason kept in history. Mirrors `abandon` on a matter — a terminal outcome, not a delete — and
+ * refuses a blank reason: "no reason, no removal" is what keeps this from becoming a silent drop.
+ * The fragment's own words stay in the `note` operation that entered them.
+ */
+function applyDiscard(
+  state: LedgerState,
+  operation: Extract<LedgerOperation, { readonly kind: 'discard' }>,
+  submittedAt: string,
+): AppliedOperation {
+  const material = state.unclaimed[operation.unclaimedId]
+  if (material === undefined) return rejectWith(state, operation, submittedAt, '', 'unknown-material')
+  if (operation.reason.trim() === '') return rejectWith(state, operation, submittedAt, '', 'operation-content-mismatch')
+  const unclaimed = { ...state.unclaimed }
+  delete unclaimed[material.id]
+  // A fragment has no matter revision to confirm, so the receipt reports the revision the ledger
+  // itself reaches with this operation — the same `committed` shape every state change carries,
+  // and a real number rather than a placeholder (`projection.ts` stamps the envelope the same way).
+  const receipt: OperationReceipt = {
+    operationId: operation.operationId,
+    // A fragment belongs to no matter; `''` is the same matterless receipt `note` carries.
+    matterId: '',
+    submittedAt,
+    outcome: { status: 'committed', revision: Object.keys(state.operations).length + 1 },
+  }
+  return {
+    state: recordOperation({ ...state, unclaimed }, operation, receipt),
+    receipt,
+  }
+}
+
+/**
  * Complete a matter or reopen a mis-associated completion. The evidence (or correction reason) is
  * retained material even when the change conflicts, and a conflict or an already-held status
  * leaves the matter otherwise untouched.
@@ -470,6 +502,7 @@ export function applyOperation(state: LedgerState, operation: LedgerOperation, s
     case 'update': return applyUpdate(state, operation, submittedAt)
     case 'note': return applyNote(state, operation, submittedAt)
     case 'claim': return applyClaim(state, operation, submittedAt)
+    case 'discard': return applyDiscard(state, operation, submittedAt)
     case 'complete':
     case 'reopen': return applyCompletion(state, operation, submittedAt)
     case 'propose': return applyPropose(state, operation, submittedAt)

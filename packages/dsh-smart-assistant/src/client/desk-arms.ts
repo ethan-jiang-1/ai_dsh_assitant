@@ -19,8 +19,8 @@
  * @module dsh-smart-assistant/client/desk-arms
  */
 
-import { bindClaimPath, bindIntakePath, bindProcessPath, bindWakePath, canProcess, judgeClaimReturn, judgeIntakeReturn, judgeReturn, judgeWakeReturn, type DeskPath } from './desk-process'
-import { claimContextMessage, processingContextMessage, resumeContextMessage, wakeContextMessage } from './desk-process-messages'
+import { bindClaimPath, bindDiscardPath, bindIntakePath, bindProcessPath, bindWakePath, canProcess, judgeClaimReturn, judgeDiscardReturn, judgeIntakeReturn, judgeReturn, judgeWakeReturn, type DeskPath } from './desk-process'
+import { claimContextMessage, discardContextMessage, processingContextMessage, resumeContextMessage, wakeContextMessage } from './desk-process-messages'
 import { createSettleRefreshObserver } from './desk-process-lifecycle'
 import { getDeskRemote, panelPromptRequest } from './room-data-io'
 import type { OperatingProjection } from './operating-projection'
@@ -83,6 +83,8 @@ export interface DeskArms {
   startIntake(): void
   /** 认领: open the conversation in which an unclaimed fragment finds its home. */
   claimFragment(fragmentId: string): void
+  /** 判为噪音: open the conversation in which the principal records why a fragment is dropped. */
+  discardFragment(fragmentId: string): void
   /** 唤醒: open the conversation that states what changed about a settled matter. */
   wakeMatter(matterId: string): void
   /**
@@ -265,6 +267,21 @@ export function createDeskArms(deps: DeskArmDeps): DeskArms {
     },
   })
 
+  // The discard arm (261018 片 0): the principal pressed 「是噪音，不归户」, so the conversation
+  // exists to capture the one-line reason the ledger requires — not to decide anything. It always
+  // creates its own session for the same reason the claim arm does, and it settles when the
+  // fragment leaves the lane with this session's own matterless committed receipt behind it.
+  const discardFragment = (fragmentId: string): void => launchDeskArm({
+    reentry: path => path.kind === 'discard' && path.fragmentId === fragmentId,
+    subject: data => data.unclaimed.find(item => item.id === fragmentId),
+    session: createSessionInDesignatedWorkspace,
+    engage: (sessionId, fragment) => {
+      deps.deskPath?.set(bindDiscardPath(fragmentId, sessionId))
+      deps.uiWorkspace?.openSession(sessionId)
+      seedPanelMessage('desk-discard-context', sessionId, discardContextMessage(fragment))
+    },
+  })
+
   // The wake arm (state-gated actions, card 261012): a settled matter's only legal action is
   // waking it — the conversation exists to state what changed, the model reopens explicitly,
   // and the desk returns once the matter reads back active with this session's receipt.
@@ -321,6 +338,7 @@ export function createDeskArms(deps: DeskArmDeps): DeskArms {
     const decision = path.kind === 'matter' ? judgeReturn(path, judgeInput)
       : path.kind === 'intake' ? judgeIntakeReturn(path, judgeInput)
       : path.kind === 'claim' ? judgeClaimReturn(path, { ...judgeInput, unclaimedIds: new Set(data.unclaimed.map(item => item.id)) })
+      : path.kind === 'discard' ? judgeDiscardReturn(path, { ...judgeInput, unclaimedIds: new Set(data.unclaimed.map(item => item.id)) })
       : judgeWakeReturn(path, { ...judgeInput, matterStatuses: new Map(data.matters.map(matter => [matter.id, matter.status])) })
     if (decision.decision === 'return') {
       deps.deskPath?.set(undefined)
@@ -351,6 +369,7 @@ export function createDeskArms(deps: DeskArmDeps): DeskArms {
     processMatter,
     startIntake,
     claimFragment,
+    discardFragment,
     wakeMatter,
     subscribe: (): void => {
       const projection = deps.projection

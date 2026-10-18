@@ -384,6 +384,48 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
     expect(replay).toEqual(claim)
   })
 
+  it('lets the principal drop a noise fragment with a reason, keeping its words in history', async () => {
+    const { service } = boot()
+    const noted = await service.submitOperation({
+      kind: 'note',
+      operationId: 'op-d-note',
+      note: '同一段转述的第二条副本',
+      source: { sessionId: 'session-A', quote: '已经付了' },
+    })
+    const fragmentId = noted.outcome.status === 'retained' ? noted.outcome.unclaimedId : ''
+    expect(fragmentId).not.toBe('')
+
+    // No reason, no removal: a blank reason is refused at the ledger boundary.
+    const unreasoned = await service.submitOperation({
+      kind: 'discard',
+      operationId: 'op-d-blank',
+      unclaimedId: fragmentId,
+      reason: '   ',
+      source: { sessionId: 'session-A' },
+    })
+    expect(unreasoned.outcome).toEqual({ status: 'rejected', reason: 'operation-content-mismatch' })
+    expect(await service.readUnclaimed()).toHaveLength(1)
+
+    const discarded = await service.submitOperation({
+      kind: 'discard',
+      operationId: 'op-d-1',
+      unclaimedId: fragmentId,
+      reason: '本人判为噪音：同一条消息的重复转述',
+      source: { sessionId: 'session-A', quote: '这条是噪音' },
+    })
+    expect(discarded.outcome).toMatchObject({ status: 'committed' })
+    expect(await service.readUnclaimed()).toEqual([])
+
+    // The decision is durable and the fragment's own words survive: discard is a terminal state,
+    // not a delete (the same shape `abandon` gives a matter).
+    expect(await service.readOperation('op-d-1')).toMatchObject({
+      operationId: 'op-d-1', matterId: '', outcome: { status: 'committed' },
+    })
+    expect(await service.readOperation('op-d-note')).toMatchObject({
+      operationId: 'op-d-note', outcome: { status: 'retained', unclaimedId: fragmentId },
+    })
+  })
+
   it('records a forecast change alone without moving the commitment or checkpoint', async () => {
     const { service } = boot()
     const created = await service.submitOperation({

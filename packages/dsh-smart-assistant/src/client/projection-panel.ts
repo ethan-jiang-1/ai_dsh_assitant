@@ -20,6 +20,8 @@ export interface ProjectionPanelProps {
   onProcess(matterId: string): void
   /** Open the explicit claim path for one unclaimed fragment (bound to the entry's claimFragment). */
   onClaim(fragmentId: string): void
+  /** Record that one unclaimed fragment is noise (bound to the entry's discardFragment). */
+  onDiscard(fragmentId: string): void
   /** Open the explicit wake path for one settled matter (bound to the entry's wakeMatter). */
   onWake(matterId: string): void
 }
@@ -35,7 +37,7 @@ const CHANGE_LABEL: Record<string, string> = { reschedule: '重约承诺', check
 /** Operation kinds as the biography's human labels (ledger domain kinds; the tool's report and
  *  revise both submit `update`, so the label stays neutral). */
 const OP_LABEL: Record<string, string> = {
-  create: '交办立项', update: '更新事项', note: '记一笔', claim: '认领归户', complete: '办结',
+  create: '交办立项', update: '更新事项', note: '记一笔', claim: '认领归户', discard: '判为噪音', complete: '办结',
   reopen: '重开', propose: '提出请示', confirm: '确认', reject: '拒绝',
 }
 /** Outcome annotations for receipts whose status says more than the kind does. */
@@ -325,7 +327,10 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
           selectedFragment !== undefined ? ce('article', {},
             ce('div', { className: 'dsha-meta' },
               ce('button', { className: 'dsha-btn dsha-back', type: 'button', onClick: props.actions.showList }, '返回事项列表'),
-              ce('button', { className: 'dsha-btn dsha-btn-primary', type: 'button', onClick: () => props.onClaim(selectedFragment.id) }, '认领这件事')),
+              ce('button', { className: 'dsha-btn dsha-btn-primary', type: 'button', onClick: () => props.onClaim(selectedFragment.id) }, '认领这件事'),
+              // The fragment's other terminal (261018 片 0): every item selects into a
+              // proportionate action, and "this is noise" is the one that used to have no door.
+              ce('button', { className: 'dsha-btn', type: 'button', onClick: () => props.onDiscard(selectedFragment.id) }, '是噪音，不归户')),
             ce('h2', {}, chip('warn', '待认领'), ce('span', {}, selectedFragment.note)),
             ce('p', { className: 'dsha-card-meta' }, `来自 ${selectedFragment.sessionId} · 还没说清是哪件事——认领后原文与来源随附入账`))
           : selected !== undefined ? ce('article', {},

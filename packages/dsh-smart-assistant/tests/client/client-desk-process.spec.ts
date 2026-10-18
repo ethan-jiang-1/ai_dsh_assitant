@@ -29,8 +29,8 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { bindClaimPath, bindIntakePath, bindProcessPath, bindWakePath, canProcess, judgeClaimReturn, judgeIntakeReturn, judgeReturn, judgeWakeReturn, type JudgeProposal, type JudgeSession } from '../../src/client/desk-process.ts'
-import { claimContextMessage, processingContextMessage, resumeContextMessage, wakeContextMessage } from '../../src/client/desk-process-messages.ts'
+import { bindClaimPath, bindDiscardPath, bindIntakePath, bindProcessPath, bindWakePath, canProcess, judgeClaimReturn, judgeDiscardReturn, judgeIntakeReturn, judgeReturn, judgeWakeReturn, type JudgeProposal, type JudgeSession } from '../../src/client/desk-process.ts'
+import { claimContextMessage, discardContextMessage, processingContextMessage, resumeContextMessage, wakeContextMessage } from '../../src/client/desk-process-messages.ts'
 
 interface Receipt { operationId: string, matterId: string, sessionId: string, status: string, revision?: number, proposalId?: string, submittedAt: string }
 
@@ -380,6 +380,78 @@ describe('claim path (待认领 arm: the fragment IS the context, the claim IS t
     expect(message).toContain('u-1')
     expect(message).toContain('assistant_operating')
     expect(message).toContain('claim')
+    expect(message).toContain('未经')
+  })
+})
+
+/**
+ * The discard arm (261018 片 0): the fragment's terminal state. Same shared gates as the other
+ * arms; the settle is the fragment leaving the lane **plus** this session's own matterless
+ * committed receipt (a discard leaves no matter behind, so the receipt is what proves this
+ * removal was the discard and not another session's claim). Nothing is selected on return.
+ */
+describe('discard path (the fragment\'s terminal state needs a door)', () => {
+  const boundDiscard = () => bindDiscardPath('u-1', 'session-1', BOUND_AT)
+  const discardJudge = (
+    receipts: Receipt[],
+    unclaimedIds: ReadonlySet<string> = new Set(['u-1']),
+    extra: Partial<Parameters<typeof judgeDiscardReturn>[1]> = {},
+    proposals: readonly JudgeProposal[] = [],
+    freshness: { status: string, stale: boolean } = { status: 'ready', stale: false },
+  ) => judgeDiscardReturn(boundDiscard(), {
+    projection: { receipts, matterIds: new Set(['m-A']), proposals, ...freshness },
+    session: session(), onPath: true, reminders: 'synced', unclaimedIds, ...extra,
+  })
+
+  it('binds the fragment, session and instant into its own path kind', () => {
+    expect(boundDiscard()).toMatchObject({ kind: 'discard', fragmentId: 'u-1', sessionId: 'session-1', boundAt: BOUND_AT })
+  })
+
+  it('stays while the fragment is still in the lane', () => {
+    const decision = discardJudge([freshCommitted({ matterId: '' })])
+    expect(decision.decision).toBe('stay')
+    expect(decision.reasons).toContain('fragment-not-discarded')
+  })
+
+  it('stays when the fragment vanished through another session\'s claim — a matter receipt is not a discard', () => {
+    const decision = discardJudge([freshCommitted({ matterId: 'm-A' })], new Set())
+    expect(decision.decision).toBe('stay')
+    expect(decision.reasons).toContain('discard-receipt-not-read-back')
+  })
+
+  it('stays when the only matterless receipt predates the binding', () => {
+    const decision = discardJudge([freshCommitted({ matterId: '', submittedAt: '2026-10-10T11:00:00.000Z' })], new Set())
+    expect(decision.decision).toBe('stay')
+    expect(decision.reasons).toContain('discard-receipt-not-read-back')
+  })
+
+  it('returns with nothing selected once the lane dropped it and this session read the discard back', () => {
+    const decision = discardJudge([freshCommitted({ matterId: '' })], new Set())
+    expect(decision).toEqual({ decision: 'return', reasons: [], remindersUnsynced: false })
+    expect(decision.matterId).toBeUndefined()
+  })
+
+  it('stays while this path leaves a pending proposal behind', () => {
+    const proposal: JudgeProposal = { id: 'p-1', matterId: 'm-A', sessionId: 'session-1', proposedAt: '2026-10-10T12:02:00.000Z', status: 'pending' }
+    const decision = discardJudge([freshCommitted({ matterId: '' })], new Set(), {}, [proposal])
+    expect(decision.decision).toBe('stay')
+    expect(decision.reasons).toContain('pending-proposal')
+  })
+
+  it('keeps the shared gates: principal leaving, running session, stale projection', () => {
+    expect(discardJudge([freshCommitted({ matterId: '' })], new Set(), { onPath: false }).reasons).toContain('user-left-path')
+    expect(discardJudge([freshCommitted({ matterId: '' })], new Set(), { session: session({ running: true, turnSettled: false }) }).reasons).toContain('session-running')
+    expect(discardJudge([freshCommitted({ matterId: '' })], new Set(), {}, [], { status: 'ready', stale: true }).reasons).toContain('projection-stale')
+  })
+
+  it('seeds the conversation with the judgment, the tool path and the reason requirement', () => {
+    const message = discardContextMessage({ id: 'u-1', note: '同一段转述的第二条副本', sessionId: 'session-src' })
+    expect(message).toContain('待认领片段')
+    expect(message).toContain('「同一段转述的第二条副本」')
+    expect(message).toContain('u-1')
+    expect(message).toContain('assistant_operating')
+    expect(message).toContain('discard')
+    expect(message).toContain('reason')
     expect(message).toContain('未经')
   })
 })

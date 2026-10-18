@@ -71,6 +71,20 @@ export function claimContextMessage(fragment: ClaimContextFragment): string {
   return `正在处理待认领片段（unclaimed ${fragment.id}，来自 ${fragment.sessionId}）：「${fragment.note}」。这条信息还没归户——请先与我确认它属于哪件在办事项、还是应当立为新事项；等我明确答复后，再用 assistant_operating claim（带 unclaimed_id ${fragment.id}）或 entrust 落账，并保留原文与来源。未经我确认不要自行归户。`
 }
 
+/**
+ * The visible context note seeded into a discard session (261018 片 0: the fragment's terminal
+ * state needs a door). The principal judged this fragment noise by pressing the desk's
+ * 「是噪音，不归户」, so the seed states the judgment and asks only for the one-line reason the
+ * ledger requires — discard removes the fragment from the lane, so it must not happen on a guess.
+ * Same `[面板]` marker as the other seeds: machine-written prompts stay apart from the
+ * principal's own words.
+ * @param fragment - the bound fragment from the projection snapshot.
+ * @returns the seed message text, principal-visible and logged.
+ */
+export function discardContextMessage(fragment: ClaimContextFragment): string {
+  return `正在处理待认领片段（unclaimed ${fragment.id}，来自 ${fragment.sessionId}）：「${fragment.note}」。我判它是噪音、不归户——请用 assistant_operating discard（带 unclaimed_id ${fragment.id} 与一行 reason）落账：这条会离开待认领通道，理由留在账本，片段原话仍留在当初的记录里。若我改口说它其实属于某件事，改走 claim 或 entrust。未经我确认不要 discard。`
+}
+
 /** The settled-matter fields the wake-session seed needs (structural projection view). */
 export interface WakeContextMatter {
   readonly id: string

@@ -129,7 +129,7 @@ export interface IntakePath {
 }
 
 /** Every arm of the desk→conversation path. */
-export type DeskPath = ProcessingPath | IntakePath | ClaimPath | WakePath
+export type DeskPath = ProcessingPath | IntakePath | ClaimPath | DiscardPath | WakePath
 
 /** Whether a matter may open a processing path: only an active one. A settled matter's sole
  *  legal action is waking it (the state machine never offers 「再处理」 on finished work). */
@@ -187,6 +187,32 @@ export interface ClaimPath {
  */
 export function bindClaimPath(fragmentId: string, sessionId: string, boundAt: string = new Date().toISOString()): ClaimPath {
   return { kind: 'claim', fragmentId, sessionId, boundAt }
+}
+
+/**
+ * The discard arm (261018 片 0: the fragment's terminal state needs a door): an unclaimed fragment
+ * bound to one conversation in which the principal judges it noise. There is no matter to land in,
+ * so the settle is the fragment leaving the unclaimed lane **plus** this session's own matterless
+ * committed receipt after binding — that receipt is what proves the removal was this discard and
+ * not another session's claim.
+ */
+export interface DiscardPath {
+  readonly kind: 'discard'
+  readonly fragmentId: string
+  readonly sessionId: string
+  /** Binding instant (ISO); receipts submitted before it never settle this path. */
+  readonly boundAt: string
+}
+
+/**
+ * Bind the discard arm.
+ * @param fragmentId - The unclaimed fragment judged to be noise.
+ * @param sessionId - The conversation in which the principal says so.
+ * @param boundAt - Binding instant (ISO); defaults to now.
+ * @returns The bound discard path.
+ */
+export function bindDiscardPath(fragmentId: string, sessionId: string, boundAt: string = new Date().toISOString()): DiscardPath {
+  return { kind: 'discard', fragmentId, sessionId, boundAt }
 }
 
 /**
@@ -375,6 +401,43 @@ export function judgeClaimReturn(path: ClaimPath, input: ClaimJudgeInput): Retur
     reasons: remindersUnsynced ? ['reminders-unsynced'] : [],
     remindersUnsynced,
   }
+}
+
+/**
+ * Judge whether the discard arm may return to the desk.
+ *
+ * Same shared gates as the other arms (principal still on the path; session known idle with its
+ * turn settled and nothing waiting on the principal; projection ready and fresh). The settle is
+ * the bound fragment leaving the unclaimed lane **plus** this session's own matterless committed
+ * receipt submitted after binding: a discard leaves no matter behind, so its receipt carries
+ * `matterId: ''` (the same matterless shape `note` uses) and that is what distinguishes this
+ * removal from another session's claim. There is no matter to select on return — the fragment is
+ * gone, and the desk's existing vanished-selection recovery takes over.
+ *
+ * A discard conversation has nothing to propose; if this session raised a pending proposal anyway,
+ * the principal has something to decide, so the desk must not pull them out (the same rule the
+ * other arms apply to their targets).
+ *
+ * @param path - The bound discard path.
+ * @param input - The shared judge input plus the currently projected unclaimed ids.
+ * @returns The decision with machine-readable reasons; no `matterId` — there is nothing to select.
+ */
+export function judgeDiscardReturn(path: DiscardPath, input: ClaimJudgeInput): ReturnDecision {
+  const reasons = sharedGateReasons(input)
+
+  const own = input.projection.receipts.filter(receipt =>
+    receipt.sessionId === path.sessionId && receipt.status === 'committed' && receipt.matterId === ''
+      && receipt.submittedAt >= path.boundAt)
+  if (input.unclaimedIds.has(path.fragmentId)) reasons.push('fragment-not-discarded')
+  if (own.length === 0) reasons.push('discard-receipt-not-read-back')
+  const pendingProposal = input.projection.proposals.some(proposal =>
+    proposal.sessionId === path.sessionId && proposal.status === 'pending'
+      && proposal.proposedAt !== undefined && proposal.proposedAt >= path.boundAt)
+  if (pendingProposal) reasons.push('pending-proposal')
+
+  const remindersUnsynced = input.reminders !== 'synced'
+  if (reasons.length > 0) return { decision: 'stay', reasons, remindersUnsynced }
+  return { decision: 'return', reasons: remindersUnsynced ? ['reminders-unsynced'] : [], remindersUnsynced }
 }
 
 /** What the wake judge needs beyond the shared input: each matter's current projected status. */

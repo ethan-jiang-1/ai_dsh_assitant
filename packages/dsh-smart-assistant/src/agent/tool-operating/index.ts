@@ -26,7 +26,7 @@ export const name = 'assistant-operating-tool'
 
 export const inject = ['assistantOperatingLedger', 'tools']
 
-const ACTIONS = ['desk', 'read', 'entrust', 'report', 'revise', 'propose', 'confirm', 'reject', 'note', 'claim', 'complete', 'reopen'] as const
+const ACTIONS = ['desk', 'read', 'entrust', 'report', 'revise', 'propose', 'confirm', 'reject', 'note', 'claim', 'discard', 'complete', 'reopen'] as const
 
 type Action = (typeof ACTIONS)[number]
 
@@ -53,6 +53,9 @@ const DESCRIPTION = [
   '  the confirmed matter and its dates stay unchanged. The rejection receipt retains its source.',
   '- note: retain a fragment that names no explicit matter (never guess attribution by title).',
   '- claim: attach an unclaimed fragment to a matter, only with an explicit basis.',
+  '- discard: the principal judged a fragment to be noise; it leaves the unclaimed lane and the',
+  '  reason stays in the ledger. ONLY on the principal\'s explicit instruction — a fragment you',
+  '  cannot place is not noise, it is unplaced; never discard to tidy up on your own.',
   '- complete: mark a matter completed. Requires verbatim arrival evidence; "should have',
   '  paid" is not evidence.',
   '- reopen: correct a mis-associated completion; state the reason.',
@@ -198,7 +201,7 @@ export function operatingTool(ctx: Context) {
       operation_id: { type: 'string', description: 'mutating actions: one id per submission intent; reuse it to retry the same submission.' },
       quote: { type: 'string', description: 'mutating actions: the principal\'s words or the material, verbatim.' },
       matter_id: { type: 'string', description: 'read | report | revise | propose | confirm | reject | complete | reopen | claim: the matter.' },
-      unclaimed_id: { type: 'string', description: 'claim: the unclaimed fragment to attach.' },
+      unclaimed_id: { type: 'string', description: 'claim | discard: the unclaimed fragment to attach or to drop as noise.' },
       proposal_id: { type: 'string', description: 'confirm | reject: the pending proposal to resolve.' },
       observed_revision: { type: 'number', description: 'revise | complete | reopen: the revision you last read.' },
       title: { type: 'string', description: 'entrust: the matter\'s title. revise: a rename.' },
@@ -211,7 +214,7 @@ export function operatingTool(ctx: Context) {
       change_kind: { type: 'string', enum: CHANGE_KINDS, description: 'propose: reschedule | checkpoint | complete | abandon.' },
       change_deadline: { type: 'string', description: 'propose reschedule/checkpoint: the proposed date.' },
       evidence_quote: { type: 'string', description: 'complete (action and propose): the arrival evidence, verbatim.' },
-      reason: { type: 'string', description: 'reopen: why the completion was mis-associated.' },
+      reason: { type: 'string', description: 'reopen: why the completion was mis-associated. discard: why the fragment is noise (required — no reason, no removal).' },
     },
     output: {
       schema: OPERATING_OUTPUT_SCHEMA,
@@ -410,6 +413,16 @@ export function operatingTool(ctx: Context) {
           }
           return submit({ kind: 'claim', operationId: operationId!, unclaimedId: args.unclaimed_id, matterId: args.matter_id, source: source(quote) },
             `Attached ${args.unclaimed_id} to ${args.matter_id}.`)
+        }
+        case 'discard': {
+          if (typeof args.unclaimed_id !== 'string') {
+            throw new Error('assistant_operating discard requires unclaimed_id')
+          }
+          if (typeof args.reason !== 'string' || args.reason.trim().length === 0) {
+            throw new Error('assistant_operating discard requires reason (why the fragment is noise; no reason, no removal)')
+          }
+          return submit({ kind: 'discard', operationId: operationId!, unclaimedId: args.unclaimed_id, reason: args.reason, source: source(quote) },
+            `Discarded ${args.unclaimed_id} as noise: ${args.reason}`)
         }
         case 'complete': {
           if (typeof args.matter_id !== 'string' || typeof args.observed_revision !== 'number') {

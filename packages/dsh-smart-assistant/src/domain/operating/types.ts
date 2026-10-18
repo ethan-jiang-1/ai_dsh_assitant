@@ -143,6 +143,19 @@ export type LedgerOperation =
       readonly source: LedgerSource
     }
   | {
+      /**
+       * The fragment's terminal state (261018 片 0): the principal judged it noise, so it leaves
+       * the unclaimed lane — with the reason kept as durable history, the same shape `abandon`
+       * gives a matter. Never a silent delete: the fragment's own words stay in the `note` that
+       * entered them, and a blank reason is refused.
+       */
+      readonly kind: 'discard'
+      readonly operationId: string
+      readonly unclaimedId: string
+      readonly reason: string
+      readonly source: LedgerSource
+    }
+  | {
       /** Complete with the arrival evidence attached (V3): no evidence, no completion. */
       readonly kind: 'complete'
       readonly operationId: string

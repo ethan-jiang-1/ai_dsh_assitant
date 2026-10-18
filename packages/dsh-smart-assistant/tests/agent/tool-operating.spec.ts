@@ -11,6 +11,8 @@
  * 2. Completion without verbatim arrival evidence is refused at the tool boundary.
  * 3. Ordinary progress reports retain material and forecast without consuming a revision.
  * 4. Inferred major changes only propose; an explicit confirm applies them.
+ * 5. A fragment leaves the unclaimed lane only as a reasoned terminal discard — a blank
+ *    reason is refused at the tool boundary, so "tidy up" cannot become a silent delete.
  */
 
 import { describe, expect, it } from 'vitest'
@@ -248,5 +250,33 @@ describe('assistant_operating (tool adapter over the authoritative ledger)', () 
       quote: '本人确认重约到 10/20',
     }, exec) as OperatingOutput
     expect(confirmed.receipt?.outcome).toEqual({ status: 'committed', revision: 2, proposalId: 'p-1' })
+  })
+  it('discards a noise fragment only with a reason, and the lane drops it', async () => {
+    const tool = boot()
+    const noted = await tool.execute({
+      action: 'note',
+      operation_id: 'op-tool-discard-note',
+      note: '同一段转述的第二条副本',
+      quote: '已经付了',
+    }, exec) as OperatingOutput
+    const fragmentId = noted.receipt?.outcome.status === 'retained' ? noted.receipt.outcome.unclaimedId : ''
+    expect(fragmentId).not.toBe('')
+
+    // No reason, no removal: the tool boundary refuses before the ledger is touched.
+    await expect(tool.execute({
+      action: 'discard', operation_id: 'op-tool-discard-blank', unclaimed_id: fragmentId, quote: '这条是噪音',
+    }, exec)).rejects.toThrow(/reason/)
+
+    const discarded = await tool.execute({
+      action: 'discard',
+      operation_id: 'op-tool-discard-1',
+      unclaimed_id: fragmentId,
+      reason: '本人判为噪音：同一条消息的重复转述',
+      quote: '这条是噪音',
+    }, exec) as OperatingOutput
+    expect(discarded.receipt?.outcome).toMatchObject({ status: 'committed' })
+
+    const desk = await tool.execute({ action: 'desk' }, exec) as OperatingOutput
+    expect(desk.unclaimed ?? []).toEqual([])
   })
 })

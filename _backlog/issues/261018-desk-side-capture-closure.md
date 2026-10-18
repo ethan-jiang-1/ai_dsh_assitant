@@ -23,7 +23,7 @@ opened: 2026-10-18
 
 | 片 | 状态 | 真证据 |
 |---|---|---|
-| 0 未成出口（弃置终态） | 进行中 | — |
+| 0 未成出口（弃置终态） | 落地（**余真模型端到端走查**） | 域 4 案（`tests/domain/operating-projection.spec.ts`：离开通道 + 理由留史 + 原话仍在／未知片段与空理由拒绝／重复弃置拒绝／投影不再列出且回执可读）；服务 1 案（`tests/host/operating-ledger.spec.ts`：空理由在账本边界拒绝、决定留史、原 `note` 回执仍在）；工具边界 1 案（`tests/agent/tool-operating.spec.ts`：缺 reason 抛错、desk 栏清空）；客户端 8 案判据（`tests/client/client-desk-process.spec.ts`：他人 claim 不能结算本路径、无事项可选中、共享闸门）+ 1 案按钮（`tests/client/projection-panel.spec.ts`：「是噪音，不归户」回传 id）；真机 DOM 两出口并列（`.tmp/shots/s0-fragment-actions-clean-1500x1000.{png,dom.txt}`，`button h=32: 是噪音，不归户`）。全量：`pnpm test` 666 全绿、`pnpm verify` 42 条、`pnpm eval -- --only desk-evidence-recommendation` PASS。**未做**：真模型端到端（点弃置 → 会话 → 模型真调 discard → 栏消失 → 回桌面）——判据层与 DOM 层已证，端到端待补（形态照 `desk-process-e2e.mjs --scenario claim` 的 replay 场景） |
 | 1 受理位与状态显性化 | 未开始 | — |
 | 2 助手侧默认与「要问就正经问」 | 未开始 | — |
 | 3 intake 返回语义修订 | 未开始 | — |
