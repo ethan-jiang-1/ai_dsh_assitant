@@ -52,6 +52,10 @@
  *             reached (e.g. dismiss a notice, open the command menu) — a scripted click
  *             is weaker evidence than a human click, but enough to answer "does this
  *             surface contain X", which is what the UI slices need.
+ *   --require-eval <text>
+ *             the LAST --eval result must contain <text>, else exit non-zero before any
+ *             screenshot is written. Scene harnesses pass `ready: <token>` so a readiness
+ *             wait that timed out cannot silently capture (and refresh) the wrong state.
  *   --timeout watchdog override in ms (default: budget + settle + 1.5s per --eval + 30s);
  *             raise it when an awaited promise eval waits longer than that.
  *   --lang    browser locale (default zh-CN): the first-mile experience being reviewed
@@ -75,12 +79,16 @@ import { option, sleep } from './probe-utils.mjs'
 const args = process.argv.slice(2)
 const targetUrl = args.find(a => !a.startsWith('--'))
 if (targetUrl === undefined) {
-  console.error("usage: node dev/probes/web/webui-shots.mjs <url-with-token> [--out <dir>] [--name <base>] [--size <WxH>]... [--budget <ms>] [--settle <ms>] [--dom] [--plain] [--eval <js>]... [--lang <bcp47>]")
+  console.error("usage: node dev/probes/web/webui-shots.mjs <url-with-token> [--out <dir>] [--name <base>] [--size <WxH>]... [--budget <ms>] [--settle <ms>] [--dom] [--plain] [--eval <js>]... [--require-eval <text>] [--lang <bcp47>]")
   process.exit(1)
 }
 
 const sizes = args.flatMap((a, i) => (a === '--size' && i + 1 < args.length ? [args[i + 1]] : []))
 const evals = args.flatMap((a, i) => (a === '--eval' && i + 1 < args.length ? [args[i + 1]] : []))
+// 261019 (BUG-021): a readiness wait that times out used to be indistinguishable from success —
+// the run captured whatever was on screen and `--refresh` committed it. With this flag the LAST
+// eval's return value must contain the text, so a scene's readiness token becomes a real gate.
+const requireEval = option(args, 'require-eval', undefined)
 
 const outDir = option(args, 'out', tmpDir('shots'))
 const name = option(args, 'name', `shot-${Date.now()}`)
@@ -338,14 +346,19 @@ for (const viewport of viewports) {
     }
     await sleep(settle)
 
+    let lastEvalDetail
     for (const snippet of evals) {
       // awaitPromise lets a snippet wait for real time (a tab to open, a turn to settle)
       // instead of the caller padding the run with throwaway evals.
       const outcome = await cdp.send('Runtime.evaluate', { expression: snippet, returnByValue: true, awaitPromise: true })
       const detail = outcome.result?.result?.value ?? outcome.result?.exceptionDetails?.text ?? 'ok'
+      lastEvalDetail = detail
       console.log(`  ..   eval → ${String(detail).slice(0, 120)}`)
       // Let React commit whatever the snippet triggered before the next snippet or capture.
       await sleep(1500)
+    }
+    if (requireEval !== undefined && !String(lastEvalDetail ?? '').includes(requireEval)) {
+      throw new Error(`--require-eval: the last eval never reported "${requireEval}" (last: ${String(lastEvalDetail ?? '').slice(0, 160)})`)
     }
 
     const shot = await cdp.send('Page.captureScreenshot', { format: 'png' })

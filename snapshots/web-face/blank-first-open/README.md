@@ -30,6 +30,8 @@ pnpm web-expected '<server 打印的 URL>' --wait-text '还没有经营事项资
 
 未种桌面的首开态会被 `pnpm preflight` 的 desk-readiness 检查拒绝；本场景不把该拒绝写成全绿交付。认证、bundle 注册和 boot 图可单独读其结果，DOM 比对仍须无 console/network 错误。K1 默认入口的记录已去除存量期望里的共享工作区经营数据污染；这不是经营账本空态通过证据，当前全局组件读取独立 Host 固定投影，缺失与有效空集合分开；这不证明经营 writer 或持久操作结果。
 
+**readiness 是硬门（2026-10-19，BUG-021）**：`--wait-text` 的超时不再是一段静默 sleep——`webui-expected` 把它翻译成 `--require-eval 'ready: <token>'`，等不到 token 时 shots 直接非零退出，`--refresh` 也不会把错状态写成基线。基线的 2026-10-19 版本就是在这条门下、从一个**全新隔离 home** 重录的（工作区「默认工作区」、零事项、`还没有经营事项资料`、首开预览说明在场）；共享 dev home 录出来的数据态不再是本场景的期望。
+
 ## 比对什么（判据）
 
 比对面是 shots 的 **DOM 证据 JSON**（不是像素）：`title`/`viewport`/`readyState`/`visibleText`/

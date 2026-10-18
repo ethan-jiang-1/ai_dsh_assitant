@@ -72,6 +72,10 @@ const capture = spawnSync(process.execPath, [
   '--size', size,
   '--dom',
   ...evalArgs,
+  // 261019 (BUG-021): a scene's readiness token is a gate, not a sleep. If the wait snippet
+  // reports `timeout: <token>` instead of `ready: <token>`, shots exits non-zero and no
+  // expectation is written or compared against the wrong state.
+  ...(waitText !== undefined ? ['--require-eval', `ready: ${waitText}`] : []),
 ], { stdio: 'inherit' })
 if (capture.status !== 0) {
   console.error(`webui-expected: capture failed (shots exit ${capture.status}) — evidence dir: ${workDir}`)

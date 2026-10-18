@@ -151,6 +151,12 @@ try {
   if (!acknowledged) fail('ack', { hint: 'no acknowledgement in the same turn', called: calledNames.slice(0, 8) })
   const ledgerAfter = JSON.parse(readFileSync(ledgerPath, 'utf8'))
   const mattersAfter = Object.keys(ledgerAfter.matters ?? {}).length
+  // The desk card shows the fragment's NOTE (may be a paraphrase), not the verbatim quote — the
+  // takeover proof uses the new card's own note prefix, not the captured line.
+  const newUnclaimed = Object.entries(ledgerAfter.unclaimed ?? {})
+    .find(([id]) => seedLedger.unclaimed?.[id] === undefined)
+  const fragmentNeedle = String(newUnclaimed?.[1]?.note ?? newUnclaimed?.[1]?.source?.quote ?? '').slice(0, 10)
+  if (fragmentNeedle === '') fail('verbatim-note', { hint: 'new unclaimed fragment has no text to look for on the desk' })
   if (mattersAfter !== mattersBefore) fail('no-direct-matter', { before: mattersBefore, after: mattersAfter, hint: '直接立项 = 红' })
   const entrustCalled = calledNames.some(name => name === 'entrust' || name.includes('entrust'))
   if (entrustCalled) fail('no-direct-entrust', { called: calledNames.slice(0, 8), hint: 'tool-level entrust on a captured line = 红' })
@@ -164,12 +170,24 @@ try {
     answerHead: String(seen.answerText ?? '').slice(0, 140),
     matters: `${mattersBefore}→${mattersAfter}`,
   })
+  // 桌面回读（261019, BUG-022）：在途条让位于账本实况的判据必须是"新片段可见 + 在途条消失"，
+  // 不能在种子本来就含"待认领"时拍一张早帧。旧断言只找"待认领"，截图里在途条与计数都还是旧的。
+  const takeover = await pollUntil(evaluate, `(() => {
+    const row = document.querySelector('.dsha-inflight');
+    const text = document.body.innerText;
+    const count = document.querySelector('.dsha-sub')?.innerText ?? '';
+    return {
+      inflight: row !== null,
+      count,
+      fragment: text.includes(${JSON.stringify(fragmentNeedle)}),
+      head: text.replace(/\\s+/g, ' ').slice(0, 160),
+    };
+  })()`, { intervalMs: 1000, budget: 60, checkFirst: true, isDone: value => value.inflight === false && value.fragment === true && value.count.includes('2 条待认领') })
+  if (takeover === null || takeover.inflight !== false || takeover.fragment !== true || !takeover.count.includes('2 条待认领')) {
+    fail('desk-readback', { lastState: takeover })
+  }
   writeFileSync(join(shotDir, 'desk-capture-takeover.png'), await browser.captureScreenshot())
-
-  // 桌面回读：受理位清空、在途条让位于账本实况（回执随 revision 越过即消失）。
-  const deskAfter = await pollUntil(evaluate, deskText, { intervalMs: 1000, budget: 60, checkFirst: true, isDone: text => text !== null && text.includes('待认领') })
-  if (deskAfter === null) fail('desk-readback', { lastState: String(deskAfter).slice(0, 200) })
-  pass('desk-readback', { head: String(deskAfter).slice(0, 160) })
+  pass('desk-readback', { count: takeover.count, head: takeover.head })
 
   verdict.host = { ncpu: os.cpus().length, loadavg: os.loadavg().map(value => Number(value.toFixed(2))) }
 } finally {
