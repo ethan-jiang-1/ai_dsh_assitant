@@ -7,7 +7,7 @@
 > [开源 agent 的主动性机制](../../_backlog/research/positioning/261018-oss-proactivity-mechanisms.md)｜
 > [本仓主动性现状事实表](../../_backlog/research/positioning/261018-proactivity-baseline.md)｜
 > [主动性综合](../../_backlog/research/positioning/261018-proactivity-synthesis.md)（完整推理链）。
-> **邻卡**：[261018-desk-side-capture](../proposed/2026-10-18-desk-side-capture.md)（桌面受理位；本卡只与它相邻，不改其范围）。
+> **邻卡**：[261018-desk-side-capture](./2026-10-18-desk-side-capture.md)（桌面受理位；本卡只与它相邻，不改其范围）。
 
 ## 问题（可观察行为）
 
