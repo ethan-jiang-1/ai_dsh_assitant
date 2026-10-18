@@ -131,6 +131,16 @@ export const TASKS = [
     ],
   },
   {
+    id: 'desk-capture-note',
+    why: 'Desk capture lane (261018 片 2): a "[桌面] " line is the light door — the model must note it verbatim through assistant_operating and acknowledge in the same turn, never promote it to a matter by itself. The note-vs-entrust negative and the verbatim-quote/provenance read-back ride the live probe (checks.mjs has no not-used-tool kind).',
+    prompt: '[桌面] 北边的仓库月底到期，租金可能涨',
+    checks: [
+      { kind: 'used-tool', tool: 'assistant_operating' },
+      { kind: 'answer-matches', pattern: '记|收到|logged|已' },
+    ],
+  },
+
+  {
     id: 'desk-evidence-recommendation',
     why: 'A fragment that names no explicit matter must never be attributed by guess: it enters unclaimed, and the reply says attribution was not assumed.',
     prompt: '刚收到一条消息说「有一笔二期款已经付了」，但没说是哪个合同的。帮我记一下。',

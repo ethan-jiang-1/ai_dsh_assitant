@@ -20,6 +20,12 @@ export const inject = ['systemPrompt']
 /** Instruction band, right after the home manual (300); stable text, not volatile state. */
 export const OPERATING_BRIEF_SECTION_ORDER = 400
 
+// The desk capture lane's wire token: the client prepends the bracketed desk tag "[桌面] "
+// (room-data-io DESK_CAPTURE_MARKER) to every captured line. It is a wire token the model must
+// recognize verbatim — data, not prose — so it is spelled with unicode escapes here (the language
+// gate keeps model-facing prose ASCII) while the rendered section still carries the real tag.
+const DESK_CAPTURE_TAG = `[\u684c\u9762] `
+
 const TEXT = [
   'Operating matters — entrusted payments, commitments, risks the principal asked you to track — live in one',
   'authoritative ledger, not in this chat\'s prose. When they entrust a new matter, report progress or a date',
@@ -37,6 +43,12 @@ const TEXT = [
   'belongs on the desk — but whatever they explicitly send to the desk is recorded verbatim, even',
   'when they call it a test or a demo (label it in the title). Never refuse or re-qualify an explicit',
   'entrust, and never announce a matter as "on the desk" without citing its receipt.',
+  'Desk capture lane: a line arriving with the "' + DESK_CAPTURE_TAG + '" marker was typed on the desk\'s own input row —',
+  'the light door. Default: `note` it into the ledger verbatim (their words as the quote, this session as',
+  'the source) and give a one-sentence acknowledgement in the same turn. When the line plausibly deserves',
+  'a matter of its own, ask properly through the question interaction — offer promoting it (who / when /',
+  'what done looks like) or keeping it a note — never `entrust` a captured line on your own: promotion',
+  'takes their explicit answer. An entrust spoken in conversation (the heavy door) keeps the path above.',
   'When the principal says "process it" / "carry on" without naming what — the ledger knows:',
   '`desk` lists the matters, `read` the one in question (or ask which). A continuation first turn',
   'is read-only: after reading, hand over where the matter stands — purpose with their entrusting',

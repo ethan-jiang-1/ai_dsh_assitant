@@ -49,3 +49,25 @@ describe('operating-brief unattended red line (261018 片 3)', () => {
     expect(OPERATING_BRIEF_TEXT).toContain('goal-completion proposal')
   })
 })
+
+describe('operating-brief desk capture lane (261018 desk-side-capture 片 2)', () => {
+  it('names the "[桌面] " marker and defaults to a verbatim note with provenance', () => {
+    expect(OPERATING_BRIEF_TEXT).toContain('[桌面] ')
+    expect(OPERATING_BRIEF_TEXT).toContain('`note` it into the ledger verbatim')
+    expect(OPERATING_BRIEF_TEXT).toContain('this session as')
+  })
+
+  it('requires a same-turn acknowledgement', () => {
+    expect(OPERATING_BRIEF_TEXT).toContain('one-sentence acknowledgement in the same turn')
+  })
+
+  it('routes the promotion choice through the question interaction, never a self-directed entrust', () => {
+    expect(OPERATING_BRIEF_TEXT).toContain('question interaction')
+    expect(OPERATING_BRIEF_TEXT).toContain('never `entrust` a captured line on your own')
+    expect(OPERATING_BRIEF_TEXT).toContain('takes their explicit answer')
+  })
+
+  it('keeps the heavy-door path for entrusts spoken in conversation', () => {
+    expect(OPERATING_BRIEF_TEXT).toContain('(the heavy door) keeps the path above')
+  })
+})
