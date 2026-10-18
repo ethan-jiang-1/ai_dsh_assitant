@@ -131,6 +131,40 @@ export interface IntakePath {
 /** Every arm of the desk→conversation path. */
 export type DeskPath = ProcessingPath | IntakePath | ClaimPath | DiscardPath | WakePath
 
+/** What the desk's capture row says it is waiting on (261018 片 1b). */
+export type CaptureWait = 'me' | 'assistant' | 'unread' | 'idle'
+
+/** The platform's per-session facts this face reads; structural, so nothing here imports vendor types. */
+export interface CaptureStatus {
+  readonly running?: boolean
+  readonly pendingInteraction?: { readonly kind?: string } | undefined
+  readonly completionUnread?: boolean
+}
+
+/**
+ * Whose turn it is, read from the platform's own `SessionStatus` — never from the desk's memory
+ * (261018 判定 3). The delivery receipt already answers "not in the ledger yet"; this answers
+ * "who is being waited on", and it is the half that has to survive a reload.
+ *
+ * Precedence follows the platform's own ranking: a pending interaction is "the highest-precedence
+ * domain request currently awaiting user interaction", so it wins over a still-running turn (the
+ * assistant can be running AND waiting on the principal's answer). `completionUnread` — a stop
+ * observed outside the main view — is what makes "it finished while you were away" visible
+ * instead of leaving the row stuck on "等助手".
+ *
+ * @param status - The bound session's status, or undefined while nothing is known yet.
+ * @returns Whose turn it is, plus the interaction kind when one is pending.
+ */
+export function captureWait(status: CaptureStatus | undefined): { wait: CaptureWait, kind?: string } {
+  const pending = status?.pendingInteraction
+  if (pending !== undefined && pending !== null) {
+    return pending.kind === undefined ? { wait: 'me' } : { wait: 'me', kind: pending.kind }
+  }
+  if (status?.running === true) return { wait: 'assistant' }
+  if (status?.completionUnread === true) return { wait: 'unread' }
+  return { wait: 'idle' }
+}
+
 /** Whether a matter may open a processing path: only an active one. A settled matter's sole
  *  legal action is waking it (the state machine never offers 「再处理」 on finished work). */
 export function canProcess(status: string): boolean {

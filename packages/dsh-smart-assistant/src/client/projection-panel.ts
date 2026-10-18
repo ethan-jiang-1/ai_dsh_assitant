@@ -1,7 +1,7 @@
 /** Global projection presentation. Renderer supplies the sole live-data hook. */
 import { createElement as ce } from './runtime'
 import { AssistantBrandMark } from './brand'
-import { canProcess } from './desk-process'
+import { canProcess, captureWait, type CaptureStatus } from './desk-process'
 import { humanTime, localDateKey, localDateLabel, localTimeLabel } from './format'
 import type { ProjectionDownload } from './projection-reader'
 import type { DeskCaptureReceipt, ProjectionView } from './projection-view'
@@ -10,6 +10,8 @@ import type { DeskCaptureReceipt, ProjectionView } from './projection-view'
 export interface ProjectionPanelProps {
   useProjection<S>(select: (value: ProjectionDownload) => S): S
   useStore<S>(select: (view: ProjectionView) => S): S
+  /** The platform's per-session status map (261018 片 1b), as a selector hook like the projection. */
+  useSessionStatus<S>(select: (value: ReadonlyMap<string, CaptureStatus>) => S): S
   actions: { selectMatter(id: string): void; selectFragment(id: string): void; showList(): void; rememberListPosition(position: number): void; setFilter(filter: ProjectionView['filter']): void; setMode(mode: ProjectionView['mode']): void; revealMoreActivity(): void; setCaptureDraft(text: string): void; setCaptureReceipt(receipt: DeskCaptureReceipt | null): void }
   refreshProjection(): void
   onAsk(): void
@@ -18,6 +20,8 @@ export interface ProjectionPanelProps {
   onEntrust?(): void
   /** Deliver the principal's own words from the desk's capture row (261018 片 1), staying here. */
   onCapture(text: string): void
+  /** Go to one conversation — the capture row's pointer when the assistant is waiting on the principal. */
+  onOpenSession(sessionId: string): void
   /** Open the explicit processing path for one matter (bound to the entry's processMatter). */
   onProcess(matterId: string): void
   /** Open the explicit claim path for one unclaimed fragment (bound to the entry's claimFragment). */
@@ -190,6 +194,18 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
   // claim content it cannot back.
   const receipt = view.captureReceipt
   const inflight = receipt !== null && (data?.revision ?? 0) <= receipt.observedRevision
+  // 片 1b: whose turn it is comes from the platform's SessionStatus, not from anything the desk
+  // remembers — so a reload keeps it. The receipt answers "not in the ledger yet"; this answers
+  // "who is being waited on".
+  const sessionStatuses = props.useSessionStatus(value => value)
+  const wait = receipt === null ? undefined : captureWait(sessionStatuses.get(receipt.sessionId))
+  const WAIT_LABEL: Record<string, string> = { me: '轮到我', assistant: '等助手', unread: '它说完了', idle: '已交给助手' }
+  const WAIT_DETAIL: Record<string, string> = {
+    me: '助手在会话里问了话（等你回答）——点「去会话」接着答，桌面这边不会替你答。',
+    assistant: '它正在处理你这句话。',
+    unread: '它已经停了，你还没看——结果还没进账。',
+    idle: '排着队，等它接手。',
+  }
   const submitCapture = (): void => {
     const text = view.captureDraft.trim()
     if (text === '' || inflight) return
@@ -294,9 +310,13 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
           : '轻的走这里（记一下：助手会先记成一笔、再问要不要立项）；要正式立项用「＋ 交代新事项」当面谈。')),
     inflight && receipt !== null ? ce('div', { className: 'dsha-inflight', role: 'status' },
       ce('div', { className: 'dsha-inflight-line' },
-        ce('span', { className: 'dsha-chip dsha-chip-wait' }, '在途'),
+        ce('span', { className: `dsha-chip ${wait?.wait === 'me' ? 'dsha-chip-me' : 'dsha-chip-wait'}` }, WAIT_LABEL[wait?.wait ?? 'idle'] ?? '已交给助手'),
         ce('span', {}, '还没进账')),
       ce('p', { className: 'dsha-inflight-said' }, `「${receipt.text}」`),
+      ce('p', { className: 'dsha-capture-hint' }, WAIT_DETAIL[wait?.wait ?? 'idle'] ?? ''),
+      wait?.wait === 'me' || wait?.wait === 'unread'
+        ? ce('button', { className: 'dsha-btn', type: 'button', onClick: () => props.onOpenSession(receipt.sessionId) }, '去会话')
+        : null,
       ce('p', { className: 'dsha-capture-hint' }, '来自：桌面直接交代 · 话已进会话日志')) : null,
     // The desk's two top-level views as real tabs (principal UX direction, 2026-10-12): the
     // divider line makes the split legible, the active underline sits ON the line, and the

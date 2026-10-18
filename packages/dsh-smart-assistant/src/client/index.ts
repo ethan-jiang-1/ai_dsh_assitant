@@ -57,7 +57,7 @@ import { ProjectionPanel } from './projection-panel'
 import { mountProjectionReader } from './projection-lifecycle'
 import type { ProjectionDownload } from './projection-reader'
 import { createProjectionViewStore } from './projection-view'
-import type { DeskPath } from './desk-process'
+import type { CaptureStatus, DeskPath } from './desk-process'
 import { createDeskArms } from './desk-arms'
 import { selectDashboardByDefault } from './default-panel-selection'
 import { en as firstMileEn, zh as firstMileZh } from './locales'
@@ -115,6 +115,29 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       baseURI: document.baseURI, origin: location.origin, fetch: globalThis.fetch.bind(globalThis),
     })
     const viewStore = projection === undefined || storeApi === undefined ? undefined : createProjectionViewStore(storeApi.defineStore)
+    // 片 1b: the platform's per-session status, mirrored into a snapshot store so the desk panel
+    // can read it through a selector hook like the projection. The desk owns no copy of "whose
+    // turn it is" — it re-reads the platform's own answer, which is what makes it survive a reload.
+    // The injected face types `pendingInteraction` as `unknown` (it is a declaration-merged
+    // domain value), so the shape is re-narrowed once, here, instead of being guessed at each
+    // read. `completionUnread` is not in the injected type at all; it is read structurally.
+    const toCaptureStatus = (value: { readonly running?: boolean, readonly pendingInteraction?: unknown }): CaptureStatus => {
+      const pending = value.pendingInteraction as { readonly kind?: unknown } | null | undefined
+      const completionUnread = (value as { readonly completionUnread?: boolean }).completionUnread
+      return {
+        ...(value.running === undefined ? {} : { running: value.running }),
+        ...(pending === undefined || pending === null ? {} : { pendingInteraction: typeof pending.kind === 'string' ? { kind: pending.kind } : {} }),
+        ...(completionUnread === true ? { completionUnread: true } : {}),
+      }
+    }
+    const readStatuses = (): ReadonlyMap<string, CaptureStatus> => new Map(
+      [...(ctx.uiSession?.sessionStatus.getSnapshot() ?? [])].map(([id, value]) => [id, toCaptureStatus(value)]),
+    )
+    const sessionStatuses = storeApi?.createSnapshotStore<ReadonlyMap<string, CaptureStatus>>(readStatuses())
+    if (sessionStatuses !== undefined && ctx.uiSession !== undefined) {
+      const status = ctx.uiSession.sessionStatus
+      ctx.effect(() => status.subscribe(() => { sessionStatuses.set(readStatuses()) }))
+    }
     // The explicit processing path (K3 slice F): one bound matter + processing session. The
     // path is in-memory by design — a reload reads the authoritative projection first and
     // never replays a path or re-submits. The slot store survives panel switches, so the
@@ -159,7 +182,11 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
             typeof argument === 'object' && argument !== null && typeof (argument as { selectMatter?: unknown }).selectMatter === 'function')
           deskViewActions = actions ?? deskViewActions
           deskActivity.receive(actions)
-          return { hooks: projection === undefined ? {} : { projection }, refreshProjection: () => { reader?.refresh() }, onAsk: () => { ctx.layout?.selectPanel(null) }, onEntrust: arms.startIntake, onProcess: arms.processMatter, onClaim: arms.claimFragment, onDiscard: arms.discardFragment, onCapture: arms.captureFromDesk, onWake: arms.wakeMatter }
+          const hooks = {
+            ...(projection === undefined ? {} : { projection }),
+            ...(sessionStatuses === undefined ? {} : { sessionStatus: sessionStatuses }),
+          }
+          return { hooks, refreshProjection: () => { reader?.refresh() }, onAsk: () => { ctx.layout?.selectPanel(null) }, onEntrust: arms.startIntake, onProcess: arms.processMatter, onClaim: arms.claimFragment, onDiscard: arms.discardFragment, onCapture: arms.captureFromDesk, onOpenSession: (sessionId: string) => { ctx.uiWorkspace?.openSession(sessionId) }, onWake: arms.wakeMatter }
         },
       }, projection === undefined ? DashboardMainPanel : ProjectionPanel)
       selectDashboardByDefault(ctx)

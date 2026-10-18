@@ -29,7 +29,7 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { bindClaimPath, bindDiscardPath, bindIntakePath, bindProcessPath, bindWakePath, canProcess, judgeClaimReturn, judgeDiscardReturn, judgeIntakeReturn, judgeReturn, judgeWakeReturn, type JudgeProposal, type JudgeSession } from '../../src/client/desk-process.ts'
+import { bindClaimPath, bindDiscardPath, bindIntakePath, bindProcessPath, bindWakePath, canProcess, captureWait, judgeClaimReturn, judgeDiscardReturn, judgeIntakeReturn, judgeReturn, judgeWakeReturn, type JudgeProposal, type JudgeSession } from '../../src/client/desk-process.ts'
 import { claimContextMessage, discardContextMessage, processingContextMessage, resumeContextMessage, wakeContextMessage } from '../../src/client/desk-process-messages.ts'
 
 interface Receipt { operationId: string, matterId: string, sessionId: string, status: string, revision?: number, proposalId?: string, submittedAt: string }
@@ -534,5 +534,26 @@ describe('wake path (已完成/已放弃 only wakes, never re-processes)', () =>
     expect(message).toContain('assistant_operating')
     expect(message).toContain('reopen')
     expect(message).toContain('未经')
+  })
+})
+
+/**
+ * 261018 片 1b: whose turn the desk's capture row reports. Every answer comes from the platform's
+ * own SessionStatus — the row owns no copy, which is what makes it survive a reload.
+ */
+describe('captureWait (the capture row\'s "whose turn" reading)', () => {
+  it('lets a pending interaction win over a running turn — the assistant can be busy AND asking', () => {
+    expect(captureWait({ running: true, pendingInteraction: { kind: 'question' } })).toEqual({ wait: 'me', kind: 'question' })
+    expect(captureWait({ running: false, pendingInteraction: {} })).toEqual({ wait: 'me' })
+  })
+
+  it('reads the running turn, then a stop nobody has seen, then nothing known yet', () => {
+    expect(captureWait({ running: true })).toEqual({ wait: 'assistant' })
+    expect(captureWait({ running: false, completionUnread: true })).toEqual({ wait: 'unread' })
+    expect(captureWait({ running: false })).toEqual({ wait: 'idle' })
+  })
+
+  it('fails to "idle" rather than inventing a turn when the status is unknown', () => {
+    expect(captureWait(undefined)).toEqual({ wait: 'idle' })
   })
 })
