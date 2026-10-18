@@ -51,9 +51,9 @@ research 为问题和缺陷提供依据。问题按 [关闭条件](../README.md)
 从引用卡链接进入，按正在解决的问题选读。
 
 - [261018-proactivity-synthesis.md](positioning/261018-proactivity-synthesis.md)——引用卡：[主动性方向评审卡](../_archive/settled_issues/261018-proactive-direction.md)（已结）。合成档：主动性拆四层 → 本仓现状与外部逐层答案 → 四条候选路线与判据矩阵 → 选定路线与逐条约束对账 → 反证/未决问题/证据强度，供人与 agent 评审
-- [261018-proactive-ux-mechanics.md](positioning/261018-proactive-ux-mechanics.md)——引用卡：[主动性 v1 提案](../../notes/proposed/2026-10-18-proactive-face.md)。近月 personal agent（Claude/Lindy/Muse/dots/ChatGPT Scheduled 等）"主动性"的 UX 机制：触发/送达/开关对象/找人接缝，跨家共性六条、已知失败形态、10-12→10-18 增量刷新与未能证实清单
-- [261018-oss-proactivity-mechanisms.md](positioning/261018-oss-proactivity-mechanisms.md)——引用卡：[主动性 v1 提案](../../notes/proposed/2026-10-18-proactive-face.md)。老 Hermes 的主动性机制 H1–H8、"上手难"的可指认结构性代价，以及 OpenClaw/Letta/Khoj/Home Assistant/AutoGPT 的可搬运 M1–M10 与不搬 N1–N4
-- [261018-proactivity-baseline.md](positioning/261018-proactivity-baseline.md)——引用卡：[主动性 v1 提案](../../notes/proposed/2026-10-18-proactive-face.md)。本仓主动性现状事实表：8 条"没人开口也会发生"的事、开关清单、已拍板的硬约束、缺口表与输入观察读数现状（30 天观察实际未启动）
+- [261018-proactive-ux-mechanics.md](positioning/261018-proactive-ux-mechanics.md)——引用卡：[主动性 v1 提案](../../notes/implemented/2026-10-18-proactive-face.md)。近月 personal agent（Claude/Lindy/Muse/dots/ChatGPT Scheduled 等）"主动性"的 UX 机制：触发/送达/开关对象/找人接缝，跨家共性六条、已知失败形态、10-12→10-18 增量刷新与未能证实清单
+- [261018-oss-proactivity-mechanisms.md](positioning/261018-oss-proactivity-mechanisms.md)——引用卡：[主动性 v1 提案](../../notes/implemented/2026-10-18-proactive-face.md)。老 Hermes 的主动性机制 H1–H8、"上手难"的可指认结构性代价，以及 OpenClaw/Letta/Khoj/Home Assistant/AutoGPT 的可搬运 M1–M10 与不搬 N1–N4
+- [261018-proactivity-baseline.md](positioning/261018-proactivity-baseline.md)——引用卡：[主动性 v1 提案](../../notes/implemented/2026-10-18-proactive-face.md)。本仓主动性现状事实表：8 条"没人开口也会发生"的事、开关清单、已拍板的硬约束、缺口表与输入观察读数现状（30 天观察实际未启动）
 - [261011-input-observation.md](usage/261011-input-observation.md)——引用卡：[输入边界](../_archive/settled_issues/261007-input-boundary.md)（**活观察**：读数档被 [triggers.md](../triggers.md) 的触发行点名，30 天观察期结束前留在活跃区）。30 天输入观察的读数档：A 自发投递 / B 时长 / C 入口后的操作的口径、剔除规则、环境创建约定与每周快照（读数命令 `pnpm observe`）
 - [261005-exec-demo-narratives.md](positioning/261005-exec-demo-narratives.md)——间接使用：[差异性对照](positioning/261012-personal-agent-differentiation.md) 引用其 Huper 边界与 CFO 证据行；原引用卡（输入边界）已结档。面向 CEO/CFO 的十分钟演示叙事
 - [261005-ceo-time-and-decision-research.md](positioning/261005-ceo-time-and-decision-research.md)——间接使用：[差异性对照](positioning/261012-personal-agent-differentiation.md) 两处引用（一把手时间与真实需求）；原引用卡（输入边界）已结档。一把手时间分配与决策过程

@@ -5,15 +5,15 @@ opened: 2026-10-18
 
 # 推敲：主动性方向——把"它替我盯着什么"做成可见、可答、不重复
 
-> 立卡：2026-10-18 ｜ 状态：已结 ｜ 类型：Feature ｜ 可关闭：是 ｜ 结论：**路线裁决 A「可见化与收口」**（2026-10-18 本人六问逐项拍板：一条三行式＋空态不渲染＋"事 vs 会话"分工；建议排序 ②③①；路线 D 挂触发不立卡；暂停入口不要；输入观察触发行改"首条真人会话后计时"）→ [proposed 卡](../../../../notes/proposed/2026-10-18-proactive-face.md) 已授权实施，推进台账 = [261018-proactive-face-closure](../issues/261018-proactive-face-closure.md)
-> **这是一张评审卡**：征集人与 agent 的 review，不承载实施。完整推理链 = [主动性综合](../../../_backlog/research/positioning/261018-proactivity-synthesis.md)（合成档）；实施提案 = [主动性 v1 提案](../../../notes/proposed/2026-10-18-proactive-face.md)（proposed，待拍板）。
+> 立卡：2026-10-18 ｜ 状态：已结 ｜ 类型：Feature ｜ 可关闭：是 ｜ 结论：**路线裁决 A「可见化与收口」**（2026-10-18 本人六问逐项拍板：一条三行式＋空态不渲染＋"事 vs 会话"分工；建议排序 ②③①；路线 D 挂触发不立卡；暂停入口不要；输入观察触发行改"首条真人会话后计时"）→ [proposed 卡](../../../../notes/implemented/2026-10-18-proactive-face.md) 已授权实施，推进台账 = [261018-proactive-face-closure](../issues/261018-proactive-face-closure.md)
+> **这是一张评审卡**：征集人与 agent 的 review，不承载实施。完整推理链 = [主动性综合](../../../_backlog/research/positioning/261018-proactivity-synthesis.md)（合成档）；实施提案 = [主动性 v1 提案](../../../notes/implemented/2026-10-18-proactive-face.md)（proposed，待拍板）。
 
 **评审怎么读（按序）**
 
 1. 本卡（10 分钟）：要决定什么、主张与证据强度、请你攻击哪几条；
 2. [主动性综合](../../../_backlog/research/positioning/261018-proactivity-synthesis.md)（20 分钟）：四层拆解、候选路线判据矩阵、逐条约束对账、反证与未决问题；
 3. 按需下钻三档原件：[外部主动性 UX 机制](../../../_backlog/research/positioning/261018-proactive-ux-mechanics.md)｜[开源 agent 机制（Hermes 等）](../../../_backlog/research/positioning/261018-oss-proactivity-mechanisms.md)｜[本仓现状事实表](../../../_backlog/research/positioning/261018-proactivity-baseline.md)。
-4. 实施细节与逐片验收：三份都读完再打开 [proposed 卡](../../../notes/proposed/2026-10-18-proactive-face.md)。
+4. 实施细节与逐片验收：三份都读完再打开 [proposed 卡](../../../notes/implemented/2026-10-18-proactive-face.md)。
 
 ---
 
@@ -150,7 +150,7 @@ opened: 2026-10-18
 本卡的验收＝**评审收敛 + 一次路线裁决**，不是实施验收（实施验收在 proposed 卡）：
 
 1. 四位角色的意见各有落点（落点＝评审记录节）：人给出 Q1/Q3/Q6/Q7 的答复与 Q8 的口味半边；架构给出 Q2/Q4/Q5/Q8 的结论与共存判断；评测给出"验收表可执行/假绿清单"结论（首轮已给：3 可复现 / 3 需前置 / 2 不可复现）；证据给出"反证与来源强度"结论（首轮已给）。
-2. 路线裁决写进 [proposed 卡](../../../notes/proposed/2026-10-18-proactive-face.md) 状态行（拍板即授权）或本卡关闭条件的对应出口。
+2. 路线裁决写进 [proposed 卡](../../../notes/implemented/2026-10-18-proactive-face.md) 状态行（拍板即授权）或本卡关闭条件的对应出口。
 3. 若裁决为"只落片 1"或"换路线"，同 diff 更新 proposed 卡正文，使建议与裁决一致。
 
 ## 关闭条件
