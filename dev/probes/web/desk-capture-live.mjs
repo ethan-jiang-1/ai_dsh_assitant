@@ -38,6 +38,10 @@ const keepService = args.includes('--keep-service')
 
 const CAPTURE_LINE = '北边的仓库月底到期，租金可能涨'
 const verdict = { probe: 'desk-capture-live', phases: {}, consoleProblems: [], exceptions: [] }
+// 走查产物落点（片 4）：在途条在场与结果接管两帧，供人判话术与层级。
+import { tmpDir } from '../../env/tmp.mjs'
+const shotDir = tmpDir('shots')
+mkdirSync(shotDir, { recursive: true })
 const pass = (phase, detail) => { verdict.phases[phase] = { pass: true, ...detail } }
 const fail = (phase, detail) => {
   verdict.phases[phase] = { pass: false, ...detail }
@@ -119,6 +123,8 @@ try {
   if (typed !== 'typed') fail('capture-type', { typed })
   if (await evaluate(clickByText('交给助手')) !== 'clicked') fail('capture-click', {})
   pass('capture-sent', { line: CAPTURE_LINE })
+  await new Promise(resolve => setTimeout(resolve, 800))
+  writeFileSync(join(shotDir, 'desk-capture-inflight.png'), await browser.captureScreenshot())
 
   // ── 等回合（capture 车道不切主区，轮询日志差分）。
   const turnStarted = Date.now()
@@ -158,6 +164,7 @@ try {
     answerHead: String(seen.answerText ?? '').slice(0, 140),
     matters: `${mattersBefore}→${mattersAfter}`,
   })
+  writeFileSync(join(shotDir, 'desk-capture-takeover.png'), await browser.captureScreenshot())
 
   // 桌面回读：受理位清空、在途条让位于账本实况（回执随 revision 越过即消失）。
   const deskAfter = await pollUntil(evaluate, deskText, { intervalMs: 1000, budget: 60, checkFirst: true, isDone: text => text !== null && text.includes('待认领') })
