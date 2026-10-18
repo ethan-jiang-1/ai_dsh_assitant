@@ -177,14 +177,18 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     const proactiveUi = storeApi?.createSnapshotStore<ProactiveUiState>(readProactiveUi())
     const suggestName = (id: string): string | undefined => PROACTIVE_SUGGESTIONS.find(suggestion => suggestion.id === id)?.name
     const onSuggestAction = (kind: 'trial' | 'watch', id: string): void => {
-      // The retry path carries the orphaned title itself (Q5's「再试一次」).
-      const name = suggestName(id) ?? (id.startsWith('retry:') ? id.slice('retry:'.length) : undefined)
+      // The retry path carries the orphaned title itself (Q5's「再试一次」) — and ONLY the
+      // retry path records an acceptance trace: a fresh suggestion's model-built title is
+      // unpredictable, so matching by title would false-alarm (that failure visibility is
+      // 片 4's triggered scope). A retry trace's title is exactly one the catalog lacks.
+      const isRetry = id.startsWith('retry:')
+      const name = suggestName(id) ?? (isRetry ? id.slice('retry:'.length) : undefined)
       if (name === undefined) return
       if (kind === 'trial') {
         arms.captureFromDesk(`先试跑一次「${name}」：现在就按这个口径替我看一遍——真读真判断、不建排程、不写账本，看完用一句话说结论，并说明想停的时候怎么说。`)
         return
       }
-      if (proactiveUi !== undefined) {
+      if (isRetry && proactiveUi !== undefined) {
         const current = proactiveUi.getSnapshot()
         const next: ProactiveUiState = { ignored: current.ignored, accepted: [...current.accepted, { id, title: name, at: new Date().toISOString() }] }
         proactiveUi.set(next)
