@@ -18,11 +18,12 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { agentsMdStabilityProblems, backtickedRepoPathProblems, backlogGraduationProblems, backlogLivenessProblems, clientScriptSafetyProblems, commandAliasProblems, commitSafetyProblems, compositionRowProblems, configParseProblems, crossFileSectionProblems, dependencyPoseProblems, devDrawerCoverageProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, graduatedProposalProblems, homeDocContractProblems, implementedAlternativesProblems, identityNameProblems, languageGuardProblems, markdownCorpusFromTracked, notesNamingProblems, notePointerProblems, notesStateProblems, importResolutionProblems, notesTopLevelProblems, pinProblems, machineLocalPathProblems, packageSubpathProblems, playbookFrontmatterProblems,
+import { agentsMdStabilityProblems, backtickedRepoPathProblems, backlogGraduationProblems, backlogLivenessProblems, clientScriptSafetyProblems, commandAliasProblems, commitSafetyProblems, compositionRowProblems, configParseProblems, crossFileSectionProblems, dependencyPoseProblems, devDrawerCoverageProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, graduatedProposalProblems, homeDocContractProblems, implementedAlternativesProblems, identityNameProblems, languageGuardProblems, markdownCorpusFromTracked, notesNamingProblems, notePointerProblems, notesStateProblems, importResolutionProblems, notesTopLevelProblems, pinProblems, machineLocalPathProblems, packageBuildFreshnessProblems, packageSubpathProblems, playbookFrontmatterProblems,
   runtimeTsconfigProblems, selfContainmentProblems, skillFrontmatterKeyProblems, skillNameGrammarProblems, relativeLinkProblems, researchSubdirProblems, scratchPathProblems, skillFrontmatterProblems, startPathProblems, testAssetNamingProblems, textHygieneProblems, vendorClientFreshnessProblems } from './verify-checks.mjs'
 import * as gateCores from './verify-checks.mjs'
 import { runChecks } from './run-gates.mjs'
 import { pinnedTagFrom } from '../maintenance/sync-bookkeeping.mjs'
+import { tmpDir } from '../../dev/env/tmp.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const packageDir = join(repoRoot, 'packages', 'dsh-smart-assistant')
@@ -264,6 +265,18 @@ check('structure: dev tooling never inherits DSH_HOME', () =>
 // 2026-10-03 实录）。机制与 playbook：notes/archived/2026-09-30-dsh-0-2-0-rc-2-pin.md。
 check('vendor: client faces and web dist are not older than their sources', () =>
   vendorClientFreshnessProblems({ vendorPackagesRoot: join(vendorDsh, 'packages'), webAppRoot: join(vendorDsh, 'apps', 'web') }))
+
+// preset 行与 exports 加载的是本包构建物 lib/，而 pnpm test 读的是 src/——没重建的改动对测试
+// 不可见，只会把上一版行为端上来（`pnpm typecheck` 还会把 ESM 覆盖在 classic bundle 上，同一类）。
+// 这一行原先在生成物登记表里写着「无独立 freshness 门禁」，靠 prose 提醒人记得 build。判据刻意
+// 用内容而不是 mtime：tsc 的 tsbuildinfo 记的是 sha256，只 touch 过的文件并不陈旧（2026-10-18
+// 一次 mtime 巡检报了 9 个全是假阳）。机理解释在核的头部。
+check('build: the artifact the presets load matches src/ (content, not mtime)', () =>
+  packageBuildFreshnessProblems({
+    packageDir,
+    scratchDir: tmpDir('verify-bundle'),
+    label: 'packages/dsh-smart-assistant',
+  }))
 
 // 文档里的命令与 package.json 的别名必须互相成立：别名必须进命令表，文档提到的命令必须真存在
 // （README 那条 stale 的 npm 发布路径就是这么烂掉的）。notes 不在语料里——它们记录的是当时为真的事。

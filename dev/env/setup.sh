@@ -108,7 +108,8 @@ echo
 echo "  ⚠ not 'pnpm dsh web': the 'web' alias hardcodes profile 'web' and would create a"
 echo "    shipped 'web' profile inside the dev home."
 echo
-echo "Discipline: after changing src/ run 'pnpm build' (preset rows load the built lib/)."
+echo "Discipline: preset rows load the built lib/ — 'pnpm start' self-checks against src/ and 'pnpm"
+echo "verify' gates it ('build:'); rebuild by hand with 'pnpm build'."
 echo "Skill edits (presets/assistant/skills/) need no rebuild — the catalog is re-scanned per"
 echo "request. Composition edits (cordis.patch.yml) reach new sessions with the next"
 echo "generation (file mtime+size stamp); sessions already running keep theirs."

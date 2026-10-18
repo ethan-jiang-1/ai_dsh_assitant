@@ -13,6 +13,7 @@
  * fixtures without touching the real vendor tree, ROADMAP, or notes.
  */
 export * from './gates/backlog.mjs'
+export * from './gates/build-freshness.mjs'
 export * from './gates/corpus-links.mjs'
 export * from './gates/commit-safety.mjs'
 export * from './gates/dev-tree.mjs'

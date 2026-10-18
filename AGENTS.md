@@ -74,11 +74,11 @@ rejected 政策、命名——本文件不复制）；改行为、契约或开�
 
 ## 命令表
 
-**“启动一下这个 / 启动一下”** 在本仓库语境中默认指：在本仓隔离 home 里备好并起动 `dev` Web 实例（下表 ②③④），返回可访问 URL，交给人之前跑 `pnpm preflight '<URL>'`——不需要再追问“启动什么”。
+**“启动一下这个 / 启动一下”** 在本仓库语境中默认指：一条 **`pnpm start`** —— 在本仓隔离 home 里备好并起动 `dev` Web 实例，返回可访问 URL（`dev/env/start.sh` 把下表的 ⓪①②③④ 串起来，末了自证产物与源码一致、preflight 绿了才交 URL）。不需要再追问“启动什么”，也不需要谁记着先 build、交前先 preflight。
 
 只有用户明确点名才换入口：`dev-task` 是无 Web 的 host 装载冒烟；`--patch ...preset-runner...` 是自动化 preset 探针；`vendor/dsh` 的 `dev:web`（`pnpm --dir vendor/dsh run dev:web`）只重建客户端 bundle 产物，不是起动本插件实例——三个入口的判据见 [`docs/dev.md`](docs/dev.md) 首节「默认启动动作」。
 
-**要起服务，这一串按序跑到底**（⓪②③ 都幂等，重跑安全）：
+**`pnpm start` 内部就是这一串**（⓪②③ 都幂等，重跑安全；手工按序敲得到同一结果，但那两件门禁得自己记着）：
 
 ```sh
 git submodule update --init   # ⓪ 首次：拉起 vendor/dsh（pin 的唯一出处：`vendor/UPSTREAM.md`；vendor 空时 ② 会死在无关报错）
@@ -87,7 +87,7 @@ bash dev/env/prepare.sh     # ② **首次必须先跑**：补齐 boot 需要的
 bash dev/env/setup.sh       # ③ **起服务的前置**：它才建 dev（web）+ dev-task（headless）两个 profile 并把 roster 指向本仓；
                         #    skip 它 = `profile "dev" does not exist`，而 DSH 那句报错会把你指向错的命令
 pnpm dsh --profile dev --port 0 --no-open   # ④ Web UI：preset 行为（工具/persona/摘要段落）的人面交互只在这里的会话里验
-                        #    （自动行为判决走 `pnpm eval`）；`--port 0` = OS 分配端口 + token 鉴权（不占 3080、避撞车）；交给人之前先 `pnpm preflight '<URL>'`（绿了再交）
+                        #    （自动行为判决走 `pnpm eval`）；`--port 0` = OS 分配端口 + token 鉴权（不占 3080、避撞车）
 pnpm dsh --profile dev-task "one task"   # ⑤ 只想冒烟 host 面（插件装载/scaffold/服务行）就跑它，进程自己退（不进 preset）
 ```
 
@@ -104,7 +104,9 @@ pnpm dsh --profile dev-task "one task"   # ⑤ 只想冒烟 host 面（插件装
 ```sh
 pnpm gen-paths          # 从 vendor/dsh 重新生成运行期解析入口 tsconfig.tsx.json（换 pin 后必跑）
 pnpm gen-catalog        # 重新生成 docs/package-catalog.md（改组合行/exports/工具动词后必跑；freshness 门禁守）
-pnpm build              # tsc 出 lib/：改 src 后必跑——preset 行加载的是构建物，不是源码
+pnpm build              # tsc 出 lib/ + tsdown 出 classic bundle：preset 行加载的是构建物，不是源码
+                        #    （忘了它的代价由 `pnpm verify` 的 `build:` 门禁抓——判据见 docs/dev.md §二登记表；
+                        #     起服务时 dev/env/start.sh 会先自证并自动补，不必谁记着）
 pnpm preflight '<URL>'  # 开屏前门禁：证明装得上（auth/boot 图/每个 combo 可解析）；不证明渲染出来
 pnpm shots '<URL>' --dom --size 1600x1000 --name <名字>   # 渲染证据：PNG + DOM 两件（落仓内 .tmp/shots/）；`--eval` 拿交互态（机理 = docs/dev.md §四）
 pnpm web-expected '<URL>'   # web 渲染期望比对（漂移 exit 1）；重录 `--refresh`（场景契约 = snapshots/web-face/<场景>/README.md）

@@ -5,7 +5,7 @@
 
 ## 默认启动动作
 
-"启动一下"的默认语义 = 根 [`AGENTS.md`](../AGENTS.md) 命令表首段（常设指令 owner）：在本仓隔离 home 里起动 `dev` Web 实例，preflight 绿了再交。本节拥有的是下面这张入口判别表——三个邻近但不同的入口，除非用户明确点名不走：
+"启动一下"的默认语义 = 根 [`AGENTS.md`](../AGENTS.md) 命令表首段（常设指令 owner）：一条 `pnpm start` 在本仓隔离 home 里起动 `dev` Web 实例——它自己按序跑 prepare → setup → 产物自证（`lib/` 与 `src/` 不一致就先 build）→ 起服务 → `pnpm preflight`，绿了才把 URL 打出来（实现 = [`dev/env/start.sh`](../dev/env/start.sh)）。本节拥有的是下面这张入口判别表——三个邻近但不同的入口，除非用户明确点名不走：
 
 | 入口 | 实际起动什么 | 什么时候用 |
 |---|---|---|
@@ -66,7 +66,7 @@ pnpm dsh --profile dev --port 0 --no-open  # 起服务与验证命令（prefligh
 |---|---|---|
 | `tsconfig.tsx.json` | `scripts/generate/gen-paths.mjs`（`pnpm gen-paths`，从 vendor/dsh 全量别名） | `pnpm verify`「facade: the runtime tsconfig for the source launch is present and current」 |
 | `docs/package-catalog.md` | `scripts/generate/gen-catalog.mjs`（`pnpm gen-catalog`） | `pnpm verify`（`gen-catalog --check`，与 `gen-paths` 同形） |
-| `packages/dsh-smart-assistant/lib/` | `pnpm build`（`tsc -b` 出 d.ts 与各模块 js；`tsdown` 把 `src/client` 多模块打成 `lib/client/index.js` 单文件 classic script） | 无独立 freshness 门禁：组合测试与 `release-smoke` 消费它，过期即红 |
+| `packages/dsh-smart-assistant/lib/` | `pnpm build`（`tsc -b` 出 d.ts 与各模块 js；`tsdown` 把 `src/client` 多模块打成 `lib/client/index.js` 单文件 classic script） | `pnpm verify`「build: the artifact the presets load matches src/ (content, not mtime)」，核 = `scripts/checks/gates/build-freshness.mjs`：host 面问 `tsc -b --dry`（陈旧 = `would build project`；只动过 mtime = `would update timestamps`，不是漂移），客户端面把 bundle 重打进 `.tmp/verify-bundle/` 逐字节比。从未建过的包判绿（`prepare.sh` / `pnpm build` 的领地）；起服务时 `dev/env/ensure-build.mjs` 消费同一个核并自动补 build |
 | `dev/harness-home/`（scaffold 出的 SOUL/AGENTS 等） | 插件运行时 `ensureHome`（`src/domain/home/layout.ts` 是唯一 owner） | `curate` 的 `manual-stale-scaffold` finding |
 | `_dist/安装手册.md`（同目录 tgz 走 `*.tgz` ignore，不入库） | `scripts/release/export-dist.mjs`（`pnpm export-dist`：pnpm pack → 清单边界断言 → 手册注入版本/日期/条目数） | `pnpm verify`「release: the exported install manual matches the package」（手册版本行对包 manifest 防漂；无 `_dist/` 即无导出，门禁绿） |
 
@@ -190,9 +190,9 @@ DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得
 | Web 开屏 `resume failed` | 残留的旧 dev web 进程仍持有空白 seed 会话的跨进程写锁（`session.lock` 是 flock 目标，进程死即释放）；web 客户端开屏按 workspace 最新会话自动恢复空白会话，新实例撞锁 | 起新例前 `lsof -iTCP -sTCP:LISTEN -P` 找本仓 cwd 的残留 node 并 kill；锁随进程死亡自动释放，勿手删 |
 | build 半途失败留下混合 vendor lib | `tsc -b` 会先重建 references 里的 vendor 引用项目；若本包类型错让 build 中断，vendor lib 停在混合态（症状举例：组合测试全行 `never started`、裸 node 加载 vendor llm 报 `Cannot find module '../package.json'`——llm attribution 经 tsc outDir 后 manifest 不可达） | 修复 = `pnpm repair-vendor`（内建 llm attribution fixup）；build 报错先修错、再重跑 build 至绿，不留半途态 |
 | `web_fetch` 全拒 `non-public IP` | 本机 TUN 代理的 **fake-ip DNS** 把所有域名解析到 198.18.0.0/15 保留段；`web-fetch-http` 的 SSRF 防护只对**直连** hop 做本机解析检查（走代理的 hop 由代理远端解析、**跳过检查**，`web-fetch-http/src/network.ts` 明文）；DSH 只认 env / home `.env` 的 `HTTP(S)_PROXY`——**系统代理（scutil）它不读**，无 env 时一切直连 ⇒ 全灭 | **不用手配**：启动器 `dev/env/dsh.mjs` 条件注入——探测本地代理口（`ASSISTANT_PROXY_URL` 显式指定＞scutil 系统代理口＞默认混合口 7897），活着才注入 `HTTP(S)_PROXY`、死了直连（**有没有 VPN 都能跑**；显式导出过的 env 不被覆盖，`ASSISTANT_PROXY_URL=""` 可禁用）。 |
-| **`pnpm typecheck` 之后必须重跑 `pnpm build`** | `typecheck` 委派的是 `tsc -b`，它把 ESM 写进 `lib/`——而 preset 行加载的 classic bundle（`lib/client/index.js`，tsdown 产物）是另一个形状，被这次重建覆盖掉 | 改过 src 的完整链是 `pnpm build` → 跑测试 →（如需）`pnpm typecheck` → **再 `pnpm build`**；只 typecheck 不重跑 build 的服务会加载到错误的产物 |
-| 链式命令吞退出码 | `pnpm build \| tail` 这类管道让 tsdown 的失败不体现在 `$?` 上（取到的是 `tail` 的），失败后 `tsc` 的 ESM 覆盖留在 `lib/client`、classic bundle 消失：`&&` 照跑、浏览器探针全灭，而源码级测试仍绿（它们不走 `lib/`） | 链命令**裸跑看 exit**，或用 `${PIPESTATUS[0]}`；「测试绿」不等于「加载物对」 |
-| 经启动器 SIGTERM 只杀启动器 | `pnpm dsh` 是包装层（`dev/env/dsh.mjs` 再 spawn 真 CLI），杀它把真服务留成孤儿——孤儿继续持有账本的 `writer.lock`，下一轮 report/propose 全被「owned by another writer」拒 | 需要编排服务生命周期的探针**直连 vendor CLI bin**（先例：`dev/probes/web/desk-process-e2e.mjs`、release-smoke），自己拿 pid；别用启动器起、再用 pid 杀 |
+| **`pnpm typecheck` 之后必须重跑 `pnpm build`** | `typecheck` 委派的是 `tsc -b`，它把 ESM 写进 `lib/`——而 preset 行加载的 classic bundle（`lib/client/index.js`，tsdown 产物）是另一个形状，被这次重建覆盖掉 | 改过 src 的完整链是 `pnpm build` → 跑测试 →（如需）`pnpm typecheck` → **再 `pnpm build`**；漏掉收尾那步由 `pnpm verify` 的 `build:` 门禁抓（ESM 覆盖 classic bundle = 字节不同即红），起服务时 `dev/env/ensure-build.mjs` 也会先自证并补上 |
+| 链式命令吞退出码 | `pnpm build \| tail` 这类管道让 tsdown 的失败不体现在 `$?` 上（取到的是 `tail` 的），失败后 `tsc` 的 ESM 覆盖留在 `lib/client`、classic bundle 消失：`&&` 照跑、浏览器探针全灭，而源码级测试仍绿（它们不走 `lib/`） | 链命令**裸跑看 exit**，或用 `${PIPESTATUS[0]}`；「测试绿」不等于「加载物对」——而"加载物不对"这一半由上面的 `build:` 门禁兜住 |
+| 经启动器 SIGTERM 只杀启动器 | `pnpm dsh` 是包装层（`dev/env/dsh.mjs` 再 spawn 真 CLI），杀它把真服务留成孤儿——孤儿继续持有账本的 `writer.lock`，下一轮 report/propose 全被「owned by another writer」拒 | 需要编排服务生命周期的探针**直连 vendor CLI bin**（先例：`dev/probes/web/desk-process-e2e.mjs`、release-smoke），自己拿 pid；别用启动器起、再用 pid 杀。人面的一键启动走 `dev/env/start.sh`：它用 `set -m` 把服务放自己的进程组、按组收（实测退出后端口释放、无残留进程） |
 | CLI 旗标顺序 | 启动器解析到第一个不认识的 token 为止：`--port` 这类 app 旗标之后的 `--patch` **不会**被透传 | `--patch`（及一切 launcher 不认识的旗标）放在 `--port`/`--no-open` **之前** |
 | cordis 属性代理对未声明 inject **直接抛** | 访问没进 `inject` 清单的服务不是返回 `undefined` 而是抛错——整个 async 体静默死掉，而 spec 里用普通对象 mock 的测试**全绿** | 用到哪个服务就进 `inject` 清单（含 `ctx.uiWorkspace` 这类客户端服务）；浏览器专属路径用真浏览器探针取证，别只信 mock |
 | 探针的完成信号与被测动作赛跑 | 自动返回/自动切换本身会把会话视图换走，等「终答文本可见」的探针与它赛跑必输（标记永远等不到） | 完成信号取**蕴含整链的后置状态**（如「桌面重新挂载」），不要取被被测动作撤掉的那个中间态 |

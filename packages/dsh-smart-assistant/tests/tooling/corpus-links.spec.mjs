@@ -74,6 +74,13 @@ describe('verify relative-link corpus wiring', () => {
     const bookkeeping = new URL('../../../../scripts/maintenance/sync-bookkeeping.mjs', import.meta.url).href
     mkdirSync(join(root, 'scripts', 'maintenance'), { recursive: true })
     writeFileSync(join(root, 'scripts', 'maintenance', 'sync-bookkeeping.mjs'), `export * from ${JSON.stringify(bookkeeping)}\n`)
+    // Same reason for the repo scratch helper: the build-freshness check takes its scratch
+    // directory from `tmpDir`, so this fixture mirrors that import too. Every new top-level
+    // import in verify.mjs lands here — an unstaged one surfaces as an empty stdout, not a
+    // named failure (2026-10-18: `dev/env/tmp.mjs` cost three reds).
+    const tmpHelper = new URL('../../../../dev/env/tmp.mjs', import.meta.url).href
+    mkdirSync(join(root, 'dev', 'env'), { recursive: true })
+    writeFileSync(join(root, 'dev', 'env', 'tmp.mjs'), `export * from ${JSON.stringify(tmpHelper)}\n`)
     for (const file of ['AGENTS.md', 'README.md']) writeFileSync(join(root, file), '# fixture\n')
     const active = [
       '_backlog/README.md',
@@ -133,6 +140,13 @@ describe('verify machine-local-path corpus wiring', () => {
     const bookkeeping = new URL('../../../../scripts/maintenance/sync-bookkeeping.mjs', import.meta.url).href
     mkdirSync(join(root, 'scripts', 'maintenance'), { recursive: true })
     writeFileSync(join(root, 'scripts', 'maintenance', 'sync-bookkeeping.mjs'), `export * from ${JSON.stringify(bookkeeping)}\n`)
+    // Same reason for the repo scratch helper: the build-freshness check takes its scratch
+    // directory from `tmpDir`, so this fixture mirrors that import too. Every new top-level
+    // import in verify.mjs lands here — an unstaged one surfaces as an empty stdout, not a
+    // named failure (2026-10-18: `dev/env/tmp.mjs` cost three reds).
+    const tmpHelper = new URL('../../../../dev/env/tmp.mjs', import.meta.url).href
+    mkdirSync(join(root, 'dev', 'env'), { recursive: true })
+    writeFileSync(join(root, 'dev', 'env', 'tmp.mjs'), `export * from ${JSON.stringify(tmpHelper)}\n`)
     for (const file of ['AGENTS.md', 'README.md']) writeFileSync(join(root, file), '# fixture\n')
 
     const offending = [
@@ -197,6 +211,13 @@ describe('verify scratch-path corpus wiring', () => {
     const bookkeeping = new URL('../../../../scripts/maintenance/sync-bookkeeping.mjs', import.meta.url).href
     mkdirSync(join(root, 'scripts', 'maintenance'), { recursive: true })
     writeFileSync(join(root, 'scripts', 'maintenance', 'sync-bookkeeping.mjs'), `export * from ${JSON.stringify(bookkeeping)}\n`)
+    // Same reason for the repo scratch helper: the build-freshness check takes its scratch
+    // directory from `tmpDir`, so this fixture mirrors that import too. Every new top-level
+    // import in verify.mjs lands here — an unstaged one surfaces as an empty stdout, not a
+    // named failure (2026-10-18: `dev/env/tmp.mjs` cost three reds).
+    const tmpHelper = new URL('../../../../dev/env/tmp.mjs', import.meta.url).href
+    mkdirSync(join(root, 'dev', 'env'), { recursive: true })
+    writeFileSync(join(root, 'dev', 'env', 'tmp.mjs'), `export * from ${JSON.stringify(tmpHelper)}\n`)
     for (const file of ['AGENTS.md', 'README.md']) writeFileSync(join(root, file), '# fixture\n')
 
     const packageDir = join(root, 'packages', 'dsh-smart-assistant')
