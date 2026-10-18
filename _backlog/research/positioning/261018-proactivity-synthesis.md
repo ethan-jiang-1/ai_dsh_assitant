@@ -7,7 +7,7 @@ intent: "把三档调研（外部主动性 UX 机制 / 开源 agent 机制 / 本
 
 > 本档是**合成档**：事实与出处以三档调研为准（指针，不重述）；这里只做拆解、对照、取舍与推理。
 > 全文**事实**与**【推断】**分开标注；没有一手来源的话不写。
-> 服务对象：[主动性方向评审卡](../../issues/261018-proactive-direction.md)；实施载体：[主动性 v1 提案](../../../notes/proposed/2026-10-18-proactive-face.md)。
+> 服务对象：[主动性方向评审卡](../../_archive/settled_issues/261018-proactive-direction.md)；实施载体：[主动性 v1 提案](../../../notes/proposed/2026-10-18-proactive-face.md)。
 
 **三档原件**（同批新增，索引在 [`_backlog/research/README.md`](../README.md)）
 
