@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { bindClientRequire } from '../../src/client/runtime'
 import { ProjectionPanel } from '../../src/client/projection-panel'
 import type { ProjectionDownload } from '../../src/client/projection-reader'
+import type { OperatingMatter, OperatingProjection, OperatingReceipt } from '../../src/client/operating-projection'
 import { createProjectionViewStore } from '../../src/client/projection-view'
 import { defineStore } from '../../../../vendor/dsh/packages/client/store/lib/types/index.js'
 
@@ -20,6 +21,27 @@ const noop = (): void => {}
 function render(value: ProjectionDownload): string {
   const view = createProjectionViewStore(defineStore).create()
   return text(ProjectionPanel({ useProjection: select => select(value), useStore: select => select(view.getSnapshot()), useSessionStatus: noStatuses, actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop, onClaim: noop, onDiscard: noop, onCapture: noop, onOpenSession: noop, onWake: noop }))
+}
+/** Render with the proactive catalog hook (261018 片 1 row 3) and the tasks deep-link. */
+function renderWithCatalog(value: ProjectionDownload, catalog: import('../../src/client/proactive-face-source').ProactiveCatalogState): { tree: string, openTasks: ReturnType<typeof vi.fn>, node: unknown } {
+  const view = createProjectionViewStore(defineStore).create()
+  const openTasks = vi.fn()
+  const node = ProjectionPanel({
+    useProjection: select => select(value), useStore: select => select(view.getSnapshot()), useSessionStatus: noStatuses,
+    useCatalog: <S,>(select: (state: import('../../src/client/proactive-face-source').ProactiveCatalogState) => S): S => select(catalog),
+    actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop, onClaim: noop, onDiscard: noop, onCapture: noop, onOpenSession: noop, onWake: noop, onOpenTasks: openTasks,
+  })
+  return { tree: text(node), openTasks, node }
+}
+/** Collect every string attribute value matching a key anywhere in the tree (data-* assertions). */
+function collectAttr(node: unknown, key: string, into: string[] = []): string[] {
+  if (Array.isArray(node)) { for (const child of node) collectAttr(child, key, into); return into }
+  if (node !== null && typeof node === 'object' && 'props' in node) {
+    const props = (node as { props: Record<string, unknown> }).props
+    if (typeof props[key] === 'string') into.push(props[key] as string)
+    collectAttr(props['children'], key, into)
+  }
+  return into
 }
 function findButton(node: unknown, label: string): { onClick?: () => void, disabled?: boolean } | undefined {
   if (Array.isArray(node)) {
@@ -429,5 +451,58 @@ describe('the desk\'s capture row: takes the words here, and never overstates wh
     // The ledger claim never weakens with the status: whatever the turn state, the row still says
     // the substance is not in the ledger yet.
     expect(text(idle)).toContain('还没进账')
+  })
+})
+
+describe('proactive face rows (261018 片 1)', () => {
+  const daysAgo = (days: number): string => new Date(Date.now() - days * 86_400_000 - 3_600_000).toISOString()
+  const daysAhead = (days: number): string => new Date(Date.now() + days * 86_400_000).toISOString()
+  function download(matters: readonly OperatingMatter[], receipts: readonly OperatingReceipt[] = [], unclaimed: OperatingProjection['unclaimed'] = []): ProjectionDownload {
+    return { status: 'ready', data: { schemaVersion: 2 as const, ledgerId: 'test', revision: 1, matters, receipts, unclaimed } }
+  }
+  const overdueMatter: OperatingMatter = { id: 'm-1', title: '合同 NB-02 二期款核对', status: 'active', summary: '', responsible: '', revision: 1, times: { nextCheckpoint: daysAgo(5) }, proposals: [], evidence: [] }
+  const catalog = (entries: unknown[]): import('../../src/client/proactive-face-source').ProactiveCatalogState => ({ status: 'entries', entries: entries as never })
+
+  it('row 1 renders the overdue fact with one action, settled lives excluded', () => {
+    const { tree, node } = renderWithCatalog(download([{ ...overdueMatter }, { ...overdueMatter, id: 'm-2', title: '已了结的旧事项', status: 'completed' }]), catalog([]))
+    expect(tree).toContain('到期 5 天，账上没有结果')
+    expect(tree).toContain('合同 NB-02 二期款核对')
+    expect(tree).not.toContain('已了结的旧事项 · 到期')
+    expect(findButton(node, '看这件事')).toBeDefined()
+  })
+
+  it('all-empty state renders no proactive block at all', () => {
+    const { tree, node } = renderWithCatalog(download([]), catalog([]))
+    expect(tree).not.toContain('它替你看')
+    expect(tree).not.toContain('它在等你')
+    expect(collectAttr(node, 'data-proactive-catalog')).toEqual([])
+  })
+
+  it('row 2 aggregates waiting items into one row with one action', () => {
+    const pending: OperatingMatter = { ...overdueMatter, id: 'm-9', title: '待确认事项', times: {}, proposals: [{ id: 'p-1', kind: 'complete' as const, status: 'pending' as const, proposedAt: daysAgo(1), source: { sessionId: 's1' } }] }
+    const { tree, node } = renderWithCatalog(download([pending], [], [{ id: 'u-1', note: '片段', sessionId: 's1' }]), catalog([]))
+    expect(tree).toContain('它在等你：1 条要确认 · 1 条待认领')
+    expect(findButton(node, '去处理')).toBeDefined()
+    expect(findButton(node, '看这件事')).toBeUndefined()
+  })
+
+  it('row 3 states the next look, the late delivery as fact, duplicates with the deep link', () => {
+    const scheduled = daysAgo(5)
+    const entry = { id: 's-a', kind: 'weekly', title: '每周对账', prompt: 'x', scheduledAt: daysAhead(1), sessionId: 'sa', status: 'active' as const, lastDelivery: { scheduledAt: scheduled, deliveredAt: new Date(Date.parse(scheduled) + 7 * 3_600_000 + 24 * 60_000).toISOString(), messageId: 'm' } }
+    const { tree, node, openTasks } = renderWithCatalog(download([]), catalog([entry, { ...entry, id: 's-b', sessionId: 'sb' }]))
+    expect(tree).toContain('它下次替你看：每周对账')
+    expect(tree).toContain('上次迟了 7 小时')
+    expect(tree).toContain('2 条重复盯守')
+    const go = findButton(node, '去任务页')
+    expect(go).toBeDefined()
+    go?.onClick?.()
+    expect(openTasks).toHaveBeenCalled()
+  })
+
+  it('an unavailable catalog degrades row 3 to the explicit marker, never a guess', () => {
+    const { tree, node } = renderWithCatalog(download([overdueMatter]), { status: 'unavailable' })
+    expect(tree).toContain('到期 5 天')
+    expect(tree).not.toContain('它下次替你看')
+    expect(collectAttr(node, 'data-proactive-catalog')).toContain('unavailable')
   })
 })

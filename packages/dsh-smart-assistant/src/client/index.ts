@@ -59,11 +59,12 @@ import type { ProjectionDownload } from './projection-reader'
 import { createProjectionViewStore } from './projection-view'
 import type { CaptureStatus, DeskPath } from './desk-process'
 import { createDeskArms } from './desk-arms'
+import { createProactiveCatalogSource, type ProactiveCatalogState, type ProactiveRemoteLike } from './proactive-face-source'
 import { selectDashboardByDefault } from './default-panel-selection'
 import { en as firstMileEn, zh as firstMileZh } from './locales'
 
 /** Slots this face occupies (single-occupant, root-scope, declared by the sidebar). */
-const inject = ['slots', 'sidebarRightTabs', 'sidebarRight', 'sessions', 'remote', 'remote.agentPresets', 'remote.workspaceFiles', 'remote.session', 'layout', 'connection', 'uiSession', 'workspaces', 'uiWorkspace', 'locale']
+const inject = ['slots', 'sidebarRightTabs', 'sidebarRight', 'sessions', 'remote', 'remote.agentPresets', 'remote.workspaceFiles', 'remote.session', 'remote.schedule', 'layout', 'connection', 'uiSession', 'workspaces', 'uiWorkspace', 'locale']
 
 
 /**
@@ -138,6 +139,17 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       const status = ctx.uiSession.sessionStatus
       ctx.effect(() => status.subscribe(() => { sessionStatuses.set(readStatuses()) }))
     }
+    // 片 1 (261018 proactive): the schedule catalog bridge. Stage-0 finding: declaring the
+    // `'remote.schedule'` subface in inject kills the whole client entry, so this reads the
+    // namespace structurally off the already-injected remote (room-data-io precedent) and
+    // mirrors it into a snapshot store; a namespace that never materializes degrades row 3
+    // to an explicit marker instead of a guess.
+    const proactiveCatalog = storeApi?.createSnapshotStore<ProactiveCatalogState>({ status: 'fetching' })
+    if (proactiveCatalog !== undefined) {
+      const remoteFace = ctx.remote as ProactiveRemoteLike | undefined
+      const source = createProactiveCatalogSource({ effect: install => ctx.effect(install), remote: remoteFace })
+      ctx.effect(() => source.subscribe(() => { proactiveCatalog.set(source.getSnapshot()) }))
+    }
     // The explicit processing path (K3 slice F): one bound matter + processing session. The
     // path is in-memory by design — a reload reads the authoritative projection first and
     // never replays a path or re-submits. The slot store survives panel switches, so the
@@ -185,8 +197,9 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
           const hooks = {
             ...(projection === undefined ? {} : { projection }),
             ...(sessionStatuses === undefined ? {} : { sessionStatus: sessionStatuses }),
+            ...(proactiveCatalog === undefined ? {} : { catalog: proactiveCatalog }),
           }
-          return { hooks, refreshProjection: () => { reader?.refresh() }, onAsk: () => { ctx.layout?.selectPanel(null) }, onEntrust: arms.startIntake, onProcess: arms.processMatter, onClaim: arms.claimFragment, onDiscard: arms.discardFragment, onCapture: arms.captureFromDesk, onOpenSession: (sessionId: string) => { ctx.uiWorkspace?.openSession(sessionId) }, onWake: arms.wakeMatter }
+          return { hooks, refreshProjection: () => { reader?.refresh() }, onAsk: () => { ctx.layout?.selectPanel(null) }, onEntrust: arms.startIntake, onProcess: arms.processMatter, onClaim: arms.claimFragment, onDiscard: arms.discardFragment, onCapture: arms.captureFromDesk, onOpenSession: (sessionId: string) => { ctx.uiWorkspace?.openSession(sessionId) }, onWake: arms.wakeMatter, onOpenTasks: () => { ctx.layout?.selectPanel('schedules') } }
         },
       }, projection === undefined ? DashboardMainPanel : ProjectionPanel)
       selectDashboardByDefault(ctx)

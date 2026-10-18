@@ -3,6 +3,8 @@ import { createElement as ce } from './runtime'
 import { AssistantBrandMark } from './brand'
 import { canProcess, captureWait, type CaptureStatus } from './desk-process'
 import { humanTime, localDateKey, localDateLabel, localTimeLabel } from './format'
+import { deriveProactiveFace } from './proactive-face'
+import type { ProactiveCatalogState } from './proactive-face-source'
 import type { ProjectionDownload } from './projection-reader'
 import type { DeskCaptureReceipt, ProjectionView } from './projection-view'
 
@@ -12,6 +14,8 @@ export interface ProjectionPanelProps {
   useStore<S>(select: (view: ProjectionView) => S): S
   /** The platform's per-session status map (261018 片 1b), as a selector hook like the projection. */
   useSessionStatus<S>(select: (value: ReadonlyMap<string, CaptureStatus>) => S): S
+  /** The platform schedule catalog (261018 proactive 片 1) for「它替你看过」row 3; absent = degrade. */
+  useCatalog?<S>(select: (state: ProactiveCatalogState) => S): S
   actions: { selectMatter(id: string): void; selectFragment(id: string): void; showList(): void; rememberListPosition(position: number): void; setFilter(filter: ProjectionView['filter']): void; setMode(mode: ProjectionView['mode']): void; revealMoreActivity(): void; setCaptureDraft(text: string): void; setCaptureReceipt(receipt: DeskCaptureReceipt | null): void }
   refreshProjection(): void
   onAsk(): void
@@ -22,6 +26,8 @@ export interface ProjectionPanelProps {
   onCapture(text: string): void
   /** Go to one conversation — the capture row's pointer when the assistant is waiting on the principal. */
   onOpenSession(sessionId: string): void
+  /** Open the platform's automation task page (row 3's duplicate deep link — never deletes here). */
+  onOpenTasks?(): void
   /** Open the explicit processing path for one matter (bound to the entry's processMatter). */
   onProcess(matterId: string): void
   /** Open the explicit claim path for one unclaimed fragment (bound to the entry's claimFragment). */
@@ -83,6 +89,11 @@ const STYLES = [
   '.dsha-inflight-line{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--dsw-alias-label-secondary);}',
   '.dsha-chip-wait{background:var(--dsw-alias-bg-layer-3);color:var(--dsw-alias-label-secondary);}',
   '.dsha-inflight-said{margin:0;font-size:13px;color:var(--dsw-alias-label-primary);overflow-wrap:anywhere;}',
+  '.dsha-proactive{display:flex;flex-direction:column;gap:4px;border:1px solid var(--dsw-alias-border-l3);border-radius:10px;padding:8px 12px;background:var(--dsw-alias-bg-layer-2);}',
+  '.dsha-proactive-row{display:flex;align-items:baseline;gap:8px;font-size:13px;color:var(--dsw-alias-label-secondary);}',
+  '.dsha-proactive-row > span{min-width:0;overflow-wrap:anywhere;}',
+  '.dsha-proactive-due{border-left:2px solid var(--dsha-warn);padding-left:8px;}',
+  '.dsha-proactive-row > .dsha-btn{margin-left:auto;flex:none;font-size:12px;padding:2px 8px;}',
   '.dsha-tabs{display:flex;gap:2px;border-bottom:1px solid var(--dsw-alias-border-l2);}',
   '.dsha-tab{display:inline-flex;align-items:center;gap:6px;border:0;background:none;padding:7px 14px;font-size:13px;color:var(--dsw-alias-label-secondary);cursor:pointer;font:inherit;border-bottom:2px solid transparent;margin-bottom:-1px;}',
   '.dsha-tab:hover{color:var(--dsw-alias-label-primary);}',
@@ -233,6 +244,50 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
     else activityGroups.push({ key, label: localDateLabel(receipt.submittedAt), entries: [receipt] })
   }
   const pendingProposals = data?.matters.reduce((count, matter) => count + matter.proposals.filter(proposal => proposal.status === 'pending').length, 0) ?? 0
+  // 片 1 (261018 proactive):「它替你看过」— three honest rows from read-only sources, zero model
+  // calls. The catalog namespace may not materialize (stage-0 finding: the subface inject kills
+  // the client entry), so its absence degrades row 3 to an attribute marker, never a guess.
+  // All-empty state renders nothing at all — the desk keeps today's silhouette.
+  const catalogState: ProactiveCatalogState = props.useCatalog !== undefined
+    ? props.useCatalog(value => value)
+    : { status: 'unavailable' }
+  const proactiveRows = deriveProactiveFace({
+    ...(data !== undefined ? { projection: data } : {}),
+    ...(catalogState.status === 'entries' ? { catalog: catalogState.entries } : {}),
+    now: new Date(),
+  })
+  const proactiveCatalogNote = proactiveRows.some(row => row.kind === 'next-look-unavailable')
+  const proactiveVisible = proactiveRows.filter(row => row.kind !== 'next-look-unavailable')
+  const lateNote = (lateByMs: number): string => {
+    const hours = lateByMs / 3_600_000
+    return hours >= 1 ? `${Math.round(hours)} 小时` : `${Math.max(1, Math.round(lateByMs / 60_000))} 分钟`
+  }
+  const proactiveFace = proactiveVisible.length === 0 ? null : ce('div', {
+    className: 'dsha-proactive',
+    'data-proactive-catalog': proactiveCatalogNote ? 'unavailable' : 'ok',
+    role: 'status',
+  },
+    ...proactiveVisible.map(row => {
+      if (row.kind === 'due-no-result') {
+        return ce('div', { key: 'due', className: 'dsha-proactive-row dsha-proactive-due' },
+          ce('span', {}, `${row.title} · 到期 ${row.daysOverdue} 天，账上没有结果${row.extraCount !== undefined ? `（另有 ${row.extraCount} 件同样到期）` : ''}`),
+          ce('button', { className: 'dsha-btn', type: 'button', onClick: () => { props.actions.selectMatter(row.matterId) } }, '看这件事'))
+      }
+      if (row.kind === 'waiting-for-you') {
+        const waiting: string[] = []
+        if (row.pendingProposals > 0) waiting.push(`${row.pendingProposals} 条要确认`)
+        if (row.unclaimed > 0) waiting.push(`${row.unclaimed} 条待认领`)
+        if (row.openQuestions > 0) waiting.push(`${row.openQuestions} 句等你答`)
+        return ce('div', { key: 'waiting', className: 'dsha-proactive-row' },
+          ce('span', {}, `它在等你：${waiting.join(' · ')}`),
+          ce('button', { className: 'dsha-btn', type: 'button', onClick: () => { props.actions.showList() } }, '去处理'))
+      }
+      return ce('div', { key: 'next', className: 'dsha-proactive-row' },
+        ce('span', {}, `它下次替你看：${row.title} · ${humanTime(row.nextAt)}${row.lateByMs !== undefined ? `（上次迟了 ${lateNote(row.lateByMs)}）` : ''}${row.duplicates !== undefined ? ` — 发现 ${row.duplicates} 条重复盯守` : ''}`),
+        row.duplicates !== undefined && props.onOpenTasks !== undefined
+          ? ce('button', { className: 'dsha-btn', type: 'button', onClick: props.onOpenTasks }, '去任务页')
+          : null)
+    }))
   const message = download.status === 'disconnected' ? '连接已断开，恢复连接后重新读取。'
     : download.status === 'loading' ? '正在读取桌面…'
     : download.status === 'missing' ? '还没有经营事项资料。'
@@ -281,6 +336,10 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
         ce('button', { className: 'dsha-btn', onClick: props.refreshProjection, disabled: download.status === 'loading', title: download.status === 'loading' ? '正在读取桌面…' : '重新读取桌面' }, '重新读取'),
         ce('button', { className: 'dsha-btn', onClick: props.onAsk }, '有问题？跟助手说'),
         ce('button', { className: 'dsha-btn dsha-btn-primary', onClick: props.onEntrust ?? props.onAsk }, '＋ 交代新事项'))),
+    // 片 1 (261018 proactive):「它替你看过」sits BETWEEN the header and the capture row —
+    // structural anchor, not line numbers (the two 261018 cards invalidate each other's anchors).
+    // All-empty state renders nothing; each row carries at most one action (noise cap R2).
+    proactiveFace,
     // 片 1 (261018): the desk's own capture row. The principal's intent to add something arises
     // WHILE looking at the desk, so the desk has to be able to take it — before this, the only
     // door was 「＋ 交代新事项」, which opens a conversation and takes the reminder surface away.

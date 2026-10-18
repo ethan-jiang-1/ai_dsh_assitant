@@ -27,7 +27,7 @@ opened: 2026-10-18
 | 1 受理位与状态显性化 | **落地**（1a+1b） | **1a**：受理位（桌面头部下常驻一行，Enter/按钮提交，提交即清草稿）+ 投递（复用 intake 的会话选择判据但**不 openSession**，走 `[桌面] ` 独立来源标记的 queue 通道）+ 在途条（客户端投递回执驱动，随投影 revision 越过即消失；虚线形态不复用事项卡）+ 两门重量文案。**1b**：三态接**原生 `SessionStatus`**——纯核 `captureWait`（`pendingInteraction` 优先于 `running`，再 `completionUnread`，都不知则 idle；不自己记"轮到我"故刷新不丢）；入口把平台每会话状态镜像成快照 store 当钩子传入（`pendingInteraction` 的 `unknown` 形状在边界显式重收窄一次）；面板按状态显形「轮到我／等助手／它说完了／已交给助手」，轮到我或说完了时给「去会话」指针。证据：`tests/client/client-desk-arms.spec.ts` 3 案、`tests/client/projection-panel.spec.ts` 5 案（两门文案、提交回传并清草稿、在途条随 revision 止、四态标签与指针 + "还没进账"恒定断言）、`tests/client/client-desk-process.spec.ts` 3 案（等谁优先级）、`tests/client/projection-view.spec.ts` 2 案；`pnpm test` 677 全绿；真机：受理位在场（`.tmp/shots/s1a-capture-row-*.png`）且新钩子接线后桌面不崩（`.tmp/shots/s1b-status-hook-*`，`capture-row-present`）。**未做**：真模型端到端（真跑一轮看四态切换）——同片 0，形态照 replay 场景 |
 | 2 助手侧默认与「要问就正经问」 | 未开始 | — |
 | 3 intake 返回语义修订 | 未开始 | — |
-| 4 验收资产 | 未开始 | — |
+| 4 验收资产 | 未开始（**一项已提前发生**：`blank-first-open` 基线 2026-10-18 由 [proactive-face 片 1](261018-proactive-face-closure.md) 的 diff 重录——受理行与主动行一起收进期望并复验 PASS；本片其余资产未动） | — |
 
 ## 关闭条件
 

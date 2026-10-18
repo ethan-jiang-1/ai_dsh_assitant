@@ -27,6 +27,10 @@ export interface ClientContext {
   readonly root: object
   effect: (install: () => () => void, label?: string) => unknown
   connection: Parameters<typeof import('./projection-reader').createProjectionReader>[0]
+  /** Runtime remote RPC face, provided by the `'remote'` inject declaration. Structural reads
+   * only — `'remote.<ns>'` subface declarations kill the whole entry at runtime (stage-0
+   * finding, 2026-10-18; see proactive-face-source.ts). */
+  remote?: unknown
   locale?: {
     register(namespace: string, dictionaries: { readonly zh: Readonly<Record<string, string>>, readonly en: Readonly<Record<string, string>> }): () => void
   }

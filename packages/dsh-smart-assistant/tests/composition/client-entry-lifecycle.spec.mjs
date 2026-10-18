@@ -103,7 +103,7 @@ async function clientRoot(initialPanel = null, sessions = {}, remote = {}) {
   ctx.provide('uiWorkspace', { openSession: () => {} })
   ctx.provide('locale', { register: () => () => {} })
   ctx.provide('remote', { $mount: async () => null, ...remote })
-  for (const namespace of ['agentPresets', 'workspaceFiles', 'session']) {
+  for (const namespace of ['agentPresets', 'workspaceFiles', 'session', 'schedule']) {
     ctx.provide(`remote.${namespace}`, {})
   }
   return {

@@ -13,7 +13,7 @@ opened: 2026-10-18
 
 **阶段 0 结论（2026-10-18，前置验证完成）**
 
-- **0a 注入面：子面注入不可行（实证）**——inject 声明 `'remote.schedule'` 后 typecheck **全绿**但运行时整个 client 激活失败（`import failed`；二分定因：＋注入→挂，回滚＋rebuild→活；改动经 start.sh 自证自动 rebuild 即达组合）。替代路径按成本序：① 不声明子面、直接 `ctx.remote.schedule?.catalog()` 可选链（remote 本体可能即 RPC 代理；运行时可达性并入片 1 行 3 渲染验收判定，room-data-io 式不物化降级）② host service 桥（评审预案）。**教训**：类型层对 inject key 合法性零预警——"tests pass ≠ 运行时活"的又一实例。
+- **0a 注入面：子面注入不可行（实证）→〔勘误，见台账片 1〕可行，缺的是 peer 声明**——初证：inject 声明 `'remote.schedule'` 后 typecheck 全绿但运行时整个 client 激活失败（`import failed`）。**后续二分三轮定案**：① 不碰 `ctx.remote` 即激活 → 炸点是未声明子面的属性访问（Proxy get 抛异常，非返回 undefined）；② 补 peer `"@deepseek-ai/dsh-schedule": "workspace:^"` + inject `'remote.schedule'` 后**完全打通**（与 vendor `ui-schedule` 同构：peer + 子面声明缺一不可）。**教训加倍**：类型层对两者都零预警。
 - **0b 基线：blank-first-open 确已腐烂（实证）**——`web-expected` 红的漂移内容正是 desk-side-capture 片 1 的受理位（`input: 在桌面直接交代一件新事`、`button: 交给助手`、流水 +29 行）。处置＝片 1 diff 内同 diff `--refresh` 重录（受理行＋主动行一起收进），并在 capture 收口卡台账记一笔。
 
 **未决问题：** 见 proposed 卡各片；另有一条实施前置——**注入面验证**：本包 inject 增补 `'remote.schedule'` 后 `catalog()` 是否可达，不通则走 service 层 RPC 桥（评审卡·评审记录·架构）。
@@ -38,7 +38,7 @@ opened: 2026-10-18
 
 | 片 | 状态 | 真证据 |
 |---|---|---|
-| 1 桌面「它替你看过」（纯核 `proactive-face.ts` 派生 + 三行式，零 token 只读） | 未开始 | — |
+| 1 桌面「它替你看过」（纯核 `proactive-face.ts` 派生 + 三行式，零 token 只读） | **落地** | 纯核 17 案（`tests/client/proactive-face.spec.ts`：逾期无结果/回执之后语义/已了结排除/最早逾期胜出+extraCount/now 边界含当刻/时区 instant 比较/行 2 聚合/空态/最早 active 胜出 inactive 排除/迟到阈值与事实文案/同 title 与同 prompt 两种重复/undefined 降级/无投影空态）；组件 5 案（`tests/client/projection-panel.spec.ts` proactive describe：行 1 一动作+已了结不进、全空不渲染、行 2 聚合一动作、行 3 迟到+重复+深链回调、unavailable 降级标记 `data-proactive-catalog`）；合同同步 2 处（client-entry inject 清单、composition lifecycle 补 `remote.schedule` provide 后 3 案复绿）；client 全套 194 绿。**真机**：行 2「它在等你：2 条待认领」、行 3「它下次替你看：每周对账（周一 09:00） · 2026-10-19 09:00 — **发现 2 条重复盯守**」+「去任务页」在场（`.tmp/shots/proactive-dup-live-1500x1000.{png,dom.txt}`）——dev home 实况双 weekly（同 prompt 不同 title，10-13 事故形状）被重复判据正确抓出。**行 1 真机缺席＝判据正确**：m-1 到期时刻后有 update 回执（核对循环在走），due 态留待 seed 场景（阶段 2）。**零成本见证**：`node dev/probes/web/proactive-idle-probe.mjs` PASS——35s 窗口（跨一个 30s 轮询周期；受控性＝两条 weekly 下次投递在窗口外）408 会话数不变 + `ledger.json`/`schedule.json` 哈希不变。**基线**：`blank-first-open` 由本片 diff `--refresh` 重录（受理行+主动行收进）并复验 PASS；capture 收口卡台账已记。**接线定案**：peer `@deepseek-ai/dsh-schedule` + inject `'remote.schedule'`（与 vendor 同构）；重复判据细化＝同 title **或同 prompt** + 同时刻（10-13 事故的实况是同 prompt 不同 title）。**余**：真机「先试跑/替我盯上」交互与 due 态 seed 场景（阶段 2 车道） |
 | 2 「让它替你盯」（三条具名建议，排序 ②③①；先试跑 / 一键接受 / 忽略封口 / 答得上） | 未开始（前置：验收车道） | — |
 | 3 无人值守 turn 红线（模型可见面，英文，同 diff 登记） | 未开始（前置：验收车道） | — |
 | 4（延后，带触发）明细 / 失败可见化 / 平台缺口记账 | 触发未到 | — |
