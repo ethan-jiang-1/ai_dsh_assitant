@@ -10,8 +10,9 @@
 - **什么不进**：一次性草稿（留在树外，见根 `AGENTS.md`）。有超过原卡范围的长期用途时，说明用途并向 [下游](../../notes/README.md) 申请处理，是否形成 note 由下游决定。
 - **命名**：`YYMMDD-<slug>.md`（本仓推敲卡的日期格式），以它服务的卡或主题起名；卡片链接它。
 - **主题子目录（2026-10-05 用户拍板）**：材料按主题分装进子目录（`upstream/` = DSH 上游递交面、
-  `positioning/` = 定位与打动管理层、`tech-exploration/` = 技术定调与技术实验、`usage/` = 真实使用观察），**文件名与证据正文保留，相对链接随位置修复**；新主题开新子目录，根目录不再平铺。
-  子目录**随材料在档而在**（材料不再被取用即整目录随迁，见「使用与校准」）：当前在档 `positioning/`、`usage/`；`upstream/`、`tech-exploration/` 已迁入调研归档，再需要时新开同名目录即可。
+  `positioning/` = 定位与打动管理层、`self-update/` = 助手怎么学到东西与学到了怎么维护、
+  `tech-exploration/` = 技术定调与技术实验、`usage/` = 真实使用观察），**文件名与证据正文保留，相对链接随位置修复**；新主题开新子目录，根目录不再平铺。
+  子目录**随材料在档而在**（材料不再被取用即整目录随迁，见「使用与校准」）：当前在档 `positioning/`、`self-update/`、`usage/`；`upstream/`、`tech-exploration/` 已迁入调研归档，再需要时新开同名目录即可。
   索引记**含子目录的路径**。
 - **无状态行**：不把原料伪装成结论。制度级索引互查要求本区文件（含主题子目录）被本 README 点名；活跃正文的相对链接复用 verify 现有纯核。该结构检查不验证证据质量、URL/anchors 或实现/效果，对活跃 `issues/` 和 `bugs/` 同样适用。
 - **生命周期——跟着卡片走**：最后一张使用它的活卡关闭时 `git mv` 到
@@ -31,7 +32,7 @@ intent: "背后那一句思路。"
 
 | 字段 | 写什么 |
 |---|---|
-| `topic` | 跟子目录走。`positioning/` 写 `定位`，`upstream/` 写 `上游`，`tech-exploration/` 写 `技术`，`usage/` 写 `使用`。新主题先开子目录，`topic` 用一个短中文词，和这个目录对应 |
+| `topic` | 跟子目录走。`positioning/` 写 `定位`，`self-update/` 写 `自更新`，`upstream/` 写 `上游`，`tech-exploration/` 写 `技术`，`usage/` 写 `使用`。新主题先开子目录，`topic` 用一个短中文词，和这个目录对应 |
 | `intent` | 一行，加引号。写这篇为什么存在、背后的思路，不写证据正文 |
 
 搬走时 `topic` 和 `intent` 不动。随卡进 [`_archive/research/`](../_archive/research/README.md)。
@@ -50,6 +51,7 @@ research 为问题和缺陷提供依据。问题按 [关闭条件](../README.md)
 
 从引用卡链接进入，按正在解决的问题选读。
 
+- [261019-self-update-lanes.md](self-update/261019-self-update-lanes.md)——引用卡：[自更新通道卡](../issues/261019-self-update-lanes.md)。统筹档：三条写入通道（显性/隐性/自动）× 六张账的现状事实表（入口、门、代价、怎么进请求）、面板逐动作走哪条路、八条诊断（门禁挂错通道、双记忆无对账、拷贝即第二份真相、知识正文不在场、技能欠账、隐性更新不可见、Viki 无治理、隐性供给不确定）、七个候选切片与 P0–P3 排序、待拍板五问
 - [261018-proactivity-synthesis.md](positioning/261018-proactivity-synthesis.md)——引用卡：[主动性方向评审卡](../_archive/settled_issues/261018-proactive-direction.md)（已结）。合成档：主动性拆四层 → 本仓现状与外部逐层答案 → 四条候选路线与判据矩阵 → 选定路线与逐条约束对账 → 反证/未决问题/证据强度，供人与 agent 评审
 - [261018-proactive-ux-mechanics.md](positioning/261018-proactive-ux-mechanics.md)——引用卡：[主动性 v1 提案](../../notes/implemented/2026-10-18-proactive-face.md)。近月 personal agent（Claude/Lindy/Muse/dots/ChatGPT Scheduled 等）"主动性"的 UX 机制：触发/送达/开关对象/找人接缝，跨家共性六条、已知失败形态、10-12→10-18 增量刷新与未能证实清单
 - [261018-oss-proactivity-mechanisms.md](positioning/261018-oss-proactivity-mechanisms.md)——引用卡：[主动性 v1 提案](../../notes/implemented/2026-10-18-proactive-face.md)。老 Hermes 的主动性机制 H1–H8、"上手难"的可指认结构性代价，以及 OpenClaw/Letta/Khoj/Home Assistant/AutoGPT 的可搬运 M1–M10 与不搬 N1–N4

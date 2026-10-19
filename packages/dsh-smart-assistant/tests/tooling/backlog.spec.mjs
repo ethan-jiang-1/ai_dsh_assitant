@@ -82,6 +82,19 @@ describe('backlogLivenessProblems', () => {
     expect(backlogLivenessProblems(backlog)).toEqual([])
   })
 
+  it('rejects a theme subdirectory whose topic word disagrees with the registered directory name', () => {
+    const backlog = temp('backlog-topic-')
+    bootBacklog(backlog)
+    mkdirSync(join(backlog, 'research', 'self-update'), { recursive: true })
+    writeFileSync(join(backlog, 'research', 'self-update', '261019-lanes.md'),
+      '---\ntopic: 技术\nintent: "写错了主题词"\n---\n\n# 自更新\n', 'utf8')
+    writeFileSync(join(backlog, 'research', 'README.md'), '# research\n\n| 文件 |\n|---|\n| [261019-lanes.md](self-update/261019-lanes.md) |\n', 'utf8')
+    expect(backlogLivenessProblems(backlog).some(p => p.includes('self-update/261019-lanes.md') && p.includes('自更新'))).toBe(true)
+    writeFileSync(join(backlog, 'research', 'self-update', '261019-lanes.md'),
+      '---\ntopic: 自更新\nintent: "写对了主题词"\n---\n\n# 自更新\n', 'utf8')
+    expect(backlogLivenessProblems(backlog)).toEqual([])
+  })
+
   it('rejects an archived card missing from its pool index', () => {
     const backlog = temp('backlog-arch-')
     bootBacklog(backlog)

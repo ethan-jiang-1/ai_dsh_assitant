@@ -6,6 +6,7 @@
 
 | 卡 | 要解决什么 | 当前环节与未完成项 |
 |---|---|---|
+| [261019-self-update-lanes.md](261019-self-update-lanes.md) | 面板维护面：读真值、点完生效、看得见变化；隐性学习与 Viki 自动捕获看得见来源 | 等人拍板：Q1–Q5（新增权、直写深度、拷贝退役、Viki 来源标记与旧数据处置、技能列表）；依据档 [self-update/261019-self-update-lanes](../research/self-update/261019-self-update-lanes.md) |
 
 ## 写一张卡
 
