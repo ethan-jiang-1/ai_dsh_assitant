@@ -14,7 +14,7 @@
  * The desk file shape mirrors real desk-refresh output (contract: the desk-refresh skill);
  * timestamps are fixed so the rendered DOM carries no clock.
  */
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 
 const [command, homeArg] = process.argv.slice(2)
@@ -24,7 +24,29 @@ if (command === undefined || homeArg === undefined) {
 }
 const home = resolve(homeArg)
 
+/**
+ * Merge the dev home's credential refs into the scene home (README: API Key guide is removed by
+ * the refs, structure only grows). The scene keeps its own browser-session grant; only the
+ * `refs:` block is copied when the scene has none. The file is 0600.
+ */
+function mergeCredentialRefs() {
+  const sceneCred = join(home, '.credentials.yaml')
+  const devCred = join(process.cwd(), 'dev', 'harness-home', '.credentials.yaml')
+  let devText
+  try { devText = readFileSync(devCred, 'utf8') } catch { return }
+  const refs = devText.match(/(^refs:\n(?:[ \t]+.*\n)*)/m)?.[1]
+  if (refs === undefined) return
+  let sceneText = ''
+  try { sceneText = readFileSync(sceneCred, 'utf8') } catch { /* first run: copy the whole file */ }
+  if (sceneText.includes('refs:')) return
+  const next = sceneText === '' ? devText : sceneText.replace(/^records:/m, `${refs}records:`)
+  writeFileSync(sceneCred, next.endsWith('\n') ? next : `${next}\n`, { mode: 0o600 })
+  chmodSync(sceneCred, 0o600)
+  console.log('seed: credential refs merged from the dev home')
+}
+
 if (command === 'patch') {
+  mergeCredentialRefs()
   const patchPath = join(home, 'profiles', 'dev', 'cordis.patch.yml')
   if (!existsSync(patchPath)) {
     console.error(`seed: no profile patch at ${patchPath} — run prepare.sh && setup.sh first`)
