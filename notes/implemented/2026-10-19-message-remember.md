@@ -8,7 +8,7 @@
 
 ## 决定
 
-1. **槽**：`conversation.chat.assistant-actions`（vendor 既有，list/session scope，`messageId`）；只追加一个「记下来」，不替换/删除 shipped 动作。用户消息没有现成槽，v1 不做。
+1. **槽**：`conversation.chat.assistant-actions`（vendor 既有，list/session scope，owner `{messageId}`）；entry 用 **`id`**（不是 `key`——`key` 形状会让整个 client entry 在真 renderer 里不激活，已由 `webui-shots` 真机证据钉住）；`client/index` 用 `newestSessionId()` 把 session 闭包进 `RememberAction`（owner props 不含 session）。只追加一个「记下来」，不替换/删除 shipped 动作。用户消息没有现成槽，v1 不做。
 2. **客户端**：`RememberAction` 只发 `{sessionId, messageId}` 到 A2 的 `POST /api/assistant/rooms`（`memory.remember`）；不传正文；无 prompt。
 3. **host**：`RoomsActions.remember(sessionId,messageId)` → `ctx.sessionQuery.readEvent` 取 durable 消息 → 提取 text parts → `saveMemory({ text: 逐字, kind:'fact', source: 'panel:message:<sessionId>/<messageId>' })`。白名单只为这一条新建开口；不写 `why`。
 4. **预算负例**：`saveMemory` 满预算时抛错 → route `action-failed` → 面板显示"没记下：…"。
@@ -18,7 +18,7 @@
 
 - `tests/host/rooms-actions.spec.ts` 加 `memory.remember`（200 + ids、缺 message 400、预算拒绝 400）。
 - `tests/client/client-message-action.spec.ts` 2 条（渲染/只发 ids；缺 id 不渲染）。
-- `client-entry` 的 `conversation.chat.assistant-actions` slot 注册 + key。
+- `client-entry` 的 `conversation.chat.assistant-actions` slot 注册 + id；真机 `webui-shots`（修复前 entry 不激活，修复后 page 完整 + consoleErrors []）；`web-expected` 两场景 PASS。
 - `vitest` **812 tests**；`verify` **42**；`tsc`/`tsdown` 绿。
 - 人判：在一条 assistant 消息上点「记下来」，刷新后记忆里能看到逐字文本与来源。
 

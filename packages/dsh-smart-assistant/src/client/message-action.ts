@@ -12,8 +12,8 @@ import { MARK_TEAL } from './theme'
 
 /** Props the assistant-actions slot passes (structural mirror; only these two matter). */
 export interface RememberActionProps {
-  readonly messageId?: string
-  readonly sessionId?: string
+  readonly messageId?: string | undefined
+  readonly sessionId?: string | undefined
 }
 
 /** Render the button; nothing is shown when the slot lacks a bound message/session. */

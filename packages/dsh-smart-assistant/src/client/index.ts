@@ -43,7 +43,7 @@ import {
   settlePending,
 } from './room-data-core'
 import type { DeskStore } from './room-data-core'
-import { bindDeskEnv, loadDesk, loadDeskFor, loadSkillBody, openBeside } from './room-data-io'
+import { bindDeskEnv, loadDesk, loadDeskFor, loadSkillBody, newestSessionId, openBeside } from './room-data-io'
 import { approveKnowledgePage, correctMemory, deprecateKnowledgePage, retireMemory, retireSkill } from './room-data-actions'
 import { ReceiptView, markReceiptRead, readReceiptSince, resetReceiptBaseline } from './receipt-view'
 import { AssistantBrandMark, AssistantBrandName, AssistantHeroMark } from './brand'
@@ -55,6 +55,7 @@ import { KnowledgeTabBody, MemoryTabBody, SkillsTabBody, VikiTabBody, roomTabTit
 import { KnowledgeIcon, KnowledgePanel, MemoryIcon, MemoryPanel } from './panels'
 import { SkillsIcon, SkillsPanel } from './skills-panel'
 import { RememberAction } from './message-action'
+import { createElement } from './runtime'
 import { VikiIcon, VikiPanel } from './viki-panel'
 import { bindVikiEnv, deleteViki, getVikiView, loadViki, loadVikiBody, referencesViki, resetVikiView, restoreViki, useVikiView } from './viki-data-io'
 import { bindClientRequire, clientRequire } from './runtime'
@@ -461,8 +462,13 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     ctx.slots.inject('conversation.chat.assistant-actions', () =>
       ctx.slots.register({
         name: 'conversation.chat.assistant-actions',
-        key: 'dsh-smart-assistant-remember',
-      }, RememberAction as unknown as import('react').FunctionComponent<{ messageId?: string, sessionId?: string }>)),
+        id: 'dsh-smart-assistant-remember',
+      }, function RememberActionSlot(props: { messageId?: string }): unknown {
+        return createElement(RememberAction as unknown as import('react').FunctionComponent<{ messageId?: string | undefined, sessionId?: string | undefined }>, {
+          messageId: props.messageId,
+          sessionId: newestSessionId(),
+        })
+      })),
     ctx.slots.inject('conversation.input.dock', () =>
       ctx.slots.register({
         name: 'conversation.input.dock',
