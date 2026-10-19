@@ -23,6 +23,12 @@ A1a 后面板读的是 working folder 真值，但"改"仍走 `sendPrompt`：知
 - **把 before/after 塞进 `id`/`title` 字符串**：不可机械读；加可选字段、旧行兼容。
 - **客户端乐观写入后失败静默回滚**：用户看到假状态；先成功响应再改 store，失败保留原行 + note。
 
+## 真机验收（2026-10-20）
+
+- 点「批准」后页面 `待你审批（9）→（8）`、`知识 · 20% 缺口的事件台账法（2026 Q3） · 已批准`。
+- 审批账新增真实行：`{"kind":"promote","id":"20260926-20-2026-q3-r2rc","title":"20% 缺口的事件台账法（2026 Q3）","before":{"status":"draft"},"after":{"status":"stable"},"room":"knowledge","source":"panel-direct"}`。
+- 证据：`.tmp/shots/abc-approve4-1600x1000.*`；`dev/harness-home/assistant/audit/approvals.jsonl` 末行。
+
 ## 验收与证据
 
 - **host 红→绿**：`tests/host/rooms-actions.spec.ts` 7 条（GET/POST、五动作、白名单、before/after、错误映射）；`tests/host/approval-audit.spec.ts` 4 条（promote/deprecate/land + 新 `correct/retire` 与 before/after、旧行兼容）；`tests/host/rooms-route.spec.ts` 4 条（A1a 读不变）。

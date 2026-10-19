@@ -24,6 +24,11 @@
 - **在 A1a 就删 `.desk/state.json`/`desk-refresh`**：Q3 未确认；A1a 只换源，退役留给 A1b。
 - **在 `bindDeskEnv` 里直接读 `ctx.web`**：Cordis 对未 inject 的服务抛错，client entry 会 failed；改为 try/catch 的可选 test hook，生产读 `document`/`location`。
 
+## 真机验收（2026-10-20）
+
+- 知识室面板在 dev 实例上完整渲染：`自上次以来还没有变化`、`全部标为已读`、`待你审批（9）`、每条草稿的 `读全文 / 批准 / 有问题`。
+- 证据：`.tmp/shots/abc-approve4-1600x1000.png/.dom.txt`；页面 `consoleErrors: []`。
+
 ## 验收与证据
 
 - **红→绿**：`tests/host/rooms-route.spec.ts` 4 条（四房间/时间戳/revision、正文+错误态、拒绝任意路径/session、超限/读失败/取消）；`tests/client/client-room-data-io.spec.ts` 6 条（route 读、R6 错误重试、R11 claim/race/per-slice/row-state carry）；`tests/client/client-room-tabs.spec.ts` 3 条（会话绑定/错误重试/空态）。
