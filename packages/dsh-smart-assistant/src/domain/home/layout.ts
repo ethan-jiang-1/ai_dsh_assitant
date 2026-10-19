@@ -9,9 +9,9 @@
  */
 
 import { constants } from 'node:fs'
-import { access, mkdir, writeFile } from 'node:fs/promises'
+import { access, mkdir, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { AGENTS_FILE_NAME, renderHomeManual } from './home-map.ts'
+import { AGENTS_FILE_NAME, migrateHomeManual, renderHomeManual } from './home-map.ts'
 import { DEFAULT_SOUL, SOUL_FILE_NAME } from './soul.ts'
 
 /** Directory name of the home under the harness home. */
@@ -127,7 +127,8 @@ async function exists(path: string): Promise<boolean> {
 
 /**
  * Create a missing home. Idempotent, and safe on a home a person has edited: directories are only
- * created, and `AGENTS.md` / `SOUL.md` are written only when absent, so hand edits survive.
+ * created, `SOUL.md` is written only when absent, and `AGENTS.md` is written when absent or migrated
+ * from an older generated version (only the exact retired block is removed; hand edits survive).
  * @param paths - Resolved home paths.
  * @returns What this call created.
  */
@@ -149,7 +150,13 @@ export async function scaffoldHome(paths: HomePaths): Promise<ScaffoldResult> {
     await mkdir(directory, { recursive: true })
   }
   const manualWritten = !(await exists(paths.agentsFile))
-  if (manualWritten) await writeFile(paths.agentsFile, renderHomeManual(), 'utf8')
+  if (manualWritten) {
+    await writeFile(paths.agentsFile, renderHomeManual(), 'utf8')
+  } else {
+    const existing = await readFile(paths.agentsFile, 'utf8')
+    const migrated = migrateHomeManual(existing)
+    if (migrated !== existing) await writeFile(paths.agentsFile, migrated, 'utf8')
+  }
   const soulWritten = !(await exists(paths.soulFile))
   if (soulWritten) await writeFile(paths.soulFile, `${DEFAULT_SOUL}\n`, 'utf8')
   return { createdDirectories, manualWritten, soulWritten }

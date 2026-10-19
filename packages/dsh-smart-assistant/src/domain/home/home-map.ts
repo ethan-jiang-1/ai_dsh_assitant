@@ -7,7 +7,8 @@
  *
  * The manual is written for the agent, so it is in English like the persona and the skills;
  * the repo's own contracts (`docs/`) are in the maintainer's language. The file is generated
- * only when missing — a hand-edited manual is never overwritten — and carries a scaffold
+ * when missing; older generated manuals are migrated (only the exact retired block is removed)
+ * and carries a scaffold
  * version marker so `curate` can report a manual that predates the current scaffold without
  * fighting hand edits (content edits are the owner's; the marker is the machine's).
  *
@@ -18,10 +19,45 @@
 export const AGENTS_FILE_NAME = 'AGENTS.md'
 
 /** Version of the generated manual; bump when the generated content changes meaningfully. */
-export const HOME_MANUAL_VERSION = 15
+export const HOME_MANUAL_VERSION = 16
 
 /** The version marker stamped as the file's first line (an HTML comment: invisible when rendered). */
 export const HOME_MANUAL_MARKER = `<!-- home-manual v${String(HOME_MANUAL_VERSION)} -->`
+
+/**
+ * The exact Room data section the generated manual carried through v15. It is removed from an
+ * existing generated manual by {@link migrateHomeManual}; a manual without this exact block (hand
+ * edited, or older than versioning) is never touched.
+ */
+export const RETIRED_ROOM_DATA_SECTION = '### Room data (`.desk/state.json`)\n\n'
+  + 'The memory and knowledge room panels read this file in the session workspace, and it is their\n'
+  + '**only** data source. It is not the desk, and business matters never go here: a matter, deadline,\n'
+  + 'decision-to-make or proposal lives in the authoritative operating ledger (`assistant_operating`),\n'
+  + 'and the principal\'s desk renders that ledger. Keep the file shaped: `generatedAt` (ISO-8601, the\n'
+  + 'moment you wrote it) plus the room sections you actually have — the `desk-refresh` skill owns the\n'
+  + 'field contract. End any session that changed the memory or knowledge rooms or the skill catalog by\n'
+  + 'writing the file. A file that parses but carries none of that shape leaves the rooms looking empty,\n'
+  + 'and the principal cannot tell it apart from "nothing happened".\n\n'
+
+/**
+ * Remove the retired Room data section from an existing **generated** manual and stamp the current
+ * version. Hand edits elsewhere survive; a manual without the exact retired block is returned
+ * unchanged (so a hand-written manual is never reflowed). A1b: existing homes still carried the
+ * copy instructions long after the panels stopped reading them.
+ * @param text - The existing AGENTS.md contents.
+ * @returns The migrated contents, or the same string when no retired block is present.
+ */
+export function migrateHomeManual(text: string): string {
+  if (!text.includes(RETIRED_ROOM_DATA_SECTION)) return text
+  let next = text.replace(RETIRED_ROOM_DATA_SECTION, '')
+  next = next.replace(
+    'Bookkeeping is not an answer. Room writes, thread merges, curate findings, even the room-data\nrewrite are housekeeping; none of them answers the person.',
+    'Bookkeeping is not an answer. Room writes, thread merges and curate findings are housekeeping;\nnone of them answers the person.',
+  )
+  next = next.replace('"I\'ll load the desk-refresh skill first"', '"I\'ll load the morning-brief skill first"')
+  next = next.replace(/^<!-- home-manual v\d+ -->/mu, HOME_MANUAL_MARKER)
+  return next
+}
 
 /**
  * Parse a manual's scaffold version from its marker. A file without a marker (hand-written
@@ -179,7 +215,7 @@ digest reports over-budget, after a session of real learning, or when you suspec
 \`\`\`text
 <working-folder>/
 ├── SOUL.md            (your identity; seeded, never overwritten)
-├── AGENTS.md          (this manual; seeded, never overwritten)
+├── AGENTS.md          (this manual; generated versions migrate; hand edits survive)
 ├── skill-usage.json   (load counts; advisory, safe to delete)
 ├── memory/            (active records; archive/ for superseded or retired)
 ├── research/          (open and parked threads; archive/ for promoted or dropped)

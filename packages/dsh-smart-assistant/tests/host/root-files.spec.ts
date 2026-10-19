@@ -5,11 +5,11 @@
  * version marker predates the current one without fighting hand edits.
  */
 
-import { rmSync, writeFileSync } from 'node:fs'
+import { readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { memoryPool } from '../support/host-harness.ts'
 import { DEFAULT_SOUL } from '../../src/domain/home/soul.ts'
-import { HOME_MANUAL_VERSION } from '../../src/domain/home/home-map.ts'
+import { HOME_MANUAL_VERSION, RETIRED_ROOM_DATA_SECTION } from '../../src/domain/home/home-map.ts'
 
 const boot = memoryPool('assistant-root-files-')
 
@@ -74,6 +74,27 @@ describe('manualSnapshot (guidance)', () => {
     expect(service.manualSnapshot()).toBe('# my own manual')
     expect(service.manualSnapshot()).not.toContain(service.paths.root)
     expect(service.digestSnapshot()).not.toContain(service.paths.root)
+  })
+
+  it('migrates an existing generated manual and keeps hand edits', async () => {
+    const { service } = boot()
+    await service.ensureHome()
+    const current = service.manualSnapshot()
+    const legacy = current
+      .replace('# Your working folder — operating manual', '# Your working folder — operating manual\n\nHand line: keep me.')
+      .replace('| Room | Holds | Lifecycle |', `${RETIRED_ROOM_DATA_SECTION}| Room | Holds | Lifecycle |`)
+      .replace(`<!-- home-manual v${String(HOME_MANUAL_VERSION)} -->`, '<!-- home-manual v15 -->')
+    writeFileSync(service.paths.agentsFile, legacy, 'utf8')
+    await service.ensureHome()
+    const migrated = service.manualSnapshot()
+    expect(migrated).not.toContain('### Room data (`.desk/state.json`)')
+    expect(migrated).not.toContain('desk-refresh')
+    expect(migrated).toContain('Hand line: keep me.')
+    expect(migrated).toContain(`home-manual v${String(HOME_MANUAL_VERSION)}`)
+    // A hand-written manual without the exact retired block is never reflowed.
+    writeFileSync(service.paths.agentsFile, '# my own manual\n\nno room data here\n', 'utf8')
+    await service.ensureHome()
+    expect(readFileSync(service.paths.agentsFile, 'utf8')).toBe('# my own manual\n\nno room data here\n')
   })
 
   it('renders a current manual when the file is absent — the fallback cannot go stale', async () => {

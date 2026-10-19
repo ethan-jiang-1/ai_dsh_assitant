@@ -3,14 +3,13 @@
  * `pnpm desk-loop` —— 从**真实会话日志**里读培养循环的健康度（摩擦在这里长什么样）。
  *
  * 为什么存在：本产品的"摩擦"多数是**循环**事实——本人点一行 → 面板发一条带 `[面板] ` 标记的消息 →
- * 助手应当重写 `.desk/state.json` → 面板跟着变。这条链断在哪，本人的体验就是"它没理我"，于是他
+ * 面板动作之后同一行有没有被反复动、同一个决定有没有被答多次。这条链断在哪，本人的体验就是"它没理我"，于是他
  * **再点一次**。这段读法如果留给未来的会话临场发明，摩擦就永远只能靠碰巧被发现；本工具把读法钉下来，
  * 好让发现直接变成切片。
  *
  * 读什么（全部来自会话日志，不读 stdout，也不读面板内部状态）：
  *   · `user/message` 的 content 文本块 —— 面板自己的消息带 `[面板] ` 标记（A10），本人的话没有；
- *   · `tool/call` 的 name/arguments —— 桌面写入（谓词与评测器共用：[`wrotePath`](eval/checks.mjs)）
- *     与技能加载（`skill` 工具点名 `desk-refresh`）；
+ *   · `tool/call` 的 name/arguments —— 面板动作窗口里的工具（技能加载、房间查询）；
  *   · `feedback/message-put` / `feedback/message-delete` —— 消息赞踩（adoption 卡 C2 片）：本人点在
  *     助手消息上的 👍/👎 与备注；delete 按 messageId 对消（撤回的不再计正负，只记一笔）。
  *
@@ -32,7 +31,7 @@ import { join, resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { classifyUserMessage, readEvents, sessionLogs, stripPanelMarker } from '../lib/session-logs.mjs'
 import { devHome } from '../env/home.mjs'
-import { argumentsText, wrotePath } from '../eval/checks.mjs'
+import { argumentsText } from '../eval/checks.mjs'
 import { TASKS } from '../eval/tasks.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
@@ -40,8 +39,6 @@ const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const harnessHome = devHome()
 
 const PANEL_MARKER = '[面板] '
-const SKILL = 'desk-refresh'
-const DESK_PATH = '.desk/state.json'
 const REPEAT_WINDOW_MS = 15 * 60 * 1000
 /** 家的四房间工具（`assistant_memory` / `assistant_knowledge` / `assistant_research` / `assistant_reflect`）。 */
 const HOME_TOOLS = new Set(['assistant_memory', 'assistant_knowledge', 'assistant_research', 'assistant_reflect'])
@@ -211,11 +208,9 @@ export function buildSession(log, events) {
     id: sessionIdOf(log),
     startedAt: Number(events[0]?.time ?? windows[0].at),
     // 评测会话判定：题面命中 **且** 整个会话只有那一条消息 **且** 那条消息不走面板。
-    // 第三个条件是 BUG-002 的修复（2026-10-01 真实命中）：desk-refresh 那条评测的题面**就是**面板的刷新
-    // 文案，"只点一下刷新、之后一个字没说"的真人会话恰好同形——头两版补丁（只看题面；"≤2 条"）分别被
-    // 自检与实测算出假阳性，判别子必须在消息文本之外。它就在 source 里：评测是 headless one-shot，题面经
-    // argv 进来（source 是裸 `{kind:"user"}`，无 rpcId），而面板消息必带 `rpcId: desk-…`（speakerOf 的
-    // 结构判据）——面板来源 ⇒ 不可能是评测提交。
+    // 第三个条件是 BUG-002 的修复（2026-10-01 真实命中）：某条评测的题面恰好也是面板文案，"只点一下、之后
+    // 一个字没说"的真人会话同形——判别子必须在消息文本之外。它就在 source 里：评测是 headless one-shot，
+    // 题面经 argv 进来（source 是裸 `{kind:"user"}`，无 rpcId），而面板消息必带 `rpcId: desk-…`。
     evalRun: windows.length === 1 && TASK_PROMPTS.includes(windows[0].message.trim()) && windows[0].panel !== true,
     windows,
     feedback: feedbackOf(events),
@@ -233,14 +228,11 @@ export function analyzeSessions(sessions, { includeEval = false } = {}) {
   const evalRuns = sessions.filter(session => session.evalRun)
   const considered = includeEval ? sessions : human
 
-  const noWrite = []
-  const noSkill = []
   const repeats = []
   const doubleAnswers = []
   const reactions = []
   const unconsulted = []
   let panelActions = 0
-  let refreshAsks = 0
   let humanTurns = 0
   // §7（adoption 卡 C2 片）：消息赞踩的计数与备注（备注是给人读的材料，不判定）。
   const feedback = { positive: 0, negative: 0, retracted: 0, notes: [] }
@@ -277,17 +269,9 @@ export function analyzeSessions(sessions, { includeEval = false } = {}) {
       // 会把标记当内容。分类不靠这个前缀——那由 classifyUserMessage 的结构判据负责。
       const body = stripPanelMarker(window.message)
       const action = {
-        session: session.id, at: window.at, action: actionOf(body),
-        rowKey: rowKeyOf(body, actionOf(body)), asksRefresh: body.includes(SKILL),
+        session: session.id, at: window.at, action: actionOf(body), rowKey: rowKeyOf(body, actionOf(body)),
       }
       actions.push(action)
-      // §1 只在**承诺了重写**的动作上算：`回顾一下` / `curate` 这类按钮的消息里没有那句承诺，
-      // 把它们的窗口也算作"没重写"是冤枉（2026-09-27 实测修正）。
-      if (action.asksRefresh) refreshAsks += 1
-      if (action.asksRefresh && !wrotePath(window.tools, DESK_PATH)) noWrite.push(action)
-      if (action.asksRefresh && !window.tools.some(call => call.name === 'skill' && call.argumentsText.includes(SKILL))) {
-        noSkill.push(action)
-      }
     }
 
     // 同一行在 15 分钟内的连续动作算**一簇**（成对展开会把"点了 4 次"读成 6 组，夸大摩擦）。
@@ -315,29 +299,18 @@ export function analyzeSessions(sessions, { includeEval = false } = {}) {
 
   feedback.notes.sort((a, b) => a.at - b.at)
 
-  return { human, evalRuns, considered, panelActions, refreshAsks, noWrite, noSkill, repeats, doubleAnswers, reactions, humanTurns, unconsulted, feedback }
+  return { human, evalRuns, considered, panelActions, repeats, doubleAnswers, reactions, humanTurns, unconsulted, feedback }
 }
 
 /** 报告正文（给人读的 markdown）。 */
 export function renderReport(analysis, { home, sinceDays, includeEval } = {}) {
-  const { human, evalRuns, considered, panelActions, refreshAsks, noWrite, noSkill, repeats, doubleAnswers, reactions, humanTurns, unconsulted, feedback } = analysis
-  // 分母跟着分子走：§1/§4 只统计**点名了 desk-refresh** 的动作（没点名的那次点击本来就没承诺重写桌面），
-  // 所以百分比也按同一个分母算——此前印的是「n/全部面板动作」，把 1/14 与 13/14 说成了 1/23 与 13/23
-  // （窄审抓到，2026-09-27：口径混用的读数比没有读数更坏）。
-  const pct = (count) => refreshAsks === 0 ? '—' : `${Math.round(count / refreshAsks * 100)}%`
+  const { human, evalRuns, considered, panelActions, repeats, doubleAnswers, reactions, humanTurns, unconsulted, feedback } = analysis
   const when = (at) => new Date(at).toISOString().replace('T', ' ').slice(0, 16)
   const lines = []
   lines.push(`# 培养循环摩擦报告 — ${home}`)
   lines.push('')
   lines.push(`会话 ${considered.length}（本人 ${human.length} · 评测 ${evalRuns.length}${includeEval ? '，已含' : '，默认不计'}）`
-    + `｜面板动作 ${panelActions}（其中点名 desk-refresh 的 ${refreshAsks}）${sinceDays === undefined ? '' : `｜窗口：最近 ${sinceDays} 天`}`)
-  lines.push('')
-  lines.push(`## 1. 点名了 desk-refresh 的面板动作里，桌面文件没有被重写（循环的硬保证）— ${noWrite.length}/${refreshAsks}（${pct(noWrite.length)}）`)
-  lines.push('')
-  lines.push('这一类的体验就是"它没理我"：本人点了、消息发了、文件没动，面板自然也不变。')
-  lines.push('')
-  for (const item of noWrite.slice(0, 20)) lines.push(`- ${when(item.at)} · 会话 ${item.session} · ${item.action} · 「${item.rowKey.slice(0, 60)}」`)
-  if (noWrite.length === 0) lines.push('- （无）')
+    + `｜面板动作 ${panelActions}${sinceDays === undefined ? '' : `｜窗口：最近 ${sinceDays} 天`}`)
   lines.push('')
   lines.push(`## 2. 同一行被反复动（同一行 15 分钟内 ≥2 次）— ${repeats.length} 处`)
   lines.push('')
@@ -357,13 +330,6 @@ export function renderReport(analysis, { home, sinceDays, includeEval } = {}) {
       + ` · **答了 ${answers} 次**（共动 ${cluster.length} 次） · 「${cluster[0].rowKey.slice(0, 60)}」`)
   }
   if (doubleAnswers.length === 0) lines.push('- （无）')
-  lines.push('')
-  lines.push(`## 4. 面板消息点名了 desk-refresh，那一轮却没加载它 — ${noSkill.length}/${refreshAsks}（${pct(noSkill.length)}）`)
-  lines.push('')
-  lines.push('面板的提示语写死了"完成后加载 desk-refresh 技能"；没加载却动了桌面，就是冷发现不可靠的那一类。')
-  lines.push('')
-  for (const item of noSkill.slice(0, 20)) lines.push(`- ${when(item.at)} · 会话 ${item.session} · ${item.action} · 「${item.rowKey.slice(0, 60)}」`)
-  if (noSkill.length === 0) lines.push('- （无）')
   lines.push('')
   lines.push(`## 5. 面板动作之后 10 分钟内本人的话（人工读，不判定）— ${reactions.length} 条`)
   lines.push('')
@@ -459,12 +425,10 @@ export function selfCheck() {
   const sessionA = buildSession(logA, [
     // 首轮带着协作边界前言：面板标记必须仍被认出，而且它不算"人说的话"
     userMessage(T0, '[Collaboration boundary] You may change the working tree, but you do not commit — '
-      + `commit authority belongs to the person.\n\n${PANEL_MARKER}刷新我的桌面：加载 desk-refresh 技能，严格按它把桌面文件重写一遍。`, desk),
+      + `commit authority belongs to the person.\n\n${PANEL_MARKER}刷新我的桌面`, desk),
     // 两种注入形态都夹在面板动作与工具调用之间：`<…>` 与**纯文本**（后者曾骗过启发式）——都不得切断窗口
     userMessage(T0 + 1000, '<system-reminder>\nA skill is a reusable set of task-specific instructions.', { kind: 'skill-catalog' }),
     userMessage(T0 + 1500, 'Current runtime context. This snapshot supersedes earlier runtime-context snapshots.', { kind: 'runtime-context' }),
-    toolCall(T0 + 2000, 'skill', { name: 'desk-refresh' }),
-    toolCall(T0 + 3000, 'write', { file_path: '/ws/.desk/state.json', content: '{}' }),
     userMessage(T0 + 4 * MINUTE, '好的'),
     // 只有前言、没有人话的一轮：不得进 §5/§6
     userMessage(T0 + 6 * MINUTE, '[Collaboration boundary] You may change the working tree, but you do not commit — commit authority belongs to the person.'),
@@ -474,15 +438,13 @@ export function selfCheck() {
     feedbackDelete(T0 + 9 * MINUTE, 'm-2'),
   ])
 
-  const answer = `${PANEL_MARKER}桌面面板代本人拍板——待决事项「季末破例？」的决定：不允许。完成后加载 desk-refresh 技能，把桌面文件重写一遍。`
+  const answer = `${PANEL_MARKER}桌面面板代本人拍板——待决事项「季末破例？」的决定：不允许。`
   const sessionB = buildSession(logB, [
     userMessage(T0, answer, desk),
     toolCall(T0 + 1000, 'read', { file_path: '/home/assistant/knowledge/x.md' }),   // 既没写文件也没加载技能
     userMessage(T0 + 3 * MINUTE, answer, desk),                                     // 同一条决定再答一次
     toolCall(T0 + 3 * MINUTE + 1000, 'read', { file_path: '/home/assistant/knowledge/x.md' }),
-    userMessage(T0 + 5 * MINUTE, `${PANEL_MARKER}行动「守住纪律」要改：改成只压流程。完成后加载 desk-refresh 技能，把桌面文件重写一遍。`, desk),
-    toolCall(T0 + 5 * MINUTE + 1000, 'write', { file_path: '/ws/.desk/state.json', content: '{}' }),
-    toolCall(T0 + 5 * MINUTE + 2000, 'skill', { name: 'desk-refresh' }),
+    userMessage(T0 + 5 * MINUTE, `${PANEL_MARKER}行动「守住纪律」要改：改成只压流程。`, desk),
     // §7（C2）：一条无备注的踩（只进计数，不进备注表）
     feedbackPut(T0 + 6 * MINUTE, 'm-3', 'negative'),
   ])
@@ -493,7 +455,7 @@ export function selfCheck() {
   // 刷新再没说话的会话（2026-10-01 真实命中）。headless 评测发不出这个形状：不得判成评测。
   const logD = '/harness/sessions/--proj--/session-dddddddd-1111-2222-3333-444444444444/session.v4.jsonl.zstd'
   const sessionD = buildSession(logD, [
-    userMessage(T0, TASK_PROMPTS.find(prompt => prompt.includes('刷新我的桌面')) ?? 'panel refresh copy', desk),
+    userMessage(T0, TASK_PROMPTS[0] ?? 'panel task copy', desk),
   ])
   const sessions = [sessionA, sessionB, sessionC]
   if (sessions.some(session => session === undefined)) throw new Error('a synthetic session produced no windows')
@@ -506,7 +468,7 @@ export function selfCheck() {
 
   // BUG-002 的双向钉：面板来源的单次刷新点击不是评测（真人会话留在"本人"账里）；
   // 裸 source 的 one-shot 题面仍是评测。
-  expect('panel-sourced single refresh click is not an eval run', sessionD.evalRun, false)
+  expect('panel-sourced single message matching a task prompt is not an eval run', sessionD.evalRun, false)
   expect('headless bare-source eval shape is still an eval run', sessionC.evalRun, true)
 
   expect('sessions (human)', humanOnly.considered.length, 2)
@@ -514,14 +476,7 @@ export function selfCheck() {
   expect('sessions (--all)', withEval.considered.length, 3)
   expect('session id from the log path', sessionA.id, 'aaaaaaaa')
   // §1：A 写了（两种注入前言都没切断窗口）；B 的两条"回答"都没写（第二条又答了一次，仍然没落盘）
-  expect('no-write count', humanOnly.noWrite.length, 2)
-  expect('no-write rows are the answers', humanOnly.noWrite.every(item => item.action === '回答'), true)
-  // §4：那两条问了技能却没加载；A 的刷新加载了；B 的"要改"也加载了
-  expect('no-skill count', humanOnly.noSkill.length, 2)
-  // 分母口径：只有**点名了 desk-refresh** 的动作进这个分母（合成会话：A 的刷新 1 条 + B 的两条回答与一条
-  // "要改" 3 条 ＝ 4），它必须与"全部面板动作"分开数——混用会把 1/4 说成 1/4 之外的数（真机上是 1/14 vs 1/23）。
-  expect('refresh-ask denominator', humanOnly.refreshAsks, 4)
-  expect('panel actions counted separately', humanOnly.panelActions, 4)
+  expect('panel actions counted', humanOnly.panelActions, 4)
   // §3：同一条决定答两次
   expect('double answers', humanOnly.doubleAnswers.length, 1)
   // §2：B 的两条"回答"落在同一行 ⇒ 一处"被反复动"；§3 同一簇里答了两次 ⇒ 也算"被答多次"
@@ -540,9 +495,7 @@ export function selfCheck() {
   expect('unconsulted is the human turn', humanOnly.unconsulted[0].said, '好的')
   // 会话里有面板动作 ⇒ 进 §6 口径；本人的那一轮查了记忆 ⇒ 不算"没查"
   const consulted = analyzeSessions([buildSession(logB, [
-    userMessage(T0, `${PANEL_MARKER}刷新我的桌面：加载 desk-refresh 技能，严格按它把桌面文件重写一遍。`, desk),
-    toolCall(T0 + 500, 'skill', { name: 'desk-refresh' }),
-    toolCall(T0 + 800, 'write', { file_path: '/ws/.desk/state.json', content: '{}' }),
+    userMessage(T0, `${PANEL_MARKER}刷新我的桌面`, desk),
     userMessage(T0 + 2 * MINUTE, '上次那个季末破例，我们最后怎么定的？'),
     toolCall(T0 + 2 * MINUTE + 1000, 'assistant_memory', { action: 'search', query: '季末破例' }),
   ])])
@@ -555,7 +508,7 @@ export function selfCheck() {
   // 混合重复：同一行"答完又问别的"——曾经被两个条件同时漏掉
   const mixed = analyzeSessions([buildSession(logB, [
     userMessage(T0, answer, desk),
-    userMessage(T0 + 2 * MINUTE, `${PANEL_MARKER}行动「季末破例？」不办了：请记一行原因。完成后加载 desk-refresh 技能，把桌面文件重写一遍。`, desk),
+    userMessage(T0 + 2 * MINUTE, `${PANEL_MARKER}行动「季末破例？」不办了：请记一行原因。`, desk),
   ])])
   expect('answer-then-drop counts as a repeat', mixed.repeats.length, 1)
   expect('answer-then-drop is not a double answer', mixed.doubleAnswers.length, 0)
