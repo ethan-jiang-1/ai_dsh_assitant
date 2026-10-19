@@ -96,14 +96,24 @@ step('tsc: emit the packages the loader imports by path', () => {
   }
 })
 
-step('shims: bridge lib/<entry>.js → lib/types/<entry>.js (named exports only)', () => {
+step('shims: bridge lib/<entry>.js → lib/types/<entry>.js', () => {
+  // `export *` deliberately excludes `default`, so a shim only carries a module's default when it
+  // re-exports it by name. The original shim assumed none of these modules had one; 0.2.1-rc.2
+  // broke that — dsh-llm's src ends in `export default LlmRuntime`, and without the forward the
+  // composition suite sees `typeof LlmRuntime === 'undefined'` and Cordis reports "invalid plugin,
+  // received undefined" on a line that is not even about llm. Detect it from the emitted artifact
+  // instead of hardcoding which packages have one, so a future pin that adds or drops a default
+  // does not need this list edited.
   for (const { directory, entry } of [...SUBPATH_PACKAGES, ...LOADER_PEER_PACKAGES]) {
+    const typesFile = join(vendorRoot, directory, 'lib', 'types', `${entry}.js`)
+    const hasDefault = existsSync(typesFile) && /^export default /m.test(readFileSync(typesFile, 'utf8'))
     writeFileSync(join(vendorRoot, directory, 'lib', `${entry}.js`),
       `// Build-output shim: the exports map points at lib/${entry}.js (a tsdown bundle this clean tree\n` +
-      `// cannot produce); tsc emits the same module at lib/types/${entry}.js. Named exports only —\n` +
-      '// these modules have no default export. Recorded in the 0.1.7 migration note.\n' +
-      `export * from './types/${entry}.js'\n`)
-    process.stdout.write(`  ok   ${directory}/lib/${entry}.js\n`)
+      `// cannot produce); tsc emits the same module at lib/types/${entry}.js. Recorded in the 0.1.7\n` +
+      '// migration note.\n' +
+      `export * from './types/${entry}.js'\n` +
+      (hasDefault ? `export { default } from './types/${entry}.js'\n` : ''))
+    process.stdout.write(`  ok   ${directory}/lib/${entry}.js${hasDefault ? ' (forwards default)' : ''}\n`)
   }
 })
 
@@ -113,13 +123,36 @@ step('fixup: llm attribution must reach the manifest through the tsc outDir', ()
   // rewrite createRequire string arguments. The tsdown bundle inlines the manifest, so only
   // plain-Node subpath consumers (the loader chain above) hit it. Rewrite the built artifact,
   // not the vendor source (vendor/dsh is never edited).
-  const file = join(vendorRoot, 'packages/llm/llm/lib/types/attribution.js')
-  if (!existsSync(file)) return
-  const stale = "createRequire(import.meta.url)('../package.json')"
-  const fixed = "createRequire(import.meta.url)('../../package.json')"
-  const text = readFileSync(file, 'utf8')
-  if (text.includes(stale)) writeFileSync(file, text.replace(stale, fixed))
-  process.stdout.write(`  ok   packages/llm/llm/lib/types/attribution.js\n`)
+  //
+  // Two artifacts, and they need OPPOSITE depths, which is why this is not one blanket rewrite:
+  //   lib/types/attribution.js  sits two levels under the package root  → '../../package.json'
+  //   lib/index.js              sits one level under the package root   → '../package.json'
+  // The bundle inlines whatever lib/types had at build time, so running this fixup BEFORE a
+  // rebuild makes tsdown embed '../../' into lib/index.js and breaks every `pnpm test` run that
+  // imports dsh-llm. Both directions are handled here so the order stops mattering (it bit the
+  // 0.2.1-rc.2 upgrade: repair → rebuild → 6 composition cases died on "Cannot find module
+  // '../../package.json'").
+  const typesFile = join(vendorRoot, 'packages/llm/llm/lib/types/attribution.js')
+  if (existsSync(typesFile)) {
+    const text = readFileSync(typesFile, 'utf8')
+    const stale = "createRequire(import.meta.url)('../package.json')"
+    const fixed = "createRequire(import.meta.url)('../../package.json')"
+    if (text.includes(stale)) writeFileSync(typesFile, text.replace(stale, fixed))
+    process.stdout.write('  ok   packages/llm/llm/lib/types/attribution.js\n')
+  }
+
+  const bundleFile = join(vendorRoot, 'packages/llm/llm/lib/index.js')
+  if (existsSync(bundleFile)) {
+    const text = readFileSync(bundleFile, 'utf8')
+    const stale = 'createRequire(import.meta.url)("../../package.json")'
+    const fixed = 'createRequire(import.meta.url)("../package.json")'
+    if (text.includes(stale)) {
+      writeFileSync(bundleFile, text.replace(stale, fixed))
+      process.stdout.write('  ok   packages/llm/llm/lib/index.js (bundle had the deep path inlined)\n')
+    } else {
+      process.stdout.write('  ok   packages/llm/llm/lib/index.js\n')
+    }
+  }
 })
 
 process.stdout.write('\nrepair-vendor: done. Verify with: pnpm dsh --profile dev-task "reply with the single word ready"\n')
