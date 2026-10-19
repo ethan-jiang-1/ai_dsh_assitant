@@ -10,7 +10,7 @@
 #
 # 前置：
 #   · .env.local 含 SILICONFLOW_API_KEY/BASE_URL/EMBEDDING_MODEL/VLM_MODEL（ov-trial.sh 消费）
-#   · vendor/thirdparty/openviking/dsh-memory-plugin-0.5.8.tgz 在位（准入表双钉版本）
+#   · vendor/thirdparty/openviking/dsh-memory-plugin-0.5.26.tgz 在位（准入表双钉版本）
 #   · uv 在 PATH（server 的安装器）
 #
 # 红线：key 只经 .env.local → ~/.openviking/（0600），本脚本不回显任何密钥；
@@ -20,7 +20,7 @@ set -euo pipefail
 REPO="$(cd "$(dirname "$0")/../../.." && pwd)"
 PROFILE="${1:?用法: bash dev/experiments/openviking/ov-install.sh <profile> [dsh-home]}"
 HOME_DIR="${2:-${ASSISTANT_DSH_HOME:-$REPO/dev/harness-home}}"
-TGZ="$REPO/vendor/thirdparty/openviking/dsh-memory-plugin-0.5.8.tgz"
+TGZ="$REPO/vendor/thirdparty/openviking/dsh-memory-plugin-0.5.26.tgz"
 OV_VERSION="0.4.22"
 PLUGIN_ID="openviking-memory-runtime"
 # 日志落仓内临时根（硬规则 8：仓外写会被文件沙箱挡下，转成一次人工 approval）

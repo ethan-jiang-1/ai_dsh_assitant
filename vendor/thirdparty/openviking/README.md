@@ -5,7 +5,30 @@
 > [_backlog/_archive/settled_issues/260928-self-growth-base-research.md](../../../_backlog/_archive/settled_issues/260928-self-growth-base-research.md)）。
 > 这里只放**一手来源、哈希可验**的原始工件，不放改造物。
 
-## dsh-memory-plugin-0.5.8.tgz
+## dsh-memory-plugin-0.5.26.tgz（当前）
+
+| 项 | 值 |
+|---|---|
+| 包名 / 版本 | `@openviking/dsh-memory-plugin` 0.5.26 |
+| 来源 | https://registry.npmjs.org/@openviking/dsh-memory-plugin/-/dsh-memory-plugin-0.5.26.tgz |
+| 发布日 | 2026-10-15 |
+| 完整性 | `sha512-bNTNv7frjBexYdJR1RGL88uWaz+4FtJMPvuVwGAHuaSow4AN5AqnDYHw95oObjghmTq5lm5omLzKXBDWur0MYA==`（= registry `dist.integrity`，2026-10-19 下载后独立重算一致，落盘后复核仍一致） |
+| license | Apache-2.0（server 仍为 AGPL-3.0 独立进程，边界不变） |
+| 兼容 | peer 范围 `>=0.1.0-rc.6 <1.0.0-0`——**0.5.20 起放宽**，覆盖本仓 pin `0.2.1-rc.2`（0.5.8 的上限 `0.1.7-rc.2` 不覆盖，被兼容闸静默跳过） |
+| 升级依据 | [2026-10-19 通用卡](../../../notes/implemented/2026-10-19-openviking-pin-catch-up.md)；用户 2026-10-19 拍 A（升 latest） |
+
+**为什么升**：DSH 换到 `0.2.1-rc.2` 后，0.5.8 被 `plugin-engines-dsh` 判为不兼容，起动时整 bundle 被跳过——
+本插件不受影响（它经 `dsh plugin add` 进 profile，不在 preset 里），但**记忆第二层静默失效**，`ov-shield`
+治理一个已不存在的工具面。上游从 0.5.20 起把 peer 上限放到 `<1.0.0-0`，正好覆盖。
+
+**准入复核（2026-10-19，对照 0.5.8）**：`cordis.patch.yml` 逐字相同（仍只有一行
+`openviking-memory-runtime`）；v3 剖面依赖的五个旋钮（`skillCatalog` / `skipSubagentSessions` /
+`profileTokenBudget` / `recallContextTimeoutMs` / `commitTokenThreshold`）schema 行逐字相同；
+`config-schema.mjs` 的变化是加法（新增 `usageView` / `usageOutput`）与更保守的默认
+（`resumeArchiveInject`、`takeoverEnabled` 由 `true` 改 `false`）；零运行时依赖。
+
+## dsh-memory-plugin-0.5.8.tgz（历史，仅留证据）
+
 
 | 项 | 值 |
 |---|---|
