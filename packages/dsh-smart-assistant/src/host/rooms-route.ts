@@ -24,6 +24,7 @@ import type { SkillUsageRead } from '../domain/skills/usage.ts'
 import { isEntryId, type RoomReadFailure } from '../domain/home/room.ts'
 import { isSkillName } from '../domain/skills/skill-file.ts'
 import type { ApprovalAuditOptions, ApprovalKind } from './approval-audit.ts'
+import type { ApprovalLine, ReceiptRoom } from '../domain/maintenance/receipt.ts'
 import type { SaveMemoryInput } from './memory-room.ts'
 
 /** The read slice of the home service the route consumes; the plugin binds the real service. */
@@ -34,6 +35,8 @@ export interface RoomsReader {
   readKnowledgePage(id: string): Promise<{ page: KnowledgePage, backlinks: readonly string[] } | undefined>
   learnedSkills(): Promise<{ entries: readonly LearnedSkillInfo[], failures: readonly RoomReadFailure[] }>
   skillUsage(): Promise<SkillUsageRead>
+  /** Newest approval-ledger lines for the A3 receipt. */
+  ledger(): Promise<readonly ApprovalLine[]>
 }
 
 /** The controlled writes A2 exposes on the same route; the plugin binds the real home service. */
@@ -103,10 +106,11 @@ export function createRoomsRoute(reader: RoomsReader, maxBytes: number = 1024 * 
     if (action === undefined) return failure(400, 'missing-action')
     const sessionId = typeof input.sessionId === 'string' && input.sessionId.length > 0 ? input.sessionId : undefined
     const title = typeof input.title === 'string' && input.title.length > 0 ? input.title : undefined
-    const audit = (before: unknown, after: unknown): ApprovalAuditOptions => ({
+    const audit = (room: ReceiptRoom, before: unknown, after: unknown): ApprovalAuditOptions => ({
       source: 'panel-direct',
       ...(sessionId === undefined ? {} : { sessionId }),
       ...(title === undefined ? {} : { title }),
+      room,
       before,
       after,
     })
@@ -127,7 +131,7 @@ export function createRoomsRoute(reader: RoomsReader, maxBytes: number = 1024 * 
           const page = await reader.readKnowledgePage(id)
           if (page === undefined) return failure(404, 'page-not-found')
           if (page.page.status !== 'draft') return failure(409, 'not-a-draft')
-          const promoted = await actions.promotePage(id, audit({ status: 'draft' }, { status: 'stable' }))
+          const promoted = await actions.promotePage(id, audit('knowledge', { status: 'draft' }, { status: 'stable' }))
           return emit({ ok: true, action, id: promoted.id, status: promoted.status })
         }
         case 'knowledge.deprecate': {
@@ -135,7 +139,7 @@ export function createRoomsRoute(reader: RoomsReader, maxBytes: number = 1024 * 
           const page = await reader.readKnowledgePage(id)
           if (page === undefined) return failure(404, 'page-not-found')
           if (page.page.status !== 'stable') return failure(409, 'not-stable')
-          const deprecated = await actions.deprecatePage(id, audit({ status: 'stable' }, { status: 'deprecated' }))
+          const deprecated = await actions.deprecatePage(id, audit('knowledge', { status: 'stable' }, { status: 'deprecated' }))
           return emit({ ok: true, action, id: deprecated.id, status: deprecated.status })
         }
         case 'memory.correct': {
@@ -149,6 +153,7 @@ export function createRoomsRoute(reader: RoomsReader, maxBytes: number = 1024 * 
             text, kind: old.kind, tags: old.tags, importance: old.importance, supersedes: old.id, source: 'panel-direct',
           })
           await actions.recordApproval('correct', saved.id, audit(
+            'memory',
             { id: old.id, text: old.text },
             { id: saved.id, text: saved.text },
           ))
@@ -161,7 +166,7 @@ export function createRoomsRoute(reader: RoomsReader, maxBytes: number = 1024 * 
           if (old === undefined) return failure(404, 'memory-not-found')
           const archived = await actions.forgetMemory(id)
           if (!archived) return failure(409, 'memory-not-active')
-          await actions.recordApproval('retire', id, audit({ status: old.status }, { status: 'retired' }))
+          await actions.recordApproval('retire', id, audit('memory', { status: old.status }, { status: 'retired' }))
           return emit({ ok: true, action, id, status: 'retired' })
         }
         case 'skill.retire': {
@@ -170,6 +175,7 @@ export function createRoomsRoute(reader: RoomsReader, maxBytes: number = 1024 * 
           const reason = typeof input.reason === 'string' && input.reason.trim().length > 0 ? input.reason.trim() : undefined
           const retired = await actions.retireSkill(name, reason)
           await actions.recordApproval('retire', name, audit(
+            'skills',
             { status: 'active' },
             { status: 'archived', ...(reason === undefined ? {} : { reason }) },
           ))
@@ -194,12 +200,13 @@ export function createRoomsRoute(reader: RoomsReader, maxBytes: number = 1024 * 
       try {
         if (request.method === 'POST') return handleAction(request)
         if (url.searchParams.size === 0) {
-          const [memories, threads, knowledge, skills, usage] = await Promise.all([
+          const [memories, threads, knowledge, skills, usage, ledger] = await Promise.all([
             reader.listMemories(),
             reader.listThreads(),
             reader.listKnowledge(),
             reader.learnedSkills(),
             reader.skillUsage(),
+            reader.ledger(),
           ])
           request.signal.throwIfAborted()
           const generatedAt = latestStamp([
@@ -208,6 +215,7 @@ export function createRoomsRoute(reader: RoomsReader, maxBytes: number = 1024 * 
             ...knowledge.entries.map(page => page.generated?.at),
             ...skills.entries.map(skill => skill.learnedAt),
             ...Object.values(usage.usage).map(entry => entry.lastUsedAt),
+            ...ledger.map(line => line.at),
           ])
           const payload = {
             schemaVersion: 1,
@@ -258,6 +266,7 @@ export function createRoomsRoute(reader: RoomsReader, maxBytes: number = 1024 * 
               sources: page.sources.map(source => source.resource),
               excerpt: excerpt(page.body),
             })),
+            ledger,
             problems: [
               ...problem('memory', memories.failures),
               ...problem('research', threads.failures),

@@ -13,7 +13,8 @@
  *
  * @module
  */
-import { appendFile, mkdir } from 'node:fs/promises'
+import { appendFile, mkdir, readFile } from 'node:fs/promises'
+import type { ApprovalLine, ReceiptRoom } from '../domain/maintenance/receipt.ts'
 
 /** Which lane caused a governance transition. */
 export type ApprovalSource = 'assistant_reflect' | 'panel-direct'
@@ -30,6 +31,8 @@ export interface ApprovalAuditOptions {
   readonly before?: unknown
   /** State after the transition (A2 direct writes); absent on older lines and model-path lines. */
   readonly after?: unknown
+  /** Which room the transition belongs to (A2 direct writes); absent on older lines. */
+  readonly room?: ReceiptRoom
 }
 
 /** The structural slice of the home service the ledger writes under (layout-owned paths). */
@@ -54,7 +57,30 @@ export async function recordApproval(host: AuditHost, kind: ApprovalKind, id: st
     ...(options.sessionId !== undefined ? { sessionId: options.sessionId } : {}),
     ...(options.before !== undefined ? { before: options.before } : {}),
     ...(options.after !== undefined ? { after: options.after } : {}),
+    ...(options.room !== undefined ? { room: options.room } : {}),
     source: options.source ?? 'assistant_reflect',
   }) + '\n'
   await appendFile(host.paths.approvalsLedgerFile, line, 'utf8')
+}
+
+/**
+ * Read the newest ledger lines for the maintenance receipt.
+ * @param host - the home service whose layout carries the audit paths.
+ * @param limit - maximum lines returned, newest last.
+ * @returns Parsed lines; unreadable lines are skipped rather than failing the whole receipt.
+ */
+export async function readApprovals(host: AuditHost, limit: number = 200): Promise<readonly ApprovalLine[]> {
+  const text = await readFile(host.paths.approvalsLedgerFile, 'utf8').catch(() => undefined)
+  if (text === undefined) return []
+  const lines: ApprovalLine[] = []
+  for (const raw of text.split('\n')) {
+    if (raw.trim().length === 0) continue
+    try {
+      const parsed = JSON.parse(raw) as Partial<ApprovalLine>
+      if (typeof parsed.at === 'string' && typeof parsed.kind === 'string' && typeof parsed.id === 'string') {
+        lines.push(parsed as ApprovalLine)
+      }
+    } catch { /* a corrupt line must not hide the rest of the receipt */ }
+  }
+  return lines.slice(-Math.max(1, limit))
 }

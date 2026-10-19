@@ -37,12 +37,14 @@ HOST 面（cordis.patch.yml → dsh.bundle.patch）
                             + assistant-desk-projection 行（固定只读投影下载：GET
                               api/assistant/desk-projection，优先活渲染账本 v2 投影——契约 =
                               [operating.md](operating.md) §三）
-                            + assistant-rooms 行（维护面板的房间投影 + 受控写：GET
-                              api/assistant/rooms 取四房间真值、?kind=knowledge&id= 读正文；
-                              POST 同一路径执行 knowledge.approve/deprecate、memory.correct/retire、
-                              skill.retire 白名单动作；不接收 session/workspace/任意路径——A1a/A2）
-                            + assistant-knowledge-approve 行（host 知识批准服务：draft→stable 的机械翻转
-                              client Remote mount 因 parameter codec 形状失败，UI 回退模型提示路径；无 config，随包分发）
+                            + assistant-rooms 行（维护面板的房间投影 + 受控写 + 收据：GET
+                              api/assistant/rooms 取四房间真值、?kind=knowledge&id= 读正文、最近 200 行
+                              审批账（A3 receipt）；POST 同一路径执行 knowledge.approve/deprecate、
+                              memory.correct/retire、skill.retire 白名单动作；不接收
+                              session/workspace/任意路径——A1a/A2/A3）
+                            + assistant-knowledge-approve 行（host 知识批准服务：draft→stable 的机械翻转；
+                              parameter codec 已修为 strict，但 client entry 不能消费动态挂载的
+                              namespace，面板批准走 assistant-rooms 的 POST——A2）
                             + tool-skill 行（DSH 技能目录与加载器；host 实例使 one-shot 首请求可发现技能目录）
                             + session-query-sqlite 翻开行（`first-search` + 持久索引库，原始会话检索）
                             + time-context 行（当前时间/时区/经过时长随请求注入）
@@ -270,6 +272,9 @@ Client 的 [下载对象](../packages/dsh-smart-assistant/src/client/projection-
       │ promotePage/deprecatePage/saveMemory(supersedes)/forgetMemory/retireSkill →
       │ audit/approvals.jsonl（source: panel-direct，before/after）；客户端成功后立即
       │ patch 当前 session 的投影，失败保留原行 + 可读 note（不回退 prompt）
+      ├ 收据（A3）：ReceiptView → buildReceipt(rooms, route.ledger, since) →
+      │ 一句人话 + 分组明细 + 「全部标为已读」；since 住 localStorage
+      │ （dsha:receipt-since），纯核无模型、无新 SessionEvent
       ├ 会话车道（首开引导 / 面板动作的模型路径）：sendPrompt → remote.session.prompt
       │ （mode:queue、[面板] 标记）→ 走模型请求链 → 助手按 desk-refresh 技能把
       │ 工作区 .desk/state.json（session copy）重写一遍；面板已不读这份拷贝，
@@ -298,5 +303,5 @@ Client 的 [下载对象](../packages/dsh-smart-assistant/src/client/projection-
 | 知识草稿/批准/检索 | 模型 + 浏览器链 | 草稿 = `assistant_reflect` 的 save_page（staged）；批准 = 浏览器两车道 → host `promotePage`（`src/host/index.ts`）；检索 = `assistant_knowledge`（`src/agent/tool-knowledge/`；host 面 `searchKnowledge`/`readKnowledgePage`，§五） | `pnpm --filter dsh-smart-assistant exec vitest run tests/host/knowledge-write.spec.ts`（草稿/批准/检索/摘要全链） | draft→stable 翻转与会话审计；直调挂载回退提示 | 批准按钮与回退车道要浏览器；草稿内容生成在模型回合 |
 | 提示词摘要 | 模型请求链 | `assistant-memory-digest` 段落（`src/agent/memory-digest/`）← `ctx.assistantMemory.digest()` 缓存 + 写操作 touch 失效（§五）；预算旋钮（`digestMaxBytes`/`recallLimit`）= host 行 `assistant-memory` 的 config（`cordis.patch.yml` 头部） | `pnpm --filter dsh-smart-assistant exec vitest run tests/domain/digest.spec.ts tests/agent/digest-prewarm.spec.ts` | 缓存失效时序与段落同步 `text` 契约 | 摘要计算无模型；真实会话的段落组装用 keyless 回放看 |
 | 经营事项（账本/投影/读回） | 模型请求链 + 浏览器动作链 | `assistant_operating`（`src/agent/tool-operating/`）→ `ctx.assistantOperatingLedger`（`src/host/operating-ledger/`）→ `ledger.json`；投影 = `src/host/desk-projection/` → client `projection-*`（契约 owner = [`operating.md`](operating.md)） | `pnpm --filter dsh-smart-assistant exec vitest run tests/host/operating-ledger.spec.ts tests/client/projection-reader.spec.ts`（组合面：`pnpm build` → `pnpm test:composition`） | 权限三分与幂等回执；投影 `ready` ≠ 业务成功；客户端 v1/v2 解析 | 工具动作语义无模型；真实交代→读回在模型回合与浏览器（eval `desk-*` 任务集） |
-| 房间读取 / 受控写（记忆/知识两间） | 浏览器 → host route | 房间 tab / 面板 → `loadDesk`/`loadDeskFor`（`src/client/room-data-io.ts`）→ `GET /api/assistant/rooms` → `assistant-rooms` 行 → `ctx.assistantMemory` 四房间真值；正文 `?kind=knowledge&id=`；A2 的批准/过时/纠错/退役 → `POST /api/assistant/rooms` 的 action 白名单 → 服务方法 + 审批账 | `pnpm --filter dsh-smart-assistant exec vitest run tests/client/client-room-data-io.spec.ts tests/client/client-room-actions.spec.ts tests/host/rooms-route.spec.ts tests/host/rooms-actions.spec.ts` | route 的 `generatedAt`/`revision` vs pending.at；审批账的 `source: panel-direct` + before/after；会话日志 | 全链要真会话与渲染：`pnpm web-expected` 两场景；A2a `dev/probes/web/approve-direct-probe.mjs` |
+| 房间读取 / 受控写 / 收据（记忆/知识两间） | 浏览器 → host route | 房间 tab / 面板 → `loadDesk`/`loadDeskFor`（`src/client/room-data-io.ts`）→ `GET /api/assistant/rooms` → `assistant-rooms` 行 → `ctx.assistantMemory` 四房间真值；正文 `?kind=knowledge&id=`；A2 的批准/过时/纠错/退役 → `POST /api/assistant/rooms` 的 action 白名单 → 服务方法 + 审批账；A3 的 `ReceiptView` 用同一 GET 的 `ledger` + 房间 `updated` 组"自上次以来" | `pnpm --filter dsh-smart-assistant exec vitest run tests/client/client-room-data-io.spec.ts tests/client/client-room-actions.spec.ts tests/client/client-receipt.spec.ts tests/domain/receipt.spec.ts tests/host/rooms-route.spec.ts tests/host/rooms-actions.spec.ts` | route 的 `generatedAt`/`revision` vs pending.at；审批账的 `source: panel-direct` + before/after；收据的 since 边界；会话日志 | 全链要真会话与渲染：`pnpm web-expected` 两场景；A2a `dev/probes/web/approve-direct-probe.mjs` |
 | 插件装载 | 启动链 | `cordis.patch.yml` 行 → built `lib/` → profile（`dev/env/setup.sh` 装包 + profile patch 设 default） | `pnpm test:composition`（先 build）+ `pnpm --filter dsh-smart-assistant exec vitest run tests/composition/export-shape.spec.mjs` | lib freshness（never started）；行 id/patch 落空（dump-config） | Web UI 行为要 `pnpm preflight` + 两场景 |

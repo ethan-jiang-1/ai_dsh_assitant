@@ -6,7 +6,7 @@ import type Schema from '@deepseek-ai/schemastery'
 import type { AssistantMemory } from '../index.ts'
 import { scanLearnedSkills } from '../../domain/skills/scan.ts'
 import { createRoomsRoute, type RoomsActions, type RoomsReader } from '../rooms-route.ts'
-import { recordApproval } from '../approval-audit.ts'
+import { readApprovals, recordApproval } from '../approval-audit.ts'
 
 export const name = 'assistant-rooms'
 export const inject = ['connection', 'assistantMemory'] as const
@@ -38,6 +38,7 @@ export function apply(ctx: Context, config: Config = {}): void {
       return { entries: scan.skills, failures: scan.failures }
     },
     skillUsage: () => memory.skillUsage(),
+    ledger: () => readApprovals(memory),
   }
   const actions: RoomsActions = {
     promotePage: (id, audit) => memory.promotePage(id, audit),

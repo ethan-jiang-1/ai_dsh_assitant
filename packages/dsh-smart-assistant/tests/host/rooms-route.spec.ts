@@ -53,6 +53,7 @@ function reader(overrides: Partial<RoomsReader> = {}): RoomsReader {
     listKnowledge: async () => ({ entries: [page], failures: [] }),
     readKnowledgePage: async (id: string) => id === page.id ? { page, backlinks: [] } : undefined,
     learnedSkills: async () => ({ entries: [{ name: 'repo-to-knowledge', description: 'turn a repo into pages', origin: 'learned', learnedAt: '2026-10-19T02:00:00.000Z' }], failures: [] }),
+    ledger: async () => [],
     skillUsage: async () => ({ usage: { 'repo-to-knowledge': { count: 2, lastUsedAt: '2026-10-19T03:00:00.000Z' } }, since: '2026-10-01T00:00:00.000Z' }),
     ...overrides,
   }
@@ -80,6 +81,16 @@ describe('host rooms route', () => {
     expect(body.generatedAt).toBe('2026-10-19T03:00:00.000Z')
     expect(typeof body.revision).toBe('string')
     expect(body.revision.length).toBeGreaterThan(0)
+  })
+
+  it('includes the newest ledger lines and lets generatedAt/revision follow them (A3)', async () => {
+    const line = { at: '2026-10-19T04:00:00.000Z', kind: 'promote', id: 'k1', title: '合同条款', room: 'knowledge' as const, source: 'panel-direct' }
+    const withLedger = createRoomsRoute(reader({ ledger: async () => [line] }))
+    const body = await (await withLedger.fetch(GET())).json() as Record<string, any>
+    expect(body.ledger).toEqual([line])
+    expect(body.generatedAt).toBe('2026-10-19T04:00:00.000Z')
+    const baseline = await (await createRoomsRoute(reader()).fetch(GET())).json() as Record<string, any>
+    expect(body.revision).not.toBe(baseline.revision)
   })
 
   it('serves one knowledge page body and backlinks; missing or malformed ids are honest', async () => {

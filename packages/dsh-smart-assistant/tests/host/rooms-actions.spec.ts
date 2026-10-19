@@ -37,6 +37,7 @@ function reader(): RoomsReader {
     listKnowledge: async () => ({ entries: [draft, stable], failures: [] }),
     readKnowledgePage: async (id: string) => id === draft.id ? { page: draft, backlinks: [] } : id === stable.id ? { page: stable, backlinks: [] } : undefined,
     learnedSkills: async () => ({ entries: [], failures: [] }),
+    ledger: async () => [],
     skillUsage: async () => ({ usage: {} }),
   }
 }
@@ -84,7 +85,7 @@ describe('rooms route controlled writes (A2)', () => {
     expect(ok.status).toBe(200)
     expect(await ok.json()).toMatchObject({ ok: true, action: 'knowledge.approve', id: 'k1', status: 'stable' })
     expect(a.promotePage).toHaveBeenCalledWith('k1', expect.objectContaining({
-      source: 'panel-direct', sessionId: 's1', before: { status: 'draft' }, after: { status: 'stable' },
+      source: 'panel-direct', sessionId: 's1', room: 'knowledge', before: { status: 'draft' }, after: { status: 'stable' },
     }))
     const bad = await route.fetch(POST({ action: 'knowledge.approve', id: 'k2' }))
     expect(bad.status).toBe(409)
@@ -97,7 +98,7 @@ describe('rooms route controlled writes (A2)', () => {
     const ok = await route.fetch(POST({ action: 'knowledge.deprecate', id: 'k2' }))
     expect(ok.status).toBe(200)
     expect(a.deprecatePage).toHaveBeenCalledWith('k2', expect.objectContaining({
-      source: 'panel-direct', before: { status: 'stable' }, after: { status: 'deprecated' },
+      source: 'panel-direct', room: 'knowledge', before: { status: 'stable' }, after: { status: 'deprecated' },
     }))
     const bad = await route.fetch(POST({ action: 'knowledge.deprecate', id: 'k1' }))
     expect(bad.status).toBe(409)
@@ -114,7 +115,7 @@ describe('rooms route controlled writes (A2)', () => {
       text: '新的一句', kind: 'fact', tags: ['work'], importance: 4, supersedes: 'm1', source: 'panel-direct',
     }))
     expect(a.recordApproval).toHaveBeenCalledWith('correct', 'm2', expect.objectContaining({
-      source: 'panel-direct', sessionId: 's1',
+      source: 'panel-direct', sessionId: 's1', room: 'memory',
       before: { id: 'm1', text: '旧的一句' }, after: { id: 'm2', text: '新的一句' },
     }))
     const missingText = await route.fetch(POST({ action: 'memory.correct', id: 'm1' }))
@@ -130,7 +131,7 @@ describe('rooms route controlled writes (A2)', () => {
     expect(await ok.json()).toMatchObject({ ok: true, action: 'memory.retire', id: 'm1', status: 'retired' })
     expect(a.forgetMemory).toHaveBeenCalledWith('m1')
     expect(a.recordApproval).toHaveBeenCalledWith('retire', 'm1', expect.objectContaining({
-      before: { status: 'active' }, after: { status: 'retired' },
+      room: 'memory', before: { status: 'active' }, after: { status: 'retired' },
     }))
   })
 
@@ -141,7 +142,7 @@ describe('rooms route controlled writes (A2)', () => {
     expect(ok.status).toBe(200)
     expect(a.retireSkill).toHaveBeenCalledWith('repo-to-knowledge', '不再用')
     expect(a.recordApproval).toHaveBeenCalledWith('retire', 'repo-to-knowledge', expect.objectContaining({
-      after: { status: 'archived', reason: '不再用' },
+      room: 'skills', after: { status: 'archived', reason: '不再用' },
     }))
     const bad = await route.fetch(POST({ action: 'skill.retire', name: 'Not Kebab' }))
     expect(bad.status).toBe(400)

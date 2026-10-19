@@ -87,6 +87,7 @@ describe('A2 direct room actions', () => {
     expect(post?.url).toContain('/api/assistant/rooms')
     expect(JSON.parse(post?.body ?? '{}')).toMatchObject({ action: 'knowledge.approve', id: 'k1', title: '草稿页', sessionId: 's1' })
     expect(exports.deskStore.data?.knowledge?.[0].status).toBe('stable')
+    expect(exports.deskStore.data?.ledger?.at(-1)).toMatchObject({ kind: 'promote', id: 'k1', room: 'knowledge', source: 'panel-direct' })
     expect(exports.deskStore.data?.counts).toMatchObject({ knowledgeDraft: 0, knowledgeStable: 2 })
     expect(textsOf(exports.KnowledgePanel({ sessionId: 's1' })).join(' | ')).toContain('已确认')
   })

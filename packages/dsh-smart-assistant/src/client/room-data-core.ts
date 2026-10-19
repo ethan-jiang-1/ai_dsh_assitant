@@ -17,6 +17,7 @@
 
 import { shortTime } from './format'
 import { reactSurface } from './runtime'
+import type { ApprovalLine } from '../domain/maintenance/receipt.ts'
 
 /** One rooms projection as the host route renders it (the panel's data source; A1a). */
 export interface DeskData {
@@ -24,6 +25,10 @@ export interface DeskData {
   generatedAt?: string
   revision?: string
   problems?: { room?: string, file?: string, reason?: string }[]
+  /** Newest approval-ledger lines (A3 receipt). */
+  ledger?: readonly ApprovalLine[]
+  /** Research rows the route projects (A3 receipt + future research tab). */
+  research?: { id?: string, title?: string, why?: string, lean?: string, status?: string, updated?: string }[]
   counts?: { memories?: number, knowledgeStable?: number, knowledgeDraft?: number, skills?: number, threads?: number }
   threads?: { id?: string, status?: string, title?: string, why?: string, lean?: string }[]
   decisions?: {

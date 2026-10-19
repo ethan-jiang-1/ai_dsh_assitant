@@ -17,6 +17,7 @@ import {
 import { cell, CorrectableRow, muted, panelAlerts, refreshRow, sectionTitle } from './dom-utils'
 import { loadKnowledgeBody } from './room-data-io'
 import { ContentDrawer } from './content-drawer'
+import { ReceiptView } from './receipt-view'
 import { createElement, reactSurface } from './runtime'
 import { MARK_TEAL } from './theme'
 
@@ -104,6 +105,7 @@ export function KnowledgePanel(props?: { sessionId?: string }): unknown {
     createElement('h2', { style: { margin: '0 0 4px', fontSize: '18px' } }, '知识室'),
     createElement('div', { style: { fontSize: '13px', color: 'var(--dsw-alias-label-secondary)', margin: '0 0 8px' } }, '你凭什么这样判断？——依据、来源、待确认的草稿'),
     refreshRow(store, session),
+    createElement(ReceiptView, { data: store.data }),
     pages.length === 0
       ? muted('（还没有知识页，或房间数据尚未读到）')
       : createElement('div', null,
@@ -227,6 +229,7 @@ export function MemoryPanel(props?: { sessionId?: string }): unknown {
     createElement('h2', { style: { margin: '0 0 4px', fontSize: '18px' } }, '记忆室'),
     createElement('div', { style: { fontSize: '13px', color: 'var(--dsw-alias-label-secondary)', margin: '0 0 8px' } }, '你把我理解成什么？——偏好、决定、事实，每条可纠错'),
     refreshRow(store, session),
+    createElement(ReceiptView, { data: store.data }),
     memories.length === 0
       ? muted('（还没有记忆，或房间数据尚未读到）')
       : createElement('div', null, ...memoryGroups(memories, session)),

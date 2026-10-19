@@ -13,7 +13,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import type AssistantMemory from '../../src/index.ts'
-import { recordApproval } from '../../src/host/approval-audit.ts'
+import { readApprovals, recordApproval } from '../../src/host/approval-audit.ts'
 import { memoryPool } from '../support/host-harness.ts'
 
 describe('approval audit ledger', () => {
@@ -86,6 +86,16 @@ describe('approval audit ledger', () => {
     })
     expect(lines[1]).toMatchObject({ kind: 'correct', before: { id: 'm1' }, after: { id: 'm2' } })
     expect(lines[2]).toMatchObject({ kind: 'retire', before: { status: 'active' }, after: { status: 'retired' } })
+  })
+
+  it('reads the newest lines for the receipt and skips corrupt rows', async () => {
+    const { service } = boot()
+    const page = await draftPage(service, 'Receipt line')
+    await service.promotePage(page, { source: 'panel-direct', room: 'knowledge', before: { status: 'draft' }, after: { status: 'stable' } })
+    writeFileSync(service.paths.approvalsLedgerFile, `${readFileSync(service.paths.approvalsLedgerFile, 'utf8')}{corrupt\n`, 'utf8')
+    const lines = await readApprovals(service, 10)
+    expect(lines).toHaveLength(1)
+    expect(lines[0]).toMatchObject({ kind: 'promote', id: page, room: 'knowledge', source: 'panel-direct' })
   })
 
   it('audits landing an approved skill proposal', async () => {
