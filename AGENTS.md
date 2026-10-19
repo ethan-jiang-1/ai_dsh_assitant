@@ -187,7 +187,7 @@ pnpm eval:domain        # 领域评测：本人出题逐题跑 → 人打分的�
 - preset 语义（roster/roots/遮蔽/standing mount）：`vendor/dsh/packages/preset/agent-preset/README.md`
 - 技能 provider 契约（本 repo 依赖它）：`vendor/dsh/docs/subsystems/skills.md`
 - 从本包贡献 Web UI：机制读 `vendor/dsh/docs/subsystems/slots.md`、`vendor/dsh/docs/subsystems/web-client.md`、`vendor/dsh/docs/subsystems/sidebar-right.md`；本包的路径和验证在 [`.agents/skills/client-ui-contribution/SKILL.md`](.agents/skills/client-ui-contribution/SKILL.md)
-- Cordis 插件怎么挂：`vendor/dsh/docs/cordis-primer.md`。生命周期、并发、子进程：`vendor/dsh/docs/defensive-patterns.md`
+- Cordis 插件怎么挂：`vendor/dsh/docs/cordis-primer.md`。生命周期、并发、子进程：`vendor/dsh/docs/defensive-patterns/README.md`（0.2.1 起由单页拆成目录：general / package-surface / conversation-and-session / remote-and-api / client-components）
 - 主仓测试政策：`vendor/dsh/docs/testing.md`。本仓证据地图是 [`docs/testing.md`](docs/testing.md)，不抄主仓的 coverage、snapshot、CI 台阶
 - 客户端样式：`vendor/dsh/docs/web-styling.md`。本包色值落点在 [`packages/dsh-smart-assistant/AGENTS.md`](packages/dsh-smart-assistant/AGENTS.md)
 - 工具与卡片（`defineTool` / presenter / 日志税）：`vendor/dsh/docs/cookbook/adding-a-tool.md`

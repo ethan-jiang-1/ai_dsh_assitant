@@ -56,14 +56,14 @@ intent: "把本仓今天已有的主动性机制、用户手上的开关、历�
 | `schedule_delete` | `id` | 任务可 active/inactive 都删；**不撤回已入队的消息** |
 | `schedule_update` | `id`、可选 `title`/`prompt`、最多一个新时间参数 | 就地改、保留 id；改相对延时只能重建；冲突报错不覆盖 |
 
-出处：[tools.ts:417-540](../../../vendor/dsh/packages/schedule/schedule/src/tools.ts#L417-L540)（四件注册与参数）、[:341-399](../../../vendor/dsh/packages/schedule/schedule/src/tools.ts#L341-L399)（六种时间参数）、[:169-182](../../../vendor/dsh/packages/schedule/schedule/src/tools.ts#L169-L182)（四条 description 原文）。
+出处：[index.ts:450-575](../../../vendor/dsh/packages/schedule/tool-schedule/src/index.ts#L450-L575)（四件注册与参数）、[:372-400](../../../vendor/dsh/packages/schedule/tool-schedule/src/index.ts#L372-L400)（六种时间参数）、[:183-205](../../../vendor/dsh/packages/schedule/tool-schedule/src/index.ts#L183-L205)（四条 description 原文）。
 注：本仓 [README.md:117-118](../../README.md#L117-L118) 只写了"`prompt`+`title` 必填、`after_seconds` 延时秒"——**实际参数面比这宽**（六种时间形态，如上）。
 
 **用户能在界面上做什么（vendor `ui-schedule`，本包挂上）**：任务管理主页（`main` 座位）、右栏任务 tab、侧栏面板入口、会话头部的本会话任务列表、会话行标记与悬浮、创建卡（挂在产生它的回合尾部）、删除 toast、投递历史 = [ui-schedule/src/client/index.ts:112-219](../../../vendor/dsh/packages/client/ui-schedule/src/client/index.ts#L112-L219)；**页面没有创建表单**（"a new reminder starts in a Session"）= 同文件 [:174](../../../vendor/dsh/packages/client/ui-schedule/src/client/index.ts#L174)。
 
 **缺什么（逐项，均以本轮读码为准）**
 
-- **能不能命名**：能，`title` 必填（[tools.ts:425-429](../../../vendor/dsh/packages/schedule/schedule/src/tools.ts#L425-L429)）；没有重名约束、没有分组/标签。
+- **能不能命名**：能，`title` 必填（[index.ts:464-469](../../../vendor/dsh/packages/schedule/tool-schedule/src/index.ts#L464-L469)）；没有重名约束、没有分组/标签。
 - **能不能暂停**：**不能**。全库没有 pause/resume/quiet 概念（本轮 grep `pause|resume|silent|quiet` 在 schedule 包内只命中一句无关注释），只有 `active`/`inactive` 两态 + 删除（[storage.ts:36-40](../../../vendor/dsh/packages/schedule/schedule/src/storage.ts#L36-L40)）。
 - **能不能限定房间/线索**：不能。任务绑 `sessionId`（原会话），不绑事项、不绑房间、不绑业务线索；`schedule_list` 也只看本会话。
 - **能不能设静默时段**：不能。没有任何时段门、投递预算或频率闸（对比：生态先例 `dsh-proactive` 有静默时段 + 每日投递预算，[261005-open-value-deficit.md:198-200](../../_archive/settled_issues/261005-open-value-deficit.md#L198-L200)）。
@@ -131,7 +131,7 @@ intent: "把本仓今天已有的主动性机制、用户手上的开关、历�
 |---|---|---|
 | "它正在替我盯什么"的可见清单（Martin Background Tasks / Lindy built-in routines） | **半个**：vendor 任务管理页 + 会话头能列排程；但本插件唯一的「桌面」（账本投影）不含排程，节拍器与 curate **无任何界面** | [ui-schedule/index.ts:168-184](../../../vendor/dsh/packages/client/ui-schedule/src/client/index.ts#L168-L184)、[projection.ts:53-115](../../../packages/dsh-smart-assistant/src/domain/operating/projection.ts#L53-L115)、[operating.md:85-87](../../../docs/operating.md#L85-L87) |
 | 主动性 = 可开关的**任务/模板清单**，用户从清单里挑 | **无**：主动性以散文形式藏在模型用技能与家手册里（`desk-daily-brief`/`morning-brief`/`home-curation`），界面上没有"能开哪些主动服务"的清单；用户建排程只能经对话（vendor 任务页明确没有创建表单） | [package-catalog.md:65-67](../../../docs/package-catalog.md#L65-L67)、[desk-daily-brief/SKILL.md:11-21](../../../packages/dsh-smart-assistant/presets/assistant/skills/desk-daily-brief/SKILL.md#L11-L21)、[ui-schedule/index.ts:174](../../../vendor/dsh/packages/client/ui-schedule/src/client/index.ts#L174) |
-| 每项任务独立 toggle、cadence 可调、互动后顺延（防提醒疲劳） | **无**：只有 create/list/update/delete 与 active/inactive；无暂停、无静默时段、无节奏档、无顺延；删除不撤回已入队消息、崩溃可重复投递 | [tools.ts:169-182](../../../vendor/dsh/packages/schedule/schedule/src/tools.ts#L169-L182)、[storage.ts:36-40](../../../vendor/dsh/packages/schedule/schedule/src/storage.ts#L36-L40)、[schedule/README.md:65](../../../vendor/dsh/packages/schedule/schedule/README.md#L65) |
+| 每项任务独立 toggle、cadence 可调、互动后顺延（防提醒疲劳） | **无**：只有 create/list/update/delete 与 active/inactive；无暂停、无静默时段、无节奏档、无顺延；删除不撤回已入队消息、崩溃可重复投递 | [index.ts:183-205](../../../vendor/dsh/packages/schedule/tool-schedule/src/index.ts#L183-L205)、[storage.ts:36-40](../../../vendor/dsh/packages/schedule/schedule/src/storage.ts#L36-L40)、[schedule/README.md:65](../../../vendor/dsh/packages/schedule/schedule/README.md#L65) |
 | 冷启动即接数据源、连完首屏就有内容（或官方示范内容兜底） | **无数据源连接**（数据边界拍板）；兜底是首开条 + 首会话 intake + 示例边界标注（已有结论：我们"两头都弱，需诚实记账"） | [261005:255-259](../../_archive/settled_issues/261005-open-value-deficit.md#L255-L259)、[client/index.ts:293-303](../../../packages/dsh-smart-assistant/src/client/index.ts#L293-L303)、[home-map.ts:104-110](../../../packages/dsh-smart-assistant/src/domain/home/home-map.ts#L104-L110) |
 | 出厂就带一份"主动价值"（每日简报/晨间唤醒是默认项） | **无默认排程**：本包代码从不自己建排程，第一条排程要由模型在一次回合里按技能建 | [README.md:116-121](../../README.md#L116-L121)（只写"即可建首个…任务"）；本包 `src/` 无 `schedule_create` 调用点 |
 | 决策面（要你拍板的东西）在首屏 | **有**：pending 提案在事项卡上带"等你确认"chip、桌面头部有计数、详情逐条渲染 | [projection-panel.ts:219](../../../packages/dsh-smart-assistant/src/client/projection-panel.ts#L219)、[:373](../../../packages/dsh-smart-assistant/src/client/projection-panel.ts#L373)、[:408-409](../../../packages/dsh-smart-assistant/src/client/projection-panel.ts#L408-L409)、[operating.md:40](../../../docs/operating.md#L40) |
