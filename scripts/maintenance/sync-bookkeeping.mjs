@@ -54,6 +54,27 @@ export function releaseClaim({ typecheckRequested, typecheckPassed }) {
 }
 
 /**
+ * Whether the repo's pinned pnpm matches the one the new pin declares, and what to change if not.
+ *
+ * Why this is here: the vendor packages run their own `bundle` scripts through corepack, which
+ * refuses `run` when `packageManager` disagrees with the workspace it is invoked in. On the
+ * 0.2.1-rc.2 move (2026-10-19) that surfaced as 12 client packages failing to rebuild under
+ * `[ERROR] This project is configured to use 11.28.5 of pnpm. Your current pnpm is v11.7.0`, a
+ * symptom whose cause is nowhere near the code being rebuilt. Aligning the root pin before the
+ * typecheck keeps the failure from being misread as API drift.
+ *
+ * @param {{ root: string | undefined, vendor: string | undefined }} versions - the two
+ *   `packageManager` fields, verbatim (e.g. `pnpm@11.28.5`).
+ * @returns {{ aligned: boolean, target: string | undefined }} `target` is the root value to adopt
+ *   when unaligned; undefined when the vendor side declares nothing to align to.
+ */
+export function pnpmAlignment({ root, vendor }) {
+  if (vendor === undefined || vendor.trim().length === 0) return { aligned: true, target: undefined }
+  if (root === vendor) return { aligned: true, target: vendor }
+  return { aligned: false, target: vendor.trim() }
+}
+
+/**
  * The pinned DSH tag from a vendor/UPSTREAM.md bookkeeping table, or undefined.
  *
  * Single owner of that row's parse: five call sites had grown three handwritten regexes for

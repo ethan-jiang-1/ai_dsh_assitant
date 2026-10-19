@@ -17,13 +17,14 @@
  *   --tag <tag>       required; the release tag to pin
  *   --remote <url>    fetch from this remote instead of the submodule's origin
  *   --no-typecheck    skip the compile-time drift check (only for a deliberately partial run)
+ *   --no-install      skip the dependency install that precedes the typecheck
  */
 
 import { execFileSync } from 'node:child_process'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { applyUpstreamRecord, releaseClaim } from './sync-bookkeeping.mjs'
+import { applyUpstreamRecord, pnpmAlignment, releaseClaim } from './sync-bookkeeping.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const vendorDsh = join(repoRoot, 'vendor', 'dsh')
@@ -36,6 +37,7 @@ function parseArguments(argv) {
     tag: argv.includes('--tag') ? argv[argv.indexOf('--tag') + 1] : undefined,
     remote: argv.includes('--remote') ? argv[argv.indexOf('--remote') + 1] : undefined,
     typecheck: !argv.includes('--no-typecheck'),
+    install: !argv.includes('--no-install'),
   }
 }
 
@@ -57,7 +59,7 @@ const run = (command, args) => execFileSync(command, args, { cwd: repoRoot, stdi
 
 /** Run the pin move: fetch, check out, record the pin, typecheck, then claim compatibility. */
 export function main(argv = process.argv.slice(2)) {
-  const { tag, remote, typecheck } = parseArguments(argv)
+  const { tag, remote, typecheck, install } = parseArguments(argv)
   if (tag === undefined || tag.trim().length === 0) {
     console.error('usage: pnpm sync-dsh -- --tag <dsh-release-tag> [--remote <url>] [--no-typecheck]')
     process.exit(2)
@@ -82,6 +84,38 @@ export function main(argv = process.argv.slice(2)) {
   }
   writeFileSync(upstreamFile, updated, 'utf8')
   console.log('  ok   UPSTREAM.md updated')
+
+  // The vendor tree runs its own `bundle` scripts through corepack, which refuses to run under a
+  // packageManager that disagrees with the pin. Align first: otherwise every later rebuild fails
+  // with a version complaint that reads nothing like its cause (2026-10-19, the 0.2.1-rc.2 move).
+  console.log('\n▸ aligning the pnpm pin with the vendor tree')
+  const rootManifest = JSON.parse(readFileSync(join(repoRoot, 'package.json'), 'utf8'))
+  const vendorManifest = JSON.parse(readFileSync(join(vendorDsh, 'package.json'), 'utf8'))
+  const pnpm = pnpmAlignment({ root: rootManifest.packageManager, vendor: vendorManifest.packageManager })
+  if (pnpm.aligned) {
+    console.log(`  ok   pnpm ${rootManifest.packageManager ?? '(undeclared)'} matches the new pin`)
+  } else if (pnpm.target !== undefined) {
+    rootManifest.packageManager = pnpm.target
+    writeFileSync(join(repoRoot, 'package.json'), `${JSON.stringify(rootManifest, null, 2)}\n`, 'utf8')
+    console.log(`  ok   package.json packageManager ${pnpm.target}`)
+    console.log('       run `corepack install` before any rebuild, or corepack keeps serving the old pnpm')
+  }
+
+  // New dependencies must exist before the typecheck: a fresh pin adds packages (0.2.1-rc.2 added
+  // ipaddr.js, p-limit, semver, minisearch), and without them tsc reports phantom "Cannot find
+  // module" errors in vendor sources that look exactly like API drift.
+  if (install) {
+    console.log('\n▸ installing dependencies for the new pin')
+    try {
+      run('pnpm', ['install', '--ignore-scripts'])
+      run('pnpm', ['--dir', vendorDsh, 'install', '--config.verify-deps-before-run=false', '--ignore-scripts'])
+      console.log('  ok   dependencies installed')
+    } catch {
+      console.error('\n  FAIL install failed. Fix it before typechecking: without the new packages')
+      console.error('       tsc reports missing modules in vendor sources, not real API drift.')
+      process.exit(1)
+    }
+  }
 
   if (typecheck) {
     console.log('\n▸ typechecking against the new pin')

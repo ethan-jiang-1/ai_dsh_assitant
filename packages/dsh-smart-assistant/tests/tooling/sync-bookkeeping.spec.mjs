@@ -9,7 +9,7 @@
  * Plain .mjs on purpose: vitest runs it, `tsc -p tsconfig.test.json` does not type-check it.
  */
 import { describe, expect, it } from 'vitest'
-import { applyUpstreamRecord, pinnedTagFrom, releaseClaim } from '../../../../scripts/maintenance/sync-bookkeeping.mjs'
+import { applyUpstreamRecord, pinnedTagFrom, pnpmAlignment, releaseClaim } from '../../../../scripts/maintenance/sync-bookkeeping.mjs'
 
 const UPSTREAM = [
   '# vendor/dsh 的簿记（钉住的 DSH 源码）',
@@ -87,5 +87,23 @@ describe('fetchArguments', () => {
     const { fetchArguments } = await import('../../../../scripts/maintenance/sync-dsh.mjs')
     expect(fetchArguments('dsh-v0.1.7-rc.2')).toEqual(['fetch', '--depth', '1', '--force', 'origin', 'tag', 'dsh-v0.1.7-rc.2'])
     expect(fetchArguments('dsh-v0.1.7-rc.2', 'https://example.invalid/dsh.git')).toContain('https://example.invalid/dsh.git')
+  })
+})
+
+describe('pnpmAlignment', () => {
+  it('passes when both manifests declare the same pnpm', () => {
+    expect(pnpmAlignment({ root: 'pnpm@11.28.5', vendor: 'pnpm@11.28.5' })).toEqual({ aligned: true, target: 'pnpm@11.28.5' })
+  })
+
+  // prove-it-red: this is the 0.2.1-rc.2 shape — the vendor tree moves to a newer pnpm and every
+  // `pnpm --dir vendor/dsh/packages/<x> run bundle` dies under corepack with a message that names
+  // neither the pin nor the rebuild.
+  it('flags a root pin left behind by the vendor tree and names the value to adopt', () => {
+    expect(pnpmAlignment({ root: 'pnpm@11.7.0', vendor: 'pnpm@11.28.5' })).toEqual({ aligned: false, target: 'pnpm@11.28.5' })
+  })
+
+  it('has nothing to align to when the vendor tree declares no packageManager', () => {
+    expect(pnpmAlignment({ root: 'pnpm@11.7.0', vendor: undefined })).toEqual({ aligned: true, target: undefined })
+    expect(pnpmAlignment({ root: 'pnpm@11.7.0', vendor: '   ' })).toEqual({ aligned: true, target: undefined })
   })
 })

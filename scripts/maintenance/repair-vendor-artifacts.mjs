@@ -24,11 +24,14 @@
  */
 import { execFileSync } from 'node:child_process'
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
-import { join, resolve } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { WorkspaceTypertGenerator } from '../vendor/dsh/packages/typert/generator/src/workspace.ts'
+import { WorkspaceTypertGenerator } from '../../vendor/dsh/packages/typert/generator/src/workspace.ts'
 
-const vendorRoot = resolve(fileURLToPath(import.meta.url), '../../vendor/dsh')
+// fileURLToPath returns a FILE path; resolving it against a relative segment treats the file as a
+// directory (scripts/maintenance/repair-vendor-artifacts.mjs/vendor/dsh). dirname first: the move to
+// scripts/maintenance/ changed this file's depth but not this line.
+const vendorRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../vendor/dsh')
 
 /** Packages whose subpath exports need a tsc build plus a named-export shim (lib/<name>.js). */
 const SUBPATH_PACKAGES = [

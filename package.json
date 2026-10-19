@@ -4,7 +4,7 @@
   "private": true,
   "description": "Dev root for the dsh-smart-assistant plugin: an agent preset whose home (memory, skills, curation) is engineered, not accidental.",
   "type": "module",
-  "packageManager": "pnpm@11.7.0",
+  "packageManager": "pnpm@11.28.5",
   "engines": {
     "node": ">=22"
   },
