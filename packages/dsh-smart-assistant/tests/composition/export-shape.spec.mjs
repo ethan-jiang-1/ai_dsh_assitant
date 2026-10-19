@@ -63,7 +63,7 @@ const presetSubRows = ownRows.filter(row => row.name !== PREFIX)
  * Rows absent from the map still sit at the src root; the package-root row resolves to the
  * thin stable entry `src/index.ts`, which re-exports the same class identity. */
 const SOURCE_LAYER = {
-  'knowledge-approve-remote': 'host/', 'desk-projection': 'host/', 'operating-ledger': 'host/',
+  'knowledge-approve-remote': 'host/', 'desk-projection': 'host/', 'rooms-route': 'host/', 'operating-ledger': 'host/',
   'tool-memory': 'agent/', 'tool-research': 'agent/', 'tool-knowledge': 'agent/', 'tool-operating': 'agent/',
   'memory-digest': 'agent/', 'home-preamble': 'agent/', 'operating-brief': 'agent/', 'learn': 'agent/', 'ov-shield': 'agent/', 'preset-runner': 'dev/',
 }

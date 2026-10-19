@@ -37,8 +37,11 @@ HOST 面（cordis.patch.yml → dsh.bundle.patch）
                             + assistant-desk-projection 行（固定只读投影下载：GET
                               api/assistant/desk-projection，优先活渲染账本 v2 投影——契约 =
                               [operating.md](operating.md) §三）
+                            + assistant-rooms 行（维护面板的固定只读房间投影：GET
+                              api/assistant/rooms，从 assistantMemory 服务取四房间真值；不接收
+                              session/workspace/任意路径——A1a）
                             + assistant-knowledge-approve 行（host 知识批准服务：draft→stable 的机械翻转
-                              client Remote mount 因 codec 不兼容失败，UI 回退模型提示路径；无 config，随包分发）
+                              client Remote mount 因 parameter codec 形状失败，UI 回退模型提示路径；无 config，随包分发）
                             + tool-skill 行（DSH 技能目录与加载器；host 实例使 one-shot 首请求可发现技能目录）
                             + session-query-sqlite 翻开行（`first-search` + 持久索引库，原始会话检索）
                             + time-context 行（当前时间/时区/经过时长随请求注入）

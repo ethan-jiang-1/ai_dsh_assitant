@@ -31,6 +31,14 @@
     - id: assistant-desk-projection
       name: dsh-smart-assistant/desk-projection
 
+    # ── 维护面板的房间只读投影（A1a，2026-10-19）──────────────────────────────────
+    #
+    # 面板读 working folder 四房间真值，不读 session workspace 的 .desk/state.json；
+    # 注入 assistantMemory 服务，route 不接收 session/workspace/任意路径。只读 GET，
+    # 知识正文走 ?kind=knowledge&id=。退役 .desk/state.json 是 A1b（等 Q3），本行先读真值。
+    - id: assistant-rooms
+      name: dsh-smart-assistant/rooms-route
+
     # ── 权威经营账本（desk-operating-entry K3，2026-10-10）────────────────────────
     #
     # 单 Host writer：独立 `assistant-operating` dataDir、writer.lock 跨进程独占（惰性认领——

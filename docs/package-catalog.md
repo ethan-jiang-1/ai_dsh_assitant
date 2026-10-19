@@ -11,12 +11,13 @@
 > 下文路径基准：工具「源码」列为包内相对（= `packages/dsh-smart-assistant/`），其余仓根相对。
 > 语义与改名代价的 owner 是 [`identity.md`](identity.md)；这里只回答"当前声明了什么"。
 
-## 入口与平面（15 个 plugin 子路径 = host 4 + agent 10 + client 1）
+## 入口与平面（16 个 plugin 子路径 = host 5 + agent 10 + client 1）
 
 | 入口 | 平面 | 组合行 id |
 |---|---|---|
 | `.` | HOST | assistant-memory |
 | `./desk-projection` | HOST | assistant-desk-projection |
+| `./rooms-route` | HOST | assistant-rooms |
 | `./operating-ledger` | HOST | assistant-operating-ledger |
 | `./knowledge-approve-remote` | HOST | assistant-knowledge-approve |
 | `./home-preamble` | AGENT | assistant-home-preamble |
@@ -39,6 +40,7 @@
 |---|---|---|---|
 | cordis.patch.yml（host 面） | `assistant-memory` | `dsh-smart-assistant` | 启用 |
 | cordis.patch.yml（host 面） | `assistant-desk-projection` | `dsh-smart-assistant/desk-projection` | 启用 |
+| cordis.patch.yml（host 面） | `assistant-rooms` | `dsh-smart-assistant/rooms-route` | 启用 |
 | cordis.patch.yml（host 面） | `assistant-operating-ledger` | `dsh-smart-assistant/operating-ledger` | 启用 |
 | cordis.patch.yml（host 面） | `assistant-knowledge-approve` | `dsh-smart-assistant/knowledge-approve-remote` | 启用 |
 | cordis.patch.yml（agent 面 = preset 行的 plugins） | `assistant-home-preamble` | `dsh-smart-assistant/home-preamble` | 启用 |

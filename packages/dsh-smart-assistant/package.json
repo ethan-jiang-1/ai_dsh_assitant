@@ -60,6 +60,10 @@
       "types": "./lib/host/desk-projection/index.d.ts",
       "default": "./lib/host/desk-projection/index.js"
     },
+    "./rooms-route": {
+      "types": "./lib/host/rooms-route/index.d.ts",
+      "default": "./lib/host/rooms-route/index.js"
+    },
     "./operating-ledger": {
       "types": "./lib/host/operating-ledger/index.d.ts",
       "default": "./lib/host/operating-ledger/index.js"
