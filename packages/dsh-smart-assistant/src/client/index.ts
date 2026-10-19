@@ -60,7 +60,7 @@ import { createProjectionViewStore } from './projection-view'
 import type { CaptureStatus, DeskPath } from './desk-process'
 import { createDeskArms } from './desk-arms'
 import { createProactiveCatalogSource, type ProactiveCatalogState, type ProactiveRemoteLike } from './proactive-face-source'
-import { forgetAcceptedWatch, PROACTIVE_SUGGESTIONS, rememberAcceptedWatch, type AcceptedWatch, type ProactiveUiState } from './proactive-face'
+import { forgetAcceptedWatch, forgetPendingWatch, PROACTIVE_SUGGESTIONS, rememberPendingWatch, type AcceptedWatch, type PendingWatch, type ProactiveUiState } from './proactive-face'
 import { selectDashboardByDefault } from './default-panel-selection'
 import { en as firstMileEn, zh as firstMileZh } from './locales'
 
@@ -177,23 +177,32 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       ctx.effect(() => source.subscribe(() => { proactiveCatalog.set(source.getSnapshot()) }))
     }
     // 片 2 (261018 proactive):「让它替你盯」UI state — dismissed suggestions and remembered
-    // acceptances. Client-local by adjudication (忽略封口 + Q5 acceptance trace): it remembers
+    // acceptances. Client-local by adjudication (忽略封口 + acceptance trace): it remembers
     // the principal's own clicks and nothing about schedules; localStorage when available.
+    // 261019 片 4: pending watches are keyed by the DELIVERY SESSION, not the model-built title.
     const PROACTIVE_UI_KEY = 'dsha-proactive-ui-v1'
     const readProactiveUi = (): ProactiveUiState => {
       try {
         const raw = typeof localStorage === 'undefined' ? null : localStorage.getItem(PROACTIVE_UI_KEY)
         if (raw === null) return { ignored: [], accepted: [] }
-        const parsed = JSON.parse(raw) as { ignored?: unknown, accepted?: unknown }
+        const parsed = JSON.parse(raw) as { ignored?: unknown, accepted?: unknown, pendingWatches?: unknown, collapsed?: unknown }
         const accepted = Array.isArray(parsed.accepted)
           ? parsed.accepted.filter((item): item is AcceptedWatch =>
               typeof item === 'object' && item !== null && typeof (item as AcceptedWatch).id === 'string' && typeof (item as AcceptedWatch).title === 'string')
           : []
-        // One acceptance per title (261019): an older build could append a second entry for a
-        // retried watch; the stored state is healed on read instead of rendering two rows.
+        const pending = Array.isArray(parsed.pendingWatches)
+          ? parsed.pendingWatches.filter((item): item is PendingWatch =>
+              typeof item === 'object' && item !== null
+              && typeof (item as PendingWatch).id === 'string' && typeof (item as PendingWatch).name === 'string'
+              && typeof (item as PendingWatch).at === 'string' && typeof (item as PendingWatch).sessionId === 'string')
+          : []
+        // One acceptance per title / per pending name (261019): an older build could append a
+        // second entry; the stored state is healed on read instead of rendering two rows.
         return {
           ignored: Array.isArray(parsed.ignored) ? parsed.ignored.filter((id): id is string => typeof id === 'string') : [],
           accepted: [...new Map(accepted.map(item => [item.title, item])).values()],
+          pendingWatches: [...new Map(pending.map(item => [item.name, item])).values()],
+          collapsed: parsed.collapsed === true,
         }
       } catch {
         return { ignored: [], accepted: [] }
@@ -204,45 +213,50 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     }
     const proactiveUi = storeApi?.createSnapshotStore<ProactiveUiState>(readProactiveUi())
     const suggestName = (id: string): string | undefined => PROACTIVE_SUGGESTIONS.find(suggestion => suggestion.id === id)?.name
-    const onSuggestAction = (kind: 'trial' | 'watch', id: string): void => {
-      // The retry path carries the orphaned title itself (Q5's「再试一次」) — and ONLY the
-      // retry path records an acceptance trace: a fresh suggestion's model-built title is
-      // unpredictable, so matching by title would false-alarm (that failure visibility is
-      // 片 4's triggered scope). A retry trace's title is exactly one the catalog lacks.
+    const onSuggestAction = async (kind: 'trial' | 'watch', id: string): Promise<void> => {
+      // A watch acceptance is remembered by its DELIVERY SESSION (261019 片 4): the model builds
+      // the schedule while serving that session, and the catalog reports the receiving session,
+      // so the pending acceptance can be reconciled without guessing a model-built title.
       const isRetry = id.startsWith('retry:')
       const name = suggestName(id) ?? (isRetry ? id.slice('retry:'.length) : undefined)
       if (name === undefined) return
       if (kind === 'trial') {
-        arms.captureFromDesk(
+        void arms.captureFromDesk(
           `先试跑一次「${name}」：现在就按这个口径替我看一遍——真读真判断、不建排程、不写账本，看完用一句话说结论，并说明想停的时候怎么说。`,
           { lane: 'action', label: `先试跑「${name}」` },
         )
         return
       }
-      if (isRetry && proactiveUi !== undefined) {
-        // One acceptance per title: a retry replaces the remembered click instead of appending
-        // a second identical failure row (261019).
-        const next = rememberAcceptedWatch(proactiveUi.getSnapshot(), { id, title: name, at: new Date().toISOString() })
-        proactiveUi.set(next)
-        writeProactiveUi(next)
-      }
-      arms.captureFromDesk(
+      const sessionId = await arms.captureFromDesk(
         `替我盯上「${name}」：按既有技能替我建对应的排程（title 用本人看得懂的话），建完同回合回一句盯守口径，并说明不想收的时候怎么说一声就停。`,
         { lane: 'action', label: isRetry ? `再试一次「${name}」` : `替你盯上「${name}」` },
       )
+      if (sessionId !== undefined && proactiveUi !== undefined) {
+        const next = rememberPendingWatch(proactiveUi.getSnapshot(), { id, name, at: new Date().toISOString(), sessionId })
+        proactiveUi.set(next)
+        writeProactiveUi(next)
+      }
     }
     const onSuggestDismiss = (id: string): void => {
       if (proactiveUi === undefined) return
       const current = proactiveUi.getSnapshot()
-      const next: ProactiveUiState = { ignored: [...current.ignored, id], accepted: current.accepted }
+      const next: ProactiveUiState = { ...current, ignored: [...current.ignored, id] }
       proactiveUi.set(next)
       writeProactiveUi(next)
     }
-    // The Q5 row's 忽略 (261019): forget a failed acceptance by title. Without this the row was
-    // permanent — the only action (retry) appended another acceptance for the same title.
+    // The Q5 row's 忽略 (261019): forget a failed acceptance by title/name. Without this the row
+    // was permanent — the only action (retry) appended another acceptance for the same title.
     const onWatchForget = (title: string): void => {
       if (proactiveUi === undefined) return
-      const next = forgetAcceptedWatch(proactiveUi.getSnapshot(), title)
+      const next = forgetPendingWatch(forgetAcceptedWatch(proactiveUi.getSnapshot(), title), title)
+      proactiveUi.set(next)
+      writeProactiveUi(next)
+    }
+    // The suggestion block's collapse (261019): client-local, default expanded, persisted so a
+    // principal who finds it heavy does not have to collapse it on every visit.
+    const onSuggestCollapse = (collapsed: boolean): void => {
+      if (proactiveUi === undefined) return
+      const next: ProactiveUiState = { ...proactiveUi.getSnapshot(), collapsed }
       proactiveUi.set(next)
       writeProactiveUi(next)
     }
@@ -296,7 +310,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
             ...(proactiveCatalog === undefined ? {} : { catalog: proactiveCatalog }),
             ...(proactiveUi === undefined ? {} : { proactiveUi }),
           }
-          return { hooks, refreshProjection: () => { reader?.refresh() }, onAsk: () => { ctx.layout?.selectPanel(null) }, onEntrust: arms.startIntake, onProcess: arms.processMatter, onClaim: arms.claimFragment, onDiscard: arms.discardFragment, onCapture: arms.captureFromDesk, onOpenSession: (sessionId: string) => { ctx.uiWorkspace?.openSession(sessionId) }, onWake: arms.wakeMatter, onOpenTasks: () => { ctx.layout?.selectPanel('schedules') }, onSuggestAction, onSuggestDismiss, onWatchForget }
+          return { hooks, refreshProjection: () => { reader?.refresh() }, onAsk: () => { ctx.layout?.selectPanel(null) }, onEntrust: arms.startIntake, onProcess: arms.processMatter, onClaim: arms.claimFragment, onDiscard: arms.discardFragment, onCapture: arms.captureFromDesk, onOpenSession: (sessionId: string) => { ctx.uiWorkspace?.openSession(sessionId) }, onWake: arms.wakeMatter, onOpenTasks: () => { ctx.layout?.selectPanel('schedules') }, onSuggestAction, onSuggestDismiss, onWatchForget, onSuggestCollapse }
         },
       }, projection === undefined ? DashboardMainPanel : ProjectionPanel)
       selectDashboardByDefault(ctx)

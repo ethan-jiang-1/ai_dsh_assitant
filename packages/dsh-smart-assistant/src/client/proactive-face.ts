@@ -37,6 +37,8 @@ export interface ProactiveCatalogEntry {
   /** The delivered prompt; duplicates are same-title OR same-prompt at the same instant —
    * the 10-13 incident was two different titles carrying one identical prompt. */
   readonly prompt?: string
+  /** The session receiving this reminder; the pending-watch reconciliation key (261019). */
+  readonly sessionId?: string
   readonly lastDelivery?: { readonly scheduledAt: string, readonly deliveredAt: string }
 }
 
@@ -60,19 +62,39 @@ export interface ProactiveProjectionView {
   readonly unclaimed: readonly unknown[]
 }
 
-/** A locally remembered "替我盯上" acceptance — the Q5 mismatch check's input (片 2). */
+/** A locally remembered "替我盯上" acceptance — the legacy Q5 mismatch check's input (片 2). */
 export interface AcceptedWatch {
   readonly id: string
   readonly title: string
   readonly at: string
 }
 
+/** One watch acceptance waiting for its schedule (261019 片 4). The delivery session is the
+ *  reconciliation key: the model creates the schedule while serving that session, and the
+ *  platform catalog reports the receiving session — no guessing at model-built titles. */
+export interface PendingWatch {
+  readonly id: string
+  /** The human suggestion name, used for the failure row and the retry. */
+  readonly name: string
+  readonly at: string
+  readonly sessionId: string
+}
+
+/** How long an accepted watch may take before "no schedule in that session" is a failure. */
+export const WATCH_GRACE_MS = 2 * 60_000
+
 /** Client-local proactive UI state: dismissed suggestions + remembered acceptances (片 2).
  * Deliberately NOT a second truth about schedules — it only remembers the principal's own
  * clicks; the schedule facts stay in the platform storage. */
 export interface ProactiveUiState {
   readonly ignored: readonly string[]
+  /** Legacy title-matched acceptances (retry rows written before the session-keyed pending
+   *  watches landed); read and forgotten, no longer appended. */
   readonly accepted: readonly AcceptedWatch[]
+  /** Session-keyed acceptances whose schedule has not been observed yet (261019). */
+  readonly pendingWatches?: readonly PendingWatch[]
+  /** The suggestion block's collapsed state (261019; client-local, default expanded). */
+  readonly collapsed?: boolean
 }
 
 /** The three named watch suggestions, in the adjudicated order ②③① (Q3 拍板 2026-10-18). */
@@ -94,8 +116,11 @@ export interface ProactiveFaceInput {
   /** Platform schedule catalog; absent means the subface did not materialize (explicit degrade). */
   readonly catalog?: readonly ProactiveCatalogEntry[]
   /** Locally remembered watch acceptances; each one whose title never appears in the catalog
-   * renders the honest "说了替你盯但没盯上" row (Q5 minimal failure visibility). */
+   * renders the honest "说了替你盯但没盯上" row (legacy Q5 minimal failure visibility). */
   readonly acceptedWatches?: readonly AcceptedWatch[]
+  /** Session-keyed acceptances (261019 片 4): after the grace, no catalog entry receiving that
+   *  session means the watch never landed. */
+  readonly pendingWatches?: readonly PendingWatch[]
   /** Unanswered questions in sessions the capture row does NOT own (261019). The capture row
    *  keeps its own session's pending interaction to avoid a double count; the panel wires these
    *  from the platform's SessionStatus map. */
@@ -199,18 +224,32 @@ export function deriveProactiveFace(input: ProactiveFaceInput): ProactiveRow[] {
     }
   }
 
-  // Q5 (adjudicated minimal failure visibility): a remembered acceptance whose title never
-  // shows up in the catalog says so — one honest row per orphaned acceptance, no attribution.
-  // 261019: one row per TITLE, not per click. Retrying appended another acceptance for the same
-  // title, which stacked identical rows (and collided on their React keys) with no way to clear
-  // them; repeated acceptances of one watch are still one watch.
-  if (catalog !== undefined && input.acceptedWatches !== undefined) {
+  // Q5 (adjudicated minimal failure visibility): an acceptance whose schedule never shows up in
+  // the catalog says so — one honest row per watch, no attribution.
+  // 261019: one row per TITLE, not per click (repeated acceptances of one watch are one watch).
+  // 261019 片 4: normal acceptances are keyed by the DELIVERY SESSION instead of the model-built
+  // title (which is unpredictable). A schedule created while serving that session satisfies the
+  // acceptance; after the grace with no such schedule, the row appears with the human name.
+  if (catalog !== undefined) {
     const knownTitles = new Set(catalog.map(entry => entry.title))
     const reported = new Set<string>()
-    for (const accepted of input.acceptedWatches) {
+    for (const accepted of input.acceptedWatches ?? []) {
       if (knownTitles.has(accepted.title) || reported.has(accepted.title)) continue
       reported.add(accepted.title)
       rows.push({ kind: 'watch-mismatch', title: accepted.title })
+    }
+    // An empty catalog means "no schedules at all" (a failure is honest); a non-empty catalog
+    // with no session ids at all is an older remote — skip rather than false-alarm every watch.
+    const catalogExposesSessions = catalog.length === 0 || catalog.some(entry => typeof entry.sessionId === 'string')
+    if (catalogExposesSessions) {
+      const knownSessions = new Set(catalog.map(entry => entry.sessionId).filter((id): id is string => typeof id === 'string'))
+      for (const pending of input.pendingWatches ?? []) {
+        if (knownSessions.has(pending.sessionId)) continue
+        if (nowMs - Date.parse(pending.at) < WATCH_GRACE_MS) continue
+        if (reported.has(pending.name)) continue
+        reported.add(pending.name)
+        rows.push({ kind: 'watch-mismatch', title: pending.name })
+      }
     }
   }
 
@@ -225,7 +264,7 @@ export function deriveProactiveFace(input: ProactiveFaceInput): ProactiveRow[] {
  * @returns A new state; `ignored` is carried through unchanged.
  */
 export function rememberAcceptedWatch(state: ProactiveUiState, watch: AcceptedWatch): ProactiveUiState {
-  return { ignored: state.ignored, accepted: [...state.accepted.filter(item => item.title !== watch.title), watch] }
+  return { ...state, accepted: [...state.accepted.filter(item => item.title !== watch.title), watch] }
 }
 
 /**
@@ -233,8 +272,29 @@ export function rememberAcceptedWatch(state: ProactiveUiState, watch: AcceptedWa
  * themselves are untouched: only the client's memory of a failed acceptance is forgotten.
  * @param state - The current client-local UI state.
  * @param title - The watch title to forget.
- * @returns A new state without that title; `ignored` is carried through unchanged.
+ * @returns A new state without that title; the rest is carried through unchanged.
  */
 export function forgetAcceptedWatch(state: ProactiveUiState, title: string): ProactiveUiState {
-  return { ignored: state.ignored, accepted: state.accepted.filter(item => item.title !== title) }
+  return { ...state, accepted: state.accepted.filter(item => item.title !== title) }
+}
+
+/**
+ * Remember one session-keyed watch acceptance, replacing any earlier one for the same name
+ * (261019 片 4). The delivery session is the reconciliation key; re-accepting refreshes it.
+ * @param state - The current client-local UI state.
+ * @param watch - The acceptance just recorded, with the delivery session id.
+ * @returns A new state carrying the rest of the fields unchanged.
+ */
+export function rememberPendingWatch(state: ProactiveUiState, watch: PendingWatch): ProactiveUiState {
+  return { ...state, pendingWatches: [...(state.pendingWatches ?? []).filter(item => item.name !== watch.name), watch] }
+}
+
+/**
+ * Forget the pending acceptance(s) for one watch name — the mismatch row's 忽略.
+ * @param state - The current client-local UI state.
+ * @param name - The human suggestion name to forget.
+ * @returns A new state without that pending watch; the rest is carried through unchanged.
+ */
+export function forgetPendingWatch(state: ProactiveUiState, name: string): ProactiveUiState {
+  return { ...state, pendingWatches: (state.pendingWatches ?? []).filter(item => item.name !== name) }
 }

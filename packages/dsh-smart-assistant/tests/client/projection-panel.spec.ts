@@ -26,21 +26,22 @@ function render(value: ProjectionDownload): string {
 type CatalogState = import('../../src/client/proactive-face-source').ProactiveCatalogState
 type UiState = import('../../src/client/proactive-face').ProactiveUiState
 type StatusMap = ReadonlyMap<string, { running?: boolean, pendingInteraction?: { kind?: string } | undefined, completionUnread?: boolean }>
-function renderWithCatalog(value: ProjectionDownload, catalog: CatalogState, ui: UiState = { ignored: [], accepted: [] }, statuses: StatusMap = new Map()): { tree: string, view: ReturnType<ReturnType<typeof createProjectionViewStore>['create']>, openTasks: ReturnType<typeof vi.fn>, openSession: ReturnType<typeof vi.fn>, suggestAction: ReturnType<typeof vi.fn>, suggestDismiss: ReturnType<typeof vi.fn>, watchForget: ReturnType<typeof vi.fn>, node: unknown } {
+function renderWithCatalog(value: ProjectionDownload, catalog: CatalogState, ui: UiState = { ignored: [], accepted: [] }, statuses: StatusMap = new Map()): { tree: string, view: ReturnType<ReturnType<typeof createProjectionViewStore>['create']>, openTasks: ReturnType<typeof vi.fn>, openSession: ReturnType<typeof vi.fn>, suggestAction: ReturnType<typeof vi.fn>, suggestDismiss: ReturnType<typeof vi.fn>, suggestCollapse: ReturnType<typeof vi.fn>, watchForget: ReturnType<typeof vi.fn>, node: unknown } {
   const view = createProjectionViewStore(defineStore).create()
   const openTasks = vi.fn()
   const openSession = vi.fn()
   const suggestAction = vi.fn()
   const suggestDismiss = vi.fn()
   const watchForget = vi.fn()
+  const suggestCollapse = vi.fn()
   const node = ProjectionPanel({
     useProjection: select => select(value), useStore: select => select(view.getSnapshot()),
     useSessionStatus: <S,>(select: (value: StatusMap) => S): S => select(statuses),
     useCatalog: <S,>(select: (state: CatalogState) => S): S => select(catalog),
     useProactiveUi: <S,>(select: (state: UiState) => S): S => select(ui),
-    actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop, onClaim: noop, onDiscard: noop, onCapture: noop, onOpenSession: openSession, onWake: noop, onOpenTasks: openTasks, onSuggestAction: suggestAction, onSuggestDismiss: suggestDismiss, onWatchForget: watchForget,
+    actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop, onClaim: noop, onDiscard: noop, onCapture: noop, onOpenSession: openSession, onWake: noop, onOpenTasks: openTasks, onSuggestAction: suggestAction, onSuggestDismiss: suggestDismiss, onWatchForget: watchForget, onSuggestCollapse: suggestCollapse,
   })
-  return { tree: text(node), view, openTasks, openSession, suggestAction, suggestDismiss, watchForget, node }
+  return { tree: text(node), view, openTasks, openSession, suggestAction, suggestDismiss, suggestCollapse, watchForget, node }
 }
 /** Collect every string attribute value matching a key anywhere in the tree (data-* assertions). */
 function collectAttr(node: unknown, key: string, into: string[] = []): string[] {
@@ -637,6 +638,30 @@ describe('proactive face rows (261018 片 1)', () => {
     expect(watch).toBeDefined()
     watch?.onClick?.()
     expect(suggestAction).toHaveBeenCalledWith('watch', 'due-check')
+  })
+
+  it('the suggestion block sits below the capture row — the input comes first (261019)', () => {
+    const { tree } = renderWithCatalog(download([]), catalog([]))
+    expect(tree.indexOf('交给助手')).toBeLessThan(tree.indexOf('让它替你盯'))
+    expect(tree.indexOf('让它替你盯')).toBeLessThan(tree.indexOf('看板'))
+  })
+
+  it('the suggestion block collapses to one line and expands again (261019)', () => {
+    const expanded = renderWithCatalog(download([]), catalog([]))
+    expect(expanded.tree).toContain('让它替你盯 · 3 条')
+    expect(findButton(expanded.node, '先试跑一次')).toBeDefined()
+    const collapse = findButton(expanded.node, '收起')
+    expect(collapse).toBeDefined()
+    collapse?.onClick?.()
+    expect(expanded.suggestCollapse).toHaveBeenCalledWith(true)
+
+    const collapsed = renderWithCatalog(download([]), catalog([]), { ignored: [], accepted: [], collapsed: true })
+    expect(collapsed.tree).toContain('让它替你盯 · 3 条')
+    expect(findButton(collapsed.node, '先试跑一次')).toBeUndefined()
+    const expand = findButton(collapsed.node, '展开')
+    expect(expand).toBeDefined()
+    expand?.onClick?.()
+    expect(collapsed.suggestCollapse).toHaveBeenCalledWith(false)
   })
 
   it('a dismissed suggestion disappears; all dismissed hides the whole suggest block', () => {

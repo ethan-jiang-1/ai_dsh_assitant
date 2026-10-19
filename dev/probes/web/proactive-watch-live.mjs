@@ -188,6 +188,13 @@ try {
   if (unclaimedAfter !== unclaimedBefore) fail('watch-no-instruction-note', { before: unclaimedBefore, after: unclaimedAfter })
   pass('watch-storage', { count: tasks.length, titles: tasks.map(task => task.record?.title), unclaimed: `${unclaimedBefore}→${unclaimedAfter}` })
 
+  // 261019 片 4 的判据键：pending acceptance 用投递会话对账，所以排程的接收会话必须就是回执的会话。
+  const receiptRaw = await evaluate(`sessionStorage.getItem('dsha-capture-receipt-v1')`)
+  const deliveredSession = receiptRaw === null ? undefined : (JSON.parse(String(receiptRaw))?.sessionId)
+  const sessionMatch = deliveredSession !== undefined && tasks.every(task => task.sessionId === deliveredSession)
+  if (!sessionMatch) fail('watch-session-match', { deliveredSession, taskSessions: tasks.map(task => task.sessionId) })
+  pass('watch-session-match', { deliveredSession })
+
   // 桌面回读：行 3 呈现新排程（"它下次替你看：<title>"）。
   const deskAfter = await pollUntil(evaluate, deskText, { intervalMs: 1000, budget: 60, checkFirst: true, isDone: text => text !== null && text.includes('它下次替你看') })
   if (deskAfter === null) fail('watch-desk-row3', { lastState: String(deskAfter).slice(0, 200) })

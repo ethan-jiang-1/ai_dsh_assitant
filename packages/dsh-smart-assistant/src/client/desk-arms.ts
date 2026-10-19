@@ -88,8 +88,9 @@ export interface DeskArms {
   discardFragment(fragmentId: string): void
   /** 桌面受理位: deliver the principal's own words to the intake conversation without leaving the desk.
    *  The action lane (`先试跑`/`替我盯上`) rides the same delivery channel but carries a human
-   *  label and is allowed to settle without a ledger write (261019). */
-  captureFromDesk(text: string, options?: { lane?: 'capture' | 'action', label?: string }): void
+   *  label and is allowed to settle without a ledger write (261019). Resolves with the delivery
+   *  session once the inbox accepts the line. */
+  captureFromDesk(text: string, options?: { lane?: 'capture' | 'action', label?: string }): Promise<string | undefined>
   /** 唤醒: open the conversation that states what changed about a settled matter. */
   wakeMatter(matterId: string): void
   /**
@@ -295,24 +296,27 @@ export function createDeskArms(deps: DeskArmDeps): DeskArms {
   // room-data-io learned on 2026-09-26 — a fixed delay mis-advises and leaves contradictions).
   // The receipt is a delivery fact only; the words are durable in the conversation, and the
   // ledger stays the only authority on what exists.
-  const captureFromDesk = (text: string, options?: { lane?: 'capture' | 'action', label?: string }): void => {
+  // Returns the session the line was delivered into once the inbox accepts it — the watch lane
+  // uses it as the reconciliation key for its pending acceptance (261019 片 4).
+  const captureFromDesk = (text: string, options?: { lane?: 'capture' | 'action', label?: string }): Promise<string | undefined> => {
     const trimmed = text.trim()
-    if (trimmed === '') return
-    void (async () => {
+    if (trimmed === '') return Promise.resolve(undefined)
+    return (async () => {
       const current = deps.uiSession?.current.value.key
       const sessionId = current !== undefined ? String(current) : await createSessionInDesignatedWorkspace()
-      if (sessionId === undefined) return
+      if (sessionId === undefined) return undefined
       const prompt = (getDeskRemote()?.['session'] as { prompt?: (request: unknown) => Promise<unknown> } | undefined)?.prompt
-      if (prompt === undefined) return
+      if (prompt === undefined) return undefined
       const request = deskCaptureRequest(sessionId, trimmed)
       const result = await prompt(request).catch(() => undefined) as { ok?: boolean } | undefined
-      if (result?.ok === false) return
+      if (result?.ok === false) return undefined
       const revision = deps.projection?.getSnapshot().data?.revision ?? 0
       deps.viewActions()?.setCaptureReceipt?.({
         requestId: request.requestId, sessionId, text: trimmed, observedRevision: revision,
         ...(options?.lane !== undefined ? { lane: options.lane } : {}),
         ...(options?.label !== undefined ? { label: options.label } : {}),
       })
+      return sessionId
     })()
   }
 

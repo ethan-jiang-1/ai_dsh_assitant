@@ -1,6 +1,6 @@
 /** Proactive face pure core (261018 片1): three honest rows from read-only sources, zero model calls. */
 import { describe, expect, it } from 'vitest'
-import { deriveProactiveFace, forgetAcceptedWatch, rememberAcceptedWatch, type ProactiveCatalogEntry, type ProactiveProjectionView } from '../../src/client/proactive-face'
+import { deriveProactiveFace, forgetAcceptedWatch, forgetPendingWatch, rememberAcceptedWatch, rememberPendingWatch, type ProactiveCatalogEntry, type ProactiveProjectionView } from '../../src/client/proactive-face'
 
 const NOW = new Date('2026-10-18T04:00:00.000Z')
 
@@ -287,6 +287,69 @@ describe('proactive face derivation', () => {
     const two = rememberAcceptedWatch(once, { id: 'retry:Y', title: 'Y', at: NOW.toISOString() })
     expect(two.accepted).toHaveLength(2)
     expect(forgetAcceptedWatch(two, 'X').accepted.map(watch => watch.title)).toEqual(['Y'])
+  })
+
+  it('Q5 pending: a watch accepted inside the grace judges nothing — the turn may still be running', () => {
+    const rows = deriveProactiveFace({
+      projection: projection(),
+      catalog: [catalogEntry()],
+      pendingWatches: [{ id: 'weekly-recon', name: '每周一替我对一次账', at: new Date(NOW.getTime() - 60_000).toISOString(), sessionId: 'session-delivered' }],
+      now: NOW,
+    })
+    expect(rows.some(row => row.kind === 'watch-mismatch')).toBe(false)
+  })
+
+  it('Q5 pending: after the grace, no schedule in the delivery session says "没盯上" with the human name', () => {
+    const rows = deriveProactiveFace({
+      projection: projection(),
+      catalog: [catalogEntry()],
+      pendingWatches: [{ id: 'weekly-recon', name: '每周一替我对一次账', at: new Date(NOW.getTime() - 3 * 60_000).toISOString(), sessionId: 'session-delivered' }],
+      now: NOW,
+    })
+    expect(rows).toContainEqual({ kind: 'watch-mismatch', title: '每周一替我对一次账' })
+  })
+
+  it('Q5 pending: a schedule created in the delivery session satisfies the acceptance (no title guessing)', () => {
+    const rows = deriveProactiveFace({
+      projection: projection(),
+      catalog: [catalogEntry({ sessionId: 'session-delivered' })],
+      pendingWatches: [{ id: 'weekly-recon', name: '每周一替我对一次账', at: new Date(NOW.getTime() - 3 * 60_000).toISOString(), sessionId: 'session-delivered' }],
+      now: NOW,
+    })
+    expect(rows.some(row => row.kind === 'watch-mismatch')).toBe(false)
+  })
+
+  it('Q5 pending: a catalog that carries no session ids judges nothing (no false alarm)', () => {
+    const rows = deriveProactiveFace({
+      projection: projection(),
+      catalog: [catalogEntry({ sessionId: undefined })],
+      pendingWatches: [{ id: 'weekly-recon', name: '每周一替我对一次账', at: new Date(NOW.getTime() - 3 * 60_000).toISOString(), sessionId: 'session-delivered' }],
+      now: NOW,
+    })
+    expect(rows.some(row => row.kind === 'watch-mismatch')).toBe(false)
+  })
+
+  it('Q5 pending: a pending watch and a retry acceptance of the same name make ONE row', () => {
+    const rows = deriveProactiveFace({
+      projection: projection(),
+      catalog: [catalogEntry()],
+      acceptedWatches: [{ id: 'retry:每周一替我对一次账', title: '每周一替我对一次账', at: NOW.toISOString() }],
+      pendingWatches: [{ id: 'weekly-recon', name: '每周一替我对一次账', at: new Date(NOW.getTime() - 3 * 60_000).toISOString(), sessionId: 'session-delivered' }],
+      now: NOW,
+    })
+    expect(rows.filter(row => row.kind === 'watch-mismatch')).toHaveLength(1)
+  })
+
+  it('remembers one pending watch per name and forgets it on request, preserving the rest of the state', () => {
+    const empty = { ignored: ['daily-look'], accepted: [] }
+    const once = rememberPendingWatch(empty, { id: 'weekly-recon', name: 'X', at: NOW.toISOString(), sessionId: 's-1' })
+    expect(once.pendingWatches).toHaveLength(1)
+    expect(once.ignored).toEqual(['daily-look'])
+    const twice = rememberPendingWatch(once, { id: 'weekly-recon', name: 'X', at: new Date(NOW.getTime() + 1000).toISOString(), sessionId: 's-2' })
+    expect(twice.pendingWatches).toHaveLength(1)
+    expect(twice.pendingWatches?.[0]?.sessionId).toBe('s-2')
+    expect(forgetPendingWatch(twice, 'X').pendingWatches).toEqual([])
+    expect(forgetPendingWatch(twice, 'X').ignored).toEqual(['daily-look'])
   })
 
   it('empty state: no projection data means no rows at all', () => {

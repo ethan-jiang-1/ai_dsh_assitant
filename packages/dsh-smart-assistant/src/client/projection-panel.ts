@@ -24,6 +24,8 @@ export interface ProjectionPanelProps {
   onSuggestDismiss?(id: string): void
   /** Forget a failed acceptance whose watch never materialized (the Q5 row's 忽略, 261019). */
   onWatchForget?(title: string): void
+  /** Collapse or expand the suggestion block (261019; client-local, persisted by the entry). */
+  onSuggestCollapse?(collapsed: boolean): void
   actions: { selectMatter(id: string): void; selectFragment(id: string): void; showList(): void; rememberListPosition(position: number): void; setFilter(filter: ProjectionView['filter']): void; setMode(mode: ProjectionView['mode']): void; revealMoreActivity(): void; setCaptureDraft(text: string): void; setCaptureReceipt(receipt: DeskCaptureReceipt | null): void }
   refreshProjection(): void
   onAsk(): void
@@ -108,6 +110,8 @@ const STYLES = [
   '.dsha-proactive-actions > .dsha-btn{font-size:12px;padding:2px 8px;}',
   '.dsha-suggest{display:flex;flex-direction:column;gap:6px;border:1px dashed var(--dsw-alias-border-l3);border-radius:10px;padding:8px 12px;background:var(--dsw-alias-bg-base);}',
   '.dsha-suggest-title{font-size:12px;color:var(--dsw-alias-label-tertiary);}',
+  '.dsha-suggest-head{display:flex;align-items:center;gap:8px;}',
+  '.dsha-suggest-toggle{margin-left:auto;font-size:12px;padding:2px 8px;}',
   '.dsha-suggest-item{display:flex;align-items:baseline;gap:8px;}',
   '.dsha-suggest-body{display:flex;flex-direction:column;min-width:0;flex:1;gap:2px;}',
   '.dsha-suggest-name{color:var(--dsw-alias-label-primary);font-size:13px;}',
@@ -301,6 +305,7 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
     ...(data !== undefined ? { projection: data } : {}),
     ...(catalogState.status === 'entries' ? { catalog: catalogState.entries } : {}),
     ...(proactiveUi.accepted.length > 0 ? { acceptedWatches: proactiveUi.accepted } : {}),
+    ...(proactiveUi.pendingWatches !== undefined && proactiveUi.pendingWatches.length > 0 ? { pendingWatches: proactiveUi.pendingWatches } : {}),
     ...(openQuestions > 0 ? { openQuestions } : {}),
     now: new Date(),
   })
@@ -375,16 +380,24 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
   // order, each with two actions through the desk's own delivery lane (a model round the
   // principal explicitly clicked), and an × that seals that suggestion for good (local only).
   // All dismissed → the whole block disappears; the desk keeps today's silhouette.
+  // 261019: the block sits BELOW the capture row (the input comes first) and can be collapsed
+  // to one header line; the choice is client-local and persisted.
+  const suggestCollapsed = proactiveUi.collapsed === true
   const suggestFace = openSuggestions.length === 0 ? null : ce('div', { className: 'dsha-suggest', role: 'region', 'aria-label': '让它替你盯' },
-    ce('div', { className: 'dsha-suggest-title' }, '让它替你盯'),
-    ...openSuggestions.map(suggestion => ce('div', { key: suggestion.id, className: 'dsha-suggest-item' },
+    ce('div', { className: 'dsha-suggest-head' },
+      ce('span', { className: 'dsha-suggest-title' }, `让它替你盯 · ${openSuggestions.length} 条`),
+      ce('button', {
+        className: 'dsha-btn dsha-suggest-toggle', type: 'button', 'aria-expanded': String(!suggestCollapsed),
+        onClick: () => props.onSuggestCollapse?.(!suggestCollapsed),
+      }, suggestCollapsed ? '展开' : '收起')),
+    ...(suggestCollapsed ? [] : openSuggestions.map(suggestion => ce('div', { key: suggestion.id, className: 'dsha-suggest-item' },
       ce('div', { className: 'dsha-suggest-body' },
         ce('span', { className: 'dsha-suggest-name' }, suggestion.name),
         ce('span', { className: 'dsha-suggest-hint' }, suggestion.hint)),
       ce('div', { className: 'dsha-suggest-actions' },
         ce('button', { className: 'dsha-btn', type: 'button', disabled: capturePending, onClick: () => { props.onSuggestAction?.('trial', suggestion.id) } }, '先试跑一次'),
         ce('button', { className: 'dsha-btn dsha-btn-primary', type: 'button', disabled: capturePending, onClick: () => { props.onSuggestAction?.('watch', suggestion.id) } }, '替我盯上'),
-        ce('button', { className: 'dsha-btn dsha-suggest-x', type: 'button', title: '不再提这条', 'aria-label': `忽略：${suggestion.name}`, onClick: () => { props.onSuggestDismiss?.(suggestion.id) } }, '×')))))
+        ce('button', { className: 'dsha-btn dsha-suggest-x', type: 'button', title: '不再提这条', 'aria-label': `忽略：${suggestion.name}`, onClick: () => { props.onSuggestDismiss?.(suggestion.id) } }, '×'))))))
   const message = download.status === 'disconnected' ? '连接已断开，恢复连接后重新读取。'
     : download.status === 'loading' ? '正在读取桌面…'
     : download.status === 'missing' ? '还没有经营事项资料。'
@@ -437,7 +450,6 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
     // structural anchor, not line numbers (the two 261018 cards invalidate each other's anchors).
     // All-empty state renders nothing; each row carries at most one action (noise cap R2).
     proactiveFace,
-    suggestFace,
     // 片 1 (261018): the desk's own capture row. The principal's intent to add something arises
     // WHILE looking at the desk, so the desk has to be able to take it — before this, the only
     // door was 「＋ 交代新事项」, which opens a conversation and takes the reminder surface away.
@@ -485,6 +497,9 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
       ce('p', { className: 'dsha-capture-hint' }, isActionLane
         ? '来自：桌面按钮 · 话已进会话日志'
         : '来自：桌面直接交代 · 话已进会话日志')) : null,
+    // 261019: the offer sits BELOW the input and its in-flight row — the principal's own words
+    // come first; the three named watches are an offer, not the desk's primary surface.
+    suggestFace,
     // The desk's two top-level views as real tabs (principal UX direction, 2026-10-12): the
     // divider line makes the split legible, the active underline sits ON the line, and the
     // glyphs carry the memory — this is not another row of filter pills.
