@@ -113,7 +113,21 @@ for (const state of states) {
     browser = await launchCdpBrowser({ url, evaluateTimeoutMs: 20_000 })
     const deskUp = await pollUntil(browser.evaluate, deskPresent, { checkFirst: true, budget: 40 })
     if (deskUp !== true) throw new Error('desk never mounted')
+    // 261019: dismiss the first-open dialogs before the evidence frame. The preview notice and
+    // the keyless API-key prompt both sit over the due/dup rows (the second appears after the
+    // first is acknowledged); the innerText assertions never depended on them, but the PNGs are
+    // the human-review half and should show the desk.
     await new Promise(resolve => setTimeout(resolve, 2500)) // let the projection + catalog settle
+    for (let round = 0; round < 6; round += 1) {
+      await browser.evaluate(`(() => {
+        const labels = ['继续', '稍后配置'];
+        const button = [...document.querySelectorAll('button')].find(x => labels.includes(x.textContent.trim()));
+        if (button) button.click();
+        return button === undefined ? null : button.textContent.trim();
+      })()`)
+      await new Promise(resolve => setTimeout(resolve, 600))
+    }
+    await new Promise(resolve => setTimeout(resolve, 1000))
     const text = await browser.evaluate(deskText)
     const missing = state.assert.includes.filter(phrase => String(text).includes(phrase) === false)
     const leaking = state.assert.excludes.filter(phrase => String(text).includes(phrase) === true)

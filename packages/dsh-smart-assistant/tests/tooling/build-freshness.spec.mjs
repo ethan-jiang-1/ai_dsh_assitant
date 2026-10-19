@@ -19,6 +19,9 @@ import { describe, expect, it, afterEach } from 'vitest'
 import { packageBuildFreshnessProblems } from '../../../../scripts/checks/gates/build-freshness.mjs'
 import { temp, disposeTempDirs } from './verify-gates-harness.mjs'
 
+/** Build-spawning fixtures exceed the default 5s on a loaded machine; assertions are unchanged. */
+const itBuilding = (name, fn) => it(name, fn, 20_000)
+
 afterEach(disposeTempDirs)
 
 /** The repo's own compiler/bundler binaries — a throwaway fixture has no `node_modules`. */
@@ -66,11 +69,11 @@ const problemsFor = (packageDir, overrides = {}) =>
   packageBuildFreshnessProblems({ packageDir, scratchDir: temp('build-freshness-scratch-'), binDir, label: 'fixture', ...overrides })
 
 describe('packageBuildFreshnessProblems', () => {
-  it('passes a package whose built lib/ matches its sources', () => {
+  itBuilding('passes a package whose built lib/ matches its sources', () => {
     expect(problemsFor(makeBuiltPackage())).toEqual([])
   })
 
-  it('stays green when sources are only touched — the mtime instrument this replaced went red here', () => {
+  itBuilding('stays green when sources are only touched — the mtime instrument this replaced went red here', () => {
     const packageDir = makeBuiltPackage()
     const source = join(packageDir, 'src', 'host.ts')
     // A future mtime, so an mtime-based core could not answer "fresh" by accident.
@@ -79,7 +82,7 @@ describe('packageBuildFreshnessProblems', () => {
     expect(problemsFor(packageDir)).toEqual([])
   })
 
-  it('flags a source edit that was never rebuilt (the preset rows would serve the old source)', () => {
+  itBuilding('flags a source edit that was never rebuilt (the preset rows would serve the old source)', () => {
     const packageDir = makeBuiltPackage()
     const source = join(packageDir, 'src', 'host.ts')
     writeFileSync(source, 'export const version = 2\n', 'utf8')
@@ -89,7 +92,7 @@ describe('packageBuildFreshnessProblems', () => {
     expect(problems[0]).toContain('pnpm build')
   })
 
-  it('goes green again after the rebuild it asked for', () => {
+  itBuilding('goes green again after the rebuild it asked for', () => {
     const packageDir = makeBuiltPackage()
     writeFileSync(join(packageDir, 'src', 'host.ts'), 'export const version = 3\n', 'utf8')
     // Assert the *stale* verdict, not merely a count: a bare length check also accepts the
@@ -99,7 +102,7 @@ describe('packageBuildFreshnessProblems', () => {
     expect(problemsFor(packageDir)).toEqual([])
   })
 
-  it('flags the client bundle a bare `pnpm typecheck` leaves behind (ESM over the classic bundle)', () => {
+  itBuilding('flags the client bundle a bare `pnpm typecheck` leaves behind (ESM over the classic bundle)', () => {
     const packageDir = makeBuiltPackage()
     writeFileSync(join(packageDir, 'lib', 'client', 'index.js'), 'export const brand = "fixture"\n', 'utf8')
     const problems = problemsFor(packageDir)
@@ -108,13 +111,13 @@ describe('packageBuildFreshnessProblems', () => {
     expect(problems[0]).toContain('pnpm build')
   })
 
-  it('passes an unprepared package — no artifact yet is `prepare.sh`/`pnpm build` business, not drift', () => {
+  itBuilding('passes an unprepared package — no artifact yet is `prepare.sh`/`pnpm build` business, not drift', () => {
     const packageDir = makeBuiltPackage()
     rmSync(join(packageDir, 'lib'), { recursive: true })
     expect(problemsFor(packageDir)).toEqual([])
   })
 
-  it('reports UNKNOWN, never green, when the builders cannot be run', () => {
+  itBuilding('reports UNKNOWN, never green, when the builders cannot be run', () => {
     const packageDir = makeBuiltPackage()
     const problems = problemsFor(packageDir, { binDir: join(packageDir, 'node_modules', '.bin') })
     expect(problems.some(problem => problem.includes('UNKNOWN'))).toBe(true)

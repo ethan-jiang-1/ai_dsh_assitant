@@ -241,7 +241,9 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
   const isActionLane = receipt?.lane === 'action'
   // 261019 (BUG-016): questions the capture row does not own still need a desk surface — a
   // reload (or a turn delivered elsewhere) used to leave them invisible. While the capture row
-  // is visible it owns its session's question, so that one is not counted twice.
+  // is visible it owns its session's question, so that one is not counted twice. The set is
+  // deliberately every session in the status map, including ones with no desk relationship:
+  // any pending interaction is the principal's to answer, wherever it was started.
   const captureOwnsSession = receipt !== null && phase !== undefined && phase !== 'resolved' ? receipt.sessionId : undefined
   const pendingQuestionSessions = [...sessionStatuses]
     .filter(([id, status]) => status.pendingInteraction !== undefined && id !== captureOwnsSession)

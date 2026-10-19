@@ -26,7 +26,7 @@
 - **行永远有「关闭」**（`setCaptureReceipt(null)`）；只有 `running`/`queued` 禁用桌面输入。
 - **动作车道带 `lane: 'action'` 与人类 `label`**：「先试跑「…」/ 替你盯上「…」」回显按钮动作，不再把内部指令原文（"真读真判断、不建排程、不写账本…"）当成本人的话；来源行也说"桌面按钮"。
 - **Q5 失配行按 title 一条**：`deriveProactiveFace` 去重；`rememberAcceptedWatch` 一次 title 一条（重试替换而不是追加）；`forgetAcceptedWatch` + 面板「忽略」把它从本地记忆里去掉；读取 localStorage 时顺手 heal 旧重复。
-- **回执落 `sessionStorage`**（per tab，读取时重新校验形状）；`openQuestions` 从 `SessionStatus` 的 `pendingInteraction` 接线，capture 自己的会话在在途条可见时不计入；行 2 有挂起问题时动作变「去答问题」，直接打开那个会话（BUG-016）。
+- **回执落 `sessionStorage`**（per tab，读取时重新校验形状）；`openQuestions` 从 `SessionStatus` 的 `pendingInteraction` 接线（状态表里的任意会话，不限于桌面发起的），capture 自己的会话在在途条可见时不计入；行 2 有挂起问题时动作变「去答问题」，直接打开那个会话（BUG-016）。
 
 ## 输掉的方案
 
