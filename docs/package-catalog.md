@@ -64,9 +64,9 @@
 | `assistant_reflect` | `brief` `save_skill` `retire_skill` `save_page` `promote_page` `deprecate_page` `propose_skill` `land_skill` | src/agent/learn/index.ts |
 | `assistant_research` | `open` `update` `park` `drop` `promote` `list` | src/agent/tool-research/index.ts |
 
-## 策展技能（模型用，16 个）
+## 策展技能（模型用，15 个）
 
-`action-plan`、`decision-routing`、`desk-daily-brief`、`desk-refresh`、`finance-compliance`、`first-conversation`、`home-curation`、`knowledge-craft`、`management-breakdown`、`market-sizing`、`memory-hygiene`、`morning-brief`、`project-economics`、`research-backlog`、`self-reflection`、`session-recall`
+`action-plan`、`decision-routing`、`desk-daily-brief`、`finance-compliance`、`first-conversation`、`home-curation`、`knowledge-craft`、`management-breakdown`、`market-sizing`、`memory-hygiene`、`morning-brief`、`project-economics`、`research-backlog`、`self-reflection`、`session-recall`
 
 > 开发用 Skill（若有）在 `.agents/skills/`，不进 preset——两类同名概念的分工见根 `AGENTS.md`。
 

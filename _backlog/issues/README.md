@@ -6,7 +6,7 @@
 
 | 卡 | 要解决什么 | 当前环节与未完成项 |
 |---|---|---|
-| [261019-self-update-lanes.md](261019-self-update-lanes.md) | **A 卡（P0 总卡）**：A1a 读真值 / A2 直写生效 / A3 收据 / A1b 退役拷贝 | 推敲中：**A1a/A2/A3 已交付**；A1b 下一片；B/C 按计划推进（Q3/B 默认已采用）；依据档 [self-update/261019-self-update-lanes](../research/self-update/261019-self-update-lanes.md) §九已更正 |
+| [261019-self-update-lanes.md](261019-self-update-lanes.md) | **A 卡（P0 总卡）**：A1a 读真值 / A2 直写生效 / A3 收据 / A1b 退役拷贝 | 推敲中：**A1a/A2/A3 已交付**；**A1b 进行中**（模型面/客户端/preflight/场景已落地，指标/eval/真机待收）；B/C 按计划推进（Q3/B 默认已采用）；依据档 [self-update/261019-self-update-lanes](../research/self-update/261019-self-update-lanes.md) §九已更正 |
 | [261019-viki-content-governance.md](261019-viki-content-governance.md) | **B 卡（P1）**：Viki peer 树可枚举/可读/逐条删（带备份）/人工冲突并排；自带 `assistantViki` 路由；越界清理 | 等人拍板：整批清除还是先 dry-run 清单；真数据不在本机 → 脚本 + 本人执行回执（验收第 7 行） |
 | [261019-learned-skills-surface.md](261019-learned-skills-surface.md) | **C 卡（P2/P3）**：learned 技能逐件可见与退役（复用 A2 直写）；assistant 消息"记下来" | C1 的 A2 直写证据已就绪，proposed 卡待立；C2 按计划默认（v1 assistant 消息） |
 

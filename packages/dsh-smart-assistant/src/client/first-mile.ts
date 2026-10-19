@@ -183,7 +183,7 @@ export function FirstMileDock({ session, openDesk, processingMatter, t }: FirstM
  *
  * Data rides the walk view (the primary slice), not the dock session's own slice: on the
  * first screen the session is brand new and has no desk yet, while the drafts live in the
- * workspace the last desk-refresh served. In the shipped composition every session shares
+ * workspace the last room-data rewrite served. In the shipped composition every session shares
  * the one default workspace, so the click-through's own read finds the same file; a session
  * on a different workspace lands on the knowledge room's honest empty state instead of a
  * foreign desk (tabBody withholds other sessions' data by design — this banner does not

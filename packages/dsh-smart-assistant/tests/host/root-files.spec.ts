@@ -56,18 +56,11 @@ describe('manualSnapshot (guidance)', () => {
     const manual = service.manualSnapshot()
     expect(manual).toContain('# Your working folder — operating manual')
     expect(manual).toContain(`home-manual v${String(HOME_MANUAL_VERSION)}`)
-    // R13: the manual carries the room-data file's minimum contract, so a refresh that never
-    // loaded the `desk-refresh` skill still writes a shaped file (live reading: 13 of 23 panel
-    // actions skipped the skill while still writing the file). Pinned here because the manual is
-    // the surface that always rides in the prompt — dropping this section silently re-opens "a
-    // shapeless file leaves the rooms looking empty", and only a package-level assertion catches
-    // it before a principal does. The retirement (2026-10-11) renamed the section: the manual used
-    // to call this file "The desk file … your principal's sidebar panel renders this file", which
-    // contradicted the desk-refresh skill rewritten in the same decision.
-    expect(manual).toContain('### Room data (`.desk/state.json`)')
-    expect(manual).toContain('It is not the desk')
-    expect(manual).toContain('generatedAt')
-    expect(manual).toContain('desk-refresh')
+    // A1b: the per-session room-data copy and its skill are retired; the manual still teaches the
+    // four rooms and the ledger, and must not resurrect either retired surface.
+    expect(manual).toContain('| Room | Holds | Lifecycle |')
+    expect(manual).not.toContain('.desk/state.json')
+    expect(manual).not.toContain('desk-refresh')
     expect(manual).not.toContain('The desk file')
   })
 

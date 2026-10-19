@@ -1,11 +1,11 @@
 /**
  * The room data's I/O: fetching the host `assistant-rooms` route (working-folder truth),
  * sending the principal's panel actions into the conversation, and the pollers/retry budgets
- * around both. A1a: the panel no longer reads `.desk/state.json`; the copy and the
- * `desk-refresh` path behind the prompt actions are retired in A1b.
+ * around both. The panel reads the host route; the old per-session copy and the old rewrite
+ * path behind the prompt actions are retired.
  *
  * Terminology (renamed 2026-10-14): this file serves the ROOM DATA. A1a moved its source from
- * the model-written `.desk/state.json` copy to the host rooms route; the desktop surface itself
+ * the old per-session copy to the host rooms route; the desktop surface itself
  * remains the operating-ledger projection (`projection-panel.ts`). The desktop surface itself is the operating-ledger
  * projection (`projection-panel.ts`); the desk's conversation arms (process/intake/claim/
  * wake) live in `desk-process.ts`.
@@ -21,7 +21,7 @@
 import type { ClientContext, RoomKind } from './contracts'
 import {
   carryRowStateTo, deskGeneratedAtMs, deskSlice, expirePending, getDeskStore, looksLikeDesk,
-  patchDesk, patchSlice, retireStaleReceipt, settlePending, sliceSeq,
+  patchDesk, patchSlice, settlePending, sliceSeq,
 } from './room-data-core'
 import type { DeskData, DeskSlice } from './room-data-core'
 
@@ -73,7 +73,7 @@ type RoomsRead = { readonly ok: true, readonly data: DeskData } | { readonly ok:
 
 /**
  * Read the host rooms route: the authoritative working-folder projection. The route returns all
- * four rooms from `assistantMemory`; this client never reads `.desk/state.json` and never passes a
+ * four rooms from `assistantMemory`; this client never reads a per-session copy and never passes a
  * session or a path. A non-2xx response is a readable failure, not a silently empty room.
  */
 async function readRooms(): Promise<RoomsRead> {
@@ -126,10 +126,9 @@ export async function loadKnowledgeBody(id: string): Promise<{ readonly ok: true
   }
 }
 
-/** One accepted rooms projection settles the pending row and retires a moved-past receipt. */
+/** One accepted rooms projection settles the pending prompt action. */
 function settleLoadedDesk(parsed: DeskData, sessionId: string): void {
   settlePending(parsed.generatedAt, sessionId)
-  retireStaleReceipt(parsed, sessionId)
 }
 
 /** One controlled write's outcome: the route's success payload or a readable failure. */
@@ -348,7 +347,7 @@ export function sendPrompt(text: string, action: string, rowId: string, sessionI
     const generated = deskGeneratedAtMs(deskSlice(target).data)
     if (generated !== undefined && generated !== lastGenerated) {
       // The desk moved since the last look — the assistant is visibly working the queue.
-      // Progress resets the budget: approval turns (promote + desk-refresh) run 60–90s each
+      // Progress resets the budget: approval turns used to run 60–90s each
       // and queue behind each other, so the fixed 150s budget expired mid-queue and pushed
       // manual refreshes onto the principal (CEO first-reading friction #1, 2026-10-04).
       tries = 0

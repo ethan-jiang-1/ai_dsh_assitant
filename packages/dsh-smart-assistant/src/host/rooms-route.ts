@@ -7,8 +7,8 @@
  * owned by the shared Connection carrier (`/api/assistant/rooms`, owner-only).
  *
  * Why it exists (A1a, 2026-10-19): the panel used to render the model-written
- * `.desk/state.json` copy in a Session workspace, so every room change waited for a
- * `desk-refresh` rewrite and the knowledge body was a 200-char excerpt. The host service already
+ * per-session room-data copy in a Session workspace, so every room change waited for an old
+ * rewrite pass and the knowledge body was a 200-char excerpt. The host service already
  * owns the rooms; this route exposes them without a second file parser.
  *
  * @module

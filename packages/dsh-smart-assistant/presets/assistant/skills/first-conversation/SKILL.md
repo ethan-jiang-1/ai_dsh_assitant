@@ -18,8 +18,7 @@ onto the desk: route by what the thing is. The arc below is only for a bare hell
 
 ## When to open (and when not to)
 
-Open when the **memory room** has no active records — check the room itself, not any leftover
-`.desk/state.json` (that file is residue, not history). Once any memory record exists, this skill
+Open when the **memory room** has no active records — check the room itself. Once any memory record exists, this skill
 does not apply — the folder has history. Stop and follow their lead the moment they clearly want
 to drive; the opening offer, once, is enough.
 

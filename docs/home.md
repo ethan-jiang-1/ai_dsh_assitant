@@ -195,11 +195,10 @@ bundles, M snapshots`，退役与快照都不删除、技能归档只增不减�
   stub，`assistant:soul`）；缺/空/坏 → **回退内置默认**（回退是替换不是叠加）。改人格 = 编辑
   这个文件，不用动插件源码。
 - **`AGENTS.md`（手册）**：working folder 怎么用——四房间、两档出口、退役、curate、盘上布局、首会话开场
-  （first conversation）、协作边界等节（非穷举，正文以 `renderHomeManual` 为准），以及
-  **房间数据（`.desk/state.json` 拷贝）的最小契约**（`generatedAt` + 房间分区；记忆/知识两间面板读
-  host `assistant-rooms` 的 working-folder 真值，不读这份拷贝；拷贝由模型在 session workspace 写、
-  A1b 退役；业务事项不走这个文件——它们住权威账本，合同见 [`operating.md`](operating.md) §二/§三）——手册正文由
-  `src/domain/home/home-map.ts` 的 `renderHomeManual` 渲染、运行时随家手册落盘，字段级契约的家（退役前）是 `desk-refresh` 技能.
+  （first conversation）、协作边界等节（非穷举，正文以 `renderHomeManual` 为准）。记忆/知识两间面板
+  读 host `assistant-rooms` 的 working-folder 真值；旧的 per-session 房间数据拷贝与其重写技能已在
+  A1b 退役，业务事项住权威账本（合同见 [`operating.md`](operating.md) §二/§三）。手册正文由
+  `src/domain/home/home-map.ts` 的 `renderHomeManual` 渲染、运行时随家手册落盘.
   scaffold 缺则种（首行 `<!-- home-manual vN -->` 版本标记），永不覆盖；手册段
   （`assistant:home-manual`）逐字进 system prompt；缺则**现场渲染当前版**（缺文件永不落后）。
   版本标记旧于当前由 curate 报 info（见 §四「手册漂移」）。

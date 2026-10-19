@@ -14,25 +14,12 @@
  * What it does NOT prove: that the client tree executes and renders — that is still the
  * browser session's job.
  *
- * Usage: node dev/probes/web/webui-preflight.mjs 'http://127.0.0.1:<port>/?token=<token>' [--dsh-home <dir>]
- *        --dsh-home: the home the TARGET SERVICE runs on (the desk-readiness check scans its
- *        session workspaces). Defaults to the runner's own DSH_HOME / harness home — pass it
- *        explicitly whenever the service runs anywhere else, or the check greens on the wrong
- *        home's desk (2026-10-05 handover: it reported the repo root's leftover .desk while the
- *        user's desk lived in the trial home).
+ * Usage: node dev/probes/web/webui-preflight.mjs 'http://127.0.0.1:<port>/?token=<token>'
  */
-import { existsSync, readFileSync, readdirSync } from 'node:fs'
-import { join } from 'node:path'
-import { devHome } from '../../env/home.mjs'
-
 const positional = process.argv.slice(2)
 const given = positional.find(argument => !argument.startsWith('--'))
-const dshHomeFlag = (() => {
-  const index = positional.indexOf('--dsh-home')
-  return index >= 0 && index + 1 < positional.length ? positional[index + 1] : undefined
-})()
 if (given === undefined) {
-  console.error('usage: node dev/probes/web/webui-preflight.mjs <url-with-token> [--dsh-home <dir>]')
+  console.error('usage: node dev/probes/web/webui-preflight.mjs <url-with-token>')
   process.exit(1)
 }
 
@@ -197,53 +184,28 @@ if (bootStart < 0) {
   }
 }
 
-// ⑥ Review readiness: the panel renders content from a desk file inside a session workspace, so
-// a green boot with no desk file still hands the human an empty page. Fail (not warn) when no
-// recent session workspace has one — "hand over a URL where nothing is visible" is the failure
-// this whole script exists to prevent (user, 2026-09-25).
-// Workspace paths come from the home's workspace registry (storages/workspace.json), the
-// authoritative canonical paths. The sessions/ directory names are a LOSSY encoding — a
-// literal dash in a workspace path is indistinguishable from an encoded slash — so decoding
-// them misses desks in dash-containing workspaces (2026-10-05: the trial home's desk sits in
-// …/deepseek-harness/default-workspace, whose decoded name pointed at a nonexistent path).
-// The desk check scans the home the SERVICE runs on — an explicit --dsh-home wins, then
-// ASSISTANT_DSH_HOME (the launcher's sanctioned outlet: every legit non-default home arrives
-// through it and lands in the child env with the same value). Ambient DSH_HOME is deliberately
-// not read — that inheritance is the wrong-home trap the dev-tree structure gate forbids. The
-// scanned home is printed in the verdict so a wrong-home pass is visible instead of silently
-// green.
-const home = devHome(dshHomeFlag)
-const registryPath = join(home, 'storages', 'workspace.json')
-let deskFound = ''
+// ⑥ Review readiness: the room panels read the host rooms route; a green boot with an unreachable
+// route still hands an empty/error page. The route is owner-only, so call it with the browser
+// cookie earned above. An honest empty home is still a valid projection (schemaVersion+generatedAt).
+let roomsFound = ''
 try {
-  const registry = JSON.parse(readFileSync(registryPath, 'utf8'))
-  const workspaces = Object.values(registry?.tables?.workspaces ?? {})
-  if (workspaces.length === 0) fail(`the workspace registry at ${registryPath} registers no workspaces`)
-  for (const workspace of workspaces) {
-    const workspacePath = String(workspace?.path ?? '')
-    if (workspacePath === '') continue
-    const candidate = join(workspacePath, '.desk', 'state.json')
-    if (!existsSync(candidate)) continue
-    // Content, not just presence: an old file without the sections renders an empty panel too.
-    try {
-      const parsed = JSON.parse(readFileSync(candidate, 'utf8'))
-      const sections = ['counts', 'decisions', 'actions', 'gaps', 'threads', 'memories', 'knowledge', 'skills', 'recentActivity'].filter(key => parsed[key] !== undefined)
-      deskFound = `${candidate} (sections: ${sections.join(', ')})`
-      break
-    } catch (error) {
-      fail(`desk file at ${candidate} is not valid JSON: ${String(error)}`)
-      break
+  const response = await fetch(new URL('api/assistant/rooms', base), {
+    headers: cookies.length > 0 ? { cookie: cookies } : {},
+  })
+  if (!response.ok) {
+    fail(`/api/assistant/rooms returned ${String(response.status)} — the room panels would render an error`)
+  } else {
+    const body = await response.json()
+    if (body?.schemaVersion !== 1 || typeof body.generatedAt !== 'string') {
+      fail('/api/assistant/rooms did not return the rooms projection (schemaVersion+generatedAt)')
+    } else {
+      roomsFound = `schemaVersion ${String(body.schemaVersion)}, generatedAt ${String(body.generatedAt)}`
     }
   }
 } catch (error) {
-  fail(`cannot read the workspace registry at ${registryPath}: ${String(error)}`)
+  fail(`cannot read /api/assistant/rooms: ${String(error)}`)
 }
-if (deskFound === '') {
-  fail(`no .desk/state.json in any registered workspace under ${home} — the desk/knowledge/memory panels will render empty; `
-    + 'ask the assistant to refresh the desk (the desk-refresh skill) before handing this URL over')
-} else {
-  ok(`desk file present (scanned home: ${home}): ${deskFound}`)
-}
+if (roomsFound !== '') ok(`rooms route reachable: ${roomsFound}`)
 
 if (failures > 0) {
   console.error(`\npreflight: ${failures} failure(s) — do NOT open this URL in a browser yet`)

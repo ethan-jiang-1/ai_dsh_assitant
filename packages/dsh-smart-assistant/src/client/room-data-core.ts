@@ -2,7 +2,7 @@
  * The room-data store: the shared state the three rooms, the tab bodies and the docks read.
  *
  * Terminology (renamed 2026-10-14, the manual's own words): the ROOM DATA is the four rooms,
- * not the desk. A1a changed its source from the model-written `.desk/state.json` copy to the
+ * not the desk. The panel's source moved from the old per-session copy to the
  * host `assistant-rooms` route (working-folder truth); the desktop the principal sees is the
  * operating-ledger projection panel (`projection-panel.ts`), and this module plus `room-data-io.ts`
  * serve the room tabs.
@@ -30,41 +30,10 @@ export interface DeskData {
   /** Research rows the route projects (A3 receipt + future research tab). */
   research?: { id?: string, title?: string, why?: string, lean?: string, status?: string, updated?: string }[]
   counts?: { memories?: number, knowledgeStable?: number, knowledgeDraft?: number, skills?: number, threads?: number }
-  threads?: { id?: string, status?: string, title?: string, why?: string, lean?: string }[]
-  decisions?: {
-    id?: string, question?: string, context?: string,
-    /** The choices the assistant presented (written back after "看选项"); rendered as one-click answers. */
-    options?: { label?: string, cost?: string, irreversible?: boolean }[] | undefined
-    /** The assistant's latest word on this row, rendered as its own line. */
-    reply?: string | undefined
-    /**
-     * `"business"` = only the principal can call it and calling it changes what happens outside;
-     * anything else (including a missing field) is the assistant's own upkeep and cannot lead on
-     * `kind` alone — but R4 gives the lead slot to an options-bearing decision when no business
-     * one is waiting. Contract rule: at most one decision leads.
-     */
-    kind?: string,
-    /** Optional ordering among business decisions; lower first. */
-    rank?: number,
-  }[]
-  gaps?: { id?: string, what?: string, why?: string }[]
-  actions?: {
-    id?: string, what?: string, owner?: string, due?: string,
-    metric?: string, stop?: string, status?: string,
-    /** The assistant's outcome/seal record for this action (real files already carry it). */
-    note?: string | undefined
-  }[]
-  recentActivity?: { at?: string, what?: string }[]
   memories?: { id?: string, kind?: string, text?: string, updated?: string, source?: string }[]
   knowledge?: { id?: string, title?: string, status?: string, type?: string, updated?: string, sources?: string[], excerpt?: string }[]
   skills?: { name?: string, description?: string, kind?: string }[]
 }
-
-/**
- * One desk decision as the file carries it.
- * @see DeskData.decisions for the `kind` rule that keeps upkeep off the lead card.
- */
-export type DeskDecision = NonNullable<DeskData['decisions']>[number]
 
 /**
  * Per-session desk state (R11, graduated 2026-09-29): the row-scoped facts — data, pending,
@@ -275,46 +244,12 @@ export function expirePending(sessionId?: string): void {
     // was gone by the time the release was captured), and silence would read as "done".
     stalled: pending === undefined ? undefined : { ...pending },
   })
-  patchDesk({ note: '它还没重写房间数据——点「刷新房间数据」再试一次（动作已发出，不会被撤销）' })
+  patchDesk({ note: '它还没写进房间数据——点「重读房间数据」再试一次（动作已发出，不会被撤销）' })
 }
 
-/**
- * A receipt claims "the principal answered this row". When a load comes back still carrying that row
- * unanswered, the claim is stale — the assistant re-opened it, or the answer never landed — and the
- * row was stuck read-only until a reload (R11, narrow review 2026-09-27). Retiring it lets the
- * principal answer again. Scoped to decisions, where the false 已回答 was observed.
- * @param data - the file just parsed, if any.
- */
-export function retireStaleReceipt(data: DeskData | undefined, sessionId?: string): void {
-  const slice = deskSlice(sessionId)
-  const receipt = slice.lastReceipt
-  if (receipt === undefined || data === undefined) return
-  const stillOpen = (data.decisions ?? [])
-    .some(item => String(item.id ?? item.question) === receipt.rowId)
-  if (stillOpen) patchSlice(slice, { lastReceipt: undefined })
-}
-
-/**
- * Does this JSON look like a desk file at all?
- *
- * Why (2026-09-27, from the friction report on real sessions): panel messages name the
- * `desk-refresh` skill, the model rewrites the file, but in 5 of 7 real panel actions it never
- * LOADED the skill — it improvised from memory. A file that parses but carries none of the
- * contract's shape then renders as a legitimately empty desk: every section shows its honest
- * "（没有…）" empty text and the principal reads "nothing is happening" while the assistant thinks
- * it just refreshed him. That is the "a stale or invented list is worse than none" case the skill
- * itself warns about, so the panel says what it can actually see.
- * @param parsed - the JSON just parsed.
- * @returns true when the file carries the contract's mandatory `generatedAt` or a known section.
- */
+/** Whether this payload carries the rooms route's mandatory generation stamp. */
 export function looksLikeDesk(parsed: DeskData): boolean {
-  if (typeof parsed.generatedAt === 'string' && parsed.generatedAt.trim() !== '') return true
-  // The nine the contract owns (`desk-refresh/SKILL.md` §Shape): counts, decisions, actions, gaps,
-  // threads, recentActivity, memories, knowledge, skills.
-  const sections = [parsed.decisions, parsed.actions, parsed.gaps, parsed.threads, parsed.recentActivity,
-    parsed.memories, parsed.knowledge, parsed.skills]
-  if (sections.some(section => Array.isArray(section) && section.length > 0)) return true
-  return parsed.counts !== undefined && typeof parsed.counts === 'object' && parsed.counts !== null
+  return typeof parsed.generatedAt === 'string' && parsed.generatedAt.trim() !== ''
 }
 
 /** A finished load settles the pending action: the file moving past `at` is the completion

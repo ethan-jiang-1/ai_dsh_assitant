@@ -42,8 +42,7 @@ A plan that lives only in this reply is gone the moment the session ends, and th
 3. Anything in the plan the principal has to act on becomes a **matter in the ledger**
    (`assistant_operating` `entrust`, provenance quoted from the principal), because the ledger is the
    only surface the desk renders; a dated one gets its reminder in the same turn per the
-   `morning-brief` skill. Never write these into `.desk/state.json` — that file carries room data
-   only (see the `desk-refresh` skill).
+   `morning-brief` skill. Room data is never a place for matters; the ledger is the desk's only source.
 
 If the plan changes later, write the page again under the same title and say what changed — a plan
 tracker that drifts silently is worse than no tracker.

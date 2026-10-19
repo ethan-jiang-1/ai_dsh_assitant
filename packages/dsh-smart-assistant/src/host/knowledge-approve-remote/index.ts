@@ -3,7 +3,7 @@
  *
  * Why this exists (first-open-UX friction #1, 2026-10-04): approving a draft used to be a
  * conversation round trip — the panel sent a prompt, the model ran 60-90s (promote +
- * desk-refresh), and the principal waited on what is mechanically a status flip. The approval
+ * the old room-data rewrite), and the principal waited on what is mechanically a status flip. The approval
  * itself IS the human decision; the flip needs no model intelligence. This service exposes the
  * flip over the Typert Remote so the client can call it directly.
  *

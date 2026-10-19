@@ -1,7 +1,7 @@
 # 场景契约的机器可读面；完整判据、命令与台账在同目录 README.md（同 diff 维护）。
 version: 1
 scenario: first-open-draft-banner
-profile: dev            # 起在隔离 home（ASSISTANT_DSH_HOME 指向一次性 home）；boot 前 seed.mjs patch 预置 workspace-controller 行，boot 后 seed.mjs desk 种桌面文件
+profile: dev            # 起在隔离 home（ASSISTANT_DSH_HOME 指向一次性 home）；boot 前 seed.mjs patch 预置 workspace-controller 行，boot 前/后 seed.mjs rooms 种 working-folder 知识页
 recording: live         # shots 经 CDP 真渲染拍摄；PNG 人工审阅，DOM 证据进比对
 comparison: dom-evidence
 runner: pnpm web-expected '<url>' --scenario snapshots/web-face/first-open-draft-banner --eval '<README 中的 Conversation 点击片段>' --wait-text '在等你审批'

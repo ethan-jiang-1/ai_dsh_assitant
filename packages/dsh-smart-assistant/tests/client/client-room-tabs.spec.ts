@@ -70,7 +70,7 @@ describe('room tab bodies', () => {
   it('gives the bound tab an error-with-retry and an empty-state start button, not an eternal "reading"', () => {
     const exports = materialize()
     // A5: a corrupt file is an error with a way out.
-    exports.deskStore.readError = '房间数据文件损坏（JSON 解析失败）'
+    exports.deskStore.readError = '房间数据路由失败（HTTP 500）'
     const broken = textsOf(exports.KnowledgeTabBody({ sessionId: 's1' })).join(' | ')
     expect(broken).toContain('读房间数据失败')
     expect(broken).toContain('重读一次')
@@ -86,6 +86,6 @@ describe('room tab bodies', () => {
     // not a refresh — the start button invites it; the refresh button no longer appears here.
     expect(empty).toContain('它会先问你最近要拍板')
     expect(empty).not.toContain('刷新房间数据')
-    expect(empty).not.toContain('.desk/state.json')
+    expect(empty).not.toContain('房间数据文件')
   })
 })

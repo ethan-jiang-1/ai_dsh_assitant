@@ -87,7 +87,7 @@ export function tabBody(props: TabBodyProps, Panel: (props?: { sessionId?: strin
   // produced an honest zero-report loop with no meaning — the one-click refresh this branch
   // once prided itself on was the trap. The next step is the first conversation; the copy says
   // what these rooms grow into once there is data, and the button starts that conversation
-  // instead of refreshing nothing. (2026-10-01: the raw `.desk/state.json` path stays off the
+  // instead of refreshing nothing. (2026-10-01: the raw room-data copy path stays off the
   // principal's surface.)
   if (getDeskStore().misses.has(sessionId)) return roomScroller(
     muted('房间数据还空着——先在对话里说一句话（说什么都行，它会先问你最近要拍板、还要跟进的一件事），这里才开始长：它记住的事、你确认过的知识。'),

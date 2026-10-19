@@ -236,7 +236,6 @@ try {
             toolRow: /运行命令|加载技能|读取|Running|Loaded/i.test(text),
             // 摩擦 1 取证（首开 UX 卡第 13 轮）：桌面过期警告的出现/消失时刻——
             // 区分「回合期间的诚实显示」与「回合结束后的重读滞后」，修法完全不同。
-            deskStale: /对话比这份桌面新/.test(text),
             yamlHead: /(^|\\n)\\s*---/.test(text.slice(0, 3000)),
           };
         })()`));
@@ -261,7 +260,7 @@ try {
       return result;
     }
     // 回合结束不等于取证结束：摩擦 1 的定罪窗口恰在「回合结束后」——桌面文件已被
-    // desk-refresh 重写，面板若重读滞后，警告会多挂一个轮询拍。跟随采样 8 拍（~12s），
+    // 面板若重读滞后，警告会多挂一个轮询拍。跟随采样 8 拍（~12s），
     // 看警告是立刻消失（诚实显示）还是滞留（重读滞后 = 要修的是面板，不是文案）。
     result.postTurnSamples = [];
     for (let i = 0; i < 8; i++) {
@@ -270,7 +269,6 @@ try {
         const text = document.body.textContent ?? '';
         return {
           atSec: Math.round((Date.now() - ${startedAt}) / 1000),
-          deskStale: /对话比这份桌面新/.test(text),
           bodyLen: text.length,
         };
       })()`));

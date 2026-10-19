@@ -7,7 +7,7 @@
 
 ## 场景是什么
 
-**全新 home 第一次打开 web UI 的状态**：主区默认是全局桌面，显示「你的桌面」、固定 Host 投影缺失的「还没有经营事项资料」、重读与「有问题？跟助手说」入口；首开预览版说明在场。不预置 `.desk/state.json`，不含真实经营事项或草稿。Conversation 的首用引导与审批横幅不在这个默认主区内，由进入 Conversation 的场景验证。
+**全新 home 第一次打开 web UI 的状态**：主区默认是全局桌面，显示「你的桌面」、固定 Host 投影缺失的「还没有经营事项资料」、重读与「有问题？跟助手说」入口；首开预览版说明在场。不预置旧的 per-session 房间数据拷贝，不含真实经营事项或草稿。Conversation 的首用引导与审批横幅不在这个默认主区内，由进入 Conversation 的场景验证。
 共享 dev home 的"空白态"不空白（侧边栏列着真实会话与每分钟变化的相对时间戳），所以本场景
 **必须起在隔离 home**——这也正是"首开"的真义。
 
@@ -28,7 +28,7 @@ pnpm web-expected '<server 打印的 URL>' --wait-text '还没有经营事项资
 pnpm web-expected '<server 打印的 URL>' --wait-text '还没有经营事项资料' --refresh
 ```
 
-未种桌面的首开态会被 `pnpm preflight` 的 desk-readiness 检查拒绝；本场景不把该拒绝写成全绿交付。认证、bundle 注册和 boot 图可单独读其结果，DOM 比对仍须无 console/network 错误。K1 默认入口的记录已去除存量期望里的共享工作区经营数据污染；这不是经营账本空态通过证据，当前全局组件读取独立 Host 固定投影，缺失与有效空集合分开；这不证明经营 writer 或持久操作结果。
+全新 home 的 rooms route 返回诚实的空投影；`pnpm preflight` 只查 route reachable，不再要求任何桌面文件。认证、bundle 注册和 boot 图可单独读其结果，DOM 比对仍须无 console/network 错误。K1 默认入口的记录已去除存量期望里的共享工作区经营数据污染；这不是经营账本空态通过证据，当前全局组件读取独立 Host 固定投影，缺失与有效空集合分开；这不证明经营 writer 或持久操作结果。
 
 **readiness 是硬门（2026-10-19，BUG-021）**：`--wait-text` 的超时不再是一段静默 sleep——`webui-expected` 把它翻译成 `--require-eval 'ready: <token>'`，等不到 token 时 shots 直接非零退出，`--refresh` 也不会把错状态写成基线。基线的 2026-10-19 版本就是在这条门下、从一个**全新隔离 home** 重录的（工作区「默认工作区」、零事项、`还没有经营事项资料`、首开预览说明在场）；共享 dev home 录出来的数据态不再是本场景的期望。
 

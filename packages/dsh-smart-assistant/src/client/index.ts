@@ -16,7 +16,7 @@
  * emitted bundle is gated by scripts/checks/verify.mjs (clientScriptSafetyProblems).
  *
  * Module map: contracts (type mirrors) / runtime (factory require binding) / theme
- * (color contract) / room-data-core + room-data-io + room-data-actions (the `.desk/state.json`
+ * (color contract) / room-data-core + room-data-io + room-data-actions (the rooms route's
  * room-data file: store + workspace reads & prompt sends + the panel actions' wordings — "It is
  * not the desk", per the manual) /
  * dom-utils (row + panel chrome) / format (the time formatting family) /
@@ -40,7 +40,7 @@ import type { ClientContext, ClientRequire, CommandUiRegistry, ModuleLoaderFacad
 import { mountApproveRemote } from './approve-mount'
 import {
   deskSlice, expirePending, getDeskStore, initDeskStore, looksLikeDesk,
-  retireStaleReceipt, settlePending,
+  settlePending,
 } from './room-data-core'
 import type { DeskStore } from './room-data-core'
 import { bindDeskEnv, loadDesk, loadDeskFor, openBeside } from './room-data-io'
@@ -378,7 +378,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // picker beside the browser and terminal tabs, so opening one no longer depends on knowing
     // the chip or the panel button: the rooms are first-class addable tabs of the right sidebar.
     // The session desk room is RETIRED (principal decision, 2026-10-11): the ledger's global
-    // desk is the one "桌面" — a second desk reading .desk/state.json split the principal's
+    // desk is the one "桌面" — a second desk reading the old room-data copy split the principal's
     // mental model, and the live model routed business items into it. The room components stay
     // exported for their specs; deleting the session-desk subsystem is a follow-up slice.
     const roomTabs = [
@@ -484,7 +484,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     inject, apply, AssistantBrandMark, AssistantBrandName,
     KnowledgePanel, MemoryPanel, deskStore, deskSlice,
     DashboardPanelIcon, DashboardMainPanel, KnowledgeTabBody, MemoryTabBody, roomTabTitle,
-    roomCommands, AssistantHeroMark, FirstMileDock, ApprovalDockBanner, expirePending, settlePending, loadDeskFor, retireStaleReceipt, looksLikeDesk,
+    roomCommands, AssistantHeroMark, FirstMileDock, ApprovalDockBanner, expirePending, settlePending, loadDeskFor, looksLikeDesk,
     approveKnowledgePage, deprecateKnowledgePage, correctMemory, retireMemory, retireSkill,
     ReceiptView, markReceiptRead, readReceiptSince, resetReceiptBaseline,
   }

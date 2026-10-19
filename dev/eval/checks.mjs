@@ -43,14 +43,12 @@ export function wrotePath(toolCalls, path) {
 /**
  * Read `path` and check it carries the desk contract's mandatory shape.
  *
- * Why (2026-09-27, `pnpm desk-loop` first real reading): panel messages name the `desk-refresh` skill and the
- * model rewrites the file, but in 13 of the 14 panel actions that asked for the skill it never LOADED it — it
- * improvised. (Denominator matters: only actions whose own text names the skill promise a rewrite.)
- * A file that parses but carries none of the contract then renders as a legitimately empty desk, so the
- * principal reads "nothing is happening". The browser half guards that at render time
- * (`looksLikeDesk` in the client); this guard is the development-time one, so the regression fails HERE
- * rather than in front of the principal. The two live apart because the client is a classic script with
- * no imports — the contract itself is owned by `presets/assistant/skills/desk-refresh/SKILL.md`.
+ * Why (2026-09-27, `pnpm desk-loop` first real reading): the panel used to ask the model to rewrite a
+ * per-session room-data copy; in 13 of the 14 actions it never loaded the named skill — it improvised. (Denominator matters: only actions whose own text names the skill promise a rewrite.)
+ * A file that parses but carries none of the contract then renders as legitimately empty, so the
+ * principal reads "nothing is happening". The browser half guards the route payload's shape at render
+ * time (`looksLikeDesk` in the client); this guard is the development-time one. The retired per-session
+ * copy's field contract left with A1b; `fileShape` remains a generic eval check.
  * @param path - the file to read (relative to the process CWD, which is the session workspace).
  * @param required - keys the parsed object must carry.
  * @param options - `{ anyOf?: string[], since?: number }`: `anyOf` needs at least one key present (a file

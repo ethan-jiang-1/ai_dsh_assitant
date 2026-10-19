@@ -129,7 +129,7 @@ export function runPreset(prompt) {
     launchFailure = error instanceof Error ? error.message.split('\n')[0] : String(error)
   }
   // The workspace survives until the caller has judged against its files (file-shape reads
-  // `.desk/state.json` in there) — runTask and the domain runner clean it up after evaluation.
+  // the eval scratch path) — runTask and the domain runner clean it up after evaluation.
   const fresh = sessionLogs(harnessHome).filter(log => !before.has(log)).sort()
   const log = fresh.at(-1)
   if (log === undefined) {
@@ -247,14 +247,14 @@ function selfCheck() {
     process.exit(1)
   }
 
-  // wrote-path 的 python 写法红绿（BUG-001 第二根因）：desk-refresh 技能教的是 bash+python
-  // 重写 .desk/state.json，判定核必须认得 json.dump / open('w')，而不是只认 JS/shell 写法。
-  const pythonWrite = [{ name: 'bash', argumentsText: "cd /x && python3 - <<'PY'\nimport json\njson.dump(s, open('.desk/state.json','w'))\nPY" }]
-  if (!wrotePath(pythonWrite, '.desk/state.json')) {
+  // wrote-path 的 python 写法红绿（BUG-001 第二根因）：判定核必须认得 json.dump / open('w')，
+  // 而不是只认 JS/shell 写法。
+  const pythonWrite = [{ name: 'bash', argumentsText: "cd /x && python3 - <<'PY'\nimport json\njson.dump(s, open('result.json','w'))\nPY" }]
+  if (!wrotePath(pythonWrite, 'result.json')) {
     process.stderr.write('eval --self-check: FAIL — wrote-path missed a python rewrite of the desk file\n')
     process.exit(1)
   }
-  if (wrotePath([{ name: 'bash', argumentsText: "cat .desk/state.json" }], '.desk/state.json')) {
+  if (wrotePath([{ name: 'bash', argumentsText: "cat result.json" }], 'result.json')) {
     process.stderr.write('eval --self-check: FAIL — wrote-path accepted a read-only command\n')
     process.exit(1)
   }

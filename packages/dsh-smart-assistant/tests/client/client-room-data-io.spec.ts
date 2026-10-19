@@ -1,6 +1,6 @@
 /**
  * The room-data I/O paths (`src/client/room-data-io.ts`) after A1a: the panel reads the host
- * `GET /api/assistant/rooms` route (working-folder truth), never `.desk/state.json`.
+ * `GET /api/assistant/rooms` route (working-folder truth), never a per-session copy.
  *
  * Acceptance points:
  * - A failed route read surfaces as readError wherever the principal is, with a retry (R6).

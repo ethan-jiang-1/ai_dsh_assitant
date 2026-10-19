@@ -209,19 +209,17 @@ describe('real composition: loader + preset standing mount + joined agent', () =
     // voice either way — the race between scaffold and first assembly is invisible by design.
     expect(byName.get('assistant:soul')).toContain('You are a long-lived assistant')
     expect(byName.get('assistant:home-manual')).toContain('# Your working folder — operating manual')
-    // The manual's room-data section used to teach the retired concept — "The desk file
-    // (.desk/state.json) … your principal's sidebar panel renders this file" — which contradicted
-    // the desk-refresh skill rewritten in the same retirement. Both halves are model-visible, so
-    // the pair is pinned here: one desk (the ledger), and .desk/state.json as room data.
-    expect(byName.get('assistant:home-manual')).toContain('### Room data (`.desk/state.json`)')
-    expect(byName.get('assistant:home-manual')).toContain('It is not the desk')
+    // A1b: the retired per-session room-data copy is gone from the model face; the manual still
+    // teaches the four rooms and the ledger.
+    expect(byName.get('assistant:home-manual')).toContain('| Room | Holds | Lifecycle |')
+    expect(byName.get('assistant:home-manual')).not.toContain('.desk/state.json')
+    expect(byName.get('assistant:home-manual')).not.toContain('desk-refresh')
     expect(byName.get('assistant:home-manual')).not.toContain('The desk file')
     expect(byName.get('assistant:memory-digest')).toContain('Live status of your working folder')
-    // The operating brief is the standing instruction that business matters — including a vague
-    // "put it on the desk" — ride the ledger, never the session desk file (live-turn finding
-    // 2026-10-11: the model wrote .desk/state.json instead of calling assistant_operating).
+    // The operating brief still routes business matters to the ledger; the retired per-session
+    // copy is no longer named (A1b).
     expect(names).toContain('assistant:operating-brief')
-    expect(byName.get('assistant:operating-brief')).toContain('Never route business matters into the session desk file')
+    expect(byName.get('assistant:operating-brief')).not.toContain('Never route business matters into the session desk file')
     // The entrust lane (live-turn finding 2026-10-11: the model refused the principal's explicit
     // "add a test matter" and diverted it into questions): an explicit entrust is recorded verbatim.
     expect(byName.get('assistant:operating-brief')).toContain('Never refuse or re-qualify an explicit')

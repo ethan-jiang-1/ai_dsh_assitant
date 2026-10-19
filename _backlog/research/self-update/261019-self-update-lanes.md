@@ -80,7 +80,7 @@ intent: "把『助手怎么学到东西、学到的东西怎么被维护』拆�
 
 **P-1｜面板是"对话的遥柄"，不是编辑器。** 除知识批准外，每个按钮都只是替人往会话里投一句话（`[面板] ` 标记，[room-data-io.ts:272](../../../packages/dsh-smart-assistant/src/client/room-data-io.ts#L272)），再由模型去读文件、改文件、重写快照。这解释了用户问题的第一半：**"这里进入的靠对话吗"——是的，而且到今天为止只有对话是写入口；面板只是把这句话代你说出去。**
 
-**P-2｜面板读的是第三份拷贝，陈旧是结构性的，不是 bug。** 真值在房间文件（`memory/`、`knowledge/`）与账本；面板读 `.desk/state.json`——由 `desk-refresh` 技能在会话里**重写**的一份画像（[desk-refresh/SKILL.md](../../../packages/dsh-smart-assistant/presets/assistant/skills/desk-refresh/SKILL.md)）。于是任何"改真值"的动作都要再等一次模型回合，连直调成功的批准也是（`room-data-actions.ts` 的注释：*the desk file itself still lists the row as a draft until the next desk-refresh turn rewrites it*）。2026-10-18 桌面受理位已经因为"客户端不拥有权威"而拒绝过直写账本（[desk-side-capture note](../../../notes/implemented/2026-10-18-desk-side-capture.md) 输掉的方案第 1 条），同一个理由今天指向房间面板。
+**P-2｜面板读的是第三份拷贝，陈旧是结构性的，不是 bug。** 真值在房间文件（`memory/`、`knowledge/`）与账本；面板读 `.desk/state.json`——由 `desk-refresh` 技能在会话里**重写**的一份画像（`presets/assistant/skills/desk-refresh/SKILL.md`；该技能在 A1b 已退役）。于是任何"改真值"的动作都要再等一次模型回合，连直调成功的批准也是（`room-data-actions.ts` 的注释：*the desk file itself still lists the row as a draft until the next desk-refresh turn rewrites it*）。2026-10-18 桌面受理位已经因为"客户端不拥有权威"而拒绝过直写账本（[desk-side-capture note](../../../notes/implemented/2026-10-18-desk-side-capture.md) 输掉的方案第 1 条），同一个理由今天指向房间面板。
 
 **P-3｜内容在场度决定"维护"的语义。** 记忆行渲染的是记录全文（一句话），所以纠错可操作；知识行只有标题、类型、时间、来源，草稿多 200 字片段——**正文不在场**，于是"维护"退化成"表态"（批准/说它过时/说它有问题），而"改什么"只能靠嘴描述。技能连表态的对象都没有，只有一个数字。
 

@@ -33,9 +33,9 @@
 
     # ── 维护面板的房间只读投影（A1a，2026-10-19）──────────────────────────────────
     #
-    # 面板读 working folder 四房间真值，不读 session workspace 的 .desk/state.json；
+    # 面板读 working folder 四房间真值，不读 session workspace 的旧拷贝；
     # 注入 assistantMemory 服务，route 不接收 session/workspace/任意路径。只读 GET，
-    # 知识正文走 ?kind=knowledge&id=。退役 .desk/state.json 是 A1b（等 Q3），本行先读真值。
+    # 知识正文走 ?kind=knowledge&id=。旧拷贝已在 A1b 退役，本行只读真值。
     - id: assistant-rooms
       name: dsh-smart-assistant/rooms-route
 
@@ -50,7 +50,7 @@
 
     # ── 知识批准直调（approve-direct-call 卡，2026-10-04）──────────────────────────
     #
-    # 首开 UX 摩擦 1：批准曾是「面板发指令 → 模型跑一轮（promote + desk-refresh，60-90s）」，
+    # 首开 UX 摩擦 1：批准曾是「面板发指令 → 模型跑一轮（promote + 旧房间改写，60-90s）」，「
     # 而批准本体是机械翻转（draft→stable），不需要模型智能。本行把翻转经 Typert Remote
     # 暴露给 client 直调：秒级生效；审计不丢——每次批准经 `promotePage` 追加一行进共享
     # 批准台账 `<dataDir>/audit/approvals.jsonl`（`source: 'panel-direct'` 区分点击与模型

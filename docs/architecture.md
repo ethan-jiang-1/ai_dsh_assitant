@@ -251,7 +251,7 @@ pnpm dsh …（package.json scripts → dev/env/dsh.mjs，唯一启动器：
 
 ### 浏览器动作链：一次点击 → 可见的桌面变化
 
-客户端在 `main` 声明可用并完成桌面注册后，每个 Client 根上下文只尝试一次默认选择：当前 `activePanelId` 为 null 时选全局桌面，否则保留已选面板。显式回到 Conversation、归档引发的回退、slot/布局重挂及客户端 HMR 不重选；完整页面重载的新根上下文重新尝试。默认机会只在页面内记录，不保存导航偏好或业务数据。插件首次激活前的显式 null 与启动 null 无法由当前公开快照区分；全局桌面读取独立 Host 固定投影，记忆/知识两间读独立 Host 行 `assistant-rooms` 的房间投影（working folder 真值；session workspace 的 `.desk/state.json` 是模型写的拷贝，A1b 退役）；同一路径的 POST 是 A2 的受控写；默认入口本身不创建业务 Session。
+客户端在 `main` 声明可用并完成桌面注册后，每个 Client 根上下文只尝试一次默认选择：当前 `activePanelId` 为 null 时选全局桌面，否则保留已选面板。显式回到 Conversation、归档引发的回退、slot/布局重挂及客户端 HMR 不重选；完整页面重载的新根上下文重新尝试。默认机会只在页面内记录，不保存导航偏好或业务数据。插件首次激活前的显式 null 与启动 null 无法由当前公开快照区分；全局桌面读取独立 Host 固定投影，记忆/知识两间读独立 Host 行 `assistant-rooms` 的房间投影（working folder 真值；旧的 per-session 房间数据拷贝已在 A1b 退役）；同一路径的 POST 是 A2 的受控写；默认入口本身不创建业务 Session。
 
 独立 Host 行 `assistant-desk-projection` 提供固定只读投影下载：经营 dataDir 里有 `ledger.json` 时**活渲染账本 v2 投影**，无账本才回退固定 `desk-projection.json` 模拟输入；端点边界、认证、错误态与 byte cap 的完整契约 = [`operating.md`](operating.md) §三（唯一权威，本文不复述）。物理 HTTP 验证使用 [只读探针](../dev/probes/web/desk-projection-download.mjs)，以明确标注模拟的 [固定资料](../dev/fixtures/desk-projection/desk-projection.json) 为独立字节预期。
 
@@ -276,9 +276,8 @@ Client 的 [下载对象](../packages/dsh-smart-assistant/src/client/projection-
       │ 一句人话 + 分组明细 + 「全部标为已读」；since 住 localStorage
       │ （dsha:receipt-since），纯核无模型、无新 SessionEvent
       ├ 会话车道（首开引导 / 面板动作的模型路径）：sendPrompt → remote.session.prompt
-      │ （mode:queue、[面板] 标记）→ 走模型请求链 → 助手按 desk-refresh 技能把
-      │ 工作区 .desk/state.json（session copy）重写一遍；面板已不读这份拷贝，
-      │ 该路径与技能在 A1b 退役
+      │ （mode:queue、[面板] 标记）→ 走模型请求链；旧拷贝的重写技能与刷新动词
+      │ 已在 A1b 退役，面板的读/写/收据全部走 assistant-rooms（A1a/A2/A3）
       └ 旧直调车道（仅知识批准）：approveKnowledgePage 的 Remote 分支已由 A2 移除；
         `assistantKnowledge` 服务仍在 host 行，但 client entry 无法消费动态挂载的 namespace
         （Cordis 未 inject 会抛错），面板批准走上面的 POST。A2a 探针保留为事实核查，

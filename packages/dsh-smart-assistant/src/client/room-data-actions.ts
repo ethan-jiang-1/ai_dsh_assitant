@@ -1,8 +1,8 @@
 /**
  * The panel's room actions: the A2 direct writes (approve/deprecate/correct/retire) go through
  * the host `POST /api/assistant/rooms` route and patch the session's projection immediately;
- * the remaining conversation lanes (first start, knowledge flag, skill proposals, legacy
- * refresh) still send a prompt. The direct paths never fall back to a prompt.
+ * the remaining conversation lanes (first start, knowledge flag, skill proposals) still send a
+ * prompt. The direct paths never fall back to a prompt.
  *
  * @module dsh-smart-assistant/client/room-data-actions
  */
@@ -11,19 +11,6 @@ import { patchDesk } from './room-data-core'
 import type { DeskData } from './room-data-core'
 import type { ApprovalLine } from '../domain/maintenance/receipt.ts'
 import { patchRoomRows, postRoomsAction, sendPrompt } from './room-data-io'
-
-/**
- * Every remaining prompt lane ends the same way: the desk-refresh skill owns the rewrite. Naming
- * the skill in the message makes the model's path explicit instead of hoping skill discovery
- * fires on a small model (measured 2026-09-26). The refresh path and the skill are retired in A1b.
- */
-const DESK_REFRESH_STEP = '完成后加载 desk-refresh 技能，把房间数据文件重写一遍。'
-export { DESK_REFRESH_STEP }
-
-/** Ask the assistant to refresh the room data file (legacy prompt path; the panel re-reads the route). */
-export function askRefresh(sessionId?: string): void {
-  sendPrompt('刷新房间数据：加载 desk-refresh 技能，严格按它把房间数据文件（.desk/state.json）重写一遍。', '刷新房间数据', 'desk', sessionId)
-}
 
 /**
  * Day-0's true start (real-user walk finding, 2026-10-06): on a desk-less folder the refresh
@@ -41,7 +28,7 @@ export function askStart(sessionId?: string): void {
  */
 export function askApproveProposal(name: string, sessionId?: string): void {
   sendPrompt(
-    `面板代本人批准技能提案「${name}」：请把提案文件的 status 改为 approved，然后立刻 land_skill 落地。${DESK_REFRESH_STEP}`,
+    `面板代本人批准技能提案「${name}」：请把提案文件的 status 改为 approved，然后立刻 land_skill 落地。`,
     '批准提案', name, sessionId,
   )
 }
@@ -49,7 +36,7 @@ export function askApproveProposal(name: string, sessionId?: string): void {
 /** The rejection twin: the proposal is rejected with the principal's one-line reason. */
 export function askRejectProposal(name: string, reason: string, sessionId?: string): void {
   sendPrompt(
-    `面板代本人拒绝技能提案「${name}」：请把提案文件的 status 改为 rejected（理由：${reason}）。${DESK_REFRESH_STEP}`,
+    `面板代本人拒绝技能提案「${name}」：请把提案文件的 status 改为 rejected（理由：${reason}）。`,
     '拒绝提案', name, sessionId,
   )
 }
@@ -198,7 +185,7 @@ export function retireSkill(name: string, sessionId?: string): void {
 /** Tell the assistant what is wrong with one knowledge page (conversation lane; kept for A2). */
 export function flagKnowledgePage(title: string, problem: string, rowId: string, sessionId?: string): void {
   sendPrompt(
-    `知识页「${title}」有问题：${problem}。请核对并更正这一页。${DESK_REFRESH_STEP}`,
+    `知识页「${title}」有问题：${problem}。请核对并更正这一页。`,
     '提意见', rowId, sessionId,
   )
 }

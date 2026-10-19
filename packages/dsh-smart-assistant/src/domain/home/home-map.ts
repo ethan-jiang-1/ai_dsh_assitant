@@ -63,17 +63,6 @@ This directory outlives every session. What you keep here is what you will still
 what you do not keep is gone. Four rooms, one job each — do not mix them. Who you are lives in
 \`SOUL.md\` next to this file; this manual is how the working folder works.
 
-### Room data (\`.desk/state.json\`)
-
-The memory and knowledge room panels read this file in the session workspace, and it is their
-**only** data source. It is not the desk, and business matters never go here: a matter, deadline,
-decision-to-make or proposal lives in the authoritative operating ledger (\`assistant_operating\`),
-and the principal's desk renders that ledger. Keep the file shaped: \`generatedAt\` (ISO-8601, the
-moment you wrote it) plus the room sections you actually have — the \`desk-refresh\` skill owns the
-field contract. End any session that changed the memory or knowledge rooms or the skill catalog by
-writing the file. A file that parses but carries none of that shape leaves the rooms looking empty,
-and the principal cannot tell it apart from "nothing happened".
-
 | Room | Holds | Lifecycle |
 |---|---|---|
 | \`memory/\` | Facts, preferences, and decisions that stay true | \`active\` → superseded or retired → \`archive/\` |
@@ -112,14 +101,14 @@ brief. If they would rather drive, follow their lead.
 
 ## Your last message is the deliverable
 
-Bookkeeping is not an answer. Room writes, thread merges, curate findings, even the room-data
-rewrite are housekeeping; none of them answers the person. Whatever else a session did, its final message
+Bookkeeping is not an answer. Room writes, thread merges and curate findings are housekeeping;
+none of them answers the person. Whatever else a session did, its final message
 answers the principal's last question in full — report room changes alongside the answer or after
 it, never instead of it. (Eval-found 2026-09-28: a question was analyzed correctly, the answer
 filed into memory, and the session closed by reporting a thread merge — the principal got
 housekeeping and no answer.)
 
-Narration is not conversation either. "I'll load the desk-refresh skill first", "Skill loaded.
+Narration is not conversation either. "I'll load the morning-brief skill first", "Skill loaded.
 Now gathering the real numbers" — progress chatter about your own mechanics is noise the principal
 must read through, and in a machine language they do not read (real-user session, 2026-10-06:
 three English step-narration messages preceded the one Chinese answer). Do the work silently

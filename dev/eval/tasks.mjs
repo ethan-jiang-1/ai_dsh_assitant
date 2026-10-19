@@ -93,35 +93,6 @@ export const TASKS = [
     ],
   },
   {
-    id: 'desk-refresh-loop',
-    why: 'The cultivation surface\'s server half: the panel\'s own "刷新我的桌面" must load the desk-refresh skill and really rewrite .desk/state.json from tool-derived numbers — the panel renders whatever the file says, so a reported-but-not-written refresh is a lying desk.',
-    prompt: '[桌面] 刷新我的桌面：加载 desk-refresh 技能，严格按它把桌面文件重写一遍。',
-    checks: [
-      { kind: 'skill-loaded', skill: 'desk-refresh' },
-      { kind: 'wrote-path', path: '.desk/state.json' },
-      // A rewrite is not enough: a file that parses but lacks the contract shape renders as a legitimately
-      // empty desk, so the principal reads "nothing happened" (live reading: 13 of the 14 panel actions that
-      // named the skill never loaded it and improvised). The shape is checked here, not in front of them.
-      { kind: 'file-shape', path: '.desk/state.json', required: ['generatedAt'],
-        anyOf: ['counts', 'decisions', 'actions', 'gaps', 'threads', 'recentActivity', 'memories', 'knowledge', 'skills'] },
-      // The skill's own rule: report the desk refreshed and name the counts, so the principal
-      // can check the panel against the sentence.
-      { kind: 'answer-matches', pattern: '[0-9]' },
-    ],
-  },
-
-  {
-    // K3 (desk-operating-entry): the model chain over the authoritative operating ledger.
-    // Keyless environments skip at runtime; the definitions and mechanical checks stand.
-    id: 'desk-single-matter',
-    why: 'Entrusting one matter must go through the operating ledger tool with real provenance, not a narrative claim.',
-    prompt: '帮我盯一件事：合同 NB-02 的第二期款，约定 10/13 到账，到时我要跟财务核对。记下来。',
-    checks: [
-      { kind: 'used-tool', tool: 'assistant_operating' },
-      { kind: 'answer-matches', pattern: 'NB-02|第二期|10/13' },
-    ],
-  },
-  {
     id: 'desk-followup-readback',
     why: 'An inferred major change is proposed, never applied; the reply must say what is pending the principal\'s confirmation instead of claiming it is done.',
     prompt: '（接着刚才那笔 NB-02 第二期款）客户刚才打电话说可能要推迟到 10/20 才能付，但还没重新约定。帮我记一下这个变化。',

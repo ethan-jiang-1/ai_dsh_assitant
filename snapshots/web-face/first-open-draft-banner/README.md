@@ -34,8 +34,8 @@ pnpm dsh --profile dev --port 0 --no-open
 # ④ 用 shots 触发首个 UI 连接（不录不存在横幅的期望）。
 pnpm shots '<url>' --dom --size 1600x1000
 
-# ⑤ 种桌面文件（3 草稿 + 2 已确认；内部轮询工作区 ≤30s，固定时间戳）
-node snapshots/web-face/first-open-draft-banner/seed.mjs desk "$ASSISTANT_DSH_HOME"
+# ⑤ 种 working folder 五页（3 草稿 + 2 已确认；任意时刻、固定时间戳）
+node snapshots/web-face/first-open-draft-banner/seed.mjs rooms "$ASSISTANT_DSH_HOME"
 
 # ⑥ 重录期望（--refresh，肉眼过 PNG）或直接比对（漂移即 exit 1）
 pnpm web-expected '<url>' --scenario snapshots/web-face/first-open-draft-banner \
@@ -57,8 +57,8 @@ resolve `timeout: ...`；但 `webui-expected` 自 2026-10-19（BUG-021）把它�
 `networkFailures` 必须空。`visibleText` 在盘上是**整串**（含 \n），不是行数组——漂移消息
 因此是整串预览式；`textOutline`/`controls` 是行数组，漂移带首差下标。
 
-**确定性账**：种子桌面文件的 `generatedAt`/`updated` 全部固定，首屏不渲染桌面面板（横幅只读
-walk view），DOM 无时钟；会话列表为空、无相对时间戳。两个弹窗各归其主：内测声明由
+**确定性账**：种子知识页的 `generated.at` 全部固定，首屏不渲染桌面面板（横幅只读 walk view），
+DOM 无时钟；会话列表为空、无相对时间戳。两个弹窗各归其主：内测声明由
 `ui-settings-general` 的 `welcomeNoticeVersion` 配置**预确认**（配置字段即已确认版本——
 vendor `ui-settings-models/src/onboarding-copy.ts`，精确等值比较），API Key 引导靠把 dev home
 的凭据 `refs` 合并进场景家（结构只增不改、0600）——blank 场景钉的恰是弹窗在场的裸首开态，
@@ -66,15 +66,11 @@ vendor `ui-settings-models/src/onboarding-copy.ts`，精确等值比较），API
 
 ## 种子文件契约
 
-`seed.mjs desk` 写两处，让 A1a 的面板读 working folder 真值、旧路径仍可被 preflight 检查：
-
-1. **working folder 真值**（A1a 起是面板的数据源）：`<home>/assistant/knowledge/<id>.md` 五页——
-   3 行 `status: draft` + 2 行 `status: stable`，正文即判据②的摘要文本，`sources` 用
-   `seeds/…` 形状以同时钉住 friendlySource 映射（第 9 轮）；`generated.at` 固定，DOM 无时钟。
-2. **session workspace 拷贝**（旧路径，A1b 退役）：`<home>/workspaces/<owner>/default-workspace/.desk/state.json`——
-   形状照抄真实 desk-refresh 产物（契约 owner：`desk-refresh` 技能）：`knowledge[]` 同样的 3 draft
-   + 2 stable，`counts.knowledgeDraft: 3` 仅作行缺席时的 fallback。preflight 仍检查这份拷贝；
-   A1b 删掉它时连同 preflight 检查一起改。
+`seed.mjs rooms` 只写一处：**working folder 真值**（A1a 起是面板的唯一数据源）——
+`<home>/assistant/knowledge/<id>.md` 五页：3 行 `status: draft` + 2 行 `status: stable`，正文即
+判据②的摘要文本，`sources` 用 `seeds/…` 形状以同时钉住 friendlySource 映射（第 9 轮）；
+`generated.at` 固定，DOM 无时钟。旧的 session workspace 房间数据拷贝已在 A1b 退役，本场景不再写；
+`webui-preflight` 改为检查 host rooms route（不再检查拷贝）。
 
 ## prove-it-red 记录（2026-10-05，全链真机）
 
