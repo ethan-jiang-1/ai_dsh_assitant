@@ -13,6 +13,7 @@ import { Context } from '@deepseek-ai/cordis'
 import Loader from '@deepseek-ai/cordis-plugin-loader'
 import { afterEach, describe, expect, it } from 'vitest'
 import { HostConnectionService } from '../../../../vendor/dsh/packages/client/connection/src/rpc-host.ts'
+import { Peer } from '../../../../vendor/dsh/packages/client/connection/src/peer.ts'
 import * as projectionPlugin from '../../lib/host/desk-projection/index.js'
 
 const fixtures = []
@@ -30,7 +31,14 @@ afterEach(async () => {
   }
 })
 
-/** Real Loader and Connection; auth is inert because this seam never calls admit(). */
+/**
+ * Real Loader and Connection; auth is inert because this seam never calls admit().
+ *
+ * Since dsh-v0.2.1-rc.2 the shared Fetch handler takes a REQUIRED Peer ("required, never defaulted"):
+ * an exact route now admits only `principal.kind === 'owner'` and returns 403 otherwise, so a
+ * peerless call is a fixture defect, not an admission decision. The owner Peer below mirrors the
+ * one rpc-host itself constructs for the browser channel.
+ */
 async function hostRoot() {
   const dataDir = await mkdtemp(join(tmpdir(), 'assistant-projection-lifecycle-'))
   const ctx = new Context()
@@ -39,10 +47,11 @@ async function hostRoot() {
   new HostConnectionService(ctx, [], {})
   const connection = ctx.get('connection')
   const handler = connection.createSharedFetchHandler('/api')
+  const ownerPeer = new Peer(ctx, { principal: { kind: 'owner' } })
   return {
     ctx, dataDir,
     file: join(dataDir, 'desk-projection.json'),
-    request: (path = route, method = 'GET') => handler.fetch(new Request(`http://fixture.invalid${path}`, { method })),
+    request: (path = route, method = 'GET') => handler.fetch(new Request(`http://fixture.invalid${path}`, { method }), ownerPeer),
     async mount() {
       ctx.loader.builtins['assistant-projection'] = projectionPlugin
       await ctx.loader.root.update([{

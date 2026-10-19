@@ -152,10 +152,12 @@
           - id: persona
             name: '@deepseek-ai/dsh-persona'
             config:
+              # 0.2.1 起 loop 不再注册内置 `{{cwd}}` 变量（升级指南 working-directory），未解析的引用会在
+              # 每次模型请求前失败；目录现由 upstream working-directory 服务作为必需 user context 提供。
+              # 故 suffix 整条移除——留一个空串没有意义，其余文本已无。
               prefix: |-
                 You are a long-lived assistant. Your full identity and your working folder's operating manual ride in
                 the sections right below this one.
-              suffix: Your working directory is {{cwd}}.
 
           - id: agent-instructions
             name: '@deepseek-ai/dsh-agent-instructions'
@@ -361,14 +363,12 @@
                 config:
                   provider: spawn
                   toolName: subagent
-                  backgroundMode: continuable
 
               - id: tool-subagent-fork
                 name: '@deepseek-ai/dsh-tool-subagent'
                 config:
                   provider: fork
                   toolName: subagent_fork
-                  backgroundMode: continuable
 
               - id: tool-subagent-codex
                 name: '@deepseek-ai/dsh-tool-subagent'
@@ -376,7 +376,6 @@
                 config:
                   provider: codex
                   toolName: subagent_codex
-                  backgroundMode: one-shot
                   maxDepth: provider-managed
 
               - id: tool-subagent-claude-code
@@ -385,7 +384,6 @@
                 config:
                   provider: claude-code
                   toolName: subagent_claude_code
-                  backgroundMode: one-shot
                   maxDepth: provider-managed
 
           - id: tool-present
