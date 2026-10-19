@@ -7,9 +7,9 @@ opened: 2026-10-19
 
 > 立卡：2026-10-19 ｜ 状态：等人拍板 ｜ 类型：Feature ｜ 可关闭：否 ｜ 毕业：做现在（P1，A 卡之后）｜ 下一步 = 本人确认"越界整批清除"的口径（Q1）
 
-> **依赖：** A 卡（[维护面收口](261019-self-update-lanes.md)）的面骨架复用；依据档 [self-update/261019-self-update-lanes](../research/self-update/261019-self-update-lanes.md) §5.2（实测）/§5.3（冲突判据）。
+> **依赖：** A 卡（[维护面收口](261019-self-update-lanes.md)）的面骨架复用；依据档 [self-update/261019-self-update-lanes](../research/self-update/261019-self-update-lanes.md) §5.2（实测）/§5.3（冲突判据）；外部先例（删除留痕用底层 VCS 的 author/时间、作用域优先于审批）在 [memory-panel/261019-file-memory-panel-precedents](../research/memory-panel/261019-file-memory-panel-precedents.md)。
 
-**问题与期望结果：** Viki 的记忆今天**没有读者也没有写者**——`ov-shield` 只挡了它的工具面与技能面，抽取物仍然自动进每轮画像/召回块；人能看见它的唯一方式是"觉得它记错了"。真代价付过一次：真机往返里助手主动指出长期记忆压着**另一家公司的 14 条底子**（[pin note](../../../notes/implemented/2026-10-19-openviking-pin-catch-up.md) 遗留节）。要的是：**能列出它记得什么、能读正文、能一条一条删（删得回来）、两条矛盾时能并排看见并指定以哪条为准**。
+**问题与期望结果：** Viki 的记忆今天**没有读者也没有写者**——`ov-shield` 只挡了它的工具面与技能面，抽取物仍然自动进每轮画像/召回块；人能看见它的唯一方式是"觉得它记错了"。真代价付过一次：真机往返里助手主动指出长期记忆压着**另一家公司的 14 条底子**（[pin note](../../notes/implemented/2026-10-19-openviking-pin-catch-up.md) 遗留节）。要的是：**能列出它记得什么、能读正文、能一条一条删（删得回来）、两条矛盾时能并排看见并指定以哪条为准**。
 **当前情况：** 依据档 §5.2 的实测把"不可控"这个前提**推翻**了：server 0.4.22 的 `fs/ls?recursive` / `content/read` / `DELETE /api/v1/fs` / `snapshot/commit|diff|restore` 全现成，抽取物是 `viking://user/<space>/memories/{profile.md,preferences,entities,events}` 下的**文件**；注入面只读其中 `profile.md` + `preferences/` + `entities/`（vendor `shared/profile-inject.mjs`）。缺的是调用者与面，不是能力。本机 dev 工作区只有 `identity.md`/`soul.md` 两条模板，**那 14 条不在其中**（在另一份工作区/宿主目录，需一次性核清）。
 **下一步：** 本人确认 Q1（越界整批清除）后开工 B1；B2 的删除面与 A2 的直写车道同形状，可并行。
 

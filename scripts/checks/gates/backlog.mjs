@@ -78,7 +78,14 @@ export function backlogLivenessProblems(backlogRoot) {
   const GRADUATION_LEANING_HEADS = new Set(['未定', '做现在', '以后做', '不做', '已在别处'])
   // Mis-named themes are named by the research README's own table, so a new subdirectory joins here
   // in the same change that registers it (and gains its prove-it-red case in the family spec).
-  const topicByDir = { positioning: '定位', 'self-update': '自更新', upstream: '上游', 'tech-exploration': '技术', usage: '使用' }
+  const topicByDir = {
+    positioning: '定位',
+    'self-update': '自更新',
+    'memory-panel': '记忆面板',
+    upstream: '上游',
+    'tech-exploration': '技术',
+    usage: '使用',
+  }
   const headProblems = (text, where, expect) => {
     const block = frontmatterBlock(text)
     if (block === undefined) {

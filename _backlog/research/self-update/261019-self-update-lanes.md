@@ -123,10 +123,22 @@ intent: "把『助手怎么学到东西、学到的东西怎么被维护』拆�
 3. **"改"在分叉**：文件型产品给文本编辑 + 版本（Claude Code、Letta MemFS）；聊天型产品给"纠正指令"（ChatGPT、Claude）。本仓是文件型（P3 判据就是"人可读文件"），所以**文本级可见**是对的路——但不必给自由编辑器，受控字段 + 只读正文就够（S1 读、S2 受限写）。
 4. **跨上下文串味是当前活跃的 bug 类**：Claude Code v2.1.268 修"公共同道互相回忆"、Claude 的项目隔离、ChatGPT 的项目级记忆——厂商在加**作用域**，不在加**审批**。本仓 Viki 那 14 条旧公司记忆属同一类；**解法是作用域与来源标记，不是排队**。
 
-另两条可用于验收口径的：**"记忆写满"是真实产品状态**（ChatGPT 有容量态 + 自动优先级；"降级"= 软忘）——本仓已有摘要预算与 `omittedMemories` 拒绝，方向一致，不必再发明；**删除不即时/日志留 30 天**（OpenAI FAQ）说明"删了等于没了"是要写清楚的承诺，本仓房间是文件（删除即时），但 **Viki 侧删除今天根本没有出口**，这条要写进 S3 的范围。
+另两条可用于验收口径的：**"记忆写满"是真实产品状态**（ChatGPT 有容量态 + 自动优先级；"降级"= 软忘）——本仓已有摘要预算与 `omittedMemories` 拒绝，方向一致，不必再发明；**删除不即时/日志留 30 天**（OpenAI FAQ）说明"删了等于没了"是要写清楚的承诺，本仓房间是文件（删除即时），Viki 侧删除走 `fs DELETE`（§5.2 已实测），要写清的是"删了备份在哪、怎么回滚"。
+
+**第二轮补采（同日，针对本档五个候选的取舍逐条找先例，全文与逐条引语在 [261019-file-memory-panel-precedents](../memory-panel/261019-file-memory-panel-precedents.md)）**——它把上表里"我们的方向"从"没人做过所以自创"改成"有人做过，形状可抄"：
+
+| 我们的候选 | 先例 | 形状可以抄什么 | 抄不了什么 |
+|---|---|---|---|
+| 面板**新增**一条记忆（Q1） | 除 **Claude in Slack** 的管理员 Memory 页（CHANGELOG 2.1.296）与 **Cursor Rules 的 Add Rule**（建文件，非建条目），终端用户面**没有**新增表单 | 只借"新建 = 建一个文件、正文即真相" | **作者/来源字段没有先例**——人建的条目谁署名，是我们自创的语义（更支持"不新增，改由对话/消息级记下来产出"） |
+| 面板**直写**（Q2） | GitHub Wiki history 记"谁改的 + 提交说明 + 时间"；Letta MemFS 每次编辑=一次 git 提交（版本史 + 冲突解决）；Obsidian File recovery 存整篇快照 + "Show changes" 差异 | **留痕用底层 VCS 的 author/message/时间**，不另造"人/机器"列 | 没有任何第一方产品把"人 vs agent"做成显式字段；我们的 `audit/approvals.jsonl` 是同一件事的自建形态，够用不必升级 |
+| 退役**派生拷贝**（Q3） | Obsidian 明确保留 metadata cache（"可能失同步…可重建"）；Letta MemFS 反例：小目录不要索引 | 若要缓存，**必须是可重建、非模型作者**的那种 | "每次渲染直读"的失败模式无第一方文档（属推论）；我们几百个文件，先直读、以取数合同兜住 |
+| 自动捕获**不设门**（Q4） | 同 §四 结论 1、4；**Claude Tag v2.1.268** 的修法是"每个频道各自记自己的、不再跨公开频道回忆"——**加作用域而非加审批** | 作用域（房间/工作区级）+ 事后逐条删 | 单主体产品没有多频道串味问题，抄的是"隔离优先"这条判断，不是频道机制 |
+| 技能**可见 + 退役**（Q5） | **Claude Code `/skill-doctor`（≥v2.1.252）**：`/plugin` 的 **Stats** 页列每个技能的 **context 成本 + 调用次数**，并标出"从未被调用"的、给出关闭位置；Letta `skills list` / `skills delete` | **"成本 + 次数 + 关在哪"三件**正是我们要的列；退役=关掉/删掉，不是新生命周期 | 没有产品把"agent 自学的技能"与"作者写的技能"在 UI 里分开；这一格是我们自己的（P3 要求"能看能改能删"，而外部多为文件或 CLI） |
+
+【判断】补采把 C 卡的形状钉得更死：技能面照 `/skill-doctor`（用量 + 成本 + 关闭位置），"记下来"不新增作者语义（走消息 → 记忆，`source` 天然可考）。
 
 **来源**（2026-10-19 取，一手文档/更新日志；直连被代理持解析，经 `r.jina.ai` 取原文）：ChatGPT 记忆帮助页 `help.openai.com/en/articles/8590148` 与 2026-06-04 更新日志 `help.openai.com/en/articles/6825453`；2024-09-05 记忆与控件公告 `openai.com/index/memory-and-new-controls-for-chatgpt/`。Claude 记忆帮助页 `support.claude.com/en/articles/11817273`。Claude Code 记忆文档 `code.claude.com/docs/en/memory` 与 changelog v2.1.181 / v2.1.214 / v2.1.268 / v2.1.275。Letta memory blocks `docs.letta.com/guides/agents/memory-blocks`、MemFS `docs.letta.com/concepts/memfs`。Mem0 记忆类型 `docs.mem0.ai/core-concepts/memory-types`、copilot `docs.mem0.ai/platform/copilot`、DSH 插件 `docs.mem0.ai/integrations/deepseek-plugin`。
-【未证实】ChatGPT 存在"记忆审批队列"：未找到任何一手来源；社区帖未采信。
+【未证实】ChatGPT 存在"记忆审批队列"：未找到任何一手来源；社区帖未采信。第二轮补采另留下五处未证实（Notion/Logseq 的逐编辑留痕、Ink & Switch 原文、任何"人 vs agent"作者字段、任何"先排队后取消"的 changelog、每次渲染直读磁盘的失败模式），清单在 [先例档](../memory-panel/261019-file-memory-panel-precedents.md) 末节。
 
 ## 五、候选：七个切片
 

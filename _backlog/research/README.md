@@ -11,8 +11,9 @@
 - **命名**：`YYMMDD-<slug>.md`（本仓推敲卡的日期格式），以它服务的卡或主题起名；卡片链接它。
 - **主题子目录（2026-10-05 用户拍板）**：材料按主题分装进子目录（`upstream/` = DSH 上游递交面、
   `positioning/` = 定位与打动管理层、`self-update/` = 助手怎么学到东西与学到了怎么维护、
+  `memory-panel/` = 记忆/知识面板的外部产品先例、
   `tech-exploration/` = 技术定调与技术实验、`usage/` = 真实使用观察），**文件名与证据正文保留，相对链接随位置修复**；新主题开新子目录，根目录不再平铺。
-  子目录**随材料在档而在**（材料不再被取用即整目录随迁，见「使用与校准」）：当前在档 `positioning/`、`self-update/`、`usage/`；`upstream/`、`tech-exploration/` 已迁入调研归档，再需要时新开同名目录即可。
+  子目录**随材料在档而在**（材料不再被取用即整目录随迁，见「使用与校准」）：当前在档 `positioning/`、`self-update/`、`memory-panel/`、`usage/`；`upstream/`、`tech-exploration/` 已迁入调研归档，再需要时新开同名目录即可。
   索引记**含子目录的路径**。
 - **无状态行**：不把原料伪装成结论。制度级索引互查要求本区文件（含主题子目录）被本 README 点名；活跃正文的相对链接复用 verify 现有纯核。该结构检查不验证证据质量、URL/anchors 或实现/效果，对活跃 `issues/` 和 `bugs/` 同样适用。
 - **生命周期——跟着卡片走**：最后一张使用它的活卡关闭时 `git mv` 到
@@ -32,7 +33,7 @@ intent: "背后那一句思路。"
 
 | 字段 | 写什么 |
 |---|---|
-| `topic` | 跟子目录走。`positioning/` 写 `定位`，`self-update/` 写 `自更新`，`upstream/` 写 `上游`，`tech-exploration/` 写 `技术`，`usage/` 写 `使用`。新主题先开子目录，`topic` 用一个短中文词，和这个目录对应 |
+| `topic` | 跟子目录走。`positioning/` 写 `定位`，`self-update/` 写 `自更新`，`memory-panel/` 写 `记忆面板`，`upstream/` 写 `上游`，`tech-exploration/` 写 `技术`，`usage/` 写 `使用`。新主题先开子目录，`topic` 用一个短中文词，和这个目录对应 |
 | `intent` | 一行，加引号。写这篇为什么存在、背后的思路，不写证据正文 |
 
 搬走时 `topic` 和 `intent` 不动。随卡进 [`_archive/research/`](../_archive/research/README.md)。
@@ -56,6 +57,7 @@ research 为问题和缺陷提供依据。问题按 [关闭条件](../README.md)
 - [261018-proactive-ux-mechanics.md](positioning/261018-proactive-ux-mechanics.md)——引用卡：[主动性 v1 提案](../../notes/implemented/2026-10-18-proactive-face.md)。近月 personal agent（Claude/Lindy/Muse/dots/ChatGPT Scheduled 等）"主动性"的 UX 机制：触发/送达/开关对象/找人接缝，跨家共性六条、已知失败形态、10-12→10-18 增量刷新与未能证实清单
 - [261018-oss-proactivity-mechanisms.md](positioning/261018-oss-proactivity-mechanisms.md)——引用卡：[主动性 v1 提案](../../notes/implemented/2026-10-18-proactive-face.md)。老 Hermes 的主动性机制 H1–H8、"上手难"的可指认结构性代价，以及 OpenClaw/Letta/Khoj/Home Assistant/AutoGPT 的可搬运 M1–M10 与不搬 N1–N4
 - [261018-proactivity-baseline.md](positioning/261018-proactivity-baseline.md)——引用卡：[主动性 v1 提案](../../notes/implemented/2026-10-18-proactive-face.md)。本仓主动性现状事实表：8 条"没人开口也会发生"的事、开关清单、已拍板的硬约束、缺口表与输入观察读数现状（30 天观察实际未启动）
+- [261019-file-memory-panel-precedents.md](memory-panel/261019-file-memory-panel-precedents.md)——间接使用：2026-10-19 用户直接请求（文件记忆 + 网页面板的五个设计问题）；无引用卡，待面板设计推敲取用。第一方证据：面板能否直建条目、直写深度与留痕、派生快照 vs 直读、无审批自动捕获的缓解、技能可见性，附未证实清单
 - [261011-input-observation.md](usage/261011-input-observation.md)——引用卡：[输入边界](../_archive/settled_issues/261007-input-boundary.md)（**活观察**：读数档被 [triggers.md](../triggers.md) 的触发行点名，30 天观察期结束前留在活跃区）。30 天输入观察的读数档：A 自发投递 / B 时长 / C 入口后的操作的口径、剔除规则、环境创建约定与每周快照（读数命令 `pnpm observe`）
 - [261005-exec-demo-narratives.md](positioning/261005-exec-demo-narratives.md)——间接使用：[差异性对照](positioning/261012-personal-agent-differentiation.md) 引用其 Huper 边界与 CFO 证据行；原引用卡（输入边界）已结档。面向 CEO/CFO 的十分钟演示叙事
 - [261005-ceo-time-and-decision-research.md](positioning/261005-ceo-time-and-decision-research.md)——间接使用：[差异性对照](positioning/261012-personal-agent-differentiation.md) 两处引用（一把手时间与真实需求）；原引用卡（输入边界）已结档。一把手时间分配与决策过程
