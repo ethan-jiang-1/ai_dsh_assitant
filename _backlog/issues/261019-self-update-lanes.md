@@ -5,10 +5,10 @@ opened: 2026-10-19
 
 # 推敲：维护面收口——面板读真值、直写生效、看得见变化（A 卡：P0）
 
-> 立卡：2026-10-19 ｜ 状态：推敲中 ｜ 类型：Feature ｜ 可关闭：否 ｜ 毕业：做现在 ｜ 下一步 = **A2 proposed 卡**（A1a 已交付，见「切片进展」）；Q3 与 B 清理口径待本人答复
+> 立卡：2026-10-19 ｜ 状态：推敲中 ｜ 类型：Feature ｜ 可关闭：否 ｜ 毕业：做现在 ｜ 下一步 = **A3 proposed 卡**（A1a/A2 已交付，见「切片进展」）；A1b/B/C 按计划推进
 > **定位：** 本卡是 10-19 自更新统筹件的 **P0 总卡，兼维护面 IA / route 契约的 owner**；授权后转为该战役的收口卡（切片停点与证据住本卡）。B 卡（[Viki 内容面](261019-viki-content-governance.md)）与 C 卡（[学到的东西](261019-learned-skills-surface.md)）是独立卡，共用依据档 [self-update/261019-self-update-lanes](../research/self-update/261019-self-update-lanes.md)。
-> **授权现状（别读错）：** 本人 10-19 委托了**冲突/退役的形状**（那一格已定案，见「冲突与退役」），并在 2026-10-19 以「落地计划」授权按本卡 v2 的切片顺序实施；**A1a 已交付**（[决定 note](../../notes/implemented/2026-10-19-maintenance-read-authority.md)）。其余各问仍是**建议**；卡上的建议与默认值本身不授予新的实施权限（[_backlog/AGENTS.md](../AGENTS.md) 铁律 1）——每片仍按 [`notes/README.md`](../../notes/README.md) §二之二立 proposed 卡，点名/点头后才动手。
-> **要你答的两句（A1a 已按计划交付，① 顺序已于 2026-10-19「落地计划」采用）：** ② **Q3**：退役 `.desk/state.json` 与 `desk-refresh` 技能（合同删减 + 模型可见减法）——**仍待你一句**；③ **B 卡口径**：越界记录整批清除，还是先看清单（建议：先 dry-run 清单，确认后整批清除）——**仍待你一句**。
+> **授权现状（别读错）：** 本人 10-19 委托了**冲突/退役的形状**（那一格已定案，见「冲突与退役」），并在 2026-10-19 以「落地计划」授权按本卡 v2 的切片顺序实施；**A1a 已交付**（[A1a note](../../notes/implemented/2026-10-19-maintenance-read-authority.md)）；A2 已交付（[A2 note](../../notes/implemented/2026-10-19-maintenance-direct-write.md)）。其余各问仍是**建议**；卡上的建议与默认值本身不授予新的实施权限（[_backlog/AGENTS.md](../AGENTS.md) 铁律 1）——每片仍按 [`notes/README.md`](../../notes/README.md) §二之二立 proposed 卡，点名/点头后才动手。
+> **待你拍板项已按 2026-10-19「落地计划」与后续「主动往前跑」指令采用默认（still vetoable）：** ② Q3 = **退役** `.desk/state.json` 与 `desk-refresh`（A1b）；③ B 清理 = **先 dry-run 清单、确认后整批清除**（B4 的真数据仍由本人执行并回填回执）。当前不再重复提问。
 > **默认值（agent-selected，vetoable；2026-10-19「落地计划」已采用，still vetoable）：** 面板 IA 四 tab——记忆 / 知识 / 技能 / Viki，research 仍是房间、不单开 tab；C2 v1 只做 **assistant 消息**的"记下来"；A3 baseline = "自你上次打开维护面板以来" + "全部标为已读"；C1 成本列 v1 省略（或只报 always-on 字节估算，不用整份 `SKILL.md` 冒充）；B 删除回执带 commit id + 一个"恢复这次删除"的动作；A2 传输由 Step 0 探针决定（strict codec 优先，不能挂走 host POST，**绝不回退 prompt**）。
 > **2026-10-19 复审重写：** 修正 A1 真值源（working folder，不是会话工作区）、A2 传输前提（strict codec 可手写；261004 的"需要上游缝"结论不成立，待真机探针）、A3 baseline、退役清单与验收；依据档 [§九](../research/self-update/261019-self-update-lanes.md#九2026-10-19-复盘更正) 同步更正。
 
@@ -20,7 +20,7 @@ opened: 2026-10-19
 2. **知识正文不是缺 host API**：`listKnowledge()` 返回 `KnowledgePage.body`，`readKnowledgePage()` 还带反链（[`knowledge-room.ts:164`](../../packages/dsh-smart-assistant/src/host/knowledge-room.ts#L164)、[`host/index.ts:270`](../../packages/dsh-smart-assistant/src/host/index.ts#L270)）。缺的是**客户端展示**（抽屉/正文）。
 3. **直调车道的失败点已定位到 codec 形状，不是"classic script 拿不到 strict codec"**：strict codec 只是 `{ mode: 'strict', typeSymbol, create(): { parse } }`（[`types.ts:326`](../../vendor/dsh/packages/typert/protocol/src/types.ts#L326-L361)），`create()` 直接调用（[`gateway/src/index.ts:1671`](../../vendor/dsh/packages/api/gateway/src/index.ts#L1671)），**不需要 zod/模块表**；`requireStrictInputs` 只查 parameter/uplink/context，不查 result（[`client/index.ts:803`](../../vendor/dsh/packages/api/gateway/src/client/index.ts#L803-L818)）。现有贡献把 **parameter** 写成 `{ mode: 'src-json' }`（[`approve-mount.ts:31`](../../packages/dsh-smart-assistant/src/client/approve-mount.ts#L31-L42)），这才是挂载失败的直接原因。**A2 第一步是 codec 探针**；能挂则沿用现有 namespace，不能挂则 host POST，均不回退 prompt。
 
-**下一步：** 等三句答复；同时按本卡 v2 的切片顺序立 proposed 卡。第一片 **A1a**（读权威）不动 `.desk/state.json`，所以不等 Q3；**A2** 先做 codec 探针；**A1b**（退役）在 Q3 明确后才立卡。
+**下一步：** A1a/A2 已交付；下一片 **A3**（收据），随后 **A1b**（退役，Q3 已按计划采用）、B、C1/C2。
 
 ## 已知与未决
 
@@ -46,7 +46,7 @@ opened: 2026-10-19
 | 片 | 做什么 | 形状要点 |
 |---|---|---|
 | **A1a 读权威** | 宿主新增只读路由 `assistantRooms`（`GET /api/assistant/rooms`；形状照 `desk-projection` 的 `ctx.connection.fetch.register`），从 **`assistantMemory` 服务**取四房间真值；客户端面板改读它；知识正文抽屉；共享 tab/drawer 骨架 | route 注入 `assistantMemory` + `connection`，**不接收 session/workspace 路径**；只读、不建文件、不解析 `.desk/state.json`；正文随列表（受 byte cap）或 `?kind=&id=` 单读；错误态 missing/invalid/oversized；`revision` 供 A3 |
-| **A2 直写** | 先 codec 探针（改 parameter 为手写 strict，result 仍 `src-json`）；能挂则沿用 `assistantKnowledge` namespace；不能挂则新增 host POST `POST /api/assistant/rooms/actions`。直写动作：知识批准/过时、记忆纠错/退役、技能退役；每次 `source: panel-direct` 入审批账 | 记忆纠错 = 新记录 + `supersedes` 旧 id（旧记录进 archive，不改正文）；退役 = 移出活跃集（不是硬删）；白名单按 action + id + 状态；kind 扩 `correct|retire` 并加 before/after（旧行兼容）；**不新增**（C2 例外只允许 `source=panel:message:<id>` 的新建）；**不回退 prompt**，失败回 POST |
+| **A2 直写** | A2a 真机探针：strict parameter codec 修复后，client entry 仍无法消费动态挂载的 namespace（Cordis inject 守卫）→ 产品统一走**同一条 `assistant-rooms` 的 POST**（`knowledge.approve/deprecate`、`memory.correct/retire`、`skill.retire`）；每次 `source: panel-direct` + before/after 入审批账 | 记忆纠错 = 新记录 + `supersedes` 旧 id（旧记录进 archive，不改正文）；退役 = 移出活跃集（不是硬删）；白名单按 action + id + 状态；kind 扩 `correct|retire` 并加 before/after（旧行兼容）；**不新增**（C2 例外只允许 `source=panel:message:<id>` 的新建）；**不回退 prompt**，失败回 POST |
 | **A3 收据** | "自上次以来变了什么"：`revision`/mtime + `audit/approvals.jsonl` 的纯核；面板 receipt；"全部标为已读" | 不新增 `SessionEvent`；baseline 住客户端（localStorage，按 working folder 键）；复用 client 已有的"会话 settle → 4s 重读"触发（[`client/index.ts:339`](../../packages/dsh-smart-assistant/src/client/index.ts#L339-L369)），不另造 poller |
 | **A1b 退役** | Q3 确认后：删 `.desk/state.json` 契约、`desk-refresh` 技能、`DESK_REFRESH_STEP`、刷新动词、model-visible 手册/交叉引用、全部测试/探针/场景 | 全量 grep 零命中（排除 `_archive`/历史 note/trial-home）；preflight 改用新 route；`desk-refresh-loop` eval 任务退役；`pnpm start` 绿；`pnpm eval` + `repo-live-probe` 证明模型面只有减法 |
 
@@ -95,12 +95,12 @@ opened: 2026-10-19
 | 片 | 状态 | 证据 / 停点 |
 |---|---|---|
 | **A1a 读权威** | **已交付**（2026-10-19） | `91f979f`（host route/row/tests）、`f1cb051`（client 换源/抽屉/文档/scene）、`8d46246`（scene 凭据+期望）、`c9cf41a`（web hook 探针+抽屉主题）；`vitest` 764 绿、`verify` 42 绿、`web-expected` 两场景 PASS、`webui-preflight` 绿；**人判待本人**：在真机上看一条知识页正文。决定 note = [maintenance-read-authority](../../notes/implemented/2026-10-19-maintenance-read-authority.md) |
-| **A2 直写** | 未开 | 先做 strict-codec 真机探针；能挂沿用 `assistantKnowledge`，不能挂 host POST；proposed 卡待立 |
-| **A3 收据** | 未开 | 等 A2 的写入/台账形状 |
-| **A1b 退役** | **等 Q3** | 退役 `.desk/state.json` + `desk-refresh` 全表面；Q3 明确后才立卡 |
+| **A2 直写** | **已交付**（2026-10-19） | `3a0d125`（host POST 五动作 + ledger before/after + client 即时换组 + `approve-direct-probe`）；`vitest` 776 绿、`verify` 42 绿；探针 PASS（`source: panel-direct`，无 prompt）；**人判待本人**：真机点一次批准/纠错/退役。决定 note = [maintenance-direct-write](../../notes/implemented/2026-10-19-maintenance-direct-write.md) |
+| **A3 收据** | **下一片** | 读 A2 的台账（kind/before/after）+ route `revision`；proposed 卡待立 |
+| **A1b 退役** | Q3 已按计划采用 | A3 后立卡；退役 `.desk/state.json` + `desk-refresh` 全表面 |
 
 ## 关闭条件
 
-A1a/A2/A3/A1b 落地（A1b 以 Q3 确认为前提）且上表 A1a-1…A1b-3 有真证据（spec 名、探针判决、命令输出记在本卡或指向的提交说明）；`desk-refresh` 与房间数据文件合同同 diff 退役，不留第二份契约、不留悬空交叉引用；本人在真机上确认"读到正文、点完生效、看得见变化"；结论与去向按[关闭条件](../README.md#关闭条件)交接后归档。
+A1a/A2/A3/A1b 落地（A1b 以 Q3 记录为前提；Q3 已按 2026-10-19 计划采用）且上表 A1a-1…A1b-3 有真证据（spec 名、探针判决、命令输出记在本卡或指向的提交说明）；`desk-refresh` 与房间数据文件合同同 diff 退役，不留第二份契约、不留悬空交叉引用；本人在真机上确认"读到正文、点完生效、看得见变化"；结论与去向按[关闭条件](../README.md#关闭条件)交接后归档。
 
 B/C 的验收、关闭与实现分别住 [B 卡](261019-viki-content-governance.md) 与 [C 卡](261019-learned-skills-surface.md)；本卡只在 IA/route 契约上保持它们不漂移。
