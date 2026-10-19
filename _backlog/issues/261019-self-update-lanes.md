@@ -5,7 +5,7 @@ opened: 2026-10-19
 
 # 推敲：维护面收口——面板读真值、直写生效、看得见变化（A 卡：P0）
 
-> 立卡：2026-10-19 ｜ 状态：推敲中 ｜ 类型：Feature ｜ 可关闭：否 ｜ 毕业：做现在 ｜ 下一步 = **A3 proposed 卡**（A1a/A2 已交付，见「切片进展」）；A1b/B/C 按计划推进
+> 立卡：2026-10-19 ｜ 状态：推敲中 ｜ 类型：Feature ｜ 可关闭：否 ｜ 毕业：做现在 ｜ 下一步 = **A1b 退役**（A1a/A2/A3 已交付，见「切片进展」）；随后 B/C
 > **定位：** 本卡是 10-19 自更新统筹件的 **P0 总卡，兼维护面 IA / route 契约的 owner**；授权后转为该战役的收口卡（切片停点与证据住本卡）。B 卡（[Viki 内容面](261019-viki-content-governance.md)）与 C 卡（[学到的东西](261019-learned-skills-surface.md)）是独立卡，共用依据档 [self-update/261019-self-update-lanes](../research/self-update/261019-self-update-lanes.md)。
 > **授权现状（别读错）：** 本人 10-19 委托了**冲突/退役的形状**（那一格已定案，见「冲突与退役」），并在 2026-10-19 以「落地计划」授权按本卡 v2 的切片顺序实施；**A1a 已交付**（[A1a note](../../notes/implemented/2026-10-19-maintenance-read-authority.md)）；A2 已交付（[A2 note](../../notes/implemented/2026-10-19-maintenance-direct-write.md)）。其余各问仍是**建议**；卡上的建议与默认值本身不授予新的实施权限（[_backlog/AGENTS.md](../AGENTS.md) 铁律 1）——每片仍按 [`notes/README.md`](../../notes/README.md) §二之二立 proposed 卡，点名/点头后才动手。
 > **待你拍板项已按 2026-10-19「落地计划」与后续「主动往前跑」指令采用默认（still vetoable）：** ② Q3 = **退役** `.desk/state.json` 与 `desk-refresh`（A1b）；③ B 清理 = **先 dry-run 清单、确认后整批清除**（B4 的真数据仍由本人执行并回填回执）。当前不再重复提问。
@@ -20,7 +20,7 @@ opened: 2026-10-19
 2. **知识正文不是缺 host API**：`listKnowledge()` 返回 `KnowledgePage.body`，`readKnowledgePage()` 还带反链（[`knowledge-room.ts:164`](../../packages/dsh-smart-assistant/src/host/knowledge-room.ts#L164)、[`host/index.ts:270`](../../packages/dsh-smart-assistant/src/host/index.ts#L270)）。缺的是**客户端展示**（抽屉/正文）。
 3. **直调车道的失败点已定位到 codec 形状，不是"classic script 拿不到 strict codec"**：strict codec 只是 `{ mode: 'strict', typeSymbol, create(): { parse } }`（[`types.ts:326`](../../vendor/dsh/packages/typert/protocol/src/types.ts#L326-L361)），`create()` 直接调用（[`gateway/src/index.ts:1671`](../../vendor/dsh/packages/api/gateway/src/index.ts#L1671)），**不需要 zod/模块表**；`requireStrictInputs` 只查 parameter/uplink/context，不查 result（[`client/index.ts:803`](../../vendor/dsh/packages/api/gateway/src/client/index.ts#L803-L818)）。现有贡献把 **parameter** 写成 `{ mode: 'src-json' }`（[`approve-mount.ts:31`](../../packages/dsh-smart-assistant/src/client/approve-mount.ts#L31-L42)），这才是挂载失败的直接原因。**A2 第一步是 codec 探针**；能挂则沿用现有 namespace，不能挂则 host POST，均不回退 prompt。
 
-**下一步：** A1a/A2 已交付；下一片 **A3**（收据），随后 **A1b**（退役，Q3 已按计划采用）、B、C1/C2。
+**下一步：** A1a/A2/A3 已交付；下一片 **A1b**（退役；Q3 已按计划采用），随后 B、C1/C2。
 
 ## 已知与未决
 
@@ -96,8 +96,8 @@ opened: 2026-10-19
 |---|---|---|
 | **A1a 读权威** | **已交付**（2026-10-19） | `91f979f`（host route/row/tests）、`f1cb051`（client 换源/抽屉/文档/scene）、`8d46246`（scene 凭据+期望）、`c9cf41a`（web hook 探针+抽屉主题）；`vitest` 764 绿、`verify` 42 绿、`web-expected` 两场景 PASS、`webui-preflight` 绿；**人判待本人**：在真机上看一条知识页正文。决定 note = [maintenance-read-authority](../../notes/implemented/2026-10-19-maintenance-read-authority.md) |
 | **A2 直写** | **已交付**（2026-10-19） | `3a0d125`（host POST 五动作 + ledger before/after + client 即时换组 + `approve-direct-probe`）；`vitest` 776 绿、`verify` 42 绿；探针 PASS（`source: panel-direct`，无 prompt）；**人判待本人**：真机点一次批准/纠错/退役。决定 note = [maintenance-direct-write](../../notes/implemented/2026-10-19-maintenance-direct-write.md) |
-| **A3 收据** | **下一片** | 读 A2 的台账（kind/before/after）+ route `revision`；proposed 卡待立 |
-| **A1b 退役** | Q3 已按计划采用 | A3 后立卡；退役 `.desk/state.json` + `desk-refresh` 全表面 |
+| **A3 收据** | **已交付**（2026-10-19） | `627b1f2`（纯核 + route ledger + ReceiptView + docs）；`vitest` 786 绿、`verify` 42 绿；**人判待本人**：打开面板看"自上次以来"、点"全部标为已读"归零。决定 note = [maintenance-receipt](../../notes/implemented/2026-10-19-maintenance-receipt.md) |
+| **A1b 退役** | **下一片** | Q3 已按计划采用；退役 `.desk/state.json` + `desk-refresh` 全表面；proposed 卡待立 |
 
 ## 关闭条件
 
