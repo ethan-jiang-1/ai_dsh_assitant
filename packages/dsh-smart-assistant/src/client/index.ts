@@ -44,6 +44,7 @@ import {
 } from './room-data-core'
 import type { DeskStore } from './room-data-core'
 import { bindDeskEnv, loadDesk, loadDeskFor, openBeside } from './room-data-io'
+import { approveKnowledgePage, correctMemory, deprecateKnowledgePage, retireMemory, retireSkill } from './room-data-actions'
 import { AssistantBrandMark, AssistantBrandName, AssistantHeroMark } from './brand'
 import { deskCommands, roomCommands } from './commands'
 import { createDeskActivityHandoff } from './desk-view-actions'
@@ -483,6 +484,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     KnowledgePanel, MemoryPanel, deskStore, deskSlice,
     DashboardPanelIcon, DashboardMainPanel, KnowledgeTabBody, MemoryTabBody, roomTabTitle,
     roomCommands, AssistantHeroMark, FirstMileDock, ApprovalDockBanner, expirePending, settlePending, loadDeskFor, retireStaleReceipt, looksLikeDesk,
+    approveKnowledgePage, deprecateKnowledgePage, correctMemory, retireMemory, retireSkill,
   }
 }
 

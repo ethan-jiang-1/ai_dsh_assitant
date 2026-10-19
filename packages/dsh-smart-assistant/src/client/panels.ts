@@ -12,7 +12,7 @@ import { patchDesk, useDesk } from './room-data-core'
 import { shortTime } from './format'
 import {
   approveKnowledgePage, askApproveProposal, askRejectProposal, correctMemory, deprecateKnowledgePage,
-  flagKnowledgePage,
+  flagKnowledgePage, retireMemory,
 } from './room-data-actions'
 import { cell, CorrectableRow, muted, panelAlerts, refreshRow, sectionTitle } from './dom-utils'
 import { loadKnowledgeBody } from './room-data-io'
@@ -211,7 +211,8 @@ export function memoryGroups(memories: NonNullable<DeskData['memories']>, sessio
         placeholder: '正确的是什么？',
         deskSession: session,
         source: memory.source,
-        onSubmit: (text: string) => { correctMemory(String(memory.text ?? ''), text, String(memory.id), session) },
+        onSubmit: (text: string) => { correctMemory(text, String(memory.id), session) },
+        actions: [{ label: '退役', run: () => { retireMemory(String(memory.id), session) }, destructive: true }],
       }))))
   }
   return out

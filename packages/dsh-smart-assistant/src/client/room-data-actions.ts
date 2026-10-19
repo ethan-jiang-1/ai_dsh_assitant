@@ -1,45 +1,42 @@
 /**
- * The desk's room-data action wrappers: one function per principal-facing panel action, each
- * composing the wording the conversation receives. They are pure text + dispatch over
- * `sendPrompt` — the send, the poller and the desk-file reads live in `./room-data-io`, the
- * direct-call lane's remote accessor comes back from there too.
+ * The panel's room actions: the A2 direct writes (approve/deprecate/correct/retire) go through
+ * the host `POST /api/assistant/rooms` route and patch the session's projection immediately;
+ * the remaining conversation lanes (first start, knowledge flag, skill proposals, legacy
+ * refresh) still send a prompt. The direct paths never fall back to a prompt.
  *
  * @module dsh-smart-assistant/client/room-data-actions
  */
 
 import { patchDesk } from './room-data-core'
-import { getDeskRemote, sendPrompt } from './room-data-io'
+import type { DeskData } from './room-data-core'
+import { patchRoomRows, postRoomsAction, sendPrompt } from './room-data-io'
 
 /**
- * Every desk action ends the same way: the desk-refresh skill owns the rewrite. Naming the
- * skill in the message makes the model's path explicit instead of hoping skill discovery fires
- * on a small model (measured 2026-09-26: cold discovery skipped the skill on 2 of 3 live runs).
- * The panel and the skill ship together; the pairing is recorded on the campaign card §四·十九.
+ * Every remaining prompt lane ends the same way: the desk-refresh skill owns the rewrite. Naming
+ * the skill in the message makes the model's path explicit instead of hoping skill discovery
+ * fires on a small model (measured 2026-09-26). The refresh path and the skill are retired in A1b.
  */
 const DESK_REFRESH_STEP = '完成后加载 desk-refresh 技能，把房间数据文件重写一遍。'
 export { DESK_REFRESH_STEP }
 
-/** Ask the assistant to refresh the room data file; the poller re-reads until it actually moves. */
+/** Ask the assistant to refresh the room data file (legacy prompt path; the panel re-reads the route). */
 export function askRefresh(sessionId?: string): void {
   sendPrompt('刷新房间数据：加载 desk-refresh 技能，严格按它把房间数据文件（.desk/state.json）重写一遍。', '刷新房间数据', 'desk', sessionId)
 }
 
 /**
- * Day-0's true start (real-user walk finding, 2026-10-06): on a desk-less folder the
- * refresh button produced an honest zero-report loop with no meaning — the principal
- * clicked it three times "not knowing what I'm doing". The empty desk's next step is the
- * first conversation, not a refresh; this invites that conversation in this session (on a
- * fresh folder the first-conversation skill takes it from here).
+ * Day-0's true start (real-user walk finding, 2026-10-06): on a desk-less folder the refresh
+ * button produced an honest zero-report loop with no meaning. The empty desk's next step is the
+ * first conversation, not a refresh.
  */
 export function askStart(sessionId?: string): void {
   sendPrompt('开始第一件事：从最近要我拍板、还要跟进的一件事说起。', '开始第一件事', 'desk', sessionId)
 }
 
 /**
- * Inline skill-proposal approval (B2, 2026-10-06): the click IS the approval — the prompt
- * asks the assistant to edit the proposal file's status to approved and then land_skill it
- * in the same turn. Same one-click shape as the knowledge draft's 批准 button, so every
- * review queue on the principal's surface is in-place, not a separate chore.
+ * Inline skill-proposal approval (B2, 2026-10-06): the click IS the approval. The prompt asks
+ * the assistant to edit the proposal file's status to approved and land_skill it in the same
+ * turn. This lane stays on the conversation until C1 exposes the skills surface.
  */
 export function askApproveProposal(name: string, sessionId?: string): void {
   sendPrompt(
@@ -56,74 +53,128 @@ export function askRejectProposal(name: string, reason: string, sessionId?: stri
   )
 }
 
-/**
- * Correct one memory record. This is the cultivation loop: the principal says which line is
- * wrong and what is right, and the assistant rewrites the record and refreshes the desk.
- */
-export function correctMemory(text: string, correction: string, rowId: string, sessionId?: string): void {
-  sendPrompt(
-    `请更正这条记忆。原记录：「${text}」。正确的是：${correction}。${DESK_REFRESH_STEP}`,
-    '更正', rowId, sessionId,
-  )
+/** Recompute the panel's counts from the rows after a direct write (one home for the arithmetic). */
+function recount(data: DeskData): DeskData {
+  return {
+    ...data,
+    counts: {
+      ...data.counts,
+      memories: (data.memories ?? []).length,
+      skills: (data.skills ?? []).length,
+      knowledgeDraft: (data.knowledge ?? []).filter(page => page.status === 'draft').length,
+      knowledgeStable: (data.knowledge ?? []).filter(page => page.status === 'stable').length,
+    },
+  }
 }
 
 /**
- * Approve one draft knowledge page. The counterpart of a correction: the principal says the page
- * is right, and the assistant promotes it so it starts counting in retrieval and the digest.
- *
- * Direct-call lane (approve-direct-call): the click IS the approval, so the flip goes straight
- * to the host service — seconds, not a model round trip — and the service writes the ledger
- * line (audit/approvals.jsonl, source: panel-direct). Without a session id, or before the
- * remote namespace mounts (first boot after install), it falls back to the legacy prompt path,
- * which is honest degradation rather than a silently lost approval. The desk file itself still
- * lists the row as a draft until the next desk-refresh turn rewrites it — a panel-side re-read
- * of the room state is the direct-call card's open item, so the success branch reports the
- * flip instead of pretending the desk already reflects it.
+ * Approve one draft knowledge page through the host action route; patch the row immediately.
+ * The failure is a readable note, never a prompt fallback (A2).
+ * @param title - row title for the note/audit.
+ * @param rowId - knowledge page id.
+ * @param sessionId - the tab-bound session (audit context).
  */
 export function approveKnowledgePage(title: string, rowId: string, sessionId?: string): void {
-  const namespace = getDeskRemote()?.assistantKnowledge as { approvePage?: (request: unknown) => Promise<unknown> } | undefined
-  if (typeof namespace?.approvePage === 'function' && sessionId !== undefined) {
-    void namespace.approvePage({ pageId: rowId, sessionId, title }).then((result: unknown) => {
-      const outcome = result as { ok?: boolean, error?: { message?: string } }
-      if (outcome?.ok === false) {
-        patchDesk({ note: outcome.error?.message ?? '批准未生效' })
-        return
-      }
-      patchDesk({ note: `已批准：「${title}」入 stable（下次房间数据刷新移出待审）` })
-    }).catch((reason: unknown) => {
-      const text = String(reason)
-      if (text.includes('only drafts flip')) {
-        // Already stable — nothing to approve; the fallback prompt would ask the model to
-        // re-promote a promoted page (idempotent but misleading).
-        patchDesk({ note: '该页已是 stable，无需再批' })
-        return
-      }
-      patchDesk({ note: `直调批准失败，回退指令通道：${text}` })
-      sendPrompt(
-        `面板代本人批准——知识页「${title}」已获批准：请把它从 draft 翻成 stable。${DESK_REFRESH_STEP}`,
-        '批准', rowId, sessionId,
-      )
-    })
-    return
-  }
-  sendPrompt(
-    `面板代本人批准——知识页「${title}」已获批准：请把它从 draft 翻成 stable。${DESK_REFRESH_STEP}`,
-    '批准', rowId, sessionId,
-  )
+  void postRoomsAction('knowledge.approve', { id: rowId, title, ...(sessionId !== undefined ? { sessionId } : {}) }).then(outcome => {
+    if (!outcome.ok) {
+      patchDesk({ note: `批准失败：${outcome.reason}` })
+      return
+    }
+    patchRoomRows(sessionId, data => recount({
+      ...data,
+      knowledge: (data.knowledge ?? []).map(page =>
+        String(page.id ?? page.title) === rowId ? { ...page, status: 'stable' } : page),
+    }))
+    patchDesk({ note: `已批准：「${title}」入 stable` })
+  })
 }
 
 /**
- * Mark one stable knowledge page past its use-by date. The page stays in place (links resolve)
- * but stops counting as current — the third lifecycle step beside approval and correction.
+ * Mark one stable knowledge page deprecated through the host route; patch the row immediately.
+ * @param title - row title for the note.
+ * @param rowId - knowledge page id.
+ * @param sessionId - the tab-bound session (audit context).
  */
 export function deprecateKnowledgePage(title: string, rowId: string, sessionId?: string): void {
-  sendPrompt(
-    `知识页「${title}」过时了，请把它标记为 deprecated（保留在原处以便链接解析）。${DESK_REFRESH_STEP}`,
-    '过时了', rowId, sessionId,
-  )
+  void postRoomsAction('knowledge.deprecate', { id: rowId, ...(sessionId !== undefined ? { sessionId } : {}) }).then(outcome => {
+    if (!outcome.ok) {
+      patchDesk({ note: `标记过时失败：${outcome.reason}` })
+      return
+    }
+    patchRoomRows(sessionId, data => recount({
+      ...data,
+      knowledge: (data.knowledge ?? []).map(page =>
+        String(page.id ?? page.title) === rowId ? { ...page, status: 'deprecated' } : page),
+    }))
+    patchDesk({ note: `已标记过时：「${title}」` })
+  })
 }
 
-/** Tell the assistant what is wrong with one knowledge page. */
+/**
+ * Correct one memory via a superseding record: the old file is archived by the host service,
+ * the new row replaces it in place. No prompt, no in-place body edit.
+ * @param correction - the corrected sentence.
+ * @param rowId - the active memory record id.
+ * @param sessionId - the tab-bound session (audit context).
+ */
+export function correctMemory(correction: string, rowId: string, sessionId?: string): void {
+  void postRoomsAction('memory.correct', { id: rowId, text: correction, ...(sessionId !== undefined ? { sessionId } : {}) }).then(outcome => {
+    if (!outcome.ok) {
+      patchDesk({ note: `更正失败：${outcome.reason}` })
+      return
+    }
+    const newId = typeof outcome.value.id === 'string' ? outcome.value.id : rowId
+    patchRoomRows(sessionId, data => recount({
+      ...data,
+      memories: (data.memories ?? []).map(memory =>
+        String(memory.id) === rowId
+          ? { ...memory, id: newId, text: correction, updated: new Date().toISOString(), source: 'panel-direct' }
+          : memory),
+    }))
+    patchDesk({ note: '已更正这条记忆（旧记录进 archive）' })
+  })
+}
+
+/**
+ * Retire one memory record out of the active set (the host archives it; nothing is deleted).
+ * @param id - memory record id.
+ * @param sessionId - the tab-bound session (audit context).
+ */
+export function retireMemory(id: string, sessionId?: string): void {
+  void postRoomsAction('memory.retire', { id, ...(sessionId !== undefined ? { sessionId } : {}) }).then(outcome => {
+    if (!outcome.ok) {
+      patchDesk({ note: `退役失败：${outcome.reason}` })
+      return
+    }
+    patchRoomRows(sessionId, data => recount({
+      ...data,
+      memories: (data.memories ?? []).filter(memory => String(memory.id) !== id),
+    }))
+    patchDesk({ note: '已退役这条记忆（archive 里可找回）' })
+  })
+}
+
+/**
+ * Retire one learned skill (the host moves the bundle to `skills/archive/`; nothing is deleted).
+ * The per-skill list UI lands in C1; the action is already available to it.
+ * @param name - skill name.
+ * @param sessionId - the tab-bound session (audit context).
+ */
+export function retireSkill(name: string, sessionId?: string): void {
+  void postRoomsAction('skill.retire', { name, ...(sessionId !== undefined ? { sessionId } : {}) }).then(outcome => {
+    if (!outcome.ok) {
+      patchDesk({ note: `技能退役失败：${outcome.reason}` })
+      return
+    }
+    patchRoomRows(sessionId, data => recount({
+      ...data,
+      skills: (data.skills ?? []).filter(skill => skill.name !== name),
+    }))
+    patchDesk({ note: `已退役技能「${name}」（archive 里可找回）` })
+  })
+}
+
+/** Tell the assistant what is wrong with one knowledge page (conversation lane; kept for A2). */
 export function flagKnowledgePage(title: string, problem: string, rowId: string, sessionId?: string): void {
   sendPrompt(
     `知识页「${title}」有问题：${problem}。请核对并更正这一页。${DESK_REFRESH_STEP}`,

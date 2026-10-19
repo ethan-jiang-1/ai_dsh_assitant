@@ -37,9 +37,10 @@ HOST 面（cordis.patch.yml → dsh.bundle.patch）
                             + assistant-desk-projection 行（固定只读投影下载：GET
                               api/assistant/desk-projection，优先活渲染账本 v2 投影——契约 =
                               [operating.md](operating.md) §三）
-                            + assistant-rooms 行（维护面板的固定只读房间投影：GET
-                              api/assistant/rooms，从 assistantMemory 服务取四房间真值；不接收
-                              session/workspace/任意路径——A1a）
+                            + assistant-rooms 行（维护面板的房间投影 + 受控写：GET
+                              api/assistant/rooms 取四房间真值、?kind=knowledge&id= 读正文；
+                              POST 同一路径执行 knowledge.approve/deprecate、memory.correct/retire、
+                              skill.retire 白名单动作；不接收 session/workspace/任意路径——A1a/A2）
                             + assistant-knowledge-approve 行（host 知识批准服务：draft→stable 的机械翻转
                               client Remote mount 因 parameter codec 形状失败，UI 回退模型提示路径；无 config，随包分发）
                             + tool-skill 行（DSH 技能目录与加载器；host 实例使 one-shot 首请求可发现技能目录）
@@ -248,7 +249,7 @@ pnpm dsh …（package.json scripts → dev/env/dsh.mjs，唯一启动器：
 
 ### 浏览器动作链：一次点击 → 可见的桌面变化
 
-客户端在 `main` 声明可用并完成桌面注册后，每个 Client 根上下文只尝试一次默认选择：当前 `activePanelId` 为 null 时选全局桌面，否则保留已选面板。显式回到 Conversation、归档引发的回退、slot/布局重挂及客户端 HMR 不重选；完整页面重载的新根上下文重新尝试。默认机会只在页面内记录，不保存导航偏好或业务数据。插件首次激活前的显式 null 与启动 null 无法由当前公开快照区分；全局桌面读取独立 Host 固定投影，记忆/知识两间读独立 Host 行 `assistant-rooms` 的只读房间投影（working folder 真值；session workspace 的 `.desk/state.json` 是模型写的拷贝，A1b 退役）；默认入口本身不创建业务 Session。
+客户端在 `main` 声明可用并完成桌面注册后，每个 Client 根上下文只尝试一次默认选择：当前 `activePanelId` 为 null 时选全局桌面，否则保留已选面板。显式回到 Conversation、归档引发的回退、slot/布局重挂及客户端 HMR 不重选；完整页面重载的新根上下文重新尝试。默认机会只在页面内记录，不保存导航偏好或业务数据。插件首次激活前的显式 null 与启动 null 无法由当前公开快照区分；全局桌面读取独立 Host 固定投影，记忆/知识两间读独立 Host 行 `assistant-rooms` 的房间投影（working folder 真值；session workspace 的 `.desk/state.json` 是模型写的拷贝，A1b 退役）；同一路径的 POST 是 A2 的受控写；默认入口本身不创建业务 Session。
 
 独立 Host 行 `assistant-desk-projection` 提供固定只读投影下载：经营 dataDir 里有 `ledger.json` 时**活渲染账本 v2 投影**，无账本才回退固定 `desk-projection.json` 模拟输入；端点边界、认证、错误态与 byte cap 的完整契约 = [`operating.md`](operating.md) §三（唯一权威，本文不复述）。物理 HTTP 验证使用 [只读探针](../dev/probes/web/desk-projection-download.mjs)，以明确标注模拟的 [固定资料](../dev/fixtures/desk-projection/desk-projection.json) 为独立字节预期。
 
@@ -264,14 +265,19 @@ Client 的 [下载对象](../packages/dsh-smart-assistant/src/client/projection-
       ├ 房间读取（记忆/知识两间面板）：fetch GET /api/assistant/rooms
       │ （exact Fetch route，owner-only）→ host assistant-rooms 行 →
       │ ctx.assistantMemory 四房间真值；知识正文走 ?kind=knowledge&id=
+      ├ 受控写（A2：批准/过时/纠错/退役）：fetch POST /api/assistant/rooms
+      │ body { action, id|name, text?, sessionId? } → assistant-rooms 的 action 白名单 →
+      │ promotePage/deprecatePage/saveMemory(supersedes)/forgetMemory/retireSkill →
+      │ audit/approvals.jsonl（source: panel-direct，before/after）；客户端成功后立即
+      │ patch 当前 session 的投影，失败保留原行 + 可读 note（不回退 prompt）
       ├ 会话车道（首开引导 / 面板动作的模型路径）：sendPrompt → remote.session.prompt
       │ （mode:queue、[面板] 标记）→ 走模型请求链 → 助手按 desk-refresh 技能把
       │ 工作区 .desk/state.json（session copy）重写一遍；面板已不读这份拷贝，
       │ 该路径与技能在 A1b 退役
-      └ 直调车道（仅知识批准，「两条合法批准路径」见 [home.md](home.md) §二）：approveKnowledgePage →
-        remote.assistantKnowledge.approvePage → host promotePage（draft→stable
-        机械翻转 + 写该会话审计）；client Remote mount 因 parameter codec 形状被拒
-        （A2 先探针；能挂则直调，否则 host POST）→ 回退会话车道，面板内告知
+      └ 旧直调车道（仅知识批准）：approveKnowledgePage 的 Remote 分支已由 A2 移除；
+        `assistantKnowledge` 服务仍在 host 行，但 client entry 无法消费动态挂载的 namespace
+        （Cordis 未 inject 会抛错），面板批准走上面的 POST。A2a 探针保留为事实核查，
+        `approve-mount.ts` 的 parameter codec 已修为 strict（挂载验证不再误报）
   └ 读回：route 的 generatedAt/revision 越过 pending.at 才算完成
     （队列接受 ≠ 完成；DATA GATE 冻结该行直到房间数据真的动了）
 ```
@@ -292,5 +298,5 @@ Client 的 [下载对象](../packages/dsh-smart-assistant/src/client/projection-
 | 知识草稿/批准/检索 | 模型 + 浏览器链 | 草稿 = `assistant_reflect` 的 save_page（staged）；批准 = 浏览器两车道 → host `promotePage`（`src/host/index.ts`）；检索 = `assistant_knowledge`（`src/agent/tool-knowledge/`；host 面 `searchKnowledge`/`readKnowledgePage`，§五） | `pnpm --filter dsh-smart-assistant exec vitest run tests/host/knowledge-write.spec.ts`（草稿/批准/检索/摘要全链） | draft→stable 翻转与会话审计；直调挂载回退提示 | 批准按钮与回退车道要浏览器；草稿内容生成在模型回合 |
 | 提示词摘要 | 模型请求链 | `assistant-memory-digest` 段落（`src/agent/memory-digest/`）← `ctx.assistantMemory.digest()` 缓存 + 写操作 touch 失效（§五）；预算旋钮（`digestMaxBytes`/`recallLimit`）= host 行 `assistant-memory` 的 config（`cordis.patch.yml` 头部） | `pnpm --filter dsh-smart-assistant exec vitest run tests/domain/digest.spec.ts tests/agent/digest-prewarm.spec.ts` | 缓存失效时序与段落同步 `text` 契约 | 摘要计算无模型；真实会话的段落组装用 keyless 回放看 |
 | 经营事项（账本/投影/读回） | 模型请求链 + 浏览器动作链 | `assistant_operating`（`src/agent/tool-operating/`）→ `ctx.assistantOperatingLedger`（`src/host/operating-ledger/`）→ `ledger.json`；投影 = `src/host/desk-projection/` → client `projection-*`（契约 owner = [`operating.md`](operating.md)） | `pnpm --filter dsh-smart-assistant exec vitest run tests/host/operating-ledger.spec.ts tests/client/projection-reader.spec.ts`（组合面：`pnpm build` → `pnpm test:composition`） | 权限三分与幂等回执；投影 `ready` ≠ 业务成功；客户端 v1/v2 解析 | 工具动作语义无模型；真实交代→读回在模型回合与浏览器（eval `desk-*` 任务集） |
-| 房间读取（记忆/知识两间） | 浏览器 → host 只读 route | 房间 tab / 面板 → `loadDesk`/`loadDeskFor`（`src/client/room-data-io.ts`）→ `GET /api/assistant/rooms` → `assistant-rooms` 行 → `ctx.assistantMemory` 四房间真值；正文 `?kind=knowledge&id=`；「重读房间数据」就是再读这条 route | `pnpm --filter dsh-smart-assistant exec vitest run tests/client/client-room-data-io.spec.ts tests/client/client-room-tabs.spec.ts tests/host/rooms-route.spec.ts` | route 的 `generatedAt`/`revision` vs pending.at；会话日志 | 全链要真会话与渲染：`pnpm web-expected` 两场景；真问真答 `pnpm loop-probe` |
+| 房间读取 / 受控写（记忆/知识两间） | 浏览器 → host route | 房间 tab / 面板 → `loadDesk`/`loadDeskFor`（`src/client/room-data-io.ts`）→ `GET /api/assistant/rooms` → `assistant-rooms` 行 → `ctx.assistantMemory` 四房间真值；正文 `?kind=knowledge&id=`；A2 的批准/过时/纠错/退役 → `POST /api/assistant/rooms` 的 action 白名单 → 服务方法 + 审批账 | `pnpm --filter dsh-smart-assistant exec vitest run tests/client/client-room-data-io.spec.ts tests/client/client-room-actions.spec.ts tests/host/rooms-route.spec.ts tests/host/rooms-actions.spec.ts` | route 的 `generatedAt`/`revision` vs pending.at；审批账的 `source: panel-direct` + before/after；会话日志 | 全链要真会话与渲染：`pnpm web-expected` 两场景；A2a `dev/probes/web/approve-direct-probe.mjs` |
 | 插件装载 | 启动链 | `cordis.patch.yml` 行 → built `lib/` → profile（`dev/env/setup.sh` 装包 + profile patch 设 default） | `pnpm test:composition`（先 build）+ `pnpm --filter dsh-smart-assistant exec vitest run tests/composition/export-shape.spec.mjs` | lib freshness（never started）；行 id/patch 落空（dump-config） | Web UI 行为要 `pnpm preflight` + 两场景 |

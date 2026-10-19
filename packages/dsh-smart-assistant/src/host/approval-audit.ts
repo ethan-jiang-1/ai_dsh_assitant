@@ -18,11 +18,18 @@ import { appendFile, mkdir } from 'node:fs/promises'
 /** Which lane caused a governance transition. */
 export type ApprovalSource = 'assistant_reflect' | 'panel-direct'
 
+/** Which transition one ledger line records. */
+export type ApprovalKind = 'promote' | 'deprecate' | 'land' | 'correct' | 'retire'
+
 /** Caller-supplied context for one ledger line. */
 export interface ApprovalAuditOptions {
   readonly source?: ApprovalSource
   readonly sessionId?: string
   readonly title?: string
+  /** State before the transition (A2 direct writes); absent on older lines and model-path lines. */
+  readonly before?: unknown
+  /** State after the transition (A2 direct writes); absent on older lines and model-path lines. */
+  readonly after?: unknown
 }
 
 /** The structural slice of the home service the ledger writes under (layout-owned paths). */
@@ -33,11 +40,11 @@ interface AuditHost {
 /**
  * Append one transition to the approval ledger.
  * @param host - the home service whose layout carries the audit paths.
- * @param kind - which transition happened (promote | deprecate | land).
+ * @param kind - which transition happened.
  * @param id - the page or skill id the transition applied to.
  * @param options - lane context; `source` defaults to the reflect tool's model turn.
  */
-export async function recordApproval(host: AuditHost, kind: 'promote' | 'deprecate' | 'land', id: string, options: ApprovalAuditOptions = {}): Promise<void> {
+export async function recordApproval(host: AuditHost, kind: ApprovalKind, id: string, options: ApprovalAuditOptions = {}): Promise<void> {
   await mkdir(host.paths.auditDir, { recursive: true })
   const line = JSON.stringify({
     at: new Date().toISOString(),
@@ -45,6 +52,8 @@ export async function recordApproval(host: AuditHost, kind: 'promote' | 'depreca
     id,
     ...(options.title !== undefined ? { title: options.title } : {}),
     ...(options.sessionId !== undefined ? { sessionId: options.sessionId } : {}),
+    ...(options.before !== undefined ? { before: options.before } : {}),
+    ...(options.after !== undefined ? { after: options.after } : {}),
     source: options.source ?? 'assistant_reflect',
   }) + '\n'
   await appendFile(host.paths.approvalsLedgerFile, line, 'utf8')

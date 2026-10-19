@@ -25,7 +25,7 @@
 ├── knowledge/                  # 房间四：领域知识（[[互链]] 页面，OKF 字段子集）
 │   └── <id>.md                 #   deprecated 页留在原地——链接必须继续解析
 ├── skill-proposals/            # 技能提案收件箱（<name>.md，等人工评审；不是房间，是暂存区）
-├── audit/                      # 治理台账：approvals.jsonl（promote/deprecate/land 逐行追加；非房间，code 不 scaffold 它——首次批准时自建）
+├── audit/                      # 治理台账：approvals.jsonl（promote/deprecate/land/correct/retire 逐行追加，直写带 before/after；非房间，code 不 scaffold 它——首次批准时自建）
 └── deliverables/               # 模型写的业务交付稿（见下注；非房间，code 不 scaffold 它）
 ```
 
@@ -88,7 +88,7 @@ dsh-obsidian 外部 vault 桥先不做：用户真想让助手管某个外部 va
 - **进**：`assistant_reflect action=save_page`（sources 必填——`memory:<id>` / `research:<id>` /
   URL / repo 路径）写 **draft**；draft 不进搜索与摘要。
 - **draft→stable 的评审是本人的**，两条合法路径：① 本人直接改页面/文件的 `status`（那次编辑就是评审）；
-  ② 本人在对话或桌面面板上明确批准后，助手用 `assistant_reflect action=promote_page` 执行那次翻转
+  ② 本人在对话或桌面面板上明确批准后，面板直写（host `POST /api/assistant/rooms` 的 `knowledge.approve`）或助手用 `assistant_reflect action=promote_page` 执行那次翻转
   ——**批准是本人的，助手只做那次编辑**（工具描述逐字写着这条）。反向的 `deprecate_page` 同理：
   本人说某页错了/过时了，或 curate 报它过期且本人同意，助手才标；**永不凭自己的判断标**。
 - **出（查询）**：`assistant_knowledge`（search / get 附反链，deprecated 可搜带状态）；

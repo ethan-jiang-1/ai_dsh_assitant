@@ -22,6 +22,9 @@ import type { ResearchThread } from '../domain/research/thread.ts'
 import type { LearnedSkillInfo } from '../domain/home/health.ts'
 import type { SkillUsageRead } from '../domain/skills/usage.ts'
 import { isEntryId, type RoomReadFailure } from '../domain/home/room.ts'
+import { isSkillName } from '../domain/skills/skill-file.ts'
+import type { ApprovalAuditOptions, ApprovalKind } from './approval-audit.ts'
+import type { SaveMemoryInput } from './memory-room.ts'
 
 /** The read slice of the home service the route consumes; the plugin binds the real service. */
 export interface RoomsReader {
@@ -31,6 +34,16 @@ export interface RoomsReader {
   readKnowledgePage(id: string): Promise<{ page: KnowledgePage, backlinks: readonly string[] } | undefined>
   learnedSkills(): Promise<{ entries: readonly LearnedSkillInfo[], failures: readonly RoomReadFailure[] }>
   skillUsage(): Promise<SkillUsageRead>
+}
+
+/** The controlled writes A2 exposes on the same route; the plugin binds the real home service. */
+export interface RoomsActions {
+  promotePage(id: string, audit?: ApprovalAuditOptions): Promise<{ id: string, path: string, status: string }>
+  deprecatePage(id: string, audit?: ApprovalAuditOptions): Promise<{ id: string, path: string, status: string }>
+  saveMemory(input: SaveMemoryInput): Promise<MemoryRecord>
+  forgetMemory(id: string): Promise<boolean>
+  retireSkill(name: string, reason?: string): Promise<{ name: string, path: string }>
+  recordApproval(kind: ApprovalKind, id: string, options: ApprovalAuditOptions): Promise<void>
 }
 
 /** One unreadable entry, named by file (never by deployment path). */
@@ -72,21 +85,114 @@ function latestStamp(values: readonly (string | undefined)[]): string {
  * @param maxBytes - Complete JSON byte limit for one response.
  * @returns The exact GET contribution; registration is owned by the Host plugin fiber.
  */
-export function createRoomsRoute(reader: RoomsReader, maxBytes: number = 1024 * 1024): ConnectionFetchRoute {
+export function createRoomsRoute(reader: RoomsReader, maxBytes: number = 1024 * 1024, actions?: RoomsActions): ConnectionFetchRoute {
   if (!Number.isSafeInteger(maxBytes) || maxBytes < 1) throw new Error('rooms maxBytes must be a positive safe integer')
   const emit = (value: unknown): Response => {
     const body = JSON.stringify(value)
     if (Buffer.byteLength(body, 'utf8') > maxBytes) return failure(413, 'projection-too-large')
     return new Response(body, { headers: headers() })
   }
+  /** One controlled write; the JSON body names the action and its target. */
+  const handleAction = async (request: Request): Promise<Response> => {
+    if (actions === undefined) return failure(405, 'method-not-allowed')
+    let body: unknown
+    try { body = await request.json() } catch { return failure(400, 'invalid-json') }
+    if (body === null || typeof body !== 'object' || Array.isArray(body)) return failure(400, 'invalid-body')
+    const input = body as Record<string, unknown>
+    const action = typeof input.action === 'string' ? input.action : undefined
+    if (action === undefined) return failure(400, 'missing-action')
+    const sessionId = typeof input.sessionId === 'string' && input.sessionId.length > 0 ? input.sessionId : undefined
+    const title = typeof input.title === 'string' && input.title.length > 0 ? input.title : undefined
+    const audit = (before: unknown, after: unknown): ApprovalAuditOptions => ({
+      source: 'panel-direct',
+      ...(sessionId === undefined ? {} : { sessionId }),
+      ...(title === undefined ? {} : { title }),
+      before,
+      after,
+    })
+    const failAction = (error: unknown): Response => {
+      const message = error instanceof Error ? error.message : String(error)
+      const status = /does not exist|not found|no learned skill|no knowledge page/.test(message)
+        ? 404
+        : /only drafts|not a draft|already archived|is not active|supersedes names|is approved and waiting/.test(message)
+          ? 409
+          : 400
+      return new Response(JSON.stringify({ error: 'action-failed', message }), { status, headers: headers() })
+    }
+    const id = typeof input.id === 'string' ? input.id : undefined
+    try {
+      switch (action) {
+        case 'knowledge.approve': {
+          if (id === undefined || !isEntryId(id)) return failure(400, 'invalid-id')
+          const page = await reader.readKnowledgePage(id)
+          if (page === undefined) return failure(404, 'page-not-found')
+          if (page.page.status !== 'draft') return failure(409, 'not-a-draft')
+          const promoted = await actions.promotePage(id, audit({ status: 'draft' }, { status: 'stable' }))
+          return emit({ ok: true, action, id: promoted.id, status: promoted.status })
+        }
+        case 'knowledge.deprecate': {
+          if (id === undefined || !isEntryId(id)) return failure(400, 'invalid-id')
+          const page = await reader.readKnowledgePage(id)
+          if (page === undefined) return failure(404, 'page-not-found')
+          if (page.page.status !== 'stable') return failure(409, 'not-stable')
+          const deprecated = await actions.deprecatePage(id, audit({ status: 'stable' }, { status: 'deprecated' }))
+          return emit({ ok: true, action, id: deprecated.id, status: deprecated.status })
+        }
+        case 'memory.correct': {
+          if (id === undefined || !isEntryId(id)) return failure(400, 'invalid-id')
+          const text = typeof input.text === 'string' ? input.text.trim() : ''
+          if (text.length === 0) return failure(400, 'missing-text')
+          const listing = await reader.listMemories()
+          const old = listing.entries.find(record => record.id === id)
+          if (old === undefined) return failure(404, 'memory-not-found')
+          const saved = await actions.saveMemory({
+            text, kind: old.kind, tags: old.tags, importance: old.importance, supersedes: old.id, source: 'panel-direct',
+          })
+          await actions.recordApproval('correct', saved.id, audit(
+            { id: old.id, text: old.text },
+            { id: saved.id, text: saved.text },
+          ))
+          return emit({ ok: true, action, id: saved.id, status: saved.status })
+        }
+        case 'memory.retire': {
+          if (id === undefined || !isEntryId(id)) return failure(400, 'invalid-id')
+          const listing = await reader.listMemories()
+          const old = listing.entries.find(record => record.id === id)
+          if (old === undefined) return failure(404, 'memory-not-found')
+          const archived = await actions.forgetMemory(id)
+          if (!archived) return failure(409, 'memory-not-active')
+          await actions.recordApproval('retire', id, audit({ status: old.status }, { status: 'retired' }))
+          return emit({ ok: true, action, id, status: 'retired' })
+        }
+        case 'skill.retire': {
+          const name = typeof input.name === 'string' ? input.name : undefined
+          if (name === undefined || !isSkillName(name)) return failure(400, 'invalid-name')
+          const reason = typeof input.reason === 'string' && input.reason.trim().length > 0 ? input.reason.trim() : undefined
+          const retired = await actions.retireSkill(name, reason)
+          await actions.recordApproval('retire', name, audit(
+            { status: 'active' },
+            { status: 'archived', ...(reason === undefined ? {} : { reason }) },
+          ))
+          return emit({ ok: true, action, name, path: retired.path })
+        }
+        default:
+          return failure(400, 'unknown-action')
+      }
+    } catch (error) {
+      if (request.signal.aborted) throw error
+      return failAction(error)
+    }
+  }
+
   return {
     path: '/api/assistant/rooms',
-    methods: ['GET'],
+    methods: actions === undefined ? ['GET'] : ['GET', 'POST'],
     requestBody: 'buffered',
     async fetch(request) {
       request.signal.throwIfAborted()
       const url = new URL(request.url)
       try {
+        if (request.method === 'POST') return handleAction(request)
         if (url.searchParams.size === 0) {
           const [memories, threads, knowledge, skills, usage] = await Promise.all([
             reader.listMemories(),

@@ -132,6 +132,47 @@ function settleLoadedDesk(parsed: DeskData, sessionId: string): void {
   retireStaleReceipt(parsed, sessionId)
 }
 
+/** One controlled write's outcome: the route's success payload or a readable failure. */
+export type RoomsActionResult = { readonly ok: true, readonly value: Record<string, unknown> } | { readonly ok: false, readonly reason: string }
+
+/**
+ * Call one controlled write on the same host route. The response is the result; failures are
+ * readable and never turned into a prompt (A2: no prompt fallback).
+ * @param action - Whitelisted action name (`knowledge.approve`, `memory.correct`, ...).
+ * @param payload - Action fields (id/name/text/sessionId/title/reason).
+ * @returns The route payload, or the readable reason it failed.
+ */
+export async function postRoomsAction(action: string, payload: Readonly<Record<string, unknown>>): Promise<RoomsActionResult> {
+  const web = deskWeb
+  if (web === undefined) return { ok: false, reason: 'the web face is not available' }
+  try {
+    const url = new URL('api/assistant/rooms', web.baseURI)
+    const response = await web.fetch(url, {
+      method: 'POST',
+      credentials: 'same-origin',
+      cache: 'no-store',
+      redirect: 'error',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ action, ...payload }),
+    })
+    const parsed = await response.json().catch(() => ({})) as Record<string, unknown>
+    if (!response.ok) {
+      const message = typeof parsed.message === 'string' ? parsed.message : typeof parsed.error === 'string' ? parsed.error : `HTTP ${String(response.status)}`
+      return { ok: false, reason: message }
+    }
+    return { ok: true, value: parsed }
+  } catch (reason) {
+    return { ok: false, reason: String(reason) }
+  }
+}
+
+/** Patch one session's room projection in place (A2 immediate row update after a write). */
+export function patchRoomRows(sessionId: string | undefined, change: (data: DeskData) => DeskData): void {
+  const slice = deskSlice(sessionId)
+  if (slice.data === undefined) return
+  patchSlice(slice, { data: change(slice.data) })
+}
+
 /** Whether every room is empty, so the tab can offer the first-conversation entry instead of a hollow panel. */
 function isEmptyRooms(data: DeskData): boolean {
   return (data.memories ?? []).length === 0

@@ -5,7 +5,8 @@ import z from '@deepseek-ai/schemastery'
 import type Schema from '@deepseek-ai/schemastery'
 import type { AssistantMemory } from '../index.ts'
 import { scanLearnedSkills } from '../../domain/skills/scan.ts'
-import { createRoomsRoute, type RoomsReader } from '../rooms-route.ts'
+import { createRoomsRoute, type RoomsActions, type RoomsReader } from '../rooms-route.ts'
+import { recordApproval } from '../approval-audit.ts'
 
 export const name = 'assistant-rooms'
 export const inject = ['connection', 'assistantMemory'] as const
@@ -38,5 +39,13 @@ export function apply(ctx: Context, config: Config = {}): void {
     },
     skillUsage: () => memory.skillUsage(),
   }
-  ctx.effect(() => ctx.connection.fetch.register(createRoomsRoute(reader, config.maxProjectionBytes ?? 1024 * 1024)))
+  const actions: RoomsActions = {
+    promotePage: (id, audit) => memory.promotePage(id, audit),
+    deprecatePage: (id, audit) => memory.deprecatePage(id, audit),
+    saveMemory: input => memory.saveMemory(input),
+    forgetMemory: id => memory.forgetMemory(id),
+    retireSkill: (name, reason) => memory.retireSkill(name, reason),
+    recordApproval: (kind, id, options) => recordApproval(memory, kind, id, options),
+  }
+  ctx.effect(() => ctx.connection.fetch.register(createRoomsRoute(reader, config.maxProjectionBytes ?? 1024 * 1024, actions)))
 }

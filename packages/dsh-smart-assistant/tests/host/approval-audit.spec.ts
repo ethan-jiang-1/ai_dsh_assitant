@@ -13,6 +13,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import type AssistantMemory from '../../src/index.ts'
+import { recordApproval } from '../../src/host/approval-audit.ts'
 import { memoryPool } from '../support/host-harness.ts'
 
 describe('approval audit ledger', () => {
@@ -70,6 +71,21 @@ describe('approval audit ledger', () => {
     await service.deprecatePage(page) // already deprecated
     const lines = await ledger(service)
     expect(lines).toHaveLength(2)
+  })
+
+  it('carries before/after for A2 direct writes and leaves old lines readable', async () => {
+    const { service } = boot()
+    const page = await draftPage(service, 'A2 audit')
+    await service.promotePage(page, { source: 'panel-direct', before: { status: 'draft' }, after: { status: 'stable' } })
+    await recordApproval(service, 'correct', 'm2', { source: 'panel-direct', before: { id: 'm1' }, after: { id: 'm2' } })
+    await recordApproval(service, 'retire', 'm1', { source: 'panel-direct', before: { status: 'active' }, after: { status: 'retired' } })
+    const lines = await ledger(service)
+    expect(lines).toHaveLength(3)
+    expect(lines[0]).toMatchObject({
+      kind: 'promote', source: 'panel-direct', before: { status: 'draft' }, after: { status: 'stable' },
+    })
+    expect(lines[1]).toMatchObject({ kind: 'correct', before: { id: 'm1' }, after: { id: 'm2' } })
+    expect(lines[2]).toMatchObject({ kind: 'retire', before: { status: 'active' }, after: { status: 'retired' } })
   })
 
   it('audits landing an approved skill proposal', async () => {
