@@ -51,7 +51,7 @@ research 为问题和缺陷提供依据。问题按 [关闭条件](../README.md)
 
 从引用卡链接进入，按正在解决的问题选读。
 
-- [261019-self-update-lanes.md](self-update/261019-self-update-lanes.md)——引用卡：[自更新通道卡](../issues/261019-self-update-lanes.md)。统筹档：三条写入通道（显性/隐性/自动）× 六张账的现状事实表（入口、门、代价、怎么进请求）、面板逐动作走哪条路、八条诊断（门禁挂错通道、双记忆无对账、拷贝即第二份真相、知识正文不在场、技能欠账、隐性更新不可见、Viki 无治理、隐性供给不确定）、七个候选切片与 P0–P3 排序、待拍板五问
+- [261019-self-update-lanes.md](self-update/261019-self-update-lanes.md)——引用卡：[A 卡（总卡）](../issues/261019-self-update-lanes.md)、[B 卡](../issues/261019-viki-content-governance.md)、[C 卡](../issues/261019-learned-skills-surface.md)。统筹档：三条写入通道（显性/隐性/自动）× 六张账的现状事实表（入口、门、代价、怎么进请求）、面板逐动作走哪条路、八条诊断（门禁挂错通道、双记忆无对账、拷贝即第二份真相、知识正文不在场、技能欠账、隐性更新不可见、Viki 无治理、隐性供给不确定）、五家一手产品对照、七个候选切片与 A/B/C 三卡排序、Viki 内容面实测与"取代/冲突/退役"三段判据、五问建议
 - [261018-proactivity-synthesis.md](positioning/261018-proactivity-synthesis.md)——引用卡：[主动性方向评审卡](../_archive/settled_issues/261018-proactive-direction.md)（已结）。合成档：主动性拆四层 → 本仓现状与外部逐层答案 → 四条候选路线与判据矩阵 → 选定路线与逐条约束对账 → 反证/未决问题/证据强度，供人与 agent 评审
 - [261018-proactive-ux-mechanics.md](positioning/261018-proactive-ux-mechanics.md)——引用卡：[主动性 v1 提案](../../notes/implemented/2026-10-18-proactive-face.md)。近月 personal agent（Claude/Lindy/Muse/dots/ChatGPT Scheduled 等）"主动性"的 UX 机制：触发/送达/开关对象/找人接缝，跨家共性六条、已知失败形态、10-12→10-18 增量刷新与未能证实清单
 - [261018-oss-proactivity-mechanisms.md](positioning/261018-oss-proactivity-mechanisms.md)——引用卡：[主动性 v1 提案](../../notes/implemented/2026-10-18-proactive-face.md)。老 Hermes 的主动性机制 H1–H8、"上手难"的可指认结构性代价，以及 OpenClaw/Letta/Khoj/Home Assistant/AutoGPT 的可搬运 M1–M10 与不搬 N1–N4

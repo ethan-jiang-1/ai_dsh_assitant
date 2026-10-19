@@ -6,7 +6,9 @@
 
 | 卡 | 要解决什么 | 当前环节与未完成项 |
 |---|---|---|
-| [261019-self-update-lanes.md](261019-self-update-lanes.md) | 面板维护面：读真值、点完生效、看得见变化；隐性学习与 Viki 自动捕获看得见来源 | 等人拍板：Q1–Q5（新增权、直写深度、拷贝退役、Viki 来源标记与旧数据处置、技能列表）；依据档 [self-update/261019-self-update-lanes](../research/self-update/261019-self-update-lanes.md) |
+| [261019-self-update-lanes.md](261019-self-update-lanes.md) | **A 卡（总卡 + P0）**：面板读真值、直写当场生效、看得见"自上次以来"；退役 `.desk/state.json` 与 `desk-refresh` | 等人拍板：只差 Q3 一句（拷贝退役）；Q1 新增权/Q2 直写深度已定案；依据档 [self-update/261019-self-update-lanes](../research/self-update/261019-self-update-lanes.md) |
+| [261019-viki-content-governance.md](261019-viki-content-governance.md) | **B 卡（P1）**：Viki 内容面可枚举/可读/逐条删（带备份）/冲突并排；越界 14 条整批清除 | 等人拍板：Q1 越界整批清除口径；依赖 A 卡面骨架 |
+| [261019-learned-skills-surface.md](261019-learned-skills-surface.md) | **C 卡（P2/P3）**：技能逐件可见与退役（复用 A 卡直写车道）；消息级"记下来" | 等人拍板：Q2 是否同卡做 P3 |
 
 ## 写一张卡
 
