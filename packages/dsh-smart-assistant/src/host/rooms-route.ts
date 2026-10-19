@@ -48,6 +48,8 @@ export interface RoomsActions {
   saveMemory(input: SaveMemoryInput): Promise<MemoryRecord>
   forgetMemory(id: string): Promise<boolean>
   retireSkill(name: string, reason?: string): Promise<{ name: string, path: string }>
+  /** C2: save one durable assistant message verbatim; the host reads it, not the caller's text. */
+  remember(sessionId: string, messageId: string): Promise<MemoryRecord>
   recordApproval(kind: ApprovalKind, id: string, options: ApprovalAuditOptions): Promise<void>
 }
 
@@ -170,6 +172,17 @@ export function createRoomsRoute(reader: RoomsReader, maxBytes: number = 1024 * 
           if (!archived) return failure(409, 'memory-not-active')
           await actions.recordApproval('retire', id, audit('memory', { status: old.status }, { status: 'retired' }))
           return emit({ ok: true, action, id, status: 'retired' })
+        }
+        case 'memory.remember': {
+          const sessionId = typeof input.sessionId === 'string' && input.sessionId.length > 0 ? input.sessionId : undefined
+          const messageId = typeof input.messageId === 'string' && input.messageId.length > 0 ? input.messageId : undefined
+          if (sessionId === undefined || messageId === undefined) return failure(400, 'missing-message')
+          try {
+            const saved = await actions.remember(sessionId, messageId)
+            return emit({ ok: true, action, id: saved.id, status: saved.status })
+          } catch (error) {
+            return failAction(error)
+          }
         }
         case 'skill.retire': {
           const name = typeof input.name === 'string' ? input.name : undefined

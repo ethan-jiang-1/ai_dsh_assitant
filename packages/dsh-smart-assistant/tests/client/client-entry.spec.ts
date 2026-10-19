@@ -92,7 +92,7 @@ describe('client-module registration', () => {
       'sidebar.right.pane.tab', 'sidebar.right.pane.tab.title',
       'sidebar.right.pane.tab', 'sidebar.right.pane.tab.title',
       'sidebar.right.pane.tab', 'sidebar.right.pane.tab.title',
-      'conversation.hero.brand.mark', 'conversation.input.dock', 'conversation.input.dock',
+      'conversation.hero.brand.mark', 'conversation.chat.assistant-actions', 'conversation.input.dock', 'conversation.input.dock',
     ])
     // Each room registers its tab type, its keyed body, and its keyed tab title (the glyph chip);
     // the first-mile strip and the approval banner close the set.
@@ -103,7 +103,8 @@ describe('client-module registration', () => {
       'tab:memoryRoom', 'dsh-smart-assistant-memory', 'dsh-smart-assistant-memory',
       'tab:vikiRoom', 'dsh-smart-assistant-viki', 'dsh-smart-assistant-viki',
       'tab:skillsRoom', 'dsh-smart-assistant-skills', 'dsh-smart-assistant-skills',
-      'conversation.hero.brand.mark', 'assistant-first-mile', 'assistant-approval-banner',
+      'conversation.hero.brand.mark',
+      'dsh-smart-assistant-remember', 'assistant-first-mile', 'assistant-approval-banner',
     ])
     // The steer's whole point: each room contributes a guide entry, so the "+" picker lists
     // the rooms beside the browser and terminal tabs.

@@ -57,6 +57,7 @@ function actions(): RoomsActions & {
       ...memory, id: 'm2', text: input.text, status: 'active' as const, supersedes: memory.id,
     })),
     forgetMemory: vi.fn(async () => true),
+  remember: vi.fn(async () => ({ ...memory, id: 'm3', text: '记住这句' })),
     retireSkill: vi.fn(async (name: string) => ({ name, path: `skills/archive/${name}` })),
     recordApproval: vi.fn(async () => undefined),
   }
@@ -165,5 +166,29 @@ describe('rooms route controlled writes (A2)', () => {
     expect(notJson.status).toBe(400)
     expect(await notJson.json()).toEqual({ error: 'invalid-json' })
     expect(a.forgetMemory).not.toHaveBeenCalled()
+  })
+})
+
+
+describe('memory.remember (C2)', () => {
+  it('remembers one durable message through the host action', async () => {
+    const a = actions()
+    const route = createRoomsRoute(reader(), 1024 * 1024, a)
+    const ok = await route.fetch(POST({ action: 'memory.remember', sessionId: 's1', messageId: 'msg-1' }))
+    expect(ok.status).toBe(200)
+    expect(await ok.json()).toMatchObject({ ok: true, action: 'memory.remember', id: 'm3' })
+    expect(a.remember).toHaveBeenCalledWith('s1', 'msg-1')
+    const missing = await route.fetch(POST({ action: 'memory.remember', sessionId: 's1' }))
+    expect(missing.status).toBe(400)
+    expect(await missing.json()).toEqual({ error: 'missing-message' })
+  })
+
+  it('surfaces the budget refusal as an action failure', async () => {
+    const a = actions()
+    a.remember.mockRejectedValueOnce(new Error('memory digest budget is exhausted; retire something first'))
+    const route = createRoomsRoute(reader(), 1024 * 1024, a)
+    const response = await route.fetch(POST({ action: 'memory.remember', sessionId: 's1', messageId: 'msg-1' }))
+    expect(response.status).toBe(400)
+    expect(await response.json()).toMatchObject({ error: 'action-failed' })
   })
 })

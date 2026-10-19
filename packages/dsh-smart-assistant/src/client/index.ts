@@ -54,6 +54,7 @@ import { ApprovalDockBanner, FirstMileDock } from './first-mile'
 import { KnowledgeTabBody, MemoryTabBody, SkillsTabBody, VikiTabBody, roomTabTitle } from './room-tabs'
 import { KnowledgeIcon, KnowledgePanel, MemoryIcon, MemoryPanel } from './panels'
 import { SkillsIcon, SkillsPanel } from './skills-panel'
+import { RememberAction } from './message-action'
 import { VikiIcon, VikiPanel } from './viki-panel'
 import { bindVikiEnv, deleteViki, getVikiView, loadViki, loadVikiBody, referencesViki, resetVikiView, restoreViki, useVikiView } from './viki-data-io'
 import { bindClientRequire, clientRequire } from './runtime'
@@ -457,6 +458,11 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // state. Both disappear on their own once the conversation starts.
     ctx.slots.inject('conversation.hero.brand.mark', () =>
       ctx.slots.register({ name: 'conversation.hero.brand.mark' }, AssistantHeroMark))
+    ctx.slots.inject('conversation.chat.assistant-actions', () =>
+      ctx.slots.register({
+        name: 'conversation.chat.assistant-actions',
+        key: 'dsh-smart-assistant-remember',
+      }, RememberAction as unknown as import('react').FunctionComponent<{ messageId?: string, sessionId?: string }>)),
     ctx.slots.inject('conversation.input.dock', () =>
       ctx.slots.register({
         name: 'conversation.input.dock',
@@ -497,7 +503,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   return {
     inject, apply, AssistantBrandMark, AssistantBrandName,
     KnowledgePanel, MemoryPanel, deskStore, deskSlice,
-    DashboardPanelIcon, DashboardMainPanel, KnowledgeTabBody, MemoryTabBody, VikiTabBody, VikiPanel, SkillsPanel, bindDeskEnv, bindVikiEnv, deleteViki, getVikiView, loadSkillBody, loadViki, loadVikiBody, referencesViki, resetVikiView, restoreViki, useVikiView, roomTabTitle,
+    DashboardPanelIcon, DashboardMainPanel, KnowledgeTabBody, MemoryTabBody, VikiTabBody, VikiPanel, SkillsPanel, RememberAction, bindDeskEnv, bindVikiEnv, deleteViki, getVikiView, loadSkillBody, loadViki, loadVikiBody, referencesViki, resetVikiView, restoreViki, useVikiView, roomTabTitle,
     roomCommands, AssistantHeroMark, FirstMileDock, ApprovalDockBanner, expirePending, settlePending, loadDeskFor, looksLikeDesk,
     approveKnowledgePage, deprecateKnowledgePage, correctMemory, retireMemory, retireSkill,
     ReceiptView, markReceiptRead, readReceiptSince, resetReceiptBaseline,

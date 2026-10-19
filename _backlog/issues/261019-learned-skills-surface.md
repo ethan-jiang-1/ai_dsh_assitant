@@ -5,7 +5,7 @@ opened: 2026-10-19
 
 # 推敲：学到的东西——技能逐件可见与"记下来"（C 卡：P2/P3）
 
-> 立卡：2026-10-19 ｜ 状态：推敲中 ｜ 类型：Feature ｜ 可关闭：否 ｜ 毕业：做现在 ｜ 下一步 = **C2**（C1 已交付；v1 默认 assistant 消息）
+> 立卡：2026-10-19 ｜ 状态：推敲中 ｜ 类型：Feature ｜ 可关闭：否 ｜ 毕业：做现在 ｜ 下一步 = **campaign close**（C1/C2 已交付；人判与收口）
 > **依赖与授权：** C1 复用 A 卡 A2 的直写能力（含它"真机可达"的先决证据），读取复用 A1a 的共享 tab/drawer/route 骨架；C2 需 A2 白名单加一条"来源=消息 id 的新建"。**本卡不自行授权 C1 开工**：按 [_backlog/AGENTS.md](../AGENTS.md) 铁律 1 与 [A 卡](261019-self-update-lanes.md) 的授权现状，每片仍走 [`notes/README.md`](../../notes/README.md) §二之二 proposed 卡，点名/点头后才动手。
 > **依据：** [self-update/261019-self-update-lanes](../research/self-update/261019-self-update-lanes.md) §一（技能两写入口）、§三 D5、§九（复审更正）。
 > **2026-10-19 复审重写：** 修正 C1 授权（不再"不等拍板"）、数据源（用量账本有 `count`+`lastUsedAt`+`since`，不是只有次数）、出处（`metadata.source`，不是常量 `origin`）、成本口径（常驻是 name+description，不是整份 `SKILL.md`）、C2 槽范围（`assistant-actions` 只收 assistant 消息）、`why`（记忆没有该字段）、消息解析（host 用 `ctx.sessionQuery`）。
@@ -41,7 +41,7 @@ opened: 2026-10-19
 | 片 | 做什么 | 要点 |
 |---|---|---|
 | **C1 技能面** | **已交付**（2026-10-19）：`source` + usage join + `readLearnedSkill` + 技能 tab + 退役；note = [learned-skills](../../notes/implemented/2026-10-19-learned-skills.md)。原方案：逐件列表：名字 / 调用次数 / 最近使用 / 出处（`metadata.source`）/ 正文只读抽屉 / 一个"退役" | host 读 = `scanLearnedSkills`（补 `metadata.source`）+ `skillUsageLines`（count/lastUsedAt/days）+ 读 `SKILL.md` 正文；**不给新 scanner**；列表只列 `skills/` 房间（learned provider 的实际枚举），不是模型技能目录全集；退役复用 `retireSkill` + A2 台账；正文 hash 校验 |
-| **C2 "记下来"** | 消息动作"记下来"：取该条 **assistant 消息**（durable id）→ host 用 `ctx.sessionQuery` 取逐字文本 → 生成记忆（`active`，`source: panel:message:<sessionId>/<messageId>`，`kind=fact`；不写 `why`）→ 面板收据显示 | 走 A2 同一条写车道；**A2 白名单只为这一条开口**（来源=消息 id 的新建），其余新建仍拒；一次点击即确认，不做候选态；不做模型抽取；`saveMemory` 满预算时返回可读拒绝 |
+| **C2 "记下来"** | **已交付**（2026-10-19）：`assistant-actions` 槽 + `memory.remember` + `sessionQuery` 逐字 + budget 负例；note = [message-remember](../../notes/implemented/2026-10-19-message-remember.md)。原方案：消息动作"记下来"：取该条 **assistant 消息**（durable id）→ host 用 `ctx.sessionQuery` 取逐字文本 → 生成记忆（`active`，`source: panel:message:<sessionId>/<messageId>`，`kind=fact`；不写 `why`）→ 面板收据显示 | 走 A2 同一条写车道；**A2 白名单只为这一条开口**（来源=消息 id 的新建），其余新建仍拒；一次点击即确认，不做候选态；不做模型抽取；`saveMemory` 满预算时返回可读拒绝 |
 
 **成本口径（C1）：** v1 默认不加 token 成本列；若本人要，只显示 `name+description` 的 always-on 字节估算（标注"估算"），并说明正文是按需加载、不计入常驻。不要拿整份 `SKILL.md` 字节 ÷4 冒充当常驻成本——那会误导退役判断。
 
