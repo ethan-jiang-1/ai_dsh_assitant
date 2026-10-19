@@ -186,7 +186,7 @@ export class VikiClient {
   async read(uri: string): Promise<string> {
     if (this.baseUrl === '') throw new VikiUnavailable('OpenViking is not configured')
     if (!this.allows(uri)) throw new VikiUnavailable(`URI is outside the configured memories: ${uri}`)
-    const result = await this.get(`/content/read?uri=${encodeURIComponent(uri)}`)
+    const result = await this.request('GET', `/content/read?uri=${encodeURIComponent(uri)}`)
     if (typeof result === 'string') return result
     const record = result as { content?: unknown, text?: unknown }
     return typeof record.content === 'string' ? record.content : typeof record.text === 'string' ? record.text : ''
@@ -247,38 +247,62 @@ export class VikiClient {
   }
 
   private async ls(uri: string): Promise<VikiFsEntry[]> {
-    const result = await this.get(`/fs/ls?uri=${encodeURIComponent(uri)}&output=original`)
+    const result = await this.request('GET', `/fs/ls?uri=${encodeURIComponent(uri)}&output=original`)
     return Array.isArray(result) ? result as VikiFsEntry[] : []
   }
 
   private async attrs(uri: string): Promise<VikiAttrs | undefined> {
-    const result = await this.get(`/fs/attrs?uri=${encodeURIComponent(uri)}`) as { attrs?: { memory?: VikiAttrs } } | undefined
+    const result = await this.request('GET', `/fs/attrs?uri=${encodeURIComponent(uri)}`) as { attrs?: { memory?: VikiAttrs } } | undefined
     return result?.attrs?.memory
   }
 
   private async stats(): Promise<unknown> {
-    return this.get('/stats/memories')
+    return this.request('GET', '/stats/memories')
   }
 
-  private async get(path: string): Promise<unknown> {
+  /** Snapshot one or more paths and return the commit id (the delete's only rollback). */
+  async commit(paths: readonly string[]): Promise<string> {
+    const result = await this.request('POST', '/snapshot/commit', { paths }) as { commit_id?: unknown, commitId?: unknown } | undefined
+    const commit = typeof result?.commit_id === 'string' ? result.commit_id : typeof result?.commitId === 'string' ? result.commitId : undefined
+    if (commit === undefined || commit === '') throw new VikiUnavailable('snapshot/commit returned no commit id')
+    return commit
+  }
+
+  /** Delete one file (never a directory). Callers must have committed a snapshot first. */
+  async remove(uri: string): Promise<void> {
+    await this.request('DELETE', `/fs?uri=${encodeURIComponent(uri)}&recursive=false`)
+  }
+
+  /** Restore a commit: forward-commit semantics; later changes after that commit may be affected. */
+  async restore(commit: string): Promise<void> {
+    await this.request('POST', '/snapshot/restore', { commit_id: commit })
+  }
+
+  private async request(method: string, path: string, body?: unknown): Promise<unknown> {
     let response: Response
     try {
       response = await this.fetchImpl(`${this.baseUrl}/api/v1${path}`, {
-        headers: this.apiKey === undefined || this.apiKey === '' ? {} : { authorization: `Bearer ${this.apiKey}` },
+        method,
+        headers: {
+          ...(this.apiKey === undefined || this.apiKey === '' ? {} : { authorization: `Bearer ${this.apiKey}` }),
+          ...(body === undefined ? {} : { 'content-type': 'application/json' }),
+        },
+        ...(body === undefined ? {} : { body: JSON.stringify(body) }),
       })
     } catch (error) {
       throw new VikiUnavailable(`OpenViking request failed: ${String(error)}`, error)
     }
-    let body: unknown
+    let parsed: unknown
     try {
-      body = await response.json()
+      parsed = await response.json()
     } catch (error) {
       throw new VikiUnavailable(`OpenViking returned non-JSON (HTTP ${String(response.status)})`, error)
     }
-    if (!response.ok || (body as { status?: unknown })?.status !== 'ok') {
-      throw new VikiUnavailable(`OpenViking answered ${String(response.status)}: ${String((body as { error?: unknown })?.error ?? '')}`)
+    if (!response.ok || (parsed as { status?: unknown })?.status !== 'ok') {
+      throw new VikiUnavailable(`OpenViking answered ${String(response.status)}: ${String((parsed as { error?: unknown })?.error ?? '')}`)
     }
-    return (body as { result?: unknown }).result
+    return (parsed as { result?: unknown }).result
   }
+
 }
 

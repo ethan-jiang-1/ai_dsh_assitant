@@ -55,7 +55,7 @@ function snapshotOf(data: DeskData | undefined): ReceiptSnapshot {
 }
 
 const ROOM_LABEL: Readonly<Record<ReceiptRoom, string>> = {
-  memory: '记忆', knowledge: '知识', research: '线索', skills: '技能',
+  memory: '记忆', knowledge: '知识', research: '线索', skills: '技能', viki: 'Viki',
 }
 
 const KIND_LABEL: Readonly<Record<string, string>> = {
@@ -65,7 +65,7 @@ const KIND_LABEL: Readonly<Record<string, string>> = {
 /** The one-line human sentence; client-side because it is skin copy, not model-facing text. */
 function summaryText(receipt: Receipt): string {
   if (receipt.total === 0) return receipt.since === undefined ? '还没有收据' : '自上次以来还没有变化'
-  const parts = (['memory', 'knowledge', 'research', 'skills'] as const)
+  const parts = (['memory', 'knowledge', 'research', 'skills', 'viki'] as const)
     .filter(room => receipt.counts[room] > 0)
     .map(room => `${ROOM_LABEL[room]} ${String(receipt.counts[room])}`)
   return `自上次以来：${parts.join(' · ')}`

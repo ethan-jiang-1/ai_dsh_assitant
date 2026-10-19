@@ -9,11 +9,13 @@
 import z from '@deepseek-ai/schemastery'
 import type Schema from '@deepseek-ai/schemastery'
 import type { Context } from '@deepseek-ai/cordis'
-import { createVikiRoute, type VikiReader } from './route.ts'
+import { createVikiRoute, type VikiActions, type VikiReader } from './route.ts'
 import { VikiClient } from './client.ts'
+import { recordApproval } from '../approval-audit.ts'
+import type { AssistantMemory } from '../index.ts'
 
 export const name = 'assistant-viki'
-export const inject = ['connection']
+export const inject = ['connection', 'assistantMemory'] as const
 
 export interface Config {
   /** OpenViking base URL (no `/api/v1` suffix); defaults to `OPENVIKING_URL`. */
@@ -34,6 +36,7 @@ export const Config: Schema<Config> = z.object({
 })
 
 export function apply(ctx: Context, config: Config): void {
+  const memory = (ctx as unknown as { assistantMemory: AssistantMemory }).assistantMemory
   const space = config.space?.trim() || 'default'
   const peer = config.peer?.trim() || undefined
   const baseUrl = config.baseUrl?.trim() || process.env.OPENVIKING_URL?.trim() || ''
@@ -43,8 +46,33 @@ export function apply(ctx: Context, config: Config): void {
     list: () => client.list(),
     read: uri => client.read(uri),
   }
+  const actions: VikiActions = {
+    commit: paths => client.commit(paths),
+    remove: uri => client.remove(uri),
+    restore: commit => client.restore(commit),
+    references: async (uri) => {
+      const list = await client.list()
+      const target = list.entries.find(entry => entry.uri === uri)
+      const siblings = target === undefined ? [] : list.entries
+        .filter(entry => entry.uri !== uri && (
+          (entry.eventName !== undefined && entry.eventName === target.eventName)
+          || (entry.summary !== undefined && entry.summary === target.summary)
+        ))
+        .map(entry => entry.uri)
+      const knowledge = (await memory.listKnowledge()).entries
+        .filter(page => JSON.stringify({ sources: page.sources, links: page.links }).includes(uri))
+        .map(page => page.id)
+      return { knowledge, siblings }
+    },
+    audit: async (uri, commitId, title) => {
+      await recordApproval(memory, 'retire', uri, {
+        source: 'panel-direct', room: 'viki', ...(title === undefined ? {} : { title }),
+        before: { status: 'active' }, after: { status: 'deleted', commitId },
+      })
+    },
+  }
   ctx.effect(() => ctx.connection.fetch.register(createVikiRoute(reader, {
     allowedSpaces: [space],
     allowedPeers: peer === undefined ? [] : [peer],
-  })))
+  }, actions)))
 }

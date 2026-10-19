@@ -5,7 +5,7 @@ opened: 2026-10-19
 
 # 推敲：Viki 的内容面——可枚举、可读、可删、冲突并排（B 卡：P1）
 
-> 立卡：2026-10-19 ｜ 状态：推敲中 ｜ 类型：Feature ｜ 可关闭：否 ｜ 毕业：做现在 ｜ 下一步 = **B2 删除/恢复**（B1 已交付）；B4 真数据清理由本人执行（默认 dry-run 清单→确认后整批）
+> 立卡：2026-10-19 ｜ 状态：推敲中 ｜ 类型：Feature ｜ 可关闭：否 ｜ 毕业：做现在 ｜ 下一步 = **C 卡**（B1/B2/B3 已交付；B4 脚本/试跑已交付，真数据由本人执行）
 > **依赖与自家缝：** 面板骨架沿用 A 卡（[维护面收口](261019-self-update-lanes.md)）的 A1a（共享 tab/drawer/route 形状）；但 **Viki 的宿主路由是 B 自己新增的**：`assistantViki`（`GET/POST /api/assistant/viki`，形状照 `desk-projection` 的 `ctx.connection.fetch.register`）——A 卡不拥有任何 Viki 路由，别读成"继承"。**不要**再用 `knowledge-approve-remote` 的 Typert Remote 方法做删除：那条车道今天要么修 parameter codec（见 A 卡 A2），要么走 host POST；B 的删除/恢复直接用 POST。
 > **依据：** [依据档](../research/self-update/261019-self-update-lanes.md) §5.2（实测）/§5.3（冲突判据）/§九（复审更正）；外部先例在 [先例档](../research/memory-panel/261019-file-memory-panel-precedents.md)。
 > **2026-10-19 复审重写：** 修正 Viki 存储树（抽取物在 `peers/<peer>/memories`，不是 `user/<space>/memories`）、摘要来源（`fs/attrs.memory.summary`，不是 `fs/ls.abstract`）、引用模型（没有 `key`/`supersedes`；知识 `sources` 是自由列表）、删除/恢复（`snapshot/commit` 带 `paths`；`snapshot/restore` 是 forward-commit）、配置（不硬编码 `127.0.0.1:1933`）与 B4 判据。
@@ -41,9 +41,9 @@ opened: 2026-10-19
 | 片 | 做什么 | 要点 |
 |---|---|---|
 | **B1 可枚举 + 可读** | **已交付**（2026-10-19）：`assistant-viki` host 行 + `VikiClient` + Viki tab；6 host + 2 client specs；真机 7 条/读正文；`pnpm verify` 42、`release-smoke`；note = [viki-read](../../notes/implemented/2026-10-19-viki-read.md)。原方案要点：只读路由把 `user/<space>/memories` **和** `peers/*/memories/**` 投影成条目（uri / 分类 / 标题 / 摘要 / mtime / 正文）；面板逐条可读 | 树走 `fs/ls`（对 `events/YYYY` 逐个/递归到 `MM/DD`），摘要取 `fs/attrs.memory.summary`（fallback frontmatter/首行），正文 `content/read`（默认 cleaned；要原文才 `raw=true`）；过滤 `.overview.md`/隐藏；`stats/memories` 做带说明的交叉核；路由只接受 `space`/`peer` 白名单，不接受任意 uri |
-| **B2 逐条删（带备份）** | 删除 = `POST /api/assistant/viki`：`snapshot/commit`（`paths:[uri]`）→ `fs DELETE?uri=&recursive=false` → 回执（commit id / uri / 时间 / 恢复动作） | 删前扫知识 `sources`/`links` 是否含该 uri、同 `event_name`/摘要近似的活跃副本；命中要求二次确认；**没有** `supersedes`/`key` 字段，不按它们设计；无 snapshot 则拒绝删除 |
-| **B3 冲突并排（人工）** | 人选两条 → 并排显示正文/摘要/来源 → "以哪条为准" → 删除另一条（带 B2 备份） | 不做自动检测；不新增 `retired` 状态；Viki 侧落体就是"带备份的删除"，措辞不许写成"退役" |
-| **B4 存量清理（本人执行）** | 判据脚本 + dry-run 清单 + 回执 + 该工作区 memories 树 snapshot | **判据**：目标工作区的 `--keep-space`/`--keep-peer` 之外、或 `source_extraction_id` 属于旧批次的记录；`identity.md`/`soul.md`/`.overview.md` 永远保护；输入 = 工作区/server 地址，输出 = 回执 json（清了什么/备份 commit/保护了什么）；先在 fixture 上证明 |
+| **B2 逐条删（带备份）** | **已交付**（2026-10-19）：`POST` 的 references/delete/restore；引用未确认 409 带回引用；commit 失败 409 不删；回执 commit id；审计 `room:'viki'`；note = [viki-delete](../../notes/implemented/2026-10-19-viki-delete.md)。原方案要点：`snapshot/commit(paths)` → `fs DELETE` → 回执 | 删前扫知识 `sources`/`links` 是否含该 uri、同 `event_name`/摘要近似的活跃副本；命中要求二次确认；**没有** `supersedes`/`key` 字段，不按它们设计；无 snapshot 则拒绝删除 |
+| **B3 冲突并排（人工）** | **已交付**（2026-10-19）：逐行选择两条 → 并排摘要/正文/来源 →「以 A/B 为准」删另一条（复用 B2）；不选/「两条都留」不删；见 [viki-delete](../../notes/implemented/2026-10-19-viki-delete.md)。原方案要点：人选两条 → 并排 → 以哪条为准 | 不做自动检测；不新增 `retired` 状态；Viki 侧落体就是"带备份的删除"，措辞不许写成"退役" |
+| **B4 存量清理（本人执行）** | **脚本/夹具/试跑已交付**（2026-10-19）：`dev/deploy/viki-cleanup.mjs`；dry-run 默认，`--apply` 先 tree snapshot；保护 identity/soul/.overview；当前 server 试跑 keep 5/remove 0/protected 2；note = [viki-cleanup](../../notes/implemented/2026-10-19-viki-cleanup.md)。真数据由本人执行。原方案要点：判据脚本 + dry-run 清单 + 回执 + tree snapshot | **判据**：目标工作区的 `--keep-space`/`--keep-peer` 之外、或 `source_extraction_id` 属于旧批次的记录；`identity.md`/`soul.md`/`.overview.md` 永远保护；输入 = 工作区/server 地址，输出 = 回执 json（清了什么/备份 commit/保护了什么）；先在 fixture 上证明 |
 
 **配置与缺席：** `assistantViki` 行有 `baseUrl`（默认读 `OPENVIKING_URL`；dev 才回退 `http://127.0.0.1:1933`）、`apiKey`（`OPENVIKING_API_KEY`）、`space`/`peer`（可选）；server 未配置/不可达时 tab 隐藏或显示"未连接"，**不阻断启动**（沿用 OpenViking 可选增强纪律）。路由只接受配置里的 space/peer 与白名单内 uri；`POST` body 走 `buffered` JSON。
 

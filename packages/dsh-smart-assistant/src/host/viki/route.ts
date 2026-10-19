@@ -1,11 +1,13 @@
 /**
- * The Viki read route (B1): an exact, owner-only `GET /api/assistant/viki` over the OpenViking
- * memory trees. It is deliberately not an A-card route and not a Typert Remote: the read surface
- * is `user/<space>/memories` + `peers/<peer>/memories/**`, and the only accepted URI is one inside
- * those trees for the configured space/peer.
+ * The Viki route (B1 read + B2 delete/restore): an exact, owner-only `GET/POST
+ * /api/assistant/viki` over the OpenViking memory trees. It is deliberately not an A-card route
+ * and not a Typert Remote: the read surface is `user/<space>/memories` +
+ * `peers/<peer>/memories/**`, and the only accepted URI is one inside those trees for the
+ * configured space/peer.
  *
- * No server configured/unreachable is a normal 503 (`viki-unavailable`), never a startup failure.
- * The panel shows "not connected"; B2 adds POST deletion on the same row.
+ * Delete is never a bare `fs DELETE`: `snapshot/commit([uri])` must succeed first (no snapshot →
+ * 409 `snapshot-required`), reference hits require an explicit `confirm:true`, and the response
+ * carries the commit id plus the restore action. Restore is forward-commit — the receipt says so.
  *
  * @module
  */
@@ -16,6 +18,21 @@ import { VikiUnavailable, type VikiList } from './client.ts'
 export interface VikiReader {
   list(): Promise<VikiList>
   read(uri: string): Promise<string>
+}
+
+/** Knowledge pages / near-duplicates that point at a URI. */
+export interface VikiReferences {
+  readonly knowledge: readonly string[]
+  readonly siblings: readonly string[]
+}
+
+/** The write surface B2 exposes; the plugin binds it to the client + memory service. */
+export interface VikiActions {
+  commit(paths: readonly string[]): Promise<string>
+  remove(uri: string): Promise<void>
+  restore(commit: string): Promise<void>
+  references(uri: string): Promise<VikiReferences>
+  audit(uri: string, commitId: string, title?: string): Promise<void>
 }
 
 export interface VikiRouteOptions {
@@ -34,6 +51,10 @@ function failure(status: number, error: string, message?: string): Response {
   return new Response(JSON.stringify(message === undefined ? { error } : { error, message }), { status, headers: headers() })
 }
 
+function respond(status: number, value: unknown): Response {
+  return new Response(JSON.stringify(value), { status, headers: headers() })
+}
+
 function allowedUri(uri: string, options: VikiRouteOptions): boolean {
   if (uri.split('/').includes('..')) return false
   for (const space of options.allowedSpaces) {
@@ -49,14 +70,15 @@ function allowedUri(uri: string, options: VikiRouteOptions): boolean {
 }
 
 /**
- * Build the exact GET route.
- * Bare `GET` lists both trees; `?uri=<file>` reads one body. `?space`/`?peer` are validated
- * against the configured whitelist and otherwise ignored (the reader is already bound to them).
+ * Build the exact GET/POST route.
+ * Bare `GET` lists both trees; `?uri=<file>` reads one body. POST actions:
+ * `references`, `delete` (commit → delete → audit), `restore`.
  * @param reader - The Viki read surface.
  * @param options - Space/peer whitelist and response byte cap.
- * @returns The exact GET contribution; registration is owned by the Host plugin fiber.
+ * @param actions - The B2 write surface; absent means read-only.
+ * @returns The exact contribution; registration is owned by the Host plugin fiber.
  */
-export function createVikiRoute(reader: VikiReader, options: VikiRouteOptions): ConnectionFetchRoute {
+export function createVikiRoute(reader: VikiReader, options: VikiRouteOptions, actions?: VikiActions): ConnectionFetchRoute {
   const maxBytes = options.maxBytes ?? 1024 * 1024
   if (!Number.isSafeInteger(maxBytes) || maxBytes < 1) throw new Error('viki maxBytes must be a positive safe integer')
   const emit = (value: unknown): Response => {
@@ -64,14 +86,64 @@ export function createVikiRoute(reader: VikiReader, options: VikiRouteOptions): 
     if (Buffer.byteLength(body, 'utf8') > maxBytes) return failure(413, 'projection-too-large')
     return new Response(body, { headers: headers() })
   }
+  const handleAction = async (request: Request): Promise<Response> => {
+    if (actions === undefined) return failure(405, 'method-not-allowed')
+    let body: unknown
+    try { body = await request.json() } catch { return failure(400, 'invalid-json') }
+    if (body === null || typeof body !== 'object' || Array.isArray(body)) return failure(400, 'invalid-body')
+    const input = body as Record<string, unknown>
+    const action = typeof input.action === 'string' ? input.action : undefined
+    if (action === undefined) return failure(400, 'missing-action')
+    const uri = typeof input.uri === 'string' ? input.uri : undefined
+    if (action === 'references') {
+      if (uri === undefined) return failure(400, 'missing-uri')
+      if (!allowedUri(uri, options)) return failure(403, 'uri-not-allowed')
+      return emit({ uri, references: await actions.references(uri) })
+    }
+    if (action === 'delete') {
+      if (uri === undefined) return failure(400, 'missing-uri')
+      if (!allowedUri(uri, options)) return failure(403, 'uri-not-allowed')
+      if (uri.endsWith('/')) return failure(409, 'directory-not-allowed')
+      const list = await reader.list()
+      if (!list.entries.some(entry => entry.uri === uri)) return failure(404, 'uri-not-found')
+      const references = await actions.references(uri)
+      const cited = references.knowledge.length + references.siblings.length
+      if (cited > 0 && input.confirm !== true) return respond(409, { error: 'references-require-confirm', references })
+      let commitId: string
+      try {
+        commitId = await actions.commit([uri])
+      } catch (error) {
+        return failure(409, 'snapshot-required', String(error))
+      }
+      try {
+        await actions.remove(uri)
+      } catch (error) {
+        return failure(502, 'delete-failed', String(error))
+      }
+      await actions.audit(uri, commitId, typeof input.title === 'string' ? input.title : undefined)
+      return emit({ ok: true, uri, commitId, at: new Date().toISOString(), references })
+    }
+    if (action === 'restore') {
+      const commit = typeof input.commit === 'string' && input.commit.length > 0 ? input.commit : undefined
+      if (commit === undefined) return failure(400, 'missing-commit')
+      try {
+        await actions.restore(commit)
+      } catch (error) {
+        return failure(502, 'restore-failed', String(error))
+      }
+      return emit({ ok: true, commit })
+    }
+    return failure(400, 'unknown-action')
+  }
   return {
     path: '/api/assistant/viki',
-    methods: ['GET'],
+    methods: actions === undefined ? ['GET'] : ['GET', 'POST'],
     requestBody: 'buffered',
     async fetch(request) {
       request.signal.throwIfAborted()
-      const url = new URL(request.url)
       try {
+        if (request.method === 'POST') return await handleAction(request)
+        const url = new URL(request.url)
         const space = url.searchParams.get('space')
         if (space !== null && !options.allowedSpaces.includes(space)) return failure(403, 'space-not-allowed')
         const peer = url.searchParams.get('peer')

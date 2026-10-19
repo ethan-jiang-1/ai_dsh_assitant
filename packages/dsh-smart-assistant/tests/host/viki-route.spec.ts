@@ -11,9 +11,9 @@
  * - `Authorization: Bearer` rides when a key is configured.
  */
 import { createServer, type Server } from 'node:http'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { VikiClient, VikiUnavailable } from '../../src/host/viki/client.ts'
-import { createVikiRoute, type VikiReader } from '../../src/host/viki-route.ts'
+import { createVikiRoute, type VikiReader } from '../../src/host/viki/route.ts'
 
 const BASE = 'viking://user/default'
 const events = `${BASE}/peers/p1/memories/events/2026/10/19`
@@ -68,6 +68,9 @@ beforeAll(async () => {
       return reply({ uri, attrs: { memory: attrs[uri] ?? {} } })
     }
     if (url.pathname === '/api/v1/content/read') return reply(`body of ${url.searchParams.get('uri') ?? ''}`)
+    if (url.pathname === '/api/v1/snapshot/commit' && req.method === 'POST') return reply({ commit_id: 'commit-1' })
+    if (url.pathname === '/api/v1/fs' && req.method === 'DELETE') return reply(true)
+    if (url.pathname === '/api/v1/snapshot/restore' && req.method === 'POST') return reply(true)
     if (url.pathname === '/api/v1/stats/memories') return reply({ total_memories: 3, memories: { events: 2 }, by_category: { events: 3 } })
     res.writeHead(404, { 'content-type': 'application/json' })
     res.end(JSON.stringify({ status: 'error', error: 'not found' }))
@@ -152,5 +155,89 @@ describe('Viki route', () => {
     const response = await route.fetch(new Request('http://localhost/api/assistant/viki'))
     expect(response.status).toBe(503)
     expect(await response.json()).toMatchObject({ error: 'viki-unavailable' })
+  })
+})
+
+
+const target = `${events}/b.md`
+
+function fakeActions(overrides: Partial<VikiActions> = {}): VikiActions {
+  return {
+    commit: vi.fn(async () => 'commit-1'),
+    remove: vi.fn(async () => undefined),
+    restore: vi.fn(async () => undefined),
+    references: vi.fn(async () => ({ knowledge: [], siblings: [] })),
+    audit: vi.fn(async () => undefined),
+    ...overrides,
+  }
+}
+
+const POST = (body: unknown): Request => new Request('http://localhost/api/assistant/viki', {
+  method: 'POST',
+  headers: { 'content-type': 'application/json' },
+  body: JSON.stringify(body),
+})
+
+describe('Viki delete / restore (B2)', () => {
+  const client = (): VikiClient => new VikiClient({ baseUrl, space: 'default', peer: 'p1' })
+  const route = (actions: VikiActions): ReturnType<typeof createVikiRoute> => createVikiRoute(
+    { list: () => client().list(), read: uri => client().read(uri) },
+    { allowedSpaces: ['default'], allowedPeers: ['p1'] },
+    actions,
+  )
+
+  it('requires a snapshot commit before deleting and returns the receipt', async () => {
+    const actions = fakeActions()
+    const response = await route(actions).fetch(POST({ action: 'delete', uri: target }))
+    expect(response.status).toBe(200)
+    expect(await response.json()).toMatchObject({ ok: true, uri: target, commitId: 'commit-1' })
+    expect(actions.commit).toHaveBeenCalledWith([target])
+    expect(actions.remove).toHaveBeenCalledWith(target)
+    expect(actions.audit).toHaveBeenCalledWith(target, 'commit-1', undefined)
+  })
+
+  it('blocks a referenced delete until confirm:true and returns the references', async () => {
+    const actions = fakeActions({ references: vi.fn(async () => ({ knowledge: ['k1'], siblings: [target] })) })
+    const blocked = await route(actions).fetch(POST({ action: 'delete', uri: target }))
+    expect(blocked.status).toBe(409)
+    expect(await blocked.json()).toMatchObject({ error: 'references-require-confirm', references: { knowledge: ['k1'] } })
+    expect(actions.commit).not.toHaveBeenCalled()
+    const confirmed = await route(actions).fetch(POST({ action: 'delete', uri: target, confirm: true }))
+    expect(confirmed.status).toBe(200)
+    expect(actions.commit).toHaveBeenCalledWith([target])
+  })
+
+  it('refuses when snapshot/commit fails and never removes the file', async () => {
+    const actions = fakeActions({ commit: vi.fn(async () => { throw new Error('no snapshot') }) })
+    const response = await route(actions).fetch(POST({ action: 'delete', uri: target }))
+    expect(response.status).toBe(409)
+    expect(await response.json()).toMatchObject({ error: 'snapshot-required' })
+    expect(actions.remove).not.toHaveBeenCalled()
+  })
+
+  it('refuses directories, unknown URIs and out-of-tree URIs', async () => {
+    const actions = fakeActions()
+    const directory = await route(actions).fetch(POST({ action: 'delete', uri: `${events}/` }))
+    expect(directory.status).toBe(409)
+    const missing = await route(actions).fetch(POST({ action: 'delete', uri: `${events}/nope.md` }))
+    expect(missing.status).toBe(404)
+    const outside = await route(actions).fetch(POST({ action: 'delete', uri: 'viking://user/default/memories/../../x.md' }))
+    expect(outside.status).toBe(403)
+  })
+
+  it('serves references and restore', async () => {
+    const actions = fakeActions({ references: vi.fn(async () => ({ knowledge: [], siblings: ['s1'] })) })
+    const refs = await route(actions).fetch(POST({ action: 'references', uri: target }))
+    expect(await refs.json()).toMatchObject({ uri: target, references: { siblings: ['s1'] } })
+    const restored = await route(actions).fetch(POST({ action: 'restore', commit: 'commit-1' }))
+    expect(restored.status).toBe(200)
+    expect(actions.restore).toHaveBeenCalledWith('commit-1')
+  })
+
+  it('client commits, deletes and restores against the server', async () => {
+    const c = client()
+    await expect(c.commit([target])).resolves.toBe('commit-1')
+    await expect(c.remove(target)).resolves.toBeUndefined()
+    await expect(c.restore('commit-1')).resolves.toBeUndefined()
   })
 })

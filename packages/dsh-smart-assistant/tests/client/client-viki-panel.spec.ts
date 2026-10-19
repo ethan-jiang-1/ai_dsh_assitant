@@ -88,3 +88,54 @@ describe('Viki tab', () => {
     expect(rendered).toContain('重试')
   })
 })
+
+describe('Viki delete / restore / compare (B2/B3)', () => {
+  const target = list.entries[0].uri
+  const fake = (calls: string[], confirmRequired = true): unknown => ({
+    remote: {},
+    web: {
+      baseURI: 'http://localhost:3080/mount/',
+      fetch: async (input: unknown, init?: { body?: unknown }) => {
+        const url = new URL(String(input))
+        calls.push(`${url.pathname}${url.search}`)
+        const body = typeof init?.body === 'string' ? JSON.parse(init.body) as { action?: string, confirm?: boolean } : {}
+        if (body.action === 'references') return json({ uri: target, references: { knowledge: ['k1'], siblings: [] } })
+        if (body.action === 'delete') {
+          if (confirmRequired && body.confirm !== true) return json({ error: 'references-require-confirm', references: { knowledge: ['k1'], siblings: [] } }, 409)
+          return json({ ok: true, uri: target, commitId: 'c1', at: '2026-10-19T00:00:00.000Z', references: { knowledge: [], siblings: [] } })
+        }
+        if (body.action === 'restore') return json({ ok: true, commit: 'c1' })
+        if (url.searchParams.get('uri') !== null) return json({ uri: url.searchParams.get('uri'), content: 'body' })
+        return json(list)
+      },
+    },
+  })
+
+  it('references → blocked delete → confirm → receipt → restore', async () => {
+    const calls: string[] = []
+    const exports = materialize() as unknown as ClientExports & {
+      referencesViki: (uri: string) => Promise<{ knowledge: string[], siblings: string[] }>
+      deleteViki: (uri: string, confirm: boolean) => Promise<{ ok: boolean, reason?: string, receipt?: { commitId: string } }>
+      restoreViki: (commit: string) => Promise<{ ok: boolean }>
+    }
+    exports.bindVikiEnv(fake(calls))
+    expect(await exports.referencesViki(target)).toMatchObject({ knowledge: ['k1'] })
+    const blocked = await exports.deleteViki(target, false)
+    expect(blocked.ok).toBe(false)
+    expect(blocked.reason).toBe('references-require-confirm')
+    const deleted = await exports.deleteViki(target, true)
+    expect(deleted.ok).toBe(true)
+    expect(deleted.receipt?.commitId).toBe('c1')
+    expect(await exports.restoreViki('c1')).toEqual({ ok: true })
+  })
+
+  it('renders the delete and compare controls from a ready list', async () => {
+    const exports = materialize()
+    exports.bindVikiEnv(fake([]))
+    await exports.loadViki()
+    const text = textsOf(exports.VikiPanel()).join(' | ')
+    expect(text).toContain('删')
+    expect(text).toContain('并排比较')
+    expect(text).toContain('选择')
+  })
+})

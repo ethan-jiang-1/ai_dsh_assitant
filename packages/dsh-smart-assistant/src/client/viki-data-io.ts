@@ -100,3 +100,68 @@ export async function loadVikiBody(uri: string): Promise<{ ok: true, body: strin
 }
 
 export type { VikiEntry }
+
+/** Knowledge pages / near-duplicates that point at a URI (B2's pre-delete check). */
+export interface VikiReferences { readonly knowledge: readonly string[], readonly siblings: readonly string[] }
+
+/** One delete receipt: commit id + when + the refs the principal confirmed. */
+export interface VikiReceipt { readonly uri: string, readonly commitId: string, readonly at: string, readonly references: VikiReferences }
+
+type VikiDeleteResult = { readonly ok: true, readonly receipt: VikiReceipt } | { readonly ok: false, readonly reason: string, readonly references?: VikiReferences }
+
+/** Call one POST action on the Viki route. */
+async function postViki(body: Record<string, unknown>): Promise<{ status: number, body: Record<string, unknown> }> {
+  if (vikiWeb === undefined) return { status: 0, body: { error: 'the web face is not available' } }
+  try {
+    const response = await vikiWeb.fetch(new URL('api/assistant/viki', vikiWeb.baseURI), {
+      method: 'POST', credentials: 'same-origin', cache: 'no-store', redirect: 'error',
+      headers: { 'content-type': 'application/json' }, body: JSON.stringify(body),
+    })
+    const parsed = await response.json().catch(() => ({})) as Record<string, unknown>
+    return { status: response.status, body: parsed }
+  } catch (error) {
+    return { status: 0, body: { error: String(error) } }
+  }
+}
+
+/** Read the reference set before deleting. */
+export async function referencesViki(uri: string): Promise<VikiReferences> {
+  const result = await postViki({ action: 'references', uri })
+  const refs = result.body.references as VikiReferences | undefined
+  return { knowledge: refs?.knowledge ?? [], siblings: refs?.siblings ?? [] }
+}
+
+/**
+ * Delete one file: the host commits a snapshot first and refuses without one. A reference hit
+ * without `confirm` comes back as a 409 with the reference set, so the panel can show it.
+ */
+export async function deleteViki(uri: string, confirm: boolean): Promise<VikiDeleteResult> {
+  const result = await postViki({ action: 'delete', uri, confirm })
+  if (result.status === 409 && result.body.error === 'references-require-confirm') {
+    const refs = result.body.references as VikiReferences | undefined
+    return { ok: false, reason: 'references-require-confirm', ...(refs === undefined ? {} : { references: refs }) }
+  }
+  if (result.status === 0) return { ok: false, reason: String(result.body.error ?? 'network') }
+  if (result.status !== 200 || result.body.ok !== true) {
+    return { ok: false, reason: String(result.body.message ?? result.body.error ?? `HTTP ${String(result.status)}`) }
+  }
+  return {
+    ok: true,
+    receipt: {
+      uri,
+      commitId: String(result.body.commitId ?? ''),
+      at: String(result.body.at ?? new Date().toISOString()),
+      references: (result.body.references as VikiReferences | undefined) ?? { knowledge: [], siblings: [] },
+    },
+  }
+}
+
+/** Restore one commit (forward-commit: later changes may be affected). */
+export async function restoreViki(commit: string): Promise<{ ok: true } | { ok: false, reason: string }> {
+  const result = await postViki({ action: 'restore', commit })
+  if (result.status === 0) return { ok: false, reason: String(result.body.error ?? 'network') }
+  if (result.status !== 200 || result.body.ok !== true) {
+    return { ok: false, reason: String(result.body.message ?? result.body.error ?? `HTTP ${String(result.status)}`) }
+  }
+  return { ok: true }
+}

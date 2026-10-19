@@ -13,7 +13,7 @@
  */
 
 /** One room in the receipt. */
-export type ReceiptRoom = 'memory' | 'knowledge' | 'research' | 'skills'
+export type ReceiptRoom = 'memory' | 'knowledge' | 'research' | 'skills' | 'viki'
 
 /** The four rooms' row slice the receipt needs (structural subset of the client's `DeskData`). */
 export interface ReceiptRow {
@@ -74,7 +74,7 @@ export interface Receipt {
   readonly total: number
 }
 
-const EMPTY_COUNTS: Readonly<Record<ReceiptRoom, number>> = { memory: 0, knowledge: 0, research: 0, skills: 0 }
+const EMPTY_COUNTS: Readonly<Record<ReceiptRoom, number>> = { memory: 0, knowledge: 0, research: 0, skills: 0, viki: 0 }
 
 function stamp(value: string | undefined): number | undefined {
   if (typeof value !== 'string' || value.length === 0) return undefined

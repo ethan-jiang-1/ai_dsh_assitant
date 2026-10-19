@@ -43,13 +43,13 @@ describe('maintenance receipt pure core', () => {
     const receipt = buildReceipt(snapshot, ledger, undefined)
     expect(receipt.total).toBe(0)
     expect(receipt.changes).toEqual([])
-    expect(receipt.counts).toEqual({ memory: 0, knowledge: 0, research: 0, skills: 0 })
+    expect(receipt.counts).toEqual({ memory: 0, knowledge: 0, research: 0, skills: 0, viki: 0 })
   })
 
   it('groups ledger + room updates after since, ignoring lastUsedAt and pre-since rows', () => {
     const receipt = buildReceipt(snapshot, ledger, since)
     expect(receipt.total).toBe(6)
-    expect(receipt.counts).toEqual({ memory: 2, knowledge: 2, research: 0, skills: 2 })
+    expect(receipt.counts).toEqual({ memory: 2, knowledge: 2, research: 0, skills: 2, viki: 0 })
     expect(receipt.changes.map(change => `${change.room}:${change.id}:${change.kind}`)).toEqual(expect.arrayContaining([
       'knowledge:k1:approved',
       'memory:m2:corrected',
@@ -86,5 +86,19 @@ describe('maintenance receipt pure core', () => {
     expect(receipt.counts).toMatchObject({ memory: 4, knowledge: 2, skills: 2 })
     expect(receipt.changes.some(change => change.room === 'skills' && change.id === 's2')).toBe(true)
     expect(receipt.changes.some(change => change.room === 'memory' && change.id === 'm-only')).toBe(true)
+  })
+})
+
+describe('Viki lines in the receipt (B2)', () => {
+  it('counts a Viki retire line in its own room without touching the four', () => {
+    const receipt = buildReceipt(
+      { generatedAt: '2026-10-19T04:00:00.000Z', memories: [], knowledge: [], research: [], skills: [] },
+      [{ at: '2026-10-19T03:00:00.000Z', kind: 'retire', id: 'viking://user/default/peers/p1/memories/events/2026/10/19/a.md', room: 'viki', title: 'A event' }],
+      since,
+    )
+    expect(receipt.total).toBe(1)
+    expect(receipt.counts.viki).toBe(1)
+    expect(receipt.counts.memory).toBe(0)
+    expect(receipt.changes[0]).toMatchObject({ room: 'viki', kind: 'retired', title: 'A event' })
   })
 })

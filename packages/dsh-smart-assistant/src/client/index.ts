@@ -54,7 +54,7 @@ import { ApprovalDockBanner, FirstMileDock } from './first-mile'
 import { KnowledgeTabBody, MemoryTabBody, VikiTabBody, roomTabTitle } from './room-tabs'
 import { KnowledgeIcon, KnowledgePanel, MemoryIcon, MemoryPanel } from './panels'
 import { VikiIcon, VikiPanel } from './viki-panel'
-import { bindVikiEnv, getVikiView, loadViki, loadVikiBody, resetVikiView, useVikiView } from './viki-data-io'
+import { bindVikiEnv, deleteViki, getVikiView, loadViki, loadVikiBody, referencesViki, resetVikiView, restoreViki, useVikiView } from './viki-data-io'
 import { bindClientRequire, clientRequire } from './runtime'
 import { ensureThemeVars } from './theme'
 import { ProjectionPanel } from './projection-panel'
@@ -491,7 +491,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   return {
     inject, apply, AssistantBrandMark, AssistantBrandName,
     KnowledgePanel, MemoryPanel, deskStore, deskSlice,
-    DashboardPanelIcon, DashboardMainPanel, KnowledgeTabBody, MemoryTabBody, VikiTabBody, VikiPanel, bindVikiEnv, getVikiView, loadViki, loadVikiBody, resetVikiView, useVikiView, roomTabTitle,
+    DashboardPanelIcon, DashboardMainPanel, KnowledgeTabBody, MemoryTabBody, VikiTabBody, VikiPanel, bindVikiEnv, deleteViki, getVikiView, loadViki, loadVikiBody, referencesViki, resetVikiView, restoreViki, useVikiView, roomTabTitle,
     roomCommands, AssistantHeroMark, FirstMileDock, ApprovalDockBanner, expirePending, settlePending, loadDeskFor, looksLikeDesk,
     approveKnowledgePage, deprecateKnowledgePage, correctMemory, retireMemory, retireSkill,
     ReceiptView, markReceiptRead, readReceiptSince, resetReceiptBaseline,
