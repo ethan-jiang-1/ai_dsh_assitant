@@ -5,7 +5,7 @@ opened: 2026-10-19
 
 # 推敲：Viki 的内容面——可枚举、可读、可删、冲突并排（B 卡：P1）
 
-> 立卡：2026-10-19 ｜ 状态：推敲中 ｜ 类型：Feature ｜ 可关闭：否 ｜ 毕业：做现在 ｜ 下一步 = **C 卡**（B1/B2/B3 已交付；B4 脚本/试跑已交付，真数据由本人执行）
+> 立卡：2026-10-19 ｜ 状态：推敲中 ｜ 类型：Feature ｜ 可关闭：否 ｜ 毕业：做现在 ｜ 下一步 = **campaign close**（B1/B2/B3/B4 脚本已交付；B4 真数据本人；人判待本人）
 > **依赖与自家缝：** 面板骨架沿用 A 卡（[维护面收口](261019-self-update-lanes.md)）的 A1a（共享 tab/drawer/route 形状）；但 **Viki 的宿主路由是 B 自己新增的**：`assistantViki`（`GET/POST /api/assistant/viki`，形状照 `desk-projection` 的 `ctx.connection.fetch.register`）——A 卡不拥有任何 Viki 路由，别读成"继承"。**不要**再用 `knowledge-approve-remote` 的 Typert Remote 方法做删除：那条车道今天要么修 parameter codec（见 A 卡 A2），要么走 host POST；B 的删除/恢复直接用 POST。
 > **依据：** [依据档](../research/self-update/261019-self-update-lanes.md) §5.2（实测）/§5.3（冲突判据）/§九（复审更正）；外部先例在 [先例档](../research/memory-panel/261019-file-memory-panel-precedents.md)。
 > **2026-10-19 复审重写：** 修正 Viki 存储树（抽取物在 `peers/<peer>/memories`，不是 `user/<space>/memories`）、摘要来源（`fs/attrs.memory.summary`，不是 `fs/ls.abstract`）、引用模型（没有 `key`/`supersedes`；知识 `sources` 是自由列表）、删除/恢复（`snapshot/commit` 带 `paths`；`snapshot/restore` 是 forward-commit）、配置（不硬编码 `127.0.0.1:1933`）与 B4 判据。
