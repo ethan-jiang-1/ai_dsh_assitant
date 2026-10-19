@@ -136,11 +136,27 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // is the primary "it finished while you were away" mark, but it can be lost for a turn that
     // ran in a background session (observed in the 先试跑 lane); seeing the session run at least
     // once lets the receipt settle honestly instead of waiting on a ledger write that will never
-    // come. The set is per page materialization, exactly like the receipt.
-    const seenRunning = new Set<string>()
+    // come. The set is per TAB, stored alongside the receipt: a reload keeps the fact that the
+    // turn already ran, otherwise a finished trial would come back saying "排队，等它接手".
+    const SEEN_RUNNING_KEY = 'dsha-capture-seen-running-v1'
+    const readSeenRunning = (): Set<string> => {
+      try {
+        if (typeof sessionStorage === 'undefined') return new Set()
+        const raw = sessionStorage.getItem(SEEN_RUNNING_KEY)
+        const ids = raw === null ? [] : JSON.parse(raw) as unknown
+        return new Set(Array.isArray(ids) ? ids.filter((id): id is string => typeof id === 'string') : [])
+      } catch { return new Set() }
+    }
+    const writeSeenRunning = (ids: ReadonlySet<string>): void => {
+      try { if (typeof sessionStorage !== 'undefined') sessionStorage.setItem(SEEN_RUNNING_KEY, JSON.stringify([...ids])) } catch { /* memory-only */ }
+    }
+    const seenRunning = readSeenRunning()
     const readStatuses = (): ReadonlyMap<string, CaptureStatus> => new Map(
       [...(ctx.uiSession?.sessionStatus.getSnapshot() ?? [])].map(([id, value]) => {
-        if (value.running === true) seenRunning.add(id)
+        if (value.running === true && !seenRunning.has(id)) {
+          seenRunning.add(id)
+          writeSeenRunning(seenRunning)
+        }
         return [id, { ...toCaptureStatus(value), seenRunning: seenRunning.has(id) }]
       }),
     )

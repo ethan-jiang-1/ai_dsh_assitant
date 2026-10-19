@@ -22,7 +22,7 @@
 | `queued` | 其余（含状态未知） | 已交给助手；输入保持关闭，但永远有「关闭」逃生 |
 
 - **账本仍是最高优先**，回合结束只是第二终态；从没见会话跑起来的 `queued` 不臆造"完成"。
-- **`seenRunning` 由入口的状态镜像维护**（每页一个 Set）：平台对后台回合可能丢掉 `completionUnread`，见过 running 就足以知道回合已结束。它是页面观察，不是服务端事实。
+- **`seenRunning` 由入口的状态镜像维护**（每 tab 一个 Set，随回执落 `sessionStorage`）：平台对后台回合可能丢掉 `completionUnread`，见过 running 就足以知道回合已结束。它是本 tab 的观察，不是服务端事实。
 - **行永远有「关闭」**（`setCaptureReceipt(null)`）；只有 `running`/`queued` 禁用桌面输入。
 - **动作车道带 `lane: 'action'` 与人类 `label`**：「先试跑「…」/ 替你盯上「…」」回显按钮动作，不再把内部指令原文（"真读真判断、不建排程、不写账本…"）当成本人的话；来源行也说"桌面按钮"。
 - **Q5 失配行按 title 一条**：`deriveProactiveFace` 去重；`rememberAcceptedWatch` 一次 title 一条（重试替换而不是追加）；`forgetAcceptedWatch` + 面板「忽略」把它从本地记忆里去掉；读取 localStorage 时顺手 heal 旧重复。
@@ -41,7 +41,7 @@
 ## 边界（本次不做的事，别把这篇当承诺）
 
 - 回执在 **261019 同日改为 `sessionStorage` 持久（per tab）**：刷新不再丢在途/终态行；关闭时删除。它仍不是业务事实，也不会跨 tab 共享。
-- `seenRunning` 只覆盖本页观察；页面在回合中途打开时可能没有它，此时是 `queued` + 「关闭」。
+- `seenRunning` 与回执一起落 `sessionStorage`（per tab）：刷新后仍知道这个会话已经跑过，终态保持「它说完了」而不是退回收口前；新标签页两者都没有，不会凭空出现一行。真机：先试跑跑完后刷新，行仍 `它说完了`、输入可用。
 - 「到期没结果」行的判据已在同日收窄为"committed 的 complete 回执才清"（BUG-017，见 [proactive note](./2026-10-18-proactive-face.md)）；claim/update 不再清行。
 - 动作车道「一次点击两条排程」「指令被 note 进待认领」已在同日收口（BUG-020，brief 的动作行例外 + 恰好一条），见 [desk capture note](./2026-10-18-desk-side-capture.md)。
 

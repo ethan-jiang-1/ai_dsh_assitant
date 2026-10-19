@@ -286,8 +286,8 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
   }
   const pendingProposals = data?.matters.reduce((count, matter) => count + matter.proposals.filter(proposal => proposal.status === 'pending').length, 0) ?? 0
   // 片 1 (261018 proactive):「它替你看过」— three honest rows from read-only sources, zero model
-  // calls. The catalog namespace may not materialize (stage-0 finding: the subface inject kills
-  // the client entry), so its absence degrades row 3 to an attribute marker, never a guess.
+  // calls. The catalog namespace can still be absent (the peer + inject pair is load-bearing; see
+  // index.ts's wiring verdict), so its absence degrades row 3 to an attribute marker, never a guess.
   // All-empty state renders nothing at all — the desk keeps today's silhouette.
   const catalogState: ProactiveCatalogState = props.useCatalog !== undefined
     ? props.useCatalog(value => value)

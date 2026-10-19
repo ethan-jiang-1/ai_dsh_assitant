@@ -2,12 +2,12 @@
  * Proactive catalog source (261018 片1): the read-only bridge between the platform
  * schedule storage and the desk's「它替你看过」row 3.
  *
- * Stage-0 finding (2026-10-18, binary-search verified): declaring `'remote.schedule'`
- * in the client inject list kills the whole client entry at runtime, so this source
- * deliberately does NOT rely on the subface declaration — it reads the namespace off
- * the already-injected `remote` object with optional chaining, following the
- * room-data-io precedent. When the namespace does not materialize, the snapshot
- * stays `unavailable` and the desk shows nothing for row 3 rather than guessing.
+ * Wiring verdict (261018 stage-0, three binary-search rounds; final in `index.ts`): the
+ * `'remote.schedule'` inject works ONLY together with the `"@deepseek-ai/dsh-schedule"` peer
+ * declaration — either piece alone kills the whole client entry at runtime with zero type-level
+ * warning. This source still reads the namespace off the injected `remote` object with optional
+ * chaining (following the room-data-io precedent), so a composition that omits the peer/inject
+ * pair degrades to `unavailable` instead of crashing this module.
  */
 import type { ProactiveCatalogEntry } from './proactive-face'
 

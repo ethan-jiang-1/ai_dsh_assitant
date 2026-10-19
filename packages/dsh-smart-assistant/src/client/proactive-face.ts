@@ -9,9 +9,10 @@
  *   with NO committed RESULT after that moment (a claim or a status update is not a
  *   result); several overdue matters collapse to the most overdue one plus `extraCount`.
  *   Settled matters never appear.
- * - 行 2 waiting-for-you: pending proposals + unclaimed fragments (+ open
- *   questions once 片2 lands) aggregated into ONE row, split from the capture
- *   in-flight row by the "matter vs session" division the adjudication fixed.
+ * - 行 2 waiting-for-you: pending proposals + unclaimed fragments (+ unanswered
+ *   questions from sessions the capture row does not own) aggregated into ONE row,
+ *   split from the capture in-flight row by the "matter vs session" division the
+ *   adjudication fixed.
  * - 行 3 next-look: earliest active schedule; a late delivery (fact only, no
  *   attribution) and same-title-same-instant duplicates are stated, never acted on.
  * - An undefined catalog degrades to an explicit marker — the desk never guesses.

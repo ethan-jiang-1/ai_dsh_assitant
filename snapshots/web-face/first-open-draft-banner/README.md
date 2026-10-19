@@ -46,8 +46,9 @@ pnpm web-expected '<url>' --scenario snapshots/web-face/first-open-draft-banner 
 
 **`--wait-text` 是本场景的合同件**：settle 是固定时钟，而横幅数据走桌面 walk view 的异步读，
 实测会在 ~2/10 的拍摄里越窗（2026-10-05，十连拍两红）——就该读的**就绪条件**轮询，不是加长
-猜测。片段编译在纯核 `buildWaitSnippet`（夹具 `webui-expected-core.spec.mjs`），超时**resolve
-不 reject**：等不到就照拍，内容漂移照红——所以"没有横幅"的反面探针依然成立。
+猜测。片段编译在纯核 `buildWaitSnippet`（夹具 `webui-expected-core.spec.mjs`），片段本身仍
+resolve `timeout: ...`；但 `webui-expected` 自 2026-10-19（BUG-021）把它翻译成
+`--require-eval 'ready: <token>'`——等不到就非零退出、不再照拍，"没有横幅"的反面探针因此更早红。
 
 ## 比对什么（判据）
 

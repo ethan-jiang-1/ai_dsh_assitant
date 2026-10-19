@@ -12,10 +12,10 @@ export type DeskMode = 'board' | 'activity'
  * The delivery receipt of one line the principal typed into the desk's capture row (261018 片 1).
  *
  * A **delivery receipt, not a content truth**: it says "the assistant's inbox accepted this line
- * and the ledger has not moved yet". It lives and dies with the page on purpose — the words
- * themselves are durable in the conversation, and the ledger stays the only authority on what
- * exists. Rendering it as anything resembling a matter or a fragment would be the desk claiming
- * something it cannot back.
+ * and the ledger has not moved yet". It is per-tab and survives a reload through `sessionStorage`
+ * (261019, BUG-016) — the words themselves are durable in the conversation, and the ledger stays
+ * the only authority on what exists. Rendering it as anything resembling a matter or a fragment
+ * would be the desk claiming something it cannot back.
  */
 export interface DeskCaptureReceipt {
   readonly requestId: string
