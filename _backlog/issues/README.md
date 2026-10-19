@@ -6,9 +6,9 @@
 
 | 卡 | 要解决什么 | 当前环节与未完成项 |
 |---|---|---|
-| [261019-self-update-lanes.md](261019-self-update-lanes.md) | **A 卡（总卡 + P0）**：面板读真值（宿主只读路由）、直写当场生效、看得见"自上次以来"；退役 `.desk/state.json` 与 `desk-refresh` | 等人拍板：一次答复三句（顺序 / 合同退役 / B 卡口径）。**已知硬风险**：直调车道今天真机挂不上（261004），A2 先做探针、红则走卡上降级形态；依据档 [self-update/261019-self-update-lanes](../research/self-update/261019-self-update-lanes.md) |
-| [261019-viki-content-governance.md](261019-viki-content-governance.md) | **B 卡（P1）**：Viki 内容面可枚举/可读/逐条删（带备份）/冲突并排；自带 `assistantViki` 宿主路由；越界批次清理 | 等人拍板：整批清除还是先看清单。真数据不在本机 → 清理脚本 + 本人执行回执（验收第 7 行） |
-| [261019-learned-skills-surface.md](261019-learned-skills-surface.md) | **C 卡（P2/P3）**：技能逐件可见与退役（复用 A2 车道；成本列是估算或推迟）；消息级"记下来" | C1 不等拍板（A2 就绪即开工）；只有 C2 等一句（P3 是否现在做） |
+| [261019-self-update-lanes.md](261019-self-update-lanes.md) | **A 卡（P0 总卡）**：A1a 读真值（working folder 只读路由）/ A2 直写生效 / A3 收据 / A1b 退役拷贝 | 等人拍板：三句（顺序 / Q3 退役 / B 口径）+ 默认值取舍；依据档 [self-update/261019-self-update-lanes](../research/self-update/261019-self-update-lanes.md) §九已更正 |
+| [261019-viki-content-governance.md](261019-viki-content-governance.md) | **B 卡（P1）**：Viki peer 树可枚举/可读/逐条删（带备份）/人工冲突并排；自带 `assistantViki` 路由；越界清理 | 等人拍板：整批清除还是先 dry-run 清单；真数据不在本机 → 脚本 + 本人执行回执（验收第 7 行） |
+| [261019-learned-skills-surface.md](261019-learned-skills-surface.md) | **C 卡（P2/P3）**：learned 技能逐件可见与退役（复用 A2 直写）；assistant 消息"记下来" | C1 等 A2 直写证据 + proposed 卡；C2 等一句（P3 是否现在做） |
 
 ## 写一张卡
 
