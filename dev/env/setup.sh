@@ -99,6 +99,12 @@ for pair in "$profile:$profile_dir:$repo_root/dev/profiles/profile-patch.yml" \
   cp "$patch" "$dir/cordis.patch.yml"
 done
 
+# 6.5. OpenViking 记忆层的 server（幂等；**失败不阻断**——可选增强不能成单点故障）。
+# 它是独立进程，插件拉起不了（产物里没有 spawn），而插件连不上时静默降级、界面看不出来，
+# 所以「起服务」这一串里必须有这一步，否则记忆层在不在全靠人记着敲。细节见脚本头注。
+echo "▸ OpenViking 记忆层（可选；缺席不阻断）"
+bash "$repo_root/dev/env/openviking-up.sh" || true
+
 echo
 echo "done. Next:"
 echo "  pnpm dsh --profile $task_profile \"one task\"   # host-only one-shot: plugin load/scaffold/service smoke (headless)"

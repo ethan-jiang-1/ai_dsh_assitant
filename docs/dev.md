@@ -110,6 +110,19 @@ pnpm test:domain / pnpm test:host / pnpm test:agent / pnpm test:client / pnpm te
 
 （keyless 回放与 web-expected 在命令表上有行；replay 的形状与坑在该 patch 头注。）
 
+**OpenViking 记忆层的 server 由 `setup.sh` 顺带拉起**（实现 = [`dev/env/openviking-up.sh`](../dev/env/openviking-up.sh)，幂等）。
+这件事必须自动化，因为它的失败是**安静**的：插件（Node 侧 bundle）拉不起 server——0.5.26 产物里没有任何
+spawn/child_process——连不上时按 `catch { /* best effort */ }` 降级，对话照常、记忆不抽取、界面无任何提示。
+少了这一步，记忆层在不在全靠人记着敲。
+
+三条纪律钉在脚本里：**幂等**（1933 已健康就复用，不起第二个）；**失败不阻断**（记忆层是可选增强，
+server 缺席/未装/起不来一律 warn 后 `exit 0`，`pnpm start` 照常交实例）；**状态只落仓内**——server 默认写
+`~/.openviking/workspace`，那在仓外、会被文件沙箱挡下（实测 `PermissionError: .openviking.lock`），
+故从上游 `ov.conf` 派生一份 `.tmp/openviking/ov.conf` 把 storage 指到 `.tmp/openviking/workspace`（硬规则 8）。
+
+端点 `127.0.0.1:1933` 是插件 `shared/credentials.mjs` 的缺省值，与 `ov-install.sh` 健康门同一个数；
+**改它必须连插件配置一起改**，否则插件连一个没人听的端口，而那正好又是一次静默降级。
+
 **`pnpm eval:domain` 证明什么**：`pnpm eval` 守的是机械地板（技能有没有按名加载、文件有没有真写、该不该动保留项），
 它判不了"这个答案对公司对不对"。领域评测集补这一层：**题目由本人出**（真实经营问题），工具逐题跑一次真实 preset
 会话，把答案原文 + 机器观测（查了哪些房间、加载了哪些技能、耗时、会话 id）落成一份打分表；质量按
