@@ -40,7 +40,15 @@ export function bindDeskEnv(ctx: ClientContext): void {
   deskRemote = (ctx as { remote?: Record<string, unknown> }).remote
   deskSessions = ctx.sessions as typeof deskSessions | undefined
   deskSidebarRight = ctx.sidebarRight
-  const injected = (ctx as { web?: RoomDataWeb }).web
+  // A real Cordis context guards undeclared services (the panel does not inject a `web`
+  // service); the classic-script test harness passes a plain `web` object. Probe without
+  // turning an unavailable service into an apply failure; production reads document/location.
+  let injected: RoomDataWeb | undefined
+  try {
+    injected = (ctx as { web?: RoomDataWeb }).web
+  } catch {
+    injected = undefined
+  }
   deskWeb = injected ?? (typeof document === 'undefined'
     ? undefined
     : { baseURI: document.baseURI, origin: location.origin, fetch: globalThis.fetch.bind(globalThis) })

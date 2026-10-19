@@ -42,14 +42,14 @@ export function ContentDrawer(props: ContentDrawerProps): ReturnType<typeof crea
     },
     style: {
       position: 'fixed', inset: '0', zIndex: 60, display: 'flex', alignItems: 'center',
-      justifyContent: 'center', padding: '24px', background: 'rgba(0, 0, 0, 0.35)',
+      justifyContent: 'center', padding: '24px', background: 'var(--dsw-alias-bg-mask-3)',
     },
   },
   createElement('div', {
     style: {
       width: 'min(760px, 100%)', maxHeight: '80vh', overflowY: 'auto', borderRadius: '10px',
-      background: 'var(--dsw-alias-bg-base)', border: '1px solid var(--dsw-alias-border-l3)',
-      padding: '20px 22px', boxShadow: '0 12px 40px rgba(0, 0, 0, 0.25)',
+      background: 'var(--dsw-alias-bg-base)', border: '0',
+      padding: '20px 22px', boxShadow: 'var(--dsw-elevation-prominent)',
     },
   },
   createElement('div', { style: { display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '12px' } },
