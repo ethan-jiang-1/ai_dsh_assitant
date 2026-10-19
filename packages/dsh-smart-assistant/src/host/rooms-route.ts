@@ -33,6 +33,8 @@ export interface RoomsReader {
   listThreads(): Promise<{ entries: readonly ResearchThread[], failures: readonly RoomReadFailure[] }>
   listKnowledge(): Promise<{ entries: readonly KnowledgePage[], failures: readonly RoomReadFailure[] }>
   readKnowledgePage(id: string): Promise<{ page: KnowledgePage, backlinks: readonly string[] } | undefined>
+  /** C1: one learned skill's SKILL.md body by name. */
+  readLearnedSkill(name: string): Promise<{ name: string, body: string, path: string } | undefined>
   learnedSkills(): Promise<{ entries: readonly LearnedSkillInfo[], failures: readonly RoomReadFailure[] }>
   skillUsage(): Promise<SkillUsageRead>
   /** Newest approval-ledger lines for the A3 receipt. */
@@ -282,8 +284,15 @@ export function createRoomsRoute(reader: RoomsReader, maxBytes: number = 1024 * 
           || !url.searchParams.has('id')) {
           return failure(400, 'unexpected-query')
         }
-        if (url.searchParams.get('kind') !== 'knowledge') return failure(400, 'invalid-query')
+        const kind = url.searchParams.get('kind')
         const id = url.searchParams.get('id') as string
+        if (kind === 'skill') {
+          if (!isSkillName(id)) return failure(400, 'invalid-query')
+          const skill = await reader.readLearnedSkill(id)
+          if (skill === undefined) return failure(404, 'skill-not-found')
+          return emit(skill)
+        }
+        if (kind !== 'knowledge') return failure(400, 'invalid-query')
         if (!isEntryId(id)) return failure(400, 'invalid-query')
         const found = await reader.readKnowledgePage(id)
         request.signal.throwIfAborted()

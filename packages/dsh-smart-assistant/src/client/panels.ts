@@ -174,7 +174,7 @@ export function KnowledgePanel(props?: { sessionId?: string }): unknown {
       // A count, not a list: the principal cannot judge `repo-to-knowledge`, and the descriptions
       // are model-facing English (repository rule), so a 71-line English list is noise on their
       // surface — content eligibility before layout (2026-09-26 reviews).
-      : muted(`学来的 ${String((store.data?.skills ?? []).filter(skill => skill.kind === 'learned').length)} 件——C1 会给出逐件列表；哪一件不想要了，在对话里说一声即可下掉`),
+      : muted(`学来的 ${String((store.data?.skills ?? []).filter(skill => skill.kind === 'learned').length)} 件——在「技能」tab 逐件看、退役`),
     drawer === undefined
       ? null
       : createElement(ContentDrawer, { title: drawer.title, body: drawer.body, onClose: () => { setDrawer(undefined) } }),

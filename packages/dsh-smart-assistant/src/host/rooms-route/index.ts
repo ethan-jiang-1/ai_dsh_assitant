@@ -33,6 +33,7 @@ export function apply(ctx: Context, config: Config = {}): void {
     listThreads: () => memory.listThreads(),
     listKnowledge: () => memory.listKnowledge(),
     readKnowledgePage: id => memory.readKnowledgePage(id),
+    readLearnedSkill: name => memory.readLearnedSkill(name),
     learnedSkills: async () => {
       const scan = await scanLearnedSkills(memory.paths.skillsDir)
       return { entries: scan.skills, failures: scan.failures }

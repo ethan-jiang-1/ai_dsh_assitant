@@ -82,7 +82,7 @@ describe('writeLearnedSkill', () => {
     expect(await readFile(written.path, 'utf8')).toContain('origin: learned')
     const scan = await scanLearnedSkills(skillsDir)
     expect(scan.failures).toEqual([])
-    expect(scan.skills).toEqual([{ dirName: 'staging-reset', name: 'staging-reset', description: draft().description, origin: LEARNED_ORIGIN }])
+    expect(scan.skills).toEqual([{ dirName: 'staging-reset', name: 'staging-reset', description: draft().description, origin: LEARNED_ORIGIN, source: 'session-7' }])
   })
 
   it('refuses a draft that would not be discovered', async () => {

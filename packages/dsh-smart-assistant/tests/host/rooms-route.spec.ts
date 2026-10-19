@@ -51,6 +51,7 @@ function reader(overrides: Partial<RoomsReader> = {}): RoomsReader {
     listMemories: async () => ({ entries: [memory], archived: [], failures: [] }),
     listThreads: async () => ({ entries: [thread], archived: [], failures: [] }),
     listKnowledge: async () => ({ entries: [page], failures: [] }),
+    readLearnedSkill: async (name: string) => name === 'repo-to-knowledge' ? { name, body: '# repo-to-knowledge\n\nBody.', path: '/skills/repo-to-knowledge/SKILL.md' } : undefined,
     readKnowledgePage: async (id: string) => id === page.id ? { page, backlinks: [] } : undefined,
     learnedSkills: async () => ({ entries: [{ name: 'repo-to-knowledge', description: 'turn a repo into pages', origin: 'learned', learnedAt: '2026-10-19T02:00:00.000Z' }], failures: [] }),
     ledger: async () => [],
@@ -132,5 +133,20 @@ describe('host rooms route', () => {
     controller.abort()
     await expect(createRoomsRoute(reader()).fetch(new Request('http://localhost/api/assistant/rooms', { signal: controller.signal })))
       .rejects.toMatchObject({ name: 'AbortError' })
+  })
+})
+
+
+describe('learned skill body and usage (C1)', () => {
+  it('serves one SKILL.md body by name and joins usage into the list rows', async () => {
+    const route = createRoomsRoute(reader())
+    const list = await route.fetch(new Request('http://localhost/api/assistant/rooms'))
+    const body = await list.json() as { skills: { name: string, count: number, lastUsedAt?: string, source?: string }[] }
+    expect(body.skills[0]).toMatchObject({ name: 'repo-to-knowledge', count: 2 })
+    const detail = await route.fetch(new Request('http://localhost/api/assistant/rooms?kind=skill&id=repo-to-knowledge'))
+    expect(detail.status).toBe(200)
+    expect(await detail.json()).toMatchObject({ name: 'repo-to-knowledge', body: expect.stringContaining('Body.') })
+    expect((await route.fetch(new Request('http://localhost/api/assistant/rooms?kind=skill&id=../x'))).status).toBe(400)
+    expect((await route.fetch(new Request('http://localhost/api/assistant/rooms?kind=skill&id=missing'))).status).toBe(404)
   })
 })

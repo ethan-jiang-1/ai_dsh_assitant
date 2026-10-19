@@ -165,6 +165,23 @@ export async function postRoomsAction(action: string, payload: Readonly<Record<s
   }
 }
 
+/** Read one learned skill's SKILL.md body (C1 drawer). */
+export async function loadSkillBody(name: string): Promise<{ ok: true, body: string } | { ok: false, reason: string }> {
+  const web = deskWeb
+  if (web === undefined) return { ok: false, reason: 'the web face is not available' }
+  try {
+    const url = new URL('api/assistant/rooms', web.baseURI)
+    url.searchParams.set('kind', 'skill')
+    url.searchParams.set('id', name)
+    const response = await web.fetch(url, { credentials: 'same-origin', cache: 'no-store', redirect: 'error' })
+    const body = await response.json().catch(() => ({})) as { body?: unknown, error?: unknown, message?: unknown }
+    if (!response.ok) return { ok: false, reason: typeof body.message === 'string' ? body.message : String(body.error ?? `HTTP ${String(response.status)}`) }
+    return { ok: true, body: typeof body.body === 'string' ? body.body : '' }
+  } catch (error) {
+    return { ok: false, reason: String(error) }
+  }
+}
+
 /** Patch one session's room projection in place (A2 immediate row update after a write). */
 export function patchRoomRows(sessionId: string | undefined, change: (data: DeskData) => DeskData): void {
   const slice = deskSlice(sessionId)

@@ -29,7 +29,7 @@ import type {} from '@deepseek-ai/dsh-host-webserver'
 import { digestNow, digestSnapshotNow, manualSnapshotOf, prewarmHome, runCuration, soulSnapshotOf } from './curate-digest.ts'
 import { forgetMemory, listMemories, recall, saveMemory, type SaveMemoryInput } from './memory-room.ts'
 import { dropThread, listThreads, openThread, parkThread, promoteThread, updateThread, type OpenThreadInput, type PromoteTarget, type ThreadUpdate } from './research-room.ts'
-import { landSkill, learnedSkillNames, listProposals, proposeSkill, recordSkillLoad, retireSkill, skillUsage, writeSkill } from './skills-room.ts'
+import { landSkill, learnedSkillNames, listProposals, proposeSkill, readLearnedSkill, recordSkillLoad, retireSkill, skillUsage, writeSkill } from './skills-room.ts'
 import { deprecatePage, listKnowledge, promotePage, readKnowledgePage, searchKnowledge, writePage, type WritePageInput } from './knowledge-room.ts'
 import type { ApprovalAuditOptions } from './approval-audit.ts'
 import { installSelfTurnSlots } from './self-turns.ts'
@@ -258,6 +258,9 @@ export class AssistantMemory extends Service {
 
   /** List the names of the learned skills currently in the home's skills room. */
   async learnedSkillNames(): Promise<string[]> { return learnedSkillNames(this) }
+
+  /** C1: one learned skill's SKILL.md body by name. */
+  async readLearnedSkill(name: string): Promise<{ name: string, body: string, path: string } | undefined> { return readLearnedSkill(this, name) }
 
   /** Promote one knowledge page from draft to stable (the principal's approval, mechanized); every
    * transition appends an approval-ledger line naming the page, the lane, and the session. */

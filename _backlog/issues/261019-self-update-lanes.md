@@ -5,7 +5,7 @@ opened: 2026-10-19
 
 # 推敲：维护面收口——面板读真值、直写生效、看得见变化（A 卡：P0）
 
-> 立卡：2026-10-19 ｜ 状态：推敲中 ｜ 类型：Feature ｜ 可关闭：否 ｜ 毕业：做现在 ｜ 下一步 = **C1/C2**（A/B 已交付；B4 真数据本人）
+> 立卡：2026-10-19 ｜ 状态：推敲中 ｜ 类型：Feature ｜ 可关闭：否 ｜ 毕业：做现在 ｜ 下一步 = **C2**（A/B/C1 已交付；B4 真数据本人）
 > **定位：** 本卡是 10-19 自更新统筹件的 **P0 总卡，兼维护面 IA / route 契约的 owner**；授权后转为该战役的收口卡（切片停点与证据住本卡）。B 卡（[Viki 内容面](261019-viki-content-governance.md)）与 C 卡（[学到的东西](261019-learned-skills-surface.md)）是独立卡，共用依据档 [self-update/261019-self-update-lanes](../research/self-update/261019-self-update-lanes.md)。
 > **授权现状（别读错）：** 本人 10-19 委托了**冲突/退役的形状**（那一格已定案，见「冲突与退役」），并在 2026-10-19 以「落地计划」授权按本卡 v2 的切片顺序实施；**A1a 已交付**（[A1a note](../../notes/implemented/2026-10-19-maintenance-read-authority.md)）；A2 已交付（[A2 note](../../notes/implemented/2026-10-19-maintenance-direct-write.md)）。其余各问仍是**建议**；卡上的建议与默认值本身不授予新的实施权限（[_backlog/AGENTS.md](../AGENTS.md) 铁律 1）——每片仍按 [`notes/README.md`](../../notes/README.md) §二之二立 proposed 卡，点名/点头后才动手。
 > **待你拍板项已按 2026-10-19「落地计划」与后续「主动往前跑」指令采用默认（still vetoable）：** ② Q3 = **退役** `.desk/state.json` 与 `desk-refresh`（A1b）；③ B 清理 = **先 dry-run 清单、确认后整批清除**（B4 的真数据仍由本人执行并回填回执）。当前不再重复提问。

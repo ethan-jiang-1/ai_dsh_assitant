@@ -43,7 +43,7 @@ import {
   settlePending,
 } from './room-data-core'
 import type { DeskStore } from './room-data-core'
-import { bindDeskEnv, loadDesk, loadDeskFor, openBeside } from './room-data-io'
+import { bindDeskEnv, loadDesk, loadDeskFor, loadSkillBody, openBeside } from './room-data-io'
 import { approveKnowledgePage, correctMemory, deprecateKnowledgePage, retireMemory, retireSkill } from './room-data-actions'
 import { ReceiptView, markReceiptRead, readReceiptSince, resetReceiptBaseline } from './receipt-view'
 import { AssistantBrandMark, AssistantBrandName, AssistantHeroMark } from './brand'
@@ -51,8 +51,9 @@ import { deskCommands, roomCommands } from './commands'
 import { createDeskActivityHandoff } from './desk-view-actions'
 import { DashboardMainPanel, DashboardPanelIcon } from './dashboard'
 import { ApprovalDockBanner, FirstMileDock } from './first-mile'
-import { KnowledgeTabBody, MemoryTabBody, VikiTabBody, roomTabTitle } from './room-tabs'
+import { KnowledgeTabBody, MemoryTabBody, SkillsTabBody, VikiTabBody, roomTabTitle } from './room-tabs'
 import { KnowledgeIcon, KnowledgePanel, MemoryIcon, MemoryPanel } from './panels'
+import { SkillsIcon, SkillsPanel } from './skills-panel'
 import { VikiIcon, VikiPanel } from './viki-panel'
 import { bindVikiEnv, deleteViki, getVikiView, loadViki, loadVikiBody, referencesViki, resetVikiView, restoreViki, useVikiView } from './viki-data-io'
 import { bindClientRequire, clientRequire } from './runtime'
@@ -400,6 +401,11 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         description: 'Viki 记忆：对话抽取了什么，逐条可读',
         icon: VikiIcon, order: 13,
       },
+      {
+        id: 'dsh-smart-assistant-skills', kind: 'skillsRoom', title: '技能', body: SkillsTabBody,
+        description: '它学会的手艺：逐件、用量、出处、可退役',
+        icon: SkillsIcon, order: 14,
+      },
     ] as const
     for (const room of roomTabs) {
       ctx.sidebarRightTabs.register({
@@ -491,7 +497,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   return {
     inject, apply, AssistantBrandMark, AssistantBrandName,
     KnowledgePanel, MemoryPanel, deskStore, deskSlice,
-    DashboardPanelIcon, DashboardMainPanel, KnowledgeTabBody, MemoryTabBody, VikiTabBody, VikiPanel, bindVikiEnv, deleteViki, getVikiView, loadViki, loadVikiBody, referencesViki, resetVikiView, restoreViki, useVikiView, roomTabTitle,
+    DashboardPanelIcon, DashboardMainPanel, KnowledgeTabBody, MemoryTabBody, VikiTabBody, VikiPanel, SkillsPanel, bindDeskEnv, bindVikiEnv, deleteViki, getVikiView, loadSkillBody, loadViki, loadVikiBody, referencesViki, resetVikiView, restoreViki, useVikiView, roomTabTitle,
     roomCommands, AssistantHeroMark, FirstMileDock, ApprovalDockBanner, expirePending, settlePending, loadDeskFor, looksLikeDesk,
     approveKnowledgePage, deprecateKnowledgePage, correctMemory, retireMemory, retireSkill,
     ReceiptView, markReceiptRead, readReceiptSince, resetReceiptBaseline,

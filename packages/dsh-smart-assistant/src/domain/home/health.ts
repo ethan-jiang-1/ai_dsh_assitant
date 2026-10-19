@@ -72,6 +72,8 @@ export interface LearnedSkillInfo {
   readonly origin?: string
   /** `metadata.learnedAt`, when present — the age anchor for a never-loaded skill. */
   readonly learnedAt?: string
+  /** `metadata.source`, when present — real provenance (origin is the constant 'learned'). */
+  readonly source?: string
 }
 
 /** Everything the check reads; assembled by the service so the check itself stays pure. */

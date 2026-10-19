@@ -25,18 +25,20 @@ export interface SkillScan {
   readonly failures: readonly RoomReadFailure[]
 }
 
-function readInfo(data: Readonly<Record<string, unknown>>): Pick<LearnedSkillInfo, 'name' | 'description' | 'origin' | 'learnedAt'> {
+function readInfo(data: Readonly<Record<string, unknown>>): Pick<LearnedSkillInfo, 'name' | 'description' | 'origin' | 'learnedAt' | 'source'> {
   const metadata = data.metadata
   const info = metadata !== null && typeof metadata === 'object' && !Array.isArray(metadata)
     ? (metadata as Record<string, unknown>)
     : {}
   const origin = info.origin
   const learnedAt = info.learnedAt
+  const source = info.source
   return {
     ...(typeof data.name === 'string' ? { name: data.name } : {}),
     ...(typeof data.description === 'string' ? { description: data.description } : {}),
     ...(typeof origin === 'string' ? { origin } : {}),
     ...(typeof learnedAt === 'string' ? { learnedAt } : {}),
+    ...(typeof source === 'string' ? { source } : {}),
   }
 }
 

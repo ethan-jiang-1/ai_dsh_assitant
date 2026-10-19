@@ -17,7 +17,7 @@ import type { HomePaths } from '../domain/home/layout.ts'
 import type { Room } from '../domain/home/room.ts'
 import { atomicWriteFile } from '../domain/home/atomic-write.ts'
 import { parseFrontmatterDocument, renderFrontmatterDocument } from '../domain/home/frontmatter.ts'
-import { scanLearnedSkills } from '../domain/skills/scan.ts'
+import { listSkillFiles, scanLearnedSkills } from '../domain/skills/scan.ts'
 import { auditLearnedSkill } from '../domain/skills/audit.ts'
 import { snapshotExistingSkill } from '../domain/skills/snapshot.ts'
 import { recordApproval, type ApprovalAuditOptions } from './approval-audit.ts'
@@ -216,6 +216,19 @@ export async function writeSkill(
     : await auditLearnedSkill(written.name, dirname(written.path), text)
   touchDigest(host)
   return { ...written, ...(snapshot !== undefined ? { snapshot } : {}), findings }
+}
+
+/**
+ * Read one learned skill's SKILL.md body by name (the C1 drawer).
+ * @param host - The home service whose skills room is read.
+ * @param name - Skill name; must satisfy the skill-name grammar.
+ * @returns The name, verbatim body and source path, or undefined when no active learned skill has it.
+ */
+export async function readLearnedSkill(host: AssistantMemory, name: string): Promise<{ name: string, body: string, path: string } | undefined> {
+  if (!isSkillName(name)) return undefined
+  const entry = (await listSkillFiles(host.paths.skillsDir)).find(candidate => candidate.name === name)
+  if (entry === undefined) return undefined
+  return { name, body: await readFile(entry.file, 'utf8'), path: entry.file }
 }
 
 /**

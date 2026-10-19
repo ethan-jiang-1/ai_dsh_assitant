@@ -32,7 +32,7 @@ export interface DeskData {
   counts?: { memories?: number, knowledgeStable?: number, knowledgeDraft?: number, skills?: number, threads?: number }
   memories?: { id?: string, kind?: string, text?: string, updated?: string, source?: string }[]
   knowledge?: { id?: string, title?: string, status?: string, type?: string, updated?: string, sources?: string[], excerpt?: string }[]
-  skills?: { name?: string, description?: string, kind?: string }[]
+  skills?: { name?: string, description?: string, kind?: string, source?: string, count?: number, lastUsedAt?: string, learnedAt?: string, origin?: string }[]
 }
 
 /**

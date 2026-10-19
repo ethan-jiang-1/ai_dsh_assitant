@@ -18,6 +18,7 @@ import { createElement, reactSurface } from './runtime'
 import { MARK_TEAL } from './theme'
 import { KnowledgePanel, MemoryPanel } from './panels'
 import { VikiPanel } from './viki-panel'
+import { SkillsPanel } from './skills-panel'
 
 /** Props a right-sidebar tab body receives (structural mirror of the session-scoped seat). */
 export interface TabBodyProps {
@@ -123,6 +124,9 @@ export function KnowledgeTabBody(props: TabBodyProps): ReturnType<typeof createE
 }
 export function MemoryTabBody(props: TabBodyProps): ReturnType<typeof createElement> {
   return tabBody(props, MemoryPanel)
+}
+export function SkillsTabBody(props: TabBodyProps): ReturnType<typeof createElement> {
+  return tabBody(props, SkillsPanel)
 }
 export function VikiTabBody(_props: TabBodyProps): ReturnType<typeof createElement> {
   return roomScroller(createElement(VikiPanel as unknown as import('react').FunctionComponent<Record<string, never>>, {}))
