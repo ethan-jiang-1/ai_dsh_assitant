@@ -15,6 +15,8 @@ import {
   flagKnowledgePage,
 } from './room-data-actions'
 import { cell, CorrectableRow, muted, panelAlerts, refreshRow, sectionTitle } from './dom-utils'
+import { loadKnowledgeBody } from './room-data-io'
+import { ContentDrawer } from './content-drawer'
 import { createElement, reactSurface } from './runtime'
 import { MARK_TEAL } from './theme'
 
@@ -47,7 +49,8 @@ export function MemoryIcon({ size }: { size: number }): unknown {
 export function KnowledgePanel(props?: { sessionId?: string }): unknown {
   const session = props?.sessionId
   const store = useDesk(session)
-  const { useEffect, useRef } = reactSurface()
+  const { useEffect, useRef, useState } = reactSurface()
+  const [drawer, setDrawer] = useState<{ title: string, body: string } | undefined>(undefined)
   const draftsAnchor = useRef<{ current?: { scrollIntoView?: (options?: unknown) => void } | null } | null>(null)
   useEffect(() => {
     if (store.focusKnowledge !== 'drafts') return
@@ -66,6 +69,14 @@ export function KnowledgePanel(props?: { sessionId?: string }): unknown {
   // Deprecated pages are their own group: they stay in place so links resolve, and they are not
   // "confirmed" — lumping them in with stable pages would overstate what the assistant knows.
   const deprecated = pages.filter(page => page.status === 'deprecated')
+  // The list carries excerpts; the full body is one authenticated route read. Failures surface as
+  // a note instead of an empty drawer (the old 200-char-excerpt-only surface).
+  const openBody = (page: typeof pages[number]): void => {
+    void loadKnowledgeBody(String(page.id)).then(outcome => {
+      if (outcome.ok) setDrawer({ title: outcome.page.title, body: outcome.page.body })
+      else patchDesk({ note: outcome.reason })
+    })
+  }
   const row = (page: typeof pages[number], mark: string): ReturnType<typeof createElement> =>
     createElement(CorrectableRow, {
       key: String(page.id),
@@ -80,18 +91,21 @@ export function KnowledgePanel(props?: { sessionId?: string }): unknown {
       deskSession: session,
       source: (page.sources ?? []).join(' · '),
       onSubmit: (text: string) => { flagKnowledgePage(String(page.title ?? page.id ?? ''), text, String(page.id ?? page.title), session) },
-      actions: page.status === 'draft'
-        ? [{ label: '批准', run: () => { approveKnowledgePage(String(page.title ?? page.id ?? ''), String(page.id ?? page.title), session) } }]
-        : page.status === 'stable'
-          ? [{ label: '过时了', run: () => { deprecateKnowledgePage(String(page.title ?? page.id ?? ''), String(page.id ?? page.title), session) }, destructive: true }]
-          : undefined,
+      actions: [
+        { label: '读全文', run: () => { openBody(page) } },
+        ...(page.status === 'draft'
+          ? [{ label: '批准', run: () => { approveKnowledgePage(String(page.title ?? page.id ?? ''), String(page.id ?? page.title), session) } }]
+          : page.status === 'stable'
+            ? [{ label: '过时了', run: () => { deprecateKnowledgePage(String(page.title ?? page.id ?? ''), String(page.id ?? page.title), session) }, destructive: true }]
+            : []),
+      ],
     })
   return createElement('div', { style: { padding: '24px', maxWidth: '620px' } },
     createElement('h2', { style: { margin: '0 0 4px', fontSize: '18px' } }, '知识室'),
     createElement('div', { style: { fontSize: '13px', color: 'var(--dsw-alias-label-secondary)', margin: '0 0 8px' } }, '你凭什么这样判断？——依据、来源、待确认的草稿'),
-    refreshRow(store),
+    refreshRow(store, session),
     pages.length === 0
-      ? muted('（还没有知识页，或房间数据尚未刷新）')
+      ? muted('（还没有知识页，或房间数据尚未读到）')
       : createElement('div', null,
           sectionTitle(`待你审批（${drafts.length}）`),
           drafts.length === 0
@@ -158,7 +172,10 @@ export function KnowledgePanel(props?: { sessionId?: string }): unknown {
       // A count, not a list: the principal cannot judge `repo-to-knowledge`, and the descriptions
       // are model-facing English (repository rule), so a 71-line English list is noise on their
       // surface — content eligibility before layout (2026-09-26 reviews).
-      : muted(`共 ${String((store.data?.skills ?? []).length)} 件（随包 ${String((store.data?.skills ?? []).filter(skill => skill.kind !== 'learned').length)} · 学来的 ${String((store.data?.skills ?? []).filter(skill => skill.kind === 'learned').length)}）——哪一件不想要了，在对话里说一声即可下掉`),
+      : muted(`学来的 ${String((store.data?.skills ?? []).filter(skill => skill.kind === 'learned').length)} 件——C1 会给出逐件列表；哪一件不想要了，在对话里说一声即可下掉`),
+    drawer === undefined
+      ? null
+      : createElement(ContentDrawer, { title: drawer.title, body: drawer.body, onClose: () => { setDrawer(undefined) } }),
     ...panelAlerts(store))
 }
 
@@ -210,7 +227,7 @@ export function MemoryPanel(props?: { sessionId?: string }): unknown {
     createElement('div', { style: { fontSize: '13px', color: 'var(--dsw-alias-label-secondary)', margin: '0 0 8px' } }, '你把我理解成什么？——偏好、决定、事实，每条可纠错'),
     refreshRow(store, session),
     memories.length === 0
-      ? muted('（还没有记忆，或房间数据尚未刷新）')
+      ? muted('（还没有记忆，或房间数据尚未读到）')
       : createElement('div', null, ...memoryGroups(memories, session)),
     sectionTitle('规模'),
     createElement('div', null,

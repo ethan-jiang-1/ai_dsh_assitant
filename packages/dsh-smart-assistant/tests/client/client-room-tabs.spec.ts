@@ -11,7 +11,7 @@
  * - The room rides inside its own scroller (the vendor pane body does not scroll).
  *
  * Cross-module note: the tab bodies' session slices are room-data-core mechanics and their retry
- * buttons ride room-data-io's askRefresh — this file owns the tab-body interface itself.
+ * buttons ride room-data-io's loadDeskFor — this file owns the tab-body interface itself.
  */
 import { describe, expect, it } from 'vitest'
 import { inertReactShim, loadClientRegistration, materializeClient, textsOf } from '../support/client-harness.ts'
@@ -72,8 +72,8 @@ describe('room tab bodies', () => {
     // A5: a corrupt file is an error with a way out.
     exports.deskStore.readError = '房间数据文件损坏（JSON 解析失败）'
     const broken = textsOf(exports.KnowledgeTabBody({ sessionId: 's1' })).join(' | ')
-    expect(broken).toContain('读房间数据文件失败')
-    expect(broken).toContain('让助手重写一份')
+    expect(broken).toContain('读房间数据失败')
+    expect(broken).toContain('重读一次')
     // A6: the empty state is exactly the state that needs a way in, not a refresh loop.
     // First-open UX card (2026-10-01): no raw file paths on the principal's surface — the
     // state explains what the rooms grow into instead.

@@ -66,11 +66,15 @@ vendor `ui-settings-models/src/onboarding-copy.ts`，精确等值比较），API
 
 ## 种子文件契约
 
-`seed.mjs desk` 写 `<home>/workspaces/<owner>/default-workspace/.desk/state.json`——形状
-照抄真实 desk-refresh 产物（契约 owner：`desk-refresh` 技能；键集以 trial home 实物为准）：
-`knowledge[]` 3 行 `status: draft`（各带 `excerpt`，行计数与横幅数字可复现一致——第 17 轮
-判据②）+ 2 行 stable、`counts.knowledgeDraft: 3` 仅作行缺席时的 fallback。`sources` 用
-`seeds/…` 形状以同时钉住 friendlySource 渲染映射（第 9 轮）。
+`seed.mjs desk` 写两处，让 A1a 的面板读 working folder 真值、旧路径仍可被 preflight 检查：
+
+1. **working folder 真值**（A1a 起是面板的数据源）：`<home>/assistant/knowledge/<id>.md` 五页——
+   3 行 `status: draft` + 2 行 `status: stable`，正文即判据②的摘要文本，`sources` 用
+   `seeds/…` 形状以同时钉住 friendlySource 映射（第 9 轮）；`generated.at` 固定，DOM 无时钟。
+2. **session workspace 拷贝**（旧路径，A1b 退役）：`<home>/workspaces/<owner>/default-workspace/.desk/state.json`——
+   形状照抄真实 desk-refresh 产物（契约 owner：`desk-refresh` 技能）：`knowledge[]` 同样的 3 draft
+   + 2 stable，`counts.knowledgeDraft: 3` 仅作行缺席时的 fallback。preflight 仍检查这份拷贝；
+   A1b 删掉它时连同 preflight 检查一起改。
 
 ## prove-it-red 记录（2026-10-05，全链真机）
 

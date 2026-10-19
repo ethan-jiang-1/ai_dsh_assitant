@@ -1,10 +1,11 @@
 /**
  * The room-data store: the shared state the three rooms, the tab bodies and the docks read.
  *
- * Terminology (renamed 2026-10-14, the manual's own words): `.desk/state.json` is the ROOM
- * DATA file — "It is not the desk". The desktop the principal sees is the operating-ledger
- * projection panel (`projection-panel.ts`); this module and `room-data-io.ts` serve the
- * room-data file the three room tabs render.
+ * Terminology (renamed 2026-10-14, the manual's own words): the ROOM DATA is the four rooms,
+ * not the desk. A1a changed its source from the model-written `.desk/state.json` copy to the
+ * host `assistant-rooms` route (working-folder truth); the desktop the principal sees is the
+ * operating-ledger projection panel (`projection-panel.ts`), and this module plus `room-data-io.ts`
+ * serve the room tabs.
  *
  * One loader feeds it (see room-data-io); the store notifies its subscribers, and the slices
  * keep each bound session's row-scoped facts apart (R11). Pure store mechanics live here —
@@ -17,9 +18,12 @@
 import { shortTime } from './format'
 import { reactSurface } from './runtime'
 
-/** One desk snapshot as the assistant writes it (see the desk-refresh skill). */
+/** One rooms projection as the host route renders it (the panel's data source; A1a). */
 export interface DeskData {
+  schemaVersion?: number
   generatedAt?: string
+  revision?: string
+  problems?: { room?: string, file?: string, reason?: string }[]
   counts?: { memories?: number, knowledgeStable?: number, knowledgeDraft?: number, skills?: number, threads?: number }
   threads?: { id?: string, status?: string, title?: string, why?: string, lean?: string }[]
   decisions?: {
@@ -328,11 +332,11 @@ export function settlePending(generatedAt: string | undefined, sessionId?: strin
 }
 
 /**
- * Whether the room data file lags the conversation. It is only as fresh as the assistant's last
- * refresh, so when the newest turn is newer than the file the panels say so instead of presenting
- * a stale snapshot as current (a minute of slack absorbs the refresh itself).
+ * Whether the rooms lag the conversation. The panel reads the working-folder truth, so this line
+ * only means the assistant has not written this turn's learning into a room yet; there is no
+ * copy to rewrite and no refresh to click (A1a).
  * @param store - The shared desk store.
- * @returns A warning line, or undefined when the file is current.
+ * @returns A warning line, or undefined when the rooms are current.
  */
 export function staleWarning(store: DeskStore): string | undefined {
   const generated = store.data?.generatedAt
@@ -341,5 +345,5 @@ export function staleWarning(store: DeskStore): string | undefined {
   const generatedAt = new Date(generated).getTime()
   if (Number.isNaN(generatedAt)) return undefined
   if (sessionAt - generatedAt <= 60_000) return undefined
-  return `对话比这份房间数据新（对话 ${shortTime(new Date(sessionAt).toISOString())}，房间数据 ${shortTime(generated)}）——点「刷新房间数据」让它跟上`
+  return `对话比这份房间数据新（对话 ${shortTime(new Date(sessionAt).toISOString())}，房间数据 ${shortTime(generated)}）——助手还没把这次对话学到的东西写进房间，等它写完再回来看`
 }

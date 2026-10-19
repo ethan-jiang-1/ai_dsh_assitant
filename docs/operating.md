@@ -83,7 +83,8 @@
   提醒未同步只显示提示，不阻止返回。
 
 **与记忆/知识两间的分工（两个数据面，别混）**：全局经营桌面（唯一「桌面」）读**独立 Host 固定投影**（本节）；
-记忆/知识两间的面板读 working folder 根的 `.desk/state.json`——那是**房间数据**，业务事项不进它
+记忆/知识两间的面板读独立 Host 行 `assistant-rooms` 的只读房间投影（working folder 四房间真值；session
+workspace 的 `.desk/state.json` 是模型写的拷贝，A1b 退役）——业务事项不进它
 （[`home.md`](home.md) §五、[`architecture.md`](architecture.md) §七）。
 
 ## 四、验证入口（keyless 最低证据）

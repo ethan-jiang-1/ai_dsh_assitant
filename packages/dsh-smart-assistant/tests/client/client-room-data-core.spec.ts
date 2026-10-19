@@ -38,7 +38,7 @@ describe('desk store mechanics', () => {
     exports.deskStore.sessionUpdatedAt = new Date('2026-09-26T13:05:00+08:00').getTime()
     const stale = textsOf(exports.MemoryPanel()).join(' | ')
     expect(stale).toContain('对话比这份房间数据新')
-    expect(stale).toContain('刷新房间数据')
+    expect(stale).toContain('助手还没把这次对话学到的东西写进房间')
 
     // A file written within the same minute as the newest turn is current (the refresh itself
     // takes a moment; a minute of slack keeps the warning honest).

@@ -120,6 +120,39 @@ if (command === 'desk') {
   mkdirSync(deskDir, { recursive: true })
   writeFileSync(join(deskDir, 'state.json'), JSON.stringify(desk, null, 2) + '\n')
   console.log(`seed: desk file written (3 drafts, 2 stable) → ${join(deskDir, 'state.json')}`)
+
+  // A1a: the panel reads the host rooms route from the assistant working folder, not the
+  // per-session desk copy. Seed the same 5 knowledge pages there so the banner's 3/2 counts and
+  // the eventual room tab read the same truth. The desk file above stays for the preflight and
+  // the prompt path until A1b retires it.
+  const knowledgeDir = join(home, 'assistant', 'knowledge')
+  mkdirSync(knowledgeDir, { recursive: true })
+  const pages = [
+    ['promo-discount-auth', '国庆大促折扣授权申请（三档）', 'draft', 'plan', '方案页给出 5%/8%/12% 三档授权梯度、各自的用量与审批人；三档金额与生效期只给了结构，缺本单毛利支撑数。'],
+    ['payment-term-60d', '大客户账期放宽到 60 天的评估口径', 'draft', 'note', '评估页建立账期与垫资的换算式、触发条件与退出条款；缺现金流安全垫的实际天数。'],
+    ['trial-pricing-floor', '新服务付费试点的定价底线', 'draft', 'plan', '底线页按成本人天与愿付证据给出试点价的下限推导；两个输入数仍未到位，页内数字是占位。'],
+    ['reimb-policy', '差旅与招待报销口径', 'stable', 'policy', '差旅与招待报销口径：交通住宿按标准、招待按事前审批；超出部分需书面说明。'],
+    ['client-tiering', '客户分级与跟进节奏', 'stable', 'policy', '客户分级与跟进节奏：按收入、战略性与交付风险分三级，各自定义跟进频率与负责人。'],
+  ]
+  for (const [id, title, status, type, body] of pages) {
+    const frontmatter = [
+      '---',
+      `id: ${id}`,
+      `status: ${status}`,
+      `type: ${type}`,
+      `title: ${title}`,
+      'sources:',
+      '  - resource: seeds/seed-pages/basis.md',
+      'tags: []',
+      'generated:',
+      '  by: agent:seed',
+      `  at: ${fixedTime}`,
+      '---',
+      '',
+    ].join('\n')
+    writeFileSync(join(knowledgeDir, `${id}.md`), `${frontmatter}${body}\n`)
+  }
+  console.log(`seed: working-folder knowledge written (3 drafts, 2 stable) → ${knowledgeDir}`)
   process.exit(0)
 }
 

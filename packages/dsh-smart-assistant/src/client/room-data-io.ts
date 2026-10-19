@@ -1,9 +1,12 @@
 /**
- * The room data's I/O: reading `.desk/state.json` out of the workspaces, sending the
- * principal's panel actions into the conversation, and the pollers/retry budgets around both.
+ * The room data's I/O: fetching the host `assistant-rooms` route (working-folder truth),
+ * sending the principal's panel actions into the conversation, and the pollers/retry budgets
+ * around both. A1a: the panel no longer reads `.desk/state.json`; the copy and the
+ * `desk-refresh` path behind the prompt actions are retired in A1b.
  *
- * Terminology (renamed 2026-10-14): this file serves the ROOM DATA file (`.desk/state.json`)
- * — per the manual, "It is not the desk". The desktop surface itself is the operating-ledger
+ * Terminology (renamed 2026-10-14): this file serves the ROOM DATA. A1a moved its source from
+ * the model-written `.desk/state.json` copy to the host rooms route; the desktop surface itself
+ * remains the operating-ledger projection (`projection-panel.ts`). The desktop surface itself is the operating-ledger
  * projection (`projection-panel.ts`); the desk's conversation arms (process/intake/claim/
  * wake) live in `desk-process.ts`.
  *
@@ -37,6 +40,10 @@ export function bindDeskEnv(ctx: ClientContext): void {
   deskRemote = (ctx as { remote?: Record<string, unknown> }).remote
   deskSessions = ctx.sessions as typeof deskSessions | undefined
   deskSidebarRight = ctx.sidebarRight
+  const injected = (ctx as { web?: RoomDataWeb }).web
+  deskWeb = injected ?? (typeof document === 'undefined'
+    ? undefined
+    : { baseURI: document.baseURI, origin: location.origin, fetch: globalThis.fetch.bind(globalThis) })
 }
 
 /** The captured remote layer (the entry's apply reads it for the typert mount attempt). */
@@ -44,215 +51,143 @@ export function getDeskRemote(): Record<string, unknown> | undefined {
   return deskRemote
 }
 
-/** One workspace-file read: the manifested `remote.workspaceFiles.read` signature. */
-type WorkspaceFileRead = (sessionId: string, path: string, options: unknown) => Promise<unknown>
-
-/**
- * Resolve the workspace-file reader, reporting the absent remote on the desk.
- * @returns The reader, or undefined after the missing-remote note has been raised.
- */
-function deskReadFn(): WorkspaceFileRead | undefined {
-  const read = (deskRemote?.['workspaceFiles'] as { read?: WorkspaceFileRead } | undefined)?.read
-  if (read === undefined) patchDesk({ note: 'remote.workspaceFiles did not materialize' })
-  return read
+/** The browser face the host route uses; production injects document/location, tests inject a fake. */
+export interface RoomDataWeb {
+  readonly baseURI: string
+  readonly origin: string
+  readonly fetch: typeof globalThis.fetch
 }
 
-/**
- * One read of a session's desk file. R6 (self-review, 2026-09-27): "the read threw" and "the file
- * is absent" are different facts, so the throw is reported separately instead of collapsing into
- * an absent text the caller would then misread.
- */
-type DeskReadResult =
-  | { readonly ok: true; readonly text: string | undefined }
-  | { readonly ok: false }
+let deskWeb: RoomDataWeb | undefined
+
+/** One successful rooms read, or the readable reason it failed. */
+type RoomsRead = { readonly ok: true, readonly data: DeskData } | { readonly ok: false, readonly reason: string }
 
 /**
- * Read `.desk/state.json` through the given reader and unwrap the manifest envelope.
- * @param read - The workspace-file reader.
- * @param sessionId - The session whose workspace is read.
- * @returns The unwrapped text, or the fact that the read threw.
+ * Read the host rooms route: the authoritative working-folder projection. The route returns all
+ * four rooms from `assistantMemory`; this client never reads `.desk/state.json` and never passes a
+ * session or a path. A non-2xx response is a readable failure, not a silently empty room.
  */
-async function readDeskText(read: WorkspaceFileRead, sessionId: string): Promise<DeskReadResult> {
+async function readRooms(): Promise<RoomsRead> {
+  const web = deskWeb
+  if (web === undefined) return { ok: false, reason: 'the web face is not available' }
   try {
-    const result = await read(sessionId, '.desk/state.json', {})
-    const wrapped = result as { ok?: boolean, value?: { text?: string } }
-    return { ok: true, text: wrapped?.ok === false ? undefined : wrapped?.value?.text }
-  } catch {
-    return { ok: false }
+    const url = new URL('api/assistant/rooms', web.baseURI)
+    if (url.origin !== web.origin) return { ok: false, reason: '房间数据路由必须同源' }
+    const response = await web.fetch(url, { method: 'GET', credentials: 'same-origin', cache: 'no-store', redirect: 'error' })
+    if (!response.ok) {
+      void response.arrayBuffer().catch(() => {})
+      return { ok: false, reason: `房间数据路由返回 ${String(response.status)}` }
+    }
+    const parsed = await response.json() as DeskData
+    if (!looksLikeDesk(parsed)) return { ok: false, reason: '房间数据不是 route 的形状' }
+    return { ok: true, data: parsed }
+  } catch (reason) {
+    return { ok: false, reason: String(reason) }
   }
 }
 
-/**
- * The one message for a file that parses but carries none of the contract's shape. It would
- * otherwise render as a legitimately empty desk — every section honest "（没有…）" while the
- * assistant believes it just refreshed the principal.
- */
-const NOT_A_DESK_MESSAGE = '这份房间数据文件不像 desk-refresh 写的（没有 generatedAt、也没有任何分区）——点「刷新房间数据」让助手按契约重写'
+/** Read one knowledge page's full body through the same route. */
+export interface KnowledgeBody {
+  readonly title: string
+  readonly body: string
+}
 
 /**
- * Adopt one accepted desk file: settle the pending action it answers and retire a receipt it has
- * moved past. Both read paths end here, so "the file moved" means the same thing to both.
- * @param parsed - The validated desk file.
- * @param sessionId - The session the file belongs to.
+ * Read one knowledge page body and backlinks by id.
+ * @param id - Knowledge page id.
+ * @returns The body, or the readable reason it failed.
  */
+export async function loadKnowledgeBody(id: string): Promise<{ readonly ok: true, readonly page: KnowledgeBody } | { readonly ok: false, readonly reason: string }> {
+  const web = deskWeb
+  if (web === undefined) return { ok: false, reason: 'the web face is not available' }
+  try {
+    const url = new URL('api/assistant/rooms', web.baseURI)
+    url.searchParams.set('kind', 'knowledge')
+    url.searchParams.set('id', id)
+    const response = await web.fetch(url, { method: 'GET', credentials: 'same-origin', cache: 'no-store', redirect: 'error' })
+    if (!response.ok) {
+      void response.arrayBuffer().catch(() => {})
+      return { ok: false, reason: `读正文失败（${String(response.status)}）` }
+    }
+    const parsed = await response.json() as { title?: unknown, body?: unknown }
+    if (typeof parsed.body !== 'string') return { ok: false, reason: '读正文失败（响应没有 body）' }
+    return { ok: true, page: { title: typeof parsed.title === 'string' ? parsed.title : id, body: parsed.body } }
+  } catch (reason) {
+    return { ok: false, reason: String(reason) }
+  }
+}
+
+/** One accepted rooms projection settles the pending row and retires a moved-past receipt. */
 function settleLoadedDesk(parsed: DeskData, sessionId: string): void {
   settlePending(parsed.generatedAt, sessionId)
   retireStaleReceipt(parsed, sessionId)
 }
 
-/**
- * Read `.desk/state.json` for the newest Session that has one. The file is per-workspace, so
- * walk the recent Sessions and say which workspace answered — a silent miss reads as breakage.
- */
-export function loadDesk(): void {
-  const read = deskReadFn()
-  if (read === undefined) return
-  const store = deskSessions?.list
-  if (store === undefined) {
-    patchDesk({ note: 'the client Session store is not available' })
-    return
-  }
-  const state = store.getSnapshot() as {
-    ids?: string[]
-    byId?: Record<string, { updatedAt?: number, cwd?: string }>
-  }
-  const ids = state?.ids ?? []
-  const byId = state?.byId ?? {}
-  const ordered = ids
-    .slice()
-    .sort((left, right) => Number(byId[right]?.updatedAt ?? 0) - Number(byId[left]?.updatedAt ?? 0))
-    .slice(0, 5)
-  if (ordered.length === 0) {
-    patchDesk({ note: '还没有会话——先和助手说句话，再点刷新房间数据' })
-    return
-  }
-  const newest = ids.reduce((max, id) => Math.max(max, Number(byId[id]?.updatedAt ?? 0)), 0)
-  patchDesk({ sessionUpdatedAt: newest === 0 ? undefined : newest })
-  const seqOf = sliceSeq(getDeskStore())
-  const seq = seqOf.next()
-  // R6 (self-review, 2026-09-27): "the read threw" and "the file is absent" are different facts.
-  // The walk deliberately falls through on a failed read (A4: an older session's desk must never
-  // be presented as the present one), but when EVERY attempt threw, claiming the file does not
-  // exist is a lie the principal cannot see through.
-  let readFailures = 0
-  const attempt = async (index: number): Promise<void> => {
-    if (seq !== seqOf.current()) return
-    if (index >= ordered.length) {
-      if (readFailures > 0) {
-        patchDesk({ readError: `读房间数据文件失败（${readFailures} 个工作区都读不到）——点「刷新房间数据」重试`, note: undefined })
-        return
-      }
-      patchDesk({ note: '最近 5 个会话的工作区里都没有 .desk/state.json——点「刷新房间数据」让助手写一份' })
-      return
-    }
-    const sessionId = ordered[index] as string
-    // Only the READ may fall through to the next session (the file is simply absent). A file
-    // that is PRESENT but corrupt must stop and say so: silently rendering an older session's
-    // desk as the present is exactly how a CEO gets lied to (A4).
-    const outcome = await readDeskText(read, sessionId)
-    if (seq !== seqOf.current()) return
-    if (!outcome.ok) {
-      readFailures += 1
-      await attempt(index + 1)
-      return
-    }
-    const text = outcome.text
-    if (typeof text !== 'string' || text.trim() === '') {
-      await attempt(index + 1)
-      return
-    }
-    let parsed: DeskData
-    try {
-      parsed = JSON.parse(text) as DeskData
-    } catch {
-      if (seq === seqOf.current()) {
-        patchDesk({ note: `房间数据文件损坏（${byId[sessionId]?.cwd ?? sessionId}）——点「刷新房间数据」让助手重写一份` })
-      }
-      return
-    }
-    if (!looksLikeDesk(parsed)) {
-      carryRowStateTo(getDeskStore().sourceSession ?? sessionId, sessionId)
-      patchDesk({
-        data: undefined,
-        readError: NOT_A_DESK_MESSAGE,
-        source: byId[sessionId]?.cwd ?? '', sourceSession: sessionId, jumpError: undefined,
-      })
-      return
-    }
-    // Re-homing the walk view: the flat fields become this session's, and the previous owner's
-    // row state rides into its own slice (R11).
-    carryRowStateTo(getDeskStore().sourceSession ?? sessionId, sessionId)
-    patchDesk({ data: parsed, note: undefined, source: byId[sessionId]?.cwd ?? '', sourceSession: sessionId, readError: undefined, jumpError: undefined })
-    getDeskStore().misses.delete(sessionId)
-    settleLoadedDesk(parsed, sessionId)
-  }
-  void attempt(0)
+/** Whether every room is empty, so the tab can offer the first-conversation entry instead of a hollow panel. */
+function isEmptyRooms(data: DeskData): boolean {
+  return (data.memories ?? []).length === 0
+    && (data.knowledge ?? []).length === 0
+    && (data.skills ?? []).length === 0
 }
 
-/**
- * Read one Session's desk file — the bound form a right-sidebar tab uses. The tab lives in a
- * specific Session's sidebar, so it reads that Session's workspace directly instead of walking
- * the five newest; a silent miss is remembered so the tab can say "this session has none yet"
- * rather than spinning on a reload that will never answer.
- */
+/** Read all rooms for the walk view (the flat slice); the newest session owns its row state. */
+export function loadDesk(): void {
+  const seqOf = sliceSeq(getDeskStore())
+  const seq = seqOf.next()
+  void readRooms().then(outcome => {
+    if (seq !== seqOf.current()) return
+    if (!outcome.ok) {
+      patchDesk({ readError: `读房间数据失败（${outcome.reason}）`, note: undefined })
+      return
+    }
+    const state = deskSessions?.list?.getSnapshot() as {
+      ids?: string[]
+      byId?: Record<string, { updatedAt?: number }>
+    } | undefined
+    const owner = newestSessionId()
+    const previous = getDeskStore().sourceSession
+    if (owner !== undefined && previous !== undefined && previous !== owner) carryRowStateTo(previous, owner)
+    const sessionUpdatedAt = owner === undefined ? undefined : state?.byId?.[owner]?.updatedAt
+    patchDesk({
+      data: outcome.data,
+      source: 'working folder',
+      sourceSession: owner,
+      readError: undefined,
+      note: undefined,
+      jumpError: undefined,
+      ...(sessionUpdatedAt === undefined ? {} : { sessionUpdatedAt: Number(sessionUpdatedAt) }),
+    })
+    if (owner !== undefined) {
+      if (isEmptyRooms(outcome.data)) getDeskStore().misses.add(owner)
+      else getDeskStore().misses.delete(owner)
+      settleLoadedDesk(outcome.data, owner)
+    }
+  })
+}
+
+/** Read all rooms for one tab-bound session; the data is global, the row state stays per session. */
 export function loadDeskFor(sessionId: string): void {
-  const read = deskReadFn()
-  if (read === undefined) return
-  // R11: the target session's own slice and load sequence — a load for one session no longer
-  // cancels an in-flight read for another.
   const slice = deskSlice(sessionId)
   const seqOf = sliceSeq(slice)
   const seq = seqOf.next()
   void (async (): Promise<void> => {
-    const state = deskSessions?.list?.getSnapshot() as { byId?: Record<string, { cwd?: string, updatedAt?: number }> } | undefined
-    const cwd = state?.byId?.[sessionId]?.cwd ?? ''
-    // A2: the bound form's staleness line must track ITS session's conversation — without this
-    // the warning was computed once at startup and then frozen wrong forever.
+    const state = deskSessions?.list?.getSnapshot() as { byId?: Record<string, { updatedAt?: number }> } | undefined
     const updatedAt = state?.byId?.[sessionId]?.updatedAt
     if (seq !== seqOf.current()) return
     if (updatedAt !== undefined) patchSlice(slice, { sessionUpdatedAt: Number(updatedAt) })
-    const outcome = await readDeskText(read, sessionId)
+    const outcome = await readRooms()
     if (seq !== seqOf.current()) return
     if (!outcome.ok) {
-      // R6 (self-review, 2026-09-27): a throw used to land only in `note`, and the right-pane tab
-      // returns before any Panel renders notes — so a failed read showed "正在读这个会话的房间数据…"
-      // forever, with no retry anywhere. `readError` is the field the tab and the panels both
-      // render an error-and-retry from, so a failure reaches the principal wherever he is.
-      patchSlice(slice, { readError: `读房间数据文件失败（${cwd === '' ? '本会话工作区' : cwd}）` })
+      patchSlice(slice, { readError: `读房间数据失败（${outcome.reason}）`, data: undefined })
       return
     }
-    const text = outcome.text
-    if (typeof text !== 'string' || text.trim() === '') {
-      getDeskStore().misses.add(sessionId)
-      return
-    }
-    // A5: a corrupt file is an ERROR with a retry, not "reading…" forever — and it must not
-    // leave another session's data in place behind the guard.
-    let parsed: DeskData
-    try {
-      parsed = JSON.parse(text) as DeskData
-    } catch {
-      getDeskStore().misses.delete(sessionId)
-      patchSlice(slice, { readError: '房间数据文件损坏（JSON 解析失败）', data: undefined, pending: undefined })
-      return
-    }
-    getDeskStore().misses.delete(sessionId)
-    if (!looksLikeDesk(parsed)) {
-      patchSlice(slice, {
-        data: undefined,
-        readError: NOT_A_DESK_MESSAGE,
-        source: cwd,
-      })
-      return
-    }
-    patchSlice(slice, { data: parsed, source: cwd, readError: undefined })
+    patchSlice(slice, { data: outcome.data, source: 'working folder', readError: undefined })
     patchDesk({ note: undefined, jumpError: undefined })
-    // A first targeted load may be the flat slice's first owner (the walk never answered): claim
-    // it so later walks carry row state instead of re-attributing it (R11).
-    if (slice === (getDeskStore() as DeskSlice) && getDeskStore().sourceSession === undefined) {
-      patchDesk({ sourceSession: sessionId })
-    }
-    settleLoadedDesk(parsed, sessionId)
+    if (slice === (getDeskStore() as DeskSlice) && getDeskStore().sourceSession === undefined) patchDesk({ sourceSession: sessionId })
+    if (isEmptyRooms(outcome.data)) getDeskStore().misses.add(sessionId)
+    else getDeskStore().misses.delete(sessionId)
+    settleLoadedDesk(outcome.data, sessionId)
   })()
 }
 

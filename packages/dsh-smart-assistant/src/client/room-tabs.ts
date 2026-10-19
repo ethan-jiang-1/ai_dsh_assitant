@@ -11,7 +11,7 @@
  */
 
 import { deskSlice, getDeskStore, useDesk } from './room-data-core'
-import { askRefresh, askStart } from './room-data-actions'
+import { askStart } from './room-data-actions'
 import { loadDeskFor } from './room-data-io'
 import { muted } from './dom-utils'
 import { createElement, reactSurface } from './runtime'
@@ -74,7 +74,7 @@ export function tabBody(props: TabBodyProps, Panel: (props?: { sessionId?: strin
   }, [sessionId, unloaded])
   if (sessionId === undefined) return roomScroller(muted('这个 tab 没有落在任何会话里，读不到它的工作区'))
   const retryButton = (label: string): ReturnType<typeof createElement> => createElement('button', {
-    onClick: () => { askRefresh(sessionId) },
+    onClick: () => { loadDeskFor(sessionId) },
     style: {
       marginTop: '8px', padding: '6px 14px', fontSize: '12px', cursor: 'pointer', borderRadius: '6px',
       border: `1px solid ${MARK_TEAL}`, background: 'var(--dsw-alias-bg-base)', color: MARK_TEAL,
@@ -82,7 +82,7 @@ export function tabBody(props: TabBodyProps, Panel: (props?: { sessionId?: strin
   }, label)
   // A5: a corrupt file is an error with a way out, not an eternal "reading…".
   if (store.readError !== undefined) return roomScroller(
-    muted(`读房间数据文件失败：${store.readError}。`), retryButton('让助手重写一份'))
+    muted(`读房间数据失败：${store.readError}。`), retryButton('重读一次'))
   // A6 inverted by the real-user walk (2026-10-06): with no data file yet the refresh button
   // produced an honest zero-report loop with no meaning — the one-click refresh this branch
   // once prided itself on was the trap. The next step is the first conversation; the copy says

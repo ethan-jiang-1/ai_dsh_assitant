@@ -4,7 +4,7 @@
  * row, alert lines, jump cells).
  *
  * These are the pieces the three room panels (panels.ts) and the dashboard compose; the
- * actions they render all route through room-data-io (askRefresh / openBeside) and the store
+ * actions they render all route through room-data-io (reloadDesk / openBeside) and the store
  * (room-data-core).
  *
  * @module dsh-smart-assistant/client/dom-utils
@@ -14,8 +14,7 @@ import type { RoomKind } from './contracts'
 import { patchDesk, pendingInFlight, staleWarning, useDesk } from './room-data-core'
 import { shortTime } from './format'
 import type { DeskStore } from './room-data-core'
-import { askRefresh } from './room-data-actions'
-import { openBeside } from './room-data-io'
+import { openBeside, reloadDesk } from './room-data-io'
 import { createElement, reactSurface } from './runtime'
 import { MARK_TEAL } from './theme'
 
@@ -237,10 +236,8 @@ export function sectionTitle(text: string): ReturnType<typeof createElement> {
 
 /** The refresh button plus its status line, and — where the room can — the jump to the beside-conversation tab. */
 export function refreshRow(store: DeskStore, session?: string): ReturnType<typeof createElement> {
-  // Used for the status line only. The button itself is deliberately NOT disabled while an action
-  // is in flight: it is the escape hatch when the assistant does not rewrite the desk file
-  // (self-review R1, 2026-09-27). It re-reads the file; reading is always safe, and a frozen
-  // surface with a dead escape hatch is not.
+  // A1a: the button re-reads the host rooms route, not a prompt. The route is the panel's truth;
+  // no model turn is needed to see a room change that already landed in the working folder.
   // (2026-09-28) The "在对话旁打开" button is gone with the left main panels: rooms render only
   // inside right-sidebar tabs now, so that opener opened the very tab it sat in — a no-op the
   // principal rightly read as broken (real use, same day as the move). The openers that remain
@@ -248,13 +245,13 @@ export function refreshRow(store: DeskStore, session?: string): ReturnType<typeo
   const inFlight = pendingInFlight(store)
   return createElement('div', { style: { margin: '8px 0 0' } },
     createElement('button', {
-      onClick: () => { askRefresh(session) },
+      onClick: () => { reloadDesk(session) },
       style: {
         padding: '6px 14px', fontSize: '13px', cursor: 'pointer', borderRadius: '6px',
         border: `1px solid ${MARK_TEAL}`, background: 'var(--dsw-alias-bg-base)',
         color: MARK_TEAL,
       },
-    }, '刷新房间数据'),
+    }, '重读房间数据'),
     inFlight === false
       ? null
       : createElement('span', { style: { marginLeft: '10px', fontSize: '12px', color: 'var(--dsw-alias-label-secondary)' } },

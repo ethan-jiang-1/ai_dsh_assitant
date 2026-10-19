@@ -122,7 +122,7 @@ describe('desk panels', () => {
     expect(text).toContain('有问题')
     // Skills are a count, not a list: the principal cannot judge them, and their descriptions are
     // model-facing English (repository rule) — content eligibility before layout (2026-09-26 reviews).
-    expect(text).toContain('共 2 件（随包 1 · 学来的 1）')
+    expect(text).toContain('学来的 1 件')
     expect(text).not.toContain('management-breakdown')
     expect(text).not.toContain('repo-to-knowledge')
     // Lifecycle: a draft can be approved, a stable page can be retired, a deprecated one carries
