@@ -11,13 +11,14 @@
 > 下文路径基准：工具「源码」列为包内相对（= `packages/dsh-smart-assistant/`），其余仓根相对。
 > 语义与改名代价的 owner 是 [`identity.md`](identity.md)；这里只回答"当前声明了什么"。
 
-## 入口与平面（16 个 plugin 子路径 = host 5 + agent 10 + client 1）
+## 入口与平面（17 个 plugin 子路径 = host 6 + agent 10 + client 1）
 
 | 入口 | 平面 | 组合行 id |
 |---|---|---|
 | `.` | HOST | assistant-memory |
 | `./desk-projection` | HOST | assistant-desk-projection |
 | `./rooms-route` | HOST | assistant-rooms |
+| `./viki` | HOST | assistant-viki |
 | `./operating-ledger` | HOST | assistant-operating-ledger |
 | `./knowledge-approve-remote` | HOST | assistant-knowledge-approve |
 | `./home-preamble` | AGENT | assistant-home-preamble |
@@ -41,6 +42,7 @@
 | cordis.patch.yml（host 面） | `assistant-memory` | `dsh-smart-assistant` | 启用 |
 | cordis.patch.yml（host 面） | `assistant-desk-projection` | `dsh-smart-assistant/desk-projection` | 启用 |
 | cordis.patch.yml（host 面） | `assistant-rooms` | `dsh-smart-assistant/rooms-route` | 启用 |
+| cordis.patch.yml（host 面） | `assistant-viki` | `dsh-smart-assistant/viki` | 启用 |
 | cordis.patch.yml（host 面） | `assistant-operating-ledger` | `dsh-smart-assistant/operating-ledger` | 启用 |
 | cordis.patch.yml（host 面） | `assistant-knowledge-approve` | `dsh-smart-assistant/knowledge-approve-remote` | 启用 |
 | cordis.patch.yml（agent 面 = preset 行的 plugins） | `assistant-home-preamble` | `dsh-smart-assistant/home-preamble` | 启用 |
@@ -73,7 +75,7 @@
 ## 客户端座位面（CLIENT，全走 vendor 通用座位；皮肤面，不进模型上下文）
 
 - 消费 slot 座位（slots.inject）：`sidebar.panellist`、`main`、`sidebar.brand.mark`、`sidebar.brand.name`、`sidebar.right.pane.tab`、`sidebar.right.pane.tab.title`、`conversation.hero.brand.mark`、`conversation.input.dock`
-- 右栏 tab 定义（sidebarRightTabs.register，含「+」向导 guide 条目）：`dsh-smart-assistant-knowledge`（knowledgeRoom）、`dsh-smart-assistant-memory`（memoryRoom）
+- 右栏 tab 定义（sidebarRightTabs.register，含「+」向导 guide 条目）：`dsh-smart-assistant-knowledge`（knowledgeRoom）、`dsh-smart-assistant-memory`（memoryRoom）、`dsh-smart-assistant-viki`（vikiRoom）
 - 命令注册（commandUi，slash 菜单与 composer 加号菜单的发现面）：`knowledge`、`memory`
 
 ## 兼容与依赖姿态

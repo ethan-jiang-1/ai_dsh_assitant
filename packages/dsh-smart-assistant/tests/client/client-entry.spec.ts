@@ -90,6 +90,7 @@ describe('client-module registration', () => {
       'sidebar.brand.mark', 'sidebar.brand.name',
       'sidebar.right.pane.tab', 'sidebar.right.pane.tab.title',
       'sidebar.right.pane.tab', 'sidebar.right.pane.tab.title',
+      'sidebar.right.pane.tab', 'sidebar.right.pane.tab.title',
       'conversation.hero.brand.mark', 'conversation.input.dock', 'conversation.input.dock',
     ])
     // Each room registers its tab type, its keyed body, and its keyed tab title (the glyph chip);
@@ -99,6 +100,7 @@ describe('client-module registration', () => {
       'sidebar.brand.mark', 'sidebar.brand.name',
       'tab:knowledgeRoom', 'dsh-smart-assistant-knowledge', 'dsh-smart-assistant-knowledge',
       'tab:memoryRoom', 'dsh-smart-assistant-memory', 'dsh-smart-assistant-memory',
+      'tab:vikiRoom', 'dsh-smart-assistant-viki', 'dsh-smart-assistant-viki',
       'conversation.hero.brand.mark', 'assistant-first-mile', 'assistant-approval-banner',
     ])
     // The steer's whole point: each room contributes a guide entry, so the "+" picker lists
@@ -106,6 +108,7 @@ describe('client-module registration', () => {
     expect(guideEntries).toEqual([
       'dsh-smart-assistant-knowledge-guide',
       'dsh-smart-assistant-memory-guide',
+      'dsh-smart-assistant-viki-guide',
     ])
   })
 })

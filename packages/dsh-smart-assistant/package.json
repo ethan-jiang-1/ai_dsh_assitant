@@ -60,6 +60,10 @@
       "types": "./lib/host/desk-projection/index.d.ts",
       "default": "./lib/host/desk-projection/index.js"
     },
+    "./viki": {
+      "types": "./lib/host/viki/index.d.ts",
+      "default": "./lib/host/viki/index.js"
+    },
     "./rooms-route": {
       "types": "./lib/host/rooms-route/index.d.ts",
       "default": "./lib/host/rooms-route/index.js"

@@ -42,6 +42,9 @@ HOST 面（cordis.patch.yml → dsh.bundle.patch）
                               审批账（A3 receipt）；POST 同一路径执行 knowledge.approve/deprecate、
                               memory.correct/retire、skill.retire 白名单动作；不接收
                               session/workspace/任意路径——A1a/A2/A3）
+                            + assistant-viki 行（Viki 记忆内容面：GET api/assistant/viki；
+                              user/<space>/memories + peers/<peer>/memories/** 的只读投影；
+                              baseUrl/apiKey 来自 config/env，缺席不阻断启动——B1）
                             + assistant-knowledge-approve 行（host 知识批准服务：draft→stable 的机械翻转；
                               parameter codec 已修为 strict，但 client entry 不能消费动态挂载的
                               namespace，面板批准走 assistant-rooms 的 POST——A2）

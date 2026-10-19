@@ -39,6 +39,14 @@
     - id: assistant-rooms
       name: dsh-smart-assistant/rooms-route
 
+    # ── Viki 记忆内容面（B1，2026-10-19）────────────────────────────────────────
+    #
+    # 只读 GET /api/assistant/viki：user/<space>/memories + peers/<peer>/memories/**；
+    # baseUrl/apiKey 来自 config，其次 OPENVIKING_URL/OPENVIKING_API_KEY；server 缺席时
+    # 503（面板显示未连接），不阻断启动。B2 的删除 POST 走同一行。
+    - id: assistant-viki
+      name: dsh-smart-assistant/viki
+
     # ── 权威经营账本（desk-operating-entry K3，2026-10-10）────────────────────────
     #
     # 单 Host writer：独立 `assistant-operating` dataDir、writer.lock 跨进程独占（惰性认领——

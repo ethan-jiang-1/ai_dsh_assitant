@@ -1,0 +1,90 @@
+/**
+ * B1 Viki tab: list -> read body, with the server-absent state and no prompt.
+ *
+ * Acceptance points:
+ * - the list renders the both-tree counts and rows (summary/type/peer);
+ * - "读全文" fetches the body through the route and opens the shared drawer;
+ * - a 503 renders "未连接" with a retry, not a crash;
+ * - every interaction is a same-origin GET to `/api/assistant/viki`; no `remote.session.prompt`.
+ */
+import { describe, expect, it } from 'vitest'
+import { inertReactShim, loadClientRegistration, materializeClient, textsOf } from '../support/client-harness.ts'
+
+const registration = await loadClientRegistration()
+
+interface ClientExports {
+  VikiPanel: () => unknown
+  bindVikiEnv: (ctx: unknown) => void
+  loadViki: () => Promise<unknown>
+  loadVikiBody: (uri: string) => Promise<{ ok: true, body: string } | { ok: false, reason: string }>
+  resetVikiView: () => void
+}
+
+const list = {
+  connected: true,
+  generatedAt: '2026-10-19T04:00:00.000Z',
+  revision: 'r-1',
+  space: 'default',
+  peers: ['p1'],
+  counts: { total: 2, user: 1, peers: 1, events: 2 },
+  entries: [
+    { uri: 'viking://user/default/memories/events/2026/10/19/a.md', name: 'a.md', source: 'user', summary: '用户记忆 A', memoryType: 'events', eventName: 'A 事件' },
+    { uri: 'viking://user/default/peers/p1/memories/events/2026/10/19/b.md', name: 'b.md', source: 'peer', peer: 'p1', summary: 'peer 记忆 B', memoryType: 'events' },
+  ],
+  problems: [],
+}
+
+const materialize = (): ClientExports => materializeClient(registration, inertReactShim()) as unknown as ClientExports
+
+const flush = async (): Promise<void> => {
+  for (let i = 0; i < 8; i++) await new Promise(resolve => { setTimeout(resolve, 0) })
+}
+
+function fakeCtx(calls: string[], respond: (url: URL) => Response): unknown {
+  return {
+    remote: {},
+    web: {
+      baseURI: 'http://localhost:3080/mount/',
+      fetch: async (input: unknown) => {
+        const url = new URL(String(input))
+        calls.push(`${url.pathname}${url.search}`)
+        return respond(url)
+      },
+    },
+  }
+}
+
+const json = (body: unknown, status = 200): Response =>
+  new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } })
+
+describe('Viki tab', () => {
+  it('renders both-tree counts and rows, and reads a body via the route', async () => {
+    const calls: string[] = []
+    const exports = materialize()
+    exports.bindVikiEnv(fakeCtx(calls, url => url.searchParams.get('uri') === null
+      ? json(list)
+      : json({ uri: url.searchParams.get('uri'), content: '# A\nfull body text' })))
+    exports.resetVikiView()
+    const loading = textsOf(exports.VikiPanel()).join(' | ')
+    expect(loading).toContain('正在读 Viki 的记忆')
+    await exports.loadViki()
+    const rendered = textsOf(exports.VikiPanel()).join(' | ')
+    expect(rendered).toContain('共 2 条')
+    expect(rendered).toContain('用户记忆 A')
+    expect(rendered).toContain('peer 记忆 B')
+    expect(rendered).toContain('读全文')
+    const body = await exports.loadVikiBody(list.entries[0].uri)
+    expect(body).toEqual({ ok: true, body: '# A\nfull body text' })
+    expect(calls.some(call => call.includes('/api/assistant/viki?uri='))).toBe(true)
+    expect(calls.every(call => call.includes('/api/assistant/viki'))).toBe(true)
+  })
+
+  it('shows the honest not-connected state on 503', async () => {
+    const exports = materialize()
+    exports.bindVikiEnv(fakeCtx([], () => json({ error: 'viki-unavailable', message: 'OpenViking is not configured' }, 503)))
+    await exports.loadViki()
+    const rendered = textsOf(exports.VikiPanel()).join(' | ')
+    expect(rendered).toContain('Viki 未连接')
+    expect(rendered).toContain('重试')
+  })
+})

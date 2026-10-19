@@ -1,0 +1,50 @@
+/**
+ * Host plugin row `assistant-viki`: registers the exact Viki read route over the configured
+ * OpenViking server. `baseUrl`/`apiKey` come from config, then `OPENVIKING_URL`/
+ * `OPENVIKING_API_KEY`; an empty base URL is a valid "not connected" state (503 on read), never a
+ * startup failure. B2's delete POST will be added to the same route.
+ *
+ * @module
+ */
+import z from '@deepseek-ai/schemastery'
+import type Schema from '@deepseek-ai/schemastery'
+import type { Context } from '@deepseek-ai/cordis'
+import { createVikiRoute, type VikiReader } from './route.ts'
+import { VikiClient } from './client.ts'
+
+export const name = 'assistant-viki'
+export const inject = ['connection']
+
+export interface Config {
+  /** OpenViking base URL (no `/api/v1` suffix); defaults to `OPENVIKING_URL`. */
+  baseUrl?: string
+  /** API key for `Authorization: Bearer`; defaults to `OPENVIKING_API_KEY`. */
+  apiKey?: string
+  /** OpenViking space; defaults to `default`. */
+  space?: string
+  /** Restrict to one peer; absent means every peer under the space (still read-only). */
+  peer?: string
+}
+
+export const Config: Schema<Config> = z.object({
+  baseUrl: z.string().default(''),
+  apiKey: z.string().default(''),
+  space: z.string().default('default'),
+  peer: z.string().default(''),
+})
+
+export function apply(ctx: Context, config: Config): void {
+  const space = config.space?.trim() || 'default'
+  const peer = config.peer?.trim() || undefined
+  const baseUrl = config.baseUrl?.trim() || process.env.OPENVIKING_URL?.trim() || ''
+  const apiKey = config.apiKey?.trim() || process.env.OPENVIKING_API_KEY?.trim() || undefined
+  const client = new VikiClient({ baseUrl, space, ...(apiKey === undefined ? {} : { apiKey }), ...(peer === undefined ? {} : { peer }) })
+  const reader: VikiReader = {
+    list: () => client.list(),
+    read: uri => client.read(uri),
+  }
+  ctx.effect(() => ctx.connection.fetch.register(createVikiRoute(reader, {
+    allowedSpaces: [space],
+    allowedPeers: peer === undefined ? [] : [peer],
+  })))
+}

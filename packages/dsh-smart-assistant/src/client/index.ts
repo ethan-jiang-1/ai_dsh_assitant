@@ -51,8 +51,10 @@ import { deskCommands, roomCommands } from './commands'
 import { createDeskActivityHandoff } from './desk-view-actions'
 import { DashboardMainPanel, DashboardPanelIcon } from './dashboard'
 import { ApprovalDockBanner, FirstMileDock } from './first-mile'
-import { KnowledgeTabBody, MemoryTabBody, roomTabTitle } from './room-tabs'
+import { KnowledgeTabBody, MemoryTabBody, VikiTabBody, roomTabTitle } from './room-tabs'
 import { KnowledgeIcon, KnowledgePanel, MemoryIcon, MemoryPanel } from './panels'
+import { VikiIcon, VikiPanel } from './viki-panel'
+import { bindVikiEnv, getVikiView, loadViki, loadVikiBody, resetVikiView, useVikiView } from './viki-data-io'
 import { bindClientRequire, clientRequire } from './runtime'
 import { ensureThemeVars } from './theme'
 import { ProjectionPanel } from './projection-panel'
@@ -84,6 +86,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
 
   function apply(ctx: ClientContext): void {
     bindDeskEnv(ctx)
+    bindVikiEnv(ctx)
     ensureThemeVars()
     if (ctx.locale !== undefined) {
       ctx.effect(() => ctx.locale!.register('assistantFirstMile', { zh: firstMileZh, en: firstMileEn }), 'assistant-first-mile: dictionaries')
@@ -392,6 +395,11 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         description: '它把你理解成什么：偏好、决定与事实，每条可纠错',
         icon: MemoryIcon, order: 12,
       },
+      {
+        id: 'dsh-smart-assistant-viki', kind: 'vikiRoom', title: 'Viki', body: VikiTabBody,
+        description: 'Viki 记忆：对话抽取了什么，逐条可读',
+        icon: VikiIcon, order: 13,
+      },
     ] as const
     for (const room of roomTabs) {
       ctx.sidebarRightTabs.register({
@@ -483,7 +491,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   return {
     inject, apply, AssistantBrandMark, AssistantBrandName,
     KnowledgePanel, MemoryPanel, deskStore, deskSlice,
-    DashboardPanelIcon, DashboardMainPanel, KnowledgeTabBody, MemoryTabBody, roomTabTitle,
+    DashboardPanelIcon, DashboardMainPanel, KnowledgeTabBody, MemoryTabBody, VikiTabBody, VikiPanel, bindVikiEnv, getVikiView, loadViki, loadVikiBody, resetVikiView, useVikiView, roomTabTitle,
     roomCommands, AssistantHeroMark, FirstMileDock, ApprovalDockBanner, expirePending, settlePending, loadDeskFor, looksLikeDesk,
     approveKnowledgePage, deprecateKnowledgePage, correctMemory, retireMemory, retireSkill,
     ReceiptView, markReceiptRead, readReceiptSince, resetReceiptBaseline,
