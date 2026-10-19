@@ -1,15 +1,15 @@
 ---
-status: 等人拍板
+status: 推敲中
 opened: 2026-10-19
 ---
 
 # 推敲：维护面收口——面板读真值、直写生效、看得见变化（A 卡：P0）
 
-> 立卡：2026-10-19 ｜ 状态：等人拍板 ｜ 类型：Feature ｜ 可关闭：否 ｜ 毕业：做现在 ｜ 下一步 = 本人一次答复（三句 + 默认值取舍）
+> 立卡：2026-10-19 ｜ 状态：推敲中 ｜ 类型：Feature ｜ 可关闭：否 ｜ 毕业：做现在 ｜ 下一步 = **A2 proposed 卡**（A1a 已交付，见「切片进展」）；Q3 与 B 清理口径待本人答复
 > **定位：** 本卡是 10-19 自更新统筹件的 **P0 总卡，兼维护面 IA / route 契约的 owner**；授权后转为该战役的收口卡（切片停点与证据住本卡）。B 卡（[Viki 内容面](261019-viki-content-governance.md)）与 C 卡（[学到的东西](261019-learned-skills-surface.md)）是独立卡，共用依据档 [self-update/261019-self-update-lanes](../research/self-update/261019-self-update-lanes.md)。
-> **授权现状（别读错）：** 本人 10-19 只委托了一件事的判定——**冲突/退役的形状**（"旧记忆如果有冲突旧丢弃…或者退役…你自己判断"），那一格已定案（见「冲突与退役」）。其余各问都是**建议**；卡上的建议、顺序与默认值**不授予实施权限**（[_backlog/AGENTS.md](../AGENTS.md) 铁律 1）。每片实施仍按 [`notes/README.md`](../../notes/README.md) §二之二立 proposed 卡，点名/点头后才动手。
-> **要你答的三句（一次答复可同时解锁 A/B/C）：** ① 顺序认不认：**A1a → A2 → A3 → A1b → B → C1 → C2**（A1a 与 A2 可并行，但 A1a 先合入）；② **Q3**：退役 `.desk/state.json` 与 `desk-refresh` 技能（合同删减 + 模型可见减法）；③ **B 卡口径**：越界记录整批清除，还是先看清单（建议：先 dry-run 清单，确认后整批清除）。
-> **默认值（agent-selected，vetoable；不反对就写进 proposed 卡）：** 面板 IA 四 tab——记忆 / 知识 / 技能 / Viki，research 仍是房间、不单开 tab；C2 v1 只做 **assistant 消息**的"记下来"；A3 baseline = "自你上次打开维护面板以来" + "全部标为已读"；C1 成本列 v1 省略（或只报 always-on 字节估算，不用整份 `SKILL.md` 冒充）；B 删除回执带 commit id + 一个"恢复这次删除"的动作；A2 传输由 Step 0 探针决定（strict codec 优先，不能挂走 host POST，**绝不回退 prompt**）。
+> **授权现状（别读错）：** 本人 10-19 委托了**冲突/退役的形状**（那一格已定案，见「冲突与退役」），并在 2026-10-19 以「落地计划」授权按本卡 v2 的切片顺序实施；**A1a 已交付**（[决定 note](../../notes/implemented/2026-10-19-maintenance-read-authority.md)）。其余各问仍是**建议**；卡上的建议与默认值本身不授予新的实施权限（[_backlog/AGENTS.md](../AGENTS.md) 铁律 1）——每片仍按 [`notes/README.md`](../../notes/README.md) §二之二立 proposed 卡，点名/点头后才动手。
+> **要你答的两句（A1a 已按计划交付，① 顺序已于 2026-10-19「落地计划」采用）：** ② **Q3**：退役 `.desk/state.json` 与 `desk-refresh` 技能（合同删减 + 模型可见减法）——**仍待你一句**；③ **B 卡口径**：越界记录整批清除，还是先看清单（建议：先 dry-run 清单，确认后整批清除）——**仍待你一句**。
+> **默认值（agent-selected，vetoable；2026-10-19「落地计划」已采用，still vetoable）：** 面板 IA 四 tab——记忆 / 知识 / 技能 / Viki，research 仍是房间、不单开 tab；C2 v1 只做 **assistant 消息**的"记下来"；A3 baseline = "自你上次打开维护面板以来" + "全部标为已读"；C1 成本列 v1 省略（或只报 always-on 字节估算，不用整份 `SKILL.md` 冒充）；B 删除回执带 commit id + 一个"恢复这次删除"的动作；A2 传输由 Step 0 探针决定（strict codec 优先，不能挂走 host POST，**绝不回退 prompt**）。
 > **2026-10-19 复审重写：** 修正 A1 真值源（working folder，不是会话工作区）、A2 传输前提（strict codec 可手写；261004 的"需要上游缝"结论不成立，待真机探针）、A3 baseline、退役清单与验收；依据档 [§九](../research/self-update/261019-self-update-lanes.md#九2026-10-19-复盘更正) 同步更正。
 
 **问题与期望结果：** 面对"记忆/知识能不能在面板里维护、SKILL 和 Viki 整体怎么提"，发现面板**读的是拷贝、写的是话**：除知识批准外每个按钮都只往会话里投一句话，面板渲染 `desk-refresh` 技能重写的 `.desk/state.json`；知识正文不在场（只有 200 字片段），技能只有一个计数。要的是**看得见正文、点完当场变、一眼看到最近变了什么**，并消灭那条造成陈旧的拷贝。
@@ -89,6 +89,15 @@ opened: 2026-10-19
 | X-2 | 收尾 | — | A1a/A2/A3/A1b 各自的命令与真机证据记在本卡或提交说明；B/C 仍按各自卡 | — | 命令本身 | 无 |
 
 本人的验收面（不代判）：能不能在面板上看到那页正文、点完是否立刻变、"最近变了什么"是否像一句人话、退役后模型是否真的不再提 `desk-refresh`。
+
+## 切片进展
+
+| 片 | 状态 | 证据 / 停点 |
+|---|---|---|
+| **A1a 读权威** | **已交付**（2026-10-19） | `91f979f`（host route/row/tests）、`f1cb051`（client 换源/抽屉/文档/scene）、`8d46246`（scene 凭据+期望）、`c9cf41a`（web hook 探针+抽屉主题）；`vitest` 764 绿、`verify` 42 绿、`web-expected` 两场景 PASS、`webui-preflight` 绿；**人判待本人**：在真机上看一条知识页正文。决定 note = [maintenance-read-authority](../../notes/implemented/2026-10-19-maintenance-read-authority.md) |
+| **A2 直写** | 未开 | 先做 strict-codec 真机探针；能挂沿用 `assistantKnowledge`，不能挂 host POST；proposed 卡待立 |
+| **A3 收据** | 未开 | 等 A2 的写入/台账形状 |
+| **A1b 退役** | **等 Q3** | 退役 `.desk/state.json` + `desk-refresh` 全表面；Q3 明确后才立卡 |
 
 ## 关闭条件
 
