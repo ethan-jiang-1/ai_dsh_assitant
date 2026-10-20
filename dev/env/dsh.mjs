@@ -24,6 +24,12 @@
  *      常见混合口 7897，先探测先得；显式导出过 `HTTP(S)_PROXY` 的调用者不被覆盖。
  *   5. 临时文件收进仓内：三个临时根变量指向 `<repo>/.tmp/host/`（硬规则 8：仓外写会被
  *      文件沙箱挡成 approval）。显式导出过的调用者不被覆盖。
+ *   6. 默认随调用者一起死，显式 `ASSISTANT_DSH_DETACH=1` 才脱离终端独立存活：不脱离时收到
+ *      挂断（SIGHUP）就跟 CLI 一起收场，且**任何退出都带走 CLI**——否则一个用完即弃的调用者
+ *      （`pnpm start | tail`、后台任务、agent 的一次性 shell）退出时，服务会活下来占着端口与
+ *      会话锁。信号转发在 posix 下用进程组（`set -m` + `kill -<去重后的信号>`）——`pnpm dsh`
+ *      是包装层，prepend 的 `sh -c`（pnpm 的 INT trap）与真 CLI 不在同一进程里，只发 pid
+ *      会把真 CLI 留成孤儿（docs/dev.md §五）。
  *
  * 不经过本启动器的调用方（release-smoke / dev/env/setup.sh）自己负责设置 `DSH_HOME`。
  */
@@ -90,14 +96,25 @@ const probe = (host, port) => new Promise(resolveProbe => {
   socket.once('error', () => done(false))
 })
 
+// 自定义候选可能来自 scutil 或 env，形状不一定合法：取不出 host/port 就跳过，别把启动器炸掉。
+const probeTarget = (url, source) => {
+  try {
+    const { hostname, port } = new URL(url)
+    return { hostname, port: Number(port) }
+  } catch {
+    console.error(`[dsh] ignoring malformed ${source} ${url}`)
+    return undefined
+  }
+}
+
 const explicitUrl = process.env.ASSISTANT_PROXY_URL
 const proxyAlreadySet = process.env.HTTP_PROXY !== undefined || process.env.HTTPS_PROXY !== undefined
 let proxyUrl = ''
 if (explicitUrl !== undefined) {
   // 显式指定：空串=禁用注入；非空=探测这一个，活着才注入（死了注入=把出网指向死端口）。
   if (explicitUrl !== '') {
-    const { hostname, port } = new URL(explicitUrl)
-    if (await probe(hostname, Number(port))) proxyUrl = explicitUrl
+    const target = probeTarget(explicitUrl, 'ASSISTANT_PROXY_URL')
+    if (target !== undefined && await probe(target.hostname, target.port)) proxyUrl = explicitUrl
   }
 } else if (!proxyAlreadySet) {
   const candidates = []
@@ -113,8 +130,8 @@ if (explicitUrl !== undefined) {
   }
   candidates.push('http://127.0.0.1:7897')
   for (const candidate of candidates) {
-    const { hostname, port } = new URL(candidate)
-    if (await probe(hostname, Number(port))) { proxyUrl = candidate; break }
+    const target = probeTarget(candidate, 'proxy candidate')
+    if (target !== undefined && await probe(target.hostname, target.port)) { proxyUrl = candidate; break }
   }
 }
 if (proxyUrl !== '' && !proxyAlreadySet) {
@@ -134,13 +151,53 @@ const sessionCwd = process.env.ASSISTANT_SESSION_CWD !== undefined && process.en
 // `--import tsx/esm` 是裸包名，Node 按子进程 cwd 解析——session cwd 挪去仓外时找不到本仓的
 // node_modules。从启动器自身位置解析成绝对 file URL，cwd 无关。
 const tsxEntry = import.meta.resolve('tsx/esm')
+
+// ── 生命周期（规则见文件头第 6 条）────────────────────────────────────────────
+// 默认：服务是启动器的子进程，启动器在，服务在——调用者一退（Ctrl-C、挂断、父进程死），
+// 服务跟着收场，不留孤儿占端口与账本 `writer.lock`。要一个**交接出去、脱离终端**跑下去的
+// 实例，调用者显式置 `ASSISTANT_DSH_DETACH=1`（人面的一键启动 `dev/env/start.sh` 就这么做）：
+// 那时服务不跟着启动器死，寿命归打印出来的那个 `kill`。
+const detached = process.env.ASSISTANT_DSH_DETACH === '1'
+const posix = process.platform !== 'win32'
 const child = spawn(process.execPath, ['--import', tsxEntry, bin, ...process.argv.slice(2)], {
   cwd: sessionCwd,
   env: { ...process.env, TSX_TSCONFIG_PATH: join(repoRoot, 'tsconfig.tsx.json') },
   stdio: 'inherit',
+  // posix 下给 CLI 自己的进程组（`set -m` 的等价物），按组收才不会剩孤儿；detach 时顺带脱离终端会话。
+  detached: posix,
 })
 
+let closed = false
+const stopChild = signal => {
+  if (closed || child.exitCode !== null || child.signalCode !== null) return
+  if (posix) {
+    // 发给整个组（CLI 自己 + 它启的子进程）。SIGHUP 的等价物是 SIGTERM：`kill -1 -<pgid>` 在
+    // 进程组语义里是“重载”，而我们要的是“收场”。
+    const wire = signal === 'SIGHUP' ? 'SIGTERM' : signal
+    try { process.kill(-child.pid, wire) } catch { /* 组已经空了 */ }
+  } else {
+    try { child.kill(signal) } catch { /* 已经退了 */ }
+  }
+}
+
+if (detached) {
+  // 交接后的句柄就是这一行：pid 在，`kill -TERM -- -<pid>` 连组一起收（单发 pid 只杀 CLI
+  // 本身，它启的子进程就成孤儿）。猜 pid 的人会打错杀到自己的话，所以启动器自己报。
+  console.error(`[dsh] detached service pid ${child.pid} — stop it with \`kill -TERM -- -${child.pid}\``)
+} else {
+  // 收到可捕获的信号：转给服务（先礼后兵），服务退了我们用同一信号结束自己（让调用者看到真实死因）。
+  for (const signal of ['SIGINT', 'SIGTERM', 'SIGHUP']) {
+    process.on(signal, () => {
+      stopChild(signal)
+      setTimeout(() => stopChild('SIGKILL'), 5000).unref()
+    })
+  }
+  // 启动器自己要退了（未捕获异常、`process.exit`）——服务不给它留成孤儿。
+  process.on('exit', () => stopChild('SIGTERM'))
+}
+
 child.on('exit', (code, signal) => {
+  closed = true
   if (signal) process.kill(process.pid, signal)
   else process.exit(code ?? 1)
 })
