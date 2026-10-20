@@ -7,9 +7,9 @@ intent: "把三档调研（外部主动性 UX 机制 / 开源 agent 机制 / 本
 
 > 本档是**合成档**：事实与出处以三档调研为准（指针，不重述）；这里只做拆解、对照、取舍与推理。
 > 全文**事实**与**【推断】**分开标注；没有一手来源的话不写。
-> 服务对象：[主动性方向评审卡](../../_archive/settled_issues/261018-proactive-direction.md)；实施载体：[主动性 v1 提案](../../../notes/implemented/2026-10-18-proactive-face.md)。
+> 服务对象：[主动性方向评审卡](../../settled_issues/261018-proactive-direction.md)；实施载体：[主动性 v1 提案](../../../../notes/implemented/2026-10-18-proactive-face.md)。
 
-**三档原件**（同批新增，索引在 [`_backlog/research/README.md`](../README.md)）
+**三档原件**（同批新增，索引在 [`_backlog/research/README.md`](../../../research/README.md)）
 
 | 档 | 回答什么 | 关键节 |
 |---|---|---|
@@ -61,14 +61,14 @@ intent: "把三档调研（外部主动性 UX 机制 / 开源 agent 机制 / 本
 |---|---|
 | **开口落空**：主动简报问了本人两句，零回复；事项 5 天后仍"到期无结果" | `dev/harness-home/sessions/…/session-45e89f04…`：`[SCHEDULE REMINDER]` user/message @2026-10-13T08:24:48Z 之后，turn 2 末 assistant 两句决策问句，此后无任何真人消息；`storages/schedule.json` 的 `deliveryHistory`（scheduledAt 01:00Z，deliveredAt 08:24Z，迟到 7h24m） |
 | **盯守重复**：两条同 prompt、同周一 09:00 的 weekly 落在两个会话 | 同上 `schedule.json`（`b13ddcb8`/`be578c2c` 分属两会话）；**第二条就是那次迟到投递的 turn 里模型当场 `schedule_create` 的**；机理 = 模型侧 `schedule_list` 只看当前会话（vendor `schedule/schedule/src/tools.ts:175`、`index.ts:289-312`） |
-| **看不见**：桌面头部只有 `N 件在办 · N 条等你确认 · N 条待认领`；节拍器与 curate 无任何界面 | [`projection-panel.ts:276-283`](../../../packages/dsh-smart-assistant/src/client/projection/projection-panel.ts#L276-L283)（头部块＝h1＋计数行＋按钮；行号随 desk-side-capture 推进漂移，以结构定位为准）；[baseline](261018-proactivity-baseline.md) §五 |
+| **看不见**：桌面头部只有 `N 件在办 · N 条等你确认 · N 条待认领`；节拍器与 curate 无任何界面 | [`projection-panel.ts:276-283`](../../../../packages/dsh-smart-assistant/src/client/projection/projection-panel.ts#L276-L283)（头部块＝h1＋计数行＋按钮；行号随 desk-side-capture 推进漂移，以结构定位为准）；[baseline](261018-proactivity-baseline.md) §五 |
 
 ### 3.3 已拍板、不能碰的约束（[baseline](261018-proactivity-baseline.md) §三）
 
-1. **权限三分**：普通进展自动留存；确认性变化只走本人明确指令；推断的重大变化只走提案（[`docs/operating.md`](../../../docs/operating.md) §二）。
+1. **权限三分**：普通进展自动留存；确认性变化只走本人明确指令；推断的重大变化只走提案（[`docs/operating.md`](../../../../docs/operating.md) §二）。
 2. **节律**：提醒只按本案明确委托的核对点/已确认条件触发，**不预设固定节律、不回复不升级**（261008 L267）。
 3. **形态口径（261005 已写）**：晨报/巡检/催收做成**可见可开关的例行清单**，不做隐藏魔法；节奏随真实事件顺延；v1 最小主动数据集 = 行动表 due + 待拍板 + 缺的数（261005 L260-L263）。
-4. **对外**：不做 IM、对外内容本人过目；推送式（不经模型回合）主动生成已被否（[晨报 note](../../../notes/implemented/2026-10-10-desk-daily-brief.md) 输掉的方案）。
+4. **对外**：不做 IM、对外内容本人过目；推送式（不经模型回合）主动生成已被否（[晨报 note](../../../../notes/implemented/2026-10-10-desk-daily-brief.md) 输掉的方案）。
 5. **节律立场**：一把手与它的自然关系是"每周一坐 15 分钟 + 遇事立刻问"，"打开频率低"是设计前提而非缺陷（261005 L151-L152）。
 
 ### 3.4 一个结构性事实（决定了形态）
@@ -150,7 +150,7 @@ M1 变化门（巡检先跑便宜判定，变了才叫醒模型）｜M2 静默�
 
 | 约束（出处） | 四片怎么满足 |
 |---|---|
-| 权限三分（[`docs/operating.md`](../../../docs/operating.md) §二） | 片 1 只读；片 2 的创建是**本人点击**产生的明确指令；片 3 把"推断性动作"从无人值守 turn 里排掉 |
+| 权限三分（[`docs/operating.md`](../../../../docs/operating.md) §二） | 片 1 只读；片 2 的创建是**本人点击**产生的明确指令；片 3 把"推断性动作"从无人值守 turn 里排掉 |
 | 不预设固定节律、不回复不升级（261008 L267） | 片 2 的建议**不默认开、不自动建**；片 1 不做推送、不升级；无静默时段自建（外部四家都不做） |
 | 主动性＝可见可开关的例行清单（261005 L260-L263） | 片 2 就是这条的落地（具名 + 一键 + 可关）；片 1 把"在盯什么"变成可读行 |
 | 不做 IM / 对外内容本人过目 | 全程只动 DSH 自己的桌面与会话；片 3 明令无人值守 turn 不碰对外面 |
@@ -186,7 +186,7 @@ M1 变化门（巡检先跑便宜判定，变了才叫醒模型）｜M2 静默�
 | Q4 | 片 3 红线要不要同时约束"提案槽"（它已是 propose-only，红线可能重复）？ | 架构 | 片 3 范围 |
 | Q5 | 无人值守"失败一律出声"的最小实现：先只做"投递了但没结果"的桌面提示，还是同时覆盖模型回合失败？ | 架构 + 评测 | 片 4 触发条件 |
 | Q6 | 节拍器是否改为空闲触发（路线 D）？ | 本人 + 架构 | 另立卡，可能影响片 1 的"它替你看过"内容 |
-| Q7 | 输入边界 30 天观察实际未启动（trial-home-30d 0 会话）：先补读数，还是把触发行改成"首条真人会话后计时"？ | 本人 | 与本次主动性方向**相邻但独立**（[triggers.md](../../triggers.md)） |
+| Q7 | 输入边界 30 天观察实际未启动（trial-home-30d 0 会话）：先补读数，还是把触发行改成"首条真人会话后计时"？ | 本人 | 与本次主动性方向**相邻但独立**（[triggers.md](../../../triggers.md)） |
 | Q8 | 桌面是否需要一个"隐性同意"的暂停入口（平台缺 `pause`，只能删）？记上游还是本包自建？ | 架构 + 本人 | 片 4 |
 
 ---

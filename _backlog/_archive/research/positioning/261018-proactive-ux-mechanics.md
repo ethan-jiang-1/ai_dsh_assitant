@@ -7,8 +7,8 @@ intent: "把近月 personal agent 的『主动性』拆到用户体验机制层�
 
 > 调研日期 2026-10-18。本档问的是**机制**不是新闻：主动性在每一家到底被做成了什么可指认的
 > UI 对象、什么触发、什么送达、什么时候来找人。**不重复** 2026-10-12 两档已有的内容——
-> 能力形态与生态时间线在 [261012-personal-agent-landscape.md](261012-personal-agent-landscape.md)，
-> 机制级对照本仓与借鉴清单在 [261012-personal-agent-differentiation.md](261012-personal-agent-differentiation.md)。
+> 能力形态与生态时间线在 [261012-personal-agent-landscape.md](../../../research/positioning/261012-personal-agent-landscape.md)，
+> 机制级对照本仓与借鉴清单在 [261012-personal-agent-differentiation.md](../../../research/positioning/261012-personal-agent-differentiation.md)。
 > 本档只写它们没写的：**主动性作为用户可见对象的构造方式**，以及它们偏"能力形态与治理"、对"主动性 UX 怎么呈现"较薄的部分。
 >
 > 标注约定：〔一手〕＝官方帮助中心/官方文档/官方公告原文，本轮实际读到的；〔一手·存档〕＝官方页仅经存档读到；
@@ -26,9 +26,9 @@ intent: "把近月 personal agent 的『主动性』拆到用户体验机制层�
 
 | 维度 | 261012 已有（本档不重复，链接过去） | 本档增量 |
 |---|---|---|
-| dots 的主动权 | "空闲时段做 proactive research，工具被限制为只读"〔[差异化 §1.1](261012-personal-agent-differentiation.md)〕 | 只补"送达面/开关面"的欠账标记（本轮未取得新证据） |
-| Muse 的可见清单 | Goals 页 / Ideas 页 / 审批卡 / banner blindness 论证〔[差异化 §1.2](261012-personal-agent-differentiation.md)〕 | Muse 的第五类 UI 对象（Activity / Artifacts）与"判断何时值得打扰"的设计师原话〔二手〕 |
-| Claude 的二档 check-in | "默认行动前先问；可切换持续干、只在需要细看时来问"〔[差异化 §1.5](261012-personal-agent-differentiation.md)〕 | **三档模式的逐字命名、权限矩阵、每任务审批字段、Scheduled 页、降级规则、官方自认风险**（本轮最大增量） |
+| dots 的主动权 | "空闲时段做 proactive research，工具被限制为只读"〔[差异化 §1.1](../../../research/positioning/261012-personal-agent-differentiation.md)〕 | 只补"送达面/开关面"的欠账标记（本轮未取得新证据） |
+| Muse 的可见清单 | Goals 页 / Ideas 页 / 审批卡 / banner blindness 论证〔[差异化 §1.2](../../../research/positioning/261012-personal-agent-differentiation.md)〕 | Muse 的第五类 UI 对象（Activity / Artifacts）与"判断何时值得打扰"的设计师原话〔二手〕 |
+| Claude 的二档 check-in | "默认行动前先问；可切换持续干、只在需要细看时来问"〔[差异化 §1.5](../../../research/positioning/261012-personal-agent-differentiation.md)〕 | **三档模式的逐字命名、权限矩阵、每任务审批字段、Scheduled 页、降级规则、官方自认风险**（本轮最大增量） |
 | 触发/送达/开关/预算/接缝六问 | 未系统回答 | 本档主体（§二）+ 速览表（§一） |
 | 主动性的**下架**记录 | 未收录 | Pulse 于 2026-06-17 被下线、由 Scheduled tasks 取代，含 OpenAI 官方复盘原话（§2.1） |
 | Lindy / Poke / Martin | 261012 只在"垂直总助 SaaS"一笔带过 | Lindy 的机制细节（本轮第二增量）；Poke/Martin 记为未证实 |
@@ -45,9 +45,9 @@ intent: "把近月 personal agent 的『主动性』拆到用户体验机制层�
 | **OpenAI ChatGPT：Scheduled tasks（2026-06 起取代 Pulse）** | 定时（具体时刻，或 morning / afternoon / evening 时段）＋"有重要事时通知你" | 专用 **Scheduled 页**（看下次何时运行）＋通知 | Scheduled 页 = 单一管理位；可 pause / resume / edit / delete | 未见配额（本轮仅二手） | 未见 |
 | **Anthropic Claude（Cowork 并入 Claude）** | 定时：hourly / daily / weekly / on weekdays / **manually**（按需跑） | ①Chat 里的结果（"messages you the outcome… rather than showing you every step"）②**Scheduled 页**看 upcoming + past runs ③手机推送（完成 / 需要你点头时） | **每任务一个 "approval mode" 字段**；Scheduled 页可 pause / resume / delete / run on demand | 无打扰配额；两条可查的"预算"是**算力额度**（Auto 模式更耗用量）与**审批硬底线** | 三档审批模式 + 需授权时**降级为逐步问**；永久删除在任何模式都要问 |
 | **Lindy** | 定时（daily/weekly/monthly，默认 **daily 9:00 AM**）＋**事件**（邮件收/发、Slack 消息、日历事件开始、会议结束…）＋ 人话 **Smart Filter** 收窄 | **default proactive channel**（默认）／Lindy chat／短信（手机已验证）／Slack DM；团队 routine 回 Slack 线程或指定频道；电话外呼 | **Routines 页**（Personal / Workspace / **Discover** 三 tab）；内置 routine **逐项开关**，按已连账号分别生效；Discover 模板一键添加 | 无消息级配额；有**呼叫时段**（对方当地时间 8:00–21:00）与 **credits 上限**（按成员/工作区，超限暂停计费动作） | 每连接器 **Guardrails**：`Always allow` / `Ask for approval`；Slack 线程里 **Approve / Deny** 按钮；一次性批准 ≠ 改规则（`Always allow` 才改规则） |
-| **Meta Muse** | 目标驱动（Goals 承载）＋ 可主动联系用户 | 主聊天（Main Chat）＋ 审批卡 ＋ 活动摘要 | Goals 页（长期目标可追踪）＋ Activity（后台工作摘要与完整活动记录）〔二手〕 | 官方称"主动发消息的门槛设得很高"（转述，见 [差异化 §1.2](261012-personal-agent-differentiation.md)）；另有"判断什么时候值得打扰用户"的设计师表述〔二手〕 | 审批只设在**难以撤销**的动作上（banner blindness 论证，见 [差异化 §1.2](261012-personal-agent-differentiation.md)） |
-| **OpenAI dots** | 空闲 proactive research（**只读**）＋ 定时持续指令〔[差异化 §1.1](261012-personal-agent-differentiation.md)〕 | 见 [差异化 §1.1](261012-personal-agent-differentiation.md)；本轮无新增 | 四档用户规则〔同上〕 | 未见 | 四档规则之一＝"动手前先问"〔同上〕 |
-| **Google CC / Gemini** | 定时（每天早晨 "Your Day Ahead"）〔见 [landscape §四](261012-personal-agent-landscape.md)〕 | 家庭共享晨报〔同上〕 | 本轮未取得（support.google.com 超时） | 本轮未取得 | 信息不足会反问并更新群体记忆〔同上〕 |
+| **Meta Muse** | 目标驱动（Goals 承载）＋ 可主动联系用户 | 主聊天（Main Chat）＋ 审批卡 ＋ 活动摘要 | Goals 页（长期目标可追踪）＋ Activity（后台工作摘要与完整活动记录）〔二手〕 | 官方称"主动发消息的门槛设得很高"（转述，见 [差异化 §1.2](../../../research/positioning/261012-personal-agent-differentiation.md)）；另有"判断什么时候值得打扰用户"的设计师表述〔二手〕 | 审批只设在**难以撤销**的动作上（banner blindness 论证，见 [差异化 §1.2](../../../research/positioning/261012-personal-agent-differentiation.md)） |
+| **OpenAI dots** | 空闲 proactive research（**只读**）＋ 定时持续指令〔[差异化 §1.1](../../../research/positioning/261012-personal-agent-differentiation.md)〕 | 见 [差异化 §1.1](../../../research/positioning/261012-personal-agent-differentiation.md)；本轮无新增 | 四档用户规则〔同上〕 | 未见 | 四档规则之一＝"动手前先问"〔同上〕 |
+| **Google CC / Gemini** | 定时（每天早晨 "Your Day Ahead"）〔见 [landscape §四](../../../research/positioning/261012-personal-agent-landscape.md)〕 | 家庭共享晨报〔同上〕 | 本轮未取得（support.google.com 超时） | 本轮未取得 | 信息不足会反问并更新群体记忆〔同上〕 |
 | **Poke / Martin** | 本轮抓取失败（见 §六） | — | — | — | — |
 
 ---
@@ -94,7 +94,7 @@ intent: "把近月 personal agent 的『主动性』拆到用户体验机制层�
 
 #### 2.1.4 与 dots 的分工（本档的对照线索）【推断】
 
-Pulse 下线（2026-06）早于 dots 发布（2026-09）。结合 [差异化 §1.1](261012-personal-agent-differentiation.md)
+Pulse 下线（2026-06）早于 dots 发布（2026-09）。结合 [差异化 §1.1](../../../research/positioning/261012-personal-agent-differentiation.md)
 记的 dots"空闲 proactive research 限只读"，可以看出一条连续性：OpenAI 一侧的主动性在半年内从
 **"每天早上给你看一叠（你没法改的）卡片"** 收敛为 **"你定周期、有管理页、动作按档授权"**。
 即主动性从**内容产品**退回到**任务产品**。
@@ -271,7 +271,7 @@ Cowork 访问与 Auto 模式是否可用，见 §2.2.4）〔一手：[Use safely
 **机制读数**【推断】：Lindy 把"主动性"拆成了**可命名、可预览、可开关、可预览触发条件**的对象，并且
 **模板库承担了"首批怎么让人看懂"的活**——用户不是在空白页上想"我能让它干什么"，而是在一份带状态
 （Ready / Needs setup）的清单里挑。这直接对应 Muse Ideas 页要解决的问题（"agent 能做的太多，人不知从哪开始"，
-见 [差异化 §1.2](261012-personal-agent-differentiation.md)），但 Lindy 的解法是**模板＋缺口提示**，
+见 [差异化 §1.2](../../../research/positioning/261012-personal-agent-differentiation.md)），但 Lindy 的解法是**模板＋缺口提示**，
 不需要模型猜用户想要什么。
 
 **一点反证/边界**：Discover 的模板列表本身默认是"推荐位"（分组含 "Recommended"）〔一手，同页〕，
@@ -348,21 +348,21 @@ Cowork 访问与 Auto 模式是否可用，见 §2.2.4）〔一手：[Use safely
   **"让一条真正有用的消息，在你未发出指令的情况下发送"**〔同上，二手〕。
 - 【推断】Muse 与 Lindy 的差别在**可见性的落点**：Muse 把可见性放在"目标/活动"（我为什么做这些），
   Lindy 放在"规则/触发"（我什么时候会做）；Claude 放在"审批档位"（你能做到哪一步）。
-  三家各占主动性可见性的一面，没人三面齐备。对照 [差异化 §1.2](261012-personal-agent-differentiation.md)
+  三家各占主动性可见性的一面，没人三面齐备。对照 [差异化 §1.2](../../../research/positioning/261012-personal-agent-differentiation.md)
   的 Goals/Ideas 页事实，本档只补 Activity/Artifacts 两个对象与"值得打扰"这句判据。
-- **Ideas 页**的原始出处仍是 [差异化 §1.2](261012-personal-agent-differentiation.md)（PPC Land 转述官方设计文档），
+- **Ideas 页**的原始出处仍是 [差异化 §1.2](../../../research/positioning/261012-personal-agent-differentiation.md)（PPC Land 转述官方设计文档），
   本轮未取到新证据。
 
 ---
 
 ### 2.5 本轮未能推进的几家（只记欠账，不重复 261012）
 
-- **OpenAI dots**：主动性机制（空闲只读巡检）已在 [差异化 §1.1](261012-personal-agent-differentiation.md)；
+- **OpenAI dots**：主动性机制（空闲只读巡检）已在 [差异化 §1.1](../../../research/positioning/261012-personal-agent-differentiation.md)；
   本轮关于它的**送达面/开关面**没有取到新的官方文本（openai.com 403、存档不可达），故不写。
 - **Google CC / Gemini Scheduled Actions**：`support.google.com/gemini/answer/16316416` 两次超时
-  （web_fetch 与 curl 均失败），`blog.google` 的 CC 家庭晨报事实仍在 [landscape §四](261012-personal-agent-landscape.md)。
+  （web_fetch 与 curl 均失败），`blog.google` 的 CC 家庭晨报事实仍在 [landscape §四](../../../research/positioning/261012-personal-agent-landscape.md)。
   **Gemini 定时动作的开关粒度与送达方式本轮属未证实。**
-- **Instinct**：形态见 [landscape §三](261012-personal-agent-landscape.md)；本轮未取到任何一手主动性机制文档。
+- **Instinct**：形态见 [landscape §三](../../../research/positioning/261012-personal-agent-landscape.md)；本轮未取到任何一手主动性机制文档。
 - **Poke / Martin**：见 §六。
 
 ---
@@ -374,7 +374,7 @@ Cowork 访问与 Auto 模式是否可用，见 §2.2.4）〔一手：[Use safely
 **P1. 主动性被产品化为一个"具名管理页"，而不是一个开关或一种智能。**
 Lindy = Routines 页（"review what's running"，三 tab、逐项 toggle）〔一手〕；Claude = 左栏 Scheduled 页
 （upcoming + past runs，pause/resume/delete/按需跑）〔一手〕；ChatGPT = Scheduled 页（"a single place to manage
-all active tasks"）〔二手转述官方〕；Muse = Goals 页〔见 [差异化 §1.2](261012-personal-agent-differentiation.md)〕。
+all active tasks"）〔二手转述官方〕；Muse = Goals 页〔见 [差异化 §1.2](../../../research/positioning/261012-personal-agent-differentiation.md)〕。
 **四家里的三家把这个页面当作主动性的主界面**。
 【推断】这一步解决的是"我不知道它到底在替我干什么"——比任何"主动性开关"都更根本。
 
@@ -383,7 +383,7 @@ all active tasks"）〔二手转述官方〕；Muse = Goals 页〔见 [差异化
 〔一手〕；ChatGPT = 具体时刻或 morning/afternoon/evening 粗时段〔二手〕。
 事件侧：Lindy 的 trigger 清单（邮件收/发、Slack 消息、日历事件开始、会议结束）＋ **Smart Filter**
 （"so it doesn't fire on everything"）〔一手〕。
-**"空闲巡检"只在云端大厂 agent 里存在（dots，且限只读，见 [差异化 §1.1](261012-personal-agent-differentiation.md)）；
+**"空闲巡检"只在云端大厂 agent 里存在（dots，且限只读，见 [差异化 §1.1](../../../research/positioning/261012-personal-agent-differentiation.md)）；
 Claude 与 Lindy 这两家文档最完整的 product 里根本没有这一类触发**〔本轮检索事实〕。
 
 **P3. 送达＝"放进一个待看的地方"＋仅在两个时点推一条通知（完成 / 需要你点头）。**
@@ -397,12 +397,12 @@ Claude：每任务一个 approval mode 字段 × 每连接器工具三态（Alwa
 Lindy：每连接器 guardrails 两档，Slack 里 `Approve`（只批这一次，"changes nothing else"）vs
 `Always allow`（"changes the rule going forward"）〔一手〕。
 共同的**硬底线**是"不可逆动作任何档位都要问"：Claude "always asks before permanently deleting files, **in any mode**"〔一手〕。
-【推断】这与 Muse 的 banner blindness 论证同源（[差异化 §1.2](261012-personal-agent-differentiation.md)）：
+【推断】这与 Muse 的 banner blindness 论证同源（[差异化 §1.2](../../../research/positioning/261012-personal-agent-differentiation.md)）：
 **审批要少而硬，靠"把审批绑在不可逆动作上"实现，不靠"把审批变轻"**。
 
 **P5. 没有人做"打扰预算"（interruption quota）。** 本轮四家的可查"预算"都是别的东西：
 Claude = 算力额度（"auto mode consumes more of your usage limit"）〔一手〕；Lindy = credits 上限 + 语音呼叫时段〔一手〕；
-ChatGPT = 用量额度（口径见 [landscape §二](261012-personal-agent-landscape.md)）。
+ChatGPT = 用量额度（口径见 [landscape §二](../../../research/positioning/261012-personal-agent-landscape.md)）。
 **静默时段 / 每日投递次数上限 / 免打扰，四家文档里一条都没有**〔本轮检索事实，含 Lindy 全文 3381 行〕。
 真正在用的降噪手段是机制性的：**去重与变更检测**（Lindy 脚本模式"most runs end quietly and Lindy only wakes
 when something changed"〔一手〕）、**批量合并**（Lindy daily digest 把一天的 meeting prep 压成一次〔一手〕）、
@@ -412,7 +412,7 @@ when something changed"〔一手〕）、**批量合并**（Lindy daily digest �
 **P6. 官方把"无人看管"和"审批疲劳"都当成要在文档里明说的风险，而不是藏起来。**
 Claude 整节 "Be cautious with scheduled tasks"（因为"you can't monitor these tasks in real time"），
 并明确劝阻把"代你发消息/购买/难撤销的动作"放进定时任务〔一手〕；dot 与 Muse 侧的同向表述见
-[差异化 §1.1/§1.2](261012-personal-agent-differentiation.md)。
+[差异化 §1.1/§1.2](../../../research/positioning/261012-personal-agent-differentiation.md)。
 **共同句式是"别把不可逆的事放进无人值守通道"**——这条在四家都能找到对应物，是本轮最稳的跨家结论。
 
 ---
@@ -499,7 +499,7 @@ GitHub 上 `anthropics/claude-code` 存在两条与"审批档位/权限记忆"�
 | OpenAI Scheduled tasks 的官方文档 | 未取得原文（403 + 存档不可达）；现有一切来自 Digit（2026-06-18，转引官方帖与说明） |
 | ChatGPT 网页/移动端 Scheduled 页的实际形态 | 未能本人实测（无账号环境）；所有 UI 描述为二手 |
 | Google Gemini「排定动作」（support.google.com/gemini/answer/16316416）与 Daily brief | **两次抓取超时**（web_fetch 与 curl 均失败）；Gemini 侧定时动作的粒度、送达面、开关面全部未证实 |
-| Google CC 的一手机制细节 | 依赖 [landscape §四](261012-personal-agent-landscape.md) 已有的 blog.google 摘录，本轮未新增 |
+| Google CC 的一手机制细节 | 依赖 [landscape §四](../../../research/positioning/261012-personal-agent-landscape.md) 已有的 blog.google 摘录，本轮未新增 |
 | **Poke**（poke.com）与 **Martin** 的主动性机制 | 本轮未取得任何官方文档；搜索仅返回官网与第三方评测标题。**不计入结论** |
 | Meta Muse《How We Designed Muse》设计文档原文、Ideas 页原文 | 仍未取得；本轮只新增一篇中文二手设计拆解（uisdc）作为 UI 对象清单来源 |
 | Meta「主动私信用户」的官方立场（"creepy" 类表述） | 只检索到 Business Insider 2025-07 的**标题级**线索（"Leaked docs show how Meta is training its chatbots to message you first"），正文未读、日期在窗口外，**不作为事实使用** |
@@ -512,7 +512,7 @@ GitHub 上 `anthropics/claude-code` 存在两条与"审批档位/权限记忆"�
 
 ## 附：对"窄场景、简单交互、非 IM 本地助手"的机制取舍【推断，非事实】
 
-> 只列与本仓方向相关的判断，实现级取舍属模型可见面变更，须走 proposed 呈批（根 [AGENTS.md](../../../AGENTS.md) 硬规则 5）。
+> 只列与本仓方向相关的判断，实现级取舍属模型可见面变更，须走 proposed 呈批（根 [AGENTS.md](../../../../AGENTS.md) 硬规则 5）。
 
 1. **该抄的**：①"**具名管理页**"（P1）——让"它替我盯着什么"成为可读清单，而不是摘要里的一句话；
    ②"**默认静默，只有完成/需要点头才出声**"（P3）；③"**先试跑再信任**"（Lindy dry run 的语义：
@@ -522,4 +522,4 @@ GitHub 上 `anthropics/claude-code` 存在两条与"审批档位/权限记忆"�
    ②"空闲时自己找事做"（只有云端大厂敢做，且限只读；本地+单主体的代价收益不成立）。
 3. **官方判据可直接引用**：Pulse 复盘的三条（personalised / action-oriented / **steerable by the user**）
    与 Claude 的"别把不可逆动作放进无人值守通道"，是本仓未来任何主动性设计现成的验收语言，
-   且都出自被调研方的官方文本，属于[差异化 §三](261012-personal-agent-differentiation.md) 借鉴清单的第 10、11 条候选。
+   且都出自被调研方的官方文本，属于[差异化 §三](../../../research/positioning/261012-personal-agent-differentiation.md) 借鉴清单的第 10、11 条候选。
