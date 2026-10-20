@@ -1,6 +1,6 @@
 # 维护面 C2：assistant 消息上的「记下来」
 
-日期：2026-10-19 · 状态：**implemented**（C 卡 v2 C2；v1 assistant 消息）
+日期：2026-10-19 · 状态：**implemented**
 
 ## 问题（可观察行为）
 
@@ -13,14 +13,6 @@
 3. **host**：`RoomsActions.remember(sessionId,messageId)` → `ctx.sessionQuery.readEvent` 取 durable 消息 → 提取 text parts → `saveMemory({ text: 逐字, kind:'fact', source: 'panel:message:<sessionId>/<messageId>' })`。白名单只为这一条新建开口；不写 `why`。
 4. **预算负例**：`saveMemory` 满预算时抛错 → route `action-failed` → 面板显示"没记下：…"。
 5. **测试**：host 的 `memory.remember` 200/400/预算拒绝；client 的按钮/只发 ids/缺 id 不渲染；`client-entry` 的 slot 注册。
-
-## 验收与证据
-
-- `tests/host/rooms-actions.spec.ts` 加 `memory.remember`（200 + ids、缺 message 400、预算拒绝 400）。
-- `tests/client/client-message-action.spec.ts` 2 条（渲染/只发 ids；缺 id 不渲染）。
-- `client-entry` 的 `conversation.chat.assistant-actions` slot 注册 + id；真机 `webui-shots`（修复前 entry 不激活，修复后 page 完整 + consoleErrors []）；`web-expected` 两场景 PASS。
-- `vitest` **812 tests**；`verify` **42**；`tsc`/`tsdown` 绿。
-- 人判：在一条 assistant 消息上点「记下来」，刷新后记忆里能看到逐字文本与来源。
 
 ## 输掉的方案
 

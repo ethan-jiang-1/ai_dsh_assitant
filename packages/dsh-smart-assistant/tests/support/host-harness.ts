@@ -25,7 +25,7 @@ import { AssistantOperatingLedger } from '../../src/host/operating-ledger/index.
 export function dirPool(prefix: string): () => string {
   const dirs: string[] = []
   afterEach(() => {
-    for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true })
+    for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 })
   })
   return () => {
     const dir = mkdtempSync(join(tmpdir(), prefix))
@@ -63,7 +63,7 @@ export function ledgerPool(prefix: string): (dataDir?: string) => {
   const services: AssistantOperatingLedger[] = []
   afterEach(async () => {
     for (const service of services.splice(0)) await service.stop()
-    for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true })
+    for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 })
   })
   return (dataDir?: string) => {
     const home = dataDir ?? mkdtempSync(join(tmpdir(), prefix))

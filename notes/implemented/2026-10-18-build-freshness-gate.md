@@ -13,16 +13,6 @@
 
 本人得到（已交付）：一个**内容式**的 `lib/` 新鲜度判据（同一个核被 `pnpm verify` 与启动链消费），以及一条把经验整条收进去的 `pnpm start`——prepare → setup → 自证（陈旧即 build）→ 起 dev Web → preflight 绿了才交 URL，红了不交并收掉服务。
 
-## 交付
-
-| 面 | 唯一家 | 证到什么 |
-|---|---|---|
-| 判据核 | `scripts/checks/gates/build-freshness.mjs`（`packageBuildFreshnessProblems`） | host 面问 `tsc -b --dry`：`would build project` = 真陈旧，`would update timestamps` = 只动 mtime、**不是**漂移；客户端面把 `src/client` 重打进 scratch 目录、与 `lib/client/index.js` **逐字节比**。跑不动时返回 UNKNOWN，不冒充绿（`scripts/AGENTS.md` 纪律 3） |
-| 门禁接线 | `scripts/checks/verify.mjs` 的 `build: the artifact the presets load matches src/ (content, not mtime)` | 真实包上**造红再证绿**：给 `src/index.ts` 追加一行注释 → 门禁红并给出 `pnpm build` 处方 → `git checkout` 还原 + `pnpm build` → 绿（verify 42 条全过） |
-| 负例夹具 | `tests/tooling/build-freshness.spec.mjs`（7 案，3.7s） | 陈旧源码红、`touch` 只动 mtime **必须绿**（这条正是替换掉的 mtime 仪器会失败的地方）、重建后绿、ESM 覆盖 classic bundle 红、未建过的包绿、跑不动 builders 报 UNKNOWN。夹具本身咬出过核里一个真缺陷：陈旧分支措辞是 `would build project`（小写 p），按 `Project '…'` 匹配会落进 UNKNOWN——即"真陈旧"从来没被判红过 |
-| 启动链 | `dev/env/start.sh` + `pnpm start`，自证动作 `dev/env/ensure-build.mjs` | 一条命令真跑：prepare/setup 幂等 → `▸ artifacts: lib/ matches src/` → 起服务 → preflight 绿 → 打出 URL。另验两条：陈旧态下 `ensure-build` 自己 build 后转绿；`job_kill` 启动脚本后端口释放、`ps` 无残留 dsh 进程（`set -m` + 按进程组收，正是 §五"只杀启动器留孤儿"那条的反例） |
-| 登记与退位 | `docs/dev.md` §二该行的 freshness 列、§五两条"记住 build"的处方、首节默认启动动作、`dev/AGENTS.md` 抽屉与"交给人之前"、`dev/env/setup.sh` 收尾提示、根 `AGENTS.md` 命令表 | prose 只留机理，不再要求人记；`pnpm start` 进命令表与 `package.json`（别名覆盖率门禁同过） |
-
 ## 输掉的方案
 
 - **mtime 比对**（本仓既有 `vendorClientFreshnessProblems` 的形态，本人即兴探针也抄了它）：对 vendor 面成立——那里的 client face 由 `prepare.sh` 整批重建、中间没人动源码。对本包不成立：`tsbuildinfo` 是内容哈希，且 `lib/client/*.js` 里躺着一批永不再生成、也确实无需再生成的死文件。实测会报 9 个假阳。

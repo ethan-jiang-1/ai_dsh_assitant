@@ -1,6 +1,6 @@
 # 维护面 A1a：面板读 working folder 真值
 
-日期：2026-10-19 · 状态：**implemented**（A 卡 v2 A1a；2026-10-19「落地计划」授权；切片证据见下）
+日期：2026-10-19 · 状态：**implemented**
 
 ## 问题（可观察行为）
 
@@ -23,18 +23,3 @@
 - **新增 `SessionEvent` 做变更通知**：与 `docs/identity.md` 的"不新增 SessionEventMap"冲突；A3 用 `revision` + 现有会话 settle 重读即可。
 - **在 A1a 就删 `.desk/state.json`/`desk-refresh`**：Q3 未确认；A1a 只换源，退役留给 A1b。
 - **在 `bindDeskEnv` 里直接读 `ctx.web`**：Cordis 对未 inject 的服务抛错，client entry 会 failed；改为 try/catch 的可选 test hook，生产读 `document`/`location`。
-
-## 真机验收（2026-10-20）
-
-- 知识室面板在 dev 实例上完整渲染：`自上次以来还没有变化`、`全部标为已读`、`待你审批（9）`、每条草稿的 `读全文 / 批准 / 有问题`。
-- 证据：`.tmp/shots/abc-approve4-1600x1000.png/.dom.txt`；页面 `consoleErrors: []`。
-
-## 验收与证据
-
-- **红→绿**：`tests/host/rooms-route.spec.ts` 4 条（四房间/时间戳/revision、正文+错误态、拒绝任意路径/session、超限/读失败/取消）；`tests/client/client-room-data-io.spec.ts` 6 条（route 读、R6 错误重试、R11 claim/race/per-slice/row-state carry）；`tests/client/client-room-tabs.spec.ts` 3 条（会话绑定/错误重试/空态）。
-- **绿**：`../../node_modules/.bin/vitest run` → 88 files / 764 tests passed；`node scripts/checks/verify.mjs` → 42 checks passed；`tsc -b` + `tsdown` 绿；`tests/composition/export-shape.spec.mjs` 覆盖 `assistant-rooms` 行。
-- **真机**：`webui-expected` 两场景 PASS（`first-open-draft-banner` 的 `--wait-text '在等你审批'` 证明 route 的 3 条 draft 进了横幅；`blank-first-open` PASS）；`webui-preflight` 绿（`assistant-rooms` 在 boot 图、client bundle 注册、desk readiness）。
-- **人判（A 卡关闭条件，不在本 note）**：本人在真机上打开一条知识页的"读全文"，确认是全文而非 200 字片段。
-- **提交**：`91f979f`（host）、`f1cb051`（client）、`8d46246`（scene）、`c9cf41a`（web hook/theme）。
-
-**还会约束以后**：A2 的写路径复用同一条 `assistant-rooms` 数据契约；A1b 退役拷贝与 `desk-refresh` 时只需删旧路径与刷新动词；C1/B 复用 `ContentDrawer` 与 `loadKnowledgeBody` 的单读形状。

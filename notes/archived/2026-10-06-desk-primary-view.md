@@ -1,6 +1,7 @@
 # 桌面主对象化（新 UX 第一刀）：桌面升为 Conversation View 主视图
 
-日期：2026-10-06 · 状态：**implemented**（片1 视图 `6680e01` → 真机走查四根因 → 落地战役四修 `1e7a0ad`/`34ec4fd`/`4988e79` + 账面 `7710ed1`——全链自测通过：真模型四轮 naive 走查（开场框架句/英文叙述 0/简报落桌 1 决策 4 选项 4 缺口 1 动作/桌面视图节律句渲染），eval 复跑 PASS，web-expected 两场景重录复验 PASS，preflight 绿；真人读数按 2026-10-06 用户铁律无限期后置，落地版常驻 /tmp/landed-home 服务）
+日期：2026-10-06 · 状态：**implemented**
+已归档：2026-10-20（会话内桌面视图已被唯一桌面反转；当前合同 = docs/architecture.md，本篇仅历史）
 - **既有两场景复验 PASS（2026-10-06，新构建）**：blank-first-open 与 first-open-draft-banner 在隔离 home 全流程重跑均 PASS，
   期望文件**零差异**——桌面视图与三步卡重写不在两场景捕获面内，不回归成立（中间踩过的坑如实记：seed patch 必须 boot 前落、
   隔离 home 需带凭据否则 API Key 弹窗入镜——seed 无 creds 子命令是 P2 已记缺口）。
@@ -8,8 +9,8 @@
   本片渲染证据 = shots --eval 交互态 DOM（点击链：开会话→点桌面→内容区渲染，/tmp/dsh-webui-shots/desk-view-final-*.dom.txt）。
 - D7 已记入上游台账（默认视图不可插件化），递交与否用户拍板。（用户 2026-10-06 点头推进并要求显性化追踪；方向 owner=[定位卡](../../_backlog/_archive/settled_issues/261005-open-value-deficit.md)，毕业门 owner=[自洽卡](../../_backlog/_archive/settled_issues/261005-turnaround-coherence.md) 形态迁移行，判据承接自[首开卡边界收口](../../_backlog/_archive/settled_issues/261001-first-open-ux.md)）
 
-- **当前取代检查**：本篇仍拥有已交付的会话内 view、偏好记忆、locale/审批与既有回归事实。[全局总助桌面提案](2026-10-06-desk-operating-entry.md)部分反转本篇关于全局冷启动默认入口与 D7 依赖的取舍：默认入口子切片已通过真实构建物 Cordis/Loader/slots/layout 组合与两场景浏览器 DOM 复验，全局 main 默认入口不再依赖 D7。这里只取代入口选择；统一经营投影与事项处理读回尚未交付，不能把它们或本篇历史全链结论视为新提案通过。其他本篇决定继续有效。
-- **2026-10-11 部分反转**：[唯一桌面](2026-10-11-one-operating-desk.md) 下架本篇落地的会话内「桌面」视图、`DeskSummaryDock` 摘要条与视图偏好预写——真人走查证实两张桌面分不清、真模型把业务内容路由进 `.desk/state.json`；账本投影成为唯一「桌面」。本篇的缝探索事实与历史保留，被反转面的删除清单在 [清理卡](../../_backlog/_archive/settled_issues/261011-session-desk-cleanup.md)。
+- **当前取代检查**：本篇仍拥有已交付的会话内 view、偏好记忆、locale/审批与既有回归事实。[全局总助桌面提案](../implemented/2026-10-06-desk-operating-entry.md)部分反转本篇关于全局冷启动默认入口与 D7 依赖的取舍：默认入口子切片已通过真实构建物 Cordis/Loader/slots/layout 组合与两场景浏览器 DOM 复验，全局 main 默认入口不再依赖 D7。这里只取代入口选择；统一经营投影与事项处理读回尚未交付，不能把它们或本篇历史全链结论视为新提案通过。其他本篇决定继续有效。
+- **2026-10-11 部分反转**：[唯一桌面](../implemented/2026-10-11-one-operating-desk.md) 下架本篇落地的会话内「桌面」视图、`DeskSummaryDock` 摘要条与视图偏好预写——真人走查证实两张桌面分不清、真模型把业务内容路由进 `.desk/state.json`；账本投影成为唯一「桌面」。本篇的缝探索事实与历史保留，被反转面的删除清单在 [清理卡](../../_backlog/_archive/settled_issues/261011-session-desk-cleanup.md)。
 
 ## 问题（可观察行为）
 
@@ -32,14 +33,6 @@
 
 **空态三步卡重写**（首开卡交接项）：新形态语境（桌面=视图、会话=动作）下重写三步文案，与 A' 的「它先问」一致（第一步不再是「你在对话里说句话」，而是它的开场问题）。
 
-## 验收
-
-- client spec：视图注册（id/label/组件经 classic-script 装置物化）、正文组件树、既有 desk 断言不回归；真实资产见 [client-entry.spec.ts](../../packages/dsh-smart-assistant/tests/client/client-entry.spec.ts#L139-L160)、[client-room-tabs.spec.ts](../../packages/dsh-smart-assistant/tests/client/client-room-tabs.spec.ts#L59-L73) 与 [client-room-data-core.spec.ts](../../packages/dsh-smart-assistant/tests/client/client-room-data-core.spec.ts#L44-L77)；
-- build + `pnpm preflight`（组合解析/boot 图）+ web-expected：仓内已有 `blank-first-open` 与 `first-open-draft-banner` 两场景，但**非空白会话点开桌面视图的专用场景期望尚未建立**，因此这部分不能记为已验收；
-- 真机演示：干净 home 起服务，判据 = **「本人判定打开不困惑」**（首开卡转移判据，挂在新形态：空白相位引导 + 首会话 intake + 桌面视图的合成体验）；当时的桌面视图交互 DOM 证据是 `/tmp` 一次性产物，不是仓内可重放资产，真人判断也未完成；
-- 自洽卡四件门逐件闭合记录：入口证据=本卡事实 1-4；旧会话回路=视图是 UI 层叠加、会话数据与既有 right-tab 面板不动（回归由既有 client spec 守）；示例/真实边界=沿用 desk 数据标注纪律；审批/撤销=沿用面板既有动作路径（remote.session.prompt 车道，不新增直调）。
-- DeskData 契约不动；四工具/persona/组合行零变化（非模型可见面）。
-
 ## 能力环闭环（B1-B3，2026-10-06 落地战役续篇——用户铁律「goal 结束前零交互，错了回头改」）
 
 - **B1 晨报 v1**（`37d3073`）：`morning-brief` 策展技能 + manual v13 指针——承诺即排程（desk action 带 due → 同回合 schedule_create[09:00 默认/IANA]），到期投递 = 简报时刻（到期/要拍板/阻塞缺口三块一段话），延期→update 同步、静默→delete 记忆防复建、预算=每 due 一次投递；vendor schedule 家族原生承载（零自建机制）。
@@ -55,7 +48,7 @@
 - **A2' 常驻桌面摘要条**（`69b7bf5`）：`conversation.input.dock`（scope=session）在每条非空白会话 composer 上方注册 DeskSummaryDock——三 chip（要拍/在跟/缺）+「桌面→」一键切桌面 tab；空桌面 return null 不占位。
 - **A3 自测走查全通**（真模型 + 无头浏览器逐帧 DOM 证据）：帧 1 空白相位富落地卡 7/7 关键词命中 ✓；帧 2 种桌面文件后非空白会话摘要条 4/4 命中（`要拍 1·在跟 1·缺 2·桌面→`）✓；帧 3 桌面视图 tab 点击后主区 6/6 命中（节律句/首个决策/选项/due）✓；preflight 绿 ✓。
 - **Phase B**（上游 D7——默认视图可配置 / 空白相位主区可插件贡献）：已入上游台账，vendor 改后触发。
-- **Phase C 的入口依赖已被部分取代**：独立全局 main 可默认桌面，不以 D7 为触发。事项绑定会话与持久读回属于[全局总助桌面提案](2026-10-06-desk-operating-entry.md)，尚未由默认入口证据覆盖。
+- **Phase C 的入口依赖已被部分取代**：独立全局 main 可默认桌面，不以 D7 为触发。事项绑定会话与持久读回属于[全局总助桌面提案](../implemented/2026-10-06-desk-operating-entry.md)，尚未由默认入口证据覆盖。
 
 ## 发行预置拍板（2026-10-06 定案：用户读数确认形态操作面，维持现状即证据支持的形状）
 

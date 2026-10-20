@@ -190,3 +190,42 @@ export function implementedAlternativesProblems(implementedDir) {
   }
   return problems
 }
+
+// ── implemented notes stay decision-only ───────────────────────────────────────
+
+/**
+ * Delivery evidence belongs in the tests, the commit, or the closure card — not in a note that
+ * claims to be the *current* rationale. Counts age silently and PASS/commit lines turn the note
+ * into a campaign log (notes/README.md §〇). These patterns are the shapes that recurred in the
+ * 2026-10-20 audit; a decision note that needs a command can still name it without a result count.
+ */
+const DELIVERY_EVIDENCE = [
+  [/\bPASS\b/, 'PASS is delivery evidence, not a decision'],
+  [/全绿/, '"全绿" is delivery evidence; state the decision instead'],
+  [/\btests? \d{3,}\b/iu, 'a test count in prose expires; the suite owns the count'],
+  [/\bverify\b[^\n]{0,16}\b\d{1,3}\s*(?:checks|项)/iu, 'a gate count in prose expires; verify owns the count'],
+  [/`[0-9a-f]{7,40}`/, 'a commit hash is history; git owns it'],
+]
+
+/**
+ * Reject delivery evidence inside notes/implemented. Archived notes are frozen history and may
+ * keep their evidence; proposed notes are not yet current authority.
+ * @param {string} implementedDir - path of notes/implemented/.
+ * @returns {string[]} problem strings; empty = every current note is decision-only.
+ */
+export function implementedNoteEvidenceProblems(implementedDir) {
+  const problems = []
+  if (!existsSync(implementedDir)) return problems
+  for (const name of readdirSync(implementedDir)) {
+    if (!name.endsWith('.md') || name === 'README.md') continue
+    const text = read(join(implementedDir, name))
+    text.split('\n').forEach((line, index) => {
+      for (const [pattern, why] of DELIVERY_EVIDENCE) {
+        if (pattern.test(line)) {
+          problems.push(`notes/implemented/${name}:${index + 1} carries delivery evidence (${why}): ${line.trim().slice(0, 120)}`)
+        }
+      }
+    })
+  }
+  return problems
+}

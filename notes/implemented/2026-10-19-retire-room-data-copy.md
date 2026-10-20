@@ -1,6 +1,6 @@
 # 维护面 A1b：退役 `.desk/state.json` 拷贝与 `desk-refresh` 技能
 
-日期：2026-10-19 · 状态：**implemented**（A 卡 v2 A1b；Q3 已按 2026-10-19「落地计划」默认采用——退役；切片证据见下；人判待本人）
+日期：2026-10-19 · 状态：**implemented**
 
 ## 问题（可观察行为）
 
@@ -28,15 +28,3 @@ A1a/A2/A3 之后面板读真值、点击当场生效、看得见收据，但模�
 - **只改代码、不改既有 home 的手册**：探针证明模型面实际仍有旧指令；只种新 home 等于对现有用户无效。
 - **迁移时整份覆盖 `AGENTS.md`**：手改会被吞；只移除精确旧段，手改保留。
 - **只改代码不改测试/场景**：`pnpm test`/`web-expected` 会红；同 diff 收口。
-
-## 验收与证据
-
-- **真机起服务**：`pnpm start` → preflight 绿，`rooms route reachable: schemaVersion 1, generatedAt …`；dev 实例 `http://127.0.0.1:52778/?token=…`（交接 URL，见下"人判"）。
-- **web 面**：`webui-expected` 两场景 **PASS**——`first-open-draft-banner`（`seed.mjs rooms` 后 3 draft/2 stable，横幅与"点这里去审批"在位）、`blank-first-open`（全新隔离 home 的诚实空投影）。
-- **模型面 before/after**：keyless preset 一 shot（`preset-runner-replay`）读 system prompt。迁移前 `.tmp/a1b-probe.jsonl`：`.desk/state.json`/`desk-refresh`/`Room data` 均 **True**；迁移后 `.tmp/a1b-probe-after.jsonl`：均 **False**，`home-manual v16` 在位。这就是"既有 home 的模型面也真的减了"的证据。
-- **机械门**：`vitest run` → 92 files / **785 tests passed**；`node scripts/checks/verify.mjs` → **42 checks passed**；`tsc -b` + `tsdown` 绿；`node dev/reports/desk-loop-report.mjs --self-check` → ok（指标退役后仍自证）。
-- **人判（A 卡关闭条件，不在本 note）**：本人打开交接 URL，确认面板仍能读正文/点完生效/"自上次以来"仍在；模型不再提 `.desk`/`desk-refresh`。
-- **`pnpm eval`**：唯一测该技能的 `desk-refresh-loop` 已删除；没有存活任务依赖被退役的拷贝，行为面由上面的 before/after 提示词探针覆盖。全量 eval 水位留到本轮 campaign 收口一起看。
-- **提交**：`cfd5e63`（模型面/客户端/preflight/场景/评测任务/文档）+ 本 note 所在的收口提交（含报告指标、旧 home 手册迁移、`docs/home.md`）。
-
-**还会约束以后**：家手册再改生成内容时**必须** bump `HOME_MANUAL_VERSION` 并考虑 `migrateHomeManual`（否则既有 home 停在旧版）；B/C 的新写入走 `assistant-rooms`（A2/A3），不再有第二条房间数据面；`deliverables/`、`.desk/` 等根目录里的"session desk"是另一件事（My Desk 的运行现场），与本 note 退役的 working-folder 拷贝同名不同物，文档里不要混写。

@@ -10,14 +10,6 @@
 
 **缺口是被什么咬出来的**：晨报的 web 回归资产（[`dev/probes/web/desk-daily-brief-live.mjs`](../../dev/probes/web/desk-daily-brief-live.mjs)）第一次真跑就报出来——那次 desk 读的载荷（实测 951 字）只有事项与未归属片段，`p-1`/`pending`/`proposal` 全无；真模型于是没列它，同时**正确**列出了工具真有的「逾期无新进展」与「待认领片段」——不是模型偷懒，是摘要没给。
 
-## 交付
-
-`desk` 动作填**既有的** `proposals` 字段 = 全体事项里**仅 pending** 的提案，每条带 `matter_id`（多事项列表里必须可归属）；`read` 的完整提案列表不变——**板子列的是"等你拍板的"，不是历史**。`read` 与 `desk` 共用 `proposalSummary()` 构造器，两种拼法不会漂移。渲染行的 pending 状态改为 `pending — NOT in effect until the principal confirms`（带归属时 `- proposal <id> for <matter_id> …`）。输出 JSON schema 的提案项加可选 `matter_id`（该 schema `additionalProperties: false`，不同步就会在注册期红）。工具描述与 `docs/operating.md` 的 `desk` 行同 diff。
-
-**不新增字段**（原计划的 `DeskItem.pending_proposals` 取消）：实现面早就有提案行，缺的只是 `desk` 不填它——复用让改动更小，也不会造出两种拼法。
-
-**真跑证据**：`tests/agent/tool-operating.spec.ts` 8/8（结构化面 + 渲染措辞两侧：**含**未生效整行、**不含**裸 `[pending]`、confirm 之后板子归空）· `pnpm typecheck` 0 · `pnpm build` ✓ · `pnpm test` 644 · `pnpm verify` 41 · `pnpm release-smoke` passed · 探针真跑 `passed: true`（相位 2 判据已加回，四条行全中：今天该动的 / **等你拍板（1 件，尚未生效）** / 未认领 / 逾期且无新消息）。
-
 ## 还会约束以后的后果
 
 - **pending 在板子上、已解决只在 `read`**：板子的语义是"要你拍板的"，不是历史；以后加投影行按这条分工。

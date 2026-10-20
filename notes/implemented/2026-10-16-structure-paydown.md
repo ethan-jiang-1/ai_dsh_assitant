@@ -8,23 +8,6 @@
 
 本人得到（已交付）：改桌面交互、账本归约或工具输出时定位进单一职责文件；dev 探针改动不再翻 561 行三合一文件；会话日志判据与接续判据各有唯一家。全程行为零变化。
 
-## 交付（片 1–7）
-
-| 片 | 现在的结构（唯一家） | 零变化的证明形态 |
-|---|---|---|
-| 1 | `packages/dsh-smart-assistant/src/agent/tool-operating/schema.ts` 拥有输出契约（`output.schema` 160 行）；工具定义、DESCRIPTION、parameters 与伴生类型留 `index.ts`（586 → 428） | 搬家块逐字 diff（158 行 0 差异，去缩进后）+ `test:composition` 兜注册期 `assertSupportedJsonSchema` |
-| 2 | `src/domain/operating/types.ts` 拥有词汇（13 个类型）；`ledger.ts` 原位 re-export，自身只剩归约器（708 → 519 + 196）：`applyOperation` 24 行判别标签分发 + 8 个窄 handler，闭集以 `assertNever` 收口 | 词汇 203 行逐字 diff；结构等价核对（18 原写点 ↔ 10 `recordOperation` + 8 `rejectWith`）；三条特征测试（两个零覆盖的拒绝原因 + `reject` 分支负例）先造红 |
-| 3 | `src/client/chrome/format.ts` 拥有时间渲染族（5 个输出各异的格式 + 唯一 `pad2`）；`src/client/desk/desk-process-messages.ts` 拥有四臂种子文案；六个共享门收成 `sharedGateReasons`（515 → 425） | 文案 84 行逐字；格式族去缩进后 0 差异；两场景 web-face 无漂移 |
-| 4 | `src/client/rooms/room-data-actions.ts` 拥有 8 个动作文案；`src/client/rooms/room-data-io.ts` 拥有读取路径与 prompt 形状（`panelPromptRequest`）（462 → 394 + 132） | 包装 120 行只差 1 行（私有 `deskRemote` → 导出的 `getDeskRemote()`，编译器报出）；两场景无漂移 |
-| 5a | `src/client/chrome/approve-mount.ts` 拥有 approve 直调挂载（零 ctx） | 两段各自 0 差异；三处 `console` 级别逐字（空控制台契约） |
-| 5b | `src/client/desk/desk-arms.ts` 拥有四臂（`createDeskArms(deps)` 工厂，10 项 deps，逐项保留可选性）；入口 594 → 339 只剩接线 | 前置特征 spec **跨搬迁零改动通过**；旧块 27 个字面量无一丢失 |
-| 6a | `dev/probes/web/dialogue.mjs` 拥有按文案找/点按钮（`buttonByText`/`clickByText`，默认精确匹配）；`dev/env/home.mjs` 拥有 home 解析（`devHome`） | 生成的表达式在假 DOM 上 9 案全过；6 个消费方真跑 |
-| 6b | `dev/probes/web/desk-process-e2e.mjs` 是 dispatcher（222 行）+ 三个场景模块（191/100/69） | 三段正文 321 行逐字；三场景各真跑 exit 0，判决 JSON 形状不变 |
-| 7 | `dev/lib/session-logs.mjs` 与 `dev/lib/continuity-core.mjs` 是跨目录共享库（报告/评测/探针同用一份判据） | session-logs 101 行逐字；核单跑 `--self-check` 红绿对照绿 |
-| 8 | `scripts/checks/verify.mjs` 只拥有语料/退出码/逐条报告；8 个内联检查体（159 行逻辑）进 `gates/` 的族核（resolution 扩 4 件 + 新增 self-containment / home-doc-contract / commit-safety，queue 并入 `backlog.mjs`），helper `projectReferenceMatches` 进 `gates/shared.mjs` | 逐族同名负例夹具（13 案）先造红；**夹具咬出一条死门**：`GRADUATED_STATUS` 是行锚定模式，旧内联体却喂给它捕到的单词，于是"毕业提案仍在架上"从来没报过——已修（改测状态行） |
-
-收尾：主包片累积改过 `lib/` 产物后 `pnpm release-smoke` 通过（pack → 干净 home → `dsh plugin add` → 组合读回）。P2 只动 `dev/`，不进发布物。
-
 ## 还会约束以后的后果
 
 - **`src/client` 是经典脚本**：tsdown 把整棵树内联进一个 `lib/client/index.js`，硬约束是"无裸运行时 import"（`verify` 的 `clientScriptSafetyProblems` 守）。面向 vendor 的依赖一律走参数——`desk-arms.ts` 的 deps 袋就是这个约束的产物，不是风格选择。

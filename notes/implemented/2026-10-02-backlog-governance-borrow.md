@@ -28,7 +28,7 @@ ai_deerflow_dr_v3 补借）。**同源整章对齐**，非另起炉灶。
    该做不现在仍以决定 note 为家——不借表两行翻案（用户指示即翻案触发）。
 4. **reference/ 调研材料区**（活跃卡专用 + 随卡 `git mv` 至 `_archive/research/`；无状态行）。
    收卷后还会被重提的事实写进决定 note，不另留调研目录。
-5. **`backlog-liveness` 门禁**（verify 31→32）：制度目录在场 / 活跃卡首 12 行有 `状态：` 户口 /
+5. **`backlog-liveness` 门禁**：制度目录在场 / 活跃卡首 12 行有 `状态：` 户口 /
    索引互查（plans·bugs 活跃名册、_closed_plans 索引、_done 归档行）——核在
    verify-checks.mjs，红绿夹具三组在 verify-gates.spec（死稿卡 / 未点名 / 缺池 / 归档未点名）。
    2026-10-08 续修其盲区：**liveness 只能证明卡"活着"，看不见"毕业了没走"**——见下节。
@@ -48,10 +48,10 @@ ai_deerflow_dr_v3 补借）。**同源整章对齐**，非另起炉灶。
 - 调研卡形态规范与收卷台账机制；
 - 命名六位适配的用户拍板。
 
-## 续修：`backlog: graduated plans leave the active shelf`（2026-10-08，verify 35→36）
+## 续修：`backlog: graduated plans leave the active shelf`
 
 **触发出处**：用户点名"拿 playbook 看看 `_backlog/issues` 里 plan 的质量，逐一敲打一遍"。读四张卡时
-发现的是**门禁与语料的错位**，不是卡写得差：`pnpm verify` 35 项全绿的同时，
+发现的是**门禁与语料的错位**，不是卡写得差：`pnpm verify` 绿的同时，
 [261007-bigfile-split](../../_backlog/_archive/settled_issues/261007-bigfile-split.md)（当时在 plans/）
 状态行写着「S1+S2 已交付｜毕业门 = 已过」，`plans/README.md` 活跃名册仍列其为活跃卡。
 **门禁查的是"卡在不在目录里"，查不出"这张卡早该走了"。**
@@ -77,17 +77,6 @@ and is still named by plans/README.md's active list`（卡当时在 `_backlog/is
 （两张都带交付语言，但语义上是等待/未完成）——精确度与召回同轮实证。五组夹具在
 verify-gates.spec（放行四种未完成态 / 抓 毕业门=已过 / 抓 状态=完成词 / 不误杀部分交付 /
 报索引残尾且只读 hukou 段）。
-
-## 验证（真跑过的命令）
-
-1. `pnpm verify`——32 项全绿（新门禁 `backlog liveness` 在列；institution 目录、状态行、
-   索引互查对现仓 4 活卡 + 1 bug + ~30 归档卡全过）。
-2. `pnpm test`（verify-gates 38 夹具含三组新红绿）——绿。
-3. 索引实态核对：plans 活跃清单 4 行、bugs 活跃表 BUG-001、_closed_plans 索引 ~30 行——
-   门禁保证账本不落后于树。
-4. （2026-10-08 续修）`pnpm exec vitest run …/verify-gates.spec.mjs -t backlogGraduationProblems`
-   ——5 passed；`pnpm verify` 续修时 **36 项中 1 红且红在真卡**（prove-it-red）；
-   把该卡按规矩 `git mv` 进 `_archive/settled_issues/` 并补两处索引后 **36 项全绿**。
 
 ## 部分取代
 

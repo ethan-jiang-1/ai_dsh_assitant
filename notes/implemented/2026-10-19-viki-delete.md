@@ -1,6 +1,6 @@
 # 维护面 B2/B3：Viki 逐条删/恢复与人工并排
 
-日期：2026-10-19 · 状态：**implemented**（B 卡 v2 B2+B3；B4 见 [viki-cleanup](2026-10-19-viki-cleanup.md)）
+日期：2026-10-19 · 状态：**implemented**
 
 ## 问题（可观察行为）
 
@@ -21,12 +21,3 @@ B1 能列出、能读但删不了；Viki 的落体不是房间 `retired`，而�
 - **引用命中静默删**：必须先展示并二次确认。
 - **`snapshot/restore` 当"撤销本次删除"**：它是 forward-commit；回执必须写清。
 - **删除走模型/工具面**：`ov-shield` 挡写面；B2 用 host POST。
-
-## 验收与证据
-
-- **host**：`tests/host/viki-route.spec.ts` **12 条**（B1 6 + B2 6：references、直接删、引用 409、确认后 commit/remove/audit、commit 失败不删、目录/缺失/越界、restore、client 的 commit/remove/restore）。
-- **client**：`tests/client/client-viki-panel.spec.ts` **4 条**（B1 2 + B2/B3 2：references→blocked→confirm→receipt→restore；列表渲染「删」「并排比较」「选择」）。
-- **A3**：`tests/domain/receipt.spec.ts` 加 `room:'viki'`——只进 `counts.viki`，四房间计数不变。
-- **全量**：`vitest` **805 tests**；`verify` **42**；`tsc`/`tsdown`；**`web-expected` 两场景 PASS**（banner/blank，Viki tab 在 guide，首屏无漂移）。
-- **真机**：`pnpm start` 绿，Viki tab 有「删」「选择」「并排比较」（交接 URL 见 B 卡）。
-- **人判**：本人删一条、核对回执、恢复；两条并排选一次。B4 真数据本人执行。

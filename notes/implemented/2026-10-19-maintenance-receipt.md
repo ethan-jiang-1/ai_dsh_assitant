@@ -1,6 +1,6 @@
 # 维护面 A3：自上次以来变了什么
 
-日期：2026-10-19 · 状态：**implemented**（A 卡 v2 A3；2026-10-19「落地计划」授权；切片证据见下）
+日期：2026-10-19 · 状态：**implemented**
 
 ## 问题（可观察行为）
 
@@ -23,19 +23,3 @@ A1a 面板读真值、A2 直写当场生效后，用户仍看不见**静默更�
 - **为收据自动轮询**：A1a 的 session-settle 重读已够；收据是派生物。
 - **让模型生成"一句话"**：那会引入模型回合；纯核的分组计数已经是"人话"。
 - **把中文摘要放 `src/domain`**：语言门禁把 `src/domain` 当模型可见面；摘要文案移进 `src/client`（皮肤面），纯核只出结构。
-
-## 真机验收（2026-10-20）
-
-- `自上次以来还没有变化` 与 `全部标为已读` 在知识室真机可交互；点击后页面正常、零 console error。
-- 证据：`.tmp/shots/abc-receipt-1600x1000.*`。
-
-## 验收与证据
-
-- **纯核**：`tests/domain/receipt.spec.ts` 4 条（首次空、账本+房间分组、`lastUsedAt` 不计数、同 id 去重、缺 `room` fallback）。
-- **host**：`tests/host/rooms-route.spec.ts` 5 条（列表带 `ledger`、`generatedAt`/`revision` 随账本变）；`tests/host/approval-audit.spec.ts` 5 条（`readApprovals` 读最新行、跳过 corrupt 行、room/before-after）。
-- **client**：`tests/client/client-receipt.spec.ts` 4 条（baseline 句/明细、空 delta、首次收据、两面板嵌入）；`tests/client/client-room-actions.spec.ts` 4 条含直写后本地账行。
-- **全量**：`vitest run` → 92 files / 786 tests passed；`node scripts/checks/verify.mjs` → 42 checks passed；`tsc -b` + `tsdown` 绿。
-- **人判（A 卡关闭条件，不在本 note）**：本人打开面板看"自上次以来"是否像一句人话，点"全部标为已读"后归零。
-- **提交**：`627b1f2`（A3 纯核/route ledger/收据 UI/docs）。
-
-**还会约束以后**：A1b 退役 `.desk/state.json` 时收据不受影响（它只读 route + 账本）；B/C 的新写入带 `room` 即可进收据；新房间（Viki）若要进收据，只需在纯核加一段与 `room` 枚举，不改 baseline。

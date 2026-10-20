@@ -1,6 +1,6 @@
 # 维护面 C1：学到技能逐件可见与退役
 
-日期：2026-10-19 · 状态：**implemented**（C 卡 v2 C1；C2 另片）
+日期：2026-10-19 · 状态：**implemented**
 
 ## 问题（可观察行为）
 
@@ -14,14 +14,6 @@
 4. **退役**：复用 A2 的 `skill.retire`（`retireSkill` → `skills/archive/` + 审批账 `retire`/`panel-direct`）；面板「退役」二次确认；不新增状态、不新建表单。
 5. **面板**：四 tab 骨架新增「技能」tab；每行名字/描述/用过 N 次/最近/出处/正文抽屉/退役。**成本列 v1 省略**（只说明常驻=名字+描述）。
 6. **同 diff**：`client-entry` 四 tab、`web-expected`、`docs` 无新行（复用 `assistant-rooms`）。
-
-## 验收与证据
-
-- `tests/host/rooms-route.spec.ts` 加 skill 正文/usage 用例（200 正文、400 非法名、404 缺失）。
-- `tests/client/client-skills-panel.spec.ts` 2 条（列表/用量/出处/未知；正文经 route）。
-- `client-entry` 四 tab + guide 期望；`skill-file.spec` 的 scan 期望加 `source`。
-- `vitest` **808 tests**；`verify` **42**；`tsc`/`tsdown` 绿；`web-expected` 两场景 PASS（A1b 场景，首屏无漂移）。
-- 人判：在「技能」tab 看一件正文、退役一件再恢复。
 
 ## 输掉的方案
 

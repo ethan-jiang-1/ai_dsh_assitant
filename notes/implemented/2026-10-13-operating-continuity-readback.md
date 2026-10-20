@@ -1,6 +1,6 @@
 # 经营事项首回合接续包：权威读回与来源
 
-日期：2026-10-13 · 状态：**implemented**（对应 [经营事项连续性问题卡](../../_backlog/_archive/settled_issues/261012-operating-continuity-value.md)；2026-10-13 用户点名授权并已完成首个只读切片；不含提醒或持久 schema 扩张）
+日期：2026-10-13 · 状态：**implemented**
 
 ## 当前决定
 
@@ -9,23 +9,6 @@
 处理会话的 `processingContextMessage` 要求首回应先成功读回精确绑定事项 id；失败要明说无法核实，不得写入或假装完整。成功后按六类主动交接目的与委托、进展、已定决定及依据、四种时间、未知/待裁决、下一步；未知与建议分开。预测不改变承诺，待确认提案不是已定决定，随后等待本人具体指令并遵守既有权限三分。
 
 持久账本 schema、writer、业务权限、入口和桌面布局均未改变。未显式记录的决定理由仍不可恢复，读回必须如实表达缺失。首个技术切片不证明 Agent 每次都遵从该提示，也不证明自然事项中有净价值；这些属于不同证据层。
-
-## 验收记录
-
-代码回归按真 host ledger、adapter 和 client seed 三个公开接口验证。新增断言先红：事项字段断言缺 `summary`/`responsible`；client seed 的首回合约束断言缺交接措辞；Host 快照断言因 `readMatterSnapshot` 不存在而红。随后实现至绿。
-
-已运行且通过：
-- `pnpm --filter dsh-smart-assistant exec vitest run tests/host/operating-ledger.spec.ts tests/agent/tool-operating.spec.ts tests/client/client-desk-process.spec.ts`：3 files，64 tests。
-- `pnpm --filter dsh-smart-assistant exec vitest run tests/agent/tool-operating.spec.ts tests/client/client-desk-process.spec.ts`：2 files，47 tests。
-- `pnpm build`：Client classic bundle 构建成功，最终在 typecheck 后重建。
-- `pnpm test:composition`：6 tests，最终构建物通过。
-- `pnpm test`：62 files，580 tests。
-- `pnpm typecheck`：成功。
-- `pnpm verify`：41 checks passed。
-
-全量 `pnpm eval` 执行为 7/8 可执行任务通过、1 个 web-only 任务未评估，命令因 `first-open-intake` 失败而退出 1（未加载 `first-conversation` 且答案未命中判据）。`continuity-from-home`、`desk-single-matter`、`desk-followup-readback` 均通过，但这些任务依赖共享 dev home，不构成隔离事项的首回合接续验收；在最终 presenter 改动后单独重跑 `pnpm eval --only desk-single-matter` 也通过（1/1）。现有 eval 没有专门独立 fixture 的首回合接续任务。渲染输出保留 quote/source/event id/change/完整 outcome，schema 能由真 preset composition 装载。静态与现有行为证据不替代真实浏览器话术层级、目标角色体验或自然业务价值判断。
-
-**更正（2026-10-13，连续性第二切片发现）**：上文"3 files，64 tests"的通过声明不成立——`carries the event-level locator on materials` 测试**生来就红**且在本 note 落笔的提交上就是红的（干净 HEAD 复跑证伪）：read 的材料映射漏带 `eventId`（实现缺陷），且测试尾行 `"status":"proposed"` 是从邻测拷来的、在本测试的夹具下永远不可能绑上（测试缺陷）。两处已在第二切片同 diff 修掉（映射补 `eventId`；断言改为绑得住的 `"status":"committed"` 并注明来历），修复后全量 `pnpm test` 581 tests（62 files）通过。教训进本 note 而不改写上文：提交时的证据声明必须来自**当次**对最终代码的运行，先跑后改的顺序会把过期的绿记进档案。
 
 ## 输掉的方案
 

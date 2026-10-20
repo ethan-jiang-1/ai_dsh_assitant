@@ -1,6 +1,6 @@
 # 桌面投递回执的终态（与 Q5 失配行的卫生）
 
-日期：2026-10-19 · 状态：**implemented**（已交付 2026-10-19：投递回执新增回合结束终态、动作车道回显人类标签、Q5 失配行按 title 一条可忽略；证据在文末）
+日期：2026-10-19 · 状态：**implemented**
 
 ## 问题（可观察行为）
 
@@ -44,11 +44,3 @@
 - `seenRunning` 与回执一起落 `sessionStorage`（per tab）：刷新后仍知道这个会话已经跑过，终态保持「它说完了」而不是退回收口前；新标签页两者都没有，不会凭空出现一行。真机：先试跑跑完后刷新，行仍 `它说完了`、输入可用。
 - 「到期没结果」行的判据已在同日收窄为"committed 的 complete 回执才清"（BUG-017，见 [proactive note](./2026-10-18-proactive-face.md)）；claim/update 不再清行。
 - 动作车道「一次点击两条排程」「指令被 note 进待认领」已在同日收口（BUG-020，brief 的动作行例外 + 恰好一条），见 [desk capture note](./2026-10-18-desk-side-capture.md)。
-
-## 验证（真跑过）
-
-- `pnpm test`：737/737。新增/变更判据——`capturePhase` 5 案（`tests/client/client-desk-process.spec.ts`）、Q5 去重/记住/忘记 3 案（`tests/client/proactive-face.spec.ts`）、组件终态/关闭/动作车道 2 案（`tests/client/projection-panel.spec.ts`）、车道 label 1 案（`tests/client/client-desk-arms.spec.ts`）。
-- `pnpm build`（preset 读 lib/）与 `pnpm verify`（42 checks）全绿。
-- 真车道（隔离 home + 真模型）：`dev/probes/web/proactive-watch-live.mjs` 相位 1/1b PASS——`trial-terminal: { disabled: false, close: true, claimsPending: false, sessionPointer: true }`；绿帧 `.tmp/shots/trial-inflight-after-turn.png`，修前红帧 `.tmp/shots/trial-before-fix.png`（同一位置：输入 disabled、"排着队，等它接手"）。
-- Q5 真机（隔离 home，无模型）：种两条同 title 的 accepted → 一行；点「忽略」后行消失、localStorage `accepted` 为 0；帧 `.tmp/shots/mismatch-row-{before,after}.png`。
-- 探针环境注：`proactive-watch-live` 相位 2 在本机卡在 sandbox approval（workspace-write 后端不可用），其 `watch-turn` 不计入本次证据。

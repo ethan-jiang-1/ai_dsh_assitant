@@ -23,8 +23,8 @@
    Rooms 边界句说“不接收 session”实际接收 `sessionId`；`pnpm start` 说串起 ⓪① 实际没有；
    `test:composition` 只跑 1/7 个 composition spec。
 4. **notes/implemented 变成战役日志**：29 篇中 18 篇仍是提案骨架，10+ 篇带 `PASS`/`全绿`/commit/
-   `tests 644` 这类交付证据；[2026-10-06-desk-primary-view.md:3](../implemented/2026-10-06-desk-primary-view.md#L3)
-   状态行是 200 字交付流水，[:11](../implemented/2026-10-06-desk-primary-view.md#L11) 仍说
+   `tests 644` 这类交付证据；[2026-10-06-desk-primary-view.md:3](../archived/2026-10-06-desk-primary-view.md#L3)
+   状态行是 200 字交付流水，[:11](../archived/2026-10-06-desk-primary-view.md#L11) 仍说
    “统一经营投影与事项处理读回尚未交付”——与代码相反。notes/README 明说切片记录/收口数字不是 note。
 5. **执行/验收地板不自足**：`pnpm test` 含读 `lib/` 的 composition spec，干净 clone 会红、stale lib 会假绿；
    `pnpm test:composition` 只跑 `preset-composition` 一个；`web-expected` 不在 `verify` 链。

@@ -1,6 +1,6 @@
 # 维护面 B4：Viki 越界清理（脚本/试跑 + 2026-10-20 真数据实跑）
 
-日期：2026-10-19 · 状态：**implemented（脚本/夹具/试跑；真数据已于 2026-10-20 经本人委托执行完毕）**（B 卡 v2 B4）
+日期：2026-10-19 · 状态：**implemented**
 
 ## 问题（可观察行为）
 
@@ -24,12 +24,6 @@ Viki 里可能留有**越界**记录（别的工作区/peer 的抽取物）。�
 - **删完叶子就算清完**（2026-10-20 实跑发现）：空目录壳里的隐藏 `.abstract.md`/`.overview.md` 仍带被删内容的摘要，`find`/`recall` 继续命中——壳也要递归删，判据是关键词 0 命中。
 - **mock 掉 commit 的 spec 就够**（同日发现）：路由 spec 把 `commit` 整个 mock 掉，`snapshot/commit` 必填 `message`、回包键 `commit_oid`、restore 用 `source_commit` 三处契约漂移全没防住——client 契约要有真形状断言（`viki-client.spec.ts`）。
 
-## 验收与证据
-
-- `tests/tooling/viki-cleanup.spec.mjs` **2 条**：保护文件永不进 remove；dry-run 不写，apply 先 commit 再只删越界，receipt 带 commit id。
-- **当前 server 试跑**（`--url http://127.0.0.1:1933 --space default --keep-peer github.com-ethan-jiang-1-ai_dsh_assitant --out .tmp/b4-receipt.json`）：**keep 5 / remove 0 / protected 2**（identity、soul）；`.tmp/b4-receipt.json` 是回执。**这份 server 上没有越界记录**；B 卡 §5.2 的 14 条在**另一份工作区**，不在本机这份 server 上。
-- **真数据实跑（2026-10-20，本人委托执行；回执 `.tmp/b4-user/receipt-final.json`）**：见下节。
-
 ## 真数据实跑（2026-10-20）
 
 **目标定位**：B 卡 §5.2 的"另一份工作区"= **用户级 OpenViking 存储 `~/.openviking/workspace`**（`ov.conf` 声明的 storage；dev 的 `openviking-up.sh` 刻意把 1933 指到仓内 `.tmp/openviking/workspace`，所以那份存储平时没有 server 服务）。处置方式 = 在 **19334** 起第二个 server（配置副本落 `.tmp/b4-user/`，storage 指向用户级存储），全程走 API，不直接碰文件。
@@ -38,11 +32,11 @@ Viki 里可能留有**越界**记录（别的工作区/peer 的抽取物）。�
 
 **执行**（口径仍按 scope，不按内容逐条挑）：
 1. dry-run：**keep 1 / remove 28 / protected 2**（identity、soul）。
-2. `--apply`：snapshot commit `99753d277cccc9b2450b617ed3dd3d2e1d5f9d6b` 先落地，再删 28 条叶子。
+2. `--apply`：先落 snapshot commit，再删 28 条叶子。
 3. **陈旧壳清理**（脚本之外的实测发现）：`ls` 不列隐藏文件——空目录壳里的 `.abstract.md`/`.overview.md` 仍带 persona 摘要，`find`/`recall`/`stats` 继续吐它们（stats 41→7 的回升就是索引残影）。递归删除无真实叶子的壳：`memories/{entities,events,preferences}` 与整个旧 peer `peers/assistant`（0.5.8 时代 peer，无现役工作区对应）。
 4. **终态核验**：memories 树只剩 `identity.md`+`soul.md`；peers 只剩现役 repo peer（其 `sales_drop_report.md` 按 scope 保留，find/recall 仅剩它与其 overview）；`search/find` 与 `search/recall` 对 persona 关键词 **0 命中**；stats=2。临时 server 已停。
 
-**契约修正（红→绿，`tests/host/viki-client.spec.ts` 2 条）**：12 条路由 spec 全绿没防住这两处，因为它们 mock 掉了 `commit`——契约漂移只有真机才暴露：
+**契约修正**：路由 spec 没防住这两处，因为它们 mock 掉了 `commit`——契约漂移只有真机才暴露：
 - `snapshot/commit` **必填 `message`**（缺它 400，快照根本不会存在）；回包的 id 键是 **`commit_oid`**，不是 `commit_id`。
 - `snapshot/restore` 的请求字段是 **`source_commit`**（RestoreRequest），不是 `commit_id`——真调同样会 400。
 

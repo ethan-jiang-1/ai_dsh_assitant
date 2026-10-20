@@ -115,7 +115,7 @@ intent: "把本仓今天已有的主动性机制、用户手上的开关、历�
 
 - 晨报：机器面已收口（真模型 web 探针 `passed: true`，含四个 `schedule_*` 前置断言），但**口味面（真实节奏与话术负担）本人未取**，该行保留为本人验收面、"不记为通过" = [desk-daily-brief note:20-25](../../../notes/implemented/2026-10-10-desk-daily-brief.md#L20-L25)。
 - 处理流体验裁决：2026-10-11 本人裁决"先挂着，等本人实际使用时再判"；2026-10-16 毕业但该行**保留为本人验收面、不记为通过** = [desk-operating-entry note:41](../../../notes/implemented/2026-10-06-desk-operating-entry.md#L41)。
-- 桌面主对象化的真人读数：按用户铁律**无限期后置** = [desk-primary-view note:3](../../../notes/implemented/2026-10-06-desk-primary-view.md#L3)。
+- 桌面主对象化的真人读数：按用户铁律**无限期后置** = [desk-primary-view note:3](../../../notes/archived/2026-10-06-desk-primary-view.md#L3)。
 - 接续：「首个技术切片**不证明** Agent 每次都遵从该提示，也**不证明**自然事项中有净价值」= [operating-continuity-readback note:11](../../../notes/implemented/2026-10-13-operating-continuity-readback.md#L11)；重看触发 = 本人真实使用中出现一件跨 ≥2 会话或日期的事项，或本人点名 = 同 note [:37-42](../../../notes/implemented/2026-10-13-operating-continuity-readback.md#L37-L42)；该 note 还留了一条自我更正（"3 files，64 tests"的绿不成立，测试生来就红）= [:28](../../../notes/implemented/2026-10-13-operating-continuity-readback.md#L28)。
 - 全量 `pnpm eval` 现状：7/8 可执行任务通过、1 个 web-only 任务未评估，命令因 `first-open-intake` 失败退出 1 = [operating-continuity-readback note:26](../../../notes/implemented/2026-10-13-operating-continuity-readback.md#L26)。
 - 桌面已知缺口（如实记）：滚动位置保留**未实现**；`turnSettled` 客户端不可得；**提醒通道恒 `synced`（V4/V5 未实现，投影 reminders 恒空）**；A2 推荐质量未定版 = [desk-operating-entry note:57](../../../notes/implemented/2026-10-06-desk-operating-entry.md#L57)；"自动周期催办"在该卡的排除项 = 同 note [:58](../../../notes/implemented/2026-10-06-desk-operating-entry.md#L58)。

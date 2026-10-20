@@ -12,6 +12,7 @@ import { describe, expect, it, afterEach } from 'vitest'
 import {
   agentsMdStabilityProblems,
   implementedAlternativesProblems,
+  implementedNoteEvidenceProblems,
   notesNamingProblems,
   notesStateProblems,
   notesTopLevelProblems,
@@ -173,5 +174,32 @@ describe('implementedAlternativesProblems', () => {
     expect(problems[0]).toContain('2026-09-26-bare.md')
     expect(problems[0]).toContain('输掉的方案')
     expect(problems[0]).toContain('re-litigation')
+  })
+})
+
+describe('implementedNoteEvidenceProblems', () => {
+  it('rejects PASS/全绿/test counts/gate counts/commit hashes in current notes', () => {
+    const notes = temp('notes-evidence-')
+    const implemented = join(notes, 'implemented')
+    mkdirSync(implemented, { recursive: true })
+    writeFileSync(join(implemented, '2026-10-20-log.md'), [
+      '日期：2026-10-20 · 状态：**implemented**',
+      'probe PASS after the fix; tests 812 green; verify 42 checks; commit `abc1234`.',
+      '全绿。',
+    ].join('\n'), 'utf8')
+    const problems = implementedNoteEvidenceProblems(implemented)
+    expect(problems.length).toBeGreaterThanOrEqual(4)
+  })
+
+  it('accepts a decision note that names a command without a result count', () => {
+    const notes = temp('notes-evidence-clean-')
+    const implemented = join(notes, 'implemented')
+    mkdirSync(implemented, { recursive: true })
+    writeFileSync(join(implemented, '2026-10-20-clean.md'), [
+      '日期：2026-10-20 · 状态：**implemented**',
+      '## 决定',
+      'The gate runs `pnpm verify` before handover; the count lives in the runner.',
+    ].join('\n'), 'utf8')
+    expect(implementedNoteEvidenceProblems(implemented)).toEqual([])
   })
 })
