@@ -131,7 +131,7 @@ opened: 2026-10-20
 - [ ] 搜索：输入关键词返回匹配行（summary/event_name/正文），带类型/peer/URI；空结果与“未连接”区分。
 - [ ] 健康/任务/用量：显示 server 状态（`/health`）、最近 commit（`/tasks`）、`stats/memories`、`/api/v1/skills`；pending queue 走 `~/.openviking/pending` 计数、token 走 `token-meter`；`problems` 直接显示。无数据源的项不假装有。
 - [ ] 转正：行内“转正” → 预填 `assistant_memory save` 草稿（`source: openviking:<uri>`）→ `ctx.approval` 一次性人审 → 写 `memory/`；审计有 `approval/asked` 与 `approval/decided`，memory 记录带 `source`；不直接写文件。
-- [ ] 现有删除/恢复/比较不回归；`client-viki-panel` 测试更新。
+- [ ] 现有删除/恢复/比较不回归；`viki-panel` 测试更新。
 - [ ] Viki 专用渲染/DOM 检查（shots 或新场景）覆盖搜索/健康/转正入口；既有 `blank-first-open` / `first-open-draft-banner` 两场景不漂移（**它们不覆盖 Viki，不能当 Viki 回归证据**）。
 - [ ] `pnpm verify` 通过。
 

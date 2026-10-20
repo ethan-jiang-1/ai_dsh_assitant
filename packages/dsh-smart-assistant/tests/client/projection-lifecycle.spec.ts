@@ -1,6 +1,6 @@
 /** Real Cordis fiber and pinned snapshot store: apply-owned reader cancels and detaches on unload. */
 import { Context } from '@deepseek-ai/cordis'
-import { createSnapshotStore } from '../../../../vendor/dsh/packages/client/store/lib/types/index.js'
+import { createSnapshotStore } from '@deepseek-ai/dsh-client-store'
 import { describe, expect, it, vi } from 'vitest'
 import { mountProjectionReader } from '../../src/client/projection/projection-lifecycle'
 import type { ProjectionDownload } from '../../src/client/projection/projection-reader'

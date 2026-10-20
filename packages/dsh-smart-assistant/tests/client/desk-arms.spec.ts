@@ -4,7 +4,8 @@
  * recording context drive the four arms' launches and re-entries, the notes they seed, and the
  * return dispatch that clears the path.
  *
- * The projections are pinned built store/declarations (build prerequisite), the network is the
+ * The store fixtures are the pinned vendor source resolved through the vitest alias
+ * (`@deepseek-ai/dsh-client-store`; no vendor build output), the network is the
  * external seam: nothing here needs a DOM beyond the `document` the entry's own browser guard
  * reads.
  *
@@ -23,7 +24,7 @@
  */
 
 import { afterEach, describe, expect, it } from 'vitest'
-import { createSnapshotStore } from '../../../../vendor/dsh/packages/client/store/lib/types/index.js'
+import { createSnapshotStore } from '@deepseek-ai/dsh-client-store'
 import { inertReactShim, loadClientRegistration, materializeClient } from '../support/client-harness.ts'
 
 const registration = await loadClientRegistration()

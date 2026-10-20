@@ -58,7 +58,7 @@
    同版本内容变的实证）。
 9. **平台语料留在 vendor**（约束：submodule 是平台事实的家；技能发现根是本仓 `.git`；`dsh-*` 技能的命令与相对路径假设 cwd 是 deepseek-harness）→ 读 vendor 对应页。本仓技能只写本仓路径、命令，以及 vendor 页上没有的差量。整段搬进 `docs/` 或 `.agents/skills/`，以及把 `dsh-*` symlink 进仓根技能目录，是输掉的做法。证据：`vendor/dsh/docs/subsystems/skills.md` 的发现根；`vendor/dsh/.agents/skills/dsh-pre-push-checks/SKILL.md` 写明服务对象是 deepseek-harness。
 
-10. **Client 共享观看状态使用声明 store**（约束：store 随注册/布局生命周期撤销，不能独立保留页面启动的默认机会）→ 唯一窄例外是页面 realm 中的根上下文 WeakSet，仅记录是否消费默认导航机会；不持业务数据、导航偏好或订阅，不进入持久存储。源码合同在 [client-entry.spec.ts](../packages/dsh-smart-assistant/tests/client/client-entry.spec.ts)，当前导航事实在 [architecture.md](architecture.md#浏览器动作链一次点击--可见的桌面变化)。
+10. **Client 共享观看状态使用声明 store**（约束：store 随注册/布局生命周期撤销，不能独立保留页面启动的默认机会）→ 唯一窄例外是页面 realm 中的根上下文 WeakSet，仅记录是否消费默认导航机会；不持业务数据、导航偏好或订阅，不进入持久存储。源码合同在 [entry.spec.ts](../packages/dsh-smart-assistant/tests/client/entry.spec.ts)，当前导航事实在 [architecture.md](architecture.md#浏览器动作链一次点击--可见的桌面变化)。
 
 ## 复查环（防"一次性快照再烂"）
 

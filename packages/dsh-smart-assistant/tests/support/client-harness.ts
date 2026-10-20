@@ -8,8 +8,8 @@
  */
 import { createElement } from 'react'
 import { vi } from 'vitest'
-import { createSnapshotStore, defineStore } from '../../../../vendor/dsh/packages/client/store/lib/types/index.js'
-import * as clientTestSurface from './client-surface.ts'
+import { createSnapshotStore, defineStore } from '@deepseek-ai/dsh-client-store'
+import * as clientTestSurface from './client-surface.harness.ts'
 
 /** One bundle registration as it arrives through the page-global facade. */
 export interface ClientRegistration {

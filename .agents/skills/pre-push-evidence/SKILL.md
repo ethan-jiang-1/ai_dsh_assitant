@@ -24,7 +24,7 @@ harness commands. This skill selects this repo's commands.
   [docs/testing.md](../../../docs/testing.md)'s naming table (mechanically enforced by the
   `test assets:` verify gate). When the user names a lane, that table is what maps the word to a
   command and a regression semantics.
-- **The client suite is whole-package, not per-file.** `client-brand.spec.ts` asserts the complete
+- **The client suite is whole-package, not per-file.** `brand.spec.ts` asserts the complete
   slot-registration surface, so adding one registration reds a spec you never opened (this happened
   — P1-B landed red and the fixture followed two commits later); and a recorded web-face scene can
   go silently stale while unit tests stay green (the approve-direct-call console change landed

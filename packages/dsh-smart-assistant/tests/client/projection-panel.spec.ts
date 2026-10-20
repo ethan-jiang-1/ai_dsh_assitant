@@ -6,7 +6,7 @@ import { ProjectionPanel } from '../../src/client/projection/projection-panel'
 import type { ProjectionDownload } from '../../src/client/projection/projection-reader'
 import type { OperatingMatter, OperatingProjection, OperatingReceipt } from '../../src/client/projection/operating-projection'
 import { createProjectionViewStore } from '../../src/client/projection/projection-view'
-import { defineStore } from '../../../../vendor/dsh/packages/client/store/lib/types/index.js'
+import { defineStore } from '@deepseek-ai/dsh-client-store'
 
 bindClientRequire(() => ({ createElement }))
 function text(node: unknown): string {

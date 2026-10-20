@@ -9,7 +9,7 @@
  * The browser half is multi-module source (relative imports, tsdown-inlined — see the
  * entry's file header), so the test installs the page-global facade, evaluates the script,
  * and materializes the factory with a module-table require stub, the same harness as
- * client-panels.spec.ts.
+ * panels.spec.ts.
  */
 import { describe, expect, it } from 'vitest'
 import { inertReactShim, loadClientRegistration, materializeClient } from '../support/client-harness.ts'

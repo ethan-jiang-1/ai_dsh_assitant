@@ -11,6 +11,7 @@ import { fileURLToPath } from 'node:url'
 import { Context } from '@deepseek-ai/cordis'
 import { afterEach, describe, expect, it } from 'vitest'
 import AssistantMemory from '../../src/index.ts'
+import { prewarmHome } from '../../src/host/curate-digest.ts'
 import { recordSkillLoad as recordSkillLoadForHome, skillUsage as skillUsageForHome } from '../../src/host/skills-room.ts'
 import { dirPool } from '../support/host-harness.ts'
 import {
@@ -96,6 +97,23 @@ describe('skill usage ledger (pure core)', () => {
 describe('skill usage ledger (service)', () => {
   const bootDir = dirPool('assistant-usage-')
 
+  // dirPool alone raced its rmSync against the constructor's fire-and-forget `prewarmHome`
+  // (scaffold + first digest keep writing after the test body ends) — the intermittent
+  // ENOTEMPTY/ENOENT teardown flake in full runs. ledgerPool's order applies here too:
+  // quiesce the service first, then remove the directory. AssistantMemory has no stop();
+  // the memoized prewarm chain is its entire background work (no timers — the self-turn
+  // slots are event listeners that never fire in a bare Context), so awaiting it IS the
+  // stop. Registered after dirPool so LIFO runs this hook before the pool's rmSync.
+  const services: AssistantMemory[] = []
+  afterEach(async () => {
+    for (const service of services.splice(0)) await prewarmHome(service)
+  })
+  const bootMemory = (dataDir: string): AssistantMemory => {
+    const service = new AssistantMemory(new Context(), { dataDir })
+    services.push(service)
+    return service
+  }
+
   it('records through only the ledger path and warning capability', async () => {
     mkdirSync(repoTmp, { recursive: true })
     const dir = mkdtempSync(join(repoTmp, 'assistant-usage-capability-'))
@@ -131,13 +149,13 @@ describe('skill usage ledger (service)', () => {
 
   it('records loads durably across service instances and surfaces them in curate', async () => {
     const dir = bootDir()
-    const first = new AssistantMemory(new Context(), { dataDir: dir })
+    const first = bootMemory(dir)
     await first.writeSkill({ name: 'staging-reset', description: 'when resetting', body: 'steps' })
     await first.recordSkillLoad('staging-reset')
     await first.recordSkillLoad('staging-reset')
 
     // A fresh service over the same home sees the same counts: the ledger is a file, not memory.
-    const second = new AssistantMemory(new Context(), { dataDir: dir })
+    const second = bootMemory(dir)
     const read = await second.skillUsage()
     expect(read.usage['staging-reset']?.count).toBe(2)
 
@@ -150,7 +168,7 @@ describe('skill usage ledger (service)', () => {
 
   it('reports an unreadable ledger as a warn finding instead of reading silent zeros', async () => {
     const dir = bootDir()
-    const service = new AssistantMemory(new Context(), { dataDir: dir })
+    const service = bootMemory(dir)
     writeFileSync(join(dir, 'skill-usage.json'), '{ this is not json', 'utf8')
 
     const read = await service.skillUsage()
@@ -169,7 +187,7 @@ describe('skill usage ledger (service)', () => {
 
   it('writes the ledger atomically and rejects invalid skill names', async () => {
     const dir = bootDir()
-    const service = new AssistantMemory(new Context(), { dataDir: dir })
+    const service = bootMemory(dir)
     await service.recordSkillLoad('valid-skill')
     await expect(service.recordSkillLoad('Invalid Name')).rejects.toThrow('not a valid skill name')
 
@@ -183,6 +201,18 @@ describe('skill usage ledger (service)', () => {
 
 describe('the ledger coverage window', () => {
   const mkWindow = dirPool('skill-window-')
+
+  // Same quiesce-before-delete order as the service describe above (the constructor's
+  // fire-and-forget prewarm is the racer dirPool's rmSync must not meet).
+  const services: AssistantMemory[] = []
+  afterEach(async () => {
+    for (const service of services.splice(0)) await prewarmHome(service)
+  })
+  const bootMemory = (dataDir: string): AssistantMemory => {
+    const service = new AssistantMemory(new Context(), { dataDir })
+    services.push(service)
+    return service
+  }
 
   // Measured case: a learned skill showed count 0 in the ledger while session logs held two loads,
   // both predating the ledger. A bare "0 = never used" invites retiring a live skill, so the
@@ -213,7 +243,7 @@ describe('the ledger coverage window', () => {
 
   it('seeds the window on the first recorded load and keeps it afterwards', async () => {
     const dir = mkWindow()
-    const service = new AssistantMemory(new Context(), { dataDir: dir })
+    const service = bootMemory(dir)
     await service.recordSkillLoad('alpha')
     const first = await service.skillUsage()
     expect(first.since).toBeDefined()

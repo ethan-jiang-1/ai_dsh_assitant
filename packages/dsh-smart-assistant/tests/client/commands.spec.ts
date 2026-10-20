@@ -4,7 +4,7 @@
  *
  * The browser half is a classic script (zero imports/exports — see its file header), so the
  * test installs the page-global facade, evaluates the script, and materializes the factory
- * with a module-table require stub, the same harness as client-panels.spec.ts.
+ * with a module-table require stub, the same harness as panels.spec.ts.
  */
 import { createElement } from 'react'
 import { describe, expect, it } from 'vitest'

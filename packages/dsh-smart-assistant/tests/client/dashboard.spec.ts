@@ -9,7 +9,7 @@
  * 4. The "有问题？" (onAsk) button fires the injected callback, in both states.
  *
  * The browser half is a classic script (zero imports/exports); the harness evaluates it
- * and materializes the factory — same as client-panels.spec.ts.
+ * and materializes the factory — same as panels.spec.ts.
  */
 import { describe, expect, it } from 'vitest'
 import { inertReactShim, loadClientRegistration, materializeClient } from '../support/client-harness.ts'

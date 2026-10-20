@@ -1,5 +1,5 @@
 /** View store only: selection and return survive remounts; no business projection in state. */
-import { defineStore } from '../../../../vendor/dsh/packages/client/store/lib/types/index.js'
+import { defineStore } from '@deepseek-ai/dsh-client-store'
 import { describe, expect, it } from 'vitest'
 import { createProjectionViewStore } from '../../src/client/projection/projection-view'
 

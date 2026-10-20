@@ -2,7 +2,7 @@
  * The brand occupants (`src/client/brand.ts`): the octopus mark, the deployment name, and the
  * blank-session hero mark.
  *
- * The registration id and the seat wiring live with the entry (client-entry.spec.ts);
+ * The registration id and the seat wiring live with the entry (entry.spec.ts);
  * this file owns the mark/name component contracts.
  *
  * The browser half is multi-module source (relative imports, tsdown-inlined — see the

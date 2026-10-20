@@ -6,7 +6,7 @@
  * chip pairing on light surfaces (AA, ≥4.5:1) — vendor success pairs green-500 text onto a
  * green-400 fill (1.2:1) and even its tertiary tint tops out at 2.1:1. Dark values reference
  * vendor statics where one fits. The AA contract is held by
- * `tests/client/client-theme.spec.ts` (component zero literal colour + contract light
+ * `tests/client/theme.spec.ts` (component zero literal colour + contract light
  * values each ≥4.5:1).
  *
  * @module dsh-smart-assistant/client/theme

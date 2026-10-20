@@ -52,6 +52,6 @@
    alias；warn/accent 走 `src/client/chrome/theme.ts` 的 `ensureThemeVars` 注入的 `--dsha-*` 契约块
    （亮值自带、暗值引用 vendor statics——vendor amber 阶无亮面 ≥AA 档、teal 不在其调色板）；
    组件样式零字面色值，唯品牌 SVG 的白色剪影除外（固定 logo 色，自绘背景）。AA 由
-   `tests/client/client-theme.spec.ts` 的色彩契约测试持有（组件零字面色 + 契约亮值逐个 ≥4.5:1）。
+   `tests/client/theme.spec.ts` 的色彩契约测试持有（组件零字面色 + 契约亮值逐个 ≥4.5:1）。
 5. **包 README 与 `docs/` 的分工**：[`README.md`](README.md) 写"这个包是什么形状"；`docs/` 写"它现在的合同"
    （布局契约在 [`docs/home.md`](../../docs/home.md)）。两者都不写决策理由——那进 `notes/`。

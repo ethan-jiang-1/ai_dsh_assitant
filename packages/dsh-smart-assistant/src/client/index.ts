@@ -308,7 +308,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   }
 
   // The serving interface is intentionally small. Component/function coverage lives in
-  // `tests/support/client-surface.ts`, which re-exports the same module instances; only the live
+  // `tests/support/client-surface.harness.ts`, which re-exports the same module instances; only the live
   // desk store stays here because it is created per materialization.
   return {
     inject, apply, deskStore,

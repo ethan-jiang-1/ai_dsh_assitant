@@ -21,7 +21,7 @@
 | 固定只读投影下载（独立 Host 文件，非经营 writer） | `pnpm build` → `pnpm test:host` + `pnpm test:composition`；隔离服务运行 `node dev/probes/web/desk-projection-download.mjs '<url>' dev/fixtures/desk-projection/desk-projection.json` | `tests/host/desk-projection-download.spec.ts` + `tests/composition/desk-projection-lifecycle.spec.mjs` + `dev/fixtures/desk-projection/` | 固定字节、错误/限额、真实注册撤销；HTTP 探针额外证明认证拒绝与 cookie 下载 / 不证明业务 schema、Client mount/断连/呈现或持久经营写 |
 | **模型可见面**（工具描述 / prompt 段落 / persona / digest） | `pnpm build` → `pnpm test:composition` → **`pnpm eval --only <task-id>`**（行为判决，任务清单 `pnpm eval --list`；`repo-live-probe` 是取证非回归，见已定姿态） | `tests/agent/*.spec` + `dev/eval/` | agent spec：段落合同。eval：伤害地板、技能按名加载、回答正则（可凑巧命中）/ 段落是否进入请求、组装转录、领域质量（`eval:domain` 人判） |
 | agent 面合同（段落预算 / 养护回合的合同层） | `pnpm test:agent`（真服务 + 临时 home）；改动同时触模型可见面时按上一行加链 | `tests/agent/*.spec` | 段落就绪 / 预算 / 回合占位等合同 / Loader 组装、UI 读回 |
-| client 面（`src/client`：注册与交互状态） | `pnpm test`（整包套件——`client-entry.spec` 断言全 slot 面，加一个注册会红没打开过的 spec）+ 两 web-face 场景 `pnpm web-expected --scenario <场景>` | `tests/client/*.spec` + `snapshots/web-face/` | 注册、组件树、色彩契约 / 真浏览器渲染（场景期望管） |
+| client 面（`src/client`：注册与交互状态） | `pnpm test`（整包套件——`entry.spec` 断言全 slot 面，加一个注册会红没打开过的 spec）+ 两 web-face 场景 `pnpm web-expected --scenario <场景>` | `tests/client/*.spec` + `snapshots/web-face/` | 注册、组件树、色彩契约 / 真浏览器渲染（场景期望管） |
 | 导出形态 / 组合行身份 / 注册撤销 | 台阶①③守卫（现读 patch，新行自动被扫） | `tests/composition/export-shape` + `registry-lifecycle` | 行身份与生命周期 / 行为正确 |
 | 组装后组合（服务/段落/工具 scope） | `pnpm build` → `pnpm test:composition` | `tests/composition/`（`preset-composition.spec` 是组装证据；同层还有导出/生命周期/遮蔽 spec） | 真 Loader 组装 / vendor rows、完整产品 boot |
 | web 渲染面（首开/座位/文案） | `pnpm web-expected --scenario <场景>`（隔离 home 真渲染，场景必填；过目 diff 后 `--refresh`） | `snapshots/web-face/` 两场景 | 渲染期望 / 交互逻辑（client spec 管） |
@@ -43,7 +43,8 @@
 
 ## 政策条款（禁令，无例外）
 
-- **mock 白名单 = LLM / 网络 / 时钟**；边界下游全真——手搭替身证明桥在动字节，证明不了产品行为。
+- **mock 白名单 = LLM / 网络 / 时钟 / vendor 服务边界**；边界下游全真——手搭替身证明桥在动字节，证明不了产品行为。
+- **vendor 服务边界允许声明式 stub**（白名单第四类，如 `rooms-row-wiring` 的 `sessionQuery`）：替身只出现在 vendor 边界上、边界下游全真；采用时必须在 spec 头注登记被替的边界与被测接缝。
 - **hand-built `ctx.plugin(...)` 不算组装证据**；组装语义必须经真 Loader boot 真配置。
 - **禁对 agent 自报的关键词探测**：断言落在会话日志、文件系统、注册表状态等外部事实。
 - **单跑才绿 = spec 自身缺陷**，不是 runner 不稳；资源自己获取、afterEach 自己清。
@@ -80,6 +81,8 @@
 | `tests/support/` | 共享夹具（`*harness.{ts,mjs}`） | — | — | 刻意不被任何 include 选中（门禁豁免容器） | — |
 
 失败报告先按本表分层归因再上浮：配置 / 构建物 / 领域规则 / 服务行为 / 模型回合 / UI 读回，不混称"测试挂了"。
+
+**夹具两家**：`tests/support/`（`*harness` 共享夹具）是 **spec 的夹具家**——被 vitest spec import、按豁免容器进命名表；`dev/fixtures/` 是**真实运行的夹具家**——探针 / 评测消费的种子账本、回放语料与固定下载资料，由一次性或隔离 home 装载，**不被 spec import**。各夹具目录自带 README（预期集合、能证 / 不能证、复跑命令）。
 
 ## 已定姿态与升级触发
 

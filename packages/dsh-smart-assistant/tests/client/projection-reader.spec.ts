@@ -1,7 +1,8 @@
 /** Network is external; real pinned snapshot store drives generation and publication. No DOM. */
 import { describe, expect, it } from 'vitest'
-// Platform-composition seam consumes pinned built store/declarations (build prerequisite).
-import { createSnapshotStore } from '../../../../vendor/dsh/packages/client/store/lib/types/index.js'
+// Platform-composition seam consumes the pinned store source through the vitest alias
+// (`@deepseek-ai/dsh-client-store` → vendor src; no vendor build output involved).
+import { createSnapshotStore } from '@deepseek-ai/dsh-client-store'
 import { createProjectionReader } from '../../src/client/projection/projection-reader.ts'
 import { parseOperatingProjection } from '../../src/client/projection/operating-projection.ts'
 import type { ProjectionDownload } from '../../src/client/projection/projection-reader.ts'
