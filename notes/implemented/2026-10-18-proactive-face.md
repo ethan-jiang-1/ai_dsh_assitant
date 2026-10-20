@@ -25,7 +25,7 @@
 
 ### 片 1 — 桌面「它替你看过」（确定性、零 token、只读）✅
 
-两个只读源在客户端合并、不新增第二份真相：账本投影 v2 ＋ 平台排程全局目录。**接线定案**：peer `@deepseek-ai/dsh-schedule` + inject `'remote.schedule'`，与 vendor 同构——缺任一件运行时杀 entry 且类型层零预警（三轮二分实证）。派生为纯核 [`src/client/proactive-face.ts`](../../packages/dsh-smart-assistant/src/client/proactive-face.ts)（keyless 可测，20 案）；行 2 与 capture 在途条按"事 vs 会话"分工去重；重复判据＝同 title **或同 prompt** ＋ 同时刻（10-13 事故的实况是同 prompt 不同 title）；空态整条不渲染；行文案守四问、每行至多一动作；迟到只说事实不归因。
+两个只读源在客户端合并、不新增第二份真相：账本投影 v2 ＋ 平台排程全局目录。**接线定案**：peer `@deepseek-ai/dsh-schedule` + inject `'remote.schedule'`，与 vendor 同构——缺任一件运行时杀 entry 且类型层零预警（三轮二分实证）。派生为纯核 [`src/client/proactive/proactive-face.ts`](../../packages/dsh-smart-assistant/src/client/proactive/proactive-face.ts)（keyless 可测，20 案）；行 2 与 capture 在途条按"事 vs 会话"分工去重；重复判据＝同 title **或同 prompt** ＋ 同时刻（10-13 事故的实况是同 prompt 不同 title）；空态整条不渲染；行文案守四问、每行至多一动作；迟到只说事实不归因。
 
 2026-10-19 修正（BUG-017/023）：到期行的「没结果」收窄为**committed 的 `complete` 回执**——`claim`/`update`（例如 m-1 到期后的归户与"仍未到账"报告）不再清行；行 3 遇到已过去的 `scheduledAt` 改说"它该在 X 看…还没看到它动"，不再声称未来的"下次"；到期不足一天显示"今天到期"而不是"到期 0 天"。
 

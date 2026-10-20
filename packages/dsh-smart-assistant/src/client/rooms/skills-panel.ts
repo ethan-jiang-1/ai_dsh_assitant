@@ -10,9 +10,9 @@ import { useDesk } from './room-data-core'
 import { loadSkillBody } from './room-data-io'
 import { retireSkill } from './room-data-actions'
 import { ContentDrawer } from './content-drawer'
-import { muted } from './dom-utils'
-import { createElement, reactSurface } from './runtime'
-import { MARK_TEAL } from './theme'
+import { muted } from '../chrome/dom-utils'
+import { createElement, reactSurface } from '../chrome/runtime'
+import { MARK_TEAL } from '../chrome/theme'
 
 const WARN = 'var(--dsha-warn)'
 

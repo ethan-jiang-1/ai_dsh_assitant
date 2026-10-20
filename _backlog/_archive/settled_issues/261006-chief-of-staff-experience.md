@@ -48,9 +48,9 @@ opened: 2026-10-06
 | 路径 | 当前可核实事实 | 缺口与为何此前没解决 |
 |---|---|---|
 | 全局入口 | [主区注册](../../../../../packages/dsh-smart-assistant/src/client/index.ts#L123-L135)已存在；[布局初始状态](../../../../../vendor/dsh/packages/client/ui-layout/src/client/stores.ts)为 `activePanelId: null` | 注册了入口但没有选为冷启动默认。旧 Step 2 在会话 view 偏好上尝试，没有交付全局入口 |
-| 全貌与空间 | [dashboard](../../../../../packages/dsh-smart-assistant/src/client/dashboard.ts#L73-L95)限制 840px 单列，只显示前三条决策，行动/缺口/审批继续纵向堆叠；没有列表—所选事项详情结构 | 壳已是主区，信息结构仍按数据分区展示。源码能指出差距，不能证明这是 CEO 不满意的唯一原因 |
+| 全貌与空间 | [dashboard](../../../../../packages/dsh-smart-assistant/src/client/chrome/dashboard.ts#L73-L95)限制 840px 单列，只显示前三条决策，行动/缺口/审批继续纵向堆叠；没有列表—所选事项详情结构 | 壳已是主区，信息结构仍按数据分区展示。源码能指出差距，不能证明这是 CEO 不满意的唯一原因 |
 | 读取范围 | [loadDesk](../../../../../packages/dsh-smart-assistant/src/client/desk-io.ts#L42-L70)从最近五个 Session 寻找工作区快照 | 不构成权威账本与全量查询；换到无关会话/工作区可能改变所见数据，不能靠补 CSS 解决 |
-| 桌面→对话 | “有问题？”[只调用 `selectPanel(null)`](../../../../../packages/dsh-smart-assistant/src/client/index.ts#L130-L135)，不选择/创建 Session；[选项按钮](../../../../../packages/dsh-smart-assistant/src/client/dashboard.ts#L109-L115)直接代发且未传 Session | 开屏卡证明的是通用按钮回调，不是围绕选中事项绑定对话。最新 Session fallback 不等于来源 Session 或处理 Session |
+| 桌面→对话 | “有问题？”[只调用 `selectPanel(null)`](../../../../../packages/dsh-smart-assistant/src/client/index.ts#L130-L135)，不选择/创建 Session；[选项按钮](../../../../../packages/dsh-smart-assistant/src/client/chrome/dashboard.ts#L109-L115)直接代发且未传 Session | 开屏卡证明的是通用按钮回调，不是围绕选中事项绑定对话。最新 Session fallback 不等于来源 Session 或处理 Session |
 | 回话→读回→返回 | [订阅刷新](../../../../../packages/dsh-smart-assistant/src/client/index.ts#L150-L170)与[轮询](../../../../../packages/dsh-smart-assistant/src/client/desk-io.ts#L259-L305)已有；时间戳新于发送时刻可解除 pending | 没有同一事项/同次操作的成功确认，也没有自动选回全局桌面。别的事项刷新也可能推进时间戳，刷新不等于完成 |
 | 既有测试 | [dashboard spec](../../../../../packages/dsh-smart-assistant/tests/client/client-dashboard.spec.ts#L131-L189)断言中文代发与 `selectPanel(null)` 回调 | classic-script/React shim 不证明真实订阅、导航、输入可见、几何或模型记账；不能由这些绿灯判产品闭环已成 |
 

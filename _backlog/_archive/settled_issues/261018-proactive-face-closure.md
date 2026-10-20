@@ -25,7 +25,7 @@ opened: 2026-10-18
 | 阶段 | 内容 | 怎么算对 |
 |---|---|---|
 | 0 前置 | ①注入面：inject 增补 `'remote.schedule'` 后 `catalog()` 可达性（不通走 service RPC 桥）；②基线现状：跑 `web-expected` 探 blank-first-open 是否已被受理行腐烂——处置＝片 1 diff 内同 diff 重录基线，并在 capture 收口卡台账记一笔 | 两个结论写回本卡"当前情况"，各有实证 |
-| 1 片 1 | 纯核 `src/client/proactive-face.ts`（行派生矩阵 keyless）→ 面板插入（结构锚：`dsha-head` 与 `dsha-capture` 之间；空态不渲染；每行恰一动作）→ spec + shots 三态（seed 夹具）→ 前后比对最小脚本（受控 home）→ 基线重录同 diff | proposed 卡验收表片 1 四行全绿 |
+| 1 片 1 | 纯核 `src/client/proactive/proactive-face.ts`（行派生矩阵 keyless）→ 面板插入（结构锚：`dsha-head` 与 `dsha-capture` 之间；空态不渲染；每行恰一动作）→ spec + shots 三态（seed 夹具）→ 前后比对最小脚本（受控 home）→ 基线重录同 diff | proposed 卡验收表片 1 四行全绿 |
 | 2 车道+片 2 | 车道先行：seed 夹具（due/quiet/dup）→ e2e watch 场景（先试跑不建排程／替我盯上目录无重复；replay 先行）→ 前后比对脚本落 `dev/probes/web/`；片 2：三条具名建议（②③①＋①标注）＋两动作＋忽略封口＋答得上＋ Q5 对照检查 | proposed 卡验收表片 2 行全绿（不可复现行此时应已可复现） |
 | 3 片 3 | 红线段落进 `operating-brief`（英文；禁七动词＋不自动建常态排程；点名提案槽属此类；只约束无人值守 turn）→ `test:agent` + `test:composition` → 无人值守端到端（live 式 web 驱动＋会话日志禁词）→ **改模型可见面必跑 `pnpm eval`** | proposed 卡验收表片 3 行全绿 |
 | 4 收口 | 逐片真证据进台账 → `pnpm build && test && verify`（+eval）→ proposed 卡毕业（正文改写为已交付事实）＋本卡归档，同 diff | 全部门禁绿 + 两卡毕业归档 |

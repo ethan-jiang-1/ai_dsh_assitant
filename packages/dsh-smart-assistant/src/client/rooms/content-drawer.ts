@@ -7,7 +7,7 @@
  *
  * @module dsh-smart-assistant/client/content-drawer
  */
-import { createElement, reactSurface } from './runtime'
+import { createElement, reactSurface } from '../chrome/runtime'
 
 /** Props one drawer instance receives. */
 export interface ContentDrawerProps {

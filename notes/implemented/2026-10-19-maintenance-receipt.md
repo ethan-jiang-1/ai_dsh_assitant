@@ -10,7 +10,7 @@ A1a 面板读真值、A2 直写当场生效后，用户仍看不见**静默更�
 
 1. **纯核** `buildReceipt(snapshot, ledger, since)`（[`receipt.ts`](../../packages/dsh-smart-assistant/src/domain/maintenance/receipt.ts)）：账本行（`at/kind/id/title/room/before/after`）+ 房间内容戳（memory/knowledge/research `updated`、skills `learnedAt`）；**忽略 skills 的 `lastUsedAt`**；同 `room:id` 的账行与房间行去重（账行优先）；`since` 缺省 = 空收据；按 `at` 倒序。
 2. **route 带账本**：`GET /api/assistant/rooms` 的列表增加 `ledger`（最近 200 行 `approvals.jsonl`）；`readApprovals(host, limit)` 在 [`approval-audit.ts`](../../packages/dsh-smart-assistant/src/host/approval-audit.ts)；`generatedAt`/`revision` 覆盖账本时间。直写账行加可选 `room`（knowledge/memory/skills），旧行按 kind + skills 名单 fallback。
-3. **客户端收据**：[`receipt-view.ts`](../../packages/dsh-smart-assistant/src/client/receipt-view.ts) 的 `ReceiptView` 放知识/记忆面板顶部——一句人话（`自上次以来：记忆 +N · 知识 M · 技能 K`）+ 分组明细 + 「全部标为已读」；baseline 住 `localStorage`（`dsha:receipt-since`，浏览器实例级，带内存 fallback）；首次打开无 baseline 时设为 now 并显示"还没有收据"；`mark all read` 写 now 并立即清空。**不投 prompt、不跑模型。**
+3. **客户端收据**：[`receipt-view.ts`](../../packages/dsh-smart-assistant/src/client/rooms/receipt-view.ts) 的 `ReceiptView` 放知识/记忆面板顶部——一句人话（`自上次以来：记忆 +N · 知识 M · 技能 K`）+ 分组明细 + 「全部标为已读」；baseline 住 `localStorage`（`dsha:receipt-since`，浏览器实例级，带内存 fallback）；首次打开无 baseline 时设为 now 并显示"还没有收据"；`mark all read` 写 now 并立即清空。**不投 prompt、不跑模型。**
 4. **直写后即时可见**：A2 的客户端动作在 patch 房间行的同时追加一条本地账行（`source: panel-direct`、`room`、`before/after`），收据立刻反映；下一次 route 读用服务端账本替换。
 5. **同 diff**：`docs/architecture.md` 的 `assistant-rooms` 行/浏览器链/功能路由写清 `ledger` + receipt。
 

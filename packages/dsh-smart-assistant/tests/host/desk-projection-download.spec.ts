@@ -3,7 +3,7 @@ import { mkdtemp, writeFile, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { createDeskProjectionRoute } from '../../src/host/desk-projection-download.ts'
+import { createDeskProjectionRoute } from '../../src/host/desk-projection/download.ts'
 
 const homes: string[] = []
 afterEach(async () => {

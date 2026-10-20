@@ -45,7 +45,7 @@
 
 ## 三、桌面投影（host 行 `assistant-desk-projection` + client 读回链）
 
-**HTTP 面**（`src/host/desk-projection/` + `desk-projection-download.ts`）：
+**HTTP 面**（`src/host/desk-projection/`，入口 `index.ts` + 路由核 `download.ts`）：
 
 - `GET api/assistant/desk-projection`，固定只读，`requestBody: buffered`：
   **有 `ledger.json` 时优先读真账本并即时渲染 v2 投影**（永不持久第二份可写真相；夹具文件压不过权威账本）；
@@ -58,7 +58,7 @@
   完整文件 byte cap 默认 1 MiB（`maxProjectionBytes`）。超限 413；无效 UTF-8/JSON 422；
   结构错（非 v1 账本）422 且**绝不静默回退**；其他 I/O 500。
 
-**客户端读回**（`src/client/projection-reader.ts` / `operating-projection.ts` / `projection-lifecycle.ts` / `projection-panel.ts`）：
+**客户端读回**（`src/client/projection/projection-reader.ts` / `projection/operating-projection.ts` / `projection/projection-lifecycle.ts` / `projection/projection-panel.ts`）：
 
 - URL 用 document-relative `api/assistant/desk-projection`；同源 cookie、不复制 launch token、
   不接受跨源 base 或重定向。
@@ -75,7 +75,7 @@
 - 生命周期绑定经主区 inject 的 `hooks.projection` 暴露为 `useProjection`：组件零网络/零订阅；
   fiber 卸载取消请求/撤销订阅，Slot 重挂复用该源。宽主区列表/详情双栏，窄容器单 pane；
   选择只保存在 Slot view store。`ready` = 下载已通过解析，**不**表示持久业务操作成功。
-- **处理路径回桌面**（`src/client/desk-process.ts`）：本人仍在绑定路径、绑定会话已停跑且轮次结束、
+- **处理路径回桌面**（`src/client/desk/desk-process.ts`）：本人仍在绑定路径、绑定会话已停跑且轮次结束、
   无待处理交互、事项仍存在，且投影为**新鲜的 `ready`** 才可返回；必须读回绑定会话在绑定后提交、
   revision 不低于绑定时 observed revision 的 `committed` 回执，或与已拒绝提案匹配的 `proposal-rejected` 回执。
   绑定会话在绑定后为该事项创建的任一 pending 提案都**阻止返回**；已解决提案必须读回同会话、同事项、

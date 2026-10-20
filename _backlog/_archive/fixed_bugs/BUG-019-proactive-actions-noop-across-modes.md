@@ -15,7 +15,7 @@ opened: 2026-10-19
 
 ## 根因（假设）
 
-已确认：两个动作都只改 view store 的局部字段（`src/client/projection-view.ts` 的 `showList`/`selectMatter`），不切换 `mode`、不滚动/聚焦目标；主动行渲染在 tabs 之上，两种模式都可见。
+已确认：两个动作都只改 view store 的局部字段（`src/client/projection/projection-view.ts` 的 `showList`/`selectMatter`），不切换 `mode`、不滚动/聚焦目标；主动行渲染在 tabs 之上，两种模式都可见。
 
 ## 复现
 

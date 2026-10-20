@@ -13,7 +13,7 @@ opened: 2026-10-10
 
 | 项 | 结果 | 证据 |
 |---|---|---|
-| ② 交代首事臂没有返回 | **补**：两条臂共用同一组返回前提，交代臂以「绑定后、投影里原本不存在的事项 id 有了 committed 回执」结算，返回时选中新建的那件事 | `src/client/desk-process.ts`（`IntakePath`/`bindIntakePath`/`judgeIntakeReturn`）；`src/client/index.ts`（「＋ 交代新事项」绑定 + 返回选中）；负例矩阵 `tests/client/client-desk-process.spec.ts`（22 条）；接线 `tests/client/projection-panel.spec.ts` |
+| ② 交代首事臂没有返回 | **补**：两条臂共用同一组返回前提，交代臂以「绑定后、投影里原本不存在的事项 id 有了 committed 回执」结算，返回时选中新建的那件事 | `src/client/desk/desk-process.ts`（`IntakePath`/`bindIntakePath`/`judgeIntakeReturn`）；`src/client/index.ts`（「＋ 交代新事项」绑定 + 返回选中）；负例矩阵 `tests/client/client-desk-process.spec.ts`（22 条）；接线 `tests/client/projection-panel.spec.ts` |
 | ③ 第四种时间是空的 | **补**：完成时刻由账本在完成那一步盖下（模型不可自报）、reopen 同一次纠正清掉；投影、客户端解析、详情各一处渲染 | commit `681c85b`；`tests/host/operating-ledger.spec.ts`、`tests/domain/operating-projection.spec.ts`、`tests/client/operating-projection.spec.ts`、`tests/client/projection-panel.spec.ts`；契约 `docs/operating.md` §二 |
 | ④ 窄视口「所选消失恢复」未取证 | **做掉**：所选事项从投影消失时详情如实说「所选事项不在当前投影中」（不静默退回列表、不错显示别的事项），放回去后选择仍指着同一条 | commit `02a8266`；`projection-live-mechanics.mjs` 相位 `selection-vanish-and-recover`（全新 home 上 PASS） |
 | ① 本人体验裁决 | **转正**：留在 [规格卡](../../notes/proposed/2026-10-06-desk-operating-entry.md) §验收的「本人的体验裁决」行（含 30 秒走查法与复走预期现状） | 规格卡 §验收 |

@@ -12,9 +12,9 @@
  * @module dsh-smart-assistant/client/dashboard
  */
 
-import type { DeskData } from './room-data-core'
-import { useDesk } from './room-data-core'
-import { reloadDesk } from './room-data-io'
+import type { DeskData } from '../rooms/room-data-core'
+import { useDesk } from '../rooms/room-data-core'
+import { reloadDesk } from '../rooms/room-data-io'
 import { createElement, reactSurface } from './runtime'
 import { MARK_TEAL } from './theme'
 

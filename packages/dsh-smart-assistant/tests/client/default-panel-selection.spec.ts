@@ -1,6 +1,6 @@
 /** Root-scoped default dashboard selection: first attach only, no repeated focus steals. */
 import { describe, expect, it } from 'vitest'
-import { selectDashboardByDefault } from '../../src/client/default-panel-selection.ts'
+import { selectDashboardByDefault } from '../../src/client/chrome/default-panel-selection.ts'
 
 function layoutContext(initialPanel: string | null) {
   const selected: (string | null)[] = []

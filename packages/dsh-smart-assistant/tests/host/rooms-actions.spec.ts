@@ -10,7 +10,7 @@
  * - unknown actions, bad ids/names/text and wrong states are refused, not passed through.
  */
 import { describe, expect, it, vi } from 'vitest'
-import { createRoomsRoute, type RoomsActions, type RoomsReader } from '../../src/host/rooms-route.ts'
+import { createRoomsRoute, type RoomsActions, type RoomsReader } from '../../src/host/rooms-route/route.ts'
 import type { KnowledgePage } from '../../src/domain/knowledge/page.ts'
 import type { MemoryRecord } from '../../src/domain/memory/record.ts'
 import type { ResearchThread } from '../../src/domain/research/thread.ts'

@@ -18,7 +18,7 @@
  * @module dsh-smart-assistant/client/room-data-io
  */
 
-import type { ClientContext, RoomKind } from './contracts'
+import type { ClientContext, RoomKind } from '../chrome/contracts'
 import {
   carryRowStateTo, deskGeneratedAtMs, deskSlice, expirePending, getDeskStore, looksLikeDesk,
   patchDesk, patchSlice, settlePending, sliceSeq,

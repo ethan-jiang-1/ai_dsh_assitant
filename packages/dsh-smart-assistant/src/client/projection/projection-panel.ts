@@ -1,10 +1,10 @@
 /** Global projection presentation. Renderer supplies the sole live-data hook. */
-import { createElement as ce } from './runtime'
-import { AssistantBrandMark } from './brand'
-import { canProcess, capturePhase, type CaptureStatus } from './desk-process'
-import { humanTime, localDateKey, localDateLabel, localTimeLabel } from './format'
-import { deriveProactiveFace, PROACTIVE_SUGGESTIONS, type ProactiveUiState } from './proactive-face'
-import type { ProactiveCatalogState } from './proactive-face-source'
+import { createElement as ce } from '../chrome/runtime'
+import { AssistantBrandMark } from '../chrome/brand'
+import { canProcess, capturePhase, type CaptureStatus } from '../desk/desk-process'
+import { humanTime, localDateKey, localDateLabel, localTimeLabel } from '../chrome/format'
+import { deriveProactiveFace, PROACTIVE_SUGGESTIONS, type ProactiveUiState } from '../proactive/proactive-face'
+import type { ProactiveCatalogState } from '../proactive/proactive-face-source'
 import type { ProjectionDownload } from './projection-reader'
 import type { DeskCaptureReceipt, ProjectionView } from './projection-view'
 

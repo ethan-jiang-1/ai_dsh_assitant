@@ -26,7 +26,7 @@ export interface ClientContext {
   /** Stable Client application identity shared by every plugin scope. */
   readonly root: object
   effect: (install: () => () => void, label?: string) => unknown
-  connection: Parameters<typeof import('./projection-reader').createProjectionReader>[0]
+  connection: Parameters<typeof import('../projection/projection-reader').createProjectionReader>[0]
   /** Runtime remote RPC face, provided by the `'remote'` inject declaration. Structural reads
    * only — `'remote.<ns>'` subface declarations kill the whole entry at runtime (stage-0
    * finding, 2026-10-18; see proactive-face-source.ts). */

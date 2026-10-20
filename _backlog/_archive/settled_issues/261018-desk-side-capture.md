@@ -23,13 +23,13 @@ opened: 2026-10-18
 
 ### 现在是什么样（真机与代码证据）
 
-- **入口是门，不是位子**：`＋ 交代新事项` → intake 臂 `startIntake()`（[desk-arms.ts](../../../packages/dsh-smart-assistant/src/client/desk-arms.ts)）复用/新建会话并 `openSession` 把主区切走；本人要在**另一个面**里把话说出来。
+- **入口是门，不是位子**：`＋ 交代新事项` → intake 臂 `startIntake()`（[desk-arms.ts](../../../packages/dsh-smart-assistant/src/client/desk/desk-arms.ts)）复用/新建会话并 `openSession` 把主区切走；本人要在**另一个面**里把话说出来。
 - **桌面没有就地输入位**：`pnpm shots` 的真机 DOM 里 `textarea`／`textbox`／`contenteditable` 计数全为 0；截图上桌面主区只有看板/流水与右侧详情空态（证据：`.tmp/shots/desk-intake-1600x1000.{png,dom.txt}`，仓内临时面）。
-- **Day-0 反而有，而且做法不同**：[first-mile.ts](../../../packages/dsh-smart-assistant/src/client/first-mile.ts) 有 `说说你现在要处理的事…` + 发送，`send()` 走 `sendPrompt(text, 'desktop-landing', 'desk', sid)`——**把话投进会话，人不离开当前面**。同一意图，两个年龄的界面两种待遇。
+- **Day-0 反而有，而且做法不同**：[first-mile.ts](../../../packages/dsh-smart-assistant/src/client/chrome/first-mile.ts) 有 `说说你现在要处理的事…` + 发送，`send()` 走 `sendPrompt(text, 'desktop-landing', 'desk', sid)`——**把话投进会话，人不离开当前面**。同一意图，两个年龄的界面两种待遇。
 - **"捕获但未归类"账本已有一等状态**：`note` 操作在没有事项归属时被 `retain` 成 `UnclaimedMaterial`（[ledger.ts](../../../packages/dsh-smart-assistant/src/domain/operating/ledger.ts) `applyNote`，"绝不按标题匹配"）；桌面已有「待认领——还没说清是哪件事，不猜」一栏，卡片带原话、徽标、来源会话。
-- **客户端→会话的投递通道已有**：`panelPromptRequest`（[room-data-io.ts](../../../packages/dsh-smart-assistant/src/client/room-data-io.ts)，`mode: 'queue'` + 来源标记 `[面板] `）；面板动作与臂的种子都走它，**不等主区切换**。
+- **客户端→会话的投递通道已有**：`panelPromptRequest`（[room-data-io.ts](../../../packages/dsh-smart-assistant/src/client/rooms/room-data-io.ts)，`mode: 'queue'` + 来源标记 `[面板] `）；面板动作与臂的种子都走它，**不等主区切换**。
 - **"在途 vs 完成"本仓已解过**：面板动作以 `pending` 冻在 DATA GATE 后，等**投影真的动了**才解冻；同处注释记录了固定延迟的代价（一条动作收到七条自相矛盾指令，2026-09-26）。
-- **动作词汇已有**（[projection-panel.ts](../../../packages/dsh-smart-assistant/src/client/projection-panel.ts)）：`交办立项／更新事项／记一笔／认领归户／办结`，以及 `存入待认领`。本卡要提的不是新词，是给已有语义接一个桌面入口。
+- **动作词汇已有**（[projection-panel.ts](../../../packages/dsh-smart-assistant/src/client/projection/projection-panel.ts)）：`交办立项／更新事项／记一笔／认领归户／办结`，以及 `存入待认领`。本卡要提的不是新词，是给已有语义接一个桌面入口。
 
 ### 三轮同源、结论在变
 

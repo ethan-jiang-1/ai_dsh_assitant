@@ -10,11 +10,11 @@
  *
  * @module dsh-smart-assistant/client/viki-panel
  */
-import type { VikiEntry } from '../host/viki/client.ts'
+import type { VikiEntry } from '../../host/viki/client.ts'
 import { ContentDrawer } from './content-drawer'
-import { muted } from './dom-utils'
-import { createElement, reactSurface } from './runtime'
-import { MARK_TEAL } from './theme'
+import { muted } from '../chrome/dom-utils'
+import { createElement, reactSurface } from '../chrome/runtime'
+import { MARK_TEAL } from '../chrome/theme'
 import {
   deleteViki, getVikiView, loadViki, loadVikiBody, referencesViki, resetVikiView, restoreViki,
   useVikiView, type VikiReceipt, type VikiReferences,

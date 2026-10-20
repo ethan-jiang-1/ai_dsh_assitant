@@ -5,7 +5,7 @@ import { expandHomePath, resolveDshHome } from '@deepseek-ai/dsh-home-paths'
 import z from '@deepseek-ai/schemastery'
 import type Schema from '@deepseek-ai/schemastery'
 import { join } from 'node:path'
-import { createDeskProjectionRoute } from '../desk-projection-download.ts'
+import { createDeskProjectionRoute } from './download.ts'
 
 export const name = 'assistant-desk-projection'
 export const inject = ['connection']

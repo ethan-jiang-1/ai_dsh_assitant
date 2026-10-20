@@ -9,17 +9,17 @@
 
 import type { DeskData } from './room-data-core'
 import { patchDesk, useDesk } from './room-data-core'
-import { shortTime } from './format'
+import { shortTime } from '../chrome/format'
 import {
   approveKnowledgePage, askApproveProposal, askRejectProposal, correctMemory, deprecateKnowledgePage,
   flagKnowledgePage, retireMemory,
 } from './room-data-actions'
-import { cell, CorrectableRow, muted, panelAlerts, refreshRow, sectionTitle } from './dom-utils'
+import { cell, CorrectableRow, muted, panelAlerts, refreshRow, sectionTitle } from '../chrome/dom-utils'
 import { loadKnowledgeBody } from './room-data-io'
 import { ContentDrawer } from './content-drawer'
 import { ReceiptView } from './receipt-view'
-import { createElement, reactSurface } from './runtime'
-import { MARK_TEAL } from './theme'
+import { createElement, reactSurface } from '../chrome/runtime'
+import { MARK_TEAL } from '../chrome/theme'
 
 /** Book glyph for the knowledge panel entry. */
 export function KnowledgeIcon({ size }: { size: number }): unknown {

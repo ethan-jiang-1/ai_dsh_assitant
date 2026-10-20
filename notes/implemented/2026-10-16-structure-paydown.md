@@ -14,10 +14,10 @@
 |---|---|---|
 | 1 | `packages/dsh-smart-assistant/src/agent/tool-operating/schema.ts` 拥有输出契约（`output.schema` 160 行）；工具定义、DESCRIPTION、parameters 与伴生类型留 `index.ts`（586 → 428） | 搬家块逐字 diff（158 行 0 差异，去缩进后）+ `test:composition` 兜注册期 `assertSupportedJsonSchema` |
 | 2 | `src/domain/operating/types.ts` 拥有词汇（13 个类型）；`ledger.ts` 原位 re-export，自身只剩归约器（708 → 519 + 196）：`applyOperation` 24 行判别标签分发 + 8 个窄 handler，闭集以 `assertNever` 收口 | 词汇 203 行逐字 diff；结构等价核对（18 原写点 ↔ 10 `recordOperation` + 8 `rejectWith`）；三条特征测试（两个零覆盖的拒绝原因 + `reject` 分支负例）先造红 |
-| 3 | `src/client/format.ts` 拥有时间渲染族（5 个输出各异的格式 + 唯一 `pad2`）；`src/client/desk-process-messages.ts` 拥有四臂种子文案；六个共享门收成 `sharedGateReasons`（515 → 425） | 文案 84 行逐字；格式族去缩进后 0 差异；两场景 web-face 无漂移 |
-| 4 | `src/client/room-data-actions.ts` 拥有 8 个动作文案；`src/client/room-data-io.ts` 拥有读取路径与 prompt 形状（`panelPromptRequest`）（462 → 394 + 132） | 包装 120 行只差 1 行（私有 `deskRemote` → 导出的 `getDeskRemote()`，编译器报出）；两场景无漂移 |
-| 5a | `src/client/approve-mount.ts` 拥有 approve 直调挂载（零 ctx） | 两段各自 0 差异；三处 `console` 级别逐字（空控制台契约） |
-| 5b | `src/client/desk-arms.ts` 拥有四臂（`createDeskArms(deps)` 工厂，10 项 deps，逐项保留可选性）；入口 594 → 339 只剩接线 | 前置特征 spec **跨搬迁零改动通过**；旧块 27 个字面量无一丢失 |
+| 3 | `src/client/chrome/format.ts` 拥有时间渲染族（5 个输出各异的格式 + 唯一 `pad2`）；`src/client/desk/desk-process-messages.ts` 拥有四臂种子文案；六个共享门收成 `sharedGateReasons`（515 → 425） | 文案 84 行逐字；格式族去缩进后 0 差异；两场景 web-face 无漂移 |
+| 4 | `src/client/rooms/room-data-actions.ts` 拥有 8 个动作文案；`src/client/rooms/room-data-io.ts` 拥有读取路径与 prompt 形状（`panelPromptRequest`）（462 → 394 + 132） | 包装 120 行只差 1 行（私有 `deskRemote` → 导出的 `getDeskRemote()`，编译器报出）；两场景无漂移 |
+| 5a | `src/client/chrome/approve-mount.ts` 拥有 approve 直调挂载（零 ctx） | 两段各自 0 差异；三处 `console` 级别逐字（空控制台契约） |
+| 5b | `src/client/desk/desk-arms.ts` 拥有四臂（`createDeskArms(deps)` 工厂，10 项 deps，逐项保留可选性）；入口 594 → 339 只剩接线 | 前置特征 spec **跨搬迁零改动通过**；旧块 27 个字面量无一丢失 |
 | 6a | `dev/probes/web/dialogue.mjs` 拥有按文案找/点按钮（`buttonByText`/`clickByText`，默认精确匹配）；`dev/env/home.mjs` 拥有 home 解析（`devHome`） | 生成的表达式在假 DOM 上 9 案全过；6 个消费方真跑 |
 | 6b | `dev/probes/web/desk-process-e2e.mjs` 是 dispatcher（222 行）+ 三个场景模块（191/100/69） | 三段正文 321 行逐字；三场景各真跑 exit 0，判决 JSON 形状不变 |
 | 7 | `dev/lib/session-logs.mjs` 与 `dev/lib/continuity-core.mjs` 是跨目录共享库（报告/评测/探针同用一份判据） | session-logs 101 行逐字；核单跑 `--self-check` 红绿对照绿 |

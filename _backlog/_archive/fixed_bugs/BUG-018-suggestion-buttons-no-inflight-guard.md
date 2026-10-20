@@ -14,7 +14,7 @@ opened: 2026-10-19
 
 ## 根因（假设）
 
-已确认：`src/client/projection-panel.ts` 的建议按钮没有 `disabled`；`src/client/desk-arms.ts` 的 `captureFromDesk` 没有在途保护。四条桌面臂专门有 launch lock 防双击，这条新车道没有。
+已确认：`src/client/projection/projection-panel.ts` 的建议按钮没有 `disabled`；`src/client/desk/desk-arms.ts` 的 `captureFromDesk` 没有在途保护。四条桌面臂专门有 launch lock 防双击，这条新车道没有。
 
 ## 复现
 

@@ -2,9 +2,9 @@
 import { describe, expect, it } from 'vitest'
 // Platform-composition seam consumes pinned built store/declarations (build prerequisite).
 import { createSnapshotStore } from '../../../../vendor/dsh/packages/client/store/lib/types/index.js'
-import { createProjectionReader } from '../../src/client/projection-reader.ts'
-import { parseOperatingProjection } from '../../src/client/operating-projection.ts'
-import type { ProjectionDownload } from '../../src/client/projection-reader.ts'
+import { createProjectionReader } from '../../src/client/projection/projection-reader.ts'
+import { parseOperatingProjection } from '../../src/client/projection/operating-projection.ts'
+import type { ProjectionDownload } from '../../src/client/projection/projection-reader.ts'
 
 const projection = (revision: number) => ({ schemaVersion: 1 as const, ledgerId: 'ledger-a', revision, matters: [] })
 

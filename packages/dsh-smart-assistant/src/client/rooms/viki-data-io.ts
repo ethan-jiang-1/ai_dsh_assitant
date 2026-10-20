@@ -5,8 +5,8 @@
  *
  * @module dsh-smart-assistant/client/viki-data-io
  */
-import type { VikiEntry, VikiList } from '../host/viki/client.ts'
-import { reactSurface } from './runtime'
+import type { VikiEntry, VikiList } from '../../host/viki/client.ts'
+import { reactSurface } from '../chrome/runtime'
 
 /** One read of the Viki list. */
 export interface VikiView {

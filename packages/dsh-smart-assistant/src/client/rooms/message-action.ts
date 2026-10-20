@@ -7,8 +7,8 @@
  * @module dsh-smart-assistant/client/message-action
  */
 import { postRoomsAction } from './room-data-io'
-import { createElement, reactSurface } from './runtime'
-import { MARK_TEAL } from './theme'
+import { createElement, reactSurface } from '../chrome/runtime'
+import { MARK_TEAL } from '../chrome/theme'
 
 /** Props the assistant-actions slot passes (structural mirror; only these two matter). */
 export interface RememberActionProps {

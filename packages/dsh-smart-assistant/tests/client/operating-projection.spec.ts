@@ -1,6 +1,6 @@
 /** Wire JSON validation: fixed envelope, identities, and traceable evidence; cross-layer Host renderer → Client parser contract. */
 import { describe, expect, it } from 'vitest'
-import { parseOperatingProjection, type OperatingProjection } from '../../src/client/operating-projection'
+import { parseOperatingProjection, type OperatingProjection } from '../../src/client/projection/operating-projection'
 import { applyOperation, EMPTY_LEDGER } from '../../src/domain/operating/ledger.ts'
 import { renderLedgerProjection } from '../../src/domain/operating/projection.ts'
 

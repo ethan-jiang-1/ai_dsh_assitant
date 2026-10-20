@@ -42,7 +42,7 @@ opened: 2026-10-12
 
 **终轮已确认（本人答复，2026-10-12）：** 《接续使用方案》整体成立；现场包为续接首回合**主动**交出——本人追问才拿到记为一次摩擦（此观察项自本确认起生效）。本轮设计收口：诉求已具象化为可落地、可观察、可判输赢的使用方案，后续会话按该方案与卡首「下一步」节的观察协议执行即可，不需再猜。价值观察仍未开始——等自然事项触发；本轮设计完成不等于连续性价值已验证，不替代原关闭条件。
 
-**事实核查：** 现合同支持事项、进展、来源与回执保存/读回；确认性变化须本人明确指示，推断性重大变化须提案，见 [`docs/operating.md`](../../../docs/operating.md)。该合同明确 v2 reminders 恒空占位，已有排程能力不能视为账本原生提醒协调完成。既有续接链路本轮已核对（源码与[唯一桌面决定](../../../notes/implemented/2026-10-11-one-operating-desk.md)）：桌面**处理路径**已在——在办事项绑定处理会话，种子消息带入标题、承诺期限/核对点与摘要并指示模型先 `read` 台账再等指令，绑定后回执读回时桌面自动返回并选中该事项（[desk-process.ts](../../../packages/dsh-smart-assistant/src/client/desk-process.ts)，面板层已接线）；**随口续接**已在——本人说「处理它/继续」未点名时模型 `desk` 列事项、`read` 所指事项或问哪件，禁止翻文件系统/会话日志重建意图（[operating-brief](../../../packages/dsh-smart-assistant/src/agent/operating-brief/index.ts)）；**开屏不播报经营事项**——旧会话桌面播报随会话桌面退役（2026-10-11），现开屏卡零 token、只指向桌面全景。不以技术可保存/读回代替业务价值证明。
+**事实核查：** 现合同支持事项、进展、来源与回执保存/读回；确认性变化须本人明确指示，推断性重大变化须提案，见 [`docs/operating.md`](../../../docs/operating.md)。该合同明确 v2 reminders 恒空占位，已有排程能力不能视为账本原生提醒协调完成。既有续接链路本轮已核对（源码与[唯一桌面决定](../../../notes/implemented/2026-10-11-one-operating-desk.md)）：桌面**处理路径**已在——在办事项绑定处理会话，种子消息带入标题、承诺期限/核对点与摘要并指示模型先 `read` 台账再等指令，绑定后回执读回时桌面自动返回并选中该事项（[desk-process.ts](../../../packages/dsh-smart-assistant/src/client/desk/desk-process.ts)，面板层已接线）；**随口续接**已在——本人说「处理它/继续」未点名时模型 `desk` 列事项、`read` 所指事项或问哪件，禁止翻文件系统/会话日志重建意图（[operating-brief](../../../packages/dsh-smart-assistant/src/agent/operating-brief/index.ts)）；**开屏不播报经营事项**——旧会话桌面播报随会话桌面退役（2026-10-11），现开屏卡零 token、只指向桌面全景。不以技术可保存/读回代替业务价值证明。
 
 ## 接续使用方案（已确认 · 2026-10-12）
 
@@ -129,7 +129,7 @@ opened: 2026-10-12
 这些是源码事实，不是修改本人已确认的目标；旧方案中对应的“已具备”说法以这里的核查为准。
 
 1. **保存了 ≠ 模型能按事项完整读回。** [事项 read](../../../packages/dsh-smart-assistant/src/agent/tool-operating/index.ts#L284) 返回事项摘要结构、材料和提案摘要，不返回初始 create/entrust 原话、已确认变更的完整操作历史与可遍历 operation id；[deskItem](../../../packages/dsh-smart-assistant/src/agent/tool-operating/index.ts#L84) 也不返回 summary、responsible、forecastSource、completedAt，提案摘要不返回具体 change 目标值。[按 operation id 回查](../../../packages/dsh-smart-assistant/src/agent/tool-operating/index.ts#L308) 需要先知道 id；全局待认领只能由 `desk` 取得，不能因标题相似列作本事项材料。故六件套第 1/3/4/5/6 件有读回或业务资料缺口，不能宣称一次 `read` 的“台账全文”已能交出完整现场包；真实观察必须如实记缺失，不能偷偷改功能补齐。
-2. **主入口会话新旧有条件。** [processMatter](../../../packages/dsh-smart-assistant/src/client/index.ts#L213) 若已有同事项的内存绑定则重开该会话，不重发种子；否则新建会话并绑定。[种子指令](../../../packages/dsh-smart-assistant/src/client/desk-process.ts#L447) 是先读台账再等具体指令，没有主动六件套要求。刷新后绑定路径不重放；“回来就主动交出”在复用会话、跨日回访和只读首轮的触发语义仍需确认，不能称所有续接场景现成支持。**（2026-10-13 第三切片更新：重开不重发种子的缺口已按 Q11 修复——重开分支现发续接种子，见下方第三切片记录；刷新后路径不重放仍是有意设计，刷新后点「处理」走新会话+完整种子。）**
+2. **主入口会话新旧有条件。** [processMatter](../../../packages/dsh-smart-assistant/src/client/index.ts#L213) 若已有同事项的内存绑定则重开该会话，不重发种子；否则新建会话并绑定。[种子指令](../../../packages/dsh-smart-assistant/src/client/desk/desk-process.ts#L447) 是先读台账再等具体指令，没有主动六件套要求。刷新后绑定路径不重放；“回来就主动交出”在复用会话、跨日回访和只读首轮的触发语义仍需确认，不能称所有续接场景现成支持。**（2026-10-13 第三切片更新：重开不重发种子的缺口已按 Q11 修复——重开分支现发续接种子，见下方第三切片记录；刷新后路径不重放仍是有意设计，刷新后点「处理」走新会话+完整种子。）**
 3. **纠错不是统一撤销。** [claim](../../../packages/dsh-smart-assistant/src/domain/operating/ledger.ts#L404) 从待认领中取材料并消费该片段，不提供解除既有归属/迁移已挂材料的动作；[reject](../../../packages/dsh-smart-assistant/src/domain/operating/ledger.ts#L650) 仅对 pending 提案生效，不撤已确认变更。回复误述可重读更正；已写错状态只有工具实际支持的 revise/reopen 等才能纠正，不支持的必须记恢复缺口，不能承诺“claim/reject 即可恢复”。
 4. **权限三分不等于只有三种自然表达。** 已确认的三分是自动进展、明确指令、推断提案。原方案第五节若按“仅三种本人动作”字面验收，会排除原方案第四节必要的明确委托、revise 指示和纠错理由。建议负担衡量针对额外重复录入、重复确认与维护劳动，正常业务指示单列；尚不擅自替换本人已确认的负担上限。
 5. **现有 eval 不证明跨时六件套。** [runPreset](../../../dev/eval/run.mjs#L93) 每题新建工作目录/会话，但共享所选 dev home，串行不等于隔离账本；[observe](../../../dev/eval/run.mjs#L44) 当前提取工具调用与拼接回答，不能直接判首轮时序、成功读回结果或字段与来源准确性。聚焦题目还须明确台账前置、独立会话、结果判定与清理；缺检查不能用回答关键词补成通过。
@@ -253,7 +253,7 @@ opened: 2026-10-12
 
 上方 A1 行的「重开绑定会话续接触发未覆盖」缺口按 Q11 已确认语义（桌面「处理」无论新建或复用绑定会话都表达一次续接意图；普通侧栏打开旧聊天不播报）在本切片闭环：
 
-- **实现**：`processMatter` 重开分支现经同一面板通道发续接种子——[resumeContextMessage](../../../packages/dsh-smart-assistant/src/client/desk-process.ts) 只带事项身份与合同（先成功读最新台账、**不凭对话旧印象作答**、读回失败明说、六类交接、待确认不说成已定、随后等指令），不带任何缓存事实（会话历史可能过时或已被压缩）；标题取自投影读（displayContext 仍不进模型面）。普通侧栏打开旧聊天不触发；返回后自动清路径，再点「处理」走新会话+完整种子（有意设计）。
+- **实现**：`processMatter` 重开分支现经同一面板通道发续接种子——[resumeContextMessage](../../../packages/dsh-smart-assistant/src/client/desk/desk-process.ts) 只带事项身份与合同（先成功读最新台账、**不凭对话旧印象作答**、读回失败明说、六类交接、待确认不说成已定、随后等指令），不带任何缓存事实（会话历史可能过时或已被压缩）；标题取自投影读（displayContext 仍不进模型面）。普通侧栏打开旧聊天不触发；返回后自动清路径，再点「处理」走新会话+完整种子（有意设计）。
 - **证据**：spec 先红后绿（`resumeContextMessage` 两测：续接合同各要素 + 无标题降级，583 tests 全绿）；`desk-process-e2e` 13 相位无回归（双击负例仍单会话——双击被 in-flight 守卫挡下，不走重开分支）；desk-walk 新增 `resume-reopen` 相位**真机通过**：手动回桌面（路径仍绑定）→ 再点「处理」→ 重开同一会话 → `[面板] 继续处理事项` 种子在场 → 模型**重新读取**台账并诚实说「与上次读取一致（无新增记录）」再交六件套、只读（话术与截图 `.tmp/desk-walkthrough/2026-10-13T13-30-24/2b-resume-reopen.txt`，transient）。
 - **不证明**：跨日真实回访的价值（等自然观察）；种子重复的口味问题（每次桌面「处理」都交包是 Q11 确认的语义，可逆默认，本人可 steer）。
 

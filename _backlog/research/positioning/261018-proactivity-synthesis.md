@@ -61,7 +61,7 @@ intent: "把三档调研（外部主动性 UX 机制 / 开源 agent 机制 / 本
 |---|---|
 | **开口落空**：主动简报问了本人两句，零回复；事项 5 天后仍"到期无结果" | `dev/harness-home/sessions/…/session-45e89f04…`：`[SCHEDULE REMINDER]` user/message @2026-10-13T08:24:48Z 之后，turn 2 末 assistant 两句决策问句，此后无任何真人消息；`storages/schedule.json` 的 `deliveryHistory`（scheduledAt 01:00Z，deliveredAt 08:24Z，迟到 7h24m） |
 | **盯守重复**：两条同 prompt、同周一 09:00 的 weekly 落在两个会话 | 同上 `schedule.json`（`b13ddcb8`/`be578c2c` 分属两会话）；**第二条就是那次迟到投递的 turn 里模型当场 `schedule_create` 的**；机理 = 模型侧 `schedule_list` 只看当前会话（vendor `schedule/schedule/src/tools.ts:175`、`index.ts:289-312`） |
-| **看不见**：桌面头部只有 `N 件在办 · N 条等你确认 · N 条待认领`；节拍器与 curate 无任何界面 | [`projection-panel.ts:276-283`](../../../packages/dsh-smart-assistant/src/client/projection-panel.ts#L276-L283)（头部块＝h1＋计数行＋按钮；行号随 desk-side-capture 推进漂移，以结构定位为准）；[baseline](261018-proactivity-baseline.md) §五 |
+| **看不见**：桌面头部只有 `N 件在办 · N 条等你确认 · N 条待认领`；节拍器与 curate 无任何界面 | [`projection-panel.ts:276-283`](../../../packages/dsh-smart-assistant/src/client/projection/projection-panel.ts#L276-L283)（头部块＝h1＋计数行＋按钮；行号随 desk-side-capture 推进漂移，以结构定位为准）；[baseline](261018-proactivity-baseline.md) §五 |
 
 ### 3.3 已拍板、不能碰的约束（[baseline](261018-proactivity-baseline.md) §三）
 

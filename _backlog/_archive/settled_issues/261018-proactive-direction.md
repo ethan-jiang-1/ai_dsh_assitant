@@ -44,7 +44,7 @@ opened: 2026-10-18
 
 | # | 主张 | 证据与强度 | 谁能否证（怎么证） | 现状 |
 |---|---|---|---|---|
-| K1 | 桌面（唯一主对象）里没有主动性的痕迹，节拍器/curate 无界面 | **强**：桌面头部块（[`projection-panel.ts:276-283`](../../../packages/dsh-smart-assistant/src/client/projection-panel.ts#L276-L283)＝h1＋计数行＋三按钮，无主动性内容；计数行构建在 [:247-250](../../../packages/dsh-smart-assistant/src/client/projection-panel.ts#L247-L250)）＋ 全 `src/client` 大小写不敏感 grep `schedule\|maintenance\|curate` 仅 2 处命中且均非 UI（[:42](../../../packages/dsh-smart-assistant/src/client/projection-panel.ts#L42) 账本变更标签、[client/index.ts:249](../../../packages/dsh-smart-assistant/src/client/index.ts#L249) 代码注释）；[baseline](../../../_backlog/research/positioning/261018-proactivity-baseline.md) §一/§五 | 架构 agent：同上 grep 找反例 | 已证（2026-10-18 首轮核验，见评审记录·架构） |
+| K1 | 桌面（唯一主对象）里没有主动性的痕迹，节拍器/curate 无界面 | **强**：桌面头部块（[`projection-panel.ts:276-283`](../../../packages/dsh-smart-assistant/src/client/projection/projection-panel.ts#L276-L283)＝h1＋计数行＋三按钮，无主动性内容；计数行构建在 [:247-250](../../../packages/dsh-smart-assistant/src/client/projection/projection-panel.ts#L247-L250)）＋ 全 `src/client` 大小写不敏感 grep `schedule\|maintenance\|curate` 仅 2 处命中且均非 UI（[:42](../../../packages/dsh-smart-assistant/src/client/projection/projection-panel.ts#L42) 账本变更标签、[client/index.ts:249](../../../packages/dsh-smart-assistant/src/client/index.ts#L249) 代码注释）；[baseline](../../../_backlog/research/positioning/261018-proactivity-baseline.md) §一/§五 | 架构 agent：同上 grep 找反例 | 已证（2026-10-18 首轮核验，见评审记录·架构） |
 | K2 | 主动开口后没有"未答"状态：简报问了两句，会话零回复、事项 5 天无结果 | **中强**：dev home 会话日志——`[SCHEDULE REMINDER]` user/message @2026-10-13T08:24:48Z 之后，turn 2 末 assistant 两句决策问句，此后无任何真人消息＋账本现态（试车场数据，非产品采纳） | 证据 agent：zstd 解压读 `dev/harness-home/sessions/--Users-bowhead-ai_dsh_assitant--/session-45e89f04-39f9-4955-ba2a-1d50c5f46c52/session.v4.jsonl.zstd`；或指出"dev home 不代表真实使用" | 已证（2026-10-18 首轮核验，见评审记录·证据） |
 | K3 | 盯守会重复：跨会话 `schedule_list` 互不可见；dev home 已有两条同 prompt 同周一的 weekly | **强**：vendor `schedule/schedule/src/tools.ts:175`（"in the current session"）、`index.ts:289-312`（`list` 按 sessionId 过滤；跨会话全局视野只有浏览器面 `catalog` Remote，非模型工具）；`dev/harness-home/storages/schedule.json` 两条同 prompt weekly（`b13ddcb8`/`be578c2c`，分属两会话）——**且第二条就是那次迟到投递的 turn 里模型当场 `schedule_create` 的**（会话日志可回放，不是静态存量） | 架构 agent：读 vendor 源码确认 `list` 的 sessionId 过滤；或证明工具页/模型另有全局视野 | 已证（2026-10-18 首轮核验，见评审记录·架构） |
 | K4 | 本地没有"值班面"（app 不开就不动），所以主动性形态应偏"打开时补一次 / 放在待看处" | **中**：迟到 7h24m48s 是实物（`schedule.json` deliveryHistory：scheduledAt 01:00Z → deliveredAt 08:24:48Z）；"不引入常驻网关"是已拍板（[baseline](../../../_backlog/research/positioning/261018-proactivity-baseline.md) §三、开源档 N1） | 架构 agent：指出是否有既有机制能在进程外投递 | 已证（2026-10-18 首轮核验，见评审记录·证据） |
@@ -106,7 +106,7 @@ opened: 2026-10-18
 
 **架构（源码断言逐条对实物）**
 
-- K1 实质成立、原行号锚过期：计数行实际构建于 [`projection-panel.ts:247-250`](../../../packages/dsh-smart-assistant/src/client/projection-panel.ts#L247-L250)、渲染于 :279，头部块 276-283；grep `schedule|maintenance|curate`（不敏感）全 `src/client` 仅 2 处且均非 UI。**行号已随 desk-side-capture 片 1 落地漂移 +13~16 行——对活跃文件引行号须加结构锚，已修。**
+- K1 实质成立、原行号锚过期：计数行实际构建于 [`projection-panel.ts:247-250`](../../../packages/dsh-smart-assistant/src/client/projection/projection-panel.ts#L247-L250)、渲染于 :279，头部块 276-283；grep `schedule|maintenance|curate`（不敏感）全 `src/client` 仅 2 处且均非 UI。**行号已随 desk-side-capture 片 1 落地漂移 +13~16 行——对活跃文件引行号须加结构锚，已修。**
 - K3 成立且加强：`tools.ts:175` 恰为"in the current session"；`index.ts:289-295` list 按 sessionId 过滤；全局视野只有浏览器面 `catalog` Remote（:303-312）。第二条重复 weekly 是那次迟到投递 turn 里模型**当场** `schedule_create` 的。
 - proposed 卡注入/调用断言准确（`client/index.ts:66`、vendor `ui-schedule:93`）；**新事实**：本包 inject 无 `'remote.schedule'` 子面（vendor 两个都声明）——组合可行性待判。
 - Remote 面恰五个只读方法（catalog/list/update/delete/history）、无 `create`（host 装饰器与生成的 `typert.remote-client.d.ts` 双侧核）——"两源合并不写回"有机制面支撑。
@@ -131,7 +131,7 @@ opened: 2026-10-18
 - Q2：「先试跑一次」产物走**会话里（现有车道）**——桌面浮层是新 UI 面与新状态管理，会话车道已验证且与"打开时补一次"形态一致；产物由行 2 指针可达。
 - Q4：红线**不重复约束提案槽**——它已是 propose-only（天然合规），红线段落点名一句"提案槽属此类"即可，不扩范围。
 - Q5（最小实现，写入片 2/片 3 实施注意）：片 1 派生加一条对照检查——「点过'替我盯上'但排程目录中无对应 title」→ 出一行"说了替你盯但没盯上"（接受动作留客户端本地痕，同忽略封口的存储口径）；模型回合失败的最小版 = 下次桌面呈现一句事实（不归因）。
-- 纯核落点：`src/client/proactive-face.ts`——`src/domain/operating/` 是账本的家，排程目录不是账本事实，不进。
+- 纯核落点：`src/client/proactive/proactive-face.ts`——`src/domain/operating/` 是账本的家，排程目录不是账本事实，不进。
 - 注入面：实施第一步先验证本包 inject 增补 `'remote.schedule'` 后 `catalog()` 可达；不通则走 service 层 RPC 桥，不硬造。
 
 **人（2026-10-18，六问逐项拍板）**

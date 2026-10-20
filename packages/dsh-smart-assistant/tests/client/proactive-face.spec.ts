@@ -1,6 +1,6 @@
 /** Proactive face pure core (261018 片1): three honest rows from read-only sources, zero model calls. */
 import { describe, expect, it } from 'vitest'
-import { deriveProactiveFace, forgetAcceptedWatch, forgetPendingWatch, rememberAcceptedWatch, rememberPendingWatch, type ProactiveCatalogEntry, type ProactiveProjectionView } from '../../src/client/proactive-face'
+import { deriveProactiveFace, forgetAcceptedWatch, forgetPendingWatch, rememberAcceptedWatch, rememberPendingWatch, type ProactiveCatalogEntry, type ProactiveProjectionView } from '../../src/client/proactive/proactive-face'
 
 const NOW = new Date('2026-10-18T04:00:00.000Z')
 

@@ -29,7 +29,7 @@ intent: "把候选写成可递交的上游 issue 文本。"
 **中文摘要**：中文占位词把用户当「构建者」，还把 `/`@` 语法怼在第一句里——非开发者首屏第一眼就是 IDE 口吻。
 
 ```markdown
-**Where:** `packages/client/ui-conversation/src/client/locales.ts:23` (zh dictionary)
+**Where:** `packages/client/ui-conversation/src/client/chrome/locales.ts:23` (zh dictionary)
 
     'placeholder.hero': '描述你想要构建的内容, / 调用指令, @ 文件或对话'
 
@@ -52,7 +52,7 @@ affordances surface progressively (or as a secondary hint) instead of leading th
 **中文摘要**：主标题文艺而信息量不足；同屏我们自己写的平实欢迎语在两轮读数里都被评为最好文案。
 
 ```markdown
-**Where:** `packages/client/ui-conversation/src/client/locales.ts:77`
+**Where:** `packages/client/ui-conversation/src/client/chrome/locales.ts:77`
 
     'hero.headline': '探索未至之境'
 
@@ -127,7 +127,7 @@ above the body), so the document reads as a document.
 **中文摘要**：轨迹面板/工具栏整包机制词；我们自己的同类改词（线索→在跟的事）落地后读数良好，这是 vendor 面的同类项。
 
 ```markdown
-**Where:** `packages/client/ui-trajectory/src/client/locales.ts:8-9,20,131`
+**Where:** `packages/client/ui-trajectory/src/client/chrome/locales.ts:8-9,20,131`
 （`view.trajectory`: '轨迹', 'toolbar.aria': '轨迹工具栏', 'toolbar.search': '搜索轨迹',
 'history.loadingTrajectory': '正在加载轨迹…'）.
 

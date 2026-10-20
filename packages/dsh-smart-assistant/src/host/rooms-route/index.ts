@@ -5,7 +5,7 @@ import z from '@deepseek-ai/schemastery'
 import type Schema from '@deepseek-ai/schemastery'
 import type { AssistantMemory } from '../index.ts'
 import { scanLearnedSkills } from '../../domain/skills/scan.ts'
-import { createRoomsRoute, type RoomsActions, type RoomsReader } from '../rooms-route.ts'
+import { createRoomsRoute, type RoomsActions, type RoomsReader } from './route.ts'
 import { readApprovals, recordApproval } from '../approval-audit.ts'
 import type { MemoryRecord } from '../../domain/memory/record.ts'
 

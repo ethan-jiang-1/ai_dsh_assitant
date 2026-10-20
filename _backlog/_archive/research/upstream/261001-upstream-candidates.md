@@ -23,13 +23,13 @@ intent: "把散在首开各轮的 vendor 候选收成一叠可递交的条目。
 
 | # | 候选 | 首报 | vendor 锚点 | 说明 / 建议动作 |
 |---|---|---|---|---|
-| 1 | hero 占位词「描述你想要**构建**的内容, / 调用指令, @ 文件或对话」——开发视角，`/`@` 咒语同串 | R1（R16 再命中） | `packages/client/ui-conversation/src/client/locales.ts:23` | 中文产品首屏第一句是开发者口吻；`/`@` 语法对不知情的 CEO 是咒语。同串一并改 |
-| 2 | hero 主标题「探索未至之境」文艺过头 | R16 | `ui-conversation/src/client/locales.ts:77` | 我方欢迎语被判全站标杆（R13），vendor hero 与之落差明显 |
+| 1 | hero 占位词「描述你想要**构建**的内容, / 调用指令, @ 文件或对话」——开发视角，`/`@` 咒语同串 | R1（R16 再命中） | `packages/client/ui-conversation/src/client/chrome/locales.ts:23` | 中文产品首屏第一句是开发者口吻；`/`@` 语法对不知情的 CEO 是咒语。同串一并改 |
+| 2 | hero 主标题「探索未至之境」文艺过头 | R16 | `ui-conversation/src/client/chrome/locales.ts:77` | 我方欢迎语被判全站标杆（R13），vendor hero 与之落差明显 |
 | 3 | 仪表读数上脸：tok/s、缓存命中、上下文 % | R12（13/14/16 反复） | `packages/client/ui-chat/src/client/locale.ts`（缓存读数串在案） | 建议归入开发者仪表开关或收进详情层 |
 | 4 | 消息操作栏图标无文字 + 👎 提交无确认 | R16 | `ui-chat` 消息操作栏 | 👎 管线本身可靠（R5 端到端在案），缺的是「点了生效没有」的确认 |
 | 5 | 工具行渲染机器绝对路径（write/edit 变更清单） | R14 | `ui-chat` 变更清单渲染 | 违反 vendor 自家纪律 `dshHomeDisplay`（永不返回机器绝对路径）——引其内部纪律即可立 |
 | 6 | 文件预览打开原始 md，YAML frontmatter 上脸 | R14 | 侧边栏文件预览（`ui-sidebar-documentpreview`） | 我方链已剥 frontmatter（服务端 body + 面板 excerpt），仅 vendor 预览面露 |
-| 7 | 「轨迹」黑话（面板名/工具栏词汇） | R13 | `packages/client/ui-trajectory/src/client/locales.ts` | 与 R15「线索→在跟的事」同类的机制词问题，vendor 面 |
+| 7 | 「轨迹」黑话（面板名/工具栏词汇） | R13 | `packages/client/ui-trajectory/src/client/chrome/locales.ts` | 与 R15「线索→在跟的事」同类的机制词问题，vendor 面 |
 | 8 | 重进不回原会话（刷新落欢迎页） | R13 | 会话恢复面（具体缝未定位） | R16 二读未再 flag，降级为观察项 |
 | 9 | 思考预览英文 | R13 | 思考行渲染（`ui-chat`） | 模型思考流为英文，渲染面未标注语言差异 |
 

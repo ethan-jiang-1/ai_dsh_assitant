@@ -9,7 +9,7 @@
 
 import { patchDesk } from './room-data-core'
 import type { DeskData } from './room-data-core'
-import type { ApprovalLine } from '../domain/maintenance/receipt.ts'
+import type { ApprovalLine } from '../../domain/maintenance/receipt.ts'
 import { patchRoomRows, postRoomsAction, sendPrompt } from './room-data-io'
 
 /**

@@ -4,8 +4,8 @@ import { basename } from 'node:path'
 import { TextDecoder } from 'node:util'
 import { join } from 'node:path'
 import type { ConnectionFetchRoute } from '@deepseek-ai/dsh-client-connection'
-import { reviveLedgerState } from '../domain/operating/ledger.ts'
-import { renderLedgerProjection } from '../domain/operating/projection.ts'
+import { reviveLedgerState } from '../../domain/operating/ledger.ts'
+import { renderLedgerProjection } from '../../domain/operating/projection.ts'
 
 function headers(): Record<string, string> {
   return { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' }

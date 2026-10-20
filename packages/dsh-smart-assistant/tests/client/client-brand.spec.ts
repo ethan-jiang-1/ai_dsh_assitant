@@ -11,7 +11,7 @@
  */
 import { describe, expect, it } from 'vitest'
 import { inertReactShim, loadClientRegistration, materializeClient } from '../support/client-harness.ts'
-import { MARK_TEAL } from '../../src/client/theme'
+import { MARK_TEAL } from '../../src/client/chrome/theme'
 
 const registration = await loadClientRegistration()
 

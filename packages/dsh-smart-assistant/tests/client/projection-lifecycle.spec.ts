@@ -2,8 +2,8 @@
 import { Context } from '@deepseek-ai/cordis'
 import { createSnapshotStore } from '../../../../vendor/dsh/packages/client/store/lib/types/index.js'
 import { describe, expect, it, vi } from 'vitest'
-import { mountProjectionReader } from '../../src/client/projection-lifecycle'
-import type { ProjectionDownload } from '../../src/client/projection-reader'
+import { mountProjectionReader } from '../../src/client/projection/projection-lifecycle'
+import type { ProjectionDownload } from '../../src/client/projection/projection-reader'
 
 describe('projection reader apply lifecycle', () => {
   it('cancels on fiber disposal and remount reads independently without old listeners', async () => {

@@ -8,7 +8,7 @@
  * - oversized payloads, reader failures and already-aborted requests are honest errors.
  */
 import { describe, expect, it } from 'vitest'
-import { createRoomsRoute, type RoomsReader } from '../../src/host/rooms-route.ts'
+import { createRoomsRoute, type RoomsReader } from '../../src/host/rooms-route/route.ts'
 import type { KnowledgePage } from '../../src/domain/knowledge/page.ts'
 import type { MemoryRecord } from '../../src/domain/memory/record.ts'
 import type { ResearchThread } from '../../src/domain/research/thread.ts'

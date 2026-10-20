@@ -1,11 +1,11 @@
 /** Pure component: honest missing/error/stale content, full collection and real action callbacks. */
 import { createElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { bindClientRequire } from '../../src/client/runtime'
-import { ProjectionPanel } from '../../src/client/projection-panel'
-import type { ProjectionDownload } from '../../src/client/projection-reader'
-import type { OperatingMatter, OperatingProjection, OperatingReceipt } from '../../src/client/operating-projection'
-import { createProjectionViewStore } from '../../src/client/projection-view'
+import { bindClientRequire } from '../../src/client/chrome/runtime'
+import { ProjectionPanel } from '../../src/client/projection/projection-panel'
+import type { ProjectionDownload } from '../../src/client/projection/projection-reader'
+import type { OperatingMatter, OperatingProjection, OperatingReceipt } from '../../src/client/projection/operating-projection'
+import { createProjectionViewStore } from '../../src/client/projection/projection-view'
 import { defineStore } from '../../../../vendor/dsh/packages/client/store/lib/types/index.js'
 
 bindClientRequire(() => ({ createElement }))
@@ -23,8 +23,8 @@ function render(value: ProjectionDownload): string {
   return text(ProjectionPanel({ useProjection: select => select(value), useStore: select => select(view.getSnapshot()), useSessionStatus: noStatuses, actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop, onClaim: noop, onDiscard: noop, onCapture: noop, onOpenSession: noop, onWake: noop }))
 }
 /** Render with the proactive catalog hook (261018 片 1 row 3) and the tasks deep-link. */
-type CatalogState = import('../../src/client/proactive-face-source').ProactiveCatalogState
-type UiState = import('../../src/client/proactive-face').ProactiveUiState
+type CatalogState = import('../../src/client/proactive/proactive-face-source').ProactiveCatalogState
+type UiState = import('../../src/client/proactive/proactive-face').ProactiveUiState
 type StatusMap = ReadonlyMap<string, { running?: boolean, pendingInteraction?: { kind?: string } | undefined, completionUnread?: boolean }>
 function renderWithCatalog(value: ProjectionDownload, catalog: CatalogState, ui: UiState = { ignored: [], accepted: [] }, statuses: StatusMap = new Map()): { tree: string, view: ReturnType<ReturnType<typeof createProjectionViewStore>['create']>, openTasks: ReturnType<typeof vi.fn>, openSession: ReturnType<typeof vi.fn>, suggestAction: ReturnType<typeof vi.fn>, suggestDismiss: ReturnType<typeof vi.fn>, suggestCollapse: ReturnType<typeof vi.fn>, watchForget: ReturnType<typeof vi.fn>, node: unknown } {
   const view = createProjectionViewStore(defineStore).create()
@@ -545,7 +545,7 @@ describe('proactive face rows (261018 片 1)', () => {
     return { status: 'ready', data: { schemaVersion: 2 as const, ledgerId: 'test', revision: 1, matters, receipts, unclaimed } }
   }
   const overdueMatter: OperatingMatter = { id: 'm-1', title: '合同 NB-02 二期款核对', status: 'active', summary: '', responsible: '', revision: 1, times: { nextCheckpoint: daysAgo(5) }, proposals: [], evidence: [] }
-  const catalog = (entries: unknown[]): import('../../src/client/proactive-face-source').ProactiveCatalogState => ({ status: 'entries', entries: entries as never })
+  const catalog = (entries: unknown[]): import('../../src/client/proactive/proactive-face-source').ProactiveCatalogState => ({ status: 'entries', entries: entries as never })
 
   it('row 1 renders the overdue fact with one action, settled lives excluded', () => {
     const { tree, node } = renderWithCatalog(download([{ ...overdueMatter }, { ...overdueMatter, id: 'm-2', title: '已了结的旧事项', status: 'completed' }]), catalog([]))

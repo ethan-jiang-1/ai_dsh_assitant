@@ -11,10 +11,10 @@
  */
 
 import type { RoomKind } from './contracts'
-import { patchDesk, pendingInFlight, staleWarning, useDesk } from './room-data-core'
+import { patchDesk, pendingInFlight, staleWarning, useDesk } from '../rooms/room-data-core'
 import { shortTime } from './format'
-import type { DeskStore } from './room-data-core'
-import { openBeside, reloadDesk } from './room-data-io'
+import type { DeskStore } from '../rooms/room-data-core'
+import { openBeside, reloadDesk } from '../rooms/room-data-io'
 import { createElement, reactSurface } from './runtime'
 import { MARK_TEAL } from './theme'
 

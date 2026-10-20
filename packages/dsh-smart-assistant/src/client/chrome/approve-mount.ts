@@ -16,8 +16,8 @@
  * @module dsh-smart-assistant/client/approve-mount
  */
 
-import { patchDesk } from './room-data-core'
-import { getDeskRemote } from './room-data-io'
+import { patchDesk } from '../rooms/room-data-core'
+import { getDeskRemote } from '../rooms/room-data-io'
 
 /**
  * Build the typert contribution the client mounts for the knowledge-approve direct-call lane.

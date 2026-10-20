@@ -22,10 +22,10 @@
 import { bindClaimPath, bindDiscardPath, bindIntakePath, bindProcessPath, bindWakePath, canProcess, judgeClaimReturn, judgeDiscardReturn, judgeIntakeReturn, judgeReturn, judgeWakeReturn, type DeskPath } from './desk-process'
 import { claimContextMessage, discardContextMessage, processingContextMessage, resumeContextMessage, wakeContextMessage } from './desk-process-messages'
 import { createSettleRefreshObserver } from './desk-process-lifecycle'
-import { deskCaptureRequest, getDeskRemote, panelPromptRequest } from './room-data-io'
-import type { OperatingProjection } from './operating-projection'
-import type { ProjectionDownload } from './projection-reader'
-import type { DeskCaptureReceipt } from './projection-view'
+import { deskCaptureRequest, getDeskRemote, panelPromptRequest } from '../rooms/room-data-io'
+import type { OperatingProjection } from '../projection/operating-projection'
+import type { ProjectionDownload } from '../projection/projection-reader'
+import type { DeskCaptureReceipt } from '../projection/projection-view'
 
 /** The slice of a client snapshot store the arms read: a value, a subscription, a setter. */
 interface DeskArmStore<T> {

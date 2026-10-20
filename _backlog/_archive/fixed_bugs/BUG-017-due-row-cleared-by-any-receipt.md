@@ -14,7 +14,7 @@ m-1（合同 NB-02 第二期款）承诺/核对都在 2026-10-13，到期 6 天�
 
 ## 根因（假设）
 
-已确认：`deriveProactiveFace` 的到期行判据是"到期时刻之后有任何回执就清"（`src/client/proactive-face.ts`，测试 `proactive-face.spec.ts` 也钉住了这个语义），而行文案写的是"账上没有结果"。`claim` 只是把片段归户、`update` 可能只是复述"仍未到账"，都不是结果。真正要选的是判据：**任何回执算看过**，还是**只有结果类 kind 算**（complete / 带证据的 update）——这需要本人拍板，故停在等人拍板。
+已确认：`deriveProactiveFace` 的到期行判据是"到期时刻之后有任何回执就清"（`src/client/proactive/proactive-face.ts`，测试 `proactive-face.spec.ts` 也钉住了这个语义），而行文案写的是"账上没有结果"。`claim` 只是把片段归户、`update` 可能只是复述"仍未到账"，都不是结果。真正要选的是判据：**任何回执算看过**，还是**只有结果类 kind 算**（complete / 带证据的 update）——这需要本人拍板，故停在等人拍板。
 
 ## 复现
 

@@ -70,7 +70,7 @@ opened: 2026-10-08
 
 | 事项 | 现在怎样工作 | 停在什么地方；不能如何解读 | 原始依据 |
 |---|---|---|---|
-| 返回时的主动内容 | blank 会话从已读桌面生成三行播报；行动区筛掉 `done` 后取第一条，再让本人点击问进展 | 这是确定性展示和提问入口；这段实现没有按到期、变化或经营影响选出最值得本人管的行动。不能把“第一条可点”称为主动筛选已经成立 | [first-mile](../../../packages/dsh-smart-assistant/src/client/first-mile.ts#L227)、[过问入口](../../../packages/dsh-smart-assistant/src/client/desk-io.ts#L405) |
+| 返回时的主动内容 | blank 会话从已读桌面生成三行播报；行动区筛掉 `done` 后取第一条，再让本人点击问进展 | 这是确定性展示和提问入口；这段实现没有按到期、变化或经营影响选出最值得本人管的行动。不能把“第一条可点”称为主动筛选已经成立 | [first-mile](../../../packages/dsh-smart-assistant/src/client/chrome/first-mile.ts#L227)、[过问入口](../../../packages/dsh-smart-assistant/src/client/desk-io.ts#L405) |
 | 到期提醒与上下文建议 | morning-brief 要求同回合排程、到期读上下文、延期 update、完成 delete；Host schedule 有完整记录 CAS 与 FIFO | 模型工具绑定创建提醒的 Session，乙会话不能直接修改甲提醒；当前缺事项→任务/原 Session 映射与协调。receipt 只证明耐久入队，flush 后、task 写入前崩溃可能重复；排程创建成功后关联保存失败也是未闭合窗口 | [morning-brief](../../../packages/dsh-smart-assistant/presets/assistant/skills/morning-brief/SKILL.md#L14)、[技术断点与恢复](../research/tech-exploration/261009-operating-loop-feasibility.md#5-时间语义与必须解释的提交窗口) |
 | 事情的持续跟踪 | desk 记录决定/行动/缺口，允许 id、owner、due、status、metric、stop、note；桌面主 walk 从最近五个会话寻找首个有桌面的工作区 | 载体存在；`DeskData` 字段可选不等于稳定身份、状态转换与完成证据已有强制合同。主 walk 不是跨工作区全部事项汇总，跨会话接续与跨工作区汇总也须分开验证 | [DeskData](../../../packages/dsh-smart-assistant/src/client/desk-core.ts#L14)、[loadDesk](../../../packages/dsh-smart-assistant/src/client/desk-io.ts#L42) |
 | 本人反馈后怎样更新 | 拍板、办完、补数、不办等按钮发送指令进入模型回合，再要求刷新桌面 | 不是确定性的业务状态转换；“按钮有响应/文件重写”不能证明正确事项、原判断、后续提醒和结果都同步。办完指令要求记录度量变化，但不能仅凭点击称完成证据已齐 | [拍板与完成](../../../packages/dsh-smart-assistant/src/client/desk-io.ts#L388)、[补数与不办](../../../packages/dsh-smart-assistant/src/client/desk-io.ts#L435) |

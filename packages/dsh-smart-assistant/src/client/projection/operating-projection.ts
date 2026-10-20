@@ -5,7 +5,7 @@ import type {
   ProjectionMatter,
   ProjectionProposal,
   ProjectionReceipt,
-} from '../domain/operating/projection.ts'
+} from '../../domain/operating/projection.ts'
 
 /** Client accepts earlier v2 envelopes that omit the additive receipt timestamp. */
 export type OperatingEvidence = Omit<ProjectionEvidence, 'receivedAt'> & { readonly receivedAt?: ProjectionEvidence['receivedAt'] }

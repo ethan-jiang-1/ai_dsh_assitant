@@ -14,7 +14,7 @@ opened: 2026-10-19
 
 ## 根因（假设）
 
-已确认：`captureReceipt` 只活在非持久的 view store 里（`src/client/projection-view.ts` 明写 Nonpersistent），"刷新不丢"只对 `SessionStatus` 成立，对"我在等哪一条"不成立；`ProjectionPanel` 调用 `deriveProactiveFace` 时没有传 `openQuestions`（`src/client/projection-panel.ts`），所以 `N 句等你答` 是死分支。2026-10-19 的端到端探针：`inflightBeforeReload: true` → reload → `inflightAfterReload: false`、全文无"还没进账"，当时账本未变。
+已确认：`captureReceipt` 只活在非持久的 view store 里（`src/client/projection/projection-view.ts` 明写 Nonpersistent），"刷新不丢"只对 `SessionStatus` 成立，对"我在等哪一条"不成立；`ProjectionPanel` 调用 `deriveProactiveFace` 时没有传 `openQuestions`（`src/client/projection/projection-panel.ts`），所以 `N 句等你答` 是死分支。2026-10-19 的端到端探针：`inflightBeforeReload: true` → reload → `inflightAfterReload: false`、全文无"还没进账"，当时账本未变。
 
 ## 复现
 

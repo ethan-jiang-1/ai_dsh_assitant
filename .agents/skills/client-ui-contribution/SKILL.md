@@ -24,7 +24,7 @@ Worked registrations to copy from, not to restate: `vendor/dsh/packages/client/u
 ## This package
 
 - Source is multi-module at `packages/dsh-smart-assistant/src/client/`. The served artifact is `lib/client/index.js`, one classic script. Build ownership is [`docs/dev.md`](../../../docs/dev.md); the client line of the running path is [`docs/architecture.md`](../../../docs/architecture.md).
-- Entry registers through `__ModuleLoader__.load` in `src/client/index.ts`. Runtime dependencies come through the factory `require` in `src/client/runtime.ts`. Relative imports and `import type` stay in source; tsdown inlines them.
+- Entry registers through `__ModuleLoader__.load` in `src/client/index.ts`. Runtime dependencies come through the factory `require` in `src/client/chrome/runtime.ts`. Relative imports and `import type` stay in source; tsdown inlines them.
 - Type a slot registration from the slot's declared props ([slots.md](../../../vendor/dsh/docs/subsystems/slots.md)). A hand-narrowed `{ name: string }` fails because entries also carry `id`, `order`, `label`, `key`.
 - A new Remote namespace is a harness-repo typert change (the cookbook above). This package calls a namespace already in the pinned `@deepseek-ai/dsh-api-remotes/client.js` manifest (`skills`, `session`, `workspaceFiles`, `workspace`, `goals`, …). The attempted out-of-tree namespace and why it never materialized is in `notes/archived/2026-09-25-ceo-sidebar-ux.md` §四·二. Panel data that is not one of those namespaces is a file the assistant keeps in the workspace, read through `workspaceFiles`.
 

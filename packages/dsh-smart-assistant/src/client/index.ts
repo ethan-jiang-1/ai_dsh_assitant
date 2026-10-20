@@ -15,61 +15,52 @@
  * facade `__ModuleLoader__.load` (queue mode before the module system boots). The
  * emitted bundle is gated by scripts/checks/verify.mjs (clientScriptSafetyProblems).
  *
- * Module map: contracts (type mirrors) / runtime (factory require binding) / theme
- * (color contract) / room-data-core + room-data-io + room-data-actions (the rooms route's
- * room-data file: store + workspace reads & prompt sends + the panel actions' wordings — "It is
- * not the desk", per the manual) /
- * dom-utils (row + panel chrome) / format (the time formatting family) /
- * approve-mount (the knowledge-approve direct-call lane's mount) /
- * desk-view-actions (deferred activity mode intent) /
- * default-panel-selection (one root-scoped cold-start choice) / brand / commands / room-tabs / panels / dashboard /
- * first-mile / desk-process (the operating desk's arm paths: bind & return judges) /
- * desk-arms (the four arms themselves: one launch skeleton, the seed notes, the return
- * dispatch — one factory per materialization, this entry calls its `subscribe`) /
- * desk-process-messages (those arms' four seed texts) /
- * desk-process-lifecycle (settlement refresh edge owner) /
- * projection-panel + projection-lifecycle +
- * projection-reader + projection-view + operating-projection (the desktop itself — the
- * read-only operating desk) — this entry owns the facade registration, `apply` seat wiring,
+ * Module map: `chrome/` (contracts, runtime, theme, dom/format/locales, brand, commands,
+ * dashboard, first-mile, approve mount) / `rooms/` (room-data store/io/actions, panels, tabs,
+ * skills, viki, receipt, message action, drawer) / `desk/` (arms, return state machine, messages,
+ * settle refresh, view actions) / `projection/` (download reader, v1/v2 normalization, view
+ * store, panel, lifecycle) / `proactive/` (suggestions and catalog source) / `local-state`
+ * (per-tab persistence) — this entry owns the facade registration, `apply` seat wiring,
  * plugin-fiber effects, and the dependency list.
  *
  * @module dsh-smart-assistant/client
  */
 
-import type { ClientContext, ClientRequire, CommandUiRegistry, ModuleLoaderFacade } from './contracts'
-import { mountApproveRemote } from './approve-mount'
+import type { ClientContext, ClientRequire, CommandUiRegistry, ModuleLoaderFacade } from './chrome/contracts'
+import { mountApproveRemote } from './chrome/approve-mount'
 import {
   deskSlice, expirePending, getDeskStore, initDeskStore, looksLikeDesk,
   settlePending,
-} from './room-data-core'
-import type { DeskStore } from './room-data-core'
-import { bindDeskEnv, loadDesk, loadDeskFor, loadSkillBody, newestSessionId, openBeside } from './room-data-io'
-import { approveKnowledgePage, correctMemory, deprecateKnowledgePage, retireMemory, retireSkill } from './room-data-actions'
-import { ReceiptView, markReceiptRead, readReceiptSince, resetReceiptBaseline } from './receipt-view'
-import { AssistantBrandMark, AssistantBrandName, AssistantHeroMark } from './brand'
-import { deskCommands, roomCommands } from './commands'
-import { createDeskActivityHandoff } from './desk-view-actions'
-import { DashboardMainPanel, DashboardPanelIcon } from './dashboard'
-import { ApprovalDockBanner, FirstMileDock } from './first-mile'
-import { KnowledgeTabBody, MemoryTabBody, SkillsTabBody, VikiTabBody, roomTabTitle } from './room-tabs'
-import { KnowledgeIcon, KnowledgePanel, MemoryIcon, MemoryPanel } from './panels'
-import { SkillsIcon, SkillsPanel } from './skills-panel'
-import { RememberAction } from './message-action'
-import { createElement } from './runtime'
-import { VikiIcon, VikiPanel } from './viki-panel'
-import { bindVikiEnv, deleteViki, getVikiView, loadViki, loadVikiBody, referencesViki, resetVikiView, restoreViki, useVikiView } from './viki-data-io'
-import { bindClientRequire, clientRequire } from './runtime'
-import { ensureThemeVars } from './theme'
-import { ProjectionPanel } from './projection-panel'
-import { mountProjectionReader } from './projection-lifecycle'
-import type { ProjectionDownload } from './projection-reader'
-import { createProjectionViewStore } from './projection-view'
-import type { CaptureStatus, DeskPath } from './desk-process'
-import { createDeskArms } from './desk-arms'
-import { createProactiveCatalogSource, type ProactiveCatalogState, type ProactiveRemoteLike } from './proactive-face-source'
-import { forgetAcceptedWatch, forgetPendingWatch, PROACTIVE_SUGGESTIONS, rememberPendingWatch, type AcceptedWatch, type PendingWatch, type ProactiveUiState } from './proactive-face'
-import { selectDashboardByDefault } from './default-panel-selection'
-import { en as firstMileEn, zh as firstMileZh } from './locales'
+} from './rooms/room-data-core'
+import type { DeskStore } from './rooms/room-data-core'
+import { bindDeskEnv, loadDesk, loadDeskFor, loadSkillBody, newestSessionId, openBeside } from './rooms/room-data-io'
+import { approveKnowledgePage, correctMemory, deprecateKnowledgePage, retireMemory, retireSkill } from './rooms/room-data-actions'
+import { ReceiptView, markReceiptRead, readReceiptSince, resetReceiptBaseline } from './rooms/receipt-view'
+import { AssistantBrandMark, AssistantBrandName, AssistantHeroMark } from './chrome/brand'
+import { deskCommands, roomCommands } from './chrome/commands'
+import { createDeskActivityHandoff } from './desk/desk-view-actions'
+import { DashboardMainPanel, DashboardPanelIcon } from './chrome/dashboard'
+import { ApprovalDockBanner, FirstMileDock } from './chrome/first-mile'
+import { KnowledgeTabBody, MemoryTabBody, SkillsTabBody, VikiTabBody, roomTabTitle } from './rooms/room-tabs'
+import { KnowledgeIcon, KnowledgePanel, MemoryIcon, MemoryPanel } from './rooms/panels'
+import { SkillsIcon, SkillsPanel } from './rooms/skills-panel'
+import { RememberAction } from './rooms/message-action'
+import { createElement } from './chrome/runtime'
+import { VikiIcon, VikiPanel } from './rooms/viki-panel'
+import { bindVikiEnv, deleteViki, getVikiView, loadViki, loadVikiBody, referencesViki, resetVikiView, restoreViki, useVikiView } from './rooms/viki-data-io'
+import { bindClientRequire, clientRequire } from './chrome/runtime'
+import { ensureThemeVars } from './chrome/theme'
+import { ProjectionPanel } from './projection/projection-panel'
+import { mountProjectionReader } from './projection/projection-lifecycle'
+import type { ProjectionDownload } from './projection/projection-reader'
+import { createProjectionViewStore } from './projection/projection-view'
+import type { CaptureStatus, DeskPath } from './desk/desk-process'
+import { createDeskArms } from './desk/desk-arms'
+import { createProactiveCatalogSource, type ProactiveCatalogState, type ProactiveRemoteLike } from './proactive/proactive-face-source'
+import { forgetAcceptedWatch, forgetPendingWatch, PROACTIVE_SUGGESTIONS, rememberPendingWatch, type ProactiveUiState } from './proactive/proactive-face'
+import { readProactiveUi, readSeenRunning, writeProactiveUi, writeSeenRunning } from './local-state'
+import { selectDashboardByDefault } from './chrome/default-panel-selection'
+import { en as firstMileEn, zh as firstMileZh } from './chrome/locales'
 
 /** Slots this face occupies (single-occupant, root-scope, declared by the sidebar). */
 const inject = ['slots', 'sidebarRightTabs', 'sidebarRight', 'sessions', 'remote', 'remote.agentPresets', 'remote.workspaceFiles', 'remote.session', 'remote.schedule', 'layout', 'connection', 'uiSession', 'workspaces', 'uiWorkspace', 'locale']
@@ -118,7 +109,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       }, DashboardPanelIcon))
     const storeApi = typeof document === 'undefined' ? undefined : clientRequire<{
       createSnapshotStore<T>(initial: T): { getSnapshot(): T; subscribe(listener: () => void): () => void; set(value: T): void }
-      defineStore: import('./projection-view').DefineProjectionViewStore
+      defineStore: import('./projection/projection-view').DefineProjectionViewStore
     }>('@deepseek-ai/dsh-client-store')
     const projection = storeApi?.createSnapshotStore<ProjectionDownload>({ status: 'disconnected' })
     const reader = projection === undefined ? undefined : mountProjectionReader(ctx, ctx.connection, projection, {
@@ -139,24 +130,6 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         ...(pending === undefined || pending === null ? {} : { pendingInteraction: typeof pending.kind === 'string' ? { kind: pending.kind } : {} }),
         ...(completionUnread === true ? { completionUnread: true } : {}),
       }
-    }
-    // 261019: which sessions this page has actually watched run. The platform's `completionUnread`
-    // is the primary "it finished while you were away" mark, but it can be lost for a turn that
-    // ran in a background session (observed in the 先试跑 lane); seeing the session run at least
-    // once lets the receipt settle honestly instead of waiting on a ledger write that will never
-    // come. The set is per TAB, stored alongside the receipt: a reload keeps the fact that the
-    // turn already ran, otherwise a finished trial would come back saying "排队，等它接手".
-    const SEEN_RUNNING_KEY = 'dsha-capture-seen-running-v1'
-    const readSeenRunning = (): Set<string> => {
-      try {
-        if (typeof sessionStorage === 'undefined') return new Set()
-        const raw = sessionStorage.getItem(SEEN_RUNNING_KEY)
-        const ids = raw === null ? [] : JSON.parse(raw) as unknown
-        return new Set(Array.isArray(ids) ? ids.filter((id): id is string => typeof id === 'string') : [])
-      } catch { return new Set() }
-    }
-    const writeSeenRunning = (ids: ReadonlySet<string>): void => {
-      try { if (typeof sessionStorage !== 'undefined') sessionStorage.setItem(SEEN_RUNNING_KEY, JSON.stringify([...ids])) } catch { /* memory-only */ }
     }
     const seenRunning = readSeenRunning()
     const readStatuses = (): ReadonlyMap<string, CaptureStatus> => new Map(
@@ -183,41 +156,6 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       const remoteFace = ctx.remote as ProactiveRemoteLike | undefined
       const source = createProactiveCatalogSource({ effect: install => ctx.effect(install), remote: remoteFace })
       ctx.effect(() => source.subscribe(() => { proactiveCatalog.set(source.getSnapshot()) }))
-    }
-    // 片 2 (261018 proactive):「让它替你盯」UI state — dismissed suggestions and remembered
-    // acceptances. Client-local by adjudication (忽略封口 + acceptance trace): it remembers
-    // the principal's own clicks and nothing about schedules; localStorage when available.
-    // 261019 片 4: pending watches are keyed by the DELIVERY SESSION, not the model-built title.
-    const PROACTIVE_UI_KEY = 'dsha-proactive-ui-v1'
-    const readProactiveUi = (): ProactiveUiState => {
-      try {
-        const raw = typeof localStorage === 'undefined' ? null : localStorage.getItem(PROACTIVE_UI_KEY)
-        if (raw === null) return { ignored: [], accepted: [] }
-        const parsed = JSON.parse(raw) as { ignored?: unknown, accepted?: unknown, pendingWatches?: unknown, collapsed?: unknown }
-        const accepted = Array.isArray(parsed.accepted)
-          ? parsed.accepted.filter((item): item is AcceptedWatch =>
-              typeof item === 'object' && item !== null && typeof (item as AcceptedWatch).id === 'string' && typeof (item as AcceptedWatch).title === 'string')
-          : []
-        const pending = Array.isArray(parsed.pendingWatches)
-          ? parsed.pendingWatches.filter((item): item is PendingWatch =>
-              typeof item === 'object' && item !== null
-              && typeof (item as PendingWatch).id === 'string' && typeof (item as PendingWatch).name === 'string'
-              && typeof (item as PendingWatch).at === 'string' && typeof (item as PendingWatch).sessionId === 'string')
-          : []
-        // One acceptance per title / per pending name (261019): an older build could append a
-        // second entry; the stored state is healed on read instead of rendering two rows.
-        return {
-          ignored: Array.isArray(parsed.ignored) ? parsed.ignored.filter((id): id is string => typeof id === 'string') : [],
-          accepted: [...new Map(accepted.map(item => [item.title, item])).values()],
-          pendingWatches: [...new Map(pending.map(item => [item.name, item])).values()],
-          collapsed: parsed.collapsed === true,
-        }
-      } catch {
-        return { ignored: [], accepted: [] }
-      }
-    }
-    const writeProactiveUi = (state: ProactiveUiState): void => {
-      try { if (typeof localStorage !== 'undefined') localStorage.setItem(PROACTIVE_UI_KEY, JSON.stringify(state)) } catch { /* memory-only */ }
     }
     const proactiveUi = storeApi?.createSnapshotStore<ProactiveUiState>(readProactiveUi())
     const suggestName = (id: string): string | undefined => PROACTIVE_SUGGESTIONS.find(suggestion => suggestion.id === id)?.name

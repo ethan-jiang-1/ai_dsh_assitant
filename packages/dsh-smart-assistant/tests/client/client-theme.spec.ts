@@ -9,18 +9,25 @@
  * `--dsha-*` contract block (theme.ts) — so the AA claim is checked against that block's LIGHT
  * values (the dark values ride vendor statics and the dark palette, not white).
  *
- * S2 (261007 bigfile-split): the source is multi-module now — the whole-color scan reads
- * every `src/client/*.ts` and the contract block comes from theme.ts.
+ * S2 (261007 bigfile-split): the source is multi-module now — the whole-color scan walks
+ * every `.ts` under `src/client/` and the contract block comes from `chrome/theme.ts`.
  */
 import { describe, expect, it } from 'vitest'
 import { readdirSync, readFileSync } from 'node:fs'
 
 const clientDir = new URL('../../src/client/', import.meta.url)
 
-const source = readdirSync(clientDir)
-  .filter(name => name.endsWith('.ts'))
-  .sort()
-  .map(name => readFileSync(new URL(name, clientDir), 'utf8'))
+/** Every `.ts` under the client tree, sorted by path (the source is grouped into subdirs). */
+function collect(dir: URL): URL[] {
+  return readdirSync(dir, { withFileTypes: true }).flatMap(entry => {
+    const child = new URL(`${entry.name}${entry.isDirectory() ? '/' : ''}`, dir)
+    return entry.isDirectory() ? collect(child) : entry.name.endsWith('.ts') ? [child] : []
+  })
+}
+
+const source = collect(clientDir)
+  .sort((left, right) => left.pathname.localeCompare(right.pathname))
+  .map(file => readFileSync(file, 'utf8'))
   .join('\n')
 
 describe('color contract (R8/R11)', () => {

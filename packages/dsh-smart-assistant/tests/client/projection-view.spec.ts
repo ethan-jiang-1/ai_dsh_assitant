@@ -1,7 +1,7 @@
 /** View store only: selection and return survive remounts; no business projection in state. */
 import { defineStore } from '../../../../vendor/dsh/packages/client/store/lib/types/index.js'
 import { describe, expect, it } from 'vitest'
-import { createProjectionViewStore } from '../../src/client/projection-view'
+import { createProjectionViewStore } from '../../src/client/projection/projection-view'
 
 describe('projection viewing state', () => {
   it('selects an arbitrary matter, returns without losing selection and retains list position', () => {

@@ -12,9 +12,9 @@ import type { DeskData } from './room-data-core'
 import {
   buildReceipt,
   type Receipt, type ReceiptChange, type ReceiptRoom, type ReceiptSnapshot,
-} from '../domain/maintenance/receipt.ts'
-import { createElement, reactSurface } from './runtime'
-import { MARK_TEAL } from './theme'
+} from '../../domain/maintenance/receipt.ts'
+import { createElement, reactSurface } from '../chrome/runtime'
+import { MARK_TEAL } from '../chrome/theme'
 
 const STORAGE_KEY = 'dsha:receipt-since'
 let fallbackSince: string | undefined

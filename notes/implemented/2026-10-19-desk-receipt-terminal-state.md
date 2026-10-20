@@ -11,7 +11,7 @@
 
 ## 决定
 
-**回执有五个相位**（纯核 `capturePhase`，`src/client/desk-process.ts`）：
+**回执有五个相位**（纯核 `capturePhase`，`src/client/desk/desk-process.ts`）：
 
 | 相位 | 判据（按优先级） | 桌面表现 |
 |---|---|---|

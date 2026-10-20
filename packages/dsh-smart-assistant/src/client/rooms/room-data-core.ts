@@ -15,9 +15,9 @@
  * @module dsh-smart-assistant/client/room-data-core
  */
 
-import { shortTime } from './format'
-import { reactSurface } from './runtime'
-import type { ApprovalLine } from '../domain/maintenance/receipt.ts'
+import { shortTime } from '../chrome/format'
+import { reactSurface } from '../chrome/runtime'
+import type { ApprovalLine } from '../../domain/maintenance/receipt.ts'
 
 /** One rooms projection as the host route renders it (the panel's data source; A1a). */
 export interface DeskData {

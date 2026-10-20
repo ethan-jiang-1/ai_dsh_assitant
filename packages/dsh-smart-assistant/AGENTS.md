@@ -48,7 +48,7 @@
    （组合测试与 `release-smoke` 消费 `lib/` 产物，不 build 会拿到旧行为）与 `pnpm eval`
    （行为回归：真实请求跑一遍，判定读会话日志——改 persona/工具描述/家手册/协作边界时它是唯一会红的那层）。
 4. **客户端色值走主题，不写死**：平台 token 与组件规则在 `vendor/dsh/docs/web-styling.md`。本条只写本包的落点：中性角色（文字/背景/边框）一律消费 vendor `--dsw-alias-*` 语义
-   alias；warn/accent 走 `src/client/theme.ts` 的 `ensureThemeVars` 注入的 `--dsha-*` 契约块
+   alias；warn/accent 走 `src/client/chrome/theme.ts` 的 `ensureThemeVars` 注入的 `--dsha-*` 契约块
    （亮值自带、暗值引用 vendor statics——vendor amber 阶无亮面 ≥AA 档、teal 不在其调色板）；
    组件样式零字面色值，唯品牌 SVG 的白色剪影除外（固定 logo 色，自绘背景）。AA 由
    `tests/client/client-theme.spec.ts` 的色彩契约测试持有（组件零字面色 + 契约亮值逐个 ≥4.5:1）。

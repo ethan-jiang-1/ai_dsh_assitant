@@ -1,7 +1,7 @@
 /** The processing path's session-settle refresh edge, isolated from the entry wiring. */
 import { describe, expect, it, vi } from 'vitest'
-import { bindProcessPath } from '../../src/client/desk-process.ts'
-import { createSettleRefreshObserver } from '../../src/client/desk-process-lifecycle.ts'
+import { bindProcessPath } from '../../src/client/desk/desk-process.ts'
+import { createSettleRefreshObserver } from '../../src/client/desk/desk-process-lifecycle.ts'
 
 describe('processing path settle refresh lifecycle', () => {
   it('refreshes once on each running-to-settled edge for the bound path', () => {
