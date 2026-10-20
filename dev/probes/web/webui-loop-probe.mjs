@@ -24,7 +24,7 @@
 // Usage:
 //   node dev/probes/web/webui-loop-probe.mjs '<gui-url>' [--ask 'question']
 //        [--follow-up 'second question'] [--walk '["msg2","msg3"]'] [--dislike] [--size 1600,1000]
-//        [--keep-browser] [--quiet]
+//        [--keep-browser] [--quiet] [--home <dir>]
 //
 //   '<gui-url>'  the booted GUI URL including its ?token= (preflight-green
 //                URLs are the intended input)
@@ -45,6 +45,13 @@
 //   --dislike    rate the LAST assistant message 👎 with a category and a
 //                remark — exercises the feedback pipeline the friction
 //                report (§7) runs on.
+//   --home <dir> where the target instance's sessions live, for the verdict's
+//                sessionId join key. Resolution mirrors the other dev tools:
+//                this flag > ASSISTANT_DSH_HOME > the repo dev home. The
+//                session is identified by DIFFING the sessions tree before
+//                and after the run (session-logs.mjs sessionSnapshot) — the
+//                "newest session dir" guess this replaces misattributes
+//                sessions under parallel runs (audit 261020 #20).
 //   --quiet      print only the JSON verdict (no progress lines)
 //
 // Prints one JSON verdict object on stdout. Exits 0 when every expectation
@@ -58,6 +65,8 @@ import process from 'node:process';
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpDir } from '../../env/tmp.mjs';
+import { devHome } from '../../env/home.mjs';
+import { sessionSnapshot, sessionsCreatedBetween } from '../../lib/session-logs.mjs';
 import { flag, option, sleep } from './probe-utils.mjs';
 import { buttonByText, clickByText, pasteUntilSendable, pollUntil, sendClick, sendEnabled, turnRunning } from './dialogue.mjs';
 
@@ -91,6 +100,12 @@ if (ask !== undefined && ask.trim().length === 0) {
   process.exit(2);
 }
 
+// sessionId 的 join key（审计 261020 #20）：跑前快照 → 跑后差集 = 本次驱动新建的会话。home 的
+// 解析与其它 dev 工具同一优先级（--home > ASSISTANT_DSH_HOME > 仓内 dev home）——实例起在一次性
+// home 时用同一个出口把它传进来，否则差集为空；判决里的 sessionHome 如实记录读了哪个 home。
+const sessionHome = devHome(option(args, 'home'));
+const sessionsBefore = sessionSnapshot(sessionHome);
+
 const verdict = {
   booted: false,
   // First-open surface (product-owned promises): the ledger desk page is the default main area
@@ -112,6 +127,12 @@ const verdict = {
   exceptions: [],
   screenshot: null,
   capturedAt: new Date().toISOString(),
+  // 会话指针：sessionId = 差集唯一时的新建会话目录名（join key），多个/零个时为 null
+  //（不猜——「最新会话目录」推断正是被审计点名的病）；createdSessions 全列；surface-only
+  // 跑不建会话，保持空。
+  sessionHome,
+  sessionId: null,
+  createdSessions: [],
 };
 
 const handle = await launchCdpBrowser({ url: guiUrl, windowSize: size }).catch((error) => ({ failed: String(error?.message ?? error) }));
@@ -342,6 +363,13 @@ try {
 } finally {
   verdict.consoleProblems = consoleProblems.slice(0, 10);
   verdict.exceptions = exceptions.slice(0, 10);
+  // 会话指针在这里落定（回合已跑完，会话目录已在盘上）：差集唯一 ⇒ sessionId；多个 ⇒ 并行
+  // 会话在同一 home 里也建了会话，此时不猜（列全 createdSessions 让人自己判）。
+  if (wantsTurn) {
+    const created = sessionsCreatedBetween(sessionsBefore, sessionSnapshot(sessionHome));
+    verdict.createdSessions = created;
+    verdict.sessionId = created.length === 1 ? created[0] : null;
+  }
   // A JSON verdict without the frame it describes makes "rendered but wrong" indistinguishable
   // from "good". Capture before the browser is settled, and keep the failure visible in the verdict.
   try {

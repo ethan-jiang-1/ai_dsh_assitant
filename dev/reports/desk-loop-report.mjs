@@ -29,10 +29,10 @@
  */
 import { join, resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { classifyUserMessage, readEvents, sessionLogs, stripPanelMarker } from '../lib/session-logs.mjs'
+import { classifyUserMessage, readEvents, sessionLogs, stripPanelMarker, stripPreamble } from '../lib/session-logs.mjs'
+import { TASK_PROMPTS, isEvalOneShot } from '../lib/eval-sessions.mjs'
 import { devHome } from '../env/home.mjs'
 import { argumentsText } from '../eval/checks.mjs'
-import { TASKS } from '../eval/tasks.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 // 与 dev/env/dsh.mjs 同一条硬规则：永不继承 DSH_HOME（见 dev/usage-report.mjs 的同名说明）
@@ -43,9 +43,6 @@ const REPEAT_WINDOW_MS = 15 * 60 * 1000
 /** 家的四房间工具（`assistant_memory` / `assistant_knowledge` / `assistant_research` / `assistant_reflect`）。 */
 const HOME_TOOLS = new Set(['assistant_memory', 'assistant_knowledge', 'assistant_research', 'assistant_reflect'])
 const REACTION_WINDOW_MS = 10 * 60 * 1000
-
-/** 评测会话的题面（评测判定的证据之一；另一条在 source 层——面板消息带 rpcId，见 buildSession）。 */
-const TASK_PROMPTS = TASKS.map(task => task.prompt)
 
 /**
  * 面板消息 → 动作名。模板的 owner 是 `client/index.ts` 的各 sender，这里只认**签名**（不复制文案全文）。
@@ -111,26 +108,8 @@ function speakerOf(event) {
 }
 
 /**
- * 剥掉粘在**首轮**前面的协作边界前言。
- *
- * 前言是 harness 注入的，落盘时挂在第一条 user/message 的正文前面（`source.kind` 仍是 `'user'`，
- * 所以结构判定分不出来——这是第四个被真机抓出来的读数缺陷，2026-09-27）：它会整段冒充"本人的话"
- * （§5/§6 里出现一串 `[Collaboration boundary] You may change the working tree…`），也会把面板消息的
- * `[面板] ` 前缀顶掉。剥法是机械的：以该标记开头 ⇒ 丢掉第一个空行（含）之前的部分；剩下的才是他说的话。
- * @param text - 消息纯文本。
- * @returns 剥掉前言后的正文（可能为空＝这一轮没有人的内容）。
- */
-function stripPreamble(text) {
-  const marker = '[Collaboration boundary]'
-  const trimmed = text.trimStart()
-  if (!trimmed.startsWith(marker)) return text
-  const rest = trimmed.slice(marker.length)
-  const blank = rest.indexOf('\n\n')
-  return blank < 0 ? '' : rest.slice(blank + 2)
-}
-
-/**
  * 把一个会话切成"反应窗"：每条用户消息之后、下一条用户消息之前的工具调用。
+ * （剥协作边界前言的 stripPreamble 与评测会话判据都已收进 dev/lib——判据只有一份。）
  * @param events - 一个会话的事件序列（seq 序）。
  * @returns `{ message, at, tools }` 列表。
  */
@@ -207,11 +186,12 @@ export function buildSession(log, events) {
   return {
     id: sessionIdOf(log),
     startedAt: Number(events[0]?.time ?? windows[0].at),
-    // 评测会话判定：题面命中 **且** 整个会话只有那一条消息 **且** 那条消息不走面板。
-    // 第三个条件是 BUG-002 的修复（2026-10-01 真实命中）：某条评测的题面恰好也是面板文案，"只点一下、之后
-    // 一个字没说"的真人会话同形——判别子必须在消息文本之外。它就在 source 里：评测是 headless one-shot，
+    // 评测会话判定（判据唯一家 = dev/lib/eval-sessions.mjs，usage/observe 同用）：题面命中
+    // **且** 整个会话只有那一条消息 **且** 那条消息不走面板。第三个条件是 BUG-002 的修复
+    // （2026-10-01 真实命中）：某条评测的题面恰好也是面板文案，"只点一下、之后一个字没说"的
+    // 真人会话同形——判别子必须在消息文本之外。它就在 source 里：评测是 headless one-shot，
     // 题面经 argv 进来（source 是裸 `{kind:"user"}`，无 rpcId），而面板消息必带 `rpcId: desk-…`。
-    evalRun: windows.length === 1 && TASK_PROMPTS.includes(windows[0].message.trim()) && windows[0].panel !== true,
+    evalRun: isEvalOneShot(windows),
     windows,
     feedback: feedbackOf(events),
   }

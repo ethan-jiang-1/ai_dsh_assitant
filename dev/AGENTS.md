@@ -30,7 +30,7 @@ roster 行可替换、两个 profile patch 语义不可互换），此处不复�
 | `profiles/` | 基础 profile patch（setup 拷贝进 home 的源；`profile-patch-expert.yml` 是 expert-setup 的装配件，非 setup 源） |
 | `probes/session/` | one-shot 探针 patch（preset-runner / expert / recall / replay） |
 | `probes/web/` | 浏览器探针（preflight / shots / web-expected / loop-probe / **approve-direct** / desk 走查·e2e（`desk-process-e2e` dispatcher + `-flow`/`-claim`/`-wake` 三场景）·接续 web 回归（`desk-continuity-live`）·晨报 web 回归（`desk-daily-brief-live`）·投影下载 / projection 系 + CDP 驱动 + 比对纯核 + replay 适配 + 共享库三件：`dialogue`（对话习语，含按文案找/点按钮的 `buttonByText` / `clickByText`）/ `probe-service`（自编排服务）/ `probe-utils`（参数与 sleep）） |
-| `lib/` | **跨目录共享库**（谁都不属于，只被 import）：`session-logs`（会话日志发现/解压/分类的判据核——报告、评测、探针同用一份）、`continuity-core`（接续评测的判据核：种子前置、工具调用解析、六类交接判定、账本不变式） |
+| `lib/` | **跨目录共享库**（谁都不属于，只被 import）：`session-logs`（会话日志发现/解压/分类 + 会话目录快照/差集的判据核——报告、评测、探针同用一份）、`eval-sessions`（评测会话剔除判据核：题面命中且单消息非面板——desk-loop/usage/observe 三报告同源共用）、`continuity-core`（接续评测的判据核：种子前置、工具调用解析、六类交接判定、账本不变式） |
 | `fixtures/` | keyless 回放夹具（llm-replay）与投影/处理流夹具（desk-projection、desk-process） |
 | `eval/` | 行为/领域评测（不与单元测试合并） |
 | `reports/` | usage / desk-loop / 输入观察报告 |

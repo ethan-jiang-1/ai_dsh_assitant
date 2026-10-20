@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * 会话日志的读取核：发现日志文件、解压成事件、把一条消息判成"本人 / 注入前导 / 面板"。
+ * 会话日志的读取核：发现日志文件、解压成事件、把一条消息判成"本人 / 注入前导 / 面板"、
+ * 以及会话目录快照（探针判决的 sessionId 取法）。
  *
  * 为什么单独成库（片 7）：这套判据在仓里被跨目录 import 过多次——报告、评测、探针都要同一份
  * 事实（例如 classifyUserMessage 的注释自证过"判据必须只有一份，各写一份已漂移过两次"）。
@@ -64,6 +65,45 @@ export function readEvents(log) {
 }
 
 /**
+ * 一个 home 当下的会话目录名快照（`session-<uuid>`，跨全部 project 子目录）。
+ *
+ * 为什么是"快照"而不是"取最新"（261020 深审 #20）：`capturedAt` 解决了探针判决的时钟，没解决
+ * join key——日志↔截图对时此前靠「最新会话目录」推断，并行会话下最新目录会指到**别人的**会话。
+ * 正确取法是差集：探针跑前/跑后各取一次快照，多出来的才是本次驱动新建的会话。
+ * 为什么按目录名而不是按日志文件：会话创建即 mkdir（vendor session-persistence-jsonl），
+ * 日志写出有时序差，差集不该依赖「日志已落盘」。
+ * @param home - DSH home。
+ * @returns `session-<uuid>` 目录名集合（home 没有 sessions 树时为空集）。
+ */
+export function sessionSnapshot(home) {
+  const sessionsRoot = join(home, 'sessions')
+  const names = new Set()
+  if (!existsSync(sessionsRoot)) return names
+  for (const project of readdirSync(sessionsRoot)) {
+    let entries = []
+    try {
+      entries = readdirSync(join(sessionsRoot, project), { withFileTypes: true })
+    } catch {
+      continue
+    }
+    for (const entry of entries) {
+      if (entry.isDirectory() && entry.name.startsWith('session-')) names.add(entry.name)
+    }
+  }
+  return names
+}
+
+/**
+ * 两次快照之间新建的会话目录（差集 = 本次运行驱动的会话，见 sessionSnapshot 的取法说明）。
+ * @param before - 跑前快照。
+ * @param after - 跑后快照。
+ * @returns 新建的 `session-<uuid>` 目录名数组（可能为空）。
+ */
+export function sessionsCreatedBetween(before, after) {
+  return [...after].filter(name => !before.has(name))
+}
+
+/**
  * 一条 `user/message` 的纯文本。
  * @param event - 事件对象。
  * @returns 拼接后的文本（非文本块忽略）。
@@ -115,4 +155,24 @@ export function classifyUserMessage(event) {
 /** 剥掉面板消息开头的标记（两代都认）；不是面板消息则原样返回。 */
 export function stripPanelMarker(text) {
   return text.replace(/^\s*\[(?:面板|桌面)\]\s?/u, '')
+}
+
+/**
+ * 剥掉粘在**首轮**前面的协作边界前言。
+ *
+ * 前言是 harness 注入的，落盘时挂在第一条 user/message 的正文前面（`source.kind` 仍是 `'user'`，
+ * 所以结构判定分不出来——2026-09-27 真机抓出的读数缺陷）：它会整段冒充"本人的话"，也会把面板
+ * 消息的 `[面板] ` 前缀顶掉。剥法是机械的：以该标记开头 ⇒ 丢掉第一个空行（含）之前的部分；
+ * 剩下的才是人说的话。原住在 desk-loop-report.mjs；评测会话判据（`dev/lib/eval-sessions.mjs`）
+ * 要剥同一层，判据只有一份（本模块的立库理由）。
+ * @param text - 消息纯文本。
+ * @returns 剥掉前言后的正文（可能为空＝这一轮没有人的内容）。
+ */
+export function stripPreamble(text) {
+  const marker = '[Collaboration boundary]'
+  const trimmed = text.trimStart()
+  if (!trimmed.startsWith(marker)) return text
+  const rest = trimmed.slice(marker.length)
+  const blank = rest.indexOf('\n\n')
+  return blank < 0 ? '' : rest.slice(blank + 2)
 }

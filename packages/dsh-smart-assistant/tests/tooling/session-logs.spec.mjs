@@ -8,7 +8,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { classifyUserMessage, sessionLogs } from '../../../../dev/lib/session-logs.mjs'
+import { classifyUserMessage, sessionLogs, sessionSnapshot, sessionsCreatedBetween, stripPreamble } from '../../../../dev/lib/session-logs.mjs'
 
 const dirs = []
 
@@ -41,6 +41,36 @@ describe('classifyUserMessage', () => {
     expect(classifyUserMessage({ data: { content: [{ type: 'text', text: 'Time sampled while preparing turn 2, step 1: 2026-10-04T18:33:08+08:00' }] } })).toBe('injected')
     expect(classifyUserMessage({ data: { content: [{ type: 'text', text: '[桌面] 我批准知识页「管理视角 · 财务」。' }] } })).toBe('panel')
     expect(classifyUserMessage({ data: { content: [{ type: 'text', text: '大客户要求再让 5 个点。' }] } })).toBe('principal')
+  })
+})
+
+describe('sessionSnapshot / sessionsCreatedBetween', () => {
+  it('diffs what a run created — directory names, not log files, and a missing tree is empty', () => {
+    const home = temp('home-')
+    const project = join(home, 'sessions', '--tmp-probe--')
+    mkdirSync(join(project, 'session-before-run'), { recursive: true })
+    const before = sessionSnapshot(home)
+    expect([...before]).toEqual(['session-before-run'])
+    // A log-less new directory still counts: the session dir is mkdir'd at creation while the log
+    // file lands later — the probes' before/after diff must not depend on log write-out timing
+    // (audit 261020 #20: the "newest session dir" guess this replaces misattributes sessions).
+    mkdirSync(join(project, 'session-created-mid-run'), { recursive: true })
+    expect(sessionsCreatedBetween(before, sessionSnapshot(home))).toEqual(['session-created-mid-run'])
+    // A home with no sessions tree snapshots as empty, not an error (fresh throwaway homes).
+    expect([...sessionSnapshot(join(home, 'no-sessions-here'))]).toEqual([])
+  })
+})
+
+describe('stripPreamble', () => {
+  it('drops the collaboration boundary up to the first blank line, and keeps clean text as-is', () => {
+    // The preamble arrives glued to the FIRST user message while `source.kind` stays 'user', so no
+    // structural judge can see it — the strip is mechanical (originally desk-loop's, now shared
+    // with the eval-session criterion: one judge, one home).
+    expect(stripPreamble('[Collaboration boundary] You may change the working tree.\n\n季末签单的事我想好了。'))
+      .toBe('季末签单的事我想好了。')
+    // Preamble-only turn: nothing human left (an empty turn is no window at all).
+    expect(stripPreamble('[Collaboration boundary] You may change the working tree.')).toBe('')
+    expect(stripPreamble('你好，接着上次的说。')).toBe('你好，接着上次的说。')
   })
 })
 

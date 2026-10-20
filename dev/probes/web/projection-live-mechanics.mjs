@@ -21,6 +21,7 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSyn
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { tmpDir } from '../../env/tmp.mjs'
+import { sessionSnapshot, sessionsCreatedBetween } from '../../lib/session-logs.mjs'
 import { launchCdpBrowser } from './cdp-driver.mjs'
 import { option, sleep } from './probe-utils.mjs'
 import { clickByText, deskText, pollUntil } from './dialogue.mjs'
@@ -33,9 +34,19 @@ const args = process.argv.slice(2)
 const home = option(args, 'home', join(tmpDir('probe-home'), 'k4-probe-home'))
 const keepService = args.includes('--keep-service')
 
-const verdict = { probe: 'projection-live-mechanics', home, phases: {} }
+const verdict = { probe: 'projection-live-mechanics', home, phases: {}, sessionId: null, createdSessions: [] }
+// 会话指针（审计 261020 #20）：相位 4 的会话视图往返会新建会话——差集取（sessionSnapshot），
+// 不猜「最新目录」（并行会话下会指错）；fail() 里也落一次，半途红的判决同样带指针。
+// 命名避开相位 6 的 sessionsBefore/sessionsAfter（那是重载审计的磁盘计数）。
+const sessionsAtStart = sessionSnapshot(home)
+const recordSessions = () => {
+  const created = sessionsCreatedBetween(sessionsAtStart, sessionSnapshot(home))
+  verdict.createdSessions = created
+  verdict.sessionId = created.length === 1 ? created[0] : null
+}
 const pass = (phase, detail) => { verdict.phases[phase] = { pass: true, ...detail } }
 const fail = (phase, detail) => {
+  recordSessions()
   verdict.phases[phase] = { pass: false, ...detail }
   console.log(JSON.stringify(verdict, null, 2))
   process.exit(1)
@@ -225,6 +236,8 @@ if (Math.abs(restored.scrollTop - scrolled.recorded) > 2) {
   teardown(); fail('scroll-restore', { scrolled: scrolled.recorded, restored: restored.scrollTop })
 }
 pass('scroll-restore', { recorded: scrolled.recorded, restored: restored.scrollTop })
+// 会话视图往返已发生：此刻差集就是本次运行新建的会话（后面相位不再进会话）。
+recordSessions()
 
 // 相位 5（② 断连/恢复）：离线 → 断连横幅；恢复在线 → 重连代际变化 → 自动刷新、横幅消失。
 await setNetworkOffline(true)

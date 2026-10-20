@@ -9,10 +9,13 @@
  *   ① **只报测得到的东西**——日志里没有 preset 字段就不报 preset；所有数字都是事件计数，不做估计。
  *   ② **先枚举事件类型再取字段**（`--types`）：本仓已被事件形状差异坑过两次
  *      （`system/message` 是 `data.message.content`，`user/message` 是 `data.content`）。
+ *   ③ **剔评测会话**（261020 深审 #21）：dev home 里同时住着评测 one-shot 会话（题面经 argv 进
+ *      headless），把它们算进自用率是把机器流量当本人使用。判据唯一家 =
+ *      `dev/lib/eval-sessions.mjs`（与 desk-loop 同源），报告打一行透明度说明，其余口径不动。
  *
  * 用法：
  *   pnpm usage            # 读 dev home（或 $DSH_HOME）的会话与 working folder
- *   pnpm usage -- --types # 只打印事件类型直方图（形状变了先看这个）
+ *   pnpm usage -- --types # 只打印事件类型直方图（形状变了先看这个；同一剔除口径）
  *
  * @module dev/usage-report
  */
@@ -20,6 +23,7 @@ import { existsSync, readdirSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { devHome } from '../env/home.mjs'
+import { isEvalSessionLog } from '../lib/eval-sessions.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 
@@ -190,12 +194,13 @@ export function homeCounts(assistantDir) {
   }
 }
 
-/** 渲染报告（纯函数，可夹具）。 */
-export function renderReport(total, home) {
+/** 渲染报告（纯函数，可夹具）。`excludedEvalSessions` = 已剔除的评测会话数（透明度行）。 */
+export function renderReport(total, home, { excludedEvalSessions = 0 } = {}) {
   const lines = []
   const share = (part, whole) => (whole === 0 ? '0%' : `${Math.round((part / whole) * 100)}%`)
   lines.push(`# 意图级仪表（${harnessHome}）`)
   lines.push('')
+  lines.push(`- 已剔除 ${excludedEvalSessions} 个评测会话（判据与 desk-loop 同源：题面命中且单消息非面板），评测流量不计入下列数字`)
   lines.push(`- 会话 ${total.sessions}（有请求 ${total.requests} 次 / 轮 ${total.turns} / 步 ${total.steps}）`)
   lines.push(`- 消息：真人 ${total.principalMessages}，助手 ${total.assistantMessages}（面板动作 ${total.panelMessages}、注入前导 ${total.injectedUserMessages} 另计）`)
   lines.push(`- 自用率：${total.withAssistantTool}/${total.sessions} 个会话调用过自家房间工具（${share(total.withAssistantTool, total.sessions)}）`)
@@ -218,23 +223,32 @@ export function renderReport(total, home) {
 
 function main() {
   const logs = sessionLogs(harnessHome)
+  // 评测会话先剔（判据 = dev/lib/eval-sessions.mjs，与 desk-loop 同源）：不剔的话 dev home 里的
+  // one-shot 评测会话被算成「本人使用」——自用率与摩擦读数都失真（261020 深审 #21）。
+  const keptEvents = []
+  let excludedEvalSessions = 0
+  for (const log of logs) {
+    const events = readEvents(log)
+    if (isEvalSessionLog(events)) excludedEvalSessions += 1
+    else keptEvents.push(events)
+  }
   if (process.argv.includes('--types')) {
     const histogram = {}
-    for (const log of logs) {
-      for (const event of readEvents(log)) {
+    for (const events of keptEvents) {
+      for (const event of events) {
         const type = String(event.type ?? '(none)')
         histogram[type] = (histogram[type] ?? 0) + 1
       }
     }
+    process.stdout.write(`# 已剔除 ${excludedEvalSessions} 个评测会话（判据与 desk-loop 同源）\n`)
     for (const [type, count] of Object.entries(histogram).sort((left, right) => right[1] - left[1])) {
       process.stdout.write(`${String(count).padStart(6)}  ${type}\n`)
     }
     return
   }
-  const summaries = logs.map(log => summarizeEvents(readEvents(log)))
-  const total = mergeSummaries(summaries)
-  total.sessions = summaries.length
-  process.stdout.write(renderReport(total, homeCounts(join(harnessHome, 'assistant'))) + '\n')
+  const total = mergeSummaries(keptEvents.map(events => summarizeEvents(events)))
+  total.sessions = keptEvents.length
+  process.stdout.write(renderReport(total, homeCounts(join(harnessHome, 'assistant')), { excludedEvalSessions }) + '\n')
 }
 
 if (process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main()

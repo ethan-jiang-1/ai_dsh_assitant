@@ -6,6 +6,9 @@
 //   · 会话日志一律经 usage-report 的 `sessionLogs`/`readEvents` 读——绝不硬编码 `session.v<n>` 代次；
 //   · 「本人 vs 注入前言 vs [面板] 标记」的分类沿用 usage-report 的同一条判据（2026-09-26 的实测教训：
 //     注入前言被当成本人使用会让仪表自我认证）；
+//   · **评测会话整卷剔除**（261020 深审 #21）：判据唯一家 = dev/lib/eval-sessions.mjs（与 desk-loop
+//     同源：题面命中且单消息非面板）——评测 one-shot 会话不是本人的输入边界样本，读数里混入它们
+//     会把 A/B/C 三项都灌上机器流量；剔除数在输出里单列一行；
 //   · 账本是唯一真相，直接按 matter/proposal 的时间字段算，不从渲染结果反推。
 //
 // 三项判读口径（与卡上表格一一对应）：
@@ -25,6 +28,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import process from 'node:process'
 import { classifyUserMessage, readEvents, sessionLogs, stripPanelMarker, userMessageText } from '../lib/session-logs.mjs'
+import { isEvalSessionLog } from '../lib/eval-sessions.mjs'
 import { summarizeEvents } from './usage-report.mjs'
 import { devHome } from '../env/home.mjs'
 import { option } from '../probes/web/probe-utils.mjs'
@@ -46,10 +50,17 @@ const days = (from, to) => Math.round(((to === undefined ? Date.now() : Date.par
 const logs = sessionLogs(home)
 const candidateTurns = []
 const entryActions = []
-const totals = { sessions: logs.length, principalMessages: 0, panelMessages: 0, injectedMessages: 0, toolCalls: {} }
+const totals = { sessions: 0, excludedEvalSessions: 0, principalMessages: 0, panelMessages: 0, injectedMessages: 0, toolCalls: {} }
 for (const log of logs) {
   const events = readEvents(log)
+  // 评测会话整卷剔除（判据 = dev/lib/eval-sessions.mjs，与 desk-loop 同源）：A/C 两项都不得
+  // 把评测题面/评测工具调用算成本人的输入边界行为；剔除数单列，其余口径不动。
+  if (isEvalSessionLog(events)) {
+    totals.excludedEvalSessions += 1
+    continue
+  }
   const summary = summarizeEvents(events)
+  totals.sessions += 1
   totals.principalMessages += summary.principalMessages
   totals.panelMessages += summary.panelMessages
   totals.injectedMessages += summary.injectedUserMessages
@@ -123,6 +134,8 @@ const reading = {
   label,
   home,
   at: new Date().toISOString(),
+  // 剔除口径的透明度数字：评测会话（判据与 desk-loop 同源）整卷不计入 A/C 的任何读数。
+  excludedEvalSessions: totals.excludedEvalSessions,
   A: {
     note: '非注入、非 [面板] 标记的本人轮次＝候选碎片；是否业务碎片由人判',
     candidateCount: candidateTurns.length,
@@ -134,45 +147,49 @@ const reading = {
 }
 
 if (asJson) {
+  // 不能在这里 process.exit()：stdout 是**管道**时 Node 不会冲刷未写完的缓冲（实测 64KiB 处截断，
+  // 95KB 的读数 JSON 一截就是非法 JSON；TTY/文件路径同步写不受影响）。设 exitCode、跳过 markdown
+  // 段，让进程自然退出把输出冲干净。
   console.log(JSON.stringify(reading, null, 2))
-  process.exit(0)
-}
-
-const lines = []
-lines.push(`### 读数 ${label}（${reading.at.slice(0, 16).replace('T', ' ')}）`)
-lines.push('')
-lines.push(`环境：\`${home}\` ｜ 会话 ${totals.sessions} 个 ｜ 本人轮次 ${totals.principalMessages} ｜ \`[面板]\` 标记 ${totals.panelMessages} ｜ 注入前言 ${totals.injectedMessages}`)
-lines.push('')
-lines.push(`**A 自发投递（候选 ${candidateTurns.length} 条，\"是否业务碎片\"由人判）**`)
-if (candidateTurns.length === 0) lines.push('- （无：该环境还没有本人轮次）')
-for (const turn of candidateTurns) {
-  // `followsQuestion` 是**启发式提示**（前一条助手消息以问号结尾），不是过滤：卡上 A 要的是
-  // 「非回答提问」的条数，那一刀仍由人判——脚本只把线索摆在旁边。
-  lines.push(`- ${stamp(turn.at)} · ${turn.session.slice(-8)}${turn.followsQuestion ? ' · 〔可能是在回答提问〕' : ''} · ${turn.text}`)
-}
-lines.push('')
-lines.push('**B 时长**')
-if (ledger === undefined) lines.push('- （该环境还没有账本）')
-if (matterDurations.length > 0) {
+  process.exitCode = 0
+} else {
+  const lines = []
+  lines.push(`### 读数 ${label}（${reading.at.slice(0, 16).replace('T', ' ')}）`)
   lines.push('')
-  lines.push('| 事项 | 状态 | 建立 | 完成 | 天数 |')
-  lines.push('|---|---|---|---|---|')
-  for (const matter of matterDurations) {
-    lines.push(`| ${matter.id} ${matter.title} | ${matter.status}${matter.open ? '（未闭合）' : ''} | ${String(matter.createdAt ?? '').slice(0, 10)} | ${String(matter.completedAt ?? '—').slice(0, 10)} | ${matter.days ?? '—'} |`)
-  }
-}
-if (proposalDurations.length > 0) {
+  lines.push(`环境：\`${home}\` ｜ 会话 ${totals.sessions} 个 ｜ 本人轮次 ${totals.principalMessages} ｜ \`[面板]\` 标记 ${totals.panelMessages} ｜ 注入前言 ${totals.injectedMessages}`)
+  lines.push(`已剔除 ${totals.excludedEvalSessions} 个评测会话（判据与 desk-loop 同源：题面命中且单消息非面板），不计入上述各项`)
   lines.push('')
-  lines.push('| 提案 | 事项 | 状态 | 提出 | 解决 | 天数 |')
-  lines.push('|---|---|---|---|---|---|')
-  for (const proposal of proposalDurations) {
-    lines.push(`| ${proposal.id} | ${proposal.matterId} | ${proposal.status}${proposal.open ? '（未决）' : ''} | ${String(proposal.proposedAt ?? '').slice(0, 10)} | ${String(proposal.resolvedAt ?? '—').slice(0, 10)} | ${proposal.days ?? '—'} |`)
+  lines.push(`**A 自发投递（候选 ${candidateTurns.length} 条，\"是否业务碎片\"由人判）**`)
+  if (candidateTurns.length === 0) lines.push('- （无：该环境还没有本人轮次）')
+  for (const turn of candidateTurns) {
+    // `followsQuestion` 是**启发式提示**（前一条助手消息以问号结尾），不是过滤：卡上 A 要的是
+    // 「非回答提问」的条数，那一刀仍由人判——脚本只把线索摆在旁边。
+    lines.push(`- ${stamp(turn.at)} · ${turn.session.slice(-8)}${turn.followsQuestion ? ' · 〔可能是在回答提问〕' : ''} · ${turn.text}`)
   }
+  lines.push('')
+  lines.push('**B 时长**')
+  if (ledger === undefined) lines.push('- （该环境还没有账本）')
+  if (matterDurations.length > 0) {
+    lines.push('')
+    lines.push('| 事项 | 状态 | 建立 | 完成 | 天数 |')
+    lines.push('|---|---|---|---|---|')
+    for (const matter of matterDurations) {
+      lines.push(`| ${matter.id} ${matter.title} | ${matter.status}${matter.open ? '（未闭合）' : ''} | ${String(matter.createdAt ?? '').slice(0, 10)} | ${String(matter.completedAt ?? '—').slice(0, 10)} | ${matter.days ?? '—'} |`)
+    }
+  }
+  if (proposalDurations.length > 0) {
+    lines.push('')
+    lines.push('| 提案 | 事项 | 状态 | 提出 | 解决 | 天数 |')
+    lines.push('|---|---|---|---|---|---|')
+    for (const proposal of proposalDurations) {
+      lines.push(`| ${proposal.id} | ${proposal.matterId} | ${proposal.status}${proposal.open ? '（未决）' : ''} | ${String(proposal.proposedAt ?? '').slice(0, 10)} | ${String(proposal.resolvedAt ?? '—').slice(0, 10)} | ${proposal.days ?? '—'} |`)
+    }
+  }
+  lines.push('')
+  lines.push(`**C 入口后的操作（${entryActions.length} 次入口）**`)
+  if (entryActions.length === 0) lines.push('- （无：该环境还没有面板写入的入口消息）')
+  for (const entry of entryActions) {
+    lines.push(`- ${stamp(entry.at)} · ${entry.session.slice(-8)} · 「${entry.marked}」→ ${entry.tools.length === 0 ? '**无工具调用**' : entry.tools.join(', ')}`)
+  }
+  console.log(lines.join('\n'))
 }
-lines.push('')
-lines.push(`**C 入口后的操作（${entryActions.length} 次入口）**`)
-if (entryActions.length === 0) lines.push('- （无：该环境还没有面板写入的入口消息）')
-for (const entry of entryActions) {
-  lines.push(`- ${stamp(entry.at)} · ${entry.session.slice(-8)} · 「${entry.marked}」→ ${entry.tools.length === 0 ? '**无工具调用**' : entry.tools.join(', ')}`)
-}
-console.log(lines.join('\n'))

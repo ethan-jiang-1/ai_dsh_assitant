@@ -15,6 +15,10 @@
 //      （身份按账本 id 判，不按标题——标题会撞车；模型判定为既有事项时如实报 `created: []`，不判失败）。
 //      这条不变量需要 `--home`；不给就只报现象。
 //
+// 会话指针（审计 261020 #20）：进会话的相位各记 sessionId（差集取，见 sessionSnapshot；「处理」
+// 复用既有绑定会话时差集为空，如实报 null——那是复用不是失败）。home 解析与其它 dev 工具同一
+// 优先级：--home > ASSISTANT_DSH_HOME > 仓内 dev home（--home 只给账本不变量时也顺带用于会话树）。
+//
 // 不能证明什么：措辞好不好（那是本人的读）、跨周边界行为、模型稳定性（每次文本都可能不同）。
 // 用法（仓根）：
 //   node dev/probes/web/desk-flow-walk.mjs '<gui-url>' [--home <dir>] [--matter <子串>]
@@ -25,6 +29,8 @@ import { launchCdpBrowser } from './cdp-driver.mjs'
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpDir } from '../../env/tmp.mjs'
+import { devHome } from '../../env/home.mjs'
+import { sessionSnapshot, sessionsCreatedBetween } from '../../lib/session-logs.mjs'
 import { option, sleep } from './probe-utils.mjs'
 import {
   clickByText, conversationActive, deskPresent, deskText, dismissApproval, pasteUntilSendable,
@@ -42,10 +48,24 @@ const skipIntake = args.includes('--skip-intake')
 const outDir = option(args, 'out', join(tmpDir('desk-walkthrough'), new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)))
 mkdirSync(outDir, { recursive: true })
 
+// 会话指针：进会话相位的差集基准 + 滚动快照（每相位只算「自上一相位以来」新建的）。
+const sessionHome = devHome(home)
+const sessionsBefore = sessionSnapshot(sessionHome)
+let sessionsSeen = sessionsBefore
+const probeSessionsSince = () => {
+  const now = sessionSnapshot(sessionHome)
+  const created = sessionsCreatedBetween(sessionsSeen, now)
+  sessionsSeen = now
+  return created
+}
+/** 差集唯一 ⇒ 那个目录名；零个（复用绑定会话）或多个（并行会话）⇒ null，不猜。 */
+const singleSessionId = (created) => (created.length === 1 ? created[0] : null)
+
 const browser = await launchCdpBrowser({ url, windowSize: '1440,900' })
 if (browser.failed !== undefined) throw new Error(String(browser.failed))
 const { evaluate, captureScreenshot, consoleProblems, exceptions } = browser
-const verdict = { url, home, outDir, capturedAt: new Date().toISOString(), phases: {}, consoleProblems: [], exceptions: [] }
+const verdict = { url, home, outDir, capturedAt: new Date().toISOString(), phases: {}, consoleProblems: [], exceptions: [],
+  sessionHome, createdSessions: [] }
 const record = async (name) => {
   const text = String(await evaluate('document.body.innerText') ?? '')
   writeFileSync(join(outDir, `${name}.txt`), text)
@@ -109,10 +129,12 @@ const started = await evaluate(`(() => {
 })()`)
 if (started !== 'clicked') { fail('matter-detail', { picked, started }); await browser.settle(); process.exit() }
 let conversation = await pollUntil(evaluate, conversationActive, { checkFirst: true, budget: 60 })
-if (conversation !== true) { fail('processing-session', { picked, note: '处理会话没接管主区' }); await browser.settle(); process.exit() }
+// 会话指针：处理会话接管主区时差集取新建目录（复用既有绑定会话时为 null——复用不是失败）。
+const processingSessionId = singleSessionId(probeSessionsSince())
+if (conversation !== true) { fail('processing-session', { picked, note: '处理会话没接管主区', sessionId: processingSessionId }); await browser.settle(); process.exit() }
 const idle = await waitIdle()
 await record('2-processing-session')
-pass('processing-session', { picked, idle })
+pass('processing-session', { picked, idle, sessionId: processingSessionId })
 
 // —— 相位 2b：手动回桌面 → 再点同一件事「处理」→ 复用绑定会话 + 续接种子（Q11，2026-10-12 确认）——
 // 此刻路径仍绑定（回合刚落定、返回判定还没跑）：侧栏手动回桌面不碰路径，再点同一件事的
@@ -139,6 +161,8 @@ pass('processing-session', { picked, idle })
       })()`)
       resumeOutcome.backInConversation = await pollUntil(evaluate, conversationActive, { checkFirst: true, budget: 60 }) === true
       if (resumeOutcome.backInConversation) {
+        // 复用绑定会话 ⇒ 差集为空、sessionId 如实为 null；新建了（绑定已释放等）才非空。
+        resumeOutcome.sessionId = singleSessionId(probeSessionsSince())
         resumeOutcome.resumeIdle = await waitIdle()
         await record('2b-resume-reopen')
         const resumeText = String(await evaluate('document.body.innerText') ?? '')
@@ -202,7 +226,9 @@ if (!skipIntake) {
   })()`)
   if (opened !== 'clicked') { fail('intake-entry', { opened }); await browser.settle(); process.exit() }
   const intakeConversation = await pollUntil(evaluate, conversationActive, { checkFirst: true, budget: 60 })
-  if (intakeConversation !== true) { fail('intake-entry', { opened, note: '交代入口没开会话' }); await browser.settle(); process.exit() }
+  // 交代入口新建会话（差集）；复用既有会话时为 null。
+  const intakeSessionId = singleSessionId(probeSessionsSince())
+  if (intakeConversation !== true) { fail('intake-entry', { opened, note: '交代入口没开会话', sessionId: intakeSessionId }); await browser.settle(); process.exit() }
   await waitIdle(60)
   if (await pasteAndSend(entrust) !== 'sent') { fail('intake-entry', { note: '交代消息发送失败' }); await browser.settle(); process.exit() }
   const intakeReturned = await pollUntil(evaluate, deskText, { budget: 300, isDone: text => text !== null })
@@ -220,18 +246,20 @@ if (!skipIntake) {
     const matched = created.find(matter => matter.title !== '' && selected.includes(matter.title))
     if (created.length === 0) {
       // 模型判定这是既有事项（没新建）——那是它对本人话的读法，不是接线失败，如实报出来。
-      pass('intake-return', { created: [], selected: selected.slice(0, 40), note: '模型判定为既有事项，未新建' })
+      pass('intake-return', { created: [], selected: selected.slice(0, 40), sessionId: intakeSessionId, note: '模型判定为既有事项，未新建' })
     } else if (matched !== undefined) {
-      pass('intake-return', { created: created.map(matter => matter.id), selected: matched.id })
+      pass('intake-return', { created: created.map(matter => matter.id), selected: matched.id, sessionId: intakeSessionId })
     } else {
-      fail('intake-return', { created, selected, note: '返回后选中的不是这次新建的事项' })
+      fail('intake-return', { created, selected, sessionId: intakeSessionId, note: '返回后选中的不是这次新建的事项' })
     }
   } else {
     // 没有 --home 就拿不到身份：只报现象，不判（标题前缀判定会误报）。
-    pass('intake-return', { selected: selected.slice(0, 40), note: '未给 --home，只报现象（身份未核）' })
+    pass('intake-return', { selected: selected.slice(0, 40), sessionId: intakeSessionId, note: '未给 --home，只报现象（身份未核）' })
   }
 }
 
+// 全程新建的会话全列（差集自开跑前取；与各相位的 sessionId 互为印证）。
+verdict.createdSessions = sessionsCreatedBetween(sessionsBefore, sessionSnapshot(sessionHome))
 writeFileSync(join(outDir, 'verdict.json'), JSON.stringify(verdict, null, 2))
 verdict.consoleProblems = consoleProblems.slice(0, 10)
 verdict.exceptions = exceptions.slice(0, 10)

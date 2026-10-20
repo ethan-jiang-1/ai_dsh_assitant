@@ -38,7 +38,7 @@ pnpm dsh --profile dev --port 0 --no-open  # 起服务与验证命令（prefligh
 | profiles / sessions / storages / attachments / settings / credentials / 技能用户根 / `.agent-presets` / assistant working folder 的 dataDir（默认值；显式 `dataDir` 覆盖例外，见 `docs/home.md`） | ✅ | 自动落在 dev home |
 | skills 的共享 agent 根（默认 `~/.agents`） | ❌ 不隔离 | 启动器接管为 `$DSH_HOME/agents-home`（仅当未显式设置；`dev/env/env.sh` 则无条件强制） |
 | telemetry | 身份按 home 独立；默认 FEEDBACK_ONLY | 启动器设 `DSH_TELEMETRY_DISABLED=1` |
-| spill 与脚本临时文件 | ❌ 不经 DSH_HOME | **仓内唯一形式 = 仓根 `.tmp/<用途>/`**（硬规则 8，动机是仓外写会被沙箱挡成 approval）：dev 启动器把 `TMPDIR`/`TMP`/`TEMP` 收进 `.tmp/host/`，vendor 的 spill 随之入仓；脚本用 `dev/env/tmp.mjs` 的 `tmpDir`/`mkTmpDir`，测试进程由 `packages/dsh-smart-assistant/vitest.config.ts` 收进 `.tmp/vitest/`。日用（非 dev）实例不经本启动器，不受影响 |
+| spill 与脚本临时文件 | ❌ 不经 DSH_HOME | **仓内唯一形式 = 仓根 `.tmp/<用途>/`**（硬规则 8，动机是仓外写会被沙箱挡成 approval）：dev 启动器把 `TMPDIR`/`TMP`/`TEMP` 收进 `.tmp/host/`，vendor 的 spill 随之入仓；脚本用 `dev/env/tmp.mjs` 的 `tmpDir`/`mkTmpDir`，测试进程由 `packages/dsh-smart-assistant/vitest.config.ts` 收进 `.tmp/vitest/`。日用（非 dev）实例不经本启动器，不受影响。清扫走 `pnpm sweep`（默认 dry-run，`--apply` 才真删；保护 = openviking / 新 mtime / 打开句柄 / `--keep` 白名单，判据见 `scripts/maintenance/sweep.mjs` 头注） |
 | pnpm 全局 store | ❌ 内容寻址缓存 | 良性共享 |
 | Web 端口 `127.0.0.1:3080` | ❌ | 与日用 web 撞车 = boot **fail loud**（不是劫持，实测 `EADDRINUSE`）；日用开着时用 `pnpm dsh --profile dev --port 0`（OS 分配端口 + token 鉴权，实测可跑） |
 | LLM key | ❌ 网络面 | dev home 的 `.credentials.yaml` 自己配一份，与日用凭据互不可见 |
@@ -137,7 +137,9 @@ server 缺席/未装/起不来一律 warn 后 `exit 0`，`pnpm start` 照常交�
 "面板消息点名技能、桌面文件有没有被重写"不作为指标——面板动作直接走 `assistant-rooms` 写路径，不经过模型重写。
 读数工具自己也会读错，所以分析部分与 IO 分离：`pnpm desk-loop --self-check` 拿**合成会话**跑已知答案
 （覆盖六类真实误读：注入前言切断窗口、纯文本注入被当成本人的话、协作边界前言冒充本人的话、混合重复被漏、§6 把探针会话算进来、评测题面与面板文案撞车），
-并进 `pnpm verify`（与评测器的 `--self-check` 同一约定）：改坏读数逻辑，门禁先红。
+并进 `pnpm verify`（与评测器的 `--self-check` 同一约定）：改坏读数逻辑，门禁先红。评测会话剔除判据
+（题面命中且单消息非面板，`isEvalOneShot`）的唯一家在 [`dev/lib/eval-sessions.mjs`](../dev/lib/eval-sessions.mjs)，
+usage/observe 同源共用。
 
 **preflight 的姊妹：`pnpm shots`（渲染证据）**。preflight 证明"装得上"，不证明"看得见"；
 `pnpm shots` 用 headless Chrome **经 CDP** 打开页面（headless 的 `--screenshot` 在 SSE 长连接下
@@ -233,16 +235,17 @@ DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得
 **接续行为地板**：`pnpm eval:continuity` 是隔离 fixture 的聚焦评测——共享 dev home 的任务集判不了"首回合主动交包"这种依赖**已知账本**的行为。它自带一次性 home（仓内 `.tmp/` 起 profiles+插件链接、拷 dev home 凭据、种子账本 `dev/fixtures/eval-continuity/seed-ledger.json` 前置断言先跑）、跑一个真模型续接回合，判据全读会话日志：read 对事项 → 工具结果带委托原话标记（读成功，错误的读回造不了假）→ 先读后答（seq 序）→ 期限/原话/待确认在场 → 无授权写入（无 mutating 调用且账本字节前后不变）。无 key/缺 fixture 记 **BLOCKED** 退出非零，不合并绿项。`--self-check` 把四类负例（无读调用的完整答案、错事项、读失败仍作答、账本被写）喂给判定核要求全红，已接进 `pnpm verify` 链；`--keep` 保留一次性 home 供检查。
 
 **意图级仪表**：`pnpm usage` 读 dev home 的会话日志与 working folder，报会话数、工具混合、自用率、
-摩擦（非完成轮/重试）、家的条目数与职责圈事件数；`pnpm usage -- --types` 打印事件类型直方图（形状变了先看它）。
+摩擦（非完成轮/重试）、家的条目数与职责圈事件数（评测会话先剔除——判据与 desk-loop 同源，
+`dev/lib/eval-sessions.mjs` 唯一家，剔除数单列一行）；`pnpm usage -- --types` 打印事件类型直方图（形状变了先看它）。
 两条硬规则：**dev 工具不得继承 `DSH_HOME`**——会话环境里它可能是日用的 `~/.dsh`，一律用
 `ASSISTANT_DSH_HOME` 或仓内 dev home（机械门禁 `structure: dev tooling never inherits DSH_HOME` 管）；
 **只报测得到的**——日志没有的字段（如 preset）不报，数字全来自事件计数。
 
 **三个真机探针与输入观察（命令表上的深判据在这里）**：
 `pnpm loop-probe '<URL>' --ask '<问句>'`（首用闭环：**首屏=桌面页**——你的桌面、中文文案、无黑话、工作区就绪——
-走「＋ 交代新事项」进会话，真发问真等回复，JSON 判决 + 终态截图；`--ask` 会真建会话——先把目标实例起在一次性 home，探针本身不隔离 home）、
+走「＋ 交代新事项」进会话，真发问真等回复，JSON 判决 + 终态截图，**判决带 sessionId**（会话目录快照差集取，不猜；`--home` 旗标解析同其它 dev 工具）；`--ask` 会真建会话——先把目标实例起在一次性 home，探针本身不隔离 home）、
 `pnpm desk-walk '<URL>' [--home <dir>]`（处理流真机走查：首屏桌面→处理一件事→一句进展→返回不变量→交代新事，
-产出屏幕文本+截图供人判话术/层级；`--home` 才能核账本身份与「回来⇒无待确认」）、
+产出屏幕文本+截图供人判话术/层级，**进会话相位各记 sessionId**；`--home` 才能核账本身份与「回来⇒无待确认」）、
 `pnpm projection-live [--home <dir>]`（live 补证：断连/重连、3 次页面重载会话不增殖、420×900 窄视口
 选择保留与无横向溢出、滚动位置保留；自编排共享 probe home，无模型回合）、
 `pnpm projection-selection '<URL>'`（交互证据门：投影面板点选事项并核对详情里的 quote 与 Session/event 读回；
