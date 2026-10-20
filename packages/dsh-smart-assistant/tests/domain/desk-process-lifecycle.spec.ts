@@ -1,6 +1,8 @@
-/** The processing path's session-settle refresh edge, isolated from the entry wiring. */
+/** The processing path's session-settle refresh edge, isolated from the entry wiring.
+ * Lives with the domain module (`src/domain/desk/desk-process.ts`); the observer under test is
+ * the client lifecycle module it feeds. */
 import { describe, expect, it, vi } from 'vitest'
-import { bindProcessPath } from '../../src/client/desk/desk-process.ts'
+import { bindProcessPath } from '../../src/domain/desk/desk-process.ts'
 import { createSettleRefreshObserver } from '../../src/client/desk/desk-process-lifecycle.ts'
 
 describe('processing path settle refresh lifecycle', () => {

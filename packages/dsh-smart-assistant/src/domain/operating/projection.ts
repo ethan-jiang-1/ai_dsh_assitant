@@ -1,11 +1,13 @@
 /**
- * The ledger → projection renderer (desk-operating-entry K3, slice E): the read-only Web view
+ * The ledger → projection renderer (the operating desk's projection contract,
+ * [desk-operating-entry](../../../../../notes/implemented/2026-10-06-desk-operating-entry.md)): the read-only Web view
  * derived on demand from the authoritative ledger state. Nothing here persists — the Host
  * download route renders it per request, so there is never a second writable truth.
  *
  * The envelope revision counts persisted operations (every state change is one operation, so
  * the count is monotonic); per-matter revisions ride each matter for read-back confirmation.
- * The reminders lane is a fixed empty placeholder until V4/V5 reminder coordination lands.
+ * The reminders lane is a fixed empty placeholder until reminder coordination (the CEO
+ * operating-loop card's V4/V5 rows) lands.
  */
 
 import type { LedgerSource, LedgerState, MatterRecord, MaterialRecord, OperationOutcome as OperationOutcomeWire, ProposalRecord } from './ledger.ts'

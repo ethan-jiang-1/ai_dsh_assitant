@@ -1,14 +1,16 @@
 /**
- * The room data's I/O: fetching the host `assistant-rooms` route (working-folder truth),
- * sending the principal's panel actions into the conversation, and the pollers/retry budgets
- * around both. The panel reads the host route; the old per-session copy and the old rewrite
- * path behind the prompt actions are retired.
+ * The room data's I/O: env binding, the fetches against the host `assistant-rooms` route
+ * (working-folder truth), the pollers/retry budgets around them, and the sidebar navigation.
+ * The panel reads the host route; the old per-session copy and the old rewrite path behind the
+ * prompt actions are retired. The lines that go INTO the conversation (panel actions, the desk
+ * capture row) live in `prompt-bridge.ts`.
  *
- * Terminology (renamed 2026-10-14): this file serves the ROOM DATA. A1a moved its source from
- * the old per-session copy to the host rooms route; the desktop surface itself
- * remains the operating-ledger projection (`projection-panel.ts`). The desktop surface itself is the operating-ledger
- * projection (`projection-panel.ts`); the desk's conversation arms (process/intake/claim/
- * wake) live in `desk-process.ts`.
+ * Terminology (renamed 2026-10-14): this file serves the ROOM DATA — its source is the host
+ * rooms route, the panel's single read authority since 2026-10-19
+ * ([maintenance-read-authority](../../../../../notes/implemented/2026-10-19-maintenance-read-authority.md)), not any per-session copy. The
+ * desktop surface itself is the operating-ledger projection (`projection-panel.ts`); the desk's
+ * conversation arms (process/intake/claim/wake) live in the domain module
+ * `domain/desk/desk-process.ts`.
  *
  * Everything the browser face reaches through a manifested Remote or the client Session
  * store is captured once by the entry's `apply` (bindDeskEnv) and kept here — the store
@@ -20,7 +22,7 @@
 
 import type { ClientContext, RoomKind } from '../chrome/contracts'
 import {
-  carryRowStateTo, deskGeneratedAtMs, deskSlice, expirePending, getDeskStore, looksLikeDesk,
+  carryRowStateTo, deskSlice, getDeskStore, looksLikeDesk,
   patchDesk, patchSlice, settlePending, sliceSeq,
 } from './room-data-core'
 import type { DeskData, DeskSlice } from './room-data-core'
@@ -136,7 +138,8 @@ export type RoomsActionResult = { readonly ok: true, readonly value: Record<stri
 
 /**
  * Call one controlled write on the same host route. The response is the result; failures are
- * readable and never turned into a prompt (A2: no prompt fallback).
+ * readable and never turned into a prompt (the direct-write contract: no prompt fallback;
+ * [maintenance-direct-write](../../../../../notes/implemented/2026-10-19-maintenance-direct-write.md)).
  * @param action - Whitelisted action name (`knowledge.approve`, `memory.correct`, ...).
  * @param payload - Action fields (id/name/text/sessionId/title/reason).
  * @returns The route payload, or the readable reason it failed.
@@ -165,7 +168,7 @@ export async function postRoomsAction(action: string, payload: Readonly<Record<s
   }
 }
 
-/** Read one learned skill's SKILL.md body (C1 drawer). */
+/** Read one learned skill's SKILL.md body (the Skills tab's drawer). */
 export async function loadSkillBody(name: string): Promise<{ ok: true, body: string } | { ok: false, reason: string }> {
   const web = deskWeb
   if (web === undefined) return { ok: false, reason: 'the web face is not available' }
@@ -182,7 +185,7 @@ export async function loadSkillBody(name: string): Promise<{ ok: true, body: str
   }
 }
 
-/** Patch one session's room projection in place (A2 immediate row update after a write). */
+/** Patch one session's room projection in place (the immediate row update after a direct write). */
 export function patchRoomRows(sessionId: string | undefined, change: (data: DeskData) => DeskData): void {
   const slice = deskSlice(sessionId)
   if (slice.data === undefined) return
@@ -264,125 +267,6 @@ export function newestSessionId(): string | undefined {
   return ids.slice().sort((left, right) => Number(byId[right]?.updatedAt ?? 0) - Number(byId[left]?.updatedAt ?? 0))[0]
 }
 
-/**
- * The marker every machine-written panel line carries (A10): without it the conversation log —
- * and the usage meter — cannot tell a panel's assertion from the principal's own words, so his
- * history fills with text he never typed and the meter counts the panel as the human.
- */
-const PANEL_MARKER = '[面板] '
-
-/**
- * The desk's own intake marker (261018 片 1). A line the principal typed into the desk's capture
- * row is not a panel action: the log must keep the two apart, because the model treats them
- * differently (a panel action is the desk acting; this is the principal speaking from the desk).
- */
-const DESK_CAPTURE_MARKER = '[桌面] '
-
-/**
- * Build one panel prompt request. The principal's panel actions (this module) and the desk arms'
- * seed notes (the entry, later its own module) ride the same remote channel with the same marker
- * and the same queue mode — so that shape is stated once, and each caller keeps only its own send
- * semantics (fire-and-forget for a seed, tracked-and-polled for an action).
- * @param prefix - The requestId prefix naming the sender ('desk' for panel actions, an arm's kind for a seed).
- * @param sessionId - The conversation the line lands in.
- * @param text - The line, without the marker.
- * @param marker - Which provenance marker the line carries; defaults to the panel marker.
- * @returns The prompt request body `remote.session.prompt` takes.
- */
-export function panelPromptRequest(prefix: string, sessionId: string, text: string, marker: string = PANEL_MARKER): {
-  readonly requestId: string
-  readonly sessionId: string
-  readonly mode: 'queue'
-  readonly content: readonly { readonly type: 'text', readonly text: string }[]
-} {
-  return {
-    requestId: `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-    sessionId,
-    mode: 'queue',
-    content: [{ type: 'text', text: `${marker}${text}` }],
-  }
-}
-
-/**
- * The desk-side capture request (261018 片 1): the principal's own words typed on the desk, sent
- * into the intake conversation with the desk marker. One shape, so the arm cannot drift from the
- * marker the model is taught to read.
- * @param sessionId - The conversation the line lands in.
- * @param text - The principal's words, verbatim.
- * @returns The prompt request body `remote.session.prompt` takes.
- */
-export function deskCaptureRequest(sessionId: string, text: string): ReturnType<typeof panelPromptRequest> {
-  return panelPromptRequest('desk-capture', sessionId, text, DESK_CAPTURE_MARKER)
-}
-
-/**
- * Put one line to the assistant in the newest Session. Every panel action rides this — the
- * panel is a control surface for the same conversation the principal is having.
- *
- * The action is tracked as `pending` on its row and stays frozen behind the DATA GATE until the
- * desk file is rewritten past the send: acceptance by the queue is not completion (the assistant
- * then works for tens of seconds), and this poller keeps re-reading until the file actually
- * moves — a single fixed delay reliably re-reads a stale file, mis-advises "click refresh", and
- * left an action with seven contradictory orders (2026-09-26).
- * @param text - the line to send.
- * @param action - the action name shown on the receipt line.
- * @param rowId - the row this action belongs to (receipts and freezing are row-scoped).
- */
-export function sendPrompt(text: string, action: string, rowId: string, sessionId?: string): void {
-  const prompt = (deskRemote?.['session'] as { prompt?: (request: unknown) => Promise<unknown> } | undefined)?.prompt
-  // A tab bound to session X passes X explicitly: a correction typed beside one conversation
-  // that lands in another would read as the assistant ignoring what was just pointed at. The
-  // old global `sendSession` slot made the LAST mounted tab steal every send (R11); the target
-  // is now a per-surface argument with the newest session as the walk-view fallback.
-  const target = sessionId ?? newestSessionId()
-  if (target === undefined) {
-    patchDesk({ note: '还没有会话——先和助手说句话' })
-    return
-  }
-  if (prompt === undefined) {
-    patchDesk({ note: 'remote.session did not materialize' })
-    return
-  }
-  const slice = deskSlice(target)
-  // `stalled` is deliberately NOT cleared here: it is an earlier action's unconfirmed trace, and
-  // only the desk file moving past its `at` may retire it (R11, narrow review 2026-09-27).
-  patchSlice(slice, { pending: { rowId, at: Date.now(), action }, lastReceipt: undefined })
-  void prompt(panelPromptRequest('desk', target, text)).then((result: unknown) => {
-    const wrapped = result as { ok?: boolean, error?: { message?: string } }
-    if (wrapped?.ok === false) {
-      patchSlice(slice, { pending: undefined })
-      patchDesk({ note: wrapped.error?.message ?? 'prompt failed' })
-    }
-  }).catch((reason: unknown) => {
-    patchSlice(slice, { pending: undefined })
-    patchDesk({ note: String(reason) })
-  })
-  let tries = 0
-  let lastGenerated: number | undefined
-  const tick = (): void => {
-    if (deskSlice(target).pending === undefined) return
-    const generated = deskGeneratedAtMs(deskSlice(target).data)
-    if (generated !== undefined && generated !== lastGenerated) {
-      // The desk moved since the last look — the assistant is visibly working the queue.
-      // Progress resets the budget: approval turns used to run 60–90s each
-      // and queue behind each other, so the fixed 150s budget expired mid-queue and pushed
-      // manual refreshes onto the principal (CEO first-reading friction #1, 2026-10-04).
-      tries = 0
-    }
-    lastGenerated = generated
-    if (tries >= 15) {
-      // Giving up releases the gate (see expirePending): a frozen surface whose escape hatch is
-      // disabled by the same flag has no way out at all.
-      expirePending(target)
-      return
-    }
-    tries += 1
-    reloadDesk(target)
-    setTimeout(tick, 10_000)
-  }
-  setTimeout(tick, 10_000)
-}
-
 /** Re-read the desk for one target session; `undefined` walks the newest five (the primary view). */
 export function reloadDesk(sessionId?: string): void {
   if (sessionId === undefined) loadDesk()
@@ -393,7 +277,7 @@ export function reloadDesk(sessionId?: string): void {
 export function openBeside(kind: RoomKind): void {
   const controller = deskSidebarRight
   if (controller === undefined || controller.openTab === undefined) {
-    // R9: the note rendered inside a panel body — invisible from the Session header, where the
+    // The note used to render inside a panel body — invisible from the Session header, where the
     // click happened. The chip shows it instead.
     patchDesk({ note: 'sidebarRight 服务没有物化，开不了对话旁的 tab', openError: '开不了' })
     return
@@ -406,8 +290,8 @@ export function openBeside(kind: RoomKind): void {
   try {
     controller.openTab(kind)
   } catch (reason: unknown) {
-    // R11 (narrow review, 2026-09-27): clearing openError BEFORE the call and leaving the call
-    // uncaught meant a throwing openTab showed nothing at all — the exact failure this marker was
+    // Clearing openError BEFORE the call and leaving the call uncaught (narrow review,
+    // 2026-09-27) meant a throwing openTab showed nothing at all — the exact failure this marker was
     // added for.
     patchDesk({ openError: '开不了', note: `打开面板失败：${String(reason)}` })
   }

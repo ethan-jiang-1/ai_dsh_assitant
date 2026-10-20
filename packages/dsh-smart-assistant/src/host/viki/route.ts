@@ -1,9 +1,10 @@
 /**
- * The Viki route (B1 read + B2 delete/restore): an exact, owner-only `GET/POST
- * /api/assistant/viki` over the OpenViking memory trees. It is deliberately not an A-card route
- * and not a Typert Remote: the read surface is `user/<space>/memories` +
- * `peers/<peer>/memories/**`, and the only accepted URI is one inside those trees for the
- * configured space/peer.
+ * The Viki route: the read face ([viki-read](../../../../../notes/implemented/2026-10-19-viki-read.md)) and the
+ * delete/restore face ([viki-delete](../../../../../notes/implemented/2026-10-19-viki-delete.md)) — an exact,
+ * owner-only `GET/POST /api/assistant/viki` over the OpenViking memory trees. It is deliberately
+ * not a maintenance-panel rooms route and not a Typert Remote: the read surface is
+ * `user/<space>/memories` + `peers/<peer>/memories/**`, and the only accepted URI is one inside
+ * those trees for the configured space/peer.
  *
  * Delete is never a bare `fs DELETE`: `snapshot/commit([uri])` must succeed first (no snapshot →
  * 409 `snapshot-required`), reference hits require an explicit `confirm:true`, and the response
@@ -12,7 +13,8 @@
  * @module
  */
 import type { ConnectionFetchRoute } from '@deepseek-ai/dsh-client-connection'
-import { VikiUnavailable, type VikiList } from './client.ts'
+import type { VikiList } from '../../domain/viki/types.ts'
+import { VikiUnavailable } from './client.ts'
 
 /** The read surface the plugin binds to the real OpenViking client. */
 export interface VikiReader {
@@ -26,7 +28,7 @@ export interface VikiReferences {
   readonly siblings: readonly string[]
 }
 
-/** The write surface B2 exposes; the plugin binds it to the client + memory service. */
+/** The write surface the delete/restore actions expose; the plugin binds it to the client + memory service. */
 export interface VikiActions {
   commit(paths: readonly string[]): Promise<string>
   remove(uri: string): Promise<void>
@@ -75,7 +77,7 @@ function allowedUri(uri: string, options: VikiRouteOptions): boolean {
  * `references`, `delete` (commit → delete → audit), `restore`.
  * @param reader - The Viki read surface.
  * @param options - Space/peer whitelist and response byte cap.
- * @param actions - The B2 write surface; absent means read-only.
+ * @param actions - The delete/restore write surface; absent means read-only.
  * @returns The exact contribution; registration is owned by the Host plugin fiber.
  */
 export function createVikiRoute(reader: VikiReader, options: VikiRouteOptions, actions?: VikiActions): ConnectionFetchRoute {

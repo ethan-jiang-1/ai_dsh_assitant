@@ -144,7 +144,7 @@ export type LedgerOperation =
     }
   | {
       /**
-       * The fragment's terminal state (261018 片 0): the principal judged it noise, so it leaves
+       * The fragment's terminal state (desk-side capture, 2026-10-18): the principal judged it noise, so it leaves
        * the unclaimed lane — with the reason kept as durable history, the same shape `abandon`
        * gives a matter. Never a silent delete: the fragment's own words stay in the `note` that
        * entered them, and a blank reason is refused.

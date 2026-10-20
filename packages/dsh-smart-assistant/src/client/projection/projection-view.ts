@@ -9,7 +9,7 @@ export type ListFilter = 'all' | 'active' | 'settled'
 export type DeskMode = 'board' | 'activity'
 
 /**
- * The delivery receipt of one line the principal typed into the desk's capture row (261018 片 1).
+ * The delivery receipt of one line the principal typed into the desk's capture row (desk-side capture, 2026-10-18).
  *
  * A **delivery receipt, not a content truth**: it says "the assistant's inbox accepted this line
  * and the ledger has not moved yet". It is per-tab and survives a reload through `sessionStorage`

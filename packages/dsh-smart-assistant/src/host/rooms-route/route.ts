@@ -6,7 +6,8 @@
  * asks for all rooms, or one knowledge page by id. Authentication and the exact-route policy are
  * owned by the shared Connection carrier (`/api/assistant/rooms`, owner-only).
  *
- * Why it exists (A1a, 2026-10-19): the panel used to render the model-written
+ * Why it exists (the panel's read-authority move, 2026-10-19,
+ * [maintenance-read-authority](../../../../../notes/implemented/2026-10-19-maintenance-read-authority.md)): the panel used to render the model-written
  * per-session room-data copy in a Session workspace, so every room change waited for an old
  * rewrite pass and the knowledge body was a 200-char excerpt. The host service already
  * owns the rooms; this route exposes them without a second file parser.
@@ -33,22 +34,22 @@ export interface RoomsReader {
   listThreads(): Promise<{ entries: readonly ResearchThread[], failures: readonly RoomReadFailure[] }>
   listKnowledge(): Promise<{ entries: readonly KnowledgePage[], failures: readonly RoomReadFailure[] }>
   readKnowledgePage(id: string): Promise<{ page: KnowledgePage, backlinks: readonly string[] } | undefined>
-  /** C1: one learned skill's SKILL.md body by name. */
+  /** One learned skill's SKILL.md body by name (the Skills tab's drawer). */
   readLearnedSkill(name: string): Promise<{ name: string, body: string, path: string } | undefined>
   learnedSkills(): Promise<{ entries: readonly LearnedSkillInfo[], failures: readonly RoomReadFailure[] }>
   skillUsage(): Promise<SkillUsageRead>
-  /** Newest approval-ledger lines for the A3 receipt. */
+  /** Newest approval-ledger lines for the maintenance receipt. */
   ledger(): Promise<readonly ApprovalLine[]>
 }
 
-/** The controlled writes A2 exposes on the same route; the plugin binds the real home service. */
+/** The controlled writes the panel's direct-write lane exposes on the same route; the plugin binds the real home service. */
 export interface RoomsActions {
   promotePage(id: string, audit?: ApprovalAuditOptions): Promise<{ id: string, path: string, status: string }>
   deprecatePage(id: string, audit?: ApprovalAuditOptions): Promise<{ id: string, path: string, status: string }>
   saveMemory(input: SaveMemoryInput): Promise<MemoryRecord>
   forgetMemory(id: string): Promise<boolean>
   retireSkill(name: string, reason?: string): Promise<{ name: string, path: string }>
-  /** C2: save one durable assistant message verbatim; the host reads it, not the caller's text. */
+  /** Save one durable assistant message verbatim (the 「记下来」 action); the host reads it, not the caller's text. */
   remember(sessionId: string, messageId: string): Promise<MemoryRecord>
   recordApproval(kind: ApprovalKind, id: string, options: ApprovalAuditOptions): Promise<void>
 }

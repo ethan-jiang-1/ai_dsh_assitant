@@ -1,7 +1,8 @@
 /**
- * The desk processing path and its auto-return judge (desk-operating-entry K3, slice F).
+ * The desk processing path and its auto-return judge (the operating desk's processing-path
+ * contract, [desk-operating-entry](../../../../../notes/implemented/2026-10-06-desk-operating-entry.md)).
  *
- * TWO ARMS, one rule set. The spec's K3 row asks for both: "本人交代首事**或**选择回款 A →
+ * TWO ARMS, one rule set. The contract asks for both: "本人交代首事**或**选择回款 A →
  * 明确 Session → 追问补充 → Host 持久提交 → 读回同操作 → 返回仍选 A".
  * - the **matter arm**: one bound matter + one processing session + the revision observed at
  *   binding; settled by a fresh committed receipt for that matter in that session;
@@ -71,7 +72,7 @@ export interface ReturnJudgeInput {
   readonly session: JudgeSession
   /** Whether the principal is still on this processing path. */
   readonly onPath: boolean
-  /** Reminder sync state for this processing path (V4/V5 lane; 'synced' until it exists). */
+  /** Reminder sync state for this processing path (the reminders lane; 'synced' until reminders exist). */
   readonly reminders: 'synced' | 'pending' | 'failed'
 }
 
@@ -131,7 +132,7 @@ export interface IntakePath {
 /** Every arm of the desk→conversation path. */
 export type DeskPath = ProcessingPath | IntakePath | ClaimPath | DiscardPath | WakePath
 
-/** What the desk's capture row says it is waiting on (261018 片 1b). */
+/** What the desk's capture row says it is waiting on (desk-side capture, 2026-10-18). */
 export type CaptureWait = 'me' | 'assistant' | 'unread' | 'idle'
 
 /** The platform's per-session facts this face reads; structural, so nothing here imports vendor types. */
@@ -146,7 +147,7 @@ export interface CaptureStatus {
 
 /**
  * Whose turn it is, read from the platform's own `SessionStatus` — never from the desk's memory
- * (261018 判定 3). The delivery receipt already answers "not in the ledger yet"; this answers
+ * (desk-side capture, 2026-10-18). The delivery receipt already answers "not in the ledger yet"; this answers
  * "who is being waited on", and it is the half that has to survive a reload.
  *
  * Precedence follows the platform's own ranking: a pending interaction is "the highest-precedence
@@ -272,7 +273,7 @@ export function bindClaimPath(fragmentId: string, sessionId: string, boundAt: st
 }
 
 /**
- * The discard arm (261018 片 0: the fragment's terminal state needs a door): an unclaimed fragment
+ * The discard arm (desk-side capture, 2026-10-18: the fragment's terminal state needs a door): an unclaimed fragment
  * bound to one conversation in which the principal judges it noise. There is no matter to land in,
  * so the settle is the fragment leaving the unclaimed lane **plus** this session's own matterless
  * committed receipt after binding — that receipt is what proves the removal was this discard and

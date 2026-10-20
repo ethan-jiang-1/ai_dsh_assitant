@@ -1,5 +1,5 @@
 /**
- * The A3 receipt view: one human sentence plus a short grouped list of what changed in the four
+ * The maintenance receipt view: one human sentence plus a short grouped list of what changed in the four
  * rooms since the principal last looked. The baseline is browser-local (localStorage, with an
  * in-memory fallback for the classic-script test harness); "全部标为已读" moves it to now.
  *

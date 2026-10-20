@@ -11,7 +11,7 @@
 
 import type { ClientContext } from '../chrome/contracts'
 import { readSeenRunning, writeSeenRunning } from '../local-state'
-import type { CaptureStatus } from './desk-process'
+import type { CaptureStatus } from '../../domain/desk/desk-process'
 
 /** The slice of the platform store module this mirror consumes (structural, like the entry's require). */
 export interface SnapshotStore<T> {
@@ -36,7 +36,7 @@ export function mountSessionCaptureStatuses(
   ctx: Pick<ClientContext, 'uiSession' | 'effect'>,
   storeApi: SnapshotStoreApi | undefined,
 ): SnapshotStore<ReadonlyMap<string, CaptureStatus>> | undefined {
-  // 片 1b: the platform's per-session status, mirrored into a snapshot store so the desk panel
+  // Desk-side capture (2026-10-18): the platform's per-session status, mirrored into a snapshot store so the desk panel
   // can read it through a selector hook like the projection. The desk owns no copy of "whose
   // turn it is" — it re-reads the platform's own answer, which is what makes it survive a reload.
   // The injected face types `pendingInteraction` as `unknown` (it is a declaration-merged

@@ -42,8 +42,9 @@ export const RETIRED_ROOM_DATA_SECTION = '### Room data (`.desk/state.json`)\n\n
 /**
  * Remove the retired Room data section from an existing **generated** manual and stamp the current
  * version. Hand edits elsewhere survive; a manual without the exact retired block is returned
- * unchanged (so a hand-written manual is never reflowed). A1b: existing homes still carried the
- * copy instructions long after the panels stopped reading them.
+ * unchanged (so a hand-written manual is never reflowed). Existing homes still carried the
+ * copy instructions long after the panels stopped reading them (the copy retirement,
+ * 2026-10-19, [retire-room-data-copy](../../../../../notes/implemented/2026-10-19-retire-room-data-copy.md)).
  * @param text - The existing AGENTS.md contents.
  * @returns The migrated contents, or the same string when no retired block is present.
  */

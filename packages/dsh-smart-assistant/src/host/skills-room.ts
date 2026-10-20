@@ -219,7 +219,7 @@ export async function writeSkill(
 }
 
 /**
- * Read one learned skill's SKILL.md body by name (the C1 drawer).
+ * Read one learned skill's SKILL.md body by name (the Skills tab's drawer).
  * @param host - The home service whose skills room is read.
  * @param name - Skill name; must satisfy the skill-name grammar.
  * @returns The name, verbatim body and source path, or undefined when no active learned skill has it.

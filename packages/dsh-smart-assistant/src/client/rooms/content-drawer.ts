@@ -1,7 +1,8 @@
 /**
  * Shared read-only content drawer: the full body of one room entry, opened from a row.
  *
- * One component for knowledge, learned skills and Viki entries (A1a skeleton; C1/B reuse it)
+ * One component for knowledge, learned skills and Viki entries (one skeleton; the skills and
+ * Viki faces reuse it)
  * so the three faces do not grow three different reading surfaces. It is presentation only:
  * the caller fetches the body and owns the open/close state.
  *

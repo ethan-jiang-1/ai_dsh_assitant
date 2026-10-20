@@ -1,6 +1,7 @@
 /**
- * The panel's room actions: the A2 direct writes (approve/deprecate/correct/retire) go through
- * the host `POST /api/assistant/rooms` route and patch the session's projection immediately;
+ * The panel's room actions: the direct writes (approve/deprecate/correct/retire) go through
+ * the host `POST /api/assistant/rooms` route and patch the session's projection immediately
+ * ([maintenance-direct-write](../../../../../notes/implemented/2026-10-19-maintenance-direct-write.md));
  * the remaining conversation lanes (first start, knowledge flag, skill proposals) still send a
  * prompt. The direct paths never fall back to a prompt.
  *
@@ -10,7 +11,8 @@
 import { patchDesk } from './room-data-core'
 import type { DeskData } from './room-data-core'
 import type { ApprovalLine } from '../../domain/maintenance/receipt.ts'
-import { patchRoomRows, postRoomsAction, sendPrompt } from './room-data-io'
+import { patchRoomRows, postRoomsAction } from './room-data-io'
+import { sendPrompt } from './prompt-bridge'
 
 /**
  * Day-0's true start (real-user walk finding, 2026-10-06): on a desk-less folder the refresh
@@ -22,9 +24,10 @@ export function askStart(sessionId?: string): void {
 }
 
 /**
- * Inline skill-proposal approval (B2, 2026-10-06): the click IS the approval. The prompt asks
+ * Inline skill-proposal approval (2026-10-06): the click IS the approval. The prompt asks
  * the assistant to edit the proposal file's status to approved and land_skill it in the same
- * turn. This lane stays on the conversation until C1 exposes the skills surface.
+ * turn. This lane stays on the conversation; the Skills tab's own retire action rides the
+ * direct-write route instead.
  */
 export function askApproveProposal(name: string, sessionId?: string): void {
   sendPrompt(
@@ -41,7 +44,7 @@ export function askRejectProposal(name: string, reason: string, sessionId?: stri
   )
 }
 
-/** Append one direct-write ledger line to the projection so the A3 receipt sees it immediately. */
+/** Append one direct-write ledger line to the projection so the maintenance receipt sees it immediately. */
 function withLedger(data: DeskData, line: ApprovalLine): DeskData {
   return { ...data, ledger: [...(data.ledger ?? []), line].slice(-200) }
 }
@@ -62,7 +65,7 @@ function recount(data: DeskData): DeskData {
 
 /**
  * Approve one draft knowledge page through the host action route; patch the row immediately.
- * The failure is a readable note, never a prompt fallback (A2).
+ * The failure is a readable note, never a prompt fallback.
  * @param title - row title for the note/audit.
  * @param rowId - knowledge page id.
  * @param sessionId - the tab-bound session (audit context).
@@ -161,7 +164,7 @@ export function retireMemory(id: string, sessionId?: string): void {
 
 /**
  * Retire one learned skill (the host moves the bundle to `skills/archive/`; nothing is deleted).
- * The per-skill list UI lands in C1; the action is already available to it.
+ * The per-skill list UI is the Skills tab; the action is already available to it.
  * @param name - skill name.
  * @param sessionId - the tab-bound session (audit context).
  */
@@ -182,7 +185,7 @@ export function retireSkill(name: string, sessionId?: string): void {
   })
 }
 
-/** Tell the assistant what is wrong with one knowledge page (conversation lane; kept for A2). */
+/** Tell the assistant what is wrong with one knowledge page (conversation lane by design: fixing a page is a judgment task, not a mechanical write). */
 export function flagKnowledgePage(title: string, problem: string, rowId: string, sessionId?: string): void {
   sendPrompt(
     `知识页「${title}」有问题：${problem}。请核对并更正这一页。`,

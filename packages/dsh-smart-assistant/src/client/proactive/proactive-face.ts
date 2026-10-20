@@ -62,14 +62,14 @@ export interface ProactiveProjectionView {
   readonly unclaimed: readonly unknown[]
 }
 
-/** A locally remembered "替我盯上" acceptance — the legacy Q5 mismatch check's input (片 2). */
+/** A locally remembered "替我盯上" acceptance — the legacy Q5 mismatch check's input (proactive face, 2026-10-18). */
 export interface AcceptedWatch {
   readonly id: string
   readonly title: string
   readonly at: string
 }
 
-/** One watch acceptance waiting for its schedule (261019 片 4). The delivery session is the
+/** One watch acceptance waiting for its schedule (session-keyed reconciliation, 2026-10-19). The delivery session is the
  *  reconciliation key: the model creates the schedule while serving that session, and the
  *  platform catalog reports the receiving session — no guessing at model-built titles. */
 export interface PendingWatch {
@@ -83,7 +83,7 @@ export interface PendingWatch {
 /** How long an accepted watch may take before "no schedule in that session" is a failure. */
 export const WATCH_GRACE_MS = 2 * 60_000
 
-/** Client-local proactive UI state: dismissed suggestions + remembered acceptances (片 2).
+/** Client-local proactive UI state: dismissed suggestions + remembered acceptances (proactive face, 2026-10-18).
  * Deliberately NOT a second truth about schedules — it only remembers the principal's own
  * clicks; the schedule facts stay in the platform storage. */
 export interface ProactiveUiState {
@@ -118,7 +118,7 @@ export interface ProactiveFaceInput {
   /** Locally remembered watch acceptances; each one whose title never appears in the catalog
    * renders the honest "说了替你盯但没盯上" row (legacy Q5 minimal failure visibility). */
   readonly acceptedWatches?: readonly AcceptedWatch[]
-  /** Session-keyed acceptances (261019 片 4): after the grace, no catalog entry receiving that
+  /** Session-keyed acceptances (2026-10-19): after the grace, no catalog entry receiving that
    *  session means the watch never landed. */
   readonly pendingWatches?: readonly PendingWatch[]
   /** Unanswered questions in sessions the capture row does NOT own (261019). The capture row
@@ -227,7 +227,7 @@ export function deriveProactiveFace(input: ProactiveFaceInput): ProactiveRow[] {
   // Q5 (adjudicated minimal failure visibility): an acceptance whose schedule never shows up in
   // the catalog says so — one honest row per watch, no attribution.
   // 261019: one row per TITLE, not per click (repeated acceptances of one watch are one watch).
-  // 261019 片 4: normal acceptances are keyed by the DELIVERY SESSION instead of the model-built
+  // Session-keyed reconciliation (2026-10-19): normal acceptances are keyed by the DELIVERY SESSION instead of the model-built
   // title (which is unpredictable). A schedule created while serving that session satisfies the
   // acceptance; after the grace with no such schedule, the row appears with the human name.
   if (catalog !== undefined) {
@@ -280,7 +280,7 @@ export function forgetAcceptedWatch(state: ProactiveUiState, title: string): Pro
 
 /**
  * Remember one session-keyed watch acceptance, replacing any earlier one for the same name
- * (261019 片 4). The delivery session is the reconciliation key; re-accepting refreshes it.
+ * (session-keyed reconciliation, 2026-10-19). The delivery session is the reconciliation key; re-accepting refreshes it.
  * @param state - The current client-local UI state.
  * @param watch - The acceptance just recorded, with the delivery session id.
  * @returns A new state carrying the rest of the fields unchanged.

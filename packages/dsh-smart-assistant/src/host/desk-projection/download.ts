@@ -88,7 +88,7 @@ export function createDeskProjectionRoute(dataDir: string, maxBytes: number = 10
             return failure(422, 'projection-invalid')
           }
         }
-        // No ledger yet: the fixed simulation input keeps the K1/K2 scenes running.
+        // No ledger yet: the fixed simulation input keeps the fixed-fixture projection scenes running.
         const fixed = await readCapped(join(dataDir, 'desk-projection.json'), maxBytes, request.signal).catch(error => {
           if (error instanceof Error && 'code' in error && error.code === 'ENOENT') return 'missing' as const
           throw error

@@ -58,7 +58,7 @@ export function roomTabTitle(Icon: (props: { size: number }) => unknown, fallbac
 export function tabBody(props: TabBodyProps, Panel: (props?: { sessionId?: string }) => unknown): ReturnType<typeof createElement> {
   const { useEffect } = reactSurface()
   const sessionId = props.sessionId ?? props.useTabInfo?.()?.tab?.navigation?.params?.sessionId
-  // R11: this tab renders its OWN session's slice, never the shared walk view.
+  // This tab renders its OWN session's slice, never the shared walk view.
   const store = useDesk(sessionId)
   const slice = deskSlice(sessionId)
   const unloaded = sessionId === undefined
@@ -83,10 +83,10 @@ export function tabBody(props: TabBodyProps, Panel: (props?: { sessionId?: strin
       border: `1px solid ${MARK_TEAL}`, background: 'var(--dsw-alias-bg-base)', color: MARK_TEAL,
     },
   }, label)
-  // A5: a corrupt file is an error with a way out, not an eternal "reading…".
+  // A corrupt file is an error with a way out, not an eternal "reading…".
   if (store.readError !== undefined) return roomScroller(
     muted(`读房间数据失败：${store.readError}。`), retryButton('重读一次'))
-  // A6 inverted by the real-user walk (2026-10-06): with no data file yet the refresh button
+  // Inverted by the real-user walk (2026-10-06): with no data file yet the refresh button
   // produced an honest zero-report loop with no meaning — the one-click refresh this branch
   // once prided itself on was the trap. The next step is the first conversation; the copy says
   // what these rooms grow into once there is data, and the button starts that conversation

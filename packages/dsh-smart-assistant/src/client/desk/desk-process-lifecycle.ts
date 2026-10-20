@@ -1,5 +1,5 @@
 /** Per-apply observation of processing-session settlement edges. */
-import type { DeskPath } from './desk-process'
+import type { DeskPath } from '../../domain/desk/desk-process'
 
 /**
  * Create one settle observer for a client apply. A new binding starts a new edge history; clearing

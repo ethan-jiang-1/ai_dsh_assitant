@@ -1,5 +1,6 @@
 /**
- * The desk processing path and its auto-return judge (desk-operating-entry K3, slice F).
+ * The desk processing path and its auto-return judge (the operating desk's processing-path
+ * contract, see src/domain/desk/desk-process.ts).
  *
  * The seam is the pure client core: an explicitly bound matter + processing session + the
  * revision observed at binding time. The judge crosses the durable receipts in the projection
@@ -20,7 +21,7 @@
  * 7. Unsycned reminders allow the return but carry the notice, never "overall success".
  * Plus the positive chain: everything holds — return, still selecting the same matter.
  *
- * The intake arm (spec K3's other side: 交代首事 → 明确 Session → 追问补充 → 持久提交 → 读回 →
+ * The intake arm (the contract's other side: 交代首事 → 明确 Session → 追问补充 → 持久提交 → 读回 →
  * 返回仍选 A) shares those gates; what settles it is a committed receipt for a matter id that was
  * NOT in the projection at binding. Its own negative rows: a first reply that only asks questions
  * (no receipt), a receipt for a matter that already existed (an update, not a creation), a
@@ -29,7 +30,7 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { bindClaimPath, bindDiscardPath, bindIntakePath, bindProcessPath, bindWakePath, canProcess, capturePhase, captureWait, judgeClaimReturn, judgeDiscardReturn, judgeIntakeReturn, judgeReturn, judgeWakeReturn, type JudgeProposal, type JudgeSession } from '../../src/client/desk/desk-process.ts'
+import { bindClaimPath, bindDiscardPath, bindIntakePath, bindProcessPath, bindWakePath, canProcess, capturePhase, captureWait, judgeClaimReturn, judgeDiscardReturn, judgeIntakeReturn, judgeReturn, judgeWakeReturn, type JudgeProposal, type JudgeSession } from '../../src/domain/desk/desk-process.ts'
 import { claimContextMessage, discardContextMessage, processingContextMessage, resumeContextMessage, wakeContextMessage } from '../../src/client/desk/desk-process-messages.ts'
 
 interface Receipt { operationId: string, matterId: string, sessionId: string, status: string, revision?: number, proposalId?: string, submittedAt: string, unclaimedId?: string }

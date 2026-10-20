@@ -2,7 +2,7 @@
  * The knowledge-approve direct-call lane (approve-direct-call): the typert contribution this
  * classic-script face mounts so `remote.assistantKnowledge.approvePage` reaches the host service
  * without a model round trip. Failure degrades the approve button to the host POST action path
- * (A2), announced in-panel by `room-data-actions`; it never falls back to a prompt.
+ * (the direct-write route), announced in-panel by `room-data-actions`; it never falls back to a prompt.
  *
  * The diagnostic stays at info level **by design**: a failed mount must not pollute every first
  * open or trip the web-face scenes' empty-console contract (first-open-draft-banner caught

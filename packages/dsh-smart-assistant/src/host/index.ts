@@ -254,7 +254,7 @@ export class AssistantMemory extends Service implements HomeHost {
   /** List the names of the learned skills currently in the home's skills room. */
   async learnedSkillNames(): Promise<string[]> { return learnedSkillNames(this) }
 
-  /** C1: one learned skill's SKILL.md body by name. */
+  /** One learned skill's SKILL.md body by name (the Skills tab's drawer). */
   async readLearnedSkill(name: string): Promise<{ name: string, body: string, path: string } | undefined> { return readLearnedSkill(this, name) }
 
   /** Promote one knowledge page from draft to stable (the principal's approval, mechanized); every

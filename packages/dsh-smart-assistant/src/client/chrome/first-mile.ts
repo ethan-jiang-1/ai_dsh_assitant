@@ -13,7 +13,7 @@ import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
 import type { RoomKind } from './contracts'
 import { patchDesk, useDesk } from '../rooms/room-data-core'
 import { askStart } from '../rooms/room-data-actions'
-import { sendPrompt } from '../rooms/room-data-io'
+import { sendPrompt } from '../rooms/prompt-bridge'
 import { createElement, reactSurface } from './runtime'
 import { MARK_TEAL } from './theme'
 import type {} from './locales'
@@ -33,8 +33,8 @@ import type {} from './locales'
  * @returns the strip element, or null once the session has any content.
  */
 /**
- * The rich desk landing for the blank (pre-first-message) phase (A1, 2026-10-06 stepwise form
- * migration). This replaces the old thin first-mile strip with a substantial card that fills
+ * The rich desk landing for the blank (pre-first-message) phase (2026-10-06,
+ * [desk-primary-view](../../../../../notes/archived/2026-10-06-desk-primary-view.md)). This replaces the old thin first-mile strip with a substantial card that fills
  * the gap between the vendor hero and the composer — the plugin boundary's best shot at making
  * the first screen carry real content.
  *
@@ -67,7 +67,7 @@ export function FirstMileDock({ session, openDesk, processingMatter, t }: FirstM
   // was left with no input box at all while the model waited for an answer.
   const { useState } = reactSurface()
   const [draft, setDraft] = useState('')
-  const sid = session?.sessionId  // (261007 Slice 1a) The A1-era hiding CSS — "[data-chain-overlay-fallback='conversation.composer']
+  const sid = session?.sessionId  // (2026-10-07) The old hiding CSS — "[data-chain-overlay-fallback='conversation.composer']
   // { display:none }" — is RETIRED, not fixed. The live probe (2026-10-07) showed WHY it could
   // never work: this dock renders INSIDE that fallback wrapper (vendor ConversationContent.tsx:
   // composerStack = hero + input.dock + inputBar), so hiding the vendor composer hid this card
@@ -76,7 +76,7 @@ export function FirstMileDock({ session, openDesk, processingMatter, t }: FirstM
   // the vendor composer (the input channel the card's copy points at).
   // (2026-10-11) The view preference pre-write is retired with the session desk view itself:
   // the main-panel ledger desk is the one "桌面", and sessions open on Chat.
-  // (261007 Slice 1b) The Goal-1 auto-send — an 800ms timed '你好' — is retired. It read
+  // (2026-10-07) The timed auto-send — an 800ms '你好' — is retired. It read
   // deskSlice(sid), which is ALWAYS empty on a brand-new session, so every page load
   // re-fired it: six ghost sessions in ten minutes on the 2026-10-07 probe, each a real
   // model round that re-opened with "初次见面" on a desk that already held content. The
@@ -84,7 +84,7 @@ export function FirstMileDock({ session, openDesk, processingMatter, t }: FirstM
   // reloads, composed from the walk view the client already holds.
   // The walk view is SUBSCRIBED (useDesk), not a one-shot deskSlice read: the walk read
   // lands asynchronously after mount, and the old one-shot never re-rendered — the brief
-  // never appeared on a live reload (caught in the Slice 1 real-machine probe).
+  // never appeared on a live reload (caught in the 2026-10-07 real-machine probe).
   const walk = useDesk()
   const send = () => {
     const text = draft.trim()
@@ -158,7 +158,7 @@ export function FirstMileDock({ session, openDesk, processingMatter, t }: FirstM
   }
 
   // Has data on disk: a short pointer at the desk itself. The brief that used to speak the
-  // retired file's decisions/actions/gaps (261007 Slice 1b) is gone with those sections — the
+  // retired file's decisions/actions/gaps (retired 2026-10-07) is gone with those sections — the
   // one desk is the ledger projection in the main area, and the client's room-data file no
   // longer carries anything to brief from.
   return shell([
@@ -173,7 +173,7 @@ export function FirstMileDock({ session, openDesk, processingMatter, t }: FirstM
 }
 
 /**
- * The pending-approval banner above the composer. The desk already points at the drafts (S4),
+ * The pending-approval banner above the composer. The desk already points at the drafts,
  * but that pointer sits one room deep — the second naive-CEO reading (first-open UX card,
  * 2026-10-04) named the depth itself as the friction: pages wait for an approval only the
  * principal can give, and nothing on the first screen says so (before-evidence 2026-10-05:
@@ -217,7 +217,7 @@ export function ApprovalDockBanner({ openRoom }: {
     `⚠ ${String(draftCount)} 页知识草稿在等你审批——批准后才会成为它的判断依据`),
   createElement('button', {
     onClick: () => {
-      // Same routing as the desk pointer (S4): the room opens with the drafts highlighted
+      // Same routing as the desk pointer: the room opens with the drafts highlighted
       // and scrolled into view. openBeside is total — it reports its own failure — so no
       // guard here; the banner never swallows a click silently.
       patchDesk({ focusKnowledge: 'drafts' })

@@ -5,7 +5,7 @@
  *
  * @module dsh-smart-assistant/client/viki-data-io
  */
-import type { VikiEntry, VikiList } from '../../host/viki/client.ts'
+import type { VikiEntry, VikiList } from '../../domain/viki/types.ts'
 import { reactSurface } from '../chrome/runtime'
 
 /** One read of the Viki list. */
@@ -101,7 +101,7 @@ export async function loadVikiBody(uri: string): Promise<{ ok: true, body: strin
 
 export type { VikiEntry }
 
-/** Knowledge pages / near-duplicates that point at a URI (B2's pre-delete check). */
+/** Knowledge pages / near-duplicates that point at a URI (the pre-delete reference check). */
 export interface VikiReferences { readonly knowledge: readonly string[], readonly siblings: readonly string[] }
 
 /** One delete receipt: commit id + when + the refs the principal confirmed. */

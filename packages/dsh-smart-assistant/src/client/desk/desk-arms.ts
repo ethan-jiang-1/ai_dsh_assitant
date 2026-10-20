@@ -3,7 +3,7 @@
  * their one-at-a-time launch skeleton, the context notes they seed, and the return dispatch that
  * hands the desk back once a bound session's work reads back.
  *
- * One arm at a time (spec K3): the launch lock, the bound-path check and the readable-projection
+ * One arm at a time ([desk-operating-entry](../../../../../notes/implemented/2026-10-06-desk-operating-entry.md)): the launch lock, the bound-path check and the readable-projection
  * demand live in the skeleton, not in four copies, which is what keeps the double-click negative
  * (双击发送两次) and the one-path-at-a-time rule true for every arm at once. The intake arm is the
  * deliberate outlier — it opens its door on an unreadable projection, reuses the current session,
@@ -19,10 +19,11 @@
  * @module dsh-smart-assistant/client/desk-arms
  */
 
-import { bindClaimPath, bindDiscardPath, bindIntakePath, bindProcessPath, bindWakePath, canProcess, judgeClaimReturn, judgeDiscardReturn, judgeIntakeReturn, judgeReturn, judgeWakeReturn, type DeskPath } from './desk-process'
+import { bindClaimPath, bindDiscardPath, bindIntakePath, bindProcessPath, bindWakePath, canProcess, judgeClaimReturn, judgeDiscardReturn, judgeIntakeReturn, judgeReturn, judgeWakeReturn, type DeskPath } from '../../domain/desk/desk-process'
 import { claimContextMessage, discardContextMessage, processingContextMessage, resumeContextMessage, wakeContextMessage } from './desk-process-messages'
 import { createSettleRefreshObserver } from './desk-process-lifecycle'
-import { deskCaptureRequest, getDeskRemote, panelPromptRequest } from '../rooms/room-data-io'
+import { getDeskRemote } from '../rooms/room-data-io'
+import { deskCaptureRequest, panelPromptRequest } from '../rooms/prompt-bridge'
 import type { OperatingProjection } from '../projection/operating-projection'
 import type { ProjectionDownload } from '../projection/projection-reader'
 import type { DeskCaptureReceipt } from '../projection/projection-view'
@@ -137,12 +138,13 @@ export function createDeskArms(deps: DeskArmDeps): DeskArms {
       void prompt(panelPromptRequest(requestKind, sessionId, text))
     }
   }
-  // The four desk→conversation arms (spec K3 + principal-direction cards) share one launch
+  // The four desk→conversation arms (the desk-operating-entry contract + the principal-direction
+  // cards) share one launch
   // skeleton — guard the bound path, take the launch lock, demand a readable projection,
   // resolve the arm's subject, then create/steer the session, bind the path, open it, and
   // seed the context note — and differ only in the declarative parts below. The shared
   // skeleton is what keeps the double-click negative (双击发送两次) and the one-path-at-a-time
-  // rule (spec K3) true for every arm at once: the launch lock lives here, not in four copies.
+  // rule true for every arm at once: the launch lock lives here, not in four copies.
   // The intake arm is the deliberate outlier: it keeps opening its door when the projection
   // is unreadable (`toleratesMissing`) — a Day-0 principal clicking 「＋ 交代新事项」 on a fresh
   // home must never meet a dead button (the loop probe caught exactly that, 2026-10-11) —
@@ -195,7 +197,7 @@ export function createDeskArms(deps: DeskArmDeps): DeskArms {
     })()
   }
 
-  // The matter arm (explicit processing, K3 slice F): one bound matter + processing session.
+  // The matter arm (explicit processing): one bound matter + processing session.
   const processMatter = (matterId: string): void => launchDeskArm({
     reentry: path => path.kind === 'matter' && path.matterId === matterId,
     // Q11: re-entering a bound matter from the desk is a continuation intent — seed the
@@ -232,7 +234,7 @@ export function createDeskArms(deps: DeskArmDeps): DeskArms {
     },
   })
 
-  // The intake arm (spec K3's 交代首事 side): the desk's 「＋ 交代新事项」 opens a conversation in
+  // The intake arm (the 交代首事 side of the same contract): the desk's 「＋ 交代新事项」 opens a conversation in
   // which the principal says the matter, and the desk comes back once the ledger holds it —
   // selecting the new matter. The bound session is the current one (explicit, never guessed);
   // a fresh folder with no session yet gets one through the first workspace. The ids present
@@ -273,7 +275,7 @@ export function createDeskArms(deps: DeskArmDeps): DeskArms {
     },
   })
 
-  // The discard arm (261018 片 0): the principal pressed 「是噪音，不归户」, so the conversation
+  // The discard arm (desk-side capture, 2026-10-18): the principal pressed 「是噪音，不归户」, so the conversation
   // exists to capture the one-line reason the ledger requires — not to decide anything. It always
   // creates its own session for the same reason the claim arm does, and it settles when the
   // fragment leaves the lane with this session's own matterless committed receipt behind it.
@@ -288,7 +290,7 @@ export function createDeskArms(deps: DeskArmDeps): DeskArms {
     },
   })
 
-  // 片 1 (261018): the desk's capture row. The principal's own words go into the intake
+  // The desk's capture row (desk-side capture, 2026-10-18). The principal's own words go into the intake
   // conversation WITHOUT taking the desk away — the whole difference from `startIntake`, which
   // opens the session because the principal chose to go and talk there. The row remembers what it
   // delivered (a receipt), and the desk keeps showing it as in flight until the projection's
@@ -297,7 +299,8 @@ export function createDeskArms(deps: DeskArmDeps): DeskArms {
   // The receipt is a delivery fact only; the words are durable in the conversation, and the
   // ledger stays the only authority on what exists.
   // Returns the session the line was delivered into once the inbox accepts it — the watch lane
-  // uses it as the reconciliation key for its pending acceptance (261019 片 4).
+  // uses it as the reconciliation key for its pending acceptance (the proactive watch lane's
+  // session-id reconciliation, 2026-10-19).
   const captureFromDesk = (text: string, options?: { lane?: 'capture' | 'action', label?: string }): Promise<string | undefined> => {
     const trimmed = text.trim()
     if (trimmed === '') return Promise.resolve(undefined)
@@ -368,7 +371,7 @@ export function createDeskArms(deps: DeskArmDeps): DeskArms {
       // running state, and an unknown running state fails closed as running.
       session: { running: status?.running, turnSettled: status?.running === false, pendingInteraction: status?.pendingInteraction !== undefined },
       onPath: panel?.activePanelId === null && String(currentKey ?? '') === path.sessionId,
-      // V4/V5 提醒协调 is a deferred face (the projection's reminders are an empty
+      // Reminder coordination is a deferred face (the projection's reminders are an empty
       // placeholder until then) — this input stays 'synced' and flips when the reminder
       // channel lands; judgeReturn already reports the unsynced notice on its output.
       reminders: 'synced',

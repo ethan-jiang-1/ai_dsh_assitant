@@ -126,7 +126,7 @@ export function KnowledgePanel(props?: { sessionId?: string }): unknown {
                 : null,
               createElement('ul', { style: { margin: 0, paddingLeft: '18px', fontSize: '13px', lineHeight: 1.8, color: 'var(--dsha-warn)' } },
                 ...drafts.map(page => row(page, '⚠ ')))),
-          // Inline skill proposals (B2, 2026-10-06): the review inbox rides the same panel as
+          // Inline skill proposals (2026-10-06): the review inbox rides the same panel as
           // the knowledge drafts — one-click approve/reject in place, no separate chore. The
           // proposals come from the desk file's `knowledge` section (drafts the assistant
           // proposes as skills, not pages); each row carries CorrectableRow for the reject

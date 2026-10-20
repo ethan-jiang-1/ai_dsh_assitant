@@ -77,7 +77,8 @@ const TEXT = [
   'keeps its commitment-becomes-a-schedule path.',
 ].join('\n')
 
-/** The full section text, exported for the red-line contract test (261018 proactive 片 3). */
+/** The full section text, exported for the red-line contract test (the unattended red line of the
+ * proactive face, 2026-10-18). */
 export const OPERATING_BRIEF_TEXT = TEXT
 
 /**

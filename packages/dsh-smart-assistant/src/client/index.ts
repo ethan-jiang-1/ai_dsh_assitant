@@ -16,9 +16,10 @@
  *
  * Module map: `chrome/` (contracts, runtime, theme, dom/format/locales, brand, commands,
  * dashboard, first-mile, approve mount, default panel selection) / `rooms/` (room-data
- * store/io/actions, session settle refresh, panels, tab definitions and bodies, skills, viki,
- * receipt, message action, drawer) / `desk/` (arms, session capture statuses, return state
- * machine, messages, processing settle observer, view actions) / `projection/` (download
+ * store/io/actions, prompt bridge, session settle refresh, panels, tab definitions and bodies,
+ * skills, viki, receipt, message action, drawer) / `desk/` (arms, session capture statuses,
+ * messages, processing settle observer, view actions; the return state machine itself is the
+ * domain module `domain/desk/desk-process.ts`) / `projection/` (download
  * reader, v1/v2 normalization, view store, panel, lifecycle) / `proactive/` (suggestion rows
  * and handlers, catalog source) / `local-state` (per-tab persistence) — this entry owns the
  * facade registration, the seat and command registrations inside `apply`, and the dependency
@@ -49,7 +50,7 @@ import { ProjectionPanel } from './projection/projection-panel'
 import { mountProjectionReader } from './projection/projection-lifecycle'
 import type { ProjectionDownload } from './projection/projection-reader'
 import { createProjectionViewStore } from './projection/projection-view'
-import type { DeskPath } from './desk/desk-process'
+import type { DeskPath } from '../domain/desk/desk-process'
 import { createDeskArms } from './desk/desk-arms'
 import { createProactiveCatalogSource, type ProactiveCatalogState, type ProactiveRemoteLike } from './proactive/proactive-face-source'
 import { createProactiveHandlers } from './proactive/proactive-handlers'
@@ -91,7 +92,8 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     if (typeof process !== 'undefined' && process.env?.DSH_CLIENT_BUILD_PROFILE === 'official') {
       return
     }
-    // Goal 1.5 (2026-10-06): the desk as a MAIN-AREA PANEL — not a tab inside the chat shell,
+    // The desk as a MAIN-AREA PANEL (user direction 2026-10-06,
+    // [desk-primary-view](../../../../notes/archived/2026-10-06-desk-primary-view.md)) — not a tab inside the chat shell,
     // but a standalone page beside Settings and Tasks. This is the correct vehicle for
     // "desktop as primary object": the principal opens it and sees their dashboard without
     // needing a session, a message, or a chat at all. Conversation becomes an input channel
@@ -113,7 +115,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     })
     const viewStore = projection === undefined || storeApi === undefined ? undefined : createProjectionViewStore(storeApi.defineStore)
     const sessionStatuses = mountSessionCaptureStatuses(ctx, storeApi)
-    // 片 1 (261018 proactive): the schedule catalog bridge. Wiring verdict (stage-0, three
+    // The schedule catalog bridge (proactive face, 2026-10-18). Wiring verdict (stage-0, three
     // binary-search rounds): the `'remote.schedule'` subface inject works ONLY together with
     // the `"@deepseek-ai/dsh-schedule"` peer declaration (vendor ui-schedule is wired the same
     // way); either piece alone kills the whole client entry at runtime with zero type-level
@@ -125,11 +127,11 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       ctx.effect(() => source.subscribe(() => { proactiveCatalog.set(source.getSnapshot()) }))
     }
     const proactiveUi = storeApi?.createSnapshotStore<ProactiveUiState>(readProactiveUi())
-    // The explicit processing path (K3 slice F): one bound matter + processing session. The
+    // The explicit processing path: one bound matter + processing session. The
     // path is in-memory by design — a reload reads the authoritative projection first and
     // never replays a path or re-submits. The slot store survives panel switches, so the
     // selection the principal left behind is exactly what the auto-return returns to.
-    // One desk→conversation path at a time, either arm (spec K3): an existing matter being
+    // One desk→conversation path at a time, either arm: an existing matter being
     // processed, or the intake of a matter the principal is about to describe.
     const deskPath = storeApi?.createSnapshotStore<DeskPath | undefined>(undefined)
     // The live desk store's actions, handed to this entry's own inject face by the render
@@ -138,7 +140,8 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // the matter arm's selection is the principal's own click, which the store already holds.
     let deskViewActions: { selectMatter(id: string): void } | undefined
     const deskActivity = createDeskActivityHandoff()
-    // The four desk→conversation arms (spec K3 + principal-direction cards) live in
+    // The four desk→conversation arms (the desk-operating-entry contract + principal-direction
+    // cards) live in
     // ./desk-arms: one factory per materialization, so the launch lock and the bound-path
     // access keep the lifecycle they had inside apply. Subscriptions are registered below,
     // where the effect used to be, so lifecycle ordering is unchanged.
@@ -191,7 +194,8 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         yield ctx.slots.register({ name: 'sidebar.brand.name' }, AssistantBrandName)
       }))
 
-    // (2026-09-28 user steer) The rooms' home is the RIGHT sidebar as addable tabs — like the
+    // (User steer, 2026-09-28 —
+    // [rooms-to-right-sidebar](../../../../notes/archived/2026-09-28-rooms-to-right-sidebar.md)) The rooms' home is the RIGHT sidebar as addable tabs — like the
     // browser and terminal tabs there, opened from the guide ("+") while a conversation is on,
     // several at once, each bound to its session. The left main-panel registrations are retired;
     // the wide-panel bodies are unchanged (the tab seat renders the same components).
@@ -242,7 +246,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // The session desk VIEW tab is retired with the room (same principal decision): no
     // second surface may carry the "桌面" name — the main-panel desk is the only one.
 
-    // Discovery (P1-A, 2026-09-26): the `/` menu and the composer's `+` menu list these,
+    // Discovery (2026-09-26): the `/` menu and the composer's `+` menu list these,
     // so "what can this thing do" stops depending on the principal guessing at a prompt.
     // Scoped inject rather than the plugin's own inject list keeps the rooms independent
     // of whether this composition carries a command surface at all.
@@ -255,7 +259,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       })]) commandUi.register(contribution)
     })
 
-    // First-mile identity and guidance (P1-B, 2026-09-26). Two seats the shell leaves open
+    // First-mile identity and guidance (2026-09-26). Two seats the shell leaves open
     // exactly where a first-time principal looks: the blank-session hero mark, and the
     // full-width dock above the composer that the owner renders only in that same hero
     // state. Both disappear on their own once the conversation starts.

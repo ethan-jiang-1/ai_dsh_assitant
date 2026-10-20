@@ -1,16 +1,18 @@
 /**
- * The Viki tab: what the memory layer extracted, one row per file, full body on demand.
+ * The Viki tab: what the memory layer extracted, one row per file, full body on demand
+ * ([viki-read](../../../../../notes/implemented/2026-10-19-viki-read.md)).
  *
- * B2 adds per-row deletion: references are fetched first, shown, and the delete only fires on the
- * explicit confirm; the host refuses without a snapshot commit, and the receipt carries the commit
- * id + "restore this delete" (forward-commit semantics). B3 adds the manual two-row comparison:
- * pick two, see them side by side, name which one wins — the other is deleted through B2.
+ * Per-row deletion ([viki-delete](../../../../../notes/implemented/2026-10-19-viki-delete.md)): references are
+ * fetched first, shown, and the delete only fires on the explicit confirm; the host refuses
+ * without a snapshot commit, and the receipt carries the commit id + "restore this delete"
+ * (forward-commit semantics). The manual two-row comparison rides the same backed-up delete:
+ * pick two, see them side by side, name which one wins — the other is deleted with a snapshot.
  *
  * Read-only/delete/restore all go through `/api/assistant/viki`; no prompt, no model turn.
  *
  * @module dsh-smart-assistant/client/viki-panel
  */
-import type { VikiEntry } from '../../host/viki/client.ts'
+import type { VikiEntry } from '../../domain/viki/types.ts'
 import { ContentDrawer } from './content-drawer'
 import { muted } from '../chrome/dom-utils'
 import { createElement, reactSurface } from '../chrome/runtime'

@@ -50,7 +50,7 @@ export function CorrectableRow(props: {
   rowId?: string | undefined
   /** Read-only: the row was acted on and its question is settled — no buttons, no input. */
   readOnly?: boolean
-  /** The session this row's desk belongs to: the freeze, receipt and stall scoping (R11). */
+  /** The session this row's desk belongs to: the freeze, receipt and stall scoping. */
   deskSession?: string | undefined
 }): ReturnType<typeof createElement> {
   const { useState } = reactSurface()
@@ -76,7 +76,7 @@ export function CorrectableRow(props: {
   // Provenance is the trust line: where a claim came from is what lets the principal judge it —
   // and for a record they corrected, the source is the cultivation trace itself.
   const source = props.source === undefined || props.source.trim() === '' ? undefined : props.source.trim()
-  // Hierarchy (P2, 2026-09-26): the actions ride the row's first line, right-aligned, with the
+  // Hierarchy (2026-09-26): the actions ride the row's first line, right-aligned, with the
   // detail lines flowing underneath them. The narrow-pane measurement showed 6–9 lines per row
   // and the buttons at the very bottom, so acting meant reading the audit trail first. One
   // change here covers every row type that shares this component.
@@ -95,7 +95,7 @@ export function CorrectableRow(props: {
           if (action.destructive === true && armed !== action.label) {
             setArmed(action.label)
             // Five seconds, not three: these are 18px buttons and a Chinese principal may be
-            // mid-IME when the confirm appears (R3, self-review 2026-09-27).
+            // mid-IME when the confirm appears (self-review, 2026-09-27).
             setTimeout(() => { setArmed(current => current === action.label ? undefined : current) }, 5000)
             return
           }
@@ -135,7 +135,7 @@ export function CorrectableRow(props: {
         }, props.excerpt),
         source === undefined
           ? null
-          // R7 (self-review, 2026-09-27): the live page carried 11 sources / 945 characters and this
+          // (self-review, 2026-09-27): the live page carried 11 sources / 945 characters and this
           // line showed ~12% of them, the rest reachable only by hovering a clipped element.
           // Provenance is the trust line — it gets a real expander.
           : createElement('div', {
@@ -152,7 +152,7 @@ export function CorrectableRow(props: {
                   },
                 }, openSource ? '收起来源' : `来源全文（${source.length} 字）`))),
       props.readOnly === true ? null : controls),
-    // R11 (narrow review, 2026-09-27): this used to co-render with the in-flight line below, so a
+    // (narrow review, 2026-09-27): this used to co-render with the in-flight line below, so a
     // just-answered row said "已回答" and "正在处理" at once. While the answer is in flight the row
     // says one thing; the settled line is what replaces it.
     props.readOnly === true && inflight === false
@@ -163,7 +163,7 @@ export function CorrectableRow(props: {
       style: { fontSize: '12px', color: 'var(--dsw-alias-label-secondary)', marginTop: '4px' },
     }, `已交给助手 · ${shortTime(new Date(store.pending?.at ?? Date.now()).toISOString())} · ${String(store.pending?.action ?? '')}——正在处理，回复出现在对话里`),
     // The poller gave up: the action left, the desk did not catch up. Durable on the row on
-    // purpose — a row that looks untouched reads as "nothing happened" (R1).
+    // purpose — a row that looks untouched reads as "nothing happened".
     stalled === undefined ? null : createElement('div', {
       style: { fontSize: '12px', color: 'var(--dsha-warn)', marginTop: '4px' },
     }, `已发出 · ${shortTime(new Date(stalled.at).toISOString())} · ${stalled.action}——房间数据还没跟上，点「刷新房间数据」再试（动作不会被撤销）`),
@@ -213,7 +213,7 @@ export function sectionTitle(text: string): ReturnType<typeof createElement> {
 
 /** The refresh button plus its status line, and — where the room can — the jump to the beside-conversation tab. */
 export function refreshRow(store: DeskStore, session?: string): ReturnType<typeof createElement> {
-  // A1a: the button re-reads the host rooms route, not a prompt. The route is the panel's truth;
+  // The button re-reads the host rooms route, not a prompt. The route is the panel's truth;
   // no model turn is needed to see a room change that already landed in the working folder.
   // (2026-09-28) The "在对话旁打开" button is gone with the left main panels: rooms render only
   // inside right-sidebar tabs now, so that opener opened the very tab it sat in — a no-op the
@@ -233,7 +233,7 @@ export function refreshRow(store: DeskStore, session?: string): ReturnType<typeo
       ? null
       : createElement('span', { style: { marginLeft: '10px', fontSize: '12px', color: 'var(--dsw-alias-label-secondary)' } },
           `已交给助手 · ${shortTime(new Date(store.pending?.at ?? Date.now()).toISOString())} · ${String(store.pending?.action ?? '')}——回复出现在对话里，房间数据更新后自动跟上`),
-    // A7: freshness belongs to every room, not only the desk — the room the principal is
+    // Freshness belongs to every room, not only the desk — the room the principal is
     // reading in is exactly where "this snapshot is stale" must be said out loud.
     staleWarning(store) === undefined
       ? null
@@ -253,7 +253,7 @@ export function cell(label: string, value: string, target?: RoomKind): ReturnTyp
     try {
       openBeside(target)
     } catch {
-      // R9 (self-review, 2026-09-27): swallowing this left an underlined, pointer-cursor number that
+      // (self-review, 2026-09-27): swallowing this left an underlined, pointer-cursor number that
       // did nothing at all. The stale target still must not break the panel — but the failure is
       // now visible where the click happened.
       patchDesk({ jumpError: `「${label}」这次没能打开——刷新页面通常能恢复` })
@@ -271,7 +271,7 @@ export function cell(label: string, value: string, target?: RoomKind): ReturnTyp
   }
   if (target === undefined) return createElement('div', { style }, ...inner)
   // A real button when it acts: the count used to be an onClick div with no role and no tab stop,
-  // i.e. mouse-only (R9).
+  // i.e. mouse-only.
   return createElement('button', {
     type: 'button',
     onClick: jump,

@@ -111,7 +111,7 @@ function uniqueMatters(matters: unknown[]): boolean {
  * lifts the fixture envelope onto the v2 shape by filling v1's absent fields with fixed
  * defaults (`responsible: ''`, `revision: 1`, `note = quote`): a presentation upgrade of the
  * fixed simulation input, never an inference about real business state. Evidence locations are claims, not verified existence.
- * v1 is the fixed-fixture envelope (K1/K2); v2 is the live ledger render (K3) carrying
+ * v1 is the fixed-fixture envelope; v2 is the live ledger render carrying
  * per-matter revisions, proposals, operation receipts, and unclaimed fragments.
  * @param input - Untrusted downloaded JSON.
  * @returns Valid v1 or v2 projection; throws on incompatible version or malformed identities/evidence.

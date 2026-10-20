@@ -1,5 +1,5 @@
 /**
- * C2 "记下来": one assistant-message action. The client sends only the durable ids; the host reads
+ * The 「记下来」 assistant-message action: the client sends only the durable ids; the host reads
  * the message text through `ctx.sessionQuery` and saves it verbatim with
  * `source: panel:message:<sessionId>/<messageId>`. One click is the confirmation; no prompt, no
  * model turn, no candidate state.

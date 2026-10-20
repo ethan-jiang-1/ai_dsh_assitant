@@ -24,7 +24,7 @@ export function mountSessionSettleRefresh(
   // Follow the conversation: when the newest Session settles a turn, re-read the desk file AND
   // the operating projection after a short settle delay. A refresh the assistant performed
   // during that turn then lands on its own — the principal should not have to click to see what
-  // changed. The projection half is the K4 processing readback (2026-10-10, desk-process-e2e
+  // changed. The projection half is the processing readback (2026-10-10, desk-process-e2e
   // probe): without it the receipt committed by the processing turn never re-enters the client,
   // judgeReturn stays on 'receipt-not-read-back', and the auto-return to the desk never fires.
   // Room-data refresh also serves headless apply contexts, which may not expose effect. Keep
@@ -42,7 +42,7 @@ export function mountSessionSettleRefresh(
         if (newest === lastStamp) return
         lastStamp = newest
         if (pending !== undefined) clearTimeout(pending)
-        // R11: refresh every bound session's own desk; with no bound tab, walk the newest five.
+        // Refresh every bound session's own desk; with no bound tab, walk the newest five.
         pending = setTimeout(() => {
           pending = undefined
           if (getDeskStore().boundSessions.size === 0) loadDesk()

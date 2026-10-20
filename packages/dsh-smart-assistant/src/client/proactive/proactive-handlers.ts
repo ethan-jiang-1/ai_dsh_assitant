@@ -51,7 +51,7 @@ export function createProactiveHandlers(deps: ProactiveHandlerDeps): ProactiveHa
   const { arms, proactiveUi } = deps
   const suggestName = (id: string): string | undefined => PROACTIVE_SUGGESTIONS.find(suggestion => suggestion.id === id)?.name
   const onSuggestAction = async (kind: 'trial' | 'watch', id: string): Promise<void> => {
-    // A watch acceptance is remembered by its DELIVERY SESSION (261019 片 4): the model builds
+    // A watch acceptance is remembered by its DELIVERY SESSION (session-keyed reconciliation, 2026-10-19): the model builds
     // the schedule while serving that session, and the catalog reports the receiving session,
     // so the pending acceptance can be reconciled without guessing a model-built title.
     const isRetry = id.startsWith('retry:')

@@ -1,6 +1,6 @@
 /**
- * `assistantOperatingLedger`: the authoritative operating ledger service (desk-operating-entry
- * K3, slice A) — the single Host writer over the separate `assistant-operating` data directory.
+ * `assistantOperatingLedger`: the authoritative operating ledger service (the operating desk's
+ * ledger contract, [desk-operating-entry](../../../../../notes/implemented/2026-10-06-desk-operating-entry.md)) — the single Host writer over the separate `assistant-operating` data directory.
  *
  * Business semantics are the settled CEO operating-loop card's V1–V5/V7 via the pure core in
  * `src/domain/operating/ledger.ts`; this service owns the writer claim, persistence, and the

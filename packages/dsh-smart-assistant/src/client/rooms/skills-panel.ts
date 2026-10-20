@@ -1,7 +1,8 @@
 /**
- * The Skills tab (C1): every learned skill the room actually enumerates — name, usage count,
- * last use, provenance (`metadata.source`), a read-only SKILL.md drawer, and one-click retire
- * through the A2 route (archive, not delete). No cost column in v1: the only honest always-on
+ * The Skills tab ([learned-skills](../../../../../notes/implemented/2026-10-19-learned-skills.md)): every learned skill the room
+ * actually enumerates — name, usage count, last use, provenance (`metadata.source`), a
+ * read-only SKILL.md drawer, and one-click retire through the direct-write route (archive,
+ * not delete). No cost column in v1: the only honest always-on
  * bytes are name+description, and presenting full-SKILL.md bytes as resident cost would mislead.
  *
  * @module dsh-smart-assistant/client/skills-panel

@@ -72,8 +72,8 @@ export function claimContextMessage(fragment: ClaimContextFragment): string {
 }
 
 /**
- * The visible context note seeded into a discard session (261018 片 0: the fragment's terminal
- * state needs a door). The principal judged this fragment noise by pressing the desk's
+ * The visible context note seeded into a discard session (desk-side capture, 2026-10-18: the
+ * fragment's terminal state needs a door). The principal judged this fragment noise by pressing the desk's
  * 「是噪音，不归户」, so the seed states the judgment and asks only for the one-line reason the
  * ledger requires — discard removes the fragment from the lane, so it must not happen on a guess.
  * Same `[面板]` marker as the other seeds: machine-written prompts stay apart from the

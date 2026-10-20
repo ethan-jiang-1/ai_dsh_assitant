@@ -1,7 +1,7 @@
 /** Global projection presentation. Renderer supplies the sole live-data hook. */
 import { createElement as ce } from '../chrome/runtime'
 import { AssistantBrandMark } from '../chrome/brand'
-import { canProcess, capturePhase, type CaptureStatus } from '../desk/desk-process'
+import { canProcess, capturePhase, type CaptureStatus } from '../../domain/desk/desk-process'
 import { humanTime, localDateKey, localDateLabel, localTimeLabel } from '../chrome/format'
 import { deriveProactiveFace, PROACTIVE_SUGGESTIONS, type ProactiveUiState } from '../proactive/proactive-face'
 import type { ProactiveCatalogState } from '../proactive/proactive-face-source'
@@ -12,15 +12,15 @@ import type { DeskCaptureReceipt, ProjectionView } from './projection-view'
 export interface ProjectionPanelProps {
   useProjection<S>(select: (value: ProjectionDownload) => S): S
   useStore<S>(select: (view: ProjectionView) => S): S
-  /** The platform's per-session status map (261018 片 1b), as a selector hook like the projection. */
+  /** The platform's per-session status map (desk-side capture, 2026-10-18), as a selector hook like the projection. */
   useSessionStatus<S>(select: (value: ReadonlyMap<string, CaptureStatus>) => S): S
-  /** The platform schedule catalog (261018 proactive 片 1) for「它替你看过」row 3; absent = degrade. */
+  /** The platform schedule catalog (proactive face, 2026-10-18) for「它替你看过」row 3; absent = degrade. */
   useCatalog?<S>(select: (state: ProactiveCatalogState) => S): S
-  /** Client-local proactive UI state (片 2): dismissed suggestions + remembered acceptances. */
+  /** Client-local proactive UI state: dismissed suggestions + remembered acceptances. */
   useProactiveUi?<S>(select: (state: ProactiveUiState) => S): S
-  /** Hand one suggestion action to the desk's delivery lane (「先试跑一次」/「替我盯上」, 片 2). */
+  /** Hand one suggestion action to the desk's delivery lane (「先试跑一次」/「替我盯上」). */
   onSuggestAction?(kind: 'trial' | 'watch', id: string): void
-  /** Dismiss one suggestion for good (片 2's 忽略封口). */
+  /** Dismiss one suggestion for good. */
   onSuggestDismiss?(id: string): void
   /** Forget a failed acceptance whose watch never materialized (the Q5 row's 忽略, 261019). */
   onWatchForget?(title: string): void
@@ -32,7 +32,7 @@ export interface ProjectionPanelProps {
   /** The 「＋ 交代新事项」 entry. Falls back to `onAsk` where no intake path is wired (tests,
    *  environments without the desk path store) so the button never goes dead. */
   onEntrust?(): void
-  /** Deliver the principal's own words from the desk's capture row (261018 片 1), staying here. */
+  /** Deliver the principal's own words from the desk's capture row (desk-side capture, 2026-10-18), staying here. */
   onCapture(text: string): void
   /** Go to one conversation — the capture row's pointer when the assistant is waiting on the principal. */
   onOpenSession(sessionId: string): void
@@ -89,7 +89,7 @@ function glyphFor(name: string): ReturnType<typeof ce> {
 const STYLES = [
   '.dsha-desk{display:flex;flex-direction:column;gap:16px;padding:20px 24px;overflow-y:auto;min-width:0;container-type:inline-size;height:100%;box-sizing:border-box;}',
   '.dsha-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}',
-  /* 片 1: the capture row. Accent-bordered because it is the desk's own input, not a control. */
+  /* The capture row: accent-bordered because it is the desk's own input, not a control. */
   '.dsha-capture{display:flex;flex-direction:column;gap:6px;border:1px solid var(--dsha-accent);border-radius:10px;padding:10px 12px;background:var(--dsw-alias-bg-base);}',
   '.dsha-capture-input{flex:1;border:0;outline:0;font:inherit;font-size:14px;background:transparent;color:var(--dsw-alias-label-primary);min-width:0;}',
   '.dsha-capture-hint{margin:0;font-size:12px;color:var(--dsw-alias-label-tertiary);}',
@@ -223,13 +223,13 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
   const data = download.data
   const view = props.useStore(value => value)
   const selection = view.selected
-  // 片 1: the capture row's in-flight state. The receipt is a DELIVERY fact, so it stops being
+  // The capture row's in-flight state. The receipt is a DELIVERY fact, so it stops being
   // shown the moment the projection's revision moves past the submission — the ledger has
   // spoken, and whatever it says (a new fragment, a new matter) takes over the desk. While it is
   // shown, the row is deliberately NOT shaped like a matter or a fragment: the desk must never
   // claim content it cannot back.
   const receipt = view.captureReceipt
-  // 片 1b: whose turn it is comes from the platform's SessionStatus, not from anything the desk
+  // Whose turn it is comes from the platform's SessionStatus, not from anything the desk
   // remembers — so a reload keeps it. The receipt answers "not in the ledger yet"; this answers
   // "who is being waited on".
   const sessionStatuses = props.useSessionStatus(value => value)
@@ -291,7 +291,7 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
     else activityGroups.push({ key, label: localDateLabel(receipt.submittedAt), entries: [receipt] })
   }
   const pendingProposals = data?.matters.reduce((count, matter) => count + matter.proposals.filter(proposal => proposal.status === 'pending').length, 0) ?? 0
-  // 片 1 (261018 proactive):「它替你看过」— three honest rows from read-only sources, zero model
+  // Proactive face (2026-10-18):「它替你看过」— three honest rows from read-only sources, zero model
   // calls. The catalog namespace can still be absent (the peer + inject pair is load-bearing; see
   // index.ts's wiring verdict), so its absence degrades row 3 to an attribute marker, never a guess.
   // All-empty state renders nothing at all — the desk keeps today's silhouette.
@@ -376,7 +376,7 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
           ? ce('button', { className: 'dsha-btn', type: 'button', onClick: props.onOpenTasks }, '去任务页')
           : null)
     }))
-  // 片 2 (261018 proactive):「让它替你盯」— three named suggestions in the adjudicated ②③①
+  // Proactive face (2026-10-18):「让它替你盯」— three named suggestions in the adjudicated ②③①
   // order, each with two actions through the desk's own delivery lane (a model round the
   // principal explicitly clicked), and an × that seals that suggestion for good (local only).
   // All dismissed → the whole block disappears; the desk keeps today's silhouette.
@@ -413,7 +413,8 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
     : `${matters.filter(matter => matter.status === 'active').length} 件在办`
       + (pendingProposals > 0 ? ` · ${pendingProposals} 条等你确认` : '')
       + (unclaimed.length > 0 ? ` · ${unclaimed.length} 条待认领` : '')
-  // ⑧ of the K1/K2 accepted-limitation list (spec-card source verification 2026-10-10): the
+  // Accepted limitation, verified against the spec card 2026-10-10
+  // ([desk-operating-entry](../../../../../notes/implemented/2026-10-06-desk-operating-entry.md)): the
   // desk ROOT is the scroll container — the list never scrolls itself — so the record path
   // rides the root's onScroll (board mode only: scrolling the activity feed must not corrupt
   // the board's saved position), and the restore path is this post-render DOM effect on the
@@ -446,11 +447,11 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
         ce('button', { className: 'dsha-btn', onClick: props.refreshProjection, disabled: download.status === 'loading', title: download.status === 'loading' ? '正在读取桌面…' : '重新读取桌面' }, '重新读取'),
         ce('button', { className: 'dsha-btn', onClick: props.onAsk }, '有问题？跟助手说'),
         ce('button', { className: 'dsha-btn dsha-btn-primary', onClick: props.onEntrust ?? props.onAsk }, '＋ 交代新事项'))),
-    // 片 1 (261018 proactive):「它替你看过」sits BETWEEN the header and the capture row —
+    // Proactive face (2026-10-18):「它替你看过」sits BETWEEN the header and the capture row —
     // structural anchor, not line numbers (the two 261018 cards invalidate each other's anchors).
-    // All-empty state renders nothing; each row carries at most one action (noise cap R2).
+    // All-empty state renders nothing; each row carries at most one action (the noise cap).
     proactiveFace,
-    // 片 1 (261018): the desk's own capture row. The principal's intent to add something arises
+    // The desk's own capture row (desk-side capture, 2026-10-18). The principal's intent to add something arises
     // WHILE looking at the desk, so the desk has to be able to take it — before this, the only
     // door was 「＋ 交代新事项」, which opens a conversation and takes the reminder surface away.
     // Two doors, and the copy says which weight each one carries.
@@ -588,7 +589,7 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
             ce('div', { className: 'dsha-meta' },
               ce('button', { className: 'dsha-btn dsha-back', type: 'button', onClick: props.actions.showList }, '返回事项列表'),
               ce('button', { className: 'dsha-btn dsha-btn-primary', type: 'button', onClick: () => props.onClaim(selectedFragment.id) }, '认领这件事'),
-              // The fragment's other terminal (261018 片 0): every item selects into a
+              // The fragment's other terminal (desk-side capture, 2026-10-18): every item selects into a
               // proportionate action, and "this is noise" is the one that used to have no door.
               ce('button', { className: 'dsha-btn', type: 'button', onClick: () => props.onDiscard(selectedFragment.id) }, '是噪音，不归户')),
             ce('h2', {}, chip('warn', '待认领'), ce('span', {}, selectedFragment.note)),

@@ -18,7 +18,7 @@ import { reloadDesk } from '../rooms/room-data-io'
 import { createElement, reactSurface } from './runtime'
 import { MARK_TEAL } from './theme'
 
-/** Sidebar icon for the desk main panel (Goal 1.5): a simple calendar/checklist glyph. */
+/** Sidebar icon for the desk main panel (the desk-as-main-panel direction, 2026-10-06): a simple calendar/checklist glyph. */
 export function DashboardPanelIcon(): ReturnType<typeof createElement> {
   return createElement('svg', {
     width: 20, height: 20, viewBox: '0 0 20 20', fill: 'none',

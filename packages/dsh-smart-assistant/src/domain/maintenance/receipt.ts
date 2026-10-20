@@ -143,7 +143,7 @@ export function buildReceipt(
     if (seen.has(key)) continue
     seen.add(key)
     counts[room] += 1
-    // A correct line's human title is the corrected text; the A2 route may omit `title`, so the
+    // A correct line's human title is the corrected text; the direct-write route may omit `title`, so the
     // ledger's own `after.text` is the honest fallback.
     const afterText = line.after !== null && typeof line.after === 'object' && 'text' in line.after
       && typeof (line.after as { text?: unknown }).text === 'string' ? (line.after as { text: string }).text : undefined

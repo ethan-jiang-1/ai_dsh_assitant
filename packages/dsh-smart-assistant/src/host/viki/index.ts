@@ -2,7 +2,7 @@
  * Host plugin row `assistant-viki`: registers the exact Viki read route over the configured
  * OpenViking server. `baseUrl`/`apiKey` come from config, then `OPENVIKING_URL`/
  * `OPENVIKING_API_KEY`; an empty base URL is a valid "not connected" state (503 on read), never a
- * startup failure. B2's delete POST will be added to the same route.
+ * startup failure. The delete/restore POST actions ride the same route.
  *
  * @module
  */

@@ -1,5 +1,6 @@
 /**
- * Pure core of the authoritative operating ledger (desk-operating-entry K3, slice A).
+ * Pure core of the authoritative operating ledger (the operating desk's ledger contract,
+ * [desk-operating-entry](../../../../../notes/implemented/2026-10-06-desk-operating-entry.md)).
  *
  * Owns the ledger state vocabulary and the operation reducer — every state change is an
  * operation with a caller-supplied identity, and every operation yields a receipt. The Host
@@ -251,7 +252,7 @@ function applyClaim(
 }
 
 /**
- * The fragment's terminal state (261018 片 0): judged noise, it leaves the unclaimed lane with the
+ * The fragment's terminal state (desk-side capture, 2026-10-18): judged noise, it leaves the unclaimed lane with the
  * reason kept in history. Mirrors `abandon` on a matter — a terminal outcome, not a delete — and
  * refuses a blank reason: "no reason, no removal" is what keeps this from becoming a silent drop.
  * The fragment's own words stay in the `note` operation that entered them.

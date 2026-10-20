@@ -27,11 +27,11 @@ export interface ApprovalAuditOptions {
   readonly source?: ApprovalSource
   readonly sessionId?: string
   readonly title?: string
-  /** State before the transition (A2 direct writes); absent on older lines and model-path lines. */
+  /** State before the transition (panel direct writes); absent on older lines and model-path lines. */
   readonly before?: unknown
-  /** State after the transition (A2 direct writes); absent on older lines and model-path lines. */
+  /** State after the transition (panel direct writes); absent on older lines and model-path lines. */
   readonly after?: unknown
-  /** Which room the transition belongs to (A2 direct writes); absent on older lines. */
+  /** Which room the transition belongs to (panel direct writes); absent on older lines. */
   readonly room?: ReceiptRoom
 }
 

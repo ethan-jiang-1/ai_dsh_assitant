@@ -1,16 +1,20 @@
 /**
- * Minimal OpenViking read client for the Viki tab (B1). It knows only the four reads the panel
- * needs — `fs/ls`, `fs/attrs`, `content/read`, `stats/memories` — and walks the two real trees
- * (`user/<space>/memories` and `peers/<peer>/memories/events/YYYY/MM/DD`) explicitly because a
- * single `recursive=true` stops at YYYY/MM on this pin (measured 2026-10-19).
+ * Minimal OpenViking read client for the Viki tab (the Viki read face,
+ * [2026-10-19-viki-read.md](../../../../../notes/implemented/2026-10-19-viki-read.md)). It knows only the four
+ * reads the panel needs — `fs/ls`, `fs/attrs`, `content/read`, `stats/memories` — and walks the
+ * two real trees (`user/<space>/memories` and `peers/<peer>/memories/events/YYYY/MM/DD`)
+ * explicitly because a single `recursive=true` stops at YYYY/MM on this pin (measured 2026-10-19).
  *
  * The base URL/API key come from the caller (config/env); the server being absent is a normal
- * `VikiUnavailable`, never a startup failure. The shape is pinned by tests/host/viki-route.spec.ts
- * against a mock server, and by the live 0.4.22 server for the real read.
+ * `VikiUnavailable`, never a startup failure. The shared row/list vocabulary lives in
+ * `src/domain/viki/types.ts` (the client face reads it from there); the shape is pinned by
+ * tests/host/viki-route.spec.ts against a mock server, and by the live 0.4.22 server for the
+ * real read.
  *
  * @module dsh-smart-assistant/host/viki/client
  */
 import { createHash } from 'node:crypto'
+import type { VikiEntry, VikiList } from '../../domain/viki/types.ts'
 
 /** One `fs/ls` entry. */
 export interface VikiFsEntry {
@@ -28,32 +32,6 @@ export interface VikiAttrs {
   readonly memory_type?: string
   readonly source_extraction_id?: string
   readonly version?: number
-}
-
-/** One row the panel lists. */
-export interface VikiEntry {
-  readonly uri: string
-  readonly name: string
-  readonly source: 'user' | 'peer'
-  readonly peer?: string
-  readonly size?: number
-  readonly modTime?: string
-  readonly summary?: string
-  readonly memoryType?: string
-  readonly eventName?: string
-}
-
-/** The list projection. */
-export interface VikiList {
-  readonly connected: true
-  readonly generatedAt?: string
-  readonly revision: string
-  readonly space: string
-  readonly peers: readonly string[]
-  readonly entries: readonly VikiEntry[]
-  readonly counts: { readonly total: number, readonly user: number, readonly peers: number, readonly events: number }
-  readonly stats?: unknown
-  readonly problems: readonly string[]
 }
 
 /** The server is not configured, unreachable, or answered non-ok. */

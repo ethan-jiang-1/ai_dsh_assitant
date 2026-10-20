@@ -8,7 +8,7 @@
  * serve the room tabs.
  *
  * One loader feeds it (see room-data-io); the store notifies its subscribers, and the slices
- * keep each bound session's row-scoped facts apart (R11). Pure store mechanics live here —
+ * keep each bound session's row-scoped facts apart. Pure store mechanics live here —
  * reading, patching, settling, expiring — while the I/O (workspace reads, prompt sends,
  * the pollers) lives in room-data-io.
  *
@@ -19,15 +19,15 @@ import { shortTime } from '../chrome/format'
 import { reactSurface } from '../chrome/runtime'
 import type { ApprovalLine } from '../../domain/maintenance/receipt.ts'
 
-/** One rooms projection as the host route renders it (the panel's data source; A1a). */
+/** One rooms projection as the host route renders it (the panel's data source: the host rooms route). */
 export interface DeskData {
   schemaVersion?: number
   generatedAt?: string
   revision?: string
   problems?: { room?: string, file?: string, reason?: string }[]
-  /** Newest approval-ledger lines (A3 receipt). */
+  /** Newest approval-ledger lines (the maintenance receipt). */
   ledger?: readonly ApprovalLine[]
-  /** Research rows the route projects (A3 receipt + future research tab). */
+  /** Research rows the route projects (the maintenance receipt + future research tab). */
   research?: { id?: string, title?: string, why?: string, lean?: string, status?: string, updated?: string }[]
   counts?: { memories?: number, knowledgeStable?: number, knowledgeDraft?: number, skills?: number, threads?: number }
   memories?: { id?: string, kind?: string, text?: string, updated?: string, source?: string }[]
@@ -36,7 +36,7 @@ export interface DeskData {
 }
 
 /**
- * Per-session desk state (R11, graduated 2026-09-29): the row-scoped facts — data, pending,
+ * Per-session desk state (graduated 2026-09-29): the row-scoped facts — data, pending,
  * receipt, stalled, readError — belong to the session whose workspace produced them. The FLAT
  * fields are the primary slice: the session the newest-five walk last answered (recorded in
  * `sourceSession`). `bySession` carries one slice per additional tab-bound session, so two tabs
@@ -48,7 +48,7 @@ export interface DeskData {
 export interface DeskSlice {
   data?: DeskData | undefined
   source?: string | undefined
-  /** A corrupt desk file from the bound session (A5): the tab shows the error and a retry, not "reading…". */
+  /** A corrupt desk file from the bound session: the tab shows the error and a retry, not "reading…". */
   readError?: string | undefined
   /** The action in flight: which row, when it left, what it was. The DATA GATE — buttons stay
    *  frozen until the desk file is rewritten past `at`. The prompt promise resolving only means
@@ -59,9 +59,9 @@ export interface DeskSlice {
   /** Receipt of the last action the desk file confirmed, shown on its row. */
   lastReceipt?: { rowId: string, action: string, at: number } | undefined
   /** An action that left but whose desk rewrite never arrived (the poller gave up). Rendered on
-   *  its row as a durable, honest state — clearing it silently would read as "done" (R1). */
+   *  its row as a durable, honest state — clearing it silently would read as "done". */
   stalled?: { rowId: string, at: number, action: string } | undefined
-  /** The bound session's own conversation clock, so a tab can say when it lags (A2). */
+  /** The bound session's own conversation clock, so a tab can say when it lags (the direct-write lane). */
   sessionUpdatedAt?: number | undefined
   /** This slice's load sequence; unused on the primary (which owns the module-level counter). */
   seq?: number | undefined
@@ -75,16 +75,16 @@ export type DeskStore = DeskSlice & {
   note?: string | undefined
   /** The Session whose workspace answered the last walk — the flat fields above belong to it. */
   sourceSession?: string | undefined
-  /** A count that could not open its panel (R9): the cell used to swallow the throw and stay
+  /** A count that could not open its panel (self-review, 2026-09-27): the cell used to swallow the throw and stay
    *  clickable, so the principal saw an underlined number that did nothing. */
   jumpError?: string | undefined
-  /** The desk tab could not be opened (R9): visible on the chip, which is where the click was. */
+  /** The desk tab could not be opened: visible on the chip, which is where the click was. */
   openError?: string | undefined
-  /** The desk's draft pointer just sent the principal over (S4): highlight and scroll to the drafts. */
+  /** The desk's draft pointer just sent the principal over: highlight and scroll to the drafts. */
   focusKnowledge?: 'drafts' | undefined
   /** Sessions whose workspace is known to have no desk file (moved onto the store: testable). */
   misses: Set<string>
-  /** One slice per tab-bound session that is not the primary (R11). */
+  /** One slice per tab-bound session that is not the primary. */
   bySession: Record<string, DeskSlice>
   /** Sessions with a mounted tab — the follow-the-conversation reload refreshes each of these. */
   boundSessions: Set<string>
@@ -101,7 +101,8 @@ let deskStore: DeskStore = createFreshDeskStore()
 /**
  * Monotonic load sequence per slice: a newer load invalidates every older attempt of the SAME
  * slice only. The pre-slice single counter made a load for one session cancel an in-flight read
- * for another (two mounted tabs then re-fired each other forever — the R11 reload ping-pong).
+ * for another (two mounted tabs then re-fired each other forever — the reload ping-pong of the
+ * pre-slice store).
  */
 let deskLoadSeq = 0
 
@@ -179,7 +180,7 @@ export function carryRowStateTo(previous: string, next: string): void {
 /**
  * The per-session fields of a slice. A merge must set each of these EXPLICITLY from the slice:
  * a plain `{ ...deskStore, ...slice }` leaves the flat values in place for keys the slice does
- * not carry, which is exactly the cross-session leak the slices exist to prevent (R11).
+ * not carry, which is exactly the cross-session leak the slices exist to prevent.
  */
 const DESK_SLICE_KEYS = ['data', 'source', 'readError', 'pending', 'lastReceipt', 'stalled', 'sessionUpdatedAt'] as const
 
@@ -194,7 +195,7 @@ export function mergeDeskSlice(sessionId?: string): DeskStore {
 /**
  * Subscribe one surface to the desk store. `undefined` follows the walk view (the primary
  * slice); a tab passes its own session and reads that session's slice merged over the shared
- * fields (R11).
+ * fields.
  */
 export function useDesk(sessionId?: string): DeskStore {
   const { useEffect, useState } = reactSurface()
@@ -231,7 +232,7 @@ export function pendingInFlight(store: DeskStore): boolean {
  * Release the data gate when the poller gives up waiting for the assistant to rewrite the room
  * data file. Leaving `pending` set froze every action button behind a "正在处理" that never ended,
  * while the escape hatch (刷新房间数据) was disabled by that same flag — the data was 13 h stale in
- * exactly that state (self-review R1, 2026-09-27). Expiry is honest: the action was sent and is not
+ * exactly that state (self-review, 2026-09-27). Expiry is honest: the action was sent and is not
  * revoked; only the "still working" claim stops.
  */
 export function expirePending(sessionId?: string): void {
@@ -253,7 +254,7 @@ export function looksLikeDesk(parsed: DeskData): boolean {
 }
 
 /** A finished load settles the pending action: the file moving past `at` is the completion
- *  signal — on the slice of the session whose file moved (R11: another session's file moving
+ *  signal — on the slice of the session whose file moved (another session's file moving
  *  past the send must not settle this one's rows). */
 export function settlePending(generatedAt: string | undefined, sessionId?: string): void {
   const generated = deskGeneratedAtMs({ generatedAt } as DeskData)
@@ -274,7 +275,7 @@ export function settlePending(generatedAt: string | undefined, sessionId?: strin
 /**
  * Whether the rooms lag the conversation. The panel reads the working-folder truth, so this line
  * only means the assistant has not written this turn's learning into a room yet; there is no
- * copy to rewrite and no refresh to click (A1a).
+ * copy to rewrite and no refresh to click.
  * @param store - The shared desk store.
  * @returns A warning line, or undefined when the rooms are current.
  */
