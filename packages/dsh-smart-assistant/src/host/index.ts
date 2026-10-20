@@ -35,7 +35,8 @@ import type { ApprovalAuditOptions } from './approval-audit.ts'
 import { installSelfTurnSlots } from './self-turns.ts'
 import { DEFAULT_WEB_TITLE, webBrandingInjection } from './web-branding.ts'
 import { HOME_DIRECTORY_NAME, homePaths, scaffoldHome, ARCHIVE_DIRECTORY_NAME, type HomePaths, type ScaffoldResult } from '../domain/home/layout.ts'
-import { Room, type RoomReadFailure } from '../domain/home/room.ts'
+import { Room } from '../domain/home/room.ts'
+import type { HomeHost, RoomReadResult } from './service.ts'
 import type { DigestResult } from '../domain/home/digest.ts'
 import type { CurationBrief, CurationFinding } from '../domain/home/health.ts'
 import type { MemoryRecord } from '../domain/memory/record.ts'
@@ -75,13 +76,7 @@ export interface Config {
   webTitle?: string
 }
 
-/** A room listing with its unreadable files. */
-export interface RoomReadResult<T> {
-  /** Parsed entries. */
-  readonly entries: readonly T[]
-  /** Files that exist but are not usable entries. */
-  readonly failures: readonly RoomReadFailure[]
-}
+export type { RoomReadResult } from './service.ts'
 
 export type { SaveMemoryInput } from './memory-room.ts'
 export type { OpenThreadInput, ThreadUpdate, PromoteTarget } from './research-room.ts'
@@ -90,7 +85,7 @@ export type { WritePageInput } from './knowledge-room.ts'
 /**
  * The home service. One instance per process, mounted from the host composition.
  */
-export class AssistantMemory extends Service {
+export class AssistantMemory extends Service implements HomeHost {
   static Config: Schema<Config> = z.object({
     dataDir: z.string(),
     // 6144（2026-10-02 校准）：4096 是骨架期（三房间）定的，第四房间（知识签树）落地后从未

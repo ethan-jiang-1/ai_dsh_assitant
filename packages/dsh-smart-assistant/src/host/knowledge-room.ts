@@ -8,7 +8,7 @@
  * @module
  */
 import { join } from 'node:path'
-import type { AssistantMemory, RoomReadResult } from './index.ts'
+import type { AssistantMemory, RoomReadResult } from './service.ts'
 import { touchDigest } from './curate-digest.ts'
 import type { CurationFinding } from '../domain/home/health.ts'
 import type { Room } from '../domain/home/room.ts'

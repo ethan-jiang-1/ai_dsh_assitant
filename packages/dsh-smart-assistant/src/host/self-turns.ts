@@ -14,7 +14,7 @@ import { createUserMessage } from '@deepseek-ai/dsh-llm'
 // kind in the cordis Events / llm MessageSourceMap merges — the proposal slot listens to the
 // event, so the augmentation must be in the program.
 import type {} from '@deepseek-ai/dsh-goal'
-import type { AssistantMemory } from './index.ts'
+import type { AssistantMemory } from './service.ts'
 import { isMaintenanceRound, renderMaintenancePrompt } from '../domain/home/metronome.ts'
 import { renderProposalPrompt } from '../domain/skills/proposal.ts'
 

@@ -141,7 +141,7 @@ seam 的成色读数是**第二个真实 Provider 出现而 Consumer 一行不�
 | `src/domain/home/health.ts` | **纯函数**养护检查：输入是解析结果，输出是 findings | 类型 |
 | `src/domain/operating/`（`ledger.ts`、`projection.ts`） | 经营账本**纯核**：事项/操作/回执/待认领词汇与归约、v2 投影渲染（契约 = [`operating.md`](operating.md)） | 无（最底层） |
 | `src/index.ts` | 稳定包入口：`src/host/index.ts` 服务实现的薄导出（同 class 身份；`ctx.assistantMemory` 增广随实现加载） | 全部 |
-| `src/host/index.ts` | 服务实现：把领域模块组装成 `ctx.assistantMemory` | 全部 |
+| `src/host/index.ts` + `src/host/service.ts` | 服务实现：把领域模块组装成 `ctx.assistantMemory`；公开的 `HomeHost`/`RoomReadResult` 契约在 `service.ts`，房间与摘要按它消费，不反向依赖组装文件 | 全部 |
 | `src/agent/tool-support/presentation.ts` | agent 面工具共享的 presenter 管道：`presentationMeta` 投影摘要 → `presentResult` 从 `result.meta` 读回（完成卡读不到规范值，只能读持久化载荷） | dsh-tools 类型 |
 | `src/agent/learned-skills.ts` | preset 内学到的技能目录 provider + 成功工具加载记账；技能路径从 working-folder 服务读取 | dsh-skill-filesystem + assistantMemory |
 | `src/host/web-branding.ts` | Web 壳品牌注入行：页标题 + 图标（纯函数；经 `webserver/index-inject` 事件进浏览器，皮肤面） | dsh-host-webserver（仅类型） |

@@ -35,7 +35,7 @@
 | `src/domain/operating/` + `src/host/operating-ledger/` + `src/host/desk-projection/` | **经营账本与投影**（第二持久化面）：纯核归约、单 writer 服务、固定只读下载（契约 = [`docs/operating.md`](../../docs/operating.md)） |
 | `src/agent/`（`tool-*`、`tool-support`、`memory-digest`、`home-preamble`、`operating-brief`、`learn`、`learned-skills`、`ov-shield`） | agent 面入口：自有工具、共享 presenter 管道（`presentationMeta` 投影与读回）、段落贡献、学到的技能 provider 与加载记账、遮蔽盾 |
 | `src/dev/preset-runner/` | 验证驱动（非产品能力；`./preset-runner` 公开出口保留，dev patch 按包名解析不受路径影响） |
-| `src/host/index.ts` | 服务实现（host 面）：四个房间的读写、curate、digest、提案收件箱；根 `src/index.ts` 是它的薄导出稳定入口（同 class 身份，不持第二份实现） |
+| `src/host/index.ts` + `src/host/service.ts` | 服务实现（host 面）：四个房间的读写、curate、digest、提案收件箱；`service.ts` 拥有 `HomeHost`/`RoomReadResult` 公开契约（房间与摘要消费它，不反向依赖组装文件）；根 `src/index.ts` 是薄导出稳定入口（同 class 身份，不持第二份实现） |
 | `presets/assistant/` | 策展技能（`skills/`，**模型用**）；shipped preset 组合由包根 `cordis.patch.yml` 的 `preset-assistant` 行拥有 |
 | `tests/` | 纯核 + 服务级合同 + 真实组合装载（服务级用真 cordis 构造，不依赖 DSH 运行时）；测试树的资产形态规则住其门牌 [`tests/AGENTS.md`](tests/AGENTS.md) |
 

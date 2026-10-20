@@ -10,7 +10,7 @@
 import { mkdir, readFile, rename, rm, stat } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import type { Context } from '@deepseek-ai/cordis'
-import type { AssistantMemory } from './index.ts'
+import type { AssistantMemory } from './service.ts'
 import { touchDigest } from './curate-digest.ts'
 import type { CurationFinding } from '../domain/home/health.ts'
 import type { HomePaths } from '../domain/home/layout.ts'
@@ -34,7 +34,7 @@ import {
   type SkillUsageEntry,
   type SkillUsageRead,
 } from '../domain/skills/usage.ts'
-import type { RoomReadResult } from './index.ts'
+import type { RoomReadResult } from './service.ts'
 
 /** Read only the learned skill directory. */
 interface LearnedSkillsReader {

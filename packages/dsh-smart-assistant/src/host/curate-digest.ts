@@ -10,7 +10,7 @@
  */
 import { readFileSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
-import type { AssistantMemory } from './index.ts'
+import type { AssistantMemory } from './service.ts'
 import { renderDigest, type DigestResult } from '../domain/home/digest.ts'
 import { compareFindings, curateHome, type CurationBrief } from '../domain/home/health.ts'
 import { HOME_STATUS_BLURB, parseManualVersion, renderHomeManual } from '../domain/home/home-map.ts'

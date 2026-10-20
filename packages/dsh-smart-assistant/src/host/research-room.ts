@@ -6,7 +6,7 @@
  *
  * @module
  */
-import type { AssistantMemory, RoomReadResult } from './index.ts'
+import type { AssistantMemory, RoomReadResult } from './service.ts'
 import { touchDigest } from './curate-digest.ts'
 import type { Room, RoomEntry } from '../domain/home/room.ts'
 import {
