@@ -1,11 +1,11 @@
 ---
-status: 推敲中
+status: 等人拍板
 opened: 2026-10-20
 ---
 
 # 推敲：OpenViking 部署正确性——云端例外、doctor 与一份配置源
 
-> 立卡：2026-10-20 ｜ 状态：推敲中 ｜ 类型：Task ｜ 可关闭：否 ｜ 实施卡，未授权开工
+> 立卡：2026-10-20 ｜ 状态：等人拍板 ｜ 类型：Task ｜ 可关闭：否 ｜ 实施卡，未授权开工 ｜ 🔒 等方向卡裁决
 
 **给评审者的最短路径：** 先读「问题与期望结果」→「云端例外 v1」→「方案与取舍」→「验收标准」。  
 上游背景与审计证据在 [方向评审卡](261020-openviking-direction-review.md)；本卡只解决“用户装得对、部署看得见”。**本卡不授权写代码。**
@@ -66,23 +66,22 @@ opened: 2026-10-20
 - **第三方机密**：客户合同原文、未公开财务——默认掩码；用户逐次标注允许才出。
 - **模型/系统提示词、内部工具定义**：不出（除非它们本身出现在用户对话里）。
 
-### 机制（第一道 → 第四道）
+### 机制（四道闸，按先后）
 
-1. **`captureFilters`**：在插件 capture 阶段做替换/丢弃（密钥、PII 正则）。0.5.26 的过滤器对 tool input/output 的覆盖面要按 0.5.1 release 的 capture 替换范围再核（0.5.1 #5937）。
+1. **`captureFilters`**：在插件 capture 阶段做替换/丢弃（密钥、PII 正则）。**已核实 0.5.26 的 `filterCaptureParts` 对 tool part 的 `tool_input` 字符串值与 `tool_output` 做 `s` 替换；`d`/`k` 仍只由文本决定保留/丢弃**（与 0.5.1 #5937 描述的范围一致，不必等新插件）。
 2. **`captureToolResults`**：云端部署默认收紧——要么 `false`，要么只出过滤/截断后的结构化摘要；若 experiences 需要工具结果，先确认它到底消费什么。
-3. **DSH credential scrub**：继续作为独立防线；不要把 key 放进 prompt/工具输出。
-4. **发送前扫描器**（doctor + 运行时）：检测 key-like 串、私钥头、常见 token 形态；命中即阻断/脱敏，并记审计。
-5. **OpenViking 0.5.1 privacy fields**：升级后作为第二道闸；不依赖它做第一道。
+3. **DSH credential scrub + doctor 静态扫描**：DSH 的凭据清洗继续作为独立防线；doctor 扫 `captureFilters` 规则本身（能否命中假 key、会不会误杀），并给脱敏后的命中示例。**没有“发送前”运行时拦截点**：插件自己发 HTTP，DSH 侧没有拦截缝；在不改上游插件的前提下，运行时只能依赖第 1 道。
+4. **OpenViking 0.5.1 privacy fields**：升级后作为第二道闸；不依赖它做第一道。
 
 ### 审计与可见性
 
-- 记录：provider、模型、token 数、被脱敏的类别与条数（不记录原文）。
-- 展示：Viki 的“记忆层状态”里显示“云端 provider + 最近一次发送时间 + 脱敏计数”；README 首屏写清数据流向。
+- 记录：provider/模型名（doctor 读 `ov.conf`，不回显 key）与 doctor 的脱敏自测结果（命中/未命中、脱敏后的示例）。
+- **运行时脱敏计数与“最近一次发送时间”没有现成数据源**（插件不暴露）；不把不存在的数据写进界面。展示只放有源的：provider/模型、`/health`、`/stats/memories`、`/tasks` 最近状态；token 用量走 DSH `token-meter`。
 - 关闭：切本地 provider 或关掉记忆层 = 退出例外；doctor 必须能识别。
 
 ### 部署 ack
 
-- 配置 `cloudAck: true`（部署配置文件，或 doctor 读取的环境 `OPENVIKING_CLOUD_ACK=1`）；**不改上游插件的 config schema**，ack 检查住我们自己的 doctor/启动门。
+- **环境变量 `OPENVIKING_CLOUD_ACK=1` 是唯一载体**（部署在 start 链/README 里显式导出；doctor 读它）；不新增配置文件口，也不改上游插件的 config schema。
 - 云端 provider 且没有 ack：`pnpm ov-doctor` **fail**；`pnpm start` 打 warning（不阻断 DSH 启动）。
 - 本地 provider（Ollama/本地 OpenAI 兼容）不需要 ack。
 
@@ -108,13 +107,13 @@ opened: 2026-10-20
 |---|---|---|
 | 1 | `GET /health` 可达、版本、auth mode | server 没起/端口不对；给出 `openviking-up.sh` 或启动命令 |
 | 2 | `ov.conf` 存在、0600、provider/base_url/model、key 存在（不回显） | 缺文件/权限/字段；给出 `.env.local` → `ov.conf` 的流向 |
-| 3 | `openviking-server doctor` + 最小 embedding/FC 探测 | 模型位不可达/不支持 FC；给出 provider/model 修正 |
-| 4 | 一次 `POST /search/search`（已知 URI） | “health 绿但 search 失败”的典型；提示模型位/网络 |
+| 3 | `openviking-server doctor` + 最小 embedding/FC 探测 | 模型位不可达/不支持 FC/熔断未恢复；给出 provider/model 修正与等待/重启建议 |
+| 4 | 一次 `POST /search/search`（已知 URI） | “health 绿但 search 失败”（含 embedding 熔断）的典型；提示模型位/网络 |
 | 5 | 一次 commit（默认 `--dry-run` 不写；`--write` 才真写） | commit 失败/任务 failed；给出 `/tasks` 与日志路径 |
-| 6 | 组合：`dump-config` 有 OV 行 + v3 config；`assistant-viki` baseUrl 对齐；`ov-shield` 在场 | 行缺失/config 被覆盖/Viki URL 不一致 |
+| 6 | 组合：`dump-config` 有 OV 行 + v3 config；`assistant-viki` baseUrl 对齐；`ov-shield` 在场；**MCP initialize 无 instructions（当前 0.4.22 dev 模式实测为空；出现文本即 warn）** | 行缺失/config 被覆盖/Viki URL 不一致/服务端说明文本会静默进系统提示 |
 | 7 | 存储路径持久（不在 `.tmp`）、可写、有备份 | 给出迁移/备份命令 |
 | 8 | 云端 ack + 脱敏自测（假 key 不出现） | 缺 ack / 过滤器没生效 |
-| 9 | 版本矩阵：plugin / server / DSH | 不兼容/落后；给出升级或 pin 建议 |
+| 9 | 版本矩阵：plugin / server / DSH（**server 版本只读 `GET /health`**；MCP `serverInfo` 的 1.30.0 不是 server 版本，不得据此判） | 不兼容/落后；给出升级或 pin 建议 |
 
 **不打印 key。** 输出里只出现“已配置/缺失”，不出现值。
 
@@ -138,7 +137,7 @@ opened: 2026-10-20
 
 ### 3. 一份配置源
 
-现在三处各说各话：`ov.conf`（server/模型/存储）、profile patch（peer/预算/召回）、`OPENVIKING_URL`（Viki）。doctor 负责对账；Viki 的 baseUrl 默认取 `http://127.0.0.1:1933`（与插件默认一致），或从同一个 config 读。**不新增第四个配置口。**
+现在三处各说各话：`ov.conf`（server/模型/存储）、profile patch（peer/预算/召回）、`OPENVIKING_URL`（Viki）。doctor 负责对账；Viki 的 baseUrl **现在为空 → 503**，建议改为默认 `http://127.0.0.1:1933`（与插件默认一致），或从同一个 config 读。**不新增第四个配置口**（云端 ack 用环境变量，不算连接配置）。
 
 ### 4. `pnpm preflight` 集成
 
@@ -156,7 +155,7 @@ opened: 2026-10-20
 ## 风险与未决
 
 1. **doctor 的 commit 测试会写数据**：默认 dry-run，`--write` 用唯一 sentinel 并清理；清理失败要如实报。
-2. **key 的处理**：doctor 只读 `ov.conf`/env，不打印、不复制到日志；`.env.local` 永不进 git/会话。
+2. **key 的处理**：doctor 只读 `ov.conf`/env，不打印、不复制到日志；`.env.local` 永不进 git/会话。另注意 `openviking-up.sh` 把上游 `ov.conf` 整份派生成 `.tmp/openviking/ov.conf`（含 api_key，0600）——这是磁盘上的第二份 key，doctor 要报它的位置/权限，或改成不落 key 的派生方式。
 3. **provider 差异**：OpenAI 兼容端点对 FC/连续 user 消息的宽容度不同；doctor 的探测要能区分“401/400/connection”。
 4. **脱敏误杀**：正则过宽会把正常业务文本打码；需要白名单/可配置，并在 doctor 里给“命中示例”（脱敏后）。
 5. **0.5.1 的 auth 变化**：trusted 模式要 root key；doctor 要能识别 auth mode 并给对应修法。
@@ -166,9 +165,11 @@ opened: 2026-10-20
 
 实施后必须真跑过并记录：
 
-- [ ] `pnpm ov-doctor` 在健康实例 exit 0，输出九项检查均绿；在“缺 server URL”“缺 key”“云端无 ack”“存储指向 `.tmp`”四种坏配置上分别 exit 1，错误文案包含“怎么修”。
+- [ ] `pnpm ov-doctor` 在健康实例 exit 0，输出九项检查均绿；在“缺 server URL”“缺 key”“云端无 ack”“存储指向 `.tmp`”四种坏配置上分别 exit 1，且**命中的是各自的 check id 与文案**（不能只断言 exit code——无关检查失败也会 exit 1）。
 - [ ] `pnpm ov-doctor --write` 能完成一次 commit + search 的往返，并在结束后清理 sentinel（或明确留下不清理的理由）。
-- [ ] 假 key（形如 `sk-test-...`）进入一条测试消息后，发送前扫描器/过滤器命中；doctor 的脱敏自测显示“已拦截”，且审计里没有原文。
+- [ ] 假 key（形如 `sk-test-...`）进一条 capture 测试：`captureFilters` 规则命中并输出脱敏后的示例；若做端到端，用本地 mock server 断言收到的 payload 无原文；doctor 自测显示“已脱敏”，且日志/审计里没有原文。
+- [ ] `GET /health` 的版本与 `openviking-server --version` 一致；doctor 不把 MCP `serverInfo`（1.30.0）当 server 版本。
+- [ ] OV 行在场时，MCP `initialize` 的 `instructions` 为空（当前 0.4.22 dev 模式实测为空）；出现未审文本时 doctor 至少报 warn 并标出 server 名。
 - [ ] README 的部署节从空配置开始照做能到 doctor 绿（至少 dry-run 路径）；故障表每条有可复现的现象与修法。
 - [ ] 正常 `pnpm start` 后 `GET /api/assistant/viki` 返回 200（不再依赖手工 `OPENVIKING_URL`）；OpenViking 缺席时返回 503 且 DSH 启动不受影响。
 - [ ] `pnpm preflight` 打印 OV 状态；OV 红时 preflight 仍按 DSH 自身判据退出。

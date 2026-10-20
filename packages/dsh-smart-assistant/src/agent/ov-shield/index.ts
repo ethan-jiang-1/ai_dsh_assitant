@@ -6,8 +6,11 @@
  * (zero consumers). This row is the governance seam the DSH-native surfaces provide: it denies the
  * entire `mcp__openviking__*` tool prefix for every agent joined to this preset, and it shadows the
  * two OpenViking skill names with non-invocable same-name entries, so the model-visible surface
- * keeps exactly the four house tools and the curated skill catalog. No value is lost: the profile
- * and recall blocks inline their content, so nothing the model needs lives behind the denied tools.
+ * keeps exactly the five house tools and the curated skill catalog. The recall block is what the
+ * denied read tools would have expanded: it inlines leaf content when the recall path is forced to
+ * `find` (`recallContextTimeoutMs`), and under the default context path it can carry directory
+ * overviews plus an upstream "use search/read" hint that this row has just hidden. That dangling
+ * hint is a seam-level gap tracked in the OpenViking retrieval card, not a reason to open the prefix.
  *
  * Enforcement is fail-closed and incremental. Each pass restricts only the visible prefix-matching
  * names absent from the per-instance ledger — denied names vanish from `schemas()`, so the ledger

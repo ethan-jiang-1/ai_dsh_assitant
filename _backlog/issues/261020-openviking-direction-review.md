@@ -1,11 +1,11 @@
 ---
-status: 推敲中
+status: 等人拍板
 opened: 2026-10-20
 ---
 
 # 评审：OpenViking 层 2 的方向——从“隐形层 1”到可配置、可观测、可按需检索
 
-> 立卡：2026-10-20 ｜ 状态：推敲中 ｜ 类型：未定 ｜ 可关闭：否 ｜ 评审卡，不授权实施
+> 立卡：2026-10-20 ｜ 状态：等人拍板 ｜ 类型：未定 ｜ 可关闭：否 ｜ 评审卡，不授权实施 ｜ 🔒 路线裁决
 
 **给评审者的最短路径：** 先读「问题与期望结果」→「当前情况（证据）」→「方案与取舍」→「请评审者攻击的点」。  
 本卡只做方向评审；实施拆在三张卡里：[部署与 doctor](261020-openviking-deploy-doctor.md)、[运行态与 0.5.1](261020-openviking-runtime-repair.md)、[按需检索与 Viki](261020-openviking-retrieval-viki.md)。  
@@ -23,7 +23,7 @@ opened: 2026-10-20
 
 **期望结果：** 给出一份方向与拆卡，使后续实施能让这一层**装得对、看得见、守得住、问得到细节**；同时不破坏 working folder 四房间的权威、不把写面放开、不绕过 DSH 治理。
 
-**完成条件：** 评审收敛；三张实施卡被接受/修改/否决；每个未决问题有 owner 或后续卡；不产生代码改动。
+**完成条件：** 评审收敛；三张实施卡被接受/修改/否决；每个未决问题有 owner 或后续卡；不产生行为/配置改动（注释级事实修正除外）。
 
 ## 当前情况（证据）
 
@@ -35,7 +35,7 @@ opened: 2026-10-20
 |---|---|
 | server 0.4.22；插件 0.5.26；server latest 0.5.1 | `openviking-server --version`；`GET /health` 返回 `"version":"0.4.22"`；插件 `package.json` 0.5.26；[v0.5.1 release](https://github.com/volcengine/OpenViking/releases/tag/v0.5.1) |
 | dev 组合的 `openviking-memory-runtime` 行**没有 config** | `ASSISTANT_DSH_HOME=dev/harness-home pnpm dsh --profile dev --dump-config` |
-| 调参只写在 `dev-ov` 探针，不在 dev | [dev-ov patch](../../dev/harness-home/profiles/dev-ov/cordis.patch.yml) 有 `peerId: assistant`、`skillCatalog: false`、`skipSubagentSessions: true`、`profileTokenBudget: 3000`、`commitTokenThreshold: 3000` 和召回旋钮；dev 没有 |
+| 调参只写在 `dev-ov` 探针，不在 dev | live `dev-ov` patch（本机、`dev/harness-home/` 已 gitignore）有 `peerId: assistant`、`skillCatalog: false`、`skipSubagentSessions: true`、`profileTokenBudget: 3000` 与召回旋钮；`commitTokenThreshold: 3000` **只在 tracked 的 [ov-install.sh §6](../../dev/experiments/openviking/ov-install.sh) 模板里——live 与模板已漂移**；dev 两处都没有 |
 | `pnpm start` 每次覆盖 dev profile 的 patch | [setup.sh](../../dev/env/setup.sh) 的 `cp "$patch" "$dir/cordis.patch.yml"`；tracked 模板 [profile-patch.yml](../../dev/profiles/profile-patch.yml) 只有 preset registry |
 
 **后果：** live 实际跑的是默认值：profile 预算 10000、commit 阈值 20000、子代理会话照抓、peer 跟 git origin、context 召回、skill catalog 开。与层 1 note 的 v3 剖面相反。
@@ -45,12 +45,12 @@ opened: 2026-10-20
 | 事实 | 证据 |
 |---|---|
 | 6 条 events；0 profile / 0 preferences / 0 entities | `GET /api/v1/stats/memories` |
-| 4 个 session；最近一次 `session_commit` **failed** | `GET /api/v1/tasks`：2026-10-20T07:24:07Z，`"error":"Connection error."`；server.log 指向 `_run_archive_summary` 的 VLM 调用 |
+| 4 个 session；最近一次 `session_commit` **failed** | `GET /api/v1/tasks`：2026-10-20T07:24:07Z，`"error":"Connection error."`；server.log：commit 失败在 `_run_archive_summary` 的 VLM 调用，`search/find` 失败在 embedding（`embed_compat` → `CircuitBreakerOpen`）——两条出网都断 |
 | 检索实际失败 | `POST /api/v1/search/search` 返回 `entries: []`、`retrieval_errors: ["RuntimeError: OpenAI API error: Connection error."]`；`POST /api/v1/search/find` 500 |
 | `/health` 仍然绿 | `GET /health` 返回 `"healthy":true`——它不探测模型位 |
-| 真实会话日志里 recall 块为 0 | 解压 `dev/harness-home/sessions/--Users-bowhead-ai_dsh_assitant--/` 下的 `session.v4.jsonl.zstd` 后 grep：`profile` 块 3 条、`recall` 块 0 条 |
+| recall 块不是 0，但只有目录 overview | 扫全部 376 个 `session.v4.jsonl.zstd`：36 个会话含 `<openviking-context source="recall">`（77 处，2026-09-29→10-19）；截至审计（2026-10-20）的会话 0 条。2026-10-19 16:01 的两条只有 `viking://user/default/resources` 与 `viking://resources` 两个系统目录、`detail="overview"`，并写 “Use the search/read MCP tools to expand URIs”——这两个工具正被 ov-shield 拒 |
 
-**注意：** 这不是“层 1 从未成功”。层 1 落地 note 有过一次真实往返；现在是**当前故障**（模型连接失败），不能把它误判成架构失败，也不能因为 `/health` 绿就当成可用。
+**注意：** 这不是“层 1 从未成功”。层 1 落地 note 有过一次真实往返；现在是**当前故障**（模型连接失败），不能把它误判成架构失败，也不能因为 `/health` 绿就当成可用。“recall 为 0”只对 2026-10-20 的个别会话成立（连接故障期），全量存量反而证明自动 recall 曾经工作——而 2026-10-19 的实物暴露了更关键的断裂：召回块只有 overview，且提示使用被 ov-shield 拒掉的 `search/read`。
 
 ### 3. 人面与部署面
 
@@ -65,8 +65,8 @@ opened: 2026-10-20
 ### 4. 模型可见面与治理
 
 - [ov-shield](../../packages/dsh-smart-assistant/src/agent/ov-shield/index.ts) 目前整前缀拒 `mcp__openviking__*`，并遮蔽两个技能名；MCP 资源桥也按 server 名拒。写面守住是对的。
-- 代价是**没有按需检索**：自动 recall 只给一段有界内容；模型无法“问细节”，也无法把指针展开成叶子。
-- DSH 0.2.1 的 `ctx.tools.restrict` 支持 **allow list**（[tools.md](../../vendor/dsh/docs/subsystems/tools.md) 第 165–174 行），所以“只放 search/read/tree/grep/glob、继续拒写”在机制上可行；这不等于应该这么做，需要量 tool-schema 成本和命中收益。
+- 代价是**没有按需检索**：自动 recall 只给一段有界内容；模型无法“问细节”，也无法把指针展开成叶子。2026-10-19 的实物正好停在这一步：召回块只有 `detail="overview"` 的目录摘要，并提示用 `search/read`——这两个工具被 ov-shield 拒。ov-shield 模块注释里 “No value is lost” 只在 `recallContextTimeoutMs` 强制 find 的剖面下成立；默认 context 剖面下不成立（注释已同 diff 改为条件声明）。
+- DSH 0.2.1 的 `ctx.tools.restrict` 支持 **allow list**（[tools.md](../../vendor/dsh/docs/subsystems/tools.md) 第 165–174 行），所以“只放 find/search/read/tree/grep/glob、继续拒写”在机制上可行；这不等于应该这么做，需要量 tool-schema 成本和命中收益。
 - 0.5.x 的 `skillCatalog` 是活旋钮（默认 true），但 server 当前 0 个技能；两个内置技能又被遮蔽。若将来有技能，目录会“广告了但加载不了”，除非做 DSH provider 或放开 `add_skill`/`read`。
 
 ### 5. 新版本提供了什么（只列与我们相关的）
@@ -92,6 +92,8 @@ opened: 2026-10-20
 | `session-projection` | per-session 状态投影 | 外部服务健康用 client slot 更简单；不必为它造投影 |
 | `agent-team` | 成员是 `origin: 'subagent'` | `skipSubagentSessions: true` 会连团队记忆一起跳过；这是产品选择 |
 | `token-meter` | 回放 token 计量 | 云端例外下，召回块/抽取成本可见 |
+| `ctx.settings` | active profile 行的 Config 投影成表单，编辑经 Cordis patch 持久化 | OV 旋钮的 UI 落点；但 `setup.sh` 覆盖 dev patch 的问题仍在，先按运行态卡的替换落点做 |
+| `ctx.approval` | 可审计的一次性人审（`approval/asked` 与 `approval/decided` 审计对） | Viki「转正」的确认应走它，不另造确认框 |
 
 ## 已知与未决
 
@@ -117,7 +119,7 @@ opened: 2026-10-20
 | A. 只修 | 修网络、存储、Viki URL、旋钮；不加新能力 | 能让层 1 恢复，但回答不了“充分利用新版本”；不选 |
 | **B. 修 + 升 + 按需检索 + 人审闭环** | 先 P0 部署/可观测，再 P1 0.5.1 + 运行态，再 P2 只读检索 + Viki 治理 | **推荐**；每步独立可回退 |
 | C. 换 Gateway | 用 0.5.x Gateway 注入记忆，不装插件 | 绕过 DSH 工具/技能/`ov-shield` 治理；与“四房间权威 + 写面守住”冲突；不选 |
-| D. 放开全部 MCP | 让模型直接用 12+ 工具 | 写面、工具噪声、模型在 `assistant_memory` 与 `remember` 之间选错房间；不选 |
+| D. 放开全部 MCP | 让模型直接用 16 个工具 | 写面、工具噪声、模型在 `assistant_memory` 与 `remember` 之间选错房间；不选 |
 | E. 等上游 | 等插件把 `mcpEnabled`/skill mount 做成活旋钮 | 上游 0.5.26 仍未接；我们的 `ov-shield` 已经是原生缝；不选“干等” |
 
 **拆卡理由：** 三张实施卡分别对应三个独立风险面——
@@ -130,8 +132,8 @@ opened: 2026-10-20
 
 | 能力 | 提供方 | 建议用法 | 现在做？ |
 |---|---|---|---|
-| 只读 MCP（search/read/tree/grep/glob） | Viki 0.5.26 + DSH `restrict` allow | 写面继续整前缀拒；只读按 allowlist 放，先量 token/命中 | P2，先 A/B |
-| 单工具 native recall | 我们自己的 DSH 工具 | 一个 `assistant_recall`（search/read），presenter + scope | P2 备选 |
+| 只读 MCP（find/search/read/tree/grep/glob） | Viki 0.5.26 + DSH `restrict` allow | 写面继续整前缀拒；只读按 allowlist 放，先量 token/命中 | P2，先 A/B |
+| 单工具 native recall | 我们自己的 DSH 工具 | 一个 `assistant_recall`（find/search/read/tree），presenter + scope | P2 备选 |
 | skills 目录 / `add_skill` | Viki server + DSH `ctx.skills` | 自定义 provider 读 `viking://~/skills`，走标准 `skill` 工具 | P3，有真实 skill 再触发 |
 | experiences / agent-evolution | Viki server | 先查是否随 commit 自动生成；再决定是否 surface | P3，先观察 |
 | Working Memory off / commit 修复 | Viki 0.5.1 | 升级后默认少一次 VLM 调用、commit 更稳 | P1 |
@@ -162,16 +164,84 @@ opened: 2026-10-20
 6. `skipSubagentSessions` 对 agent-team 的覆盖是否符合产品预期？
 7. 三张实施卡的验收是否可执行、是否有假绿风险？
 
+## 评审记录（意见回流的家）
+
+**规则**：各角色意见按小节追加于此（带日期）；对卡内事实的修正同 diff 改正文，并在本节留一行。评审收敛 = 人类裁决 + 三张实施卡各有去向。
+
+### 2026-10-20 · 第一轮 agent 核验（证据 / 机制 / 验收三路，只读）
+
+**证据（对正文事实的纠错，已同 diff 改正文）**
+
+- **recall 块不是 0。** 全量扫 376 个 `session.v4.jsonl.zstd`（`zstd -dc | grep openviking-context`）：36 个会话含 `<openviking-context source="recall">`（77 处，2026-09-29→10-19）；截至审计（2026-10-20）的会话 0 条（模型连接故障期）。原文「recall 块 0」只对个别会话成立，不能当全量事实。
+- **2026-10-19 的 recall 实物**（`session-7feeda6d-cdd3-4a57-ab3e-d8d374351fae`，07:52Z / 08:00Z）：两条块都只有 `viking://user/default/resources` 与 `viking://resources` 两个系统目录、`detail="overview"`，并写 “Use the search/read MCP tools to expand URIs”；这两个工具被 ov-shield 拒，模型拿到的是**无法执行的指令**。这既证明自动 recall 曾经工作，也把「只给指针 + 工具被拒」从推测变成实物。
+- **`commitTokenThreshold: 3000` 不在 live dev-ov。** live dev-ov patch 实有 peer/skillCatalog/skipSubagent/预算/召回旋钮，没有 commit 阈值；3000 只在 tracked 的 `ov-install.sh` §6 模板与层 1 note 里。live 与安装器模板已漂移——这本身是运行态卡要收的口子。
+- **Viki baseUrl 现值为空**（`config.baseUrl || OPENVIKING_URL || ''`），不是 1933；「默认 1933」是实施建议，已改为建议语气。
+- 其余 live 证据可复现：`/health` 0.4.22 绿、6 events/0 profile、最近 commit failed（`4e16b6d1…`，`Connection error`）、`search` 空 + `retrieval_errors`、`find` 500、dump-config 的 OV 行无 config。
+
+**机制与能力（升级后的 Viki / DSH 还有哪些没被用上）**
+
+- **MCP 工具面实测 16 个**（不是 12）：`find search read list tree remember write edit add_resource add_skill list_watches cancel_watch grep glob forget health`。全量 schema ≈20.6KB ≈5.7k token；只读子集（find/search/read/list/tree/grep/glob/health）≈7.9KB ≈2.2k token。**A1 的每轮成本按 ~2.2k token 计**，按需检索卡已把数字写进 A/B。
+- **A1 白名单漏了 `find`。** `find` 是语义检索（插件 recall 的强制 find 路径也用它），只放 search/read/tree/grep/glob 会把最该用的动词排除；server 还有 `list_watches`/`cancel_watch`/`health`，要有明确的拒/放决定。
+- **MCP server instructions 是 ov-shield 的未守面。** DSH mcp-client 把 server `initialize.instructions` 作为字面文本并入 system prompt（`server-context.ts`），工具 restrict 不影响它；实测 0.4.22 的 initialize（dev 模式）**没有** instructions，所以今天不泄露，但 server 升级可新增。doctor 应把「无 instructions」列为检查项（出现文本即 warn）。
+- **MCP serverInfo 版本是 1.30.0，不是 0.4.22。** 版本矩阵只能读 `GET /health`；doctor 若读 MCP 握手会报假不一致。
+- **0.5.1 迁移对我们面的实际影响**：插件 0.5.26 用 `POST /sessions/{id}/commit`（0.5.1 保留，移除的是 `/extract`）；Viki 用 `content/read`、`fs/ls`、`fs/attrs`、`snapshot/commit|restore`、`fs` DELETE——都不在 0.5.1 的删除/改写清单里；`wait` 专用 timeout 我们没有调用；`write(mode=create)` 我们不用。真正的迁移风险是**存储格式（V2 多写/checkpoint）**与**回滚顺序**，不是 Viki 路径。
+- **0.5.1 回滚不能只换二进制**：release note 明写「回滚时先恢复兼容备份，不能仅换回旧二进制」。运行态卡的迁移/回滚验收已补这一条。
+- **`captureFilters` 覆盖面已核，不用等 0.5.1**：0.5.26 的 `filterCaptureParts` 对 tool part 的 `tool_input` 字符串值与 `tool_output` 做 `s` 替换；`d`/`k` 仍只由文本决定保留/丢弃（与 #5937 描述一致）。部署卡原来「要再核」的开放项可以关掉。
+- **DSH 还有两个现成缝没落在卡上**：`ctx.approval`（可审计的一次性人审，Viki「转正」确认应走它，不另造确认框）与 `ctx.settings`（active profile 行的 Config 表单；可给 OV 旋钮一个 UI 落点，但 `setup.sh` 覆盖 dev patch 的问题仍在）。两者在 dev 组合里都已挂（dump-config 的 `settings` / `user-approval` 行）。
+
+**验收可执行性（假绿风险）**
+
+- 部署卡：`pnpm ov-doctor` 只断言 exit code 会假绿——坏配置可能因无关检查失败而 exit 1；应断言**具体 check id 与文案**。原验收「发送前扫描器/过滤器命中假 key」没有实现点：插件自己发 HTTP，DSH 侧无拦截缝；运行态只能靠 `captureFilters`（已验证），doctor 只能静态扫规则，**「发送前扫描器」应降为 doctor 静态检查 + captureFilters 实测，不再声称运行时阻断**。已改设计/验收。
+- 运行态卡：回滚验收只写「恢复 0.4.22 + 旧 workspace」不足；须先恢复完整 `storage_path` 兼容备份再换二进制，否则 `/health` 绿而数据已坏。已补。
+- 按需检索卡：`pnpm web-expected` 当前只有 `blank-first-open` / `first-open-draft-banner` 两个场景，**都不覆盖 Viki**；「两场景不漂移」抓不到 Viki 回归，是假绿。已改为 Viki 专用渲染/DOM 检查 + 既有两场景不漂移两条。
+- 按需检索卡：A/B 的「谁做人工评分」未定 → 判据不可执行。建议 agent 按评分表初评 + 人抽查（≥3 条），评分表随 A/B 产出。
+- 按需检索卡：转正确认未指定机制 → 走 `ctx.approval`，审计复用 `approval/asked` 与 `approval/decided`。
+- 部署卡/Viki：**“脱敏计数”“最近一次发送时间”“pending queue”都没有现成只读源**——插件不暴露运行时脱敏统计；pending queue 是插件进程内状态（磁盘只在 `~/.openviking/pending`），token 用量要靠 `token-meter` 读会话日志。已把展示项改为有源才显示，或明确“doctor 自测摘要代替”，不把不存在的数据写成验收。
+
+**七条未决的当前答案**
+
+1. **0.5.1 迁移**：不能直接升；副本 + 完整存储备份 + 回滚演练（见上）。
+2. **只读检索 A1/A2**：A1 成本 ≈2.2k token/轮（实测），A2 待量；没有数据不拍。
+3. **skills/experiences**：插件 0.5.26 的注释说 DSH 的 Experience usage 需要完整工具结果（`captureToolResults` 默认 true 的原因），实测 0.4.22：`memories` 下没有 experiences 目录、`/api/v1/agent-evolution` 404、`/api/v1/skills` 在场但 0 条；0.5.1 是否随 commit 生成仍未证。
+4. **`skipSubagentSessions`**：agent-team 成员是 `origin: 'subagent'`（agent-team 测试与 DSH 约定一致），会被跳过；团队记忆是资产还是污染仍待人拍板。
+5. **云端脱敏**：`captureFilters` 已能替换 tool input/output（见上），但正则可靠性未测；`captureToolResults` 建议云端部署收紧。
+6. **peer 切换**：旧事件仍可由默认 `recallPeerScope: all` 扫到；迁移后需用一次真实 search 验证。
+7. **Viki 转正**：建议只落 `memory/`（走 `assistant_memory save`）；`knowledge/` 的 `sources` 引 OpenViking URI 留到知识卡，不扩治理面。
+
+**去向（findings → owner/落点）**
+
+| 发现 | 落点 |
+|---|---|
+| recall 证据纠错（36/77、系统目录 overview、悬空工具提示） | 方向卡正文 + 检索卡「当前情况」 |
+| live dev-ov 与安装器模板漂移（commit 阈值） | 运行态卡 §C 落点段 |
+| 16 工具 / `find` 缺位 / schema 成本 | 检索卡 A1、A/B 度量与验收 |
+| MCP instructions 未守面 | 部署卡 doctor check 6 + 验收 |
+| MCP serverInfo 版本不等于 server 版本 | 部署卡 check 9 + 验收 |
+| 0.5.1 存储/回滚顺序 | 运行态卡 §B、风险 1、验收 |
+| `captureFilters` 覆盖面已核 | 部署卡机制 1、验收（原开放项关闭） |
+| `ctx.approval` / `ctx.settings` | 检索卡 §B/§C；方向卡 §6 |
+| doctor 断言 exit code / 无发送前拦截点 | 部署卡设计与验收 |
+| web-expected 不覆盖 Viki | 检索卡 Viki 验收 |
+| A/B 评分责任 | 检索卡未决 1 + 验收 |
+| 脱敏计数 / pending queue / token 用量无只读源 | 部署卡「审计与可见性」；检索卡 Viki 设计与验收 |
+| experiences 端点/目录证据 | 方向卡未决 3；检索卡数据行 |
+
+同 diff 的文档修正：`ov-shield` 模块注释把 “four house tools” 改为 “five”，并把 “No value is lost” 改为条件声明（只有 `recallContextTimeoutMs` 强制 find 时成立；默认 context 剖面下的悬空工具提示指向检索卡）。零行为改动，不算实施。
+
+**结论**
+
+方向卡的三条判断成立（版本错位、运行态失配、能力面只用了自动注入），且第二条比原卡更严重：2026-10-19 的 recall 实物已经出现「overview + 被拒工具」的断裂。建议维持「修 + 升 + 按需检索 + 人审闭环」的 B 路线；三张实施卡按本轮修正后交人类逐张裁决。**本记录不授权实施。**
+
 ## 验收标准
 
 本卡是评审卡，验收 = 评审收敛 + 一次路线裁决，不要求实施：
 
 - [ ] 人类评审给出三选一：**方向认可 / 要改（列改动）/ 否决（写理由）**。
-- [ ] Agent 评审给出至少一份「证据缺口 / 漏能力 / 验收不可执行」清单；每条有 owner 与去向（改卡、补证据、另立卡、不做）。
+- [x] Agent 评审给出至少一份「证据缺口 / 漏能力 / 验收不可执行」清单；每条有 owner 与去向（2026-10-20 第一轮，见评审记录；修正已回写正文与三张实施卡）。
 - [ ] 三张实施卡分别被接受 / 修改 / 否决；接受的那张在用户点名后转 proposed 或收口卡，未接受的写去向。
 - [ ] 「已知与未决」7 条每条有结论或后续卡；没有“沉默的未决”。
 - [ ] `_backlog/issues/README.md` 活跃清单与四张卡一致；`pnpm verify` 通过（或记录与本次无关的既有失败）。
-- [ ] 本卡不产生代码/配置改动；如产生，必须在评审结论里单独授权。
+- [ ] 本卡不产生行为/配置改动；注释级事实修正（ov-shield 的 “No value is lost” 条件化）已记在评审记录，不算实施。
 
 ## 关闭条件
 
