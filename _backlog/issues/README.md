@@ -10,6 +10,7 @@
 | [261020-openviking-deploy-doctor](261020-openviking-deploy-doctor.md) | 云端例外、部署配置、`ov-doctor`、README | 等人类裁决；依赖方向卡；Agent 已列 doctor/验收假绿 |
 | [261020-openviking-runtime-repair](261020-openviking-runtime-repair.md) | 0.5.1 升级、持久存储、v3 旋钮、Viki URL | 等人类裁决；依赖方向卡；Agent 已补存储/回滚步骤 |
 | [261020-openviking-retrieval-viki](261020-openviking-retrieval-viki.md) | 只读检索 A/B、Viki 搜索/转正/健康 | 等人类裁决；依赖方向卡与运行态卡；Agent 已补 A/B 成本与 Viki 验证假绿 |
+| [261020-six-dimension-improvement-closure](261020-six-dimension-improvement-closure.md) | 六维深审 26 项发现的通改战役（S1–S10） | 已授权实施中；切片台账在卡上 |
 
 
 ## 写一张卡
