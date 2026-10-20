@@ -22,10 +22,10 @@ printf -- '- id: workspace-controller\n  name: "@deepseek-ai/dsh-api-workspace-c
 pnpm dsh --profile dev --patch "$ASSISTANT_DSH_HOME/workspace.patch.yml" --port 0 --no-open
 
 # ② 比对（漂移即 exit 1，逐条 diff + PNG 路径供人工过目）
-pnpm web-expected '<server 打印的 URL>' --wait-text '还没有经营事项资料'
+pnpm web-expected '<server 打印的 URL>' --scenario snapshots/web-face/blank-first-open --wait-text '还没有经营事项资料'
 
 # 有意的 UI 变更：过目 diff 后重录期望（重录的 PNG 在临时目录，肉眼核过再提交 JSON）
-pnpm web-expected '<server 打印的 URL>' --wait-text '还没有经营事项资料' --refresh
+pnpm web-expected '<server 打印的 URL>' --scenario snapshots/web-face/blank-first-open --wait-text '还没有经营事项资料' --refresh
 ```
 
 全新 home 的 rooms route 返回诚实的空投影；`pnpm preflight` 只查 route reachable，不再要求任何桌面文件。认证、bundle 注册和 boot 图可单独读其结果，DOM 比对仍须无 console/network 错误。K1 默认入口的记录已去除存量期望里的共享工作区经营数据污染；这不是经营账本空态通过证据，当前全局组件读取独立 Host 固定投影，缺失与有效空集合分开；这不证明经营 writer 或持久操作结果。

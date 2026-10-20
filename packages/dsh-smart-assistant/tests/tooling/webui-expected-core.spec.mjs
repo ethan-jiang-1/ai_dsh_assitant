@@ -6,14 +6,17 @@
  * The end-to-end capture chain (real Chrome → shots → this core) is exercised by actually
  * running `pnpm web-expected` against the isolated home; its prove-it-red record lives in
  * the scenario README. This file owns what a real capture cannot cheaply prove: that each
- * ignored field is truly ignored, each compared field truly bites, and unknown fields
- * surface instead of sneaking past.
+ * ignored field is truly ignored, each compared field truly bites, unknown fields
+ * surface instead of sneaking past, and — since the explicit-scenario gate (261020 audit
+ * #8: the silent blank-only default left the banner scenario unverified after the S4
+ * client refactor) — that scenario discovery stays honest and a bare invocation is
+ * refused with the discovered list instead of quietly comparing one scenario.
  *
  * Deliberately plain .mjs, like the other tooling specs: vitest runs it, while
  * `tsc -p tsconfig.test.json` does not include non-TS files.
  */
 import { describe, expect, it } from 'vitest'
-import { buildCaptureEvalArgs, buildWaitSnippet, compareEvidence, normalizeDomEvidence } from '../../../../dev/probes/web/webui-expected-core.mjs'
+import { buildCaptureEvalArgs, buildMissingScenarioUsage, buildWaitSnippet, compareEvidence, discoverScenarios, normalizeDomEvidence } from '../../../../dev/probes/web/webui-expected-core.mjs'
 
 describe('capture actions precede asynchronous content readiness', () => {
   it('forwards scene evals in order before the wait token', () => {
@@ -149,5 +152,53 @@ describe('buildWaitSnippet compiles a scene readiness token into a polling eval'
   it('escapes the needle so a quote in the token cannot break the snippet literal', () => {
     const snippet = buildWaitSnippet("boss' 决策")
     expect(snippet).toContain("\\' 决策")
+  })
+})
+
+/** A Dirent-like entry, as readdirSync(root, { withFileTypes: true }) yields them. */
+const dirent = (name, isDirectory = true) => ({ name, isDirectory: () => isDirectory })
+
+describe('discoverScenarios lists only runnable scenario directories', () => {
+  it('returns an empty list for an empty web-face root', () => {
+    expect(discoverScenarios([], () => true)).toEqual([])
+  })
+
+  it('returns both scenario names, sorted, when the root holds two', () => {
+    const names = discoverScenarios([dirent('first-open-draft-banner'), dirent('blank-first-open')], () => true)
+    expect(names).toEqual(['blank-first-open', 'first-open-draft-banner'])
+  })
+
+  it('skips directories without a committed expectation, and non-directory entries entirely', () => {
+    const names = discoverScenarios(
+      [dirent('blank-first-open'), dirent('draft-notes'), dirent('README.md', false), dirent('.DS_Store', false)],
+      name => name === 'blank-first-open',
+    )
+    expect(names).toEqual(['blank-first-open'])
+  })
+})
+
+describe('buildMissingScenarioUsage refuses a bare run instead of guessing a scenario', () => {
+  const names = ['blank-first-open', 'first-open-draft-banner']
+
+  it('returns null for an explicit invocation — the gate must not touch it', () => {
+    expect(buildMissingScenarioUsage('snapshots/web-face/first-open-draft-banner', names, 'snapshots/web-face')).toBeNull()
+  })
+
+  it('names every scenario, its contract README, and a copy-pasteable --scenario value', () => {
+    const message = buildMissingScenarioUsage(undefined, names, 'snapshots/web-face')
+    expect(message).toContain('--scenario snapshots/web-face/blank-first-open')
+    expect(message).toContain('--scenario snapshots/web-face/first-open-draft-banner')
+    for (const name of names) expect(message).toContain(`snapshots/web-face/${name}/README.md`)
+  })
+
+  it('prints the required-argument usage form, not an optional one', () => {
+    const message = buildMissingScenarioUsage(undefined, names, 'snapshots/web-face')
+    expect(message).toContain('usage: node dev/probes/web/webui-expected.mjs')
+    expect(message).not.toContain('[--scenario')
+  })
+
+  it('states honestly when no runnable scenario exists', () => {
+    const message = buildMissingScenarioUsage(undefined, [], 'snapshots/web-face')
+    expect(message).toContain('no runnable scenarios')
   })
 })

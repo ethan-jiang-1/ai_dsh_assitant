@@ -1,13 +1,18 @@
 /**
  * Pure core for the web-face expected-comparison pilot (test-strategy adoption, slice 2).
  *
- * Owns comparison and scene capture arguments, so the CLI shell (`webui-expected.mjs`) stays thin and the
- * spec (`tests/tooling/webui-expected-core.spec.mjs`) can pin every accepted/rejected shape on fixtures:
+ * Owns comparison, scene capture arguments, and the explicit-scenario gate, so the CLI
+ * shell (`webui-expected.mjs`) stays thin and the spec (`tests/tooling/webui-expected-core.spec.mjs`)
+ * can pin every accepted/rejected shape on fixtures:
  *
  *   1. normalizeDomEvidence — strip/rename the fields that CANNOT be part of the expected
  *      state (per-capture volatility), leaving the text-structural evidence.
  *   2. compareEvidence — diff normalized actual against the committed expectation,
  *      returning human-readable problem lines (empty = pass).
+ *   3. discoverScenarios + buildMissingScenarioUsage — enumerate the runnable scenario
+ *      directories under snapshots/web-face and refuse a bare invocation with that list
+ *      (261020 audit #8: the old silent blank-only default left the banner scenario
+ *      unverified after the S4 client refactor).
  *
  * The ignore list is a REVIEWED SOURCE CONSTANT, not a knob: every field left out must
  * carry the reason it can never be evidence. This is the "fix fixtures, not normalizers"
@@ -118,6 +123,61 @@ export function buildCaptureEvalArgs(args, waitText) {
     : [])
   if (waitText !== undefined) evalArgs.push('--eval', buildWaitSnippet(waitText))
   return evalArgs
+}
+
+/**
+ * What makes a directory under snapshots/web-face a runnable scenario: the committed
+ * expectation this tool compares against. A directory without it (a draft README, an
+ * unrelated subdir) is not offered to the caller as a scenario.
+ */
+export const SCENARIO_EXPECTATION_FILE = 'expected.dom.json'
+
+/**
+ * The usage line in one place because two runtime error paths print it: the CLI's
+ * missing-url error and the missing-scenario gate below. `--scenario` is spelled without
+ * brackets — it is required, not optional.
+ */
+export const USAGE_LINE = 'usage: node dev/probes/web/webui-expected.mjs <url-with-token> --scenario <dir> [--refresh] [--size <WxH>] [--eval <js>] [--wait-text <substring>]'
+
+/**
+ * Enumerate the runnable scenario directory names under the web-face root. Pure over the
+ * injected directory view: `dirents` is a Dirent-like listing ({ name, isDirectory() }),
+ * and `hasExpectation(name)` answers whether that directory holds the committed
+ * expectation — the CLI passes the real fs, the spec passes fixture shapes (empty root,
+ * two scenarios, non-scenario entries) without ever touching snapshots/.
+ */
+export function discoverScenarios(dirents, hasExpectation) {
+  return dirents
+    .filter(dirent => dirent.isDirectory())
+    .map(dirent => dirent.name)
+    .filter(hasExpectation)
+    .sort()
+}
+
+/**
+ * The explicit-scenario gate (261020 audit #8): a bare invocation used to silently
+ * compare only blank-first-open, and that is exactly how the banner scenario went
+ * unverified after the S4 client refactor. Every scenario carries its own home recipe —
+ * how the isolated home is served and seeded; each directory's README is the contract —
+ * so no single default can cover the web face and the caller must name one. Returns the
+ * usage-error text when the scenario value is missing (flag absent, or flag with no
+ * value), or null when the invocation is already explicit and must proceed untouched.
+ */
+export function buildMissingScenarioUsage(scenarioValue, names, webFaceDir) {
+  if (scenarioValue !== undefined) return null
+  const lines = [
+    'webui-expected: --scenario is required — each scenario has its own home recipe (its README is the contract), so no default can cover the web face.',
+    USAGE_LINE,
+  ]
+  if (names.length === 0) {
+    lines.push(`no runnable scenarios found under ${webFaceDir} — a scenario is a directory with a committed ${SCENARIO_EXPECTATION_FILE}`)
+  } else {
+    lines.push(`scenarios under ${webFaceDir}:`)
+    for (const name of names) {
+      lines.push(`  --scenario ${webFaceDir}/${name}    (contract: ${webFaceDir}/${name}/README.md)`)
+    }
+  }
+  return lines.join('\n')
 }
 
 /**

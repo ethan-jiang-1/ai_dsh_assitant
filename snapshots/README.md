@@ -9,7 +9,7 @@ DSH 的行为回归证据面按"录一次、keyless 重放比对"运转（一场
   （裸首开态，harness 试点）与 [`web-face/first-open-draft-banner/`](web-face/first-open-draft-banner/README.md)
   （有草稿待批的首开态，首屏审批横幅的耐久回归面）。harness 是
   [`dev/probes/web/webui-expected.mjs`](../dev/probes/web/webui-expected.mjs)
-  （`--scenario` + `--wait-text` 就绪令牌）。
+  （`--scenario` 必填 + `--wait-text` 就绪令牌）。
 - **session 回放**：**仍未建**——升级触发条件见文末，当前用什么顶见下。
 
 **当前用什么顶**：

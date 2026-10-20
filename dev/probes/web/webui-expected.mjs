@@ -12,9 +12,9 @@
  * `webui-expected-core.mjs` so the spec can pin accepted/rejected shapes on fixtures
  * (scripts/AGENTS.md: check logic and checked corpus stay apart).
  *
- * Two modes:
- *   node dev/probes/web/webui-expected.mjs '<url>'                # capture → compare → exit 1 on drift
- *   node dev/probes/web/webui-expected.mjs '<url>' --refresh      # capture → write the expectation
+ * Two modes (each names its scenario explicitly — see the gate note under Usage):
+ *   node dev/probes/web/webui-expected.mjs '<url>' --scenario <dir>              # capture → compare → exit 1 on drift
+ *   node dev/probes/web/webui-expected.mjs '<url>' --scenario <dir> --refresh    # capture → write the expectation
  *
  * Every written expectation is human-reviewed before commit (the DOM JSON is the diffable
  * surface; the PNG stays in the temp dir for eyeballing and never enters git). Scenario
@@ -22,23 +22,29 @@
  * ignored — lives in the scenario's own README, per snapshots/AGENTS.md.
  *
  * Usage:
- *   node dev/probes/web/webui-expected.mjs '<url-with-token>' [--scenario <dir>] [--refresh]
+ *   node dev/probes/web/webui-expected.mjs '<url-with-token>' --scenario <dir> [--refresh]
  *        [--size <WxH>]   (default 1600x1000, must match the committed expectation)
  *        [--eval <js>] [--wait-text <substring>]   (readiness token polled before capture; scenes pinning
  *                                     async-loaded content declare theirs in snapshot.yml)
+ *
+ * --scenario is required (2026-10-20, audit #8): each scenario carries its own home
+ * recipe — how the isolated home is served and seeded — so a default that quietly picks
+ * one scenario is a selective-run trap (the banner scenario went unverified after the
+ * S4 client refactor for exactly this reason). A bare run stops with the discovered
+ * scenario list and each README pointer instead of guessing.
  */
 import { spawnSync } from 'node:child_process'
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { join, resolve } from 'node:path'
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
+import { join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { mkTmpDir } from '../../env/tmp.mjs'
-import { buildCaptureEvalArgs, compareEvidence, normalizeDomEvidence } from './webui-expected-core.mjs'
+import { buildCaptureEvalArgs, buildMissingScenarioUsage, compareEvidence, discoverScenarios, normalizeDomEvidence, SCENARIO_EXPECTATION_FILE, USAGE_LINE } from './webui-expected-core.mjs'
 import { option } from './probe-utils.mjs'
 
 const args = process.argv.slice(2)
 const targetUrl = args.find(a => !a.startsWith('--'))
 const scriptRoot = fileURLToPath(new URL('.', import.meta.url))
-const scenarioDir = resolve(option(args, 'scenario', join(scriptRoot, '..', '..', '..', 'snapshots', 'web-face', 'blank-first-open')))
+const webFaceRoot = resolve(scriptRoot, '..', '..', '..', 'snapshots', 'web-face')
 const size = option(args, 'size', '1600x1000')
 const refresh = args.includes('--refresh')
 // Scenes pinning async-loaded content declare their readiness token; the polling eval
@@ -46,9 +52,29 @@ const refresh = args.includes('--refresh')
 const waitText = option(args, 'wait-text')
 
 if (targetUrl === undefined) {
-  console.error('usage: node dev/probes/web/webui-expected.mjs <url-with-token> [--scenario <dir>] [--refresh] [--size <WxH>] [--eval <js>] [--wait-text <substring>]')
+  console.error(USAGE_LINE)
   process.exit(1)
 }
+
+// 261020 (audit #8): --scenario is required. The old silent default compared
+// blank-first-open only, and the banner scenario went unverified after the S4 client
+// refactor for exactly that reason. Discovery runs only on this error path — an
+// explicit invocation never consults it.
+const scenarioArg = option(args, 'scenario')
+if (scenarioArg === undefined) {
+  let names = []
+  try {
+    names = discoverScenarios(
+      readdirSync(webFaceRoot, { withFileTypes: true }),
+      name => existsSync(join(webFaceRoot, name, SCENARIO_EXPECTATION_FILE)),
+    )
+  } catch {
+    // An unreadable web-face root leaves discovery empty; the gate reports that honestly.
+  }
+  console.error(buildMissingScenarioUsage(scenarioArg, names, relative(process.cwd(), webFaceRoot) || '.'))
+  process.exit(1)
+}
+const scenarioDir = resolve(scenarioArg)
 const expectedPath = join(scenarioDir, 'expected.dom.json')
 
 try {
