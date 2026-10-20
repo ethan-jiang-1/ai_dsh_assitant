@@ -21,11 +21,11 @@
 
 装法、身份名、working folder 的契约分别在仓库的 `README.md`、`docs/identity.md`、`docs/home.md`。
 
-Web 客户端贡献独立全局桌面（唯一「桌面」，账本投影）与右栏两室（记忆 / 知识）。默认主面板选择只在页面初始化时尝试，不随重挂覆盖用户导航；导航与数据读取的当前合同在 [浏览器动作链](../../docs/architecture.md#浏览器动作链一次点击--可见的桌面变化)。客户端不拥有经营权威数据。
+Web 客户端贡献独立全局桌面（唯一「桌面」，账本投影）与右栏可按需添加的四个房间 tab（记忆 / 知识 / Viki / 技能）。默认主面板选择只在页面初始化时尝试，不随重挂覆盖用户导航；导航与数据读取的当前合同在 [浏览器动作链](../../docs/architecture.md#浏览器动作链一次点击--可见的桌面变化)。客户端不拥有经营权威数据。
 
-Host 的 `./desk-projection` 是固定 JSON 文件下载，不是经营 writer 或通用文件读取。Config `dataDir` 与 agent working folder 独立；缺失、损坏和 I/O 错误分别返回错误，且 fiber 卸载撤销路由。目录/状态码/限额合同由上面的浏览器动作链拥有；此入口不向模型添加工具或提示词。
+Host 的 `./desk-projection` 是固定只读投影下载：有权威 `ledger.json` 时活渲染 v2 投影，无账本时回退固定 fixture；不是经营 writer 或通用文件读取。Config `dataDir` 与 agent working folder 独立；缺失、损坏和 I/O 错误分别返回错误，且 fiber 卸载撤销路由。目录/状态码/限额合同由上面的浏览器动作链拥有；此入口不向模型添加工具或提示词。
 
-Client 内部下载对象处理连接代际、手动重读、陈旧缓存与迟到结果拒绝，使用平台 snapshot publisher；apply 承担 effect disposal，并通过 Slot inject hooks 供全局主区消费。它固定使用经营 v1 解析器验证身份、修订、事项状态及证据定位；解析失败保留最后有效内容。主面板显示完整集合和缺失/空/错误/陈旧状态；事项选择显示摘要、状态、证据 quote 与 Session/event 定位，宽区双栏、窄区单 pane 保留选择与列表位置；事项处理路由和业务写入尚未提供；`ready` 不等于业务成功。对象无持久缓存，组件不自行订阅或发起下载。
+Client 内部下载对象处理连接代际、手动重读、陈旧缓存与迟到结果拒绝，使用平台 snapshot publisher；apply 承担 effect disposal，并通过 Slot inject hooks 供全局主区消费。它使用经营 v1/v2 双信封解析器验证身份、修订、事项状态及证据定位；解析失败保留最后有效内容。主面板显示完整集合和缺失/空/错误/陈旧状态；事项选择显示摘要、状态、证据 quote 与 Session/event 定位，宽区双栏、窄区单 pane 保留选择与列表位置；事项选择、处理路径与自动回桌已提供，业务写入仍由模型经账本动作完成（客户端不直接写经营账本）；`ready` 不等于业务成功。对象无持久缓存，组件不自行订阅或发起下载。
 
 ## 依赖姿态
 
@@ -36,5 +36,5 @@ Host 运行期 `@deepseek-ai/*` 使用 **peerDependencies**；仅类型关系（
 ## 自包含
 
 发布产物（`lib/`、`presets/`、`cordis.patch.yml`）不引用 repo 内任何其他目录，也不引用 `vendor/`；
-`pnpm verify` 机械检查这一点。真实安装形状（`npm pack` → 干净 home → `dsh plugin add`）
+`pnpm verify` 机械检查这一点。真实安装形状（`pnpm pack` → 干净 home → `dsh plugin add`）
 由 `pnpm release-smoke` 验证。

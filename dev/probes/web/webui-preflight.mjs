@@ -16,6 +16,8 @@
  *
  * Usage: node dev/probes/web/webui-preflight.mjs 'http://127.0.0.1:<port>/?token=<token>'
  */
+import { inspectRemoteNamespaces } from './preflight-core.mjs'
+
 const positional = process.argv.slice(2)
 const given = positional.find(argument => !argument.startsWith('--'))
 if (given === undefined) {
@@ -157,25 +159,23 @@ if (bootStart < 0) {
       fail('the boot graph carries no @deepseek-ai/dsh-api-remotes entry — cannot check Remote namespaces')
     } else if (ours.length > 0) {
       try {
-        const manifest = await (await fetch(new URL(remotesEntry.url, base), {
+        const manifestText = await (await fetch(new URL(remotesEntry.url, base), {
           headers: cookies.length > 0 ? { cookie: cookies } : {},
         })).text()
-        const namespaces = new Set([...manifest.matchAll(/namespace:\s*"([^"]+)"/g)].map(match => match[1]))
-        ok(`Remote manifest: ${namespaces.size} namespace(s)`)
         // Read the runtime inject list from THIS repo's own bundle URL (a dedicated combo). Scanning
         // every combo instead would regex the first `const inject` of a 10 MB concatenation — someone
         // else's list (learned the hard way while building this very check).
-        let declared = []
+        const bundleTexts = []
         for (const entry of entries.filter(candidate => candidate.id.startsWith('dsh-smart-assistant'))) {
-          const text = await (await fetch(new URL(entry.url, base), {
+          bundleTexts.push(await (await fetch(new URL(entry.url, base), {
             headers: cookies.length > 0 ? { cookie: cookies } : {},
-          })).text()
-          const injectLiteral = /const inject = \[([^\]]*)\]/.exec(text)?.[1]
-          if (injectLiteral !== undefined) declared = declared.concat([...injectLiteral.matchAll(/'remote\.([A-Za-z0-9_]+)'/g)].map(match => match[1]))
+          })).text())
         }
-        for (const namespace of new Set(declared)) {
-          if (namespaces.has(namespace)) ok(`remote.${namespace} is in the Remote manifest`)
-          else fail(`our bundle injects remote.${namespace}, but the Remote manifest has no such namespace — this entry will stay pending in the browser (out-of-tree Remote namespaces need typert manifest integration)`)
+        const inspection = inspectRemoteNamespaces({ manifestText, bundleTexts })
+        if (inspection.namespaces.length > 0) ok(`Remote manifest: ${inspection.namespaces.length} namespace(s)`)
+        for (const problem of inspection.problems) fail(problem)
+        for (const namespace of inspection.declared) {
+          if (inspection.namespaces.includes(namespace)) ok(`remote.${namespace} is in the Remote manifest`)
         }
       } catch (error) {
         fail(`cannot read the Remote manifest: ${String(error)}`)

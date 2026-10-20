@@ -11,7 +11,7 @@
 
 | 那一圈的五件事 | 本插件的落点 |
 |---|---|
-| ① 让它看到该看的东西（上下文） | **桌面 / 抽屉**：常驻四段——身份段（SOUL.md）+ 手册（AGENTS.md）+ 有界状态摘要（精选记忆 + 开放线索 + 知识签树）+ 经营账本段；细节用工具取 |
+| ① 让它看到该看的东西（上下文） | **桌面 / 抽屉**：常驻四段，按提示词顺序 = 身份段（SOUL.md）+ 手册（AGENTS.md）+ 经营账本段 + 有界状态摘要（精选记忆 + 开放线索 + 知识签树）；细节用工具取 |
 | ② 让它懂你的业务（隐性知识显性化） | `memory/` 房间：事实、偏好、决定 —— 一条一个文件，可读可审 |
 | ③ 让它有该有的本事（工具与边界） | 五个工具 + working folder 的写入边界（`src/domain/home/layout.ts` 是唯一 owner；经营账本另走独立 dataDir，契约 = [operating.md](operating.md)） |
 | ④ 让它按对的步骤走（工作流） | 过程性知识进**技能**（抽屉），不占常驻上下文；两档出口固定了线索的收束方式 |
@@ -39,16 +39,17 @@ HOST 面（cordis.patch.yml → dsh.bundle.patch）
                               [operating.md](operating.md) §三）
                             + assistant-rooms 行（维护面板的房间投影 + 受控写 + 收据：GET
                               api/assistant/rooms 取四房间真值、?kind=knowledge&id= 读正文、
-                              ?kind=skill&id= 读一件 SKILL.md（C1）、最近 200 行审批账（A3 receipt）；
+                              ?kind=skill&id= 读一件 SKILL.md、最近 200 行审批账；
                               POST 同一路径执行 knowledge.approve/deprecate、memory.correct/retire、
-                              memory.remember（消息 id）、skill.retire 白名单动作；不接收
-                              session/workspace/任意路径——A1a/A2/A3/C1/C2）
-                            + assistant-viki 行（Viki 记忆内容面：GET api/assistant/viki；
-                              user/<space>/memories + peers/<peer>/memories/** 的只读投影；
-                              baseUrl/apiKey 来自 config/env，缺席不阻断启动——B1）
+                              memory.remember（消息 id）、skill.retire 白名单动作；不接收任意路径，
+                              memory.remember 只接收 sessionId + messageId 来取逐字消息）
+                            + assistant-viki 行（Viki 记忆内容面：GET/POST api/assistant/viki；
+                              GET 读 user/<space>/memories + peers/<peer>/memories/**；
+                              POST 逐条 delete/restore（带 commit 回执）；baseUrl/apiKey
+                              来自 config/env，缺席不阻断启动）
                             + assistant-knowledge-approve 行（host 知识批准服务：draft→stable 的机械翻转；
-                              parameter codec 已修为 strict，但 client entry 不能消费动态挂载的
-                              namespace，面板批准走 assistant-rooms 的 POST——A2）
+                              client entry 不能消费动态挂载的 namespace，面板批准走
+                              assistant-rooms 的 POST）
                             + tool-skill 行（DSH 技能目录与加载器；host 实例使 one-shot 首请求可发现技能目录）
                             + session-query-sqlite 翻开行（`first-search` + 持久索引库，原始会话检索）
                             + time-context 行（当前时间/时区/经过时长随请求注入）
@@ -84,9 +85,9 @@ AGENT 面（`cordis.patch.yml` 的 `preset-assistant` 行 → agent preset）
 **浏览器面**（package.json `dsh.client` → `./client` 出口；经既有 bundle 行被 client-modules
 自动发现，无需额外接线），全部消费 **vendor 通用座位**（皮肤面，不进模型上下文）。
 座位与命令的精确清单是生成物：[`package-catalog.md`](package-catalog.md)「客户端座位面」节
-（生成器从 `src/client/` 模块树抽取，freshness 由 `pnpm verify` 守——散文清单在生成物面前
-四轮漂移三轮同根，已退役为指针）。语义要点：官方品牌包只在 official 构建档案下注册，本地
-构建里品牌 slot 空置；两室（右栏可加的两个面板：knowledge / memory）是「+」向导里可添加的右栏 tab；首里引导座位开聊即隐；全局经营
+（生成器从 `src/client/` 模块树抽取，freshness 由 `pnpm verify` 守；散文不另维护清单）。
+语义要点：官方品牌包只在 official 构建档案下注册，本地构建里品牌 slot 空置；
+四个房间 tab（knowledge / memory / viki / skills）是「+」向导里可添加的右栏 tab；首里引导座位开聊即隐；全局经营
 桌面的主区投影消费 `main` 座位（读回链 = [`operating.md`](operating.md) §三）——这些消费的
 全是 vendor 通用座位，§六 延后的"专属 Web 卡片"指**跨出通用座位的自有卡面**（自有 slot 域名），
 未立项。
@@ -110,10 +111,12 @@ client 的房间 tab 读的就是同一个实例；preset 里的服务行必须�
 **横切义务**：任何新增**模型可见事实**（工具、段落、消息）必须同时进入会话日志并可从中重建——
 `model-visible means logged`；否则它在 resume/fork 后会消失（本仓对应 `docs/identity.md` 的 model-visible 纪律）。
 
-**新行为该放哪**（先问四句，再动手；对应 DSH「新行为挂在已文档化的扩展点上」）：
+**新行为该放哪**（先问六句，再动手；对应 DSH「新行为挂在已文档化的扩展点上」）：
 ① 只改 `cordis.patch.yml` 的一行 config 就够吗（换 provider / 换顺序）？② 只加一个工具或提示词段落
 就够吗（agent 面）？③ 是不是跨会话共享的持久状态（→ 服务，host 面）？④ 是不是新增**模型可见事实**
-（→ 走 `docs/identity.md` 的 model-visible 纪律，配快照与日志）？
+（→ 走 `docs/identity.md` 的 model-visible 纪律，配快照与日志）？⑤ 浏览器是否要经认证 route 读写
+Host 能力（→ host 行 + `connection.fetch`，client 只消费）？⑥ 只是皮肤/座位，还是浏览器本地交互状态
+（→ client 面，不进模型上下文）？
 
 **服务的三角色**：`assistantMemory` 是 Service Definition，**同一包同一文件**里给出唯一 Provider
 （所以不存在独立的 provider 包可找）；Consumer 是各 agent 面入口（五个工具、摘要段落、经营账本、复盘）——按
@@ -236,6 +239,7 @@ pnpm dsh …（package.json scripts → dev/env/dsh.mjs，唯一启动器：
         → preset-assistant 行（cordis.patch.yml）挂载 §二 AGENT 面的 plugins
       └ 系统提示词组装（vendor system-prompt）：persona
         + assistant-home-preamble（SOUL.md / 家手册逐字）
+        + assistant-operating-brief（经营事项走账本，order 400）
         + assistant-memory-digest（有界摘要＝桌面，缓存时序见 §五）
         + 技能目录（随请求扫描）
       └ model turn（vendor agent-loop）
@@ -255,7 +259,7 @@ pnpm dsh …（package.json scripts → dev/env/dsh.mjs，唯一启动器：
 
 ### 浏览器动作链：一次点击 → 可见的桌面变化
 
-客户端在 `main` 声明可用并完成桌面注册后，每个 Client 根上下文只尝试一次默认选择：当前 `activePanelId` 为 null 时选全局桌面，否则保留已选面板。显式回到 Conversation、归档引发的回退、slot/布局重挂及客户端 HMR 不重选；完整页面重载的新根上下文重新尝试。默认机会只在页面内记录，不保存导航偏好或业务数据。插件首次激活前的显式 null 与启动 null 无法由当前公开快照区分；全局桌面读取独立 Host 固定投影，记忆/知识两间读独立 Host 行 `assistant-rooms` 的房间投影（working folder 真值；旧的 per-session 房间数据拷贝已在 A1b 退役）；同一路径的 POST 是 A2 的受控写；默认入口本身不创建业务 Session。
+客户端在 `main` 声明可用并完成桌面注册后，每个 Client 根上下文只尝试一次默认选择：当前 `activePanelId` 为 null 时选全局桌面，否则保留已选面板。显式回到 Conversation、归档引发的回退、slot/布局重挂及客户端 HMR 不重选；完整页面重载的新根上下文重新尝试。默认机会只在页面内记录，不保存导航偏好或业务数据。插件首次激活前的显式 null 与启动 null 无法由当前公开快照区分；全局桌面读取独立 Host 固定投影，记忆/知识/技能三个房间 tab 读独立 Host 行 `assistant-rooms` 的房间投影（working folder 真值），Viki 读 `assistant-viki`；同一路径的 POST 是受控写；默认入口本身不创建业务 Session。
 
 独立 Host 行 `assistant-desk-projection` 提供固定只读投影下载：经营 dataDir 里有 `ledger.json` 时**活渲染账本 v2 投影**，无账本才回退固定 `desk-projection.json` 模拟输入；端点边界、认证、错误态与 byte cap 的完整契约 = [`operating.md`](operating.md) §三（唯一权威，本文不复述）。物理 HTTP 验证使用 [只读探针](../dev/probes/web/desk-projection-download.mjs)，以明确标注模拟的 [固定资料](../dev/fixtures/desk-projection/desk-projection.json) 为独立字节预期。
 
@@ -268,27 +272,26 @@ Client 的 [下载对象](../packages/dsh-smart-assistant/src/client/projection-
   └ client classic script（packages/dsh-smart-assistant：src/client 多模块源，
     tsdown 打成 lib/client/index.js 单文件 classic script = ./client；经 bundle 行
     被 client-modules 自动发现，注册进 vendor 通用座位——皮肤面，不进模型上下文）
-      ├ 房间读取（记忆/知识两间面板）：fetch GET /api/assistant/rooms
+      ├ 房间读取（记忆/知识/技能面板）：fetch GET /api/assistant/rooms
       │ （exact Fetch route，owner-only）→ host assistant-rooms 行 →
       │ ctx.assistantMemory 四房间真值；知识正文走 ?kind=knowledge&id=
-      ├ 消息动作（C2）：assistant-actions slot（list id + owner {messageId}）→
+      ├ 消息动作：assistant-actions slot（list id + owner {messageId}）→
       │ 只发 { sessionId, messageId } → host `ctx.sessionQuery.readEvent` 取逐字文本 →
       │ saveMemory(source: panel:message:<sessionId>/<messageId>)；零模型回合
-      ├ 受控写（A2：批准/过时/纠错/退役 + C2 记下来）：fetch POST /api/assistant/rooms
+      ├ 受控写（批准/过时/纠错/退役 + 记下来）：fetch POST /api/assistant/rooms
       │ body { action, id|name, text?, sessionId? } → assistant-rooms 的 action 白名单 →
       │ promotePage/deprecatePage/saveMemory(supersedes)/forgetMemory/retireSkill →
       │ audit/approvals.jsonl（source: panel-direct，before/after）；客户端成功后立即
       │ patch 当前 session 的投影，失败保留原行 + 可读 note（不回退 prompt）
-      ├ 收据（A3）：ReceiptView → buildReceipt(rooms, route.ledger, since) →
+      ├ 收据：ReceiptView → buildReceipt(rooms, route.ledger, since) →
       │ 一句人话 + 分组明细 + 「全部标为已读」；since 住 localStorage
       │ （dsha:receipt-since），纯核无模型、无新 SessionEvent
       ├ 会话车道（首开引导 / 面板动作的模型路径）：sendPrompt → remote.session.prompt
-      │ （mode:queue、[面板] 标记）→ 走模型请求链；旧拷贝的重写技能与刷新动词
-      │ 已在 A1b 退役，面板的读/写/收据全部走 assistant-rooms（A1a/A2/A3）
-      └ 旧直调车道（仅知识批准）：approveKnowledgePage 的 Remote 分支已由 A2 移除；
-        `assistantKnowledge` 服务仍在 host 行，但 client entry 无法消费动态挂载的 namespace
-        （Cordis 未 inject 会抛错），面板批准走上面的 POST。A2a 探针保留为事实核查，
-        `approve-mount.ts` 的 parameter codec 已修为 strict（挂载验证不再误报）
+      │ （mode:queue、[面板] 标记）→ 走模型请求链；面板的读/写/收据全部走 assistant-rooms
+      └ 知识批准直调车道：client 仍尝试挂载 `assistantKnowledge` 直调 contribution；
+        `assistantKnowledge` 服务在 host 行，但 client entry 不能消费动态挂载的 namespace
+        （Cordis 未 inject 会抛错），面板批准按钮走上面的 POST；挂载失败只 console.info；
+        approve-mount.ts 的 parameter codec 是 strict
   └ 读回：route 的 generatedAt/revision 越过 pending.at 才算完成
     （队列接受 ≠ 完成；DATA GATE 冻结该行直到房间数据真的动了）
 ```
@@ -309,5 +312,5 @@ Client 的 [下载对象](../packages/dsh-smart-assistant/src/client/projection-
 | 知识草稿/批准/检索 | 模型 + 浏览器链 | 草稿 = `assistant_reflect` 的 save_page（staged）；批准 = 浏览器两车道 → host `promotePage`（`src/host/index.ts`）；检索 = `assistant_knowledge`（`src/agent/tool-knowledge/`；host 面 `searchKnowledge`/`readKnowledgePage`，§五） | `pnpm --filter dsh-smart-assistant exec vitest run tests/host/knowledge-write.spec.ts`（草稿/批准/检索/摘要全链） | draft→stable 翻转与会话审计；直调挂载回退提示 | 批准按钮与回退车道要浏览器；草稿内容生成在模型回合 |
 | 提示词摘要 | 模型请求链 | `assistant-memory-digest` 段落（`src/agent/memory-digest/`）← `ctx.assistantMemory.digest()` 缓存 + 写操作 touch 失效（§五）；预算旋钮（`digestMaxBytes`/`recallLimit`）= host 行 `assistant-memory` 的 config（`cordis.patch.yml` 头部） | `pnpm --filter dsh-smart-assistant exec vitest run tests/domain/digest.spec.ts tests/agent/digest-prewarm.spec.ts` | 缓存失效时序与段落同步 `text` 契约 | 摘要计算无模型；真实会话的段落组装用 keyless 回放看 |
 | 经营事项（账本/投影/读回） | 模型请求链 + 浏览器动作链 | `assistant_operating`（`src/agent/tool-operating/`）→ `ctx.assistantOperatingLedger`（`src/host/operating-ledger/`）→ `ledger.json`；投影 = `src/host/desk-projection/` → client `projection-*`（契约 owner = [`operating.md`](operating.md)） | `pnpm --filter dsh-smart-assistant exec vitest run tests/host/operating-ledger.spec.ts tests/client/projection-reader.spec.ts`（组合面：`pnpm build` → `pnpm test:composition`） | 权限三分与幂等回执；投影 `ready` ≠ 业务成功；客户端 v1/v2 解析 | 工具动作语义无模型；真实交代→读回在模型回合与浏览器（eval `desk-*` 任务集） |
-| 房间读取 / 受控写 / 收据 / 技能 / 消息动作 | 浏览器 → host route | 房间 tab / 面板 → `loadDesk`/`loadDeskFor`（`src/client/room-data-io.ts`）→ `GET /api/assistant/rooms` → `assistant-rooms` 行 → `ctx.assistantMemory` 四房间真值；正文 `?kind=knowledge&id=`；C1 技能 `?kind=skill&id=`；A2 的批准/过时/纠错/退役 → `POST /api/assistant/rooms` 的 action 白名单 → 服务方法 + 审批账；C2 的 `memory.remember` 由 host `ctx.sessionQuery` 取逐字消息；A3 的 `ReceiptView` 用同一 GET 的 `ledger` + 房间 `updated` 组"自上次以来" | `pnpm --filter dsh-smart-assistant exec vitest run tests/client/client-room-data-io.spec.ts tests/client/client-room-actions.spec.ts tests/client/client-receipt.spec.ts tests/domain/receipt.spec.ts tests/host/rooms-route.spec.ts tests/host/rooms-actions.spec.ts` | route 的 `generatedAt`/`revision` vs pending.at；审批账的 `source: panel-direct` + before/after；收据的 since 边界；会话日志 | 全链要真会话与渲染：`pnpm web-expected` 两场景；A2a `dev/probes/web/approve-direct-probe.mjs` |
-| 插件装载 | 启动链 | `cordis.patch.yml` 行 → built `lib/` → profile（`dev/env/setup.sh` 装包 + profile patch 设 default） | `pnpm test:composition`（先 build）+ `pnpm --filter dsh-smart-assistant exec vitest run tests/composition/export-shape.spec.mjs` | lib freshness（never started）；行 id/patch 落空（dump-config） | Web UI 行为要 `pnpm preflight` + 两场景 |
+| 房间读取 / 受控写 / 收据 / 技能 / 消息动作 | 浏览器 → host route | 房间 tab / 面板 → `loadDesk`/`loadDeskFor`（`src/client/room-data-io.ts`）→ `GET /api/assistant/rooms` → `assistant-rooms` 行 → `ctx.assistantMemory` 四房间真值；正文 `?kind=knowledge&id=`；技能 `?kind=skill&id=`；批准/过时/纠错/退役 → `POST /api/assistant/rooms` 的 action 白名单 → 服务方法 + 审批账；`memory.remember` 由 host `ctx.sessionQuery` 取逐字消息；`ReceiptView` 用同一 GET 的 `ledger` + 房间 `updated` 组"自上次以来" | `pnpm --filter dsh-smart-assistant exec vitest run tests/client/client-room-data-io.spec.ts tests/client/client-room-actions.spec.ts tests/client/client-receipt.spec.ts tests/domain/receipt.spec.ts tests/host/rooms-route.spec.ts tests/host/rooms-actions.spec.ts` | route 的 `generatedAt`/`revision` vs pending.at；审批账的 `source: panel-direct` + before/after；收据的 since 边界；会话日志 | 全链要真会话与渲染：`pnpm web-expected` 两场景；`dev/probes/web/approve-direct-probe.mjs` |
+| 插件装载 | 启动链 | `cordis.patch.yml` 行 → built `lib/` → profile（`dev/env/setup.sh` 装包 + profile patch 设 default） | `pnpm test:composition`（先 build）+ `pnpm --filter dsh-smart-assistant exec vitest run tests/composition/export-shape.spec.mjs` | lib freshness（never started）；行 id/patch 落空（dump-config） | Web UI 行为要 `pnpm web-expected` 两场景；`pnpm preflight` 只证装得上 |

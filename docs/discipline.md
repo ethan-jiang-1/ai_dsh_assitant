@@ -23,15 +23,15 @@
 | 机械门禁带反证（每条先造红再证绿） | `pnpm verify`（结构 / 身份一致 / 双解析入口 / 自包含 / 技能语法 / 断链——语料=全部跟踪 markdown（`_archive` 豁免），不只根+docs+notes / notes 形状 / note 指针——含非 markdown 文件里的 `notes/**.md` 路径 / **文档命令与别名表互证** / 导出手册（含验证基线 pin 行）/ 提交安全——检查清单以 `scripts/checks/verify.mjs` 为准，条数随缺口演进） | ✅ 照搬 |
 | 语义漂移探针：门禁抓不住"读起来过期"，用新上下文只读入口链答"现在"问题 | **已立成开发技能** [`.agents/skills/semantic-drift-audit/`](../.agents/skills/semantic-drift-audit/SKILL.md)（本文不复写轮次数字，数过即过期；技能里带反复出现的类别，能机械化的就同轮加门禁） | ✅ 适配（问句的期望也会过期——期望锚到轮号，轮闭即红；期望锚定方案立项时必须定） |
 | 继承跟 pin 走：升 pin 重校纪律表（vendor 的套路在演进，一次性快照会再烂） | `sync-dsh` 收尾清单第 4 步 + `pnpm verify` 强制本文存在 | ✅ 照搬 |
-| 测试纪律：本地窄证据 + 非平凡改动 same-PR 更新快照；插件证据五台阶（导出守卫→行为→生命周期→真组合→组装转录）+ 政策禁令（mock 白名单 / 禁 hand-built 组装证据 / 禁自报探测 / 单跑才绿=spec 缺陷 / 禁掩盖修法 / prove-it-red） | 测试面合同成文于 [testing.md](testing.md)（证据分层表 + 五台阶表 + 禁令 + 已定姿态）；`pnpm test`（纯核 + 服务合同 + 导出守卫 + 生命周期）+ 真实组合 + web 渲染期望（`snapshots/web-face/`）+ eval 两级 + release-smoke | ✅ 照搬（按事故面采纳。session 回放快照、全量 coverage 门、子进程 loader-smoke、CI 矩阵四项刻意不采纳，触发条件写在 testing.md） |
-| 文档词数预算 + slop 门禁（`doc-budgets` manifest + `verify-doc-budgets`） | 刻意不做 | ⏸ 触发条件：docs 腐化实证（与来源仓同款推迟理由）。第二轮审计（2026-09-23）证据：轻度腐化——多重书写 ×2、内部矛盾 ×1、过期数字 ×1，一轮修完；暂不立案，再犯即触发；建时带**降限防回填**（每次削减后主动降 ceiling，反证 = 临时设更低值即红） |
+| 测试纪律：本地窄证据 + 非平凡改动 same-PR 更新快照；插件证据五台阶（导出守卫→行为→生命周期→真组合→组装转录）+ 政策禁令（mock 白名单 / 禁 hand-built 组装证据 / 禁自报探测 / 单跑才绿=spec 缺陷 / 禁掩盖修法 / prove-it-red） | 测试面合同成文于 [testing.md](testing.md)（证据分层表 + 五台阶表 + 禁令 + 已定姿态）；`pnpm test`（纯核 + 服务合同 + 导出守卫 + 生命周期）+ 真实组合 + web 渲染期望（`snapshots/web-face/`）+ eval 三条（行为 / 领域 / 接续）+ release-smoke | ✅ 照搬（按事故面采纳。session 回放快照、全量 coverage 门、子进程 loader-smoke、CI 矩阵四项刻意不采纳，触发条件写在 testing.md） |
+| 文档词数预算 + slop 门禁（`doc-budgets` manifest + `verify-doc-budgets`） | 刻意不做 | ⏸ 触发条件：docs 腐化实证；建时带**降限防回填**（每次削减后主动降 ceiling，反证 = 临时设更低值即红） |
 | Issue → PR 连续流 + Project 状态机（队列不积累历史） | 不适用：本地单人仓无协作面 | ⚠️ 适配：一次切片 = 一个 commit。工作流 = 用户本轮请求 + 还要人点头的提案（`notes/proposed/`）+ 推敲卡（`_backlog/issues/`）+ 缺陷卡（`_backlog/bugs/`）+ 方向判据（[`README.md`](../README.md)）。没有 ROADMAP，没有 intents.md。完成即离队（见「已声明的适配」2） |
 | 外部结果先行 + 交付判断四结果分离（DSH 语料 native-model 闭环 1/7 步：闭包从可观察结果开始；「能加载 ≠ 有行为证据 ≠ 能安装 ≠ 已获交付批准」各自观察记录；recorded-session 义务的独立插件仓适配声明） | 根 AGENTS.md「开工先定外部结果」三要素 standing order；[testing.md](testing.md) 一页证据地图唯一表主 + 已定姿态（各命令能证明什么以 [testing.md](testing.md) 那一格为准；`repo-live-probe` 是取证非回归，session 回放维持触发条件制）；pre-push-evidence 只链接证据地图、不复制表 | ✅ 照搬 + 适配（钉版与 vendor 同为 dsh-v0.2.1-rc.2；与本文的是否一致由 `pnpm verify` 的 vendor-release 门禁守） |
 
 ## 已声明的适配（约束 → 适配 → 证据）
 
 1. **无 GitHub 协作面**（约束：本地单人仓）→ 无 Issues/PR 流；等价物 = 一次切片一个 commit。
-2. **工作队列不落第二份文件**（上游否决的是轮内计划状态再存一份）→ 工作流 = 本轮请求 + `notes/proposed/` + `_backlog/issues/` + `_backlog/bugs/`。方向判据住 [`README.md`](../README.md)。没有 ROADMAP，没有 intents.md。交接文档仍只放 /tmp。
+2. **工作队列不落第二份文件**（上游否决的是轮内计划状态再存一份）→ 工作流 = 本轮请求 + `notes/proposed/` + `_backlog/issues/` + `_backlog/bugs/`。方向判据住 [`README.md`](../README.md)。没有 ROADMAP，没有 intents.md。交接文档只放仓根 `.tmp/`。
 3. **切片可以全新会话**（约束：上下文经济）→ 交接靠入口链（AGENTS.md → docs）与代码本身，
    不靠长活上下文。
 4. **门禁不做 hook/CI 机械接线**（约束：本地单人仓、无 CI runner；用户 2026-09-27 拍板不加
@@ -44,7 +44,7 @@
    npm，本包不行）→ `export-dist` 与
    `release-smoke` 用同一条 `pnpm pack`，且都对产物断言 peer 已具体化（证据：`release-smoke`
    对 tarball manifest 的逐 peer 断言；`workspace:` 原样出包没人能解析）。
-6. **开发证据按风险投入，UX路径主导切片**（次序见 [转向自洽卡](../_backlog/_archive/settled_issues/261005-turnaround-coherence.md)）：
+6. **开发证据按风险投入，UX路径主导切片**（次序见 [`README.md`](../README.md) 的方向判据）：
    卫生有界先行，再围绕一条用户动作设计最小端到端体验，UI、行为和内容同片考虑；测试策略（见 [testing.md](testing.md)）
    按风险与实际消费者保留或退役，不以数量或演示可见性判断；技术承载优先组合与既有 DSH 扩展点，
    组合/扩展点不足才有证据地自建。
@@ -74,8 +74,7 @@
 - **流程面也过成本预算**：改动流程面/入口链时，按语料四成本形态（重复记录漂移 / 过长
   standing instructions / 无意义 gate 假安全感 / 过细 Skill 仪式）+ **驾驭者认知成本**
   （用户一眼能否找到方向盘与仪表盘——语料判据全是 agent 参与视角，这一条是本仓自己的）
-  过一遍；处置优先序同下（删>并>修>记），既有处置表与触发条件的家 =
-  [流程预算审计卡](../_backlog/_archive/settled_issues/261007-process-budget-audit.md)（2026-10-07 拍板）。
+  过一遍；处置优先序同下（删>并>修>记），延后项与触发条件住各自决定 note。
 - **新门禁必带反例**（负例控制；借 DSH「A guard only guards if the regression fails it」）：
   新增一条 `verify` 检查 = 同 diff 在 `tests/tooling/` 里该核所属族的对名 spec（`<family>.spec.mjs`，
   与 `scripts/checks/gates/<family>.mjs` 同名对齐）配一个"造红再证绿"夹具；

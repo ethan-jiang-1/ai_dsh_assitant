@@ -12,11 +12,11 @@
 | # | 名字 | 取值 | 文法 / 约束 | 谁钉死了它 | 改名代价 |
 |---|---|---|---|---|---|
 | 1 | npm 包名 | `dsh-smart-assistant` | npm 规则；含 `dsh` 便于生态发现 | npm registry 全局；profile 层清单按真实安装名 reconcile | = 发新包，老用户不升级 |
-| 2 | 插件行 id（前缀 `assistant-`） | `assistant-memory`（host）<br>`assistant-knowledge-approve`（host；知识批准服务行，无 config；client Remote 挂载不可消费，面板批准走 `assistant-rooms` 的 POST，A2 后该行仅保留 host 服务）<br>`assistant-desk-projection`（host；固定只读投影下载，无经营写入）<br>`assistant-rooms`（host；维护面板房间投影 + 受控写，GET/POST api/assistant/rooms，无经营写入）<br>`assistant-viki`（host；Viki 记忆只读投影 + B2 删除/恢复 POST，GET/POST api/assistant/viki，server 缺席不阻断启动）<br>`assistant-operating-ledger`（host；权威经营账本单 writer，独立 `assistant-operating` dataDir，首次写才认领锁）<br>`assistant-memory-tool`（agent）<br>`assistant-research-tool`（agent）<br>`assistant-operating-tool`（agent；经营账本工具，消费 host 行服务）<br>`assistant-knowledge-tool`（agent）<br>`assistant-memory-digest`（agent）<br>`assistant-home-preamble`（agent）<br>`assistant-operating-brief`（agent；经营账本提示词段落）<br>`assistant-learn`（agent）<br>`assistant-ov-shield`（agent；治理遮蔽行，`denyToolPrefix`/`denyServerResources`/`shadowSkills` 三 config 键） | 无强制文法，组合内唯一 | patch 按 id 做**整行配置替换**；`--dump-config` | 下游 patch overlay 落空 |
+| 2 | 插件行 id（前缀 `assistant-`） | `assistant-memory`（host）<br>`assistant-knowledge-approve`（host；知识批准服务行，无 config；client Remote 挂载不可消费，面板批准走 `assistant-rooms` 的 POST）<br>`assistant-desk-projection`（host；固定只读投影下载，无经营写入）<br>`assistant-rooms`（host；维护面板房间投影 + 受控写，GET/POST api/assistant/rooms，无经营写入）<br>`assistant-viki`（host；Viki 记忆读取 + 删除/恢复 POST，GET/POST api/assistant/viki，server 缺席不阻断启动）<br>`assistant-operating-ledger`（host；权威经营账本单 writer，独立 `assistant-operating` dataDir，首次写才认领锁）<br>`assistant-memory-tool`（agent）<br>`assistant-research-tool`（agent）<br>`assistant-operating-tool`（agent；经营账本工具，消费 host 行服务）<br>`assistant-knowledge-tool`（agent）<br>`assistant-memory-digest`（agent）<br>`assistant-home-preamble`（agent）<br>`assistant-operating-brief`（agent；经营账本提示词段落）<br>`assistant-learn`（agent）<br>`assistant-ov-shield`（agent；治理遮蔽行，`denyToolPrefix`/`denyServerResources`/`shadowSkills` 三 config 键） | 无强制文法，组合内唯一 | patch 按 id 做**整行配置替换**；`--dump-config` | 下游 patch overlay 落空 |
 | 3 | ctx 服务键 | `assistantMemory`、`assistantOperatingLedger` | 与 Service Definition 同名 | 其他插件的 `inject`；capability-seams 生成目录 | 所有 Consumer 的 `inject` 断 |
 | 4 | 工具 wire 名 | `assistant_memory`、`assistant_research`、`assistant_reflect`、`assistant_knowledge`、`assistant_operating` | 短 kebab / snake_case，生态惯例；**带专家前缀**（一个专家一个前缀） | **会话日志逐字记录** `tool/call.name`；`tool.call.toolview` slot 按名 keyed | 旧会话重放断 |
 | 5 | SessionEventMap 事件名 | **不新增**（延后项表：`docs/architecture.md` §六） | 必须先声明 merging 进 map 才能写日志 | 事件名写进 JSONL | 旧日志读不出 = 格式迁移级 |
-| 6 | preset id | `assistant` | `[a-z0-9][a-z0-9-]*`；id 是 `agent-preset` 行的 `config.id`（0.1.7 起不再是目录名） | registry 解析；会话切换记录进日志 | 用户会话的 preset 引用断 |
+| 6 | preset id | `assistant` | `[a-z0-9][a-z0-9-]*`；id 是 `agent-preset` 行的 `config.id`（不是目录名） | registry 解析；会话切换记录进日志 | 用户会话的 preset 引用断 |
 | 7 | settings namespace | `assistant`（**保留，不注册**） | 小写字母/数字/连字符 | 用户覆盖层按 namespace 持久化 | 用户设置被孤儿化 |
 | 8 | slot 域名 | **消费方清单 = 生成物** [`package-catalog.md`](package-catalog.md)「客户端座位面」节（生成器从 `src/client/` 模块树抽取，freshness 门禁守）；都是 DSH 的域名，我们没有自有域名——不对外暴露注入面 | `<domain>.<entry>.<hole>`；消费方按注册方的键取值 | 注册方（vendor）与消费方的合约 | 换一个消费的槽位名＝改我们这一侧；自有域名将来若建，才需要一次命名 |
 
@@ -35,7 +35,7 @@ Web 壳的页标题、图标与侧栏品牌（`src/host/web-branding.ts` 注入�
 ## 三、刻意不做
 
 三个"刻意不做"——**不新增 SessionEventMap 成员、不注册 settings namespace、不做跨出通用座位的专属 Web 卡面**
-（＝自有 slot 域名；品牌、记忆/知识两间的房间 tab 与经营桌面投影消费的都是 DSH 通用座位，清单见生成物
+（＝自有 slot 域名；品牌、记忆/知识/技能/Viki 四个房间 tab 与经营桌面投影消费的都是 DSH 通用座位，清单见生成物
 [`package-catalog.md`](package-catalog.md)「客户端座位面」节）——
 都是**延后**而非永久否决。理由与触发条件的唯一出处是 `docs/architecture.md` 第六节延后项表；
 本表只管身份面：触发后按 §一 的文法与代价登记新行，涉及模型可见文案时按第二节走 model-visible 纪律。

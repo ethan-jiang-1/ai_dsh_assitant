@@ -31,19 +31,21 @@
     - id: assistant-desk-projection
       name: dsh-smart-assistant/desk-projection
 
-    # ── 维护面板的房间只读投影（A1a，2026-10-19）──────────────────────────────────
+    # ── 维护面板的房间投影 + 受控写 + 收据 ───────────────────────────────────────
     #
-    # 面板读 working folder 四房间真值，不读 session workspace 的旧拷贝；
-    # 注入 assistantMemory 服务，route 不接收 session/workspace/任意路径。只读 GET，
-    # 知识正文走 ?kind=knowledge&id=。旧拷贝已在 A1b 退役，本行只读真值。
+    # 面板读 working folder 四房间真值；GET 取投影/正文/技能/审批账，
+    # POST 执行 knowledge.approve/deprecate、memory.correct/retire、memory.remember、
+    # skill.retire 白名单动作。route 不接收任意路径；memory.remember 只接收
+    # sessionId + messageId。
     - id: assistant-rooms
       name: dsh-smart-assistant/rooms-route
 
-    # ── Viki 记忆内容面（B1，2026-10-19）────────────────────────────────────────
+    # ── Viki 记忆内容面 ────────────────────────────────────────────────────────
     #
-    # 只读 GET /api/assistant/viki：user/<space>/memories + peers/<peer>/memories/**；
+    # GET /api/assistant/viki：user/<space>/memories + peers/<peer>/memories/**；
+    # POST 逐条 delete/restore（带 commit 回执）。
     # baseUrl/apiKey 来自 config，其次 OPENVIKING_URL/OPENVIKING_API_KEY；server 缺席时
-    # 503（面板显示未连接），不阻断启动。B2 的删除 POST 走同一行。
+    # 503（面板显示未连接），不阻断启动。
     - id: assistant-viki
       name: dsh-smart-assistant/viki
 

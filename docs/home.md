@@ -116,14 +116,14 @@ dsh-obsidian 外部 vault 桥先不做：用户真想让助手管某个外部 va
 
 ## 三、桌面与抽屉（信噪比）
 
-- **桌面**（常驻上下文，四个段落讲一个顺序的故事：**你是谁 → working folder 怎么用 → 里面现在有什么 → 经营事项在账本**）：
+- **桌面**（常驻上下文，四个段落按提示词 order 讲一个顺序的故事：**你是谁（100）→ working folder 怎么用（300）→ 经营事项在账本（400）→ 里面现在有什么（10150）**）：
   - 身份段（`assistant:soul`）：`SOUL.md` 逐字（缺/空回退内置默认身份——回退是替换不是叠加）；
   - 手册段（`assistant:home-manual`）：`AGENTS.md` 逐字（缺则现场渲染当前版，永不落后）；
-  - 状态摘要（`assistant:memory-digest`，**有界** `digestMaxBytes`，默认 6144——键挂在 host 服务行 `assistant-memory` 的 config（包根 `cordis.patch.yml`））：状态行 +
-    活跃记忆的精选 + **开放线索的条数与前几条标题** + **知识签树**（stable 页一行一页，作检索路标）；
-  - 经营账本段（`assistant:operating-brief`）：常设一句——经营事项走权威账本（`assistant_operating`），
+  - 经营账本段（`assistant:operating-brief`，order 400）：常设一句——经营事项走权威账本（`assistant_operating`），
     不在对话散文里落账。账本住独立 `assistant-operating` dataDir，不在本 working folder 四房间内
     （契约 = [`operating.md`](operating.md)）。
+  - 状态摘要（`assistant:memory-digest`，order 10150，**有界** `digestMaxBytes`，默认 6144——键挂在 host 服务行 `assistant-memory` 的 config（包根 `cordis.patch.yml`））：状态行 +
+    活跃记忆的精选 + **开放线索的条数与前几条标题** + **知识签树**（stable 页一行一页，作检索路标）。
     预算闸门（`save` 纯新增）：只在**记忆行本身被挤下桌面**时拒绝（消息给出路：retire 或 supersede）；
     线索/签树被挤只报 finding、不堵记忆写入门——堵了也修不好那部分。
   身份与手册是**working folder 根部的数据文件**（人可改、可 git、scaffold 只在缺失时写）——身份是数据不是
@@ -195,11 +195,10 @@ bundles, M snapshots`，退役与快照都不删除、技能归档只增不减�
   stub，`assistant:soul`）；缺/空/坏 → **回退内置默认**（回退是替换不是叠加）。改人格 = 编辑
   这个文件，不用动插件源码。
 - **`AGENTS.md`（手册）**：working folder 怎么用——四房间、两档出口、退役、curate、盘上布局、首会话开场
-  （first conversation）、协作边界等节（非穷举，正文以 `renderHomeManual` 为准）。记忆/知识两间面板
-  读 host `assistant-rooms` 的 working-folder 真值；旧的 per-session 房间数据拷贝与其重写技能已在
-  A1b 退役，业务事项住权威账本（合同见 [`operating.md`](operating.md) §二/§三）。手册正文由
+  （first conversation）、协作边界等节（非穷举，正文以 `renderHomeManual` 为准）。记忆/知识/技能面板
+  读 host `assistant-rooms` 的 working-folder 真值；业务事项住权威账本（合同见 [`operating.md`](operating.md) §二/§三）。手册正文由
   `src/domain/home/home-map.ts` 的 `renderHomeManual` 渲染、运行时随家手册落盘.
-  scaffold 缺则种（首行 `<!-- home-manual vN -->` 版本标记）；已有的生成版随版本迁移（只移除已退役的生成段落），手改保留；手册段
+  scaffold 缺则种（首行 `<!-- home-manual vN -->` 版本标记）；已有的生成版随版本迁移（只移除生成版中不再存在的段落），手改保留；手册段
   （`assistant:home-manual`）逐字进 system prompt；缺则**现场渲染当前版**（缺文件永不落后）。
   版本标记旧于当前由 curate 报 info（见 §四「手册漂移」）。
 - 两者都是**给人也给 agent 看**的文件；文件名走 AGENTS.md 业界惯例——DSH 原生装载器认项目根

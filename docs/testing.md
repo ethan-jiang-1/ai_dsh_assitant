@@ -23,7 +23,7 @@
 | agent 面合同（段落预算 / 养护回合的合同层） | `pnpm test:agent`（真服务 + 临时 home）；改动同时触模型可见面时按上一行加链 | `tests/agent/*.spec` | 段落就绪 / 预算 / 回合占位等合同 / Loader 组装、UI 读回 |
 | client 面（`src/client`：注册与交互状态） | `pnpm test`（整包套件——`client-entry.spec` 断言全 slot 面，加一个注册会红没打开过的 spec）+ 两 web-face 场景 `pnpm web-expected` | `tests/client/*.spec` + `snapshots/web-face/` | 注册、组件树、色彩契约 / 真浏览器渲染（场景期望管） |
 | 导出形态 / 组合行身份 / 注册撤销 | 台阶①③守卫（现读 patch，新行自动被扫） | `tests/composition/export-shape` + `registry-lifecycle` | 行身份与生命周期 / 行为正确 |
-| 组装后组合（服务/段落/工具 scope） | `pnpm build` → `pnpm test:composition` | `tests/composition/preset-composition.spec` | 真 Loader 组装 / vendor rows、完整产品 boot |
+| 组装后组合（服务/段落/工具 scope） | `pnpm build` → `pnpm test:composition` | `tests/composition/`（`preset-composition.spec` 是组装证据；同层还有导出/生命周期/遮蔽 spec） | 真 Loader 组装 / vendor rows、完整产品 boot |
 | web 渲染面（首开/座位/文案） | `pnpm web-expected`（隔离 home 真渲染；过目 diff 后 `--refresh`） | `snapshots/web-face/` 两场景 | 渲染期望 / 交互逻辑（client spec 管） |
 | 行为地板 / 领域质量 | `pnpm eval`（`--only` 聚焦）/ `pnpm eval:continuity`（隔离 fixture 的首回合续接地板：一次性 home + 种子账本 + 前置断言 + 会话日志判据，无授权写入与账本字节不变为负例；评估器红绿对照挂 `pnpm verify`）/ `pnpm eval:domain`（人判）/ `node dev/probes/web/desk-daily-brief-live.mjs`（**web-only 任务**的驱动：`schedule_*` 只活在 web 组合里，runner 对该任务诚实报 NOT EVALUATED；探针在真模型 web 会话里跑**同一个任务**的 prompt 与 checks，并先断言 `request/header.tools` 含四个 `schedule_*`） | `dev/eval/`（任务集 `tasks.mjs`、领域题 `domain/`、续接驱动 + `dev/fixtures/eval-continuity/`）、`dev/probes/web/desk-daily-brief-live.mjs`（web-only 驱动） | 无害地板、续接行为地板与人判质量 / 机器不判质量 |
 | 发布物 / 依赖 / preset 包装 / exports | `pnpm gen-catalog`（freshness）+ `pnpm build` + `pnpm release-smoke`；keyless 回放 `dev/probes/session/preset-runner-replay.patch.yml` | `scripts/release/release-smoke.mjs` | 安装形状与组合断言 / 长期行为 |

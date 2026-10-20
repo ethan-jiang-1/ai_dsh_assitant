@@ -5,7 +5,7 @@
 
 ## 默认启动动作
 
-"启动一下"的默认语义 = 根 [`AGENTS.md`](../AGENTS.md) 命令表首段（常设指令 owner）：一条 `pnpm start` 在本仓隔离 home 里起动 `dev` Web 实例——它自己按序跑 prepare → setup → 产物自证（`lib/` 与 `src/` 不一致就先 build）→ 起服务 → `pnpm preflight`，绿了才把 URL 打出来（实现 = [`dev/env/start.sh`](../dev/env/start.sh)）。本节拥有的是下面这张入口判别表——三个邻近但不同的入口，除非用户明确点名不走：
+"启动一下"的默认语义 = 根 [`AGENTS.md`](../AGENTS.md) 命令表首段（常设指令 owner）：一条 `pnpm start` 在本仓隔离 home 里起动 `dev` Web 实例——它自己按序补齐 submodule / 根依赖（缺才补）→ prepare → setup → 产物自证（`lib/` 与 `src/` 不一致就先 build）→ 起服务 → `pnpm preflight`，绿了才把 URL 打出来（实现 = [`dev/env/start.sh`](../dev/env/start.sh)）。本节拥有的是下面这张入口判别表——三个邻近但不同的入口，除非用户明确点名不走：
 
 | 入口 | 实际起动什么 | 什么时候用 |
 |---|---|---|
@@ -64,7 +64,7 @@ pnpm dsh --profile dev --port 0 --no-open  # 起服务与验证命令（prefligh
 
 | 生成物 | 生成器 | freshness 门禁 |
 |---|---|---|
-| `tsconfig.tsx.json` | `scripts/generate/gen-paths.mjs`（`pnpm gen-paths`，从 vendor/dsh 全量别名） | `pnpm verify`「facade: the runtime tsconfig for the source launch is present and current」 |
+| `tsconfig.tsx.json` | `scripts/generate/gen-paths.mjs`（`pnpm gen-paths`，从 vendor/dsh 全量别名） | `pnpm verify`「resolution: the runtime tsconfig for the source launch is present and current」 |
 | `docs/package-catalog.md` | `scripts/generate/gen-catalog.mjs`（`pnpm gen-catalog`） | `pnpm verify`（`gen-catalog --check`，与 `gen-paths` 同形） |
 | `packages/dsh-smart-assistant/lib/` | `pnpm build`（`tsc -b` 出 d.ts 与各模块 js；`tsdown` 把 `src/client` 多模块打成 `lib/client/index.js` 单文件 classic script） | `pnpm verify`「build: the artifact the presets load matches src/ (content, not mtime)」，核 = `scripts/checks/gates/build-freshness.mjs`：host 面问 `tsc -b --dry`（陈旧 = `would build project`；只动过 mtime = `would update timestamps`，不是漂移），客户端面把 bundle 重打进 `.tmp/verify-bundle/` 逐字节比。从未建过的包判绿（`prepare.sh` / `pnpm build` 的领地）；起服务时 `dev/env/ensure-build.mjs` 消费同一个核并自动补 build |
 | `dev/harness-home/`（scaffold 出的 SOUL/AGENTS 等） | 插件运行时 `ensureHome`（`src/domain/home/layout.ts` 是唯一 owner） | `curate` 的 `manual-stale-scaffold` finding |
@@ -104,7 +104,7 @@ pnpm --dir vendor/dsh run build:web       # 只有跑 Web UI 才需要（前端 
 
 ```sh
 pnpm ov-trial-rt            # OpenViking 试点第 5/6 步驱动：server 级记忆往返 + 抽取质量抽评（建会话→塞哨兵语料→commit→等抽取→找回→读抽取物；前提 server 在 127.0.0.1:1933）
-pnpm test:composition       # 先 pnpm build，再跑真实 shipped preset 组合 spec
+pnpm test:composition       # 先 pnpm build，再跑 tests/composition 全 7 个 spec
 pnpm test:domain / pnpm test:host / pnpm test:agent / pnpm test:client / pnpm test:tooling   # 层入口：只跑对应 tests/<layer>（各层能/不能证明什么见 docs/testing.md 分层表）
 ```
 
@@ -135,14 +135,14 @@ server 缺席/未装/起不来一律 warn 后 `exit 0`，`pnpm start` 照常交�
 原样摆出来供人读，§6 数"真人用面板的那一轮，助手有没有问过自己的房间"（四房间工具一个都没用＝"没查"的
 机械信号，口径限定在有面板动作的会话——dev home 里同时住着探针与评测会话）。**不证明**质量，也不做语义分类：那一段留给人（报告里写明限制）。"写了文件"的判定与
 评测器共用同一个谓词（[`wrotePath`](../dev/eval/checks.mjs)），所以两处说的是同一个事实。
-旧的"面板消息点名技能、桌面文件有没有被重写"§1/§4 指标随 A1b 退役（面板动作已是 A2 直写，不再经过模型重写）。
+"面板消息点名技能、桌面文件有没有被重写"不作为指标——面板动作直接走 `assistant-rooms` 写路径，不经过模型重写。
 读数工具自己也会读错，所以分析部分与 IO 分离：`pnpm desk-loop --self-check` 拿**合成会话**跑已知答案
 （覆盖六类真实误读：注入前言切断窗口、纯文本注入被当成本人的话、协作边界前言冒充本人的话、混合重复被漏、§6 把探针会话算进来、评测题面与面板文案撞车），
 并进 `pnpm verify`（与评测器的 `--self-check` 同一约定）：改坏读数逻辑，门禁先红。
 
 **preflight 的姊妹：`pnpm shots`（渲染证据）**。preflight 证明"装得上"，不证明"看得见"；
 `pnpm shots` 用 headless Chrome **经 CDP** 打开页面（headless 的 `--screenshot` 在 SSE 长连接下
-等不到 load，故不用它），每个视口产出两件：`<name>-<WxH>.png`（给人看：审阅、前后对比）与
+等不到 load，故不用它），带 `--dom` 时每个视口产出两件：`<name>-<WxH>.png`（给人看：审阅、前后对比）与
 `<name>-<WxH>.dom.txt`（给读文本的模型与脚本看：可见文本、带像素高度的文本大纲、交互件清单、
 boot 诊断、console 错误、失败请求）。`--eval` 在截图前执行页面 JS（开菜单、点 tab 拿交互态证据），
 `--plain` 是主线程被占死时的兜底（只出图）。它**收 URL、不自起 web**：启动归 `dev/env/dsh.mjs`
@@ -216,11 +216,11 @@ DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得
 
 **自动化会话的协作边界**（常量 `COLLABORATION_BOUNDARY` 在 `src/dev/preset-runner/` 里逐会话前置 + 家手册协作边界同一节；**不写在 patch 的 `!!js` 表达式里**——配置层模板字面量会被 overlay 的 YAML 标签求解器拒绝，2026-09-25 真踩过，故新增 `structure: every composition file we own parses as YAML` 门禁）：会话**可以改工作树，
 但不得 `git commit`**（提交权属于人或开发会话）；卡上标 🔒 的保留项（`_backlog/issues/`）**不得自行判触发、不得删卡、不得实现**，
-只能报告并建议（行为面由 `pnpm eval` 的 🔒 事故回归钉住——见下「行为评测」）；单发会话无人可问时按推荐值拍板、标注可推翻、继续做完。
+只能报告并建议；单发会话无人可问时按推荐值拍板、标注可推翻、继续做完。
 
 **行为评测**：`pnpm eval` 把一组**真实请求**经 preset 会话跑一遍，判定读的是会话日志（不是 stdout）——
 任务在 `dev/eval/tasks.mjs`，判定核在 `dev/eval/checks.mjs`（每条任务至少一个正向检查，避免"什么都不做"也通过）；
-首条是真实事故回归：会话把标为保留（🔒）的卡判为触发、实现、并删卡。三条诚实边界写在判定核头部：
+首条是 `first-open-intake`（fresh home 的开场问句与技能按名加载）；每条任务的判据以 `dev/eval/tasks.mjs` 为准。三条诚实边界写在判定核头部：
 `answer-matches` 是正则（会误判措辞）、检查断言的是"没有造成伤害"、任务可能"通过但没用"。
 **串行跑**（同仓同 home，并发会互相污染）。`pnpm eval -- --self-check` 是**live 红控**：把真实事故形态喂给判定核、
 要求它判红，并同时要求合规回答判绿——它不跑会话（毫秒级），已接进 `pnpm verify` 链，作为"守卫的守卫"。
@@ -229,7 +229,7 @@ DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得
 任务用 `requires: 'web'` 声明这种依赖，runner 对它报 **NOT EVALUATED** 并从 pass/fail 计数里剔除——既不算通过（假绿）
 也不算失败（替组合面背锅）。见 `pnpm eval --list` 的标注与 [BUG-008](../_backlog/_archive/fixed_bugs/BUG-008-schedule-tools-missing.md) 的升级路径（web-session 驱动）。
 
-**接续行为地板**：`pnpm eval:continuity` 是隔离 fixture 的聚焦评测（[261012 连续性卡](../_backlog/_archive/settled_issues/261012-operating-continuity-value.md) A1/A2 的证据资产）——共享 dev home 的任务集判不了"首回合主动交包"这种依赖**已知账本**的行为。它自带一次性 home（仓内 `.tmp/` 起 profiles+插件链接、拷 dev home 凭据、种子账本 `dev/fixtures/eval-continuity/seed-ledger.json` 前置断言先跑）、跑一个真模型续接回合，判据全读会话日志：read 对事项 → 工具结果带委托原话标记（读成功，错误的读回造不了假）→ 先读后答（seq 序）→ 期限/原话/待确认在场 → 无授权写入（无 mutating 调用且账本字节前后不变）。无 key/缺 fixture 记 **BLOCKED** 退出非零，不合并绿项。`--self-check` 把四类负例（无读调用的完整答案、错事项、读失败仍作答、账本被写）喂给判定核要求全红，已接进 `pnpm verify` 链；`--keep` 保留一次性 home 供检查。
+**接续行为地板**：`pnpm eval:continuity` 是隔离 fixture 的聚焦评测——共享 dev home 的任务集判不了"首回合主动交包"这种依赖**已知账本**的行为。它自带一次性 home（仓内 `.tmp/` 起 profiles+插件链接、拷 dev home 凭据、种子账本 `dev/fixtures/eval-continuity/seed-ledger.json` 前置断言先跑）、跑一个真模型续接回合，判据全读会话日志：read 对事项 → 工具结果带委托原话标记（读成功，错误的读回造不了假）→ 先读后答（seq 序）→ 期限/原话/待确认在场 → 无授权写入（无 mutating 调用且账本字节前后不变）。无 key/缺 fixture 记 **BLOCKED** 退出非零，不合并绿项。`--self-check` 把四类负例（无读调用的完整答案、错事项、读失败仍作答、账本被写）喂给判定核要求全红，已接进 `pnpm verify` 链；`--keep` 保留一次性 home 供检查。
 
 **意图级仪表**：`pnpm usage` 读 dev home 的会话日志与 working folder，报会话数、工具混合、自用率、
 摩擦（非完成轮/重试）、家的条目数与职责圈事件数；`pnpm usage -- --types` 打印事件类型直方图（形状变了先看它）。
@@ -239,7 +239,7 @@ DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得
 
 **三个真机探针与输入观察（命令表上的深判据在这里）**：
 `pnpm loop-probe '<URL>' --ask '<问句>'`（首用闭环：**首屏=桌面页**——你的桌面、中文文案、无黑话、工作区就绪——
-走「＋ 交代新事项」进会话，真发问真等回复，JSON 判决；借自 ai_dsh_loop_advisor；`--ask` 会真建会话，指向一次性 home）、
+走「＋ 交代新事项」进会话，真发问真等回复，JSON 判决；`--ask` 会真建会话——先把目标实例起在一次性 home，探针本身不隔离 home）、
 `pnpm desk-walk '<URL>' [--home <dir>]`（处理流真机走查：首屏桌面→处理一件事→一句进展→返回不变量→交代新事，
 产出屏幕文本+截图供人判话术/层级；`--home` 才能核账本身份与「回来⇒无待确认」）、
 `pnpm observe [--home <dir>]`（输入边界 30 天观察读数：A 自发投递 / B 时长 / C 入口后的操作；
@@ -256,7 +256,7 @@ DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得
 | 看配置组合 | `pnpm dsh --profile dev --dump-config` | bundle/profile/临时 patch 的行、id、disabled、realm | 运行时注册、DOM 或模型请求 |
 | 验 host 面 | `pnpm dsh --profile dev-task "one task"` | 插件装载、host 服务、working folder scaffold | preset 工具与提示词 |
 | 验 assistant preset | `pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner.patch.yml "one task"` | one-shot 挂载 preset 后的会话驱动 | 浏览器渲染 |
-| 验 Web 面 | `pnpm dsh --profile dev --port 0 --no-open` + `pnpm preflight '<URL>'` | Web boot、Remote、desk readiness | DOM 期望；再跑 `pnpm web-expected` |
+| 验 Web 面 | `pnpm dsh --profile dev --port 0 --no-open` + `pnpm preflight '<URL>'` | Web boot、Remote、rooms route 可达 | DOM 期望；再跑 `pnpm web-expected` |
 | 验请求侧组装 | `pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner-replay.patch.yml "probe"` | keyless replay 的 system/tools/session log | 固定回复代表模型自主选择 |
 | 逐事件复盘某次会话 | `zstd -dc "$DSH_HOME/sessions/<proj>/<id>/session.v*.jsonl.zstd"`（代数在文件名里：先列目录再选；过滤样例：`.agents/skills/repo-live-probe/`） | 请求侧 system/tools 与 tool/result 逐字日志 | 不证明模型自主选择（回放车道回复是录制的） |
 

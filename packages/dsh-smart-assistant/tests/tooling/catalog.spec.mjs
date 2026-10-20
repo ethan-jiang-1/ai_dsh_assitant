@@ -74,6 +74,7 @@ describe('extractClientSurface', () => {
     "  })",
     "  ctx.slots.inject('conversation.hero.brand.mark', () => hero)",
     "  ctx.slots.inject('conversation.input.dock', () => dock)",
+    "  ctx.slots.inject('conversation.chat.assistant-actions', () => actions)",
     '}',
     "function roomCommands(open: (kind: RoomKind) => void): CommandContribution[] {",
     "  return [",
@@ -81,6 +82,11 @@ describe('extractClientSurface', () => {
     "      name: 'desk',",
     "      label: () => DESK_LABEL,",
     "      ui: { kind: 'action', run: () => { open('desk') } },",
+    "    },",
+    "    {",
+    "      name: 'desk-activity',",
+    "      label: () => ACTIVITY_LABEL,",
+    "      ui: { kind: 'action', run: () => { open('activity') } },",
     "    },",
     "  ]",
     '}',
@@ -96,11 +102,12 @@ describe('extractClientSurface', () => {
       'conversation.session.header.utilities',
       'conversation.hero.brand.mark',
       'conversation.input.dock',
+      'conversation.chat.assistant-actions',
     ])
     expect(surface.roomTabs).toEqual([
       { id: 'dsh-smart-assistant-desk', kind: 'desk' },
     ])
-    expect(surface.commands).toEqual(['desk'])
+    expect(surface.commands).toEqual(['desk', 'desk-activity'])
   })
 
   it('fails loud when the source carries no recognizable seat surface', () => {

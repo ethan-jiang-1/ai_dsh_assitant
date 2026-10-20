@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # 一键启动 —— 「启动一下这个」的默认落点，把原先要记的那串收成一条命令：
 #
-#   prepare（vendor 产物）→ setup（dev/dev-task profile）→ 产物自证（陈旧即 build）
-#   → 起 dev Web（--port 0，OS 分配端口 + token 鉴权）→ preflight 绿了才交 URL
+#   submodule/install（缺才补）→ prepare（vendor 产物）→ setup（dev/dev-task profile）
+#   → 产物自证（陈旧即 build）→ 起 dev Web（--port 0，OS 分配端口 + token 鉴权）
+#   → preflight 绿了才交 URL
 #
 # 为什么存在：这四步原先写在命令表里靠人按序敲（漏一条的失败点是句无关的报错），而另外两条
 # 纪律——"改过 src 先 pnpm build"、"起 Web UI 后必须 preflight 再交"——只活在 prose 里。
@@ -24,6 +25,18 @@ set -m   # job control：每个后台作业自己一个进程组，失败时能�
 
 repo_root="$(git rev-parse --show-toplevel)"
 cd "$repo_root"
+
+# 首跑前置（⓪①）：fresh clone 里 submodule 与根依赖都可能不在。一条 `pnpm start` 要能自己
+# 补齐，否则第一次会死在 prepare 的 "vendor/dsh is empty" 或 pnpm 的 no package.json。
+# 两者都幂等，已在位就跳过。
+if [ ! -f vendor/dsh/package.json ]; then
+  echo "▸ submodule（vendor/dsh 未初始化，先拉起）"
+  git submodule update --init
+fi
+if [ ! -f node_modules/.modules.yaml ]; then
+  echo "▸ install（根依赖未安装，先 pnpm install）"
+  pnpm install
+fi
 
 log_dir="$repo_root/.tmp/start"
 mkdir -p "$log_dir"

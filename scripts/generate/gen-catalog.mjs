@@ -100,11 +100,11 @@ export function discoverTools(agentDir, read) {
  *  entry — a renamed helper or a not-discoverable tab must break the gate, not silently thin the
  *  catalog. */
 export function extractClientSurface(source) {
-  const seats = [...source.matchAll(/ctx\.slots\.inject\('([a-z][a-z.]+)'/g)].map(match => match[1])
+  const seats = [...source.matchAll(/ctx\.slots\.inject\('([a-z][a-z.-]+)'/g)].map(match => match[1])
   const roomTabs = [...source.matchAll(/\{\s*\n\s*id: '([^']+)', kind: '([A-Za-z]+)',/g)]
     .map(match => ({ id: match[1], kind: match[2] }))
   const guideEntries = [...source.matchAll(/guide: \[\{/g)].length
-  const commands = [...source.matchAll(/\{\s*\n\s*name: '([a-z]+)',\s*\n\s*label:/g)].map(match => match[1])
+  const commands = [...source.matchAll(/\{\s*\n\s*name: '([a-z][a-z-]*)',\s*\n\s*label:/g)].map(match => match[1])
   if (seats.length === 0 || roomTabs.length === 0) {
     throw new Error('gen-catalog: client source declares no recognizable seat surface — the extraction shape changed')
   }
