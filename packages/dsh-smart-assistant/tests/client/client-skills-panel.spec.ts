@@ -1,6 +1,10 @@
 /**
- * C1 Skills tab: the learned-room list (name/usage/provenance), the read-only body drawer and
- * retire through the A2 route. No prompt, no model turn.
+ * C1 Skills tab: the learned-room list (name/usage/provenance), the body fetch behind the
+ * read-only drawer, and retire through the A2 route. No prompt, no model turn.
+ *
+ * The drawer's open/close state is component-local React state; the inert shim used here has
+ * no working setter, so this spec pins the fetch, not the rendered drawer. The live drawer is
+ * exercised by the browser probes, not by this file.
  */
 import { describe, expect, it } from 'vitest'
 import { inertReactShim, loadClientRegistration, materializeClient, textsOf } from '../support/client-harness.ts'
@@ -39,7 +43,7 @@ describe('Skills tab (C1)', () => {
     expect(text).toContain('退役')
   })
 
-  it('reads the body through the route and keeps the drawer surface', async () => {
+  it('reads the body through the route for the drawer', async () => {
     const calls: string[] = []
     const exports = materialize() as ClientExports & { loadSkillBody: (name: string) => Promise<{ ok: boolean, body?: string, reason?: string }> }
     exports.bindDeskEnv({

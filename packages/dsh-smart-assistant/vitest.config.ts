@@ -132,6 +132,10 @@ export default defineConfig({
   // Fixture temp roots land in `<repo>/.tmp/vitest/` — see `temporaryRoot` above for why, and for
   // why this one knob is enough for every `mkdtemp` fixture in `tests/`.
   test: {
+    // The corpus-links gate fixtures spawn the full verify runner (a few hundred ms normally);
+    // under a parallel `pnpm start`/preflight load the 5s default turned that into a flake.
+    // The timeout only bounds waiting for a real subprocess; it does not retry or sleep.
+    testTimeout: 20_000,
     env: {
       TMPDIR: temporaryRoot,
       TMP: temporaryRoot,

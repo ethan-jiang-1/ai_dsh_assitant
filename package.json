@@ -38,6 +38,7 @@
     "loop-probe": "node dev/probes/web/webui-loop-probe.mjs",
     "desk-walk": "node dev/probes/web/desk-flow-walk.mjs",
     "projection-live": "node dev/probes/web/projection-live-mechanics.mjs",
+    "projection-selection": "node dev/probes/web/projection-selection.mjs",
     "desk-loop": "node dev/reports/desk-loop-report.mjs",
     "observe": "node dev/reports/input-observation.mjs",
     "sync-dsh": "node scripts/maintenance/sync-dsh.mjs",

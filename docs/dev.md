@@ -246,6 +246,8 @@ DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得
 产出屏幕文本+截图供人判话术/层级；`--home` 才能核账本身份与「回来⇒无待确认」）、
 `pnpm projection-live [--home <dir>]`（K1/K2 live 补证：断连/重连、3 次页面重载会话不增殖、420×900 窄视口
 选择保留与无横向溢出、滚动位置保留；自编排共享 probe home，无模型回合）、
+`pnpm projection-selection '<URL>'`（K2 证据门：投影面板点选事项并核对详情里的 quote 与 Session/event 读回；
+实例须带 `eight-matters` 夹具；无模型、无截图）、
 `pnpm observe [--home <dir>]`（输入边界 30 天观察读数：A 自发投递 / B 时长 / C 入口后的操作；
 口径、剔除规则与每周快照落 `_backlog/research/usage/`）。
 

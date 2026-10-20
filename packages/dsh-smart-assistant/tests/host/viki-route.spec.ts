@@ -11,9 +11,16 @@
  * - `Authorization: Bearer` rides when a key is configured.
  */
 import { createServer, type Server } from 'node:http'
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
+import { mkdtempSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { Context } from '@deepseek-ai/cordis'
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { VikiClient, VikiUnavailable } from '../../src/host/viki/client.ts'
-import { createVikiRoute, type VikiReader } from '../../src/host/viki/route.ts'
+import { createVikiRoute, type VikiActions, type VikiReader } from '../../src/host/viki/route.ts'
+import AssistantMemory from '../../src/index.ts'
+import * as VikiRow from '../../src/host/viki/index.ts'
+import { readApprovals } from '../../src/host/approval-audit.ts'
 
 const BASE = 'viking://user/default'
 const events = `${BASE}/peers/p1/memories/events/2026/10/19`
@@ -239,5 +246,55 @@ describe('Viki delete / restore (B2)', () => {
     await expect(c.commit([target])).resolves.toBe('commit-1')
     await expect(c.remove(target)).resolves.toBeUndefined()
     await expect(c.restore('commit-1')).resolves.toBeUndefined()
+  })
+})
+
+
+describe('assistant-viki row wiring', () => {
+  const contexts: Context[] = []
+  const dirs: string[] = []
+  afterEach(async () => {
+    for (const ctx of contexts.splice(0)) await ctx.fiber.dispose()
+    for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true })
+  })
+
+  async function harness(): Promise<{ route: any, service: AssistantMemory }> {
+    const ctx = new Context()
+    contexts.push(ctx)
+    let route: any
+    ctx.provide('connection', { fetch: { register: (candidate: any) => { route = candidate; return () => {} } } })
+    const dataDir = mkdtempSync(join(tmpdir(), 'assistant-viki-row-'))
+    dirs.push(dataDir)
+    await ctx.plugin(AssistantMemory, { dataDir })
+    await ctx.plugin(VikiRow, { baseUrl, space: 'default' })
+    if (route === undefined) throw new Error('assistant-viki did not register a route')
+    return { route, service: ctx.assistantMemory }
+  }
+
+  const post = (body: unknown): Request => new Request('http://localhost/api/assistant/viki', {
+    method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body),
+  })
+
+  it('computes references and audits a delete from the real row', async () => {
+    const { route, service } = await harness()
+    const target = `${BASE}/memories/identity.md`
+    const referenced = await route.fetch(post({ action: 'references', uri: target }))
+    expect(referenced.status).toBe(200)
+    expect((await referenced.json() as any).references).toEqual({ knowledge: [], siblings: [] })
+
+    const deleted = await route.fetch(post({ action: 'delete', uri: target, confirm: true, title: 'Identity' }))
+    expect(deleted.status).toBe(200)
+    expect((await deleted.json() as any)).toMatchObject({ ok: true, uri: target, commitId: 'commit-1' })
+
+    const lines = await readApprovals(service)
+    expect(lines[0]).toMatchObject({ kind: 'retire', id: target, source: 'panel-direct', room: 'viki', title: 'Identity' })
+    expect(lines[0]?.after).toMatchObject({ status: 'deleted', commitId: 'commit-1' })
+  })
+
+  it('restores a commit through the same row', async () => {
+    const { route } = await harness()
+    const restored = await route.fetch(post({ action: 'restore', commit: 'commit-1' }))
+    expect(restored.status).toBe(200)
+    expect(await restored.json()).toEqual({ ok: true, commit: 'commit-1' })
   })
 })

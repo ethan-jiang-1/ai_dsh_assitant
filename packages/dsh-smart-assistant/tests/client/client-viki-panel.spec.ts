@@ -3,7 +3,8 @@
  *
  * Acceptance points:
  * - the list renders the both-tree counts and rows (summary/type/peer);
- * - "读全文" fetches the body through the route and opens the shared drawer;
+ * - "读全文" fetches the body through the route (the drawer's open state is component-local
+ *   React state, unexercised by the inert shim; live probes cover the rendered drawer);
  * - a 503 renders "未连接" with a retry, not a crash;
  * - every interaction is a same-origin GET to `/api/assistant/viki`; no `remote.session.prompt`.
  */
@@ -35,10 +36,6 @@ const list = {
 }
 
 const materialize = (): ClientExports => materializeClient(registration, inertReactShim()) as unknown as ClientExports
-
-const flush = async (): Promise<void> => {
-  for (let i = 0; i < 8; i++) await new Promise(resolve => { setTimeout(resolve, 0) })
-}
 
 function fakeCtx(calls: string[], respond: (url: URL) => Response): unknown {
   return {
@@ -73,7 +70,7 @@ describe('Viki tab', () => {
     expect(rendered).toContain('用户记忆 A')
     expect(rendered).toContain('peer 记忆 B')
     expect(rendered).toContain('读全文')
-    const body = await exports.loadVikiBody(list.entries[0].uri)
+    const body = await exports.loadVikiBody(list.entries[0]!.uri)
     expect(body).toEqual({ ok: true, body: '# A\nfull body text' })
     expect(calls.some(call => call.includes('/api/assistant/viki?uri='))).toBe(true)
     expect(calls.every(call => call.includes('/api/assistant/viki'))).toBe(true)
@@ -90,7 +87,7 @@ describe('Viki tab', () => {
 })
 
 describe('Viki delete / restore / compare (B2/B3)', () => {
-  const target = list.entries[0].uri
+  const target = list.entries[0]!.uri
   const fake = (calls: string[], confirmRequired = true): unknown => ({
     remote: {},
     web: {

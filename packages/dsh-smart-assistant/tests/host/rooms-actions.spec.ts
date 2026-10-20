@@ -36,6 +36,7 @@ function reader(): RoomsReader {
     listThreads: async () => ({ entries: [thread], failures: [] }),
     listKnowledge: async () => ({ entries: [draft, stable], failures: [] }),
     readKnowledgePage: async (id: string) => id === draft.id ? { page: draft, backlinks: [] } : id === stable.id ? { page: stable, backlinks: [] } : undefined,
+    readLearnedSkill: async () => undefined,
     learnedSkills: async () => ({ entries: [], failures: [] }),
     ledger: async () => [],
     skillUsage: async () => ({ usage: {} }),
@@ -47,6 +48,7 @@ function actions(): RoomsActions & {
   readonly deprecatePage: ReturnType<typeof vi.fn>
   readonly saveMemory: ReturnType<typeof vi.fn>
   readonly forgetMemory: ReturnType<typeof vi.fn>
+  readonly remember: ReturnType<typeof vi.fn>
   readonly retireSkill: ReturnType<typeof vi.fn>
   readonly recordApproval: ReturnType<typeof vi.fn>
 } {

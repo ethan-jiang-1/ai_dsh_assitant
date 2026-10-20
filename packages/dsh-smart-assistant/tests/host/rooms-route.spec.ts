@@ -53,7 +53,7 @@ function reader(overrides: Partial<RoomsReader> = {}): RoomsReader {
     listKnowledge: async () => ({ entries: [page], failures: [] }),
     readLearnedSkill: async (name: string) => name === 'repo-to-knowledge' ? { name, body: '# repo-to-knowledge\n\nBody.', path: '/skills/repo-to-knowledge/SKILL.md' } : undefined,
     readKnowledgePage: async (id: string) => id === page.id ? { page, backlinks: [] } : undefined,
-    learnedSkills: async () => ({ entries: [{ name: 'repo-to-knowledge', description: 'turn a repo into pages', origin: 'learned', learnedAt: '2026-10-19T02:00:00.000Z' }], failures: [] }),
+    learnedSkills: async () => ({ entries: [{ dirName: 'repo-to-knowledge', name: 'repo-to-knowledge', description: 'turn a repo into pages', origin: 'learned', learnedAt: '2026-10-19T02:00:00.000Z' }], failures: [] }),
     ledger: async () => [],
     skillUsage: async () => ({ usage: { 'repo-to-knowledge': { count: 2, lastUsedAt: '2026-10-19T03:00:00.000Z' } }, since: '2026-10-01T00:00:00.000Z' }),
     ...overrides,
