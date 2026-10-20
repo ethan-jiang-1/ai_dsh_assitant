@@ -78,7 +78,7 @@ function writeStoredReceipt(receipt: DeskCaptureReceipt | null): void {
     // Storage is a convenience; the in-memory receipt still works without it.
   }
 }
-export const projectionViewActions = {
+const projectionViewActions = {
   selectMatter(draft: ProjectionView, id: string): void { draft.selected = { kind: 'matter', id }; draft.pane = 'detail' },
   selectFragment(draft: ProjectionView, id: string): void { draft.selected = { kind: 'fragment', id }; draft.pane = 'detail' },
   showList(draft: ProjectionView): void { draft.pane = 'list' },

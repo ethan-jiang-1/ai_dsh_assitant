@@ -11,9 +11,6 @@
  * @module dsh-smart-assistant/home/metronome
  */
 
-/** Default maintenance interval, in goal rounds. */
-export const DEFAULT_MAINTENANCE_EVERY_ROUNDS = 5
-
 /**
  * Whether a round number lands on the maintenance interval.
  * @param round - The round the driver just queued (1-based).

@@ -12,7 +12,7 @@ import type { Context } from '@deepseek-ai/cordis'
 import { createVikiRoute, type VikiActions, type VikiReader } from './route.ts'
 import { VikiClient } from './client.ts'
 import { recordApproval } from '../approval-audit.ts'
-import type { AssistantMemory } from '../index.ts'
+import type { AssistantMemory } from '../service.ts'
 
 export const name = 'assistant-viki'
 export const inject = ['connection', 'assistantMemory'] as const

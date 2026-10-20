@@ -1,7 +1,7 @@
 /**
- * Shared principal-facing building blocks: the row component every room reuses, inline
- * markdown, provenance formatting, and the panel chrome (headings, muted lines, refresh
- * row, alert lines, jump cells).
+ * Shared principal-facing building blocks: the row component every room reuses, provenance
+ * formatting, and the panel chrome (headings, muted lines, refresh row, alert lines, jump
+ * cells).
  *
  * These are the pieces the three room panels (panels.ts) and the dashboard compose; the
  * actions they render all route through room-data-io (reloadDesk / openBeside) and the store
@@ -27,29 +27,6 @@ import { MARK_TEAL } from './theme'
  */
 export function friendlySource(source: string): string {
   return source.replace(/packages\/dsh-smart-assistant\/seeds\//g, '内置基座种子页/')
-}
-
-/**
- * Minimal inline markdown for principal-facing text: the live desk rendered `**已消解**` with the
- * asterisks visible (self-review R7, 2026-09-27). Only bold and inline code are recognised —
- * anything else stays verbatim, because guessing at the model's formatting is worse than showing it.
- * @param text - the raw string.
- * @returns the alternating text/element sequence React can render.
- */
-export function inlineMarkdown(text: string): (string | ReturnType<typeof createElement>)[] {
-  const parts: (string | ReturnType<typeof createElement>)[] = []
-  const pattern = /\*\*([^*]+)\*\*|`([^`]+)`/g
-  let last = 0
-  let match: RegExpExecArray | null
-  while ((match = pattern.exec(text)) !== null) {
-    if (match.index > last) parts.push(text.slice(last, match.index))
-    parts.push(match[1] === undefined
-      ? createElement('code', { key: `c${match.index}`, style: { fontSize: '11px' } }, match[2] ?? '')
-      : createElement('strong', { key: `b${match.index}` }, match[1]))
-    last = match.index + match[0].length
-  }
-  if (last < text.length) parts.push(text.slice(last))
-  return parts
 }
 
 /**

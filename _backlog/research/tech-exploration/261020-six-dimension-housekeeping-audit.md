@@ -48,7 +48,10 @@ order 抽查与代码一致、S2 四项证据主轴（capturedAt/visibleText 200
    S4 只抽走两段持久化。任何 client 特性追溯都要穿无关逻辑——四条读取路径模拟中唯一的高噪声必经文件。
 6. **S4b「契约抽 service.ts」只完成 6/8** — rooms-route/index.ts:6、viki/index.ts:15 仍从组装文件
    `../index.ts` 取 `AssistantMemory`，而 service.ts:60 有同名别名；rooms-route 正是 S4 当轮归位的文件——
-   纪律在建立它的同一提交里没贯穿。
+   纪律在建立它的同一提交里没贯穿。（**2026-10-21 校准**：实施时发现"直接换"对 rooms-route 不成立——
+   service.ts 的别名是窄契约（4 个 list + digest + ensureHome），rooms-route 需要的 8 个方法只在组装类上，
+   直换 typecheck TS2339 ×9；S4b"6/8"的真实成因是**契约宽度不足**，不是纪律未贯穿。实际修复 =
+   扩宽 HomeHost 补齐 8 个方法签名（纯类型层、零运行时变化），两处 import 改指 './service.ts'，见收口卡 S2。）
 7. **presenter 管道零断言** — presentation.ts:33-40 的 presentationMeta/summaryFrom 是「model-visible
    means logged」的重建接缝，四个工具接线（tool-memory:349、tool-knowledge:162、tool-research:208、
    learn:488）之后，全部 spec grep 相关符号 = 0 命中；窄化写错只会静默丢摘要。
