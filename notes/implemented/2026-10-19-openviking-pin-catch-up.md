@@ -39,6 +39,8 @@ OpenViking 用 `dsh plugin add` 进 profile，**不进** assistant preset 的 `c
 
 选 A/B 时，改 `vendor/thirdparty/openviking/` 属于跨切片新工作，按 AGENTS.md 硬规则需用户点头后才动手。
 
+**拍板与执行（2026-10-19）**：用户选 **A**（升 latest）——vendor 0.5.8 → 0.5.26，0.5.8 tgz 留档作回退参照；准入复核、sha512 与五个旋钮的核对记录见 [vendor/thirdparty/openviking/README.md](../../vendor/thirdparty/openviking/README.md)（验收与提交史由 git 持有，不在此复制）。
+
 ## 输掉的方案
 
 - **等上游**：不需要——0.5.20 已经把范围放开，等的是我们自己升版本。
