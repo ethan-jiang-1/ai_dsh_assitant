@@ -6,9 +6,7 @@
 
 | 卡 | 要解决什么 | 当前环节与未完成项 |
 |---|---|---|
-| [261019-self-update-lanes.md](261019-self-update-lanes.md) | **A 卡（P0 总卡）**：A1a 读真值 / A2 直写生效 / A3 收据 / A1b 退役拷贝 | 推敲中：**A1a/A2/A3/A1b 与 B/C 均已交付**；campaign close 待：`pnpm eval` 凭据、真机人判、B4 真数据本人；依据档 [self-update/261019-self-update-lanes](../research/self-update/261019-self-update-lanes.md) §九已更正 |
-| [261019-viki-content-governance.md](261019-viki-content-governance.md) | **B 卡（P1）**：Viki peer 树可枚举/可读/逐条删（带备份）/人工冲突并排；自带 `assistantViki` 路由；越界清理 | 推敲中：**B1/B2/B3/B4 脚本与试跑已交付**；B4 真数据由本人执行（当前 server 0 越界）；campaign close 待人判 |
-| [261019-learned-skills-surface.md](261019-learned-skills-surface.md) | **C 卡（P2/P3）**：learned 技能逐件可见与退役（复用 A2 直写）；assistant 消息"记下来" | 推敲中：**C1/C2 已交付**；campaign close 待人判与 eval 凭据 |
+
 
 ## 写一张卡
 

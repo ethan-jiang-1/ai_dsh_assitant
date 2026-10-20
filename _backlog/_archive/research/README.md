@@ -4,6 +4,8 @@
 
 | 文件 | 服务的卡 | 日期 |
 |---|---|---|
+| [self-update/261019-self-update-lanes.md](self-update/261019-self-update-lanes.md) | [A 卡](../settled_issues/261019-self-update-lanes.md)、[B 卡](../settled_issues/261019-viki-content-governance.md)、[C 卡](../settled_issues/261019-learned-skills-surface.md) | 2026-10-19 |
+| [memory-panel/261019-file-memory-panel-precedents.md](memory-panel/261019-file-memory-panel-precedents.md) | [B 卡](../settled_issues/261019-viki-content-governance.md)（外部先例） | 2026-10-19 |
 | [positioning/261005-chinese-sme-boss.md](positioning/261005-chinese-sme-boss.md) | [开屏节律](../settled_issues/261007-opening-brief-and-rhythm.md)（口语化红线）、[输入边界](../settled_issues/261007-input-boundary.md)（五谷渔粉案例） | 2026-10-05 |
 | [positioning/261008-ceo-value-contract-review.md](positioning/261008-ceo-value-contract-review.md) | [总助体验](../settled_issues/261006-chief-of-staff-experience.md)、[持续助理](../settled_issues/261008-ceo-operating-loop.md)：静态核对价值证据边界（现由 [规格卡](../../../notes/proposed/2026-10-06-desk-operating-entry.md) 作史据引用） | 2026-10-08 |
 | [positioning/261008-ceo-value-historical-review.md](positioning/261008-ceo-value-historical-review.md) | [总助体验](../settled_issues/261006-chief-of-staff-experience.md)、[持续助理](../settled_issues/261008-ceo-operating-loop.md)：历史材料回读诊断 | 2026-10-08 |

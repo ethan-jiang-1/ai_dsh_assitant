@@ -5,7 +5,7 @@ intent: "把『助手怎么学到东西、学到的东西怎么被维护』拆�
 
 # 261019 · 助手如何更新自己：三条通道、六张账、面板维护面的缺口
 
-> 立档：2026-10-19 ｜ 用途：给 [自更新通道卡](../../issues/261019-self-update-lanes.md) 当依据——裁决、排序与验收住卡上，本档只收事实、判断与候选，不构成合同，也不构成实施授权。
+> 立档：2026-10-19 ｜ 用途：给 [自更新通道卡](../../settled_issues/261019-self-update-lanes.md) 当依据——裁决、排序与验收住卡上，本档只收事实、判断与候选，不构成合同，也不构成实施授权。
 > 用户本轮原话：「我们有知识/记忆（这里进入的靠对话？能在 Panel 里面维护吗？）……智能体还需要 SKILL，我们现在还有 Viki……整体如何提高这个助手，显性更新（来自 Panel），隐形更新（来自对话）……你可以统筹地思考一下吗？」
 > 坐标：包内路径相对 `packages/dsh-smart-assistant/`，`文件:行` 以本档写作时的源码为准；标【事实】的是可指到代码/文档/实物的，标【判断】的是从证据出发的推论。
 
@@ -29,19 +29,19 @@ intent: "把『助手怎么学到东西、学到的东西怎么被维护』拆�
 
 | 面 | 权威存储 | 唯一写入口 | 写入前有门吗 | 怎么进下一次请求 | 错了多久能发现 |
 |---|---|---|---|---|---|
-| 记忆 | `memory/<id>.md` | `assistant_memory` 的 `save` / `forget`（五动作：`recall/save/forget/list/curate`，[tool-memory/index.ts:26](../../../packages/dsh-smart-assistant/src/agent/tool-memory/index.ts#L26)） | **没有**草稿态、没有人工门；`source` 只是留痕（**没有 `why` 字段**；`why` 只出现在 recall 命中解释） | 有界摘要精选（`digestMaxBytes` 6144）+ `recall` 检索 | 下次读到它、或 curate 报重复；没有定时复审 |
-| 线索 | `research/<id>.md` | `assistant_research`（`open/update/park/drop/promote`，[tool-research/index.ts:21](../../../packages/dsh-smart-assistant/src/agent/tool-research/index.ts#L21)） | `drop` 必填理由；`promote` 指向已存在的记忆/知识/技能 | 摘要里的条数 + 前几条标题 | curate 的过期线索检查（`staleResearchDays`） |
+| 记忆 | `memory/<id>.md` | `assistant_memory` 的 `save` / `forget`（五动作：`recall/save/forget/list/curate`，[tool-memory/index.ts:26](../../../../packages/dsh-smart-assistant/src/agent/tool-memory/index.ts#L26)） | **没有**草稿态、没有人工门；`source` 只是留痕（**没有 `why` 字段**；`why` 只出现在 recall 命中解释） | 有界摘要精选（`digestMaxBytes` 6144）+ `recall` 检索 | 下次读到它、或 curate 报重复；没有定时复审 |
+| 线索 | `research/<id>.md` | `assistant_research`（`open/update/park/drop/promote`，[tool-research/index.ts:21](../../../../packages/dsh-smart-assistant/src/agent/tool-research/index.ts#L21)） | `drop` 必填理由；`promote` 指向已存在的记忆/知识/技能 | 摘要里的条数 + 前几条标题 | curate 的过期线索检查（`staleResearchDays`） |
 | 知识 | `knowledge/<id>.md` | `assistant_reflect` 的 `save_page` → `promote_page` | **有**：`save_page` 只写 draft，draft 不进检索与摘要；`sources` 必填；promote/deprecate 逐行入审批账 | stable 页进摘要签树（一行一页）+ `assistant_knowledge` 检索 | 草稿等人审时可见；**stable 的错误没有复审节拍**，只有 `staleAfter` |
 | 学到的技能 | `skills/<name>/SKILL.md` | 两条：`save_skill` 直写；或 `propose_skill` → 人改 `status: approved` → `land_skill` | 提案道有门；**直写道没有**（写完只跑一次引用完整性） | 技能目录的 `name` + `description` 每个请求常驻（"死技能每请求都在付费"） | 加载时才发现不适用；curate 报 30/90 天未用 |
-| 经营账本 | `assistant-operating/ledger.json` | `assistant_operating` 13 动作 | 权限三分（普通进展自动留存；确认性变化只走本人明确指示；推断变化只走提案） | 不进模型上下文；桌面读只读投影 | 提案通道 + 回执；本档不对它下判断（契约 = [operating.md](../../../docs/operating.md)） |
+| 经营账本 | `assistant-operating/ledger.json` | `assistant_operating` 13 动作 | 权限三分（普通进展自动留存；确认性变化只走本人明确指示；推断变化只走提案） | 不进模型上下文；桌面读只读投影 | 提案通道 + 回执；本档不对它下判断（契约 = [operating.md](../../../../docs/operating.md)） |
 | **Viki**（OpenViking） | server 侧 workspace（`.tmp/openviking/workspace/...`） | **自动**：`session/event` 捕获 + 阈值 commit（我们的剖面 `commitTokenThreshold: 3000`） | **没有**；只有 `ov-shield` 挡住它的 MCP 工具面与两个同名技能 | 每轮注入：画像块（`profileTokenBudget` 3000）+ 召回块（`recallTokenBudget` 2000） | 用户只觉得"它记错了"；没有对账面 |
 
-【事实】前五行的机制在 [docs/home.md](../../../docs/home.md) §一–§四；第六行的旋钮剖面与治理边界在 [层 1 落地 note](../../../notes/archived/2026-10-04-openviking-layer1-landing.md) 决定 2–3，捕获/注入的钩子在本机安装的插件里（`index.mjs` 的 `session/event` 订阅、`shared/config-schema.mjs` 的 `autoCapture` / `noAutoInject` / `profileTokenBudget`）。
+【事实】前五行的机制在 [docs/home.md](../../../../docs/home.md) §一–§四；第六行的旋钮剖面与治理边界在 [层 1 落地 note](../../../../notes/archived/2026-10-04-openviking-layer1-landing.md) 决定 2–3，捕获/注入的钩子在本机安装的插件里（`index.mjs` 的 `session/event` 订阅、`shared/config-schema.mjs` 的 `autoCapture` / `noAutoInject` / `profileTokenBudget`）。
 
 ### 1.2 三条通道各自的"入口长什么样"
 
 - **显性**：只有面板（§二）。没有别的显性入口——`SOUL.md` / `AGENTS.md` / 房间文件都能手改，但那是文件系统，不是产品面。
-- **隐性**：模型在会话里调上表工具。**它是否发生不由机制保证**：没有会话收尾复盘（[architecture.md](../../../docs/architecture.md) §六把它列在延后项），只有 goal 会话每 5 轮一次的养护节拍器（[home.md](../../../docs/home.md) §四末），其余靠 persona 与技能纪律。
+- **隐性**：模型在会话里调上表工具。**它是否发生不由机制保证**：没有会话收尾复盘（[architecture.md](../../../../docs/architecture.md) §六把它列在延后项），只有 goal 会话每 5 轮一次的养护节拍器（[home.md](../../../../docs/home.md) §四末），其余靠 persona 与技能纪律。
 - **自动**：Viki 的捕获是机制保证的（每个 `session/event` 都进捕获缓冲），养护节拍器与提案槽是机制保证的，curate 的**执行**不是。
 
 ### 1.3 规模读数（dev home，2026-10-19）
@@ -56,7 +56,7 @@ intent: "把『助手怎么学到东西、学到的东西怎么被维护』拆�
 | 学到的技能 | 2 件（另有 archive） | 直写道产物；账本有 `count` + `lastUsedAt` + `since`，**无逐技能 token 成本** |
 | 提案 | 2 份，均 `landed` | — |
 
-【判断】9 draft vs 5 stable 不是"人不想批"，更像"批一次太贵/看不见"：面板只给草稿 200 字片段（[panels.ts:77](../../../packages/dsh-smart-assistant/src/client/panels.ts#L77)），批准一个自己没读到正文的页，本来就不该爽快。10 页 deprecated 则说明**淘汰比确立容易**（过时只需一次点击，纠错要写一段话）。
+【判断】9 draft vs 5 stable 不是"人不想批"，更像"批一次太贵/看不见"：面板只给草稿 200 字片段（[panels.ts:77](../../../../packages/dsh-smart-assistant/src/client/panels.ts#L77)），批准一个自己没读到正文的页，本来就不该爽快。10 页 deprecated 则说明**淘汰比确立容易**（过时只需一次点击，纠错要写一段话）。
 
 ## 二、事实：面板今天到底是什么
 
@@ -64,43 +64,43 @@ intent: "把『助手怎么学到东西、学到的东西怎么被维护』拆�
 
 | 面板动作 | 实现 | 走的路 | 一次点击 = 一次模型回合？ | 点完在面板上看到结果要多久 |
 |---|---|---|---|---|
-| 记忆「这条记错了」 | `correctMemory`（[room-data-actions.ts:63](../../../packages/dsh-smart-assistant/src/client/room-data-actions.ts#L63)） | `[面板] ` 前缀 + queue 投递到会话 | **是** | 模型同回合重写房间数据文件后（客户端 10s × 15 轮询） |
+| 记忆「这条记错了」 | `correctMemory`（[room-data-actions.ts:63](../../../../packages/dsh-smart-assistant/src/client/room-data-actions.ts#L63)） | `[面板] ` 前缀 + queue 投递到会话 | **是** | 模型同回合重写房间数据文件后（客户端 10s × 15 轮询） |
 | 知识「批准」 | `approveKnowledgePage`（同文件 :83） | 直调 `remote.assistantKnowledge.approvePage` → 宿主服务；挂载失败回退 prompt | **否**（唯一一条） | **仍要等下一次 `desk-refresh`**，因为面板读的是拷贝（注释自认） |
 | 知识「过时了」 | `deprecateKnowledgePage`（:110） | prompt | 是 | 同回合刷新后 |
 | 知识「有问题」 | `flagKnowledgePage`（:127） | prompt，带问题描述 | 是 | 同回合刷新后 |
 | 技能提案「批准 / 拒绝」 | `askApproveProposal`（:44）/ `askRejectProposal`（:52） | prompt | 是 | 同回合刷新后 |
 | 刷新房间数据 | `askRefresh`（:23） | prompt，**指名加载 `desk-refresh` 技能** | 是 | 轮询 |
 | 开始第一件事 | `askStart`（:34） | prompt | 是 | — |
-| 技能 | 无 | 一行计数 + "哪一件不想要了，在对话里说一声即可下掉"（[panels.ts:160](../../../packages/dsh-smart-assistant/src/client/panels.ts#L160)） | — | — |
+| 技能 | 无 | 一行计数 + "哪一件不想要了，在对话里说一声即可下掉"（[panels.ts:160](../../../../packages/dsh-smart-assistant/src/client/panels.ts#L160)） | — | — |
 | 新增记忆 / 知识 / 线索 | **无入口** | — | — | — |
 | 读知识正文 | **无入口**（draft 只有 `excerpt`；stable 只有标题/类型/时间/来源） | — | — | — |
 | 删除 | 只有知识的"过时"（deprecated 留原地）；记忆与技能都没有删除动作 | — | — | — |
 
 ### 2.2 三个结构性结论
 
-**P-1｜面板是"对话的遥柄"，不是编辑器。** 除知识批准外，每个按钮都只是替人往会话里投一句话（`[面板] ` 标记，[room-data-io.ts:272](../../../packages/dsh-smart-assistant/src/client/room-data-io.ts#L272)），再由模型去读文件、改文件、重写快照。这解释了用户问题的第一半：**"这里进入的靠对话吗"——是的，而且到今天为止只有对话是写入口；面板只是把这句话代你说出去。**
+**P-1｜面板是"对话的遥柄"，不是编辑器。** 除知识批准外，每个按钮都只是替人往会话里投一句话（`[面板] ` 标记，[room-data-io.ts:272](../../../../packages/dsh-smart-assistant/src/client/room-data-io.ts#L272)），再由模型去读文件、改文件、重写快照。这解释了用户问题的第一半：**"这里进入的靠对话吗"——是的，而且到今天为止只有对话是写入口；面板只是把这句话代你说出去。**
 
-**P-2｜面板读的是第三份拷贝，陈旧是结构性的，不是 bug。** 真值在房间文件（`memory/`、`knowledge/`）与账本；面板读 `.desk/state.json`——由 `desk-refresh` 技能在会话里**重写**的一份画像（`presets/assistant/skills/desk-refresh/SKILL.md`；该技能在 A1b 已退役）。于是任何"改真值"的动作都要再等一次模型回合，连直调成功的批准也是（`room-data-actions.ts` 的注释：*the desk file itself still lists the row as a draft until the next desk-refresh turn rewrites it*）。2026-10-18 桌面受理位已经因为"客户端不拥有权威"而拒绝过直写账本（[desk-side-capture note](../../../notes/implemented/2026-10-18-desk-side-capture.md) 输掉的方案第 1 条），同一个理由今天指向房间面板。
+**P-2｜面板读的是第三份拷贝，陈旧是结构性的，不是 bug。** 真值在房间文件（`memory/`、`knowledge/`）与账本；面板读 `.desk/state.json`——由 `desk-refresh` 技能在会话里**重写**的一份画像（`presets/assistant/skills/desk-refresh/SKILL.md`；该技能在 A1b 已退役）。于是任何"改真值"的动作都要再等一次模型回合，连直调成功的批准也是（`room-data-actions.ts` 的注释：*the desk file itself still lists the row as a draft until the next desk-refresh turn rewrites it*）。2026-10-18 桌面受理位已经因为"客户端不拥有权威"而拒绝过直写账本（[desk-side-capture note](../../../../notes/implemented/2026-10-18-desk-side-capture.md) 输掉的方案第 1 条），同一个理由今天指向房间面板。
 
 **P-3｜内容在场度决定"维护"的语义。** 记忆行渲染的是记录全文（一句话），所以纠错可操作；知识行只有标题、类型、时间、来源，草稿多 200 字片段——**正文不在场**，于是"维护"退化成"表态"（批准/说它过时/说它有问题），而"改什么"只能靠嘴描述。技能连表态的对象都没有，只有一个数字。
 
-**P-4｜面板与会话绑定。** tab 的正文按 session 取切片，没有会话就读不到也动不了（[room-tabs.ts](../../../packages/dsh-smart-assistant/src/client/room-tabs.ts) 的 `tabBody`）；空文件夹时面板给的是"先开始第一件事"的按钮。对"维护"来说这是个便宜的约束（维护总得在一个工作区里），但它也说明面板不是独立的管理台。
+**P-4｜面板与会话绑定。** tab 的正文按 session 取切片，没有会话就读不到也动不了（[room-tabs.ts](../../../../packages/dsh-smart-assistant/src/client/room-tabs.ts) 的 `tabBody`）；空文件夹时面板给的是"先开始第一件事"的按钮。对"维护"来说这是个便宜的约束（维护总得在一个工作区里），但它也说明面板不是独立的管理台。
 
 ## 三、诊断（八条，带证据）
 
 **D1｜门禁挂错了通道（核心）。** 最需要审的通道（自动：Viki 抽取直接进每轮注入）没有门；最该快的通道（显性：人正读着那行字）要两次模型回合（改 + 重写快照）且结果滞后；隐性通道的门参差（知识有 draft、技能提案有审、记忆与 `save_skill` 直写）。判据的两句在这里都答不上：赔得起吗——Viki 的错误会被每轮复述；多久能发现——面板看不到 Viki 的任何东西。
 
-**D2｜双记忆无对账。** 房间记忆（治理、可读、小、可数）与 Viki（自动、大、不可枚举、带画像）互不知道对方，没有 `source` 互通、没有冲突处理、没有"这条两边都有"的标记。层 2 治理桥（`source: openviking:<id>` 转正语法 + 摘要情景记忆计数行）在 [层 1 note](../../../notes/archived/2026-10-04-openviking-layer1-landing.md) 里写明"待层 1 跑一个真实使用周期"——**2026-10-19 的真机往返（抽取记录号 `20261019-2026-10-19-g6wx` + server 侧 embedding 用量审计）已经把那个条件满足了**（[pin 追平 note](../../../notes/implemented/2026-10-19-openviking-pin-catch-up.md)），所以现在不动的理由不再是"等周期"，而是没人决定。
+**D2｜双记忆无对账。** 房间记忆（治理、可读、小、可数）与 Viki（自动、大、不可枚举、带画像）互不知道对方，没有 `source` 互通、没有冲突处理、没有"这条两边都有"的标记。层 2 治理桥（`source: openviking:<id>` 转正语法 + 摘要情景记忆计数行）在 [层 1 note](../../../../notes/archived/2026-10-04-openviking-layer1-landing.md) 里写明"待层 1 跑一个真实使用周期"——**2026-10-19 的真机往返（抽取记录号 `20261019-2026-10-19-g6wx` + server 侧 embedding 用量审计）已经把那个条件满足了**（[pin 追平 note](../../../../notes/implemented/2026-10-19-openviking-pin-catch-up.md)），所以现在不动的理由不再是"等周期"，而是没人决定。
 
-**D3｜拷贝即第二份真相（且已经付过代价）。** 面板的每个状态都落后一次模型重写；`askRefresh` 之所以存在，是因为没有别的刷新路。同一类问题在隔壁面已经被裁决过两次：桌面主动行的第三行"只读平台排程、不在客户端造暂停副本"（[proactive-face note](../../../notes/implemented/2026-10-18-proactive-face.md) 输掉的方案第 4 条）、桌面受理位"客户端不拥有经营权威，写入必须走账本"（[desk-side-capture note](../../../notes/implemented/2026-10-18-desk-side-capture.md) 输掉的方案第 1 条）。**同一个判据在房间面板上还没被用过。**
+**D3｜拷贝即第二份真相（且已经付过代价）。** 面板的每个状态都落后一次模型重写；`askRefresh` 之所以存在，是因为没有别的刷新路。同一类问题在隔壁面已经被裁决过两次：桌面主动行的第三行"只读平台排程、不在客户端造暂停副本"（[proactive-face note](../../../../notes/implemented/2026-10-18-proactive-face.md) 输掉的方案第 4 条）、桌面受理位"客户端不拥有经营权威，写入必须走账本"（[desk-side-capture note](../../../../notes/implemented/2026-10-18-desk-side-capture.md) 输掉的方案第 1 条）。**同一个判据在房间面板上还没被用过。**
 
 **D4｜知识正文不在场，审批与纠错都在猜。** §1.3 的 9 draft / 5 stable 是吞吐证据；人对一个只看到 200 字的页说"批准"，等于让我们替他把关。这不是 UI 打磨问题：**没有读正文的路，就没有真正的维护**。
 
-**D5｜技能是 P3 的最大欠账。** 产品判据 P3 要求"学到了什么，用户能看、能改、能删"（[README](../../../README.md)）。技能现状：三处来源（随包策展 / 学到 / Viki 的技能目录——后者被 shield 遮蔽）、面板只有一个计数、退役只能靠对话、用量账本（`skill-usage.json`）只有 curate 与 `reflect brief` 会读。**过程性知识恰恰是"越用越像本人"（O4）最值钱的一类**，它却是最看不见的一类。
+**D5｜技能是 P3 的最大欠账。** 产品判据 P3 要求"学到了什么，用户能看、能改、能删"（[README](../../../../README.md)）。技能现状：三处来源（随包策展 / 学到 / Viki 的技能目录——后者被 shield 遮蔽）、面板只有一个计数、退役只能靠对话、用量账本（`skill-usage.json`）只有 curate 与 `reflect brief` 会读。**过程性知识恰恰是"越用越像本人"（O4）最值钱的一类**，它却是最看不见的一类。
 
 **D6｜隐性更新不可见，也就无法验收。** 没有"这次会话改了什么"的收据；摘要本身是不可见段落；面板是滞后拷贝。P2 要求"能指出这条是哪次学来的"——**记录级 provenance 其实已经有了**（memory 的 `source`、knowledge 的 `sources`、skill 的 `metadata.source`（`origin` 是常量 `learned`）、审批账 `audit/approvals.jsonl`），缺的是把它们汇成"自上次以来"的一眼。这是最便宜的一刀：不需要新事件、不需要新存储。
 
-**D7｜Viki 的治理停在层 1，内容面无读者无写者。** 层 1 挡的是它的工具面与技能面（模型看得见的接口），没挡它的**内容**：抽取物直接进画像/召回块。真实代价付过一次——[pin 追平 note](../../../notes/implemented/2026-10-19-openviking-pin-catch-up.md) 遗留节：助手在真机往返里主动指出长期记忆里压着**另一家公司的 14 条旧底子**，与新写入的事实并存。位置今天核过：**不在本机这份 dev 工作区**（见 §5.2，那里只剩 identity/soul 两条模板），在另一份工作区/宿主目录里；产品侧的缺口不变——我们能列出它、删掉它、回滚它（API 现成），但**没有任何面**，只有模型通过被挡的工具够得着。
+**D7｜Viki 的治理停在层 1，内容面无读者无写者。** 层 1 挡的是它的工具面与技能面（模型看得见的接口），没挡它的**内容**：抽取物直接进画像/召回块。真实代价付过一次——[pin 追平 note](../../../../notes/implemented/2026-10-19-openviking-pin-catch-up.md) 遗留节：助手在真机往返里主动指出长期记忆里压着**另一家公司的 14 条旧底子**，与新写入的事实并存。位置今天核过：**不在本机这份 dev 工作区**（见 §5.2，那里只剩 identity/soul 两条模板），在另一份工作区/宿主目录里；产品侧的缺口不变——我们能列出它、删掉它、回滚它（API 现成），但**没有任何面**，只有模型通过被挡的工具够得着。
 
 **D8｜隐性的供给不确定，"该记的没记"与"不该记的记了"同时存在。** 会话收尾复盘被延后（触发条件未变：需要真实使用数据说明收益 > token 与同意成本），所以隐性通道的实际供给 = 模型想不想得起来；自动通道则相反，供过于求且无门。两条通道的失败模式相反，而它们写进的是不同的存储，谁也纠不了谁。
 
@@ -161,13 +161,13 @@ intent: "把『助手怎么学到东西、学到的东西怎么被维护』拆�
 - **面板直接调模型 API（绕过会话）**：造第二个 write path 与第二个审计面；直调宿主服务更窄。
 - **统一成一个存储（把 Viki 当唯一记忆，或把房间灌进 Viki）**：前者放弃四房间的治理与可读性，后者的抽取质量不足以当权威（两条旧读数——14 条旧公司底子与本次会话标题把上下文误当事实——都是反证）。
 - **把"刷新"做成自动轮询真值**：治标；只要还读拷贝，就还要重写拷贝，`askRefresh` 那个动词迟早回来。
-- **给 Viki 侧做逐条删除面**：~~内容面不可枚举~~——**此判断当日被证伪**：`fs/ls` + `fs DELETE` + `snapshot/commit|diff|restore` 都是现成 API；抽取物是 `viking://user/<space>/peers/<peer>/memories/` 下的**文件**（另有 `user/<space>/memories/` 的 `profile.md`/`preferences/`/`entities/`；本机 reviewer 树只有 `identity.md`/`soul.md`），逐条可列可删。改由 **B 卡自立**（自带 `assistantViki` 宿主路由，不并进 S2 的 `approvePage` 车道）做进 [B 卡](../../issues/261019-viki-content-governance.md)。
+- **给 Viki 侧做逐条删除面**：~~内容面不可枚举~~——**此判断当日被证伪**：`fs/ls` + `fs DELETE` + `snapshot/commit|diff|restore` 都是现成 API；抽取物是 `viking://user/<space>/peers/<peer>/memories/` 下的**文件**（另有 `user/<space>/memories/` 的 `profile.md`/`preferences/`/`entities/`；本机 reviewer 树只有 `identity.md`/`soul.md`），逐条可列可删。改由 **B 卡自立**（自带 `assistantViki` 宿主路由，不并进 S2 的 `approvePage` 车道）做进 [B 卡](../../settled_issues/261019-viki-content-governance.md)。
 
 ### 5.2 Viki 内容面的存量事实（2026-10-19 在本机 dev server 上实测，推翻了本节早期的一处假设）
 
 | 问题 | 读数 | 取证 |
 |---|---|---|
-| 抽取物存在哪 | **两层**：`viking://user/<space>/memories/` 放 `profile.md`（身份 + 时间线，超预算时**掐中间、留头和尾**）+ `preferences/<owner>/<topic>.md` + `entities/<owner>/<topic>.md`；**抽取的 events 在 `viking://user/<space>/peers/<peer>/memories/events/<Y>/<M>/<D>/<title>.md`**（peer 由 `peerId`/`workspacePeer` 解析） | [260928 安装卡](../../_archive/settled_issues/260928-openviking-install-release.md) 第 5 步；vendor 插件源码；2026-10-19 本机 `fs/ls` 实测 |
+| 抽取物存在哪 | **两层**：`viking://user/<space>/memories/` 放 `profile.md`（身份 + 时间线，超预算时**掐中间、留头和尾**）+ `preferences/<owner>/<topic>.md` + `entities/<owner>/<topic>.md`；**抽取的 events 在 `viking://user/<space>/peers/<peer>/memories/events/<Y>/<M>/<D>/<title>.md`**（peer 由 `peerId`/`workspacePeer` 解析） | [260928 安装卡](../../settled_issues/260928-openviking-install-release.md) 第 5 步；vendor 插件源码；2026-10-19 本机 `fs/ls` 实测 |
 | 今天还剩什么 | `.tmp/openviking` 工作区是**新起的一份**：`user/default/memories` 下只有 `identity.md`、`soul.md`（模板态，`version 2`），**没有** `profile.md` / 三个分类目录；**6 条 events 在 `user/default/peers/github.com-ethan-jiang-1-ai_dsh_assitant/memories/events/2026/10/19/`**（5 个 `.md` + `.overview.md`；`stats/memories` 报 `events: 6`）；profile 块今天为空 | `curl 127.0.0.1:1933/api/v1/stats/memories`、`fs/ls`（注意：从 `memories` 根 `recursive=true` 只到 `events/YYYY/MM`，要列叶子需对 `events/YYYY` 再 ls）、`fs/attrs`、`sessions/*/context` |
 | 那 14 条旧公司底子在哪 | **不在**这份工作区里；宿主目录里也不存在第二份工作区（全仓只有 `.tmp/openviking/workspace`）。**只支持"推断"**是另一份工作区/宿主目录（试点或日用环境）留下的；pin note 记录的是那次真机往返读到的东西 | `find` 全仓 workspace；两条互斥读数并列登记 |
 | 逐条可管吗 | **可**：`GET fs/ls` 列 `rel_path`（叶子按目录逐层取），`GET fs/attrs` 给 `memory.event_name/summary/memory_type/version/source_extraction_id`，`GET content/read` 读正文（默认 cleaned；`raw=true` 才带 `MEMORY_FIELDS`），`DELETE /api/v1/fs?uri=` 逐条删，`snapshot/commit`（可带 `paths`）与 `snapshot/restore` 提供版本与回滚；`snapshot/restore` 是 **forward-commit**（在 HEAD 上重建 source_commit），不是隐式全库回退 | `openapi.json`（server 0.4.22）实测；2026-10-19 `fs/attrs`/`content/read` 实测 |
@@ -175,7 +175,7 @@ intent: "把『助手怎么学到东西、学到的东西怎么被维护』拆�
 
 【判断】这条实测把 Viki 从"需要一个候选层来兜住不可控的东西"变成"**一个可枚举、可删、可版本化的文件树，只是没有读者和写者**"。做法因此变成：列表 + 读正文 + 逐条删 + 写入前备份（snapshot），与房间侧的"列表 + 读正文 + 受控写"**同一套形状**——两处的面可以复用同一个面板骨架。
 
-### 5.3 冲突与退役的形状候选（本人 10-19 交给 agent 判，见 [B 卡](../../issues/261019-viki-content-governance.md)）
+### 5.3 冲突与退役的形状候选（本人 10-19 交给 agent 判，见 [B 卡](../../settled_issues/261019-viki-content-governance.md)）
 
 先分清三件事，早期的口径把它们混成了一个词"纠错"：
 
@@ -207,11 +207,11 @@ intent: "把『助手怎么学到东西、学到的东西怎么被维护』拆�
 - **S2 的先决证据是"真机可达"，不是"代码已有"**：2026-10-19 复核 261004 的结论要改——`requireStrictCodec` 只要求 parameter/uplink/context 的 `mode: 'strict'`；strict codec 只是 `{ mode, typeSymbol, create(): { parse } }`，`create()` 直接调用，**不需要 zod/模块表**，result 可以保持 `src-json`。现有 `approve-mount.ts` 把 **parameter** 写成 `src-json`，才是挂载失败的直接原因；261004 的"classic script 拿不到 zod ⇒ 需要上游缝"是误诊。所以 A2 第一步是 **codec 探针**（手写 strict parameter + 真机 `$mount`/`approvePage` + 台账 `source: panel-direct`）；能挂则沿用 `assistantKnowledge`，不能挂则 host POST，**都不回退 prompt**。
 - 会退役 `desk-refresh` 技能与 `.desk/state.json` 合同：这是**减法**，但属于合同变更，须本人点头（A 卡 Q3）；在 Q3 前 A1a/A2/A3 不依赖它。
 
-**P1 = [B 卡](../../issues/261019-viki-content-governance.md)（Viki 内容面：可枚举 + 可读 + 逐条删 + 写前备份 + 人工冲突并排）。** D2/D7 的正解；§5.2 的实测把它的代价从"大"降到"中"（API 全现成，缺的是调用者与面），但清单必须覆盖 `user/<space>/memories` **和** `peers/<peer>/memories` 两处；摘要从 `fs/attrs` 取，不是 `fs/ls.abstract`。
+**P1 = [B 卡](../../settled_issues/261019-viki-content-governance.md)（Viki 内容面：可枚举 + 可读 + 逐条删 + 写前备份 + 人工冲突并排）。** D2/D7 的正解；§5.2 的实测把它的代价从"大"降到"中"（API 全现成，缺的是调用者与面），但清单必须覆盖 `user/<space>/memories` **和** `peers/<peer>/memories` 两处；摘要从 `fs/attrs` 取，不是 `fs/ls.abstract`。
 - **不做候选层**：§四 结论 1 + §5.2 两条一起否掉了事先排队；B 卡用"列表 + 人工并排 + 逐条删（带备份）"这一套。
 - **存量清理放进同一张卡的验收，但拆成两截**：判据 + 流程在本机 fixture 上证明；**真数据在那份到不了的工作区，先 dry-run 清单、本人确认后整批执行并回填回执**（B 卡验收第 6/7 行）。不拆就写出一条谁也执行不了的验收。
 
-**P2 = [C 卡](../../issues/261019-learned-skills-surface.md)（技能逐件可见与退役）。** P3 的直接欠账；可复用 A 卡的直写车道，边际成本小。数据源比原判断多：`scanLearnedSkills` + `skillUsageLines` 已给 name/description/origin/learnedAt/count/lastUsedAt/days；缺的是 `metadata.source` 与正文，成本维仍无数据源。
+**P2 = [C 卡](../../settled_issues/261019-learned-skills-surface.md)（技能逐件可见与退役）。** P3 的直接欠账；可复用 A 卡的直写车道，边际成本小。数据源比原判断多：`scanLearnedSkills` + `skillUsageLines` 已给 name/description/origin/learnedAt/count/lastUsedAt/days；缺的是 `metadata.source` 与正文，成本维仍无数据源。
 
 **P3 = 同一张 C 卡的"记下来"。** 口味面；vendor 消息动作槽存在（`conversation.chat.assistant-actions`），但**只收 finalized assistant 消息**；"在用户自己那条消息上记"没有现成槽，v1 不做。剩下的是"允许一条来源=消息 id 的新建"这个白名单开口，且 host 用 `ctx.sessionQuery` 解析原文。它提升的是隐性通道的**自愿性**（人说"这条留着"），比自动复盘便宜一个数量级。
 
