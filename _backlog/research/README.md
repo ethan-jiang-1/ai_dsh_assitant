@@ -13,7 +13,7 @@
   `positioning/` = 定位与打动管理层、`self-update/` = 助手怎么学到东西与学到了怎么维护、
   `memory-panel/` = 记忆/知识面板的外部产品先例、
   `tech-exploration/` = 技术定调与技术实验、`usage/` = 真实使用观察），**文件名与证据正文保留，相对链接随位置修复**；新主题开新子目录，根目录不再平铺。
-  子目录**随材料在档而在**（材料不再被取用即整目录随迁，见「使用与校准」）：当前在档 `positioning/`、`usage/`；`upstream/`、`tech-exploration/`、`self-update/`、`memory-panel/` 已迁入调研归档，再需要时新开同名目录即可。
+  子目录**随材料在档而在**（材料不再被取用即整目录随迁，见「使用与校准」）：当前在档 `positioning/`、`usage/`、`tech-exploration/`（261020 六维深审重开）；`upstream/`、`self-update/`、`memory-panel/` 已迁入调研归档，再需要时新开同名目录即可。
   索引记**含子目录的路径**。
 - **无状态行**：不把原料伪装成结论。制度级索引互查要求本区文件（含主题子目录）被本 README 点名；活跃正文的相对链接复用 verify 现有纯核。该结构检查不验证证据质量、URL/anchors 或实现/效果，对活跃 `issues/` 和 `bugs/` 同样适用。
 - **生命周期——跟着卡片走**：最后一张使用它的活卡关闭时 `git mv` 到
@@ -51,6 +51,8 @@ research 为问题和缺陷提供依据。问题按 [关闭条件](../README.md)
 ### 直接引用
 
 从引用卡链接进入，按正在解决的问题选读。
+
+- [261020-six-dimension-housekeeping-audit.md](tech-exploration/261020-six-dimension-housekeeping-audit.md)——引用卡：无（2026-10-20 用户点名六维深审，本档是本轮 REVIEW 的直接输入；改善项立项后由对应卡引用）。六维打扫卫生深审发现报告：五路 fresh 审计员 + 主线对抗复核；S1–S5 战役复核结论（立住）、26 条分级发现、改善三批次路线、banner 场景活体复验 PASS
 
 - [261018-proactivity-synthesis.md](positioning/261018-proactivity-synthesis.md)——引用卡：[主动性方向评审卡](../_archive/settled_issues/261018-proactive-direction.md)（已结）。合成档：主动性拆四层 → 本仓现状与外部逐层答案 → 四条候选路线与判据矩阵 → 选定路线与逐条约束对账 → 反证/未决问题/证据强度，供人与 agent 评审
 - [261018-proactive-ux-mechanics.md](positioning/261018-proactive-ux-mechanics.md)——引用卡：[主动性 v1 提案](../../notes/implemented/2026-10-18-proactive-face.md)。近月 personal agent（Claude/Lindy/Muse/dots/ChatGPT Scheduled 等）"主动性"的 UX 机制：触发/送达/开关对象/找人接缝，跨家共性六条、已知失败形态、10-12→10-18 增量刷新与未能证实清单
