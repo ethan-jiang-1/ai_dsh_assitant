@@ -2,46 +2,46 @@
  * Browser half of the plugin: the entry that assembles the split client modules and
  * submits them as one client-module registration.
  *
- * Format constraint (learned the hard way, 2026-09-24, two rounds): the web shell
- * concatenates client bundles into classic-script combos. One `import`/`export` statement
- * in the SERVED BUNDLE is a parse error there — including the `export {};` module marker —
- * and one bad statement kills every later registration in the same combo. Since S2
- * (261007 bigfile-split) the source is deliberately multi-module (relative imports only)
- * and tsdown inlines the whole `src/client` tree into the single classic script this entry
- * compiles to (`lib/client/index.js`) — the constraint moved from "no imports in the
- * source" to "no bare-runtime imports" (every runtime dependency still comes through the
- * factory's module-table require, see runtime.ts; vendor contract types are mirrored
- * structurally in contracts.ts). The surface is submitted through the stable page-global
- * facade `__ModuleLoader__.load` (queue mode before the module system boots). The
+ * Format constraint (learned the hard way): the web shell concatenates client bundles into
+ * classic-script combos. One `import`/`export` statement in the SERVED BUNDLE is a parse error
+ * there — including the `export {};` module marker — and one bad statement kills every later
+ * registration in the same combo. The source is deliberately multi-module (relative imports
+ * only) and tsdown inlines the whole `src/client` tree into the single classic script this
+ * entry compiles to (`lib/client/index.js`), so the constraint is "no bare-runtime imports",
+ * not "no imports in the source": every runtime dependency still comes through the factory's
+ * module-table require (see runtime.ts; vendor contract types are mirrored structurally in
+ * contracts.ts). The surface is submitted through the stable page-global facade
+ * `__ModuleLoader__.load` (queue mode before the module system boots). The
  * emitted bundle is gated by scripts/checks/verify.mjs (clientScriptSafetyProblems).
  *
  * Module map: `chrome/` (contracts, runtime, theme, dom/format/locales, brand, commands,
- * dashboard, first-mile, approve mount) / `rooms/` (room-data store/io/actions, panels, tabs,
- * skills, viki, receipt, message action, drawer) / `desk/` (arms, return state machine, messages,
- * settle refresh, view actions) / `projection/` (download reader, v1/v2 normalization, view
- * store, panel, lifecycle) / `proactive/` (suggestions and catalog source) / `local-state`
- * (per-tab persistence) — this entry owns the facade registration, `apply` seat wiring,
- * plugin-fiber effects, and the dependency list.
+ * dashboard, first-mile, approve mount, default panel selection) / `rooms/` (room-data
+ * store/io/actions, session settle refresh, panels, tab definitions and bodies, skills, viki,
+ * receipt, message action, drawer) / `desk/` (arms, session capture statuses, return state
+ * machine, messages, processing settle observer, view actions) / `projection/` (download
+ * reader, v1/v2 normalization, view store, panel, lifecycle) / `proactive/` (suggestion rows
+ * and handlers, catalog source) / `local-state` (per-tab persistence) — this entry owns the
+ * facade registration, the seat and command registrations inside `apply`, and the dependency
+ * wiring between them (store mounts, the arms, the suggestion handlers).
  *
  * @module dsh-smart-assistant/client
  */
 
 import type { ClientContext, ClientRequire, CommandUiRegistry, ModuleLoaderFacade } from './chrome/contracts'
 import { mountApproveRemote } from './chrome/approve-mount'
-import { getDeskStore, initDeskStore } from './rooms/room-data-core'
+import { initDeskStore } from './rooms/room-data-core'
 import type { DeskStore } from './rooms/room-data-core'
-import { bindDeskEnv, loadDesk, loadDeskFor, newestSessionId, openBeside } from './rooms/room-data-io'
+import { bindDeskEnv, loadDesk, newestSessionId, openBeside } from './rooms/room-data-io'
+import { mountSessionSettleRefresh } from './rooms/room-settle-refresh'
 import { AssistantBrandMark, AssistantBrandName, AssistantHeroMark } from './chrome/brand'
 import { deskCommands, roomCommands } from './chrome/commands'
 import { createDeskActivityHandoff } from './desk/desk-view-actions'
+import { mountSessionCaptureStatuses } from './desk/desk-capture-status'
 import { DashboardMainPanel, DashboardPanelIcon } from './chrome/dashboard'
 import { ApprovalDockBanner, FirstMileDock } from './chrome/first-mile'
-import { KnowledgeTabBody, MemoryTabBody, SkillsTabBody, VikiTabBody, roomTabTitle } from './rooms/room-tabs'
-import { KnowledgeIcon, MemoryIcon } from './rooms/panels'
-import { SkillsIcon } from './rooms/skills-panel'
+import { roomTabTitle, roomTabs } from './rooms/room-tabs'
 import { RememberAction } from './rooms/message-action'
 import { createElement } from './chrome/runtime'
-import { VikiIcon } from './rooms/viki-panel'
 import { bindVikiEnv } from './rooms/viki-data-io'
 import { bindClientRequire, clientRequire } from './chrome/runtime'
 import { ensureThemeVars } from './chrome/theme'
@@ -49,11 +49,12 @@ import { ProjectionPanel } from './projection/projection-panel'
 import { mountProjectionReader } from './projection/projection-lifecycle'
 import type { ProjectionDownload } from './projection/projection-reader'
 import { createProjectionViewStore } from './projection/projection-view'
-import type { CaptureStatus, DeskPath } from './desk/desk-process'
+import type { DeskPath } from './desk/desk-process'
 import { createDeskArms } from './desk/desk-arms'
 import { createProactiveCatalogSource, type ProactiveCatalogState, type ProactiveRemoteLike } from './proactive/proactive-face-source'
-import { forgetAcceptedWatch, forgetPendingWatch, PROACTIVE_SUGGESTIONS, rememberPendingWatch, type ProactiveUiState } from './proactive/proactive-face'
-import { readProactiveUi, readSeenRunning, writeProactiveUi, writeSeenRunning } from './local-state'
+import { createProactiveHandlers } from './proactive/proactive-handlers'
+import type { ProactiveUiState } from './proactive/proactive-face'
+import { readProactiveUi } from './local-state'
 import { selectDashboardByDefault } from './chrome/default-panel-selection'
 import { en as firstMileEn, zh as firstMileZh } from './chrome/locales'
 
@@ -111,36 +112,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       baseURI: document.baseURI, origin: location.origin, fetch: globalThis.fetch.bind(globalThis),
     })
     const viewStore = projection === undefined || storeApi === undefined ? undefined : createProjectionViewStore(storeApi.defineStore)
-    // 片 1b: the platform's per-session status, mirrored into a snapshot store so the desk panel
-    // can read it through a selector hook like the projection. The desk owns no copy of "whose
-    // turn it is" — it re-reads the platform's own answer, which is what makes it survive a reload.
-    // The injected face types `pendingInteraction` as `unknown` (it is a declaration-merged
-    // domain value), so the shape is re-narrowed once, here, instead of being guessed at each
-    // read. `completionUnread` is not in the injected type at all; it is read structurally.
-    const toCaptureStatus = (value: { readonly running?: boolean, readonly pendingInteraction?: unknown }): CaptureStatus => {
-      const pending = value.pendingInteraction as { readonly kind?: unknown } | null | undefined
-      const completionUnread = (value as { readonly completionUnread?: boolean }).completionUnread
-      return {
-        ...(value.running === undefined ? {} : { running: value.running }),
-        ...(pending === undefined || pending === null ? {} : { pendingInteraction: typeof pending.kind === 'string' ? { kind: pending.kind } : {} }),
-        ...(completionUnread === true ? { completionUnread: true } : {}),
-      }
-    }
-    const seenRunning = readSeenRunning()
-    const readStatuses = (): ReadonlyMap<string, CaptureStatus> => new Map(
-      [...(ctx.uiSession?.sessionStatus.getSnapshot() ?? [])].map(([id, value]) => {
-        if (value.running === true && !seenRunning.has(id)) {
-          seenRunning.add(id)
-          writeSeenRunning(seenRunning)
-        }
-        return [id, { ...toCaptureStatus(value), seenRunning: seenRunning.has(id) }]
-      }),
-    )
-    const sessionStatuses = storeApi?.createSnapshotStore<ReadonlyMap<string, CaptureStatus>>(readStatuses())
-    if (sessionStatuses !== undefined && ctx.uiSession !== undefined) {
-      const status = ctx.uiSession.sessionStatus
-      ctx.effect(() => status.subscribe(() => { sessionStatuses.set(readStatuses()) }))
-    }
+    const sessionStatuses = mountSessionCaptureStatuses(ctx, storeApi)
     // 片 1 (261018 proactive): the schedule catalog bridge. Wiring verdict (stage-0, three
     // binary-search rounds): the `'remote.schedule'` subface inject works ONLY together with
     // the `"@deepseek-ai/dsh-schedule"` peer declaration (vendor ui-schedule is wired the same
@@ -153,54 +125,6 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       ctx.effect(() => source.subscribe(() => { proactiveCatalog.set(source.getSnapshot()) }))
     }
     const proactiveUi = storeApi?.createSnapshotStore<ProactiveUiState>(readProactiveUi())
-    const suggestName = (id: string): string | undefined => PROACTIVE_SUGGESTIONS.find(suggestion => suggestion.id === id)?.name
-    const onSuggestAction = async (kind: 'trial' | 'watch', id: string): Promise<void> => {
-      // A watch acceptance is remembered by its DELIVERY SESSION (261019 片 4): the model builds
-      // the schedule while serving that session, and the catalog reports the receiving session,
-      // so the pending acceptance can be reconciled without guessing a model-built title.
-      const isRetry = id.startsWith('retry:')
-      const name = suggestName(id) ?? (isRetry ? id.slice('retry:'.length) : undefined)
-      if (name === undefined) return
-      if (kind === 'trial') {
-        void arms.captureFromDesk(
-          `先试跑一次「${name}」：现在就按这个口径替我看一遍——真读真判断、不建排程、不写账本，看完用一句话说结论，并说明想停的时候怎么说。`,
-          { lane: 'action', label: `先试跑「${name}」` },
-        )
-        return
-      }
-      const sessionId = await arms.captureFromDesk(
-        `替我盯上「${name}」：按既有技能替我建对应的排程（title 用本人看得懂的话），建完同回合回一句盯守口径，并说明不想收的时候怎么说一声就停。`,
-        { lane: 'action', label: isRetry ? `再试一次「${name}」` : `替你盯上「${name}」` },
-      )
-      if (sessionId !== undefined && proactiveUi !== undefined) {
-        const next = rememberPendingWatch(proactiveUi.getSnapshot(), { id, name, at: new Date().toISOString(), sessionId })
-        proactiveUi.set(next)
-        writeProactiveUi(next)
-      }
-    }
-    const onSuggestDismiss = (id: string): void => {
-      if (proactiveUi === undefined) return
-      const current = proactiveUi.getSnapshot()
-      const next: ProactiveUiState = { ...current, ignored: [...current.ignored, id] }
-      proactiveUi.set(next)
-      writeProactiveUi(next)
-    }
-    // The Q5 row's 忽略 (261019): forget a failed acceptance by title/name. Without this the row
-    // was permanent — the only action (retry) appended another acceptance for the same title.
-    const onWatchForget = (title: string): void => {
-      if (proactiveUi === undefined) return
-      const next = forgetPendingWatch(forgetAcceptedWatch(proactiveUi.getSnapshot(), title), title)
-      proactiveUi.set(next)
-      writeProactiveUi(next)
-    }
-    // The suggestion block's collapse (261019): client-local, default expanded, persisted so a
-    // principal who finds it heavy does not have to collapse it on every visit.
-    const onSuggestCollapse = (collapsed: boolean): void => {
-      if (proactiveUi === undefined) return
-      const next: ProactiveUiState = { ...proactiveUi.getSnapshot(), collapsed }
-      proactiveUi.set(next)
-      writeProactiveUi(next)
-    }
     // The explicit processing path (K3 slice F): one bound matter + processing session. The
     // path is in-memory by design — a reload reads the authoritative projection first and
     // never replays a path or re-submits. The slot store survives panel switches, so the
@@ -232,6 +156,9 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     })
 
     arms.subscribe()
+    // The suggestion block's handlers ride the arms' capture lane and the proactive UI store
+    // (the prompts and labels live in proactive-handlers.ts).
+    const { onSuggestAction, onSuggestDismiss, onWatchForget, onSuggestCollapse } = createProactiveHandlers({ arms, proactiveUi })
     ctx.slots.inject('main', () => {
       const registration = ctx.slots.register({
         name: 'main',
@@ -271,43 +198,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // One load feeds all three rooms; the store notifies them as it settles.
     loadDesk()
 
-    // Follow the conversation: when the newest Session settles a turn, re-read the desk file AND
-    // the operating projection after a short settle delay. A refresh the assistant performed
-    // during that turn then lands on its own — the principal should not have to click to see what
-    // changed. The projection half is the K4 processing readback (2026-10-10, desk-process-e2e
-    // probe): without it the receipt committed by the processing turn never re-enters the client,
-    // judgeReturn stays on 'receipt-not-read-back', and the auto-return to the desk never fires.
-    // Room-data refresh also serves headless apply contexts, which may not expose effect. Keep
-    // their historical direct subscription; browser Client fibers own teardown when available.
-    const store = ctx.sessions?.list as { getSnapshot: () => unknown, subscribe: (fn: () => void) => () => void } | undefined
-    if (store !== undefined) {
-      const installSessionRefresh = (): (() => void) => {
-        let lastStamp = 0
-        let pending: ReturnType<typeof setTimeout> | undefined
-        const unsubscribe = store.subscribe(() => {
-          const state = store.getSnapshot() as { ids?: string[], byId?: Record<string, { updatedAt?: number }> }
-          const ids = state?.ids ?? []
-          const byId = state?.byId ?? {}
-          const newest = ids.reduce((max, id) => Math.max(max, Number(byId[id]?.updatedAt ?? 0)), 0)
-          if (newest === lastStamp) return
-          lastStamp = newest
-          if (pending !== undefined) clearTimeout(pending)
-          // R11: refresh every bound session's own desk; with no bound tab, walk the newest five.
-          pending = setTimeout(() => {
-            pending = undefined
-            if (getDeskStore().boundSessions.size === 0) loadDesk()
-            for (const bound of getDeskStore().boundSessions) loadDeskFor(bound)
-            reader?.refresh()
-          }, 4000)
-        })
-        return () => {
-          unsubscribe()
-          if (pending !== undefined) clearTimeout(pending)
-        }
-      }
-      if (typeof ctx.effect === 'function') ctx.effect(installSessionRefresh, 'assistant-client: Session settle refresh')
-      else installSessionRefresh()
-    }
+    mountSessionSettleRefresh(ctx, reader)
 
     // The rooms live beside the conversation as right-sidebar tabs, each bound to the session
     // whose sidebar holds it — the body reads that session's workspace desk file directly, no
@@ -320,28 +211,6 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // desk is the one "桌面" — a second desk reading the old room-data copy split the principal's
     // mental model, and the live model routed business items into it. The room components stay
     // exported for their specs; deleting the session-desk subsystem is a follow-up slice.
-    const roomTabs = [
-      {
-        id: 'dsh-smart-assistant-knowledge', kind: 'knowledgeRoom', title: '知识室', body: KnowledgeTabBody,
-        description: '它凭什么这样判断：知识页、出处与待你审批的草稿',
-        icon: KnowledgeIcon, order: 11,
-      },
-      {
-        id: 'dsh-smart-assistant-memory', kind: 'memoryRoom', title: '记忆室', body: MemoryTabBody,
-        description: '它把你理解成什么：偏好、决定与事实，每条可纠错',
-        icon: MemoryIcon, order: 12,
-      },
-      {
-        id: 'dsh-smart-assistant-viki', kind: 'vikiRoom', title: 'Viki', body: VikiTabBody,
-        description: 'Viki 记忆：对话抽取了什么，逐条可读',
-        icon: VikiIcon, order: 13,
-      },
-      {
-        id: 'dsh-smart-assistant-skills', kind: 'skillsRoom', title: '技能', body: SkillsTabBody,
-        description: '它学会的手艺：逐件、用量、出处、可退役',
-        icon: SkillsIcon, order: 14,
-      },
-    ] as const
     for (const room of roomTabs) {
       ctx.sidebarRightTabs.register({
         id: room.id,

@@ -1,7 +1,8 @@
 /**
- * The rooms as right-sidebar tabs: the two-stage registration's body side (the definition +
- * guide entries are wired in the entry's apply). The session desk that used to render here is
- * retired — the ledger's global desk is the one 桌面 (2026-10-11).
+ * The rooms as right-sidebar tabs: the two-stage registration's tab definitions (ids, kinds,
+ * titles, guide copy, glyphs) and body side — the registration loop is wired in the entry's
+ * apply. The session desk that used to render here is retired — the ledger's global desk is the
+ * one 桌面 (2026-10-11).
  *
  * Each body is bound to the session whose sidebar holds it (the session-standard `sessionId`
  * prop), renders its OWN slice — never the shared walk view — and carries the loading, error
@@ -16,9 +17,9 @@ import { loadDeskFor } from './room-data-io'
 import { muted } from '../chrome/dom-utils'
 import { createElement, reactSurface } from '../chrome/runtime'
 import { MARK_TEAL } from '../chrome/theme'
-import { KnowledgePanel, MemoryPanel } from './panels'
-import { VikiPanel } from './viki-panel'
-import { SkillsPanel } from './skills-panel'
+import { KnowledgeIcon, KnowledgePanel, MemoryIcon, MemoryPanel } from './panels'
+import { VikiIcon, VikiPanel } from './viki-panel'
+import { SkillsIcon, SkillsPanel } from './skills-panel'
 
 /** Props a right-sidebar tab body receives (structural mirror of the session-scoped seat). */
 export interface TabBodyProps {
@@ -131,3 +132,30 @@ export function SkillsTabBody(props: TabBodyProps): ReturnType<typeof createElem
 export function VikiTabBody(_props: TabBodyProps): ReturnType<typeof createElement> {
   return roomScroller(createElement(VikiPanel as unknown as import('react').FunctionComponent<Record<string, never>>, {}))
 }
+
+/**
+ * The rooms as right-sidebar tab definitions: id, kind, title, guide copy and glyph for the
+ * two-stage registration (the registration loop is wired in the entry's apply).
+ */
+export const roomTabs = [
+  {
+    id: 'dsh-smart-assistant-knowledge', kind: 'knowledgeRoom', title: '知识室', body: KnowledgeTabBody,
+    description: '它凭什么这样判断：知识页、出处与待你审批的草稿',
+    icon: KnowledgeIcon, order: 11,
+  },
+  {
+    id: 'dsh-smart-assistant-memory', kind: 'memoryRoom', title: '记忆室', body: MemoryTabBody,
+    description: '它把你理解成什么：偏好、决定与事实，每条可纠错',
+    icon: MemoryIcon, order: 12,
+  },
+  {
+    id: 'dsh-smart-assistant-viki', kind: 'vikiRoom', title: 'Viki', body: VikiTabBody,
+    description: 'Viki 记忆：对话抽取了什么，逐条可读',
+    icon: VikiIcon, order: 13,
+  },
+  {
+    id: 'dsh-smart-assistant-skills', kind: 'skillsRoom', title: '技能', body: SkillsTabBody,
+    description: '它学会的手艺：逐件、用量、出处、可退役',
+    icon: SkillsIcon, order: 14,
+  },
+] as const

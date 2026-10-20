@@ -140,12 +140,20 @@ export function collectCatalog(root = repoRoot) {
   const pin = pinnedTagFrom(upstream)
   if (pin === undefined) throw new Error('gen-catalog: vendor/UPSTREAM.md carries no pinned tag row')
   const clientDir = join(root, 'packages', 'dsh-smart-assistant', 'src', 'client')
-  // S2 (261007 bigfile-split): the client is multi-module; the seat/tab/command surface is read
-  // across ALL modules (the entry owns the seat wiring, commands.ts owns the command rows), so a
-  // moved registration must keep the catalog honest instead of silently thinning it.
+  // The client face is multi-module across grouped subdirectories (chrome/rooms/desk/projection/
+  // proactive); the seat/tab/command surface is read across the WHOLE tree — the entry owns the
+  // seat wiring, commands.ts owns the command rows — so a moved registration must keep the
+  // catalog honest instead of silently thinning it.
+  const clientFiles = []
+  const walkClientTree = dir => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      if (entry.isDirectory()) walkClientTree(join(dir, entry.name))
+      else if (entry.name.endsWith('.ts')) clientFiles.push(join(dir, entry.name))
+    }
+  }
+  walkClientTree(clientDir)
   const clientSource = pkg.dsh?.client !== undefined
-    ? readdirSync(clientDir).filter(name => name.endsWith('.ts')).sort()
-        .map(name => readFileSync(join(clientDir, name), 'utf8')).join('\n')
+    ? clientFiles.sort().map(path => read(path)).join('\n')
     : undefined
   const clientSurface = clientSource !== undefined ? extractClientSurface(clientSource) : undefined
   return {
