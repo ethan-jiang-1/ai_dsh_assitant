@@ -21,6 +21,7 @@
     "eval:continuity": "node dev/eval/continuity-run.mjs",
     "ov-trial-rt": "node dev/experiments/openviking/ov-rt.mjs",
     "typecheck": "pnpm --filter dsh-smart-assistant run typecheck",
+    "clean": "pnpm --filter dsh-smart-assistant run clean",
     "build": "pnpm --filter dsh-smart-assistant run build",
     "test": "pnpm build && pnpm --filter dsh-smart-assistant run test",
     "test:domain": "pnpm --filter dsh-smart-assistant exec vitest run tests/domain",

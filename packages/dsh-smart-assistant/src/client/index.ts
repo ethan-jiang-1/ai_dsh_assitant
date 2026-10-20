@@ -28,26 +28,21 @@
 
 import type { ClientContext, ClientRequire, CommandUiRegistry, ModuleLoaderFacade } from './chrome/contracts'
 import { mountApproveRemote } from './chrome/approve-mount'
-import {
-  deskSlice, expirePending, getDeskStore, initDeskStore, looksLikeDesk,
-  settlePending,
-} from './rooms/room-data-core'
+import { getDeskStore, initDeskStore } from './rooms/room-data-core'
 import type { DeskStore } from './rooms/room-data-core'
-import { bindDeskEnv, loadDesk, loadDeskFor, loadSkillBody, newestSessionId, openBeside } from './rooms/room-data-io'
-import { approveKnowledgePage, correctMemory, deprecateKnowledgePage, retireMemory, retireSkill } from './rooms/room-data-actions'
-import { ReceiptView, markReceiptRead, readReceiptSince, resetReceiptBaseline } from './rooms/receipt-view'
+import { bindDeskEnv, loadDesk, loadDeskFor, newestSessionId, openBeside } from './rooms/room-data-io'
 import { AssistantBrandMark, AssistantBrandName, AssistantHeroMark } from './chrome/brand'
 import { deskCommands, roomCommands } from './chrome/commands'
 import { createDeskActivityHandoff } from './desk/desk-view-actions'
 import { DashboardMainPanel, DashboardPanelIcon } from './chrome/dashboard'
 import { ApprovalDockBanner, FirstMileDock } from './chrome/first-mile'
 import { KnowledgeTabBody, MemoryTabBody, SkillsTabBody, VikiTabBody, roomTabTitle } from './rooms/room-tabs'
-import { KnowledgeIcon, KnowledgePanel, MemoryIcon, MemoryPanel } from './rooms/panels'
-import { SkillsIcon, SkillsPanel } from './rooms/skills-panel'
+import { KnowledgeIcon, MemoryIcon } from './rooms/panels'
+import { SkillsIcon } from './rooms/skills-panel'
 import { RememberAction } from './rooms/message-action'
 import { createElement } from './chrome/runtime'
-import { VikiIcon, VikiPanel } from './rooms/viki-panel'
-import { bindVikiEnv, deleteViki, getVikiView, loadViki, loadVikiBody, referencesViki, resetVikiView, restoreViki, useVikiView } from './rooms/viki-data-io'
+import { VikiIcon } from './rooms/viki-panel'
+import { bindVikiEnv } from './rooms/viki-data-io'
 import { bindClientRequire, clientRequire } from './chrome/runtime'
 import { ensureThemeVars } from './chrome/theme'
 import { ProjectionPanel } from './projection/projection-panel'
@@ -439,18 +434,11 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
 
   }
 
-  // The occupants, the two room panels, and the shared store are exposed for tests: the store is
-  // the panels' only input, so a test that fills it can render every section without a browser.
-  // `roomCommands` is exposed the same way — its contributions are pure values, so a test can
-  // assert names, copy, and the room each one opens without a browser context. The first-mile
-  // components are exposed because their copy and their button are the deliverable.
+  // The serving interface is intentionally small. Component/function coverage lives in
+  // `tests/support/client-surface.ts`, which re-exports the same module instances; only the live
+  // desk store stays here because it is created per materialization.
   return {
-    inject, apply, AssistantBrandMark, AssistantBrandName,
-    KnowledgePanel, MemoryPanel, deskStore, deskSlice,
-    DashboardPanelIcon, DashboardMainPanel, KnowledgeTabBody, MemoryTabBody, VikiTabBody, VikiPanel, SkillsPanel, RememberAction, bindDeskEnv, bindVikiEnv, deleteViki, getVikiView, loadSkillBody, loadViki, loadVikiBody, referencesViki, resetVikiView, restoreViki, useVikiView, roomTabTitle,
-    roomCommands, AssistantHeroMark, FirstMileDock, ApprovalDockBanner, expirePending, settlePending, loadDeskFor, looksLikeDesk,
-    approveKnowledgePage, deprecateKnowledgePage, correctMemory, retireMemory, retireSkill,
-    ReceiptView, markReceiptRead, readReceiptSince, resetReceiptBaseline,
+    inject, apply, deskStore,
   }
 }
 

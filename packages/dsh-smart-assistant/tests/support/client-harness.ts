@@ -9,6 +9,7 @@
 import { createElement } from 'react'
 import { vi } from 'vitest'
 import { createSnapshotStore, defineStore } from '../../../../vendor/dsh/packages/client/store/lib/types/index.js'
+import * as clientTestSurface from './client-surface.ts'
 
 /** One bundle registration as it arrives through the page-global facade. */
 export interface ClientRegistration {
@@ -53,11 +54,16 @@ export function materializeClient(
   registration: ClientRegistration,
   react: unknown,
 ): Record<string, unknown> {
-  return registration.factory((spec) => {
-    if (spec === 'react') return react
-    if (spec === '@deepseek-ai/dsh-client-store') return { createSnapshotStore, defineStore }
-    throw new Error(`unexpected module-table require: ${spec}`)
-  })
+  return {
+    // The test-only surface stays out of the serving entry; the factory still supplies inject/apply
+    // and the live desk store, and binding happens before any component is called.
+    ...clientTestSurface,
+    ...registration.factory((spec) => {
+      if (spec === 'react') return react
+      if (spec === '@deepseek-ai/dsh-client-store') return { createSnapshotStore, defineStore }
+      throw new Error(`unexpected module-table require: ${spec}`)
+    }),
+  }
 }
 
 /**

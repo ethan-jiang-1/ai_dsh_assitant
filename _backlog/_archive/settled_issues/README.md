@@ -6,6 +6,7 @@
 
 | 卡 | 关闭日 | 判定 |
 |---|---|---|
+| [261020-housekeeping-closure.md](261020-housekeeping-closure.md) | 2026-10-20 | **做现在·S1–S5 全交付**：真相对齐（包 README/docs/YAML、catalog 连字符、composition 整层、`pnpm test` 先 build、preflight 真解析）、证据主轴（visibleText 20000/capturedAt/截图/--eval 硬失败）、测试接缝（四工具 execute + 三条真 wiring + drawer 诚实化）、结构归位（client 五组、local-state、host service.ts、route 核入目录）、上下文清理（implemented 只留决定 + note 证据门）。收尾 `typecheck` 0 / `test` 103 文件 846 测试 / `test:composition` 7 文件 50 测试 / `verify` 43 项 / 隔离 home `web-expected` PASS。**去向**：[决定 note](../../../notes/implemented/2026-10-20-housekeeping-campaign.md)；没做的取舍（client 测试面、web-expected 常驻门、第三场景）住卡内「外部剩余」 |
 | [261019-self-update-lanes.md](261019-self-update-lanes.md) | 2026-10-20 | **做现在·A/B/C 全交付**：A1a/A2/A3 真机验（知识室正文、批准 9→8 + 审批账、收据/已读）、A1b 探针 PASS、B1/B2/B3/B4 脚本与宿主/客户端 spec、C1/C2 host/panel spec；`pnpm test` 812、`pnpm verify` 42、`web-expected` 两场景 PASS、`pnpm eval` 7/7。**外部剩余**：右栏 `rightbar.session` seat 的 vendor 渲染条件（浏览器 tab 盲区）；B4 真数据另一工作区（本人执行）。**去向**：campaign close note |
 | [261019-viki-content-governance.md](261019-viki-content-governance.md) | 2026-10-20 | **做现在·B1/B2/B3 交付 + B4 脚本**：`assistant-viki` B1 只读、B2 带 snapshot 删/恢复、B3 人工并排；12 条宿主 spec；B4 dry-run/apply 脚本与试跑；真数据本人。**外部剩余**：右栏浏览器 seat（vendor）。去向同 A 卡 |
 | [261019-learned-skills-surface.md](261019-learned-skills-surface.md) | 2026-10-20 | **做现在·C1/C2 交付**：技能 tab（出处/用量/正文/退役）+ assistant 消息「记下来」；host/panel spec；右栏 `skillsRoom` 同一 vendor seat 盲区。去向同 A 卡 |

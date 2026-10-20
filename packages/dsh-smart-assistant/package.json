@@ -101,6 +101,7 @@
     "README.md"
   ],
   "scripts": {
+    "clean": "rm -rf lib tsconfig.tsbuildinfo",
     "build": "tsc -b tsconfig.json && tsdown",
     "typecheck": "tsc -b tsconfig.json && tsc -p tsconfig.test.json",
     "test": "vitest run"
