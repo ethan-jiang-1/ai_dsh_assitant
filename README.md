@@ -43,14 +43,14 @@
 
 ## working folder 有四个房间
 
-| 房间 | 放什么 | 出口 |
-|---|---|---|
-| `memory/` | 已确立的事实 / 偏好 / 决定 | 被取代或退役 → `archive/` |
-| `research/` | **意图还不清晰的探索**（backlog） | `promote`（成立 → 记忆/技能/知识页）/ `drop`（不成立 → 归档并**必写理由**）；`park` 是房内挂起，不是出口 |
-| `skills/` | 学到的本事（DSH 技能格式） | 按需加载；退役 → `archive/`（不删可恢复）；提案车道 `propose_skill` → 人审 → `land_skill`，另有 `save_skill` 直接写入，详见 [当前契约](docs/home.md) §二（技能怎么提案） |
-| `knowledge/` | 领域知识页（概念/实体/来源，`[[互链]]`，OKF 字段子集） | `draft`（不进检索）→ 人审 `stable`；`deprecated` 留原地（链接不断） |
+| 房间 | 放什么 |
+|---|---|
+| `memory/` | 已确立的事实 / 偏好 / 决定 |
+| `research/` | 意图还不清晰的探索（backlog） |
+| `skills/` | 学到的本事（DSH 技能格式） |
+| `knowledge/` | 领域知识页（概念/实体/来源，`[[互链]]`） |
 
-（四房间的路径、生命周期与出口的**合同** = [`docs/home.md`](docs/home.md) §一/§二；本表只做产品概览。）
+（四房间的路径、生命周期、**出口与提案车道的合同** = [`docs/home.md`](docs/home.md) §一/§二；本表只做产品概览，不复制合同内容。）
 
 **桌面与抽屉**：常驻上下文 = 身份（SOUL.md）+ 手册 + 一份**有界摘要**（精选记忆 + 开放线索 +
 知识签树）+ 经营账本段；完整记录、归档、技能正文都在抽屉里，用工具取。过程性知识（怎么写记忆、怎么养护、怎么复盘）
@@ -96,7 +96,7 @@ dsh plugin --profile <p> add file:./packages/dsh-smart-assistant   # <p>＝你�
 | 某次会话为什么答成这样 | [docs/dev.md](docs/dev.md) §六「逐事件复盘」行（过滤样例：[repo-live-probe](.agents/skills/repo-live-probe/SKILL.md)）；聚合视图 `pnpm usage` / `pnpm desk-loop` |
 | 我要改 X，最小验证是什么、回归资产在哪 | [docs/testing.md](docs/testing.md) §一页证据地图（唯一表主）；判断细则与假绿清单在 [.agents/skills/pre-push-evidence/](.agents/skills/pre-push-evidence/SKILL.md) |
 | 改了为什么不生效 | [docs/dev.md](docs/dev.md) §四 三条纪律（build / preset 代际 / pin） |
-| 这个决定为什么这么定 | 先查 `docs/` 对应合同（理由多已内联）；再按关键词搜 `notes/`（`grep -ril '<关键词>' notes/`；负知识在 `notes/rejected/`；怎么读见 [notes/README.md](notes/README.md)） |
+| 这个决定为什么这么定 | 先查 `docs/` 对应合同（理由多已内联）；再按关键词搜 `notes/`（`grep -ril '<关键词>' notes/`；负知识在 `notes/rejected/`；怎么读见 [notes/README.md](notes/README.md)）；**方向类推敲史**在 `_backlog/_archive/settled_issues/` 与 `_backlog/research/`（同法按关键词 grep） |
 
 运行数据的 `DSH_HOME`、助手 `dataDir` 与源码 cwd 是三个不同根，详见 [开发手册](docs/dev.md)。
 

@@ -103,7 +103,6 @@ pnpm --dir vendor/dsh run build:web       # 只有跑 Web UI 才需要（前端 
 本节拥有表上各命令的**深判据**（能证明什么/口径/坑），并收**表上没有的行**——清单一份、判据一层，两处各持一份清单必然漂移：
 
 ```sh
-pnpm ov-trial-rt            # OpenViking 试点第 5/6 步驱动：server 级记忆往返 + 抽取质量抽评（建会话→塞哨兵语料→commit→等抽取→找回→读抽取物；前提 server 在 127.0.0.1:1933）
 pnpm test:composition       # 先 pnpm build，再跑 tests/composition 全 7 个 spec
 pnpm test:domain / pnpm test:host / pnpm test:agent / pnpm test:client / pnpm test:tooling   # 层入口：只跑对应 tests/<layer>（各层能/不能证明什么见 docs/testing.md 分层表）
 ```
@@ -126,7 +125,7 @@ server 缺席/未装/起不来一律 warn 后 `exit 0`，`pnpm start` 照常交�
 **`pnpm eval:domain` 证明什么**：`pnpm eval` 守的是机械地板（技能有没有按名加载、文件有没有真写、该不该动保留项），
 它判不了"这个答案对公司对不对"。领域评测集补这一层：**题目由本人出**（真实经营问题），工具逐题跑一次真实 preset
 会话，把答案原文 + 机器观测（查了哪些房间、加载了哪些技能、耗时、会话 id）落成一份打分表；质量按
-[TEMPLATE.md](../dev/eval/domain/TEMPLATE.md) 里预先定死的四维规则由人打分，G2 判据也先定死。填题副本默认落在 `dev/eval/domain/` 下的 `questions.local.md`（**已被 .gitignore 排除**——真实经营问题不进 Git）。解析器自带 `--self-check`
+[TEMPLATE.md](../dev/eval/domain/TEMPLATE.md) 里预先定死的四维规则由人打分，机器预评判例的判据也先定死。填题副本默认落在 `dev/eval/domain/` 下的 `questions.local.md`（**已被 .gitignore 排除**——真实经营问题不进 Git）。解析器自带 `--self-check`
 并进 `pnpm verify`。
 
 **`pnpm desk-loop` 证明什么**：它把"这东西用起来到底别扭在哪"从**会话日志**里读出来（分类读日志的
@@ -203,11 +202,11 @@ DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得
 | preset 遮蔽 | 同名 preset 行后到者覆盖（registry 不扫目录，没有 roots 先后） | 组合顺序决定；dev 的 registry 只改 `default` |
 | Web 开屏 `resume failed` | 残留的旧 dev web 进程仍持有空白 seed 会话的跨进程写锁（`session.lock` 是 flock 目标，进程死即释放）；web 客户端开屏按 workspace 最新会话自动恢复空白会话，新实例撞锁 | 起新例前 `lsof -iTCP -sTCP:LISTEN -P` 找本仓 cwd 的残留 node 并 kill；锁随进程死亡自动释放，勿手删 |
 | build 半途失败留下混合 vendor lib | `tsc -b` 会先重建 references 里的 vendor 引用项目；若本包类型错让 build 中断，vendor lib 停在混合态（症状举例：组合测试全行 `never started`、裸 node 加载 vendor llm 报 `Cannot find module '../package.json'`——llm attribution 经 tsc outDir 后 manifest 不可达） | 修复 = `pnpm repair-vendor`（内建 llm attribution fixup）；build 报错先修错、再重跑 build 至绿，不留半途态 |
-| `web_fetch` 全拒 `non-public IP` | 本机 TUN 代理的 **fake-ip DNS** 把所有域名解析到 198.18.0.0/15 保留段；`web-fetch-http` 的 SSRF 防护只对**直连** hop 做本机解析检查（走代理的 hop 由代理远端解析、**跳过检查**，`web-fetch-http/src/network.ts` 明文）；DSH 只认 env / home `.env` 的 `HTTP(S)_PROXY`——**系统代理（scutil）它不读**，无 env 时一切直连 ⇒ 全灭 | **不用手配**：启动器 `dev/env/dsh.mjs` 条件注入——探测本地代理口（`ASSISTANT_PROXY_URL` 显式指定＞scutil 系统代理口＞默认混合口 7897），活着才注入 `HTTP(S)_PROXY`、死了直连（**有没有 VPN 都能跑**；显式导出过的 env 不被覆盖，`ASSISTANT_PROXY_URL=""` 可禁用）。 |
+| `web_fetch` 全拒 `non-public IP` | 两件事叠加：① 本机 TUN 代理的 **fake-ip DNS** 把所有域名解析到 198.18.0.0/15 保留段；② `web-fetch-http` 的 SSRF 防护只对**直连** hop 做本机解析检查（走代理的 hop 由代理远端解析、**跳过检查**，`web-fetch-http/src/network.ts` 明文）。DSH 只认 env / home `.env` 的 `HTTP(S)_PROXY`（**系统代理 scutil 它不读**），无 env 时一切直连 ⇒ 全灭 | **不用手配**：启动器 `dev/env/dsh.mjs` 条件注入——探测本地代理口（`ASSISTANT_PROXY_URL` 显式指定＞scutil 系统代理口＞默认混合口 7897），活着才注入 `HTTP(S)_PROXY`、死了直连（**有没有 VPN 都能跑**；显式导出过的 env 不被覆盖，`ASSISTANT_PROXY_URL=""` 可禁用）。 |
 | **`pnpm typecheck` 之后必须重跑 `pnpm build`** | `typecheck` 委派的是 `tsc -b`，它把 ESM 写进 `lib/`——而 preset 行加载的 classic bundle（`lib/client/index.js`，tsdown 产物）是另一个形状，被这次重建覆盖掉 | 改过 src 的完整链是 `pnpm build` → 跑测试 →（如需）`pnpm typecheck` → **再 `pnpm build`**；漏掉收尾那步由 `pnpm verify` 的 `build:` 门禁抓（ESM 覆盖 classic bundle = 字节不同即红），起服务时 `dev/env/ensure-build.mjs` 也会先自证并补上 |
 | 链式命令吞退出码 | `pnpm build \| tail` 这类管道让 tsdown 的失败不体现在 `$?` 上（取到的是 `tail` 的），失败后 `tsc` 的 ESM 覆盖留在 `lib/client`、classic bundle 消失：`&&` 照跑、浏览器探针全灭，而源码级测试仍绿（它们不走 `lib/`） | 链命令**裸跑看 exit**，或用 `${PIPESTATUS[0]}`；「测试绿」不等于「加载物对」——而"加载物不对"这一半由上面的 `build:` 门禁兜住 |
 | **verify 的语料 = 已跟踪文件** | markdown 语料取自 `git ls-files`（`markdownCorpusFromTracked`），所以新建的 note/卡**在 `git add` 之前对门禁不存在**：里面的裸指针、断链、状态行问题一律**假绿**，一提交才红（2026-10-18：`build-freshness` note 里一条裸 note 指针就是这样过了一轮 verify） | 收尾三连**在 `git add` 之后跑**（或新文件先 `git add -N`）；报"verify 绿"时说明当时文件是否已入库 |
-| 经启动器 SIGTERM 只杀启动器 | `pnpm dsh` 是包装层（`dev/env/dsh.mjs` 再 spawn 真 CLI），杀它把真服务留成孤儿——孤儿继续持有账本的 `writer.lock`，下一轮 report/propose 全被「owned by another writer」拒 | 需要编排服务生命周期的探针**直连 vendor CLI bin**（先例：`dev/probes/web/desk-process-e2e.mjs`、release-smoke），自己拿 pid；别用启动器起、再用 pid 杀。人面的一键启动走 `dev/env/start.sh`：它用 `set -m` 把服务放自己的进程组、按组收（实测退出后端口释放、无残留进程） |
+| 经启动器 SIGTERM 只杀启动器 | `pnpm dsh` 是包装层（`dev/env/dsh.mjs` 再 spawn 真 CLI），杀它把真服务留成孤儿——孤儿继续持有账本的 `writer.lock`，下一轮 report/propose 全被「owned by another writer」拒 | 需要编排服务生命周期的探针**直连 vendor CLI bin**（先例：`dev/probes/web/desk-process-e2e.mjs`、release-smoke），自己拿 pid；别用启动器起、再用 pid 杀。人面的一键启动走 `dev/env/start.sh`：preflight 绿即**交接**——打出 URL 与 pid 后本脚本退出、服务独立存活（收掉用 `kill -TERM -- -<pid>`，负 pid 连进程组一起收）；红了不交 URL 并收掉服务 |
 | CLI 旗标顺序 | 启动器解析到第一个不认识的 token 为止：`--port` 这类 app 旗标之后的 `--patch` **不会**被透传 | `--patch`（及一切 launcher 不认识的旗标）放在 `--port`/`--no-open` **之前** |
 | cordis 属性代理对未声明 inject **直接抛** | 访问没进 `inject` 清单的服务不是返回 `undefined` 而是抛错——整个 async 体静默死掉，而 spec 里用普通对象 mock 的测试**全绿** | 用到哪个服务就进 `inject` 清单（含 `ctx.uiWorkspace` 这类客户端服务）；浏览器专属路径用真浏览器探针取证，别只信 mock |
 | 探针的完成信号与被测动作赛跑 | 自动返回/自动切换本身会把会话视图换走，等「终答文本可见」的探针与它赛跑必输（标记永远等不到） | 完成信号取**蕴含整链的后置状态**（如「桌面重新挂载」），不要取被被测动作撤掉的那个中间态 |
@@ -244,9 +243,9 @@ DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得
 走「＋ 交代新事项」进会话，真发问真等回复，JSON 判决 + 终态截图；`--ask` 会真建会话——先把目标实例起在一次性 home，探针本身不隔离 home）、
 `pnpm desk-walk '<URL>' [--home <dir>]`（处理流真机走查：首屏桌面→处理一件事→一句进展→返回不变量→交代新事，
 产出屏幕文本+截图供人判话术/层级；`--home` 才能核账本身份与「回来⇒无待确认」）、
-`pnpm projection-live [--home <dir>]`（K1/K2 live 补证：断连/重连、3 次页面重载会话不增殖、420×900 窄视口
+`pnpm projection-live [--home <dir>]`（live 补证：断连/重连、3 次页面重载会话不增殖、420×900 窄视口
 选择保留与无横向溢出、滚动位置保留；自编排共享 probe home，无模型回合）、
-`pnpm projection-selection '<URL>'`（K2 证据门：投影面板点选事项并核对详情里的 quote 与 Session/event 读回；
+`pnpm projection-selection '<URL>'`（交互证据门：投影面板点选事项并核对详情里的 quote 与 Session/event 读回；
 实例须带 `eight-matters` 夹具；无模型、无截图）、
 `pnpm observe [--home <dir>]`（输入边界 30 天观察读数：A 自发投递 / B 时长 / C 入口后的操作；
 口径、剔除规则与每周快照落 `_backlog/research/usage/`）。
@@ -262,7 +261,7 @@ DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得
 | 看配置组合 | `pnpm dsh --profile dev --dump-config` | bundle/profile/临时 patch 的行、id、disabled、realm | 运行时注册、DOM 或模型请求 |
 | 验 host 面 | `pnpm dsh --profile dev-task "one task"` | 插件装载、host 服务、working folder scaffold | preset 工具与提示词 |
 | 验 assistant preset | `pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner.patch.yml "one task"` | one-shot 挂载 preset 后的会话驱动 | 浏览器渲染 |
-| 验 Web 面 | `pnpm dsh --profile dev --port 0 --no-open` + `pnpm preflight '<URL>'` | Web boot、Remote、rooms route 可达 | DOM 期望；再跑 `pnpm web-expected` |
+| 验 Web 面 | `pnpm dsh --profile dev --port 0 --no-open` + `pnpm preflight '<URL>'` | Web boot、Remote、rooms route 可达 | DOM 期望；再跑 `pnpm web-expected --scenario <场景>`（场景必填） |
 | 验请求侧组装 | `pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner-replay.patch.yml "probe"` | keyless replay 的 system/tools/session log | 固定回复代表模型自主选择 |
 | 逐事件复盘某次会话 | `zstd -dc "$DSH_HOME/sessions/<proj>/<id>/session.v*.jsonl.zstd"`（代数在文件名里：先列目录再选；过滤样例：`.agents/skills/repo-live-probe/`） | 请求侧 system/tools 与 tool/result 逐字日志 | 不证明模型自主选择（回放车道回复是录制的） |
 

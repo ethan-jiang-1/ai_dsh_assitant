@@ -74,7 +74,7 @@ rejected 政策、命名——本文件不复制）；改行为、契约或开�
 
 ## 命令表
 
-**“启动一下这个 / 启动一下”** 在本仓库语境中默认指：一条 **`pnpm start`** —— 在本仓隔离 home 里备好并起动 `dev` Web 实例，返回可访问 URL（`dev/env/start.sh` 把下表的 ⓪①②③④ 串起来，末了自证产物与源码一致、preflight 绿了才交 URL）。不需要再追问“启动什么”，也不需要谁记着先 build、交前先 preflight。
+**“启动一下这个 / 启动一下”** 在本仓库语境中默认指：一条 **`pnpm start`** —— 在本仓隔离 home 里备好并起动 `dev` Web 实例，返回可访问 URL（`dev/env/start.sh` 把下表的 ⓪①②③④ 串起来，末了自证产物与源码一致、preflight 绿了才交 URL；**交完即交接**——脚本退出、服务独立存活，收掉用 `kill -TERM -- -<pid>`，pid 见交接横幅）。不需要再追问“启动什么”，也不需要谁记着先 build、交前先 preflight。
 
 只有用户明确点名才换入口：`dev-task` 是无 Web 的 host 装载冒烟；`--patch ...preset-runner...` 是自动化 preset 探针；`vendor/dsh` 的 `dev:web`（`pnpm --dir vendor/dsh run dev:web`）只重建客户端 bundle 产物，不是起动本插件实例——三个入口的判据见 [`docs/dev.md`](docs/dev.md) 首节「默认启动动作」。
 
@@ -107,18 +107,23 @@ pnpm gen-catalog        # 重新生成 docs/package-catalog.md（改组合行/ex
 pnpm clean              # 删 lib/（tsc 不清理已改名/删除文件的旧产物；改名后先 clean 再 build）
 pnpm build              # tsc 出 lib/ + tsdown 出 classic bundle：preset 行加载的是构建物，不是源码
                         #    （忘了它的代价由 `pnpm verify` 的 `build:` 门禁抓——判据见 docs/dev.md §二登记表；
-                        #     起服务时 dev/env/start.sh 会先自证并自动补，不必谁记着）
+                        #     起服务时 dev/env/start.sh 会先自证并自动补，不必谁记着。
+                        #     改 presets/assistant/skills/* 不需要 build，但要 touch
+                        #     packages/dsh-smart-assistant/cordis.patch.yml——preset 代际看它的 mtime+size，
+                        #     不 touch 新会话拿不到新代；机理 = docs/dev.md §四）
 pnpm preflight '<URL>'  # 开屏前门禁：证明装得上（auth/boot 图/每个 combo 可解析）；不证明渲染出来
 pnpm shots '<URL>' --dom --size 1600x1000 --name <名字>   # 渲染证据：PNG + DOM 两件（落仓内 .tmp/shots/）；`--eval` 拿交互态（机理 = docs/dev.md §四）
-pnpm web-expected '<URL>'   # web 渲染期望比对（漂移 exit 1）；重录 `--refresh`（场景契约 = snapshots/web-face/<场景>/README.md）
+pnpm web-expected '<URL>' --scenario <场景目录>   # web 渲染期望比对（场景必填——缺即列出 snapshots/web-face/ 下全部场景并退出；漂移 exit 1）；重录 `--refresh`（场景契约 = snapshots/web-face/<场景>/README.md）
 pnpm loop-probe '<URL>' --ask '<问句>'   # 首用闭环探针：真发问真等回复，JSON 判决 + 截图（`--ask` 真建会话；先把实例起在一次性 home；弧线 = docs/dev.md §四）
 pnpm desk-walk '<URL>' [--home <dir>]   # 处理流真机走查（真模型）：屏幕文本+截图供人判话术/层级（弧线与 `--home` 判据 = docs/dev.md §四）
-pnpm projection-live [--home <dir>]     # K1/K2 live 补证：断连/重连、3 次重载会话不增殖、420 窄视口、滚动位置；无模型（判据 = docs/dev.md §四）
-pnpm projection-selection '<URL>'       # K2 证据门：点选事项→详情 quote/session 读回（实例须带 eight-matters 夹具；无模型）
+pnpm projection-live [--home <dir>]     # live 补证：断连/重连、3 次重载会话不增殖、420 窄视口、滚动位置；无模型（判据 = docs/dev.md §四）
+pnpm projection-selection '<URL>'       # 交互证据门：点选事项→详情 quote/session 读回（实例须带 eight-matters 夹具；无模型）
 pnpm dsh --profile dev --dump-config   # boot-free 查组合树：行 id、disabled、realm 一目了然（什么情况用 = 下「探索路由」同名条目）
 pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner.patch.yml "<task>"   # preset 挂载的 one-shot（验证自动化驱动）
 pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner-replay.patch.yml "<task>"   # 同上但 keyless：llm-replay 回放替掉真实 adapter，无 key 出真实会话日志（形状与坑见 patch 头注）
-pnpm typecheck          # 委派包级：tsc -b（编译期 paths 解析到 vendor/dsh 的 src，API 漂移编译期暴露）+ 测试工程
+pnpm typecheck          # 委派包级：tsc -b（编译期 paths 解析到 vendor/dsh 的 src，API 漂移编译期暴露）+ 测试工程；
+                        #    跑完它记得重跑 `pnpm build`（tsc 会把 ESM 写进 lib/client 覆盖 classic bundle——
+                        #    verify 的 build: 门禁兜底，坑条 = docs/dev.md §五）
 pnpm test               # vitest 全量：分层 spec（纯核+服务合同+agent/client/composition/tooling；层命令与各层能证明什么见 docs/testing.md 分层表）
 pnpm verify             # 机械门禁链（覆盖面清单 = scripts/checks/verify.mjs）
 pnpm release-smoke      # pnpm pack → 干净 home → dsh plugin add → 组合断言（**改动发布物/依赖/preset 包装/工具面必跑**）
@@ -129,6 +134,8 @@ pnpm desk-loop          # 培养循环摩擦报告（读 dev home 会话日志�
 pnpm observe [--home <dir>]   # 输入边界 30 天观察读数（A/B/C 口径与读数档 = docs/dev.md §四）
 pnpm eval               # 行为评测：真实请求经 preset 会话，判定读会话日志（串行；详见 docs/dev.md §四）
 pnpm eval:domain        # 领域评测：本人出题逐题跑 → 人打分的报告（判据与题面格式 = dev/eval/domain/TEMPLATE.md）
+pnpm eval:continuity    # 续接行为地板：隔离 fixture 首回合读回判据（一次性 home + 种子账本 + 会话日志判据；红绿对照挂 verify；深判据 = docs/dev.md §四）
+pnpm ov-trial-rt        # OpenViking 真服务记忆往返试验：建会话→塞哨兵语料→等抽取→找回（前提 server 已在 127.0.0.1:1933，由 setup.sh 顺带拉起；判据 = docs/dev.md §四）
 ```
 
 ## 八条硬规则
@@ -190,11 +197,11 @@ pnpm eval:domain        # 领域评测：本人出题逐题跑 → 人打分的�
 - preset 语义（roster/roots/遮蔽/standing mount）：`vendor/dsh/packages/preset/agent-preset/README.md`
 - 技能 provider 契约（本 repo 依赖它）：`vendor/dsh/docs/subsystems/skills.md`
 - 从本包贡献 Web UI：机制读 `vendor/dsh/docs/subsystems/slots.md`、`vendor/dsh/docs/subsystems/web-client.md`、`vendor/dsh/docs/subsystems/sidebar-right.md`；本包的路径和验证在 [`.agents/skills/client-ui-contribution/SKILL.md`](.agents/skills/client-ui-contribution/SKILL.md)
-- Cordis 插件怎么挂：`vendor/dsh/docs/cordis-primer.md`。生命周期、并发、子进程：`vendor/dsh/docs/defensive-patterns/README.md`（0.2.1 起由单页拆成目录：general / package-surface / conversation-and-session / remote-and-api / client-components）
+- Cordis 插件怎么挂：`vendor/dsh/docs/cordis-primer.md`。生命周期、并发、子进程：`vendor/dsh/docs/defensive-patterns/README.md`（目录：general / package-surface / conversation-and-session / remote-and-api / client-components）
 - 主仓测试政策：`vendor/dsh/docs/testing.md`。本仓证据地图是 [`docs/testing.md`](docs/testing.md)，不抄主仓的 coverage、snapshot、CI 台阶
 - 客户端样式：`vendor/dsh/docs/web-styling.md`。本包色值落点在 [`packages/dsh-smart-assistant/AGENTS.md`](packages/dsh-smart-assistant/AGENTS.md)
 - 工具与卡片（`defineTool` / presenter / 日志税）：`vendor/dsh/docs/cookbook/adding-a-tool.md`
-- **"组合里到底有没有这一行"**（读源码答不了这个问题）：`pnpm dsh --profile dev --dump-config`（boot-free；
-  行 id、disabled、realm 一目了然——排查 patch 落空/重复 id 的第一命令）
+- **"组合里到底有没有这一行"**（读源码答不了这个问题）：`pnpm dsh --profile dev --dump-config`——排查 patch 落空 / 重复 id 的第一命令（boot-free；
+  输出形状见上「命令表」同名条目）
 - **"活进程里注册了什么"**：shipped `cordis` preset 自带只读 inspect 工具（`SessionInspect` 一族，见 `vendor/dsh/docs/subsystems/session.md`）；要用它就起一个不挂本仓 roster patch 的 profile——本仓 `assistant`
   preset 刻意不挂它们（那是模型可见面变更，为开发期需求不划算）
