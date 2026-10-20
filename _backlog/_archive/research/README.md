@@ -4,10 +4,14 @@
 
 | 文件 | 服务的卡 | 日期 |
 |---|---|---|
+| [positioning/261018-proactivity-synthesis.md](positioning/261018-proactivity-synthesis.md) | [主动性方向评审卡](../settled_issues/261018-proactive-direction.md) | 2026-10-18 |
+| [positioning/261018-proactive-ux-mechanics.md](positioning/261018-proactive-ux-mechanics.md) | [主动性 v1 提案](../../../notes/implemented/2026-10-18-proactive-face.md) | 2026-10-18 |
+| [positioning/261018-oss-proactivity-mechanisms.md](positioning/261018-oss-proactivity-mechanisms.md) | [主动性 v1 提案](../../../notes/implemented/2026-10-18-proactive-face.md) | 2026-10-18 |
+| [positioning/261018-proactivity-baseline.md](positioning/261018-proactivity-baseline.md) | [主动性 v1 提案](../../../notes/implemented/2026-10-18-proactive-face.md) | 2026-10-18 |
 | [self-update/261019-self-update-lanes.md](self-update/261019-self-update-lanes.md) | [A 卡](../settled_issues/261019-self-update-lanes.md)、[B 卡](../settled_issues/261019-viki-content-governance.md)、[C 卡](../settled_issues/261019-learned-skills-surface.md) | 2026-10-19 |
 | [memory-panel/261019-file-memory-panel-precedents.md](memory-panel/261019-file-memory-panel-precedents.md) | [B 卡](../settled_issues/261019-viki-content-governance.md)（外部先例） | 2026-10-19 |
 | [positioning/261005-chinese-sme-boss.md](positioning/261005-chinese-sme-boss.md) | [开屏节律](../settled_issues/261007-opening-brief-and-rhythm.md)（口语化红线）、[输入边界](../settled_issues/261007-input-boundary.md)（五谷渔粉案例） | 2026-10-05 |
-| [positioning/261008-ceo-value-contract-review.md](positioning/261008-ceo-value-contract-review.md) | [总助体验](../settled_issues/261006-chief-of-staff-experience.md)、[持续助理](../settled_issues/261008-ceo-operating-loop.md)：静态核对价值证据边界（现由 [规格卡](../../../notes/proposed/2026-10-06-desk-operating-entry.md) 作史据引用） | 2026-10-08 |
+| [positioning/261008-ceo-value-contract-review.md](positioning/261008-ceo-value-contract-review.md) | [总助体验](../settled_issues/261006-chief-of-staff-experience.md)、[持续助理](../settled_issues/261008-ceo-operating-loop.md)：静态核对价值证据边界（现由 [规格卡](../../../notes/implemented/2026-10-06-desk-operating-entry.md) 作史据引用） | 2026-10-08 |
 | [positioning/261008-ceo-value-historical-review.md](positioning/261008-ceo-value-historical-review.md) | [总助体验](../settled_issues/261006-chief-of-staff-experience.md)、[持续助理](../settled_issues/261008-ceo-operating-loop.md)：历史材料回读诊断 | 2026-10-08 |
 | [positioning/261009-ceo-operating-practices.md](positioning/261009-ceo-operating-practices.md) | [持续助理](../settled_issues/261008-ceo-operating-loop.md)：外部有界检索与正文获取限制；一手实践未核 | 2026-10-09 |
 | [tech-exploration/261009-operating-loop-feasibility.md](tech-exploration/261009-operating-loop-feasibility.md) | [持续助理](../settled_issues/261008-ceo-operating-loop.md)：静态断点、Host 候选与恢复/验收，未实施 | 2026-10-09 |
