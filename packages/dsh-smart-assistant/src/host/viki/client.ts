@@ -262,8 +262,10 @@ export class VikiClient {
 
   /** Snapshot one or more paths and return the commit id (the delete's only rollback). */
   async commit(paths: readonly string[]): Promise<string> {
-    const result = await this.request('POST', '/snapshot/commit', { paths }) as { commit_id?: unknown, commitId?: unknown } | undefined
-    const commit = typeof result?.commit_id === 'string' ? result.commit_id : typeof result?.commitId === 'string' ? result.commitId : undefined
+    // The endpoint requires `message` (CommitRequest); omitting it is a 400 before any snapshot exists.
+    // The response carries the commit as `commit_oid` (git-style oid), not `commit_id`.
+    const result = await this.request('POST', '/snapshot/commit', { message: 'dsh-smart-assistant: snapshot before change', paths }) as { commit_oid?: unknown, commit_id?: unknown, commitId?: unknown } | undefined
+    const commit = typeof result?.commit_oid === 'string' ? result.commit_oid : typeof result?.commit_id === 'string' ? result.commit_id : typeof result?.commitId === 'string' ? result.commitId : undefined
     if (commit === undefined || commit === '') throw new VikiUnavailable('snapshot/commit returned no commit id')
     return commit
   }
@@ -275,7 +277,8 @@ export class VikiClient {
 
   /** Restore a commit: forward-commit semantics; later changes after that commit may be affected. */
   async restore(commit: string): Promise<void> {
-    await this.request('POST', '/snapshot/restore', { commit_id: commit })
+    // RestoreRequest names the field `source_commit` (the commit to rebuild from), not `commit_id`.
+    await this.request('POST', '/snapshot/restore', { source_commit: commit })
   }
 
   private async request(method: string, path: string, body?: unknown): Promise<unknown> {

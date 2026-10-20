@@ -5,7 +5,7 @@ opened: 2026-10-19
 
 # 推敲：Viki 的内容面——可枚举、可读、可删、冲突并排（B 卡：P1）
 
-> 立卡：2026-10-19 ｜ 状态：已结 ｜ 类型：Feature ｜ 可关闭：是 ｜ 毕业：做现在 ｜ 结论（2026-10-20）= **B1/B2/B3/B4 脚本已结**：宿主路由 12 条 spec 全绿；右栏浏览器 seat 记 vendor 渲染盲区；B4 真数据本人执行（回执待回填）。去向 = campaign close note + 归档
+> 立卡：2026-10-19 ｜ 状态：已结 ｜ 类型：Feature ｜ 可关闭：是 ｜ 毕业：做现在 ｜ 结论（2026-10-20）= **B1/B2/B3/B4 全部收口**：宿主路由 12 条 spec 全绿；右栏浏览器 seat 记 vendor 渲染盲区；**B4 真数据已于 2026-10-20 经本人委托执行完毕**——目标是用户级存储 `~/.openviking/workspace`（"14 条" = [ov-rt.mjs](../../../dev/experiments/openviking/ov-rt.mjs) 的虚构人设哨兵语料），dry-run 28 → snapshot `99753d2` → 删 28 叶子 + 陈旧壳（含旧 peer `assistant`），终态 persona 关键词 find/recall 0 命中；回执与契约修正见 [viki-cleanup note](../../../notes/implemented/2026-10-19-viki-cleanup.md)。去向 = campaign close note + 归档
 > **依赖与自家缝：** 面板骨架沿用 A 卡（[维护面收口](261019-self-update-lanes.md)）的 A1a（共享 tab/drawer/route 形状）；但 **Viki 的宿主路由是 B 自己新增的**：`assistantViki`（`GET/POST /api/assistant/viki`，形状照 `desk-projection` 的 `ctx.connection.fetch.register`）——A 卡不拥有任何 Viki 路由，别读成"继承"。**不要**再用 `knowledge-approve-remote` 的 Typert Remote 方法做删除：那条车道今天要么修 parameter codec（见 A 卡 A2），要么走 host POST；B 的删除/恢复直接用 POST。
 > **依据：** [依据档](../research/self-update/261019-self-update-lanes.md) §5.2（实测）/§5.3（冲突判据）/§九（复审更正）；外部先例在 [先例档](../research/memory-panel/261019-file-memory-panel-precedents.md)。
 > **2026-10-19 复审重写：** 修正 Viki 存储树（抽取物在 `peers/<peer>/memories`，不是 `user/<space>/memories`）、摘要来源（`fs/attrs.memory.summary`，不是 `fs/ls.abstract`）、引用模型（没有 `key`/`supersedes`；知识 `sources` 是自由列表）、删除/恢复（`snapshot/commit` 带 `paths`；`snapshot/restore` 是 forward-commit）、配置（不硬编码 `127.0.0.1:1933`）与 B4 判据。
