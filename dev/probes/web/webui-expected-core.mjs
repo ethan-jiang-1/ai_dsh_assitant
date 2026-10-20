@@ -22,11 +22,12 @@
  * `bootEntries` is the composition surface — owned by preflight / --dump-config, not by
  * a render. Counting fields (elementCount/pageHeight/screens) move with font metrics and
  * unrelated DOM churn; the structural lists below are the actual regression surface.
- * `href` carries the per-serve port and token. `lang` reads the host locale: the locale
- * override cannot reach the first document (webui-shots.mjs header), so the field reports
- * the machine, not the product — the rendered copy (visibleText) is the evidence.
+ * `href` carries the per-serve port and token. `capturedAt` is the capture clock. `lang`
+ * reads the host locale: the locale override cannot reach the first document
+ * (webui-shots.mjs header), so the field reports the machine, not the product — the rendered
+ * copy (visibleText) is the evidence.
  */
-const IGNORED_FIELDS = new Set(['href', 'lang', 'elementCount', 'pageHeight', 'screens', 'bootEntries'])
+const IGNORED_FIELDS = new Set(['href', 'lang', 'elementCount', 'pageHeight', 'screens', 'bootEntries', 'capturedAt'])
 
 /**
  * Fields compared verbatim after normalization. `readyState` must be "complete" (a half-

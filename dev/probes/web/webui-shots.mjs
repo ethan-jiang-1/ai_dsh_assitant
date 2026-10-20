@@ -23,8 +23,8 @@
  * whichever comes first, plus a settle delay for async boot/hydration.
  *
  * What it proves: what the served UI actually renders at capture time. What it does NOT
- * prove: interaction states (menus open, tab chips clicked) — we only navigate, never
- * synthesize input; those states stay with DOM assertions.
+ * prove: arbitrary interaction states. `--eval` can synthesize the specific click/menu a
+ * snippet names, but only the state that snippet reaches; it is not a general UI driver.
  *
  * Usage:
  *   node dev/probes/web/webui-shots.mjs 'http://127.0.0.1:<port>/?token=<token>' \
@@ -351,7 +351,12 @@ for (const viewport of viewports) {
       // awaitPromise lets a snippet wait for real time (a tab to open, a turn to settle)
       // instead of the caller padding the run with throwaway evals.
       const outcome = await cdp.send('Runtime.evaluate', { expression: snippet, returnByValue: true, awaitPromise: true })
-      const detail = outcome.result?.result?.value ?? outcome.result?.exceptionDetails?.text ?? 'ok'
+      if (outcome.result?.exceptionDetails !== undefined) {
+        const details = outcome.result.exceptionDetails
+        const reason = details.exception?.description ?? details.text ?? JSON.stringify(details)
+        throw new Error(`--eval threw: ${String(reason).slice(0, 400)}`)
+      }
+      const detail = outcome.result?.result?.value ?? 'ok'
       lastEvalDetail = detail
       console.log(`  ..   eval → ${String(detail).slice(0, 120)}`)
       // Let React commit whatever the snippet triggered before the next snippet or capture.
@@ -412,7 +417,8 @@ for (const viewport of viewports) {
             readyState: document.readyState,
             bootEntries: (globalThis.__DSH_BOOT__ && globalThis.__DSH_BOOT__.entries ? globalThis.__DSH_BOOT__.entries.length : -1),
             elementCount: document.querySelectorAll('*').length,
-            visibleText: (document.body.innerText || '').slice(0, 2000),
+            capturedAt: new Date().toISOString(),
+            visibleText: (document.body.innerText || '').slice(0, 20000),
             textOutline: lines,
             controls,
           }, null, 1)

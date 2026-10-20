@@ -36,6 +36,7 @@ function evidence(overrides = {}) {
     screens: 1,
     readyState: 'complete',
     bootEntries: 67,
+    capturedAt: '2026-10-20T12:00:00.000Z',
     elementCount: 600,
     visibleText: '章鱼管家\n新会话',
     textOutline: ['span h=24: 章鱼管家', 'span h=22: 新会话'],
@@ -49,7 +50,7 @@ function evidence(overrides = {}) {
 describe('normalizeDomEvidence keeps only the compared contract', () => {
   it('drops every ignored field and keeps the compared ones', () => {
     const normalized = normalizeDomEvidence(evidence())
-    for (const dropped of ['href', 'lang', 'elementCount', 'pageHeight', 'screens', 'bootEntries']) {
+    for (const dropped of ['href', 'lang', 'elementCount', 'pageHeight', 'screens', 'bootEntries', 'capturedAt']) {
       expect(normalized).not.toHaveProperty(dropped)
     }
     expect(normalized.title).toBe('DSH 本地构建')

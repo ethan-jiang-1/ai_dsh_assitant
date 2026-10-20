@@ -110,8 +110,9 @@ pnpm build              # tsc 出 lib/ + tsdown 出 classic bundle：preset 行�
 pnpm preflight '<URL>'  # 开屏前门禁：证明装得上（auth/boot 图/每个 combo 可解析）；不证明渲染出来
 pnpm shots '<URL>' --dom --size 1600x1000 --name <名字>   # 渲染证据：PNG + DOM 两件（落仓内 .tmp/shots/）；`--eval` 拿交互态（机理 = docs/dev.md §四）
 pnpm web-expected '<URL>'   # web 渲染期望比对（漂移 exit 1）；重录 `--refresh`（场景契约 = snapshots/web-face/<场景>/README.md）
-pnpm loop-probe '<URL>' --ask '<问句>'   # 首用闭环探针：真发问真等回复，JSON 判决（`--ask` 真建会话，指向一次性 home；弧线 = docs/dev.md §四）
+pnpm loop-probe '<URL>' --ask '<问句>'   # 首用闭环探针：真发问真等回复，JSON 判决 + 截图（`--ask` 真建会话；先把实例起在一次性 home；弧线 = docs/dev.md §四）
 pnpm desk-walk '<URL>' [--home <dir>]   # 处理流真机走查（真模型）：屏幕文本+截图供人判话术/层级（弧线与 `--home` 判据 = docs/dev.md §四）
+pnpm projection-live [--home <dir>]     # K1/K2 live 补证：断连/重连、3 次重载会话不增殖、420 窄视口、滚动位置；无模型（判据 = docs/dev.md §四）
 pnpm dsh --profile dev --dump-config   # boot-free 查组合树：行 id、disabled、realm 一目了然（什么情况用 = 下「探索路由」同名条目）
 pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner.patch.yml "<task>"   # preset 挂载的 one-shot（验证自动化驱动）
 pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner-replay.patch.yml "<task>"   # 同上但 keyless：llm-replay 回放替掉真实 adapter，无 key 出真实会话日志（形状与坑见 patch 头注）

@@ -144,7 +144,9 @@ server 缺席/未装/起不来一律 warn 后 `exit 0`，`pnpm start` 照常交�
 `pnpm shots` 用 headless Chrome **经 CDP** 打开页面（headless 的 `--screenshot` 在 SSE 长连接下
 等不到 load，故不用它），带 `--dom` 时每个视口产出两件：`<name>-<WxH>.png`（给人看：审阅、前后对比）与
 `<name>-<WxH>.dom.txt`（给读文本的模型与脚本看：可见文本、带像素高度的文本大纲、交互件清单、
-boot 诊断、console 错误、失败请求）。`--eval` 在截图前执行页面 JS（开菜单、点 tab 拿交互态证据），
+boot 诊断、console 错误、失败请求；带 `capturedAt` 供与会话日志对时，比对时忽略）。`visibleText`
+是页面文本快照（上限 20000 字符），`textOutline`/`controls` 是结构化的补充面；`--eval` 在截图前执行页面 JS
+（开菜单、点 tab 拿交互态证据），**抛错即硬失败**，不会被当成成功继续拍；
 `--plain` 是主线程被占死时的兜底（只出图）。它**收 URL、不自起 web**：启动归 `dev/env/dsh.mjs`
 的双 home 守卫，截图器不重复实现它。
 
@@ -239,9 +241,11 @@ DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得
 
 **三个真机探针与输入观察（命令表上的深判据在这里）**：
 `pnpm loop-probe '<URL>' --ask '<问句>'`（首用闭环：**首屏=桌面页**——你的桌面、中文文案、无黑话、工作区就绪——
-走「＋ 交代新事项」进会话，真发问真等回复，JSON 判决；`--ask` 会真建会话——先把目标实例起在一次性 home，探针本身不隔离 home）、
+走「＋ 交代新事项」进会话，真发问真等回复，JSON 判决 + 终态截图；`--ask` 会真建会话——先把目标实例起在一次性 home，探针本身不隔离 home）、
 `pnpm desk-walk '<URL>' [--home <dir>]`（处理流真机走查：首屏桌面→处理一件事→一句进展→返回不变量→交代新事，
 产出屏幕文本+截图供人判话术/层级；`--home` 才能核账本身份与「回来⇒无待确认」）、
+`pnpm projection-live [--home <dir>]`（K1/K2 live 补证：断连/重连、3 次页面重载会话不增殖、420×900 窄视口
+选择保留与无横向溢出、滚动位置保留；自编排共享 probe home，无模型回合）、
 `pnpm observe [--home <dir>]`（输入边界 30 天观察读数：A 自发投递 / B 时长 / C 入口后的操作；
 口径、剔除规则与每周快照落 `_backlog/research/usage/`）。
 

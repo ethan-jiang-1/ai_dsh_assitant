@@ -45,7 +45,7 @@ mkdirSync(outDir, { recursive: true })
 const browser = await launchCdpBrowser({ url, windowSize: '1440,900' })
 if (browser.failed !== undefined) throw new Error(String(browser.failed))
 const { evaluate, captureScreenshot, consoleProblems, exceptions } = browser
-const verdict = { url, home, outDir, phases: {}, consoleProblems: [], exceptions: [] }
+const verdict = { url, home, outDir, capturedAt: new Date().toISOString(), phases: {}, consoleProblems: [], exceptions: [] }
 const record = async (name) => {
   const text = String(await evaluate('document.body.innerText') ?? '')
   writeFileSync(join(outDir, `${name}.txt`), text)

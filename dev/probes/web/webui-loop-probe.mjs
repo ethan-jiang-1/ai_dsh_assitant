@@ -55,6 +55,9 @@
 // hard-won material (2026-10-01, first-open UX campaign).
 import { launchCdpBrowser } from './cdp-driver.mjs';
 import process from 'node:process';
+import { writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpDir } from '../../env/tmp.mjs';
 import { flag, option, sleep } from './probe-utils.mjs';
 import { buttonByText, clickByText, pasteUntilSendable, pollUntil, sendClick, sendEnabled, turnRunning } from './dialogue.mjs';
 
@@ -105,10 +108,10 @@ const verdict = {
   askQuestion: undefined,
   pasted: undefined,
   sent: undefined,
-  replySeconds: null,
-  replyTail: '',
   consoleProblems: [],
   exceptions: [],
+  screenshot: null,
+  capturedAt: new Date().toISOString(),
 };
 
 const handle = await launchCdpBrowser({ url: guiUrl, windowSize: size }).catch((error) => ({ failed: String(error?.message ?? error) }));
@@ -202,7 +205,7 @@ try {
   // "停止" matched forever and the probe timed out on a 4-second turn
   // (observed 2026-10-01).
   const runTurn = async (text) => {
-    const result = { question: text, pasted: undefined, composerReady: false, sent: undefined, replySeconds: null, replyTail: '', waitSamples: [], approvals: 0, approvalPending: false };
+    const result = { question: text, pasted: undefined, composerReady: false, sent: undefined, replySeconds: null, replyTail: '', errorBubble: [], waitSamples: [], approvals: 0, approvalPending: false };
     const { pasteResult, sendable } = await pasteUntilSendable(evaluate, text, { attempts: 6, gapMs: 1000 });
     result.pasted = pasteResult;
     result.composerReady = sendable;
@@ -277,6 +280,11 @@ try {
     // The reply renders into the conversation body; the tail carries its
     // closing sections (动作表/停止条件 live at the end of an answer).
     result.replyTail = (await evaluate(`(document.body.textContent ?? '').slice(-500)`)) ?? '';
+    // An error bubble inside the transcript is not a successful turn. The probe used to pass on
+    // any non-empty body tail, so "请求失败" counted as a reply. Only the vendor's marked error
+    // surface is used; ordinary answer text may mention failure without being one.
+    result.errorBubble = (await evaluate(`(() => [...document.querySelectorAll('[data-error]')]
+      .map(node => (node.textContent ?? '').trim()).filter(Boolean).slice(0, 5))()`)) ?? [];
     return result;
   };
 
@@ -334,6 +342,16 @@ try {
 } finally {
   verdict.consoleProblems = consoleProblems.slice(0, 10);
   verdict.exceptions = exceptions.slice(0, 10);
+  // A JSON verdict without the frame it describes makes "rendered but wrong" indistinguishable
+  // from "good". Capture before the browser is settled, and keep the failure visible in the verdict.
+  try {
+    const png = await handle.captureScreenshot();
+    const screenshot = join(tmpDir('loop-probe'), `loop-probe-${new Date().toISOString().replace(/[:.]/g, '-')}.png`);
+    writeFileSync(screenshot, png);
+    verdict.screenshot = screenshot;
+  } catch (error) {
+    verdict.screenshotError = String(error);
+  }
   if (!keepBrowser) await handle.settle();
 }
 
@@ -346,7 +364,8 @@ if (wantsTurn && (verdict.composerMounted !== true || verdict.firstMileStripShow
 const askOk = verdict.ask !== undefined
   && verdict.ask.pasted === 'pasted' && verdict.ask.composerReady === true
   && verdict.ask.sent === 'sent' && typeof verdict.ask.replySeconds === 'number'
-  && verdict.ask.replyTail.trim().length > 0;
+  && verdict.ask.replyTail.trim().length > 0
+  && Array.isArray(verdict.ask.errorBubble) && verdict.ask.errorBubble.length === 0;
 if (ask !== undefined && !askOk) exitCode = 1;
 if (followUp !== undefined && (verdict.followUp === undefined
   || verdict.followUp.sent !== 'sent' || typeof verdict.followUp.replySeconds !== 'number')) exitCode = 1;
