@@ -6,6 +6,10 @@
 
 | 卡 | 要解决什么 | 当前环节与未完成项 |
 |---|---|---|
+| [261020-openviking-direction-review](261020-openviking-direction-review.md) | OpenViking 层 2 的方向与拆卡评审 | 评审中：等人类 + Agent 攻击；不授权实施 |
+| [261020-openviking-deploy-doctor](261020-openviking-deploy-doctor.md) | 云端例外、部署配置、`ov-doctor`、README | 待评审；依赖方向卡裁决 |
+| [261020-openviking-runtime-repair](261020-openviking-runtime-repair.md) | 0.5.1 升级、持久存储、v3 旋钮、Viki URL | 待评审；依赖方向卡裁决 |
+| [261020-openviking-retrieval-viki](261020-openviking-retrieval-viki.md) | 只读检索 A/B、Viki 搜索/转正/健康 | 待评审；依赖方向卡与运行态卡 |
 
 
 ## 写一张卡
