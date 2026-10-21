@@ -168,7 +168,7 @@ opened: 2026-10-20
 - [x] **研发/专业诊断视图（2026-10-21）**：同一 tab + 默认折叠；host `GET /api/assistant/viki?view=diagnostics`（health/stats/tasks/skills/pending/config，无 key；`problems` 并入）；面板「诊断」懒加载；`viki-panel` 8 案 + host 17 案；真机 `pnpm start` → 右栏 `Viki(调试)` → 诊断/搜索，DOM/screenshot 在案。同时修复 `bindVikiEnv` 生产无 `ctx.web` 时的 `document` fallback（此前真机面板报 “web face is not available”）。**durable Viki scene 仍待**（下一条）。
 - [x] **Viki 专用渲染/DOM 检查（降级态）**：新增 `snapshots/web-face/viki-panel-disconnected/`（`snapshot.yml` + README + `expected.dom.json`）；隔离 home + `OPENVIKING_URL=127.0.0.1:9`，三段 eval 打开右栏 Viki tab，`--wait-text 'Viki 未连接'`；基线录制 + 复跑 **PASS**，console/network 为空。**不覆盖连接态搜索/健康/转正入口**。
 - [x] **Viki 连接态场景**：`viki-panel-connected`（1 条固定 identity 记忆 + attrs summary）、`viki-panel-search`（`/search/find` 固定命中，`搜索「夹具」· 1 条`）、`viki-panel-diagnostics`（健康 `已连接 · 0.5.1.1 · dev`、任务/统计/pending/config）；mock = `../viki-panel-connected/seed.mjs`，录制 + 复跑均 PASS。**转正入口未实现，仍是缺口**。
-- [ ] 现有**全部** web-face 场景（当前 7 个，清单以目录为准）不漂移；Viki 四个场景只覆盖 Viki 面板，不替代其他场景。
+- [x] 现有**全部** web-face 场景（当前 7 个，清单以目录为准）不漂移：2026-10-21 复跑 `blank-first-open`、`first-open-draft-banner`、`desk-eight-matters-first-open`、Viki 四个场景，全部 **PASS**。Viki 四个只覆盖 Viki 面板，不替代其他场景。
 - [ ] `pnpm verify` 通过。
 
 ## 下一步
