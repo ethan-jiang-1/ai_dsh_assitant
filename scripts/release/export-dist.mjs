@@ -143,8 +143,8 @@ dsh plugin --profile try-assistant add /path/to/${tarballName}
 
 ## 二、把 preset 默认切到 assistant
 
-安装只把 \`assistant\` 的**定义**带进组合；profile 的默认 preset 仍是 \`standard\`。在
-\`<DSH_HOME>/profiles/web/cordis.patch.yml\` 追加（没有该文件就整段写入；\`<DSH_HOME>\` 默认是 \`~/.dsh\`）：
+安装只把 \`assistant\` 的**定义**带进组合；profile 的默认 preset 仍是 \`standard\`。打开
+\`<DSH_HOME>/profiles/web/cordis.patch.yml\`：如果里面是占位 \`[]\`，把 \`[]\` 整行替换成下面的块；文件不存在就整段写入（\`<DSH_HOME>\` 默认是 \`~/.dsh\`）：
 
 \`\`\`yaml
 - id: agent-preset-registry

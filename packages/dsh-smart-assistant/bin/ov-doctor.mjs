@@ -9,9 +9,9 @@
  * optional layer is `off` (exit 2), a broken one is `fail` (exit 1), and a healthy one is 0.
  * No key is ever printed; only "configured / missing" is reported.
  *
- * The write probe (commit) and the MCP `initialize.instructions` check are deliberately not in
- * v0: the first writes data and needs a sentinel session, the second needs an MCP handshake.
- * They are listed as SKIP so a green run is not mistaken for full acceptance.
+ * The write probe (commit) is deliberately not in v0: it writes data and needs a sentinel
+ * session, so it is listed as SKIP. The MCP `initialize.instructions` check is a read-only
+ * handshake and runs whenever the server is reachable.
  *
  * @module dsh-smart-assistant/ov-doctor
  */
@@ -144,6 +144,35 @@ export function checkCloudCapture({ config, profilePatch = '', env = process.env
   }
 }
 
+/** Read the MCP `initialize` result without importing an MCP client (SSE or plain JSON). */
+export async function mcpInstructions(baseUrl, fetchImpl = fetch, timeoutMs = 4000) {
+  const response = await fetchJson(fetchImpl, `${baseUrl.replace(/\/+$/u, '')}/mcp`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'accept': 'application/json, text/event-stream' },
+    body: JSON.stringify({
+      jsonrpc: '2.0',
+      id: 1,
+      method: 'initialize',
+      params: { protocolVersion: '2025-03-26', capabilities: {}, clientInfo: { name: 'ov-doctor', version: '0' } },
+    }),
+  }, timeoutMs)
+  if (response.status === 0) return { status: 'warn', detail: `MCP endpoint unreachable (${response.text})` }
+  if (!response.ok) return { status: 'warn', detail: `MCP initialize HTTP ${response.status}` }
+  let body = response.body
+  if (body === undefined) {
+    const dataLine = response.text.split(/\r?\n/u).find(line => line.startsWith('data:'))
+    if (dataLine !== undefined) {
+      try { body = JSON.parse(dataLine.slice(5).trim()) } catch { body = undefined }
+    }
+  }
+  if (body?.result === undefined) return { status: 'warn', detail: 'MCP initialize returned no result' }
+  const server = body.result.serverInfo?.name ?? 'unknown'
+  const instructions = typeof body.result.instructions === 'string' ? body.result.instructions.trim() : ''
+  return instructions === ''
+    ? { status: 'ok', detail: `server=${server}; instructions empty` }
+    : { status: 'warn', detail: `server=${server}; instructions=${instructions.slice(0, 160)}` }
+}
+
 /** What the profile actually contains; absent optional layer is information, not a crash. */
 export function profileFacts({ dshHome, profile }) {
   const dir = join(dshHome, 'profiles', profile)
@@ -240,6 +269,8 @@ export async function runDoctor(options, fetchImpl = fetch) {
   } else {
     add('6c', 'Viki row', 'ok', 'assistant-viki row is present')
   }
+  const mcp = await mcpInstructions(options.baseUrl, fetchImpl)
+  add('6m', 'MCP instructions', mcp.status, mcp.detail)
 
   const configResult = validateConfig(options.config)
   add('2', 'config', configResult.status, configResult.detail)

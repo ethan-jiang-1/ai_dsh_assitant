@@ -230,10 +230,10 @@ doctor 对账 1↔2↔运行中 server（check 10）与 3/4；Viki 的 baseUrl �
 - [ ] README 的部署节从**一次性 home 的空配置**开始照做能到 doctor 绿（至少 dry-run 路径）；故障表每条有可复现的现象与修法；不碰日用 `~/.dsh`。
 - [x] 正常 `pnpm start` 后 `GET /api/assistant/viki` 返回 200（不再依赖手工 `OPENVIKING_URL`）；OpenViking 缺席时返回 503 且 DSH 启动不受影响。**2026-10-21 真机：preflight 绿；token→cookie 后 200 `connected:true`（实例已收）。**
 - [ ] `pnpm preflight` 打印 OV 状态；OV 红时 preflight 仍按 DSH 自身判据退出。
-- [ ] **安装面**：`pnpm export-dist` 的《安装手册》覆盖 DSH/Node 前置、插件安装 + `agent-preset-registry.default: assistant`、可选 OV 安装/配置/启动/doctor/故障表、卸载；手册不含本机绝对路径或真 key。
-- [ ] **干净 home 安装**：一次性 `DSH_HOME` + 导出的 tgz + `dsh plugin add` + 设 preset 默认 → `--dump-config` 看到 `preset-assistant`，启动一次；全程不读 `dev/harness-home`。
+- [x] **安装面**：`pnpm export-dist` 的《安装手册》覆盖 DSH/Node 前置、插件安装 + `agent-preset-registry.default: assistant`、可选 OV 安装/配置/启动/doctor/故障表、卸载；手册不含本机绝对路径或真 key。**2026-10-21 干净 home 走查发现并修掉一个真卡点：新 profile 的 `cordis.patch.yml` 自带占位 `[]`，手册原文“追加”会产出非法 YAML；生成器已改成“把 `[]` 整行替换”，`pnpm export-dist` 重生成，干净 home 复跑通过。**
+- [x] **干净 home 安装**：一次性 `DSH_HOME` + 导出的 tgz + `dsh plugin add` + 设 preset 默认 → `--dump-config` 看到 `preset-assistant`，启动一次；全程不读 `dev/harness-home`。**2026-10-21 实测：`.tmp/install-walk/home` + `dsh plugin add` + 替换 `[]` → dump-config 显示 `default: assistant`、`assistant-memory`、`preset-assistant`；`dsh --profile web --port 0 --no-open` 出 boot URL（一次性 token 不记）；包内 doctor OV 缺席 exit 2。**
 - [x] **OV 缺席/在场**：缺席 → 插件照常、doctor exit 2、Viki 503；在场（测试 config 或 mock）→ doctor 绿、Viki 200。**2026-10-21：release-smoke 干净 home 的 `web-smoke` + mock：缺席 exit 2、在场 exit 0；真机 Viki 200 见 S2 次片。**
-- [ ] **包内 doctor**：`bin/ov-doctor.mjs` 随 tarball 安装；`--help` 可跑；OV 缺席 exit 2；不 import 仓库 `dev/`；仓内 `node packages/.../bin/ov-doctor.mjs` 与安装 profile 内的 bin 同文件。
+- [x] **包内 doctor**：`bin/ov-doctor.mjs` 随 tarball 安装；`--help` 可跑；OV 缺席 exit 2；不 import 仓库 `dev/`；仓内 `node packages/.../bin/ov-doctor.mjs` 与安装 profile 内的 bin 同文件。**2026-10-21：干净 home 的 `profiles/web/node_modules/dsh-smart-assistant/bin/ov-doctor.mjs` 直接跑，OFF composition、exit 2。**
 - [ ] **另一人走查**：把手册给另一个人（或干净机器/新用户）走一遍；记录卡点与修法。agent 的 clean-home dry run 不能替代这一步。
 - [ ] `pnpm verify` 通过（或记录与本次无关的既有失败）；新增脚本/文档在 verify 的覆盖范围内。
 
@@ -304,6 +304,15 @@ doctor 对账 1↔2↔运行中 server（check 10）与 3/4；Viki 的 baseUrl �
 - `bin/ov-doctor.mjs` 6d：无显式 URL 时按默认 1933 报 `ok`，并提示远程需显式；install manual 的 Viki 节同步。
 - 证据：`vitest run tests/host/viki-route.spec.ts` 15 passed；`pnpm typecheck` PASS；`pnpm export-dist`；`pnpm release-smoke` PASS；`pnpm verify` 43/43；live doctor 6d 已从 fail 变 ok（默认 local 1933），search/cloud 仍 fail。
 - 剩余：S2b 的 doctor check 5/MCP；README 的部署/故障表仍由《安装手册》承载（README 已补 preset 默认、可选 OV 路径与手册入口，2026-10-21）；另一人走查。
+
+### 2026-10-21 · 干净 home 走查（agent dry run）
+
+- 用 `pnpm --dir packages/dsh-smart-assistant pack` 出 tgz，一次性 `DSH_HOME=.tmp/install-walk/home`，按《安装手册》执行 `dsh plugin --profile web add`。
+- **发现真卡点**：DSH 新建 profile 的 `cordis.patch.yml` 是注释 + 占位 `[]`；手册原文“追加”会得到 `[]` 后接列表项的非法 YAML，`--dump-config` 直接报 `YAMLException`。生成器文案改为“把 `[]` 整行替换成下面的块”，`pnpm export-dist` 重生成手册。
+- 复跑：替换 `[]` 后 `dsh --profile web --dump-config` 显示 `default: assistant`（第 628 行）、`assistant-memory`（1233）、`preset-assistant`（1271）。
+- 启动一次：`dsh --profile web --port 0 --no-open` 输出 boot URL（token 一次性，不记入卡）；随后停掉。
+- 包内 doctor：`profiles/web/node_modules/dsh-smart-assistant/bin/ov-doctor.mjs --profile web ...` → `OFF 6 composition`、`SKIP 5`、`summary: exit 2`。
+- **边界**：这是 agent 在干净 home 的 dry run，不是“另一个人”走查；真人走查仍待做。
 
 ## 关闭条件
 

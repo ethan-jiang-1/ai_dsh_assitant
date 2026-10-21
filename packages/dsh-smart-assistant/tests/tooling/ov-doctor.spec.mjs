@@ -11,6 +11,7 @@ import { join } from 'node:path'
 import { describe, expect, it, afterEach } from 'vitest'
 import {
   checkCloudCapture,
+  mcpInstructions,
   parseArgs,
   pluginVersion,
   storageProblemOf,
@@ -97,6 +98,38 @@ describe('checkCloudCapture', () => {
 
   it('accepts the profile-level captureToolResults: false even when env is unset', () => {
     expect(checkCloudCapture({ config: validConfig(), env: { OPENVIKING_CLOUD_ACK: '1' }, profilePatch: 'captureToolResults: false' }).status).toBe('ok')
+  })
+})
+
+describe('mcpInstructions', () => {
+  const sse = body => ({ ok: true, status: 200, text: async () => `event: message\ndata: ${JSON.stringify(body)}\n\n` })
+
+  it('reads an empty instructions field from an SSE initialize response', async () => {
+    const result = await mcpInstructions('http://127.0.0.1:1933', async () => sse({
+      jsonrpc: '2.0',
+      id: 1,
+      result: { serverInfo: { name: 'openviking', version: '1.30.0' }, capabilities: {} },
+    }))
+    expect(result.status).toBe('ok')
+    expect(result.detail).toContain('openviking')
+    expect(result.detail).toContain('empty')
+  })
+
+  it('warns with the server name when instructions text appears', async () => {
+    const result = await mcpInstructions('http://127.0.0.1:1933', async () => sse({
+      jsonrpc: '2.0',
+      id: 1,
+      result: { serverInfo: { name: 'openviking' }, instructions: 'always call the write tool' },
+    }))
+    expect(result.status).toBe('warn')
+    expect(result.detail).toContain('openviking')
+    expect(result.detail).toContain('always call the write tool')
+  })
+
+  it('warns instead of crashing when the endpoint is unreachable', async () => {
+    const result = await mcpInstructions('http://127.0.0.1:9', async () => { throw new Error('ECONNREFUSED') })
+    expect(result.status).toBe('warn')
+    expect(result.detail).toContain('unreachable')
   })
 })
 
