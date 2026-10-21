@@ -41,6 +41,8 @@ opened: 2026-10-20
 | `ov-install.sh` 不查云端/脱敏/Viki | [ov-install.sh](../../dev/experiments/openviking/ov-install.sh) 七步：装 server、配置、健康门、profile、tgz、patch、dump-config |
 | 云端与“严格本地”冲突 | [README](../../README.md) 方向判据 O6；`~/.openviking/ov.conf` 的 provider/`api_base` |
 
+**2026-10-21 复核**：Viki baseUrl 默认 1933 已落（`src/host/viki/index.ts`）；真机 `pnpm start` preflight 绿，token→cookie 后 `GET /api/assistant/viki` 返回 **200**、`connected:true`（实例已收）。
+
 **已知的层 1 决策（不重开）：** OpenViking 用 `dsh plugin add` 进 profile，不进 assistant preset；写面由 `ov-shield` 守；可选增强不能成单点故障。见 [层 1 note](../../notes/archived/2026-10-04-openviking-layer1-landing.md)。
 
 ## 云端例外 v1
@@ -226,7 +228,7 @@ doctor 对账 1↔2↔运行中 server（check 10）与 3/4；Viki 的 baseUrl �
 - [ ] `GET /health` 的版本与 `openviking-server --version` 一致（当前目标 0.5.1.1）；doctor 不把 MCP `serverInfo`（1.30.0）当 server 版本。
 - [ ] OV 行在场时，MCP `initialize` 的 `instructions` 为空（当前 0.4.22 dev 模式实测为空）；出现未审文本时 doctor 至少报 warn 并标出 server 名。
 - [ ] README 的部署节从**一次性 home 的空配置**开始照做能到 doctor 绿（至少 dry-run 路径）；故障表每条有可复现的现象与修法；不碰日用 `~/.dsh`。
-- [ ] 正常 `pnpm start` 后 `GET /api/assistant/viki` 返回 200（不再依赖手工 `OPENVIKING_URL`）；OpenViking 缺席时返回 503 且 DSH 启动不受影响。
+- [x] 正常 `pnpm start` 后 `GET /api/assistant/viki` 返回 200（不再依赖手工 `OPENVIKING_URL`）；OpenViking 缺席时返回 503 且 DSH 启动不受影响。**2026-10-21 真机：preflight 绿；token→cookie 后 200 `connected:true`（实例已收）。**
 - [ ] `pnpm preflight` 打印 OV 状态；OV 红时 preflight 仍按 DSH 自身判据退出。
 - [ ] **安装面**：`pnpm export-dist` 的《安装手册》覆盖 DSH/Node 前置、插件安装 + `agent-preset-registry.default: assistant`、可选 OV 安装/配置/启动/doctor/故障表、卸载；手册不含本机绝对路径或真 key。
 - [ ] **干净 home 安装**：一次性 `DSH_HOME` + 导出的 tgz + `dsh plugin add` + 设 preset 默认 → `--dump-config` 看到 `preset-assistant`，启动一次；全程不读 `dev/harness-home`。
@@ -295,7 +297,7 @@ doctor 对账 1↔2↔运行中 server（check 10）与 3/4；Viki 的 baseUrl �
 - `tests/host/viki-route.spec.ts`：新增“无 config/env 时默认 1933”案；15 案通过。
 - `bin/ov-doctor.mjs` 6d：无显式 URL 时按默认 1933 报 `ok`，并提示远程需显式；install manual 的 Viki 节同步。
 - 证据：`vitest run tests/host/viki-route.spec.ts` 15 passed；`pnpm typecheck` PASS；`pnpm export-dist`；`pnpm release-smoke` PASS；`pnpm verify` 43/43；live doctor 6d 已从 fail 变 ok（默认 local 1933），search/cloud 仍 fail。
-- 剩余：S2b 的 doctor check 5/MCP、README 部署/故障表全量；`pnpm start` 的 Viki 200 真机回归。
+- 剩余：S2b 的 doctor check 5/MCP、README 部署/故障表全量；OV 缺席/在场 clean-home、另一人走查。
 
 ## 关闭条件
 
