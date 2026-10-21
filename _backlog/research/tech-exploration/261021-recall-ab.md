@@ -72,7 +72,7 @@ intent: "只读检索 A/B：用固定题集和评分表比较 A1 MCP allowlist �
 
 ## 6. 2026-10-21 A1/A2 实跑
 
-**A1**：分支 `ab/a1-allowlist` @ `3fa7b4d`（原型提交 `723df6c`），`dev/probes/session/ov-allowlist.patch.yml` 挂 7 个只读 MCP；`dev/harness-home` 上起 web `60661`，12 题各新会话跑完；答案 `.tmp/ab-a1-q1..12.json`。
+**A1**：分支 `ab/a1-allowlist` @ `3fa7b4d`（原型提交 `723df6c`），A1 分支的一次性 `ov-allowlist` patch 挂 7 个只读 MCP；`dev/harness-home` 上起 web `60661`，12 题各新会话跑完；答案 `.tmp/ab-a1-q1..12.json`。
 **A2**：分支 `ab/a2-recall` @ `629e79c`（`assistant_recall` 四动词 + 4 案），`dev/harness-home` 上起 web `53659`，同 12 题；答案 `.tmp/ab-a2-q1..12.json`。
 两侧均为同一个 `DeepSeek-V4.1-Flash`，每题独立会话、只问一次；`assistant_memory` / `session_query` 仍可用。
 

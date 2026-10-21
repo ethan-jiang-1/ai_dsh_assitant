@@ -69,6 +69,7 @@ AGENT 面（`cordis.patch.yml` 的 `preset-assistant` 行 → agent preset）
 ├── assistant-home-preamble   提示词段落：身份（SOUL.md）与家手册（AGENTS.md）逐字
 ├── assistant-memory-digest   提示词段落：有界摘要（桌面）
 ├── assistant-memory-tool     工具 assistant_memory
+├── assistant-recall-tool     工具 assistant_recall（按需只读检索；A2 生产候选）
 ├── assistant-research-tool   工具 assistant_research
 ├── assistant-operating-tool  工具 assistant_operating（经营账本动作，消费 host 行服务——契约 = [operating.md](operating.md) §二）
 ├── assistant-operating-brief 提示词段落：经营事项走账本（order 400，稳定指令带）
