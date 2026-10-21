@@ -115,9 +115,16 @@ spawn/child_process——连不上时按 `catch { /* best effort */ }` 降级，
 少了这一步，记忆层在不在全靠人记着敲。
 
 三条纪律钉在脚本里：**幂等**（1933 已健康就复用，不起第二个）；**失败不阻断**（记忆层是可选增强，
-server 缺席/未装/起不来一律 warn 后 `exit 0`，`pnpm start` 照常交实例）；**状态只落仓内**——server 默认写
+server 缺席/未装/起不来一律 warn 后 `exit 0`，`pnpm start` 照常交实例）；**状态落 DSH home**——server 默认写
 `~/.openviking/workspace`，那在仓外、会被文件沙箱挡下（实测 `PermissionError: .openviking.lock`），
-故从上游 `ov.conf` 派生一份 `.tmp/openviking/ov.conf` 把 storage 指到 `.tmp/openviking/workspace`（硬规则 8）。
+故从上游 `ov.conf` 派生 `$DSH_HOME/openviking/ov.conf`，把 storage 指到
+`$DSH_HOME/openviking/workspace`（持久、gitignored；迁移/回滚见运行态卡）。server 优先用
+`$DSH_HOME/openviking/server/bin/openviking-server`（0.5.1.1 的隔离 venv），缺失时才回退 PATH。
+
+v3 旋钮在 [`dev/profiles/profile-patch-ov.yml`](../dev/profiles/profile-patch-ov.yml)；`setup.sh` 只在该
+profile 的 `package.json` 真有 OV 插件时，把这份块追加到 `$DSH_HOME/profiles/<name>/cordis.patch.yml`
+（同 id 整行覆盖；`captureToolResults: false`、预算/召回/`commitTokenThreshold` 都在这里）。fresh dev home
+没有 OV 插件，不会被追加一条 inactive row。
 
 端点 `127.0.0.1:1933` 是插件 `shared/credentials.mjs` 的缺省值，与 `ov-install.sh` 健康门同一个数；
 **改它必须连插件配置一起改**，否则插件连一个没人听的端口，而那正好又是一次静默降级。
@@ -279,7 +286,8 @@ bundle 层（两个 profile 各自的链，刻意的——§四，web-app 与 he
   dev      = @deepseek-ai/dsh-base → dsh-web-app  → dsh-smart-assistant
   dev-task = @deepseek-ai/dsh-base → dsh-headless → dsh-smart-assistant
   → profiles/<name>/cordis.patch.yml     # setup.sh 拷贝：dev 用 dev/profiles/profile-patch.yml（替换语义），
-                                          #   dev-task 用 dev/profiles/profile-patch-headless.yml（insert 语义，两文件不可互换）
+                                          #   dev-task 用 dev/profiles/profile-patch-headless.yml（insert 语义，两文件不可互换）；
+                                          #   OV 插件在场时追加 dev/profiles/profile-patch-ov.yml（v3 旋钮）
   → $DSH_HOME/cordis.patch.yml           # home 级（作用于该 home 全部 profile）—— dev 不用它
   → --patch                              # 临时覆盖
 ```

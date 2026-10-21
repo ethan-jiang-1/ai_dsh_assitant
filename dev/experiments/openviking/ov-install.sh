@@ -21,14 +21,14 @@ REPO="$(cd "$(dirname "$0")/../../.." && pwd)"
 PROFILE="${1:?用法: bash dev/experiments/openviking/ov-install.sh <profile> [dsh-home]}"
 HOME_DIR="${2:-${ASSISTANT_DSH_HOME:-$REPO/dev/harness-home}}"
 TGZ="$REPO/vendor/thirdparty/openviking/dsh-memory-plugin-0.5.26.tgz"
-OV_VERSION="0.4.22"
+OV_VERSION="0.5.1.1"
 PLUGIN_ID="openviking-memory-runtime"
 # 日志落仓内临时根（硬规则 8：仓外写会被文件沙箱挡下，转成一次人工 approval）
 LOG="$REPO/.tmp/openviking/ov-server-install.log"
 
 say() { printf '  ov-install: %s\n' "$*"; }
 
-# ── 1. server 在位（双钉 0.4.22；uv tool 隔离装，试点验收形状）────────────────────
+# ── 1. server 在位（双钉 0.5.1.1；uv tool 隔离装，试点验收形状）────────────────────
 if command -v openviking-server >/dev/null 2>&1 && openviking-server --version 2>/dev/null | grep -q "$OV_VERSION"; then
   say "1/7 server $OV_VERSION 已在位"
 else

@@ -1,0 +1,21 @@
+# OpenViking 记忆层的 v3 旋钮（条件追加件）。
+#
+# 由 dev/env/setup.sh 在**该 profile 已装 OpenViking 插件**时追加到 profile 的
+# cordis.patch.yml 末尾；没有插件的 fresh dev home 不会因此多出一条 inactive row。
+# patch 语义是同 id 整行覆盖；这里给的是目标的完整 config。
+- id: openviking-memory-runtime
+  name: '@openviking/dsh-memory-plugin'
+  config:
+    endpoint: http://127.0.0.1:1933
+    skillCatalog: false          # 服务器端技能目录注入关
+    skipSubagentSessions: true   # 子代理噪声不进记忆；agent-team 是否覆盖由方向卡 H6 另定
+    peerId: assistant            # 记忆跟助手走，不随 cwd/git origin 分叉
+    profileTokenBudget: 3000     # 默认 10000 会把桌面翻三倍
+    recallPreferAbstract: false  # 降级路径要叶子，不要目录摘要
+    recallMaxContentChars: 2000
+    recallLimit: 6
+    recallMaxTokens: 2400
+    recallQueryExpansion: off
+    recallContextTimeoutMs: 3000 # 强制 find 路径，叶子内容进召回块
+    commitTokenThreshold: 3000   # 短会话也进抽取（默认 20000 = 主场景记忆丢失缺口）
+    captureToolResults: false    # 云端例外：完整工具结果默认不抓；需要时显式开/配 captureFilters

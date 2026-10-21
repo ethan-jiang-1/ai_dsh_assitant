@@ -97,6 +97,12 @@ for pair in "$profile:$profile_dir:$repo_root/dev/profiles/profile-patch.yml" \
   run_dsh plugin --profile "$name" add "$repo_root/packages/dsh-smart-assistant"
   echo "▸ pointing the preset roster at this repo ($name)"
   cp "$patch" "$dir/cordis.patch.yml"
+  # OpenViking is optional: append the v3 knob block only when this profile actually carries
+  # the plugin. A fresh dev home without it must not gain an inactive row on every start.
+  if grep -q '"@openviking/dsh-memory-plugin"' "$dir/package.json" 2>/dev/null; then
+    cat "$repo_root/dev/profiles/profile-patch-ov.yml" >> "$dir/cordis.patch.yml"
+    echo "▸ appended OpenViking v3 knobs (plugin present)"
+  fi
 done
 
 # 6.5. OpenViking 记忆层的 server（幂等；**失败不阻断**——可选增强不能成单点故障）。

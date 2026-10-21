@@ -34,14 +34,14 @@ opened: 2026-10-20
 | Viki baseUrl 只取 config/`OPENVIKING_URL`，实测为空 | [viki/index.ts](../../packages/dsh-smart-assistant/src/host/viki/index.ts) `const baseUrl = config.baseUrl?.trim() \|\| process.env.OPENVIKING_URL?.trim() \|\| ''`；`assistant-viki` 行无 config；`dev/env` 无该变量 |
 | start 链不导出 `OPENVIKING_URL` | [start.sh](../../dev/env/start.sh) 全文无该变量；`dev/env/env.sh` 也没有 |
 | 记忆库在 `.tmp` | [openviking-up.sh](../../dev/env/openviking-up.sh) 的 `state_dir`/`workspace`；派生 config 也写 `.tmp/openviking/ov.conf` |
-| **运行中 server 的 config 与 `openviking-server doctor` 默认读的不是同一份** | `openviking-up.sh` 以 `--config .tmp/openviking/ov.conf` 起 server（storage 指向 `.tmp`）；`openviking-server doctor` 不带 `--config` 时读 `~/.openviking/ov.conf`（storage 指向 `~/.openviking/workspace`）。2026-10-21 实测：带 `--config .tmp/openviking/ov.conf` 的 doctor 全绿，但 `/tasks` 仍有 failed commit——doctor 绿 ≠ 运行态可用 |
+| **运行中 server 的 config 与 `openviking-server doctor` 默认读的不是同一份** | `openviking-up.sh` 从上游派生 `dev/harness-home/openviking/ov.conf` 并用它启动 server（storage 持久）；`openviking-server doctor` 不带 `--config` 时仍读 `~/.openviking/ov.conf`（storage 指向 `~/.openviking/workspace`）。2026-10-21 带 `--config dev/harness-home/openviking/ov.conf --profile dev` 的 `ov-doctor` 的 check 7 = `persistent root`，check 10 仍 WARN（doctor 无法证明运行进程用了同一份）。 |
 | 当前云端暴露未收口 | dev 组合无 `openviking-memory-runtime` config；插件 schema：`captureToolResults` 对 DSH 默认 `true`、`captureFilters` 默认 `[]`（插件 0.5.26 tarball 的 `shared/config-schema.mjs`；`tar -xOzf vendor/thirdparty/openviking/dsh-memory-plugin-0.5.26.tgz package/shared/config-schema.mjs \| grep capture` 可复核）；即工具结果当前原样进云端 |
 | server 模型位在 `ov.conf`，DSH 侧不检查 | `~/.openviking/ov.conf` 与派生 `.tmp/openviking/ov.conf`（VLM/embedding 指向 SiliconFlow；不在此回显 key） |
 | `/health` 不探测模型位 | `GET /health` 返回 `healthy:true` 与 `version`/`auth_mode`；同一时刻 `POST /search/search` 可返回 `OpenAI API error: Connection error` |
 | `ov-install.sh` 不查云端/脱敏/Viki | [ov-install.sh](../../dev/experiments/openviking/ov-install.sh) 七步：装 server、配置、健康门、profile、tgz、patch、dump-config |
 | 云端与“严格本地”冲突 | [README](../../README.md) 方向判据 O6；`~/.openviking/ov.conf` 的 provider/`api_base` |
 
-**2026-10-21 复核**：Viki baseUrl 默认 1933 已落（`src/host/viki/index.ts`）；真机 `pnpm start` preflight 绿，token→cookie 后 `GET /api/assistant/viki` 返回 **200**、`connected:true`（实例已收）。
+**2026-10-21 复核**：Viki baseUrl 默认 1933 已落（`src/host/viki/index.ts`）；真机 `pnpm start` preflight 绿，token→cookie 后 `GET /api/assistant/viki` 返回 **200**、`connected:true`（实例已收）。**同日 0.5.1.1 live：`Viki(调试)` tab 搜索「合同」返回 6 条；`/health` = 0.5.1.1。**
 
 **已知的层 1 决策（不重开）：** OpenViking 用 `dsh plugin add` 进 profile，不进 assistant preset；写面由 `ov-shield` 守；可选增强不能成单点故障。见 [层 1 note](../../notes/archived/2026-10-04-openviking-layer1-landing.md)。
 
@@ -121,7 +121,7 @@ opened: 2026-10-20
 | 3 | `openviking-server doctor --config <运行中 config>` + 最小 embedding/FC 探测 | 模型位不可达/不支持 FC/熔断未恢复；给出 provider/model 修正与等待/重启建议。**注意**：上游 doctor 绿不等于运行中 server 能 commit（2026-10-21 实测），check 4/5 才是运行态探针 |
 | 4 | 一次 `POST /search/find`（无 session；`search/search` 是 session-aware，不用它做 doctor 探针） | “health 绿但 search 失败”（含 embedding 熔断）的典型；提示模型位/网络；空结果不是失败，报“无命中” |
 | 5 | 一次 commit（默认 `--dry-run` 不写；`--write` 才真写）：建唯一 sentinel session → commit → 轮询 `/tasks` 到终态（超时即 fail）→ 清理 | commit 失败/任务 failed/超时；给出 `/tasks` 与日志路径；清理失败如实报 |
-| 6 | 组合：`dump-config` 有 OV 行 + v3 config；`assistant-viki` baseUrl 对齐（本卡修默认）；`ov-shield` 在场；**MCP initialize 无 instructions（当前 0.4.22 dev 模式实测为空；出现文本即 warn）** | 行缺失/config 被覆盖/Viki URL 不一致/服务端说明文本会静默进系统提示 |
+| 6 | 组合：`dump-config` 有 OV 行 + v3 config；`assistant-viki` baseUrl 对齐（本卡修默认）；`ov-shield` 在场；**MCP initialize 无 instructions（0.4.22 dev 模式实测为空；0.5.1.1 未复测，check 5/6 的 MCP 分支仍 skip）** | 行缺失/config 被覆盖/Viki URL 不一致/服务端说明文本会静默进系统提示 |
 | 7 | 存储路径持久（**从运行中 config 读**，不在 `.tmp`）、可写、有备份 | 给出迁移/备份命令（搬家归运行态卡） |
 | 8 | 云端 ack + 脱敏自测：从 active profile 的 OV config 读 `captureFilters`，假 key 不出现；**规则为空即红** | 缺 ack / 过滤器没生效；无法加载过滤器时记 blocked，不报绿 |
 | 9 | 版本矩阵：plugin / server / DSH（**server 版本只读 `GET /health`**；MCP `serverInfo` 的 1.30.0 不是 server 版本，不得据此判；记录复核日期，当前 server 0.5.1.1 / plugin 0.5.27 为 latest） | 不兼容/落后；给出升级或 pin 建议 |

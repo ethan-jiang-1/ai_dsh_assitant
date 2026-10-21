@@ -12,9 +12,10 @@
 #   ② **失败不阻断启动** —— 记忆层是可选增强（`notes/archived/2026-10-04-openviking-layer1-landing.md`
 #      决定 3「可选增强不能成单点故障」）。server 缺席/装不上/起不来一律 warn + exit 0，
 #      让 `pnpm start` 照常交出实例；
-#   ③ 临时与状态只落仓内 —— server 的 storage 默认写 `~/.openviking/workspace`，那是仓外，
+#   ③ **状态落 DSH home** —— server 的 storage 默认写 `~/.openviking/workspace`，那是仓外，
 #      文件沙箱会挡下（实测 `PermissionError: .openviking.lock`）。所以从上游 `ov.conf` 派生一份
-#      仓内副本、把 storage 指到 `.tmp/openviking/workspace`（硬规则 8）。
+#      仓内副本、把 storage 指到 `$DSH_HOME/openviking/workspace`（持久、gitignored；不再用 `.tmp`）。
+#      迁移/回滚见运行态卡的 P1；旧 `.tmp` 副本只作回退证据。
 #
 # 端点：插件默认 `127.0.0.1:1933`（`shared/credentials.mjs` 的 `port` 缺省值，与 `ov-install.sh`
 # 的健康门同一个数）。改这个数必须两边一起改，否则插件连了个没人听的端口——而那正是静默降级。
@@ -22,9 +23,11 @@ set -euo pipefail
 
 repo_root="$(git rev-parse --show-toplevel)"
 cd "$repo_root"
+# shellcheck source=env.sh
+source "$repo_root/dev/env/env.sh"
 
 port=1933
-state_dir="$repo_root/.tmp/openviking"
+state_dir="$DSH_HOME/openviking"
 conf="$state_dir/ov.conf"
 workspace="$state_dir/workspace"
 server_log="$state_dir/server.log"
@@ -39,8 +42,12 @@ if healthy; then
   exit 0
 fi
 
-if ! command -v openviking-server >/dev/null 2>&1; then
-  echo "  · OpenViking server 未安装（uv tool install openviking==0.4.22）——本轮记忆层缺席，对话不受影响"
+server_bin="${OPENVIKING_SERVER_BIN:-$state_dir/server/bin/openviking-server}"
+if [ ! -x "$server_bin" ]; then
+  server_bin="$(command -v openviking-server || true)"
+fi
+if [ -z "$server_bin" ]; then
+  echo "  · OpenViking server 未安装（dev home 的 $state_dir/server 或 PATH）——本轮记忆层缺席，对话不受影响"
   exit 0
 fi
 
@@ -62,9 +69,9 @@ os.chmod(dst, 0o600)
 PY
 fi
 
-echo "  · 起 OpenViking server（${port}）"
+echo "  · 起 OpenViking server（${port}，$(basename "$(dirname "$(dirname "$server_bin")")")）"
 : > "$server_log"
-nohup openviking-server --config "$conf" --port "$port" >"$server_log" 2>&1 &
+nohup "$server_bin" --config "$conf" --port "$port" >"$server_log" 2>&1 &
 
 for _ in $(seq 1 30); do
   sleep 1

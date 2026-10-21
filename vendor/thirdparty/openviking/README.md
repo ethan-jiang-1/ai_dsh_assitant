@@ -43,11 +43,11 @@
 
 ## 服务器侧离线件（不入库，按需重拉）
 
-OpenViking server 在 PyPI（`openviking` 0.4.22，AGPL-3.0，wheel 23–29 MB 平台件），不钉进 git；
+OpenViking server 在 PyPI（`openviking` 0.5.1.1，AGPL-3.0，wheel 23–29 MB 平台件），不钉进 git；
 断网前要囤的话用可重跑命令（macOS arm64 本仓机器示例）：
 
 ```sh
-pip download openviking[local-embed]==0.4.22 --dest vendor/thirdparty/openviking/wheels/ --platform macosx_14_0_arm64 --only-binary=:all:
+pip download openviking[local-embed]==0.5.1.1 --dest vendor/thirdparty/openviking/wheels/ --platform macosx_14_0_arm64 --only-binary=:all:
 ollama pull <视觉模型，如 qwen2.5vl>   # VLM 位（服务端主力：抽取/L0/L1）
 ollama pull <embedding 模型，如 bge-m3> # embedding 位（provider: ollama）
 ```
