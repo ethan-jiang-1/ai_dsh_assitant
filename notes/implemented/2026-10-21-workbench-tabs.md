@@ -9,7 +9,7 @@
 ## 决定（裁决 1）
 
 1. **会话内 tab**：`桌面`、`自动化任务` 注册为会话的 `conversation.view` 项，顶部与 `对话/轨迹` 并排。切换只换中间内容，右栏是会话原生那栏，不重置。
-2. **桌面复用**：tab body 直接渲染现有 `DashboardMainPanel`，不复制桌面。
+2. **两个 view，一份桌面**：tab body 与左栏主面板都渲染同一个 `ProjectionPanel`，读同一个 projection snapshot；各自用独立的 selection store（slot store 是独占的，不能共用同一个 handle）。不复制桌面数据，也不使用 fallback `DashboardMainPanel`。
 3. **任务薄视图**：任务 tab 读现有 schedule catalog，列出开启中的任务；点一条用 `sidebarRight.openTab('scheduleTask', { params: { sessionId, id } })` 在原生右栏开详情，不复制 vendor 的整页。
 4. **不做应用级 tab strip**：`conversation.view` 只在会话内存在；新会话首屏保持欢迎页，不为了“任何状态都有 tab”去造浮层或改 vendor 壳。用户已明确接受这一边界。
 5. **不保留 per-page 右栏**：全局右栏/小把手原型已撤掉；只有会话原生右栏。
@@ -23,6 +23,8 @@
 - **给全局页造 Session**：为了开栏多出会话，列表被污染。
 - **复制 vendor TaskManagerPage**：没有公开导出；薄列表 + 原生任务详情已满足“详情进右栏”，不复制整页。
 - **每个会话复制一份桌面数据**：桌面数据仍是全局投影，tab 只是入口；没有第二份存储。
+- **tab body 用 fallback `DashboardMainPanel`**：它只读房间数据、不读投影，真机显示“读不到账本投影”，与左栏桌面内容分裂；撤。
+- **两个 view 共用同一个 slot store handle**：slot store 是独占的，第二次注册会让 client entry 激活失败；必须各建一个 selection store，共享 projection snapshot。
 
 ## 边界
 

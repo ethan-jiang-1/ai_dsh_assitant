@@ -99,15 +99,6 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // "desktop as primary object": the principal opens it and sees their dashboard without
     // needing a session, a message, or a chat at all. Conversation becomes an input channel
     // (the "有问题？" button), not the primary surface.
-    // Workbench tab: the desk lives beside Conversation/Trajectory, not only as a
-    // left-rail main panel. The native right rail belongs to the session and stays.
-    ctx.slots.inject('conversation.view', () => ctx.slots.register({
-      name: 'conversation.view',
-      id: 'assistant-desk',
-      order: 30,
-      label: () => '桌面',
-    }, DashboardMainPanel))
-
     ctx.slots.inject('conversation.view', () => ctx.slots.register({
       name: 'conversation.view',
       id: 'assistant-tasks',
@@ -131,6 +122,9 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       baseURI: document.baseURI, origin: location.origin, fetch: globalThis.fetch.bind(globalThis),
     })
     const viewStore = projection === undefined || storeApi === undefined ? undefined : createProjectionViewStore(storeApi.defineStore)
+    // A second store handle for the workbench view: the dashboard store is exclusive to
+    // its registration, but the projection data itself is the same shared snapshot.
+    const workbenchViewStore = projection === undefined || storeApi === undefined ? undefined : createProjectionViewStore(storeApi.defineStore)
     const sessionStatuses = mountSessionCaptureStatuses(ctx, storeApi)
     // The schedule catalog bridge (proactive face, 2026-10-18). Wiring verdict (stage-0, three
     // binary-search rounds): the `'remote.schedule'` subface inject works ONLY together with
@@ -186,31 +180,41 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // The suggestion block's handlers ride the arms' capture lane and the proactive UI store
     // (the prompts and labels live in proactive-handlers.ts).
     const { onSuggestAction, onSuggestDismiss, onWatchForget, onSuggestCollapse } = createProactiveHandlers({ arms, proactiveUi })
+    const dashboardComponent = projection === undefined ? DashboardMainPanel : ProjectionPanel
+    const dashboardInject = (...args: unknown[]) => {
+      const actions = args.find((argument): argument is { selectMatter(id: string): void, setMode(mode: 'activity'): void } =>
+        typeof argument === 'object' && argument !== null && typeof (argument as { selectMatter?: unknown }).selectMatter === 'function')
+      deskViewActions = actions ?? deskViewActions
+      deskActivity.receive(actions)
+      const hooks = {
+        ...(projection === undefined ? {} : { projection }),
+        ...(sessionStatuses === undefined ? {} : { sessionStatus: sessionStatuses }),
+        ...(proactiveCatalog === undefined ? {} : { catalog: proactiveCatalog }),
+        ...(proactiveUi === undefined ? {} : { proactiveUi }),
+      }
+      return { hooks, refreshProjection: () => { reader?.refresh() }, onAsk: () => { ctx.layout?.selectPanel(null) }, onEntrust: arms.startIntake, onProcess: arms.processMatter, onClaim: arms.claimFragment, onDiscard: arms.discardFragment, onCapture: arms.captureFromDesk, onOpenSession: (sessionId: string) => { ctx.uiWorkspace?.openSession(sessionId) }, onWake: arms.wakeMatter, onOpenTasks: () => { ctx.layout?.selectPanel('schedules') }, onSuggestAction, onSuggestDismiss, onWatchForget, onSuggestCollapse }
+    }
     ctx.slots.inject('main', () => {
       const registration = ctx.slots.register({
         name: 'main',
         key: 'dsh-smart-assistant-dashboard',
         ...(viewStore === undefined ? {} : { store: viewStore }),
-        // Positional convention from the render machinery: a session-scoped registration gets
-        // `(sessionId, actions)`, a root-scoped one gets `(actions)` alone (`main` is root-scoped).
-        // Take whichever argument actually carries the baked actions instead of trusting position.
-        inject: (...args: unknown[]) => {
-          const actions = args.find((argument): argument is { selectMatter(id: string): void, setMode(mode: 'activity'): void } =>
-            typeof argument === 'object' && argument !== null && typeof (argument as { selectMatter?: unknown }).selectMatter === 'function')
-          deskViewActions = actions ?? deskViewActions
-          deskActivity.receive(actions)
-          const hooks = {
-            ...(projection === undefined ? {} : { projection }),
-            ...(sessionStatuses === undefined ? {} : { sessionStatus: sessionStatuses }),
-            ...(proactiveCatalog === undefined ? {} : { catalog: proactiveCatalog }),
-            ...(proactiveUi === undefined ? {} : { proactiveUi }),
-          }
-          return { hooks, refreshProjection: () => { reader?.refresh() }, onAsk: () => { ctx.layout?.selectPanel(null) }, onEntrust: arms.startIntake, onProcess: arms.processMatter, onClaim: arms.claimFragment, onDiscard: arms.discardFragment, onCapture: arms.captureFromDesk, onOpenSession: (sessionId: string) => { ctx.uiWorkspace?.openSession(sessionId) }, onWake: arms.wakeMatter, onOpenTasks: () => { ctx.layout?.selectPanel('schedules') }, onSuggestAction, onSuggestDismiss, onWatchForget, onSuggestCollapse }
-        },
-      }, projection === undefined ? DashboardMainPanel : ProjectionPanel)
+        inject: dashboardInject,
+      }, dashboardComponent)
       selectDashboardByDefault(ctx)
       return registration
     })
+
+    // Two views, one desk: the workbench tab uses the SAME ProjectionPanel + projection
+    // snapshot as the main panel, with its own selection store so both can mount at once.
+    ctx.slots.inject('conversation.view', () => ctx.slots.register({
+      name: 'conversation.view',
+      id: 'assistant-desk',
+      order: 30,
+      label: () => '桌面',
+      ...(workbenchViewStore === undefined ? {} : { store: workbenchViewStore }),
+      inject: dashboardInject,
+    }, dashboardComponent))
 
     ctx.slots.inject('sidebar.brand.mark', () =>
       ctx.slots.inject('sidebar.brand.name', function* () {

@@ -86,8 +86,7 @@ describe('client-module registration', () => {
     // (principal decision, 2026-10-11): no desk room tab, no desk view, no header chip, no
     // summary dock — the main-panel ledger desk is the only "桌面".
     expect(calls).toEqual([
-      'conversation.view', 'conversation.view',
-      'sidebar.panellist', 'main',
+      'conversation.view', 'sidebar.panellist', 'main', 'conversation.view',
       'sidebar.brand.mark', 'sidebar.brand.name',
       'sidebar.right.pane.tab', 'sidebar.right.pane.tab.title',
       'sidebar.right.pane.tab', 'sidebar.right.pane.tab.title',
@@ -98,8 +97,8 @@ describe('client-module registration', () => {
     // Each room registers its tab type, its keyed body, and its keyed tab title (the glyph chip);
     // the first-mile strip and the approval banner close the set.
     expect(registered).toEqual([
-      'assistant-desk', 'assistant-tasks',
-      'dsh-smart-assistant-dashboard', 'dsh-smart-assistant-dashboard',
+      'assistant-tasks',
+      'dsh-smart-assistant-dashboard', 'dsh-smart-assistant-dashboard', 'assistant-desk',
       'sidebar.brand.mark', 'sidebar.brand.name',
       'tab:knowledgeRoom', 'dsh-smart-assistant-knowledge', 'dsh-smart-assistant-knowledge',
       'tab:memoryRoom', 'dsh-smart-assistant-memory', 'dsh-smart-assistant-memory',
@@ -328,8 +327,8 @@ describe('desk primary view', () => {
 
     const views = registered.filter(entry => entry.name === 'conversation.view')
     expect(views.map(entry => entry.declaration['id']))
-      .toEqual(['assistant-desk', 'assistant-tasks'])
+      .toEqual(['assistant-tasks', 'assistant-desk'])
     expect(views.map(entry => (entry.declaration['label'] as () => string)()))
-      .toEqual(['桌面', '自动化任务'])
+      .toEqual(['自动化任务', '桌面'])
   })
 })
