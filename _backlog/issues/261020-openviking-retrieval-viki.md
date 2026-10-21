@@ -105,7 +105,7 @@ opened: 2026-10-20
 
 | # | 问题 | 当前状态 / 建议 | owner / 去向 |
 |---|---|---|---|
-| 1 | A/B 的题集与评分 | 题集 ≥10、评分表四项、agent 初评 + 人抽查 ≥3；随 A/B 产出 | 本卡；人抽查（H3 之后） |
+| 1 | A/B 的题集与评分 | 12 题 + 四项 0–2 评分表已产出（[research note](../research/tech-exploration/261021-recall-ab.md)）；agent 初评/人抽查待 run | 本卡；人抽查（H3 之后） |
 | 2 | 先修 recall 还是 A/B 并行 | 建议先让运行态卡把 `recallContextTimeoutMs`/find 跑通；A/B 可与运行态并行，但“召回失败”不能算 A1/A2 的输 | 运行态卡 + 本卡 |
 | 3 | Viki 转正落点 | 只落 `memory/`；`knowledge/` 的 `sources` 引 OpenViking URI 留到知识卡 | 本卡 + H4 |
 | 4 | skills/experiences 是否随 commit 生成 | 0.4.22 无 experiences、`/agent-evolution` 404；0.5.1.1 未验 | 本卡 P3 + 触发 |
@@ -129,9 +129,11 @@ opened: 2026-10-20
 
 ### A/B（先做，决定是否实施）
 
+**题集/评分表/原型约定：** [research/261021-recall-ab](../research/tech-exploration/261021-recall-ab.md)（12 题、四项 0–2 分、A1/A2 一次性原型）。A1/A2 分支与 run 待下一次 A/B 切片。
+
 - [ ] **原型纪律**：A1 用一次性 home 的临时 `ov-shield` allowlist（或临时 patch），A2 用一次性分支/临时工具；产物保留提交指针，**不进发布物、不合并**。
-- [ ] 固定问题集 ≥10 条，覆盖：偏好、事件、决策、跨 peer、无答案；每条有期望来源/答案。
-- [ ] 评分表（来源正确 / 答案正确 / 细节充分 / 引用可核四项）与题集同一次产出；agent 初评 + 人抽查 ≥3 条。
+- [x] 固定问题集 ≥10 条，覆盖：偏好、事件、决策、跨 peer、无答案；每条有期望来源/答案。**2026-10-21：12 题在 research note；用户复核待 A/B。**
+- [x] 评分表（来源正确 / 答案正确 / 细节充分 / 引用可核四项）与题集同一次产出；agent 初评 + 人抽查 ≥3 条。**评分表已产出；agent 初评/人抽查待 A/B run。**
 - [ ] A1/A2 各跑一遍，记录：tool schema token（A1 按实际 7 个工具重测）、工具调用次数/正确率、答案质量、延迟、失败模式。
 - [ ] 裁决写成一行：选 A1 / 选 A2 / 都不选（继续自动 recall），附证据与输掉的理由。
 - [ ] 若选 A1/A2，实施后同一问题集复跑，质量不低于 A/B 的赢家。
