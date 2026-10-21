@@ -210,6 +210,10 @@
           - id: assistant-memory-tool
             name: dsh-smart-assistant/tool-memory
 
+          # A2 A/B one-off: native read-only OpenViking recall. Do not merge.
+          - id: assistant-recall-tool
+            name: dsh-smart-assistant/tool-recall
+
           - id: assistant-research-tool
             name: dsh-smart-assistant/tool-research
 

@@ -35,6 +35,10 @@
       "types": "./lib/agent/tool-memory/index.d.ts",
       "default": "./lib/agent/tool-memory/index.js"
     },
+    "./tool-recall": {
+      "types": "./lib/agent/tool-recall/index.d.ts",
+      "default": "./lib/agent/tool-recall/index.js"
+    },
     "./tool-research": {
       "types": "./lib/agent/tool-research/index.d.ts",
       "default": "./lib/agent/tool-research/index.js"

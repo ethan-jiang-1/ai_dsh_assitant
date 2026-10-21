@@ -11,7 +11,7 @@
 > 下文路径基准：工具「源码」列为包内相对（= `packages/dsh-smart-assistant/`），其余仓根相对。
 > 语义与改名代价的 owner 是 [`identity.md`](identity.md)；这里只回答"当前声明了什么"。
 
-## 入口与平面（17 个 plugin 子路径 = host 6 + agent 10 + client 1）
+## 入口与平面（18 个 plugin 子路径 = host 6 + agent 11 + client 1）
 
 | 入口 | 平面 | 组合行 id |
 |---|---|---|
@@ -24,6 +24,7 @@
 | `./home-preamble` | AGENT | assistant-home-preamble |
 | `./memory-digest` | AGENT | assistant-memory-digest |
 | `./tool-memory` | AGENT | assistant-memory-tool |
+| `./tool-recall` | AGENT | assistant-recall-tool |
 | `./tool-research` | AGENT | assistant-research-tool |
 | `./tool-operating` | AGENT | assistant-operating-tool |
 | `./operating-brief` | AGENT | assistant-operating-brief |
@@ -48,6 +49,7 @@
 | cordis.patch.yml（agent 面 = preset 行的 plugins） | `assistant-home-preamble` | `dsh-smart-assistant/home-preamble` | 启用 |
 | cordis.patch.yml（agent 面 = preset 行的 plugins） | `assistant-memory-digest` | `dsh-smart-assistant/memory-digest` | 启用 |
 | cordis.patch.yml（agent 面 = preset 行的 plugins） | `assistant-memory-tool` | `dsh-smart-assistant/tool-memory` | 启用 |
+| cordis.patch.yml（agent 面 = preset 行的 plugins） | `assistant-recall-tool` | `dsh-smart-assistant/tool-recall` | 启用 |
 | cordis.patch.yml（agent 面 = preset 行的 plugins） | `assistant-research-tool` | `dsh-smart-assistant/tool-research` | 启用 |
 | cordis.patch.yml（agent 面 = preset 行的 plugins） | `assistant-operating-tool` | `dsh-smart-assistant/tool-operating` | 启用 |
 | cordis.patch.yml（agent 面 = preset 行的 plugins） | `assistant-operating-brief` | `dsh-smart-assistant/operating-brief` | 启用 |
@@ -63,6 +65,7 @@
 | `assistant_knowledge` | `search` `get` | src/agent/tool-knowledge/index.ts |
 | `assistant_memory` | `recall` `save` `forget` `list` `curate` | src/agent/tool-memory/index.ts |
 | `assistant_operating` | `desk` `read` `entrust` `report` `revise` `propose` `confirm` `reject` `note` `claim` `discard` `complete` `reopen` | src/agent/tool-operating/index.ts |
+| `assistant_recall` | `find` `search` `read` `tree` | src/agent/tool-recall/index.ts |
 | `assistant_reflect` | `brief` `save_skill` `retire_skill` `save_page` `promote_page` `deprecate_page` `propose_skill` `land_skill` | src/agent/learn/index.ts |
 | `assistant_research` | `open` `update` `park` `drop` `promote` `list` | src/agent/tool-research/index.ts |
 
