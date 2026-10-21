@@ -38,7 +38,7 @@ opened: 2026-10-20
 | Viki `problems` 来源 | [client.ts](../../packages/dsh-smart-assistant/src/host/viki/client.ts) 的 `list()` 已返回 `problems: string[]`（树遍历/`stats` 读取失败），面板未展示；不是 server 的独立端点 |
 | Viki 搜索端点 | 插件在**有 session** 时走 `/search/search`（session-aware），**无 session** 时走 `/search/find`；面板搜索应走 stateless `find`，不要复用 session-aware 路径 |
 | 转正的两套审计不要混 | `ctx.approval.request` 要求**发起会话处于 open turn**（[approval.md](../../vendor/dsh/docs/subsystems/approval.md)）；Viki 面板点击没有 turn。Viki 现有 `recordApproval(..., 'retire', ...)` 是 **home 审计**（[approval-audit.ts](../../packages/dsh-smart-assistant/src/host/approval-audit.ts)），不是 DSH 的 `approval/asked`/`approval/decided` 对 |
-| web-face 场景 | 2026-10-21 有 **4 个**：`blank-first-open`、`first-open-draft-banner`、`desk-eight-matters-first-open`、`viki-panel-disconnected`（新，降级态）；清单以 [snapshots/web-face/](../../snapshots/web-face/) 为准 |
+| web-face 场景 | 2026-10-21 有 **7 个**：`blank-first-open`、`first-open-draft-banner`、`desk-eight-matters-first-open`，以及 Viki 的 `viki-panel-disconnected`（降级态）、`viki-panel-connected`（列表）、`viki-panel-search`（搜索命中）、`viki-panel-diagnostics`（健康/诊断）；清单以 [snapshots/web-face/](../../snapshots/web-face/) 为准 |
 | 0.5.x skills/experiences | **0.4.22 实测**：`GET /api/v1/skills` 在场（root 为 `viking://user/default/skills` + `viking://agent/skills`，当前 0 条）；`viking://user/default/memories` 下没有 `experiences`（peer 下只有 `events`）；`GET /api/v1/agent-evolution` 返回 404。插件 `captureToolResults` 注释说“Experience usage records need completed tool results”，但 experiences 是否随 0.5.x commit 生成仍未证；0.5.1.1 未验 |
 | DSH 新缝 | `ctx.tools.restrict.allow`、`ctx.skills` provider、`client` slots、`session-query`、`message-feedback`（log-only）、`session-projection`、`agent-team`（成员 `origin: subagent`）、`token-meter`、`ctx.approval`（open-turn 约束） |
 
@@ -167,8 +167,8 @@ opened: 2026-10-20
 - [ ] 现有删除/恢复/比较不回归；`viki-panel` 测试更新。
 - [x] **研发/专业诊断视图（2026-10-21）**：同一 tab + 默认折叠；host `GET /api/assistant/viki?view=diagnostics`（health/stats/tasks/skills/pending/config，无 key；`problems` 并入）；面板「诊断」懒加载；`viki-panel` 8 案 + host 17 案；真机 `pnpm start` → 右栏 `Viki(调试)` → 诊断/搜索，DOM/screenshot 在案。同时修复 `bindVikiEnv` 生产无 `ctx.web` 时的 `document` fallback（此前真机面板报 “web face is not available”）。**durable Viki scene 仍待**（下一条）。
 - [x] **Viki 专用渲染/DOM 检查（降级态）**：新增 `snapshots/web-face/viki-panel-disconnected/`（`snapshot.yml` + README + `expected.dom.json`）；隔离 home + `OPENVIKING_URL=127.0.0.1:9`，三段 eval 打开右栏 Viki tab，`--wait-text 'Viki 未连接'`；基线录制 + 复跑 **PASS**，console/network 为空。**不覆盖连接态搜索/健康/转正入口**。
-- [ ] **Viki 连接态场景**：搜索命中、健康/任务/统计、转正入口的 DOM 检查；需要稳定 mock OV 数据，当前未做。
-- [ ] 现有**全部** web-face 场景（当前 4 个：`blank-first-open`、`first-open-draft-banner`、`desk-eight-matters-first-open`、`viki-panel-disconnected`）不漂移；**前三个不覆盖 Viki，不能当 Viki 回归证据**。
+- [x] **Viki 连接态场景**：`viki-panel-connected`（1 条固定 identity 记忆 + attrs summary）、`viki-panel-search`（`/search/find` 固定命中，`搜索「夹具」· 1 条`）、`viki-panel-diagnostics`（健康 `已连接 · 0.5.1.1 · dev`、任务/统计/pending/config）；mock = `../viki-panel-connected/seed.mjs`，录制 + 复跑均 PASS。**转正入口未实现，仍是缺口**。
+- [ ] 现有**全部** web-face 场景（当前 7 个，清单以目录为准）不漂移；Viki 四个场景只覆盖 Viki 面板，不替代其他场景。
 - [ ] `pnpm verify` 通过。
 
 ## 下一步

@@ -32,6 +32,8 @@
  * (webui-shots.mjs header), so the field reports the machine, not the product — the rendered
  * copy (visibleText) is the evidence.
  */
+import { homedir } from 'node:os'
+
 const IGNORED_FIELDS = new Set(['href', 'lang', 'elementCount', 'pageHeight', 'screens', 'bootEntries', 'capturedAt'])
 
 /**
@@ -49,7 +51,9 @@ const COMPARED_FIELDS = ['title', 'viewport', 'readyState', 'visibleText', 'text
  */
 function tokenize(value) {
   if (typeof value === 'string') {
-    return value.replace(/https?:\/\/127\.0\.0\.1:\d+/g, '{{origin}}')
+    const home = homedir()
+    const withHome = home === '' ? value : value.split(home).join('{{home}}')
+    return withHome.replace(/https?:\/\/127\.0\.0\.1:\d+/g, '{{origin}}')
   }
   if (Array.isArray(value)) return value.map(tokenize)
   if (value !== null && typeof value === 'object') {

@@ -1,0 +1,8 @@
+# 场景契约的机器可读面；完整判据、命令与台账在同目录 README.md（同 diff 维护）。
+version: 1
+scenario: viki-panel-search
+profile: dev            # 隔离 home；assistant-viki 指向 ../viki-panel-connected/seed.mjs 的固定 mock
+recording: live
+comparison: dom-evidence
+runner: pnpm web-expected '<url>' --scenario snapshots/web-face/viki-panel-search --eval "<new session>" --eval "<open right sidebar>" --eval "<click Viki tab>" --eval "<type 夹具 + search>" --wait-text '搜索「夹具」'
+entry: dev/probes/web/webui-expected.mjs

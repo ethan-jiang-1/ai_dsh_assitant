@@ -15,6 +15,7 @@
  * Deliberately plain .mjs, like the other tooling specs: vitest runs it, while
  * `tsc -p tsconfig.test.json` does not include non-TS files.
  */
+import { homedir } from 'node:os'
 import { describe, expect, it } from 'vitest'
 import { buildCaptureEvalArgs, buildMissingScenarioUsage, buildWaitSnippet, compareEvidence, discoverScenarios, normalizeDomEvidence } from '../../../../dev/probes/web/webui-expected-core.mjs'
 
@@ -66,6 +67,11 @@ describe('normalizeDomEvidence keeps only the compared contract', () => {
     const withFailure = evidence({ networkFailures: ['ERR_CONNECTION_REFUSED http://127.0.0.1:53108/combo'] })
     const normalized = normalizeDomEvidence(withFailure)
     expect(normalized.networkFailures[0]).toBe('ERR_CONNECTION_REFUSED {{origin}}/combo')
+  })
+
+  it('tokenizes the user home so a diagnostics config path is portable', () => {
+    const normalized = normalizeDomEvidence(evidence({ visibleText: `config ${homedir()}/.openviking/ov.conf` }))
+    expect(normalized.visibleText).toBe('config {{home}}/.openviking/ov.conf')
   })
 
   it('surfaces an unknown top-level field as unowned instead of silently dropping it', () => {
