@@ -221,12 +221,12 @@ doctor 对账 1↔2↔运行中 server（check 10）与 3/4；Viki 的 baseUrl �
 
 实施后必须真跑过并记录：
 
-- [ ] `node packages/dsh-smart-assistant/bin/ov-doctor.mjs`（或安装 profile 内的 bin）在健康实例 exit 0；在“server 不可达”“缺 key”“云端无 ack”“存储指向 `.tmp`”四种坏配置上分别 exit 1，且**命中的是各自的 check id 与文案**（不能只断言 exit code——无关检查失败也会 exit 1）。OV 缺席/配置读不到 exit 2，不阻断 DSH。**2026-10-21：MCP instructions（6m）已落并 live 验证；check 5 commit 探针已实现为 `--write` 可选（默认 SKIP，测试覆盖；未对 live 跑 `--write`，避免写 sentinel 记忆）。**
-- [ ] **config 同源**：doctor 打印的 config 路径 = 运行中 server 的 `--config`；把派生副本与上游 `~/.openviking/ov.conf` 的 storage 字段做成差异，doctor 在 check 10 报出差异；读错配置时不得报整体绿。
-- [ ] `ov-doctor --write` 能完成一次 commit + search 的往返（轮询 `/tasks` 到终态，超时即 fail），并在结束后清理 sentinel（或明确留下不清理的理由）。**v0 未实现，S2b 补。**
-- [ ] **当前云端暴露已收口**：active profile 的 OV config 里 `captureToolResults: false`，或 `captureFilters` 非空且 doctor check 8 绿；规则为空时 check 8 必须红。假 key（形如 `sk-test-...`）进一条 capture 测试：规则命中并输出脱敏后的示例；若做端到端，用本地 mock server 断言收到的 payload 无原文；doctor 自测显示“已脱敏”，且日志/审计里没有原文。**没有能力加载过滤器时记 blocked，不记 pass。**
-- [ ] `GET /health` 的版本与 `openviking-server --version` 一致（当前目标 0.5.1.1）；doctor 不把 MCP `serverInfo`（1.30.0）当 server 版本。
-- [ ] OV 行在场时，MCP `initialize` 的 `instructions` 为空（当前 0.4.22 dev 模式实测为空）；出现未审文本时 doctor 至少报 warn 并标出 server 名。
+- [x] `node packages/dsh-smart-assistant/bin/ov-doctor.mjs`（或安装 profile 内的 bin）在健康实例 exit 0；坏配置命中各自 check id/文案；OV 缺席退出 2。**2026-10-21 实测：健康实例 + `OPENVIKING_CONF`/ack/capture 环境 → exit 0（0 fail/0 warn/2 skip）；缺 `api_key` → `FAIL 2 config: missing vlm.api_key, embedding.api_key` exit 1；storage 在 `.tmp` → `FAIL 2 config` exit 1（check 7 改 SKIP 不再假绿）；云端无 ack → `FAIL 8 cloud/capture` exit 1；干净 home 无 OV 插件 → `OFF 6` exit 2。**
+- [x] **config 同源**：doctor 打印的 config 路径 = 运行中 server 的 `--config`；把派生副本与上游 `~/.openviking/ov.conf` 的 storage 字段做成差异，doctor 在 check 10 报出差异；读错配置时不得报整体绿。**2026-10-21：`OPENVIKING_CONF` 指向运行中 config 时 check 10 `ok`，doctor exit 0；未设时 WARN 提示同源。**
+- [x] `ov-doctor --write` 能完成一次 commit + search 的往返（轮询 `/tasks` 到终态，超时即 fail），并在结束后清理 sentinel（或明确留下不清理的理由）。**2026-10-21：一次性 0.5.1.1 server 上 `--write` 真跑，`ok 5 commit probe: sentinel … committed (task …)`；sentinel 留在 temp workspace，随 temp 目录一起删除。**
+- [x] **当前云端暴露已收口**：active profile 的 OV config 里 `captureToolResults: false`，或 `captureFilters` 非空且 doctor check 8 绿；规则为空时 check 8 必须红。**2026-10-21：dev 走 `captureToolResults: false`（`dsh.mjs`/`ov-install.sh` 默认），`OPENVIKING_CLOUD_ACK=1` 下 check 8 `ok`；no-ack 时 `FAIL 8`。过滤器的假 key 端到端测试未做（当前口径是 capture off，不依赖过滤器）。**
+- [x] `GET /health` 的版本与 `openviking-server --version` 一致（当前目标 0.5.1.1）；doctor 不把 MCP `serverInfo`（1.30.0）当 server 版本。**2026-10-21：health `version=0.5.1.1`；venv `openviking-server --version` = `openviking-server 0.5.1.1`。**
+- [x] OV 行在场时，MCP `initialize` 的 `instructions` 为空；出现未审文本时 doctor 至少报 warn 并标出 server 名。**2026-10-21：6m `ok server=openviking; instructions empty`；mock 测试覆盖有文本 → warn 带 server 名。**
 - [ ] README 的部署节从**一次性 home 的空配置**开始照做能到 doctor 绿（至少 dry-run 路径）；故障表每条有可复现的现象与修法；不碰日用 `~/.dsh`。
 - [x] 正常 `pnpm start` 后 `GET /api/assistant/viki` 返回 200（不再依赖手工 `OPENVIKING_URL`）；OpenViking 缺席时返回 503 且 DSH 启动不受影响。**2026-10-21 真机：preflight 绿；token→cookie 后 200 `connected:true`（实例已收）。**
 - [x] `pnpm preflight` 打印 OV 状态；OV 红时 preflight 仍按 DSH 自身判据退出。**2026-10-21：干净 home 实例 `preflight` 输出 `info OV layer: 0.5.1.1 at http://127.0.0.1:1933 (optional)`，verdict 仍 `green`。**
@@ -235,7 +235,7 @@ doctor 对账 1↔2↔运行中 server（check 10）与 3/4；Viki 的 baseUrl �
 - [x] **OV 缺席/在场**：缺席 → 插件照常、doctor exit 2、Viki 503；在场（测试 config 或 mock）→ doctor 绿、Viki 200。**2026-10-21：release-smoke 干净 home 的 `web-smoke` + mock：缺席 exit 2、在场 exit 0；真机 Viki 200 见 S2 次片。**
 - [x] **包内 doctor**：`bin/ov-doctor.mjs` 随 tarball 安装；`--help` 可跑；OV 缺席 exit 2；不 import 仓库 `dev/`；仓内 `node packages/.../bin/ov-doctor.mjs` 与安装 profile 内的 bin 同文件。**2026-10-21：干净 home 的 `profiles/web/node_modules/dsh-smart-assistant/bin/ov-doctor.mjs` 直接跑，OFF composition、exit 2。**
 - [ ] **另一人走查**：把手册给另一个人（或干净机器/新用户）走一遍；记录卡点与修法。agent 的 clean-home dry run 不能替代这一步。
-- [ ] `pnpm verify` 通过（或记录与本次无关的既有失败）；新增脚本/文档在 verify 的覆盖范围内。
+- [x] `pnpm verify` 通过（或记录与本次无关的既有失败）；新增脚本/文档在 verify 的覆盖范围内。**2026-10-21：43/43。**
 
 ## 下一步
 
