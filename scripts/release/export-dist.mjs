@@ -236,7 +236,7 @@ export OPENVIKING_CLOUD_ACK=1   # 云端 provider 才需要；本地 provider �
 dsh web
 \`\`\`
 
-- \`OPENVIKING_URL\` 给 Viki 面板用；不设时面板显示未连接。
+- 本机默认 \`http://127.0.0.1:1933\`；只有远程/非默认端口才需要设 \`OPENVIKING_URL\`。
 - 插件对 DSH 默认会抓完整工具结果；云端 provider 下先设 \`false\`，除非你已配置 \`captureFilters\`。
 - 云端 provider 必须显式 \`OPENVIKING_CLOUD_ACK=1\`；doctor 会检查。
 
@@ -257,7 +257,7 @@ search、composition、storage、cloud/capture、版本与 config 同源提示�
 
 | 现象 | 原因与处理 |
 |---|---|
-| Viki 503 / 未连接 | \`OPENVIKING_URL\` 没设，或 server 没起；先 \`curl /health\` |
+| Viki 503 / 未连接 | server 没起；远程/非默认端口还需要设 \`OPENVIKING_URL\` 或 \`assistant-viki.baseUrl\`；先 \`curl /health\` |
 | health 绿但 search 空/500 | 模型位不可达或 embedding 熔断；看 \`~/.openviking/server.log\` 的 provider/model/key |
 | commit failed | VLM 连接/function calling/连续 user 消息兼容；看 \`/api/v1/tasks\` 与 server 日志 |
 | 记忆重启后丢 | storage 指到了临时目录；改成持久路径并重启 |

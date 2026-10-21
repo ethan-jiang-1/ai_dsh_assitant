@@ -273,8 +273,10 @@ export async function runDoctor(options, fetchImpl = fetch) {
   }
 
   const viki = vikiBaseUrl({ profilePatch: facts.profilePatch })
-  add('6d', 'Viki URL', viki === undefined ? 'fail' : 'ok',
-    viki === undefined ? 'no OPENVIKING_URL and no assistant-viki baseUrl; the Viki panel will be 503' : viki)
+  add('6d', 'Viki URL', 'ok',
+    viki === undefined
+      ? 'default local http://127.0.0.1:1933 (set OPENVIKING_URL or assistant-viki.baseUrl for a remote server)'
+      : viki)
 
   if (configResult.config !== undefined) {
     const cloud = checkCloudCapture({ config: configResult.config, profilePatch: facts.profilePatch })

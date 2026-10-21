@@ -297,4 +297,33 @@ describe('assistant-viki row wiring', () => {
     expect(restored.status).toBe(200)
     expect(await restored.json()).toEqual({ ok: true, commit: 'commit-1' })
   })
+
+  it('falls back to local 127.0.0.1:1933 when neither config nor env sets a URL', async () => {
+    const previous = process.env.OPENVIKING_URL
+    delete process.env.OPENVIKING_URL
+    const calls: string[] = []
+    const originalFetch = globalThis.fetch
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      calls.push(String(input))
+      return new Response(JSON.stringify({ status: 'error' }), { status: 503, headers: { 'content-type': 'application/json' } })
+    }) as typeof fetch
+    try {
+      const ctx = new Context()
+      contexts.push(ctx)
+      let route: any
+      ctx.provide('connection', { fetch: { register: (candidate: any) => { route = candidate; return () => {} } } })
+      const dataDir = mkdtempSync(join(tmpdir(), 'assistant-viki-default-'))
+      dirs.push(dataDir)
+      await ctx.plugin(AssistantMemory, { dataDir })
+      await ctx.plugin(VikiRow, { space: 'default' })
+      if (route === undefined) throw new Error('assistant-viki did not register a route')
+      const response = await route.fetch(new Request('http://localhost/api/assistant/viki'))
+      expect(response.status).toBe(503)
+      expect(calls[0]).toContain('http://127.0.0.1:1933')
+    } finally {
+      globalThis.fetch = originalFetch
+      if (previous === undefined) delete process.env.OPENVIKING_URL
+      else process.env.OPENVIKING_URL = previous
+    }
+  })
 })

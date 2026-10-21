@@ -63,7 +63,7 @@ describe('validateConfig', () => {
   })
 
   it('rejects a temporary or relative storage root', () => {
-    expect(storageProblemOf('/tmp/ov')).toBeUndefined()
+    expect(storageProblemOf('/persistent/ov')).toBeUndefined()
     expect(storageProblemOf('/repo/.tmp/openviking/workspace')).toContain('.tmp')
     expect(storageProblemOf('relative/workspace')).toContain('not absolute')
     expect(storageProblemOf('~/openviking/workspace')).toContain('~')

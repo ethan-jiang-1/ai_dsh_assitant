@@ -289,6 +289,14 @@ doctor 对账 1↔2↔运行中 server（check 10）与 3/4；Viki 的 baseUrl �
 - 真机 dev 跑：health 0.4.22 / upstream doctor 通过；search 500 fail；Viki URL 缺 fail；cloud+no-ack+capture-on+empty-filters fail；版本 0.4.22 warn；config 同源 warn；check 5/MCP SKIP。**这正是“health 绿 ≠ 可用”的实物。**
 - v0 覆盖 check 1/2/3/4/6/7/8/9/10；check 5 与 MCP instructions 子项留 S2b。
 
+### 2026-10-21 · S2 次片（Viki baseUrl 默认）
+
+- `src/host/viki/index.ts`：`config → OPENVIKING_URL → http://127.0.0.1:1933`；走默认时 `ctx.logger.warn` 提示远程要显式配；模块头注同步。
+- `tests/host/viki-route.spec.ts`：新增“无 config/env 时默认 1933”案；15 案通过。
+- `bin/ov-doctor.mjs` 6d：无显式 URL 时按默认 1933 报 `ok`，并提示远程需显式；install manual 的 Viki 节同步。
+- 证据：`vitest run tests/host/viki-route.spec.ts` 15 passed；`pnpm typecheck` PASS；`pnpm export-dist`；`pnpm release-smoke` PASS；`pnpm verify` 43/43；live doctor 6d 已从 fail 变 ok（默认 local 1933），search/cloud 仍 fail。
+- 剩余：S2b 的 doctor check 5/MCP、README 部署/故障表全量；`pnpm start` 的 Viki 200 真机回归。
+
 ## 关闭条件
 
 - doctor + README + 云端例外 + 配置对账 + **Viki baseUrl 默认**落地；验收全绿；用户 review 通过。

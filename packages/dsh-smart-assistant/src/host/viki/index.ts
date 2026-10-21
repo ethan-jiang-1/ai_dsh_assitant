@@ -1,8 +1,8 @@
 /**
  * Host plugin row `assistant-viki`: registers the exact Viki read route over the configured
  * OpenViking server. `baseUrl`/`apiKey` come from config, then `OPENVIKING_URL`/
- * `OPENVIKING_API_KEY`; an empty base URL is a valid "not connected" state (503 on read), never a
- * startup failure. The delete/restore POST actions ride the same route.
+ * `OPENVIKING_API_KEY`, then the local `127.0.0.1:1933` default; an unreachable server is a
+ * 503 on read, never a startup failure. The delete/restore POST actions ride the same route.
  *
  * @module
  */
@@ -18,7 +18,7 @@ export const name = 'assistant-viki'
 export const inject = ['connection', 'assistantMemory'] as const
 
 export interface Config {
-  /** OpenViking base URL (no `/api/v1` suffix); defaults to `OPENVIKING_URL`. */
+  /** OpenViking base URL (no `/api/v1` suffix); config → `OPENVIKING_URL` → local `127.0.0.1:1933`. */
   baseUrl?: string
   /** API key for `Authorization: Bearer`; defaults to `OPENVIKING_API_KEY`. */
   apiKey?: string
@@ -35,11 +35,18 @@ export const Config: Schema<Config> = z.object({
   peer: z.string().default(''),
 })
 
+/** Local default: the OpenViking server's dev port, matching the plugin's own default. */
+const DEFAULT_BASE_URL = 'http://127.0.0.1:1933'
+
 export function apply(ctx: Context, config: Config): void {
   const memory = (ctx as unknown as { assistantMemory: AssistantMemory }).assistantMemory
   const space = config.space?.trim() || 'default'
   const peer = config.peer?.trim() || undefined
-  const baseUrl = config.baseUrl?.trim() || process.env.OPENVIKING_URL?.trim() || ''
+  const configuredBaseUrl = config.baseUrl?.trim() || process.env.OPENVIKING_URL?.trim() || ''
+  const baseUrl = configuredBaseUrl || DEFAULT_BASE_URL
+  if (configuredBaseUrl === '') {
+    ctx.logger.warn(`assistant-viki: no baseUrl/OPENVIKING_URL; using ${DEFAULT_BASE_URL} (set it explicitly for a remote server)`)
+  }
   const apiKey = config.apiKey?.trim() || process.env.OPENVIKING_API_KEY?.trim() || undefined
   const client = new VikiClient({ baseUrl, space, ...(apiKey === undefined ? {} : { apiKey }), ...(peer === undefined ? {} : { peer }) })
   const reader: VikiReader = {
