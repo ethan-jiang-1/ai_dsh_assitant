@@ -27,7 +27,7 @@
  *   --dsh <cmd>   harness launcher to use (default: the pinned source checkout via tsx)
  */
 
-import { execFileSync } from 'node:child_process'
+import { execFileSync, spawnSync } from 'node:child_process'
 import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, isAbsolute, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -87,7 +87,7 @@ try {
 
   step('inspecting the tarball for self-containment and rewritten peer ranges')
   const listing = run('tar', ['-tzf', tarball]).split('\n').filter(Boolean)
-  for (const required of ['package/package.json', 'package/cordis.patch.yml', 'package/lib/index.js']) {
+  for (const required of ['package/package.json', 'package/cordis.patch.yml', 'package/lib/index.js', 'package/bin/ov-doctor.mjs']) {
     if (!listing.includes(required)) fail(`tarball is missing ${required} — did \`pnpm build\` run?`)
   }
   if (listing.some(entry => entry.includes('/vendor/'))) fail('tarball contains a vendor/ path')
@@ -162,6 +162,24 @@ try {
   if (!webAfter.includes('preset-assistant')) fail('web profile dump does not show preset-assistant')
   else if (!/default:\s*assistant/.test(webAfter)) fail('web profile dump does not show the assistant default')
   else ok('web profile: install + preset default is the documented path')
+
+  step('installed ov-doctor: the bin a user actually gets')
+  const doctorBin = join(home, 'profiles', webProfile, 'node_modules', PACKAGE_NAME, 'bin', 'ov-doctor.mjs')
+  if (!existsSync(doctorBin)) {
+    fail(`installed package has no bin/ov-doctor.mjs at ${doctorBin}`)
+  } else {
+    const help = spawnSync(process.execPath, [doctorBin, '--help'], { encoding: 'utf8' })
+    if (help.status !== 0 || !`${help.stdout}${help.stderr}`.includes('ov-doctor')) fail('installed ov-doctor --help did not run')
+    else ok('installed ov-doctor --help runs')
+    const fakeConfig = join(home, 'ov-doctor.conf.json')
+    writeFileSync(fakeConfig, JSON.stringify({
+      vlm: { provider: 'openai', api_base: 'http://127.0.0.1:1/v1', api_key: 'sk-test-not-a-key', model: 'test' },
+      embedding: { dense: { provider: 'openai', api_base: 'http://127.0.0.1:1/v1', api_key: 'sk-test-not-a-key', model: 'test', dimension: 8 } },
+    }), { mode: 0o600 })
+    const absent = spawnSync(process.execPath, [doctorBin, '--dsh-home', home, '--profile', webProfile, '--config', fakeConfig, '--base-url', 'http://127.0.0.1:1'], { encoding: 'utf8' })
+    if (absent.status !== 2) fail(`installed ov-doctor should exit 2 with the optional layer absent; got ${String(absent.status)}: ${absent.stdout}${absent.stderr}`)
+    else ok('installed ov-doctor degrades with exit 2 when the optional layer is absent')
+  }
 
   step('keyless check: the preset-mounted one-shot entry is in the composition')
   // The runner patch mirrors dev/probes/session/preset-runner.patch.yml: disable the shipped bare-agent

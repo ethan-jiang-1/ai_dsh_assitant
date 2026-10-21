@@ -24,8 +24,8 @@ opened: 2026-10-21
 | 片 | 状态 | 证据 |
 |---|---|---|
 | S0 裁决/载体 | 已交付 | [方向评审卡](../_archive/settled_issues/261020-openviking-direction-review.md) 已结；本卡 + [proposed 卡](../../notes/proposed/2026-10-21-openviking-viki-landing.md) |
-| S1 安装/配置面 | 部分交付 | [部署卡](261020-openviking-deploy-doctor.md) §5：`_dist/安装手册.md` 已含 preset 默认 + OV 安装/配置/启动/Viki/工具结果关闭；`release-smoke` 的 `web-smoke` 干净 home 已证 install + preset 默认；`dev/env/dsh.mjs`/`ov-install.sh` 已默认 `captureToolResults: false`。**待做**：standalone doctor、用户侧 OV 安装器、OV 缺席/在场 clean-home、另一人走查 |
-| S2 部署/doctor | 进行中 | 云端暴露收口已落 `start.sh`/`ov-install.sh`；doctor 十项/config 同源/Viki baseUrl/README 待做 |
+| S1 安装/配置面 | 部分交付 | [部署卡](261020-openviking-deploy-doctor.md) §5：`_dist/安装手册.md` 已含 preset 默认 + OV 安装/配置/启动/Viki/工具结果关闭 + doctor；`release-smoke` 的 `web-smoke` 干净 home 已证 install + preset 默认 + 包内 doctor；`dev/env/dsh.mjs`/`ov-install.sh` 已默认 `captureToolResults: false`。**待做**：用户侧 OV 安装器、OV 在场 clean-home、另一人走查 |
+| S2 部署/doctor | 进行中 | 云端暴露收口已落 `dsh.mjs`/`ov-install.sh`；包内 `bin/ov-doctor.mjs` v0 已交付（1/2/3/4/6/7/8/9/10；5 与 MCP 子项 SKIP）；Viki baseUrl/README/check 10 全量待做 |
 | S3 运行态 0.5.1.1/存储/旋钮 | 待开始 | [运行态卡](261020-openviking-runtime-repair.md) 验收：副本迁移、两次 commit、持久存储、dump-config、真机召回、回滚 |
 | S4 只读检索 A/B | 待开始 | [检索卡](261020-openviking-retrieval-viki.md) A/B：固定题集、评分表、原型指针、裁决 |
 | S5 Viki 面板 | 待开始 | [检索卡](261020-openviking-retrieval-viki.md) Viki：搜索/健康/转正、专用场景、既有场景不漂移 |

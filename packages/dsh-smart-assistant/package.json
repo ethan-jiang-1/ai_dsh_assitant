@@ -23,6 +23,9 @@
   },
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
+  "bin": {
+    "ov-doctor": "./bin/ov-doctor.mjs"
+  },
   "exports": {
     ".": {
       "types": "./lib/index.d.ts",
@@ -96,6 +99,7 @@
   },
   "files": [
     "lib",
+    "bin",
     "presets",
     "cordis.patch.yml",
     "README.md"

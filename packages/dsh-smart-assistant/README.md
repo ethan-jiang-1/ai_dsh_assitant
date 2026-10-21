@@ -8,6 +8,7 @@
   （动词清单以生成物 catalog 为准）。
 - **一个机器能跑的养护检查**：`assistant_memory action=curate`。
 - **一个 agent preset**：`assistant`（挂上它，这个会话就是"有 working folder 的助手"）。
+- **一个只读部署自检 CLI**：`ov-doctor`（`bin/ov-doctor.mjs`；装好可选 OpenViking 层后在 profile 内运行，见安装手册的 OV 自检节）。
 
 ## 它是什么形状
 
@@ -35,6 +36,6 @@ Host 运行期 `@deepseek-ai/*` 使用 **peerDependencies**；仅类型关系（
 
 ## 自包含
 
-发布产物（`lib/`、`presets/`、`cordis.patch.yml`）不引用 repo 内任何其他目录，也不引用 `vendor/`；
+发布产物（`lib/`、`bin/`、`presets/`、`cordis.patch.yml`）不引用 repo 内任何其他目录，也不引用 `vendor/`；
 `pnpm verify` 机械检查这一点。真实安装形状（`pnpm pack` → 干净 home → `dsh plugin add`）
-由 `pnpm release-smoke` 验证。
+由 `pnpm release-smoke` 验证；`bin/ov-doctor.mjs` 随包安装，另一人不需要仓库。

@@ -77,7 +77,7 @@
 | `tests/agent/` | agent 面合同（提示词段落、养护回合） | 真服务 + 临时 home | 段落就绪/段落预算/回合占位等模型可见合同 | Loader 组合、UI 读回；机制本体在 host 服务（文件头注明） | `pnpm test:agent` |
 | `tests/composition/` | 配置装载、注册与范围合同 | 真 Loader + shipped YAML + built `lib/` | 行身份、导出形态、注册撤销、scope 语义、本包组合 seam | vendor rows、完整产品 boot（release-smoke 的事） | `pnpm test:composition`（先 build） |
 | `tests/client/` | 浏览器注册与交互状态合同 | classic-script 装置 + React shim，无浏览器 | 注册、组件树、回调、色彩契约 | 真实 web boot 与渲染（`pnpm web-expected` 现有场景，清单以目录为准） | `pnpm test:client` |
-| `tests/tooling/` | 仓库工具核（verify 门禁、eval 判决、catalog 生成器、报告、DOM 比较核） | 脚本直读 + throwaway 夹具 | 工具核的接受/拒绝形状（含 prove-it-red 负例） | 真实会话/渲染/门禁全量（`pnpm verify` 的事） | `pnpm test:tooling` |
+| `tests/tooling/` | 仓库工具核（verify 门禁、eval 判决、catalog 生成器、报告、DOM 比较核、包内 `ov-doctor`） | 脚本直读 + throwaway 夹具 | 工具核的接受/拒绝形状（含 prove-it-red 负例） | 真实会话/渲染/门禁全量（`pnpm verify` 的事） | `pnpm test:tooling` |
 | `tests/support/` | 共享夹具（`*harness.{ts,mjs}`） | — | — | 刻意不被任何 include 选中（门禁豁免容器） | — |
 
 失败报告先按本表分层归因再上浮：配置 / 构建物 / 领域规则 / 服务行为 / 模型回合 / UI 读回，不混称"测试挂了"。

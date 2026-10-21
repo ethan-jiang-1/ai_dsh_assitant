@@ -25,7 +25,7 @@ opened: 2026-10-20
 
 **期望结果：** 一条命令能回答“这一层现在能不能用、缺什么、下一步怎么修”；README 有一张配置表和一份故障表；云端例外有明确的可出/脱敏口径和 ack 门；Viki 在正常 `pnpm start` 下能连上（本卡修 baseUrl 默认）；doctor 能指出存储不在持久路径、Viki 不通、云端未 ack，并把搬家/升级分派到运行态卡；**另一个人在干净 home/机器上按导出包 + 安装手册能装起插件并切到 `assistant`；可选 OV 层有独立的安装/配置/启动/doctor 路径，不依赖本仓库 dev home、`.env.local`、live dev-ov 或本机绝对路径。**
 
-**完成条件：** 新用户按 README 能配对所有必填项；`pnpm ov-doctor` 对健康实例 exit 0、对 **server 不可达/缺 key/缺 cloud ack/存储指向 `.tmp`** 分别给出可执行的错误；Viki 正常启动不再 503；**当前 `captureToolResults` + 空 `captureFilters` 的云端暴露已收口（关掉或配过滤器）**；云端例外写入 README 与 note；**安装面：`pnpm export-dist` 手册覆盖预设默认值 + OV 安装/配置/启动/doctor + 故障表，干净 home 安装 smoke 通过，OV 缺席时插件正常、OV 在场时 Viki 200。**
+**完成条件：** 新用户按 README 能配对所有必填项；`ov-doctor`（包内 bin）对健康实例 exit 0、对 **server 不可达/缺 key/缺 cloud ack/存储指向 `.tmp`** 分别给出可执行的错误；Viki 正常启动不再 503；**当前 `captureToolResults` + 空 `captureFilters` 的云端暴露已收口（关掉或配过滤器）**；云端例外写入 README 与 note；**安装面：`pnpm export-dist` 手册覆盖预设默认值 + OV 安装/配置/启动/doctor + 故障表，干净 home 安装 smoke 通过，OV 缺席时插件正常、OV 在场时 Viki 200。**
 
 ## 当前情况（证据）
 
@@ -87,7 +87,7 @@ opened: 2026-10-20
 ### 部署 ack
 
 - **环境变量 `OPENVIKING_CLOUD_ACK=1` 是唯一载体**（部署在 start 链/README 里显式导出；doctor 读它）；不新增配置文件口，也不改上游插件的 config schema。
-- 云端 provider 且没有 ack：`pnpm ov-doctor` **fail**；`pnpm start` 打 warning（不阻断 DSH 启动）。
+- 云端 provider 且没有 ack：`ov-doctor` **fail**；dev 的 `pnpm start` 打 warning（不阻断 DSH 启动）；安装用户侧由 doctor 报红。
 - 本地 provider（Ollama/本地 OpenAI 兼容）不需要 ack。
 
 ## 方案与取舍
@@ -95,7 +95,7 @@ opened: 2026-10-20
 | 方案 | 做法 | 判断 |
 |---|---|---|
 | A. 只写 README | 文档列全配置 | 不够：用户仍会漏 key/URL/ack；没有红绿 |
-| B. README + `pnpm ov-doctor` + 配置对账 + 云端 ack | 一条命令检查，错误可执行 | **推荐** |
+| B. README + `ov-doctor`（包内 bin）+ 配置对账 + 云端 ack | 一条命令检查，错误可执行 | **推荐** |
 | C. 只靠 OpenViking 的 `doctor` | 跑上游 `openviking-server doctor` | 不够：不查 DSH 组合、Viki、cloud ack、脱敏、存储 |
 | D. 做交互式 wizard | 问用户、写 `ov.conf` | 有价值但可后置；先做非交互 doctor，CI/Agent 也能跑 |
 | E. 让 `pnpm preflight` 硬失败 | 把 OV 当必需 | 违反“可选增强不能成单点故障”；只打印状态 |
@@ -104,9 +104,9 @@ opened: 2026-10-20
 
 ## 设计
 
-### 1. `pnpm ov-doctor`（新脚本，放 `dev/deploy/`）
+### 1. `ov-doctor`（包内 bin：`bin/ov-doctor.mjs`）
 
-**落点理由**：`scripts/` 是机械门禁与生成器（其 `AGENTS.md` 的三条纪律），部署医生是开发环境工具，放 `dev/deploy/`；`package.json` 加 `ov-doctor` alias，`pnpm verify` 的“docs: commands named in docs exist”会守。
+**落点理由**：需要 doctor 的是**装了 tarball 的人**，不是有仓库的人。所以它作为 package bin 随包发布（`package.json` 的 `bin.ov-doctor` + `files: ["bin"]`），手册在 `<profile>/node_modules/dsh-smart-assistant/bin/ov-doctor.mjs` 调用；仓内开发直接 `node packages/dsh-smart-assistant/bin/ov-doctor.mjs`。`scripts/` 与 `dev/deploy/` 都只服务有仓库的人，不作为用户路径。
 
 **共用一个 config 源**：所有检查读运行中 server 的同一份 config——`OPENVIKING_CONF`（若设）或 `openviking-up.sh` 派生的 `.tmp/openviking/ov.conf`；上游 `~/.openviking/ov.conf` 只作来源显示，**不与派生副本混用**。doctor 必须打印“我读的是哪份”；读不到就 exit 2，不猜。理由：2026-10-21 实测 `openviking-server doctor`（默认读 `~/.openviking/ov.conf`）全绿，而运行中的 server（派生 config）仍 `/tasks` failed——读错配置会假绿。
 
@@ -165,7 +165,7 @@ doctor 对账 1↔2↔运行中 server（check 10）与 3/4；Viki 的 baseUrl �
 
 ### 5. 安装与配置面（另一人路径）
 
-**现状（缺口）**：`_dist/安装手册.md` 由 [`scripts/release/export-dist.mjs`](../../scripts/release/export-dist.mjs) 生成，但只覆盖插件本体；没有 `agent-preset-registry.default: assistant` 步骤；`ov-install.sh`/`openviking-up.sh` 假定 repo、`.env.local`、dev home 与 tracked tgz，导出包用户无法照做；`ov-doctor` 现在规划在 `dev/deploy/`，导出包用户没有。**结果：另一个人拿到 tgz 只能装出插件，Viki/记忆层跑不起来。**
+**现状（缺口）**：`_dist/安装手册.md` 由 [`scripts/release/export-dist.mjs`](../../scripts/release/export-dist.mjs) 生成，但只覆盖插件本体；没有 `agent-preset-registry.default: assistant` 步骤；`ov-install.sh`/`openviking-up.sh` 假定 repo、`.env.local`、dev home 与 tracked tgz，导出包用户无法照做；doctor 已落包内 bin，但“用户侧 OV 安装器 + OV 在场 clean-home + 另一人走查”仍未完成。**结果：另一个人拿到 tgz 能装插件，但 Viki/记忆层还不能一条路径跑起来。**
 
 **交付物（最小可用，不先造 wizard）**
 
@@ -174,7 +174,7 @@ doctor 对账 1↔2↔运行中 server（check 10）与 3/4；Viki 的 baseUrl �
    - 插件安装 + **profile 的 `agent-preset-registry.default: assistant`**（一页 patch 片段或 CLI 步骤）；
    - 可选 OV 层：server 安装（uv/pip）、`ov.conf` 模板（VLM/embedding/存储，占位符不落真 key）、启动、`OPENVIKING_URL`、`OPENVIKING_CLOUD_ACK=1`、`ov-doctor`、故障表；
    - 卸载/回退；全程不出现本机绝对路径。
-2. **可导出的 doctor**：`ov-doctor` 不能只在 repo 里 `pnpm ov-doctor`。导出时生成/携带一个 standalone `ov-doctor.mjs`（或包内 bin），只用 Node 内置 + 用户 config；手册里 `node ov-doctor.mjs`。仓内 `pnpm ov-doctor` 复用同一核。
+2. **包内 doctor**：`ov-doctor` 不能只在 repo 里跑。已落 `packages/dsh-smart-assistant/bin/ov-doctor.mjs` + `package.json` 的 `bin`/`files`；只用 Node 内置 + 用户 config，手册里从已安装 profile 调用。仓内开发用同一文件。
 3. **用户侧 OV 安装/配置脚本**：从 `dev/experiments/openviking/ov-install.sh` 抽出可在**没有本仓库**的机器上跑的版本（或明确只支持“仓库内开发安装”，并在手册里给另一条手装路径）。脚本必须：不读 `.env.local`、不依赖 `dev/harness-home`、不把 key 写进日志、幂等、失败不阻断插件本体。
 4. **干净 home 安装 smoke**：`DSH_HOME=<throwaway>` + 导出的 tgz + `dsh plugin add` + 设 preset 默认 + 启一次；断言 assistant preset 在场、插件可用；OV 缺席 → doctor exit 2 / Viki 503 / 插件照常；OV 在场（本机测试 config 或 mock）→ doctor 绿 / Viki 200。该 smoke 与 `release-smoke` 分工：`release-smoke` 证包形状，本 smoke 证“另一人路径”。
 5. **人判**：把手册给另一个人（或本人在干净机器/新用户）走一遍；agent 只能做 clean-home dry run，不能替代“另一个人的机器”。
@@ -208,7 +208,7 @@ doctor 对账 1↔2↔运行中 server（check 10）与 3/4；Viki 的 baseUrl �
 
 | 验收组 | 行为类 | 证据 owner / 命令 | 能证明 | 不能证明 | 人判 |
 |---|---|---|---|---|---|
-| doctor 红绿 | 编排/确定性 | `pnpm ov-doctor` + 健康实例 + 4 种坏配置 + OV 缺席 | 检查逻辑、具体 check id/文案、退出码 | 运行中 server 真的能 commit | 无 |
+| doctor 红绿 | 编排/确定性 | `node packages/dsh-smart-assistant/bin/ov-doctor.mjs`（或安装 profile 内的 bin）+ 健康实例 + 坏配置 + OV 缺席 | 检查逻辑、具体 check id/文案、退出码 | 运行中 server 真的能 commit | 无 |
 | config 同源 | 编排 | doctor 打印路径 + `ps`/启动命令的 `--config` 对照（check 10） | 读的是运行中那份 | 配置字段语义正确 | 无 |
 | 云端脱敏 | 确定性 + 集成 | doctor 的 `captureFilters` 自测 + 本地 mock server payload + 一条真实 capture（若可行） | 规则命中、payload 无原文 | 生产 provider 全路径、正则长期可靠性 | H2 口径 |
 | Viki 连接 | 编排 | 正常 `pnpm start` + `GET /api/assistant/viki` 200；OV 缺席 503 | 默认 URL/降级 | 面板渲染与交互（检索卡） | 无 |
@@ -219,9 +219,9 @@ doctor 对账 1↔2↔运行中 server（check 10）与 3/4；Viki 的 baseUrl �
 
 实施后必须真跑过并记录：
 
-- [ ] `pnpm ov-doctor` 在健康实例 exit 0，输出**十项**检查均绿；在“server 不可达”“缺 key”“云端无 ack”“存储指向 `.tmp`”四种坏配置上分别 exit 1，且**命中的是各自的 check id 与文案**（不能只断言 exit code——无关检查失败也会 exit 1）。OV 缺席/配置读不到 exit 2，不阻断 DSH。
+- [ ] `node packages/dsh-smart-assistant/bin/ov-doctor.mjs`（或安装 profile 内的 bin）在健康实例 exit 0；在“server 不可达”“缺 key”“云端无 ack”“存储指向 `.tmp`”四种坏配置上分别 exit 1，且**命中的是各自的 check id 与文案**（不能只断言 exit code——无关检查失败也会 exit 1）。OV 缺席/配置读不到 exit 2，不阻断 DSH。**v0 覆盖 1/2/3/4/6/7/8/9/10；check 5 与 MCP instructions 子项 SKIP，S2b 补后十项全绿。**
 - [ ] **config 同源**：doctor 打印的 config 路径 = 运行中 server 的 `--config`；把派生副本与上游 `~/.openviking/ov.conf` 的 storage 字段做成差异，doctor 在 check 10 报出差异；读错配置时不得报整体绿。
-- [ ] `pnpm ov-doctor --write` 能完成一次 commit + search 的往返（轮询 `/tasks` 到终态，超时即 fail），并在结束后清理 sentinel（或明确留下不清理的理由）。
+- [ ] `ov-doctor --write` 能完成一次 commit + search 的往返（轮询 `/tasks` 到终态，超时即 fail），并在结束后清理 sentinel（或明确留下不清理的理由）。**v0 未实现，S2b 补。**
 - [ ] **当前云端暴露已收口**：active profile 的 OV config 里 `captureToolResults: false`，或 `captureFilters` 非空且 doctor check 8 绿；规则为空时 check 8 必须红。假 key（形如 `sk-test-...`）进一条 capture 测试：规则命中并输出脱敏后的示例；若做端到端，用本地 mock server 断言收到的 payload 无原文；doctor 自测显示“已脱敏”，且日志/审计里没有原文。**没有能力加载过滤器时记 blocked，不记 pass。**
 - [ ] `GET /health` 的版本与 `openviking-server --version` 一致（当前目标 0.5.1.1）；doctor 不把 MCP `serverInfo`（1.30.0）当 server 版本。
 - [ ] OV 行在场时，MCP `initialize` 的 `instructions` 为空（当前 0.4.22 dev 模式实测为空）；出现未审文本时 doctor 至少报 warn 并标出 server 名。
@@ -231,14 +231,14 @@ doctor 对账 1↔2↔运行中 server（check 10）与 3/4；Viki 的 baseUrl �
 - [ ] **安装面**：`pnpm export-dist` 的《安装手册》覆盖 DSH/Node 前置、插件安装 + `agent-preset-registry.default: assistant`、可选 OV 安装/配置/启动/doctor/故障表、卸载；手册不含本机绝对路径或真 key。
 - [ ] **干净 home 安装**：一次性 `DSH_HOME` + 导出的 tgz + `dsh plugin add` + 设 preset 默认 → `--dump-config` 看到 `preset-assistant`，启动一次；全程不读 `dev/harness-home`。
 - [ ] **OV 缺席/在场**：缺席 → 插件照常、doctor exit 2、Viki 503；在场（测试 config 或 mock）→ doctor 绿、Viki 200。
-- [ ] **standalone doctor**：`ov-doctor.mjs` 从 `_dist` 可跑，不 import 仓库 `dev/`；仓内 `pnpm ov-doctor` 与它同核，结果一致。
+- [ ] **包内 doctor**：`bin/ov-doctor.mjs` 随 tarball 安装；`--help` 可跑；OV 缺席 exit 2；不 import 仓库 `dev/`；仓内 `node packages/.../bin/ov-doctor.mjs` 与安装 profile 内的 bin 同文件。
 - [ ] **另一人走查**：把手册给另一个人（或干净机器/新用户）走一遍；记录卡点与修法。agent 的 clean-home dry run 不能替代这一步。
 - [ ] `pnpm verify` 通过（或记录与本次无关的既有失败）；新增脚本/文档在 verify 的覆盖范围内。
 
 ## 下一步
 
-**裁决已收（2026-10-21）**：H1 B / H2、H3 按建议；**人类追加要求：安装/配置是一等交付**。本卡承载规格与验收，推进在 [收口卡](261021-openviking-viki-closure.md)；从 P0 安装/doctor 开始：先做导出手册 + standalone doctor + clean-home smoke，OV 层按可选；H2 的“先关工具结果”按验收第 4 条先做。
-**Agent 的**：第一轮（2026-10-20）、第二轮（2026-10-21）与安装面追加均已回写；实施时先立最小可回退切片。
+**裁决已收（2026-10-21）**：H1 B / H2、H3 按建议；**人类追加要求：安装/配置是一等交付**。本卡承载规格与验收，推进在 [收口卡](261021-openviking-viki-closure.md)。**S1 首片 + 包内 doctor v0 已交付**；下一步 S1 剩余（用户侧 OV 安装器、OV 在场 clean-home、另一人走查）+ S2b（doctor check 5/MCP、Viki baseUrl、README 全量）。
+**Agent 的**：第一轮（2026-10-20）、第二轮（2026-10-21）与安装面追加均已回写；实施按最小可回退切片。
 
 ## 范围与邻居
 
@@ -279,7 +279,15 @@ doctor 对账 1↔2↔运行中 server（check 10）与 3/4；Viki 的 baseUrl �
 - `scripts/release/release-smoke.mjs`：新增 `web-smoke` 干净 home 路径——web profile + `dsh plugin add` + 写 `agent-preset-registry` 默认，断言默认从 `standard` 翻到 `assistant`；`pnpm release-smoke` PASS。
 - `dev/env/dsh.mjs`：所有 dev 启动默认 `OPENVIKING_CAPTURE_TOOL_RESULTS=false`；`dev/experiments/openviking/ov-install.sh` 的 v3 配置加 `captureToolResults: false`。插件 `resolveKnobs` 实测 env 覆盖为 false。
 - 证据：`pnpm release-smoke` PASS；`pnpm verify` 43/43；`_dist/安装手册.md` 与生成器一致。
-- 剩余：standalone `ov-doctor.mjs`、用户侧 OV 安装器、OV 缺席/在场 clean-home、另一人走查。
+- 剩余：用户侧 OV 安装器、OV 在场 clean-home、另一人走查；S2b 的 doctor check 5/MCP。
+
+### 2026-10-21 · S2 首片（包内 doctor v0）
+
+- `packages/dsh-smart-assistant/bin/ov-doctor.mjs` + `package.json` 的 `bin`/`files`：随 tarball 安装，只用 Node 内置；手册加“自检”节。仓内开发与安装 profile 用同一文件。
+- `release-smoke`：断言 tarball 含 `bin/ov-doctor.mjs`、安装后 `--help` 可跑、OV 缺席 exit 2；**PASS**。
+- `tests/tooling/ov-doctor.spec.mjs`：12 案（config/mode/storage/cloud-ack/capture/filters/args/Viki/version）；`pnpm test:tooling` **270 passed**。
+- 真机 dev 跑：health 0.4.22 / upstream doctor 通过；search 500 fail；Viki URL 缺 fail；cloud+no-ack+capture-on+empty-filters fail；版本 0.4.22 warn；config 同源 warn；check 5/MCP SKIP。**这正是“health 绿 ≠ 可用”的实物。**
+- v0 覆盖 check 1/2/3/4/6/7/8/9/10；check 5 与 MCP instructions 子项留 S2b。
 
 ## 关闭条件
 
