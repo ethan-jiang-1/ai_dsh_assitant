@@ -18,7 +18,7 @@
  * @module dev/eval/run
  */
 import { execFileSync } from 'node:child_process'
-import { chmodSync, copyFileSync, existsSync, rmSync, unlinkSync, writeFileSync } from 'node:fs'
+import { chmodSync, copyFileSync, existsSync, readFileSync, rmSync, unlinkSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { devHome } from '../env/home.mjs'
@@ -34,6 +34,20 @@ const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 // `ASSISTANT_DSH_HOME` 才落到既有 home。默认落 dev home 时，任务会话读的是真实工作文件夹里的
 // 真实事项/记忆/交付物，判据采样到的是被污染的行为（breakdown 当场读了真实经营账本）。
 let harnessHome = devHome()
+
+/**
+ * The headless `dev-task` composition has no credentials service, so the model transport reads
+ * DEEPSEEK_API_KEY from the environment. The web profile stores it in
+ * `dev/harness-home/.credentials.yaml`; mirror that one ref into the child env when the caller did
+ * not export it. Never print the value. This is dev-harness plumbing, not a product credential path.
+ */
+function credentialEnv() {
+  if (typeof process.env.DEEPSEEK_API_KEY === 'string' && process.env.DEEPSEEK_API_KEY !== '') return {}
+  const path = join(repoRoot, 'dev', 'harness-home', '.credentials.yaml')
+  if (!existsSync(path)) return {}
+  const match = /^\s*DEEPSEEK_API_KEY:\s*(\S+)\s*$/mu.exec(readFileSync(path, 'utf8'))
+  return match?.[1] === undefined ? {} : { DEEPSEEK_API_KEY: match[1] }
+}
 
 /**
  * Observe one session log: the tool calls it made and the full text the model said to the user.
@@ -121,7 +135,7 @@ export function runPreset(prompt) {
       prompt,
     ], {
       cwd: repoRoot,
-      env: { ...process.env, ASSISTANT_DSH_HOME: harnessHome, ASSISTANT_SESSION_CWD: workspace },
+      env: { ...process.env, ...credentialEnv(), ASSISTANT_DSH_HOME: harnessHome, ASSISTANT_SESSION_CWD: workspace },
       stdio: ['ignore', 'pipe', 'pipe'],
       timeout: 15 * 60 * 1000,
     })

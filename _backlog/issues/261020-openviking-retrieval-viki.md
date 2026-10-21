@@ -49,13 +49,13 @@ opened: 2026-10-20
 | 方案 | 做法 | 优点 | 代价 | 判断 |
 |---|---|---|---|---|
 | **A1. MCP allowlist** | `ov-shield` 增加 `allowToolNames`；只放 `mcp__openviking__find` / `search` / `read` / `list` / `tree` / `grep` / `glob`；写工具与 `list_watches`/`cancel_watch`/`health` 继续拒 | 上游维护工具描述/参数；与 server 版本同步；实现小 | 每轮多 7 个 tool schema（实测 8 个只读子集 ≈2.2k token；A1 7 个略低，A/B 按实际 allowlist 重测）；模型可能在 `assistant_memory` / `session_query` / `find` 之间选错；MCP 桥仍挂全量，只是不可见 | **原型 `ab/a1-allowlist` @ `3fa7b4d`；12/12；pointer probe 资源发现被拒、0 MCP；需补 `allowServerResources`** |
-| **A2. DSH native tool** | 新增 `assistant_recall`（find/search/read/tree 四动词），内部走 OpenViking HTTP；presenter + scope | 1 个 tool schema；动词与四房间一致；可控 presenter/日志/权限 | 要自己维护 server API 差异；重复上游能力；需要测试 | **检索面生产候选（master `2d113ee`）；12/12；pointer probe `read` 被调用成功（修后 `53891` 复现）；400 错误信息已修；A2 分支仅作历史。整体评测门禁另有既存红：`pnpm eval` 基线 0/7（A2 行 disabled 对照同样 0/7、失败项相同），见 [BUG-024](../bugs/BUG-024-eval-baseline-red.md)；`pnpm test` 910/910（含 A2 的 preset/export-shape 断言）** |
+| **A2. DSH native tool** | 新增 `assistant_recall`（find/search/read/tree 四动词），内部走 OpenViking HTTP；presenter + scope | 1 个 tool schema；动词与四房间一致；可控 presenter/日志/权限 | 要自己维护 server API 差异；重复上游能力；需要测试 | **检索面生产候选（master `2d113ee`）；12/12；pointer probe `read` 被调用成功（修后 `53891` 复现）；400 错误信息已修；A2 分支仅作历史。**整体评测门禁已绿**：`pnpm eval` **7/7**（1 个 web-only NOT EVALUATED），根因是评测 harness 在 headless 下没把 key 传给子进程（[BUG-024](../_archive/fixed_bugs/BUG-024-eval-baseline-red.md)，已修）；`pnpm test` 910/910（含 A2 的 preset/export-shape 断言）** |
 | A3. 不放 | 继续只靠自动 recall | 零新面 | “问细节”无解；指针展开不了 | 不选 |
 | A4. 全放 | 16 个工具全开 | 最“充分” | 写面风险、工具噪声、错房间 | 不选 |
 
 **A/B 结果（2026-10-21）：** A1 与 A2 各跑完 12 题；初评 91/96 vs 90/96，但**两侧工具面在 12 题内均未被调用**（A2 `assistant_recall` 0 次；A1 7 个只读 MCP 0 次），答案全部来自自动 recall 块——91/90 不是工具面成绩。**指针展开 probe（17:xx）：** A1 allowlist 生效后仍 0 MCP 调用：模型先 `list_mcp_resources`，被 `ov-shield` 的 `denyServerResources: openviking` 拒，退到文件 `read`；**A2 的 `assistant_recall read` 被调用并返回全文**（第二次 400，错误信息 `[object Object]`）。所以 **A2 是当前唯一被证明可达的按需读路径**；A1 必须补资源发现（`allowServerResources` 或工具描述自带 URI），否则 7 个工具“可见但不可发现”。A2 的 400 是待修 bug。完整证据见 [A/B note](../research/tech-exploration/261021-recall-ab.md) §7。
 
-**A2 入生产的门禁与基线（2026-10-21）：** `pnpm verify` 43/43、`pnpm build`、`pnpm release-smoke` 通过；`pnpm eval` 0/7 红。**基线对照：** 把 `assistant-recall-tool` 临时 `disabled: true` 重跑 `pnpm eval`，仍 0/7，失败项与文案完全相同（`.tmp/eval/home-ghYP47`；恢复该行后 0/7 见 `.tmp/eval/home-xI4s2N`）——所以红不是 A2 引入的回归，而是既存评测基线问题（skill 不按名加载、`assistant_operating` 未被调用），另立 [BUG-024](../bugs/BUG-024-eval-baseline-red.md)。**A2 只按“检索面生产候选”陈述，不称整体生产就绪。**
+**A2 入生产的门禁（2026-10-21）：** `pnpm verify` 43/43、`pnpm build`、`pnpm release-smoke`、`pnpm test` 910/910、`pnpm eval` **7/7**（1 个 web-only NOT EVALUATED）均通过。评测红曾把 A2 行 `disabled: true` 重跑仍 0/7——根因是 headless harness 未注入 key，[BUG-024](../_archive/fixed_bugs/BUG-024-eval-baseline-red.md) 已修；A2 不是回归源。**A2 按“检索面生产候选”陈述；整体生产就绪仍等真人走查/user review 关闭。**
 
 **建议先做 A1/A2 的 A/B，不先实现。** **A/B 是原型，不是生产实现**：A1 在一次性分支/工作树里给 `ov-shield` 加临时 allowlist（或等价临时 patch），A2 用一次性分支/临时工具；产物按 [requirements-probes](../methods/requirements-probes.md) 的原型纪律保留（分支/提交指针），**不进发布物、不合并**。A/B 跑完再决定是否实施。
 

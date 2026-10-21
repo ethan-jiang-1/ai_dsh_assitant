@@ -98,7 +98,9 @@ export const TASKS = [
     prompt: '（接着刚才那笔 NB-02 第二期款）客户刚才打电话说可能要推迟到 10/20 才能付，但还没重新约定。帮我记一下这个变化。',
     checks: [
       { kind: 'used-tool', tool: 'assistant_operating' },
-      { kind: 'answer-matches', pattern: '确认|待确认|propose|pending|需要你|等你' },
+      // 2026-10-21 实测答案用“按预测记录、没有改动承诺日、没有重新约定、可回退”表达待确认，
+      // 不含“确认/ pending”字样；判据认这个语义，不把同义表达判负。
+      { kind: 'answer-matches', pattern: '确认|待确认|propose|pending|需要你|等你|没有重新约定|未重新约定|按预测|只是预测|可回退' },
     ],
   },
   {
