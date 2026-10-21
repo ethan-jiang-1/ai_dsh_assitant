@@ -326,9 +326,10 @@ describe('desk primary view', () => {
     const { ctx, registered } = recordingContext()
     materialize().apply(ctx)
 
-    expect(registered
-      .filter(entry => entry.name === 'conversation.view')
-      .map(entry => entry.declaration['id']))
+    const views = registered.filter(entry => entry.name === 'conversation.view')
+    expect(views.map(entry => entry.declaration['id']))
       .toEqual(['assistant-desk', 'assistant-tasks'])
+    expect(views.map(entry => (entry.declaration['label'] as () => string)()))
+      .toEqual(['桌面', '自动化任务'])
   })
 })
