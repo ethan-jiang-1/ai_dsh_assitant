@@ -36,16 +36,24 @@ export interface TabBodyProps {
  * constant when the hook is absent (tests, or a seat that passes no hook).
  * @param Icon - the room's glyph component.
  * @param fallbackTitle - the room's constant title.
+ * @param options - compact-chip overrides: hide the glyph and/or shrink the text so a long
+ *   debug label survives the narrow tab strip (the guide entry keeps the glyph).
  * @returns the title component for that room's tab.
  */
-export function roomTabTitle(Icon: (props: { size: number }) => unknown, fallbackTitle: string) {
+export function roomTabTitle(
+  Icon: (props: { size: number }) => unknown,
+  fallbackTitle: string,
+  options: { readonly icon?: boolean, readonly fontSize?: string } = {},
+) {
+  const showIcon = options.icon ?? true
+  const fontSize = options.fontSize
   return function RoomTabTitle(props: { useTabInfo?: () => { tab?: { title?: string } } }): ReturnType<typeof createElement> {
     const title = props.useTabInfo?.()?.tab?.title ?? fallbackTitle
     return createElement('span', {
-      style: { display: 'inline-flex', alignItems: 'center', gap: '5px', minWidth: '0' },
+      style: { display: 'inline-flex', alignItems: 'center', gap: '5px', minWidth: '0', ...(fontSize === undefined ? {} : { fontSize }) },
     },
-    createElement(Icon as unknown as import('react').FunctionComponent<{ size: number }>, { size: 14 }),
-    title)
+    ...(showIcon ? [createElement(Icon as unknown as import('react').FunctionComponent<{ size: number }>, { size: 14 })] : []),
+    createElement('span', { style: { whiteSpace: 'nowrap' } }, title))
   }
 }
 
@@ -149,8 +157,8 @@ export const roomTabs = [
     icon: MemoryIcon, order: 12,
   },
   {
-    id: 'dsh-smart-assistant-viki', kind: 'vikiRoom', title: 'Viki', body: VikiTabBody,
-    description: 'Viki 记忆：对话抽取了什么，逐条可读',
+    id: 'dsh-smart-assistant-viki', kind: 'vikiRoom', title: 'Viki(调试)', tabTitle: 'Viki(调试)', body: VikiTabBody,
+    description: 'Viki(调试)：Viki 记忆的只读调试面；研发/高级用户使用，普通用户不需要',
     icon: VikiIcon, order: 13,
   },
   {

@@ -20,6 +20,7 @@ interface ClientExports {
   loadVikiBody: (uri: string) => Promise<{ ok: true, body: string } | { ok: false, reason: string }>
   loadVikiDiagnostics: () => Promise<{ ok: true, diagnostics: any } | { ok: false, reason: string }>
   loadVikiSearch: (query: string) => Promise<{ ok: true, search: any } | { ok: false, reason: string }>
+  roomTabs: readonly { kind: string, title: string, tabTitle?: string, description: string }[]
   resetVikiView: () => void
 }
 
@@ -57,6 +58,15 @@ const json = (body: unknown, status = 200): Response =>
   new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } })
 
 describe('Viki tab', () => {
+  it('labels Viki as an advanced debug surface, not a default room', () => {
+    const viki = materialize().roomTabs.find(room => room.kind === 'vikiRoom')
+    expect(viki?.title).toBe('Viki(调试)')
+    expect(viki?.tabTitle).toBe('Viki(调试)')
+    expect(viki?.description).toContain('Viki(调试)')
+    expect(viki?.description).toContain('研发/高级用户')
+    expect(viki?.description).toContain('普通用户不需要')
+  })
+
   it('renders both-tree counts and rows, and reads a body via the route', async () => {
     const calls: string[] = []
     const exports = materialize()

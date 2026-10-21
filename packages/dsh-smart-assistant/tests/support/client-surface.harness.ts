@@ -19,7 +19,7 @@ export { ReceiptView, markReceiptRead, readReceiptSince, resetReceiptBaseline } 
 export { approveKnowledgePage, correctMemory, deprecateKnowledgePage, retireMemory, retireSkill } from '../../src/client/rooms/room-data-actions'
 export { deskSlice, expirePending, looksLikeDesk, settlePending } from '../../src/client/rooms/room-data-core'
 export { bindDeskEnv, loadDeskFor, loadSkillBody } from '../../src/client/rooms/room-data-io'
-export { KnowledgeTabBody, MemoryTabBody, SkillsTabBody, VikiTabBody, roomTabTitle } from '../../src/client/rooms/room-tabs'
+export { KnowledgeTabBody, MemoryTabBody, SkillsTabBody, VikiTabBody, roomTabTitle, roomTabs } from '../../src/client/rooms/room-tabs'
 export { SkillsIcon, SkillsPanel } from '../../src/client/rooms/skills-panel'
 export { bindVikiEnv, deleteViki, getVikiView, loadViki, loadVikiBody, loadVikiDiagnostics, loadVikiSearch, referencesViki, resetVikiView, restoreViki, useVikiView } from '../../src/client/rooms/viki-data-io'
 export { VikiIcon, VikiPanel } from '../../src/client/rooms/viki-panel'

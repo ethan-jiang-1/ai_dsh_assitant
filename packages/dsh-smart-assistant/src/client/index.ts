@@ -220,11 +220,11 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         id: room.id,
         kind: room.kind,
         priority: 'fallback',
-        title: () => room.title,
+        title: () => ('tabTitle' in room ? room.tabTitle : room.title),
         guide: [{
           id: `${room.id}-guide`,
           order: room.order,
-          title: () => room.title,
+          title: () => ('tabTitle' in room ? room.tabTitle : room.title),
           description: () => room.description,
           icon: room.icon,
         }],
@@ -235,7 +235,14 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       // "tab 上最好每个都有一个自己的 icon"). The title seat replaces the bare-label chip the
       // definition would otherwise draw (same mechanism as the vendor's guide compass).
       ctx.slots.inject('sidebar.right.pane.tab.title', () =>
-        ctx.slots.register({ name: 'sidebar.right.pane.tab.title', key: room.id }, roomTabTitle(room.icon, room.title)))
+        ctx.slots.register(
+          { name: 'sidebar.right.pane.tab.title', key: room.id },
+          roomTabTitle(
+            room.icon,
+            'tabTitle' in room ? room.tabTitle : room.title,
+            room.kind === 'vikiRoom' ? { icon: false, fontSize: '10px' } : {},
+          ),
+        ))
     }
     // Form migration: conversation.composer is a CHAIN slot — chain slots are owner-only
     // registration (the declaring entry is the only one that can add to the chain).
