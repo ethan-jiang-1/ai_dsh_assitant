@@ -49,7 +49,10 @@ opened: 2026-10-20
 - **存储搬家**：live workspace = `dev/harness-home/openviking/workspace`（持久、gitignored；`/stats` 仍 6）；派生 config = `dev/harness-home/openviking/ov.conf`；0.4.22 原 `.tmp` 数据备份为 `workspace-0.4.22-backup` 与 `workspace-0.4.22-live`。`openviking-up.sh` 的状态/config/日志改到 `$DSH_HOME/openviking/`，server 优先 `$DSH_HOME/openviking/server/bin/openviking-server`，缺失才回退 PATH。
 - **v3 旋钮落点**：新增 [`dev/profiles/profile-patch-ov.yml`](../../dev/profiles/profile-patch-ov.yml)；[`setup.sh`](../../dev/env/setup.sh) 只在该 profile 的 `package.json` 真有 OV 插件时追加。`pnpm dsh --profile dev --dump-config` 显示 `peerId: assistant`、`profileTokenBudget: 3000`、`recallPreferAbstract: false`、`recallContextTimeoutMs: 3000`、`commitTokenThreshold: 3000`、`captureToolResults: false`；无插件的 fresh home 不追加。
 - **真机 Viki 回归**：`Viki(调试)` tab + 搜索「合同」返回 **6 条**（0.5.1.1 修复 #6331 的检索路径）；`/health` = 0.5.1.1。v3 config 在**新会话**生效（既有会话保持旧 generation）。
-- **仍未完成**：两次 commit → sentinel A/B 可检索（#6331 的核心验收）；一次 completed `session_commit` 任务；真实会话 recall 块；peer 实际行为、预算/召回量测；回滚演练（恢复完整 storage → 0.4.22）；fresh-home 有/无插件的 `setup.sh` case（无插件 case 目前只由条件判断保证，未在隔离 home 跑）；doctor 读**运行中同源** config（归部署卡）。
+- **两次 commit（副本，不污染 live）**：副本 `1934` 的 `dsh-sentinel-20261021`：A commit **completed**（25.9s）→ `find` 命中 `viking://user/default/peers/assistant/memories/events/2026/10/21/合同尾款到账确认.md`；B commit **completed** → `find` 命中 `.../供应商发票付款计划确认.md`；`/stats/memories` 6 → 9。证明 0.5.1.1 的 #6331 修复；live `1933` 仍 6。
+- **回滚（副本）**：把 `workspace-0.4.22-backup` 完整恢复到 `.tmp/ov-rollback/workspace`，用 0.4.22 二进制起 `1935`：`/health` 0.4.22、`/stats/memories` 6、`content/read` 正常；停掉 1935 后 live `1933` 仍 0.5.1.1/6 条。回滚顺序 = 恢复完整 storage 备份 → 换回 0.4.22，已执行。
+- **真机 recall 探针（未过）**：`pnpm loop-probe` 首次被首屏“预览版说明”弹窗挡住（`entry:no-entry`、`composerMounted:false`、`createdSessions:[]`），未进入会话——不是 recall 失败；探针需先点“继续”再进会话。真机 recall 仍待手动或修探针后复跑。
+- **仍未完成**：真机一次会话 recall 块；peer 实际行为、预算/召回量测；fresh-home 有/无插件 case；doctor 读运行中同源 config + cloud ack（归部署卡）。
 
 ## 方案与取舍
 
@@ -148,19 +151,19 @@ opened: 2026-10-20
 
 - [x] `openviking-server --version` = **0.5.1.1**（或记录的 pin）；`GET /health` 版本一致；MCP `serverInfo` 不当版本依据。
 - [x] 副本/现网：0.4.22 workspace 被 0.5.1.1 读取，`/stats/memories` 仍 6；抽查一条 `content/read` 正常；`POST /search/find` 返回非空。
-- [ ] 一次 commit 任务 completed（不是 failed）。
-- [ ] **两次 commit**：第一次 commit 后 `find`/`search` 命中 sentinel A；继续 add message 再 commit 后命中 sentinel B——这是 0.5.1.1 相对 0.5.1 的修复点，不能只测第一次。
+- [x] 一次 commit 任务 completed（不是 failed）。副本 A/B 两次 `session_commit` 均 `completed`。
+- [x] **两次 commit**：第一次 commit 后 `find` 命中 sentinel A（`合同尾款到账确认.md`）；第二次 commit 后 `find` 命中 sentinel B（`供应商发票付款计划确认.md`）——0.5.1.1 的 #6331 修复已在副本验证；live 未被测试数据污染。
 - [x] 迁移到持久路径后，`/stats/memories` 仍 6；重启 server 后仍 6；`.tmp` 旧副本保留为 `workspace-0.4.22-backup`/`workspace-0.4.22-live`；`ov-doctor --config dev/harness-home/openviking/ov.conf --profile dev` 的 check 7 为 `persistent root`。
 - [x] `dump-config` 的 OV 行显示目标 config（peer/budgets/recall）；`pnpm start` 后再 dump 仍一致（不被 setup 覆盖）。
 - [ ] **fresh dev home 无 OV 插件**：若采用选项 1（OV 行进 tracked patch），`pnpm start` 不因该行失败；若出现 inactive entry 警告，记录并判断是否可接受，否则改用选项 2/3。
 - [ ] 真机一次会话：模型回复后会话日志出现至少 1 条 `<openviking-context source="recall">`，且内容不是只有 `detail="overview"` 的系统目录（抽查到事件/偏好/实体条目）；`/tasks` 无 failed commit。
 - [x] 正常 `pnpm start` 后 `GET /api/assistant/viki` 200（**回归**，URL 修复归部署卡）；OpenViking 缺席时 503 且 DSH 正常。**2026-10-21 真机：Viki(调试) tab 搜索「合同」返回 6 条；缺席 503 早前已验。**
-- [ ] 回滚演练：先恢复完整存储兼容备份，再换回 0.4.22；`/health`、`/stats`、一条 `content/read` 正常；记录命令与结果（只换二进制不算通过）。
+- [x] 回滚演练：先恢复完整存储兼容备份，再换回 0.4.22；`/health`、`/stats`、一条 `content/read` 正常；记录命令与结果（只换二进制不算通过）。**2026-10-21 副本 1935：0.4.22 / 6 / content OK；live 1933 保持 0.5.1.1。**
 - [x] `pnpm verify` 通过（2026-10-21：43/43；`pnpm test:tooling` 270/270）。
 
 ## 下一步
 
-**裁决已收（2026-10-21）**：H1 B / H5 0.5.1.1 / H6 先跳过团队记忆。本卡承载规格与验收，推进在 [收口卡](261021-openviking-viki-closure.md)；实施顺序 = 副本迁移 → 存储搬家 → 旋钮落点 → 真机 commit/recall → 回滚演练。**2026-10-21：前 3 步已完成（0.5.1.1 副本/live、持久存储、v3 dump-config）；下一步 = 两次 commit/recall + 回滚 + fresh-home 无插件 case + doctor 云端 ack。**
+**裁决已收（2026-10-21）**：H1 B / H5 0.5.1.1 / H6 先跳过团队记忆。本卡承载规格与验收，推进在 [收口卡](261021-openviking-viki-closure.md)；实施顺序 = 副本迁移 → 存储搬家 → 旋钮落点 → 真机 commit/recall → 回滚演练。**2026-10-21：前 3 步 + 两次 commit + 回滚已完成（0.5.1.1 副本/live、持久存储、v3 dump-config、sentinel A/B 可检索、0.4.22 回滚副本通过）；下一步 = 真机 recall + fresh-home case + doctor 云端 ack。**
 **Agent 的**：第一轮（2026-10-20）与第二轮（2026-10-21）已回写；先副本验证再切 live，0.4.22 备份在 `workspace-0.4.22-backup`/`workspace-0.4.22-live`。
 
 ## 范围与邻居
