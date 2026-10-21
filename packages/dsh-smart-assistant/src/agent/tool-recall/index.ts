@@ -60,6 +60,16 @@ function baseUrl(options: RecallOptions): string {
   return (options.base ?? process.env.OPENVIKING_URL?.trim() ?? DEFAULT_BASE).replace(/\/+$/u, '')
 }
 
+function formatError(value: unknown): string {
+  if (value === undefined || value === null) return ''
+  if (typeof value === 'string') return value
+  try {
+    return JSON.stringify(value)
+  } catch {
+    return String(value)
+  }
+}
+
 async function request(path: string, init: RequestInit, options: RecallOptions): Promise<unknown> {
   const base = baseUrl(options)
   const key = options.apiKey ?? process.env.OPENVIKING_API_KEY?.trim() ?? ''
@@ -73,7 +83,7 @@ async function request(path: string, init: RequestInit, options: RecallOptions):
   })
   const parsed = await response.json().catch(() => undefined) as { status?: unknown, error?: unknown, result?: unknown } | undefined
   if (!response.ok || parsed === undefined || parsed.status !== 'ok') {
-    throw new Error(`OpenViking ${String(response.status)}: ${String(parsed?.error ?? '')}`)
+    throw new Error(`OpenViking ${String(response.status)}: ${formatError(parsed?.error)}`)
   }
   return parsed.result
 }

@@ -46,4 +46,12 @@ describe('assistant_recall A2 prototype', () => {
       base, fetchImpl: mockFetch({ status: 'error', error: 'boom' }, 500),
     })).rejects.toThrow('OpenViking 500: boom')
   })
+
+  it('formats a structured error body instead of [object Object]', async () => {
+    const error = await executeRecall({ action: 'find', query: 'x' }, {
+      base, fetchImpl: mockFetch({ status: 'error', error: { code: 'bad_uri', message: 'URI is invalid' } }, 400),
+    }).catch((cause: unknown) => cause as Error)
+    expect(error.message).toContain('bad_uri')
+    expect(error.message).not.toContain('[object Object]')
+  })
 })
