@@ -225,7 +225,19 @@ curl -s http://127.0.0.1:1933/health
 
 health 绿只说明进程活着，不等于 search/commit 可用。
 
-### 4. 让 DSH 连上
+### 4. 装 DSH 侧插件
+
+server 与插件是两个进程：只起 server，DSH 组合里没有 \`openviking-memory-runtime\` 行，doctor 会报
+\`OFF\` / exit 2，Viki 也不会连上。装钉住的 0.5.26：
+
+\`\`\`sh
+dsh plugin --profile web add @openviking/dsh-memory-plugin@0.5.26
+\`\`\`
+
+离线或想用仓内钉存件时，把上面换成 \`/path/to/dsh-memory-plugin-0.5.26.tgz\`。装完
+\`dsh --profile web --dump-config\` 应看到 \`openviking-memory-runtime\` 行。
+
+### 5. 让 DSH 连上
 
 在启动 \`dsh web\` 的同一个 shell：
 
@@ -240,7 +252,7 @@ dsh web
 - 插件对 DSH 默认会抓完整工具结果；云端 provider 下先设 \`false\`，除非你已配置 \`captureFilters\`。
 - 云端 provider 必须显式 \`OPENVIKING_CLOUD_ACK=1\`；doctor 会检查。
 
-### 5. 自检：ov-doctor
+### 6. 自检：ov-doctor
 
 包内带一个只读 doctor；在装了插件的 profile 里运行（把 \`<DSH_HOME>\`/\`web\` 换成你的）：
 
@@ -254,7 +266,7 @@ search、composition、storage、cloud/capture、版本、config 同源与 MCP \
 commit 写探针默认 SKIP；加 \`--write\` 才创建 sentinel 会话并真提交（会新增一条记忆，慎用）。云端 provider 运行时，
 命令前加 \`OPENVIKING_CLOUD_ACK=1\`，与上面的显式 ack 是同一个门。它不会打印 key。
 
-### 6. 故障表
+### 7. 故障表
 
 | 现象 | 原因与处理 |
 |---|---|
