@@ -313,7 +313,7 @@ doctor 对账 1↔2↔运行中 server（check 10）与 3/4；Viki 的 baseUrl �
 - 启动一次：`dsh --profile web --port 0 --no-open` 输出 boot URL（token 一次性，不记入卡）；随后停掉。
 - 包内 doctor（OV 缺席）：`profiles/web/node_modules/dsh-smart-assistant/bin/ov-doctor.mjs --profile web ...` → `OFF 6 composition`、`SKIP 5`、`summary: exit 2`。
 - OV 在场：同一干净 home 再 `dsh plugin add` 钉存的 `dsh-memory-plugin-0.5.26.tgz`，dump-config 出现 `openviking-memory-runtime`（1470）与 `assistant-viki`（1243）；**另在全新 profile `ov-npm` 上验了手册的 registry 路径 `dsh plugin add @openviking/dsh-memory-plugin@0.5.26`（exit 0，dump-config 见该行）**；`OPENVIKING_CLOUD_ACK=1 OPENVIKING_CAPTURE_TOOL_RESULTS=false` + live config 跑 doctor → `exit 0; 0 fail, 1 warn, 2 skip`（warn 只是 `OPENVIKING_CONF` 未显式设）。
-- **边界**：这是 agent 在干净 home 的 dry run，不是“另一个人”走查；真人走查仍待做。
+- **边界**：这是 agent 在干净 home 的 dry run，**未替代真人环境**（机器/账户/系统差异未覆盖）；真人走查仍待做，记录表见下。
 
 ### 2026-10-21 · S2b 3（MCP instructions + 云端 ack 绿）
 
