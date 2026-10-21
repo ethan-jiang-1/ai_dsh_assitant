@@ -78,6 +78,10 @@ git submodule update --init                                       # vendor/dsh�
 pnpm install && pnpm build                                        # build 必需：包的入口是 lib/，而 lib/ 不入库
 dsh plugin --profile <p> add file:./packages/dsh-smart-assistant   # <p>＝你的 profile 名；第三步要 dsh 在 PATH 上
 ```
+装完把该 profile 的 `agent-preset-registry` 行 `default` 设成 `assistant`（模板：`dev/profiles/profile-patch.yml`）；
+随后 `dsh --profile <p> --dump-config` 应能看到 `preset-assistant`。装包的形状由 `pnpm release-smoke` 机械验证。
+
+**可选 OpenViking 记忆层（不装也照常跑）**：插件与四房间不依赖 OV；缺席时 `ov doctor` exit 2、Viki 503，这是明确的降级而不是装坏。要装就按 [《安装手册》](_dist/安装手册.md)（`pnpm export-dist` 生成，含 server 0.5.1.1 的安装/配置/启动/doctor/故障表/卸载，命令不含本机绝对路径）；关键前提是 server 起在 `127.0.0.1:1933`、storage 指向持久目录、doctor 读的是运行中 server 同一份 config。装好后 profile 的 `openviking` 行默认 `baseUrl` 即可接上，再跑一次 doctor 确认绿。
 （仓内开发时用 `pnpm dsh --profile …`；它经 `dev/env/dsh.mjs` 启动 pinned CLI，强制 `DSH_HOME=dev/harness-home` 并把仓根作为 cwd。）
 
 ## 从哪个入口开始

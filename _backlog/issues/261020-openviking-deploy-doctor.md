@@ -303,7 +303,7 @@ doctor 对账 1↔2↔运行中 server（check 10）与 3/4；Viki 的 baseUrl �
 - `tests/host/viki-route.spec.ts`：新增“无 config/env 时默认 1933”案；15 案通过。
 - `bin/ov-doctor.mjs` 6d：无显式 URL 时按默认 1933 报 `ok`，并提示远程需显式；install manual 的 Viki 节同步。
 - 证据：`vitest run tests/host/viki-route.spec.ts` 15 passed；`pnpm typecheck` PASS；`pnpm export-dist`；`pnpm release-smoke` PASS；`pnpm verify` 43/43；live doctor 6d 已从 fail 变 ok（默认 local 1933），search/cloud 仍 fail。
-- 剩余：S2b 的 doctor check 5/MCP、README 部署/故障表全量；另一人走查。
+- 剩余：S2b 的 doctor check 5/MCP；README 的部署/故障表仍由《安装手册》承载（README 已补 preset 默认、可选 OV 路径与手册入口，2026-10-21）；另一人走查。
 
 ## 关闭条件
 
