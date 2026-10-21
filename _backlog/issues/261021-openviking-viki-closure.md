@@ -27,7 +27,7 @@ opened: 2026-10-21
 | S1 安装/配置面 | 部分交付 | [部署卡](261020-openviking-deploy-doctor.md) §5：`_dist/安装手册.md` 已含 preset 默认 + OV 安装/配置/启动/Viki/工具结果关闭 + doctor；`release-smoke` 的 `web-smoke` 干净 home 已证 install + preset 默认 + 包内 doctor + **OV 在场 mock doctor exit 0 / 缺席 exit 2**；`dev/env/dsh.mjs`/`ov-install.sh` 已默认 `captureToolResults: false`。**待做**：用户侧 OV 安装脚本（手册路径已证，脚本可选）、另一人走查 |
 | S2 部署/doctor | 进行中 | 云端暴露收口已落 `dsh.mjs`/`ov-install.sh`；包内 `bin/ov-doctor.mjs` v0 已交付（1/2/3/4/6/7/8/9/10；5 与 MCP 子项 SKIP）；Viki baseUrl 默认已落并测，真机 `pnpm start` → `GET /api/assistant/viki` 200 `connected:true`；README/check 5/MCP 全量待做 |
 | S3 运行态 0.5.1.1/存储/旋钮 | 部分交付 | [运行态卡](261020-openviking-runtime-repair.md)：**0.5.1.1 + 持久存储 + v3 旋钮 + 两次 commit + 真机 recall/commit（stats 6→8；新记忆在 assistant peer）+ 回滚副本 + fresh-home 无插件均已过**；预算/召回量测、doctor 云端 ack、用户 review、旧 peer 回填待做 |
-| S4 只读检索 A/B | 待开始 | [检索卡](261020-openviking-retrieval-viki.md) A/B：固定题集、评分表、原型指针、裁决 |
+| S4 只读检索 A/B | 已裁决（A2 检索面生产候选） | [检索卡](261020-openviking-retrieval-viki.md) A/B：固定 12 题、0–2 评分表、A1/A2 原型指针（A1 `ab/a1-allowlist` @ `3fa7b4d`、A2 `ab/a2-recall`）、裁决 = A2；pointer probe 证明 A2 `assistant_recall read` 是唯一可达按需读路径；A1 资源发现被 `denyServerResources` 挡住，只作历史。`pnpm verify` 43/43、build、release-smoke 通过；**`pnpm eval` 基线 0/7 红（A2 行 disabled 对照同样 0/7、失败项相同）见 [BUG-024](../bugs/BUG-024-eval-baseline-red.md)**，不据此称整体生产就绪 |
 | S5 Viki 面板 | 部分交付 | [检索卡](261020-openviking-retrieval-viki.md) Viki：**诊断 + 搜索 + token + `Viki(调试)` tab 已交付**（0.5.1.1 live 搜索「合同」6 条；token 行真机可见）；转正、专用场景待做 |
 | S6 收口 | 待开始 | 全验收 + verify + 卡归档 + note 改写 |
 
