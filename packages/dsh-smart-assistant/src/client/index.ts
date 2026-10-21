@@ -39,7 +39,6 @@ import { deskCommands, roomCommands } from './chrome/commands'
 import { createDeskActivityHandoff } from './desk/desk-view-actions'
 import { mountSessionCaptureStatuses } from './desk/desk-capture-status'
 import { DashboardMainPanel, DashboardPanelIcon } from './chrome/dashboard'
-import { TasksView, bindTasksEnv } from './rooms/tasks-view'
 import { ApprovalDockBanner, FirstMileDock } from './chrome/first-mile'
 import { roomTabTitle, roomTabs } from './rooms/room-tabs'
 import { RememberAction } from './rooms/message-action'
@@ -99,22 +98,6 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // "desktop as primary object": the principal opens it and sees their dashboard without
     // needing a session, a message, or a chat at all. Conversation becomes an input channel
     // (the "有问题？" button), not the primary surface.
-    // Workbench tab: the desk lives beside Conversation/Trajectory, not only as a
-    // left-rail main panel. The native right rail belongs to the session and stays.
-    ctx.slots.inject('conversation.view', () => ctx.slots.register({
-      name: 'conversation.view',
-      id: 'assistant-desk',
-      order: 30,
-      label: () => '桌面',
-    }, DashboardMainPanel))
-
-    ctx.slots.inject('conversation.view', () => ctx.slots.register({
-      name: 'conversation.view',
-      id: 'assistant-tasks',
-      order: 31,
-      label: () => '自动化任务',
-    }, TasksView))
-
     ctx.slots.inject('sidebar.panellist', () =>
       ctx.slots.register({
         name: 'sidebar.panellist',
@@ -142,13 +125,6 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       const remoteFace = ctx.remote as ProactiveRemoteLike | undefined
       const source = createProactiveCatalogSource({ effect: install => ctx.effect(install), remote: remoteFace })
       ctx.effect(() => source.subscribe(() => { proactiveCatalog.set(source.getSnapshot()) }))
-      bindTasksEnv({
-        source,
-        openTask: (sessionId, id) => {
-          // The schedule package owns this kind; its params are session + task id.
-          ctx.sidebarRight?.openTab('scheduleTask' as never, { params: { sessionId, id } } as never)
-        },
-      })
     }
     const proactiveUi = storeApi?.createSnapshotStore<ProactiveUiState>(readProactiveUi())
     // The explicit processing path: one bound matter + processing session. The
