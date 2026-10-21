@@ -69,6 +69,7 @@ opened: 2026-10-20
 |---|---|---|
 | 搜索/筛选 | 无 | 在 Viki 顶部加 search，走 **stateless `/search/find`**（无 session；插件在无 session 时用的就是它，`/search/search` 是 session-aware）；结果带 memory_type/peer/summary；不改现有列表；空结果 / 未连接 / 检索错误三态分开 |
 | 健康/任务/用量 | 无 | 展示 server 状态（`/health`）、最近 commit 任务（`/tasks`）、`stats/memories`、`/api/v1/skills`；pending queue 是插件进程内状态，磁盘在 `~/.openviking/pending`（已核）；token 用量需要 **host route** 读 DSH `token-meter`/会话日志（client 不能直接读）；`problems` 是 [client.ts](../../packages/dsh-smart-assistant/src/host/viki/client.ts) 已返回的读取失败数组，直接显示；无源的项显示“无数据”，不假装有 |
+| 研发/专业诊断视图 | 无 | **同一个 Viki tab 加可折叠「诊断」**（推荐）：health/version、category counts、last commit/tasks、pending、skills、`problems`、config path/provider/model（无 key）；默认折叠——专业用户看 overview，研发展开。数据用 `GET /api/assistant/viki?view=diagnostics` 懒加载，不新增 Remote namespace；独立诊断 tab 是备选。**形态待用户选。** |
 | 转正到 `memory/` | 无 | **先拍机制，不写死**：<br>**P1（推荐，面板动作）**：人点“转正”=授权；host route 调 `assistantMemory.saveMemory`（与 `assistant_memory save` 同一服务的既有校验）+ `recordApproval(..., 'promote', ...)` 写 home 审计；**不需要 `ctx.approval`**——面板没有 open turn，且人点击本身就是授权。<br>**P2（模型提案）**：模型在 turn 内调 `assistant_memory save`，用 `ctx.approval` 请人确认，审计是 `approval/asked`/`approval/decided`；面板只发起/展示。<br>两套审计不混用；P1 需在 Viki route 的 `actions` 里加一个 `promote` 调用（`ApprovalKind` 已含 `promote`，知识室在用；Viki 现在只有 `retire`），不是新造 kind |
 | 编辑/新增 | 无 | 先不做；转正走 `assistant_memory` 服务，避免 Viki 变成第二个写面 |
 | 删除/恢复/比较 | 已有 | 保持；删除前的 references/commit 语义不变 |
@@ -112,6 +113,7 @@ opened: 2026-10-20
 | 6 | `message-feedback` 修正消费者 | log-only；等真实 👎 数据再决定 | 本卡“以后”；不立项 |
 | 7 | 工具选择/路由指引 | 在 A/B 的固定题集里测；指引放工具 description 或 operating brief，A/B 后定 | 本卡 |
 | 8 | 转正走 P1 还是 P2 | P1（面板点击=授权 + home `promote` 审计）推荐；P2（模型 turn 内 `ctx.approval`）备选；未选前不写死 | 本卡 + H4 |
+| 9 | Viki 研发/专业诊断视图的形态 | 同一个 tab 的可折叠「诊断」（推荐）vs 独立诊断 tab；先静态原型 vs 直接实现 | 本卡 + 用户 |
 
 ## 验收标准
 
@@ -162,7 +164,7 @@ opened: 2026-10-20
 
 ## 下一步
 
-**裁决已收（2026-10-21）**：H1 B / H4 转正后置 / H6 先跳过团队记忆。本卡承载规格与验收，推进在 [收口卡](261021-openviking-viki-closure.md)；A/B 先原型、不先生产实现；Viki 先搜索/健康，转正等真实需求。
+**裁决已收（2026-10-21）**：H1 B / H4 转正后置 / H6 先跳过团队记忆。本卡承载规格与验收，推进在 [收口卡](261021-openviking-viki-closure.md)；A/B 先原型、不先生产实现；Viki 先搜索/健康，转正等真实需求。**Viki 研发/专业诊断视图的形态（同 tab 折叠 vs 独立 tab）待用户选；先静态原型或直接实现由用户定。**
 **Agent 的**：第一轮（2026-10-20）与第二轮（2026-10-21）已回写；A/B 前先确认运行态卡的 recall 路径可测。
 
 ## 范围与邻居
