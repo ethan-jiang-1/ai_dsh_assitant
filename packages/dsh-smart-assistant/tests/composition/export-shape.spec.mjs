@@ -64,7 +64,7 @@ const presetSubRows = ownRows.filter(row => row.name !== PREFIX)
  * thin stable entry `src/index.ts`, which re-exports the same class identity. */
 const SOURCE_LAYER = {
   'knowledge-approve-remote': 'host/', 'desk-projection': 'host/', 'rooms-route': 'host/', 'viki': 'host/', 'operating-ledger': 'host/',
-  'tool-memory': 'agent/', 'tool-research': 'agent/', 'tool-knowledge': 'agent/', 'tool-operating': 'agent/',
+  'tool-memory': 'agent/', 'tool-research': 'agent/', 'tool-knowledge': 'agent/', 'tool-operating': 'agent/', 'tool-recall': 'agent/',
   'memory-digest': 'agent/', 'home-preamble': 'agent/', 'operating-brief': 'agent/', 'learn': 'agent/', 'ov-shield': 'agent/', 'preset-runner': 'dev/',
 }
 
