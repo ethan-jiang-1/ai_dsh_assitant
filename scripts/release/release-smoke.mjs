@@ -143,6 +143,26 @@ try {
   if (!dump.includes('assistant')) fail('--dump-config does not show the preset roster default')
   else ok('the preset is the profile default')
 
+  step('clean-home web profile: the install-manual path (install + preset default)')
+  // The manual installs into the shipped `web` profile and then replaces the registry default.
+  // This second profile proves that exact path on the same throwaway home; the headless profile
+  // above remains the one-shot/live-turn carrier.
+  const webProfile = 'web-smoke'
+  dsh(['--profile', webProfile, '--from-default-profile', 'web', '--dump-config'])
+  dsh(['plugin', '--profile', webProfile, 'add', tarball])
+  const webBefore = dsh(['--profile', webProfile, '--dump-config'])
+  if (!/default:\s*standard/.test(webBefore)) fail('web profile did not start on the standard preset default')
+  else ok('web profile installs on the standard default (the preset is not assistant yet)')
+  writeFileSync(join(home, 'profiles', webProfile, 'cordis.patch.yml'), `# Written by scripts/release-smoke.mjs — the step the install manual documents
+- id: agent-preset-registry
+  config:
+    default: assistant
+`, 'utf8')
+  const webAfter = dsh(['--profile', webProfile, '--dump-config'])
+  if (!webAfter.includes('preset-assistant')) fail('web profile dump does not show preset-assistant')
+  else if (!/default:\s*assistant/.test(webAfter)) fail('web profile dump does not show the assistant default')
+  else ok('web profile: install + preset default is the documented path')
+
   step('keyless check: the preset-mounted one-shot entry is in the composition')
   // The runner patch mirrors dev/probes/session/preset-runner.patch.yml: disable the shipped bare-agent
   // runner, insert ours — which joins the preset from the profile's roster.

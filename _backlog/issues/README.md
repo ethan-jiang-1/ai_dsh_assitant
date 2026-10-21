@@ -6,10 +6,10 @@
 
 | 卡 | 要解决什么 | 当前环节与未完成项 |
 |---|---|---|
-| [261020-openviking-direction-review](261020-openviking-direction-review.md) | OpenViking 层 2 的方向与拆卡评审 | 等人类路线裁决（Agent 第一轮已核，见卡内评审记录）；不授权实施 |
-| [261020-openviking-deploy-doctor](261020-openviking-deploy-doctor.md) | 云端例外、部署配置、`ov-doctor`、README | 等人类裁决；依赖方向卡；Agent 已列 doctor/验收假绿 |
-| [261020-openviking-runtime-repair](261020-openviking-runtime-repair.md) | 0.5.1 升级、持久存储、v3 旋钮、Viki URL | 等人类裁决；依赖方向卡；Agent 已补存储/回滚步骤 |
-| [261020-openviking-retrieval-viki](261020-openviking-retrieval-viki.md) | 只读检索 A/B、Viki 搜索/转正/健康 | 等人类裁决；依赖方向卡与运行态卡；Agent 已补 A/B 成本与 Viki 验证假绿 |
+| [261021-openviking-viki-closure](261021-openviking-viki-closure.md) | 层 2 / Viki 落地总台账（含安装面） | 已授权实施（H1 B / H2–H6 按建议）；S0 已交付，S1–S6 待推进 |
+| [261020-openviking-deploy-doctor](261020-openviking-deploy-doctor.md) | 云端例外、`ov-doctor`、README、Viki baseUrl、安装/配置面 | 已授权实施；规格与验收在本卡，推进在收口卡；S1/S2 |
+| [261020-openviking-runtime-repair](261020-openviking-runtime-repair.md) | 0.5.1.1 升级、持久存储、v3 旋钮、peer/commit/recall | 已授权实施；规格与验收在本卡，推进在收口卡；S3 |
+| [261020-openviking-retrieval-viki](261020-openviking-retrieval-viki.md) | 只读检索 A/B、Viki 搜索/转正/健康 | 已授权实施；规格与验收在本卡，推进在收口卡；S4/S5 |
 
 
 ## 写一张卡

@@ -99,6 +99,7 @@ block = """
     profileTokenBudget: 3000     # 画像块实测 538-755 chars，余量充足
     recallContextTimeoutMs: 3000 # 强制降级到查询式 find（叶子内容进召回块）
     commitTokenThreshold: 3000   # 短会话也进抽取（默认 20000=主场景记忆丢失缺口）
+    captureToolResults: false    # 云端例外：完整工具结果默认不抓；需要时显式开/配 captureFilters
 """
 open(path, 'w').write(text.rstrip('\n') + '\n' + block)
 PYEOF

@@ -75,6 +75,9 @@ console.error(`[dsh] DSH_HOME=${process.env.DSH_HOME} (dev home; ~/.dsh untouche
 process.env.DSH_AGENTS_HOME ??= join(process.env.DSH_HOME, 'agents-home')
 // dev 不出遥测（默认 FEEDBACK_ONLY；显式设置过就尊重）。
 process.env.DSH_TELEMETRY_DISABLED ??= '1'
+// P0 云端暴露收口：OpenViking 插件对 DSH 默认抓完整工具结果；dev 的 VLM/embedding 走云端，
+// 所以默认关。显式设 OPENVIKING_CAPTURE_TOOL_RESULTS=true 才开（env 是插件最高优先层）。
+process.env.OPENVIKING_CAPTURE_TOOL_RESULTS ??= 'false'
 
 // ── 临时文件收进仓内（硬规则 8）──────────────────────────────────────────────
 // 文件沙箱只放行会话工作目录：vendor 默认把 spill 写进系统临时根，dev 会话里那就是仓外，
