@@ -38,7 +38,13 @@ export function DashboardPanelIcon(): ReturnType<typeof createElement> {
 export function DashboardMainPanel(props: { onAsk?: () => void }): ReturnType<typeof createElement> {
   const { useEffect } = reactSurface()
   const store = useDesk()
-  useEffect(() => { reloadDesk(undefined) }, [])
+  // The workbench view mounts before the session's workspace has necessarily resolved;
+  // one delayed retry closes that race without turning this into a polling loop.
+  useEffect(() => {
+    reloadDesk(undefined)
+    const retry = setTimeout(() => { reloadDesk(undefined) }, 1200)
+    return () => { clearTimeout(retry) }
+  }, [])
   const data: DeskData | undefined = store.data
   const { createElement: ce } = { createElement }
   const sectionTitle = (text: string): ReturnType<typeof createElement> =>
@@ -55,6 +61,10 @@ export function DashboardMainPanel(props: { onAsk?: () => void }): ReturnType<ty
         onClick: props.onAsk,
         style: { marginTop: '12px', padding: '8px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600, background: MARK_TEAL, color: 'var(--dsw-alias-text-primary, #fff)' },
       }, '有问题？跟助手说'),
+      ce('button', {
+        onClick: () => { reloadDesk(undefined) },
+        style: { marginTop: '12px', marginLeft: '8px', padding: '8px 20px', borderRadius: '8px', border: '1px solid var(--dsw-alias-separator)', cursor: 'pointer', fontSize: '14px', background: 'transparent', color: 'var(--dsw-alias-label-primary)' },
+      }, '重新读取'),
     )
   }
 
