@@ -187,9 +187,15 @@ try {
   verdict.deskFirstScreen = surface?.desk === true;
   verdict.deskCopyZh = surface?.deskCopy === true;
 
-  // 进会话（只在要跑回合时）：走桌面自己的门——「＋ 交代新事项」（它同时也是交代首事臂的入口），
-  // 没有它才退到「新建会话」。进了之后才判 composer 与首开引导条。
+  // 进会话（只在要跑回合时）：首屏可能有「预览版说明」模态，先点「继续」再走桌面自己的门——
+  //「＋ 交代新事项」（它同时也是交代首事臂的入口），没有它才退到「新建会话」。进了之后才判 composer 与首开引导条。
   if (wantsTurn) {
+    await evaluate(`(() => {
+      const dismiss = ${buttonByText('继续', { exact: true })};
+      if (dismiss !== undefined) { dismiss.click(); return 'dismissed' }
+      return 'none';
+    })()`);
+    await sleep(600);
     verdict.entry = await evaluate(`(() => {
       const root = document.querySelector('[data-assistant-operating-desk]');
       const door = ${buttonByText('交代新事项', { exact: false, within: '[data-assistant-operating-desk]' })};

@@ -52,7 +52,8 @@ opened: 2026-10-20
 - **两次 commit（副本，不污染 live）**：副本 `1934` 的 `dsh-sentinel-20261021`：A commit **completed**（25.9s）→ `find` 命中 `viking://user/default/peers/assistant/memories/events/2026/10/21/合同尾款到账确认.md`；B commit **completed** → `find` 命中 `.../供应商发票付款计划确认.md`；`/stats/memories` 6 → 9。证明 0.5.1.1 的 #6331 修复；live `1933` 仍 6。
 - **回滚（副本）**：把 `workspace-0.4.22-backup` 完整恢复到 `.tmp/ov-rollback/workspace`，用 0.4.22 二进制起 `1935`：`/health` 0.4.22、`/stats/memories` 6、`content/read` 正常；停掉 1935 后 live `1933` 仍 0.5.1.1/6 条。回滚顺序 = 恢复完整 storage 备份 → 换回 0.4.22，已执行。
 - **真机 recall 探针（未过）**：`pnpm loop-probe` 首次被首屏“预览版说明”弹窗挡住（`entry:no-entry`、`composerMounted:false`、`createdSessions:[]`），未进入会话——不是 recall 失败；探针需先点“继续”再进会话。真机 recall 仍待手动或修探针后复跑。
-- **仍未完成**：真机一次会话 recall 块；peer 实际行为、预算/召回量测；fresh-home 有/无插件 case；doctor 读运行中同源 config + cloud ack（归部署卡）。
+- **真机 recall（2026-10-21）**：修掉 `loop-probe` 被首屏“预览版说明”挡住的问题后，真实会话 `session-9a7fe14d...` 的日志出现 `<openviking-context>`，内含 `<memory ... detail="full">` 的「合同款项状态提醒」事件（不是只有 overview）；模型据此回答“没有到账确认/无凭证”，并指出“尾款 vs 第二期款”的歧义。live `/tasks` 为空，无 failed commit。
+- **仍未完成**：真机会话 commit（本次短会话未触发 `commitTokenThreshold: 3000`；commit 路径由副本两次 commit 证）；peer 实际行为/预算/召回量测；doctor 读运行中同源 config + cloud ack（归部署卡）。
 
 ## 方案与取舍
 
@@ -155,15 +156,15 @@ opened: 2026-10-20
 - [x] **两次 commit**：第一次 commit 后 `find` 命中 sentinel A（`合同尾款到账确认.md`）；第二次 commit 后 `find` 命中 sentinel B（`供应商发票付款计划确认.md`）——0.5.1.1 的 #6331 修复已在副本验证；live 未被测试数据污染。
 - [x] 迁移到持久路径后，`/stats/memories` 仍 6；重启 server 后仍 6；`.tmp` 旧副本保留为 `workspace-0.4.22-backup`/`workspace-0.4.22-live`；`ov-doctor --config dev/harness-home/openviking/ov.conf --profile dev` 的 check 7 为 `persistent root`。
 - [x] `dump-config` 的 OV 行显示目标 config（peer/budgets/recall）；`pnpm start` 后再 dump 仍一致（不被 setup 覆盖）。
-- [ ] **fresh dev home 无 OV 插件**：若采用选项 1（OV 行进 tracked patch），`pnpm start` 不因该行失败；若出现 inactive entry 警告，记录并判断是否可接受，否则改用选项 2/3。
-- [ ] 真机一次会话：模型回复后会话日志出现至少 1 条 `<openviking-context source="recall">`，且内容不是只有 `detail="overview"` 的系统目录（抽查到事件/偏好/实体条目）；`/tasks` 无 failed commit。
+- [x] **fresh dev home 无 OV 插件**：2026-10-21 `.tmp/fresh-home` 跑 `setup.sh` exit 0；profile patch 与 `dump-config` 都没有 `openviking-memory-runtime`，无 inactive 噪声。
+- [x] 真机一次会话：日志出现 `<openviking-context>`，含 `detail="full"` 的合同事件（不是只有 overview）；模型回答“没有到账确认”，`/tasks` 无 failed commit。**注：实际标签无 `source="recall"` 属性（0.5.26/0.5.1.1 的实际形状），按 block 与 `detail="full"` 判。**
 - [x] 正常 `pnpm start` 后 `GET /api/assistant/viki` 200（**回归**，URL 修复归部署卡）；OpenViking 缺席时 503 且 DSH 正常。**2026-10-21 真机：Viki(调试) tab 搜索「合同」返回 6 条；缺席 503 早前已验。**
 - [x] 回滚演练：先恢复完整存储兼容备份，再换回 0.4.22；`/health`、`/stats`、一条 `content/read` 正常；记录命令与结果（只换二进制不算通过）。**2026-10-21 副本 1935：0.4.22 / 6 / content OK；live 1933 保持 0.5.1.1。**
 - [x] `pnpm verify` 通过（2026-10-21：43/43；`pnpm test:tooling` 270/270）。
 
 ## 下一步
 
-**裁决已收（2026-10-21）**：H1 B / H5 0.5.1.1 / H6 先跳过团队记忆。本卡承载规格与验收，推进在 [收口卡](261021-openviking-viki-closure.md)；实施顺序 = 副本迁移 → 存储搬家 → 旋钮落点 → 真机 commit/recall → 回滚演练。**2026-10-21：前 3 步 + 两次 commit + 回滚已完成（0.5.1.1 副本/live、持久存储、v3 dump-config、sentinel A/B 可检索、0.4.22 回滚副本通过）；下一步 = 真机 recall + fresh-home case + doctor 云端 ack。**
+**裁决已收（2026-10-21）**：H1 B / H5 0.5.1.1 / H6 先跳过团队记忆。本卡承载规格与验收，推进在 [收口卡](261021-openviking-viki-closure.md)；实施顺序 = 副本迁移 → 存储搬家 → 旋钮落点 → 真机 commit/recall → 回滚演练。**2026-10-21：0.5.1.1 副本/live、持久存储、v3 dump-config、sentinel A/B 可检索、真机 recall 块、0.4.22 回滚副本、fresh-home 无插件 case 均已过；下一步 = 真机会话 commit（阈值触发）/peer 量测 + doctor 云端 ack。**
 **Agent 的**：第一轮（2026-10-20）与第二轮（2026-10-21）已回写；先副本验证再切 live，0.4.22 备份在 `workspace-0.4.22-backup`/`workspace-0.4.22-live`。
 
 ## 范围与邻居
