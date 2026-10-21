@@ -31,6 +31,7 @@ const fail = (message) => {
   failures += 1
   console.error(`  FAIL ${message}`)
 }
+const info = (message) => console.log(`  info ${message}`)
 
 const base = new URL('/', given)
 
@@ -206,6 +207,22 @@ try {
   fail(`cannot read /api/assistant/rooms: ${String(error)}`)
 }
 if (roomsFound !== '') ok(`rooms route reachable: ${roomsFound}`)
+
+// ④ Optional OpenViking layer status. It is informational only: the assistant works
+// without this layer (doctor exit 2 / Viki 503), so an absent or red OV never flips the
+// DSH preflight verdict.
+const ovUrl = process.env.OPENVIKING_URL?.trim() || 'http://127.0.0.1:1933'
+try {
+  const response = await fetch(`${ovUrl.replace(/\/+$/u, '')}/health`, { signal: AbortSignal.timeout(1500) })
+  const body = await response.json().catch(() => undefined)
+  if (response.ok && body?.healthy === true) {
+    info(`OV layer: ${String(body.version ?? 'unknown')} at ${ovUrl} (optional)`)
+  } else {
+    info(`OV layer: reachable but unhealthy (HTTP ${response.status}) at ${ovUrl} — optional, does not fail DSH preflight`)
+  }
+} catch {
+  info(`OV layer: absent/unreachable at ${ovUrl} — optional, does not fail DSH preflight`)
+}
 
 if (failures > 0) {
   console.error(`\npreflight: ${failures} failure(s) — do NOT open this URL in a browser yet`)

@@ -229,7 +229,7 @@ doctor 对账 1↔2↔运行中 server（check 10）与 3/4；Viki 的 baseUrl �
 - [ ] OV 行在场时，MCP `initialize` 的 `instructions` 为空（当前 0.4.22 dev 模式实测为空）；出现未审文本时 doctor 至少报 warn 并标出 server 名。
 - [ ] README 的部署节从**一次性 home 的空配置**开始照做能到 doctor 绿（至少 dry-run 路径）；故障表每条有可复现的现象与修法；不碰日用 `~/.dsh`。
 - [x] 正常 `pnpm start` 后 `GET /api/assistant/viki` 返回 200（不再依赖手工 `OPENVIKING_URL`）；OpenViking 缺席时返回 503 且 DSH 启动不受影响。**2026-10-21 真机：preflight 绿；token→cookie 后 200 `connected:true`（实例已收）。**
-- [ ] `pnpm preflight` 打印 OV 状态；OV 红时 preflight 仍按 DSH 自身判据退出。
+- [x] `pnpm preflight` 打印 OV 状态；OV 红时 preflight 仍按 DSH 自身判据退出。**2026-10-21：干净 home 实例 `preflight` 输出 `info OV layer: 0.5.1.1 at http://127.0.0.1:1933 (optional)`，verdict 仍 `green`。**
 - [x] **安装面**：`pnpm export-dist` 的《安装手册》覆盖 DSH/Node 前置、插件安装 + `agent-preset-registry.default: assistant`、可选 OV 安装/配置/启动/doctor/故障表、卸载；手册不含本机绝对路径或真 key。**2026-10-21 干净 home 走查发现并修掉一个真卡点：新 profile 的 `cordis.patch.yml` 自带占位 `[]`，手册原文“追加”会产出非法 YAML；生成器已改成“把 `[]` 整行替换”，`pnpm export-dist` 重生成，干净 home 复跑通过。**
 - [x] **干净 home 安装**：一次性 `DSH_HOME` + 导出的 tgz + `dsh plugin add` + 设 preset 默认 → `--dump-config` 看到 `preset-assistant`，启动一次；全程不读 `dev/harness-home`。**2026-10-21 实测：`.tmp/install-walk/home` + `dsh plugin add` + 替换 `[]` → dump-config 显示 `default: assistant`、`assistant-memory`、`preset-assistant`；`dsh --profile web --port 0 --no-open` 出 boot URL（一次性 token 不记）；包内 doctor OV 缺席 exit 2。**
 - [x] **OV 缺席/在场**：缺席 → 插件照常、doctor exit 2、Viki 503；在场（测试 config 或 mock）→ doctor 绿、Viki 200。**2026-10-21：release-smoke 干净 home 的 `web-smoke` + mock：缺席 exit 2、在场 exit 0；真机 Viki 200 见 S2 次片。**
