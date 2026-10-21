@@ -274,6 +274,16 @@ export class VikiClient {
     return this.request('GET', '/skills')
   }
 
+  /** Stateless semantic search over the configured space; the route filters the hits. */
+  async search(query: string, limit = 10): Promise<unknown> {
+    return this.request('POST', '/search/find', {
+      query,
+      target_uri: `viking://user/${this.space}`,
+      limit,
+      score_threshold: 0,
+    })
+  }
+
   /** Snapshot one or more paths and return the commit id (the delete's only rollback). */
   async commit(paths: readonly string[]): Promise<string> {
     // The endpoint requires `message` (CommitRequest); omitting it is a 400 before any snapshot exists.

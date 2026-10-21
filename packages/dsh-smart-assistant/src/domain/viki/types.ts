@@ -42,6 +42,18 @@ export interface VikiTask {
   readonly error?: string
 }
 
+/** One stateless `find` hit; the score is server-side relevance only. */
+export interface VikiSearchHit extends VikiEntry {
+  readonly score?: number
+}
+
+/** The read-only search projection behind `?q=`. */
+export interface VikiSearch {
+  readonly query: string
+  readonly entries: readonly VikiSearchHit[]
+  readonly problems: readonly string[]
+}
+
 /** The read-only diagnostics projection behind `?view=diagnostics`. */
 export interface VikiDiagnostics {
   readonly connected: boolean

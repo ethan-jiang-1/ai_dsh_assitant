@@ -86,6 +86,12 @@ beforeAll(async () => {
     if (url.pathname === '/api/v1/stats/memories') return reply({ total_memories: 3, memories: { events: 2 }, by_category: { events: 3 } })
     if (url.pathname === '/api/v1/tasks') return reply([{ task_id: 't1', task_type: 'session_commit', status: 'failed', created_at_iso: '2026-10-21T00:00:00Z', error: 'Connection error' }])
     if (url.pathname === '/api/v1/skills') return reply({ root_uris: ['viking://user/default/skills'], skills: [], total: 0 })
+    if (url.pathname === '/api/v1/search/find' && req.method === 'POST') return reply({
+      memories: [
+        { uri: `${events}/b.md`, abstract: 'summary b from search', score: 0.9 },
+        { uri: 'viking://user/default/resources/outside.md', abstract: 'must be filtered', score: 0.8 },
+      ],
+    })
     res.writeHead(404, { 'content-type': 'application/json' })
     res.end(JSON.stringify({ status: 'error', error: 'not found' }))
   })
@@ -303,6 +309,23 @@ describe('assistant-viki row wiring', () => {
     const restored = await route.fetch(post({ action: 'restore', commit: 'commit-1' }))
     expect(restored.status).toBe(200)
     expect(await restored.json()).toEqual({ ok: true, commit: 'commit-1' })
+  })
+
+  it('serves stateless search and filters hits through the URI whitelist', async () => {
+    const { route } = await harness()
+    const response = await route.fetch(new Request('http://localhost/api/assistant/viki?q=%E5%90%88%E5%90%8C'))
+    expect(response.status).toBe(200)
+    const body = await response.json() as any
+    expect(body.query).toBe('合同')
+    expect(body.entries).toHaveLength(1)
+    expect(body.entries[0]).toMatchObject({
+      uri: `${events}/b.md`,
+      source: 'peer',
+      peer: 'p1',
+      summary: 'summary b from search',
+      score: 0.9,
+    })
+    expect(body.entries.some((hit: any) => String(hit.uri).includes('/resources/'))).toBe(false)
   })
 
   it('serves the diagnostics view as a read-only projection', async () => {

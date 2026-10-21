@@ -67,8 +67,8 @@ opened: 2026-10-20
 
 | 能力 | 现状 | 建议 |
 |---|---|---|
-| 搜索/筛选 | 无 | 在 Viki 顶部加 search，走 **stateless `/search/find`**（无 session；插件在无 session 时用的就是它，`/search/search` 是 session-aware）；结果带 memory_type/peer/summary；不改现有列表；空结果 / 未连接 / 检索错误三态分开 |
-| 健康/任务/用量 | 无 | 展示 server 状态（`/health`）、最近 commit 任务（`/tasks`）、`stats/memories`、`/api/v1/skills`；pending queue 是插件进程内状态，磁盘在 `~/.openviking/pending`（已核）；token 用量需要 **host route** 读 DSH `token-meter`/会话日志（client 不能直接读）；`problems` 是 [client.ts](../../packages/dsh-smart-assistant/src/host/viki/client.ts) 已返回的读取失败数组，直接显示；无源的项显示“无数据”，不假装有 |
+| 搜索/筛选 | **搜索已实现（2026-10-21）** | 顶部 search 走 **stateless `/search/find`**（host `?q=`；`/search/search` 是 session-aware）；结果带 peer/summary/score，URI 过白名单；空结果 / 未连接 / 检索错误三态分开；筛选 chips 暂未做（搜索先行）。live `/search/find` 当前 500（embedding），面板如实显示错误；测试用 mock。 |
+| 健康/任务/用量 | **诊断已覆盖大部分（2026-10-21）** | 诊断视图展示 `/health`、最近 commit（`/tasks`）、`stats/memories`、`/api/v1/skills`、`~/.openviking/pending` 计数、`problems`；**token 用量还没接**（需要 host route 读 `token-meter`/会话日志；无源项不显示，不假装有）。 |
 | 研发/专业诊断视图 | **已实现（2026-10-21）** | 同一个 Viki tab 加可折叠「诊断」：health/version、category counts、last commit/tasks、pending、skills、`problems`、config path/provider/model（无 key）；默认折叠——专业用户看 overview，研发展开。数据用 `GET /api/assistant/viki?view=diagnostics` 懒加载，不新增 Remote namespace；独立诊断 tab 为输掉的备选。**live probe 在案；durable Viki scene 仍待。** |
 | 转正到 `memory/` | 无 | **先拍机制，不写死**：<br>**P1（推荐，面板动作）**：人点“转正”=授权；host route 调 `assistantMemory.saveMemory`（与 `assistant_memory save` 同一服务的既有校验）+ `recordApproval(..., 'promote', ...)` 写 home 审计；**不需要 `ctx.approval`**——面板没有 open turn，且人点击本身就是授权。<br>**P2（模型提案）**：模型在 turn 内调 `assistant_memory save`，用 `ctx.approval` 请人确认，审计是 `approval/asked`/`approval/decided`；面板只发起/展示。<br>两套审计不混用；P1 需在 Viki route 的 `actions` 里加一个 `promote` 调用（`ApprovalKind` 已含 `promote`，知识室在用；Viki 现在只有 `retire`），不是新造 kind |
 | 编辑/新增 | 无 | 先不做；转正走 `assistant_memory` 服务，避免 Viki 变成第二个写面 |
@@ -154,8 +154,9 @@ opened: 2026-10-20
 
 ### Viki
 
-- [ ] 搜索：输入关键词走 **stateless `/search/find`**，返回匹配条目（summary/event_name/正文），带类型/peer/URI；**空结果、未连接、检索错误三态分开**；不把“连接失败”显示成“无匹配”。
-- [ ] 健康/任务/用量：显示 server 状态（`/health`）、最近 commit（`/tasks`）、`stats/memories`、`/api/v1/skills`；pending queue 走 `~/.openviking/pending` 计数；token 走 **host route** 读 `token-meter`/会话日志；`problems` 显示 client 已返回的数组。无数据源的项显示“无数据”，不假装有。
+- [x] 搜索（2026-10-21）：输入关键词走 **stateless `/search/find`**（host `?q=`），返回匹配条目（summary/peer/URI/score）；**空结果、未连接、检索错误三态分开**；URI 过白名单；测试 mock 覆盖；live `/search/find` 当前 500（embedding），面板显示“搜索失败”而不是“无匹配”。筛选 chips 未做。
+- [x] 健康/任务/统计/技能/pending/problems（2026-10-21）：诊断视图展示 `/health`、`/tasks`、`stats/memories`、`/api/v1/skills`、pending 计数、`problems`；无源项不假装有。
+- [ ] 用量/token：host route 读 `token-meter`/会话日志；本轮未做（无源项不显示）。
 - [ ] 转正（P1 或 P2，先拍）：P1 = 面板点击是授权 → host route 调 `assistantMemory.saveMemory`（同一服务校验）+ `recordApproval(..., 'promote', ...)`；P2 = 模型 turn 内 `assistant_memory save` + `ctx.approval` 的 `approval/asked`/`approval/decided`。两套审计不混用；memory 记录带 `source: openviking:<uri>`；不直接写文件。
 - [ ] 现有删除/恢复/比较不回归；`viki-panel` 测试更新。
 - [x] **研发/专业诊断视图（2026-10-21）**：同一 tab + 默认折叠；host `GET /api/assistant/viki?view=diagnostics`（health/stats/tasks/skills/pending/config，无 key；`problems` 并入）；面板「诊断」懒加载；`viki-panel` 6 案 + host 16 案；真机 `pnpm start` → 右栏 Viki → 诊断，DOM/screenshot 在案。同时修复 `bindVikiEnv` 生产无 `ctx.web` 时的 `document` fallback（此前真机面板报 “web face is not available”）。**durable Viki scene 仍待**（下一条）。
@@ -165,7 +166,7 @@ opened: 2026-10-20
 
 ## 下一步
 
-**裁决已收（2026-10-21）**：H1 B / H4 转正后置 / H6 先跳过团队记忆。本卡承载规格与验收，推进在 [收口卡](261021-openviking-viki-closure.md)；A/B 先原型、不先生产实现；Viki 先搜索/健康，转正等真实需求。**Viki 诊断视图已实现（同 tab + 折叠；live probe 在案）；搜索/健康/转正与 durable scene 待做。**
+**裁决已收（2026-10-21）**：H1 B / H4 转正后置 / H6 先跳过团队记忆。本卡承载规格与验收，推进在 [收口卡](261021-openviking-viki-closure.md)；A/B 先原型、不先生产实现；Viki 先搜索/健康，转正等真实需求。**Viki 诊断 + 搜索已实现（live probe；搜索 live 500 是 embedding 连接问题，面板如实报错）；token 用量/转正/durable scene 待做。**
 **Agent 的**：第一轮（2026-10-20）与第二轮（2026-10-21）已回写；A/B 前先确认运行态卡的 recall 路径可测。
 
 ## 范围与邻居

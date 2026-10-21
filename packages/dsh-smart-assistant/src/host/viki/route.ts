@@ -13,7 +13,7 @@
  * @module
  */
 import type { ConnectionFetchRoute } from '@deepseek-ai/dsh-client-connection'
-import type { VikiDiagnostics, VikiList } from '../../domain/viki/types.ts'
+import type { VikiDiagnostics, VikiList, VikiSearch, VikiSearchHit } from '../../domain/viki/types.ts'
 import { VikiUnavailable } from './client.ts'
 
 /** The read surface the plugin binds to the real OpenViking client. */
@@ -22,6 +22,8 @@ export interface VikiReader {
   read(uri: string): Promise<string>
   /** Optional read-only diagnostics; absent means the route has no diagnostics view. */
   diagnostics?(): Promise<VikiDiagnostics>
+  /** Optional stateless search; the route filters every hit through its URI whitelist. */
+  search?(query: string): Promise<readonly VikiSearchHit[]>
 }
 
 /** Knowledge pages / near-duplicates that point at a URI. */
@@ -159,6 +161,16 @@ export function createVikiRoute(reader: VikiReader, options: VikiRouteOptions, a
           if (view !== 'diagnostics') return failure(400, 'unknown-view')
           if (reader.diagnostics === undefined) return failure(404, 'diagnostics-unavailable')
           return emit(await reader.diagnostics())
+        }
+        const query = url.searchParams.get('q')
+        if (query !== null) {
+          if (reader.search === undefined) return failure(404, 'search-unavailable')
+          const text = query.trim()
+          if (text === '') return failure(400, 'missing-query')
+          if (text.length > 200) return failure(400, 'query-too-long')
+          const entries = (await reader.search(text)).filter(hit => allowedUri(hit.uri, options))
+          const search: VikiSearch = { query: text, entries, problems: [] }
+          return emit(search)
         }
         const uri = url.searchParams.get('uri')
         if (uri !== null) {

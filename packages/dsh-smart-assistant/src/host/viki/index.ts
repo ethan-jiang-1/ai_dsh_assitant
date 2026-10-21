@@ -12,7 +12,7 @@ import type { Context } from '@deepseek-ai/cordis'
 import { readFileSync, readdirSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
-import type { VikiDiagnostics, VikiTask } from '../../domain/viki/types.ts'
+import type { VikiDiagnostics, VikiSearchHit, VikiTask } from '../../domain/viki/types.ts'
 import { createVikiRoute, type VikiActions, type VikiReader } from './route.ts'
 import { VikiClient } from './client.ts'
 import { recordApproval } from '../approval-audit.ts'
@@ -113,6 +113,35 @@ function pendingCount(dir: string): number {
   }
 }
 
+function searchHits(value: unknown): VikiSearchHit[] {
+  const rows = Array.isArray(value)
+    ? value
+    : value !== null && typeof value === 'object'
+      ? ['memories', 'entries', 'resources']
+          .map(key => (value as Record<string, unknown>)[key])
+          .find(Array.isArray) ?? []
+      : []
+  return rows.flatMap((row) => {
+    if (row === null || typeof row !== 'object') return []
+    const record = row as Record<string, unknown>
+    if (typeof record.uri !== 'string') return []
+    const uri = record.uri
+    const peer = /\/peers\/([^/]+)\/memories\//u.exec(uri)?.[1]
+    const summary = typeof record.abstract === 'string'
+      ? record.abstract
+      : typeof record.summary === 'string' ? record.summary : undefined
+    const score = Number(record.score)
+    return [{
+      uri,
+      name: uri.split('/').pop() ?? uri,
+      source: peer === undefined ? 'user' : 'peer',
+      ...(peer === undefined ? {} : { peer }),
+      ...(summary === undefined || summary === '' ? {} : { summary }),
+      ...(Number.isFinite(score) ? { score } : {}),
+    }]
+  })
+}
+
 export function apply(ctx: Context, config: Config): void {
   const memory = (ctx as unknown as { assistantMemory: AssistantMemory }).assistantMemory
   const space = config.space?.trim() || 'default'
@@ -129,6 +158,7 @@ export function apply(ctx: Context, config: Config): void {
   const reader: VikiReader = {
     list: () => client.list(),
     read: uri => client.read(uri),
+    search: async query => searchHits(await client.search(query)),
     diagnostics: async () => {
       const problems: string[] = []
       const health = await client.health().catch(error => { problems.push(`health: ${messageOf(error)}`); return undefined })

@@ -5,7 +5,7 @@
  *
  * @module dsh-smart-assistant/client/viki-data-io
  */
-import type { VikiDiagnostics, VikiEntry, VikiList } from '../../domain/viki/types.ts'
+import type { VikiDiagnostics, VikiEntry, VikiList, VikiSearch } from '../../domain/viki/types.ts'
 import { reactSurface } from '../chrome/runtime'
 
 /** One read of the Viki list. */
@@ -119,6 +119,23 @@ export async function loadVikiDiagnostics(): Promise<{ ok: true, diagnostics: Vi
       return { ok: false, reason: typeof body.message === 'string' ? body.message : typeof body.error === 'string' ? body.error : `HTTP ${String(response.status)}` }
     }
     return { ok: true, diagnostics: body as VikiDiagnostics }
+  } catch (error) {
+    return { ok: false, reason: String(error) }
+  }
+}
+
+/** Read one stateless search; empty, unavailable and failed are distinct panel states. */
+export async function loadVikiSearch(query: string): Promise<{ ok: true, search: VikiSearch } | { ok: false, reason: string }> {
+  if (vikiWeb === undefined) return { ok: false, reason: 'the web face is not available' }
+  try {
+    const url = new URL('api/assistant/viki', vikiWeb.baseURI)
+    url.searchParams.set('q', query)
+    const response = await vikiWeb.fetch(url, { credentials: 'same-origin', cache: 'no-store', redirect: 'error', signal: AbortSignal.timeout(8000) })
+    const body = await response.json().catch(() => ({})) as { message?: unknown, error?: unknown } & Partial<VikiSearch>
+    if (!response.ok) {
+      return { ok: false, reason: typeof body.message === 'string' ? body.message : typeof body.error === 'string' ? body.error : `HTTP ${String(response.status)}` }
+    }
+    return { ok: true, search: body as VikiSearch }
   } catch (error) {
     return { ok: false, reason: String(error) }
   }

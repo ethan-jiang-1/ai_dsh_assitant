@@ -12,13 +12,13 @@
  *
  * @module dsh-smart-assistant/client/viki-panel
  */
-import type { VikiDiagnostics, VikiEntry } from '../../domain/viki/types.ts'
+import type { VikiDiagnostics, VikiEntry, VikiSearch } from '../../domain/viki/types.ts'
 import { ContentDrawer } from './content-drawer'
 import { muted } from '../chrome/dom-utils'
 import { createElement, reactSurface } from '../chrome/runtime'
 import { MARK_TEAL } from '../chrome/theme'
 import {
-  deleteViki, getVikiView, loadViki, loadVikiBody, loadVikiDiagnostics, referencesViki, resetVikiView, restoreViki,
+  deleteViki, getVikiView, loadViki, loadVikiBody, loadVikiDiagnostics, loadVikiSearch, referencesViki, resetVikiView, restoreViki,
   useVikiView, type VikiReceipt, type VikiReferences,
 } from './viki-data-io'
 
@@ -76,6 +76,10 @@ export function VikiPanel(): ReturnType<typeof createElement> {
   const [diagnosticsOpen, setDiagnosticsOpen] = useState(false)
   const [diagnostics, setDiagnostics] = useState<VikiDiagnostics | undefined>(undefined)
   const [diagnosticsNote, setDiagnosticsNote] = useState<string | undefined>(undefined)
+  const [query, setQuery] = useState('')
+  const [search, setSearch] = useState<VikiSearch | undefined>(undefined)
+  const [searchNote, setSearchNote] = useState<string | undefined>(undefined)
+  const [searching, setSearching] = useState(false)
   const loadDiagnostics = (): void => {
     setDiagnosticsNote(undefined)
     void loadVikiDiagnostics().then(result => {
@@ -87,6 +91,24 @@ export function VikiPanel(): ReturnType<typeof createElement> {
     if (diagnosticsOpen) { setDiagnosticsOpen(false); return }
     setDiagnosticsOpen(true)
     if (diagnostics === undefined) loadDiagnostics()
+  }
+  const runSearch = (): void => {
+    const text = query.trim()
+    if (text === '') { setSearch(undefined); setSearchNote(undefined); return }
+    setSearch(undefined)
+    setSearchNote(undefined)
+    setSearching(true)
+    void loadVikiSearch(text).then(result => {
+      setSearching(false)
+      if (result.ok) setSearch(result.search)
+      else setSearchNote(result.reason)
+    })
+  }
+  const clearSearch = (): void => {
+    setQuery('')
+    setSearch(undefined)
+    setSearchNote(undefined)
+    setSearching(false)
   }
   useEffect(() => {
     if (getVikiView().status === 'loading') void loadViki()
@@ -159,22 +181,30 @@ export function VikiPanel(): ReturnType<typeof createElement> {
   if (view.status === 'error') return root(muted(`读 Viki 失败：${view.reason ?? '未知原因'}`), retry)
   const list = view.list
   if (list === undefined) return root(muted('Viki 还没有返回数据。'), retry)
+  const renderEntry = (entry: VikiEntry): ReturnType<typeof createElement> => {
+    const score = (entry as { score?: unknown }).score
+    return createElement('div', {
+      key: entry.uri,
+      style: {
+        padding: '8px 10px', borderRadius: '8px', border: `1px solid ${selected.includes(entry.uri) ? MARK_TEAL : 'var(--dsw-alias-border-l3)'}`,
+        background: 'var(--dsw-alias-bg-layer-2)',
+      },
+    },
+    createElement('div', { style: { fontSize: '12px', lineHeight: 1.6, color: 'var(--dsw-alias-label-primary)' } }, entryLine(entry)),
+    createElement('div', { style: { display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px', fontSize: '11px', color: 'var(--dsw-alias-label-secondary)' } },
+      createElement('span', { style: { flex: '1' } }, `${entry.source === 'peer' ? `来自 ${entry.peer ?? 'peer'}` : 'user 记忆'}${typeof score === 'number' ? ` · ${score.toFixed(2)}` : ''}`),
+      smallButton(selected.includes(entry.uri) ? '已选' : '选择', () => { toggleSelect(entry.uri) }),
+      smallButton('读全文', () => { open(entry) }),
+      smallButton('删', () => { startDelete(entry) }, 'warn')))
+  }
   const rows = list.entries.length === 0
     ? muted('Viki 里还没有记忆。对话抽取后会出现在这里。')
     : createElement('div', { style: { display: 'flex', flexDirection: 'column', gap: '6px' } },
-      ...list.entries.map(entry => createElement('div', {
-        key: entry.uri,
-        style: {
-          padding: '8px 10px', borderRadius: '8px', border: `1px solid ${selected.includes(entry.uri) ? MARK_TEAL : 'var(--dsw-alias-border-l3)'}`,
-          background: 'var(--dsw-alias-bg-layer-2)',
-        },
-      },
-      createElement('div', { style: { fontSize: '12px', lineHeight: 1.6, color: 'var(--dsw-alias-label-primary)' } }, entryLine(entry)),
-      createElement('div', { style: { display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px', fontSize: '11px', color: 'var(--dsw-alias-label-secondary)' } },
-        createElement('span', { style: { flex: '1' } }, entry.source === 'peer' ? `来自 ${entry.peer ?? 'peer'}` : 'user 记忆'),
-        smallButton(selected.includes(entry.uri) ? '已选' : '选择', () => { toggleSelect(entry.uri) }),
-        smallButton('读全文', () => { open(entry) }),
-        smallButton('删', () => { startDelete(entry) }, 'warn')))))
+      ...list.entries.map(renderEntry))
+  const searchRows = search === undefined ? null : createElement('div', { style: { display: 'flex', flexDirection: 'column', gap: '6px' } },
+    createElement('div', { style: { fontSize: '11px', color: 'var(--dsw-alias-label-secondary)', marginBottom: '2px' } }, `搜索「${search.query}」· ${String(search.entries.length)} 条`),
+    ...(search.entries.length === 0 ? [muted('没有匹配的记忆。')] : search.entries.map(renderEntry)),
+    ...(search.problems.length === 0 ? [] : [muted(`检索问题：${search.problems.join('；')}`)]))
   const counts = `共 ${String(list.counts.total)} 条（user ${String(list.counts.user)} · peers ${String(list.counts.peers)} · events ${String(list.counts.events)}）`
   const kv = (label: string, value: string, tone: 'normal' | 'warn' | 'mono' = 'normal'): ReturnType<typeof createElement> =>
     createElement('div', { style: { display: 'flex', gap: '8px', fontSize: '11px', lineHeight: 1.7 } },
@@ -264,9 +294,22 @@ export function VikiPanel(): ReturnType<typeof createElement> {
       list.problems.length > 0 ? createElement('span', { style: { color: WARN } }, `${String(list.problems.length)} 个读取问题`) : null),
     createElement('div', { style: { display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' } },
       smallButton(diagnosticsOpen ? '收起诊断' : '诊断', toggleDiagnostics),
-      smallButton('并排比较', () => { startCompare(list.entries) }),
+      smallButton('并排比较', () => { startCompare(search?.entries ?? list.entries) }),
       smallButton('重读', reload)),
-    rows,
+    createElement('div', { style: { display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' } },
+      createElement('input', {
+        value: query,
+        placeholder: '搜索记忆…',
+        onChange: (event: { target: { value: string } }) => { setQuery(event.target.value) },
+        style: {
+          flex: '1', minWidth: '0', padding: '6px 8px', fontSize: '11px', borderRadius: '6px',
+          border: '1px solid var(--dsw-alias-border-l3)', background: 'var(--dsw-alias-bg-base)',
+          color: 'var(--dsw-alias-label-primary)',
+        },
+      }),
+      smallButton('搜索', runSearch),
+      search === undefined && searchNote === undefined ? null : smallButton('清除', clearSearch)),
+    searching ? muted('正在搜索…') : searchNote === undefined ? (search === undefined ? rows : searchRows) : muted(`搜索失败：${searchNote}`),
     diagnosticsBlock,
     pendingBlock,
     compareBlock,

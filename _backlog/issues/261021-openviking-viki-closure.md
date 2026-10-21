@@ -28,7 +28,7 @@ opened: 2026-10-21
 | S2 部署/doctor | 进行中 | 云端暴露收口已落 `dsh.mjs`/`ov-install.sh`；包内 `bin/ov-doctor.mjs` v0 已交付（1/2/3/4/6/7/8/9/10；5 与 MCP 子项 SKIP）；Viki baseUrl 默认已落并测，真机 `pnpm start` → `GET /api/assistant/viki` 200 `connected:true`；README/check 5/MCP 全量待做 |
 | S3 运行态 0.5.1.1/存储/旋钮 | 待开始 | [运行态卡](261020-openviking-runtime-repair.md) 验收：副本迁移、两次 commit、持久存储、dump-config、真机召回、回滚 |
 | S4 只读检索 A/B | 待开始 | [检索卡](261020-openviking-retrieval-viki.md) A/B：固定题集、评分表、原型指针、裁决 |
-| S5 Viki 面板 | 部分交付 | [检索卡](261020-openviking-retrieval-viki.md) Viki：**研发/专业诊断视图已交付（同 tab + 折叠；live probe）**；搜索/健康/转正、专用场景、既有场景不漂移待做 |
+| S5 Viki 面板 | 部分交付 | [检索卡](261020-openviking-retrieval-viki.md) Viki：**诊断 + 搜索已交付**（同 tab + 折叠；host `?q=`；live search 当前 500 由 embedding 连接导致，面板如实报错）；健康/任务/统计在诊断内；token 用量、转正、专用场景待做 |
 | S6 收口 | 待开始 | 全验收 + verify + 卡归档 + note 改写 |
 
 ## 验收标准

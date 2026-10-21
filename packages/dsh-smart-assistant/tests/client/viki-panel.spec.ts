@@ -19,6 +19,7 @@ interface ClientExports {
   loadViki: () => Promise<unknown>
   loadVikiBody: (uri: string) => Promise<{ ok: true, body: string } | { ok: false, reason: string }>
   loadVikiDiagnostics: () => Promise<{ ok: true, diagnostics: any } | { ok: false, reason: string }>
+  loadVikiSearch: (query: string) => Promise<{ ok: true, search: any } | { ok: false, reason: string }>
   resetVikiView: () => void
 }
 
@@ -110,6 +111,21 @@ describe('Viki tab', () => {
       expect(result.diagnostics.tasks?.[0]?.status).toBe('failed')
     }
     expect(calls.some(call => call.includes('?view=diagnostics'))).toBe(true)
+  })
+
+  it('loads stateless search through ?q=', async () => {
+    const calls: string[] = []
+    const exports = materialize()
+    const search = {
+      query: '合同',
+      entries: [{ uri: list.entries[0]!.uri, name: 'a.md', source: 'user', summary: '搜索结果', score: 0.9 }],
+      problems: [],
+    }
+    exports.bindVikiEnv(fakeCtx(calls, url => url.searchParams.get('q') === '合同' ? json(search) : json(list)))
+    const result = await exports.loadVikiSearch('合同')
+    expect(result.ok).toBe(true)
+    if (result.ok) expect(result.search.entries[0]?.summary).toBe('搜索结果')
+    expect(calls.some(call => call.includes('?q='))).toBe(true)
   })
 
   it('falls back to the document web face when production injects no web service', async () => {
