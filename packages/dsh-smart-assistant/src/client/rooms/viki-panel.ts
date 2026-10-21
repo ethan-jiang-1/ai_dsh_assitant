@@ -98,6 +98,8 @@ export function VikiPanel(props: { sessionId?: string } = {}): ReturnType<typeof
     if (text === '') { setSearch(undefined); setSearchNote(undefined); return }
     setSearch(undefined)
     setSearchNote(undefined)
+    setSelected([])
+    setCompare(undefined)
     setSearching(true)
     void loadVikiSearch(text).then(result => {
       setSearching(false)
@@ -110,12 +112,16 @@ export function VikiPanel(props: { sessionId?: string } = {}): ReturnType<typeof
     setSearch(undefined)
     setSearchNote(undefined)
     setSearching(false)
+    setSelected([])
+    setCompare(undefined)
   }
   useEffect(() => {
     if (getVikiView().status === 'loading') void loadViki()
   }, [])
   const reload = (): void => {
     setNote(undefined)
+    setSelected([])
+    setCompare(undefined)
     resetVikiView()
     void loadViki()
   }
@@ -135,6 +141,8 @@ export function VikiPanel(props: { sessionId?: string } = {}): ReturnType<typeof
     void deleteViki(pending.entry.uri, true).then(result => {
       setPending(undefined)
       if (!result.ok) { setNote(`删除失败：${result.reason}`); return }
+      setSelected(current => current.filter(item => item !== pending.entry.uri))
+      setCompare(undefined)
       setReceipt(result.receipt)
       void loadViki()
     })
@@ -150,12 +158,27 @@ export function VikiPanel(props: { sessionId?: string } = {}): ReturnType<typeof
   }
   const toggleSelect = (uri: string): void => {
     setCompare(undefined)
-    setSelected(current => current.includes(uri) ? current.filter(item => item !== uri) : [...current, uri].slice(-2))
+    if (selected.includes(uri)) {
+      setSelected(selected.filter(item => item !== uri))
+      setNote(undefined)
+      return
+    }
+    if (selected.length >= 2) {
+      setNote('最多选两条；先取消一条再选。')
+      return
+    }
+    setSelected([...selected, uri])
+    setNote(undefined)
+  }
+  const clearSelection = (): void => {
+    setSelected([])
+    setCompare(undefined)
+    setNote(undefined)
   }
   const startCompare = (entries: readonly VikiEntry[]): void => {
     const left = entries.find(entry => entry.uri === selected[0])
     const right = entries.find(entry => entry.uri === selected[1])
-    if (left === undefined || right === undefined) { setNote('先选两条再并排。'); return }
+    if (left === undefined || right === undefined) { setNote('这两条已不在当前列表；重新选两条对比。'); return }
     void Promise.all([loadVikiBody(left.uri), loadVikiBody(right.uri)]).then(([leftResult, rightResult]) => {
       setCompare({
         left, right,
@@ -194,7 +217,7 @@ export function VikiPanel(props: { sessionId?: string } = {}): ReturnType<typeof
     createElement('div', { style: { fontSize: '12px', lineHeight: 1.6, color: 'var(--dsw-alias-label-primary)' } }, entryLine(entry)),
     createElement('div', { style: { display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px', fontSize: '11px', color: 'var(--dsw-alias-label-secondary)' } },
       createElement('span', { style: { flex: '1' } }, `${entry.source === 'peer' ? `来自 ${entry.peer ?? 'peer'}` : 'user 记忆'}${typeof score === 'number' ? ` · ${score.toFixed(2)}` : ''}`),
-      smallButton(selected.includes(entry.uri) ? '已选' : '选择', () => { toggleSelect(entry.uri) }),
+      smallButton(selected.includes(entry.uri) ? '移出' : '对比', () => { toggleSelect(entry.uri) }),
       smallButton('读全文', () => { open(entry) }),
       smallButton('删', () => { startDelete(entry) }, 'warn')))
   }
@@ -207,6 +230,14 @@ export function VikiPanel(props: { sessionId?: string } = {}): ReturnType<typeof
     ...(search.entries.length === 0 ? [muted('没有匹配的记忆。')] : search.entries.map(renderEntry)),
     ...(search.problems.length === 0 ? [] : [muted(`检索问题：${search.problems.join('；')}`)]))
   const counts = `共 ${String(list.counts.total)} 条（user ${String(list.counts.user)} · peers ${String(list.counts.peers)} · events ${String(list.counts.events)}）`
+  const compareBar = selected.length === 0 ? null : createElement('div', {
+    style: { marginBottom: '8px', padding: '8px 10px', borderRadius: '8px', border: `1px solid ${MARK_TEAL}`, background: 'var(--dsw-alias-bg-layer-2)' },
+  },
+  createElement('div', { style: { fontSize: '12px', color: 'var(--dsw-alias-label-primary)' } }, `对比两条记忆：已选 ${String(selected.length)} 条${selected.length === 1 ? '，再选 1 条' : '，可以开始了'}`),
+  createElement('div', { style: { marginTop: '2px', fontSize: '10.5px', color: 'var(--dsw-alias-label-secondary)' } }, '重复或冲突的记忆并排看，决定留哪条；最多 2 条。'),
+  createElement('div', { style: { display: 'flex', gap: '6px', marginTop: '4px' } },
+    selected.length === 2 ? smallButton('开始对比', () => { startCompare(search?.entries ?? list.entries) }) : null,
+    smallButton('清除', clearSelection)))
   const kv = (label: string, value: string, tone: 'normal' | 'warn' | 'mono' = 'normal'): ReturnType<typeof createElement> =>
     createElement('div', { style: { display: 'flex', gap: '8px', fontSize: '11px', lineHeight: 1.7 } },
       createElement('span', { style: { flex: '0 0 78px', color: 'var(--dsw-alias-label-secondary)' } }, label),
@@ -296,7 +327,6 @@ export function VikiPanel(props: { sessionId?: string } = {}): ReturnType<typeof
       list.problems.length > 0 ? createElement('span', { style: { color: WARN } }, `${String(list.problems.length)} 个读取问题`) : null),
     createElement('div', { style: { display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' } },
       smallButton(diagnosticsOpen ? '收起诊断' : '诊断', toggleDiagnostics),
-      smallButton('并排比较', () => { startCompare(search?.entries ?? list.entries) }),
       smallButton('重读', reload)),
     createElement('div', { style: { display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' } },
       createElement('input', {
@@ -311,6 +341,7 @@ export function VikiPanel(props: { sessionId?: string } = {}): ReturnType<typeof
       }),
       smallButton('搜索', runSearch),
       search === undefined && searchNote === undefined ? null : smallButton('清除', clearSearch)),
+    compareBar,
     searching ? muted('正在搜索…') : searchNote === undefined ? (search === undefined ? rows : searchRows) : muted(`搜索失败：${searchNote}`),
     diagnosticsBlock,
     pendingBlock,
