@@ -7,6 +7,7 @@
 | 卡 | 要解决什么 | 当前环节与未完成项 |
 |---|---|---|
 | [261021-openviking-viki-closure](261021-openviking-viki-closure.md) | 层 2 / Viki 落地总台账（含安装面） | 已授权实施（H1 B / H2–H6 按建议）；S0 已交付，S1–S6 待推进 |
+| [261021-assistant-ui-modes](261021-assistant-ui-modes.md) | 助手界面三档（简洁/标准/专家）与随时切换 | 研究完成；等 Viki 收口 + 用户拍板；毕业：以后做 |
 | [261020-openviking-deploy-doctor](261020-openviking-deploy-doctor.md) | 云端例外、`ov-doctor`、README、Viki baseUrl、安装/配置面 | 已授权实施；规格与验收在本卡，推进在收口卡；S1/S2 |
 | [261020-openviking-runtime-repair](261020-openviking-runtime-repair.md) | 0.5.1.1 升级、持久存储、v3 旋钮、peer/commit/recall | 已授权实施；规格与验收在本卡，推进在收口卡；S3 |
 | [261020-openviking-retrieval-viki](261020-openviking-retrieval-viki.md) | 只读检索 A/B、Viki 搜索/转正/健康 | 已授权实施；规格与验收在本卡，推进在收口卡；S4/S5 |

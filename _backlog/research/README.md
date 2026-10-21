@@ -54,6 +54,8 @@ research 为问题和缺陷提供依据。问题按 [关闭条件](../README.md)
 
 - [261020-six-dimension-housekeeping-audit.md](tech-exploration/261020-six-dimension-housekeeping-audit.md)——引用卡：无（2026-10-20 用户点名六维深审，本档是本轮 REVIEW 的直接输入；改善项立项后由对应卡引用）。六维打扫卫生深审发现报告：五路 fresh 审计员 + 主线对抗复核；S1–S5 战役复核结论（立住）、26 条分级发现、改善三批次路线、banner 场景活体复验 PASS
 
+- [261021-assistant-ui-modes.md](tech-exploration/261021-assistant-ui-modes.md)——引用卡：[三档界面](../issues/261021-assistant-ui-modes.md)（研究完成；等 Viki 收口 + 用户拍板）。三档呈现的平台缝、现有面清单、候选架构、矩阵与证据
+
 - [261011-input-observation.md](usage/261011-input-observation.md)——引用卡：[输入边界](../_archive/settled_issues/261007-input-boundary.md)（**活观察**：读数档被 [triggers.md](../triggers.md) 的触发行点名，30 天观察期结束前留在活跃区）。30 天输入观察的读数档：A 自发投递 / B 时长 / C 入口后的操作的口径、剔除规则、环境创建约定与每周快照（读数命令 `pnpm observe`）
 - [261005-exec-demo-narratives.md](positioning/261005-exec-demo-narratives.md)——间接使用：[差异性对照](positioning/261012-personal-agent-differentiation.md) 引用其 Huper 边界与 CFO 证据行；原引用卡（输入边界）已结档。面向 CEO/CFO 的十分钟演示叙事
 - [261005-ceo-time-and-decision-research.md](positioning/261005-ceo-time-and-decision-research.md)——间接使用：[差异性对照](positioning/261012-personal-agent-differentiation.md) 两处引用（一把手时间与真实需求）；原引用卡（输入边界）已结档。一把手时间分配与决策过程
