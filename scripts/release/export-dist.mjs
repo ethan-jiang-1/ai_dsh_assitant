@@ -186,7 +186,15 @@ dsh --profile web --dump-config
 uv tool install openviking==0.5.1.1
 \`\`\`
 
-没有 \`uv\` 时用 pip/pipx 装同一版本。server 与插件是独立进程，插件不会替你拉起它。
+没有 \`uv\` 时用 pip/pipx 装同一版本。\`uv tool install\` 装不进系统目录（沙箱/受管机器常见）时，
+用隔离 venv，并用该 venv 的 \`openviking-server\` 启动：
+
+\`\`\`sh
+uv venv ~/.openviking/venv
+~/.openviking/venv/bin/pip install openviking==0.5.1.1
+\`\`\`
+
+server 与插件是独立进程，插件不会替你拉起它。
 
 ### 2. 写配置
 
