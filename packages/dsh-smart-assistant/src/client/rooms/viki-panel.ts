@@ -73,6 +73,7 @@ export function VikiPanel(props: { sessionId?: string } = {}): ReturnType<typeof
   const [pending, setPending] = useState<{ entry: VikiEntry, references: VikiReferences } | undefined>(undefined)
   const [receipt, setReceipt] = useState<VikiReceipt | undefined>(undefined)
   const [selected, setSelected] = useState<readonly string[]>([])
+  const [compareMode, setCompareMode] = useState(false)
   const [compare, setCompare] = useState<{ left: VikiEntry, right: VikiEntry, leftBody: string, rightBody: string } | undefined>(undefined)
   const [diagnosticsOpen, setDiagnosticsOpen] = useState(false)
   const [diagnostics, setDiagnostics] = useState<VikiDiagnostics | undefined>(undefined)
@@ -100,6 +101,7 @@ export function VikiPanel(props: { sessionId?: string } = {}): ReturnType<typeof
     setSearchNote(undefined)
     setSelected([])
     setCompare(undefined)
+    setCompareMode(false)
     setSearching(true)
     void loadVikiSearch(text).then(result => {
       setSearching(false)
@@ -114,6 +116,7 @@ export function VikiPanel(props: { sessionId?: string } = {}): ReturnType<typeof
     setSearching(false)
     setSelected([])
     setCompare(undefined)
+    setCompareMode(false)
   }
   useEffect(() => {
     if (getVikiView().status === 'loading') void loadViki()
@@ -122,6 +125,7 @@ export function VikiPanel(props: { sessionId?: string } = {}): ReturnType<typeof
     setNote(undefined)
     setSelected([])
     setCompare(undefined)
+    setCompareMode(false)
     resetVikiView()
     void loadViki()
   }
@@ -175,6 +179,12 @@ export function VikiPanel(props: { sessionId?: string } = {}): ReturnType<typeof
     setCompare(undefined)
     setNote(undefined)
   }
+  const exitCompare = (): void => {
+    setCompareMode(false)
+    setSelected([])
+    setCompare(undefined)
+    setNote(undefined)
+  }
   const startCompare = (entries: readonly VikiEntry[]): void => {
     const left = entries.find(entry => entry.uri === selected[0])
     const right = entries.find(entry => entry.uri === selected[1])
@@ -210,14 +220,14 @@ export function VikiPanel(props: { sessionId?: string } = {}): ReturnType<typeof
     return createElement('div', {
       key: entry.uri,
       style: {
-        padding: '8px 10px', borderRadius: '8px', border: `1px solid ${selected.includes(entry.uri) ? MARK_TEAL : 'var(--dsw-alias-border-l3)'}`,
+        padding: '8px 10px', borderRadius: '8px', border: `1px solid ${compareMode && selected.includes(entry.uri) ? MARK_TEAL : 'var(--dsw-alias-border-l3)'}`,
         background: 'var(--dsw-alias-bg-layer-2)',
       },
     },
     createElement('div', { style: { fontSize: '12px', lineHeight: 1.6, color: 'var(--dsw-alias-label-primary)' } }, entryLine(entry)),
     createElement('div', { style: { display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px', fontSize: '11px', color: 'var(--dsw-alias-label-secondary)' } },
       createElement('span', { style: { flex: '1' } }, `${entry.source === 'peer' ? `来自 ${entry.peer ?? 'peer'}` : 'user 记忆'}${typeof score === 'number' ? ` · ${score.toFixed(2)}` : ''}`),
-      smallButton(selected.includes(entry.uri) ? '移出' : '对比', () => { toggleSelect(entry.uri) }),
+      ...(compareMode ? [smallButton(selected.includes(entry.uri) ? '移出' : '选入', () => { toggleSelect(entry.uri) })] : []),
       smallButton('读全文', () => { open(entry) }),
       smallButton('删', () => { startDelete(entry) }, 'warn')))
   }
@@ -230,14 +240,15 @@ export function VikiPanel(props: { sessionId?: string } = {}): ReturnType<typeof
     ...(search.entries.length === 0 ? [muted('没有匹配的记忆。')] : search.entries.map(renderEntry)),
     ...(search.problems.length === 0 ? [] : [muted(`检索问题：${search.problems.join('；')}`)]))
   const counts = `共 ${String(list.counts.total)} 条（user ${String(list.counts.user)} · peers ${String(list.counts.peers)} · events ${String(list.counts.events)}）`
-  const compareBar = selected.length === 0 ? null : createElement('div', {
+  const compareBar = !compareMode ? null : createElement('div', {
     style: { marginBottom: '8px', padding: '8px 10px', borderRadius: '8px', border: `1px solid ${MARK_TEAL}`, background: 'var(--dsw-alias-bg-layer-2)' },
   },
-  createElement('div', { style: { fontSize: '12px', color: 'var(--dsw-alias-label-primary)' } }, `对比两条记忆：已选 ${String(selected.length)} 条${selected.length === 1 ? '，再选 1 条' : '，可以开始了'}`),
-  createElement('div', { style: { marginTop: '2px', fontSize: '10.5px', color: 'var(--dsw-alias-label-secondary)' } }, '重复或冲突的记忆并排看，决定留哪条；最多 2 条。'),
+  createElement('div', { style: { fontSize: '12px', color: 'var(--dsw-alias-label-primary)' } }, `排查重复：已选 ${String(selected.length)} 条${selected.length === 2 ? '，可以开始了' : `，再选 ${String(2 - selected.length)} 条`}`),
+  createElement('div', { style: { marginTop: '2px', fontSize: '10.5px', color: 'var(--dsw-alias-label-secondary)' } }, '选两条并排看；仅用于核对重复/冲突；最多 2 条。'),
   createElement('div', { style: { display: 'flex', gap: '6px', marginTop: '4px' } },
     selected.length === 2 ? smallButton('开始对比', () => { startCompare(search?.entries ?? list.entries) }) : null,
-    smallButton('清除', clearSelection)))
+    smallButton('清除', clearSelection),
+    smallButton('退出', exitCompare)))
   const kv = (label: string, value: string, tone: 'normal' | 'warn' | 'mono' = 'normal'): ReturnType<typeof createElement> =>
     createElement('div', { style: { display: 'flex', gap: '8px', fontSize: '11px', lineHeight: 1.7 } },
       createElement('span', { style: { flex: '0 0 78px', color: 'var(--dsw-alias-label-secondary)' } }, label),
@@ -289,6 +300,7 @@ export function VikiPanel(props: { sessionId?: string } = {}): ReturnType<typeof
         createElement('span', { style: { fontSize: '10px', padding: '0 5px', borderRadius: '8px', border: `1px solid ${MARK_TEAL}`, color: MARK_TEAL } }, '研发'),
         createElement('span', { style: { fontSize: '10px', color: 'var(--dsw-alias-label-secondary)' } }, '只读'),
         createElement('span', { style: { flex: '1' } }),
+        smallButton('排查重复…', () => { setCompareMode(true); setSelected([]); setCompare(undefined); setNote(undefined) }),
         smallButton('重读', loadDiagnostics),
         smallButton('收起', () => { setDiagnosticsOpen(false) })),
       diagnosticsBody)
