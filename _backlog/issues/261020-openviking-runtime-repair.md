@@ -53,7 +53,8 @@ opened: 2026-10-20
 - **回滚（副本）**：把 `workspace-0.4.22-backup` 完整恢复到 `.tmp/ov-rollback/workspace`，用 0.4.22 二进制起 `1935`：`/health` 0.4.22、`/stats/memories` 6、`content/read` 正常；停掉 1935 后 live `1933` 仍 0.5.1.1/6 条。回滚顺序 = 恢复完整 storage 备份 → 换回 0.4.22，已执行。
 - **真机 recall + live commit（2026-10-21）**：修掉 `loop-probe` 被首屏“预览版说明”挡住的问题后，真实会话 `session-9a7fe14d...` 的日志出现 `<openviking-context>`，内含 `<memory ... detail="full">` 的「合同款项状态提醒」事件（不是只有 overview）；模型据此回答“没有到账确认/无凭证”，并指出“尾款 vs 第二期款”的歧义。随后 live `session_commit` **completed**（`6b9ba499-…`，102s，`memory_write:1`/`memory_edit:2`，stats 6→8），`/tasks` 无 failed。**新记忆在 `peers/assistant`（Viki 列表显示“来自 assistant”），v3 `peerId` 对新写入生效；旧 6 条仍在 github peer，未回填。**
 - **预算/召回量测（2026-10-21 抽样，`deepseek-flash`，dev home 活跃会话）**：3 个含 `<openviking-context>` 的会话各 1 个 recall 块，**6 条记忆 / `detail="overview"` / 约 3.3k 字符（≈830 token）**；对应 assistant turn 的 `inputTokens` 分别为 4840 / 3442 / 1888，recall 占 17% / 24% / 45%。**口径限制**：不是受控预算实验（配置/题面/历史长度都不同），只作“recall 块实际会占多少”的抽样；`detail="overview"` 也再次印证“只给指针”的现状，按需 `assistant_recall` 是展开路径。样本会话：`2fbe51d1`、`d5c5a4f7`、`f90049fb`。
-- **仍未完成**：受控预算/召回质量量测；doctor 读运行中同源 config + cloud ack（归部署卡）；用户 review；旧 peer 回填（新写入已固定）。
+- **旧 peer 回填决定（2026-10-21）**：**不做**。`POST /api/v1/search/find` 实测能命中旧 `github.com-…` peer 的「摘要预算超限提醒」（score 0.84），说明 `recallPeerScope: all` 覆盖旧 peer，搬移只会抹掉 provenance；新写入固定走 `assistant` peer 即可。若未来要统一展示，按“copy 而非 move”另立触发条件。
+- **仍未完成**：受控预算/召回质量量测；doctor 读运行中同源 config + cloud ack（归部署卡）；用户 review。
 
 ## 方案与取舍
 
