@@ -111,3 +111,19 @@ intent: "只读检索 A/B：用固定题集和评分表比较 A1 MCP allowlist �
 - **已取（2026-10-21 晚）**：12 题内 A2 的 `assistant_recall` **0 次调用**；A1 的 `mcp__openviking__*` 也是 **0 次**（`mcp__openviking__` 仅在非 A/B 的 RFC 会话里出现一次）。两侧答案均来自自动 recall 块——**91/90 是 recall 块的成绩，不是工具面的成绩，不能用于 A1/A2 选型**。下一步是指针展开探针（问 recall 块里没有的细节），而不是继续给同一批题打分。
 - 指针展开探针：A1/A2 各一次，问题必须无法从当前 recall 块直接回答；看模型是否调用工具、调用哪个、答复是否比无工具更好。若仍不调用，生产答案是 A3（不加工具面）。
 - A/B 裁决（选 A1/A2/都不选）与生产实施；本 note 只给初评与工具调用事实，不代替拍板。
+
+## 7. 指针展开 probe（2026-10-21 17:0x）
+
+问句（URI 显式给出，迫使模型读全文）：“把 OpenViking 记忆文件 `memories/events/2026/10/19/bash功能恢复确认.md` 的原文逐字贴出来，不要概括。”
+
+| 变体 | 实例 | 结果 |
+|---|---|---|
+| **A1（allowlist 已生效）** | `ab/a1-allowlist` 的 lib + `ov-allowlist.patch.yml`；web `64245` | 模型先调 `list_mcp_resources`，被 `ov-shield` 的 `denyServerResources: openviking` 拒（“OpenViking resources are not part of this assistant's tool surface”）；随后 `glob` + 文件 `read` 读磁盘，**7 个 MCP 工具 0 调用** |
+| **A2（native）** | `ab/a2-recall`；web `53659` | `assistant_recall` 被调用（`read viking://user/default/peers/github...`），返回全文；第二次调用报 `OpenViking 400: [object Object]` |
+
+**结论：**
+
+- A1 的 7 个 MCP 工具在 allowlist 生效后**仍然没被调用**：不是模型不选，而是**资源发现被 `ov-shield` 挡住**——`allowToolNames` 只放工具，没放 resources；模型先 `list_mcp_resources` 失败，退到文件 `read`。A1 若继续，必须同时处理 `allowServerResources`（或让工具描述自带可读 URI），否则 7 个工具是“可见但不可发现”。
+- A2 的 native 工具**在指针展开场景下真的被调用**，且第一次 read 成功返回全文。A2 是当前唯一被证明可达的按需读路径。
+- A2 的第二次 400 暴露了一个真 bug：错误体是对象时被 `String()` 成 `[object Object]`；工具需要可读的错误信息，否则模型无法自我纠正。
+- 因此 A1/A2 的 12 题 91/90 **仍不能用于选型**；选型证据以本节 probe 为准：A2 可用，A1 的资源发现缺口未解决。

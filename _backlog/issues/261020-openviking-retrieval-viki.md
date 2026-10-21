@@ -48,12 +48,12 @@ opened: 2026-10-20
 
 | 方案 | 做法 | 优点 | 代价 | 判断 |
 |---|---|---|---|---|
-| **A1. MCP allowlist** | `ov-shield` 增加 `allowToolNames`；只放 `mcp__openviking__find` / `search` / `read` / `list` / `tree` / `grep` / `glob`；写工具与 `list_watches`/`cancel_watch`/`health` 继续拒 | 上游维护工具描述/参数；与 server 版本同步；实现小 | 每轮多 7 个 tool schema（实测 8 个只读子集 ≈2.2k token；A1 7 个略低，A/B 按实际 allowlist 重测）；模型可能在 `assistant_memory` / `session_query` / `find` 之间选错；MCP 桥仍挂全量，只是不可见 | **原型 `ab/a1-allowlist` @ `3fa7b4d`；12/12；工具面 0 调用（12 题内）；待 pointer probe** |
-| **A2. DSH native tool** | 新增 `assistant_recall`（find/search/read/tree 四动词），内部走 OpenViking HTTP；presenter + scope | 1 个 tool schema；动词与四房间一致；可控 presenter/日志/权限 | 要自己维护 server API 差异；重复上游能力；需要测试 | **原型 `ab/a2-recall` @ `629e79c`；12/12；工具面 0 调用（12 题内）；待 pointer probe** |
+| **A1. MCP allowlist** | `ov-shield` 增加 `allowToolNames`；只放 `mcp__openviking__find` / `search` / `read` / `list` / `tree` / `grep` / `glob`；写工具与 `list_watches`/`cancel_watch`/`health` 继续拒 | 上游维护工具描述/参数；与 server 版本同步；实现小 | 每轮多 7 个 tool schema（实测 8 个只读子集 ≈2.2k token；A1 7 个略低，A/B 按实际 allowlist 重测）；模型可能在 `assistant_memory` / `session_query` / `find` 之间选错；MCP 桥仍挂全量，只是不可见 | **原型 `ab/a1-allowlist` @ `3fa7b4d`；12/12；pointer probe 资源发现被拒、0 MCP；需补 `allowServerResources`** |
+| **A2. DSH native tool** | 新增 `assistant_recall`（find/search/read/tree 四动词），内部走 OpenViking HTTP；presenter + scope | 1 个 tool schema；动词与四房间一致；可控 presenter/日志/权限 | 要自己维护 server API 差异；重复上游能力；需要测试 | **原型 `ab/a2-recall` @ `629e79c`；12/12；pointer probe `read` 被调用成功；待修 400 错误信息** |
 | A3. 不放 | 继续只靠自动 recall | 零新面 | “问细节”无解；指针展开不了 | 不选 |
 | A4. 全放 | 16 个工具全开 | 最“充分” | 写面风险、工具噪声、错房间 | 不选 |
 
-**A/B 结果（2026-10-21）：** A1 与 A2 各跑完 12 题（答案 `.tmp/ab-a1-q*.json` / `.tmp/ab-a2-q*.json`）；agent 初评 91/96 vs 90/96，但**会话日志显示两侧工具面在 12 题内均未被调用**（A2 `assistant_recall` 0 次；A1 7 个只读 MCP 0 次），答案全部来自自动 recall 块。**所以 91/90 不是工具面成绩，A/B 不成立，不能据此选型。** 真正的缺口是指针展开（recall 块只给 overview/摘要时），12 题没有覆盖；下一步是 pointer-expansion probe，看模型是否调用工具、是否答得更好。人抽查可延后。完整评分与工具调用事实见 [A/B note](../research/tech-exploration/261021-recall-ab.md) §6。
+**A/B 结果（2026-10-21）：** A1 与 A2 各跑完 12 题；初评 91/96 vs 90/96，但**两侧工具面在 12 题内均未被调用**（A2 `assistant_recall` 0 次；A1 7 个只读 MCP 0 次），答案全部来自自动 recall 块——91/90 不是工具面成绩。**指针展开 probe（17:xx）：** A1 allowlist 生效后仍 0 MCP 调用：模型先 `list_mcp_resources`，被 `ov-shield` 的 `denyServerResources: openviking` 拒，退到文件 `read`；**A2 的 `assistant_recall read` 被调用并返回全文**（第二次 400，错误信息 `[object Object]`）。所以 **A2 是当前唯一被证明可达的按需读路径**；A1 必须补资源发现（`allowServerResources` 或工具描述自带 URI），否则 7 个工具“可见但不可发现”。A2 的 400 是待修 bug。完整证据见 [A/B note](../research/tech-exploration/261021-recall-ab.md) §7。
 
 **建议先做 A1/A2 的 A/B，不先实现。** **A/B 是原型，不是生产实现**：A1 在一次性分支/工作树里给 `ov-shield` 加临时 allowlist（或等价临时 patch），A2 用一次性分支/临时工具；产物按 [requirements-probes](../methods/requirements-probes.md) 的原型纪律保留（分支/提交指针），**不进发布物、不合并**。A/B 跑完再决定是否实施。
 
