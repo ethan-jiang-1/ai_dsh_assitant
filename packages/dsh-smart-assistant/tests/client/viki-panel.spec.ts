@@ -8,7 +8,7 @@
  * - a 503 renders "未连接" with a retry, not a crash;
  * - every interaction is a same-origin GET to `/api/assistant/viki`; no `remote.session.prompt`.
  */
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { inertReactShim, loadClientRegistration, materializeClient, textsOf } from '../support/client-harness.ts'
 
 const registration = await loadClientRegistration()
@@ -18,6 +18,7 @@ interface ClientExports {
   bindVikiEnv: (ctx: unknown) => void
   loadViki: () => Promise<unknown>
   loadVikiBody: (uri: string) => Promise<{ ok: true, body: string } | { ok: false, reason: string }>
+  loadVikiDiagnostics: () => Promise<{ ok: true, diagnostics: any } | { ok: false, reason: string }>
   resetVikiView: () => void
 }
 
@@ -83,6 +84,49 @@ describe('Viki tab', () => {
     const rendered = textsOf(exports.VikiPanel()).join(' | ')
     expect(rendered).toContain('Viki 未连接')
     expect(rendered).toContain('重试')
+  })
+
+  it('loads diagnostics lazily through ?view=diagnostics', async () => {
+    const calls: string[] = []
+    const exports = materialize()
+    exports.bindVikiEnv(fakeCtx(calls, url => url.searchParams.get('view') === 'diagnostics'
+      ? json({
+          connected: true,
+          generatedAt: '2026-10-21T00:00:00.000Z',
+          vikiUrl: 'http://127.0.0.1:1933',
+          health: { healthy: true, version: '0.5.1.1', authMode: 'dev' },
+          stats: { total: 2, byCategory: { events: 2 } },
+          tasks: [{ id: 't1', type: 'session_commit', status: 'failed', error: 'Connection error' }],
+          skills: { total: 0, roots: [] },
+          pending: 0,
+          config: { path: '~/.openviking/ov.conf', provider: 'openai', model: 'test', storage: '~/.openviking/workspace' },
+          problems: [],
+        })
+      : json(list)))
+    const result = await exports.loadVikiDiagnostics()
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.diagnostics.health.version).toBe('0.5.1.1')
+      expect(result.diagnostics.tasks?.[0]?.status).toBe('failed')
+    }
+    expect(calls.some(call => call.includes('?view=diagnostics'))).toBe(true)
+  })
+
+  it('falls back to the document web face when production injects no web service', async () => {
+    const calls: string[] = []
+    vi.stubGlobal('document', { baseURI: 'http://localhost:3080/mount/' })
+    vi.stubGlobal('fetch', async (input: unknown) => {
+      calls.push(String(input))
+      return json(list)
+    })
+    try {
+      const exports = materialize()
+      exports.bindVikiEnv({})
+      await exports.loadViki()
+      expect(calls[0]).toContain('/mount/api/assistant/viki')
+    } finally {
+      vi.unstubAllGlobals()
+    }
   })
 })
 

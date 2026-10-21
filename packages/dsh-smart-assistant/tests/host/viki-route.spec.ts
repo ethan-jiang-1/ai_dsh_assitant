@@ -69,6 +69,11 @@ beforeAll(async () => {
       res.writeHead(200, { 'content-type': 'application/json' })
       res.end(JSON.stringify({ status: 'ok', result }))
     }
+    if (url.pathname === '/health') {
+      res.writeHead(200, { 'content-type': 'application/json' })
+      res.end(JSON.stringify({ status: 'ok', healthy: true, version: '0.5.1.1', auth_mode: 'dev' }))
+      return
+    }
     if (url.pathname === '/api/v1/fs/ls') return reply(tree[url.searchParams.get('uri') ?? ''] ?? [])
     if (url.pathname === '/api/v1/fs/attrs') {
       const uri = url.searchParams.get('uri') ?? ''
@@ -79,6 +84,8 @@ beforeAll(async () => {
     if (url.pathname === '/api/v1/fs' && req.method === 'DELETE') return reply(true)
     if (url.pathname === '/api/v1/snapshot/restore' && req.method === 'POST') return reply(true)
     if (url.pathname === '/api/v1/stats/memories') return reply({ total_memories: 3, memories: { events: 2 }, by_category: { events: 3 } })
+    if (url.pathname === '/api/v1/tasks') return reply([{ task_id: 't1', task_type: 'session_commit', status: 'failed', created_at_iso: '2026-10-21T00:00:00Z', error: 'Connection error' }])
+    if (url.pathname === '/api/v1/skills') return reply({ root_uris: ['viking://user/default/skills'], skills: [], total: 0 })
     res.writeHead(404, { 'content-type': 'application/json' })
     res.end(JSON.stringify({ status: 'error', error: 'not found' }))
   })
@@ -296,6 +303,20 @@ describe('assistant-viki row wiring', () => {
     const restored = await route.fetch(post({ action: 'restore', commit: 'commit-1' }))
     expect(restored.status).toBe(200)
     expect(await restored.json()).toEqual({ ok: true, commit: 'commit-1' })
+  })
+
+  it('serves the diagnostics view as a read-only projection', async () => {
+    const { route } = await harness()
+    const response = await route.fetch(new Request('http://localhost/api/assistant/viki?view=diagnostics'))
+    expect(response.status).toBe(200)
+    const body = await response.json() as any
+    expect(body.connected).toBe(true)
+    expect(body.health).toMatchObject({ healthy: true, version: '0.5.1.1', authMode: 'dev' })
+    expect(body.stats).toMatchObject({ total: 3, byCategory: { events: 3 } })
+    expect(body.tasks?.[0]).toMatchObject({ type: 'session_commit', status: 'failed', error: 'Connection error' })
+    expect(body.skills).toMatchObject({ total: 0 })
+    expect(body.vikiUrl).toBe(baseUrl)
+    expect(JSON.stringify(body)).not.toContain('sk-')
   })
 
   it('falls back to local 127.0.0.1:1933 when neither config nor env sets a URL', async () => {

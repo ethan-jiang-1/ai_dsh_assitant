@@ -13,13 +13,15 @@
  * @module
  */
 import type { ConnectionFetchRoute } from '@deepseek-ai/dsh-client-connection'
-import type { VikiList } from '../../domain/viki/types.ts'
+import type { VikiDiagnostics, VikiList } from '../../domain/viki/types.ts'
 import { VikiUnavailable } from './client.ts'
 
 /** The read surface the plugin binds to the real OpenViking client. */
 export interface VikiReader {
   list(): Promise<VikiList>
   read(uri: string): Promise<string>
+  /** Optional read-only diagnostics; absent means the route has no diagnostics view. */
+  diagnostics?(): Promise<VikiDiagnostics>
 }
 
 /** Knowledge pages / near-duplicates that point at a URI. */
@@ -151,6 +153,12 @@ export function createVikiRoute(reader: VikiReader, options: VikiRouteOptions, a
         const peer = url.searchParams.get('peer')
         if (peer !== null && options.allowedPeers.length > 0 && !options.allowedPeers.includes(peer)) {
           return failure(403, 'peer-not-allowed')
+        }
+        const view = url.searchParams.get('view')
+        if (view !== null) {
+          if (view !== 'diagnostics') return failure(400, 'unknown-view')
+          if (reader.diagnostics === undefined) return failure(404, 'diagnostics-unavailable')
+          return emit(await reader.diagnostics())
         }
         const uri = url.searchParams.get('uri')
         if (uri !== null) {

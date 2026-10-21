@@ -32,3 +32,26 @@ export interface VikiList {
   readonly stats?: unknown
   readonly problems: readonly string[]
 }
+
+/** One recent OpenViking task, as the diagnostics face shows it. */
+export interface VikiTask {
+  readonly id: string
+  readonly type: string
+  readonly status: string
+  readonly createdAt?: string
+  readonly error?: string
+}
+
+/** The read-only diagnostics projection behind `?view=diagnostics`. */
+export interface VikiDiagnostics {
+  readonly connected: boolean
+  readonly generatedAt: string
+  readonly vikiUrl: string
+  readonly health?: { readonly healthy: boolean, readonly version?: string, readonly authMode?: string }
+  readonly stats?: { readonly total: number, readonly byCategory: Readonly<Record<string, number>> }
+  readonly tasks?: readonly VikiTask[]
+  readonly skills?: { readonly total: number, readonly roots: readonly string[] }
+  readonly pending?: number
+  readonly config?: { readonly path?: string, readonly provider?: string, readonly model?: string, readonly storage?: string }
+  readonly problems: readonly string[]
+}

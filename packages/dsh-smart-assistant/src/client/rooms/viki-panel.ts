@@ -12,13 +12,13 @@
  *
  * @module dsh-smart-assistant/client/viki-panel
  */
-import type { VikiEntry } from '../../domain/viki/types.ts'
+import type { VikiDiagnostics, VikiEntry } from '../../domain/viki/types.ts'
 import { ContentDrawer } from './content-drawer'
 import { muted } from '../chrome/dom-utils'
 import { createElement, reactSurface } from '../chrome/runtime'
 import { MARK_TEAL } from '../chrome/theme'
 import {
-  deleteViki, getVikiView, loadViki, loadVikiBody, referencesViki, resetVikiView, restoreViki,
+  deleteViki, getVikiView, loadViki, loadVikiBody, loadVikiDiagnostics, referencesViki, resetVikiView, restoreViki,
   useVikiView, type VikiReceipt, type VikiReferences,
 } from './viki-data-io'
 
@@ -73,6 +73,21 @@ export function VikiPanel(): ReturnType<typeof createElement> {
   const [receipt, setReceipt] = useState<VikiReceipt | undefined>(undefined)
   const [selected, setSelected] = useState<readonly string[]>([])
   const [compare, setCompare] = useState<{ left: VikiEntry, right: VikiEntry, leftBody: string, rightBody: string } | undefined>(undefined)
+  const [diagnosticsOpen, setDiagnosticsOpen] = useState(false)
+  const [diagnostics, setDiagnostics] = useState<VikiDiagnostics | undefined>(undefined)
+  const [diagnosticsNote, setDiagnosticsNote] = useState<string | undefined>(undefined)
+  const loadDiagnostics = (): void => {
+    setDiagnosticsNote(undefined)
+    void loadVikiDiagnostics().then(result => {
+      if (result.ok) setDiagnostics(result.diagnostics)
+      else setDiagnosticsNote(result.reason)
+    })
+  }
+  const toggleDiagnostics = (): void => {
+    if (diagnosticsOpen) { setDiagnosticsOpen(false); return }
+    setDiagnosticsOpen(true)
+    if (diagnostics === undefined) loadDiagnostics()
+  }
   useEffect(() => {
     if (getVikiView().status === 'loading') void loadViki()
   }, [])
@@ -161,6 +176,60 @@ export function VikiPanel(): ReturnType<typeof createElement> {
         smallButton('读全文', () => { open(entry) }),
         smallButton('删', () => { startDelete(entry) }, 'warn')))))
   const counts = `共 ${String(list.counts.total)} 条（user ${String(list.counts.user)} · peers ${String(list.counts.peers)} · events ${String(list.counts.events)}）`
+  const kv = (label: string, value: string, tone: 'normal' | 'warn' | 'mono' = 'normal'): ReturnType<typeof createElement> =>
+    createElement('div', { style: { display: 'flex', gap: '8px', fontSize: '11px', lineHeight: 1.7 } },
+      createElement('span', { style: { flex: '0 0 78px', color: 'var(--dsw-alias-label-secondary)' } }, label),
+      createElement('span', {
+        style: {
+          flex: '1', minWidth: '0', overflowWrap: 'anywhere',
+          color: tone === 'warn' ? WARN : tone === 'mono' ? 'var(--dsw-alias-label-secondary)' : 'var(--dsw-alias-label-primary)',
+          ...(tone === 'mono' ? { fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace' } : {}),
+        },
+      }, value))
+  const diagnosticsBody = diagnostics === undefined
+    ? muted(diagnosticsNote === undefined ? '正在读诊断…' : `诊断读取失败：${diagnosticsNote}`)
+    : (() => {
+        const snapshot = diagnostics
+        if (snapshot === undefined) return muted('正在读诊断…')
+        const health = snapshot.health
+        const stats = snapshot.stats
+        const tasks = snapshot.tasks ?? []
+        const commit = tasks.find(task => task.type === 'session_commit')
+        const failed = tasks.filter(task => task.status === 'failed').length
+        const running = tasks.filter(task => task.status === 'running' || task.status === 'pending').length
+        const categories = stats === undefined
+          ? '—'
+          : ['events', 'profile', 'preferences', 'entities']
+            .map(key => `${TYPE_LABEL[key] ?? key} ${String(stats.byCategory[key] ?? 0)}`)
+            .join(' · ')
+        const problems = snapshot.problems.length === 0 ? '无读取失败' : snapshot.problems.slice(0, 3).join('；')
+        return createElement('div', { style: { display: 'flex', flexDirection: 'column', gap: '1px' } },
+          kv('健康', health === undefined ? '未连接' : `${health.healthy ? '已连接' : '异常'} · ${health.version ?? '—'} · ${health.authMode ?? '—'}`, health?.healthy === true ? 'normal' : 'warn'),
+          kv('分类', categories),
+          kv('最近 commit', commit === undefined ? '—' : `${commit.status}${commit.error === undefined ? '' : ` · ${commit.error}`}`, commit !== undefined && commit.status !== 'completed' ? 'warn' : 'normal'),
+          kv('任务', tasks.length === 0 ? '0' : `${String(failed)} failed · ${String(running)} running`),
+          kv('pending', String(snapshot.pending ?? '—')),
+          kv('skills', String(snapshot.skills?.total ?? '—')),
+          kv('problems', problems, snapshot.problems.length > 0 ? 'warn' : 'normal'),
+          kv('config', snapshot.config?.path ?? '—', 'mono'),
+          kv('provider', [snapshot.config?.provider, snapshot.config?.model].filter(value => value !== undefined && value !== '').join(' / ') || '—'),
+          kv('storage', snapshot.config?.storage ?? '—', 'mono'),
+          kv('Viki URL', snapshot.vikiUrl, 'mono'),
+          createElement('div', { style: { marginTop: '4px', fontSize: '10px', color: 'var(--dsw-alias-label-secondary)' } }, '不含 API key；诊断只读，不影响记忆层。'))
+      })()
+  const diagnosticsBlock = diagnosticsOpen
+    ? createElement('div', {
+        style: { marginTop: '8px', padding: '8px 10px', borderRadius: '8px', border: `1px solid ${MARK_TEAL}`, background: 'var(--dsw-alias-bg-layer-2)' },
+      },
+      createElement('div', { style: { display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' } },
+        createElement('span', { style: { fontSize: '12px', fontWeight: 600, color: 'var(--dsw-alias-label-primary)' } }, '诊断'),
+        createElement('span', { style: { fontSize: '10px', padding: '0 5px', borderRadius: '8px', border: `1px solid ${MARK_TEAL}`, color: MARK_TEAL } }, '研发'),
+        createElement('span', { style: { fontSize: '10px', color: 'var(--dsw-alias-label-secondary)' } }, '只读'),
+        createElement('span', { style: { flex: '1' } }),
+        smallButton('重读', loadDiagnostics),
+        smallButton('收起', () => { setDiagnosticsOpen(false) })),
+      diagnosticsBody)
+    : null
   const pendingBlock = pending === undefined ? null : createElement('div', {
     style: { marginTop: '8px', padding: '8px 10px', borderRadius: '8px', border: `1px solid ${WARN}`, background: 'var(--dsw-alias-bg-layer-2)' },
   },
@@ -189,11 +258,16 @@ export function VikiPanel(): ReturnType<typeof createElement> {
     smallButton('以 B 为准（删 A）', () => { keepOne(compare.right, compare.left) }, 'warn'),
     smallButton('两条都留', () => { setCompare(undefined) })))
   return root(
-    createElement('div', { style: { display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' } },
-      createElement('span', { style: { flex: '1', fontSize: '12px', color: 'var(--dsw-alias-label-secondary)' } }, counts),
+    createElement('div', { style: { display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px', fontSize: '11px', color: 'var(--dsw-alias-label-secondary)' } },
+      createElement('span', { style: { color: MARK_TEAL } }, '●'),
+      createElement('span', { style: { flex: '1' } }, counts),
+      list.problems.length > 0 ? createElement('span', { style: { color: WARN } }, `${String(list.problems.length)} 个读取问题`) : null),
+    createElement('div', { style: { display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' } },
+      smallButton(diagnosticsOpen ? '收起诊断' : '诊断', toggleDiagnostics),
       smallButton('并排比较', () => { startCompare(list.entries) }),
       smallButton('重读', reload)),
     rows,
+    diagnosticsBlock,
     pendingBlock,
     compareBlock,
     receiptBlock,

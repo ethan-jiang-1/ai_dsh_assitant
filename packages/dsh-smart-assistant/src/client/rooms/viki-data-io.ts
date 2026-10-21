@@ -5,7 +5,7 @@
  *
  * @module dsh-smart-assistant/client/viki-data-io
  */
-import type { VikiEntry, VikiList } from '../../domain/viki/types.ts'
+import type { VikiDiagnostics, VikiEntry, VikiList } from '../../domain/viki/types.ts'
 import { reactSurface } from '../chrome/runtime'
 
 /** One read of the Viki list. */
@@ -48,12 +48,18 @@ export function useVikiView(): VikiView {
   return snapshot
 }
 
-/** Capture the page's web face (the bench's optional service is probed, never required). */
+/** Capture the page's web face; production has no injected `web`, so fall back to the document. */
 export function bindVikiEnv(ctx: unknown): void {
   try {
     const candidate = (ctx as { web?: WebFace } | undefined)?.web
-    if (candidate !== undefined && typeof candidate.fetch === 'function') vikiWeb = candidate
+    if (candidate !== undefined && typeof candidate.fetch === 'function') {
+      vikiWeb = candidate
+      return
+    }
   } catch { /* no injected web in the classic-script test harness */ }
+  if (typeof document !== 'undefined' && typeof globalThis.fetch === 'function') {
+    vikiWeb = { baseURI: document.baseURI, fetch: globalThis.fetch.bind(globalThis) }
+  }
 }
 
 /** Read the list; a missing server is `unavailable`, not an error. */
@@ -100,6 +106,23 @@ export async function loadVikiBody(uri: string): Promise<{ ok: true, body: strin
 }
 
 export type { VikiEntry }
+
+/** Read the lazy diagnostics view; a failure is a panel note, not a list error. */
+export async function loadVikiDiagnostics(): Promise<{ ok: true, diagnostics: VikiDiagnostics } | { ok: false, reason: string }> {
+  if (vikiWeb === undefined) return { ok: false, reason: 'the web face is not available' }
+  try {
+    const url = new URL('api/assistant/viki', vikiWeb.baseURI)
+    url.searchParams.set('view', 'diagnostics')
+    const response = await vikiWeb.fetch(url, { credentials: 'same-origin', cache: 'no-store', redirect: 'error' })
+    const body = await response.json().catch(() => ({})) as { message?: unknown, error?: unknown } & Partial<VikiDiagnostics>
+    if (!response.ok) {
+      return { ok: false, reason: typeof body.message === 'string' ? body.message : typeof body.error === 'string' ? body.error : `HTTP ${String(response.status)}` }
+    }
+    return { ok: true, diagnostics: body as VikiDiagnostics }
+  } catch (error) {
+    return { ok: false, reason: String(error) }
+  }
+}
 
 /** Knowledge pages / near-duplicates that point at a URI (the pre-delete reference check). */
 export interface VikiReferences { readonly knowledge: readonly string[], readonly siblings: readonly string[] }

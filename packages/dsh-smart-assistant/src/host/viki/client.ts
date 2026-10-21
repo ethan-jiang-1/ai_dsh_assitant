@@ -238,6 +238,42 @@ export class VikiClient {
     return this.request('GET', '/stats/memories')
   }
 
+  /** Root health (not under `/api/v1`): version/auth, and whether the model-side probes pass. */
+  async health(): Promise<{ healthy: boolean, version?: string, authMode?: string }> {
+    if (this.baseUrl === '') throw new VikiUnavailable('OpenViking is not configured')
+    let response: Response
+    try {
+      response = await this.fetchImpl(`${this.baseUrl}/health`, {
+        headers: this.apiKey === undefined || this.apiKey === '' ? {} : { authorization: `Bearer ${this.apiKey}` },
+      })
+    } catch (error) {
+      throw new VikiUnavailable(`OpenViking health request failed: ${String(error)}`, error)
+    }
+    let parsed: unknown
+    try {
+      parsed = await response.json()
+    } catch (error) {
+      throw new VikiUnavailable(`OpenViking health returned non-JSON (HTTP ${String(response.status)})`, error)
+    }
+    if (!response.ok) throw new VikiUnavailable(`OpenViking health answered ${String(response.status)}`)
+    const data = parsed as { healthy?: unknown, version?: unknown, auth_mode?: unknown }
+    return {
+      healthy: data.healthy === true,
+      ...(typeof data.version === 'string' ? { version: data.version } : {}),
+      ...(typeof data.auth_mode === 'string' ? { authMode: data.auth_mode } : {}),
+    }
+  }
+
+  /** Recent server tasks (commits and other background work); read-only. */
+  async tasks(): Promise<unknown> {
+    return this.request('GET', '/tasks')
+  }
+
+  /** Server skill catalog, read-only. */
+  async skills(): Promise<unknown> {
+    return this.request('GET', '/skills')
+  }
+
   /** Snapshot one or more paths and return the commit id (the delete's only rollback). */
   async commit(paths: readonly string[]): Promise<string> {
     // The endpoint requires `message` (CommitRequest); omitting it is a 400 before any snapshot exists.
