@@ -26,7 +26,7 @@ export const TARGET_SERVER = '0.5.1.1'
 const USAGE = `ov-doctor — read-only checks for the optional OpenViking layer
 
 Usage:
-  ov-doctor [--base-url URL] [--config PATH] [--dsh-home DIR] [--profile NAME] [--json]
+  ov-doctor [--base-url URL] [--config PATH] [--dsh-home DIR] [--profile NAME] [--json] [--no-upstream]
 
 Defaults:
   --base-url   $OPENVIKING_URL or http://127.0.0.1:1933
@@ -48,11 +48,13 @@ export function parseArgs(argv) {
     profile: 'web',
     json: false,
     help: false,
+    noUpstream: false,
   }
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i]
     if (arg === '--help' || arg === '-h') { options.help = true; continue }
     if (arg === '--json') { options.json = true; continue }
+    if (arg === '--no-upstream') { options.noUpstream = true; continue }
     if (arg === '--base-url' || arg === '--config' || arg === '--dsh-home' || arg === '--profile') {
       const value = argv[i + 1]
       if (value === undefined || value.startsWith('--')) throw new Error(`${arg} needs a value`)
@@ -257,7 +259,7 @@ export async function runDoctor(options, fetchImpl = fetch) {
   }
 
   if (health.status !== 0 && health.ok && health.body?.healthy === true) {
-    const upstream = upstreamDoctor(options.config)
+    const upstream = options.noUpstream ? ['skip', 'skipped by --no-upstream'] : upstreamDoctor(options.config)
     add('3', 'upstream doctor', upstream[0], upstream[1])
     const search = await fetchJson(fetchImpl, `${options.baseUrl.replace(/\/+$/u, '')}/api/v1/search/find`, {
       method: 'POST',

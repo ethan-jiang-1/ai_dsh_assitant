@@ -105,10 +105,11 @@ describe('argument and profile helpers', () => {
     const defaults = parseArgs([])
     expect(defaults.baseUrl).toBe('http://127.0.0.1:1933')
     expect(defaults.profile).toBe('web')
-    const custom = parseArgs(['--base-url', 'http://127.0.0.1:9/', '--profile', 'try-assistant', '--json'])
+    const custom = parseArgs(['--base-url', 'http://127.0.0.1:9/', '--profile', 'try-assistant', '--json', '--no-upstream'])
     expect(custom.baseUrl).toBe('http://127.0.0.1:9')
     expect(custom.profile).toBe('try-assistant')
     expect(custom.json).toBe(true)
+    expect(custom.noUpstream).toBe(true)
     expect(() => parseArgs(['--unknown'])).toThrow('unknown argument')
   })
 

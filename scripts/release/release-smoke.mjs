@@ -27,7 +27,9 @@
  *   --dsh <cmd>   harness launcher to use (default: the pinned source checkout via tsx)
  */
 
-import { execFileSync, spawnSync } from 'node:child_process'
+import { execFile, execFileSync, spawnSync } from 'node:child_process'
+import { createServer } from 'node:http'
+import { promisify } from 'node:util'
 import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, isAbsolute, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -42,6 +44,7 @@ const profile = 'smoke'
 const PACKAGE_NAME = 'dsh-smart-assistant'
 
 const failures = []
+const execFileAsync = promisify(execFile)
 const step = message => console.log(`\n▸ ${message}`)
 const ok = message => console.log(`  ok   ${message}`)
 const fail = message => {
@@ -179,6 +182,61 @@ try {
     const absent = spawnSync(process.execPath, [doctorBin, '--dsh-home', home, '--profile', webProfile, '--config', fakeConfig, '--base-url', 'http://127.0.0.1:1'], { encoding: 'utf8' })
     if (absent.status !== 2) fail(`installed ov-doctor should exit 2 with the optional layer absent; got ${String(absent.status)}: ${absent.stdout}${absent.stderr}`)
     else ok('installed ov-doctor degrades with exit 2 when the optional layer is absent')
+  }
+
+  step('clean-home OV present: install the pinned plugin, mock the server, doctor exits 0')
+  const ovTgz = join(repoRoot, 'vendor', 'thirdparty', 'openviking', 'dsh-memory-plugin-0.5.26.tgz')
+  if (!existsSync(ovTgz)) {
+    fail(`missing pinned OpenViking plugin tarball at ${ovTgz}`)
+  } else {
+    try {
+      dsh(['plugin', '--profile', webProfile, 'add', ovTgz])
+      const mock = createServer((req, res) => {
+        const url = new URL(req.url ?? '/', 'http://127.0.0.1')
+        if (url.pathname === '/health') {
+          res.writeHead(200, { 'content-type': 'application/json' })
+          res.end(JSON.stringify({ status: 'ok', healthy: true, version: '0.5.1.1', auth_mode: 'dev' }))
+          return
+        }
+        if (url.pathname === '/api/v1/search/find') {
+          res.writeHead(200, { 'content-type': 'application/json' })
+          res.end(JSON.stringify({ status: 'ok', result: [] }))
+          return
+        }
+        res.writeHead(404, { 'content-type': 'application/json' })
+        res.end(JSON.stringify({ status: 'error' }))
+      })
+      await new Promise((resolve, reject) => {
+        mock.once('error', reject)
+        mock.listen(0, '127.0.0.1', resolve)
+      })
+      const mockAddress = mock.address()
+      const mockPort = typeof mockAddress === 'object' && mockAddress !== null ? mockAddress.port : 0
+      const mockBase = `http://127.0.0.1:${String(mockPort)}`
+      try {
+        const presentConfig = join(home, 'ov-present.conf.json')
+        writeFileSync(presentConfig, JSON.stringify({
+          vlm: { provider: 'openai', api_base: 'http://127.0.0.1:9/v1', api_key: 'sk-test-not-a-key', model: 'test' },
+          embedding: { dense: { provider: 'openai', api_base: 'http://127.0.0.1:9/v1', api_key: 'sk-test-not-a-key', model: 'test', dimension: 8 } },
+        }), { mode: 0o600 })
+        try {
+          await execFileAsync(process.execPath, [
+            doctorBin, '--dsh-home', home, '--profile', webProfile,
+            '--config', presentConfig, '--base-url', mockBase, '--no-upstream',
+          ], {
+            encoding: 'utf8',
+            env: { ...process.env, OPENVIKING_CAPTURE_TOOL_RESULTS: 'false', OPENVIKING_URL: mockBase },
+          })
+          ok('installed doctor: OV present + mock server exits 0')
+        } catch (error) {
+          fail(`installed doctor with OV present should exit 0; got ${String(error?.code ?? error)}: ${error?.stdout ?? ''}${error?.stderr ?? ''}`)
+        }
+      } finally {
+        await new Promise(resolve => mock.close(resolve))
+      }
+    } catch (error) {
+      fail(`OV-present smoke threw: ${String(error)}`)
+    }
   }
 
   step('keyless check: the preset-mounted one-shot entry is in the composition')

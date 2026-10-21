@@ -232,7 +232,7 @@ doctor 对账 1↔2↔运行中 server（check 10）与 3/4；Viki 的 baseUrl �
 - [ ] `pnpm preflight` 打印 OV 状态；OV 红时 preflight 仍按 DSH 自身判据退出。
 - [ ] **安装面**：`pnpm export-dist` 的《安装手册》覆盖 DSH/Node 前置、插件安装 + `agent-preset-registry.default: assistant`、可选 OV 安装/配置/启动/doctor/故障表、卸载；手册不含本机绝对路径或真 key。
 - [ ] **干净 home 安装**：一次性 `DSH_HOME` + 导出的 tgz + `dsh plugin add` + 设 preset 默认 → `--dump-config` 看到 `preset-assistant`，启动一次；全程不读 `dev/harness-home`。
-- [ ] **OV 缺席/在场**：缺席 → 插件照常、doctor exit 2、Viki 503；在场（测试 config 或 mock）→ doctor 绿、Viki 200。
+- [x] **OV 缺席/在场**：缺席 → 插件照常、doctor exit 2、Viki 503；在场（测试 config 或 mock）→ doctor 绿、Viki 200。**2026-10-21：release-smoke 干净 home 的 `web-smoke` + mock：缺席 exit 2、在场 exit 0；真机 Viki 200 见 S2 次片。**
 - [ ] **包内 doctor**：`bin/ov-doctor.mjs` 随 tarball 安装；`--help` 可跑；OV 缺席 exit 2；不 import 仓库 `dev/`；仓内 `node packages/.../bin/ov-doctor.mjs` 与安装 profile 内的 bin 同文件。
 - [ ] **另一人走查**：把手册给另一个人（或干净机器/新用户）走一遍；记录卡点与修法。agent 的 clean-home dry run 不能替代这一步。
 - [ ] `pnpm verify` 通过（或记录与本次无关的既有失败）；新增脚本/文档在 verify 的覆盖范围内。
@@ -281,7 +281,13 @@ doctor 对账 1↔2↔运行中 server（check 10）与 3/4；Viki 的 baseUrl �
 - `scripts/release/release-smoke.mjs`：新增 `web-smoke` 干净 home 路径——web profile + `dsh plugin add` + 写 `agent-preset-registry` 默认，断言默认从 `standard` 翻到 `assistant`；`pnpm release-smoke` PASS。
 - `dev/env/dsh.mjs`：所有 dev 启动默认 `OPENVIKING_CAPTURE_TOOL_RESULTS=false`；`dev/experiments/openviking/ov-install.sh` 的 v3 配置加 `captureToolResults: false`。插件 `resolveKnobs` 实测 env 覆盖为 false。
 - 证据：`pnpm release-smoke` PASS；`pnpm verify` 43/43；`_dist/安装手册.md` 与生成器一致。
-- 剩余：用户侧 OV 安装器、OV 在场 clean-home、另一人走查；S2b 的 doctor check 5/MCP。
+- 剩余：用户侧 OV 安装（手册路径；脚本可选）、另一人走查；S2b 的 doctor check 5/MCP。
+
+### 2026-10-21 · S1b（OV 在场 clean-home）
+
+- `release-smoke` 把 pinned OV plugin 装进干净 `web-smoke` profile，起本地 mock `/health` + `/search/find`，用安装态 doctor `--no-upstream` 跑 → **exit 0**；OV 缺席 case → exit 2。
+- `ov-doctor --no-upstream` + parseArgs 测试；`pnpm test:tooling` 270 passed；`pnpm release-smoke` PASS。
+- 这把“OV 在场”从本机 live 状态推进到可重复的干净 home；Viki 200 另有真机证据（S2 次片）。
 
 ### 2026-10-21 · S2 首片（包内 doctor v0）
 
@@ -297,7 +303,7 @@ doctor 对账 1↔2↔运行中 server（check 10）与 3/4；Viki 的 baseUrl �
 - `tests/host/viki-route.spec.ts`：新增“无 config/env 时默认 1933”案；15 案通过。
 - `bin/ov-doctor.mjs` 6d：无显式 URL 时按默认 1933 报 `ok`，并提示远程需显式；install manual 的 Viki 节同步。
 - 证据：`vitest run tests/host/viki-route.spec.ts` 15 passed；`pnpm typecheck` PASS；`pnpm export-dist`；`pnpm release-smoke` PASS；`pnpm verify` 43/43；live doctor 6d 已从 fail 变 ok（默认 local 1933），search/cloud 仍 fail。
-- 剩余：S2b 的 doctor check 5/MCP、README 部署/故障表全量；OV 缺席/在场 clean-home、另一人走查。
+- 剩余：S2b 的 doctor check 5/MCP、README 部署/故障表全量；另一人走查。
 
 ## 关闭条件
 
