@@ -195,7 +195,7 @@ opened: 2026-10-20
 
 - **Q9 转正机制**：拆 P1（面板点击=人授权；host route 调 `assistantMemory.saveMemory` + home `recordApproval('promote')`）与 P2（模型 turn 内 `assistant_memory save` + `ctx.approval` 对）；两套审计不混用。原卡把 `approval/asked` 对与 home `recordApproval` 写成一条链，已改。
 - **Q14 搜索端点/数据源**：面板搜索改走 stateless `/search/find`（`/search/search` 是 session-aware）；`problems` 指明是 `client.ts` 已返回的数组；token 用量需要 host route，client 不直接读。
-- **Q6 场景漂移**：`web-expected` 现 3 个场景；验收从“两场景”改为“现有全部（当前 3 个，清单以目录为准）”，Viki 另建专用场景；建不起来按 validation-evidence §1b 记 blocked。
+- **Q6 场景漂移**：`web-expected` 当时 3 个场景；验收改为“现有全部（清单以目录为准）”，Viki 另建专用场景。**2026-10-21 已到 7 个（Viki 4 个）**；建不起来按 validation-evidence §1b 记 blocked。
 - **A/B 矛盾**：原卡“先 A/B 不先实现”但验收要求 A1/A2 各跑一遍；补“原型放一次性 home/分支，不进发布物”。
 - **Q4 范围**：Viki 连接归部署卡、升级/存储归运行态卡；本卡只做面板能力与工具面。
 - **版本**：0.5.1.1/0.5.27 的 skills/experiences 仍未验，P3 触发不变。

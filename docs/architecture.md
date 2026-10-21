@@ -13,7 +13,7 @@
 |---|---|
 | ① 让它看到该看的东西（上下文） | **桌面 / 抽屉**：常驻四段（身份 / 手册 / 经营账本段 / 有界状态摘要），段落构成与顺序的合同 = [`home.md`](home.md) §三；细节用工具取 |
 | ② 让它懂你的业务（隐性知识显性化） | `memory/` 房间：事实、偏好、决定 —— 一条一个文件，可读可审 |
-| ③ 让它有该有的本事（工具与边界） | 五个工具 + working folder 的写入边界（`src/domain/home/layout.ts` 是唯一 owner；经营账本另走独立 dataDir，契约 = [operating.md](operating.md)） |
+| ③ 让它有该有的本事（工具与边界） | 六个工具 + working folder 的写入边界（`src/domain/home/layout.ts` 是唯一 owner；经营账本另走独立 dataDir，契约 = [operating.md](operating.md)） |
 | ④ 让它按对的步骤走（工作流） | 过程性知识进**技能**（抽屉），不占常驻上下文；两档出口固定了线索的收束方式 |
 | ⑤ 让它经得起检查 | `curate`：**机器能跑的检查**（重复、悬空引用、预算、过期线索、缺理由的 drop、技能语法等——非穷举，完整面 = [`home.md`](home.md) §四） |
 
@@ -76,7 +76,7 @@ AGENT 面（`cordis.patch.yml` 的 `preset-assistant` 行 → agent preset）
 ├── assistant-knowledge-tool  工具 assistant_knowledge（只读检索：search/get 附反链）
 ├── tool-session-query        工具 session_query 族（原始会话证据检索；与 knowledge 房分工见 docs/home.md）
 ├── assistant-learn           工具 assistant_reflect + 挂载"学到的技能"provider
-├── assistant-ov-shield       治理遮蔽行（ov＝OpenViking 记忆插件：部署共装时拒其 mcp__openviking__* 工具前缀、按 server 名拒资源、遮蔽其同名技能——模型可见面保持本包五工具与策展技能目录；denyToolPrefix / denyServerResources / shadowSkills 三 config 键）
+├── assistant-ov-shield       治理遮蔽行（ov＝OpenViking 记忆插件：部署共装时拒其 mcp__openviking__* 工具前缀、按 server 名拒资源、遮蔽其同名技能——模型可见面保持本包六工具与策展技能目录；denyToolPrefix / denyServerResources / shadowSkills 三 config 键）
 ├── skill-filesystem          策展技能（包内 `presets/assistant/skills/`，按包名解析后指过去）
 └── persona / agent-instructions / tool-fs / tool-fs-search / shell / ask-user /
     todo / goal（`tool-goal`+`command-goal`）/ plan-mode（isolate 组）/
@@ -120,7 +120,7 @@ Host 能力（→ host 行 + `connection.fetch`，client 只消费）？⑥ 只�
 （→ client 面，不进模型上下文）？
 
 **服务的三角色**：`assistantMemory` 是 Service Definition，**同一包同一文件**里给出唯一 Provider
-（所以不存在独立的 provider 包可找）；Consumer 是各 agent 面入口（五个工具、摘要段落、经营账本、复盘）——按
+（所以不存在独立的 provider 包可找）；Consumer 是各 agent 面入口（六个工具、摘要段落、经营账本、复盘）——按
 `inject` 声明消费，不依赖具体实现。
 **主干 service ≠ 竞聘 seam**：`assistantMemory` 是单 Provider、多 Consumer 的主干 service 形态；
 seam 的成色读数是**第二个真实 Provider 出现而 Consumer 一行不改**——没有第二实现预期时，不为
@@ -162,7 +162,7 @@ seam 的成色读数是**第二个真实 Provider 出现而 Consumer 一行不�
 | 模型可见输入 | 由什么覆盖 |
 |---|---|
 | 身份/手册/摘要/经营账本四段落（SOUL.md + AGENTS.md + 精选记忆与线索条数 + 经营事项走账本） | 系统提示词组装随请求记录；身份/手册/摘要内容由 working folder 的文件（外部状态）决定 |
-| 五个工具的调用与结果 | `tool/call` / `tool/result` 逐字进日志 |
+| 六个工具的调用与结果 | `tool/call` / `tool/result` 逐字进日志 |
 | 技能目录（学到的技能出现/消失） | 目录随请求组装记录；`skills/change` 是注册表失效事件 |
 | 工具 description | 属于模型可见输入：改它是**行为变更**，不是改名 |
 

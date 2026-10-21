@@ -269,7 +269,7 @@ doctor 对账 1↔2↔运行中 server（check 10）与 3/4；Viki 的 baseUrl �
 - **Q7 doctor 读错 config**：运行中 server 用派生 `.tmp/openviking/ov.conf`，`openviking-server doctor` 默认读 `~/.openviking/ov.conf`；加“同一份 config”约束与 check 10。
 - **Q8 云端现状为空**：dev 无 OV config，`captureToolResults` 对 DSH 默认 true，`captureFilters` 默认 []；写入当前情况、P0 与验收，README 表去掉 `cloudAck: true` 二义。
 - **Q13 doctor 绿 ≠ 运行态可用**：2026-10-21 实测默认 doctor 全绿而 `/tasks` failed；check 3 只作配置探测，check 4/5/10 是运行态探针。
-- **Q6 场景漂移**：`web-expected` 已三场景；本卡不硬编码“两场景”，Viki 渲染归检索卡。
+- **Q6 场景漂移**：`web-expected` 当时已三场景；本卡不硬编码数量（现 7 个，清单以目录为准），Viki 渲染归检索卡。
 
 **结论**：本卡 P0 的判断成立，但“云端例外 v1”必须先补现状收口；不授权实施。
 
@@ -294,7 +294,7 @@ doctor 对账 1↔2↔运行中 server（check 10）与 3/4；Viki 的 baseUrl �
 - `packages/dsh-smart-assistant/bin/ov-doctor.mjs` + `package.json` 的 `bin`/`files`：随 tarball 安装，只用 Node 内置；手册加“自检”节。仓内开发与安装 profile 用同一文件。
 - `release-smoke`：断言 tarball 含 `bin/ov-doctor.mjs`、安装后 `--help` 可跑、OV 缺席 exit 2；**PASS**。
 - `tests/tooling/ov-doctor.spec.mjs`：12 案（config/mode/storage/cloud-ack/capture/filters/args/Viki/version）；`pnpm test:tooling` **270 passed**。
-- 真机 dev 跑：health 0.4.22 / upstream doctor 通过；search 500 fail；Viki URL 缺 fail；cloud+no-ack+capture-on+empty-filters fail；版本 0.4.22 warn；config 同源 warn；check 5/MCP SKIP。**这正是“health 绿 ≠ 可用”的实物。**
+- 真机 dev 跑（2026-10-21 初始 v0）：health 0.4.22 / upstream doctor 通过；search 500 fail；Viki URL 缺 fail；cloud+no-ack+capture-on+empty-filters fail；版本 0.4.22 warn；config 同源 warn；check 5/MCP SKIP。**这正是“health 绿 ≠ 可用”的实物；后续 0.5.1.1 + 6m/check5 已补齐，见 S2b 记录。**
 - v0 覆盖 check 1/2/3/4/6/7/8/9/10；check 5 与 MCP instructions 子项留 S2b。
 
 ### 2026-10-21 · S2 次片（Viki baseUrl 默认）
