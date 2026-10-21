@@ -25,6 +25,12 @@ export function bindTasksEnv(next: TasksViewEnv): void {
 const MUTED = 'var(--dsw-alias-label-secondary, #a8a8a8)'
 const TEXT = 'var(--dsw-alias-label-primary, #f2f2f2)'
 
+function formatWhen(iso: string): string {
+  const at = new Date(iso)
+  if (Number.isNaN(at.getTime())) return iso
+  return at.toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+}
+
 /** Render the task list; clicking a row opens its detail in the native right rail. */
 export function TasksView(props: { sessionId?: string } = {}): ReturnType<typeof createElement> {
   const { useEffect, useState } = reactSurface()
@@ -54,7 +60,7 @@ export function TasksView(props: { sessionId?: string } = {}): ReturnType<typeof
       key: entry.id,
       type: 'button',
       onClick: () => {
-        const sessionId = props.sessionId ?? entry.sessionId
+        const sessionId = entry.sessionId ?? props.sessionId
         if (sessionId !== undefined && env !== undefined) env.openTask(sessionId, entry.id)
       },
       style: {
@@ -66,6 +72,6 @@ export function TasksView(props: { sessionId?: string } = {}): ReturnType<typeof
     },
     createElement('span', { style: { fontSize: '14px' } }, entry.title),
     createElement('span', { style: { fontSize: '12px', color: MUTED } },
-      `${entry.kind} · ${entry.scheduledAt}`))),
+      `${entry.kind} · ${formatWhen(entry.scheduledAt)}`))),
   )
 }

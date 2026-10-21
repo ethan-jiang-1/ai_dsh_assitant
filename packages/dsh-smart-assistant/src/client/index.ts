@@ -192,7 +192,17 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         ...(proactiveCatalog === undefined ? {} : { catalog: proactiveCatalog }),
         ...(proactiveUi === undefined ? {} : { proactiveUi }),
       }
-      return { hooks, refreshProjection: () => { reader?.refresh() }, onAsk: () => { ctx.layout?.selectPanel(null) }, onEntrust: arms.startIntake, onProcess: arms.processMatter, onClaim: arms.claimFragment, onDiscard: arms.discardFragment, onCapture: arms.captureFromDesk, onOpenSession: (sessionId: string) => { ctx.uiWorkspace?.openSession(sessionId) }, onWake: arms.wakeMatter, onOpenTasks: () => { ctx.layout?.selectPanel('schedules') }, onSuggestAction, onSuggestDismiss, onWatchForget, onSuggestCollapse }
+      return { hooks, refreshProjection: () => { reader?.refresh() }, onAsk: () => {
+        const sessionId = args.find((argument): argument is string => typeof argument === 'string')
+        if (sessionId !== undefined) ctx.uiConversation?.binding(sessionId).activate('chat')
+        // The service is optional in older compositions; the tab is the visible truth.
+        if (typeof document !== 'undefined') {
+          const chatTab = [...document.querySelectorAll('[role=tab]')]
+            .find(element => element.textContent?.trim() === '对话')
+          if (chatTab instanceof HTMLElement) chatTab.click()
+        }
+        ctx.layout?.selectPanel(null)
+      }, onEntrust: arms.startIntake, onProcess: arms.processMatter, onClaim: arms.claimFragment, onDiscard: arms.discardFragment, onCapture: arms.captureFromDesk, onOpenSession: (sessionId: string) => { ctx.uiWorkspace?.openSession(sessionId) }, onWake: arms.wakeMatter, onOpenTasks: () => { ctx.layout?.selectPanel('schedules') }, onSuggestAction, onSuggestDismiss, onWatchForget, onSuggestCollapse }
     }
     ctx.slots.inject('main', () => {
       const registration = ctx.slots.register({

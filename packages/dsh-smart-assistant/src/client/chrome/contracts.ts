@@ -35,6 +35,8 @@ export interface ClientContext {
     register(namespace: string, dictionaries: { readonly zh: Readonly<Record<string, string>>, readonly en: Readonly<Record<string, string>> }): () => void
   }
   slots: SlotsRegistry
+  /** Conversation view selection face; the workbench tab uses it to return to Chat. */
+  uiConversation?: { binding(sessionId: string): { activate(view: string): void } }
   sidebarRightTabs: SidebarRightTabsRegistry
   /** The right-sidebar controller, so a page can open a room tab beside the conversation. */
   sidebarRight?: { openTab: (kind: string, options?: { params?: unknown }) => void }
