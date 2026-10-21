@@ -318,8 +318,9 @@ doctor 对账 1↔2↔运行中 server（check 10）与 3/4；Viki 的 baseUrl �
 ### 2026-10-21 · S2b 3（MCP instructions + 云端 ack 绿）
 
 - `bin/ov-doctor.mjs` 新增 `6m`：POST `/mcp` `initialize`，读 `result.instructions`；空 → `ok`，有文本 → `warn` 并带 `serverInfo.name`，不可达 → `warn`。单测 mock SSE 覆盖三种形状（17 tests 全过）。
-- `--write` 新增可选 commit 探针：建 sentinel session → 写一条 sentinel → commit → 轮询 `/api/v1/tasks` 到 completed/failed，60s 超时 fail；默认不加 `--write` 仍是只读 SKIP。未对 live 跑 `--write`（会写一条记忆），只做 mock 测试。
+- `--write` 新增可选 commit 探针：建 sentinel session → 写一条 sentinel → commit → 轮询 `/api/v1/tasks` 到 completed/failed，60s 超时 fail；默认不加 `--write` 仍是只读 SKIP。**已对一次性 0.5.1.1 server（temp workspace，port 1934）真跑 `--write`：`ok 5 commit probe: sentinel … committed (task …)`**；随后 kill server、删除 temp 目录。未对持久 live 跑 `--write`（避免写一条真实记忆）。
 - live（0.5.1.1）`OPENVIKING_CLOUD_ACK=1 node bin/ov-doctor.mjs --profile dev ... --no-upstream`：`exit 0; 0 fail, 1 warn, 2 skip`；`6m server=openviking; instructions empty`；`8 cloud/capture: ack=true; captureToolResults=false`；唯一 warn 是 check 10 的 `OPENVIKING_CONF` 未显式设（同源提示）。
+- 同轮修掉 check 7 的假绿：config 校验失败（如 storage 在 `.tmp`）时不再报 `ok persistent root`，改为 `SKIP not judged`；temp server 复跑确认 `FAIL 2 config` + `SKIP 7`，check 5 仍 `ok`。
 - 手册与故障表同步：doctor 覆盖 MCP instructions；`--write` 的写记忆边界写明。
 
 ## 关闭条件

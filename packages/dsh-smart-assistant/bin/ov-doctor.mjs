@@ -322,10 +322,12 @@ export async function runDoctor(options, fetchImpl = fetch) {
 
   const configResult = validateConfig(options.config)
   add('2', 'config', configResult.status, configResult.detail)
-  if (configResult.storage !== undefined) {
-    add('7', 'storage', 'ok', `persistent root ${configResult.storage}`)
-  } else {
+  if (configResult.storage === undefined) {
     add('7', 'storage', 'skip', 'no readable config')
+  } else if (configResult.status !== 'ok') {
+    add('7', 'storage', 'skip', `not judged: config check failed (${configResult.storage})`)
+  } else {
+    add('7', 'storage', 'ok', `persistent root ${configResult.storage}`)
   }
 
   const health = await fetchJson(fetchImpl, `${options.baseUrl.replace(/\/+$/u, '')}/health`)
