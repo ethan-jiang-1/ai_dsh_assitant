@@ -48,10 +48,12 @@ opened: 2026-10-20
 
 | 方案 | 做法 | 优点 | 代价 | 判断 |
 |---|---|---|---|---|
-| **A1. MCP allowlist** | `ov-shield` 增加 `allowToolNames`；只放 `mcp__openviking__find` / `search` / `read` / `list` / `tree` / `grep` / `glob`；写工具与 `list_watches`/`cancel_watch`/`health` 继续拒 | 上游维护工具描述/参数；与 server 版本同步；实现小 | 每轮多 7 个 tool schema（实测 8 个只读子集 ≈2.2k token；A1 7 个略低，A/B 按实际 allowlist 重测）；模型可能在 `assistant_memory` / `session_query` / `find` 之间选错；MCP 桥仍挂全量，只是不可见 | 候选；先量 |
-| **A2. DSH native tool** | 新增 `assistant_recall`（find/search/read/tree 四动词），内部走 OpenViking HTTP；presenter + scope | 1 个 tool schema；动词与四房间一致；可控 presenter/日志/权限 | 要自己维护 server API 差异；重复上游能力；需要测试 | 候选；先量 |
+| **A1. MCP allowlist** | `ov-shield` 增加 `allowToolNames`；只放 `mcp__openviking__find` / `search` / `read` / `list` / `tree` / `grep` / `glob`；写工具与 `list_watches`/`cancel_watch`/`health` 继续拒 | 上游维护工具描述/参数；与 server 版本同步；实现小 | 每轮多 7 个 tool schema（实测 8 个只读子集 ≈2.2k token；A1 7 个略低，A/B 按实际 allowlist 重测）；模型可能在 `assistant_memory` / `session_query` / `find` 之间选错；MCP 桥仍挂全量，只是不可见 | **原型 `ab/a1-allowlist` @ `3fa7b4d`；12/12 初评 91/96；待裁决** |
+| **A2. DSH native tool** | 新增 `assistant_recall`（find/search/read/tree 四动词），内部走 OpenViking HTTP；presenter + scope | 1 个 tool schema；动词与四房间一致；可控 presenter/日志/权限 | 要自己维护 server API 差异；重复上游能力；需要测试 | **原型 `ab/a2-recall` @ `629e79c`；12/12 初评 90/96；待裁决** |
 | A3. 不放 | 继续只靠自动 recall | 零新面 | “问细节”无解；指针展开不了 | 不选 |
 | A4. 全放 | 16 个工具全开 | 最“充分” | 写面风险、工具噪声、错房间 | 不选 |
+
+**A/B 结果（2026-10-21）：** A1 与 A2 各跑完 12 题（答案 `.tmp/ab-a1-q*.json` / `.tmp/ab-a2-q*.json`）；agent 初评 A1 91/96、A2 90/96，差值不显著。首答中位 A1 ~30s / A2 ~27s；工具面 A1 7 个只读 MCP schema vs A2 1 个。两侧共同短板：Q7（刷新细节）与 Q10（commit 语义）；A2 的 `assistant_recall` 是否真被调用仍要从会话日志补证。**人抽查 ≥3（Q1 正例/Q4 负例/Q10 边界）与负例口径（1/3/4/11）未做，A/B 尚无裁决。** 完整评分与观察见 [A/B note](../research/tech-exploration/261021-recall-ab.md) §6。
 
 **建议先做 A1/A2 的 A/B，不先实现。** **A/B 是原型，不是生产实现**：A1 在一次性分支/工作树里给 `ov-shield` 加临时 allowlist（或等价临时 patch），A2 用一次性分支/临时工具；产物按 [requirements-probes](../methods/requirements-probes.md) 的原型纪律保留（分支/提交指针），**不进发布物、不合并**。A/B 跑完再决定是否实施。
 
