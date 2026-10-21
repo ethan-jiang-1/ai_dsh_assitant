@@ -11,6 +11,7 @@ import { join } from 'node:path'
 import { describe, expect, it, afterEach } from 'vitest'
 import {
   checkCloudCapture,
+  commitProbe,
   mcpInstructions,
   parseArgs,
   pluginVersion,
@@ -101,6 +102,35 @@ describe('checkCloudCapture', () => {
   })
 })
 
+describe('commitProbe', () => {
+  it('creates a sentinel, commits it and polls the task to completed', async () => {
+    const calls = []
+    const fetchImpl = async (url, init) => {
+      calls.push({ url, body: init?.body === undefined ? undefined : JSON.parse(init.body) })
+      if (url.endsWith('/api/v1/sessions')) return { ok: true, status: 200, text: async () => '{"status":"ok"}' }
+      if (url.endsWith('/messages')) return { ok: true, status: 200, text: async () => '{"status":"ok"}' }
+      if (url.endsWith('/commit')) return { ok: true, status: 200, text: async () => '{"status":"ok"}' }
+      return { ok: true, status: 200, text: async () => JSON.stringify({ result: [{ task_id: 't1', task_type: 'session_commit', resource_id: 'sentinel-1', status: 'completed' }] }) }
+    }
+    const result = await commitProbe('http://127.0.0.1:1933', fetchImpl, 'sentinel-1')
+    expect(result.status).toBe('ok')
+    expect(result.detail).toContain('sentinel-1')
+    expect(calls[0].body.session_id).toBe('sentinel-1')
+    expect(calls[2].body.keep_recent_count).toBe(0)
+    expect(calls.at(-1).url).toContain('/api/v1/tasks')
+  })
+
+  it('fails when the commit request itself fails', async () => {
+    const fetchImpl = async (url) => {
+      if (url.endsWith('/commit')) return { ok: false, status: 500, text: async () => 'boom' }
+      return { ok: true, status: 200, text: async () => '{"status":"ok"}' }
+    }
+    const result = await commitProbe('http://127.0.0.1:1933', fetchImpl, 'sentinel-2')
+    expect(result.status).toBe('fail')
+    expect(result.detail).toContain('commit HTTP 500')
+  })
+})
+
 describe('mcpInstructions', () => {
   const sse = body => ({ ok: true, status: 200, text: async () => `event: message\ndata: ${JSON.stringify(body)}\n\n` })
 
@@ -138,11 +168,12 @@ describe('argument and profile helpers', () => {
     const defaults = parseArgs([])
     expect(defaults.baseUrl).toBe('http://127.0.0.1:1933')
     expect(defaults.profile).toBe('web')
-    const custom = parseArgs(['--base-url', 'http://127.0.0.1:9/', '--profile', 'try-assistant', '--json', '--no-upstream'])
+    const custom = parseArgs(['--base-url', 'http://127.0.0.1:9/', '--profile', 'try-assistant', '--json', '--no-upstream', '--write'])
     expect(custom.baseUrl).toBe('http://127.0.0.1:9')
     expect(custom.profile).toBe('try-assistant')
     expect(custom.json).toBe(true)
     expect(custom.noUpstream).toBe(true)
+    expect(custom.write).toBe(true)
     expect(() => parseArgs(['--unknown'])).toThrow('unknown argument')
   })
 

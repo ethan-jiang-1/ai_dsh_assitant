@@ -9,9 +9,10 @@
  * optional layer is `off` (exit 2), a broken one is `fail` (exit 1), and a healthy one is 0.
  * No key is ever printed; only "configured / missing" is reported.
  *
- * The write probe (commit) is deliberately not in v0: it writes data and needs a sentinel
- * session, so it is listed as SKIP. The MCP `initialize.instructions` check is a read-only
- * handshake and runs whenever the server is reachable.
+ * The commit write probe is opt-in via `--write`: it creates a sentinel session and commits
+ * it, which writes a memory. Without the flag it is SKIP, so the default run stays read-only.
+ * The MCP `initialize.instructions` check is a read-only handshake and runs whenever the
+ * server is reachable.
  *
  * @module dsh-smart-assistant/ov-doctor
  */
@@ -26,7 +27,7 @@ export const TARGET_SERVER = '0.5.1.1'
 const USAGE = `ov-doctor — read-only checks for the optional OpenViking layer
 
 Usage:
-  ov-doctor [--base-url URL] [--config PATH] [--dsh-home DIR] [--profile NAME] [--json] [--no-upstream]
+  ov-doctor [--base-url URL] [--config PATH] [--dsh-home DIR] [--profile NAME] [--json] [--no-upstream] [--write]
 
 Defaults:
   --base-url   $OPENVIKING_URL or http://127.0.0.1:1933
@@ -35,6 +36,7 @@ Defaults:
   --profile    web
 
 Exit codes: 0 healthy, 1 broken, 2 layer absent / config unreadable (degraded).
+--write runs the commit probe (creates a sentinel session and writes a memory).
 `
 
 const LABEL = { ok: 'ok', warn: 'WARN', fail: 'FAIL', off: 'OFF', skip: 'SKIP' }
@@ -49,12 +51,14 @@ export function parseArgs(argv) {
     json: false,
     help: false,
     noUpstream: false,
+    write: false,
   }
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i]
     if (arg === '--help' || arg === '-h') { options.help = true; continue }
     if (arg === '--json') { options.json = true; continue }
     if (arg === '--no-upstream') { options.noUpstream = true; continue }
+    if (arg === '--write') { options.write = true; continue }
     if (arg === '--base-url' || arg === '--config' || arg === '--dsh-home' || arg === '--profile') {
       const value = argv[i + 1]
       if (value === undefined || value.startsWith('--')) throw new Error(`${arg} needs a value`)
@@ -171,6 +175,50 @@ export async function mcpInstructions(baseUrl, fetchImpl = fetch, timeoutMs = 40
   return instructions === ''
     ? { status: 'ok', detail: `server=${server}; instructions empty` }
     : { status: 'warn', detail: `server=${server}; instructions=${instructions.slice(0, 160)}` }
+}
+
+/**
+ * Create a sentinel session, commit it, and poll `/api/v1/tasks` until the session_commit
+ * task reaches a terminal state. Writes one memory on success; the caller must pass
+ * `--write`. The sentinel session is intentionally left in place (the API has no delete);
+ * the unique id is reported so a human can clean it up.
+ */
+export async function commitProbe(baseUrl, fetchImpl = fetch, sessionId = `ov-doctor-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`) {
+  const base = baseUrl.replace(/\/+$/u, '')
+  const created = await fetchJson(fetchImpl, `${base}/api/v1/sessions`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ session_id: sessionId }),
+  })
+  if (created.status === 0) return { status: 'fail', detail: `cannot create sentinel session (${created.text})` }
+  if (!created.ok) return { status: 'fail', detail: `create sentinel session HTTP ${created.status}` }
+  const message = await fetchJson(fetchImpl, `${base}/api/v1/sessions/${encodeURIComponent(sessionId)}/messages`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ role: 'user', content: 'ov-doctor sentinel; ignore this memory.' }),
+  })
+  if (!message.ok) return { status: 'fail', detail: `sentinel message HTTP ${message.status}` }
+  const commit = await fetchJson(fetchImpl, `${base}/api/v1/sessions/${encodeURIComponent(sessionId)}/commit`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ keep_recent_count: 0 }),
+  }, 30_000)
+  if (commit.status === 0) return { status: 'fail', detail: `commit request failed (${commit.text})` }
+  if (!commit.ok) return { status: 'fail', detail: `commit HTTP ${commit.status}; ${commit.text.slice(0, 200)}` }
+  const deadline = Date.now() + 60_000
+  while (Date.now() < deadline) {
+    const tasks = await fetchJson(fetchImpl, `${base}/api/v1/tasks?limit=50`)
+    const rows = Array.isArray(tasks.body?.result) ? tasks.body.result : []
+    const task = rows.find(row => row?.resource_id === sessionId && row?.task_type === 'session_commit')
+    if (task?.status === 'completed') {
+      return { status: 'ok', detail: `sentinel ${sessionId} committed (task ${String(task.task_id)}); session left for manual cleanup` }
+    }
+    if (task?.status === 'failed' || task?.status === 'cancelled') {
+      return { status: 'fail', detail: `commit task ${String(task.task_id)} ${String(task.status)}; sentinel ${sessionId}` }
+    }
+    await new Promise(resolve => setTimeout(resolve, 1_000))
+  }
+  return { status: 'fail', detail: `commit task timed out after 60s; sentinel ${sessionId}` }
 }
 
 /** What the profile actually contains; absent optional layer is information, not a crash. */
@@ -330,7 +378,16 @@ export async function runDoctor(options, fetchImpl = fetch) {
       ? `doctor reads ${options.config}; ensure the running server was started with the same file`
       : `OPENVIKING_CONF=${envConfig}; doctor reads ${resolve(options.config)}`)
 
-  add('5', 'commit probe', 'skip', 'skipped in v0: a write probe needs a sentinel session and --write')
+  if (health.status !== 0 && health.ok && health.body?.healthy === true) {
+    if (options.write) {
+      const probe = await commitProbe(options.baseUrl, fetchImpl)
+      add('5', 'commit probe', probe.status, probe.detail)
+    } else {
+      add('5', 'commit probe', 'skip', 'read-only run; pass --write to create a sentinel session and commit it')
+    }
+  } else {
+    add('5', 'commit probe', 'skip', 'skipped: server is not reachable')
+  }
   const fails = checks.filter(check => check.status === 'fail')
   const off = checks.filter(check => check.status === 'off')
   const exitCode = fails.length > 0 ? 1 : off.length > 0 ? 2 : 0

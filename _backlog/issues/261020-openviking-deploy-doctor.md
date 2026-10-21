@@ -221,7 +221,7 @@ doctor 对账 1↔2↔运行中 server（check 10）与 3/4；Viki 的 baseUrl �
 
 实施后必须真跑过并记录：
 
-- [ ] `node packages/dsh-smart-assistant/bin/ov-doctor.mjs`（或安装 profile 内的 bin）在健康实例 exit 0；在“server 不可达”“缺 key”“云端无 ack”“存储指向 `.tmp`”四种坏配置上分别 exit 1，且**命中的是各自的 check id 与文案**（不能只断言 exit code——无关检查失败也会 exit 1）。OV 缺席/配置读不到 exit 2，不阻断 DSH。**v0 覆盖 1/2/3/4/6/7/8/9/10；check 5 与 MCP instructions 子项 SKIP，S2b 补后十项全绿。**
+- [ ] `node packages/dsh-smart-assistant/bin/ov-doctor.mjs`（或安装 profile 内的 bin）在健康实例 exit 0；在“server 不可达”“缺 key”“云端无 ack”“存储指向 `.tmp`”四种坏配置上分别 exit 1，且**命中的是各自的 check id 与文案**（不能只断言 exit code——无关检查失败也会 exit 1）。OV 缺席/配置读不到 exit 2，不阻断 DSH。**2026-10-21：MCP instructions（6m）已落并 live 验证；check 5 commit 探针已实现为 `--write` 可选（默认 SKIP，测试覆盖；未对 live 跑 `--write`，避免写 sentinel 记忆）。**
 - [ ] **config 同源**：doctor 打印的 config 路径 = 运行中 server 的 `--config`；把派生副本与上游 `~/.openviking/ov.conf` 的 storage 字段做成差异，doctor 在 check 10 报出差异；读错配置时不得报整体绿。
 - [ ] `ov-doctor --write` 能完成一次 commit + search 的往返（轮询 `/tasks` 到终态，超时即 fail），并在结束后清理 sentinel（或明确留下不清理的理由）。**v0 未实现，S2b 补。**
 - [ ] **当前云端暴露已收口**：active profile 的 OV config 里 `captureToolResults: false`，或 `captureFilters` 非空且 doctor check 8 绿；规则为空时 check 8 必须红。假 key（形如 `sk-test-...`）进一条 capture 测试：规则命中并输出脱敏后的示例；若做端到端，用本地 mock server 断言收到的 payload 无原文；doctor 自测显示“已脱敏”，且日志/审计里没有原文。**没有能力加载过滤器时记 blocked，不记 pass。**
@@ -313,6 +313,13 @@ doctor 对账 1↔2↔运行中 server（check 10）与 3/4；Viki 的 baseUrl �
 - 启动一次：`dsh --profile web --port 0 --no-open` 输出 boot URL（token 一次性，不记入卡）；随后停掉。
 - 包内 doctor：`profiles/web/node_modules/dsh-smart-assistant/bin/ov-doctor.mjs --profile web ...` → `OFF 6 composition`、`SKIP 5`、`summary: exit 2`。
 - **边界**：这是 agent 在干净 home 的 dry run，不是“另一个人”走查；真人走查仍待做。
+
+### 2026-10-21 · S2b 3（MCP instructions + 云端 ack 绿）
+
+- `bin/ov-doctor.mjs` 新增 `6m`：POST `/mcp` `initialize`，读 `result.instructions`；空 → `ok`，有文本 → `warn` 并带 `serverInfo.name`，不可达 → `warn`。单测 mock SSE 覆盖三种形状（17 tests 全过）。
+- `--write` 新增可选 commit 探针：建 sentinel session → 写一条 sentinel → commit → 轮询 `/api/v1/tasks` 到 completed/failed，60s 超时 fail；默认不加 `--write` 仍是只读 SKIP。未对 live 跑 `--write`（会写一条记忆），只做 mock 测试。
+- live（0.5.1.1）`OPENVIKING_CLOUD_ACK=1 node bin/ov-doctor.mjs --profile dev ... --no-upstream`：`exit 0; 0 fail, 1 warn, 2 skip`；`6m server=openviking; instructions empty`；`8 cloud/capture: ack=true; captureToolResults=false`；唯一 warn 是 check 10 的 `OPENVIKING_CONF` 未显式设（同源提示）。
+- 手册与故障表同步：doctor 覆盖 MCP instructions；`--write` 的写记忆边界写明。
 
 ## 关闭条件
 
