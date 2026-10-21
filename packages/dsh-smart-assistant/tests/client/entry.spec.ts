@@ -86,6 +86,7 @@ describe('client-module registration', () => {
     // (principal decision, 2026-10-11): no desk room tab, no desk view, no header chip, no
     // summary dock — the main-panel ledger desk is the only "桌面".
     expect(calls).toEqual([
+      'conversation.view', 'conversation.view',
       'sidebar.panellist', 'main',
       'sidebar.brand.mark', 'sidebar.brand.name',
       'sidebar.right.pane.tab', 'sidebar.right.pane.tab.title',
@@ -97,6 +98,7 @@ describe('client-module registration', () => {
     // Each room registers its tab type, its keyed body, and its keyed tab title (the glyph chip);
     // the first-mile strip and the approval banner close the set.
     expect(registered).toEqual([
+      'assistant-desk', 'assistant-tasks',
       'dsh-smart-assistant-dashboard', 'dsh-smart-assistant-dashboard',
       'sidebar.brand.mark', 'sidebar.brand.name',
       'tab:knowledgeRoom', 'dsh-smart-assistant-knowledge', 'dsh-smart-assistant-knowledge',
@@ -320,11 +322,13 @@ describe('desk primary view', () => {
     expect(selected).toEqual(['dsh-smart-assistant-dashboard'])
   })
 
-  it('registers no conversation.view: the session desk view is retired', () => {
+  it('registers desk and automation tasks as workbench view tabs', () => {
     const { ctx, registered } = recordingContext()
     materialize().apply(ctx)
 
-    const views = registered.filter(entry => entry.name === 'conversation.view')
-    expect(views).toHaveLength(0)
+    expect(registered
+      .filter(entry => entry.name === 'conversation.view')
+      .map(entry => entry.declaration['id']))
+      .toEqual(['assistant-desk', 'assistant-tasks'])
   })
 })
