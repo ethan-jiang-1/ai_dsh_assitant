@@ -323,6 +323,22 @@ doctor 对账 1↔2↔运行中 server（check 10）与 3/4；Viki 的 baseUrl �
 - 同轮修掉 check 7 的假绿：config 校验失败（如 storage 在 `.tmp`）时不再报 `ok persistent root`，改为 `SKIP not judged`；temp server 复跑确认 `FAIL 2 config` + `SKIP 7`，check 5 仍 `ok`。
 - 手册与故障表同步：doctor 覆盖 MCP instructions；`--write` 的写记忆边界写明。
 
+## 另一人走查记录（待填）
+
+> 这张表是 S1 唯一不能由 agent 代替的验收：在**另一台机器/另一个人的 home**按《安装手册》走一遍，
+> 把卡点写回来。agent 的 `.tmp/install-walk` dry run 只证明路径可执行，不替代这一行。
+
+| 项 | 记录 |
+|---|---|
+| 走查人 / 日期 | |
+| 机器 / OS / Node / dsh 版本 | |
+| `dsh plugin add` 插件成功 | ☐ |
+| `agent-preset-registry.default: assistant` + `--dump-config` 见 `preset-assistant` | ☐ |
+| 不装 OV：插件正常 / Viki 503 / doctor exit 2 | ☐ |
+| 装 OV：服务 + 插件 + 配置 + `OPENVIKING_CLOUD_ACK`/capture 口径 → doctor exit 0 | ☐ |
+| Viki(调试) 连接态、搜索、诊断可见 | ☐ |
+| 卡点与修法（逐条） | |
+
 ## 关闭条件
 
 - doctor + README + 云端例外 + 配置对账 + **Viki baseUrl 默认**落地；验收全绿；用户 review 通过。
