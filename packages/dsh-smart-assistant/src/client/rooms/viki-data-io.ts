@@ -108,11 +108,12 @@ export async function loadVikiBody(uri: string): Promise<{ ok: true, body: strin
 export type { VikiEntry }
 
 /** Read the lazy diagnostics view; a failure is a panel note, not a list error. */
-export async function loadVikiDiagnostics(): Promise<{ ok: true, diagnostics: VikiDiagnostics } | { ok: false, reason: string }> {
+export async function loadVikiDiagnostics(sessionId?: string): Promise<{ ok: true, diagnostics: VikiDiagnostics } | { ok: false, reason: string }> {
   if (vikiWeb === undefined) return { ok: false, reason: 'the web face is not available' }
   try {
     const url = new URL('api/assistant/viki', vikiWeb.baseURI)
     url.searchParams.set('view', 'diagnostics')
+    if (sessionId !== undefined) url.searchParams.set('session', sessionId)
     const response = await vikiWeb.fetch(url, { credentials: 'same-origin', cache: 'no-store', redirect: 'error' })
     const body = await response.json().catch(() => ({})) as { message?: unknown, error?: unknown } & Partial<VikiDiagnostics>
     if (!response.ok) {

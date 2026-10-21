@@ -64,8 +64,9 @@ export function VikiIcon(props: { size?: number }): ReturnType<typeof createElem
 }
 
 /** Render the Viki tab. */
-export function VikiPanel(): ReturnType<typeof createElement> {
+export function VikiPanel(props: { sessionId?: string } = {}): ReturnType<typeof createElement> {
   const { useEffect, useState } = reactSurface()
+  const sessionId = props.sessionId
   const view = useVikiView()
   const [drawer, setDrawer] = useState<{ title: string, body: string } | undefined>(undefined)
   const [note, setNote] = useState<string | undefined>(undefined)
@@ -82,7 +83,7 @@ export function VikiPanel(): ReturnType<typeof createElement> {
   const [searching, setSearching] = useState(false)
   const loadDiagnostics = (): void => {
     setDiagnosticsNote(undefined)
-    void loadVikiDiagnostics().then(result => {
+    void loadVikiDiagnostics(sessionId).then(result => {
       if (result.ok) setDiagnostics(result.diagnostics)
       else setDiagnosticsNote(result.reason)
     })
@@ -240,6 +241,7 @@ export function VikiPanel(): ReturnType<typeof createElement> {
           kv('任务', tasks.length === 0 ? '0' : `${String(failed)} failed · ${String(running)} running`),
           kv('pending', String(snapshot.pending ?? '—')),
           kv('skills', String(snapshot.skills?.total ?? '—')),
+          kv('用量', snapshot.tokens === undefined ? '—' : `~${snapshot.tokens.total.toLocaleString()} · ${snapshot.tokens.basis === 'usage' ? 'usage' : '估算'}`),
           kv('problems', problems, snapshot.problems.length > 0 ? 'warn' : 'normal'),
           kv('config', snapshot.config?.path ?? '—', 'mono'),
           kv('provider', [snapshot.config?.provider, snapshot.config?.model].filter(value => value !== undefined && value !== '').join(' / ') || '—'),

@@ -153,14 +153,42 @@ export function apply(ctx: Context, config: Config): void {
   }
   const apiKey = config.apiKey?.trim() || process.env.OPENVIKING_API_KEY?.trim() || undefined
   const client = new VikiClient({ baseUrl, space, ...(apiKey === undefined ? {} : { apiKey }), ...(peer === undefined ? {} : { peer }) })
+  // Optional host services: the token row is only shown when both are present and the route
+  // supplied a session id. A profile without token-meter must keep the Viki row loadable.
+  let sessions: { get(id: string): unknown } | undefined
+  let tokenMeter: { measure(session: unknown): { totalTokens: number, logRevision: number, baseline?: { kind?: unknown } } } | undefined
+  try {
+    sessions = ctx.get('sessions') as typeof sessions
+    tokenMeter = ctx.get('tokenMeter') as typeof tokenMeter
+  } catch { /* optional services */ }
   const configPath = process.env.OPENVIKING_CONF?.trim() || join(homedir(), '.openviking', 'ov.conf')
   const pendingDir = process.env.OPENVIKING_PENDING_DIR?.trim() || join(homedir(), '.openviking', 'pending')
   const reader: VikiReader = {
     list: () => client.list(),
     read: uri => client.read(uri),
     search: async query => searchHits(await client.search(query)),
-    diagnostics: async () => {
+    diagnostics: async (sessionId) => {
       const problems: string[] = []
+      let tokens: VikiDiagnostics['tokens']
+      if (sessionId !== undefined && sessions !== undefined && tokenMeter !== undefined) {
+        try {
+          const session = sessions.get(sessionId)
+          if (session !== undefined) {
+            const measured = tokenMeter.measure(session)
+            const total = Number(measured.totalTokens)
+            const logRevision = Number(measured.logRevision)
+            if (Number.isFinite(total) && Number.isFinite(logRevision)) {
+              tokens = {
+                total,
+                basis: measured.baseline?.kind === 'usage' ? 'usage' : 'estimated',
+                logRevision,
+              }
+            }
+          }
+        } catch (error) {
+          problems.push(`tokens: ${messageOf(error)}`)
+        }
+      }
       const health = await client.health().catch(error => { problems.push(`health: ${messageOf(error)}`); return undefined })
       const list = await client.list().catch(error => { problems.push(`list: ${messageOf(error)}`); return undefined })
       const tasks = await client.tasks().catch(error => { problems.push(`tasks: ${messageOf(error)}`); return undefined })
@@ -177,6 +205,7 @@ export function apply(ctx: Context, config: Config): void {
         ...(stats === undefined ? {} : { stats }),
         ...(taskRows === undefined ? {} : { tasks: taskRows }),
         ...(skillRows === undefined ? {} : { skills: skillRows }),
+        ...(tokens === undefined ? {} : { tokens }),
         pending: pendingCount(pendingDir),
         config: configSummary(configPath),
         problems,

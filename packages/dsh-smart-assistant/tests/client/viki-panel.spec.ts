@@ -18,7 +18,7 @@ interface ClientExports {
   bindVikiEnv: (ctx: unknown) => void
   loadViki: () => Promise<unknown>
   loadVikiBody: (uri: string) => Promise<{ ok: true, body: string } | { ok: false, reason: string }>
-  loadVikiDiagnostics: () => Promise<{ ok: true, diagnostics: any } | { ok: false, reason: string }>
+  loadVikiDiagnostics: (sessionId?: string) => Promise<{ ok: true, diagnostics: any } | { ok: false, reason: string }>
   loadVikiSearch: (query: string) => Promise<{ ok: true, search: any } | { ok: false, reason: string }>
   roomTabs: readonly { kind: string, title: string, tabTitle?: string, description: string }[]
   resetVikiView: () => void
@@ -136,6 +136,21 @@ describe('Viki tab', () => {
     expect(result.ok).toBe(true)
     if (result.ok) expect(result.search.entries[0]?.summary).toBe('搜索结果')
     expect(calls.some(call => call.includes('?q='))).toBe(true)
+  })
+
+  it('passes the current session to the diagnostics route', async () => {
+    const calls: string[] = []
+    const exports = materialize()
+    exports.bindVikiEnv(fakeCtx(calls, url => url.searchParams.get('view') === 'diagnostics'
+      ? json({
+          connected: true, generatedAt: '2026-10-21T00:00:00.000Z', vikiUrl: 'http://127.0.0.1:1933',
+          tokens: { total: 1234, basis: 'usage', logRevision: 7 }, problems: [],
+        })
+      : json(list)))
+    const result = await exports.loadVikiDiagnostics('session-1')
+    expect(result.ok).toBe(true)
+    if (result.ok) expect(result.diagnostics.tokens?.total).toBe(1234)
+    expect(calls.some(call => call.includes('session=session-1'))).toBe(true)
   })
 
   it('falls back to the document web face when production injects no web service', async () => {

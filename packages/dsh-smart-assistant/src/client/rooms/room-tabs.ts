@@ -137,8 +137,9 @@ export function MemoryTabBody(props: TabBodyProps): ReturnType<typeof createElem
 export function SkillsTabBody(props: TabBodyProps): ReturnType<typeof createElement> {
   return tabBody(props, SkillsPanel)
 }
-export function VikiTabBody(_props: TabBodyProps): ReturnType<typeof createElement> {
-  return roomScroller(createElement(VikiPanel as unknown as import('react').FunctionComponent<Record<string, never>>, {}))
+export function VikiTabBody(props: TabBodyProps): ReturnType<typeof createElement> {
+  const sessionId = props.sessionId ?? props.useTabInfo?.()?.tab?.navigation?.params?.sessionId
+  return roomScroller(createElement(VikiPanel as unknown as import('react').FunctionComponent<{ sessionId?: string }>, { ...(sessionId === undefined ? {} : { sessionId }) }))
 }
 
 /**

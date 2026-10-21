@@ -64,6 +64,7 @@ export interface VikiDiagnostics {
   readonly tasks?: readonly VikiTask[]
   readonly skills?: { readonly total: number, readonly roots: readonly string[] }
   readonly pending?: number
+  readonly tokens?: { readonly total: number, readonly basis: 'usage' | 'estimated', readonly logRevision: number }
   readonly config?: { readonly path?: string, readonly provider?: string, readonly model?: string, readonly storage?: string }
   readonly problems: readonly string[]
 }

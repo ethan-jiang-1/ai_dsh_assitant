@@ -20,8 +20,8 @@ import { VikiUnavailable } from './client.ts'
 export interface VikiReader {
   list(): Promise<VikiList>
   read(uri: string): Promise<string>
-  /** Optional read-only diagnostics; absent means the route has no diagnostics view. */
-  diagnostics?(): Promise<VikiDiagnostics>
+  /** Optional read-only diagnostics; `sessionId` enables the current-session token row. */
+  diagnostics?(sessionId?: string): Promise<VikiDiagnostics>
   /** Optional stateless search; the route filters every hit through its URI whitelist. */
   search?(query: string): Promise<readonly VikiSearchHit[]>
 }
@@ -160,7 +160,9 @@ export function createVikiRoute(reader: VikiReader, options: VikiRouteOptions, a
         if (view !== null) {
           if (view !== 'diagnostics') return failure(400, 'unknown-view')
           if (reader.diagnostics === undefined) return failure(404, 'diagnostics-unavailable')
-          return emit(await reader.diagnostics())
+          const session = url.searchParams.get('session')
+          if (session !== null && session.length > 200) return failure(400, 'session-too-long')
+          return emit(await reader.diagnostics(session ?? undefined))
         }
         const query = url.searchParams.get('q')
         if (query !== null) {

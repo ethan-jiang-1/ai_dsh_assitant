@@ -276,6 +276,8 @@ describe('assistant-viki row wiring', () => {
     contexts.push(ctx)
     let route: any
     ctx.provide('connection', { fetch: { register: (candidate: any) => { route = candidate; return () => {} } } })
+    ctx.provide('sessions', { get: (id: string) => id === 'session-1' ? { id } : undefined })
+    ctx.provide('tokenMeter', { measure: () => ({ totalTokens: 1234, logRevision: 7, baseline: { kind: 'usage' } }) })
     const dataDir = mkdtempSync(join(tmpdir(), 'assistant-viki-row-'))
     dirs.push(dataDir)
     await ctx.plugin(AssistantMemory, { dataDir })
@@ -309,6 +311,14 @@ describe('assistant-viki row wiring', () => {
     const restored = await route.fetch(post({ action: 'restore', commit: 'commit-1' }))
     expect(restored.status).toBe(200)
     expect(await restored.json()).toEqual({ ok: true, commit: 'commit-1' })
+  })
+
+  it('includes the current-session token measurement when host services are present', async () => {
+    const { route } = await harness()
+    const response = await route.fetch(new Request('http://localhost/api/assistant/viki?view=diagnostics&session=session-1'))
+    expect(response.status).toBe(200)
+    const body = await response.json() as any
+    expect(body.tokens).toEqual({ total: 1234, basis: 'usage', logRevision: 7 })
   })
 
   it('serves stateless search and filters hits through the URI whitelist', async () => {
