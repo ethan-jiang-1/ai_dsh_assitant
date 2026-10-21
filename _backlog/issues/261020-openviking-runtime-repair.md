@@ -51,8 +51,8 @@ opened: 2026-10-20
 - **真机 Viki 回归**：`Viki(调试)` tab + 搜索「合同」返回 **6 条**（0.5.1.1 修复 #6331 的检索路径）；`/health` = 0.5.1.1。v3 config 在**新会话**生效（既有会话保持旧 generation）。
 - **两次 commit（副本，不污染 live）**：副本 `1934` 的 `dsh-sentinel-20261021`：A commit **completed**（25.9s）→ `find` 命中 `viking://user/default/peers/assistant/memories/events/2026/10/21/合同尾款到账确认.md`；B commit **completed** → `find` 命中 `.../供应商发票付款计划确认.md`；`/stats/memories` 6 → 9。证明 0.5.1.1 的 #6331 修复；live `1933` 仍 6。
 - **回滚（副本）**：把 `workspace-0.4.22-backup` 完整恢复到 `.tmp/ov-rollback/workspace`，用 0.4.22 二进制起 `1935`：`/health` 0.4.22、`/stats/memories` 6、`content/read` 正常；停掉 1935 后 live `1933` 仍 0.5.1.1/6 条。回滚顺序 = 恢复完整 storage 备份 → 换回 0.4.22，已执行。
-- **真机 recall + live commit（2026-10-21）**：修掉 `loop-probe` 被首屏“预览版说明”挡住的问题后，真实会话 `session-9a7fe14d...` 的日志出现 `<openviking-context>`，内含 `<memory ... detail="full">` 的「合同款项状态提醒」事件（不是只有 overview）；模型据此回答“没有到账确认/无凭证”，并指出“尾款 vs 第二期款”的歧义。随后 live `session_commit` **completed**（`6b9ba499-…`，102s，`memory_write:1`/`memory_edit:2`，stats 6→8），`/tasks` 无 failed。
-- **仍未完成**：peer 实际行为/预算/召回量测；doctor 读运行中同源 config + cloud ack（归部署卡）；用户 review。
+- **真机 recall + live commit（2026-10-21）**：修掉 `loop-probe` 被首屏“预览版说明”挡住的问题后，真实会话 `session-9a7fe14d...` 的日志出现 `<openviking-context>`，内含 `<memory ... detail="full">` 的「合同款项状态提醒」事件（不是只有 overview）；模型据此回答“没有到账确认/无凭证”，并指出“尾款 vs 第二期款”的歧义。随后 live `session_commit` **completed**（`6b9ba499-…`，102s，`memory_write:1`/`memory_edit:2`，stats 6→8），`/tasks` 无 failed。**新记忆在 `peers/assistant`（Viki 列表显示“来自 assistant”），v3 `peerId` 对新写入生效；旧 6 条仍在 github peer，未回填。**
+- **仍未完成**：预算/召回量测；doctor 读运行中同源 config + cloud ack（归部署卡）；用户 review；旧 peer 回填（新写入已固定）。
 
 ## 方案与取舍
 
@@ -163,7 +163,7 @@ opened: 2026-10-20
 
 ## 下一步
 
-**裁决已收（2026-10-21）**：H1 B / H5 0.5.1.1 / H6 先跳过团队记忆。本卡承载规格与验收，推进在 [收口卡](261021-openviking-viki-closure.md)；实施顺序 = 副本迁移 → 存储搬家 → 旋钮落点 → 真机 commit/recall → 回滚演练。**2026-10-21：0.5.1.1 副本/live、持久存储、v3 dump-config、sentinel A/B 可检索、真机 recall+commit、0.4.22 回滚副本、fresh-home 无插件 case 均已过；下一步 = peer 量测 + doctor 云端 ack + 用户 review。**
+**裁决已收（2026-10-21）**：H1 B / H5 0.5.1.1 / H6 先跳过团队记忆。本卡承载规格与验收，推进在 [收口卡](261021-openviking-viki-closure.md)；实施顺序 = 副本迁移 → 存储搬家 → 旋钮落点 → 真机 commit/recall → 回滚演练。**2026-10-21：0.5.1.1 副本/live、持久存储、v3 dump-config、sentinel A/B 可检索、真机 recall+commit/peer 新写入、0.4.22 回滚副本、fresh-home 无插件 case 均已过；下一步 = 预算/召回量测 + doctor 云端 ack + 用户 review。**
 **Agent 的**：第一轮（2026-10-20）与第二轮（2026-10-21）已回写；先副本验证再切 live，0.4.22 备份在 `workspace-0.4.22-backup`/`workspace-0.4.22-live`。
 
 ## 范围与邻居
