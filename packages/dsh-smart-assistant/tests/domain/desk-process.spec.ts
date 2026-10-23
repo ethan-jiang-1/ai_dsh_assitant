@@ -2,7 +2,7 @@
  * The desk processing path and its auto-return judge (the operating desk's processing-path
  * contract, see src/domain/desk/desk-process.ts).
  *
- * The seam is the pure client core: an explicitly bound matter + processing session + the
+ * The seam is the pure domain core consumed by the client: an explicitly bound matter + processing session + the
  * revision observed at binding time. The judge crosses the durable receipts in the projection
  * with the live session state; a settled turn and an idle session are necessary, never
  * sufficient — only the processing session's own committed or proposal-rejection receipt,

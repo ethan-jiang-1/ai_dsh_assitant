@@ -44,6 +44,7 @@ import { ApprovalDockBanner, FirstMileDock } from './chrome/first-mile'
 import { roomTabTitle, roomTabs } from './rooms/room-tabs'
 import { RememberAction } from './rooms/message-action'
 import { createElement } from './chrome/runtime'
+import { returnToConversation } from './chrome/navigation'
 import { bindVikiEnv } from './rooms/viki-data-io'
 import { bindClientRequire, clientRequire } from './chrome/runtime'
 import { ensureThemeVars } from './chrome/theme'
@@ -181,7 +182,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // (the prompts and labels live in proactive-handlers.ts).
     const { onSuggestAction, onSuggestDismiss, onWatchForget, onSuggestCollapse } = createProactiveHandlers({ arms, proactiveUi })
     const dashboardComponent = projection === undefined ? DashboardMainPanel : ProjectionPanel
-    const dashboardInject = (...args: unknown[]) => {
+    const dashboardInject = (sessionId: string | undefined, ...args: unknown[]) => {
       const actions = args.find((argument): argument is { selectMatter(id: string): void, setMode(mode: 'activity'): void } =>
         typeof argument === 'object' && argument !== null && typeof (argument as { selectMatter?: unknown }).selectMatter === 'function')
       deskViewActions = actions ?? deskViewActions
@@ -192,24 +193,21 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         ...(proactiveCatalog === undefined ? {} : { catalog: proactiveCatalog }),
         ...(proactiveUi === undefined ? {} : { proactiveUi }),
       }
-      return { hooks, refreshProjection: () => { reader?.refresh() }, onAsk: () => {
-        const sessionId = args.find((argument): argument is string => typeof argument === 'string')
-        if (sessionId !== undefined) ctx.uiConversation?.binding(sessionId).activate('chat')
-        // The service is optional in older compositions; the tab is the visible truth.
-        if (typeof document !== 'undefined') {
-          const chatTab = [...document.querySelectorAll('[role=tab]')]
-            .find(element => element.textContent?.trim() === '对话')
-          if (chatTab instanceof HTMLElement) chatTab.click()
-        }
-        ctx.layout?.selectPanel(null)
-      }, onEntrust: arms.startIntake, onProcess: arms.processMatter, onClaim: arms.claimFragment, onDiscard: arms.discardFragment, onCapture: arms.captureFromDesk, onOpenSession: (sessionId: string) => { ctx.uiWorkspace?.openSession(sessionId) }, onWake: arms.wakeMatter, onOpenTasks: () => { ctx.layout?.selectPanel('schedules') }, onSuggestAction, onSuggestDismiss, onWatchForget, onSuggestCollapse }
+      return { hooks, refreshProjection: () => { reader?.refresh() }, onAsk: () => returnToConversation(ctx, sessionId, typeof document === 'undefined' ? {} : { document }), onEntrust: arms.startIntake, onProcess: arms.processMatter, onClaim: arms.claimFragment, onDiscard: arms.discardFragment, onCapture: arms.captureFromDesk, onOpenSession: (sessionId: string) => { ctx.uiWorkspace?.openSession(sessionId) }, onWake: arms.wakeMatter, onOpenTasks: () => { ctx.layout?.selectPanel('schedules') }, onSuggestAction, onSuggestDismiss, onWatchForget, onSuggestCollapse }
     }
+    // The slot inject face is variadic and differs between `main` (no session) and
+    // `conversation.view` (session first). Resolve the session once at injection, not inside the
+    // eventual click handler; the navigation module owns what to do with it.
+    const injectDashboard = (...args: unknown[]) => dashboardInject(
+      args.find((argument): argument is string => typeof argument === 'string'),
+      ...args,
+    )
     ctx.slots.inject('main', () => {
       const registration = ctx.slots.register({
         name: 'main',
         key: 'dsh-smart-assistant-dashboard',
         ...(viewStore === undefined ? {} : { store: viewStore }),
-        inject: dashboardInject,
+        inject: injectDashboard,
       }, dashboardComponent)
       selectDashboardByDefault(ctx)
       return registration
@@ -223,7 +221,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       order: 30,
       label: () => '桌面',
       ...(workbenchViewStore === undefined ? {} : { store: workbenchViewStore }),
-      inject: dashboardInject,
+      inject: injectDashboard,
     }, dashboardComponent))
 
     ctx.slots.inject('sidebar.brand.mark', () =>

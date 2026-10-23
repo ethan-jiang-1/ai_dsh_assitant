@@ -155,6 +155,7 @@ seam 的成色读数是**第二个真实 Provider 出现而 Consumer 一行不�
 | `src/host/web-branding.ts` | Web 壳品牌注入行：页标题 + 图标（纯函数；经 `webserver/index-inject` 事件进浏览器，皮肤面） | dsh-host-webserver（仅类型） |
 | `src/host/operating-ledger/index.ts` | 服务实现：`ctx.assistantOperatingLedger` 单 writer 认领（`writer.lock` 惰性认领 + 死进程接管）、`ledger.json` 原子持久、读路径恒重读（契约 = [`operating.md`](operating.md) §一） | domain/operating + dsh-home-paths |
 | `src/host/desk-projection/`（`index.ts` 入口 + `download.ts` 路由核） | 固定只读投影下载行：GET route 优先活渲染账本、回退固定夹具、错误态分明（契约 = [`operating.md`](operating.md) §三） | domain/operating + dsh-client-connection（仅类型） |
+| `src/client/chrome/navigation.ts` | 浏览器导航 seam：`returnToConversation` + `revealChatTab`（平台会话激活、DOM tab fallback、主面板复位） | 无（平台 face 由调用方传入） |
 | `src/client/`（多模块，`index.ts` 为主注册面） | 浏览器面：座位与命令注册（精确清单 = 生成物 [`package-catalog.md`](package-catalog.md)「客户端座位面」节；皮肤面，不进模型上下文）+ 经营桌面投影读回链（`projection/` 下的 reader / operating-projection / lifecycle / panel，契约 = [`operating.md`](operating.md) §三） | react + ui-renderer/ui-sidebar（仅类型） |
 |  `src/dev/preset-runner/index.ts` | **preset 挂载的 one-shot 驱动**（dev 验证自动化：`agentPresets.resolve`→`mount` 进 agent setup，会话头记录 `agentPreset`；经 `dev/probes/session/preset-runner.patch.yml` 替换 headless-runner 行启用） | dsh-agent / dsh-agent-preset-registry / dsh-llm / dsh-session / dsh-brand |
 | `src/agent/`（`tool-memory`、`tool-recall`、`tool-research`、`tool-operating`、`tool-knowledge`、`learn`、`memory-digest`、`home-preamble`、`operating-brief`、`ov-shield`） | agent 面入口：薄适配器（校验跨字段规则 → 调服务 → 返回规范值 + presenter）与常驻段落 | cordis/tools |
