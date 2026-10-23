@@ -8,9 +8,10 @@ import { humanTime, localDateKey, localDateLabel, localTimeLabel } from '../chro
 import { deriveProactiveFace, PROACTIVE_SUGGESTIONS, type ProactiveUiState } from '../proactive/proactive-face'
 import type { ProactiveCatalogState } from '../proactive/proactive-face-source'
 import type { ProjectionDownload } from './projection-reader'
-import type { DeskCaptureReceipt, ProjectionView } from './projection-view'
+import type { DeskSurface } from './desk-surface'
+import type { ProjectionView, ProjectionViewBoundActions } from './projection-view'
 
-/** Structural mirror of the pinned PropsHooks snapshot selector (no component subscriptions). */
+/** The framework-bound hooks, the view store, and the entry-owned lane surface. */
 export interface ProjectionPanelProps {
   useProjection<S>(select: (value: ProjectionDownload) => S): S
   useStore<S>(select: (view: ProjectionView) => S): S
@@ -20,34 +21,10 @@ export interface ProjectionPanelProps {
   useCatalog?<S>(select: (state: ProactiveCatalogState) => S): S
   /** Client-local proactive UI state: dismissed suggestions + remembered acceptances. */
   useProactiveUi?<S>(select: (state: ProactiveUiState) => S): S
-  /** Hand one suggestion action to the desk's delivery lane (「先试跑一次」/「替我盯上」). */
-  onSuggestAction?(kind: 'trial' | 'watch', id: string): void
-  /** Dismiss one suggestion for good. */
-  onSuggestDismiss?(id: string): void
-  /** Forget a failed acceptance whose watch never materialized (the Q5 row's 忽略, 261019). */
-  onWatchForget?(title: string): void
-  /** Collapse or expand the suggestion block (261019; client-local, persisted by the entry). */
-  onSuggestCollapse?(collapsed: boolean): void
-  actions: { selectMatter(id: string): void; selectFragment(id: string): void; showList(): void; rememberListPosition(position: number): void; setFilter(filter: ProjectionView['filter']): void; setMode(mode: ProjectionView['mode']): void; revealMoreActivity(): void; setCaptureDraft(text: string): void; setCaptureReceipt(receipt: DeskCaptureReceipt | null): void }
-  refreshProjection(): void
-  onAsk(): void
-  /** The 「＋ 交代新事项」 entry. Falls back to `onAsk` where no intake path is wired (tests,
-   *  environments without the desk path store) so the button never goes dead. */
-  onEntrust?(): void
-  /** Deliver the principal's own words from the desk's capture row (desk-side capture, 2026-10-18), staying here. */
-  onCapture(text: string): void
-  /** Go to one conversation — the capture row's pointer when the assistant is waiting on the principal. */
-  onOpenSession(sessionId: string): void
-  /** Open the platform's automation task page (row 3's duplicate deep link — never deletes here). */
-  onOpenTasks?(): void
-  /** Open the explicit processing path for one matter (bound to the entry's processMatter). */
-  onProcess(matterId: string): void
-  /** Open the explicit claim path for one unclaimed fragment (bound to the entry's claimFragment). */
-  onClaim(fragmentId: string): void
-  /** Record that one unclaimed fragment is noise (bound to the entry's discardFragment). */
-  onDiscard(fragmentId: string): void
-  /** Open the explicit wake path for one settled matter (bound to the entry's wakeMatter). */
-  onWake(matterId: string): void
+  /** The view store's bound actions (the renderer supplies them from the declared store). */
+  actions: ProjectionViewBoundActions
+  /** Every callback the entry wires; one factory owns them so a new lane does not touch fixtures. */
+  surface: DeskSurface
 }
 const errors: Record<string, string> = {
   'authentication-required': '登录已失效，请重新登录后再读取。',
@@ -221,6 +198,7 @@ function timeParts(times: { readonly promisedDeadline?: string; readonly forecas
  * @returns The desk page element.
  */
 export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof ce> {
+  const lanes = props.surface.lanes
   const download = props.useProjection(value => value)
   const data = download.data
   const view = props.useStore(value => value)
@@ -256,7 +234,7 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
     const text = view.captureDraft.trim()
     if (text === '' || capturePending) return
     props.actions.setCaptureDraft('')
-    props.onCapture(text)
+    lanes.onCapture(text)
   }
   const selected = selection?.kind === 'matter' ? data?.matters.find(matter => matter.id === selection.id) : undefined
   const selectedFragment = selection?.kind === 'fragment' ? data?.unclaimed.find(fragment => fragment.id === selection.id) : undefined
@@ -323,7 +301,7 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
           // A blocked question is the most urgent thing in this row: the assistant cannot move
           // until the principal answers, so the single action goes there first.
           if (openQuestions > 0 && pendingQuestionSessions[0] !== undefined) {
-            props.onOpenSession(pendingQuestionSessions[0])
+            lanes.onOpenSession(pendingQuestionSessions[0])
             return
           }
           props.actions.setMode('board')
@@ -343,19 +321,19 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
         return ce('div', { key: `mismatch-${row.title}`, className: 'dsha-proactive-row dsha-proactive-due' },
           ce('span', {}, `说了替你盯但没盯上：${row.title}`),
           ce('div', { className: 'dsha-proactive-actions' },
-            props.onSuggestAction !== undefined
-              ? ce('button', { className: 'dsha-btn', type: 'button', disabled: capturePending, onClick: () => { props.onSuggestAction?.('watch', `retry:${row.title}`) } }, '再试一次')
+            lanes.onSuggestAction !== undefined
+              ? ce('button', { className: 'dsha-btn', type: 'button', disabled: capturePending, onClick: () => { lanes.onSuggestAction?.('watch', `retry:${row.title}`) } }, '再试一次')
               : null,
-            props.onWatchForget !== undefined
-              ? ce('button', { className: 'dsha-btn', type: 'button', 'aria-label': `忽略：${row.title}`, onClick: () => { props.onWatchForget?.(row.title) } }, '忽略')
+            lanes.onWatchForget !== undefined
+              ? ce('button', { className: 'dsha-btn', type: 'button', 'aria-label': `忽略：${row.title}`, onClick: () => { lanes.onWatchForget?.(row.title) } }, '忽略')
               : null))
       }
       return ce('div', { key: 'next', className: 'dsha-proactive-row' },
         ce('span', {}, row.overdueByMs !== undefined
           ? `它该在 ${humanTime(row.nextAt)} 看「${row.title}」，还没看到它动${row.lateByMs !== undefined ? `（上次迟了 ${lateNote(row.lateByMs)}）` : ''}${row.duplicates !== undefined ? ` — 发现 ${row.duplicates} 条重复盯守` : ''}`
           : `它下次替你看：${row.title} · ${humanTime(row.nextAt)}${row.lateByMs !== undefined ? `（上次迟了 ${lateNote(row.lateByMs)}）` : ''}${row.duplicates !== undefined ? ` — 发现 ${row.duplicates} 条重复盯守` : ''}`),
-        row.duplicates !== undefined && props.onOpenTasks !== undefined
-          ? ce('button', { className: 'dsha-btn', type: 'button', onClick: props.onOpenTasks }, '去任务页')
+        row.duplicates !== undefined && lanes.onOpenTasks !== undefined
+          ? ce('button', { className: 'dsha-btn', type: 'button', onClick: lanes.onOpenTasks }, '去任务页')
           : null)
     }))
   // Proactive face (2026-10-18):「让它替你盯」— three named suggestions in the adjudicated ②③①
@@ -370,16 +348,16 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
       ce('span', { className: 'dsha-suggest-title' }, `让它替你盯 · ${openSuggestions.length} 条`),
       ce('button', {
         className: 'dsha-btn dsha-suggest-toggle', type: 'button', 'aria-expanded': String(!suggestCollapsed),
-        onClick: () => props.onSuggestCollapse?.(!suggestCollapsed),
+        onClick: () => lanes.onSuggestCollapse?.(!suggestCollapsed),
       }, suggestCollapsed ? '展开' : '收起')),
     ...(suggestCollapsed ? [] : openSuggestions.map(suggestion => ce('div', { key: suggestion.id, className: 'dsha-suggest-item' },
       ce('div', { className: 'dsha-suggest-body' },
         ce('span', { className: 'dsha-suggest-name' }, suggestion.name),
         ce('span', { className: 'dsha-suggest-hint' }, suggestion.hint)),
       ce('div', { className: 'dsha-suggest-actions' },
-        ce('button', { className: 'dsha-btn', type: 'button', disabled: capturePending, onClick: () => { props.onSuggestAction?.('trial', suggestion.id) } }, '先试跑一次'),
-        ce('button', { className: 'dsha-btn dsha-btn-primary', type: 'button', disabled: capturePending, onClick: () => { props.onSuggestAction?.('watch', suggestion.id) } }, '替我盯上'),
-        ce('button', { className: 'dsha-btn dsha-suggest-x', type: 'button', title: '不再提这条', 'aria-label': `忽略：${suggestion.name}`, onClick: () => { props.onSuggestDismiss?.(suggestion.id) } }, '×'))))))
+        ce('button', { className: 'dsha-btn', type: 'button', disabled: capturePending, onClick: () => { lanes.onSuggestAction?.('trial', suggestion.id) } }, '先试跑一次'),
+        ce('button', { className: 'dsha-btn dsha-btn-primary', type: 'button', disabled: capturePending, onClick: () => { lanes.onSuggestAction?.('watch', suggestion.id) } }, '替我盯上'),
+        ce('button', { className: 'dsha-btn dsha-suggest-x', type: 'button', title: '不再提这条', 'aria-label': `忽略：${suggestion.name}`, onClick: () => { lanes.onSuggestDismiss?.(suggestion.id) } }, '×'))))))
   const message = download.status === 'disconnected' ? '连接已断开，恢复连接后重新读取。'
     : download.status === 'loading' ? '正在读取桌面…'
     : download.status === 'missing' ? '还没有经营事项资料。'
@@ -426,9 +404,9 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
         ce('h1', { className: 'dsha-title' }, '你的桌面'),
         counts === undefined ? null : ce('div', { className: 'dsha-sub' }, counts)),
       ce('div', { className: 'dsha-actions' },
-        ce('button', { className: 'dsha-btn', onClick: props.refreshProjection, disabled: download.status === 'loading', title: download.status === 'loading' ? '正在读取桌面…' : '重新读取桌面' }, '重新读取'),
-        ce('button', { className: 'dsha-btn', onClick: props.onAsk }, '有问题？跟助手说'),
-        ce('button', { className: 'dsha-btn dsha-btn-primary', onClick: props.onEntrust ?? props.onAsk }, '＋ 交代新事项'))),
+        ce('button', { className: 'dsha-btn', onClick: lanes.refreshProjection, disabled: download.status === 'loading', title: download.status === 'loading' ? '正在读取桌面…' : '重新读取桌面' }, '重新读取'),
+        ce('button', { className: 'dsha-btn', onClick: lanes.onAsk }, '有问题？跟助手说'),
+        ce('button', { className: 'dsha-btn dsha-btn-primary', onClick: lanes.onEntrust ?? lanes.onAsk }, '＋ 交代新事项'))),
     // Proactive face (2026-10-18):「它替你看过」sits BETWEEN the header and the capture row —
     // structural anchor, not line numbers (the two 261018 cards invalidate each other's anchors).
     // All-empty state renders nothing; each row carries at most one action (the noise cap).
@@ -475,7 +453,7 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
       ce('p', { className: 'dsha-inflight-said' }, receipt.label ?? `「${receipt.text}」`),
       ce('p', { className: 'dsha-capture-hint' }, PHASE_DETAIL[phase] ?? ''),
       phase === 'suspended' || phase === 'settled'
-        ? ce('button', { className: 'dsha-btn', type: 'button', onClick: () => props.onOpenSession(receipt.sessionId) }, '去会话')
+        ? ce('button', { className: 'dsha-btn', type: 'button', onClick: () => lanes.onOpenSession(receipt.sessionId) }, '去会话')
         : null,
       ce('p', { className: 'dsha-capture-hint' }, isActionLane
         ? '来自：桌面按钮 · 话已进会话日志'
@@ -570,10 +548,10 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
           selectedFragment !== undefined ? ce('article', {},
             ce('div', { className: 'dsha-meta' },
               ce('button', { className: 'dsha-btn dsha-back', type: 'button', onClick: props.actions.showList }, '返回事项列表'),
-              ce('button', { className: 'dsha-btn dsha-btn-primary', type: 'button', onClick: () => props.onClaim(selectedFragment.id) }, '认领这件事'),
+              ce('button', { className: 'dsha-btn dsha-btn-primary', type: 'button', onClick: () => lanes.onClaim(selectedFragment.id) }, '认领这件事'),
               // The fragment's other terminal (desk-side capture, 2026-10-18): every item selects into a
               // proportionate action, and "this is noise" is the one that used to have no door.
-              ce('button', { className: 'dsha-btn', type: 'button', onClick: () => props.onDiscard(selectedFragment.id) }, '是噪音，不归户')),
+              ce('button', { className: 'dsha-btn', type: 'button', onClick: () => lanes.onDiscard(selectedFragment.id) }, '是噪音，不归户')),
             ce('h2', {}, chip('warn', '待认领'), ce('span', {}, selectedFragment.note)),
             ce('p', { className: 'dsha-card-meta' }, `来自 ${selectedFragment.sessionId} · 还没说清是哪件事——认领后原文与来源随附入账`))
           : selected !== undefined ? ce('article', {},
@@ -583,8 +561,8 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
               // matter processes; a settled matter's only legal action is waking it — the
               // state machine never offers 「再处理」 on finished work.
               canProcess(selected.status)
-                ? ce('button', { className: 'dsha-btn dsha-btn-primary', type: 'button', onClick: () => props.onProcess?.(selected.id) }, '处理这件事')
-                : ce('button', { className: 'dsha-btn dsha-btn-wake', type: 'button', onClick: () => props.onWake(selected.id) }, glyphFor('wake'), '唤醒这件事')),
+                ? ce('button', { className: 'dsha-btn dsha-btn-primary', type: 'button', onClick: () => lanes.onProcess?.(selected.id) }, '处理这件事')
+                : ce('button', { className: 'dsha-btn dsha-btn-wake', type: 'button', onClick: () => lanes.onWake(selected.id) }, glyphFor('wake'), '唤醒这件事')),
             // Status rides the title line (same shape as the list card) so it stops reading as a
             // second action button beside 「处理这件事」; facts render as the plain meta line below.
             ce('h2', {}, statusChip(selected.status), ce('span', {}, selected.title)),

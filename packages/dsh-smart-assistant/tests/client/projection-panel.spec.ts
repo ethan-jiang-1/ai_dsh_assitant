@@ -2,7 +2,8 @@
 import { createElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { bindClientRequire } from '../../src/client/chrome/runtime'
-import { ProjectionPanel } from '../../src/client/projection/projection-panel'
+import { ProjectionPanel, type ProjectionPanelProps } from '../../src/client/projection/projection-panel'
+import type { DeskLanes } from '../../src/client/projection/desk-surface'
 import type { ProjectionDownload } from '../../src/client/projection/projection-reader'
 import type { OperatingMatter, OperatingProjection, OperatingReceipt } from '../../src/client/projection/operating-projection'
 import { createProjectionViewStore } from '../../src/client/projection/projection-view'
@@ -20,12 +21,52 @@ const noStatuses = <S,>(select: (value: ReadonlyMap<string, { running?: boolean,
 const noop = (): void => {}
 function render(value: ProjectionDownload): string {
   const view = createProjectionViewStore(defineStore).create()
-  return text(ProjectionPanel({ useProjection: select => select(value), useStore: select => select(view.getSnapshot()), useSessionStatus: noStatuses, actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop, onClaim: noop, onDiscard: noop, onCapture: noop, onOpenSession: noop, onWake: noop }))
+  return text(ProjectionPanel(panelProps(value, view)))
 }
 /** Render with the proactive catalog hook (261018 片 1 row 3) and the tasks deep-link. */
 type CatalogState = import('../../src/client/proactive/proactive-face-source').ProactiveCatalogState
 type UiState = import('../../src/client/proactive/proactive-face').ProactiveUiState
 type StatusMap = ReadonlyMap<string, { running?: boolean, pendingInteraction?: { kind?: string } | undefined, completionUnread?: boolean }>
+
+/** A lane surface with inert defaults; tests override only the callback they assert on. */
+function surface(lanes: Partial<DeskLanes> = {}): ProjectionPanelProps['surface'] {
+  return {
+    lanes: {
+      refreshProjection: vi.fn(),
+      onAsk: vi.fn(),
+      onCapture: noop,
+      onOpenSession: noop,
+      onProcess: noop,
+      onClaim: noop,
+      onDiscard: noop,
+      onWake: noop,
+      ...lanes,
+    },
+  }
+}
+
+/** The one fixture builder every render site uses; a new lane or hook no longer edits each test. */
+function panelProps(
+  value: ProjectionDownload,
+  view: ReturnType<ReturnType<typeof createProjectionViewStore>['create']>,
+  lanes: Partial<DeskLanes> = {},
+  options: { statuses?: StatusMap, catalog?: CatalogState, ui?: UiState } = {},
+): ProjectionPanelProps {
+  const statuses = options.statuses ?? new Map()
+  return {
+    surface: surface(lanes),
+    useProjection: <S,>(select: (candidate: ProjectionDownload) => S): S => select(value),
+    useStore: <S,>(select: (candidate: ReturnType<typeof view.getSnapshot>) => S): S => select(view.getSnapshot()),
+    useSessionStatus: <S,>(select: (candidate: StatusMap) => S): S => select(statuses),
+    actions: view.actions,
+    ...(options.catalog === undefined ? {} : {
+      useCatalog: <S,>(select: (state: CatalogState) => S): S => select(options.catalog as CatalogState),
+    }),
+    ...(options.ui === undefined ? {} : {
+      useProactiveUi: <S,>(select: (state: UiState) => S): S => select(options.ui as UiState),
+    }),
+  }
+}
 function renderWithCatalog(value: ProjectionDownload, catalog: CatalogState, ui: UiState = { ignored: [], accepted: [] }, statuses: StatusMap = new Map()): { tree: string, view: ReturnType<ReturnType<typeof createProjectionViewStore>['create']>, openTasks: ReturnType<typeof vi.fn>, openSession: ReturnType<typeof vi.fn>, suggestAction: ReturnType<typeof vi.fn>, suggestDismiss: ReturnType<typeof vi.fn>, suggestCollapse: ReturnType<typeof vi.fn>, watchForget: ReturnType<typeof vi.fn>, node: unknown } {
   const view = createProjectionViewStore(defineStore).create()
   const openTasks = vi.fn()
@@ -34,13 +75,10 @@ function renderWithCatalog(value: ProjectionDownload, catalog: CatalogState, ui:
   const suggestDismiss = vi.fn()
   const watchForget = vi.fn()
   const suggestCollapse = vi.fn()
-  const node = ProjectionPanel({
-    useProjection: select => select(value), useStore: select => select(view.getSnapshot()),
-    useSessionStatus: <S,>(select: (value: StatusMap) => S): S => select(statuses),
-    useCatalog: <S,>(select: (state: CatalogState) => S): S => select(catalog),
-    useProactiveUi: <S,>(select: (state: UiState) => S): S => select(ui),
-    actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop, onClaim: noop, onDiscard: noop, onCapture: noop, onOpenSession: openSession, onWake: noop, onOpenTasks: openTasks, onSuggestAction: suggestAction, onSuggestDismiss: suggestDismiss, onWatchForget: watchForget, onSuggestCollapse: suggestCollapse,
-  })
+  const node = ProjectionPanel(panelProps(value, view, {
+    onOpenSession: openSession, onOpenTasks: openTasks, onSuggestAction: suggestAction,
+    onSuggestDismiss: suggestDismiss, onWatchForget: watchForget, onSuggestCollapse: suggestCollapse,
+  }, { statuses, catalog, ui }))
   return { tree: text(node), view, openTasks, openSession, suggestAction, suggestDismiss, suggestCollapse, watchForget, node }
 }
 /** Collect every string attribute value matching a key anywhere in the tree (data-* assertions). */
@@ -110,7 +148,7 @@ describe('global projection panel', () => {
       { id: 'b', title: '事项 B', status: 'active', summary: 'B 摘要', responsible: '', revision: 1, times: {}, proposals: [], evidence: [{ id: 'eb', sessionId: 'sb', eventId: 'xb', quote: 'B 来源', note: 'B 来源' }] },
     ] } }
     const process = vi.fn()
-    const props = { useProjection: <S,>(select: (value: ProjectionDownload) => S): S => select(value), useStore: <S,>(select: (value: ReturnType<typeof view.getSnapshot>) => S): S => select(view.getSnapshot()), useSessionStatus: noStatuses, actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: process, onClaim: noop, onDiscard: noop, onCapture: noop, onOpenSession: noop, onWake: noop }
+    const props = panelProps(value, view, { onProcess: process })
     const output = text(ProjectionPanel(props))
     expect(output).toContain('B 来源')
     expect(output).not.toContain('A 来源')
@@ -126,7 +164,7 @@ describe('global projection panel', () => {
       { id: 'a', title: '在办的事A', status: 'active', summary: '', responsible: '', revision: 1, times: {}, proposals: [], evidence: [] },
       { id: 'b', title: '办结的事B', status: 'completed', summary: '', responsible: '', revision: 1, times: {}, proposals: [], evidence: [] },
     ] } }
-    const props = { useProjection: <S,>(select: (value: ProjectionDownload) => S): S => select(value), useStore: <S,>(select: (value: ReturnType<typeof view.getSnapshot>) => S): S => select(view.getSnapshot()), useSessionStatus: noStatuses, actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop, onClaim: noop, onDiscard: noop, onCapture: noop, onOpenSession: noop, onWake: noop }
+    const props = panelProps(value, view)
     // Default = 全部: today's behavior, nothing hidden.
     expect(text(ProjectionPanel(props))).toContain('办结的事B')
     view.actions.setFilter('active')
@@ -152,7 +190,7 @@ describe('global projection panel', () => {
       { id: 'a', title: '事项A', status: 'active', summary: '', responsible: '', revision: 1, times: {}, proposals: [], evidence: [] },
       { id: 'b', title: '事项B', status: 'active', summary: '', responsible: '', revision: 1, times: {}, proposals: [], evidence: [] },
     ] } }
-    const output = ProjectionPanel({ useProjection: select => select(value), useStore: select => select(view.getSnapshot()), useSessionStatus: noStatuses, actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop, onClaim: noop, onDiscard: noop, onCapture: noop, onOpenSession: noop, onWake: noop })
+    const output = ProjectionPanel(panelProps(value, view))
     const flat = text(output)
     // Newest first across matters: the 10-13 claim precedes the 10-12 creation.
     expect(flat.indexOf('认领归户')).toBeLessThan(flat.indexOf('交办立项'))
@@ -175,7 +213,7 @@ describe('global projection panel', () => {
     const value: ProjectionDownload = { status: 'ready', data: { schemaVersion: 2 as const, ledgerId: 'test', revision: 60, receipts, unclaimed: [], matters: [
       { id: 'a', title: '事项A', status: 'active', summary: '', responsible: '', revision: 1, times: {}, proposals: [], evidence: [] },
     ] } }
-    const props = { useProjection: <S,>(select: (value: ProjectionDownload) => S): S => select(value), useStore: <S,>(select: (value: ReturnType<typeof view.getSnapshot>) => S): S => select(view.getSnapshot()), useSessionStatus: noStatuses, actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop, onClaim: noop, onDiscard: noop, onCapture: noop, onOpenSession: noop, onWake: noop }
+    const props = panelProps(value, view)
     // The default limit reveals the newest 50; the rest waits behind 「显示更早」.
     expect((text(ProjectionPanel(props)).match(/更新事项/g) ?? []).length).toBe(50)
     const more = findButton(ProjectionPanel(props), '显示更早')
@@ -194,7 +232,7 @@ describe('global projection panel', () => {
     ], unclaimed: [], matters: [
       { id: 'a', title: '事项 A', status: 'active', summary: 'A 摘要', responsible: '', revision: 2, times: {}, proposals: [], evidence: [] },
     ] } }
-    const output = text(ProjectionPanel({ useProjection: select => select(value), useStore: select => select(view.getSnapshot()), useSessionStatus: noStatuses, actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop, onClaim: noop, onDiscard: noop, onCapture: noop, onOpenSession: noop, onWake: noop }))
+    const output = text(ProjectionPanel(panelProps(value, view)))
     expect(output).toContain('动作')
     expect(output).toContain('认领归户')
     expect(output).toContain('交办立项')
@@ -213,7 +251,7 @@ describe('global projection panel', () => {
     const value: ProjectionDownload = { status: 'ready', data: { schemaVersion: 2 as const, ledgerId: 'test', revision: 2, receipts: [], unclaimed: [], matters: [
       { id: 'done', title: '办结的事', status: 'completed', summary: '做完了', responsible: '', revision: 2, times: {}, proposals: [], evidence: [] },
     ] } }
-    const props = { useProjection: <S,>(select: (value: ProjectionDownload) => S): S => select(value), useStore: <S,>(select: (value: ReturnType<typeof view.getSnapshot>) => S): S => select(view.getSnapshot()), useSessionStatus: noStatuses, actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop, onClaim: noop, onDiscard: noop, onCapture: noop, onOpenSession: noop, onWake }
+    const props = panelProps(value, view, { onWake })
     const output = ProjectionPanel(props)
     // The wake button leads with a glyph, so it locates by substring (icon+text buttons do).
     const wake = findButtonBySubstring(output, '唤醒这件事')
@@ -226,7 +264,7 @@ describe('global projection panel', () => {
     const activeValue: ProjectionDownload = { status: 'ready', data: { schemaVersion: 2 as const, ledgerId: 'test', revision: 3, receipts: [], unclaimed: [], matters: [
       { id: 'done', title: '办结的事', status: 'active', summary: '做完了', responsible: '', revision: 3, times: {}, proposals: [], evidence: [] },
     ] } }
-    const activeOutput = ProjectionPanel({ ...props, useProjection: <S,>(select: (v: ProjectionDownload) => S): S => select(activeValue) })
+    const activeOutput = ProjectionPanel(panelProps(activeValue, view, { onWake }))
     expect(findButton(activeOutput, '处理这件事')).toBeDefined()
     expect(findButton(activeOutput, '唤醒这件事')).toBeUndefined()
   })
@@ -239,7 +277,7 @@ describe('global projection panel', () => {
       proposals: [], evidence: [{ id: 'e1', sessionId: 's1', eventId: 'x1', quote: '到账回单', note: '到账回单' }],
     }
     view.actions.selectMatter('c1')
-    const props = { useProjection: <S,>(select: (value: ProjectionDownload) => S): S => select({ status: 'ready', data: { ...base, matters: [completed] } }), useStore: <S,>(select: (value: ReturnType<typeof view.getSnapshot>) => S): S => select(view.getSnapshot()), useSessionStatus: noStatuses, actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop, onClaim: noop, onDiscard: noop, onCapture: noop, onOpenSession: noop, onWake: noop }
+    const props = panelProps({ status: 'ready', data: { ...base, matters: [completed] } }, view)
     const output = text(ProjectionPanel(props))
     // 四种时间各占一段：承诺/预测/核对/完成。Zoned stamps render viewer-local, so the
     // expectation is computed through the same Date API instead of a fixed wall clock.
@@ -265,23 +303,24 @@ describe('global projection panel', () => {
     const value: ProjectionDownload = { status: 'ready', data: { schemaVersion: 1, ledgerId: 'test', revision: 2, receipts: [], unclaimed: [], matters: [
       { id: 'a', title: '事项 A', status: 'active', summary: 'A 摘要', responsible: '', revision: 1, times: {}, proposals: [], evidence: [] },
     ] } }
-    const base = { useProjection: <S,>(select: (value: ProjectionDownload) => S): S => select(value), useStore: <S,>(select: (value: ReturnType<typeof view.getSnapshot>) => S): S => select(view.getSnapshot()), useSessionStatus: noStatuses, actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop, onClaim: noop, onDiscard: noop, onCapture: noop, onOpenSession: noop, onWake: noop }
+    const ask = vi.fn()
     const entrust = vi.fn()
+    const base = panelProps(value, view, { onAsk: ask, onEntrust: entrust })
     // Wired: the entry hands the intake path binder through inject; the button must use it.
-    findButton(ProjectionPanel({ ...base, onEntrust: entrust }), '＋ 交代新事项')?.onClick?.()
+    findButton(ProjectionPanel(base), '＋ 交代新事项')?.onClick?.()
     expect(entrust).toHaveBeenCalledTimes(1)
-    expect(base.onAsk).not.toHaveBeenCalled()
+    expect(ask).not.toHaveBeenCalled()
     // Not wired (tests, environments without the desk path store): the button still opens the
     // conversation rather than going dead.
     const fallbackAsk = vi.fn()
-    findButton(ProjectionPanel({ ...base, onAsk: fallbackAsk }), '＋ 交代新事项')?.onClick?.()
+    findButton(ProjectionPanel(panelProps(value, view, { onAsk: fallbackAsk })), '＋ 交代新事项')?.onClick?.()
     expect(fallbackAsk).toHaveBeenCalledTimes(1)
   })
 
   it('offers a visible add-matter entry routed to the conversation (2026-10-11 principal could not find one)', () => {
     const onAsk = vi.fn()
     const view = createProjectionViewStore(defineStore).create()
-    const output = ProjectionPanel({ useProjection: select => select({ status: 'missing' }), useStore: select => select(view.getSnapshot()), useSessionStatus: noStatuses, actions: view.actions, refreshProjection: vi.fn(), onAsk, onProcess: noop, onClaim: noop, onDiscard: noop, onCapture: noop, onOpenSession: noop, onWake: noop })
+    const output = ProjectionPanel(panelProps({ status: 'missing' }, view, { onAsk }))
     expect(text(output)).toContain('＋ 交代新事项')
     findButton(output, '＋ 交代新事项')?.onClick?.()
     expect(onAsk).toHaveBeenCalledTimes(1)
@@ -289,16 +328,7 @@ describe('global projection panel', () => {
 
   it('grays the refresh button while a read is in flight — auto or manual — and recovers after', () => {
     const view = createProjectionViewStore(defineStore).create()
-    const props = (status: ProjectionDownload['status']) => ({
-      useProjection: <S,>(select: (value: ProjectionDownload) => S): S => select({ status }),
-      useStore: <S,>(select: (value: ReturnType<typeof view.getSnapshot>) => S): S => select(view.getSnapshot()),
-      useSessionStatus: noStatuses, actions: view.actions,
-      refreshProjection: (): void => {},
-      onAsk: (): void => {},
-      onProcess: noop,
-      onClaim: noop, onDiscard: noop, onCapture: noop, onOpenSession: noop,
-      onWake: noop,
-    })
+    const props = (status: ProjectionDownload['status']) => panelProps({ status }, view)
     expect(findButton(ProjectionPanel(props('loading')), '重新读取')?.disabled).toBe(true)
     expect(findButton(ProjectionPanel(props('ready')), '重新读取')?.disabled).toBe(false)
     expect(findButton(ProjectionPanel(props('ready')), '重新读取')?.onClick).toBeDefined()
@@ -317,11 +347,8 @@ describe('unclaimed fragments are first-class selectable items (principal direct
   const claimFixture = (): ProjectionDownload => ({ status: 'ready', data: { schemaVersion: 2 as const, ledgerId: 'test', revision: 3, receipts: [], unclaimed: [fragment], matters: [
     { id: 'a', title: '事项 A', status: 'active', summary: 'A 摘要', responsible: '', revision: 1, times: {}, proposals: [], evidence: [] },
   ] } })
-  const claimProps = (view: ReturnType<ReturnType<typeof createProjectionViewStore>['create']>, onClaim: (id: string) => void) => ({
-    useProjection: <S,>(select: (value: ProjectionDownload) => S): S => select(claimFixture()),
-    useStore: <S,>(select: (value: ReturnType<typeof view.getSnapshot>) => S): S => select(view.getSnapshot()),
-    useSessionStatus: noStatuses, actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop, onClaim, onDiscard: noop, onCapture: noop, onOpenSession: noop, onWake: noop,
-  })
+  const claimProps = (view: ReturnType<ReturnType<typeof createProjectionViewStore>['create']>, onClaim: (id: string) => void) =>
+    panelProps(claimFixture(), view, { onClaim })
 
   it('renders the fragment card as a selectable button whose detail carries note, source and the claim action', () => {
     const view = createProjectionViewStore(defineStore).create()
@@ -342,7 +369,7 @@ describe('unclaimed fragments are first-class selectable items (principal direct
   it('offers the fragment\'s other terminal — 「是噪音，不归户」 hands the same id back', () => {
     const view = createProjectionViewStore(defineStore).create()
     const onDiscard = vi.fn()
-    const props = { ...claimProps(view, noop), onDiscard }
+    const props = panelProps(claimFixture(), view, { onDiscard })
     // Select first, then render: the detail carries the proportionate actions for the fragment.
     ProjectionPanel(props)
     view.actions.selectFragment('u-1')
@@ -370,7 +397,7 @@ describe('unclaimed fragments are first-class selectable items (principal direct
     const onClaim = vi.fn()
     view.actions.selectFragment('gone')
     const value: ProjectionDownload = { status: 'ready', data: { schemaVersion: 2 as const, ledgerId: 'test', revision: 1, receipts: [], unclaimed: [], matters: [] } }
-    const output = text(ProjectionPanel({ useProjection: select => select(value), useStore: select => select(view.getSnapshot()), useSessionStatus: noStatuses, actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop, onClaim, onDiscard: noop, onCapture: noop, onOpenSession: noop, onWake: noop }))
+    const output = text(ProjectionPanel(panelProps(value, view, { onClaim })))
     expect(output).toContain('所选片段不在当前投影中')
   })
 })
@@ -385,11 +412,13 @@ describe('the desk\'s capture row: takes the words here, and never overstates wh
     status: 'ready',
     data: { schemaVersion: 2 as const, ledgerId: 'test', revision, receipts: [], unclaimed: [], matters: [] },
   })
-  const props = (view: ReturnType<ReturnType<typeof createProjectionViewStore>['create']>, revision: number, onCapture: (text: string) => void) => ({
-    useProjection: <S,>(select: (value: ProjectionDownload) => S): S => select(value(revision)),
-    useStore: <S,>(select: (value: ReturnType<typeof view.getSnapshot>) => S): S => select(view.getSnapshot()),
-    useSessionStatus: noStatuses, actions: view.actions, refreshProjection: vi.fn(), onAsk: vi.fn(), onProcess: noop, onClaim: noop, onDiscard: noop, onCapture, onOpenSession: noop, onWake: noop,
-  })
+  const props = (
+    view: ReturnType<ReturnType<typeof createProjectionViewStore>['create']>,
+    revision: number,
+    onCapture: (text: string) => void,
+    lanes: Partial<DeskLanes> = {},
+    statuses?: StatusMap,
+  ) => panelProps(value(revision), view, { onCapture, ...lanes }, { statuses: statuses ?? new Map() })
 
   it('names both doors and their weight on the surface', () => {
     const view = createProjectionViewStore(defineStore).create()
@@ -437,11 +466,8 @@ describe('the desk\'s capture row: takes the words here, and never overstates wh
     const view = createProjectionViewStore(defineStore).create()
     const onOpenSession = vi.fn()
     view.actions.setCaptureReceipt({ requestId: 'desk-capture-2', sessionId: 's-1', text: '记得问一下小王', observedRevision: 3 })
-    const withStatus = (status: { running?: boolean, pendingInteraction?: { kind?: string } | undefined, completionUnread?: boolean }) => ({
-      ...props(view, 3, noop),
-      useSessionStatus: <S,>(select: (value: ReadonlyMap<string, typeof status>) => S): S => select(new Map([['s-1', status]])),
-      onOpenSession,
-    })
+    const withStatus = (status: { running?: boolean, pendingInteraction?: { kind?: string } | undefined, completionUnread?: boolean }) =>
+      props(view, 3, noop, { onOpenSession }, new Map([['s-1', status]]))
 
     const mine = ProjectionPanel(withStatus({ running: true, pendingInteraction: { kind: 'question' } }))
     expect(text(mine)).toContain('轮到我')
@@ -472,11 +498,7 @@ describe('the desk\'s capture row: takes the words here, and never overstates wh
       requestId: 'desk-capture-3', sessionId: 's-1', lane: 'action', label: '先试跑「到期日到了替我核一遍账」',
       text: '先试跑一次「到期日到了替我核一遍账」：真读真判断、不建排程、不写账本', observedRevision: 3,
     })
-    const settled = {
-      ...props(view, 3, noop),
-      useSessionStatus: <S,>(select: (value: ReadonlyMap<string, { running?: boolean, completionUnread?: boolean }>) => S): S => select(new Map([['s-1', { running: false, completionUnread: true }]])),
-      onOpenSession,
-    }
+    const settled = props(view, 3, noop, { onOpenSession }, new Map([['s-1', { running: false, completionUnread: true }]]))
     const output = ProjectionPanel(settled)
     expect(text(output)).toContain('它说完了')
     expect(text(output)).toContain('结果在会话里')
@@ -497,10 +519,7 @@ describe('the desk\'s capture row: takes the words here, and never overstates wh
   it('a capture that ends with no ledger write says so, and still offers the way out', () => {
     const view = createProjectionViewStore(defineStore).create()
     view.actions.setCaptureReceipt({ requestId: 'desk-capture-4', sessionId: 's-1', text: '记得问一下小王那个报价', observedRevision: 3 })
-    const settled = {
-      ...props(view, 3, noop),
-      useSessionStatus: <S,>(select: (value: ReadonlyMap<string, { running?: boolean, completionUnread?: boolean }>) => S): S => select(new Map([['s-1', { running: false, completionUnread: true }]])),
-    }
+    const settled = props(view, 3, noop, {}, new Map([['s-1', { running: false, completionUnread: true }]]))
     const output = ProjectionPanel(settled)
     expect(text(output)).toContain('它说完了')
     expect(text(output)).toContain('账本没有新东西')
@@ -512,10 +531,7 @@ describe('the desk\'s capture row: takes the words here, and never overstates wh
   it('suggestion actions are shut while a delivery is in flight (BUG-018)', () => {
     const view = createProjectionViewStore(defineStore).create()
     view.actions.setCaptureReceipt({ requestId: 'desk-capture-9', sessionId: 's-1', text: '记得问一下小王', observedRevision: 3 })
-    const running = {
-      ...props(view, 3, noop),
-      useSessionStatus: <S,>(select: (value: ReadonlyMap<string, { running?: boolean }>) => S): S => select(new Map([['s-1', { running: true }]])),
-    }
+    const running = props(view, 3, noop, {}, new Map([['s-1', { running: true }]]))
     const busy = ProjectionPanel(running)
     expect(findButton(busy, '替我盯上')?.disabled).toBe(true)
     expect(findButton(busy, '先试跑一次')?.disabled).toBe(true)
@@ -529,10 +545,7 @@ describe('the desk\'s capture row: takes the words here, and never overstates wh
     const view = createProjectionViewStore(defineStore).create()
     view.actions.setCaptureReceipt({ requestId: 'desk-capture-q', sessionId: 's-1', text: '记得问一下小王', observedRevision: 3 })
     const statuses: ReadonlyMap<string, { running?: boolean, pendingInteraction?: { kind?: string } | undefined }> = new Map([['s-1', { running: true, pendingInteraction: { kind: 'question' } }]])
-    const output = ProjectionPanel({
-      ...props(view, 3, noop),
-      useSessionStatus: <S,>(select: (value: typeof statuses) => S): S => select(statuses),
-    })
+    const output = ProjectionPanel(props(view, 3, noop, {}, statuses))
     expect(text(output)).toContain('轮到我')
     expect(text(output)).not.toContain('句等你答')
   })

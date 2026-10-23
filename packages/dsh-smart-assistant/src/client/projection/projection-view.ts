@@ -91,12 +91,25 @@ const projectionViewActions = {
 }
 export type ProjectionViewActions = typeof projectionViewActions
 export type DefineProjectionViewStore = (spec: { init(): ProjectionView; actions: ProjectionViewActions }) => ProjectionViewHandle
+/** The bound actions a concrete view store exposes to its component. */
+export interface ProjectionViewBoundActions {
+  selectMatter(id: string): void
+  selectFragment(id: string): void
+  showList(): void
+  rememberListPosition(position: number): void
+  setFilter(filter: ListFilter): void
+  setMode(mode: DeskMode): void
+  revealMoreActivity(): void
+  setCaptureDraft(text: string): void
+  setCaptureReceipt(receipt: DeskCaptureReceipt | null): void
+}
+
 export interface ProjectionViewHandle {
   spec: { init(): ProjectionView; actions: ProjectionViewActions }
   create(): {
     getSnapshot(): ProjectionView
     subscribe(listener: () => void): () => void
-    actions: { selectMatter(id: string): void; selectFragment(id: string): void; showList(): void; rememberListPosition(position: number): void; setFilter(filter: ListFilter): void; setMode(mode: DeskMode): void; revealMoreActivity(): void; setCaptureDraft(text: string): void; setCaptureReceipt(receipt: DeskCaptureReceipt | null): void }
+    actions: ProjectionViewBoundActions
   }
 }
 

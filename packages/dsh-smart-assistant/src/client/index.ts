@@ -49,6 +49,7 @@ import { bindVikiEnv } from './rooms/viki-data-io'
 import { bindClientRequire, clientRequire } from './chrome/runtime'
 import { ensureThemeVars } from './chrome/theme'
 import { ProjectionPanel } from './projection/projection-panel'
+import { createDeskSurface } from './projection/desk-surface'
 import { mountProjectionReader } from './projection/projection-lifecycle'
 import type { ProjectionDownload } from './projection/projection-reader'
 import { createProjectionViewStore } from './projection/projection-view'
@@ -193,7 +194,19 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         ...(proactiveCatalog === undefined ? {} : { catalog: proactiveCatalog }),
         ...(proactiveUi === undefined ? {} : { proactiveUi }),
       }
-      return { hooks, refreshProjection: () => { reader?.refresh() }, onAsk: () => returnToConversation(ctx, sessionId, typeof document === 'undefined' ? {} : { document }), onEntrust: arms.startIntake, onProcess: arms.processMatter, onClaim: arms.claimFragment, onDiscard: arms.discardFragment, onCapture: arms.captureFromDesk, onOpenSession: (sessionId: string) => { ctx.uiWorkspace?.openSession(sessionId) }, onWake: arms.wakeMatter, onOpenTasks: () => { ctx.layout?.selectPanel('schedules') }, onSuggestAction, onSuggestDismiss, onWatchForget, onSuggestCollapse }
+      const surface = createDeskSurface({
+        ctx,
+        sessionId,
+        reader,
+        arms,
+        handlers: { onSuggestAction, onSuggestDismiss, onWatchForget, onSuggestCollapse },
+      })
+      return {
+        surface,
+        hooks,
+        // The fallback panel (no projection store in this composition) reads only the return.
+        ...(projection === undefined ? { onAsk: () => returnToConversation(ctx, sessionId, typeof document === 'undefined' ? {} : { document }) } : {}),
+      }
     }
     // The slot inject face is variadic and differs between `main` (no session) and
     // `conversation.view` (session first). Resolve the session once at injection, not inside the
