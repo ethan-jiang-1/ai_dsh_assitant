@@ -44,7 +44,7 @@ import { ApprovalDockBanner, FirstMileDock } from './chrome/first-mile'
 import { mountRoomBodies, mountRoomGuides } from './rooms/mount-rooms'
 import { RememberAction } from './rooms/message-action'
 import { createElement } from './chrome/runtime'
-import { bindUiModeForm, getUiModeStore, initUiModeStore, type ModeForm } from './chrome/ui-mode'
+import { bindUiModeRemote, getUiModeStore, initUiModeStore, isUiMode, type ModeRemote } from './chrome/ui-mode'
 import { UiModeRow } from './chrome/ui-mode-row'
 import { returnToConversation } from './chrome/navigation'
 import { bindVikiEnv } from './rooms/viki-data-io'
@@ -303,15 +303,35 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       }), ...uiModeCommands()]) commandUi.register(contribution)
     })
 
-    // The mode's durable half: the `assistant-memory` settings namespace owns `uiMode`. A
-    // composition without ui-settings keeps the localStorage-only store and mounts no row.
-    ctx.inject?.(['configForms'], (scope) => {
-      const forms = scope.get('configForms') as { get(entryId: string): ModeForm } | undefined
-      if (forms === undefined || typeof forms.get !== 'function') return
-      const form = forms.get('assistant-memory')
-      if (form === undefined) return
-      ctx.effect?.(() => bindUiModeForm(form), 'assistant: ui mode settings')
-    })
+    // The mode's durable half: the Host's authenticated `ui-mode.json` route. Its value wins
+    // over the localStorage first paint; a failed read/write leaves the local choice standing.
+    const modeRemote: ModeRemote = {
+      load: async () => {
+        try {
+          const response = await fetch('/api/assistant/ui-mode', { headers: { accept: 'application/json' } })
+          if (!response.ok) return undefined
+          const body = await response.json() as { mode?: unknown }
+          return isUiMode(body.mode) ? body.mode : undefined
+        } catch {
+          return undefined
+        }
+      },
+      save: async (mode) => {
+        try {
+          const response = await fetch('/api/assistant/ui-mode', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ mode }),
+          })
+          return response.ok
+        } catch {
+          return false
+        }
+      },
+    }
+    if (typeof fetch === 'function') {
+      ctx.effect?.(() => bindUiModeRemote(modeRemote), 'assistant: ui mode remote')
+    }
     ctx.slots.inject('settings.general.item', () =>
       ctx.slots.register({ name: 'settings.general.item', id: 'assistant-ui-mode', order: -10 }, UiModeRow))
 

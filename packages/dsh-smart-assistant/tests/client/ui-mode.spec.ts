@@ -3,7 +3,7 @@
  * per-materialization reset, and a subscription that carries the new mode.
  */
 import { describe, expect, it, vi } from 'vitest'
-import { bindUiModeForm, getUiModeStore, initUiModeStore, isUiMode, setUiMode, UI_MODES, type ModeForm } from '../../src/client/chrome/ui-mode'
+import { bindUiModeRemote, getUiModeStore, initUiModeStore, isUiMode, setUiMode, UI_MODES, type ModeRemote, type UiMode } from '../../src/client/chrome/ui-mode'
 
 function storage(initial?: string) {
   const values = new Map<string, string>(initial === undefined ? [] : [['dsha:ui-mode', initial]])
@@ -48,58 +48,39 @@ describe('ui mode store', () => {
   })
 })
 
-function settingsForm(initial: unknown = 'standard', writable = true) {
-  let value = initial
-  const listeners = new Set<() => void>()
-  const set = vi.fn(async (_field: string, next: unknown) => {
-    value = next
-    for (const listener of listeners) listener()
-    return writable
-  })
-  const form: ModeForm = {
-    getSnapshot: () => ({ status: 'ready', value: { uiMode: value }, writable }),
-    subscribe: (listener: () => void) => {
-      listeners.add(listener)
-      return () => { listeners.delete(listener) }
-    },
-    set,
-  }
-  return {
-    form,
-    set,
-    external: (next: unknown): void => {
-      value = next
-      for (const listener of listeners) listener()
-    },
-  }
+function remote(initial: UiMode | undefined = 'standard') {
+  const saved: UiMode[] = []
+  const load = vi.fn(async (): Promise<UiMode | undefined> => initial)
+  const save = vi.fn(async (mode: UiMode): Promise<boolean> => { saved.push(mode); return true })
+  const value: ModeRemote = { load, save }
+  return { remote: value, load, save, saved }
 }
 
-describe('ui mode settings binding', () => {
-  it('adopts the settings value and follows external writes', () => {
+describe('ui mode remote binding', () => {
+  it('adopts the durable value after the async read', async () => {
     initUiModeStore(storage())
-    const settings = settingsForm('expert')
-    const off = bindUiModeForm(settings.form)
+    const r = remote('expert')
+    const off = bindUiModeRemote(r.remote)
+    await new Promise(resolve => { setTimeout(resolve, 0) })
     expect(getUiModeStore().getSnapshot()).toBe('expert')
-    settings.external('simple')
-    expect(getUiModeStore().getSnapshot()).toBe('simple')
     off()
   })
 
-  it('writes a local switch to the settings form when writable', () => {
+  it('writes a local switch to the remote', () => {
     initUiModeStore(storage())
-    const settings = settingsForm()
-    bindUiModeForm(settings.form)
+    const r = remote()
+    bindUiModeRemote(r.remote)
     setUiMode('simple')
-    expect(settings.set).toHaveBeenCalledWith('uiMode', 'simple')
+    expect(r.save).toHaveBeenCalledWith('simple')
     expect(getUiModeStore().getSnapshot()).toBe('simple')
   })
 
-  it('keeps the local choice when the form is not writable', () => {
+  it('keeps the local choice when the remote write fails', () => {
     initUiModeStore(storage())
-    const settings = settingsForm('standard', false)
-    bindUiModeForm(settings.form)
+    const r = remote()
+    r.save.mockResolvedValue(false)
+    bindUiModeRemote(r.remote)
     setUiMode('expert')
     expect(getUiModeStore().getSnapshot()).toBe('expert')
-    expect(settings.set).not.toHaveBeenCalled()
   })
 })

@@ -35,7 +35,6 @@ import type { ApprovalAuditOptions } from './approval-audit.ts'
 import { installSelfTurnSlots } from './self-turns.ts'
 import { DEFAULT_WEB_TITLE, webBrandingInjection } from './web-branding.ts'
 import { HOME_DIRECTORY_NAME, homePaths, scaffoldHome, ARCHIVE_DIRECTORY_NAME, type HomePaths, type ScaffoldResult } from '../domain/home/layout.ts'
-import { UI_MODES, type UiMode } from '../domain/home/ui-mode.ts'
 import { Room } from '../domain/home/room.ts'
 import type { HomeHost, RoomReadResult } from './service.ts'
 import type { DigestResult } from '../domain/home/digest.ts'
@@ -75,8 +74,6 @@ export interface Config {
   goalProposalTurns?: boolean
   /** Tab title the branded Web shell carries; empty string disables the branding row. */
   webTitle?: string
-  /** Interface density preference (client-only rendering; the Host stores it for the settings page). */
-  uiMode?: UiMode
 }
 
 export type { RoomReadResult } from './service.ts'
@@ -103,7 +100,6 @@ export class AssistantMemory extends Service implements HomeHost {
     maintenanceEveryRounds: z.number().step(1).min(0).default(5),
     goalProposalTurns: z.boolean().default(true),
     webTitle: z.string().default(DEFAULT_WEB_TITLE),
-    uiMode: z.union([...UI_MODES]).default('standard'),
   })
 
   /** Resolved home paths. */

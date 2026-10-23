@@ -31,6 +31,11 @@
     - id: assistant-desk-projection
       name: dsh-smart-assistant/desk-projection
 
+    # 界面密度的 per-home 持久家（assistant/ui-mode.json）：GET/POST 经 Connection 认证；
+    # 不写 settings 文档（stock bundle 的嵌套 assistant-memory 行不是可配置 namespace）。
+    - id: assistant-ui-mode
+      name: dsh-smart-assistant/ui-mode
+
     # ── 维护面板的房间投影 + 受控写 + 收据 ───────────────────────────────────────
     #
     # 面板读 working folder 四房间真值；GET 取投影/正文/技能/审批账，

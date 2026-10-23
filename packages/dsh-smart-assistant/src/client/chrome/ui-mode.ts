@@ -24,33 +24,25 @@ export interface ModeStorage {
   setItem(key: string, value: string): void
 }
 
-/** The settings form slice the mode store binds to; the vendor ConfigForm satisfies it. */
-export interface ModeFormSnapshot {
-  readonly status: 'loading' | 'ready' | 'unavailable'
-  readonly value?: { readonly uiMode?: unknown }
-  readonly writable: boolean
-}
-
-/** One Host settings namespace form, structurally narrowed to the field this store owns. */
-export interface ModeForm {
-  getSnapshot(): ModeFormSnapshot
-  subscribe(listener: () => void): () => void
-  set(field: string, value: unknown): Promise<boolean>
+/** The per-home durable face: the Host route reads once on bind and is written on each switch. */
+export interface ModeRemote {
+  load(): Promise<UiMode | undefined>
+  save(mode: UiMode): Promise<boolean>
 }
 
 /** The mode store the entry, the settings row and the panel read. */
 export interface UiModeStore {
   getSnapshot(): UiMode
   subscribe(listener: (mode: UiMode) => void): () => void
-  /** Adopt a value that came from settings (no write back to the form). */
+  /** Adopt a value that came from the durable face (no write back). */
   adopt(mode: UiMode): void
   set(mode: UiMode): void
 }
 
 let store: UiModeStore = createStore()
 let storage: ModeStorage | undefined
-let form: ModeForm | undefined
-let offForm: (() => void) | undefined
+let remote: ModeRemote | undefined
+let remoteGeneration = 0
 
 function defaultStorage(): ModeStorage | undefined {
   try {
@@ -96,8 +88,7 @@ function createStore(): UiModeStore {
     set: (next: UiMode) => {
       if (!isUiMode(next) || next === mode) return
       adopt(next)
-      const current = form
-      if (current?.getSnapshot().writable === true) void current.set('uiMode', next)
+      void remote?.save(next).catch(() => false)
     },
   }
 }
@@ -109,36 +100,30 @@ function createStore(): UiModeStore {
  * @returns the fresh store.
  */
 export function initUiModeStore(next?: ModeStorage): UiModeStore {
-  offForm?.()
-  offForm = undefined
-  form = undefined
+  remoteGeneration += 1
+  remote = undefined
   storage = next
   store = createStore()
   return store
 }
 
 /**
- * Bind the Host settings form: its ready value is the durable truth, and later external writes
- * (another tab, the settings page) update this store without writing back. A form refusal on a
- * local switch leaves the local choice standing; the next form read reconciles it.
- * @param next - The `assistant-memory` settings form.
+ * Bind the per-home Host route: its stored value wins over the local first paint, and a switch
+ * writes it back. A failed read keeps the localStorage choice; a failed write leaves the local
+ * choice standing (the next successful switch retries the durable value).
+ * @param next - The HTTP-backed remote.
  * @returns The disposer that drops the binding.
  */
-export function bindUiModeForm(next: ModeForm): () => void {
-  offForm?.()
-  form = next
-  const sync = (): void => {
-    const snapshot = next.getSnapshot()
-    if (snapshot.status !== 'ready') return
-    const value = snapshot.value?.uiMode
-    if (isUiMode(value)) store.adopt(value)
-  }
-  offForm = next.subscribe(sync)
-  sync()
+export function bindUiModeRemote(next: ModeRemote): () => void {
+  const generation = ++remoteGeneration
+  remote = next
+  void next.load().then(mode => {
+    if (generation === remoteGeneration && mode !== undefined) store.adopt(mode)
+  }).catch(() => undefined)
   return () => {
-    offForm?.()
-    offForm = undefined
-    form = undefined
+    if (generation !== remoteGeneration) return
+    remoteGeneration += 1
+    remote = undefined
   }
 }
 

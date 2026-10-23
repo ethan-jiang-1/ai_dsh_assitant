@@ -67,6 +67,10 @@
       "types": "./lib/host/desk-projection/index.d.ts",
       "default": "./lib/host/desk-projection/index.js"
     },
+    "./ui-mode": {
+      "types": "./lib/host/ui-mode/index.d.ts",
+      "default": "./lib/host/ui-mode/index.js"
+    },
     "./viki": {
       "types": "./lib/host/viki/index.d.ts",
       "default": "./lib/host/viki/index.js"
