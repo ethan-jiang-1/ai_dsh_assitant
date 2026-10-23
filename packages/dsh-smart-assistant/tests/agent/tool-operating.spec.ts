@@ -181,7 +181,7 @@ describe('assistant_operating (tool adapter over the authoritative ledger)', () 
       'op-readback-create', 'op-readback-report', 'op-readback-propose',
     ])
     expect(read.operations?.map(operation => operation.outcome.status)).toEqual(['committed', 'committed', 'proposed'])
-    expect(read.operations?.every(operation => operation.source.sessionId === 'spec-session')).toBe(true)
+    expect(read.operations?.every(operation => operation.source?.sessionId === 'spec-session')).toBe(true)
     const rendered = tool.output.render({ action: 'read' }, JSON.parse(JSON.stringify(read)))
       .filter(part => part.type === 'text')
       .map(part => part.text)

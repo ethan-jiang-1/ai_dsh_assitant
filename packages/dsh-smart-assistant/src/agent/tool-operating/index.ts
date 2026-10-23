@@ -18,8 +18,8 @@
  */
 
 import type { Context } from '@deepseek-ai/cordis'
-import { defineTool } from '@deepseek-ai/dsh-tools'
-import type { LedgerOperation, LedgerSource, MatterRecord, OperationRecord, ProposedChange } from '../../domain/operating/ledger.ts'
+import { defineTool, type InferValue } from '@deepseek-ai/dsh-tools'
+import type { LedgerOperation, LedgerSource, MatterRecord, ProposedChange } from '../../domain/operating/ledger.ts'
 import { OPERATING_OUTPUT_SCHEMA } from './schema.ts'
 
 export const name = 'assistant-operating-tool'
@@ -79,21 +79,13 @@ interface DeskItem {
   completed_at?: string
 }
 
-interface OperationSummary {
-  operationId: string
-  kind: string
-  submittedAt: string
-  outcome: OperationRecord['receipt']['outcome']
-  source: LedgerSource
-}
-
 interface MatterProposalSummary {
   id: string
   kind: string
   status: string
   proposed_at: string
   change: ProposedChange
-  source: LedgerSource
+  source?: LedgerSource
   resolution_operation_id?: string
   /** Set when the proposal rides a multi-matter list (the desk summary) so a line is attributable. */
   matter_id?: string
@@ -110,23 +102,17 @@ function proposalSummary(proposal: MatterRecord['proposals'][number]): MatterPro
     status: proposal.status,
     proposed_at: proposal.proposedAt,
     change: proposal.change,
-    source: proposal.source,
+    ...(proposal.source !== undefined ? { source: proposal.source } : {}),
     ...(proposal.resolutionOperationId !== undefined ? { resolution_operation_id: proposal.resolutionOperationId } : {}),
   }
 }
 
-export interface OperatingOutput {
-  action: string
-  summary: string
-  receipt?: { operationId: string; matterId: string; submittedAt: string; outcome: { status: string; revision?: number; unclaimedId?: string; proposalId?: string; observedRevision?: number; currentRevision?: number; reason?: string } }
-  source?: LedgerSource
-  matters?: DeskItem[]
-  unclaimed?: { id: string; note: string; sessionId: string }[]
-  materials?: { id: string; note: string; sessionId: string; eventId?: string; quote?: string }[]
-  proposals?: MatterProposalSummary[]
-  entrust?: { operation_id: string; sessionId: string; eventId?: string; quote?: string }
-  operations?: OperationSummary[]
-}
+/**
+ * The canonical result type, derived from the declared output schema. The schema is the source:
+ * a field cannot live in the type and be missing from the wire contract (or the reverse) without
+ * a compile error at the projector and the renderer.
+ */
+export type OperatingOutput = InferValue<typeof OPERATING_OUTPUT_SCHEMA>
 
 function deskItem(matter: MatterRecord): DeskItem {
   return {
@@ -142,6 +128,12 @@ function deskItem(matter: MatterRecord): DeskItem {
     ...(matter.times.nextCheckpoint !== undefined ? { next_checkpoint: matter.times.nextCheckpoint } : {}),
     ...(matter.times.completedAt !== undefined ? { completed_at: matter.times.completedAt } : {}),
   }
+}
+
+/** One source's render text; an old ledger may carry a record without one. */
+function sourceText(source: { readonly sessionId: string, readonly eventId?: string, readonly quote?: string } | undefined): string {
+  if (source === undefined) return 'unknown'
+  return `${source.sessionId}${source.eventId !== undefined ? `/${source.eventId}` : ''}${source.quote !== undefined ? `: ${source.quote}` : ''}`
 }
 
 /**
@@ -170,13 +162,13 @@ export function render(_args: { action: Action }, value: OperatingOutput): { typ
     lines.push(`- entrust ${value.entrust.operation_id} (${value.entrust.sessionId}${value.entrust.eventId !== undefined ? `/${value.entrust.eventId}` : ''}): ${value.entrust.quote ?? ''}`)
   }
   for (const operation of value.operations ?? []) {
-    lines.push(`- operation ${operation.operationId} ${operation.kind} [${JSON.stringify(operation.outcome)}] (${operation.submittedAt}; ${operation.source.sessionId}${operation.source.eventId !== undefined ? `/${operation.source.eventId}` : ''}${operation.source.quote !== undefined ? `: ${operation.source.quote}` : ''})`)
+    lines.push(`- operation ${operation.operationId} ${operation.kind} [${JSON.stringify(operation.outcome)}] (${operation.submittedAt}; ${sourceText(operation.source)})`)
   }
   for (const proposal of value.proposals ?? []) {
     // A pending proposal is NOT an effective change: the line says so in words, because the model
     // reads this text and must not report an unconfirmed reschedule as the promised deadline.
     const status = proposal.status === 'pending' ? 'pending — NOT in effect until the principal confirms' : proposal.status
-    lines.push(`- proposal ${proposal.id}${proposal.matter_id !== undefined ? ` for ${proposal.matter_id}` : ''} ${proposal.kind} [${status}] (change ${JSON.stringify(proposal.change)}; proposed ${proposal.proposed_at}; source ${proposal.source.sessionId}${proposal.source.eventId !== undefined ? `/${proposal.source.eventId}` : ''}${proposal.source.quote !== undefined ? `: ${proposal.source.quote}` : ''}${proposal.resolution_operation_id !== undefined ? `; resolution ${proposal.resolution_operation_id}` : ''})`)
+    lines.push(`- proposal ${proposal.id}${proposal.matter_id !== undefined ? ` for ${proposal.matter_id}` : ''} ${proposal.kind} [${status}] (change ${JSON.stringify(proposal.change)}; proposed ${proposal.proposed_at}; source ${sourceText(proposal.source)}${proposal.resolution_operation_id !== undefined ? `; resolution ${proposal.resolution_operation_id}` : ''})`)
   }
   if (value.source !== undefined) {
     lines.push(`- source ${value.source.sessionId}${value.source.eventId !== undefined ? `/${value.source.eventId}` : ''}${value.source.quote !== undefined ? `: ${value.source.quote}` : ''}`)
@@ -283,7 +275,7 @@ export function operatingTool(ctx: Context) {
                 kind: operation.kind,
                 submittedAt: receipt.submittedAt,
                 outcome: receipt.outcome,
-                source: operation.source,
+                ...(operation.source !== undefined ? { source: operation.source } : {}),
               })),
             }
           }
@@ -294,7 +286,7 @@ export function operatingTool(ctx: Context) {
             return {
               action,
               summary: `Receipt ${receipt.operationId} on ${receipt.matterId || 'no matter'}:`,
-               source: operation.source,
+              ...(operation.source !== undefined ? { source: operation.source } : {}),
               receipt: { operationId: receipt.operationId, matterId: receipt.matterId, submittedAt: receipt.submittedAt, outcome: receipt.outcome },
             }
           }
