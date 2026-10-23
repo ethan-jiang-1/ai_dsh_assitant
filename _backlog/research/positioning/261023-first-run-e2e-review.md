@@ -155,3 +155,18 @@ Day-0 dock 卡与首页的「两张首开面」（计划说不需要第二张卡
 | ⑤ eval 收紧 | **进行中**：`answer-max-question-marks` 2→1，新增 `answer-max-matches`（「我可以/我来/要不要我」≤1）。quote PASS；sales 首跑因答案含 2 个问句 FAIL（真实违反合同），manual v20 + `management-breakdown` 已加「另一个缺口写进页的缺数行，不追问第二次」，sales 复跑待收。 |
 
 **新增缺陷（本轮）**：审批卡在页面动作成功后不刷新（已加房间轮询）；`就这么办` 的语义现在真的批准备忘，不再是纯路由。
+
+### 收盘（`840ba37`）
+
+- **①** `loop-probe` 真跑 PASS：`homeFirstScreen/homeCopyZh/noRoomJargon` 全 true、`entry=home-input`、`pageSeconds=37`、exit 0；
+  `projection-selection` PASS（首页「看依据」读到 quote + `simulated-session-a`/`simulated-event-a`）。桌面系探针只加了
+  共享 `openBoard` 入口并语法检查；**各自的种子 home/回放全链仍未逐个真跑**。
+- **②** 「就这么办」真跑让模型 `promote_page` 成功（备忘 stable）+ 改核对点；**首页审批卡 160s 仍显示旧计数**，
+  已加动作后 3 分钟房间轮询。重载后卡片正确消失（`ux-e2e-approve-reload`）；动态复验因第二 home 的**重复备忘草稿**
+  把模型拖进搜索（step 41 未收）而阻断，如实记为未完成。
+- **③** `debug-flag` 4 案 PASS（默认关 / `?debug=1` / `#debug=1` / localStorage）。**注册级开/关**仍缺 entry 的
+  DOM+store harness 用例。
+- **④** `desk-eight-matters-brief-list` 场景录制并比对 PASS（8 行 + 两个出口），`snapshots/` 场景数 8。
+- **⑤** eval 收紧到 1 个问号 + 1 个动作（`answer-max-matches`）。首跑 sales FAIL（2 个问号，真实违约）；manual v20 +
+  `management-breakdown` 加「其余缺口写进页的缺数行」后 **5/5 全 PASS**（sales 61s、quote、price、contract、weekly 36s）。
+- 门禁：`pnpm test` **981** / `pnpm verify` **44**；提交 `840ba37`。
