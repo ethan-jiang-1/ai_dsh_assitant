@@ -50,6 +50,15 @@ describe('evaluateTask', () => {
     expect(with_.passed).toBe(true)
   })
 
+  it('answer-max-matches: one proposed action at most', () => {
+    const task = { checks: [{ kind: 'answer-max-matches', pattern: '我可以|我来|要不要我', max: 1 }] }
+    const one = evaluateTask(task, { toolCalls: [], answerText: '我可以把这页发给你。' })
+    expect(one.passed).toBe(true)
+    const two = evaluateTask(task, { toolCalls: [], answerText: '我可以发给你。要不要我顺便约一下？' })
+    expect(two.passed).toBe(false)
+    expect(two.reasons.join(' ')).toContain('one proposed action')
+  })
+
   it('first-answer contract: length, one question, and a page pointer', () => {
     const task = TASKS.find(entry => entry.id === 'first-answer-quote')
     const short = evaluateTask(task, {

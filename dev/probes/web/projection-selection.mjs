@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// K2 evidence probe: matter selection + evidence read-back on the live projection panel.
+// K2 evidence probe: the one-page home's L1 basis (quote + source) on the live panel.
 //
 // Rewritten 2026-10-10 onto cdp-driver (K1/K2 accepted-limitation item ⑤): the previous
 // shape ran its assertion as a webui-shots `--eval` promise, but shots treats a thrown or
@@ -22,29 +22,32 @@ if (handle.failed !== undefined) {
 const { evaluate, consoleProblems, exceptions } = handle
 const problems = () => ({ consoleProblems, exceptions })
 
-// Readiness: the desk panel with the fixture matter (回款 A), then click its card.
-let clicked = false
-for (let i = 0; i < 40 && !clicked; i++) {
-  clicked = await evaluate(`(() => {
-    const root = document.querySelector('[data-assistant-operating-desk]');
-    const button = [...(root?.querySelectorAll('button') ?? [])].find(b => (b.textContent ?? '').includes('回款 A'));
-    if (button === undefined) return false;
-    button.click(); return true;
+// Readiness: the one-page home with the fixture matter (回款 A), then open its basis drawer.
+let ready = false
+for (let i = 0; i < 40 && !ready; i++) {
+  ready = await evaluate(`(() => {
+    const root = document.querySelector('[data-assistant-one-page-home]');
+    if (root === null) return false;
+    const text = root.textContent ?? '';
+    if (!text.includes('回款 A')) return false;
+    const basis = [...root.querySelectorAll('button')].find(b => (b.textContent ?? '').trim() === '看依据');
+    if (basis === undefined) return false;
+    basis.click(); return true;
   })()`) === true
-  if (!clicked) await sleep(500)
+  if (!ready) await sleep(500)
 }
-if (!clicked) {
+if (!ready) {
   handle.close()
-  console.error(`FAIL matter list readiness: 回款 A never appeared within 20s ${JSON.stringify(problems())}`)
+  console.error(`FAIL home readiness: 回款 A / 看依据 never appeared within 20s ${JSON.stringify(problems())}`)
   process.exit(1)
 }
 
-// The selected evidence must read back in the detail pane (quote + source session/event).
+// L1 must read back the quote AND its provenance (source session/event).
 await sleep(600)
 const readback = await evaluate(`(() => {
-  const root = document.querySelector('[data-assistant-operating-desk]');
+  const root = document.querySelector('[data-assistant-one-page-home]');
   const text = root?.innerText ?? '';
-  return { quoteVisible: text.includes('客户提出延期'), sourceVisible: text.includes('simulated-session-a / simulated-event-a') };
+  return { quoteVisible: text.includes('客户提出延期'), sourceVisible: text.includes('simulated-session-a') && text.includes('simulated-event-a') };
 })()`)
 if (readback?.quoteVisible !== true || readback?.sourceVisible !== true) {
   handle.close()

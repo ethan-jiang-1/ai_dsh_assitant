@@ -24,7 +24,7 @@ import { tmpDir } from '../../env/tmp.mjs'
 import { sessionSnapshot, sessionsCreatedBetween } from '../../lib/session-logs.mjs'
 import { launchCdpBrowser } from './cdp-driver.mjs'
 import { option, sleep } from './probe-utils.mjs'
-import { clickByText, deskText, pollUntil } from './dialogue.mjs'
+import { clickByText, deskText, openBoard, pollUntil } from './dialogue.mjs'
 import { countSessions, registerProbeTeardown, startProbeService, stopStaleProbeServices } from './probe-service.mjs'
 
 const repoRoot = join(fileURLToPath(new URL('.', import.meta.url)), '..', '..', '..')
@@ -82,7 +82,9 @@ const deskRootState = `(() => {
   return root === null ? null : { scrollTop: root.scrollTop, scrollWidth: root.scrollWidth, clientWidth: root.clientWidth };
 })()`
 
-// 相位 1：夹具态挂载（模拟资料横幅 + 回款 A 可见）。启动竞态按 desk-process-e2e 教训轮询。
+// 相位 1：从一页纸进完整看板（夹具态）。
+const boardEntry = await openBoard(evaluate, sleep)
+if (boardEntry !== 'board' && boardEntry !== 'already') fail('board-entry', { boardEntry })
 const deskReady = await pollUntil(evaluate, deskText, {
   intervalMs: 700, budget: 120, checkFirst: true,
   isDone: text => text !== null && text.includes('回款 A') && text.includes('模拟资料'),

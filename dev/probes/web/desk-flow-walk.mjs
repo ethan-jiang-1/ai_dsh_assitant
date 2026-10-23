@@ -33,7 +33,7 @@ import { devHome } from '../../env/home.mjs'
 import { sessionSnapshot, sessionsCreatedBetween } from '../../lib/session-logs.mjs'
 import { option, sleep } from './probe-utils.mjs'
 import {
-  clickByText, conversationActive, deskPresent, deskText, dismissApproval, pasteUntilSendable,
+  clickByText, conversationActive, deskPresent, deskText, dismissApproval, openBoard, pasteUntilSendable,
   pollUntil, sendClick, sendPresent, turnStopped,
 } from './dialogue.mjs'
 
@@ -97,6 +97,8 @@ const desk = await pollUntil(evaluate, deskText, {
 })
 if (desk === null || desk.includes('你的桌面') === false) { fail('desk-first-screen', { note: '桌面未挂载' }); await browser.settle(); process.exit() }
 await record('1-desk-first-screen')
+const boardEntry = await openBoard(evaluate, sleep)
+if (boardEntry !== 'board' && boardEntry !== 'already') fail('board-entry', { boardEntry })
 const mattersBefore = await evaluate(`[...document.querySelectorAll('[data-assistant-operating-desk] button.dsha-card')].map(b => (b.textContent ?? '').slice(0, 40))`)
 pass('desk-first-screen', { matters: mattersBefore?.length ?? 0 })
 

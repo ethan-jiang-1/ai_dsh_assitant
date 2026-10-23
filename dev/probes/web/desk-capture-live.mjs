@@ -26,7 +26,8 @@ import { mkTmpDir } from '../../env/tmp.mjs'
 import { readEvents, sessionLogs } from '../../lib/session-logs.mjs'
 import { observe } from '../../eval/run.mjs'
 import { launchCdpBrowser } from './cdp-driver.mjs'
-import { clickByText, deskPresent, deskText, pollUntil } from './dialogue.mjs'
+import { clickByText, deskPresent, deskText, openBoard, pollUntil } from './dialogue.mjs'
+import { sleep } from './probe-utils.mjs'
 import { option } from './probe-utils.mjs'
 import { registerProbeTeardown, startProbeService, stopStaleProbeServices } from './probe-service.mjs'
 
@@ -107,6 +108,8 @@ try {
   verdict.consoleProblems = consoleProblems.slice(0, 10)
   verdict.exceptions = exceptions.slice(0, 10)
 
+  const boardEntry = await openBoard(evaluate, sleep)
+  if (boardEntry !== 'board' && boardEntry !== 'already') fail('board-entry', { boardEntry })
   const deskReady = await pollUntil(evaluate, deskText, { intervalMs: 700, budget: 120, checkFirst: true, isDone: text => text !== null && text.includes('合同 NB-02') })
   if (deskReady === null) fail('desk-mount', { lastState: String(deskReady).slice(0, 200) })
   pass('desk-mount', {})

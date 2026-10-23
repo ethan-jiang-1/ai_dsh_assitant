@@ -19,7 +19,7 @@
 export const AGENTS_FILE_NAME = 'AGENTS.md'
 
 /** Version of the generated manual; bump when the generated content changes meaningfully. */
-export const HOME_MANUAL_VERSION = 19
+export const HOME_MANUAL_VERSION = 20
 
 /** The version marker stamped as the file's first line (an HTML comment: invisible when rendered). */
 export const HOME_MANUAL_MARKER = `<!-- home-manual v${String(HOME_MANUAL_VERSION)} -->`
@@ -157,8 +157,10 @@ turn, land the work as a **one-page brief** and keep the chat message short:
   headings, no tables, no section-by-section essay in the first reply. Depth is there when they ask
   for it.
 - **Draft first, don't interrogate.** From one sentence, make the best draft you can with explicit
-  assumptions. Ask at most one question, and only when the answer changes the verdict. Never open
-  with a questionnaire or a list of data you need.
+  assumptions. Ask at most one question, and only when the answer changes the verdict. When two
+  facts are missing, put both in the page's missing line and ask only the one that changes the
+  verdict — never two questions in one reply. Never open with a questionnaire or a list of data you
+  need.
 - **One action, if any.** End with one concrete next step, not a menu.
 - **Say what you don't know.** The page's "missing" line is part of the answer; never fill a gap
   with an invented number.

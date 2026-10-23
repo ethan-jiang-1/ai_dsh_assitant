@@ -180,6 +180,16 @@ export function evaluateTask(task, observed) {
         if (count > max) reasons.push(`final answer carries ${String(count)} question marks (max ${String(max)}) — one question at most`)
         break
       }
+      case 'answer-max-matches': {
+        // A floor for "one proposed action": count offer phrases, not recommendations. The
+        // contract says one action at most; a regex cannot read intent, so this is a floor only.
+        const max = Number(check.max)
+        if (!Number.isFinite(max) || max < 0) throw new Error('answer-max-matches check requires a non-negative max')
+        const pattern = new RegExp(String(check.pattern), 'giu')
+        const count = (observed.answerText.match(pattern) ?? []).length
+        if (count > max) reasons.push(`final answer carries ${String(count)} matches for /${check.pattern}/ (max ${String(max)}) — one proposed action at most`)
+        break
+      }
       case 'tool-arguments-match': {
         // The detail belongs in the page/memo, not the chat. This reads the model's own write
         // arguments (the artifact it produced), so a short chat reply cannot hide an empty page.

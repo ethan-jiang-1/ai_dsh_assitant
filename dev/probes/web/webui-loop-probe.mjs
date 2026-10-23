@@ -4,14 +4,15 @@
 // the first-open surface this repo promises, and — with --ask — drive the
 // full product loop (type a real question, send it, wait for the real reply).
 //
-// WHAT THE FIRST SCREEN IS (rewritten 2026-10-11, BUG-010): the 唯一桌面 decision made the
-// ledger desk page the default main area, so the first-open surface is
-// `[data-assistant-operating-desk]` — not a conversation. The composer, the vendor hero and our
-// first-mile strip live INSIDE a conversation, so this probe now asserts the desk first, then
-// (only when a turn is requested, because that is what creates a session) walks in through the
-// desk's own door 「＋ 交代新事项」 and asserts the composer and the strip there. Before this the
-// probe red-flagged a perfectly healthy instance: composerMounted/firstMileStripShown/zhHero were
-// false by design on the desk page.
+// WHAT THE FIRST SCREEN IS (rewritten 2026-10-23): the default main area is the one-page home
+// `[data-assistant-one-page-home]` — "今天", "它记下的", and either the fresh ask
+// "最近哪件事让你拿不准" or the current page. With --ask the probe types into
+// `.dsha-home-input input`, clicks "交给它", and waits for `[data-one-page]` /
+// `[data-one-page-fragment]`; that is the first-use loop. The desk path (composer + first-mile
+// strip + follow-up/walk) remains for older desk compositions; the home path does not support
+// follow-up/walk. Before 2026-10-11 this probe red-flagged a healthy instance because the desk
+// was the first screen; the same failure mode now applies to the home selectors, which is why
+// this file is adapted with the surface, not after it.
 //
 // Why this exists: the 2026-10-01 first-open UX campaign rehearsed exactly
 // this loop by hand — six separate `pnpm shots` invocations with fragile
@@ -108,15 +109,19 @@ const sessionsBefore = sessionSnapshot(sessionHome);
 
 const verdict = {
   booted: false,
-  // First-open surface (product-owned promises): the ledger desk page is the default main area
-  // since the 唯一桌面 decision (2026-10-11) — these four describe THAT screen.
+  // First-open surface (product-owned promises): the default main area is the one-page home
+  // since 2026-10-23 — these describe THAT screen. deskFirstScreen/deskCopyZh stay as aliases for
+  // older consumers; homeFirstScreen/homeCopyZh are the current names.
+  homeFirstScreen: false,
+  homeCopyZh: null,
   deskFirstScreen: false,
   deskCopyZh: null,
   noRoomJargon: null,
   workspaceReady: null,
-  // Conversation surface — asserted after the desk's own door is used, and only when a turn runs
-  // (entering a conversation creates a session, so a surface-only run stays side-effect-free).
+  // Conversation surface — asserted only when a turn runs through the desk path (entering a
+  // conversation creates a session, so a surface-only run stays side-effect-free).
   entry: undefined,
+  homeInput: null,
   composerMounted: null,
   firstMileStripShown: null,
   // --ask loop:
@@ -166,26 +171,31 @@ try {
   // it absent on a healthy home (live DOM showed the strip rendered). Any
   // marker still failing may be mid-hydration; only a failure that persists
   // the full budget is a real failure.
-  const deskSurface = `(() => {
-    const root = document.querySelector('[data-assistant-operating-desk]');
+  const homeSurface = `(() => {
+    const root = document.querySelector('[data-assistant-one-page-home]');
     const text = document.body.textContent ?? '';
+    const page = root === null ? null : root.querySelector('[data-one-page], [data-one-page-fragment]');
+    const ask = text.includes('最近哪件事让你拿不准');
+    const steady = text.includes('今天没有要你拍板的');
     return {
-      desk: root !== null && (root.textContent ?? '').includes('你的桌面'),
-      deskCopy: text.includes('重新读取') && text.includes('交代新事项'),
+      home: root !== null && (root.textContent ?? '').includes('今天'),
+      homeCopy: root !== null && text.includes('它记下的') && (ask || steady || page !== null),
       roomJargon: text.includes('三室'),
       workspaceStuck: text.includes('Choose a workspace to start')
         || text.includes('Unable to create default workspace'),
     };
   })()`
-  const surface = await pollUntil(evaluate, deskSurface, {
+  const surface = await pollUntil(evaluate, homeSurface, {
     intervalMs: 1500, budget: 8, checkFirst: true,
-    isDone: state => state?.desk === true && state?.deskCopy === true
+    isDone: state => state?.home === true && state?.homeCopy === true
       && state?.roomJargon === false && state?.workspaceStuck === false,
   });
   verdict.workspaceReady = surface?.workspaceStuck === false;
   verdict.noRoomJargon = surface?.roomJargon === false;
-  verdict.deskFirstScreen = surface?.desk === true;
-  verdict.deskCopyZh = surface?.deskCopy === true;
+  verdict.homeFirstScreen = surface?.home === true;
+  verdict.homeCopyZh = surface?.homeCopy === true;
+  verdict.deskFirstScreen = verdict.homeFirstScreen;
+  verdict.deskCopyZh = verdict.homeCopyZh;
 
   // 进会话（只在要跑回合时）：首屏可能有「预览版说明」模态，先点「继续」再走桌面自己的门——
   //「＋ 交代新事项」（它同时也是交代首事臂的入口），没有它才退到「新建会话」。进了之后才判 composer 与首开引导条。
@@ -196,22 +206,25 @@ try {
       return 'none';
     })()`);
     await sleep(600);
-    verdict.entry = await evaluate(`(() => {
-      const root = document.querySelector('[data-assistant-operating-desk]');
-      const door = ${buttonByText('交代新事项', { exact: false, within: '[data-assistant-operating-desk]' })};
-      if (door !== undefined) { door.click(); return 'desk-intake' }
-      const fresh = ${buttonByText('新建会话', { exact: false })};
-      if (fresh !== undefined) { fresh.click(); return 'new-session' }
-      return 'no-entry';
-    })()`);
-    const composerMounted = await pollUntil(evaluate, `document.querySelector('[data-composer-input="true"]') !== null`, { checkFirst: true, budget: 40 })
-    verdict.composerMounted = composerMounted === true;
-    // 首开引导条是我们自己的中文文案，两种变体都算在场（全新 home 是「第一次来」，有数据的是
-    // 「这是你的一把手桌面」）——按 home 新旧二选一判会把健康 home 判红。
-    verdict.firstMileStripShown = await evaluate(`(() => {
-      const text = document.body.textContent ?? '';
-      return text.includes('第一次来') || text.includes('这是你的一把手桌面');
-    })()`) === true;
+    const atHome = await evaluate(`document.querySelector('.dsha-home-input input') !== null`);
+    verdict.homeInput = atHome === true;
+    if (atHome === true) {
+      verdict.entry = 'home-input';
+    } else {
+      verdict.entry = await evaluate(`(() => {
+        const door = ${buttonByText('交代新事项', { exact: false, within: '[data-assistant-operating-desk]' })};
+        if (door !== undefined) { door.click(); return 'desk-intake' }
+        const fresh = ${buttonByText('新建会话', { exact: false })};
+        if (fresh !== undefined) { fresh.click(); return 'new-session' }
+        return 'no-entry';
+      })()`);
+      const composerMounted = await pollUntil(evaluate, `document.querySelector('[data-composer-input="true"]') !== null`, { checkFirst: true, budget: 40 })
+      verdict.composerMounted = composerMounted === true;
+      verdict.firstMileStripShown = await evaluate(`(() => {
+        const text = document.body.textContent ?? '';
+        return text.includes('第一次来') || text.includes('这是你的一把手桌面');
+      })()`) === true;
+    }
   }
 
   // The full product loop. The composer is a framework contenteditable that
@@ -315,7 +328,38 @@ try {
     return result;
   };
 
-  if (ask !== undefined && verdict.composerMounted === true) {
+  const askOnHome = async (text) => {
+    const startedAt = Date.now()
+    const sent = await evaluate(`(() => {
+      const input = document.querySelector('.dsha-home-input input');
+      if (input === null) return 'no-input';
+      const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+      setter.call(input, ${JSON.stringify(text)});
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      const button = [...document.querySelectorAll('button')].find(b => (b.textContent ?? '').trim() === '交给它');
+      if (button === undefined) return 'no-submit';
+      button.click();
+      return 'sent';
+    })()`)
+    const page = await pollUntil(evaluate, `(() => {
+      const node = document.querySelector('[data-one-page], [data-one-page-fragment]');
+      return node === null ? null : (node.textContent ?? '').slice(0, 6000);
+    })()`, { intervalMs: 1500, budget: 160, checkFirst: true, isDone: value => typeof value === 'string' && value.trim().length > 0 })
+    return {
+      question: text,
+      sent,
+      pageSeconds: Math.round((Date.now() - startedAt) / 1000),
+      pageText: String(page ?? ''),
+      errorBubble: [],
+    }
+  }
+
+  if (ask !== undefined && verdict.homeInput === true) {
+    verdict.ask = await askOnHome(ask)
+    if (followUp !== undefined || walk !== undefined) {
+      verdict.unsupported = 'follow-up/walk need the desk path; the home probe covers the first page only'
+    }
+  } else if (ask !== undefined && verdict.composerMounted === true) {
     verdict.ask = await runTurn(ask);
     // Multi-turn continuity (P2): a follow-up turn in the SAME session must
     // reach the prior turn's context without re-explaining the setup.
@@ -392,15 +436,21 @@ try {
 console.log(JSON.stringify(verdict, null, 2));
 let exitCode = 0;
 if (verdict.booted === false || verdict.error !== undefined) exitCode = 1;
-if (verdict.deskFirstScreen === false || verdict.deskCopyZh === false) exitCode = 1;
+if (verdict.homeFirstScreen === false || verdict.homeCopyZh === false) exitCode = 1;
 if (verdict.noRoomJargon === false || verdict.workspaceReady === false) exitCode = 1;
-if (wantsTurn && (verdict.composerMounted !== true || verdict.firstMileStripShown !== true)) exitCode = 1;
-const askOk = verdict.ask !== undefined
+if (wantsTurn && verdict.homeInput !== true
+  && (verdict.composerMounted !== true || verdict.firstMileStripShown !== true)) exitCode = 1;
+const askOkHome = verdict.ask !== undefined && verdict.ask.sent === 'sent'
+  && typeof verdict.ask.pageSeconds === 'number'
+  && typeof verdict.ask.pageText === 'string' && verdict.ask.pageText.trim().length > 0;
+const askOkDesk = verdict.ask !== undefined
   && verdict.ask.pasted === 'pasted' && verdict.ask.composerReady === true
   && verdict.ask.sent === 'sent' && typeof verdict.ask.replySeconds === 'number'
   && verdict.ask.replyTail.trim().length > 0
   && Array.isArray(verdict.ask.errorBubble) && verdict.ask.errorBubble.length === 0;
-if (ask !== undefined && !askOk) exitCode = 1;
+if (ask !== undefined && verdict.homeInput === true && !askOkHome) exitCode = 1;
+if (ask !== undefined && verdict.homeInput !== true && !askOkDesk) exitCode = 1;
+if (verdict.unsupported !== undefined) exitCode = 1;
 if (followUp !== undefined && (verdict.followUp === undefined
   || verdict.followUp.sent !== 'sent' || typeof verdict.followUp.replySeconds !== 'number')) exitCode = 1;
 if (walk !== undefined && (verdict.walkTurns ?? []).some(turn =>

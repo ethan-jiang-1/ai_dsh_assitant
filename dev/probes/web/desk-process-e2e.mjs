@@ -44,7 +44,7 @@ import { deriveReplayScript, parseSessionLog } from '../../../vendor/dsh/package
 import { tmpDir } from '../../env/tmp.mjs'
 import { launchCdpBrowser } from './cdp-driver.mjs'
 import { option, sleep } from './probe-utils.mjs'
-import { deskText, pollUntil } from './dialogue.mjs'
+import { deskText, openBoard, pollUntil } from './dialogue.mjs'
 import { runClaim } from './desk-process-e2e-claim.mjs'
 import { runFlow } from './desk-process-e2e-flow.mjs'
 import { runWake } from './desk-process-e2e-wake.mjs'
@@ -175,6 +175,8 @@ const { evaluate, consoleProblems, exceptions } = browser
 
 // 相位 1：桌面挂载 + 种子事项可见（投影 live 读到 m-1）。启动竞态下首帧可能是
 // loading/disconnected 横幅——轮询到 m-1 出现或超时，不把竞态当失败。
+const boardEntry = await openBoard(evaluate, sleep)
+if (boardEntry !== 'board' && boardEntry !== 'already') fail('board-entry', { boardEntry })
 const deskReady = await pollUntil(evaluate, deskText, {
   intervalMs: 700, budget: 120, checkFirst: true,
   isDone: text => text !== null && text.includes('合同 NB-02 第二期款到账核对') && text.includes('1 件在办'),

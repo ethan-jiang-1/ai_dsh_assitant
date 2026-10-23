@@ -141,3 +141,17 @@ Day-0 dock 卡与首页的「两张首开面」（计划说不需要第二张卡
 - 只有 2 个 live home + 1 个 eight 种子；没有真人可用性样本；「30 秒读懂」是设计判断，不是实测。
 - 第二个 live home 的回合停在一个模型自发的沙箱审批（清理重复备忘），页与审批卡在 L0 可见；
   这也是「在途轮询」要解决的等待面。
+
+## 8. 推进记录（2026-10-23，用户「继续推动往前」）
+
+按 §6 的 P1 顺序推进；本节的证据在提交说明与 `.tmp/` 截图里，不另开卡。
+
+| P1 | 状态 | 证据 / 剩余 |
+|---|---|---|
+| ① 探针适配 | **部分完成**：`webui-loop-probe` 首屏改为 `[data-assistant-one-page-home]`，`--ask` 走首页输入并在 `[data-one-page]` 出现时返回。真跑：`homeFirstScreen/homeCopyZh/noRoomJargon` 全 true，`entry=home-input`，`pageSeconds=37`，exit 0。`projection-selection` 改为首页 + 看依据（quote + source），真跑 PASS。`desk-flow-walk`/`continuity`/`capture`/`projection-live`/`process-e2e` 已加共享 `openBoard`（全部→完整看板）入口并语法检查；**尚未逐个真跑**（需要各自的种子 home/回放服务）。 |
+| ② 就这么办 | **语义已接、卡片刷新待复验**：页面动作文本改为「把这页的决策备忘批准为 stable（本人已明确同意），记下结果，按复查日设核对点」。真跑：模型 `assistant_reflect promote_page` 成功、备忘 stable、核对点 2026-11-06，turn completed。**但首页审批卡 160s 仍显示「1 页草稿」**——房间数据没有随回合刷新。已加「动作在途后 3 分钟内每 4s `reloadDesk()`」；动态复验待跑。 |
+| ③ 调试 flag | **部分完成**：flag 抽成 `chrome/debug-flag.ts`，4 案（默认关/query/hash/localStorage）PASS。`conversation.view id=assistant-debug` 的注册开/关仍无 entry 级断言（需要 DOM + store stub 的 entry harness）。 |
+| ④ 交互 web-face | **完成**：新增 `desk-eight-matters-brief-list` 场景（同种子，点「全部（8）」），录制后比对 PASS；`snapshots/README.md` 场景数 8。 |
+| ⑤ eval 收紧 | **进行中**：`answer-max-question-marks` 2→1，新增 `answer-max-matches`（「我可以/我来/要不要我」≤1）。quote PASS；sales 首跑因答案含 2 个问句 FAIL（真实违反合同），manual v20 + `management-breakdown` 已加「另一个缺口写进页的缺数行，不追问第二次」，sales 复跑待收。 |
+
+**新增缺陷（本轮）**：审批卡在页面动作成功后不刷新（已加房间轮询）；`就这么办` 的语义现在真的批准备忘，不再是纯路由。

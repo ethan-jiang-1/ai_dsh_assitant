@@ -254,12 +254,12 @@ DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得
 **只报测得到的**——日志没有的字段（如 preset）不报，数字全来自事件计数。
 
 **四个真机探针与输入观察（命令表上的深判据在这里）**：
-`pnpm loop-probe '<URL>' --ask '<问句>'`（首用闭环：**当前仍按旧桌面首屏断言，待适配一页纸**；在此之前它不能作为首开证据——见 [E2E 评审](../_backlog/research/positioning/261023-first-run-e2e-review.md)。真发问真等回复，JSON 判决 + 终态截图，**判决带 sessionId**（会话目录快照差集取，不猜；`--home` 旗标解析同其它 dev 工具）；`--ask` 会真建会话——先把目标实例起在一次性 home，探针本身不隔离 home）、
-`pnpm desk-walk '<URL>' [--home <dir>]`（处理流真机走查：首屏桌面→处理一件事→一句进展→返回不变量→交代新事，
+`pnpm loop-probe '<URL>' --ask '<问句>'`（首用闭环：**首屏=一页纸**——「今天」/「它记下的」/空态一问或当前页；`--ask` 走首页输入、点「交给它」、等 `[data-one-page]` 出现，JSON 判决带 `homeFirstScreen`/`homeInput`/`pageSeconds`/`pageText` 与 `sessionId`（会话目录快照差集取，不猜；`--home` 旗标解析同其它 dev 工具）；`--follow-up`/`--walk` 仍走桌面/会话路径，首页路径返回 unsupported；`--ask` 会真建会话——先把目标实例起在一次性 home）、
+`pnpm desk-walk '<URL>' [--home <dir>]`（处理流真机走查：首屏一页纸→「全部」→「完整看板」→处理一件事→一句进展→返回不变量→交代新事，
 产出屏幕文本+截图供人判话术/层级，**进会话相位各记 sessionId**；`--home` 才能核账本身份与「回来⇒无待确认」）、
-`pnpm projection-live [--home <dir>]`（live 补证：断连/重连、3 次页面重载会话不增殖、420×900 窄视口
+`pnpm projection-live [--home <dir>]`（live 补证：从一页纸进完整看板后，断连/重连、3 次页面重载会话不增殖、420×900 窄视口
 选择保留与无横向溢出、滚动位置保留；自编排共享 probe home，无模型回合）、
-`pnpm projection-selection '<URL>'`（交互证据门：投影面板点选事项并核对详情里的 quote 与 Session/event 读回；
+`pnpm projection-selection '<URL>'`（交互证据门：一页纸点「看依据」并核对 quote 与 source Session/event 读回；
 实例须带 `dev/fixtures/desk-projection/eight-matters.json` 夹具；无模型、无截图）、
 `pnpm observe [--home <dir>]`（输入边界 30 天观察读数：A 自发投递 / B 时长 / C 入口后的操作；
 口径、剔除规则与每周快照落 `_backlog/research/usage/`）。

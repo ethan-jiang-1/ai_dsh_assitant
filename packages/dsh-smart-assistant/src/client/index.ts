@@ -50,6 +50,7 @@ import { returnToConversation } from './chrome/navigation'
 import { bindVikiEnv } from './rooms/viki-data-io'
 import { bindClientRequire, clientRequire } from './chrome/runtime'
 import { ensureThemeVars } from './chrome/theme'
+import { debugEnabled } from './chrome/debug-flag'
 import { HomeSurface } from './projection/home-surface'
 import { DebugPanel } from './debug/debug-panel'
 import { createDeskSurface } from './projection/desk-surface'
@@ -67,27 +68,6 @@ import { en as firstMileEn, zh as firstMileZh } from './chrome/locales'
 
 /** Slots this face occupies (single-occupant, root-scope, declared by the sidebar). */
 const inject = ['slots', 'sidebarRightTabs', 'sidebarRight', 'sessions', 'remote', 'remote.agentPresets', 'remote.workspaceFiles', 'remote.session', 'remote.schedule', 'layout', 'connection', 'uiSession', 'workspaces', 'uiWorkspace', 'locale']
-
-/**
- * Whether the developer surface is switched on. The flag is read once at apply time — enabling
- * it is a reload, which is right for a debug tool. Two exits: the URL (`?debug=1`, handy for
- * probes) and the localStorage key (a dev home can keep it on across reloads).
- * @returns true when the L2 debug panel should register.
- */
-function debugEnabled(): boolean {
-  try {
-    if (typeof location !== 'undefined') {
-      if (new URLSearchParams(location.search).get('debug') === '1') return true
-      // The launch token is consumed and the page redirects to `/`; a fragment survives that
-      // redirect where the query does not. `#debug=1` is the probe-friendly exit.
-      if (location.hash.includes('debug=1')) return true
-    }
-    return typeof localStorage !== 'undefined' && localStorage.getItem('dsh-assistant-debug') === '1'
-  } catch {
-    return false
-  }
-}
-
 
 /**
  * Build the plugin surface and the brand occupants against a module-table require.

@@ -36,7 +36,8 @@ import {
 import { launchCdpBrowser } from './cdp-driver.mjs'
 import { option } from './probe-utils.mjs'
 import { registerProbeTeardown, startProbeService, stopStaleProbeServices } from './probe-service.mjs'
-import { conversationActive, deskText, dismissApproval, pollUntil, turnRunning, turnStopped } from './dialogue.mjs'
+import { conversationActive, deskText, dismissApproval, openBoard, pollUntil, turnRunning, turnStopped } from './dialogue.mjs'
+import { sleep } from './probe-utils.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..')
 const fixturePath = join(repoRoot, 'dev', 'fixtures', 'eval-continuity', 'seed-ledger.json')
@@ -108,6 +109,8 @@ try {
   verdict.consoleProblems = consoleProblems.slice(0, 10)
   verdict.exceptions = exceptions.slice(0, 10)
 
+  const boardEntry = await openBoard(evaluate, sleep)
+  if (boardEntry !== 'board' && boardEntry !== 'already') fail('board-entry', { boardEntry })
   const deskReady = await pollUntil(evaluate, deskText, {
     intervalMs: 700, budget: 120, checkFirst: true, eachCycle: dismissApproval,
     isDone: text => text !== null && text.includes('XR-09'),

@@ -24,6 +24,37 @@ export const deskPresent = `document.querySelector('[data-assistant-operating-de
 
 export const deskText = `(() => { const root = document.querySelector('[data-assistant-operating-desk]'); return root === null ? null : root.innerText })()`
 
+/**
+ * Open the full board from the one-page home: "全部" -> "完整看板". Idempotent: a board already
+ * mounted (direct deep-link or an older composition) returns 'already'. The probes that assert
+ * board internals call this after launch; a page with no matters has no "全部" link, which is a
+ * genuine failure for those fixtures.
+ * @param {(expression: string) => Promise<any>} evaluate - the CDP driver's evaluate.
+ * @param {(ms: number) => Promise<void>} sleep - the probe-utils sleep.
+ * @returns {'already'|'all'|'board'|'no-all'|'no-board'}
+ */
+export async function openBoard(evaluate, sleep) {
+  if (await evaluate(`document.querySelector('[data-assistant-operating-desk]') !== null`) === true) return 'already'
+  for (let i = 0; i < 30; i++) {
+    if (await evaluate(`document.querySelector('[data-assistant-one-page-home]') !== null`) === true) break
+    await sleep(500)
+  }
+  const all = await evaluate(`(() => {
+    const button = [...document.querySelectorAll('button')].find(b => (b.textContent ?? '').trim().startsWith('全部'));
+    if (button === undefined) return 'no-all';
+    button.click(); return 'all';
+  })()`)
+  if (all !== 'all') return all
+  await sleep(400)
+  const board = await evaluate(`(() => {
+    const button = [...document.querySelectorAll('button')].find(b => (b.textContent ?? '').trim() === '完整看板');
+    if (button === undefined) return 'no-board';
+    button.click(); return 'board';
+  })()`)
+  await sleep(400)
+  return board
+}
+
 export const composerPresent = `document.querySelector('[data-composer-input="true"]') !== null`
 
 /** A conversation took over the main area: the desk unmounted and the composer mounted. */

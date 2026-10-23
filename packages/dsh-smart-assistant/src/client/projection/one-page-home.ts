@@ -22,6 +22,7 @@ import { AssistantBrandMark } from '../chrome/brand'
 import { deriveCaptureView } from '../../domain/desk/desk-capture-view'
 import { humanTime } from '../chrome/format'
 import { patchDesk, useDesk } from '../rooms/room-data-core'
+import { reloadDesk } from '../rooms/room-data-io'
 import type { ProjectionPanelProps } from './projection-panel'
 import type { OperatingMatter } from './operating-projection'
 
@@ -128,6 +129,20 @@ export function OnePageHome(props: ProjectionPanelProps & { onOpenAll: () => voi
     const timer = setInterval(() => { props.surface.lanes.refreshProjection() }, 4000)
     return () => { clearInterval(timer) }
   }, [receipt?.requestId, captureView.phase])
+  // The approval card reads the rooms route, not the projection. A page action can promote a
+  // memo after the projection revision has already moved, so the projection poll's end is not a
+  // safe stopping point: keep reloading the rooms for the turn's realistic tail (observed
+  // 2026-10-23: the memo was promoted, but the card still said "1 draft" after 160s).
+  useEffect(() => {
+    if (receipt === null) return
+    const startedAt = Date.now()
+    const timer = setInterval(() => {
+      reloadDesk()
+      if (Date.now() - startedAt > 180_000) clearInterval(timer)
+    }, 4000)
+    reloadDesk()
+    return () => { clearInterval(timer) }
+  }, [receipt?.requestId])
   const matters = data?.matters ?? []
   const unclaimed = data?.unclaimed ?? []
   const selectedMatter = view.selected?.kind === 'matter'
@@ -212,7 +227,7 @@ export function OnePageHome(props: ProjectionPanelProps & { onOpenAll: () => voi
     matter.evidence.length === 0
       ? [ce('p', { className: 'dsha-home-basis-line' }, '还没有可核对的依据——这一页的判断来自你给的话。')]
       : matter.evidence.slice(0, 5).map(item => ce('p', { key: item.id, className: 'dsha-home-basis-line' },
-        `${item.note}${item.quote !== undefined && item.quote !== item.note ? ` ·「${item.quote}」` : ''}`))
+        `${item.note}${item.quote !== undefined && item.quote !== item.note ? ` ·「${item.quote}」` : ''} · ${item.sessionId}${item.eventId !== undefined ? ` / ${item.eventId}` : ''}`))
   const page = current !== undefined
     ? ce('article', { className: 'dsha-home-page', 'data-one-page': '' },
       ce('div', { className: 'dsha-home-page-head' },
@@ -223,7 +238,7 @@ export function OnePageHome(props: ProjectionPanelProps & { onOpenAll: () => voi
         ? ce('p', { className: 'dsha-home-summary' }, '这一页还没有内容——跟助手说一句，它来补。')
         : ce('p', { className: 'dsha-home-summary' }, current.summary),
       ce('div', { className: 'dsha-home-actions' },
-        ce('button', { className: 'dsha-home-act dsha-home-act-primary', type: 'button', disabled: capturePending, onClick: () => act('就按这页的建议办，记下结果。') }, '就这么办'),
+        ce('button', { className: 'dsha-home-act dsha-home-act-primary', type: 'button', disabled: capturePending, onClick: () => act('就按这页的建议办：把这页的决策备忘批准为 stable（本人已明确同意），记下结果，并按页上的复查日设好核对点。') }, '就这么办'),
         ce('button', { className: 'dsha-home-act', type: 'button', disabled: capturePending, onClick: () => props.surface.lanes.onProcess(current.id) }, '改一改'),
         ce('button', { className: 'dsha-home-act', type: 'button', disabled: capturePending, onClick: () => act('先放着，设一个一周后的复查日。') }, '先放着')),
       ce('button', {
