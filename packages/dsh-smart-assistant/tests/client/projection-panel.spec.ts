@@ -7,9 +7,16 @@ import type { DeskLanes } from '../../src/client/projection/desk-surface'
 import type { ProjectionDownload } from '../../src/client/projection/projection-reader'
 import type { OperatingMatter, OperatingProjection, OperatingReceipt } from '../../src/client/projection/operating-projection'
 import { createProjectionViewStore } from '../../src/client/projection/projection-view'
+import { initUiModeStore } from '../../src/client/chrome/ui-mode'
 import { defineStore } from '@deepseek-ai/dsh-client-store'
 
-bindClientRequire(() => ({ createElement }))
+const react = {
+  createElement,
+  useState: <T,>(initial: T | (() => T)): [T, (next: T) => void] => [typeof initial === 'function' ? (initial as () => T)() : initial, () => {}],
+  useEffect: () => {},
+  useRef: <T,>(value: T): { current: T } => ({ current: value }),
+}
+bindClientRequire(() => react)
 function text(node: unknown): string {
   if (Array.isArray(node)) return node.map(text).join(' ')
   if (typeof node === 'string') return node
@@ -730,5 +737,25 @@ describe('proactive face rows (261018 片 1)', () => {
     expect(tree).toContain('到期 5 天')
     expect(tree).not.toContain('它下次替你看')
     expect(collectAttr(node, 'data-proactive-catalog')).toContain('unavailable')
+  })
+})
+
+describe('simple interface mode', () => {
+  it('keeps the board but hides the activity tab and the proactive rows', () => {
+    const view = createProjectionViewStore(defineStore).create()
+    const value: ProjectionDownload = {
+      status: 'ready',
+      data: {
+        schemaVersion: 2 as const, ledgerId: 'test', revision: 1, receipts: [], unclaimed: [],
+        matters: [{ id: 'a', title: '事项A', status: 'active', summary: '', responsible: '', revision: 1, times: {}, proposals: [], evidence: [] }],
+      },
+    }
+    initUiModeStore({ getItem: () => 'simple', setItem: () => {} })
+    const output = text(ProjectionPanel(panelProps(value, view)))
+    expect(output).toContain('事项A')
+    expect(output).not.toContain('流水')
+    expect(output).not.toContain('它替你看过')
+    expect(output).not.toContain('让它替你盯')
+    initUiModeStore({ getItem: () => 'standard', setItem: () => {} })
   })
 })

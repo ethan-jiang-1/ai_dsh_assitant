@@ -2,6 +2,7 @@
 import { createElement as ce } from '../chrome/runtime'
 import { AssistantBrandMark } from '../chrome/brand'
 import { canProcess, type CaptureStatus } from '../../domain/desk/desk-process'
+import { useUiMode } from '../chrome/ui-mode'
 import { deriveCaptureView } from '../../domain/desk/desk-capture-view'
 import { countPendingProposals, deriveActivityView } from '../../domain/desk/desk-activity-view'
 import { humanTime, localDateKey, localDateLabel, localTimeLabel } from '../chrome/format'
@@ -199,9 +200,11 @@ function timeParts(times: { readonly promisedDeadline?: string; readonly forecas
  */
 export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof ce> {
   const lanes = props.surface.lanes
+  const simpleMode = useUiMode() === 'simple'
   const download = props.useProjection(value => value)
   const data = download.data
   const view = props.useStore(value => value)
+  const effectiveMode = simpleMode ? 'board' : view.mode
   const selection = view.selected
   // The capture row's in-flight state. The receipt is a DELIVERY fact, so it stops being
   // shown the moment the projection's revision moves past the submission — the ledger has
@@ -276,7 +279,7 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
     const hours = lateByMs / 3_600_000
     return hours >= 1 ? `${Math.round(hours)} 小时` : `${Math.max(1, Math.round(lateByMs / 60_000))} 分钟`
   }
-  const proactiveFace = proactiveVisible.length === 0 ? null : ce('div', {
+  const proactiveFace = simpleMode || proactiveVisible.length === 0 ? null : ce('div', {
     className: 'dsha-proactive',
     'data-proactive-catalog': proactiveCatalogNote ? 'unavailable' : 'ok',
     role: 'status',
@@ -343,7 +346,7 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
   // 261019: the block sits BELOW the capture row (the input comes first) and can be collapsed
   // to one header line; the choice is client-local and persisted.
   const suggestCollapsed = proactiveUi.collapsed === true
-  const suggestFace = openSuggestions.length === 0 ? null : ce('div', { className: 'dsha-suggest', role: 'region', 'aria-label': '让它替你盯' },
+  const suggestFace = simpleMode || openSuggestions.length === 0 ? null : ce('div', { className: 'dsha-suggest', role: 'region', 'aria-label': '让它替你盯' },
     ce('div', { className: 'dsha-suggest-head' },
       ce('span', { className: 'dsha-suggest-title' }, `让它替你盯 · ${openSuggestions.length} 条`),
       ce('button', {
@@ -384,7 +387,7 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
   // store through onScroll. Activity mode always presents itself from the top.
   const restoreRootScroll = (element: { scrollTop: number } | null): void => {
     if (element === null) return
-    if (view.mode === 'activity') {
+    if (effectiveMode === 'activity') {
       if (element.scrollTop !== 0) element.scrollTop = 0
       return
     }
@@ -395,7 +398,7 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
     'data-assistant-operating-desk': true,
     ref: restoreRootScroll,
     onScroll: (event: { currentTarget: { scrollTop: number } }) => {
-      if (view.mode === 'board') props.actions.rememberListPosition(event.currentTarget.scrollTop)
+      if (effectiveMode === 'board') props.actions.rememberListPosition(event.currentTarget.scrollTop)
     },
   },
     ce('style', {}, STYLES),
@@ -464,14 +467,14 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
     // The desk's two top-level views as real tabs (principal UX direction, 2026-10-12): the
     // divider line makes the split legible, the active underline sits ON the line, and the
     // glyphs carry the memory — this is not another row of filter pills.
-    data !== undefined ? ce('div', { className: 'dsha-tabs', role: 'tablist' },
+    data !== undefined && !simpleMode ? ce('div', { className: 'dsha-tabs', role: 'tablist' },
       (['board', 'activity'] as const).map(mode => ce('button', {
         key: mode,
         type: 'button',
         role: 'tab',
         className: 'dsha-tab',
-        'aria-selected': String(view.mode === mode),
-        'data-on': String(view.mode === mode),
+        'aria-selected': String(effectiveMode === mode),
+        'data-on': String(effectiveMode === mode),
         onClick: () => props.actions.setMode(mode),
       }, glyphFor(mode), ce('span', {}, mode === 'board' ? '看板' : '流水')))) : null,
     download.status === 'disconnected' ? ce('p', { className: 'dsha-banner', role: 'status' }, message) : null,
@@ -483,7 +486,7 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
       ce(AssistantBrandMark, { size: 44 }),
       ce('p', { className: 'dsha-detail-hint' },
         download.status === 'missing' ? '还没有经营事项资料。交代一件试试——它会被记进权威账本，事事有着落。' : '还没有经营事项。交代一件试试——它会被记进权威账本，事事有着落。'))
-      : view.mode === 'activity' && data !== undefined ? ce('section', { className: 'dsha-activity' },
+      : effectiveMode === 'activity' && data !== undefined ? ce('section', { className: 'dsha-activity' },
         activityEntries.length === 0 ? ce('p', { className: 'dsha-detail-hint' }, '还没有做过任何动作——交代第一件事试试。') : null,
         ...activityGroups.map(group => ce('div', { key: group.key, className: 'dsha-activity-day' },
           ce('p', { className: 'dsha-activity-date' }, group.label),

@@ -93,6 +93,7 @@ describe('client-module registration', () => {
       'sidebar.right.pane.tab', 'sidebar.right.pane.tab.title',
       'sidebar.right.pane.tab', 'sidebar.right.pane.tab.title',
       'sidebar.right.pane.tab', 'sidebar.right.pane.tab.title',
+      'settings.general.item',
       'conversation.hero.brand.mark', 'conversation.chat.assistant-actions', 'conversation.input.dock', 'conversation.input.dock',
     ])
     // The tab types register first (their guide lists depend on the mode), then each room's
@@ -108,6 +109,7 @@ describe('client-module registration', () => {
       'dsh-smart-assistant-memory', 'dsh-smart-assistant-memory',
       'dsh-smart-assistant-viki', 'dsh-smart-assistant-viki',
       'dsh-smart-assistant-skills', 'dsh-smart-assistant-skills',
+      'assistant-ui-mode',
       'conversation.hero.brand.mark',
       'dsh-smart-assistant-remember', 'assistant-first-mile', 'assistant-approval-banner',
     ])

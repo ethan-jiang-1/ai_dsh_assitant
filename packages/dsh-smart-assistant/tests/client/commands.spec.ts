@@ -68,7 +68,7 @@ describe('room commands', () => {
     materialize().apply(fakeContext(contribution => { registered.push(contribution.name) }))
     // The desk's history feed joins the discovery surface (history views ③): its run only
     // parks the mode intent and opens the main panel — the desk's next render consumes it.
-    expect(registered).toEqual(['knowledge', 'memory', 'desk-activity'])
+    expect(registered).toEqual(['knowledge', 'memory', 'desk-activity', 'mode-simple', 'mode-standard', 'mode-expert'])
   })
 
   it('keeps the rooms independent of the command registry being composed', () => {

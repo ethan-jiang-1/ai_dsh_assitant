@@ -10,6 +10,40 @@
  */
 
 import type { CommandContribution, RoomKind } from './contracts'
+import { setUiMode } from './ui-mode'
+
+/**
+ * The three interface densities as commands: the same switch as the settings row, reachable
+ * from `/` when the settings page is not open. The names are literals so the generated package
+ * catalog lists them.
+ * @returns one contribution per mode.
+ */
+export function uiModeCommands(): CommandContribution[] {
+  return [
+    {
+      name: 'mode-simple',
+      label: () => '界面：简洁',
+      description: () => '只保留对话与桌面；房间 tab 从「+」向导收起',
+      available: () => true,
+      ui: { kind: 'action', run: () => { setUiMode('simple') } },
+    },
+    {
+      name: 'mode-standard',
+      label: () => '界面：标准',
+      description: () => '知识 / 记忆 / 技能三个房间可见',
+      available: () => true,
+      ui: { kind: 'action', run: () => { setUiMode('standard') } },
+    },
+    {
+      name: 'mode-expert',
+      label: () => '界面：专家',
+      description: () => '全部可见，含 Viki(调试)；审批与错误始终在场',
+      available: () => true,
+      ui: { kind: 'action', run: () => { setUiMode('expert') } },
+    },
+
+  ]
+}
 
 /**
  * The rooms as discoverable commands.

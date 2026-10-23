@@ -35,7 +35,7 @@ import type { DeskStore } from './rooms/room-data-core'
 import { bindDeskEnv, loadDesk, newestSessionId, openBeside } from './rooms/room-data-io'
 import { mountSessionSettleRefresh } from './rooms/room-settle-refresh'
 import { AssistantBrandMark, AssistantBrandName, AssistantHeroMark } from './chrome/brand'
-import { deskCommands, roomCommands } from './chrome/commands'
+import { deskCommands, roomCommands, uiModeCommands } from './chrome/commands'
 import { createDeskActivityHandoff } from './desk/desk-view-actions'
 import { mountSessionCaptureStatuses } from './desk/desk-capture-status'
 import { DashboardMainPanel, DashboardPanelIcon } from './chrome/dashboard'
@@ -44,7 +44,8 @@ import { ApprovalDockBanner, FirstMileDock } from './chrome/first-mile'
 import { mountRoomBodies, mountRoomGuides } from './rooms/mount-rooms'
 import { RememberAction } from './rooms/message-action'
 import { createElement } from './chrome/runtime'
-import { getUiModeStore, initUiModeStore } from './chrome/ui-mode'
+import { bindUiModeForm, getUiModeStore, initUiModeStore, type ModeForm } from './chrome/ui-mode'
+import { UiModeRow } from './chrome/ui-mode-row'
 import { returnToConversation } from './chrome/navigation'
 import { bindVikiEnv } from './rooms/viki-data-io'
 import { bindClientRequire, clientRequire } from './chrome/runtime'
@@ -299,8 +300,20 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       for (const contribution of [...roomCommands(openBeside), ...deskCommands(() => {
         deskActivity.requestActivity()
         ctx.layout?.selectPanel('dsh-smart-assistant-dashboard')
-      })]) commandUi.register(contribution)
+      }), ...uiModeCommands()]) commandUi.register(contribution)
     })
+
+    // The mode's durable half: the `assistant-memory` settings namespace owns `uiMode`. A
+    // composition without ui-settings keeps the localStorage-only store and mounts no row.
+    ctx.inject?.(['configForms'], (scope) => {
+      const forms = scope.get('configForms') as { get(entryId: string): ModeForm } | undefined
+      if (forms === undefined || typeof forms.get !== 'function') return
+      const form = forms.get('assistant-memory')
+      if (form === undefined) return
+      ctx.effect?.(() => bindUiModeForm(form), 'assistant: ui mode settings')
+    })
+    ctx.slots.inject('settings.general.item', () =>
+      ctx.slots.register({ name: 'settings.general.item', id: 'assistant-ui-mode', order: -10 }, UiModeRow))
 
     // First-mile identity and guidance (2026-09-26). Two seats the shell leaves open
     // exactly where a first-time principal looks: the blank-session hero mark, and the

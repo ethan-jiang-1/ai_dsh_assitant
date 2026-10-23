@@ -1,11 +1,22 @@
 ---
-status: 推敲中
+status: 已结
 opened: 2026-10-21
 ---
 
 # 推敲：助手界面三档呈现（简洁/标准/专家）与随时切换
 
-> 立卡：2026-10-21 ｜ 状态：推敲中 ｜ 类型：Feature ｜ 可关闭：否 ｜ 毕业：以后做（Viki 收口后启动；实现前需用户拍板）
+> 立卡：2026-10-21 ｜ 结案：2026-10-23 ｜ 类型：Feature ｜ 结果：M1 已交付；M2 未取
+
+## 结案记录（2026-10-23）
+
+用户拍板 6 项默认（简洁/标准/专家；默认标准；简洁隐藏四个房间入口；`assistant-memory.uiMode` + localStorage 缓存；不刷新切换；全局 per home/profile；不自动升级），批准实施 M1。
+
+- **M0（真机，一次性探针）**：开 Viki tab → standard/simple/expert；tab 与正文（11 条记忆）存活，证明 guide 重注册不空壳。判定：走 guide-gating，不关 tab。
+- **M1（已交付）**：mode store + `mount-rooms`（body/title 一次，tab type 按 mode 重注册）；`settings.general.item` 三档行（置顶）；三条命令 `mode-simple`/`mode-standard`/`mode-expert`；简洁档隐藏桌面 proactive/建议行与流水 tab；标准隐藏 Viki guide；默认标准。证据：客户端 `ui-mode` 7 案、`mount-rooms` 4 案、`ui-mode-row`/`ui-mode-commands` 各 1 案、面板 42 案含 simple 密度、host config 2 案、入口/命令注册 spec；真机 settings 点击写入 localStorage 且 pressed；desk web-face PASS。
+- **持久化现实**：stock bundle 的 `assistant-memory` 行嵌在 bundle 内，`settings.describe` 不列出（实测 namespaces 无此项），`configForms.get` 返回 unavailable。客户端回落 localStorage；Host `Config.uiMode` 已声明，任一 composition 把该行暴露为顶层 settings namespace 时绑定自动生效。跨设备持久化因此**未达**本卡原目标 A；这是平台/组合约束，不是客户端遗漏。M2 若继续，先提升该行为可配置项或换持久化面。
+- **M2（未取）**：简洁单卡+输入、回执/诊断/转正 gating、命令过滤、「更多」入口；触发 = 真实简洁用户出现或本人要求。
+
+---
 
 **给评审者的最短路径：** 「问题与期望结果」→「已知」→「方案与取舍」→「需要用户拍板」→「验收标准」→「下一步」。
 
@@ -31,15 +42,15 @@ opened: 2026-10-21
 
 ### 现状
 
-- 右侧栏房间 tab 在 [`src/client/index.ts`](../../packages/dsh-smart-assistant/src/client/index.ts) 的 `apply` 里**静态注册**：`roomTabs`（[`room-tabs.ts`](../../packages/dsh-smart-assistant/src/client/rooms/room-tabs.ts)）+ `sidebarRightTabs.register` + `sidebar.right.pane.tab` / `.title` slot。当前没有保存每个 room 的 disposer。
+- 右侧栏房间 tab 在 [`src/client/index.ts`](../../../packages/dsh-smart-assistant/src/client/index.ts) 的 `apply` 里**静态注册**：`roomTabs`（[`room-tabs.ts`](../../../packages/dsh-smart-assistant/src/client/rooms/room-tabs.ts)）+ `sidebarRightTabs.register` + `sidebar.right.pane.tab` / `.title` slot。当前没有保存每个 room 的 disposer。
 - 首开条/桌面/输入 dock/审批/回执/命令是各自 slot 里的组件；`src/client/local-state.ts` 明确是 **per-tab** 便利状态，不是跨会话偏好。
-- 平台支持**运行时增删**：`sidebarRightTabs.register` 返回幂等 disposer（[`tab-registry.ts`](../../vendor/dsh/packages/client/ui-sidebar-right/src/client/tab-registry.ts)）；slot 注册也返回 disposer。因此“随时切”技术上可行，代价是当前打开的 tab 可能被收起。
-- 设置面有 `settings.section` / `settings.general.item`（[`ui-settings` 的 slots](../../vendor/dsh/packages/client/ui-settings/src/client/contract/slots.ts)）和 `settings.describe` 镜像；可以把模式做成设置页的一项，并持久到 DSH settings 文档（profile/home 级）。
+- 平台支持**运行时增删**：`sidebarRightTabs.register` 返回幂等 disposer（[`tab-registry.ts`](../../../vendor/dsh/packages/client/ui-sidebar-right/src/client/tab-registry.ts)）；slot 注册也返回 disposer。因此“随时切”技术上可行，代价是当前打开的 tab 可能被收起。
+- 设置面有 `settings.section` / `settings.general.item`（[`ui-settings` 的 slots](../../../vendor/dsh/packages/client/ui-settings/src/client/contract/slots.ts)）和 `settings.describe` 镜像；可以把模式做成设置页的一项，并持久到 DSH settings 文档（profile/home 级）。
 - Viki(调试) 是现有房间 tab 的一个实例；它的搜索/诊断是只读 host route，不依赖模式。
 
 ### 研究结论
 
-详见 [机制调研](../research/tech-exploration/261021-assistant-ui-modes.md)。关键结论：
+详见 [机制调研](../../research/tech-exploration/261021-assistant-ui-modes.md)。关键结论：
 
 1. **可行**：侧栏 tab 与 slot 都有 disposer，动态注册/回收是平台能力；但需要把静态 `roomTabs` 循环改成 `mountRooms(mode)`，并处理已打开 tab 的收起落点。
 2. **偏好应有持久家**：`local-state` 是 per-tab，不能当唯一真相；目标态用 DSH settings（profile/home），客户端 `localStorage` 只做启动缓存，避免首屏闪默认档。
@@ -94,7 +105,7 @@ opened: 2026-10-21
 | 机制可行 | 编排 | `sidebarRightTabs.register`/slot disposer 已有源码证据；M0 原型能运行时收起 Viki tab | 机制调研 + M0 原型（未来） | 无 |
 | 三档矩阵明确 | 产品 | 每个面在简洁/标准/专家的显隐有表；审批/错误永不隐藏；Viki 仅专家 | 本卡矩阵 | 用户确认 |
 | 持久化/切换取舍 | 产品/编排 | settings vs localState 的理由、首屏缓存、tab 收起落点写清 | 本卡 | 用户拍板 |
-| Viki 触发 | 流程 | 本卡不启动实现；Viki S5/S6 收口后再开 proposed/子卡 | [Viki 收口](261021-openviking-viki-closure.md) | 用户 |
+| Viki 触发 | 流程 | 本卡不启动实现；Viki S5/S6 收口后再开 proposed/子卡 | [Viki 收口](../../issues/261021-openviking-viki-closure.md) | 用户 |
 
 ### 未来实现（另立 proposed 卡，不在本卡执行）
 
@@ -116,7 +127,7 @@ opened: 2026-10-21
 ## 下一步
 
 - **现在（本卡）**：研究/方案已写；请用户对上面 6 个点给方向（可以现在答，也可以等 Viki 收口后答）。
-- **不启动实现**：Viki 落地（[收口卡](261021-openviking-viki-closure.md) S5/S6）优先；本卡 `毕业：以后做`。
+- **不启动实现**：Viki 落地（[收口卡](../../issues/261021-openviking-viki-closure.md) S5/S6）优先；本卡 `毕业：以后做`。
 - **触发**：Viki 收口 + 用户点头后，开 proposed 卡/M0 原型；M0 结论回来再拆 M1/M2。
 - **若用户不感兴趣**：本卡记录“不做”的理由，归档；不预建子卡。
 
@@ -124,7 +135,7 @@ opened: 2026-10-21
 
 | 本卡拥有 | 只检查/引用 | 不拥有 |
 |---|---|---|
-| 三档呈现的**产品模型**、矩阵、切换/持久化取舍、未来切片 | 现有 client slot/tab/settings 机制；Viki(调试) 作为专家面实例 | Viki 落地本身（[收口卡](261021-openviking-viki-closure.md)）；agent preset/领域装配（[方向卡](../_archive/settled_issues/261020-openviking-direction-review.md)）；权限/审批语义 |
+| 三档呈现的**产品模型**、矩阵、切换/持久化取舍、未来切片 | 现有 client slot/tab/settings 机制；Viki(调试) 作为专家面实例 | Viki 落地本身（[收口卡](../../issues/261021-openviking-viki-closure.md)）；agent preset/领域装配（[方向卡](261020-openviking-direction-review.md)）；权限/审批语义 |
 
 **明确不是：** 不是权限边界（隐藏 ≠ 禁止；host route/工具/审批不变）；不是 agent preset（不改模型行为）；不是换三套产品；不是 Viki 的一部分。
 
@@ -136,6 +147,6 @@ opened: 2026-10-21
 
 ## 关联
 
-- [机制调研（平台缝/矩阵/证据）](../research/tech-exploration/261021-assistant-ui-modes.md)
-- [Viki 收口卡](261021-openviking-viki-closure.md)
-- [Viki(调试) 的定位与检索卡](261020-openviking-retrieval-viki.md)
+- [机制调研（平台缝/矩阵/证据）](../../research/tech-exploration/261021-assistant-ui-modes.md)
+- [Viki 收口卡](../../issues/261021-openviking-viki-closure.md)
+- [Viki(调试) 的定位与检索卡](../../issues/261020-openviking-retrieval-viki.md)
