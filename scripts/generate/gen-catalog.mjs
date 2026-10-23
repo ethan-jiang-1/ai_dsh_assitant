@@ -104,14 +104,17 @@ export function extractClientSurface(source) {
   const roomTabs = [...source.matchAll(/\{\s*\n\s*id: '([^']+)', kind: '([A-Za-z]+)',/g)]
     .map(match => ({ id: match[1], kind: match[2] }))
   const guideEntries = [...source.matchAll(/guide: \[\{/g)].length
+  // Dynamic guide lists (mode-gated rooms) are one builder call, not a literal entry per room;
+  // the sanity check below only needs to know the tab is still discoverable at all.
+  const dynamicGuides = [...source.matchAll(/guide: guideFor\(/g)].length
   const commands = [...source.matchAll(/\{\s*\n\s*name: '([a-z][a-z-]*)',\s*\n\s*label:/g)].map(match => match[1])
   if (seats.length === 0 || roomTabs.length === 0) {
     throw new Error('gen-catalog: client source declares no recognizable seat surface — the extraction shape changed')
   }
-  if (roomTabs.length > 0 && guideEntries === 0) {
+  if (roomTabs.length > 0 && guideEntries + dynamicGuides === 0) {
     throw new Error('gen-catalog: room tabs registered without any guide entry — every addable tab must be discoverable in the "+" picker')
   }
-  return { seats: [...new Set(seats)], roomTabs, guideEntries, commands: [...new Set(commands)] }
+  return { seats: [...new Set(seats)], roomTabs, guideEntries: guideEntries + dynamicGuides, commands: [...new Set(commands)] }
 }
 
 /** Read every catalog input from disk. */
@@ -254,7 +257,7 @@ export function renderCatalog(input) {
     lines.push('## 客户端座位面（CLIENT，全走 vendor 通用座位；皮肤面，不进模型上下文）')
     lines.push('')
     lines.push(`- 消费 slot 座位（slots.inject）：${input.clientSurface.seats.map(seat => `\`${seat}\``).join('、')}`)
-    lines.push(`- 右栏 tab 定义（sidebarRightTabs.register，含「+」向导 guide 条目）：${input.clientSurface.roomTabs.map(tab => `\`${tab.id}\`（${tab.kind}）`).join('、')}`)
+    lines.push(`- 右栏 tab 定义（sidebarRightTabs.register，含「+」向导 guide 条目，按界面模式过滤）：${input.clientSurface.roomTabs.map(tab => `\`${tab.id}\`（${tab.kind}）`).join('、')}`)
     lines.push(`- 命令注册（commandUi，slash 菜单与 composer 加号菜单的发现面）：${input.clientSurface.commands.map(command => `\`${command}\``).join('、') || '（无）'}`)
     lines.push('')
   }

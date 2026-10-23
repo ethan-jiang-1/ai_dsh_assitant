@@ -55,6 +55,7 @@ describe('client-module registration', () => {
     const registered: string[] = []
     const guideEntries: string[] = []
     const ctx = {
+      effect: (install: () => () => void) => { install() },
       slots: {
         // The real registry consumes the contribution callback — including a generator
         // contribution, whose `yield` is where the nested registration happens. A recorder that
@@ -94,25 +95,26 @@ describe('client-module registration', () => {
       'sidebar.right.pane.tab', 'sidebar.right.pane.tab.title',
       'conversation.hero.brand.mark', 'conversation.chat.assistant-actions', 'conversation.input.dock', 'conversation.input.dock',
     ])
-    // Each room registers its tab type, its keyed body, and its keyed tab title (the glyph chip);
-    // the first-mile strip and the approval banner close the set.
+    // The tab types register first (their guide lists depend on the mode), then each room's
+    // keyed body and keyed tab title (the glyph chip); the first-mile strip and the approval
+    // banner close the set. The default is standard, so Viki's guide is empty while its tab
+    // type/body still register (an already-open Viki tab must keep rendering).
     expect(registered).toEqual([
       'assistant-tasks',
       'dsh-smart-assistant-dashboard', 'dsh-smart-assistant-dashboard', 'assistant-desk',
       'sidebar.brand.mark', 'sidebar.brand.name',
-      'tab:knowledgeRoom', 'dsh-smart-assistant-knowledge', 'dsh-smart-assistant-knowledge',
-      'tab:memoryRoom', 'dsh-smart-assistant-memory', 'dsh-smart-assistant-memory',
-      'tab:vikiRoom', 'dsh-smart-assistant-viki', 'dsh-smart-assistant-viki',
-      'tab:skillsRoom', 'dsh-smart-assistant-skills', 'dsh-smart-assistant-skills',
+      'tab:knowledgeRoom', 'tab:memoryRoom', 'tab:vikiRoom', 'tab:skillsRoom',
+      'dsh-smart-assistant-knowledge', 'dsh-smart-assistant-knowledge',
+      'dsh-smart-assistant-memory', 'dsh-smart-assistant-memory',
+      'dsh-smart-assistant-viki', 'dsh-smart-assistant-viki',
+      'dsh-smart-assistant-skills', 'dsh-smart-assistant-skills',
       'conversation.hero.brand.mark',
       'dsh-smart-assistant-remember', 'assistant-first-mile', 'assistant-approval-banner',
     ])
-    // The steer's whole point: each room contributes a guide entry, so the "+" picker lists
-    // the rooms beside the browser and terminal tabs.
+    // Standard lists the three rooms; Viki is expert-only (its type still registers).
     expect(guideEntries).toEqual([
       'dsh-smart-assistant-knowledge-guide',
       'dsh-smart-assistant-memory-guide',
-      'dsh-smart-assistant-viki-guide',
       'dsh-smart-assistant-skills-guide',
     ])
   })
@@ -130,6 +132,7 @@ function activityHandoffContext() {
   const declarations: Record<string, unknown>[] = []
   const ctx = {
     root: {},
+    effect: (install: () => () => void) => { install() },
     slots: {
       inject: (_name: string, contribute: () => unknown) => { contribute() },
       register: (declaration: Record<string, unknown>) => { declarations.push(declaration); return undefined },
@@ -195,6 +198,7 @@ function recordingContext(): {
   const registered: { name: string, declaration: Record<string, unknown> }[] = []
   const ctx = {
     root: {},
+    effect: (install: () => () => void) => { install() },
     slots: {
       inject: (_name: string, contribute: () => unknown) => { contribute() },
       register: (declaration: { name: string }) => {

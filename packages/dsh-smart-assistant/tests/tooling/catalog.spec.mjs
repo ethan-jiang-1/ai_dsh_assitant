@@ -118,6 +118,16 @@ describe('extractClientSurface', () => {
     const undiscoverable = fixture.replace('guide: [{ id: `${room.id}-guide`, order: room.order }],\n    })', '    })')
     expect(() => extractClientSurface(undiscoverable)).toThrow(/without any guide entry/)
   })
+
+  it('accepts a dynamic, mode-gated guide builder as discoverable', () => {
+    const dynamic = fixture.replace(
+      'guide: [{ id: `${room.id}-guide`, order: room.order }],',
+      'guide: guideFor(room, mode),',
+    )
+    const surface = extractClientSurface(dynamic)
+    expect(surface.roomTabs).toEqual([{ id: 'dsh-smart-assistant-desk', kind: 'desk' }])
+    expect(surface.guideEntries).toBe(1)
+  })
 })
 
 describe('renderCatalog', () => {

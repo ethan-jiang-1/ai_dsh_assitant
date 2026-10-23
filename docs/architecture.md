@@ -157,6 +157,8 @@ seam 的成色读数是**第二个真实 Provider 出现而 Consumer 一行不�
 | `src/host/desk-projection/`（`index.ts` 入口 + `download.ts` 路由核） | 固定只读投影下载行：GET route 优先活渲染账本、回退固定夹具、错误态分明（契约 = [`operating.md`](operating.md) §三） | domain/operating + dsh-client-connection（仅类型） |
 | `src/client/chrome/navigation.ts` | 浏览器导航 seam：`returnToConversation` + `revealChatTab`（平台会话激活、DOM tab reveal 适配器、主面板复位） | 无（平台 face 由调用方传入） |
 | `src/client/projection/desk-surface.ts` | 桌面面板的 lane surface 工厂：回调、导航与建议动作从 20 字段 props 中抽出；panel 只收 hooks / store / actions | 无（平台 face 由入口传入） |
+| `src/client/chrome/ui-mode.ts` | 界面密度 store：simple / standard / expert、localStorage 首屏、per-materialization 重置（settings 持久化在 M1 接） | 无（浏览器 storage 可缺席） |
+| `src/client/rooms/mount-rooms.ts` | rooms 的 body/title 一次注册 + tab type 按 mode 的 guide 重注册（已开 tab 不空壳） | `rooms/room-tabs`、`chrome/ui-mode` |
 | `src/client/`（多模块，`index.ts` 为主注册面） | 浏览器面：座位与命令注册（精确清单 = 生成物 [`package-catalog.md`](package-catalog.md)「客户端座位面」节；皮肤面，不进模型上下文）+ 经营桌面投影读回链（`projection/` 下的 reader / operating-projection / lifecycle / panel，契约 = [`operating.md`](operating.md) §三） | react + ui-renderer/ui-sidebar（仅类型） |
 |  `src/dev/preset-runner/index.ts` | **preset 挂载的 one-shot 驱动**（dev 验证自动化：`agentPresets.resolve`→`mount` 进 agent setup，会话头记录 `agentPreset`；经 `dev/probes/session/preset-runner.patch.yml` 替换 headless-runner 行启用） | dsh-agent / dsh-agent-preset-registry / dsh-llm / dsh-session / dsh-brand |
 | `src/agent/`（`tool-memory`、`tool-recall`、`tool-research`、`tool-operating`、`tool-knowledge`、`learn`、`memory-digest`、`home-preamble`、`operating-brief`、`ov-shield`） | agent 面入口：薄适配器（校验跨字段规则 → 调服务 → 返回规范值 + presenter）与常驻段落 | cordis/tools |

@@ -41,9 +41,10 @@ import { mountSessionCaptureStatuses } from './desk/desk-capture-status'
 import { DashboardMainPanel, DashboardPanelIcon } from './chrome/dashboard'
 import { TasksView, bindTasksEnv } from './rooms/tasks-view'
 import { ApprovalDockBanner, FirstMileDock } from './chrome/first-mile'
-import { roomTabTitle, roomTabs } from './rooms/room-tabs'
+import { mountRoomBodies, mountRoomGuides } from './rooms/mount-rooms'
 import { RememberAction } from './rooms/message-action'
 import { createElement } from './chrome/runtime'
+import { getUiModeStore, initUiModeStore } from './chrome/ui-mode'
 import { returnToConversation } from './chrome/navigation'
 import { bindVikiEnv } from './rooms/viki-data-io'
 import { bindClientRequire, clientRequire } from './chrome/runtime'
@@ -77,6 +78,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   // single-file original had inside its factory closure.
   bindClientRequire(require)
   const deskStore: DeskStore = initDeskStore()
+  initUiModeStore()
 
   function apply(ctx: ClientContext): void {
     bindDeskEnv(ctx)
@@ -264,35 +266,19 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // desk is the one "桌面" — a second desk reading the old room-data copy split the principal's
     // mental model, and the live model routed business items into it. The room components stay
     // exported for their specs; deleting the session-desk subsystem is a follow-up slice.
-    for (const room of roomTabs) {
-      ctx.sidebarRightTabs.register({
-        id: room.id,
-        kind: room.kind,
-        priority: 'fallback',
-        title: () => ('tabTitle' in room ? room.tabTitle : room.title),
-        guide: [{
-          id: `${room.id}-guide`,
-          order: room.order,
-          title: () => ('tabTitle' in room ? room.tabTitle : room.title),
-          description: () => room.description,
-          icon: room.icon,
-        }],
+    // The room bodies/titles are registered once; the mode only changes which tab types the
+    // "+" guide lists. Re-registering a type leaves its open body alive (mount-rooms.ts).
+    ctx.effect?.(() => {
+      const modeStore = getUiModeStore()
+      let disposeGuides = mountRoomGuides(ctx, modeStore.getSnapshot())
+      const off = modeStore.subscribe(mode => {
+        disposeGuides()
+        disposeGuides = mountRoomGuides(ctx, mode)
       })
-      ctx.slots.inject('sidebar.right.pane.tab', () =>
-        ctx.slots.register({ name: 'sidebar.right.pane.tab', key: room.id }, room.body))
-      // The tab strip's chip: the room's own glyph before its title (user steer, 2026-09-28 —
-      // "tab 上最好每个都有一个自己的 icon"). The title seat replaces the bare-label chip the
-      // definition would otherwise draw (same mechanism as the vendor's guide compass).
-      ctx.slots.inject('sidebar.right.pane.tab.title', () =>
-        ctx.slots.register(
-          { name: 'sidebar.right.pane.tab.title', key: room.id },
-          roomTabTitle(
-            room.icon,
-            'tabTitle' in room ? room.tabTitle : room.title,
-            room.kind === 'vikiRoom' ? { icon: false, fontSize: '10px' } : {},
-          ),
-        ))
-    }
+      return () => { off(); disposeGuides() }
+    }, "assistant: room guides by mode")
+    ctx.effect?.(() => mountRoomBodies(ctx), "assistant: room tab bodies")
+
     // Form migration: conversation.composer is a CHAIN slot — chain slots are owner-only
     // registration (the declaring entry is the only one that can add to the chain).
     // Our plugin cannot register on it. The rich landing card in conversation.input.dock
@@ -361,6 +347,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         order: -9,
         inject: () => ({ openRoom: openBeside }),
       }, ApprovalDockBanner))
+
 
   }
 
