@@ -19,7 +19,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { agentsMdStabilityProblems, backtickedRepoPathProblems, backlogGraduationProblems, backlogLivenessProblems, implementedNoteEvidenceProblems, clientScriptSafetyProblems, commandAliasProblems, commitSafetyProblems, compositionRowProblems, configParseProblems, crossFileSectionProblems, dependencyPoseProblems, devDrawerCoverageProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, graduatedProposalProblems, homeDocContractProblems, implementedAlternativesProblems, identityNameProblems, languageGuardProblems, markdownCorpusFromTracked, notesNamingProblems, notePointerProblems, notesStateProblems, importResolutionProblems, notesTopLevelProblems, pinProblems, machineLocalPathProblems, packageBuildFreshnessProblems, packageSubpathProblems, playbookFrontmatterProblems,
-  runtimeTsconfigProblems, selfContainmentProblems, skillFrontmatterKeyProblems, skillNameGrammarProblems, relativeLinkProblems, researchSubdirProblems, scratchPathProblems, skillFrontmatterProblems, startPathProblems, testAssetNamingProblems, textHygieneProblems, vendorClientFreshnessProblems } from './verify-checks.mjs'
+  runtimeTsconfigProblems, selfContainmentProblems, skillFrontmatterKeyProblems, skillNameGrammarProblems, relativeLinkProblems, researchSubdirProblems, scratchPathProblems, skillFrontmatterProblems, startPathProblems, testAssetNamingProblems, textHygieneProblems, toolCommentNameProblems, vendorClientFreshnessProblems } from './verify-checks.mjs'
 import * as gateCores from './verify-checks.mjs'
 import { runChecks } from './run-gates.mjs'
 import { pinnedTagFrom } from '../maintenance/sync-bookkeeping.mjs'
@@ -314,6 +314,14 @@ check('composition: our mounted rows are all named in the §二 trees, and every
   compositionRowProblems({
     patchText: read(join(packageDir, 'cordis.patch.yml')),
     architectureText: read(join(repoRoot, 'docs', 'architecture.md')),
+  }))
+
+// The comment beside the tool rows used to be a hand-written list, and it went two tools short.
+// The list is now a pointer, but comments still name tools; the catalog is the generated authority.
+check('composition: tool names in cordis.patch.yml comments exist in the catalog', () =>
+  toolCommentNameProblems({
+    yamlText: read(join(packageDir, 'cordis.patch.yml')),
+    catalogText: read(join(repoRoot, 'docs', 'package-catalog.md')),
   }))
 
 check('entry files: every AGENTS.md stays standing orders (no dates, no progress marks or prose)', () =>
