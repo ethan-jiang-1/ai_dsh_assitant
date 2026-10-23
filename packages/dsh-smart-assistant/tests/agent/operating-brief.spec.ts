@@ -6,6 +6,13 @@ import { describe, expect, it } from 'vitest'
 import { OPERATING_BRIEF_SECTION_ORDER, OPERATING_BRIEF_TEXT, name } from '../../src/agent/operating-brief/index'
 
 describe('operating-brief unattended red line (261018 片 3)', () => {
+  it('teaches the one-page home lane and page-action lines (2026-10-23)', () => {
+    expect(OPERATING_BRIEF_TEXT).toContain('Home page lane')
+    expect(OPERATING_BRIEF_TEXT).toContain('[首页]')
+    expect(OPERATING_BRIEF_TEXT).toContain('entrust or revise the matter')
+    expect(OPERATING_BRIEF_TEXT).toContain('Page action lines')
+  })
+
   it('names the section and seats it in the instruction band', () => {
     expect(name).toBe('assistant-operating-brief')
     expect(OPERATING_BRIEF_SECTION_ORDER).toBe(400)

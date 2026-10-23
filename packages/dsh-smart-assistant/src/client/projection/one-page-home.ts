@@ -1,18 +1,18 @@
 /**
- * The one-page home (L0): the principal's default surface.
+ * The one-page home: the principal's default surface.
  *
  * Why this exists (2026-10-23): the ledger desk opened as a dashboard — 14 controls on an empty
  * home, before any value existed — and the one card that explained "what do I say first" was
  * unreachable. The target shape is a single page: ask one question while there is nothing, show
- * one page while there is something, and keep exactly one way to add another thing. The board
- * (filters, activity, fragments, suggestions) stays available as the "全部" view behind one link;
- * it is not the home.
+ * one page while there is something, and keep exactly one way to add another thing. "全部" opens
+ * the human brief list; the old board (filters, activity, suggestions) sits behind "完整看板" and
+ * is not the home.
  *
  * This component renders only the default surface. It reads the same projection hooks, view store
  * and lane surface as `ProjectionPanel` (the renderer binds hooks at the top level), so the entry
- * can swap the two without a second data path. The three page actions are v0 routes: they send the
- * principal's instruction through the desk's capture lane, and the assistant lands the ledger
- * write. A direct host action route is a later slice.
+ * can swap the two without a second data path. The three page actions are v0 routes: "改一改"
+ * opens the matter conversation, the other two send a page-action line and the assistant lands the
+ * ledger write. A direct host action route is a later slice.
  *
  * @module dsh-smart-assistant/client/projection/one-page-home
  */
@@ -44,7 +44,7 @@ const STYLES = [
   '.dsha-home-chip:hover{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary);}',
   '.dsha-home-input{display:flex;gap:8px;align-items:center;border:1px solid var(--dsha-accent);border-radius:10px;padding:8px 10px;background:var(--dsw-alias-bg-base);}',
   '.dsha-home-input input{flex:1;border:0;outline:0;background:transparent;font:inherit;font-size:15px;color:var(--dsw-alias-label-primary);min-width:0;}',
-  '.dsha-home-submit{border:0;border-radius:8px;padding:7px 16px;background:var(--dsha-accent);color:var(--dsw-alias-text-primary,#fff);font:inherit;font-size:14px;font-weight:600;cursor:pointer;flex:none;}',
+  '.dsha-home-submit{border:0;border-radius:8px;padding:7px 16px;background:var(--dsha-accent);color:var(--dsha-on-accent);font:inherit;font-size:14px;font-weight:600;cursor:pointer;flex:none;}',
   '.dsha-home-submit:disabled{opacity:.45;cursor:default;}',
   '.dsha-home-hint{margin:0;font-size:12px;color:var(--dsw-alias-label-tertiary);}',
   '.dsha-home-page{width:min(780px,100%);margin:0 auto;border:0.5px solid var(--dsw-alias-border-l2);border-radius:14px;background:var(--dsw-alias-bg-layer-1);padding:22px 24px;display:flex;flex-direction:column;gap:12px;box-sizing:border-box;}',
@@ -86,13 +86,14 @@ function pageTime(matter: OperatingMatter): string {
 }
 
 /**
- * The L0 home: empty ask, working receipt, pending question, one page, and one input.
+ * The home: empty ask, working receipt, pending question, one page, and one input.
  * @param props - The same hook/actions/surface contract the projection panel receives.
  * @returns The home element.
  */
 export function OnePageHome(props: ProjectionPanelProps & { onOpenAll: () => void }): ReturnType<typeof ce> {
   const { useEffect, useState } = reactSurface()
   const [showBasis, setShowBasis] = useState(false)
+  const [actionError, setActionError] = useState<string | undefined>(undefined)
   const download = props.useProjection(value => value)
   const data = download.data
   const view = props.useStore(value => value)
@@ -135,18 +136,38 @@ export function OnePageHome(props: ProjectionPanelProps & { onOpenAll: () => voi
   const current = selectedMatter
     ?? matters.find(matter => matter.status === 'active')
     ?? matters[0]
-  const hasContent = matters.length > 0 || unclaimed.length > 0 || (data?.receipts ?? []).length > 0
-  const empty = download.status === 'missing' || (data !== undefined && !hasContent)
+  const hasWork = matters.length > 0 || unclaimed.length > 0
+  // A home with history but no open work is the steady empty state, not "still loading" and not
+  // the fresh-ask. Receipts are work history; room rows cover a folder whose ledger is empty.
+  const roomRows = (rows: readonly unknown[] | undefined, count: number | undefined): number =>
+    (rows?.length ?? 0) + (count ?? 0)
+  const hasHistory = (data?.receipts ?? []).length > 0 || (walk.data !== undefined && (
+    roomRows(walk.data.memories, walk.data.counts?.memories)
+    + roomRows(walk.data.knowledge, (walk.data.counts?.knowledgeStable ?? 0) + (walk.data.counts?.knowledgeDraft ?? 0))
+    + roomRows(walk.data.skills, walk.data.counts?.skills)
+    + roomRows(walk.data.research, walk.data.counts?.threads)
+  ) > 0)
+  const empty = download.status === 'missing' || (data !== undefined && !hasWork)
+  const fresh = !hasHistory
   const working = receipt !== null && captureView.phase !== 'resolved'
+  const deliver = (text: string, source: 'home' | 'page-action'): void => {
+    setActionError(undefined)
+    const result = props.surface.lanes.onCapture(text, { source })
+    if (result !== undefined) {
+      void result.then(sessionId => {
+        if (sessionId === undefined) setActionError('这次没送出去，再试一次。')
+      }).catch(() => { setActionError('这次没送出去，再试一次。') })
+    }
+  }
   const submit = (): void => {
     const text = view.captureDraft.trim()
     if (text === '' || capturePending) return
     props.actions.setCaptureDraft('')
-    props.surface.lanes.onCapture(text, { source: 'home' })
+    deliver(text, 'home')
   }
   const act = (instruction: string): void => {
     if (current === undefined || capturePending) return
-    props.surface.lanes.onCapture(`关于「${current.title}」：${instruction}`, { source: 'page-action' })
+    deliver(`关于「${current.title}」：${instruction}`, 'page-action')
   }
   const inputRow = (placeholder: string): ReturnType<typeof ce> => ce('div', { className: 'dsha-home-input' },
     ce('input', {
@@ -170,7 +191,7 @@ export function OnePageHome(props: ProjectionPanelProps & { onOpenAll: () => voi
     ? ce('div', { className: 'dsha-home-working', role: 'status' },
       ce('div', { className: 'dsha-home-working-line' },
         ce('span', { className: 'dsha-home-pulse' }),
-        ce('span', {}, captureView.phase === 'suspended' ? '它在会话里等你处理' : '我在拆这件事，大约一分钟')),
+        ce('span', {}, captureView.phase === 'suspended' ? '它在会话里等你处理' : '我在办这件事，大约一分钟')),
       ce('p', { className: 'dsha-home-said' }, receipt.label ?? `「${receipt.text}」`),
       captureView.phase === 'suspended'
         ? ce('button', {
@@ -233,6 +254,9 @@ export function OnePageHome(props: ProjectionPanelProps & { onOpenAll: () => voi
           onClick: () => props.surface.lanes.onClaim(fragment.id),
         }, '看看它是什么事')))
     : null
+  const steady = ce('section', { className: 'dsha-home-ask' },
+    ce('p', { className: 'dsha-home-q' }, '今天没有要你拍板的。'),
+    ce('p', { className: 'dsha-home-hint' }, '有新的事，直接说一句；它会先给你一版。'))
   const rest = matters.length > 1
     ? ce('div', { className: 'dsha-home-rest' },
       ce('span', { className: 'dsha-home-rest-text' }, `还有 ${String(matters.length - 1)} 件在账上`),
@@ -253,20 +277,25 @@ export function OnePageHome(props: ProjectionPanelProps & { onOpenAll: () => voi
     workingCard,
     approvalCard,
     questionCard,
-    empty
-      ? ce('section', { className: 'dsha-home-ask' },
-        ce(AssistantBrandMark, { size: 40 }),
-        ce('p', { className: 'dsha-home-q' }, '最近哪件事让你拿不准？'),
-        ce('div', { className: 'dsha-home-examples' },
-          ...EXAMPLES.map(example => ce('button', {
-            key: example, className: 'dsha-home-chip', type: 'button',
-            onClick: () => props.actions.setCaptureDraft(example),
-          }, example))),
-        inputRow('说一句就行…'),
-        ce('p', { className: 'dsha-home-hint' }, '说一句就行，它会先记下来，再跟你把它想清楚。'))
-      : current !== undefined
-        ? page
-        : fragmentCard ?? ce('p', { className: 'dsha-home-note' }, '正在读取桌面…'),
-    empty ? null : inputRow('还有别的事？说一句…'),
+    actionError !== undefined ? ce('p', { className: 'dsha-home-error', role: 'alert' }, actionError) : null,
+    working && empty
+      ? null
+      : empty
+        ? fresh
+          ? ce('section', { className: 'dsha-home-ask' },
+            ce(AssistantBrandMark, { size: 40 }),
+            ce('p', { className: 'dsha-home-q' }, '最近哪件事让你拿不准？'),
+            ce('div', { className: 'dsha-home-examples' },
+              ...EXAMPLES.map(example => ce('button', {
+                key: example, className: 'dsha-home-chip', type: 'button',
+                onClick: () => props.actions.setCaptureDraft(example),
+              }, example))),
+            inputRow('说一句就行…'),
+            ce('p', { className: 'dsha-home-hint' }, '说一句就行，它先给你一版，再跟你把它改对。'))
+          : steady
+        : current !== undefined
+          ? page
+          : fragmentCard ?? ce('p', { className: 'dsha-home-note' }, '正在读取桌面…'),
+    empty && fresh ? null : inputRow('还有别的事？说一句…'),
     rest)
 }

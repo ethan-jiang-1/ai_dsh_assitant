@@ -1,5 +1,5 @@
 /**
- * L1 "全部": the human list behind the one-page home.
+ * "全部": the human list behind the one-page home.
  *
  * Why (2026-10-23): "全部" used to open the old board — filters, activity, suggestions and a
  * 39-control dashboard. That is the deep view for power users, not the first step behind a page.
@@ -48,7 +48,7 @@ function reviewLine(matter: OperatingMatter): string {
 }
 
 /**
- * The L1 list: every matter as one row, plus the unclaimed fragments and a board door.
+ * The list: every matter as one row, plus the unclaimed fragments and a board door.
  * @param props - The same injected contract as the home, plus the two exits.
  * @returns The list surface.
  */

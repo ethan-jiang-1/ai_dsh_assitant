@@ -11,7 +11,7 @@ import { OnePageHome } from '../../src/client/projection/one-page-home'
 import type { ProjectionPanelProps } from '../../src/client/projection/projection-panel'
 import type { DeskLanes } from '../../src/client/projection/desk-surface'
 import type { ProjectionDownload } from '../../src/client/projection/projection-reader'
-import type { OperatingMatter, OperatingProjection } from '../../src/client/projection/operating-projection'
+import type { OperatingMatter, OperatingProjection, OperatingReceipt } from '../../src/client/projection/operating-projection'
 import { createProjectionViewStore } from '../../src/client/projection/projection-view'
 import { defineStore } from '@deepseek-ai/dsh-client-store'
 
@@ -101,13 +101,13 @@ function matter(overrides: Partial<OperatingMatter> = {}): OperatingMatter {
   }
 }
 
-function projection(matters: OperatingMatter[]): OperatingProjection {
+function projection(matters: OperatingMatter[], receipts: OperatingReceipt[] = []): OperatingProjection {
   return {
     schemaVersion: 2,
     ledgerId: 'test',
     revision: 3,
     matters,
-    receipts: [],
+    receipts,
     unclaimed: [],
   }
 }
@@ -115,12 +115,12 @@ function projection(matters: OperatingMatter[]): OperatingProjection {
 function panelProps(
   value: ProjectionDownload,
   lanes: Partial<DeskLanes> = {},
+  statuses: StatusMap = new Map(),
 ): { props: ProjectionPanelProps & { onOpenAll: () => void }, view: ReturnType<ReturnType<typeof createProjectionViewStore>['create']>, capture: ReturnType<typeof vi.fn>, process: ReturnType<typeof vi.fn>, openAll: ReturnType<typeof vi.fn> } {
   const view = createProjectionViewStore(defineStore).create()
   const capture = vi.fn()
   const process = vi.fn()
   const openAll = vi.fn()
-  const statuses: StatusMap = new Map()
   const surface = {
     lanes: {
       refreshProjection: noop,
@@ -169,9 +169,39 @@ describe('OnePageHome', () => {
     expect(copy).toContain('下季度销售掉了 20%')
     expect(copy).toContain('这个报价接不接')
     expect(copy).toContain('老客户要不要涨价')
+    expect(copy).toContain('先给你一版')
+    expect(copy).not.toContain('先记下来')
     expect(copy).not.toContain('看板')
     expect(copy).not.toContain('流水')
     expect(findButton(tree, '看板')).toBeUndefined()
+  })
+
+  it('the working state replaces the fresh ask instead of stacking above it', () => {
+    const { props, view } = panelProps({ status: 'missing' }, {}, new Map([['s1', { running: true }]]))
+    view.actions.setCaptureReceipt({ requestId: 'r1', sessionId: 's1', text: '下季度销售掉了20%', observedRevision: 0 })
+    const tree = renderHome(props)
+    expect(text(tree)).toContain('我在办这件事')
+    expect(text(tree)).not.toContain('最近哪件事让你拿不准')
+  })
+
+  it('a home with history but no open work shows the steady empty state', () => {
+    const receipts: OperatingReceipt[] = [{ operationId: 'r1', matterId: '', sessionId: 's1', submittedAt: '2026-10-23T10:00:00+08:00', status: 'committed' }]
+    const { props } = panelProps({ status: 'ready', data: projection([], receipts) })
+    const tree = renderHome(props)
+    expect(text(tree)).toContain('今天没有要你拍板的')
+    expect(text(tree)).not.toContain('最近哪件事让你拿不准')
+    expect(text(tree)).toContain('交给它')
+  })
+
+  it('a failed page action surfaces a visible error', async () => {
+    const capture = vi.fn(() => Promise.resolve(undefined))
+    const { props } = panelProps({ status: 'ready', data: projection([matter()]) }, { onCapture: capture })
+    const tree = renderHome(props)
+    findButton(tree, '就这么办')?.onClick?.()
+    await Promise.resolve()
+    stateIndex = 0
+    const after = renderHome(props)
+    expect(text(after)).toContain('这次没送出去')
   })
 
   it('a page shows the title, the summary and the three actions', () => {

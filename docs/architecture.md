@@ -92,8 +92,8 @@ AGENT 面（`cordis.patch.yml` 的 `preset-assistant` 行 → agent preset）
 （生成器从 `src/client/` 模块树抽取，freshness 由 `pnpm verify` 守；散文不另维护清单）。
 语义要点：官方品牌包只在 official 构建档案下注册，本地构建里品牌 slot 空置；
 四个房间 tab（knowledge / memory / viki / skills）是「+」向导里可添加的右栏 tab；首里引导座位开聊即隐；全局经营
-桌面的主区投影消费 `main` 座位，默认渲染 **L0 一页纸**（`home-surface` → `one-page-home`：空态一问、当前一页、
-一个输入），「全部」切到完整看板（`projection-panel`），「看依据」就地展开证据；会话内还以 `conversation.view`
+桌面的主区投影消费 `main` 座位，默认渲染**常用面一页纸**（`home-surface` → `one-page-home`：空态一问、当前一页、
+一个输入），「全部」进人读列表（`brief-list`），「完整看板」再进 `projection-panel`，「看依据」就地展开证据；会话内还以 `conversation.view`
 注册「桌面」「自动化任务」两个 tab，两个桌面 view 共享同一投影 snapshot、各自一个 selection store；开屏带
 `#debug=1` 或本机 localStorage `dsh-assistant-debug=1` 时，会话视图栏再注册只读「开发调试」tab
 （`debug/debug-panel.ts`）。读回链 = [`operating.md`](operating.md) §三——这些消费的
@@ -163,10 +163,10 @@ seam 的成色读数是**第二个真实 Provider 出现而 Consumer 一行不�
 | `src/host/desk-projection/`（`index.ts` 入口 + `download.ts` 路由核） | 固定只读投影下载行：GET route 优先活渲染账本、回退固定夹具、错误态分明（契约 = [`operating.md`](operating.md) §三） | domain/operating + dsh-client-connection（仅类型） |
 | `src/client/chrome/navigation.ts` | 浏览器导航 seam：`returnToConversation` + `revealChatTab`（平台会话激活、DOM tab reveal 适配器、主面板复位） | 无（平台 face 由调用方传入） |
 | `src/client/projection/desk-surface.ts` | 桌面面板的 lane surface 工厂：回调、导航与建议动作从 20 字段 props 中抽出；panel 只收 hooks / store / actions | 无（平台 face 由入口传入） |
-| `src/client/projection/one-page-home.ts` | L0 一页纸：空态一问 + 当前页 + 一个输入；页上三按钮走 capture / page-action lane；待审草稿提示永在 L0 | `projection-panel` 的 props 契约 |
-| `src/client/projection/brief-list.ts` | L1「全部」：每件事一行（标题 / 状态 / 复查 / 摘要首行），点行选中并回页；「完整看板」再进旧看板 | `projection-panel` 的 props 契约 |
+| `src/client/projection/one-page-home.ts` | 常用面一页纸：空态一问 + 当前页 + 一个输入；页上三按钮走 capture / page-action lane；待审草稿提示永在常用面 | `projection-panel` 的 props 契约 |
+| `src/client/projection/brief-list.ts` | 深看面「全部」：每件事一行（标题 / 状态 / 复查 / 摘要首行），点行选中并回页；「完整看板」再进旧看板 | `projection-panel` 的 props 契约 |
 | `src/client/projection/home-surface.ts` | 三面切换：一页纸 →「全部」人读列表 →「完整看板」；「回到今天」返回；切换状态不持久化 | 上述三个纯组件 |
-| `src/client/debug/debug-panel.ts` | L2 开发调试：投影状态 / revision / ledgerId / 选中项 / session / 会话状态 + 只读投影 JSON + 复制诊断；仅在 `#debug=1` 或 localStorage 标志下注册为会话视图 tab | `projection-panel` 的 props 契约 |
+| `src/client/debug/debug-panel.ts` | 调试面开发调试：投影状态 / revision / ledgerId / 选中项 / session / 会话状态 + 只读投影 JSON + 复制诊断；仅在 `#debug=1` 或 localStorage 标志下注册为会话视图 tab | `projection-panel` 的 props 契约 |
 | `src/client/chrome/ui-mode.ts` | 界面密度 store：simple / standard / expert、localStorage 首屏、per-materialization 重置；per-home `ui-mode.json` 经 Host route 采用/写回（远端失败保留本地） | 无（浏览器 storage 可缺席） |
 | `src/client/chrome/ui-mode-row.ts` | `settings.general.item` 行：三档选择与当前态；只写共享 mode store，不发请求 | `chrome/ui-mode` |
 | `src/client/rooms/mount-rooms.ts` | rooms 的 body/title 一次注册 + tab type 按 mode 的 guide 重注册（已开 tab 不空壳） | `rooms/room-tabs`、`chrome/ui-mode` |

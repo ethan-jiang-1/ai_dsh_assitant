@@ -164,7 +164,7 @@ export function FirstMileDock({ session, openDesk, processingMatter, t }: FirstM
       }),
       createElement('button', {
         onClick: send,
-        style: { alignSelf: 'flex-end', padding: '8px 20px', borderRadius: '8px', cursor: 'pointer', border: 'none', fontSize: '14px', fontWeight: 600, background: MARK_TEAL, color: 'var(--dsw-alias-text-primary, #fff)' },
+        style: { alignSelf: 'flex-end', padding: '8px 20px', borderRadius: '8px', cursor: 'pointer', border: 'none', fontSize: '14px', fontWeight: 600, background: MARK_TEAL, color: 'var(--dsha-on-accent)' },
       }, '发送'),
     ])
   }

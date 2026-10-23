@@ -20,7 +20,7 @@ export interface DeskLanes {
   readonly refreshProjection: () => void
   readonly onAsk: () => void
   readonly onEntrust?: () => void
-  readonly onCapture: (text: string, options?: { lane?: 'capture' | 'action', label?: string, source?: 'desk' | 'home' | 'page-action' }) => void
+  readonly onCapture: (text: string, options?: { lane?: 'capture' | 'action', label?: string, source?: 'desk' | 'home' | 'page-action' }) => Promise<string | undefined> | void
   readonly onOpenSession: (sessionId: string) => void
   readonly onOpenRecords?: () => void
   readonly onOpenTasks?: () => void

@@ -129,7 +129,7 @@ profile 的 `package.json` 真有 OV 插件时，把这份块追加到 `$DSH_HOM
 端点 `127.0.0.1:1933` 是插件 `shared/credentials.mjs` 的缺省值，与 `ov-install.sh` 健康门同一个数；
 **改它必须连插件配置一起改**，否则插件连一个没人听的端口，而那正好又是一次静默降级。
 
-**L2 调试面（2026-10-23）**：正常启动不注册。开屏 URL 末尾加 `#debug=1`（token 交换后 fragment 仍在），
+**调试面（2026-10-23）**：正常启动不注册。开屏 URL 末尾加 `#debug=1`（token 交换后 fragment 仍在），
 或在该 home 的浏览器 localStorage 写 `dsh-assistant-debug=1` 后刷新；任一会话的视图栏出现「开发调试」tab，
 显示投影状态 / revision / ledgerId / 事项数 / 选中项 / session id / 会话状态 + 只读投影 JSON + 复制诊断。
 它只在会话视图栏，不在主区；不是产品面，客户默认看不到，也不进模型上下文。
@@ -254,8 +254,7 @@ DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得
 **只报测得到的**——日志没有的字段（如 preset）不报，数字全来自事件计数。
 
 **四个真机探针与输入观察（命令表上的深判据在这里）**：
-`pnpm loop-probe '<URL>' --ask '<问句>'`（首用闭环：**首屏=桌面页**——你的桌面、中文文案、无黑话、工作区就绪——
-走「＋ 交代新事项」进会话，真发问真等回复，JSON 判决 + 终态截图，**判决带 sessionId**（会话目录快照差集取，不猜；`--home` 旗标解析同其它 dev 工具）；`--ask` 会真建会话——先把目标实例起在一次性 home，探针本身不隔离 home）、
+`pnpm loop-probe '<URL>' --ask '<问句>'`（首用闭环：**当前仍按旧桌面首屏断言，待适配一页纸**；在此之前它不能作为首开证据——见 [E2E 评审](../_backlog/research/positioning/261023-first-run-e2e-review.md)。真发问真等回复，JSON 判决 + 终态截图，**判决带 sessionId**（会话目录快照差集取，不猜；`--home` 旗标解析同其它 dev 工具）；`--ask` 会真建会话——先把目标实例起在一次性 home，探针本身不隔离 home）、
 `pnpm desk-walk '<URL>' [--home <dir>]`（处理流真机走查：首屏桌面→处理一件事→一句进展→返回不变量→交代新事，
 产出屏幕文本+截图供人判话术/层级，**进会话相位各记 sessionId**；`--home` 才能核账本身份与「回来⇒无待确认」）、
 `pnpm projection-live [--home <dir>]`（live 补证：断连/重连、3 次页面重载会话不增殖、420×900 窄视口

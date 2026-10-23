@@ -1,9 +1,9 @@
 /**
- * L2: the developer debug panel. It exists for us, not for the principal.
+ * The developer debug panel. It exists for us, not for the principal.
  *
  * Why (2026-10-23): the previous version mixed machine facts (projection, revisions, sessions,
  * tool calls) into the product surface because there was nowhere else to put them. This panel is a
- * separate main-panel entry, registered only when the debug flag is on (`?debug=1` or the
+ * separate conversation-view tab, registered only when the debug flag is on (`#debug=1` or the
  * `dsh-assistant-debug` localStorage key), titled「开发调试」and read-only. It shows what the
  * browser actually holds: the parsed projection, the lifecycle status, the selected matter, the
  * capture phase and the session the panel is bound to. It deliberately does not invent host facts
@@ -39,7 +39,7 @@ export function DebugPanelIcon(): ReturnType<typeof ce> {
 }
 
 /**
- * The L2 panel: parsed projection, lifecycle and the client's own state, read-only.
+ * The debug panel: parsed projection, lifecycle and the client's own state, read-only.
  * @param props - The same injected hook/surface contract the home receives, plus the session id.
  * @returns The debug surface.
  */
@@ -75,7 +75,7 @@ export function DebugPanel(props: ProjectionPanelProps & { sessionId?: string })
     ce('header', { className: 'dsha-debug-head' },
       ce('h1', { className: 'dsha-debug-title' }, '开发调试'),
       ce('span', { className: 'dsha-debug-badge' }, '非产品面'),
-      ce('span', { className: 'dsha-debug-note' }, '只读。开屏前加 ?debug=1，或 localStorage 置 dsh-assistant-debug=1 后刷新。')),
+      ce('span', { className: 'dsha-debug-note' }, '只读。开屏前加 #debug=1，或 localStorage 置 dsh-assistant-debug=1 后刷新。')),
     ce('div', { className: 'dsha-debug-actions' },
       ce('button', { className: 'dsha-debug-btn', type: 'button', onClick: () => { props.surface.lanes.refreshProjection() } }, '重新读取'),
       ce('button', {

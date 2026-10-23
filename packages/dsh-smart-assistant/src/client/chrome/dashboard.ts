@@ -59,7 +59,7 @@ export function DashboardMainPanel(props: { onAsk?: () => void }): ReturnType<ty
       muted('这个环境读不到账本投影（桌面数据），本机也还没有房间数据——跟助手说一件事，它会记进账本。'),
       ce('button', {
         onClick: props.onAsk,
-        style: { marginTop: '12px', padding: '8px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600, background: MARK_TEAL, color: 'var(--dsw-alias-text-primary, #fff)' },
+        style: { marginTop: '12px', padding: '8px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600, background: MARK_TEAL, color: 'var(--dsha-on-accent)' },
       }, '有问题？跟助手说'),
       ce('button', {
         onClick: () => { reloadDesk(undefined) },
@@ -76,7 +76,7 @@ export function DashboardMainPanel(props: { onAsk?: () => void }): ReturnType<ty
       ce('h1', { style: { margin: 0, fontSize: '22px' } }, '你的桌面'),
       ce('button', {
         onClick: props.onAsk,
-        style: { padding: '6px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, background: MARK_TEAL, color: 'var(--dsw-alias-text-primary, #fff)' },
+        style: { padding: '6px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, background: MARK_TEAL, color: 'var(--dsha-on-accent)' },
       }, '有问题？'),
     ),
     muted('这个环境读不到账本投影——桌面全貌请在能读到投影的页面上看，或直接问助手。'),
