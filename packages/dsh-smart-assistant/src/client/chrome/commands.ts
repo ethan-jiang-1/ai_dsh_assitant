@@ -10,7 +10,7 @@
  */
 
 import type { CommandContribution, RoomKind } from './contracts'
-import { setUiMode } from './ui-mode'
+import { getUiModeStore, setUiMode } from './ui-mode'
 
 /**
  * The three interface densities as commands: the same switch as the settings row, reachable
@@ -41,8 +41,20 @@ export function uiModeCommands(): CommandContribution[] {
       available: () => true,
       ui: { kind: 'action', run: () => { setUiMode('expert') } },
     },
-
   ]
+}
+
+/**
+ * Simple mode hides the room and desk-history commands (their surfaces are not in the simple
+ * desk), while the `mode-*` commands stay as the way out. The mode is read at menu-open time;
+ * approvals and errors are not commands and never disappear.
+ */
+function visibleInMode(command: CommandContribution): CommandContribution {
+  return {
+    ...command,
+    available: (session: unknown): boolean =>
+      command.available(session) && (getUiModeStore().getSnapshot() !== 'simple' || command.name.startsWith('mode-')),
+  }
 }
 
 /**
@@ -52,7 +64,7 @@ export function uiModeCommands(): CommandContribution[] {
  * is retired (principal decision, 2026-10-11) and the one "桌面" is the main-panel ledger desk.
  */
 export function roomCommands(open: (kind: RoomKind) => void): CommandContribution[] {
-  return [
+  const commands: CommandContribution[] = [
     {
       name: 'knowledge',
       label: () => '打开知识室',
@@ -68,6 +80,7 @@ export function roomCommands(open: (kind: RoomKind) => void): CommandContributio
       ui: { kind: 'action', run: () => { open('memoryRoom') } },
     },
   ]
+  return commands.map(visibleInMode)
 }
 
 /**
@@ -78,7 +91,7 @@ export function roomCommands(open: (kind: RoomKind) => void): CommandContributio
  * @returns the contribution.
  */
 export function deskCommands(openActivity: () => void): CommandContribution[] {
-  return [
+  const commands: CommandContribution[] = [
     {
       name: 'desk-activity',
       label: () => '打开桌面·流水',
@@ -87,4 +100,5 @@ export function deskCommands(openActivity: () => void): CommandContribution[] {
       ui: { kind: 'action', run: openActivity },
     },
   ]
+  return commands.map(visibleInMode)
 }

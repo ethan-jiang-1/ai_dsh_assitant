@@ -2,7 +2,7 @@
 import { createElement as ce } from '../chrome/runtime'
 import { AssistantBrandMark } from '../chrome/brand'
 import { canProcess, type CaptureStatus } from '../../domain/desk/desk-process'
-import { useUiMode } from '../chrome/ui-mode'
+import { setUiMode, useUiMode } from '../chrome/ui-mode'
 import { deriveCaptureView } from '../../domain/desk/desk-capture-view'
 import { countPendingProposals, deriveActivityView } from '../../domain/desk/desk-activity-view'
 import { humanTime, localDateKey, localDateLabel, localTimeLabel } from '../chrome/format'
@@ -129,6 +129,14 @@ const STYLES = [
   '.dsha-card-title{display:flex;align-items:center;gap:8px;font-weight:600;color:var(--dsw-alias-label-primary);overflow-wrap:anywhere;}',
   '.dsha-card-meta{margin:4px 0 0;font-size:12px;color:var(--dsw-alias-label-tertiary);overflow-wrap:anywhere;}',
   '.dsha-card-summary{margin:4px 0 0;font-size:13px;color:var(--dsw-alias-label-secondary);overflow-wrap:anywhere;}',
+  '.dsha-simple{display:flex;flex-direction:column;gap:10px;margin-top:12px;}',
+  '.dsha-simple-card{background:var(--dsw-alias-bg-layer-1);border:0.5px solid var(--dsw-alias-border-l2);border-radius:12px;padding:16px;}',
+  '.dsha-simple-kicker{margin:0 0 4px;font-size:11px;letter-spacing:0.04em;color:var(--dsha-warn);}',
+  '.dsha-simple-title{margin:0;font-size:18px;line-height:1.4;color:var(--dsw-alias-label-primary);overflow-wrap:anywhere;}',
+  '.dsha-simple-summary{margin:8px 0 0;font-size:13px;line-height:1.6;color:var(--dsw-alias-label-secondary);overflow-wrap:anywhere;}',
+  '.dsha-simple-meta{margin:8px 0 0;font-size:12px;color:var(--dsw-alias-label-tertiary);}',
+  '.dsha-simple-actions{display:flex;gap:8px;margin-top:12px;}',
+  '.dsha-simple-more{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}',
   '.dsha-chip{display:inline-block;flex:none;font-size:12px;line-height:18px;border-radius:999px;padding:0 8px;}',
   '.dsha-chip-active{background:var(--dsha-accent-tint);color:var(--dsha-accent);}',
   '.dsha-chip-completed{background:var(--dsha-success-tint);color:var(--dsha-success);}',
@@ -376,6 +384,41 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
     : `${matters.filter(matter => matter.status === 'active').length} 件在办`
       + (pendingProposals > 0 ? ` · ${pendingProposals} 条等你确认` : '')
       + (unclaimed.length > 0 ? ` · ${unclaimed.length} 条待认领` : '')
+  // Simple mode: one card and the input, nothing else. The card picks the next thing by
+  // urgency (a pending question first), then the first active/completed matter, then the
+  // first unclaimed fragment. "显示更多" is the only way out and switches to standard.
+  const simpleMatter = matters.find(matter => matter.status === 'active') ?? matters[0]
+  const simpleFragment = unclaimed[0]
+  const simpleQuestion = pendingQuestionSessions[0]
+  const simpleFace = data === undefined ? null : ce('section', { className: 'dsha-simple', 'data-ui-simple': true },
+    ce('div', { className: 'dsha-simple-card' },
+      simpleQuestion !== undefined ? ce('p', { className: 'dsha-simple-kicker' }, '它在等你') : null,
+      ce('h2', { className: 'dsha-simple-title' },
+        simpleQuestion !== undefined ? '它在等你回答'
+          : simpleMatter !== undefined ? simpleMatter.title
+            : simpleFragment !== undefined ? '有一条还没归户的事'
+              : '桌面上没有在办的事'),
+      simpleMatter !== undefined && simpleMatter.summary !== '' ? ce('p', { className: 'dsha-simple-summary' }, simpleMatter.summary) : null,
+      simpleMatter === undefined && simpleFragment !== undefined ? ce('p', { className: 'dsha-simple-summary' }, simpleFragment.note) : null,
+      simpleMatter !== undefined ? ce('p', { className: 'dsha-simple-meta' },
+        `${STATUS_LABEL[simpleMatter.status] ?? simpleMatter.status}${simpleMatter.times.nextCheckpoint !== undefined ? ` · 核对点 ${simpleMatter.times.nextCheckpoint}` : ''}`) : null,
+      ce('div', { className: 'dsha-simple-actions' },
+        simpleQuestion !== undefined
+          ? ce('button', { className: 'dsha-btn dsha-btn-primary', type: 'button', onClick: () => { lanes.onOpenSession(simpleQuestion) } }, '去会话回答')
+          : simpleMatter !== undefined
+            ? ce('button', {
+              className: 'dsha-btn dsha-btn-primary', type: 'button',
+              onClick: () => { if (simpleMatter.status === 'active') lanes.onProcess(simpleMatter.id); else lanes.onWake(simpleMatter.id) },
+            }, simpleMatter.status === 'active' ? '处理这件事' : '唤醒这件事')
+            : simpleFragment !== undefined
+              ? ce('button', { className: 'dsha-btn dsha-btn-primary', type: 'button', onClick: () => { lanes.onClaim(simpleFragment.id) } }, '认领这件事')
+              : null)),
+    ce('div', { className: 'dsha-simple-more' },
+      ce('span', { className: 'dsha-note' }, [
+        matters.length > 1 ? `还有 ${String(matters.length - 1)} 件在账上` : '',
+        unclaimed.length > 0 && simpleMatter !== undefined ? `${String(unclaimed.length)} 条待认领` : '',
+      ].filter(Boolean).join(' · ')),
+      ce('button', { className: 'dsha-btn', type: 'button', onClick: () => { setUiMode('standard') } }, '显示更多 · 切到标准')))
   // Accepted limitation, verified against the spec card 2026-10-10
   // ([desk-operating-entry](../../../../../notes/implemented/2026-10-06-desk-operating-entry.md)): the
   // desk ROOT is the scroll container — the list never scrolls itself — so the record path
@@ -486,6 +529,7 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
       ce(AssistantBrandMark, { size: 44 }),
       ce('p', { className: 'dsha-detail-hint' },
         download.status === 'missing' ? '还没有经营事项资料。交代一件试试——它会被记进权威账本，事事有着落。' : '还没有经营事项。交代一件试试——它会被记进权威账本，事事有着落。'))
+      : simpleMode && data !== undefined ? simpleFace
       : effectiveMode === 'activity' && data !== undefined ? ce('section', { className: 'dsha-activity' },
         activityEntries.length === 0 ? ce('p', { className: 'dsha-detail-hint' }, '还没有做过任何动作——交代第一件事试试。') : null,
         ...activityGroups.map(group => ce('div', { key: group.key, className: 'dsha-activity-day' },
