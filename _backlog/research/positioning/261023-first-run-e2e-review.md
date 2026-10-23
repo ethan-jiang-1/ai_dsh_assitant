@@ -170,3 +170,14 @@ Day-0 dock 卡与首页的「两张首开面」（计划说不需要第二张卡
 - **⑤** eval 收紧到 1 个问号 + 1 个动作（`answer-max-matches`）。首跑 sales FAIL（2 个问号，真实违约）；manual v20 +
   `management-breakdown` 加「其余缺口写进页的缺数行」后 **5/5 全 PASS**（sales 61s、quote、price、contract、weekly 36s）。
 - 门禁：`pnpm test` **981** / `pnpm verify` **44**；提交 `840ba37`。
+
+### 复验二（继续）
+
+- **② 审批卡动态刷新 PASS**：干净 home → 发送 → `card:1` → 点「就这么办」→ 卡片在轮询窗口内消失（`approved`）。
+  房间轮询生效；动作语义 + 卡片刷新都闭环。
+- **③ 调试注册 PASS**：`debug-flag` 4 案 + `entry.spec` 两案（flag on 注册 `assistant-debug`；默认 boot 不注册），
+  entry 共 12 案。
+- **① 桌面流探针**：`desk-flow-walk` 已过首屏（8 张卡）、处理会话、续接相位；但**用的是 eight-matters 的
+  投影夹具 home，账本本身是空的**——模型在处理会话里如实报「0 个事项、无法核实」，不是入口失败。
+  完整链路需要带真账本的 home（`desk-process-e2e` 的种子账本）才能跑；`loop-probe` 与
+  `projection-selection` 已是真跑 PASS。

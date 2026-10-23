@@ -15,7 +15,7 @@
  * classic script), so the harness evaluates the entry through vitest after installing the
  * page-global facade — same as every other client spec.
  */
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { inertReactShim, loadClientRegistration, materializeClient } from '../support/client-harness.ts'
 
 const registration = await loadClientRegistration()
@@ -254,7 +254,7 @@ describe('desk primary view', () => {
     const selected: (string | null)[] = []
     const { ctx, registered } = recordingContext()
     ;(ctx as { layout?: unknown }).layout = {
-      panelInfo: { getSnapshot: () => ({ activePanelId: null }) },
+      panelInfo: { getSnapshot: () => ({ activePanelId: null }), subscribe: () => () => {} },
       selectPanel: (id: string | null) => selected.push(id),
     }
 
@@ -314,7 +314,7 @@ describe('desk primary view', () => {
       Object.assign(ctx as object, {
         root,
         layout: {
-          panelInfo: { getSnapshot: () => ({ activePanelId: null }) },
+          panelInfo: { getSnapshot: () => ({ activePanelId: null }), subscribe: () => () => {} },
           selectPanel: (id: string | null) => selected.push(id),
         },
       })
@@ -337,5 +337,100 @@ describe('desk primary view', () => {
       .toEqual(['assistant-tasks', 'assistant-desk'])
     expect(views.map(entry => (entry.declaration['label'] as () => string)()))
       .toEqual(['自动化任务', '桌面'])
+  })
+})
+
+/**
+ * The L2 debug surface gate: the conversation-view tab must register only when the developer
+ * flag is on. This is the entry-level counterpart of the flag's own spec: it names
+ * `assistant-debug` and proves the default boot does not carry it.
+ */
+const originalDocument = Object.getOwnPropertyDescriptor(globalThis, 'document')
+const originalLocation = Object.getOwnPropertyDescriptor(globalThis, 'location')
+const originalStorage = Object.getOwnPropertyDescriptor(globalThis, 'localStorage')
+
+function installBrowser(hash: string): void {
+  Object.defineProperty(globalThis, 'document', {
+    value: {
+      baseURI: 'http://localhost/',
+      getElementById: () => null,
+      createElement: () => ({ style: {} }),
+      head: { appendChild: () => {} },
+    },
+    configurable: true,
+  })
+  Object.defineProperty(globalThis, 'location', {
+    value: { origin: 'http://localhost', search: '', hash },
+    configurable: true,
+  })
+  Object.defineProperty(globalThis, 'localStorage', {
+    value: { getItem: () => null },
+    configurable: true,
+  })
+}
+
+function restoreBrowser(): void {
+  for (const [key, descriptor] of [
+    ['document', originalDocument],
+    ['location', originalLocation],
+    ['localStorage', originalStorage],
+  ] as const) {
+    if (descriptor === undefined) delete (globalThis as Record<string, unknown>)[key]
+    else Object.defineProperty(globalThis, key, descriptor)
+  }
+}
+
+function debugContext(registered: string[]): unknown {
+  return {
+    root: {},
+    effect: (install: () => () => void) => { install() },
+    slots: {
+      inject: (_name: string, contribute: () => unknown) => { contribute() },
+      register: (declaration: { name: string, key?: string, id?: string }) => {
+        registered.push(declaration.id ?? declaration.key ?? declaration.name)
+      },
+    },
+    sidebarRightTabs: { register: () => undefined },
+    sidebarRight: { openTab: () => {} },
+    inject: (_deps: string[], callback: (scope: { get: () => unknown }) => void) => {
+      callback({ get: () => ({ register: () => {} }) })
+    },
+    layout: {
+      panelInfo: { getSnapshot: () => ({ activePanelId: null }), subscribe: () => () => {} },
+      selectPanel: () => {},
+    },
+    connection: {
+      generation: { getSnapshot: () => ({ id: 1 }), subscribe: () => () => {} },
+      state: { getSnapshot: () => 'connected', subscribe: () => () => {} },
+    },
+    locale: { register: () => () => {} },
+    uiSession: {
+      current: { value: { key: undefined } },
+      sessionStatus: { getSnapshot: () => new Map(), subscribe: () => () => {} },
+    },
+    workspaces: { list: { getSnapshot: () => ({ items: [] }) } },
+    sessions: { create: async () => undefined, list: { subscribe: () => () => {} } },
+    uiWorkspace: { openSession: () => {} },
+    remote: {},
+  }
+}
+
+describe('debug surface registration', () => {
+  afterEach(() => { restoreBrowser() })
+
+  it('registers the assistant-debug conversation tab when the flag is on', () => {
+    installBrowser('#debug=1')
+    delete process.env.DSH_CLIENT_BUILD_PROFILE
+    const registered: string[] = []
+    materialize().apply(debugContext(registered))
+    expect(registered).toContain('assistant-debug')
+  })
+
+  it('does not register it on the customer default boot', () => {
+    installBrowser('')
+    delete process.env.DSH_CLIENT_BUILD_PROFILE
+    const registered: string[] = []
+    materialize().apply(debugContext(registered))
+    expect(registered).not.toContain('assistant-debug')
   })
 })

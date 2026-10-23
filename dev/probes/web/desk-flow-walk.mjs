@@ -90,15 +90,17 @@ const pasteAndSend = async (text) => {
   return await evaluate(sendClick)
 }
 
-// —— 相位 1：首屏＝账本桌面 ——
+// —— 相位 1：首屏＝一页纸；进「全部 → 完整看板」后＝账本桌面 ——
+const boardEntry = await openBoard(evaluate, sleep)
+if (boardEntry !== 'board' && boardEntry !== 'already') {
+  fail('board-entry', { boardEntry }); await browser.settle(); process.exit()
+}
 const desk = await pollUntil(evaluate, deskText, {
   intervalMs: 700, budget: 120, checkFirst: true,
   isDone: text => text !== null && text.includes('你的桌面'),
 })
 if (desk === null || desk.includes('你的桌面') === false) { fail('desk-first-screen', { note: '桌面未挂载' }); await browser.settle(); process.exit() }
 await record('1-desk-first-screen')
-const boardEntry = await openBoard(evaluate, sleep)
-if (boardEntry !== 'board' && boardEntry !== 'already') fail('board-entry', { boardEntry })
 const mattersBefore = await evaluate(`[...document.querySelectorAll('[data-assistant-operating-desk] button.dsha-card')].map(b => (b.textContent ?? '').slice(0, 40))`)
 pass('desk-first-screen', { matters: mattersBefore?.length ?? 0 })
 
@@ -144,7 +146,14 @@ pass('processing-session', { picked, idle, sessionId: processingSessionId })
 // 不凭对话旧印象作答。普通侧栏打开旧聊天不在此相位（那不该播报）。
 {
   const deskNav = await evaluate(clickByText('桌面', { exact: false, notFound: 'no-desk-button' }))
-  const deskBack = await pollUntil(evaluate, deskPresent, { checkFirst: true, budget: 40 })
+  // The main panel is the one-page home now; the board is one click deeper (全部 → 完整看板).
+  let deskBack = await pollUntil(evaluate, deskPresent, { checkFirst: true, budget: 10 })
+  if (!deskBack) {
+    const boardEntry = await openBoard(evaluate, sleep)
+    if (boardEntry === 'board' || boardEntry === 'already') {
+      deskBack = await pollUntil(evaluate, deskPresent, { checkFirst: true, budget: 40 })
+    }
+  }
   let resumeOutcome = { deskNav, deskBack, resumed: 'not-tried', resumeClicked: 'not-tried', backInConversation: false, resumeSeeded: false, resumeIdle: false }
   if (deskNav === 'clicked' && deskBack) {
     const resumed = await evaluate(`(() => {
@@ -184,7 +193,15 @@ pass('processing-session', { picked, idle, sessionId: processingSessionId })
 if (await pasteAndSend(say) !== 'sent') { fail('say-turn', { note: '发送失败' }); await browser.settle(); process.exit() }
 const settled = await pollUntil(evaluate, turnStopped, { budget: 300, eachCycle: dismissApproval })
 await sleep(2500)
-const returnedText = await evaluate(deskText)
+let returnedText = await evaluate(deskText)
+if (returnedText === null) {
+  // The return lands on the one-page home; open the board for the phases that assert it.
+  const atHome = await evaluate(`document.querySelector('[data-assistant-one-page-home]') !== null`)
+  if (atHome === true) {
+    await openBoard(evaluate, sleep)
+    returnedText = await evaluate(deskText)
+  }
+}
 const returned = returnedText !== null
 await record(returned ? '3-returned-to-desk' : '3-stayed-in-conversation')
 pass('say-turn', { settled, returned })
@@ -207,9 +224,14 @@ if (returned && home !== undefined) {
 // —— 相位 4：交代臂 ——「＋ 交代新事项」→ 说一件新事 → 返回并选中**新**事项 ——
 if (!skipIntake) {
   if (!returned) {
-    // 还留在对话里就先手动回桌面（走查工具不去猜怎么回；这一步如实记录）
+    // 还留在对话里就先手动回桌面（走查工具不去猜怎么回；这一步如实记录）。
+    // 主面板是一页纸；进「全部 → 完整看板」才到旧桌面。
     await evaluate(clickByText('桌面', { exact: false }))
-    await pollUntil(evaluate, deskText, { budget: 40, isDone: text => text !== null })
+    let backText = await pollUntil(evaluate, deskText, { checkFirst: true, budget: 10, isDone: text => text !== null })
+    if (backText === null) {
+      await openBoard(evaluate, sleep)
+      backText = await pollUntil(evaluate, deskText, { budget: 40, isDone: text => text !== null })
+    }
   }
   // 身份按**账本 id** 判（标题可能撞车：同一次走查重复说同一件事时，模型会照样新建一件事，
   // 而标题与上一次那条几乎一样——2026-10-11 首跑就是这样把「新建成功」误判成「没新建」）。
