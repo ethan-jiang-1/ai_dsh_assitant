@@ -8,6 +8,8 @@
 连接态下在 Viki tab 输入「夹具」并点「搜索」：host 走 stateless `/search/find`，面板显示
 `搜索「夹具」· 1 条` 与固定命中行；钉住搜索的三态之一（有命中），不钉空结果/未连接（另一场景）。
 
+> **前置：专家档。** 三档界面默认标准会隐藏 Viki guide（`mount-rooms` 按 mode 过滤）。本场景是专家面：先在隔离 home 写 `assistant/ui-mode.json` 为 `{"mode":"expert"}`（或设置页切「专家」），再启动/比对；否则右侧栏没有 Viki 入口。这是场景前置，不是 Viki 面板回归。
+
 ## 怎么跑
 
 ```sh
@@ -18,6 +20,7 @@ node snapshots/web-face/viki-panel-connected/seed.mjs --port 19433 &
 OPENVIKING_URL=http://127.0.0.1:19433 pnpm dsh --profile dev --port 0 --no-open
 
 pnpm web-expected '<url>' --scenario snapshots/web-face/viki-panel-search \
+  --eval "(()=>{const b=[...document.querySelectorAll('button')].find(e=>e.textContent?.trim()==='继续');b?.click();return true})()" \
   --eval "(()=>{const b=[...document.querySelectorAll('button')].find(e=>e.textContent?.trim().includes('新会话'));b?.click();return !!b})()" \
   --eval "(()=>{const b=document.querySelector('button[aria-label=\"打开右侧边栏\"]');b?.click();return !!b})()" \
   --eval "(()=>{const el=[...document.querySelectorAll('button,[role=tab],a')].find(e=>e.textContent?.trim().startsWith('Viki'));if(!el)return false;el.click();return true})()" \

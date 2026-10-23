@@ -13,6 +13,8 @@
 **边界**：本场景只覆盖**降级态与 tab 渲染**，不覆盖连接态的搜索命中、健康/任务/统计、转正入口；
 后者需要稳定的 mock OV 数据，当前不在本场景伪造。连接态由 host 测试与 live 探针覆盖。
 
+> **前置：专家档。** 三档界面默认标准会隐藏 Viki guide（`mount-rooms` 按 mode 过滤）。本场景是专家面：先在隔离 home 写 `assistant/ui-mode.json` 为 `{"mode":"expert"}`（或设置页切「专家」），再启动/比对；否则右侧栏没有 Viki 入口。这是场景前置，不是 Viki 面板回归。
+
 ## 怎么跑
 
 ```sh
@@ -21,6 +23,7 @@ bash dev/env/prepare.sh && bash dev/env/setup.sh
 OPENVIKING_URL=http://127.0.0.1:9 pnpm dsh --profile dev --port 0 --no-open
 
 pnpm web-expected '<url>' --scenario snapshots/web-face/viki-panel-disconnected \
+  --eval "(()=>{const b=[...document.querySelectorAll('button')].find(e=>e.textContent?.trim()==='继续');b?.click();return true})()" \
   --eval "(()=>{const b=[...document.querySelectorAll('button')].find(e=>e.textContent?.trim().includes('新会话'));b?.click();return !!b})()" \
   --eval "(()=>{const b=document.querySelector('button[aria-label=\"打开右侧边栏\"]');b?.click();return !!b})()" \
   --eval "(()=>{const el=[...document.querySelectorAll('button,[role=tab],a')].find(e=>e.textContent?.trim().startsWith('Viki'));if(!el)return false;el.click();return true})()" \
