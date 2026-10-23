@@ -35,8 +35,11 @@ interface ClientExports {
   }) => Element | null
   deskStore: {
     data?: {
-      counts?: { knowledgeDraft?: number }
+      counts?: { knowledgeDraft?: number, memories?: number, skills?: number, knowledgeStable?: number, threads?: number }
       knowledge?: { status?: string }[]
+      memories?: unknown[]
+      skills?: unknown[]
+      research?: unknown[]
     } | undefined
     focusKnowledge?: 'drafts' | undefined
   }
@@ -119,6 +122,22 @@ describe('first-mile seats', () => {
     expect(copy).not.toContain('第一次来')
     expect(copy).not.toContain('例：')
     expect(elementsOf(dock, 'button')).toHaveLength(0)
+  })
+
+  it('a genuinely empty room projection still shows Day-0 (BUG-025)', () => {
+    const exports = materialize()
+    // The rooms route always returns an object with keys; freshness is the room CONTENT. This is
+    // the regression: the old Object.keys check made Day-0 unreachable on a fresh home.
+    exports.deskStore.data = {
+      memories: [], knowledge: [], skills: [], research: [],
+      counts: { memories: 0, knowledgeStable: 0, knowledgeDraft: 0, skills: 0, threads: 0 },
+    }
+    const dock = exports.FirstMileDock({ session: { blank: true }, openDesk: () => {} })
+    if (dock === null) throw new Error('the strip should render for a blank session')
+    const copy = textsOf(dock).join(' ')
+    expect(copy).toContain('第一次来')
+    expect(copy).toContain('开始第一件事')
+    expect(copy).not.toContain('一把手桌面')
   })
 
   it('tells a first-time principal what to say and offers the desk', () => {

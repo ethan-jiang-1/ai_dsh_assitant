@@ -96,7 +96,19 @@ export function FirstMileDock({ session, openDesk, processingMatter, t }: FirstM
 
   // The walk view's desk data — on a blank session there is no session slice yet, so the
   // brief reads the shared walk view (subscribed above).
-  const hasDesk = walk.data !== undefined && Object.keys(walk.data).length > 0
+  //
+  // BUG-025: `Object.keys(walk.data).length > 0` was always true after a successful rooms read
+  // (the payload carries schemaVersion/generatedAt/... even when every room is empty), so the
+  // Day-0 branch never rendered on a genuinely fresh home. Freshness is the room CONTENT, not the
+  // payload's shape; counts cover the legacy payloads that carry no row arrays.
+  const roomRows = (rows: readonly unknown[] | undefined, count: number | undefined): number =>
+    (rows?.length ?? 0) + (count ?? 0)
+  const hasDesk = walk.data !== undefined && (
+    roomRows(walk.data.memories, walk.data.counts?.memories)
+    + roomRows(walk.data.knowledge, (walk.data.counts?.knowledgeStable ?? 0) + (walk.data.counts?.knowledgeDraft ?? 0))
+    + roomRows(walk.data.skills, walk.data.counts?.skills)
+    + roomRows(walk.data.research, walk.data.counts?.threads)
+  ) > 0
   const shell = (children: (string | ReturnType<typeof createElement> | undefined)[]): ReturnType<typeof createElement> =>
     createElement('div', {
       style: {

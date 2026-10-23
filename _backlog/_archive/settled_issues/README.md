@@ -6,6 +6,7 @@
 
 | 卡 | 关闭日 | 判定 |
 |---|---|---|---|
+| [261023-first-run-ux-reframe.md](261023-first-run-ux-reframe.md) | 2026-10-23 | **做现在·一页纸全交付**：L0 一页纸（空态/首件/稳定态/异步轮询/三按钮）/ L1 人读列表 + 完整看板第二层 / L2 只读「开发调试」；首答合同（manual v19 + `management-breakdown`「Land it」+ `[首页]` lane）；审批/错误在 L0；`pnpm test` 972 / `verify` 44 / eval 11/11 可评；web-face `blank-first-open` 与 `desk-eight-matters-first-open` 重录 PASS。决定 note = [一页纸](../../../notes/implemented/2026-10-23-first-run-one-page.md) |
 | [261021-assistant-ui-modes.md](261021-assistant-ui-modes.md) | 2026-10-23 | **M1 + M2 已交付**：mode store + `mount-rooms`（body/title 一次、tab type 按 mode 重注册）、settings 置顶三档行、`mode-*` 命令、默认标准隐藏 Viki guide；M0 真机 Viki tab 与正文跨三档存活。持久化改为 `assistant-ui-mode` host 行（`api/assistant/ui-mode` ↔ `assistant/ui-mode.json`，localStorage 首屏），不再走不可达的 settings namespace。M2：简洁档输入+单卡+「显示更多」、命令按档过滤，审批/错误不隐藏。决定记录见卡内链接 |
 | [20261023-fresh-agent-hygiene-closure.md](20261023-fresh-agent-hygiene-closure.md) | 2026-10-23 | **做现在·八段全交付**：真相对齐 + 工具名门禁、工具输出契约 schema 化（`materials.eventId` 注册期漂移修复）、rooms payload owner、桌面 capture/activity 纯推导、导航 seam、SelfTurnHost、spec 回层 + tasks tab 覆盖。收尾 `test` 115 文件 938 / `verify` 44 / `release-smoke` PASS / desk 场景 PASS。**去向**：本卡 §裁决；C5 guard 补进 10-20 note |
 | [261020-openviking-direction-review.md](261020-openviking-direction-review.md) | 2026-10-21 | **接受 B**（H1–H6 按建议；安装/配置一等交付）：层 2 方向评审收敛；三张实施卡保持活跃（已授权规格），推进 = [收口卡](../../issues/261021-openviking-viki-closure.md) + [proposed 卡](../../../notes/proposed/2026-10-21-openviking-viki-landing.md) |

@@ -4,7 +4,7 @@
 
 提交只改这个目录：新建 `BUG-<NNN>-<slug>.md`，并在下面的表加一行。号在本文件取，不和 [`../issues/`](../issues/README.md) 的推敲卡混。
 
-**下一个缺陷号**：已分配到 BUG-024，Next BUG ID = 25。本目录、[`../_archive/fixed_bugs/`](../_archive/fixed_bugs/README.md) 和 [`../_archive/suspended_bugs/`](../_archive/suspended_bugs/README.md) 一起算，取最大号加一。
+**下一个缺陷号**：已分配到 BUG-025，Next BUG ID = 26。本目录、[`../_archive/fixed_bugs/`](../_archive/fixed_bugs/README.md) 和 [`../_archive/suspended_bugs/`](../_archive/suspended_bugs/README.md) 一起算，取最大号加一。
 
 ## 修复通道与授权
 
@@ -42,7 +42,6 @@ frontmatter `status` 是当前阶段的唯一家；状态行镜像它（`状态�
 
 | Bug | 标题 | 严重级 | 发现 |
 |---|---|---|---|
-| [BUG-025](BUG-025-first-run-day0-unreachable.md) | 空 home 的 Day-0 引导卡不出现（空判据读 keys 数） | P1 | 2026-10-23 |
 
 ## frontmatter
 

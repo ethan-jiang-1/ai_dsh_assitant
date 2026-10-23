@@ -1,12 +1,12 @@
 ---
-status: 排查中
+status: 已修
 severity: P1
 opened: 2026-10-23
 ---
 
 # BUG-025：空 home 的首开引导卡不出现——空判据读的是 keys 数，不是房间内容
 
-> 严重级别：P1（重要）｜发现：2026-10-23｜状态：排查中
+> 严重级别：P1（重要）｜发现：2026-10-23｜状态：已修
 
 ## 症状
 
@@ -45,17 +45,20 @@ session 的 `misses` 标记，没有用于这张卡。
 
 ## 修复关联
 
-两条修法，取决于用户对首开重做的选择（[261023 首开重做](../issues/261023-first-run-ux-reframe.md)）：
+首开重做（[261023 收口](../../_archive/settled_issues/261023-first-run-ux-reframe.md)）把默认首开移到了 L0 一页纸，但这张 dock 卡在
+空白会话里仍会出现；按 (a) 独立修，判据取「四房间内容为空」（rows + counts，含 research）——与
+`first-conversation` 技能的触发同源。账本有事项、房间全空的组合由首页承接，不在本卡范围。
 
-- (a) 独立修：空判据改为「四房间全空 **且** 账本无事项」；Day-0 卡保留。
-- (b) 随首开重做：首开引导改由首页承担，这张 dock 卡退役或降级——本卡 riding 261023，不单独修。
+## 修复
 
-未定。按用户 2026-10-23 的流程（先在 research 想清楚，再决定落地），本卡留在 `排查中`：
-首开设计收敛后，要么按 (a) 独立修，要么随重做退役；**暂不自行翻 `修复就绪`**。
+`first-mile.ts` 的 `hasDesk` 从 `Object.keys(walk.data).length > 0` 改为房间内容计数：
+memories / knowledge（stable + draft）/ skills / research（rows + counts）。空 rooms payload 因此走 Day-0；
+legacy counts-only payload 仍走「有桌面」分支。回归 spec：
+`tests/client/first-mile.spec.ts` 的「a genuinely empty room projection still shows Day-0 (BUG-025)」。
 
 ## 修好定义
 
-- 空 home（四房间空 + 账本无事项）+ 空白会话：DOM 出现 Day-0 文案，且不出现
+- 空 home（四房间内容为空：rows + counts）+ 空白会话：DOM 出现 Day-0 文案，且不出现
   「这是你的一把手桌面——三句话，说完就办」；
 - 有任一 memory / desk 数据时：反过来，出现「有桌面」分支、不出现 Day-0 文案；
-- 证据：一张真机截图 + 一个 web-face 场景（或等价的 DOM 断言）。
+- 证据：`first-mile.spec.ts` 的 BUG-025 回归案；`pnpm test` / `pnpm verify` 绿。

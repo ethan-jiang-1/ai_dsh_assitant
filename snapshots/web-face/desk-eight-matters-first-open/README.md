@@ -8,11 +8,10 @@
 
 ## 场景是什么
 
-**隔离 home 的经营账本位置种着 eight-matters 固定夹具时，第一次打开 web UI 的全局桌面**：主区是
-「你的桌面」＋ `7 件在办` 计数、看板/流水两个 tab、筛选片（全部 8 / 在办 7 / 已了结 1）、
-八张事项卡片（七在办 + 完成记录 H，各带状态徽标与摘要）、夹具说明「模拟资料，仅供验证界面。」
-与右栏「选择一项查看详情。」——capture row 与「让它替你盯」三条静态建议也在场，
-proactive face 三行全部缺席（见确定性账）。
+**隔离 home 的经营账本位置种着 eight-matters 固定夹具时，第一次打开 web UI 的默认主区**：一页纸显示夹具的
+第一件事（回款 A…）、「全部（8）」与「还有 7 件」；输入行与「看依据」在场；夹具说明「模拟资料，仅供验证界面。」。
+看板 / 流水 / 筛选 / 主动建议不在默认面；八张卡片在「全部」的人读列表里，由单元测试与「完整看板」守护，
+不在本场景的默认捕获里。
 
 **为什么是它**（六维审计 261020 丙批 #16.5：带 eight-matters 夹具的第三个 web-face 场景）：blank 钉
 空桌面的裸首开、banner 钉会话里的审批横幅，桌面**有数据时**的卡片列表渲染（S4 重构后的
@@ -41,23 +40,20 @@ pnpm dsh --profile dev --port 0 --no-open
 pnpm shots '<url>' --dom --size 1600x1000
 
 # ⑥ 重录期望（--refresh，肉眼过 PNG）或直接比对（漂移即 exit 1）
-pnpm web-expected '<url>' --scenario snapshots/web-face/desk-eight-matters-first-open --wait-text '完成记录 H'
+pnpm web-expected '<url>' --scenario snapshots/web-face/desk-eight-matters-first-open --wait-text '还有 7 件'
 # 只有观察到有意渲染变化且过目 DOM 差异，才在上条命令追加 --refresh。
 ```
 
-**`--wait-text '完成记录 H'` 是本场景的合同件**（同 banner 场景的「在等你审批」）：桌面数据走
-连接世代的异步下载，就绪令牌选夹具探针的既有断言（`dev/fixtures/desk-projection/README.md` 以
-「完成记录 H」为浏览器就绪断言）——它只在投影渲染完成后在场，录制与比对都不可能把
-loading/missing 态写进期望。BUG-021 起 webui-expected 把它翻译成 `--require-eval 'ready: …'`，
-等不到就非零退出、不拍。
+**`--wait-text '还有 7 件'` 是本场景的合同件**：它在投影下载并推导出「还有 N 件」之后才在场；
+录制与比对都不可能把 loading/missing 态写进期望。BUG-021 起 webui-expected 把它翻译成
+`--require-eval 'ready: …'`，等不到就非零退出、不拍。
 
 ## 比对什么（判据）
 
 与两前场景同比对面（DOM 证据 JSON，忽略清单与 token 规则是 core 的被审常量，本场景零新增）：
-`visibleText` 必须含全部八个事项标题与摘要、`7 件在办`、筛选片计数（8/7/1）、
-「模拟资料，仅供验证界面。」「选择一项查看详情。」；`controls` 必须含八张卡片按钮
-（卡片本身是 `button`）与「看板/流水」tab、筛选片；`consoleErrors`/`networkFailures` 必须空。
-卡片顺序按夹具原序（payment-a…completed-h），完成记录 H 是最后一张。
+`visibleText` 必须含「今天」「全部（8）」「还有 7 件」、第一件事标题与摘要、输入占位与「看依据」；
+不得含「看板」「流水」「筛选」「让它替你盯」；`controls` 不再含八张卡片（它们在「全部」里）；
+`consoleErrors`/`networkFailures` 必须空。
 
 ## 确定性账（每处时间源如实清点）
 
@@ -74,12 +70,12 @@ loading/missing 态写进期望。BUG-021 起 webui-expected 把它翻译成 `--
 - **主机路由按字节原样回传夹具**：`ledger.json` 不在场时 `/api/assistant/desk-projection` 直接回
   `desk-projection.json` 的字节；`new Date().toISOString()` 重戳只发生在 live ledger 渲染路径上。
   账本 writer boot 无副作用（writer.lock 首次变更操作才拿），本场景无模型回合 → 无操作 → 无 ledger。
-- **建议块是静态三条**（`PROACTIVE_SUGGESTIONS` 常量；client-local `ignored` 首开为空）。
+- **建议块不在默认面**（它在完整看板里）；一页纸不读它。
 - **会话列表为空**（全新 home）→ 侧栏无相对时间戳（blank/banner 同账）。
 - **两个引导弹窗各归其主**：内测声明由 `welcomeNoticeVersion` 配置预确认、API Key 引导靠 dev home
   凭据 `refs` 合并（banner 场景姿势，结构只增不改、0600）——弹窗在场的裸首开归 blank 场景钉，
   本场景让卡片不被遮挡。
-- 计数/筛选片/卡片全部从夹具字节推导（7 件在办 · 全部 8 · 在办 7 · 已了结 1），无钟。
+- 「全部（8）」「还有 7 件」从夹具字节推导（8 件事，首件占一页），无钟。
 
 ## 种子文件契约
 
@@ -101,7 +97,7 @@ loading/missing 态写进期望。BUG-021 起 webui-expected 把它翻译成 `--
 | 隔离 home 准备（prepare+setup） | ~5.7s（prepare 幂等跳过 0.06s + setup 5.7s；vendor 产物在位） |
 | 服务启动到 URL | ~8s |
 | shots 首连（含默认工作区创建） | ~14s |
-| web-expected 录制（--refresh，带 wait-text） | ~9s（`eval → ready: 完成记录 H`） |
+| web-expected 录制（--refresh，带 wait-text） | ~9s（`eval → ready: 还有 7 件`） |
 | 单次比对（带 wait-text） | ~9s（就绪即过） |
 | 稳定性 | 基线 + 复跑两连拍全绿（`PASS — matches` ×2，exit 0） |
 | 胶水成本 | seed.mjs + snapshot.yml + 本 README（比 banner 少一个 rooms 往返：账本种子 boot 前一次落位） |

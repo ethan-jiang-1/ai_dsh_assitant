@@ -55,6 +55,24 @@ function findButton(node: unknown, label: string): { onClick?: () => void, disab
   return undefined
 }
 
+
+/** Same walker, substring match: list rows carry their meta and first summary line too. */
+function findButtonContaining(node: unknown, label: string): { onClick?: () => void, disabled?: boolean } | undefined {
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const hit = findButtonContaining(child, label)
+      if (hit !== undefined) return hit
+    }
+    return undefined
+  }
+  if (node !== null && typeof node === 'object' && 'props' in node) {
+    const props = (node as { props: { children?: unknown, onClick?: () => void, disabled?: boolean } }).props
+    if (text(node).includes(label) && props.onClick !== undefined) return props
+    return findButtonContaining(props.children, label)
+  }
+  return undefined
+}
+
 /** Invoke function components the way React would, so a wrapper's child contributes its text. */
 function expand(node: unknown): unknown {
   if (Array.isArray(node)) return node.map(expand)
@@ -192,7 +210,7 @@ describe('OnePageHome', () => {
     expect(text(renderHome(props))).not.toContain('你 10/23 的原话')
   })
 
-  it('HomeSurface switches to the full board and back', () => {
+  it('HomeSurface goes home -> list -> board and back', () => {
     const { props } = panelProps({ status: 'ready', data: projection([matter()]) })
     const { onOpenAll: _unused, ...panel } = props
     stateSlots.length = 0
@@ -200,6 +218,12 @@ describe('OnePageHome', () => {
     const home = expand(HomeSurface(panel))
     expect(text(home)).toContain('今天')
     findButton(home, '全部（1）')?.onClick?.()
+    stateIndex = 0
+    const list = expand(HomeSurface(panel))
+    expect(text(list)).toContain('全部事项')
+    expect(text(list)).toContain('Q3 销售掉了 20%')
+    expect(findButton(list, '回到今天')).toBeDefined()
+    findButton(list, '完整看板')?.onClick?.()
     stateIndex = 0
     const board = expand(HomeSurface(panel))
     expect(text(board)).toContain('看板')
@@ -209,5 +233,22 @@ describe('OnePageHome', () => {
     const back = expand(HomeSurface(panel))
     expect(text(back)).toContain('今天')
     expect(text(back)).toContain('Q3 销售掉了 20%')
+  })
+
+  it('a list row selects that matter and returns to the page', () => {
+    const first = matter()
+    const second = matter({ id: 'm2', title: '报价 480 万接不接', summary: '不接，或改范围。' })
+    const { props, view } = panelProps({ status: 'ready', data: projection([first, second]) })
+    const { onOpenAll: _unused, ...panel } = props
+    stateSlots.length = 0
+    stateIndex = 0
+    const home = expand(HomeSurface(panel))
+    findButton(home, '全部（2）')?.onClick?.()
+    stateIndex = 0
+    const list = expand(HomeSurface(panel))
+    findButtonContaining(list, '报价 480 万接不接')?.onClick?.()
+    expect(view.getSnapshot().selected?.id).toBe('m2')
+    stateIndex = 0
+    expect(text(expand(HomeSurface(panel)))).toContain('报价 480 万接不接')
   })
 })

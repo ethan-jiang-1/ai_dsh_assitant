@@ -52,7 +52,7 @@ research 为问题和缺陷提供依据。问题按 [关闭条件](../README.md)
 
 从引用卡链接进入，按正在解决的问题选读。
 
-- [261023-first-run-ux-walkthrough.md](positioning/261023-first-run-ux-walkthrough.md)——引用卡：[首开重做](../issues/261023-first-run-ux-reframe.md)（推敲中：证据/三案/设计议程在本档，结论在卡上）。空 home 三屏走查 + 一次真模型回合：五条可观察事实、呈现面清单、机制诊断、目标体验草案、A/B/C 代价与九条未决议程
+- [261023-first-run-ux-walkthrough.md](positioning/261023-first-run-ux-walkthrough.md)——引用卡：[首开重做（已结）](../_archive/settled_issues/261023-first-run-ux-reframe.md)（证据/三案/设计议程在本档，结论与台账在卡上）。空 home 三屏走查 + 一次真模型回合：五条可观察事实、呈现面清单、机制诊断、目标体验草案、A/B/C 代价与九条未决议程
 
 - [261020-six-dimension-housekeeping-audit.md](tech-exploration/261020-six-dimension-housekeeping-audit.md)——引用卡：无（2026-10-20 用户点名六维深审，本档是本轮 REVIEW 的直接输入；改善项立项后由对应卡引用）。六维打扫卫生深审发现报告：五路 fresh 审计员 + 主线对抗复核；S1–S5 战役复核结论（立住）、26 条分级发现、改善三批次路线、banner 场景活体复验 PASS
 

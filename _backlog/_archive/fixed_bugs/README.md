@@ -4,6 +4,7 @@
 
 | 卡 | 标题 | 修复 | 日期 |
 |---|---|---|---|
+| [BUG-025](BUG-025-first-run-day0-unreachable.md) | 空 home 的 Day-0 引导卡被 `Object.keys` 判据挡掉 | freshness 改读房间内容（rows + counts，含 research）；新增回归 spec；`pnpm test` 972 / `pnpm verify` 44 | 2026-10-23 |
 | [BUG-024](BUG-024-eval-baseline-red.md) | 行为评测基线红：7 个任务全部零 `tool/call`，误报 0/7 | `dev-task` 无 credentials service；`runPreset` 现从 dev home 的 `.credentials.yaml` 镜像 `DEEPSEEK_API_KEY`（不打印），并把 `desk-followup-readback` 的确认判据补同义表达。证据：`pnpm eval` 7/7（1 web-only NOT EVALUATED）、`verify` 43/43、`test` 910/910 | 2026-10-21 |
 | [BUG-016](BUG-016-capture-receipt-lost-on-reload.md) | 桌面投递回执刷新即失，挂起的问题在桌面上没有任何入口 | 回执（含 lane/label）落 sessionStorage（per tab、读取重校验）；openQuestions 从 SessionStatus 接线（capture 自己会话不双计），行 2 有挂起问题时「去答问题」直接开会话。证据：projection-view 持久化 1 案 + panel 计数 2 案；真机刷新后 `inflightAfterReload: true`；`desk-capture-live` 桌面出现「1 句等你答 / 去答问题」 | 2026-10-19 |
 | [BUG-017](BUG-017-due-row-cleared-by-any-receipt.md) | 「到期没结果」行被任何回执清掉——claim/update 也算"看过" | 到期行只认 committed 的 `complete` 回执；claim/update/rejected 不清。纯核 4 种 kind/status 判决；live m-1 投影重新产出 due 行，真车道桌面「到期 5 天，账上没有结果」 | 2026-10-19 |

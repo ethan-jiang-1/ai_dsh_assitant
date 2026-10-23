@@ -164,7 +164,8 @@ seam 的成色读数是**第二个真实 Provider 出现而 Consumer 一行不�
 | `src/client/chrome/navigation.ts` | 浏览器导航 seam：`returnToConversation` + `revealChatTab`（平台会话激活、DOM tab reveal 适配器、主面板复位） | 无（平台 face 由调用方传入） |
 | `src/client/projection/desk-surface.ts` | 桌面面板的 lane surface 工厂：回调、导航与建议动作从 20 字段 props 中抽出；panel 只收 hooks / store / actions | 无（平台 face 由入口传入） |
 | `src/client/projection/one-page-home.ts` | L0 一页纸：空态一问 + 当前页 + 一个输入；页上三按钮走 capture / page-action lane；待审草稿提示永在 L0 | `projection-panel` 的 props 契约 |
-| `src/client/projection/home-surface.ts` | L0/L1 视图切换：默认一页纸，「全部」进完整看板（`projection-panel`），「回到今天」返回；切换状态不持久化 | 上述两个纯组件 |
+| `src/client/projection/brief-list.ts` | L1「全部」：每件事一行（标题 / 状态 / 复查 / 摘要首行），点行选中并回页；「完整看板」再进旧看板 | `projection-panel` 的 props 契约 |
+| `src/client/projection/home-surface.ts` | 三面切换：一页纸 →「全部」人读列表 →「完整看板」；「回到今天」返回；切换状态不持久化 | 上述三个纯组件 |
 | `src/client/debug/debug-panel.ts` | L2 开发调试：投影状态 / revision / ledgerId / 选中项 / session / 会话状态 + 只读投影 JSON + 复制诊断；仅在 `#debug=1` 或 localStorage 标志下注册为会话视图 tab | `projection-panel` 的 props 契约 |
 | `src/client/chrome/ui-mode.ts` | 界面密度 store：simple / standard / expert、localStorage 首屏、per-materialization 重置；per-home `ui-mode.json` 经 Host route 采用/写回（远端失败保留本地） | 无（浏览器 storage 可缺席） |
 | `src/client/chrome/ui-mode-row.ts` | `settings.general.item` 行：三档选择与当前态；只写共享 mode store，不发请求 | `chrome/ui-mode` |

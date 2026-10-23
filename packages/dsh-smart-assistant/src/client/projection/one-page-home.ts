@@ -91,7 +91,7 @@ function pageTime(matter: OperatingMatter): string {
  * @returns The home element.
  */
 export function OnePageHome(props: ProjectionPanelProps & { onOpenAll: () => void }): ReturnType<typeof ce> {
-  const { useState } = reactSurface()
+  const { useEffect, useState } = reactSurface()
   const [showBasis, setShowBasis] = useState(false)
   const download = props.useProjection(value => value)
   const data = download.data
@@ -118,6 +118,15 @@ export function OnePageHome(props: ProjectionPanelProps & { onOpenAll: () => voi
   })
   const capturePending = captureView.pending
   const questionSession = captureView.questionSessions[0]
+  // While a capture/action is in flight, the ledger can already hold the page long before the
+  // model's turn ends (observed 2026-10-23: the matter landed in ~1 minute, the turn stayed busy).
+  // Poll the projection so the page appears as soon as it is real; the interval stops when the
+  // receipt resolves or the panel unmounts.
+  useEffect(() => {
+    if (receipt === null || captureView.phase === 'resolved') return
+    const timer = setInterval(() => { props.surface.lanes.refreshProjection() }, 4000)
+    return () => { clearInterval(timer) }
+  }, [receipt?.requestId, captureView.phase])
   const matters = data?.matters ?? []
   const unclaimed = data?.unclaimed ?? []
   const selectedMatter = view.selected?.kind === 'matter'
@@ -161,7 +170,7 @@ export function OnePageHome(props: ProjectionPanelProps & { onOpenAll: () => voi
     ? ce('div', { className: 'dsha-home-working', role: 'status' },
       ce('div', { className: 'dsha-home-working-line' },
         ce('span', { className: 'dsha-home-pulse' }),
-        ce('span', {}, captureView.phase === 'suspended' ? '它在会话里等你说一句' : '我在拆这件事，大约一分钟')),
+        ce('span', {}, captureView.phase === 'suspended' ? '它在会话里等你处理' : '我在拆这件事，大约一分钟')),
       ce('p', { className: 'dsha-home-said' }, receipt.label ?? `「${receipt.text}」`),
       captureView.phase === 'suspended'
         ? ce('button', {
@@ -172,11 +181,11 @@ export function OnePageHome(props: ProjectionPanelProps & { onOpenAll: () => voi
     : null
   const questionCard = questionSession !== undefined
     ? ce('div', { className: 'dsha-home-question' },
-      ce('p', {}, '它在等你回答——答完才会继续往下办。'),
+      ce('p', {}, '它在等你处理——答完或批完才会继续往下办。'),
       ce('button', {
         className: 'dsha-home-act', type: 'button',
         onClick: () => props.surface.lanes.onOpenSession(questionSession),
-      }, '去会话回答'))
+      }, '去会话处理'))
     : null
   const basisLines = (matter: OperatingMatter): ReturnType<typeof ce>[] =>
     matter.evidence.length === 0
