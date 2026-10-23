@@ -248,7 +248,7 @@ DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得
 `ASSISTANT_DSH_HOME` 或仓内 dev home（机械门禁 `structure: dev tooling never inherits DSH_HOME` 管）；
 **只报测得到的**——日志没有的字段（如 preset）不报，数字全来自事件计数。
 
-**三个真机探针与输入观察（命令表上的深判据在这里）**：
+**四个真机探针与输入观察（命令表上的深判据在这里）**：
 `pnpm loop-probe '<URL>' --ask '<问句>'`（首用闭环：**首屏=桌面页**——你的桌面、中文文案、无黑话、工作区就绪——
 走「＋ 交代新事项」进会话，真发问真等回复，JSON 判决 + 终态截图，**判决带 sessionId**（会话目录快照差集取，不猜；`--home` 旗标解析同其它 dev 工具）；`--ask` 会真建会话——先把目标实例起在一次性 home，探针本身不隔离 home）、
 `pnpm desk-walk '<URL>' [--home <dir>]`（处理流真机走查：首屏桌面→处理一件事→一句进展→返回不变量→交代新事，

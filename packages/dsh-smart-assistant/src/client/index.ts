@@ -286,8 +286,9 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // (below) is the plugin boundary's best shot. Full form migration needs upstream D7.
 
 
-    // The session desk VIEW tab is retired with the room (same principal decision): no
-    // second surface may carry the "桌面" name — the main-panel desk is the only one.
+    // The session desk VIEW tab is retired with the room (same principal decision). The
+    // workbench tab may reuse the 「桌面」 label for the same global ledger desk; there is still
+    // no second session-desk subsystem.
 
     // Discovery (2026-09-26): the `/` menu and the composer's `+` menu list these,
     // so "what can this thing do" stops depending on the principal guessing at a prompt.

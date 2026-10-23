@@ -62,7 +62,7 @@
 `assistant_knowledge`（只读检索）、`assistant_operating`（经营账本；独立 `assistant-operating` dataDir，契约 = [docs/operating.md](docs/operating.md)）、`assistant_recall`（按需只读记忆检索；find/search/read/tree，A2 已裁决并随 preset 挂载）。
 各工具的**动词与完整清单以生成物 [`docs/package-catalog.md`](docs/package-catalog.md)「工具 × 动词」节为准**，此处不复制。
 
-`curate`（`assistant_memory` 的一个动词，不是第六个工具；另有一条 host 节拍器按轮自动插入养护 turn，
+`curate`（`assistant_memory` 的一个动词，不是独立工具；另有一条 host 节拍器按轮自动插入养护 turn，
 见 [`docs/home.md`](docs/home.md) §四）是**机器能跑的养护检查**（重复、悬空引用、摘要预算、过期线索、
 技能遮蔽/退役/断链/凭据、知识页治理等——**非穷举**，完整检查面 = [`docs/home.md`](docs/home.md) §四）—— 能让代码查的，别让 AI 自己说。
 

@@ -1,10 +1,10 @@
 /**
- * The desk's four conversation arms — 处理 (process), 交代 (intake), 认领 (claim), 唤醒 (wake) —
- * their one-at-a-time launch skeleton, the context notes they seed, and the return dispatch that
- * hands the desk back once a bound session's work reads back.
+ * The desk's five conversation arms — 处理 (process), 交代 (intake), 认领 (claim), 弃置 (discard),
+ * 唤醒 (wake) — their one-at-a-time launch skeleton, the context notes they seed, and the return
+ * dispatch that hands the desk back once a bound session's work reads back.
  *
  * One arm at a time ([desk-operating-entry](../../../../../notes/implemented/2026-10-06-desk-operating-entry.md)): the launch lock, the bound-path check and the readable-projection
- * demand live in the skeleton, not in four copies, which is what keeps the double-click negative
+ * demand live in the skeleton, not in each copy, which is what keeps the double-click negative
  * (双击发送两次) and the one-path-at-a-time rule true for every arm at once. The intake arm is the
  * deliberate outlier — it opens its door on an unreadable projection, reuses the current session,
  * and seeds nothing.

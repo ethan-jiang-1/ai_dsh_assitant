@@ -39,3 +39,4 @@
 - **头注契约禁裸片号**：现行契约句或可解析的相对链接指向 notes 卡——对无 transcript 的新 agent 可读。
 - **desk 场景确定性账的形状约束**：v1 夹具 matters 不带 times → 日期渲染器不可达、全 DOM 零时间文本；将来给夹具加任何时刻必须重审场景确定性。
 - **门禁抓修的人是常态而非事故**：本轮多处修正被门禁当场抓红（identity 认领注记、standing-orders 进度词、命令未文档化、产物新鲜度）后当场改对——这个回路本身就是仓库最重要的资产之一。
+- **`HomeHost` 仍是唯一公开契约**（2026-10-23 复核）：只把 `installSelfTurnSlots` 的宿主收窄为两字段的 `SelfTurnHost`（结构性 Pick，供测试替身）；按房间拆 `MemoryWrites`/`CurationReads`/`SkillWrites` 会重启"一实现两契约名"，不做。

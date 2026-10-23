@@ -89,7 +89,7 @@
 |---|---|---|---|
 | 编译期 | `tsc -b`（paths 解析到 vendor 源码）+ 严格 tsconfig | 类型关系与穷举分支成立 | 运行时组合正确 |
 | Load / 解析 | cordis 组合加载（patch 行 id 唯一、inject 可解析、`--dump-config` 无 warn） | 组合在最早可解析点合法 | 行为满足意图 |
-| 局部行为 | 纯核 vitest（home/memory/research/skills/knowledge） | 所属模块的正例、错误与边界 | 组装后的产品输出 |
+| 局部行为 | 纯核 vitest（`src/domain/`） | 所属模块的正例、错误与边界 | 组装后的产品输出 |
 | 组装行为 | 服务级合同 + 真实组合测试（Loader + preset 站立挂载 + 属性代理消费） | 真实入口按预期组装（如三段落顺序、工具 scope） | 设计选择合理 |
 | 真实安装 | `release-smoke`（pack → 干净 home → plugin add）、preset-runner 探针 | 真实安装形状与真实 LLM turn 的外部结果 | 长期质量 |
 | 语义判断 | 审计轮 / 新上下文探针 / 用户验收 | 意图、架构、风险与证据是否对齐 | 每个机械细节都已执行 |
