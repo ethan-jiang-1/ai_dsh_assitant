@@ -16,6 +16,7 @@
  */
 
 import { describe, expect, it } from 'vitest'
+import { validateJsonSchemaValue } from '@deepseek-ai/dsh-tools'
 import { operatingTool, render, type OperatingOutput } from '../../src/agent/tool-operating/index.ts'
 import { ledgerPool } from '../support/host-harness.ts'
 
@@ -207,6 +208,11 @@ describe('assistant_operating (tool adapter over the authoritative ledger)', () 
 
     const read = await tool.execute({ action: 'read', matter_id: matterId }, exec) as OperatingOutput
     expect(read.materials?.find(material => material.note === '客户致电')?.eventId).toBe('ev-42')
+    // The platform validates every successful result against this schema at dispatch
+    // (vendor tools/src/index.ts createSuccessResult); calling execute() directly bypassed that
+    // gate, so assert the contract here. Without the materials.eventId declaration the value
+    // fails additionalProperties before the presenter ever runs.
+    expect(validateJsonSchemaValue(tool.output.schema, JSON.parse(JSON.stringify(read)), 'value')).toEqual([])
     const rendered = tool.output.render({ action: 'read' }, JSON.parse(JSON.stringify(read)))
       .filter(part => part.type === 'text')
       .map(part => part.text)

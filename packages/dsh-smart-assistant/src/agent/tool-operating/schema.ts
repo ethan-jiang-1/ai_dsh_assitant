@@ -89,6 +89,7 @@ export const OPERATING_OUTPUT_SCHEMA = {
           id: { type: 'string', required: true },
           note: { type: 'string', required: true },
           sessionId: { type: 'string', required: true },
+          eventId: { type: 'string' },
           quote: { type: 'string' },
         },
       },
