@@ -1,7 +1,7 @@
 /**
  * The home layout: the single owner of where a home's rooms live and how a missing home is created.
  *
- * Every other module — the service, the three tools, the digest, the curation check — derives its
+ * Every other module — the service, the six tools, the digest, the curation check — derives its
  * paths from {@link homePaths} instead of joining directory names itself. That is what keeps
  * `docs/home.md` and the code from drifting apart, and it is why a layout change is a one-file change.
  *

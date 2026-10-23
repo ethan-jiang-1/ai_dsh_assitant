@@ -59,7 +59,7 @@
 ## 工具
 
 自有工具：`assistant_memory`（记忆）、`assistant_research`（线索）、`assistant_reflect`（复盘 / 技能 / 知识页写入）、
-`assistant_knowledge`（只读检索）、`assistant_operating`（经营账本；独立 `assistant-operating` dataDir，契约 = [docs/operating.md](docs/operating.md)）、`assistant_recall`（按需只读记忆检索；find/search/read/tree，A2 生产候选）。
+`assistant_knowledge`（只读检索）、`assistant_operating`（经营账本；独立 `assistant-operating` dataDir，契约 = [docs/operating.md](docs/operating.md)）、`assistant_recall`（按需只读记忆检索；find/search/read/tree，A2 已裁决并随 preset 挂载）。
 各工具的**动词与完整清单以生成物 [`docs/package-catalog.md`](docs/package-catalog.md)「工具 × 动词」节为准**，此处不复制。
 
 `curate`（`assistant_memory` 的一个动词，不是第六个工具；另有一条 host 节拍器按轮自动插入养护 turn，

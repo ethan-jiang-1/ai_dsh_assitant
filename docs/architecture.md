@@ -69,7 +69,7 @@ AGENT 面（`cordis.patch.yml` 的 `preset-assistant` 行 → agent preset）
 ├── assistant-home-preamble   提示词段落：身份（SOUL.md）与家手册（AGENTS.md）逐字
 ├── assistant-memory-digest   提示词段落：有界摘要（桌面）
 ├── assistant-memory-tool     工具 assistant_memory
-├── assistant-recall-tool     工具 assistant_recall（按需只读检索；A2 生产候选）
+├── assistant-recall-tool     工具 assistant_recall（按需只读检索；A2 已裁决，随 preset 挂载）
 ├── assistant-research-tool   工具 assistant_research
 ├── assistant-operating-tool  工具 assistant_operating（经营账本动作，消费 host 行服务——契约 = [operating.md](operating.md) §二）
 ├── assistant-operating-brief 提示词段落：经营事项走账本（order 400，稳定指令带）
@@ -89,7 +89,8 @@ AGENT 面（`cordis.patch.yml` 的 `preset-assistant` 行 → agent preset）
 （生成器从 `src/client/` 模块树抽取，freshness 由 `pnpm verify` 守；散文不另维护清单）。
 语义要点：官方品牌包只在 official 构建档案下注册，本地构建里品牌 slot 空置；
 四个房间 tab（knowledge / memory / viki / skills）是「+」向导里可添加的右栏 tab；首里引导座位开聊即隐；全局经营
-桌面的主区投影消费 `main` 座位（读回链 = [`operating.md`](operating.md) §三）——这些消费的
+桌面的主区投影消费 `main` 座位；会话内还以 `conversation.view` 注册「桌面」「自动化任务」两个 tab，两个桌面
+view 共享同一投影 snapshot、各自一个 selection store；读回链 = [`operating.md`](operating.md) §三——这些消费的
 全是 vendor 通用座位，§六 延后的"专属 Web 卡片"指**跨出通用座位的自有卡面**（自有 slot 域名），
 未立项。
 
@@ -110,12 +111,12 @@ client 的房间 tab 读的就是同一个实例；preset 里的服务行必须�
 | L3 宿主循环 | agent-loop（vendor，我们不拥有） | 改默认循环驱动 | 前三级都表达不了（本仓不修改 vendor） |
 
 **横切义务**：任何新增**模型可见事实**（工具、段落、消息）必须同时进入会话日志并可从中重建——
-`model-visible means logged`；否则它在 resume/fork 后会消失（本仓对应 `docs/identity.md` 的 model-visible 纪律）。
+`model-visible means logged`；否则它在 resume/fork 后会消失（本仓规则正文 = 本文 §四；`docs/identity.md` 只登记身份面）。
 
 **新行为该放哪**（先问六句，再动手；对应 DSH「新行为挂在已文档化的扩展点上」）：
 ① 只改 `cordis.patch.yml` 的一行 config 就够吗（换 provider / 换顺序）？② 只加一个工具或提示词段落
 就够吗（agent 面）？③ 是不是跨会话共享的持久状态（→ 服务，host 面）？④ 是不是新增**模型可见事实**
-（→ 走 `docs/identity.md` 的 model-visible 纪律，配快照与日志）？⑤ 浏览器是否要经认证 route 读写
+（→ 走本文 §四的 model-visible 纪律，配快照与日志）？⑤ 浏览器是否要经认证 route 读写
 Host 能力（→ host 行 + `connection.fetch`，client 只消费）？⑥ 只是皮肤/座位，还是浏览器本地交互状态
 （→ client 面，不进模型上下文）？
 
@@ -137,9 +138,13 @@ seam 的成色读数是**第二个真实 Provider 出现而 Consumer 一行不�
 | `src/domain/research/thread.ts` | 线索词汇与两档出口（drop 必填理由由校验强制） | record（slugify） |
 | `src/domain/skills/skill-file.ts` | `SKILL.md` 契约：名校验、草稿校验、写入、**provenance 盖章** | frontmatter |
 | `src/domain/knowledge/page.ts`、`search.ts`、`health.ts` | 知识页词汇（OKF 字段子集 + `[[互链]]` 解析/反链）、关键词检索排序、知识 findings —— 纯核 | frontmatter |
+| `src/domain/knowledge/ingest.ts` | dev-only 知识页导入（不进产品路径） | page/frontmatter |
 | `src/domain/skills/scan.ts` | 按 provider 的规则回读技能房间，报出会被静默忽略的文件 | frontmatter |
 | `src/domain/home/digest.ts` | 有界摘要（桌面），按 UTF-8 字节裁剪 | record/thread 类型 |
 | `src/domain/home/health.ts` | **纯函数**养护检查：输入是解析结果，输出是 findings | 类型 |
+| `src/domain/desk/desk-process.ts` | 桌面五臂的路径状态与返回判据（纯核；消费方 = `client/desk/desk-arms`） | 无（最底层） |
+| `src/domain/maintenance/receipt.ts` | 审批回执词汇：直接写的类型与显示标签（client 面板与 host 审计共用） | 无（最底层） |
+| `src/domain/viki/types.ts` | Viki 记忆内容类型（user/peer 与 memory 行）；client 面板与 host 路由共用 | 无（最底层） |
 | `src/domain/operating/`（`ledger.ts`、`projection.ts`） | 经营账本**纯核**：事项/操作/回执/待认领词汇与归约、v2 投影渲染（契约 = [`operating.md`](operating.md)） | 无（最底层） |
 | `src/index.ts` | 稳定包入口：`src/host/index.ts` 服务实现的薄导出（同 class 身份；`ctx.assistantMemory` 增广随实现加载） | 全部 |
 | `src/host/index.ts` + `src/host/service.ts` | 服务实现：把领域模块组装成 `ctx.assistantMemory`；公开的 `HomeHost`/`RoomReadResult` 契约在 `service.ts`，房间与摘要按它消费，不反向依赖组装文件 | 全部 |
@@ -150,7 +155,7 @@ seam 的成色读数是**第二个真实 Provider 出现而 Consumer 一行不�
 | `src/host/desk-projection/`（`index.ts` 入口 + `download.ts` 路由核） | 固定只读投影下载行：GET route 优先活渲染账本、回退固定夹具、错误态分明（契约 = [`operating.md`](operating.md) §三） | domain/operating + dsh-client-connection（仅类型） |
 | `src/client/`（多模块，`index.ts` 为主注册面） | 浏览器面：座位与命令注册（精确清单 = 生成物 [`package-catalog.md`](package-catalog.md)「客户端座位面」节；皮肤面，不进模型上下文）+ 经营桌面投影读回链（`projection/` 下的 reader / operating-projection / lifecycle / panel，契约 = [`operating.md`](operating.md) §三） | react + ui-renderer/ui-sidebar（仅类型） |
 |  `src/dev/preset-runner/index.ts` | **preset 挂载的 one-shot 驱动**（dev 验证自动化：`agentPresets.resolve`→`mount` 进 agent setup，会话头记录 `agentPreset`；经 `dev/probes/session/preset-runner.patch.yml` 替换 headless-runner 行启用） | dsh-agent / dsh-agent-preset-registry / dsh-llm / dsh-session / dsh-brand |
-| `src/agent/`（`tool-memory`、`tool-research`、`tool-operating`、`tool-knowledge`、`learn`、`memory-digest`、`home-preamble`、`operating-brief`、`ov-shield`） | agent 面入口：薄适配器（校验跨字段规则 → 调服务 → 返回规范值 + presenter）与常驻段落 | cordis/tools |
+| `src/agent/`（`tool-memory`、`tool-recall`、`tool-research`、`tool-operating`、`tool-knowledge`、`learn`、`memory-digest`、`home-preamble`、`operating-brief`、`ov-shield`） | agent 面入口：薄适配器（校验跨字段规则 → 调服务 → 返回规范值 + presenter）与常驻段落 | cordis/tools |
 
 **依赖方向单向向下**，纯核（home/memory/research/skills）**不 import DSH 运行时** ——
 所以它们能被 vitest 直接测，不需要挂 harness。
@@ -266,6 +271,7 @@ pnpm dsh …（package.json scripts → dev/env/dsh.mjs，唯一启动器：
 - **不重选**：显式回到 Conversation、归档引发的回退、slot/布局重挂及客户端 HMR 不重选；完整页面重载的新根上下文重新尝试。
 - **记忆边界**：默认机会只在页面内记录，不保存导航偏好或业务数据；插件首次激活前的显式 null 与启动 null 无法由当前公开快照区分。
 - **数据源**：全局桌面读取独立 Host 固定投影；记忆/知识/技能三个房间 tab 读独立 Host 行 `assistant-rooms` 的房间投影（working folder 真值），Viki 读 `assistant-viki`；同一路径的 POST 是受控写；默认入口本身不创建业务 Session。
+- **会话内视图**：工作台把「桌面」「自动化任务」注册为 `conversation.view` 的两个 tab；桌面 tab 与主面板共享同一 projection snapshot，各自一个 selection store。
 
 独立 Host 行 `assistant-desk-projection` 提供固定只读投影下载：经营 dataDir 里有 `ledger.json` 时**活渲染账本 v2 投影**，无账本才回退固定 `desk-projection.json` 模拟输入；端点边界、认证、错误态与 byte cap 的完整契约 = [`operating.md`](operating.md) §三（唯一权威，本文不复述）。物理 HTTP 验证使用 [只读探针](../dev/probes/web/desk-projection-download.mjs)，以明确标注模拟的 [固定资料](../dev/fixtures/desk-projection/desk-projection.json) 为独立字节预期。
 

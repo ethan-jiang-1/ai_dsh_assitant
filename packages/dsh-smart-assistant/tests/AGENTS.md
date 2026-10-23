@@ -14,7 +14,7 @@
 - `fixtures/`、`support/` 形态的子目录按上游惯例豁免于门禁；出现时同 diff 进表。
 - **目录即被测 interface**（双层寻址：后缀 = 车道，目录 = interface 家）：
   `domain/`（规则与存储基础）、`host/`（服务合同，真 cordis + 临时 home）、`agent/`（工具/段落/provider 合同）、
-  `composition/`（配置装载、注册与范围合同）、`client/`（浏览器注册与交互状态合同）、`tooling/`（仓库工具核）、
+  `composition/`（配置装载、注册与范围合同；Loader 与直挂两条车道）、`client/`（浏览器注册与交互状态合同）、`tooling/`（仓库工具核）、
   `support/`（共享夹具）。各层能/不能证明什么 = [docs/testing.md 分层表](../../../docs/testing.md)；
   一个 spec 归最主要 interface，跨层依赖文件头注明。
 

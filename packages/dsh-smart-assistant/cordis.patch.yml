@@ -201,12 +201,8 @@
 
           # ── working folder：抽屉（工具）──────────────────────────────────────────────
           #
-          # 自有工具的动词集互不重叠，所以不合并（完整清单 = docs/package-catalog.md）：
-          #   assistant_memory   recall/save/forget/list/curate   —— 已确立的事实、偏好、决定
-          #   assistant_research open/update/park/drop/promote/list —— 未决的线索（backlog 两档出口）
-          #   assistant_reflect  brief/save_skill/retire_skill/save_page/promote_page/deprecate_page/
-          #                      propose_skill/land_skill         —— 把经历变成记忆、技能与知识页
-          #   assistant_knowledge search/get（只读）               —— 知识页检索（写入走 reflect/promote）
+          # 自有工具的动词集互不重叠，所以不合并；完整清单与动词以生成物
+          # docs/package-catalog.md 为准（本注释不维护第二份清单）。
           - id: assistant-memory-tool
             name: dsh-smart-assistant/tool-memory
 

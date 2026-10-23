@@ -103,7 +103,7 @@ pnpm --dir vendor/dsh run build:web       # 只有跑 Web UI 才需要（前端 
 本节拥有表上各命令的**深判据**（能证明什么/口径/坑），并收**表上没有的行**——清单一份、判据一层，两处各持一份清单必然漂移：
 
 ```sh
-pnpm test:composition       # 先 pnpm build，再跑 tests/composition 全 7 个 spec
+pnpm test:composition       # 先 pnpm build，再跑 tests/composition 整个目录（Loader 与直挂两条车道）
 pnpm test:domain / pnpm test:host / pnpm test:agent / pnpm test:client / pnpm test:tooling   # 层入口：只跑对应 tests/<layer>（各层能/不能证明什么见 docs/testing.md 分层表）
 ```
 
@@ -118,7 +118,7 @@ spawn/child_process——连不上时按 `catch { /* best effort */ }` 降级，
 server 缺席/未装/起不来一律 warn 后 `exit 0`，`pnpm start` 照常交实例）；**状态落 DSH home**——server 默认写
 `~/.openviking/workspace`，那在仓外、会被文件沙箱挡下（实测 `PermissionError: .openviking.lock`），
 故从上游 `ov.conf` 派生 `$DSH_HOME/openviking/ov.conf`，把 storage 指到
-`$DSH_HOME/openviking/workspace`（持久、gitignored；迁移/回滚见运行态卡）。server 优先用
+`$DSH_HOME/openviking/workspace`（持久、gitignored；迁移/回滚见[运行态卡](../_backlog/issues/261020-openviking-runtime-repair.md)）。server 优先用
 `$DSH_HOME/openviking/server/bin/openviking-server`（0.5.1.1 的隔离 venv），缺失时才回退 PATH。
 
 v3 旋钮在 [`dev/profiles/profile-patch-ov.yml`](../dev/profiles/profile-patch-ov.yml)；`setup.sh` 只在该
@@ -256,7 +256,7 @@ DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得
 `pnpm projection-live [--home <dir>]`（live 补证：断连/重连、3 次页面重载会话不增殖、420×900 窄视口
 选择保留与无横向溢出、滚动位置保留；自编排共享 probe home，无模型回合）、
 `pnpm projection-selection '<URL>'`（交互证据门：投影面板点选事项并核对详情里的 quote 与 Session/event 读回；
-实例须带 `eight-matters` 夹具；无模型、无截图）、
+实例须带 `dev/fixtures/desk-projection/eight-matters.json` 夹具；无模型、无截图）、
 `pnpm observe [--home <dir>]`（输入边界 30 天观察读数：A 自发投递 / B 时长 / C 入口后的操作；
 口径、剔除规则与每周快照落 `_backlog/research/usage/`）。
 

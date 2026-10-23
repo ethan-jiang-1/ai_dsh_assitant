@@ -30,7 +30,7 @@ preset 显示名与描述（`cordis.patch.yml` 的 `preset-assistant` 行 config
 Web 壳的页标题、图标与侧栏品牌（`src/host/web-branding.ts` 注入行 + `src/client/chrome/brand.ts` 的
 `sidebar.brand.*` slot 占位；侧栏名 `BRAND_NAME`「章鱼管家」，页签标题 `DEFAULT_WEB_TITLE`「章鱼管家 · 本地经营总管」）。
 工具 **description 是中间地带**：名字是身份，description 是**模型可见输入** —— 改它不是改名，
-是**行为变更**，要走 model-visible 纪律（配快照）。
+是**行为变更**，要走 model-visible 纪律（正文 = [architecture.md](architecture.md) §四；配快照）。
 
 ## 三、刻意不做
 
