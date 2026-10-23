@@ -137,7 +137,10 @@ export function runPreset(prompt) {
       cwd: repoRoot,
       env: { ...process.env, ...credentialEnv(), ASSISTANT_DSH_HOME: harnessHome, ASSISTANT_SESSION_CWD: workspace },
       stdio: ['ignore', 'pipe', 'pipe'],
-      timeout: 15 * 60 * 1000,
+      // One turn that never settles (observed 2026-10-23: a task sat ten-plus minutes on a
+      // skill-heavy breakdown) must fail as a task, not stall the whole suite. A normal task
+      // finishes in 10–70s; three minutes leaves ample headroom for a slow model.
+      timeout: 3 * 60 * 1000,
     })
   } catch (error) {
     launchFailure = error instanceof Error ? error.message.split('\n')[0] : String(error)

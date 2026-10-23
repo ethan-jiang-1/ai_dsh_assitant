@@ -26,6 +26,10 @@ export const OPERATING_BRIEF_SECTION_ORDER = 400
 // gate keeps model-facing prose ASCII) while the rendered section still carries the real tag.
 const DESK_CAPTURE_TAG = `[\u684c\u9762] `
 
+// The one-page home's wire token (2026-10-23): a line the principal typed on the page itself.
+// Same escape discipline as the desk tag; the rendered section carries the real marker.
+const HOME_PAGE_TAG = `[\u9996\u9875] `
+
 const TEXT = [
   'Operating matters — entrusted payments, commitments, risks the principal asked you to track — live in one',
   'authoritative ledger, not in this chat\'s prose. When they entrust a new matter, report progress or a date',
@@ -48,6 +52,13 @@ const TEXT = [
   'a matter of its own, ask properly through the question interaction — offer promoting it (who / when /',
   'what done looks like) or keeping it a note — never `entrust` a captured line on your own: promotion',
   'takes their explicit answer. An entrust spoken in conversation (the heavy door) keeps the path above.',
+  'Home page lane: a line arriving with the "' + HOME_PAGE_TAG + '" marker was typed on the one-page home —',
+  'the principal is asking for a page, not dropping a fragment. Follow the home manual\'s "Answer with a',
+  'page, not a report": on this turn, entrust or revise the matter with the 200–400 character summary,',
+  'save a decision memo when the work is a decision, and answer with the short pointer. Do not `note` it',
+  'unclaimed and do not answer with a questionnaire; ask at most the one question that changes the verdict.',
+  'Page action lines carrying the panel marker come from the page\'s own buttons: execute the action',
+  '(confirm the page, set the checkpoint) and never note the instruction into the ledger.',
   'Desk action lines — the desk\'s own buttons that ask for a trial read or to set up a named watch — are',
   'commands, not material: execute the action, and do not `note` the instruction itself into the ledger.',
   'When the action asks for a watch, create exactly ONE schedule for the named watch; do not add a one-off',

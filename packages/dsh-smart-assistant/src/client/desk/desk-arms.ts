@@ -23,7 +23,7 @@ import { bindClaimPath, bindDiscardPath, bindIntakePath, bindProcessPath, bindWa
 import { claimContextMessage, discardContextMessage, processingContextMessage, resumeContextMessage, wakeContextMessage } from './desk-process-messages'
 import { createSettleRefreshObserver } from './desk-process-lifecycle'
 import { getDeskRemote } from '../rooms/room-data-io'
-import { deskCaptureRequest, panelPromptRequest } from '../rooms/prompt-bridge'
+import { deskCaptureRequest, homePageRequest, panelPromptRequest } from '../rooms/prompt-bridge'
 import type { OperatingProjection } from '../projection/operating-projection'
 import type { ProjectionDownload } from '../projection/projection-reader'
 import type { DeskCaptureReceipt } from '../projection/projection-view'
@@ -91,7 +91,7 @@ export interface DeskArms {
    *  The action lane (`先试跑`/`替我盯上`) rides the same delivery channel but carries a human
    *  label and is allowed to settle without a ledger write (261019). Resolves with the delivery
    *  session once the inbox accepts the line. */
-  captureFromDesk(text: string, options?: { lane?: 'capture' | 'action', label?: string }): Promise<string | undefined>
+  captureFromDesk(text: string, options?: { lane?: 'capture' | 'action', label?: string, source?: 'desk' | 'home' | 'page-action' }): Promise<string | undefined>
   /** 唤醒: open the conversation that states what changed about a settled matter. */
   wakeMatter(matterId: string): void
   /**
@@ -301,7 +301,7 @@ export function createDeskArms(deps: DeskArmDeps): DeskArms {
   // Returns the session the line was delivered into once the inbox accepts it — the watch lane
   // uses it as the reconciliation key for its pending acceptance (the proactive watch lane's
   // session-id reconciliation, 2026-10-19).
-  const captureFromDesk = (text: string, options?: { lane?: 'capture' | 'action', label?: string }): Promise<string | undefined> => {
+  const captureFromDesk = (text: string, options?: { lane?: 'capture' | 'action', label?: string, source?: 'desk' | 'home' | 'page-action' }): Promise<string | undefined> => {
     const trimmed = text.trim()
     if (trimmed === '') return Promise.resolve(undefined)
     return (async () => {
@@ -310,7 +310,13 @@ export function createDeskArms(deps: DeskArmDeps): DeskArms {
       if (sessionId === undefined) return undefined
       const prompt = (getDeskRemote()?.['session'] as { prompt?: (request: unknown) => Promise<unknown> } | undefined)?.prompt
       if (prompt === undefined) return undefined
-      const request = deskCaptureRequest(sessionId, trimmed)
+      // Three lanes, one delivery: the desk's note-first capture (default), the one-page home's
+      // page request (produces the page), and a page action (a command from the page's buttons).
+      const request = options?.source === 'home'
+        ? homePageRequest(sessionId, trimmed)
+        : options?.source === 'page-action'
+          ? panelPromptRequest('home-action', sessionId, trimmed)
+          : deskCaptureRequest(sessionId, trimmed)
       const result = await prompt(request).catch(() => undefined) as { ok?: boolean } | undefined
       if (result?.ok === false) return undefined
       const revision = deps.projection?.getSnapshot().data?.revision ?? 0

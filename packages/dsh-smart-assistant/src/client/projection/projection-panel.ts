@@ -26,6 +26,8 @@ export interface ProjectionPanelProps {
   actions: ProjectionViewBoundActions
   /** Every callback the entry wires; one factory owns them so a new lane does not touch fixtures. */
   surface: DeskSurface
+  /** The L0 wrapper's way back from the full board to the one-page home (absent on direct mounts). */
+  onBackHome?: () => void
 }
 const errors: Record<string, string> = {
   'authentication-required': '登录已失效，请重新登录后再读取。',
@@ -450,6 +452,9 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
         ce('h1', { className: 'dsha-title' }, '你的桌面'),
         counts === undefined ? null : ce('div', { className: 'dsha-sub' }, counts)),
       ce('div', { className: 'dsha-actions' },
+        props.onBackHome !== undefined
+          ? ce('button', { className: 'dsha-btn', type: 'button', onClick: props.onBackHome }, '回到今天')
+          : null,
         ce('button', { className: 'dsha-btn', onClick: lanes.refreshProjection, disabled: download.status === 'loading', title: download.status === 'loading' ? '正在读取桌面…' : '重新读取桌面' }, '重新读取'),
         ce('button', { className: 'dsha-btn', onClick: lanes.onAsk }, '有问题？跟助手说'),
         ce('button', { className: 'dsha-btn dsha-btn-primary', onClick: lanes.onEntrust ?? lanes.onAsk }, '＋ 交代新事项'))),

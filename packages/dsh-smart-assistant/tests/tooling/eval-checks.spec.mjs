@@ -31,7 +31,7 @@ describe('evaluateTask', () => {
     expect(verdict.reasons.join(' ')).toContain('does not match')
   })
 
-  it('requires the named skill to be loaded by name, unprompted', () => {
+  it('requires the named skill and the analysis to land in the page/memo', () => {
     const task = TASKS.find(entry => entry.id === 'breakdown-uses-skill')
     const without = evaluateTask(task, {
       toolCalls: [{ name: 'read', argumentsText: '{}' }],
@@ -41,10 +41,43 @@ describe('evaluateTask', () => {
     expect(without.reasons.join(' ')).toContain('management-breakdown')
 
     const with_ = evaluateTask(task, {
-      toolCalls: [{ name: 'skill', argumentsText: '{"name":"management-breakdown"}' }],
-      answerText: '假设 H1；停止条件：复现不出即停。',
+      toolCalls: [
+        { name: 'skill', argumentsText: '{"name":"management-breakdown"}' },
+        { name: 'assistant_operating', argumentsText: JSON.stringify({ action: 'entrust', summary: '三种假设 H1；停止条件：复现不出即停。' }) },
+      ],
+      answerText: '我的判断：先拆客户。完整页在桌面。',
     })
     expect(with_.passed).toBe(true)
+  })
+
+  it('first-answer contract: length, one question, and a page pointer', () => {
+    const task = TASKS.find(entry => entry.id === 'first-answer-quote')
+    const short = evaluateTask(task, {
+      toolCalls: [{ name: 'assistant_operating', argumentsText: '{"summary":"判断：不接。建议提价。缺费率。"}' }],
+      answerText: '判断：不接。完整页在桌面。',
+    })
+    expect(short.passed).toBe(true)
+
+    const long = evaluateTask(task, {
+      toolCalls: [{ name: 'assistant_operating', argumentsText: '{"summary":"判断：不接。建议提价。缺费率。"}' }],
+      answerText: `${'这是一段很长的报告。'.repeat(80)}页在桌面。`,
+    })
+    expect(long.passed).toBe(false)
+    expect(long.reasons.join(' ')).toContain('non-whitespace characters')
+
+    const questionnaire = evaluateTask(task, {
+      toolCalls: [{ name: 'assistant_operating', argumentsText: '{"summary":"判断：不接。"}' }],
+      answerText: '先确认三件事：预算？费率？交期？页在桌面。',
+    })
+    expect(questionnaire.passed).toBe(false)
+    expect(questionnaire.reasons.join(' ')).toContain('question marks')
+
+    const noPage = evaluateTask(task, {
+      toolCalls: [{ name: 'read', argumentsText: '{}' }],
+      answerText: '判断：不接。页在桌面。',
+    })
+    expect(noPage.passed).toBe(false)
+    expect(noPage.reasons.join(' ')).toContain('must land in the page/memo')
   })
 
   it('fails an answer that dodges the blind-spot question entirely', () => {

@@ -22,9 +22,9 @@ export function UiModeRow(): ReturnType<typeof createElement> {
       borderBottom: '1px solid var(--dsw-alias-separator, #3a3a3a)',
     },
   },
-  createElement('div', { style: { fontSize: '13px', color: 'var(--dsw-alias-label-primary, #f2f2f2)' } }, '界面密度'),
+  createElement('div', { style: { fontSize: '13px', color: 'var(--dsw-alias-label-primary, #f2f2f2)' } }, '显示密度（只影响「全部」与房间入口）'),
   createElement('div', { style: { fontSize: '12px', lineHeight: 1.6, color: 'var(--dsw-alias-label-secondary, #a8a8a8)' } },
-    '简洁只保留对话与桌面；标准显示知识 / 记忆 / 技能三个房间；专家显示全部，含 Viki(调试)。审批、错误与发送/停止永不隐藏。'),
+    '首页的一页纸不随它变。简洁收起「全部」的流水/主动建议并隐藏房间入口；标准显示知识 / 记忆 / 技能；专家显示全部，含 Viki(调试)。审批、错误与发送/停止永不隐藏。'),
   createElement('div', { style: { display: 'flex', gap: '8px', marginTop: '4px' } },
     ...UI_MODES.map(candidate => createElement('button', {
       key: candidate,

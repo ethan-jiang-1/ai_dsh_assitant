@@ -195,7 +195,8 @@ bundles, M snapshots`，退役与快照都不删除、技能归档只增不减�
   stub，`assistant:soul`）；缺/空/坏 → **回退内置默认**（回退是替换不是叠加）。改人格 = 编辑
   这个文件，不用动插件源码。
 - **`AGENTS.md`（手册）**：working folder 怎么用——四房间、两档出口、退役、curate、盘上布局、首会话开场
-  （first conversation）、协作边界等节（非穷举，正文以 `renderHomeManual` 为准）。记忆/知识/技能面板
+  （first conversation）、首答一页纸（Answer with a page, not a report）、协作边界等节（非穷举，正文以
+  `renderHomeManual` 为准）。记忆/知识/技能面板
   读 host `assistant-rooms` 的 working-folder 真值；业务事项住权威账本（合同见 [`operating.md`](operating.md) §二/§三）。手册正文由
   `src/domain/home/home-map.ts` 的 `renderHomeManual` 渲染、运行时随家手册落盘.
   scaffold 缺则种（首行 `<!-- home-manual vN -->` 版本标记）；已有的生成版随版本迁移（只移除生成版中不再存在的段落），手改保留；手册段

@@ -8,6 +8,25 @@ whenToUse: The principal brings a messy business problem (sales dropped, margin 
 
 A problem the principal cannot act on has not been broken down yet. Break it before advising.
 
+## Land it on the desk
+
+A breakdown that lives only in the chat is not landable. Before your final message:
+
+- **If no matter exists** for this problem, `assistant_operating` `entrust` one: a title, and a
+  `summary` of 200–400 characters — verdict, up to three options with their costs and
+  reversibility, your recommendation, the one missing number, and the review date. Write it in
+  short lines (one verdict line, one option per line, then recommendation / missing / date) so the
+  page reads in 30 seconds. If a matter already exists, `revise` its summary instead (with the
+  observed revision).
+- **For a decision**, also `assistant_reflect` `save_page` a `type: decision-memo` page carrying
+  the full four-layer analysis and its `sources`.
+- **The chat reply is the pointer**: the verdict in one sentence, what you recommend, what is
+  missing, and where the page is. Under 400 characters; at most one question; no headings, no
+  tables, no section-by-section essay in the chat.
+
+The four layers below are the **page's body**, not the chat's body. The principal asked for a
+breakdown; give them a page they can read in 30 seconds and open when they want the reasoning.
+
 ## The four layers, in order
 
 1. **Observed facts.** What is actually seen, each with a number and a period where possible.

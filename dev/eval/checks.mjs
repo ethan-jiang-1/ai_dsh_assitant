@@ -162,6 +162,34 @@ export function evaluateTask(task, observed) {
         if (!pattern.test(observed.answerText)) reasons.push(`final answer does not match /${check.pattern}/`)
         break
       }
+      case 'answer-max-chars': {
+        // The first answer is the page's pointer, not the report (2026-10-23 first-answer
+        // contract). Count non-whitespace characters so markdown spacing does not buy room.
+        const max = Number(check.max)
+        if (!Number.isFinite(max) || max <= 0) throw new Error('answer-max-chars check requires a positive max')
+        const count = observed.answerText.replace(/\s/gu, '').length
+        if (count > max) reasons.push(`final answer is ${String(count)} non-whitespace characters (max ${String(max)}) — the first answer points at the page, it is not the page`)
+        break
+      }
+      case 'answer-max-question-marks': {
+        // One question at most. A question mark inside a quoted example still counts; the
+        // contract is about how many things the principal is asked, so the floor is mechanical.
+        const max = Number(check.max)
+        if (!Number.isFinite(max) || max < 0) throw new Error('answer-max-question-marks check requires a non-negative max')
+        const count = (observed.answerText.match(/[？?]/gu) ?? []).length
+        if (count > max) reasons.push(`final answer carries ${String(count)} question marks (max ${String(max)}) — one question at most`)
+        break
+      }
+      case 'tool-arguments-match': {
+        // The detail belongs in the page/memo, not the chat. This reads the model's own write
+        // arguments (the artifact it produced), so a short chat reply cannot hide an empty page.
+        const tools = Array.isArray(check.tools) ? check.tools.map(String) : [String(check.tool ?? '')]
+        if (tools.some(tool => tool.length === 0)) throw new Error('tool-arguments-match check requires tool name(s)')
+        const pattern = new RegExp(check.pattern, 'iu')
+        const matched = observed.toolCalls.some(call => tools.includes(call.name) && pattern.test(call.argumentsText))
+        if (!matched) reasons.push(`no ${tools.join('/')} call carried /${check.pattern}/ — the detail must land in the page/memo, not only in the chat`)
+        break
+      }
       default:
         reasons.push(`unknown check kind "${String(check.kind)}" — the harness refuses to guess`)
     }

@@ -19,7 +19,7 @@
 export const AGENTS_FILE_NAME = 'AGENTS.md'
 
 /** Version of the generated manual; bump when the generated content changes meaningfully. */
-export const HOME_MANUAL_VERSION = 16
+export const HOME_MANUAL_VERSION = 19
 
 /** The version marker stamped as the file's first line (an HTML comment: invisible when rendered). */
 export const HOME_MANUAL_MARKER = `<!-- home-manual v${String(HOME_MANUAL_VERSION)} -->`
@@ -136,12 +136,43 @@ earlier workspace may be stale residue and must not silence you. On a fresh fold
 question at a time, land each answer as it comes, and aim to leave them holding their first decision
 brief. If they would rather drive, follow their lead.
 
+## Answer with a page, not a report
+
+A principal who asked a business question should get a verdict, not a report to read. On the first
+turn, land the work as a **one-page brief** and keep the chat message short:
+
+- **One page in the ledger.** On the first turn, even when the principal only asks for an analysis
+  or gives only part of the material, write the brief into a matter's \`summary\` (200–400
+  characters): the verdict, up to three options with their costs and reversibility, your
+  recommendation, the one number or fact you still need, and the review date. Write it in short
+  lines — one verdict line, one option per line, then the recommendation, the missing item and the
+  date — so the page reads in 30 seconds. A partial material still gets a page — page the clauses
+  you have and put the missing document in the page; do not wait for the full text. If no matter
+  exists for this problem, \`entrust\` one first; if it exists, \`revise\` its summary. If the work is
+  a decision, also save the full memo as a \`type: decision-memo\` knowledge page
+  (\`assistant_reflect\` \`save_page\`).
+- **The chat reply is the pointer.** Lead with the verdict in one sentence, say what you recommend
+  and what is missing, and point at the page. Call it \u9875 or \u684c\u9762 in the chat — not
+  \u53f0\u8d26 — and name a saved memo as \`[[memo title]]\`. Keep it under 400 characters — no
+  headings, no tables, no section-by-section essay in the first reply. Depth is there when they ask
+  for it.
+- **Draft first, don't interrogate.** From one sentence, make the best draft you can with explicit
+  assumptions. Ask at most one question, and only when the answer changes the verdict. Never open
+  with a questionnaire or a list of data you need.
+- **One action, if any.** End with one concrete next step, not a menu.
+- **Say what you don't know.** The page's "missing" line is part of the answer; never fill a gap
+  with an invented number.
+
+A direct factual lookup can be one line; a debugging question can be as long as it needs to be.
+This contract is about business questions, not every message.
+
 ## Your last message is the deliverable
 
 Bookkeeping is not an answer. Room writes, thread merges and curate findings are housekeeping;
 none of them answers the person. Whatever else a session did, its final message
-answers the principal's last question in full — report room changes alongside the answer or after
-it, never instead of it. (Eval-found 2026-09-28: a question was analyzed correctly, the answer
+answers the principal's last question — report room changes alongside the answer or after
+it, never instead of it. For a business question the answer is the page (see above); the chat
+message is its pointer. (Eval-found 2026-09-28: a question was analyzed correctly, the answer
 filed into memory, and the session closed by reporting a thread merge — the principal got
 housekeeping and no answer.)
 

@@ -20,8 +20,9 @@ export interface DeskLanes {
   readonly refreshProjection: () => void
   readonly onAsk: () => void
   readonly onEntrust?: () => void
-  readonly onCapture: (text: string) => void
+  readonly onCapture: (text: string, options?: { lane?: 'capture' | 'action', label?: string, source?: 'desk' | 'home' | 'page-action' }) => void
   readonly onOpenSession: (sessionId: string) => void
+  readonly onOpenRecords?: () => void
   readonly onOpenTasks?: () => void
   readonly onProcess: (matterId: string) => void
   readonly onClaim: (fragmentId: string) => void
@@ -46,6 +47,8 @@ export interface DeskSurfaceInput {
   readonly reader: { refresh(): void } | undefined
   readonly arms: DeskArms
   readonly handlers: ProactiveHandlers
+  /** Opens the "它记下的" drawer (the knowledge room's human view); absent = the link is hidden. */
+  readonly openRecords?: () => void
 }
 
 /**
@@ -63,6 +66,7 @@ export function createDeskSurface(input: DeskSurfaceInput): DeskSurface {
       onEntrust: arms.startIntake,
       onCapture: arms.captureFromDesk,
       onOpenSession: (id: string) => { ctx.uiWorkspace?.openSession(id) },
+      ...(input.openRecords !== undefined ? { onOpenRecords: input.openRecords } : {}),
       onOpenTasks: () => { ctx.layout?.selectPanel('schedules') },
       onProcess: arms.processMatter,
       onClaim: arms.claimFragment,

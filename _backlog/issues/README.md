@@ -6,6 +6,7 @@
 
 | 卡 | 要解决什么 | 当前环节与未完成项 |
 |---|---|---|
+| [261023-first-run-ux-reframe](261023-first-run-ux-reframe.md) | 首开体验总图 / 收口：一页纸（页是产物，对话是编辑） | **已授权实施（静默自主）**：A 首答合同、B 数据形状、C L0 一页纸、D 三层表达、E 调试面；台账在本卡 |
 | [261021-openviking-viki-closure](261021-openviking-viki-closure.md) | 层 2 / Viki 落地总台账（含安装面） | 已授权实施（H1 B / H2–H6 按建议）；S0 已交付；S1–S6 见收口卡台账 |
 | [261020-openviking-deploy-doctor](261020-openviking-deploy-doctor.md) | 云端例外、`ov-doctor`、README、Viki baseUrl、安装/配置面 | 已授权实施；规格与验收在本卡，推进在收口卡；S1/S2 |
 | [261020-openviking-runtime-repair](261020-openviking-runtime-repair.md) | 0.5.1.1 升级、持久存储、v3 旋钮、peer/commit/recall | 已授权实施；规格与验收在本卡，推进在收口卡；S3 |

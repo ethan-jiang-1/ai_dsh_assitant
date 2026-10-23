@@ -31,6 +31,15 @@ const PANEL_MARKER = '[面板] '
 const DESK_CAPTURE_MARKER = '[桌面] '
 
 /**
+ * The one-page home's marker (2026-10-23). A line typed on the home is the principal asking for a
+ * page — not a fragment dropped on the desk. The two lanes must stay apart: the desk capture lane
+ * is note-first ("retain it, ask before promoting"), which is exactly wrong for the home, where the
+ * first answer must be the page (found live 2026-10-23: the home input used the desk lane and the
+ * model noted the line and asked a clarifying question instead of producing the page).
+ */
+export const HOME_PAGE_MARKER = '[首页] '
+
+/**
  * Build one panel prompt request. The principal's panel actions (this module) and the desk arms'
  * seed notes (the entry, later its own module) ride the same remote channel with the same marker
  * and the same queue mode — so that shape is stated once, and each caller keeps only its own send
@@ -65,6 +74,17 @@ export function panelPromptRequest(prefix: string, sessionId: string, text: stri
  */
 export function deskCaptureRequest(sessionId: string, text: string): ReturnType<typeof panelPromptRequest> {
   return panelPromptRequest('desk-capture', sessionId, text, DESK_CAPTURE_MARKER)
+}
+
+/**
+ * The one-page home's free-text request: the principal's words from the page, carrying the home
+ * marker that makes the model produce a page instead of retaining a fragment.
+ * @param sessionId - The conversation the line lands in.
+ * @param text - The principal's words, verbatim.
+ * @returns The prompt request body `remote.session.prompt` takes.
+ */
+export function homePageRequest(sessionId: string, text: string): ReturnType<typeof panelPromptRequest> {
+  return panelPromptRequest('home-page', sessionId, text, HOME_PAGE_MARKER)
 }
 
 /**

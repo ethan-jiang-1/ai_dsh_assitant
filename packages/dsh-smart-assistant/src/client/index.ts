@@ -50,7 +50,8 @@ import { returnToConversation } from './chrome/navigation'
 import { bindVikiEnv } from './rooms/viki-data-io'
 import { bindClientRequire, clientRequire } from './chrome/runtime'
 import { ensureThemeVars } from './chrome/theme'
-import { ProjectionPanel } from './projection/projection-panel'
+import { HomeSurface } from './projection/home-surface'
+import { DebugPanel } from './debug/debug-panel'
 import { createDeskSurface } from './projection/desk-surface'
 import { mountProjectionReader } from './projection/projection-lifecycle'
 import type { ProjectionDownload } from './projection/projection-reader'
@@ -66,6 +67,26 @@ import { en as firstMileEn, zh as firstMileZh } from './chrome/locales'
 
 /** Slots this face occupies (single-occupant, root-scope, declared by the sidebar). */
 const inject = ['slots', 'sidebarRightTabs', 'sidebarRight', 'sessions', 'remote', 'remote.agentPresets', 'remote.workspaceFiles', 'remote.session', 'remote.schedule', 'layout', 'connection', 'uiSession', 'workspaces', 'uiWorkspace', 'locale']
+
+/**
+ * Whether the developer surface is switched on. The flag is read once at apply time — enabling
+ * it is a reload, which is right for a debug tool. Two exits: the URL (`?debug=1`, handy for
+ * probes) and the localStorage key (a dev home can keep it on across reloads).
+ * @returns true when the L2 debug panel should register.
+ */
+function debugEnabled(): boolean {
+  try {
+    if (typeof location !== 'undefined') {
+      if (new URLSearchParams(location.search).get('debug') === '1') return true
+      // The launch token is consumed and the page redirects to `/`; a fragment survives that
+      // redirect where the query does not. `#debug=1` is the probe-friendly exit.
+      if (location.hash.includes('debug=1')) return true
+    }
+    return typeof localStorage !== 'undefined' && localStorage.getItem('dsh-assistant-debug') === '1'
+  } catch {
+    return false
+  }
+}
 
 
 /**
@@ -185,7 +206,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // The suggestion block's handlers ride the arms' capture lane and the proactive UI store
     // (the prompts and labels live in proactive-handlers.ts).
     const { onSuggestAction, onSuggestDismiss, onWatchForget, onSuggestCollapse } = createProactiveHandlers({ arms, proactiveUi })
-    const dashboardComponent = projection === undefined ? DashboardMainPanel : ProjectionPanel
+    const dashboardComponent = projection === undefined ? DashboardMainPanel : HomeSurface
     const dashboardInject = (sessionId: string | undefined, ...args: unknown[]) => {
       const actions = args.find((argument): argument is { selectMatter(id: string): void, setMode(mode: 'activity'): void } =>
         typeof argument === 'object' && argument !== null && typeof (argument as { selectMatter?: unknown }).selectMatter === 'function')
@@ -203,10 +224,14 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         reader,
         arms,
         handlers: { onSuggestAction, onSuggestDismiss, onWatchForget, onSuggestCollapse },
+        openRecords: () => { openBeside('knowledgeRoom') },
       })
+      const current = ctx.uiSession?.current.value.key
+      const resolvedSession = sessionId ?? (current === undefined ? undefined : String(current))
       return {
         surface,
         hooks,
+        ...(resolvedSession === undefined ? {} : { sessionId: resolvedSession }),
         // The fallback panel (no projection store in this composition) reads only the return.
         ...(projection === undefined ? { onAsk: () => returnToConversation(ctx, sessionId, typeof document === 'undefined' ? {} : { document }) } : {}),
       }
@@ -228,6 +253,21 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       selectDashboardByDefault(ctx)
       return registration
     })
+
+    // L2: the developer debug panel is a separate conversation-view tab, present only when the
+    // flag is on. It shares the projection/lane surface (so it can show what the browser really
+    // holds) but never registers on a normal customer boot. A separate `main` registration is not
+    // an option: the main slot is single-occupant, and a second one kills the whole client entry.
+    if (projection !== undefined && storeApi !== undefined && debugEnabled()) {
+      ctx.slots.inject('conversation.view', () => ctx.slots.register({
+        name: 'conversation.view',
+        id: 'assistant-debug',
+        order: 32,
+        label: () => '开发调试',
+        ...(workbenchViewStore === undefined ? {} : { store: workbenchViewStore }),
+        inject: injectDashboard,
+      }, DebugPanel))
+    }
 
     // Two views, one desk: the workbench tab uses the SAME ProjectionPanel + projection
     // snapshot as the main panel, with its own selection store so both can mount at once.

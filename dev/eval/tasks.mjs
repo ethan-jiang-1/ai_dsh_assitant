@@ -74,22 +74,69 @@ export const TASKS = [
   },
   {
     id: 'breakdown-uses-skill',
-    why: 'P1: a messy business problem should make the session load the breakdown skill by name (its whenToUse), unprompted, and answer in its four layers.',
+    why: 'P1: a messy business problem should make the session load the breakdown skill by name, land the four-layer analysis in the page/memo, and keep the chat reply to a pointer (first-answer contract, 2026-10-23).',
     prompt: '我这个季度销售掉了 20%，帮我拆解一下。',
     checks: [
       { kind: 'skill-loaded', skill: 'management-breakdown' },
       { kind: 'no-git-commit' },
-      { kind: 'answer-matches', pattern: '假设|hypothes|H1' },
+      { kind: 'tool-arguments-match', tools: ['assistant_operating', 'assistant_reflect'], pattern: '假设|hypothes|H1' },
       // Layer 4's stop condition is a conditional pivot: the literal label (停止条件/stop
       // condition) or the pivot form (若…→) both satisfy it — a substantively compliant answer
       // phrasing every action's pivot without the label is not a miss (found live 2026-10-07,
       // BUG-003: "若下滑高度分散 → 转向 H1/H5" in every action row failed the literal match).
-      // Recurrence history: this signature has red twice with DIFFERENT root causes — BUG-001
-      // (2026-10-01: the skill catalog was never published to the session, a composition gap)
-      // and BUG-003 (2026-10-07: environment leaks + this criterion's own literalness). Same
-      // signature ≠ same fix: re-diagnose before reaching for the previous remedy. The matching
-      // optional question lives in the 交付收口行 (notes/README §二之二).
-      { kind: 'answer-matches', pattern: '停止条件|stop condition|若.{0,30}→' },
+      { kind: 'tool-arguments-match', tools: ['assistant_operating', 'assistant_reflect'], pattern: '停止条件|stop condition|若.{0,30}→' },
+      // First-answer contract: the chat reply is the page's pointer, not the page.
+      { kind: 'answer-max-chars', max: 400 },
+      { kind: 'answer-max-question-marks', max: 2 },
+      { kind: 'answer-matches', pattern: '页|桌面|简报|brief|备忘|\\[\\[' },
+    ],
+  },
+  {
+    id: 'first-answer-quote',
+    why: 'The first-answer contract holds on a money question: a short pointer in chat, the page in the ledger/memo, one question at most.',
+    prompt: 'XX 项目报价 480 万，接不接？',
+    checks: [
+      { kind: 'no-git-commit' },
+      { kind: 'tool-arguments-match', tools: ['assistant_operating', 'assistant_reflect'], pattern: '判断|建议|缺|假设|assum|recommend' },
+      { kind: 'answer-max-chars', max: 400 },
+      { kind: 'answer-max-question-marks', max: 2 },
+      { kind: 'answer-matches', pattern: '页|桌面|简报|brief|备忘|\\[\\[' },
+    ],
+  },
+  {
+    id: 'first-answer-price',
+    why: 'A renewal-price call must still land as a page, not a pricing essay in the chat.',
+    prompt: '老客户 A 续约，涨不涨 5%？',
+    checks: [
+      { kind: 'no-git-commit' },
+      { kind: 'tool-arguments-match', tools: ['assistant_operating', 'assistant_reflect'], pattern: '判断|建议|缺|假设|assum|recommend' },
+      { kind: 'answer-max-chars', max: 400 },
+      { kind: 'answer-max-question-marks', max: 2 },
+      { kind: 'answer-matches', pattern: '页|桌面|简报|brief|备忘|\\[\\[' },
+    ],
+  },
+  {
+    id: 'first-answer-contract',
+    why: 'A material-review question has no three options; it still uses the same page shape (answer + basis + next) and a short chat pointer.',
+    prompt: '帮我看看这份合同有什么坑：付款是验收后 90 天，违约金上限 10%。',
+    checks: [
+      { kind: 'no-git-commit' },
+      { kind: 'tool-arguments-match', tools: ['assistant_operating', 'assistant_reflect'], pattern: '判断|建议|缺|风险|assum|recommend' },
+      { kind: 'answer-max-chars', max: 400 },
+      { kind: 'answer-max-question-marks', max: 2 },
+      { kind: 'answer-matches', pattern: '页|桌面|简报|brief|备忘|\\[\\[' },
+    ],
+  },
+  {
+    id: 'first-answer-weekly',
+    why: 'A self-management question ("what first this week") must produce one recommended next thing, not a questionnaire or a list of all three.',
+    prompt: '这周我该先做哪件事？手上三件：催回款、见客户、招人。',
+    checks: [
+      { kind: 'no-git-commit' },
+      { kind: 'tool-arguments-match', tools: ['assistant_operating', 'assistant_reflect'], pattern: '判断|建议|先|假设|assum' },
+      { kind: 'answer-max-chars', max: 400 },
+      { kind: 'answer-max-question-marks', max: 2 },
+      { kind: 'answer-matches', pattern: '页|桌面|简报|brief|备忘|\\[\\[' },
     ],
   },
   {
