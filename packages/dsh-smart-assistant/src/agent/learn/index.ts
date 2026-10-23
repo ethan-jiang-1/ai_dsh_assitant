@@ -9,7 +9,7 @@
 
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-skill'
-import { defineTool } from '@deepseek-ai/dsh-tools'
+import { defineTool, type InferValue } from '@deepseek-ai/dsh-tools'
 import { scanLearnedSkills } from '../../domain/skills/scan.ts'
 import { shadowedLearnedSkills } from '../../domain/skills/shadow.ts'
 import { skillUsageLines } from '../../domain/skills/usage.ts'
@@ -140,24 +140,8 @@ const OUTPUT = {
   },
 } as const
 
-interface ReflectOutput {
-  action: string
-  summary: string
-  session_id: string
-  asks: string[]
-  tool_calls: { name: string, count: number }[]
-  related_memories: string[]
-  open_threads: string[]
-  shadowed_skills: { name: string, provider: string }[]
-  pending_proposals: { name: string, status: string, revision: number }[]
-  skill_usage: { name: string, count: number, last_used?: string }[]
-  audit_findings: { code: string, severity: string, message: string }[]
-  skill_path: string
-  snapshot_path: string
-  page_id: string
-  page_path: string
-  proposal_status: string
-}
+/** The canonical result type, derived from `OUTPUT` so the schema and the projector cannot drift. */
+type ReflectOutput = InferValue<typeof OUTPUT>
 
 function flatten(text: string): string {
   const flat = text.replace(/\s+/g, ' ').trim()

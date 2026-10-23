@@ -9,7 +9,7 @@
  */
 
 import type { Context } from '@deepseek-ai/cordis'
-import { defineTool } from '@deepseek-ai/dsh-tools'
+import { defineTool, type InferValue } from '@deepseek-ai/dsh-tools'
 import { presentationMeta } from '../tool-support/presentation.ts'
 
 export const name = 'assistant-recall-tool'
@@ -40,6 +40,9 @@ const OUTPUT = {
     result: { type: 'string', required: true },
   },
 } as const
+
+/** The canonical result type, derived from `OUTPUT` so the schema and the projector cannot drift. */
+export type RecallOutput = InferValue<typeof OUTPUT>
 
 /** Arguments the model passes. */
 export interface RecallArgs {
@@ -129,7 +132,7 @@ export async function executeRecall(
   return { action: 'tree', summary: `tree ${uri}: ${String(count)} entries.`, result: JSON.stringify(result) }
 }
 
-function render(_args: RecallArgs, value: { action: string, summary: string, result: string }): Array<{ type: 'text', text: string }> {
+function render(_args: RecallArgs, value: RecallOutput): Array<{ type: 'text', text: string }> {
   return [{ type: 'text', text: `${value.summary}\n${value.result}` }]
 }
 
@@ -157,7 +160,7 @@ export function apply(ctx: Context): void {
       render,
       presentationMeta: (_args, value) => presentationMeta(value.summary),
     },
-    async execute(args): Promise<{ action: string, summary: string, result: string }> {
+    async execute(args): Promise<RecallOutput> {
       return executeRecall(args)
     },
   }))

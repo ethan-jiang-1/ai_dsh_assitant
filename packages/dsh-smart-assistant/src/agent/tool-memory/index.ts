@@ -11,7 +11,7 @@
 
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-skill'
-import { defineTool } from '@deepseek-ai/dsh-tools'
+import { defineTool, type InferValue } from '@deepseek-ai/dsh-tools'
 import { MEMORY_KINDS, IMPORTANCE_RANGE, type MemoryRecord } from '../../domain/memory/record.ts'
 import type { RecallHit } from '../../domain/memory/recall.ts'
 import { LEARNED_PROVIDER_NAME } from '../tool-support/learned-provider.ts'
@@ -123,33 +123,8 @@ interface MemoryItem {
   why: string[]
 }
 
-interface MemoryOutput {
-  action: string
-  summary: string
-  memories: MemoryItem[]
-  findings: { code: string, severity: string, message: string, refs: string[] }[]
-  /** Set by `curate` only — the home's headline numbers, so the model can cite them. */
-  counts?: {
-    memories: number
-    activeMemories: number
-    threads: number
-    openThreads: number
-    parkedThreads: number
-    learnedSkills: number
-    knowledgePages: number
-    retiredSkillBundles: number
-    skillSnapshots: number
-    digestBytes: number
-    digestMaxBytes: number
-  }
-  /** Set by `curate` only — per-skill load counts, least-used first (retirement candidates first). */
-  skill_usage?: { name: string, count: number, last_used?: string, days_since_last_use?: number }[]
-  /**
-   * Which window the counts cover ("since 2026-09-24" / "ledger window unknown"). A bare `0` reads
-   * as "never used", and a skill loaded before the ledger began is not evidence of disuse.
-   */
-  skill_usage_window?: string
-}
+/** The canonical result type, derived from `OUTPUT` so the schema and the projector cannot drift. */
+type MemoryOutput = InferValue<typeof OUTPUT>
 
 function item(record: MemoryRecord, why: readonly string[] = []): MemoryItem {
   return {

@@ -10,7 +10,7 @@
  */
 
 import type { Context } from '@deepseek-ai/cordis'
-import { defineTool } from '@deepseek-ai/dsh-tools'
+import { defineTool, type InferValue } from '@deepseek-ai/dsh-tools'
 import type { ResearchThread } from '../../domain/research/thread.ts'
 import { callCard, presentationMeta, resultCard } from '../tool-support/presentation.ts'
 
@@ -67,11 +67,8 @@ interface ThreadItem {
   updated: string
 }
 
-interface ResearchOutput {
-  action: string
-  summary: string
-  threads: ThreadItem[]
-}
+/** The canonical result type, derived from `OUTPUT` so the schema and the projector cannot drift. */
+type ResearchOutput = InferValue<typeof OUTPUT>
 
 function item(thread: ResearchThread): ThreadItem {
   return {

@@ -11,7 +11,7 @@
  */
 
 import type { Context } from '@deepseek-ai/cordis'
-import { defineTool } from '@deepseek-ai/dsh-tools'
+import { defineTool, type InferValue } from '@deepseek-ai/dsh-tools'
 import type { KnowledgePage } from '../../domain/knowledge/page.ts'
 import { callCard, presentationMeta, resultCard } from '../tool-support/presentation.ts'
 
@@ -72,12 +72,8 @@ interface PageItem {
   why?: string[]
 }
 
-interface KnowledgeOutput {
-  action: string
-  summary: string
-  pages: PageItem[]
-  backlinks: string[]
-}
+/** The canonical result type, derived from `OUTPUT` so the schema and the projector cannot drift. */
+type KnowledgeOutput = InferValue<typeof OUTPUT>
 
 function item(page: KnowledgePage, extra: Partial<PageItem>): PageItem {
   return {
