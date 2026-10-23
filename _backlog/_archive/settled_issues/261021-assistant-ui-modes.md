@@ -15,6 +15,7 @@ opened: 2026-10-21
 - **M1（已交付）**：mode store + `mount-rooms`（body/title 一次，tab type 按 mode 重注册）；`settings.general.item` 三档行（置顶）；三条命令 `mode-simple`/`mode-standard`/`mode-expert`；简洁档隐藏桌面 proactive/建议行与流水 tab；标准隐藏 Viki guide；默认标准。证据：客户端 `ui-mode` 7 案、`mount-rooms` 4 案、`ui-mode-row`/`ui-mode-commands` 各 1 案、面板 42 案含 simple 密度、host config 2 案、入口/命令注册 spec；真机 settings 点击写入 localStorage 且 pressed；desk web-face PASS。
 - **持久化现实**：stock bundle 的 `assistant-memory` 行嵌在 bundle 内，`settings.describe` 不列出（实测 namespaces 无此项），`configForms.get` 返回 unavailable。客户端回落 localStorage；Host `Config.uiMode` 已声明，任一 composition 把该行暴露为顶层 settings namespace 时绑定自动生效。跨设备持久化因此**未达**本卡原目标 A；这是平台/组合约束，不是客户端遗漏。M2 若继续，先提升该行为可配置项或换持久化面。
 - **M2（未取）**：简洁单卡+输入、回执/诊断/转正 gating、命令过滤、「更多」入口；触发 = 真实简洁用户出现或本人要求。
+- **决定记录**：[implemented note](../../../notes/implemented/2026-10-23-ui-modes-and-panel-surface.md)。
 
 ---
 
