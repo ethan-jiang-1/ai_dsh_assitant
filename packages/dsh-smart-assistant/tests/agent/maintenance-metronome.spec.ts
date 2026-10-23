@@ -3,8 +3,8 @@
  * service (src/host/index.ts); service-plane contracts live in tests/host/.
  * The maintenance metronome (tri-line proposal 2026-09-24, slice 1e; I14): every N goal rounds a
  * maintenance turn takes the slot the round driver's yield barrier reserves. These tests pin the
- * interval predicate and, with a fake agent, the counting, dedup, per-goal reset, and the
- * plugin-sourced followup message.
+ * interval predicate and the constructor's install of the slots; the listener behavior (counting,
+ * dedup, per-goal reset, disabled) lives at the function seam in `self-turns.spec.ts`.
  */
 
 import { Context } from '@deepseek-ai/cordis'
@@ -78,44 +78,11 @@ describe('maintenance metronome (service wiring)', () => {
       .call(ctx, 'agent/inbox/inserted', { agent, message })
   }
 
-  it('queues a plugin-sourced maintenance turn on interval rounds only', () => {
+  it('the service constructor installs the maintenance slot', () => {
     const { ctx, agent, calls } = boot(2)
-
-    emit(ctx, agent, goalRound(1))
-    expect(calls).toHaveLength(0)
-
     emit(ctx, agent, goalRound(2))
     expect(calls).toHaveLength(1)
     expect(calls[0]?.text).toContain('[Maintenance slot]')
-    expect(calls[0]?.text).toContain('every 2 rounds')
     expect(calls[0]?.source).toEqual({ kind: 'assistant-plugin', plugin: 'dsh-smart-assistant' })
-
-    // A re-queued round does not fire twice (dedup by goal id).
-    emit(ctx, agent, goalRound(2))
-    expect(calls).toHaveLength(1)
-
-    // The next interval fires again.
-    emit(ctx, agent, goalRound(4))
-    expect(calls).toHaveLength(2)
-  })
-
-  it('resets per goal, ignores other message kinds, and can be disabled', () => {
-    const { ctx, agent, calls } = boot(2)
-
-    // A second goal starts its own round numbering.
-    emit(ctx, agent, goalRound(2, 'g-2'))
-    expect(calls).toHaveLength(1)
-
-    // Non-goal messages never fire the metronome.
-    emit(ctx, agent, createUserMessage({
-      content: [{ type: 'text', text: 'a user turn' }],
-      source: { kind: 'user' },
-    }))
-    expect(calls).toHaveLength(1)
-
-    // A zero interval disables the metronome entirely.
-    const off = boot(0)
-    emit(off.ctx, off.agent, goalRound(2, 'g-3'))
-    expect(off.calls).toHaveLength(0)
   })
 })

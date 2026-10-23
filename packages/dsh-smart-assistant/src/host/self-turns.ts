@@ -14,7 +14,6 @@ import { createUserMessage } from '@deepseek-ai/dsh-llm'
 // kind in the cordis Events / llm MessageSourceMap merges — the proposal slot listens to the
 // event, so the augmentation must be in the program.
 import type {} from '@deepseek-ai/dsh-goal'
-import type { AssistantMemory } from './service.ts'
 import { isMaintenanceRound, renderMaintenancePrompt } from '../domain/home/metronome.ts'
 import { renderProposalPrompt } from '../domain/skills/proposal.ts'
 
@@ -27,6 +26,15 @@ declare module '@deepseek-ai/dsh-llm' {
     /** A turn this plugin queued by itself, with no user or model behind it. */
     'assistant-plugin': { kind: 'assistant-plugin', plugin: 'dsh-smart-assistant' }
   }
+}
+
+/**
+ * The two resolved config facts the self-turn slots gate on. The service class satisfies this
+ * structurally; a test can stand in the two fields without booting a home.
+ */
+export interface SelfTurnHost {
+  readonly maintenanceEveryRounds: number
+  readonly goalProposalTurns: boolean
 }
 
 /**
@@ -44,10 +52,10 @@ declare module '@deepseek-ai/dsh-llm' {
  * The proposal slot (phase 3): a completed goal is a natural batch boundary, so it queues
  * one proposal turn — propose-only. The model proposes; a person approves by editing the
  * proposal file's status (the same review shape as knowledge drafts); nothing auto-lands.
- * @param host - The home service the slots belong to (its resolved config gates both).
+ * @param host - The config facts the slots gate on; the service class is the production host.
  * @param ctx - The context whose agents receive the queued turns.
  */
-export function installSelfTurnSlots(host: AssistantMemory, ctx: Context): void {
+export function installSelfTurnSlots(host: SelfTurnHost, ctx: Context): void {
   // The maintenance metronome (I14, tri-line proposal slice 1e): every `maintenanceEveryRounds`
   // goal rounds, queue a maintenance turn ahead of the next round.
   if (host.maintenanceEveryRounds >= 1) {
