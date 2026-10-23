@@ -1,7 +1,9 @@
 /** Global projection presentation. Renderer supplies the sole live-data hook. */
 import { createElement as ce } from '../chrome/runtime'
 import { AssistantBrandMark } from '../chrome/brand'
-import { canProcess, capturePhase, type CaptureStatus } from '../../domain/desk/desk-process'
+import { canProcess, type CaptureStatus } from '../../domain/desk/desk-process'
+import { deriveCaptureView } from '../../domain/desk/desk-capture-view'
+import { countPendingProposals, deriveActivityView } from '../../domain/desk/desk-activity-view'
 import { humanTime, localDateKey, localDateLabel, localTimeLabel } from '../chrome/format'
 import { deriveProactiveFace, PROACTIVE_SUGGESTIONS, type ProactiveUiState } from '../proactive/proactive-face'
 import type { ProactiveCatalogState } from '../proactive/proactive-face-source'
@@ -230,29 +232,15 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
   // claim content it cannot back.
   const receipt = view.captureReceipt
   // Whose turn it is comes from the platform's SessionStatus, not from anything the desk
-  // remembers — so a reload keeps it. The receipt answers "not in the ledger yet"; this answers
-  // "who is being waited on".
+  // remembers. Phase, pending, ownership, and the other waiting sessions are derived by the
+  // domain module so the rules are testable without rendering.
   const sessionStatuses = props.useSessionStatus(value => value)
-  const receiptStatus = receipt === null ? undefined : sessionStatuses.get(receipt.sessionId)
-  // 261019: the send row now has a terminal state that is not the ledger. The action lanes
-  // (先试跑/替我盯上) write no ledger entry by design, so waiting for a revision would leave the
-  // row — and the desk's own input — shut forever. A watched turn that has ended settles it;
-  // a session never seen running stays queued rather than being invented as finished.
-  const phase = receipt === null
-    ? undefined
-    : capturePhase(receipt.observedRevision, data?.revision ?? 0, receiptStatus)
-  const capturePending = phase === 'running' || phase === 'queued'
-  const isActionLane = receipt?.lane === 'action'
-  // 261019 (BUG-016): questions the capture row does not own still need a desk surface — a
-  // reload (or a turn delivered elsewhere) used to leave them invisible. While the capture row
-  // is visible it owns its session's question, so that one is not counted twice. The set is
-  // deliberately every session in the status map, including ones with no desk relationship:
-  // any pending interaction is the principal's to answer, wherever it was started.
-  const captureOwnsSession = receipt !== null && phase !== undefined && phase !== 'resolved' ? receipt.sessionId : undefined
-  const pendingQuestionSessions = [...sessionStatuses]
-    .filter(([id, status]) => status.pendingInteraction !== undefined && id !== captureOwnsSession)
-    .map(([id]) => id)
-  const openQuestions = pendingQuestionSessions.length
+  const captureView = deriveCaptureView({ receipt, revision: data?.revision ?? 0, statuses: sessionStatuses })
+  const phase = captureView.phase
+  const capturePending = captureView.pending
+  const isActionLane = captureView.isActionLane
+  const pendingQuestionSessions = captureView.questionSessions
+  const openQuestions = captureView.openQuestions
   const PHASE_LABEL: Record<string, string> = {
     running: '等助手', queued: '已交给助手', suspended: '轮到我', settled: '它说完了',
   }
@@ -279,18 +267,12 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
     : []
   // The activity feed (history views ③): every operation newest first, grouped by the viewer's
   // local day, revealed progressively — the whole ledger is already downloaded, so revealing is
-  // pure rendering. Entries whose matter is gone (or that touch none, matterId '') render inert.
-  const activityEntries = (data?.receipts ?? []).slice().sort((left, right) => right.submittedAt.localeCompare(left.submittedAt))
-  const shownActivity = activityEntries.slice(0, Math.max(1, view.activityLimit))
+  // pure rendering. The order and grouping rules live in the domain module.
+  const activityView = deriveActivityView(data?.receipts ?? [], view.activityLimit, localDateKey, localDateLabel)
+  const activityEntries = activityView.entries
   const titleOfMatter = (matterId: string): string => data?.matters.find(matter => matter.id === matterId)?.title ?? matterId
-  const activityGroups: { key: string; label: string; entries: typeof shownActivity }[] = []
-  for (const receipt of shownActivity) {
-    const key = localDateKey(receipt.submittedAt)
-    const group = activityGroups.at(-1)
-    if (group !== undefined && group.key === key) group.entries.push(receipt)
-    else activityGroups.push({ key, label: localDateLabel(receipt.submittedAt), entries: [receipt] })
-  }
-  const pendingProposals = data?.matters.reduce((count, matter) => count + matter.proposals.filter(proposal => proposal.status === 'pending').length, 0) ?? 0
+  const activityGroups = activityView.groups
+  const pendingProposals = countPendingProposals(data?.matters ?? [])
   // Proactive face (2026-10-18):「它替你看过」— three honest rows from read-only sources, zero model
   // calls. The catalog namespace can still be absent (the peer + inject pair is load-bearing; see
   // index.ts's wiring verdict), so its absence degrades row 3 to an attribute marker, never a guess.
@@ -537,7 +519,7 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
                   onClick: () => { props.actions.setMode('board'); props.actions.selectMatter(receipt.matterId) } }, entryLine, quote)
               : ce('div', { key: receipt.operationId, className: 'dsha-activity-entry' }, entryLine, quote)
           }))),
-        activityEntries.length > shownActivity.length ? ce('button', { type: 'button', className: 'dsha-btn dsha-activity-more', onClick: () => props.actions.revealMoreActivity() }, '显示更早') : null)
+        activityView.hasMore ? ce('button', { type: 'button', className: 'dsha-btn dsha-activity-more', onClick: () => props.actions.revealMoreActivity() }, '显示更早') : null)
       : ce('section', { className: 'dsha-matters', 'data-pane': view.pane },
         ce('div', { className: 'dsha-matter-list dsha-list', onScroll: (event: { currentTarget: { scrollTop: number } }) => props.actions.rememberListPosition(event.currentTarget.scrollTop) },
           matters.length > 0 ? ce('div', { className: 'dsha-filter' },
