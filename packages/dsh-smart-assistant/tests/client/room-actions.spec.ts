@@ -38,6 +38,8 @@ const rooms = {
     { id: 'k1', title: '草稿页', status: 'draft', type: 'how-it-works', excerpt: 'draft' },
     { id: 'k2', title: '稳定页', status: 'stable', type: 'policy', excerpt: 'stable' },
   ],
+  ledger: [],
+  problems: [],
 }
 
 const materialize = (): ClientExports =>

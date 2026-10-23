@@ -15,7 +15,6 @@
  * @module
  */
 import { createHash } from 'node:crypto'
-import { basename } from 'node:path'
 import type { ConnectionFetchRoute } from '@deepseek-ai/dsh-client-connection'
 import type { KnowledgePage } from '../../domain/knowledge/page.ts'
 import type { MemoryRecord } from '../../domain/memory/record.ts'
@@ -24,6 +23,7 @@ import type { LearnedSkillInfo } from '../../domain/home/health.ts'
 import type { SkillUsageRead } from '../../domain/skills/usage.ts'
 import { isEntryId, type RoomReadFailure } from '../../domain/home/room.ts'
 import { isSkillName } from '../../domain/skills/skill-file.ts'
+import { projectRooms } from '../../domain/rooms/projection.ts'
 import type { ApprovalAuditOptions, ApprovalKind } from '../approval-audit.ts'
 import type { ApprovalLine, ReceiptRoom } from '../../domain/maintenance/receipt.ts'
 import type { SaveMemoryInput } from '../memory-room.ts'
@@ -54,36 +54,12 @@ export interface RoomsActions {
   recordApproval(kind: ApprovalKind, id: string, options: ApprovalAuditOptions): Promise<void>
 }
 
-/** One unreadable entry, named by file (never by deployment path). */
-interface Problem {
-  readonly room: 'memory' | 'research' | 'skills' | 'knowledge'
-  readonly file: string
-  readonly reason: string
-}
-
 function headers(): Record<string, string> {
   return { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' }
 }
 
 function failure(status: number, error: string): Response {
   return new Response(JSON.stringify({ error }), { status, headers: headers() })
-}
-
-/** Keep the panel's preview bounded; the full text is served by the detail query. */
-function excerpt(body: string): string {
-  return body.length > 200 ? body.slice(0, 200) : body
-}
-
-function problem(room: Problem['room'], failures: readonly RoomReadFailure[]): Problem[] {
-  return failures.map(failure => ({ room, file: basename(failure.path), reason: failure.reason }))
-}
-
-/** Latest ISO stamp across the rooms and the usage ledger; absent data falls back to the epoch. */
-function latestStamp(values: readonly (string | undefined)[]): string {
-  const stamps = values
-    .flatMap(value => typeof value === 'string' && value.length > 0 ? [Date.parse(value)] : [])
-    .filter(stamp => Number.isFinite(stamp))
-  return stamps.length === 0 ? new Date(0).toISOString() : new Date(Math.max(...stamps)).toISOString()
 }
 
 /**
@@ -225,73 +201,9 @@ export function createRoomsRoute(reader: RoomsReader, maxBytes: number = 1024 * 
             reader.ledger(),
           ])
           request.signal.throwIfAborted()
-          const generatedAt = latestStamp([
-            ...memories.entries.map(record => record.updated),
-            ...threads.entries.map(thread => thread.updated),
-            ...knowledge.entries.map(page => page.generated?.at),
-            ...skills.entries.map(skill => skill.learnedAt),
-            ...Object.values(usage.usage).map(entry => entry.lastUsedAt),
-            ...ledger.map(line => line.at),
-          ])
-          const payload = {
-            schemaVersion: 1,
-            generatedAt,
-            revision: '',
-            counts: {
-              memories: memories.entries.length,
-              threads: threads.entries.length,
-              skills: skills.entries.length,
-              knowledgeStable: knowledge.entries.filter(page => page.status === 'stable').length,
-              knowledgeDraft: knowledge.entries.filter(page => page.status === 'draft').length,
-            },
-            memories: memories.entries.map(record => ({
-              id: record.id,
-              kind: record.kind,
-              text: record.text,
-              updated: record.updated,
-              ...(record.source !== undefined ? { source: record.source } : {}),
-            })),
-            research: threads.entries.map(thread => ({
-              id: thread.id,
-              title: thread.question,
-              status: thread.status,
-              why: thread.why,
-              ...(thread.lean !== undefined ? { lean: thread.lean } : {}),
-              updated: thread.updated,
-            })),
-            skills: skills.entries.map(skill => {
-              const name = skill.name ?? ''
-              const entry = usage.usage[name]
-              return {
-                name,
-                description: skill.description ?? '',
-                kind: 'learned',
-                ...(skill.origin !== undefined ? { origin: skill.origin } : {}),
-                ...(skill.learnedAt !== undefined ? { learnedAt: skill.learnedAt } : {}),
-                count: entry?.count ?? 0,
-                ...(entry?.lastUsedAt !== undefined ? { lastUsedAt: entry.lastUsedAt } : {}),
-              }
-            }),
-            knowledge: knowledge.entries.map(page => ({
-              id: page.id,
-              ...(page.title !== undefined ? { title: page.title } : {}),
-              status: page.status,
-              type: page.type,
-              ...(page.description !== undefined ? { description: page.description } : {}),
-              ...(page.generated?.at !== undefined ? { updated: page.generated.at } : {}),
-              sources: page.sources.map(source => source.resource),
-              excerpt: excerpt(page.body),
-            })),
-            ledger,
-            problems: [
-              ...problem('memory', memories.failures),
-              ...problem('research', threads.failures),
-              ...problem('knowledge', knowledge.failures),
-              ...problem('skills', skills.failures),
-            ],
-          }
-          payload.revision = createHash('sha256').update(JSON.stringify({ ...payload, revision: '' })).digest('hex')
-          return emit(payload)
+          const payload = projectRooms({ memories, threads, knowledge, skills, usage, ledger })
+          const revision = createHash('sha256').update(JSON.stringify(payload)).digest('hex')
+          return emit({ ...payload, revision })
         }
         if (url.searchParams.size !== 2
           || !url.searchParams.has('kind')

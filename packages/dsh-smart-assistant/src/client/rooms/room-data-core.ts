@@ -18,21 +18,32 @@
 import { shortTime } from '../chrome/format'
 import { reactSurface } from '../chrome/runtime'
 import type { ApprovalLine } from '../../domain/maintenance/receipt.ts'
+import type {
+  RoomsCounts,
+  RoomsKnowledgeRow,
+  RoomsMemoryRow,
+  RoomsProblem,
+  RoomsResearchRow,
+  RoomsSkillRow,
+} from '../../domain/rooms/projection.ts'
 
-/** One rooms projection as the host route renders it (the panel's data source: the host rooms route). */
+/**
+ * The client's tolerant view of the rooms payload. The wire contract is `RoomsPayload` in
+ * `domain/rooms/projection.ts`; every field here is optional while a load settles, but the row
+ * field names come from the wire types so a rename cannot leave a silent second copy behind.
+ */
 export interface DeskData {
   schemaVersion?: number
   generatedAt?: string
   revision?: string
-  problems?: { room?: string, file?: string, reason?: string }[]
+  problems?: readonly RoomsProblem[]
   /** Newest approval-ledger lines (the maintenance receipt). */
   ledger?: readonly ApprovalLine[]
-  /** Research rows the route projects (the maintenance receipt + future research tab). */
-  research?: { id?: string, title?: string, why?: string, lean?: string, status?: string, updated?: string }[]
-  counts?: { memories?: number, knowledgeStable?: number, knowledgeDraft?: number, skills?: number, threads?: number }
-  memories?: { id?: string, kind?: string, text?: string, updated?: string, source?: string }[]
-  knowledge?: { id?: string, title?: string, status?: string, type?: string, updated?: string, sources?: string[], excerpt?: string }[]
-  skills?: { name?: string, description?: string, kind?: string, source?: string, count?: number, lastUsedAt?: string, learnedAt?: string, origin?: string }[]
+  research?: readonly Partial<RoomsResearchRow>[]
+  counts?: Partial<RoomsCounts>
+  memories?: readonly Partial<RoomsMemoryRow>[]
+  knowledge?: readonly Partial<RoomsKnowledgeRow>[]
+  skills?: readonly Partial<RoomsSkillRow>[]
 }
 
 /**
@@ -246,11 +257,6 @@ export function expirePending(sessionId?: string): void {
     stalled: pending === undefined ? undefined : { ...pending },
   })
   patchDesk({ note: '它还没写进房间数据——点「重读房间数据」再试一次（动作已发出，不会被撤销）' })
-}
-
-/** Whether this payload carries the rooms route's mandatory generation stamp. */
-export function looksLikeDesk(parsed: DeskData): boolean {
-  return typeof parsed.generatedAt === 'string' && parsed.generatedAt.trim() !== ''
 }
 
 /** A finished load settles the pending action: the file moving past `at` is the completion

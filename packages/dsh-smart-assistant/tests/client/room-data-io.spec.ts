@@ -42,11 +42,14 @@ const materialize = (): ClientExports =>
 const rooms = (generatedAt: string): Response => new Response(JSON.stringify({
   schemaVersion: 1,
   generatedAt,
+  revision: 'rev-1',
   counts: { memories: 0, threads: 0, skills: 0, knowledgeStable: 0, knowledgeDraft: 0 },
   memories: [],
   research: [],
   skills: [],
   knowledge: [],
+  ledger: [],
+  problems: [],
 }), { headers: { 'content-type': 'application/json' } })
 
 /** Microtask flush for the async read chains (real-timer tests). */

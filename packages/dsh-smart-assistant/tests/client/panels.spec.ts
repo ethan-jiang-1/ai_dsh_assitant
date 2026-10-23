@@ -56,8 +56,6 @@ interface PanelExports {
   settlePending: (generatedAt: string | undefined, sessionId?: string) => void
   /** Retire a receipt whose decision is still open in the file (R11). */
   retireStaleReceipt: (data: Record<string, unknown> | undefined, sessionId?: string) => void
-  /** Does this JSON carry the desk contract's shape at all (R12)? */
-  looksLikeDesk: (parsed: Record<string, unknown>) => boolean
   DeskTabBody: (props: { sessionId?: string }) => unknown
   KnowledgeTabBody: (props: { sessionId?: string }) => unknown
   MemoryTabBody: (props: { sessionId?: string }) => unknown

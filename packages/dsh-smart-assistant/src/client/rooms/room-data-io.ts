@@ -22,10 +22,11 @@
 
 import type { ClientContext, RoomKind } from '../chrome/contracts'
 import {
-  carryRowStateTo, deskSlice, getDeskStore, looksLikeDesk,
+  carryRowStateTo, deskSlice, getDeskStore,
   patchDesk, patchSlice, settlePending, sliceSeq,
 } from './room-data-core'
 import type { DeskData, DeskSlice } from './room-data-core'
+import { parseRooms } from '../../domain/rooms/projection.ts'
 
 /** The remote layer captured in apply; DeskPanel reads manifested namespaces through it. */
 let deskRemote: Record<string, unknown> | undefined
@@ -89,9 +90,10 @@ async function readRooms(): Promise<RoomsRead> {
       void response.arrayBuffer().catch(() => {})
       return { ok: false, reason: `房间数据路由返回 ${String(response.status)}` }
     }
-    const parsed = await response.json() as DeskData
-    if (!looksLikeDesk(parsed)) return { ok: false, reason: '房间数据不是 route 的形状' }
-    return { ok: true, data: parsed }
+    const parsed: unknown = await response.json()
+    const data = parseRooms(parsed)
+    if (data === undefined) return { ok: false, reason: '房间数据不是 route 的形状' }
+    return { ok: true, data }
   } catch (reason) {
     return { ok: false, reason: String(reason) }
   }

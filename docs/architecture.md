@@ -143,6 +143,7 @@ seam 的成色读数是**第二个真实 Provider 出现而 Consumer 一行不�
 | `src/domain/home/digest.ts` | 有界摘要（桌面），按 UTF-8 字节裁剪 | record/thread 类型 |
 | `src/domain/home/health.ts` | **纯函数**养护检查：输入是解析结果，输出是 findings | 类型 |
 | `src/domain/desk/desk-process.ts` | 桌面五臂的路径状态与返回判据（纯核；消费方 = `client/desk/desk-arms`） | 无（最底层） |
+| `src/domain/rooms/projection.ts` | rooms 线格式的唯一 owner：`RoomsPayload`、host `projectRooms`、client `parseRooms`、共享 counts（HTTP/认证留在 host route） | 无（最底层） |
 | `src/domain/maintenance/receipt.ts` | 审批回执词汇：直接写的类型与显示标签（client 面板与 host 审计共用） | 无（最底层） |
 | `src/domain/viki/types.ts` | Viki 记忆内容类型（user/peer 与 memory 行）；client 面板与 host 路由共用 | 无（最底层） |
 | `src/domain/operating/`（`ledger.ts`、`projection.ts`） | 经营账本**纯核**：事项/操作/回执/待认领词汇与归约、v2 投影渲染（契约 = [`operating.md`](operating.md)） | 无（最底层） |

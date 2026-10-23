@@ -2,8 +2,8 @@
  * The panel's room actions: the direct writes (approve/deprecate/correct/retire) go through
  * the host `POST /api/assistant/rooms` route and patch the session's projection immediately
  * ([maintenance-direct-write](../../../../../notes/implemented/2026-10-19-maintenance-direct-write.md));
- * the remaining conversation lanes (first start, knowledge flag, skill proposals) still send a
- * prompt. The direct paths never fall back to a prompt.
+ * the remaining conversation lanes (first start, knowledge flag) still send a prompt. The direct
+ * paths never fall back to a prompt.
  *
  * @module dsh-smart-assistant/client/room-data-actions
  */
@@ -11,6 +11,7 @@
 import { patchDesk } from './room-data-core'
 import type { DeskData } from './room-data-core'
 import type { ApprovalLine } from '../../domain/maintenance/receipt.ts'
+import { countsOf } from '../../domain/rooms/projection.ts'
 import { patchRoomRows, postRoomsAction } from './room-data-io'
 import { sendPrompt } from './prompt-bridge'
 
@@ -23,27 +24,6 @@ export function askStart(sessionId?: string): void {
   sendPrompt('开始第一件事：从最近要我拍板、还要跟进的一件事说起。', '开始第一件事', 'desk', sessionId)
 }
 
-/**
- * Inline skill-proposal approval (2026-10-06): the click IS the approval. The prompt asks
- * the assistant to edit the proposal file's status to approved and land_skill it in the same
- * turn. This lane stays on the conversation; the Skills tab's own retire action rides the
- * direct-write route instead.
- */
-export function askApproveProposal(name: string, sessionId?: string): void {
-  sendPrompt(
-    `面板代本人批准技能提案「${name}」：请把提案文件的 status 改为 approved，然后立刻 land_skill 落地。`,
-    '批准提案', name, sessionId,
-  )
-}
-
-/** The rejection twin: the proposal is rejected with the principal's one-line reason. */
-export function askRejectProposal(name: string, reason: string, sessionId?: string): void {
-  sendPrompt(
-    `面板代本人拒绝技能提案「${name}」：请把提案文件的 status 改为 rejected（理由：${reason}）。`,
-    '拒绝提案', name, sessionId,
-  )
-}
-
 /** Append one direct-write ledger line to the projection so the maintenance receipt sees it immediately. */
 function withLedger(data: DeskData, line: ApprovalLine): DeskData {
   return { ...data, ledger: [...(data.ledger ?? []), line].slice(-200) }
@@ -51,16 +31,7 @@ function withLedger(data: DeskData, line: ApprovalLine): DeskData {
 
 /** Recompute the panel's counts from the rows after a direct write (one home for the arithmetic). */
 function recount(data: DeskData): DeskData {
-  return {
-    ...data,
-    counts: {
-      ...data.counts,
-      memories: (data.memories ?? []).length,
-      skills: (data.skills ?? []).length,
-      knowledgeDraft: (data.knowledge ?? []).filter(page => page.status === 'draft').length,
-      knowledgeStable: (data.knowledge ?? []).filter(page => page.status === 'stable').length,
-    },
-  }
+  return { ...data, counts: countsOf(data) }
 }
 
 /**
