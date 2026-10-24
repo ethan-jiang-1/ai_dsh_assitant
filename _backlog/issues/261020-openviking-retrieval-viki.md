@@ -145,47 +145,47 @@ opened: 2026-10-20
 
 ### A/B（先做，决定是否实施）
 
-**题集/评分表/原型约定：** [research/261021-recall-ab](../research/tech-exploration/261021-recall-ab.md)（12 题、四项 0–2 分、A1/A2 一次性原型）。A1/A2 分支与 run 待下一次 A/B 切片。
+**题集/评分表/原型约定：** [research/261021-recall-ab](../research/tech-exploration/261021-recall-ab.md)（12 题、四项 0–2 分、A1/A2 一次性原型）。A1/A2 已各跑一遍并完成裁决（A2 采用，2026-10-23）；实施后复跑见该 note §8（2026-10-25）。
 
-- [ ] **原型纪律**：A1 用一次性 home 的临时 `ov-shield` allowlist（或临时 patch），A2 用一次性分支/临时工具；产物保留提交指针，**不进发布物、不合并**。
+- [x] **原型纪律**：A1 用一次性 home 的临时 `ov-shield` allowlist（或临时 patch），A2 用一次性分支/临时工具；产物保留提交指针，**不进发布物、不合并**。**2026-10-21：A1 `ab/a1-allowlist` @ `3fa7b4d`、A2 `ab/a2-recall` @ `629e79c`（修后 `53891`）；两分支都未合并，A2 的生产实现另走正式切片。**
 - [x] 固定问题集 ≥10 条，覆盖：偏好、事件、决策、跨 peer、无答案；每条有期望来源/答案。**2026-10-21：12 题在 research note；用户复核待 A/B。**
-- [x] 评分表（来源正确 / 答案正确 / 细节充分 / 引用可核四项）与题集同一次产出；agent 初评 + 人抽查 ≥3 条。**评分表已产出；agent 初评/人抽查待 A/B run。**
-- [ ] A1/A2 各跑一遍，记录：tool schema token（A1 按实际 7 个工具重测）、工具调用次数/正确率、答案质量、延迟、失败模式。
-- [ ] 裁决写成一行：选 A1 / 选 A2 / 都不选（继续自动 recall），附证据与输掉的理由。
-- [ ] 若选 A1/A2，实施后同一问题集复跑，质量不低于 A/B 的赢家。
+- [x] 评分表（来源正确 / 答案正确 / 细节充分 / 引用可核四项）与题集同一次产出；agent 初评 + 人抽查 ≥3 条。**评分表已产出；agent 初评见 note §6.1；人抽查由用户 2026-10-25 授权 agent 自评代替（见收口卡）。**
+- [x] A1/A2 各跑一遍，记录：tool schema token（A1 按实际 7 个工具重测）、工具调用次数/正确率、答案质量、延迟、失败模式。**2026-10-21 已跑；关键事实：两侧 12 题内工具调用均为 0，分数不可用于选型；选型证据转为指针展开 probe（note §7）。**
+- [x] 裁决写成一行：选 A1 / 选 A2 / 都不选（继续自动 recall），附证据与输掉的理由。**2026-10-23：选 A2（native `assistant_recall`），因为 A1 的资源发现被 `denyServerResources` 挡住、工具可见但不可发现；A2 的 read 在 probe 里被调用并返回全文。**
+- [x] 若选 A1/A2，实施后同一问题集复跑，质量不低于 A/B 的赢家。**2026-10-25 复跑（note §8）：10 个可比题全 8/8，与 A2 基线同题同分；Q8/Q10 因 live 漂移与自指不可比。限制：不是盲测（仓内可读到 A/B 记录），只能证明"当前组合作答健康、可比项不低于赢家"。**
 
-### A1（若选）
+### A1（若选；**未选，不实施**，以下保留作历史）
 
-- [ ] `ov-shield` 新增 `allowToolNames`（或等价），白名单为 `find/search/read/list/tree/grep/glob`；`write/edit/remember/forget/add_resource/add_skill/list_watches/cancel_watch/health` 仍不可见；`list()` 中立视图的预期残余有记录。
+- [ ] `ov-shield` 新增 `allowToolNames`（或等价），白名单为 `find/search/read/list/tree/grep/glob`；`write/edit/remember/forget/add_resource/add_skill/list_watches/cancel_watch/health` 仍不可见；`list()` 中立视图的预期残余有记录。**未选，不实施。**
 - [ ] 单测：allowlist 只放指定名；新增 `mcp__openviking__write` 仍被拒；OpenViking 缺席时零影响。
 - [ ] 组合断言：请求的 tool schema 里只出现白名单（对照实测基线，A1 按 7 个重测）；server `instructions` 未进入提示（与 allowlist 无关；见部署卡 doctor 检查）。
 - [ ] E2E：问一个答案在旧记忆里的问题，模型调用只读工具并引用 URI/内容。
 - [ ] 现有**全部** web-face 场景（当前 3 个，清单以 [目录](../../snapshots/web-face/) 为准）不漂移；A1 不改变渲染，但不得拿“没跑场景”当通过。
 
-### A2（若选）
+### A2（已选并实施，2026-10-23）
 
-- [ ] 新工具 `assistant_recall` 有 name/description/参数 schema；`presenter` 显示来源与摘要；scope 只读配置的 space/peer。
-- [ ] 单测：find/search/read/tree 四动词；越界 URI 拒绝；server 缺席返回可读错误；不泄露 key。
-- [ ] E2E：同 A1；模型不需要 MCP 命名空间。
-- [ ] `docs/package-catalog.md` 重生成；`pnpm gen-catalog` freshness 绿。
-- [ ] 现有全部 web-face 场景不漂移（清单以目录为准）。
+- [x] 新工具 `assistant_recall` 有 name/description/参数 schema；`presenter` 显示来源与摘要；scope 只读配置的 space/peer。**`cordis.patch.yml` 的 `assistant-recall-tool` 行（line 216）挂载；`docs/package-catalog.md` 见该行。**
+- [x] 单测：find/search/read/tree 四动词；越界 URI 拒绝；server 缺席返回可读错误；不泄露 key。**`tests/agent/tool-recall.spec.ts`；`preset-composition` 断言挂载。**
+- [x] E2E：同 A1；模型不需要 MCP 命名空间。**2026-10-25 复跑 Q10/Q11 实际调用 `assistant_recall` 并读回内容（note §8）。**
+- [x] `docs/package-catalog.md` 重生成；`pnpm gen-catalog` freshness 绿。**verify 的 `gen-catalog --check` 门禁绿。**
+- [x] 现有全部 web-face 场景不漂移（清单以目录为准）。**8 个场景 2026-10-24/25 复跑或重录 PASS。**
 
 ### Viki
 
 - [x] 搜索（2026-10-21）：输入关键词走 **stateless `/search/find`**（host `?q=`），返回匹配条目（summary/peer/URI/score）；**空结果、未连接、检索错误三态分开**；URI 过白名单；测试 mock 覆盖；**0.5.1.1 live `/search/find` 返回「合同」6 条**。筛选 chips 未做。
 - [x] 健康/任务/统计/技能/pending/problems/token（2026-10-21）：诊断视图展示 `/health`、`/tasks`、`stats/memories`、`/api/v1/skills`、pending 计数、`problems`；**token 用量**由 host `ctx.tokenMeter.measure(session)` 读当前会话（`basis` usage/估算；无 session 或服务时 `—`）。无源项不假装有。
-- [ ] 用量/token：host route 读 `token-meter`/会话日志；本轮未做（无源项不显示）。
-- [ ] 转正（**不做，2026-10-25**；内部走 `assistant_memory save` + 审批）：P1 = 面板点击是授权 → host route 调 `assistantMemory.saveMemory`（同一服务校验）+ `recordApproval(..., 'promote', ...)`；P2 = 模型 turn 内 `assistant_memory save` + `ctx.approval` 的 `approval/asked`/`approval/decided`。两套审计不混用；memory 记录带 `source: openviking:<uri>`；不直接写文件。
-- [ ] 现有删除/恢复/比较不回归；`viki-panel` 测试更新。
+- [x] 用量/token：host route 读 `token-meter`/会话日志；已随诊断视图落地（见上一条；无源项显示 `—`）。
+- [x] 转正（**不做，2026-10-25**；内部走 `assistant_memory save` + 审批；决定与重开触发见 [on-demand recall note](../../notes/implemented/2026-10-20-on-demand-recall-path.md)）：P1 = 面板点击是授权 → host route 调 `assistantMemory.saveMemory`（同一服务校验）+ `recordApproval(..., 'promote', ...)`；P2 = 模型 turn 内 `assistant_memory save` + `ctx.approval` 的 `approval/asked`/`approval/decided`。两套审计不混用；memory 记录带 `source: openviking:<uri>`；不直接写文件。
+- [x] 现有删除/恢复/比较不回归；`viki-panel` 测试更新。**2026-10-25：`pnpm test` 125 files / 991 tests 通过；Viki 四个场景 PASS。**
 - [x] **研发/专业诊断视图（2026-10-21）**：同一 tab + 默认折叠；host `GET /api/assistant/viki?view=diagnostics`（health/stats/tasks/skills/pending/config，无 key；`problems` 并入）；面板「诊断」懒加载；`viki-panel` 8 案 + host 17 案；真机 `pnpm start` → 右栏 `Viki(调试)` → 诊断/搜索，DOM/screenshot 在案。同时修复 `bindVikiEnv` 生产无 `ctx.web` 时的 `document` fallback（此前真机面板报 “web face is not available”）。**durable Viki scene 仍待**（下一条）。
 - [x] **Viki 专用渲染/DOM 检查（降级态）**：新增 `snapshots/web-face/viki-panel-disconnected/`（`snapshot.yml` + README + `expected.dom.json`）；隔离 home + `OPENVIKING_URL=127.0.0.1:9`，三段 eval 打开右栏 Viki tab，`--wait-text 'Viki 未连接'`；基线录制 + 复跑 **PASS**，console/network 为空。**不覆盖连接态搜索/健康/转正入口**。
 - [x] **Viki 连接态场景**：`viki-panel-connected`（1 条固定 identity 记忆 + attrs summary）、`viki-panel-search`（`/search/find` 固定命中，`搜索「夹具」· 1 条`）、`viki-panel-diagnostics`（健康 `已连接 · 0.5.1.1 · dev`、任务/统计/pending/config）；mock = `../viki-panel-connected/seed.mjs`，录制 + 复跑均 PASS。**转正入口未实现，仍是缺口**。
 - [x] 现有全部 web-face 场景（当前 8 个，清单以目录为准）不漂移：2026-10-21 的 7 个曾 PASS；Viki 改 debug 门后，四个 Viki 场景已于 2026-10-25 以 `#debug=1` 重录并 PASS；非 Viki 4 个 2026-10-24 已复跑。
-- [ ] `pnpm verify` 通过。
+- [x] `pnpm verify` 通过。**2026-10-25：45 checks passed。**
 
 ## 下一步
 
-**裁决已收（2026-10-21）**：H1 B / H4 转正后置 / H6 先跳过团队记忆。本卡承载规格与验收，推进在 [收口卡](261021-openviking-viki-closure.md)；A/B 先原型、不先生产实现；Viki 先搜索/健康，转正等真实需求。**Viki 诊断 + 搜索 + token 用量 + `Viki(调试)` tab 已实现；live 搜索「合同」6 条、token 行真机可见；转正/durable scene 待做。**
+**裁决已收（2026-10-21）**：H1 B / H4 转正后置 / H6 先跳过团队记忆。本卡承载规格与验收，推进在 [收口卡](261021-openviking-viki-closure.md)；A/B 先原型、不先生产实现；Viki 先搜索/健康，转正等真实需求。**2026-10-25：A2 已实施并复跑（note §8）；Viki 搜索/诊断/token/4 场景已交付，转正决定＝不做（内部走 `assistant_memory save`）；本卡规格项已收尽。**
 **Agent 的**：第一轮（2026-10-20）与第二轮（2026-10-21）已回写；A/B 前先确认运行态卡的 recall 路径可测。
 
 ## 范围与邻居
