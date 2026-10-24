@@ -93,8 +93,7 @@ AGENT 面（`cordis.patch.yml` 的 `preset-assistant` 行 → agent preset）
 语义要点：官方品牌包只在 official 构建档案下注册，本地构建里品牌 slot 空置；
 四个房间 tab（knowledge / memory / viki / skills）是「+」向导里可添加的右栏 tab；首里引导座位开聊即隐；全局经营
 桌面的主区投影消费 `main` 座位，默认渲染**常用面一页纸**（`home-surface` → `one-page-home`：空态一问、当前一页、
-一个输入），「全部」进人读列表（`brief-list`），「完整看板」再进 `projection-panel`，「看依据」就地展开证据；会话内还以 `conversation.view`
-注册「桌面」「自动化任务」两个 tab，两个桌面 view 共享同一投影 snapshot、各自一个 selection store；开屏带
+一个输入），「全部」进人读列表（`brief-list`），「它记下的」进只读记录面（`records-surface`），「完整看板」再进 `projection-panel`，「看依据」就地展开证据；会话内不再注册桌面/任务 tab（2026-10-24 退役；回到今天走主面板/左栏）；开屏带
 `#debug=1` 或本机 localStorage `dsh-assistant-debug=1` 时，会话视图栏再注册只读「开发调试」tab
 （`debug/debug-panel.ts`）。读回链 = [`operating.md`](operating.md) §三——这些消费的
 全是 vendor 通用座位，§六 延后的"专属 Web 卡片"指**跨出通用座位的自有卡面**（自有 slot 域名），
@@ -105,7 +104,7 @@ AGENT 面（`cordis.patch.yml` 的 `preset-assistant` 行 → agent preset）
 | 层 | 回答谁的问题 | 入口 | 默认 | 边界 |
 |---|---|---|---|---|
 | **常用面** | 我该拍什么板？它替我做了什么？ | 主区一页纸 | 是 | 一页纸 + 一个输入；不出现看板/房间/调试；**审批、错误、风险永在这里** |
-| **深看面** | 它凭什么这么判断？还有哪些事？ | 页内「看依据」、「全部」、「它记下的」、列表里的「完整看板」 | 不挡路，随时可点 | 人话的依据/列表/记录/完整看板；「回到今天」回常用面；不引入新的主对象 |
+| **深看面** | 它凭什么这么判断？还有哪些事？ | 页内「看依据」、「全部」、「它记下的」、「它在盯什么」、列表里的「完整看板」 | 不挡路，随时可点 | 人话的依据/列表/记录/日程/完整看板；「回到今天」回常用面；不引入新的主对象 |
 | **调试面** | 系统现在到底在干什么？ | `#debug=1` 或 localStorage `dsh-assistant-debug=1` | 否 | 独立「开发调试」tab + Viki(调试) 房，同门、只读；不是客户面，不是权限边界；原始文件出口在这个面里，不另立一层 |
 
 实现 = `client/projection/home-surface.ts`（常用/深看切换）、`client/projection/brief-list.ts`（全部列表）、
@@ -178,7 +177,7 @@ seam 的成色读数是**第二个真实 Provider 出现而 Consumer 一行不�
 | `src/client/chrome/navigation.ts` | 浏览器导航 seam：`returnToConversation` + `revealChatTab`（平台会话激活、DOM tab reveal 适配器、主面板复位） | 无（平台 face 由调用方传入） |
 | `src/client/projection/desk-surface.ts` | 桌面面板的 lane surface 工厂：回调、导航与建议动作从 20 字段 props 中抽出；panel 只收 hooks / store / actions | 无（平台 face 由入口传入） |
 | `src/client/projection/one-page-home.ts` | 常用面一页纸：空态一问 + 当前页 + 一个输入；页上三按钮走 capture / page-action lane；待审草稿提示永在常用面 | `projection-panel` 的 props 契约 |
-| `src/client/projection/brief-list.ts` | 深看面「全部」：每件事一行（标题 / 状态 / 复查 / 摘要首行），点行选中并回页；「完整看板」再进旧看板 | `projection-panel` 的 props 契约 |
+| `src/client/projection/brief-list.ts` | 深看面「全部」：每件事一行（标题 / 状态 / 复查 / 摘要首行），点行选中并回页；「它在盯什么」只读日程；待归户只报计数、折后台；「完整看板」再进旧看板 | `projection-panel` 的 props 契约 |
 | `src/client/projection/home-surface.ts` | 四面切换：一页纸 →「全部」人读列表 / 「它记下的」记录面 / 「完整看板」；「回到今天」返回；切换状态不持久化 | 上述纯组件 |
 | `src/client/projection/records-surface.ts` | 「它记下的」只读记录面：知识（非归档）/ 记忆（非内部规则）/ 技能；不做编辑 | `rooms/room-data-core` 的 `DeskData` |
 | `src/client/debug/debug-panel.ts` | 调试面开发调试：投影状态 / revision / ledgerId / 选中项 / session / 会话状态 + 只读投影 JSON + 复制诊断；仅在 `#debug=1` 或 localStorage 标志下注册为会话视图 tab | `projection-panel` 的 props 契约 |
@@ -305,7 +304,7 @@ pnpm dsh …（package.json scripts → dev/env/dsh.mjs，唯一启动器：
 - **不重选**：显式回到 Conversation、归档引发的回退、slot/布局重挂及客户端 HMR 不重选；完整页面重载的新根上下文重新尝试。
 - **记忆边界**：默认机会只在页面内记录，不保存导航偏好或业务数据；插件首次激活前的显式 null 与启动 null 无法由当前公开快照区分。
 - **数据源**：全局桌面读取独立 Host 固定投影；记忆/知识/技能三个房间 tab 读独立 Host 行 `assistant-rooms` 的房间投影（working folder 真值），Viki 读 `assistant-viki`；同一路径的 POST 是受控写；默认入口本身不创建业务 Session。
-- **会话内视图**：工作台把「桌面」「自动化任务」注册为 `conversation.view` 的两个 tab；桌面 tab 与主面板共享同一 projection snapshot，各自一个 selection store。
+- **会话内视图**：桌面/任务 tab 已退役（2026-10-24）；会话只有对话/轨迹，调试 flag 打开时多一个「开发调试」。桌面与任务只在主面板，不复制到会话。
 
 独立 Host 行 `assistant-desk-projection` 提供固定只读投影下载：经营 dataDir 里有 `ledger.json` 时**活渲染账本 v2 投影**，无账本才回退固定 `desk-projection.json` 模拟输入；端点边界、认证、错误态与 byte cap 的完整契约 = [`operating.md`](operating.md) §三（唯一权威，本文不复述）。物理 HTTP 验证使用 [只读探针](../dev/probes/web/desk-projection-download.mjs)，以明确标注模拟的 [固定资料](../dev/fixtures/desk-projection/desk-projection.json) 为独立字节预期。
 

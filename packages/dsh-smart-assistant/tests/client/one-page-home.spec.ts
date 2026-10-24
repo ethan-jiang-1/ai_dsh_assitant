@@ -101,14 +101,14 @@ function matter(overrides: Partial<OperatingMatter> = {}): OperatingMatter {
   }
 }
 
-function projection(matters: OperatingMatter[], receipts: OperatingReceipt[] = []): OperatingProjection {
+function projection(matters: OperatingMatter[], receipts: OperatingReceipt[] = [], unclaimed: { id: string, note: string, sessionId: string }[] = []): OperatingProjection {
   return {
     schemaVersion: 2,
     ledgerId: 'test',
     revision: 3,
     matters,
     receipts,
-    unclaimed: [],
+    unclaimed,
   }
 }
 
@@ -254,6 +254,26 @@ describe('OnePageHome', () => {
     expect(text(back)).toContain('最近哪件事让你拿不准')
   })
 
+  it('the list hides unclaimed fragments and shows what it is watching', () => {
+    const data = projection([matter()], [], [{ id: 'u1', note: '内部原文：主键/归户/claim', sessionId: 's1' }])
+    const { props } = panelProps({ status: 'ready', data })
+    const withCatalog = {
+      ...props,
+      useCatalog: <S,>(select: (value: unknown) => S): S => select({
+        status: 'entries',
+        entries: [{ id: 't1', title: '每周对账', kind: 'weekly', scheduledAt: '2026-10-26T09:00:00+08:00', status: 'active' }],
+      }),
+    }
+    const home = expand(HomeSurface(withCatalog))
+    findButton(home, '全部（1）')?.onClick?.()
+    stateIndex = 0
+    const list = expand(HomeSurface(withCatalog))
+    expect(text(list)).toContain('它在盯什么')
+    expect(text(list)).toContain('每周对账')
+    expect(text(list)).toContain('还有 1 条待归户')
+    expect(text(list)).not.toContain('内部原文')
+  })
+
   it('HomeSurface goes home -> list -> board and back', () => {
     const { props } = panelProps({ status: 'ready', data: projection([matter()]) })
     const { onOpenAll: _unused, ...panel } = props
@@ -264,7 +284,7 @@ describe('OnePageHome', () => {
     findButton(home, '全部（1）')?.onClick?.()
     stateIndex = 0
     const list = expand(HomeSurface(panel))
-    expect(text(list)).toContain('全部事项')
+    expect(text(list)).toContain('全部')
     expect(text(list)).toContain('Q3 销售掉了 20%')
     expect(findButton(list, '回到今天')).toBeDefined()
     findButton(list, '完整看板')?.onClick?.()

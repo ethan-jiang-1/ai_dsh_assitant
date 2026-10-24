@@ -79,8 +79,8 @@
 
 ## 客户端座位面（CLIENT，全走 vendor 通用座位；皮肤面，不进模型上下文）
 
-- 消费 slot 座位（slots.inject）：`conversation.view`、`sidebar.panellist`、`main`、`sidebar.brand.mark`、`sidebar.brand.name`、`settings.general.item`、`conversation.hero.brand.mark`、`conversation.chat.assistant-actions`、`conversation.input.dock`、`sidebar.right.pane.tab`、`sidebar.right.pane.tab.title`
-- 右栏 tab 定义（sidebarRightTabs.register，含「+」向导 guide 条目，按界面模式过滤）：`dsh-smart-assistant-knowledge`（knowledgeRoom）、`dsh-smart-assistant-memory`（memoryRoom）、`dsh-smart-assistant-viki`（vikiRoom）、`dsh-smart-assistant-skills`（skillsRoom）
+- 消费 slot 座位（slots.inject）：`sidebar.panellist`、`main`、`conversation.view`、`sidebar.brand.mark`、`sidebar.brand.name`、`settings.general.item`、`conversation.hero.brand.mark`、`conversation.chat.assistant-actions`、`conversation.input.dock`、`sidebar.right.pane.tab`、`sidebar.right.pane.tab.title`
+- 右栏 tab 定义（sidebarRightTabs.register，含「+」向导 guide 条目；三个产品房间常驻，Viki(调试) 只在 debug flag 开时出现）：`dsh-smart-assistant-knowledge`（knowledgeRoom）、`dsh-smart-assistant-memory`（memoryRoom）、`dsh-smart-assistant-viki`（vikiRoom）、`dsh-smart-assistant-skills`（skillsRoom）
 - 命令注册（commandUi，slash 菜单与 composer 加号菜单的发现面）：`mode-simple`、`mode-standard`、`mode-expert`、`knowledge`、`memory`、`desk-activity`
 
 ## 兼容与依赖姿态
