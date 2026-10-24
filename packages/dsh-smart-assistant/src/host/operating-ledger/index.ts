@@ -39,6 +39,8 @@ interface WriterLock {
   readonly hostname: string
   readonly pid: number
   readonly acquiredAt: string
+  /** The holder's working directory at claim time; absent on locks written before 2026-10-25. */
+  readonly cwd?: string
 }
 
 /** Ledger data directories claimed by a live service in this process. */
@@ -69,7 +71,7 @@ function claimWriter(dataDir: string): void {
     throw new Error(`operating ledger at ${dataDir} already has an active writer in this process; refusing a second writer`)
   }
   const lockPath = join(dataDir, 'writer.lock')
-  const identity = `${JSON.stringify({ hostname: hostname(), pid: process.pid, acquiredAt: new Date().toISOString() })}\n`
+  const identity = `${JSON.stringify({ hostname: hostname(), pid: process.pid, acquiredAt: new Date().toISOString(), cwd: process.cwd() })}\n`
   try {
     writeFileSync(lockPath, identity, { flag: 'wx' })
   } catch (error) {
@@ -81,11 +83,44 @@ function claimWriter(dataDir: string): void {
       writeFileSync(takeover, identity, { flag: 'wx' })
       renameSync(takeover, lockPath)
     } else {
-      const held = holder === undefined ? 'an unreadable lock file' : `host ${holder.hostname}, pid ${holder.pid}`
-      throw new Error(`operating ledger at ${dataDir} is owned by another writer (${held}); refusing a second writer`)
+      throw new Error(refusalMessage(dataDir, lockPath, holder))
     }
   }
   activeWriters.add(dataDir)
+}
+
+/**
+ * The refusal a second writer sees. A bare "refusing" leaves the principal with a dead button and
+ * no way out (BUG-026: a long-lived experiment held the lock and the live instance could not
+ * write for an hour). Name the holder and give the one safe recovery; never invite deleting the
+ * lock while the holder may still write — two writers lose updates.
+ * @param dataDir - Ledger directory.
+ * @param lockPath - Lock file path.
+ * @param holder - Parsed holder, or undefined for an unreadable lock.
+ * @returns The error message.
+ */
+function refusalMessage(dataDir: string, lockPath: string, holder: WriterLock | undefined): string {
+  if (holder === undefined) {
+    return [
+      `operating ledger at ${dataDir} is owned by another writer; refusing a second writer.`,
+      `lock: ${lockPath} (unreadable)`,
+      'if no other process is writing this ledger, move that file aside and retry; otherwise leave it alone.',
+    ].join('\n')
+  }
+  const who = `host ${holder.hostname}, pid ${holder.pid}${holder.cwd === undefined ? '' : `, cwd ${holder.cwd}`}, holding since ${holder.acquiredAt}`
+  if (holder.hostname !== hostname()) {
+    return [
+      `operating ledger at ${dataDir} is owned by another writer (${who}); refusing a second writer.`,
+      `lock: ${lockPath}`,
+      'that host is not this machine: confirm it is gone before moving the lock file aside.',
+    ].join('\n')
+  }
+  return [
+    `operating ledger at ${dataDir} is owned by another writer (${who}); refusing a second writer.`,
+    `lock: ${lockPath}`,
+    `if pid ${holder.pid} is idle, stop it with \`kill -TERM ${holder.pid}\` and retry; a dead holder is taken over on the next write.`,
+    'do not delete the lock file while the holder may still write — two writers lose updates.',
+  ].join('\n')
 }
 
 /**
@@ -97,9 +132,9 @@ function readHolder(lockPath: string): WriterLock | undefined {
   try {
     const parsed: unknown = JSON.parse(readFileSync(lockPath, 'utf8'))
     if (typeof parsed !== 'object' || parsed === null) return undefined
-    const { hostname: holderHost, pid, acquiredAt } = parsed as Record<string, unknown>
+    const { hostname: holderHost, pid, acquiredAt, cwd } = parsed as Record<string, unknown>
     if (typeof holderHost !== 'string' || typeof pid !== 'number' || typeof acquiredAt !== 'string') return undefined
-    return { hostname: holderHost, pid, acquiredAt }
+    return { hostname: holderHost, pid, acquiredAt, ...(typeof cwd === 'string' && cwd !== '' ? { cwd } : {}) }
   } catch {
     // A lock file we cannot parse is treated as a live foreign holder (fail closed).
     return undefined

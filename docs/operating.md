@@ -11,10 +11,15 @@
   （事项/操作/回执/待认领的词汇与归约，不 import DSH 运行时）；投影渲染纯核 = `src/domain/operating/projection.ts`。
 - **存储形状**：`<dataDir>/ledger.json` 单状态文件，原子持久（temp → fsync → rename）。
   缺文件 = 空账本；存在但读不出 v1 形状 = **fail loud**（拒绝当空账本——静默清零等于数据事故）。
-- **单 writer**：`<dataDir>/writer.lock` 记 `{hostname, pid, acquiredAt}`。认领是**惰性**的——boot 无副作用，
+- **单 writer**：`<dataDir>/writer.lock` 记 `{hostname, pid, acquiredAt, cwd}`。认领是**惰性**的——boot 无副作用，
   第一次**变更操作**才抢锁，同 home 的 web 实例与 one-shot 任务因此可并存到有人写为止。
   活着的持锁者在场时拒绝第二 writer（本进程内与跨进程同判）；同机死进程的残锁原子接管；
   跨机持锁与不可读锁一律 fail closed。dispose 释放本进程认领。
+- **拒绝必须可处置**：锁在持锁实例活着的整段时间里有效（写一次之后闲置的实例也继续持有），所以拒绝
+  报告要点名 host / pid / cwd / 取得时刻与锁文件路径，并给唯一安全恢复——确认该进程空闲后
+  `kill -TERM <pid>`，死持锁者在**下一次写入**时被接管；**不要在持锁者可能仍会写时删锁文件**
+  （两个写者并存会丢更新）。共用同一 home 的会写账本的实验/复跑要用隔离 home，否则先写的实例
+  会把 live 实例的写挡到它退出为止。
 - **读路径恒重读盘上状态**：任何进程写入之后，本实例的读取都看到最新持久事实。
 - 每次状态变更是一个**操作**：调用方带身份与 `operationId`（幂等键——同键同内容重试=复用原回执，
   同键异内容=拒绝），返回**持久回执**；版本冲突回报告当前 revision，重读后以**新** operationId 表达新判断。

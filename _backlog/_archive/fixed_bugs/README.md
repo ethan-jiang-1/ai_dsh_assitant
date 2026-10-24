@@ -4,6 +4,7 @@
 
 | 卡 | 标题 | 修复 | 日期 |
 |---|---|---|---|
+| [BUG-026](BUG-026-ledger-writer-lock-held-by-orphan.md) | 共享 dev home 的账本写锁被残留实验进程长期占用，运行中的实例整轮写不进去 | 拒绝改为可处置：锁身份记 `cwd`，拒绝信息点名 host/pid/cwd/取得时刻/锁路径 + `kill -TERM <pid>` 恢复，并写明"持锁者可能仍会写时不要删锁"；契约进 `docs/operating.md` §一 + `docs/dev.md` 并行会话节（会写账本的实验用隔离 home）。不做自动接管（无 flock，双写会丢更新）。证据：`test:host` 159、`build`、`verify` 45 | 2026-10-25 |
 | [BUG-025](BUG-025-first-run-day0-unreachable.md) | 空 home 的 Day-0 引导卡被 `Object.keys` 判据挡掉 | freshness 改读房间内容（rows + counts，含 research）；新增回归 spec；`pnpm test` 972 / `pnpm verify` 44 | 2026-10-23 |
 | [BUG-024](BUG-024-eval-baseline-red.md) | 行为评测基线红：7 个任务全部零 `tool/call`，误报 0/7 | `dev-task` 无 credentials service；`runPreset` 现从 dev home 的 `.credentials.yaml` 镜像 `DEEPSEEK_API_KEY`（不打印），并把 `desk-followup-readback` 的确认判据补同义表达。证据：`pnpm eval` 7/7（1 web-only NOT EVALUATED）、`verify` 43/43、`test` 910/910 | 2026-10-21 |
 | [BUG-016](BUG-016-capture-receipt-lost-on-reload.md) | 桌面投递回执刷新即失，挂起的问题在桌面上没有任何入口 | 回执（含 lane/label）落 sessionStorage（per tab、读取重校验）；openQuestions 从 SessionStatus 接线（capture 自己会话不双计），行 2 有挂起问题时「去答问题」直接开会话。证据：projection-view 持久化 1 案 + panel 计数 2 案；真机刷新后 `inflightAfterReload: true`；`desk-capture-live` 桌面出现「1 句等你答 / 去答问题」 | 2026-10-19 |

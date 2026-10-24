@@ -24,7 +24,7 @@
  *    id, and re-rejecting a resolved proposal leaves the first resolution in place.
  */
 
-import { writeFileSync } from 'node:fs'
+import { readFileSync, writeFileSync } from 'node:fs'
 import { spawnSync } from 'node:child_process'
 import { hostname } from 'node:os'
 import { dirname, join } from 'node:path'
@@ -227,6 +227,9 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
         source: { sessionId: 'session-A' },
       })
       expect(committed.outcome).toEqual({ status: 'committed', revision: 1 })
+      const lock = JSON.parse(readFileSync(join(dataDir, 'writer.lock'), 'utf8')) as { pid: number, cwd: string }
+      expect(lock.pid).toBe(process.pid)
+      expect(lock.cwd).toBe(process.cwd())
 
       const second = boot(dataDir).service
       await expect(second.submitOperation({
@@ -268,8 +271,14 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
       const holder = boot(held).service
       await holder.submitOperation({ kind: 'create', operationId: 'op-held', title: '持有写权', source: { sessionId: 'session-A' } })
       const refused = childProbe(held)
-      expect(`${refused.stdout}${refused.stderr}`).toContain('refusing a second writer')
-      expect(`${refused.stdout}${refused.stderr}`).toContain(`pid ${process.pid}`)
+      const report = `${refused.stdout}${refused.stderr}`
+      expect(report).toContain('refusing a second writer')
+      expect(report).toContain(`pid ${process.pid}`)
+      // BUG-026: the refusal must be operable, not a dead end — name where the holder runs and
+      // the one safe recovery; deleting the lock while a writer lives can lose updates.
+      expect(report).toContain(`cwd ${process.cwd()}`)
+      expect(report).toContain(`kill -TERM ${process.pid}`)
+      expect(report).toContain('do not delete the lock file')
     })
 
     it('takes over the writer claim left by a dead process on the same host', async () => {
