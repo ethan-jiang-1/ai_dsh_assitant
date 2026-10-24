@@ -11,7 +11,7 @@
 1. **两个 handoff**：结论＝做且要授权的，走 **work handoff**（proposed 授权 → 收口卡台账 → 实施）；结论＝以后做/不做/已有结论的，走 **memory handoff**（note 或 trigger）。[`issue-to-note`](../../_backlog/methods/issue-to-note.md) 路由两者，不再把「做」的结论只递给 notes。
 2. **proposed 是 memory 的未来架，不是 work 板**：`proposed` ＝ 尚未成为当前权威（可待点头，也可已授权、在飞）；授权是**决定事实**，写在状态行，不是第二套生命周期词。
 3. **收口卡是唯一 work 台账**：切片推进、停点、证据、开放验收、未取的人判断都住 [`_backlog/issues/`](../../_backlog/issues/README.md) 的收口卡；规格卡是规格，不单独授权、不持台账；proposed 卡只指针到收口卡。
-4. **毕业前移开放 work**：note 毕业时，未取的人判断/延后验收先移到活卡（本次＝[261025-open-human-verdicts](../../_backlog/issues/261025-open-human-verdicts.md)），note 只留指针；「implemented 只留决定」不再把开放 work 当交付证据删掉。
+4. **毕业前移开放 work**：note 毕业时，未取的人判断/延后验收先移到活卡（本次＝[261025-open-human-verdicts](../../_backlog/_archive/settled_issues/261025-open-human-verdicts.md)），note 只留指针；「implemented 只留决定」不再把开放 work 当交付证据删掉。
 5. **handoff 记录降为 destination ＋ 一句理由**：只有真要用户裁决 note 该不该写时，才写完整申请（日期/接收方/内容）。「去向」是记录，不是申请书。
 6. **归档的 note 指针是活指针**：搬迁/毕业要修；`_archive` 的 handoff 指针进 scoped gate（不扫全部历史链接）。
 
