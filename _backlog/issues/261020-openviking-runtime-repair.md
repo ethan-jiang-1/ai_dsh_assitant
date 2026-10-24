@@ -8,6 +8,10 @@ opened: 2026-10-20
 > 立卡：2026-10-20 ｜ 状态：推敲中 ｜ 类型：Task ｜ 可关闭：否 ｜ 已授权实施（H1 B / H2–H6 按建议）｜ 推进台账 = [收口卡](261021-openviking-viki-closure.md)
 
 **给评审者的最短路径：** 先读「问题与期望结果」→「当前情况」→「方案与取舍」→「验收标准」→「下一步」。  
+
+## 2026-10-25 基座复核
+
+Viki 自 2026-10-24 起只由 **debug flag** 注册（与「开发调试」tab 同门）；本文的 Viki 搜索/回归仍成立，但要在 `#debug=1` 下看，不再是专家档。A2 `assistant_recall` 已采用（2026-10-23）；DSH pin `0.2.1-rc.2`、OV server 0.5.1.1 / 插件 0.5.26 未变。web-face 现 8 个；Viki 4 个场景已于 2026-10-25 以 flag 重录 PASS。
 上游背景与审计证据在 [方向评审卡](../_archive/settled_issues/261020-openviking-direction-review.md)；配置/检测/README/Viki baseUrl 在 [部署卡](261020-openviking-deploy-doctor.md)。**本卡不授权写代码。**
 
 ## 问题与期望结果
@@ -48,7 +52,7 @@ opened: 2026-10-20
 - **0.5.1.1 副本验证 → 现网**：`uv tool install` 被文件沙箱挡在 `~/.cache/uv`；改用 `dev/harness-home/openviking/server` 隔离 venv（`uv venv` + `uv pip install openviking==0.5.1.1`，cache 在 `.tmp/uv-cache`）。副本 `.tmp/ov-test` 先跑：`/health` **0.5.1.1**、`/stats/memories` **6**、`content/read` 正常、`POST /search/find` 返回“合同”记忆命中；随后切到 live `1933`。
 - **存储搬家**：live workspace = `dev/harness-home/openviking/workspace`（持久、gitignored；`/stats` 仍 6）；派生 config = `dev/harness-home/openviking/ov.conf`；0.4.22 原 `.tmp` 数据备份为 `workspace-0.4.22-backup` 与 `workspace-0.4.22-live`。`openviking-up.sh` 的状态/config/日志改到 `$DSH_HOME/openviking/`，server 优先 `$DSH_HOME/openviking/server/bin/openviking-server`，缺失才回退 PATH。
 - **v3 旋钮落点**：新增 [`dev/profiles/profile-patch-ov.yml`](../../dev/profiles/profile-patch-ov.yml)；[`setup.sh`](../../dev/env/setup.sh) 只在该 profile 的 `package.json` 真有 OV 插件时追加。`pnpm dsh --profile dev --dump-config` 显示 `peerId: assistant`、`profileTokenBudget: 3000`、`recallPreferAbstract: false`、`recallContextTimeoutMs: 3000`、`commitTokenThreshold: 3000`、`captureToolResults: false`；无插件的 fresh home 不追加。
-- **真机 Viki 回归**：`Viki(调试)` tab + 搜索「合同」返回 **6 条**（0.5.1.1 修复 #6331 的检索路径）；`/health` = 0.5.1.1。v3 config 在**新会话**生效（既有会话保持旧 generation）。
+- **真机 Viki 回归（flag 下）**：`Viki(调试)` tab + 搜索「合同」返回 **6 条**（0.5.1.1 修复 #6331 的检索路径）；`/health` = 0.5.1.1。v3 config 在**新会话**生效（既有会话保持旧 generation）。
 - **两次 commit（副本，不污染 live）**：副本 `1934` 的 `dsh-sentinel-20261021`：A commit **completed**（25.9s）→ `find` 命中 `viking://user/default/peers/assistant/memories/events/2026/10/21/合同尾款到账确认.md`；B commit **completed** → `find` 命中 `.../供应商发票付款计划确认.md`；`/stats/memories` 6 → 9。证明 0.5.1.1 的 #6331 修复；live `1933` 仍 6。
 - **回滚（副本）**：把 `workspace-0.4.22-backup` 完整恢复到 `.tmp/ov-rollback/workspace`，用 0.4.22 二进制起 `1935`：`/health` 0.4.22、`/stats/memories` 6、`content/read` 正常；停掉 1935 后 live `1933` 仍 0.5.1.1/6 条。回滚顺序 = 恢复完整 storage 备份 → 换回 0.4.22，已执行。
 - **真机 recall + live commit（2026-10-21）**：修掉 `loop-probe` 被首屏“预览版说明”挡住的问题后，真实会话 `session-9a7fe14d...` 的日志出现 `<openviking-context>`，内含 `<memory ... detail="full">` 的「合同款项状态提醒」事件（不是只有 overview）；模型据此回答“没有到账确认/无凭证”，并指出“尾款 vs 第二期款”的歧义。随后 live `session_commit` **completed**（`6b9ba499-…`，102s，`memory_write:1`/`memory_edit:2`，stats 6→8），`/tasks` 无 failed。**新记忆在 `peers/assistant`（Viki 列表显示“来自 assistant”），v3 `peerId` 对新写入生效；旧 6 条仍在 github peer，未回填。**

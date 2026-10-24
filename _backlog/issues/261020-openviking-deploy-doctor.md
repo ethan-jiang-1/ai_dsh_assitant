@@ -8,6 +8,10 @@ opened: 2026-10-20
 > 立卡：2026-10-20 ｜ 状态：推敲中 ｜ 类型：Task ｜ 可关闭：否 ｜ 已授权实施（H1 B / H2–H6 按建议；安装面一等交付）｜ 推进台账 = [收口卡](261021-openviking-viki-closure.md)
 
 **给评审者的最短路径：** 先读「问题与期望结果」→「当前情况」→「云端例外 v1」→「方案与取舍」→「验收标准」→「下一步」。  
+
+## 2026-10-25 基座复核
+
+Viki 自 2026-10-24 起只由 **debug flag** 注册（`#debug=1` / localStorage），与「开发调试」tab 同门；不再由专家档/密度打开。本文的 Viki 200 仍是 host route 事实，但**客户面不可见**；「专家档前置」的 Viki 场景与安装走查清单要改成 flag 前置。web-face 现 8 个；Viki 4 个场景已于 2026-10-25 以 flag 重录 PASS。A2 已采用（见检索卡）。
 上游背景与审计证据在 [方向评审卡](../_archive/settled_issues/261020-openviking-direction-review.md)；本卡只解决“用户装得对、部署看得见”，**不搬家存储、不做 Viki 面板、不升 server**（分别归运行态卡/检索卡）。**本卡不授权写代码。**
 
 ## 问题与期望结果
@@ -269,7 +273,7 @@ doctor 对账 1↔2↔运行中 server（check 10）与 3/4；Viki 的 baseUrl �
 - **Q7 doctor 读错 config**：运行中 server 用派生 `.tmp/openviking/ov.conf`，`openviking-server doctor` 默认读 `~/.openviking/ov.conf`；加“同一份 config”约束与 check 10。
 - **Q8 云端现状为空**：dev 无 OV config，`captureToolResults` 对 DSH 默认 true，`captureFilters` 默认 []；写入当前情况、P0 与验收，README 表去掉 `cloudAck: true` 二义。
 - **Q13 doctor 绿 ≠ 运行态可用**：2026-10-21 实测默认 doctor 全绿而 `/tasks` failed；check 3 只作配置探测，check 4/5/10 是运行态探针。
-- **Q6 场景漂移**：`web-expected` 当时已三场景；本卡不硬编码数量（现 7 个，清单以目录为准），Viki 渲染归检索卡。
+- **Q6 场景漂移**：`web-expected` 当时已三场景；本卡不硬编码数量（现 8 个，清单以目录为准；Viki 4 个待 flag 重录），Viki 渲染归检索卡。
 
 **结论**：本卡 P0 的判断成立，但“云端例外 v1”必须先补现状收口；不授权实施。
 
@@ -336,7 +340,7 @@ doctor 对账 1↔2↔运行中 server（check 10）与 3/4；Viki 的 baseUrl �
 | `agent-preset-registry.default: assistant` + `--dump-config` 见 `preset-assistant` | ☐ |
 | 不装 OV：插件正常 / Viki 503 / doctor exit 2 | ☐ |
 | 装 OV：服务 + 插件 + 配置 + `OPENVIKING_CLOUD_ACK`/capture 口径 → doctor exit 0 | ☐ |
-| Viki(调试) 连接态、搜索、诊断可见 | ☐ |
+| Viki(调试) 连接态、搜索、诊断可见（**`#debug=1` 下**） | ☐ |
 | 卡点与修法（逐条） | |
 
 ## 关闭条件

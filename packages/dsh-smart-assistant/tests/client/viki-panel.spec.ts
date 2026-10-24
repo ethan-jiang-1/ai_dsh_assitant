@@ -58,12 +58,12 @@ const json = (body: unknown, status = 200): Response =>
   new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } })
 
 describe('Viki tab', () => {
-  it('labels Viki as an advanced debug surface, not a default room', () => {
+  it('labels Viki as a debug surface, not a default room', () => {
     const viki = materialize().roomTabs.find(room => room.kind === 'vikiRoom')
     expect(viki?.title).toBe('Viki(调试)')
     expect(viki?.tabTitle).toBe('Viki(调试)')
     expect(viki?.description).toContain('Viki(调试)')
-    expect(viki?.description).toContain('研发/高级用户')
+    expect(viki?.description).toContain('debug flag')
     expect(viki?.description).toContain('普通用户不需要')
   })
 

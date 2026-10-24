@@ -159,7 +159,7 @@ export const roomTabs = [
   },
   {
     id: 'dsh-smart-assistant-viki', kind: 'vikiRoom', title: 'Viki(调试)', tabTitle: 'Viki(调试)', body: VikiTabBody,
-    description: 'Viki(调试)：Viki 记忆的只读调试面；研发/高级用户使用，普通用户不需要',
+    description: 'Viki(调试)：Viki 记忆的只读调试面；只在 debug flag 下出现，普通用户不需要',
     icon: VikiIcon, order: 13,
   },
   {

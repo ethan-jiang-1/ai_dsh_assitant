@@ -4,5 +4,5 @@ scenario: viki-panel-disconnected
 profile: dev            # 隔离 home；OPENVIKING_URL 指不可达端口，钉住可选层缺席的降级态
 recording: live
 comparison: dom-evidence
-runner: pnpm web-expected '<url>' --scenario snapshots/web-face/viki-panel-disconnected --eval "<new session>" --eval "<open right sidebar>" --eval "<click Viki tab>" --wait-text 'Viki 未连接'
+runner: pnpm web-expected '<url>#debug=1' --scenario snapshots/web-face/viki-panel-disconnected --eval "<new session>" --eval "<open right sidebar>" --eval "<click Viki tab>" --wait-text 'Viki 未连接'
 entry: dev/probes/web/webui-expected.mjs
