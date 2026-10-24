@@ -8,9 +8,9 @@ describe('projection viewing state', () => {
     const view = createProjectionViewStore(defineStore).create()
     view.actions.rememberListPosition(230)
     view.actions.selectMatter('unknown-g')
-    expect(view.getSnapshot()).toEqual({ selected: { kind: 'matter', id: 'unknown-g' }, pane: 'detail', listScrollTop: 230, filter: 'all', mode: 'board', activityLimit: 50, captureDraft: '', captureReceipt: null })
+    expect(view.getSnapshot()).toEqual({ selected: { kind: 'matter', id: 'unknown-g' }, pane: 'detail', listScrollTop: 230, filter: 'all', mode: 'board', activityLimit: 50, captureDraft: '', query: '', captureReceipt: null })
     view.actions.showList()
-    expect(view.getSnapshot()).toEqual({ selected: { kind: 'matter', id: 'unknown-g' }, pane: 'list', listScrollTop: 230, filter: 'all', mode: 'board', activityLimit: 50, captureDraft: '', captureReceipt: null })
+    expect(view.getSnapshot()).toEqual({ selected: { kind: 'matter', id: 'unknown-g' }, pane: 'list', listScrollTop: 230, filter: 'all', mode: 'board', activityLimit: 50, captureDraft: '', query: '', captureReceipt: null })
   })
   it('holds the capture row\'s draft and delivery receipt as transient state (261018 片 1)', () => {
     const view = createProjectionViewStore(defineStore).create()

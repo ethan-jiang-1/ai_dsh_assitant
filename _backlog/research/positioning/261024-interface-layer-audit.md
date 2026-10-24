@@ -297,9 +297,10 @@ memory-hygiene 明确是 agent 的活），却在客户的编辑层以“斜杠�
 **门禁**：`pnpm test` 全绿、`pnpm verify` 44；`blank-first-open` / `desk-eight-matters-first-open` /
 `desk-eight-matters-brief-list` 三场景 PASS；真机 `audit-fix-*`。
 
-**仍未做（P2）**：
-- 调试 tab 仍只在有内容的会话出现；主面板的全局调试入口未做。
-- 列表搜索/删除：搜索未做；删除不做产品动作（账本保留历史，事项办结/放弃而不是删除；知识/记忆删除在房间）。
+**P2 收盘**：
+- 调试面全局入口已做：flag 下主面板「开发调试」入口 + 「回到今天」；会话 tab 仍在有内容会话出现（平台生命周期）。
+- 列表搜索已做（客户端过滤标题/摘要，视图 store 的 query，不持久化）；删除不做产品动作
+  （账本保留历史，事项办结/放弃而非删除；知识/记忆删除在房间）。
 - 左栏「插件 / 自动化任务」是 vendor 壳，插件不能移除。
 - 直接挂载 `ProjectionPanel`（测试/兼容）仍保留全量 dashboard；产品深看经 HomeSurface deep 变体。
 

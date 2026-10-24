@@ -91,7 +91,7 @@ function pageTime(matter: OperatingMatter): string {
  * @param props - The same hook/actions/surface contract the projection panel receives.
  * @returns The home element.
  */
-export function OnePageHome(props: ProjectionPanelProps & { onOpenAll: () => void, onOpenRecords?: () => void }): ReturnType<typeof ce> {
+export function OnePageHome(props: ProjectionPanelProps & { onOpenAll: () => void, onOpenRecords?: () => void, onOpenDebug?: () => void }): ReturnType<typeof ce> {
   const { useEffect, useState } = reactSurface()
   const openRecords = (): void => {
     if (props.onOpenRecords !== undefined) props.onOpenRecords()
@@ -289,7 +289,8 @@ export function OnePageHome(props: ProjectionPanelProps & { onOpenAll: () => voi
         matters.length === 0
           ? null
           : ce('button', { className: 'dsha-home-link', type: 'button', onClick: () => props.onOpenAll() }, `全部（${String(matters.length)}）`),
-        ce('button', { className: 'dsha-home-link', type: 'button', onClick: () => openRecords() }, '它记下的'))),
+        ce('button', { className: 'dsha-home-link', type: 'button', onClick: () => openRecords() }, '它记下的'),
+        props.onOpenDebug === undefined ? null : ce('button', { className: 'dsha-home-link', type: 'button', onClick: () => { props.onOpenDebug?.() } }, '开发调试'))),
     download.status === 'error' ? ce('p', { className: 'dsha-home-error', role: 'alert' }, '桌面读取失败，重试或直接跟助手说。') : null,
     download.stale ? ce('p', { className: 'dsha-home-note' }, '以下是上次读到的内容，尚未刷新。') : null,
     data?.fixture ? ce('p', { className: 'dsha-home-note' }, '模拟资料，仅供验证界面。') : null,

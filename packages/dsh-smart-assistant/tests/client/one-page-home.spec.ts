@@ -58,6 +58,18 @@ function findButton(node: unknown, label: string): { onClick?: () => void, disab
 
 
 /** Same walker, substring match: list rows carry their meta and first summary line too. */
+function findInput(node: unknown, label: string): { props?: { onInput?: (event: { target: { value: string } }) => void } } | undefined {
+  if (node === null || typeof node !== 'object') return undefined
+  const element = node as { type?: unknown, props?: { children?: unknown, 'aria-label'?: string, onInput?: (event: { target: { value: string } }) => void } }
+  if (element.type === 'input' && element.props?.['aria-label'] === label) {
+    return element as { props?: { onInput?: (event: { target: { value: string } }) => void } }
+  }
+  const children = element.props?.children
+  const list = Array.isArray(children) ? children : children === undefined ? [] : [children]
+  for (const child of list) { const found = findInput(child, label); if (found !== undefined) return found }
+  return undefined
+}
+
 function findButtonContaining(node: unknown, label: string): { onClick?: () => void, disabled?: boolean } | undefined {
   if (Array.isArray(node)) {
     for (const child of node) {
@@ -239,6 +251,45 @@ describe('OnePageHome', () => {
     expect(text(open)).toContain('你 10/23 的原话')
     findButton(open, '收起依据')?.onClick?.()
     expect(text(renderHome(props))).not.toContain('你 10/23 的原话')
+  })
+
+  it('the list searches matters by title and summary', () => {
+    const { props } = panelProps({ status: 'ready', data: projection([matter()]) })
+    const home = expand(HomeSurface(props))
+    findButton(home, '全部（1）')?.onClick?.()
+    stateIndex = 0
+    let list = expand(HomeSurface(props))
+    const input = findInput(list, '搜事项')
+    input?.props?.onInput?.({ target: { value: '不存在的客户' } })
+    stateIndex = 0
+    list = expand(HomeSurface(props))
+    expect(text(list)).toContain('没有匹配的事项')
+    const again = findInput(list, '搜事项')
+    again?.props?.onInput?.({ target: { value: 'Q3' } })
+    stateIndex = 0
+    list = expand(HomeSurface(props))
+    expect(text(list)).toContain('Q3 销售掉了 20%')
+  })
+
+  it('a debug boot opens the read-only debug panel from the home and returns', () => {
+    const originalLocation = Object.getOwnPropertyDescriptor(globalThis, 'location')
+    Object.defineProperty(globalThis, 'location', { value: { search: '', hash: '#debug=1' }, configurable: true })
+    try {
+      const { props } = panelProps({ status: 'missing' })
+      const home = expand(HomeSurface(props))
+      expect(text(home)).toContain('开发调试')
+      findButton(home, '开发调试')?.onClick?.()
+      stateIndex = 0
+      const debug = expand(HomeSurface(props))
+      expect(text(debug)).toContain('开发调试')
+      expect(text(debug)).toContain('projection.status')
+      findButton(debug, '回到今天')?.onClick?.()
+      stateIndex = 0
+      expect(text(expand(HomeSurface(props)))).toContain('最近哪件事让你拿不准')
+    } finally {
+      if (originalLocation === undefined) delete (globalThis as { location?: unknown }).location
+      else Object.defineProperty(globalThis, 'location', originalLocation)
+    }
   })
 
   it('HomeSurface opens the records page from 它记下的 and returns home', () => {

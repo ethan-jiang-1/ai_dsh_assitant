@@ -26,6 +26,9 @@ const STYLES = [
   '.dsha-list-links{margin-left:auto;display:flex;gap:14px;align-items:baseline;}',
   '.dsha-list-link{border:0;background:none;color:var(--dsw-alias-label-secondary);font:inherit;font-size:13px;cursor:pointer;padding:2px 0;}',
   '.dsha-list-link:hover{color:var(--dsw-alias-label-primary);}',
+  '.dsha-list-search{margin:0 auto;width:min(780px,100%);}',
+  '.dsha-list-search input{width:100%;box-sizing:border-box;border:0.5px solid var(--dsw-alias-border-l2);border-radius:9px;background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);font:inherit;font-size:14px;padding:8px 12px;outline:none;}',
+  '.dsha-list-search input:focus{border-color:var(--dsha-accent);}',
   '.dsha-list-body{width:min(780px,100%);margin:0 auto;display:flex;flex-direction:column;gap:8px;}',
   '.dsha-list-row{display:flex;flex-direction:column;gap:4px;width:100%;text-align:left;border:0.5px solid var(--dsw-alias-border-l2);border-radius:10px;background:var(--dsw-alias-bg-layer-1);padding:12px 14px;cursor:pointer;font:inherit;}',
   '.dsha-list-row:hover{background:var(--dsw-alias-bg-layer-2);}',
@@ -60,7 +63,8 @@ function reviewLine(matter: OperatingMatter): string {
  * @param props - The same injected contract as the home, plus the two exits.
  * @returns The list surface.
  */
-export function BriefList(props: ProjectionPanelProps & { onBackHome: () => void, onOpenBoard: () => void, onOpenRecords?: () => void }): ReturnType<typeof ce> {
+export function BriefList(props: ProjectionPanelProps & { onBackHome: () => void, onOpenBoard: () => void, onOpenRecords?: () => void, onOpenDebug?: () => void }): ReturnType<typeof ce> {
+  const query = props.useStore(value => value.query)
   const download = props.useProjection(value => value)
   const data = download.data
   const matters = data?.matters ?? []
@@ -69,6 +73,8 @@ export function BriefList(props: ProjectionPanelProps & { onBackHome: () => void
   const schedules: readonly ProactiveCatalogEntry[] = catalog?.status === 'entries'
     ? catalog.entries.filter(entry => entry.status === 'active')
     : []
+  const needle = query.trim().toLowerCase()
+  const visibleMatters: readonly OperatingMatter[] = needle === '' ? matters : matters.filter(matter => `${matter.title}\n${matter.summary}`.toLowerCase().includes(needle))
   const scheduleSection = props.useCatalog === undefined ? null : ce('section', { className: 'dsha-list-section' },
     ce('div', { className: 'dsha-list-section-head' },
       ce('h2', { className: 'dsha-list-section-title' }, '它在盯什么'),
@@ -88,17 +94,28 @@ export function BriefList(props: ProjectionPanelProps & { onBackHome: () => void
     ce('style', {}, STYLES),
     ce('header', { className: 'dsha-list-head' },
       ce('h1', { className: 'dsha-list-title' }, '全部'),
-      ce('span', { className: 'dsha-list-sub' }, `${String(matters.length)} 件在账上`),
+      ce('span', { className: 'dsha-list-sub' }, needle === '' ? `${String(matters.length)} 件在账上` : `筛出 ${String(visibleMatters.length)} / ${String(matters.length)} 件`),
       ce('div', { className: 'dsha-list-links' },
         ce('button', { className: 'dsha-list-link', type: 'button', onClick: () => props.onBackHome() }, '回到今天'),
         ce('button', { className: 'dsha-list-link', type: 'button', onClick: () => openRecords() }, '它记下的'),
-        ce('button', { className: 'dsha-list-link', type: 'button', onClick: () => props.onOpenBoard() }, '完整看板'))),
+        ce('button', { className: 'dsha-list-link', type: 'button', onClick: () => props.onOpenBoard() }, '完整看板'),
+        props.onOpenDebug === undefined ? null : ce('button', { className: 'dsha-list-link', type: 'button', onClick: () => { props.onOpenDebug?.() } }, '开发调试'))),
+    ce('div', { className: 'dsha-list-search' },
+      ce('input', {
+        type: 'search',
+        value: query,
+        placeholder: '搜事项…',
+        'aria-label': '搜事项',
+        onInput: (event: { target: { value: string } }) => { props.actions.setQuery(event.target.value) },
+      })),
     download.status === 'error'
       ? ce('p', { className: 'dsha-list-empty', role: 'alert' }, '桌面读取失败，回到今天重试或直接跟助手说。')
       : ce('div', { className: 'dsha-list-body' },
           matters.length === 0
             ? ce('p', { className: 'dsha-list-empty' }, '还没有事项。回到今天，跟助手说一件就行。')
-            : matters.map(matter => ce('button', {
+            : visibleMatters.length === 0
+              ? ce('p', { className: 'dsha-list-empty' }, '没有匹配的事项。')
+              : visibleMatters.map(matter => ce('button', {
               key: matter.id,
               className: 'dsha-list-row',
               type: 'button',

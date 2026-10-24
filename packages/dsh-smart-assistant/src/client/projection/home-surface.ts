@@ -21,9 +21,11 @@ import { OnePageHome } from './one-page-home'
 import { BriefList } from './brief-list'
 import { ProjectionPanel } from './projection-panel'
 import { RecordsSurface } from './records-surface'
+import { DebugPanel } from '../debug/debug-panel'
+import { debugEnabled } from '../chrome/debug-flag'
 import type { ProjectionPanelProps } from './projection-panel'
 
-type Surface = 'home' | 'list' | 'board' | 'records'
+type Surface = 'home' | 'list' | 'board' | 'records' | 'debug'
 
 /**
  * Render one of the three surfaces. `全部` opens the list; `完整看板` opens the old board.
@@ -33,6 +35,8 @@ type Surface = 'home' | 'list' | 'board' | 'records'
 export function HomeSurface(props: ProjectionPanelProps): ReturnType<typeof ce> {
   const { useState } = reactSurface()
   const [surface, setSurface] = useState<Surface>('home')
+  const onOpenDebug = debugEnabled() ? () => setSurface('debug') : undefined
+  if (surface === 'debug') return ce(DebugPanel, { ...props, onBackHome: () => setSurface('home') })
   if (surface === 'board') return ce(ProjectionPanel, { ...props, onBackHome: () => setSurface('home') })
   if (surface === 'records') return ce(RecordsSurface, { onBackHome: () => setSurface('home') })
   if (surface === 'list') {
@@ -41,11 +45,13 @@ export function HomeSurface(props: ProjectionPanelProps): ReturnType<typeof ce> 
       onBackHome: () => setSurface('home'),
       onOpenBoard: () => setSurface('board'),
       onOpenRecords: () => setSurface('records'),
+      ...(onOpenDebug === undefined ? {} : { onOpenDebug }),
     })
   }
   return ce(OnePageHome, {
     ...props,
     onOpenAll: () => setSurface('list'),
     onOpenRecords: () => setSurface('records'),
+    ...(onOpenDebug === undefined ? {} : { onOpenDebug }),
   })
 }

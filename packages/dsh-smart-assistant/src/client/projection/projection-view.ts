@@ -37,6 +37,8 @@ export interface ProjectionView {
   pane: 'list' | 'detail'
   listScrollTop: number
   filter: ListFilter
+  /** The human list's search text; client-local, not persisted. */
+  query: string
   mode: DeskMode
   activityLimit: number
   /** The principal's un-sent words in the desk's capture row. */
@@ -84,6 +86,7 @@ const projectionViewActions = {
   showList(draft: ProjectionView): void { draft.pane = 'list' },
   rememberListPosition(draft: ProjectionView, position: number): void { draft.listScrollTop = Math.max(0, position) },
   setFilter(draft: ProjectionView, filter: ListFilter): void { draft.filter = filter },
+  setQuery(draft: ProjectionView, query: string): void { draft.query = query },
   setMode(draft: ProjectionView, mode: DeskMode): void { draft.mode = mode },
   revealMoreActivity(draft: ProjectionView): void { draft.activityLimit = draft.activityLimit + 50 },
   setCaptureDraft(draft: ProjectionView, text: string): void { draft.captureDraft = text },
@@ -98,6 +101,7 @@ export interface ProjectionViewBoundActions {
   showList(): void
   rememberListPosition(position: number): void
   setFilter(filter: ListFilter): void
+  setQuery(query: string): void
   setMode(mode: DeskMode): void
   revealMoreActivity(): void
   setCaptureDraft(text: string): void
@@ -118,5 +122,5 @@ export interface ProjectionViewHandle {
  * @returns Nonpersistent handle shared across main Slot declaration lifetimes.
  */
 export function createProjectionViewStore(define: (spec: { init(): ProjectionView; actions: ProjectionViewActions }) => ProjectionViewHandle): ProjectionViewHandle {
-  return define({ init: () => ({ selected: null, pane: 'list', listScrollTop: 0, filter: 'all' as const, mode: 'board' as const, activityLimit: 50, captureDraft: '', captureReceipt: readStoredReceipt() }), actions: projectionViewActions })
+  return define({ init: () => ({ selected: null, pane: 'list', listScrollTop: 0, filter: 'all' as const, query: '', mode: 'board' as const, activityLimit: 50, captureDraft: '', captureReceipt: readStoredReceipt() }), actions: projectionViewActions })
 }

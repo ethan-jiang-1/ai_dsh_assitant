@@ -77,6 +77,9 @@ export function DebugPanel(props: ProjectionPanelProps & { sessionId?: string })
       ce('span', { className: 'dsha-debug-badge' }, '非产品面'),
       ce('span', { className: 'dsha-debug-note' }, '只读。开屏前加 #debug=1，或 localStorage 置 dsh-assistant-debug=1 后刷新。')),
     ce('div', { className: 'dsha-debug-actions' },
+      props.onBackHome !== undefined
+        ? ce('button', { className: 'dsha-debug-btn', type: 'button', onClick: () => { props.onBackHome?.() } }, '回到今天')
+        : null,
       ce('button', { className: 'dsha-debug-btn', type: 'button', onClick: () => { props.surface.lanes.refreshProjection() } }, '重新读取'),
       ce('button', {
         className: 'dsha-debug-btn', type: 'button',

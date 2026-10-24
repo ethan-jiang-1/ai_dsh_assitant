@@ -177,10 +177,10 @@ seam 的成色读数是**第二个真实 Provider 出现而 Consumer 一行不�
 | `src/client/chrome/navigation.ts` | 浏览器导航 seam：`returnToConversation` + `revealChatTab`（平台会话激活、DOM tab reveal 适配器、主面板复位） | 无（平台 face 由调用方传入） |
 | `src/client/projection/desk-surface.ts` | 桌面面板的 lane surface 工厂：回调、导航与建议动作从 20 字段 props 中抽出；panel 只收 hooks / store / actions | 无（平台 face 由入口传入） |
 | `src/client/projection/one-page-home.ts` | 常用面一页纸：空态一问 + 当前页 + 一个输入；页上三按钮走 capture / page-action lane；待审草稿提示永在常用面 | `projection-panel` 的 props 契约 |
-| `src/client/projection/brief-list.ts` | 深看面「全部」：每件事一行（标题 / 状态 / 复查 / 摘要首行），点行选中并回页；「它在盯什么」只读日程；待归户只报计数、折后台；「完整看板」再进深看看板 | `projection-panel` 的 props 契约 |
-| `src/client/projection/home-surface.ts` | 四面切换：一页纸 →「全部」人读列表 / 「它记下的」记录面 / 「完整看板」；「回到今天」返回；切换状态不持久化 | 上述纯组件 |
+| `src/client/projection/brief-list.ts` | 深看面「全部」：每件事一行（标题 / 状态 / 复查 / 摘要首行），搜索框过滤标题/摘要，点行选中并回页；「它在盯什么」只读日程；待归户只报计数、折后台；「完整看板」再进深看看板 | `projection-panel` 的 props 契约 |
+| `src/client/projection/home-surface.ts` | 五面切换：一页纸 →「全部」人读列表 / 「它记下的」记录面 / 「完整看板」/ flag 下的「开发调试」；「回到今天」返回；切换状态不持久化 | 上述纯组件 |
 | `src/client/projection/records-surface.ts` | 「它记下的」只读记录面：知识（非归档）/ 记忆（非内部规则）/ 技能；不做编辑 | `rooms/room-data-core` 的 `DeskData` |
-| `src/client/debug/debug-panel.ts` | 调试面开发调试：投影状态 / revision / ledgerId / 选中项 / session / 会话状态 + 只读投影 JSON + 复制诊断；仅在 `#debug=1` 或 localStorage 标志下注册为会话视图 tab | `projection-panel` 的 props 契约 |
+| `src/client/debug/debug-panel.ts` | 调试面开发调试：投影状态 / revision / ledgerId / 选中项 / session / 会话状态 + 只读投影 JSON + 复制诊断；flag 下既注册为会话视图 tab，也可从主面板（HomeSurface debug 态）打开并「回到今天」 | `projection-panel` 的 props 契约 |
 | `src/client/chrome/ui-mode.ts` | 完整看板密度 store：simple / standard / expert（UI 标签 紧凑/标准/完整）、localStorage 首屏、per-materialization 重置；per-home `ui-mode.json` 经 Host route 采用/写回（远端失败保留本地） | 无（浏览器 storage 可缺席） |
 | `src/client/chrome/ui-mode-row.ts` | `settings.general.item` 行：完整看板密度的三档选择与当前态；只写共享 mode store，不碰首页/房间/调试 | `chrome/ui-mode` |
 | `src/client/rooms/mount-rooms.ts` | 三个产品房间的 body/title/guide 常驻；Viki(调试) 只在 debug flag 开时注册；密度不参与 | `rooms/room-tabs`、`chrome/debug-flag` |
