@@ -82,7 +82,7 @@ owner 面**，故本卡不擅自把它们塞进 `snapshots/`（那是越界，�
 
 ## 验收结果与证据缺口
 
-下表保留原有材料的窄范围。全局固定投影读取切片已补真浏览器证据：缺失/空集合/schema 损坏/七在办＋一完成可分别呈现，console/network 清洁；blank 新默认状态先红 5 drift 后有意更新并复绿，审批横幅经真实点击回 Conversation 沿用原期望绿。可复跑 [读取资料与探针](../../../../../dev/fixtures/desk-projection/README.md)，详细限制见 [实施提案](../../../notes/implemented/2026-10-06-desk-operating-entry.md#本轮状态与实施准入)。它不证明事项处理、持久读回、live 断连/三次重载或本人体验，A1–A9 不新增完整 PASS。
+下表保留原有材料的窄范围。全局固定投影读取切片已补真浏览器证据：缺失/空集合/schema 损坏/七在办＋一完成可分别呈现，console/network 清洁；blank 新默认状态先红 5 drift 后有意更新并复绿，审批横幅经真实点击回 Conversation 沿用原期望绿。可复跑 [读取资料与探针](../../../../../dev/fixtures/desk-projection/README.md)，详细限制见 [实施 note](../../../notes/implemented/2026-10-06-desk-operating-entry.md)。它不证明事项处理、持久读回、live 断连/三次重载或本人体验，A1–A9 不新增完整 PASS。
 
 | 项目 | 已有依据 | 尚缺什么 |
 |---|---|---|

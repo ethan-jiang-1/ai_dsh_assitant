@@ -18,7 +18,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { agentsMdStabilityProblems, backtickedRepoPathProblems, backlogGraduationProblems, backlogLivenessProblems, implementedNoteEvidenceProblems, clientScriptSafetyProblems, commandAliasProblems, commitSafetyProblems, compositionRowProblems, configParseProblems, crossFileSectionProblems, dependencyPoseProblems, devDrawerCoverageProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, graduatedProposalProblems, homeDocContractProblems, implementedAlternativesProblems, identityNameProblems, languageGuardProblems, markdownCorpusFromTracked, notesNamingProblems, notePointerProblems, notesStateProblems, importResolutionProblems, notesTopLevelProblems, pinProblems, machineLocalPathProblems, packageBuildFreshnessProblems, packageSubpathProblems, playbookFrontmatterProblems,
+import { agentsMdStabilityProblems, archivedNotePointerProblems, backtickedRepoPathProblems, backlogGraduationProblems, backlogLivenessProblems, implementedNoteEvidenceProblems, clientScriptSafetyProblems, commandAliasProblems, commitSafetyProblems, compositionRowProblems, configParseProblems, crossFileSectionProblems, dependencyPoseProblems, devDrawerCoverageProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, graduatedProposalProblems, homeDocContractProblems, implementedAlternativesProblems, identityNameProblems, languageGuardProblems, markdownCorpusFromTracked, notesNamingProblems, notePointerProblems, notesStateProblems, importResolutionProblems, notesTopLevelProblems, pinProblems, machineLocalPathProblems, packageBuildFreshnessProblems, packageSubpathProblems, playbookFrontmatterProblems,
   runtimeTsconfigProblems, selfContainmentProblems, skillFrontmatterKeyProblems, skillNameGrammarProblems, relativeLinkProblems, researchSubdirProblems, scratchPathProblems, skillFrontmatterProblems, startPathProblems, testAssetNamingProblems, textHygieneProblems, toolCommentNameProblems, vendorClientFreshnessProblems } from './verify-checks.mjs'
 import * as gateCores from './verify-checks.mjs'
 import { runChecks } from './run-gates.mjs'
@@ -389,10 +389,9 @@ check('contract: skill files carry valid frontmatter and match their directory',
 // The corpus is every tracked markdown file (minus the frozen `_archive` pool), not a remembered
 // list: the 2026-10-10 audit found both live broken links in files the previous hand-picked
 // corpus (root + docs + notes + snapshots) never covered — dev/, packages/, scripts/, .agents/.
-const markdownCorpus = markdownCorpusFromTracked(
-  execFileSync('git', ['ls-files', '*.md'], { cwd: repoRoot }).toString().split('\n').filter(Boolean),
-  repoRoot,
-)
+const trackedMarkdown = execFileSync('git', ['ls-files', '*.md'], { cwd: repoRoot })
+  .toString().split('\n').filter(Boolean)
+const markdownCorpus = markdownCorpusFromTracked(trackedMarkdown, repoRoot)
 
 check('links: backticked repo paths in markdown exist', () => {
   const vendorPresent = exists(join(vendorDsh, 'packages', 'core', 'tools', 'src', 'index.ts'))
@@ -411,6 +410,16 @@ const relativeLinkCorpus = markdownCorpus
 
 check('links: relative markdown links point at existing files', () =>
   relativeLinkProblems(relativeLinkCorpus.map(file => ({ file, where: relative(repoRoot, file) }))))
+
+// The frozen archive keeps its historical prose, but its note pointers are the handoff route a
+// later reader follows from a closed card/bug/research file to the decision. Only `notes/` targets
+// are in scope; the archive's other historical links stay frozen.
+const archivedNoteCorpus = trackedMarkdown
+  .filter(file => file.startsWith('_backlog/_archive/'))
+  .map(file => ({ file: join(repoRoot, file), where: file }))
+
+check('links: archived note pointers resolve (handoff surface only)', () =>
+  archivedNotePointerProblems(archivedNoteCorpus))
 
 // Note- and backlog-card pointers hide outside markdown too (patch-YAML comments, dev script
 // headers) — every audit escape so far lived there; inside notes/ the tree's own contract

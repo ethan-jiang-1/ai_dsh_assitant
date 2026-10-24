@@ -13,6 +13,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it, afterEach } from 'vitest'
 import {
+  archivedNotePointerProblems,
   backtickedRepoPathProblems,
   crossFileSectionProblems,
   markdownCorpusFromTracked,
@@ -54,6 +55,29 @@ describe('relativeLinkProblems', () => {
     ])
     expect(problems).toHaveLength(1)
     expect(problems[0]).toContain('other.md')
+  })
+})
+
+describe('archivedNotePointerProblems', () => {
+  it('accepts a resolving note pointer and ignores non-note archive links; rejects a dead note pointer', () => {
+    const root = temp('archive-note-links-')
+    mkdirSync(join(root, 'notes', 'implemented'), { recursive: true })
+    mkdirSync(join(root, '_backlog', '_archive', 'settled_issues'), { recursive: true })
+    writeFileSync(join(root, 'notes', 'implemented', '2026-10-01-x.md'), '# X\n')
+    const card = join(root, '_backlog', '_archive', 'settled_issues', 'card.md')
+    writeFileSync(card, [
+      '[good](../../../notes/implemented/2026-10-01-x.md)',
+      '[broken](../../../notes/implemented/missing.md)',
+      '[research](../research/missing.md) is not a note pointer',
+      '[external](https://example.com/notes/x.md) is out of scope',
+    ].join('\n'), 'utf8')
+
+    const problems = archivedNotePointerProblems([
+      { file: card, where: '_backlog/_archive/settled_issues/card.md' },
+    ])
+    expect(problems).toHaveLength(1)
+    expect(problems[0]).toContain('missing.md')
+    expect(problems[0]).toContain('archived note pointer')
   })
 })
 
@@ -104,6 +128,9 @@ describe('verify relative-link corpus wiring', () => {
       mkdirSync(join(path, '..'), { recursive: true })
       writeFileSync(path, '[route](missing.md)\n')
     }
+    const archiveNote = join(root, '_backlog', '_archive', 'settled_issues', '261005-frozen-note.md')
+    mkdirSync(join(archiveNote, '..'), { recursive: true })
+    writeFileSync(archiveNote, '[note](../../../notes/implemented/missing.md)\n')
     trackFixtureRepo(root)
     const gate = 'links: relative markdown links point at existing files'
     const run = () => {
@@ -120,8 +147,15 @@ describe('verify relative-link corpus wiring', () => {
     expect(broken).not.toContain('_backlog/_archive/README.md links to')
     expect(broken).not.toContain('_backlog/_archive/research/261005-frozen.md links to')
     expect(broken).not.toContain('_backlog/_archive/fixed_bugs/BUG-009-frozen.md links to')
+    const archiveGate = 'links: archived note pointers resolve (handoff surface only)'
+    expect(broken).toContain(`FAIL ${archiveGate}`)
+    expect(broken).toContain('_backlog/_archive/settled_issues/261005-frozen-note.md links to ../../../notes/implemented/missing.md')
     for (const file of active) writeFileSync(join(root, file, '..', 'missing.md'), '# destination\n')
-    expect(run()).toContain(`ok   ${gate}`)
+    mkdirSync(join(root, 'notes', 'implemented'), { recursive: true })
+    writeFileSync(join(root, 'notes', 'implemented', 'missing.md'), '# destination\n')
+    const repaired = run()
+    expect(repaired).toContain(`ok   ${gate}`)
+    expect(repaired).toContain(`ok   ${archiveGate}`)
   })
 })
 

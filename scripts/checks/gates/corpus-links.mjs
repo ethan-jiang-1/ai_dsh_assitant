@@ -134,6 +134,39 @@ export function relativeLinkProblems(corpus) {
   return problems
 }
 
+/**
+ * Archived note pointers are the handoff route: the frozen archive keeps historical prose, but a
+ * link to a note is how a later reader reaches the decision a closed card produced. The main
+ * relative-link gate excludes `_archive` by policy, so dead note pointers survived repeated
+ * verifies (2026-10-25: dead `notes/proposed/` references across six files, and cards with at
+ * least one broken note link). Only `notes/` targets are in scope; the archive's historical
+ * research/vendor links stay frozen.
+ *
+ * @param {{ file: string, where: string }[]} corpus - archived markdown files.
+ */
+export function archivedNotePointerProblems(corpus) {
+  const problems = []
+  for (const { file, where } of corpus) {
+    const text = read(file)
+    for (const match of text.matchAll(/\[[^\]]*\]\(([^)\s]+)\)/g)) {
+      const raw = match[1].replace(/^<|>$/g, '')
+      let decoded = raw
+      try {
+        decoded = decodeURIComponent(raw)
+      } catch {
+        // keep the raw target; the reader would trip on it too
+      }
+      if (/^(https?:|mailto:|#)/.test(decoded)) continue
+      const target = decoded.split('#')[0].split('?')[0]
+      if (!target.includes('notes/')) continue
+      if (!existsSync(resolve(dirname(file), target))) {
+        problems.push(`${where} links to ${raw} (an archived note pointer), which does not exist`)
+      }
+    }
+  }
+  return problems
+}
+
 // ── language guard, text hygiene, dependency posture ─────────────────────────────
 
 /**
