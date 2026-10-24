@@ -37,11 +37,11 @@ opened: 2026-10-21
 | S3 运行态 0.5.1.1/存储/旋钮 | 已交付（review 由授权自审；受控预算为触发项） | [运行态卡](261020-openviking-runtime-repair.md)：**0.5.1.1 + 持久存储 + v3 旋钮 + 两次 commit + 真机 recall/commit（stats 6→8；新记忆在 assistant peer）+ 回滚副本 + fresh-home 无插件均已过**；**预算/召回抽样已记**（3 会话：6 记忆、`detail=overview`、≈3.3k 字符/830 token、占 input 17–45%，口径见运行态卡）；doctor 云端 ack、用户 review 待做；**旧 peer 回填已决定不做**（保留 provenance；`search/find` 实测命中旧 peer）；受控预算 A/B 转为回归触发项（抽样已记） **2026-10-25：受控预算 A/B 保持回归触发（不预建）；用户 review 由本人 2026-10-25 授权 agent 自审代替（原话见下方「收口记录」）。** |
 | S4 只读检索 A/B | 已交付（A2 采用 + 实施后复跑） | [检索卡](261020-openviking-retrieval-viki.md) A/B：固定 12 题、0–2 评分表、A1/A2 原型指针（A1 `ab/a1-allowlist` @ `3fa7b4d`、A2 `ab/a2-recall`）、采用 = A2（`cordis.patch.yml` 的 `assistant-recall-tool`）；pointer probe 证明 A2 `assistant_recall read` 是唯一可达按需读路径；A1 资源发现被 `denyServerResources` 挡住，只作历史。`pnpm verify` 通过（条数以 verify.mjs 为准）、build、release-smoke 通过；**`pnpm eval` 7/7**（1 个 web-only NOT EVALUATED）；曾经的 0/7 是 headless harness 未注入 key，[BUG-024](../fixed_bugs/BUG-024-eval-baseline-red.md) 已修；`pnpm test` 通过（条数以测试运行为准） **2026-10-25 实施后复跑（[A/B note](../../research/tech-exploration/261021-recall-ab.md) §8）：12 题逐题独立会话、每题召回块在场；10 个可比题全 8/8，与 A2 基线同题同分；Q8/Q10 不可比（live 漂移/自指）；`assistant_recall` 在 Q10/Q11 真被调用。限制：仓内非盲测、复跑自动 commit 了 3 条事件记忆。** |
 | S5 Viki 面板 | 已交付（调试面；转正不做） | [检索卡](261020-openviking-retrieval-viki.md) Viki：**诊断 + 搜索 + token + `Viki(调试)` tab 已交付**（0.5.1.1 live 搜索「合同」6 条；token 行真机可见），但自 2026-10-24 起**只在 `#debug=1` 下可见**，不是客户/专家面。**Viki 4 个场景已于 2026-10-25 以 flag 重录并 PASS**；当前 8 个场景。**转正不做（2026-10-25）**：Viki 是调试面，内部需要走 `assistant_memory save` + 既有审批，不再造面板写/审面。 **2026-10-25：`pnpm test` 125 files / 991 tests 通过、`pnpm verify` 45 checks；转正决定＝不做。** |
-| S6 收口 | 收口中（归档与记录见「收口记录」） | `pnpm verify` 通过（条数以 verify.mjs 为准）、`pnpm test` 通过（条数以测试运行为准）、`pnpm eval` 7/7（1 web-only NOT EVALUATED）、`eval:continuity` PASS；剩 S1 真人走查（记录表在部署卡）+ S3 用户 review/旧 peer/受控量测 + 卡归档/note 改写 **2026-10-25：用户授权 agent 自主推进与自审；归档动作与残留项见本卡「收口记录」。** |
+| S6 收口 | 已收口（归档与记录见「收口记录」） | `pnpm verify` 通过（条数以 verify.mjs 为准）、`pnpm test` 通过（条数以测试运行为准）、`pnpm eval` 7/7（1 web-only NOT EVALUATED）、`eval:continuity` PASS；剩 S1 真人走查（记录表在部署卡）+ S3 用户 review/旧 peer/受控量测 + 卡归档/note 改写 **2026-10-25：用户授权 agent 自主推进与自审；归档动作与残留项见本卡「收口记录」。** |
 
 ## 推进顺序（2026-10-25 排定）
 
-> 用户 2026-10-25 批准按 P1→P4 自主推进；人审（S1 走查 / S3 review / 三条口味）本人决定"先挂着，等日常使用时再判"，不由 agent 代判。次序理由：agent 先证完 → 人输入一次取 → 归档原子落；手册走查早于真人（不让人踩文档坑），A/B 复跑早于人抽查（没有材料可抽）。
+> 用户 2026-10-25 批准按 P1→P4 自主推进；随后进一步授权「你自己做决定，我相信你，授权给你」，据此 P3/P4/C 由 agent 收口，S3 的 review 记为授权自审；**三条口味 verdict 仍按「先挂着，等日常使用时再判」不由 agent 代判**。次序理由：agent 先证完 → 人输入一次取 → 归档原子落；手册走查早于真人（不让人踩文档坑），A/B 复跑早于人抽查（没有材料可抽）。
 
 | 片 | 内容 | 依赖 | 状态 |
 |---|---|---|---|
@@ -63,7 +63,7 @@ opened: 2026-10-21
 | S3 运行态 | 0.5.1.1、持久存储、旋钮、peer、两次 commit、回滚、fresh-home 无插件在案；抽样 3 会话、6 条记忆、`detail=overview`、≈3.3k 字符/830 token、占 input 17–45%。**自审判定：可接受**——常驻成本有界、可调到 3000 预算、超限时 curate 会报 | 受控预算 A/B 为回归触发 |
 | S4 检索 | 实施后复跑（[A/B note](../../research/tech-exploration/261021-recall-ab.md) §8）：10 个可比题 8/8，与 A2 基线同题同分；`assistant_recall` 在复跑里真被调用 | 非盲测与自动 commit 的限制已写进 note |
 | S5 Viki | 搜索/诊断/token/4 场景；转正不做；`pnpm test` 125 files/991 tests、`pnpm verify` 45 checks | 无 |
-| S6 收口 | 三张规格卡与本卡归档；proposed 卡吸收为 notes 四篇；`issues/README` 只剩人判卡 | 人判卡三条 verdict（🔒） |
+| S6 收口 | 三张规格卡与本卡归档；proposed 卡吸收为 notes 四篇；`issues/README` 只剩人判卡；`pnpm eval` 两次全量——首次 9/11（first-open-intake、first-answer-contract 红），单跑与第二次全量均 11/11（1 个 web-only NOT EVALUATED），如实记为一次波动；`eval:continuity` PASS、`pnpm test` 991、`pnpm verify` 45 | 人判卡三条 verdict（🔒） |
 
 **不属于本卡的残留**：真人安装走查（可随时按「人审包」执行）；OV 用户侧安装脚本、wizard、远程部署指引按触发条件延后（见 [安装面 note](../../../notes/implemented/2026-10-21-install-surface-first-class.md)）。
 
