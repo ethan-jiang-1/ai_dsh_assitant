@@ -9,7 +9,7 @@
 
 /**
  * Whether the developer surface is switched on.
- * @returns true when the L2 debug tab should register.
+ * @returns true when the developer debug tab should register.
  */
 export function debugEnabled(): boolean {
   try {

@@ -234,7 +234,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       return registration
     })
 
-    // L2: the developer debug panel is a separate conversation-view tab, present only when the
+    // The developer debug panel is a separate conversation-view tab, present only when the
     // flag is on. It shares the projection/lane surface (so it can show what the browser really
     // holds) but never registers on a normal customer boot. A separate `main` registration is not
     // an option: the main slot is single-occupant, and a second one kills the whole client entry.

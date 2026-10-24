@@ -26,7 +26,7 @@ export interface ProjectionPanelProps {
   actions: ProjectionViewBoundActions
   /** Every callback the entry wires; one factory owns them so a new lane does not touch fixtures. */
   surface: DeskSurface
-  /** The L0 wrapper's way back from the full board to the one-page home (absent on direct mounts). */
+  /** The home wrapper's way back from the full board to the one-page home (absent on direct mounts). */
   onBackHome?: () => void
 }
 const errors: Record<string, string> = {

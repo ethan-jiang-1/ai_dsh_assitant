@@ -1,5 +1,5 @@
 /**
- * The home surface selector: the one-page home (L0), the brief list (L1) and the full board.
+ * The home surface selector: the one-page home (default), the brief list (deep view) and the full board.
  *
  * Why this exists (2026-10-23): the desk's board is still the complete, tested view, but it is no
  * longer the default and no longer the first step behind "全部". The wrapper owns the one piece of
