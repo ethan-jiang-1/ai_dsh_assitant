@@ -5,7 +5,7 @@ opened: 2026-10-18
 
 # 推敲：主动性方向——把"它替我盯着什么"做成可见、可答、不重复
 
-> 立卡：2026-10-18 ｜ 状态：已结 ｜ 类型：Feature ｜ 可关闭：是 ｜ 结论：**路线裁决 A「可见化与收口」**（2026-10-18 本人六问逐项拍板：一条三行式＋空态不渲染＋"事 vs 会话"分工；建议排序 ②③①；路线 D 挂触发不立卡；暂停入口不要；输入观察触发行改"首条真人会话后计时"）→ [proposed 卡](../../../../notes/implemented/2026-10-18-proactive-face.md) 已授权实施，推进台账 = [261018-proactive-face-closure](../issues/261018-proactive-face-closure.md)
+> 立卡：2026-10-18 ｜ 状态：已结 ｜ 类型：Feature ｜ 可关闭：是 ｜ 结论：**路线裁决 A「可见化与收口」**（2026-10-18 本人六问逐项拍板：一条三行式＋空态不渲染＋"事 vs 会话"分工；建议排序 ②③①；路线 D 挂触发不立卡；暂停入口不要；输入观察触发行改"首条真人会话后计时"）→ [proposed 卡](../../../notes/implemented/2026-10-18-proactive-face.md) 已授权实施，推进台账 = [261018-proactive-face-closure](../issues/261018-proactive-face-closure.md)
 > **这是一张评审卡**：征集人与 agent 的 review，不承载实施。完整推理链 = [主动性综合](../../../_backlog/research/positioning/261018-proactivity-synthesis.md)（合成档）；实施提案 = [主动性 v1 提案](../../../notes/implemented/2026-10-18-proactive-face.md)（proposed，待拍板）。
 
 **评审怎么读（按序）**

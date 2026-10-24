@@ -13,7 +13,7 @@ opened: 2026-10-11
 `pnpm eval -- --only desk-daily-brief` 稳定红：`tool "schedule_create" was never called`。会话日志显示模型**装载了**
 `desk-daily-brief` 技能、**读了**账本（`assistant_operating action=desk`），然后开始翻环境找调度器
 （`bash "env | grep -i sched…"`、`ls -a .desk`、`glob .desk/*`），最后把这条诉求存进记忆当收场。而
-[晨报提案卡](../../../notes/proposed/2026-10-10-desk-daily-brief.md) 的状态行当时写着「实现与 eval 已落：**PASS** 162s 真实回合」。
+[晨报提案卡](../../../notes/implemented/2026-10-10-desk-daily-brief.md) 的状态行当时写着「实现与 eval 已落：**PASS** 162s 真实回合」。
 
 ## 根因（已查实，原假设被推翻）
 
@@ -64,6 +64,6 @@ ASSISTANT_DSH_HOME=$H pnpm dsh --profile dev-task --patch dev/probes/session/pre
 ## 修复关联
 
 - 任务与 runner：`dev/eval/tasks.mjs`、`dev/eval/run.mjs`（`--self-check` 已进 `pnpm verify` 链）
-- 记录更正：[晨报提案卡](../../../notes/proposed/2026-10-10-desk-daily-brief.md)、[`docs/dev.md`](../../../docs/dev.md) §四
+- 记录更正：[晨报提案卡](../../../notes/implemented/2026-10-10-desk-daily-brief.md)、[`docs/dev.md`](../../../docs/dev.md) §四
 - 平台事实（读 vendor）：`vendor/dsh/packages/schedule/schedule/src/index.ts:101`（inject 清单）、
   `vendor/dsh/packages/api/session-controller/src/index.ts:88`（inject 清单）

@@ -5,13 +5,13 @@ opened: 2026-10-16
 
 # 推敲：verify 内联检查体核化——P3 片 8 推进台账
 
-> 立卡：2026-10-16 ｜ 状态：已结（2026-10-16 关闭）｜ 类型：Task ｜ 可关闭：是 ｜ 结论：五族逐族核化落地，runner 内**未委托核的检查体 8 个（159 行）→ 0**、`verify.mjs` 553 → 496；逐族同名负例夹具 13 案，其中**咬出一条死门**（`GRADUATED_STATUS` 行锚定而旧体喂单词 → "毕业提案仍在架上"从未报过）已修；设计与数字住[结构还清 note](../../../notes/implemented/2026-10-16-structure-paydown.md)。原始授权：2026-10-16 本人在对话中点名推进 **P3 片 8**（原[结构还清 note](../../notes/implemented/2026-10-16-structure-paydown.md)「不做（延后）」条目的延后句子在此刻被触发）；本卡是该授权的**推进台账**（切片推进、停点与证据缺口住这里）。
+> 立卡：2026-10-16 ｜ 状态：已结（2026-10-16 关闭）｜ 类型：Task ｜ 可关闭：是 ｜ 结论：五族逐族核化落地，runner 内**未委托核的检查体 8 个（159 行）→ 0**、`verify.mjs` 553 → 496；逐族同名负例夹具 13 案，其中**咬出一条死门**（`GRADUATED_STATUS` 行锚定而旧体喂单词 → "毕业提案仍在架上"从未报过）已修；设计与数字住[结构还清 note](../../../notes/implemented/2026-10-16-structure-paydown.md)。原始授权：2026-10-16 本人在对话中点名推进 **P3 片 8**（原[结构还清 note](../../../notes/implemented/2026-10-16-structure-paydown.md)「不做（延后）」条目的延后句子在此刻被触发）；本卡是该授权的**推进台账**（切片推进、停点与证据缺口住这里）。
 
 **问题与期望结果：** `scripts/checks/verify.mjs` 里住着 8–9 个**内联检查体**（实测共 159 行 ≥11 行的 + skill-name 语法 8 行 ≈ 167 行），它们把"检查逻辑"放在了 `verify.mjs` 里——而 [scripts/AGENTS.md](../../scripts/AGENTS.md) 纪律 2 的合同是：**可夹具化的纯核放 `scripts/checks/gates/` 的族模块**（收路径/输入、返回问题串数组；`scripts/checks/verify-checks.mjs` 是汇总出口），`verify.mjs` 只拥有"什么算语料、退出码、逐条报告"。
 本人得到（外部结果）：改一个检查的判据时，改写族核 + 在**同名夹具**里造红，不必翻 553 行的 runner；判定语义零变化。
 **完成条件** = 六族逐族核化（核 + 同名负例夹具 + 接线同 diff）、每族一次提交锚点、`pnpm test:tooling && pnpm verify` 全绿、`verify.mjs` 收敛到 ~420 行。
 
-**当前情况：** 前提已实测（2026-10-16）：553 行里 8–9 个内联体共 ~167 行，**全部可夹具化**——I/O 留 runner、核只收输入（与既有 `gates/*.mjs` 的 `{ repoRoot, packageDir, corpus, … }` 约定一致；commit safety 的 `git check-ignore` 作为注入的 `isIgnored` 谓词）。对卡上数字的两处修正已记在[结构还清 note](../../notes/implemented/2026-10-16-structure-paydown.md)：件数是 8–9 不是 5、收敛目标是 **~420** 不是 ~300。
+**当前情况：** 前提已实测（2026-10-16）：553 行里 8–9 个内联体共 ~167 行，**全部可夹具化**——I/O 留 runner、核只收输入（与既有 `gates/*.mjs` 的 `{ repoRoot, packageDir, corpus, … }` 约定一致；commit safety 的 `git check-ignore` 作为注入的 `isIgnored` 谓词）。对卡上数字的两处修正已记在[结构还清 note](../../../notes/implemented/2026-10-16-structure-paydown.md)：件数是 8–9 不是 5、收敛目标是 **~420** 不是 ~300。
 
 **未决问题：** `queue: digested proposals graduate out of notes/proposed/`（11 行）的族归属待定——是并入 `notes-governance` 还是新立 `queue` 族，按"一个事实一个家"在动手那一族时定，卡上记结论。
 
@@ -51,6 +51,6 @@ opened: 2026-10-16
 - 分层合同与 prove-it-red 纪律：[scripts/AGENTS.md](../../scripts/AGENTS.md) 门禁三条纪律
 - 既有族核与夹具的对名先例：`scripts/checks/gates/backlog.mjs` ↔ `tests/tooling/backlog.spec.mjs`；汇总出口 `scripts/checks/verify-checks.mjs`
 - 判定语义的锚：改前每个 check 在仓库现况下报出的问题串（各族提交说明里记"改前/改后同为空"）
-- 延后句子的原产地：[结构还清 note](../../notes/implemented/2026-10-16-structure-paydown.md)「不做（延后）」
+- 延后句子的原产地：[结构还清 note](../../../notes/implemented/2026-10-16-structure-paydown.md)「不做（延后）」
 
 **关闭条件（已满足）：** 五族逐族核化落地、`pnpm test:tooling`（209 案）与 `pnpm verify`（41 项）全绿、runner 内联逻辑归零（159 → 0 行）；`verify.mjs` 收敛到 **496** 行——卡上原写的 ≤430 未达，差在 runner 现在显式备语料（每处多 2–4 行），真正的判据是"未委托核的检查体归零"，已记在 note「收尾数字」节。[结构还清 note](../../../notes/implemented/2026-10-16-structure-paydown.md) 已把本条改写为交付行；本卡归档进 `_archive/settled_issues/`。

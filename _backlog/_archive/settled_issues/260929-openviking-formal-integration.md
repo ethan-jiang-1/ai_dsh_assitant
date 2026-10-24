@@ -6,7 +6,7 @@ opened: 2026-09-29
 # 推敲：OpenViking 正式接入 assistant 组合（融合缝法与边界语义）
 
 > 毕业去向：层 1 落地 → [implemented note](../../../notes/archived/2026-10-04-openviking-layer1-landing.md)（2026-10-04，AGPL delegated 闭合 + 四量测活体 + eval A/B + 安装器双验收）；层 2/3 门在 note 尾。本卡完整推敲史（八接缝/S1-S13 实弹/旋钮演化）随卡归档。
-> 立卡：2026-09-29 ｜ 状态：已毕业（层 1）｜毕业门判断 = 该做（方向用户已拍板「肯定需要融合」；缝法已定到旋钮级；二轮调查（§七）解开了 0.5.8 两个负知识——隐形引擎经 DSH 原生缝可行）｜下一步 = 用户过 §六旋钮剖面 + §七 shim 形态 → AGPL 真人复核（[RFC](../../notes/implemented/2026-09-29-openviking-adoption-rfc.md) 遗留前置）→ 毕业为实施切片
+> 立卡：2026-09-29 ｜ 状态：已毕业（层 1）｜毕业门判断 = 该做（方向用户已拍板「肯定需要融合」；缝法已定到旋钮级；二轮调查（§七）解开了 0.5.8 两个负知识——隐形引擎经 DSH 原生缝可行）｜下一步 = 用户过 §六旋钮剖面 + §七 shim 形态 → AGPL 真人复核（[RFC](../../../notes/implemented/2026-09-29-openviking-adoption-rfc.md) 遗留前置）→ 毕业为实施切片
 
 ## 背景 / 触发
 

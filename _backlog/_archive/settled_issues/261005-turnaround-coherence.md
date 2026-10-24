@@ -19,7 +19,7 @@ opened: 2026-10-05
 | [SDLC 卡](261005-sdlc-turnaround-cleanup.md) | 拥有资产/门禁处置的三问判断；本卡只定依赖和毕业边界 |
 | [首开卡](261001-first-open-ux.md) | 拥有已做 UX 切片与发行/上游余项，不继续担当转向主轴 |
 | [reference](../research/README.md) | 拥有外部/代码证据、反证与局限；本卡拥有从证据到方案的推理，不造第二份总台账 |
-| [真用第一（rejected）](../../notes/rejected/2026-10-01-real-use-first.md) | 旧推进方式已被取代，只留防错历史；已交付能力归各自 implemented，不拥有当前进度或真人等待任务 |
+| [真用第一（rejected）](../../../notes/rejected/2026-10-01-real-use-first.md) | 旧推进方式已被取代，只留防错历史；已交付能力归各自 implemented，不拥有当前进度或真人等待任务 |
 
 关系是 reference → plans → proposed：证据可反驳方向假设，不能为了“合拍”改写来源。毕业后卡保留历史与去向，具体提案接管方案；未成熟部分留上游，不维护三份活计划。材料最后一个活跃消费者毕业后才迁，不提前整批归档。
 
@@ -56,7 +56,7 @@ opened: 2026-10-05
 | 原始声音/时间/SME 研究 | 保留 URL/原句/获取限制，不重写为已验证需求；原 premortem 测量解释收窄，待需要数字时再追原实验 |
 | [OKF 材料](../research/tech-exploration/261005-okf-wiki-tech-case.md)、[DSH 原生定调](../research/tech-exploration/261005-dsh-native-first-tech-keynote.md) | 分载体、schema affordance、实际调用与未验证收益；实验归因/隔离/拒答假设校准；晨报/碎片抽取保持机会面，不解除不做 IM |
 | [上游候选](../research/upstream/261001-upstream-candidates.md)、[递交稿](../research/upstream/261001-upstream-issue-drafts.md) | 档头记录的放行与未递状态统一，代理读数标注真实身份；旧 SHA/认证/渠道引用待递交前复核，本轮不发布 |
-| [旧提案](../../notes/rejected/2026-10-01-real-use-first.md)、[根入口](../../AGENTS.md)、[notes 规则](../../notes/README.md)、[backlog 规则](../README.md)、[纪律](../../docs/discipline.md) | 归位/豁免/已裁决延后与暂停规则一致；不重复向用户逐动作呈批，不复建 intents 队列 |
+| [旧提案](../../../notes/rejected/2026-10-01-real-use-first.md)、[根入口](../../AGENTS.md)、[notes 规则](../../../notes/README.md)、[backlog 规则](../README.md)、[纪律](../../docs/discipline.md) | 归位/豁免/已裁决延后与暂停规则一致；不重复向用户逐动作呈批，不复建 intents 队列 |
 | [README](../../README.md)、intents-retired | 本轮只校准进度路由，产品合同的方向迁移后续明确切片；现行能力不因候选叙事升格，P/O 保留，O2 行动计划不等组织已执行 |
 | [OV 层 1 决定](../../../notes/archived/2026-10-04-openviking-layer1-landing.md)、[reference 分装](../../../notes/archived/2026-10-05-reference-subdirs.md) | 缺失 A/B 补记改未验，不伪造结果；易过期材料数量去实体化，历史理由保留 |
 | [身份](../../docs/identity.md)、[架构](../../docs/architecture.md)、[home](../../docs/home.md)、[测试](../../docs/testing.md)、[包入口](../../packages/dsh-smart-assistant/AGENTS.md)、[包形状](../../packages/dsh-smart-assistant/README.md) | 未改变对应行为/包边界就不重写；后续实现切片同 diff 回写，四工具/四房间不随叙事重构 |

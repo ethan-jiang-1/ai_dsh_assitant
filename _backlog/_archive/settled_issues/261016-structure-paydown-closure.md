@@ -67,7 +67,7 @@ opened: 2026-10-16
 | 片 7 | 本片提交 `refactor(dev): give the shared dev judgements their own drawer` | 已交付 | session-logs 逐字 **101 行 0 差异**、continuity-core 仅差 `OPERATING_TOOL` 的 `export`；核单跑 `--self-check` 绿（合规 + 四类负例 + 先答后读 + 编造 + 种子前置）；`pnpm usage`/`observe`/`desk-loop` 真跑绿；`typecheck` / `test:tooling` 187 / `test` 621 / `verify` 41 全绿；usage-report 341 → 240 + 核 118，continuity-run 533 → 302 + 核 246；测试按模块对齐拆出 `session-logs.spec.mjs` |
 | 收尾（P1 完成时） | — | 已交付 | `pnpm release-smoke` **passed**（pack → 干净 home → `dsh plugin add` → 组合读回：host 行在树、preset 为 profile 默认、keyless 一行档在组合里；有 key 的真回合自跳），即卡上"P1 完成即做一次"。P2（片 6/7）只动 `dev/`，不进发布物，故不再重跑 |
 
-真证据（真跑过的命令、红绿形态、三处尺寸实测值）记在**该片的提交说明**；本表只留片的状态与指针，不复述命令输出（[notes/README.md](../../notes/README.md) §二之三第 3 条）。
+真证据（真跑过的命令、红绿形态、三处尺寸实测值）记在**该片的提交说明**；本表只留片的状态与指针，不复述命令输出（[notes/README.md](../../../notes/README.md) §二之三第 3 条）。
 
 ## 证据索引（不复述，点进去看）
 

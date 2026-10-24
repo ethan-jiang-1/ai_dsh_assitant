@@ -22,7 +22,7 @@ opened: 2026-10-19
 
 ## 修复关联
 
-与 [回执终态 note](../../notes/implemented/2026-10-19-desk-receipt-terminal-state.md) 的 per-page 边界是同一处；候选：把回执与 `seenRunning` 落 sessionStorage（还是"本页投递事实"），或从 `SessionStatus` 重新推导出"这一会话有挂起问题"并把 `openQuestions` 接线。两条都改客户端可见行为，先定一条再动。
+与 [回执终态 note](../../../notes/implemented/2026-10-19-desk-receipt-terminal-state.md) 的 per-page 边界是同一处；候选：把回执与 `seenRunning` 落 sessionStorage（还是"本页投递事实"），或从 `SessionStatus` 重新推导出"这一会话有挂起问题"并把 `openQuestions` 接线。两条都改客户端可见行为，先定一条再动。
 
 ## 修好定义
 

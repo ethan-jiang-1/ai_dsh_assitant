@@ -22,7 +22,7 @@ opened: 2026-10-11
 ## 根因
 
 该探针写于「打开即对话 / hero + 首开引导条在首屏」的时代。2026-10-11 的**唯一桌面**裁决把默认主区
-改成**账本桌面页**（[唯一桌面 note](../../notes/implemented/2026-10-11-one-operating-desk.md)），
+改成**账本桌面页**（[唯一桌面 note](../../../notes/implemented/2026-10-11-one-operating-desk.md)），
 所以首屏既没有 composer、也没有 vendor hero、也没有首开引导条——三个断言按设计就该是 false。
 `noRoomJargon`/`workspaceReady`/`booted` 仍绿，正说明页面本身是好的。
 

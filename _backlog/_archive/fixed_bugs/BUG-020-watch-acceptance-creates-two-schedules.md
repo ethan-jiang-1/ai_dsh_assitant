@@ -22,7 +22,7 @@ opened: 2026-10-19
 
 ## 修复关联
 
-与 [Q5/回执 note](../../notes/implemented/2026-10-19-desk-receipt-terminal-state.md) 的边界节相邻；修 brief 必须同 diff 跑 `pnpm eval` 与真车道探针。
+与 [Q5/回执 note](../../../notes/implemented/2026-10-19-desk-receipt-terminal-state.md) 的边界节相邻；修 brief 必须同 diff 跑 `pnpm eval` 与真车道探针。
 
 ## 修好定义
 

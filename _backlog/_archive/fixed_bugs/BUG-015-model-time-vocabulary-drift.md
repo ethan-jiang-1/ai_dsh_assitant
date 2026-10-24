@@ -30,7 +30,7 @@ node dev/probes/web/desk-daily-brief-live.mjs   # 相位 2 的简报文本里找
 ## 修复关联
 
 - 模型用技能文本（晨报及相关经营技能）；
-- **探针不加措辞判据** ✗——本仓既有教训：判据钉账本事实、不钉模型措辞（[结构还清 note](../../notes/implemented/2026-10-16-structure-paydown.md)）。所以锁的是**技能文本**，回归看人判/走查。
+- **探针不加措辞判据** ✗——本仓既有教训：判据钉账本事实、不钉模型措辞（[结构还清 note](../../../notes/implemented/2026-10-16-structure-paydown.md)）。所以锁的是**技能文本**，回归看人判/走查。
 
 ## 修好定义
 

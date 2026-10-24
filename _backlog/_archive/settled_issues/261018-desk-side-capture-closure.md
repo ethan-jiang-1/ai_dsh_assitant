@@ -7,7 +7,7 @@ opened: 2026-10-18
 
 > 立卡：2026-10-18 ｜ 状态：已结 ｜ 类型：Feature ｜ 可关闭：是 ｜ 结论：**五片全部落地（验收全绿）**——proposed 卡已毕业为 [implemented](../../../notes/implemented/2026-10-18-desk-side-capture.md)（正文改写为已交付事实）；收尾 `pnpm test` 721/721 + `pnpm verify` 42 绿；片 3 的 e2e 续段回滚发现（llm-replay 跨 turn 续段不支持）记入台账与 implemented 卡输掉的方案
 
-**问题与期望结果：** 落地 [proposed 卡](../../notes/implemented/2026-10-18-desk-side-capture.md) 的五片——桌面侧受理新事项的入口与状态显性化。期望：本人看着桌面想起一件事时，在桌面上就能收下它，且四态（未投递／在途／轮到我／待归户）各有其形、状态取自原生而非页面自存。
+**问题与期望结果：** 落地 [proposed 卡](../../../notes/implemented/2026-10-18-desk-side-capture.md) 的五片——桌面侧受理新事项的入口与状态显性化。期望：本人看着桌面想起一件事时，在桌面上就能收下它，且四态（未投递／在途／轮到我／待归户）各有其形、状态取自原生而非页面自存。
 
 **当前情况：** 4 项判定已由本人逐条拍板并归档（[结项卡](../_archive/settled_issues/261018-desk-side-capture.md)）；片 0 的「弃置＝留档带一行原因」（与事项 `abandon` 同构）由本人 2026-10-18 照 agent 建议拍定。
 
@@ -17,7 +17,7 @@ opened: 2026-10-18
 
 ## 验收标准
 
-承接 [proposed 卡](../../notes/implemented/2026-10-18-desk-side-capture.md) 的「验收」节（每片：命令 / 断言对象 / 红的形态），不在此复述以免两处维护；本卡只记**逐片真证据**与停点。
+承接 [proposed 卡](../../../notes/implemented/2026-10-18-desk-side-capture.md) 的「验收」节（每片：命令 / 断言对象 / 红的形态），不在此复述以免两处维护；本卡只记**逐片真证据**与停点。
 
 ## 台账
 
