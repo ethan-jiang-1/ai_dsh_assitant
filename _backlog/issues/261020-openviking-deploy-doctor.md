@@ -5,14 +5,14 @@ opened: 2026-10-20
 
 # 推敲：OpenViking 部署正确性——云端例外、doctor 与一份配置源
 
-> 立卡：2026-10-20 ｜ 状态：推敲中 ｜ 类型：Task ｜ 可关闭：否 ｜ 已授权实施（H1 B / H2–H6 按建议；安装面一等交付）｜ 推进台账 = [收口卡](261021-openviking-viki-closure.md)
+> 立卡：2026-10-20 ｜ 状态：推敲中 ｜ 类型：Task ｜ 可关闭：否 ｜ 规格卡；授权/推进见 [收口卡](261021-openviking-viki-closure.md)
 
 **给评审者的最短路径：** 先读「问题与期望结果」→「当前情况」→「云端例外 v1」→「方案与取舍」→「验收标准」→「下一步」。  
 
 ## 2026-10-25 基座复核
 
 Viki 自 2026-10-24 起只由 **debug flag** 注册（`#debug=1` / localStorage），与「开发调试」tab 同门；不再由专家档/密度打开。本文的 Viki 200 仍是 host route 事实，但**客户面不可见**；「专家档前置」的 Viki 场景与安装走查清单要改成 flag 前置。web-face 现 8 个；Viki 4 个场景已于 2026-10-25 以 flag 重录 PASS。A2 已采用（见检索卡）。
-上游背景与审计证据在 [方向评审卡](../_archive/settled_issues/261020-openviking-direction-review.md)；本卡只解决“用户装得对、部署看得见”，**不搬家存储、不做 Viki 面板、不升 server**（分别归运行态卡/检索卡）。**本卡不授权写代码。**
+上游背景与审计证据在 [方向评审卡](../_archive/settled_issues/261020-openviking-direction-review.md)；本卡只解决“用户装得对、部署看得见”，**不搬家存储、不做 Viki 面板、不升 server**（分别归运行态卡/检索卡）。**本卡是规格，不单独授权；授权与推进见 [收口卡](261021-openviking-viki-closure.md)。**
 
 ## 问题与期望结果
 

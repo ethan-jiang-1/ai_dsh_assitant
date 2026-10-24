@@ -5,7 +5,7 @@ opened: 2026-10-20
 
 # 推敲：按需检索与 Viki 人审闭环——只读 MCP allowlist vs DSH native tool
 
-> 立卡：2026-10-20 ｜ 状态：推敲中 ｜ 类型：Feature ｜ 可关闭：否 ｜ 已授权实施（H1 B / H2–H6 按建议）｜ 推进台账 = [收口卡](261021-openviking-viki-closure.md)
+> 立卡：2026-10-20 ｜ 状态：推敲中 ｜ 类型：Feature ｜ 可关闭：否 ｜ 规格卡；授权/推进见 [收口卡](261021-openviking-viki-closure.md)
 
 **给评审者的最短路径：** 先读「问题与期望结果」→「当前情况」→「方案与取舍」→「验收标准」→「下一步」。  
 
@@ -20,7 +20,7 @@ opened: 2026-10-20
 | DSH 基座 / OV 版本 | DSH pin 仍 `dsh-v0.2.1-rc.2`；OV server 0.5.1.1 / 插件 0.5.26 未变（0.5.27 未采用）。变化是 A2 采用与 Viki 门，不是版本。 |
 
 **2026-10-25 决定（Viki 转正）：不做面板转正。** Viki 是调试面，不是客户记忆面；内部若要把一条 OpenViking 情景记忆转正，走已有的 `assistant_memory save`（模型 turn + 既有审批），不再造第二个写/审面。重开触发 = 我们实际频繁手工转正（例如每月 >5 次）或客户明确要一个 Viki 入口；在此之前本卡的转正条目标“不做”，不计未完成。
-上游背景与审计证据在 [方向评审卡](../_archive/settled_issues/261020-openviking-direction-review.md)；部署/检测/Viki baseUrl 在 [部署卡](261020-openviking-deploy-doctor.md)；升级/存储/旋钮在 [运行态卡](261020-openviking-runtime-repair.md)。**本卡不授权写代码。**
+上游背景与审计证据在 [方向评审卡](../_archive/settled_issues/261020-openviking-direction-review.md)；部署/检测/Viki baseUrl 在 [部署卡](261020-openviking-deploy-doctor.md)；升级/存储/旋钮在 [运行态卡](261020-openviking-runtime-repair.md)。**本卡是规格，不单独授权；授权与推进见 [收口卡](261021-openviking-viki-closure.md)。**
 
 ## 问题与期望结果
 

@@ -20,13 +20,13 @@ dsh: skipping profile bundle "@openviking/dsh-memory-plugin": Error: Plugin
 OpenViking 用 `dsh plugin add` 进 profile，**不进** assistant preset 的 `config.plugins`——"可选增强不能成单点故障"。
 所以 0.2.1 跳它不破坏组合、不破坏 preset、不破坏发布物。
 
-## 提案
+## 当时的选项
 
 **上游已经解决了范围问题，不必等它**：查 registry，peer 范围从 **0.5.20 起**放宽成
 `>=0.1.0-rc.6 <1.0.0-0`，正好覆盖 0.2.1。latest = **0.5.26**（2026-10-15），零运行时依赖，
 `engines.node ^22.19.0 || >=24`（本机 22.23.1 ✓），打包形态仍是 `dsh.bundle.patch = ./cordis.patch.yml`。
 
-三个选项（**这是本次要用户拍板的唯一事项**）：
+三个选项（**当时需要拍板的事项**）：
 
 | | 做法 | 代价 |
 |---|---|---|

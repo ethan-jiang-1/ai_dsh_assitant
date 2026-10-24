@@ -61,5 +61,5 @@ present, one happy-path example, or a passing demo is not by itself a pass condi
 **Done:** every load-bearing requirement has a behavior class, observable pass/fail signal, negative or
 complementary case, evidence owner, and an explicitly named human judgment or an explicit “none”.
 These criteria describe how downstream work will be judged; designing them does not require the work to
-have been implemented. Include them in the [handoff materials](issue-to-note.md); the receiving notes
-process owns how they are used there.
+have been implemented. Include them in the [handoff materials](issue-to-note.md); the work card/closure
+card owns how they are used, and the notes process owns the memory handoff.

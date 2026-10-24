@@ -2,7 +2,7 @@
 
 这里的方法辅助 [backlog 流程](../README.md)：澄清需求、补事实、比较方案、准备验收标准、交接结论。先用下表选一篇，再读它的步骤；每张卡不必跑完整套。执行到需要外部技能的步骤时，才加载完整本体及点名资源；技能未注册或本地缺失时，按 [来源与读取](#外部技能的来源与读取) 查固定版本。读取失败只阻断依赖该技能的步骤，其余工作继续。
 
-backlog 负责把问题想清楚，向 notes 申请后续处理，是前后两段。这里准备结论、依据和必要的验收标准；下游是否形成 note、怎么处理，由 [notes 流程](../../notes/README.md) 决定。申请提交不等于 note 已生成，也不等于下游完成。
+backlog 负责把问题想清楚，再把结论路由到正确的下游：work 走 proposed/收口卡，memory 走 note 或 trigger。这里准备结论、依据和必要的验收标准；work 的推进/台账由收口卡持有，是否形成 note、怎么写由 [notes 流程](../../notes/README.md) 决定。路由不等于 note 已生成，也不等于 work 已完成。
 
 ## 现在需要哪篇
 
@@ -12,7 +12,7 @@ backlog 负责把问题想清楚，向 notes 申请后续处理，是前后两�
 | 缺事实，需要调研、询问或试原型；收到的报告还未经核实 | [补充证据](requirements-probes.md) | 短结论回原卡，长依据进 [research](../research/README.md) 并链接 |
 | 需求已清楚，但不知道怎样算完成 | [设计验收标准](validation-design.md) | 原卡的验收标准，必要时用表格列明 |
 | 信息已齐，需要整理需求、比较方案或决定是否关闭 | [整理方案与结论](requirements-synthesis.md) | 原卡的方案、取舍、结论和关闭条件 |
-| 结论已确定，需要申请后续处理或指向已有决定 | [申请下游处理](issue-to-note.md) | 原卡的结论与申请去向；是否成为 note 由下游决定 |
+| 结论已确定，需要路由到 work 或 memory 下游，或指向已有决定 | [路由结论](issue-to-note.md) | 原卡的结论与去向；work 台账在收口卡，note 由 memory 手决定 |
 
 通常先澄清需求、补齐事实，再整理方案。决定做的事项，整理方案时先补齐验收标准，再确定方案和必要的分步安排。决定延后、不做或指向已有结论的，不必设计尚未要做的实现验收。
 
@@ -49,6 +49,6 @@ backlog 负责把问题想清楚，向 notes 申请后续处理，是前后两�
 | [设计验收标准](validation-design.md) | `skills/engineering/tdd/SKILL.md`、`skills/engineering/codebase-design/SKILL.md` |
 | [选择证据](validation-evidence.md) | 无外部技能依赖；按本仓 [证据地图](../../docs/testing.md) |
 | [判断验收结果](validation-judgment.md) | 需要相应步骤时读 `skills/engineering/code-review/SKILL.md`、`skills/engineering/diagnosing-bugs/SKILL.md`、`skills/engineering/retro/SKILL.md` |
-| [申请下游处理](issue-to-note.md) | 无外部技能依赖；向 [notes 入口](../../notes/README.md) 申请处理 |
+| [路由结论](issue-to-note.md) | 无外部技能依赖；work 走 [收口卡](../issues/README.md#收口卡)，memory 走 [notes 入口](../../notes/README.md) |
 
 来源更新时，重新核对实际使用的技能本体和分支资源，再调整本仓方法。技能的 tracker、模板和发布默认行为不替代本仓卡片位置或用户授权。

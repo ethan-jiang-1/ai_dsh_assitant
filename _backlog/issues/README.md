@@ -6,10 +6,11 @@
 
 | 卡 | 要解决什么 | 当前环节与未完成项 |
 |---|---|---|
-| [261021-openviking-viki-closure](261021-openviking-viki-closure.md) | 层 2 / Viki 落地总台账（含安装面） | 已授权实施（H1 B / H2–H6 按建议）；S0 已交付；S1–S6 见收口卡台账 |
-| [261020-openviking-deploy-doctor](261020-openviking-deploy-doctor.md) | 云端例外、`ov-doctor`、README、Viki baseUrl、安装/配置面 | 已授权实施；规格与验收在本卡，推进在收口卡；S1/S2 |
-| [261020-openviking-runtime-repair](261020-openviking-runtime-repair.md) | 0.5.1.1 升级、持久存储、v3 旋钮、peer/commit/recall | 已授权实施；规格与验收在本卡，推进在收口卡；S3 |
-| [261020-openviking-retrieval-viki](261020-openviking-retrieval-viki.md) | 只读检索 A/B、Viki 搜索/转正/健康 | 已授权实施；规格与验收在本卡，推进在收口卡；S4/S5 |
+| [261025-open-human-verdicts](261025-open-human-verdicts.md) | 三件未取的人判断：K4 处理流、晨报口味、主动性口味 | 等本人日常使用或点名（🔒）；三条 verdict 见卡 |
+| [261021-openviking-viki-closure](261021-openviking-viki-closure.md) | 层 2 / Viki 落地总台账（含安装面） | work 台账；S0–S5 见收口卡；S6 收口待真人 |
+| [261020-openviking-deploy-doctor](261020-openviking-deploy-doctor.md) | 云端例外、`ov-doctor`、README、Viki baseUrl、安装/配置面 | 规格卡；授权/推进见收口卡；S1/S2 |
+| [261020-openviking-runtime-repair](261020-openviking-runtime-repair.md) | 0.5.1.1 升级、持久存储、v3 旋钮、peer/commit/recall | 规格卡；授权/推进见收口卡；S3 |
+| [261020-openviking-retrieval-viki](261020-openviking-retrieval-viki.md) | 只读检索 A/B、Viki 搜索/转正/健康 | 规格卡；授权/推进见收口卡；S4/S5 |
 
 
 ## 写一张卡
@@ -46,7 +47,7 @@ opened: YYYY-MM-DD
 
 ## 收口卡
 
-问题卡的一种**用途**，不是新卡型：**已授权切片的推进台账**。proposed 卡获点名授权后，切片推进、停点与证据缺口住这里的一张卡（授权指针记在 proposed 卡状态行）；`## 验收标准` 按入场票写全，各片真证据记在卡上或其链接的提交说明，验收要求完成即按[关闭条件](../README.md#关闭条件)归档。先例：[K4 收口卡](../_archive/settled_issues/261010-desk-k4-closure.md)。**落笔形状**：外部结果三要素（触发 / 用户得到 / 完成条件）打头，节名 `## 外部结果三要素`；切片推进与证据住 `## 切片台账`（片 × 状态 × 证据表）。
+问题卡的一种**用途**，不是新卡型：**已授权切片的唯一 work 台账**。用户点头后，切片推进、停点、证据缺口、开放验收和未取的人判断都住这里（授权事实记在 proposed 卡状态行；proposed 卡只指针到本卡，不复制台账）。`## 验收标准` 按入场票写全，各片真证据记在卡上或其链接的提交说明，验收要求完成即按[关闭条件](../README.md#关闭条件)归档。规格卡（部署/运行态/检索等）是**规格**，不单独授权、不持有台账；它们指向本卡。先例：[K4 收口卡](../_archive/settled_issues/261010-desk-k4-closure.md)。**落笔形状**：外部结果三要素（触发 / 用户得到 / 完成条件）打头，节名 `## 外部结果三要素`；切片推进与证据住 `## 切片台账`（片 × 状态 × 证据表）；开放项住 `## 仍未取`（人判断/延后验收；note 只留指针）。
 
 ## 评审卡
 
@@ -54,7 +55,7 @@ opened: YYYY-MM-DD
 
 ## 关闭或叫停
 
-按 [入口的关闭条件](../README.md) 检查。需要后续处理的只申请下游处理，是否成为 note 由下游决定；卡上记录结论和申请去向。满足条件后，头部写 `可关闭：是` 并在同次改动中归档，不留在活跃清单。
+按 [入口的关闭条件](../README.md) 检查。需要后续处理的，按结论路由到 work（proposed/收口卡）或 memory（note/trigger）；卡上记录结论和去向。满足条件后，头部写 `可关闭：是` 并在同次改动中归档，不留在活跃清单。
 
 - 有结论：用 `git mv` 进 [settled_issues](../_archive/settled_issues/README.md)，`status` 改为 `已结`，状态行补结论与去向。
 - 被用户明确叫停、尚无结论：进 [suspended_issues](../_archive/suspended_issues/README.md)，`status` 改为 `叫停`。重新讨论需要用户明确的新决定。
@@ -70,7 +71,7 @@ frontmatter `status` 是当前阶段的唯一家；状态行镜像它（引导�
 | （开卡） | 分诊后——确认是问题、选对目录 | 推敲中 | agent |
 | 推敲中 | 下一步是本人的选择 | 等人拍板 | agent（`下一步` 点名确切问题；仅本人可判时 🔒） |
 | 等人拍板 | 本人明确答复 | 回推敲中，或出口 | 仅本人 |
-| 推敲中 | 判断落地 + 下游申请已提交 | 已结（同改动归档） | agent |
+| 推敲中 | 判断落地 + 去向（work/memory）已记录 | 已结（同改动归档） | agent |
 | 任意活跃值 | 本人叫停、无结论 | 叫停（归档） | 仅本人 |
 | 叫停 | 本人明确复活 | 推敲中 | 仅本人 |
 | 已结 | 永不重开——复发＝引用旧卡开新卡 | — | — |
@@ -92,7 +93,7 @@ opened: YYYY-MM-DD
 
 | 字段 | 内容 |
 |---|---|
-| `status` | 活跃区用 `推敲中`；等用户作选择时用 `等人拍板`。旧卡已经实施但验收未完成时仍用 `推敲中`；翻转守卫见[状态怎么翻](#状态怎么翻) |
+| `status` | 活跃区用 `推敲中`；等用户作选择时用 `等人拍板`。旧卡已经实施但验收未完成时仍用 `推敲中`；推进状态住收口卡，不在这里；翻转守卫见[状态怎么翻](#状态怎么翻) |
 | `opened` | 立卡日，与正文一致 |
 
 离开目录时只改 frontmatter 的 `status`，其他字段保留。不把正文长说明复制进 frontmatter。

@@ -4,6 +4,8 @@
 
 目录名在 2026-10-09 换过。四门、不调度、户口这三件仍以本文为准；架子的现名见 [2026-10-09-backlog-shelf-names](2026-10-09-backlog-shelf-names.md)。下文的 plans / bugs / reference / `_done` 是当天的名字。
 
+> **部分取代（2026-10-25）**：本篇的「管道（notes/ 唯一实施通道）」与「无 proposed 卡不产生行为」由 [两个 handoff](2026-10-25-backlog-notes-two-handoffs.md) 收窄——work 走 proposed/收口卡，memory 走 note/trigger；四门与不调度仍以本篇为准。
+
 来源：用户指示"治理规矩要从 `ai_dsh_loop_advisor/_backlog` 学习来整理我们的 `_backlog/`，尽量借鉴，
 整个结构多少都是一样的"。对照通读两仓全部治理文本（章程 + 9 份子 README + 代表卡片）后落此切片。
 

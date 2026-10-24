@@ -5,14 +5,14 @@ opened: 2026-10-20
 
 # 推敲：OpenViking 运行态修复——0.5.1.1 升级、持久存储与 v3 旋钮
 
-> 立卡：2026-10-20 ｜ 状态：推敲中 ｜ 类型：Task ｜ 可关闭：否 ｜ 已授权实施（H1 B / H2–H6 按建议）｜ 推进台账 = [收口卡](261021-openviking-viki-closure.md)
+> 立卡：2026-10-20 ｜ 状态：推敲中 ｜ 类型：Task ｜ 可关闭：否 ｜ 规格卡；授权/推进见 [收口卡](261021-openviking-viki-closure.md)
 
 **给评审者的最短路径：** 先读「问题与期望结果」→「当前情况」→「方案与取舍」→「验收标准」→「下一步」。  
 
 ## 2026-10-25 基座复核
 
 Viki 自 2026-10-24 起只由 **debug flag** 注册（与「开发调试」tab 同门）；本文的 Viki 搜索/回归仍成立，但要在 `#debug=1` 下看，不再是专家档。A2 `assistant_recall` 已采用（2026-10-23）；DSH pin `0.2.1-rc.2`、OV server 0.5.1.1 / 插件 0.5.26 未变。web-face 现 8 个；Viki 4 个场景已于 2026-10-25 以 flag 重录 PASS。
-上游背景与审计证据在 [方向评审卡](../_archive/settled_issues/261020-openviking-direction-review.md)；配置/检测/README/Viki baseUrl 在 [部署卡](261020-openviking-deploy-doctor.md)。**本卡不授权写代码。**
+上游背景与审计证据在 [方向评审卡](../_archive/settled_issues/261020-openviking-direction-review.md)；配置/检测/README/Viki baseUrl 在 [部署卡](261020-openviking-deploy-doctor.md)。**本卡是规格，不单独授权；授权与推进见 [收口卡](261021-openviking-viki-closure.md)。**
 
 ## 问题与期望结果
 

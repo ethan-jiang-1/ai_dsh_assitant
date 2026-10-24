@@ -58,9 +58,10 @@ excluded, only to the detail needed for the conclusion. Record one of:
 If facts or user confirmation still block the conclusion, keep the issue active and name the exact gap and
 next step. A card status or an upstream ready label never grants authority.
 
-Use [the handoff method](issue-to-note.md) to request downstream handling when needed. Backlog prepares and
-submits the materials; [notes](../../notes/README.md) decides whether they become a note and how to handle
-them. Submission is not note creation or downstream completion. Do not maintain those rules here.
+Use [the handoff method](issue-to-note.md) to route the conclusion. Do-it work goes to the proposed/closure
+card; a persistent decision goes to [notes](../../notes/README.md) or a trigger row. Backlog prepares the
+materials; the receiver owns the form. Routing is not note creation or downstream completion. Do not
+maintain those rules here.
 
 Persist the confirmed answers, evidence and unresolved questions before a session boundary. On resume,
 reread the card and linked artifacts; ask the user only where reconstruction leaves a dependent choice uncertain.

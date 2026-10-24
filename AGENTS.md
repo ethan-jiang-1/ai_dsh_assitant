@@ -13,7 +13,7 @@
 ## 新会话开工（先读这段）
 
 **意图从哪来**（两通道，各管各的）：① **用户本轮请求**——唯一外部通道，本轮范围由它决定；
-② **已立项的内部工作项**——`notes/proposed/` 的提案卡（**待用户拍板**：点名或点头即开工；卡片骨架与毕业门禁以 [`notes/README.md`](notes/README.md) §二之二 为准）
+② **已立项的内部工作项**——`notes/proposed/` 的取舍卡（**可待拍板，也可已授权、在飞**；work 台账在 `_backlog` 收口卡；卡片骨架与毕业门禁以 [`notes/README.md`](notes/README.md) §二之二 为准）
 与 `_backlog/issues/` 的问题卡（只有用户点名才开工，流程与关闭条件见 [`_backlog/README.md`](_backlog/README.md)）。
 缺陷当场修掉不建卡；这次不修的记 `_backlog/bugs/`（默认不修，唯一的自授权例外通道见其 README）。
 
@@ -37,7 +37,7 @@
 代码里的 `TODO/FIXME` 不立项，只在代码内。
 **Note 的义务、取代检查与生命周期以 [`notes/README.md`](notes/README.md) 为唯一权威**（何时写、输掉的方案、
 rejected 政策、命名——本文件不复制）；改行为、契约或开发流程前，按任务链接或机制名查相关 notes。
-交接即此链：AGENTS.md（本文件）→ 三个卡清单（`_backlog/issues/`、`_backlog/bugs/`、`notes/proposed/`——清单为空 = 无待续工作）→ 各卡；收尾时把停点与授权变化写回承载它的卡（收口卡或 proposed 卡状态行），无卡无 note 的机械收尾无写义务。
+交接即此链：AGENTS.md（本文件）→ 三个卡清单（`_backlog/issues/`、`_backlog/bugs/`、`notes/proposed/`——清单为空 = 无待续工作；work 台账在收口卡，memory 取舍在 note）→ 各卡；收尾时把停点与授权变化写回承载它的卡（收口卡或 proposed 卡状态行），无卡无 note 的机械收尾无写义务。
 
 同一个多步流程第三次被重新推演时，就把它立成一件开发技能（放 `.agents/skills/`）——这是"重复即建"的常设规则，不占工作面。
 **两类 Skill，别混**：`.agents/skills/` 是**开发用**（给改这个仓库的 agent：证据路由、探针、
@@ -58,7 +58,7 @@ rejected 政策、命名——本文件不复制）；改行为、契约或开�
 | `packages/dsh-smart-assistant/` | **插件包**（bundle）：入口×平面、自有工具×动词、组合行、pin 与依赖姿态见生成物 `docs/package-catalog.md`；包内 owner 面与纪律见其 `AGENTS.md` | 改模型可见面 / 服务 / 布局动这里 |
 | `docs/` | **当前合同**（只写现在，无历史）—— 文档 tier 与"谁拥有什么"见其 `AGENTS.md` | 门禁住了的事实进这里 |
 | `notes/` | **开发记忆与证据链**（分类 owner：`notes/README.md`）：`proposed/` 将来 → `implemented/` 当前权威 → `archived/` 冻结历史；`rejected/` 存负知识与一行原因 | 决策与输掉的方案进这里 |
-| `_backlog/` | **推敲空间**（门牌 [`_backlog/AGENTS.md`](_backlog/AGENTS.md)：落进区域的 agent 先读）：还没定的事在 `issues/`（`YYMMDD-`），这次不修的缺陷在 `bugs/`（`BUG-`），调研在 `research/`，方法在 `methods/`，离开活跃区的在 `_archive/`。只装判断材料、**永不调度**；流程与关闭条件见其 `README.md`；`triggers.md` 只收工作里会撞上的观察（批量推进、真机走查、阶段收口时扫这张短表） | 收割/走查/对话中值得推敲但未到裁决的思考在此立卡 |
+| `_backlog/` | **推敲空间 + 已授权切片的 work 台账**（门牌 [`_backlog/AGENTS.md`](_backlog/AGENTS.md)：落进区域的 agent 先读）：还没定的事在 `issues/`（`YYMMDD-`），这次不修的缺陷在 `bugs/`（`BUG-`），调研在 `research/`，方法在 `methods/`，离开活跃区的在 `_archive/`。判断材料 + 收口卡台账，**不排序、不做第二队列**；流程与关闭条件见其 `README.md`；`triggers.md` 只收工作里会撞上的观察（批量推进、真机走查、阶段收口时扫这张短表） | 收割/走查/对话中值得推敲但未到裁决的思考在此立卡 |
 | `dev/` | 开发环境树：双 home、profile patch、探针/评测/夹具/部署 CLI——纪律与抽屉表见其 `AGENTS.md` | 环境与验证工具动这里（手册 owner：`docs/dev.md`） |
 | `scripts/` | 机械门禁与生成器 —— 门禁三条纪律与 freshness 约定见其 `AGENTS.md` | 门禁问题动这里 |
 | `snapshots/` | 行为回归的证据面——只收边界与现状见其 `AGENTS.md` 与 `README.md` | 回归证据问题动这里 |

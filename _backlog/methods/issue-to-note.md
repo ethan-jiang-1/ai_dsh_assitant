@@ -1,21 +1,30 @@
 ---
 name: issue-to-note
-description: Prepare a confirmed issue conclusion and submit it to the downstream notes process for handling; record the request destination and close the issue when its backlog conditions are met.
-whenToUse: A confirmed issue conclusion needs downstream handling. The receiving process decides whether it becomes a note; this method only prepares and submits the request.
+description: Prepare a confirmed issue conclusion, route it to the right downstream (a work card/closure ledger or a decision note), record the destination, and close the issue when its backlog conditions are met.
+whenToUse: A confirmed issue conclusion needs downstream handling. Work goes to the work tree; a persistent decision goes to notes; each receiver decides the form.
 ---
 
-# Request downstream handling
+# Route a conclusion to its downstream
 
 **Input:** the scoped issue, its confirmed conclusion and supporting evidence. For work that will be done,
-include its scope, alternatives and acceptance criteria. Resolve uncertain choices through
+include its scope, alternatives and executable acceptance criteria. Resolve uncertain choices through
 [requirements confirmation](requirements-elicitation.md) before treating them as decisions.
 
-**Output:** a submitted processing request with a traceable destination, or an explicit gap preventing submission.
+**Output:** a recorded destination in the right tree, or an explicit gap preventing the handoff.
 
-Backlog and the downstream notes process are two successive parts. Backlog clarifies the problem and
-prepares the conclusion; this method requests the next part to handle it. The receiving process decides
-whether a note is needed and what form the result takes. Submitting the request does not mean a note
-exists, the request is approved, or downstream work is complete.
+Backlog and notes are not one pipeline. A conclusion has two possible downstreams, and they are different
+handoffs:
+
+- **Work handoff** — the conclusion is "do it" and needs authorization/execution. The work goes to a
+  `notes/proposed/` card for approval (or the card records an authorization already given), then to a
+  **closure card** in [`_backlog/issues/`](../issues/README.md) that owns the slice ledger, acceptance
+  evidence and open work. The decision note is optional; it is written only when
+  [`notes/README.md`](../../notes/README.md) §〇 says a persistent tradeoff remains.
+- **Memory handoff** — the conclusion is "do it later", "do not do it", or "an existing decision answers
+  it". The decision goes to a note in `notes/` or a trigger row; no work card is needed.
+
+The work handoff's receiver is the closure/implementation, not the notes shelf. The memory handoff's
+receiver is a future decision-maker reading the note. Neither handoff creates the other's artifact.
 
 ## 1. Prepare the materials
 
@@ -23,7 +32,8 @@ Use the [backlog closure criteria](../README.md). State the applicable conclusio
 
 - **Do it:** the observable problem, intended result, scope and exclusions, chosen approach, actual
   alternatives and their costs, and executable acceptance criteria. If completion cannot be judged,
-  return to [acceptance design](validation-design.md).
+  return to [acceptance design](validation-design.md). The work handoff needs this material; the note
+  does not duplicate it.
 - **Do it later:** why it is deferred, the condition for reconsidering it, and where that condition can
   be observed. Leave future design unresolved when it is unnecessary for this decision.
 - **Do not do it:** why, and the scope in which that reason applies.
@@ -34,37 +44,36 @@ Use the [backlog closure criteria](../README.md). State the applicable conclusio
 Separate confirmed facts from recommendations. A human choice that is still pending keeps the dependent
 conclusion open; record the exact question and next step.
 
-## 2. Submit a processing request
+## 2. Route the conclusion and record the destination
 
-Keep the complete request on the issue. Present it in the current reply with the card link, confirmed
-conclusion, and what downstream handling is requested. If the user has already named a receiving session
-or destination, submit there instead within the authorized scope. The receiver follows the
-[notes entry](../../notes/README.md); that README is a rules entry, not a request inbox.
+For a **work handoff**, the destination is the proposed card (authorization) and the closure card
+(ledger). Record the closure-card link and the authorization fact on the issue; the closure card owns
+the slice status, evidence and any open acceptance. The proposed card points to the closure card; it
+does not duplicate the ledger. The work starts only after the user's authorization is recorded.
 
-Record the submission date, recipient or destination, and requested handling on the card. This makes the
-handoff reconstructable without relying on the conversation alone. Source links support the problem,
-conclusion and reasons; they do not replace those statements. Moving the card later must preserve the request.
+For a **memory handoff**, the destination is the note or the trigger row. Record the note/trigger link
+and the one-line reason it is the destination. A full submission section (date, recipient, requested
+handling) is only needed when the user is actually being asked to decide whether a note should exist;
+otherwise a one-line destination on the card is the record. The [notes entry](../../notes/README.md) is
+a rules entry, not an inbox.
 
-Backlog does not create a note as proof of submission, decide whether one is needed, or prescribe downstream
-format and lifecycle. Merely drafting the request on the card is preparation, not submission. If delivery
-could not happen, report the gap and do not claim it was submitted.
-
-**Done:** the request has been presented to the user or submitted to the designated receiver, and its
-submission is recorded. Waiting for downstream processing is separate from an unresolved backlog question.
-Submission itself grants no implementation authority.
+Keep the record on the issue (or in the closure card it points to); moving the card later must preserve
+the pointer. Source links support the problem, conclusion and reasons; they do not replace those
+statements.
 
 ## 3. Close the issue when its conditions are met
 
-Apply the [backlog closure rules](../README.md): preserve the discussion, add the conclusion and request
-destination (or the existing conclusion that already answers the issue), move the card into the appropriate
-archive, repair relative links, and update the active and archive lists. Research follows its
-[consumer-linked lifecycle](../research/README.md). A submitted request need not have produced a note before
-the backlog card can close.
+Apply the [backlog closure rules](../README.md): preserve the discussion, add the conclusion and
+destination (or the existing conclusion that already answers the issue), move the card into the
+appropriate archive, repair relative links, and update the active and archive lists. Research follows
+its [consumer-linked lifecycle](../research/README.md). A recorded destination need not have produced a
+note before the backlog card can close.
 
 Existing cards that already carry implementation and pending acceptance stay active until their stated
 requirements are resolved. Keep the remaining evidence gaps and human decisions explicit; do not treat
-implementation alone as acceptance. This exception does not create a second implementation process here.
+implementation alone as acceptance. Open acceptance that outlives the note's graduation moves to a live
+work card; the note keeps only a pointer.
 
-**Finish:** another reader can tell what backlog concluded, why, where downstream handling was requested,
-and whether the card is closed or exactly what still prevents closure. The receiving process owns all
-subsequent decisions about notes and delivery.
+**Finish:** another reader can tell what backlog concluded, why, which downstream received it (work or
+memory), and whether the card is closed or exactly what still prevents closure. Each receiver owns its
+own subsequent decisions: the closure card owns work, the note owns memory.

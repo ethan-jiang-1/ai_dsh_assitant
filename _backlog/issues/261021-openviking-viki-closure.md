@@ -17,7 +17,7 @@ opened: 2026-10-21
 - 一个**能问细节**的 Viki：只读检索 A/B 裁决、Viki 搜索/健康/转正（转正后置按 H4）、专用渲染证据。
 - 全程真证据：命令、会话日志、doctor 输出、web-face 场景、提交说明；卡按关闭条件归档。
 
-**完成条件**：S1–S5 的验收全部满足；`pnpm verify` 通过；三张规格卡与 proposed 卡按生命周期归档/改写；另一个人走查记录在案；未做的项有触发条件或明确叫停。
+**完成条件**：S1–S6 的验收全部满足；`pnpm verify` 通过；三张规格卡与 proposed 卡按生命周期归档/改写；另一个人走查记录在案；未做的项有触发条件或明确叫停。
 
 ## 2026-10-25 基座复核
 
@@ -35,9 +35,9 @@ opened: 2026-10-21
 | S1 安装/配置面 | 部分交付 | [部署卡](261020-openviking-deploy-doctor.md) §5：`_dist/安装手册.md` 已含 preset 默认 + OV 安装/配置/启动/Viki/工具结果关闭 + doctor；`release-smoke` 的 `web-smoke` 干净 home 已证 install + preset 默认 + 包内 doctor + **OV 在场 mock doctor exit 0 / 缺席 exit 2**；`dev/env/dsh.mjs`/`ov-install.sh` 已默认 `captureToolResults: false`。**2026-10-21 agent 干净 home dry run 通过（未替代真人环境）**：按手册装 tgz、替换占位 `[]` 后 dump-config 见 `preset-assistant`、boot URL 出、包内 doctor OV 缺席 exit 2；并修掉手册“追加到 `[]` 后产生非法 YAML”的真卡点（生成器已改）。**待做**：真人另一人走查（agent dry run 不替代）、用户侧 OV 安装脚本（手册路径已证，脚本可选） |
 | S2 部署/doctor | 进行中 | 云端暴露收口已落 `dsh.mjs`/`ov-install.sh`；包内 `bin/ov-doctor.mjs` 已交付（1/2/3/4/6/6b/6c/6d/6m/7/8/9/10；5 写探针仍 SKIP）；**6m MCP `initialize.instructions` 已落并 live 验证（`server=openviking; instructions empty`）**；Viki baseUrl 默认已落并测，真机 `pnpm start` → `GET /api/assistant/viki` 200 `connected:true`；**6m MCP instructions 已 live 验证**；check 5 `--write` 在一次 0.5.1.1 temp server 上真跑通过（sentinel commit + task completed），默认仍只读；check 7 假绿已修；`OPENVIKING_CLOUD_ACK=1` 下 live doctor exit 0（1 warn/2 skip）——云端 ack 是显式环境变量，不是代码默认 |
 | S3 运行态 0.5.1.1/存储/旋钮 | 部分交付 | [运行态卡](261020-openviking-runtime-repair.md)：**0.5.1.1 + 持久存储 + v3 旋钮 + 两次 commit + 真机 recall/commit（stats 6→8；新记忆在 assistant peer）+ 回滚副本 + fresh-home 无插件均已过**；**预算/召回抽样已记**（3 会话：6 记忆、`detail=overview`、≈3.3k 字符/830 token、占 input 17–45%，口径见运行态卡）；doctor 云端 ack、用户 review 待做；**旧 peer 回填已决定不做**（保留 provenance；`search/find` 实测命中旧 peer）；受控预算 A/B 转为回归触发项（抽样已记） |
-| S4 只读检索 A/B | **已采用（A2，2026-10-23）** | [检索卡](261020-openviking-retrieval-viki.md) A/B：固定 12 题、0–2 评分表、A1/A2 原型指针（A1 `ab/a1-allowlist` @ `3fa7b4d`、A2 `ab/a2-recall`）、采用 = A2（`cordis.patch.yml` 的 `assistant-recall-tool`）；pointer probe 证明 A2 `assistant_recall read` 是唯一可达按需读路径；A1 资源发现被 `denyServerResources` 挡住，只作历史。`pnpm verify` 43/43、build、release-smoke 通过；**`pnpm eval` 7/7**（1 个 web-only NOT EVALUATED）；曾经的 0/7 是 headless harness 未注入 key，[BUG-024](../_archive/fixed_bugs/BUG-024-eval-baseline-red.md) 已修；`pnpm test` 910/910 |
+| S4 只读检索 A/B | **已采用（A2，2026-10-23）** | [检索卡](261020-openviking-retrieval-viki.md) A/B：固定 12 题、0–2 评分表、A1/A2 原型指针（A1 `ab/a1-allowlist` @ `3fa7b4d`、A2 `ab/a2-recall`）、采用 = A2（`cordis.patch.yml` 的 `assistant-recall-tool`）；pointer probe 证明 A2 `assistant_recall read` 是唯一可达按需读路径；A1 资源发现被 `denyServerResources` 挡住，只作历史。`pnpm verify` 通过（条数以 verify.mjs 为准）、build、release-smoke 通过；**`pnpm eval` 7/7**（1 个 web-only NOT EVALUATED）；曾经的 0/7 是 headless harness 未注入 key，[BUG-024](../_archive/fixed_bugs/BUG-024-eval-baseline-red.md) 已修；`pnpm test` 通过（条数以测试运行为准） |
 | S5 Viki 面板 | 部分交付（Viki 已改调试门） | [检索卡](261020-openviking-retrieval-viki.md) Viki：**诊断 + 搜索 + token + `Viki(调试)` tab 已交付**（0.5.1.1 live 搜索「合同」6 条；token 行真机可见），但自 2026-10-24 起**只在 `#debug=1` 下可见**，不是客户/专家面。**Viki 4 个场景已于 2026-10-25 以 flag 重录并 PASS**；当前 8 个场景。**转正不做（2026-10-25）**：Viki 是调试面，内部需要走 `assistant_memory save` + 既有审批，不再造面板写/审面。 |
-| S6 收口 | 技术门禁已绿，待真人 | `pnpm verify` 43/43、`pnpm test` 910/910、`pnpm eval` 7/7（1 web-only NOT EVALUATED）、`eval:continuity` PASS；剩 S1 真人走查（记录表在部署卡）+ S3 用户 review/旧 peer/受控量测 + 卡归档/note 改写 |
+| S6 收口 | 技术门禁已绿，待真人 | `pnpm verify` 通过（条数以 verify.mjs 为准）、`pnpm test` 通过（条数以测试运行为准）、`pnpm eval` 7/7（1 web-only NOT EVALUATED）、`eval:continuity` PASS；剩 S1 真人走查（记录表在部署卡）+ S3 用户 review/旧 peer/受控量测 + 卡归档/note 改写 |
 
 ## 验收标准
 
@@ -48,9 +48,15 @@ opened: 2026-10-21
 - **S5 Viki**：搜索走 stateless `find` 且三态分开；健康/任务/用量有源才显示；转正不做（内部走 `assistant_memory save` + 审批；2026-10-25 决定）；Viki 4 个调试面场景以 `#debug=1` PASS；客户面 4 个场景不漂移。
 - **总**：`pnpm verify` 通过；写面/四房间/人审边界未被绕过；未做的 skills/experiences、plugin 0.5.27、agent-team 记忆有触发或去向。
 
+## 仍未取
+
+- S1 另一人安装走查（记录表在部署卡；agent dry run 不替代）。
+- S3 用户 review / 受控量测。
+- S6 收口：三张规格卡与 proposed 卡按生命周期归档/改写。
+
 ## 关闭条件
 
-- S1–S5 验收满足，证据写回本卡/提交说明；三张规格卡与 proposed 卡按生命周期归档/改写。
+- S1–S6 验收满足，证据写回本卡/提交说明；三张规格卡与 proposed 卡按生命周期归档/改写。
 - 另一人安装走查完成并记录卡点；若只能做到 clean-home dry run，如实写“未替代真人环境”。
 - 未完成/未授权的项写清触发条件或叫停，不留在活跃区当“以后再说”。
 - 归档冻结：不修改 `_backlog/_archive/` 与 `notes/archived/` 的正文；旧决定只作历史引用。

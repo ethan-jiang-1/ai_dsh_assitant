@@ -23,3 +23,4 @@
 | 会话内桌面默认 view / blank 贡献 | 该路径插件边界内不做，不涵盖全局 `main` 默认入口 | 上游**发布**默认视图可配置，或空白相位主区可插件贡献 | [原决定](../notes/archived/2026-10-06-desk-primary-view.md)；[全局入口的当前分流](_archive/settled_issues/261006-chief-of-staff-experience.md#方案与可行性) |
 | hero 标题覆盖口 | 接受现状（本包不改 vendor 品牌语） | 读 vendor 时，上游发布带来 hero 标题槽位或 locale 覆盖口 | [首屏 hero 标题卡](_archive/settled_issues/261011-vendor-hero-headline.md) |
 | 输入观察的每周快照 | 先观察 30 天（专用环境 + 见现有入口）；**窗口自首条真人会话起算**（2026-10-18 拍板，对齐 261011 原设计"第 0 天＝首条真人会话"；此前零读数不补摘） | 读数档出现**首条真人会话**后每周扫读数（>7 天规则只对有读数的档生效） | [读数档](research/usage/261011-input-observation.md)；[裁决出处](_archive/settled_issues/261018-proactive-direction.md) |
+| notes 扁平结构的规模 | 维持扁平 | 一次笔记审计里 `implemented`/`archived` 的浏览明显受阻（找一篇要翻目录） | [notes/README](../notes/README.md) §四 |
