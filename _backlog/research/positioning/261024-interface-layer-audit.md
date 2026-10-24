@@ -196,3 +196,89 @@ composer 同时在场（`audit-conv-desk`）。两个输入、两个选择 store
 - 800×600 / 420×900：桌面 tab 的两个输入、右栏 guide、看板是否溢出。
 - 调试面板字段与 Viki 内容是否重复；Viki 是否应该存在。
 - 测试资产：有没有任何 spec 能抓住“它记下的死门”“Viki 由专家打开”“两个输入”；如果没有，补哪一层。
+
+## 8. 第二轮：窄视口 / 审批 / tab 生命周期 / 测试资产
+
+### 8.1 窄视口（主面板）
+
+- **420×900**：可用。侧栏折叠成图标栏，页标题换行、三按钮换行、输入框与「交给它」都在视口内；
+  「全部（3）/它记下的」在右上，不溢出（`audit-home-420-420x900.png`）。
+- **800×600**：可用；页、按钮、输入都在首屏（`audit-home-800-800x600.png`）。
+- 未覆盖：会话「桌面」tab 的两个输入在 800/420 的叠放（1600 已证明两个输入；窄屏只会更挤），
+  以及右栏 guide 在 420 的可用性。这是下一轮。
+
+### 8.2 审批：两处面、两套文案
+
+同一个两草稿 home：
+
+- 首页顶部审批卡：“**1 页知识草稿等你审批**——批准后才会成为它判断的依据。**去审批**”
+  （`audit-drafts-home2`）。
+- 空白会话 dock 的审批 banner：“**1 页知识草稿在等你审批**——批准后才会成为它的判断依据。
+  **点这里去审批**”（`audit-drafts-conv2`），而且它和首开卡**上下叠在一起**，再下面是 composer。
+
+判断：审批“永在常用面”本身没问题；问题是同一件事有两个面、文案不一致（在/它的/去审批 vs 点这里去审批），
+且首开卡与审批 banner 同屏，首开一眼看到的是两张“请处理”的卡。
+
+### 8.3 空会话的 tab 生命周期
+
+- blank conversation **没有** 对话/轨迹/桌面/自动化任务/开发调试 的 tab bar（`audit-conversation3`）。
+- 打开一个有内容的会话，tab bar 才出现（`audit-session-tabs`）。
+- 结果：**桌面/任务/调试三个面在首开不可达**；开发调试 tab 在空会话也不可达（`audit-debug-tab` 无 tab，
+  `audit-debug-session` 有内容后才出现）。这是 shell 的 blank 视图行为，不是注册缺失；但三层合同没有
+  写“这些面只在有内容的会话可达”，所以它算一个未声明的门。
+
+### 8.4 测试资产：测试目前**站在旧安排那边**
+
+这一轮最重要的资产发现——不是“没测试”，而是**测试锁住了要改的旧行为**：
+
+| 现有断言 | 锁住什么 | 与三层合同的冲突 |
+|---|---|---|
+| `tests/client/mount-rooms.spec.ts:7,62,68`：标准只藏 Viki，专家列全部四间 | **Viki 由密度档打开** | 合同：调试面只由 debug flag 注册 |
+| `tests/client/first-mile.spec.ts:189-197`：含「一把手桌面」「桌面全景」「账本」，按钮「打开桌面全景」 | 首开卡的内部术语 | 合同/首开设计：常用面说人话、只有一张首开面 |
+| `tests/client/entry.spec.ts:101,107`：Viki 是 expert-only；tab 类型含 vikiRoom；desk/tasks tab 注册 | 旧 feature tabs 与 Viki 密度门 | 合同：一个家、任务/房间归深看、调试 flag |
+| **没有任何测试** | 「它记下的」在主面板是否可用 | P0 死门不会被任何 spec 抓到 |
+| **没有任何测试** | 会话「桌面」tab 是否出现两个输入 | P0 双输入不会被抓到 |
+| **没有 `brief-list` 专属 spec** | 「全部」列表是否混入待认领长文 | P1 列表污染不会被抓到 |
+
+结论：改 P0/P1 时，**测试不是安全网，而是需要一起改的旧合同**。这正好说明“三层”还没有内化到测试层：
+测试还在按“三档密度 + 旧 feature tabs”断言，而不是按“常用/深看/调试”的问题域断言。
+
+### 8.5 本轮新增证据
+
+| 证据 | 说明 |
+|---|---|
+| `.tmp/shots/audit-home-800-800x600.png` / `audit-home-420-420x900.png` | 窄视口主面板可用 |
+| `.tmp/shots/audit-drafts-home2-1600x1000.png` | 首页审批卡 |
+| `.tmp/shots/audit-drafts-conv2-1600x1000.png` | 空会话：首开卡 + 审批 banner + composer 三层叠 |
+| `audit-conversation3` / `audit-session-tabs` / `audit-debug-tab` / `audit-debug-session` | 空会话无 tab；有内容才有；调试 tab 随内容出现 |
+
+### 8.6 结论修订
+
+第一轮的三个 P0 不变；新增两个 P1：
+
+- **P1-审批双面**：首页卡与会话 banner 文案/入口统一；首开卡与审批 banner 不同屏叠（或把审批 banner
+  放到首开卡之上/之下时给明确主次）。
+- **P1-测试合同**：P0/P1 的修正必须同 diff 改 `mount-rooms`/`first-mile`/`entry` 的旧断言，并补
+  “它记下的可达”“会话桌面 tab 不再有第二个输入”“Viki 由 flag 控制”的测试；否则修了实现，测试会红，
+  或者测试继续保护旧行为。
+
+## 9. 更新后的边界
+
+- 已覆盖：主面板三层、会话 tab、右栏 guide、三档、专家 Viki、debug flag、首开卡、审批两处、
+  窄视口主面板、测试资产。
+- 未覆盖：会话「桌面」tab 在 800/420 的叠放；右栏 guide 在 420；`插件`/`轨迹`/`更多` 菜单；
+  调试面板字段与 Viki 内容重复度；命令面板里的 mode/room 命令。
+- 这些是第三轮；但结构判断已经足够：**三层在主面板内成立，旧 feature silos 与密度门尚未归位，
+  测试仍在保护旧安排。**
+
+### 8.7 斜杠菜单：模型技能直接暴露给客户
+
+在真实会话的 composer 里输入 `/`，菜单顶部不是“命令”，而是一整列**模型技能**：
+`action-plan / decision-routing / desk-daily-brief / finance-compliance / first-conversation /
+home-curation / knowledge-craft / management-breakdown / market-sizing / memory-hygiene / morning-brief`，
+每条带一句英文描述（`audit-command-menu`）。这是给模型/我们的维护技能（first-conversation、home-curation、
+memory-hygiene 明确是 agent 的活），却在客户的编辑层以“斜杠命令”出现；没有任何一层认领它。
+
+判断：这是**第三个导航面**（左栏 / 会话 tab / 斜杠菜单），也是**内部术语泄漏**。它不算三层里的任何一层；
+如果它是 vendor 的 slash 菜单行为，产品至少要决定哪些 skill 对客户可见、用什么中文名/描述，或者整组隐藏。
+当前状态是“默认路径看不到，好奇打一个 `/` 就看到一堵英文技能墙”。
