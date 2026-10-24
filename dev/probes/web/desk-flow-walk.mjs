@@ -95,11 +95,15 @@ const boardEntry = await openBoard(evaluate, sleep)
 if (boardEntry !== 'board' && boardEntry !== 'already') {
   fail('board-entry', { boardEntry }); await browser.settle(); process.exit()
 }
+// The board's own title changed with the 2026-10-23 three-surface reframe: the first screen is
+// the one-page home, 「全部」 opens the brief list, and 「完整看板」 the board (title 完整看板).
+// Accept either board title — the point of this phase is "the board is mounted", not one string.
+const boardTitle = text => text !== null && (text.includes('你的桌面') || text.includes('完整看板'))
 const desk = await pollUntil(evaluate, deskText, {
   intervalMs: 700, budget: 120, checkFirst: true,
-  isDone: text => text !== null && text.includes('你的桌面'),
+  isDone: boardTitle,
 })
-if (desk === null || desk.includes('你的桌面') === false) { fail('desk-first-screen', { note: '桌面未挂载' }); await browser.settle(); process.exit() }
+if (desk === null || boardTitle(desk) === false) { fail('desk-first-screen', { note: '桌面未挂载', boardEntry }); await browser.settle(); process.exit() }
 await record('1-desk-first-screen')
 const mattersBefore = await evaluate(`[...document.querySelectorAll('[data-assistant-operating-desk] button.dsha-card')].map(b => (b.textContent ?? '').slice(0, 40))`)
 pass('desk-first-screen', { matters: mattersBefore?.length ?? 0 })
@@ -145,7 +149,7 @@ pass('processing-session', { picked, idle, sessionId: processingSessionId })
 // 「处理」是明确的续接意图——应重开同一会话并带 [面板] 续接种子，模型重新读台账交包，
 // 不凭对话旧印象作答。普通侧栏打开旧聊天不在此相位（那不该播报）。
 {
-  const deskNav = await evaluate(clickByText('桌面', { exact: false, notFound: 'no-desk-button' }))
+  const deskNav = await evaluate(clickByText('今天', { exact: true, notFound: 'no-desk-button' }))
   // The main panel is the one-page home now; the board is one click deeper (全部 → 完整看板).
   let deskBack = await pollUntil(evaluate, deskPresent, { checkFirst: true, budget: 10 })
   if (!deskBack) {
@@ -226,7 +230,7 @@ if (!skipIntake) {
   if (!returned) {
     // 还留在对话里就先手动回桌面（走查工具不去猜怎么回；这一步如实记录）。
     // 主面板是一页纸；进「全部 → 完整看板」才到旧桌面。
-    await evaluate(clickByText('桌面', { exact: false }))
+    await evaluate(clickByText('今天', { exact: true }))
     let backText = await pollUntil(evaluate, deskText, { checkFirst: true, budget: 10, isDone: text => text !== null })
     if (backText === null) {
       await openBoard(evaluate, sleep)
