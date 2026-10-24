@@ -169,7 +169,7 @@ Viki 自 2026-10-24 起只由 **debug flag** 注册（与「开发调试」tab �
 
 ## 下一步
 
-**裁决已收（2026-10-21）**：H1 B / H5 0.5.1.1 / H6 先跳过团队记忆。本卡承载规格与验收，推进在 [收口卡](261021-openviking-viki-closure.md)；实施顺序 = 副本迁移 → 存储搬家 → 旋钮落点 → 真机 commit/recall → 回滚演练。**2026-10-21：0.5.1.1 副本/live、持久存储、v3 dump-config、sentinel A/B 可检索、真机 recall+commit/peer 新写入、0.4.22 回滚副本、fresh-home 无插件 case 均已过；下一步 = 预算/召回量测 + doctor 云端 ack + 用户 review。**
+**裁决已收（2026-10-21）**：H1 B / H5 0.5.1.1 / H6 先跳过团队记忆。本卡承载规格与验收，推进在 [收口卡](261021-openviking-viki-closure.md)；实施顺序 = 副本迁移 → 存储搬家 → 旋钮落点 → 真机 commit/recall → 回滚演练。**2026-10-21：0.5.1.1 副本/live、持久存储、v3 dump-config、sentinel A/B 可检索、真机 recall+commit/peer 新写入、0.4.22 回滚副本、fresh-home 无插件 case 均已过。2026-10-25：预算/召回抽样已记；doctor 云端 ack 已验；用户 review 由本人 2026-10-25 授权 agent 自审（原话与判定见[收口卡](261021-openviking-viki-closure.md)「收口记录」）；受控预算 A/B 保持回归触发。**
 **Agent 的**：第一轮（2026-10-20）与第二轮（2026-10-21）已回写；先副本验证再切 live，0.4.22 备份在 `workspace-0.4.22-backup`/`workspace-0.4.22-live`。
 
 ## 范围与邻居

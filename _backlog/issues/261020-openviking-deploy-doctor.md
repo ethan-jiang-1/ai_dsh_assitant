@@ -243,7 +243,7 @@ doctor 对账 1↔2↔运行中 server（check 10）与 3/4；Viki 的 baseUrl �
 
 ## 下一步
 
-**裁决已收（2026-10-21）**：H1 B / H2、H3 按建议；**人类追加要求：安装/配置是一等交付**。本卡承载规格与验收，推进在 [收口卡](261021-openviking-viki-closure.md)。**S1 首片 + 包内 doctor v0 已交付**；下一步 S1 剩余（用户侧 OV 安装器、OV 在场 clean-home、另一人走查）+ S2b（doctor check 5/MCP、Viki baseUrl、README 全量）。
+**裁决已收（2026-10-21）**：H1 B / H2、H3 按建议；**人类追加要求：安装/配置是一等交付**。本卡承载规格与验收，推进在 [收口卡](261021-openviking-viki-closure.md)。**2026-10-25：S1/S2 的 agent 可证项已收尽**——安装面 fresh-home 两轮走查、README 部署节 dry run、doctor check 5/MCP、Viki baseUrl、云端 ack 均有记录；剩余只有「真人另一人走查」（用户 2026-10-25 决定挂日常使用触发；收口卡按关闭条件的 dry-run 分支如实记「未替代真人环境」）与可选的用户侧 OV 安装脚本。
 **Agent 的**：第一轮（2026-10-20）、第二轮（2026-10-21）与安装面追加均已回写；实施按最小可回退切片。
 
 ## 范围与邻居
