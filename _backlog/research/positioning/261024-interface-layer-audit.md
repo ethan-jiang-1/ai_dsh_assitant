@@ -292,9 +292,11 @@ memory-hygiene 明确是 agent 的活），却在客户的编辑层以“斜杠�
 | `76ee1fb` | 调试门 + 密度收窄 | Viki 与开发调试 tab 同由 flag；密度 UI 改「完整看板密度（紧凑/标准/完整）」，房间/命令不再随密度；`mount-rooms`/`entry`/`ui-mode-*` 测试改写；专家档无 Viki 真机 |
 | `d1eb161` | 它记下的 | 主面板只读记录面；过滤 deprecated 知识、rule 记忆；真机 14 条业务页；记录面测试 |
 | `e230751` | 会话 tab + 任务/列表 | 退役会话桌面/任务 tab；「它在盯什么」只读日程进列表；待归户只报计数；列表标题「全部」；entry/list 测试 |
-| 收尾提交 | 深看 + 首开 + 命名 | deep 看板去 capture/＋交代/有问题/重新读取/主动建议；待归户后台 details；标题「完整看板」/tab「事项」；首开卡一句指针；左栏「今天」；审批文案统一；三个 web-face 场景重录 |
+| `84815ab` | 深看 + 首开 + 命名 | deep 看板去 capture/＋交代/有问题/重新读取/主动建议；待归户后台 details；标题「完整看板」/tab「事项」；首开卡一句指针；左栏「今天」；审批文案统一；三个 web-face 场景重录 |
 
-**门禁**：`pnpm test` 全绿、`pnpm verify` 44；`blank-first-open` / `desk-eight-matters-first-open` /
+| `9e39920` | P2 补 | 主面板「开发调试」入口（flag 下，带「回到今天」）+ 列表搜索（视图 store query）；场景重录 |
+
+**门禁**：`pnpm test` 990、`pnpm verify` 44；`blank-first-open` / `desk-eight-matters-first-open` /
 `desk-eight-matters-brief-list` 三场景 PASS；真机 `audit-fix-*`。
 
 **P2 收盘**：
