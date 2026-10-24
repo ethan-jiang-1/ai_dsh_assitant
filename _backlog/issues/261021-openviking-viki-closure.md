@@ -5,7 +5,7 @@ opened: 2026-10-21
 
 # 收口：OpenViking 层 2 / Viki 落地（含安装面）
 
-> 立卡：2026-10-21 ｜ 状态：推敲中 ｜ 类型：Task ｜ 可关闭：否 ｜ 已授权实施（H1 B / H2–H6 按建议；安装面一等交付）｜ 授权指针 = [proposed 卡](../../notes/proposed/2026-10-21-openviking-viki-landing.md) ｜ goal-d890dad3
+> 立卡：2026-10-21 ｜ 状态：推敲中 ｜ 类型：Task ｜ 可关闭：否 ｜ 已授权实施（H1 B / H2–H6 按建议；安装面一等交付）｜ 授权 = 用户 2026-10-21 裁决（[方向评审卡](../_archive/settled_issues/261020-openviking-direction-review.md)）｜ goal-d890dad3
 
 ## 外部结果三要素
 
@@ -31,7 +31,7 @@ opened: 2026-10-21
 
 | 片 | 状态 | 证据 |
 |---|---|---|
-| S0 裁决/载体 | 已交付 | [方向评审卡](../_archive/settled_issues/261020-openviking-direction-review.md) 已结；本卡 + [proposed 卡](../../notes/proposed/2026-10-21-openviking-viki-landing.md) |
+| S0 裁决/载体 | 已交付 | [方向评审卡](../_archive/settled_issues/261020-openviking-direction-review.md) 已结；本卡 + 四篇决定 note（安装面 / 云端 / 旋钮 / 检索路径） |
 | S1 安装/配置面 | 已交付（clean-home dry run；未替代真人环境） | [部署卡](261020-openviking-deploy-doctor.md) §5：`_dist/安装手册.md` 已含 preset 默认 + OV 安装/配置/启动/Viki/工具结果关闭 + doctor；`release-smoke` 的 `web-smoke` 干净 home 已证 install + preset 默认 + 包内 doctor + **OV 在场 mock doctor exit 0 / 缺席 exit 2**；`dev/env/dsh.mjs`/`ov-install.sh` 已默认 `captureToolResults: false`。**2026-10-21 agent 干净 home dry run 通过（未替代真人环境）**：按手册装 tgz、替换占位 `[]` 后 dump-config 见 `preset-assistant`、boot URL 出、包内 doctor OV 缺席 exit 2；并修掉手册“追加到 `[]` 后产生非法 YAML”的真卡点（生成器已改）。**待做**：真人另一人走查（agent dry run 不替代）、用户侧 OV 安装脚本（手册路径已证，脚本可选）。**2026-10-25 复跑**：当前导出包（511 条目）+ 空 home 全走查通过——doctor exit 2/0、Viki 503/200、rooms 200、preflight green、`try-assistant` 隔离路径通过；记录见[部署卡](261020-openviking-deploy-doctor.md) 2026-10-25 节。 |
 | S2 部署/doctor | 已交付 | 云端暴露收口已落 `dsh.mjs`/`ov-install.sh`；包内 `bin/ov-doctor.mjs` 已交付（1/2/3/4/6/6b/6c/6d/6m/7/8/9/10；5 写探针仍 SKIP）；**6m MCP `initialize.instructions` 已落并 live 验证（`server=openviking; instructions empty`）**；Viki baseUrl 默认已落并测，真机 `pnpm start` → `GET /api/assistant/viki` 200 `connected:true`；**6m MCP instructions 已 live 验证**；check 5 `--write` 在一次 0.5.1.1 temp server 上真跑通过（sentinel commit + task completed），默认仍只读；check 7 假绿已修；`OPENVIKING_CLOUD_ACK=1` 下 live doctor exit 0（1 warn/2 skip）——云端 ack 是显式环境变量，不是代码默认 **2026-10-25：README 部署节从一次性空 home 走到 doctor 绿（agent dry run，当前导出包），记录见部署卡。** |
 | S3 运行态 0.5.1.1/存储/旋钮 | 已交付（review 由授权自审；受控预算为触发项） | [运行态卡](261020-openviking-runtime-repair.md)：**0.5.1.1 + 持久存储 + v3 旋钮 + 两次 commit + 真机 recall/commit（stats 6→8；新记忆在 assistant peer）+ 回滚副本 + fresh-home 无插件均已过**；**预算/召回抽样已记**（3 会话：6 记忆、`detail=overview`、≈3.3k 字符/830 token、占 input 17–45%，口径见运行态卡）；doctor 云端 ack、用户 review 待做；**旧 peer 回填已决定不做**（保留 provenance；`search/find` 实测命中旧 peer）；受控预算 A/B 转为回归触发项（抽样已记） **2026-10-25：受控预算 A/B 保持回归触发（不预建）；用户 review 由本人 2026-10-25 授权 agent 自审代替（原话见下方「收口记录」）。** |

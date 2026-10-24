@@ -5,7 +5,7 @@ opened: 2026-10-20
 
 # 评审：OpenViking 层 2 的方向——从“隐形层 1”到可配置、可观测、可按需检索
 
-> 立卡：2026-10-20 ｜ 状态：已结 ｜ 类型：未定 ｜ 可关闭：是 ｜ 评审卡 ｜ 结论：**接受 B**（2026-10-21 人类裁决；H2–H6 按建议）｜ 实施载体 = [proposed 卡](../../../notes/proposed/2026-10-21-openviking-viki-landing.md) / [收口卡](../../issues/261021-openviking-viki-closure.md)
+> 立卡：2026-10-20 ｜ 状态：已结 ｜ 类型：未定 ｜ 可关闭：是 ｜ 评审卡 ｜ 结论：**接受 B**（2026-10-21 人类裁决；H2–H6 按建议）｜ 实施载体 = [实施决定](../../../notes/implemented/2026-10-21-install-surface-first-class.md) / [收口卡](../../issues/261021-openviking-viki-closure.md)
 
 **给评审者的最短路径：** 先读「问题与期望结果」→「当前情况（证据）」→「方案与取舍」→「请评审什么」。  
 本卡只做方向评审；实施拆在三张卡里：[部署与 doctor](../../issues/261020-openviking-deploy-doctor.md)、[运行态与 0.5.1.1](../../issues/261020-openviking-runtime-repair.md)、[按需检索与 Viki](../../issues/261020-openviking-retrieval-viki.md)。  
@@ -142,7 +142,7 @@ opened: 2026-10-20
 
 ## 下一步
 
-**裁决已收（2026-10-21）**：接受 B；H2–H6 按建议。实施载体 = [proposed 卡](../../../notes/proposed/2026-10-21-openviking-viki-landing.md) + [收口卡](../../issues/261021-openviking-viki-closure.md)；三张实施卡保持活跃（已授权规格），推进在收口卡；本卡归档。Agent 从 P0 安装/doctor 开始。
+**裁决已收（2026-10-21）**：接受 B；H2–H6 按建议。实施载体 = [实施决定](../../../notes/implemented/2026-10-21-install-surface-first-class.md) + [收口卡](../../issues/261021-openviking-viki-closure.md)；三张实施卡保持活跃（已授权规格），推进在收口卡；本卡归档。Agent 从 P0 安装/doctor 开始。
 
 ## 方案与取舍
 
@@ -212,7 +212,7 @@ opened: 2026-10-20
 
 ### 2026-10-21 · 人类裁决（H1–H6）
 
-用户选择 **接受 B**，H2–H6 按建议：H2 先收口云端工具结果；H3 P0 部署/可观测先做；H4 Viki 转正后置，先做搜索/健康；H5 运行态目标 0.5.1.1，plugin 0.5.27 单列；H6 团队记忆先跳过，另立触发。实施载体 = [proposed 卡](../../../notes/proposed/2026-10-21-openviking-viki-landing.md) + [收口卡](../../issues/261021-openviking-viki-closure.md)；三张实施卡保持活跃（已授权规格），推进在收口卡。**本裁决授权按三卡验收范围实施，不改变写面/四房间/人审边界；追加安装/配置为一等交付。**
+用户选择 **接受 B**，H2–H6 按建议：H2 先收口云端工具结果；H3 P0 部署/可观测先做；H4 Viki 转正后置，先做搜索/健康；H5 运行态目标 0.5.1.1，plugin 0.5.27 单列；H6 团队记忆先跳过，另立触发。实施载体 = [实施决定](../../../notes/implemented/2026-10-21-install-surface-first-class.md) + [收口卡](../../issues/261021-openviking-viki-closure.md)；三张实施卡保持活跃（已授权规格），推进在收口卡。**本裁决授权按三卡验收范围实施，不改变写面/四房间/人审边界；追加安装/配置为一等交付。**
 
 ### 2026-10-20 · 第一轮 agent 核验（证据 / 机制 / 验收三路，只读）
 
