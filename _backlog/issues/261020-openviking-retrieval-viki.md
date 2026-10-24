@@ -18,6 +18,8 @@ opened: 2026-10-20
 | Viki 人审闭环面向一把手；转正走面板点击授权 | Viki 既是调试面，**「人审闭环」是内部调试能力，不是客户面**；客户的审批仍是首页审批卡/知识室。转正若做，是内部人审动作，不应新增客户审批路径。 |
 | web-face 现 7 个；Viki 4 场景 PASS（专家档前置） | 现 **8 个**（+ `desk-eight-matters-brief-list`）。Viki 4 个旧期望在 2026-10-24 改 debug 门后失效；**2026-10-25 已以 `#debug=1` 重录并全部 PASS**（README/snapshot/expected 同 diff）。 |
 | DSH 基座 / OV 版本 | DSH pin 仍 `dsh-v0.2.1-rc.2`；OV server 0.5.1.1 / 插件 0.5.26 未变（0.5.27 未采用）。变化是 A2 采用与 Viki 门，不是版本。 |
+
+**2026-10-25 决定（Viki 转正）：不做面板转正。** Viki 是调试面，不是客户记忆面；内部若要把一条 OpenViking 情景记忆转正，走已有的 `assistant_memory save`（模型 turn + 既有审批），不再造第二个写/审面。重开触发 = 我们实际频繁手工转正（例如每月 >5 次）或客户明确要一个 Viki 入口；在此之前本卡的转正条目标“不做”，不计未完成。
 上游背景与审计证据在 [方向评审卡](../_archive/settled_issues/261020-openviking-direction-review.md)；部署/检测/Viki baseUrl 在 [部署卡](261020-openviking-deploy-doctor.md)；升级/存储/旋钮在 [运行态卡](261020-openviking-runtime-repair.md)。**本卡不授权写代码。**
 
 ## 问题与期望结果
@@ -84,7 +86,7 @@ opened: 2026-10-20
 | 搜索/筛选 | **搜索已实现（2026-10-21）** | 顶部 search 走 **stateless `/search/find`**（host `?q=`；`/search/search` 是 session-aware）；结果带 peer/summary/score，URI 过白名单；空结果 / 未连接 / 检索错误三态分开；筛选 chips 暂未做（搜索先行）。**0.5.1.1 live `/search/find` 已返回真实命中（「合同」6 条）**；测试 mock 覆盖。 |
 | 健康/任务/用量 | **已覆盖（2026-10-21）** | 诊断视图展示 `/health`、最近 commit（`/tasks`）、`stats/memories`、`/api/v1/skills`、`~/.openviking/pending` 计数、`problems`；**token 用量已接**：host 用 `ctx.tokenMeter.measure(session)` 读**当前会话**（`basis` usage/估算；无 session 或无 token-meter 服务时显示 `—`），client 只展示。无源不假装有。 |
 | 研发/专业诊断视图 | **已实现（2026-10-21）** | 同一个 Viki tab 加可折叠「诊断」：health/version、category counts、last commit/tasks、pending、skills、`problems`、config path/provider/model（无 key）；默认折叠——专业用户看 overview，研发展开。数据用 `GET /api/assistant/viki?view=diagnostics` 懒加载，不新增 Remote namespace；独立诊断 tab 为输掉的备选。**右栏 tab 显示 `Viki(调试)`（无图标、10px 防截断）；2026-10-24 后只在 debug flag 下出现，guide 描述改为“只在 debug flag 下出现，普通用户不需要”。** **live probe 在案；durable Viki scene 仍待。** |
-| 转正到 `memory/` | 无 | **先拍机制，不写死**：<br>**P1（推荐，面板动作）**：人点“转正”=授权；host route 调 `assistantMemory.saveMemory`（与 `assistant_memory save` 同一服务的既有校验）+ `recordApproval(..., 'promote', ...)` 写 home 审计；**不需要 `ctx.approval`**——面板没有 open turn，且人点击本身就是授权。<br>**P2（模型提案）**：模型在 turn 内调 `assistant_memory save`，用 `ctx.approval` 请人确认，审计是 `approval/asked`/`approval/decided`；面板只发起/展示。<br>两套审计不混用；P1 需在 Viki route 的 `actions` 里加一个 `promote` 调用（`ApprovalKind` 已含 `promote`，知识室在用；Viki 现在只有 `retire`），不是新造 kind |
+| 转正到 `memory/` | 无 | **2026-10-25：不做面板转正**（内部需要走 `assistant_memory save` + 既有审批；见基座复核）。原方案保留为历史：<br>**P1（推荐，面板动作）**：人点“转正”=授权；host route 调 `assistantMemory.saveMemory`（与 `assistant_memory save` 同一服务的既有校验）+ `recordApproval(..., 'promote', ...)` 写 home 审计；**不需要 `ctx.approval`**——面板没有 open turn，且人点击本身就是授权。<br>**P2（模型提案）**：模型在 turn 内调 `assistant_memory save`，用 `ctx.approval` 请人确认，审计是 `approval/asked`/`approval/decided`；面板只发起/展示。<br>两套审计不混用；P1 需在 Viki route 的 `actions` 里加一个 `promote` 调用（`ApprovalKind` 已含 `promote`，知识室在用；Viki 现在只有 `retire`），不是新造 kind |
 | 编辑/新增 | 无 | 先不做；转正走 `assistant_memory` 服务，避免 Viki 变成第二个写面 |
 | 删除/恢复/比较 | 已有 | 保持；删除前的 references/commit 语义不变 |
 | 分页/大列表 | 无 | 先搜索；记忆上千再分页 |
@@ -173,7 +175,7 @@ opened: 2026-10-20
 - [x] 搜索（2026-10-21）：输入关键词走 **stateless `/search/find`**（host `?q=`），返回匹配条目（summary/peer/URI/score）；**空结果、未连接、检索错误三态分开**；URI 过白名单；测试 mock 覆盖；**0.5.1.1 live `/search/find` 返回「合同」6 条**。筛选 chips 未做。
 - [x] 健康/任务/统计/技能/pending/problems/token（2026-10-21）：诊断视图展示 `/health`、`/tasks`、`stats/memories`、`/api/v1/skills`、pending 计数、`problems`；**token 用量**由 host `ctx.tokenMeter.measure(session)` 读当前会话（`basis` usage/估算；无 session 或服务时 `—`）。无源项不假装有。
 - [ ] 用量/token：host route 读 `token-meter`/会话日志；本轮未做（无源项不显示）。
-- [ ] 转正（P1 或 P2，先拍）：P1 = 面板点击是授权 → host route 调 `assistantMemory.saveMemory`（同一服务校验）+ `recordApproval(..., 'promote', ...)`；P2 = 模型 turn 内 `assistant_memory save` + `ctx.approval` 的 `approval/asked`/`approval/decided`。两套审计不混用；memory 记录带 `source: openviking:<uri>`；不直接写文件。
+- [ ] 转正（**不做，2026-10-25**；内部走 `assistant_memory save` + 审批）：P1 = 面板点击是授权 → host route 调 `assistantMemory.saveMemory`（同一服务校验）+ `recordApproval(..., 'promote', ...)`；P2 = 模型 turn 内 `assistant_memory save` + `ctx.approval` 的 `approval/asked`/`approval/decided`。两套审计不混用；memory 记录带 `source: openviking:<uri>`；不直接写文件。
 - [ ] 现有删除/恢复/比较不回归；`viki-panel` 测试更新。
 - [x] **研发/专业诊断视图（2026-10-21）**：同一 tab + 默认折叠；host `GET /api/assistant/viki?view=diagnostics`（health/stats/tasks/skills/pending/config，无 key；`problems` 并入）；面板「诊断」懒加载；`viki-panel` 8 案 + host 17 案；真机 `pnpm start` → 右栏 `Viki(调试)` → 诊断/搜索，DOM/screenshot 在案。同时修复 `bindVikiEnv` 生产无 `ctx.web` 时的 `document` fallback（此前真机面板报 “web face is not available”）。**durable Viki scene 仍待**（下一条）。
 - [x] **Viki 专用渲染/DOM 检查（降级态）**：新增 `snapshots/web-face/viki-panel-disconnected/`（`snapshot.yml` + README + `expected.dom.json`）；隔离 home + `OPENVIKING_URL=127.0.0.1:9`，三段 eval 打开右栏 Viki tab，`--wait-text 'Viki 未连接'`；基线录制 + 复跑 **PASS**，console/network 为空。**不覆盖连接态搜索/健康/转正入口**。

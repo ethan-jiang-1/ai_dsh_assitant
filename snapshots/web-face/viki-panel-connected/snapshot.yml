@@ -4,5 +4,6 @@ scenario: viki-panel-connected
 profile: dev            # 隔离 home；assistant-viki 指向本目录 seed.mjs 的固定 OV mock
 recording: live
 comparison: dom-evidence
+surface: debug       # Viki 是调试面：需 #debug=1，不计入客户首屏
 runner: pnpm web-expected '<url>#debug=1' --scenario snapshots/web-face/viki-panel-connected --eval "<new session>" --eval "<open right sidebar>" --eval "<click Viki tab>" --wait-text '固定夹具'
 entry: dev/probes/web/webui-expected.mjs

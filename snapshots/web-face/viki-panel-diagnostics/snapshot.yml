@@ -4,5 +4,6 @@ scenario: viki-panel-diagnostics
 profile: dev            # 隔离 home；assistant-viki 指向 ../viki-panel-connected/seed.mjs 的固定 mock
 recording: live
 comparison: dom-evidence
+surface: debug       # Viki 是调试面：需 #debug=1，不计入客户首屏
 runner: pnpm web-expected '<url>#debug=1' --scenario snapshots/web-face/viki-panel-diagnostics --eval "<new session>" --eval "<open right sidebar>" --eval "<click Viki tab>" --eval "<click 诊断>" --wait-text '健康'
 entry: dev/probes/web/webui-expected.mjs

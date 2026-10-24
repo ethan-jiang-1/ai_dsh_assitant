@@ -5,12 +5,12 @@ DSH 的行为回归证据面按"录一次、keyless 重放比对"运转（一场
 
 **本树两类的现状**（状态归这里——`AGENTS.md` 只写入口与边界，不报进度）：
 
-- **web 渲染期望**：**场景清单以 [`web-face/`](web-face/) 目录为准**（2026-10-23：8 个）。四个桌面/首开场景：
+- **web 渲染期望**：**场景清单以 [`web-face/`](web-face/) 目录为准**（2026-10-25：8 个 = 4 客户面 + 4 调试面；Viki 4 个带 `#debug=1`，不计入客户首屏回归）。四个客户面/首开场景：
   [`blank-first-open`](web-face/blank-first-open/README.md)（裸首开的一页纸空态，harness 试点）、
   [`first-open-draft-banner`](web-face/first-open-draft-banner/README.md)（有草稿待批的首开横幅）、
   [`desk-eight-matters-first-open`](web-face/desk-eight-matters-first-open/README.md)（eight-matters 种子首页：一页纸 + 「全部（8）」）、
   [`desk-eight-matters-brief-list`](web-face/desk-eight-matters-brief-list/README.md)（同种子的「全部」人读列表）；
-  四个 Viki 场景：[`viki-panel-disconnected`](web-face/viki-panel-disconnected/README.md)（降级态）、
+  四个**调试面**场景（`#debug=1`，不是客户面）：[`viki-panel-disconnected`](web-face/viki-panel-disconnected/README.md)（降级态）、
   [`viki-panel-connected`](web-face/viki-panel-connected/README.md)（固定 mock 的列表）、
   [`viki-panel-search`](web-face/viki-panel-search/README.md)（搜索命中）、
   [`viki-panel-diagnostics`](web-face/viki-panel-diagnostics/README.md)（健康/诊断）。harness 是
