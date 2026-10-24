@@ -44,7 +44,7 @@ import { ApprovalDockBanner, FirstMileDock } from './chrome/first-mile'
 import { mountRoomBodies, mountRoomGuides } from './rooms/mount-rooms'
 import { RememberAction } from './rooms/message-action'
 import { createElement } from './chrome/runtime'
-import { bindUiModeRemote, getUiModeStore, initUiModeStore, isUiMode, type ModeRemote } from './chrome/ui-mode'
+import { bindUiModeRemote, initUiModeStore, isUiMode, type ModeRemote } from './chrome/ui-mode'
 import { UiModeRow } from './chrome/ui-mode-row'
 import { returnToConversation } from './chrome/navigation'
 import { bindVikiEnv } from './rooms/viki-data-io'
@@ -234,11 +234,11 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       return registration
     })
 
-    // The developer debug panel is a separate conversation-view tab, present only when the
-    // flag is on. It shares the projection/lane surface (so it can show what the browser really
-    // holds) but never registers on a normal customer boot. A separate `main` registration is not
-    // an option: the main slot is single-occupant, and a second one kills the whole client entry.
-    if (projection !== undefined && storeApi !== undefined && debugEnabled()) {
+    // The developer debug panel and the Viki room share one flag. A separate `main`
+    // registration is not an option for the tab: the main slot is single-occupant, and a second
+    // one kills the whole client entry.
+    const roomsDebug = debugEnabled()
+    if (projection !== undefined && storeApi !== undefined && roomsDebug) {
       ctx.slots.inject('conversation.view', () => ctx.slots.register({
         name: 'conversation.view',
         id: 'assistant-debug',
@@ -287,18 +287,10 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // desk is the one "桌面" — a second desk reading the old room-data copy split the principal's
     // mental model, and the live model routed business items into it. The room components stay
     // exported for their specs; deleting the session-desk subsystem is a follow-up slice.
-    // The room bodies/titles are registered once; the mode only changes which tab types the
-    // "+" guide lists. Re-registering a type leaves its open body alive (mount-rooms.ts).
-    ctx.effect?.(() => {
-      const modeStore = getUiModeStore()
-      let disposeGuides = mountRoomGuides(ctx, modeStore.getSnapshot())
-      const off = modeStore.subscribe(mode => {
-        disposeGuides()
-        disposeGuides = mountRoomGuides(ctx, mode)
-      })
-      return () => { off(); disposeGuides() }
-    }, "assistant: room guides by mode")
-    ctx.effect?.(() => mountRoomBodies(ctx), "assistant: room tab bodies")
+    // The three product rooms are always in the "+" guide; Viki(调试) joins them only when the
+    // debug flag is on (same flag as the developer tab). Density never touches this surface.
+    ctx.effect?.(() => mountRoomGuides(ctx, roomsDebug), "assistant: room guides")
+    ctx.effect?.(() => mountRoomBodies(ctx, roomsDebug), "assistant: room tab bodies")
 
     // Form migration: conversation.composer is a CHAIN slot — chain slots are owner-only
     // registration (the declaring entry is the only one that can add to the chain).

@@ -92,28 +92,25 @@ describe('client-module registration', () => {
       'sidebar.right.pane.tab', 'sidebar.right.pane.tab.title',
       'sidebar.right.pane.tab', 'sidebar.right.pane.tab.title',
       'sidebar.right.pane.tab', 'sidebar.right.pane.tab.title',
-      'sidebar.right.pane.tab', 'sidebar.right.pane.tab.title',
       'settings.general.item',
       'conversation.hero.brand.mark', 'conversation.chat.assistant-actions', 'conversation.input.dock', 'conversation.input.dock',
     ])
-    // The tab types register first (their guide lists depend on the mode), then each room's
-    // keyed body and keyed tab title (the glyph chip); the first-mile strip and the approval
-    // banner close the set. The default is standard, so Viki's guide is empty while its tab
-    // type/body still register (an already-open Viki tab must keep rendering).
+    // The tab types register first (the three product rooms; Viki is debug-only, so this
+    // default boot carries none), then each room's keyed body and keyed tab title (the glyph
+    // chip); the first-mile strip and the approval banner close the set.
     expect(registered).toEqual([
       'assistant-tasks',
       'dsh-smart-assistant-dashboard', 'dsh-smart-assistant-dashboard', 'assistant-desk',
       'sidebar.brand.mark', 'sidebar.brand.name',
-      'tab:knowledgeRoom', 'tab:memoryRoom', 'tab:vikiRoom', 'tab:skillsRoom',
+      'tab:knowledgeRoom', 'tab:memoryRoom', 'tab:skillsRoom',
       'dsh-smart-assistant-knowledge', 'dsh-smart-assistant-knowledge',
       'dsh-smart-assistant-memory', 'dsh-smart-assistant-memory',
-      'dsh-smart-assistant-viki', 'dsh-smart-assistant-viki',
       'dsh-smart-assistant-skills', 'dsh-smart-assistant-skills',
       'assistant-ui-mode',
       'conversation.hero.brand.mark',
       'dsh-smart-assistant-remember', 'assistant-first-mile', 'assistant-approval-banner',
     ])
-    // Standard lists the three rooms; Viki is expert-only (its type still registers).
+    // The default boot lists the three product rooms; Viki is debug-only and absent.
     expect(guideEntries).toEqual([
       'dsh-smart-assistant-knowledge-guide',
       'dsh-smart-assistant-memory-guide',

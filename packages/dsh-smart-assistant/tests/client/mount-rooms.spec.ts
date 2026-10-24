@@ -1,17 +1,15 @@
 /**
- * Room registration split (`src/client/rooms/mount-rooms.ts`): bodies/titles live once, tab
- * types carry the mode-filtered guide list.
- *
- * Acceptance points:
- * - bodies and titles are registered once for all four rooms and disposed together;
- * - simple lists no room in the guide; standard hides only Viki; expert lists all four;
- * - disposing a mode's types removes exactly those four registrations.
+ * Room registration split (`src/client/rooms/mount-rooms.ts`): the three product rooms are
+ * always available; Viki(调试) exists only when the debug flag is on. Density is a full-board
+ * preference and never touches this surface.
  */
 import { describe, expect, it } from 'vitest'
 import type { ClientContext } from '../../src/client/chrome/contracts'
 import type { SidebarRightTabDefinition } from '../../src/client/chrome/contracts'
 import { mountRoomBodies, mountRoomGuides } from '../../src/client/rooms/mount-rooms'
 import { roomTabs } from '../../src/client/rooms/room-tabs'
+
+const productRooms = roomTabs.filter(room => room.kind !== 'vikiRoom')
 
 function harness() {
   const tabs: SidebarRightTabDefinition[] = []
@@ -40,34 +38,36 @@ function harness() {
 }
 
 describe('mountRoomBodies', () => {
-  it('registers one body and one title for every room and disposes them', () => {
+  it('registers one body and one title for the three product rooms by default', () => {
     const { ctx, registers, disposed } = harness()
-    const dispose = mountRoomBodies(ctx)
-    expect(registers.filter(entry => entry.startsWith('register:sidebar.right.pane.tab:'))).toHaveLength(roomTabs.length)
-    expect(registers.filter(entry => entry.startsWith('register:sidebar.right.pane.tab.title:'))).toHaveLength(roomTabs.length)
+    const dispose = mountRoomBodies(ctx, false)
+    expect(registers.filter(entry => entry.startsWith('register:sidebar.right.pane.tab:'))).toHaveLength(productRooms.length)
+    expect(registers.filter(entry => entry.startsWith('register:sidebar.right.pane.tab.title:'))).toHaveLength(productRooms.length)
+    expect(registers.some(entry => entry.includes('viki'))).toBe(false)
     dispose()
-    expect(disposed.length).toBe(2 * roomTabs.length)
+    expect(disposed.length).toBe(2 * productRooms.length)
+  })
+
+  it('adds Viki body and title only when the debug flag is on', () => {
+    const { ctx, registers } = harness()
+    mountRoomBodies(ctx, true)
+    expect(registers.filter(entry => entry.startsWith('register:sidebar.right.pane.tab:'))).toHaveLength(roomTabs.length)
+    expect(registers.some(entry => entry.includes('viki'))).toBe(true)
   })
 })
 
 describe('mountRoomGuides', () => {
   const guideKinds = (tabs: SidebarRightTabDefinition[]) => tabs.map(tab => [tab.kind, tab.guide?.length ?? 0])
 
-  it('lists no room in simple', () => {
+  it('guides the three product rooms and no Viki by default', () => {
     const { ctx, tabs } = harness()
-    mountRoomGuides(ctx, 'simple')
-    expect(guideKinds(tabs)).toEqual(roomTabs.map(room => [room.kind, 0]))
+    mountRoomGuides(ctx, false)
+    expect(guideKinds(tabs)).toEqual(productRooms.map(room => [room.kind, 1]))
   })
 
-  it('hides only Viki in standard', () => {
-    const { ctx, tabs } = harness()
-    mountRoomGuides(ctx, 'standard')
-    expect(guideKinds(tabs)).toEqual(roomTabs.map(room => [room.kind, room.kind === 'vikiRoom' ? 0 : 1]))
-  })
-
-  it('lists every room in expert and disposes exactly the registered types', () => {
+  it('adds the Viki guide only when debug is on, and disposes exactly the registered types', () => {
     const { ctx, tabs, disposed } = harness()
-    const dispose = mountRoomGuides(ctx, 'expert')
+    const dispose = mountRoomGuides(ctx, true)
     expect(guideKinds(tabs)).toEqual(roomTabs.map(room => [room.kind, 1]))
     dispose()
     expect(disposed).toEqual(roomTabs.map(room => `tab:${room.id}`).reverse())

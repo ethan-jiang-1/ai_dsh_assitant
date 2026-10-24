@@ -10,51 +10,38 @@
  */
 
 import type { CommandContribution, RoomKind } from './contracts'
-import { getUiModeStore, setUiMode } from './ui-mode'
+import { setUiMode } from './ui-mode'
 
 /**
- * The three interface densities as commands: the same switch as the settings row, reachable
+ * The three full-board densities as commands: the same switch as the settings row, reachable
  * from `/` when the settings page is not open. The names are literals so the generated package
  * catalog lists them.
- * @returns one contribution per mode.
+ * @returns one contribution per density.
  */
 export function uiModeCommands(): CommandContribution[] {
   return [
     {
       name: 'mode-simple',
-      label: () => '界面：简洁',
-      description: () => '只保留对话与桌面；房间 tab 从「+」向导收起',
+      label: () => '看板：紧凑',
+      description: () => '完整看板收起流水与主动建议；首页/房间/调试不变',
       available: () => true,
       ui: { kind: 'action', run: () => { setUiMode('simple') } },
     },
     {
       name: 'mode-standard',
-      label: () => '界面：标准',
-      description: () => '知识 / 记忆 / 技能三个房间可见',
+      label: () => '看板：标准',
+      description: () => '完整看板的标准密度；房间与调试不随它变',
       available: () => true,
       ui: { kind: 'action', run: () => { setUiMode('standard') } },
     },
     {
       name: 'mode-expert',
-      label: () => '界面：专家',
-      description: () => '全部可见，含 Viki(调试)；审批与错误始终在场',
+      label: () => '看板：完整',
+      description: () => '完整看板显示全部；Viki 与开发调试由 debug flag 决定',
       available: () => true,
       ui: { kind: 'action', run: () => { setUiMode('expert') } },
     },
   ]
-}
-
-/**
- * Simple mode hides the room and desk-history commands (their surfaces are not in the simple
- * desk), while the `mode-*` commands stay as the way out. The mode is read at menu-open time;
- * approvals and errors are not commands and never disappear.
- */
-function visibleInMode(command: CommandContribution): CommandContribution {
-  return {
-    ...command,
-    available: (session: unknown): boolean =>
-      command.available(session) && (getUiModeStore().getSnapshot() !== 'simple' || command.name.startsWith('mode-')),
-  }
 }
 
 /**
@@ -80,7 +67,7 @@ export function roomCommands(open: (kind: RoomKind) => void): CommandContributio
       ui: { kind: 'action', run: () => { open('memoryRoom') } },
     },
   ]
-  return commands.map(visibleInMode)
+  return commands
 }
 
 /**
@@ -94,11 +81,11 @@ export function deskCommands(openActivity: () => void): CommandContribution[] {
   const commands: CommandContribution[] = [
     {
       name: 'desk-activity',
-      label: () => '打开桌面·流水',
+      label: () => '打开完整看板·流水',
       description: () => '做过的每一件事：账本操作的倒序流水，点条目跳到那件事',
       available: () => true,
       ui: { kind: 'action', run: openActivity },
     },
   ]
-  return commands.map(visibleInMode)
+  return commands
 }

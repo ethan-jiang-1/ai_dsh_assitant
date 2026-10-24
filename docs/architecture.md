@@ -106,11 +106,12 @@ AGENT 面（`cordis.patch.yml` 的 `preset-assistant` 行 → agent preset）
 |---|---|---|---|---|
 | **常用面** | 我该拍什么板？它替我做了什么？ | 主区一页纸 | 是 | 一页纸 + 一个输入；不出现看板/房间/调试；**审批、错误、风险永在这里** |
 | **深看面** | 它凭什么这么判断？还有哪些事？ | 页内「看依据」、「全部」、列表里的「完整看板」 | 不挡路，随时可点 | 人话的依据/列表/完整看板；「回到今天」回常用面；不引入新的主对象 |
-| **调试面** | 系统现在到底在干什么？ | `#debug=1` 或 localStorage `dsh-assistant-debug=1` | 否 | 独立「开发调试」tab、只读；不是客户面，不是权限边界；原始文件出口在这个面里，不另立一层 |
+| **调试面** | 系统现在到底在干什么？ | `#debug=1` 或 localStorage `dsh-assistant-debug=1` | 否 | 独立「开发调试」tab + Viki(调试) 房，同门、只读；不是客户面，不是权限边界；原始文件出口在这个面里，不另立一层 |
 
 实现 = `client/projection/home-surface.ts`（常用/深看切换）、`client/projection/brief-list.ts`（全部列表）、
-`client/debug/debug-panel.ts` + `client/chrome/debug-flag.ts`（调试面）。**三档「简洁/标准/专家」是完整看板与
-房间入口的显示密度，不是这三层**；首页不随它变。层与层之间不靠 CSS 隐藏——不同门、不同组件、不同注册条件。
+`client/debug/debug-panel.ts` + `client/chrome/debug-flag.ts`（调试面；**Viki(调试) 与开发调试 tab 同由该 flag 决定**）。
+**三档「紧凑/标准/完整」只是完整看板内部的显示密度，不是这三层**；首页、全部、它记下的、房间与调试都不随它变。
+层与层之间不靠 CSS 隐藏——不同门、不同组件、不同注册条件。
 
 **为什么服务在 host 面**：working folder 是**跨会话持久化**，与持久化/沙箱/模型路由同类；
 client 的房间 tab 读的就是同一个实例；preset 里的服务行必须包在 isolate realm 里，

@@ -21,12 +21,12 @@ function storage() {
   return { getItem: (key: string): string | null => values.get(key) ?? null, setItem: (key: string, value: string): void => { values.set(key, value) } }
 }
 
-function buttons(node: unknown, found: { props: { 'data-ui-mode'?: string, 'aria-pressed'?: string, onClick?: () => void } }[] = []) {
+function buttons(node: unknown, found: { props: { 'data-ui-mode'?: string, 'aria-pressed'?: string, onClick?: () => void, children?: unknown } }[] = []) {
   if (Array.isArray(node)) { for (const child of node) buttons(child, found); return found }
   if (node === null || typeof node !== 'object') return found
   const element = node as { type?: unknown, props?: { children?: unknown, 'data-ui-mode'?: string, 'aria-pressed'?: string, onClick?: () => void } }
   if (element.type === 'button' && element.props?.['data-ui-mode'] !== undefined) {
-    found.push(element as { props: { 'data-ui-mode'?: string, 'aria-pressed'?: string, onClick?: () => void } })
+    found.push(element as { props: { 'data-ui-mode'?: string, 'aria-pressed'?: string, onClick?: () => void, children?: unknown } })
   }
   return buttons(element.props?.children, found)
 }
@@ -36,6 +36,7 @@ describe('UiModeRow', () => {
     initUiModeStore(storage())
     const first = buttons(UiModeRow())
     expect(first.map(button => button.props['data-ui-mode'])).toEqual(['simple', 'standard', 'expert'])
+    expect(first.map(button => button.props.children)).toEqual(['紧凑', '标准', '完整'])
     expect(first.find(button => button.props['data-ui-mode'] === 'standard')?.props['aria-pressed']).toBe('true')
     first.find(button => button.props['data-ui-mode'] === 'simple')?.props.onClick?.()
     expect(getUiModeStore().getSnapshot()).toBe('simple')
