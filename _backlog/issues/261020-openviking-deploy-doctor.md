@@ -231,7 +231,7 @@ doctor 对账 1↔2↔运行中 server（check 10）与 3/4；Viki 的 baseUrl �
 - [x] **当前云端暴露已收口**：active profile 的 OV config 里 `captureToolResults: false`，或 `captureFilters` 非空且 doctor check 8 绿；规则为空时 check 8 必须红。**2026-10-21：dev 走 `captureToolResults: false`（`dsh.mjs`/`ov-install.sh` 默认），`OPENVIKING_CLOUD_ACK=1` 下 check 8 `ok`；no-ack 时 `FAIL 8`。过滤器的假 key 端到端测试未做（当前口径是 capture off，不依赖过滤器）。**
 - [x] `GET /health` 的版本与 `openviking-server --version` 一致（当前目标 0.5.1.1）；doctor 不把 MCP `serverInfo`（1.30.0）当 server 版本。**2026-10-21：health `version=0.5.1.1`；venv `openviking-server --version` = `openviking-server 0.5.1.1`。**
 - [x] OV 行在场时，MCP `initialize` 的 `instructions` 为空；出现未审文本时 doctor 至少报 warn 并标出 server 名。**2026-10-21：6m `ok server=openviking; instructions empty`；mock 测试覆盖有文本 → warn 带 server 名。**
-- [ ] README 的部署节从**一次性 home 的空配置**开始照做能到 doctor 绿（至少 dry-run 路径）；故障表每条有可复现的现象与修法；不碰日用 `~/.dsh`。
+- [x] README 的部署节从**一次性 home 的空配置**开始照做能到 doctor 绿（至少 dry-run 路径）；故障表每条有可复现的现象与修法；不碰日用 `~/.dsh`。**2026-10-25 复跑（当前导出包 511 条目）：空 home → `dsh plugin --profile web add` 自动初始化 profile → 替换占位 `[]` → `--dump-config` 见 `default: assistant` / `preset-assistant` / `assistant-memory`；OV 缺席 doctor exit 2、Viki 503；OV 在场 doctor exit 0、Viki 200、rooms 200、preflight green；手册的 `try-assistant` 隔离路径也通过。**
 - [x] 正常 `pnpm start` 后 `GET /api/assistant/viki` 返回 200（不再依赖手工 `OPENVIKING_URL`）；OpenViking 缺席时返回 503 且 DSH 启动不受影响。**2026-10-21 真机：preflight 绿；token→cookie 后 200 `connected:true`（实例已收）。**
 - [x] `pnpm preflight` 打印 OV 状态；OV 红时 preflight 仍按 DSH 自身判据退出。**2026-10-21：干净 home 实例 `preflight` 输出 `info OV layer: 0.5.1.1 at http://127.0.0.1:1933 (optional)`，verdict 仍 `green`。**
 - [x] **安装面**：`pnpm export-dist` 的《安装手册》覆盖 DSH/Node 前置、插件安装 + `agent-preset-registry.default: assistant`、可选 OV 安装/配置/启动/doctor/故障表、卸载；手册不含本机绝对路径或真 key。**2026-10-21 干净 home 走查发现并修掉一个真卡点：新 profile 的 `cordis.patch.yml` 自带占位 `[]`，手册原文“追加”会产出非法 YAML；生成器已改成“把 `[]` 整行替换”，`pnpm export-dist` 重生成，干净 home 复跑通过。**
@@ -326,6 +326,15 @@ doctor 对账 1↔2↔运行中 server（check 10）与 3/4；Viki 的 baseUrl �
 - live（0.5.1.1）`OPENVIKING_CLOUD_ACK=1 node bin/ov-doctor.mjs --profile dev ... --no-upstream`：`exit 0; 0 fail, 1 warn, 2 skip`；`6m server=openviking; instructions empty`；`8 cloud/capture: ack=true; captureToolResults=false`；唯一 warn 是 check 10 的 `OPENVIKING_CONF` 未显式设（同源提示）。
 - 同轮修掉 check 7 的假绿：config 校验失败（如 storage 在 `.tmp`）时不再报 `ok persistent root`，改为 `SKIP not judged`；temp server 复跑确认 `FAIL 2 config` + `SKIP 7`，check 5 仍 `ok`。
 - 手册与故障表同步：doctor 覆盖 MCP instructions；`--write` 的写记忆边界写明。
+
+### 2026-10-25 · 安装面 fresh-home 复跑（agent dry run，当前导出包）
+
+- `pnpm export-dist`：tarball **511 条目 / skills ×15 / 13 peers**；《安装手册》重新生成（443→511 条目）。
+- 空 home（`.tmp/install-walk-2/home`，显式 `DSH_HOME`）：`dsh plugin --profile web add` 自动初始化 profile；`cordis.patch.yml` 仍是注释 + 占位 `[]`，按手册"把 `[]` 整行替换"后 `--dump-config` 见 `default: assistant`（628）、`preset-assistant`（1273）、`assistant-memory`（1233）。
+- **OV 缺席**：包内 doctor `--no-upstream` → `OFF 6 composition`、**exit 2**；`OPENVIKING_URL` 指死端口起 web → `GET /api/assistant/viki` **503**（`viki-unavailable`），`pnpm preflight` 仍 green。
+- **OV 在场**：`dsh plugin --profile web add vendor/thirdparty/openviking/dsh-memory-plugin-0.5.26.tgz` → dump-config 见 `openviking-memory-runtime`（1472）与 `assistant-viki`（1245）；`OPENVIKING_CONF` + `OPENVIKING_CLOUD_ACK=1` + `OPENVIKING_CAPTURE_TOOL_RESULTS=false` 下 doctor **exit 0**（0 fail / 0 warn / 2 skip；6m instructions empty；7 persistent root；9 版本 0.5.1.1 / 0.5.26）；web → Viki **200 `connected:true`**、rooms 200。
+- 手册的隔离试用路径（`--profile try-assistant --from-default-profile web` + add）bootstrap 与 add 均 exit 0。
+- **边界**：OV 一层连的是本机已运行的 0.5.1.1 实例（配置/存储在 `dev/harness-home/openviking/`），不是"另一个人自己的 OV 安装"；真人走查仍要覆盖 OV 从零安装与账户/系统差异。本次全程未把插件装进 `dev/harness-home`，未读写日用 `~/.dsh`。
 
 ## 另一人走查记录（待填）
 

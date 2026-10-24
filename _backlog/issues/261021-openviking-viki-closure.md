@@ -32,12 +32,25 @@ opened: 2026-10-21
 | 片 | 状态 | 证据 |
 |---|---|---|
 | S0 裁决/载体 | 已交付 | [方向评审卡](../_archive/settled_issues/261020-openviking-direction-review.md) 已结；本卡 + [proposed 卡](../../notes/proposed/2026-10-21-openviking-viki-landing.md) |
-| S1 安装/配置面 | 部分交付 | [部署卡](261020-openviking-deploy-doctor.md) §5：`_dist/安装手册.md` 已含 preset 默认 + OV 安装/配置/启动/Viki/工具结果关闭 + doctor；`release-smoke` 的 `web-smoke` 干净 home 已证 install + preset 默认 + 包内 doctor + **OV 在场 mock doctor exit 0 / 缺席 exit 2**；`dev/env/dsh.mjs`/`ov-install.sh` 已默认 `captureToolResults: false`。**2026-10-21 agent 干净 home dry run 通过（未替代真人环境）**：按手册装 tgz、替换占位 `[]` 后 dump-config 见 `preset-assistant`、boot URL 出、包内 doctor OV 缺席 exit 2；并修掉手册“追加到 `[]` 后产生非法 YAML”的真卡点（生成器已改）。**待做**：真人另一人走查（agent dry run 不替代）、用户侧 OV 安装脚本（手册路径已证，脚本可选） |
+| S1 安装/配置面 | 部分交付 | [部署卡](261020-openviking-deploy-doctor.md) §5：`_dist/安装手册.md` 已含 preset 默认 + OV 安装/配置/启动/Viki/工具结果关闭 + doctor；`release-smoke` 的 `web-smoke` 干净 home 已证 install + preset 默认 + 包内 doctor + **OV 在场 mock doctor exit 0 / 缺席 exit 2**；`dev/env/dsh.mjs`/`ov-install.sh` 已默认 `captureToolResults: false`。**2026-10-21 agent 干净 home dry run 通过（未替代真人环境）**：按手册装 tgz、替换占位 `[]` 后 dump-config 见 `preset-assistant`、boot URL 出、包内 doctor OV 缺席 exit 2；并修掉手册“追加到 `[]` 后产生非法 YAML”的真卡点（生成器已改）。**待做**：真人另一人走查（agent dry run 不替代）、用户侧 OV 安装脚本（手册路径已证，脚本可选）。**2026-10-25 复跑**：当前导出包（511 条目）+ 空 home 全走查通过——doctor exit 2/0、Viki 503/200、rooms 200、preflight green、`try-assistant` 隔离路径通过；记录见[部署卡](261020-openviking-deploy-doctor.md) 2026-10-25 节。 |
 | S2 部署/doctor | 进行中 | 云端暴露收口已落 `dsh.mjs`/`ov-install.sh`；包内 `bin/ov-doctor.mjs` 已交付（1/2/3/4/6/6b/6c/6d/6m/7/8/9/10；5 写探针仍 SKIP）；**6m MCP `initialize.instructions` 已落并 live 验证（`server=openviking; instructions empty`）**；Viki baseUrl 默认已落并测，真机 `pnpm start` → `GET /api/assistant/viki` 200 `connected:true`；**6m MCP instructions 已 live 验证**；check 5 `--write` 在一次 0.5.1.1 temp server 上真跑通过（sentinel commit + task completed），默认仍只读；check 7 假绿已修；`OPENVIKING_CLOUD_ACK=1` 下 live doctor exit 0（1 warn/2 skip）——云端 ack 是显式环境变量，不是代码默认 |
 | S3 运行态 0.5.1.1/存储/旋钮 | 部分交付 | [运行态卡](261020-openviking-runtime-repair.md)：**0.5.1.1 + 持久存储 + v3 旋钮 + 两次 commit + 真机 recall/commit（stats 6→8；新记忆在 assistant peer）+ 回滚副本 + fresh-home 无插件均已过**；**预算/召回抽样已记**（3 会话：6 记忆、`detail=overview`、≈3.3k 字符/830 token、占 input 17–45%，口径见运行态卡）；doctor 云端 ack、用户 review 待做；**旧 peer 回填已决定不做**（保留 provenance；`search/find` 实测命中旧 peer）；受控预算 A/B 转为回归触发项（抽样已记） |
 | S4 只读检索 A/B | **已采用（A2，2026-10-23）** | [检索卡](261020-openviking-retrieval-viki.md) A/B：固定 12 题、0–2 评分表、A1/A2 原型指针（A1 `ab/a1-allowlist` @ `3fa7b4d`、A2 `ab/a2-recall`）、采用 = A2（`cordis.patch.yml` 的 `assistant-recall-tool`）；pointer probe 证明 A2 `assistant_recall read` 是唯一可达按需读路径；A1 资源发现被 `denyServerResources` 挡住，只作历史。`pnpm verify` 通过（条数以 verify.mjs 为准）、build、release-smoke 通过；**`pnpm eval` 7/7**（1 个 web-only NOT EVALUATED）；曾经的 0/7 是 headless harness 未注入 key，[BUG-024](../_archive/fixed_bugs/BUG-024-eval-baseline-red.md) 已修；`pnpm test` 通过（条数以测试运行为准） |
 | S5 Viki 面板 | 部分交付（Viki 已改调试门） | [检索卡](261020-openviking-retrieval-viki.md) Viki：**诊断 + 搜索 + token + `Viki(调试)` tab 已交付**（0.5.1.1 live 搜索「合同」6 条；token 行真机可见），但自 2026-10-24 起**只在 `#debug=1` 下可见**，不是客户/专家面。**Viki 4 个场景已于 2026-10-25 以 flag 重录并 PASS**；当前 8 个场景。**转正不做（2026-10-25）**：Viki 是调试面，内部需要走 `assistant_memory save` + 既有审批，不再造面板写/审面。 |
 | S6 收口 | 技术门禁已绿，待真人 | `pnpm verify` 通过（条数以 verify.mjs 为准）、`pnpm test` 通过（条数以测试运行为准）、`pnpm eval` 7/7（1 web-only NOT EVALUATED）、`eval:continuity` PASS；剩 S1 真人走查（记录表在部署卡）+ S3 用户 review/旧 peer/受控量测 + 卡归档/note 改写 |
+
+## 推进顺序（2026-10-25 排定）
+
+> 用户 2026-10-25 批准按 P1→P4 自主推进；人审（S1 走查 / S3 review / 三条口味）本人决定"先挂着，等日常使用时再判"，不由 agent 代判。次序理由：agent 先证完 → 人输入一次取 → 归档原子落；手册走查早于真人（不让人踩文档坑），A/B 复跑早于人抽查（没有材料可抽）。
+
+| 片 | 内容 | 依赖 | 状态 |
+|---|---|---|---|
+| P1 安装面 fresh-home 复跑 | 当前导出包 + 空 home（OV 缺席/在场）、修手册卡点 | — | **完成（2026-10-25）** |
+| P2 A/B 实施后复跑 | 12 题 + 指针展开 probe；按当前语料重校期望、逐题标可比性 | OV live | 待做 |
+| P3 台账对账 | 四卡勾选/状态行、`issues/README`、S5 已实现项 | P1、P2 | 待做 |
+| P4 决策 note | 旋钮/peer/capture off；A2 native recall 取代 A1 allowlist；proposed 卡改写 | 决定已定 | 待做 |
+| B 人审包 | 走查表、A/B 抽查 3 条、S3 review、三条口味脚本 | P1、P2 | 待做（执行挂起） |
+| C 收口 | 三张规格卡 + 本卡归档、note 改写、清单与 trigger 收口 | B + P3 + P4 | 待做（等人输入） |
 
 ## 验收标准
 
@@ -50,9 +63,10 @@ opened: 2026-10-21
 
 ## 仍未取
 
-- S1 另一人安装走查（记录表在部署卡；agent dry run 不替代）。
-- S3 用户 review / 受控量测。
-- S6 收口：三张规格卡与 proposed 卡按生命周期归档/改写。
+- S1 另一人安装走查（记录表在部署卡；agent dry run 不替代）。**2026-10-25 用户决定：挂到日常使用触发，不由 agent 代判。**
+- S3 用户 review / 受控量测。**同挂日常使用触发；受控预算 A/B 仍是回归触发项，不预建。**
+- 三条口味 verdict 在人判卡（[261025-open-human-verdicts](261025-open-human-verdicts.md)），同一次人审回收。
+- S6 收口：三张规格卡与 proposed 卡按生命周期归档/改写（等前两条）。
 
 ## 关闭条件
 
