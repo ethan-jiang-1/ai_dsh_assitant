@@ -105,10 +105,11 @@ AGENT 面（`cordis.patch.yml` 的 `preset-assistant` 行 → agent preset）
 | 层 | 回答谁的问题 | 入口 | 默认 | 边界 |
 |---|---|---|---|---|
 | **常用面** | 我该拍什么板？它替我做了什么？ | 主区一页纸 | 是 | 一页纸 + 一个输入；不出现看板/房间/调试；**审批、错误、风险永在这里** |
-| **深看面** | 它凭什么这么判断？还有哪些事？ | 页内「看依据」、「全部」、列表里的「完整看板」 | 不挡路，随时可点 | 人话的依据/列表/完整看板；「回到今天」回常用面；不引入新的主对象 |
+| **深看面** | 它凭什么这么判断？还有哪些事？ | 页内「看依据」、「全部」、「它记下的」、列表里的「完整看板」 | 不挡路，随时可点 | 人话的依据/列表/记录/完整看板；「回到今天」回常用面；不引入新的主对象 |
 | **调试面** | 系统现在到底在干什么？ | `#debug=1` 或 localStorage `dsh-assistant-debug=1` | 否 | 独立「开发调试」tab + Viki(调试) 房，同门、只读；不是客户面，不是权限边界；原始文件出口在这个面里，不另立一层 |
 
 实现 = `client/projection/home-surface.ts`（常用/深看切换）、`client/projection/brief-list.ts`（全部列表）、
+`client/projection/records-surface.ts`（它记下的只读记录面）、
 `client/debug/debug-panel.ts` + `client/chrome/debug-flag.ts`（调试面；**Viki(调试) 与开发调试 tab 同由该 flag 决定**）。
 **三档「紧凑/标准/完整」只是完整看板内部的显示密度，不是这三层**；首页、全部、它记下的、房间与调试都不随它变。
 层与层之间不靠 CSS 隐藏——不同门、不同组件、不同注册条件。
@@ -178,7 +179,8 @@ seam 的成色读数是**第二个真实 Provider 出现而 Consumer 一行不�
 | `src/client/projection/desk-surface.ts` | 桌面面板的 lane surface 工厂：回调、导航与建议动作从 20 字段 props 中抽出；panel 只收 hooks / store / actions | 无（平台 face 由入口传入） |
 | `src/client/projection/one-page-home.ts` | 常用面一页纸：空态一问 + 当前页 + 一个输入；页上三按钮走 capture / page-action lane；待审草稿提示永在常用面 | `projection-panel` 的 props 契约 |
 | `src/client/projection/brief-list.ts` | 深看面「全部」：每件事一行（标题 / 状态 / 复查 / 摘要首行），点行选中并回页；「完整看板」再进旧看板 | `projection-panel` 的 props 契约 |
-| `src/client/projection/home-surface.ts` | 三面切换：一页纸 →「全部」人读列表 →「完整看板」；「回到今天」返回；切换状态不持久化 | 上述三个纯组件 |
+| `src/client/projection/home-surface.ts` | 四面切换：一页纸 →「全部」人读列表 / 「它记下的」记录面 / 「完整看板」；「回到今天」返回；切换状态不持久化 | 上述纯组件 |
+| `src/client/projection/records-surface.ts` | 「它记下的」只读记录面：知识（非归档）/ 记忆（非内部规则）/ 技能；不做编辑 | `rooms/room-data-core` 的 `DeskData` |
 | `src/client/debug/debug-panel.ts` | 调试面开发调试：投影状态 / revision / ledgerId / 选中项 / session / 会话状态 + 只读投影 JSON + 复制诊断；仅在 `#debug=1` 或 localStorage 标志下注册为会话视图 tab | `projection-panel` 的 props 契约 |
 | `src/client/chrome/ui-mode.ts` | 界面密度 store：simple / standard / expert、localStorage 首屏、per-materialization 重置；per-home `ui-mode.json` 经 Host route 采用/写回（远端失败保留本地） | 无（浏览器 storage 可缺席） |
 | `src/client/chrome/ui-mode-row.ts` | `settings.general.item` 行：三档选择与当前态；只写共享 mode store，不发请求 | `chrome/ui-mode` |

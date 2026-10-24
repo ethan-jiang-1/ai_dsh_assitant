@@ -240,6 +240,20 @@ describe('OnePageHome', () => {
     expect(text(renderHome(props))).not.toContain('你 10/23 的原话')
   })
 
+  it('HomeSurface opens the records page from 它记下的 and returns home', () => {
+    const { props } = panelProps({ status: 'missing' })
+    const home = expand(HomeSurface(props))
+    findButton(home, '它记下的')?.onClick?.()
+    stateIndex = 0
+    const records = expand(HomeSurface(props))
+    expect(text(records)).toContain('它记下的')
+    expect(text(records)).toContain('回到今天')
+    findButton(records, '回到今天')?.onClick?.()
+    stateIndex = 0
+    const back = expand(HomeSurface(props))
+    expect(text(back)).toContain('最近哪件事让你拿不准')
+  })
+
   it('HomeSurface goes home -> list -> board and back', () => {
     const { props } = panelProps({ status: 'ready', data: projection([matter()]) })
     const { onOpenAll: _unused, ...panel } = props

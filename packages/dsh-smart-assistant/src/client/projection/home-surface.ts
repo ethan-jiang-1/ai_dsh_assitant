@@ -20,9 +20,10 @@ import { createElement as ce, reactSurface } from '../chrome/runtime'
 import { OnePageHome } from './one-page-home'
 import { BriefList } from './brief-list'
 import { ProjectionPanel } from './projection-panel'
+import { RecordsSurface } from './records-surface'
 import type { ProjectionPanelProps } from './projection-panel'
 
-type Surface = 'home' | 'list' | 'board'
+type Surface = 'home' | 'list' | 'board' | 'records'
 
 /**
  * Render one of the three surfaces. `全部` opens the list; `完整看板` opens the old board.
@@ -33,12 +34,18 @@ export function HomeSurface(props: ProjectionPanelProps): ReturnType<typeof ce> 
   const { useState } = reactSurface()
   const [surface, setSurface] = useState<Surface>('home')
   if (surface === 'board') return ce(ProjectionPanel, { ...props, onBackHome: () => setSurface('home') })
+  if (surface === 'records') return ce(RecordsSurface, { onBackHome: () => setSurface('home') })
   if (surface === 'list') {
     return ce(BriefList, {
       ...props,
       onBackHome: () => setSurface('home'),
       onOpenBoard: () => setSurface('board'),
+      onOpenRecords: () => setSurface('records'),
     })
   }
-  return ce(OnePageHome, { ...props, onOpenAll: () => setSurface('list') })
+  return ce(OnePageHome, {
+    ...props,
+    onOpenAll: () => setSurface('list'),
+    onOpenRecords: () => setSurface('records'),
+  })
 }

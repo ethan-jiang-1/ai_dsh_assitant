@@ -52,11 +52,15 @@ function reviewLine(matter: OperatingMatter): string {
  * @param props - The same injected contract as the home, plus the two exits.
  * @returns The list surface.
  */
-export function BriefList(props: ProjectionPanelProps & { onBackHome: () => void, onOpenBoard: () => void }): ReturnType<typeof ce> {
+export function BriefList(props: ProjectionPanelProps & { onBackHome: () => void, onOpenBoard: () => void, onOpenRecords?: () => void }): ReturnType<typeof ce> {
   const download = props.useProjection(value => value)
   const data = download.data
   const matters = data?.matters ?? []
   const unclaimed = data?.unclaimed ?? []
+  const openRecords = (): void => {
+    if (props.onOpenRecords !== undefined) props.onOpenRecords()
+    else props.surface.lanes.onOpenRecords?.()
+  }
   return ce('main', { className: 'dsha-list', 'data-assistant-brief-list': true },
     ce('style', {}, STYLES),
     ce('header', { className: 'dsha-list-head' },
@@ -64,6 +68,7 @@ export function BriefList(props: ProjectionPanelProps & { onBackHome: () => void
       ce('span', { className: 'dsha-list-sub' }, `${String(matters.length)} 件在账上`),
       ce('div', { className: 'dsha-list-links' },
         ce('button', { className: 'dsha-list-link', type: 'button', onClick: () => props.onBackHome() }, '回到今天'),
+        ce('button', { className: 'dsha-list-link', type: 'button', onClick: () => openRecords() }, '它记下的'),
         ce('button', { className: 'dsha-list-link', type: 'button', onClick: () => props.onOpenBoard() }, '完整看板'))),
     download.status === 'error'
       ? ce('p', { className: 'dsha-list-empty', role: 'alert' }, '桌面读取失败，回到今天重试或直接跟助手说。')

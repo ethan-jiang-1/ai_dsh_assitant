@@ -91,8 +91,12 @@ function pageTime(matter: OperatingMatter): string {
  * @param props - The same hook/actions/surface contract the projection panel receives.
  * @returns The home element.
  */
-export function OnePageHome(props: ProjectionPanelProps & { onOpenAll: () => void }): ReturnType<typeof ce> {
+export function OnePageHome(props: ProjectionPanelProps & { onOpenAll: () => void, onOpenRecords?: () => void }): ReturnType<typeof ce> {
   const { useEffect, useState } = reactSurface()
+  const openRecords = (): void => {
+    if (props.onOpenRecords !== undefined) props.onOpenRecords()
+    else props.surface.lanes.onOpenRecords?.()
+  }
   const [showBasis, setShowBasis] = useState(false)
   const [actionError, setActionError] = useState<string | undefined>(undefined)
   const download = props.useProjection(value => value)
@@ -108,7 +112,7 @@ export function OnePageHome(props: ProjectionPanelProps & { onOpenAll: () => voi
         className: 'dsha-home-act', type: 'button',
         onClick: () => {
           patchDesk({ focusKnowledge: 'drafts' })
-          props.surface.lanes.onOpenRecords?.()
+          openRecords()
         },
       }, '去审批'))
     : null
@@ -252,7 +256,7 @@ export function OnePageHome(props: ProjectionPanelProps & { onOpenAll: () => voi
           ...basisLines(current),
           ce('button', {
             className: 'dsha-home-basis-toggle', type: 'button',
-            onClick: () => props.surface.lanes.onOpenRecords?.(),
+            onClick: () => openRecords(),
           }, '打开它记下的 →'))
         : null)
     : null
@@ -285,7 +289,7 @@ export function OnePageHome(props: ProjectionPanelProps & { onOpenAll: () => voi
         matters.length === 0
           ? null
           : ce('button', { className: 'dsha-home-link', type: 'button', onClick: () => props.onOpenAll() }, `全部（${String(matters.length)}）`),
-        ce('button', { className: 'dsha-home-link', type: 'button', onClick: () => props.surface.lanes.onOpenRecords?.() }, '它记下的'))),
+        ce('button', { className: 'dsha-home-link', type: 'button', onClick: () => openRecords() }, '它记下的'))),
     download.status === 'error' ? ce('p', { className: 'dsha-home-error', role: 'alert' }, '桌面读取失败，重试或直接跟助手说。') : null,
     download.stale ? ce('p', { className: 'dsha-home-note' }, '以下是上次读到的内容，尚未刷新。') : null,
     data?.fixture ? ce('p', { className: 'dsha-home-note' }, '模拟资料，仅供验证界面。') : null,
