@@ -5,10 +5,10 @@ opened: 2026-10-20
 
 # 评审：OpenViking 层 2 的方向——从“隐形层 1”到可配置、可观测、可按需检索
 
-> 立卡：2026-10-20 ｜ 状态：已结 ｜ 类型：未定 ｜ 可关闭：是 ｜ 评审卡 ｜ 结论：**接受 B**（2026-10-21 人类裁决；H2–H6 按建议）｜ 实施载体 = [实施决定](../../../notes/implemented/2026-10-21-install-surface-first-class.md) / [收口卡](../../issues/261021-openviking-viki-closure.md)
+> 立卡：2026-10-20 ｜ 状态：已结 ｜ 类型：未定 ｜ 可关闭：是 ｜ 评审卡 ｜ 结论：**接受 B**（2026-10-21 人类裁决；H2–H6 按建议）｜ 实施载体 = [实施决定](../../../notes/implemented/2026-10-21-install-surface-first-class.md) / [收口卡](261021-openviking-viki-closure.md)
 
 **给评审者的最短路径：** 先读「问题与期望结果」→「当前情况（证据）」→「方案与取舍」→「请评审什么」。  
-本卡只做方向评审；实施拆在三张卡里：[部署与 doctor](../../issues/261020-openviking-deploy-doctor.md)、[运行态与 0.5.1.1](../../issues/261020-openviking-runtime-repair.md)、[按需检索与 Viki](../../issues/261020-openviking-retrieval-viki.md)。  
+本卡只做方向评审；实施拆在三张卡里：[部署与 doctor](261020-openviking-deploy-doctor.md)、[运行态与 0.5.1.1](261020-openviking-runtime-repair.md)、[按需检索与 Viki](261020-openviking-retrieval-viki.md)。  
 **评审产出：** 人类给“方向认可 / 要改 / 否决”，Agent 给“证据缺口 / 漏掉的能力 / 验收不可执行”清单；每条有 owner 与去向。**本卡不授权写代码。**
 
 ## 问题与期望结果
@@ -132,17 +132,17 @@ opened: 2026-10-20
 
 | # | 问题 | 当前答案 / 状态 | owner / 去向 |
 |---|---|---|---|
-| 1 | 0.5.1.1 能否读 0.4.22 workspace；迁移项哪些影响我们 | 不能直接升；副本 + 完整存储备份 + 回滚演练；目标 0.5.1.1 | [运行态卡](../../issues/261020-openviking-runtime-repair.md) |
-| 2 | 只读检索走 MCP allowlist 还是 native tool | A1 只读子集实测 ≈2.2k token/轮（8 个；A1 白名单 7 个略低），A2 待量；无数据不拍 | [检索卡](../../issues/261020-openviking-retrieval-viki.md) |
+| 1 | 0.5.1.1 能否读 0.4.22 workspace；迁移项哪些影响我们 | 不能直接升；副本 + 完整存储备份 + 回滚演练；目标 0.5.1.1 | [运行态卡](261020-openviking-runtime-repair.md) |
+| 2 | 只读检索走 MCP allowlist 还是 native tool | A1 只读子集实测 ≈2.2k token/轮（8 个；A1 白名单 7 个略低），A2 待量；无数据不拍 | [检索卡](261020-openviking-retrieval-viki.md) |
 | 3 | 0.5.x 的 skills/experiences 是否随 commit 生成 | 0.4.22：无 experiences、`/agent-evolution` 404、`/skills` 0 条；0.5.1.1 是否生成未证 | 检索卡 P3 + 触发 |
 | 4 | `skipSubagentSessions` 是否跳过 agent-team；团队记忆是资产还是污染 | agent-team 是 subagent，会跳过；**待人类拍板** | 本卡 H6；运行态卡引用 |
-| 5 | 云端脱敏能否可靠拦住密钥/PII/第三方机密 | `captureFilters` 可替换 tool input/output；**当前 dev 为空**；正则可靠性未测 | [部署卡](../../issues/261020-openviking-deploy-doctor.md) P0 + H2 |
+| 5 | 云端脱敏能否可靠拦住密钥/PII/第三方机密 | `captureFilters` 可替换 tool input/output；**当前 dev 为空**；正则可靠性未测 | [部署卡](261020-openviking-deploy-doctor.md) P0 + H2 |
 | 6 | peer 切到 `assistant` 后旧 6 条 events 怎么召回 | 默认 `recallPeerScope: all` 可扫到；迁移后需一次真实 search 验证 | 运行态卡 |
 | 7 | Viki 转正只做 `memory/` 还是也允许 `knowledge/` 引用 OpenViking URI | 建议只落 `memory/`；机制在检索卡拆 P1/P2，未拍 | 检索卡 + H4 |
 
 ## 下一步
 
-**裁决已收（2026-10-21）**：接受 B；H2–H6 按建议。实施载体 = [实施决定](../../../notes/implemented/2026-10-21-install-surface-first-class.md) + [收口卡](../../issues/261021-openviking-viki-closure.md)；三张实施卡保持活跃（已授权规格），推进在收口卡；本卡归档。Agent 从 P0 安装/doctor 开始。
+**裁决已收（2026-10-21）**：接受 B；H2–H6 按建议。实施载体 = [实施决定](../../../notes/implemented/2026-10-21-install-surface-first-class.md) + [收口卡](261021-openviking-viki-closure.md)；三张实施卡保持活跃（已授权规格），推进在收口卡；本卡归档。Agent 从 P0 安装/doctor 开始。
 
 ## 方案与取舍
 
@@ -158,9 +158,9 @@ opened: 2026-10-20
 
 | 卡 | 拥有（修/交） | 只检查/引用（不修） | 依赖 |
 |---|---|---|---|
-| [部署与 doctor](../../issues/261020-openviking-deploy-doctor.md)（P0） | 云端例外口径、`ov-doctor`、README 部署/故障表、**Viki baseUrl 默认值**、配置对账 | 存储是否持久（doctor 报红，不搬家）；升级（不升 server） | 方向卡 H1/H2 |
-| [运行态](../../issues/261020-openviking-runtime-repair.md)（P1） | **server 0.5.1.1 升级**、**存储搬家**、v3 旋钮落点、peer、commit/recall、回滚 | Viki URL（部署卡修，本卡只回归 200）；工具面（检索卡） | 部署卡的 Viki 修复；H5 |
-| [按需检索与 Viki](../../issues/261020-openviking-retrieval-viki.md)（P2/P3） | 只读检索 A/B、**Viki 面板搜索/健康/转正**、工具/知识分工 | 写面（不动）；连接修复（部署卡）；升级/存储（运行态卡） | 运行态的 recall 路径；部署卡的 Viki 连接；H4 |
+| [部署与 doctor](261020-openviking-deploy-doctor.md)（P0） | 云端例外口径、`ov-doctor`、README 部署/故障表、**Viki baseUrl 默认值**、配置对账 | 存储是否持久（doctor 报红，不搬家）；升级（不升 server） | 方向卡 H1/H2 |
+| [运行态](261020-openviking-runtime-repair.md)（P1） | **server 0.5.1.1 升级**、**存储搬家**、v3 旋钮落点、peer、commit/recall、回滚 | Viki URL（部署卡修，本卡只回归 200）；工具面（检索卡） | 部署卡的 Viki 修复；H5 |
+| [按需检索与 Viki](261020-openviking-retrieval-viki.md)（P2/P3） | 只读检索 A/B、**Viki 面板搜索/健康/转正**、工具/知识分工 | 写面（不动）；连接修复（部署卡）；升级/存储（运行态卡） | 运行态的 recall 路径；部署卡的 Viki 连接；H4 |
 | 本卡 | 路线裁决、拆卡、评审收敛 | 不承载实施 | 人类 H1–H6 |
 
 **为什么这样切：** 三张卡分别对应“装得对 / 跑得对 / 问得到”三个风险面；Viki 的**连接**归部署、**存储**归运行态、**面板能力**归检索，避免同一事实三处改。这样人类可以只批其中一张，Agent 可以逐张攻击，不会把“升级风险”和“工具面决策”混在一个 diff 里。
@@ -212,7 +212,7 @@ opened: 2026-10-20
 
 ### 2026-10-21 · 人类裁决（H1–H6）
 
-用户选择 **接受 B**，H2–H6 按建议：H2 先收口云端工具结果；H3 P0 部署/可观测先做；H4 Viki 转正后置，先做搜索/健康；H5 运行态目标 0.5.1.1，plugin 0.5.27 单列；H6 团队记忆先跳过，另立触发。实施载体 = [实施决定](../../../notes/implemented/2026-10-21-install-surface-first-class.md) + [收口卡](../../issues/261021-openviking-viki-closure.md)；三张实施卡保持活跃（已授权规格），推进在收口卡。**本裁决授权按三卡验收范围实施，不改变写面/四房间/人审边界；追加安装/配置为一等交付。**
+用户选择 **接受 B**，H2–H6 按建议：H2 先收口云端工具结果；H3 P0 部署/可观测先做；H4 Viki 转正后置，先做搜索/健康；H5 运行态目标 0.5.1.1，plugin 0.5.27 单列；H6 团队记忆先跳过，另立触发。实施载体 = [实施决定](../../../notes/implemented/2026-10-21-install-surface-first-class.md) + [收口卡](261021-openviking-viki-closure.md)；三张实施卡保持活跃（已授权规格），推进在收口卡。**本裁决授权按三卡验收范围实施，不改变写面/四房间/人审边界；追加安装/配置为一等交付。**
 
 ### 2026-10-20 · 第一轮 agent 核验（证据 / 机制 / 验收三路，只读）
 
@@ -332,9 +332,9 @@ opened: 2026-10-20
 
 ## 关联
 
-- [部署与 doctor](../../issues/261020-openviking-deploy-doctor.md)（P0：云端例外、配置、检测、README、Viki baseUrl 默认）
-- [运行态与 0.5.1.1](../../issues/261020-openviking-runtime-repair.md)（P1：升级、持久存储、v3 旋钮、peer/commit/recall）
-- [按需检索与 Viki](../../issues/261020-openviking-retrieval-viki.md)（P2/P3：只读检索 A/B、Viki 搜索/转正/健康）
+- [部署与 doctor](261020-openviking-deploy-doctor.md)（P0：云端例外、配置、检测、README、Viki baseUrl 默认）
+- [运行态与 0.5.1.1](261020-openviking-runtime-repair.md)（P1：升级、持久存储、v3 旋钮、peer/commit/recall）
+- [按需检索与 Viki](261020-openviking-retrieval-viki.md)（P2/P3：只读检索 A/B、Viki 搜索/转正/健康）
 - 既有依据：[层 1 落地 note](../../../notes/archived/2026-10-04-openviking-layer1-landing.md)、[正式接入推敲卡](260929-openviking-formal-integration.md)、[0.5.8→0.5.26 升级 note](../../../notes/implemented/2026-10-19-openviking-pin-catch-up.md)、[Viki B1 note](../../../notes/implemented/2026-10-19-viki-read.md)
 - 版本：[v0.5.1.1 release](https://github.com/volcengine/OpenViking/releases/tag/v0.5.1.1)、[plugin 0.5.27](https://www.npmjs.com/package/@openviking/dsh-memory-plugin/v/0.5.27)
 - 证据面：[web-face 场景](../../../snapshots/web-face/)、[测试证据地图](../../../docs/testing.md)

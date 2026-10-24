@@ -106,7 +106,7 @@ opened: 2026-10-21
 | 机制可行 | 编排 | `sidebarRightTabs.register`/slot disposer 已有源码证据；M0 原型能运行时收起 Viki tab | 机制调研 + M0 原型（未来） | 无 |
 | 三档矩阵明确 | 产品 | 每个面在简洁/标准/专家的显隐有表；审批/错误永不隐藏；Viki 仅专家 | 本卡矩阵 | 用户确认 |
 | 持久化/切换取舍 | 产品/编排 | settings vs localState 的理由、首屏缓存、tab 收起落点写清 | 本卡 | 用户拍板 |
-| Viki 触发 | 流程 | 本卡不启动实现；Viki S5/S6 收口后再开 proposed/子卡 | [Viki 收口](../../issues/261021-openviking-viki-closure.md) | 用户 |
+| Viki 触发 | 流程 | 本卡不启动实现；Viki S5/S6 收口后再开 proposed/子卡 | [Viki 收口](261021-openviking-viki-closure.md) | 用户 |
 
 ### 未来实现（另立 proposed 卡，不在本卡执行）
 
@@ -128,7 +128,7 @@ opened: 2026-10-21
 ## 下一步
 
 - **现在（本卡）**：研究/方案已写；请用户对上面 6 个点给方向（可以现在答，也可以等 Viki 收口后答）。
-- **不启动实现**：Viki 落地（[收口卡](../../issues/261021-openviking-viki-closure.md) S5/S6）优先；本卡 `毕业：以后做`。
+- **不启动实现**：Viki 落地（[收口卡](261021-openviking-viki-closure.md) S5/S6）优先；本卡 `毕业：以后做`。
 - **触发**：Viki 收口 + 用户点头后，开 proposed 卡/M0 原型；M0 结论回来再拆 M1/M2。
 - **若用户不感兴趣**：本卡记录“不做”的理由，归档；不预建子卡。
 
@@ -136,7 +136,7 @@ opened: 2026-10-21
 
 | 本卡拥有 | 只检查/引用 | 不拥有 |
 |---|---|---|
-| 三档呈现的**产品模型**、矩阵、切换/持久化取舍、未来切片 | 现有 client slot/tab/settings 机制；Viki(调试) 作为专家面实例 | Viki 落地本身（[收口卡](../../issues/261021-openviking-viki-closure.md)）；agent preset/领域装配（[方向卡](261020-openviking-direction-review.md)）；权限/审批语义 |
+| 三档呈现的**产品模型**、矩阵、切换/持久化取舍、未来切片 | 现有 client slot/tab/settings 机制；Viki(调试) 作为专家面实例 | Viki 落地本身（[收口卡](261021-openviking-viki-closure.md)）；agent preset/领域装配（[方向卡](261020-openviking-direction-review.md)）；权限/审批语义 |
 
 **明确不是：** 不是权限边界（隐藏 ≠ 禁止；host route/工具/审批不变）；不是 agent preset（不改模型行为）；不是换三套产品；不是 Viki 的一部分。
 
@@ -149,5 +149,5 @@ opened: 2026-10-21
 ## 关联
 
 - [机制调研（平台缝/矩阵/证据）](../../research/tech-exploration/261021-assistant-ui-modes.md)
-- [Viki 收口卡](../../issues/261021-openviking-viki-closure.md)
-- [Viki(调试) 的定位与检索卡](../../issues/261020-openviking-retrieval-viki.md)
+- [Viki 收口卡](261021-openviking-viki-closure.md)
+- [Viki(调试) 的定位与检索卡](261020-openviking-retrieval-viki.md)

@@ -1,30 +1,30 @@
 ---
-status: 推敲中
+status: 已结
 opened: 2026-10-20
 ---
 
 # 推敲：OpenViking 部署正确性——云端例外、doctor 与一份配置源
 
-> 立卡：2026-10-20 ｜ 状态：推敲中 ｜ 类型：Task ｜ 可关闭：否 ｜ 规格卡；授权/推进见 [收口卡](261021-openviking-viki-closure.md)
+> 立卡：2026-10-20 ｜ 状态：已结 ｜ 类型：Task ｜ 可关闭：是 ｜ 规格卡 ｜ 结论：doctor/手册/云端 ack/config 同源/Viki baseUrl 已交付；安装面真人走查挂日常使用（agent dry run 两轮在案，未替代真人环境）｜ 去向 = [收口卡](261021-openviking-viki-closure.md) + [云端 note](../../../notes/implemented/2026-10-20-openviking-cloud-egress.md) + [安装面 note](../../../notes/implemented/2026-10-21-install-surface-first-class.md)
 
 **给评审者的最短路径：** 先读「问题与期望结果」→「当前情况」→「云端例外 v1」→「方案与取舍」→「验收标准」→「下一步」。  
 
 ## 2026-10-25 基座复核
 
 Viki 自 2026-10-24 起只由 **debug flag** 注册（`#debug=1` / localStorage），与「开发调试」tab 同门；不再由专家档/密度打开。本文的 Viki 200 仍是 host route 事实，但**客户面不可见**；「专家档前置」的 Viki 场景与安装走查清单要改成 flag 前置。web-face 现 8 个；Viki 4 个场景已于 2026-10-25 以 flag 重录 PASS。A2 已采用（见检索卡）。
-上游背景与审计证据在 [方向评审卡](../_archive/settled_issues/261020-openviking-direction-review.md)；本卡只解决“用户装得对、部署看得见”，**不搬家存储、不做 Viki 面板、不升 server**（分别归运行态卡/检索卡）。**本卡是规格，不单独授权；授权与推进见 [收口卡](261021-openviking-viki-closure.md)。**
+上游背景与审计证据在 [方向评审卡](261020-openviking-direction-review.md)；本卡只解决“用户装得对、部署看得见”，**不搬家存储、不做 Viki 面板、不升 server**（分别归运行态卡/检索卡）。**本卡是规格，不单独授权；授权与推进见 [收口卡](261021-openviking-viki-closure.md)。**
 
 ## 问题与期望结果
 
 **观察到的行为：** OpenViking 是可选记忆层，但安装/部署的正确性几乎全靠人记：
 
 - 插件默认连 `127.0.0.1:1933`，Viki 面板却只从 config 或 `OPENVIKING_URL` 取 baseUrl；`pnpm start` 不导出后者，正常起服务时 Viki 是 503（baseUrl 实测为空），不是“很可能”。
-- 记忆库被 [openviking-up.sh](../../dev/env/openviking-up.sh) 指到 `.tmp/openviking/workspace`；`.tmp` 是临时根，清扫即丢。**doctor 要报红；搬家归运行态卡。**
+- 记忆库被 [openviking-up.sh](../../../dev/env/openviking-up.sh) 指到 `.tmp/openviking/workspace`；`.tmp` 是临时根，清扫即丢。**doctor 要报红；搬家归运行态卡。**
 - server 的模型位（VLM/embedding）在 `~/.openviking/ov.conf`，但运行中的 server 用的是 `openviking-up.sh` 派生的 `.tmp/openviking/ov.conf`；DSH 侧没有检查它是否可达，`openviking-server doctor` 默认还读另一份配置。`/health` 绿不代表记忆可用（当前就是“health 绿、search 报 connection error”）。
 - **当前云端暴露没有收口**：dev 组合无 OV config，插件 `captureToolResults` 对 DSH 默认 `true`，`captureFilters` 默认 `[]`——工具结果当前没有过滤器，直接进云端 VLM/embedding。这是本卡 P0 的现状，不是未来风险。
-- 云端模型（SiliconFlow）与 [README](../../README.md) 的“严格本地”冲突；用户 2026-10-20 已接受云端例外，但要求**写清楚哪些内容可出、哪些脱敏**，并在部署时引导用户配对所有配置。
-- 没有 `ov-doctor`；[ov-install.sh](../../dev/experiments/openviking/ov-install.sh) 只做安装/健康门/dump-config，不检查模型位、Viki URL、云端 ack、脱敏、存储持久性。
-- dev profile 的 patch 每次被 [setup.sh](../../dev/env/setup.sh) 用 tracked 模板覆盖；即使 `ov-install.sh` 写了 v3 旋钮，下一次 `pnpm start` 也会丢（这是运行态卡的范围，但部署文档必须说清）。
+- 云端模型（SiliconFlow）与 [README](../../../README.md) 的“严格本地”冲突；用户 2026-10-20 已接受云端例外，但要求**写清楚哪些内容可出、哪些脱敏**，并在部署时引导用户配对所有配置。
+- 没有 `ov-doctor`；[ov-install.sh](../../../dev/experiments/openviking/ov-install.sh) 只做安装/健康门/dump-config，不检查模型位、Viki URL、云端 ack、脱敏、存储持久性。
+- dev profile 的 patch 每次被 [setup.sh](../../../dev/env/setup.sh) 用 tracked 模板覆盖；即使 `ov-install.sh` 写了 v3 旋钮，下一次 `pnpm start` 也会丢（这是运行态卡的范围，但部署文档必须说清）。
 - **交付面不成立**：`_dist/安装手册.md` 只覆盖插件本体，且没有“把 profile 的 `agent-preset-registry.default` 设成 `assistant`”的步骤；OpenViking 的安装/配置只活在 `dev/experiments/`、`.env.local` 和本机 live dev-ov，导出包给另一个人跑不起来。**安装/配置是一等交付，不是文档尾巴。**
 
 **期望结果：** 一条命令能回答“这一层现在能不能用、缺什么、下一步怎么修”；README 有一张配置表和一份故障表；云端例外有明确的可出/脱敏口径和 ack 门；Viki 在正常 `pnpm start` 下能连上（本卡修 baseUrl 默认）；doctor 能指出存储不在持久路径、Viki 不通、云端未 ack，并把搬家/升级分派到运行态卡；**另一个人在干净 home/机器上按导出包 + 安装手册能装起插件并切到 `assistant`；可选 OV 层有独立的安装/配置/启动/doctor 路径，不依赖本仓库 dev home、`.env.local`、live dev-ov 或本机绝对路径。**
@@ -35,19 +35,19 @@ Viki 自 2026-10-24 起只由 **debug flag** 注册（`#debug=1` / localStorage�
 
 | 事实 | 证据 |
 |---|---|
-| Viki baseUrl 只取 config/`OPENVIKING_URL`，实测为空 | [viki/index.ts](../../packages/dsh-smart-assistant/src/host/viki/index.ts) `const baseUrl = config.baseUrl?.trim() \|\| process.env.OPENVIKING_URL?.trim() \|\| ''`；`assistant-viki` 行无 config；`dev/env` 无该变量 |
-| start 链不导出 `OPENVIKING_URL` | [start.sh](../../dev/env/start.sh) 全文无该变量；`dev/env/env.sh` 也没有 |
-| 记忆库在 `.tmp` | [openviking-up.sh](../../dev/env/openviking-up.sh) 的 `state_dir`/`workspace`；派生 config 也写 `.tmp/openviking/ov.conf` |
+| Viki baseUrl 只取 config/`OPENVIKING_URL`，实测为空 | [viki/index.ts](../../../packages/dsh-smart-assistant/src/host/viki/index.ts) `const baseUrl = config.baseUrl?.trim() \|\| process.env.OPENVIKING_URL?.trim() \|\| ''`；`assistant-viki` 行无 config；`dev/env` 无该变量 |
+| start 链不导出 `OPENVIKING_URL` | [start.sh](../../../dev/env/start.sh) 全文无该变量；`dev/env/env.sh` 也没有 |
+| 记忆库在 `.tmp` | [openviking-up.sh](../../../dev/env/openviking-up.sh) 的 `state_dir`/`workspace`；派生 config 也写 `.tmp/openviking/ov.conf` |
 | **运行中 server 的 config 与 `openviking-server doctor` 默认读的不是同一份** | `openviking-up.sh` 从上游派生 `dev/harness-home/openviking/ov.conf` 并用它启动 server（storage 持久）；`openviking-server doctor` 不带 `--config` 时仍读 `~/.openviking/ov.conf`（storage 指向 `~/.openviking/workspace`）。2026-10-21 带 `--config dev/harness-home/openviking/ov.conf --profile dev` 的 `ov-doctor` 的 check 7 = `persistent root`，check 10 仍 WARN（doctor 无法证明运行进程用了同一份）。 |
 | 当前云端暴露未收口 | dev 组合无 `openviking-memory-runtime` config；插件 schema：`captureToolResults` 对 DSH 默认 `true`、`captureFilters` 默认 `[]`（插件 0.5.26 tarball 的 `shared/config-schema.mjs`；`tar -xOzf vendor/thirdparty/openviking/dsh-memory-plugin-0.5.26.tgz package/shared/config-schema.mjs \| grep capture` 可复核）；即工具结果当前原样进云端 |
 | server 模型位在 `ov.conf`，DSH 侧不检查 | `~/.openviking/ov.conf` 与派生 `.tmp/openviking/ov.conf`（VLM/embedding 指向 SiliconFlow；不在此回显 key） |
 | `/health` 不探测模型位 | `GET /health` 返回 `healthy:true` 与 `version`/`auth_mode`；同一时刻 `POST /search/search` 可返回 `OpenAI API error: Connection error` |
-| `ov-install.sh` 不查云端/脱敏/Viki | [ov-install.sh](../../dev/experiments/openviking/ov-install.sh) 七步：装 server、配置、健康门、profile、tgz、patch、dump-config |
-| 云端与“严格本地”冲突 | [README](../../README.md) 方向判据 O6；`~/.openviking/ov.conf` 的 provider/`api_base` |
+| `ov-install.sh` 不查云端/脱敏/Viki | [ov-install.sh](../../../dev/experiments/openviking/ov-install.sh) 七步：装 server、配置、健康门、profile、tgz、patch、dump-config |
+| 云端与“严格本地”冲突 | [README](../../../README.md) 方向判据 O6；`~/.openviking/ov.conf` 的 provider/`api_base` |
 
 **2026-10-21 复核**：Viki baseUrl 默认 1933 已落（`src/host/viki/index.ts`）；真机 `pnpm start` preflight 绿，token→cookie 后 `GET /api/assistant/viki` 返回 **200**、`connected:true`（实例已收）。**同日 0.5.1.1 live：`Viki(调试)` tab 搜索「合同」返回 6 条；`/health` = 0.5.1.1。**
 
-**已知的层 1 决策（不重开）：** OpenViking 用 `dsh plugin add` 进 profile，不进 assistant preset；写面由 `ov-shield` 守；可选增强不能成单点故障。见 [层 1 note](../../notes/archived/2026-10-04-openviking-layer1-landing.md)。
+**已知的层 1 决策（不重开）：** OpenViking 用 `dsh plugin add` 进 profile，不进 assistant preset；写面由 `ov-shield` 守；可选增强不能成单点故障。见 [层 1 note](../../../notes/archived/2026-10-04-openviking-layer1-landing.md)。
 
 ## 云端例外 v1
 
@@ -171,7 +171,7 @@ doctor 对账 1↔2↔运行中 server（check 10）与 3/4；Viki 的 baseUrl �
 
 ### 5. 安装与配置面（另一人路径）
 
-**现状（缺口）**：`_dist/安装手册.md` 由 [`scripts/release/export-dist.mjs`](../../scripts/release/export-dist.mjs) 生成，但只覆盖插件本体；没有 `agent-preset-registry.default: assistant` 步骤；`ov-install.sh`/`openviking-up.sh` 假定 repo、`.env.local`、dev home 与 tracked tgz，导出包用户无法照做；doctor 已落包内 bin，但“用户侧 OV 安装器 + OV 在场 clean-home + 另一人走查”仍未完成。**结果：另一个人拿到 tgz 能装插件，但 Viki/记忆层还不能一条路径跑起来。**
+**现状（缺口）**：`_dist/安装手册.md` 由 [`scripts/release/export-dist.mjs`](../../../scripts/release/export-dist.mjs) 生成，但只覆盖插件本体；没有 `agent-preset-registry.default: assistant` 步骤；`ov-install.sh`/`openviking-up.sh` 假定 repo、`.env.local`、dev home 与 tracked tgz，导出包用户无法照做；doctor 已落包内 bin，但“用户侧 OV 安装器 + OV 在场 clean-home + 另一人走查”仍未完成。**结果：另一个人拿到 tgz 能装插件，但 Viki/记忆层还不能一条路径跑起来。**
 
 **交付物（最小可用，不先造 wizard）**
 
@@ -362,9 +362,9 @@ doctor 对账 1↔2↔运行中 server（check 10）与 3/4；Viki 的 baseUrl �
 
 ## 关联
 
-- [方向评审卡](../_archive/settled_issues/261020-openviking-direction-review.md)
+- [方向评审卡](261020-openviking-direction-review.md)
 - [运行态与 0.5.1.1](261020-openviking-runtime-repair.md)
 - [按需检索与 Viki](261020-openviking-retrieval-viki.md)
-- 既有：[openviking-up.sh](../../dev/env/openviking-up.sh)、[ov-install.sh](../../dev/experiments/openviking/ov-install.sh)、[viki/index.ts](../../packages/dsh-smart-assistant/src/host/viki/index.ts)、[vendor README](../../vendor/thirdparty/openviking/README.md)
+- 既有：[openviking-up.sh](../../../dev/env/openviking-up.sh)、[ov-install.sh](../../../dev/experiments/openviking/ov-install.sh)、[viki/index.ts](../../../packages/dsh-smart-assistant/src/host/viki/index.ts)、[vendor README](../../../vendor/thirdparty/openviking/README.md)
 - 版本：[v0.5.1.1 release](https://github.com/volcengine/OpenViking/releases/tag/v0.5.1.1)、[plugin 0.5.27](https://www.npmjs.com/package/@openviking/dsh-memory-plugin/v/0.5.27)
-- 证据面：[测试证据地图](../../docs/testing.md)、[web-face 场景](../../snapshots/web-face/)
+- 证据面：[测试证据地图](../../../docs/testing.md)、[web-face 场景](../../../snapshots/web-face)

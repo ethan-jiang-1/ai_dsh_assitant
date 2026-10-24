@@ -110,7 +110,7 @@ order 抽查与代码一致、S2 四项证据主轴（capturedAt/visibleText 200
   幸其读数已先行记录）——已列入踩坑清单候选。
 - **notes/implemented 逐篇归档判断（29/29 KEEP）**：按 note-archive-judgment 判据（未来决策价值轴）
   逐篇过，无一满足归档条件——每篇都持有仍约束未来的取舍、被门禁/章程/活跃卡引用、或持有 why-not-X
-  负知识（viki 三篇正被活跃卡 261020-openviking-retrieval-viki 消费；S5 今日刚归档两篇纯历史）。
+  负知识（viki 三篇曾由 261020-openviking-retrieval-viki 消费，该卡已于 2026-10-25 归档；S5 今日刚归档两篇纯历史）。
   结论：notes 堆不腐，密度是真的。
 - **pin-catch-up 事实补记**：2026-10-19-openviking-pin-catch-up.md 正文停在"提案待拍板"语气，拍板结果
   （用户选 A、vendor 0.5.8→0.5.26）只在 vendor README——决定已做出却记成 pending，正是语义漂移的

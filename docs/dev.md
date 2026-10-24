@@ -118,7 +118,7 @@ spawn/child_process——连不上时按 `catch { /* best effort */ }` 降级，
 server 缺席/未装/起不来一律 warn 后 `exit 0`，`pnpm start` 照常交实例）；**状态落 DSH home**——server 默认写
 `~/.openviking/workspace`，那在仓外、会被文件沙箱挡下（实测 `PermissionError: .openviking.lock`），
 故从上游 `ov.conf` 派生 `$DSH_HOME/openviking/ov.conf`，把 storage 指到
-`$DSH_HOME/openviking/workspace`（持久、gitignored；迁移/回滚见[运行态卡](../_backlog/issues/261020-openviking-runtime-repair.md)）。server 优先用
+`$DSH_HOME/openviking/workspace`（持久、gitignored；升级与回滚的备份顺序由 `dev/env/openviking-up.sh` 与 vendor 版本钉守）。server 优先用
 `$DSH_HOME/openviking/server/bin/openviking-server`（0.5.1.1 的隔离 venv），缺失时才回退 PATH。
 
 v3 旋钮在 [`dev/profiles/profile-patch-ov.yml`](../dev/profiles/profile-patch-ov.yml)；`setup.sh` 只在该

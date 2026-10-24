@@ -6,11 +6,7 @@
 
 | 卡 | 要解决什么 | 当前环节与未完成项 |
 |---|---|---|
-| [261025-open-human-verdicts](261025-open-human-verdicts.md) | 三件未取的人判断：K4 处理流、晨报口味、主动性口味 | 等本人日常使用或点名（🔒）；三条 verdict 见卡 |
-| [261021-openviking-viki-closure](261021-openviking-viki-closure.md) | 层 2 / Viki 落地总台账（含安装面） | work 台账；S0–S5 见收口卡；S6 收口待真人 |
-| [261020-openviking-deploy-doctor](261020-openviking-deploy-doctor.md) | 云端例外、`ov-doctor`、README、Viki baseUrl、安装/配置面 | 规格卡；授权/推进见收口卡；S1/S2 |
-| [261020-openviking-runtime-repair](261020-openviking-runtime-repair.md) | 0.5.1.1 升级、持久存储、v3 旋钮、peer/commit/recall | 规格卡；授权/推进见收口卡；S3 |
-| [261020-openviking-retrieval-viki](261020-openviking-retrieval-viki.md) | 只读检索 A/B、Viki 搜索/转正/健康 | 规格卡；授权/推进见收口卡；S4/S5 |
+| [261025-open-human-verdicts](261025-open-human-verdicts.md) | 三件未取的人判断：K4 处理流、晨报口味、主动性口味 | 等本人日常使用或点名（🔒）；三条 verdict 见卡；2026-10-25 本人决定「先挂着，等日常使用时再判」 |
 
 
 ## 写一张卡

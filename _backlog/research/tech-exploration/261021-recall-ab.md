@@ -5,7 +5,7 @@ intent: "只读检索 A/B：用固定题集和评分表比较 A1 MCP allowlist �
 
 # 只读检索 A/B：题集、评分表与原型指针
 
-> 为 [检索卡](../../issues/261020-openviking-retrieval-viki.md) 的 A/B 收集；2026-10-21。
+> 为 [检索卡](../../_archive/settled_issues/261020-openviking-retrieval-viki.md) 的 A/B 收集；2026-10-21。
 > 运行态前置已满足：0.5.1.1 live，`/search/find` 有真实命中，recall 块含 `detail="full"`，live `session_commit` completed。A/B 只做**模型行为**比较，不改 host 数据面。
 
 **2026-10-23 更正**：A2 已裁决并随 `preset-assistant` 挂载为 `assistant_recall`（见 `docs/package-catalog.md`）；下文“待建；不合并”“不进发布物”是裁决前的记录，保留作 A/B 证据，不再代表当前状态。

@@ -1,25 +1,25 @@
 ---
-status: 推敲中
+status: 已结
 opened: 2026-10-20
 ---
 
 # 推敲：OpenViking 运行态修复——0.5.1.1 升级、持久存储与 v3 旋钮
 
-> 立卡：2026-10-20 ｜ 状态：推敲中 ｜ 类型：Task ｜ 可关闭：否 ｜ 规格卡；授权/推进见 [收口卡](261021-openviking-viki-closure.md)
+> 立卡：2026-10-20 ｜ 状态：已结 ｜ 类型：Task ｜ 可关闭：是 ｜ 规格卡 ｜ 结论：0.5.1.1/持久存储/旋钮/peer/两次 commit/回滚/抽样均在案；review 由用户 2026-10-25 授权自审｜ 去向 = [收口卡](261021-openviking-viki-closure.md) + [旋钮 note](../../../notes/implemented/2026-10-20-openviking-runtime-knobs.md)
 
 **给评审者的最短路径：** 先读「问题与期望结果」→「当前情况」→「方案与取舍」→「验收标准」→「下一步」。  
 
 ## 2026-10-25 基座复核
 
 Viki 自 2026-10-24 起只由 **debug flag** 注册（与「开发调试」tab 同门）；本文的 Viki 搜索/回归仍成立，但要在 `#debug=1` 下看，不再是专家档。A2 `assistant_recall` 已采用（2026-10-23）；DSH pin `0.2.1-rc.2`、OV server 0.5.1.1 / 插件 0.5.26 未变。web-face 现 8 个；Viki 4 个场景已于 2026-10-25 以 flag 重录 PASS。
-上游背景与审计证据在 [方向评审卡](../_archive/settled_issues/261020-openviking-direction-review.md)；配置/检测/README/Viki baseUrl 在 [部署卡](261020-openviking-deploy-doctor.md)。**本卡是规格，不单独授权；授权与推进见 [收口卡](261021-openviking-viki-closure.md)。**
+上游背景与审计证据在 [方向评审卡](261020-openviking-direction-review.md)；配置/检测/README/Viki baseUrl 在 [部署卡](261020-openviking-deploy-doctor.md)。**本卡是规格，不单独授权；授权与推进见 [收口卡](261021-openviking-viki-closure.md)。**
 
 ## 问题与期望结果
 
 **观察到的行为：** 层 1 已经“采用”，但 live 没有跑在设计状态：
 
 - server 还是 0.4.22；插件 0.5.26。**server latest 已是 0.5.1.1**（0.5.1 的补丁，修“后续 commit 完成但新记忆搜不到”）；0.5.x 的 Working Memory 默认关、commit/锁修复、召回改进都没拿到。
-- dev 组合的 `openviking-memory-runtime` 行没有 config；`pnpm start` 每次用 tracked 的 [profile-patch.yml](../../dev/profiles/profile-patch.yml)（只有 preset registry）覆盖 dev patch。v3/召回调参只活在 `dev-ov` 探针（本机 live，`dev/harness-home/` 已 gitignore），不在 dev；tracked 的 [ov-install.sh §6](../../dev/experiments/openviking/ov-install.sh) 模板是另一组（含 commit 阈值），与 live dev-ov 已漂移。
+- dev 组合的 `openviking-memory-runtime` 行没有 config；`pnpm start` 每次用 tracked 的 [profile-patch.yml](../../../dev/profiles/profile-patch.yml)（只有 preset registry）覆盖 dev patch。v3/召回调参只活在 `dev-ov` 探针（本机 live，`dev/harness-home/` 已 gitignore），不在 dev；tracked 的 [ov-install.sh §6](../../../dev/experiments/openviking/ov-install.sh) 模板是另一组（含 commit 阈值），与 live dev-ov 已漂移。
 - 最近一次 `session_commit` failed；`/search/search` 报模型连接错误；最近一次会话 recall 块为 0（连接故障期；2026-10-19 的 recall 只有目录 overview，见方向卡证据）；`/health` 仍绿。
 - 记忆库在 `.tmp/openviking/workspace`；现有 6 条 events 在那里，清扫/换机即丢。
 - peer 跟 git origin（`github.com-ethan-jiang-1-ai_dsh_assitant`），不是“跟助手走”；换工作目录/克隆会分叉。
@@ -41,9 +41,9 @@ Viki 自 2026-10-24 起只由 **debug flag** 注册（与「开发调试」tab �
 | 检索失败 | `POST /api/v1/search/search` 的 `retrieval_errors`；`find` 500 |
 | 6 条 events，0 profile/偏好/实体 | `GET /api/v1/stats/memories` |
 | recall 存量 | v4 档 36/379 个会话曾有 recall；v3 档 63 个 0 命中；10-19 的只有系统目录 overview（见方向卡 §0/评审记录） |
-| 调参未生效 | [profile-patch.yml](../../dev/profiles/profile-patch.yml) 只有 preset registry；[setup.sh](../../dev/env/setup.sh) 的 `cp` |
-| 独立探针的调参（**本机 live，gitignored，不能从他机复现**） | dev-ov patch：`peerId: assistant`、`skillCatalog: false`、`skipSubagentSessions: true`、`profileTokenBudget: 3000`、`recallPreferAbstract: false`、`recallMaxContentChars: 2000`、`recallLimit: 6`、`recallMaxTokens: 2400`、`recallQueryExpansion: off`、`recallContextTimeoutMs: 3000`。**没有 `commitTokenThreshold`**——tracked 的 [ov-install.sh §6](../../dev/experiments/openviking/ov-install.sh) 模板写 3000，live 与模板已漂移。读取命令：`sed -n '1,80p' dev/harness-home/profiles/dev-ov/cordis.patch.yml` |
-| 记忆库位置 | [openviking-up.sh](../../dev/env/openviking-up.sh) 的 `.tmp/openviking/workspace`；派生 config 也写 `.tmp/openviking/ov.conf` |
+| 调参未生效 | [profile-patch.yml](../../../dev/profiles/profile-patch.yml) 只有 preset registry；[setup.sh](../../../dev/env/setup.sh) 的 `cp` |
+| 独立探针的调参（**本机 live，gitignored，不能从他机复现**） | dev-ov patch：`peerId: assistant`、`skillCatalog: false`、`skipSubagentSessions: true`、`profileTokenBudget: 3000`、`recallPreferAbstract: false`、`recallMaxContentChars: 2000`、`recallLimit: 6`、`recallMaxTokens: 2400`、`recallQueryExpansion: off`、`recallContextTimeoutMs: 3000`。**没有 `commitTokenThreshold`**——tracked 的 [ov-install.sh §6](../../../dev/experiments/openviking/ov-install.sh) 模板写 3000，live 与模板已漂移。读取命令：`sed -n '1,80p' dev/harness-home/profiles/dev-ov/cordis.patch.yml` |
+| 记忆库位置 | [openviking-up.sh](../../../dev/env/openviking-up.sh) 的 `.tmp/openviking/workspace`；派生 config 也写 `.tmp/openviking/ov.conf` |
 
 **注意：** 当前连接失败是模型/网络层的问题，不是 0.5.1.1 能自动修的；升级前先把“server 能到达模型位”查清，否则升完还是空。`/health` 绿 ≠ 记忆可用；**doctor 绿也 ≠ 运行态可用**（2026-10-21 实测）。
 
@@ -51,7 +51,7 @@ Viki 自 2026-10-24 起只由 **debug flag** 注册（与「开发调试」tab �
 
 - **0.5.1.1 副本验证 → 现网**：`uv tool install` 被文件沙箱挡在 `~/.cache/uv`；改用 `dev/harness-home/openviking/server` 隔离 venv（`uv venv` + `uv pip install openviking==0.5.1.1`，cache 在 `.tmp/uv-cache`）。副本 `.tmp/ov-test` 先跑：`/health` **0.5.1.1**、`/stats/memories` **6**、`content/read` 正常、`POST /search/find` 返回“合同”记忆命中；随后切到 live `1933`。
 - **存储搬家**：live workspace = `dev/harness-home/openviking/workspace`（持久、gitignored；`/stats` 仍 6）；派生 config = `dev/harness-home/openviking/ov.conf`；0.4.22 原 `.tmp` 数据备份为 `workspace-0.4.22-backup` 与 `workspace-0.4.22-live`。`openviking-up.sh` 的状态/config/日志改到 `$DSH_HOME/openviking/`，server 优先 `$DSH_HOME/openviking/server/bin/openviking-server`，缺失才回退 PATH。
-- **v3 旋钮落点**：新增 [`dev/profiles/profile-patch-ov.yml`](../../dev/profiles/profile-patch-ov.yml)；[`setup.sh`](../../dev/env/setup.sh) 只在该 profile 的 `package.json` 真有 OV 插件时追加。`pnpm dsh --profile dev --dump-config` 显示 `peerId: assistant`、`profileTokenBudget: 3000`、`recallPreferAbstract: false`、`recallContextTimeoutMs: 3000`、`commitTokenThreshold: 3000`、`captureToolResults: false`；无插件的 fresh home 不追加。
+- **v3 旋钮落点**：新增 [`dev/profiles/profile-patch-ov.yml`](../../../dev/profiles/profile-patch-ov.yml)；[`setup.sh`](../../../dev/env/setup.sh) 只在该 profile 的 `package.json` 真有 OV 插件时追加。`pnpm dsh --profile dev --dump-config` 显示 `peerId: assistant`、`profileTokenBudget: 3000`、`recallPreferAbstract: false`、`recallContextTimeoutMs: 3000`、`commitTokenThreshold: 3000`、`captureToolResults: false`；无插件的 fresh home 不追加。
 - **真机 Viki 回归（flag 下）**：`Viki(调试)` tab + 搜索「合同」返回 **6 条**（0.5.1.1 修复 #6331 的检索路径）；`/health` = 0.5.1.1。v3 config 在**新会话**生效（既有会话保持旧 generation）。
 - **两次 commit（副本，不污染 live）**：副本 `1934` 的 `dsh-sentinel-20261021`：A commit **completed**（25.9s）→ `find` 命中 `viking://user/default/peers/assistant/memories/events/2026/10/21/合同尾款到账确认.md`；B commit **completed** → `find` 命中 `.../供应商发票付款计划确认.md`；`/stats/memories` 6 → 9。证明 0.5.1.1 的 #6331 修复；live `1933` 仍 6。
 - **回滚（副本）**：把 `workspace-0.4.22-backup` 完整恢复到 `.tmp/ov-rollback/workspace`，用 0.4.22 二进制起 `1935`：`/health` 0.4.22、`/stats/memories` 6、`content/read` 正常；停掉 1935 后 live `1933` 仍 0.5.1.1/6 条。回滚顺序 = 恢复完整 storage 备份 → 换回 0.4.22，已执行。
@@ -107,7 +107,7 @@ Viki 自 2026-10-24 起只由 **debug flag** 注册（与「开发调试」tab �
 
 **落点：** 不能只写 `profiles/dev/cordis.patch.yml`（会被 setup 覆盖）。三个选项：
 
-1. **把 OV 行加进 tracked 的 [profile-patch.yml](../../dev/profiles/profile-patch.yml)**——最简单；但 fresh dev home 没有 OV 插件时，这一行会变成 inactive entry。DSH 的 `auditStartupEntries` 对**非 required** 失败只 warn 不阻断（`vendor/dsh/packages/boot/app-boot/src/index.ts`），所以不会炸启动，但每次 `pnpm start` 都会多一条“entry did not activate”警告——可选增强变成了常态噪声，且依赖倒置（dev profile 声称依赖一个可选包）。**除非 fresh-home 无插件验收也通过，不选。**
+1. **把 OV 行加进 tracked 的 [profile-patch.yml](../../../dev/profiles/profile-patch.yml)**——最简单；但 fresh dev home 没有 OV 插件时，这一行会变成 inactive entry。DSH 的 `auditStartupEntries` 对**非 required** 失败只 warn 不阻断（`vendor/dsh/packages/boot/app-boot/src/index.ts`），所以不会炸启动，但每次 `pnpm start` 都会多一条“entry did not activate”警告——可选增强变成了常态噪声，且依赖倒置（dev profile 声称依赖一个可选包）。**除非 fresh-home 无插件验收也通过，不选。**
 2. **改 `setup.sh` 为“复制模板 + 仅在 OV 插件在场时追加/保留 OV 行”**——**推荐**；通用，且保住“可选增强不能成单点故障”。注意 patch 语义是**同 id 整行覆盖**，不是深合并；追加前先删同 id 行，幂等。
 3. **独立 patch 层**（在 `dev/profiles/` 下另建 OV patch，具体文件名实施时定；`pnpm start` 按插件在场选择是否 `--patch`）——最干净，但给启动链加一个分支；若以后多 profile 再抽。
 
@@ -208,9 +208,9 @@ Viki 自 2026-10-24 起只由 **debug flag** 注册（与「开发调试」tab �
 
 ## 关联
 
-- [方向评审卡](../_archive/settled_issues/261020-openviking-direction-review.md)
+- [方向评审卡](261020-openviking-direction-review.md)
 - [部署与 doctor](261020-openviking-deploy-doctor.md)
 - [按需检索与 Viki](261020-openviking-retrieval-viki.md)
-- 既有：[层 1 note](../../notes/archived/2026-10-04-openviking-layer1-landing.md)、[0.5.8→0.5.26 note](../../notes/implemented/2026-10-19-openviking-pin-catch-up.md)、[正式接入卡](../_archive/settled_issues/260929-openviking-formal-integration.md)、[vendor README](../../vendor/thirdparty/openviking/README.md)
+- 既有：[层 1 note](../../../notes/archived/2026-10-04-openviking-layer1-landing.md)、[0.5.8→0.5.26 note](../../../notes/implemented/2026-10-19-openviking-pin-catch-up.md)、[正式接入卡](260929-openviking-formal-integration.md)、[vendor README](../../../vendor/thirdparty/openviking/README.md)
 - 版本：[v0.5.1.1 release](https://github.com/volcengine/OpenViking/releases/tag/v0.5.1.1)、[plugin 0.5.27](https://www.npmjs.com/package/@openviking/dsh-memory-plugin/v/0.5.27)
-- 证据面：[测试证据地图](../../docs/testing.md)、[web-face 场景](../../snapshots/web-face/)
+- 证据面：[测试证据地图](../../../docs/testing.md)、[web-face 场景](../../../snapshots/web-face)
