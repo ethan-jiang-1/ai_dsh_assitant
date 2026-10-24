@@ -52,6 +52,7 @@ research 为问题和缺陷提供依据。问题按 [关闭条件](../README.md)
 
 从引用卡链接进入，按正在解决的问题选读。
 
+- [261024-interface-layer-audit.md](positioning/261024-interface-layer-audit.md)——引用卡：无（2026-10-24 用户点名三层界面系统审计；P0 死门/Viki 专家档/桌面 tab 双输入，调整方案待拍板）。三层在主面板内成立，旧 feature silos 仍并列；第一轮覆盖主面板/会话/右栏/三档/调试，窄视口与审批进第二轮
 - [261023-first-run-e2e-review.md](positioning/261023-first-run-e2e-review.md)——引用卡：无（2026-10-23 用户点名首开端到端复核；后续修复卡按此取用）。干净 home 真机 + eight 种子 + 两轴评审 + 资产盘点：主链 25s 出页、6 硬问题/4 UX 缺陷已修、5 个 P1 资产/语义缺口与优先级
 - [261023-first-run-ux-walkthrough.md](positioning/261023-first-run-ux-walkthrough.md)——引用卡：[首开重做（已结）](../_archive/settled_issues/261023-first-run-ux-reframe.md)（证据/三案/设计议程在本档，结论与台账在卡上）。空 home 三屏走查 + 一次真模型回合：五条可观察事实、呈现面清单、机制诊断、目标体验草案、A/B/C 代价与九条未决议程
 
