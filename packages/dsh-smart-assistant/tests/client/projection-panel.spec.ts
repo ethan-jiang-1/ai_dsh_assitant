@@ -17,10 +17,22 @@ const react = {
   useRef: <T,>(value: T): { current: T } => ({ current: value }),
 }
 bindClientRequire(() => react)
+/** Invoke function components the way React would; the proactive strips are child components now. */
+function expand(node: unknown): unknown {
+  if (Array.isArray(node)) return node.map(expand)
+  if (node !== null && typeof node === 'object' && 'type' in node) {
+    const element = node as { type: unknown, props: unknown }
+    if (typeof element.type === 'function') return expand((element.type as (props: unknown) => unknown)(element.props))
+  }
+  return node
+}
 function text(node: unknown): string {
-  if (Array.isArray(node)) return node.map(text).join(' ')
-  if (typeof node === 'string') return node
-  if (node !== null && typeof node === 'object' && 'props' in node) return text((node as { props: { children?: unknown } }).props.children)
+  const expanded = expand(node)
+  if (Array.isArray(expanded)) return expanded.map(text).join(' ')
+  if (typeof expanded === 'string') return expanded
+  if (expanded !== null && typeof expanded === 'object' && 'props' in expanded) {
+    return text((expanded as { props: { children?: unknown } }).props.children)
+  }
   return ''
 }
 /** The platform status map as a selector hook; fixtures that do not exercise it pass an empty map. */
@@ -91,6 +103,8 @@ function renderWithCatalog(value: ProjectionDownload, catalog: CatalogState, ui:
 /** Collect every string attribute value matching a key anywhere in the tree (data-* assertions). */
 function collectAttr(node: unknown, key: string, into: string[] = []): string[] {
   if (Array.isArray(node)) { for (const child of node) collectAttr(child, key, into); return into }
+  const expanded = expand(node)
+  if (expanded !== node) return collectAttr(expanded, key, into)
   if (node !== null && typeof node === 'object' && 'props' in node) {
     const props = (node as { props: Record<string, unknown> }).props
     if (typeof props[key] === 'string') into.push(props[key] as string)
@@ -106,6 +120,8 @@ function findButton(node: unknown, label: string): { onClick?: () => void, disab
     }
     return undefined
   }
+  const expanded = expand(node)
+  if (expanded !== node) return findButton(expanded, label)
   if (node !== null && typeof node === 'object' && 'props' in node) {
     const props = (node as { props: { children?: unknown, onClick?: () => void, disabled?: boolean } }).props
     if (text(node) === label && props.onClick !== undefined) return props
@@ -122,6 +138,8 @@ function findByClass(node: unknown, className: string): { className?: string, ch
     }
     return undefined
   }
+  const expanded = expand(node)
+  if (expanded !== node) return findByClass(expanded, className)
   if (node !== null && typeof node === 'object' && 'props' in node) {
     const props = (node as { props: { className?: string, children?: unknown } }).props
     if (props.className === className) return props
@@ -139,6 +157,8 @@ function findButtonBySubstring(node: unknown, label: string): { onClick?: () => 
     }
     return undefined
   }
+  const expanded = expand(node)
+  if (expanded !== node) return findButtonBySubstring(expanded, label)
   if (node !== null && typeof node === 'object' && 'props' in node) {
     const props = (node as { props: { children?: unknown, onClick?: () => void } }).props
     if (text(node).includes(label) && props.onClick !== undefined) return props

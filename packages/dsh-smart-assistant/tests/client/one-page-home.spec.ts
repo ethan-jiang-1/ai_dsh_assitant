@@ -163,9 +163,9 @@ function panelProps(
   }
 }
 
-function renderHome(props: ProjectionPanelProps & { onOpenAll: () => void }): unknown {
+function renderHome(props: ProjectionPanelProps & { onOpenAll: () => void, onOpenBoard?: () => void }): unknown {
   stateIndex = 0
-  return OnePageHome(props)
+  return expand(OnePageHome(props))
 }
 
 beforeEach(() => {
@@ -328,6 +328,38 @@ describe('OnePageHome', () => {
     stateIndex = 0
     const board = expand(HomeSurface(withCatalog))
     expect(text(board)).toContain('后台：1 条待归户')
+  })
+
+  it('the home carries the proactive rows and suggestions the deep board hides', () => {
+    const data = projection([matter()], [], [{ id: 'u1', note: '待归户片段', sessionId: 's1' }])
+    const { props } = panelProps({ status: 'ready', data })
+    const withCatalog = {
+      ...props,
+      useCatalog: <S,>(select: (state: ProactiveCatalogState) => S): S => select({
+        status: 'entries',
+        entries: [{ id: 't1', title: '每周对账', kind: 'weekly', scheduledAt: '2026-10-26T09:00:00+08:00', status: 'active' }],
+      }),
+    }
+    stateSlots.length = 0
+    stateIndex = 0
+    const openBoard = vi.fn()
+    const home = renderHome({ ...withCatalog, onOpenAll: () => {}, onOpenBoard: openBoard })
+    expect(text(home)).toContain('它在等你：1 条待认领')
+    expect(text(home)).toContain('它下次替你看：每周对账')
+    expect(text(home)).toContain('让它替你盯')
+    // A row action must leave the home for the board; selecting here alone would be a dead click.
+    findButton(home, '去处理')?.onClick?.()
+    expect(openBoard).toHaveBeenCalled()
+    stateIndex = 0
+    const surfaceHome = expand(HomeSurface(withCatalog))
+    findButton(surfaceHome, '全部（1）')?.onClick?.()
+    stateIndex = 0
+    const list = expand(HomeSurface(withCatalog))
+    findButton(list, '完整看板')?.onClick?.()
+    stateIndex = 0
+    const board = expand(HomeSurface(withCatalog))
+    expect(text(board)).not.toContain('它在等你：')
+    expect(text(board)).not.toContain('让它替你盯')
   })
 
   it('HomeSurface goes home -> list -> board and back', () => {

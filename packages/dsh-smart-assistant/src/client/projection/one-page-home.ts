@@ -23,6 +23,7 @@ import { deriveCaptureView } from '../../domain/desk/desk-capture-view'
 import { humanTime } from '../chrome/format'
 import { patchDesk, useDesk } from '../rooms/room-data-core'
 import { reloadDesk } from '../rooms/room-data-io'
+import { ProactiveRows, SuggestionStrip, PROACTIVE_STYLES } from './proactive-strip'
 import type { ProjectionPanelProps } from './projection-panel'
 import type { OperatingMatter } from './operating-projection'
 
@@ -91,7 +92,7 @@ function pageTime(matter: OperatingMatter): string {
  * @param props - The same hook/actions/surface contract the projection panel receives.
  * @returns The home element.
  */
-export function OnePageHome(props: ProjectionPanelProps & { onOpenAll: () => void, onOpenRecords?: () => void, onOpenDebug?: () => void }): ReturnType<typeof ce> {
+export function OnePageHome(props: ProjectionPanelProps & { onOpenAll: () => void, onOpenBoard?: () => void, onOpenRecords?: () => void, onOpenDebug?: () => void }): ReturnType<typeof ce> {
   const { useEffect, useState } = reactSurface()
   const openRecords = (): void => {
     if (props.onOpenRecords !== undefined) props.onOpenRecords()
@@ -206,6 +207,22 @@ export function OnePageHome(props: ProjectionPanelProps & { onOpenAll: () => voi
       disabled: capturePending || view.captureDraft.trim() === '',
       onClick: submit,
     }, capturePending ? '交给它了' : '交给它'))
+  // The 2026-10-24 reframe moved these actions off the deep board and onto the home; they render
+  // here from the same read-only sources (rows) and the same delivery lanes (suggestions).
+  const proactiveStripProps = {
+    ...(data !== undefined ? { data } : {}),
+    openQuestions: captureView.openQuestions,
+    pendingQuestionSessions: captureView.questionSessions,
+    lanes: props.surface.lanes,
+    actions: props.actions,
+    capturePending,
+    simpleMode: false,
+    ...(props.onOpenBoard !== undefined ? { onOpenBoard: props.onOpenBoard } : {}),
+    ...(props.useCatalog !== undefined ? { useCatalog: props.useCatalog } : {}),
+    ...(props.useProactiveUi !== undefined ? { useProactiveUi: props.useProactiveUi } : {}),
+  }
+  const proactiveRows = ce(ProactiveRows, { ...proactiveStripProps })
+  const suggestionStrip = data === undefined ? null : ce(SuggestionStrip, { ...proactiveStripProps })
   const workingCard = working && receipt !== null
     ? ce('div', { className: 'dsha-home-working', role: 'status' },
       ce('div', { className: 'dsha-home-working-line' },
@@ -282,7 +299,7 @@ export function OnePageHome(props: ProjectionPanelProps & { onOpenAll: () => voi
       ce('button', { className: 'dsha-home-link', type: 'button', onClick: () => props.onOpenAll() }, '看全部 →'))
     : null
   return ce('main', { className: 'dsha-home', 'data-assistant-one-page-home': true },
-    ce('style', {}, STYLES),
+    ce('style', {}, STYLES + PROACTIVE_STYLES),
     ce('header', { className: 'dsha-home-head' },
       ce('h1', { className: 'dsha-home-title' }, '今天'),
       ce('div', { className: 'dsha-home-links' },
@@ -316,6 +333,8 @@ export function OnePageHome(props: ProjectionPanelProps & { onOpenAll: () => voi
         : current !== undefined
           ? page
           : fragmentCard ?? ce('p', { className: 'dsha-home-note' }, '正在读取桌面…'),
+    proactiveRows,
     empty && fresh ? null : inputRow('还有别的事？说一句…'),
+    suggestionStrip,
     rest)
 }

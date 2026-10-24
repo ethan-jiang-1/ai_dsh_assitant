@@ -51,6 +51,7 @@ export function HomeSurface(props: ProjectionPanelProps): ReturnType<typeof ce> 
   return ce(OnePageHome, {
     ...props,
     onOpenAll: () => setSurface('list'),
+    onOpenBoard: () => setSurface('board'),
     onOpenRecords: () => setSurface('records'),
     ...(onOpenDebug === undefined ? {} : { onOpenDebug }),
   })
