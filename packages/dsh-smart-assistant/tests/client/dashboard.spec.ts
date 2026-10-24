@@ -85,7 +85,7 @@ describe('dashboard main panel', () => {
     const text = textsOf(panel({ onAsk: () => {} })).join(' | ')
     expect(text).toContain('你的桌面')
     expect(text).toContain('读不到账本投影')
-    expect(text).toContain('1 页知识草稿在等你审批')
+    expect(text).toContain('1 页知识草稿等你审批')
     expect(text).toContain('有问题')
   })
 

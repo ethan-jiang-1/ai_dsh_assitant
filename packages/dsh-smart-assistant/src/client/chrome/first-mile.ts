@@ -12,9 +12,7 @@ import type { PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots
 import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
 import type { RoomKind } from './contracts'
 import { patchDesk, useDesk } from '../rooms/room-data-core'
-import { askStart } from '../rooms/room-data-actions'
-import { sendPrompt } from '../rooms/prompt-bridge'
-import { createElement, reactSurface } from './runtime'
+import { createElement } from './runtime'
 import { MARK_TEAL } from './theme'
 import type {} from './locales'
 
@@ -62,12 +60,9 @@ interface FirstMileInjected {
 type FirstMileDockProps = PropsRuntime<'conversation.input.dock'> & FirstMileInjected & PropsLocale<'assistantFirstMile'>
 
 export function FirstMileDock({ session, openDesk, processingMatter, t }: FirstMileDockProps): ReturnType<typeof createElement> | null {
-  // Hooks stay UNCONDITIONAL (React rules): the 2026-10-07 live probe caught the early
-  // return below them leaking the composer-hiding style past unmount — an ongoing session
-  // was left with no input box at all while the model waited for an answer.
-  const { useState } = reactSurface()
-  const [draft, setDraft] = useState('')
-  const sid = session?.sessionId  // (2026-10-07) The old hiding CSS — "[data-chain-overlay-fallback='conversation.composer']
+  // The card is a pointer, not a second first-open composer: the one place to type a first
+  // sentence is the home page. Keeping the old embedded textarea here made two first-open
+  // surfaces with two different lanes (home `[首页]` vs conversation chat).
   // { display:none }" — is RETIRED, not fixed. The live probe (2026-10-07) showed WHY it could
   // never work: this dock renders INSIDE that fallback wrapper (vendor ConversationContent.tsx:
   // composerStack = hero + input.dock + inputBar), so hiding the vendor composer hid this card
@@ -86,13 +81,6 @@ export function FirstMileDock({ session, openDesk, processingMatter, t }: FirstM
   // lands asynchronously after mount, and the old one-shot never re-rendered — the brief
   // never appeared on a live reload (caught in the 2026-10-07 real-machine probe).
   const walk = useDesk()
-  const send = () => {
-    const text = draft.trim()
-    const sid = session?.sessionId
-    if (text === '' || !sid) return
-    sendPrompt(text, 'desktop-landing', 'desk', sid)
-    setDraft('')
-  }
 
   // The walk view's desk data — on a blank session there is no session slice yet, so the
   // brief reads the shared walk view (subscribed above).
@@ -144,28 +132,10 @@ export function FirstMileDock({ session, openDesk, processingMatter, t }: FirstM
   if (session?.blank !== true) return null
 
   if (!hasDesk) {
-    // Day-0: the arc, the promise, and the start.
     return shell([
-      heading('第一次来？说一句话，它先问你。'),
-      body('你开了口，它会先问你最近要拍板、还要跟进的一件事——然后三个短问（什么逼出了决定、当时知道什么、哪里没底）。'),
-      body('答完，你的桌面就有了第一份决策简报：带代价的选项、还缺的数、一个复查日期。之后每次来先看桌面——在办的事项、等你确认的、快到期的，一目了然。'),
-      createElement('div', { style: { fontSize: '12px', color: 'var(--dsw-alias-label-secondary)' } },
-        '例：「这个月签单为什么慢」「我在想要不要给老客户涨价」'),
-      startButton('开始第一件事', () => {
-        if (sid !== undefined) { askStart(sid) }
-      }),
-      createElement('textarea', {
-        value: draft,
-        onChange: (e: { target: { value: string } }) => { setDraft(e.target.value) },
-        onKeyDown: (e: { key: string, shiftKey: boolean, preventDefault: () => void }) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } },
-        placeholder: '说说你现在要处理的事…',
-        rows: 2,
-        style: { width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--dsw-alias-border-l2)', background: 'var(--dsw-alias-bg-base)', color: 'inherit', fontSize: '14px', resize: 'vertical' as const, fontFamily: 'inherit', boxSizing: 'border-box' as const },
-      }),
-      createElement('button', {
-        onClick: send,
-        style: { alignSelf: 'flex-end', padding: '8px 20px', borderRadius: '8px', cursor: 'pointer', border: 'none', fontSize: '14px', fontWeight: 600, background: MARK_TEAL, color: 'var(--dsha-on-accent)' },
-      }, '发送'),
+      heading('第一次来？回到今天，说一句就行。'),
+      body('今天这一页会先问你最近要拍板的一件事，再给你一版带选项、代价和复查日的页。'),
+      startButton('回到今天', () => { openDesk?.() }),
     ])
   }
 
@@ -174,12 +144,12 @@ export function FirstMileDock({ session, openDesk, processingMatter, t }: FirstM
   // one desk is the ledger projection in the main area, and the client's room-data file no
   // longer carries anything to brief from.
   return shell([
-    heading('这是你的一把手桌面——三句话，说完就办'),
-    body('在办的事项、等你确认的、快到期的，都在桌面全景里——那是账本的投影，唯一的桌面。'),
+    heading('今天的事都在「今天」这一页。'),
+    body('在办、等你确认、快到期的，回今天看。'),
     createElement('div', { style: { display: 'flex', gap: '8px', alignItems: 'center' } },
-      startButton('打开桌面全景', () => { openDesk?.() }),
+      startButton('回到今天', () => { openDesk?.() }),
       createElement('span', { style: { fontSize: '12px', color: 'var(--dsw-alias-label-secondary)' } },
-        '· 有新的事，直接在下面说'),
+        '· 有新的事，也可以在下面说'),
     ),
   ])
 }
@@ -226,7 +196,7 @@ export function ApprovalDockBanner({ openRoom }: {
     },
   },
   createElement('div', { style: { fontSize: '13px', color: 'var(--dsha-warn)' } },
-    `⚠ ${String(draftCount)} 页知识草稿在等你审批——批准后才会成为它的判断依据`),
+    `⚠ ${String(draftCount)} 页知识草稿等你审批——批准后才会成为它的判断依据`),
   createElement('button', {
     onClick: () => {
       // Same routing as the desk pointer: the room opens with the drafts highlighted
@@ -239,6 +209,6 @@ export function ApprovalDockBanner({ openRoom }: {
       border: '1px solid var(--dsha-warn)', background: 'transparent', cursor: 'pointer',
       fontSize: '12px', color: 'var(--dsha-warn)', padding: '3px 10px', borderRadius: '6px',
     },
-  }, '点这里去审批'),
+  }, '去审批'),
   )
 }

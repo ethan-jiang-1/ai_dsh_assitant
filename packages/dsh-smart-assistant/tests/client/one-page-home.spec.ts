@@ -12,6 +12,7 @@ import type { ProjectionPanelProps } from '../../src/client/projection/projectio
 import type { DeskLanes } from '../../src/client/projection/desk-surface'
 import type { ProjectionDownload } from '../../src/client/projection/projection-reader'
 import type { OperatingMatter, OperatingProjection, OperatingReceipt } from '../../src/client/projection/operating-projection'
+import type { ProactiveCatalogState } from '../../src/client/proactive/proactive-face-source'
 import { createProjectionViewStore } from '../../src/client/projection/projection-view'
 import { defineStore } from '@deepseek-ai/dsh-client-store'
 
@@ -259,7 +260,7 @@ describe('OnePageHome', () => {
     const { props } = panelProps({ status: 'ready', data })
     const withCatalog = {
       ...props,
-      useCatalog: <S,>(select: (value: unknown) => S): S => select({
+      useCatalog: <S,>(select: (state: ProactiveCatalogState) => S): S => select({
         status: 'entries',
         entries: [{ id: 't1', title: '每周对账', kind: 'weekly', scheduledAt: '2026-10-26T09:00:00+08:00', status: 'active' }],
       }),
@@ -272,6 +273,10 @@ describe('OnePageHome', () => {
     expect(text(list)).toContain('每周对账')
     expect(text(list)).toContain('还有 1 条待归户')
     expect(text(list)).not.toContain('内部原文')
+    findButton(list, '完整看板')?.onClick?.()
+    stateIndex = 0
+    const board = expand(HomeSurface(withCatalog))
+    expect(text(board)).toContain('后台：1 条待归户')
   })
 
   it('HomeSurface goes home -> list -> board and back', () => {
@@ -290,7 +295,11 @@ describe('OnePageHome', () => {
     findButton(list, '完整看板')?.onClick?.()
     stateIndex = 0
     const board = expand(HomeSurface(panel))
-    expect(text(board)).toContain('看板')
+    expect(text(board)).toContain('完整看板')
+    expect(text(board)).not.toContain('交代新事项')
+    expect(text(board)).not.toContain('重新读取')
+    expect(text(board)).not.toContain('有问题')
+    expect(text(board)).not.toContain('让它替你盯')
     expect(findButton(board, '回到今天')).toBeDefined()
     findButton(board, '回到今天')?.onClick?.()
     stateIndex = 0

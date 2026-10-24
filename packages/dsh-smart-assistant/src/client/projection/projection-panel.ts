@@ -227,6 +227,9 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
   // domain module so the rules are testable without rendering.
   const sessionStatuses = props.useSessionStatus(value => value)
   const captureView = deriveCaptureView({ receipt, revision: data?.revision ?? 0, statuses: sessionStatuses })
+  // The board mounted from HomeSurface is the deep view: it must not repeat the home's intake or
+  // the setup/diagnostic chrome. A direct mount (tests / legacy) keeps the full dashboard.
+  const deep = props.onBackHome !== undefined
   const phase = captureView.phase
   const capturePending = captureView.pending
   const isActionLane = captureView.isActionLane
@@ -385,7 +388,7 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
   const counts = data === undefined ? undefined
     : `${matters.filter(matter => matter.status === 'active').length} 件在办`
       + (pendingProposals > 0 ? ` · ${pendingProposals} 条等你确认` : '')
-      + (unclaimed.length > 0 ? ` · ${unclaimed.length} 条待认领` : '')
+      + (deep || unclaimed.length === 0 ? '' : ` · ${unclaimed.length} 条待认领`)
   // Simple mode: one card and the input, nothing else. The card picks the next thing by
   // urgency (a pending question first), then the first active/completed matter, then the
   // first unclaimed fragment. "显示更多" is the only way out and switches to standard.
@@ -438,6 +441,15 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
     }
     if (element.scrollTop === 0 && view.listScrollTop > 0) element.scrollTop = view.listScrollTop
   }
+  const unclaimedCards = unclaimed.map(fragment => ce('button', {
+    key: fragment.id,
+    type: 'button',
+    className: 'dsha-card',
+    'data-selected': String(selection?.kind === 'fragment' && selection.id === fragment.id),
+    onClick: () => props.actions.selectFragment(fragment.id),
+  },
+  ce('span', { className: 'dsha-card-title' }, chip('warn', '待认领'), ce('span', {}, fragment.note)),
+  ce('p', { className: 'dsha-card-meta' }, `来自 ${fragment.sessionId}`)))
   return ce('main', {
     className: 'dsha-desk',
     'data-assistant-operating-desk': true,
@@ -449,24 +461,26 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
     ce('style', {}, STYLES),
     ce('header', { className: 'dsha-head' },
       ce('div', {},
-        ce('h1', { className: 'dsha-title' }, '你的桌面'),
+        ce('h1', { className: 'dsha-title' }, deep ? '完整看板' : '你的桌面'),
         counts === undefined ? null : ce('div', { className: 'dsha-sub' }, counts)),
       ce('div', { className: 'dsha-actions' },
         props.onBackHome !== undefined
           ? ce('button', { className: 'dsha-btn', type: 'button', onClick: props.onBackHome }, '回到今天')
           : null,
-        ce('button', { className: 'dsha-btn', onClick: lanes.refreshProjection, disabled: download.status === 'loading', title: download.status === 'loading' ? '正在读取桌面…' : '重新读取桌面' }, '重新读取'),
-        ce('button', { className: 'dsha-btn', onClick: lanes.onAsk }, '有问题？跟助手说'),
-        ce('button', { className: 'dsha-btn dsha-btn-primary', onClick: lanes.onEntrust ?? lanes.onAsk }, '＋ 交代新事项'))),
+        ...(deep ? [] : [
+          ce('button', { className: 'dsha-btn', onClick: lanes.refreshProjection, disabled: download.status === 'loading', title: download.status === 'loading' ? '正在读取桌面…' : '重新读取桌面' }, '重新读取'),
+          ce('button', { className: 'dsha-btn', onClick: lanes.onAsk }, '有问题？跟助手说'),
+          ce('button', { className: 'dsha-btn dsha-btn-primary', onClick: lanes.onEntrust ?? lanes.onAsk }, '＋ 交代新事项'),
+        ]))),
     // Proactive face (2026-10-18):「它替你看过」sits BETWEEN the header and the capture row —
     // structural anchor, not line numbers (the two 261018 cards invalidate each other's anchors).
     // All-empty state renders nothing; each row carries at most one action (the noise cap).
-    proactiveFace,
+    deep ? null : proactiveFace,
     // The desk's own capture row (desk-side capture, 2026-10-18). The principal's intent to add something arises
     // WHILE looking at the desk, so the desk has to be able to take it — before this, the only
     // door was 「＋ 交代新事项」, which opens a conversation and takes the reminder surface away.
     // Two doors, and the copy says which weight each one carries.
-    ce('div', { className: 'dsha-capture' },
+    deep ? null : ce('div', { className: 'dsha-capture' },
       ce('input', {
         className: 'dsha-capture-input',
         type: 'text',
@@ -511,7 +525,7 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
         : '来自：桌面直接交代 · 话已进会话日志')) : null,
     // 261019: the offer sits BELOW the input and its in-flight row — the principal's own words
     // come first; the three named watches are an offer, not the desk's primary surface.
-    suggestFace,
+    deep ? null : suggestFace,
     // The desk's two top-level views as real tabs (principal UX direction, 2026-10-12): the
     // divider line makes the split legible, the active underline sits ON the line, and the
     // glyphs carry the memory — this is not another row of filter pills.
@@ -524,7 +538,7 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
         'aria-selected': String(effectiveMode === mode),
         'data-on': String(effectiveMode === mode),
         onClick: () => props.actions.setMode(mode),
-      }, glyphFor(mode), ce('span', {}, mode === 'board' ? '看板' : '流水')))) : null,
+      }, glyphFor(mode), ce('span', {}, mode === 'board' ? (deep ? '事项' : '看板') : '流水')))) : null,
     download.status === 'disconnected' ? ce('p', { className: 'dsha-banner', role: 'status' }, message) : null,
     download.stale ? ce('p', { className: 'dsha-banner', role: 'status' }, '以下是上次读到的内容，尚未刷新。') : null,
     download.status === 'error' ? ce('p', { className: 'dsha-banner', role: 'alert' }, message) : null,
@@ -586,16 +600,13 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
             : null,
           matter.summary.length > 0 ? ce('p', { className: 'dsha-card-summary' }, matter.summary) : null,
           matter.proposals.some(proposal => proposal.status === 'pending') ? ce('p', { className: 'dsha-card-meta' }, chip('warn', '等你确认')) : null)),
-          unclaimed.length > 0 ? ce('p', { className: 'dsha-list-label' }, '待认领——还没说清是哪件事，不猜') : null,
-          unclaimed.map(fragment => ce('button', {
-            key: fragment.id,
-            type: 'button',
-            className: 'dsha-card',
-            'data-selected': String(selection?.kind === 'fragment' && selection.id === fragment.id),
-            onClick: () => props.actions.selectFragment(fragment.id),
-          },
-          ce('span', { className: 'dsha-card-title' }, chip('warn', '待认领'), ce('span', {}, fragment.note)),
-          ce('p', { className: 'dsha-card-meta' }, `来自 ${fragment.sessionId}`)))),
+          deep
+            ? (unclaimed.length === 0 ? null : ce('details', { className: 'dsha-background' },
+              ce('summary', {}, `后台：${String(unclaimed.length)} 条待归户——还没说清是哪件事，不猜`),
+              ...unclaimedCards))
+            : ce('div', {},
+              unclaimed.length > 0 ? ce('p', { className: 'dsha-list-label' }, '待认领——还没说清是哪件事，不猜') : null,
+              ...unclaimedCards)),
         ce('div', { className: 'dsha-matter-detail dsha-detail' },
           selectedFragment !== undefined ? ce('article', {},
             ce('div', { className: 'dsha-meta' },

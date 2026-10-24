@@ -282,3 +282,25 @@ memory-hygiene 明确是 agent 的活），却在客户的编辑层以“斜杠�
 判断：这是**第三个导航面**（左栏 / 会话 tab / 斜杠菜单），也是**内部术语泄漏**。它不算三层里的任何一层；
 如果它是 vendor 的 slash 菜单行为，产品至少要决定哪些 skill 对客户可见、用什么中文名/描述，或者整组隐藏。
 当前状态是“默认路径看不到，好奇打一个 `/` 就看到一堵英文技能墙”。
+
+## 10. 实施记录（2026-10-24，用户「都弄好」）
+
+按 §4/§5 落地；每片一个提交，测试/场景同 diff。
+
+| 提交 | 片 | 结果 |
+|---|---|---|
+| `76ee1fb` | 调试门 + 密度收窄 | Viki 与开发调试 tab 同由 flag；密度 UI 改「完整看板密度（紧凑/标准/完整）」，房间/命令不再随密度；`mount-rooms`/`entry`/`ui-mode-*` 测试改写；专家档无 Viki 真机 |
+| `d1eb161` | 它记下的 | 主面板只读记录面；过滤 deprecated 知识、rule 记忆；真机 14 条业务页；记录面测试 |
+| `e230751` | 会话 tab + 任务/列表 | 退役会话桌面/任务 tab；「它在盯什么」只读日程进列表；待归户只报计数；列表标题「全部」；entry/list 测试 |
+| 收尾提交 | 深看 + 首开 + 命名 | deep 看板去 capture/＋交代/有问题/重新读取/主动建议；待归户后台 details；标题「完整看板」/tab「事项」；首开卡一句指针；左栏「今天」；审批文案统一；三个 web-face 场景重录 |
+
+**门禁**：`pnpm test` 全绿、`pnpm verify` 44；`blank-first-open` / `desk-eight-matters-first-open` /
+`desk-eight-matters-brief-list` 三场景 PASS；真机 `audit-fix-*`。
+
+**仍未做（P2）**：
+- 调试 tab 仍只在有内容的会话出现；主面板的全局调试入口未做。
+- 列表搜索/删除：搜索未做；删除不做产品动作（账本保留历史，事项办结/放弃而不是删除；知识/记忆删除在房间）。
+- 左栏「插件 / 自动化任务」是 vendor 壳，插件不能移除。
+- 直接挂载 `ProjectionPanel`（测试/兼容）仍保留全量 dashboard；产品深看经 HomeSurface deep 变体。
+
+决定与后果 = [三层界面重排 note](../../../notes/implemented/2026-10-24-interface-layer-rearrangement.md)。

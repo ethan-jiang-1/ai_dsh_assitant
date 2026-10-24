@@ -109,7 +109,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         name: 'sidebar.panellist',
         id: 'dsh-smart-assistant-dashboard',
         order: 5,
-        label: () => '桌面',
+        label: () => '今天',
       }, DashboardPanelIcon))
     const storeApi = typeof document === 'undefined' ? undefined : clientRequire<{
       createSnapshotStore<T>(initial: T): { getSnapshot(): T; subscribe(listener: () => void): () => void; set(value: T): void }

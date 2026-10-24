@@ -136,36 +136,28 @@ describe('first-mile seats', () => {
     if (dock === null) throw new Error('the strip should render for a blank session')
     const copy = textsOf(dock).join(' ')
     expect(copy).toContain('第一次来')
-    expect(copy).toContain('开始第一件事')
+    expect(copy).toContain('回到今天')
     expect(copy).not.toContain('一把手桌面')
   })
 
-  it('tells a first-time principal what to say and offers the desk', () => {
+  it('a first-time principal gets a one-line pointer to the home', () => {
     const dock = materialize().FirstMileDock({ session: { blank: true }, openDesk: () => {} })
 
     if (dock === null) throw new Error('the strip should render for a blank session')
     const copy = textsOf(dock).join(' ')
-    // The two gaps the walkthrough named: what do I say first, and what can this thing do.
+    // One first-open surface: the home page. This card only points there; it no longer hosts
+    // a second composer, an arc, or the internal 桌面/账本 vocabulary.
     expect(copy).toContain('第一次来')
-    expect(copy).toContain('例：')
-    // R10: the strip no longer advertises the `/` menu (it leads with shell commands and
-    // English developer-flavoured skill rows); it points at our own doors instead.
-    // First-open UX card (2026-10-01): "三室" was governance vocabulary on the principal's
-    // surface — the copy now names what they get, not our room taxonomy.
-    // A1 rich landing (2026-10-06): the copy now tells the full arc, not just how to start.
-    expect(copy).toContain('决策简报')
-    expect(copy).toContain('带代价的选项')
-    expect(copy).toContain('复查日期')
-    expect(copy).toContain('先看桌面')
+    expect(copy).toContain('回到今天')
+    expect(copy).toContain('说一句')
+    expect(copy).not.toContain('决策简报')
+    expect(copy).not.toContain('例：')
     expect(copy).not.toContain('三室')
     expect(copy).not.toContain('敲 /')
 
     const buttons = elementsOf(dock, 'button')
-    expect(buttons).toHaveLength(2) // 开始第一件事 + 发送（A1 内嵌 composer 的发送按钮）
-    // 2026-10-06 (real-user walk): the desk button is demoted to a labelled preview of the
-    // empty desk — the primary start is the first word in the composer, and the copy above
-    // now says what happens after it (the assistant asks first).
-    expect(textsOf(buttons[0]).join('')).toBe('开始第一件事')
+    expect(buttons).toHaveLength(1)
+    expect(textsOf(buttons[0]).join('')).toBe('回到今天')
   })
 
   it('a returning principal gets the desk door, not a brief rebuilt from the retired file', () => {
@@ -186,15 +178,17 @@ describe('first-mile seats', () => {
     const copy = textsOf(dock).join(' ')
     // The one desk is the ledger projection in the main area: the strip names it and hands over
     // the door instead of speaking retired sections the room-data file no longer carries.
-    expect(copy).toContain('一把手桌面')
-    expect(copy).toContain('桌面全景')
-    expect(copy).toContain('账本')
+    expect(copy).toContain('今天')
+    expect(copy).toContain('回到今天')
+    expect(copy).not.toContain('一把手桌面')
+    expect(copy).not.toContain('桌面全景')
+    expect(copy).not.toContain('账本的投影')
     expect(copy).not.toContain('老客户续约要不要涨价')
     expect(copy).not.toContain('出续约方案草案')
     expect(copy).not.toContain('三家客户的毛利数')
 
     const buttons = elementsOf(dock, 'button')
-    expect(textsOf(buttons[0]).join('')).toBe('打开桌面全景')
+    expect(textsOf(buttons[0]).join('')).toBe('回到今天')
     ;(buttons[0]?.props.onClick as (() => void) | undefined)?.()
     expect(opened).toEqual(['desk'])
   })
@@ -255,13 +249,13 @@ describe('approval dock banner', () => {
     const banner = exports.ApprovalDockBanner({ openRoom: () => {} })
     if (banner === null) throw new Error('the banner should render for draft rows')
     const copy = textsOf(banner).join(' ')
-    expect(copy).toContain('2 页知识草稿在等你审批')
+    expect(copy).toContain('2 页知识草稿等你审批')
     expect(copy).not.toContain('99')
     expect(copy).toContain('批准后才会成为它的判断依据')
 
     exports.deskStore.data = deskWith([], 4)
     const fallback = exports.ApprovalDockBanner({ openRoom: () => {} })
-    expect(textsOf(fallback as Element).join(' ')).toContain('4 页知识草稿在等你审批')
+    expect(textsOf(fallback as Element).join(' ')).toContain('4 页知识草稿等你审批')
   })
 
   it('routes the click to the knowledge room with the drafts highlighted (same routing as the desk pointer)', () => {
@@ -272,7 +266,7 @@ describe('approval dock banner', () => {
     if (banner === null) throw new Error('the banner should render for draft rows')
     const buttons = elementsOf(banner, 'button')
     expect(buttons).toHaveLength(1) // 开始第一件事（发送按钮在 composer 内，不在 dock 测试范围内）
-    expect(textsOf(buttons[0]).join('')).toBe('点这里去审批')
+    expect(textsOf(buttons[0]).join('')).toBe('去审批')
     exports.deskStore.focusKnowledge = undefined
     ;(buttons[0]?.props.onClick as () => void)()
     expect(opened).toEqual(['knowledgeRoom'])

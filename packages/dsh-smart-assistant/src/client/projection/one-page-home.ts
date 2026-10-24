@@ -107,7 +107,7 @@ export function OnePageHome(props: ProjectionPanelProps & { onOpenAll: () => voi
   const draftCount = (walk.data?.knowledge ?? []).filter(page => page.status === 'draft').length
   const approvalCard = draftCount > 0
     ? ce('div', { className: 'dsha-home-question', role: 'status' },
-      ce('p', {}, `${String(draftCount)} 页知识草稿等你审批——批准后才会成为它判断的依据。`),
+      ce('p', {}, `${String(draftCount)} 页知识草稿等你审批——批准后才会成为它的判断依据。`),
       ce('button', {
         className: 'dsha-home-act', type: 'button',
         onClick: () => {

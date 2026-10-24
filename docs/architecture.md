@@ -37,7 +37,7 @@ HOST 面（cordis.patch.yml → dsh.bundle.patch）
                             + assistant-desk-projection 行（固定只读投影下载：GET
                               api/assistant/desk-projection，优先活渲染账本 v2 投影——契约 =
                               [operating.md](operating.md) §三）
-                            + assistant-ui-mode 行（界面密度 per-home 持久：GET/POST
+                            + assistant-ui-mode 行（完整看板密度 per-home 持久：GET/POST
                               api/assistant/ui-mode，读写 assistant/ui-mode.json；标准默认；
                               不写 settings 文档，不碰账本/工作目录）
                             + assistant-rooms 行（维护面板的房间投影 + 受控写 + 收据：GET
@@ -92,7 +92,7 @@ AGENT 面（`cordis.patch.yml` 的 `preset-assistant` 行 → agent preset）
 （生成器从 `src/client/` 模块树抽取，freshness 由 `pnpm verify` 守；散文不另维护清单）。
 语义要点：官方品牌包只在 official 构建档案下注册，本地构建里品牌 slot 空置；
 四个房间 tab（knowledge / memory / viki / skills）是「+」向导里可添加的右栏 tab；首里引导座位开聊即隐；全局经营
-桌面的主区投影消费 `main` 座位，默认渲染**常用面一页纸**（`home-surface` → `one-page-home`：空态一问、当前一页、
+主区投影消费 `main` 座位（左栏入口叫「今天」），默认渲染**常用面一页纸**（`home-surface` → `one-page-home`：空态一问、当前一页、
 一个输入），「全部」进人读列表（`brief-list`），「它记下的」进只读记录面（`records-surface`），「完整看板」再进 `projection-panel`，「看依据」就地展开证据；会话内不再注册桌面/任务 tab（2026-10-24 退役；回到今天走主面板/左栏）；开屏带
 `#debug=1` 或本机 localStorage `dsh-assistant-debug=1` 时，会话视图栏再注册只读「开发调试」tab
 （`debug/debug-panel.ts`）。读回链 = [`operating.md`](operating.md) §三——这些消费的
@@ -177,15 +177,15 @@ seam 的成色读数是**第二个真实 Provider 出现而 Consumer 一行不�
 | `src/client/chrome/navigation.ts` | 浏览器导航 seam：`returnToConversation` + `revealChatTab`（平台会话激活、DOM tab reveal 适配器、主面板复位） | 无（平台 face 由调用方传入） |
 | `src/client/projection/desk-surface.ts` | 桌面面板的 lane surface 工厂：回调、导航与建议动作从 20 字段 props 中抽出；panel 只收 hooks / store / actions | 无（平台 face 由入口传入） |
 | `src/client/projection/one-page-home.ts` | 常用面一页纸：空态一问 + 当前页 + 一个输入；页上三按钮走 capture / page-action lane；待审草稿提示永在常用面 | `projection-panel` 的 props 契约 |
-| `src/client/projection/brief-list.ts` | 深看面「全部」：每件事一行（标题 / 状态 / 复查 / 摘要首行），点行选中并回页；「它在盯什么」只读日程；待归户只报计数、折后台；「完整看板」再进旧看板 | `projection-panel` 的 props 契约 |
+| `src/client/projection/brief-list.ts` | 深看面「全部」：每件事一行（标题 / 状态 / 复查 / 摘要首行），点行选中并回页；「它在盯什么」只读日程；待归户只报计数、折后台；「完整看板」再进深看看板 | `projection-panel` 的 props 契约 |
 | `src/client/projection/home-surface.ts` | 四面切换：一页纸 →「全部」人读列表 / 「它记下的」记录面 / 「完整看板」；「回到今天」返回；切换状态不持久化 | 上述纯组件 |
 | `src/client/projection/records-surface.ts` | 「它记下的」只读记录面：知识（非归档）/ 记忆（非内部规则）/ 技能；不做编辑 | `rooms/room-data-core` 的 `DeskData` |
 | `src/client/debug/debug-panel.ts` | 调试面开发调试：投影状态 / revision / ledgerId / 选中项 / session / 会话状态 + 只读投影 JSON + 复制诊断；仅在 `#debug=1` 或 localStorage 标志下注册为会话视图 tab | `projection-panel` 的 props 契约 |
-| `src/client/chrome/ui-mode.ts` | 界面密度 store：simple / standard / expert、localStorage 首屏、per-materialization 重置；per-home `ui-mode.json` 经 Host route 采用/写回（远端失败保留本地） | 无（浏览器 storage 可缺席） |
-| `src/client/chrome/ui-mode-row.ts` | `settings.general.item` 行：三档选择与当前态；只写共享 mode store，不发请求 | `chrome/ui-mode` |
-| `src/client/rooms/mount-rooms.ts` | rooms 的 body/title 一次注册 + tab type 按 mode 的 guide 重注册（已开 tab 不空壳） | `rooms/room-tabs`、`chrome/ui-mode` |
-| `src/host/ui-mode/` | 界面密度 per-home 持久路由：`api/assistant/ui-mode` GET/POST，读写 `assistant/ui-mode.json`，标准默认；不碰账本/工作目录 | `domain/home/ui-mode` |
-| `src/domain/home/ui-mode.ts` | 三档词表（Host route 与 client store 共用；纯值，无平台依赖） | 无 |
+| `src/client/chrome/ui-mode.ts` | 完整看板密度 store：simple / standard / expert（UI 标签 紧凑/标准/完整）、localStorage 首屏、per-materialization 重置；per-home `ui-mode.json` 经 Host route 采用/写回（远端失败保留本地） | 无（浏览器 storage 可缺席） |
+| `src/client/chrome/ui-mode-row.ts` | `settings.general.item` 行：完整看板密度的三档选择与当前态；只写共享 mode store，不碰首页/房间/调试 | `chrome/ui-mode` |
+| `src/client/rooms/mount-rooms.ts` | 三个产品房间的 body/title/guide 常驻；Viki(调试) 只在 debug flag 开时注册；密度不参与 | `rooms/room-tabs`、`chrome/debug-flag` |
+| `src/host/ui-mode/` | 完整看板密度 per-home 持久路由：`api/assistant/ui-mode` GET/POST，读写 `assistant/ui-mode.json`，标准默认；不碰账本/工作目录 | `domain/home/ui-mode` |
+| `src/domain/home/ui-mode.ts` | 完整看板密度三档词表（Host route 与 client store 共用；纯值，无平台依赖） | 无 |
 | `src/client/`（多模块，`index.ts` 为主注册面） | 浏览器面：座位与命令注册（精确清单 = 生成物 [`package-catalog.md`](package-catalog.md)「客户端座位面」节；皮肤面，不进模型上下文）+ 经营桌面投影读回链（`projection/` 下的 reader / operating-projection / lifecycle / panel，契约 = [`operating.md`](operating.md) §三） | react + ui-renderer/ui-sidebar（仅类型） |
 |  `src/dev/preset-runner/index.ts` | **preset 挂载的 one-shot 驱动**（dev 验证自动化：`agentPresets.resolve`→`mount` 进 agent setup，会话头记录 `agentPreset`；经 `dev/probes/session/preset-runner.patch.yml` 替换 headless-runner 行启用） | dsh-agent / dsh-agent-preset-registry / dsh-llm / dsh-session / dsh-brand |
 | `src/agent/`（`tool-memory`、`tool-recall`、`tool-research`、`tool-operating`、`tool-knowledge`、`learn`、`memory-digest`、`home-preamble`、`operating-brief`、`ov-shield`） | agent 面入口：薄适配器（校验跨字段规则 → 调服务 → 返回规范值 + presenter）与常驻段落 | cordis/tools |

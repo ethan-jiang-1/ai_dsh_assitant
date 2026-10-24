@@ -86,7 +86,7 @@ export function DashboardMainPanel(props: { onAsk?: () => void }): ReturnType<ty
       sectionTitle(`待你审批（${drafts.length}）`),
       drafts.length === 0
         ? muted('没有待审的知识草稿。')
-        : muted(`${drafts.length} 页知识草稿在等你审批——批准后才会成为它的判断依据。`),
+        : muted(`${drafts.length} 页知识草稿等你审批——批准后才会成为它的判断依据。`),
     ),
   )
 }
