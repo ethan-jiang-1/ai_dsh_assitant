@@ -4,7 +4,7 @@
  */
 import { execFileSync } from 'node:child_process'
 import { existsSync, readdirSync, statSync } from 'node:fs'
-import { join } from 'node:path'
+import { join, dirname } from 'node:path'
 import { pinnedTagFrom } from '../../maintenance/sync-bookkeeping.mjs'
 import { read } from './shared.mjs'
 
@@ -69,16 +69,17 @@ export function pinProblems(repoRoot) {
 /**
  * Harness packages are peers, never runtime dependencies (DSH: extension plugins depend on
  * Service Definitions, never concrete providers), the manifest declares machine-readable
- * compatibility, and the recorded verification history must name the pinned upstream tag so
+ * compatibility, and the repo-only verification history must name the pinned upstream tag so
  * "which release was verified" cannot drift from the submodule.
  *
- * `engines.dsh` is the machine range DSH enforces; `dsh.compatibility.dshReleases` remains the
- * historical typecheck ledger (sync-dsh writes it), not a second support promise.
+ * `engines.dsh` is the machine range DSH enforces; `release-verification.json` is a repo-only
+ * historical typecheck ledger (sync-dsh writes it), never a shipped manifest field.
  *
  * @param {string} packageJsonPath - the plugin package.json.
  * @param {string} upstreamPath - vendor/UPSTREAM.md bookkeeping.
+ * @param {string} verificationPath - repo-only release-verification.json.
  */
-export function dependencyPoseProblems(packageJsonPath, upstreamPath) {
+export function dependencyPoseProblems(packageJsonPath, upstreamPath, verificationPath = join(dirname(packageJsonPath), 'release-verification.json')) {
   const problems = []
   const pkg = JSON.parse(read(packageJsonPath))
   for (const field of ['dependencies', 'optionalDependencies']) {
@@ -96,9 +97,13 @@ export function dependencyPoseProblems(packageJsonPath, upstreamPath) {
   }
   const tag = pinnedTagFrom(read(upstreamPath))
   const pinned = tag === undefined ? undefined : tag.replace(/^dsh-v/, '')
-  const releases = Object.keys(pkg.dsh?.compatibility?.dshReleases ?? {})
-  if (pinned !== undefined && !releases.includes(pinned)) {
-    problems.push(`dsh.compatibility.dshReleases (${releases.join(', ')}) does not name the pinned upstream tag ${pinned}`)
+  const releases = existsSync(verificationPath)
+    ? Object.keys(JSON.parse(read(verificationPath)).dshReleases ?? {})
+    : []
+  if (releases.length === 0) {
+    problems.push('release-verification.json records no verified DSH release — the tag history would drift unrecorded')
+  } else if (pinned !== undefined && !releases.includes(pinned)) {
+    problems.push(`release-verification.json (${releases.join(', ')}) does not name the pinned upstream tag ${pinned}`)
   }
   return problems
 }

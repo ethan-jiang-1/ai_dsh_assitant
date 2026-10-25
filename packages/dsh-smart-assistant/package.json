@@ -1,6 +1,6 @@
 {
   "name": "dsh-smart-assistant",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "description": "A DSH agent preset that owns a home: durable memory, self-written skills, and machine-checked curation.",
   "type": "module",
@@ -20,14 +20,6 @@
     },
     "client": {
       "platform": "web"
-    },
-    "compatibility": {
-      "dshReleases": {
-        "0.1.5-rc.2": "verified",
-        "0.1.7-rc.2": "verified",
-        "0.2.0-rc.2": "verified",
-        "0.2.1-rc.2": "verified"
-      }
     }
   },
   "main": "./lib/index.js",
@@ -157,6 +149,7 @@
     "@deepseek-ai/dsh-agent": "workspace:^",
     "@deepseek-ai/dsh-agent-default-model": "workspace:^",
     "@deepseek-ai/dsh-agent-loop": "workspace:^",
+    "@deepseek-ai/dsh-agent-preset": "workspace:^",
     "@deepseek-ai/dsh-agent-preset-registry": "workspace:^",
     "@deepseek-ai/dsh-brand": "workspace:^",
     "@deepseek-ai/dsh-client-connection": "workspace:^",
@@ -176,6 +169,7 @@
     "@deepseek-ai/dsh-skill-filesystem": "workspace:^",
     "@deepseek-ai/dsh-system-prompt": "workspace:^",
     "@deepseek-ai/dsh-tools": "workspace:^",
+    "@deepseek-ai/dsh-typert-protocol": "workspace:^",
     "@deepseek-ai/dsh-typert-registry": "workspace:^",
     "@deepseek-ai/schemastery": "workspace:^",
     "@types/js-yaml": "^4.0.9",

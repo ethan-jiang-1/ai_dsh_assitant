@@ -8,10 +8,10 @@
  * to the pinned `src`, so API drift surfaces at compile time rather than at run time. Skipping
  * the typecheck would defeat the point of pinning.
  *
- * The `dsh.compatibility.dshReleases` "verified" column is written only AFTER a typecheck that
- * ran and passed (scripts/sync-bookkeeping.mjs releaseClaim): under --no-typecheck or on
+ * The repo-only `release-verification.json` "verified" column is written only AFTER a typecheck
+ * that ran and passed (scripts/sync-bookkeeping.mjs releaseClaim): under --no-typecheck or on
  * typecheck failure, no claim is recorded — "verified" is a fact about a passed check, not a
- * side effect of moving the pin.
+ * side effect of moving the pin. It is never a shipped manifest field.
  *
  * Flags:
  *   --tag <tag>       required; the release tag to pin
@@ -21,7 +21,7 @@
  */
 
 import { execFileSync } from 'node:child_process'
-import { readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { applyUpstreamRecord, pnpmAlignment, releaseClaim } from './sync-bookkeeping.mjs'
@@ -29,7 +29,7 @@ import { applyUpstreamRecord, pnpmAlignment, releaseClaim } from './sync-bookkee
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const vendorDsh = join(repoRoot, 'vendor', 'dsh')
 const upstreamFile = join(repoRoot, 'vendor', 'UPSTREAM.md')
-const packageManifest = join(repoRoot, 'packages', 'dsh-smart-assistant', 'package.json')
+const releaseVerification = join(repoRoot, 'packages', 'dsh-smart-assistant', 'release-verification.json')
 
 /** Parse the CLI arguments this tool accepts. */
 function parseArguments(argv) {
@@ -135,11 +135,14 @@ export function main(argv = process.argv.slice(2)) {
   const claim = releaseClaim({ typecheckRequested: typecheck, typecheckPassed: true })
   if (claim.value !== undefined) {
     console.log('\n▸ adding a compatibility column')
-    const manifest = JSON.parse(readFileSync(packageManifest, 'utf8'))
+    const ledger = existsSync(releaseVerification)
+      ? JSON.parse(readFileSync(releaseVerification, 'utf8'))
+      : { note: 'Historical typecheck verification ledger for sync-dsh; current support is engines.dsh. Repo-only, never shipped.', dshReleases: {} }
+    ledger.dshReleases ??= {}
     const release = tag.replace(/^dsh-v/, '')
-    manifest.dsh.compatibility.dshReleases[release] = claim.value
-    writeFileSync(packageManifest, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8')
-    console.log(`  ok   dsh.compatibility.dshReleases["${release}"] = ${claim.value}`)
+    ledger.dshReleases[release] = claim.value
+    writeFileSync(releaseVerification, `${JSON.stringify(ledger, null, 2)}\n`, 'utf8')
+    console.log(`  ok   release-verification.json["${release}"] = ${claim.value}`)
   } else {
     console.log('\n▸ compatibility column NOT written')
     console.log(`  ${claim.reason}`)

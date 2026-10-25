@@ -30,12 +30,6 @@ importers:
 
   packages/dsh-smart-assistant:
     dependencies:
-      '@deepseek-ai/dsh-agent-preset':
-        specifier: workspace:^
-        version: link:../../vendor/dsh/packages/preset/agent-preset
-      '@deepseek-ai/dsh-typert-protocol':
-        specifier: workspace:^
-        version: link:../../vendor/dsh/packages/typert/protocol
       '@deepseek-ai/schemastery':
         specifier: link:../../vendor/dsh/vendor/schemastery
         version: link:../../vendor/dsh/vendor/schemastery
@@ -61,6 +55,9 @@ importers:
       '@deepseek-ai/dsh-agent-loop':
         specifier: workspace:^
         version: link:../../vendor/dsh/packages/core/agent-loop
+      '@deepseek-ai/dsh-agent-preset':
+        specifier: workspace:^
+        version: link:../../vendor/dsh/packages/preset/agent-preset
       '@deepseek-ai/dsh-agent-preset-registry':
         specifier: workspace:^
         version: link:../../vendor/dsh/packages/preset/agent-preset-registry
@@ -118,6 +115,9 @@ importers:
       '@deepseek-ai/dsh-tools':
         specifier: workspace:^
         version: link:../../vendor/dsh/packages/core/tools
+      '@deepseek-ai/dsh-typert-protocol':
+        specifier: workspace:^
+        version: link:../../vendor/dsh/packages/typert/protocol
       '@deepseek-ai/dsh-typert-registry':
         specifier: workspace:^
         version: link:../../vendor/dsh/packages/typert/registry

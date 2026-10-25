@@ -68,23 +68,25 @@ describe('dependencyPoseProblems', () => {
   it('accepts peers + engines + a recorded pinned tag and rejects a runtime dep or a drifted list', () => {
     const dir = temp('deps-')
     const upstreamPath = join(dir, 'UPSTREAM.md')
+    const verificationPath = join(dir, 'release-verification.json')
     writeFileSync(upstreamPath, upstream('dsh-v0.1.5-rc.2'), 'utf8')
+    writeFileSync(verificationPath, JSON.stringify({ dshReleases: { '0.1.5-rc.2': 'verified' } }), 'utf8')
 
     const good = join(dir, 'good.json')
     writeFileSync(good, JSON.stringify({
       dependencies: { yaml: '^2.8.1' },
       peerDependencies: { '@deepseek-ai/cordis': '*' },
       engines: { node: '^22.19.0 || >=24', dsh: '>=0.2.1-rc.2 <0.3.0' },
-      dsh: { compatibility: { dshReleases: { '0.1.5-rc.2': 'verified' } } },
     }), 'utf8')
-    expect(dependencyPoseProblems(good, upstreamPath)).toEqual([])
+    expect(dependencyPoseProblems(good, upstreamPath, verificationPath)).toEqual([])
 
+    const badVerification = join(dir, 'bad-verification.json')
+    writeFileSync(badVerification, JSON.stringify({ dshReleases: { '0.1.4': 'verified' } }), 'utf8')
     const bad = join(dir, 'bad.json')
     writeFileSync(bad, JSON.stringify({
       dependencies: { '@deepseek-ai/cordis': '0.1.5-rc.2' },
-      dsh: { compatibility: { dshReleases: { '0.1.4': 'verified' } } },
     }), 'utf8')
-    const problems = dependencyPoseProblems(bad, upstreamPath)
+    const problems = dependencyPoseProblems(bad, upstreamPath, badVerification)
     expect(problems.some(p => p.includes('peerDependencies'))).toBe(true)
     expect(problems.some(p => p.includes('does not name the pinned upstream tag'))).toBe(true)
     expect(problems.some(p => p.includes('engines.dsh'))).toBe(true)
@@ -94,14 +96,15 @@ describe('dependencyPoseProblems', () => {
   it('rejects blank engine ranges as well as missing ones', () => {
     const dir = temp('deps-')
     const upstreamPath = join(dir, 'UPSTREAM.md')
+    const verificationPath = join(dir, 'release-verification.json')
     writeFileSync(upstreamPath, upstream('dsh-v0.1.5-rc.2'), 'utf8')
+    writeFileSync(verificationPath, JSON.stringify({ dshReleases: { '0.1.5-rc.2': 'verified' } }), 'utf8')
     const file = join(dir, 'blank.json')
     writeFileSync(file, JSON.stringify({
       dependencies: { yaml: '^2.8.1' },
       engines: { node: '  ', dsh: '' },
-      dsh: { compatibility: { dshReleases: { '0.1.5-rc.2': 'verified' } } },
     }), 'utf8')
-    const problems = dependencyPoseProblems(file, upstreamPath)
+    const problems = dependencyPoseProblems(file, upstreamPath, verificationPath)
     expect(problems.some(p => p.includes('engines.dsh'))).toBe(true)
     expect(problems.some(p => p.includes('engines.node'))).toBe(true)
   })

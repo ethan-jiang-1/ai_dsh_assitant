@@ -10,7 +10,8 @@
  * (the same shape as `scripts/gen-paths.mjs`).
  *
  * Sources (all fail loud — a shape change must break the gate, not silently thin the catalog):
- *   packages/dsh-smart-assistant/package.json            exports, dsh bundle/client/compatibility
+ *   packages/dsh-smart-assistant/package.json            exports, dsh bundle/client
+ *   packages/dsh-smart-assistant/release-verification.json  historical verified DSH releases
  *   packages/dsh-smart-assistant/cordis.patch.yml        host rows
  *   packages/dsh-smart-assistant/cordis.patch.yml        host row + the `agent-preset` row's plugins
  *   packages/dsh-smart-assistant/src/agent/<module>/index.ts   tool names + action verbs
@@ -142,6 +143,10 @@ export function collectCatalog(root = repoRoot) {
   const upstream = read(join(root, 'vendor', 'UPSTREAM.md'))
   const pin = pinnedTagFrom(upstream)
   if (pin === undefined) throw new Error('gen-catalog: vendor/UPSTREAM.md carries no pinned tag row')
+  const verificationFile = join(root, 'packages', 'dsh-smart-assistant', 'release-verification.json')
+  const releases = existsSync(verificationFile)
+    ? Object.keys(JSON.parse(read(verificationFile)).dshReleases ?? {})
+    : []
   const clientDir = join(root, 'packages', 'dsh-smart-assistant', 'src', 'client')
   // The client face is multi-module across grouped subdirectories (chrome/rooms/desk/projection/
   // proactive); the seat/tab/command surface is read across the WHOLE tree — the entry owns the
@@ -170,7 +175,7 @@ export function collectCatalog(root = repoRoot) {
     pin,
     clientSurface,
     engines: pkg.engines ?? {},
-    releases: Object.keys(pkg.dsh?.compatibility?.dshReleases ?? {}),
+    releases,
     dependencies: Object.keys(pkg.dependencies ?? {}),
     peers: Object.keys(pkg.peerDependencies ?? {}),
     client: pkg.dsh?.client !== undefined,

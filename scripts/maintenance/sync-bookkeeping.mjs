@@ -5,10 +5,10 @@
  *   · applyUpstreamRecord — rewriting the vendor/UPSTREAM.md bookkeeping rows. A missing row
  *     means the table drifted; silently returning unchanged text would record a lie, so the
  *     transform refuses instead of no-oping.
- *   · releaseClaim — the rule that the manifest's `dsh.compatibility.dshReleases` "verified"
- *     value is a claim about a passed typecheck, and therefore only exists after one. A
- *     skipped (--no-typecheck) or failed check records no claim at all — never a success
- *     declaration (development-foundation remediation, direction 五-1, 2026-09-24).
+ *   · releaseClaim — the rule that `release-verification.json`'s "verified" value is a claim
+ *     about a passed typecheck, and therefore only exists after one. A skipped (--no-typecheck)
+ *     or failed check records no claim at all — never a success declaration
+ *     (development-foundation remediation, direction 五-1, 2026-09-24).
  */
 
 /**
@@ -36,19 +36,19 @@ export function applyUpstreamRecord(text, { tag, sha, committed }) {
 }
 
 /**
- * Decide what the package manifest's `dsh.compatibility.dshReleases` should claim about a
- * release. "verified" is only recorded after a typecheck that ran and passed; a skipped or
- * failed check records no claim (the caller prints the reason instead).
+ * Decide what the repo-only `release-verification.json` should claim about a release.
+ * "verified" is only recorded after a typecheck that ran and passed; a skipped or failed check
+ * records no claim (the caller prints the reason instead).
  *
  * @param {{ typecheckRequested: boolean, typecheckPassed: boolean }} outcome.
  * @returns {{ value: 'verified' | undefined, reason: string | undefined }}
  */
 export function releaseClaim({ typecheckRequested, typecheckPassed }) {
   if (!typecheckRequested) {
-    return { value: undefined, reason: '--no-typecheck: nothing was verified, so the manifest records no claim — run `pnpm typecheck` against this pin, then add dsh.compatibility.dshReleases yourself (or re-run sync-dsh without --no-typecheck)' }
+    return { value: undefined, reason: '--no-typecheck: nothing was verified, so release-verification.json records no claim — run `pnpm typecheck` against this pin, then re-run sync-dsh without --no-typecheck' }
   }
   if (!typecheckPassed) {
-    return { value: undefined, reason: 'typecheck failed — the manifest records no claim until the code compiles against the new pin' }
+    return { value: undefined, reason: 'typecheck failed — release-verification.json records no claim until the code compiles against the new pin' }
   }
   return { value: 'verified', reason: undefined }
 }

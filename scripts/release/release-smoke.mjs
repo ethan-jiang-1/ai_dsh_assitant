@@ -30,7 +30,7 @@
 import { execFile, execFileSync, spawnSync } from 'node:child_process'
 import { createServer } from 'node:http'
 import { promisify } from 'node:util'
-import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { dirname, isAbsolute, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { mkTmpDir } from '../../dev/env/tmp.mjs'
@@ -54,6 +54,22 @@ const fail = message => {
 
 function run(command, args, options = {}) {
   return execFileSync(command, args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], ...options })
+}
+
+/** A size-stable tree listing: enough to catch a bin or session writing into the package. */
+function treeSnapshot(root) {
+  const lines = []
+  const walk = (dir, prefix) => {
+    for (const name of readdirSync(dir).sort()) {
+      const path = join(dir, name)
+      const rel = prefix === '' ? name : `${prefix}/${name}`
+      const info = statSync(path)
+      if (info.isDirectory()) walk(path, rel)
+      else lines.push(`${rel}:${info.size}`)
+    }
+  }
+  walk(root, '')
+  return lines.join('\n')
 }
 
 /** Harness launcher: the pinned source checkout unless the caller names another. */
@@ -169,6 +185,8 @@ try {
   const assistantDir = join(home, 'assistant')
   if (existsSync(assistantDir)) fail(`install wrote a working folder at ${assistantDir}; install must not touch user data`)
   else ok('no working folder before any session or explicit assembly')
+  const installedPackageDir = join(home, 'profiles', profile, 'node_modules', PACKAGE_NAME)
+  const packageBefore = treeSnapshot(installedPackageDir)
 
   step('installed expert-setup: management seeds as drafts, idempotently')
   // The bin must run from the installed profile with plain Node: no repo, no harness peers.
@@ -221,6 +239,8 @@ try {
       else ok('installed assistant-data exports and imports the two owned directories')
     }
   }
+  if (treeSnapshot(installedPackageDir) !== packageBefore) fail('the installed package directory changed while running its bins — user data belongs outside the package')
+  else ok('installed package directory unchanged by its bins')
 
   step('selecting the installed preset as the profile default (the shape a user gets)')
   // insert semantics — the headless template has no registry row to replace

@@ -64,6 +64,8 @@
 
 12. **shipped `expert-setup` 不挂 Host 服务写页**（约束：bin 从已安装 profile 运行，不保证能解析 harness peers；Host 的 `writePage` 依赖 cordis 服务）→ 复用纯核 `pageToDocument`/frontmatter/atomic write，并在写入前跑 `auditSkillCredentials`；不 touch digest（无会话）、不做 wiki 归一（种子无链接），status 跨重导入保留。证据 = [`expert-setup.spec.mjs`](../packages/dsh-smart-assistant/tests/tooling/expert-setup.spec.mjs) + `release-smoke` 的 installed bin 断言。
 
+13. **working folder 是自定义 home U 平面，不是 storageDomain**（约束：DSH 推荐宿主状态进 `ctx.storageDomain`、用户经验进 `$DSH_HOME`/`~/.agents` 的 AGENTS 与 skills；本产品的核心却是一个人要能读、能 review、能导出的跨项目 working folder）→ 用 `<DSH_HOME>/assistant` 的文件树（自有 frontmatter/curate 契约）与独立的 `<DSH_HOME>/assistant-operating` 单 writer 账本；不写进包目录，不冒充 workspace；sessions/credentials/settings 仍归宿主。证据 = [`docs/delivery.md`](delivery.md)、[`docs/home.md`](home.md)、`handoff-core`/`assistant-data`/`two-homes` 测试与 `release-smoke`。
+
 ## 复查环（防"一次性快照再烂"）
 
 - `pnpm sync-dsh` 升 pin 时：对照本文逐行重校（vendor 的套路在演进，继承必须跟着 pin 走）；并

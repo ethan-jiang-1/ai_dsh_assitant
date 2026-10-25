@@ -14,6 +14,58 @@
 - **一个独立启动脚本**：`bootstrap.mjs`（解开的包目录里用已安装 `dsh` 建隔离 profile；home 默认在包外，不碰日用 `~/.dsh`）。
 - **默认身份是管理岗**（P1）：`SOUL.md` 是数据，种子与回退一致；管理种子只在显式装配时进入知识室，安装不写 working folder。
 
+## Install
+
+```sh
+dsh plugin --profile web add /path/to/dsh-smart-assistant-<version>.tgz
+```
+
+安装只带定义；在 Web UI 的 Settings → Agent 预设里把 `章鱼管家` 设为默认，或 headless 用
+`agent-preset-registry.default: assistant` 的 profile patch。需要 DSH `>=0.2.1-rc.2 <0.3.0`
+与 Node `^22.19.0 || >=24`。
+
+## What it contributes
+
+`cordis.patch.yml` 是一层 bundle patch：host 面的 working-folder 服务（四房间、摘要、curate）、
+经营账本/投影、房间与 Viki 路由，以及 `assistant` preset（六个工具、四个常驻段落、策展技能、
+学到的技能 provider 与遮蔽盾）。客户端贡献桌面与房间 tab；行、exports、工具动词的精确清单以
+[生成物 catalog](../../docs/package-catalog.md) 为准。
+
+## Configuration
+
+`assistant-memory` 行可配 `dataDir`（默认 `<dshHome>/assistant`）、`digestMaxBytes`、`recallLimit`、
+`staleResearchDays`；`assistant-operating-ledger` 行有独立的 `dataDir`（默认
+`<dshHome>/assistant-operating`）。patch 是整行 config 替换，不是深合并。
+
+## Data
+
+- **Working folder**：`<dshHome>/assistant`，用户可读可改的 home 数据，由本插件拥有：`SOUL.md`、`AGENTS.md`、
+  `memory/`、`research/`、`skills/`、`knowledge/`。学到的技能是本插件注册的 provider 根（`skills/`），
+  不是 `$DSH_HOME/skills`；策展技能随包只读，位于 `presets/assistant/skills/`。
+- **Ledger**：`<dshHome>/assistant-operating`，权威 `ledger.json` + 单 writer 锁；可用 `assistant-data` 导出/导入。
+- **Host-owned**：sessions、credentials、settings、storages 在 `$DSH_HOME` 下由宿主管理，插件备份不包含它们；
+  working folder 或会话 cwd 下的 `deliverables/` 是用户数据。
+- **Package**：不写任何用户数据/secret；`handoff-scan` 拒绝数据、凭据、宿主路径与活密钥，`release-smoke` 断言安装不创建 working folder。
+- **升级/卸载**：两个插件目录保留；`assistant-data` 提供带 `schemaVersion` 的备份/恢复；不把 sessions/credentials 打进 bundle。
+
+这个 home 根是**用户可见的 U 平面**（人能读、能 review、能导出），不是 `ctx.storageDomain` 的 host KV，也不是
+随项目走的 workspace；因此使用文件格式 + `curate` 而不是 KV schema。转换边界的合同 = [`docs/delivery.md`](../../docs/delivery.md)。
+
+## Compatibility
+
+机器可安装范围见 `engines.dsh`（当前 `>=0.2.1-rc.2 <0.3.0`）与 `engines.node`；当前 pin 是
+`dsh-v0.2.1-rc.2`。历史 typecheck 台账在 repo-only `release-verification.json`，不随包发布，也不是当前支持承诺；
+更老的 DSH 版本不在支持矩阵内。
+
+## Uninstall
+
+```sh
+dsh plugin --profile <p> remove dsh-smart-assistant
+```
+
+卸载不删 `<dshHome>/assistant` 与 `<dshHome>/assistant-operating`；先 `assistant-data export` 备份。OpenViking 是
+独立可选层，另停 server 并按其安装手册清理。
+
 ## 它是什么形状
 
 **当前声明了什么，以生成物为准**：[`docs/package-catalog.md`](../../docs/package-catalog.md)
@@ -35,7 +87,7 @@ Client 内部下载对象处理连接代际、手动重读、陈旧缓存与迟�
 ## 依赖姿态
 
 Host 运行期 `@deepseek-ai/*` 使用 **peerDependencies**；仅类型关系（例如 Connection 下载声明）使用开发依赖：DSH 的公开 API 仍是 pre-stable，
-精确钉死会让每次上游同步都变成一次发版。**当前可安装范围由 `engines.dsh` 机器声明**；`dsh.compatibility.dshReleases` 是每个 pin 上跑过 typecheck 的历史验证台账，不当作当前支持承诺。`engines.node` 与 pin 住的 DSH 保持一致。`yaml` 是唯一的运行时 dependency。
+精确钉死会让每次上游同步都变成一次发版。**当前可安装范围由 `engines.dsh` 机器声明**；`release-verification.json`（repo-only，不进 tarball）是每个 pin 上跑过 typecheck 的历史验证台账，不当作当前支持承诺。`engines.node` 与 pin 住的 DSH 保持一致。`yaml` 是唯一的运行时 dependency。
 
 ## 自包含
 
