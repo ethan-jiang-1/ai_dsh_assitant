@@ -4,10 +4,14 @@
 
 ## 活跃清单
 
-当前没有活跃问题卡——2026-10-25 的最后一张（人判三条）已按关闭条件归档。
+四张交付合同问题卡：方向已按用户 2026-10-25 的推荐拍板；执行顺序与实施授权在 [交付合同 note](../../notes/proposed/2026-10-25-delivery-contract.md)。
 
 | 卡 | 要解决什么 | 当前环节与未完成项 |
 |---|---|---|
+| [261025-distribution-contract](261025-distribution-contract.md) | 另一个人装得上、升得动、退得干净：兼容声明、安装/默认 preset、升级/备份/卸载 | 方案已定；待 Web UI 路径实测、支持矩阵、`release-smoke` 扩展 |
+| [261025-agent-data-boundary](261025-agent-data-boundary.md) | agent 物与用户数据分开：交接物零数据、数据导出/导入、升级迁移 | 方案已定；待扫描负例、两 home 隔离、往返与迁移测试 |
+| [261025-standalone-directory-start](261025-standalone-directory-start.md) | 无 `.git` 的目录在隔离环境里起一个自己的实例 | 方案已定；待 bootstrap 脚本、clean-room smoke、离线前提 |
+| [261025-factory-identity-first-run](261025-factory-identity-first-run.md) | 出厂身份与首跑：管理岗默认 SOUL、seeds 显式装配 | 方案已定；待默认身份改动、prompt/eval、装配幂等证据 |
 
 
 ## 写一张卡

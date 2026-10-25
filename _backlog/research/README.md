@@ -62,6 +62,8 @@ research 为问题和缺陷提供依据。问题按 [关闭条件](../README.md)
 
 - [261021-recall-ab.md](tech-exploration/261021-recall-ab.md)——引用卡：[检索卡](../_archive/settled_issues/261020-openviking-retrieval-viki.md)（A/B 题集/评分表已产出；A2 已裁决并挂载，A1 仅存原型历史）。只读检索 A/B 的 12 题、评分表与 A1/A2 原型约定
 
+- [261025-dsh-plugin-delivery-facts.md](tech-exploration/261025-dsh-plugin-delivery-facts.md)——引用卡：[分发合同](../issues/261025-distribution-contract.md)、[agent/数据边界](../issues/261025-agent-data-boundary.md)、[目录独立启动](../issues/261025-standalone-directory-start.md)、[出厂身份](../issues/261025-factory-identity-first-run.md)。DSH 平台事实与第三方先例：只有 profile 启动应用、`engines.dsh`/peer 兼容、`selectedDefault` 与 Web preset 选择、home 级数据根、OpenViking 0.5.8 静默跳过；文末列待验证项
+
 - [261011-input-observation.md](usage/261011-input-observation.md)——引用卡：[输入边界](../_archive/settled_issues/261007-input-boundary.md)（**活观察**：读数档被 [triggers.md](../triggers.md) 的触发行点名，30 天观察期结束前留在活跃区）。30 天输入观察的读数档：A 自发投递 / B 时长 / C 入口后的操作的口径、剔除规则、环境创建约定与每周快照（读数命令 `pnpm observe`）
 - [261005-exec-demo-narratives.md](positioning/261005-exec-demo-narratives.md)——间接使用：[差异性对照](positioning/261012-personal-agent-differentiation.md) 引用其 Huper 边界与 CFO 证据行；原引用卡（输入边界）已结档。面向 CEO/CFO 的十分钟演示叙事
 - [261005-ceo-time-and-decision-research.md](positioning/261005-ceo-time-and-decision-research.md)——间接使用：[差异性对照](positioning/261012-personal-agent-differentiation.md) 两处引用（一把手时间与真实需求）；原引用卡（输入边界）已结档。一把手时间分配与决策过程
