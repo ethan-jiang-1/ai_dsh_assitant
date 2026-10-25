@@ -1,7 +1,7 @@
 # 交接、备份与数据边界（当前合同）
 
 > 本文件拥有：**agent 物 / 用户数据**的边界、交接扫描、插件数据的导出/导入、备份恢复与升级的数据承诺。
-> working folder 布局 = [`home.md`](home.md)；经营账本 = [`operating.md`](operating.md)；安装与分发 = 生成的 `_dist/安装手册.md`。
+> 发布形态/渠道/版本/兼容宪章 = [`release.md`](release.md)；working folder 布局 = [`home.md`](home.md)；经营账本 = [`operating.md`](operating.md)；安装与分发 = 生成的 `_dist/安装手册.md`。
 > 一个事实一个家：这里只写边界与操作合同，不复制四房间语义。
 
 ## 一、两个物

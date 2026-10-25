@@ -353,6 +353,8 @@ bundle 层（两个 profile 各自的链，刻意的——§四，web-app 与 he
 
 ## 九、发布与标签（标签名 = 该提交里的包版本）
 
+**规则与禁则 = [`release.md`](release.md)**；本节只写操作顺序，不重复宪章。
+
 版本只有两个动作：**bump manifest** 和 **export**。标签是这次发布的名字，所以它必须等于它在的那个提交里的
 `packages/dsh-smart-assistant/package.json` 版本——`0.1.0` 打在 manifest 还写 `0.0.0` 的提交上，等于给一个
 不存在的产物命名。步骤固定：
