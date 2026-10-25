@@ -5,6 +5,15 @@
   "description": "A DSH agent preset that owns a home: durable memory, self-written skills, and machine-checked curation.",
   "type": "module",
   "license": "MIT",
+  "engines": {
+    "node": "^22.19.0 || >=24",
+    "dsh": ">=0.2.1-rc.2 <0.3.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ethan-jiang-1/ai_dsh_assitant.git",
+    "directory": "packages/dsh-smart-assistant"
+  },
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"

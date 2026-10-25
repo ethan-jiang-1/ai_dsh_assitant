@@ -351,7 +351,7 @@ check('text: managed text is strict UTF-8 with exactly one trailing newline', ()
     ...walk(join(repoRoot, 'dev'), ['.mjs']),
   ]))
 
-check('dependencies: harness packages are peers and the pinned tag is recorded as verified', () =>
+check('dependencies: harness packages are peers, engines declare compatibility, and the pinned tag is recorded as verified', () =>
   dependencyPoseProblems(join(packageDir, 'package.json'), join(repoRoot, 'vendor', 'UPSTREAM.md')))
 
 check('release: every tag names the package version at its commit', () => {

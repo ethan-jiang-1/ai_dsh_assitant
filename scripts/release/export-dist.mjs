@@ -114,13 +114,14 @@ const manual = `# dsh-smart-assistant 手动安装手册
 | 版本 | ${manifest.version} |
 | 安装包 | \`${tarballName}\`（与本手册同目录） |
 | 打包日期 | ${date} |
-| 验证基线 | DSH \`${upstreamTag}\`（Node ≥ 22） |
+| 验证基线 | DSH \`${upstreamTag}\`（Node ^22.19.0 || >=24） |
 
 这个安装包是自包含的：bundle 补丁（\`cordis.patch.yml\`，含 \`assistant\` preset 的完整组合）、
 编译产物（\`lib/\`，含浏览器端桌面面板）、策展技能（\`presets/assistant/skills/\`）、README。
 DSH 本体一律按 peerDependencies 由宿主运行时提供，包里不带任何
 \`@deepseek-ai/*\` 代码；唯一的 npm 依赖是 ${prodDeps.map((name) => `\`${name}\``).join('、') || '（无）'}
-（安装时经 npm registry 拉取）。下面的步骤与仓库发布冒烟（release-smoke）每轮自动验证的
+（安装时经 npm registry 拉取）。DSH 安装时会按包里的 \`engines.dsh\` 检查兼容；
+不满足会拒绝安装，不要用强制安装跳过它。下面的步骤与仓库发布冒烟（release-smoke）每轮自动验证的
 路径一致，是被证明过的顺序。
 
 ## 一、安装
@@ -141,18 +142,17 @@ dsh plugin --profile try-assistant add /path/to/${tarballName}
 
 （后文以 \`web\` 为例；用了别的名字，把命令里的 \`web\` 换成它即可。）
 
-## 二、把 preset 默认切到 assistant
+## 二、在 Web UI 里选择默认 preset
 
-安装只把 \`assistant\` 的**定义**带进组合；profile 的默认 preset 仍是 \`standard\`。打开
-\`<DSH_HOME>/profiles/web/cordis.patch.yml\`：如果里面是占位 \`[]\`，把 \`[]\` 整行替换成下面的块；文件不存在就整段写入（\`<DSH_HOME>\` 默认是 \`~/.dsh\`）：
+安装只把 \`assistant\` 的**定义**带进组合；profile 的默认 preset 仍是 \`standard\`。打开 Web UI 的
+Settings（或新会话的 preset 选择器），在 Agent presets / 自定义组里选 \`章鱼管家\`，设为默认。
+之后新会话就用它。
 
-\`\`\`yaml
-- id: agent-preset-registry
-  config:
-    default: assistant
-\`\`\`
+如果界面里没有出现：
 
-用了别的 profile 名，把路径里的 \`web\` 换掉。
+- 先跑 \`dsh --profile web --dump-config\`，确认组合里有 \`preset-assistant\`；
+- 重启 \`dsh web\` 并硬刷新页面；
+- 仍没有，按本文末尾的 headless / 自动化附录写 profile patch 兜底，并把界面缺口记下来。
 
 ## 三、验证安装
 
@@ -162,17 +162,19 @@ dsh --profile web --dump-config
 
 输出里应能看到：
 
-- \`default: assistant\`（你刚写的 registry 默认）；
 - 插件的补丁层（\`dsh-smart-assistant\`）；
 - host 面的 \`assistant-memory\` 行（working folder 的四房间存储）；
 - \`id: preset-assistant\`（\`assistant\` preset 的组合行）。
+
+（如果你在第二步用了 UI，\`default:\` 可能仍是 \`standard\`——默认值是用户设置 \`selectedDefault\`，
+以 UI 选择为准；headless/自动化才需要 profile 的部署默认。）
 
 ## 四、让它出现在界面上
 
 重启 \`dsh web\`（浏览器刷新本身不会加载新模块），然后**硬刷新**页面（⌘⇧R / Ctrl⇧R）。之后：
 
 - 侧栏出现 My Desk 桌面面板（记忆 / 知识页 / 技能 / 养护检查）；
-- 新会话默认就是「智能助手」（\`assistant\`），它带着自己的 working folder 工作。
+- 新会话默认就是「章鱼管家」（\`assistant\`），它带着自己的 working folder 工作；若仍是 standard，回第二步。
 
 ## 五、OpenViking / Viki（可选）
 
@@ -283,6 +285,28 @@ commit 写探针默认 SKIP；加 \`--write\` 才创建 sentinel 会话并真提
 | commit failed | VLM 连接/function calling/连续 user 消息兼容；看 \`/api/v1/tasks\` 与 server 日志 |
 | 记忆重启后丢 | storage 指到了临时目录；改成持久路径并重启 |
 
+## 六、升级与备份
+
+**升级前先备份**：插件拥有的数据在两个目录，不是代码目录：
+
+\`\`\`sh
+cp -R "<DSH_HOME>/assistant" "<备份目录>/assistant"
+cp -R "<DSH_HOME>/assistant-operating" "<备份目录>/assistant-operating"
+\`\`\`
+
+升级：
+
+\`\`\`sh
+dsh plugin --profile web add /path/to/<新版本>.tgz
+dsh --profile web --dump-config
+\`\`\`
+
+\`--dump-config\` 仍应看到 \`preset-assistant\`；新会话验证一次。若 CLI 拒绝同版本或要求先
+remove，按 CLI 提示先 \`remove\` 再 \`add\`——\`remove\` 不删 working folder/账本，但升级前仍建议备份。
+回滚：保留上一版 tgz；\`remove\` 新版后 \`add\` 旧版；若新版引入不可读的数据格式，先恢复备份。
+
+整 home 备份（含 sessions/credentials/settings）也可以，但不要把代码目录当数据目录。
+
 ## 七、卸载（干净，无残留）
 
 \`\`\`sh
@@ -295,11 +319,29 @@ dsh plugin --profile web remove dsh-smart-assistant
 装了 OpenViking 的，另停 server 并 \`uv tool uninstall openviking\`；\`~/.openviking\` 是配置/数据，
 备份后再删。
 
+## 八、headless / 自动化：profile patch
+
+Web UI 不可用或要跑 one-shot 时，用 profile patch 设部署默认。打开
+\`<DSH_HOME>/profiles/web/cordis.patch.yml\`：如果里面是占位 \`[]\`，把 \`[]\` 整行替换成下面的块；
+文件不存在就整段写入（\`<DSH_HOME>\` 默认是 \`~/.dsh\`）：
+
+\`\`\`yaml
+- id: agent-preset-registry
+  config:
+    default: assistant
+\`\`\`
+
+然后 \`dsh --profile web --dump-config\` 应看到 \`default: assistant\` 与 \`preset-assistant\`。
+用了别的 profile 名，把路径里的 \`web\` 换掉。
+
 ## 常见问题
 
 | 现象 | 原因与处理 |
 |---|---|
 | 刷新后什么都没出现 | 浏览器刷新不加载新模块：重启 \`dsh web\`，再硬刷新页面 |
+| Web UI 里没有章鱼管家 | 先确认 \`preset-assistant\` 在组合里；重启并硬刷新；仍没有就按第八节写 profile patch，并记录界面缺口 |
+| 升级后数据在哪 | 仍在 \`<DSH_HOME>/assistant\` 与 \`assistant-operating\`；\`remove\` 不删；升级前先备份 |
+| DSH 版本不兼容 | 安装会被 \`engines.dsh\` 拒绝；升级 DSH 或换兼容的包版本，不要强制绕过 |
 | 想确认装了什么版本 | \`dsh plugin --profile web list\`，或看本手册表头的版本号 |
 | 安装时要联网吗 | 只为拉那一个 npm 依赖；其余全部由宿主 DSH 提供，不需要克隆任何仓库 |
 `

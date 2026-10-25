@@ -31,8 +31,7 @@ Client 内部下载对象处理连接代际、手动重读、陈旧缓存与迟�
 ## 依赖姿态
 
 Host 运行期 `@deepseek-ai/*` 使用 **peerDependencies**；仅类型关系（例如 Connection 下载声明）使用开发依赖：DSH 的公开 API 仍是 pre-stable，
-精确钉死会让每次上游同步都变成一次发版。验证过的 release 记在 `dsh.compatibility.dshReleases`。
-`yaml` 是唯一的运行时 dependency。
+精确钉死会让每次上游同步都变成一次发版。**当前可安装范围由 `engines.dsh` 机器声明**；`dsh.compatibility.dshReleases` 是每个 pin 上跑过 typecheck 的历史验证台账，不当作当前支持承诺。`engines.node` 与 pin 住的 DSH 保持一致。`yaml` 是唯一的运行时 dependency。
 
 ## 自包含
 

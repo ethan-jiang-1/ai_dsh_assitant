@@ -169,6 +169,7 @@ export function collectCatalog(root = repoRoot) {
     skills,
     pin,
     clientSurface,
+    engines: pkg.engines ?? {},
     releases: Object.keys(pkg.dsh?.compatibility?.dshReleases ?? {}),
     dependencies: Object.keys(pkg.dependencies ?? {}),
     peers: Object.keys(pkg.peerDependencies ?? {}),
@@ -264,7 +265,9 @@ export function renderCatalog(input) {
   lines.push('## 兼容与依赖姿态')
   lines.push('')
   lines.push(`- 钉住的上游 tag：\`${input.pin}\``)
-  lines.push(`- 记录为 verified 的 DSH release：${input.releases.map(version => `\`${version}\``).join('、')}`)
+  const engines = input.engines ?? {}
+  lines.push(`- 当前机器兼容范围：\`dsh ${engines.dsh ?? '（未声明）'}\`；Node \`${engines.node ?? '（未声明）'}\``)
+  lines.push(`- 历史 verified 的 DSH release（不构成当前支持承诺）：${input.releases.map(version => `\`${version}\``).join('、')}`)
   lines.push(`- 运行时 dependencies：${input.dependencies.map(name => `\`${name}\``).join('、') || '（无）'}`)
   lines.push(`- peerDependencies：${input.peers.length} 个 \`@deepseek-ai/*\`（姿态由门禁守：harness 包只许 peer）`)
   lines.push(`- client 面（浏览器包）：${input.client ? '有' : '无'}`)

@@ -30,7 +30,7 @@
 import { execFile, execFileSync, spawnSync } from 'node:child_process'
 import { createServer } from 'node:http'
 import { promisify } from 'node:util'
-import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, isAbsolute, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { mkTmpDir } from '../../dev/env/tmp.mjs'
@@ -104,6 +104,38 @@ try {
     }
   }
   ok(`${listing.length} files; peer ranges are concrete`)
+
+  step('refusing an incompatible DSH range by the manifest, not a peer fallback')
+  // The real tarball's successful install below proves the declared range covers this runtime.
+  // This copy proves the negative: an own engines.dsh that excludes the runtime is refused
+  // before installation, with the compatibility requirement named. Without it, a future DSH pin
+  // can skip the bundle silently (the OpenViking 0.5.8 failure mode).
+  if (typeof manifest.engines?.dsh !== 'string' || manifest.engines.dsh.trim() === '') {
+    fail('packed manifest has no engines.dsh — DSH cannot judge compatibility')
+  } else if (typeof manifest.engines?.node !== 'string' || manifest.engines.node.trim() === '') {
+    fail('packed manifest has no engines.node — the supported Node range is part of the install contract')
+  } else {
+    try {
+      const incompatibleDir = join(home, 'incompatible-package')
+      mkdirSync(incompatibleDir, { recursive: true })
+      run('tar', ['-xzf', tarball, '-C', incompatibleDir])
+      const incompatibleManifestPath = join(incompatibleDir, 'package', 'package.json')
+      const incompatibleManifest = JSON.parse(readFileSync(incompatibleManifestPath, 'utf8'))
+      incompatibleManifest.engines = { ...incompatibleManifest.engines, dsh: '>=999.0.0' }
+      writeFileSync(incompatibleManifestPath, `${JSON.stringify(incompatibleManifest, null, 2)}\n`, 'utf8')
+      const incompatibleTarball = join(home, 'dsh-smart-assistant-incompatible.tgz')
+      run('tar', ['-czf', incompatibleTarball, '-C', incompatibleDir, 'package'])
+      const refused = spawnSync(command, [...prefix, 'plugin', '--profile', 'compat-smoke', 'add', incompatibleTarball], {
+        cwd: repoRoot, env, encoding: 'utf8',
+      })
+      const output = `${refused.stdout ?? ''}${refused.stderr ?? ''}`
+      if (refused.status === 0) fail('an incompatible engines.dsh install was accepted')
+      else if (!/incompatible|engines\.dsh/i.test(output)) fail(`incompatible install failed without naming compatibility: ${output.trim().slice(0, 400)}`)
+      else ok('incompatible engines.dsh is refused and named')
+    } catch (error) {
+      fail(`incompatible-range probe threw: ${error instanceof Error ? error.message : String(error)}`)
+    }
+  }
 
   step(`creating a clean profile from the shipped headless template at ${home}`)
   // The profile directory must NOT pre-exist: `--from-default-profile` refuses to initialize over one.

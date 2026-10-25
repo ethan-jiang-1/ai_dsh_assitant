@@ -68,8 +68,12 @@ export function pinProblems(repoRoot) {
 
 /**
  * Harness packages are peers, never runtime dependencies (DSH: extension plugins depend on
- * Service Definitions, never concrete providers), and the recorded compatibility list must name
- * the pinned upstream tag so "which release was verified" cannot drift from the submodule.
+ * Service Definitions, never concrete providers), the manifest declares machine-readable
+ * compatibility, and the recorded verification history must name the pinned upstream tag so
+ * "which release was verified" cannot drift from the submodule.
+ *
+ * `engines.dsh` is the machine range DSH enforces; `dsh.compatibility.dshReleases` remains the
+ * historical typecheck ledger (sync-dsh writes it), not a second support promise.
  *
  * @param {string} packageJsonPath - the plugin package.json.
  * @param {string} upstreamPath - vendor/UPSTREAM.md bookkeeping.
@@ -83,6 +87,12 @@ export function dependencyPoseProblems(packageJsonPath, upstreamPath) {
         problems.push(`${field}.${name} — harness packages stay peerDependencies so the deployment owns the version`)
       }
     }
+  }
+  if (typeof pkg.engines?.dsh !== 'string' || pkg.engines.dsh.trim() === '') {
+    problems.push('engines.dsh is missing — DSH cannot judge plugin compatibility from a declaration it cannot read')
+  }
+  if (typeof pkg.engines?.node !== 'string' || pkg.engines.node.trim() === '') {
+    problems.push('engines.node is missing — the supported Node range is part of the install contract')
   }
   const tag = pinnedTagFrom(read(upstreamPath))
   const pinned = tag === undefined ? undefined : tag.replace(/^dsh-v/, '')
