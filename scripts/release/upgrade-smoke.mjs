@@ -91,6 +91,14 @@ try {
   else if (readFileSync(join(home, 'assistant', 'memory', 'upgrade-probe.md'), 'utf8') !== 'probe before upgrade\n') fail('remove deleted working-folder data')
   else if (readFileSync(join(home, 'assistant-operating', 'ledger.json'), 'utf8') !== '{"revision":7}\n') fail('remove deleted ledger data')
   else ok('remove left both data directories intact')
+
+  step('re-adding the plugin (re-enable)')
+  dsh(['plugin', '--profile', profile, 'add', newTarball])
+  const afterReadd = dsh(['--profile', profile, '--dump-config'])
+  if (!afterReadd.stdout.includes('preset-assistant')) fail('dump after re-add does not show preset-assistant')
+  else if (readFileSync(join(home, 'assistant', 'memory', 'upgrade-probe.md'), 'utf8') !== 'probe before upgrade\n') fail('re-add changed working-folder data')
+  else if (readFileSync(join(home, 'assistant-operating', 'ledger.json'), 'utf8') !== '{"revision":7}\n') fail('re-add changed ledger data')
+  else ok('re-add restored the preset and left both data directories intact')
 } catch (error) {
   fail(`threw: ${error instanceof Error ? error.message : String(error)}`)
 } finally {
