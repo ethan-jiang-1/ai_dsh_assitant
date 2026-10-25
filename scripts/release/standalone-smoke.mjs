@@ -97,6 +97,17 @@ try {
     if (preflight.status !== 0) fail(`preflight failed: ${(preflight.stderr ?? preflight.stdout ?? '').trim().split('\n').slice(-10).join(' | ')}`)
     else ok('preflight green')
 
+    step('booting the client from the extracted package')
+    const chrome = process.env.CHROME_PATH
+      ?? (process.platform === 'darwin' ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' : undefined)
+    if (chrome === undefined || !existsSync(chrome)) {
+      console.log('  skip no Chrome executable; set CHROME_PATH to run the client-boot check')
+    } else {
+      const presetProbe = run(process.execPath, [join(repoRoot, 'dev', 'probes', 'web', 'agent-preset-ui.mjs'), state.url], { timeout: 180_000 })
+      if (presetProbe.status !== 0) fail(`client boot/preset probe failed: ${(presetProbe.stderr ?? presetProbe.stdout ?? '').trim().split('\n').slice(-8).join(' | ')}`)
+      else ok('client booted and the preset selection probe passed')
+    }
+
     step('stopping the standalone instance')
     const stopped = bootstrap(['--stop', '--home', home], join(pkg, 'bootstrap.mjs'))
     if (stopped.status !== 0) fail(`stop failed: ${(stopped.stderr ?? '').trim()}`)

@@ -47,7 +47,8 @@ import { bindUiModeRemote, initUiModeStore, isUiMode, type ModeRemote } from './
 import { UiModeRow } from './chrome/ui-mode-row'
 import { returnToConversation } from './chrome/navigation'
 import { bindVikiEnv } from './rooms/viki-data-io'
-import { bindClientRequire, clientRequire } from './chrome/runtime'
+import { bindClientRequire } from './chrome/runtime'
+import { createSnapshotStore, defineStore } from './chrome/store'
 import { ensureThemeVars } from './chrome/theme'
 import { debugEnabled } from './chrome/debug-flag'
 import { HomeSurface } from './projection/home-surface'
@@ -82,6 +83,15 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   initUiModeStore()
 
   function apply(ctx: ClientContext): void {
+    try {
+      applyInner(ctx)
+    } catch (error) {
+      console.error('dsh-smart-assistant client apply failed', error)
+      throw error
+    }
+  }
+
+  function applyInner(ctx: ClientContext): void {
     bindDeskEnv(ctx)
     bindVikiEnv(ctx)
     ensureThemeVars()
@@ -111,10 +121,11 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         order: 5,
         label: () => '今天',
       }, DashboardPanelIcon))
-    const storeApi = typeof document === 'undefined' ? undefined : clientRequire<{
-      createSnapshotStore<T>(initial: T): { getSnapshot(): T; subscribe(listener: () => void): () => void; set(value: T): void }
-      defineStore: import('./projection/projection-view').DefineProjectionViewStore
-    }>('@deepseek-ai/dsh-client-store')
+    // Local store primitives: the web shell's module table carries React and client modules,
+    // not package libraries. A dynamic clientRequire('@deepseek-ai/dsh-client-store') works in
+    // the dev composition but fails on a fresh installed web profile; a bare import is barred
+    // by the browser-bundle gate. The two primitives are small enough to own locally.
+    const storeApi = typeof document === 'undefined' ? undefined : { createSnapshotStore, defineStore }
     const projection = storeApi?.createSnapshotStore<ProjectionDownload>({ status: 'disconnected' })
     const reader = projection === undefined ? undefined : mountProjectionReader(ctx, ctx.connection, projection, {
       baseURI: document.baseURI, origin: location.origin, fetch: globalThis.fetch.bind(globalThis),
@@ -236,8 +247,11 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
 
     ctx.slots.inject('sidebar.brand.mark', () =>
       ctx.slots.inject('sidebar.brand.name', function* () {
-        yield ctx.slots.register({ name: 'sidebar.brand.mark' }, AssistantBrandMark)
-        yield ctx.slots.register({ name: 'sidebar.brand.name' }, AssistantBrandName)
+        // A fresh standard web profile also mounts the official brand row at the default
+        // priority. Two same-priority single-slot occupants throw and take the whole client
+        // entry down; -1 is the documented shadowing rank (lowest renders).
+        yield ctx.slots.register({ name: 'sidebar.brand.mark', priority: -1 }, AssistantBrandMark)
+        yield ctx.slots.register({ name: 'sidebar.brand.name', priority: -1 }, AssistantBrandName)
       }))
 
     // (User steer, 2026-09-28 —
@@ -326,7 +340,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // full-width dock above the composer that the owner renders only in that same hero
     // state. Both disappear on their own once the conversation starts.
     ctx.slots.inject('conversation.hero.brand.mark', () =>
-      ctx.slots.register({ name: 'conversation.hero.brand.mark' }, AssistantHeroMark))
+      ctx.slots.register({ name: 'conversation.hero.brand.mark', priority: -1 }, AssistantHeroMark))
     ctx.slots.inject('conversation.chat.assistant-actions', () =>
       ctx.slots.register({
         name: 'conversation.chat.assistant-actions',
