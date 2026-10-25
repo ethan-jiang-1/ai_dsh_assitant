@@ -301,3 +301,48 @@ bundle 层（两个 profile 各自的链，刻意的——§四，web-app 与 he
 ```
 
 诊断组合用 `pnpm dsh --profile dev --dump-config`（boot-free，输出整棵组合树）。
+
+## 八、入库边界（什么进 git、什么不进）
+
+开源之后，检出的机器不是本机：用户名、home、OS、时区、locale、端口、凭据、工具版本都不一样。仓库内容必须
+**在别人的机器上同样成立**，否则第一次 clone 就欠一次打扫。判据是三问，有一问答不上就不入库：
+
+1. **换一台机器，它是否逐字节相同？**（绝对路径、用户名、home、OS 分支结果、时区、locale、端口、凭据都会让它不同）
+2. **入库之后谁保证它还是真的？**（`pnpm verify` 门禁 / 同 diff 人审的基线 / 生成器 + freshness 检查；三者皆无 = 不入库）
+3. **它机器相关但还是必须留？**（录制证据）→ 必须声明"不参与任何判定"，且消费方按声明办事。
+
+| 类别 | 例 | 入库 | 机制（重建 / 守卫） |
+|---|---|---|---|
+| 源与合同 | `src/`、`tests/`、`docs/`、`notes/`、`_backlog/`、`.agents/skills/` | ✅ | 门禁按面守（链接、语言、文本、组合） |
+| 有 freshness 门禁的生成物 | `docs/package-catalog.md`、`tsconfig.tsx.json`、安装手册 | ✅ | 重建 = `pnpm gen-catalog` / `pnpm gen-paths` / `pnpm export-dist`；§二登记表 |
+| 无门禁的构建产物 | `lib/`、`dist/`、bundle、`*.tsbuildinfo`、`coverage/` | ❌ | `.gitignore`；重建 = `pnpm build` / `pnpm test` |
+| 证据基线 | web 渲染期望、`dev/fixtures/` 的夹具与录制语料 | ✅ | 录一次、重放比对、`--refresh` 或重录后人工审 diff |
+| 运行态 / 机器态 | `dev/harness-home/`、`dev/trial-home*`、`.desk/`、`.pi/`、`.tmp/`、`node_modules/`、`.pnpm-store/` | ❌ | `.gitignore`；重建 = `setup.sh` / 起服务 / `pnpm sweep` |
+| 秘密与本机环境 | `.env`、`.credentials.yaml` | ❌ | `.gitignore`；装法写文档 |
+| 钉存的上游二进制 | `vendor/thirdparty/openviking/` 的 tgz | ✅（显式例外） | `.gitignore` 的白名单 + 旁边 README 的准入/回退记录 |
+| 锁文件 | `pnpm-lock.yaml` | ✅ | 可复现性；安装与 CI 都靠它 |
+| 分发产物 | `_dist/` 下的 tgz | ❌ | 重建 = `pnpm export-dist` |
+
+**开源多环境条款**（入库内容不得编码本机）：
+
+- 数据/配置文件（`*.json` `*.jsonl` `*.yml` `*.yaml`）里禁止宿主绝对路径（macOS 的用户目录、Linux 的 home
+  目录、盘符路径）。录制语料是唯一例外，且必须像
+  [`dev/fixtures/desk-process/README.md`](../dev/fixtures/desk-process/README.md) 那样写明"不参与判定"。
+- 期望值对时区/locale 稳定：时间断言注入固定时区或固定时钟，不拿本地化输出当基线。
+- 路径一律相对仓根、相对 home 或相对 session workspace；不写 `$HOME` 拼出来的字面量。
+- 工具版本只由 pin 文件表达（`pnpm-lock.yaml`、`vendor/UPSTREAM.md`、`.gitmodules`）；文档不写"我这台是 X 版本"。
+- 文本 UTF-8 + LF + 单个结尾换行（`text:` 门禁）；文件模式只信 git 的 exec 位，脚本要么 755 要么用 `bash`/`node` 调用。
+- 端口不写死（`--port 0` 让 OS 分配）；凭据从 home/环境来，不进任何 tracked 文件。
+
+**机制（谁在守）**：
+
+| 面 | 收口点 |
+|---|---|
+| 规则本体 | 本节 + 根 `AGENTS.md` 硬规则 9（常设指令面只留指针） |
+| ignore 面 | `.gitignore`（含"必须入库"的反向清单注释）；`pnpm verify`「commit safety: residue and credentials are ignored」 |
+| 已跟踪内容 | `pnpm verify`「commit safety: tracked files are content, not residue」（构建/运行残留 + 1 MiB 体积上限）与「commit safety: tracked data files carry no host-absolute paths」；纯核 `trackedContentProblems`/`trackedDataPaths`，负例夹具 = `tests/tooling/commit-safety.spec.mjs` |
+| 文档面 | `pnpm verify`「links: contract docs cite no machine-local absolute paths」 |
+| 新类别 | 加文件/加目录前先过本节表；新增一类"合法例外"要同 diff 写理由（README 或本表），不靠口头约定 |
+
+**快捷版**：`git status --ignored` 里出现的东西默认不入库；要破例的那一个，必须能回答"谁在守它还是真的"和
+"它在别人机器上是否同样成立"——两问答不上，它就该是 ignore + 一条重建命令。

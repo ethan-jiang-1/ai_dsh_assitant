@@ -139,7 +139,7 @@ pnpm eval:continuity    # 续接行为地板：隔离 fixture 首回合读回判
 pnpm ov-trial-rt        # OpenViking 真服务记忆往返试验：建会话→塞哨兵语料→等抽取→找回（前提 server 已在 127.0.0.1:1933，由 setup.sh 顺带拉起；判据 = docs/dev.md §四）
 ```
 
-## 八条硬规则
+## 九条硬规则
 
 1. **双 home**：`pnpm dsh` 经 `dev/env/dsh.mjs` 启动，**永远强制** `DSH_HOME=<repo>/dev/harness-home`
    （覆盖任何继承来的值，包括日用的 `~/.dsh`；显式出口是 `ASSISTANT_DSH_HOME`）。
@@ -174,6 +174,10 @@ pnpm ov-trial-rt        # OpenViking 真服务记忆往返试验：建会话→�
    就要人点一次同意，流程就废了。机制：仓内脚本用 `dev/env/tmp.mjs` 的 `tmpDir`/`mkTmpDir`（哪个环节收进哪个
    子目录 = [`docs/dev.md`](docs/dev.md) §一 spill 行）；`pnpm verify` 有门禁守这条。
    模型可见指令（SKILL.md 那一类）在别人机器上跑，口径是"写会话工作目录下的 `.tmp/`"，不是本仓绝对路径。
+9. **入库边界**：只入"换台机器逐字节相同、且有人守得住"的内容。源码/合同/证据基线入；构建产物、运行态、
+   本机环境、秘密不入（ignore + 一条重建命令）；生成物只有带 freshness 门禁（或"录制 + 人审 diff"）才入；
+   录制证据可以带机器痕迹，但必须声明"不参与任何判定"且消费方按声明办事。开源多环境条款、分类表与两个
+   内容门禁 = [`docs/dev.md`](docs/dev.md) §八——加文件/加目录前先过那张表。
 
 ## 研发姿态（用户拍板，常设）
 

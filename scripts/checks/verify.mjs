@@ -18,7 +18,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { agentsMdStabilityProblems, archivedNotePointerProblems, backtickedRepoPathProblems, backlogGraduationProblems, backlogLivenessProblems, implementedNoteEvidenceProblems, clientScriptSafetyProblems, commandAliasProblems, commitSafetyProblems, compositionRowProblems, configParseProblems, crossFileSectionProblems, dependencyPoseProblems, devDrawerCoverageProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, graduatedProposalProblems, homeDocContractProblems, implementedAlternativesProblems, identityNameProblems, languageGuardProblems, markdownCorpusFromTracked, notesNamingProblems, notePointerProblems, notesStateProblems, importResolutionProblems, notesTopLevelProblems, pinProblems, machineLocalPathProblems, packageBuildFreshnessProblems, packageSubpathProblems, playbookFrontmatterProblems,
+import { agentsMdStabilityProblems, archivedNotePointerProblems, backtickedRepoPathProblems, backlogGraduationProblems, backlogLivenessProblems, implementedNoteEvidenceProblems, clientScriptSafetyProblems, commandAliasProblems, commitSafetyProblems, trackedContentProblems, trackedDataPaths, compositionRowProblems, configParseProblems, crossFileSectionProblems, dependencyPoseProblems, devDrawerCoverageProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, graduatedProposalProblems, homeDocContractProblems, implementedAlternativesProblems, identityNameProblems, languageGuardProblems, markdownCorpusFromTracked, notesNamingProblems, notePointerProblems, notesStateProblems, importResolutionProblems, notesTopLevelProblems, pinProblems, machineLocalPathProblems, packageBuildFreshnessProblems, packageSubpathProblems, playbookFrontmatterProblems,
   runtimeTsconfigProblems, selfContainmentProblems, skillFrontmatterKeyProblems, skillNameGrammarProblems, relativeLinkProblems, researchSubdirProblems, scratchPathProblems, skillFrontmatterProblems, startPathProblems, testAssetNamingProblems, textHygieneProblems, toolCommentNameProblems, vendorClientFreshnessProblems } from './verify-checks.mjs'
 import * as gateCores from './verify-checks.mjs'
 import { runChecks } from './run-gates.mjs'
@@ -494,6 +494,24 @@ check('scratch: temporary files stay under the repo .tmp/', () => {
 })
 
 // ── commit safety ───────────────────────────────────────────────────────────────────────────────
+
+// What the index would commit, with the size each entry would carry. The two checks below judge
+// this list, so "is it ignored" and "should it be tracked at all" stay separate questions.
+const trackedFiles = execFileSync('git', ['ls-files', '-z'], { cwd: repoRoot, encoding: 'utf8' })
+  .split('\0').filter(Boolean)
+  .map(path => ({ path, size: exists(join(repoRoot, path)) ? statSync(join(repoRoot, path)).size : 0 }))
+
+check('commit safety: tracked files are content, not residue', () =>
+  // Core in gates/commit-safety.mjs (fixture-pinned in tests/tooling/commit-safety.spec.mjs):
+  // build/runtime outputs and oversized blobs never become content the repo owns.
+  trackedContentProblems({ files: trackedFiles }))
+
+check('commit safety: tracked data files carry no host-absolute paths', () =>
+  // Same family, second axis: data/config is parsed elsewhere, so a host path in it breaks the
+  // open-source portability contract (docs/dev.md §八). Recorded corpora are the declared
+  // exception and are filtered inside the core.
+  machineLocalPathProblems(trackedDataPaths(trackedFiles.map(file => file.path))
+    .map(path => ({ file: join(repoRoot, path), where: path }))))
 
 check('commit safety: residue and credentials are ignored', () =>
   // Pure core in gates/commit-safety.mjs (fixture-pinned in tests/tooling/commit-safety.spec.mjs):
