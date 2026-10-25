@@ -34,7 +34,8 @@
   "types": "./lib/index.d.ts",
   "bin": {
     "ov-doctor": "./bin/ov-doctor.mjs",
-    "expert-setup": "./bin/expert-setup.mjs"
+    "expert-setup": "./bin/expert-setup.mjs",
+    "assistant-data": "./bin/assistant-data.mjs"
   },
   "exports": {
     ".": {

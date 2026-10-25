@@ -90,7 +90,7 @@ try {
 
   step('inspecting the tarball for self-containment and rewritten peer ranges')
   const listing = run('tar', ['-tzf', tarball]).split('\n').filter(Boolean)
-  for (const required of ['package/package.json', 'package/cordis.patch.yml', 'package/lib/index.js', 'package/bin/ov-doctor.mjs', 'package/bin/expert-setup.mjs', 'package/lib/cli/expert-setup.js', 'package/seeds/management/management-lens-ceo.md']) {
+  for (const required of ['package/package.json', 'package/cordis.patch.yml', 'package/lib/index.js', 'package/bin/ov-doctor.mjs', 'package/bin/expert-setup.mjs', 'package/bin/assistant-data.mjs', 'package/lib/cli/expert-setup.js', 'package/lib/cli/assistant-data.js', 'package/seeds/management/management-lens-ceo.md']) {
     if (!listing.includes(required)) fail(`tarball is missing ${required} — did \`pnpm build\` run?`)
   }
   if (listing.some(entry => entry.includes('/vendor/'))) fail('tarball contains a vendor/ path')
@@ -104,6 +104,11 @@ try {
     }
   }
   ok(`${listing.length} files; peer ranges are concrete`)
+
+  step('handoff scan: no user data, credentials, host paths or live-secret shapes')
+  const handoff = spawnSync(process.execPath, [join(repoRoot, 'scripts', 'release', 'handoff-scan.mjs'), tarball], { encoding: 'utf8' })
+  if (handoff.status !== 0) fail(`handoff scan failed: ${(handoff.stderr ?? handoff.stdout ?? '').trim().split('\n').slice(-5).join(' | ')}`)
+  else ok('handoff scan is clean')
 
   step('refusing an incompatible DSH range by the manifest, not a peer fallback')
   // The real tarball's successful install below proves the declared range covers this runtime.
@@ -193,6 +198,27 @@ try {
       }
     } catch (error) {
       fail(`installed expert-setup probe threw: ${error instanceof Error ? error.message : String(error)}`)
+    }
+  }
+
+  step('installed assistant-data: export/import roundtrip')
+  const dataBin = join(home, 'profiles', profile, 'node_modules', PACKAGE_NAME, 'bin', 'assistant-data.mjs')
+  if (!existsSync(dataBin)) {
+    fail(`installed package has no bin/assistant-data.mjs at ${dataBin}`)
+  } else {
+    const bundle = join(home, 'data-bundle')
+    const exported = spawnSync(process.execPath, [
+      dataBin, 'export', '--assistant', expertData, '--operating', join(home, 'expert-operating'), '--out', bundle,
+    ], { cwd: home, encoding: 'utf8' })
+    if (exported.status !== 0) fail(`installed assistant-data export failed: ${(exported.stderr ?? '').trim().slice(0, 300)}`)
+    else {
+      const importedDir = join(home, 'imported-home')
+      const imported = spawnSync(process.execPath, [
+        dataBin, 'import', '--in', bundle, '--assistant', importedDir, '--operating', join(home, 'imported-operating'),
+      ], { cwd: home, encoding: 'utf8' })
+      if (imported.status !== 0) fail(`installed assistant-data import failed: ${(imported.stderr ?? '').trim().slice(0, 300)}`)
+      else if (!existsSync(join(importedDir, 'SOUL.md'))) fail('installed assistant-data import did not restore SOUL.md')
+      else ok('installed assistant-data exports and imports the two owned directories')
     }
   }
 

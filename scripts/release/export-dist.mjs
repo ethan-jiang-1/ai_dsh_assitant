@@ -75,8 +75,10 @@ const must = [
   'package/lib/index.js',
   'package/lib/client/index.js',
   'package/lib/cli/expert-setup.js',
+  'package/lib/cli/assistant-data.js',
   'package/bin/ov-doctor.mjs',
   'package/bin/expert-setup.mjs',
+  'package/bin/assistant-data.mjs',
   'package/seeds/management/management-lens-ceo.md',
   'package/README.md',
 ]
@@ -94,6 +96,11 @@ report('tarball inventory', listed.status === 0 && missing.length === 0 && skill
   `${entries.length} entries, skills ×${skills.length}, seeds ×${seeds.length}`
   + `${missing.length ? `; missing: ${missing.join(', ')}` : ''}`
   + `${forbidden.length ? `; forbidden: ${forbidden.slice(0, 5).join(', ')}${forbidden.length > 5 ? ' …' : ''}` : ''}`)
+
+const handoff = spawnSync(process.execPath, [join(repoRoot, 'scripts', 'release', 'handoff-scan.mjs'), tarball], { encoding: 'utf8' })
+report('handoff scan', handoff.status === 0,
+  handoff.status === 0 ? 'no user data, credentials, host paths or live-secret shapes'
+    : `${(handoff.stderr ?? handoff.stdout ?? '').trim().split('\n').slice(-5).join(' | ')}`)
 
 // 3. 产物 manifest——peer 范围必须是具体 semver（pnpm 改写发生没发生的直接证据）
 let packedManifest
@@ -122,7 +129,7 @@ const manual = `# dsh-smart-assistant 手动安装手册
 
 这个安装包是自包含的：bundle 补丁（\`cordis.patch.yml\`，含 \`assistant\` preset 的完整组合）、
 编译产物（\`lib/\`，含浏览器端桌面面板与专家装配模块）、策展技能（\`presets/assistant/skills/\`）、
-管理种子（\`seeds/management/\`）、两个 bin（\`ov-doctor\` / \`expert-setup\`）、README。
+管理种子（\`seeds/management/\`）、三个 bin（\`ov-doctor\` / \`expert-setup\` / \`assistant-data\`）、README。
 DSH 本体一律按 peerDependencies 由宿主运行时提供，包里不带任何
 \`@deepseek-ai/*\` 代码；唯一的 npm 依赖是 ${prodDeps.map((name) => `\`${name}\``).join('、') || '（无）'}
 （安装时经 npm registry 拉取）。DSH 安装时会按包里的 \`engines.dsh\` 检查兼容；
@@ -299,6 +306,18 @@ cp -R "<DSH_HOME>/assistant" "<备份目录>/assistant"
 cp -R "<DSH_HOME>/assistant-operating" "<备份目录>/assistant-operating"
 \`\`\`
 
+包内 \`assistant-data\` 把这两目录打成带 schema manifest 的备份；恢复要求目标目录为空：
+
+\`\`\`sh
+node <DSH_HOME>/profiles/web/node_modules/dsh-smart-assistant/bin/assistant-data.mjs export \\
+  --assistant <DSH_HOME>/assistant --operating <DSH_HOME>/assistant-operating --out <备份目录>
+node <DSH_HOME>/profiles/web/node_modules/dsh-smart-assistant/bin/assistant-data.mjs import \\
+  --in <备份目录> --assistant <DSH_HOME>/assistant --operating <DSH_HOME>/assistant-operating
+\`\`\`
+
+它只带这两个插件目录，不含 sessions/credentials/settings；manifest 的 \`schemaVersion\` 不匹配会拒绝，
+不会猜着导入。
+
 升级：
 
 \`\`\`sh
@@ -362,6 +381,7 @@ node <DSH_HOME>/profiles/web/node_modules/dsh-smart-assistant/bin/expert-setup.m
 | 刷新后什么都没出现 | 浏览器刷新不加载新模块：重启 \`dsh web\`，再硬刷新页面 |
 | Web UI 里没有章鱼管家 | 先确认 \`preset-assistant\` 在组合里；重启并硬刷新；仍没有就按第八节写 profile patch，并记录界面缺口 |
 | 升级后数据在哪 | 仍在 \`<DSH_HOME>/assistant\` 与 \`assistant-operating\`；\`remove\` 不删；升级前先备份 |
+| 备份怎么恢复 | 用 \`assistant-data import\`，目标目录必须先清空；它按 manifest 的 schemaVersion 拒绝不兼容备份 |
 | DSH 版本不兼容 | 安装会被 \`engines.dsh\` 拒绝；升级 DSH 或换兼容的包版本，不要强制绕过 |
 | 管理种子怎么导入 | 默认身份已是管理岗；种子用 \`bin/expert-setup.mjs\` 显式导入为 draft，不会自动进检索 |
 | 想确认装了什么版本 | \`dsh plugin --profile web list\`，或看本手册表头的版本号 |

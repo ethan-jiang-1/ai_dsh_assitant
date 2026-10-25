@@ -10,6 +10,7 @@
 - **一个 agent preset**：`assistant`（挂上它，这个会话就是"有 working folder 的助手"）。
 - **一个只读部署自检 CLI**：`ov-doctor`（`bin/ov-doctor.mjs`；装好可选 OpenViking 层后在 profile 内运行，见安装手册的 OV 自检节）。
 - **一个专家装配 CLI**：`expert-setup`（`bin/expert-setup.mjs`；把管理种子显式导入为 `draft`，不自动 stable）。
+- **一个数据备份 CLI**：`assistant-data`（`bin/assistant-data.mjs`；只导出/导入 `assistant` + `assistant-operating`，带 schema manifest）。
 - **默认身份是管理岗**（P1）：`SOUL.md` 是数据，种子与回退一致；管理种子只在显式装配时进入知识室，安装不写 working folder。
 
 ## 它是什么形状
