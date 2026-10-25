@@ -17,10 +17,11 @@
 - [`followup/session.v4.jsonl`](followup/session.v4.jsonl) —— flow 场景的回放语料：录制的四个模型调用
   与首轮答复（`deriveReplayScript` 派生回放脚本）；「明确拒绝 p-1」续段是为确定性验收手写的，不是录制。
   对齐契约（BUG-009）：脚本第一格必须服务注入的「正在处理事项…」回合，否则逐轮错位一格。
-- [`single-matter/session.v4.jsonl`](single-matter/session.v4.jsonl) —— 单会话录制语料；它的消费方
-  （`desk-single-matter` 评测任务）已随 room-data copy 退役（A1b）退役，当前无活跃消费方，保留为语料。
+单会话语料（原 `single-matter/session.v4.jsonl`，306 KB）已删除：A1b 退役后无消费方，且它录的是退役前的
+模型可见面——`desk-single-matter` 若复活，重录而不是启用旧语料。需要取回时走 git 历史
+（`git log --all -- dev/fixtures/desk-process/single-matter/`），历史里完整保留。
 
-**语料是录制原样，不改字节**：两份 `session.v4.jsonl` 的 `tool/result` 里带着录制机上的技能基目录
+**语料是录制原样，不改字节**：`followup/session.v4.jsonl` 的 `tool/result` 里带着录制机上的技能基目录
 绝对路径（录制者主目录下的 `presets/assistant/skills/<name>`）。它不参与任何判定——回放只
 `deriveReplayScript` 取 `assistant/message` 与 `compaction/summary`，工具结果由真工具现场重出；
 所以消费方**derive 脚本、不比对请求/工具文本**。将来若要整段重放会话（而不是 derive），在消费侧
