@@ -15,19 +15,16 @@ opened: 2026-10-25
 - 安装是两段式：装 bundle + 手改 profile YAML（[安装手册](../../_dist/安装手册.md#L29-L44)）；Web 其实有官方 preset 选择面，但手册没写。
 - 生命周期只有安装/验证/卸载，没有升级、回滚、备份；包 README 指向 `../../docs/...`，tarball 里没有这些文件；没有 `engines.node`/支持矩阵的机器声明。
 
-**未决问题：**
+**2026-10-25 实测：** Web UI 的 Agent 预设页出现 `章鱼管家`，可设为新任务默认；随后新建会话的 session header 为 `agentPreset: assistant`（探针 = `dev/probes/web/agent-preset-ui.mjs`）。直接 `dsh plugin add <新 tgz>` 从合成旧包 0.0.9 升到 0.1.0，版本更新、working folder/账本保留。证据与命令 = [收口卡](261025-delivery-closure.md) 的 S1 节。
 
-1. 到底声明支持哪些 DSH 版本？只声明当前 pin，还是保留 0.1.5/0.1.7/0.2.0？后者必须实测，不能靠“验证过”的历史表。
-2. Web 的 UI 选择在干净 home 上是否真的出现 `章鱼管家`、能否设为默认？需要真机证据；若不出现，才退回“手册写 YAML + 记录缺口”。
-3. `dsh plugin add <新 tgz>` 的升级语义是覆盖、重装，还是必须先 remove？要在干净 home 实验，不能只写“应该可以”。
-4. “一条命令、不写 YAML”是否硬验收？本卡按“UI 选择 + headless 附录”验收；若必须一条命令，另立 setup helper 的卡。
+**未决问题：** 只剩“旧 DSH 版本是否支持”这一项——当前按不支持处理，只有实测通过才写入矩阵；“一条命令、不写 YAML”已按推荐拍板为 Web UI 选择 + headless 附录，若未来必须一条命令，另立 setup helper 卡。
 
-**下一步：** 先做干净 home 的 Web preset 探针与升级实验；按结果定 `engines.dsh` 范围、改手册、扩 `release-smoke`；然后由交付合同 note 的 S1 切片接管实施（授权后台账在收口卡）。
+**下一步：** S1 的兼容/UI/升级/手册已交付；剩余工作是 S2–S4 与 S5 全矩阵，统一由 [收口卡](261025-delivery-closure.md) 记账。
 
 ## 已知与未决
 
-- **已知**：`dsh plugin add` 装 tgz 可用；clean-home web profile 路径被 smoke 证明；Web preset 选择面与 `selectedDefault` 的合同存在；headless 没有 UI，必须 profile patch。
-- **未决**：支持矩阵的版本边界；旧版本是否真的可用；升级命令语义；UI 路径的实测结果。
+- **已知**：tgz 安装可用；Web UI 选择路径与 `agentPreset: assistant` 新会话已实测；headless 用 profile patch；直接 `add` 新 tgz 可升级并保留数据；`engines.dsh` 负例被拒。
+- **未决**：旧 DSH 版本边界（0.1.5/0.1.7/0.2.0 当前按不支持处理）；真实下一版发布的 0.1.0→新版升级 fixture（S5）。
 
 ## 方案与取舍
 

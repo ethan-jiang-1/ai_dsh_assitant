@@ -27,7 +27,7 @@ opened: 2026-10-25
 |---|---|---|
 | DSH | `>=0.2.1-rc.2 <0.3.0`（机器范围，`engines.dsh`） | 只在 `dsh-v0.2.1-rc.2` 上验证；旧版本表只作历史验证记录，不作当前支持承诺 |
 | Node | `^22.19.0 || >=24`（`engines.node`） | 与 pin 住的 DSH 一致；本机 Node 22 实测 |
-| 面 | Web（UI 选择 preset）+ headless（profile patch） | Web UI 路径待 S1 clean-home 探针；headless 由 `release-smoke` 覆盖 |
+| 面 | Web（UI 选择 preset）+ headless（profile patch） | Web UI 路径已由 S1 clean-home 探针证明；headless 由 `release-smoke` 覆盖 |
 | OS | 跟随 DSH 支持面 | 本仓未单独做 Linux/Windows 矩阵，不声称额外支持 |
 
 ## 切片台账
@@ -35,19 +35,26 @@ opened: 2026-10-25
 | 片 | 状态 | 证据 |
 |---|---|---|
 | **S0 基线与合同** | 已交付 | 四张问题卡 + [交付合同 note](../../notes/proposed/2026-10-25-delivery-contract.md) + [DSH 事实](../research/tech-exploration/261025-dsh-plugin-delivery-facts.md)；`pnpm verify` 48 checks；基线 `pnpm release-smoke` passed（515 files，clean-home 装/组合/OV 缺席在场）；commit `15d2dfd`；支持矩阵见上 |
-| **S1 分发合同** | 进行中 | 待 `engines.dsh`/元数据、Web UI 探针、headless 附录、升级/备份/卸载、`release-smoke` 扩兼容拒绝 |
+| **S1 分发合同** | 已交付（2026-10-25） | `engines.dsh`/`engines.node` + gate + 负例 smoke；手册 UI-first/headless/升级/备份；`agent-preset-ui` 探针；0.0.9→0.1.0 升级保留数据；commits `311994f`、`5afb7d9` |
 | **S2 出厂身份** | 待做 | 默认管理岗 SOUL、seeds 随包、显式装配、安装零写入、eval/prompt |
 | **S3 数据边界** | 待做 | handoff 扫描、导出/导入、备份/恢复、升级迁移 |
 | **S4 独立启动** | 待做 | `bootstrap`、无 `.git` clean-room、隔离 home、中性 cwd、离线 `yaml` |
 | **S5 收口** | 待做 | 全矩阵、第二机走查、文档、`export-dist`、归档 |
 
+### S1 证据（2026-10-25）
+
+- **兼容**：`package.json` 加 `engines.dsh = >=0.2.1-rc.2 <0.3.0` 与 `engines.node = ^22.19.0 || >=24`；`vendor-release` 门禁要求两者非空，负例夹具造红；`release-smoke` 用改了 `engines.dsh = >=999.0.0` 的 tarball 证明安装被拒且报出兼容要求（真实 tarball 安装成功，证明当前范围覆盖 pin）。
+- **Web UI**：干净 home（临时 `DSH_HOME`）装 tgz → `pnpm preflight` 绿 → [agent-preset-ui](../../dev/probes/web/agent-preset-ui.mjs) 探针打开 Settings → Agent 预设，看到自定义组 `章鱼管家`，点击“设为新任务默认”后 aria-label 变为“新任务默认: 章鱼管家”；随后新建会话的 session header 为 `agentPreset: "assistant"`。首版探针用 `includes` 匹配“新任务默认”子串，把“设为新任务默认”误判成已默认（假绿）；改成全等后从 standard 状态实点通过。
+- **升级**：合成旧包 0.0.9（只改 tarball 内版本）→ `dsh plugin add` 装旧包 → 写 memory 与 ledger → 直接 `add` 0.1.0，版本更新、两处数据保留、`--dump-config` 仍有 `preset-assistant`。真实下一版的 0.1.0→新版 fixture 留到 S5。
+- **手册/门禁**：手册改为 UI-first，headless patch 移到附录，补升级/备份/uninstall；Node 范围与 `engines.node` 对齐；`export-dist` 重出；`pnpm verify` 48 checks、`pnpm test:tooling` 293 tests、`pnpm release-smoke` passed。
+
 ## 仍未取
 
-- Web UI 选择路径的 clean-home 真机证据（S1 第一动作；不出现则回退到 headless 式 patch 并记录缺口）。
 - 旧 DSH 版本（0.1.5/0.1.7/0.2.0）是否支持：当前按不支持处理；只有实测通过才写进矩阵。
-- 升级命令语义（覆盖/重装/先 remove）与 0.1.0 数据迁移 fixture。
+- 真实下一版发布时的 0.1.0→新版升级 fixture（本次用合成 0.0.9 证明机制，不假装是真实历史版本）。
 - 离线 `yaml` 的预置/随包方案；没有 `dsh` 的环境明确不做。
 - 第二机真人走查（S5；agent dry run 不替代）。
+- S1 的 Web UI 探针目前是人工调用的 `node dev/probes/web/agent-preset-ui.mjs <URL>`；S5 全矩阵可把它挂进一次性 home 走查，不冒充 `release-smoke` 自动步骤。
 
 ## 验收标准
 
