@@ -2,8 +2,15 @@
  * Fixtures for the handoff scan core: clean agent shapes pass; user data, credentials, host
  * paths and live-secret shapes fail. No filesystem or tarball here — the script owns extraction.
  */
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, afterEach } from 'vitest'
+import { spawnSync } from 'node:child_process'
+import { symlinkSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { handoffPathProblems, handoffProblems, handoffTextProblems } from '../../../../scripts/release/handoff-core.mjs'
+import { temp, disposeTempDirs } from './verify-gates-harness.mjs'
+
+afterEach(disposeTempDirs)
 
 const cleanEntries = [
   'package.json',
@@ -31,6 +38,7 @@ describe('handoff scan core', () => {
       'server.pem',
       'assistant/memory/m1.md',
       'assistant-operating/ledger.json',
+      'data/assistant/SOUL.md',
       'sessions/s1/session.v4.jsonl.zstd',
       'deliverables/plan.md',
       'profiles/web/package.json',
@@ -51,5 +59,15 @@ describe('handoff scan core', () => {
     const secret = handoffTextProblems({ path: 'config.md', text: `token sk-${'a'.repeat(20)}\n` })
     expect(secret).toEqual(['config.md carries what looks like a live secret'])
     expect(handoffTextProblems({ path: 'config.md', text: 'sk-test-not-a-key\n' })).toEqual([])
+  })
+
+  it('the scanner rejects a symlink (the core owns paths/text; the script owns the filesystem shape)', () => {
+    const dir = temp('handoff-symlink-')
+    writeFileSync(join(dir, 'clean.txt'), 'ok\n', 'utf8')
+    symlinkSync(join(dir, 'clean.txt'), join(dir, 'link.txt'))
+    const scanner = fileURLToPath(new URL('../../../../scripts/release/handoff-scan.mjs', import.meta.url))
+    const result = spawnSync(process.execPath, [scanner, dir], { encoding: 'utf8' })
+    expect(result.status).toBe(1)
+    expect(result.stderr).toContain('symlink')
   })
 })

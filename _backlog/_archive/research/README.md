@@ -4,6 +4,7 @@
 
 | 文件 | 服务的卡 | 日期 |
 |---|---|---|
+| [tech-exploration/261025-dsh-plugin-delivery-facts.md](tech-exploration/261025-dsh-plugin-delivery-facts.md) | [交付合同收口卡](../settled_issues/261025-delivery-closure.md)（四张问题卡已结；平台事实与第三方先例） | 2026-10-25 |
 | [positioning/261018-proactivity-synthesis.md](positioning/261018-proactivity-synthesis.md) | [主动性方向评审卡](../settled_issues/261018-proactive-direction.md) | 2026-10-18 |
 | [positioning/261018-proactive-ux-mechanics.md](positioning/261018-proactive-ux-mechanics.md) | [主动性 v1 提案](../../../notes/implemented/2026-10-18-proactive-face.md) | 2026-10-18 |
 | [positioning/261018-oss-proactivity-mechanisms.md](positioning/261018-oss-proactivity-mechanisms.md) | [主动性 v1 提案](../../../notes/implemented/2026-10-18-proactive-face.md) | 2026-10-18 |

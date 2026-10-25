@@ -30,10 +30,11 @@ node scripts/release/handoff-scan.mjs <目录或 tarball>
   `logs/`、`dev/harness-home/`、`dev/trial-home*`、`.tmp/`、`.desk/`、`.pi/`、`_dist/`、`node_modules/`、`.git/`；
   以及任意深度的 `.env`、`.env.local`、`.credentials.yaml`、`auth.json`、`*.key`、`*.pem`、`id_rsa`、`id_ed25519`。
 - 文本面拒绝：机器家目录的绝对路径前缀（具体规则 = `scripts/release/handoff-core.mjs`）与明显的活密钥形状。
+  文本面只检查不超过 512 KiB 的可读文本；二进制/压缩件不做内容检查，tarball 的清单边界另由 `export-dist` 守。
 - 符号链接拒绝：交接物必须是普通文件，不能指向 home 外。
 - `export-dist` 与 `release-smoke` 对 tarball 跑同一条扫描；扫描失败即发布物不可信。
 
-交接后的独立启动用包内 [`bootstrap.mjs`](../packages/dsh-smart-assistant/bootstrap.mjs)：它用已安装的兼容 `dsh` 在 `--home` 下建一个专用 profile，装当前包并起 `--port 0`；`DSH_HOME`、workspace、agents-home、temp 都在该 home 下，不碰日用 `~/.dsh`。没有 `dsh` 的环境不是这条路径的范围。
+交接后的独立启动用包内 [`bootstrap.mjs`](../packages/dsh-smart-assistant/bootstrap.mjs)：它用已安装的兼容 `dsh` 在 `--home` 下建一个专用 profile，装当前包并起 `--port 0`；`DSH_HOME`、workspace、agents-home、temp 都在该 home 下，不碰日用 `~/.dsh`。home 默认在包目录**旁边**的 `assistant-data/`；指向包内会被拒绝。没有 `dsh` 的环境不是这条路径的范围。
 
 允许的符号根：`~/.dsh`、`$DSH_HOME`、包内相对路径、`seeds/...`。手册和模型可见文案用符号根，不写宿主绝对路径。
 
@@ -56,14 +57,11 @@ node <DSH_HOME>/profiles/web/node_modules/dsh-smart-assistant/bin/assistant-data
 - 未知 `schemaVersion` 拒绝导入；不猜、不半导入。
 - 原始 `cp -R` 等价可用；它不校验 manifest，也不保证目标为空——需要“可验证的恢复”时用 `assistant-data`。
 
-**升级**：装新 tarball 不动用户数据；`--dump-config` 仍应有 `preset-assistant`，新会话验证一次。数据读取按文件格式向前兼容；
-跨版本迁移是显式的，不在安装时静默重写。真实下一版的 0.1.0→新版 fixture 由发布走查补，不用合成版本冒充历史。
+**升级/卸载**：装新 tarball 不动用户数据；`--dump-config` 仍应有 `preset-assistant`，新会话验证一次。数据读取按文件格式向前兼容；
+跨版本迁移是显式的，不在安装时静默重写。`pnpm upgrade-smoke` 用合成旧包证明「旧→新→remove」的两目录边界；
+真实下一版的 0.1.0→新版 fixture 由那次发布补，不用合成版本冒充历史。
 
-## 四、机械证据
+## 四、证据 owner
 
-| 面 | 证据 |
-|---|---|
-| 交接扫描规则 | [`tests/tooling/handoff-scan.spec.mjs`](../packages/dsh-smart-assistant/tests/tooling/handoff-scan.spec.mjs)（干净通过 + 数据/凭据/宿主路径/密钥负例；核 = [`scripts/release/handoff-core.mjs`](../scripts/release/handoff-core.mjs)） |
-| 导出/导入 | [`tests/tooling/assistant-data.spec.mjs`](../packages/dsh-smart-assistant/tests/tooling/assistant-data.spec.mjs)（往返、manifest、非空拒绝、未知 schema 拒绝、缺 working folder 拒绝） |
-| 发布物 | `pnpm export-dist` 的 tarball inventory + handoff scan；`pnpm release-smoke` 的 installed `assistant-data` 往返 |
-| 安装零写入 | `release-smoke` 在 `dsh plugin add` 后断言 `<home>/assistant` 不存在 |
+回归资产与命令按 [testing.md](testing.md) 的**一页证据地图**；本文件不维护第二张表。直接入口：
+交接扫描 = [`handoff-core.spec.mjs`](../packages/dsh-smart-assistant/tests/tooling/handoff-core.spec.mjs) + `release-smoke`/`export-dist` 对真实 tarball；导出/导入 = [`assistant-data.spec.mjs`](../packages/dsh-smart-assistant/tests/tooling/assistant-data.spec.mjs) + `release-smoke` 的 installed roundtrip；升级/卸载 = `pnpm upgrade-smoke`；独立启动 = `pnpm standalone-smoke`；Web 选择 = `pnpm agent-preset-ui '<URL>'`（需运行中的干净实例）。

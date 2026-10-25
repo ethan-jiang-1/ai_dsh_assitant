@@ -1,18 +1,20 @@
 ---
-status: 推敲中
+status: 已结
 opened: 2026-10-25
 ---
 
 # 推敲：出厂身份与首跑——默认就是管理岗，还是通用助手加可选装配
 
-> 立卡：2026-10-25 ｜ 状态：推敲中 ｜ 类型：Task ｜ 可关闭：否 ｜ 毕业：做现在
+> 立卡：2026-10-25 ｜ 状态：已结 ｜ 类型：Task ｜ 可关闭：是 ｜ 毕业：做现在
+>
+> 结论：S2 已交付；管理岗话术/种子口味 verdict 留收口卡 ｜ 去向 = [收口卡](261025-delivery-closure.md) + [implemented note](../../../notes/implemented/2026-10-25-delivery-contract.md)
 
-**问题与期望结果：** 产品判据 P1 要求“出厂可用的管理岗基座”，但装出来的默认身份是通用 `SOUL.md`；管理岗身份与知识种子只在 [`dev/deploy/expert-setup.mjs`](../../dev/deploy/expert-setup.mjs#L38-L58) 里，而 [`dev/AGENTS.md`](../../dev/AGENTS.md) 明说它是“仓库用，非发行命令”，`seeds/` 也不在包的 `files` 里（[package.json](../../packages/dsh-smart-assistant/package.json#L108-L114)）。装出来的 preset 叫“章鱼管家”、带管理技能，但身份不是管理岗，是“半专家”。期望明确：这次交付的对象是不是管理岗；如果是，全新安装就应该拿到管理岗基座，且安装本身不写用户数据；种子只在显式装配时进入数据。
+**问题与期望结果：** 产品判据 P1 要求“出厂可用的管理岗基座”，但装出来的默认身份是通用 `SOUL.md`；管理岗身份与知识种子只在 [`dev/deploy/expert-setup.mjs`](../../../dev/deploy/expert-setup.mjs) 里，而 [`dev/AGENTS.md`](../../../dev/AGENTS.md) 明说它是“仓库用，非发行命令”，`seeds/` 也不在包的 `files` 里（[package.json](../../../packages/dsh-smart-assistant/package.json)）。装出来的 preset 叫“章鱼管家”、带管理技能，但身份不是管理岗，是“半专家”。期望明确：这次交付的对象是不是管理岗；如果是，全新安装就应该拿到管理岗基座，且安装本身不写用户数据；种子只在显式装配时进入数据。
 
 **当前情况：**
 
-- `DEFAULT_SOUL` 是通用长期助手身份；`SOUL.md` 是数据，种子一次、手改不覆盖（[soul.ts](../../packages/dsh-smart-assistant/src/domain/home/soul.ts#L25-L43)、[layout.ts](../../packages/dsh-smart-assistant/src/domain/home/layout.ts#L135-L162)）。
-- `expert-setup` 只在 SOUL 仍是未改动的默认种子时替换成管理岗身份；知识种子按治理路径写成 `draft`，不自动 stable（[expert-setup.mjs](../../dev/deploy/expert-setup.mjs#L38-L58)）。它是仓库命令，tarball 不带。
+- `DEFAULT_SOUL` 是通用长期助手身份；`SOUL.md` 是数据，种子一次、手改不覆盖（[soul.ts](../../../packages/dsh-smart-assistant/src/domain/home/soul.ts)、[layout.ts](../../../packages/dsh-smart-assistant/src/domain/home/layout.ts)）。
+- `expert-setup` 只在 SOUL 仍是未改动的默认种子时替换成管理岗身份；知识种子按治理路径写成 `draft`，不自动 stable（[expert-setup.mjs](../../../dev/deploy/expert-setup.mjs)）。它是仓库命令，tarball 不带。
 - 预设本身已经是管理场景：`章鱼管家` 描述、管理/销售/财务技能都在 `presets/assistant/skills/`。缺的是“默认身份 + 可选种子装配”的产品化。
 - 安装不应写用户数据：DSH 的 bundle 安装没有 post-install hook；在安装时自动写 `SOUL.md`/knowledge 会违反 agent/数据分离，也不可逆。
 
@@ -34,7 +36,7 @@ opened: 2026-10-25
 - 把 `DEFAULT_SOUL` 改成管理岗身份；用户首次打开就是管理岗，仍可手改 `SOUL.md` 替换。
 - `seeds/management` 进发布物（或随装配件），但**安装不导入**；提供一条显式命令/脚本（把 `expert-setup` 产品化）在用户同意后写入 `draft`，不自动 stable。
 - 装配幂等、只替换未改动的默认 SOUL、不覆盖主人已编辑的身份；知识种子走既有治理写路径。
-- 模型可见面改动同 diff 更新 [`docs/identity.md`](../../docs/identity.md)、prompt 快照与行为 eval。
+- 模型可见面改动同 diff 更新 [`docs/identity.md`](../../../docs/identity.md)、prompt 快照与行为 eval。
 
 **落选的方案：**
 
@@ -58,4 +60,4 @@ opened: 2026-10-25
 
 - 目标对象确认；默认身份与 seeds 装配方案落地；全新安装/不写数据/幂等装配/不覆盖主人四条有证据。
 - `docs/identity.md`、包 README/手册、prompt 快照与 eval 同步；发布物清单断言命中。
-- 若最终选“通用 + 可选”，本卡以“不做”结档并说明 P1 的“出厂”口径改为“可选装配”；结论与残留路由到 [交付合同 note](../../notes/proposed/2026-10-25-delivery-contract.md)。
+- 若最终选“通用 + 可选”，本卡以“不做”结档并说明 P1 的“出厂”口径改为“可选装配”；结论与残留路由到 [交付合同 note](../../../notes/implemented/2026-10-25-delivery-contract.md)。

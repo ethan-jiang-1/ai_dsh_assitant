@@ -1,6 +1,6 @@
 {
   "name": "dsh-smart-assistant",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "A DSH agent preset that owns a home: durable memory, self-written skills, and machine-checked curation.",
   "type": "module",
@@ -122,6 +122,7 @@
     "presets",
     "seeds",
     "bootstrap.mjs",
+    "LICENSE",
     "cordis.patch.yml",
     "README.md"
   ],

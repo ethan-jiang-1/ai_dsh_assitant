@@ -4,8 +4,10 @@
  * The assembly owns two data-side acts only:
  *   1. the identity file may be moved from the retired generic seed to the shipped management
  *      default — and only while it is still that untouched text (an edited soul is the owner);
- *   2. the management seed pages are imported as `draft` through the same governed page shape a
- *      normal knowledge write uses, never promoted automatically.
+ *   2. the management seed pages are imported as `draft` using the same on-disk page vocabulary
+ *      and credential audit as a normal knowledge write, never promoted automatically. The bin
+ *      runs outside a session, so it deliberately does not touch the digest or normalize wiki
+ *      links (the shipped seeds contain none); status is preserved across re-imports.
  *
  * It deliberately does not need a DSH runtime: the bin must work from an installed tarball whose
  * profile does not physically contain the harness peers. Only pure domain modules and `yaml` are
@@ -22,7 +24,8 @@ import { parseFrontmatterDocument, renderFrontmatterDocument } from '../domain/h
 import { homePaths, scaffoldHome } from '../domain/home/layout.ts'
 import { DEFAULT_SOUL, LEGACY_GENERIC_SOUL } from '../domain/home/soul.ts'
 import { planSourcePage } from '../domain/knowledge/ingest.ts'
-import { pageToDocument, parseWikiLinks, type KnowledgePage, type PageStatus } from '../domain/knowledge/page.ts'
+import { PAGE_STATUSES, pageToDocument, parseWikiLinks, type KnowledgePage, type PageStatus } from '../domain/knowledge/page.ts'
+import { auditSkillCredentials } from '../domain/skills/audit.ts'
 
 /** Where the assembly reads and writes. */
 export interface ExpertSetupOptions {
@@ -54,7 +57,9 @@ async function existingStatus(path: string): Promise<PageStatus | undefined> {
   }
   const document = parseFrontmatterDocument(text)
   const status = document?.data.status
-  return status === 'draft' || status === 'stable' || status === 'deprecated' ? status : undefined
+  return typeof status === 'string' && (PAGE_STATUSES as readonly string[]).includes(status)
+    ? status as PageStatus
+    : undefined
 }
 
 /** Recursively collect seed documents; README and dot files are not seeds. */
@@ -107,7 +112,7 @@ export async function assembleExpertHome(options: ExpertSetupOptions): Promise<E
     const plan = planSourcePage({ ref, title: basename(file).replace(/\.[^.]+$/u, ''), text })
     const path = join(paths.knowledgeDir, `${plan.id}.md`)
     const status = await existingStatus(path)
-    if (status === 'stable' || status === 'deprecated') preserved.push(plan.id)
+    if (status !== undefined && status !== 'draft') preserved.push(plan.id)
     const body = plan.body
     const page: KnowledgePage = {
       id: plan.id,
@@ -122,7 +127,12 @@ export async function assembleExpertHome(options: ExpertSetupOptions): Promise<E
       links: parseWikiLinks(body),
     }
     const document = pageToDocument(page)
-    await atomicWriteFile(path, renderFrontmatterDocument(document.data, document.body))
+    const rendered = renderFrontmatterDocument(document.data, document.body)
+    const findings = auditSkillCredentials(plan.id, rendered)
+    if (findings.length > 0) {
+      throw new Error(`expert-setup: seed ${plan.id} failed the credential audit: ${findings.map(finding => finding.message).join('; ')}`)
+    }
+    await atomicWriteFile(path, rendered)
     imported.push({ id: plan.id, path })
   }
 

@@ -1,21 +1,23 @@
 ---
-status: 推敲中
+status: 已结
 opened: 2026-10-25
 ---
 
 # 推敲：分发合同——另一个人装得上、升得动、退得干净
 
-> 立卡：2026-10-25 ｜ 状态：推敲中 ｜ 类型：Task ｜ 可关闭：否 ｜ 毕业：做现在
+> 立卡：2026-10-25 ｜ 状态：已结 ｜ 类型：Task ｜ 可关闭：是 ｜ 毕业：做现在
+>
+> 结论：S1 已交付；旧 DSH 版本边界与真实下一版升级 fixture 留收口卡/日常使用 ｜ 去向 = [收口卡](261025-delivery-closure.md) + [implemented note](../../../notes/implemented/2026-10-25-delivery-contract.md)
 
 **问题与期望结果：** 本仓已有一条被机械验证的“手工分发”通道（tgz + 生成手册 + clean-home smoke），但它服务的是“作者把包递给另一个能自己配 DSH 的人”，还不是“不同人拿来就能用”。期望得到一份可执行的分发合同：支持矩阵明确；干净机器按文档装起并选到助手；不兼容 DSH 被明确拒绝；升级保留 working folder 与账本；卸载不删数据；手册与包元数据不漂。
 
-**当前情况：** `export-dist` 出 tgz + 手册，`release-smoke` 覆盖干净 home 安装、web profile 安装后仍是 standard、再手写 profile patch 切到 assistant、组合断言（[export-dist.mjs](../../scripts/release/export-dist.mjs)、[release-smoke.mjs](../../scripts/release/release-smoke.mjs#L149-L167)）；tag 与 manifest 版本有门禁（[dev.md](../../docs/dev.md#L350-L363)）。但：
+**当前情况：** `export-dist` 出 tgz + 手册，`release-smoke` 覆盖干净 home 安装、web profile 安装后仍是 standard、再手写 profile patch 切到 assistant、组合断言（[export-dist.mjs](../../../scripts/release/export-dist.mjs)、[release-smoke.mjs](../../../scripts/release/release-smoke.mjs)）；tag 与 manifest 版本有门禁（[dev.md](../../../docs/dev.md)）。但：
 
-- 兼容性有两套口径：`dsh.compatibility.dshReleases` 是给人看的，DSH 实际读 `engines.dsh` 或 peer 范围；本包没有 `engines.dsh`（[package.json](../../packages/dsh-smart-assistant/package.json#L16-L22)、[研究档](../research/tech-exploration/261025-dsh-plugin-delivery-facts.md)）。
-- 安装是两段式：装 bundle + 手改 profile YAML（[安装手册](../../_dist/安装手册.md#L29-L44)）；Web 其实有官方 preset 选择面，但手册没写。
+- 兼容性有两套口径：`dsh.compatibility.dshReleases` 是给人看的，DSH 实际读 `engines.dsh` 或 peer 范围；本包没有 `engines.dsh`（[package.json](../../../packages/dsh-smart-assistant/package.json)、[研究档](../research/tech-exploration/261025-dsh-plugin-delivery-facts.md)）。
+- 安装是两段式：装 bundle + 手改 profile YAML（[安装手册](../../../_dist/安装手册.md)）；Web 其实有官方 preset 选择面，但手册没写。
 - 生命周期只有安装/验证/卸载，没有升级、回滚、备份；包 README 指向 `../../docs/...`，tarball 里没有这些文件；没有 `engines.node`/支持矩阵的机器声明。
 
-**2026-10-25 实测：** Web UI 的 Agent 预设页出现 `章鱼管家`，可设为新任务默认；随后新建会话的 session header 为 `agentPreset: assistant`（探针 = `dev/probes/web/agent-preset-ui.mjs`）。直接 `dsh plugin add <新 tgz>` 从合成旧包 0.0.9 升到 0.1.0，版本更新、working folder/账本保留。证据与命令 = [收口卡](261025-delivery-closure.md) 的 S1 节。
+**2026-10-25 实测：** Web UI 的 Agent 预设页出现 `章鱼管家`，可设为新任务默认；随后新建会话的 session header 为 `agentPreset: assistant`（探针 = `pnpm agent-preset-ui '<URL>'`）。`pnpm upgrade-smoke` 用合成旧包 0.1.0→0.1.1 证明版本更新、working folder/账本保留，`remove` 后两目录仍在。证据与命令 = [收口卡](261025-delivery-closure.md) 的 S1/S5 节。
 
 **未决问题：** 只剩“旧 DSH 版本是否支持”这一项——当前按不支持处理，只有实测通过才写入矩阵；“一条命令、不写 YAML”已按推荐拍板为 Web UI 选择 + headless 附录，若未来必须一条命令，另立 setup helper 卡。
 
@@ -58,4 +60,4 @@ opened: 2026-10-25
 
 - `engines.dsh` 与支持矩阵落地；旧“已验证”表不再与机器口径冲突；不兼容拒绝有正反例证据。
 - Web 选择路径与 headless 路径都被干净 home 证明；手册按 `export-dist` 重出；升级/备份/卸载有可执行证据。
-- 结论与残留路由到 [交付合同 note](../../notes/proposed/2026-10-25-delivery-contract.md) 与授权后的收口卡；不能在本轮完成的，写清触发条件或明确砍掉。
+- 结论与残留路由到 [交付合同 note](../../../notes/implemented/2026-10-25-delivery-contract.md) 与授权后的收口卡；不能在本轮完成的，写清触发条件或明确砍掉。

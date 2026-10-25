@@ -128,6 +128,9 @@ pnpm typecheck          # 委派包级：tsc -b（编译期 paths 解析到 vend
 pnpm test               # vitest 全量：分层 spec（纯核+服务合同+agent/client/composition/tooling；层命令与各层能证明什么见 docs/testing.md 分层表）
 pnpm verify             # 机械门禁链（覆盖面清单 = scripts/checks/verify.mjs）
 pnpm release-smoke      # pnpm pack → 干净 home → dsh plugin add → 组合断言（**改动发布物/依赖/preset 包装/工具面必跑**）
+pnpm upgrade-smoke      # 旧包→新包升级 + remove 后两目录数据保留（干净 home；发布物/数据面必跑）
+pnpm standalone-smoke   # 无 .git 提取包 → bootstrap → 隔离 home → preflight → stop（独立启动面必跑）
+pnpm agent-preset-ui '<URL>'   # 运行中干净实例的 Web preset 选择探针（Settings → Agent 预设 → 章鱼管家）
 pnpm export-dist        # 手动分发导出：pnpm pack → _dist/ 的 tgz + 清单边界断言 + 自动生成《安装手册》；
                         #    版本、标签与导出顺序 = docs/dev.md §九（tag 名必须等于该提交里的包版本）
 pnpm sync-dsh -- --tag <dsh-tag>   # 换 submodule tag + SHA 簿记 + typecheck + 对照 docs/discipline.md 重校纪律表

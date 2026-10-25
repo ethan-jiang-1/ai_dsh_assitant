@@ -1,6 +1,6 @@
 {
   "name": "ai-dsh-assistant",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Dev root for the dsh-smart-assistant plugin: an agent preset whose home (memory, skills, curation) is engineered, not accidental.",
   "type": "module",
@@ -32,6 +32,9 @@
     "test:composition": "pnpm build && pnpm --filter dsh-smart-assistant exec vitest run tests/composition",
     "verify": "node scripts/generate/gen-paths.mjs --check && node scripts/generate/gen-catalog.mjs --check && node dev/eval/run.mjs --self-check && node dev/reports/desk-loop-report.mjs --self-check && node dev/eval/domain-run.mjs --self-check && node dev/eval/continuity-run.mjs --self-check && node scripts/checks/verify.mjs",
     "release-smoke": "node scripts/release/release-smoke.mjs",
+    "upgrade-smoke": "node scripts/release/upgrade-smoke.mjs",
+    "standalone-smoke": "node scripts/release/standalone-smoke.mjs",
+    "agent-preset-ui": "node dev/probes/web/agent-preset-ui.mjs",
     "export-dist": "node scripts/release/export-dist.mjs",
     "preflight": "node dev/probes/web/webui-preflight.mjs",
     "shots": "node dev/probes/web/webui-shots.mjs",

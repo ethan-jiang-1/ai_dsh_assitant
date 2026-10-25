@@ -80,6 +80,7 @@ const must = [
   'package/bin/expert-setup.mjs',
   'package/bin/assistant-data.mjs',
   'package/bootstrap.mjs',
+  'package/LICENSE',
   'package/seeds/management/management-lens-ceo.md',
   'package/README.md',
 ]
@@ -135,13 +136,13 @@ const manual = `# dsh-smart-assistant 手动安装手册
 DSH 本体一律按 peerDependencies 由宿主运行时提供，包里不带任何
 \`@deepseek-ai/*\` 代码；唯一的 npm 依赖是 ${prodDeps.map((name) => `\`${name}\``).join('、') || '（无）'}
 （安装时经 npm registry 拉取）。DSH 安装时会按包里的 \`engines.dsh\` 检查兼容；
-不满足会拒绝安装，不要用强制安装跳过它。下面的步骤与仓库发布冒烟（release-smoke）每轮自动验证的
-路径一致，是被证明过的顺序。
+不满足会拒绝安装，不要用强制安装跳过它。安装与 headless 附录路径由仓库发布冒烟
+（release-smoke）验证；Web UI 选择路径由 \`agent-preset-ui\` 探针在运行实例上验证。
 
 ## 一、安装
 
-默认装进你日常的 \`web\` profile（DSH 出厂默认名）。装完还要做下一步：把 profile 的默认 preset
-切成 \`assistant\`——安装只带定义，不改默认。
+默认装进你日常的 \`web\` profile（DSH 出厂默认名）。装完还要选默认 preset：Web 用下一节的
+UI；headless 用本文末尾的 profile patch。安装只带定义，不改默认。
 
 \`\`\`sh
 dsh plugin --profile web add /path/to/${tarballName}
@@ -381,16 +382,18 @@ node <DSH_HOME>/profiles/web/node_modules/dsh-smart-assistant/bin/expert-setup.m
 把 tarball 解开到任意目录（不需要 \`.git\`、不需要本仓），在解开的 \`package/\` 里：
 
 \`\`\`sh
-node bootstrap.mjs --home ./data
+node bootstrap.mjs
 \`\`\`
 
 前提：PATH 上有兼容的 \`dsh\`（或 \`--dsh <命令>\`）。脚本会：
 
-- 在 \`--home\`（默认 \`./data\`）建隔离 \`DSH_HOME\`、workspace、agents-home、tmp；
+- 在 \`--home\`（默认包目录旁的 \`assistant-data/\`）建隔离 \`DSH_HOME\`、workspace、agents-home、tmp；
 - 用 \`web\` 模板建 \`assistant-standalone\` profile，装当前包，设部署默认 \`assistant\`；
 - 起 \`dsh --port 0\`，打印 URL 与停止命令；不碰日用 \`~/.dsh\`。
 
-停止：\`node bootstrap.mjs --stop --home ./data\`；只建不启动：\`--no-start\`。
+\`--home\` 必须在包目录外；指向包内会被拒绝（数据不能混进 agent 物）。
+
+停止：\`node bootstrap.mjs --stop\`（用了 \`--home\` 就带同一个目录）；只建不启动：\`--no-start\`。
 离线：\`--offline\` 让 pnpm 走离线；前提是 \`yaml\` 已在 store/缓存，否则会明确失败。
 首次模型：新 home 没有凭据，在 Web UI 里配置 provider，或按你的部署方式提供。
 

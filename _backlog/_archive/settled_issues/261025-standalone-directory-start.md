@@ -1,21 +1,23 @@
 ---
-status: 推敲中
+status: 已结
 opened: 2026-10-25
 ---
 
 # 推敲：目录独立启动——无 `.git` 的目录在隔离环境里起一个自己的实例
 
-> 立卡：2026-10-25 ｜ 状态：推敲中 ｜ 类型：Task ｜ 可关闭：否 ｜ 毕业：做现在
+> 立卡：2026-10-25 ｜ 状态：已结 ｜ 类型：Task ｜ 可关闭：是 ｜ 毕业：做现在
+>
+> 结论：S4 已交付；冷 store 离线与第二机真人走查留收口卡 ｜ 去向 = [收口卡](261025-delivery-closure.md) + [implemented note](../../../notes/implemented/2026-10-25-delivery-contract.md)
 
-**问题与期望结果：** `pnpm start` 是作者本机的 dev 入口：它假定 `.git`、vendor 子模块、pnpm install、持久的 `dev/harness-home`，并把会话 cwd 钉在仓根（[start.sh](../../dev/env/start.sh#L26-L39)、[dsh.mjs](../../dev/env/dsh.mjs#L44-L68)、[dsh.mjs](../../dev/env/dsh.mjs#L151-L154)）。把目录拷贝到独立环境（没有 `.git`、没有作者的 home/密钥/历史）时，它起不来或会把作者数据一起带走。期望得到一条正式支持的独立启动路径：目录 + 已安装的 `dsh` + 显式数据根，起一个隔离 home 的 web 实例，用中性 workspace，不碰日用 `~/.dsh`，能干净收掉。
+**问题与期望结果：** `pnpm start` 是作者本机的 dev 入口：它假定 `.git`、vendor 子模块、pnpm install、持久的 `dev/harness-home`，并把会话 cwd 钉在仓根（[start.sh](../../../dev/env/start.sh)、[dsh.mjs](../../../dev/env/dsh.mjs)、[dsh.mjs](../../../dev/env/dsh.mjs)）。把目录拷贝到独立环境（没有 `.git`、没有作者的 home/密钥/历史）时，它起不来或会把作者数据一起带走。期望得到一条正式支持的独立启动路径：目录 + 已安装的 `dsh` + 显式数据根，起一个隔离 home 的 web 实例，用中性 workspace，不碰日用 `~/.dsh`，能干净收掉。
 
 **当前情况：**
 
-- DSH 的应用启动规则是“只有 profile 启动应用”，包内 `bin` 不能当应用启动器（[vendor/dsh/AGENTS.md](../../vendor/dsh/AGENTS.md#L13)）。官方干净环境路径就是 `DSH_HOME=<临时 home>` + `--from-default-profile` + `dsh plugin add` + `dsh --profile`（[release-smoke.mjs](../../scripts/release/release-smoke.mjs#L108-L167)）。
+- DSH 的应用启动规则是“只有 profile 启动应用”，包内 `bin` 不能当应用启动器（[vendor/dsh/AGENTS.md](../../../vendor/dsh/AGENTS.md)）。官方干净环境路径就是 `DSH_HOME=<临时 home>` + `--from-default-profile` + `dsh plugin add` + `dsh --profile`（[release-smoke.mjs](../../../scripts/release/release-smoke.mjs)）。
 - 本仓已有隔离出口：`ASSISTANT_DSH_HOME`（启动器）与 `ASSISTANT_SESSION_CWD`（会话 cwd）；`dsh.mjs` 默认强制 `dev/harness-home`，不碰日用 `~/.dsh`。这是好基础。
 - 但 `start.sh` 开头是 `git rev-parse --show-toplevel`，缺 vendor 时还会 `git submodule update --init`；默认 home 是持久的 dev home；默认 cwd 是仓根，会把本仓 `AGENTS.md` 注入给助手。没有 `--home`/`--fresh`/`--profile` 参数；没有无 `.git` 拷贝的 smoke；离线时唯一的 npm 依赖 `yaml` 没有预置方案。
 
-**2026-10-25 实测：** `bootstrap.mjs` 从解开的 tarball（无 `.git`）建 `assistant-standalone` profile、装包、起 `--port 0`；`standalone-smoke` 读到 URL、preflight 绿、`--stop` 后进程消失与 pid 移除，profile/package/workspace/agents-home 全在 `--home`。首跑在 profile 模板“注释 + `[]`”上把 block 追加成两个 YAML 文档（红），改成替换 `[]` 行后绿。手册 §十 与 [docs/delivery.md](../../docs/delivery.md) 已写。
+**2026-10-25 实测：** `bootstrap.mjs` 从解开的 tarball（无 `.git`）建 `assistant-standalone` profile、装包、起 `--port 0`；`pnpm standalone-smoke` 读到 URL、preflight 绿、`--stop` 后进程消失与 pid 移除，profile/package/workspace/agents-home 全在 `--home`。首跑在 profile 模板“注释 + `[]`”上把 block 追加成两个 YAML 文档（红），改成替换 `[]` 行后绿；同脚本还断言包内 `--home` 被拒、stop→restart 不复用旧 URL。手册 §十 与 [docs/delivery.md](../../../docs/delivery.md) 已写。
 
 **未决问题：** 只剩冷 pnpm store 下的 `--offline` 走查与第二机真人走查（S5）。“没有 `dsh`”的环境明确不做（把 DSH 一起打包是另一个产品）。
 
@@ -59,4 +61,4 @@ opened: 2026-10-25
 
 - `bootstrap` 脚本与无 `.git` clean-room smoke 落地；数据根/会话 cwd/日用 home 三条隔离有证据。
 - 离线或预置 `yaml` 的前提写进文档；首次凭据路径可照抄；停止/收尾有判据。
-- 结论与残留路由到 [交付合同 note](../../notes/proposed/2026-10-25-delivery-contract.md) 与授权后的收口卡；“无 dsh 环境”明确写为不做或另立卡。
+- 结论与残留路由到 [交付合同 note](../../../notes/implemented/2026-10-25-delivery-contract.md) 与授权后的收口卡；“无 dsh 环境”明确写为不做或另立卡。

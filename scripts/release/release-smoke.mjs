@@ -90,7 +90,7 @@ try {
 
   step('inspecting the tarball for self-containment and rewritten peer ranges')
   const listing = run('tar', ['-tzf', tarball]).split('\n').filter(Boolean)
-  for (const required of ['package/package.json', 'package/cordis.patch.yml', 'package/lib/index.js', 'package/bin/ov-doctor.mjs', 'package/bin/expert-setup.mjs', 'package/bin/assistant-data.mjs', 'package/bootstrap.mjs', 'package/lib/cli/expert-setup.js', 'package/lib/cli/assistant-data.js', 'package/seeds/management/management-lens-ceo.md']) {
+  for (const required of ['package/package.json', 'package/cordis.patch.yml', 'package/lib/index.js', 'package/bin/ov-doctor.mjs', 'package/bin/expert-setup.mjs', 'package/bin/assistant-data.mjs', 'package/bootstrap.mjs', 'package/LICENSE', 'package/lib/cli/expert-setup.js', 'package/lib/cli/assistant-data.js', 'package/seeds/management/management-lens-ceo.md']) {
     if (!listing.includes(required)) fail(`tarball is missing ${required} — did \`pnpm build\` run?`)
   }
   if (listing.some(entry => entry.includes('/vendor/'))) fail('tarball contains a vendor/ path')

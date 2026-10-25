@@ -27,7 +27,6 @@ const ROOT_DIRECTORIES = [
 
 /** Root files that are runtime state, credentials or derived indexes. */
 const ROOT_FILES = [
-  '.credentials.yaml',
   '.anonymous-user-id',
   'settings.yaml',
   'settings.yaml.imported',

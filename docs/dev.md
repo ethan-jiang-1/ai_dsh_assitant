@@ -163,6 +163,10 @@ boot 诊断、console 错误、失败请求；带 `capturedAt` 供与会话日�
 `--plain` 是主线程被占死时的兜底（只出图）。它**收 URL、不自起 web**：启动归 `dev/env/dsh.mjs`
 的双 home 守卫，截图器不重复实现它。
 
+**Web preset 选择探针**：`pnpm agent-preset-ui '<URL>'` 在运行中的干净实例上打开 Settings → Agent 预设，
+点击“设为新任务默认: 章鱼管家”，再断言“新任务默认: 章鱼管家”；它不自动起实例，也不在
+`verify`/`test` 里，属于人工走查资产（命令与输出见脚本头注）。
+
 **为什么 preflight（2026-09-24 两轮实锤）**：客户端 bundle 若不能被经典脚本组合解析，
 一条语句就让整条 combo 全灭、其后所有注册丢失，浏览器只报一句莫名的 "loaded without
 registering"——而第一个打开页面的人就成了 crash-test dummy。`pnpm preflight` 用浏览器

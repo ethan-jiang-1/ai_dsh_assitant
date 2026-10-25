@@ -62,6 +62,11 @@ try {
   writeFileSync(wrapper, `#!/bin/sh\nexport TSX_TSCONFIG_PATH="${join(repoRoot, 'tsconfig.tsx.json')}"\nexec "${process.execPath}" --import "${tsx}" "${cli}" "$@"\n`, 'utf8')
   chmodSync(wrapper, 0o755)
 
+  step('refusing a data home inside the package')
+  const inside = bootstrap(['--home', join(pkg, 'data'), '--no-start', '--dsh', wrapper], join(pkg, 'bootstrap.mjs'))
+  if (inside.status === 0) fail('bootstrap accepted a data home inside the package')
+  else ok('inside-package home refused')
+
   step('bootstrapping the extracted directory with an isolated home')
   const started = bootstrap(['--home', home, '--dsh', wrapper], join(pkg, 'bootstrap.mjs'))
   if (started.status !== 0) {
@@ -96,13 +101,34 @@ try {
     const stopped = bootstrap(['--stop', '--home', home], join(pkg, 'bootstrap.mjs'))
     if (stopped.status !== 0) fail(`stop failed: ${(stopped.stderr ?? '').trim()}`)
     else ok('stop command returned')
-    await new Promise(resolve => setTimeout(resolve, 800))
+    await new Promise(done => setTimeout(done, 800))
     let alive = false
     try { process.kill(Number(state.pid), 0); alive = true } catch { /* expected */ }
     if (alive) fail(`process ${String(state.pid)} is still alive after stop`)
     else ok('the service process is gone')
     if (existsSync(join(home, 'bootstrap.pid'))) fail('bootstrap.pid still exists after stop')
     else ok('bootstrap.pid removed')
+
+    step('restarting the same home (URL must not be stale)')
+    const restarted = bootstrap(['--home', home, '--dsh', wrapper], join(pkg, 'bootstrap.mjs'))
+    if (restarted.status !== 0) {
+      fail(`restart failed: ${(restarted.stderr ?? restarted.stdout ?? '').trim().split('\n').slice(-10).join(' | ')}`)
+    } else {
+      const second = JSON.parse(readFileSync(join(home, 'bootstrap.json'), 'utf8'))
+      if (typeof second.url !== 'string' || second.url === state.url) fail('restart reused the previous URL')
+      else ok(`restart URL ${second.url}`)
+      const secondPreflight = run(process.execPath, [join(repoRoot, 'dev', 'probes', 'web', 'webui-preflight.mjs'), second.url], { timeout: 120_000 })
+      if (secondPreflight.status !== 0) fail(`restart preflight failed: ${(secondPreflight.stderr ?? secondPreflight.stdout ?? '').trim().split('\n').slice(-10).join(' | ')}`)
+      else ok('restart preflight green')
+      const secondStop = bootstrap(['--stop', '--home', home], join(pkg, 'bootstrap.mjs'))
+      if (secondStop.status !== 0) fail(`restart stop failed: ${(secondStop.stderr ?? '').trim()}`)
+      else ok('restart stop returned')
+      await new Promise(done => setTimeout(done, 800))
+      let secondAlive = false
+      try { process.kill(Number(second.pid), 0); secondAlive = true } catch { /* expected */ }
+      if (secondAlive) fail(`restart process ${String(second.pid)} is still alive after stop`)
+      else ok('restart service process is gone')
+    }
   }
 } catch (error) {
   fail(`threw: ${error instanceof Error ? error.message : String(error)}`)

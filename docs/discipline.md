@@ -60,6 +60,10 @@
 
 10. **Client 共享观看状态使用声明 store**（约束：store 随注册/布局生命周期撤销，不能独立保留页面启动的默认机会）→ 唯一窄例外是页面 realm 中的根上下文 WeakSet，仅记录是否消费默认导航机会；不持业务数据、导航偏好或订阅，不进入持久存储。源码合同在 [entry.spec.ts](../packages/dsh-smart-assistant/tests/client/entry.spec.ts)，当前导航事实在 [architecture.md](architecture.md#浏览器动作链一次点击--可见的桌面变化)。
 
+11. **shipped 独立启动用已安装的 `dsh`，不是仓根 `pnpm dsh`**（约束：包层纪律禁止在包内用裸 node 起 harness；但导出包的用户没有本仓、vendor 或 dev home）→ `bootstrap.mjs` 是部署包装：它经已安装的 `dsh` 建/起一个隔离 profile，不新增应用入口、不绕过 launcher；仓内开发仍只走 `pnpm dsh`。证据 = [`standalone-smoke`](../scripts/release/standalone-smoke.mjs) + vendor 的应用启动规则（[`vendor/dsh/AGENTS.md`](../vendor/dsh/AGENTS.md)）。
+
+12. **shipped `expert-setup` 不挂 Host 服务写页**（约束：bin 从已安装 profile 运行，不保证能解析 harness peers；Host 的 `writePage` 依赖 cordis 服务）→ 复用纯核 `pageToDocument`/frontmatter/atomic write，并在写入前跑 `auditSkillCredentials`；不 touch digest（无会话）、不做 wiki 归一（种子无链接），status 跨重导入保留。证据 = [`expert-setup.spec.mjs`](../packages/dsh-smart-assistant/tests/tooling/expert-setup.spec.mjs) + `release-smoke` 的 installed bin 断言。
+
 ## 复查环（防"一次性快照再烂"）
 
 - `pnpm sync-dsh` 升 pin 时：对照本文逐行重校（vendor 的套路在演进，继承必须跟着 pin 走）；并

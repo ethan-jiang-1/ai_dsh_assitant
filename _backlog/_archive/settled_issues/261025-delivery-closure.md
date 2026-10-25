@@ -1,11 +1,13 @@
 ---
-status: 推敲中
+status: 已结
 opened: 2026-10-25
 ---
 
 # 收口：交付合同 S0–S5（分发 / 数据边界 / 独立启动 / 出厂身份）
 
-> 立卡：2026-10-25 ｜ 状态：推敲中 ｜ 类型：Task ｜ 可关闭：否 ｜ 毕业：做现在 ｜ 已授权实施（用户 2026-10-25 按推荐拍板，goal 自主推进）
+> 立卡：2026-10-25 ｜ 状态：已结 ｜ 类型：Task ｜ 可关闭：是 ｜ 毕业：做现在 ｜ 已授权实施（用户 2026-10-25 按推荐拍板，goal 自主推进）
+>
+> 结论：S0–S5 已交付（机械 clean-room/门禁证据在卡内）；第二机真人走查与管理岗口味 verdict 仍为开放项（触发 = 日常使用/第二台机器）｜ 去向 = [implemented note](../../../notes/implemented/2026-10-25-delivery-contract.md)
 
 ## 外部结果三要素
 
@@ -34,17 +36,17 @@ opened: 2026-10-25
 
 | 片 | 状态 | 证据 |
 |---|---|---|
-| **S0 基线与合同** | 已交付 | 四张问题卡 + [交付合同 note](../../notes/proposed/2026-10-25-delivery-contract.md) + [DSH 事实](../research/tech-exploration/261025-dsh-plugin-delivery-facts.md)；`pnpm verify` 48 checks；基线 `pnpm release-smoke` passed（515 files，clean-home 装/组合/OV 缺席在场）；commit `15d2dfd`；支持矩阵见上 |
+| **S0 基线与合同** | 已交付 | 四张问题卡 + [交付合同 note](../../../notes/implemented/2026-10-25-delivery-contract.md) + [DSH 事实](../research/tech-exploration/261025-dsh-plugin-delivery-facts.md)；`pnpm verify` 48 checks；基线 `pnpm release-smoke` passed（515 files，clean-home 装/组合/OV 缺席在场）；commit `15d2dfd`；支持矩阵见上 |
 | **S1 分发合同** | 已交付（2026-10-25） | `engines.dsh`/`engines.node` + gate + 负例 smoke；手册 UI-first/headless/升级/备份；`agent-preset-ui` 探针；0.0.9→0.1.0 升级保留数据；commits `311994f`、`5afb7d9` |
 | **S2 出厂身份** | 已交付（2026-10-25） | 管理岗默认 `SOUL` + legacy migration；`seeds` 随包（529 条目，seeds ×8）；`bin/expert-setup` 独立可跑；安装零写入断言；commit `c2839e7` |
 | **S3 数据边界** | 已交付（2026-10-25） | `docs/delivery.md`；handoff scan（tarball clean，534 条目）；`assistant-data` 导出/导入（manifest v1、空目标、临时目录 rename）；installed bin 往返；commit `53180da` |
 | **S4 独立启动** | 已交付（2026-10-25） | `bootstrap.mjs`；无 `.git` 提取包 clean-room：URL/隔离 home/workspace/agents-home/preflight/stop 全过；手册 §十；commit `8531210` |
-| **S5 收口** | 待做 | 全矩阵、第二机走查、文档、`export-dist`、归档 |
+| **S5 收口** | 已交付（2026-10-25） | 版本 `0.1.1`；`verify` 48 / full 129 文件 1014 / release-smoke 536 + handoff clean + installed bins / upgrade-smoke / standalone-smoke / export-dist 536；tag `0.1.1` 随本提交 |
 
 ### S1 证据（2026-10-25）
 
 - **兼容**：`package.json` 加 `engines.dsh = >=0.2.1-rc.2 <0.3.0` 与 `engines.node = ^22.19.0 || >=24`；`vendor-release` 门禁要求两者非空，负例夹具造红；`release-smoke` 用改了 `engines.dsh = >=999.0.0` 的 tarball 证明安装被拒且报出兼容要求（真实 tarball 安装成功，证明当前范围覆盖 pin）。
-- **Web UI**：干净 home（临时 `DSH_HOME`）装 tgz → `pnpm preflight` 绿 → [agent-preset-ui](../../dev/probes/web/agent-preset-ui.mjs) 探针打开 Settings → Agent 预设，看到自定义组 `章鱼管家`，点击“设为新任务默认”后 aria-label 变为“新任务默认: 章鱼管家”；随后新建会话的 session header 为 `agentPreset: "assistant"`。首版探针用 `includes` 匹配“新任务默认”子串，把“设为新任务默认”误判成已默认（假绿）；改成全等后从 standard 状态实点通过。
+- **Web UI**：干净 home（临时 `DSH_HOME`）装 tgz → `pnpm preflight` 绿 → [agent-preset-ui](../../../dev/probes/web/agent-preset-ui.mjs) 探针打开 Settings → Agent 预设，看到自定义组 `章鱼管家`，点击“设为新任务默认”后 aria-label 变为“新任务默认: 章鱼管家”；随后新建会话的 session header 为 `agentPreset: "assistant"`。首版探针用 `includes` 匹配“新任务默认”子串，把“设为新任务默认”误判成已默认（假绿）；改成全等后从 standard 状态实点通过。
 - **升级**：合成旧包 0.0.9（只改 tarball 内版本）→ `dsh plugin add` 装旧包 → 写 memory 与 ledger → 直接 `add` 0.1.0，版本更新、两处数据保留、`--dump-config` 仍有 `preset-assistant`。真实下一版的 0.1.0→新版 fixture 留到 S5。
 - **手册/门禁**：手册改为 UI-first，headless patch 移到附录，补升级/备份/uninstall；Node 范围与 `engines.node` 对齐；`export-dist` 重出；`pnpm verify` 48 checks、`pnpm test:tooling` 293 tests、`pnpm release-smoke` passed。
 
@@ -58,28 +60,35 @@ opened: 2026-10-25
 
 ### S3 证据（2026-10-25）
 
-- **边界合同**：[`docs/delivery.md`](../../docs/delivery.md) 拥有 agent 物 / 插件数据 / 宿主数据 / deliverables 四处归属；一人一 `DSH_HOME`；交接物只含 agent 物。
-- **handoff 扫描**：[`scripts/release/handoff-scan.mjs`](../../scripts/release/handoff-scan.mjs) 接受目录或 tarball；核 = [`scripts/release/handoff-core.mjs`](../../scripts/release/handoff-core.mjs)。拒绝 `assistant/`、`assistant-operating/`、`sessions/`、`deliverables/`、`profiles/`、`storages/`、`logs/`、`dev/harness-home/`、`dev/trial-home*`、`.tmp/`、`.desk/`、`.pi/`、`_dist/`、`node_modules/`、`.git/`，任意深度的 `.env*`/credentials/`auth.json`/`*.key`/`*.pem`/SSH key，机器绝对路径与明显活密钥，以及符号链接。负例夹具覆盖数据/凭据/宿主路径/密钥；`export-dist` 与 `release-smoke` 对真实 tarball 调用，均 clean。
-- **数据 bundle**：[`bin/assistant-data.mjs`](../../packages/dsh-smart-assistant/bin/assistant-data.mjs) + [`src/cli/assistant-data.ts`](../../packages/dsh-smart-assistant/src/cli/assistant-data.ts)。bundle = `assistant/` + `assistant-operating/` + `manifest.json`（`schemaVersion: 1`）；不含 sessions/credentials/settings/storages。导出目标必须空；导入目标必须空；未知 schema 拒绝；导入先写 sibling temp 再 rename；测试覆盖往返、非空拒绝、未知 schema、缺 working folder。`release-smoke` 从已安装 profile 跑通 export → import，并恢复 `SOUL.md`。
-- **升级/迁移**：S1 的合成 0.0.9→0.1.0 探针已证明新 tgz 更新版本且 working folder/账本保留；真实下一版的 0.1.0→新版 fixture 留 S5。数据读取按文件格式向前兼容，安装不静默重写。
-- **门禁**：`pnpm verify` 48 checks；full tests 128 files / 1011 tests；`pnpm release-smoke` 534 条目、handoff clean、installed `assistant-data` 往返通过。
+- **边界合同**：[`docs/delivery.md`](../../../docs/delivery.md) 拥有 agent 物 / 插件数据 / 宿主数据 / deliverables 四处归属；一人一 `DSH_HOME`；交接物只含 agent 物。
+- **handoff 扫描**：[`scripts/release/handoff-scan.mjs`](../../../scripts/release/handoff-scan.mjs) 接受目录或 tarball；核 = [`scripts/release/handoff-core.mjs`](../../../scripts/release/handoff-core.mjs)。拒绝 `assistant/`、`assistant-operating/`、`sessions/`、`deliverables/`、`profiles/`、`storages/`、`logs/`、`dev/harness-home/`、`dev/trial-home*`、`.tmp/`、`.desk/`、`.pi/`、`_dist/`、`node_modules/`、`.git/`，任意深度的 `.env*`/credentials/`auth.json`/`*.key`/`*.pem`/SSH key，机器绝对路径与明显活密钥，以及符号链接。负例夹具覆盖数据/凭据/宿主路径/密钥；`export-dist` 与 `release-smoke` 对真实 tarball 调用，均 clean。
+- **数据 bundle**：[`bin/assistant-data.mjs`](../../../packages/dsh-smart-assistant/bin/assistant-data.mjs) + [`src/cli/assistant-data.ts`](../../../packages/dsh-smart-assistant/src/cli/assistant-data.ts)。bundle = `assistant/` + `assistant-operating/` + `manifest.json`（`schemaVersion: 1`）；不含 sessions/credentials/settings/storages。导出目标必须空；导入目标必须空；未知 schema 拒绝；导入先写 sibling temp 再 rename；测试覆盖往返、非空拒绝、未知 schema、缺 working folder。`release-smoke` 从已安装 profile 跑通 export → import，并恢复 `SOUL.md`。
+- **升级/迁移**：S1 的合成 0.0.9→0.1.0 探针已证明新 tgz 更新版本且 working folder/账本保留，现固化为 `pnpm upgrade-smoke`（旧→新→remove，两目录不丢）；真实下一版的 0.1.0→新版 fixture 留 S5。数据读取按文件格式向前兼容，安装不静默重写。
+- **门禁**：`pnpm verify` 48 checks；full tests 128 files / 1012 tests；`pnpm release-smoke` 534 条目、handoff clean、installed `assistant-data` 往返通过。
 
 ### S4 证据（2026-10-25）
 
-- **脚本**：[`bootstrap.mjs`](../../packages/dsh-smart-assistant/bootstrap.mjs) 是部署包装，不是应用入口；它用已安装的 `dsh` 建 `assistant-standalone` profile，装当前包，设部署默认，起 `--port 0`，打印 URL/停止命令。`DSH_HOME`、workspace、agents-home、tmp 都在 `--home` 下；拒绝日用 `~/.dsh` 与 shipped profile 名；支持 `--stop`、`--no-start`、`--offline`、`--dsh`。
-- **clean-room**：[`scripts/release/standalone-smoke.mjs`](../../scripts/release/standalone-smoke.mjs) 打包 → 解到 `.tmp`（无 `.git`）→ 用 wrapper `dsh` 跑 bootstrap → 读 `bootstrap.json` → preflight 绿 → `--stop` → 进程消失、pid 文件移除。结果：profile/package/workspace/agents-home 都在隔离 home；preflight 绿；停止干净。
+- **脚本**：[`bootstrap.mjs`](../../../packages/dsh-smart-assistant/bootstrap.mjs) 是部署包装，不是应用入口；它用已安装的 `dsh` 建 `assistant-standalone` profile，装当前包，设部署默认，起 `--port 0`，打印 URL/停止命令。`DSH_HOME`、workspace、agents-home、tmp 都在 `--home` 下；拒绝日用 `~/.dsh` 与 shipped profile 名；支持 `--stop`、`--no-start`、`--offline`、`--dsh`。
+- **clean-room**：[`scripts/release/standalone-smoke.mjs`](../../../scripts/release/standalone-smoke.mjs) 打包 → 解到 `.tmp`（无 `.git`）→ 用 wrapper `dsh` 跑 bootstrap → 读 `bootstrap.json` → preflight 绿 → `--stop` → 进程消失、pid 文件移除。结果：profile/package/workspace/agents-home 都在隔离 home；preflight 绿；停止干净。
 - **红绿**：首跑在 `verify composition` 红——profile 模板是“注释 + `[]`”，脚本把 block 追加在 `[]` 后面，成了两个 YAML 文档；改成替换 `[]` 行后从同一状态复跑绿。这不是文档补丁，是脚本真 bug。
-- **前提与未取**：`dsh` 是硬前提；`--offline` 只设 pnpm offline 环境，未在冷 store 上真跑；“无 dsh 便携包”明确不做。手册 §十 与 [docs/delivery.md](../../docs/delivery.md) 已写。
+- **前提与未取**：`dsh` 是硬前提；`--offline` 只设 pnpm offline 环境，未在冷 store 上真跑；“无 dsh 便携包”明确不做。手册 §十 与 [docs/delivery.md](../../../docs/delivery.md) 已写。
+
+### S5 证据（2026-10-25）
+
+- **版本与产物**：根/包 manifest 升到 `0.1.1`；`_dist` 重出 `dsh-smart-assistant-0.1.1.tgz` + 手册（536 条目、seeds ×8、LICENSE、handoff clean）；tag `0.1.1` 打在本提交。
+- **全矩阵**：`pnpm verify` 48 checks；full tests 129 files / 1014 tests；`pnpm release-smoke` 过（536 条目、handoff clean、installed expert-setup/assistant-data）；`pnpm upgrade-smoke` 过（合成旧包→新包→remove，两目录数据保留）；`pnpm standalone-smoke` 过（无 `.git` 提取包、隔离 home、包内 home 拒绝、preflight、stop、重启新 URL）；`pnpm export-dist` 过；两 home 隔离有 `two-homes.spec.ts`。行为 eval 的 11/11 在 S2 记录；S3/S4 只加 CLI/部署脚本，没有改 persona/工具/提示词，未把旧读数冒充本轮复跑。
+- **文档**：`docs/delivery.md`、`docs/architecture.md` 交付面、`docs/home.md` 身份种子、根 README 装法、包 README、生成的安装手册与 `docs/package-catalog.md` 同步。
+- **仍未取**：第二机真人走查、管理岗话术/种子口味、冷 store 离线走查、真实下一版升级 fixture；这些是触发项，不阻断机械收口。
 
 ## 仍未取
 
-- 旧 DSH 版本（0.1.5/0.1.7/0.2.0）是否支持：当前按不支持处理；只有实测通过才写进矩阵。
-- 真实下一版发布时的 0.1.0→新版升级 fixture（本次用合成 0.0.9 证明机制，不假装是真实历史版本）。
-- 离线 `yaml` 的预置/随包方案；没有 `dsh` 的环境明确不做。
-- 冷 pnpm store 下的 `--offline` 走查（S5；当前只实现并文档化，未在冷 store 真跑）。
-- 第二机真人走查（S5；agent dry run 不替代）。
-- 管理岗话术与 8 页种子的“像样/有用”人审口味（S5 走查一并看；eval 只证明不退化，不证明口味）。
-- S1 的 Web UI 探针目前是人工调用的 `node dev/probes/web/agent-preset-ui.mjs <URL>`；S5 全矩阵可把它挂进一次性 home 走查，不冒充 `release-smoke` 自动步骤。
+- 旧 DSH 版本（0.1.5/0.1.7/0.2.0）是否支持：当前按不支持处理；触发 = 有人必须在旧 pin 上部署，届时实测再写矩阵。
+- 真实下一版发布时的 0.1.0/0.1.1→新版升级 fixture：`pnpm upgrade-smoke` 用合成旧包证明升级/remove 机制；触发 = 下一次真实发版。
+- 离线 `yaml` 的预置/随包方案；没有 `dsh` 的环境明确不做；触发 = 真实离线部署。
+- 冷 pnpm store 下的 `--offline` 走查：触发 = 真实离线部署；当前只实现并文档化。
+- 第二机真人走查：触发 = 本人拿到第二台机器/日常使用；agent clean-room 已过，不替代真人。
+- 管理岗话术与 8 页种子的“像样/有用”人审口味：触发 = 第二机走查；eval 只证明不退化，不证明口味。
+- Web UI 探针目前是人工调用的 `pnpm agent-preset-ui '<URL>'`；触发 = 需要自动回归时再挂进一次性 home 走查，不冒充 `release-smoke` 自动步骤。
 
 ## 验收标准
 

@@ -1,22 +1,24 @@
 ---
-status: 推敲中
+status: 已结
 opened: 2026-10-25
 ---
 
 # 推敲：agent 与用户数据的边界——交接物不带数据，数据可备份可迁移
 
-> 立卡：2026-10-25 ｜ 状态：推敲中 ｜ 类型：Task ｜ 可关闭：否 ｜ 毕业：做现在
+> 立卡：2026-10-25 ｜ 状态：已结 ｜ 类型：Task ｜ 可关闭：是 ｜ 毕业：做现在
+>
+> 结论：S3 已交付；真实下一版的 0.1.0→新版数据 fixture 留收口卡 ｜ 去向 = [收口卡](261025-delivery-closure.md) + [implemented note](../../../notes/implemented/2026-10-25-delivery-contract.md)
 
 **问题与期望结果：** 运行时已经分成“插件代码”和“working folder/账本”，tarball 也不含 `src/tests/seeds`；但“目录独立启动”的交接单元是整个目录，而目录里有作者的 `.env.local`、`dev/harness-home/`（credentials、sessions、assistant、assistant-operating、OpenViking 配置、会话索引）和现场产物。`gitignore` 只保护 git，不保护 `cp -R`/zip。期望得到一条机械可查的边界：**agent 物**（可复制给任何人）与**用户数据**（属于某个人/某个 home）分开；交接物零数据/零密钥/零作者路径；同一份 agent 可服务不同数据根；备份/恢复/升级有合同。
 
 **当前情况：**
 
-- 运行时设计是对的：working folder 默认 `<dshHome>/assistant`，经营账本独立 `<dshHome>/assistant-operating`（[home.md](../../docs/home.md#L47-L50)、[operating.md](../../docs/operating.md#L3-L4)）；`layout.ts` 是路径唯一 owner；host 拥有 sessions/credentials/settings。
-- 发布物是干净的：`files` 只含 `lib/bin/presets/cordis.patch.yml/README`（[package.json](../../packages/dsh-smart-assistant/package.json#L108-L114)）；`export-dist` 对 tarball 做禁入清单断言；手册用符号根。
+- 运行时设计是对的：working folder 默认 `<dshHome>/assistant`，经营账本独立 `<dshHome>/assistant-operating`（[home.md](../../../docs/home.md)、[operating.md](../../../docs/operating.md)）；`layout.ts` 是路径唯一 owner；host 拥有 sessions/credentials/settings。
+- 发布物是干净的：`files` 只含 `lib/bin/presets/cordis.patch.yml/README`（[package.json](../../../packages/dsh-smart-assistant/package.json)）；`export-dist` 对 tarball 做禁入清单断言；手册用符号根。
 - 交付面不干净：仓根有 `.env.local`；`dev/harness-home/` 下有 `.credentials.yaml`、`sessions/`、`assistant/`（含 `deliverables/`、记忆、知识、技能）、`assistant-operating/`、`openviking/ov.conf`、`session-search.db`；根 `deliverables/` 也是会话现场产物。这些都被 gitignore，但会被目录拷贝带走。
 - 没有 handoff 导出/扫描脚本；没有数据导出/导入；数据版本只有局部的 `AGENTS.md` 迁移与账本 v1/v2 投影，没有整体的“数据格式版本 + 迁移”；`deliverables/` 有两处（working folder 根与会话 cwd），没有边界说明。
 
-**2026-10-25 实测：** 边界合同落 [docs/delivery.md](../../docs/delivery.md)；`handoff-scan` 拒绝数据/凭据/宿主路径/活密钥/符号链接，真实 tarball clean；`assistant-data` 只带 `assistant` + `assistant-operating` + `manifest.json`（schemaVersion 1），导出/导入目标必须空、未知 schema 拒绝、导入先 temp 后 rename；installed bin 往返通过。测试 = `handoff-scan.spec.mjs` + `assistant-data.spec.mjs`；release-smoke 534 条目、handoff clean、installed roundtrip 通过。
+**2026-10-25 实测：** 边界合同落 [docs/delivery.md](../../../docs/delivery.md)；`handoff-scan` 拒绝数据/凭据/宿主路径/活密钥/符号链接，真实 tarball clean；`assistant-data` 只带 `assistant` + `assistant-operating` + `manifest.json`（schemaVersion 1），导出/导入目标必须空、未知 schema 拒绝、导入先 temp 后 rename；installed bin 往返通过。测试 = `handoff-core.spec.mjs` + `assistant-data.spec.mjs` + `two-homes.spec.ts`；release-smoke 对真实 tarball 扫描、installed roundtrip 通过。
 
 **未决问题：** 只剩真实下一版发布时的 0.1.0→新版数据 fixture（S5；当前用合成 0.0.9 证明机制）。“整 home 备份”是宿主数据操作，文档说明但不另造插件命令。
 
@@ -60,4 +62,4 @@ opened: 2026-10-25
 
 - agent/数据边界写进合同（agent 物、插件数据、宿主数据、deliverables 四处各有 owner）；交接物扫描有正反例并被 `verify` 或发布脚本调用。
 - 导出/导入、备份/恢复、升级迁移各有一条可执行路径与测试；两数据根隔离有证据；`deliverables/` 的落点说清楚。
-- 结论与残留路由到 [交付合同 note](../../notes/proposed/2026-10-25-delivery-contract.md) 与授权后的收口卡；未取的（例如“是否导出 sessions”）写清触发条件。
+- 结论与残留路由到 [交付合同 note](../../../notes/implemented/2026-10-25-delivery-contract.md) 与授权后的收口卡；未取的（例如“是否导出 sessions”）写清触发条件。

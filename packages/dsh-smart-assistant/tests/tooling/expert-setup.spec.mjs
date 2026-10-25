@@ -65,6 +65,12 @@ describe('assembleExpertHome', () => {
     expect(pageOf(first.imported[0].path).data.status).toBe('stable')
   })
 
+  it('refuses a seed that carries a live-secret shape', async () => {
+    const dataDir = temp('expert-data-')
+    const seedsDir = seedFixture(`# Lens\n\ntoken sk-${'a'.repeat(20)}\n`)
+    await expect(assembleExpertHome({ dataDir, seedsDir, now: NOW })).rejects.toThrow('credential audit')
+  })
+
   it('migrates the exact legacy generic seed but never an edited soul', async () => {
     const legacyDir = temp('expert-legacy-')
     writeFileSync(join(legacyDir, 'SOUL.md'), `${LEGACY_GENERIC_SOUL}\n`, 'utf8')

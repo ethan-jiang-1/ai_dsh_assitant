@@ -19,7 +19,7 @@
 import { spawn, spawnSync } from 'node:child_process'
 import { closeSync, existsSync, mkdirSync, openSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
-import { dirname, join, resolve } from 'node:path'
+import { dirname, isAbsolute, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const packageRoot = dirname(fileURLToPath(import.meta.url))
@@ -39,10 +39,18 @@ if (flag('--help')) {
   process.exit(0)
 }
 
-const home = resolve(option('--home') ?? join(packageRoot, 'data'))
+const home = resolve(option('--home') ?? join(dirname(packageRoot), 'assistant-data'))
 const daily = resolve(join(homedir(), '.dsh'))
 if (home === daily) {
   console.error('bootstrap: refusing to use the daily ~/.dsh as a standalone home')
+  process.exit(2)
+}
+// The data root is beside the package, never inside it: a handoff copy of the agent directory
+// must stay clean, and an extracted package upgraded over an old one must not overwrite data.
+const insidePackage = relative(packageRoot, home)
+if (insidePackage === '' || (!insidePackage.startsWith('..') && !isAbsolute(insidePackage))) {
+  console.error(`bootstrap: --home must be outside the package directory (${packageRoot})`)
+  console.error('  use the default sibling directory, or point --home at another writable location')
   process.exit(2)
 }
 const profile = option('--profile') ?? 'assistant-standalone'
@@ -160,6 +168,9 @@ if (existsSync(pidFile)) {
   rmSync(pidFile, { force: true })
 }
 
+// Reset the log on every start: URL discovery reads the whole file, and an append-only log made
+// the previous instance's URL match first after a stop/restart.
+writeFileSync(logFile, '', 'utf8')
 const logFd = openSync(logFile, 'a')
 const child = spawn(dsh, ['--profile', profile, '--port', '0', '--no-open'], {
   cwd: workspace,

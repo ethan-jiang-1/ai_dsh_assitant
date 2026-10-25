@@ -158,7 +158,8 @@ async function moveInto(from: string, to: string): Promise<void> {
 
 /**
  * Import a bundle into absent/empty plugin directories. Both directories are copied to siblings
- * first and renamed into place, so a failure does not leave a half-written working folder.
+ * first and renamed into place; if the second rename fails, the first destination is removed, so
+ * a failure leaves both destinations absent (the pre-import empty state), not half-imported.
  *
  * @param options - Bundle directory and absent/empty destinations.
  * @returns File counts written per directory.
@@ -185,14 +186,23 @@ export async function importData(options: DataImportOptions): Promise<DataImport
   const tempOperating = join(dirname(operatingDir), `.assistant-operating-import-${suffix}`)
   await mkdir(dirname(assistantDir), { recursive: true })
   await mkdir(dirname(operatingDir), { recursive: true })
+  let movedAssistant = false
+  let movedOperating = false
   try {
     await cp(sourceAssistant, tempAssistant, { recursive: true })
     await cp(sourceOperating, tempOperating, { recursive: true })
     await moveInto(tempAssistant, assistantDir)
+    movedAssistant = true
     await moveInto(tempOperating, operatingDir)
+    movedOperating = true
   } catch (error) {
     await rm(tempAssistant, { recursive: true, force: true })
     await rm(tempOperating, { recursive: true, force: true })
+    // Two directory renames are not one atomic operation. If the second fails, undo the first:
+    // both destinations are absent (the pre-import state) rather than a working folder without
+    // its ledger.
+    if (movedOperating) await rm(operatingDir, { recursive: true, force: true })
+    if (movedAssistant) await rm(assistantDir, { recursive: true, force: true })
     throw error
   }
 
