@@ -25,7 +25,7 @@ describe('engines.dsh range boundary', () => {
   })
 
   it('rejects older versions and every 0.3.0 prerelease or release', () => {
-    for (const version of ['0.2.0-rc.2', '0.3.0-0', '0.3.0-rc.1', '0.3.0']) {
+    for (const version of ['0.2.0-rc.2', '0.3.0-0', '0.3.0-alpha.1', '0.3.0-rc.1', '0.3.0', '0.3.1']) {
       expect(accepts(version), version).toBe(false)
     }
   })
