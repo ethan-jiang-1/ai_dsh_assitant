@@ -20,6 +20,12 @@
 - [`single-matter/session.v4.jsonl`](single-matter/session.v4.jsonl) —— 单会话录制语料；它的消费方
   （`desk-single-matter` 评测任务）已随 room-data copy 退役（A1b）退役，当前无活跃消费方，保留为语料。
 
+**语料是录制原样，不改字节**：两份 `session.v4.jsonl` 的 `tool/result` 里带着录制机上的技能基目录
+绝对路径（录制者主目录下的 `presets/assistant/skills/<name>`）。它不参与任何判定——回放只
+`deriveReplayScript` 取 `assistant/message` 与 `compaction/summary`，工具结果由真工具现场重出；
+所以消费方**derive 脚本、不比对请求/工具文本**。将来若要整段重放会话（而不是 derive），在消费侧
+归一化宿主路径，别改语料——改了就不再是"录一次"的证据。
+
 ## 能证 / 不能证
 
 - e2e 探针（回放，模型输出固定）：处理 / 认领 / 唤醒三臂的**接线与账本契约**——建会话、绑定路径、

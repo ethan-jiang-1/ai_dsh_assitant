@@ -31,7 +31,7 @@ roster 行可替换、两个 profile patch 语义不可互换），此处不复�
 | `probes/session/` | one-shot 探针 patch（preset-runner / expert / recall / replay） |
 | `probes/web/` | 浏览器探针（preflight / shots / web-expected / loop-probe / **approve-direct** / desk 走查·e2e（`desk-process-e2e` dispatcher + `-flow`/`-claim`/`-wake` 三场景）·接续 web 回归（`desk-continuity-live`）·晨报 web 回归（`desk-daily-brief-live`）·投影下载 / projection 系 + CDP 驱动 + 比对纯核 + replay 适配 + 共享库三件：`dialogue`（对话习语，含按文案找/点按钮的 `buttonByText` / `clickByText`）/ `probe-service`（自编排服务）/ `probe-utils`（参数与 sleep）） |
 | `lib/` | **跨目录共享库**（谁都不属于，只被 import）：`session-logs`（会话日志发现/解压/分类 + 会话目录快照/差集的判据核——报告、评测、探针同用一份）、`eval-sessions`（评测会话剔除判据核：题面命中且单消息非面板——desk-loop/usage/observe 三报告同源共用）、`continuity-core`（接续评测的判据核：种子前置、工具调用解析、六类交接判定、账本不变式） |
-| `fixtures/` | keyless 回放夹具（llm-replay）、投影/处理流夹具（desk-projection、desk-process）与续接种子账本（eval-continuity）。**spec 侧共享夹具的家不在这里** = `packages/dsh-smart-assistant/tests/support/`（分工判据见 [`docs/testing.md`](../docs/testing.md) 分层表） |
+| `fixtures/` | keyless 回放夹具（llm-replay）、投影/处理流夹具（desk-projection、desk-process）与续接种子账本（eval-continuity）。**spec 侧共享夹具的家不在这里** = `packages/dsh-smart-assistant/tests/support/`（分工判据见 [`docs/testing.md`](../docs/testing.md) 分层表）。录制语料按原样入库：宿主绝对路径只出现在请求/工具文本里（回放只 derive assistant 轮次，不比对它们），要移植就在消费侧归一化，不改语料 |
 | `eval/` | 行为/领域评测（不与单元测试合并） |
 | `reports/` | usage / desk-loop / 输入观察报告 |
 | `deploy/` | 知识导入与专家装配 CLI（仓库用，非发行命令） |
