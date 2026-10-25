@@ -54,6 +54,7 @@
 - `pnpm release-smoke`（真实 tarball、干净 home、安装、组合、零写入）；
 - `pnpm upgrade-smoke`（升级/remove 的数据边界与重装）；
 - `pnpm standalone-smoke`（无 `.git` 目录、隔离 home、preflight、stop/restart）；
+- `pnpm prompt-smoke`（无 key 回放 one-shot，断言四个 prompt 段落与六个工具进入请求）；
 - `pnpm agent-preset-ui '<URL>'`（Web 选择，人工探针；不冒充自动门禁）。
 
 未实际跑过的检查不得进入“绿”的结论；被跳过的检查写明原因。

@@ -34,6 +34,7 @@
     "release-smoke": "node scripts/release/release-smoke.mjs",
     "upgrade-smoke": "node scripts/release/upgrade-smoke.mjs",
     "standalone-smoke": "node scripts/release/standalone-smoke.mjs",
+    "prompt-smoke": "node scripts/release/prompt-smoke.mjs",
     "agent-preset-ui": "node dev/probes/web/agent-preset-ui.mjs",
     "export-dist": "node scripts/release/export-dist.mjs",
     "preflight": "node dev/probes/web/webui-preflight.mjs",
