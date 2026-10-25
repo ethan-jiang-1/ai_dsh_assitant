@@ -30,6 +30,7 @@
 - **不精确钉死一个小版本。** 下界只写真实跑过安装/启动/核心工具的最低版本；未跑过的更老版本不得靠“范围看起来宽”宣称支持。
 - 上界写 `<0.3.0-0` 而不是 `<0.3.0`：预发布参与匹配，后者会放进 `0.3.0-rc.1`。
 - 历史 typecheck 台账在 repo-only [`release-verification.json`](../packages/dsh-smart-assistant/release-verification.json)，不随包发布，也不是当前支持承诺。真实最小/最大矩阵未跑时，结论写“未跑”，不写“已验证”。
+- **当前实测矩阵**：`0.2.1-rc.2` 干净 home 安装 + `preset-assistant` 组合通过；`0.2.0-rc.2` 拒绝安装（该版本按 peer 回退诊断，未写入 profile）；`0.3.0` 未跑，范围边界测试拒绝其 RC/正式版。命令 = `pnpm compat-matrix -- --dsh <path> --version <v> --expect install|reject`。
 - 版本豁免是用户的显式逃生门，不是作者的支持策略。
 
 ## 五、版本与标签
@@ -55,6 +56,7 @@
 - `pnpm upgrade-smoke`（升级/remove 的数据边界与重装）；
 - `pnpm standalone-smoke`（无 `.git` 目录、隔离 home、preflight、stop/restart）；
 - `pnpm prompt-smoke`（无 key 回放 one-shot，断言四个 prompt 段落与六个工具进入请求）；
+- `pnpm compat-matrix -- --dsh <path> --version <v> --expect install|reject`（真实 DSH CLI 的安装/拒绝矩阵；干净 home，不调模型）；
 - `pnpm agent-preset-ui '<URL>'`（Web 选择，人工探针；不冒充自动门禁）。
 
 未实际跑过的检查不得进入“绿”的结论；被跳过的检查写明原因。

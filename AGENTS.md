@@ -131,6 +131,7 @@ pnpm release-smoke      # pnpm pack → 干净 home → dsh plugin add → 组�
 pnpm upgrade-smoke      # 旧包→新包升级 + remove/re-add 后两目录数据保留（干净 home；发布物/数据面必跑）
 pnpm standalone-smoke   # 无 .git 提取包 → bootstrap → 隔离 home → preflight → stop（独立启动面必跑）
 pnpm prompt-smoke       # 无 key 回放一次 preset one-shot，断言四个 prompt 段落与六个工具真进了请求
+pnpm compat-matrix -- --dsh <path> --version <v> --expect install|reject   # 真实 DSH CLI 的下界/拒绝矩阵（干净 home）
 pnpm agent-preset-ui '<URL>'   # 运行中干净实例的 Web preset 选择探针（Settings → Agent 预设 → 章鱼管家）
 pnpm export-dist        # 手动分发导出：pnpm pack → _dist/ 的 tgz + 清单边界断言 + 自动生成《安装手册》；
                         #    版本、标签与导出顺序 = docs/dev.md §九（tag 名必须等于该提交里的包版本）
