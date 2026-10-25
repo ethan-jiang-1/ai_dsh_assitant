@@ -30,7 +30,7 @@
 - **不精确钉死一个小版本。** 下界只写真实跑过安装/启动/核心工具的最低版本；未跑过的更老版本不得靠“范围看起来宽”宣称支持。
 - 上界写 `<0.3.0-0` 而不是 `<0.3.0`：预发布参与匹配，后者会放进 `0.3.0-rc.1`。
 - 历史 typecheck 台账在 repo-only [`release-verification.json`](../packages/dsh-smart-assistant/release-verification.json)，不随包发布，也不是当前支持承诺。真实最小/最大矩阵未跑时，结论写“未跑”，不写“已验证”。
-- **当前实测矩阵**：`0.2.1-rc.2` 干净 home 安装 + `preset-assistant` 组合通过；`0.2.0-rc.2` 拒绝安装（该版本按 peer 回退诊断，未写入 profile）；`0.3.0` 未跑，范围边界测试拒绝其 RC/正式版。命令 = `pnpm compat-matrix -- --dsh <path> --version <v> --expect install|reject`。
+- **当前实测矩阵**：`0.2.1-rc.2` 干净 home 安装 + `preset-assistant` 组合通过；`0.2.0-rc.2` 拒绝安装（该版本按 peer 回退诊断，未写入 profile）；`0.3.0` 未跑，范围边界测试拒绝其 RC/正式版。命令 = `pnpm compat-matrix -- --dsh <path> --version <v> --expect install|reject`；目标 CLI 可用 `npm install --prefix .tmp/dsh-<version> @deepseek-ai/dsh@<version>` 取得（`.tmp` 内，不入库）。
 - 版本豁免是用户的显式逃生门，不是作者的支持策略。
 
 ## 五、版本与标签

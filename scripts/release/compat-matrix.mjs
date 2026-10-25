@@ -59,7 +59,7 @@ try {
   } else ok(version.stdout.trim())
 
   step('packing the current plugin')
-  const packed = execFileSync('pnpm', ['--dir', join(repoRoot, 'packages', 'dsh-smart-assistant'), 'pack', '--pack-destination', root], { encoding: 'utf8' })
+  execFileSync('pnpm', ['--dir', join(repoRoot, 'packages', 'dsh-smart-assistant'), 'pack', '--pack-destination', root], { encoding: 'utf8' })
   const tarball = join(root, `dsh-smart-assistant-${JSON.parse(readFileSync(join(repoRoot, 'packages', 'dsh-smart-assistant', 'package.json'), 'utf8')).version}.tgz`)
   if (!existsSync(tarball)) fail(`pack did not produce ${tarball}`)
   else ok(tarball.replace(`${repoRoot}/`, ''))
@@ -75,7 +75,13 @@ try {
   if (expect === 'reject') {
     if (added.status === 0) fail('target accepted the plugin but rejection was expected')
     else if (!/incompatible|engines\.dsh|peerDependencies/i.test(text)) fail('rejection message does not name compatibility')
-    else ok('target rejected the range with a compatibility diagnostic')
+    else {
+      ok('target rejected the range with a compatibility diagnostic')
+      const restored = runDsh(['--profile', 'matrix', '--dump-config'])
+      if (restored.status !== 0) fail(`dump after rejection failed: ${(restored.stderr || restored.stdout).trim().slice(0, 400)}`)
+      else if (restored.stdout.includes('dsh-smart-assistant')) fail('profile still mentions the plugin after rejection')
+      else ok('profile restored after rejection')
+    }
   } else if (added.status !== 0) {
     fail(`install failed: ${text.trim().slice(-600)}`)
   } else {
