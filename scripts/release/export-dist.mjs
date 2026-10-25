@@ -117,8 +117,8 @@ const manual = `# dsh-smart-assistant 手动安装手册
 | 验证基线 | DSH \`${upstreamTag}\`（Node ≥ 22） |
 
 这个安装包是自包含的：bundle 补丁（\`cordis.patch.yml\`，含 \`assistant\` preset 的完整组合）、
-编译产物（\`lib/\`，含浏览器端桌面面板）、策展技能（\`presets/assistant/skills/\`）、README，
-共 ${entries.length} 个条目。DSH 本体一律按 peerDependencies 由宿主运行时提供，包里不带任何
+编译产物（\`lib/\`，含浏览器端桌面面板）、策展技能（\`presets/assistant/skills/\`）、README。
+DSH 本体一律按 peerDependencies 由宿主运行时提供，包里不带任何
 \`@deepseek-ai/*\` 代码；唯一的 npm 依赖是 ${prodDeps.map((name) => `\`${name}\``).join('、') || '（无）'}
 （安装时经 npm registry 拉取）。下面的步骤与仓库发布冒烟（release-smoke）每轮自动验证的
 路径一致，是被证明过的顺序。
