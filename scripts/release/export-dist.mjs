@@ -301,8 +301,9 @@ dsh plugin --profile web add /path/to/<新版本>.tgz
 dsh --profile web --dump-config
 \`\`\`
 
-\`--dump-config\` 仍应看到 \`preset-assistant\`；新会话验证一次。若 CLI 拒绝同版本或要求先
-remove，按 CLI 提示先 \`remove\` 再 \`add\`——\`remove\` 不删 working folder/账本，但升级前仍建议备份。
+\`--dump-config\` 仍应看到 \`preset-assistant\`；新会话验证一次。实测直接 \`add\` 新 tgz 会更新版本并保留
+working folder/账本；若 CLI 拒绝同版本或要求先 remove，按 CLI 提示先 \`remove\` 再 \`add\`——
+\`remove\` 不删 working folder/账本，但升级前仍建议备份。
 回滚：保留上一版 tgz；\`remove\` 新版后 \`add\` 旧版；若新版引入不可读的数据格式，先恢复备份。
 
 整 home 备份（含 sessions/credentials/settings）也可以，但不要把代码目录当数据目录。
