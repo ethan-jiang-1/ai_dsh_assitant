@@ -147,10 +147,25 @@ export function planSourcePage(document: SourceDocument, options: { truncatedAt?
     ? `${carriedText}\n\n<!-- truncated at ${limit} bytes of ${bytes}; the original stays at ${document.ref} -->`
     : document.text
   const sections = segmentDocument(carriedText)
+  // A leading HTML comment is machine provenance (the `<!-- sources: … -->` directive), not
+  // prose. Seeds all start with one; without this skip every seed page's summary became the
+  // comment text. Track multi-line comments so a wrapped directive cannot leak a middle line.
+  let inComment = false
   const firstProse = sections
     .flatMap(section => section.body.split('\n'))
     .map(line => line.trim())
-    .find(line => line.length > 0 && !line.startsWith('#'))
+    .find(line => {
+      if (line.length === 0) return false
+      if (inComment) {
+        if (line.includes('-->')) inComment = false
+        return false
+      }
+      if (line.startsWith('<!--')) {
+        if (!line.includes('-->')) inComment = true
+        return false
+      }
+      return !line.startsWith('#')
+    })
   const description = firstProse === undefined
     ? `${document.title} (imported source)`
     : firstProse.length <= 120 ? firstProse : `${firstProse.slice(0, 119)}…`

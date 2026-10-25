@@ -33,7 +33,7 @@ describe('service access through the cordis property proxy', () => {
     // the fallback — seed equals fallback, so the voice assertion holds either way.
     const digest: string = ctx.assistantMemory.digestSnapshot()
     expect(digest).toContain('Live status of your working folder')
-    expect(ctx.assistantMemory.soulSnapshot()).toContain('You are a long-lived assistant')
+    expect(ctx.assistantMemory.soulSnapshot()).toContain('You are a management-post expert')
     expect(ctx.assistantMemory.manualSnapshot()).toContain('# Your working folder — operating manual')
   })
 

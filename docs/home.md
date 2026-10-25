@@ -191,9 +191,9 @@ bundles, M snapshots`，退役与快照都不删除、技能归档只增不减�
 **身份与引导分文件**，
 分工一句话——到处适用的进 `SOUL.md`，属于这个 working folder 的进 `AGENTS.md`。
 
-- **`SOUL.md`（身份）**：agent 是谁、怎么说话。scaffold 缺则种（种子 = 内置默认身份，行为零变化），**已有永不覆盖**；空文件不注入。身份段读它逐字进 system prompt（紧贴 persona
+- **`SOUL.md`（身份）**：agent 是谁、怎么说话。scaffold 缺则种（种子 = 内置默认身份；默认是管理岗，种子与回退一致），**已有永不覆盖**；空文件不注入。身份段读它逐字进 system prompt（紧贴 persona
   stub，`assistant:soul`）；缺/空/坏 → **回退内置默认**（回退是替换不是叠加）。改人格 = 编辑
-  这个文件，不用动插件源码。
+  这个文件，不用动插件源码。管理知识种子不随 scaffold 落地；显式装配（包内 `bin/expert-setup.mjs`）把种子导入为 `draft`，`stable` 仍需人审。
 - **`AGENTS.md`（手册）**：working folder 怎么用——四房间、两档出口、退役、curate、盘上布局、首会话开场
   （first conversation）、首答一页纸（Answer with a page, not a report）、协作边界等节（非穷举，正文以
   `renderHomeManual` 为准）。记忆/知识/技能面板

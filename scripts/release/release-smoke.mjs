@@ -30,7 +30,7 @@
 import { execFile, execFileSync, spawnSync } from 'node:child_process'
 import { createServer } from 'node:http'
 import { promisify } from 'node:util'
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, isAbsolute, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { mkTmpDir } from '../../dev/env/tmp.mjs'
@@ -90,7 +90,7 @@ try {
 
   step('inspecting the tarball for self-containment and rewritten peer ranges')
   const listing = run('tar', ['-tzf', tarball]).split('\n').filter(Boolean)
-  for (const required of ['package/package.json', 'package/cordis.patch.yml', 'package/lib/index.js', 'package/bin/ov-doctor.mjs']) {
+  for (const required of ['package/package.json', 'package/cordis.patch.yml', 'package/lib/index.js', 'package/bin/ov-doctor.mjs', 'package/bin/expert-setup.mjs', 'package/lib/cli/expert-setup.js', 'package/seeds/management/management-lens-ceo.md']) {
     if (!listing.includes(required)) fail(`tarball is missing ${required} — did \`pnpm build\` run?`)
   }
   if (listing.some(entry => entry.includes('/vendor/'))) fail('tarball contains a vendor/ path')
@@ -157,6 +157,44 @@ try {
   if (!existsSync(installedPatch)) fail(`installed package has no cordis.patch.yml at ${installedPatch}`)
   else if (!readFileSync(installedPatch, 'utf8').includes('preset-assistant')) fail('installed bundle patch declares no preset-assistant row')
   else ok('dsh plugin add installed the package with its preset row')
+
+  step('install writes no working folder')
+  // The management default identity is code-side; seeds need the explicit bin. The service
+  // scaffolds on first mount, not on `plugin add`, so this catches an install-time side effect.
+  const assistantDir = join(home, 'assistant')
+  if (existsSync(assistantDir)) fail(`install wrote a working folder at ${assistantDir}; install must not touch user data`)
+  else ok('no working folder before any session or explicit assembly')
+
+  step('installed expert-setup: management seeds as drafts, idempotently')
+  // The bin must run from the installed profile with plain Node: no repo, no harness peers.
+  const expertSetupBin = join(home, 'profiles', profile, 'node_modules', PACKAGE_NAME, 'bin', 'expert-setup.mjs')
+  const expertData = join(home, 'expert-home')
+  if (!existsSync(expertSetupBin)) {
+    fail(`installed package has no bin/expert-setup.mjs at ${expertSetupBin}`)
+  } else {
+    try {
+      const first = spawnSync(process.execPath, [expertSetupBin, '--data-dir', expertData], { cwd: home, encoding: 'utf8' })
+      if (first.status !== 0) {
+        fail(`installed expert-setup failed: ${(first.stderr ?? '').trim().slice(0, 300)}`)
+      } else {
+        const soul = readFileSync(join(expertData, 'SOUL.md'), 'utf8')
+        const knowledgeDir = join(expertData, 'knowledge')
+        const pages = readdirSync(knowledgeDir).filter(name => name.endsWith('.md'))
+        const stable = pages.filter(name => readFileSync(join(knowledgeDir, name), 'utf8').includes('status: stable'))
+        if (!soul.includes('management-post expert')) fail('installed expert-setup did not seed the management soul')
+        else if (pages.length === 0) fail('installed expert-setup imported no seed pages')
+        else if (stable.length > 0) fail(`installed expert-setup promoted ${stable.length} page(s) to stable; drafts only`)
+        else ok(`installed expert-setup seeded the soul and ${pages.length} draft page(s)`)
+        const second = spawnSync(process.execPath, [expertSetupBin, '--data-dir', expertData], { cwd: home, encoding: 'utf8' })
+        const after = readdirSync(knowledgeDir).filter(name => name.endsWith('.md'))
+        if (second.status !== 0) fail(`installed expert-setup re-run failed: ${(second.stderr ?? '').trim().slice(0, 300)}`)
+        else if (after.length !== pages.length) fail(`installed expert-setup duplicated pages: ${pages.length} → ${after.length}`)
+        else ok('installed expert-setup is idempotent')
+      }
+    } catch (error) {
+      fail(`installed expert-setup probe threw: ${error instanceof Error ? error.message : String(error)}`)
+    }
+  }
 
   step('selecting the installed preset as the profile default (the shape a user gets)')
   // insert semantics — the headless template has no registry row to replace

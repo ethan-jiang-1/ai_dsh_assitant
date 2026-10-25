@@ -33,7 +33,8 @@
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "bin": {
-    "ov-doctor": "./bin/ov-doctor.mjs"
+    "ov-doctor": "./bin/ov-doctor.mjs",
+    "expert-setup": "./bin/expert-setup.mjs"
   },
   "exports": {
     ".": {
@@ -118,6 +119,7 @@
     "lib",
     "bin",
     "presets",
+    "seeds",
     "cordis.patch.yml",
     "README.md"
   ],

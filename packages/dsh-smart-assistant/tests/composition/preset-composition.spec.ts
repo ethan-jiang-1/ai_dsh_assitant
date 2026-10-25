@@ -207,7 +207,7 @@ describe('real composition: loader + preset standing mount + joined agent', () =
     const byName = new Map(assembled.sections.map(section => [section.name, section.text]))
     // A fresh home's seed equals the built-in default, so the identity section is the default
     // voice either way — the race between scaffold and first assembly is invisible by design.
-    expect(byName.get('assistant:soul')).toContain('You are a long-lived assistant')
+    expect(byName.get('assistant:soul')).toContain('You are a management-post expert')
     expect(byName.get('assistant:home-manual')).toContain('# Your working folder — operating manual')
     // A1b: the retired per-session room-data copy is gone from the model face; the manual still
     // teaches the four rooms and the ledger.

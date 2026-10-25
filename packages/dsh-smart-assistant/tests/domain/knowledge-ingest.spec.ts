@@ -63,6 +63,15 @@ describe('planSourcePage', () => {
     expect(planSourcePage(document)).toEqual(plan)
   })
 
+  it('skips an html provenance comment when choosing the description', () => {
+    const plan = planSourcePage({
+      ref: 'seeds/management/lens-cfo.md',
+      title: 'CFO lens',
+      text: '<!-- sources: ai_dsh_company:company-workspace/kb/cfo/CHARTER.md -->\nFrom the chief financial officer lens.\n',
+    })
+    expect(plan.description).toBe('From the chief financial officer lens.')
+  })
+
   it('falls back to an English description when the document has no prose', () => {
     const plan = planSourcePage({ ref: 'empty.md', title: 'Empty', text: '# Only a heading\n' })
     expect(plan.description).toBe('Empty (imported source)')
