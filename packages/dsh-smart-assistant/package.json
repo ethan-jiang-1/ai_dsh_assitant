@@ -121,6 +121,7 @@
     "bin",
     "presets",
     "seeds",
+    "bootstrap.mjs",
     "cordis.patch.yml",
     "README.md"
   ],

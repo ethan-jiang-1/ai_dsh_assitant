@@ -79,6 +79,7 @@ const must = [
   'package/bin/ov-doctor.mjs',
   'package/bin/expert-setup.mjs',
   'package/bin/assistant-data.mjs',
+  'package/bootstrap.mjs',
   'package/seeds/management/management-lens-ceo.md',
   'package/README.md',
 ]
@@ -129,7 +130,8 @@ const manual = `# dsh-smart-assistant 手动安装手册
 
 这个安装包是自包含的：bundle 补丁（\`cordis.patch.yml\`，含 \`assistant\` preset 的完整组合）、
 编译产物（\`lib/\`，含浏览器端桌面面板与专家装配模块）、策展技能（\`presets/assistant/skills/\`）、
-管理种子（\`seeds/management/\`）、三个 bin（\`ov-doctor\` / \`expert-setup\` / \`assistant-data\`）、README。
+管理种子（\`seeds/management/\`）、三个 bin（\`ov-doctor\` / \`expert-setup\` / \`assistant-data\`）、
+独立启动 \`bootstrap.mjs\`、README。
 DSH 本体一律按 peerDependencies 由宿主运行时提供，包里不带任何
 \`@deepseek-ai/*\` 代码；唯一的 npm 依赖是 ${prodDeps.map((name) => `\`${name}\``).join('、') || '（无）'}
 （安装时经 npm registry 拉取）。DSH 安装时会按包里的 \`engines.dsh\` 检查兼容；
@@ -374,6 +376,24 @@ node <DSH_HOME>/profiles/web/node_modules/dsh-smart-assistant/bin/expert-setup.m
   \`stable\` 才是批准。
 - 重复运行幂等；已有的 \`stable\`/\`deprecated\` 页不会被回滚。
 
+## 十、独立目录启动（无 git）
+
+把 tarball 解开到任意目录（不需要 \`.git\`、不需要本仓），在解开的 \`package/\` 里：
+
+\`\`\`sh
+node bootstrap.mjs --home ./data
+\`\`\`
+
+前提：PATH 上有兼容的 \`dsh\`（或 \`--dsh <命令>\`）。脚本会：
+
+- 在 \`--home\`（默认 \`./data\`）建隔离 \`DSH_HOME\`、workspace、agents-home、tmp；
+- 用 \`web\` 模板建 \`assistant-standalone\` profile，装当前包，设部署默认 \`assistant\`；
+- 起 \`dsh --port 0\`，打印 URL 与停止命令；不碰日用 \`~/.dsh\`。
+
+停止：\`node bootstrap.mjs --stop --home ./data\`；只建不启动：\`--no-start\`。
+离线：\`--offline\` 让 pnpm 走离线；前提是 \`yaml\` 已在 store/缓存，否则会明确失败。
+首次模型：新 home 没有凭据，在 Web UI 里配置 provider，或按你的部署方式提供。
+
 ## 常见问题
 
 | 现象 | 原因与处理 |
@@ -382,6 +402,8 @@ node <DSH_HOME>/profiles/web/node_modules/dsh-smart-assistant/bin/expert-setup.m
 | Web UI 里没有章鱼管家 | 先确认 \`preset-assistant\` 在组合里；重启并硬刷新；仍没有就按第八节写 profile patch，并记录界面缺口 |
 | 升级后数据在哪 | 仍在 \`<DSH_HOME>/assistant\` 与 \`assistant-operating\`；\`remove\` 不删；升级前先备份 |
 | 备份怎么恢复 | 用 \`assistant-data import\`，目标目录必须先清空；它按 manifest 的 schemaVersion 拒绝不兼容备份 |
+| 独立启动要 dsh 吗 | 要，PATH 上有兼容 \`dsh\` 或传 \`--dsh\`；没有 dsh 的便携包是另一个产品，不在本手册范围 |
+| 独立启动的数据在哪 | 默认 \`./data\`（可用 \`--home\` 换）；它不写日用 \`~/.dsh\` |
 | DSH 版本不兼容 | 安装会被 \`engines.dsh\` 拒绝；升级 DSH 或换兼容的包版本，不要强制绕过 |
 | 管理种子怎么导入 | 默认身份已是管理岗；种子用 \`bin/expert-setup.mjs\` 显式导入为 draft，不会自动进检索 |
 | 想确认装了什么版本 | \`dsh plugin --profile web list\`，或看本手册表头的版本号 |

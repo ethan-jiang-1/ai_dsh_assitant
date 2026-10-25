@@ -26,12 +26,14 @@
 node scripts/release/handoff-scan.mjs <目录或 tarball>
 ```
 
-- 路径面拒绝：`assistant/`、`assistant-operating/`、`sessions/`、`deliverables/`、`profiles/`、`storages/`、
+- 路径面拒绝：`assistant/`、`assistant-operating/`、`data/`、`sessions/`、`deliverables/`、`profiles/`、`storages/`、
   `logs/`、`dev/harness-home/`、`dev/trial-home*`、`.tmp/`、`.desk/`、`.pi/`、`_dist/`、`node_modules/`、`.git/`；
   以及任意深度的 `.env`、`.env.local`、`.credentials.yaml`、`auth.json`、`*.key`、`*.pem`、`id_rsa`、`id_ed25519`。
 - 文本面拒绝：机器家目录的绝对路径前缀（具体规则 = `scripts/release/handoff-core.mjs`）与明显的活密钥形状。
 - 符号链接拒绝：交接物必须是普通文件，不能指向 home 外。
 - `export-dist` 与 `release-smoke` 对 tarball 跑同一条扫描；扫描失败即发布物不可信。
+
+交接后的独立启动用包内 [`bootstrap.mjs`](../packages/dsh-smart-assistant/bootstrap.mjs)：它用已安装的兼容 `dsh` 在 `--home` 下建一个专用 profile，装当前包并起 `--port 0`；`DSH_HOME`、workspace、agents-home、temp 都在该 home 下，不碰日用 `~/.dsh`。没有 `dsh` 的环境不是这条路径的范围。
 
 允许的符号根：`~/.dsh`、`$DSH_HOME`、包内相对路径、`seeds/...`。手册和模型可见文案用符号根，不写宿主绝对路径。
 
