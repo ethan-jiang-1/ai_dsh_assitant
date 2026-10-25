@@ -36,7 +36,7 @@ opened: 2026-10-25
 |---|---|---|
 | **S0 基线与合同** | 已交付 | 四张问题卡 + [交付合同 note](../../notes/proposed/2026-10-25-delivery-contract.md) + [DSH 事实](../research/tech-exploration/261025-dsh-plugin-delivery-facts.md)；`pnpm verify` 48 checks；基线 `pnpm release-smoke` passed（515 files，clean-home 装/组合/OV 缺席在场）；commit `15d2dfd`；支持矩阵见上 |
 | **S1 分发合同** | 已交付（2026-10-25） | `engines.dsh`/`engines.node` + gate + 负例 smoke；手册 UI-first/headless/升级/备份；`agent-preset-ui` 探针；0.0.9→0.1.0 升级保留数据；commits `311994f`、`5afb7d9` |
-| **S2 出厂身份** | 待做 | 默认管理岗 SOUL、seeds 随包、显式装配、安装零写入、eval/prompt |
+| **S2 出厂身份** | 已交付（2026-10-25） | 管理岗默认 `SOUL` + legacy migration；`seeds` 随包（529 条目，seeds ×8）；`bin/expert-setup` 独立可跑；安装零写入断言；commit `c2839e7` |
 | **S3 数据边界** | 待做 | handoff 扫描、导出/导入、备份/恢复、升级迁移 |
 | **S4 独立启动** | 待做 | `bootstrap`、无 `.git` clean-room、隔离 home、中性 cwd、离线 `yaml` |
 | **S5 收口** | 待做 | 全矩阵、第二机走查、文档、`export-dist`、归档 |
@@ -48,12 +48,21 @@ opened: 2026-10-25
 - **升级**：合成旧包 0.0.9（只改 tarball 内版本）→ `dsh plugin add` 装旧包 → 写 memory 与 ledger → 直接 `add` 0.1.0，版本更新、两处数据保留、`--dump-config` 仍有 `preset-assistant`。真实下一版的 0.1.0→新版 fixture 留到 S5。
 - **手册/门禁**：手册改为 UI-first，headless patch 移到附录，补升级/备份/uninstall；Node 范围与 `engines.node` 对齐；`export-dist` 重出；`pnpm verify` 48 checks、`pnpm test:tooling` 293 tests、`pnpm release-smoke` passed。
 
+### S2 证据（2026-10-25）
+
+- **默认身份**：`DEFAULT_SOUL` 改为管理岗（P1）；旧通用种子只作 `LEGACY_GENERIC_SOUL` 的显式迁移对象，新 home 不再种它。组装层的 `assistant:soul` 断言、host 根文件测试与 composition 测试都改为管理岗短语。
+- **seeds 随包**：`files` 加 `seeds`；`export-dist` 清单断言 `package/seeds/management/management-lens-ceo.md`、`lib/cli/expert-setup.js`、`bin/expert-setup.mjs`；当前 tarball 529 条目、seeds ×8。
+- **显式装配**：`src/cli/expert-setup.ts` 是 repo CLI 与 shipped bin 的唯一实现；`bin/expert-setup.mjs` 只导入 `lib` 与 `yaml`，从已安装 profile 的 node_modules 直接跑通，不依赖 DSH peers。8 页以 `draft` 落 knowledge、`generated.by = process:expert-setup`、sources 带 `seeds/management/...` 与 seed 自带 provenance；重复运行幂等；已有 `stable/deprecated` 不回滚；编辑过的 SOUL 不覆盖；旧通用 SOUL 只精确迁移一次。
+- **安装零写入**：`release-smoke` 在 `dsh plugin add` 后断言 `<home>/assistant` 不存在；种子只在显式 bin 的 `--data-dir` 下写入。
+- **回归**：`pnpm --filter dsh-smart-assistant exec vitest run` 126 files / 1005 tests 通过；`pnpm eval` 11/11 通过（desk-daily-brief 1 个 web-only NOT EVALUATED）；`pnpm verify` 48 checks；`release-smoke` 过（含 installed expert-setup 的两个断言）。
+
 ## 仍未取
 
 - 旧 DSH 版本（0.1.5/0.1.7/0.2.0）是否支持：当前按不支持处理；只有实测通过才写进矩阵。
 - 真实下一版发布时的 0.1.0→新版升级 fixture（本次用合成 0.0.9 证明机制，不假装是真实历史版本）。
 - 离线 `yaml` 的预置/随包方案；没有 `dsh` 的环境明确不做。
 - 第二机真人走查（S5；agent dry run 不替代）。
+- 管理岗话术与 8 页种子的“像样/有用”人审口味（S5 走查一并看；eval 只证明不退化，不证明口味）。
 - S1 的 Web UI 探针目前是人工调用的 `node dev/probes/web/agent-preset-ui.mjs <URL>`；S5 全矩阵可把它挂进一次性 home 走查，不冒充 `release-smoke` 自动步骤。
 
 ## 验收标准
