@@ -15,19 +15,16 @@ opened: 2026-10-25
 - 本仓已有隔离出口：`ASSISTANT_DSH_HOME`（启动器）与 `ASSISTANT_SESSION_CWD`（会话 cwd）；`dsh.mjs` 默认强制 `dev/harness-home`，不碰日用 `~/.dsh`。这是好基础。
 - 但 `start.sh` 开头是 `git rev-parse --show-toplevel`，缺 vendor 时还会 `git submodule update --init`；默认 home 是持久的 dev home；默认 cwd 是仓根，会把本仓 `AGENTS.md` 注入给助手。没有 `--home`/`--fresh`/`--profile` 参数；没有无 `.git` 拷贝的 smoke；离线时唯一的 npm 依赖 `yaml` 没有预置方案。
 
-**未决问题：**
+**2026-10-25 实测：** `bootstrap.mjs` 从解开的 tarball（无 `.git`）建 `assistant-standalone` profile、装包、起 `--port 0`；`standalone-smoke` 读到 URL、preflight 绿、`--stop` 后进程消失与 pid 移除，profile/package/workspace/agents-home 全在 `--home`。首跑在 profile 模板“注释 + `[]`”上把 block 追加成两个 YAML 文档（红），改成替换 `[]` 行后绿。手册 §十 与 [docs/delivery.md](../../docs/delivery.md) 已写。
 
-1. 目标环境是否保证有兼容的 `dsh`？本卡按“有”设计；没有就把 DSH 一起打包，是另一个产品问题，不在本轮。
-2. “独立环境”是否要求离线安装/启动？本卡按“启动可离线，但首次依赖需预置”设计；若完全离线，要把 `yaml` 预置或随包。
-3. 数据根默认放哪？本卡按显式 `--home` 优先，缺省 `<dir>/data`；绝不放代码目录内部，也绝不默认 `~/.dsh`。
-4. 接收者是开发者/运维还是最终用户？本卡按“能运行一条 bootstrap 命令的开发者/运维”设计；最终用户的向导是另一层，不在本轮。
+**未决问题：** 只剩冷 pnpm store 下的 `--offline` 走查与第二机真人走查（S5）。“没有 `dsh`”的环境明确不做（把 DSH 一起打包是另一个产品）。
 
-**下一步：** 先在干净目录做无 `.git` 手跑，证明 profile/home/install/start 链能成立；再把步骤固化成 `bootstrap` 脚本与 smoke；最后补文档与离线前提。
+**下一步：** S4 已交付；S5 第二机走查与离线前提复跑。
 
 ## 已知与未决
 
-- **已知**：官方 profile 路径可用；`ASSISTANT_DSH_HOME`/`ASSISTANT_SESSION_CWD` 已存在；`--port 0` 可避端口冲突；`preflight` 能证明装得上。
-- **未决**：无 `.git` 拷贝的最小目录集；`yaml` 离线策略；首次模型凭据怎么给；profile 名与数据根的默认值。
+- **已知**：无 `.git` 目录可起实例；数据根/workspace/agents-home 隔离；不碰日用 home；preflight/stop 有证据；shipped profile 名与日用 `~/.dsh` 被拒绝。
+- **未决**：冷 store 的 `--offline` 实测；第二机真人走查；首次模型凭据的具体配置路径（Web UI provider 配置，未做向导）。
 
 ## 方案与取舍
 
