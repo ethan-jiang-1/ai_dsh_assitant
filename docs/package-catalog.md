@@ -86,7 +86,7 @@
 ## 兼容与依赖姿态
 
 - 钉住的上游 tag：`dsh-v0.2.1-rc.2`
-- 当前机器兼容范围：`dsh >=0.2.1-rc.2 <0.3.0`；Node `^22.19.0 || >=24`
+- 当前机器兼容范围：`dsh >=0.2.1-rc.2 <0.3.0-0`；Node `^22.19.0 || >=24`
 - 历史 verified 的 DSH release（不构成当前支持承诺）：`0.1.5-rc.2`、`0.1.7-rc.2`、`0.2.0-rc.2`、`0.2.1-rc.2`
 - 运行时 dependencies：`yaml`
 - peerDependencies：13 个 `@deepseek-ai/*`（姿态由门禁守：harness 包只许 peer）

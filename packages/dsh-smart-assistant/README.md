@@ -53,8 +53,10 @@ dsh plugin --profile web add /path/to/dsh-smart-assistant-<version>.tgz
 
 ## Compatibility
 
-机器可安装范围见 `engines.dsh`（当前 `>=0.2.1-rc.2 <0.3.0`）与 `engines.node`；当前 pin 是
-`dsh-v0.2.1-rc.2`。历史 typecheck 台账在 repo-only `release-verification.json`，不随包发布，也不是当前支持承诺；
+机器可安装范围见 `engines.dsh`（当前 `>=0.2.1-rc.2 <0.3.0-0`）与 `engines.node`；当前 pin 是
+`dsh-v0.2.1-rc.2`。上界用 `<0.3.0-0` 而非 `<0.3.0`：预发布参与匹配，`0.3.0-rc.1` 会被 `<0.3.0`
+放进来，而它是下一个 breaking minor 的 RC。未来 0.2.x 自动放行；0.3.x 需要重新验证并发新版本。
+历史 typecheck 台账在 repo-only `release-verification.json`，不随包发布，也不是当前支持承诺；
 更老的 DSH 版本不在支持矩阵内。
 
 ## Uninstall
