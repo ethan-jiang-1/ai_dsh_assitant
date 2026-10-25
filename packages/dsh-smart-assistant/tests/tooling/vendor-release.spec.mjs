@@ -14,6 +14,7 @@ import {
   dependencyPoseProblems,
   exportManualProblems,
   pinProblems,
+  tagVersionProblems,
   vendorClientFreshnessProblems,
 } from '../../../../scripts/checks/gates/vendor-release.mjs'
 import { temp, disposeTempDirs } from './verify-gates-harness.mjs'
@@ -258,3 +259,21 @@ function makePinnedRepo() {
   return { root, outerGit, innerGit, tagName, sha }
 }
 
+
+describe('tagVersionProblems', () => {
+  it('accepts a tag that names the version at its commit', () => {
+    expect(tagVersionProblems({ tags: [{ name: '0.1.0', version: '0.1.0' }] })).toEqual([])
+  })
+
+  it('flags a tag cut on a commit whose manifest says another version', () => {
+    expect(tagVersionProblems({ tags: [{ name: '0.1.0', version: '0.0.0' }] })).toEqual([
+      'tag 0.1.0 points at package version 0.0.0 — a tag names the release it marks, so version the commit and retag',
+    ])
+  })
+
+  it('flags a tag whose commit has no readable manifest', () => {
+    expect(tagVersionProblems({ tags: [{ name: '9.9.9', version: undefined }] })).toEqual([
+      'tag 9.9.9 points at package version nothing — a tag names the release it marks, so version the commit and retag',
+    ])
+  })
+})

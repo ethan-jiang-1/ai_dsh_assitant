@@ -346,3 +346,18 @@ bundle 层（两个 profile 各自的链，刻意的——§四，web-app 与 he
 
 **快捷版**：`git status --ignored` 里出现的东西默认不入库；要破例的那一个，必须能回答"谁在守它还是真的"和
 "它在别人机器上是否同样成立"——两问答不上，它就该是 ignore + 一条重建命令。
+
+## 九、发布与标签（标签名 = 该提交里的包版本）
+
+版本只有两个动作：**bump manifest** 和 **export**。标签是这次发布的名字，所以它必须等于它在的那个提交里的
+`packages/dsh-smart-assistant/package.json` 版本——`0.1.0` 打在 manifest 还写 `0.0.0` 的提交上，等于给一个
+不存在的产物命名。步骤固定：
+
+1. bump 两处 `version`（根 private 工作区 + 插件包），两处同值；
+2. `pnpm export-dist` —— tgz 与安装手册一起重出（手册的版本行、安装包行由 `release:` 门禁对 manifest 守）；
+3. `pnpm verify && pnpm release-smoke`；
+4. 提交，然后把 `git tag -a <版本>` 打在**这个**提交上，`git push origin master <版本>`。
+
+门禁：`release: every tag names the package version at its commit`（纯核 `tagVersionProblems`，负例夹具 =
+`tests/tooling/vendor-release.spec.mjs`）。它同时兜住两种错法：tag 打了但 manifest 忘 bump，bump 了但 tag 用旧名。
+标签一律 annotated（`git tag -a`）、不带 `v` 前缀——名字要逐字等于版本，才比得出来。

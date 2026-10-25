@@ -19,7 +19,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { agentsMdStabilityProblems, archivedNotePointerProblems, backtickedRepoPathProblems, backlogGraduationProblems, backlogLivenessProblems, implementedNoteEvidenceProblems, clientScriptSafetyProblems, commandAliasProblems, commitSafetyProblems, trackedContentProblems, trackedDataPaths, compositionRowProblems, configParseProblems, crossFileSectionProblems, dependencyPoseProblems, devDrawerCoverageProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, graduatedProposalProblems, homeDocContractProblems, implementedAlternativesProblems, identityNameProblems, languageGuardProblems, markdownCorpusFromTracked, notesNamingProblems, notePointerProblems, notesStateProblems, importResolutionProblems, notesTopLevelProblems, pinProblems, machineLocalPathProblems, packageBuildFreshnessProblems, packageSubpathProblems, playbookFrontmatterProblems,
-  runtimeTsconfigProblems, selfContainmentProblems, skillFrontmatterKeyProblems, skillNameGrammarProblems, relativeLinkProblems, researchSubdirProblems, scratchPathProblems, skillFrontmatterProblems, startPathProblems, testAssetNamingProblems, textHygieneProblems, toolCommentNameProblems, vendorClientFreshnessProblems } from './verify-checks.mjs'
+  runtimeTsconfigProblems, selfContainmentProblems, skillFrontmatterKeyProblems, skillNameGrammarProblems, relativeLinkProblems, researchSubdirProblems, scratchPathProblems, skillFrontmatterProblems, startPathProblems, tagVersionProblems, testAssetNamingProblems, textHygieneProblems, toolCommentNameProblems, vendorClientFreshnessProblems } from './verify-checks.mjs'
 import * as gateCores from './verify-checks.mjs'
 import { runChecks } from './run-gates.mjs'
 import { pinnedTagFrom } from '../maintenance/sync-bookkeeping.mjs'
@@ -353,6 +353,22 @@ check('text: managed text is strict UTF-8 with exactly one trailing newline', ()
 
 check('dependencies: harness packages are peers and the pinned tag is recorded as verified', () =>
   dependencyPoseProblems(join(packageDir, 'package.json'), join(repoRoot, 'vendor', 'UPSTREAM.md')))
+
+check('release: every tag names the package version at its commit', () => {
+  // A tag is the release's name, so it must equal the manifest inside the commit it marks.
+  // The runner resolves the pair through git; the core (gates/vendor-release.mjs) judges it.
+  const tags = execFileSync('git', ['tag', '-l'], { cwd: repoRoot, encoding: 'utf8' }).split('\n').filter(Boolean)
+  return tagVersionProblems({
+    tags: tags.map(name => {
+      try {
+        const manifest = JSON.parse(execFileSync('git', ['show', `${name}:packages/dsh-smart-assistant/package.json`], { cwd: repoRoot, encoding: 'utf8' }))
+        return { name, version: manifest.version }
+      } catch {
+        return { name, version: undefined }
+      }
+    }),
+  })
+})
 
 check('release: the exported install manual matches the package', () =>
   exportManualProblems({

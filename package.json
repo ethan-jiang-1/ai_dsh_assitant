@@ -1,6 +1,6 @@
 {
   "name": "ai-dsh-assistant",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "description": "Dev root for the dsh-smart-assistant plugin: an agent preset whose home (memory, skills, curation) is engineered, not accidental.",
   "type": "module",

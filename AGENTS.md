@@ -128,7 +128,8 @@ pnpm typecheck          # 委派包级：tsc -b（编译期 paths 解析到 vend
 pnpm test               # vitest 全量：分层 spec（纯核+服务合同+agent/client/composition/tooling；层命令与各层能证明什么见 docs/testing.md 分层表）
 pnpm verify             # 机械门禁链（覆盖面清单 = scripts/checks/verify.mjs）
 pnpm release-smoke      # pnpm pack → 干净 home → dsh plugin add → 组合断言（**改动发布物/依赖/preset 包装/工具面必跑**）
-pnpm export-dist        # 手动分发导出：pnpm pack → _dist/ 的 tgz + 清单边界断言 + 自动生成《安装手册》
+pnpm export-dist        # 手动分发导出：pnpm pack → _dist/ 的 tgz + 清单边界断言 + 自动生成《安装手册》；
+                        #    版本、标签与导出顺序 = docs/dev.md §九（tag 名必须等于该提交里的包版本）
 pnpm sync-dsh -- --tag <dsh-tag>   # 换 submodule tag + SHA 簿记 + typecheck + 对照 docs/discipline.md 重校纪律表
 pnpm usage              # 意图级仪表：会话/工具混合/自用率/摩擦（读 dev home；口径与硬规则 = docs/dev.md §四）
 pnpm desk-loop          # 培养循环摩擦报告（读 dev home 会话日志；读什么与口径 = docs/dev.md §四）

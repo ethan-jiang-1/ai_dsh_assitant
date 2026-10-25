@@ -195,3 +195,20 @@ export function exportManualProblems({ manualPath, manifest, upstreamTag }) {
   }
   return problems
 }
+
+// ── tag / version alignment ──────────────────────────────────────────────────────────────────────
+
+/**
+ * A tag is the name of a release, so it has to name the package version inside the commit it
+ * marks: `0.1.0` on a commit whose manifest still says `0.0.0` advertises an artifact that never
+ * existed. The runner resolves each tag to the manifest version at that commit (git I/O); the
+ * core only judges the pairs.
+ * @param {{ tags: Array<{name: string, version: string | undefined}> }} inputs
+ * @returns {string[]} one problem per tag whose name is not the version it points at.
+ */
+export function tagVersionProblems({ tags }) {
+  return tags.flatMap(({ name, version }) =>
+    name === version
+      ? []
+      : [`tag ${name} points at package version ${version ?? 'nothing'} — a tag names the release it marks, so version the commit and retag`])
+}
