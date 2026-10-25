@@ -4,14 +4,15 @@
 
 ## 活跃清单
 
-四张交付合同问题卡：方向已按用户 2026-10-25 的推荐拍板；执行顺序与实施授权在 [交付合同 note](../../notes/proposed/2026-10-25-delivery-contract.md)。
+四张交付合同问题卡：方向已按用户 2026-10-25 的推荐拍板；执行顺序与实施授权在 [交付合同 note](../../notes/proposed/2026-10-25-delivery-contract.md)。实施台账在 [交付合同收口卡](261025-delivery-closure.md)。
 
 | 卡 | 要解决什么 | 当前环节与未完成项 |
 |---|---|---|
-| [261025-distribution-contract](261025-distribution-contract.md) | 另一个人装得上、升得动、退得干净：兼容声明、安装/默认 preset、升级/备份/卸载 | 方案已定；待 Web UI 路径实测、支持矩阵、`release-smoke` 扩展 |
-| [261025-agent-data-boundary](261025-agent-data-boundary.md) | agent 物与用户数据分开：交接物零数据、数据导出/导入、升级迁移 | 方案已定；待扫描负例、两 home 隔离、往返与迁移测试 |
-| [261025-standalone-directory-start](261025-standalone-directory-start.md) | 无 `.git` 的目录在隔离环境里起一个自己的实例 | 方案已定；待 bootstrap 脚本、clean-room smoke、离线前提 |
-| [261025-factory-identity-first-run](261025-factory-identity-first-run.md) | 出厂身份与首跑：管理岗默认 SOUL、seeds 显式装配 | 方案已定；待默认身份改动、prompt/eval、装配幂等证据 |
+| [261025-delivery-closure](261025-delivery-closure.md) | 交付合同 S0–S5 的唯一 work 台账 | S0 已交付；S1 进行中；S2–S5 待做 |
+| [261025-distribution-contract](261025-distribution-contract.md) | 另一个人装得上、升得动、退得干净：兼容声明、安装/默认 preset、升级/备份/卸载 | 方案已定；S1 实施中 |
+| [261025-agent-data-boundary](261025-agent-data-boundary.md) | agent 物与用户数据分开：交接物零数据、数据导出/导入、升级迁移 | 方案已定；待 S3 |
+| [261025-standalone-directory-start](261025-standalone-directory-start.md) | 无 `.git` 的目录在隔离环境里起一个自己的实例 | 方案已定；待 S4 |
+| [261025-factory-identity-first-run](261025-factory-identity-first-run.md) | 出厂身份与首跑：管理岗默认 SOUL、seeds 显式装配 | 方案已定；待 S2 |
 
 
 ## 写一张卡
