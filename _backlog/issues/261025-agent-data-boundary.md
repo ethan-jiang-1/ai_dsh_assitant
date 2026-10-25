@@ -16,19 +16,16 @@ opened: 2026-10-25
 - 交付面不干净：仓根有 `.env.local`；`dev/harness-home/` 下有 `.credentials.yaml`、`sessions/`、`assistant/`（含 `deliverables/`、记忆、知识、技能）、`assistant-operating/`、`openviking/ov.conf`、`session-search.db`；根 `deliverables/` 也是会话现场产物。这些都被 gitignore，但会被目录拷贝带走。
 - 没有 handoff 导出/扫描脚本；没有数据导出/导入；数据版本只有局部的 `AGENTS.md` 迁移与账本 v1/v2 投影，没有整体的“数据格式版本 + 迁移”；`deliverables/` 有两处（working folder 根与会话 cwd），没有边界说明。
 
-**未决问题：**
+**2026-10-25 实测：** 边界合同落 [docs/delivery.md](../../docs/delivery.md)；`handoff-scan` 拒绝数据/凭据/宿主路径/活密钥/符号链接，真实 tarball clean；`assistant-data` 只带 `assistant` + `assistant-operating` + `manifest.json`（schemaVersion 1），导出/导入目标必须空、未知 schema 拒绝、导入先 temp 后 rename；installed bin 往返通过。测试 = `handoff-scan.spec.mjs` + `assistant-data.spec.mjs`；release-smoke 534 条目、handoff clean、installed roundtrip 通过。
 
-1. 备份单位是什么？本卡按“插件两个目录 = 插件备份；整 home = 完整备份（含 sessions/credentials/settings）；交接物 = 只含 agent，不含任何数据”设计。若你要“只备份 working folder、不要会话”，需要把这条写进合同。
-2. 数据导出是否需要 manifest（版本、生成时间、来源 home、包含/排除项）？本卡按需要设计，避免导入时猜。
-3. 升级时的数据迁移做到什么程度？本卡只要求“已知格式可读、迁移有版本标记、不可读 fail loud”，不要求跨大版本自动重写。
-4. 独立启动的数据根放哪？本卡按“显式 `--home`，默认 `<dir>/data`，绝不放代码目录内”设计。
+**未决问题：** 只剩真实下一版发布时的 0.1.0→新版数据 fixture（S5；当前用合成 0.0.9 证明机制）。“整 home 备份”是宿主数据操作，文档说明但不另造插件命令。
 
-**下一步：** 先写边界合同与 schema/路径清单；再做 artifact 扫描、数据导出/导入、升级迁移测试；最后在独立启动卡里消费同一份合同。
+**下一步：** S3 已交付；S4 的 bootstrap 消费同一份数据根合同；S5 跑真实下一版。
 
 ## 已知与未决
 
-- **已知**：tarball 干净；插件拥有两个目录；宿主拥有 sessions/credentials/settings；手册已经声明卸载不删 working folder。
-- **未决**：备份是否含 sessions/credentials；导出 manifest 字段；升级迁移的版本策略；`deliverables/` 的正式落点。
+- **已知**：agent 物/插件数据/宿主数据/deliverables 四处归属已写进合同；交接扫描与两目录 bundle 有正反例；安装零写入；升级保留数据。
+- **未决**：真实下一版 0.1.0→新版 fixture（S5）；整 home 备份是否要做成独立命令（当前不做，必要时另立卡）。
 
 ## 方案与取舍
 

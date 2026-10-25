@@ -8,9 +8,9 @@
 
 | 卡 | 要解决什么 | 当前环节与未完成项 |
 |---|---|---|
-| [261025-delivery-closure](261025-delivery-closure.md) | 交付合同 S0–S5 的唯一 work 台账 | S0–S2 已交付；S3 进行中；S4–S5 待做 |
+| [261025-delivery-closure](261025-delivery-closure.md) | 交付合同 S0–S5 的唯一 work 台账 | S0–S3 已交付；S4 进行中；S5 待做 |
 | [261025-distribution-contract](261025-distribution-contract.md) | 另一个人装得上、升得动、退得干净：兼容声明、安装/默认 preset、升级/备份/卸载 | S1 已交付；旧 DSH 版本边界留 S5 |
-| [261025-agent-data-boundary](261025-agent-data-boundary.md) | agent 物与用户数据分开：交接物零数据、数据导出/导入、升级迁移 | 方案已定；待 S3 |
+| [261025-agent-data-boundary](261025-agent-data-boundary.md) | agent 物与用户数据分开：交接物零数据、数据导出/导入、升级迁移 | S3 已交付；真实下一版 fixture 留 S5 |
 | [261025-standalone-directory-start](261025-standalone-directory-start.md) | 无 `.git` 的目录在隔离环境里起一个自己的实例 | 方案已定；待 S4 |
 | [261025-factory-identity-first-run](261025-factory-identity-first-run.md) | 出厂身份与首跑：管理岗默认 SOUL、seeds 显式装配 | S2 已交付；口味 verdict 留 S5 |
 

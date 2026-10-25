@@ -29,7 +29,7 @@ node scripts/release/handoff-scan.mjs <目录或 tarball>
 - 路径面拒绝：`assistant/`、`assistant-operating/`、`sessions/`、`deliverables/`、`profiles/`、`storages/`、
   `logs/`、`dev/harness-home/`、`dev/trial-home*`、`.tmp/`、`.desk/`、`.pi/`、`_dist/`、`node_modules/`、`.git/`；
   以及任意深度的 `.env`、`.env.local`、`.credentials.yaml`、`auth.json`、`*.key`、`*.pem`、`id_rsa`、`id_ed25519`。
-- 文本面拒绝：机器绝对路径（`/Users/<name>/`、`/home/<name>/`、`C:\Users\<name>\`）与明显的活密钥形状。
+- 文本面拒绝：机器家目录的绝对路径前缀（具体规则 = `scripts/release/handoff-core.mjs`）与明显的活密钥形状。
 - 符号链接拒绝：交接物必须是普通文件，不能指向 home 外。
 - `export-dist` 与 `release-smoke` 对 tarball 跑同一条扫描；扫描失败即发布物不可信。
 

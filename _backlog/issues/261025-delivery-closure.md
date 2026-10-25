@@ -37,7 +37,7 @@ opened: 2026-10-25
 | **S0 基线与合同** | 已交付 | 四张问题卡 + [交付合同 note](../../notes/proposed/2026-10-25-delivery-contract.md) + [DSH 事实](../research/tech-exploration/261025-dsh-plugin-delivery-facts.md)；`pnpm verify` 48 checks；基线 `pnpm release-smoke` passed（515 files，clean-home 装/组合/OV 缺席在场）；commit `15d2dfd`；支持矩阵见上 |
 | **S1 分发合同** | 已交付（2026-10-25） | `engines.dsh`/`engines.node` + gate + 负例 smoke；手册 UI-first/headless/升级/备份；`agent-preset-ui` 探针；0.0.9→0.1.0 升级保留数据；commits `311994f`、`5afb7d9` |
 | **S2 出厂身份** | 已交付（2026-10-25） | 管理岗默认 `SOUL` + legacy migration；`seeds` 随包（529 条目，seeds ×8）；`bin/expert-setup` 独立可跑；安装零写入断言；commit `c2839e7` |
-| **S3 数据边界** | 待做 | handoff 扫描、导出/导入、备份/恢复、升级迁移 |
+| **S3 数据边界** | 已交付（2026-10-25） | `docs/delivery.md`；handoff scan（tarball clean，534 条目）；`assistant-data` 导出/导入（manifest v1、空目标、临时目录 rename）；installed bin 往返；commit `53180da` |
 | **S4 独立启动** | 待做 | `bootstrap`、无 `.git` clean-room、隔离 home、中性 cwd、离线 `yaml` |
 | **S5 收口** | 待做 | 全矩阵、第二机走查、文档、`export-dist`、归档 |
 
@@ -55,6 +55,14 @@ opened: 2026-10-25
 - **显式装配**：`src/cli/expert-setup.ts` 是 repo CLI 与 shipped bin 的唯一实现；`bin/expert-setup.mjs` 只导入 `lib` 与 `yaml`，从已安装 profile 的 node_modules 直接跑通，不依赖 DSH peers。8 页以 `draft` 落 knowledge、`generated.by = process:expert-setup`、sources 带 `seeds/management/...` 与 seed 自带 provenance；重复运行幂等；已有 `stable/deprecated` 不回滚；编辑过的 SOUL 不覆盖；旧通用 SOUL 只精确迁移一次。
 - **安装零写入**：`release-smoke` 在 `dsh plugin add` 后断言 `<home>/assistant` 不存在；种子只在显式 bin 的 `--data-dir` 下写入。
 - **回归**：`pnpm --filter dsh-smart-assistant exec vitest run` 126 files / 1005 tests 通过；`pnpm eval` 11/11 通过（desk-daily-brief 1 个 web-only NOT EVALUATED）；`pnpm verify` 48 checks；`release-smoke` 过（含 installed expert-setup 的两个断言）。
+
+### S3 证据（2026-10-25）
+
+- **边界合同**：[`docs/delivery.md`](../../docs/delivery.md) 拥有 agent 物 / 插件数据 / 宿主数据 / deliverables 四处归属；一人一 `DSH_HOME`；交接物只含 agent 物。
+- **handoff 扫描**：[`scripts/release/handoff-scan.mjs`](../../scripts/release/handoff-scan.mjs) 接受目录或 tarball；核 = [`scripts/release/handoff-core.mjs`](../../scripts/release/handoff-core.mjs)。拒绝 `assistant/`、`assistant-operating/`、`sessions/`、`deliverables/`、`profiles/`、`storages/`、`logs/`、`dev/harness-home/`、`dev/trial-home*`、`.tmp/`、`.desk/`、`.pi/`、`_dist/`、`node_modules/`、`.git/`，任意深度的 `.env*`/credentials/`auth.json`/`*.key`/`*.pem`/SSH key，机器绝对路径与明显活密钥，以及符号链接。负例夹具覆盖数据/凭据/宿主路径/密钥；`export-dist` 与 `release-smoke` 对真实 tarball 调用，均 clean。
+- **数据 bundle**：[`bin/assistant-data.mjs`](../../packages/dsh-smart-assistant/bin/assistant-data.mjs) + [`src/cli/assistant-data.ts`](../../packages/dsh-smart-assistant/src/cli/assistant-data.ts)。bundle = `assistant/` + `assistant-operating/` + `manifest.json`（`schemaVersion: 1`）；不含 sessions/credentials/settings/storages。导出目标必须空；导入目标必须空；未知 schema 拒绝；导入先写 sibling temp 再 rename；测试覆盖往返、非空拒绝、未知 schema、缺 working folder。`release-smoke` 从已安装 profile 跑通 export → import，并恢复 `SOUL.md`。
+- **升级/迁移**：S1 的合成 0.0.9→0.1.0 探针已证明新 tgz 更新版本且 working folder/账本保留；真实下一版的 0.1.0→新版 fixture 留 S5。数据读取按文件格式向前兼容，安装不静默重写。
+- **门禁**：`pnpm verify` 48 checks；full tests 128 files / 1011 tests；`pnpm release-smoke` 534 条目、handoff clean、installed `assistant-data` 往返通过。
 
 ## 仍未取
 
