@@ -48,6 +48,13 @@ dsh plugin --profile web add /path/to/dsh-smart-assistant-<version>.tgz
 - **Package**：不写任何用户数据/secret；`handoff-scan` 拒绝数据、凭据、宿主路径与活密钥，`release-smoke` 断言安装不创建 working folder。
 - **升级/卸载**：两个插件目录保留；`assistant-data` 提供带 `schemaVersion` 的备份/恢复；不把 sessions/credentials 打进 bundle。
 
+| DSH 平面 | 本包 |
+|---|---|
+| D 定义 / C 代码 | bundle patch、preset、包内只读技能、`lib/bin`；只读，随版本替换 |
+| W workspace | 不拥有；只有用户自己的 `deliverables/` |
+| U home | `<dshHome>/assistant`；用户可见可改，跨项目，升级/卸载保留 |
+| S session / H host state / K cache / X credentials | 宿主拥有；本包不写 session、不用 storageDomain、只有内存摘要缓存、不读凭据 |
+
 这个 home 根是**用户可见的 U 平面**（人能读、能 review、能导出），不是 `ctx.storageDomain` 的 host KV，也不是
 随项目走的 workspace；因此使用文件格式 + `curate` 而不是 KV schema。转换边界的合同 = [`docs/delivery.md`](../../docs/delivery.md)。
 

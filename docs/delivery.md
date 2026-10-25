@@ -15,6 +15,23 @@
 
 **一个人 = 一个 `DSH_HOME`。** profile 是组合，不是租户；不同人用不同 home（不同机器、不同 OS 用户或显式隔离 home），不共享插件数据目录。
 
+### 数据平面映射（DSH 6+2）
+
+本包按 DSH 的所有权/可见性/生命周期切分如下；这是本包的映射，不是把 DSH 平面改名。
+
+| DSH 平面 | 本包 | 所有者 / 可见性 / 生命周期 |
+|---|---|---|
+| **D 定义** | `cordis.patch.yml`、preset 行、包内只读技能、Config 默认 | 包；只读；随包/版本 |
+| **C 代码** | `lib/`、`bin/`、`bootstrap.mjs` | 包；只读；升级整体替换 |
+| **W workspace** | 不拥有；只有用户自己的 `deliverables/` | 项目/用户；随项目；插件不写 |
+| **U home** | `<dshHome>/assistant`（身份、记忆、线索、学到的技能、知识） | 插件拥有、用户可读可改；跨项目；升级/卸载保留 |
+| **S session** | 宿主拥有；四个 prompt 段落随请求进日志；不新增 event 类型 | 会话；只追加；插件不写日志 |
+| **H host state** | 不使用 `ctx.storageDomain`；`<dshHome>/assistant-operating` 是文件账本 | 插件拥有、用户可读；单 writer；可导出 |
+| **K cache** | 只有内存摘要缓存，可重建；无磁盘 cache 真源 | 运行时；可丢弃 |
+| **X credentials** | 宿主拥有；插件不读不写 | 用户/宿主；不进包、不进日志、不导出 |
+
+刻意偏离：working folder 是**用户可见的 U 平面自定义根**，不是 `ctx.storageDomain` 的 host KV，也不是随项目走的 W；账本是**可导出的文件账本**，不是 H KV。理由与证据 = [`discipline.md`](discipline.md) 适配 13、[`release.md`](release.md) 与 `handoff-core`/`assistant-data`/`two-homes` 测试。
+
 ## 二、交接
 
 交接物是 **agent 物**：`pnpm export-dist` 的 tarball，或一份只含 agent 文件的目录。不要把整个开发仓目录直接递人——
