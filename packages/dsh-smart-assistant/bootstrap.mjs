@@ -17,12 +17,13 @@
  * tarball so the profile owns the package's `yaml` dependency), and that dependency obtainable
  * once (network or a warm pnpm store/cache; --offline makes that explicit). Moving the whole
  * `--home` is supported by re-running this script: it detects the stale profile dependency,
- * recreates the profile, and leaves the data directories alone.
+ * recreates the profile, and leaves the data directories alone. The home must resolve outside
+ * the package, including through symlinks.
  */
 import { spawn, spawnSync } from 'node:child_process'
-import { closeSync, existsSync, mkdirSync, openSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { closeSync, existsSync, mkdirSync, openSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
-import { dirname, isAbsolute, join, relative, resolve } from 'node:path'
+import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const packageRoot = dirname(fileURLToPath(import.meta.url))
@@ -48,9 +49,20 @@ if (home === daily) {
   console.error('bootstrap: refusing to use the daily ~/.dsh as a standalone home')
   process.exit(2)
 }
+// Compare real paths: a symlink outside the package can still point into it. If the home does
+// not exist yet, resolve its nearest existing ancestor and append the missing tail.
+function realPathOf(target) {
+  let probe = resolve(target)
+  const tail = []
+  while (!existsSync(probe)) {
+    tail.unshift(basename(probe))
+    probe = dirname(probe)
+  }
+  return join(realpathSync(probe), ...tail)
+}
 // The data root is beside the package, never inside it: a handoff copy of the agent directory
 // must stay clean, and an extracted package upgraded over an old one must not overwrite data.
-const insidePackage = relative(packageRoot, home)
+const insidePackage = relative(realpathSync(packageRoot), realPathOf(home))
 if (insidePackage === '' || (!insidePackage.startsWith('..') && !isAbsolute(insidePackage))) {
   console.error(`bootstrap: --home must be outside the package directory (${packageRoot})`)
   console.error('  use the default sibling directory, or point --home at another writable location')

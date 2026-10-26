@@ -11,7 +11,7 @@
  * Exit 0 = instance started, preflight green, data under the chosen home, stop left no process.
  */
 import { spawnSync } from 'node:child_process'
-import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs'
+import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { mkTmpDir } from '../../dev/env/tmp.mjs'
@@ -66,6 +66,17 @@ try {
   const inside = bootstrap(['--home', join(pkg, 'data'), '--no-start', '--dsh', wrapper], join(pkg, 'bootstrap.mjs'))
   if (inside.status === 0) fail('bootstrap accepted a data home inside the package')
   else ok('inside-package home refused')
+
+  step('refusing a symlinked data home inside the package')
+  const linkedHome = join(root, 'package-link')
+  try {
+    symlinkSync(pkg, linkedHome, 'dir')
+    const linked = bootstrap(['--home', linkedHome, '--no-start', '--dsh', wrapper], join(pkg, 'bootstrap.mjs'))
+    if (linked.status === 0) fail('bootstrap accepted a symlinked home that resolves inside the package')
+    else ok('symlinked inside-package home refused')
+  } catch (error) {
+    console.log(`  skip cannot create a directory symlink: ${error instanceof Error ? error.message : String(error)}`)
+  }
 
   step('bootstrapping the extracted directory with an isolated home')
   const started = bootstrap(['--home', home, '--dsh', wrapper], join(pkg, 'bootstrap.mjs'))

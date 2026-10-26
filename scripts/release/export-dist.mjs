@@ -391,7 +391,7 @@ node bootstrap.mjs
 - 用 \`web\` 模板建 \`assistant-standalone\` profile，装当前包，设部署默认 \`assistant\`；
 - 起 \`dsh --port 0\`，打印 URL 与停止命令；不碰日用 \`~/.dsh\`。
 
-\`--home\` 必须在包目录外；指向包内会被拒绝（数据不能混进 agent 物）。
+\`--home\` 必须在包目录外；指向包内（含符号链接解析后）会被拒绝（数据不能混进 agent 物）。
 
 停止：\`node bootstrap.mjs --stop\`（用了 \`--home\` 就带同一个目录）；只建不启动：\`--no-start\`。
 搬移整个 home：先 \`mv\`，再对新路径跑一次 \`bootstrap --home <新路径> --no-start\`；脚本会重建 profile（配置/选择重置），两个数据目录保留；profile manifest 损坏/只写了一半也会走同一修复。不要只 \`mv\` 后直接启动。
