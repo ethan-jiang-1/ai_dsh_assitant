@@ -31,6 +31,7 @@
 | 模型可见请求（T4） | `pnpm prompt-smoke`（无 key replay one-shot；读 `system/message` + `request/header.tools`） | `scripts/release/prompt-smoke.mjs` | 四个段落与六个工具确实进入请求 / 长会话回放、话术质量 |
 | 真实 DSH 兼容矩阵（T6） | `pnpm compat-matrix -- --dsh <path> --version <v> --expect install|reject` | `scripts/release/compat-matrix.mjs` | 目标 CLI 的安装/拒绝与组合 / 模型回合、全 minor 组合 |
 | 升级 / 卸载的数据边界 | `pnpm upgrade-smoke`（干净 home：合成旧包→新包→remove） | `scripts/release/upgrade-smoke.mjs` | 安装/升级/remove 不碰两目录 / 真实历史版本的数据迁移 |
+| 安装并发/事务 | 手工探索 + `pnpm upgrade-smoke`（串行）；并发 add/remove 是 DSH CLI 已知无跨进程锁 | — | 串行生命周期 / 并发 profile 变更（不承诺） |
 | 安装失败/重试 | `pnpm install-resilience-smoke -- --dsh <path>`（损坏 tarball + 有效重试） | `scripts/release/install-resilience-smoke.mjs` | 失败不残留依赖/文件，重试可恢复 / 真实网络中断 |
 | 标准 Web 安装 | `pnpm web-install-smoke -- --dsh <path> [--tarball <tgz>]`（干净 HOME/DSH_HOME；Chrome 必须） | `scripts/release/web-install-smoke.mjs` | 官方 web profile 安装、client boot、preset UI / 真人走查 |
 | 独立启动（无 `.git` 目录） | `pnpm standalone-smoke`（打包→解包→bootstrap→preflight→client boot→stop→restart） | `scripts/release/standalone-smoke.mjs` | 无 `.git` 启动、隔离 home、包内/符号链接 home 拒绝、tarball 安装带 yaml、client 真 boot、preset UI、重启 URL、搬移 home 重建 profile、损坏 profile manifest 重建 profile / 真人环境与会话内容 |

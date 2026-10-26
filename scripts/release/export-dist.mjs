@@ -321,7 +321,7 @@ node <DSH_HOME>/profiles/web/node_modules/dsh-smart-assistant/bin/assistant-data
 它只带这两个插件目录，不含 sessions/credentials/settings；manifest 的 \`schemaVersion\` 不匹配会拒绝，
 不会猜着导入。
 
-升级：
+升级（**串行**执行；不要并行跑多个 \`dsh plugin\` 命令）：
 
 \`\`\`sh
 dsh plugin --profile web add /path/to/<新版本>.tgz

@@ -42,6 +42,8 @@
 
 ## 六、生命周期
 
+- **Profile 变更必须串行**：`dsh plugin` 没有跨进程 profile 锁；并发 `add`/`remove` 可能两个都 exit 0，最终状态由后写者覆盖。自动化必须一条一条执行，完成后用 `--dump-config` 确认实际组合。
+
 - **安装不写用户数据**：`dsh plugin add` 只装包；不创建 working folder、不导入 seeds、不改默认 preset。
 - **升级/卸载保留数据**：两个插件目录（`<dshHome>/assistant`、`<dshHome>/assistant-operating`）跨升级和 remove 保留；remove 后重装必须回到组合。
 - 备份/恢复只走 `assistant-data`（两目录 + schema manifest）；sessions、credentials、settings、storages 另备整 home，绝不混进插件备份。
