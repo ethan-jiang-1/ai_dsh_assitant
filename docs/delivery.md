@@ -51,7 +51,7 @@ node scripts/release/handoff-scan.mjs <目录或 tarball>
 - 符号链接拒绝：交接物必须是普通文件，不能指向 home 外。
 - `export-dist` 与 `release-smoke` 对 tarball 跑同一条扫描；扫描失败即发布物不可信。
 
-交接后的独立启动用包内 [`bootstrap.mjs`](../packages/dsh-smart-assistant/bootstrap.mjs)：它用已安装的兼容 `dsh` 在 `--home` 下建一个专用 profile，先用 Node 的 `npm pack` 把当前目录打成 tarball 再装进 profile（这样 profile 拥有 `yaml` 依赖），然后起 `--port 0`；`DSH_HOME`、workspace、agents-home、temp 都在该 home 下，不碰日用 `~/.dsh`。home 默认在包目录**旁边**的 `assistant-data/`；指向包内会被拒绝。搬移整个 home 时，对新路径重跑一次 `bootstrap --home <新路径> --no-start`：脚本检测到旧 profile 的 `file:` 依赖失效后会重建 profile，数据目录保留；不要只 `mv` 后直接启动。没有 `dsh` 的环境不是这条路径的范围。
+交接后的独立启动用包内 [`bootstrap.mjs`](../packages/dsh-smart-assistant/bootstrap.mjs)：它用已安装的兼容 `dsh` 在 `--home` 下建一个专用 profile，先用 Node 的 `npm pack` 把当前目录打成 tarball 再装进 profile（这样 profile 拥有 `yaml` 依赖），然后起 `--port 0`；`DSH_HOME`、workspace、agents-home、temp 都在该 home 下，不碰日用 `~/.dsh`。home 默认在包目录**旁边**的 `assistant-data/`；指向包内会被拒绝。搬移整个 home 时，对新路径重跑一次 `bootstrap --home <新路径> --no-start`：脚本检测到旧 profile 的 `file:` 依赖失效或 profile manifest 损坏后会重建 profile，数据目录保留；不要只 `mv` 后直接启动。没有 `dsh` 的环境不是这条路径的范围。
 
 允许的符号根：`~/.dsh`、`$DSH_HOME`、包内相对路径、`seeds/...`。手册和模型可见文案用符号根，不写宿主绝对路径。
 

@@ -164,6 +164,20 @@ try {
       else if (!existsSync(join(movedHome, 'assistant'))) fail('moved home lost the working folder')
       else ok('moved home recreated the profile and kept user data')
     }
+
+    step('recovering a corrupt profile manifest')
+    writeFileSync(join(movedHome, 'profiles', profile, 'package.json'), '{broken\n', 'utf8')
+    const recovered = bootstrap(['--home', movedHome, '--dsh', wrapper, '--no-start'], join(pkg, 'bootstrap.mjs'))
+    if (recovered.status !== 0) {
+      fail(`corrupt-profile bootstrap failed: ${(recovered.stderr ?? recovered.stdout ?? '').trim().split('\n').slice(-8).join(' | ')}`)
+    } else {
+      const manifest = JSON.parse(readFileSync(join(movedHome, 'profiles', profile, 'package.json'), 'utf8'))
+      const dependency = manifest.dependencies?.['dsh-smart-assistant']
+      if (typeof dependency !== 'string' || !dependency.startsWith('file:')) fail('corrupt-profile repair did not reinstall the package')
+      else if (!existsSync(dependency.slice(5))) fail('corrupt-profile repair points at a missing tarball')
+      else if (!existsSync(join(movedHome, 'assistant'))) fail('corrupt-profile repair lost the working folder')
+      else ok('corrupt profile manifest recreated the profile and kept user data')
+    }
   }
 } catch (error) {
   fail(`threw: ${error instanceof Error ? error.message : String(error)}`)

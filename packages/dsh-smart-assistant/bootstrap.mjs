@@ -131,18 +131,24 @@ if (existsSync(profileManifestPath)) {
   // A moved home leaves the profile manifest pointing at the old absolute tarball path.
   // pnpm resolves that dependency before `plugin add`, so the profile cannot be repaired in
   // place. The profile is bootstrap-owned; recreate it and leave the data dirs untouched.
-  let recorded
+  let manifest
   try {
-    recorded = JSON.parse(readFileSync(profileManifestPath, 'utf8')).dependencies?.['dsh-smart-assistant']
+    manifest = JSON.parse(readFileSync(profileManifestPath, 'utf8'))
   } catch {
-    recorded = undefined
+    manifest = undefined
   }
-  const recordedPath = typeof recorded === 'string' && (recorded.startsWith('file:') || recorded.startsWith('link:'))
-    ? recorded.slice(recorded.indexOf(':') + 1)
-    : undefined
-  if (recordedPath !== undefined && !existsSync(recordedPath)) {
-    console.log('bootstrap: profile points at a missing package tarball (home moved?); recreating the profile; data dirs stay')
+  if (manifest === undefined) {
+    console.log('bootstrap: profile manifest is corrupt; recreating the profile; data dirs stay')
     rmSync(profileDir, { recursive: true, force: true })
+  } else {
+    const recorded = manifest.dependencies?.['dsh-smart-assistant']
+    const recordedPath = typeof recorded === 'string' && (recorded.startsWith('file:') || recorded.startsWith('link:'))
+      ? recorded.slice(recorded.indexOf(':') + 1)
+      : undefined
+    if (recordedPath !== undefined && !existsSync(recordedPath)) {
+      console.log('bootstrap: profile points at a missing package tarball (home moved?); recreating the profile; data dirs stay')
+      rmSync(profileDir, { recursive: true, force: true })
+    }
   }
 }
 if (!existsSync(profileManifestPath)) {

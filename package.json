@@ -1,6 +1,6 @@
 {
   "name": "ai-dsh-assistant",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "private": true,
   "description": "Dev root for the dsh-smart-assistant plugin: an agent preset whose home (memory, skills, curation) is engineered, not accidental.",
   "type": "module",
@@ -35,6 +35,7 @@
     "upgrade-smoke": "node scripts/release/upgrade-smoke.mjs",
     "standalone-smoke": "node scripts/release/standalone-smoke.mjs",
     "web-install-smoke": "node scripts/release/web-install-smoke.mjs",
+    "install-resilience-smoke": "node scripts/release/install-resilience-smoke.mjs",
     "prompt-smoke": "node scripts/release/prompt-smoke.mjs",
     "compat-matrix": "node scripts/release/compat-matrix.mjs",
     "agent-preset-ui": "node dev/probes/web/agent-preset-ui.mjs",
