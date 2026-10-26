@@ -28,7 +28,7 @@
 | 行为地板 / 领域质量 | `pnpm eval`（`--only` 聚焦）/ `pnpm eval:continuity`（隔离 fixture 的首回合续接地板：一次性 home + 种子账本 + 前置断言 + 会话日志判据，无授权写入与账本字节不变为负例；评估器红绿对照挂 `pnpm verify`）/ `pnpm eval:domain`（人判）/ `node dev/probes/web/desk-daily-brief-live.mjs`（**web-only 任务**的驱动：`schedule_*` 只活在 web 组合里，runner 对该任务诚实报 NOT EVALUATED；探针在真模型 web 会话里跑**同一个任务**的 prompt 与 checks，并先断言 `request/header.tools` 含四个 `schedule_*`） | `dev/eval/`（任务集 `tasks.mjs`、领域题 `domain/`、续接驱动 + `dev/fixtures/eval-continuity/`）、`dev/probes/web/desk-daily-brief-live.mjs`（web-only 驱动） | 无害地板、续接行为地板与人判质量 / 机器不判质量 |
 | 发布物 / 依赖 / preset 包装 / exports | `pnpm gen-catalog`（freshness）+ `pnpm build` + `pnpm release-smoke`；keyless 回放 `dev/probes/session/preset-runner-replay.patch.yml` | `scripts/release/release-smoke.mjs` | 安装形状与组合断言 / 长期行为 |
 | 兼容范围边界 | `pnpm test`（`tests/tooling/compatibility-range.spec.mjs`） | 同左 | 0.2.x 放行、0.3.0 预发布/正式拒绝 / 这些版本上的真实运行（T6 矩阵） |
-| pnpm 版本矩阵 | `pnpm pnpm-matrix -- --pnpm <v> --expect install|reject` | `scripts/release/pnpm-matrix.mjs` | 10.6 下界安装 + 组合、9/10.4 拒绝 / Windows、Corepack 离线 |
+| pnpm 版本矩阵 | `pnpm pnpm-matrix -- --pnpm <v> --expect install|reject` | `scripts/release/pnpm-matrix.mjs` | 10.6 下界安装 + 组合、9/10.4 拒绝 / Windows、Node 24、Corepack 离线 |
 | bootstrap 守卫 | `pnpm bootstrap-guards-smoke` | `scripts/release/bootstrap-guards-smoke.mjs` | 路径穿越/保留名/缺旧 pnpm/npm 在创建 home 前拒绝、victim 存活 / Windows 真机、注入式 pnpm |
 | 模型可见请求（T4） | `pnpm prompt-smoke`（无 key replay one-shot；读 `system/message` + `request/header.tools`） | `scripts/release/prompt-smoke.mjs` | 四个段落与六个工具确实进入请求 / 长会话回放、话术质量 |
 | 真实 DSH 兼容矩阵（T6） | `pnpm compat-matrix -- --dsh <path> --version <v> --expect install|reject` | `scripts/release/compat-matrix.mjs` | 目标 CLI 的安装/拒绝与组合 / 模型回合、全 minor 组合 |

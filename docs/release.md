@@ -32,6 +32,7 @@
 - **`engines.pnpm` 是 profile 布局的前置**：当前 `>=10.6.0`。pnpm 9/10.4 直接以 `ERR_PNPM_ADDING_TO_ROOT` 拒绝安装；10.5 能装但会忽略 profile `pnpm-workspace.yaml` 的 `nodeLinker`/`autoInstallPeers`。实测矩阵：9.15.9 与 10.4.0 拒绝，10.6.0 / 11.28.5 / 12.15.0 干净 home 安装 + `preset-assistant` 组合通过。命令 = `pnpm pnpm-matrix -- --pnpm <v> --expect install|reject`（需要 Corepack 联网）。
 - 历史 typecheck 台账在 repo-only [`release-verification.json`](../packages/dsh-smart-assistant/release-verification.json)，不随包发布，也不是当前支持承诺。真实最小/最大矩阵未跑时，结论写“未跑”，不写“已验证”。
 - **当前实测矩阵**：`0.2.1-rc.2` 与 `0.2.1-rc.3` 干净 home 安装 + `preset-assistant` 组合通过（rc.3 另跑过标准 Web boot 与 preset UI）；`0.2.0-rc.2` 拒绝安装（该版本按 peer 回退诊断，未写入 profile）。`0.3.x` **尚未发布**（npm 与 vendor 都没有 0.3 CLI），所以没有可跑的真实矩阵；范围边界测试明确拒绝 `0.3.0-alpha/rc/release`。等 0.3 发布后再用 `compat-matrix` 跑，不提前放宽。命令 = `pnpm compat-matrix -- --dsh <path> --version <v> --expect install|reject`；目标 CLI 可用 `npm install --prefix .tmp/dsh-<version> @deepseek-ai/dsh@<version>` 取得（`.tmp` 内，不入库）。
+- **Node 实测**：本轮发布矩阵跑在 22.23.1（macOS arm64）；`engines.node` 的 `>=24` 分支沿用 DSH 的声明，本仓尚未在 Node 24 上跑安装矩阵。
 - 版本豁免是用户的显式逃生门，不是作者的支持策略。
 
 ## 五、版本与标签
