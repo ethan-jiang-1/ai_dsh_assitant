@@ -104,8 +104,8 @@ export function createUiModeRoute(dataDir: string, maxBytes: number = MAX_BYTES)
       if (!isUiMode(mode)) return failure(400, 'invalid-mode')
       const temp = `${path}.${randomUUID()}.tmp`
       try {
-        await mkdir(dataDir, { recursive: true })
-        await writeFile(temp, `${JSON.stringify({ mode })}\n`, 'utf8')
+        await mkdir(dataDir, { recursive: true, mode: 0o700 })
+        await writeFile(temp, `${JSON.stringify({ mode })}\n`, { encoding: 'utf8', mode: 0o600 })
         await rename(temp, path)
         return json({ mode })
       } catch (error) {

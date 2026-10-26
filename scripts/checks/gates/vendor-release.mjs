@@ -95,6 +95,12 @@ export function dependencyPoseProblems(packageJsonPath, upstreamPath, verificati
   if (typeof pkg.engines?.node !== 'string' || pkg.engines.node.trim() === '') {
     problems.push('engines.node is missing — the supported Node range is part of the install contract')
   }
+  // The profile layout in pnpm-workspace.yaml is read from 10.6 on. Older pnpm either refuses the
+  // add (ERR_PNPM_ADDING_TO_ROOT) or silently installs an isolated tree, so this is an install
+  // contract, not a development preference.
+  if (typeof pkg.engines?.pnpm !== 'string' || pkg.engines.pnpm.trim() === '') {
+    problems.push('engines.pnpm is missing — the profile requires pnpm >= 10.6.0')
+  }
   const tag = pinnedTagFrom(read(upstreamPath))
   const pinned = tag === undefined ? undefined : tag.replace(/^dsh-v/, '')
   const releases = existsSync(verificationPath)

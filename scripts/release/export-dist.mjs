@@ -128,16 +128,26 @@ const manual = `# dsh-smart-assistant 手动安装手册
 | 安装包 | \`${tarballName}\`（与本手册同目录） |
 | 打包日期 | ${date} |
 | 验证基线 | DSH \`${upstreamTag}\`（Node ^22.19.0 || >=24） |
+| 安装前提 | pnpm \`>=10.6.0\`；更老的 pnpm 会以 \`ERR_PNPM_ADDING_TO_ROOT\` 失败 |
 
-这个安装包是自包含的：bundle 补丁（\`cordis.patch.yml\`，含 \`assistant\` preset 的完整组合）、
+除唯一的运行时依赖 \`yaml\` 外，这个安装包是自包含的：bundle 补丁（\`cordis.patch.yml\`，含 \`assistant\` preset 的完整组合）、
 编译产物（\`lib/\`，含浏览器端桌面面板与专家装配模块）、策展技能（\`presets/assistant/skills/\`）、
 管理种子（\`seeds/management/\`）、三个 bin（\`ov-doctor\` / \`expert-setup\` / \`assistant-data\`）、
 独立启动 \`bootstrap.mjs\`、README。
 DSH 本体一律按 peerDependencies 由宿主运行时提供，包里不带任何
 \`@deepseek-ai/*\` 代码；唯一的 npm 依赖是 ${prodDeps.map((name) => `\`${name}\``).join('、') || '（无）'}
-（安装时经 npm registry 拉取）。DSH 安装时会按包里的 \`engines.dsh\` 检查兼容；
+（安装时经 npm registry 拉取）。首次安装需要能访问 npm registry 或内网镜像；完全离线的机器请先把 yaml 预热进 pnpm store。DSH 安装时会按包里的 \`engines.dsh\` 检查兼容；
 不满足会拒绝安装，不要用强制安装跳过它。安装与 headless 附录路径由仓库发布冒烟
 （release-smoke）验证；Web UI 选择路径由 \`agent-preset-ui\` 探针在运行实例上验证。
+
+## 〇、安装前提
+
+- DSH \`>=0.2.1-rc.2 <0.3.0-0\`，Node \`^22.19.0 || >=24\`；不满足时 DSH 会按 \`engines.dsh\` 拒绝安装。
+- \`pnpm >= 10.6.0\` 在 PATH 上（Node 的 corepack 已启用也算）。**10.4 及更低会报 \`ERR_PNPM_ADDING_TO_ROOT\`，10.5 会忽略 profile 的 linker 设置**；这不是本插件的错误。
+- \`dsh\` 在 PATH 上，\`DSH_HOME\` 可写。
+- 首次安装需要访问 npm registry（或内网镜像）拉唯一依赖 \`yaml\`；之后运行不需要网络。
+
+Windows：命令在 PowerShell 里可用；路径含空格时加引号。本手册的 \`cp -R\` / \`nohup\` 示例是 POSIX 写法，Windows 请优先改用 \`assistant-data\`。
 
 ## 一、安装
 
@@ -148,12 +158,22 @@ UI；headless 用本文末尾的 profile patch。安装只带定义，不改默�
 dsh plugin --profile web add /path/to/${tarballName}
 \`\`\`
 
-想先隔离试用、不动日常环境？换一个名字，多一步一次性初始化：
+**profile 只隔离组合，不隔离数据。** 两个 profile 共用 \`<DSH_HOME>/assistant\` 与
+\`<DSH_HOME>/assistant-operating\`；换个 profile 名不会保护日常记忆。
+
+要真正隔离试用，换一个独立的 \`DSH_HOME\`，并在那个 home 里用同一套命令：
 
 \`\`\`sh
-dsh --profile try-assistant --from-default-profile web --dump-config   # 只需第一次
-dsh plugin --profile try-assistant add /path/to/${tarballName}
+export DSH_HOME="$HOME/.dsh-try"          # 只在这个 shell 里生效
+dsh plugin --profile web add /path/to/${tarballName}
+dsh --profile web --dump-config
 \`\`\`
+
+高级做法是保留同一个 home，但在 profile patch 里同时覆盖 \`assistant-memory\`、
+\`assistant-operating-ledger\`、\`assistant-desk-projection\` 的 \`dataDir\`；只改其中一个会让面板和账本分叉。
+
+Desktop 使用保留的 \`desktop\` profile：先在 Desktop 应用里初始化一次，再
+\`dsh plugin --profile desktop add ...\` 并重启应用。本轮未在 Desktop 真机验证。
 
 （后文以 \`web\` 为例；用了别的名字，把命令里的 \`web\` 换成它即可。）
 
@@ -302,14 +322,10 @@ commit 写探针默认 SKIP；加 \`--write\` 才创建 sentinel 会话并真提
 
 ## 六、升级与备份
 
-**升级前先备份**：插件拥有的数据在两个目录，不是代码目录：
+**先停实例再恢复**；export 可以在实例空闲时做，import 必须在实例停止后做。插件拥有的数据在两个目录，不是代码目录。
 
-\`\`\`sh
-cp -R "<DSH_HOME>/assistant" "<备份目录>/assistant"
-cp -R "<DSH_HOME>/assistant-operating" "<备份目录>/assistant-operating"
-\`\`\`
-
-包内 \`assistant-data\` 把这两目录打成带 schema manifest 的备份；恢复要求目标目录为空：
+包内 \`assistant-data\` 是推荐方式；它会把这两目录打成带 schema manifest 的备份，并排除
+\`writer.lock\` / \`*.tmp\` 这类协调文件（否则恢复到另一台机器后，账本会把旧 host 的锁当成活锁）。恢复要求实例已停止、目标目录为空：
 
 \`\`\`sh
 node <DSH_HOME>/profiles/web/node_modules/dsh-smart-assistant/bin/assistant-data.mjs export \\
@@ -318,10 +334,18 @@ node <DSH_HOME>/profiles/web/node_modules/dsh-smart-assistant/bin/assistant-data
   --in <备份目录> --assistant <DSH_HOME>/assistant --operating <DSH_HOME>/assistant-operating
 \`\`\`
 
-它只带这两个插件目录，不含 sessions/credentials/settings；manifest 的 \`schemaVersion\` 不匹配会拒绝，
-不会猜着导入。
+它只带这两个插件目录，不含 sessions/credentials/settings；import 要求目标目录为空，含符号链接的备份会
+被拒绝（备份必须是普通文件）；manifest 的 \`schemaVersion\` 不匹配会拒绝，不会猜着导入。
 
-升级（**串行**执行；不要并行跑多个 \`dsh plugin\` 命令）：
+手动 \`cp -R\` 也可以，但必须把协调文件排除在备份外：
+
+\`\`\`sh
+cp -R "<DSH_HOME>/assistant" "<备份目录>/assistant"
+cp -R "<DSH_HOME>/assistant-operating" "<备份目录>/assistant-operating"
+rm -f "<备份目录>/assistant-operating/writer.lock" "<备份目录>/assistant-operating/"*.tmp
+\`\`\`
+
+升级（仍建议串行；DSH 0.2.1 对 profile 变更有跨进程文件锁，并发会串行化，完成后用 \`--dump-config\` 确认）：
 
 \`\`\`sh
 dsh plugin --profile web add /path/to/<新版本>.tgz
@@ -385,7 +409,7 @@ node <DSH_HOME>/profiles/web/node_modules/dsh-smart-assistant/bin/expert-setup.m
 node bootstrap.mjs
 \`\`\`
 
-前提：PATH 上有兼容的 \`dsh\`（或 \`--dsh <命令>\`）和 Node 自带的 \`npm\`（脚本会先把目录打成 tarball 再装）。脚本会：
+前提：PATH 上有兼容的 \`dsh\`（或 \`--dsh <命令>\`）、Node 自带的 \`npm\`、以及 \`pnpm >= 10.6.0\`（脚本会在创建 home 前检查，旧版本直接报错）。脚本会：
 
 - 在 \`--home\`（默认包目录旁的 \`assistant-data/\`）建隔离 \`DSH_HOME\`、workspace、agents-home、tmp；
 - 用 \`web\` 模板建 \`assistant-standalone\` profile，装当前包，设部署默认 \`assistant\`；
@@ -397,6 +421,7 @@ node bootstrap.mjs
 搬移整个 home：先 \`mv\`，再对新路径跑一次 \`bootstrap --home <新路径> --no-start\`；脚本会重建 profile（配置/选择重置），两个数据目录保留；profile manifest 损坏/只写了一半也会走同一修复。不要只 \`mv\` 后直接启动。
 离线：\`--offline\` 让 pnpm 走离线；前提是 pnpm/Corepack 本身已在机器上、\`yaml\` 已在 store/缓存。Corepack 首次下载 pnpm 仍需网络；冷缓存会明确失败。
 首次模型：新 home 没有凭据，在 Web UI 里配置 provider，或按你的部署方式提供。
+Windows：\`dsh\`/\`npm\` 的 \`.cmd\` shim 与进程树语义已做代码级加固，但本轮未在真 Windows 上跑过；优先用 WSL，或直接把 tarball 装进 web profile。
 
 ## 常见问题
 
@@ -407,11 +432,15 @@ node bootstrap.mjs
 | 升级后数据在哪 | 仍在 \`<DSH_HOME>/assistant\` 与 \`assistant-operating\`；\`remove\` 不删；升级前先备份 |
 | 备份怎么恢复 | 用 \`assistant-data import\`，目标目录必须先清空；它按 manifest 的 schemaVersion 拒绝不兼容备份 |
 | 独立启动要 dsh 吗 | 要，PATH 上有兼容 \`dsh\` 或传 \`--dsh\`；没有 dsh 的便携包是另一个产品，不在本手册范围 |
-| 独立启动的数据在哪 | 默认 \`./data\`（可用 \`--home\` 换）；它不写日用 \`~/.dsh\` |
+| 独立启动的数据在哪 | 默认包目录旁的 \`assistant-data/\`（可用 \`--home\` 换）；它不写日用 \`~/.dsh\` |
 | DSH 版本不兼容 | 安装会被 \`engines.dsh\` 拒绝；升级 DSH 或换兼容的包版本，不要强制绕过 |
 | 管理种子怎么导入 | 默认身份已是管理岗；种子用 \`bin/expert-setup.mjs\` 显式导入为 draft，不会自动进检索 |
 | 想确认装了什么版本 | \`dsh plugin --profile web list\`，或看本手册表头的版本号 |
-| 安装时要联网吗 | 只为拉那一个 npm 依赖；其余全部由宿主 DSH 提供，不需要克隆任何仓库 |
+| 安装时要联网吗 | 是，首次安装要从 registry 拉唯一依赖 \`yaml\`；其余全部由宿主 DSH 提供。离线先预热 pnpm store 或指向内网镜像 |
+| 安装报 ERR_PNPM_ADDING_TO_ROOT | pnpm 太旧；升到 \`>=10.6.0\`（10.5 还会忽略 profile 的 linker 设置） |
+| 安装报 pnpm was not found | PATH 上没有 pnpm；安装 pnpm，或在 Node 22 上启用 corepack |
+| 恢复后账本写不进去 | 备份里带了旧机器的 \`writer.lock\`；用 \`assistant-data import\`（会剔除），或手工删目标目录的 \`writer.lock\` 后重试 |
+| 试用的 profile 污染了日常记忆 | profile 不隔离数据；改用独立 \`DSH_HOME\`，或同时覆盖 memory/ledger/projection 三个 \`dataDir\` |
 `
 writeFileSync(join(distDir, manualName), manual, 'utf8')
 report('install manual generated', true, join('_dist', manualName))

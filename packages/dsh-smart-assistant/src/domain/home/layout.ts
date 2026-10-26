@@ -147,17 +147,17 @@ export async function scaffoldHome(paths: HomePaths): Promise<ScaffoldResult> {
   const createdDirectories: string[] = []
   for (const directory of directories) {
     if (!(await exists(directory))) createdDirectories.push(directory)
-    await mkdir(directory, { recursive: true })
+    await mkdir(directory, { recursive: true, mode: 0o700 })
   }
   const manualWritten = !(await exists(paths.agentsFile))
   if (manualWritten) {
-    await writeFile(paths.agentsFile, renderHomeManual(), 'utf8')
+    await writeFile(paths.agentsFile, renderHomeManual(), { encoding: 'utf8', mode: 0o600 })
   } else {
     const existing = await readFile(paths.agentsFile, 'utf8')
     const migrated = migrateHomeManual(existing)
-    if (migrated !== existing) await writeFile(paths.agentsFile, migrated, 'utf8')
+    if (migrated !== existing) await writeFile(paths.agentsFile, migrated, { encoding: 'utf8', mode: 0o600 })
   }
   const soulWritten = !(await exists(paths.soulFile))
-  if (soulWritten) await writeFile(paths.soulFile, `${DEFAULT_SOUL}\n`, 'utf8')
+  if (soulWritten) await writeFile(paths.soulFile, `${DEFAULT_SOUL}\n`, { encoding: 'utf8', mode: 0o600 })
   return { createdDirectories, manualWritten, soulWritten }
 }

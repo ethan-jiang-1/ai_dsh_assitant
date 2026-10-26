@@ -21,8 +21,13 @@ dsh plugin --profile web add /path/to/dsh-smart-assistant-<version>.tgz
 ```
 
 安装只带定义；在 Web UI 的 Settings → Agent 预设里把 `章鱼管家` 设为默认，或 headless 用
-`agent-preset-registry.default: assistant` 的 profile patch。需要 DSH `>=0.2.1-rc.2 <0.3.0`
-与 Node `^22.19.0 || >=24`。
+`agent-preset-registry.default: assistant` 的 profile patch。需要 DSH `>=0.2.1-rc.2 <0.3.0-0`、
+Node `^22.19.0 || >=24`，以及 PATH 上的 `pnpm >= 10.6.0`（10.4 及更低会报
+`ERR_PNPM_ADDING_TO_ROOT`；Corepack 已启用也算）。首次安装需要访问 npm registry 或内网镜像，
+拉唯一依赖 `yaml`；之后运行不需要网络。
+
+Desktop 使用保留的 `desktop` profile：先在 Desktop 应用里初始化一次，再
+`dsh plugin --profile desktop add ...` 并重启应用（本轮未在 Desktop 真机验证）。
 
 ## What it contributes
 
@@ -43,8 +48,10 @@ dsh plugin --profile web add /path/to/dsh-smart-assistant-<version>.tgz
   `memory/`、`research/`、`skills/`、`knowledge/`。学到的技能是本插件注册的 provider 根（`skills/`），
   不是 `$DSH_HOME/skills`；策展技能随包只读，位于 `presets/assistant/skills/`。
 - **Ledger**：`<dshHome>/assistant-operating`，权威 `ledger.json` + 单 writer 锁；可用 `assistant-data` 导出/导入。
+- **Profile 不是租户**：同一 `DSH_HOME` 下的所有 profile 共用这两个目录；换 profile 名只隔离组合，不隔离数据。真要隔离试用，用独立 `DSH_HOME`，或同时覆盖 memory/ledger/projection 的 `dataDir`。
 - **Host-owned**：sessions、credentials、settings、storages 在 `$DSH_HOME` 下由宿主管理，插件备份不包含它们；
   working folder 或会话 cwd 下的 `deliverables/` 是用户数据。
+- **备份/恢复**：`assistant-data` 只带这两个目录，排除 `writer.lock` / `*.tmp`，拒绝符号链接；import 要求实例已停止、目标为空。手动 `cp -R` 也要先删掉备份里的 `writer.lock`，否则换机恢复后账本会把旧 host 当活锁。
 - **Package**：不写任何用户数据/secret；`handoff-scan` 拒绝数据、凭据、宿主路径与活密钥，`release-smoke` 断言安装不创建 working folder。
 - **升级/卸载**：两个插件目录保留；`assistant-data` 提供带 `schemaVersion` 的备份/恢复；不把 sessions/credentials 打进 bundle。
 
@@ -60,9 +67,11 @@ dsh plugin --profile web add /path/to/dsh-smart-assistant-<version>.tgz
 
 ## Compatibility
 
-机器可安装范围见 `engines.dsh`（当前 `>=0.2.1-rc.2 <0.3.0-0`）与 `engines.node`；当前 pin 是
-`dsh-v0.2.1-rc.2`。上界用 `<0.3.0-0` 而非 `<0.3.0`：预发布参与匹配，`0.3.0-rc.1` 会被 `<0.3.0`
-放进来，而它是下一个 breaking minor 的 RC。未来 0.2.x 自动放行；0.3.x 需要重新验证并发新版本。
+机器可安装范围见 `engines.dsh`（当前 `>=0.2.1-rc.2 <0.3.0-0`）、`engines.node` 与
+`engines.pnpm`（`>=10.6.0`）；当前 pin 是 `dsh-v0.2.1-rc.2`。上界用 `<0.3.0-0` 而非 `<0.3.0`：
+预发布参与匹配，`0.3.0-rc.1` 会被 `<0.3.0` 放进来，而它是下一个 breaking minor 的 RC。未来
+0.2.x 自动放行；0.3.x 需要重新验证并发新版本。pnpm 下界来自 profile 的
+`pnpm-workspace.yaml` 设置支持：10.4 及更低直接拒绝安装，10.5 会忽略 linker 设置。
 历史 typecheck 台账在 repo-only `release-verification.json`，不随包发布，也不是当前支持承诺；
 更老的 DSH 版本不在支持矩阵内。
 
@@ -101,5 +110,6 @@ Host 运行期 `@deepseek-ai/*` 使用 **peerDependencies**；仅类型关系（
 ## 自包含
 
 发布产物（`lib/`、`bin/`、`presets/`、`cordis.patch.yml`）不引用 repo 内任何其他目录，也不引用 `vendor/`；
-`pnpm verify` 机械检查这一点。真实安装形状（`pnpm pack` → 干净 home → `dsh plugin add`）
-由 `pnpm release-smoke` 验证；`bin/ov-doctor.mjs` 随包安装，另一人不需要仓库。
+`pnpm verify` 机械检查这一点。唯一运行期 npm 依赖是 `yaml`（首次安装从 registry 拉取），其余全部由宿主
+DSH 提供；因此“自包含”指 agent 物自包含，不是离线安装包。真实安装形状（`pnpm pack` → 干净 home →
+`dsh plugin add`）由 `pnpm release-smoke` 验证；`bin/ov-doctor.mjs` 随包安装，另一人不需要仓库。

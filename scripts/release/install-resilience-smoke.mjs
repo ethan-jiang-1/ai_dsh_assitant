@@ -6,7 +6,7 @@
  *
  * Usage: pnpm install-resilience-smoke [--dsh <path>] [--tarball <tgz>] [--keep]
  */
-import { spawnSync } from 'node:child_process'
+import { spawn, spawnSync } from 'node:child_process'
 import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, truncateSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
@@ -20,7 +20,9 @@ const option = name => {
 }
 const packageDir = join(repoRoot, 'packages', 'dsh-smart-assistant')
 const version = JSON.parse(readFileSync(join(packageDir, 'package.json'), 'utf8')).version
-const dsh = resolve(option('--dsh') ?? 'dsh')
+const dshArgument = option('--dsh')
+// A bare default is a PATH command; resolving it against the repo would look for <repo>/dsh.
+const dsh = dshArgument === undefined ? 'dsh' : resolve(dshArgument)
 const goodTarball = resolve(option('--tarball') ?? join(repoRoot, '_dist', `dsh-smart-assistant-${version}.tgz`))
 const keep = argv.includes('--keep')
 const failures = []
@@ -32,7 +34,20 @@ const fail = message => {
 }
 const run = (command, args, options = {}) => spawnSync(command, args, { encoding: 'utf8', ...options })
 
-if (!existsSync(dsh)) {
+/** Run a child without blocking; used only by the concurrency probe. */
+const runAsync = (command, args, options = {}) => new Promise(resolvePromise => {
+  const child = spawn(command, args, { ...options, stdio: ['ignore', 'pipe', 'pipe'] })
+  let stdout = ''
+  let stderr = ''
+  child.stdout.setEncoding('utf8')
+  child.stderr.setEncoding('utf8')
+  child.stdout.on('data', chunk => { stdout += chunk })
+  child.stderr.on('data', chunk => { stderr += chunk })
+  child.on('error', error => resolvePromise({ status: null, stdout, stderr, error }))
+  child.on('close', status => resolvePromise({ status, stdout, stderr }))
+})
+
+if (dshArgument !== undefined && !existsSync(dsh)) {
   console.error(`install-resilience-smoke: DSH CLI not found: ${dsh}`)
   process.exit(2)
 }
@@ -90,6 +105,29 @@ try {
   else ok(`retry installed ${version}`)
   if (existsSync(join(dshHome, 'assistant'))) fail('install created a working folder')
   else ok('install wrote no working folder')
+
+  step('two concurrent adds are serialized by the profile lock')
+  // DSH 0.2.1 wraps every profile operation in a 120s file lock. The documentation used to say
+  // there was no cross-process lock; this probe pins the actual behaviour: both adds may run, but
+  // the final profile must carry exactly one dependency and one bundle row.
+  const concurrentProfile = 'concurrent'
+  const [firstAdd, secondAdd] = await Promise.all([
+    runAsync(dsh, ['plugin', '--profile', concurrentProfile, 'add', goodTarball], { env, cwd: workspace }),
+    runAsync(dsh, ['plugin', '--profile', concurrentProfile, 'add', goodTarball], { env, cwd: workspace }),
+  ])
+  if (firstAdd.status !== 0 || secondAdd.status !== 0) {
+    fail(`concurrent adds did not both succeed: ${String(firstAdd.status)} / ${String(secondAdd.status)}; ${(firstAdd.stderr + secondAdd.stderr).trim().slice(-500)}`)
+  } else {
+    const concurrentManifest = JSON.parse(readFileSync(join(dshHome, 'profiles', concurrentProfile, 'package.json'), 'utf8'))
+    const dependencyCount = Object.keys(concurrentManifest.dependencies ?? {}).filter(name => name === 'dsh-smart-assistant').length
+    const bundleCount = (concurrentManifest.dsh?.profile?.bundles ?? []).filter(name => name === 'dsh-smart-assistant').length
+    if (dependencyCount !== 1 || bundleCount !== 1) fail(`concurrent adds left ${String(dependencyCount)} dependency and ${String(bundleCount)} bundle row(s)`)
+    else {
+      const dump = run(dsh, ['--profile', concurrentProfile, '--dump-config'], { env, cwd: workspace })
+      if (dump.status !== 0 || !dump.stdout.includes('preset-assistant')) fail(`concurrent-add composition is broken: ${(dump.stderr ?? dump.stdout ?? '').trim().slice(-400)}`)
+      else ok('both adds completed; one dependency, one bundle row, composition intact')
+    }
+  }
 } catch (error) {
   fail(`threw: ${error instanceof Error ? error.message : String(error)}`)
 } finally {

@@ -24,7 +24,9 @@ const option = name => {
 }
 const packageDir = join(repoRoot, 'packages', 'dsh-smart-assistant')
 const version = JSON.parse(readFileSync(join(packageDir, 'package.json'), 'utf8')).version
-const dsh = resolve(option('--dsh') ?? 'dsh')
+const dshArgument = option('--dsh')
+// A bare default is a PATH command; resolving it against the repo would look for <repo>/dsh.
+const dsh = dshArgument === undefined ? 'dsh' : resolve(dshArgument)
 const tarball = resolve(option('--tarball') ?? join(repoRoot, '_dist', `dsh-smart-assistant-${version}.tgz`))
 const upgradeTarball = option('--upgrade-tarball') === undefined ? undefined : resolve(option('--upgrade-tarball'))
 const keep = argv.includes('--keep')
@@ -39,7 +41,7 @@ const fail = message => {
 }
 const run = (command, args, options = {}) => spawnSync(command, args, { encoding: 'utf8', ...options })
 
-if (!existsSync(dsh)) {
+if (dshArgument !== undefined && !existsSync(dsh)) {
   console.error(`web-install-smoke: DSH CLI not found: ${dsh}`)
   process.exit(2)
 }

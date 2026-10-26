@@ -24,7 +24,7 @@
  *    id, and re-rejecting a resolved proposal leaves the first resolution in place.
  */
 
-import { readFileSync, writeFileSync } from 'node:fs'
+import { readFileSync, statSync, writeFileSync } from 'node:fs'
 import { spawnSync } from 'node:child_process'
 import { hostname } from 'node:os'
 import { dirname, join } from 'node:path'
@@ -215,6 +215,17 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
   })
 
   describe('the single-writer claim', () => {
+    it.skipIf(process.platform === 'win32')('writes the ledger and its claim owner-only', async () => {
+      const { service, dataDir } = boot()
+      await service.submitOperation({
+        kind: 'create', operationId: 'op-permission', title: 'Permission probe',
+        source: { sessionId: 'session-A', quote: 'owner-only' },
+      })
+      for (const name of ['ledger.json', 'writer.lock']) {
+        expect(statSync(join(dataDir, name)).mode & 0o777, name).toBe(0o600)
+      }
+    })
+
     it('refuses a second writer in the same process and reopens after release', async () => {
       const dataDir = mkDir()
       const first = boot(dataDir).service

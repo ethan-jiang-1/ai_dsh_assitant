@@ -76,7 +76,7 @@ describe('dependencyPoseProblems', () => {
     writeFileSync(good, JSON.stringify({
       dependencies: { yaml: '^2.8.1' },
       peerDependencies: { '@deepseek-ai/cordis': '*' },
-      engines: { node: '^22.19.0 || >=24', dsh: '>=0.2.1-rc.2 <0.3.0' },
+      engines: { node: '^22.19.0 || >=24', dsh: '>=0.2.1-rc.2 <0.3.0', pnpm: '>=10.6.0' },
     }), 'utf8')
     expect(dependencyPoseProblems(good, upstreamPath, verificationPath)).toEqual([])
 
@@ -91,6 +91,7 @@ describe('dependencyPoseProblems', () => {
     expect(problems.some(p => p.includes('does not name the pinned upstream tag'))).toBe(true)
     expect(problems.some(p => p.includes('engines.dsh'))).toBe(true)
     expect(problems.some(p => p.includes('engines.node'))).toBe(true)
+    expect(problems.some(p => p.includes('engines.pnpm'))).toBe(true)
   })
 
   it('rejects blank engine ranges as well as missing ones', () => {
@@ -102,11 +103,12 @@ describe('dependencyPoseProblems', () => {
     const file = join(dir, 'blank.json')
     writeFileSync(file, JSON.stringify({
       dependencies: { yaml: '^2.8.1' },
-      engines: { node: '  ', dsh: '' },
+      engines: { node: '  ', dsh: '', pnpm: ' ' },
     }), 'utf8')
     const problems = dependencyPoseProblems(file, upstreamPath, verificationPath)
     expect(problems.some(p => p.includes('engines.dsh'))).toBe(true)
     expect(problems.some(p => p.includes('engines.node'))).toBe(true)
+    expect(problems.some(p => p.includes('engines.pnpm'))).toBe(true)
   })
 })
 

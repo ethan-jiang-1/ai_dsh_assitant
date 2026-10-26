@@ -9,12 +9,18 @@
  * This module is shared by the shipped `assistant-data` bin and the repo tests. It uses Node
  * built-ins only, so the installed bin does not need the harness peers.
  *
+ * A bundle is plain data: exporting a working folder that contains a symbolic link is refused
+ * rather than silently copying the link into a backup that another machine will restore. The
+ * ledger's `writer.lock` and the atomic-write `*.tmp` siblings are transient coordination state,
+ * not user data: they never enter a bundle, and an older bundle that carries them is cleaned on
+ * import so restoring a backup cannot plant a foreign host's live claim.
+ *
  * @module dsh-smart-assistant/cli/assistant-data
  */
 
-import { cp, mkdir, readFile, readdir, rename, rm, stat, writeFile } from 'node:fs/promises'
+import { cp, lstat, mkdir, readFile, readdir, rename, rm, stat, writeFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
-import { dirname, join, resolve } from 'node:path'
+import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:path'
 
 /** Manifest file written at the bundle root. */
 export const DATA_MANIFEST_FILE = 'manifest.json'
@@ -89,9 +95,64 @@ async function countTree(dir: string): Promise<{ files: number, bytes: number }>
   return { files, bytes }
 }
 
-async function nonEmpty(path: string): Promise<boolean> {
-  if (!existsSync(path)) return false
-  return (await readdir(path)).length > 0
+/** True when `child` is `parent` or lies below it. Both paths are expected to be absolute. */
+function isInside(parent: string, child: string): boolean {
+  const nested = relative(parent, child)
+  return nested === '' || (!nested.startsWith('..') && !isAbsolute(nested))
+}
+
+/** Coordination files, never user data, and never valid in a portable bundle. */
+function isTransient(name: string): boolean {
+  return name === 'writer.lock' || name.endsWith('.tmp') || name.endsWith('.takeover')
+}
+
+/**
+ * Require an absent, empty directory destination. A symlink or a regular file is refused rather
+ * than replaced: both are more likely a mistaken path than an empty backup target.
+ */
+async function assertEmptyDestination(path: string, label: string): Promise<void> {
+  if (!existsSync(path)) return
+  const info = await lstat(path)
+  if (info.isSymbolicLink()) throw new Error(`assistant-data: ${label} is a symbolic link: ${path}`)
+  if (!info.isDirectory()) throw new Error(`assistant-data: ${label} is not a directory: ${path}`)
+  if ((await readdir(path)).length > 0) throw new Error(`assistant-data: ${label} is not empty: ${path}`)
+}
+
+/**
+ * Refuse a tree that cannot be represented as plain bundle data. The root itself is checked too:
+ * copying a symlinked working folder would store a link whose target is not in the bundle.
+ */
+async function assertPlainTree(root: string, label: string): Promise<void> {
+  const rootInfo = await lstat(root)
+  if (rootInfo.isSymbolicLink()) {
+    throw new Error(`assistant-data: ${label} is a symbolic link: ${root}; backups must contain regular files and directories only`)
+  }
+  if (!rootInfo.isDirectory()) {
+    throw new Error(`assistant-data: ${label} is not a directory: ${root}`)
+  }
+  for (const entry of await readdir(root, { withFileTypes: true })) {
+    const path = join(root, entry.name)
+    const info = await lstat(path)
+    if (info.isSymbolicLink()) {
+      throw new Error(`assistant-data: ${label} contains a symbolic link: ${path}; backups must contain regular files and directories only`)
+    }
+    if (info.isDirectory()) await assertPlainTree(path, label)
+    else if (!info.isFile()) {
+      throw new Error(`assistant-data: ${label} contains a non-regular file: ${path}`)
+    }
+  }
+}
+
+/** Remove transient coordination files a legacy bundle may still carry (recursively). */
+async function dropTransient(root: string): Promise<void> {
+  for (const entry of await readdir(root, { withFileTypes: true })) {
+    const path = join(root, entry.name)
+    if (isTransient(entry.name)) {
+      await rm(path, { recursive: true, force: true })
+    } else if (entry.isDirectory()) {
+      await dropTransient(path)
+    }
+  }
 }
 
 /**
@@ -106,26 +167,48 @@ export async function exportData(options: DataExportOptions): Promise<DataExport
   const operatingDir = resolve(options.operatingDir)
   const outDir = resolve(options.outDir)
   if (!existsSync(assistantDir)) throw new Error(`assistant-data: working folder not found: ${assistantDir}`)
-  if (await nonEmpty(outDir)) throw new Error(`assistant-data: export destination is not empty: ${outDir}`)
-
-  await mkdir(outDir, { recursive: true })
-  await cp(assistantDir, join(outDir, 'assistant'), { recursive: true })
-  if (existsSync(operatingDir)) {
-    await cp(operatingDir, join(outDir, 'assistant-operating'), { recursive: true })
-  } else {
-    await mkdir(join(outDir, 'assistant-operating'), { recursive: true })
+  // A destination below a source would copy the growing bundle into itself; a destination above
+  // the sources would swallow them. Refuse both before any filesystem write.
+  if (isInside(assistantDir, outDir) || isInside(operatingDir, outDir)
+    || isInside(outDir, assistantDir) || isInside(outDir, operatingDir)) {
+    throw new Error(`assistant-data: export destination must not be inside the working folder or ledger directories: ${outDir}`)
   }
+  await assertEmptyDestination(outDir, 'export destination')
+  await assertPlainTree(assistantDir, 'working folder')
+  if (existsSync(operatingDir)) await assertPlainTree(operatingDir, 'ledger')
 
-  const assistant = await countTree(join(outDir, 'assistant'))
-  const operating = await countTree(join(outDir, 'assistant-operating'))
-  const manifest: DataManifest = {
-    schemaVersion: DATA_SCHEMA_VERSION,
-    createdAt: (options.now ?? new Date()).toISOString(),
-    includes: ['assistant', 'assistant-operating'],
-    files: assistant.files + operating.files,
-    bytes: assistant.bytes + operating.bytes,
+  // Copy into a sibling first, then rename. A failed copy (permission, disk, unreadable file)
+  // therefore leaves no destination behind, and the next export is not blocked by a half bundle.
+  const suffix = `${process.pid.toString(36)}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
+  const tempDir = join(dirname(outDir), `.${basename(outDir)}.export-${suffix}`)
+  let manifest: DataManifest
+  try {
+    await mkdir(tempDir, { recursive: true, mode: 0o700 })
+    const keep = (source: string): boolean => !isTransient(basename(source))
+    await cp(assistantDir, join(tempDir, 'assistant'), { recursive: true, filter: keep })
+    if (existsSync(operatingDir)) {
+      await cp(operatingDir, join(tempDir, 'assistant-operating'), { recursive: true, filter: keep })
+    } else {
+      await mkdir(join(tempDir, 'assistant-operating'), { recursive: true, mode: 0o700 })
+    }
+
+    const assistant = await countTree(join(tempDir, 'assistant'))
+    const operating = await countTree(join(tempDir, 'assistant-operating'))
+    manifest = {
+      schemaVersion: DATA_SCHEMA_VERSION,
+      createdAt: (options.now ?? new Date()).toISOString(),
+      includes: ['assistant', 'assistant-operating'],
+      files: assistant.files + operating.files,
+      bytes: assistant.bytes + operating.bytes,
+    }
+    await writeFile(join(tempDir, DATA_MANIFEST_FILE), `${JSON.stringify(manifest, null, 2)}\n`, { encoding: 'utf8', mode: 0o600 })
+
+    if (existsSync(outDir)) await rm(outDir, { recursive: true, force: true })
+    await rename(tempDir, outDir)
+  } catch (error) {
+    await rm(tempDir, { recursive: true, force: true })
+    throw error
   }
-  await writeFile(join(outDir, DATA_MANIFEST_FILE), `${JSON.stringify(manifest, null, 2)}\n`, 'utf8')
   return { manifest, outDir }
 }
 
@@ -178,8 +261,10 @@ export async function importData(options: DataImportOptions): Promise<DataImport
   if (!existsSync(sourceAssistant) || !existsSync(sourceOperating)) {
     throw new Error('assistant-data: bundle is missing assistant/ or assistant-operating/')
   }
-  if (await nonEmpty(assistantDir)) throw new Error(`assistant-data: import destination is not empty: ${assistantDir}`)
-  if (await nonEmpty(operatingDir)) throw new Error(`assistant-data: import destination is not empty: ${operatingDir}`)
+  await assertPlainTree(sourceAssistant, 'bundle working folder')
+  await assertPlainTree(sourceOperating, 'bundle ledger')
+  await assertEmptyDestination(assistantDir, 'import destination')
+  await assertEmptyDestination(operatingDir, 'import destination')
 
   const suffix = `${process.pid.toString(36)}-${Date.now().toString(36)}`
   const tempAssistant = join(dirname(assistantDir), `.assistant-import-${suffix}`)
@@ -191,6 +276,10 @@ export async function importData(options: DataImportOptions): Promise<DataImport
   try {
     await cp(sourceAssistant, tempAssistant, { recursive: true })
     await cp(sourceOperating, tempOperating, { recursive: true })
+    // An older bundle (or a hand-made one) may still carry the writer claim. Planting it would
+    // make the restored ledger refuse writes until a person moved the lock; strip it here.
+    await dropTransient(tempAssistant)
+    await dropTransient(tempOperating)
     await moveInto(tempAssistant, assistantDir)
     movedAssistant = true
     await moveInto(tempOperating, operatingDir)

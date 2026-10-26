@@ -4,7 +4,7 @@
  * for both root files (the AGENTS.md manual and the SOUL.md identity).
  */
 
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
@@ -86,6 +86,20 @@ describe('scaffoldHome', () => {
     expect(manual).not.toContain(root)
     // The identity seed is the built-in default: day 0 the voice is exactly the shipped one.
     expect(await readFile(paths.soulFile, 'utf8')).toBe(`${DEFAULT_SOUL}\n`)
+  })
+
+  it.skipIf(process.platform === 'win32')('seeds owner-only permissions for new directories and files', async () => {
+    // The working folder holds personal memory. DSH creates its home with the process umask, so
+    // the plugin must not rely on the parent: a fresh scaffold is 0700/0600 by itself.
+    const paths = homePaths(await fixtureHome())
+    await scaffoldHome(paths)
+    const mode = (path: string) => stat(path).then(info => info.mode & 0o777)
+    for (const directory of [paths.root, paths.memoryDir, paths.memoryArchiveDir, paths.researchDir, paths.skillsDir, paths.knowledgeDir]) {
+      expect(await mode(directory), directory).toBe(0o700)
+    }
+    for (const file of [paths.agentsFile, paths.soulFile]) {
+      expect(await mode(file), file).toBe(0o600)
+    }
   })
 
   it('is idempotent and reports nothing created on a second run', async () => {

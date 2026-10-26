@@ -66,21 +66,21 @@ function isProcessAlive(pid: number): boolean {
  * @throws When this process already claims the directory, or a live foreign writer does.
  */
 function claimWriter(dataDir: string): void {
-  mkdirSync(dataDir, { recursive: true })
+  mkdirSync(dataDir, { recursive: true, mode: 0o700 })
   if (activeWriters.has(dataDir)) {
     throw new Error(`operating ledger at ${dataDir} already has an active writer in this process; refusing a second writer`)
   }
   const lockPath = join(dataDir, 'writer.lock')
   const identity = `${JSON.stringify({ hostname: hostname(), pid: process.pid, acquiredAt: new Date().toISOString(), cwd: process.cwd() })}\n`
   try {
-    writeFileSync(lockPath, identity, { flag: 'wx' })
+    writeFileSync(lockPath, identity, { flag: 'wx', mode: 0o600 })
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error
     const holder = readHolder(lockPath)
     if (holder !== undefined && holder.hostname === hostname() && !isProcessAlive(holder.pid)) {
       // The holder process is gone (crash); take the claim over so a restart is not blocked.
       const takeover = `${lockPath}.takeover`
-      writeFileSync(takeover, identity, { flag: 'wx' })
+      writeFileSync(takeover, identity, { flag: 'wx', mode: 0o600 })
       renameSync(takeover, lockPath)
     } else {
       throw new Error(refusalMessage(dataDir, lockPath, holder))
@@ -310,7 +310,7 @@ export class AssistantOperatingLedger extends Service {
    */
   private persist(state: LedgerState): void {
     const tmp = join(this.dataDir, 'ledger.json.tmp')
-    const fd = openSync(tmp, 'w')
+    const fd = openSync(tmp, 'w', 0o600)
     try {
       writeSync(fd, JSON.stringify(state))
       fsyncSync(fd)

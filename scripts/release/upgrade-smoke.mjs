@@ -72,6 +72,13 @@ try {
   writeFileSync(join(home, 'assistant-operating', 'ledger.json'), '{"revision":7}\n', 'utf8')
   ok('probe data written')
 
+  step('deleting the predecessor tarball before the upgrade')
+  // A user often deletes the download after installing. pnpm resolves the installed tree from
+  // its lockfile/store; retaining the old source must not be a prerequisite for an upgrade.
+  rmSync(oldTarball, { force: true })
+  if (existsSync(oldTarball)) fail('could not delete the predecessor tarball')
+  else ok('predecessor tarball deleted')
+
   step(`upgrading to ${version}`)
   dsh(['plugin', '--profile', profile, 'add', newTarball])
   const installedNew = JSON.parse(readFileSync(join(home, 'profiles', profile, 'node_modules', current.name, 'package.json'), 'utf8'))

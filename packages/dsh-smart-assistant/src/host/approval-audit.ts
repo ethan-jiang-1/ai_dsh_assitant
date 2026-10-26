@@ -48,7 +48,7 @@ interface AuditHost {
  * @param options - lane context; `source` defaults to the reflect tool's model turn.
  */
 export async function recordApproval(host: AuditHost, kind: ApprovalKind, id: string, options: ApprovalAuditOptions = {}): Promise<void> {
-  await mkdir(host.paths.auditDir, { recursive: true })
+  await mkdir(host.paths.auditDir, { recursive: true, mode: 0o700 })
   const line = JSON.stringify({
     at: new Date().toISOString(),
     kind,
@@ -60,7 +60,7 @@ export async function recordApproval(host: AuditHost, kind: ApprovalKind, id: st
     ...(options.room !== undefined ? { room: options.room } : {}),
     source: options.source ?? 'assistant_reflect',
   }) + '\n'
-  await appendFile(host.paths.approvalsLedgerFile, line, 'utf8')
+  await appendFile(host.paths.approvalsLedgerFile, line, { encoding: 'utf8', mode: 0o600 })
 }
 
 /**

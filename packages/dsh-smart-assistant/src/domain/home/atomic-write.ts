@@ -25,11 +25,16 @@ function temporaryPathFor(path: string): string {
 
 /**
  * Write `content` to `path` atomically: a unique sibling temp, then a rename into place.
+ *
+ * Mode 0600 is deliberate: a rename replaces the inode, so a file created before the owner-only
+ * policy (0644) is narrowed on its next rewrite instead of keeping the wider mode. Test code and
+ * callers that need different bits pass `mode` explicitly.
  * @param path - Destination file path.
  * @param content - Complete file content.
+ * @param mode - Permission bits for the fresh inode (subject to umask).
  */
-export async function atomicWriteFile(path: string, content: string): Promise<void> {
+export async function atomicWriteFile(path: string, content: string, mode = 0o600): Promise<void> {
   const temporary = temporaryPathFor(path)
-  await writeFile(temporary, content, 'utf8')
+  await writeFile(temporary, content, { encoding: 'utf8', mode })
   await rename(temporary, path)
 }

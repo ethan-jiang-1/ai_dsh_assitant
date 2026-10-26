@@ -29,6 +29,7 @@
 - 范围是**宽 minor、窄 major**：当前 `>=0.2.1-rc.2 <0.3.0-0`。未来 `0.2.x` 自动放行；`0.3.x`（含 `0.3.0-rc`）需要重新验证并发新版本。
 - **不精确钉死一个小版本。** 下界只写真实跑过安装/启动/核心工具的最低版本；未跑过的更老版本不得靠“范围看起来宽”宣称支持。
 - 上界写 `<0.3.0-0` 而不是 `<0.3.0`：预发布参与匹配，后者会放进 `0.3.0-rc.1`。
+- **`engines.pnpm` 是 profile 布局的前置**：当前 `>=10.6.0`。pnpm 9/10.4 直接以 `ERR_PNPM_ADDING_TO_ROOT` 拒绝安装；10.5 能装但会忽略 profile `pnpm-workspace.yaml` 的 `nodeLinker`/`autoInstallPeers`。实测矩阵：9.15.9 与 10.4.0 拒绝，10.6.0 / 11.28.5 / 12.15.0 干净 home 安装 + `preset-assistant` 组合通过。命令 = `pnpm pnpm-matrix -- --pnpm <v> --expect install|reject`（需要 Corepack 联网）。
 - 历史 typecheck 台账在 repo-only [`release-verification.json`](../packages/dsh-smart-assistant/release-verification.json)，不随包发布，也不是当前支持承诺。真实最小/最大矩阵未跑时，结论写“未跑”，不写“已验证”。
 - **当前实测矩阵**：`0.2.1-rc.2` 与 `0.2.1-rc.3` 干净 home 安装 + `preset-assistant` 组合通过（rc.3 另跑过标准 Web boot 与 preset UI）；`0.2.0-rc.2` 拒绝安装（该版本按 peer 回退诊断，未写入 profile）。`0.3.x` **尚未发布**（npm 与 vendor 都没有 0.3 CLI），所以没有可跑的真实矩阵；范围边界测试明确拒绝 `0.3.0-alpha/rc/release`。等 0.3 发布后再用 `compat-matrix` 跑，不提前放宽。命令 = `pnpm compat-matrix -- --dsh <path> --version <v> --expect install|reject`；目标 CLI 可用 `npm install --prefix .tmp/dsh-<version> @deepseek-ai/dsh@<version>` 取得（`.tmp` 内，不入库）。
 - 版本豁免是用户的显式逃生门，不是作者的支持策略。
@@ -42,7 +43,7 @@
 
 ## 六、生命周期
 
-- **Profile 变更必须串行**：`dsh plugin` 没有跨进程 profile 锁；并发 `add`/`remove` 可能两个都 exit 0，最终状态由后写者覆盖。自动化必须一条一条执行，完成后用 `--dump-config` 确认实际组合。
+- **Profile 变更仍建议串行**：DSH 0.2.1 的 `dsh plugin` 在 profile `package.json` 上取跨进程文件锁（120s 等待），并发 `add`/`remove` 会被串行化；`install-resilience-smoke` 只证明两个并发 add 后的最终状态是一份依赖 + 一个 bundle 行，不承诺更复杂的并发语义。自动化仍逐条执行，完成后用 `--dump-config` 确认实际组合。
 
 - **安装不写用户数据**：`dsh plugin add` 只装包；不创建 working folder、不导入 seeds、不改默认 preset。
 - **升级/卸载保留数据**：两个插件目录（`<dshHome>/assistant`、`<dshHome>/assistant-operating`）跨升级和 remove 保留；remove 后重装必须回到组合。
@@ -57,6 +58,8 @@
 - `pnpm release-smoke`（真实 tarball、干净 home、安装、组合、零写入）；
 - `pnpm upgrade-smoke`（升级/remove 的数据边界与重装）；
 - `pnpm install-resilience-smoke`（损坏 tarball 被拒、profile 不残留、有效 tarball 重试成功）；
+- `pnpm bootstrap-guards-smoke`（独立启动的坏输入：profile 穿越/保留名/缺旧 pnpm/npm 在创建 home 前拒绝）；
+- `pnpm pnpm-matrix -- --pnpm <v> --expect install|reject`（发布物/依赖变化时至少覆盖 10.6 下界与当前开发 pnpm；需要 Corepack 联网）；
 - `pnpm web-install-smoke`（标准 web profile：干净 home 安装 → preflight → client boot/preset UI；可选 `--upgrade-tarball` 覆盖运行中升级 → 重启 → 复验）；
 - `pnpm standalone-smoke`（无 `.git` 目录、隔离 home、preflight、client 真 boot/preset UI、stop/restart、搬移 home；无 Chrome 时明确 skip）；
 - `pnpm prompt-smoke`（无 key 回放 one-shot，断言四个 prompt 段落与六个工具进入请求）；

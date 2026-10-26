@@ -135,6 +135,8 @@ try {
     fail('packed manifest has no engines.dsh — DSH cannot judge compatibility')
   } else if (typeof manifest.engines?.node !== 'string' || manifest.engines.node.trim() === '') {
     fail('packed manifest has no engines.node — the supported Node range is part of the install contract')
+  } else if (typeof manifest.engines?.pnpm !== 'string' || manifest.engines.pnpm.trim() === '') {
+    fail('packed manifest has no engines.pnpm — the profile layout needs pnpm >= 10.6.0')
   } else {
     try {
       const incompatibleDir = join(home, 'incompatible-package')

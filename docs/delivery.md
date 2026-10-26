@@ -13,7 +13,7 @@
 | **用户数据（宿主拥有）** | `sessions/`、credentials、`settings`、`storages`、`session-search.db` 等 | 同一个 home；不进插件备份/交接物 |
 | **交付物** | working folder 根或会话 cwd 下的 `deliverables/`（模型自发落点，见 [`home.md`](home.md) §一注） | 用户数据；不进 agent 物 |
 
-**一个人 = 一个 `DSH_HOME`。** profile 是组合，不是租户；不同人用不同 home（不同机器、不同 OS 用户或显式隔离 home），不共享插件数据目录。
+**一个人 = 一个 `DSH_HOME`。** profile 是组合，不是租户；不同人用不同 home（不同机器、不同 OS 用户或显式隔离 home），不共享插件数据目录。同一 home 下的所有 profile 共用 `<dshHome>/assistant` 与 `<dshHome>/assistant-operating`——换 profile 名只隔离组合，**不隔离数据**；真正隔离试用用独立 `DSH_HOME`，或同时覆盖 memory/ledger/projection 的 `dataDir`。
 
 ### 数据平面映射（DSH 6+2）
 
@@ -70,9 +70,10 @@ node <DSH_HOME>/profiles/web/node_modules/dsh-smart-assistant/bin/assistant-data
 
 - bundle = `assistant/` + `assistant-operating/` + `manifest.json`；manifest 的 `schemaVersion` 当前为 `1`。
 - **不含** sessions/credentials/settings/storages；这些要另备整 home。
-- `import` 要求两个目标目录不存在或为空；非空拒绝，不覆盖。导入先写 sibling temp，再 rename 就位。
+- `export` 排除 `writer.lock` / `*.tmp` / `*.takeover`，拒绝符号链接（备份必须是普通文件）；旧的带锁 bundle 在 import 时也会被剔除。
+- `import` 要求实例已停止、两个目标目录不存在或为空；非空拒绝，不覆盖。导入先写 sibling temp，再 rename 就位；失败不留下半成品。
 - 未知 `schemaVersion` 拒绝导入；不猜、不半导入。
-- 原始 `cp -R` 等价可用；它不校验 manifest，也不保证目标为空——需要“可验证的恢复”时用 `assistant-data`。
+- 原始 `cp -R` 等价可用；它不校验 manifest、不排除 `writer.lock`、也不保证目标为空——需要“可验证的恢复”时用 `assistant-data`。手动 `cp -R` 备份必须删掉 `<备份>/assistant-operating/writer.lock` 与 `*.tmp`，否则换机恢复后账本会把旧 host 的锁当活锁。
 
 **升级/卸载**：装新 tarball 不动用户数据；`--dump-config` 仍应有 `preset-assistant`，新会话验证一次。数据读取按文件格式向前兼容；
 跨版本迁移是显式的，不在安装时静默重写。`pnpm upgrade-smoke` 用合成旧包证明「旧→新→remove」的两目录边界；

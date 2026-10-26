@@ -27,6 +27,42 @@ import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:pat
 import { fileURLToPath } from 'node:url'
 
 const packageRoot = dirname(fileURLToPath(import.meta.url))
+const isWindows = process.platform === 'win32'
+
+/**
+ * npm and the npm-installed `dsh` are `.cmd` shims on Windows; CreateProcess cannot launch them
+ * directly. Shell mode resolves the shim, and every argument is quoted first so paths with
+ * spaces survive. POSIX keeps the direct spawn (no shell, no quoting ambiguity). Windows with a
+ * space-containing `--dsh` path is not claimed: use a PATH command or a wrapper.
+ */
+function toolArgs(args) {
+  return isWindows ? args.map(argument => `"${String(argument).replaceAll('"', '""')}"`) : args
+}
+
+function toolOptions(options) {
+  return isWindows ? { ...options, shell: true, windowsHide: true } : options
+}
+
+function spawnToolSync(command, args, options = {}) {
+  return spawnSync(command, toolArgs(args), toolOptions(options))
+}
+
+function spawnTool(command, args, options = {}) {
+  return spawn(command, toolArgs(args), toolOptions(options))
+}
+
+/** Terminate the detached tree: a POSIX process group, or Windows' taskkill /T. */
+function terminateTree(pid) {
+  if (isWindows) {
+    spawnSync('taskkill', ['/PID', String(pid), '/T', '/F'], { stdio: 'ignore' })
+    return
+  }
+  try {
+    process.kill(-pid, 'SIGTERM')
+  } catch {
+    try { process.kill(pid, 'SIGTERM') } catch { /* already gone */ }
+  }
+}
 const argv = process.argv.slice(2)
 const option = (name) => {
   const index = argv.indexOf(name)
@@ -43,10 +79,16 @@ if (flag('--help')) {
   process.exit(0)
 }
 
+const stop = flag('--stop')
+const noStart = flag('--no-start')
 const home = resolve(option('--home') ?? join(dirname(packageRoot), 'assistant-data'))
 const daily = resolve(join(homedir(), '.dsh'))
 if (home === daily) {
   console.error('bootstrap: refusing to use the daily ~/.dsh as a standalone home')
+  process.exit(2)
+}
+if (home === resolve(homedir()) || dirname(home) === home) {
+  console.error(`bootstrap: refusing to use ${home} as a standalone home; choose a dedicated subdirectory`)
   process.exit(2)
 }
 // Compare real paths: a symlink outside the package can still point into it. If the home does
@@ -69,51 +111,129 @@ if (insidePackage === '' || (!insidePackage.startsWith('..') && !isAbsolute(insi
   process.exit(2)
 }
 const profile = option('--profile') ?? 'assistant-standalone'
-if (['web', 'headless', 'sdk', 'sdk-minimal', 'acp'].includes(profile)) {
-  console.error(`bootstrap: refusing shipped profile "${profile}" — standalone mode owns a custom profile`)
-  process.exit(2)
+const profilesRoot = join(home, 'profiles')
+const profileDir = resolve(profilesRoot, profile)
+
+/** True when `child` is a strict descendant of `parent`. */
+function isInside(parent, child) {
+  const nested = relative(parent, child)
+  return nested !== '' && !nested.startsWith('..') && !isAbsolute(nested)
 }
+
+// A profile is a directory name, never a path: reject separators, traversal, and the shipped
+// profile names. The containment check is defence in depth; the recursive profile repair below
+// must never be able to reach outside `<home>/profiles`.
+const PROFILE_NAME = /^[A-Za-z0-9][A-Za-z0-9._-]*$/
+const RESERVED_PROFILES = new Set(['web', 'headless', 'sdk', 'sdk-minimal', 'acp', 'desktop'])
+if (!stop) {
+  if (!PROFILE_NAME.test(profile)) {
+    console.error(`bootstrap: invalid profile name ${JSON.stringify(profile)}; use letters, digits, dot, dash, underscore, starting with a letter or digit`)
+    process.exit(2)
+  }
+  if (RESERVED_PROFILES.has(profile)) {
+    console.error(`bootstrap: refusing shipped profile "${profile}" — standalone mode owns a custom profile`)
+    process.exit(2)
+  }
+  if (!isInside(profilesRoot, profileDir)) {
+    console.error(`bootstrap: profile path escapes the home: ${profileDir}`)
+    process.exit(2)
+  }
+}
+
 const dsh = option('--dsh') ?? 'dsh'
 const workspace = join(home, 'workspace')
-const profileDir = join(home, 'profiles', profile)
 const pidFile = join(home, 'bootstrap.pid')
 const stateFile = join(home, 'bootstrap.json')
 const logFile = join(home, 'logs', 'bootstrap.log')
-const stop = flag('--stop')
-const noStart = flag('--no-start')
+
+/**
+ * The first pnpm release whose profile settings (`nodeLinker`, `autoInstallPeers`) are read from
+ * `pnpm-workspace.yaml`. Older releases either refuse to add to the workspace root or silently
+ * install an isolated tree, so the standalone profile needs this floor.
+ */
+const MIN_PNPM = [10, 6, 0]
+
+/** Read a tool's `--version`; undefined when the executable is missing or does not answer. */
+function toolVersion(command) {
+  const result = spawnToolSync(command, ['--version'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] })
+  if (result.error !== undefined || result.status !== 0) return undefined
+  return (result.stdout ?? '').trim()
+}
+
+/** Parse the numeric prefix of a version string; undefined when it has no `major.minor.patch`. */
+function parseVersion(text) {
+  const match = /^v?(\d+)\.(\d+)\.(\d+)/.exec(text.trim())
+  return match === null ? undefined : [Number(match[1]), Number(match[2]), Number(match[3])]
+}
+
+/** True when `version` is at least `minimum`, comparing the numeric triple. */
+function versionAtLeast(version, minimum) {
+  for (let index = 0; index < minimum.length; index += 1) {
+    if (version[index] !== minimum[index]) return version[index] > minimum[index]
+  }
+  return true
+}
+
+if (!stop) {
+  const pnpmVersion = toolVersion('pnpm')
+  if (pnpmVersion === undefined) {
+    fail('pnpm was not found on PATH; install pnpm >= 10.6.0 (or enable corepack) and retry')
+  }
+  const parsed = parseVersion(pnpmVersion)
+  if (parsed === undefined || !versionAtLeast(parsed, MIN_PNPM)) {
+    fail(`pnpm ${pnpmVersion} is too old; this profile needs pnpm >= 10.6.0. Older pnpm fails with ERR_PNPM_ADDING_TO_ROOT or ignores the profile linker settings.`)
+  }
+  if (toolVersion('npm') === undefined) {
+    fail("Node's npm was not found on PATH; bootstrap uses it to pack this directory before installing")
+  }
+}
 
 function fail(message) {
   console.error(`bootstrap: ${message}`)
   process.exit(1)
 }
 
-function stopInstance() {
+function processAlive(pid) {
+  try {
+    process.kill(pid, 0)
+    return true
+  } catch (error) {
+    return error?.code === 'EPERM'
+  }
+}
+
+async function stopInstance() {
   if (!existsSync(pidFile)) {
     console.log(`bootstrap: no running instance recorded at ${pidFile}`)
     return
   }
   const pid = Number(readFileSync(pidFile, 'utf8').trim())
   if (!Number.isInteger(pid) || pid <= 0) fail(`invalid pid file ${pidFile}`)
-  try {
-    process.kill(-pid, 'SIGTERM')
-  } catch {
-    try { process.kill(pid, 'SIGTERM') } catch { /* already gone */ }
+  terminateTree(pid)
+  // Do not hand the home to the next instance while the old one still owns data locks.
+  for (let attempt = 0; attempt < 50 && processAlive(pid); attempt += 1) {
+    await new Promise(resolve => setTimeout(resolve, 100))
   }
+  if (processAlive(pid)) fail(`process ${pid} did not exit within 5s after SIGTERM; run with --stop again or inspect it`)
   rmSync(pidFile, { force: true })
   rmSync(stateFile, { force: true })
   console.log(`bootstrap: stopped process group ${pid}`)
 }
 
 if (stop) {
-  stopInstance()
+  await stopInstance()
   process.exit(0)
 }
 
-mkdirSync(home, { recursive: true })
-mkdirSync(workspace, { recursive: true })
-mkdirSync(join(home, 'tmp'), { recursive: true })
-mkdirSync(join(home, 'agents-home'), { recursive: true })
-mkdirSync(join(home, 'logs'), { recursive: true })
+try {
+  mkdirSync(home, { recursive: true, mode: 0o700 })
+} catch (error) {
+  fail(`cannot create home ${home}: ${error instanceof Error ? error.message : String(error)}`)
+}
+mkdirSync(workspace, { recursive: true, mode: 0o700 })
+mkdirSync(join(home, 'tmp'), { recursive: true, mode: 0o700 })
+mkdirSync(join(home, 'agents-home'), { recursive: true, mode: 0o700 })
+mkdirSync(join(home, 'logs'), { recursive: true, mode: 0o700 })
 
 const env = {
   ...process.env,
@@ -127,7 +247,7 @@ const env = {
 }
 
 function runDsh(args, label) {
-  const result = spawnSync(dsh, args, { cwd: workspace, env, encoding: 'utf8', timeout: 180_000 })
+  const result = spawnToolSync(dsh, args, { cwd: workspace, env, encoding: 'utf8', timeout: 180_000 })
   if (result.error !== undefined) fail(`${label}: cannot run ${dsh}: ${result.error.message}`)
   if (result.status !== 0) {
     const detail = `${result.stderr ?? ''}${result.stdout ?? ''}`.trim().split('\n').slice(-8).join('\n')
@@ -174,7 +294,7 @@ console.log('bootstrap: packing this directory and installing the tarball')
 // owns the dependency closure and `--offline` has something concrete to resolve.
 const packDir = join(home, '.bootstrap')
 mkdirSync(packDir, { recursive: true })
-const packed = spawnSync('npm', ['pack', '--ignore-scripts', '--silent', '--cache', join(packDir, 'npm-cache'), '--pack-destination', packDir], { cwd: packageRoot, encoding: 'utf8' })
+const packed = spawnToolSync('npm', ['pack', '--ignore-scripts', '--silent', '--cache', join(packDir, 'npm-cache'), '--pack-destination', packDir], { cwd: packageRoot, encoding: 'utf8' })
 if (packed.error !== undefined) fail(`cannot pack ${packageRoot}: ${packed.error.message} (Node's npm is required)`)
 if (packed.status !== 0) fail(`npm pack failed (exit ${String(packed.status)}): ${(packed.stderr ?? '').trim().slice(-400)}`)
 const tarball = join(packDir, (packed.stdout ?? '').trim().split('\n').pop() ?? '')
@@ -227,7 +347,7 @@ if (existsSync(pidFile)) {
 // the previous instance's URL match first after a stop/restart.
 writeFileSync(logFile, '', 'utf8')
 const logFd = openSync(logFile, 'a')
-const child = spawn(dsh, ['--profile', profile, '--port', '0', '--no-open'], {
+const child = spawnTool(dsh, ['--profile', profile, '--port', '0', '--no-open'], {
   cwd: workspace,
   env,
   detached: true,

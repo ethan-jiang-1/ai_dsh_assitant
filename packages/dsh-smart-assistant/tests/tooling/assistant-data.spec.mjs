@@ -2,7 +2,7 @@
  * Behavior of the portable data bundle: narrow contents, schema manifest, empty-target import,
  * and refusal paths. Temp dirs only; no DSH runtime.
  */
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { chmodSync, existsSync, mkdirSync, readFileSync, readdirSync, symlinkSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import {
@@ -14,6 +14,8 @@ import {
 import { temp, disposeTempDirs } from './verify-gates-harness.mjs'
 
 afterEach(disposeTempDirs)
+
+const POSIX = process.platform !== 'win32'
 
 function sourceFixture() {
   const root = temp('data-source-')
@@ -79,5 +81,108 @@ describe('assistant-data', () => {
     const missing = join(temp('data-missing-'), 'assistant')
     await expect(exportData({ assistantDir: missing, operatingDir: source.operatingDir, outDir: join(temp('data-out-'), 'x') }))
       .rejects.toThrow('working folder not found')
+  })
+
+  it('omits writer.lock and atomic temp files from export and import', async () => {
+    const source = sourceFixture()
+    writeFileSync(join(source.operatingDir, 'writer.lock'), '{"hostname":"old-box","pid":1,"acquiredAt":"2026-01-01T00:00:00.000Z"}\n', 'utf8')
+    writeFileSync(join(source.operatingDir, 'ledger.json.abc123.tmp'), '{"revision":\n', 'utf8')
+    const outDir = join(temp('data-out-'), 'bundle')
+    const exported = await exportData({ ...source, outDir })
+    // SOUL.md + memory/m1.md + ledger.json; the live-looking claim and the torn temp are transient.
+    expect(exported.manifest.files).toBe(3)
+    expect(readdirSync(join(outDir, 'assistant-operating'))).toEqual(['ledger.json'])
+
+    const target = temp('data-import-')
+    await importData({
+      inDir: outDir,
+      assistantDir: join(target, 'assistant'),
+      operatingDir: join(target, 'assistant-operating'),
+    })
+    expect(readdirSync(join(target, 'assistant-operating'))).toEqual(['ledger.json'])
+  })
+
+  it('drops transient files from a bundle written before the exclusion', async () => {
+    // Backups produced by older builds carry the claim. Import must not plant a lock that names a
+    // foreign host or a live PID: the ledger's first write would refuse until a manual lock move.
+    const bundle = join(temp('data-bundle-'), 'bundle')
+    mkdirSync(join(bundle, 'assistant'), { recursive: true })
+    mkdirSync(join(bundle, 'assistant-operating'), { recursive: true })
+    writeFileSync(join(bundle, 'manifest.json'), `${JSON.stringify({
+      schemaVersion: DATA_SCHEMA_VERSION,
+      createdAt: '2026-01-02T03:04:05.000Z',
+      includes: ['assistant', 'assistant-operating'],
+      files: 3,
+      bytes: 1,
+    })}\n`, 'utf8')
+    writeFileSync(join(bundle, 'assistant', 'SOUL.md'), 'the owner voice\n', 'utf8')
+    writeFileSync(join(bundle, 'assistant-operating', 'ledger.json'), '{"revision":1}\n', 'utf8')
+    writeFileSync(join(bundle, 'assistant-operating', 'writer.lock'), '{"hostname":"old-box","pid":1,"acquiredAt":"2026-01-01T00:00:00.000Z"}\n', 'utf8')
+
+    const target = temp('data-import-')
+    await importData({
+      inDir: bundle,
+      assistantDir: join(target, 'assistant'),
+      operatingDir: join(target, 'assistant-operating'),
+    })
+    expect(existsSync(join(target, 'assistant-operating', 'writer.lock'))).toBe(false)
+    expect(readFileSync(join(target, 'assistant-operating', 'ledger.json'), 'utf8')).toBe('{"revision":1}\n')
+  })
+
+  it.skipIf(!POSIX)('leaves no destination behind when export fails', async () => {
+    // A permission error used to leave a half-copied bundle with no manifest; the retry then
+    // refused because the destination was non-empty. The destination must be absent or empty.
+    const source = sourceFixture()
+    const locked = join(source.assistantDir, 'locked')
+    mkdirSync(locked, { recursive: true })
+    writeFileSync(join(locked, 'entry.md'), 'hidden\n', 'utf8')
+    chmodSync(locked, 0o000)
+    const outDir = join(temp('data-out-'), 'bundle')
+    try {
+      await expect(exportData({ ...source, outDir })).rejects.toThrow()
+    } finally {
+      chmodSync(locked, 0o755)
+    }
+    expect(existsSync(outDir)).toBe(false)
+
+    const retried = await exportData({ ...source, outDir })
+    expect(retried.manifest.files).toBe(4)
+    expect(existsSync(join(outDir, 'manifest.json'))).toBe(true)
+  })
+
+  it.skipIf(!POSIX)('refuses symbolic links in the working folder and in an import bundle', async () => {
+    const source = sourceFixture()
+    symlinkSync('/etc/hosts', join(source.assistantDir, 'leak.md'))
+    await expect(exportData({ ...source, outDir: join(temp('data-out-'), 'bundle') }))
+      .rejects.toThrow(/symbolic link/i)
+
+    const bundle = join(temp('data-bundle-'), 'bundle')
+    mkdirSync(join(bundle, 'assistant'), { recursive: true })
+    mkdirSync(join(bundle, 'assistant-operating'), { recursive: true })
+    writeFileSync(join(bundle, 'manifest.json'), `${JSON.stringify({
+      schemaVersion: DATA_SCHEMA_VERSION,
+      createdAt: '2026-01-02T03:04:05.000Z',
+      includes: ['assistant', 'assistant-operating'],
+      files: 2,
+      bytes: 1,
+    })}\n`, 'utf8')
+    writeFileSync(join(bundle, 'assistant', 'SOUL.md'), 'the owner voice\n', 'utf8')
+    symlinkSync('/etc/hosts', join(bundle, 'assistant', 'leak.md'))
+    writeFileSync(join(bundle, 'assistant-operating', 'ledger.json'), '{"revision":1}\n', 'utf8')
+
+    const target = temp('data-import-')
+    await expect(importData({
+      inDir: bundle,
+      assistantDir: join(target, 'assistant'),
+      operatingDir: join(target, 'assistant-operating'),
+    })).rejects.toThrow(/symbolic link/i)
+    expect(existsSync(join(target, 'assistant'))).toBe(false)
+  })
+
+  it('refuses an export destination inside a source directory', async () => {
+    const source = sourceFixture()
+    const outDir = join(source.assistantDir, 'backup')
+    await expect(exportData({ ...source, outDir })).rejects.toThrow(/inside/i)
+    expect(existsSync(outDir)).toBe(false)
   })
 })
