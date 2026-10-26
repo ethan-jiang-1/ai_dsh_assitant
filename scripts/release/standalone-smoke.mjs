@@ -93,6 +93,11 @@ try {
     if (lstatSync(installedPackage).isSymbolicLink()) fail('bootstrap installed a symlink; a real machine outside the repo would lose its yaml dependency')
     else if (!existsSync(join(home, 'profiles', profile, 'node_modules', 'yaml'))) fail('the profile has no yaml dependency')
     else ok('bootstrap installs a tarball copy with its yaml dependency')
+    const profileManifest = JSON.parse(readFileSync(join(home, 'profiles', profile, 'package.json'), 'utf8'))
+    const recorded = profileManifest.dependencies?.['dsh-smart-assistant']
+    if (typeof recorded !== 'string' || !recorded.startsWith('file:')) fail('profile does not record the installed tarball')
+    else if (!existsSync(recorded.slice(5))) fail('profile dependency points at a removed tarball')
+    else ok('profile dependency points at the retained tarball')
     if (!existsSync(join(home, 'workspace')) || !existsSync(join(home, 'agents-home'))) fail('workspace/agents-home missing')
     else ok('workspace and agents-home live under the chosen home')
 

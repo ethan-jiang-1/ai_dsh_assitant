@@ -328,7 +328,7 @@ dsh plugin --profile web add /path/to/<新版本>.tgz
 dsh --profile web --dump-config
 \`\`\`
 
-\`--dump-config\` 仍应看到 \`preset-assistant\`；新会话验证一次。实测直接 \`add\` 新 tgz 会更新版本并保留
+\`--dump-config\` 仍应看到 \`preset-assistant\`；运行中的 Web 实例不会热替换代码，重启 \`dsh\` 后新版本生效。实测直接 \`add\` 新 tgz 会更新版本并保留
 working folder/账本；若 CLI 拒绝同版本或要求先 remove，按 CLI 提示先 \`remove\` 再 \`add\`——
 \`remove\` 不删 working folder/账本，但升级前仍建议备份。
 回滚：保留上一版 tgz；\`remove\` 新版后 \`add\` 旧版；若新版引入不可读的数据格式，先恢复备份。
@@ -341,7 +341,7 @@ working folder/账本；若 CLI 拒绝同版本或要求先 remove，按 CLI 提
 dsh plugin --profile web remove dsh-smart-assistant
 \`\`\`
 
-卸载后 \`--dump-config\` 不再提及插件，profile 的 package.json 也不留痕迹。working folder
+卸载后 \`--dump-config\` 不再提及插件，profile 的 package.json 也不留痕迹；运行中的实例重启后不再加载。working folder
 本身（\`<DSH_HOME>/assistant/\`）是数据不是插件：卸载不删它，弃用前自行备份。
 
 装了 OpenViking 的，另停 server 并 \`uv tool uninstall openviking\`；\`~/.openviking\` 是配置/数据，

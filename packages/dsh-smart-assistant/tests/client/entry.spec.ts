@@ -54,6 +54,7 @@ describe('client-module registration', () => {
     const calls: string[] = []
     const registered: string[] = []
     const guideEntries: string[] = []
+    const brandPriorities: Record<string, number | undefined> = {}
     const ctx = {
       effect: (install: () => () => void) => { install() },
       slots: {
@@ -68,8 +69,12 @@ describe('client-module registration', () => {
             for (const _entry of contribution as Iterable<unknown>) void _entry
           }
         },
-        register: (declaration: { name: string, key?: string, id?: string }) => {
+        register: (declaration: { name: string, key?: string, id?: string, priority?: number }) => {
           registered.push(declaration.key ?? declaration.id ?? declaration.name)
+          if (declaration.name === 'sidebar.brand.mark' || declaration.name === 'sidebar.brand.name'
+            || declaration.name === 'conversation.hero.brand.mark') {
+            brandPriorities[declaration.name] = declaration.priority
+          }
         },
       },
       // The right-sidebar tab type: registering a type alone produces no visible entry — the
@@ -82,6 +87,13 @@ describe('client-module registration', () => {
       },
     }
     ;(exports.apply as (ctx: unknown) => void)(ctx)
+    // The standard web profile already carries the official brand at priority 0. The custom
+    // brand must shadow it explicitly; same-priority registration throws and kills the entry.
+    expect(brandPriorities).toEqual({
+      'sidebar.brand.mark': -1,
+      'sidebar.brand.name': -1,
+      'conversation.hero.brand.mark': -1,
+    })
     // Brand slots first, then each room's tab body and tab title in loop order, then the
     // first-mile strip and the approval banner (two dock seats). The session desk is retired
     // (principal decision, 2026-10-11): no desk room tab, no desk view, no header chip, no

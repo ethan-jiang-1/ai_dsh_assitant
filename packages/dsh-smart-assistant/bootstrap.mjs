@@ -141,7 +141,10 @@ if (packed.status !== 0) fail(`npm pack failed (exit ${String(packed.status)}): 
 const tarball = join(packDir, (packed.stdout ?? '').trim().split('\n').pop() ?? '')
 if (!existsSync(tarball)) fail(`npm pack produced no tarball under ${packDir}`)
 runDsh(['plugin', '--profile', profile, 'add', tarball, ...(flag('--offline') ? ['--offline'] : [])], 'install package')
-rmSync(packDir, { recursive: true, force: true })
+// Keep the tarball: the profile manifest records it as the dependency's file: source. Removing
+// it leaves a manifest that a later `dsh plugin`/pnpm repair cannot resolve. Drop only the
+// private npm cache used for packing.
+rmSync(join(packDir, 'npm-cache'), { recursive: true, force: true })
 
 const patchPath = join(profileDir, 'cordis.patch.yml')
 const patchBlock = `# Written by dsh-smart-assistant bootstrap.mjs
