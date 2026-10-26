@@ -8,6 +8,7 @@
  */
 import { spawnSync } from 'node:child_process'
 import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, truncateSync } from 'node:fs'
+import { homedir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -51,7 +52,14 @@ const tmp = join(root, 'tmp')
 mkdirSync(home, { recursive: true })
 mkdirSync(workspace, { recursive: true })
 mkdirSync(tmp, { recursive: true })
-const env = { ...process.env, HOME: home, DSH_HOME: dshHome, DSH_AGENTS_HOME: agents, TMPDIR: tmp }
+const env = {
+  ...process.env,
+  HOME: home,
+  DSH_HOME: dshHome,
+  DSH_AGENTS_HOME: agents,
+  TMPDIR: tmp,
+  COREPACK_HOME: process.env.COREPACK_HOME ?? join(homedir(), '.cache', 'node', 'corepack'),
+}
 const profileDir = join(dshHome, 'profiles', 'web')
 const badTarball = join(root, 'corrupt.tgz')
 

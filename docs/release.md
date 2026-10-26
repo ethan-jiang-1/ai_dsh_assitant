@@ -57,7 +57,7 @@
 - `pnpm release-smoke`（真实 tarball、干净 home、安装、组合、零写入）；
 - `pnpm upgrade-smoke`（升级/remove 的数据边界与重装）；
 - `pnpm install-resilience-smoke`（损坏 tarball 被拒、profile 不残留、有效 tarball 重试成功）；
-- `pnpm web-install-smoke`（标准 web profile：干净 home 安装 → preflight → client boot/preset UI）；
+- `pnpm web-install-smoke`（标准 web profile：干净 home 安装 → preflight → client boot/preset UI；可选 `--upgrade-tarball` 覆盖运行中升级 → 重启 → 复验）；
 - `pnpm standalone-smoke`（无 `.git` 目录、隔离 home、preflight、client 真 boot/preset UI、stop/restart、搬移 home；无 Chrome 时明确 skip）；
 - `pnpm prompt-smoke`（无 key 回放 one-shot，断言四个 prompt 段落与六个工具进入请求）；
 - `pnpm compat-matrix -- --dsh <path> --version <v> --expect install|reject`（真实 DSH CLI 的安装/拒绝矩阵；干净 home，不调模型）；

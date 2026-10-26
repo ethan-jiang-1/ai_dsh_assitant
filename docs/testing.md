@@ -33,7 +33,7 @@
 | 升级 / 卸载的数据边界 | `pnpm upgrade-smoke`（干净 home：合成旧包→新包→remove） | `scripts/release/upgrade-smoke.mjs` | 安装/升级/remove 不碰两目录 / 真实历史版本的数据迁移 |
 | 安装并发/事务 | 手工探索 + `pnpm upgrade-smoke`（串行）；并发 add/remove 是 DSH CLI 已知无跨进程锁 | — | 串行生命周期 / 并发 profile 变更（不承诺） |
 | 安装失败/重试 | `pnpm install-resilience-smoke -- --dsh <path>`（损坏 tarball + 有效重试） | `scripts/release/install-resilience-smoke.mjs` | 失败不残留依赖/文件，重试可恢复 / 真实网络中断 |
-| 标准 Web 安装 | `pnpm web-install-smoke -- --dsh <path> [--tarball <tgz>]`（干净 HOME/DSH_HOME；Chrome 必须） | `scripts/release/web-install-smoke.mjs` | 官方 web profile 安装、client boot、preset UI / 真人走查 |
+| 标准 Web 安装/升级 | `pnpm web-install-smoke -- --dsh <path> [--tarball <tgz>] [--upgrade-tarball <tgz>]`（干净 HOME/DSH_HOME；Chrome 必须） | `scripts/release/web-install-smoke.mjs` | 官方 web profile 安装、client boot、preset UI、运行中升级后重启/复验 / 真人走查 |
 | 独立启动（无 `.git` 目录） | `pnpm standalone-smoke`（打包→解包→bootstrap→preflight→client boot→stop→restart） | `scripts/release/standalone-smoke.mjs` | 无 `.git` 启动、隔离 home、包内/符号链接 home 拒绝、tarball 安装带 yaml、client 真 boot、preset UI、重启 URL、搬移 home 重建 profile、损坏 profile manifest 重建 profile / 真人环境与会话内容 |
 | 交接 / 数据 bundle | `pnpm test:tooling` + `pnpm release-smoke` + `pnpm export-dist` | `tests/tooling/handoff-core.spec.mjs`、`assistant-data.spec.mjs`、`scripts/release/handoff-*` | 扫描规则、真实 tarball、两目录往返、两 home 隔离 / 真人数据迁移 |
 | Web preset 选择 | `pnpm agent-preset-ui '<URL>'`（需运行中的干净实例） | `dev/probes/web/agent-preset-ui.mjs` | Settings → Agent 预设 → 章鱼管家 → default / 自动门禁（人工探针） |

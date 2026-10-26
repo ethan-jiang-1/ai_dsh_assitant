@@ -28,6 +28,11 @@
 
 - 并发 `dsh plugin add` + `remove` 同一 profile：两个命令都可能 exit 0，最终状态由后写者覆盖（DSH CLI 无跨进程 profile 锁）。这是 DSH 侧限制，不在插件内修复；发布手册要求串行执行并用 `--dump-config` 复核。
 
+## 测试资产卫生（2026-10-26）
+
+- 标准 Web smoke 用假 HOME 时，Corepack 会去 registry 找 pnpm；网络一断就产生与产品无关的红。脚本现在把 `COREPACK_HOME` 指向调用者的工具缓存，并在首次安装失败时立即中止，不再继续启动/探测。
+- `web-install-smoke` 可选 `--upgrade-tarball`：安装旧包 → 运行中升级 → 重启 → 再跑 client/UI；这是标准 web profile 的升级路径，不是 headless `upgrade-smoke` 的替代。
+
 ## 输掉的方案
 
 - **把自动化点击写成“真人走查”**：环境、口味与真实机器都没有覆盖。
