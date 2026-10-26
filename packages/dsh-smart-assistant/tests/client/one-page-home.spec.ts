@@ -313,7 +313,7 @@ describe('OnePageHome', () => {
       ...props,
       useCatalog: <S,>(select: (state: ProactiveCatalogState) => S): S => select({
         status: 'entries',
-        entries: [{ id: 't1', title: '每周对账', kind: 'weekly', scheduledAt: '2026-10-26T09:00:00+08:00', status: 'active' }],
+        entries: [{ id: 't1', title: '每周对账', kind: 'weekly', scheduledAt: '2099-01-01T09:00:00+08:00', status: 'active' }],
       }),
     }
     const home = expand(HomeSurface(withCatalog))
@@ -337,7 +337,7 @@ describe('OnePageHome', () => {
       ...props,
       useCatalog: <S,>(select: (state: ProactiveCatalogState) => S): S => select({
         status: 'entries',
-        entries: [{ id: 't1', title: '每周对账', kind: 'weekly', scheduledAt: '2026-10-26T09:00:00+08:00', status: 'active' }],
+        entries: [{ id: 't1', title: '每周对账', kind: 'weekly', scheduledAt: '2099-01-01T09:00:00+08:00', status: 'active' }],
       }),
     }
     stateSlots.length = 0

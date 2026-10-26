@@ -13,8 +13,9 @@
  *   node bootstrap.mjs --stop [--home <dir>]
  *   node bootstrap.mjs --no-start [--home <dir>]
  *
- * Prerequisites: a compatible `dsh` on PATH (or --dsh), and the package's only runtime dependency
- * `yaml` obtainable once (network or a warm pnpm store; --offline makes that explicit).
+ * Prerequisites: a compatible `dsh` on PATH (or --dsh), Node's npm (packs this directory into a
+ * tarball so the profile owns the package's `yaml` dependency), and that dependency obtainable
+ * once (network or a warm pnpm store/cache; --offline makes that explicit).
  */
 import { spawn, spawnSync } from 'node:child_process'
 import { closeSync, existsSync, mkdirSync, openSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
@@ -127,8 +128,20 @@ if (!existsSync(join(profileDir, 'package.json'))) {
   console.log('bootstrap: creating the profile from the shipped web template')
   runDsh(['--profile', profile, '--from-default-profile', 'web', '--dump-config'], 'create profile')
 }
-console.log('bootstrap: installing this package into the profile')
-runDsh(['plugin', '--profile', profile, 'add', packageRoot], 'install package')
+console.log('bootstrap: packing this directory and installing the tarball')
+// `dsh plugin add <directory>` installs a link, and pnpm does not install a linked
+// package's dependencies into the profile. Outside a repo checkout the ONLY runtime
+// dependency (`yaml`) is then missing. Pack first, install the tarball, so the profile
+// owns the dependency closure and `--offline` has something concrete to resolve.
+const packDir = join(home, '.bootstrap')
+mkdirSync(packDir, { recursive: true })
+const packed = spawnSync('npm', ['pack', '--ignore-scripts', '--silent', '--cache', join(packDir, 'npm-cache'), '--pack-destination', packDir], { cwd: packageRoot, encoding: 'utf8' })
+if (packed.error !== undefined) fail(`cannot pack ${packageRoot}: ${packed.error.message} (Node's npm is required)`)
+if (packed.status !== 0) fail(`npm pack failed (exit ${String(packed.status)}): ${(packed.stderr ?? '').trim().slice(-400)}`)
+const tarball = join(packDir, (packed.stdout ?? '').trim().split('\n').pop() ?? '')
+if (!existsSync(tarball)) fail(`npm pack produced no tarball under ${packDir}`)
+runDsh(['plugin', '--profile', profile, 'add', tarball, ...(flag('--offline') ? ['--offline'] : [])], 'install package')
+rmSync(packDir, { recursive: true, force: true })
 
 const patchPath = join(profileDir, 'cordis.patch.yml')
 const patchBlock = `# Written by dsh-smart-assistant bootstrap.mjs

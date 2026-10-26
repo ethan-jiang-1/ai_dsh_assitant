@@ -11,7 +11,7 @@
  * Exit 0 = instance started, preflight green, data under the chosen home, stop left no process.
  */
 import { spawnSync } from 'node:child_process'
-import { chmodSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { mkTmpDir } from '../../dev/env/tmp.mjs'
@@ -89,6 +89,10 @@ try {
     else ok(`profile ${profile} is in ${home}`)
     if (!existsSync(join(home, 'profiles', profile, 'node_modules', 'dsh-smart-assistant', 'package.json'))) fail('the package is not installed in the profile')
     else ok('package installed into the isolated profile')
+    const installedPackage = join(home, 'profiles', profile, 'node_modules', 'dsh-smart-assistant')
+    if (lstatSync(installedPackage).isSymbolicLink()) fail('bootstrap installed a symlink; a real machine outside the repo would lose its yaml dependency')
+    else if (!existsSync(join(home, 'profiles', profile, 'node_modules', 'yaml'))) fail('the profile has no yaml dependency')
+    else ok('bootstrap installs a tarball copy with its yaml dependency')
     if (!existsSync(join(home, 'workspace')) || !existsSync(join(home, 'agents-home'))) fail('workspace/agents-home missing')
     else ok('workspace and agents-home live under the chosen home')
 

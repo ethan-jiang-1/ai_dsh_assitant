@@ -11,7 +11,7 @@
 - **一个只读部署自检 CLI**：`ov-doctor`（`bin/ov-doctor.mjs`；装好可选 OpenViking 层后在 profile 内运行，见安装手册的 OV 自检节）。
 - **一个专家装配 CLI**：`expert-setup`（`bin/expert-setup.mjs`；把管理种子显式导入为 `draft`，不自动 stable）。
 - **一个数据备份 CLI**：`assistant-data`（`bin/assistant-data.mjs`；只导出/导入 `assistant` + `assistant-operating`，带 schema manifest）。
-- **一个独立启动脚本**：`bootstrap.mjs`（解开的包目录里用已安装 `dsh` 建隔离 profile；home 默认在包外，不碰日用 `~/.dsh`）。
+- **一个独立启动脚本**：`bootstrap.mjs`（解开的包目录里用已安装 `dsh` 建隔离 profile；先用 npm 打包再安装，home 默认在包外，不碰日用 `~/.dsh`）。
 - **默认身份是管理岗**（P1）：`SOUL.md` 是数据，种子与回退一致；管理种子只在显式装配时进入知识室，安装不写 working folder。
 
 ## Install

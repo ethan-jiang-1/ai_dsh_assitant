@@ -66,11 +66,11 @@ const steps = [
   })()`,
   `(async () => {
     ${deep}
+    const text = e => ((e.getAttribute('aria-label') || '') + ' ' + (e.textContent || ''))
     for (let i = 0; i < 50; i++) {
-      const label = e => e.getAttribute('aria-label') || ''
-      const already = deep(document).find(e => label(e) === '新任务默认: 章鱼管家')
-      if (already) return 'already default'
-      const b = deep(document).find(e => label(e) === '设为新任务默认: 章鱼管家')
+      const already = deep(document).find(e => text(e).includes('新任务默认') && text(e).includes('章鱼管家'))
+      if (already) return 'default now: 新任务默认: 章鱼管家'
+      const b = deep(document).find(e => text(e).includes('设为新任务默认') && text(e).includes('章鱼管家'))
       if (b) {
         b.click()
         return 'clicked set-default'
@@ -81,9 +81,10 @@ const steps = [
   })()`,
   `(async () => {
     ${deep}
+    const text = e => ((e.getAttribute('aria-label') || '') + ' ' + (e.textContent || ''))
     for (let i = 0; i < 30; i++) {
-      const b = deep(document).find(e => (e.getAttribute('aria-label') || '') === '新任务默认: 章鱼管家')
-      if (b) return 'default now: ' + b.getAttribute('aria-label')
+      const b = deep(document).find(e => text(e).includes('新任务默认') && text(e).includes('章鱼管家'))
+      if (b) return 'default now: 新任务默认: 章鱼管家'
       await new Promise(r => setTimeout(r, 200))
     }
     return 'default marker never appeared'

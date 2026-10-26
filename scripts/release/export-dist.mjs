@@ -385,7 +385,7 @@ node <DSH_HOME>/profiles/web/node_modules/dsh-smart-assistant/bin/expert-setup.m
 node bootstrap.mjs
 \`\`\`
 
-前提：PATH 上有兼容的 \`dsh\`（或 \`--dsh <命令>\`）。脚本会：
+前提：PATH 上有兼容的 \`dsh\`（或 \`--dsh <命令>\`）和 Node 自带的 \`npm\`（脚本会先把目录打成 tarball 再装）。脚本会：
 
 - 在 \`--home\`（默认包目录旁的 \`assistant-data/\`）建隔离 \`DSH_HOME\`、workspace、agents-home、tmp；
 - 用 \`web\` 模板建 \`assistant-standalone\` profile，装当前包，设部署默认 \`assistant\`；
