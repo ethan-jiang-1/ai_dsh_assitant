@@ -13,7 +13,8 @@
    已发布 DSH CLI + 真实 tarball 走标准 `web` profile。模拟咬出并修掉三个只在标准安装出现的
    问题：client store 动态 require、品牌槽同优先级、以及 `bootstrap` 把解包目录当 link 导致
    profile 没有 `yaml`。修复后 Web 首屏正常、preset 选择探针通过、解包目录在仓外也能装配；
-   bootstrap 保留打包 tarball，profile 的 `file:` 依赖指向该保留件而不是已删临时目录。
+   bootstrap 保留打包 tarball，profile 的 `file:` 依赖指向该保留件而不是已删临时目录；
+   整个 home 搬移后重跑 bootstrap 会检测失效依赖、重建 profile，数据目录保留。
    **仍不是真人走查**：同一台机器、同一 OS 用户、自动化点击，口味与真实第二机留给本人。
 2. **冷 store 离线（模拟）**：空 store + `--offline` 在 `yaml` 解析处明确失败
    （`ERR_PNPM_NO_OFFLINE_META`）；同 store 在线预热后 remove → offline add 成功，数据目录不受影响。

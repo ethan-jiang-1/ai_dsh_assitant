@@ -394,6 +394,7 @@ node bootstrap.mjs
 \`--home\` 必须在包目录外；指向包内会被拒绝（数据不能混进 agent 物）。
 
 停止：\`node bootstrap.mjs --stop\`（用了 \`--home\` 就带同一个目录）；只建不启动：\`--no-start\`。
+搬移整个 home：先 \`mv\`，再对新路径跑一次 \`bootstrap --home <新路径> --no-start\`；脚本会重建 profile（配置/选择重置），两个数据目录保留。不要只 \`mv\` 后直接启动。
 离线：\`--offline\` 让 pnpm 走离线；前提是 pnpm/Corepack 本身已在机器上、\`yaml\` 已在 store/缓存。Corepack 首次下载 pnpm 仍需网络；冷缓存会明确失败。
 首次模型：新 home 没有凭据，在 Web UI 里配置 provider，或按你的部署方式提供。
 

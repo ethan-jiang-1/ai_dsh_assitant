@@ -54,7 +54,8 @@
 - `pnpm verify`（结构/身份/链接/兼容声明/标签）；
 - `pnpm release-smoke`（真实 tarball、干净 home、安装、组合、零写入）；
 - `pnpm upgrade-smoke`（升级/remove 的数据边界与重装）；
-- `pnpm standalone-smoke`（无 `.git` 目录、隔离 home、preflight、client 真 boot/preset UI、stop/restart；无 Chrome 时明确 skip）；
+- `pnpm web-install-smoke`（标准 web profile：干净 home 安装 → preflight → client boot/preset UI）；
+- `pnpm standalone-smoke`（无 `.git` 目录、隔离 home、preflight、client 真 boot/preset UI、stop/restart、搬移 home；无 Chrome 时明确 skip）；
 - `pnpm prompt-smoke`（无 key 回放 one-shot，断言四个 prompt 段落与六个工具进入请求）；
 - `pnpm compat-matrix -- --dsh <path> --version <v> --expect install|reject`（真实 DSH CLI 的安装/拒绝矩阵；干净 home，不调模型）；
 - `pnpm agent-preset-ui '<URL>'`（Web 选择，人工探针；不冒充自动门禁）。

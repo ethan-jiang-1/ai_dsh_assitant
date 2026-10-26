@@ -129,7 +129,8 @@ pnpm test               # vitest 全量：分层 spec（纯核+服务合同+agen
 pnpm verify             # 机械门禁链（覆盖面清单 = scripts/checks/verify.mjs）
 pnpm release-smoke      # pnpm pack → 干净 home → dsh plugin add → 组合断言（**改动发布物/依赖/preset 包装/工具面必跑**）
 pnpm upgrade-smoke      # 旧包→新包升级 + remove/re-add 后两目录数据保留（干净 home；发布物/数据面必跑）
-pnpm standalone-smoke   # 无 .git 提取包 → bootstrap → 隔离 home → preflight → stop（独立启动面必跑）
+pnpm standalone-smoke   # 无 .git 提取包 → bootstrap → 隔离 home → preflight → client boot/UI → stop（独立启动面必跑）
+pnpm web-install-smoke  # 标准 web profile：干净 home 安装 → preflight → client boot/preset UI（官方安装路径）
 pnpm prompt-smoke       # 无 key 回放一次 preset one-shot，断言四个 prompt 段落与六个工具真进了请求
 pnpm compat-matrix -- --dsh <path> --version <v> --expect install|reject   # 真实 DSH CLI 的下界/拒绝矩阵（干净 home）
 pnpm agent-preset-ui '<URL>'   # 运行中干净实例的 Web preset 选择探针（Settings → Agent 预设 → 章鱼管家）

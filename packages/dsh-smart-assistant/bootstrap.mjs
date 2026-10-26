@@ -15,7 +15,9 @@
  *
  * Prerequisites: a compatible `dsh` on PATH (or --dsh), Node's npm (packs this directory into a
  * tarball so the profile owns the package's `yaml` dependency), and that dependency obtainable
- * once (network or a warm pnpm store/cache; --offline makes that explicit).
+ * once (network or a warm pnpm store/cache; --offline makes that explicit). Moving the whole
+ * `--home` is supported by re-running this script: it detects the stale profile dependency,
+ * recreates the profile, and leaves the data directories alone.
  */
 import { spawn, spawnSync } from 'node:child_process'
 import { closeSync, existsSync, mkdirSync, openSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
@@ -124,7 +126,26 @@ function runDsh(args, label) {
 
 console.log(`bootstrap: home ${home}`)
 console.log(`bootstrap: profile ${profile}; dsh ${dsh}`)
-if (!existsSync(join(profileDir, 'package.json'))) {
+const profileManifestPath = join(profileDir, 'package.json')
+if (existsSync(profileManifestPath)) {
+  // A moved home leaves the profile manifest pointing at the old absolute tarball path.
+  // pnpm resolves that dependency before `plugin add`, so the profile cannot be repaired in
+  // place. The profile is bootstrap-owned; recreate it and leave the data dirs untouched.
+  let recorded
+  try {
+    recorded = JSON.parse(readFileSync(profileManifestPath, 'utf8')).dependencies?.['dsh-smart-assistant']
+  } catch {
+    recorded = undefined
+  }
+  const recordedPath = typeof recorded === 'string' && (recorded.startsWith('file:') || recorded.startsWith('link:'))
+    ? recorded.slice(recorded.indexOf(':') + 1)
+    : undefined
+  if (recordedPath !== undefined && !existsSync(recordedPath)) {
+    console.log('bootstrap: profile points at a missing package tarball (home moved?); recreating the profile; data dirs stay')
+    rmSync(profileDir, { recursive: true, force: true })
+  }
+}
+if (!existsSync(profileManifestPath)) {
   console.log('bootstrap: creating the profile from the shipped web template')
   runDsh(['--profile', profile, '--from-default-profile', 'web', '--dump-config'], 'create profile')
 }

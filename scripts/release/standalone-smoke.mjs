@@ -11,7 +11,7 @@
  * Exit 0 = instance started, preflight green, data under the chosen home, stop left no process.
  */
 import { spawnSync } from 'node:child_process'
-import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { mkTmpDir } from '../../dev/env/tmp.mjs'
@@ -148,6 +148,21 @@ try {
       try { process.kill(Number(second.pid), 0); secondAlive = true } catch { /* expected */ }
       if (secondAlive) fail(`restart process ${String(second.pid)} is still alive after stop`)
       else ok('restart service process is gone')
+    }
+
+    step('moving the home and repairing the profile')
+    const movedHome = join(root, 'data-moved')
+    renameSync(home, movedHome)
+    const repaired = bootstrap(['--home', movedHome, '--dsh', wrapper, '--no-start'], join(pkg, 'bootstrap.mjs'))
+    if (repaired.status !== 0) {
+      fail(`moved-home bootstrap failed: ${(repaired.stderr ?? repaired.stdout ?? '').trim().split('\n').slice(-8).join(' | ')}`)
+    } else {
+      const manifest = JSON.parse(readFileSync(join(movedHome, 'profiles', profile, 'package.json'), 'utf8'))
+      const dependency = manifest.dependencies?.['dsh-smart-assistant']
+      if (typeof dependency !== 'string' || !dependency.startsWith('file:')) fail('moved home did not record the repacked tarball')
+      else if (!existsSync(dependency.slice(5))) fail('moved home points at a missing profile tarball')
+      else if (!existsSync(join(movedHome, 'assistant'))) fail('moved home lost the working folder')
+      else ok('moved home recreated the profile and kept user data')
     }
   }
 } catch (error) {
