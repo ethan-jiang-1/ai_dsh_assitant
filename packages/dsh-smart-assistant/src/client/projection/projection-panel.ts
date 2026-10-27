@@ -246,8 +246,8 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
       .slice().sort((left, right) => right.submittedAt.localeCompare(left.submittedAt))
     : []
   // The activity feed (history views ③): every operation newest first, grouped by the viewer's
-  // local day, revealed progressively — the whole ledger is already downloaded, so revealing is
-  // pure rendering. The order and grouping rules live in the domain module.
+  // local day. The recent window reveals locally; older receipts come from the page route into
+  // `olderReceipts`. Order and grouping rules live in the domain module.
   const allReceipts = (() => {
     const seen = new Set<string>()
     return [...(data?.receipts ?? []), ...(view.olderReceipts ?? [])].filter(receipt => {

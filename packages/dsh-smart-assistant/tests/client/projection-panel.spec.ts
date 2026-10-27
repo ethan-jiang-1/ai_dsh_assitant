@@ -207,6 +207,17 @@ describe('global projection panel', () => {
     expect(text(ProjectionPanel(props))).toContain('办结的事B')
   })
 
+  it('offers the older-ledger button only when a page loader is wired', () => {
+    const value: ProjectionDownload = { status: 'ready', data: { schemaVersion: 2 as const, ledgerId: 'test', revision: 2, receipts: [
+      { operationId: 'op-1', matterId: 'a', sessionId: 's1', submittedAt: '2026-10-12T01:00:00.000Z', status: 'committed', revision: 1, kind: 'create' },
+    ], unclaimed: [], matters: [] } }
+    const view = createProjectionViewStore(defineStore).create()
+    view.actions.setMode('activity')
+    expect(text(ProjectionPanel(panelProps(value, view)))).not.toContain('加载更早账本')
+    const withLoader = { ...panelProps(value, view), loadOlderReceipts: async () => [] }
+    expect(text(ProjectionPanel(withLoader))).toContain('加载更早账本')
+  })
+
   it('activity mode renders the operations feed grouped newest-first and an entry click jumps to its matter (history views ③)', () => {
     const view = createProjectionViewStore(defineStore).create()
     view.actions.setMode('activity')
