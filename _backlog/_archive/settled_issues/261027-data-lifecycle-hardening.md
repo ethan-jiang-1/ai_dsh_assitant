@@ -100,7 +100,7 @@ opened: 2026-10-27
 | G32 | **`session` 证据链跨机断**：只恢复两目录后，账本里的 `sessionId` 在别处无对应会话 | 边界（sessions 宿主拥有） | 低 | 恢复整 home（含 sessions）才有原始会话；插件不复制/不删除 session，数据卡已声明 |
 | G33 | **`knowledge` sources / 账本 sessionId 无引用完整性检查** | 已修（knowledge sources）/ 边界（sessionId） | 低 | `page-source-missing` 查 `memory:`/`research:` 指针；sessionId 需宿主会话索引，插件不越界 |
 | G34 | **`Room.archive` 非事务**：先写 archive 再删 source，崩溃留两份 → curate `duplicate-id` | 已修 | 低 | 改为先 `rename` 到 archive 再改写 patch；崩溃留旧字段的单份，不产生两份；并发输家按已归档处理 |
-| G35 | **`ui-mode` 双源（host 文件 + localStorage）无版本/迁移** | 已修（v1 envelope） | 低 | host 文件写 `{version:1, mode}`；旧 `{mode}` 可读，下次写升级；未知 version 422 |
+| G35 | **`ui-mode` 双源（host 文件 + localStorage）无版本/迁移** | 已修（host v1 + client key v1） | 低 | host 文件写 `{version:1, mode}`；旧 `{mode}` 可读；client key 改 `dsha:ui-mode:v1` 并首次读旧 key 迁移 |
 | G36 | **备份含 `deliverables/` 无大小上限；import 可把任意大目录搬入** | 已修（告警 + 导入上限） | 低 | `check` >512 MiB 告警；`import --max-bytes` 默认 512 MiB 拒绝超大 bundle |
 | G37 | **import 不检查两目标嵌套/包含** | 已修 | 低 | 已加 containment 守卫 + 测试 |
 | G38 | **`assistant-data` 无 `--dry-run`/差异预览**：`--replace` 会整目录换掉，只留旁路 | 已修（dry-run + per-file 预览） | 中 | `import --dry-run` 报文件数、旁路目标与 add/replace/remove 文件列表；内容级 diff 不展开 |

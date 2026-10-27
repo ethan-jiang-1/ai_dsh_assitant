@@ -6,7 +6,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { bindUiModeRemote, getUiModeStore, initUiModeStore, isUiMode, setUiMode, UI_MODES, type ModeRemote, type UiMode } from '../../src/client/chrome/ui-mode'
 
 function storage(initial?: string) {
-  const values = new Map<string, string>(initial === undefined ? [] : [['dsha:ui-mode', initial]])
+  const values = new Map<string, string>(initial === undefined ? [] : [['dsha:ui-mode:v1', initial]])
   return {
     getItem: (key: string): string | null => values.get(key) ?? null,
     setItem: (key: string, value: string): void => { values.set(key, value) },
@@ -34,7 +34,7 @@ describe('ui mode store', () => {
     store.subscribe(listener)
     setUiMode('expert')
     expect(store.getSnapshot()).toBe('expert')
-    expect(box.values.get('dsha:ui-mode')).toBe('expert')
+    expect(box.values.get('dsha:ui-mode:v1')).toBe('expert')
     expect(listener).toHaveBeenCalledWith('expert')
   })
 

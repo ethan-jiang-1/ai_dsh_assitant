@@ -15,8 +15,9 @@ import { UI_MODES, isUiMode, type UiMode } from '../../domain/home/ui-mode'
 export { UI_MODES, isUiMode }
 export type { UiMode }
 
-/** The localStorage key; the settings document is the durable truth from M1 on. */
-const STORAGE_KEY = 'dsha:ui-mode'
+/** The versioned localStorage key; the old unversioned key is read once for migration. */
+const STORAGE_KEY = 'dsha:ui-mode:v1'
+const LEGACY_STORAGE_KEY = 'dsha:ui-mode'
 
 /** The narrow storage face a test can stand in for `localStorage`. */
 export interface ModeStorage {
@@ -54,8 +55,12 @@ function defaultStorage(): ModeStorage | undefined {
 
 function readStored(): UiMode {
   try {
-    const raw = (storage ?? defaultStorage())?.getItem(STORAGE_KEY)
-    return isUiMode(raw) ? raw : 'standard'
+    const box = storage ?? defaultStorage()
+    const raw = box?.getItem(STORAGE_KEY) ?? box?.getItem(LEGACY_STORAGE_KEY)
+    if (!isUiMode(raw)) return 'standard'
+    // Migrate on first read: the old key is no longer written, the new key carries the version.
+    if (box?.getItem(STORAGE_KEY) === null) writeStored(raw)
+    return raw
   } catch {
     return 'standard'
   }
