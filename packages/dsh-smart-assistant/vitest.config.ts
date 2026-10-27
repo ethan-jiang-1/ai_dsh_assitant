@@ -136,6 +136,14 @@ export default defineConfig({
     // under a parallel `pnpm start`/preflight load the 5s default turned that into a flake.
     // The timeout only bounds waiting for a real subprocess; it does not retry or sleep.
     testTimeout: 20_000,
+    // Report-only coverage: no thresholds, no gate. The report lands under the repo's
+    // temporary root (hard rule 8), so it is never mistaken for a tracked baseline.
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json-summary'],
+      reportsDirectory: fileURLToPath(new URL('.tmp/coverage', repositoryRoot)),
+      include: ['src/**/*.ts'],
+    },
     env: {
       TMPDIR: temporaryRoot,
       TMP: temporaryRoot,

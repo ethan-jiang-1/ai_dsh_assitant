@@ -24,6 +24,7 @@
     "clean": "pnpm --filter dsh-smart-assistant run clean",
     "build": "pnpm --filter dsh-smart-assistant run build",
     "test": "pnpm build && pnpm --filter dsh-smart-assistant run test",
+    "test:coverage": "pnpm build && pnpm --filter dsh-smart-assistant run test:coverage",
     "test:domain": "pnpm --filter dsh-smart-assistant exec vitest run tests/domain",
     "test:host": "pnpm --filter dsh-smart-assistant exec vitest run tests/host",
     "test:agent": "pnpm --filter dsh-smart-assistant exec vitest run tests/agent",

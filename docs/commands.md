@@ -15,6 +15,7 @@ pnpm build              # tsc 出 lib/ + tsdown 出 classic bundle：preset 行�
                         #    （忘了它的代价由 verify 的 build: 门禁抓；起服务时 start.sh 会先自证并自动补）
 pnpm typecheck          # 委派包级：tsc -b + 测试工程；跑完记得重跑 pnpm build（tsc 会覆盖 classic bundle）
 pnpm test               # vitest 全量：分层 spec（纯核+服务合同+agent/client/composition/tooling）
+pnpm test:coverage      # 同一套全量 + coverage 报告（落 .tmp/coverage；只报告，不设阈值）
 pnpm verify             # 机械门禁链（覆盖面清单 = scripts/checks/verify.mjs）
 ```
 

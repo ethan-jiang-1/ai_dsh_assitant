@@ -101,7 +101,7 @@
 
 ## 已定姿态与升级触发
 
-- **coverage**：新文件 per-file 100%，存量祖父豁免；先纪律后机器门（触发：第一处"删了才对"的死代码实证）。
+- **coverage**：`pnpm test:coverage` 只出报告（`.tmp/coverage`），不设阈值、不进门禁；新文件 per-file 100% 仍是人工纪律，存量祖父豁免；机器门触发 = 第一处"删了才对"的死代码实证。
 - **eval 节奏**：模型可见切片收尾 `--only` 聚焦跑，阶段收尾才全量。
 - **eval 阻断**：缺 key / 无会话日志 = **BLOCKED（exit 2）**，不并入 PASS/FAIL；判据见 [`dev.md`](dev.md) §四。
 - **模型可见面回归的适配声明**（DSH testing policy 对独立插件仓的适配义务）：段落合同由 agent spec 证明；`pnpm eval --only <task-id>` 证明该题的伤害地板、技能按名加载和回答正则，不证明段落已进入请求，也不证明领域质量；`repo-live-probe` 是**取证动作不是回归资产**（复现「模型没看见」时用）；session 回放维持触发条件制（触发未到不预建，owner `snapshots/README.md`）。
