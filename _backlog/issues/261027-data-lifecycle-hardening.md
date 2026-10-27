@@ -21,7 +21,7 @@ opened: 2026-10-27
 | B | G20 更老手册再生 | 已完成 | `assistant-data refresh-manual --assistant --yes` 先备份再渲染当前版；`assistant-data-manual.spec.mjs` |
 | C | G38 导入 dry-run | 已完成 | `import --dry-run` 只校验并报计划，不写；`assistant-data.spec.mjs` |
 | D | G18 夹具默认权威 | 已完成 | 默认 404；`assistant-desk-projection.allowFixture` 显式开启；测试/组合/探针 patch 已更新 |
-| E | G16 用户手改 CAS / digest 外部编辑 | 待开始 | 写前版本/内容前置或 mtime 失效；测试 |
+| E | G16 用户手改 CAS / digest 外部编辑 | 部分（digest 外部编辑已修；CAS 未取） | `digestSnapshotNow` 按房间文件 size/mtime fingerprint 失效并后台刷新；`tests/host/digest-external-edit.spec.ts`；写前 CAS 仍未取 |
 | F | G17/G23/G25 retention | 待开始 | 只读计数/告警 + 显式清理；不自动删 |
 | G | G22 deliverables/present | 待开始 | 手册 generation 迁移加交付指引；prompt-smoke/eval |
 | H | G24/G33/G34 | 待开始 | 锁 takeover/CAS、source 引用完整性、archive 事务；按可观察触发 |
@@ -81,7 +81,7 @@ opened: 2026-10-27
 | G13 | **没有硬删除/擦除**：forget/deprecate/retire/discard 都进 archive 或留原地，审计与账本永久保留 | 已修（房间记录；账本/会话仍不删） | 高（隐私/合规） | `assistant-data purge` 删 active/archive/snapshot 并写 `audit/purges.jsonl`；账本 history 与会话是明示边界 |
 | G14 | **没有跨机合并/同步**：import 是整目录 replace，两份 home 不能 merge，冲突无策略 | 未取 | 中 | 触发：第二个真实设备/团队共享。先做 dry-run + 冲突报告，再考虑 git/外部同步 |
 | G15 | **备份无加密/签名**：bundle 是明文业务数据，导入不验签 | 未取 | 中（部署/隐私） | 触发：备份上云/跨人传递。至少文档声明"备份是明文"，加密包另立提案 |
-| G16 | **用户手改与插件写冲突**：read-modify-write 无 CAS；未知 frontmatter 字段在下次写时被丢弃；digest 缓存看不见外部编辑 | 部分（未知字段已保留） | 中 | `Room.write` 已 merge 未知字段；CAS/digest mtime 失效仍未取。触发：真实用户手改后丢内容 |
+| G16 | **用户手改与插件写冲突**：read-modify-write 无 CAS；未知 frontmatter 字段在下次写时被丢弃；digest 缓存看不见外部编辑 | 部分（未知字段 + digest 外部编辑已修） | 中 | `Room.write` 保留未知字段；`digestSnapshotNow` 按 size/mtime fingerprint 后台刷新；写前 CAS 仍未取。触发：真实用户手改后丢内容 |
 | G17 | **归档/审计/提案无 retention**：`operations-archive.jsonl`、`approvals.jsonl`、房间 archive、skills archive、skill-proposals 都只增；只有 skill snapshots 保 3 份 | 未取（check 告警已加） | 中 | `check` 在归档 >64 MiB、approvals >16 MiB 时告警；自动轮转/删除未取 |
 | G18 | **`desk-projection.json` 夹具可在无账本时冒充真桌面** | 已修 | 中 | 默认 404；`allowFixture: true` 才回退；测试/组合/探针 patch 已更新 |
 | G19 | **投影 receipts 只含最近窗口**：旧回执不在桌面，客户端若要读旧回执需走工具 | 未取（合同已写） | 低 | 旧回执经 `assistant_operating read operation_id` 可读；若客户端需要，再做分页 |
@@ -108,7 +108,7 @@ opened: 2026-10-27
 ## 仍未取（按触发排序）
 
 - **G14/G15 同步与备份加密**：跨机/上云的真实需求出现再做；G38 的 dry-run 已给恢复前预览，合并/加密仍开放。
-- **G16 用户手改 CAS**：未知字段已保留；read-modify-write 前置与 digest 外部编辑刷新仍未取。
+- **G16 用户手改 CAS**：未知字段与 digest 外部编辑已修；read-modify-write 前置仍未取。
 - **G17/G23/G25 retention**：`check` 只读告警已有，自动轮转/删除未取。
 - **G19 投影 receipts 窗口**：合同已写，客户端旧回执分页未取。
 - **G22 deliverables**：手册加 `present` 指引前，不新造交付目录。

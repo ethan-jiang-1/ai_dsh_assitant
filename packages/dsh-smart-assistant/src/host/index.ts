@@ -133,6 +133,8 @@ export class AssistantMemory extends Service implements HomeHost {
    * cache still returns the status blurb, so the model always learns that the home exists.
    */
   digestCache: DigestResult | undefined
+  /** Fingerprint of the room files the cache was rendered from; a hand edit changes it. */
+  digestFingerprint: string | undefined
   prewarmPromise: Promise<void> | undefined
 
   /**

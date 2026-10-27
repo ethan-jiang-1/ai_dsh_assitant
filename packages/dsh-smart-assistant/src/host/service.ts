@@ -46,6 +46,7 @@ export interface HomeHost {
   readonly maintenanceEveryRounds: number
   readonly goalProposalTurns: boolean
   digestCache: DigestResult | undefined
+  digestFingerprint: string | undefined
   prewarmPromise: Promise<void> | undefined
   ensureHome(): Promise<ScaffoldResult>
   digest(): Promise<DigestResult>

@@ -8,8 +8,9 @@
  *
  * @module
  */
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
+import { join } from 'node:path'
 import type { AssistantMemory } from './service.ts'
 import { renderDigest, type DigestResult } from '../domain/home/digest.ts'
 import { compareFindings, curateHome, type CurationBrief } from '../domain/home/health.ts'
@@ -55,12 +56,39 @@ function rootFileSnapshot(path: string, fallback: string, cap: number): string {
 }
 
 /**
+ * A cheap identity of the active room files the digest is rendered from. The home is user-editable:
+ * a file changed outside the tools must invalidate the cached desktop on the next prompt, or the
+ * model keeps reading a stale view. Archive files are excluded because the digest never lists them.
+ * @param host - The home service whose room files are fingerprinted.
+ * @returns A stable string that changes on a file add/remove/size/mtime change.
+ */
+function digestFingerprintOf(host: AssistantMemory): string {
+  const parts: string[] = []
+  for (const directory of [host.paths.memoryDir, host.paths.researchDir, host.paths.knowledgeDir]) {
+    let names: string[]
+    try {
+      names = readdirSync(directory).filter(name => name.endsWith('.md')).sort()
+    } catch {
+      continue
+    }
+    for (const name of names) {
+      try {
+        const info = statSync(join(directory, name))
+        parts.push(`${directory}/${name}:${String(info.size)}:${String(info.mtimeMs)}`)
+      } catch { /* a file removed between readdir and stat is simply absent from the next render */ }
+    }
+  }
+  return parts.join('|')
+}
+
+/**
  * Invalidate the digest cache after a write and refresh it in the background, so the next request
  * sees the home as it is now rather than as it was.
  * @param host - The home service whose digest cache is invalidated.
  */
 export function touchDigest(host: AssistantMemory): void {
   host.digestCache = undefined
+  host.digestFingerprint = undefined
   void digestNow(host).catch((error: unknown) => {
     host.ctx.logger.warn(`assistant home digest refresh failed: ${String(error)}`)
   })
@@ -83,6 +111,7 @@ export async function digestNow(host: AssistantMemory): Promise<DigestResult> {
     maxBytes: host.digestMaxBytes,
   })
   host.digestCache = result
+  host.digestFingerprint = digestFingerprintOf(host)
   return result
 }
 
@@ -93,11 +122,16 @@ export async function digestNow(host: AssistantMemory): Promise<DigestResult> {
  * @returns The cached digest text, or the status blurb while the first rendering is in flight.
  */
 export function digestSnapshotNow(host: AssistantMemory): string {
-  if (host.digestCache !== undefined) return host.digestCache.text
+  // A hand edit is invisible to `touchDigest`; the fingerprint is the cheap bridge. The stale
+  // cache is still returned for the request that notices the change while the async refresh runs;
+  // the next request sees the fresh render.
+  if (host.digestCache !== undefined && host.digestFingerprint === digestFingerprintOf(host)) {
+    return host.digestCache.text
+  }
   void digestNow(host).catch((error: unknown) => {
     host.ctx.logger.warn(`assistant home digest refresh failed: ${String(error)}`)
   })
-  return HOME_STATUS_BLURB
+  return host.digestCache?.text ?? HOME_STATUS_BLURB
 }
 
 /**
