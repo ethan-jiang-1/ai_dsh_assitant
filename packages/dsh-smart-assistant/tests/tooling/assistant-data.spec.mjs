@@ -112,6 +112,27 @@ describe('assistant-data', () => {
     })).rejects.toThrow('must not nest')
   })
 
+  it('dry run reports what replace would stash and writes nothing', async () => {
+    const source = sourceFixture()
+    const outDir = join(temp('data-out-'), 'bundle')
+    await exportData({ ...source, outDir })
+    const target = temp('data-dry-')
+    const assistantDir = join(target, 'assistant')
+    const operatingDir = join(target, 'assistant-operating')
+    mkdirSync(assistantDir, { recursive: true })
+    mkdirSync(operatingDir, { recursive: true })
+    writeFileSync(join(assistantDir, 'existing.md'), 'keep\n', 'utf8')
+    writeFileSync(join(operatingDir, 'ledger.json'), '{}\n', 'utf8')
+
+    const plan = await importData({ inDir: outDir, assistantDir, operatingDir, replace: true, dryRun: true })
+    expect(plan).toMatchObject({ dryRun: true, assistantFiles: 2, operatingFiles: 1, backups: [] })
+    expect(plan.wouldStash).toEqual([assistantDir, operatingDir])
+    expect(readFileSync(join(assistantDir, 'existing.md'), 'utf8')).toBe('keep\n')
+    expect(readFileSync(join(operatingDir, 'ledger.json'), 'utf8')).toBe('{}\n')
+
+    await expect(importData({ inDir: outDir, assistantDir, operatingDir, dryRun: true })).rejects.toThrow('not empty')
+  })
+
   it('restores over a scaffolded home with replace and keeps the old directories beside it', async () => {
     const source = sourceFixture()
     const outDir = join(temp('data-out-'), 'bundle')

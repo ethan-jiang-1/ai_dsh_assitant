@@ -125,6 +125,8 @@ export interface DataImportOptions {
    * `<dir>.pre-import-<id>` before the import (never deleted); a failed import restores it.
    */
   readonly replace?: boolean
+  /** Validate and report what would be imported, without changing anything. */
+  readonly dryRun?: boolean
 }
 
 /** Result of an import. */
@@ -133,6 +135,10 @@ export interface DataImportResult {
   readonly operatingFiles: number
   /** Sibling backups created by `replace`, in the order they were stashed. */
   readonly backups: readonly string[]
+  /** True on a dry run; nothing was written. */
+  readonly dryRun?: true
+  /** On a dry run with `replace`, the targets that would be moved aside. */
+  readonly wouldStash?: readonly string[]
 }
 
 /** One owned directory as `status` sees it. */
@@ -630,6 +636,28 @@ export async function importData(options: DataImportOptions): Promise<DataImport
   }
   if (existsSync(join(operatingDir, 'writer.lock'))) {
     throw new Error(`assistant-data: a writer.lock exists at ${join(operatingDir, 'writer.lock')}; stop the instance before importing`)
+  }
+
+  if (options.dryRun === true) {
+    // Same validation as a real import, but only report. A non-empty target still needs
+    // `replace`; the caller sees the exact directories that would be moved aside.
+    const wouldStash: string[] = []
+    for (const path of [assistantDir, operatingDir]) {
+      if (!existsSync(path)) continue
+      const info = await lstat(path)
+      if (info.isSymbolicLink()) throw new Error(`assistant-data: import destination is a symbolic link: ${path}`)
+      if (!info.isDirectory()) throw new Error(`assistant-data: import destination is not a directory: ${path}`)
+      if ((await readdir(path)).length === 0) continue
+      if (options.replace !== true) throw new Error(`assistant-data: import destination is not empty: ${path}`)
+      wouldStash.push(path)
+    }
+    return {
+      assistantFiles: sourceAssistantCount.files,
+      operatingFiles: sourceOperatingCount.files,
+      backups: [],
+      dryRun: true,
+      wouldStash,
+    }
   }
 
   const suffix = `${process.pid.toString(36)}-${Date.now().toString(36)}`
