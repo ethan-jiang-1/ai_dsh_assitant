@@ -65,7 +65,8 @@ Viki 的 API key 从 `apiKeyEnv`（默认 `OPENVIKING_API_KEY`）读；内联 `a
 - **备份/恢复**：`assistant-data` 只带这两个目录，排除 `writer.lock` / `*.tmp`，拒绝符号链接；import 要求实例已停止。
   首次启动前目标为空即可直接 import；已经启动过的 home 先 `import --replace --dry-run` 看计划，再用 `--replace`
   把现有目录移到 `.pre-import-*` 旁路。手动 `cp -R` 也要先删掉备份里的 `writer.lock`，并另备 sessions/credentials。
-- **诊断/擦除**：`assistant-data status` 报路径/大小/手册 generation/账本健康/归档操作数；`check` 再报相对路径、
+- **诊断/擦除**：`assistant-data status` 报路径/大小/手册 generation/账本健康/归档操作数，以及 memory/research/skills
+  archive、提案收件箱、approvals 的 retention 读数（只读）；`check` 再报相对路径、
   坏 ledger/归档行、旧手册与符号链接，有问题以非零退出。`purge --kind ... --id ... --reason ... --yes`
   是显式硬删除：删 active/archive/snapshot 副本，并向 `audit/purges.jsonl` 写审计；不删 sessions/账本历史。
   `refresh-manual --yes` 先把 `AGENTS.md` 备份为 `.bak-*` 再写入当前 generation，供迁移表覆盖不到的旧手册。

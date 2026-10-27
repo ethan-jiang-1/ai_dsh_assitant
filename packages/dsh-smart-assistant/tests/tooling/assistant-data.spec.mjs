@@ -190,6 +190,31 @@ describe('assistant-data', () => {
     expect(missing.ledger.state).toBe('missing')
   })
 
+  it('reports retention counts without deleting anything', async () => {
+    const target = temp('data-retention-')
+    const assistantDir = join(target, 'assistant')
+    const operatingDir = join(target, 'assistant-operating')
+    mkdirSync(join(assistantDir, 'memory', 'archive'), { recursive: true })
+    mkdirSync(join(assistantDir, 'research', 'archive'), { recursive: true })
+    mkdirSync(join(assistantDir, 'skills', 'archive'), { recursive: true })
+    mkdirSync(join(assistantDir, 'skill-proposals'), { recursive: true })
+    mkdirSync(join(assistantDir, 'audit'), { recursive: true })
+    writeFileSync(join(assistantDir, 'memory', 'archive', 'old.md'), 'old\n', 'utf8')
+    writeFileSync(join(assistantDir, 'research', 'archive', 'old.md'), 'old\n', 'utf8')
+    writeFileSync(join(assistantDir, 'skills', 'archive', 'old.md'), 'old\n', 'utf8')
+    writeFileSync(join(assistantDir, 'skill-proposals', 'old.md'), 'old\n', 'utf8')
+    writeFileSync(join(assistantDir, 'audit', 'approvals.jsonl'), '{}\n\n{"at":"x"}\n', 'utf8')
+    mkdirSync(operatingDir, { recursive: true })
+
+    const status = await statusData({ assistantDir, operatingDir })
+    expect(status.retention.memoryArchive.files).toBe(1)
+    expect(status.retention.researchArchive.files).toBe(1)
+    expect(status.retention.skillsArchive.files).toBe(1)
+    expect(status.retention.skillProposals.files).toBe(1)
+    expect(status.retention.approvals).toEqual({ bytes: expect.any(Number), lines: 2 })
+    expect(readFileSync(join(assistantDir, 'memory', 'archive', 'old.md'), 'utf8')).toBe('old\n')
+  })
+
   it('check names relative paths, a stale manual, a corrupt ledger and symlinks', async () => {
     const target = temp('data-check-')
     const assistantDir = join(target, 'assistant')

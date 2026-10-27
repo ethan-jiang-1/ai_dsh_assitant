@@ -94,6 +94,11 @@ try {
       : status.ledger.state === 'ok'
         ? `  ledger.json: v${String(status.ledger.version)} state, ${String(status.ledger.bytes)} byte(s), ${String(status.ledger.operations)} recent operation(s)`
         : `  ledger.json: unreadable or not a v1 state (${String(status.ledger.bytes)} byte(s)) — back it up before repairing`)
+    const retention = status.retention
+    console.log(`  retention: memory archive ${String(retention.memoryArchive.files)} file(s)/${String(retention.memoryArchive.bytes)} B; research archive ${String(retention.researchArchive.files)}/${String(retention.researchArchive.bytes)} B; skills archive ${String(retention.skillsArchive.files)}/${String(retention.skillsArchive.bytes)} B; proposals ${String(retention.skillProposals.files)} file(s)`)
+    if (retention.approvals !== undefined) {
+      console.log(`  approvals.jsonl: ${String(retention.approvals.lines)} line(s), ${String(retention.approvals.bytes)} byte(s)`)
+    }
     if (status.archive !== undefined) {
       console.log(`  operations-archive.jsonl: ${String(status.archive.operations)} archived operation(s), ${String(status.archive.bytes)} byte(s), ${String(status.archive.corruptLines)} bad line(s)`)
     }

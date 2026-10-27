@@ -158,6 +158,15 @@ export interface DataLedgerStatus {
   readonly operations?: number
 }
 
+/** Retention readings for the append-only parts of the working folder. */
+export interface DataRetentionStatus {
+  readonly memoryArchive: DataTreeStatus
+  readonly researchArchive: DataTreeStatus
+  readonly skillsArchive: DataTreeStatus
+  readonly skillProposals: DataTreeStatus
+  readonly approvals?: { readonly bytes: number, readonly lines: number }
+}
+
 /** A read-only snapshot of the two owned directories, for deployment support. */
 export interface DataStatus {
   readonly assistantDir: string
@@ -165,6 +174,8 @@ export interface DataStatus {
   readonly assistant: DataTreeStatus & { readonly manualVersion?: number }
   readonly operating: DataTreeStatus
   readonly ledger: DataLedgerStatus
+  /** Append-only surfaces an operator may want to rotate; counts only, never a deletion plan. */
+  readonly retention: DataRetentionStatus
   /** The append-only operation history, when a compacted ledger has one. */
   readonly archive?: { readonly bytes: number, readonly operations: number, readonly corruptLines: number }
 }
@@ -396,12 +407,26 @@ export async function statusData(options: { readonly assistantDir: string, reado
     const parsed = parseOperationsArchive(await readFile(archivePath, 'utf8'))
     archive = { bytes, operations: parsed.records.length, corruptLines: parsed.corruptLines }
   }
+  const retention: DataRetentionStatus = {
+    memoryArchive: await treeStatus(join(assistantDir, 'memory', 'archive')),
+    researchArchive: await treeStatus(join(assistantDir, 'research', 'archive')),
+    skillsArchive: await treeStatus(join(assistantDir, 'skills', 'archive')),
+    skillProposals: await treeStatus(join(assistantDir, 'skill-proposals')),
+  }
+  const approvalsPath = join(assistantDir, 'audit', 'approvals.jsonl')
+  const approvals = existsSync(approvalsPath)
+    ? {
+        bytes: (await stat(approvalsPath)).size,
+        lines: (await readFile(approvalsPath, 'utf8')).split('\n').filter(line => line.trim() !== '').length,
+      }
+    : undefined
   return {
     assistantDir,
     operatingDir,
     assistant: { ...assistant, ...(manualVersion === undefined ? {} : { manualVersion }) },
     operating,
     ledger,
+    retention: { ...retention, ...(approvals === undefined ? {} : { approvals }) },
     ...(archive === undefined ? {} : { archive }),
   }
 }
@@ -447,9 +472,11 @@ export async function checkData(options: { readonly assistantDir: string, readon
   if (existsSync(fixture)) {
     problems.push(`desk-projection.json fixture is present at ${fixture}; it is served only when allowFixture is true — remove it unless this home is an evaluation fixture`)
   }
-  const approvals = join(status.assistantDir, 'audit', 'approvals.jsonl')
-  if (existsSync(approvals) && (await stat(approvals)).size > APPROVALS_WARN_BYTES) {
-    problems.push(`approval ledger is larger than ${String(APPROVALS_WARN_BYTES)} byte(s); archive/rotate ${approvals}`)
+  if (status.retention.approvals !== undefined && status.retention.approvals.bytes > APPROVALS_WARN_BYTES) {
+    problems.push(`approval ledger is larger than ${String(APPROVALS_WARN_BYTES)} byte(s); archive/rotate ${join(status.assistantDir, 'audit', 'approvals.jsonl')}`)
+  }
+  if (status.retention.skillProposals.files > 200) {
+    problems.push(`skill-proposals inbox has ${String(status.retention.skillProposals.files)} file(s); archive landed/rejected proposals`)
   }
   if (status.assistant.manualVersion !== undefined
     && status.assistant.manualVersion > 0
