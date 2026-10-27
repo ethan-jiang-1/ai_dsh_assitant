@@ -24,7 +24,7 @@ opened: 2026-10-27
 | E | G16 用户手改 CAS / digest 外部编辑 | 部分（digest 外部编辑已修；CAS 未取） | `digestSnapshotNow` 按房间文件 size/mtime fingerprint 失效并后台刷新；`tests/host/digest-external-edit.spec.ts`；写前 CAS 仍未取 |
 | F | G17/G23/G25 retention | 部分（读数/告警） | `status`/`check` 报 archive/approvals/proposals 读数与阈值；自动轮转/删除未取 |
 | G | G22 deliverables/present | 已完成 | manual v21 加「交付写 cwd + `present`」；v20→v21 迁移；prompt-smoke PASS / eval 无 key 未跑 |
-| H | G24/G33/G34 | 部分（G33） | G33 knowledge source 引用完整性已查；G24 锁 takeover、G34 archive 事务待做 |
+| H | G24/G33/G34 | 部分（G33/G34） | G33 source 引用完整性、G34 archive 先移后改写已落；G24 锁 takeover/PID 待做 |
 
 
 ## 外部结果三要素
@@ -99,7 +99,7 @@ opened: 2026-10-27
 | G31 | **模型/备份 egress**：working folder/账本进 prompt、进备份，含业务敏感内容；无逐字段 consent/脱敏 | 边界 | 中 | 产品信任模型；README/数据卡声明明文与去向，秘密不入库 |
 | G32 | **`session` 证据链跨机断**：只恢复两目录后，账本里的 `sessionId` 在别处无对应会话 | 未取（文档已写） | 低 | 恢复整 home（含 sessions）才有原始会话；账本 quote 仍在 |
 | G33 | **`knowledge` sources / 账本 sessionId 无引用完整性检查** | 部分（knowledge sources） | 低 | `page-source-missing` 查 `memory:`/`research:` 指针；账本 material 的 sessionId 跨机失效仍不查 |
-| G34 | **`Room.archive` 非事务**：先写 archive 再删 source，崩溃留两份 → curate `duplicate-id` | 未取 | 低 | 可恢复的重复，不是丢失；可加 idempotent 收编 |
+| G34 | **`Room.archive` 非事务**：先写 archive 再删 source，崩溃留两份 → curate `duplicate-id` | 已修 | 低 | 改为先 `rename` 到 archive 再改写 patch；崩溃留旧字段的单份，不产生两份；并发输家按已归档处理 |
 | G35 | **`ui-mode` 双源（host 文件 + localStorage）无版本/迁移** | 未取 | 低 | host 为真；坏文件 422，客户端保留本地；低风险 |
 | G36 | **备份含 `deliverables/` 无大小上限；import 可把任意大目录搬入** | 未取 | 低 | 触发：备份膨胀。先 `status` 报大小，不做自动裁剪 |
 | G37 | **import 不检查两目标嵌套/包含** | 已修 | 低 | 已加 containment 守卫 + 测试 |
@@ -111,7 +111,7 @@ opened: 2026-10-27
 - **G16 用户手改 CAS**：未知字段与 digest 外部编辑已修；read-modify-write 前置仍未取。
 - **G17/G23/G25 retention**：`status`/`check` 只读读数与告警已有；自动轮转/删除、proposal archive 与归档索引未取。
 - **G19 投影 receipts 窗口**：合同已写，客户端旧回执分页未取。
-- **G24/G34**：锁 takeover/PID 与 archive 事务；G33 的 knowledge source 已查，账本 sessionId 仍不查。
+- **G24**：锁 takeover/PID 复用；G33 的 knowledge source / G34 的 archive 事务已修，账本 sessionId 仍不查。
 - **G26/G27/G32/G35/G36**：OV sentinel、种子凭据、跨会话证据、ui-mode 版本、备份大小，低优先。
 - **G28/G29/G30/G31 边界**：单 principal/home、无 workspace 键、Windows 未验证、明文 egress；文档已写，主张变了再改。
 

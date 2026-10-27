@@ -12,7 +12,7 @@
  * @module dsh-smart-assistant/home/room
  */
 
-import { mkdir, readdir, readFile, rm } from 'node:fs/promises'
+import { mkdir, readdir, readFile, rename, rm } from 'node:fs/promises'
 import { join } from 'node:path'
 import { atomicWriteFile } from './atomic-write.ts'
 import { parseFrontmatterDocument, renderFrontmatterDocument } from './frontmatter.ts'
@@ -149,9 +149,26 @@ export class Room {
     if (entry === undefined) return false
     await mkdir(this.archiveDir, { recursive: true, mode: 0o700 })
     const target = join(this.archiveDir, `${id}${ENTRY_SUFFIX}`)
-    const data = { ...entry.data, ...patch }
-    await atomicWriteFile(target, renderFrontmatterDocument(data, entry.body))
-    await rm(entry.path, { force: true })
+    // Move first, rewrite second: a crash between the two leaves the record in the archive with
+    // its old fields, never two copies (the old write-target-then-remove-source window let a crash
+    // leave a duplicate and a later `curate` report duplicate-id). A concurrent archiver that loses
+    // the rename has already achieved the move and is not an error.
+    try {
+      await rename(entry.path, target)
+    } catch (error) {
+      const code = (error as NodeJS.ErrnoException).code
+      if (code === 'ENOENT') return true
+      if (code === 'EEXIST' || code === 'EPERM') {
+        await rm(target, { force: true })
+        await rename(entry.path, target)
+      } else {
+        throw error
+      }
+    }
+    if (Object.keys(patch).length > 0) {
+      const data = { ...entry.data, ...patch }
+      await atomicWriteFile(target, renderFrontmatterDocument(data, entry.body))
+    }
     return true
   }
 
