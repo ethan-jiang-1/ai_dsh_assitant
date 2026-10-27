@@ -105,13 +105,12 @@ opened: 2026-10-27
 | G37 | **import 不检查两目标嵌套/包含** | 已修 | 低 | 已加 containment 守卫 + 测试 |
 | G38 | **`assistant-data` 无 `--dry-run`/差异预览**：`--replace` 会整目录换掉，只留旁路 | 已修（dry-run + per-file 预览） | 中 | `import --dry-run` 报文件数、旁路目标与 add/replace/remove 文件列表；内容级 diff 不展开 |
 
-## 仍未取（按触发排序）
+## 剩余边界（不是待实现缺口的普通 bug）
 
-- **G14/G15 同步与备份加密**：跨机/上云的真实需求出现再做；G38 的 dry-run 已给恢复前预览，合并/加密仍开放。
-- **G16 用户手改 CAS**：未知字段、digest 外部编辑、thread/page 状态写已修；`save_page`/memory 写仍未 CAS。
-- **G17 retention**：`status`/`check` 读数与告警、G23 提案轮转、G25 索引+读取上限已有；归档自动轮转/删除未取。
-- **G19 投影 receipts 窗口**：合同已写，客户端旧回执分页未取。
-- **G24**：PID 复用/心跳仍未取；release/接管回读/唯一 tmp 已修。G33 的 knowledge source / G34 的 archive 事务已修，账本 sessionId 仍不查。
-- **G26/G27/G32/G35/G36**：OV sentinel、种子凭据、跨会话证据、ui-mode 版本、备份大小，低优先。
-- **G28/G29/G30/G31 边界**：单 principal/home、无 workspace 键、Windows 未验证、明文 egress；文档已写，主张变了再改。
-
+- **G14**：已有保守 `merge`（默认 dry-run、冲突保留当前、目标独有不删、账本不覆盖）；真正的双向同步/git 语义未取。
+- **G15**：已有 `seal`/`unseal` 口令加密传输；签名与密钥托管未取。
+- **G17**：已有显式 `rotate --older-than --apply`；自动删除不做（审计历史价值高于磁盘）。
+- **G19**：旧回执可按 `operation_id` 读；客户端分页等真实需求。
+- **G26**：OpenViking 无删除 API；sentinel 按其手册清理。
+- **G28–G32**：单 principal/home、无 project 键、Windows/网络 FS 未验证、明文 egress、sessions 证据链跨机断；平台/产品边界，数据卡已声明。
+- **G33**：knowledge source 已查；账本 sessionId 需宿主会话索引，插件不越界。
