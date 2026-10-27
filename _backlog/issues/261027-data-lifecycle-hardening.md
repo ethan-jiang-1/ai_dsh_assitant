@@ -21,7 +21,7 @@ opened: 2026-10-27
 | B | G20 更老手册再生 | 已完成 | `assistant-data refresh-manual --assistant --yes` 先备份再渲染当前版；`assistant-data-manual.spec.mjs` |
 | C | G38 导入 dry-run | 已完成 | `import --dry-run` 只校验并报计划，不写；`assistant-data.spec.mjs` |
 | D | G18 夹具默认权威 | 已完成 | 默认 404；`assistant-desk-projection.allowFixture` 显式开启；测试/组合/探针 patch 已更新 |
-| E | G16 用户手改 CAS / digest 外部编辑 | 部分（digest 外部编辑已修；CAS 未取） | `digestSnapshotNow` 按房间文件 size/mtime fingerprint 失效并后台刷新；`tests/host/digest-external-edit.spec.ts`；写前 CAS 仍未取 |
+| E | G16 用户手改 CAS / digest 外部编辑 | 部分（digest + thread/page CAS） | `digestSnapshotNow` 按 size/mtime fingerprint 刷新；`Room.write` 支持 raw-text CAS，线索更新与知识状态翻转已传入；`save_page`/memory 写仍未 CAS |
 | F | G17/G23/G25 retention | 部分（读数/告警/索引/提案轮转） | `status`/`check` 报读数与阈值；G25 归档回执 O(1) 索引；`archive-proposals` 显式轮转 landed/rejected；自动轮转/删除未取 |
 | G | G22 deliverables/present | 已完成 | manual v21 加「交付写 cwd + `present`」；v20→v21 迁移；prompt-smoke PASS / eval 无 key 未跑 |
 | H | G24/G33/G34 | 部分（G24/G33/G34） | G33 source 引用完整性、G34 archive 先移后改写、G24 release 只删自己的锁/接管回读/唯一 tmp 已落；PID 复用与 heartbeat 未取 |
@@ -81,7 +81,7 @@ opened: 2026-10-27
 | G13 | **没有硬删除/擦除**：forget/deprecate/retire/discard 都进 archive 或留原地，审计与账本永久保留 | 已修（房间记录；账本/会话仍不删） | 高（隐私/合规） | `assistant-data purge` 删 active/archive/snapshot 并写 `audit/purges.jsonl`；账本 history 与会话是明示边界 |
 | G14 | **没有跨机合并/同步**：import 是整目录 replace，两份 home 不能 merge，冲突无策略 | 未取 | 中 | 触发：第二个真实设备/团队共享。先做 dry-run + 冲突报告，再考虑 git/外部同步 |
 | G15 | **备份无加密/签名**：bundle 是明文业务数据，导入不验签 | 未取 | 中（部署/隐私） | 触发：备份上云/跨人传递。至少文档声明"备份是明文"，加密包另立提案 |
-| G16 | **用户手改与插件写冲突**：read-modify-write 无 CAS；未知 frontmatter 字段在下次写时被丢弃；digest 缓存看不见外部编辑 | 部分（未知字段 + digest 外部编辑已修） | 中 | `Room.write` 保留未知字段；`digestSnapshotNow` 按 size/mtime fingerprint 后台刷新；写前 CAS 仍未取。触发：真实用户手改后丢内容 |
+| G16 | **用户手改与插件写冲突**：read-modify-write 无 CAS；未知 frontmatter 字段在下次写时被丢弃；digest 缓存看不见外部编辑 | 部分（未知字段 + digest + thread/page CAS） | 中 | `Room.write` 保留未知字段并支持 raw-text CAS；线索更新/知识状态翻转传入 expected text；`save_page`/memory 写仍未 CAS |
 | G17 | **归档/审计/提案无 retention**：`operations-archive.jsonl`、`approvals.jsonl`、房间 archive、skills archive、skill-proposals 都只增；只有 skill snapshots 保 3 份 | 部分（读数/告警） | 中 | `status` 报各 archive/approvals/proposals 数量；`check` 在归档 >64 MiB、approvals >16 MiB、提案 >200 时告警；自动轮转/删除未取 |
 | G18 | **`desk-projection.json` 夹具可在无账本时冒充真桌面** | 已修 | 中 | 默认 404；`allowFixture: true` 才回退；测试/组合/探针 patch 已更新 |
 | G19 | **投影 receipts 只含最近窗口**：旧回执不在桌面，客户端若要读旧回执需走工具 | 未取（合同已写） | 低 | 旧回执经 `assistant_operating read operation_id` 可读；若客户端需要，再做分页 |
@@ -108,7 +108,7 @@ opened: 2026-10-27
 ## 仍未取（按触发排序）
 
 - **G14/G15 同步与备份加密**：跨机/上云的真实需求出现再做；G38 的 dry-run 已给恢复前预览，合并/加密仍开放。
-- **G16 用户手改 CAS**：未知字段与 digest 外部编辑已修；read-modify-write 前置仍未取。
+- **G16 用户手改 CAS**：未知字段、digest 外部编辑、thread/page 状态写已修；`save_page`/memory 写仍未 CAS。
 - **G17/G25 retention**：`status`/`check` 读数与告警、G25 索引、G23 提案轮转已有；自动轮转/删除与归档整文件读入上限未取。
 - **G19 投影 receipts 窗口**：合同已写，客户端旧回执分页未取。
 - **G24**：PID 复用/心跳仍未取；release/接管回读/唯一 tmp 已修。G33 的 knowledge source / G34 的 archive 事务已修，账本 sessionId 仍不查。

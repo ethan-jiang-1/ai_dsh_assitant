@@ -50,8 +50,9 @@
 无摘要与 curate 检查面；契约唯一权威 = [`operating.md`](operating.md)，随同一套双 home 隔离。
 
 **并发与秘密**：同一 home 只应有一个写入者——账本用 `writer.lock` 拒绝第二 writer；房间/技能/提案/审计是
-原子写但 last-write-wins，并发写不保证合并（读可以并行）。working folder 与账本是明文，不放 API key/token/密码；
-Viki key 从环境变量读，不写进这里。
+原子写但 last-write-wins，并发写不保证合并（读可以并行）。**线索更新与知识页状态翻转**在写前比较读到的原始文件
+内容（CAS）：中途被手改/别会话改过就报 `changed since it was read`，不静默覆盖。working folder 与账本是明文，
+不放 API key/token/密码；Viki key 从环境变量读，不写进这里。
 
 **账本的覆盖窗口**：账本记 `since`（开始计数的时刻）；旧账本没有该字段时，按**最早一次加载**推导下界
 （推导而非编造：覆盖不可能比它记下的第一笔更晚）。**`0 次`只表示"窗口内未加载"**，不得当作"从未使用"——

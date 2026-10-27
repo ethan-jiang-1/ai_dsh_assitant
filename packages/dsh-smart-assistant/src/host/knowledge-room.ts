@@ -121,7 +121,7 @@ export async function promotePage(host: AssistantMemory, id: string, audit: Appr
   if (page.status === 'stable') return { id, path: entry.path, status: 'stable' }
   const promoted: KnowledgePage = { ...page, status: 'stable' }
   const document = pageToDocument(promoted)
-  await host.knowledge.write(id, document.data, document.body)
+  await host.knowledge.write(id, document.data, document.body, entry.text)
   await recordApproval(host, 'promote', id, audit)
   return { id, path: entry.path, status: 'stable' }
 }
@@ -146,7 +146,7 @@ export async function deprecatePage(host: AssistantMemory, id: string, audit: Ap
   if (page.status === 'deprecated') return { id, path: entry.path, status: 'deprecated' }
   const deprecated: KnowledgePage = { ...page, status: 'deprecated' }
   const document = pageToDocument(deprecated)
-  await host.knowledge.write(id, document.data, document.body)
+  await host.knowledge.write(id, document.data, document.body, entry.text)
   await recordApproval(host, 'deprecate', id, audit)
   return { id, path: entry.path, status: 'deprecated' }
 }

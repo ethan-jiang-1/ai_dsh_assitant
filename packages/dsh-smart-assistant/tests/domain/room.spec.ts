@@ -69,6 +69,16 @@ describe('Room', () => {
     expect(entry?.data.status).toBe('retired')
   })
 
+  it('refuses a write when the entry changed since it was read', async () => {
+    const room = await fixtureRoom()
+    const entry = await room.write('a-1', { id: 'a-1', status: 'active' }, 'Claim.')
+    await room.write('a-1', { id: 'a-1', status: 'active' }, 'Hand edit happened.')
+
+    await expect(room.write('a-1', { id: 'a-1', status: 'retired' }, 'Stale write.', entry.text))
+      .rejects.toThrow('changed since it was read')
+    expect((await room.read('a-1'))?.body).toBe('Hand edit happened.')
+  })
+
   it('survives two concurrent writes of the same id — both resolve, the winner is whole', async () => {
     // BUG-007 F8 (2026-10-07): the temp file name was fixed (`${path}.tmp`), so a concurrent
     // write of the same id lost its temp to the other writer's rename (ENOENT) — the home is a

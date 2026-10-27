@@ -84,7 +84,7 @@ async function setThreadStatus(
     ...(typeof extra.promotedTo === 'string' ? { promotedTo: extra.promotedTo } : {}),
   }
   const document = threadToDocument(next)
-  await host.research.write(next.id, document.data, document.body)
+  await host.research.write(next.id, document.data, document.body, entry.text)
   // Only a closed thread (dropped or promoted) leaves the active room: park stays in
   // research/ — digest visibility is a render concern, not a location concern.
   // Regression: tests/host/park-contract.spec.ts (the campaign found park archiving the file).
@@ -167,7 +167,7 @@ export async function updateThread(host: AssistantMemory, id: string, update: Th
     updated: new Date().toISOString(),
   }
   const document = threadToDocument(next)
-  await host.research.write(next.id, document.data, document.body)
+  await host.research.write(next.id, document.data, document.body, entry.text)
   touchDigest(host)
   return next
 }

@@ -53,6 +53,8 @@ export interface RoomEntry {
   readonly data: Readonly<Record<string, unknown>>
   /** Prose body. */
   readonly body: string
+  /** Raw file contents as read, used as the optimistic-concurrency token on a later write. */
+  readonly text?: string
 }
 
 /** A file in a room that could not be read as an entry. */
@@ -125,17 +127,27 @@ export class Room {
    * @param body - Prose body.
    * @returns The written entry.
    */
-  async write(id: string, data: Readonly<Record<string, unknown>>, body: string): Promise<RoomEntry> {
+  async write(id: string, data: Readonly<Record<string, unknown>>, body: string, expectedText?: string): Promise<RoomEntry> {
     if (!isEntryId(id)) throw new Error(`room entry id "${id}" is not a safe file name`)
     await mkdir(this.dir, { recursive: true, mode: 0o700 })
     const path = join(this.dir, `${id}${ENTRY_SUFFIX}`)
+    if (expectedText !== undefined) {
+      // Compare-and-swap on the whole file: a hand edit (or another session) between read and
+      // write is refused instead of being silently overwritten. The check is not atomic with the
+      // rename, but it closes the ordinary read-modify-write loss window.
+      const current = await readFile(path, 'utf8').catch(() => undefined)
+      if (current !== expectedText) {
+        throw new Error(`room entry "${id}" changed since it was read — re-read before writing`)
+      }
+    }
     // The file is user-editable data. Keep fields this build does not know about (a hand-added
     // annotation, or a field from a newer release) instead of silently dropping them on the next
     // write; the caller's fields win on a collision.
     const existing = await this.read(id)
     const merged = existing === undefined ? data : { ...existing.data, ...data }
-    await atomicWriteFile(path, renderFrontmatterDocument(merged, body))
-    return { id, path, data: merged, body: body.trim() }
+    const rendered = renderFrontmatterDocument(merged, body)
+    await atomicWriteFile(path, rendered)
+    return { id, path, data: merged, body: body.trim(), text: rendered }
   }
 
   /**
@@ -228,6 +240,6 @@ export class Room {
     }
     const document = parseFrontmatterDocument(text)
     if (document === undefined) return undefined
-    return { id, path, data: document.data, body: document.body }
+    return { id, path, data: document.data, body: document.body, text }
   }
 }
