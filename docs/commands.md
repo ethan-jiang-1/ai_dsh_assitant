@@ -37,6 +37,9 @@ pnpm shots '<URL>' --dom --size 1600x1000 --name <名字>
 pnpm web-expected '<URL>' --scenario <场景目录>
                         # web 渲染期望比对（场景必填；漂移 exit 1）；重录 --refresh
                         # 场景契约 = snapshots/web-face/<场景>/README.md
+pnpm web-face-check [--scenario <名>]
+                        # 4 个客户面场景的一键复跑：隔离 home → seed → boot → 比对 → 收
+                        # Viki 调试面需要 OV mock，仍按各自 README 手工跑
 pnpm loop-probe '<URL>' --ask '<问句>'   # 首用闭环探针：真发问真等回复，JSON 判决 + 截图
 pnpm desk-walk '<URL>' [--home <dir>]    # 处理流真机走查（真模型）：屏幕文本+截图
 pnpm projection-live [--home <dir>]      # live 补证：断连/重连、3 次重载、420 窄视口、滚动位置；无模型

@@ -45,6 +45,7 @@
     "preflight": "node dev/probes/web/webui-preflight.mjs",
     "shots": "node dev/probes/web/webui-shots.mjs",
     "web-expected": "node dev/probes/web/webui-expected.mjs",
+    "web-face-check": "node dev/probes/web/web-face-check.mjs",
     "loop-probe": "node dev/probes/web/webui-loop-probe.mjs",
     "desk-walk": "node dev/probes/web/desk-flow-walk.mjs",
     "projection-live": "node dev/probes/web/projection-live-mechanics.mjs",

@@ -57,6 +57,8 @@ intent: "2026-10-28 六维打扫卫生深审：四路 fresh 只读审计 + 主�
 | P3 | `dev/probes/web/projection-selection.mjs` | 头注称 shots 对 eval 抛错只记日志且 exit 0；现行为是硬失败 |
 | P3 | `docs/dev.md` / 根命令表 | `projection-live` 的「自编排」未写 `prepare/setup` 前置；补上 |
 
+S4b 的一键复跑还暴露并修复了 banner 场景的失效 runbook：旧 eval 点「有问题」/wait-text「在等你审批」在当前一页纸默认面不存在；新命令点「新会话」、以 composer 文案「描述你想要构建的内容」为门，已重录基线并过目 PNG。
+
 ### 开放（本轮不修，已进 proposed 卡）
 
 | 级别 | 位置 | 事实 | 风险 |

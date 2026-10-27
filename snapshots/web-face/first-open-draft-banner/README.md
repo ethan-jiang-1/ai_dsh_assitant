@@ -7,8 +7,8 @@
 
 ## 场景是什么
 
-**隔离 home 的默认工作区里有 3 页知识草稿待审批时，从默认桌面点击「有问题」进入 Conversation 的第一屏**：hero、首开引导条之外，
-composer 上方必须出现审批横幅——「⚠ 3 页知识草稿在等你审批——批准后才会成为它的判断依据」+
+**隔离 home 的默认工作区里有 3 页知识草稿待审批时，从「今天」一页纸点「新会话」进入 Conversation 的第一屏**：hero、首开引导条之外，
+composer 上方必须出现审批横幅——「⚠ 3 页知识草稿等你审批——批准后才会成为它的判断依据」+
 「点这里去审批」按钮。这是[首开 UX](../../../_backlog/_archive/settled_issues/261001-first-open-ux.md) 第 17 轮
 交付的 `assistant-approval-banner`（composer dock 第二注册）的耐久回归面：那一轮的
 before/出现/贯通/退场三态真机证据当时的落点易失（仓外临时目录），本场景把它变成仓内可重放的期望。
@@ -39,8 +39,8 @@ node snapshots/web-face/first-open-draft-banner/seed.mjs rooms "$ASSISTANT_DSH_H
 
 # ⑥ 重录期望（--refresh，肉眼过 PNG）或直接比对（漂移即 exit 1）
 pnpm web-expected '<url>' --scenario snapshots/web-face/first-open-draft-banner \
-  --eval "(() => { const buttons = [...document.querySelectorAll('button')]; buttons.find(b => b.textContent.trim() === '稍后配置')?.click(); const ask = buttons.find(b => b.textContent.includes('有问题')); if (!ask) throw new Error('default desk missing'); ask.click(); return 'Conversation opened'; })()" \
-  --wait-text '在等你审批'
+  --eval "(() => { const b = [...document.querySelectorAll('button')].find(x => ((x.getAttribute('aria-label') ?? '') + (x.textContent ?? '')).includes('新建会话') || (x.textContent ?? '').trim() === '新会话'); if (!b) return 'no-new'; b.click(); return 'clicked'; })()" \
+  --wait-text '描述你想要构建的内容'
 # 只有观察到有意渲染变化且过目 DOM 差异，才在上条命令追加 --refresh。
 ```
 
@@ -75,7 +75,7 @@ vendor `ui-settings-models/src/onboarding-copy.ts`，精确等值比较），API
 ## prove-it-red 记录（2026-10-05，全链真机）
 
 1. **场景真的依赖前置**（反面）：移走种子 state.json 重拍 → wait-text 诚实超时
-   （`eval → timeout: 在等你审批`）→ 横幅缺席 → `FAIL — 5 drift`、exit 1 → 还原复绿。
+   （`eval → timeout: 3 页知识草稿`）→ 横幅缺席 → `FAIL — 5 drift`、exit 1 → 还原复绿。
 2. **单字即红**：污染 expected 的横幅计数（3→4，串结构不动）→ FAIL、exit 1 → 重录复绿。
 3. **竞态现行**（wait-text 的立项依据）：无 wait-text 十连拍两红，红拍大纲从侧栏直接跳到
    composer 占位符——桌面 walk-view 读取越过了 settle 窗，横幅整体缺席；带 wait-text 六连拍
