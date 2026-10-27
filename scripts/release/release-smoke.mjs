@@ -30,7 +30,7 @@
 import { execFile, execFileSync, spawnSync } from 'node:child_process'
 import { createServer } from 'node:http'
 import { promisify } from 'node:util'
-import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs'
 import { dirname, isAbsolute, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { mkTmpDir } from '../../dev/env/tmp.mjs'
@@ -267,6 +267,14 @@ try {
     const rotated = runData(['archive-proposals', '--assistant', maintenance, '--yes'])
     if (rotated.status !== 0 || !existsSync(join(maintenance, 'skill-proposals', 'archive', 'probe-proposal.md'))) fail(`installed assistant-data archive-proposals failed: ${(rotated.stderr ?? '').trim().slice(0, 300)}`)
     else ok('installed archive-proposals rotates the resolved proposal')
+    mkdirSync(join(maintenance, 'audit'), { recursive: true })
+    const oldApproval = join(maintenance, 'audit', 'approvals.jsonl')
+    writeFileSync(oldApproval, '{}\n', 'utf8')
+    const oldStamp = new Date('2026-01-01T00:00:00.000Z')
+    utimesSync(oldApproval, oldStamp, oldStamp)
+    const aged = runData(['rotate', '--assistant', maintenance, '--operating', maintenanceOperating, '--older-than', '1', '--apply'])
+    if (aged.status !== 0 || !existsSync(join(maintenance, 'archive-maintenance'))) fail(`installed assistant-data rotate failed: ${(aged.stderr ?? '').trim().slice(0, 300)}`)
+    else ok('installed rotate moves the old approval surface')
     const check = runData(['check', '--assistant', maintenance, '--operating', maintenanceOperating])
     if (check.status !== 0) fail(`installed assistant-data check failed: ${(check.stdout ?? check.stderr ?? '').trim().slice(0, 300)}`)
     else ok('installed check is clean on the probe home')

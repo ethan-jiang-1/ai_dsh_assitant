@@ -193,6 +193,19 @@ describe('knowledge write wiring', () => {
     }
   })
 
+  it('passes the raw entry text when re-importing an existing page', async () => {
+    const { service } = boot()
+    const first = await service.writePage({ type: 'concept', title: 'Reimport CAS', body: 'one', sources: ['probe'] })
+    const entry = await service.knowledge.read(first.id)
+    const spy = vi.spyOn(service.knowledge, 'write')
+    try {
+      await service.writePage({ id: first.id, type: 'concept', title: 'Reimport CAS', body: 'two', sources: ['probe'] })
+      expect(spy.mock.calls.at(-1)?.[3]).toBe(entry?.text)
+    } finally {
+      spy.mockRestore()
+    }
+  })
+
   it('surfaces a missing memory/research source in the real curate brief', async () => {
     const { service } = boot()
     const written = await service.writePage({

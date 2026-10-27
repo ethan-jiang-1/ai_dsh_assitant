@@ -15,6 +15,7 @@
  *   node <package>/bin/assistant-data.mjs check --assistant <dir> --operating <dir>
  *   node <package>/bin/assistant-data.mjs purge --assistant <dir> --kind <kind> --id <id> --reason <text> --yes
  *   node <package>/bin/assistant-data.mjs archive-proposals --assistant <dir> --yes
+ *   node <package>/bin/assistant-data.mjs rotate --assistant <dir> --operating <dir> --older-than <days> [--apply]
  *   node <package>/bin/assistant-data.mjs refresh-manual --assistant <dir> --yes
  *
  * No harness peers are imported: the command runs from an installed profile with plain Node.
@@ -37,6 +38,7 @@ const usage = `usage:
   node <package>/bin/assistant-data.mjs check --assistant <dir> --operating <dir>
   node <package>/bin/assistant-data.mjs purge --assistant <dir> --kind <memory|research|knowledge|skill|proposal> --id <id> --reason <text> --yes
   node <package>/bin/assistant-data.mjs archive-proposals --assistant <dir> --yes
+  node <package>/bin/assistant-data.mjs rotate --assistant <dir> --operating <dir> --older-than <days> [--apply]
   node <package>/bin/assistant-data.mjs refresh-manual --assistant <dir> --yes`
 
 if (command === '--help' || command === undefined) {
@@ -139,6 +141,18 @@ try {
     console.log(`assistant-data: moved ${String(result.moved.length)} resolved proposal(s) to skill-proposals/archive/`)
     for (const name of result.moved) console.log(`  archived ${name}`)
     for (const name of result.kept) console.log(`  kept ${name} (still proposed/approved or not a safe name)`)
+  } else if (command === 'rotate') {
+    const assistantDir = option('--assistant')
+    const operatingDir = option('--operating')
+    const days = Number(option('--older-than'))
+    if (assistantDir === undefined || operatingDir === undefined) {
+      console.error(usage)
+      process.exit(2)
+    }
+    const result = await module.rotateArchives({ assistantDir, operatingDir, olderThanDays: days, apply: argv.includes('--apply') })
+    console.log(result.dryRun ? 'assistant-data: dry run — no files moved' : `assistant-data: moved ${String(result.moved.length)} surface(s)`)
+    for (const candidate of result.candidates) console.log(`  ${candidate.path} (${String(candidate.bytes)} B, mtime ${candidate.mtime})`)
+    if (result.moved.length > 0) console.log(`  audit ${result.audit}`)
   } else if (command === 'refresh-manual') {
     const assistantDir = option('--assistant')
     if (assistantDir === undefined) {

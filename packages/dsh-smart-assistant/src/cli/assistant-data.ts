@@ -81,6 +81,31 @@ export interface ProposalArchiveResult {
   readonly kept: readonly string[]
 }
 
+/** Arguments for {@link rotateArchives}. */
+export interface ArchiveRotationOptions {
+  readonly assistantDir: string
+  readonly operatingDir: string
+  /** Only surfaces whose mtime is older than this many days are candidates. */
+  readonly olderThanDays: number
+  /** Move for real; false is a dry run. */
+  readonly apply: boolean
+}
+
+/** One rotation candidate or completed move. */
+export interface ArchiveRotationEntry {
+  readonly path: string
+  readonly bytes: number
+  readonly mtime: string
+}
+
+/** Result of a dry-run or applied archive rotation. */
+export interface ArchiveRotationResult {
+  readonly dryRun: boolean
+  readonly candidates: readonly ArchiveRotationEntry[]
+  readonly moved: readonly string[]
+  readonly audit: string
+}
+
 /** Arguments for {@link refreshManual}. */
 export interface ManualRefreshOptions {
   readonly assistantDir: string
@@ -651,6 +676,57 @@ export async function archiveResolvedProposals(options: ProposalArchiveOptions):
     moved.push(id)
   }
   return { moved, kept }
+}
+
+/**
+ * Rotate whole closed surfaces out of the working folder: old approvals, room archives and the
+ * operations archive. This is deliberately coarse and explicit: default is a dry run, `apply`
+ * moves the path into `<root>/archive-maintenance/<stamp>/`, and one audit line records it.
+ * It does not filter JSONL records by timestamp; an active-format file that is still current is
+ * not a candidate.
+ *
+ * @param options - Directories, age threshold and apply flag.
+ * @returns Candidates, moved paths and the audit path.
+ * @throws When the threshold is not a positive whole number of days.
+ */
+export async function rotateArchives(options: ArchiveRotationOptions): Promise<ArchiveRotationResult> {
+  if (!Number.isSafeInteger(options.olderThanDays) || options.olderThanDays <= 0) {
+    throw new Error('assistant-data rotate: --older-than must be a positive whole number of days')
+  }
+  const assistantDir = resolve(options.assistantDir)
+  const operatingDir = resolve(options.operatingDir)
+  const cutoff = Date.now() - options.olderThanDays * 24 * 60 * 60 * 1000
+  const surfaces: { readonly root: string, readonly relative: string }[] = [
+    { root: assistantDir, relative: 'audit/approvals.jsonl' },
+    { root: assistantDir, relative: 'memory/archive' },
+    { root: assistantDir, relative: 'research/archive' },
+    { root: assistantDir, relative: 'skills/archive' },
+    { root: operatingDir, relative: OPERATIONS_ARCHIVE_FILE },
+  ]
+  const candidates: ArchiveRotationEntry[] = []
+  for (const surface of surfaces) {
+    const path = join(surface.root, surface.relative)
+    const info = await lstat(path).catch(() => undefined)
+    if (info === undefined || info.isSymbolicLink() || info.mtimeMs >= cutoff) continue
+    candidates.push({ path, bytes: info.size, mtime: new Date(info.mtimeMs).toISOString() })
+  }
+  const stamp = new Date().toISOString().replace(/[:.]/gu, '-')
+  const moved: string[] = []
+  if (options.apply) {
+    for (const candidate of candidates) {
+      const root = candidate.path.startsWith(operatingDir) ? operatingDir : assistantDir
+      const rel = relative(root, candidate.path)
+      const destination = join(root, 'archive-maintenance', stamp, rel)
+      await mkdir(dirname(destination), { recursive: true, mode: 0o700 })
+      await rename(candidate.path, destination)
+      moved.push(candidate.path)
+    }
+  }
+  const audit = join(assistantDir, 'audit', 'maintenance.jsonl')
+  if (options.apply) {
+    await appendAuditLine(audit, { at: new Date().toISOString(), action: 'rotate', moved: moved.length, candidates: candidates.map(entry => entry.path) })
+  }
+  return { dryRun: !options.apply, candidates, moved, audit }
 }
 
 /**

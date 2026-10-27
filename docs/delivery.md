@@ -46,6 +46,8 @@
 | 客户端 UI 状态 | 平台 `localStorage`（非 N0） | 客户端 | 设备/浏览器 | localStorage：`dsha:ui-mode`、`dsha:receipt-since`、`dsha-proactive-ui-v1`、`dsh-assistant-debug`；sessionStorage：`dsha-capture-seen-running-v1`、`dsha-capture-receipt-v1` | origin/设备 | 可丢弃；换源/清站点即失 | 浏览器 | 否 | 无版本/迁移（G35）；清站点数据 | 保留；清站点数据 |
 | OpenViking 记忆 | E2 外部服务 | E2 外部服务 | 外部服务 | OpenViking server（可选） | 外部 | 由服务决定 | 面板/模型经工具 | 否 | 按 OpenViking 手册 | 按 OpenViking 手册清理 |
 
+客户端键没有版本号/迁移（G35）；换源或清站点即重置，持有的是 UI 偏好/回执游标，不复制 session-derived 事实。
+
 **模拟夹具不是数据**：`<operatingDir>/desk-projection.json` 是评估/夹具输入，不是经营账本。无 `ledger.json` 时
 桌面默认 404；只有 `assistant-desk-projection` 显式配 `allowFixture: true` 才回退它。真实 home 里出现该文件时
 `assistant-data check` 会点名，避免模拟事项冒充真事项。
@@ -130,6 +132,8 @@ node .../assistant-data.mjs purge --assistant <DSH_HOME>/assistant \
 **提案轮转**：`assistant-data archive-proposals --assistant <DSH_HOME>/assistant --yes` 只把 `status: landed`
 或 `rejected` 的提案移进 `skill-proposals/archive/`；`proposed`/`approved` 留在收件箱。再提案仍从归档副本继承
 `revision`/`created`，不重开历史；归档是移动，不删除。
+
+**归档轮转**：`assistant-data rotate --assistant <DSH_HOME>/assistant --operating <DSH_HOME>/assistant-operating --older-than <days> [--apply]` 默认只列候选；`--apply` 才把超过天数的 `audit/approvals.jsonl`、房间 archive、`operations-archive.jsonl` 整体移到 `<root>/archive-maintenance/<stamp>/`，并写 `audit/maintenance.jsonl`。不做自动轮转、不按 JSONL 行删。
 
 **升级/卸载**：装新 tarball 不动用户数据；`--dump-config` 仍应有 `preset-assistant`，新会话验证一次。升级/remove 保留两个插件目录；remove 后重装回到组合。`pnpm upgrade-smoke` 证明“旧→新→remove”的两目录边界与组合恢复；真实旧字节的读取由 `tests/host/old-home-compat.spec.ts` 的冻结 v19 fixture 证明（房间、技能、提案、用量、手册迁移、账本回执）。
 

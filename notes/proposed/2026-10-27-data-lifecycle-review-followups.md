@@ -1,4 +1,4 @@
-日期：2026-10-27 · 状态：**proposed**（REVIEW 后待拍板；来源 = [已归档的 261027 收口卡](../../_backlog/_archive/settled_issues/261027-data-lifecycle-hardening.md)）
+日期：2026-10-27 · 状态：**proposed（P0 done；P1 部分）**（来源 = [已归档的 261027 收口卡](../../_backlog/_archive/settled_issues/261027-data-lifecycle-hardening.md)）
 
 # 数据生命周期 REVIEW 后的证据与下一步
 
@@ -12,6 +12,10 @@
 - `page-source-missing` 只有纯核 spec；`curate` 把 knownSourceIds 接进去的 wiring 没测。
 - `check` 的提案积压/备份总量阈值、`import --replace` 的失败回滚、`purge` 的删除失败审计都没有红例。
 - 仍开放的设计项：硬删除只覆盖房间记录（账本 material/quote、sessions、attachments 不删）；备份是明文、整目录 replace、无合并/加密；`save_page`/memory supersede 仍无 CAS；客户端 localStorage 键无版本/卸载清理；memory/knowledge 的召回内容没有“不可信数据”标记，memory/ledger 没有凭据扫描。
+
+## 进展
+
+P0 已落：installed-tarball 维护命令 smoke、fresh-home prompt-smoke 交付规则、host CAS/source wiring、check 阈值、replace 回滚、purge 失败审计、数据卡 N0/N1 与迁移/删除列。P1 已落：`save_page` 现有页 CAS、`rotate` dry-run/apply、digest 记忆段“data not instructions”、客户端键清理口径。P1 剩余：memory 凭据扫描、硬删除扩展设计。
 
 ## 提案
 

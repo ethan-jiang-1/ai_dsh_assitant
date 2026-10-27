@@ -75,6 +75,7 @@ export async function writePage(host: AssistantMemory, input: WritePageInput): P
   // status is the principal's act (a hand flip or a promote) — a mechanical re-import must not
   // roll a stable page back to draft. Fresh pages are always drafts.
   const existingPage = listing.entries.find(candidate => candidate.id === id)
+  const existingEntry = existingPage === undefined ? undefined : await host.knowledge.read(id)
   const page: KnowledgePage = {
     id,
     status: existingPage?.status ?? 'draft',
@@ -89,7 +90,7 @@ export async function writePage(host: AssistantMemory, input: WritePageInput): P
     links: parseWikiLinks(linkedBody),
   }
   const document = pageToDocument(page)
-  await host.knowledge.write(id, document.data, document.body)
+  await host.knowledge.write(id, document.data, document.body, existingEntry?.text)
   // The credential audit is content-agnostic: a page carrying a live secret is the same
   // failure as a skill carrying one.
   const findings = auditSkillCredentials(id, renderFrontmatterDocument(document.data, document.body))
