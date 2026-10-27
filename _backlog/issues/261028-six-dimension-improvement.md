@@ -30,8 +30,9 @@ opened: 2026-10-28
 
 ## 仍未取
 
-- S4b 的落地形态（最小 DOM 环境 vs 把 projection 探针固化成独立 `web-face-check`）在实施时按依赖成本定；不新增浏览器进 `pnpm verify` 的常规链。
-- S3c 的拆分粒度按现有测试与命令族定；若一次拆完风险过大，按命令族拆成两片，仍以行为测试为回归。
+- S4b 的落地形态：`happy-dom` / `react-dom` 已在 pnpm store，但 `pnpm add --offline` 被 supply-chain policy 拦下；首选用现有 Chrome/CDP 探针做 keyless `web-face-check`，不把新依赖当默认路径。
+- S4c 的 coverage 工具：`@vitest/coverage-v8` 不在本机 store，report-only 也需联网安装；安装路径明确前不把它当已完成项。
+- S3c 已按「types / bundle / 27 行再导出」一次拆完；若后续命令族继续增长，再按命令族分模块，仍以行为测试为回归。
 
 ## 验收标准
 
