@@ -104,6 +104,7 @@
 - **coverage**：`pnpm test:coverage` 只出报告（`.tmp/coverage`），不设阈值、不进门禁；新文件 per-file 100% 仍是人工纪律，存量祖父豁免；机器门触发 = 第一处"删了才对"的死代码实证。
 - **eval 节奏**：模型可见切片收尾 `--only` 聚焦跑，阶段收尾才全量。
 - **eval 阻断**：缺 key / 无会话日志 = **BLOCKED（exit 2）**，不并入 PASS/FAIL；判据见 [`dev.md`](dev.md) §四。
+- **浏览器证据车道**：`pnpm web-face-check --all` 跑 8 面（4 客户 + 4 Viki 固定 mock）；默认 4 客户面。它不进 `pnpm verify`（Chrome/耗时/flake），由 pre-push 技能要求；test/verify 绿不证明页面没坏。
 - **模型可见面回归的适配声明**（DSH testing policy 对独立插件仓的适配义务）：段落合同由 agent spec 证明；`pnpm eval --only <task-id>` 证明该题的伤害地板、技能按名加载和回答正则，不证明段落已进入请求，也不证明领域质量；`repo-live-probe` 是**取证动作不是回归资产**（复现「模型没看见」时用）；session 回放维持触发条件制（触发未到不预建，owner `snapshots/README.md`）。
 - **session 回放快照**：未建，触发条件 owner：`snapshots/README.md`（web 面期望已建，同树）。
 - **子进程 loader-smoke 中间层 / CI 矩阵**：刻意不采纳。本仓没有 CI，也没有平台矩阵；出现它们能拦住的事故再议。

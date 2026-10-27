@@ -19,7 +19,7 @@ opened: 2026-10-28
 |---|---|---|
 | B1 真 DOM 客户端 spec（happy-dom/react-dom + useSyncExternalStore 红绿） | 已交付 | `projection-panel-dom.spec.mjs` 2 it：输入→提交、外部 store 更新；无订阅版实测红（2 failed），恢复后绿；145 文件 / 1101 测试、verify 50 |
 | B2 Viki 4 面纳入 `web-face-check --all`（mock + #debug=1 + evals） | 已交付 | `pnpm web-face-check --all` 8/8 PASS；Viki mock 固定 19433、connected/diagnostics/search/disconnected 全绿；mock 与 service 均收；默认 4 客户面 |
-| B3 pre-push/证据地图写入浏览器车道（不进 verify） | 待开始 | — |
+| B3 pre-push/证据地图写入浏览器车道（不进 verify） | 已交付 | pre-push 规则改为 `pnpm web-face-check --all` 8 面；testing 已定姿态补「浏览器证据车道」；明确 test/verify 绿不证明页面 |
 | B4 TZ=Asia/Shanghai + format 确定性测试 | 待开始 | — |
 
 ## 仍未取
