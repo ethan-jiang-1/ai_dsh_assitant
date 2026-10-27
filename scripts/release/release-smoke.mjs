@@ -278,6 +278,9 @@ try {
     const check = runData(['check', '--assistant', maintenance, '--operating', maintenanceOperating])
     if (check.status !== 0) fail(`installed assistant-data check failed: ${(check.stdout ?? check.stderr ?? '').trim().slice(0, 300)}`)
     else ok('installed check is clean on the probe home')
+    const merged = runData(['merge', '--in', bundle, '--assistant', maintenance, '--operating', maintenanceOperating])
+    if (merged.status !== 0 || !(merged.stdout ?? '').includes('add,')) fail(`installed assistant-data merge failed: ${(merged.stderr ?? '').trim().slice(0, 300)}`)
+    else ok('installed merge reports a dry-run conflict plan')
   }
   if (treeSnapshot(installedPackageDir) !== packageBefore) fail('the installed package directory changed while running its bins — user data belongs outside the package')
   else ok('installed package directory unchanged by its bins')

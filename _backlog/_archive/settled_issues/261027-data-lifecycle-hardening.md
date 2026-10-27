@@ -79,8 +79,8 @@ opened: 2026-10-27
 | G11 | 备份 manifest 的 files/bytes 不校验；目标有活锁仍可导 | 已修 | 中 | import 拒绝 fewer files/bytes 与 `writer.lock`；测试 |
 | G12 | 相对 `dataDir` 按进程 cwd 散落 | 已修 | 低 | memory/ledger/projection 统一 `resolve()`；`check` 报相对路径 |
 | G13 | **没有硬删除/擦除**：forget/deprecate/retire/discard 都进 archive 或留原地，审计与账本永久保留 | 已修（房间记录；账本/会话仍不删） | 高（隐私/合规） | `assistant-data purge` 删 active/archive/snapshot 并写 `audit/purges.jsonl`；账本 history 与会话是明示边界 |
-| G14 | **没有跨机合并/同步**：import 是整目录 replace，两份 home 不能 merge，冲突无策略 | 未取 | 中 | 触发：第二个真实设备/团队共享。先做 dry-run + 冲突报告，再考虑 git/外部同步 |
-| G15 | **备份无加密/签名**：bundle 是明文业务数据，导入不验签 | 未取 | 中（部署/隐私） | 触发：备份上云/跨人传递。至少文档声明"备份是明文"，加密包另立提案 |
+| G14 | **没有跨机合并/同步**：import 是整目录 replace，两份 home 不能 merge，冲突无策略 | 已修（保守合并） | 中 | `assistant-data merge` 默认 dry-run，只补缺失、冲突保留当前，目标独有不删；`--prefer incoming` 才替换工作目录文件并备份；账本冲突不覆盖；同步/git 语义仍未取 |
+| G15 | **备份无加密/签名**：bundle 是明文业务数据，导入不验签 | 已修（加密传输；无签名） | 中（部署/隐私） | `seal`/`unseal` 用环境变量口令做 AES-256/PBKDF2；签名/密钥托管仍未取 |
 | G16 | **用户手改与插件写冲突**：read-modify-write 无 CAS；未知 frontmatter 字段在下次写时被丢弃；digest 缓存看不见外部编辑 | 部分（未知字段 + digest + thread/page CAS） | 中 | `Room.write` 保留未知字段并支持 raw-text CAS；线索更新/知识状态翻转传入 expected text；`save_page`/memory 写仍未 CAS |
 | G17 | **归档/审计/提案无 retention**：`operations-archive.jsonl`、`approvals.jsonl`、房间 archive、skills archive、skill-proposals 都只增；只有 skill snapshots 保 3 份 | 部分（读数/告警） | 中 | `status` 报各 archive/approvals/proposals 数量；`check` 在归档 >64 MiB、approvals >16 MiB、提案 >200 时告警；自动轮转/删除未取 |
 | G18 | **`desk-projection.json` 夹具可在无账本时冒充真桌面** | 已修 | 中 | 默认 404；`allowFixture: true` 才回退；测试/组合/探针 patch 已更新 |

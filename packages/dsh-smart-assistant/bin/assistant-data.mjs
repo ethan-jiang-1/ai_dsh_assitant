@@ -15,7 +15,17 @@
  *   node <package>/bin/assistant-data.mjs check --assistant <dir> --operating <dir>
  *   node <package>/bin/assistant-data.mjs purge --assistant <dir> --kind <kind> --id <id> --reason <text> --yes
  *   node <package>/bin/assistant-data.mjs archive-proposals --assistant <dir> --yes
- *   node <package>/bin/assistant-data.mjs rotate --assistant <dir> --operating <dir> --older-than <days> [--apply]
+ *   node <package>/bin/assistant-data.mjs seal --in <bundle> --out <file>
+ *   node <package>/bin/assistant-data.mjs unseal --in <file> --out <dir>
+ *   node <package>/bin/assistant-data.mjs seal --in <bundle> --out <file>
+  node <package>/bin/assistant-data.mjs unseal --in <file> --out <dir>
+  node <package>/bin/assistant-data.mjs merge --in <bundle> --assistant <dir> --operating <dir> [--apply] [--prefer current|incoming]
+ *   node <package>/bin/assistant-data.mjs seal --in <bundle> --out <file>
+ *   node <package>/bin/assistant-data.mjs unseal --in <file> --out <dir>
+ *   node <package>/bin/assistant-data.mjs seal --in <bundle> --out <file>
+  node <package>/bin/assistant-data.mjs unseal --in <file> --out <dir>
+  node <package>/bin/assistant-data.mjs merge --in <bundle> --assistant <dir> --operating <dir> [--apply] [--prefer current|incoming]
+  node <package>/bin/assistant-data.mjs rotate --assistant <dir> --operating <dir> --older-than <days> [--apply]
  *   node <package>/bin/assistant-data.mjs refresh-manual --assistant <dir> --yes
  *
  * No harness peers are imported: the command runs from an installed profile with plain Node.
@@ -38,6 +48,9 @@ const usage = `usage:
   node <package>/bin/assistant-data.mjs check --assistant <dir> --operating <dir>
   node <package>/bin/assistant-data.mjs purge --assistant <dir> --kind <memory|research|knowledge|skill|proposal> --id <id> --reason <text> --yes
   node <package>/bin/assistant-data.mjs archive-proposals --assistant <dir> --yes
+  node <package>/bin/assistant-data.mjs seal --in <bundle> --out <file>
+  node <package>/bin/assistant-data.mjs unseal --in <file> --out <dir>
+  node <package>/bin/assistant-data.mjs merge --in <bundle> --assistant <dir> --operating <dir> [--apply] [--prefer current|incoming]
   node <package>/bin/assistant-data.mjs rotate --assistant <dir> --operating <dir> --older-than <days> [--apply]
   node <package>/bin/assistant-data.mjs refresh-manual --assistant <dir> --yes`
 
@@ -143,6 +156,41 @@ try {
     console.log(`assistant-data: moved ${String(result.moved.length)} resolved proposal(s) to skill-proposals/archive/`)
     for (const name of result.moved) console.log(`  archived ${name}`)
     for (const name of result.kept) console.log(`  kept ${name} (still proposed/approved or not a safe name)`)
+  } else if (command === 'seal' || command === 'unseal') {
+    const inDir = option('--in')
+    const out = option('--out')
+    if (inDir === undefined || out === undefined) {
+      console.error(usage)
+      process.exit(2)
+    }
+    const result = command === 'seal'
+      ? await module.sealBundle({ inDir, outFile: out })
+      : await module.unsealBundle({ inFile: inDir, outDir: out })
+    console.log(`assistant-data: ${command === 'seal' ? 'sealed' : 'unsealed'} ${result.file}`)
+  } else if (command === 'merge') {
+    const inDir = option('--in')
+    const assistantDir = option('--assistant')
+    const operatingDir = option('--operating')
+    if (inDir === undefined || assistantDir === undefined || operatingDir === undefined) {
+      console.error(usage)
+      process.exit(2)
+    }
+    const prefer = option('--prefer')
+    if (prefer !== undefined && prefer !== 'current' && prefer !== 'incoming') {
+      console.error('assistant-data: --prefer must be current or incoming')
+      process.exit(2)
+    }
+    const result = await module.mergeData({
+      inDir,
+      assistantDir,
+      operatingDir,
+      apply: argv.includes('--apply'),
+      ...(prefer === undefined ? {} : { prefer }),
+    })
+    console.log(result.dryRun ? 'assistant-data: dry run — no files written' : 'assistant-data: merge applied')
+    console.log(`  ${String(result.added.length)} add, ${String(result.conflicts.length)} conflict, ${String(result.same.length)} same`)
+    for (const entry of result.conflicts) console.log(`  conflict ${entry.path} (${prefer ?? 'current'} kept)`)
+    for (const backup of result.backups) console.log(`  backup ${backup}`)
   } else if (command === 'rotate') {
     const assistantDir = option('--assistant')
     const operatingDir = option('--operating')

@@ -72,6 +72,8 @@ Viki 的 API key 从 `apiKeyEnv`（默认 `OPENVIKING_API_KEY`）读；内联 `a
   `refresh-manual --yes` 先把 `AGENTS.md` 备份为 `.bak-*` 再写入当前 generation，供迁移表覆盖不到的旧手册。
   `archive-proposals --yes` 把 `landed`/`rejected` 提案移进 `skill-proposals/archive/`，`proposed`/`approved` 留在收件箱。
   `rotate --older-than <days> [--apply]` 默认 dry-run；apply 才把旧 approvals/房间 archive/操作归档移进 `archive-maintenance/`。
+  `seal --in <bundle> --out <file>` / `unseal --in <file> --out <dir>` 用环境变量口令做 AES-256/PBKDF2 传输加密。
+  `merge --in <bundle>` 默认 dry-run，只补缺失、冲突保留当前；`--prefer incoming` 才替换并备份；账本冲突不覆盖。
 - **并发**：同一 home 只应有一个写入者；账本拒绝第二 writer，房间写是原子但 last-write-wins。
 - **Package**：不写任何用户数据/secret；`handoff-scan` 拒绝数据、凭据、宿主路径与活密钥，`release-smoke`
   断言安装不创建 working folder。Viki key 不落配置；bootstrap 的 `bootstrap.json` 0600、日志 token 已打码。

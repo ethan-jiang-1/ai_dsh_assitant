@@ -133,6 +133,10 @@ node .../assistant-data.mjs purge --assistant <DSH_HOME>/assistant \
 或 `rejected` 的提案移进 `skill-proposals/archive/`；`proposed`/`approved` 留在收件箱。再提案仍从归档副本继承
 `revision`/`created`，不重开历史；归档是移动，不删除。
 
+**加密传输**：`assistant-data seal --in <bundle> --out <file>` 从 `ASSISTANT_DATA_PASSPHRASE`（或 `--passphrase-env` 指定变量）读口令，生成 AES-256/PBKDF2 文件；`unseal --in <file> --out <dir>` 解到空目录。口令不进命令行/包；加密不是签名，收件方仍需信任文件来源。
+
+**合并（保守）**：`assistant-data merge --in <bundle> --assistant <dir> --operating <dir> [--apply] [--prefer current|incoming]` 默认 dry-run；只补目标缺失文件、目标独有文件不删；冲突默认保留当前，`--prefer incoming` 才替换工作目录文件并留 `.merge-backup-*`；账本冲突永不覆盖。
+
 **归档轮转**：`assistant-data rotate --assistant <DSH_HOME>/assistant --operating <DSH_HOME>/assistant-operating --older-than <days> [--apply]` 默认只列候选；`--apply` 才把超过天数的 `audit/approvals.jsonl`、房间 archive、`operations-archive.jsonl` 整体移到 `<root>/archive-maintenance/<stamp>/`，并写 `audit/maintenance.jsonl`。不做自动轮转、不按 JSONL 行删。
 
 **升级/卸载**：装新 tarball 不动用户数据；`--dump-config` 仍应有 `preset-assistant`，新会话验证一次。升级/remove 保留两个插件目录；remove 后重装回到组合。`pnpm upgrade-smoke` 证明“旧→新→remove”的两目录边界与组合恢复；真实旧字节的读取由 `tests/host/old-home-compat.spec.ts` 的冻结 v19 fixture 证明（房间、技能、提案、用量、手册迁移、账本回执）。

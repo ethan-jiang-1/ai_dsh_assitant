@@ -20,6 +20,7 @@
  */
 
 import { closeSync, existsSync, fsyncSync, openSync, writeSync } from 'node:fs'
+import { execFileSync } from 'node:child_process'
 import { chmod, copyFile, cp, lstat, mkdir, readFile, readdir, rename, rm, stat, writeFile } from 'node:fs/promises'
 import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:path'
 import { atomicWriteFile } from '../domain/home/atomic-write.ts'
@@ -107,6 +108,58 @@ export interface ArchiveRotationResult {
   readonly candidates: readonly ArchiveRotationEntry[]
   readonly moved: readonly string[]
   readonly audit: string
+}
+
+/** Conflict policy for a merge: keep the target (safe default) or take the bundle. */
+export type MergePreference = 'current' | 'incoming'
+
+/** Arguments for {@link mergeData}. */
+export interface DataMergeOptions {
+  readonly inDir: string
+  readonly assistantDir: string
+  readonly operatingDir: string
+  /** Default is a dry run; apply writes adds and (for the working folder) preferred conflicts. */
+  readonly apply?: boolean
+  /** `current` keeps the target on conflict; `incoming` replaces working-folder files. */
+  readonly prefer?: MergePreference
+  readonly maxBytes?: number
+}
+
+/** One merge decision, relative to the bundle root. */
+export interface DataMergeEntry {
+  readonly path: string
+  readonly kind: 'add' | 'conflict' | 'same'
+}
+
+/** Result of a merge dry run/apply. */
+export interface DataMergeResult {
+  readonly dryRun: boolean
+  readonly added: readonly DataMergeEntry[]
+  readonly conflicts: readonly DataMergeEntry[]
+  readonly same: readonly DataMergeEntry[]
+  readonly backups: readonly string[]
+  readonly audit: string
+}
+
+/** Arguments for {@link sealBundle}. */
+export interface SealBundleOptions {
+  readonly inDir: string
+  readonly outFile: string
+  /** Environment variable holding the passphrase; never a command-line value. */
+  readonly passphraseEnv?: string
+}
+
+/** Result of sealing/unsealing. */
+export interface SealedBundleResult {
+  readonly file: string
+  readonly bytes: number
+}
+
+/** Arguments for {@link unsealBundle}. */
+export interface UnsealBundleOptions {
+  readonly inFile: string
+  readonly outDir: string
+  readonly passphraseEnv?: string
 }
 
 /** Arguments for {@link refreshManual}. */
@@ -732,6 +785,157 @@ export async function rotateArchives(options: ArchiveRotationOptions): Promise<A
     await appendAuditLine(audit, { at: new Date().toISOString(), action: 'rotate', moved: moved.length, candidates: candidates.map(entry => entry.path) })
   }
   return { dryRun: !options.apply, candidates, moved, audit }
+}
+
+/**
+ * Merge a bundle into a live home without deleting target-only files. The default is a dry run
+ * and keeps the target on every conflict; `prefer: 'incoming'` replaces only working-folder
+ * conflicts after copying the old file to a `.merge-backup-*` sibling. Ledger conflicts are never
+ * overwritten here — replacing a ledger wholesale is `import --replace`, not a merge.
+ *
+ * @param options - Bundle, destinations and policy.
+ * @returns Decisions, backups and the audit path.
+ * @throws When the bundle is invalid, oversized, nested, or a ledger writer is live.
+ */
+export async function mergeData(options: DataMergeOptions): Promise<DataMergeResult> {
+  const assistantDir = resolve(options.assistantDir)
+  const operatingDir = resolve(options.operatingDir)
+  if (assistantDir === operatingDir) throw new Error('assistant-data: the working folder and the ledger must be different directories')
+  if (isInside(assistantDir, operatingDir) || isInside(operatingDir, assistantDir)) {
+    throw new Error('assistant-data: the working folder and the ledger must not nest inside each other')
+  }
+  const manifest = await readDataManifest(options.inDir)
+  if (!manifest.includes.includes('assistant') || !manifest.includes.includes('assistant-operating')) {
+    throw new Error('assistant-data: manifest does not declare both directories')
+  }
+  const sourceAssistant = join(options.inDir, 'assistant')
+  const sourceOperating = join(options.inDir, 'assistant-operating')
+  await assertPlainTree(sourceAssistant, 'bundle working folder')
+  await assertPlainTree(sourceOperating, 'bundle ledger')
+  const sourceCount = await countTree(sourceAssistant)
+  const sourceBytes = sourceCount.bytes + (await countTree(sourceOperating)).bytes
+  if (options.maxBytes !== undefined && (!Number.isSafeInteger(options.maxBytes) || options.maxBytes <= 0)) {
+    throw new Error('assistant-data: maxBytes must be a positive safe integer')
+  }
+  const maxBytes = options.maxBytes ?? MAX_IMPORT_BYTES
+  if (sourceBytes > maxBytes) throw new Error(`assistant-data: bundle is ${String(sourceBytes)} byte(s), above the ${String(maxBytes)}-byte merge cap`)
+  if (existsSync(join(operatingDir, 'writer.lock'))) {
+    throw new Error(`assistant-data: a writer.lock exists at ${join(operatingDir, 'writer.lock')}; stop the instance before merging`)
+  }
+  const apply = options.apply === true
+  const prefer = options.prefer ?? 'current'
+  const stamp = new Date().toISOString().replace(/[:.]/gu, '-')
+  const added: DataMergeEntry[] = []
+  const conflicts: DataMergeEntry[] = []
+  const same: DataMergeEntry[] = []
+  const backups: string[] = []
+
+  const walk = async (sourceRoot: string, targetRoot: string, allowIncoming: boolean): Promise<void> => {
+    if (!existsSync(sourceRoot)) return
+    for (const entry of await readdir(sourceRoot, { withFileTypes: true })) {
+      const source = join(sourceRoot, entry.name)
+      const target = join(targetRoot, entry.name)
+      if (entry.isDirectory()) {
+        await walk(source, target, allowIncoming)
+        continue
+      }
+      if (!entry.isFile()) continue
+      const rel = relative(sourceRoot, source)
+      if (!existsSync(target)) {
+        added.push({ path: rel, kind: 'add' })
+        if (apply) {
+          await mkdir(dirname(target), { recursive: true, mode: 0o700 })
+          await copyFile(source, target)
+          await chmod(target, 0o600)
+        }
+        continue
+      }
+      const [left, right] = await Promise.all([readFile(source), readFile(target)])
+      if (left.equals(right)) {
+        same.push({ path: rel, kind: 'same' })
+        continue
+      }
+      conflicts.push({ path: rel, kind: 'conflict' })
+      if (apply && allowIncoming && prefer === 'incoming') {
+        const backup = `${target}.merge-backup-${stamp}`
+        await copyFile(target, backup)
+        backups.push(backup)
+        await copyFile(source, target)
+        await chmod(target, 0o600)
+      }
+    }
+  }
+
+  await walk(sourceAssistant, assistantDir, true)
+  await walk(sourceOperating, operatingDir, false)
+  const audit = join(assistantDir, 'audit', 'merge.jsonl')
+  if (apply) {
+    await appendAuditLine(audit, {
+      at: new Date().toISOString(),
+      action: 'merge',
+      added: added.length,
+      conflicts: conflicts.length,
+      prefer,
+      backups: backups.length,
+    })
+  }
+  return { dryRun: !apply, added, conflicts, same, backups, audit }
+}
+
+/**
+ * Seal a bundle directory into one AES-256/PBKDF2 file. The passphrase comes from an environment
+ * variable only (default `ASSISTANT_DATA_PASSPHRASE`), so it never lands in shell history or the
+ * bundle. This is encryption for transport, not a signature: the recipient still trusts the file
+ * source.
+ *
+ * @param options - Bundle directory and destination file.
+ * @returns The sealed file and its byte size.
+ * @throws When the passphrase is missing, tools fail, or the destination exists.
+ */
+export async function sealBundle(options: SealBundleOptions): Promise<SealedBundleResult> {
+  const env = options.passphraseEnv ?? 'ASSISTANT_DATA_PASSPHRASE'
+  const passphrase = process.env[env]
+  if (passphrase === undefined || passphrase.length === 0) throw new Error(`assistant-data: set ${env} to seal the bundle`)
+  const outFile = resolve(options.outFile)
+  if (existsSync(outFile)) throw new Error(`assistant-data: refusing to overwrite ${outFile}`)
+  const source = resolve(options.inDir)
+  const tarFile = `${outFile}.${process.pid.toString(36)}-${Date.now().toString(36)}.tgz`
+  try {
+    execFileSync('tar', ['-czf', tarFile, '-C', source, '.'], { stdio: 'ignore' })
+    execFileSync('openssl', ['enc', '-aes-256-cbc', '-pbkdf2', '-salt', '-pass', `env:${env}`, '-in', tarFile, '-out', outFile], { stdio: 'ignore' })
+    await chmod(outFile, 0o600)
+    return { file: outFile, bytes: (await stat(outFile)).size }
+  } finally {
+    await rm(tarFile, { force: true })
+  }
+}
+
+/**
+ * Unseal a sealed bundle into a fresh directory. The destination must be absent or empty; the
+ * decrypted tarball is removed after extraction.
+ *
+ * @param options - Sealed file and destination directory.
+ * @returns The destination and extracted byte count.
+ * @throws When the passphrase is missing, the file is corrupt, or the destination is non-empty.
+ */
+export async function unsealBundle(options: UnsealBundleOptions): Promise<SealedBundleResult> {
+  const env = options.passphraseEnv ?? 'ASSISTANT_DATA_PASSPHRASE'
+  if (process.env[env] === undefined || process.env[env]?.length === 0) throw new Error(`assistant-data: set ${env} to unseal the bundle`)
+  const inFile = resolve(options.inFile)
+  const outDir = resolve(options.outDir)
+  const existing = await lstat(outDir).catch(() => undefined)
+  if (existing !== undefined && (!existing.isDirectory() || (await readdir(outDir)).length > 0)) {
+    throw new Error(`assistant-data: unseal destination is not empty: ${outDir}`)
+  }
+  await mkdir(outDir, { recursive: true, mode: 0o700 })
+  const tarFile = `${outDir}.${process.pid.toString(36)}-${Date.now().toString(36)}.tgz`
+  try {
+    execFileSync('openssl', ['enc', '-d', '-aes-256-cbc', '-pbkdf2', '-salt', '-pass', `env:${env}`, '-in', inFile, '-out', tarFile], { stdio: 'ignore' })
+    execFileSync('tar', ['-xzf', tarFile, '-C', outDir], { stdio: 'ignore' })
+    return { file: outDir, bytes: 0 }
+  } finally {
+    await rm(tarFile, { force: true })
+  }
 }
 
 /**
