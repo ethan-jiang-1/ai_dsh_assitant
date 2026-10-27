@@ -20,11 +20,12 @@ opened: 2026-10-28
 | B1 真 DOM 客户端 spec（happy-dom/react-dom + useSyncExternalStore 红绿） | 已交付 | `projection-panel-dom.spec.mjs` 2 it：输入→提交、外部 store 更新；无订阅版实测红（2 failed），恢复后绿；145 文件 / 1101 测试、verify 50 |
 | B2 Viki 4 面纳入 `web-face-check --all`（mock + #debug=1 + evals） | 已交付 | `pnpm web-face-check --all` 8/8 PASS；Viki mock 固定 19433、connected/diagnostics/search/disconnected 全绿；mock 与 service 均收；默认 4 客户面 |
 | B3 pre-push/证据地图写入浏览器车道（不进 verify） | 已交付 | pre-push 规则改为 `pnpm web-face-check --all` 8 面；testing 已定姿态补「浏览器证据车道」；明确 test/verify 绿不证明页面 |
-| B4 TZ=Asia/Shanghai + format 确定性测试 | 待开始 | — |
+| B4 TZ=Asia/Shanghai + format 确定性测试 | 已交付 | vitest env 钉 TZ；`tests/client/format.spec.ts` 2 it（instant 本地日/标签/时间、naive 透传）；`pnpm test` 146 文件 / 1103 测试 |
 
 ## 仍未取
 
 - 命令参数形状门、coverage 阈值、performance/load：沿用六维审计的触发条件，不在这四片里硬凑。
+- 一次全量运行在 `tests/host/root-files.spec.ts` 的「hand-edited voice」断言上偶发红（收到默认 SOUL）；单跑与随后三次全量均绿，未能复现。按可疑 flake 记录，不冒充已修。
 - Viki live 服务（非 mock）不在 B2 内；B2 只证明调试面板在固定 mock 下的渲染。
 
 ## 验收标准

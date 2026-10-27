@@ -144,7 +144,10 @@ export default defineConfig({
       reportsDirectory: fileURLToPath(new URL('.tmp/coverage', repositoryRoot)),
       include: ['src/**/*.ts'],
     },
+    // Local-time rendering is a product contract (the desk shows the viewer's wall time); pin
+    // the test zone so a UTC CI host and a Shanghai laptop agree on the format assertions.
     env: {
+      TZ: 'Asia/Shanghai',
       TMPDIR: temporaryRoot,
       TMP: temporaryRoot,
       TEMP: temporaryRoot,
