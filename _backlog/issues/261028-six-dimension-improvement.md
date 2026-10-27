@@ -22,7 +22,7 @@ opened: 2026-10-28
 | S1 入口瘦身（命令表迁 `docs/commands.md`；根留启动+日常+指针；命令预算门） | 已交付 | 根 180 行 / 21.4KB / 7 条 `pnpm` 行（原 221 行 / 27.9KB / 40 条）；`docs/commands.md` 106 行；命令预算门 + 红夹具；`pnpm verify` 49/49；`pnpm test` 143 文件 / 1083 |
 | S2 反馈诚实性（refresh 健康门、eval BLOCKED、smoke 跳过→BLOCKED、expected 健康门） | 已交付 | refresh 纯核红绿 spec；eval 无日志 **BLOCKED exit 2**（空 profile 实测）；release-smoke 无 key **BLOCKED exit 2**（实测）；web-install 无 Chrome **BLOCKED exit 2**（实测）；expected 健康门（complete/空错误/controls/token）；`pnpm test` 143/1090、`verify` 50/50 |
 | S3a 账本归档 seam（格式收进 `domain/operating`；cli/desk-projection 消费） | 已交付 | `archive.ts` 移入 `src/domain/operating/`；host/cli/desk-projection/test 全部改指；无 `host/operating-ledger/archive` 内部引用；typecheck + 143/1090 + verify 50 |
-| S3b 面板四态拆分（props 契约不变） | 待开始 | — |
+| S3b 面板四态拆分（props 契约不变） | 进行中 | SimpleFace + ActivityFace 已抽成命名组件；主函数 366→约 310 行；144/1096、verify 50；board/detail 待拆 |
 | S3c data CLI 按命令拆分（入口只做 argv 分发） | 待开始 | — |
 | S4a 纯核 ledger spec（revision/重放/冲突/未知事项） | 已交付 | `tests/domain/operating-ledger.spec.ts` 6 it：revision 增长、同 id 重放 no-op、同 id 异内容拒绝、未知事项留回执、revive 回填；`test:domain` 18/202 |
 | S4b 真页面交互回归（jsdom 或 web-face-check 门，二选一由实施证据定） | 待开始 | — |

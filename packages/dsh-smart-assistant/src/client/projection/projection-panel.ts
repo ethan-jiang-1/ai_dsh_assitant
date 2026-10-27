@@ -4,7 +4,7 @@ import { AssistantBrandMark } from '../chrome/brand'
 import { canProcess, type CaptureStatus } from '../../domain/desk/desk-process'
 import { setUiMode, useUiMode } from '../chrome/ui-mode'
 import { deriveCaptureView } from '../../domain/desk/desk-capture-view'
-import { countPendingProposals, deriveActivityView } from '../../domain/desk/desk-activity-view'
+import { countPendingProposals, deriveActivityView, type ActivityView } from '../../domain/desk/desk-activity-view'
 import { humanTime, localDateKey, localDateLabel, localTimeLabel } from '../chrome/format'
 import { ProactiveRows, SuggestionStrip, PROACTIVE_STYLES } from './proactive-strip'
 import type { ProactiveUiState } from '../proactive/proactive-face'
@@ -13,6 +13,9 @@ import type { ProjectionDownload } from './projection-reader'
 import type { DeskSurface } from './desk-surface'
 import type { ProjectionView, ProjectionViewBoundActions } from './projection-view'
 import type { OperatingReceipt } from './operating-projection'
+
+/** The non-empty projection data the faces consume. */
+type DeskData = NonNullable<ProjectionDownload['data']>
 
 /** The framework-bound hooks, the view store, and the entry-owned lane surface. */
 export interface ProjectionPanelProps {
@@ -188,6 +191,94 @@ function timeParts(times: { readonly promisedDeadline?: string; readonly forecas
 }
 
 /**
+ * The simple density face: one next thing, one action, one way out. Extracted from the panel
+ * so its urgent/pending/matter/fragment precedence reads as one component rather than a local
+ * branch inside the orchestration function.
+ */
+function SimpleFace(props: {
+  data: DeskData
+  simpleMatter: DeskData['matters'][number] | undefined
+  simpleFragment: DeskData['unclaimed'][number] | undefined
+  simpleQuestion: string | undefined
+  lanes: DeskSurface['lanes']
+}): ReturnType<typeof ce> {
+  const { data, simpleMatter, simpleFragment, simpleQuestion, lanes } = props
+  const matters = data.matters
+  const unclaimed = data.unclaimed ?? []
+  return ce('section', { className: 'dsha-simple', 'data-ui-simple': true },
+    ce('div', { className: 'dsha-simple-card' },
+      simpleQuestion !== undefined ? ce('p', { className: 'dsha-simple-kicker' }, '它在等你') : null,
+      ce('h2', { className: 'dsha-simple-title' },
+        simpleQuestion !== undefined ? '它在等你回答'
+          : simpleMatter !== undefined ? simpleMatter.title
+            : simpleFragment !== undefined ? '有一条还没归户的事'
+              : '桌面上没有在办的事'),
+      simpleMatter !== undefined && simpleMatter.summary !== '' ? ce('p', { className: 'dsha-simple-summary' }, simpleMatter.summary) : null,
+      simpleMatter === undefined && simpleFragment !== undefined ? ce('p', { className: 'dsha-simple-summary' }, simpleFragment.note) : null,
+      simpleMatter !== undefined ? ce('p', { className: 'dsha-simple-meta' },
+        `${STATUS_LABEL[simpleMatter.status] ?? simpleMatter.status}${simpleMatter.times.nextCheckpoint !== undefined ? ` · 核对点 ${simpleMatter.times.nextCheckpoint}` : ''}`) : null,
+      ce('div', { className: 'dsha-simple-actions' },
+        simpleQuestion !== undefined
+          ? ce('button', { className: 'dsha-btn dsha-btn-primary', type: 'button', onClick: () => { lanes.onOpenSession(simpleQuestion) } }, '去会话回答')
+          : simpleMatter !== undefined
+            ? ce('button', {
+              className: 'dsha-btn dsha-btn-primary', type: 'button',
+              onClick: () => { if (simpleMatter.status === 'active') lanes.onProcess(simpleMatter.id); else lanes.onWake(simpleMatter.id) },
+            }, simpleMatter.status === 'active' ? '处理这件事' : '唤醒这件事')
+            : simpleFragment !== undefined
+              ? ce('button', { className: 'dsha-btn dsha-btn-primary', type: 'button', onClick: () => { lanes.onClaim(simpleFragment.id) } }, '认领这件事')
+              : null)),
+    ce('div', { className: 'dsha-simple-more' },
+      ce('span', { className: 'dsha-note' }, [
+        matters.length > 1 ? `还有 ${String(matters.length - 1)} 件在账上` : '',
+        unclaimed.length > 0 && simpleMatter !== undefined ? `${String(unclaimed.length)} 条待认领` : '',
+      ].filter(Boolean).join(' · ')),
+      ce('button', { className: 'dsha-btn', type: 'button', onClick: () => { setUiMode('standard') } }, '显示更多 · 切到标准')))
+}
+
+/**
+ * The activity face: the operation feed grouped by local day, with both the local reveal and
+ * the archive page. Extracted from the panel for the same reason as SimpleFace.
+ */
+function ActivityFace(props: {
+  data: DeskData
+  activityView: ActivityView<OperatingReceipt>
+  oldestReceipt: string | undefined
+  actions: ProjectionViewBoundActions
+  loadOlderReceipts?: (before: string) => Promise<readonly OperatingReceipt[]>
+}): ReturnType<typeof ce> {
+  const { data, activityView, oldestReceipt, actions, loadOlderReceipts } = props
+  const activityEntries = activityView.entries
+  const activityGroups = activityView.groups
+  const titleOfMatter = (matterId: string): string => data.matters.find(matter => matter.id === matterId)?.title ?? matterId
+  return ce('section', { className: 'dsha-activity' },
+        activityEntries.length === 0 ? ce('p', { className: 'dsha-detail-hint' }, '还没有做过任何动作——交代第一件事试试。') : null,
+        ...activityGroups.map(group => ce('div', { key: group.key, className: 'dsha-activity-day' },
+          ce('p', { className: 'dsha-activity-date' }, group.label),
+          ...group.entries.map(receipt => {
+            const known = receipt.matterId !== '' && data.matters.some(matter => matter.id === receipt.matterId)
+            const entryLine = ce('span', { className: 'dsha-activity-line' },
+              `${localTimeLabel(receipt.submittedAt)} ${OP_LABEL[receipt.kind ?? ''] ?? '操作'}${OP_STATUS_NOTE[receipt.status] !== undefined ? `（${OP_STATUS_NOTE[receipt.status]}）` : ''}${known ? ` · ${titleOfMatter(receipt.matterId)}` : ''}`)
+            const quote = receipt.quote !== undefined ? ce('p', { className: 'dsha-op-quote' }, `「${receipt.quote}」`) : null
+            return known
+              ? ce('button', { key: receipt.operationId, type: 'button', className: 'dsha-activity-entry',
+                  onClick: () => { actions.setMode('board'); actions.selectMatter(receipt.matterId) } }, entryLine, quote)
+              : ce('div', { key: receipt.operationId, className: 'dsha-activity-entry' }, entryLine, quote)
+          }))),
+        activityView.hasMore
+          ? ce('button', { type: 'button', className: 'dsha-btn dsha-activity-more', onClick: () => actions.revealMoreActivity() }, '显示更早')
+          : loadOlderReceipts !== undefined && oldestReceipt !== undefined
+            ? ce('button', {
+                type: 'button',
+                className: 'dsha-btn dsha-activity-more',
+                onClick: () => {
+                  void loadOlderReceipts?.(oldestReceipt).then(receipts => actions.appendOlderReceipts(receipts)).catch(() => undefined)
+                },
+              }, '加载更早账本')
+            : null)
+}
+
+/**
  * The desk page: header with counts, card list (matters then unclaimed), and the detail pane.
  * Read-only complete collection with distinct loading/missing/error/stale states; all colors
  * ride semantic aliases and the theme contract block.
@@ -258,9 +349,6 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
   })()
   const oldestReceipt = allReceipts.reduce<string | undefined>((oldest, receipt) => oldest === undefined || receipt.submittedAt < oldest ? receipt.submittedAt : oldest, undefined)
   const activityView = deriveActivityView(allReceipts, view.activityLimit, localDateKey, localDateLabel)
-  const activityEntries = activityView.entries
-  const titleOfMatter = (matterId: string): string => data?.matters.find(matter => matter.id === matterId)?.title ?? matterId
-  const activityGroups = activityView.groups
   const pendingProposals = countPendingProposals(data?.matters ?? [])
   const proactiveStripProps = {
     ...(data !== undefined ? { data } : {}),
@@ -294,35 +382,7 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
   const simpleMatter = matters.find(matter => matter.status === 'active') ?? matters[0]
   const simpleFragment = unclaimed[0]
   const simpleQuestion = pendingQuestionSessions[0]
-  const simpleFace = data === undefined ? null : ce('section', { className: 'dsha-simple', 'data-ui-simple': true },
-    ce('div', { className: 'dsha-simple-card' },
-      simpleQuestion !== undefined ? ce('p', { className: 'dsha-simple-kicker' }, '它在等你') : null,
-      ce('h2', { className: 'dsha-simple-title' },
-        simpleQuestion !== undefined ? '它在等你回答'
-          : simpleMatter !== undefined ? simpleMatter.title
-            : simpleFragment !== undefined ? '有一条还没归户的事'
-              : '桌面上没有在办的事'),
-      simpleMatter !== undefined && simpleMatter.summary !== '' ? ce('p', { className: 'dsha-simple-summary' }, simpleMatter.summary) : null,
-      simpleMatter === undefined && simpleFragment !== undefined ? ce('p', { className: 'dsha-simple-summary' }, simpleFragment.note) : null,
-      simpleMatter !== undefined ? ce('p', { className: 'dsha-simple-meta' },
-        `${STATUS_LABEL[simpleMatter.status] ?? simpleMatter.status}${simpleMatter.times.nextCheckpoint !== undefined ? ` · 核对点 ${simpleMatter.times.nextCheckpoint}` : ''}`) : null,
-      ce('div', { className: 'dsha-simple-actions' },
-        simpleQuestion !== undefined
-          ? ce('button', { className: 'dsha-btn dsha-btn-primary', type: 'button', onClick: () => { lanes.onOpenSession(simpleQuestion) } }, '去会话回答')
-          : simpleMatter !== undefined
-            ? ce('button', {
-              className: 'dsha-btn dsha-btn-primary', type: 'button',
-              onClick: () => { if (simpleMatter.status === 'active') lanes.onProcess(simpleMatter.id); else lanes.onWake(simpleMatter.id) },
-            }, simpleMatter.status === 'active' ? '处理这件事' : '唤醒这件事')
-            : simpleFragment !== undefined
-              ? ce('button', { className: 'dsha-btn dsha-btn-primary', type: 'button', onClick: () => { lanes.onClaim(simpleFragment.id) } }, '认领这件事')
-              : null)),
-    ce('div', { className: 'dsha-simple-more' },
-      ce('span', { className: 'dsha-note' }, [
-        matters.length > 1 ? `还有 ${String(matters.length - 1)} 件在账上` : '',
-        unclaimed.length > 0 && simpleMatter !== undefined ? `${String(unclaimed.length)} 条待认领` : '',
-      ].filter(Boolean).join(' · ')),
-      ce('button', { className: 'dsha-btn', type: 'button', onClick: () => { setUiMode('standard') } }, '显示更多 · 切到标准')))
+  const simpleFace = data === undefined ? null : SimpleFace({ data, simpleMatter, simpleFragment, simpleQuestion, lanes })
   // Accepted limitation, verified against the spec card 2026-10-10
   // ([desk-operating-entry](../../../../../notes/implemented/2026-10-06-desk-operating-entry.md)): the
   // desk ROOT is the scroll container — the list never scrolls itself — so the record path
@@ -448,31 +508,7 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
       ce('p', { className: 'dsha-detail-hint' },
         download.status === 'missing' ? '还没有经营事项资料。交代一件试试——它会被记进权威账本，事事有着落。' : '还没有经营事项。交代一件试试——它会被记进权威账本，事事有着落。'))
       : simpleMode && data !== undefined ? simpleFace
-      : effectiveMode === 'activity' && data !== undefined ? ce('section', { className: 'dsha-activity' },
-        activityEntries.length === 0 ? ce('p', { className: 'dsha-detail-hint' }, '还没有做过任何动作——交代第一件事试试。') : null,
-        ...activityGroups.map(group => ce('div', { key: group.key, className: 'dsha-activity-day' },
-          ce('p', { className: 'dsha-activity-date' }, group.label),
-          ...group.entries.map(receipt => {
-            const known = receipt.matterId !== '' && data.matters.some(matter => matter.id === receipt.matterId)
-            const entryLine = ce('span', { className: 'dsha-activity-line' },
-              `${localTimeLabel(receipt.submittedAt)} ${OP_LABEL[receipt.kind ?? ''] ?? '操作'}${OP_STATUS_NOTE[receipt.status] !== undefined ? `（${OP_STATUS_NOTE[receipt.status]}）` : ''}${known ? ` · ${titleOfMatter(receipt.matterId)}` : ''}`)
-            const quote = receipt.quote !== undefined ? ce('p', { className: 'dsha-op-quote' }, `「${receipt.quote}」`) : null
-            return known
-              ? ce('button', { key: receipt.operationId, type: 'button', className: 'dsha-activity-entry',
-                  onClick: () => { props.actions.setMode('board'); props.actions.selectMatter(receipt.matterId) } }, entryLine, quote)
-              : ce('div', { key: receipt.operationId, className: 'dsha-activity-entry' }, entryLine, quote)
-          }))),
-        activityView.hasMore
-          ? ce('button', { type: 'button', className: 'dsha-btn dsha-activity-more', onClick: () => props.actions.revealMoreActivity() }, '显示更早')
-          : props.loadOlderReceipts !== undefined && oldestReceipt !== undefined
-            ? ce('button', {
-                type: 'button',
-                className: 'dsha-btn dsha-activity-more',
-                onClick: () => {
-                  void props.loadOlderReceipts?.(oldestReceipt).then(receipts => props.actions.appendOlderReceipts(receipts)).catch(() => undefined)
-                },
-              }, '加载更早账本')
-            : null)
+      : effectiveMode === 'activity' && data !== undefined ? ActivityFace({ data, activityView, oldestReceipt, actions: props.actions, ...(props.loadOlderReceipts !== undefined ? { loadOlderReceipts: props.loadOlderReceipts } : {}) })
       : ce('section', { className: 'dsha-matters', 'data-pane': view.pane },
         ce('div', { className: 'dsha-matter-list dsha-list', onScroll: (event: { currentTarget: { scrollTop: number } }) => props.actions.rememberListPosition(event.currentTarget.scrollTop) },
           matters.length > 0 ? ce('div', { className: 'dsha-filter' },
