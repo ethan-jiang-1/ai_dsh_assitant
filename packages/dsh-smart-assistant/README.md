@@ -67,6 +67,7 @@ Viki 的 API key 从 `apiKeyEnv`（默认 `OPENVIKING_API_KEY`）读；内联 `a
 - **诊断/擦除**：`assistant-data status` 报路径/大小/手册 generation/账本健康/归档操作数；`check` 再报相对路径、
   坏 ledger/归档行、旧手册与符号链接，有问题以非零退出。`purge --kind ... --id ... --reason ... --yes`
   是显式硬删除：删 active/archive/snapshot 副本，并向 `audit/purges.jsonl` 写审计；不删 sessions/账本历史。
+  `refresh-manual --yes` 先把 `AGENTS.md` 备份为 `.bak-*` 再写入当前 generation，供迁移表覆盖不到的旧手册。
 - **并发**：同一 home 只应有一个写入者；账本拒绝第二 writer，房间写是原子但 last-write-wins。
 - **Package**：不写任何用户数据/secret；`handoff-scan` 拒绝数据、凭据、宿主路径与活密钥，`release-smoke`
   断言安装不创建 working folder。Viki key 不落配置；bootstrap 的 `bootstrap.json` 0600、日志 token 已打码。

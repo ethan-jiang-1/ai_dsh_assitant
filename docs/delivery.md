@@ -117,6 +117,10 @@ node .../assistant-data.mjs purge --assistant <DSH_HOME>/assistant \
 - 账本里的 material/quote 与 `discard` 是审计历史，不随房间记录擦除；要连账本一起擦除需另做显式操作。
 - 删除后可能留下悬空 `[[链接]]`/source；`curate` 会报，恢复需从备份。
 
+**手册再生**：`assistant-data refresh-manual --assistant <DSH_HOME>/assistant --yes` 把现有 `AGENTS.md` 复制为
+`AGENTS.md.bak-<stamp>`（0600）后写入当前 generation。它是给迁移表覆盖不到的更老手册的逃生门；手改内容在备份里，
+不碰 `SOUL.md`。不带 `--yes` 拒绝。
+
 **升级/卸载**：装新 tarball 不动用户数据；`--dump-config` 仍应有 `preset-assistant`，新会话验证一次。升级/remove 保留两个插件目录；remove 后重装回到组合。`pnpm upgrade-smoke` 证明“旧→新→remove”的两目录边界与组合恢复；真实旧字节的读取由 `tests/host/old-home-compat.spec.ts` 的冻结 v19 fixture 证明（房间、技能、提案、用量、手册迁移、账本回执）。
 
 **格式兼容政策**：

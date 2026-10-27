@@ -14,6 +14,7 @@
  *   node <package>/bin/assistant-data.mjs status --assistant <dir> --operating <dir>
  *   node <package>/bin/assistant-data.mjs check --assistant <dir> --operating <dir>
  *   node <package>/bin/assistant-data.mjs purge --assistant <dir> --kind <kind> --id <id> --reason <text> --yes
+ *   node <package>/bin/assistant-data.mjs refresh-manual --assistant <dir> --yes
  *
  * No harness peers are imported: the command runs from an installed profile with plain Node.
  */
@@ -33,7 +34,8 @@ const usage = `usage:
   node <package>/bin/assistant-data.mjs import --in <bundle> --assistant <dir> --operating <dir> [--replace]
   node <package>/bin/assistant-data.mjs status --assistant <dir> --operating <dir>
   node <package>/bin/assistant-data.mjs check --assistant <dir> --operating <dir>
-  node <package>/bin/assistant-data.mjs purge --assistant <dir> --kind <memory|research|knowledge|skill|proposal> --id <id> --reason <text> --yes`
+  node <package>/bin/assistant-data.mjs purge --assistant <dir> --kind <memory|research|knowledge|skill|proposal> --id <id> --reason <text> --yes
+  node <package>/bin/assistant-data.mjs refresh-manual --assistant <dir> --yes`
 
 if (command === '--help' || command === undefined) {
   console.log(usage)
@@ -109,6 +111,17 @@ try {
     console.log(`assistant-data: erased ${kind} ${id} (${String(result.removed.length)} path(s))`)
     for (const path of result.removed) console.log(`  removed ${path}`)
     console.log(`  audit ${result.audit}`)
+  } else if (command === 'refresh-manual') {
+    const assistantDir = option('--assistant')
+    if (assistantDir === undefined) {
+      console.error(usage)
+      process.exit(2)
+    }
+    const result = await module.refreshManual({ assistantDir, confirm: argv.includes('--yes') })
+    console.log(`assistant-data: regenerated ${result.path}`)
+    if (result.backup !== undefined) {
+      console.log(`  previous manual (v${String(result.previousVersion ?? 0)}) kept at ${result.backup}`)
+    }
   } else {
     console.error(`assistant-data: unknown command ${JSON.stringify(command)}\n${usage}`)
     process.exit(2)

@@ -20,9 +20,10 @@
  */
 
 import { closeSync, existsSync, fsyncSync, openSync, writeSync } from 'node:fs'
-import { cp, lstat, mkdir, readFile, readdir, rename, rm, stat, writeFile } from 'node:fs/promises'
+import { chmod, copyFile, cp, lstat, mkdir, readFile, readdir, rename, rm, stat, writeFile } from 'node:fs/promises'
 import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:path'
-import { HOME_MANUAL_VERSION } from '../domain/home/home-map.ts'
+import { atomicWriteFile } from '../domain/home/atomic-write.ts'
+import { HOME_MANUAL_VERSION, renderHomeManual } from '../domain/home/home-map.ts'
 import { isEntryId } from '../domain/home/room.ts'
 import { OPERATIONS_ARCHIVE_FILE, parseOperationsArchive } from '../host/operating-ledger/archive.ts'
 
@@ -61,6 +62,22 @@ export interface DataPurgeOptions {
 export interface DataPurgeResult {
   readonly removed: readonly string[]
   readonly audit: string
+}
+
+/** Arguments for {@link refreshManual}. */
+export interface ManualRefreshOptions {
+  readonly assistantDir: string
+  /** Destructive to hand edits unless backed up; caller must pass true explicitly. */
+  readonly confirm: boolean
+  /** Clock override for tests. */
+  readonly now?: Date
+}
+
+/** Result of a manual refresh. */
+export interface ManualRefreshResult {
+  readonly path: string
+  readonly backup?: string
+  readonly previousVersion?: number
 }
 
 /** What an export bundle declares about itself. */
@@ -531,6 +548,41 @@ export async function purgeData(options: DataPurgeOptions): Promise<DataPurgeRes
   }
   await appendAuditLine(audit, { at, kind: options.kind, id: options.id, status: 'deleted', removed })
   return { removed, audit }
+}
+
+/**
+ * Regenerate the working-folder manual from the current build. The old file is copied to
+ * `AGENTS.md.bak-<stamp>` first, so a hand-edited manual is recoverable; the caller must confirm.
+ * This is the escape hatch for a generated manual older than the migration table: instead of
+ * guessing its text, replace it with the current render after a backup.
+ *
+ * @param options - Working folder and explicit confirmation.
+ * @returns The written manual, its backup (when one existed), and the previous generation.
+ * @throws When confirmation is missing, the folder is absent/a symlink, or the manual is a symlink.
+ */
+export async function refreshManual(options: ManualRefreshOptions): Promise<ManualRefreshResult> {
+  if (options.confirm !== true) throw new Error('assistant-data: refresh-manual requires explicit confirmation (--yes)')
+  const assistantDir = resolve(options.assistantDir)
+  const rootInfo = await lstat(assistantDir).catch(() => undefined)
+  if (rootInfo === undefined) throw new Error(`assistant-data: working folder not found: ${assistantDir}`)
+  if (rootInfo.isSymbolicLink()) throw new Error(`assistant-data: working folder is a symbolic link: ${assistantDir}`)
+  if (!rootInfo.isDirectory()) throw new Error(`assistant-data: working folder is not a directory: ${assistantDir}`)
+  const path = join(assistantDir, 'AGENTS.md')
+  const existing = await lstat(path).catch(() => undefined)
+  if (existing === undefined) {
+    await atomicWriteFile(path, renderHomeManual())
+    return { path }
+  }
+  if (existing.isSymbolicLink()) throw new Error(`assistant-data: refusing to refresh a symlinked manual: ${path}`)
+  if (!existing.isFile()) throw new Error(`assistant-data: manual is not a regular file: ${path}`)
+  const previous = await readFile(path, 'utf8')
+  const previousVersion = manualVersionOf(previous)
+  const stamp = (options.now ?? new Date()).toISOString().replace(/[:.]/g, '-')
+  const backup = join(assistantDir, `AGENTS.md.bak-${stamp}-${process.pid.toString(36)}`)
+  await copyFile(path, backup)
+  await chmod(backup, 0o600)
+  await atomicWriteFile(path, renderHomeManual())
+  return { path, backup, ...(previousVersion === undefined ? {} : { previousVersion }) }
 }
 
 /**
