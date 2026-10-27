@@ -84,7 +84,7 @@ opened: 2026-10-27
 | G16 | **用户手改与插件写冲突**：read-modify-write 无 CAS；未知 frontmatter 字段在下次写时被丢弃；digest 缓存看不见外部编辑 | 已修（房间写 CAS） | 中 | `Room.write` 保留未知字段并支持 raw-text CAS；thread/knowledge/save_page 与 memory archive 传入 expected text；新 memory 写是新增，不是覆盖 |
 | G17 | **归档/审计/提案无 retention**：`operations-archive.jsonl`、`approvals.jsonl`、房间 archive、skills archive、skill-proposals 都只增；只有 skill snapshots 保 3 份 | 已修（显式轮转） | 中 | `status`/`check` 读数与阈值；`rotate --older-than --apply` 移动旧归档并审计；自动删除不做（审计历史价值高于磁盘） |
 | G18 | **`desk-projection.json` 夹具可在无账本时冒充真桌面** | 已修 | 中 | 默认 404；`allowFixture: true` 才回退；测试/组合/探针 patch 已更新 |
-| G19 | **投影 receipts 只含最近窗口**：旧回执不在桌面，客户端若要读旧回执需走工具 | 边界（无客户端需求） | 低 | 旧回执经 `assistant_operating read operation_id` 可读；分页等真实客户端需求再做 |
+| G19 | **投影 receipts 只含最近窗口**：旧回执不在桌面，客户端若要读旧回执需走工具 | 已修（分页） | 低 | `/api/assistant/operating-receipts` 按 before/limit 从状态+归档分页；桌面「加载更早账本」消费，不复制业务状态 |
 | G20 | **更老 generation 的手册没有迁移表**：只覆盖退役 Room data 段与 v19→v20；v0/v18 等只警告，没有"备份后重新生成"动作 | 已修（显式再生） | 中 | `assistant-data refresh-manual --yes` 备份后渲染当前版；不自动覆盖手改 |
 | G21 | **SOUL 默认值漂移**：已有 home 永不覆盖（刻意），新默认身份只到新 home | 边界 | 低 | 身份是 owner 数据；发布说明写"想换默认就手动替换" |
 | G22 | **`deliverables/` 孤儿**：无代码读写、无生命周期、无 `present` 指引；最终交付可能落在 home 而不是 workspace | 已修（模型指引） | 中 | manual v21 明确「交付写 session cwd + `present`，working folder 是笔记本」；home 的 `deliverables/` 仍是用户数据，无生命周期 |
@@ -110,7 +110,7 @@ opened: 2026-10-27
 - **G14**：已有保守 `merge`（默认 dry-run、冲突保留当前、目标独有不删、账本不覆盖）；真正的双向同步/git 语义未取。
 - **G15**：已有 `seal`/`unseal` 口令加密传输；签名与密钥托管未取。
 - **G17**：已有显式 `rotate --older-than --apply`；自动删除不做（审计历史价值高于磁盘）。
-- **G19**：旧回执可按 `operation_id` 读；客户端分页等真实需求。
+- **G19**：已加 `/api/assistant/operating-receipts` 分页与桌面「加载更早账本」按钮。
 - **G26**：OpenViking 无删除 API；sentinel 按其手册清理。
 - **G28–G32**：单 principal/home、无 project 键、Windows/网络 FS 未验证、明文 egress、sessions 证据链跨机断；平台/产品边界，数据卡已声明。
 - **G33**：knowledge source 已查；账本 sessionId 需宿主会话索引，插件不越界。

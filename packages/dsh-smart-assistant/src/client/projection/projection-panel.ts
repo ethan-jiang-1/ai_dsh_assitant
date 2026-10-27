@@ -12,6 +12,7 @@ import type { ProactiveCatalogState } from '../proactive/proactive-face-source'
 import type { ProjectionDownload } from './projection-reader'
 import type { DeskSurface } from './desk-surface'
 import type { ProjectionView, ProjectionViewBoundActions } from './projection-view'
+import type { OperatingReceipt } from './operating-projection'
 
 /** The framework-bound hooks, the view store, and the entry-owned lane surface. */
 export interface ProjectionPanelProps {
@@ -27,6 +28,8 @@ export interface ProjectionPanelProps {
   actions: ProjectionViewBoundActions
   /** Every callback the entry wires; one factory owns them so a new lane does not touch fixtures. */
   surface: DeskSurface
+  /** Page older receipts from the ledger archive; absent on direct mounts without a host route. */
+  loadOlderReceipts?: (before: string) => Promise<readonly OperatingReceipt[]>
   /** The home wrapper's way back from the full board to the one-page home (absent on direct mounts). */
   onBackHome?: () => void
 }
@@ -245,7 +248,16 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
   // The activity feed (history views ③): every operation newest first, grouped by the viewer's
   // local day, revealed progressively — the whole ledger is already downloaded, so revealing is
   // pure rendering. The order and grouping rules live in the domain module.
-  const activityView = deriveActivityView(data?.receipts ?? [], view.activityLimit, localDateKey, localDateLabel)
+  const allReceipts = (() => {
+    const seen = new Set<string>()
+    return [...(data?.receipts ?? []), ...(view.olderReceipts ?? [])].filter(receipt => {
+      if (seen.has(receipt.operationId)) return false
+      seen.add(receipt.operationId)
+      return true
+    })
+  })()
+  const oldestReceipt = allReceipts.reduce<string | undefined>((oldest, receipt) => oldest === undefined || receipt.submittedAt < oldest ? receipt.submittedAt : oldest, undefined)
+  const activityView = deriveActivityView(allReceipts, view.activityLimit, localDateKey, localDateLabel)
   const activityEntries = activityView.entries
   const titleOfMatter = (matterId: string): string => data?.matters.find(matter => matter.id === matterId)?.title ?? matterId
   const activityGroups = activityView.groups
@@ -450,7 +462,17 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
                   onClick: () => { props.actions.setMode('board'); props.actions.selectMatter(receipt.matterId) } }, entryLine, quote)
               : ce('div', { key: receipt.operationId, className: 'dsha-activity-entry' }, entryLine, quote)
           }))),
-        activityView.hasMore ? ce('button', { type: 'button', className: 'dsha-btn dsha-activity-more', onClick: () => props.actions.revealMoreActivity() }, '显示更早') : null)
+        activityView.hasMore
+          ? ce('button', { type: 'button', className: 'dsha-btn dsha-activity-more', onClick: () => props.actions.revealMoreActivity() }, '显示更早')
+          : props.loadOlderReceipts !== undefined && oldestReceipt !== undefined
+            ? ce('button', {
+                type: 'button',
+                className: 'dsha-btn dsha-activity-more',
+                onClick: () => {
+                  void props.loadOlderReceipts?.(oldestReceipt).then(receipts => props.actions.appendOlderReceipts(receipts)).catch(() => undefined)
+                },
+              }, '加载更早账本')
+            : null)
       : ce('section', { className: 'dsha-matters', 'data-pane': view.pane },
         ce('div', { className: 'dsha-matter-list dsha-list', onScroll: (event: { currentTarget: { scrollTop: number } }) => props.actions.rememberListPosition(event.currentTarget.scrollTop) },
           matters.length > 0 ? ce('div', { className: 'dsha-filter' },

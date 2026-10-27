@@ -56,6 +56,7 @@ import { DebugPanel } from './debug/debug-panel'
 import { createDeskSurface } from './projection/desk-surface'
 import { mountProjectionReader } from './projection/projection-lifecycle'
 import type { ProjectionDownload } from './projection/projection-reader'
+import type { OperatingReceipt } from './projection/operating-projection'
 import { createProjectionViewStore } from './projection/projection-view'
 import type { DeskPath } from '../domain/desk/desk-process'
 import { createDeskArms } from './desk/desk-arms'
@@ -204,9 +205,23 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       })
       const current = ctx.uiSession?.current.value.key
       const resolvedSession = sessionId ?? (current === undefined ? undefined : String(current))
+      const loadOlderReceipts = async (before: string): Promise<readonly OperatingReceipt[]> => {
+        const url = new URL('/api/assistant/operating-receipts', document.baseURI)
+        url.searchParams.set('before', before)
+        url.searchParams.set('limit', '50')
+        const response = await fetch(url, { headers: { accept: 'application/json' } })
+        if (!response.ok) return []
+        const body = await response.json() as { receipts?: unknown }
+        if (!Array.isArray(body.receipts)) return []
+        return body.receipts.filter((receipt): receipt is OperatingReceipt =>
+          typeof receipt === 'object' && receipt !== null
+          && typeof (receipt as { operationId?: unknown }).operationId === 'string'
+          && typeof (receipt as { submittedAt?: unknown }).submittedAt === 'string')
+      }
       return {
         surface,
         hooks,
+        loadOlderReceipts,
         ...(resolvedSession === undefined ? {} : { sessionId: resolvedSession }),
         // The fallback panel (no projection store in this composition) reads only the return.
         ...(projection === undefined ? { onAsk: () => returnToConversation(ctx, sessionId, typeof document === 'undefined' ? {} : { document }) } : {}),

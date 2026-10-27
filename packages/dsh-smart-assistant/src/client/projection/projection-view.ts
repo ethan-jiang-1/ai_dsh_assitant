@@ -5,6 +5,8 @@
  *  `mode` switches the desk's top level: `board` (盯) vs `activity` (the operations feed, 查);
  *  `activityLimit` is the feed's client-side progressive-reveal cursor (the whole ledger is
  *  already downloaded — revealing is pure rendering). */
+import type { OperatingReceipt } from './operating-projection'
+
 export type ListFilter = 'all' | 'active' | 'settled'
 export type DeskMode = 'board' | 'activity'
 
@@ -41,6 +43,8 @@ export interface ProjectionView {
   query: string
   mode: DeskMode
   activityLimit: number
+  /** Receipts paged from the archive after the recent projection window. */
+  olderReceipts?: readonly OperatingReceipt[]
   /** The principal's un-sent words in the desk's capture row. */
   captureDraft: string
   /** The line delivered but not yet read back from the ledger; null = nothing in flight. */
@@ -89,6 +93,10 @@ const projectionViewActions = {
   setQuery(draft: ProjectionView, query: string): void { draft.query = query },
   setMode(draft: ProjectionView, mode: DeskMode): void { draft.mode = mode },
   revealMoreActivity(draft: ProjectionView): void { draft.activityLimit = draft.activityLimit + 50 },
+  appendOlderReceipts(draft: ProjectionView, receipts: readonly OperatingReceipt[]): void {
+    const seen = new Set((draft.olderReceipts ?? []).map(receipt => receipt.operationId))
+    draft.olderReceipts = [...(draft.olderReceipts ?? []), ...receipts.filter(receipt => !seen.has(receipt.operationId))]
+  },
   setCaptureDraft(draft: ProjectionView, text: string): void { draft.captureDraft = text },
   setCaptureReceipt(draft: ProjectionView, receipt: DeskCaptureReceipt | null): void { draft.captureReceipt = receipt; writeStoredReceipt(receipt) },
 }
@@ -104,6 +112,7 @@ export interface ProjectionViewBoundActions {
   setQuery(query: string): void
   setMode(mode: DeskMode): void
   revealMoreActivity(): void
+  appendOlderReceipts(receipts: readonly OperatingReceipt[]): void
   setCaptureDraft(text: string): void
   setCaptureReceipt(receipt: DeskCaptureReceipt | null): void
 }
@@ -122,5 +131,5 @@ export interface ProjectionViewHandle {
  * @returns Nonpersistent handle shared across main Slot declaration lifetimes.
  */
 export function createProjectionViewStore(define: (spec: { init(): ProjectionView; actions: ProjectionViewActions }) => ProjectionViewHandle): ProjectionViewHandle {
-  return define({ init: () => ({ selected: null, pane: 'list', listScrollTop: 0, filter: 'all' as const, query: '', mode: 'board' as const, activityLimit: 50, captureDraft: '', captureReceipt: readStoredReceipt() }), actions: projectionViewActions })
+  return define({ init: () => ({ selected: null, pane: 'list', listScrollTop: 0, filter: 'all' as const, query: '', mode: 'board' as const, activityLimit: 50, olderReceipts: [], captureDraft: '', captureReceipt: readStoredReceipt() }), actions: projectionViewActions })
 }

@@ -6,6 +6,7 @@ import z from '@deepseek-ai/schemastery'
 import type Schema from '@deepseek-ai/schemastery'
 import { join, resolve } from 'node:path'
 import { createDeskProjectionRoute } from './download.ts'
+import { createOperatingReceiptsRoute } from './receipts.ts'
 
 export const name = 'assistant-desk-projection'
 export const inject = ['connection']
@@ -40,4 +41,5 @@ export function apply(ctx: Context, config: Config = {}): void {
     config.maxProjectionBytes ?? 8 * 1024 * 1024,
     { allowFixture: config.allowFixture === true },
   )))
+  ctx.effect(() => ctx.connection.fetch.register(createOperatingReceiptsRoute(dataDir)))
 }
