@@ -27,6 +27,7 @@ import { atomicWriteFile } from '../domain/home/atomic-write.ts'
 import { parseFrontmatterDocument } from '../domain/home/frontmatter.ts'
 import { HOME_MANUAL_VERSION, renderHomeManual } from '../domain/home/home-map.ts'
 import { isEntryId } from '../domain/home/room.ts'
+import { credentialShapeLabels } from '../domain/skills/audit.ts'
 import { OPERATIONS_ARCHIVE_FILE, parseOperationsArchive } from '../host/operating-ledger/archive.ts'
 
 /** Manifest file written at the bundle root. */
@@ -47,8 +48,8 @@ const BACKUP_WARN_BYTES = 512 * 1024 * 1024
 /** Default ceiling for a whole-bundle import; explicit override via `--max-bytes`. */
 export const MAX_IMPORT_BYTES = 512 * 1024 * 1024
 
-/** The record kinds an explicit purge can erase. Ledger history and sessions are not in this list. */
-export const PURGE_KINDS = ['memory', 'research', 'knowledge', 'skill', 'proposal'] as const
+/** The record kinds an explicit purge can erase. Sessions are not in this list. */
+export const PURGE_KINDS = ['memory', 'research', 'knowledge', 'skill', 'proposal', 'ledger'] as const
 
 /** One purgeable record kind. */
 export type PurgeKind = (typeof PURGE_KINDS)[number]
@@ -56,6 +57,8 @@ export type PurgeKind = (typeof PURGE_KINDS)[number]
 /** Arguments for {@link purgeData}. */
 export interface DataPurgeOptions {
   readonly assistantDir: string
+  /** Required for `kind: 'ledger'`; the separate operating home. */
+  readonly operatingDir?: string
   readonly kind: PurgeKind
   readonly id: string
   /** Why this record is being erased; written to the local purge audit. */
@@ -584,6 +587,12 @@ export async function checkData(options: { readonly assistantDir: string, readon
   if (backupBytes > BACKUP_WARN_BYTES) {
     problems.push(`plugin data is ${String(backupBytes)} byte(s); a backup copies all of it (deliverables included) — export/archive by hand if this is unexpected`)
   }
+  for (const path of [join(status.operatingDir, 'ledger.json'), join(status.operatingDir, OPERATIONS_ARCHIVE_FILE)]) {
+    if (!existsSync(path)) continue
+    const text = await readFile(path, 'utf8').catch(() => '')
+    const labels = credentialShapeLabels(text)
+    if (labels.length > 0) problems.push(`ledger surface ${path} carries what looks like ${labels.join(', ')} — strip it and rotate the credential if it was real`)
+  }
   if (status.assistant.manualVersion !== undefined
     && status.assistant.manualVersion > 0
     && status.assistant.manualVersion < HOME_MANUAL_VERSION) {
@@ -617,6 +626,8 @@ function purgeCandidates(root: string, kind: PurgeKind, id: string): string[] {
       return [join(root, 'knowledge', `${id}.md`)]
     case 'proposal':
       return [join(root, 'skill-proposals', `${id}.md`), join(root, 'skill-proposals', 'archive', `${id}.md`)]
+    case 'ledger':
+      return []
     case 'skill':
       return [
         join(root, 'skills', id),
@@ -649,6 +660,43 @@ export async function purgeData(options: DataPurgeOptions): Promise<DataPurgeRes
   if (rootInfo.isSymbolicLink()) throw new Error(`assistant-data: working folder is a symbolic link: ${assistantDir}`)
   if (!rootInfo.isDirectory()) throw new Error(`assistant-data: working folder is not a directory: ${assistantDir}`)
 
+  const audit = join(assistantDir, 'audit', 'purges.jsonl')
+  const at = (options.now ?? new Date()).toISOString()
+  if (options.kind === 'ledger') {
+    const operatingDir = options.operatingDir === undefined ? undefined : resolve(options.operatingDir)
+    if (operatingDir === undefined) throw new Error('assistant-data: purge --kind ledger requires --operating <dir>')
+    const ledgerPath = join(operatingDir, 'ledger.json')
+    const archivePath = join(operatingDir, OPERATIONS_ARCHIVE_FILE)
+    const ledgerText = await readFile(ledgerPath, 'utf8').catch(() => undefined)
+    const archiveText = await readFile(archivePath, 'utf8').catch(() => undefined)
+    const present = (ledgerText !== undefined && ledgerText.includes(`"${options.id}"`))
+      || (archiveText !== undefined && archiveText.includes(`"${options.id}"`))
+    if (!present) throw new Error(`assistant-data: nothing to purge for ledger:${options.id}`)
+    await appendAuditLine(audit, { at, kind: 'ledger', id: options.id, reason, paths: [ledgerPath, archivePath], status: 'requested' })
+    const removed: string[] = []
+    try {
+      if (ledgerText !== undefined) {
+        const state = JSON.parse(ledgerText) as { operations?: Record<string, unknown> }
+        if (state.operations !== undefined && Object.hasOwn(state.operations, options.id)) {
+          delete state.operations[options.id]
+          await atomicWriteFile(ledgerPath, `${JSON.stringify(state)}\n`)
+          removed.push(ledgerPath)
+        }
+      }
+      if (archiveText !== undefined) {
+        const kept = archiveText.split('\n').filter(line => line.trim() !== '' && !line.includes(`"operationId":"${options.id}"`))
+        if (kept.length !== archiveText.split('\n').filter(line => line.trim() !== '').length) {
+          await atomicWriteFile(archivePath, kept.length === 0 ? '' : `${kept.join('\n')}\n`)
+          removed.push(archivePath)
+        }
+      }
+    } catch (error) {
+      await appendAuditLine(audit, { at, kind: 'ledger', id: options.id, status: 'failed', error: error instanceof Error ? error.message : String(error) })
+      throw error
+    }
+    await appendAuditLine(audit, { at, kind: 'ledger', id: options.id, status: 'deleted', removed })
+    return { removed, audit }
+  }
   const candidates = purgeCandidates(assistantDir, options.kind, options.id)
   const existing: string[] = []
   for (const path of candidates) {
@@ -664,8 +712,6 @@ export async function purgeData(options: DataPurgeOptions): Promise<DataPurgeRes
     throw new Error(`assistant-data: nothing to purge for ${options.kind}:${options.id}`)
   }
 
-  const audit = join(assistantDir, 'audit', 'purges.jsonl')
-  const at = (options.now ?? new Date()).toISOString()
   await appendAuditLine(audit, { at, kind: options.kind, id: options.id, reason, paths: existing, status: 'requested' })
   const removed: string[] = []
   try {

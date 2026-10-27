@@ -115,13 +115,13 @@ node .../assistant-data.mjs check  --assistant <DSH_HOME>/assistant --operating 
 **显式擦除（硬删除）**：
 
 ```sh
-node .../assistant-data.mjs purge --assistant <DSH_HOME>/assistant \
-  --kind <memory|research|knowledge|skill|proposal> --id <id> --reason "<why>" --yes
+node .../assistant-data.mjs purge --assistant <DSH_HOME>/assistant [--operating <DSH_HOME>/assistant-operating] \
+  --kind <memory|research|knowledge|skill|proposal|ledger> --id <id> --reason "<why>" --yes
 ```
 
 - 删除该记录在 active、`archive/` 与（技能）`archive/snapshots/` 下的全部副本；不删 sessions、credentials、账本历史、client 状态或别条记录。
 - 必须给 `--reason` 与 `--yes`；id 不合法、记录不存在、候选是符号链接都拒绝。
-- 删除前后各追加一行到 `<dataDir>/audit/purges.jsonl`（0600，`requested`/`deleted`，失败记 `failed`）；审计本身也是插件数据，随备份走。
+- 删除前后各追加一行到 `<dataDir>/audit/purges.jsonl`（0600，`requested`/`deleted`，失败记 `failed`）；审计本身也是插件数据，随备份走。`--kind ledger --operating ... --id <operationId>` 还会从 `ledger.json` 与 `operations-archive.jsonl` 移除该操作（sessions 仍不删）。
 - 账本里的 material/quote 与 `discard` 是审计历史，不随房间记录擦除；要连账本一起擦除需另做显式操作。
 - 删除后可能留下悬空 `[[链接]]`/source；`curate` 会报，恢复需从备份。
 

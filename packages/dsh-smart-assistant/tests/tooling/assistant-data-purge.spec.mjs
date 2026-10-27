@@ -88,6 +88,8 @@ describe('assistant-data purge', () => {
     await expect(purgeData({ assistantDir: assistant, kind: 'memory', id: '../escape', reason: 'why', confirm: true }))
       .rejects.toThrow('safe record id')
     await expect(purgeData({ assistantDir: assistant, kind: 'ledger', id: 'x', reason: 'why', confirm: true }))
+      .rejects.toThrow('requires --operating')
+    await expect(purgeData({ assistantDir: assistant, kind: 'nope', id: 'x', reason: 'why', confirm: true }))
       .rejects.toThrow('unknown purge kind')
     await expect(purgeData({ assistantDir: assistant, kind: 'memory', id: '20260101-missing-dddd', reason: 'why', confirm: true }))
       .rejects.toThrow('nothing to purge')
@@ -106,6 +108,20 @@ describe('assistant-data purge', () => {
     } finally {
       chmodSync(join(assistant, 'skills', 'blocked'), 0o700)
     }
+  })
+
+  it('erases a ledger operation from state and archive with the audit', async () => {
+    const assistant = fixture()
+    const operating = join(assistant, 'assistant-operating')
+    mkdirSync(operating, { recursive: true })
+    writeFileSync(join(operating, 'ledger.json'), JSON.stringify({ version: 1, operations: { 'op-gone': { receipt: {} }, 'op-keep': { receipt: {} } } }), 'utf8')
+    writeFileSync(join(operating, 'operations-archive.jsonl'), '{"operation":{"operationId":"op-gone"}}\n{"operation":{"operationId":"op-keep"}}\n', 'utf8')
+    const result = await purgeData({ assistantDir: assistant, operatingDir: operating, kind: 'ledger', id: 'op-gone', reason: 'erasure request', confirm: true })
+    expect(result.removed).toHaveLength(2)
+    expect(readFileSync(join(operating, 'ledger.json'), 'utf8')).not.toContain('op-gone')
+    expect(readFileSync(join(operating, 'operations-archive.jsonl'), 'utf8')).not.toContain('op-gone')
+    expect(readFileSync(join(operating, 'operations-archive.jsonl'), 'utf8')).toContain('op-keep')
+    expect(auditLines(join(assistant, 'audit', 'purges.jsonl')).map(line => line.status)).toEqual(['requested', 'deleted'])
   })
 
   it.skipIf(!POSIX)('refuses to purge a symbolic link', async () => {

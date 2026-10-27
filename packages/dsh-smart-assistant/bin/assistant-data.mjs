@@ -46,7 +46,7 @@ const usage = `usage:
   node <package>/bin/assistant-data.mjs import --in <bundle> --assistant <dir> --operating <dir> [--replace] [--dry-run] [--max-bytes <n>]
   node <package>/bin/assistant-data.mjs status --assistant <dir> --operating <dir>
   node <package>/bin/assistant-data.mjs check --assistant <dir> --operating <dir>
-  node <package>/bin/assistant-data.mjs purge --assistant <dir> --kind <memory|research|knowledge|skill|proposal> --id <id> --reason <text> --yes
+  node <package>/bin/assistant-data.mjs purge --assistant <dir> --kind <memory|research|knowledge|skill|proposal|ledger> --id <id> --reason <text> --yes
   node <package>/bin/assistant-data.mjs archive-proposals --assistant <dir> --yes
   node <package>/bin/assistant-data.mjs seal --in <bundle> --out <file>
   node <package>/bin/assistant-data.mjs unseal --in <file> --out <dir>
@@ -146,7 +146,8 @@ try {
       console.error(usage)
       process.exit(2)
     }
-    const result = await module.purgeData({ assistantDir, kind, id, reason, confirm: argv.includes('--yes') })
+    const operatingDir = option('--operating')
+    const result = await module.purgeData({ assistantDir, ...(operatingDir === undefined ? {} : { operatingDir }), kind, id, reason, confirm: argv.includes('--yes') })
     console.log(`assistant-data: erased ${kind} ${id} (${String(result.removed.length)} path(s))`)
     for (const path of result.removed) console.log(`  removed ${path}`)
     console.log(`  audit ${result.audit}`)

@@ -261,6 +261,21 @@ describe('assistant-data', () => {
     expect(result.problems.join('\n')).toContain('skill-proposals inbox has 201 file(s)')
   })
 
+  it('check warns when ledger text looks like a credential', async () => {
+    const target = temp('data-check-credentials-')
+    const assistantDir = join(target, 'assistant')
+    const operatingDir = join(target, 'assistant-operating')
+    mkdirSync(assistantDir, { recursive: true })
+    mkdirSync(operatingDir, { recursive: true })
+    writeFileSync(join(operatingDir, 'ledger.json'), JSON.stringify({
+      version: 1,
+      operations: {},
+      note: 'sk-abcdefghijklmnopqrstuvwx',
+    }), 'utf8')
+    const result = await checkData({ assistantDir, operatingDir })
+    expect(result.problems.join('\n')).toContain('carries what looks like an API key')
+  })
+
   it('check names relative paths, a stale manual, a corrupt ledger and symlinks', async () => {
     const target = temp('data-check-')
     const assistantDir = join(target, 'assistant')

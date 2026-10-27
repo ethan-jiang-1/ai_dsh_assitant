@@ -9,7 +9,7 @@ opened: 2026-10-27
 
 **问题与期望结果：** FAQ 26 的体检暴露出插件数据面的生命周期缺口：模型可见手册升级后不更新、旧 home 兼容没有证据、单文件账本会撞 1 MiB 投影上限、首次启动后恢复被拒、秘密落在明文文件/日志、数据卡与卸载清理不完整、部分写入不在原子写纪律内。用户应得到一组"发布后部署不会坏"的合同、代码与可执行证据。
 
-**当前情况：** 全部代码项已落：G13–G27/G33–G38 的代码/测试/文档；G28–G32 是平台/产品边界（多用户、project 键、Windows、egress、sessions），已在数据卡与卡内写明。G14 保守合并、G15 加密传输、G17 显式轮转、G24 心跳/启动时间、G35 ui-mode v1、G36 导入上限、G38 per-file 预览。
+**当前情况：** 全部代码项已落：G13–G27/G33–G38 的代码/测试/文档；G28–G32 是平台/产品边界（多用户、project 键、Windows、egress、sessions），已在数据卡与卡内写明。G13 硬删除扩到账本 operation，sessions 仍按平台边界声明。G14 保守合并、G15 加密传输、G17 显式轮转、G24 心跳/启动时间、G35 ui-mode v1、G36 导入上限、G38 per-file 预览。
 **未决问题：** 只剩平台/产品边界：G28 多用户、G29 project 键、G30 Windows/网络 FS、G31 明文 egress、G32 sessions 证据链；不改产品定位不实现。
 **下一步：** 边界项等真实需求/平台能力；代码项收口。
 
@@ -78,7 +78,7 @@ opened: 2026-10-27
 | G10 | `atomicWriteFile` 不 fsync；SOUL/AGENTS 普通写 | 已修 | 中 | temp fsync + rename + 目录 fsync；scaffold 改原子写 |
 | G11 | 备份 manifest 的 files/bytes 不校验；目标有活锁仍可导 | 已修 | 中 | import 拒绝 fewer files/bytes 与 `writer.lock`；测试 |
 | G12 | 相对 `dataDir` 按进程 cwd 散落 | 已修 | 低 | memory/ledger/projection 统一 `resolve()`；`check` 报相对路径 |
-| G13 | **没有硬删除/擦除**：forget/deprecate/retire/discard 都进 archive 或留原地，审计与账本永久保留 | 已修（房间记录；账本/会话仍不删） | 高（隐私/合规） | `assistant-data purge` 删 active/archive/snapshot 并写 `audit/purges.jsonl`；账本 history 与会话是明示边界 |
+| G13 | **没有硬删除/擦除**：forget/deprecate/retire/discard 都进 archive 或留原地，审计与账本永久保留 | 已修（房间 + 账本操作；sessions 边界） | 高（隐私/合规） | `assistant-data purge` 删 active/archive/snapshot；`--kind ledger` 从状态与归档移除 operation；sessions 无 delete API，仍不删 |
 | G14 | **没有跨机合并/同步**：import 是整目录 replace，两份 home 不能 merge，冲突无策略 | 已修（保守合并） | 中 | `assistant-data merge` 默认 dry-run，只补缺失、冲突保留当前，目标独有不删；`--prefer incoming` 才替换工作目录文件并备份；账本冲突不覆盖；同步/git 语义仍未取 |
 | G15 | **备份无加密/签名**：bundle 是明文业务数据，导入不验签 | 已修（加密传输；无签名） | 中（部署/隐私） | `seal`/`unseal` 用环境变量口令做 AES-256/PBKDF2；签名/密钥托管仍未取 |
 | G16 | **用户手改与插件写冲突**：read-modify-write 无 CAS；未知 frontmatter 字段在下次写时被丢弃；digest 缓存看不见外部编辑 | 已修（房间写 CAS） | 中 | `Room.write` 保留未知字段并支持 raw-text CAS；thread/knowledge/save_page 与 memory archive 传入 expected text；新 memory 写是新增，不是覆盖 |
