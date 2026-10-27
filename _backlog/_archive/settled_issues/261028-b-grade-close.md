@@ -1,11 +1,11 @@
 ---
-status: 推敲中
+status: 已结
 opened: 2026-10-28
 ---
 
 # 收口：⑤/⑥ B 级缺口（真 DOM / Viki / pre-push / TZ）
 
-> 立卡：2026-10-28 ｜ 状态：推敲中（用户授权静默自主执行） ｜ 类型：Task ｜ 可关闭：否
+> 立卡：2026-10-28 ｜ 状态：已结（B1–B4 全交付） ｜ 类型：Task ｜ 可关闭：是
 
 ## 外部结果三要素
 
@@ -35,3 +35,7 @@ opened: 2026-10-28
 - **B3**：`pre-push-evidence` 与 `docs/testing.md` 明确客户端/快照改动跑 `--all`；说明浏览器不进 verify。
 - **B4**：vitest 环境钉 `Asia/Shanghai`；format 测试对固定时刻断言；全量测试绿。
 - **总验收**：`pnpm test` 全绿、`pnpm verify` 全绿、`pnpm web-face-check --all` 8/8；无产品行为变化。
+
+## 结论
+
+B1–B4 全部交付：真 DOM 客户端 spec（无订阅版实测红）、`web-face-check --all` 8/8、pre-push 浏览器车道、TZ 固定与 format 断言。最终地板：`pnpm typecheck` 绿；`pnpm test` 146 文件 / 1103 测试；`pnpm verify` 50/50；`pnpm web-face-check --all` 8/8。一次全量运行在 `root-files` hand-edit 断言上偶发红，未能复现，按可疑 flake 记录。

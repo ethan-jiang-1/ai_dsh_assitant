@@ -58,7 +58,7 @@ research 为问题和缺陷提供依据。问题按 [关闭条件](../README.md)
 
 - [261020-six-dimension-housekeeping-audit.md](tech-exploration/261020-six-dimension-housekeeping-audit.md)——引用卡：无（2026-10-20 用户点名六维深审，本档是本轮 REVIEW 的直接输入；改善项立项后由对应卡引用）。六维打扫卫生深审发现报告：五路 fresh 审计员 + 主线对抗复核；S1–S5 战役复核结论（立住）、26 条分级发现、改善三批次路线、banner 场景活体复验 PASS
 
-- [261028-six-dimension-audit.md](tech-exploration/261028-six-dimension-audit.md)——引用卡：[六维持续改善 implemented](../../notes/implemented/2026-10-28-six-dimension-continuous-improvement.md)（已交付；本档是分级证据与边界）。四路 fresh 审计 + 主线复核 + 真机取证：六维判定、已修 P1/P2、开放项、S1–S4 路线与误报纠正
+- [261028-six-dimension-audit.md](tech-exploration/261028-six-dimension-audit.md)——引用卡：[六维持续改善 implemented](../../notes/implemented/2026-10-28-six-dimension-continuous-improvement.md)（已交付；本档是分级证据与边界）。四路 fresh 审计 + 主线复核 + 真机取证：六维判定、已修 P1/P2、开放项、S1–S4 与 P3/B 级补强的收口与误报纠正
 
 - [261021-assistant-ui-modes.md](tech-exploration/261021-assistant-ui-modes.md)——引用卡：[三档界面（已结）](../_archive/settled_issues/261021-assistant-ui-modes.md)（M1 已交付；M2 未取）。三档呈现的平台缝、现有面清单、候选架构、矩阵与证据
 

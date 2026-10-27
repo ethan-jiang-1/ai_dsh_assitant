@@ -4,9 +4,7 @@
 
 ## 活跃清单
 
-- [261028-b-grade-close.md](261028-b-grade-close.md)——⑤/⑥ B 级缺口收口卡（用户授权静默自主执行）
-
-（261028 P3 残余已结档到 [settled_issues](../_archive/settled_issues/261028-p3-residuals.md)，261028 六维改善已结档到 [settled_issues](../_archive/settled_issues/261028-six-dimension-improvement.md)。）
+当前没有活跃问题卡——261028 B 级缺口已结档到 [settled_issues](../_archive/settled_issues/261028-b-grade-close.md)，P3 残余已结档到 [settled_issues](../_archive/settled_issues/261028-p3-residuals.md)，六维改善已结档到 [settled_issues](../_archive/settled_issues/261028-six-dimension-improvement.md)。
 
 （261027 数据生命周期硬化已按关闭条件结档到 [settled_issues](../_archive/settled_issues/261027-data-lifecycle-hardening.md)，未取的 G14/G15 等触发式剩余留在卡内。）
 

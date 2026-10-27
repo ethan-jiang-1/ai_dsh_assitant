@@ -132,10 +132,12 @@ S1–S4 全部交付，逐片可回退；决定与后果 = [implemented note](..
 | S1 入口 | 根 `AGENTS.md` 221→180 行、27.9→21.4KB、40→7 条 `pnpm`；`docs/commands.md` 承接完整清单；命令预算门 + 红夹具 |
 | S2 反馈 | refresh 健康门；eval / release-smoke / web-install 的缺失前置实测 `BLOCKED` exit 2；expected DOM 健康门 |
 | S3 接缝 | 归档格式入 `domain/operating/archive.ts`；面板主函数 366→228 行（SimpleFace / ActivityFace / MatterBoard）；data CLI 入口 27 行 |
-| S4 测试 | 纯核 ledger 6 it；4 客户面 `pnpm web-face-check` 一键 PASS；coverage 只报告（语句 79.46% / 分支 71.89% / 函数 76.08% / 行 83.62%） |
+| S4 测试 | 纯核 ledger 6 it；`pnpm web-face-check --all` 8 面 PASS；coverage 只报告（语句 79.46% / 分支 71.89% / 函数 76.08% / 行 83.62%） |
 
-**最终地板**：`pnpm typecheck` 绿；`pnpm test` **144 文件 / 1099 测试**；`pnpm verify` **50/50**；`pnpm web-face-check` 4 个客户面 **PASS**；`pnpm test:coverage` 只报告、无阈值。
+**最终地板**：`pnpm typecheck` 绿；`pnpm test` **146 文件 / 1103 测试**；`pnpm verify` **50/50**；`pnpm web-face-check --all` **8/8 PASS**；`pnpm test:coverage` 只报告、无阈值。
 
 **收口评分（判断，不是门禁）**：① 文档/渐进披露 8.5；② 代码层次 8.5；③ 整体结构 9；④ 上下文腐化 8.5；⑤ 测试资产 9；⑥ 反馈通路 9。骨架未动，改善集中在接缝。
 
-**仍延后**：Viki 4 个调试面仍按 README 手工跑（需 OV mock）；coverage 阈值（等死代码实证）；命令参数形状门。P3-a～P3-d（catalog bin/engines、纯核定义、zstd 错误、snapshot runner/wait_text）已在 [P3 收口卡](../../_archive/settled_issues/261028-p3-residuals.md) 交付。
+**B 级补强（2026-10-28）**：⑤/⑥ 从 B 升 A —— 真 DOM 客户端 spec、`web-face-check --all` 8/8、pre-push 浏览器车道、TZ 固定。
+
+**仍延后**：performance/load、coverage 阈值（等死代码实证）、命令参数形状门。P3-a～P3-d 与 B1–B4 分别收口在 [P3 卡](../../_archive/settled_issues/261028-p3-residuals.md) 与 [B 卡](../../_archive/settled_issues/261028-b-grade-close.md)。

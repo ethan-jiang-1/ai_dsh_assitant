@@ -6,6 +6,7 @@
 
 | 卡 | 关闭日 | 判定 |
 |---|---|---|---|
+| [261028-b-grade-close.md](261028-b-grade-close.md) | 2026-10-28 | **B1–B4 全交付**：真 DOM 客户端 spec（无订阅红）、`web-face-check --all` 8/8（4 客户 + 4 Viki mock）、pre-push 浏览器车道、TZ 固定与 format 断言。一次 `root-files` hand-edit 偶发红未能复现，按可疑 flake 记录。去向 = [六维 implemented note](../../../notes/implemented/2026-10-28-six-dimension-continuous-improvement.md) |
 | [261028-p3-residuals.md](261028-p3-residuals.md) | 2026-10-28 | **P3-a～P3-d 全交付**：catalog 补 3 个 bin 与 `engines.pnpm`；「纯核」定义对齐（不含 I/O 承诺）；`session-logs` 缺 zstd 给明确错误；8 个 `snapshot.yml` 改 `runner: README.md` + `wait_text:`，健康门读新字段。命令形状门/Viki 4 面/coverage 阈值刻意延后。去向 = [六维 implemented note](../../../notes/implemented/2026-10-28-six-dimension-continuous-improvement.md) |
 | [261028-six-dimension-improvement.md](261028-six-dimension-improvement.md) | 2026-10-28 | **S1–S4 全交付**：入口瘦身（命令表迁 `docs/commands.md` + 预算门）、反馈诚实性（refresh / eval / smoke / expected 的 BLOCKED 与健康门）、结构接缝（归档格式入 domain、面板三组件、data CLI 27 行入口）、测试（ledger spec、4 客户面 `web-face-check`、coverage 只报告）。去向 = [implemented note](../../../notes/implemented/2026-10-28-six-dimension-continuous-improvement.md) |
 | [261027-data-lifecycle-hardening.md](261027-data-lifecycle-hardening.md) | 2026-10-27 | **数据生命周期收口**：Phase 0/1 与 G13/G18/G20/G22/G23/G25/G33/G34/G36/G37/G38 落地——审计硬删除、import dry-run/replace、refresh-manual、fixture opt-in、manual v21、proposal rotation、账本归档索引/读取上限、source 完整性、archive 事务；G14/G15 等触发式剩余留卡内。去向 = [implemented note](../../../notes/implemented/2026-10-27-data-lifecycle-hardening.md) |
