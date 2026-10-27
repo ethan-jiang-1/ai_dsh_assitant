@@ -67,6 +67,16 @@ export const TASKS = [
     id: 'continuity-from-home',
     why: 'Continuity is the point of the working folder: the answer must come from its own rooms.',
     prompt: '我们为什么决定淘汰「家」这个说法？谁拍的板，理由是什么？',
+    // The throwaway eval home starts empty (BUG-012). This task is about continuity from a
+    // recorded decision, so it must seed the decision it asks about; otherwise the session is
+    // tested on an empty home and the answer can only be "nothing here" (false red).
+    seed: {
+      memories: [{
+        id: '20261027-home-naming-aaaa',
+        kind: 'decision',
+        text: '决定淘汰「家」这个说法：一词一义，避免与首页/桌面混淆；由用户拍板。统一使用 working folder 指工作目录。',
+      }],
+    },
     checks: [
       { kind: 'used-home-tool' },
       { kind: 'answer-matches', pattern: '一词一义|用户|拍板|working folder' },

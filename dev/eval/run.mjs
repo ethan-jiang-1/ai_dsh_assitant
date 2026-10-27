@@ -18,7 +18,7 @@
  * @module dev/eval/run
  */
 import { execFileSync } from 'node:child_process'
-import { chmodSync, copyFileSync, existsSync, readFileSync, rmSync, unlinkSync, writeFileSync } from 'node:fs'
+import { chmodSync, copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, unlinkSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { devHome } from '../env/home.mjs'
@@ -161,7 +161,33 @@ export function runPreset(prompt) {
   }
 }
 
+function seedTaskHome(task) {
+  if (task.seed === undefined) return
+  const memoryDir = join(harnessHome, 'assistant', 'memory')
+  mkdirSync(memoryDir, { recursive: true, mode: 0o700 })
+  for (const memory of task.seed.memories ?? []) {
+    const at = '2026-10-27T00:00:00.000Z'
+    const body = memory.text.trim()
+    const file = join(memoryDir, `${memory.id}.md`)
+    writeFileSync(file, [
+      '---',
+      `id: ${memory.id}`,
+      `kind: ${memory.kind}`,
+      'status: active',
+      `created: ${at}`,
+      `updated: ${at}`,
+      'tags: []',
+      'importance: 3',
+      '---',
+      '',
+      body,
+      '',
+    ].join('\n'), { encoding: 'utf8', mode: 0o600 })
+  }
+}
+
 function runTask(task) {
+  seedTaskHome(task)
   const run = runPreset(task.prompt)
   try {
     if (run.observation === null) {
