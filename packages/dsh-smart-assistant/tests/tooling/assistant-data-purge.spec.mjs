@@ -4,7 +4,7 @@
  * no reason, unsafe id, symlink, unknown record). Ledger history and sessions are out of scope.
  */
 
-import { existsSync, mkdirSync, readFileSync, statSync, symlinkSync, writeFileSync } from 'node:fs'
+import { chmodSync, existsSync, mkdirSync, readFileSync, statSync, symlinkSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { purgeData } from '../../src/cli/assistant-data.ts'
@@ -91,6 +91,21 @@ describe('assistant-data purge', () => {
       .rejects.toThrow('unknown purge kind')
     await expect(purgeData({ assistantDir: assistant, kind: 'memory', id: '20260101-missing-dddd', reason: 'why', confirm: true }))
       .rejects.toThrow('nothing to purge')
+  })
+
+  it.skipIf(!POSIX)('records a failed purge when the record cannot be removed', async () => {
+    const assistant = fixture()
+    mkdirSync(join(assistant, 'skills', 'blocked', 'SKILL.md'), { recursive: true })
+    writeFileSync(join(assistant, 'skills', 'blocked', 'SKILL.md', 'x.md'), 'x\n', 'utf8')
+    chmodSync(join(assistant, 'skills', 'blocked'), 0o500)
+    try {
+      await expect(purgeData({ assistantDir: assistant, kind: 'skill', id: 'blocked', reason: 'blocked directory', confirm: true }))
+        .rejects.toThrow()
+      const lines = auditLines(join(assistant, 'audit', 'purges.jsonl'))
+      expect(lines.map(line => line.status)).toEqual(['requested', 'failed'])
+    } finally {
+      chmodSync(join(assistant, 'skills', 'blocked'), 0o700)
+    }
   })
 
   it.skipIf(!POSIX)('refuses to purge a symbolic link', async () => {

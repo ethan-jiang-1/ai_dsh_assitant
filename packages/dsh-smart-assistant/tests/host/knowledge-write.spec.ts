@@ -8,7 +8,7 @@
 
 import { mkdirSync } from 'node:fs'
 import { join } from 'node:path'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { memoryPool } from '../support/host-harness.ts'
 
 describe('writePage (staged draft write path)', () => {
@@ -174,5 +174,35 @@ describe('research promote into knowledge', () => {
     expect(pinned.source).toBe(`knowledge:${page.id}`)
     const recall = await service.recall({ query: 'staging' })
     expect(recall.some(hit => hit.record.id === pinned.id)).toBe(true)
+  })
+})
+
+describe('knowledge write wiring', () => {
+  const boot = memoryPool('assistant-knowledge-wiring-')
+
+  it('passes the raw entry text to Room.write when promoting', async () => {
+    const { service } = boot()
+    const written = await service.writePage({ type: 'concept', title: 'CAS page', body: 'body', sources: ['probe'] })
+    const entry = await service.knowledge.read(written.id)
+    const spy = vi.spyOn(service.knowledge, 'write')
+    try {
+      await service.promotePage(written.id)
+      expect(spy.mock.calls.at(-1)?.[3]).toBe(entry?.text)
+    } finally {
+      spy.mockRestore()
+    }
+  })
+
+  it('surfaces a missing memory/research source in the real curate brief', async () => {
+    const { service } = boot()
+    const written = await service.writePage({
+      type: 'concept',
+      title: 'Missing source',
+      body: 'claims',
+      sources: ['memory:missing-record'],
+    })
+    const brief = await service.curate()
+    expect(brief.findings.find(finding => finding.code === 'page-source-missing' && finding.refs?.[0] === written.id))
+      .toBeDefined()
   })
 })

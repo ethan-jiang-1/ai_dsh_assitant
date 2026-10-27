@@ -112,6 +112,25 @@ describe('assistant-data', () => {
     })).rejects.toThrow('must not nest')
   })
 
+  it.skipIf(process.platform === 'win32')('restores the stash when a replace import fails mid-copy', async () => {
+    const source = sourceFixture()
+    const outDir = join(temp('data-out-'), 'bundle')
+    await exportData({ ...source, outDir })
+    const target = temp('data-rollback-')
+    const assistantDir = join(target, 'assistant')
+    const operatingDir = join(target, 'assistant-operating')
+    mkdirSync(assistantDir, { recursive: true })
+    mkdirSync(operatingDir, { recursive: true })
+    writeFileSync(join(assistantDir, 'keep.md'), 'original\n', 'utf8')
+    writeFileSync(join(operatingDir, 'keep.md'), 'original\n', 'utf8')
+    chmodSync(join(outDir, 'assistant', 'SOUL.md'), 0o000)
+    await expect(importData({ inDir: outDir, assistantDir, operatingDir, replace: true }))
+      .rejects.toThrow()
+    expect(readFileSync(join(assistantDir, 'keep.md'), 'utf8')).toBe('original\n')
+    expect(readFileSync(join(operatingDir, 'keep.md'), 'utf8')).toBe('original\n')
+    expect(readdirSync(target).filter(name => name.includes('.pre-import-'))).toEqual([])
+  })
+
   it('dry run reports what replace would stash and writes nothing', async () => {
     const source = sourceFixture()
     const outDir = join(temp('data-out-'), 'bundle')
@@ -213,6 +232,19 @@ describe('assistant-data', () => {
     expect(status.retention.skillProposals.files).toBe(1)
     expect(status.retention.approvals).toEqual({ bytes: expect.any(Number), lines: 2 })
     expect(readFileSync(join(assistantDir, 'memory', 'archive', 'old.md'), 'utf8')).toBe('old\n')
+  })
+
+  it('check warns when the proposal inbox crosses the backlog threshold', async () => {
+    const target = temp('data-check-proposals-')
+    const assistantDir = join(target, 'assistant')
+    const operatingDir = join(target, 'assistant-operating')
+    mkdirSync(join(assistantDir, 'skill-proposals'), { recursive: true })
+    mkdirSync(operatingDir, { recursive: true })
+    for (let i = 0; i < 201; i += 1) {
+      writeFileSync(join(assistantDir, 'skill-proposals', `proposal-${String(i)}.md`), '---\nstatus: proposed\n---\nbody\n', 'utf8')
+    }
+    const result = await checkData({ assistantDir, operatingDir })
+    expect(result.problems.join('\n')).toContain('skill-proposals inbox has 201 file(s)')
   })
 
   it('check names relative paths, a stale manual, a corrupt ledger and symlinks', async () => {

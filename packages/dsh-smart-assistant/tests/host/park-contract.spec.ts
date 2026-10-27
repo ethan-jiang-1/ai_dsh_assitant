@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { memoryPool } from '../support/host-harness.ts'
 
 /**
@@ -37,5 +37,18 @@ describe('park keeps the thread in the active room', () => {
     const after = await service.listThreads()
     expect(after.entries).toHaveLength(0)
     expect(after.archived.find(entry => entry.id === thread.id)?.status).toBe('dropped')
+  })
+
+  it('passes the raw entry text to Room.write as the CAS token', async () => {
+    const { service } = boot()
+    const thread = await service.openThread({ question: 'cas wiring', why: 'prove the call site' })
+    const entry = await service.research.read(thread.id)
+    const spy = vi.spyOn(service.research, 'write')
+    try {
+      await service.updateThread(thread.id, { lean: 'keep it' })
+      expect(spy.mock.calls.at(-1)?.[3]).toBe(entry?.text)
+    } finally {
+      spy.mockRestore()
+    }
   })
 })

@@ -15,7 +15,7 @@
 import { execFileSync, spawnSync } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const home = join(repoRoot, 'dev', 'harness-home')
@@ -41,9 +41,22 @@ if (spawnSync('zstd', ['--version'], { stdio: 'ignore' }).status !== 0) {
 
 const startedAt = Date.now() - 2_000
 const task = 'Reply only with "prompt smoke complete"; do not call any tool.'
+
+step('preparing a fresh working folder for the current manual generation')
+// A dev home can carry an older, hand-edited manual; the smoke must test the assembled request
+// from *this* build, not whatever the developer's home happens to contain. Point assistant-memory
+// at a throwaway home whose AGENTS.md is the current render.
+const freshAssistant = join(outDir, 'assistant-home')
+mkdirSync(freshAssistant, { recursive: true })
+const { renderHomeManual } = await import(pathToFileURL(join(repoRoot, 'packages', 'dsh-smart-assistant', 'lib', 'domain', 'home', 'home-map.js')).href)
+writeFileSync(join(freshAssistant, 'AGENTS.md'), renderHomeManual(), 'utf8')
+const dataPatch = join(outDir, 'data-dir.patch.yml')
+writeFileSync(dataPatch, `- id: assistant-memory\n  config:\n    dataDir: ${JSON.stringify(freshAssistant)}\n`, 'utf8')
+ok('fresh manual and dataDir overlay ready')
+
 step('running the keyless replay one-shot')
 try {
-  execFileSync('pnpm', ['dsh', '--profile', 'dev-task', '--patch', 'dev/probes/session/preset-runner-replay.patch.yml', task], {
+  execFileSync('pnpm', ['dsh', '--profile', 'dev-task', '--patch', 'dev/probes/session/preset-runner-replay.patch.yml', '--patch', dataPatch, task], {
     cwd: repoRoot,
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -115,7 +128,8 @@ if (log !== undefined) {
 const sectionChecks = [
   ['identity', 'management-post expert'],
   ['working-folder manual', '# Your working folder'],
-  ['memory digest', '## What you know'],
+  ['delivery rule', 'Deliver files where the principal can take them'],
+  ['memory digest', 'Live status of your working folder'],
   ['operating brief', 'Desk capture lane'],
 ]
 const requiredTools = [

@@ -34,17 +34,17 @@
 
 ### 数据卡
 
-| 事实 | 承诺/平面 | 权威 | 位置 | 作用域 | 寿命 | 谁看得见 | 进插件备份 | 卸载后 |
-|---|---|---|---|---|---|---|---|---|
-| 记忆/线索/知识/技能/提案 | P2 / U | 插件 + 用户 | `<dataDir>/{memory,research,knowledge,skills,skill-proposals}/` | home 单例，无项目键 | 房间生命周期；archive 保留 | 用户；模型经工具 | 是 | 保留 |
-| 身份与手册 | P2 / U | 用户 + 插件 | `<dataDir>/SOUL.md`、`AGENTS.md` | home 单例 | 身份永不覆盖；手册按已知文本迁移 | 用户；模型逐字进 prompt | 是 | 保留 |
-| 用量、治理、界面、交付 | P2 / U | 插件/用户 | `<dataDir>/skill-usage.json`、`audit/approvals.jsonl`、`audit/purges.jsonl`、`ui-mode.json`、`deliverables/` | home 单例 | usage 可删；审计只追加；deliverables 无生命周期 | 用户；模型不可见 ui-mode/audit | 是 | 保留 |
-| 经营账本状态 | P3 / H | 插件 | `<operatingDir>/ledger.json` | home 单例 | 最近 256 条操作 + 全量计数；压缩后仍有界 | 用户；模型经工具 | 是 | 保留 |
-| 账本操作归档 | P3 / H | 插件 | `<operatingDir>/operations-archive.jsonl` | home 单例 | 只追加；完整回执历史 | 用户；模型经工具按 id 读 | 是 | 保留 |
-| 会话搜索索引 | 宿主 K | 宿主（本包补丁启用） | `<dshHome>/session-search.db` | session/corpus | 首次检索创建；可重建 | 宿主；模型经 `session_query` | 否 | **保留；要清就删此文件** |
-| 会话/凭据/设置/宿主 KV | S / H / X | 宿主 | `$DSH_HOME/sessions/`、`.credentials.yaml`、`storages/`、`profiles/` 等 | session/home/profile | 宿主决定 | 宿主/模型经工具 | 否 | 保留 |
-| 客户端 UI 状态 | 客户端 | 设备/浏览器 | localStorage：`dsha:ui-mode`、`dsha:receipt-since`、`dsha-proactive-ui-v1`、`dsh-assistant-debug`；sessionStorage：`dsha-capture-seen-running-v1`、`dsha-capture-receipt-v1` | origin/设备 | 可丢弃；换源/清站点即失 | 浏览器 | 否 | 保留；清站点数据 |
-| OpenViking 记忆 | E2 外部服务 | 外部服务 | OpenViking server（可选） | 外部 | 由服务决定 | 面板/模型经工具 | 否 | 按 OpenViking 手册清理 |
+| 事实 | 依赖层级 | 承诺/平面 | 权威 | 位置 | 作用域 | 寿命 | 谁看得见 | 进插件备份 | 迁移/删除 | 卸载后 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 记忆/线索/知识/技能/提案 | N0 `ctx.fs`（文件） | P2 / U | 插件 + 用户 | `<dataDir>/{memory,research,knowledge,skills,skill-proposals}/` | home 单例，无项目键 | 房间生命周期；archive 保留 | 用户；模型经工具 | 是 | frontmatter 只增可选；`purge` 逐条擦除 | 保留 |
+| 身份与手册 | N0 文件 | P2 / U | 用户 + 插件 | `<dataDir>/SOUL.md`、`AGENTS.md` | home 单例 | 身份永不覆盖；手册按已知文本迁移 | 用户；模型逐字进 prompt | 是 | generation 迁移；`refresh-manual` 备份后再生 | 保留 |
+| 用量、治理、界面、交付 | N0 文件 + 自有 CLI | P2 / U | 插件/用户 | `<dataDir>/skill-usage.json`、`audit/approvals.jsonl`、`audit/purges.jsonl`、`ui-mode.json`、`deliverables/` | home 单例 | usage 可删；审计只追加；deliverables 无生命周期 | 用户；模型不可见 ui-mode/audit | 是 | `purge` 房间记录；approvals/deliverables 手动；提案 `archive-proposals` | 保留 |
+| 经营账本状态 | N0 文件 + 自有服务 | P3 / H | 插件 | `<operatingDir>/ledger.json` | home 单例 | 最近 256 条操作 + 全量计数；压缩后仍有界 | 用户；模型经工具 | 是 | v1 只增；`operationCount` 回填；不做硬删 | 保留 |
+| 账本操作归档 | N0 文件 + 自有服务 | P3 / H | 插件 | `<operatingDir>/operations-archive.jsonl` | home 单例 | 只追加；完整回执历史；读取有 256 MiB 上限 | 用户；模型经工具按 id 读 | 是 | 按 `operationId` 去重；需要导出/轮转 | 保留 |
+| 会话搜索索引 | N1 `session-query-sqlite` | 宿主 K | 宿主（本包补丁启用） | `<dshHome>/session-search.db` | session/corpus | 首次检索创建；可重建 | 宿主；模型经 `session_query` | 否 | 删文件即重建 | **保留；要清就删此文件** |
+| 会话/凭据/设置/宿主 KV | N0/N1 宿主 | S / H / X | 宿主 | `$DSH_HOME/sessions/`、`.credentials.yaml`、`storages/`、`profiles/` 等 | session/home/profile | 宿主决定 | 宿主/模型经工具 | 否 | 宿主迁移/备份；不进插件 bundle | 保留 |
+| 客户端 UI 状态 | 平台 `localStorage`（非 N0） | 客户端 | 设备/浏览器 | localStorage：`dsha:ui-mode`、`dsha:receipt-since`、`dsha-proactive-ui-v1`、`dsh-assistant-debug`；sessionStorage：`dsha-capture-seen-running-v1`、`dsha-capture-receipt-v1` | origin/设备 | 可丢弃；换源/清站点即失 | 浏览器 | 否 | 无版本/迁移（G35）；清站点数据 | 保留；清站点数据 |
+| OpenViking 记忆 | E2 外部服务 | E2 外部服务 | 外部服务 | OpenViking server（可选） | 外部 | 由服务决定 | 面板/模型经工具 | 否 | 按 OpenViking 手册 | 按 OpenViking 手册清理 |
 
 **模拟夹具不是数据**：`<operatingDir>/desk-projection.json` 是评估/夹具输入，不是经营账本。无 `ledger.json` 时
 桌面默认 404；只有 `assistant-desk-projection` 显式配 `allowFixture: true` 才回退它。真实 home 里出现该文件时
