@@ -22,7 +22,7 @@
 
 **避开 DSH 保留面**（不是我们的命名空间）：`@deepseek-ai` scope、核心 ctx 服务名（`ctx.agents` 等）、
 shipped preset id（`standard`/`ptc`/`cordis`/`minimal`）、保留 profile 名（`web`/`headless`/`sdk`/`sdk-minimal`/`acp`/`desktop`）、
-核心事件名（`SessionEventMap` 成员，以钉住 vendor 的定义为准）、home 布局（`~/.dsh`、`profiles/`、`.agent-presets`、`sessions/`）。包不得带 `bin`。
+核心事件名（`SessionEventMap` 成员，以钉住 vendor 的定义为准）、home 布局（`~/.dsh`、`profiles/`、`.agent-presets`、`sessions/`）。**不新增起 DSH 的应用入口**：不提供 `dsh` 启动 bin 或独立 CLI；随包的运维/工具 CLI（`ov-doctor`、`expert-setup`、`assistant-data`）不属于本禁令。
 
 ## 二、皮肤（随时可改，零身份代价）
 

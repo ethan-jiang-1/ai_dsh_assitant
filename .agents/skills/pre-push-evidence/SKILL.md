@@ -29,7 +29,7 @@ harness commands. This skill selects this repo's commands.
   — P1-B landed red and the fixture followed two commits later); and a recorded web-face scene can
   go silently stale while unit tests stay green (the approve-direct-call console change landed
   after blank-first-open was recorded; caught 2026-10-05 by building the second scene) — re-run
-  **both** web-face scenes, not just the one you touched.
+  **all** web-face scenes (the list lives in `snapshots/web-face/`), not just the one you touched.
 - **Build before trusting `lib/`-consuming tests.** The composition and release-smoke specs read
   the built package; without `pnpm build` they assert yesterday's code and go green anyway.
 - **A new gate without a red fixture is a claim, not a guard.** Introduce the regression, watch it

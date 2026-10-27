@@ -12,6 +12,7 @@
 ├── SOUL.md                     # 身份：agent 是谁、怎么说话（种子=内置默认；手改不覆盖）
 ├── AGENTS.md                    # 手册：working folder 怎么用（AGENTS.md 惯例名；带 scaffold 版本标记）
 ├── skill-usage.json            # 机器账本：skill 工具加载计数（可删，删了计数归零；不进摘要）
+├── ui-mode.json                # 机器账本：完整看板密度 per-home（可删，删了回标准）
 ├── memory/                     # 房间一：已确立的事实 / 偏好 / 决定
 │   ├── <id>.md                 #   一条记录一个文件（frontmatter + 正文）
 │   └── archive/<id>.md         #   被取代 / 退役的（不在摘要里，仍可读）
@@ -197,10 +198,11 @@ bundles, M snapshots`，退役与快照都不删除、技能归档只增不减�
 （默认 5，`0` 关闭）轮自动插入一条养护 turn（plugin 源 user message，让路栅栏保证它是轮间
 安全空槽），指示跑 curate 并逐条处理发现项——养护按节拍进行，不依赖人记得；非 goal 会话仍由 persona 纪律驱动。
 
-## 五、working folder 根部的两个文件（`SOUL.md` 身份 + `AGENTS.md` 手册）
+## 五、working folder 根部的两个语义文件（`SOUL.md` 身份 + `AGENTS.md` 手册；另有机器账本）
 
 **身份与引导分文件**，
 分工一句话——到处适用的进 `SOUL.md`，属于这个 working folder 的进 `AGENTS.md`。
+（`skill-usage.json`、`ui-mode.json` 是机器账本，不是语义文件。）
 
 - **`SOUL.md`（身份）**：agent 是谁、怎么说话。scaffold 缺则种（种子 = 内置默认身份；默认是管理岗，种子与回退一致），**已有永不覆盖**；空文件不注入。身份段读它逐字进 system prompt（紧贴 persona
   stub，`assistant:soul`）；缺/空/坏 → **回退内置默认**（回退是替换不是叠加）。改人格 = 编辑

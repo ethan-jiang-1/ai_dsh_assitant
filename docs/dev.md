@@ -263,7 +263,7 @@ DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得
 `pnpm desk-walk '<URL>' [--home <dir>]`（处理流真机走查：首屏一页纸→「全部」→「完整看板」→处理一件事→一句进展→返回不变量→交代新事，
 产出屏幕文本+截图供人判话术/层级，**进会话相位各记 sessionId**；`--home` 才能核账本身份与「回来⇒无待确认」）、
 `pnpm projection-live [--home <dir>]`（live 补证：从一页纸进完整看板后，断连/重连、3 次页面重载会话不增殖、420×900 窄视口
-选择保留与无横向溢出、滚动位置保留；自编排共享 probe home，无模型回合）、
+选择保留与无横向溢出、滚动位置保留；自编排共享 probe home（首次先 `prepare.sh` + `setup.sh`），无模型回合）、
 `pnpm projection-selection '<URL>'`（交互证据门：一页纸点「看依据」并核对 quote 与 source Session/event 读回；
 实例须带 `dev/fixtures/desk-projection/eight-matters.json` 夹具；无模型、无截图）、
 `pnpm observe [--home <dir>]`（输入边界 30 天观察读数：A 自发投递 / B 时长 / C 入口后的操作；
@@ -283,7 +283,7 @@ DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得
 | 看配置组合 | `pnpm dsh --profile dev --dump-config` | bundle/profile/临时 patch 的行、id、disabled、realm | 运行时注册、DOM 或模型请求 |
 | 验 host 面 | `pnpm dsh --profile dev-task "one task"` | 插件装载、host 服务、working folder scaffold | preset 工具与提示词 |
 | 验 assistant preset | `pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner.patch.yml "one task"` | one-shot 挂载 preset 后的会话驱动 | 浏览器渲染 |
-| 验 Web 面 | `pnpm dsh --profile dev --port 0 --no-open` + `pnpm preflight '<URL>'` | Web boot、Remote、rooms route 可达 | DOM 期望；再跑 `pnpm web-expected --scenario <场景>`（场景必填） |
+| 验 Web 面 | `pnpm dsh --profile dev --port 0 --no-open` + `pnpm preflight '<URL>'` | Web boot、Remote、rooms route 可达 | DOM 期望；再跑 `pnpm web-expected '<URL>' --scenario <场景>`（场景必填） |
 | 验请求侧组装 | `pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner-replay.patch.yml "probe"` | keyless replay 的 system/tools/session log | 固定回复代表模型自主选择 |
 | 逐事件复盘某次会话 | `zstd -dc "$DSH_HOME/sessions/<proj>/<id>/session.v*.jsonl.zstd"`（代数在文件名里：先列目录再选；过滤样例：`.agents/skills/repo-live-probe/`） | 请求侧 system/tools 与 tool/result 逐字日志 | 不证明模型自主选择（回放车道回复是录制的） |
 

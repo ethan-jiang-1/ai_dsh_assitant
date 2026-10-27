@@ -34,8 +34,8 @@ node snapshots/web-face/desk-eight-matters-first-open/seed.mjs patch "$ASSISTANT
 # ③ boot 前种账本：eight-matters 夹具 → <home>/assistant-operating/desk-projection.json（移走任何 ledger.json）
 node snapshots/web-face/desk-eight-matters-first-open/seed.mjs desk "$ASSISTANT_DSH_HOME"
 
-# ④ 起服务（后台；URL 带 token）
-pnpm dsh --profile dev --port 0 --no-open
+# ④ 起服务（后台；URL 带 token）。投影夹具默认不服务（生产防伪装），本场景必须显式打开
+pnpm dsh --profile dev --patch dev/probes/web/projection-fixture.patch.yml --port 0 --no-open
 
 # ⑤ shots 触发首个 UI 连接（默认工作区在首连时创建——把这次副作用结算在录制拍之外）
 pnpm shots '<url>' --dom --size 1600x1000

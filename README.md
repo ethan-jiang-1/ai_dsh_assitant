@@ -107,7 +107,7 @@ dsh plugin --profile <p> add file:./packages/dsh-smart-assistant   # <p>＝你�
 
 运行数据的 `DSH_HOME`、助手 `dataDir` 与源码 cwd 是三个不同根，详见 [开发手册](docs/dev.md)。
 
-打包安装的形状（`pnpm pack` 出 tarball 再 `dsh plugin add <tarball>`）由 `pnpm release-smoke` 机械验证：
+打包安装的形状（`pnpm pack` 出 tarball 再 `dsh plugin --profile <p> add <tarball>`）由 `pnpm release-smoke` 机械验证：
 pack → 干净 home → 装 → 组合断言。装完只需把该 profile 的 `agent-preset-registry` 行的 `default` 设成
 `assistant`（模板：`dev/profiles/profile-patch.yml`）。registry 不扫目录、也不接受 preset 路径：
 `assistant` 的定义随包发（`package.json` 的 `dsh.bundle.patch` → `cordis.patch.yml` 里的 `preset-assistant`

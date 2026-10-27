@@ -140,4 +140,4 @@ Host 运行期 `@deepseek-ai/*` 使用 **peerDependencies**；仅类型关系（
 发布产物（`lib/`、`bin/`、`presets/`、`cordis.patch.yml`）不引用 repo 内任何其他目录，也不引用 `vendor/`；
 `pnpm verify` 机械检查这一点。唯一运行期 npm 依赖是 `yaml`（首次安装从 registry 拉取），其余全部由宿主
 DSH 提供；因此“自包含”指 agent 物自包含，不是离线安装包。真实安装形状（`pnpm pack` → 干净 home →
-`dsh plugin add`）由 `pnpm release-smoke` 验证；`bin/ov-doctor.mjs` 随包安装，另一人不需要仓库。
+`dsh plugin --profile <p> add <spec>`）由 `pnpm release-smoke` 验证；`bin/ov-doctor.mjs` 随包安装，另一人不需要仓库。

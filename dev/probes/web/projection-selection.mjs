@@ -1,13 +1,10 @@
 #!/usr/bin/env node
 // K2 evidence probe: the one-page home's L1 basis (quote + source) on the live panel.
 //
-// Rewritten 2026-10-10 onto cdp-driver (K1/K2 accepted-limitation item ⑤): the previous
-// shape ran its assertion as a webui-shots `--eval` promise, but shots treats a thrown or
-// rejected eval as a LOG LINE and exits 0 — measured both shapes, both exit 0 — so the
-// probe's PASS was toothless. Assertions now run as page-context functions whose return
-// values the probe checks in Node; a failed assertion, a readiness timeout, or browser
-// console/network problems each fail the run. The screenshot artifact the old shape
-// produced as a side effect is gone: the assertion verdict is the probe's product.
+// It drives CDP directly rather than through webui-shots: the verdict is the product here, not
+// a screenshot. Assertions run as page-context functions whose return values the probe checks
+// in Node; a failed assertion, a readiness timeout, or browser console/network problems each
+// fail the run.
 import { launchCdpBrowser } from './cdp-driver.mjs'
 import { sleep } from './probe-utils.mjs'
 

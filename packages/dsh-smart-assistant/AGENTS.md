@@ -24,7 +24,7 @@
   ① 语言用英文（根 `AGENTS.md` 语言分工）；② `model-visible means logged`——必须能从会话日志重建；
   ③ 在 [`docs/identity.md`](../../docs/identity.md) 登记面与名，并配快照或真实组合断言。
 - **改了组合行/exports/工具动词** → 必须重跑 `pnpm gen-catalog`，否则 freshness 门禁红。
-- **目录 = 独立 plugin 导出行**：`src/host/`、`src/agent/` 下的子目录各对应 `package.json` 一个 exports 行（独立 plugin 导出面，清单以生成物为准）；平铺文件是入口内部部件，不独立成行。按导出行定位模块是 O(1)。
+- **目录 = 独立 plugin 导出行**：`src/host/`、`src/agent/` 下的子目录各对应 `package.json` 一个 exports 行（独立 plugin 导出面，清单以生成物为准；`src/agent/tool-support/` 是共享内部件，例外）；平铺文件是入口内部部件，不独立成行。按导出行定位模块是 O(1)。
 
 ## 包内 owner 面
 

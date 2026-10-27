@@ -35,8 +35,8 @@ HOST 面（cordis.patch.yml → dsh.bundle.patch）
                               `assistant-operating` dataDir、`writer.lock` 惰性认领、`ledger.json`
                               有界状态 + `operations-archive.jsonl` 完整历史——契约 = [operating.md](operating.md)）
                             + assistant-desk-projection 行（固定只读投影下载：GET
-                              api/assistant/desk-projection，优先活渲染账本 v2 投影——契约 =
-                              [operating.md](operating.md) §三）
+                              api/assistant/desk-projection，优先活渲染账本 v2 投影；另有旧回执分页
+                              GET api/assistant/operating-receipts——契约 = [operating.md](operating.md) §三）
                             + assistant-ui-mode 行（完整看板密度 per-home 持久：GET/POST
                               api/assistant/ui-mode，读写 assistant/ui-mode.json；标准默认；
                               不写 settings 文档，不碰账本/工作目录）
@@ -95,7 +95,7 @@ AGENT 面（`cordis.patch.yml` 的 `preset-assistant` 行 → agent preset）
 语义要点：官方品牌包只在 official 构建档案下注册，本地构建里品牌 slot 空置；
 四个房间 tab（knowledge / memory / viki / skills）是「+」向导里可添加的右栏 tab；首里引导座位开聊即隐；全局经营
 主区投影消费 `main` 座位（左栏入口叫「今天」），默认渲染**常用面一页纸**（`home-surface` → `one-page-home`：空态一问、当前一页、
-一个输入），「全部」进人读列表（`brief-list`），「它记下的」进只读记录面（`records-surface`），「完整看板」再进 `projection-panel`，「看依据」就地展开证据；会话内不再注册桌面/任务 tab（2026-10-24 退役；回到今天走主面板/左栏）；开屏带
+一个输入），「全部」进人读列表（`brief-list`），「它记下的」进只读记录面（`records-surface`），「完整看板」再进 `projection-panel`，「看依据」就地展开证据；会话内不注册桌面/任务 tab（回到今天走主面板/左栏）；开屏带
 `#debug=1` 或本机 localStorage `dsh-assistant-debug=1` 时，会话视图栏再注册只读「开发调试」tab
 （`debug/debug-panel.ts`）。读回链 = [`operating.md`](operating.md) §三——这些消费的
 全是 vendor 通用座位，§六 延后的"专属 Web 卡片"指**跨出通用座位的自有卡面**（自有 slot 域名），
@@ -308,7 +308,7 @@ pnpm dsh …（package.json scripts → dev/env/dsh.mjs，唯一启动器：
 - **不重选**：显式回到 Conversation、归档引发的回退、slot/布局重挂及客户端 HMR 不重选；完整页面重载的新根上下文重新尝试。
 - **记忆边界**：默认机会只在页面内记录，不保存导航偏好或业务数据；插件首次激活前的显式 null 与启动 null 无法由当前公开快照区分。
 - **数据源**：全局桌面读取独立 Host 固定投影；记忆/知识/技能三个房间 tab 读独立 Host 行 `assistant-rooms` 的房间投影（working folder 真值），Viki 读 `assistant-viki`；同一路径的 POST 是受控写；默认入口本身不创建业务 Session。
-- **会话内视图**：桌面/任务 tab 已退役（2026-10-24）；会话只有对话/轨迹，调试 flag 打开时多一个「开发调试」。桌面与任务只在主面板，不复制到会话。
+- **会话内视图**：会话只有对话/轨迹，调试 flag 打开时多一个「开发调试」；桌面与任务只在主面板，不复制到会话。
 
 独立 Host 行 `assistant-desk-projection` 提供固定只读投影下载：经营 dataDir 里有 `ledger.json` 时**活渲染账本 v2 投影**；无账本默认 404，只有 `allowFixture: true` 才回退固定 `desk-projection.json` 模拟输入（模拟不是权威）；端点边界、认证、错误态与 byte cap 的完整契约 = [`operating.md`](operating.md) §三（唯一权威，本文不复述）。物理 HTTP 验证使用 [只读探针](../dev/probes/web/desk-projection-download.mjs)，以明确标注模拟的 [固定资料](../dev/fixtures/desk-projection/desk-projection.json) 为独立字节预期。
 

@@ -8,25 +8,8 @@
  * themselves first) and refuses an unknown schema. `status`/`check` are the read-only support
  * views; `purge` is the explicit, audited erasure path for one room record.
  *
- * Usage:
- *   node <package>/bin/assistant-data.mjs export --assistant <dir> --operating <dir> --out <bundle>
- *   node <package>/bin/assistant-data.mjs import --in <bundle> --assistant <dir> --operating <dir> [--replace] [--dry-run] [--max-bytes <n>]
- *   node <package>/bin/assistant-data.mjs status --assistant <dir> --operating <dir>
- *   node <package>/bin/assistant-data.mjs check --assistant <dir> --operating <dir>
- *   node <package>/bin/assistant-data.mjs purge --assistant <dir> --kind <kind> --id <id> --reason <text> --yes
- *   node <package>/bin/assistant-data.mjs archive-proposals --assistant <dir> --yes
- *   node <package>/bin/assistant-data.mjs seal --in <bundle> --out <file>
- *   node <package>/bin/assistant-data.mjs unseal --in <file> --out <dir>
- *   node <package>/bin/assistant-data.mjs seal --in <bundle> --out <file>
-  node <package>/bin/assistant-data.mjs unseal --in <file> --out <dir>
-  node <package>/bin/assistant-data.mjs merge --in <bundle> --assistant <dir> --operating <dir> [--apply] [--prefer current|incoming]
- *   node <package>/bin/assistant-data.mjs seal --in <bundle> --out <file>
- *   node <package>/bin/assistant-data.mjs unseal --in <file> --out <dir>
- *   node <package>/bin/assistant-data.mjs seal --in <bundle> --out <file>
-  node <package>/bin/assistant-data.mjs unseal --in <file> --out <dir>
-  node <package>/bin/assistant-data.mjs merge --in <bundle> --assistant <dir> --operating <dir> [--apply] [--prefer current|incoming]
-  node <package>/bin/assistant-data.mjs rotate --assistant <dir> --operating <dir> --older-than <days> [--apply]
- *   node <package>/bin/assistant-data.mjs refresh-manual --assistant <dir> --yes
+ * Usage: the runtime `usage` banner below is the one command list. Commands: export / import /
+ * status / check / purge / archive-proposals / seal / unseal / merge / rotate / refresh-manual.
  *
  * No harness peers are imported: the command runs from an installed profile with plain Node.
  */

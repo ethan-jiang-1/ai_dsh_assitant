@@ -46,7 +46,7 @@
 
 - **Profile 变更仍建议串行**：DSH 0.2.1 的 `dsh plugin` 在 profile `package.json` 上取跨进程文件锁（120s 等待），并发 `add`/`remove` 会被串行化；`install-resilience-smoke` 只证明两个并发 add 后的最终状态是一份依赖 + 一个 bundle 行，不承诺更复杂的并发语义。自动化仍逐条执行，完成后用 `--dump-config` 确认实际组合。
 
-- **安装不写用户数据**：`dsh plugin add` 只装包；不创建 working folder、不导入 seeds、不改默认 preset。
+- **安装不写用户数据**：`dsh plugin --profile <p> add <spec>` 只装包；不创建 working folder、不导入 seeds、不改默认 preset。
 - **升级/卸载保留数据**：两个插件目录（`<dshHome>/assistant`、`<dshHome>/assistant-operating`）跨升级和 remove 保留；remove 后重装必须回到组合。卸载后仍留在盘上的宿主数据（`session-search.db`、`sessions/`、`storages/`、`cache/`、客户端 localStorage 键）与清理方式见 [`delivery.md`](delivery.md) §一数据卡；插件不替用户删除这些文件。
 - 备份/恢复/诊断只走 `assistant-data`（两目录 + schema manifest；`export`/`import [--replace]`/`status`/`check`）；sessions、credentials、settings、storages 另备整 home，绝不混进插件备份。
 - **格式与迁移**：房间 frontmatter 只增可选字段，新增必填/改语义必须先写迁移；手册按 generation 替换已知精确旧段落，匹配不到就提示 stale 而不重写；账本 v1 只增字段、旧 `ledger.json` 首次写入时压缩到有界状态 + `operations-archive.jsonl`；bundle manifest 的 `schemaVersion` 不匹配拒绝导入。安装时不得静默重写用户数据。
