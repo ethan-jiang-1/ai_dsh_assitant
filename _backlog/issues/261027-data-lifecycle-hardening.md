@@ -9,9 +9,9 @@ opened: 2026-10-27
 
 **问题与期望结果：** FAQ 26 的体检暴露出插件数据面的生命周期缺口：模型可见手册升级后不更新、旧 home 兼容没有证据、单文件账本会撞 1 MiB 投影上限、首次启动后恢复被拒、秘密落在明文文件/日志、数据卡与卸载清理不完整、部分写入不在原子写纪律内。用户应得到一组"发布后部署不会坏"的合同、代码与可执行证据。
 
-**当前情况：** Phase 0/1 已交付；G13/G18/G20/G22/G23/G33/G34/G37/G38 已修；G16 的未知字段/digest 外部编辑、G17 的只读 retention 读数、G24 的 release/接管回读/唯一 tmp、G25 索引、G36 备份大小告警已修。仍开：G14/G15 合并与加密、G16 写前 CAS、G17 自动轮转/删除、G19 旧回执分页、G24 PID 复用/心跳、G25 整文件读入上限、G26/G27/G32/G35，以及 G28–G31 产品边界。
-**未决问题：** G14/G15（跨机合并/加密）需要产品取舍；G25 还差归档整文件读入上限/分片；其余低优先项按触发。
-**下一步：** G23 已轮转；G25 还差整文件读入上限/分片。G14/G15 另立提案；其余低优先按触发。
+**当前情况：** Phase 0/1 已交付；G13/G18/G20/G22/G23/G25/G33/G34/G37/G38 已修；G16 的未知字段/digest 外部编辑/thread-page CAS、G17 只读 retention 读数、G24 release/接管回读/唯一 tmp、G36 备份大小告警已修。仍开：G14/G15 合并与加密、G16 save_page/memory 写 CAS、G17 归档自动轮转/删除、G19 旧回执分页、G24 PID 复用/心跳、G26/G27/G32/G35，以及 G28–G31 产品边界。
+**未决问题：** G14/G15（跨机合并/加密）需要产品取舍；G17 自动轮转/删除未取；其余低优先项按触发。
+**下一步：** G14/G15 另立提案；G17 自动轮转/删除与 G19/G24/G26/G27/G32/G35 按触发；本轮不再扩范围。
 
 ## 后续切片（用户已授权）
 
@@ -22,7 +22,7 @@ opened: 2026-10-27
 | C | G38 导入 dry-run | 已完成 | `import --dry-run` 只校验并报计划，不写；`assistant-data.spec.mjs` |
 | D | G18 夹具默认权威 | 已完成 | 默认 404；`assistant-desk-projection.allowFixture` 显式开启；测试/组合/探针 patch 已更新 |
 | E | G16 用户手改 CAS / digest 外部编辑 | 部分（digest + thread/page CAS） | `digestSnapshotNow` 按 size/mtime fingerprint 刷新；`Room.write` 支持 raw-text CAS，线索更新与知识状态翻转已传入；`save_page`/memory 写仍未 CAS |
-| F | G17/G23/G25 retention | 部分（读数/告警/索引/提案轮转） | `status`/`check` 报读数与阈值；G25 归档回执 O(1) 索引；`archive-proposals` 显式轮转 landed/rejected；自动轮转/删除未取 |
+| F | G17/G23/G25 retention | 部分（读数/告警/索引/上限/提案轮转） | `status`/`check` 报读数与阈值；G25 归档回执 O(1) 索引 + 256 MiB 读取上限；`archive-proposals` 显式轮转；自动轮转/删除未取 |
 | G | G22 deliverables/present | 已完成 | manual v21 加「交付写 cwd + `present`」；v20→v21 迁移；prompt-smoke PASS / eval 无 key 未跑 |
 | H | G24/G33/G34 | 部分（G24/G33/G34） | G33 source 引用完整性、G34 archive 先移后改写、G24 release 只删自己的锁/接管回读/唯一 tmp 已落；PID 复用与 heartbeat 未取 |
 
@@ -90,7 +90,7 @@ opened: 2026-10-27
 | G22 | **`deliverables/` 孤儿**：无代码读写、无生命周期、无 `present` 指引；最终交付可能落在 home 而不是 workspace | 已修（模型指引） | 中 | manual v21 明确「交付写 session cwd + `present`，working folder 是笔记本」；home 的 `deliverables/` 仍是用户数据，无生命周期 |
 | G23 | **`skill-proposals/archive/` 配置了但没用**：landed/rejected 提案留在收件箱，只增 | 已修（显式轮转） | 低 | `assistant-data archive-proposals --yes` 只移 landed/rejected；proposed/approved 留下；再提案从 archive 继承 revision/created |
 | G24 | **锁的工程边界**：takeover 是 rename 不是 CAS；PID 复用可能把残锁当活锁；无 heartbeat；`ledger.json.tmp` 固定名 | 部分（release/接管回读/唯一 tmp） | 低-中 | `releaseWriter` 只删自己写下的锁；接管后回读确认；tmp 唯一。PID 复用与 heartbeat 仍未取 |
-| G25 | **归档读取无上限/无索引**：`readArchive` 整文件读入；`readOperation` O(n)；大归档会吃内存 | 部分（索引；无上限） | 低-中 | 归档按 size/mtime 缓存并建 `operationId` 索引，回执查找 O(1)；整文件读入与分片仍未取 |
+| G25 | **归档读取无上限/无索引**：`readArchive` 整文件读入；`readOperation` O(n)；大归档会吃内存 | 已修（索引+上限） | 低-中 | 归档按 size/mtime 缓存并建 `operationId` 索引；整文件读取有 256 MiB 默认上限，超限 fail loud；分片/流式仍未取 |
 | G26 | **`ov-doctor --write` 留远端 sentinel；OpenViking 数据不在备份** | 未取 | 低 | 外部服务边界；按其手册清理，数据卡已声明 |
 | G27 | **`expert-setup` 种子的凭据扫描只覆盖技能路径；知识页扫描非阻断** | 未取 | 低 | 种子是包内只读内容；写入面已有 audit findings |
 | G28 | **多用户/远程无隔离**：一个 Host/home 一个 principal；remote 用户共享数据；`session-search.db` 索引全部会话 | 边界 | 中 | 产品定位=单 principal；多人部署用不同 `DSH_HOME`/Host，文档已写 |
@@ -109,7 +109,7 @@ opened: 2026-10-27
 
 - **G14/G15 同步与备份加密**：跨机/上云的真实需求出现再做；G38 的 dry-run 已给恢复前预览，合并/加密仍开放。
 - **G16 用户手改 CAS**：未知字段、digest 外部编辑、thread/page 状态写已修；`save_page`/memory 写仍未 CAS。
-- **G17/G25 retention**：`status`/`check` 读数与告警、G25 索引、G23 提案轮转已有；自动轮转/删除与归档整文件读入上限未取。
+- **G17 retention**：`status`/`check` 读数与告警、G23 提案轮转、G25 索引+读取上限已有；归档自动轮转/删除未取。
 - **G19 投影 receipts 窗口**：合同已写，客户端旧回执分页未取。
 - **G24**：PID 复用/心跳仍未取；release/接管回读/唯一 tmp 已修。G33 的 knowledge source / G34 的 archive 事务已修，账本 sessionId 仍不查。
 - **G26/G27/G32/G35/G36**：OV sentinel、种子凭据、跨会话证据、ui-mode 版本、备份大小，低优先。

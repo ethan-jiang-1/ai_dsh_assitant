@@ -17,7 +17,7 @@
 - **重试与读回跨归档**：`submitOperation` 先按 `operationId` 查状态、再查归档，命中相同内容复用原回执，
   不同内容拒绝为 `operation-content-mismatch`，不会把已归档的操作再应用一次；`readOperation` /
   `readOperationRecord` / `readMatterSnapshot` 合并状态与归档（状态副本优先）。
-  归档里的坏行由解析器计数跳过，不让一次撕裂的 append 把全部历史回执变成不可读。
+  归档里的坏行由解析器计数跳过，不让一次撕裂的 append 把全部历史回执变成不可读。归档按 `operationId` 建索引；整文件读取有 256 MiB 默认上限（`maxArchiveBytes` 可配），超限 fail loud，提示导出/轮转。
 - **单 writer**：`<dataDir>/writer.lock` 记 `{hostname, pid, acquiredAt, cwd}`。认领是**惰性**的——boot 无副作用，
   第一次**变更操作**才抢锁，同 home 的 web 实例与 one-shot 任务因此可并存到有人写为止。
   活着的持锁者在场时拒绝第二 writer（本进程内与跨进程同判）；同机死进程的残锁原子接管，

@@ -5,7 +5,7 @@
  * must not turn a replay into a second application.
  */
 
-import { readFileSync } from 'node:fs'
+import { readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { Context } from '@deepseek-ai/cordis'
 import { describe, expect, it } from 'vitest'
@@ -53,6 +53,17 @@ describe('operating ledger archive', () => {
       const projection = renderLedgerProjection(state, 'archive-test', '2026-10-27T00:00:00.000Z')
       expect(projection.revision).toBe(6)
       expect(projection.receipts.length).toBe(Object.keys(state.operations).length)
+    } finally {
+      await service.stop()
+    }
+  })
+
+  it('fails loud when the archive exceeds the read cap', async () => {
+    const dataDir = mkDir()
+    writeFileSync(join(dataDir, OPERATIONS_ARCHIVE_FILE), '{"padding":true}\n', 'utf8')
+    const service = new AssistantOperatingLedger(new Context(), { dataDir, maxArchiveBytes: 4 })
+    try {
+      await expect(service.readOperation('op-0')).rejects.toThrow('read cap')
     } finally {
       await service.stop()
     }

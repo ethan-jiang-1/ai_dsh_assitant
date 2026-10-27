@@ -40,7 +40,7 @@ Desktop 使用保留的 `desktop` profile：先在 Desktop 应用里初始化一
 
 `assistant-memory` 行可配 `dataDir`（默认 `<dshHome>/assistant`）、`digestMaxBytes`、`recallLimit`、
 `staleResearchDays`；`assistant-operating-ledger` 行有独立的 `dataDir`（默认
-`<dshHome>/assistant-operating`）与 `keepOperations`（默认 256）；`assistant-desk-projection` 有
+`<dshHome>/assistant-operating`）与 `keepOperations`（默认 256）、`maxArchiveBytes`（默认 256 MiB 归档读取上限）；`assistant-desk-projection` 有
 `maxProjectionBytes`（默认 8 MiB）与 `allowFixture`（默认 `false`：无账本时 404，不把
 `desk-projection.json` 模拟资料当成真桌面）。patch 是整行 config 替换，不是深合并。
 

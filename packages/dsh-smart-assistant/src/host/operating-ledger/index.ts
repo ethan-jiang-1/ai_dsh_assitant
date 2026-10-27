@@ -38,10 +38,19 @@ export interface Config {
    * runs at twice this value, leaving this many. Defaults to {@link MAX_RECENT_OPERATIONS}.
    */
   readonly keepOperations?: number
+  /**
+   * Hard cap for reading `operations-archive.jsonl`. The archive is read whole on cache miss; a
+   * file above the cap fails loud instead of exhausting memory. Defaults to
+   * {@link MAX_ARCHIVE_BYTES}.
+   */
+  readonly maxArchiveBytes?: number
 }
 
 /** Default recent-operation window; the file stays bounded while receipts remain readable. */
 export const MAX_RECENT_OPERATIONS = 256
+
+/** Default ceiling for the archive file read; `check` warns well before it. */
+export const MAX_ARCHIVE_BYTES = 256 * 1024 * 1024
 
 /** Resolved writer-lock holder identity. */
 interface WriterLock {
@@ -231,6 +240,9 @@ export class AssistantOperatingLedger extends Service {
   /** Recent-operation window; older records live in the append-only archive. */
   private readonly keepOperations: number
 
+  /** Whole-file archive read ceiling; above it reads fail loud rather than exhaust memory. */
+  private readonly maxArchiveBytes: number
+
   /** Parsed archive cache keyed by file size+mtime, so reads do not rescan on every call. */
   private archiveCache: {
     readonly stamp: string
@@ -250,6 +262,9 @@ export class AssistantOperatingLedger extends Service {
     this.keepOperations = config.keepOperations !== undefined && Number.isSafeInteger(config.keepOperations) && config.keepOperations > 0
       ? config.keepOperations
       : MAX_RECENT_OPERATIONS
+    this.maxArchiveBytes = config.maxArchiveBytes !== undefined && Number.isSafeInteger(config.maxArchiveBytes) && config.maxArchiveBytes > 0
+      ? config.maxArchiveBytes
+      : MAX_ARCHIVE_BYTES
     this.state = loadState(this.dataDir)
     ctx.effect(() => () => {
       if (this.claimed) releaseWriter(this.dataDir)
@@ -386,6 +401,9 @@ export class AssistantOperatingLedger extends Service {
     const path = this.archivePath()
     if (!existsSync(path)) return undefined
     const info = statSync(path)
+    if (info.size > this.maxArchiveBytes) {
+      throw new Error(`operating ledger archive at ${path} is ${String(info.size)} byte(s), above the ${String(this.maxArchiveBytes)}-byte read cap; export/rotate it before reading old receipts`)
+    }
     const stamp = `${info.size}:${info.mtimeMs}`
     if (this.archiveCache?.stamp === stamp) return this.archiveCache
     const parsed = parseOperationsArchive(readFileSync(path, 'utf8'))
