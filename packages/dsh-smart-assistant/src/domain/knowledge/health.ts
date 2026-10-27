@@ -26,6 +26,11 @@ export interface KnowledgeCurationInput {
   readonly now: Date
   /** Age at which a draft page is reported as stalled (mirrors the research room). */
   readonly staleResearchDays: number
+  /**
+   * Source pointers that currently resolve (`memory:<id>` / `research:<id>`). Omitted by callers
+   * that do not have the other rooms; a supplied set turns dangling sources into a finding.
+   */
+  readonly knownSourceIds?: ReadonlySet<string>
 }
 
 function ageInDays(stamp: string, now: Date): number | undefined {
@@ -83,6 +88,24 @@ export function curateKnowledge(input: KnowledgeCurationInput): CurationFinding[
           message: `"${page.id}" still cites [[${target}]], which is deprecated — expired knowledge `
             + 'is being referenced as current: update the link or revive the page',
           refs: [page.id, target],
+        })
+      }
+    }
+
+    const seenSources = new Set<string>()
+    for (const source of page.sources) {
+      const resource = source.resource
+      if (seenSources.has(resource)) continue
+      seenSources.add(resource)
+      if (input.knownSourceIds === undefined) continue
+      if (!/^(?:memory|research):/u.test(resource)) continue
+      if (!input.knownSourceIds.has(resource)) {
+        findings.push({
+          code: 'page-source-missing',
+          severity: 'warn',
+          message: `"${page.id}" cites ${resource}, which no longer exists — the page's proof has `
+            + 'left the room: restore the record, re-point the source, or mark the page deprecated',
+          refs: [page.id, resource],
         })
       }
     }

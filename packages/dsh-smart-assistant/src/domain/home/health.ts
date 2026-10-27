@@ -42,6 +42,7 @@ export type FindingCode =
   | 'page-link-ambiguous'
   | 'page-link-deprecated'
   | 'page-unproven'
+  | 'page-source-missing'
   | 'page-orphan'
   | 'page-stale'
   | 'page-draft-stale'

@@ -250,11 +250,18 @@ export async function runCuration(host: AssistantMemory, shadowedBy?: Readonly<R
   // Post-write audit findings join the brief: the pure room check and the content audit are
   // two passes over the same home, and the model should read one brief.
   const audit = await auditSkillsRoom(host.paths.skillsDir)
+  const knownSourceIds = new Set<string>([
+    ...memories.entries.map(record => `memory:${record.id}`),
+    ...memories.archived.map(record => `memory:${record.id}`),
+    ...threads.entries.map(thread => `research:${thread.id}`),
+    ...threads.archived.map(thread => `research:${thread.id}`),
+  ])
   const pages = curateKnowledge({
     pages: knowledge.entries,
     failures: knowledge.failures,
     now: new Date(),
     staleResearchDays: host.staleResearchDays,
+    knownSourceIds,
   })
   // The proposal inbox is part of the home's health: the proposal-* finding rules live with
   // the rest of the inbox's vocabulary (domain/skills/proposal.ts) — this module only feeds

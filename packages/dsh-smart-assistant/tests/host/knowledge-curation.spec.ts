@@ -30,6 +30,39 @@ function codes(pages: readonly KnowledgePage[]): string[] {
     .map(finding => finding.code)
 }
 
+describe('knowledge source integrity', () => {
+  it('reports a memory/research source pointer that no longer resolves', () => {
+    const findings = curateKnowledge({
+      now: NOW,
+      staleResearchDays: 30,
+      failures: [],
+      knownSourceIds: new Set(['memory:kept']),
+      pages: [
+        page({
+          id: 'proof',
+          sources: [{ resource: 'memory:gone' }, { resource: 'research:gone' }, { resource: 'memory:kept' }, { resource: 'https://example.com' }],
+          body: 'claims',
+        }),
+      ],
+    })
+    const missing = findings.filter(finding => finding.code === 'page-source-missing')
+    expect(missing.map(finding => finding.refs?.[1])).toEqual(['memory:gone', 'research:gone'])
+  })
+
+  it('stays quiet when no source set is supplied or every source resolves', () => {
+    const one = page({ id: 'proof', sources: [{ resource: 'memory:gone' }], body: 'claims' })
+    expect(codes([one])).not.toContain('page-source-missing')
+    const known = curateKnowledge({
+      now: NOW,
+      staleResearchDays: 30,
+      failures: [],
+      knownSourceIds: new Set(['memory:gone']),
+      pages: [one],
+    })
+    expect(known.map(finding => finding.code)).not.toContain('page-source-missing')
+  })
+})
+
 describe('curateKnowledge (pure graph check)', () => {
   it('tiers broken links the settled way: unwritten=info, deprecated-cited=warn, ambiguous=error', () => {
     const findings = curateKnowledge({
