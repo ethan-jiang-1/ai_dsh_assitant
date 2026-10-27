@@ -166,6 +166,7 @@ export function collectCatalog(root = repoRoot) {
   const clientSurface = clientSource !== undefined ? extractClientSurface(clientSource) : undefined
   return {
     exports: Object.keys(pkg.exports ?? {}),
+    bins: pkg.bin ?? {},
     hostRows,
     hostSubRows,
     agentRows,
@@ -208,7 +209,7 @@ export function renderCatalog(input) {
   lines.push('')
   lines.push('# 包形状目录（生成物）')
   lines.push('')
-  lines.push('> **生成物，不手改**：本文件由 `scripts/generate/gen-catalog.mjs` 从 `package.json` 的 exports、')
+  lines.push('> **生成物，不手改**：本文件由 `scripts/generate/gen-catalog.mjs` 从 `package.json` 的 exports/bin/engines、')
   lines.push('> `cordis.patch.yml`（host 行 + `agent-preset` 行的 plugins）/ `dev/probes/session/preset-runner.patch.yml` 的组合行、')
   lines.push('> `src/agent/` 各模块（凡声明工具 wire 名者）的 name/ACTIONS、')
   lines.push('> `src/client/` 模块树（entry 注册面 + commands）的座位注册、')
@@ -270,8 +271,10 @@ export function renderCatalog(input) {
   lines.push('## 兼容与依赖姿态')
   lines.push('')
   lines.push(`- 钉住的上游 tag：\`${input.pin}\``)
+  const bins = Object.entries(input.bins ?? {})
+  lines.push(`- 包入口（bin）：${bins.length === 0 ? '（无）' : bins.map(([name, path]) => `\`${name}\` → \`${path}\``).join('、')}`)
   const engines = input.engines ?? {}
-  lines.push(`- 当前机器兼容范围：\`dsh ${engines.dsh ?? '（未声明）'}\`；Node \`${engines.node ?? '（未声明）'}\``)
+  lines.push(`- 当前机器兼容范围：\`dsh ${engines.dsh ?? '（未声明）'}\`；Node \`${engines.node ?? '（未声明）'}\`；pnpm \`${engines.pnpm ?? '（未声明）'}\``)
   lines.push(`- 历史 verified 的 DSH release（不构成当前支持承诺）：${input.releases.map(version => `\`${version}\``).join('、')}`)
   lines.push(`- 运行时 dependencies：${input.dependencies.map(name => `\`${name}\``).join('、') || '（无）'}`)
   lines.push(`- peerDependencies：${input.peers.length} 个 \`@deepseek-ai/*\`（姿态由门禁守：harness 包只许 peer）`)

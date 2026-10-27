@@ -4,5 +4,7 @@ scenario: blank-first-open
 profile: dev            # 起在隔离 home（ASSISTANT_DSH_HOME 指向一次性 home），共享 dev home 的时间戳漂移不可用
 recording: live         # shots 经 CDP 真渲染拍摄；PNG 人工审阅，DOM 证据进比对
 comparison: dom-evidence
-runner: pnpm web-expected '<url>' --scenario snapshots/web-face/blank-first-open --wait-text '最近哪件事让你拿不准' # --refresh 重录期望
+runner: README.md
+# runner：只指 README 中的可执行命令；wait_text 是健康门读取的就绪令牌（CLI 不读本文件）。
+wait_text: '最近哪件事让你拿不准'
 entry: dev/probes/web/webui-expected.mjs

@@ -86,7 +86,7 @@ describe('webFaceExpectedHealthProblems', () => {
     consoleErrors: [],
     networkFailures: [],
   }
-  const scene = ({ expected = healthy, runner = "runner: pnpm web-expected '<url>' --scenario scenes --wait-text '它在盯什么' #" } = {}) => {
+  const scene = ({ expected = healthy, runner = "version: 1\nrunner: README.md\nwait_text: '它在盯什么'\n" } = {}) => {
     const root = temp('web-face-health-')
     const dir = join(root, 'snapshots', 'web-face', 'scene')
     mkdirSync(dir, { recursive: true })
@@ -111,6 +111,11 @@ describe('webFaceExpectedHealthProblems', () => {
   it('rejects a baseline whose visible text lacks the scene wait token', () => {
     const problems = webFaceExpectedHealthProblems(scene({ expected: { ...healthy, visibleText: '别的页面' } }))
     expect(problems.join(' ')).toContain('wait token')
+  })
+
+  it('still reads the legacy runner token for a pre-contract scene', () => {
+    const legacy = scene({ runner: "runner: pnpm web-expected '<url>' --scenario scenes --wait-text '它在盯什么' #\n" })
+    expect(webFaceExpectedHealthProblems(legacy)).toEqual([])
   })
 
   it('skips a draft scene without an expectation and a missing web-face tree', () => {

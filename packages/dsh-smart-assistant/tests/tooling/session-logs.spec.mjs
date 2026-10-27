@@ -8,7 +8,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { classifyUserMessage, sessionLogs, sessionSnapshot, sessionsCreatedBetween, stripPreamble } from '../../../../dev/lib/session-logs.mjs'
+import { classifyUserMessage, readEvents, sessionLogs, sessionSnapshot, sessionsCreatedBetween, stripPreamble } from '../../../../dev/lib/session-logs.mjs'
 
 const dirs = []
 
@@ -71,6 +71,19 @@ describe('stripPreamble', () => {
     // Preamble-only turn: nothing human left (an empty turn is no window at all).
     expect(stripPreamble('[Collaboration boundary] You may change the working tree.')).toBe('')
     expect(stripPreamble('你好，接着上次的说。')).toBe('你好，接着上次的说。')
+  })
+})
+
+describe('readEvents', () => {
+  it('names zstd and the log path when the binary is missing', () => {
+    const log = join(temp('missing-zstd-'), 'missing-session.zstd')
+    const previous = process.env.PATH
+    process.env.PATH = ''
+    try {
+      expect(() => readEvents(log)).toThrow(/zstd is required.*missing-session\.zstd/s)
+    } finally {
+      process.env.PATH = previous
+    }
   })
 })
 

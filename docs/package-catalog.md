@@ -2,7 +2,7 @@
 
 # 包形状目录（生成物）
 
-> **生成物，不手改**：本文件由 `scripts/generate/gen-catalog.mjs` 从 `package.json` 的 exports、
+> **生成物，不手改**：本文件由 `scripts/generate/gen-catalog.mjs` 从 `package.json` 的 exports/bin/engines、
 > `cordis.patch.yml`（host 行 + `agent-preset` 行的 plugins）/ `dev/probes/session/preset-runner.patch.yml` 的组合行、
 > `src/agent/` 各模块（凡声明工具 wire 名者）的 name/ACTIONS、
 > `src/client/` 模块树（entry 注册面 + commands）的座位注册、
@@ -86,7 +86,8 @@
 ## 兼容与依赖姿态
 
 - 钉住的上游 tag：`dsh-v0.2.1-rc.2`
-- 当前机器兼容范围：`dsh >=0.2.1-rc.2 <0.3.0-0`；Node `^22.19.0 || >=24`
+- 包入口（bin）：`ov-doctor` → `./bin/ov-doctor.mjs`、`expert-setup` → `./bin/expert-setup.mjs`、`assistant-data` → `./bin/assistant-data.mjs`
+- 当前机器兼容范围：`dsh >=0.2.1-rc.2 <0.3.0-0`；Node `^22.19.0 || >=24`；pnpm `>=10.6.0`
 - 历史 verified 的 DSH release（不构成当前支持承诺）：`0.1.5-rc.2`、`0.1.7-rc.2`、`0.2.0-rc.2`、`0.2.1-rc.2`
 - 运行时 dependencies：`yaml`
 - peerDependencies：13 个 `@deepseek-ai/*`（姿态由门禁守：harness 包只许 peer）

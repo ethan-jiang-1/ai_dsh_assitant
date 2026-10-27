@@ -262,6 +262,8 @@ DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得
 `ASSISTANT_DSH_HOME` 或仓内 dev home（机械门禁 `structure: dev tooling never inherits DSH_HOME` 管）；
 **只报测得到的**——日志没有的字段（如 preset）不报，数字全来自事件计数。
 
+**日志读方前置**：`pnpm usage` / `desk-loop` / `observe` / `eval` 读 `session.v*.jsonl.zstd`，要求 PATH 上有 `zstd`；缺失时 `session-logs` 报含二进制名与日志路径的错误，不把空读数当健康。
+
 **四个真机探针与输入观察（[`commands.md`](commands.md) 上的深判据在这里）**：
 `pnpm loop-probe '<URL>' --ask '<问句>'`（首用闭环：**首屏=一页纸**——「今天」/「它记下的」/空态一问或当前页；`--ask` 走首页输入、点「交给它」、等 `[data-one-page]` 出现，JSON 判决带 `homeFirstScreen`/`homeInput`/`pageSeconds`/`pageText` 与 `sessionId`（会话目录快照差集取，不猜；`--home` 旗标解析同其它 dev 工具）；`--follow-up`/`--walk` 仍走桌面/会话路径，首页路径返回 unsupported；`--ask` 会真建会话——先把目标实例起在一次性 home）、
 `pnpm desk-walk '<URL>' [--home <dir>]`（处理流真机走查：首屏一页纸→「全部」→「完整看板」→处理一件事→一句进展→返回不变量→交代新事，

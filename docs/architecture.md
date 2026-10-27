@@ -197,7 +197,8 @@ seam 的成色读数是**第二个真实 Provider 出现而 Consumer 一行不�
 | `src/agent/`（`tool-memory`、`tool-recall`、`tool-research`、`tool-operating`、`tool-knowledge`、`learn`、`memory-digest`、`home-preamble`、`operating-brief`、`ov-shield`） | agent 面入口：薄适配器（校验跨字段规则 → 调服务 → 返回规范值 + presenter）与常驻段落 | cordis/tools |
 
 **依赖方向单向向下**，纯核（`src/domain/`）**不 import DSH 运行时** ——
-所以它们能被 vitest 直接测，不需要挂 harness。
+所以它们能被 vitest 直接测，不需要挂 harness。**「纯核」只描述这一条边界，不表示无 I/O**：
+`domain/home` 的 `room`、`atomic-write`、`layout` 是存储原语，测试用临时目录。
 
 ## 四、模型可见面（日志税）
 

@@ -16,7 +16,7 @@
 
 | 改动面 | 最小证据（命令） | 回归资产的家 | 能证明 / 不能证明 |
 |---|---|---|---|
-| 纯核（`src/domain`：布局/词汇/检索排序/渲染） | `pnpm test:domain` | `tests/domain/*.spec` | 规则与边界正例 / 组合装载、模型可见面 |
+| domain 核（`src/domain`：布局/词汇/检索排序/渲染） | `pnpm test:domain` | `tests/domain/*.spec` | 规则与边界正例 / 组合装载、模型可见面 |
 | 服务行为（`src/host`：四房间读写、curate、根文件、品牌、旧 home、账本归档） | `pnpm test:host` | `tests/host/*.spec` + `tests/host/fixtures/old-home-v19/` | 服务级合同（真 cordis + 临时 home）、旧字节读取、账本压缩/回执 / 段落组装、装载 |
 | 固定只读投影下载（独立 Host 文件，非经营 writer） | `pnpm build` → `pnpm test:host` + `pnpm test:composition`；隔离服务（`allowFixture: true`，如 `dev/probes/web/projection-fixture.patch.yml`）运行 `node dev/probes/web/desk-projection-download.mjs '<url>' dev/fixtures/desk-projection/desk-projection.json` | `tests/host/desk-projection-download.spec.ts` + `tests/composition/desk-projection-lifecycle.spec.mjs` + `dev/fixtures/desk-projection/` | 固定字节、错误/限额、真实注册撤销、默认拒绝夹具；HTTP 探针额外证明认证拒绝与 cookie 下载 / 不证明业务 schema、Client mount/断连/呈现或持久经营写 |
 | **模型可见面**（工具描述 / prompt 段落 / persona / digest） | `pnpm build` → `pnpm test:composition` → **`pnpm eval --only <task-id>`**（行为判决，任务清单 `pnpm eval --list`；`repo-live-probe` 是取证非回归，见已定姿态） | `tests/agent/*.spec` + `dev/eval/` | agent spec：段落合同。eval：伤害地板、技能按名加载、回答正则（可凑巧命中）/ 段落是否进入请求、组装转录、领域质量（`eval:domain` 人判） |

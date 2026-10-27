@@ -11,6 +11,7 @@
    profile 与录制）。
 2. **web 渲染期望**：真渲染一次的 DOM 证据比对（一场景一目录 + `snapshot.yml` + 契约 README；
    harness = `dev/probes/web/webui-expected.mjs`；当前已有场景见 [`README.md`](README.md)）。
+   `snapshot.yml` 的 `runner:` 只指 README 中的可执行命令；`wait_text:` 是 expected 健康门读取的就绪令牌——CLI 不读本文件。
 
 单元 / CLI / generator / 几何 / 其他纯函数期望输出**跟 owning 层走**
 （`packages/dsh-smart-assistant/tests/`、各自脚本旁）——集中目录只收真正同类的证据。

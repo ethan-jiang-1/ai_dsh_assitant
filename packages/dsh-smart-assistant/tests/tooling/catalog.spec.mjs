@@ -142,7 +142,8 @@ describe('renderCatalog', () => {
     tools: [{ name: 'assistant_memory', actions: ['recall'], label: 'src/agent/tool-memory/index.ts' }],
     skills: ['memory-hygiene'],
     pin: 'dsh-v0.0.0',
-    engines: { node: '^22.19.0 || >=24', dsh: '>=0.2.1-rc.2 <0.3.0' },
+    bins: { 'ov-doctor': './bin/ov-doctor.mjs' },
+    engines: { node: '^22.19.0 || >=24', dsh: '>=0.2.1-rc.2 <0.3.0', pnpm: '>=10.6.0' },
     clientSurface: {
       seats: ['sidebar.brand.mark', 'sidebar.brand.name'],
       roomTabs: [{ id: 'dsh-smart-assistant-desk', kind: 'desk' }],
@@ -162,7 +163,8 @@ describe('renderCatalog', () => {
     expect(text).toContain('AGENT')
     expect(text).toContain('CLIENT（浏览器面）')
     expect(text).toContain('非 plugin 导出（不挂组合行）：`./src/*`、`./package.json`')
-    expect(text).toContain('当前机器兼容范围：`dsh >=0.2.1-rc.2 <0.3.0`；Node `^22.19.0 || >=24`')
+    expect(text).toContain('当前机器兼容范围：`dsh >=0.2.1-rc.2 <0.3.0`；Node `^22.19.0 || >=24`；pnpm `>=10.6.0`')
+    expect(text).toContain('包入口（bin）：`ov-doctor` → `./bin/ov-doctor.mjs`')
     expect(text).toContain('历史 verified 的 DSH release（不构成当前支持承诺）：`0.0.0`')
     expect(text).toContain('`assistant_memory` | `recall`')
   })
@@ -224,5 +226,11 @@ describe('collectCatalog discovers tools by wire name across the whole src/agent
     for (const tool of catalog.tools) {
       expect(tool.name).toMatch(/^assistant_[a-z_]+$/)
     }
+  })
+
+  it('reads the shipped bin map and the pnpm engine', () => {
+    expect(catalog.bins['assistant-data']).toBe('./bin/assistant-data.mjs')
+    expect(catalog.bins['ov-doctor']).toBe('./bin/ov-doctor.mjs')
+    expect(catalog.engines.pnpm).toBe('>=10.6.0')
   })
 })

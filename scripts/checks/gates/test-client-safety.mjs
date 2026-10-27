@@ -103,8 +103,11 @@ export function webFaceExpectedHealthProblems(repoRoot) {
     }
     const snapshotPath = join(dir, 'snapshot.yml')
     if (existsSync(snapshotPath)) {
-      const runner = /^runner:\s*(.*)$/mu.exec(read(snapshotPath))?.[1] ?? ''
-      const token = /--wait-text\s+'([^']+)'/u.exec(runner)?.[1]
+      const snapshot = read(snapshotPath)
+      // `wait_text` is the machine-readable field. The runner fallback keeps a pre-2026-10-28
+      // draft readable, but the runner line is now only a README pointer, not a command.
+      const token = /^wait_text:\s*'([^']+)'/mu.exec(snapshot)?.[1]
+        ?? /^runner:.*--wait-text\s+'([^']+)'/mu.exec(snapshot)?.[1]
       if (token !== undefined && typeof evidence?.visibleText === 'string' && !evidence.visibleText.includes(token)) {
         problems.push(`${where}: wait token ${JSON.stringify(token)} from snapshot.yml is not in visibleText`)
       }

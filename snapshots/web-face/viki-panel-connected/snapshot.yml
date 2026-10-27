@@ -5,5 +5,7 @@ profile: dev            # 隔离 home；assistant-viki 指向本目录 seed.mjs 
 recording: live
 comparison: dom-evidence
 surface: debug       # Viki 是调试面：需 #debug=1，不计入客户首屏
-runner: pnpm web-expected '<url>#debug=1' --scenario snapshots/web-face/viki-panel-connected --eval "<new session>" --eval "<open right sidebar>" --eval "<click Viki tab>" --wait-text '固定夹具'
+runner: README.md
+# runner：只指 README 中的可执行命令；wait_text 是健康门读取的就绪令牌（CLI 不读本文件）。
+wait_text: '固定夹具'
 entry: dev/probes/web/webui-expected.mjs

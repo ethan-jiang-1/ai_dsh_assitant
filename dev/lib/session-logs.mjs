@@ -51,7 +51,15 @@ export function sessionLogs(home) {
 
 /** zstd 解压后逐行解析事件；坏行跳过（日志是 append-only，末尾可能半行）。 */
 export function readEvents(log) {
-  const raw = execFileSync('zstd', ['-dc', log], { maxBuffer: 256 * 1024 * 1024 }).toString('utf8')
+  let raw
+  try {
+    raw = execFileSync('zstd', ['-dc', log], { maxBuffer: 256 * 1024 * 1024 }).toString('utf8')
+  } catch (error) {
+    if (error !== null && typeof error === 'object' && error.code === 'ENOENT') {
+      throw new Error(`zstd is required to read session logs (missing binary while reading ${log}); install zstd (for example: brew install zstd) and retry`)
+    }
+    throw error
+  }
   const events = []
   for (const line of raw.split('\n')) {
     if (line.trim() === '') continue
