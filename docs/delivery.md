@@ -43,10 +43,10 @@
 | 账本操作归档 | N0 文件 + 自有服务 | P3 / H | 插件 | `<operatingDir>/operations-archive.jsonl` | home 单例 | 只追加；完整回执历史；读取有 256 MiB 上限 | 用户；模型经工具按 id 读 | 是 | 按 `operationId` 去重；需要导出/轮转 | 保留 |
 | 会话搜索索引 | N1 `session-query-sqlite` | 宿主 K | 宿主（本包补丁启用） | `<dshHome>/session-search.db` | session/corpus | 首次检索创建；可重建 | 宿主；模型经 `session_query` | 否 | 删文件即重建 | **保留；要清就删此文件** |
 | 会话/凭据/设置/宿主 KV | N0/N1 宿主 | S / H / X | 宿主 | `$DSH_HOME/sessions/`、`.credentials.yaml`、`storages/`、`profiles/` 等 | session/home/profile | 宿主决定 | 宿主/模型经工具 | 否 | 宿主迁移/备份；不进插件 bundle | 保留 |
-| 客户端 UI 状态 | 平台 `localStorage`（非 N0） | 客户端 | 设备/浏览器 | localStorage：`dsha:ui-mode:v1`（旧 `dsha:ui-mode` 首次读迁移）、`dsha:receipt-since`、`dsha-proactive-ui-v1`、`dsh-assistant-debug`；sessionStorage：`dsha-capture-seen-running-v1`、`dsha-capture-receipt-v1` | origin/设备 | 可丢弃；换源/清站点即失 | 浏览器 | 否 | 无版本/迁移（G35）；清站点数据 | 保留；清站点数据 |
+| 客户端 UI 状态 | 平台 `localStorage`（非 N0） | 客户端 | 设备/浏览器 | localStorage：`dsha:ui-mode:v1`（旧 `dsha:ui-mode` 首次读迁移）、`dsha:receipt-since`、`dsha-proactive-ui-v1`、`dsh-assistant-debug`；sessionStorage：`dsha-capture-seen-running-v1`、`dsha-capture-receipt-v1` | origin/设备 | 可丢弃；换源/清站点即失 | 浏览器 | 否 | ui-mode key v1；其余键无版本；清站点数据 | 保留；清站点数据 |
 | OpenViking 记忆 | E2 外部服务 | E2 外部服务 | 外部服务 | OpenViking server（可选） | 外部 | 由服务决定 | 面板/模型经工具 | 否 | 按 OpenViking 手册 | 按 OpenViking 手册清理 |
 
-客户端键没有版本号/迁移（G35）；换源或清站点即重置，持有的是 UI 偏好/回执游标，不复制 session-derived 事实。
+客户端 `ui-mode` key 已版本化（`dsha:ui-mode:v1`，旧 key 首次读迁移）；其余键仍是站点本地、无迁移，换源或清站点即重置。持有的是 UI 偏好/回执游标，不复制 session-derived 事实。
 
 **模拟夹具不是数据**：`<operatingDir>/desk-projection.json` 是评估/夹具输入，不是经营账本。无 `ledger.json` 时
 桌面默认 404；只有 `assistant-desk-projection` 显式配 `allowFixture: true` 才回退它。真实 home 里出现该文件时

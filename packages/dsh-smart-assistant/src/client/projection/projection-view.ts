@@ -3,8 +3,8 @@
  *  (principal direction, 2026-10-12), and exactly one selection exists at a time. The list
  *  filter narrows the board's matter list (全部/在办/已了结); the unclaimed inbox ignores it.
  *  `mode` switches the desk's top level: `board` (盯) vs `activity` (the operations feed, 查);
- *  `activityLimit` is the feed's client-side progressive-reveal cursor (the whole ledger is
- *  already downloaded — revealing is pure rendering). */
+ *  `activityLimit` is the feed's client-side progressive-reveal cursor inside the downloaded
+ *  recent window; older receipts arrive through `olderReceipts` from the page route. */
 import type { OperatingReceipt } from './operating-projection'
 
 export type ListFilter = 'all' | 'active' | 'settled'

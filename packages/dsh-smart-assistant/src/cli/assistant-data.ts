@@ -19,15 +19,16 @@
  * @module dsh-smart-assistant/cli/assistant-data
  */
 
-import { closeSync, existsSync, fsyncSync, openSync, writeSync } from 'node:fs'
+import { existsSync } from 'node:fs'
 import { chmod, copyFile, cp, lstat, mkdir, readFile, readdir, rename, rm, stat, writeFile } from 'node:fs/promises'
 import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:path'
 import { atomicWriteFile } from '../domain/home/atomic-write.ts'
 import { parseFrontmatterDocument } from '../domain/home/frontmatter.ts'
-import { HOME_MANUAL_VERSION, renderHomeManual } from '../domain/home/home-map.ts'
+import { appendAuditLine } from './assistant-data-audit.ts'
+export { PURGE_KINDS, purgeData, rotateArchives, type ArchiveRotationEntry, type ArchiveRotationOptions, type ArchiveRotationResult, type DataPurgeOptions, type DataPurgeResult, type PurgeKind } from './assistant-data-maintenance.ts'
+import { renderHomeManual } from '../domain/home/home-map.ts'
+export { checkData, statusData, type DataCheck, type DataLedgerStatus, type DataRetentionStatus, type DataStatus, type DataTreeStatus } from './assistant-data-status.ts'
 import { isEntryId } from '../domain/home/room.ts'
-import { credentialShapeLabels } from '../domain/skills/audit.ts'
-import { OPERATIONS_ARCHIVE_FILE, parseOperationsArchive } from '../host/operating-ledger/archive.ts'
 
 /** Manifest file written at the bundle root. */
 export const DATA_MANIFEST_FILE = 'manifest.json'
@@ -36,43 +37,8 @@ export const DATA_MANIFEST_FILE = 'manifest.json'
 export const DATA_SCHEMA_VERSION = 1
 
 /** A read-only `check` warning threshold for the append-only operation archive. */
-const ARCHIVE_WARN_BYTES = 64 * 1024 * 1024
-
-/** A read-only `check` warning threshold for the approval ledger. */
-const APPROVALS_WARN_BYTES = 16 * 1024 * 1024
-
-/** A read-only `check` warning threshold for the two owned directories as one backup. */
-const BACKUP_WARN_BYTES = 512 * 1024 * 1024
-
 /** Default ceiling for a whole-bundle import; explicit override via `--max-bytes`. */
 export const MAX_IMPORT_BYTES = 512 * 1024 * 1024
-
-/** The record kinds an explicit purge can erase. Sessions are not in this list. */
-export const PURGE_KINDS = ['memory', 'research', 'knowledge', 'skill', 'proposal', 'ledger'] as const
-
-/** One purgeable record kind. */
-export type PurgeKind = (typeof PURGE_KINDS)[number]
-
-/** Arguments for {@link purgeData}. */
-export interface DataPurgeOptions {
-  readonly assistantDir: string
-  /** Required for `kind: 'ledger'`; the separate operating home. */
-  readonly operatingDir?: string
-  readonly kind: PurgeKind
-  readonly id: string
-  /** Why this record is being erased; written to the local purge audit. */
-  readonly reason: string
-  /** Destructive action; the caller must pass true explicitly. */
-  readonly confirm: boolean
-  /** Clock override for tests. */
-  readonly now?: Date
-}
-
-/** Result of a purge. */
-export interface DataPurgeResult {
-  readonly removed: readonly string[]
-  readonly audit: string
-}
 
 /** Arguments for {@link archiveResolvedProposals}. */
 export interface ProposalArchiveOptions {
@@ -85,31 +51,6 @@ export interface ProposalArchiveOptions {
 export interface ProposalArchiveResult {
   readonly moved: readonly string[]
   readonly kept: readonly string[]
-}
-
-/** Arguments for {@link rotateArchives}. */
-export interface ArchiveRotationOptions {
-  readonly assistantDir: string
-  readonly operatingDir: string
-  /** Only surfaces whose mtime is older than this many days are candidates. */
-  readonly olderThanDays: number
-  /** Move for real; false is a dry run. */
-  readonly apply: boolean
-}
-
-/** One rotation candidate or completed move. */
-export interface ArchiveRotationEntry {
-  readonly path: string
-  readonly bytes: number
-  readonly mtime: string
-}
-
-/** Result of a dry-run or applied archive rotation. */
-export interface ArchiveRotationResult {
-  readonly dryRun: boolean
-  readonly candidates: readonly ArchiveRotationEntry[]
-  readonly moved: readonly string[]
-  readonly audit: string
 }
 
 /** Conflict policy for a merge: keep the target (safe default) or take the bundle. */
@@ -224,51 +165,6 @@ export interface DataImportResult {
   readonly wouldStash?: readonly string[]
   /** Per-file preview on a dry run: bundle-only paths and differing/removed target paths. */
   readonly preview?: { readonly added: readonly string[], readonly replaced: readonly string[], readonly removed: readonly string[] }
-}
-
-/** One owned directory as `status` sees it. */
-export interface DataTreeStatus {
-  readonly exists: boolean
-  readonly files: number
-  readonly bytes: number
-}
-
-/** The authoritative ledger file as `status` sees it. */
-export interface DataLedgerStatus {
-  readonly exists: boolean
-  readonly bytes: number
-  /** `missing` = no ledger yet; `invalid` = unreadable or not a v1 state. */
-  readonly state: 'missing' | 'ok' | 'invalid'
-  readonly version?: number
-  readonly operations?: number
-}
-
-/** Retention readings for the append-only parts of the working folder. */
-export interface DataRetentionStatus {
-  readonly memoryArchive: DataTreeStatus
-  readonly researchArchive: DataTreeStatus
-  readonly skillsArchive: DataTreeStatus
-  readonly skillProposals: DataTreeStatus
-  readonly approvals?: { readonly bytes: number, readonly lines: number }
-}
-
-/** A read-only snapshot of the two owned directories, for deployment support. */
-export interface DataStatus {
-  readonly assistantDir: string
-  readonly operatingDir: string
-  readonly assistant: DataTreeStatus & { readonly manualVersion?: number }
-  readonly operating: DataTreeStatus
-  readonly ledger: DataLedgerStatus
-  /** Append-only surfaces an operator may want to rotate; counts only, never a deletion plan. */
-  readonly retention: DataRetentionStatus
-  /** The append-only operation history, when a compacted ledger has one. */
-  readonly archive?: { readonly bytes: number, readonly operations: number, readonly corruptLines: number }
-}
-
-/** A read-only diagnosis: the status plus every problem an operator should act on. */
-export interface DataCheck {
-  readonly status: DataStatus
-  readonly problems: readonly string[]
 }
 
 async function countTree(dir: string): Promise<{ files: number, bytes: number }> {
@@ -441,280 +337,6 @@ async function moveInto(from: string, to: string): Promise<void> {
 }
 
 /** Count one owned directory and read the two facts an operator asks first. */
-async function treeStatus(dir: string): Promise<DataTreeStatus> {
-  if (!existsSync(dir)) return { exists: false, files: 0, bytes: 0 }
-  return { exists: true, ...await countTree(dir) }
-}
-
-/**
- * Read the two owned directories without changing them. Intended for the deployment support path:
- * it names the paths, sizes, manual generation, and whether the ledger parses as a v1 state.
- *
- * @param options - The two resolved directories.
- * @returns A read-only status snapshot.
- */
-export async function statusData(options: { readonly assistantDir: string, readonly operatingDir: string }): Promise<DataStatus> {
-  const assistantDir = resolve(options.assistantDir)
-  const operatingDir = resolve(options.operatingDir)
-  const assistant = await treeStatus(assistantDir)
-  const operating = await treeStatus(operatingDir)
-  let manualVersion: number | undefined
-  try {
-    manualVersion = manualVersionOf(await readFile(join(assistantDir, 'AGENTS.md'), 'utf8'))
-  } catch { /* missing/unreadable manual is reported by curate, not by status */ }
-
-  const ledgerPath = join(operatingDir, 'ledger.json')
-  let ledger: DataLedgerStatus = { exists: false, bytes: 0, state: 'missing' }
-  if (existsSync(ledgerPath)) {
-    const bytes = (await stat(ledgerPath)).size
-    try {
-      const parsed: unknown = JSON.parse(await readFile(ledgerPath, 'utf8'))
-      if (typeof parsed === 'object' && parsed !== null && (parsed as { version?: unknown }).version === 1) {
-        const operations = (parsed as { operations?: unknown }).operations
-        ledger = {
-          exists: true,
-          bytes,
-          state: 'ok',
-          version: 1,
-          operations: typeof operations === 'object' && operations !== null ? Object.keys(operations).length : 0,
-        }
-      } else {
-        ledger = { exists: true, bytes, state: 'invalid' }
-      }
-    } catch {
-      ledger = { exists: true, bytes, state: 'invalid' }
-    }
-  }
-  const archivePath = join(operatingDir, OPERATIONS_ARCHIVE_FILE)
-  let archive: DataStatus['archive']
-  if (existsSync(archivePath)) {
-    const bytes = (await stat(archivePath)).size
-    const parsed = parseOperationsArchive(await readFile(archivePath, 'utf8'))
-    archive = { bytes, operations: parsed.records.length, corruptLines: parsed.corruptLines }
-  }
-  const retention: DataRetentionStatus = {
-    memoryArchive: await treeStatus(join(assistantDir, 'memory', 'archive')),
-    researchArchive: await treeStatus(join(assistantDir, 'research', 'archive')),
-    skillsArchive: await treeStatus(join(assistantDir, 'skills', 'archive')),
-    skillProposals: await treeStatus(join(assistantDir, 'skill-proposals')),
-  }
-  const approvalsPath = join(assistantDir, 'audit', 'approvals.jsonl')
-  const approvals = existsSync(approvalsPath)
-    ? {
-        bytes: (await stat(approvalsPath)).size,
-        lines: (await readFile(approvalsPath, 'utf8')).split('\n').filter(line => line.trim() !== '').length,
-      }
-    : undefined
-  return {
-    assistantDir,
-    operatingDir,
-    assistant: { ...assistant, ...(manualVersion === undefined ? {} : { manualVersion }) },
-    operating,
-    ledger,
-    retention: { ...retention, ...(approvals === undefined ? {} : { approvals }) },
-    ...(archive === undefined ? {} : { archive }),
-  }
-}
-
-/** Collect symbolic links under a root; backup/restore refuses them, so diagnosis should name them. */
-async function findSymlinks(root: string, found: string[] = []): Promise<string[]> {
-  if (!existsSync(root)) return found
-  const info = await lstat(root)
-  if (info.isSymbolicLink()) {
-    found.push(root)
-    return found
-  }
-  if (!info.isDirectory()) return found
-  for (const entry of await readdir(root)) {
-    await findSymlinks(join(root, entry), found)
-  }
-  return found
-}
-
-/**
- * Read-only deployment diagnosis: path shape, ledger/archive readability, manual generation, and
- * symbolic links. It never writes; a non-empty problem list is what `assistant-data check` exits on.
- * @param options - The two directories as the operator typed them.
- * @returns The status plus actionable problems.
- */
-export async function checkData(options: { readonly assistantDir: string, readonly operatingDir: string }): Promise<DataCheck> {
-  const problems: string[] = []
-  if (!isAbsolute(options.assistantDir)) problems.push(`working folder path is relative: ${options.assistantDir} (use an absolute path or ~)`)
-  if (!isAbsolute(options.operatingDir)) problems.push(`ledger path is relative: ${options.operatingDir} (use an absolute path or ~)`)
-  const status = await statusData(options)
-  if (status.ledger.state === 'invalid') {
-    problems.push(`ledger.json is unreadable or not a v1 state: ${join(status.operatingDir, 'ledger.json')}`)
-  }
-  if (status.archive !== undefined && status.archive.corruptLines > 0) {
-    problems.push(`${String(status.archive.corruptLines)} unreadable line(s) in ${join(status.operatingDir, OPERATIONS_ARCHIVE_FILE)}`)
-  }
-  if (status.archive !== undefined && status.archive.bytes > ARCHIVE_WARN_BYTES) {
-    problems.push(`operation archive is ${String(status.archive.bytes)} byte(s); export and rotate it, or expect slower reads`)
-  }
-  // The fixture is a simulation input. If it sits in a real operating directory, the desktop will
-  // serve it as if it were the authoritative ledger whenever no ledger exists.
-  const fixture = join(status.operatingDir, 'desk-projection.json')
-  if (existsSync(fixture)) {
-    problems.push(`desk-projection.json fixture is present at ${fixture}; it is served only when allowFixture is true — remove it unless this home is an evaluation fixture`)
-  }
-  if (status.retention.approvals !== undefined && status.retention.approvals.bytes > APPROVALS_WARN_BYTES) {
-    problems.push(`approval ledger is larger than ${String(APPROVALS_WARN_BYTES)} byte(s); archive/rotate ${join(status.assistantDir, 'audit', 'approvals.jsonl')}`)
-  }
-  if (status.retention.skillProposals.files > 200) {
-    problems.push(`skill-proposals inbox has ${String(status.retention.skillProposals.files)} file(s); archive landed/rejected proposals`)
-  }
-  const backupBytes = status.assistant.bytes + status.operating.bytes
-  if (backupBytes > BACKUP_WARN_BYTES) {
-    problems.push(`plugin data is ${String(backupBytes)} byte(s); a backup copies all of it (deliverables included) — export/archive by hand if this is unexpected`)
-  }
-  for (const path of [join(status.operatingDir, 'ledger.json'), join(status.operatingDir, OPERATIONS_ARCHIVE_FILE)]) {
-    if (!existsSync(path)) continue
-    const text = await readFile(path, 'utf8').catch(() => '')
-    const labels = credentialShapeLabels(text)
-    if (labels.length > 0) problems.push(`ledger surface ${path} carries what looks like ${labels.join(', ')} — strip it and rotate the credential if it was real`)
-  }
-  if (status.assistant.manualVersion !== undefined
-    && status.assistant.manualVersion > 0
-    && status.assistant.manualVersion < HOME_MANUAL_VERSION) {
-    problems.push(`working folder manual is v${String(status.assistant.manualVersion)}; current is v${String(HOME_MANUAL_VERSION)} (the next launch migrates known text, or the prompt marks it stale)`)
-  }
-  for (const link of [...await findSymlinks(status.assistantDir), ...await findSymlinks(status.operatingDir)]) {
-    problems.push(`symbolic link in owned data: ${link}`)
-  }
-  return { status, problems }
-}
-
-/** Append one line to a local audit ledger and fsync it before returning. */
-async function appendAuditLine(path: string, line: Readonly<Record<string, unknown>>): Promise<void> {
-  await mkdir(dirname(path), { recursive: true, mode: 0o700 })
-  const fd = openSync(path, 'a', 0o600)
-  try {
-    writeSync(fd, `${JSON.stringify(line)}\n`)
-    fsyncSync(fd)
-  } finally {
-    closeSync(fd)
-  }
-}
-
-/** Every on-disk location a purge of one record kind may own (active, archive, snapshots). */
-function purgeCandidates(root: string, kind: PurgeKind, id: string): string[] {
-  switch (kind) {
-    case 'memory':
-    case 'research':
-      return [join(root, kind, `${id}.md`), join(root, kind, 'archive', `${id}.md`)]
-    case 'knowledge':
-      return [join(root, 'knowledge', `${id}.md`)]
-    case 'proposal':
-      return [join(root, 'skill-proposals', `${id}.md`), join(root, 'skill-proposals', 'archive', `${id}.md`)]
-    case 'ledger':
-      return []
-    case 'skill':
-      return [
-        join(root, 'skills', id),
-        join(root, 'skills', `${id}.md`),
-        join(root, 'skills', 'archive', id),
-        join(root, 'skills', 'archive', `${id}.md`),
-        join(root, 'skills', 'archive', 'snapshots', id),
-      ]
-  }
-}
-
-/**
- * Erase one room record, its archived copy and (for a skill) its snapshots. This is the explicit
- * erasure path: it requires a reason and `confirm`, writes a local audit line before deleting, and
- * refuses symlinks. It does **not** touch sessions, credentials, ledger history, or client state.
- *
- * @param options - Working folder, record kind/id, reason, and explicit confirmation.
- * @returns Removed paths and the purge audit path.
- * @throws When confirmation/reason/id is missing, nothing exists, or a candidate is a symlink.
- */
-export async function purgeData(options: DataPurgeOptions): Promise<DataPurgeResult> {
-  const assistantDir = resolve(options.assistantDir)
-  if (options.confirm !== true) throw new Error('assistant-data: purge requires explicit confirmation (--yes)')
-  const reason = options.reason.trim()
-  if (reason === '') throw new Error('assistant-data: purge requires a reason')
-  if (!PURGE_KINDS.includes(options.kind)) throw new Error(`assistant-data: unknown purge kind ${JSON.stringify(options.kind)}`)
-  if (!isEntryId(options.id)) throw new Error(`assistant-data: "${options.id}" is not a safe record id`)
-  const rootInfo = await lstat(assistantDir).catch(() => undefined)
-  if (rootInfo === undefined) throw new Error(`assistant-data: working folder not found: ${assistantDir}`)
-  if (rootInfo.isSymbolicLink()) throw new Error(`assistant-data: working folder is a symbolic link: ${assistantDir}`)
-  if (!rootInfo.isDirectory()) throw new Error(`assistant-data: working folder is not a directory: ${assistantDir}`)
-
-  const audit = join(assistantDir, 'audit', 'purges.jsonl')
-  const at = (options.now ?? new Date()).toISOString()
-  if (options.kind === 'ledger') {
-    const operatingDir = options.operatingDir === undefined ? undefined : resolve(options.operatingDir)
-    if (operatingDir === undefined) throw new Error('assistant-data: purge --kind ledger requires --operating <dir>')
-    const ledgerPath = join(operatingDir, 'ledger.json')
-    const archivePath = join(operatingDir, OPERATIONS_ARCHIVE_FILE)
-    const ledgerText = await readFile(ledgerPath, 'utf8').catch(() => undefined)
-    const archiveText = await readFile(archivePath, 'utf8').catch(() => undefined)
-    const present = (ledgerText !== undefined && ledgerText.includes(`"${options.id}"`))
-      || (archiveText !== undefined && archiveText.includes(`"${options.id}"`))
-    if (!present) throw new Error(`assistant-data: nothing to purge for ledger:${options.id}`)
-    await appendAuditLine(audit, { at, kind: 'ledger', id: options.id, reason, paths: [ledgerPath, archivePath], status: 'requested' })
-    const removed: string[] = []
-    try {
-      if (ledgerText !== undefined) {
-        const state = JSON.parse(ledgerText) as { operations?: Record<string, unknown> }
-        if (state.operations !== undefined && Object.hasOwn(state.operations, options.id)) {
-          delete state.operations[options.id]
-          await atomicWriteFile(ledgerPath, `${JSON.stringify(state)}\n`)
-          removed.push(ledgerPath)
-        }
-      }
-      if (archiveText !== undefined) {
-        const kept = archiveText.split('\n').filter(line => line.trim() !== '' && !line.includes(`"operationId":"${options.id}"`))
-        if (kept.length !== archiveText.split('\n').filter(line => line.trim() !== '').length) {
-          await atomicWriteFile(archivePath, kept.length === 0 ? '' : `${kept.join('\n')}\n`)
-          removed.push(archivePath)
-        }
-      }
-    } catch (error) {
-      await appendAuditLine(audit, { at, kind: 'ledger', id: options.id, status: 'failed', error: error instanceof Error ? error.message : String(error) })
-      throw error
-    }
-    await appendAuditLine(audit, { at, kind: 'ledger', id: options.id, status: 'deleted', removed })
-    return { removed, audit }
-  }
-  const candidates = purgeCandidates(assistantDir, options.kind, options.id)
-  const existing: string[] = []
-  for (const path of candidates) {
-    const info = await lstat(path).catch((error: NodeJS.ErrnoException) => {
-      if (error.code === 'ENOENT') return undefined
-      throw error
-    })
-    if (info === undefined) continue
-    if (info.isSymbolicLink()) throw new Error(`assistant-data: refusing to purge a symbolic link: ${path}`)
-    existing.push(path)
-  }
-  if (existing.length === 0) {
-    throw new Error(`assistant-data: nothing to purge for ${options.kind}:${options.id}`)
-  }
-
-  await appendAuditLine(audit, { at, kind: options.kind, id: options.id, reason, paths: existing, status: 'requested' })
-  const removed: string[] = []
-  try {
-    // Deepest first, so a bundle and its snapshots both disappear deterministically.
-    for (const path of [...existing].sort((left, right) => right.length - left.length)) {
-      await rm(path, { recursive: true, force: true })
-      removed.push(path)
-    }
-  } catch (error) {
-    await appendAuditLine(audit, {
-      at,
-      kind: options.kind,
-      id: options.id,
-      reason,
-      status: 'failed',
-      error: error instanceof Error ? error.message : String(error),
-    })
-    throw error
-  }
-  await appendAuditLine(audit, { at, kind: options.kind, id: options.id, status: 'deleted', removed })
-  return { removed, audit }
-}
-
 /**
  * Rotate resolved proposals (`landed` / `rejected`) from the active inbox into
  * `skill-proposals/archive/`. Proposed and approved proposals stay: the inbox is still the
@@ -762,57 +384,6 @@ export async function archiveResolvedProposals(options: ProposalArchiveOptions):
     moved.push(id)
   }
   return { moved, kept }
-}
-
-/**
- * Rotate whole closed surfaces out of the working folder: old approvals, room archives and the
- * operations archive. This is deliberately coarse and explicit: default is a dry run, `apply`
- * moves the path into `<root>/archive-maintenance/<stamp>/`, and one audit line records it.
- * It does not filter JSONL records by timestamp; an active-format file that is still current is
- * not a candidate.
- *
- * @param options - Directories, age threshold and apply flag.
- * @returns Candidates, moved paths and the audit path.
- * @throws When the threshold is not a positive whole number of days.
- */
-export async function rotateArchives(options: ArchiveRotationOptions): Promise<ArchiveRotationResult> {
-  if (!Number.isSafeInteger(options.olderThanDays) || options.olderThanDays <= 0) {
-    throw new Error('assistant-data rotate: --older-than must be a positive whole number of days')
-  }
-  const assistantDir = resolve(options.assistantDir)
-  const operatingDir = resolve(options.operatingDir)
-  const cutoff = Date.now() - options.olderThanDays * 24 * 60 * 60 * 1000
-  const surfaces: { readonly root: string, readonly relative: string }[] = [
-    { root: assistantDir, relative: 'audit/approvals.jsonl' },
-    { root: assistantDir, relative: 'memory/archive' },
-    { root: assistantDir, relative: 'research/archive' },
-    { root: assistantDir, relative: 'skills/archive' },
-    { root: operatingDir, relative: OPERATIONS_ARCHIVE_FILE },
-  ]
-  const candidates: ArchiveRotationEntry[] = []
-  for (const surface of surfaces) {
-    const path = join(surface.root, surface.relative)
-    const info = await lstat(path).catch(() => undefined)
-    if (info === undefined || info.isSymbolicLink() || info.mtimeMs >= cutoff) continue
-    candidates.push({ path, bytes: info.size, mtime: new Date(info.mtimeMs).toISOString() })
-  }
-  const stamp = new Date().toISOString().replace(/[:.]/gu, '-')
-  const moved: string[] = []
-  if (options.apply) {
-    for (const candidate of candidates) {
-      const root = candidate.path.startsWith(operatingDir) ? operatingDir : assistantDir
-      const rel = relative(root, candidate.path)
-      const destination = join(root, 'archive-maintenance', stamp, rel)
-      await mkdir(dirname(destination), { recursive: true, mode: 0o700 })
-      await rename(candidate.path, destination)
-      moved.push(candidate.path)
-    }
-  }
-  const audit = join(assistantDir, 'audit', 'maintenance.jsonl')
-  if (options.apply) {
-    await appendAuditLine(audit, { at: new Date().toISOString(), action: 'rotate', moved: moved.length, candidates: candidates.map(entry => entry.path) })
-  }
-  return { dryRun: !options.apply, candidates, moved, audit }
 }
 
 /**
