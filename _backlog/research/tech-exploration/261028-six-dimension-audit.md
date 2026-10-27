@@ -9,8 +9,8 @@ intent: "2026-10-28 六维打扫卫生深审：四路 fresh 只读审计 + 主�
 > 方法：四路只读 fresh 审计（入口链 / 代码 / 测试 / 反馈通路）+ 主线逐条复核 + 真机取证；审计基线 `ebbd608`。
 > 机器基线（审计时）：`pnpm test` **144 文件 / 1084 测试全绿**；`pnpm verify` **48/48**；`pnpm eval:continuity` **PASS**（35s）；
 > `pnpm eval --only first-open-intake` **PASS**（17s）；`pnpm start` → preflight 绿 → `pnpm shots` 产出真 PNG/DOM。
-> 处置：机械真相修复已提交 `5cb43b8`（14 文件，+27/−45）与 `21dab8d`（删退役组件 165 行）；跨切片改善见
-> [proposed 卡](../../../notes/proposed/2026-10-28-six-dimension-continuous-improvement.md)。
+> 处置：机械真相修复已提交 `5cb43b8`（14 文件，+27/−45）与 `21dab8d`（删退役组件 165 行）；S1–S4 跨切片改善已全部收口，
+> 决定 = [implemented note](../../../notes/implemented/2026-10-28-six-dimension-continuous-improvement.md)。
 
 ## 一、六维判定
 
@@ -61,7 +61,7 @@ S4b 的一键复跑还暴露并修复了 banner 场景的失效 runbook：旧 ev
 
 S4c 的 coverage 只报告车道已建：`pnpm test:coverage` 跑同一套 144 文件 / 1096 测试，语句 79.46% / 分支 71.89% / 函数 76.08% / 行 83.62%，报告落 `.tmp/coverage/`；不设阈值、不进门禁。
 
-### 开放（本轮不修，已进 proposed 卡）
+### 开放与已收口（见 §八）
 
 | 级别 | 位置 | 事实 | 风险 |
 |---|---|---|---|
@@ -90,7 +90,7 @@ S4c 的 coverage 只报告车道已建：`pnpm test:coverage` 跑同一套 144 �
 3. **环境红 / 行为红 / 跳过 三件事混在退出码里**。eval 缺 key 记 FAIL；无 Chrome 的 smoke 记绿；standalone 跳过 UI 仍 passed。
    这会让 agent 在错误的方向上「修」，或者把没跑的检查当跑过。
 
-## 五、改善路线（详见 proposed 卡）
+## 五、改善路线（详见 implemented note）
 
 - **S1 入口瘦身**：把 35 条参考命令从根 `AGENTS.md` 移到 docs/commands.md（提案中的新文件）；根只留启动五步 + 日常四条 + 指针。
   目标：根降到 ~18KB；命令只有一个清单 owner；`docs-commands` / 启动门禁保持绿。
@@ -122,3 +122,20 @@ S4c 的 coverage 只报告车道已建：`pnpm test:coverage` 跑同一套 144 �
 
 **真页面取证的红绿**：同一隔离 home、同一 seed，缺 `--patch ...projection-fixture.patch.yml` 时 `web-expected` 超时红；
 补上后 `PASS — matches`。这条同时证明了「反馈通路可用」与「文档会骗人」，也是 S2 的立项依据。
+
+## 八、收口（2026-10-28）
+
+S1–S4 全部交付，逐片可回退；决定与后果 = [implemented note](../../../notes/implemented/2026-10-28-six-dimension-continuous-improvement.md)，work 台账 = [已结卡](../../_archive/settled_issues/261028-six-dimension-improvement.md)。
+
+| 片 | 收口结果 |
+|---|---|
+| S1 入口 | 根 `AGENTS.md` 221→180 行、27.9→21.4KB、40→7 条 `pnpm`；`docs/commands.md` 承接完整清单；命令预算门 + 红夹具 |
+| S2 反馈 | refresh 健康门；eval / release-smoke / web-install 的缺失前置实测 `BLOCKED` exit 2；expected DOM 健康门 |
+| S3 接缝 | 归档格式入 `domain/operating/archive.ts`；面板主函数 366→228 行（SimpleFace / ActivityFace / MatterBoard）；data CLI 入口 27 行 |
+| S4 测试 | 纯核 ledger 6 it；4 客户面 `pnpm web-face-check` 一键 PASS；coverage 只报告（语句 79.46% / 分支 71.89% / 函数 76.08% / 行 83.62%） |
+
+**最终地板**：`pnpm typecheck` 绿；`pnpm test` **144 文件 / 1096 测试**；`pnpm verify` **50/50**；`pnpm web-face-check` 4 个客户面 **PASS**；`pnpm test:coverage` 只报告、无阈值。
+
+**收口评分（判断，不是门禁）**：① 文档/渐进披露 8.5；② 代码层次 8.5；③ 整体结构 9；④ 上下文腐化 8.5；⑤ 测试资产 9；⑥ 反馈通路 9。骨架未动，改善集中在接缝。
+
+**仍延后**：`docs/package-catalog.md` 的 bin/engines 缺项；`domain` 的「纯核」措辞（有 fs I/O）；`dev/lib/session-logs.mjs` 的 zstd 缺失错误；Viki 4 个调试面仍按 README 手工跑（需 OV mock）；coverage 阈值（等死代码实证）；命令参数形状门（本轮只做命令预算）。这些是延后项，不是未完成的本轮验收。

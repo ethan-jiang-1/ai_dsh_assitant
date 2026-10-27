@@ -1,13 +1,13 @@
 ---
-status: 推敲中
+status: 已结
 opened: 2026-10-28
 ---
 
 # 收口：六维深审后的持续改善（S1–S4）
 
-> 立卡：2026-10-28 ｜ 状态：推敲中（已授权实施） ｜ 类型：Task ｜ 可关闭：否
+> 立卡：2026-10-28 ｜ 状态：已结（已授权实施，S1–S4 全交付） ｜ 类型：Task ｜ 可关闭：是
 > 授权：用户 2026-10-28 在「S1+S2 / S1–S4 全做 / 只做 S2 / 先暂停」中选 **S1–S4 全做**。
-> 提案与取舍 = [proposed 卡](../../notes/proposed/2026-10-28-six-dimension-continuous-improvement.md)；证据与边界 = [六维深审](../../_backlog/research/tech-exploration/261028-six-dimension-audit.md)。
+> 提案与取舍 = [implemented note](../../../notes/implemented/2026-10-28-six-dimension-continuous-improvement.md)；证据与边界 = [六维深审](../../research/tech-exploration/261028-six-dimension-audit.md)。
 
 ## 外部结果三要素
 
@@ -45,3 +45,7 @@ opened: 2026-10-28
 - **S4b**：删掉 store 订阅或去掉一次点击后的读回必须红；选 jsdom 则只加一个最小环境并说明依赖；选 web-face-check 则 8 场景可一键复跑并在 `docs/testing.md` 登记车道。
 - **S4c**：coverage 报告能生成；`pnpm verify` 不因阈值红；报告里写明「只报告，未设门」。
 - **收尾**：每片一个 commit；报告只列真跑过的命令；本卡台账逐片补证据。
+
+## 结论
+
+S1–S4 全部交付。最终地板（2026-10-28）：`pnpm typecheck` 绿；`pnpm test` 144 文件 / 1096 测试；`pnpm verify` 50/50；`pnpm web-face-check` 4 个客户面全部 PASS；`pnpm test:coverage` 只报告（无阈值）。决定 = [implemented note](../../../notes/implemented/2026-10-28-six-dimension-continuous-improvement.md)。
