@@ -9,7 +9,7 @@ import { readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { memoryPool } from '../support/host-harness.ts'
 import { DEFAULT_SOUL } from '../../src/domain/home/soul.ts'
-import { CURRENT_ONE_QUESTION_PARAGRAPH, HOME_MANUAL_VERSION, RETIRED_ONE_QUESTION_PARAGRAPH, RETIRED_ROOM_DATA_SECTION } from '../../src/domain/home/home-map.ts'
+import { CURRENT_DELIVERY_ANCHOR, CURRENT_ONE_QUESTION_PARAGRAPH, HOME_MANUAL_VERSION, RETIRED_DELIVERY_ANCHOR, RETIRED_ONE_QUESTION_PARAGRAPH, RETIRED_ROOM_DATA_SECTION } from '../../src/domain/home/home-map.ts'
 
 const boot = memoryPool('assistant-root-files-')
 
@@ -90,7 +90,9 @@ describe('manualSnapshot (guidance)', () => {
     expect(migrated).not.toContain('### Room data (`.desk/state.json`)')
     expect(migrated).not.toContain('desk-refresh')
     expect(migrated).toContain('Hand line: keep me.')
-    expect(migrated).toContain(`home-manual v${String(HOME_MANUAL_VERSION)}`)
+    // A v15 manual reaches the v20 text but is not allowed to claim the v21 delivery rule it
+    // never received; the prompt marker keeps it visibly stale.
+    expect(migrated).toContain('home-manual v20')
     // A hand-written manual without the exact retired block is never reflowed.
     writeFileSync(service.paths.agentsFile, '# my own manual\n\nno room data here\n', 'utf8')
     await service.ensureHome()
@@ -104,12 +106,14 @@ describe('manualSnapshot (guidance)', () => {
     expect(service.manualSnapshot()).toContain(`home-manual v${String(HOME_MANUAL_VERSION)}`)
   })
 
-  it('migrates the v19 answer-contract paragraph on the next scaffold', async () => {
+  it('migrates the v19 answer-contract and the v20 delivery anchor on the next scaffold', async () => {
     const { service } = boot()
     await service.ensureHome()
     const current = service.manualSnapshot()
     expect(current).toContain(CURRENT_ONE_QUESTION_PARAGRAPH)
+    expect(current).toContain(CURRENT_DELIVERY_ANCHOR)
     const legacy = current
+      .replace(CURRENT_DELIVERY_ANCHOR, RETIRED_DELIVERY_ANCHOR)
       .replace(CURRENT_ONE_QUESTION_PARAGRAPH, RETIRED_ONE_QUESTION_PARAGRAPH)
       .replace(`<!-- home-manual v${String(HOME_MANUAL_VERSION)} -->`, '<!-- home-manual v19 -->')
     writeFileSync(service.paths.agentsFile, legacy, 'utf8')
@@ -119,6 +123,23 @@ describe('manualSnapshot (guidance)', () => {
     const migrated = readFileSync(service.paths.agentsFile, 'utf8')
     expect(migrated).toContain(CURRENT_ONE_QUESTION_PARAGRAPH)
     expect(migrated).not.toContain(RETIRED_ONE_QUESTION_PARAGRAPH)
+    expect(migrated).toContain(CURRENT_DELIVERY_ANCHOR)
+    expect(migrated).toContain(`home-manual v${String(HOME_MANUAL_VERSION)}`)
+  })
+
+  it('adds the delivery rule to a v20 manual', async () => {
+    const { service } = boot()
+    await service.ensureHome()
+    const legacy = service.manualSnapshot()
+      .replace(CURRENT_DELIVERY_ANCHOR, RETIRED_DELIVERY_ANCHOR)
+      .replace(`<!-- home-manual v${String(HOME_MANUAL_VERSION)} -->`, '<!-- home-manual v20 -->')
+    writeFileSync(service.paths.agentsFile, legacy, 'utf8')
+
+    await service.ensureHome()
+
+    const migrated = readFileSync(service.paths.agentsFile, 'utf8')
+    expect(migrated).toContain(CURRENT_DELIVERY_ANCHOR)
+    expect(migrated).toContain('Deliver files where the principal can take them.')
     expect(migrated).toContain(`home-manual v${String(HOME_MANUAL_VERSION)}`)
   })
 

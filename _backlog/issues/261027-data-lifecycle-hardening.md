@@ -23,7 +23,7 @@ opened: 2026-10-27
 | D | G18 夹具默认权威 | 已完成 | 默认 404；`assistant-desk-projection.allowFixture` 显式开启；测试/组合/探针 patch 已更新 |
 | E | G16 用户手改 CAS / digest 外部编辑 | 部分（digest 外部编辑已修；CAS 未取） | `digestSnapshotNow` 按房间文件 size/mtime fingerprint 失效并后台刷新；`tests/host/digest-external-edit.spec.ts`；写前 CAS 仍未取 |
 | F | G17/G23/G25 retention | 待开始 | 只读计数/告警 + 显式清理；不自动删 |
-| G | G22 deliverables/present | 待开始 | 手册 generation 迁移加交付指引；prompt-smoke/eval |
+| G | G22 deliverables/present | 已完成 | manual v21 加「交付写 cwd + `present`」；v20→v21 迁移；prompt-smoke PASS / eval 无 key 未跑 |
 | H | G24/G33/G34 | 待开始 | 锁 takeover/CAS、source 引用完整性、archive 事务；按可观察触发 |
 
 
@@ -87,7 +87,7 @@ opened: 2026-10-27
 | G19 | **投影 receipts 只含最近窗口**：旧回执不在桌面，客户端若要读旧回执需走工具 | 未取（合同已写） | 低 | 旧回执经 `assistant_operating read operation_id` 可读；若客户端需要，再做分页 |
 | G20 | **更老 generation 的手册没有迁移表**：只覆盖退役 Room data 段与 v19→v20；v0/v18 等只警告，没有"备份后重新生成"动作 | 已修（显式再生） | 中 | `assistant-data refresh-manual --yes` 备份后渲染当前版；不自动覆盖手改 |
 | G21 | **SOUL 默认值漂移**：已有 home 永不覆盖（刻意），新默认身份只到新 home | 边界 | 低 | 身份是 owner 数据；发布说明写"想换默认就手动替换" |
-| G22 | **`deliverables/` 孤儿**：无代码读写、无生命周期、无 `present` 指引；最终交付可能落在 home 而不是 workspace | 未取 | 中 | 触发：真实交付找不到/不随项目走。方案：手册加"交付写 cwd + present"，并给 home 的 deliverables 一个显式归档口径 |
+| G22 | **`deliverables/` 孤儿**：无代码读写、无生命周期、无 `present` 指引；最终交付可能落在 home 而不是 workspace | 已修（模型指引） | 中 | manual v21 明确「交付写 session cwd + `present`，working folder 是笔记本」；home 的 `deliverables/` 仍是用户数据，无生命周期 |
 | G23 | **`skill-proposals/archive/` 配置了但没用**：landed/rejected 提案留在收件箱，只增 | 未取 | 低 | 与 G17 一起做 retention/归档 |
 | G24 | **锁的工程边界**：takeover 是 rename 不是 CAS；PID 复用可能把残锁当活锁；无 heartbeat；`ledger.json.tmp` 固定名 | 未取 | 低-中 | 触发：真实出现双 writer/残锁。加进程启动时间/心跳与 CAS takeover |
 | G25 | **归档读取无上限/无索引**：`readArchive` 整文件读入；`readOperation` O(n)；大归档会吃内存 | 未取 | 低-中 | 触发：归档 >64 MiB。先做只读 status 警告，再考虑索引/分片 |
@@ -111,7 +111,6 @@ opened: 2026-10-27
 - **G16 用户手改 CAS**：未知字段与 digest 外部编辑已修；read-modify-write 前置仍未取。
 - **G17/G23/G25 retention**：`check` 只读告警已有，自动轮转/删除未取。
 - **G19 投影 receipts 窗口**：合同已写，客户端旧回执分页未取。
-- **G22 deliverables**：手册加 `present` 指引前，不新造交付目录。
 - **G24/G33/G34**：锁 takeover/PID、source 引用完整性、archive 事务，按可观察触发。
 - **G26/G27/G32/G35/G36**：OV sentinel、种子凭据、跨会话证据、ui-mode 版本、备份大小，低优先。
 - **G28/G29/G30/G31 边界**：单 principal/home、无 workspace 键、Windows 未验证、明文 egress；文档已写，主张变了再改。

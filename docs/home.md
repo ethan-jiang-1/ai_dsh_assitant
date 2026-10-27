@@ -152,7 +152,7 @@ dsh-obsidian 外部 vault 桥先不做：用户真想让助手管某个外部 va
 | 悬空引用 | `supersedes` / `promotedTo` 指向不存在的 id | 引用断掉会让历史读不出来 |
 | 近似重复 | 高重合的活跃记忆（关键词/标签） | 三条模糊的记忆比一条准确的更糟 |
 | 摘要预算 | 摘要被预算截短（`truncated`）——被截掉的记忆对每个会话不可见；只有 `omittedMemories > 0` 时纯新增记忆才被服务层拒绝 | 桌面塞满 = 中间被漏掉；知识树/线索截短本身不阻塞 memory save；supersede/forget 是减压动作 |
-| 手册漂移 | `AGENTS.md` 的 scaffold 版本标记旧于当前（`manual-stale-scaffold`，info） | 持久化生成物会静默腐烂——**手改内容不报**（手改是拥有者的），版本落后才报；处置=删文件重新生成或忽略 |
+| 手册漂移 | `AGENTS.md` 的 scaffold 版本标记旧于当前（`manual-stale-scaffold`，info） | 持久化生成物会静默腐烂——**手改内容不报**（手改是拥有者的），版本落后才报；处置=`assistant-data refresh-manual --yes`（先备份）或忽略 |
 | 过期线索 | 超过 `staleResearchDays` 未更新的 `open` 线索 | 悬着的线索会烂，机器先发现 |
 | 缺理由的 drop | `status: dropped` 但 `reason` 为空 | 尸体没写死因 = 白丢 |
 | 技能文件 | 名字不合 `SKILL_NAME` 文法 / 缺 `description` / 目录名与 name 不一致 | 技能会静默不被发现 |
@@ -206,7 +206,7 @@ bundles, M snapshots`，退役与快照都不删除、技能归档只增不减�
   读 host `assistant-rooms` 的 working-folder 真值；业务事项住权威账本（合同见 [`operating.md`](operating.md) §二/§三）。手册正文由
   `src/domain/home/home-map.ts` 的 `renderHomeManual` 渲染、运行时随家手册落盘.
   scaffold 缺则种（首行 `<!-- home-manual vN -->` 版本标记）；已有的生成版按 generation 迁移**已知的精确旧段落**
-  （退役的 Room data 段、v19→v20 的答案契约段）并盖当前版本戳，手改保留；匹配不到的旧手册**不重写**，
+  （退役的 Room data 段、v19→v20 的答案契约段、v20→v21 的交付指引段）并盖**实际达到的**版本戳，手改保留；匹配不到的旧手册**不重写**，
   手册段末尾附 generation warning（模型可见），curate 报 info。无 marker 的手写手册不迁移。手册段
   （`assistant:home-manual`）逐字进 system prompt；缺则**现场渲染当前版**（缺文件永不落后）。
 - 两者都是**给人也给 agent 看**的文件；文件名走 AGENTS.md 业界惯例——DSH 原生装载器认项目根

@@ -9,3 +9,6 @@ compatibility test; the migration table must replace it and stamp the current ge
 - **Draft first, don't interrogate.** From one sentence, make the best draft you can with explicit
   assumptions. Ask at most one question, and only when the answer changes the verdict. Never open
   with a questionnaire or a list of data you need.
+- **One action, if any.** End with one concrete next step, not a menu.
+- **Say what you don't know.** The page's "missing" line is part of the answer; never fill a gap
+  with an invented number.

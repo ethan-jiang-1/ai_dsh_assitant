@@ -204,7 +204,7 @@ describe('assistant-data', () => {
 
     const absolute = await checkData({ assistantDir, operatingDir })
     const text = absolute.problems.join('\n')
-    expect(text).toContain('manual is v19; current is v20')
+    expect(text).toMatch(/manual is v19; current is v\d+/)
     expect(text).toContain('ledger.json is unreadable')
 
     writeFileSync(join(operatingDir, 'desk-projection.json'), '{"schemaVersion":2}\n', 'utf8')

@@ -19,7 +19,7 @@
 export const AGENTS_FILE_NAME = 'AGENTS.md'
 
 /** Version of the generated manual; bump when the generated content changes meaningfully. */
-export const HOME_MANUAL_VERSION = 20
+export const HOME_MANUAL_VERSION = 21
 
 /** The version marker stamped as the file's first line (an HTML comment: invisible when rendered). */
 export const HOME_MANUAL_MARKER = `<!-- home-manual v${String(HOME_MANUAL_VERSION)} -->`
@@ -56,11 +56,34 @@ export const CURRENT_ONE_QUESTION_PARAGRAPH = '- **Draft first, don\'t interroga
   + '  need.'
 
 /**
- * Apply the known generated-text migrations to an older **generated** manual and stamp the current
- * version. Only an exact retired block/paragraph is replaced; hand edits elsewhere survive, and a
- * manual without a marker (hand-written, or older than versioning) or newer than this build is
+ * The v20 delivery anchor. v21 adds the rule that a file for the principal belongs in the session
+ * workspace with `present`, not in the assistant's own notebook. Exact text: a hand-edited bullet
+ * stays untouched.
+ */
+export const RETIRED_ONE_ACTION_BULLET = '- **One action, if any.** End with one concrete next step, not a menu.'
+
+/** The v21 replacement for {@link RETIRED_ONE_ACTION_BULLET}. */
+export const CURRENT_DELIVERY_BULLETS = `${RETIRED_ONE_ACTION_BULLET}\n`
+  + '- **Deliver files where the principal can take them.** Write a deliverable under the session\n'
+  + '  cwd and declare it with `present`; the working folder is your notebook, not the delivery shelf.'
+
+/** The bullet that follows the delivery anchor in both generations; it makes the anchor unique. */
+const NEXT_ANSWER_BULLET = '- **Say what you don\'t know.** The page\'s "missing" line is part of the answer; never fill a gap\n  with an invented number.'
+
+/** The exact v20 sequence the v21 migration replaces. */
+export const RETIRED_DELIVERY_ANCHOR = `${RETIRED_ONE_ACTION_BULLET}\n${NEXT_ANSWER_BULLET}`
+
+/** The exact v21 sequence the v20→v21 migration writes. */
+export const CURRENT_DELIVERY_ANCHOR = `${CURRENT_DELIVERY_BULLETS}\n${NEXT_ANSWER_BULLET}`
+
+/**
+ * Apply the known generated-text migrations to an older **generated** manual and stamp the version
+ * actually reached. Only an exact retired block/paragraph is replaced; hand edits elsewhere survive,
+ * and a manual without a marker (hand-written, or older than versioning) or newer than this build is
  * returned unchanged. A version we cannot migrate keeps its marker and is flagged in the prompt by
- * {@link manualSnapshotOf} rather than silently reflowed.
+ * {@link manualSnapshotOf} rather than silently reflowed. The v21 delivery rule is applied only to a
+ * manual already at the v20 generation (or a v19 that reached it here); an older manual is stamped
+ * v20 and stays visibly stale instead of claiming content it never received.
  * @param text - The existing AGENTS.md contents.
  * @returns The migrated contents, or the same string when no known old text is present.
  */
@@ -68,22 +91,35 @@ export function migrateHomeManual(text: string): string {
   const version = parseManualVersion(text)
   if (version === 0 || version >= HOME_MANUAL_VERSION) return text
   let next = text
+  let migratedTo = version
   let changed = false
-  if (next.includes(RETIRED_ROOM_DATA_SECTION)) {
-    next = next.replace(RETIRED_ROOM_DATA_SECTION, '')
-    next = next.replace(
-      'Bookkeeping is not an answer. Room writes, thread merges, curate findings, even the room-data\nrewrite are housekeeping; none of them answers the person.',
-      'Bookkeeping is not an answer. Room writes, thread merges and curate findings are housekeeping;\nnone of them answers the person.',
-    )
-    next = next.replace('"I\'ll load the desk-refresh skill first"', '"I\'ll load the morning-brief skill first"')
-    changed = true
+  if (migratedTo < 20) {
+    let changed20 = false
+    if (next.includes(RETIRED_ROOM_DATA_SECTION)) {
+      next = next.replace(RETIRED_ROOM_DATA_SECTION, '')
+      next = next.replace(
+        'Bookkeeping is not an answer. Room writes, thread merges, curate findings, even the room-data\nrewrite are housekeeping; none of them answers the person.',
+        'Bookkeeping is not an answer. Room writes, thread merges and curate findings are housekeeping;\nnone of them answers the person.',
+      )
+      next = next.replace('"I\'ll load the desk-refresh skill first"', '"I\'ll load the morning-brief skill first"')
+      changed20 = true
+    }
+    if (next.includes(RETIRED_ONE_QUESTION_PARAGRAPH)) {
+      next = next.replace(RETIRED_ONE_QUESTION_PARAGRAPH, CURRENT_ONE_QUESTION_PARAGRAPH)
+      changed20 = true
+    }
+    if (changed20) {
+      migratedTo = 20
+      changed = true
+    }
   }
-  if (next.includes(RETIRED_ONE_QUESTION_PARAGRAPH)) {
-    next = next.replace(RETIRED_ONE_QUESTION_PARAGRAPH, CURRENT_ONE_QUESTION_PARAGRAPH)
+  if (version >= 19 && migratedTo >= 20 && next.includes(RETIRED_DELIVERY_ANCHOR)) {
+    next = next.replace(RETIRED_DELIVERY_ANCHOR, CURRENT_DELIVERY_ANCHOR)
+    migratedTo = 21
     changed = true
   }
   if (!changed) return text
-  return next.replace(/^<!-- home-manual v\d+ -->/mu, HOME_MANUAL_MARKER)
+  return next.replace(/^<!-- home-manual v\d+ -->/mu, `<!-- home-manual v${String(migratedTo)} -->`)
 }
 
 /**
@@ -187,7 +223,7 @@ turn, land the work as a **one-page brief** and keep the chat message short:
   facts are missing, put both in the page's missing line and ask only the one that changes the
   verdict — never two questions in one reply. Never open with a questionnaire or a list of data you
   need.
-- **One action, if any.** End with one concrete next step, not a menu.
+${CURRENT_DELIVERY_BULLETS}
 - **Say what you don't know.** The page's "missing" line is part of the answer; never fill a gap
   with an invented number.
 
