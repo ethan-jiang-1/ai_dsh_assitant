@@ -279,6 +279,113 @@ function ActivityFace(props: {
 }
 
 /**
+ * The board and its detail pane: filtered matter list, unclaimed inbox, and the selected
+ * matter/fragment biography. Extracted from the panel orchestration so the board's state rules
+ * (filter, selection, legal action) stay in one named component.
+ */
+function MatterBoard(props: {
+  matters: DeskData['matters']
+  visibleMatters: DeskData['matters']
+  unclaimed: DeskData['unclaimed']
+  unclaimedCards: ReturnType<typeof ce>[]
+  selection: ProjectionView['selected']
+  selected: DeskData['matters'][number] | undefined
+  selectedFragment: DeskData['unclaimed'][number] | undefined
+  matterOps: readonly OperatingReceipt[]
+  view: ProjectionView
+  deep: boolean
+  actions: ProjectionViewBoundActions
+  lanes: DeskSurface['lanes']
+}): ReturnType<typeof ce> {
+  const { matters, visibleMatters, unclaimed, unclaimedCards, selection, selected, selectedFragment, matterOps, view, deep, actions, lanes } = props
+  return ce('section', { className: 'dsha-matters', 'data-pane': view.pane },
+        ce('div', { className: 'dsha-matter-list dsha-list', onScroll: (event: { currentTarget: { scrollTop: number } }) => actions.rememberListPosition(event.currentTarget.scrollTop) },
+          matters.length > 0 ? ce('div', { className: 'dsha-filter' },
+            (['all', 'active', 'settled'] as const).map(filter => ce('button', {
+              key: filter,
+              type: 'button',
+              className: 'dsha-filter-chip',
+              'data-on': String(view.filter === filter),
+              onClick: () => actions.setFilter(filter),
+            },
+            glyphFor(filter),
+            ce('span', {}, FILTER_LABEL[filter]),
+            ce('span', { className: 'dsha-chip-count' }, String(filter === 'active'
+              ? matters.filter(matter => matter.status === 'active').length
+              : filter === 'settled' ? matters.filter(matter => matter.status !== 'active').length : matters.length))))) : null,
+          visibleMatters.length === 0 && view.filter === 'settled' ? ce('p', { className: 'dsha-card-meta' },
+            '还没有办结的事项——了结要在对话里说清楚「办完了」加上依据，它才会落到这里；关掉会话窗口不算。')
+            : visibleMatters.length === 0 && view.filter === 'active' ? ce('p', { className: 'dsha-card-meta' }, '没有在办事项。') : null,
+          visibleMatters.map(matter => ce('button', {
+            key: matter.id,
+            type: 'button',
+            className: 'dsha-card',
+            'data-selected': String(selection?.kind === 'matter' && selection.id === matter.id),
+            onClick: () => actions.selectMatter(matter.id),
+          },
+          ce('span', { className: 'dsha-card-title' },
+            statusChip(matter.status),
+            ce('span', {}, matter.title)),
+          matter.times.promisedDeadline !== undefined || matter.times.nextCheckpoint !== undefined
+            ? ce('p', { className: 'dsha-card-meta' }, timeParts({
+                ...(matter.times.promisedDeadline !== undefined ? { promisedDeadline: matter.times.promisedDeadline } : {}),
+                ...(matter.times.nextCheckpoint !== undefined ? { nextCheckpoint: matter.times.nextCheckpoint } : {}),
+              }).join(' · '))
+            : null,
+          matter.summary.length > 0 ? ce('p', { className: 'dsha-card-summary' }, matter.summary) : null,
+          matter.proposals.some(proposal => proposal.status === 'pending') ? ce('p', { className: 'dsha-card-meta' }, chip('warn', '等你确认')) : null)),
+          deep
+            ? (unclaimed.length === 0 ? null : ce('details', { className: 'dsha-background' },
+              ce('summary', {}, `后台：${String(unclaimed.length)} 条待归户——还没说清是哪件事，不猜`),
+              ...unclaimedCards))
+            : ce('div', {},
+              unclaimed.length > 0 ? ce('p', { className: 'dsha-list-label' }, '待认领——还没说清是哪件事，不猜') : null,
+              ...unclaimedCards)),
+        ce('div', { className: 'dsha-matter-detail dsha-detail' },
+          selectedFragment !== undefined ? ce('article', {},
+            ce('div', { className: 'dsha-meta' },
+              ce('button', { className: 'dsha-btn dsha-back', type: 'button', onClick: actions.showList }, '返回事项列表'),
+              ce('button', { className: 'dsha-btn dsha-btn-primary', type: 'button', onClick: () => lanes.onClaim(selectedFragment.id) }, '认领这件事'),
+              // The fragment's other terminal (desk-side capture, 2026-10-18): every item selects into a
+              // proportionate action, and "this is noise" is the one that used to have no door.
+              ce('button', { className: 'dsha-btn', type: 'button', onClick: () => lanes.onDiscard(selectedFragment.id) }, '是噪音，不归户')),
+            ce('h2', {}, chip('warn', '待认领'), ce('span', {}, selectedFragment.note)),
+            ce('p', { className: 'dsha-card-meta' }, `来自 ${selectedFragment.sessionId} · 还没说清是哪件事——认领后原文与来源随附入账`))
+          : selected !== undefined ? ce('article', {},
+            ce('div', { className: 'dsha-meta' },
+              ce('button', { className: 'dsha-btn dsha-back', type: 'button', onClick: actions.showList }, '返回事项列表'),
+              // State decides the legal action (principal direction, 2026-10-12): an active
+              // matter processes; a settled matter's only legal action is waking it — the
+              // state machine never offers 「再处理」 on finished work.
+              canProcess(selected.status)
+                ? ce('button', { className: 'dsha-btn dsha-btn-primary', type: 'button', onClick: () => lanes.onProcess?.(selected.id) }, '处理这件事')
+                : ce('button', { className: 'dsha-btn dsha-btn-wake', type: 'button', onClick: () => lanes.onWake(selected.id) }, glyphFor('wake'), '唤醒这件事')),
+            // Status rides the title line (same shape as the list card) so it stops reading as a
+            // second action button beside 「处理这件事」; facts render as the plain meta line below.
+            ce('h2', {}, statusChip(selected.status), ce('span', {}, selected.title)),
+            metaLine(selected.responsible, selected.times),
+            selected.summary.length > 0 ? ce('p', { className: 'dsha-card-summary' }, selected.summary) : null,
+            selected.proposals.filter(proposal => proposal.status === 'pending').map(proposal => ce('div', { key: proposal.id, className: 'dsha-proposal' },
+              chip('warn', `等你确认 · ${CHANGE_LABEL[proposal.kind] ?? proposal.kind}`))),
+            selected.evidence.length === 0 ? ce('p', { className: 'dsha-card-summary' }, '暂无可核对依据。')
+              : ce('ul', { className: 'dsha-evidence' }, ...selected.evidence.map(item => ce('li', { key: item.id },
+                ce('p', {}, item.note),
+                ce('small', {}, `${item.sessionId}${item.eventId !== undefined ? ` / ${item.eventId}` : ''}${item.quote !== undefined && item.quote !== item.note ? ` ·「${item.quote}」` : ''}`)))),
+            // The biography's decision half: this matter's own operations, newest first — labels,
+            // the submitter's words and the source session (desk history views, card 261012).
+            matterOps.length > 0 ? ce('section', { className: 'dsha-ops' },
+              ce('p', { className: 'dsha-ops-title' }, '动作'),
+              ...matterOps.map(op => ce('div', { key: op.operationId, className: 'dsha-op' },
+                ce('p', { className: 'dsha-op-line' },
+                  `${OP_LABEL[op.kind ?? ''] ?? '操作'}${OP_STATUS_NOTE[op.status] !== undefined ? `（${OP_STATUS_NOTE[op.status]}）` : ''} · ${humanTime(op.submittedAt)}`),
+                op.quote !== undefined ? ce('p', { className: 'dsha-op-quote' }, `「${op.quote}」`) : null,
+                ce('small', { className: 'dsha-op-src' }, op.sessionId)))) : null)
+          : selection === null ? ce('p', { className: 'dsha-detail-hint' }, '选择一项查看详情。')
+          : selection.kind === 'fragment' ? ce('p', { className: 'dsha-detail-hint' }, '所选片段不在当前投影中。')
+          : ce('p', { className: 'dsha-detail-hint' }, '所选事项不在当前投影中。')))
+}
+
+/**
  * The desk page: header with counts, card list (matters then unclaimed), and the detail pane.
  * Read-only complete collection with distinct loading/missing/error/stale states; all colors
  * ride semantic aliases and the theme contract block.
@@ -509,90 +616,7 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
         download.status === 'missing' ? '还没有经营事项资料。交代一件试试——它会被记进权威账本，事事有着落。' : '还没有经营事项。交代一件试试——它会被记进权威账本，事事有着落。'))
       : simpleMode && data !== undefined ? simpleFace
       : effectiveMode === 'activity' && data !== undefined ? ActivityFace({ data, activityView, oldestReceipt, actions: props.actions, ...(props.loadOlderReceipts !== undefined ? { loadOlderReceipts: props.loadOlderReceipts } : {}) })
-      : ce('section', { className: 'dsha-matters', 'data-pane': view.pane },
-        ce('div', { className: 'dsha-matter-list dsha-list', onScroll: (event: { currentTarget: { scrollTop: number } }) => props.actions.rememberListPosition(event.currentTarget.scrollTop) },
-          matters.length > 0 ? ce('div', { className: 'dsha-filter' },
-            (['all', 'active', 'settled'] as const).map(filter => ce('button', {
-              key: filter,
-              type: 'button',
-              className: 'dsha-filter-chip',
-              'data-on': String(view.filter === filter),
-              onClick: () => props.actions.setFilter(filter),
-            },
-            glyphFor(filter),
-            ce('span', {}, FILTER_LABEL[filter]),
-            ce('span', { className: 'dsha-chip-count' }, String(filter === 'active'
-              ? matters.filter(matter => matter.status === 'active').length
-              : filter === 'settled' ? matters.filter(matter => matter.status !== 'active').length : matters.length))))) : null,
-          visibleMatters.length === 0 && view.filter === 'settled' ? ce('p', { className: 'dsha-card-meta' },
-            '还没有办结的事项——了结要在对话里说清楚「办完了」加上依据，它才会落到这里；关掉会话窗口不算。')
-            : visibleMatters.length === 0 && view.filter === 'active' ? ce('p', { className: 'dsha-card-meta' }, '没有在办事项。') : null,
-          visibleMatters.map(matter => ce('button', {
-            key: matter.id,
-            type: 'button',
-            className: 'dsha-card',
-            'data-selected': String(selection?.kind === 'matter' && selection.id === matter.id),
-            onClick: () => props.actions.selectMatter(matter.id),
-          },
-          ce('span', { className: 'dsha-card-title' },
-            statusChip(matter.status),
-            ce('span', {}, matter.title)),
-          matter.times.promisedDeadline !== undefined || matter.times.nextCheckpoint !== undefined
-            ? ce('p', { className: 'dsha-card-meta' }, timeParts({
-                ...(matter.times.promisedDeadline !== undefined ? { promisedDeadline: matter.times.promisedDeadline } : {}),
-                ...(matter.times.nextCheckpoint !== undefined ? { nextCheckpoint: matter.times.nextCheckpoint } : {}),
-              }).join(' · '))
-            : null,
-          matter.summary.length > 0 ? ce('p', { className: 'dsha-card-summary' }, matter.summary) : null,
-          matter.proposals.some(proposal => proposal.status === 'pending') ? ce('p', { className: 'dsha-card-meta' }, chip('warn', '等你确认')) : null)),
-          deep
-            ? (unclaimed.length === 0 ? null : ce('details', { className: 'dsha-background' },
-              ce('summary', {}, `后台：${String(unclaimed.length)} 条待归户——还没说清是哪件事，不猜`),
-              ...unclaimedCards))
-            : ce('div', {},
-              unclaimed.length > 0 ? ce('p', { className: 'dsha-list-label' }, '待认领——还没说清是哪件事，不猜') : null,
-              ...unclaimedCards)),
-        ce('div', { className: 'dsha-matter-detail dsha-detail' },
-          selectedFragment !== undefined ? ce('article', {},
-            ce('div', { className: 'dsha-meta' },
-              ce('button', { className: 'dsha-btn dsha-back', type: 'button', onClick: props.actions.showList }, '返回事项列表'),
-              ce('button', { className: 'dsha-btn dsha-btn-primary', type: 'button', onClick: () => lanes.onClaim(selectedFragment.id) }, '认领这件事'),
-              // The fragment's other terminal (desk-side capture, 2026-10-18): every item selects into a
-              // proportionate action, and "this is noise" is the one that used to have no door.
-              ce('button', { className: 'dsha-btn', type: 'button', onClick: () => lanes.onDiscard(selectedFragment.id) }, '是噪音，不归户')),
-            ce('h2', {}, chip('warn', '待认领'), ce('span', {}, selectedFragment.note)),
-            ce('p', { className: 'dsha-card-meta' }, `来自 ${selectedFragment.sessionId} · 还没说清是哪件事——认领后原文与来源随附入账`))
-          : selected !== undefined ? ce('article', {},
-            ce('div', { className: 'dsha-meta' },
-              ce('button', { className: 'dsha-btn dsha-back', type: 'button', onClick: props.actions.showList }, '返回事项列表'),
-              // State decides the legal action (principal direction, 2026-10-12): an active
-              // matter processes; a settled matter's only legal action is waking it — the
-              // state machine never offers 「再处理」 on finished work.
-              canProcess(selected.status)
-                ? ce('button', { className: 'dsha-btn dsha-btn-primary', type: 'button', onClick: () => lanes.onProcess?.(selected.id) }, '处理这件事')
-                : ce('button', { className: 'dsha-btn dsha-btn-wake', type: 'button', onClick: () => lanes.onWake(selected.id) }, glyphFor('wake'), '唤醒这件事')),
-            // Status rides the title line (same shape as the list card) so it stops reading as a
-            // second action button beside 「处理这件事」; facts render as the plain meta line below.
-            ce('h2', {}, statusChip(selected.status), ce('span', {}, selected.title)),
-            metaLine(selected.responsible, selected.times),
-            selected.summary.length > 0 ? ce('p', { className: 'dsha-card-summary' }, selected.summary) : null,
-            selected.proposals.filter(proposal => proposal.status === 'pending').map(proposal => ce('div', { key: proposal.id, className: 'dsha-proposal' },
-              chip('warn', `等你确认 · ${CHANGE_LABEL[proposal.kind] ?? proposal.kind}`))),
-            selected.evidence.length === 0 ? ce('p', { className: 'dsha-card-summary' }, '暂无可核对依据。')
-              : ce('ul', { className: 'dsha-evidence' }, ...selected.evidence.map(item => ce('li', { key: item.id },
-                ce('p', {}, item.note),
-                ce('small', {}, `${item.sessionId}${item.eventId !== undefined ? ` / ${item.eventId}` : ''}${item.quote !== undefined && item.quote !== item.note ? ` ·「${item.quote}」` : ''}`)))),
-            // The biography's decision half: this matter's own operations, newest first — labels,
-            // the submitter's words and the source session (desk history views, card 261012).
-            matterOps.length > 0 ? ce('section', { className: 'dsha-ops' },
-              ce('p', { className: 'dsha-ops-title' }, '动作'),
-              ...matterOps.map(op => ce('div', { key: op.operationId, className: 'dsha-op' },
-                ce('p', { className: 'dsha-op-line' },
-                  `${OP_LABEL[op.kind ?? ''] ?? '操作'}${OP_STATUS_NOTE[op.status] !== undefined ? `（${OP_STATUS_NOTE[op.status]}）` : ''} · ${humanTime(op.submittedAt)}`),
-                op.quote !== undefined ? ce('p', { className: 'dsha-op-quote' }, `「${op.quote}」`) : null,
-                ce('small', { className: 'dsha-op-src' }, op.sessionId)))) : null)
-          : selection === null ? ce('p', { className: 'dsha-detail-hint' }, '选择一项查看详情。')
-          : selection.kind === 'fragment' ? ce('p', { className: 'dsha-detail-hint' }, '所选片段不在当前投影中。')
-          : ce('p', { className: 'dsha-detail-hint' }, '所选事项不在当前投影中。'))),
+      : MatterBoard({ matters, visibleMatters, unclaimed, unclaimedCards, selection, selected, selectedFragment, matterOps, view, deep, actions: props.actions, lanes }),
+
   )
 }
