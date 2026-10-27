@@ -22,7 +22,7 @@ import { closeSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, re
 import { hostname } from 'node:os'
 import { join, resolve } from 'node:path'
 import { EMPTY_LEDGER, applyOperation, canonicalJson, reviveLedgerState, type LedgerOperation, type LedgerState, type MatterRecord, type OperationReceipt, type OperationRecord, type UnclaimedMaterial } from '../../domain/operating/ledger.ts'
-import { OPERATIONS_ARCHIVE_FILE, mergeOperations, parseOperationsArchive, serializeOperationRecord } from './archive.ts'
+import { OPERATIONS_ARCHIVE_FILE, mergeOperations, parseOperationsArchive, serializeOperationRecord } from '../../domain/operating/archive.ts'
 
 declare module '@deepseek-ai/cordis' {
   interface Context {

@@ -65,7 +65,7 @@ intent: "2026-10-28 六维打扫卫生深审：四路 fresh 只读审计 + 主�
 | P2 | `dev/probes/web/webui-expected.mjs` refresh 分支 | `--refresh` 只写文件，不校验 `readyState` / `consoleErrors` / `networkFailures`；这些又是比对字段（2026-10-28 S2 已交付：refresh 健康门 + expected 健康门；场景仍手工） | 一次误 refresh 可把坏页面固化成基线，此后永远 PASS；web-face 不在 verify 里 |
 | P2 | `dev/eval/run.mjs` | 无会话日志 → `passed:false`，与「模型没做对」同一条 FAIL；docs 明写缺 key 不能算行为红（2026-10-28 S2 已交付：无日志 BLOCKED exit 2，实测） | 凭据失效时 agent 会去改 prompt/任务（BUG-024 已发生过一次） |
 | P2 | `scripts/release/web-install-smoke.mjs`、`standalone-smoke.mjs` | 无 Chrome 时前者 `exit 0`，后者打印 `passed`（UI 半场没跑）（2026-10-28 S2 已交付：web-install/release-smoke 实测 exit 2；standalone 静态改） | 「release smoke 绿」可能是假绿，违反 blocked 不入绿名单 |
-| P2 | `src/cli/assistant-data-*.ts`、`src/host/desk-projection/receipts.ts` | cli 以 value import 取 `host/operating-ledger/archive.ts`；desk-projection 跨行直读同一归档格式，绕过 ledger 服务 seam | 账本格式知识散在三处；改格式会漏消费方；与 `docs/architecture.md` 的「cli = domain + yaml」不符 |
+| P2 | `src/cli/assistant-data-*.ts`、`src/host/desk-projection/receipts.ts` | cli 以 value import 取 `host/operating-ledger/archive.ts`；desk-projection 跨行直读同一归档格式，绕过 ledger 服务 seam（2026-10-28 S3a 已交付：格式移入 `domain/operating/archive.ts`，消费方改指） | 账本格式知识散在三处；改格式会漏消费方；与 `docs/architecture.md` 的「cli = domain + yaml」不符 |
 | P2 | `src/client/projection/projection-panel.ts` | 单函数 366 行，含 simple/board/activity/detail 四态与局部标签表 | 改一态要读整文件；面板 spec 只能整文件断言 |
 | P2 | `src/cli/assistant-data.ts` | 697 行、六类命令 + 底部长 re-export，兼作事实上的第二 barrel | 浅门面；新增命令继续往里堆 |
 | P2 | `src/domain/operating/ledger.ts` | 562 行纯核，但无直接 spec；只经 host 服务与 projection 间接覆盖 | 归约器坏了要靠整包 boot 才红；locality 差 |

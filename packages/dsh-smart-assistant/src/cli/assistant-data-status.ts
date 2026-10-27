@@ -9,7 +9,7 @@ import { lstat, readFile, readdir, stat } from 'node:fs/promises'
 import { isAbsolute, join, resolve } from 'node:path'
 import { HOME_MANUAL_VERSION } from '../domain/home/home-map.ts'
 import { credentialShapeLabels } from '../domain/skills/audit.ts'
-import { OPERATIONS_ARCHIVE_FILE, parseOperationsArchive } from '../host/operating-ledger/archive.ts'
+import { OPERATIONS_ARCHIVE_FILE, parseOperationsArchive } from '../domain/operating/archive.ts'
 
 /** A read-only `check` warning threshold for the approval ledger. */
 const ARCHIVE_WARN_BYTES = 64 * 1024 * 1024

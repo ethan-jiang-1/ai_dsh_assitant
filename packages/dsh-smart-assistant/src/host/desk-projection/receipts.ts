@@ -10,7 +10,7 @@ import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import type { ConnectionFetchRoute } from '@deepseek-ai/dsh-client-connection'
 import { reviveLedgerState, type OperationReceipt, type OperationRecord } from '../../domain/operating/ledger.ts'
-import { OPERATIONS_ARCHIVE_FILE, parseOperationsArchive } from '../operating-ledger/archive.ts'
+import { OPERATIONS_ARCHIVE_FILE, parseOperationsArchive } from '../../domain/operating/archive.ts'
 
 const DEFAULT_LIMIT = 50
 const MAX_LIMIT = 200

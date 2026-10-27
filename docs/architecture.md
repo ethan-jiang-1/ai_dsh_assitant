@@ -171,14 +171,14 @@ seam 的成色读数是**第二个真实 Provider 出现而 Consumer 一行不�
 | `src/domain/rooms/projection.ts` | rooms 线格式的唯一 owner：`RoomsPayload`、host `projectRooms`、client `parseRooms`、共享 counts（HTTP/认证留在 host route） | 无（最底层） |
 | `src/domain/maintenance/receipt.ts` | 审批回执词汇：直接写的类型与显示标签（client 面板与 host 审计共用） | 无（最底层） |
 | `src/domain/viki/types.ts` | Viki 记忆内容类型（user/peer 与 memory 行）；client 面板与 host 路由共用 | 无（最底层） |
-| `src/domain/operating/`（`ledger.ts`、`projection.ts`） | 经营账本**纯核**：事项/操作/回执/待认领词汇与归约、v2 投影渲染（契约 = [`operating.md`](operating.md)） | 无（最底层） |
+| `src/domain/operating/`（`ledger.ts`、`projection.ts`、`archive.ts`） | 经营账本**纯核**：事项/操作/回执/待认领词汇与归约、v2 投影渲染、`operations-archive.jsonl` 行格式与合并（契约 = [`operating.md`](operating.md)） | 无（最底层） |
 | `src/index.ts` | 稳定包入口：`src/host/index.ts` 服务实现的薄导出（同 class 身份；`ctx.assistantMemory` 增广随实现加载） | 全部 |
 | `src/cli/` + `bin/` + `bootstrap.mjs` | 交付/部署面：专家装配（`expert-setup`）、两目录数据 bundle（`assistant-data`）、独立目录 bootstrap；只跑 Node + 纯核，不进模型上下文 | domain 纯核 + `yaml` |
 | `src/host/index.ts` + `src/host/service.ts` | 服务实现：把领域模块组装成 `ctx.assistantMemory`；公开的 `HomeHost`/`RoomReadResult` 契约在 `service.ts`，房间与摘要按它消费，不反向依赖组装文件 | 全部 |
 | `src/agent/tool-support/presentation.ts` | agent 面工具共享的 presenter 管道：`presentationMeta` 投影摘要 → `presentResult` 从 `result.meta` 读回（完成卡读不到规范值，只能读持久化载荷） | dsh-tools 类型 |
 | `src/agent/learned-skills.ts` | preset 内学到的技能目录 provider + 成功工具加载记账；技能路径从 working-folder 服务读取 | dsh-skill-filesystem + assistantMemory |
 | `src/host/web-branding.ts` | Web 壳品牌注入行：页标题 + 图标（纯函数；经 `webserver/index-inject` 事件进浏览器，皮肤面） | dsh-host-webserver（仅类型） |
-| `src/host/operating-ledger/index.ts` | 服务实现：`ctx.assistantOperatingLedger` 单 writer 认领（`writer.lock` 惰性认领 + 死进程接管）、`ledger.json` + `operations-archive.jsonl` 原子持久/压缩、读路径恒重读（契约 = [`operating.md`](operating.md) §一） | domain/operating + dsh-home-paths |
+| `src/host/operating-ledger/index.ts` | 服务实现：`ctx.assistantOperatingLedger` 单 writer 认领（`writer.lock` 惰性认领 + 死进程接管）、`ledger.json` + `operations-archive.jsonl` 原子持久/压缩、读路径恒重读；归档行格式 owner = `domain/operating/archive.ts`（契约 = [`operating.md`](operating.md) §一） | domain/operating + dsh-home-paths |
 | `src/host/desk-projection/`（`index.ts` 入口 + `download.ts` 路由核） | 固定只读投影下载行：GET route 优先活渲染账本、回退固定夹具、错误态分明（契约 = [`operating.md`](operating.md) §三） | domain/operating + dsh-client-connection（仅类型） |
 | `src/client/chrome/navigation.ts` | 浏览器导航 seam：`returnToConversation` + `revealChatTab`（平台会话激活、DOM tab reveal 适配器、主面板复位） | 无（平台 face 由调用方传入） |
 | `src/client/projection/desk-surface.ts` | 桌面面板的 lane surface 工厂：回调、导航与建议动作从 20 字段 props 中抽出；panel 只收 hooks / store / actions | 无（平台 face 由入口传入） |

@@ -8,7 +8,7 @@ import { lstat, mkdir, readFile, rename, rm } from 'node:fs/promises'
 import { dirname, join, relative, resolve } from 'node:path'
 import { atomicWriteFile } from '../domain/home/atomic-write.ts'
 import { isEntryId } from '../domain/home/room.ts'
-import { OPERATIONS_ARCHIVE_FILE } from '../host/operating-ledger/archive.ts'
+import { OPERATIONS_ARCHIVE_FILE } from '../domain/operating/archive.ts'
 import { appendAuditLine } from './assistant-data-audit.ts'
 
 /** The record kinds an explicit purge can erase. Sessions are not in this list. */

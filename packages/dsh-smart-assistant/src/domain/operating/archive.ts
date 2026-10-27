@@ -8,9 +8,9 @@
  * but before the reduced state write leaves the same record in both places); the state copy always
  * wins in {@link mergeOperations}.
  *
- * @module dsh-smart-assistant/host/operating-ledger/archive
+ * @module dsh-smart-assistant/domain/operating/archive
  */
-import type { OperationRecord } from '../../domain/operating/types.ts'
+import type { OperationRecord } from './types.ts'
 
 /** File name of the append-only operation history beside `ledger.json`. */
 export const OPERATIONS_ARCHIVE_FILE = 'operations-archive.jsonl'
