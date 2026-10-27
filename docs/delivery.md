@@ -139,6 +139,8 @@ node .../assistant-data.mjs purge --assistant <DSH_HOME>/assistant [--operating 
 
 **归档轮转**：`assistant-data rotate --assistant <DSH_HOME>/assistant --operating <DSH_HOME>/assistant-operating --older-than <days> [--apply]` 默认只列候选；`--apply` 才把超过天数的 `audit/approvals.jsonl`、房间 archive、`operations-archive.jsonl` 整体移到 `<root>/archive-maintenance/<stamp>/`，并写 `audit/maintenance.jsonl`。不做自动轮转、不按 JSONL 行删。
 
+**旧回执分页**：桌面活动流最近窗口之外，`GET /api/assistant/operating-receipts?before=<ISO>&limit=<n>` 从状态与归档分页返回 receipt；客户端「加载更早账本」消费它，不复制业务状态。
+
 **升级/卸载**：装新 tarball 不动用户数据；`--dump-config` 仍应有 `preset-assistant`，新会话验证一次。升级/remove 保留两个插件目录；remove 后重装回到组合。`pnpm upgrade-smoke` 证明“旧→新→remove”的两目录边界与组合恢复；真实旧字节的读取由 `tests/host/old-home-compat.spec.ts` 的冻结 v19 fixture 证明（房间、技能、提案、用量、手册迁移、账本回执）。
 
 **格式兼容政策**：

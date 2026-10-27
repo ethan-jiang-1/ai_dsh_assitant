@@ -113,3 +113,8 @@
 | 真实 HTTP 探针（认证/cookie/拒绝形态） | `node dev/probes/web/desk-projection-download.mjs '<url>' dev/fixtures/desk-projection/desk-projection.json` |
 
 分层与各层能证明什么 = [`testing.md`](testing.md)；本包内路径均为包内相对（= `packages/dsh-smart-assistant/tests/…`）。
+
+
+## 旧回执分页
+
+投影只带最近窗口；更早回执由只读 `GET /api/assistant/operating-receipts?before=<ISO>&limit=<n>` 从 `ledger.json` 与 `operations-archive.jsonl` 分页，按 `submittedAt` 倒序，不新增业务状态。
