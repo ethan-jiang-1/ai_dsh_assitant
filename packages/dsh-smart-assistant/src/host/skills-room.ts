@@ -87,7 +87,10 @@ export async function proposeSkill(host: AssistantMemory, input: Omit<SkillDraft
   const problems = validateSkillDraft(input)
   if (problems.length > 0) throw new Error(`skill proposal rejected: ${problems.join('; ')}`)
   await host.ensureHome()
-  const existing = await host.proposals.read(input.name)
+  const active = await host.proposals.read(input.name)
+  // A resolved proposal may have rotated out of the inbox; its revision and creation time still
+  // anchor the next proposal, so a re-proposal continues the history instead of restarting.
+  const existing = active ?? await host.proposals.readArchived(input.name)
   const previous = existing === undefined ? undefined : proposalFromEntry(existing)
   if (previous?.status === 'approved') {
     throw new Error(`proposal "${input.name}" is approved and waiting to land — land it or reject it before proposing again`)

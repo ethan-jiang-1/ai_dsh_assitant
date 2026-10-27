@@ -23,6 +23,7 @@ import { closeSync, existsSync, fsyncSync, openSync, writeSync } from 'node:fs'
 import { chmod, copyFile, cp, lstat, mkdir, readFile, readdir, rename, rm, stat, writeFile } from 'node:fs/promises'
 import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:path'
 import { atomicWriteFile } from '../domain/home/atomic-write.ts'
+import { parseFrontmatterDocument } from '../domain/home/frontmatter.ts'
 import { HOME_MANUAL_VERSION, renderHomeManual } from '../domain/home/home-map.ts'
 import { isEntryId } from '../domain/home/room.ts'
 import { OPERATIONS_ARCHIVE_FILE, parseOperationsArchive } from '../host/operating-ledger/archive.ts'
@@ -65,6 +66,19 @@ export interface DataPurgeOptions {
 export interface DataPurgeResult {
   readonly removed: readonly string[]
   readonly audit: string
+}
+
+/** Arguments for {@link archiveResolvedProposals}. */
+export interface ProposalArchiveOptions {
+  readonly assistantDir: string
+  /** Moves files; the caller must pass true explicitly. */
+  readonly confirm: boolean
+}
+
+/** Result of rotating resolved proposals out of the active inbox. */
+export interface ProposalArchiveResult {
+  readonly moved: readonly string[]
+  readonly kept: readonly string[]
 }
 
 /** Arguments for {@link refreshManual}. */
@@ -588,6 +602,55 @@ export async function purgeData(options: DataPurgeOptions): Promise<DataPurgeRes
   }
   await appendAuditLine(audit, { at, kind: options.kind, id: options.id, status: 'deleted', removed })
   return { removed, audit }
+}
+
+/**
+ * Rotate resolved proposals (`landed` / `rejected`) from the active inbox into
+ * `skill-proposals/archive/`. Proposed and approved proposals stay: the inbox is still the
+ * decision queue. A re-proposal after rotation continues its revision history because
+ * `proposeSkill` also reads the archived copy.
+ *
+ * @param options - Working folder and explicit confirmation.
+ * @returns Moved and kept proposal names.
+ * @throws When confirmation is missing or the proposals directory is a symlink/not a directory.
+ */
+export async function archiveResolvedProposals(options: ProposalArchiveOptions): Promise<ProposalArchiveResult> {
+  if (options.confirm !== true) throw new Error('assistant-data: archive-proposals requires explicit confirmation (--yes)')
+  const assistantDir = resolve(options.assistantDir)
+  const inbox = join(assistantDir, 'skill-proposals')
+  const rootInfo = await lstat(assistantDir).catch(() => undefined)
+  if (rootInfo === undefined) throw new Error(`assistant-data: working folder not found: ${assistantDir}`)
+  if (rootInfo.isSymbolicLink()) throw new Error(`assistant-data: working folder is a symbolic link: ${assistantDir}`)
+  if (!rootInfo.isDirectory()) throw new Error(`assistant-data: working folder is not a directory: ${assistantDir}`)
+  const inboxInfo = await lstat(inbox).catch(() => undefined)
+  if (inboxInfo === undefined) return { moved: [], kept: [] }
+  if (inboxInfo.isSymbolicLink() || !inboxInfo.isDirectory()) {
+    throw new Error(`assistant-data: proposal inbox is not a plain directory: ${inbox}`)
+  }
+
+  const moved: string[] = []
+  const kept: string[] = []
+  for (const entry of await readdir(inbox, { withFileTypes: true })) {
+    if (!entry.isFile() || !entry.name.endsWith('.md')) continue
+    const id = entry.name.slice(0, -3)
+    if (!isEntryId(id)) {
+      kept.push(id)
+      continue
+    }
+    const document = parseFrontmatterDocument(await readFile(join(inbox, entry.name), 'utf8'))
+    const status = document?.data.status
+    if (status !== 'landed' && status !== 'rejected') {
+      kept.push(id)
+      continue
+    }
+    const archive = join(inbox, 'archive')
+    await mkdir(archive, { recursive: true, mode: 0o700 })
+    const target = join(archive, entry.name)
+    if (existsSync(target)) await rm(target, { force: true })
+    await rename(join(inbox, entry.name), target)
+    moved.push(id)
+  }
+  return { moved, kept }
 }
 
 /**

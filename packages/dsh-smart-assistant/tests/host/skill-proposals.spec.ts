@@ -162,4 +162,24 @@ describe('the proposal inbox (service)', () => {
     expect(proposalFromEntry({ id: 'corpse-skill', path: '/x', data: document.data, body: document.body }))
       .toMatchObject({ status: 'landed' })
   })
+
+  it('continues the revision history after a resolved proposal was archived', async () => {
+    const { service } = boot()
+    const old: SkillProposal = {
+      id: 'archived-skill',
+      status: 'rejected',
+      revision: 3,
+      description: 'old proposal',
+      created: '2026-09-24T00:00:00.000Z',
+      updated: '2026-09-24T00:00:00.000Z',
+      body: 'old body',
+    }
+    const document = proposalToDocument(old)
+    await service.proposals.write(old.id, document.data, document.body)
+    await service.proposals.archive(old.id, { status: 'rejected' })
+
+    const next = await service.proposeSkill({ name: old.id, description: 'new proposal', body: 'new body' })
+    expect(next.revision).toBe(4)
+    expect(next.created).toBe(old.created)
+  })
 })

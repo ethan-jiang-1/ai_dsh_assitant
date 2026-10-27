@@ -113,7 +113,8 @@ dsh-obsidian 外部 vault 桥先不做：用户真想让助手管某个外部 va
 - **人审**：手改提案文件的 `status: approved / rejected`（与知识 draft 同构——编辑即评审）。
 - **落地**：`assistant_reflect action=land_skill`——仅接受 approved 的提案，写进 skills/
   并盖 provenance `proposal:<name>#r<N>`；提案本体记 `landed` 留尸体。rejected/landed 后
-  可重新提案（新一轮评审）。
+  可重新提案（新一轮评审）。已结提案可由 `assistant-data archive-proposals --yes` 移入
+  `skill-proposals/archive/`；再提案仍从 archive 继承 `revision`/`created`，不重开历史。
 - **触发**：goal 完成时自动排一个**提案槽**（plugin 源消息，propose-only 指令；
   `goalProposalTurns` 可关）。**全自动蒸馏维持延后**（判据不变：用量统计显示收益>成本）；
   brief 报待审提案，curate 报 approved-待落地与提案老化。

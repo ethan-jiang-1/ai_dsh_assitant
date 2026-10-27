@@ -127,6 +127,10 @@ node .../assistant-data.mjs purge --assistant <DSH_HOME>/assistant \
 `AGENTS.md.bak-<stamp>`（0600）后写入当前 generation。它是给迁移表覆盖不到的更老手册的逃生门；手改内容在备份里，
 不碰 `SOUL.md`。不带 `--yes` 拒绝。
 
+**提案轮转**：`assistant-data archive-proposals --assistant <DSH_HOME>/assistant --yes` 只把 `status: landed`
+或 `rejected` 的提案移进 `skill-proposals/archive/`；`proposed`/`approved` 留在收件箱。再提案仍从归档副本继承
+`revision`/`created`，不重开历史；归档是移动，不删除。
+
 **升级/卸载**：装新 tarball 不动用户数据；`--dump-config` 仍应有 `preset-assistant`，新会话验证一次。升级/remove 保留两个插件目录；remove 后重装回到组合。`pnpm upgrade-smoke` 证明“旧→新→remove”的两目录边界与组合恢复；真实旧字节的读取由 `tests/host/old-home-compat.spec.ts` 的冻结 v19 fixture 证明（房间、技能、提案、用量、手册迁移、账本回执）。
 
 **格式兼容政策**：

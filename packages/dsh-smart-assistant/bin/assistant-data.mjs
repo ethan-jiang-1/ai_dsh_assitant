@@ -14,6 +14,7 @@
  *   node <package>/bin/assistant-data.mjs status --assistant <dir> --operating <dir>
  *   node <package>/bin/assistant-data.mjs check --assistant <dir> --operating <dir>
  *   node <package>/bin/assistant-data.mjs purge --assistant <dir> --kind <kind> --id <id> --reason <text> --yes
+ *   node <package>/bin/assistant-data.mjs archive-proposals --assistant <dir> --yes
  *   node <package>/bin/assistant-data.mjs refresh-manual --assistant <dir> --yes
  *
  * No harness peers are imported: the command runs from an installed profile with plain Node.
@@ -35,6 +36,7 @@ const usage = `usage:
   node <package>/bin/assistant-data.mjs status --assistant <dir> --operating <dir>
   node <package>/bin/assistant-data.mjs check --assistant <dir> --operating <dir>
   node <package>/bin/assistant-data.mjs purge --assistant <dir> --kind <memory|research|knowledge|skill|proposal> --id <id> --reason <text> --yes
+  node <package>/bin/assistant-data.mjs archive-proposals --assistant <dir> --yes
   node <package>/bin/assistant-data.mjs refresh-manual --assistant <dir> --yes`
 
 if (command === '--help' || command === undefined) {
@@ -127,6 +129,16 @@ try {
     console.log(`assistant-data: erased ${kind} ${id} (${String(result.removed.length)} path(s))`)
     for (const path of result.removed) console.log(`  removed ${path}`)
     console.log(`  audit ${result.audit}`)
+  } else if (command === 'archive-proposals') {
+    const assistantDir = option('--assistant')
+    if (assistantDir === undefined) {
+      console.error(usage)
+      process.exit(2)
+    }
+    const result = await module.archiveResolvedProposals({ assistantDir, confirm: argv.includes('--yes') })
+    console.log(`assistant-data: moved ${String(result.moved.length)} resolved proposal(s) to skill-proposals/archive/`)
+    for (const name of result.moved) console.log(`  archived ${name}`)
+    for (const name of result.kept) console.log(`  kept ${name} (still proposed/approved or not a safe name)`)
   } else if (command === 'refresh-manual') {
     const assistantDir = option('--assistant')
     if (assistantDir === undefined) {
