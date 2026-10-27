@@ -39,4 +39,4 @@ FAQ 26 的体检确认落点已对齐：working folder 是用户可见的 U home
 - 手册只迁移已知旧文；更老 generation 标 stale，`refresh-manual` 是显式逃生门（先备份，手改可恢复）。
 - 没有 project/workspace 键；一个 home 一个 principal，多项目共享是产品选择。
 
-未取的项与触发条件在[收口卡](../../_backlog/issues/261027-data-lifecycle-hardening.md)，本 note 不复制台账。
+未取的项与触发条件在[收口卡](../../_backlog/_archive/settled_issues/261027-data-lifecycle-hardening.md)，本 note 不复制台账。

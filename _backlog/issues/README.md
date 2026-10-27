@@ -4,7 +4,7 @@
 
 ## 活跃清单
 
-- [261027-data-lifecycle-hardening.md](261027-data-lifecycle-hardening.md)——数据生命周期硬化（Phase 0 + Phase 1）的收口卡：Phase 0/1 已交付并转 [implemented note](../../notes/implemented/2026-10-27-data-lifecycle-hardening.md)；卡内保留 G13+ 未取缺口、触发条件与全量 gap 登记。
+当前没有活跃问题卡——261027 数据生命周期硬化已按关闭条件结档到 [settled_issues](../_archive/settled_issues/261027-data-lifecycle-hardening.md)，未取的 G14/G15 等触发式剩余留在卡内。
 
 
 ## 写一张卡

@@ -6,6 +6,7 @@
 
 | 卡 | 关闭日 | 判定 |
 |---|---|---|---|
+| [261027-data-lifecycle-hardening.md](261027-data-lifecycle-hardening.md) | 2026-10-27 | **数据生命周期收口**：Phase 0/1 与 G13/G18/G20/G22/G23/G25/G33/G34/G36/G37/G38 落地——审计硬删除、import dry-run/replace、refresh-manual、fixture opt-in、manual v21、proposal rotation、账本归档索引/读取上限、source 完整性、archive 事务；G14/G15 等触发式剩余留卡内。去向 = [implemented note](../../../notes/implemented/2026-10-27-data-lifecycle-hardening.md) |
 | [261025-delivery-closure.md](261025-delivery-closure.md) | 2026-10-25 | **S0–S5 收口**：交付合同全链落地——`engines.dsh` 机器兼容 + Web UI/headless + 升级/备份；`docs/delivery.md` + handoff scan + `assistant-data`；无 `.git` bootstrap clean-room；管理岗默认身份 + seeds 显式装配。机械 clean-room/门禁/全测在卡内；第二机真人走查与口味 verdict 留触发（日常使用/第二台机器）。去向 = [implemented note](../../../notes/implemented/2026-10-25-delivery-contract.md) |
 | [261025-distribution-contract.md](261025-distribution-contract.md) | 2026-10-25 | **S1**：`engines.dsh`/`engines.node` + 兼容负例；Web UI 选择探针、headless 附录、升级/备份/卸载；旧 DSH 版本边界与真实下一版 fixture 留触发 |
 | [261025-agent-data-boundary.md](261025-agent-data-boundary.md) | 2026-10-25 | **S3**：agent/用户数据四处归属写进 `docs/delivery.md`；handoff scan 正反例；两目录 `assistant-data` manifest v1、空目标/未知 schema 拒绝；真实下一版数据 fixture 留 S5 触发 |

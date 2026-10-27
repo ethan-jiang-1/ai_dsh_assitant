@@ -1,11 +1,11 @@
 ---
-status: 推敲中
+status: 已结
 opened: 2026-10-27
 ---
 
 # 数据生命周期硬化（Phase 0 + Phase 1）
 
-> 立卡：2026-10-27 ｜ 状态：推敲中 ｜ 类型：Task ｜ 可关闭：否 ｜ 已授权实施（2026-10-27 用户点名本卡，按 G13+ 继续）
+> 立卡：2026-10-27 ｜ 状态：已结 ｜ 类型：Task ｜ 可关闭：是 ｜ 结论：Phase 0/1 与 G13/G18/G20/G22/G23/G25/G33/G34/G36/G37/G38 已交付；G14/G15 等触发式剩余留卡内。去向 = [implemented note](../../../notes/implemented/2026-10-27-data-lifecycle-hardening.md)。
 
 **问题与期望结果：** FAQ 26 的体检暴露出插件数据面的生命周期缺口：模型可见手册升级后不更新、旧 home 兼容没有证据、单文件账本会撞 1 MiB 投影上限、首次启动后恢复被拒、秘密落在明文文件/日志、数据卡与卸载清理不完整、部分写入不在原子写纪律内。用户应得到一组"发布后部署不会坏"的合同、代码与可执行证据。
 
@@ -51,7 +51,7 @@ opened: 2026-10-27
 
 | 片 | 状态 | 证据 |
 |---|---|---|
-| 卡与授权 | Phase 0/1 已交付 | 本卡 + [implemented note](../../notes/implemented/2026-10-27-data-lifecycle-hardening.md) |
+| 卡与授权 | Phase 0/1 已交付 | 本卡 + [implemented note](../../../notes/implemented/2026-10-27-data-lifecycle-hardening.md) |
 | P0-5 技能原子写 | 已完成 | `skill-file.ts` 改 `atomicWriteFile`；`skill-file.spec.ts` 新增覆盖/mode/tmp 用例 |
 | P0-3 秘密 | 已完成 | `viki/auth.ts` + `apiKeyEnv`/secret role；`bootstrap.mjs` 0600/失败也打码；`viki-auth.spec.ts`；`standalone-smoke` 断言 |
 | P0-4/P0-2 数据卡、status、恢复 | 已完成 | 数据卡 + README；`status`/`check`/`import --replace` + 完整性/活锁校验；`assistant-data.spec.mjs` 13 例 |
