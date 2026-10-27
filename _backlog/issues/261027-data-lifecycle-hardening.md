@@ -67,9 +67,9 @@ opened: 2026-10-27
 | G13 | **没有硬删除/擦除**：forget/deprecate/retire/discard 都进 archive 或留原地，审计与账本永久保留 | 未取 | 高（隐私/合规） | 触发：用户要求删一条敏感记忆/整份 home，或合规要求。需要 `assistant-data purge --record` / 显式 hard-delete 工具 + 审计，不能只删 UI 行 |
 | G14 | **没有跨机合并/同步**：import 是整目录 replace，两份 home 不能 merge，冲突无策略 | 未取 | 中 | 触发：第二个真实设备/团队共享。先做 dry-run + 冲突报告，再考虑 git/外部同步 |
 | G15 | **备份无加密/签名**：bundle 是明文业务数据，导入不验签 | 未取 | 中（部署/隐私） | 触发：备份上云/跨人传递。至少文档声明"备份是明文"，加密包另立提案 |
-| G16 | **用户手改与插件写冲突**：read-modify-write 无 CAS；未知 frontmatter 字段在下次写时被丢弃；digest 缓存看不见外部编辑 | 未取 | 中 | 触发：真实用户手改后丢字段/内容。先保留未知字段（merge）再谈 CAS；digest 可按目录 mtime 失效 |
-| G17 | **归档/审计/提案无 retention**：`operations-archive.jsonl`、`approvals.jsonl`、房间 archive、skills archive、skill-proposals 都只增；只有 skill snapshots 保 3 份 | 未取 | 中 | 触发：`status` 报归档 >64 MiB 或用户问清理。先做只读计数 + 导出/轮转，不做自动删 |
-| G18 | **`desk-projection.json` 夹具可在无账本时冒充真桌面** | 未取 | 中 | 触发：生产 home 出现夹具。方案：默认禁 fixture，显式配置才回退；需改测试/评测 |
+| G16 | **用户手改与插件写冲突**：read-modify-write 无 CAS；未知 frontmatter 字段在下次写时被丢弃；digest 缓存看不见外部编辑 | 部分（未知字段已保留） | 中 | `Room.write` 已 merge 未知字段；CAS/digest mtime 失效仍未取。触发：真实用户手改后丢内容 |
+| G17 | **归档/审计/提案无 retention**：`operations-archive.jsonl`、`approvals.jsonl`、房间 archive、skills archive、skill-proposals 都只增；只有 skill snapshots 保 3 份 | 未取（check 告警已加） | 中 | `check` 在归档 >64 MiB、approvals >16 MiB 时告警；自动轮转/删除未取 |
+| G18 | **`desk-projection.json` 夹具可在无账本时冒充真桌面** | 部分（check 告警） | 中 | `check` 报夹具存在；默认禁 fixture 需改测试/评测，未取 |
 | G19 | **投影 receipts 只含最近窗口**：旧回执不在桌面，客户端若要读旧回执需走工具 | 未取（合同已写） | 低 | 旧回执经 `assistant_operating read operation_id` 可读；若客户端需要，再做分页 |
 | G20 | **更老 generation 的手册没有迁移表**：只覆盖退役 Room data 段与 v19→v20；v0/v18 等只警告，没有"备份后重新生成"动作 | 未取 | 中 | 触发：真实旧 home 升级报告行为不对。方案：`refresh_manual`（备份 + 渲染当前版）或补迁移表 |
 | G21 | **SOUL 默认值漂移**：已有 home 永不覆盖（刻意），新默认身份只到新 home | 边界 | 低 | 身份是 owner 数据；发布说明写"想换默认就手动替换" |
@@ -88,7 +88,7 @@ opened: 2026-10-27
 | G34 | **`Room.archive` 非事务**：先写 archive 再删 source，崩溃留两份 → curate `duplicate-id` | 未取 | 低 | 可恢复的重复，不是丢失；可加 idempotent 收编 |
 | G35 | **`ui-mode` 双源（host 文件 + localStorage）无版本/迁移** | 未取 | 低 | host 为真；坏文件 422，客户端保留本地；低风险 |
 | G36 | **备份含 `deliverables/` 无大小上限；import 可把任意大目录搬入** | 未取 | 低 | 触发：备份膨胀。先 `status` 报大小，不做自动裁剪 |
-| G37 | **import 不检查两目标嵌套/包含** | 未取 | 低 | 触发：误配 `operatingDir` 在 `assistantDir` 内。加 containment 检查 |
+| G37 | **import 不检查两目标嵌套/包含** | 已修 | 低 | 已加 containment 守卫 + 测试 |
 | G38 | **`assistant-data` 无 `--dry-run`/差异预览**：`--replace` 会整目录换掉，只留旁路 | 未取 | 中 | 触发：误恢复旧备份。先做 manifest timestamp/count 对比与 `--dry-run` |
 
 ## 仍未取（按触发排序）
