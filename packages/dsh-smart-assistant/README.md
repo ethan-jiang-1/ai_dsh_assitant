@@ -41,7 +41,8 @@ Desktop 使用保留的 `desktop` profile：先在 Desktop 应用里初始化一
 `assistant-memory` 行可配 `dataDir`（默认 `<dshHome>/assistant`）、`digestMaxBytes`、`recallLimit`、
 `staleResearchDays`；`assistant-operating-ledger` 行有独立的 `dataDir`（默认
 `<dshHome>/assistant-operating`）与 `keepOperations`（默认 256）；`assistant-desk-projection` 有
-`maxProjectionBytes`（默认 8 MiB）。patch 是整行 config 替换，不是深合并。
+`maxProjectionBytes`（默认 8 MiB）与 `allowFixture`（默认 `false`：无账本时 404，不把
+`desk-projection.json` 模拟资料当成真桌面）。patch 是整行 config 替换，不是深合并。
 
 Viki 的 API key 从 `apiKeyEnv`（默认 `OPENVIKING_API_KEY`）读；内联 `apiKey` 只为旧 home 保留，
 会以明文写进 profile patch，不推荐。

@@ -48,16 +48,27 @@ async function readCapped(path: string, maxBytes: number, signal: AbortSignal | 
   }
 }
 
+/** Route options; the fixture is opt-in because a simulation file must never pose as real data. */
+export interface DeskProjectionRouteOptions {
+  /** Allow `desk-projection.json` fallback when no ledger exists. Defaults to false. */
+  readonly allowFixture?: boolean
+}
+
 /**
  * Contribute the exact GET route: the authoritative operating ledger rendered as the v2
- * projection when `ledger.json` exists (a fixture file never wins over it), the fixed
- * `desk-projection.json` simulation input otherwise, and honest missing/corrupt/oversized
- * states throughout.
+ * projection when `ledger.json` exists (a fixture file never wins over it); with
+ * `allowFixture`, the fixed `desk-projection.json` simulation input otherwise. A fixture without
+ * the opt-in is a 404, not a fake desk.
  * @param dataDir - Independent Host operating directory, not the Agent working folder.
  * @param maxBytes - Complete file limit in bytes; only limit plus one byte is read.
+ * @param options - Fixture opt-in.
  * @returns The exact GET contribution; registration is owned by the Host plugin fiber.
  */
-export function createDeskProjectionRoute(dataDir: string, maxBytes: number = 8 * 1024 * 1024): ConnectionFetchRoute {
+export function createDeskProjectionRoute(
+  dataDir: string,
+  maxBytes: number = 8 * 1024 * 1024,
+  options: DeskProjectionRouteOptions = {},
+): ConnectionFetchRoute {
   if (!Number.isSafeInteger(maxBytes) || maxBytes < 1) throw new Error('projection maxBytes must be a positive safe integer')
   return {
     path: '/api/assistant/desk-projection',
@@ -88,7 +99,9 @@ export function createDeskProjectionRoute(dataDir: string, maxBytes: number = 8 
             return failure(422, 'projection-invalid')
           }
         }
-        // No ledger yet: the fixed simulation input keeps the fixed-fixture projection scenes running.
+        // No ledger yet: only an explicit opt-in may serve the simulation input. A stray fixture
+        // in a real home is not authority.
+        if (options.allowFixture !== true) return failure(404, 'projection-missing')
         const fixed = await readCapped(join(dataDir, 'desk-projection.json'), maxBytes, request.signal).catch(error => {
           if (error instanceof Error && 'code' in error && error.code === 'ENOENT') return 'missing' as const
           throw error

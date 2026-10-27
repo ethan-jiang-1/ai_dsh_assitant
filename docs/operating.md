@@ -61,7 +61,8 @@
 
 - `GET api/assistant/desk-projection`，固定只读，`requestBody: buffered`：
   **有 `ledger.json` 时优先读真账本并即时渲染 v2 投影**（永不持久第二份可写真相；夹具文件压不过权威账本）；
-  无账本时回退固定 `desk-projection.json` 模拟输入（无账本的评估与首开场景）。两者都缺 = 404。
+  无账本时默认 404；只有 `allowFixture: true` 才回退固定 `desk-projection.json` 模拟输入（评估/夹具场景）。
+  夹具在真实 home 里不是权威，`assistant-data check` 会点名。
 - 不创建目录/文件、不读 agent working folder、不接受 query（带 query = 400）与 path 参数、不提供写入；
   业务 schema 的校验在客户端解析器，不在下载器。
 - v2 回执逐条带**操作语义**：`kind`（域层操作类型）与 `quote`（提交者当时的原话，可省）——桌面详情的

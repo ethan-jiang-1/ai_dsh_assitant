@@ -4,7 +4,7 @@
 
 ## 复跑真实认证下载
 
-用一次性 home 按 [开发手册](../../../docs/dev.md) 的 prepare/setup 序列准备 profile。在 workspace 中创建 overlay，仅覆盖 `assistant-desk-projection` 的 Config `dataDir` 为本资料目录的绝对路径（不要覆盖 assistant-memory）。工作区也固定到该隔离 home，不读共享 Documents。
+用一次性 home 按 [开发手册](../../../docs/dev.md) 的 prepare/setup 序列准备 profile。在 workspace 中创建 overlay，覆盖 `assistant-desk-projection` 的 Config `dataDir` 为本资料目录的绝对路径，并显式设 `allowFixture: true`（默认不服务夹具，模拟不能冒充真桌面；不要覆盖 assistant-memory）。工作区也固定到该隔离 home，不读共享 Documents。
 
 ```sh
 # --patch 必须在转发给 Web 的 --port/--no-open 之前。

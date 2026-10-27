@@ -11,9 +11,9 @@
 //      位置由 view store 恢复（记录＝根 onScroll，恢复＝根 ref 的渲染后 DOM 效应）。
 //
 // 自包含编排：共享探针 home（默认 <repo>/.tmp/probe-home/k4-probe-home，需跑过 prepare/setup）种子为
-// eight-matters 固定夹具（无 ledger → fixture 态；desk-process-e2e 重放 ledger 时不冲突——
-// ledger 优先）。无回放、无模型回合；服务直连 vendor CLI bin（启动器层会让 SIGTERM
-// 孤儿化真服务，writer.lock 教训见 desk-process-e2e 头注）。
+// eight-matters 固定夹具，并以 `projection-fixture.patch.yml` 显式打开 fixture 回退（生产默认不把
+// fixture 当真桌面；desk-process-e2e 重放 ledger 时不冲突——ledger 优先）。无回放、无模型回合；
+// 服务直连 vendor CLI bin（启动器层会让 SIGTERM 孤儿化真服务，writer.lock 教训见 desk-process-e2e 头注）。
 //
 // Usage（repo 根）:
 //   node dev/probes/web/projection-live-mechanics.mjs [--home <dir>] [--keep-service]
@@ -63,7 +63,13 @@ mkdirSync(operatingDir, { recursive: true })
 rmSync(join(operatingDir, 'ledger.json'), { force: true })
 copyFileSync(fixture, join(operatingDir, 'desk-projection.json'))
 
-const { service, url, pidFile } = await startProbeService({ repoRoot, home, pidName: '.projection-live-mechanics.pid' })
+const fixturePatch = join(repoRoot, 'dev', 'probes', 'web', 'projection-fixture.patch.yml')
+const { service, url, pidFile } = await startProbeService({
+  repoRoot,
+  home,
+  pidName: '.projection-live-mechanics.pid',
+  patch: fixturePatch,
+})
 verdict.url = url
 
 let browser = undefined

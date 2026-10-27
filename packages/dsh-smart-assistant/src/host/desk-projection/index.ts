@@ -15,11 +15,14 @@ export interface Config {
   readonly dataDir?: string
   /** Complete emitted file byte limit; default 8 MiB (the state is compacted; this bridges old homes). */
   readonly maxProjectionBytes?: number
+  /** Serve `desk-projection.json` when no ledger exists; false by default (no fake desk). */
+  readonly allowFixture?: boolean
 }
 
 export const Config: Schema<Config> = z.object({
   dataDir: z.string(),
   maxProjectionBytes: z.natural().min(1).default(8 * 1024 * 1024),
+  allowFixture: z.boolean().default(false),
 })
 
 /**
@@ -32,5 +35,9 @@ export function apply(ctx: Context, config: Config = {}): void {
   const dataDir = config.dataDir === undefined
     ? join(resolveDshHome(), 'assistant-operating')
     : resolve(expandHomePath(config.dataDir))
-  ctx.effect(() => ctx.connection.fetch.register(createDeskProjectionRoute(dataDir, config.maxProjectionBytes ?? 8 * 1024 * 1024)))
+  ctx.effect(() => ctx.connection.fetch.register(createDeskProjectionRoute(
+    dataDir,
+    config.maxProjectionBytes ?? 8 * 1024 * 1024,
+    { allowFixture: config.allowFixture === true },
+  )))
 }

@@ -57,7 +57,7 @@ async function hostRoot() {
       await ctx.loader.root.update([{
         id: 'assistant-projection',
         name: 'cordis:assistant-projection',
-        config: { dataDir },
+        config: { dataDir, allowFixture: true },
       }])
       await ctx.loader.await()
     },

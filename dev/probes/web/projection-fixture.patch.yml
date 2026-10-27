@@ -1,0 +1,8 @@
+# Fixture opt-in for the projection probes only.
+#
+# Production defaults to no fixture: a `desk-projection.json` in a real operating directory is not
+# authority. This overlay is passed with `--patch` by `projection-live-mechanics.mjs` so its
+# fixture-backed phases keep running. Do not add this to a user profile.
+- id: assistant-desk-projection
+  config:
+    allowFixture: true

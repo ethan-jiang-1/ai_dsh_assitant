@@ -445,7 +445,7 @@ export async function checkData(options: { readonly assistantDir: string, readon
   // serve it as if it were the authoritative ledger whenever no ledger exists.
   const fixture = join(status.operatingDir, 'desk-projection.json')
   if (existsSync(fixture)) {
-    problems.push(`desk-projection.json fixture is present at ${fixture}; with no ledger the desktop will serve it as real data`)
+    problems.push(`desk-projection.json fixture is present at ${fixture}; it is served only when allowFixture is true — remove it unless this home is an evaluation fixture`)
   }
   const approvals = join(status.assistantDir, 'audit', 'approvals.jsonl')
   if (existsSync(approvals) && (await stat(approvals)).size > APPROVALS_WARN_BYTES) {

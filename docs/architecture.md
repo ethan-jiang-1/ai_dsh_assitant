@@ -310,7 +310,7 @@ pnpm dsh …（package.json scripts → dev/env/dsh.mjs，唯一启动器：
 - **数据源**：全局桌面读取独立 Host 固定投影；记忆/知识/技能三个房间 tab 读独立 Host 行 `assistant-rooms` 的房间投影（working folder 真值），Viki 读 `assistant-viki`；同一路径的 POST 是受控写；默认入口本身不创建业务 Session。
 - **会话内视图**：桌面/任务 tab 已退役（2026-10-24）；会话只有对话/轨迹，调试 flag 打开时多一个「开发调试」。桌面与任务只在主面板，不复制到会话。
 
-独立 Host 行 `assistant-desk-projection` 提供固定只读投影下载：经营 dataDir 里有 `ledger.json` 时**活渲染账本 v2 投影**，无账本才回退固定 `desk-projection.json` 模拟输入；端点边界、认证、错误态与 byte cap 的完整契约 = [`operating.md`](operating.md) §三（唯一权威，本文不复述）。物理 HTTP 验证使用 [只读探针](../dev/probes/web/desk-projection-download.mjs)，以明确标注模拟的 [固定资料](../dev/fixtures/desk-projection/desk-projection.json) 为独立字节预期。
+独立 Host 行 `assistant-desk-projection` 提供固定只读投影下载：经营 dataDir 里有 `ledger.json` 时**活渲染账本 v2 投影**；无账本默认 404，只有 `allowFixture: true` 才回退固定 `desk-projection.json` 模拟输入（模拟不是权威）；端点边界、认证、错误态与 byte cap 的完整契约 = [`operating.md`](operating.md) §三（唯一权威，本文不复述）。物理 HTTP 验证使用 [只读探针](../dev/probes/web/desk-projection-download.mjs)，以明确标注模拟的 [固定资料](../dev/fixtures/desk-projection/desk-projection.json) 为独立字节预期。
 
 客户端读回链（下载对象的代际/陈旧语义、经营 v1/v2 解析器、`hooks.projection` 生命周期绑定、面板形态与 `ready` 语义）的合同同在 [`operating.md`](operating.md) §三；可执行合同 = [读取测试](../packages/dsh-smart-assistant/tests/client/projection-reader.spec.ts)与其同族 spec。
 

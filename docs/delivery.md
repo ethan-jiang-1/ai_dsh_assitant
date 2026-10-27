@@ -46,6 +46,10 @@
 | 客户端 UI 状态 | 客户端 | 设备/浏览器 | localStorage：`dsha:ui-mode`、`dsha:receipt-since`、`dsha-proactive-ui-v1`、`dsh-assistant-debug`；sessionStorage：`dsha-capture-seen-running-v1`、`dsha-capture-receipt-v1` | origin/设备 | 可丢弃；换源/清站点即失 | 浏览器 | 否 | 保留；清站点数据 |
 | OpenViking 记忆 | E2 外部服务 | 外部服务 | OpenViking server（可选） | 外部 | 由服务决定 | 面板/模型经工具 | 否 | 按 OpenViking 手册清理 |
 
+**模拟夹具不是数据**：`<operatingDir>/desk-projection.json` 是评估/夹具输入，不是经营账本。无 `ledger.json` 时
+桌面默认 404；只有 `assistant-desk-projection` 显式配 `allowFixture: true` 才回退它。真实 home 里出现该文件时
+`assistant-data check` 会点名，避免模拟事项冒充真事项。
+
 **作用域**：working folder 与账本都是 home 单例，**不按 workspace 分区**；多项目共享是产品选择，要隔离用独立 `DSH_HOME`。客户端键只属于设备，不参与模型请求。
 
 **秘密**：working folder、账本、归档都是明文；不要把 API key、token、密码写进记忆/知识/账本。Viki 的 key 从 `apiKeyEnv`（默认 `OPENVIKING_API_KEY`）解析，内联 `apiKey` 仅为旧 home 保留并会把明文写进 profile patch。bootstrap 的 `bootstrap.json`（含 launch URL）为 0600，`logs/bootstrap.log` 在拿到 URL 后把 token 替换为 `[redacted]`。

@@ -17,10 +17,10 @@ opened: 2026-10-27
 
 | 片 | Gap | 状态 | 验收 |
 |---|---|---|---|
-| A | G13 显式审计硬删除 | 进行中 | `assistant-data purge --kind --id --reason --yes` 删除 active/archive/快照；先写 `audit/purges.jsonl`；拒绝无确认/无理由/未知 id/路径穿越/符号链接；测试 |
-| B | G20 更老手册再生 | 待开始 | `assistant-data refresh-manual --assistant --yes` 先备份再渲染当前版；测试 |
-| C | G38 导入 dry-run | 待开始 | `import --dry-run` 只校验并报计划，不写；测试 |
-| D | G18 夹具默认权威 | 待开始 | 默认不把 `desk-projection.json` 当真桌面；显式配置才回退；改测试/评测 |
+| A | G13 显式审计硬删除 | 已完成 | `assistant-data purge --kind --id --reason --yes` 删除 active/archive/快照；先写 `audit/purges.jsonl`；拒绝无确认/无理由/未知 id/路径穿越/符号链接；`assistant-data-purge.spec.mjs` |
+| B | G20 更老手册再生 | 已完成 | `assistant-data refresh-manual --assistant --yes` 先备份再渲染当前版；`assistant-data-manual.spec.mjs` |
+| C | G38 导入 dry-run | 已完成 | `import --dry-run` 只校验并报计划，不写；`assistant-data.spec.mjs` |
+| D | G18 夹具默认权威 | 已完成 | 默认 404；`assistant-desk-projection.allowFixture` 显式开启；测试/组合/探针 patch 已更新 |
 | E | G16 用户手改 CAS / digest 外部编辑 | 待开始 | 写前版本/内容前置或 mtime 失效；测试 |
 | F | G17/G23/G25 retention | 待开始 | 只读计数/告警 + 显式清理；不自动删 |
 | G | G22 deliverables/present | 待开始 | 手册 generation 迁移加交付指引；prompt-smoke/eval |
@@ -78,14 +78,14 @@ opened: 2026-10-27
 | G10 | `atomicWriteFile` 不 fsync；SOUL/AGENTS 普通写 | 已修 | 中 | temp fsync + rename + 目录 fsync；scaffold 改原子写 |
 | G11 | 备份 manifest 的 files/bytes 不校验；目标有活锁仍可导 | 已修 | 中 | import 拒绝 fewer files/bytes 与 `writer.lock`；测试 |
 | G12 | 相对 `dataDir` 按进程 cwd 散落 | 已修 | 低 | memory/ledger/projection 统一 `resolve()`；`check` 报相对路径 |
-| G13 | **没有硬删除/擦除**：forget/deprecate/retire/discard 都进 archive 或留原地，审计与账本永久保留 | 未取 | 高（隐私/合规） | 触发：用户要求删一条敏感记忆/整份 home，或合规要求。需要 `assistant-data purge --record` / 显式 hard-delete 工具 + 审计，不能只删 UI 行 |
+| G13 | **没有硬删除/擦除**：forget/deprecate/retire/discard 都进 archive 或留原地，审计与账本永久保留 | 已修（房间记录；账本/会话仍不删） | 高（隐私/合规） | `assistant-data purge` 删 active/archive/snapshot 并写 `audit/purges.jsonl`；账本 history 与会话是明示边界 |
 | G14 | **没有跨机合并/同步**：import 是整目录 replace，两份 home 不能 merge，冲突无策略 | 未取 | 中 | 触发：第二个真实设备/团队共享。先做 dry-run + 冲突报告，再考虑 git/外部同步 |
 | G15 | **备份无加密/签名**：bundle 是明文业务数据，导入不验签 | 未取 | 中（部署/隐私） | 触发：备份上云/跨人传递。至少文档声明"备份是明文"，加密包另立提案 |
 | G16 | **用户手改与插件写冲突**：read-modify-write 无 CAS；未知 frontmatter 字段在下次写时被丢弃；digest 缓存看不见外部编辑 | 部分（未知字段已保留） | 中 | `Room.write` 已 merge 未知字段；CAS/digest mtime 失效仍未取。触发：真实用户手改后丢内容 |
 | G17 | **归档/审计/提案无 retention**：`operations-archive.jsonl`、`approvals.jsonl`、房间 archive、skills archive、skill-proposals 都只增；只有 skill snapshots 保 3 份 | 未取（check 告警已加） | 中 | `check` 在归档 >64 MiB、approvals >16 MiB 时告警；自动轮转/删除未取 |
-| G18 | **`desk-projection.json` 夹具可在无账本时冒充真桌面** | 部分（check 告警） | 中 | `check` 报夹具存在；默认禁 fixture 需改测试/评测，未取 |
+| G18 | **`desk-projection.json` 夹具可在无账本时冒充真桌面** | 已修 | 中 | 默认 404；`allowFixture: true` 才回退；测试/组合/探针 patch 已更新 |
 | G19 | **投影 receipts 只含最近窗口**：旧回执不在桌面，客户端若要读旧回执需走工具 | 未取（合同已写） | 低 | 旧回执经 `assistant_operating read operation_id` 可读；若客户端需要，再做分页 |
-| G20 | **更老 generation 的手册没有迁移表**：只覆盖退役 Room data 段与 v19→v20；v0/v18 等只警告，没有"备份后重新生成"动作 | 未取 | 中 | 触发：真实旧 home 升级报告行为不对。方案：`refresh_manual`（备份 + 渲染当前版）或补迁移表 |
+| G20 | **更老 generation 的手册没有迁移表**：只覆盖退役 Room data 段与 v19→v20；v0/v18 等只警告，没有"备份后重新生成"动作 | 已修（显式再生） | 中 | `assistant-data refresh-manual --yes` 备份后渲染当前版；不自动覆盖手改 |
 | G21 | **SOUL 默认值漂移**：已有 home 永不覆盖（刻意），新默认身份只到新 home | 边界 | 低 | 身份是 owner 数据；发布说明写"想换默认就手动替换" |
 | G22 | **`deliverables/` 孤儿**：无代码读写、无生命周期、无 `present` 指引；最终交付可能落在 home 而不是 workspace | 未取 | 中 | 触发：真实交付找不到/不随项目走。方案：手册加"交付写 cwd + present"，并给 home 的 deliverables 一个显式归档口径 |
 | G23 | **`skill-proposals/archive/` 配置了但没用**：landed/rejected 提案留在收件箱，只增 | 未取 | 低 | 与 G17 一起做 retention/归档 |
@@ -103,14 +103,16 @@ opened: 2026-10-27
 | G35 | **`ui-mode` 双源（host 文件 + localStorage）无版本/迁移** | 未取 | 低 | host 为真；坏文件 422，客户端保留本地；低风险 |
 | G36 | **备份含 `deliverables/` 无大小上限；import 可把任意大目录搬入** | 未取 | 低 | 触发：备份膨胀。先 `status` 报大小，不做自动裁剪 |
 | G37 | **import 不检查两目标嵌套/包含** | 已修 | 低 | 已加 containment 守卫 + 测试 |
-| G38 | **`assistant-data` 无 `--dry-run`/差异预览**：`--replace` 会整目录换掉，只留旁路 | 未取 | 中 | 触发：误恢复旧备份。先做 manifest timestamp/count 对比与 `--dry-run` |
+| G38 | **`assistant-data` 无 `--dry-run`/差异预览**：`--replace` 会整目录换掉，只留旁路 | 已修（dry-run） | 中 | `import --dry-run` 报文件数与将被旁路的目标；时间戳/内容差异预览仍未取 |
 
 ## 仍未取（按触发排序）
 
-- **G13 硬删除/擦除**：最高隐私优先；需要显式命令 + 审计 + 用户确认，不在本轮。
-- **G14/G15 同步与备份加密**：跨机/上云的真实需求出现再做；先文档声明现状。
-- **G16 用户手改冲突 / G18 夹具权威 / G20 更老手册**：下一轮数据面片，均有可观察触发。
-- **G17/G23/G25 retention**：先 `status` 只读读数与告警，不做自动删除。
+- **G14/G15 同步与备份加密**：跨机/上云的真实需求出现再做；G38 的 dry-run 已给恢复前预览，合并/加密仍开放。
+- **G16 用户手改 CAS**：未知字段已保留；read-modify-write 前置与 digest 外部编辑刷新仍未取。
+- **G17/G23/G25 retention**：`check` 只读告警已有，自动轮转/删除未取。
+- **G19 投影 receipts 窗口**：合同已写，客户端旧回执分页未取。
 - **G22 deliverables**：手册加 `present` 指引前，不新造交付目录。
+- **G24/G33/G34**：锁 takeover/PID、source 引用完整性、archive 事务，按可观察触发。
+- **G26/G27/G32/G35/G36**：OV sentinel、种子凭据、跨会话证据、ui-mode 版本、备份大小，低优先。
 - **G28/G29/G30/G31 边界**：单 principal/home、无 workspace 键、Windows 未验证、明文 egress；文档已写，主张变了再改。
 

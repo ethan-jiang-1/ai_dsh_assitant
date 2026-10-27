@@ -1,4 +1,10 @@
-/** Read-only real HTTP probe for the fixed download; fixture bytes are independent expectations. */
+/**
+ * Read-only real HTTP probe for the fixed download; fixture bytes are independent expectations.
+ *
+ * The server must opt into the fixture (`assistant-desk-projection` config `allowFixture: true`,
+ * e.g. via dev/probes/web/projection-fixture.patch.yml). Production defaults to 404 when no
+ * ledger exists, so a fixture in a real home is never served as data.
+ */
 import { readFile } from 'node:fs/promises'
 
 const [loginArg, fixtureArg] = process.argv.slice(2)
