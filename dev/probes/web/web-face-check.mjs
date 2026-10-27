@@ -1,20 +1,23 @@
 #!/usr/bin/env node
 /**
- * One-command replay of the customer web-face scenes: fresh isolated home → seed → boot the
- * real service → capture/compare the committed expectation → stop. This is the keyless lane
- * the scene READMEs describe by hand; Viki debug scenes stay out because they need the OpenViking
- * mock server and are not customer faces.
+ * One-command replay of the web-face scenes: fresh isolated home → seed → boot the real service
+ * → capture/compare the committed expectation → stop.
  *
- * Why not jsdom: the DOM-test packages are in the pnpm store but adding them offline is blocked
- * by the supply-chain policy. The existing Chrome/CDP lane is already the real render; this
- * script only removes the manual orchestration and the stale-runbook class of failure.
+ * Default: the four customer scenes. `--all` adds the four Viki debug scenes: one fixed
+ * OpenViking mock (viki-panel-connected/seed.mjs) serves connected/diagnostics/search, while
+ * disconnected points at a dead port; all Viki pages use `#debug=1`.
+ *
+ * The unit lane has one real-DOM spec (happy-dom + react-dom); this lane stays the full
+ * Chrome/CDP render, because the Viki tab, right rail and scene clicks are only real there.
  *
  * Usage:
- *   node dev/probes/web/web-face-check.mjs [--scenario <name>] [--keep]
- *   Scenarios: blank-first-open, first-open-draft-banner, desk-eight-matters-first-open,
- *              desk-eight-matters-brief-list (default: all four).
+ *   node dev/probes/web/web-face-check.mjs [--scenario <name>] [--all] [--keep]
+ *   Customer: blank-first-open, first-open-draft-banner, desk-eight-matters-first-open,
+ *             desk-eight-matters-brief-list (default)
+ *   Viki:     viki-panel-connected, viki-panel-diagnostics, viki-panel-disconnected,
+ *             viki-panel-search (only with --all or --scenario)
  */
-import { spawnSync } from 'node:child_process'
+import { spawn, spawnSync } from 'node:child_process'
 import { rmSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -25,6 +28,7 @@ import { startProbeService } from './probe-service.mjs'
 const repoRoot = resolve(fileURLToPath(new URL('.', import.meta.url)), '..', '..', '..')
 const args = process.argv.slice(2)
 const keep = args.includes('--keep')
+const all = args.includes('--all')
 const scenarioArg = args.includes('--scenario') ? args[args.indexOf('--scenario') + 1] : undefined
 
 const CUSTOMER = [
@@ -33,8 +37,15 @@ const CUSTOMER = [
   'desk-eight-matters-first-open',
   'desk-eight-matters-brief-list',
 ]
-if (scenarioArg !== undefined && !CUSTOMER.includes(scenarioArg)) {
-  console.error(`web-face-check: unknown scenario ${scenarioArg}; choose one of ${CUSTOMER.join(', ')}`)
+const VIKI = [
+  'viki-panel-connected',
+  'viki-panel-diagnostics',
+  'viki-panel-disconnected',
+  'viki-panel-search',
+]
+const ALL = [...CUSTOMER, ...VIKI]
+if (scenarioArg !== undefined && !ALL.includes(scenarioArg)) {
+  console.error(`web-face-check: unknown scenario ${scenarioArg}; choose one of ${ALL.join(', ')}`)
   process.exit(2)
 }
 
@@ -62,8 +73,9 @@ function seed(nodeArgs, home) {
 }
 
 function expected(url, scenario, expectedArgs) {
+  const target = scenario.startsWith('viki-') ? `${url}#debug=1` : url
   return sh(process.execPath, [
-    'dev/probes/web/webui-expected.mjs', url,
+    'dev/probes/web/webui-expected.mjs', target,
     '--scenario', `snapshots/web-face/${scenario}`,
     ...expectedArgs,
   ])
@@ -75,6 +87,7 @@ async function withService(home, options, run) {
     home,
     pidName: '.web-face-check.pid',
     ...(options.patch !== undefined ? { patch: options.patch } : {}),
+    ...(options.extraEnv !== undefined ? { extraEnv: options.extraEnv } : {}),
   })
   try {
     return await run(url)
@@ -90,6 +103,100 @@ function warmUp(scenario, url, name) {
     'dev/probes/web/webui-shots.mjs', url,
     '--dom', '--size', '1600x1000', '--name', `web-face-check-${name}`,
   ])
+}
+
+/* Viki evals are copied from the scene READMEs; each is one page-context snippet. */
+const CONTINUE = "(()=>{const b=[...document.querySelectorAll('button')].find(e=>e.textContent?.trim()==='继续');b?.click();return true})()"
+const NEW_SESSION = "(()=>{const b=[...document.querySelectorAll('button')].find(e=>e.textContent?.trim().includes('新会话'));b?.click();return !!b})()"
+const RIGHT_BAR = "(()=>{const b=document.querySelector('button[aria-label=\"打开右侧边栏\"]');b?.click();return !!b})()"
+const VIKI_TAB = "(()=>{const el=[...document.querySelectorAll('button,[role=tab],a')].find(e=>e.textContent?.trim().startsWith('Viki'));if(!el)return false;el.click();return true})()"
+const DIAGNOSTICS = "(()=>{const b=[...document.querySelectorAll('button')].find(e=>e.textContent?.trim()==='诊断');b?.click();return !!b})()"
+const SEARCH = "(()=>{const i=[...document.querySelectorAll('input')].find(e=>e.placeholder?.includes('搜索记忆'));if(!i)return false;const set=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set;set.call(i,'夹具');i.dispatchEvent(new Event('input',{bubbles:true}));const b=[...document.querySelectorAll('button')].find(e=>e.textContent?.trim()==='搜索');b?.click();return !!b})()"
+
+const VIKI_RECIPES = {
+  'viki-panel-connected': { evals: [CONTINUE, NEW_SESSION, RIGHT_BAR, VIKI_TAB], wait: '固定夹具' },
+  'viki-panel-diagnostics': { evals: [CONTINUE, NEW_SESSION, RIGHT_BAR, VIKI_TAB, DIAGNOSTICS], wait: '健康' },
+  'viki-panel-disconnected': { evals: [CONTINUE, NEW_SESSION, RIGHT_BAR, VIKI_TAB], wait: 'Viki 未连接' },
+  'viki-panel-search': { evals: [CONTINUE, NEW_SESSION, RIGHT_BAR, VIKI_TAB, SEARCH], wait: '搜索「夹具」' },
+}
+
+async function startVikiMock() {
+  const mock = spawn(process.execPath, ['snapshots/web-face/viki-panel-connected/seed.mjs', '--port', '19433'], {
+    cwd: repoRoot,
+    stdio: ['ignore', 'pipe', 'pipe'],
+  })
+  let base
+  mock.stdout.on('data', chunk => {
+    const match = /viki mock on (http:\/\/\S+)/.exec(String(chunk))
+    if (match !== null) base = match[1]
+  })
+  for (let i = 0; i < 80 && base === undefined; i++) await sleep(250)
+  if (base === undefined) {
+    mock.kill('SIGTERM')
+    throw new Error('viki mock never announced its URL')
+  }
+  for (let i = 0; i < 40; i++) {
+    try {
+      const response = await fetch(`${base}/health`)
+      if (response.ok) return { mock, base }
+    } catch {
+      // not listening yet
+    }
+    await sleep(200)
+  }
+  mock.kill('SIGTERM')
+  throw new Error(`viki mock did not answer /health at ${base}`)
+}
+
+async function runViki(names) {
+  const home = mkTmpDir('web-face-check', 'viki-home-')
+  console.log(`\n▶ viki (${home})`)
+  if (!provision(home)) return failed('viki: provision failed')
+
+  const connected = names.filter(name => name !== 'viki-panel-disconnected')
+  if (connected.length > 0) {
+    let mock
+    let base
+    try {
+      ({ mock, base } = await startVikiMock())
+    } catch (error) {
+      failed(`viki mock: ${error instanceof Error ? error.message : String(error)}`)
+      if (!keep) rmSync(home, { recursive: true, force: true })
+      return
+    }
+    try {
+      const code = await withService(home, { extraEnv: { OPENVIKING_URL: base } }, async url => {
+        let status = 0
+        for (const scenario of connected) {
+          const recipe = VIKI_RECIPES[scenario]
+          const result = expected(url, scenario, [
+            ...recipe.evals.flatMap(evalSnippet => ['--eval', evalSnippet]),
+            '--wait-text', recipe.wait,
+          ])
+          if (result === 0) ok(scenario)
+          else { failed(`${scenario} (exit ${result})`); status = 1 }
+        }
+        return status
+      })
+      if (code !== 0 && connected.length === 1) failed(`viki connected group (exit ${code})`)
+    } finally {
+      try { mock.kill('SIGTERM') } catch { /* already gone */ }
+      await sleep(400)
+    }
+  }
+
+  if (names.includes('viki-panel-disconnected')) {
+    const code = await withService(home, { extraEnv: { OPENVIKING_URL: 'http://127.0.0.1:9' } }, url => {
+      const recipe = VIKI_RECIPES['viki-panel-disconnected']
+      return expected(url, 'viki-panel-disconnected', [
+        ...recipe.evals.flatMap(evalSnippet => ['--eval', evalSnippet]),
+        '--wait-text', recipe.wait,
+      ])
+    })
+    if (code === 0) ok('viki-panel-disconnected')
+    else failed(`viki-panel-disconnected (exit ${code})`)
+  }
+  if (!keep) rmSync(home, { recursive: true, force: true })
 }
 
 async function runBlank() {
@@ -151,12 +258,21 @@ async function runDesk() {
   if (!keep) rmSync(home, { recursive: true, force: true })
 }
 
-const selected = scenarioArg === undefined ? CUSTOMER : [scenarioArg]
+const selected = scenarioArg !== undefined ? [scenarioArg] : all ? ALL : CUSTOMER
 let deskDone = false
+let vikiDone = false
 for (const scenario of selected) {
   if (scenario === 'blank-first-open') await runBlank()
   else if (scenario === 'first-open-draft-banner') await runBanner()
-  else if (!deskDone) { deskDone = true; await runDesk() }
+  else if (scenario.startsWith('viki-')) {
+    if (!vikiDone) {
+      vikiDone = true
+      await runViki(selected.filter(name => name.startsWith('viki-')))
+    }
+  } else if (!deskDone) {
+    deskDone = true
+    await runDesk()
+  }
 }
 
 console.log('')
@@ -164,4 +280,5 @@ if (failures.length > 0) {
   console.log(`web-face-check: ${failures.length} failure(s)`)
   process.exit(1)
 }
-console.log('web-face-check: PASS — all selected customer scenes match')
+const lane = all ? 'customer + viki' : scenarioArg?.startsWith('viki-') ? 'viki' : scenarioArg === undefined ? 'customer' : 'one scene'
+console.log(`web-face-check: PASS — all selected scenes match (${lane})`)

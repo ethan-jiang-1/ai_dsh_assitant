@@ -15,7 +15,7 @@ DSH 的行为回归证据面按"录一次、keyless 重放比对"运转（一场
   [`viki-panel-search`](web-face/viki-panel-search/README.md)（搜索命中）、
   [`viki-panel-diagnostics`](web-face/viki-panel-diagnostics/README.md)（健康/诊断）。harness 是
   [`dev/probes/web/webui-expected.mjs`](../dev/probes/web/webui-expected.mjs)
-  （`--scenario` 必填 + `--wait-text` 就绪令牌）。
+  （`--scenario` 必填 + `--wait-text` 就绪令牌）。一键 `pnpm web-face-check --all` 跑全 8 面（默认 4 客户面）；Viki 面由固定 mock 驱动。
 - **session 回放**：**仍未建**——升级触发条件见文末，当前用什么顶见下。
 
 **当前用什么顶**：
