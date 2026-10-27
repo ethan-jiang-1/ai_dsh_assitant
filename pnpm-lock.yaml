@@ -130,15 +130,24 @@ importers:
       '@types/react':
         specifier: ~18.3.1
         version: 18.3.31
+      '@types/react-dom':
+        specifier: 18.3.7
+        version: 18.3.7(@types/react@18.3.31)
       '@vitest/coverage-v8':
         specifier: 4.1.11
         version: 4.1.11(vitest@4.1.11)
+      happy-dom:
+        specifier: 20.14.5
+        version: 20.14.5
       js-yaml:
         specifier: ^4.3.2
         version: 4.3.2
       react:
         specifier: ^18.2.0
         version: 18.3.1
+      react-dom:
+        specifier: 18.3.1
+        version: 18.3.1(react@18.3.1)
       semver:
         specifier: ^7.8.5
         version: 7.8.5
@@ -21746,7 +21755,6 @@ snapshots:
   '@types/react-dom@18.3.7(@types/react@18.3.31)':
     dependencies:
       '@types/react': 18.3.31
-    optional: true
 
   '@types/react@18.3.31':
     dependencies:

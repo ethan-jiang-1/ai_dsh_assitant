@@ -91,7 +91,7 @@
 | `tests/host/` | 服务合同（四房间读写、curate、提案收件箱、房间落位、根文件、品牌注入） | 真 cordis Context + 临时 home（route 核可直测，如 ui-mode / desk-projection download） | 写路径/生命周期/代理访问的服务级行为 | 段落组装（agent 层）、装载与注册（composition 层） | `pnpm test:host` |
 | `tests/agent/` | agent 面合同（提示词段落、养护回合） | 真服务 + 临时 home | 段落就绪/段落预算/回合占位等模型可见合同 | Loader 组合、UI 读回；机制本体在 host 服务（文件头注明） | `pnpm test:agent` |
 | `tests/composition/` | 配置装载、注册与范围合同（Loader 车道 + 直挂服务/scope 车道） | `preset-composition`/`client-entry-lifecycle`/`desk-projection-lifecycle` = 真 Loader + built `lib/`；`preset-skill-root` = shipped YAML + Loader evaluator；`export-shape` = source-plane 导出守卫；`ov-shield`/`registry-lifecycle` = 直挂真 cordis | 行身份、导出形态、注册撤销、scope 语义、本包组合 seam | vendor rows、完整产品 boot（release-smoke 的事） | `pnpm test:composition`（先 build） |
-| `tests/client/` | 浏览器注册与交互状态合同 | classic-script 装置 + React shim，无浏览器 | 注册、组件树、回调、色彩契约 | 真实 web boot 与渲染（`pnpm web-expected` 现有场景，清单以目录为准） | `pnpm test:client` |
+| `tests/client/` | 浏览器注册与交互状态合同 | classic-script 装置 + React shim；`projection-panel-dom.spec.mjs` 用 happy-dom + react-dom 覆盖捕获输入与 `useSyncExternalStore` 订阅 | 注册、组件树、回调、色彩契约、一条真 DOM 交互 | 其余交互与真实 web boot（`pnpm web-expected` 现有场景，清单以目录为准） | `pnpm test:client` |
 | `tests/tooling/` | 仓库工具核（verify 门禁、eval 判决、catalog 生成器、报告、DOM 比较核、包内 `ov-doctor`） | 脚本直读 + throwaway 夹具 | 工具核的接受/拒绝形状（含 prove-it-red 负例） | 真实会话/渲染/门禁全量（`pnpm verify` 的事） | `pnpm test:tooling` |
 | `tests/support/` | 共享夹具（`*harness.{ts,mjs}`） | — | — | 刻意不被任何 include 选中（门禁豁免容器） | — |
 
