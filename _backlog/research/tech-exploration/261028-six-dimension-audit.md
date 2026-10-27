@@ -71,10 +71,10 @@ intent: "2026-10-28 六维打扫卫生深审：四路 fresh 只读审计 + 主�
 | P2 | `src/domain/operating/ledger.ts` | 562 行纯核，但无直接 spec；只经 host 服务与 projection 间接覆盖 | 归约器坏了要靠整包 boot 才红；locality 差 |
 | P2 | 客户端测试 | React shim 的 `useState` 返回 `[initial, vi.fn()]`、`useEffect` no-op；无 DOM 重渲染 | store 订阅/重渲染坏了仍可绿；web-face 只覆盖少数静态态 |
 | P3 | `docs/package-catalog.md` / 生成器 | 自称「包形状目录」但不收 3 个 bin 与 `engines.pnpm` | 「以 catalog 为准」在包能力面不完整 |
-| P3 | `docs/architecture.md` / `docs/dev.md` | 365/369 行、41/44KB，只有 `##` 级标题；README 只补偿 4 个节 | 找 §六/§八要滚文件 |
+| P3 | `docs/architecture.md` / `docs/dev.md` | 365/369 行、41/44KB，只有 `##` 级标题；README 只补偿 4 个节（2026-10-28 已补读法索引） | 找 §六/§八要滚文件 |
 | P3 | `dev/lib/session-logs.mjs` + usage/desk-loop | 缺 zstd 时直接抛栈；单条坏日志可让整份报告崩 | 日志读方没有像 prompt-smoke 那样的前置说明 |
 | P3 | `snapshots/web-face/*/snapshot.yml` | `runner:` 行像命令，实际是占位；CLI 不读 snapshot.yml | 复制即失败；场景契约有两处说法 |
-| P3 | `docs/testing.md` 分层表 | 「host = 真 cordis + 临时 home」以偏概全；`ui-mode-route`、`desk-projection-download` 直接测 route | 新读者会以为 host 层全要 boot |
+| P3 | `docs/testing.md` 分层表 | 「host = 真 cordis + 临时 home」以偏概全；`ui-mode-route`、`desk-projection-download` 直接测 route（2026-10-28 已改为「多数真 cordis，route 核可直测」） | 新读者会以为 host 层全要 boot |
 | P3 | 「纯核」措辞 | `src/domain` 不 import DSH 运行时（真），但 8 个文件做 fs I/O | 术语与事实有缝；不是代码 bug |
 
 ## 四、最值得警惕的三条
@@ -88,7 +88,7 @@ intent: "2026-10-28 六维打扫卫生深审：四路 fresh 只读审计 + 主�
 
 ## 五、改善路线（详见 proposed 卡）
 
-- **S1 入口瘦身**：把 35 条参考命令从根 `AGENTS.md` 移到 `docs/commands.md`；根只留启动五步 + 日常四条 + 指针。
+- **S1 入口瘦身**：把 35 条参考命令从根 `AGENTS.md` 移到 docs/commands.md（提案中的新文件）；根只留启动五步 + 日常四条 + 指针。
   目标：根降到 ~18KB；命令只有一个清单 owner；`docs-commands` / 启动门禁保持绿。
 - **S2 反馈诚实性**：`--refresh` 健康门（complete + 两错误列表空）；eval 无 key/无日志 → BLOCKED（exit 2）；
   无 Chrome 的 release smoke → BLOCKED；standalone 不再在 UI 半场跳过时打印 passed；expected DOM 健康检查。

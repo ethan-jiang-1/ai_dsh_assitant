@@ -18,7 +18,7 @@
 
 **S1 入口瘦身（只动文档与门禁，不动行为）**
 
-- 新建 `docs/commands.md`，承接根 `AGENTS.md` 的 35 条参考命令（保留每条的命令、判据、指向）；根只留「`pnpm start` 五步 + 日常四条（build/test/verify/start）+ 一指针」。
+- 新建 docs/commands.md（提案中的新文件），承接根 `AGENTS.md` 的 35 条参考命令（保留每条的命令、判据、指向）；根只留「`pnpm start` 五步 + 日常四条（build/test/verify/start）+ 一指针」。
 - 更新命令清单的 owner 指针（`README.md`、`docs/dev.md` §四/§六、`docs/testing.md`、`dev/AGENTS.md`、`docs/AGENTS.md` owner 表），保持「一个清单一个家」。
 - `docs-commands` 门禁与启动门禁继续读根；`commandAliasProblems` 仍扫全语料，别名不会因搬家漏文档。补一条「根命令表不再出现」的结构检查（红夹具）。
 - 目标：根降到约 18KB / ≤150 行；`pnpm verify` 全绿。

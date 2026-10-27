@@ -87,7 +87,7 @@
 | 目录 | 被测 interface | 依赖半径 | 能证明 | 不能证明 | 层命令 |
 |---|---|---|---|---|---|
 | `tests/domain/` | 领域规则与存储基础（词汇、生命周期、检索排序、摘要渲染、curate findings、布局、Room 适配器） | src 直读；临时目录文件 IO | 规则/解析/排序/预算/渲染的确定性 | 组合装载、模型可见面组装、浏览器渲染 | `pnpm test:domain` |
-| `tests/host/` | 服务合同（四房间读写、curate、提案收件箱、房间落位、根文件、品牌注入） | 真 cordis Context + 临时 home | 写路径/生命周期/代理访问的服务级行为 | 段落组装（agent 层）、装载与注册（composition 层） | `pnpm test:host` |
+| `tests/host/` | 服务合同（四房间读写、curate、提案收件箱、房间落位、根文件、品牌注入） | 真 cordis Context + 临时 home（route 核可直测，如 ui-mode / desk-projection download） | 写路径/生命周期/代理访问的服务级行为 | 段落组装（agent 层）、装载与注册（composition 层） | `pnpm test:host` |
 | `tests/agent/` | agent 面合同（提示词段落、养护回合） | 真服务 + 临时 home | 段落就绪/段落预算/回合占位等模型可见合同 | Loader 组合、UI 读回；机制本体在 host 服务（文件头注明） | `pnpm test:agent` |
 | `tests/composition/` | 配置装载、注册与范围合同（Loader 车道 + 直挂服务/scope 车道） | `preset-composition`/`client-entry-lifecycle`/`desk-projection-lifecycle` = 真 Loader + built `lib/`；`preset-skill-root` = shipped YAML + Loader evaluator；`export-shape` = source-plane 导出守卫；`ov-shield`/`registry-lifecycle` = 直挂真 cordis | 行身份、导出形态、注册撤销、scope 语义、本包组合 seam | vendor rows、完整产品 boot（release-smoke 的事） | `pnpm test:composition`（先 build） |
 | `tests/client/` | 浏览器注册与交互状态合同 | classic-script 装置 + React shim，无浏览器 | 注册、组件树、回调、色彩契约 | 真实 web boot 与渲染（`pnpm web-expected` 现有场景，清单以目录为准） | `pnpm test:client` |
