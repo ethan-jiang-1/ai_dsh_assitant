@@ -152,10 +152,11 @@ async function runDesk() {
 }
 
 const selected = scenarioArg === undefined ? CUSTOMER : [scenarioArg]
+let deskDone = false
 for (const scenario of selected) {
   if (scenario === 'blank-first-open') await runBlank()
   else if (scenario === 'first-open-draft-banner') await runBanner()
-  else await runDesk()
+  else if (!deskDone) { deskDone = true; await runDesk() }
 }
 
 console.log('')
