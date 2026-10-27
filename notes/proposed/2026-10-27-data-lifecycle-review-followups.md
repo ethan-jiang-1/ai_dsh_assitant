@@ -15,7 +15,7 @@
 
 ## 进展
 
-P0 已落：installed-tarball 维护命令 smoke、fresh-home prompt-smoke 交付规则、host CAS/source wiring、check 阈值、replace 回滚、purge 失败审计、数据卡 N0/N1 与迁移/删除列。P1 已落：`save_page` 现有页 CAS、`rotate` dry-run/apply、digest 记忆段“data not instructions”、memory 凭据扫描、客户端键清理口径。P1 剩余：硬删除扩展设计。
+P0 已落：installed-tarball 维护命令 smoke、fresh-home prompt-smoke 交付规则、host CAS/source wiring、check 阈值、replace 回滚、purge 失败审计、数据卡 N0/N1 与迁移/删除列。P1 已落：`save_page` 现有页与 memory supersede/forget archive 的 CAS、`rotate` dry-run/apply、digest 记忆段“data not instructions”、memory 凭据扫描、客户端键清理口径。P1 剩余：硬删除扩展设计。
 
 ## 提案
 

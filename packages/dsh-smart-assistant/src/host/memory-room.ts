@@ -112,9 +112,10 @@ export async function saveMemory(host: AssistantMemory, input: SaveMemoryInput):
     ...(input.supersedes !== undefined ? { supersedes: input.supersedes } : {}),
     text,
   }
+  let superseded: Awaited<ReturnType<AssistantMemory['memory']['read']>>
   if (input.supersedes !== undefined) {
-    const existing = await host.memory.read(input.supersedes)
-    if (existing === undefined) {
+    superseded = await host.memory.read(input.supersedes)
+    if (superseded === undefined) {
       throw new Error(`supersedes names "${input.supersedes}", which is not an active memory record`)
     }
   }
@@ -122,7 +123,7 @@ export async function saveMemory(host: AssistantMemory, input: SaveMemoryInput):
   await host.memory.write(record.id, document.data, document.body)
   // Archive only after the replacement exists: a failed archive leaves two readable records,
   // which the digest shows and curation reports, instead of losing the old claim.
-  if (input.supersedes !== undefined) await host.memory.archive(input.supersedes, { status: 'superseded' })
+  if (input.supersedes !== undefined) await host.memory.archive(input.supersedes, { status: 'superseded' }, superseded?.text)
   touchDigest(host)
   return record
 }
@@ -134,7 +135,9 @@ export async function saveMemory(host: AssistantMemory, input: SaveMemoryInput):
  * @returns Whether an active record was archived.
  */
 export async function forgetMemory(host: AssistantMemory, id: string): Promise<boolean> {
-  const archived = await host.memory.archive(id, { status: 'retired' })
+  const existing = await host.memory.read(id)
+  if (existing === undefined) return false
+  const archived = await host.memory.archive(id, { status: 'retired' }, existing.text)
   if (archived) touchDigest(host)
   return archived
 }

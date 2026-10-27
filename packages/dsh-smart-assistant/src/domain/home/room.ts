@@ -156,9 +156,12 @@ export class Room {
    * @param patch - Frontmatter fields to replace on the archived copy.
    * @returns Whether an active entry was archived.
    */
-  async archive(id: string, patch: Readonly<Record<string, unknown>> = {}): Promise<boolean> {
+  async archive(id: string, patch: Readonly<Record<string, unknown>> = {}, expectedText?: string): Promise<boolean> {
     const entry = await this.read(id)
     if (entry === undefined) return false
+    if (expectedText !== undefined && entry.text !== expectedText) {
+      throw new Error(`room entry "${id}" changed since it was read — re-read before archiving`)
+    }
     await mkdir(this.archiveDir, { recursive: true, mode: 0o700 })
     const target = join(this.archiveDir, `${id}${ENTRY_SUFFIX}`)
     // Move first, rewrite second: a crash between the two leaves the record in the archive with
