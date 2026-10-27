@@ -10,7 +10,7 @@
 - **一个 agent preset**：`assistant`（挂上它，这个会话就是"有 working folder 的助手"）。
 - **一个只读部署自检 CLI**：`ov-doctor`（`bin/ov-doctor.mjs`；装好可选 OpenViking 层后在 profile 内运行，见安装手册的 OV 自检节）。
 - **一个专家装配 CLI**：`expert-setup`（`bin/expert-setup.mjs`；把管理种子显式导入为 `draft`，不自动 stable）。
-- **一个数据备份/诊断 CLI**：`assistant-data`（`bin/assistant-data.mjs`；导出/导入 `assistant` + `assistant-operating`，带 schema manifest；另有 `status`/`check` 与 `import --replace`）。
+- **一个数据备份/诊断 CLI**：`assistant-data`（`bin/assistant-data.mjs`；导出/导入 `assistant` + `assistant-operating`，带 schema manifest；另有 `status`/`check`、`import --replace` 与显式 `purge`）。
 - **一个独立启动脚本**：`bootstrap.mjs`（解开的包目录里用已安装 `dsh` 建隔离 profile；先用 npm 打包再安装，home 默认在包外，不碰日用 `~/.dsh`）。
 - **默认身份是管理岗**（P1）：`SOUL.md` 是数据，种子与回退一致；管理种子只在显式装配时进入知识室，安装不写 working folder。
 
@@ -64,8 +64,9 @@ Viki 的 API key 从 `apiKeyEnv`（默认 `OPENVIKING_API_KEY`）读；内联 `a
 - **备份/恢复**：`assistant-data` 只带这两个目录，排除 `writer.lock` / `*.tmp`，拒绝符号链接；import 要求实例已停止。
   首次启动前目标为空即可直接 import；已经启动过的 home 用 `import --replace` 把现有目录移到 `.pre-import-*` 旁路。
   手动 `cp -R` 也要先删掉备份里的 `writer.lock`，并另备 sessions/credentials。
-- **诊断**：`assistant-data status` 报路径/大小/手册 generation/账本健康/归档操作数；`check` 再报相对路径、
-  坏 ledger/归档行、旧手册与符号链接，有问题以非零退出。
+- **诊断/擦除**：`assistant-data status` 报路径/大小/手册 generation/账本健康/归档操作数；`check` 再报相对路径、
+  坏 ledger/归档行、旧手册与符号链接，有问题以非零退出。`purge --kind ... --id ... --reason ... --yes`
+  是显式硬删除：删 active/archive/snapshot 副本，并向 `audit/purges.jsonl` 写审计；不删 sessions/账本历史。
 - **并发**：同一 home 只应有一个写入者；账本拒绝第二 writer，房间写是原子但 last-write-wins。
 - **Package**：不写任何用户数据/secret；`handoff-scan` 拒绝数据、凭据、宿主路径与活密钥，`release-smoke`
   断言安装不创建 working folder。Viki key 不落配置；bootstrap 的 `bootstrap.json` 0600、日志 token 已打码。

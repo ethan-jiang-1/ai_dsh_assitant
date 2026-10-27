@@ -19,10 +19,11 @@
  * @module dsh-smart-assistant/cli/assistant-data
  */
 
+import { closeSync, existsSync, fsyncSync, openSync, writeSync } from 'node:fs'
 import { cp, lstat, mkdir, readFile, readdir, rename, rm, stat, writeFile } from 'node:fs/promises'
-import { existsSync } from 'node:fs'
 import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:path'
 import { HOME_MANUAL_VERSION } from '../domain/home/home-map.ts'
+import { isEntryId } from '../domain/home/room.ts'
 import { OPERATIONS_ARCHIVE_FILE, parseOperationsArchive } from '../host/operating-ledger/archive.ts'
 
 /** Manifest file written at the bundle root. */
@@ -36,6 +37,31 @@ const ARCHIVE_WARN_BYTES = 64 * 1024 * 1024
 
 /** A read-only `check` warning threshold for the approval ledger. */
 const APPROVALS_WARN_BYTES = 16 * 1024 * 1024
+
+/** The record kinds an explicit purge can erase. Ledger history and sessions are not in this list. */
+export const PURGE_KINDS = ['memory', 'research', 'knowledge', 'skill', 'proposal'] as const
+
+/** One purgeable record kind. */
+export type PurgeKind = (typeof PURGE_KINDS)[number]
+
+/** Arguments for {@link purgeData}. */
+export interface DataPurgeOptions {
+  readonly assistantDir: string
+  readonly kind: PurgeKind
+  readonly id: string
+  /** Why this record is being erased; written to the local purge audit. */
+  readonly reason: string
+  /** Destructive action; the caller must pass true explicitly. */
+  readonly confirm: boolean
+  /** Clock override for tests. */
+  readonly now?: Date
+}
+
+/** Result of a purge. */
+export interface DataPurgeResult {
+  readonly removed: readonly string[]
+  readonly audit: string
+}
 
 /** What an export bundle declares about itself. */
 export interface DataManifest {
@@ -411,6 +437,100 @@ export async function checkData(options: { readonly assistantDir: string, readon
     problems.push(`symbolic link in owned data: ${link}`)
   }
   return { status, problems }
+}
+
+/** Append one line to a local audit ledger and fsync it before returning. */
+async function appendAuditLine(path: string, line: Readonly<Record<string, unknown>>): Promise<void> {
+  await mkdir(dirname(path), { recursive: true, mode: 0o700 })
+  const fd = openSync(path, 'a', 0o600)
+  try {
+    writeSync(fd, `${JSON.stringify(line)}\n`)
+    fsyncSync(fd)
+  } finally {
+    closeSync(fd)
+  }
+}
+
+/** Every on-disk location a purge of one record kind may own (active, archive, snapshots). */
+function purgeCandidates(root: string, kind: PurgeKind, id: string): string[] {
+  switch (kind) {
+    case 'memory':
+    case 'research':
+      return [join(root, kind, `${id}.md`), join(root, kind, 'archive', `${id}.md`)]
+    case 'knowledge':
+      return [join(root, 'knowledge', `${id}.md`)]
+    case 'proposal':
+      return [join(root, 'skill-proposals', `${id}.md`), join(root, 'skill-proposals', 'archive', `${id}.md`)]
+    case 'skill':
+      return [
+        join(root, 'skills', id),
+        join(root, 'skills', `${id}.md`),
+        join(root, 'skills', 'archive', id),
+        join(root, 'skills', 'archive', `${id}.md`),
+        join(root, 'skills', 'archive', 'snapshots', id),
+      ]
+  }
+}
+
+/**
+ * Erase one room record, its archived copy and (for a skill) its snapshots. This is the explicit
+ * erasure path: it requires a reason and `confirm`, writes a local audit line before deleting, and
+ * refuses symlinks. It does **not** touch sessions, credentials, ledger history, or client state.
+ *
+ * @param options - Working folder, record kind/id, reason, and explicit confirmation.
+ * @returns Removed paths and the purge audit path.
+ * @throws When confirmation/reason/id is missing, nothing exists, or a candidate is a symlink.
+ */
+export async function purgeData(options: DataPurgeOptions): Promise<DataPurgeResult> {
+  const assistantDir = resolve(options.assistantDir)
+  if (options.confirm !== true) throw new Error('assistant-data: purge requires explicit confirmation (--yes)')
+  const reason = options.reason.trim()
+  if (reason === '') throw new Error('assistant-data: purge requires a reason')
+  if (!PURGE_KINDS.includes(options.kind)) throw new Error(`assistant-data: unknown purge kind ${JSON.stringify(options.kind)}`)
+  if (!isEntryId(options.id)) throw new Error(`assistant-data: "${options.id}" is not a safe record id`)
+  const rootInfo = await lstat(assistantDir).catch(() => undefined)
+  if (rootInfo === undefined) throw new Error(`assistant-data: working folder not found: ${assistantDir}`)
+  if (rootInfo.isSymbolicLink()) throw new Error(`assistant-data: working folder is a symbolic link: ${assistantDir}`)
+  if (!rootInfo.isDirectory()) throw new Error(`assistant-data: working folder is not a directory: ${assistantDir}`)
+
+  const candidates = purgeCandidates(assistantDir, options.kind, options.id)
+  const existing: string[] = []
+  for (const path of candidates) {
+    const info = await lstat(path).catch((error: NodeJS.ErrnoException) => {
+      if (error.code === 'ENOENT') return undefined
+      throw error
+    })
+    if (info === undefined) continue
+    if (info.isSymbolicLink()) throw new Error(`assistant-data: refusing to purge a symbolic link: ${path}`)
+    existing.push(path)
+  }
+  if (existing.length === 0) {
+    throw new Error(`assistant-data: nothing to purge for ${options.kind}:${options.id}`)
+  }
+
+  const audit = join(assistantDir, 'audit', 'purges.jsonl')
+  const at = (options.now ?? new Date()).toISOString()
+  await appendAuditLine(audit, { at, kind: options.kind, id: options.id, reason, paths: existing, status: 'requested' })
+  const removed: string[] = []
+  try {
+    // Deepest first, so a bundle and its snapshots both disappear deterministically.
+    for (const path of [...existing].sort((left, right) => right.length - left.length)) {
+      await rm(path, { recursive: true, force: true })
+      removed.push(path)
+    }
+  } catch (error) {
+    await appendAuditLine(audit, {
+      at,
+      kind: options.kind,
+      id: options.id,
+      reason,
+      status: 'failed',
+      error: error instanceof Error ? error.message : String(error),
+    })
+    throw error
+  }
+  await appendAuditLine(audit, { at, kind: options.kind, id: options.id, status: 'deleted', removed })
+  return { removed, audit }
 }
 
 /**

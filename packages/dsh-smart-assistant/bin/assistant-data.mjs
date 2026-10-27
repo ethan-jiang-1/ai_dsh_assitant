@@ -5,13 +5,15 @@
  * The bundle holds `<assistant>` and `<assistant-operating>` plus a schema manifest. Harness
  * sessions, credentials, settings and storages are not included; the agent artifact is never
  * included. Import requires absent/empty destinations (or `--replace`, which stashes them beside
- * themselves first) and refuses an unknown schema. `status` is the read-only support view.
+ * themselves first) and refuses an unknown schema. `status`/`check` are the read-only support
+ * views; `purge` is the explicit, audited erasure path for one room record.
  *
  * Usage:
  *   node <package>/bin/assistant-data.mjs export --assistant <dir> --operating <dir> --out <bundle>
  *   node <package>/bin/assistant-data.mjs import --in <bundle> --assistant <dir> --operating <dir> [--replace]
  *   node <package>/bin/assistant-data.mjs status --assistant <dir> --operating <dir>
  *   node <package>/bin/assistant-data.mjs check --assistant <dir> --operating <dir>
+ *   node <package>/bin/assistant-data.mjs purge --assistant <dir> --kind <kind> --id <id> --reason <text> --yes
  *
  * No harness peers are imported: the command runs from an installed profile with plain Node.
  */
@@ -30,7 +32,8 @@ const usage = `usage:
   node <package>/bin/assistant-data.mjs export --assistant <dir> --operating <dir> --out <bundle>
   node <package>/bin/assistant-data.mjs import --in <bundle> --assistant <dir> --operating <dir> [--replace]
   node <package>/bin/assistant-data.mjs status --assistant <dir> --operating <dir>
-  node <package>/bin/assistant-data.mjs check --assistant <dir> --operating <dir>`
+  node <package>/bin/assistant-data.mjs check --assistant <dir> --operating <dir>
+  node <package>/bin/assistant-data.mjs purge --assistant <dir> --kind <memory|research|knowledge|skill|proposal> --id <id> --reason <text> --yes`
 
 if (command === '--help' || command === undefined) {
   console.log(usage)
@@ -93,6 +96,19 @@ try {
     for (const problem of result.problems) console.log(`  problem: ${problem}`)
     if (result.problems.length > 0) process.exit(1)
     console.log('  ok')
+  } else if (command === 'purge') {
+    const assistantDir = option('--assistant')
+    const kind = option('--kind')
+    const id = option('--id')
+    const reason = option('--reason')
+    if (assistantDir === undefined || kind === undefined || id === undefined || reason === undefined) {
+      console.error(usage)
+      process.exit(2)
+    }
+    const result = await module.purgeData({ assistantDir, kind, id, reason, confirm: argv.includes('--yes') })
+    console.log(`assistant-data: erased ${kind} ${id} (${String(result.removed.length)} path(s))`)
+    for (const path of result.removed) console.log(`  removed ${path}`)
+    console.log(`  audit ${result.audit}`)
   } else {
     console.error(`assistant-data: unknown command ${JSON.stringify(command)}\n${usage}`)
     process.exit(2)

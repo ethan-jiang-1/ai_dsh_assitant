@@ -38,7 +38,7 @@
 |---|---|---|---|---|---|---|---|---|
 | 记忆/线索/知识/技能/提案 | P2 / U | 插件 + 用户 | `<dataDir>/{memory,research,knowledge,skills,skill-proposals}/` | home 单例，无项目键 | 房间生命周期；archive 保留 | 用户；模型经工具 | 是 | 保留 |
 | 身份与手册 | P2 / U | 用户 + 插件 | `<dataDir>/SOUL.md`、`AGENTS.md` | home 单例 | 身份永不覆盖；手册按已知文本迁移 | 用户；模型逐字进 prompt | 是 | 保留 |
-| 用量、治理、界面、交付 | P2 / U | 插件/用户 | `<dataDir>/skill-usage.json`、`audit/approvals.jsonl`、`ui-mode.json`、`deliverables/` | home 单例 | usage 可删；audit 只追加；deliverables 无生命周期 | 用户；模型不可见 ui-mode/audit | 是 | 保留 |
+| 用量、治理、界面、交付 | P2 / U | 插件/用户 | `<dataDir>/skill-usage.json`、`audit/approvals.jsonl`、`audit/purges.jsonl`、`ui-mode.json`、`deliverables/` | home 单例 | usage 可删；审计只追加；deliverables 无生命周期 | 用户；模型不可见 ui-mode/audit | 是 | 保留 |
 | 经营账本状态 | P3 / H | 插件 | `<operatingDir>/ledger.json` | home 单例 | 最近 256 条操作 + 全量计数；压缩后仍有界 | 用户；模型经工具 | 是 | 保留 |
 | 账本操作归档 | P3 / H | 插件 | `<operatingDir>/operations-archive.jsonl` | home 单例 | 只追加；完整回执历史 | 用户；模型经工具按 id 读 | 是 | 保留 |
 | 会话搜索索引 | 宿主 K | 宿主（本包补丁启用） | `<dshHome>/session-search.db` | session/corpus | 首次检索创建；可重建 | 宿主；模型经 `session_query` | 否 | **保留；要清就删此文件** |
@@ -103,6 +103,19 @@ node .../assistant-data.mjs check  --assistant <DSH_HOME>/assistant --operating 
 - 未知 `schemaVersion` 拒绝导入；不猜、不半导入。导入先写 sibling temp，再 rename 就位；失败不留下半成品。
 - `status` 读路径/文件数/字节数、手册 generation、`ledger.json` 是否 v1、归档操作数；`check` 再加相对路径、坏 ledger/归档行、旧手册、符号链接，问题以非零退出。
 - 原始 `cp -R` 等价可用；它不校验 manifest、不排除 `writer.lock`、也不保证目标为空——需要“可验证的恢复”时用 `assistant-data`。手动 `cp -R` 备份必须删掉 `<备份>/assistant-operating/writer.lock` 与 `*.tmp`，否则换机恢复后账本会把旧 host 的锁当活锁。
+
+**显式擦除（硬删除）**：
+
+```sh
+node .../assistant-data.mjs purge --assistant <DSH_HOME>/assistant \
+  --kind <memory|research|knowledge|skill|proposal> --id <id> --reason "<why>" --yes
+```
+
+- 删除该记录在 active、`archive/` 与（技能）`archive/snapshots/` 下的全部副本；不删 sessions、credentials、账本历史、client 状态或别条记录。
+- 必须给 `--reason` 与 `--yes`；id 不合法、记录不存在、候选是符号链接都拒绝。
+- 删除前后各追加一行到 `<dataDir>/audit/purges.jsonl`（0600，`requested`/`deleted`，失败记 `failed`）；审计本身也是插件数据，随备份走。
+- 账本里的 material/quote 与 `discard` 是审计历史，不随房间记录擦除；要连账本一起擦除需另做显式操作。
+- 删除后可能留下悬空 `[[链接]]`/source；`curate` 会报，恢复需从备份。
 
 **升级/卸载**：装新 tarball 不动用户数据；`--dump-config` 仍应有 `preset-assistant`，新会话验证一次。升级/remove 保留两个插件目录；remove 后重装回到组合。`pnpm upgrade-smoke` 证明“旧→新→remove”的两目录边界与组合恢复；真实旧字节的读取由 `tests/host/old-home-compat.spec.ts` 的冻结 v19 fixture 证明（房间、技能、提案、用量、手册迁移、账本回执）。
 
