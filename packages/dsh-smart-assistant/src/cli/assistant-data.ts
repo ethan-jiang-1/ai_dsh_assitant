@@ -239,6 +239,8 @@ export interface DataImportResult {
   readonly dryRun?: true
   /** On a dry run with `replace`, the targets that would be moved aside. */
   readonly wouldStash?: readonly string[]
+  /** Per-file preview on a dry run: bundle-only paths and differing/removed target paths. */
+  readonly preview?: { readonly added: readonly string[], readonly replaced: readonly string[], readonly removed: readonly string[] }
 }
 
 /** One owned directory as `status` sees it. */
@@ -1040,12 +1042,45 @@ export async function importData(options: DataImportOptions): Promise<DataImport
       if (options.replace !== true) throw new Error(`assistant-data: import destination is not empty: ${path}`)
       wouldStash.push(path)
     }
+    const added: string[] = []
+    const replaced: string[] = []
+    const removed: string[] = []
+    const compare = async (sourceRoot: string, targetRoot: string): Promise<void> => {
+      if (existsSync(sourceRoot)) {
+        for (const entry of await readdir(sourceRoot, { withFileTypes: true })) {
+          const source = join(sourceRoot, entry.name)
+          const target = join(targetRoot, entry.name)
+          if (entry.isDirectory()) {
+            await compare(source, target)
+            continue
+          }
+          if (!entry.isFile()) continue
+          const rel = relative(sourceRoot, source)
+          if (!existsSync(target)) added.push(rel)
+          else if (!(await readFile(source)).equals(await readFile(target))) replaced.push(rel)
+        }
+      }
+      if (existsSync(targetRoot)) {
+        for (const entry of await readdir(targetRoot, { withFileTypes: true })) {
+          const target = join(targetRoot, entry.name)
+          const source = join(sourceRoot, entry.name)
+          if (entry.isDirectory()) {
+            await compare(source, target)
+            continue
+          }
+          if (entry.isFile() && !existsSync(source)) removed.push(relative(targetRoot, target))
+        }
+      }
+    }
+    await compare(sourceAssistant, assistantDir)
+    await compare(sourceOperating, operatingDir)
     return {
       assistantFiles: sourceAssistantCount.files,
       operatingFiles: sourceOperatingCount.files,
       backups: [],
       dryRun: true,
       wouldStash,
+      preview: { added, replaced, removed },
     }
   }
 

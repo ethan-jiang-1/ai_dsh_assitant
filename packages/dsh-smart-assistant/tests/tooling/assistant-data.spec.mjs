@@ -158,6 +158,8 @@ describe('assistant-data', () => {
     const plan = await importData({ inDir: outDir, assistantDir, operatingDir, replace: true, dryRun: true })
     expect(plan).toMatchObject({ dryRun: true, assistantFiles: 2, operatingFiles: 1, backups: [] })
     expect(plan.wouldStash).toEqual([assistantDir, operatingDir])
+    expect(plan.preview?.added.length).toBeGreaterThan(0)
+    expect(plan.preview?.removed).toContain('existing.md')
     expect(readFileSync(join(assistantDir, 'existing.md'), 'utf8')).toBe('keep\n')
     expect(readFileSync(join(operatingDir, 'ledger.json'), 'utf8')).toBe('{}\n')
 

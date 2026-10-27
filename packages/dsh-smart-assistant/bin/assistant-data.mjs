@@ -91,6 +91,10 @@ try {
     })
     if (result.dryRun === true) {
       console.log(`assistant-data: dry run — would import ${result.assistantFiles} working-folder file(s) and ${result.operatingFiles} ledger file(s); nothing written`)
+      if (result.preview !== undefined) {
+        console.log(`  ${String(result.preview.added.length)} add, ${String(result.preview.replaced.length)} replace, ${String(result.preview.removed.length)} remove`)
+        for (const path of [...result.preview.added, ...result.preview.replaced, ...result.preview.removed].slice(0, 20)) console.log(`  ${path}`)
+      }
       for (const path of result.wouldStash ?? []) console.log(`  would move aside ${path} → ${path}.pre-import-*`)
     } else {
       console.log(`assistant-data: imported ${result.assistantFiles} working-folder file(s) and ${result.operatingFiles} ledger file(s)`)

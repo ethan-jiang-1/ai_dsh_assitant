@@ -103,7 +103,7 @@ opened: 2026-10-27
 | G35 | **`ui-mode` 双源（host 文件 + localStorage）无版本/迁移** | 已修（v1 envelope） | 低 | host 文件写 `{version:1, mode}`；旧 `{mode}` 可读，下次写升级；未知 version 422 |
 | G36 | **备份含 `deliverables/` 无大小上限；import 可把任意大目录搬入** | 已修（告警 + 导入上限） | 低 | `check` >512 MiB 告警；`import --max-bytes` 默认 512 MiB 拒绝超大 bundle |
 | G37 | **import 不检查两目标嵌套/包含** | 已修 | 低 | 已加 containment 守卫 + 测试 |
-| G38 | **`assistant-data` 无 `--dry-run`/差异预览**：`--replace` 会整目录换掉，只留旁路 | 已修（dry-run） | 中 | `import --dry-run` 报文件数与将被旁路的目标；时间戳/内容差异预览仍未取 |
+| G38 | **`assistant-data` 无 `--dry-run`/差异预览**：`--replace` 会整目录换掉，只留旁路 | 已修（dry-run + per-file 预览） | 中 | `import --dry-run` 报文件数、旁路目标与 add/replace/remove 文件列表；内容级 diff 不展开 |
 
 ## 仍未取（按触发排序）
 
