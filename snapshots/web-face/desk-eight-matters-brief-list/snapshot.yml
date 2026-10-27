@@ -4,5 +4,5 @@ scenario: desk-eight-matters-brief-list
 profile: dev            # 与 desk-eight-matters-first-open 共用隔离 home 与 seed
 recording: live
 comparison: dom-evidence
-runner: pnpm web-expected '<url>' --scenario snapshots/web-face/desk-eight-matters-brief-list --eval "<click 全部>" --wait-text '全部事项' # --refresh 重录期望
+runner: pnpm web-expected '<url>' --scenario snapshots/web-face/desk-eight-matters-brief-list --eval "<click 全部>" --wait-text '它在盯什么' # --refresh 重录期望
 entry: dev/probes/web/webui-expected.mjs

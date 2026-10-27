@@ -21,6 +21,7 @@ const packageDir = join(repoRoot, 'packages', 'dsh-smart-assistant')
 const keep = process.argv.includes('--keep')
 const root = mkTmpDir('standalone-smoke', 'run-')
 const failures = []
+const blocked = []
 const step = message => console.log(`\n▸ ${message}`)
 const ok = message => console.log(`  ok   ${message}`)
 const fail = message => {
@@ -129,7 +130,8 @@ try {
     const chrome = process.env.CHROME_PATH
       ?? (process.platform === 'darwin' ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' : undefined)
     if (chrome === undefined || !existsSync(chrome)) {
-      console.log('  skip no Chrome executable; set CHROME_PATH to run the client-boot check')
+      blocked.push('client boot/preset UI: no Chrome executable; set CHROME_PATH')
+      console.log('  BLOCKED no Chrome executable; set CHROME_PATH to run the client-boot check')
     } else {
       const presetProbe = run(process.execPath, [join(repoRoot, 'dev', 'probes', 'web', 'agent-preset-ui.mjs'), state.url], { timeout: 180_000 })
       if (presetProbe.status !== 0) fail(`client boot/preset probe failed: ${(presetProbe.stderr ?? presetProbe.stdout ?? '').trim().split('\n').slice(-8).join(' | ')}`)
@@ -209,9 +211,13 @@ try {
 }
 
 console.log('')
-if (failures.length === 0) {
-  console.log('standalone-smoke: passed')
-  process.exit(0)
+if (failures.length > 0) {
+  console.log(`standalone-smoke: ${failures.length} failure(s)`)
+  process.exit(1)
 }
-console.log(`standalone-smoke: ${failures.length} failure(s)`)
-process.exit(1)
+if (blocked.length > 0) {
+  console.log(`standalone-smoke: BLOCKED — ${blocked.join('; ')}`)
+  process.exit(2)
+}
+console.log('standalone-smoke: passed')
+process.exit(0)

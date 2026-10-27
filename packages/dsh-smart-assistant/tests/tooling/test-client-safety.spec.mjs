@@ -12,6 +12,7 @@ import { describe, expect, it, afterEach } from 'vitest'
 import {
   clientScriptSafetyProblems,
   testAssetNamingProblems,
+  webFaceExpectedHealthProblems,
 } from '../../../../scripts/checks/gates/test-client-safety.mjs'
 import { temp, dirs, disposeTempDirs } from './verify-gates-harness.mjs'
 
@@ -74,6 +75,48 @@ describe('testAssetNamingProblems', () => {
     const root = fakeRepo({ tests: ['AGENTS.md', 'README.md'] })
     rmSync(join(root, 'snapshots'), { recursive: true, force: true })
     expect(testAssetNamingProblems(root)).toEqual([])
+  })
+})
+
+describe('webFaceExpectedHealthProblems', () => {
+  const healthy = {
+    readyState: 'complete',
+    visibleText: '它在盯什么',
+    controls: ['button h=24: 全部'],
+    consoleErrors: [],
+    networkFailures: [],
+  }
+  const scene = ({ expected = healthy, runner = "runner: pnpm web-expected '<url>' --scenario scenes --wait-text '它在盯什么' #" } = {}) => {
+    const root = temp('web-face-health-')
+    const dir = join(root, 'snapshots', 'web-face', 'scene')
+    mkdirSync(dir, { recursive: true })
+    if (expected !== undefined) writeFileSync(join(dir, 'expected.dom.json'), JSON.stringify(expected))
+    writeFileSync(join(dir, 'snapshot.yml'), runner)
+    writeFileSync(join(dir, 'README.md'), 'contract')
+    return root
+  }
+
+  it('accepts a complete, quiet capture whose readiness token is present', () => {
+    expect(webFaceExpectedHealthProblems(scene())).toEqual([])
+  })
+
+  it('rejects a half-loaded, noisy, empty or non-rendered baseline', () => {
+    expect(webFaceExpectedHealthProblems(scene({ expected: { ...healthy, readyState: 'interactive' } })).join(' ')).toContain('readyState')
+    expect(webFaceExpectedHealthProblems(scene({ expected: { ...healthy, consoleErrors: ['error: boom'] } })).join(' ')).toContain('consoleErrors')
+    expect(webFaceExpectedHealthProblems(scene({ expected: { ...healthy, networkFailures: ['ERR'] } })).join(' ')).toContain('networkFailures')
+    expect(webFaceExpectedHealthProblems(scene({ expected: { ...healthy, visibleText: '  ' } })).join(' ')).toContain('visibleText')
+    expect(webFaceExpectedHealthProblems(scene({ expected: { ...healthy, controls: [] } })).join(' ')).toContain('controls')
+  })
+
+  it('rejects a baseline whose visible text lacks the scene wait token', () => {
+    const problems = webFaceExpectedHealthProblems(scene({ expected: { ...healthy, visibleText: '别的页面' } }))
+    expect(problems.join(' ')).toContain('wait token')
+  })
+
+  it('skips a draft scene without an expectation and a missing web-face tree', () => {
+    expect(webFaceExpectedHealthProblems(scene({ expected: undefined }))).toEqual([])
+    const root = temp('web-face-health-empty-')
+    expect(webFaceExpectedHealthProblems(root)).toEqual([])
   })
 })
 

@@ -15,9 +15,10 @@
  * roster row to replace) pointing at the *installed* `presets/` directory, mirroring
  * `dev/profiles/profile-patch-headless.yml`.
  *
- * A live model turn is optional: without `DEEPSEEK_API_KEY`, that step self-skips and every
- * composition assertion still runs — including the patched dump proving the preset-mounted
- * runner is in the composition. The turn runs through `dsh-smart-assistant/preset-runner`
+ * A live model turn is optional but not green: without `DEEPSEEK_API_KEY`, that step is
+ * BLOCKED (exit 2) while every keyless composition assertion still runs — including the
+ * patched dump proving the preset-mounted runner is in the composition. The turn runs through
+ * `dsh-smart-assistant/preset-runner`
  * (the same driver `dev/probes/session/preset-runner.patch.yml` mounts in dev), so a keyed run joins the
  * assistant preset instead of the shipped bare-agent one-shot — this is what "the live turn"
  * can honestly claim to verify.
@@ -44,6 +45,7 @@ const profile = 'smoke'
 const PACKAGE_NAME = 'dsh-smart-assistant'
 
 const failures = []
+const blocked = []
 const execFileAsync = promisify(execFile)
 const step = message => console.log(`\n▸ ${message}`)
 const ok = message => console.log(`  ok   ${message}`)
@@ -164,7 +166,7 @@ try {
   // The profile directory must NOT pre-exist: `--from-default-profile` refuses to initialize over one.
   // The headless template carries the one-shot runner and positional-task parsing; the roster
   // row it lacks is inserted below (replace semantics would patch nothing and only warn).
-  writeFileSync(join(home, '.credentials.yaml'), '# no key here: the live turn self-skips\n', 'utf8')
+  writeFileSync(join(home, '.credentials.yaml'), '# no key here: the live turn is BLOCKED (exit 2)\n', 'utf8')
   dsh(['--profile', profile, '--from-default-profile', 'headless', '--dump-config'])
   if (!existsSync(join(home, 'profiles', profile, 'package.json'))) {
     fail('the profile was not created from the headless template')
@@ -417,10 +419,11 @@ try {
   if (!patched.includes('assistant-preset-runner')) fail('--patch does not bring the preset-mounted runner into the composition')
   else ok('preset-mounted runner composes (the live turn would join the assistant preset)')
 
-  step('live turn on the assistant preset (self-skips without a key)')
+  step('live turn on the assistant preset (BLOCKED without a key)')
   const key = (process.env.DEEPSEEK_API_KEY ?? '').trim()
   if (key.length === 0) {
-    ok('skipped: no DEEPSEEK_API_KEY in the environment — the entry shape above was still checked keylessly')
+    blocked.push('live turn: no DEEPSEEK_API_KEY in the environment')
+    console.log('  BLOCKED no DEEPSEEK_API_KEY — the entry shape above was still checked keylessly')
   } else {
     writeFileSync(join(home, '.credentials.yaml'), `DEEPSEEK_API_KEY: ${key}\n`, 'utf8')
     // The preset-mounted runner prints the turn's final text and exits 0 on completion.
@@ -443,9 +446,13 @@ try {
 }
 
 console.log('')
-if (failures.length === 0) {
-  console.log('release-smoke: passed')
-  process.exit(0)
+if (failures.length > 0) {
+  console.log(`release-smoke: ${failures.length} failure(s)`)
+  process.exit(1)
 }
-console.log(`release-smoke: ${failures.length} failure(s)`)
-process.exit(1)
+if (blocked.length > 0) {
+  console.log(`release-smoke: BLOCKED — ${blocked.join('; ')}`)
+  process.exit(2)
+}
+console.log('release-smoke: passed')
+process.exit(0)

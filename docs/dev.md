@@ -246,7 +246,7 @@ DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得
 任务在 `dev/eval/tasks.mjs`，判定核在 `dev/eval/checks.mjs`（每条任务至少一个正向检查，避免"什么都不做"也通过）；
 首条是 `first-open-intake`（fresh home 的开场问句与技能按名加载）；每条任务的判据以 `dev/eval/tasks.mjs` 为准。三条诚实边界写在判定核头部：
 `answer-matches` 是正则（会误判措辞）、检查断言的是"没有造成伤害"、任务可能"通过但没用"。
-**串行跑**（同仓同 home，并发会互相污染）。headless `dev-task` 没有 credentials service，`runPreset` 优先用环境里的 `DEEPSEEK_API_KEY`，否则从 `dev/harness-home/.credentials.yaml` 的 refs 镜像（不打印）；缺 key 时子进程的 `assistant/attempt` 是 `MISSING_CREDENTIAL`，不能把空答案当成行为红（[BUG-024](../_backlog/_archive/fixed_bugs/BUG-024-eval-baseline-red.md)）。`pnpm eval -- --self-check` 是**live 红控**：把真实事故形态喂给判定核、
+**串行跑**（同仓同 home，并发会互相污染）。headless `dev-task` 没有 credentials service，`runPreset` 优先用环境里的 `DEEPSEEK_API_KEY`，否则从 `dev/harness-home/.credentials.yaml` 的 refs 镜像（不打印）；缺 key 时子进程的 `assistant/attempt` 是 `MISSING_CREDENTIAL`，不能把空答案当成行为红；runner 对无会话日志报 **BLOCKED（exit 2）**，不并入 PASS/FAIL（[BUG-024](../_backlog/_archive/fixed_bugs/BUG-024-eval-baseline-red.md)）。`pnpm eval -- --self-check` 是**live 红控**：把真实事故形态喂给判定核、
 要求它判红，并同时要求合规回答判绿——它不跑会话（毫秒级），已接进 `pnpm verify` 链，作为"守卫的守卫"。
 **能力边界**：runner 驱动 headless one-shot（`--profile dev-task`），web 绑定插件的能力在那套组合里不注册
 （例：`schedule` 要 `sessionController` → `fileUploads` → 浏览器 `connection`，四个 `schedule_*` 工具只在 web 组合出现）；

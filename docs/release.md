@@ -58,18 +58,18 @@
 门禁覆盖与“能证明什么”的唯一表主是 [`testing.md`](testing.md)。发布前至少：
 
 - `pnpm verify`（结构/身份/链接/兼容声明/标签）；
-- `pnpm release-smoke`（真实 tarball、干净 home、安装、组合、零写入）；
+- `pnpm release-smoke`（真实 tarball、干净 home、安装、组合、零写入；无 key 的 live turn = BLOCKED，exit 2）；
 - `pnpm upgrade-smoke`（升级/remove 的数据边界与重装）；
 - `pnpm install-resilience-smoke`（损坏 tarball 被拒、profile 不残留、有效 tarball 重试成功）；
 - `pnpm bootstrap-guards-smoke`（独立启动的坏输入：profile 穿越/保留名/缺旧 pnpm/npm 在创建 home 前拒绝）；
 - `pnpm pnpm-matrix -- --pnpm <v> --expect install|reject`（发布物/依赖变化时至少覆盖 10.6 下界与当前开发 pnpm；需要 Corepack 联网）；
-- `pnpm web-install-smoke`（标准 web profile：干净 home 安装 → preflight → client boot/preset UI；可选 `--upgrade-tarball` 覆盖运行中升级 → 重启 → 复验）；
-- `pnpm standalone-smoke`（无 `.git` 目录、隔离 home、preflight、client 真 boot/preset UI、stop/restart、搬移 home；无 Chrome 时明确 skip）；
+- `pnpm web-install-smoke`（标准 web profile：干净 home 安装 → preflight → client boot/preset UI；可选 `--upgrade-tarball` 覆盖运行中升级 → 重启 → 复验；无 Chrome = BLOCKED，exit 2）；
+- `pnpm standalone-smoke`（无 `.git` 目录、隔离 home、preflight、client 真 boot/preset UI、stop/restart、搬移 home；无 Chrome = BLOCKED，exit 2）；
 - `pnpm prompt-smoke`（无 key 回放 one-shot，断言四个 prompt 段落与六个工具进入请求）；
 - `pnpm compat-matrix -- --dsh <path> --version <v> --expect install|reject`（真实 DSH CLI 的安装/拒绝矩阵；干净 home，不调模型）；
 - `pnpm agent-preset-ui '<URL>'`（Web 选择，人工探针；不冒充自动门禁）。
 
-未实际跑过的检查不得进入“绿”的结论；被跳过的检查写明原因。
+未实际跑过的检查不得进入“绿”的结论；被阻断的检查报 `BLOCKED` 并 exit 2，不打印 `passed`，也不并入绿名单。
 
 ## 八、禁则
 

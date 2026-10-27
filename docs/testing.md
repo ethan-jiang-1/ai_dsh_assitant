@@ -37,8 +37,8 @@
 | 账本有界与归档 | `pnpm test:host` | `tests/host/operating-ledger-archive.spec.ts` | 压缩后 `ledger.json` 有界、归档回执可读、幂等重试、matter snapshot 合并、投影 revision 单调 / 多次崩溃/并发压缩、超大归档 |
 | 安装并发/事务 | `pnpm install-resilience-smoke`（两个并发 add，最终依赖/组合断言） | `scripts/release/install-resilience-smoke.mjs` | DSH 0.2.1 的 120s profile 锁下串行化与最终状态 / 更复杂并发、跨 profile 并发 |
 | 安装失败/重试 | `pnpm install-resilience-smoke [-- --dsh <path>]`（损坏 tarball + 有效重试；默认从 PATH 找 dsh） | `scripts/release/install-resilience-smoke.mjs` | 失败不残留依赖/文件，重试可恢复 / 真实网络中断、磁盘满 |
-| 标准 Web 安装/升级 | `pnpm web-install-smoke -- --dsh <path> [--tarball <tgz>] [--upgrade-tarball <tgz>]`（干净 HOME/DSH_HOME；Chrome 必须） | `scripts/release/web-install-smoke.mjs` | 官方 web profile 安装、client boot、preset UI、运行中升级后重启/复验 / 真人走查 |
-| 独立启动（无 `.git` 目录） | `pnpm standalone-smoke`（打包→解包→bootstrap→preflight→client boot→stop→restart） | `scripts/release/standalone-smoke.mjs` | 无 `.git` 启动、隔离 home、包内/符号链接 home 拒绝、tarball 安装带 yaml、client 真 boot、preset UI、重启 URL、搬移 home 重建 profile、损坏 profile manifest 重建 profile / 真人环境与会话内容 |
+| 标准 Web 安装/升级 | `pnpm web-install-smoke -- --dsh <path> [--tarball <tgz>] [--upgrade-tarball <tgz>]`（干净 HOME/DSH_HOME；Chrome 必须，无则 BLOCKED exit 2） | `scripts/release/web-install-smoke.mjs` | 官方 web profile 安装、client boot、preset UI、运行中升级后重启/复验 / 真人走查 |
+| 独立启动（无 `.git` 目录） | `pnpm standalone-smoke`（打包→解包→bootstrap→preflight→client boot→stop→restart；无 Chrome 的 UI 半场 = BLOCKED exit 2） | `scripts/release/standalone-smoke.mjs` | 无 `.git` 启动、隔离 home、包内/符号链接 home 拒绝、tarball 安装带 yaml、client 真 boot、preset UI、重启 URL、搬移 home 重建 profile、损坏 profile manifest 重建 profile / 真人环境与会话内容 |
 | 交接 / 数据 bundle / 诊断 / 擦除 / 手册再生 | `pnpm test:tooling` + `pnpm release-smoke`（含 installed status/check/dry-run/purge/refresh-manual/archive-proposals）+ `pnpm export-dist` | `tests/tooling/handoff-core.spec.mjs`、`assistant-data.spec.mjs`、`assistant-data-purge.spec.mjs`、`assistant-data-manual.spec.mjs`、`assistant-data-proposals.spec.mjs`、`assistant-data-rotate.spec.mjs`、`assistant-data-merge.spec.mjs`、`assistant-data-seal.spec.mjs`、`operating-receipts-route.spec.ts`、`scripts/release/handoff-*` | 扫描规则、真实 tarball、两目录往返、锁/符号链接/失败清理、`status`/`check`、`import --replace` 旁路与回滚、`--dry-run` 计划、`purge` 审计与拒绝、`refresh-manual` 备份/再生、`archive-proposals` 轮转、`rotate` dry-run/apply、`merge` 冲突报告/保守应用、`seal`/`unseal` 加密往返 / 真人数据迁移、账本历史擦除 |
 | Web preset 选择 | `pnpm agent-preset-ui '<URL>'`（需运行中的干净实例） | `dev/probes/web/agent-preset-ui.mjs` | Settings → Agent 预设 → 章鱼管家 → default / 自动门禁（人工探针） |
 | 仓库工具与门禁（`scripts/checks/verify.mjs` 及 checks 核、生成器） | 新检查的**红夹具**（prove-it-red）+ `pnpm verify` | `tests/tooling/<family>.spec.mjs`（门禁族 spec，与 `scripts/checks/gates/` 同名对齐） | 工具核接受/拒绝形状 / 门禁全量（verify 自身） |
@@ -73,7 +73,7 @@
 |---|---|---|---|
 | `tests/**/*.spec.{ts,mjs}` | 单元 / 合同 / 守卫（含导出与生命周期守卫） | `pnpm test`（全量，每次收尾必绿） | 行为改动同 diff 更新对应 spec |
 | `tests/**/*harness.{ts,mjs}` | 共享夹具——刻意不被任何 include 选中 | — | — |
-| `snapshots/web-face/<场景>/` | web 渲染期望（场景目录 = snapshot.yml + 契约 README + expected.dom.json；脚本门，非 vitest） | `pnpm web-expected '<URL>' --scenario <场景>` | web 可见面改动：过目 diff 后 `--refresh` |
+| `snapshots/web-face/<场景>/` | web 渲染期望（场景目录 = snapshot.yml + 契约 README + expected.dom.json；脚本门，非 vitest；expected 健康与 wait token 由 verify 的 `test assets:` 门守） | `pnpm web-expected '<URL>' --scenario <场景>` | web 可见面改动：过目 diff 后 `--refresh` |
 | `*.e2e.ts`（预留） | 真模型车道，无 key 自跳 | 未建 | 触发条件 owner：`snapshots/README.md` |
 | `*.snapshot.ts`（预留） | session 回放驱动 | 未建 | 同上 |
 | `*.bench.ts` / `*.perf.ts`（预留） | 性能门（独占）/ 手动诊断 | 未建 | 第一处性能回归实证后立案 |
@@ -102,6 +102,7 @@
 
 - **coverage**：新文件 per-file 100%，存量祖父豁免；先纪律后机器门（触发：第一处"删了才对"的死代码实证）。
 - **eval 节奏**：模型可见切片收尾 `--only` 聚焦跑，阶段收尾才全量。
+- **eval 阻断**：缺 key / 无会话日志 = **BLOCKED（exit 2）**，不并入 PASS/FAIL；判据见 [`dev.md`](dev.md) §四。
 - **模型可见面回归的适配声明**（DSH testing policy 对独立插件仓的适配义务）：段落合同由 agent spec 证明；`pnpm eval --only <task-id>` 证明该题的伤害地板、技能按名加载和回答正则，不证明段落已进入请求，也不证明领域质量；`repo-live-probe` 是**取证动作不是回归资产**（复现「模型没看见」时用）；session 回放维持触发条件制（触发未到不预建，owner `snapshots/README.md`）。
 - **session 回放快照**：未建，触发条件 owner：`snapshots/README.md`（web 面期望已建，同树）。
 - **子进程 loader-smoke 中间层 / CI 矩阵**：刻意不采纳。本仓没有 CI，也没有平台矩阵；出现它们能拦住的事故再议。

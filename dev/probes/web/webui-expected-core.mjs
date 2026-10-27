@@ -97,6 +97,31 @@ function firstDelta(actual, expected) {
 }
 
 /**
+ * A `--refresh` writes the next baseline; writing a half-loaded or noisy capture would make the
+ * defect permanent (every later comparison would match it). The readiness token already gates
+ * missing content, but not `readyState` / console / network — require the same invariants the
+ * comparison expects. This is intentionally a recording gate, not a comparison: the CLI refuses
+ * to write, and the pure core is fixture-pinned.
+ */
+export function refreshHealthProblems(evidence) {
+  if (evidence === null || typeof evidence !== 'object' || Array.isArray(evidence)) {
+    return ['capture: not a DOM evidence object']
+  }
+  const problems = []
+  if (evidence.readyState !== 'complete') {
+    problems.push(`readyState: ${preview(evidence.readyState)} (must be complete)`)
+  }
+  const consoleErrors = Array.isArray(evidence.consoleErrors) ? evidence.consoleErrors : []
+  if (consoleErrors.length > 0) problems.push(`consoleErrors: ${consoleErrors.length} (must be empty)`)
+  const networkFailures = Array.isArray(evidence.networkFailures) ? evidence.networkFailures : []
+  if (networkFailures.length > 0) problems.push(`networkFailures: ${networkFailures.length} (must be empty)`)
+  if (typeof evidence.visibleText !== 'string' || evidence.visibleText.trim() === '') {
+    problems.push('visibleText: empty (a blank page is not a baseline)')
+  }
+  return problems
+}
+
+/**
  * Build the page-context readiness snippet for a scene that pins async-loaded content.
  * The shots settle window is a fixed clock, and a fetch that straddles it produces a
  * false red (first-open-draft-banner: the desk walk-view read missed the window in

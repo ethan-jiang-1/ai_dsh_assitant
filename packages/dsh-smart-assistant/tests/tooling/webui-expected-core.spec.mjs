@@ -17,7 +17,7 @@
  */
 import { homedir } from 'node:os'
 import { describe, expect, it } from 'vitest'
-import { buildCaptureEvalArgs, buildMissingScenarioUsage, buildWaitSnippet, compareEvidence, discoverScenarios, normalizeDomEvidence } from '../../../../dev/probes/web/webui-expected-core.mjs'
+import { buildCaptureEvalArgs, buildMissingScenarioUsage, buildWaitSnippet, compareEvidence, discoverScenarios, normalizeDomEvidence, refreshHealthProblems } from '../../../../dev/probes/web/webui-expected-core.mjs'
 
 describe('capture actions precede asynchronous content readiness', () => {
   it('forwards scene evals in order before the wait token', () => {
@@ -82,6 +82,24 @@ describe('normalizeDomEvidence keeps only the compared contract', () => {
   it('rejects a non-object capture outright', () => {
     expect(() => normalizeDomEvidence(null)).toThrow(/must be a JSON object/)
     expect(() => normalizeDomEvidence([1, 2])).toThrow(/must be a JSON object/)
+  })
+})
+
+describe('refreshHealthProblems refuses to enshrine a bad baseline', () => {
+  it('accepts a complete, error-free, non-empty capture', () => {
+    expect(refreshHealthProblems(normalizeDomEvidence(evidence()))).toEqual([])
+  })
+
+  it('rejects a half-loaded, noisy or blank capture', () => {
+    const normalized = overrides => normalizeDomEvidence(evidence(overrides))
+    expect(refreshHealthProblems(normalized({ readyState: 'interactive' })).join(' ')).toContain('readyState')
+    expect(refreshHealthProblems(normalized({ consoleErrors: ['error: boom'] })).join(' ')).toContain('consoleErrors')
+    expect(refreshHealthProblems(normalized({ networkFailures: ['ERR_CONNECTION_REFUSED'] })).join(' ')).toContain('networkFailures')
+    expect(refreshHealthProblems(normalized({ visibleText: '   ' })).join(' ')).toContain('visibleText')
+  })
+
+  it('rejects a non-object instead of treating it as healthy', () => {
+    expect(refreshHealthProblems(null).join(' ')).toContain('not a DOM evidence object')
   })
 })
 

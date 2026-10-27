@@ -54,8 +54,8 @@ if (upgradeTarball !== undefined && !existsSync(upgradeTarball)) {
   process.exit(2)
 }
 if (chrome === undefined || !existsSync(chrome)) {
-  console.log('web-install-smoke: skipped — no Chrome executable; set CHROME_PATH to run the UI path')
-  process.exit(0)
+  console.log('web-install-smoke: BLOCKED — no Chrome executable; set CHROME_PATH to run the UI path')
+  process.exit(2)
 }
 
 const smokeRoot = join(repoRoot, '.tmp', 'web-install-smoke')

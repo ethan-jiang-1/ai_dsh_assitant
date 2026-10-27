@@ -38,7 +38,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 
 import { join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { mkTmpDir } from '../../env/tmp.mjs'
-import { buildCaptureEvalArgs, buildMissingScenarioUsage, compareEvidence, discoverScenarios, normalizeDomEvidence, SCENARIO_EXPECTATION_FILE, USAGE_LINE } from './webui-expected-core.mjs'
+import { buildCaptureEvalArgs, buildMissingScenarioUsage, compareEvidence, discoverScenarios, normalizeDomEvidence, refreshHealthProblems, SCENARIO_EXPECTATION_FILE, USAGE_LINE } from './webui-expected-core.mjs'
 import { option } from './probe-utils.mjs'
 
 const args = process.argv.slice(2)
@@ -120,6 +120,13 @@ try {
 const actual = normalizeDomEvidence(raw)
 
 if (refresh) {
+  const health = refreshHealthProblems(actual)
+  if (health.length > 0) {
+    console.error('webui-expected: refusing to write a baseline from an unhealthy capture:')
+    for (const problem of health) console.error(`  - ${problem}`)
+    console.error(`webui-expected: capture kept for review: ${join(workDir, `expected-${size}.png`)}`)
+    process.exit(1)
+  }
   mkdirSync(scenarioDir, { recursive: true })
   writeFileSync(expectedPath, JSON.stringify(actual, null, 1) + '\n')
   console.log(`webui-expected: expectation written → ${expectedPath}`)

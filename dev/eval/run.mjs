@@ -186,13 +186,27 @@ function seedTaskHome(task) {
   }
 }
 
+/**
+ * A run with no session log was not evaluated — it is an environment/launch block, not a
+ * behavior failure. Counting it as FAIL sends the operator to change prompts/skills for a
+ * missing key (BUG-024). The continuity runner already uses BLOCKED; keep the two runners
+ * on the same vocabulary.
+ * @param run - the shape returned by `runPreset`.
+ * @returns `{ status: 'evaluated' }` or `{ status: 'blocked', reason }`.
+ */
+export function classifyRunOutcome(run) {
+  if (run.observation !== null) return { status: 'evaluated' }
+  const suffix = run.launchFailure === '' ? '' : ` (${run.launchFailure})`
+  return { status: 'blocked', reason: `no session log was produced${suffix}` }
+}
+
 function runTask(task) {
   seedTaskHome(task)
   const run = runPreset(task.prompt)
   try {
-    if (run.observation === null) {
-      const suffix = run.launchFailure === '' ? '' : ` (${run.launchFailure})`
-      return { task, verdict: { passed: false, reasons: [`no session log was produced${suffix}`] }, seconds: 0 }
+    const outcome = classifyRunOutcome(run)
+    if (outcome.status === 'blocked') {
+      return { task, blocked: true, reason: outcome.reason, seconds: 0 }
     }
     const verdict = evaluateTask(task, run.observation)
     return { task, verdict, seconds: run.seconds, observation: run.observation }
@@ -321,10 +335,21 @@ function selfCheck() {
     process.stderr.write('eval --self-check: FAIL — desk-daily-brief no longer declares requires: web (it cannot be scored headless)\n')
     process.exit(1)
   }
+  const blockedOutcome = classifyRunOutcome({ observation: null, launchFailure: 'MISSING_CREDENTIAL' })
+  if (blockedOutcome.status !== 'blocked' || !blockedOutcome.reason.includes('MISSING_CREDENTIAL')) {
+    process.stderr.write('eval --self-check: FAIL — a missing session log was not classified as BLOCKED\n')
+    process.exit(1)
+  }
+  const evaluatedOutcome = classifyRunOutcome({ observation: { toolCalls: [], answerText: '' }, launchFailure: '' })
+  if (evaluatedOutcome.status !== 'evaluated') {
+    process.stderr.write('eval --self-check: FAIL — a present observation was classified as blocked\n')
+    process.exit(1)
+  }
   process.stdout.write(`eval --self-check: ok — the evaluator fails the incident task (${task.id}) and passes a compliant answer;`
     + ' file-shape fails a shapeless file, a header-only file, a stale file and an unreadable path, and passes a shaped one;'
     + ' observe keeps the substantive answer on a present-turn, excludes reasoning, and is unchanged for single answers;'
-    + ' the capability partition leaves web-only tasks out of the pass/fail arithmetic\n')
+    + ' the capability partition leaves web-only tasks out of the pass/fail arithmetic;'
+    + ' a missing session log is BLOCKED, not FAIL\n')
 }
 
 /**
@@ -395,21 +420,28 @@ function main() {
     process.stdout.write(`▶ ${task.id} … `)
     const result = runTask(task)
     results.push(result)
-    process.stdout.write(`${result.verdict.passed ? 'PASS' : 'FAIL'} (${result.seconds}s)\n`)
-    for (const reason of result.verdict.reasons) process.stdout.write(`    · ${reason}\n`)
+    process.stdout.write(`${result.blocked === true ? 'BLOCKED' : result.verdict.passed ? 'PASS' : 'FAIL'} (${result.seconds}s)\n`)
+    if (result.blocked === true) process.stdout.write(`    · ${result.reason}\n`)
+    else for (const reason of result.verdict.reasons) process.stdout.write(`    · ${reason}\n`)
   }
 
-  const passed = results.filter(result => result.verdict.passed).length
+  const blocked = results.filter(result => result.blocked === true)
+  const passed = results.filter(result => result.blocked !== true && result.verdict.passed).length
   const skipNote = skipped.length === 0 ? '' : ` · ${String(skipped.length)} not evaluated (web-only)`
-  process.stdout.write(`\neval: ${passed}/${results.length} tasks passed${skipNote} (${harnessHome})\n`)
+  const blockedNote = blocked.length === 0 ? '' : ` · ${String(blocked.length)} blocked`
+  process.stdout.write(`\neval: ${passed}/${results.length} tasks passed${blockedNote}${skipNote} (${harnessHome})\n`)
   if (skipped.length > 0) {
     process.stdout.write(`eval: not evaluated here — ${skipped.map(task => task.id).join(', ')} (needs the web composition; a web-session driver is the upgrade path)\n`)
   }
-  const failed = results.filter(result => !result.verdict.passed).map(result => result.task.id)
+  if (blocked.length > 0) {
+    process.stdout.write(`eval: blocked — ${blocked.map(result => result.task.id).join(', ')} (environment/launch; not counted as behavior red)\n`)
+  }
+  const failed = results.filter(result => result.blocked !== true && !result.verdict.passed).map(result => result.task.id)
   if (failed.length > 0) {
     process.stdout.write(`eval: failing — ${failed.join(', ')}\n`)
     process.exit(1)
   }
+  if (blocked.length > 0) process.exit(2)
 }
 
 if (process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main()

@@ -19,7 +19,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { agentsMdStabilityProblems, archivedNotePointerProblems, backtickedRepoPathProblems, backlogGraduationProblems, backlogLivenessProblems, implementedNoteEvidenceProblems, clientScriptSafetyProblems, commandAliasProblems, commitSafetyProblems, trackedContentProblems, trackedDataPaths, compositionRowProblems, configParseProblems, crossFileSectionProblems, dependencyPoseProblems, devDrawerCoverageProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, graduatedProposalProblems, homeDocContractProblems, implementedAlternativesProblems, identityNameProblems, languageGuardProblems, markdownCorpusFromTracked, notesNamingProblems, notePointerProblems, notesStateProblems, importResolutionProblems, notesTopLevelProblems, pinProblems, machineLocalPathProblems, packageBuildFreshnessProblems, packageSubpathProblems, playbookFrontmatterProblems,
-  runtimeTsconfigProblems, selfContainmentProblems, skillFrontmatterKeyProblems, skillNameGrammarProblems, relativeLinkProblems, researchSubdirProblems, rootCommandBudgetProblems, scratchPathProblems, skillFrontmatterProblems, startPathProblems, tagVersionProblems, testAssetNamingProblems, textHygieneProblems, toolCommentNameProblems, vendorClientFreshnessProblems } from './verify-checks.mjs'
+  runtimeTsconfigProblems, selfContainmentProblems, skillFrontmatterKeyProblems, skillNameGrammarProblems, relativeLinkProblems, researchSubdirProblems, rootCommandBudgetProblems, scratchPathProblems, skillFrontmatterProblems, startPathProblems, tagVersionProblems, testAssetNamingProblems, textHygieneProblems, toolCommentNameProblems, vendorClientFreshnessProblems, webFaceExpectedHealthProblems } from './verify-checks.mjs'
 import * as gateCores from './verify-checks.mjs'
 import { runChecks } from './run-gates.mjs'
 import { pinnedTagFrom } from '../maintenance/sync-bookkeeping.mjs'
@@ -469,6 +469,12 @@ check('notes: note-card pointers resolve and are linked inside notes/', () =>
 
 check('test assets: only admitted shapes in the tests tree, scene contracts beside web-face fixtures', () =>
   testAssetNamingProblems(repoRoot))
+
+// A committed expectation is the reference for every later comparison. A half-loaded or noisy
+// capture, or one that lacks the scene's readiness token, must fail here — otherwise a bad
+// baseline is indistinguishable from a product regression.
+check('test assets: web-face expectations are healthy captures with their wait token', () =>
+  webFaceExpectedHealthProblems(repoRoot))
 
 check('links: cross-file section references name a real section', () =>
   crossFileSectionProblems({ repoRoot, corpus: markdownCorpus.map(file => ({ file, where: relative(repoRoot, file) })) }))

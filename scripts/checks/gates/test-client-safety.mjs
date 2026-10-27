@@ -57,6 +57,62 @@ export function testAssetNamingProblems(repoRoot) {
   return problems
 }
 
+/**
+ * A committed web-face expectation is a baseline, not a screenshot: it must be a complete,
+ * quiet, non-empty capture, and the scenario's readiness token must actually appear in it.
+ * The refresh path has its own health gate; this is the other side — a bad baseline that
+ * slipped in earlier should fail verify, not quietly become the reference forever.
+ *
+ * A scene without `expected.dom.json` is a draft, not a runnable scenario; skip it here
+ * (the naming gate above still requires its contract files). The token is read from the
+ * `runner:` line of `snapshot.yml`; the README remains the executable contract owner.
+ *
+ * @param {string} repoRoot - repository root.
+ * @returns {string[]} problem strings (empty = pass).
+ */
+export function webFaceExpectedHealthProblems(repoRoot) {
+  const problems = []
+  const webFace = join(repoRoot, 'snapshots', 'web-face')
+  if (!existsSync(webFace)) return problems
+  for (const scenario of readdirSync(webFace)) {
+    const dir = join(webFace, scenario)
+    if (!statSync(dir).isDirectory()) continue
+    const expectedPath = join(dir, 'expected.dom.json')
+    if (!existsSync(expectedPath)) continue
+    let evidence
+    try {
+      evidence = JSON.parse(read(expectedPath))
+    } catch {
+      problems.push(`snapshots/web-face/${scenario}/expected.dom.json: not valid JSON`)
+      continue
+    }
+    const where = `snapshots/web-face/${scenario}/expected.dom.json`
+    if (evidence?.readyState !== 'complete') {
+      problems.push(`${where}: readyState is ${JSON.stringify(evidence?.readyState)}, expected "complete"`)
+    }
+    for (const field of ['consoleErrors', 'networkFailures']) {
+      if (!Array.isArray(evidence?.[field]) || evidence[field].length > 0) {
+        problems.push(`${where}: ${field} must be an empty array`)
+      }
+    }
+    if (typeof evidence?.visibleText !== 'string' || evidence.visibleText.trim() === '') {
+      problems.push(`${where}: visibleText is empty — a blank page is not a baseline`)
+    }
+    if (!Array.isArray(evidence?.controls) || evidence.controls.length === 0) {
+      problems.push(`${where}: controls is empty — the capture does not look like a rendered page`)
+    }
+    const snapshotPath = join(dir, 'snapshot.yml')
+    if (existsSync(snapshotPath)) {
+      const runner = /^runner:\s*(.*)$/mu.exec(read(snapshotPath))?.[1] ?? ''
+      const token = /--wait-text\s+'([^']+)'/u.exec(runner)?.[1]
+      if (token !== undefined && typeof evidence?.visibleText === 'string' && !evidence.visibleText.includes(token)) {
+        problems.push(`${where}: wait token ${JSON.stringify(token)} from snapshot.yml is not in visibleText`)
+      }
+    }
+  }
+  return problems
+}
+
 // ── client classic-script safety ─────────────────────────────────────────────────────────────────
 
 /** Recursively collect .ts files under a directory (the client source tree is flat today). */
