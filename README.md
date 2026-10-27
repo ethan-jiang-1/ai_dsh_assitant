@@ -87,7 +87,7 @@ dsh plugin --profile <p> add file:./packages/dsh-smart-assistant   # <p>＝你�
 
 ## 从哪个入口开始
 
-起服务五步、开发环、验证链、评测的命令与判据，**唯一清单** = 根 [`AGENTS.md`](AGENTS.md) 命令表
+起服务五步、开发环、验证链、评测的命令与判据，**唯一清单** = [`docs/commands.md`](docs/commands.md)（启动五步仍住根 [`AGENTS.md`](AGENTS.md) 的启动段）
 （本 README 不复述；唯一例外是下面「知识导入」与「专家部署装配」两条部署 CLI，家在本文）。
 
 **按问题找**（纯路由，不复制正文）：
@@ -136,7 +136,7 @@ pnpm typecheck && pnpm test && pnpm verify
 ```
 
 首次进入到此为止。日常开发环（dev / dev-task 两个 profile 各自验什么、one-shot 与 Web UI 的分工、
-换 pin 的步骤）：命令清单唯一表主 = 根 [`AGENTS.md`](AGENTS.md) 命令表，展开细节在
+换 pin 的步骤）：命令清单唯一表主 = [`docs/commands.md`](docs/commands.md)，展开细节在
 [`docs/dev.md`](docs/dev.md) §四 —— 本段不复制。
 
 契约在 `docs/`（`docs/home.md` 是 working folder 的契约，`docs/identity.md` 是身份名），

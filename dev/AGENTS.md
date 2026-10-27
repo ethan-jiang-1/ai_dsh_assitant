@@ -38,9 +38,9 @@ roster 行可替换、两个 profile patch 语义不可互换），此处不复�
 | `experiments/openviking/` | 外部服务试验工具（只归位不执行） |
 | `harness-home/` · `trial-home*/` | **忽略的运行数据**（含 30 天观察专用 home），原地保留（源码归位 ≠ 数据迁移） |
 
-命令清单 owner = 根 [`AGENTS.md`](../AGENTS.md) 命令表（展开细节 = [`docs/dev.md`](../docs/dev.md) §四）——本表只回答「东西在 dev/ 的哪个抽屉」。
+命令清单 owner = [`docs/commands.md`](../docs/commands.md)（展开细节 = [`docs/dev.md`](../docs/dev.md) §四）——本表只回答「东西在 dev/ 的哪个抽屉」。
 
 ## 交给人之前
 
-起 Web UI 后必须 `pnpm preflight '<URL>'`（门禁绿了再交）；命令清单 owner = 根 [`AGENTS.md`](../AGENTS.md) 命令表。
+起 Web UI 后必须 `pnpm preflight '<URL>'`（门禁绿了再交）；命令清单 owner = [`docs/commands.md`](../docs/commands.md)。
 一键启动 `pnpm start` 已把这条收进流程：它自带产物自证与 preflight，红了不交 URL 并把服务收掉。

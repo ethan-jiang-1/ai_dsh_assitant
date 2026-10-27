@@ -19,7 +19,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { agentsMdStabilityProblems, archivedNotePointerProblems, backtickedRepoPathProblems, backlogGraduationProblems, backlogLivenessProblems, implementedNoteEvidenceProblems, clientScriptSafetyProblems, commandAliasProblems, commitSafetyProblems, trackedContentProblems, trackedDataPaths, compositionRowProblems, configParseProblems, crossFileSectionProblems, dependencyPoseProblems, devDrawerCoverageProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, graduatedProposalProblems, homeDocContractProblems, implementedAlternativesProblems, identityNameProblems, languageGuardProblems, markdownCorpusFromTracked, notesNamingProblems, notePointerProblems, notesStateProblems, importResolutionProblems, notesTopLevelProblems, pinProblems, machineLocalPathProblems, packageBuildFreshnessProblems, packageSubpathProblems, playbookFrontmatterProblems,
-  runtimeTsconfigProblems, selfContainmentProblems, skillFrontmatterKeyProblems, skillNameGrammarProblems, relativeLinkProblems, researchSubdirProblems, scratchPathProblems, skillFrontmatterProblems, startPathProblems, tagVersionProblems, testAssetNamingProblems, textHygieneProblems, toolCommentNameProblems, vendorClientFreshnessProblems } from './verify-checks.mjs'
+  runtimeTsconfigProblems, selfContainmentProblems, skillFrontmatterKeyProblems, skillNameGrammarProblems, relativeLinkProblems, researchSubdirProblems, rootCommandBudgetProblems, scratchPathProblems, skillFrontmatterProblems, startPathProblems, tagVersionProblems, testAssetNamingProblems, textHygieneProblems, toolCommentNameProblems, vendorClientFreshnessProblems } from './verify-checks.mjs'
 import * as gateCores from './verify-checks.mjs'
 import { runChecks } from './run-gates.mjs'
 import { pinnedTagFrom } from '../maintenance/sync-bookkeeping.mjs'
@@ -282,7 +282,7 @@ check('build: the artifact the presets load matches src/ (content, not mtime)', 
 // （README 那条 stale 的 npm 发布路径就是这么烂掉的）。notes 不在语料里——它们记录的是当时为真的事。
 check('docs: commands named in the docs exist, and every alias is named in a current doc', () => {
   const corpus = [join(repoRoot, 'AGENTS.md'), join(repoRoot, 'README.md'), join(repoRoot, 'docs', 'dev.md'),
-    join(repoRoot, 'docs', 'discipline.md'), join(repoRoot, 'dev', 'AGENTS.md'), join(repoRoot, 'scripts', 'AGENTS.md'),
+    join(repoRoot, 'docs', 'commands.md'), join(repoRoot, 'docs', 'discipline.md'), join(repoRoot, 'dev', 'AGENTS.md'), join(repoRoot, 'scripts', 'AGENTS.md'),
     join(packageDir, 'AGENTS.md'), join(packageDir, 'README.md')]
     .filter(existsSync)
     .map(file => ({ path: relative(repoRoot, file), text: read(file) }))
@@ -300,6 +300,12 @@ check('docs: commands named in the docs exist, and every alias is named in a cur
 // 脚本被标成第一步、它排在任何起服务的命令之前、两个 profile 各有路由。
 check('docs: the startup path in AGENTS.md is reachable in first-step order', () =>
   startPathProblems({ agentsPath: 'AGENTS.md', source: read(join(repoRoot, 'AGENTS.md')) }))
+
+// The root entry is standing orders + routing, not the command reference. Every feature used
+// to append one command line (11.7KB/13 commands → 27.9KB/40 in 33 days); the budget keeps the
+// ratchet from returning after the table moved to docs/commands.md.
+check('docs: the root entry keeps only the startup and daily commands', () =>
+  rootCommandBudgetProblems({ agentsPath: 'AGENTS.md', source: read(join(repoRoot, 'AGENTS.md')) }))
 
 check('structure: every composition file we own parses as YAML', () =>
   configParseProblems([

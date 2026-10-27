@@ -1,4 +1,4 @@
-日期：2026-10-28 · 状态：**proposed（待拍板）**（来源 = [2026-10-28 六维深审](../../_backlog/research/tech-exploration/261028-six-dimension-audit.md)；机械真相修复已落 `5cb43b8` / `21dab8d`）
+日期：2026-10-28 · 状态：**proposed（已授权实施；work 台账 = [收口卡](../../_backlog/issues/261028-six-dimension-improvement.md)）**（来源 = [2026-10-28 六维深审](../../_backlog/research/tech-exploration/261028-six-dimension-audit.md)；机械真相修复已落 `5cb43b8` / `21dab8d`）
 
 # 六维深审后的持续改善（S1–S4）
 

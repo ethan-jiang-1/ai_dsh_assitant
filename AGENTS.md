@@ -95,59 +95,17 @@ pnpm dsh --profile dev-task "one task"   # ⑤ 只想冒烟 host 面（插件装
 （漏加到任意一条 = profile 找不到的报错，机理见硬规则 1）；完整命令串与判据 =
 [`docs/dev.md`](docs/dev.md) §一（隔离模型 owner）。
 
-**开发环与舱内工具**（用①的 install 装好即可，与起服务无先后）：
-
-先判据、别瞎跑：**装好了** = `node_modules/.modules.yaml` 在（或 `pnpm store` 里已有本次解析）；
-**建好了** = `vendor/dsh/packages/boot/app-boot/lib/index.js`、`.../client/modules/lib/client.js`、
-`vendor/dsh/apps/web/dist/index.html` 三个都在（`--dump-config`/`--help` 不加载 lib，**不能**当判据）。
+**日常四条**（完整清单 = [`docs/commands.md`](docs/commands.md)；每条深判据 = [`docs/dev.md`](docs/dev.md) §四）：
 
 ```sh
-pnpm gen-paths          # 从 vendor/dsh 重新生成运行期解析入口 tsconfig.tsx.json（换 pin 后必跑）
-pnpm gen-catalog        # 重新生成 docs/package-catalog.md（改组合行/exports/工具动词后必跑；freshness 门禁守）
-pnpm clean              # 删 lib/（tsc 不清理已改名/删除文件的旧产物；改名后先 clean 再 build）
-pnpm sweep [--root <dir>] [--apply] [--min-age-minutes <n>] [--keep <名字>]   # .tmp 清扫（硬规则 8「清扫即回收」的机制化）：默认 dry-run 列将删条目，--apply 才真删；跳过 openviking / 新 mtime / 打开句柄（lsof）/ --keep 白名单
-pnpm build              # tsc 出 lib/ + tsdown 出 classic bundle：preset 行加载的是构建物，不是源码
-                        #    （忘了它的代价由 `pnpm verify` 的 `build:` 门禁抓——判据见 docs/dev.md §二登记表；
-                        #     起服务时 dev/env/start.sh 会先自证并自动补，不必谁记着。
-                        #     改 presets/assistant/skills/* 不需要 build，但要 touch
-                        #     packages/dsh-smart-assistant/cordis.patch.yml——preset 代际看它的 mtime+size，
-                        #     不 touch 新会话拿不到新代；机理 = docs/dev.md §四）
-pnpm preflight '<URL>'  # 开屏前门禁：证明装得上（auth/boot 图/每个 combo 可解析）；不证明渲染出来
-pnpm shots '<URL>' --dom --size 1600x1000 --name <名字>   # 渲染证据：PNG + DOM 两件（落仓内 .tmp/shots/）；`--eval` 拿交互态（机理 = docs/dev.md §四）
-pnpm web-expected '<URL>' --scenario <场景目录>   # web 渲染期望比对（场景必填——缺即列出 snapshots/web-face/ 下全部场景并退出；漂移 exit 1）；重录 `--refresh`（场景契约 = snapshots/web-face/<场景>/README.md）
-pnpm loop-probe '<URL>' --ask '<问句>'   # 首用闭环探针：真发问真等回复，JSON 判决 + 截图（`--ask` 真建会话；先把实例起在一次性 home；弧线 = docs/dev.md §四）
-pnpm desk-walk '<URL>' [--home <dir>]   # 处理流真机走查（真模型）：屏幕文本+截图供人判话术/层级（弧线与 `--home` 判据 = docs/dev.md §四）
-pnpm projection-live [--home <dir>]     # live 补证：断连/重连、3 次重载会话不增殖、420 窄视口、滚动位置；无模型；首次先 prepare/setup（判据 = docs/dev.md §四）
-pnpm projection-selection '<URL>'       # 交互证据门：点选事项→详情 quote/session 读回（实例须带 eight-matters 夹具；无模型）
-pnpm dsh --profile dev --dump-config   # boot-free 查组合树：行 id、disabled、realm 一目了然（什么情况用 = 下「探索路由」同名条目）
-pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner.patch.yml "<task>"   # preset 挂载的 one-shot（验证自动化驱动）
-pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner-replay.patch.yml "<task>"   # 同上但 keyless：llm-replay 回放替掉真实 adapter，无 key 出真实会话日志（形状与坑见 patch 头注）
-pnpm typecheck          # 委派包级：tsc -b（编译期 paths 解析到 vendor/dsh 的 src，API 漂移编译期暴露）+ 测试工程；
-                        #    跑完它记得重跑 `pnpm build`（tsc 会把 ESM 写进 lib/client 覆盖 classic bundle——
-                        #    verify 的 build: 门禁兜底，坑条 = docs/dev.md §五）
-pnpm test               # vitest 全量：分层 spec（纯核+服务合同+agent/client/composition/tooling；层命令与各层能证明什么见 docs/testing.md 分层表）
-pnpm verify             # 机械门禁链（覆盖面清单 = scripts/checks/verify.mjs）
-pnpm release-smoke      # pnpm pack → 干净 home → dsh plugin add → 组合断言（**改动发布物/依赖/preset 包装/工具面必跑**）
-pnpm upgrade-smoke      # 旧包→新包升级 + remove/re-add 后两目录数据保留（干净 home；发布物/数据面必跑）
-pnpm standalone-smoke   # 无 .git 提取包 → bootstrap → 隔离 home → preflight → client boot/UI → stop（独立启动面必跑）
-pnpm web-install-smoke [-- --tarball <old> --upgrade-tarball <new>]  # 标准 web profile：安装 → preflight → client boot/preset UI；给 upgrade 选项则再加“运行中升级→重启→复验”
-pnpm install-resilience-smoke  # 损坏 tarball 被拒 → profile 保持空 → 有效 tarball 重试成功；两个并发 add 最终一份依赖
-pnpm bootstrap-guards-smoke    # 独立启动的坏输入：profile 穿越/保留名/缺旧 pnpm/npm 在创建 home 前拒绝
-pnpm pnpm-matrix -- --pnpm <v> --expect install|reject   # pnpm 版本矩阵（9.15.9/10.4 拒绝；10.6/11/12 安装）
-pnpm prompt-smoke       # 无 key 回放一次 preset one-shot，断言四个 prompt 段落与六个工具真进了请求
-pnpm compat-matrix -- --dsh <path> --version <v> --expect install|reject   # 真实 DSH CLI 的下界/拒绝矩阵（干净 home）
-pnpm agent-preset-ui '<URL>'   # 运行中干净实例的 Web preset 选择探针（Settings → Agent 预设 → 章鱼管家）
-pnpm export-dist        # 手动分发导出：pnpm pack → _dist/ 的 tgz + 清单边界断言 + 自动生成《安装手册》；
-                        #    版本、标签与导出顺序 = docs/dev.md §九（tag 名必须等于该提交里的包版本）
-pnpm sync-dsh -- --tag <dsh-tag>   # 换 submodule tag + SHA 簿记 + typecheck + 对照 docs/discipline.md 重校纪律表
-pnpm usage              # 意图级仪表：会话/工具混合/自用率/摩擦（读 dev home；口径与硬规则 = docs/dev.md §四）
-pnpm desk-loop          # 培养循环摩擦报告（读 dev home 会话日志；读什么与口径 = docs/dev.md §四）
-pnpm observe [--home <dir>]   # 输入边界 30 天观察读数（A/B/C 口径与读数档 = docs/dev.md §四）
-pnpm eval               # 行为评测：真实请求经 preset 会话，判定读会话日志（串行；详见 docs/dev.md §四）
-pnpm eval:domain        # 领域评测：本人出题逐题跑 → 人打分的报告（判据与题面格式 = dev/eval/domain/TEMPLATE.md）
-pnpm eval:continuity    # 续接行为地板：隔离 fixture 首回合读回判据（一次性 home + 种子账本 + 会话日志判据；红绿对照挂 verify；深判据 = docs/dev.md §四）
-pnpm ov-trial-rt        # OpenViking 真服务记忆往返试验：建会话→塞哨兵语料→等抽取→找回（前提 server 已在 127.0.0.1:1933，由 setup.sh 顺带拉起；判据 = docs/dev.md §四）
+pnpm build      # 构建物：preset 行加载 lib/，不是源码
+pnpm typecheck  # tsc -b；跑完记得重跑 pnpm build
+pnpm test       # vitest 全量（分层 spec）
+pnpm verify     # 机械门禁链
 ```
+
+**要跑探针/评测/发布/维护**：查 [`docs/commands.md`](docs/commands.md) 的对应分组；入口判据 =
+[`docs/dev.md`](docs/dev.md) §六，踩坑先查 §五。命令清单只有一个家，根不再复述。
 
 ## 九条硬规则
 
@@ -217,6 +175,6 @@ pnpm ov-trial-rt        # OpenViking 真服务记忆往返试验：建会话→�
 - 客户端样式：`vendor/dsh/docs/web-styling.md`。本包色值落点在 [`packages/dsh-smart-assistant/AGENTS.md`](packages/dsh-smart-assistant/AGENTS.md)
 - 工具与卡片（`defineTool` / presenter / 日志税）：`vendor/dsh/docs/cookbook/adding-a-tool.md`
 - **"组合里到底有没有这一行"**（读源码答不了这个问题）：`pnpm dsh --profile dev --dump-config`——排查 patch 落空 / 重复 id 的第一命令（boot-free；
-  输出形状见上「命令表」同名条目）
+  输出形状 = [`docs/commands.md`](docs/commands.md) 的 `dsh --dump-config` 行）
 - **"活进程里注册了什么"**：shipped `cordis` preset 自带只读 inspect 工具（`SessionInspect` 一族，见 `vendor/dsh/docs/subsystems/session.md`）；要用它就起一个不挂本仓 roster patch 的 profile——本仓 `assistant`
   preset 刻意不挂它们（那是模型可见面变更，为开发期需求不划算）

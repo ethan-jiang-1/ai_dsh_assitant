@@ -12,6 +12,7 @@ import { describe, expect, it, afterEach } from 'vitest'
 import {
   commandAliasProblems,
   dshHomeInheritanceProblems,
+  rootCommandBudgetProblems,
   startPathProblems,
 } from '../../../../scripts/checks/gates/docs-commands.mjs'
 import { temp, disposeTempDirs } from './verify-gates-harness.mjs'
@@ -120,6 +121,25 @@ describe('startPathProblems', () => {
       .toContain('never launches profile `dev-task`')
     // A missing/empty file must read as "could not check", never as a silent pass.
     expect(startPathProblems(agents(''))[0]).toContain('cannot be checked')
+  })
+})
+
+describe('rootCommandBudgetProblems', () => {
+  const entry = (source, max = 3) => rootCommandBudgetProblems({ agentsPath: 'AGENTS.md', source, max })
+
+  it('accepts an entry that keeps only startup and daily commands', () => {
+    expect(entry('```sh\npnpm install\npnpm build\npnpm test\n```\n')).toEqual([])
+  })
+
+  it('rejects the reference table creeping back into the entry file', () => {
+    const problems = entry('pnpm a\npnpm b\npnpm c\npnpm d\n')
+    expect(problems.join(' ')).toContain('4 pnpm command lines')
+    expect(problems.join(' ')).toContain('docs/commands.md')
+  })
+
+  it('counts indented lines and reports a missing source instead of passing silently', () => {
+    expect(entry('  pnpm a\n  pnpm b\n  pnpm c\n  pnpm d\n').join(' ')).toContain('4 pnpm command lines')
+    expect(entry('').join(' ')).toContain('cannot be checked')
   })
 })
 

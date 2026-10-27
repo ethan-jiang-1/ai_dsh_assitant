@@ -9,7 +9,7 @@
 
 ## 默认启动动作
 
-"启动一下"的默认语义 = 根 [`AGENTS.md`](../AGENTS.md) 命令表首段（常设指令 owner）：一条 `pnpm start` 在本仓隔离 home 里起动 `dev` Web 实例——它自己按序补齐 submodule / 根依赖（缺才补）→ prepare → setup → 产物自证（`lib/` 与 `src/` 不一致就先 build）→ 起服务 → `pnpm preflight`，绿了才把 URL 打出来（实现 = [`dev/env/start.sh`](../dev/env/start.sh)）。本节拥有的是下面这张入口判别表——三个邻近但不同的入口，除非用户明确点名不走：
+"启动一下"的默认语义 = 根 [`AGENTS.md`](../AGENTS.md) 的启动段（常设指令 owner）：一条 `pnpm start` 在本仓隔离 home 里起动 `dev` Web 实例——它自己按序补齐 submodule / 根依赖（缺才补）→ prepare → setup → 产物自证（`lib/` 与 `src/` 不一致就先 build）→ 起服务 → `pnpm preflight`，绿了才把 URL 打出来（实现 = [`dev/env/start.sh`](../dev/env/start.sh)）。本节拥有的是下面这张入口判别表——三个邻近但不同的入口，除非用户明确点名不走：
 
 | 入口 | 实际起动什么 | 什么时候用 |
 |---|---|---|
@@ -27,7 +27,7 @@
 **用隔离 home 跑实验必须建 profile 与起服务同 home**：profile 由 `dev/env/setup.sh` 建、由 `pnpm dsh` 读，
 两边不同就会看到 `profile "dev" does not exist`——而它说的是实话，只是没说"你建在另一个 home 了"。
 
-落到另一个 home 的完整命令串（对根 `AGENTS.md` 命令表的 ②③④⑤ **每一条**前置同一变量，
+落到另一个 home 的完整命令串（对根 `AGENTS.md` 启动段的 ②③④⑤ **每一条**前置同一变量，
 漏加到任意一条就会踩上面那句报错）：
 
 ```sh
@@ -92,7 +92,7 @@ pnpm --dir vendor/dsh run build:web       # 只有跑 Web UI 才需要（前端 
 
 - **为什么包成脚本**：这四条是**起服务的前置**，漏一条的失败点是一句无关的报错（缺 boot lib 时
   `dev/env/setup.sh` 会 fail loud，但它不替你把构建跑一遍）。搬进脚本后，fresh clone 到能起服务只剩
-  命令表那条链，每一步都能重跑。
+  启动段那条链，每一步都能重跑。
 
 - **known pitfall**：vendor 树的根 `postinstall`（lefthook）在 submodule 里会失败
   （`extensions.worktreeConfig` + `core.worktree` 冲突）。包已全部就位，可忽略；
@@ -103,7 +103,7 @@ pnpm --dir vendor/dsh run build:web       # 只有跑 Web UI 才需要（前端 
 
 ## 四、开发环（日常）
 
-命令清单的**唯一表主** = 根 `AGENTS.md` 命令表（起服务链、开发环、验证与评测命令都在那里）。
+命令清单的**唯一表主** = [`commands.md`](commands.md)（起服务五步仍住根 `AGENTS.md`；开发环、验证与评测命令都在 commands.md）。
 本节拥有表上各命令的**深判据**（能证明什么/口径/坑），并收**表上没有的行**——清单一份、判据一层，两处各持一份清单必然漂移：
 
 ```sh
@@ -111,7 +111,7 @@ pnpm test:composition       # 先 pnpm build，再跑 tests/composition 整个�
 pnpm test:domain / pnpm test:host / pnpm test:agent / pnpm test:client / pnpm test:tooling   # 层入口：只跑对应 tests/<layer>（各层能/不能证明什么见 docs/testing.md 分层表）
 ```
 
-（keyless 回放与 web-expected 在命令表上有行；replay 的形状与坑在该 patch 头注。）
+（keyless 回放与 web-expected 在 [`commands.md`](commands.md) 上有行；replay 的形状与坑在该 patch 头注。）
 
 **OpenViking 记忆层的 server 由 `setup.sh` 顺带拉起**（实现 = [`dev/env/openviking-up.sh`](../dev/env/openviking-up.sh)，幂等）。
 这件事必须自动化，因为它的失败是**安静**的：插件（Node 侧 bundle）拉不起 server——0.5.26 产物里没有任何
@@ -262,7 +262,7 @@ DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得
 `ASSISTANT_DSH_HOME` 或仓内 dev home（机械门禁 `structure: dev tooling never inherits DSH_HOME` 管）；
 **只报测得到的**——日志没有的字段（如 preset）不报，数字全来自事件计数。
 
-**四个真机探针与输入观察（命令表上的深判据在这里）**：
+**四个真机探针与输入观察（[`commands.md`](commands.md) 上的深判据在这里）**：
 `pnpm loop-probe '<URL>' --ask '<问句>'`（首用闭环：**首屏=一页纸**——「今天」/「它记下的」/空态一问或当前页；`--ask` 走首页输入、点「交给它」、等 `[data-one-page]` 出现，JSON 判决带 `homeFirstScreen`/`homeInput`/`pageSeconds`/`pageText` 与 `sessionId`（会话目录快照差集取，不猜；`--home` 旗标解析同其它 dev 工具）；`--follow-up`/`--walk` 仍走桌面/会话路径，首页路径返回 unsupported；`--ask` 会真建会话——先把目标实例起在一次性 home）、
 `pnpm desk-walk '<URL>' [--home <dir>]`（处理流真机走查：首屏一页纸→「全部」→「完整看板」→处理一件事→一句进展→返回不变量→交代新事，
 产出屏幕文本+截图供人判话术/层级，**进会话相位各记 sessionId**；`--home` 才能核账本身份与「回来⇒无待确认」）、

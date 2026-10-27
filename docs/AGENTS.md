@@ -21,7 +21,8 @@
 | [`release.md`](release.md) | **发布/发行宪章**（发布物形态、渠道、产物合同、兼容范围、版本/标签、生命周期、禁则与变更触发） | 规则锚到 `engines.dsh`、`pnpm verify`、`release-smoke`、`upgrade-smoke`、`standalone-smoke` 与 `docs/testing.md` 证据地图 |
 | [`architecture.md`](architecture.md) | 组合层级、两个平面、部件与 owner 面、参与阶梯、**界面三层（常用/深看/调试）**、新行为归属、三条运行链路与六条功能路由 | 与 `cordis.patch.yml` 的行一致（host 行 + `preset-assistant` 行的 plugins）；链路引用的源码/脚本/命令真实存在 |
 | [`identity.md`](identity.md) | **名字与皮肤面**（身份名、改名代价、皮肤清单） | 改包名/patch 行 id/preset id 等必须同 diff 更新本文；`verify` 校验声明的身份名都在场 |
-| [`dev.md`](dev.md) | 开发环境：双 home、两个 profile、命令、生成器与 freshness、调试手册 | 命令与 `package.json` scripts 一致 |
+| [`dev.md`](dev.md) | 开发环境：双 home、两个 profile、启动/开发环判据、生成器与 freshness、调试手册 | 启动/开发环判据与 [`commands.md`](commands.md) 互证 |
+| [`commands.md`](commands.md) | **完整命令清单**（alias × 用途 × 判据指针）；启动语义仍在根 `AGENTS.md` | 每个 `package.json` script 至少在此或部署 README 出现；`docs-commands` 门禁互证 |
 | [`discipline.md`](discipline.md) | **纪律继承表**（逐源枚举：借什么/怎么适配/偏离登记）与反馈层、门禁边界 | 新门禁/新纪律先在这里登记一行（约束 → 适配 → 证据） |
 | [`testing.md`](testing.md) | **测试面合同**：一页证据地图、插件证据五台阶、政策禁令、已定姿态与升级触发 | 样板文件路径与 spec 现读机制须与 `tests/`、`cordis.patch.yml` 现况一致 |
 | [`package-catalog.md`](package-catalog.md) | 包当前形状的**生成索引**（入口×平面、工具×动词、行 id、pin 与依赖姿态） | 生成物；freshness 由 `pnpm verify` 的 `gen-catalog --check` 守 |

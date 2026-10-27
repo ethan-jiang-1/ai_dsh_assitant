@@ -61,7 +61,7 @@ intent: "2026-10-28 六维打扫卫生深审：四路 fresh 只读审计 + 主�
 
 | 级别 | 位置 | 事实 | 风险 |
 |---|---|---|---|
-| P1（上下文税） | 根 `AGENTS.md` | 27.9KB / 221 行 / 40 条命令；命令表 76 行、9.5KB。过去 33 天从 11.7KB/13 条长到 27.9KB/40 条；门禁注释自己写着根表「must stay short」 | 每个新会话先付 ~8–10k tokens；参考型 runbook 挤占常驻指令 |
+| P1（上下文税） | 根 `AGENTS.md` | 27.9KB / 221 行 / 40 条命令；命令表 76 行、9.5KB。过去 33 天从 11.7KB/13 条长到 27.9KB/40 条；门禁注释自己写着根表「must stay short」（2026-10-28 S1 已交付：根 180 行 / 21.4KB / 7 条，参考表迁 `docs/commands.md`） | 每个新会话先付 ~8–10k tokens；参考型 runbook 挤占常驻指令 |
 | P2 | `dev/probes/web/webui-expected.mjs` refresh 分支 | `--refresh` 只写文件，不校验 `readyState` / `consoleErrors` / `networkFailures`；这些又是比对字段 | 一次误 refresh 可把坏页面固化成基线，此后永远 PASS；web-face 不在 verify 里 |
 | P2 | `dev/eval/run.mjs` | 无会话日志 → `passed:false`，与「模型没做对」同一条 FAIL；docs 明写缺 key 不能算行为红 | 凭据失效时 agent 会去改 prompt/任务（BUG-024 已发生过一次） |
 | P2 | `scripts/release/web-install-smoke.mjs`、`standalone-smoke.mjs` | 无 Chrome 时前者 `exit 0`，后者打印 `passed`（UI 半场没跑） | 「release smoke 绿」可能是假绿，违反 blocked 不入绿名单 |

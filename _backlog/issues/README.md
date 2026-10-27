@@ -4,7 +4,9 @@
 
 ## 活跃清单
 
-当前没有活跃问题卡——261027 数据生命周期硬化已按关闭条件结档到 [settled_issues](../_archive/settled_issues/261027-data-lifecycle-hardening.md)，未取的 G14/G15 等触发式剩余留在卡内。
+- [261028-six-dimension-improvement.md](261028-six-dimension-improvement.md)——六维深审后的 S1–S4 收口卡（已授权，进行中）
+
+（261027 数据生命周期硬化已按关闭条件结档到 [settled_issues](../_archive/settled_issues/261027-data-lifecycle-hardening.md)，未取的 G14/G15 等触发式剩余留在卡内。）
 
 
 ## 写一张卡

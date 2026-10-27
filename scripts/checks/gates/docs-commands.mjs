@@ -122,3 +122,20 @@ export function dshHomeInheritanceProblems(files) {
   }
   return problems
 }
+
+/**
+ * The root entry is standing orders + routing, not the command reference. It grew from
+ * 11.7KB / 13 commands to 27.9KB / 40 commands in 33 days because every feature appended one
+ * line; a budget catches the ratchet instead of waiting for the next audit. The full list
+ * lives in docs/commands.md; the startup block and the daily four stay in the root.
+ *
+ * @param options - `{ agentsPath, source, max }`; `max` defaults to 10 command lines.
+ */
+export function rootCommandBudgetProblems({ agentsPath, source, max = 10 }) {
+  if (typeof source !== 'string' || source.length === 0) {
+    return [`${agentsPath} was not read (or is empty) — the command budget cannot be checked`]
+  }
+  const commands = source.split('\n').filter(line => /^\s*pnpm\s/u.test(line))
+  if (commands.length <= max) return []
+  return [`${agentsPath} lists ${commands.length} pnpm command lines (budget ${max}) — the reference table belongs in docs/commands.md`]
+}

@@ -2,7 +2,7 @@
 
 > 本文件拥有**本仓测试面合同**：一页证据地图、插件证据五台阶、本仓执行的政策条款、已定姿态与升级触发条件。
 > 主仓测试政策的正文在 `vendor/dsh/docs/testing.md`。本文件不抄它的 coverage 门、snapshot 车道和 CI 矩阵；刻意不采纳的项在「已定姿态」与 [`discipline.md`](discipline.md)。
-> 命令清单 owner = 根 `AGENTS.md` 命令表（展开细节在 `docs/dev.md` §四，不复述清单）。机制分层表 = `discipline.md` 六层反馈（不复制）。
+> 命令清单 owner = [`commands.md`](commands.md)（启动语义在根 `AGENTS.md`；展开细节在 `docs/dev.md` §四，不复述清单）。机制分层表 = `discipline.md` 六层反馈（不复制）。
 > 执行细则（逐面判断规则与已知假绿清单）= `.agents/skills/pre-push-evidence/`（路由表主在本文「一页证据地图」，技能不复制表）。
 > 路径基准：本文件中的 `tests/…` 一律**包内相对**（= `packages/dsh-smart-assistant/tests/…`），其余路径仓根相对。
 >
