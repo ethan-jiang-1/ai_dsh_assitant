@@ -67,7 +67,7 @@ intent: "2026-10-28 六维打扫卫生深审：四路 fresh 只读审计 + 主�
 | P2 | `scripts/release/web-install-smoke.mjs`、`standalone-smoke.mjs` | 无 Chrome 时前者 `exit 0`，后者打印 `passed`（UI 半场没跑）（2026-10-28 S2 已交付：web-install/release-smoke 实测 exit 2；standalone 静态改） | 「release smoke 绿」可能是假绿，违反 blocked 不入绿名单 |
 | P2 | `src/cli/assistant-data-*.ts`、`src/host/desk-projection/receipts.ts` | cli 以 value import 取 `host/operating-ledger/archive.ts`；desk-projection 跨行直读同一归档格式，绕过 ledger 服务 seam（2026-10-28 S3a 已交付：格式移入 `domain/operating/archive.ts`，消费方改指） | 账本格式知识散在三处；改格式会漏消费方；与 `docs/architecture.md` 的「cli = domain + yaml」不符 |
 | P2 | `src/client/projection/projection-panel.ts` | 单函数 366 行，含 simple/board/activity/detail 四态与局部标签表（2026-10-28 S3b 已交付：SimpleFace/ActivityFace/MatterBoard，主函数 228 行；web-face PASS） | 改一态要读整文件；面板 spec 只能整文件断言 |
-| P2 | `src/cli/assistant-data.ts` | 697 行、六类命令 + 底部长 re-export，兼作事实上的第二 barrel | 浅门面；新增命令继续往里堆 |
+| P2 | `src/cli/assistant-data.ts` | 697 行、六类命令 + 底部长 re-export，兼作事实上的第二 barrel（2026-10-28 S3c 已交付：入口 27 行再导出，实现拆 bundle/types） | 浅门面；新增命令继续往里堆 |
 | P2 | `src/domain/operating/ledger.ts` | 562 行纯核，但无直接 spec；只经 host 服务与 projection 间接覆盖（2026-10-28 S4a 已交付：`tests/domain/operating-ledger.spec.ts` 6 it） | 归约器坏了要靠整包 boot 才红；locality 差 |
 | P2 | 客户端测试 | React shim 的 `useState` 返回 `[initial, vi.fn()]`、`useEffect` no-op；无 DOM 重渲染 | store 订阅/重渲染坏了仍可绿；web-face 只覆盖少数静态态 |
 | P3 | `docs/package-catalog.md` / 生成器 | 自称「包形状目录」但不收 3 个 bin 与 `engines.pnpm` | 「以 catalog 为准」在包能力面不完整 |

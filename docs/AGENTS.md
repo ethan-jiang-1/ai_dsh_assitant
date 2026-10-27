@@ -17,7 +17,7 @@
 |---|---|---|
 | [`home.md`](home.md) | working folder **布局与房间语义**（路径、生命周期、curate 检查面、四房间动词） | 布局 owner = `packages/dsh-smart-assistant/src/domain/home/layout.ts`；`verify` 校验本文列出的房间与代码常量一致 |
 | [`operating.md`](operating.md) | **经营账本与桌面投影**（第二持久化面：账本服务、13 动作工具、投影下载与客户端读回链） | 账本服务 owner = `packages/dsh-smart-assistant/src/host/operating-ledger/index.ts`；下载 route = `desk-projection/download.ts`；工具动词表 = 生成物 `package-catalog.md` |
-| [`delivery.md`](delivery.md) | **交接/备份/数据边界**（agent 物 vs 用户数据、handoff 扫描、两目录导出/导入、升级的数据承诺） | 实现 = `scripts/release/handoff-scan.mjs`、`scripts/release/handoff-core.mjs`、`packages/dsh-smart-assistant/src/cli/assistant-data.ts`；测试 = `tests/tooling/handoff-core.spec.mjs`、`assistant-data.spec.mjs` |
+| [`delivery.md`](delivery.md) | **交接/备份/数据边界**（agent 物 vs 用户数据、handoff 扫描、两目录导出/导入、升级的数据承诺） | 实现 = `scripts/release/handoff-scan.mjs`、`scripts/release/handoff-core.mjs`、`packages/dsh-smart-assistant/src/cli/assistant-data-bundle.ts`（入口 `assistant-data.ts` 只做再导出）；测试 = `tests/tooling/handoff-core.spec.mjs`、`assistant-data.spec.mjs` |
 | [`release.md`](release.md) | **发布/发行宪章**（发布物形态、渠道、产物合同、兼容范围、版本/标签、生命周期、禁则与变更触发） | 规则锚到 `engines.dsh`、`pnpm verify`、`release-smoke`、`upgrade-smoke`、`standalone-smoke` 与 `docs/testing.md` 证据地图 |
 | [`architecture.md`](architecture.md) | 组合层级、两个平面、部件与 owner 面、参与阶梯、**界面三层（常用/深看/调试）**、新行为归属、三条运行链路与六条功能路由 | 与 `cordis.patch.yml` 的行一致（host 行 + `preset-assistant` 行的 plugins）；链路引用的源码/脚本/命令真实存在 |
 | [`identity.md`](identity.md) | **名字与皮肤面**（身份名、改名代价、皮肤清单） | 改包名/patch 行 id/preset id 等必须同 diff 更新本文；`verify` 校验声明的身份名都在场 |
