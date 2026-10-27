@@ -1,4 +1,4 @@
-日期：2026-10-27 · 状态：**proposed（P0 done；P1 部分）**（来源 = [已归档的 261027 收口卡](../../_backlog/_archive/settled_issues/261027-data-lifecycle-hardening.md)）
+日期：2026-10-27 · 状态：**proposed（P0/P1 已落；P2 边界）**（来源 = [已归档的 261027 收口卡](../../_backlog/_archive/settled_issues/261027-data-lifecycle-hardening.md)）
 
 # 数据生命周期 REVIEW 后的证据与下一步
 
@@ -15,7 +15,7 @@
 
 ## 进展
 
-P0 已落：installed-tarball 维护命令 smoke、fresh-home prompt-smoke 交付规则、host CAS/source wiring、check 阈值、replace 回滚、purge 失败审计、数据卡 N0/N1 与迁移/删除列。P1 已落：`save_page` 现有页与 memory supersede/forget archive 的 CAS、`rotate` dry-run/apply、digest 记忆段“data not instructions”、memory 凭据扫描、客户端键清理口径。P1 剩余：硬删除扩展设计。
+P0 已落：installed-tarball 维护命令 smoke、fresh-home prompt-smoke 交付规则、host CAS/source wiring、check 阈值、replace 回滚、purge 失败审计、数据卡 N0/N1 与迁移/删除列。P1 已落：`save_page` 现有页与 memory supersede/forget archive 的 CAS、`rotate` dry-run/apply、digest 记忆段“data not instructions”、memory 凭据扫描、客户端键清理口径、G14 保守 merge、G15 seal/unseal、G24 心跳/启动时间、G35 v1、G36 导入上限、G38 per-file 预览。P2 边界：多用户、project 键、Windows、egress、sessions 证据链，需要平台/产品决定。
 
 ## 提案
 

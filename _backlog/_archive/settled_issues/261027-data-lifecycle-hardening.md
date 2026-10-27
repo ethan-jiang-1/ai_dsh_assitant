@@ -9,9 +9,9 @@ opened: 2026-10-27
 
 **问题与期望结果：** FAQ 26 的体检暴露出插件数据面的生命周期缺口：模型可见手册升级后不更新、旧 home 兼容没有证据、单文件账本会撞 1 MiB 投影上限、首次启动后恢复被拒、秘密落在明文文件/日志、数据卡与卸载清理不完整、部分写入不在原子写纪律内。用户应得到一组"发布后部署不会坏"的合同、代码与可执行证据。
 
-**当前情况：** Phase 0/1 已交付；G13/G18/G20/G22/G23/G25/G33/G34/G37/G38 已修；G16 的未知字段/digest 外部编辑/thread-page CAS、G17 只读 retention 读数、G24 release/接管回读/唯一 tmp、G36 备份大小告警已修。仍开：G14/G15 合并与加密、G16 save_page/memory 写 CAS、G17 归档自动轮转/删除、G19 旧回执分页、G24 PID 复用/心跳、G26/G27/G32/G35，以及 G28–G31 产品边界。
-**未决问题：** G14/G15（跨机合并/加密）需要产品取舍；G17 自动轮转/删除未取；其余低优先项按触发。
-**下一步：** G14/G15 另立提案；G17 自动轮转/删除与 G19/G24/G26/G27/G32/G35 按触发；本轮不再扩范围。
+**当前情况：** 全部代码项已落：G13–G27/G33–G38 的代码/测试/文档；G28–G32 是平台/产品边界（多用户、project 键、Windows、egress、sessions），已在数据卡与卡内写明。G14 保守合并、G15 加密传输、G17 显式轮转、G24 心跳/启动时间、G35 ui-mode v1、G36 导入上限、G38 per-file 预览。
+**未决问题：** 只剩平台/产品边界：G28 多用户、G29 project 键、G30 Windows/网络 FS、G31 明文 egress、G32 sessions 证据链；不改产品定位不实现。
+**下一步：** 边界项等真实需求/平台能力；代码项收口。
 
 ## 后续切片（用户已授权）
 
@@ -81,10 +81,10 @@ opened: 2026-10-27
 | G13 | **没有硬删除/擦除**：forget/deprecate/retire/discard 都进 archive 或留原地，审计与账本永久保留 | 已修（房间记录；账本/会话仍不删） | 高（隐私/合规） | `assistant-data purge` 删 active/archive/snapshot 并写 `audit/purges.jsonl`；账本 history 与会话是明示边界 |
 | G14 | **没有跨机合并/同步**：import 是整目录 replace，两份 home 不能 merge，冲突无策略 | 已修（保守合并） | 中 | `assistant-data merge` 默认 dry-run，只补缺失、冲突保留当前，目标独有不删；`--prefer incoming` 才替换工作目录文件并备份；账本冲突不覆盖；同步/git 语义仍未取 |
 | G15 | **备份无加密/签名**：bundle 是明文业务数据，导入不验签 | 已修（加密传输；无签名） | 中（部署/隐私） | `seal`/`unseal` 用环境变量口令做 AES-256/PBKDF2；签名/密钥托管仍未取 |
-| G16 | **用户手改与插件写冲突**：read-modify-write 无 CAS；未知 frontmatter 字段在下次写时被丢弃；digest 缓存看不见外部编辑 | 部分（未知字段 + digest + thread/page CAS） | 中 | `Room.write` 保留未知字段并支持 raw-text CAS；线索更新/知识状态翻转传入 expected text；`save_page`/memory 写仍未 CAS |
-| G17 | **归档/审计/提案无 retention**：`operations-archive.jsonl`、`approvals.jsonl`、房间 archive、skills archive、skill-proposals 都只增；只有 skill snapshots 保 3 份 | 部分（读数/告警） | 中 | `status` 报各 archive/approvals/proposals 数量；`check` 在归档 >64 MiB、approvals >16 MiB、提案 >200 时告警；自动轮转/删除未取 |
+| G16 | **用户手改与插件写冲突**：read-modify-write 无 CAS；未知 frontmatter 字段在下次写时被丢弃；digest 缓存看不见外部编辑 | 已修（房间写 CAS） | 中 | `Room.write` 保留未知字段并支持 raw-text CAS；thread/knowledge/save_page 与 memory archive 传入 expected text；新 memory 写是新增，不是覆盖 |
+| G17 | **归档/审计/提案无 retention**：`operations-archive.jsonl`、`approvals.jsonl`、房间 archive、skills archive、skill-proposals 都只增；只有 skill snapshots 保 3 份 | 已修（显式轮转） | 中 | `status`/`check` 读数与阈值；`rotate --older-than --apply` 移动旧归档并审计；自动删除不做（审计历史价值高于磁盘） |
 | G18 | **`desk-projection.json` 夹具可在无账本时冒充真桌面** | 已修 | 中 | 默认 404；`allowFixture: true` 才回退；测试/组合/探针 patch 已更新 |
-| G19 | **投影 receipts 只含最近窗口**：旧回执不在桌面，客户端若要读旧回执需走工具 | 未取（合同已写） | 低 | 旧回执经 `assistant_operating read operation_id` 可读；若客户端需要，再做分页 |
+| G19 | **投影 receipts 只含最近窗口**：旧回执不在桌面，客户端若要读旧回执需走工具 | 边界（无客户端需求） | 低 | 旧回执经 `assistant_operating read operation_id` 可读；分页等真实客户端需求再做 |
 | G20 | **更老 generation 的手册没有迁移表**：只覆盖退役 Room data 段与 v19→v20；v0/v18 等只警告，没有"备份后重新生成"动作 | 已修（显式再生） | 中 | `assistant-data refresh-manual --yes` 备份后渲染当前版；不自动覆盖手改 |
 | G21 | **SOUL 默认值漂移**：已有 home 永不覆盖（刻意），新默认身份只到新 home | 边界 | 低 | 身份是 owner 数据；发布说明写"想换默认就手动替换" |
 | G22 | **`deliverables/` 孤儿**：无代码读写、无生命周期、无 `present` 指引；最终交付可能落在 home 而不是 workspace | 已修（模型指引） | 中 | manual v21 明确「交付写 session cwd + `present`，working folder 是笔记本」；home 的 `deliverables/` 仍是用户数据，无生命周期 |
@@ -92,13 +92,13 @@ opened: 2026-10-27
 | G24 | **锁的工程边界**：takeover 是 rename 不是 CAS；PID 复用可能把残锁当活锁；无 heartbeat；`ledger.json.tmp` 固定名 | 已修（POSIX 启动时间 + 心跳） | 低-中 | `releaseWriter` 只删自己的锁；接管回读；进程启动时间不匹配或心跳 >15 分钟接管；tmp 唯一；非 POSIX 无启动时间时退回 PID 存活判断 |
 | G25 | **归档读取无上限/无索引**：`readArchive` 整文件读入；`readOperation` O(n)；大归档会吃内存 | 已修（索引+上限） | 低-中 | 归档按 size/mtime 缓存并建 `operationId` 索引；整文件读取有 256 MiB 默认上限，超限 fail loud；分片/流式仍未取 |
 | G26 | **`ov-doctor --write` 留远端 sentinel；OpenViking 数据不在备份** | 未取 | 低 | 外部服务边界；按其手册清理，数据卡已声明 |
-| G27 | **`expert-setup` 种子的凭据扫描只覆盖技能路径；知识页扫描非阻断** | 未取 | 低 | 种子是包内只读内容；写入面已有 audit findings |
+| G27 | **`expert-setup` 种子的凭据扫描只覆盖技能路径；知识页扫描非阻断** | 已修（种子阻断） | 低 | `assembleExpertHome` 对 seed 渲染文本做凭据审计，命中即拒绝写盘；普通知识写仍是 warn |
 | G28 | **多用户/远程无隔离**：一个 Host/home 一个 principal；remote 用户共享数据；`session-search.db` 索引全部会话 | 边界 | 中 | 产品定位=单 principal；多人部署用不同 `DSH_HOME`/Host，文档已写 |
 | G29 | **无 per-workspace 键**：working folder/账本按人，不按项目；多项目混在一起 | 边界 | 中 | 刻意；要隔离用独立 home。真实串项目抱怨再做 project tag |
 | G30 | **Windows/网络文件系统未验证**：rename/权限/锁语义随平台变 | 边界 | 中 | 未宣称 Windows 支持；claim 前跑矩阵 |
 | G31 | **模型/备份 egress**：working folder/账本进 prompt、进备份，含业务敏感内容；无逐字段 consent/脱敏 | 边界 | 中 | 产品信任模型；README/数据卡声明明文与去向，秘密不入库 |
-| G32 | **`session` 证据链跨机断**：只恢复两目录后，账本里的 `sessionId` 在别处无对应会话 | 未取（文档已写） | 低 | 恢复整 home（含 sessions）才有原始会话；账本 quote 仍在 |
-| G33 | **`knowledge` sources / 账本 sessionId 无引用完整性检查** | 部分（knowledge sources） | 低 | `page-source-missing` 查 `memory:`/`research:` 指针；账本 material 的 sessionId 跨机失效仍不查 |
+| G32 | **`session` 证据链跨机断**：只恢复两目录后，账本里的 `sessionId` 在别处无对应会话 | 边界（sessions 宿主拥有） | 低 | 恢复整 home（含 sessions）才有原始会话；插件不复制/不删除 session，数据卡已声明 |
+| G33 | **`knowledge` sources / 账本 sessionId 无引用完整性检查** | 已修（knowledge sources）/ 边界（sessionId） | 低 | `page-source-missing` 查 `memory:`/`research:` 指针；sessionId 需宿主会话索引，插件不越界 |
 | G34 | **`Room.archive` 非事务**：先写 archive 再删 source，崩溃留两份 → curate `duplicate-id` | 已修 | 低 | 改为先 `rename` 到 archive 再改写 patch；崩溃留旧字段的单份，不产生两份；并发输家按已归档处理 |
 | G35 | **`ui-mode` 双源（host 文件 + localStorage）无版本/迁移** | 已修（v1 envelope） | 低 | host 文件写 `{version:1, mode}`；旧 `{mode}` 可读，下次写升级；未知 version 422 |
 | G36 | **备份含 `deliverables/` 无大小上限；import 可把任意大目录搬入** | 已修（告警 + 导入上限） | 低 | `check` >512 MiB 告警；`import --max-bytes` 默认 512 MiB 拒绝超大 bundle |
