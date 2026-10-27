@@ -68,7 +68,7 @@ describe('assistant-data', () => {
     await exportData({ ...source, outDir: cleanOut })
     const occupied = temp('data-target-')
     writeFileSync(join(occupied, 'existing'), 'x', 'utf8')
-    await expect(importData({ inDir: cleanOut, assistantDir: occupied, operatingDir: join(occupied, 'operating') }))
+    await expect(importData({ inDir: cleanOut, assistantDir: occupied, operatingDir: join(temp('data-target-op-'), 'operating') }))
       .rejects.toThrow('not empty')
   })
 
@@ -103,6 +103,13 @@ describe('assistant-data', () => {
       operatingDir: join(target, 'assistant-operating'),
       replace: true,
     })).rejects.toThrow('stop the instance')
+
+    const nested = temp('data-nested-')
+    await expect(importData({
+      inDir: outDir,
+      assistantDir: join(nested, 'assistant'),
+      operatingDir: join(nested, 'assistant', 'operating'),
+    })).rejects.toThrow('must not nest')
   })
 
   it('restores over a scaffolded home with replace and keeps the old directories beside it', async () => {
@@ -178,6 +185,10 @@ describe('assistant-data', () => {
     const text = absolute.problems.join('\n')
     expect(text).toContain('manual is v19; current is v20')
     expect(text).toContain('ledger.json is unreadable')
+
+    writeFileSync(join(operatingDir, 'desk-projection.json'), '{"schemaVersion":2}\n', 'utf8')
+    const withFixture = await checkData({ assistantDir, operatingDir })
+    expect(withFixture.problems.join('\n')).toContain('fixture is present')
 
     if (POSIX) {
       symlinkSync('/etc/hosts', join(assistantDir, 'leak.md'))

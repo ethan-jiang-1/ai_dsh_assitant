@@ -129,8 +129,13 @@ export class Room {
     if (!isEntryId(id)) throw new Error(`room entry id "${id}" is not a safe file name`)
     await mkdir(this.dir, { recursive: true, mode: 0o700 })
     const path = join(this.dir, `${id}${ENTRY_SUFFIX}`)
-    await atomicWriteFile(path, renderFrontmatterDocument(data, body))
-    return { id, path, data, body: body.trim() }
+    // The file is user-editable data. Keep fields this build does not know about (a hand-added
+    // annotation, or a field from a newer release) instead of silently dropping them on the next
+    // write; the caller's fields win on a collision.
+    const existing = await this.read(id)
+    const merged = existing === undefined ? data : { ...existing.data, ...data }
+    await atomicWriteFile(path, renderFrontmatterDocument(merged, body))
+    return { id, path, data: merged, body: body.trim() }
   }
 
   /**

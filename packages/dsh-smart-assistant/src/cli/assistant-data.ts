@@ -31,6 +31,12 @@ export const DATA_MANIFEST_FILE = 'manifest.json'
 /** Current export schema. Importers refuse anything else. */
 export const DATA_SCHEMA_VERSION = 1
 
+/** A read-only `check` warning threshold for the append-only operation archive. */
+const ARCHIVE_WARN_BYTES = 64 * 1024 * 1024
+
+/** A read-only `check` warning threshold for the approval ledger. */
+const APPROVALS_WARN_BYTES = 16 * 1024 * 1024
+
 /** What an export bundle declares about itself. */
 export interface DataManifest {
   /** Export schema generation. */
@@ -383,6 +389,19 @@ export async function checkData(options: { readonly assistantDir: string, readon
   if (status.archive !== undefined && status.archive.corruptLines > 0) {
     problems.push(`${String(status.archive.corruptLines)} unreadable line(s) in ${join(status.operatingDir, OPERATIONS_ARCHIVE_FILE)}`)
   }
+  if (status.archive !== undefined && status.archive.bytes > ARCHIVE_WARN_BYTES) {
+    problems.push(`operation archive is ${String(status.archive.bytes)} byte(s); export and rotate it, or expect slower reads`)
+  }
+  // The fixture is a simulation input. If it sits in a real operating directory, the desktop will
+  // serve it as if it were the authoritative ledger whenever no ledger exists.
+  const fixture = join(status.operatingDir, 'desk-projection.json')
+  if (existsSync(fixture)) {
+    problems.push(`desk-projection.json fixture is present at ${fixture}; with no ledger the desktop will serve it as real data`)
+  }
+  const approvals = join(status.assistantDir, 'audit', 'approvals.jsonl')
+  if (existsSync(approvals) && (await stat(approvals)).size > APPROVALS_WARN_BYTES) {
+    problems.push(`approval ledger is larger than ${String(APPROVALS_WARN_BYTES)} byte(s); archive/rotate ${approvals}`)
+  }
   if (status.assistant.manualVersion !== undefined
     && status.assistant.manualVersion > 0
     && status.assistant.manualVersion < HOME_MANUAL_VERSION) {
@@ -409,6 +428,9 @@ export async function importData(options: DataImportOptions): Promise<DataImport
   const operatingDir = resolve(options.operatingDir)
   if (assistantDir === operatingDir) {
     throw new Error('assistant-data: the working folder and the ledger must be different directories')
+  }
+  if (isInside(assistantDir, operatingDir) || isInside(operatingDir, assistantDir)) {
+    throw new Error('assistant-data: the working folder and the ledger must not nest inside each other')
   }
   const manifest = await readDataManifest(inDir)
   if (!manifest.includes.includes('assistant') || !manifest.includes.includes('assistant-operating')) {

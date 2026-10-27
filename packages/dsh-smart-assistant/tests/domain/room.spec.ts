@@ -59,6 +59,16 @@ describe('Room', () => {
     expect(listing.entries[0]?.body).toBe('New claim.')
   })
 
+  it('preserves frontmatter fields this build does not know about', async () => {
+    const room = await fixtureRoom()
+    await room.write('a-1', { id: 'a-1', status: 'active', owner_note: 'checked by hand' }, 'Claim.')
+    await room.write('a-1', { id: 'a-1', status: 'retired' }, 'Claim.')
+
+    const entry = await room.read('a-1')
+    expect(entry?.data.owner_note).toBe('checked by hand')
+    expect(entry?.data.status).toBe('retired')
+  })
+
   it('survives two concurrent writes of the same id — both resolve, the winner is whole', async () => {
     // BUG-007 F8 (2026-10-07): the temp file name was fixed (`${path}.tmp`), so a concurrent
     // write of the same id lost its temp to the other writer's rename (ENOENT) — the home is a
