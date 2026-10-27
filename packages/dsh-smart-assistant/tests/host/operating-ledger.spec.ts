@@ -24,7 +24,7 @@
  *    id, and re-rejecting a resolved proposal leaves the first resolution in place.
  */
 
-import { readFileSync, statSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { spawnSync } from 'node:child_process'
 import { hostname } from 'node:os'
 import { dirname, join } from 'node:path'
@@ -259,6 +259,25 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
         source: { sessionId: 'session-B' },
       })
       expect(again.outcome).toEqual({ status: 'committed', revision: 1 })
+    })
+
+    it('does not delete a writer lock another process replaced', async () => {
+      const dataDir = mkDir()
+      const first = boot(dataDir).service
+      await first.submitOperation({
+        kind: 'create',
+        operationId: 'op-release-1',
+        title: 'Release check',
+        source: { sessionId: 'session-A' },
+      })
+      const lockPath = join(dataDir, 'writer.lock')
+      const foreign = { hostname: hostname(), pid: process.pid + 1, acquiredAt: new Date().toISOString() }
+      writeFileSync(lockPath, `${JSON.stringify(foreign)}\n`, 'utf8')
+
+      await first.stop()
+
+      expect(existsSync(lockPath)).toBe(true)
+      expect(JSON.parse(readFileSync(lockPath, 'utf8'))).toMatchObject({ pid: foreign.pid })
     })
 
     it('refuses a live foreign-process writer and claims an unclaimed directory across processes', async () => {

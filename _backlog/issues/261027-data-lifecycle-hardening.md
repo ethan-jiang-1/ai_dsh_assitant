@@ -24,7 +24,7 @@ opened: 2026-10-27
 | E | G16 用户手改 CAS / digest 外部编辑 | 部分（digest 外部编辑已修；CAS 未取） | `digestSnapshotNow` 按房间文件 size/mtime fingerprint 失效并后台刷新；`tests/host/digest-external-edit.spec.ts`；写前 CAS 仍未取 |
 | F | G17/G23/G25 retention | 部分（读数/告警） | `status`/`check` 报 archive/approvals/proposals 读数与阈值；自动轮转/删除未取 |
 | G | G22 deliverables/present | 已完成 | manual v21 加「交付写 cwd + `present`」；v20→v21 迁移；prompt-smoke PASS / eval 无 key 未跑 |
-| H | G24/G33/G34 | 部分（G33/G34） | G33 source 引用完整性、G34 archive 先移后改写已落；G24 锁 takeover/PID 待做 |
+| H | G24/G33/G34 | 部分（G24/G33/G34） | G33 source 引用完整性、G34 archive 先移后改写、G24 release 只删自己的锁/接管回读/唯一 tmp 已落；PID 复用与 heartbeat 未取 |
 
 
 ## 外部结果三要素
@@ -89,7 +89,7 @@ opened: 2026-10-27
 | G21 | **SOUL 默认值漂移**：已有 home 永不覆盖（刻意），新默认身份只到新 home | 边界 | 低 | 身份是 owner 数据；发布说明写"想换默认就手动替换" |
 | G22 | **`deliverables/` 孤儿**：无代码读写、无生命周期、无 `present` 指引；最终交付可能落在 home 而不是 workspace | 已修（模型指引） | 中 | manual v21 明确「交付写 session cwd + `present`，working folder 是笔记本」；home 的 `deliverables/` 仍是用户数据，无生命周期 |
 | G23 | **`skill-proposals/archive/` 配置了但没用**：landed/rejected 提案留在收件箱，只增 | 未取 | 低 | 与 G17 一起做 retention/归档 |
-| G24 | **锁的工程边界**：takeover 是 rename 不是 CAS；PID 复用可能把残锁当活锁；无 heartbeat；`ledger.json.tmp` 固定名 | 未取 | 低-中 | 触发：真实出现双 writer/残锁。加进程启动时间/心跳与 CAS takeover |
+| G24 | **锁的工程边界**：takeover 是 rename 不是 CAS；PID 复用可能把残锁当活锁；无 heartbeat；`ledger.json.tmp` 固定名 | 部分（release/接管回读/唯一 tmp） | 低-中 | `releaseWriter` 只删自己写下的锁；接管后回读确认；tmp 唯一。PID 复用与 heartbeat 仍未取 |
 | G25 | **归档读取无上限/无索引**：`readArchive` 整文件读入；`readOperation` O(n)；大归档会吃内存 | 未取 | 低-中 | 触发：归档 >64 MiB。先做只读 status 警告，再考虑索引/分片 |
 | G26 | **`ov-doctor --write` 留远端 sentinel；OpenViking 数据不在备份** | 未取 | 低 | 外部服务边界；按其手册清理，数据卡已声明 |
 | G27 | **`expert-setup` 种子的凭据扫描只覆盖技能路径；知识页扫描非阻断** | 未取 | 低 | 种子是包内只读内容；写入面已有 audit findings |
@@ -111,7 +111,7 @@ opened: 2026-10-27
 - **G16 用户手改 CAS**：未知字段与 digest 外部编辑已修；read-modify-write 前置仍未取。
 - **G17/G23/G25 retention**：`status`/`check` 只读读数与告警已有；自动轮转/删除、proposal archive 与归档索引未取。
 - **G19 投影 receipts 窗口**：合同已写，客户端旧回执分页未取。
-- **G24**：锁 takeover/PID 复用；G33 的 knowledge source / G34 的 archive 事务已修，账本 sessionId 仍不查。
+- **G24**：PID 复用/心跳仍未取；release/接管回读/唯一 tmp 已修。G33 的 knowledge source / G34 的 archive 事务已修，账本 sessionId 仍不查。
 - **G26/G27/G32/G35/G36**：OV sentinel、种子凭据、跨会话证据、ui-mode 版本、备份大小，低优先。
 - **G28/G29/G30/G31 边界**：单 principal/home、无 workspace 键、Windows 未验证、明文 egress；文档已写，主张变了再改。
 

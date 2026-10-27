@@ -55,6 +55,14 @@ interface WriterLock {
 /** Ledger data directories claimed by a live service in this process. */
 const activeWriters = new Set<string>()
 
+/** The exact identity each claimed directory wrote, so release can avoid deleting another's lock. */
+const heldLocks = new Map<string, WriterLock>()
+
+/** Whether two lock identities name the same claim. */
+function sameHolder(left: WriterLock, right: WriterLock): boolean {
+  return left.hostname === right.hostname && left.pid === right.pid && left.acquiredAt === right.acquiredAt
+}
+
 /**
  * Whether `pid` names a live process. `EPERM` means alive under another user (fail closed).
  * @param pid - Process id to probe.
@@ -80,22 +88,40 @@ function claimWriter(dataDir: string): void {
     throw new Error(`operating ledger at ${dataDir} already has an active writer in this process; refusing a second writer`)
   }
   const lockPath = join(dataDir, 'writer.lock')
-  const identity = `${JSON.stringify({ hostname: hostname(), pid: process.pid, acquiredAt: new Date().toISOString(), cwd: process.cwd() })}\n`
+  const identity: WriterLock = {
+    hostname: hostname(),
+    pid: process.pid,
+    acquiredAt: new Date().toISOString(),
+    cwd: process.cwd(),
+  }
+  const line = `${JSON.stringify(identity)}\n`
   try {
-    writeFileSync(lockPath, identity, { flag: 'wx', mode: 0o600 })
+    writeFileSync(lockPath, line, { flag: 'wx', mode: 0o600 })
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error
     const holder = readHolder(lockPath)
     if (holder !== undefined && holder.hostname === hostname() && !isProcessAlive(holder.pid)) {
       // The holder process is gone (crash); take the claim over so a restart is not blocked.
       const takeover = `${lockPath}.takeover`
-      writeFileSync(takeover, identity, { flag: 'wx', mode: 0o600 })
-      renameSync(takeover, lockPath)
+      try {
+        writeFileSync(takeover, line, { flag: 'wx', mode: 0o600 })
+        renameSync(takeover, lockPath)
+      } catch (takeoverError) {
+        rmSync(takeover, { force: true })
+        throw takeoverError
+      }
+      // A simultaneous takeover can win the rename after us. Verify the file now names us;
+      // otherwise back off instead of believing a claim another process already replaced.
+      const winner = readHolder(lockPath)
+      if (winner === undefined || !sameHolder(winner, identity)) {
+        throw new Error(`operating ledger at ${dataDir}: takeover lost to another writer; retry after that writer exits`)
+      }
     } else {
       throw new Error(refusalMessage(dataDir, lockPath, holder))
     }
   }
   activeWriters.add(dataDir)
+  heldLocks.set(dataDir, identity)
 }
 
 /**
@@ -155,9 +181,15 @@ function readHolder(lockPath: string): WriterLock | undefined {
  * @param dataDir - Claimed ledger directory.
  */
 function releaseWriter(dataDir: string): void {
-  if (!activeWriters.has(dataDir)) return
+  const held = heldLocks.get(dataDir)
+  if (held === undefined) return
+  const lockPath = join(dataDir, 'writer.lock')
+  const current = readHolder(lockPath)
+  // Never remove a lock that another writer took over while this process was winding down; an
+  // unconditional rm here could hand two live writers the same ledger.
+  if (current !== undefined && sameHolder(current, held)) rmSync(lockPath, { force: true })
+  heldLocks.delete(dataDir)
   activeWriters.delete(dataDir)
-  rmSync(join(dataDir, 'writer.lock'), { force: true })
 }
 
 /**
@@ -408,7 +440,9 @@ export class AssistantOperatingLedger extends Service {
    * @param state - The state to persist.
    */
   private persist(state: LedgerState): void {
-    const tmp = join(this.dataDir, 'ledger.json.tmp')
+    // Unique per write: a fixed `ledger.json.tmp` could collide with a takeover/restart and let
+    // the later rename publish one writer's bytes under the other writer's claim.
+    const tmp = join(this.dataDir, `ledger.json.${process.pid.toString(36)}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}.tmp`)
     const fd = openSync(tmp, 'w', 0o600)
     try {
       writeSync(fd, JSON.stringify(state))
