@@ -74,12 +74,12 @@ S4c 的 coverage 只报告车道已建：`pnpm test:coverage` 跑同一套 144 �
 | P2 | `src/cli/assistant-data.ts` | 697 行、六类命令 + 底部长 re-export，兼作事实上的第二 barrel（2026-10-28 S3c 已交付：入口 27 行再导出，实现拆 bundle/types） | 浅门面；新增命令继续往里堆 |
 | P2 | `src/domain/operating/ledger.ts` | 562 行纯核，但无直接 spec；只经 host 服务与 projection 间接覆盖（2026-10-28 S4a 已交付：`tests/domain/operating-ledger.spec.ts` 6 it） | 归约器坏了要靠整包 boot 才红；locality 差 |
 | P2 | 客户端测试 | React shim 的 `useState` 返回 `[initial, vi.fn()]`、`useEffect` no-op；无 DOM 重渲染 | store 订阅/重渲染坏了仍可绿；web-face 只覆盖少数静态态 |
-| P3 | `docs/package-catalog.md` / 生成器 | 自称「包形状目录」但不收 3 个 bin 与 `engines.pnpm` | 「以 catalog 为准」在包能力面不完整 |
+| P3 | `docs/package-catalog.md` / 生成器 | 自称「包形状目录」但不收 3 个 bin 与 `engines.pnpm`（2026-10-28 P3 已交付：3 bin + engines.pnpm） | 「以 catalog 为准」在包能力面不完整 |
 | P3 | `docs/architecture.md` / `docs/dev.md` | 365/369 行、41/44KB，只有 `##` 级标题；README 只补偿 4 个节（2026-10-28 已补读法索引） | 找 §六/§八要滚文件 |
-| P3 | `dev/lib/session-logs.mjs` + usage/desk-loop | 缺 zstd 时直接抛栈；单条坏日志可让整份报告崩 | 日志读方没有像 prompt-smoke 那样的前置说明 |
-| P3 | `snapshots/web-face/*/snapshot.yml` | `runner:` 行像命令，实际是占位；CLI 不读 snapshot.yml | 复制即失败；场景契约有两处说法 |
+| P3 | `dev/lib/session-logs.mjs` + usage/desk-loop | 缺 zstd 时直接抛栈；单条坏日志可让整份报告崩（2026-10-28 P3 已交付：明确错误 + 前置说明） | 日志读方没有像 prompt-smoke 那样的前置说明 |
+| P3 | `snapshots/web-face/*/snapshot.yml` | `runner:` 行像命令，实际是占位；CLI 不读 snapshot.yml（2026-10-28 P3 已交付：`runner: README.md` + `wait_text:`） | 复制即失败；场景契约有两处说法 |
 | P3 | `docs/testing.md` 分层表 | 「host = 真 cordis + 临时 home」以偏概全；`ui-mode-route`、`desk-projection-download` 直接测 route（2026-10-28 已改为「多数真 cordis，route 核可直测」） | 新读者会以为 host 层全要 boot |
-| P3 | 「纯核」措辞 | `src/domain` 不 import DSH 运行时（真），但 8 个文件做 fs I/O | 术语与事实有缝；不是代码 bug |
+| P3 | 「纯核」措辞 | `src/domain` 不 import DSH 运行时（真），但 8 个文件做 fs I/O（2026-10-28 P3 已交付：定义对齐） | 术语与事实有缝；不是代码 bug |
 
 ## 四、最值得警惕的三条
 
@@ -134,8 +134,8 @@ S1–S4 全部交付，逐片可回退；决定与后果 = [implemented note](..
 | S3 接缝 | 归档格式入 `domain/operating/archive.ts`；面板主函数 366→228 行（SimpleFace / ActivityFace / MatterBoard）；data CLI 入口 27 行 |
 | S4 测试 | 纯核 ledger 6 it；4 客户面 `pnpm web-face-check` 一键 PASS；coverage 只报告（语句 79.46% / 分支 71.89% / 函数 76.08% / 行 83.62%） |
 
-**最终地板**：`pnpm typecheck` 绿；`pnpm test` **144 文件 / 1096 测试**；`pnpm verify` **50/50**；`pnpm web-face-check` 4 个客户面 **PASS**；`pnpm test:coverage` 只报告、无阈值。
+**最终地板**：`pnpm typecheck` 绿；`pnpm test` **144 文件 / 1099 测试**；`pnpm verify` **50/50**；`pnpm web-face-check` 4 个客户面 **PASS**；`pnpm test:coverage` 只报告、无阈值。
 
 **收口评分（判断，不是门禁）**：① 文档/渐进披露 8.5；② 代码层次 8.5；③ 整体结构 9；④ 上下文腐化 8.5；⑤ 测试资产 9；⑥ 反馈通路 9。骨架未动，改善集中在接缝。
 
-**仍延后**：`docs/package-catalog.md` 的 bin/engines 缺项；`domain` 的「纯核」措辞（有 fs I/O）；`dev/lib/session-logs.mjs` 的 zstd 缺失错误；Viki 4 个调试面仍按 README 手工跑（需 OV mock）；coverage 阈值（等死代码实证）；命令参数形状门（本轮只做命令预算）。这些是延后项，不是未完成的本轮验收。
+**仍延后**：Viki 4 个调试面仍按 README 手工跑（需 OV mock）；coverage 阈值（等死代码实证）；命令参数形状门。P3-a～P3-d（catalog bin/engines、纯核定义、zstd 错误、snapshot runner/wait_text）已在 [P3 收口卡](../../_archive/settled_issues/261028-p3-residuals.md) 交付。
