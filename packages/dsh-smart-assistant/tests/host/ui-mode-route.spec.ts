@@ -39,7 +39,7 @@ describe('ui-mode route', () => {
     const written = await route.fetch(post(JSON.stringify({ mode: 'expert' })))
     expect(written.status).toBe(200)
     expect(await written.json()).toEqual({ mode: 'expert' })
-    expect(JSON.parse(await readFile(join(dir, 'ui-mode.json'), 'utf8'))).toEqual({ mode: 'expert' })
+    expect(JSON.parse(await readFile(join(dir, 'ui-mode.json'), 'utf8'))).toEqual({ version: 1, mode: 'expert' })
 
     expect(await (await route.fetch(get())).json()).toEqual({ mode: 'expert' })
   })
@@ -53,7 +53,7 @@ describe('ui-mode route', () => {
     const badJson = await route.fetch(post('{'))
     expect(badJson.status).toBe(400)
     expect(await badJson.json()).toEqual({ error: 'invalid-json' })
-    expect(JSON.parse(await readFile(join(dir, 'ui-mode.json'), 'utf8'))).toEqual({ mode: 'standard' })
+    expect(JSON.parse(await readFile(join(dir, 'ui-mode.json'), 'utf8'))).toEqual({ version: 1, mode: 'standard' })
   })
 
   it('reports a corrupt file instead of silently replacing it', async () => {

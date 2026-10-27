@@ -112,6 +112,18 @@ describe('assistant-data', () => {
     })).rejects.toThrow('must not nest')
   })
 
+  it('refuses a bundle above the import byte cap', async () => {
+    const source = sourceFixture()
+    const outDir = join(temp('data-cap-'), 'bundle')
+    await exportData({ ...source, outDir })
+    await expect(importData({
+      inDir: outDir,
+      assistantDir: join(temp('data-cap-a-'), 'assistant'),
+      operatingDir: join(temp('data-cap-o-'), 'operating'),
+      maxBytes: 1,
+    })).rejects.toThrow('import cap')
+  })
+
   it.skipIf(process.platform === 'win32')('restores the stash when a replace import fails mid-copy', async () => {
     const source = sourceFixture()
     const outDir = join(temp('data-out-'), 'bundle')

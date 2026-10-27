@@ -10,7 +10,7 @@
  *
  * Usage:
  *   node <package>/bin/assistant-data.mjs export --assistant <dir> --operating <dir> --out <bundle>
- *   node <package>/bin/assistant-data.mjs import --in <bundle> --assistant <dir> --operating <dir> [--replace] [--dry-run]
+ *   node <package>/bin/assistant-data.mjs import --in <bundle> --assistant <dir> --operating <dir> [--replace] [--dry-run] [--max-bytes <n>]
  *   node <package>/bin/assistant-data.mjs status --assistant <dir> --operating <dir>
  *   node <package>/bin/assistant-data.mjs check --assistant <dir> --operating <dir>
  *   node <package>/bin/assistant-data.mjs purge --assistant <dir> --kind <kind> --id <id> --reason <text> --yes
@@ -33,7 +33,7 @@ const option = (name) => {
 
 const usage = `usage:
   node <package>/bin/assistant-data.mjs export --assistant <dir> --operating <dir> --out <bundle>
-  node <package>/bin/assistant-data.mjs import --in <bundle> --assistant <dir> --operating <dir> [--replace] [--dry-run]
+  node <package>/bin/assistant-data.mjs import --in <bundle> --assistant <dir> --operating <dir> [--replace] [--dry-run] [--max-bytes <n>]
   node <package>/bin/assistant-data.mjs status --assistant <dir> --operating <dir>
   node <package>/bin/assistant-data.mjs check --assistant <dir> --operating <dir>
   node <package>/bin/assistant-data.mjs purge --assistant <dir> --kind <memory|research|knowledge|skill|proposal> --id <id> --reason <text> --yes
@@ -67,12 +67,14 @@ try {
       console.error(usage)
       process.exit(2)
     }
+    const maxBytes = option('--max-bytes')
     const result = await module.importData({
       inDir,
       assistantDir,
       operatingDir,
       replace: argv.includes('--replace'),
       dryRun: argv.includes('--dry-run'),
+      ...(maxBytes === undefined ? {} : { maxBytes: Number(maxBytes) }),
     })
     if (result.dryRun === true) {
       console.log(`assistant-data: dry run — would import ${result.assistantFiles} working-folder file(s) and ${result.operatingFiles} ledger file(s); nothing written`)

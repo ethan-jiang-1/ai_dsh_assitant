@@ -89,7 +89,7 @@ opened: 2026-10-27
 | G21 | **SOUL 默认值漂移**：已有 home 永不覆盖（刻意），新默认身份只到新 home | 边界 | 低 | 身份是 owner 数据；发布说明写"想换默认就手动替换" |
 | G22 | **`deliverables/` 孤儿**：无代码读写、无生命周期、无 `present` 指引；最终交付可能落在 home 而不是 workspace | 已修（模型指引） | 中 | manual v21 明确「交付写 session cwd + `present`，working folder 是笔记本」；home 的 `deliverables/` 仍是用户数据，无生命周期 |
 | G23 | **`skill-proposals/archive/` 配置了但没用**：landed/rejected 提案留在收件箱，只增 | 已修（显式轮转） | 低 | `assistant-data archive-proposals --yes` 只移 landed/rejected；proposed/approved 留下；再提案从 archive 继承 revision/created |
-| G24 | **锁的工程边界**：takeover 是 rename 不是 CAS；PID 复用可能把残锁当活锁；无 heartbeat；`ledger.json.tmp` 固定名 | 部分（release/接管回读/唯一 tmp） | 低-中 | `releaseWriter` 只删自己写下的锁；接管后回读确认；tmp 唯一。PID 复用与 heartbeat 仍未取 |
+| G24 | **锁的工程边界**：takeover 是 rename 不是 CAS；PID 复用可能把残锁当活锁；无 heartbeat；`ledger.json.tmp` 固定名 | 已修（POSIX 启动时间 + 心跳） | 低-中 | `releaseWriter` 只删自己的锁；接管回读；进程启动时间不匹配或心跳 >15 分钟接管；tmp 唯一；非 POSIX 无启动时间时退回 PID 存活判断 |
 | G25 | **归档读取无上限/无索引**：`readArchive` 整文件读入；`readOperation` O(n)；大归档会吃内存 | 已修（索引+上限） | 低-中 | 归档按 size/mtime 缓存并建 `operationId` 索引；整文件读取有 256 MiB 默认上限，超限 fail loud；分片/流式仍未取 |
 | G26 | **`ov-doctor --write` 留远端 sentinel；OpenViking 数据不在备份** | 未取 | 低 | 外部服务边界；按其手册清理，数据卡已声明 |
 | G27 | **`expert-setup` 种子的凭据扫描只覆盖技能路径；知识页扫描非阻断** | 未取 | 低 | 种子是包内只读内容；写入面已有 audit findings |
@@ -100,8 +100,8 @@ opened: 2026-10-27
 | G32 | **`session` 证据链跨机断**：只恢复两目录后，账本里的 `sessionId` 在别处无对应会话 | 未取（文档已写） | 低 | 恢复整 home（含 sessions）才有原始会话；账本 quote 仍在 |
 | G33 | **`knowledge` sources / 账本 sessionId 无引用完整性检查** | 部分（knowledge sources） | 低 | `page-source-missing` 查 `memory:`/`research:` 指针；账本 material 的 sessionId 跨机失效仍不查 |
 | G34 | **`Room.archive` 非事务**：先写 archive 再删 source，崩溃留两份 → curate `duplicate-id` | 已修 | 低 | 改为先 `rename` 到 archive 再改写 patch；崩溃留旧字段的单份，不产生两份；并发输家按已归档处理 |
-| G35 | **`ui-mode` 双源（host 文件 + localStorage）无版本/迁移** | 未取 | 低 | host 为真；坏文件 422，客户端保留本地；低风险 |
-| G36 | **备份含 `deliverables/` 无大小上限；import 可把任意大目录搬入** | 部分（告警） | 低 | `check` 在两目录总量 >512 MiB 时提示手工导出/归档；不做自动裁剪 |
+| G35 | **`ui-mode` 双源（host 文件 + localStorage）无版本/迁移** | 已修（v1 envelope） | 低 | host 文件写 `{version:1, mode}`；旧 `{mode}` 可读，下次写升级；未知 version 422 |
+| G36 | **备份含 `deliverables/` 无大小上限；import 可把任意大目录搬入** | 已修（告警 + 导入上限） | 低 | `check` >512 MiB 告警；`import --max-bytes` 默认 512 MiB 拒绝超大 bundle |
 | G37 | **import 不检查两目标嵌套/包含** | 已修 | 低 | 已加 containment 守卫 + 测试 |
 | G38 | **`assistant-data` 无 `--dry-run`/差异预览**：`--replace` 会整目录换掉，只留旁路 | 已修（dry-run） | 中 | `import --dry-run` 报文件数与将被旁路的目标；时间戳/内容差异预览仍未取 |
 

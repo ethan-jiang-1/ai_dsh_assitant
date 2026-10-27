@@ -43,6 +43,9 @@ const APPROVALS_WARN_BYTES = 16 * 1024 * 1024
 /** A read-only `check` warning threshold for the two owned directories as one backup. */
 const BACKUP_WARN_BYTES = 512 * 1024 * 1024
 
+/** Default ceiling for a whole-bundle import; explicit override via `--max-bytes`. */
+export const MAX_IMPORT_BYTES = 512 * 1024 * 1024
+
 /** The record kinds an explicit purge can erase. Ledger history and sessions are not in this list. */
 export const PURGE_KINDS = ['memory', 'research', 'knowledge', 'skill', 'proposal'] as const
 
@@ -169,6 +172,8 @@ export interface DataImportOptions {
   readonly replace?: boolean
   /** Validate and report what would be imported, without changing anything. */
   readonly dryRun?: boolean
+  /** Refuse a bundle larger than this many bytes; defaults to {@link MAX_IMPORT_BYTES}. */
+  readonly maxBytes?: number
 }
 
 /** Result of an import. */
@@ -806,6 +811,13 @@ export async function importData(options: DataImportOptions): Promise<DataImport
   }
   if (sourceBytes < manifest.bytes) {
     throw new Error(`assistant-data: bundle is truncated: manifest declares ${String(manifest.bytes)} byte(s), found ${String(sourceBytes)}`)
+  }
+  if (options.maxBytes !== undefined && (!Number.isSafeInteger(options.maxBytes) || options.maxBytes <= 0)) {
+    throw new Error('assistant-data: maxBytes must be a positive safe integer')
+  }
+  const maxBytes = options.maxBytes ?? MAX_IMPORT_BYTES
+  if (sourceBytes > maxBytes) {
+    throw new Error(`assistant-data: bundle is ${String(sourceBytes)} byte(s), above the ${String(maxBytes)}-byte import cap; raise --max-bytes only after inspecting deliverables`)
   }
   if (existsSync(join(operatingDir, 'writer.lock'))) {
     throw new Error(`assistant-data: a writer.lock exists at ${join(operatingDir, 'writer.lock')}; stop the instance before importing`)

@@ -15,6 +15,7 @@
  * deferred by the settled card's route comparison.
  */
 
+import { execFileSync } from 'node:child_process'
 import { Context, Service } from '@deepseek-ai/cordis'
 import { expandHomePath, resolveDshHome } from '@deepseek-ai/dsh-home-paths'
 import { closeSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, renameSync, rmSync, statSync, writeFileSync, writeSync } from 'node:fs'
@@ -59,6 +60,34 @@ interface WriterLock {
   readonly acquiredAt: string
   /** The holder's working directory at claim time; absent on locks written before 2026-10-25. */
   readonly cwd?: string
+  /** Process start time (epoch ms) on POSIX; absent on old/unknown platforms. */
+  readonly processStart?: number
+  /** Last heartbeat (ISO); absent on locks written before this hardening. */
+  readonly heartbeatAt?: string
+}
+
+/** Heartbeat cadence for a live writer lock. */
+const HEARTBEAT_INTERVAL_MS = 30_000
+
+/** A heartbeat older than this is treated as a reused/dead PID, not a live idle writer. */
+const STALE_HEARTBEAT_MS = 15 * 60_000
+
+/** Resolve a process start time on POSIX; undefined when `ps` cannot answer. */
+function processStartTime(pid: number): number | undefined {
+  try {
+    const text = execFileSync('ps', ['-o', 'lstart=', '-p', String(pid)], { encoding: 'utf8', timeout: 2_000 }).trim()
+    const at = Date.parse(text)
+    return Number.isNaN(at) ? undefined : at
+  } catch {
+    return undefined
+  }
+}
+
+/** Write a lock file through a unique temp; heartbeat must never leave a half JSON file. */
+function writeLock(lockPath: string, identity: WriterLock): void {
+  const tmp = `${lockPath}.${process.pid.toString(36)}-${Date.now().toString(36)}.tmp`
+  writeFileSync(tmp, `${JSON.stringify(identity)}\n`, { mode: 0o600 })
+  renameSync(tmp, lockPath)
 }
 
 /** Ledger data directories claimed by a live service in this process. */
@@ -97,11 +126,15 @@ function claimWriter(dataDir: string): void {
     throw new Error(`operating ledger at ${dataDir} already has an active writer in this process; refusing a second writer`)
   }
   const lockPath = join(dataDir, 'writer.lock')
+  const now = new Date().toISOString()
+  const start = processStartTime(process.pid)
   const identity: WriterLock = {
     hostname: hostname(),
     pid: process.pid,
-    acquiredAt: new Date().toISOString(),
+    acquiredAt: now,
     cwd: process.cwd(),
+    ...(start === undefined ? {} : { processStart: start }),
+    heartbeatAt: now,
   }
   const line = `${JSON.stringify(identity)}\n`
   try {
@@ -109,7 +142,11 @@ function claimWriter(dataDir: string): void {
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error
     const holder = readHolder(lockPath)
-    if (holder !== undefined && holder.hostname === hostname() && !isProcessAlive(holder.pid)) {
+    const alive = holder !== undefined && holder.hostname === hostname() && isProcessAlive(holder.pid)
+    const actualStart = alive && holder?.processStart !== undefined ? processStartTime(holder.pid) : undefined
+    const reused = actualStart !== undefined && holder?.processStart !== undefined && Math.abs(actualStart - holder.processStart) > 2_000
+    const staleHeartbeat = alive && holder?.heartbeatAt !== undefined && Date.now() - Date.parse(holder.heartbeatAt) > STALE_HEARTBEAT_MS
+    if (holder !== undefined && holder.hostname === hostname() && (!alive || reused || staleHeartbeat)) {
       // The holder process is gone (crash); take the claim over so a restart is not blocked.
       const takeover = `${lockPath}.takeover`
       try {
@@ -131,6 +168,16 @@ function claimWriter(dataDir: string): void {
   }
   activeWriters.add(dataDir)
   heldLocks.set(dataDir, identity)
+}
+
+/** Refresh this process's heartbeat only if the lock still names its claim. */
+function refreshWriterLock(dataDir: string): void {
+  const held = heldLocks.get(dataDir)
+  if (held === undefined) return
+  const lockPath = join(dataDir, 'writer.lock')
+  const current = readHolder(lockPath)
+  if (current === undefined || !sameHolder(current, held)) return
+  writeLock(lockPath, { ...held, heartbeatAt: new Date().toISOString() })
 }
 
 /**
@@ -176,9 +223,16 @@ function readHolder(lockPath: string): WriterLock | undefined {
   try {
     const parsed: unknown = JSON.parse(readFileSync(lockPath, 'utf8'))
     if (typeof parsed !== 'object' || parsed === null) return undefined
-    const { hostname: holderHost, pid, acquiredAt, cwd } = parsed as Record<string, unknown>
+    const { hostname: holderHost, pid, acquiredAt, cwd, processStart, heartbeatAt } = parsed as Record<string, unknown>
     if (typeof holderHost !== 'string' || typeof pid !== 'number' || typeof acquiredAt !== 'string') return undefined
-    return { hostname: holderHost, pid, acquiredAt, ...(typeof cwd === 'string' && cwd !== '' ? { cwd } : {}) }
+    return {
+      hostname: holderHost,
+      pid,
+      acquiredAt,
+      ...(typeof cwd === 'string' && cwd !== '' ? { cwd } : {}),
+      ...(typeof processStart === 'number' && Number.isFinite(processStart) ? { processStart } : {}),
+      ...(typeof heartbeatAt === 'string' ? { heartbeatAt } : {}),
+    }
   } catch {
     // A lock file we cannot parse is treated as a live foreign holder (fail closed).
     return undefined
@@ -237,6 +291,9 @@ export class AssistantOperatingLedger extends Service {
 
   private claimed = false
 
+  /** Heartbeat timer; unref'd so it never keeps the process alive. */
+  private heartbeat: NodeJS.Timeout | undefined
+
   /** Recent-operation window; older records live in the append-only archive. */
   private readonly keepOperations: number
 
@@ -267,6 +324,7 @@ export class AssistantOperatingLedger extends Service {
       : MAX_ARCHIVE_BYTES
     this.state = loadState(this.dataDir)
     ctx.effect(() => () => {
+      if (this.heartbeat !== undefined) clearInterval(this.heartbeat)
       if (this.claimed) releaseWriter(this.dataDir)
     })
   }
@@ -282,6 +340,8 @@ export class AssistantOperatingLedger extends Service {
     if (!this.claimed) {
       claimWriter(this.dataDir)
       this.claimed = true
+      this.heartbeat = setInterval(() => refreshWriterLock(this.dataDir), HEARTBEAT_INTERVAL_MS)
+      this.heartbeat.unref()
     }
     const now = new Date().toISOString()
     // A retry may name an operation that compaction moved out of `ledger.json`. Replay the

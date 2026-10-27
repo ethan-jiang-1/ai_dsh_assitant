@@ -31,6 +31,9 @@ function failure(status: number, error: string): Response {
 /** The value read back from disk: a mode, missing, or an unreadable file. */
 type Stored = { readonly mode: UiMode } | 'missing' | 'invalid'
 
+/** The stored envelope version; an absent version is the pre-version `{ mode }` shape. */
+export const UI_MODE_FILE_VERSION = 1
+
 /**
  * Read and validate one stored mode, capped before reading.
  * @param path - The fixed `ui-mode.json` path.
@@ -49,6 +52,8 @@ async function readStored(path: string, signal: AbortSignal | undefined): Promis
   try {
     const parsed: unknown = JSON.parse(text)
     if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) return 'invalid'
+    const version = (parsed as { version?: unknown }).version
+    if (version !== undefined && version !== UI_MODE_FILE_VERSION) return 'invalid'
     const mode = (parsed as { mode?: unknown }).mode
     return isUiMode(mode) ? { mode } : 'invalid'
   } catch {
@@ -105,7 +110,7 @@ export function createUiModeRoute(dataDir: string, maxBytes: number = MAX_BYTES)
       const temp = `${path}.${randomUUID()}.tmp`
       try {
         await mkdir(dataDir, { recursive: true, mode: 0o700 })
-        await writeFile(temp, `${JSON.stringify({ mode })}\n`, { encoding: 'utf8', mode: 0o600 })
+        await writeFile(temp, `${JSON.stringify({ version: UI_MODE_FILE_VERSION, mode })}\n`, { encoding: 'utf8', mode: 0o600 })
         await rename(temp, path)
         return json({ mode })
       } catch (error) {

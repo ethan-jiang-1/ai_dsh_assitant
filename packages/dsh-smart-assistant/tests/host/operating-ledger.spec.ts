@@ -261,6 +261,22 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
       expect(again.outcome).toEqual({ status: 'committed', revision: 1 })
     })
 
+    it('takes over a live PID whose heartbeat is stale', async () => {
+      const dataDir = mkDir()
+      const stale = new Date(Date.now() - 60 * 60_000).toISOString()
+      writeFileSync(join(dataDir, 'writer.lock'), `${JSON.stringify({
+        hostname: hostname(), pid: process.pid, acquiredAt: stale, heartbeatAt: stale,
+      })}\n`, 'utf8')
+      const service = boot(dataDir).service
+      const receipt = await service.submitOperation({
+        kind: 'create',
+        operationId: 'op-stale-heartbeat',
+        title: 'Stale heartbeat takeover',
+        source: { sessionId: 'session-A' },
+      })
+      expect(receipt.outcome).toEqual({ status: 'committed', revision: 1 })
+    })
+
     it('does not delete a writer lock another process replaced', async () => {
       const dataDir = mkDir()
       const first = boot(dataDir).service

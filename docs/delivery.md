@@ -38,7 +38,7 @@
 |---|---|---|---|---|---|---|---|---|---|---|
 | 记忆/线索/知识/技能/提案 | N0 `ctx.fs`（文件） | P2 / U | 插件 + 用户 | `<dataDir>/{memory,research,knowledge,skills,skill-proposals}/` | home 单例，无项目键 | 房间生命周期；archive 保留 | 用户；模型经工具 | 是 | frontmatter 只增可选；`purge` 逐条擦除 | 保留 |
 | 身份与手册 | N0 文件 | P2 / U | 用户 + 插件 | `<dataDir>/SOUL.md`、`AGENTS.md` | home 单例 | 身份永不覆盖；手册按已知文本迁移 | 用户；模型逐字进 prompt | 是 | generation 迁移；`refresh-manual` 备份后再生 | 保留 |
-| 用量、治理、界面、交付 | N0 文件 + 自有 CLI | P2 / U | 插件/用户 | `<dataDir>/skill-usage.json`、`audit/approvals.jsonl`、`audit/purges.jsonl`、`ui-mode.json`、`deliverables/` | home 单例 | usage 可删；审计只追加；deliverables 无生命周期 | 用户；模型不可见 ui-mode/audit | 是 | `purge` 房间记录；approvals/deliverables 手动；提案 `archive-proposals` | 保留 |
+| 用量、治理、界面、交付 | N0 文件 + 自有 CLI | P2 / U | 插件/用户 | `<dataDir>/skill-usage.json`、`audit/approvals.jsonl`、`audit/purges.jsonl`、`ui-mode.json`（v1 envelope）、`deliverables/` | home 单例 | usage 可删；审计只追加；deliverables 无生命周期 | 用户；模型不可见 ui-mode/audit | 是 | `purge` 房间记录；approvals/deliverables 手动；提案 `archive-proposals` | 保留 |
 | 经营账本状态 | N0 文件 + 自有服务 | P3 / H | 插件 | `<operatingDir>/ledger.json` | home 单例 | 最近 256 条操作 + 全量计数；压缩后仍有界 | 用户；模型经工具 | 是 | v1 只增；`operationCount` 回填；不做硬删 | 保留 |
 | 账本操作归档 | N0 文件 + 自有服务 | P3 / H | 插件 | `<operatingDir>/operations-archive.jsonl` | home 单例 | 只追加；完整回执历史；读取有 256 MiB 上限 | 用户；模型经工具按 id 读 | 是 | 按 `operationId` 去重；需要导出/轮转 | 保留 |
 | 会话搜索索引 | N1 `session-query-sqlite` | 宿主 K | 宿主（本包补丁启用） | `<dshHome>/session-search.db` | session/corpus | 首次检索创建；可重建 | 宿主；模型经 `session_query` | 否 | 删文件即重建 | **保留；要清就删此文件** |
