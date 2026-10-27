@@ -15,7 +15,7 @@
 
 ## 进展
 
-P0 已落：installed-tarball 维护命令 smoke、fresh-home prompt-smoke 交付规则、host CAS/source wiring、check 阈值、replace 回滚、purge 失败审计、数据卡 N0/N1 与迁移/删除列。P1 已落：`save_page` 现有页 CAS、`rotate` dry-run/apply、digest 记忆段“data not instructions”、客户端键清理口径。P1 剩余：memory 凭据扫描、硬删除扩展设计。
+P0 已落：installed-tarball 维护命令 smoke、fresh-home prompt-smoke 交付规则、host CAS/source wiring、check 阈值、replace 回滚、purge 失败审计、数据卡 N0/N1 与迁移/删除列。P1 已落：`save_page` 现有页 CAS、`rotate` dry-run/apply、digest 记忆段“data not instructions”、memory 凭据扫描、客户端键清理口径。P1 剩余：硬删除扩展设计。
 
 ## 提案
 
@@ -33,7 +33,7 @@ P0 已落：installed-tarball 维护命令 smoke、fresh-home prompt-smoke 交�
 7. 显式 retention 命令：`--dry-run` 默认、`--apply` 才移动/删除，覆盖 operations archive / approvals / 房间 archive / proposals；不做自动清理。
 8. 召回安全：digest/manual 的 memory/knowledge 文本标为数据而非指令；memory/ledger 写前做凭据形状扫描（warn，不阻断）。
 9. 客户端键版本化与清理说明；不新增服务。
-10. 硬删除扩展（账本 operation/material、sessions、attachments）先出数据卡与确认/审计设计，再动代码。
+10. 硬删除扩展（账本 operation/material、sessions、attachments）先出数据卡与确认/审计设计，再动代码。设计边界：sessions 没有 delete API，插件**不能**承诺删 session；账本 material/quote 可做显式 `--include-ledger` + 审计；attachments 不在本插件数据面。没有这三项的产品确认前不实现。
 
 **P2 · 需要产品取舍**
 

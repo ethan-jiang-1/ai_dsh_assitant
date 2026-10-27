@@ -50,6 +50,16 @@ async function exists(path: string): Promise<boolean> {
 }
 
 /**
+ * Name the credential shapes in arbitrary text. The same conservative patterns as the skill
+ * audit, exposed for memory/ledger surfaces that must warn without blocking a write.
+ * @param text - Text to inspect.
+ * @returns Human-readable shape labels; empty when nothing matches.
+ */
+export function credentialShapeLabels(text: string): string[] {
+  return CREDENTIAL_PATTERNS.filter(({ pattern }) => pattern.test(text)).map(({ label }) => label)
+}
+
+/**
  * Audit one skill's text for credential shapes.
  * @param name - Skill name, for the finding's refs.
  * @param text - The full skill file text (frontmatter and body — credentials rot in headers too).

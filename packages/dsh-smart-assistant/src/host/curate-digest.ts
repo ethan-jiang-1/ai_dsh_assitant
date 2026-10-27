@@ -18,7 +18,7 @@ import { HOME_MANUAL_VERSION, HOME_STATUS_BLURB, parseManualVersion, renderHomeM
 import { DEFAULT_SOUL } from '../domain/home/soul.ts'
 import { curateKnowledge } from '../domain/knowledge/health.ts'
 import { scanLearnedSkills, scanSkillArchiveScale } from '../domain/skills/scan.ts'
-import { auditSkillsRoom } from '../domain/skills/audit.ts'
+import { auditSkillsRoom, credentialShapeLabels } from '../domain/skills/audit.ts'
 import { proposalFindings } from '../domain/skills/proposal.ts'
 import { readSkillUsage } from '../domain/skills/usage.ts'
 
@@ -268,8 +268,14 @@ export async function runCuration(host: AssistantMemory, shadowedBy?: Readonly<R
   // them the room and the thresholds.
   const proposals = await host.listProposals()
   const inbox = proposalFindings(proposals.entries, now, host.staleResearchDays)
+  const credentials = [...memories.entries, ...memories.archived].flatMap(record => credentialShapeLabels(record.text).map(label => ({
+    code: 'credential-shaped-text' as const,
+    severity: 'warn' as const,
+    message: `memory "${record.id}" carries what looks like ${label} — strip it and rotate the credential if it was real; memory enters the prompt and backups`,
+    refs: [record.id],
+  })))
   return {
     ...brief,
-    findings: [...brief.findings, ...audit, ...pages, ...inbox].sort(compareFindings),
+    findings: [...brief.findings, ...audit, ...pages, ...inbox, ...credentials].sort(compareFindings),
   }
 }

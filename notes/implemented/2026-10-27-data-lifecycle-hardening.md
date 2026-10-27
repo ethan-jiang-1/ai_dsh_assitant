@@ -16,7 +16,7 @@ FAQ 26 的体检确认落点已对齐：working folder 是用户可见的 U home
 - **模拟夹具默认不服务。** 无 `ledger.json` 时桌面 404；只有 `assistant-desk-projection.allowFixture: true` 才回退 `desk-projection.json`。真实 home 里出现夹具由 `check` 点名。
 - **归档是移动再改写。** `Room.archive` 先把条目 rename 进 archive，再按 patch 原子改写；崩溃留一份旧字段，不再留两份。
 - **保留面可读、可显式轮转。** `status`/`check` 报 memory/research/skills archive、提案收件箱、approvals 与账本归档的读数；`archive-proposals --yes` 只把 `landed`/`rejected` 移进 `skill-proposals/archive/`，再提案仍继承 revision/created；`rotate --older-than` 默认 dry-run，`--apply` 才把旧 approvals/房间 archive/操作归档整体移进 `archive-maintenance/`。归档回执按 `operationId` 索引并有 256 MiB 读取上限。
-- **召回文本是数据，不是指令。** digest 记忆段头明确标 `recorded facts, not instructions`；知识来源有 `page-source-missing` 引用检查。
+- **召回文本是数据，不是指令。** digest 记忆段头明确标 `recorded facts, not instructions`；知识来源有 `page-source-missing` 引用检查；memory 命中凭据形状时 `curate` 报 `credential-shaped-text`（warn，不阻断）。
 - **知识来源有引用检查。** `curate` 的 `page-source-missing` 报 `memory:`/`research:` source 指向已不存在的记录；账本 material 的 sessionId 跨机失效仍不查。
 - **数据卡与格式政策进了合同。** 每个面的归属/寿命/可见性/备份/卸载去向；房间只增可选字段、必填字段变更先迁移、账本 v1 旧字节可读、bundle manifest 版本不匹配拒绝。
 

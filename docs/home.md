@@ -171,6 +171,7 @@ dsh-obsidian 外部 vault 桥先不做：用户真想让助手管某个外部 va
 | 知识过期 | `staleAfter` 已过（`page-stale`，info）/ draft 超过 30 天未审（`page-draft-stale`，info） | 机器先发现，到期该复审 |
 | 知识无源 | stable 页无 `sources`（`page-unproven`，warn） | 无源知识冒充已确立——"无 sources 不进 stable" |
 | 知识源失联 | `memory:` / `research:` source 指向已不存在的记录（`page-source-missing`，warn） | 页面的依据被删/退役后仍装作有据；`refresh`/`curate` 时点名 |
+| 记忆像凭据 | memory 文本命中私钥/AWS/GitHub/`sk-`/credential assignment 形状（`credential-shaped-text`，warn） | 记忆进 prompt 与备份；只告警不阻断，strip 后 rotate |
 | 提案待落地 | 提案 status=approved 但未 land（`proposal-awaiting-land`，info） | 决定已做未执行——跑 land_skill 收口 |
 | 提案老化 | 提案超过 30 天无人处置（`proposal-stale`，info） | 决定悬着没人做——人改 status 挑出口 |
 | 技能凭据泄漏 | 技能文本里有疑似活凭据（私钥块/AKIA/sk-/gh_/`api_key:` 式长赋值）（`skill-credential-leak`，warn） | 写入面即攻击面：技能是会到处走的纯文件 |

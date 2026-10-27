@@ -43,6 +43,7 @@ export type FindingCode =
   | 'page-link-deprecated'
   | 'page-unproven'
   | 'page-source-missing'
+  | 'credential-shaped-text'
   | 'page-orphan'
   | 'page-stale'
   | 'page-draft-stale'
