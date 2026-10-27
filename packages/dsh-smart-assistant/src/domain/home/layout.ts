@@ -9,8 +9,9 @@
  */
 
 import { constants } from 'node:fs'
-import { access, mkdir, readFile, writeFile } from 'node:fs/promises'
+import { access, mkdir, readFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { atomicWriteFile } from './atomic-write.ts'
 import { AGENTS_FILE_NAME, migrateHomeManual, renderHomeManual } from './home-map.ts'
 import { DEFAULT_SOUL, SOUL_FILE_NAME } from './soul.ts'
 
@@ -151,13 +152,13 @@ export async function scaffoldHome(paths: HomePaths): Promise<ScaffoldResult> {
   }
   const manualWritten = !(await exists(paths.agentsFile))
   if (manualWritten) {
-    await writeFile(paths.agentsFile, renderHomeManual(), { encoding: 'utf8', mode: 0o600 })
+    await atomicWriteFile(paths.agentsFile, renderHomeManual())
   } else {
     const existing = await readFile(paths.agentsFile, 'utf8')
     const migrated = migrateHomeManual(existing)
-    if (migrated !== existing) await writeFile(paths.agentsFile, migrated, { encoding: 'utf8', mode: 0o600 })
+    if (migrated !== existing) await atomicWriteFile(paths.agentsFile, migrated)
   }
   const soulWritten = !(await exists(paths.soulFile))
-  if (soulWritten) await writeFile(paths.soulFile, `${DEFAULT_SOUL}\n`, { encoding: 'utf8', mode: 0o600 })
+  if (soulWritten) await atomicWriteFile(paths.soulFile, `${DEFAULT_SOUL}\n`)
   return { createdDirectories, manualWritten, soulWritten }
 }

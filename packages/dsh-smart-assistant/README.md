@@ -10,7 +10,7 @@
 - **一个 agent preset**：`assistant`（挂上它，这个会话就是"有 working folder 的助手"）。
 - **一个只读部署自检 CLI**：`ov-doctor`（`bin/ov-doctor.mjs`；装好可选 OpenViking 层后在 profile 内运行，见安装手册的 OV 自检节）。
 - **一个专家装配 CLI**：`expert-setup`（`bin/expert-setup.mjs`；把管理种子显式导入为 `draft`，不自动 stable）。
-- **一个数据备份 CLI**：`assistant-data`（`bin/assistant-data.mjs`；只导出/导入 `assistant` + `assistant-operating`，带 schema manifest）。
+- **一个数据备份/诊断 CLI**：`assistant-data`（`bin/assistant-data.mjs`；导出/导入 `assistant` + `assistant-operating`，带 schema manifest；另有 `status`/`check` 与 `import --replace`）。
 - **一个独立启动脚本**：`bootstrap.mjs`（解开的包目录里用已安装 `dsh` 建隔离 profile；先用 npm 打包再安装，home 默认在包外，不碰日用 `~/.dsh`）。
 - **默认身份是管理岗**（P1）：`SOUL.md` 是数据，种子与回退一致；管理种子只在显式装配时进入知识室，安装不写 working folder。
 
@@ -40,20 +40,38 @@ Desktop 使用保留的 `desktop` profile：先在 Desktop 应用里初始化一
 
 `assistant-memory` 行可配 `dataDir`（默认 `<dshHome>/assistant`）、`digestMaxBytes`、`recallLimit`、
 `staleResearchDays`；`assistant-operating-ledger` 行有独立的 `dataDir`（默认
-`<dshHome>/assistant-operating`）。patch 是整行 config 替换，不是深合并。
+`<dshHome>/assistant-operating`）与 `keepOperations`（默认 256）；`assistant-desk-projection` 有
+`maxProjectionBytes`（默认 8 MiB）。patch 是整行 config 替换，不是深合并。
+
+Viki 的 API key 从 `apiKeyEnv`（默认 `OPENVIKING_API_KEY`）读；内联 `apiKey` 只为旧 home 保留，
+会以明文写进 profile patch，不推荐。
 
 ## Data
 
 - **Working folder**：`<dshHome>/assistant`，用户可读可改的 home 数据，由本插件拥有：`SOUL.md`、`AGENTS.md`、
-  `memory/`、`research/`、`skills/`、`knowledge/`。学到的技能是本插件注册的 provider 根（`skills/`），
-  不是 `$DSH_HOME/skills`；策展技能随包只读，位于 `presets/assistant/skills/`。
-- **Ledger**：`<dshHome>/assistant-operating`，权威 `ledger.json` + 单 writer 锁；可用 `assistant-data` 导出/导入。
-- **Profile 不是租户**：同一 `DSH_HOME` 下的所有 profile 共用这两个目录；换 profile 名只隔离组合，不隔离数据。真要隔离试用，用独立 `DSH_HOME`，或同时覆盖 memory/ledger/projection 的 `dataDir`。
-- **Host-owned**：sessions、credentials、settings、storages 在 `$DSH_HOME` 下由宿主管理，插件备份不包含它们；
+  `memory/`、`research/`、`skills/`、`knowledge/`、`skill-proposals/`、`audit/`、`skill-usage.json`、
+  `ui-mode.json`、`deliverables/`。学到的技能是本插件注册的 provider 根（`skills/`），不是 `$DSH_HOME/skills`；
+  策展技能随包只读，位于 `presets/assistant/skills/`。`AGENTS.md` 按 generation 迁移已知旧段落；
+  匹配不到的旧手册不重写，prompt 标记 stale。
+- **Ledger**：`<dshHome>/assistant-operating`，权威 `ledger.json`（最近 256 条操作 + 累计计数）+
+  `operations-archive.jsonl`（完整操作历史）+ 单 writer 锁；可用 `assistant-data` 导出/导入。
+- **Profile 不是租户**：同一 `DSH_HOME` 下的所有 profile 共用这两个目录；换 profile 名只隔离组合，不隔离数据。
+  真要隔离试用，用独立 `DSH_HOME`，或同时覆盖 memory/ledger/projection 的 `dataDir`。
+- **Host-owned**：sessions、credentials、settings、storages 在 `$DSH_HOME` 下由宿主管理，插件备份不包含它们。
+  补丁启用的 `session-search.db` 是会话全文索引（派生、可重建），卸载后仍留在盘上；要清就删它。
+  客户端 localStorage/sessionStorage 键属于设备，清站点数据即清，卸载不自动清。
   working folder 或会话 cwd 下的 `deliverables/` 是用户数据。
-- **备份/恢复**：`assistant-data` 只带这两个目录，排除 `writer.lock` / `*.tmp`，拒绝符号链接；import 要求实例已停止、目标为空。手动 `cp -R` 也要先删掉备份里的 `writer.lock`，否则换机恢复后账本会把旧 host 当活锁。
-- **Package**：不写任何用户数据/secret；`handoff-scan` 拒绝数据、凭据、宿主路径与活密钥，`release-smoke` 断言安装不创建 working folder。
-- **升级/卸载**：两个插件目录保留；`assistant-data` 提供带 `schemaVersion` 的备份/恢复；不把 sessions/credentials 打进 bundle。
+- **备份/恢复**：`assistant-data` 只带这两个目录，排除 `writer.lock` / `*.tmp`，拒绝符号链接；import 要求实例已停止。
+  首次启动前目标为空即可直接 import；已经启动过的 home 用 `import --replace` 把现有目录移到 `.pre-import-*` 旁路。
+  手动 `cp -R` 也要先删掉备份里的 `writer.lock`，并另备 sessions/credentials。
+- **诊断**：`assistant-data status` 报路径/大小/手册 generation/账本健康/归档操作数；`check` 再报相对路径、
+  坏 ledger/归档行、旧手册与符号链接，有问题以非零退出。
+- **并发**：同一 home 只应有一个写入者；账本拒绝第二 writer，房间写是原子但 last-write-wins。
+- **Package**：不写任何用户数据/secret；`handoff-scan` 拒绝数据、凭据、宿主路径与活密钥，`release-smoke`
+  断言安装不创建 working folder。Viki key 不落配置；bootstrap 的 `bootstrap.json` 0600、日志 token 已打码。
+- **升级/卸载**：两个插件目录保留；房间格式只增可选字段，手册按 generation 迁移，账本 v1 旧字节可读；
+  `assistant-data` 提供带 `schemaVersion` 的备份/恢复；不把 sessions/credentials 打进 bundle。
+  完整数据卡（每个面的归属/寿命/备份/卸载去向）= [`docs/delivery.md`](../../docs/delivery.md) §一。
 
 | DSH 平面 | 本包 |
 |---|---|
@@ -81,8 +99,10 @@ Desktop 使用保留的 `desktop` profile：先在 Desktop 应用里初始化一
 dsh plugin --profile <p> remove dsh-smart-assistant
 ```
 
-卸载不删 `<dshHome>/assistant` 与 `<dshHome>/assistant-operating`；先 `assistant-data export` 备份。OpenViking 是
-独立可选层，另停 server 并按其安装手册清理。
+卸载不删 `<dshHome>/assistant` 与 `<dshHome>/assistant-operating`；先 `assistant-data export` 备份。
+卸载也不会删宿主数据：要清会话全文索引就删 `<dshHome>/session-search.db`，要清其余宿主数据按
+[`docs/delivery.md`](../../docs/delivery.md) §一数据卡逐项处理；客户端 localStorage 键用“清除站点数据”。
+OpenViking 是独立可选层，另停 server 并按其安装手册清理。
 
 ## 它是什么形状
 

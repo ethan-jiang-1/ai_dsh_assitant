@@ -4,7 +4,7 @@
  * this fails rather than silently producing skills the loader ignores.
  */
 
-import { mkdtemp, readFile, rm } from 'node:fs/promises'
+import { mkdtemp, readdir, readFile, rm, stat } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -90,6 +90,21 @@ describe('writeLearnedSkill', () => {
     roots.push(skillsDir)
 
     await expect(writeLearnedSkill(skillsDir, draft({ name: 'Not Valid' }))).rejects.toThrow(/kebab-case/)
+  })
+
+  it('replaces an existing skill atomically with an owner-only file', async () => {
+    const skillsDir = await mkdtemp(join(tmpdir(), 'assistant-skills-'))
+    roots.push(skillsDir)
+
+    const first = await writeLearnedSkill(skillsDir, draft({ body: 'first procedure' }))
+    const second = await writeLearnedSkill(skillsDir, draft({ body: 'second procedure' }))
+
+    expect(second.path).toBe(first.path)
+    expect(await readFile(second.path, 'utf8')).toContain('second procedure')
+    expect((await stat(second.path)).mode & 0o777).toBe(0o600)
+    // The atomic writer's sibling temp is gone after a successful rename; a leftover would mean
+    // the next reader can see a half-written skill.
+    expect((await readdir(join(skillsDir, 'staging-reset'))).filter(name => name.endsWith('.tmp'))).toEqual([])
   })
 })
 

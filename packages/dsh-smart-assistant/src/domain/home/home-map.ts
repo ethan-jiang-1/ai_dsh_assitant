@@ -40,24 +40,50 @@ export const RETIRED_ROOM_DATA_SECTION = '### Room data (`.desk/state.json`)\n\n
   + 'and the principal cannot tell it apart from "nothing happened".\n\n'
 
 /**
- * Remove the retired Room data section from an existing **generated** manual and stamp the current
- * version. Hand edits elsewhere survive; a manual without the exact retired block is returned
- * unchanged (so a hand-written manual is never reflowed). Existing homes still carried the
- * copy instructions long after the panels stopped reading them (the copy retirement,
- * 2026-10-19, [retire-room-data-copy](../../../../../notes/implemented/2026-10-19-retire-room-data-copy.md)).
+ * The v19 answer-contract paragraph. v20 tightened it so a missing second fact rides the page's
+ * missing line instead of becoming a second question. Exact text, like the retired section: a
+ * hand-edited paragraph is the owner's and must survive untouched.
+ */
+export const RETIRED_ONE_QUESTION_PARAGRAPH = '- **Draft first, don\'t interrogate.** From one sentence, make the best draft you can with explicit\n'
+  + '  assumptions. Ask at most one question, and only when the answer changes the verdict. Never open\n'
+  + '  with a questionnaire or a list of data you need.'
+
+/** The v20 replacement for {@link RETIRED_ONE_QUESTION_PARAGRAPH}. */
+export const CURRENT_ONE_QUESTION_PARAGRAPH = '- **Draft first, don\'t interrogate.** From one sentence, make the best draft you can with explicit\n'
+  + '  assumptions. Ask at most one question, and only when the answer changes the verdict. When two\n'
+  + '  facts are missing, put both in the page\'s missing line and ask only the one that changes the\n'
+  + '  verdict — never two questions in one reply. Never open with a questionnaire or a list of data you\n'
+  + '  need.'
+
+/**
+ * Apply the known generated-text migrations to an older **generated** manual and stamp the current
+ * version. Only an exact retired block/paragraph is replaced; hand edits elsewhere survive, and a
+ * manual without a marker (hand-written, or older than versioning) or newer than this build is
+ * returned unchanged. A version we cannot migrate keeps its marker and is flagged in the prompt by
+ * {@link manualSnapshotOf} rather than silently reflowed.
  * @param text - The existing AGENTS.md contents.
- * @returns The migrated contents, or the same string when no retired block is present.
+ * @returns The migrated contents, or the same string when no known old text is present.
  */
 export function migrateHomeManual(text: string): string {
-  if (!text.includes(RETIRED_ROOM_DATA_SECTION)) return text
-  let next = text.replace(RETIRED_ROOM_DATA_SECTION, '')
-  next = next.replace(
-    'Bookkeeping is not an answer. Room writes, thread merges, curate findings, even the room-data\nrewrite are housekeeping; none of them answers the person.',
-    'Bookkeeping is not an answer. Room writes, thread merges and curate findings are housekeeping;\nnone of them answers the person.',
-  )
-  next = next.replace('"I\'ll load the desk-refresh skill first"', '"I\'ll load the morning-brief skill first"')
-  next = next.replace(/^<!-- home-manual v\d+ -->/mu, HOME_MANUAL_MARKER)
-  return next
+  const version = parseManualVersion(text)
+  if (version === 0 || version >= HOME_MANUAL_VERSION) return text
+  let next = text
+  let changed = false
+  if (next.includes(RETIRED_ROOM_DATA_SECTION)) {
+    next = next.replace(RETIRED_ROOM_DATA_SECTION, '')
+    next = next.replace(
+      'Bookkeeping is not an answer. Room writes, thread merges, curate findings, even the room-data\nrewrite are housekeeping; none of them answers the person.',
+      'Bookkeeping is not an answer. Room writes, thread merges and curate findings are housekeeping;\nnone of them answers the person.',
+    )
+    next = next.replace('"I\'ll load the desk-refresh skill first"', '"I\'ll load the morning-brief skill first"')
+    changed = true
+  }
+  if (next.includes(RETIRED_ONE_QUESTION_PARAGRAPH)) {
+    next = next.replace(RETIRED_ONE_QUESTION_PARAGRAPH, CURRENT_ONE_QUESTION_PARAGRAPH)
+    changed = true
+  }
+  if (!changed) return text
+  return next.replace(/^<!-- home-manual v\d+ -->/mu, HOME_MANUAL_MARKER)
 }
 
 /**

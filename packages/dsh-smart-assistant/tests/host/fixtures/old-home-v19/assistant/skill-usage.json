@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "since": "2026-08-01T00:00:00.000Z",
+  "usage": {
+    "old-skill": {
+      "count": 2,
+      "lastUsedAt": "2026-09-01T00:00:00.000Z"
+    }
+  }
+}

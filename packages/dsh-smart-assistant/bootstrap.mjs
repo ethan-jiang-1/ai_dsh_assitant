@@ -21,7 +21,7 @@
  * the package, including through symlinks.
  */
 import { spawn, spawnSync } from 'node:child_process'
-import { closeSync, existsSync, mkdirSync, openSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
+import { chmodSync, closeSync, existsSync, mkdirSync, openSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -202,6 +202,26 @@ function processAlive(pid) {
   }
 }
 
+/** A launch token in a URL is a secret; logs and error tails carry its redacted form. */
+const URL_TOKEN = /(\?token=)[A-Za-z0-9_-]+/g
+
+function redactToken(text) {
+  return text.replace(URL_TOKEN, '$1[redacted]')
+}
+
+/**
+ * Rewrite the log with the launch token redacted. Called on success and on every failure path:
+ * a failed boot must not leave a live-token log behind for a support thread to copy.
+ */
+function redactLogFile() {
+  try {
+    if (!existsSync(logFile)) return
+    const text = readFileSync(logFile, 'utf8')
+    const redacted = redactToken(text)
+    if (redacted !== text) writeFileSync(logFile, redacted, { encoding: 'utf8', mode: 0o600 })
+  } catch { /* the log is best-effort; the failure being reported is the real one */ }
+}
+
 async function stopInstance() {
   if (!existsSync(pidFile)) {
     console.log(`bootstrap: no running instance recorded at ${pidFile}`)
@@ -344,8 +364,10 @@ if (existsSync(pidFile)) {
 }
 
 // Reset the log on every start: URL discovery reads the whole file, and an append-only log made
-// the previous instance's URL match first after a stop/restart.
-writeFileSync(logFile, '', 'utf8')
+// the previous instance's URL match first after a stop/restart. The file carries the launch
+// token until it is redacted below, so it is owner-only from the first byte.
+writeFileSync(logFile, '', { encoding: 'utf8', mode: 0o600 })
+chmodSync(logFile, 0o600)
 const logFd = openSync(logFile, 'a')
 const child = spawnTool(dsh, ['--profile', profile, '--port', '0', '--no-open'], {
   cwd: workspace,
@@ -356,7 +378,8 @@ const child = spawnTool(dsh, ['--profile', profile, '--port', '0', '--no-open'],
 closeSync(logFd)
 if (child.pid === undefined) fail('the dsh process did not start')
 child.unref()
-writeFileSync(pidFile, `${child.pid}\n`, 'utf8')
+writeFileSync(pidFile, `${child.pid}\n`, { encoding: 'utf8', mode: 0o600 })
+chmodSync(pidFile, 0o600)
 
 const deadline = Date.now() + 90_000
 let url
@@ -367,13 +390,22 @@ while (Date.now() < deadline) {
   try {
     process.kill(child.pid, 0)
   } catch {
-    fail(`the dsh process exited before printing a URL; log tail:\n${text.split('\n').slice(-12).join('\n')}`)
+    redactLogFile()
+    fail(`the dsh process exited before printing a URL; log tail:\n${redactToken(text).split('\n').slice(-12).join('\n')}`)
   }
   await new Promise(resolve => setTimeout(resolve, 500))
 }
-if (url === undefined) fail(`no URL within 90s; see ${logFile}`)
+if (url === undefined) {
+  redactLogFile()
+  fail(`no URL within 90s; see ${logFile}`)
+}
 
-writeFileSync(stateFile, `${JSON.stringify({ pid: child.pid, url, profile, home, startedAt: new Date().toISOString() }, null, 2)}\n`, 'utf8')
+// The URL is needed once to hand the address to the owner (and to the stop/restart path); the
+// log is not. Redact it in place so a log copied into a support thread carries no live token.
+redactLogFile()
+
+writeFileSync(stateFile, `${JSON.stringify({ pid: child.pid, url, profile, home, startedAt: new Date().toISOString() }, null, 2)}\n`, { encoding: 'utf8', mode: 0o600 })
+chmodSync(stateFile, 0o600)
 console.log('')
 console.log(`✅ standalone instance ready`)
 console.log(`   ${url}`)

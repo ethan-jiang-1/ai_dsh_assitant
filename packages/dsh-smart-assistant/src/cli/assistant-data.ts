@@ -7,7 +7,8 @@
  * instead of guessing.
  *
  * This module is shared by the shipped `assistant-data` bin and the repo tests. It uses Node
- * built-ins only, so the installed bin does not need the harness peers.
+ * built-ins plus package-internal pure modules only, so the installed bin does not need the
+ * harness peers.
  *
  * A bundle is plain data: exporting a working folder that contains a symbolic link is refused
  * rather than silently copying the link into a backup that another machine will restore. The
@@ -21,6 +22,8 @@
 import { cp, lstat, mkdir, readFile, readdir, rename, rm, stat, writeFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:path'
+import { HOME_MANUAL_VERSION } from '../domain/home/home-map.ts'
+import { OPERATIONS_ARCHIVE_FILE, parseOperationsArchive } from '../host/operating-ledger/archive.ts'
 
 /** Manifest file written at the bundle root. */
 export const DATA_MANIFEST_FILE = 'manifest.json'
@@ -64,16 +67,57 @@ export interface DataExportResult {
 export interface DataImportOptions {
   /** Bundle directory produced by {@link exportData}. */
   readonly inDir: string
-  /** Destination working folder; must be absent or empty. */
+  /** Destination working folder; must be absent or empty unless `replace` is set. */
   readonly assistantDir: string
-  /** Destination operating ledger; must be absent or empty. */
+  /** Destination operating ledger; must be absent or empty unless `replace` is set. */
   readonly operatingDir: string
+  /**
+   * Restore over an existing home. A non-empty destination is moved aside to
+   * `<dir>.pre-import-<id>` before the import (never deleted); a failed import restores it.
+   */
+  readonly replace?: boolean
 }
 
 /** Result of an import. */
 export interface DataImportResult {
   readonly assistantFiles: number
   readonly operatingFiles: number
+  /** Sibling backups created by `replace`, in the order they were stashed. */
+  readonly backups: readonly string[]
+}
+
+/** One owned directory as `status` sees it. */
+export interface DataTreeStatus {
+  readonly exists: boolean
+  readonly files: number
+  readonly bytes: number
+}
+
+/** The authoritative ledger file as `status` sees it. */
+export interface DataLedgerStatus {
+  readonly exists: boolean
+  readonly bytes: number
+  /** `missing` = no ledger yet; `invalid` = unreadable or not a v1 state. */
+  readonly state: 'missing' | 'ok' | 'invalid'
+  readonly version?: number
+  readonly operations?: number
+}
+
+/** A read-only snapshot of the two owned directories, for deployment support. */
+export interface DataStatus {
+  readonly assistantDir: string
+  readonly operatingDir: string
+  readonly assistant: DataTreeStatus & { readonly manualVersion?: number }
+  readonly operating: DataTreeStatus
+  readonly ledger: DataLedgerStatus
+  /** The append-only operation history, when a compacted ledger has one. */
+  readonly archive?: { readonly bytes: number, readonly operations: number, readonly corruptLines: number }
+}
+
+/** A read-only diagnosis: the status plus every problem an operator should act on. */
+export interface DataCheck {
+  readonly status: DataStatus
+  readonly problems: readonly string[]
 }
 
 async function countTree(dir: string): Promise<{ files: number, bytes: number }> {
@@ -99,6 +143,12 @@ async function countTree(dir: string): Promise<{ files: number, bytes: number }>
 function isInside(parent: string, child: string): boolean {
   const nested = relative(parent, child)
   return nested === '' || (!nested.startsWith('..') && !isAbsolute(nested))
+}
+
+/** Parse the scaffold marker from a working-folder manual, without importing the domain. */
+function manualVersionOf(text: string): number | undefined {
+  const match = /^<!--\s*home-manual v(\d+)\s*-->/u.exec(text.trimStart())
+  return match?.[1] === undefined ? undefined : Number(match[1])
 }
 
 /** Coordination files, never user data, and never valid in a portable bundle. */
@@ -239,6 +289,111 @@ async function moveInto(from: string, to: string): Promise<void> {
   await rename(from, to)
 }
 
+/** Count one owned directory and read the two facts an operator asks first. */
+async function treeStatus(dir: string): Promise<DataTreeStatus> {
+  if (!existsSync(dir)) return { exists: false, files: 0, bytes: 0 }
+  return { exists: true, ...await countTree(dir) }
+}
+
+/**
+ * Read the two owned directories without changing them. Intended for the deployment support path:
+ * it names the paths, sizes, manual generation, and whether the ledger parses as a v1 state.
+ *
+ * @param options - The two resolved directories.
+ * @returns A read-only status snapshot.
+ */
+export async function statusData(options: { readonly assistantDir: string, readonly operatingDir: string }): Promise<DataStatus> {
+  const assistantDir = resolve(options.assistantDir)
+  const operatingDir = resolve(options.operatingDir)
+  const assistant = await treeStatus(assistantDir)
+  const operating = await treeStatus(operatingDir)
+  let manualVersion: number | undefined
+  try {
+    manualVersion = manualVersionOf(await readFile(join(assistantDir, 'AGENTS.md'), 'utf8'))
+  } catch { /* missing/unreadable manual is reported by curate, not by status */ }
+
+  const ledgerPath = join(operatingDir, 'ledger.json')
+  let ledger: DataLedgerStatus = { exists: false, bytes: 0, state: 'missing' }
+  if (existsSync(ledgerPath)) {
+    const bytes = (await stat(ledgerPath)).size
+    try {
+      const parsed: unknown = JSON.parse(await readFile(ledgerPath, 'utf8'))
+      if (typeof parsed === 'object' && parsed !== null && (parsed as { version?: unknown }).version === 1) {
+        const operations = (parsed as { operations?: unknown }).operations
+        ledger = {
+          exists: true,
+          bytes,
+          state: 'ok',
+          version: 1,
+          operations: typeof operations === 'object' && operations !== null ? Object.keys(operations).length : 0,
+        }
+      } else {
+        ledger = { exists: true, bytes, state: 'invalid' }
+      }
+    } catch {
+      ledger = { exists: true, bytes, state: 'invalid' }
+    }
+  }
+  const archivePath = join(operatingDir, OPERATIONS_ARCHIVE_FILE)
+  let archive: DataStatus['archive']
+  if (existsSync(archivePath)) {
+    const bytes = (await stat(archivePath)).size
+    const parsed = parseOperationsArchive(await readFile(archivePath, 'utf8'))
+    archive = { bytes, operations: parsed.records.length, corruptLines: parsed.corruptLines }
+  }
+  return {
+    assistantDir,
+    operatingDir,
+    assistant: { ...assistant, ...(manualVersion === undefined ? {} : { manualVersion }) },
+    operating,
+    ledger,
+    ...(archive === undefined ? {} : { archive }),
+  }
+}
+
+/** Collect symbolic links under a root; backup/restore refuses them, so diagnosis should name them. */
+async function findSymlinks(root: string, found: string[] = []): Promise<string[]> {
+  if (!existsSync(root)) return found
+  const info = await lstat(root)
+  if (info.isSymbolicLink()) {
+    found.push(root)
+    return found
+  }
+  if (!info.isDirectory()) return found
+  for (const entry of await readdir(root)) {
+    await findSymlinks(join(root, entry), found)
+  }
+  return found
+}
+
+/**
+ * Read-only deployment diagnosis: path shape, ledger/archive readability, manual generation, and
+ * symbolic links. It never writes; a non-empty problem list is what `assistant-data check` exits on.
+ * @param options - The two directories as the operator typed them.
+ * @returns The status plus actionable problems.
+ */
+export async function checkData(options: { readonly assistantDir: string, readonly operatingDir: string }): Promise<DataCheck> {
+  const problems: string[] = []
+  if (!isAbsolute(options.assistantDir)) problems.push(`working folder path is relative: ${options.assistantDir} (use an absolute path or ~)`)
+  if (!isAbsolute(options.operatingDir)) problems.push(`ledger path is relative: ${options.operatingDir} (use an absolute path or ~)`)
+  const status = await statusData(options)
+  if (status.ledger.state === 'invalid') {
+    problems.push(`ledger.json is unreadable or not a v1 state: ${join(status.operatingDir, 'ledger.json')}`)
+  }
+  if (status.archive !== undefined && status.archive.corruptLines > 0) {
+    problems.push(`${String(status.archive.corruptLines)} unreadable line(s) in ${join(status.operatingDir, OPERATIONS_ARCHIVE_FILE)}`)
+  }
+  if (status.assistant.manualVersion !== undefined
+    && status.assistant.manualVersion > 0
+    && status.assistant.manualVersion < HOME_MANUAL_VERSION) {
+    problems.push(`working folder manual is v${String(status.assistant.manualVersion)}; current is v${String(HOME_MANUAL_VERSION)} (the next launch migrates known text, or the prompt marks it stale)`)
+  }
+  for (const link of [...await findSymlinks(status.assistantDir), ...await findSymlinks(status.operatingDir)]) {
+    problems.push(`symbolic link in owned data: ${link}`)
+  }
+  return { status, problems }
+}
+
 /**
  * Import a bundle into absent/empty plugin directories. Both directories are copied to siblings
  * first and renamed into place; if the second rename fails, the first destination is removed, so
@@ -252,6 +407,9 @@ export async function importData(options: DataImportOptions): Promise<DataImport
   const inDir = resolve(options.inDir)
   const assistantDir = resolve(options.assistantDir)
   const operatingDir = resolve(options.operatingDir)
+  if (assistantDir === operatingDir) {
+    throw new Error('assistant-data: the working folder and the ledger must be different directories')
+  }
   const manifest = await readDataManifest(inDir)
   if (!manifest.includes.includes('assistant') || !manifest.includes.includes('assistant-operating')) {
     throw new Error('assistant-data: manifest does not declare both directories')
@@ -263,10 +421,57 @@ export async function importData(options: DataImportOptions): Promise<DataImport
   }
   await assertPlainTree(sourceAssistant, 'bundle working folder')
   await assertPlainTree(sourceOperating, 'bundle ledger')
-  await assertEmptyDestination(assistantDir, 'import destination')
-  await assertEmptyDestination(operatingDir, 'import destination')
+  // Manifest counts are the cheap integrity check a truncated copy fails: a bundle can lose a
+  // file or a tail without the manifest disappearing. Extra files are tolerated (a legacy bundle
+  // may still carry the writer lock); fewer files or fewer bytes are not.
+  const sourceAssistantCount = await countTree(sourceAssistant)
+  const sourceOperatingCount = await countTree(sourceOperating)
+  const sourceFiles = sourceAssistantCount.files + sourceOperatingCount.files
+  const sourceBytes = sourceAssistantCount.bytes + sourceOperatingCount.bytes
+  if (sourceFiles < manifest.files) {
+    throw new Error(`assistant-data: bundle is incomplete: manifest declares ${String(manifest.files)} file(s), found ${String(sourceFiles)}`)
+  }
+  if (sourceBytes < manifest.bytes) {
+    throw new Error(`assistant-data: bundle is truncated: manifest declares ${String(manifest.bytes)} byte(s), found ${String(sourceBytes)}`)
+  }
+  if (existsSync(join(operatingDir, 'writer.lock'))) {
+    throw new Error(`assistant-data: a writer.lock exists at ${join(operatingDir, 'writer.lock')}; stop the instance before importing`)
+  }
 
   const suffix = `${process.pid.toString(36)}-${Date.now().toString(36)}`
+  // `replace` is the normal restore path: a first launch has already scaffolded both directories.
+  // Stash non-empty targets beside themselves rather than deleting anything the owner may still
+  // need; a failed import restores the stash before rethrowing.
+  const stashed: { readonly path: string, readonly backup: string }[] = []
+  const stash = async (path: string, label: string): Promise<void> => {
+    if (!existsSync(path)) return
+    const info = await lstat(path)
+    if (info.isSymbolicLink()) throw new Error(`assistant-data: ${label} is a symbolic link: ${path}`)
+    if (!info.isDirectory()) throw new Error(`assistant-data: ${label} is not a directory: ${path}`)
+    if ((await readdir(path)).length === 0) return
+    const backup = `${path}.pre-import-${suffix}`
+    await rename(path, backup)
+    stashed.push({ path, backup })
+  }
+  const restoreStash = async (): Promise<void> => {
+    for (const entry of [...stashed].reverse()) {
+      await rm(entry.path, { recursive: true, force: true })
+      await rename(entry.backup, entry.path)
+    }
+  }
+  if (options.replace === true) {
+    try {
+      await stash(assistantDir, 'import destination')
+      await stash(operatingDir, 'import destination')
+    } catch (error) {
+      await restoreStash()
+      throw error
+    }
+  } else {
+    await assertEmptyDestination(assistantDir, 'import destination')
+    await assertEmptyDestination(operatingDir, 'import destination')
+  }
+
   const tempAssistant = join(dirname(assistantDir), `.assistant-import-${suffix}`)
   const tempOperating = join(dirname(operatingDir), `.assistant-operating-import-${suffix}`)
   await mkdir(dirname(assistantDir), { recursive: true })
@@ -288,14 +493,18 @@ export async function importData(options: DataImportOptions): Promise<DataImport
     await rm(tempAssistant, { recursive: true, force: true })
     await rm(tempOperating, { recursive: true, force: true })
     // Two directory renames are not one atomic operation. If the second fails, undo the first:
-    // both destinations are absent (the pre-import state) rather than a working folder without
-    // its ledger.
+    // the destinations are absent (or restored) rather than a working folder without its ledger.
     if (movedOperating) await rm(operatingDir, { recursive: true, force: true })
     if (movedAssistant) await rm(assistantDir, { recursive: true, force: true })
+    await restoreStash()
     throw error
   }
 
   const assistant = await countTree(assistantDir)
   const operating = await countTree(operatingDir)
-  return { assistantFiles: assistant.files, operatingFiles: operating.files }
+  return {
+    assistantFiles: assistant.files,
+    operatingFiles: operating.files,
+    backups: stashed.map(entry => entry.backup),
+  }
 }

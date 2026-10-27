@@ -13,7 +13,8 @@
  *
  * @module
  */
-import { appendFile, mkdir, readFile } from 'node:fs/promises'
+import { closeSync, fsyncSync, openSync, writeSync } from 'node:fs'
+import { mkdir, readFile } from 'node:fs/promises'
 import type { ApprovalLine, ReceiptRoom } from '../domain/maintenance/receipt.ts'
 
 /** Which lane caused a governance transition. */
@@ -60,7 +61,15 @@ export async function recordApproval(host: AuditHost, kind: ApprovalKind, id: st
     ...(options.room !== undefined ? { room: options.room } : {}),
     source: options.source ?? 'assistant_reflect',
   }) + '\n'
-  await appendFile(host.paths.approvalsLedgerFile, line, { encoding: 'utf8', mode: 0o600 })
+  const fd = openSync(host.paths.approvalsLedgerFile, 'a', 0o600)
+  try {
+    writeSync(fd, line)
+    // A governance line must be on disk before the caller reports the transition. A single small
+    // O_APPEND write is atomic across processes on POSIX, so no extra lock is needed.
+    fsyncSync(fd)
+  } finally {
+    closeSync(fd)
+  }
 }
 
 /**

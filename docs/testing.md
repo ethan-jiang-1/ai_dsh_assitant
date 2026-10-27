@@ -17,7 +17,7 @@
 | 改动面 | 最小证据（命令） | 回归资产的家 | 能证明 / 不能证明 |
 |---|---|---|---|
 | 纯核（`src/domain`：布局/词汇/检索排序/渲染） | `pnpm test:domain` | `tests/domain/*.spec` | 规则与边界正例 / 组合装载、模型可见面 |
-| 服务行为（`src/host`：四房间读写、curate、根文件、品牌） | `pnpm test:host` | `tests/host/*.spec` | 服务级合同（真 cordis + 临时 home）/ 段落组装、装载 |
+| 服务行为（`src/host`：四房间读写、curate、根文件、品牌、旧 home、账本归档） | `pnpm test:host` | `tests/host/*.spec` + `tests/host/fixtures/old-home-v19/` | 服务级合同（真 cordis + 临时 home）、旧字节读取、账本压缩/回执 / 段落组装、装载 |
 | 固定只读投影下载（独立 Host 文件，非经营 writer） | `pnpm build` → `pnpm test:host` + `pnpm test:composition`；隔离服务运行 `node dev/probes/web/desk-projection-download.mjs '<url>' dev/fixtures/desk-projection/desk-projection.json` | `tests/host/desk-projection-download.spec.ts` + `tests/composition/desk-projection-lifecycle.spec.mjs` + `dev/fixtures/desk-projection/` | 固定字节、错误/限额、真实注册撤销；HTTP 探针额外证明认证拒绝与 cookie 下载 / 不证明业务 schema、Client mount/断连/呈现或持久经营写 |
 | **模型可见面**（工具描述 / prompt 段落 / persona / digest） | `pnpm build` → `pnpm test:composition` → **`pnpm eval --only <task-id>`**（行为判决，任务清单 `pnpm eval --list`；`repo-live-probe` 是取证非回归，见已定姿态） | `tests/agent/*.spec` + `dev/eval/` | agent spec：段落合同。eval：伤害地板、技能按名加载、回答正则（可凑巧命中）/ 段落是否进入请求、组装转录、领域质量（`eval:domain` 人判） |
 | agent 面合同（段落预算 / 养护回合的合同层） | `pnpm test:agent`（真服务 + 临时 home）；改动同时触模型可见面时按上一行加链 | `tests/agent/*.spec` | 段落就绪 / 预算 / 回合占位等合同 / Loader 组装、UI 读回 |
@@ -32,12 +32,14 @@
 | bootstrap 守卫 | `pnpm bootstrap-guards-smoke` | `scripts/release/bootstrap-guards-smoke.mjs` | 路径穿越/保留名/缺旧 pnpm/npm 在创建 home 前拒绝、victim 存活 / Windows 真机、注入式 pnpm |
 | 模型可见请求（T4） | `pnpm prompt-smoke`（无 key replay one-shot；读 `system/message` + `request/header.tools`） | `scripts/release/prompt-smoke.mjs` | 四个段落与六个工具确实进入请求 / 长会话回放、话术质量 |
 | 真实 DSH 兼容矩阵（T6） | `pnpm compat-matrix -- --dsh <path> --version <v> --expect install|reject` | `scripts/release/compat-matrix.mjs` | 目标 CLI 的安装/拒绝与组合 / 模型回合、全 minor 组合 |
-| 升级 / 卸载的数据边界 | `pnpm upgrade-smoke`（干净 home：合成旧包→新包→remove） | `scripts/release/upgrade-smoke.mjs` | 安装/升级/remove 不碰两目录 / 真实历史版本的数据迁移 |
+| 升级 / 卸载的数据边界 | `pnpm upgrade-smoke`（干净 home：合成旧包→新包→remove） | `scripts/release/upgrade-smoke.mjs` | 安装/升级/remove 不碰两目录、组合恢复 / 真实历史数据的**安装**迁移（读取兼容另见下行） |
+| 旧字节兼容 | `pnpm test:host` | `tests/host/old-home-compat.spec.ts` + `tests/host/fixtures/old-home-v19/` | 冻结 v19 home 的房间/技能/提案/用量/手册迁移/账本回执可读 / 0.1.0 之前的未知字节、未来版本、损坏文件 |
+| 账本有界与归档 | `pnpm test:host` | `tests/host/operating-ledger-archive.spec.ts` | 压缩后 `ledger.json` 有界、归档回执可读、幂等重试、matter snapshot 合并、投影 revision 单调 / 多次崩溃/并发压缩、超大归档 |
 | 安装并发/事务 | `pnpm install-resilience-smoke`（两个并发 add，最终依赖/组合断言） | `scripts/release/install-resilience-smoke.mjs` | DSH 0.2.1 的 120s profile 锁下串行化与最终状态 / 更复杂并发、跨 profile 并发 |
 | 安装失败/重试 | `pnpm install-resilience-smoke [-- --dsh <path>]`（损坏 tarball + 有效重试；默认从 PATH 找 dsh） | `scripts/release/install-resilience-smoke.mjs` | 失败不残留依赖/文件，重试可恢复 / 真实网络中断、磁盘满 |
 | 标准 Web 安装/升级 | `pnpm web-install-smoke -- --dsh <path> [--tarball <tgz>] [--upgrade-tarball <tgz>]`（干净 HOME/DSH_HOME；Chrome 必须） | `scripts/release/web-install-smoke.mjs` | 官方 web profile 安装、client boot、preset UI、运行中升级后重启/复验 / 真人走查 |
 | 独立启动（无 `.git` 目录） | `pnpm standalone-smoke`（打包→解包→bootstrap→preflight→client boot→stop→restart） | `scripts/release/standalone-smoke.mjs` | 无 `.git` 启动、隔离 home、包内/符号链接 home 拒绝、tarball 安装带 yaml、client 真 boot、preset UI、重启 URL、搬移 home 重建 profile、损坏 profile manifest 重建 profile / 真人环境与会话内容 |
-| 交接 / 数据 bundle | `pnpm test:tooling` + `pnpm release-smoke` + `pnpm export-dist` | `tests/tooling/handoff-core.spec.mjs`、`assistant-data.spec.mjs`、`scripts/release/handoff-*` | 扫描规则、真实 tarball、两目录往返、锁/符号链接/失败清理、两 home 隔离 / 真人数据迁移 |
+| 交接 / 数据 bundle / 诊断 | `pnpm test:tooling` + `pnpm release-smoke` + `pnpm export-dist` | `tests/tooling/handoff-core.spec.mjs`、`assistant-data.spec.mjs`、`scripts/release/handoff-*` | 扫描规则、真实 tarball、两目录往返、锁/符号链接/失败清理、`status`/`check`、`import --replace` 旁路与回滚 / 真人数据迁移 |
 | Web preset 选择 | `pnpm agent-preset-ui '<URL>'`（需运行中的干净实例） | `dev/probes/web/agent-preset-ui.mjs` | Settings → Agent 预设 → 章鱼管家 → default / 自动门禁（人工探针） |
 | 仓库工具与门禁（`scripts/checks/verify.mjs` 及 checks 核、生成器） | 新检查的**红夹具**（prove-it-red）+ `pnpm verify` | `tests/tooling/<family>.spec.mjs`（门禁族 spec，与 `scripts/checks/gates/` 同名对齐） | 工具核接受/拒绝形状 / 门禁全量（verify 自身） |
 | docs / notes | `pnpm verify`（断链四连/命令互证/notes 形状） | — | 结构与链接 / 语义正确（漂移审计管） |
@@ -94,7 +96,7 @@
 
 失败报告先按本表分层归因再上浮：配置 / 构建物 / 领域规则 / 服务行为 / 模型回合 / UI 读回，不混称"测试挂了"。
 
-**夹具两家**：`tests/support/`（`*harness` 共享夹具）是 **spec 的夹具家**——被 vitest spec import、按豁免容器进命名表；`dev/fixtures/` 是**真实运行的夹具家**——探针 / 评测消费的种子账本、回放语料与固定下载资料，由一次性或隔离 home 装载，**不被 spec import**。各夹具目录自带 README（预期集合、能证 / 不能证、复跑命令）。
+**夹具两家**：`tests/support/`（`*harness` 共享夹具）是 **spec 的夹具家**——被 vitest spec import、按豁免容器进命名表；`tests/host/fixtures/` 是 **spec 的冻结字节夹具家**（如 `old-home-v19/`，被 spec 整树复制后读取，不 import）；`dev/fixtures/` 是**真实运行的夹具家**——探针 / 评测消费的种子账本、回放语料与固定下载资料，由一次性或隔离 home 装载，**不被 spec import**。各夹具目录自带 README（预期集合、能证 / 不能证、复跑命令）。
 
 ## 已定姿态与升级触发
 

@@ -11,7 +11,7 @@
  * Exit 0 = instance started, preflight green, data under the chosen home, stop left no process.
  */
 import { spawnSync } from 'node:child_process'
-import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, renameSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
+import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, renameSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { mkTmpDir } from '../../dev/env/tmp.mjs'
@@ -96,6 +96,14 @@ try {
   if (state !== undefined) {
     if (typeof state.url !== 'string' || !state.url.startsWith('http://127.0.0.1:')) fail('bootstrap.json has no loopback URL')
     else ok(`URL ${state.url}`)
+    // The state carries a live launch token: it must be owner-only, and the log must not carry
+    // the same token (support threads copy logs).
+    const stateMode = statSync(join(home, 'bootstrap.json')).mode & 0o777
+    if (stateMode !== 0o600) fail(`bootstrap.json mode is ${stateMode.toString(8)}, expected 600`)
+    else ok('bootstrap.json is owner-only')
+    const bootstrapLog = readFileSync(join(home, 'logs', 'bootstrap.log'), 'utf8')
+    if (/\?token=[A-Za-z0-9_-]+/.test(bootstrapLog)) fail('bootstrap.log leaks the launch token')
+    else ok('bootstrap.log carries no launch token')
     if (!existsSync(join(home, 'profiles', profile, 'package.json'))) fail('profile manifest is missing')
     else ok(`profile ${profile} is in ${home}`)
     if (!existsSync(join(home, 'profiles', profile, 'node_modules', 'dsh-smart-assistant', 'package.json'))) fail('the package is not installed in the profile')

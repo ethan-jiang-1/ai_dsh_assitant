@@ -131,7 +131,7 @@ export function renderLedgerProjection(state: LedgerState, ledgerId: string, gen
   return Object.freeze({
     schemaVersion: 2 as const,
     ledgerId,
-    revision: Object.keys(state.operations).length,
+    revision: state.operationCount ?? Object.keys(state.operations).length,
     generatedAt,
     matters: Object.freeze(matters),
     receipts: Object.freeze(receipts),

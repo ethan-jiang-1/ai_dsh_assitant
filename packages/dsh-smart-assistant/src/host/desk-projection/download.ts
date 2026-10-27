@@ -57,7 +57,7 @@ async function readCapped(path: string, maxBytes: number, signal: AbortSignal | 
  * @param maxBytes - Complete file limit in bytes; only limit plus one byte is read.
  * @returns The exact GET contribution; registration is owned by the Host plugin fiber.
  */
-export function createDeskProjectionRoute(dataDir: string, maxBytes: number = 1024 * 1024): ConnectionFetchRoute {
+export function createDeskProjectionRoute(dataDir: string, maxBytes: number = 8 * 1024 * 1024): ConnectionFetchRoute {
   if (!Number.isSafeInteger(maxBytes) || maxBytes < 1) throw new Error('projection maxBytes must be a positive safe integer')
   return {
     path: '/api/assistant/desk-projection',

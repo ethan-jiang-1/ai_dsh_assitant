@@ -49,6 +49,10 @@
 **第二个持久化面**：权威经营账本住独立 `<dshHome>/assistant-operating`——不是本 working folder 的房间，
 无摘要与 curate 检查面；契约唯一权威 = [`operating.md`](operating.md)，随同一套双 home 隔离。
 
+**并发与秘密**：同一 home 只应有一个写入者——账本用 `writer.lock` 拒绝第二 writer；房间/技能/提案/审计是
+原子写但 last-write-wins，并发写不保证合并（读可以并行）。working folder 与账本是明文，不放 API key/token/密码；
+Viki key 从环境变量读，不写进这里。
+
 **账本的覆盖窗口**：账本记 `since`（开始计数的时刻）；旧账本没有该字段时，按**最早一次加载**推导下界
 （推导而非编造：覆盖不可能比它记下的第一笔更晚）。**`0 次`只表示"窗口内未加载"**，不得当作"从未使用"——
 真实案例：一件技能账本报 0 而会话日志里有两次加载，都发生在账本开始之前。`curate` 的 skill usage 行
@@ -199,9 +203,10 @@ bundles, M snapshots`，退役与快照都不删除、技能归档只增不减�
   `renderHomeManual` 为准）。记忆/知识/技能面板
   读 host `assistant-rooms` 的 working-folder 真值；业务事项住权威账本（合同见 [`operating.md`](operating.md) §二/§三）。手册正文由
   `src/domain/home/home-map.ts` 的 `renderHomeManual` 渲染、运行时随家手册落盘.
-  scaffold 缺则种（首行 `<!-- home-manual vN -->` 版本标记）；已有的生成版随版本迁移（只移除生成版中不再存在的段落），手改保留；手册段
+  scaffold 缺则种（首行 `<!-- home-manual vN -->` 版本标记）；已有的生成版按 generation 迁移**已知的精确旧段落**
+  （退役的 Room data 段、v19→v20 的答案契约段）并盖当前版本戳，手改保留；匹配不到的旧手册**不重写**，
+  手册段末尾附 generation warning（模型可见），curate 报 info。无 marker 的手写手册不迁移。手册段
   （`assistant:home-manual`）逐字进 system prompt；缺则**现场渲染当前版**（缺文件永不落后）。
-  版本标记旧于当前由 curate 报 info（见 §四「手册漂移」）。
 - 两者都是**给人也给 agent 看**的文件；文件名走 AGENTS.md 业界惯例——DSH 原生装载器认项目根
   与 `$DSH_HOME` 根的同名文件，不探 working folder 根，**同名不同域，互不冲突**。
 - persona 行缩为一句 stub（shadow 部署级 persona 的职能不动），身份正文由身份段拥有。

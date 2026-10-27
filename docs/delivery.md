@@ -1,6 +1,6 @@
 # 交接、备份与数据边界（当前合同）
 
-> 本文件拥有：**agent 物 / 用户数据**的边界、交接扫描、插件数据的导出/导入、备份恢复与升级的数据承诺。
+> 本文件拥有：**agent 物 / 用户数据**的边界、交接扫描、插件数据的导出/导入、备份恢复、升级/卸载的数据承诺与格式兼容政策。
 > 发布形态/渠道/版本/兼容宪章 = [`release.md`](release.md)；working folder 布局 = [`home.md`](home.md)；经营账本 = [`operating.md`](operating.md)；安装与分发 = 生成的 `_dist/安装手册.md`。
 > 一个事实一个家：这里只写边界与操作合同，不复制四房间语义。
 
@@ -9,8 +9,8 @@
 | 物 | 内容 | 归属 |
 |---|---|---|
 | **agent 物** | `lib/`、`bin/`、`presets/`、`seeds/`、`cordis.patch.yml`、`package.json`、`README`、默认身份与回退 | 包；可复制给任何人，不含用户数据 |
-| **用户数据（插件拥有）** | `<dataDir>`（默认 `<dshHome>/assistant`）与 `<operatingDir>`（默认 `<dshHome>/assistant-operating`） | 某一个人的 home |
-| **用户数据（宿主拥有）** | `sessions/`、credentials、`settings`、`storages`、`session-search.db` 等 | 同一个 home；不进插件备份/交接物 |
+| **用户数据（插件拥有）** | `<dataDir>`（默认 `<dshHome>/assistant`）与 `<operatingDir>`（默认 `<dshHome>/assistant-operating`，含 `ledger.json` / `operations-archive.jsonl`） | 某一个人的 home |
+| **用户数据（宿主拥有）** | `sessions/`、credentials、`settings`、`storages`、`session-search.db`、`cache/` 等 | 同一个 home；不进插件备份/交接物 |
 | **交付物** | working folder 根或会话 cwd 下的 `deliverables/`（模型自发落点，见 [`home.md`](home.md) §一注） | 用户数据；不进 agent 物 |
 
 **一个人 = 一个 `DSH_HOME`。** profile 是组合，不是租户；不同人用不同 home（不同机器、不同 OS 用户或显式隔离 home），不共享插件数据目录。同一 home 下的所有 profile 共用 `<dshHome>/assistant` 与 `<dshHome>/assistant-operating`——换 profile 名只隔离组合，**不隔离数据**；真正隔离试用用独立 `DSH_HOME`，或同时覆盖 memory/ledger/projection 的 `dataDir`。
@@ -26,11 +26,31 @@
 | **W workspace** | 不拥有；只有用户自己的 `deliverables/` | 项目/用户；随项目；插件不写 |
 | **U home** | `<dshHome>/assistant`（身份、记忆、线索、学到的技能、知识） | 插件拥有、用户可读可改；跨项目；升级/卸载保留 |
 | **S session** | 宿主拥有；四个 prompt 段落随请求进日志；不新增 event 类型 | 会话；只追加；插件不写日志 |
-| **H host state** | 不使用 `ctx.storageDomain`；`<dshHome>/assistant-operating` 是文件账本 | 插件拥有、用户可读；单 writer；可导出 |
-| **K cache** | 只有内存摘要缓存，可重建；无磁盘 cache 真源 | 运行时；可丢弃 |
-| **X credentials** | 宿主拥有；插件不读不写 | 用户/宿主；不进包、不进日志、不导出 |
+| **H host state** | 不使用 `ctx.storageDomain`；`<dshHome>/assistant-operating` 是文件账本 + 操作归档 | 插件拥有、用户可读；单 writer；可导出 |
+| **K cache** | 只有内存摘要缓存，可重建；补丁启用的 `session-search.db` 是宿主搜索索引 | 运行时/宿主；可丢弃 |
+| **X credentials** | 宿主拥有；插件不读不写应由凭据服务管理的值；Viki key 只从环境变量读 | 用户/宿主；不进包、不进日志、不导出 |
 
-刻意偏离：working folder 是**用户可见的 U 平面自定义根**，不是 `ctx.storageDomain` 的 host KV，也不是随项目走的 W；账本是**可导出的文件账本**，不是 H KV。理由与证据 = [`discipline.md`](discipline.md) 适配 13、[`release.md`](release.md) 与 `handoff-core`/`assistant-data`/`two-homes` 测试。
+刻意偏离：working folder 是**用户可见的 U 平面自定义根**，不是 `ctx.storageDomain` 的 host KV，也不是随项目走的 W；账本是**可导出的文件账本**，不是 H KV。理由与证据 = [`discipline.md`](discipline.md) 适配 13、[`release.md`](release.md) 与 `handoff-core`/`assistant-data`/`two-homes`/`old-home-compat` 测试。
+
+### 数据卡
+
+| 事实 | 承诺/平面 | 权威 | 位置 | 作用域 | 寿命 | 谁看得见 | 进插件备份 | 卸载后 |
+|---|---|---|---|---|---|---|---|---|
+| 记忆/线索/知识/技能/提案 | P2 / U | 插件 + 用户 | `<dataDir>/{memory,research,knowledge,skills,skill-proposals}/` | home 单例，无项目键 | 房间生命周期；archive 保留 | 用户；模型经工具 | 是 | 保留 |
+| 身份与手册 | P2 / U | 用户 + 插件 | `<dataDir>/SOUL.md`、`AGENTS.md` | home 单例 | 身份永不覆盖；手册按已知文本迁移 | 用户；模型逐字进 prompt | 是 | 保留 |
+| 用量、治理、界面、交付 | P2 / U | 插件/用户 | `<dataDir>/skill-usage.json`、`audit/approvals.jsonl`、`ui-mode.json`、`deliverables/` | home 单例 | usage 可删；audit 只追加；deliverables 无生命周期 | 用户；模型不可见 ui-mode/audit | 是 | 保留 |
+| 经营账本状态 | P3 / H | 插件 | `<operatingDir>/ledger.json` | home 单例 | 最近 256 条操作 + 全量计数；压缩后仍有界 | 用户；模型经工具 | 是 | 保留 |
+| 账本操作归档 | P3 / H | 插件 | `<operatingDir>/operations-archive.jsonl` | home 单例 | 只追加；完整回执历史 | 用户；模型经工具按 id 读 | 是 | 保留 |
+| 会话搜索索引 | 宿主 K | 宿主（本包补丁启用） | `<dshHome>/session-search.db` | session/corpus | 首次检索创建；可重建 | 宿主；模型经 `session_query` | 否 | **保留；要清就删此文件** |
+| 会话/凭据/设置/宿主 KV | S / H / X | 宿主 | `$DSH_HOME/sessions/`、`.credentials.yaml`、`storages/`、`profiles/` 等 | session/home/profile | 宿主决定 | 宿主/模型经工具 | 否 | 保留 |
+| 客户端 UI 状态 | 客户端 | 设备/浏览器 | localStorage：`dsha:ui-mode`、`dsha:receipt-since`、`dsha-proactive-ui-v1`、`dsh-assistant-debug`；sessionStorage：`dsha-capture-seen-running-v1`、`dsha-capture-receipt-v1` | origin/设备 | 可丢弃；换源/清站点即失 | 浏览器 | 否 | 保留；清站点数据 |
+| OpenViking 记忆 | E2 外部服务 | 外部服务 | OpenViking server（可选） | 外部 | 由服务决定 | 面板/模型经工具 | 否 | 按 OpenViking 手册清理 |
+
+**作用域**：working folder 与账本都是 home 单例，**不按 workspace 分区**；多项目共享是产品选择，要隔离用独立 `DSH_HOME`。客户端键只属于设备，不参与模型请求。
+
+**秘密**：working folder、账本、归档都是明文；不要把 API key、token、密码写进记忆/知识/账本。Viki 的 key 从 `apiKeyEnv`（默认 `OPENVIKING_API_KEY`）解析，内联 `apiKey` 仅为旧 home 保留并会把明文写进 profile patch。bootstrap 的 `bootstrap.json`（含 launch URL）为 0600，`logs/bootstrap.log` 在拿到 URL 后把 token 替换为 `[redacted]`。
+
+**并发**：同一 home 只应有一个写入者。账本用 `writer.lock` 跨进程独占，第二个 writer 会被拒绝；房间/技能/提案/审批是原子写但 **last-write-wins**，并发写不保证合并。读可以并行；需要并行写实验时用独立 `DSH_HOME`。
 
 ## 二、交接
 
@@ -57,29 +77,44 @@ node scripts/release/handoff-scan.mjs <目录或 tarball>
 
 ## 三、备份、恢复与迁移
 
-插件数据 = 两个目录；备份/恢复用包内 `assistant-data`（[`bin/assistant-data.mjs`](../packages/dsh-smart-assistant/bin/assistant-data.mjs)，
+插件数据 = 两个目录；备份/恢复/诊断用包内 `assistant-data`（[`bin/assistant-data.mjs`](../packages/dsh-smart-assistant/bin/assistant-data.mjs)，
 实现 = [`src/cli/assistant-data.ts`](../packages/dsh-smart-assistant/src/cli/assistant-data.ts)）：
 
 ```sh
 node <DSH_HOME>/profiles/web/node_modules/dsh-smart-assistant/bin/assistant-data.mjs export \
   --assistant <DSH_HOME>/assistant --operating <DSH_HOME>/assistant-operating --out <备份目录>
 
-node <DSH_HOME>/profiles/web/node_modules/dsh-smart-assistant/bin/assistant-data.mjs import \
-  --in <备份目录> --assistant <DSH_HOME>/assistant --operating <DSH_HOME>/assistant-operating
+# 首次启动前恢复（目标不存在或为空）：
+node .../assistant-data.mjs import --in <备份目录> \
+  --assistant <DSH_HOME>/assistant --operating <DSH_HOME>/assistant-operating
+
+# 已经启动过的 home：停实例，再让 import 把现有两目录移到旁路后恢复：
+node .../assistant-data.mjs import --replace --in <备份目录> \
+  --assistant <DSH_HOME>/assistant --operating <DSH_HOME>/assistant-operating
+
+node .../assistant-data.mjs status --assistant <DSH_HOME>/assistant --operating <DSH_HOME>/assistant-operating
+node .../assistant-data.mjs check  --assistant <DSH_HOME>/assistant --operating <DSH_HOME>/assistant-operating
 ```
 
 - bundle = `assistant/` + `assistant-operating/` + `manifest.json`；manifest 的 `schemaVersion` 当前为 `1`。
-- **不含** sessions/credentials/settings/storages；这些要另备整 home。
-- `export` 排除 `writer.lock` / `*.tmp` / `*.takeover`，拒绝符号链接（备份必须是普通文件）；旧的带锁 bundle 在 import 时也会被剔除。
-- `import` 要求实例已停止、两个目标目录不存在或为空；非空拒绝，不覆盖。导入先写 sibling temp，再 rename 就位；失败不留下半成品。
-- 未知 `schemaVersion` 拒绝导入；不猜、不半导入。
+- **不含** sessions/credentials/settings/storages/`session-search.db`；这些要另备整 home。账本里的 session/event 定位在只恢复插件两目录后仍指向原 home 的会话；要把证据链一起带走，另备 `sessions/`。
+- `export` 排除 `writer.lock` / `*.tmp` / `*.takeover`，拒绝符号链接（备份必须是普通文件）；旧的带锁 bundle 在 import 时也会被剔除。导出前停实例，得到跨房间一致的快照。
+- `import` 要求实例已停止；默认要求两个目标目录不存在或为空，非空拒绝、不覆盖。`--replace` 把非空目标改名为 `<dir>.pre-import-<id>` 旁路后再导入，失败时恢复旁路；旁路不删除，确认后可手动清。
+- 未知 `schemaVersion` 拒绝导入；不猜、不半导入。导入先写 sibling temp，再 rename 就位；失败不留下半成品。
+- `status` 读路径/文件数/字节数、手册 generation、`ledger.json` 是否 v1、归档操作数；`check` 再加相对路径、坏 ledger/归档行、旧手册、符号链接，问题以非零退出。
 - 原始 `cp -R` 等价可用；它不校验 manifest、不排除 `writer.lock`、也不保证目标为空——需要“可验证的恢复”时用 `assistant-data`。手动 `cp -R` 备份必须删掉 `<备份>/assistant-operating/writer.lock` 与 `*.tmp`，否则换机恢复后账本会把旧 host 的锁当活锁。
 
-**升级/卸载**：装新 tarball 不动用户数据；`--dump-config` 仍应有 `preset-assistant`，新会话验证一次。数据读取按文件格式向前兼容；
-跨版本迁移是显式的，不在安装时静默重写。`pnpm upgrade-smoke` 用合成旧包证明「旧→新→remove」的两目录边界；
-真实下一版的 0.1.0→新版 fixture 由那次发布补，不用合成版本冒充历史。
+**升级/卸载**：装新 tarball 不动用户数据；`--dump-config` 仍应有 `preset-assistant`，新会话验证一次。升级/remove 保留两个插件目录；remove 后重装回到组合。`pnpm upgrade-smoke` 证明“旧→新→remove”的两目录边界与组合恢复；真实旧字节的读取由 `tests/host/old-home-compat.spec.ts` 的冻结 v19 fixture 证明（房间、技能、提案、用量、手册迁移、账本回执）。
+
+**格式兼容政策**：
+
+- 房间 frontmatter **只增可选字段**；新增必填字段或改语义必须先写迁移，再改校验。旧文件读不懂时由 `curate` 报 `unreadable-file`/`page-unreadable`，不静默跳过。
+- 手册按 generation 迁移：只替换已知的精确旧段落并盖当前版本戳；匹配不到的旧手册不重写，prompt 段末尾带 generation warning，`curate` 报 `manual-stale-scaffold`。
+- 账本 v1 只增字段：`operationCount` 缺失时按当前操作数回填；旧 `ledger.json` 首次写入时压缩；归档行按 `operationId` 去重，状态副本优先。
+- bundle manifest `schemaVersion` 是**包格式**版本，不是房间内容版本；不匹配拒绝导入。
+- 不在安装时静默重写用户数据；迁移要么可重复、可校验，要么 fail loud。
 
 ## 四、证据 owner
 
 回归资产与命令按 [testing.md](testing.md) 的**一页证据地图**；本文件不维护第二张表。直接入口：
-交接扫描 = [`handoff-core.spec.mjs`](../packages/dsh-smart-assistant/tests/tooling/handoff-core.spec.mjs) + `release-smoke`/`export-dist` 对真实 tarball；导出/导入 = [`assistant-data.spec.mjs`](../packages/dsh-smart-assistant/tests/tooling/assistant-data.spec.mjs) + `release-smoke` 的 installed roundtrip；升级/卸载 = `pnpm upgrade-smoke`；独立启动 = `pnpm standalone-smoke`；Web 选择 = `pnpm agent-preset-ui '<URL>'`（需运行中的干净实例）。
+交接扫描 = [`handoff-core.spec.mjs`](../packages/dsh-smart-assistant/tests/tooling/handoff-core.spec.mjs) + `release-smoke`/`export-dist` 对真实 tarball；导出/导入/状态/诊断 = [`assistant-data.spec.mjs`](../packages/dsh-smart-assistant/tests/tooling/assistant-data.spec.mjs) + `release-smoke` 的 installed roundtrip；旧 home 读取 = [`old-home-compat.spec.ts`](../packages/dsh-smart-assistant/tests/host/old-home-compat.spec.ts)；账本归档 = [`operating-ledger-archive.spec.ts`](../packages/dsh-smart-assistant/tests/host/operating-ledger-archive.spec.ts)；升级/卸载 = `pnpm upgrade-smoke`；独立启动 = `pnpm standalone-smoke`；Web 选择 = `pnpm agent-preset-ui '<URL>'`（需运行中的干净实例）。

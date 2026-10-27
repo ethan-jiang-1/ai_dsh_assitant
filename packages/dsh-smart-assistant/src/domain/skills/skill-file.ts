@@ -13,8 +13,9 @@
  * @module dsh-smart-assistant/skills/skill-file
  */
 
-import { mkdir, writeFile } from 'node:fs/promises'
+import { mkdir } from 'node:fs/promises'
 import { join } from 'node:path'
+import { atomicWriteFile } from '../home/atomic-write.ts'
 import { renderFrontmatterDocument } from '../home/frontmatter.ts'
 
 /** Skill-name grammar, identical to the harness registry's `SKILL_NAME`. */
@@ -111,8 +112,10 @@ export async function writeLearnedSkill(
   const problems = validateSkillDraft(draft)
   if (problems.length > 0) throw new Error(`skill draft rejected: ${problems.join('; ')}`)
   const bundleDir = join(skillsDir, draft.name)
-  await mkdir(bundleDir, { recursive: true })
+  await mkdir(bundleDir, { recursive: true, mode: 0o700 })
   const path = join(bundleDir, SKILL_FILE_NAME)
-  await writeFile(path, renderSkillFile(draft), 'utf8')
+  // The home's one write discipline: a unique sibling temp then a rename. A crash mid-write
+  // must leave the previous skill readable, not a truncated SKILL.md the provider skips.
+  await atomicWriteFile(path, renderSkillFile(draft))
   return { name: draft.name, path }
 }

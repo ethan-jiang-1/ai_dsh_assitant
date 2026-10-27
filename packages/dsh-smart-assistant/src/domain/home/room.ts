@@ -127,7 +127,7 @@ export class Room {
    */
   async write(id: string, data: Readonly<Record<string, unknown>>, body: string): Promise<RoomEntry> {
     if (!isEntryId(id)) throw new Error(`room entry id "${id}" is not a safe file name`)
-    await mkdir(this.dir, { recursive: true })
+    await mkdir(this.dir, { recursive: true, mode: 0o700 })
     const path = join(this.dir, `${id}${ENTRY_SUFFIX}`)
     await atomicWriteFile(path, renderFrontmatterDocument(data, body))
     return { id, path, data, body: body.trim() }
@@ -142,7 +142,7 @@ export class Room {
   async archive(id: string, patch: Readonly<Record<string, unknown>> = {}): Promise<boolean> {
     const entry = await this.read(id)
     if (entry === undefined) return false
-    await mkdir(this.archiveDir, { recursive: true })
+    await mkdir(this.archiveDir, { recursive: true, mode: 0o700 })
     const target = join(this.archiveDir, `${id}${ENTRY_SUFFIX}`)
     const data = { ...entry.data, ...patch }
     await atomicWriteFile(target, renderFrontmatterDocument(data, entry.body))

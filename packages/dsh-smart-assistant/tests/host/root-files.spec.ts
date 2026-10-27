@@ -9,7 +9,7 @@ import { readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { memoryPool } from '../support/host-harness.ts'
 import { DEFAULT_SOUL } from '../../src/domain/home/soul.ts'
-import { HOME_MANUAL_VERSION, RETIRED_ROOM_DATA_SECTION } from '../../src/domain/home/home-map.ts'
+import { CURRENT_ONE_QUESTION_PARAGRAPH, HOME_MANUAL_VERSION, RETIRED_ONE_QUESTION_PARAGRAPH, RETIRED_ROOM_DATA_SECTION } from '../../src/domain/home/home-map.ts'
 
 const boot = memoryPool('assistant-root-files-')
 
@@ -102,6 +102,41 @@ describe('manualSnapshot (guidance)', () => {
     await service.ensureHome()
     rmSync(service.paths.agentsFile)
     expect(service.manualSnapshot()).toContain(`home-manual v${String(HOME_MANUAL_VERSION)}`)
+  })
+
+  it('migrates the v19 answer-contract paragraph on the next scaffold', async () => {
+    const { service } = boot()
+    await service.ensureHome()
+    const current = service.manualSnapshot()
+    expect(current).toContain(CURRENT_ONE_QUESTION_PARAGRAPH)
+    const legacy = current
+      .replace(CURRENT_ONE_QUESTION_PARAGRAPH, RETIRED_ONE_QUESTION_PARAGRAPH)
+      .replace(`<!-- home-manual v${String(HOME_MANUAL_VERSION)} -->`, '<!-- home-manual v19 -->')
+    writeFileSync(service.paths.agentsFile, legacy, 'utf8')
+
+    await service.ensureHome()
+
+    const migrated = readFileSync(service.paths.agentsFile, 'utf8')
+    expect(migrated).toContain(CURRENT_ONE_QUESTION_PARAGRAPH)
+    expect(migrated).not.toContain(RETIRED_ONE_QUESTION_PARAGRAPH)
+    expect(migrated).toContain(`home-manual v${String(HOME_MANUAL_VERSION)}`)
+  })
+
+  it('flags an unrepairable older generated manual in the prompt without rewriting it', async () => {
+    const { service } = boot()
+    await service.ensureHome()
+    const older = service.manualSnapshot()
+      .replace(CURRENT_ONE_QUESTION_PARAGRAPH, 'Unrelated paragraph the migration table does not know.')
+      .replace(`<!-- home-manual v${String(HOME_MANUAL_VERSION)} -->`, '<!-- home-manual v18 -->')
+    writeFileSync(service.paths.agentsFile, older, 'utf8')
+
+    await service.ensureHome()
+    const prompt = service.manualSnapshot()
+
+    expect(prompt).toContain('generation v18')
+    expect(prompt).toContain(`current scaffold is v${String(HOME_MANUAL_VERSION)}`)
+    // The prompt warns; the owner's file is not rewritten behind their back.
+    expect(readFileSync(service.paths.agentsFile, 'utf8')).toBe(older)
   })
 })
 

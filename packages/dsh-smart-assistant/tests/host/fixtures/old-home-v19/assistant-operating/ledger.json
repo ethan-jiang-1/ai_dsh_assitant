@@ -1,0 +1,62 @@
+{
+  "version": 1,
+  "matters": {
+    "m-1": {
+      "id": "m-1",
+      "title": "Old renewal",
+      "status": "active",
+      "summary": "Renewal at the old floor; waiting on the client.",
+      "responsible": "sales",
+      "revision": 1,
+      "times": {
+        "promisedDeadline": "2026-10-01"
+      },
+      "materials": [
+        {
+          "id": "mat-m-1-1",
+          "source": {
+            "sessionId": "session-old",
+            "eventId": "event-old-1",
+            "quote": "Keep the old floor for the renewal, we will revisit in October."
+          },
+          "note": "Keep the old floor for the renewal.",
+          "receivedAt": "2026-09-03T09:00:00.000Z"
+        }
+      ],
+      "proposals": [],
+      "createdAt": "2026-09-03T09:00:00.000Z",
+      "updatedAt": "2026-09-03T09:00:00.000Z"
+    }
+  },
+  "operations": {
+    "op-old-create": {
+      "operation": {
+        "kind": "create",
+        "operationId": "op-old-create",
+        "title": "Old renewal",
+        "summary": "Renewal at the old floor; waiting on the client.",
+        "responsible": "sales",
+        "times": {
+          "promisedDeadline": "2026-10-01"
+        },
+        "source": {
+          "sessionId": "session-old",
+          "eventId": "event-old-1",
+          "quote": "Keep the old floor for the renewal, we will revisit in October."
+        }
+      },
+      "receipt": {
+        "operationId": "op-old-create",
+        "matterId": "m-1",
+        "submittedAt": "2026-09-03T09:00:00.000Z",
+        "outcome": {
+          "status": "committed",
+          "revision": 1
+        }
+      }
+    }
+  },
+  "unclaimed": {},
+  "nextMatterSeq": 2,
+  "nextUnclaimedSeq": 1
+}

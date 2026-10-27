@@ -7,9 +7,11 @@ import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import {
   DATA_SCHEMA_VERSION,
+  checkData,
   exportData,
   importData,
   readDataManifest,
+  statusData,
 } from '../../src/cli/assistant-data.ts'
 import { temp, disposeTempDirs } from './verify-gates-harness.mjs'
 
@@ -50,7 +52,7 @@ describe('assistant-data', () => {
       assistantDir: join(target, 'assistant'),
       operatingDir: join(target, 'assistant-operating'),
     })
-    expect(imported).toEqual({ assistantFiles: 2, operatingFiles: 1 })
+    expect(imported).toEqual({ assistantFiles: 2, operatingFiles: 1, backups: [] })
     expect(readFileSync(join(target, 'assistant', 'SOUL.md'), 'utf8')).toBe('the owner voice\n')
     expect(readFileSync(join(target, 'assistant', 'memory', 'm1.md'), 'utf8')).toBe('fact\n')
     expect(readFileSync(join(target, 'assistant-operating', 'ledger.json'), 'utf8')).toBe('{"revision":1}\n')
@@ -68,6 +70,120 @@ describe('assistant-data', () => {
     writeFileSync(join(occupied, 'existing'), 'x', 'utf8')
     await expect(importData({ inDir: cleanOut, assistantDir: occupied, operatingDir: join(occupied, 'operating') }))
       .rejects.toThrow('not empty')
+  })
+
+  it('refuses a truncated or incomplete bundle and a target with a writer lock', async () => {
+    const source = sourceFixture()
+    const outDir = join(temp('data-out-'), 'bundle')
+    await exportData({ ...source, outDir })
+    const manifestPath = join(outDir, 'manifest.json')
+    const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'))
+    const target = temp('data-import-')
+
+    writeFileSync(manifestPath, `${JSON.stringify({ ...manifest, files: 99 }, null, 2)}\n`, 'utf8')
+    await expect(importData({
+      inDir: outDir,
+      assistantDir: join(target, 'assistant'),
+      operatingDir: join(target, 'assistant-operating'),
+    })).rejects.toThrow('bundle is incomplete')
+
+    writeFileSync(manifestPath, `${JSON.stringify({ ...manifest, bytes: manifest.bytes + 1024 }, null, 2)}\n`, 'utf8')
+    await expect(importData({
+      inDir: outDir,
+      assistantDir: join(target, 'assistant'),
+      operatingDir: join(target, 'assistant-operating'),
+    })).rejects.toThrow('bundle is truncated')
+
+    writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8')
+    mkdirSync(join(target, 'assistant-operating'), { recursive: true })
+    writeFileSync(join(target, 'assistant-operating', 'writer.lock'), '{"hostname":"live","pid":1,"acquiredAt":"2026-01-01T00:00:00.000Z"}\n', 'utf8')
+    await expect(importData({
+      inDir: outDir,
+      assistantDir: join(target, 'assistant'),
+      operatingDir: join(target, 'assistant-operating'),
+      replace: true,
+    })).rejects.toThrow('stop the instance')
+  })
+
+  it('restores over a scaffolded home with replace and keeps the old directories beside it', async () => {
+    const source = sourceFixture()
+    const outDir = join(temp('data-out-'), 'bundle')
+    await exportData({ ...source, outDir })
+
+    const target = temp('data-import-')
+    const assistantDir = join(target, 'assistant')
+    const operatingDir = join(target, 'assistant-operating')
+    mkdirSync(join(assistantDir, 'memory'), { recursive: true })
+    mkdirSync(operatingDir, { recursive: true })
+    writeFileSync(join(assistantDir, 'memory', 'old.md'), 'old fact\n', 'utf8')
+    writeFileSync(join(operatingDir, 'ledger.json'), '{"version":1}\n', 'utf8')
+
+    const imported = await importData({ inDir: outDir, assistantDir, operatingDir, replace: true })
+    expect(imported.assistantFiles).toBe(2)
+    expect(imported.operatingFiles).toBe(1)
+    expect(imported.backups).toHaveLength(2)
+    expect(readFileSync(join(assistantDir, 'SOUL.md'), 'utf8')).toBe('the owner voice\n')
+    expect(existsSync(join(assistantDir, 'memory', 'old.md'))).toBe(false)
+    expect(readFileSync(join(operatingDir, 'ledger.json'), 'utf8')).toBe('{"revision":1}\n')
+
+    const assistantBackup = readdirSync(target).find(name => name.startsWith('assistant.pre-import-'))
+    expect(assistantBackup).toBeDefined()
+    expect(readFileSync(join(target, assistantBackup, 'memory', 'old.md'), 'utf8')).toBe('old fact\n')
+  })
+
+  it('reports paths, manual generation and ledger health without writing', async () => {
+    const target = temp('data-status-')
+    const assistantDir = join(target, 'assistant')
+    const operatingDir = join(target, 'assistant-operating')
+    mkdirSync(assistantDir, { recursive: true })
+    mkdirSync(operatingDir, { recursive: true })
+    writeFileSync(join(assistantDir, 'AGENTS.md'), '<!-- home-manual v20 -->\n# manual\n', 'utf8')
+    writeFileSync(join(assistantDir, 'SOUL.md'), 'soul\n', 'utf8')
+    writeFileSync(join(operatingDir, 'ledger.json'), JSON.stringify({
+      version: 1,
+      matters: {},
+      operations: { op1: {}, op2: {} },
+      unclaimed: {},
+    }), 'utf8')
+
+    const status = await statusData({ assistantDir, operatingDir })
+    expect(status.assistant.manualVersion).toBe(20)
+    expect(status.assistant.files).toBe(2)
+    expect(status.ledger).toMatchObject({ exists: true, state: 'ok', version: 1, operations: 2 })
+
+    // A corrupt ledger is a status value, not a thrown error: the support command must still
+    // be able to tell the operator where the file is and what is wrong.
+    writeFileSync(join(operatingDir, 'ledger.json'), '{nope', 'utf8')
+    const corrupt = await statusData({ assistantDir, operatingDir })
+    expect(corrupt.ledger.state).toBe('invalid')
+
+    const missing = await statusData({ assistantDir: join(target, 'absent'), operatingDir: join(target, 'absent-operating') })
+    expect(missing.assistant.exists).toBe(false)
+    expect(missing.ledger.state).toBe('missing')
+  })
+
+  it('check names relative paths, a stale manual, a corrupt ledger and symlinks', async () => {
+    const target = temp('data-check-')
+    const assistantDir = join(target, 'assistant')
+    const operatingDir = join(target, 'assistant-operating')
+    mkdirSync(assistantDir, { recursive: true })
+    mkdirSync(operatingDir, { recursive: true })
+    writeFileSync(join(assistantDir, 'AGENTS.md'), '<!-- home-manual v19 -->\n# manual\n', 'utf8')
+    writeFileSync(join(operatingDir, 'ledger.json'), '{broken', 'utf8')
+
+    const relative = await checkData({ assistantDir: 'relative/assistant', operatingDir: 'relative/operating' })
+    expect(relative.problems.join('\n')).toContain('path is relative')
+
+    const absolute = await checkData({ assistantDir, operatingDir })
+    const text = absolute.problems.join('\n')
+    expect(text).toContain('manual is v19; current is v20')
+    expect(text).toContain('ledger.json is unreadable')
+
+    if (POSIX) {
+      symlinkSync('/etc/hosts', join(assistantDir, 'leak.md'))
+      const linked = await checkData({ assistantDir, operatingDir })
+      expect(linked.problems.join('\n')).toContain('symbolic link in owned data')
+    }
   })
 
   it('refuses an unsupported schema and a missing working folder', async () => {

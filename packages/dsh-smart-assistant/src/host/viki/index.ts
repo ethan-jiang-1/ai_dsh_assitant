@@ -1,8 +1,9 @@
 /**
  * Host plugin row `assistant-viki`: registers the exact Viki read route over the configured
- * OpenViking server. `baseUrl`/`apiKey` come from config, then `OPENVIKING_URL`/
- * `OPENVIKING_API_KEY`, then the local `127.0.0.1:1933` default; an unreachable server is a
- * 503 on read, never a startup failure. The delete/restore POST actions ride the same route.
+ * OpenViking server. `baseUrl` comes from config, then `OPENVIKING_URL`, then the local
+ * `127.0.0.1:1933` default; the API key comes from `apiKeyEnv` (`OPENVIKING_API_KEY` by default)
+ * and only falls back to the deprecated inline `apiKey`. An unreachable server is a 503 on read,
+ * never a startup failure. The delete/restore POST actions ride the same route.
  *
  * @module
  */
@@ -15,6 +16,7 @@ import { join } from 'node:path'
 import type { VikiDiagnostics, VikiSearchHit, VikiTask } from '../../domain/viki/types.ts'
 import { createVikiRoute, type VikiActions, type VikiReader } from './route.ts'
 import { VikiClient } from './client.ts'
+import { resolveVikiApiKey } from './auth.ts'
 import { recordApproval } from '../approval-audit.ts'
 import type { AssistantMemory } from '../service.ts'
 
@@ -24,7 +26,9 @@ export const inject = ['connection', 'assistantMemory'] as const
 export interface Config {
   /** OpenViking base URL (no `/api/v1` suffix); config → `OPENVIKING_URL` → local `127.0.0.1:1933`. */
   baseUrl?: string
-  /** API key for `Authorization: Bearer`; defaults to `OPENVIKING_API_KEY`. */
+  /** Environment variable holding the API key; defaults to `OPENVIKING_API_KEY`. */
+  apiKeyEnv?: string
+  /** Deprecated inline key (plaintext in the profile patch); prefer `apiKeyEnv`/`OPENVIKING_API_KEY`. */
   apiKey?: string
   /** OpenViking space; defaults to `default`. */
   space?: string
@@ -34,7 +38,10 @@ export interface Config {
 
 export const Config: Schema<Config> = z.object({
   baseUrl: z.string().default(''),
-  apiKey: z.string().default(''),
+  apiKeyEnv: z.string().default(''),
+  // role('secret') keeps the value out of settings/redacted surfaces; it is not a storage
+  // boundary, so the env variable remains the supported home for the key.
+  apiKey: z.string().role('secret').default(''),
   space: z.string().default('default'),
   peer: z.string().default(''),
 })
@@ -151,8 +158,11 @@ export function apply(ctx: Context, config: Config): void {
   if (configuredBaseUrl === '') {
     ctx.logger.warn(`assistant-viki: no baseUrl/OPENVIKING_URL; using ${DEFAULT_BASE_URL} (set it explicitly for a remote server)`)
   }
-  const apiKey = config.apiKey?.trim() || process.env.OPENVIKING_API_KEY?.trim() || undefined
-  const client = new VikiClient({ baseUrl, space, ...(apiKey === undefined ? {} : { apiKey }), ...(peer === undefined ? {} : { peer }) })
+  const apiKey = resolveVikiApiKey(config)
+  if (apiKey.source === 'config') {
+    ctx.logger.warn(`assistant-viki: apiKey is configured inline (plaintext in the profile patch); set ${apiKey.envName} and drop apiKey`)
+  }
+  const client = new VikiClient({ baseUrl, space, ...(apiKey.apiKey === undefined ? {} : { apiKey: apiKey.apiKey }), ...(peer === undefined ? {} : { peer }) })
   // Optional host services: the token row is only shown when both are present and the route
   // supplied a session id. A profile without token-meter must keep the Viki row loadable.
   let sessions: { get(id: string): unknown } | undefined

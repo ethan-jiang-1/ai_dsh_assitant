@@ -22,7 +22,7 @@ export type {
 } from './types.ts'
 
 /** A ledger with no matters and no operations yet. */
-export const EMPTY_LEDGER: LedgerState = { version: 1, matters: {}, operations: {}, unclaimed: {}, nextMatterSeq: 1, nextUnclaimedSeq: 1 }
+export const EMPTY_LEDGER: LedgerState = { version: 1, matters: {}, operations: {}, operationCount: 0, unclaimed: {}, nextMatterSeq: 1, nextUnclaimedSeq: 1 }
 
 /**
  * Revive a persisted ledger state: validate the version and backfill fields added after the
@@ -37,7 +37,12 @@ export function reviveLedgerState(parsed: unknown): LedgerState {
   }
   const state = parsed as LedgerState
   const matters = Object.fromEntries(Object.entries(state.matters).map(([id, matter]) => [id, { ...matter, proposals: matter.proposals ?? [] }]))
-  return { ...state, matters, unclaimed: state.unclaimed ?? {}, nextUnclaimedSeq: state.nextUnclaimedSeq ?? 1 }
+  // A home written before compaction carries every operation and no total. Backfill the total so
+  // the projection revision stays monotonic once old operations move to the archive.
+  const operationCount = typeof state.operationCount === 'number'
+    ? state.operationCount
+    : Object.keys(state.operations).length
+  return { ...state, operationCount, matters, unclaimed: state.unclaimed ?? {}, nextUnclaimedSeq: state.nextUnclaimedSeq ?? 1 }
 }
 
 /**
@@ -69,7 +74,11 @@ interface AppliedOperation {
 
 /** Record one operation and its receipt in the ledger's history; every outcome is recorded. */
 function recordOperation(state: LedgerState, operation: LedgerOperation, receipt: OperationReceipt): LedgerState {
-  return { ...state, operations: { ...state.operations, [operation.operationId]: { operation, receipt } } }
+  return {
+    ...state,
+    operations: { ...state.operations, [operation.operationId]: { operation, receipt } },
+    operationCount: (state.operationCount ?? Object.keys(state.operations).length) + 1,
+  }
 }
 
 /**

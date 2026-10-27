@@ -13,7 +13,7 @@ import { readFile } from 'node:fs/promises'
 import type { AssistantMemory } from './service.ts'
 import { renderDigest, type DigestResult } from '../domain/home/digest.ts'
 import { compareFindings, curateHome, type CurationBrief } from '../domain/home/health.ts'
-import { HOME_STATUS_BLURB, parseManualVersion, renderHomeManual } from '../domain/home/home-map.ts'
+import { HOME_MANUAL_VERSION, HOME_STATUS_BLURB, parseManualVersion, renderHomeManual } from '../domain/home/home-map.ts'
 import { DEFAULT_SOUL } from '../domain/home/soul.ts'
 import { curateKnowledge } from '../domain/knowledge/health.ts'
 import { scanLearnedSkills, scanSkillArchiveScale } from '../domain/skills/scan.ts'
@@ -148,7 +148,16 @@ export function soulSnapshotOf(host: AssistantMemory): string {
  * @returns The manual text, byte-capped.
  */
 export function manualSnapshotOf(host: AssistantMemory): string {
-  return rootFileSnapshot(host.paths.agentsFile, renderHomeManual(), MANUAL_BYTE_CAP)
+  const text = rootFileSnapshot(host.paths.agentsFile, renderHomeManual(), MANUAL_BYTE_CAP)
+  const version = parseManualVersion(text)
+  // A generated manual older than this build may not be reproducible by exact text replacement.
+  // Say so in the prompt: a model reading stale operating rules is worse than a visible warning.
+  // A hand-written manual (v0) is the owner's and is not warned.
+  if (version === 0 || version >= HOME_MANUAL_VERSION) return text
+  const warning = `\n\n[This manual is generation v${String(version)}; the current scaffold is v${String(HOME_MANUAL_VERSION)}. Treat older instructions as possibly stale; do not rewrite the file yourself.]`
+  const allowance = MANUAL_BYTE_CAP - Buffer.byteLength(warning, 'utf8')
+  const head = Buffer.from(text, 'utf8').subarray(0, Math.max(0, allowance)).toString('utf8')
+  return `${head}${warning}`
 }
 
 /**

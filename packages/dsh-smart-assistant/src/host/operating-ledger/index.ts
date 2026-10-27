@@ -17,10 +17,11 @@
 
 import { Context, Service } from '@deepseek-ai/cordis'
 import { expandHomePath, resolveDshHome } from '@deepseek-ai/dsh-home-paths'
-import { closeSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, renameSync, rmSync, writeFileSync, writeSync } from 'node:fs'
+import { closeSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, renameSync, rmSync, statSync, writeFileSync, writeSync } from 'node:fs'
 import { hostname } from 'node:os'
-import { join } from 'node:path'
-import { EMPTY_LEDGER, applyOperation, reviveLedgerState, type LedgerOperation, type LedgerState, type MatterRecord, type OperationReceipt, type OperationRecord, type UnclaimedMaterial } from '../../domain/operating/ledger.ts'
+import { join, resolve } from 'node:path'
+import { EMPTY_LEDGER, applyOperation, canonicalJson, reviveLedgerState, type LedgerOperation, type LedgerState, type MatterRecord, type OperationReceipt, type OperationRecord, type UnclaimedMaterial } from '../../domain/operating/ledger.ts'
+import { OPERATIONS_ARCHIVE_FILE, mergeOperations, parseOperationsArchive, serializeOperationRecord } from './archive.ts'
 
 declare module '@deepseek-ai/cordis' {
   interface Context {
@@ -32,7 +33,15 @@ declare module '@deepseek-ai/cordis' {
 export interface Config {
   /** Ledger root. Omitted resolves the separate `<dshHome>/assistant-operating` home. */
   readonly dataDir?: string
+  /**
+   * Recent operations kept in `ledger.json` before older ones move to the archive. Compaction
+   * runs at twice this value, leaving this many. Defaults to {@link MAX_RECENT_OPERATIONS}.
+   */
+  readonly keepOperations?: number
 }
+
+/** Default recent-operation window; the file stays bounded while receipts remain readable. */
+export const MAX_RECENT_OPERATIONS = 256
 
 /** Resolved writer-lock holder identity. */
 interface WriterLock {
@@ -187,6 +196,12 @@ export class AssistantOperatingLedger extends Service {
 
   private claimed = false
 
+  /** Recent-operation window; older records live in the append-only archive. */
+  private readonly keepOperations: number
+
+  /** Parsed archive cache keyed by file size+mtime, so reads do not rescan on every call. */
+  private archiveCache: { readonly stamp: string, readonly records: readonly OperationRecord[] } | undefined
+
   /**
    * @param ctx - Owning context.
    * @param config - Deployment configuration; see {@link Config}.
@@ -195,7 +210,10 @@ export class AssistantOperatingLedger extends Service {
     super(ctx, 'assistantOperatingLedger')
     this.dataDir = config.dataDir === undefined || config.dataDir.trim() === ''
       ? join(resolveDshHome(), 'assistant-operating')
-      : expandHomePath(config.dataDir)
+      : resolve(expandHomePath(config.dataDir))
+    this.keepOperations = config.keepOperations !== undefined && Number.isSafeInteger(config.keepOperations) && config.keepOperations > 0
+      ? config.keepOperations
+      : MAX_RECENT_OPERATIONS
     this.state = loadState(this.dataDir)
     ctx.effect(() => () => {
       if (this.claimed) releaseWriter(this.dataDir)
@@ -214,10 +232,24 @@ export class AssistantOperatingLedger extends Service {
       claimWriter(this.dataDir)
       this.claimed = true
     }
-    const { state, receipt } = applyOperation(this.state, operation, new Date().toISOString())
+    const now = new Date().toISOString()
+    // A retry may name an operation that compaction moved out of `ledger.json`. Replay the
+    // archived identity exactly as the state path would, instead of applying it a second time.
+    const known = this.lookupOperation(operation.operationId)
+    if (known !== undefined) {
+      if (canonicalJson(known.operation) === canonicalJson(operation)) return known.receipt
+      return {
+        operationId: operation.operationId,
+        matterId: known.receipt.matterId,
+        submittedAt: now,
+        outcome: { status: 'rejected', reason: 'operation-content-mismatch' },
+      }
+    }
+    const { state, receipt } = applyOperation(this.state, operation, now)
     if (state !== this.state) {
       this.persist(state)
       this.state = state
+      this.compactIfNeeded()
     }
     return receipt
   }
@@ -228,7 +260,7 @@ export class AssistantOperatingLedger extends Service {
    * @returns The receipt, or `undefined` when no such operation was submitted.
    */
   async readOperation(operationId: string): Promise<OperationReceipt | undefined> {
-    return this.current().operations[operationId]?.receipt
+    return this.lookupOperation(operationId)?.receipt
   }
 
   /**
@@ -237,7 +269,7 @@ export class AssistantOperatingLedger extends Service {
    * @returns The submitted operation and receipt, or `undefined` when no such operation exists.
    */
   async readOperationRecord(operationId: string): Promise<OperationRecord | undefined> {
-    return this.current().operations[operationId]
+    return this.lookupOperation(operationId)
   }
 
   /**
@@ -261,7 +293,7 @@ export class AssistantOperatingLedger extends Service {
     const state = this.current()
     const matter = state.matters[matterId]
     if (matter === undefined) return undefined
-    const operations = Object.values(state.operations)
+    const operations = this.allOperationRecords()
       .filter(record => record.receipt.matterId === matterId)
       .sort((left, right) => left.receipt.submittedAt.localeCompare(right.receipt.submittedAt)
         || left.receipt.operationId.localeCompare(right.receipt.operationId))
@@ -302,6 +334,73 @@ export class AssistantOperatingLedger extends Service {
   private current(): LedgerState {
     this.state = loadState(this.dataDir)
     return this.state
+  }
+
+  /** The archive path beside `ledger.json`. */
+  private archivePath(): string {
+    return join(this.dataDir, OPERATIONS_ARCHIVE_FILE)
+  }
+
+  /**
+   * Read the append-only archive, cached by size+mtime. A corrupt line is counted by the parser
+   * and skipped; one torn append must not make every older receipt unreadable.
+   */
+  private readArchive(): readonly OperationRecord[] {
+    const path = this.archivePath()
+    if (!existsSync(path)) return []
+    const info = statSync(path)
+    const stamp = `${info.size}:${info.mtimeMs}`
+    if (this.archiveCache?.stamp === stamp) return this.archiveCache.records
+    const parsed = parseOperationsArchive(readFileSync(path, 'utf8'))
+    this.archiveCache = { stamp, records: parsed.records }
+    return parsed.records
+  }
+
+  /** Current-state record first, then the archive; the state copy is the freshest. */
+  private lookupOperation(operationId: string): OperationRecord | undefined {
+    const fromState = this.current().operations[operationId]
+    if (fromState !== undefined) return fromState
+    return this.readArchive().find(record => record.operation.operationId === operationId)
+  }
+
+  /** Every operation the ledger has ever applied, state and archive merged by identity. */
+  private allOperationRecords(): OperationRecord[] {
+    return mergeOperations(Object.values(this.current().operations), this.readArchive())
+  }
+
+  /**
+   * Move the oldest operations into the append-only archive when the current state has grown past
+   * twice the recent window. The archive is fsynced before the reduced state replaces the full
+   * one, so an interrupted compaction leaves at worst duplicate archive lines, never a lost
+   * receipt.
+   */
+  private compactIfNeeded(): void {
+    const entries = Object.entries(this.state.operations)
+    if (entries.length <= this.keepOperations * 2) return
+    const sorted = entries.sort(([, left], [, right]) => left.receipt.submittedAt.localeCompare(right.receipt.submittedAt)
+      || left.receipt.operationId.localeCompare(right.receipt.operationId))
+    const archived = sorted.slice(0, sorted.length - this.keepOperations).map(([, record]) => record)
+    this.appendArchive(archived)
+    const next: LedgerState = {
+      ...this.state,
+      operations: Object.fromEntries(sorted.slice(-this.keepOperations)),
+    }
+    this.persist(next)
+    this.state = next
+    this.archiveCache = undefined
+  }
+
+  /** Append operation records to the archive and fsync before returning. */
+  private appendArchive(records: readonly OperationRecord[]): void {
+    if (records.length === 0) return
+    mkdirSync(this.dataDir, { recursive: true, mode: 0o700 })
+    const fd = openSync(this.archivePath(), 'a', 0o600)
+    try {
+      writeSync(fd, `${records.map(serializeOperationRecord).join('\n')}\n`)
+      fsyncSync(fd)
+    } finally {
+      closeSync(fd)
+    }
   }
 
   /**

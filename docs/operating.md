@@ -9,8 +9,15 @@
 
 - **服务键** `ctx.assistantOperatingLedger`（identity §一 第 3 行）。业务纯核 = `src/domain/operating/ledger.ts`
   （事项/操作/回执/待认领的词汇与归约，不 import DSH 运行时）；投影渲染纯核 = `src/domain/operating/projection.ts`。
-- **存储形状**：`<dataDir>/ledger.json` 单状态文件，原子持久（temp → fsync → rename）。
-  缺文件 = 空账本；存在但读不出 v1 形状 = **fail loud**（拒绝当空账本——静默清零等于数据事故）。
+- **存储形状**：`<dataDir>/ledger.json` 单状态文件，原子持久（temp → fsync → rename）；
+  `<dataDir>/operations-archive.jsonl` 是只追加的完整操作历史。`ledger.json` 只留最近 256 条操作
+  （`keepOperations` 可配）加 `operationCount`（累计操作数）；超过 2× 窗口时把最旧的操作移进归档，
+  归档 fsync 成功后才写缩小的状态。缺文件 = 空账本；存在但读不出 v1 形状 = **fail loud**
+  （拒绝当空账本——静默清零等于数据事故）。旧 ledger 没有 `operationCount` 时按当前操作数回填。
+- **重试与读回跨归档**：`submitOperation` 先按 `operationId` 查状态、再查归档，命中相同内容复用原回执，
+  不同内容拒绝为 `operation-content-mismatch`，不会把已归档的操作再应用一次；`readOperation` /
+  `readOperationRecord` / `readMatterSnapshot` 合并状态与归档（状态副本优先）。
+  归档里的坏行由解析器计数跳过，不让一次撕裂的 append 把全部历史回执变成不可读。
 - **单 writer**：`<dataDir>/writer.lock` 记 `{hostname, pid, acquiredAt, cwd}`。认领是**惰性**的——boot 无副作用，
   第一次**变更操作**才抢锁，同 home 的 web 实例与 one-shot 任务因此可并存到有人写为止。
   活着的持锁者在场时拒绝第二 writer（本进程内与跨进程同判）；同机死进程的残锁原子接管；
@@ -60,8 +67,11 @@
 - v2 回执逐条带**操作语义**：`kind`（域层操作类型）与 `quote`（提交者当时的原话，可省）——桌面详情的
   「动作」段与流水视角据此渲染人类标签与依据行。二者是 additive 字段，不 bump envelope；Client 允许它们缺席，字段存在时保留原值。
 - 认证与 Host/Origin 检查由 Connection 物理 carrier 承接；响应 `no-store` + `nosniff`；
-  完整文件 byte cap 默认 1 MiB（`maxProjectionBytes`）。超限 413；无效 UTF-8/JSON 422；
+  完整文件 byte cap 默认 8 MiB（`maxProjectionBytes`）。超限 413；无效 UTF-8/JSON 422；
   结构错（非 v1 账本）422 且**绝不静默回退**；其他 I/O 500。
+- 投影 `revision` 取 `operationCount`（累计操作数，含已归档），因此压缩不会让版本回退；
+  `receipts` 只含 `ledger.json` 的最近窗口，更早回执按 `operation_id` 走 `assistant_operating read` 读回。
+  8 MiB 是给未压缩旧 home 的桥；正常 home 的 `ledger.json` 由压缩保持有界。
 
 **客户端读回**（`src/client/projection/projection-reader.ts` / `projection/operating-projection.ts` / `projection/projection-lifecycle.ts` / `projection/projection-panel.ts`）：
 

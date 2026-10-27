@@ -20,7 +20,7 @@
  * @module dsh-smart-assistant
  */
 
-import { join } from 'node:path'
+import { join, resolve } from 'node:path'
 import { Context, Service } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import type Schema from '@deepseek-ai/schemastery'
@@ -142,7 +142,7 @@ export class AssistantMemory extends Service implements HomeHost {
   constructor(ctx: Context, config: Config) {
     super(ctx, 'assistantMemory')
     const root = config.dataDir !== undefined && config.dataDir.trim().length > 0
-      ? expandHomePath(config.dataDir)
+      ? resolve(expandHomePath(config.dataDir))
       : join(resolveDshHome(), HOME_DIRECTORY_NAME)
     this.paths = homePaths(root)
     this.digestMaxBytes = config.digestMaxBytes ?? 6144

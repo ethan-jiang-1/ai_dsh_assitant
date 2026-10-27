@@ -4,7 +4,7 @@ import type {} from '@deepseek-ai/dsh-client-connection'
 import { expandHomePath, resolveDshHome } from '@deepseek-ai/dsh-home-paths'
 import z from '@deepseek-ai/schemastery'
 import type Schema from '@deepseek-ai/schemastery'
-import { join } from 'node:path'
+import { join, resolve } from 'node:path'
 import { createDeskProjectionRoute } from './download.ts'
 
 export const name = 'assistant-desk-projection'
@@ -13,13 +13,13 @@ export const inject = ['connection']
 /** Deployment-owned independent operating directory; this reader creates no files. */
 export interface Config {
   readonly dataDir?: string
-  /** Complete emitted file byte limit; default 1 MiB. */
+  /** Complete emitted file byte limit; default 8 MiB (the state is compacted; this bridges old homes). */
   readonly maxProjectionBytes?: number
 }
 
 export const Config: Schema<Config> = z.object({
   dataDir: z.string(),
-  maxProjectionBytes: z.natural().min(1).default(1024 * 1024),
+  maxProjectionBytes: z.natural().min(1).default(8 * 1024 * 1024),
 })
 
 /**
@@ -31,6 +31,6 @@ export function apply(ctx: Context, config: Config = {}): void {
   if (config.dataDir !== undefined && config.dataDir.trim() === '') throw new Error('desk projection dataDir must not be blank')
   const dataDir = config.dataDir === undefined
     ? join(resolveDshHome(), 'assistant-operating')
-    : expandHomePath(config.dataDir)
-  ctx.effect(() => ctx.connection.fetch.register(createDeskProjectionRoute(dataDir, config.maxProjectionBytes ?? 1024 * 1024)))
+    : resolve(expandHomePath(config.dataDir))
+  ctx.effect(() => ctx.connection.fetch.register(createDeskProjectionRoute(dataDir, config.maxProjectionBytes ?? 8 * 1024 * 1024)))
 }

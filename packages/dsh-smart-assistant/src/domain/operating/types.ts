@@ -202,7 +202,13 @@ export type LedgerOperation =
 export interface LedgerState {
   readonly version: 1
   readonly matters: Readonly<Record<string, MatterRecord>>
+  /**
+   * Recent operations carried in `ledger.json`. Older ones live in the append-only archive; the
+   * state file stays bounded so the desktop projection does not hit its byte cap.
+   */
   readonly operations: Readonly<Record<string, OperationRecord>>
+  /** Total operations ever applied, including archived ones; monotonic and used as the revision. */
+  readonly operationCount?: number
   readonly unclaimed: Readonly<Record<string, UnclaimedMaterial>>
   readonly nextMatterSeq: number
   readonly nextUnclaimedSeq: number

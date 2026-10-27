@@ -15,7 +15,8 @@
  * @module dsh-smart-assistant/home/atomic-write
  */
 
-import { rename, writeFile } from 'node:fs/promises'
+import { open, rename, rm } from 'node:fs/promises'
+import { dirname } from 'node:path'
 
 /** Build a temp path for `path` that no concurrent writer of the same target will pick. */
 function temporaryPathFor(path: string): string {
@@ -35,6 +36,25 @@ function temporaryPathFor(path: string): string {
  */
 export async function atomicWriteFile(path: string, content: string, mode = 0o600): Promise<void> {
   const temporary = temporaryPathFor(path)
-  await writeFile(temporary, content, { encoding: 'utf8', mode })
-  await rename(temporary, path)
+  try {
+    const handle = await open(temporary, 'w', mode)
+    try {
+      await handle.writeFile(content, 'utf8')
+      // The rename gives readers a whole file; the fsync gives a crash the same guarantee. A
+      // rename after an unflushed write can leave a zero-length or torn file after power loss.
+      await handle.sync()
+    } finally {
+      await handle.close()
+    }
+    await rename(temporary, path)
+  } catch (error) {
+    await rm(temporary, { force: true }).catch(() => undefined)
+    throw error
+  }
+  // Best-effort directory sync so the new name itself is durable. Some platforms refuse to open
+  // a directory; the file content is already fsynced, so that refusal is not a write failure.
+  try {
+    const directory = await open(dirname(path), 'r')
+    try { await directory.sync() } finally { await directory.close() }
+  } catch { /* directory fsync is best-effort */ }
 }

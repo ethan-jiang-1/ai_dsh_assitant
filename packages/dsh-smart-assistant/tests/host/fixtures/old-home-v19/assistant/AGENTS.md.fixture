@@ -1,0 +1,11 @@
+<!-- home-manual v19 -->
+# Your working folder — operating manual
+
+A frozen v19-era manual. Only the answer-contract paragraph below is load-bearing for the
+compatibility test; the migration table must replace it and stamp the current generation.
+
+## Answer with a page, not a report
+
+- **Draft first, don't interrogate.** From one sentence, make the best draft you can with explicit
+  assumptions. Ask at most one question, and only when the answer changes the verdict. Never open
+  with a questionnaire or a list of data you need.

@@ -11,7 +11,7 @@
  * @module dsh-smart-assistant/skills/snapshot
  */
 
-import { copyFile, mkdir, readdir, readFile, rm, stat } from 'node:fs/promises'
+import { chmod, copyFile, mkdir, readdir, readFile, rm, stat } from 'node:fs/promises'
 import { join } from 'node:path'
 import { SKILL_FILE_NAME } from './skill-file.ts'
 
@@ -64,9 +64,11 @@ export async function snapshotExistingSkill(
   // Read to write: a file that vanished between stat and copy is not a snapshot-worthy state.
   if (await readFile(source, 'utf8').catch(() => undefined) === undefined) return undefined
   const dir = snapshotDir(skillsArchiveDir, name)
-  await mkdir(dir, { recursive: true })
+  await mkdir(dir, { recursive: true, mode: 0o700 })
   const target = join(dir, `${new Date().toISOString().replace(/[:.]/g, '-')}.md`)
   await copyFile(source, target)
+  // A snapshot of an older, wider file must not keep the wider mode.
+  await chmod(target, 0o600)
   await pruneSnapshots(dir)
   return target
 }
