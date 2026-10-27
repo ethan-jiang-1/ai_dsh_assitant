@@ -232,7 +232,11 @@ export class AssistantOperatingLedger extends Service {
   private readonly keepOperations: number
 
   /** Parsed archive cache keyed by file size+mtime, so reads do not rescan on every call. */
-  private archiveCache: { readonly stamp: string, readonly records: readonly OperationRecord[] } | undefined
+  private archiveCache: {
+    readonly stamp: string
+    readonly records: readonly OperationRecord[]
+    readonly index: ReadonlyMap<string, OperationRecord>
+  } | undefined
 
   /**
    * @param ctx - Owning context.
@@ -374,25 +378,35 @@ export class AssistantOperatingLedger extends Service {
   }
 
   /**
-   * Read the append-only archive, cached by size+mtime. A corrupt line is counted by the parser
-   * and skipped; one torn append must not make every older receipt unreadable.
+   * Read the append-only archive, cached by size+mtime, with an id index so a receipt lookup does
+   * not scan every line. A corrupt line is counted by the parser and skipped; one torn append must
+   * not make every older receipt unreadable.
    */
-  private readArchive(): readonly OperationRecord[] {
+  private archiveSnapshot(): { readonly records: readonly OperationRecord[], readonly index: ReadonlyMap<string, OperationRecord> } | undefined {
     const path = this.archivePath()
-    if (!existsSync(path)) return []
+    if (!existsSync(path)) return undefined
     const info = statSync(path)
     const stamp = `${info.size}:${info.mtimeMs}`
-    if (this.archiveCache?.stamp === stamp) return this.archiveCache.records
+    if (this.archiveCache?.stamp === stamp) return this.archiveCache
     const parsed = parseOperationsArchive(readFileSync(path, 'utf8'))
-    this.archiveCache = { stamp, records: parsed.records }
-    return parsed.records
+    const index = new Map<string, OperationRecord>()
+    for (const record of parsed.records) {
+      if (!index.has(record.operation.operationId)) index.set(record.operation.operationId, record)
+    }
+    this.archiveCache = { stamp, records: parsed.records, index }
+    return this.archiveCache
   }
 
-  /** Current-state record first, then the archive; the state copy is the freshest. */
+  /** The archive records in file order (used by merged history reads). */
+  private readArchive(): readonly OperationRecord[] {
+    return this.archiveSnapshot()?.records ?? []
+  }
+
+  /** Current-state record first, then the indexed archive; the state copy is the freshest. */
   private lookupOperation(operationId: string): OperationRecord | undefined {
     const fromState = this.current().operations[operationId]
     if (fromState !== undefined) return fromState
-    return this.readArchive().find(record => record.operation.operationId === operationId)
+    return this.archiveSnapshot()?.index.get(operationId)
   }
 
   /** Every operation the ledger has ever applied, state and archive merged by identity. */

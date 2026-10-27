@@ -107,7 +107,7 @@ node .../assistant-data.mjs check  --assistant <DSH_HOME>/assistant --operating 
 - `export` 排除 `writer.lock` / `*.tmp` / `*.takeover`，拒绝符号链接（备份必须是普通文件）；旧的带锁 bundle 在 import 时也会被剔除。导出前停实例，得到跨房间一致的快照。
 - `import` 要求实例已停止；默认要求两个目标目录不存在或为空，非空拒绝、不覆盖。`--replace` 把非空目标改名为 `<dir>.pre-import-<id>` 旁路后再导入，失败时恢复旁路；旁路不删除，确认后可手动清。`--dry-run` 只做与真导入相同的校验并报告文件数与将被旁路的目标，不写盘。
 - 未知 `schemaVersion` 拒绝导入；不猜、不半导入。导入先写 sibling temp，再 rename 就位；失败不留下半成品。
-- `status` 读路径/文件数/字节数、手册 generation、`ledger.json` 是否 v1、归档操作数，以及 memory/research/skills archive、提案收件箱、approvals 的 retention 读数（只读，不删）；`check` 再加相对路径、坏 ledger/归档行、旧手册、符号链接、超大归档/审批与提案积压，问题以非零退出。
+- `status` 读路径/文件数/字节数、手册 generation、`ledger.json` 是否 v1、归档操作数，以及 memory/research/skills archive、提案收件箱、approvals 的 retention 读数（只读，不删）；`check` 再加相对路径、坏 ledger/归档行、旧手册、符号链接、超大归档/审批、提案积压与备份总量（>512 MiB 提示手工导出/归档），问题以非零退出。
 - 原始 `cp -R` 等价可用；它不校验 manifest、不排除 `writer.lock`、也不保证目标为空——需要“可验证的恢复”时用 `assistant-data`。手动 `cp -R` 备份必须删掉 `<备份>/assistant-operating/writer.lock` 与 `*.tmp`，否则换机恢复后账本会把旧 host 的锁当活锁。
 
 **显式擦除（硬删除）**：

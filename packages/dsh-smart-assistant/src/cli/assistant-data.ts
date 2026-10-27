@@ -39,6 +39,9 @@ const ARCHIVE_WARN_BYTES = 64 * 1024 * 1024
 /** A read-only `check` warning threshold for the approval ledger. */
 const APPROVALS_WARN_BYTES = 16 * 1024 * 1024
 
+/** A read-only `check` warning threshold for the two owned directories as one backup. */
+const BACKUP_WARN_BYTES = 512 * 1024 * 1024
+
 /** The record kinds an explicit purge can erase. Ledger history and sessions are not in this list. */
 export const PURGE_KINDS = ['memory', 'research', 'knowledge', 'skill', 'proposal'] as const
 
@@ -477,6 +480,10 @@ export async function checkData(options: { readonly assistantDir: string, readon
   }
   if (status.retention.skillProposals.files > 200) {
     problems.push(`skill-proposals inbox has ${String(status.retention.skillProposals.files)} file(s); archive landed/rejected proposals`)
+  }
+  const backupBytes = status.assistant.bytes + status.operating.bytes
+  if (backupBytes > BACKUP_WARN_BYTES) {
+    problems.push(`plugin data is ${String(backupBytes)} byte(s); a backup copies all of it (deliverables included) — export/archive by hand if this is unexpected`)
   }
   if (status.assistant.manualVersion !== undefined
     && status.assistant.manualVersion > 0

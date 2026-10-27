@@ -22,7 +22,7 @@ opened: 2026-10-27
 | C | G38 导入 dry-run | 已完成 | `import --dry-run` 只校验并报计划，不写；`assistant-data.spec.mjs` |
 | D | G18 夹具默认权威 | 已完成 | 默认 404；`assistant-desk-projection.allowFixture` 显式开启；测试/组合/探针 patch 已更新 |
 | E | G16 用户手改 CAS / digest 外部编辑 | 部分（digest 外部编辑已修；CAS 未取） | `digestSnapshotNow` 按房间文件 size/mtime fingerprint 失效并后台刷新；`tests/host/digest-external-edit.spec.ts`；写前 CAS 仍未取 |
-| F | G17/G23/G25 retention | 部分（读数/告警） | `status`/`check` 报 archive/approvals/proposals 读数与阈值；自动轮转/删除未取 |
+| F | G17/G23/G25 retention | 部分（读数/告警/索引） | `status`/`check` 报 archive/approvals/proposals 读数与阈值；G25 归档回执改为 O(1) 索引；自动轮转/删除与提案归档未取 |
 | G | G22 deliverables/present | 已完成 | manual v21 加「交付写 cwd + `present`」；v20→v21 迁移；prompt-smoke PASS / eval 无 key 未跑 |
 | H | G24/G33/G34 | 部分（G24/G33/G34） | G33 source 引用完整性、G34 archive 先移后改写、G24 release 只删自己的锁/接管回读/唯一 tmp 已落；PID 复用与 heartbeat 未取 |
 
@@ -90,7 +90,7 @@ opened: 2026-10-27
 | G22 | **`deliverables/` 孤儿**：无代码读写、无生命周期、无 `present` 指引；最终交付可能落在 home 而不是 workspace | 已修（模型指引） | 中 | manual v21 明确「交付写 session cwd + `present`，working folder 是笔记本」；home 的 `deliverables/` 仍是用户数据，无生命周期 |
 | G23 | **`skill-proposals/archive/` 配置了但没用**：landed/rejected 提案留在收件箱，只增 | 未取 | 低 | 与 G17 一起做 retention/归档 |
 | G24 | **锁的工程边界**：takeover 是 rename 不是 CAS；PID 复用可能把残锁当活锁；无 heartbeat；`ledger.json.tmp` 固定名 | 部分（release/接管回读/唯一 tmp） | 低-中 | `releaseWriter` 只删自己写下的锁；接管后回读确认；tmp 唯一。PID 复用与 heartbeat 仍未取 |
-| G25 | **归档读取无上限/无索引**：`readArchive` 整文件读入；`readOperation` O(n)；大归档会吃内存 | 未取 | 低-中 | 触发：归档 >64 MiB。先做只读 status 警告，再考虑索引/分片 |
+| G25 | **归档读取无上限/无索引**：`readArchive` 整文件读入；`readOperation` O(n)；大归档会吃内存 | 部分（索引；无上限） | 低-中 | 归档按 size/mtime 缓存并建 `operationId` 索引，回执查找 O(1)；整文件读入与分片仍未取 |
 | G26 | **`ov-doctor --write` 留远端 sentinel；OpenViking 数据不在备份** | 未取 | 低 | 外部服务边界；按其手册清理，数据卡已声明 |
 | G27 | **`expert-setup` 种子的凭据扫描只覆盖技能路径；知识页扫描非阻断** | 未取 | 低 | 种子是包内只读内容；写入面已有 audit findings |
 | G28 | **多用户/远程无隔离**：一个 Host/home 一个 principal；remote 用户共享数据；`session-search.db` 索引全部会话 | 边界 | 中 | 产品定位=单 principal；多人部署用不同 `DSH_HOME`/Host，文档已写 |
@@ -101,7 +101,7 @@ opened: 2026-10-27
 | G33 | **`knowledge` sources / 账本 sessionId 无引用完整性检查** | 部分（knowledge sources） | 低 | `page-source-missing` 查 `memory:`/`research:` 指针；账本 material 的 sessionId 跨机失效仍不查 |
 | G34 | **`Room.archive` 非事务**：先写 archive 再删 source，崩溃留两份 → curate `duplicate-id` | 已修 | 低 | 改为先 `rename` 到 archive 再改写 patch；崩溃留旧字段的单份，不产生两份；并发输家按已归档处理 |
 | G35 | **`ui-mode` 双源（host 文件 + localStorage）无版本/迁移** | 未取 | 低 | host 为真；坏文件 422，客户端保留本地；低风险 |
-| G36 | **备份含 `deliverables/` 无大小上限；import 可把任意大目录搬入** | 未取 | 低 | 触发：备份膨胀。先 `status` 报大小，不做自动裁剪 |
+| G36 | **备份含 `deliverables/` 无大小上限；import 可把任意大目录搬入** | 部分（告警） | 低 | `check` 在两目录总量 >512 MiB 时提示手工导出/归档；不做自动裁剪 |
 | G37 | **import 不检查两目标嵌套/包含** | 已修 | 低 | 已加 containment 守卫 + 测试 |
 | G38 | **`assistant-data` 无 `--dry-run`/差异预览**：`--replace` 会整目录换掉，只留旁路 | 已修（dry-run） | 中 | `import --dry-run` 报文件数与将被旁路的目标；时间戳/内容差异预览仍未取 |
 
@@ -109,7 +109,7 @@ opened: 2026-10-27
 
 - **G14/G15 同步与备份加密**：跨机/上云的真实需求出现再做；G38 的 dry-run 已给恢复前预览，合并/加密仍开放。
 - **G16 用户手改 CAS**：未知字段与 digest 外部编辑已修；read-modify-write 前置仍未取。
-- **G17/G23/G25 retention**：`status`/`check` 只读读数与告警已有；自动轮转/删除、proposal archive 与归档索引未取。
+- **G17/G23/G25 retention**：`status`/`check` 读数与告警、G25 索引已有；自动轮转/删除、proposal archive 与归档整文件读入上限未取。
 - **G19 投影 receipts 窗口**：合同已写，客户端旧回执分页未取。
 - **G24**：PID 复用/心跳仍未取；release/接管回读/唯一 tmp 已修。G33 的 knowledge source / G34 的 archive 事务已修，账本 sessionId 仍不查。
 - **G26/G27/G32/G35/G36**：OV sentinel、种子凭据、跨会话证据、ui-mode 版本、备份大小，低优先。
