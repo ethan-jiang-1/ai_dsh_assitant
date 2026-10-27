@@ -9,15 +9,15 @@ opened: 2026-10-27
 
 **问题与期望结果：** FAQ 26 的体检暴露出插件数据面的生命周期缺口：模型可见手册升级后不更新、旧 home 兼容没有证据、单文件账本会撞 1 MiB 投影上限、首次启动后恢复被拒、秘密落在明文文件/日志、数据卡与卸载清理不完整、部分写入不在原子写纪律内。用户应得到一组"发布后部署不会坏"的合同、代码与可执行证据。
 
-**当前情况：** 落点本身（U home 文件树 + 独立账本 + 宿主 sessions）已对齐 DSH 6+2，不需要迁移存储面。缺口集中在生命周期。
-**未决问题：** 账本拆分采用"当前状态 + 操作归档"还是 per-record 文件；手册迁移只覆盖最新 v19→v20 还是建立迁移表；并发只文档化还是加前置条件。
-**下一步：** 按切片推进 Phase 0（不改变模型可见面）与 Phase 1（需模型可见/格式变更的片），每片红绿后提交。
+**当前情况：** Phase 0 与 Phase 1 已交付：原子/fsync 写、秘密、数据卡、`status`/`check`、`import --replace`、手册迁移与旧 home fixture、账本有界 + 归档、并发口径。登记表里 G13+ 是**未取的后续缺口**，不是本卡未开始的切片。
+**未决问题：** 硬删除/擦除、跨机合并与备份加密、用户手改 CAS、归档 retention、夹具默认权威、更老手册再生；各有触发条件。
+**下一步：** 本卡的 Phase 0/1 切片关账；G13+ 按触发取用，不自动开工。
 
 ## 外部结果三要素
 
 - **触发**：用户完成一次安装/升级/备份恢复/卸载，或一个 home 连续使用到账本操作数接近四位数。
 - **用户得到**：恢复有可执行顺序且不会因首次启动被拒；升级后模型拿到的规则与当前发布一致；旧 home 的读取有真实 fixture 证明；账本不会在约 600 次操作后让桌面 404/413；卸载说明能说清留在盘上的每个文件；秘密不落明文日志；技能写入崩溃不产生截断文件。
-- **完成条件**：Phase 0 与 Phase 1 的切片全部红绿并提交；`assistant-data` 有 `status`/`check` 与 `import --replace`；手册迁移、旧 home fixture、账本规模测试、并发口径都有可复跑证据；proposed 卡转 implemented。
+- **完成条件**：Phase 0 与 Phase 1 的切片全部交付并提交；`assistant-data` 有 `status`/`check` 与 `import --replace`；手册迁移、旧 home fixture、账本规模测试、并发口径都有可复跑证据；proposed 卡转 implemented。**这些已满足；本卡继续承载 G13+ 的后续登记。**
 
 ## 验收标准
 
@@ -37,13 +37,13 @@ opened: 2026-10-27
 
 | 片 | 状态 | 证据 |
 |---|---|---|
-| 卡与授权 | 进行中 | 本卡 + [proposed 卡](../../notes/proposed/2026-10-27-data-lifecycle-hardening.md) |
+| 卡与授权 | Phase 0/1 已交付 | 本卡 + [implemented note](../../notes/implemented/2026-10-27-data-lifecycle-hardening.md) |
 | P0-5 技能原子写 | 已完成 | `skill-file.ts` 改 `atomicWriteFile`；`skill-file.spec.ts` 新增覆盖/mode/tmp 用例 |
 | P0-3 秘密 | 已完成 | `viki/auth.ts` + `apiKeyEnv`/secret role；`bootstrap.mjs` 0600/失败也打码；`viki-auth.spec.ts`；`standalone-smoke` 断言 |
 | P0-4/P0-2 数据卡、status、恢复 | 已完成 | 数据卡 + README；`status`/`check`/`import --replace` + 完整性/活锁校验；`assistant-data.spec.mjs` 13 例 |
 | P0-1/P1-1 手册迁移、旧 home | 已完成 | v19→v20 迁移表 + stale prompt 警告；冻结 `tests/host/fixtures/old-home-v19/` + `old-home-compat.spec.ts`；`root-files.spec.ts` 新增迁移/警告用例 |
 | P1-2 账本拆分 | 已完成（归档保留仍开放） | `ledger.json` 有界 + `operations-archive.jsonl`；`operationCount`、幂等重试、matter snapshot 合并；`operating-ledger-archive.spec.ts`；投影 cap 8 MiB |
-| P1-3 并发 | 部分完成（文档化，未加锁） | 单 writer 口径写入 `docs/delivery.md`/`docs/home.md`；账本锁测试已有；房间 last-write-wins 未加前置条件 |
+| P1-3 并发 | 已完成（策略 + 账本 guard） | 单 writer 口径写入 `docs/delivery.md`/`docs/home.md`；账本 `writer.lock` 拒绝第二 writer；房间 last-write-wins 是明示边界，不承诺合并 |
 | P2 check / 相对路径 | 已完成 | `status`/`check`、`import --replace`、bundle 计数/截断/writer.lock 校验；相对 `dataDir` 归一化；`assistant-data.spec.mjs` |
 
 ## 全量 gap 登记（FAQ 26 的十八问 / 6+2 对照）

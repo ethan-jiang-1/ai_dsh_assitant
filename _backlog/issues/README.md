@@ -4,7 +4,7 @@
 
 ## 活跃清单
 
-- [261027-data-lifecycle-hardening.md](261027-data-lifecycle-hardening.md)——数据生命周期硬化（Phase 0 + Phase 1）的收口卡：技能原子写、秘密、数据卡/恢复/诊断、手册迁移、旧 home fixture、账本压缩、并发口径。状态、全量 gap 登记与证据住卡内。
+- [261027-data-lifecycle-hardening.md](261027-data-lifecycle-hardening.md)——数据生命周期硬化（Phase 0 + Phase 1）的收口卡：Phase 0/1 已交付并转 [implemented note](../../notes/implemented/2026-10-27-data-lifecycle-hardening.md)；卡内保留 G13+ 未取缺口、触发条件与全量 gap 登记。
 
 
 ## 写一张卡
