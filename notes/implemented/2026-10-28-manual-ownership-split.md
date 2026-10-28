@@ -9,10 +9,10 @@
 ## 决定
 
 - **`MANUAL.md` 是插件所有的手册镜像**：prompt 段直接使用 `renderHomeManual()` 的当前渲染，不读盘上文件——升级永远最新，没有 generation/marker/迁移；scaffold 发现镜像漂移时先备份再重写。
-- **`AGENTS.md` 是用户所有 notes**：追加在手冊之后，超预算时截断并报 `notes-over-budget`；新 home 种 `NOTES_HEADER`（指向 `MANUAL.md`）。
+- **`AGENTS.md` 是用户所有 notes**：追加在手册之后，超预算时截断并报 `notes-over-budget`；新 home 种 `NOTES_HEADER`（指向 `MANUAL.md`）。
 - **旧生成手册按方案 A 迁移**：带 `<!-- home-manual vN -->` marker 的文件在 scaffold 时整体移到 `AGENTS.md.bak-*`；新 `AGENTS.md` 只保留 notes 头。手改在备份里可见、可手动搬回，但不再自动进 prompt。无 marker 的手写文件原样保留为笔记。
 - **generation 机器整体删除**：`HOME_MANUAL_MARKER`、全部 RETIRED/CURRENT 迁移常量、`migrateHomeManual`/`parseManualVersion` 不再存在；`manual-stale-scaffold` finding 删除；`refresh-manual` 只刷新 `MANUAL.md` 镜像，不碰 notes。
-- **预算告警对称**：手冊渲染由不变量测试保证装进预算；笔记超预算 `notes-over-budget`，身份超预算 `soul-over-budget`。
+- **预算告警对称**：手册渲染由不变量测试保证装进预算；笔记超预算 `notes-over-budget`，身份超预算 `soul-over-budget`。
 - **prewarm 与 ensureHome 串行**：构造函数 prewarm 直接 `scaffoldHome`，`ensureHome` 先等 prewarm 完成——修掉默认 soul 的延迟写覆盖手写文件的 flake。
 
 ## 交付物
@@ -33,7 +33,7 @@
 
 ## 后果
 
-- 手冊正文的增长不再触发迁移/版本戳；改 render 即改所有 home 的下一次请求（旧的仅存于备份）。
-- 旧的生成手冊在升级后第一次 scaffold 时变成 `AGENTS.md.bak-*`，prompt 不再包含其中任何旧规则或手改；用户要保留的段落需手动搬进 `AGENTS.md`。
+- 手册正文的增长不再触发迁移/版本戳；改 render 即改所有 home 的下一次请求（旧的仅存于备份）。
+- 旧的生成手册在升级后第一次 scaffold 时变成 `AGENTS.md.bak-*`，prompt 不再包含其中任何旧规则或手改；用户要保留的段落需手动搬进 `AGENTS.md`。
 - `MANUAL.md` 是可读镜像而非权威；编辑它不会改变 prompt（scaffold 会备份后重写）。
 - `AGENTS.md` notes 超预算见 `notes-over-budget`；身份超预算见 `soul-over-budget`。

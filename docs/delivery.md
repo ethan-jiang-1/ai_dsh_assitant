@@ -168,7 +168,7 @@ node .../assistant-data.mjs purge --assistant <DSH_HOME>/assistant [--operating 
 **格式兼容政策**：
 
 - 房间 frontmatter **只增可选字段**；新增必填字段或改语义必须先写迁移，再改校验。旧文件读不懂时由 `curate` 报 `unreadable-file`/`page-unreadable`，不静默跳过。
-- 手册与笔记分家：prompt 用手冊的当前渲染（升级永不旧），`AGENTS.md` 是用户笔记；旧生成手册（带 marker）在 scaffold 时整体移到 `AGENTS.md.bak-*`，不迁移、不改写；`refresh-manual --yes` 只刷新 `MANUAL.md` 镜像。
+- 手册与笔记分家：prompt 用手册的当前渲染（升级永不旧），`AGENTS.md` 是用户笔记；旧生成手册（带 marker）在 scaffold 时整体移到 `AGENTS.md.bak-*`，不迁移、不改写；`refresh-manual --yes` 只刷新 `MANUAL.md` 镜像。
 - 账本 v1 只增字段：`operationCount` 缺失时按当前操作数回填；旧 `ledger.json` 首次写入时压缩；归档行按 `operationId` 去重，状态副本优先。
 - bundle manifest `schemaVersion` 是**包格式**版本，不是房间内容版本；不匹配拒绝导入。
 - 不在安装时静默重写用户数据；迁移要么可重复、可校验，要么 fail loud。

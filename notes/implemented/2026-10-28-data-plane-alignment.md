@@ -13,7 +13,7 @@ FAQ 24 的判据（所有权先于存储、可见性硬约束、定义≠数据�
 ## 决定
 
 1. **会话召回两层**：native `session_search` / `session_event_search` / `session_event_read` 优先（同项目、已索引、平台授权）；原始日志只在跨项目、精确子串或索引缺席时显式回退，且“读别的项目”是主动动作、做之前说明。手册 v22 与 `session-recall` 技能同源；harness home 从环境解析（`$DSH_HOME`，否则 `~/.dsh`），不再假设父目录。
-2. **手册有自己的预算**：`MANUAL_BYTE_CAP` 提到 14,336；生成版必须装进预算，由 `tests/host/root-files.spec.ts` 钉住；用户把文件写超预算时 `curate` 报 `manual-over-budget`，不再静默截断。
+2. **手册与笔记各有预算**：`MANUAL_BYTE_CAP` 提到 14,336；手册渲染必须装进预算，由 `tests/host/root-files.spec.ts` 钉住；用户 notes（`AGENTS.md`）超预算时 `curate` 报 `notes-over-budget`，不再静默截断。
 3. **所有权分三类写清**：`docs/delivery.md` 数据卡拆成用户内容 / 插件账本 / 宿主面，账本改称“插件自有文件账本”，`tool-session-query` 以 N2 登记并写明 raw-log 回退；包 README 同步。
 4. **两个不变量进代码**：`assertDataDirOutsidePackage` 在 memory 与 ledger 初始化时拒绝包内 `dataDir`；随包只读技能改用 `bundledSkillDir`（rank 600），项目/用户同名技能可以遮蔽它。
 

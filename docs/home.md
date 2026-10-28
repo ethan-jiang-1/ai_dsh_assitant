@@ -216,7 +216,7 @@ bundles, M snapshots`，退役与快照都不删除、技能归档只增不减�
   （first conversation）、首答一页纸（Answer with a page, not a report）、协作边界等节（非穷举，正文以
   `renderHomeManual` 为准）。记忆/知识/技能面板读 host `assistant-rooms` 的 working-folder 真值；业务事项住权威账本（合同见 [`operating.md`](operating.md) §二/§三）。
   **prompt 段直接用 `renderHomeManual()` 的渲染，不读盘上文件**——升级永远最新，没有 generation/marker/迁移；盘上的 `MANUAL.md` 只是给人读的镜像，scaffold 发现漂移时先备份再重写。`assistant-data refresh-manual --yes` 只刷新这个镜像，不碰笔记。
-- **`AGENTS.md`（用户笔记）**：属于这个 working folder 的补充。scaffold 缺则种一个短头（指向 `MANUAL.md`）；prompt 把它追加在手冊之后，超预算时截断并报 `notes-over-budget`。
+- **`AGENTS.md`（用户笔记）**：属于这个 working folder 的补充。scaffold 缺则种一个短头（指向 `MANUAL.md`）；prompt 把它追加在手册之后，超预算时截断并报 `notes-over-budget`。
   **旧生成手册的迁移**：带 `<!-- home-manual vN -->` marker 的文件在 scaffold 时整体移到 `AGENTS.md.bak-*`，新 `AGENTS.md` 只保留 notes 头——手改在备份里可见、可手动搬回，但不再自动进 prompt（方案 A）。无 marker 的手写文件原样保留为笔记。
 - 三者都是**给人也给 agent 看**的文件；`AGENTS.md` 走业界惯例——DSH 原生装载器认项目根
   与 `$DSH_HOME` 根的同名文件，不探 working folder 根，**同名不同域，互不冲突**。
