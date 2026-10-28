@@ -53,6 +53,7 @@
 | 轮转归档 | N0 文件 | P3 / H-like | 插件 | `<dataDir>/archive-maintenance/<stamp>/` | 由 `rotate` 创建；手动清 | 用户 | 是 | 手动 | 保留 | 无 |
 | 界面密度 | N0 文件 + 自有 CLI | P3 / H-like | 插件/用户 | `<dataDir>/ui-mode.json`（v1 envelope） | 可删，删了回标准 | 用户（面板）；模型不可见 | 是 | key v1 | 保留 | 容忍：回默认 |
 | MANUAL 镜像备份 | N0 文件 + 自有 CLI | P3 / H-like | 用户 | `<dataDir>/MANUAL.md.bak-<stamp>` | 由 `refresh-manual` 创建；手动清 | 用户 | 是 | 手动 | 保留 | 无 |
+| 旧生成手册备份 | N0 文件 | P3 / H-like | 用户 | `<dataDir>/AGENTS.md.bak-<stamp>` | scaffold 拆分迁移产生；手动清 | 用户 | 是 | 手动 | 保留 | 无 |
 | 经营账本状态 | N0 文件 + 自有服务 | 插件自有文件账本 | 插件 | `<operatingDir>/ledger.json` | 最近 256 条操作 + 全量计数；压缩后仍有界 | 用户；模型经工具 | 是 | v1 只增；`operationCount` 回填；不做硬删 | 保留 | **fail loud**：读不出 v1 拒绝当空账本 |
 | 账本操作归档 | N0 文件 + 自有服务 | 插件自有文件账本 | 插件 | `<operatingDir>/operations-archive.jsonl` | 只追加；完整回执历史；读取有 256 MiB 上限 | 用户；模型经工具按 id 读 | 是 | 按 `operationId` 去重；需要导出/轮转 | 保留 | 坏行计数跳过；超限 fail loud |
 | 单 writer 锁 | N0 文件 | 机器文件（不是数据） | 插件 | `<operatingDir>/writer.lock` | 进程持有；dispose 释放 | 排障者 | **否**（导出排除） | 不迁移；残锁按 PID/启动时间/心跳接管 | 不留 | 不可读锁 fail closed |

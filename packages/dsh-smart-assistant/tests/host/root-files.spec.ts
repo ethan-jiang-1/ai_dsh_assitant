@@ -5,6 +5,7 @@
  */
 
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { memoryPool } from '../support/host-harness.ts'
 import { DEFAULT_SOUL } from '../../src/domain/home/soul.ts'
@@ -81,6 +82,21 @@ describe('manualSnapshot (manual + notes)', () => {
     expect(readFileSync(result.legacyManualBackup!, 'utf8')).toContain('Old rule.')
     expect(readFileSync(service.paths.agentsFile, 'utf8')).toBe(NOTES_HEADER)
     expect(service.manualSnapshot()).not.toContain('Old rule.')
+  })
+
+  it('moves a real v15 generated manual to a backup (frozen bytes)', async () => {
+    const { service } = boot()
+    await service.ensureHome()
+    const v15 = readFileSync(new URL('./fixtures/manual-v15.md', import.meta.url), 'utf8')
+    writeFileSync(service.paths.agentsFile, v15, 'utf8')
+
+    await service.ensureHome()
+
+    const backups = readdirSync(service.paths.root).filter(name => name.startsWith('AGENTS.md.bak-'))
+    expect(backups).toHaveLength(1)
+    expect(readFileSync(join(service.paths.root, backups[0]!), 'utf8')).toBe(v15)
+    expect(readFileSync(service.paths.agentsFile, 'utf8')).toBe(NOTES_HEADER)
+    expect(service.manualSnapshot()).not.toContain('Three things ride')
   })
 
   it('refreshes a drifted MANUAL.md mirror with a backup', async () => {
