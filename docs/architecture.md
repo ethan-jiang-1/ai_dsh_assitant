@@ -72,6 +72,8 @@ HOST 面（cordis.patch.yml → dsh.bundle.patch）
                               Settings 可改，持久化到 home 层覆盖本行）
                             + Web 壳品牌注入（页标题/图标，经 assistant-memory 插件内的 webserver/index-inject
                               监听推送——**非独立组合行**；皮肤，不进模型上下文）
+                            + **禁用** vendor 右栏终端行 `ui-sidebar-terminal`（管理岗用户不用终端；
+                              终端 API/tools 保留给 headless/开发组合）
 
 AGENT 面（`cordis.patch.yml` 的 `preset-assistant` 行 → agent preset）
 ├── assistant-home-preamble   提示词段落：身份（SOUL.md）与手册（MANUAL.md 渲染 + AGENTS.md 笔记）

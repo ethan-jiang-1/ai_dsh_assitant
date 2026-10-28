@@ -444,3 +444,9 @@
                   thresholdChars: 8192
                   headChars: 4096
                   tailChars: 1024
+
+# The principal is a manager, not a developer: the right-sidebar terminal is tooling they never
+# use, and it costs attention on every page. Suppress the vendor row here; the terminal API/tools
+# remain available to headless or explicitly configured developer compositions.
+- id: ui-sidebar-terminal
+  disabled: true
