@@ -5,7 +5,8 @@
 ## 推敲卡（新 → 旧）
 
 | 卡 | 关闭日 | 判定 |
-|---|---|---|---|
+|---|---|---|
+| [261028-data-plane-alignment.md](261028-data-plane-alignment.md) | 2026-10-28 | **三片全交付**：会话召回改 native 优先/raw 显式回退（手册 v22 + 技能同源）；手册预算 8192→14336 并加“生成内容装进预算”不变量与 `manual-over-budget`；数据卡拆用户内容/插件账本/宿主面、N2 与账本标签写准；`dataDir` 包内拒绝与 `bundledSkillDir`(600) 进代码。证据：`pnpm test` 147/1112、`verify` 50/50、`prompt-smoke` PASS；提交 `55071fd`/`812b33f`/`d10ede1`。去向 = [implemented note](../../../notes/implemented/2026-10-28-data-plane-alignment.md) |---|
 | [261028-b-grade-close.md](261028-b-grade-close.md) | 2026-10-28 | **B1–B4 全交付**：真 DOM 客户端 spec（无订阅红）、`web-face-check --all` 8/8（4 客户 + 4 Viki mock）、pre-push 浏览器车道、TZ 固定与 format 断言。一次 `root-files` hand-edit 偶发红未能复现，按可疑 flake 记录。去向 = [六维 implemented note](../../../notes/implemented/2026-10-28-six-dimension-continuous-improvement.md) |
 | [261028-p3-residuals.md](261028-p3-residuals.md) | 2026-10-28 | **P3-a～P3-d 全交付**：catalog 补 3 个 bin 与 `engines.pnpm`；「纯核」定义对齐（不含 I/O 承诺）；`session-logs` 缺 zstd 给明确错误；8 个 `snapshot.yml` 改 `runner: README.md` + `wait_text:`，健康门读新字段。命令形状门/Viki 4 面/coverage 阈值刻意延后。去向 = [六维 implemented note](../../../notes/implemented/2026-10-28-six-dimension-continuous-improvement.md) |
 | [261028-six-dimension-improvement.md](261028-six-dimension-improvement.md) | 2026-10-28 | **S1–S4 全交付**：入口瘦身（命令表迁 `docs/commands.md` + 预算门）、反馈诚实性（refresh / eval / smoke / expected 的 BLOCKED 与健康门）、结构接缝（归档格式入 domain、面板三组件、data CLI 27 行入口）、测试（ledger spec、4 客户面 `web-face-check`、coverage 只报告）。去向 = [implemented note](../../../notes/implemented/2026-10-28-six-dimension-continuous-improvement.md) |

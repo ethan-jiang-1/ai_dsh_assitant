@@ -24,7 +24,7 @@ describe('assertDataDirOutsidePackage', () => {
 
   it('accepts a sibling with the package path as a prefix, and an unrelated directory', () => {
     expect(() => assertDataDirOutsidePackage(sibling)).not.toThrow()
-    expect(() => assertDataDirOutsidePackage('/tmp/assistant-home')).not.toThrow()
+    expect(() => assertDataDirOutsidePackage(join(PACKAGE_ROOT, '..', '..', '.tmp', 'data-dir-guard-home'))).not.toThrow()
   })
 })
 

@@ -39,7 +39,7 @@ P0 已落：installed-tarball 维护命令 smoke、fresh-home prompt-smoke 交�
 
 11. G14/G15：跨机合并语义（同 id 冲突三选一/最后一次写赢/项目分支）与备份加密（口令/密钥托管）另立提案。
 12. project/workspace 键：只有真实跨项目串数据投诉再做。
-13. digest/manual 的 replay 稳定性：决定是否把动态段落做成 sourced 注入；没有 replay 失败证据前不动。
+13. digest/manual 的 replay 稳定性：**已解疑（2026-10-28）**——系统提示以 `system/message` 落日志，replay 用已记录请求；resume 时重新组装是设计。不立项；证据 = `vendor/dsh/docs/subsystems/system-prompt.md` 与 `llm-streaming.md`，见 [`2026-10-28-data-plane-alignment`](../implemented/2026-10-28-data-plane-alignment.md)。
 14. Windows/网络文件系统矩阵、多用户/多租户边界。
 
 ## 输掉的方案

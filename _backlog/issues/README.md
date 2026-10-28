@@ -4,9 +4,9 @@
 
 ## 活跃清单
 
-- [261028 数据面校准收口卡](261028-data-plane-alignment.md)——用户 2026-10-28 授权修复；三片：会话取数 / 所有权分类 / 两个不变量。发现表 D1–D7 与切片台账在卡内。
+当前没有活跃问题卡。
 
-已结档：261028 B 级缺口 → [settled_issues](../_archive/settled_issues/261028-b-grade-close.md)，P3 残余 → [settled_issues](../_archive/settled_issues/261028-p3-residuals.md)，六维改善 → [settled_issues](../_archive/settled_issues/261028-six-dimension-improvement.md)。
+已结档：261028 数据面校准 → [settled_issues](../_archive/settled_issues/261028-data-plane-alignment.md)，B 级缺口 → [settled_issues](../_archive/settled_issues/261028-b-grade-close.md)，P3 残余 → [settled_issues](../_archive/settled_issues/261028-p3-residuals.md)，六维改善 → [settled_issues](../_archive/settled_issues/261028-six-dimension-improvement.md)。
 
 （261027 数据生命周期硬化已按关闭条件结档到 [settled_issues](../_archive/settled_issues/261027-data-lifecycle-hardening.md)，未取的 G14/G15 等触发式剩余留在卡内。）
 

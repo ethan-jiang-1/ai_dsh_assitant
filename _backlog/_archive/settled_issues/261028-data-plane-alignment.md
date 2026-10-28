@@ -1,20 +1,17 @@
 ---
-status: 推敲中
+status: 已结
 opened: 2026-10-28
 ---
 
 # 收口：数据面校准（会话取数、所有权分类、两个不变量）
 
-> 立卡：2026-10-28 ｜ 状态：推敲中 ｜ 类型：Task ｜ 可关闭：否
-> 授权：用户 2026-10-28 明确“发现的问题都修复”，并指示立 goal 推动落地。决定与输掉的方案 = [`notes/proposed/2026-10-28-data-plane-alignment.md`](../../notes/proposed/2026-10-28-data-plane-alignment.md)；本卡是唯一 work 台账。
+> 立卡：2026-10-28 ｜ 状态：已结 ｜ 类型：Task ｜ 可关闭：是
+> 授权：用户 2026-10-28 明确“发现的问题都修复”，并指示立 goal 推动落地。决定与输掉的方案 = [`notes/implemented/2026-10-28-data-plane-alignment.md`](../../../notes/implemented/2026-10-28-data-plane-alignment.md)；本卡是唯一 work 台账。
+> **结论与去向**：三片全部交付——手册 v22 把会话召回改成 native 优先/raw 回退并装进自己的预算；数据卡拆成用户内容/插件账本/宿主面并把 N2 与账本标签写准；`dataDir` 包内拒绝与 `bundledSkillDir` 两个不变量进代码与测试。证据：`pnpm test` 147 文件 1112 全绿、`pnpm verify` 50/50、`pnpm prompt-smoke` PASS；提交 `55071fd`/`812b33f`/`d10ede1`。去向 = [implemented note](../../../notes/implemented/2026-10-28-data-plane-alignment.md)。
 
 **问题与期望结果：** FAQ 24 对照后，本包的数据面有三处不满足：模型同时收到两条相反的会话召回指令，且原始日志配方依赖私有布局与一个在自定义 `dataDir` 下为假的父目录假设；`<dataDir>` 把用户内容与插件账本混为一类，数据卡/平面标签/N2 依赖登记都不准；两个不变量（dataDir 不得落包内、随包只读技能不得压过用户技能）没有守卫。完成后：模型只收到一条召回策略，跨项目读取是被声明的动作，账本与用户内容各有备份/清理口径，误配立即报错。
 
-**当前情况：** 片 1 已交付（手册 v22 与迁移、`session-recall` 技能重写、手动预算 8192→14336 与 `manual-over-budget`、`prompt-smoke` 新断言）。片 2/3 在做：数据卡与 README 已拆用户内容/插件账本、N2 回退与账本标签已登记；`dataDir` 包内拒绝与 `bundledSkillDir` rank 600 未动。静态核验时的问题面：v21 手册把会话召回指向 raw 配方、`tool-session-query` 的常驻 guidance 与之相反；生成的手册超出 prompt 预算；`bootstrap.mjs` 有包内拒绝而服务层没有；策展技能用 `customSkillDirs`。
-
-**未决问题：** 片 1 是模型可见面改动，需要一次 fresh-home prompt-smoke 证明两条旧指令只剩一条；`session-recall` 技能重写后是否仍需要 `zstd` 依赖（保留为回退即需要）。手册 v22 的迁移必须只替换已知 v21 段，匹配不到不重写。
-
-**下一步：** 按切片台账推进；每片完成即填证据并提交。
+**收口证据：** 片 1 的手册 v22 与迁移、`session-recall` 技能重写、手动预算 14336 与 `manual-over-budget`、`prompt-smoke` 新断言；片 2 的数据卡三表、`docs/discipline.md` 适配 13/14、包 README；片 3 的 `assertDataDirOutsidePackage`（memory + ledger）与 `bundledSkillDir` 组合行。静态核验时的问题面（v21 手册指向 raw 配方、`tool-session-query` 常驻 guidance 与之相反、生成手册超出预算、服务层缺包内拒绝、策展技能用 `customSkillDirs`）已全部关闭。
 
 ## 外部结果三要素
 
@@ -44,7 +41,7 @@ opened: 2026-10-28
 | 1 | 会话取数：手册 v22 + 迁移 + `session-recall` 技能 + 手动预算（cap 8192→14336）+ “生成内容装进预算”不变量测试 + `manual-over-budget` finding | 已完成 | 手册 v22 与迁移/预算 + 技能重写；`vitest root-files/layout/old-home-compat` 绿；`pnpm test` 1106 通过；`pnpm verify` 50/50；`pnpm prompt-smoke`：新策略在场、`Nothing indexes them` 缺席、六工具在场 |
 | 2 | 所有权分类：数据卡拆三表（用户内容/插件账本/宿主面）+ 损坏策略列 + 账本标签 + N2 回退登记（discipline 适配 14）+ README 同步 | 已完成 | `docs/delivery.md` §一、`docs/discipline.md` 适配 13/14、包 README 的 Data/平面表；`pnpm verify` 50/50；doc contract 17 通过 |
 | 3 | 两个护栏：`dataDir` 包内拒绝（memory + ledger）+ `bundledSkillDir` rank 600 + 组合测试 | 已完成 | `src/host/package-root.ts` + 两处调用；`data-dir-guard.spec.ts` 5 例；`preset-skill-root.spec.ts` 7 例含 band 断言；`pnpm test` 1112 通过；`pnpm verify` 50/50 |
-| 4 | 收口：build/typecheck/test/verify + prompt-smoke + note 翻转 | 未开始 | 待填 |
+| 4 | 收口：build/typecheck/test/verify + prompt-smoke + note 翻转 | 已完成 | `pnpm build` OK；`pnpm typecheck` OK；`pnpm test` 147 文件 1112 通过；`pnpm verify` 50/50；`pnpm prompt-smoke` PASS；note 已翻 implemented |
 
 ## 验收标准
 
@@ -60,4 +57,4 @@ opened: 2026-10-28
 
 - **手册所有权拆分**（`MANUAL.md` + `AGENTS.local.md`）：触发 = 下一次改正文又匹配不到旧段落，或 stale 警告第二次困扰用户。
 - **原生跨会话检索工具**（`ctx.sessionQuery` 驱动、snippet 返回、跨项目策略进配置）：触发 = 片 1 上线后跨项目回忆被真实使用，或 raw 配方再次因布局漂移失效。
-- **project/workspace 键**：沿 [`2026-10-27-data-lifecycle-review-followups`](../../notes/proposed/2026-10-27-data-lifecycle-review-followups.md) 的触发，只有真实跨项目串数据投诉再做。
+- **project/workspace 键**：沿 [`2026-10-27-data-lifecycle-review-followups`](../../../notes/proposed/2026-10-27-data-lifecycle-review-followups.md) 的触发，只有真实跨项目串数据投诉再做。
