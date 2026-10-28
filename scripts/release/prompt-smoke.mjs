@@ -129,8 +129,9 @@ const sectionChecks = [
   ['identity', 'management-post expert'],
   ['working-folder manual', '# Your working folder'],
   ['delivery rule', 'Deliver files where the principal can take them'],
-  ['session recall policy', 'Every session you have ever had is indexed for full-text search'],
+  ['session recall policy', 'Every session you have ever had is searchable'],
   ['project facts boundary', 'Project-bound facts stay with the project'],
+  ['four standing sections', 'Four things ride in every request'],
   ['memory digest', 'Live status of your working folder'],
   ['operating brief', 'Desk capture lane'],
 ]

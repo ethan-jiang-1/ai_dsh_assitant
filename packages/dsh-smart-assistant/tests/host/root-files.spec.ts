@@ -11,15 +11,19 @@ import { memoryPool } from '../support/host-harness.ts'
 import { DEFAULT_SOUL } from '../../src/domain/home/soul.ts'
 import {
   CURRENT_DELIVERY_ANCHOR,
+  CURRENT_FOUR_THINGS_PARAGRAPH,
+  CURRENT_LAYOUT_TREE,
   CURRENT_ONE_QUESTION_PARAGRAPH,
   CURRENT_PAST_CONVERSATIONS,
   CURRENT_REPO_BOUNDARIES_HEADING,
   HOME_MANUAL_VERSION,
   RETIRED_DELIVERY_ANCHOR,
+  RETIRED_LAYOUT_TREE,
   RETIRED_ONE_QUESTION_PARAGRAPH,
   RETIRED_PAST_CONVERSATIONS,
   RETIRED_REPO_BOUNDARIES_HEADING,
   RETIRED_ROOM_DATA_SECTION,
+  RETIRED_THREE_THINGS_PARAGRAPH,
   renderHomeManual,
 } from '../../src/domain/home/home-map.ts'
 import { MANUAL_BYTE_CAP } from '../../src/host/curate-digest.ts'
@@ -81,6 +85,14 @@ describe('manualSnapshot (guidance)', () => {
     expect(manual).not.toContain('Nothing indexes them')
     expect(manual).toContain(CURRENT_REPO_BOUNDARIES_HEADING)
     expect(manual).toContain('five boundaries hold')
+    // v23: four sections actually ride (identity, manual, operating brief, digest), and the layout
+    // tree names every root entry the scaffold owns.
+    expect(manual).toContain(CURRENT_FOUR_THINGS_PARAGRAPH)
+    expect(manual).toContain('Four things ride in every request')
+    expect(manual).toContain(CURRENT_LAYOUT_TREE)
+    for (const entry of ['ui-mode.json', 'skill-proposals/', 'audit/', 'deliverables/']) {
+      expect(manual).toContain(entry)
+    }
   })
 
   it('keeps the generated manual inside its prompt budget', async () => {
@@ -167,6 +179,28 @@ describe('manualSnapshot (guidance)', () => {
     const migrated = readFileSync(service.paths.agentsFile, 'utf8')
     expect(migrated).toContain(CURRENT_DELIVERY_ANCHOR)
     expect(migrated).toContain('Deliver files where the principal can take them.')
+    expect(migrated).toContain(`home-manual v${String(HOME_MANUAL_VERSION)}`)
+  })
+
+  it('migrates a v22 manual to the four-section count and the complete layout', async () => {
+    const { service } = boot()
+    await service.ensureHome()
+    const legacy = `${service.manualSnapshot()
+      .replace(CURRENT_FOUR_THINGS_PARAGRAPH, RETIRED_THREE_THINGS_PARAGRAPH)
+      .replace(CURRENT_LAYOUT_TREE, RETIRED_LAYOUT_TREE)
+      .replace(`<!-- home-manual v${String(HOME_MANUAL_VERSION)} -->`, '<!-- home-manual v22 -->')}\n\nHand note: keep me.`
+    writeFileSync(service.paths.agentsFile, legacy, 'utf8')
+
+    await service.ensureHome()
+
+    const migrated = readFileSync(service.paths.agentsFile, 'utf8')
+    expect(migrated).toContain(CURRENT_FOUR_THINGS_PARAGRAPH)
+    expect(migrated).not.toContain('Three things ride in every request')
+    expect(migrated).toContain(CURRENT_LAYOUT_TREE)
+    expect(migrated).toContain('ui-mode.json')
+    expect(migrated).toContain('skill-proposals/')
+    expect(migrated).toContain('deliverables/')
+    expect(migrated).toContain('Hand note: keep me.')
     expect(migrated).toContain(`home-manual v${String(HOME_MANUAL_VERSION)}`)
   })
 

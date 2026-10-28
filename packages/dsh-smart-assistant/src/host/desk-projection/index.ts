@@ -5,6 +5,7 @@ import { expandHomePath, resolveDshHome } from '@deepseek-ai/dsh-home-paths'
 import z from '@deepseek-ai/schemastery'
 import type Schema from '@deepseek-ai/schemastery'
 import { join, resolve } from 'node:path'
+import { assertDataDirOutsidePackage } from '../package-root.ts'
 import { createDeskProjectionRoute } from './download.ts'
 import { createOperatingReceiptsRoute } from './receipts.ts'
 
@@ -36,6 +37,7 @@ export function apply(ctx: Context, config: Config = {}): void {
   const dataDir = config.dataDir === undefined
     ? join(resolveDshHome(), 'assistant-operating')
     : resolve(expandHomePath(config.dataDir))
+  assertDataDirOutsidePackage(dataDir)
   ctx.effect(() => ctx.connection.fetch.register(createDeskProjectionRoute(
     dataDir,
     config.maxProjectionBytes ?? 8 * 1024 * 1024,

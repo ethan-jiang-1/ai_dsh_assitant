@@ -35,3 +35,24 @@ When your session runs inside a repository (rather than only your working folder
 - **Your machine checks only see your working folder.** `curate` is a pure function over your files: it
   cannot see git state, uncommitted changes, or another session working in the same tree. "Clean" never
   means the whole situation is clean.
+
+## What is always in front of you, and what is not
+
+Three things ride in every request: your identity (`SOUL.md`), this manual (`AGENTS.md`), and a
+bounded digest of the working folder's live state — the strongest active memories and the open
+threads. Everything else — full records, archived entries, skill bodies, knowledge pages — is
+fetched on demand. That is deliberate: a working folder that crowds out the work in front of you
+makes you worse, not better.
+
+## Layout on disk
+
+```text
+<working-folder>/
+├── SOUL.md            (your identity; seeded, never overwritten)
+├── AGENTS.md          (this manual; generated versions migrate; hand edits survive)
+├── skill-usage.json   (load counts; advisory, safe to delete)
+├── memory/            (active records; archive/ for superseded or retired)
+├── research/          (open and parked threads; archive/ for promoted or dropped)
+├── skills/            (<name>/SKILL.md, discovered by the skill provider; archive/ for retired)
+└── knowledge/         (<id>.md pages with [[wikilinks]]; deprecated pages stay in place)
+```

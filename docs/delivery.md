@@ -168,7 +168,7 @@ node .../assistant-data.mjs purge --assistant <DSH_HOME>/assistant [--operating 
 **格式兼容政策**：
 
 - 房间 frontmatter **只增可选字段**；新增必填字段或改语义必须先写迁移，再改校验。旧文件读不懂时由 `curate` 报 `unreadable-file`/`page-unreadable`，不静默跳过。
-- 手册按 generation 迁移：只替换已知的精确旧段落并盖**实际达到的**版本戳（v15 只到 v20 就标 v20，不冒充 v21）；匹配不到的旧手册不重写，prompt 段末尾带 generation warning，`curate` 报 `manual-stale-scaffold`。更老的手册用 `assistant-data refresh-manual --yes` 备份后再生。
+- 手册按 generation 迁移：只替换已知的精确旧段落并盖**实际达到的**版本戳（v15 只到 v20 就标 v20，不冒充当前版本）；匹配不到的旧手册不重写，prompt 段末尾带 generation warning，`curate` 报 `manual-stale-scaffold`。更老的手册用 `assistant-data refresh-manual --yes` 备份后再生。
 - 账本 v1 只增字段：`operationCount` 缺失时按当前操作数回填；旧 `ledger.json` 首次写入时压缩；归档行按 `operationId` 去重，状态副本优先。
 - bundle manifest `schemaVersion` 是**包格式**版本，不是房间内容版本；不匹配拒绝导入。
 - 不在安装时静默重写用户数据；迁移要么可重复、可校验，要么 fail loud。

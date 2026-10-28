@@ -10,6 +10,7 @@ import { Context } from '@deepseek-ai/cordis'
 import { describe, expect, it } from 'vitest'
 import { AssistantMemory } from '../../src/host/index.ts'
 import { AssistantOperatingLedger } from '../../src/host/operating-ledger/index.ts'
+import { apply as applyDeskProjection } from '../../src/host/desk-projection/index.ts'
 import { PACKAGE_ROOT, assertDataDirOutsidePackage } from '../../src/host/package-root.ts'
 import { memoryPool } from '../support/host-harness.ts'
 
@@ -38,6 +39,12 @@ describe('data roots', () => {
   it('refuses a package-internal ledger dataDir without creating it', () => {
     rmSync(inside, { recursive: true, force: true })
     expect(() => new AssistantOperatingLedger(new Context(), { dataDir: inside })).toThrow(/inside the package directory/u)
+    expect(existsSync(inside)).toBe(false)
+  })
+
+  it('refuses a package-internal projection dataDir', () => {
+    rmSync(inside, { recursive: true, force: true })
+    expect(() => applyDeskProjection({} as unknown as Context, { dataDir: inside })).toThrow(/inside the package directory/u)
     expect(existsSync(inside)).toBe(false)
   })
 

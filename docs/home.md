@@ -3,7 +3,7 @@
 > 这个插件给 agent 一个**自己的 working folder**：一个跨会话存在的工作目录。
 > 它的组织本身就是产品的一部分 —— 概念依据是 `Agent = Model + Harness`：
 > working folder 就是"那一圈"的物理落点，它的信噪比决定 agent 糊涂还是清醒。
-> 布局的**唯一 owner** 是 `src/domain/home/layout.ts`；本文是它的契约说明，两者必须一致（`pnpm verify` 校验）。
+> 布局的**唯一 owner** 是 `src/domain/home/layout.ts`（scaffold 的目录与房间；`ui-mode.json` 的文件名由 `src/host/ui-mode/route.ts` 拥有、`deliverables/` 是模型自发落点，二者不在 scaffold 面上）；本文是它的契约说明，两者必须一致（`pnpm verify` 校验）。
 >
 > **读法**：布局 §一 → 四房间语义 §二 → 桌面与抽屉 §三 → 机器能查的检查 §四 → 根部两个语义文件 §五。
 
@@ -78,6 +78,8 @@ learn 模块的 `tools/result` 订阅就给对应名字计数（用户 `/name` �
 | `research/` | 还没想清楚的线索：问题、为什么值得追、试过什么、现在倾向什么 | `open` / `parked`（房内挂起）→ **两档出口**：`promoted`（成立）/ `dropped`（不成立，**理由必填**）→ `archive/` | `assistant_research` |
 | `skills/` | 学到的做法（可复用、可被模型加载） | 由 DSH 技能 provider 发现与监听；被取代就改文件；**退役**（90 天未用阈值由 curate 报，`retire_skill` 执行）→ `skills/archive/`（不删、可恢复） | `assistant_reflect` |
 | `knowledge/` | 领域知识页：概念 / 实体 / 来源 / how-it-works，`[[互链]]` | `draft`（staged，不进搜索与摘要）→ **手改 status: stable 即人审** → `deprecated` 留在原地（链接必须继续解析，无 archive） | `assistant_reflect action=save_page`（写）+ `assistant_knowledge`（只读检索） |
+
+**技能优先级**：provider rank 决定同名解析——项目技能（100）> 学到的 `skills/`（300，custom）> `$DSH_HOME/skills` 与 `~/.agents/skills`（400）> 随包策展技能（600，bundled）。学到技能遮蔽用户同名技能是既定顺序；反过来（学到技能被遮蔽）由 `curate` 报 `skill-shadowed`。
 
 **Obsidian 互通**：`[[互链]]` 语法双方同构，但**解析键不同**——我们 id→title，Obsidian 只认**文件名**（= 我们的 id）：`aliases` 只喂它的补全，裸别名与 `title` 属性都不是解析键（[1.12.7 实测](https://forum.obsidian.md/t/wikilink-resolution-does-not-honor-frontmatter-aliases-1-12-7/113902)）。所以页内链接统一写**两边都认的形态** `[[<id>|<title>]]`：`save_page` 写入时自动把可解析的裸名字链接规范成它，每页 `aliases` 镜像着自己的 title——人在 Obsidian 里打 `[[` + 名字，补全选中后写下的正是这一形态。窄用（单开 `knowledge/` 为 vault：graph/tags/draft→stable 手改即人审）三条纪律：
 
@@ -161,7 +163,7 @@ dsh-obsidian 外部 vault 桥先不做：用户真想让助手管某个外部 va
 | 手册漂移 | `AGENTS.md` 的 scaffold 版本标记旧于当前（`manual-stale-scaffold`，info） | 持久化生成物会静默腐烂——**手改内容不报**（手改是拥有者的），版本落后才报；处置=`assistant-data refresh-manual --yes`（先备份）或忽略 |
 | 手册超预算 | `AGENTS.md` 的字节数超过 prompt 预算（`manual-over-budget`，warn）——模型每次只拿到被截断的头 | 尾部规则（协作边界、布局）会静默不进请求；处置=缩短文件或把细节移进技能。生成版必须装进预算，由 `tests/host/root-files.spec.ts` 钉住 |
 | 过期线索 | 超过 `staleResearchDays` 未更新的 `open` 线索 | 悬着的线索会烂，机器先发现 |
-| 缺理由的 drop | `status: dropped` 但 `reason` 为空 | 尸体没写死因 = 白丢 |
+| 缺理由的 drop | `status: dropped` 但 `reason` 为空（经线程校验，以 `unreadable-file` 报出） | 尸体没写死因 = 白丢 |
 | 技能文件 | 名字不合 `SKILL_NAME` 文法 / 缺 `description` / 目录名与 name 不一致 | 技能会静默不被发现 |
 | 同名遮蔽 | 学到技能的名字被注册表判给其他 provider（`skill-shadowed`，探自 curate 所在会话的技能注册表） | `save_skill` 说成功、文件也在 working folder，但**永不加载**——静默失联 |
 | 技能无出处 | 技能无 `metadata.origin`（`skill-without-provenance`，info）——手写或未经 `assistant_reflect` 写入 | 出处是学习信心的来源：不知来路的技能不敢退役也不敢信 |
@@ -216,7 +218,7 @@ bundles, M snapshots`，退役与快照都不删除、技能归档只增不减�
   读 host `assistant-rooms` 的 working-folder 真值；业务事项住权威账本（合同见 [`operating.md`](operating.md) §二/§三）。手册正文由
   `src/domain/home/home-map.ts` 的 `renderHomeManual` 渲染、运行时随家手册落盘.
   scaffold 缺则种（首行 `<!-- home-manual vN -->` 版本标记）；已有的生成版按 generation 迁移**已知的精确旧段落**
-  （退役的 Room data 段、v19→v20 的答案契约段、v20→v21 的交付指引段）并盖**实际达到的**版本戳，手改保留；匹配不到的旧手册**不重写**，
+  （退役的 Room data 段、v19→v20 的答案契约段、v20→v21 的交付指引段、v21→v22 的召回策略与项目事实边界、v22→v23 的四段常驻与完整布局）并盖**实际达到的**版本戳，手改保留；匹配不到的旧手册**不重写**，
   手册段末尾附 generation warning（模型可见），curate 报 info。无 marker 的手写手册不迁移。手册段
   （`assistant:home-manual`）逐字进 system prompt；缺则**现场渲染当前版**（缺文件永不落后）。
 - 两者都是**给人也给 agent 看**的文件；文件名走 AGENTS.md 业界惯例——DSH 原生装载器认项目根

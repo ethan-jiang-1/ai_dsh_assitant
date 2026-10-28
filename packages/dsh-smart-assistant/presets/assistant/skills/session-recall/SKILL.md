@@ -18,9 +18,10 @@ The harness indexes your sessions for full-text search. Reach for these before a
 - `session_event_read` — read one exact event after a hit, with optional neighboring events.
 - `session_trace` / `session_event_trace` — lineage, replacements, and relationships.
 
-The index is workspace-scoped: it reaches sessions whose working directory matches yours. That is
-usually exactly your working folder's sessions. Another project, an exact substring the tokenizer
-misses, or a deployment without these tools needs the fallback below.
+The index is workspace-scoped: `session_search` reaches sessions whose working directory (cwd)
+matches yours — the project you are in, not your working folder (the folder is `dataDir`, not a
+cwd; its sessions are reachable only when a session used it as its cwd). Another project, an exact
+substring the tokenizer misses, or a deployment without these tools needs the fallback below.
 
 ## Fallback: the raw logs
 
@@ -28,9 +29,10 @@ Use it only when the index cannot answer.
 
 1. Resolve the harness home: `$DSH_HOME` when set, otherwise `~/.dsh`. Do **not** assume it is your
    working folder's parent — a deployment may have moved the working folder.
-2. List `"${DSH_HOME:-$HOME/.dsh}/sessions"`. Project directories are `--<normalized-cwd>--/`, and
-   each session is its own directory holding `session.v<n>.jsonl.zstd`. `<n>` is the log format
-   generation and moves with the harness: list the directory instead of guessing.
+2. List `"${DSH_HOME:-$HOME/.dsh}/sessions"`. Project directories are `--<normalized-cwd>--/` —
+   the session cwd with `/` replaced by `-`, wrapped in `--` — and each session is its own
+   directory holding `session.v<n>.jsonl.zstd`. `<n>` is the log format generation and moves with
+   the harness: list the directory instead of guessing.
 3. Each file is zstd-compressed JSONL; each line is one event — full user and assistant messages,
    `tool/call` with complete arguments, `tool/result`, and the session header (cwd, agent preset).
    A generated title sits near the top, so a topic word often lands on the title first; open the

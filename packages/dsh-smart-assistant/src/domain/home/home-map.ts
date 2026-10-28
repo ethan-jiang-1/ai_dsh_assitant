@@ -19,7 +19,7 @@
 export const AGENTS_FILE_NAME = 'AGENTS.md'
 
 /** Version of the generated manual; bump when the generated content changes meaningfully. */
-export const HOME_MANUAL_VERSION = 22
+export const HOME_MANUAL_VERSION = 23
 
 /** The version marker stamped as the file's first line (an HTML comment: invisible when rendered). */
 export const HOME_MANUAL_MARKER = `<!-- home-manual v${String(HOME_MANUAL_VERSION)} -->`
@@ -92,7 +92,7 @@ export const RETIRED_PAST_CONVERSATIONS = '## Past conversations\n\n'
 
 /** The v22 replacement for {@link RETIRED_PAST_CONVERSATIONS}. */
 export const CURRENT_PAST_CONVERSATIONS = '## Past conversations\n\n'
-  + 'Every session you have ever had is indexed for full-text search. Use `session_search` to find\n'
+  + 'Every session you have ever had is searchable. Use `session_search` to find\n'
   + 'earlier work in this project, `session_event_search` to search inside one session, and\n'
   + '`session_event_read` to read an exact event. Raw logs remain the fallback for another project\'s\n'
   + 'sessions, an exact substring, or an unavailable index: they live under the harness home\'s\n'
@@ -113,6 +113,51 @@ export const CURRENT_REPO_BOUNDARIES_HEADING = 'When your session runs inside a 
   + '  conventions, its numbers, its people — belongs in the repository itself (its `AGENTS.md`, its\n'
   + '  `.dsh/`, or its docs). Your working folder holds what travels with you across projects: durable\n'
   + '  facts, preferences, and lessons.\n'
+
+/**
+ * The v22 "what rides in every request" paragraph. It counted three things and omitted the
+ * operating brief (order 400); v23 counts the four sections the composition actually assembles.
+ */
+export const RETIRED_THREE_THINGS_PARAGRAPH = 'Three things ride in every request: your identity (`SOUL.md`), this manual (`AGENTS.md`), and a\n'
+  + 'bounded digest of the working folder\'s live state — the strongest active memories and the open\n'
+  + 'threads. Everything else — full records, archived entries, skill bodies, knowledge pages — is\n'
+  + 'fetched on demand. That is deliberate: a working folder that crowds out the work in front of you\n'
+  + 'makes you worse, not better.\n'
+
+/** The v23 replacement for {@link RETIRED_THREE_THINGS_PARAGRAPH}. */
+export const CURRENT_FOUR_THINGS_PARAGRAPH = 'Four things ride in every request: your identity (`SOUL.md`), this manual (`AGENTS.md`), the\n'
+  + 'standing brief that sends operating matters to the ledger, and a bounded digest of the working\n'
+  + 'folder\'s live state — the strongest active memories and the open threads. Everything else — full\n'
+  + 'records, archived entries, skill bodies, knowledge pages — is fetched on demand. That is\n'
+  + 'deliberate: a working folder that crowds out the work in front of you makes you worse, not better.\n'
+
+/** The v22 layout tree: rooms plus one machine ledger, missing the other root entries. */
+export const RETIRED_LAYOUT_TREE = '```text\n'
+  + '<working-folder>/\n'
+  + '├── SOUL.md            (your identity; seeded, never overwritten)\n'
+  + '├── AGENTS.md          (this manual; generated versions migrate; hand edits survive)\n'
+  + '├── skill-usage.json   (load counts; advisory, safe to delete)\n'
+  + '├── memory/            (active records; archive/ for superseded or retired)\n'
+  + '├── research/          (open and parked threads; archive/ for promoted or dropped)\n'
+  + '├── skills/            (<name>/SKILL.md, discovered by the skill provider; archive/ for retired)\n'
+  + '└── knowledge/         (<id>.md pages with [[wikilinks]]; deprecated pages stay in place)\n'
+  + '```\n'
+
+/** The v23 replacement for {@link RETIRED_LAYOUT_TREE}: the complete root the scaffold owns. */
+export const CURRENT_LAYOUT_TREE = '```text\n'
+  + '<working-folder>/\n'
+  + '├── SOUL.md            (your identity; seeded, never overwritten)\n'
+  + '├── AGENTS.md          (this manual; generated versions migrate; hand edits survive)\n'
+  + '├── skill-usage.json   (load counts; advisory, safe to delete)\n'
+  + '├── ui-mode.json       (panel density; advisory, safe to delete)\n'
+  + '├── memory/            (active records; archive/ for superseded or retired)\n'
+  + '├── research/          (open and parked threads; archive/ for promoted or dropped)\n'
+  + '├── skills/            (<name>/SKILL.md, discovered by the skill provider; archive/ for retired)\n'
+  + '├── knowledge/         (<id>.md pages with [[wikilinks]]; deprecated pages stay in place)\n'
+  + '├── skill-proposals/   (proposed skills awaiting review; archive/ for settled)\n'
+  + '├── audit/             (approval and purge ledgers; append-only)\n'
+  + '└── deliverables/      (draft files a session left here; not a room)\n'
+  + '```\n'
 
 /**
  * Apply the known generated-text migrations to an older **generated** manual and stamp the version
@@ -173,6 +218,20 @@ export function migrateHomeManual(text: string): string {
       changed = true
     }
   }
+  if (migratedTo >= 22) {
+    if (next.includes(RETIRED_THREE_THINGS_PARAGRAPH)) {
+      next = next.replace(RETIRED_THREE_THINGS_PARAGRAPH, CURRENT_FOUR_THINGS_PARAGRAPH)
+      changed = true
+    }
+    if (next.includes(RETIRED_LAYOUT_TREE)) {
+      next = next.replace(RETIRED_LAYOUT_TREE, CURRENT_LAYOUT_TREE)
+      changed = true
+    }
+    if (next.includes(CURRENT_FOUR_THINGS_PARAGRAPH) && next.includes(CURRENT_LAYOUT_TREE)) {
+      migratedTo = 23
+      changed = true
+    }
+  }
   if (!changed) return text
   return next.replace(/^<!-- home-manual v\d+ -->/mu, `<!-- home-manual v${String(migratedTo)} -->`)
 }
@@ -203,10 +262,9 @@ export const HOME_STATUS_BLURB = [
 /**
  * Render the full home manual. The manual is seeded once and is owner data afterwards — so it
  * must stay **portable**: the layout tree roots at a symbolic placeholder, never the machine's
- * absolute path. A baked path goes stale the day the home moves, and the model trusts it
- * (observed 2026-10-01: a moved home's model read and wrote the old location, because the
- * manual was the only place the prompt named the dataDir at all). The concrete location rides
- * in the prompt separately, rendered fresh per request — see `manualSnapshot`.
+ * absolute path. Neither this text nor the assembled prompt names the dataDir: a baked path goes
+ * stale the day the home moves, and the model trusts it (observed 2026-10-01: a moved home's
+ * model read and wrote the old location). The home is reached through tools, not a prompt path.
  * @returns Markdown contents for `AGENTS.md`.
  */
 export function renderHomeManual(): string {
@@ -322,12 +380,7 @@ loading immediately. Nothing is deleted — moving the bundle back restores it.
 
 ## What is always in front of you, and what is not
 
-Three things ride in every request: your identity (\`SOUL.md\`), this manual (\`AGENTS.md\`), and a
-bounded digest of the working folder's live state — the strongest active memories and the open
-threads. Everything else — full records, archived entries, skill bodies, knowledge pages — is
-fetched on demand. That is deliberate: a working folder that crowds out the work in front of you
-makes you worse, not better.
-
+${CURRENT_FOUR_THINGS_PARAGRAPH}
 ## Past conversations
 
 ${CURRENT_PAST_CONVERSATIONS}
@@ -356,20 +409,10 @@ digest reports over-budget, after a session of real learning, or when you suspec
 
 ## Layout on disk
 
-\`\`\`text
-<working-folder>/
-├── SOUL.md            (your identity; seeded, never overwritten)
-├── AGENTS.md          (this manual; generated versions migrate; hand edits survive)
-├── skill-usage.json   (load counts; advisory, safe to delete)
-├── memory/            (active records; archive/ for superseded or retired)
-├── research/          (open and parked threads; archive/ for promoted or dropped)
-├── skills/            (<name>/SKILL.md, discovered by the skill provider; archive/ for retired)
-└── knowledge/         (<id>.md pages with [[wikilinks]]; deprecated pages stay in place)
-\`\`\`
-
+${CURRENT_LAYOUT_TREE}
 Load \`memory-hygiene\` before writing memory, \`research-backlog\` before opening or closing a
 thread, \`knowledge-craft\` before writing a knowledge page, \`session-recall\` before searching
-past conversations, \`home-curation\` before tidying, and \`self-reflection\` before turning an
+raw session logs, \`home-curation\` before tidying, and \`self-reflection\` before turning an
 experience into a skill.
 `
 }
