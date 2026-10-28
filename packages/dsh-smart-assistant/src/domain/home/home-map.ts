@@ -19,7 +19,7 @@
 export const AGENTS_FILE_NAME = 'AGENTS.md'
 
 /** Version of the generated manual; bump when the generated content changes meaningfully. */
-export const HOME_MANUAL_VERSION = 23
+export const HOME_MANUAL_VERSION = 24
 
 /** The version marker stamped as the file's first line (an HTML comment: invisible when rendered). */
 export const HOME_MANUAL_MARKER = `<!-- home-manual v${String(HOME_MANUAL_VERSION)} -->`
@@ -131,6 +131,20 @@ export const CURRENT_FOUR_THINGS_PARAGRAPH = 'Four things ride in every request:
   + 'records, archived entries, skill bodies, knowledge pages — is fetched on demand. That is\n'
   + 'deliberate: a working folder that crowds out the work in front of you makes you worse, not better.\n'
 
+/** v24 names the knowledge tree the digest also carries; v23 counted only memories and threads. */
+export const CURRENT_FOUR_THINGS_PARAGRAPH_V24 = 'Four things ride in every request: your identity (`SOUL.md`), this manual (`AGENTS.md`), the\n'
+  + 'standing brief that sends operating matters to the ledger, and a bounded digest of the working\n'
+  + 'folder\'s live state — the strongest active memories, the open threads, and the knowledge tree.\n'
+  + 'Everything else — full records, archived entries, skill bodies, knowledge pages — is fetched on\n'
+  + 'demand. That is deliberate: a working folder that crowds out the work in front of you makes you\n'
+  + 'worse, not better.\n'
+
+/** The v23 shadow example: curated skills moved to the rank-600 band, so they cannot shadow learned ones. */
+export const RETIRED_SHADOW_SENTENCE = 'learned skills shadowed by a same-named\ncurated one'
+
+/** The v24 shadow wording: the winner is a skill from another provider (project or user). */
+export const CURRENT_SHADOW_SENTENCE = 'learned skills shadowed by a same-named\nskill outside the folder'
+
 /** The v22 layout tree: rooms plus one machine ledger, missing the other root entries. */
 export const RETIRED_LAYOUT_TREE = '```text\n'
   + '<working-folder>/\n'
@@ -227,8 +241,22 @@ export function migrateHomeManual(text: string): string {
       next = next.replace(RETIRED_LAYOUT_TREE, CURRENT_LAYOUT_TREE)
       changed = true
     }
-    if (next.includes(CURRENT_FOUR_THINGS_PARAGRAPH) && next.includes(CURRENT_LAYOUT_TREE)) {
+    if ((next.includes(CURRENT_FOUR_THINGS_PARAGRAPH) || next.includes(CURRENT_FOUR_THINGS_PARAGRAPH_V24)) && next.includes(CURRENT_LAYOUT_TREE)) {
       migratedTo = 23
+      changed = true
+    }
+  }
+  if (migratedTo >= 23) {
+    if (next.includes(CURRENT_FOUR_THINGS_PARAGRAPH)) {
+      next = next.replace(CURRENT_FOUR_THINGS_PARAGRAPH, CURRENT_FOUR_THINGS_PARAGRAPH_V24)
+      changed = true
+    }
+    if (next.includes(RETIRED_SHADOW_SENTENCE)) {
+      next = next.replace(RETIRED_SHADOW_SENTENCE, CURRENT_SHADOW_SENTENCE)
+      changed = true
+    }
+    if (next.includes(CURRENT_FOUR_THINGS_PARAGRAPH_V24) && next.includes(CURRENT_SHADOW_SENTENCE)) {
+      migratedTo = 24
       changed = true
     }
   }
@@ -380,7 +408,7 @@ loading immediately. Nothing is deleted — moving the bundle back restores it.
 
 ## What is always in front of you, and what is not
 
-${CURRENT_FOUR_THINGS_PARAGRAPH}
+${CURRENT_FOUR_THINGS_PARAGRAPH_V24}
 ## Past conversations
 
 ${CURRENT_PAST_CONVERSATIONS}
@@ -403,8 +431,7 @@ ${CURRENT_REPO_BOUNDARIES_HEADING}
 
 \`assistant_memory action=curate\` is a machine check over these files: near-duplicates, dangling
 references, malformed headers, digest budget pressure, threads that have not moved, drops without
-a reason, skills the loader would silently ignore, learned skills shadowed by a same-named
-curated one, and skills past their use-by date. It finds candidates; you decide. Run it when the
+a reason, skills the loader would silently ignore, ${CURRENT_SHADOW_SENTENCE}, and skills past their use-by date. It finds candidates; you decide. Run it when the
 digest reports over-budget, after a session of real learning, or when you suspect rot.
 
 ## Layout on disk

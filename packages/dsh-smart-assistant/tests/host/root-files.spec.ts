@@ -12,10 +12,12 @@ import { DEFAULT_SOUL } from '../../src/domain/home/soul.ts'
 import {
   CURRENT_DELIVERY_ANCHOR,
   CURRENT_FOUR_THINGS_PARAGRAPH,
+  CURRENT_FOUR_THINGS_PARAGRAPH_V24,
   CURRENT_LAYOUT_TREE,
   CURRENT_ONE_QUESTION_PARAGRAPH,
   CURRENT_PAST_CONVERSATIONS,
   CURRENT_REPO_BOUNDARIES_HEADING,
+  CURRENT_SHADOW_SENTENCE,
   HOME_MANUAL_VERSION,
   RETIRED_DELIVERY_ANCHOR,
   RETIRED_LAYOUT_TREE,
@@ -23,6 +25,7 @@ import {
   RETIRED_PAST_CONVERSATIONS,
   RETIRED_REPO_BOUNDARIES_HEADING,
   RETIRED_ROOM_DATA_SECTION,
+  RETIRED_SHADOW_SENTENCE,
   RETIRED_THREE_THINGS_PARAGRAPH,
   renderHomeManual,
 } from '../../src/domain/home/home-map.ts'
@@ -86,9 +89,13 @@ describe('manualSnapshot (guidance)', () => {
     expect(manual).toContain(CURRENT_REPO_BOUNDARIES_HEADING)
     expect(manual).toContain('five boundaries hold')
     // v23: four sections actually ride (identity, manual, operating brief, digest), and the layout
-    // tree names every root entry the scaffold owns.
-    expect(manual).toContain(CURRENT_FOUR_THINGS_PARAGRAPH)
+    // tree names every root entry the scaffold owns. v24 names the knowledge tree and the generic
+    // shadow winner (curated skills sit at rank 600 and cannot shadow learned ones).
+    expect(manual).toContain(CURRENT_FOUR_THINGS_PARAGRAPH_V24)
     expect(manual).toContain('Four things ride in every request')
+    expect(manual).toContain('the knowledge tree')
+    expect(manual).toContain(CURRENT_SHADOW_SENTENCE)
+    expect(manual).not.toContain('same-named curated')
     expect(manual).toContain(CURRENT_LAYOUT_TREE)
     for (const entry of ['ui-mode.json', 'skill-proposals/', 'audit/', 'deliverables/']) {
       expect(manual).toContain(entry)
@@ -182,11 +189,11 @@ describe('manualSnapshot (guidance)', () => {
     expect(migrated).toContain(`home-manual v${String(HOME_MANUAL_VERSION)}`)
   })
 
-  it('migrates a v22 manual to the four-section count and the complete layout', async () => {
+  it('migrates a v22 manual through v23 to the v24 knowledge-tree count', async () => {
     const { service } = boot()
     await service.ensureHome()
     const legacy = `${service.manualSnapshot()
-      .replace(CURRENT_FOUR_THINGS_PARAGRAPH, RETIRED_THREE_THINGS_PARAGRAPH)
+      .replace(CURRENT_FOUR_THINGS_PARAGRAPH_V24, RETIRED_THREE_THINGS_PARAGRAPH)
       .replace(CURRENT_LAYOUT_TREE, RETIRED_LAYOUT_TREE)
       .replace(`<!-- home-manual v${String(HOME_MANUAL_VERSION)} -->`, '<!-- home-manual v22 -->')}\n\nHand note: keep me.`
     writeFileSync(service.paths.agentsFile, legacy, 'utf8')
@@ -194,12 +201,32 @@ describe('manualSnapshot (guidance)', () => {
     await service.ensureHome()
 
     const migrated = readFileSync(service.paths.agentsFile, 'utf8')
-    expect(migrated).toContain(CURRENT_FOUR_THINGS_PARAGRAPH)
+    expect(migrated).toContain(CURRENT_FOUR_THINGS_PARAGRAPH_V24)
     expect(migrated).not.toContain('Three things ride in every request')
     expect(migrated).toContain(CURRENT_LAYOUT_TREE)
     expect(migrated).toContain('ui-mode.json')
     expect(migrated).toContain('skill-proposals/')
     expect(migrated).toContain('deliverables/')
+    expect(migrated).toContain('Hand note: keep me.')
+    expect(migrated).toContain(`home-manual v${String(HOME_MANUAL_VERSION)}`)
+  })
+
+  it('migrates a v23 manual to the v24 shadow wording and knowledge-tree count', async () => {
+    const { service } = boot()
+    await service.ensureHome()
+    const legacy = `${service.manualSnapshot()
+      .replace(CURRENT_FOUR_THINGS_PARAGRAPH_V24, CURRENT_FOUR_THINGS_PARAGRAPH)
+      .replace(CURRENT_SHADOW_SENTENCE, RETIRED_SHADOW_SENTENCE)
+      .replace(`<!-- home-manual v${String(HOME_MANUAL_VERSION)} -->`, '<!-- home-manual v23 -->')}\n\nHand note: keep me.`
+    writeFileSync(service.paths.agentsFile, legacy, 'utf8')
+
+    await service.ensureHome()
+
+    const migrated = readFileSync(service.paths.agentsFile, 'utf8')
+    expect(migrated).toContain(CURRENT_FOUR_THINGS_PARAGRAPH_V24)
+    expect(migrated).toContain('the knowledge tree')
+    expect(migrated).toContain(CURRENT_SHADOW_SENTENCE)
+    expect(migrated).not.toContain(RETIRED_SHADOW_SENTENCE)
     expect(migrated).toContain('Hand note: keep me.')
     expect(migrated).toContain(`home-manual v${String(HOME_MANUAL_VERSION)}`)
   })

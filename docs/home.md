@@ -218,7 +218,7 @@ bundles, M snapshots`，退役与快照都不删除、技能归档只增不减�
   读 host `assistant-rooms` 的 working-folder 真值；业务事项住权威账本（合同见 [`operating.md`](operating.md) §二/§三）。手册正文由
   `src/domain/home/home-map.ts` 的 `renderHomeManual` 渲染、运行时随家手册落盘.
   scaffold 缺则种（首行 `<!-- home-manual vN -->` 版本标记）；已有的生成版按 generation 迁移**已知的精确旧段落**
-  （退役的 Room data 段、v19→v20 的答案契约段、v20→v21 的交付指引段、v21→v22 的召回策略与项目事实边界、v22→v23 的四段常驻与完整布局）并盖**实际达到的**版本戳，手改保留；匹配不到的旧手册**不重写**，
+  （退役的 Room data 段、v19→v20 的答案契约段、v20→v21 的交付指引段、v21→v22 的召回策略与项目事实边界、v22→v23 的四段常驻与完整布局、v23→v24 的 knowledge tree 与遮蔽措辞）并盖**实际达到的**版本戳，手改保留；匹配不到的旧手册**不重写**，
   手册段末尾附 generation warning（模型可见），curate 报 info。无 marker 的手写手册不迁移。手册段
   （`assistant:home-manual`）逐字进 system prompt；缺则**现场渲染当前版**（缺文件永不落后）。
 - 两者都是**给人也给 agent 看**的文件；文件名走 AGENTS.md 业界惯例——DSH 原生装载器认项目根

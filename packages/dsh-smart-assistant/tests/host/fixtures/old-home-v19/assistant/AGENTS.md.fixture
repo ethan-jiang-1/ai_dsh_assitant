@@ -56,3 +56,11 @@ makes you worse, not better.
 ├── skills/            (<name>/SKILL.md, discovered by the skill provider; archive/ for retired)
 └── knowledge/         (<id>.md pages with [[wikilinks]]; deprecated pages stay in place)
 ```
+
+## Keeping it worth reading
+
+`assistant_memory action=curate` is a machine check over these files: near-duplicates, dangling
+references, malformed headers, digest budget pressure, threads that have not moved, drops without
+a reason, skills the loader would silently ignore, learned skills shadowed by a same-named
+curated one, and skills past their use-by date. It finds candidates; you decide. Run it when the
+digest reports over-budget, after a session of real learning, or when you suspect rot.
