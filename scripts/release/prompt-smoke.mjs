@@ -132,6 +132,10 @@ const sectionChecks = [
   ['session recall policy', 'Every session you have ever had is searchable'],
   ['project facts boundary', 'Project-bound facts stay with the project'],
   ['four standing sections', 'Four things ride in every request'],
+  // The manual's tail must survive assembly: before 2026-10-28 the 8 KiB cap cut it mid-section,
+  // so a section-presence check alone would have passed while the model never saw the layout.
+  ['manual tail: layout', 'deliverables/      (draft files a session left here; not a room)'],
+  ['manual tail: skill guidance', 'experience into a skill.'],
   ['memory digest', 'Live status of your working folder'],
   ['operating brief', 'Desk capture lane'],
 ]
