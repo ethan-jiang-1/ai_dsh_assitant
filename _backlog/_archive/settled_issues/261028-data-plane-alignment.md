@@ -57,4 +57,4 @@ opened: 2026-10-28
 
 - **手册所有权拆分**（`MANUAL.md` + `AGENTS.local.md`）：触发 = 下一次改正文又匹配不到旧段落，或 stale 警告第二次困扰用户。
 - **原生跨会话检索工具**（`ctx.sessionQuery` 驱动、snippet 返回、跨项目策略进配置）：触发 = 片 1 上线后跨项目回忆被真实使用，或 raw 配方再次因布局漂移失效。
-- **project/workspace 键**：沿 [`2026-10-27-data-lifecycle-review-followups`](../../../notes/proposed/2026-10-27-data-lifecycle-review-followups.md) 的触发，只有真实跨项目串数据投诉再做。
+- **project/workspace 键**：沿 [`2026-10-27-data-lifecycle-hardening`](../../../notes/implemented/2026-10-27-data-lifecycle-hardening.md) 的「延后与触发」，只有真实跨项目串数据投诉再做。
