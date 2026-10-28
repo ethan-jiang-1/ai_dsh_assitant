@@ -25,8 +25,15 @@ import { readSkillUsage } from '../domain/skills/usage.ts'
 /** Byte cap for the identity file riding in the prompt. */
 const SOUL_BYTE_CAP = 4096
 
-/** Byte cap for the manual riding in the prompt. */
-const MANUAL_BYTE_CAP = 8192
+/**
+ * Byte cap for the manual riding in the prompt.
+ *
+ * The generated manual must fit this budget: a cap smaller than the render silently cuts the tail
+ * from every request (2026-10-28: 11,033-byte render against 8,192 cut the collaboration
+ * boundaries and the layout). `tests/host/root-files.spec.ts` holds the invariant, and `curate`
+ * reports an owner-grown file that outgrows it.
+ */
+export const MANUAL_BYTE_CAP = 14_336
 
 /**
  * Read one home-root file for a prompt section, synchronously (assembly is sync; the files are
@@ -233,7 +240,13 @@ export async function runCuration(host: AssistantMemory, shadowedBy?: Readonly<R
     knowledgePages: knowledge.entries.length,
     retiredSkillBundles: archiveScale.retiredBundles,
     skillSnapshots: archiveScale.snapshots,
-    ...(manualText !== undefined ? { manualVersion: parseManualVersion(manualText) } : {}),
+    ...(manualText !== undefined
+      ? {
+          manualVersion: parseManualVersion(manualText),
+          manualBytes: Buffer.byteLength(manualText.trim(), 'utf8'),
+          manualMaxBytes: MANUAL_BYTE_CAP,
+        }
+      : {}),
     skillUsage: usage.usage,
     ...(usage.since !== undefined ? { skillUsageSince: usage.since } : {}),
     ...(usage.failure !== undefined ? { skillUsageFailure: usage.failure } : {}),

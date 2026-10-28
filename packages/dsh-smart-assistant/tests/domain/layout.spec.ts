@@ -127,10 +127,12 @@ describe('scaffoldHome', () => {
   })
 
   // Both faces that tell the assistant where its past sessions live ship in the model's context
-  // (the manual section and the curated skill body). Naming one writer generation — `session.v3`
-  // while the pinned harness wrote v4 — makes the assistant open a file that is not there, and a
-  // missing log reads as "no logs", not as an error. The generation is not ours to pin.
-  it('names the session-log file without pinning a writer generation, in both model-facing faces', async () => {
+  // (the manual section and the curated skill body). v22 splits their jobs: the manual names the
+  // indexed tools and the `sessions/` directory, the skill owns the raw file shape. Naming one
+  // writer generation — `session.v3` while the pinned harness wrote v4 — makes the assistant open a
+  // file that is not there, and a missing log reads as "no logs", not as an error. The generation
+  // is not ours to pin, in either face.
+  it('splits the recall faces: the manual names the indexed tools, the skill names the log shape, neither pins a writer generation', async () => {
     const paths = homePaths(await fixtureHome())
     await scaffoldHome(paths)
     const manual = await readFile(paths.agentsFile, 'utf8')
@@ -139,8 +141,11 @@ describe('scaffoldHome', () => {
       'utf8',
     )
 
+    expect(manual).toContain('session_search')
+    expect(manual).toContain('`sessions/` directory')
+    expect(manual).not.toContain('Nothing indexes them')
+    expect(recallSkill).toContain('session.v<n>.jsonl.zstd')
     for (const [face, text] of [['manual', manual], ['session-recall skill', recallSkill]] as const) {
-      expect(text, `${face} must name the log as session.v<n>.jsonl.zstd`).toContain('session.v<n>.jsonl.zstd')
       expect(text, `${face} must not pin a writer generation`).not.toMatch(/session\.v\d+\.jsonl\.zstd/u)
     }
   })

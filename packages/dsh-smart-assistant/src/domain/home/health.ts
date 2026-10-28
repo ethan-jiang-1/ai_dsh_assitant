@@ -22,6 +22,7 @@ import { MS_PER_DAY } from './time.ts'
 export type FindingCode =
   | 'unreadable-file'
   | 'manual-stale-scaffold'
+  | 'manual-over-budget'
   | 'duplicate-id'
   | 'dangling-reference'
   | 'near-duplicate'
@@ -102,6 +103,10 @@ export interface CurationInput {
   readonly skillSnapshots: number
   /** Scaffold version of the on-disk AGENTS.md marker; omitted when the file is absent. */
   readonly manualVersion?: number
+  /** Bytes of the on-disk AGENTS.md; omitted when the file is absent. */
+  readonly manualBytes?: number
+  /** Byte budget the prompt keeps for the manual. */
+  readonly manualMaxBytes?: number
   /** The skill-usage ledger, joined against `skills` for the usage lines. */
   readonly skillUsage: SkillUsage
   /** Set when the ledger file exists but is not a valid ledger. */
@@ -254,6 +259,21 @@ export function curateHome(input: CurationInput): CurationBrief {
       message: 'the working folder manual (AGENTS.md) predates the current scaffold '
         + `(v${String(input.manualVersion)} vs v${String(HOME_MANUAL_VERSION)}) — delete the file to `
         + 'regenerate it, or ignore this if you curate it by hand',
+      refs: ['AGENTS.md'],
+    })
+  }
+
+  if (
+    input.manualBytes !== undefined
+    && input.manualMaxBytes !== undefined
+    && input.manualBytes > input.manualMaxBytes
+  ) {
+    findings.push({
+      code: 'manual-over-budget',
+      severity: 'warn',
+      message: `the working folder manual (AGENTS.md) is ${String(input.manualBytes)} bytes but the `
+        + `prompt keeps ${String(input.manualMaxBytes)} — the tail is cut from every request; shorten the `
+        + 'file or move detail into a skill',
       refs: ['AGENTS.md'],
     })
   }

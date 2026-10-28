@@ -19,7 +19,7 @@
 export const AGENTS_FILE_NAME = 'AGENTS.md'
 
 /** Version of the generated manual; bump when the generated content changes meaningfully. */
-export const HOME_MANUAL_VERSION = 21
+export const HOME_MANUAL_VERSION = 22
 
 /** The version marker stamped as the file's first line (an HTML comment: invisible when rendered). */
 export const HOME_MANUAL_MARKER = `<!-- home-manual v${String(HOME_MANUAL_VERSION)} -->`
@@ -77,6 +77,44 @@ export const RETIRED_DELIVERY_ANCHOR = `${RETIRED_ONE_ACTION_BULLET}\n${NEXT_ANS
 export const CURRENT_DELIVERY_ANCHOR = `${CURRENT_DELIVERY_BULLETS}\n${NEXT_ANSWER_BULLET}`
 
 /**
+ * The v21 past-conversations section. It claimed nothing indexed the session logs and sent the model
+ * to the raw zstd recipe; the composition has carried a full-text session index and its tools since
+ * the same patch, so v22 makes the native tools primary and the raw logs an explicit fallback. Exact
+ * text: a hand-edited section is the owner's and must survive untouched.
+ */
+export const RETIRED_PAST_CONVERSATIONS = '## Past conversations\n\n'
+  + 'Every session you have ever had is on disk: `<harness-home>/sessions/--<normalized-cwd>--/session-<id>/session.v<n>.jsonl.zstd`\n'
+  + '(the harness home is your working folder\'s parent directory). `<n>` is the log format generation and moves\n'
+  + 'with the harness — list the session directory instead of assuming the name. Each line is one event — full user and assistant\n'
+  + 'messages, tool calls with their arguments, session headers naming the cwd and preset. Nothing indexes\n'
+  + 'them; when memory is not enough and you need what was actually said or done, search them with the\n'
+  + 'recipe in the `session-recall` skill.\n'
+
+/** The v22 replacement for {@link RETIRED_PAST_CONVERSATIONS}. */
+export const CURRENT_PAST_CONVERSATIONS = '## Past conversations\n\n'
+  + 'Every session you have ever had is indexed for full-text search. Use `session_search` to find\n'
+  + 'earlier work in this project, `session_event_search` to search inside one session, and\n'
+  + '`session_event_read` to read an exact event. Raw logs remain the fallback for another project\'s\n'
+  + 'sessions, an exact substring, or an unavailable index: they live under the harness home\'s\n'
+  + '`sessions/` directory. The harness home is your working folder\'s parent at the default location;\n'
+  + 'a deployment may have moved the working folder, so resolve it from the environment (`$DSH_HOME`,\n'
+  + 'else `~/.dsh`) instead of walking up blindly. Reading another project\'s sessions is a deliberate\n'
+  + 'act: say so before you do it. The raw recipe is in the `session-recall` skill.\n'
+
+/** The v21 repository-boundaries heading (four boundaries). */
+export const RETIRED_REPO_BOUNDARIES_HEADING = 'When your session runs inside a repository (rather than only your working folder), four boundaries hold:\n'
+
+/**
+ * The v22 heading and its first boundary: project-bound facts belong to the repository, not to the
+ * cross-project working folder. Exact text: a hand-edited bullet block stays untouched.
+ */
+export const CURRENT_REPO_BOUNDARIES_HEADING = 'When your session runs inside a repository (rather than only your working folder), five boundaries hold:\n\n'
+  + '- **Project-bound facts stay with the project.** What is true only of this repository — its\n'
+  + '  conventions, its numbers, its people — belongs in the repository itself (its `AGENTS.md`, its\n'
+  + '  `.dsh/`, or its docs). Your working folder holds what travels with you across projects: durable\n'
+  + '  facts, preferences, and lessons.\n'
+
+/**
  * Apply the known generated-text migrations to an older **generated** manual and stamp the version
  * actually reached. Only an exact retired block/paragraph is replaced; hand edits elsewhere survive,
  * and a manual without a marker (hand-written, or older than versioning) or newer than this build is
@@ -117,6 +155,23 @@ export function migrateHomeManual(text: string): string {
     next = next.replace(RETIRED_DELIVERY_ANCHOR, CURRENT_DELIVERY_ANCHOR)
     migratedTo = 21
     changed = true
+  }
+  if (migratedTo >= 21) {
+    if (next.includes(RETIRED_PAST_CONVERSATIONS)) {
+      next = next.replace(RETIRED_PAST_CONVERSATIONS, CURRENT_PAST_CONVERSATIONS)
+      changed = true
+    }
+    if (next.includes(RETIRED_REPO_BOUNDARIES_HEADING)) {
+      next = next.replace(RETIRED_REPO_BOUNDARIES_HEADING, CURRENT_REPO_BOUNDARIES_HEADING)
+      changed = true
+    }
+    // A manual that already carries both v22 blocks reached the generation even when no replacement
+    // fired (an idempotent re-run over a file a human assembled); advance the stamp so it is not
+    // warned as stale forever.
+    if (next.includes(CURRENT_PAST_CONVERSATIONS) && next.includes(CURRENT_REPO_BOUNDARIES_HEADING)) {
+      migratedTo = 22
+      changed = true
+    }
   }
   if (!changed) return text
   return next.replace(/^<!-- home-manual v\d+ -->/mu, `<!-- home-manual v${String(migratedTo)} -->`)
@@ -275,17 +330,10 @@ makes you worse, not better.
 
 ## Past conversations
 
-Every session you have ever had is on disk: \`<harness-home>/sessions/--<normalized-cwd>--/session-<id>/session.v<n>.jsonl.zstd\`
-(the harness home is your working folder's parent directory). \`<n>\` is the log format generation and moves
-with the harness — list the session directory instead of assuming the name. Each line is one event — full user and assistant
-messages, tool calls with their arguments, session headers naming the cwd and preset. Nothing indexes
-them; when memory is not enough and you need what was actually said or done, search them with the
-recipe in the \`session-recall\` skill.
-
+${CURRENT_PAST_CONVERSATIONS}
 ## Working inside someone else's repository
 
-When your session runs inside a repository (rather than only your working folder), four boundaries hold:
-
+${CURRENT_REPO_BOUNDARIES_HEADING}
 - **You may change the working tree, but you do not commit.** Commit authority belongs to the person
   or the development session that owns the repository; leaving your change uncommitted is the handoff.
 - **Reserved queue items are not yours to trigger.** An item marked reserved (🔒) in the queue names a

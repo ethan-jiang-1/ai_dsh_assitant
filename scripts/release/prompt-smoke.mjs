@@ -129,8 +129,14 @@ const sectionChecks = [
   ['identity', 'management-post expert'],
   ['working-folder manual', '# Your working folder'],
   ['delivery rule', 'Deliver files where the principal can take them'],
+  ['session recall policy', 'Every session you have ever had is indexed for full-text search'],
+  ['project facts boundary', 'Project-bound facts stay with the project'],
   ['memory digest', 'Live status of your working folder'],
   ['operating brief', 'Desk capture lane'],
+]
+// A retired instruction that set the model against the mounted session tools (D1, 2026-10-28).
+const absentChecks = [
+  ['retired session-recall claim', 'Nothing indexes them'],
 ]
 const requiredTools = [
   'assistant_memory',
@@ -144,16 +150,22 @@ const report = {
   generatedAt: new Date().toISOString(),
   session: log?.replace(`${repoRoot}/`, ''),
   sections: Object.fromEntries(sectionChecks.map(([name, needle]) => [name, systemText?.includes(needle) === true])),
+  absent: Object.fromEntries(absentChecks.map(([name, needle]) => [name, systemText?.includes(needle) !== true])),
   tools: requiredTools.map(name => ({ name, present: tools.includes(name) })),
 }
 mkdirSync(outDir, { recursive: true })
 writeFileSync(join(outDir, 'report.json'), `${JSON.stringify(report, null, 2)}\n`, 'utf8')
 
 if (systemText !== undefined) {
-  step('checking the four prompt sections')
+  step('checking the prompt sections')
   for (const [name, needle] of sectionChecks) {
     if (systemText.includes(needle)) ok(`${name}: present`)
     else fail(`${name}: missing (${needle})`)
+  }
+  step('checking retired instructions are gone')
+  for (const [name, needle] of absentChecks) {
+    if (!systemText.includes(needle)) ok(`${name}: absent`)
+    else fail(`${name}: still present (${needle})`)
   }
   step('checking the six assistant tools')
   for (const name of requiredTools) {

@@ -9,7 +9,20 @@ import { readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { memoryPool } from '../support/host-harness.ts'
 import { DEFAULT_SOUL } from '../../src/domain/home/soul.ts'
-import { CURRENT_DELIVERY_ANCHOR, CURRENT_ONE_QUESTION_PARAGRAPH, HOME_MANUAL_VERSION, RETIRED_DELIVERY_ANCHOR, RETIRED_ONE_QUESTION_PARAGRAPH, RETIRED_ROOM_DATA_SECTION } from '../../src/domain/home/home-map.ts'
+import {
+  CURRENT_DELIVERY_ANCHOR,
+  CURRENT_ONE_QUESTION_PARAGRAPH,
+  CURRENT_PAST_CONVERSATIONS,
+  CURRENT_REPO_BOUNDARIES_HEADING,
+  HOME_MANUAL_VERSION,
+  RETIRED_DELIVERY_ANCHOR,
+  RETIRED_ONE_QUESTION_PARAGRAPH,
+  RETIRED_PAST_CONVERSATIONS,
+  RETIRED_REPO_BOUNDARIES_HEADING,
+  RETIRED_ROOM_DATA_SECTION,
+  renderHomeManual,
+} from '../../src/domain/home/home-map.ts'
+import { MANUAL_BYTE_CAP } from '../../src/host/curate-digest.ts'
 
 const boot = memoryPool('assistant-root-files-')
 
@@ -62,6 +75,20 @@ describe('manualSnapshot (guidance)', () => {
     expect(manual).not.toContain('.desk/state.json')
     expect(manual).not.toContain('desk-refresh')
     expect(manual).not.toContain('The desk file')
+    // v22: the indexed session tools are the primary recall path; the raw zstd recipe is the
+    // declared fallback, and project-bound facts belong to the repository.
+    expect(manual).toContain('session_search')
+    expect(manual).not.toContain('Nothing indexes them')
+    expect(manual).toContain(CURRENT_REPO_BOUNDARIES_HEADING)
+    expect(manual).toContain('five boundaries hold')
+  })
+
+  it('keeps the generated manual inside its prompt budget', async () => {
+    // D3 (2026-10-28): the render had grown to 11,033 bytes against an 8,192-byte cap, so every
+    // request carried a manual cut in the middle — the collaboration boundaries and the layout
+    // never reached the model. The budget is now above the render, and this test is the invariant:
+    // growing the manual past the budget must be a deliberate cap change, not silent truncation.
+    expect(Buffer.byteLength(renderHomeManual(), 'utf8')).toBeLessThanOrEqual(MANUAL_BYTE_CAP)
   })
 
   it('returns a hand-edited manual verbatim, and the prompt never names the dataDir path', async () => {
@@ -143,6 +170,26 @@ describe('manualSnapshot (guidance)', () => {
     expect(migrated).toContain(`home-manual v${String(HOME_MANUAL_VERSION)}`)
   })
 
+  it('migrates a v21 manual to the v22 recall policy and the project-facts boundary', async () => {
+    const { service } = boot()
+    await service.ensureHome()
+    const legacy = `${service.manualSnapshot()
+      .replace(CURRENT_PAST_CONVERSATIONS, RETIRED_PAST_CONVERSATIONS)
+      .replace(CURRENT_REPO_BOUNDARIES_HEADING, RETIRED_REPO_BOUNDARIES_HEADING)
+      .replace(`<!-- home-manual v${String(HOME_MANUAL_VERSION)} -->`, '<!-- home-manual v21 -->')}\n\nHand note: keep me.`
+    writeFileSync(service.paths.agentsFile, legacy, 'utf8')
+
+    await service.ensureHome()
+
+    const migrated = readFileSync(service.paths.agentsFile, 'utf8')
+    expect(migrated).toContain(CURRENT_PAST_CONVERSATIONS)
+    expect(migrated).not.toContain('Nothing indexes them')
+    expect(migrated).toContain(CURRENT_REPO_BOUNDARIES_HEADING)
+    expect(migrated).not.toContain(RETIRED_REPO_BOUNDARIES_HEADING)
+    expect(migrated).toContain('Hand note: keep me.')
+    expect(migrated).toContain(`home-manual v${String(HOME_MANUAL_VERSION)}`)
+  })
+
   it('flags an unrepairable older generated manual in the prompt without rewriting it', async () => {
     const { service } = boot()
     await service.ensureHome()
@@ -180,5 +227,20 @@ describe('curate reports manual scaffold drift', () => {
 
     const brief = await service.curate()
     expect(brief.findings.find(finding => finding.code === 'manual-stale-scaffold')).toBeUndefined()
+  })
+
+  it('reports a manual that outgrew the prompt budget instead of cutting it silently', async () => {
+    const { service } = boot()
+    await service.ensureHome()
+    writeFileSync(
+      service.paths.agentsFile,
+      `<!-- home-manual v${String(HOME_MANUAL_VERSION)} -->\n\n${'x'.repeat(MANUAL_BYTE_CAP + 10)}\n`,
+      'utf8',
+    )
+
+    const brief = await service.curate()
+    const finding = brief.findings.find(item => item.code === 'manual-over-budget')
+    expect(finding?.severity).toBe('warn')
+    expect(finding?.message).toContain('the tail is cut from every request')
   })
 })

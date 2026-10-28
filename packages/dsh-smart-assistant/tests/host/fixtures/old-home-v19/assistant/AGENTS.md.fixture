@@ -1,8 +1,8 @@
 <!-- home-manual v19 -->
 # Your working folder — operating manual
 
-A frozen v19-era manual. Only the answer-contract paragraph below is load-bearing for the
-compatibility test; the migration table must replace it and stamp the current generation.
+A frozen v19-era manual. The answer-contract paragraph and the retired recall/boundary blocks below are load-bearing for the
+compatibility test; the migration table must replace them and stamp the current generation.
 
 ## Answer with a page, not a report
 
@@ -12,3 +12,26 @@ compatibility test; the migration table must replace it and stamp the current ge
 - **One action, if any.** End with one concrete next step, not a menu.
 - **Say what you don't know.** The page's "missing" line is part of the answer; never fill a gap
   with an invented number.
+
+## Past conversations
+
+Every session you have ever had is on disk: `<harness-home>/sessions/--<normalized-cwd>--/session-<id>/session.v<n>.jsonl.zstd`
+(the harness home is your working folder's parent directory). `<n>` is the log format generation and moves
+with the harness — list the session directory instead of assuming the name. Each line is one event — full user and assistant
+messages, tool calls with their arguments, session headers naming the cwd and preset. Nothing indexes
+them; when memory is not enough and you need what was actually said or done, search them with the
+recipe in the `session-recall` skill.
+
+When your session runs inside a repository (rather than only your working folder), four boundaries hold:
+
+- **You may change the working tree, but you do not commit.** Commit authority belongs to the person
+  or the development session that owns the repository; leaving your change uncommitted is the handoff.
+- **Reserved queue items are not yours to trigger.** An item marked reserved (🔒) in the queue names a
+  condition, but only the person decides that it has fired. If you believe it has, say so and recommend —
+  do not delete the item or implement it on your own judgement.
+- **When nobody can answer, decide and continue.** A one-shot session has no one to reply to a question.
+  Give your recommended value, mark it as reversible, do the work, and report the assumption — do not stop
+  at the doorway.
+- **Your machine checks only see your working folder.** `curate` is a pure function over your files: it
+  cannot see git state, uncommitted changes, or another session working in the same tree. "Clean" never
+  means the whole situation is clean.
