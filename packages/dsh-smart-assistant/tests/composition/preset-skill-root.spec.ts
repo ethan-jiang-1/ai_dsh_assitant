@@ -34,18 +34,18 @@ interface Entry {
 }
 
 /** The `skill-filesystem` row this package's preset declares, read from the shipped patch. */
-function curatedSkillDirs(): unknown {
+function curatedSkillDir(): unknown {
   const patches = parse(readFileSync(join(packageRoot, 'cordis.patch.yml'), 'utf8'), {
     customTags: [jsTag],
   }) as { insert?: Entry[] }[]
   const preset = patches.flatMap(patch => patch.insert ?? []).find(entry => entry.id === 'preset-assistant')
   const rows = (preset?.config as { plugins?: Entry[] } | undefined)?.plugins ?? []
   const row = rows.find(entry => entry.id === 'skill-filesystem')
-  const dirs = row?.config?.customSkillDirs
-  if (!Array.isArray(dirs) || dirs.length !== 1) {
-    throw new Error('cordis.patch.yml: the preset must declare exactly one skill-filesystem customSkillDirs entry')
+  const dir = row?.config?.bundledSkillDir
+  if (dir === undefined) {
+    throw new Error('cordis.patch.yml: the preset must declare one skill-filesystem bundledSkillDir')
   }
-  return dirs[0]
+  return dir
 }
 
 const installBase = mkdtempSync(join(tmpdir(), 'assistant-preset-base-'))
@@ -58,10 +58,24 @@ describe('preset curated skill root', () => {
   it('resolves inside this package, from a profile-like base, to a directory holding the curated skills', () => {
     // A bundle patch's rows inherit the profile directory as `baseUrl`; it has no `presets/` of its own.
     const baseUrl = pathToFileURL(installBase).href + '/'
-    const resolved = interpolate({ baseUrl }, curatedSkillDirs()) as string
+    const resolved = interpolate({ baseUrl }, curatedSkillDir()) as string
 
     expect(resolved).toBe(join(packageRoot, 'presets', 'assistant', 'skills'))
     // The skill the live probe loads by name must be a bundle under the resolved root.
     expect(existsSync(join(resolved, 'management-breakdown', 'SKILL.md'))).toBe(true)
+  })
+
+  it('registers the curated root as the bundled (rank 600) band, so user skills can shadow it', () => {
+    // `bundledSkillDir` is the provider's rank-600 root; `customSkillDirs` is rank 300 and would
+    // outrank a user's own same-named skill. The field name is the only place the band is visible
+    // from this package, so the row's shape is the contract.
+    const patches = parse(readFileSync(join(packageRoot, 'cordis.patch.yml'), 'utf8'), {
+      customTags: [jsTag],
+    }) as { insert?: Entry[] }[]
+    const preset = patches.flatMap(patch => patch.insert ?? []).find(entry => entry.id === 'preset-assistant')
+    const rows = (preset?.config as { plugins?: Entry[] } | undefined)?.plugins ?? []
+    const row = rows.find(entry => entry.id === 'skill-filesystem')
+    expect(row?.config?.customSkillDirs).toBeUndefined()
+    expect(row?.config?.bundledSkillDir).toBeDefined()
   })
 })

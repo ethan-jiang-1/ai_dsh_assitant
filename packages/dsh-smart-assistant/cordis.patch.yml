@@ -274,15 +274,16 @@
           # 技能注册表（`ctx.skills`）在 HOST 组合里，且按 scope 分层：这里的行注册进**本 preset 的层**，
           # 所以不需要 realm。
           #   · 策展技能：本 preset 目录下的 `skills/`（人写的、随 repo 版本化）—— 按**包名**解析到
-          #     包内路径（`baseUrl` 是 profile 目录，不是包根：见文件头）。
+          #     包内路径（`baseUrl` 是 profile 目录，不是包根：见文件头）。用 `bundledSkillDir`：
+          #     它是 provider 的 rank 600 根，项目技能（100）与用户技能（400）能遮蔽同名策展技能；
+          #     `customSkillDirs` 是 rank 300，会让随包只读定义压过用户自己的同名技能。
           #   · 学到的技能：由 `assistant-learn` 自己挂载第二个 `dsh-skill-filesystem` 实例
           #     （`providerName: assistant-learned`，只扫 working folder 的 `skills/`）—— 路径从服务取，零漂移。
           # 分成两个 provider 是刻意的：一眼能看出一个技能是"策展的"还是"学来的"。
           - id: skill-filesystem
             name: '@deepseek-ai/dsh-skill-filesystem'
             config:
-              customSkillDirs:
-                - !!js process.getBuiltinModule('node:path').join(process.getBuiltinModule('node:path').dirname(process.getBuiltinModule('node:module').createRequire(baseUrl).resolve('dsh-smart-assistant/package.json')), 'presets/assistant/skills')
+              bundledSkillDir: !!js process.getBuiltinModule('node:path').join(process.getBuiltinModule('node:path').dirname(process.getBuiltinModule('node:module').createRequire(baseUrl).resolve('dsh-smart-assistant/package.json')), 'presets/assistant/skills')
 
           # ── 文件系统（读 working folder、读工作区）───────────────────────────────────
           #

@@ -27,6 +27,7 @@ import type Schema from '@deepseek-ai/schemastery'
 import { expandHomePath, resolveDshHome } from '@deepseek-ai/dsh-home-paths'
 import type {} from '@deepseek-ai/dsh-host-webserver'
 import { digestNow, digestSnapshotNow, manualSnapshotOf, prewarmHome, runCuration, soulSnapshotOf } from './curate-digest.ts'
+import { assertDataDirOutsidePackage } from './package-root.ts'
 import { forgetMemory, listMemories, recall, saveMemory, type SaveMemoryInput } from './memory-room.ts'
 import { dropThread, listThreads, openThread, parkThread, promoteThread, updateThread, type OpenThreadInput, type PromoteTarget, type ThreadUpdate } from './research-room.ts'
 import { landSkill, learnedSkillNames, listProposals, proposeSkill, readLearnedSkill, recordSkillLoad, retireSkill, skillUsage, writeSkill } from './skills-room.ts'
@@ -146,6 +147,7 @@ export class AssistantMemory extends Service implements HomeHost {
     const root = config.dataDir !== undefined && config.dataDir.trim().length > 0
       ? resolve(expandHomePath(config.dataDir))
       : join(resolveDshHome(), HOME_DIRECTORY_NAME)
+    assertDataDirOutsidePackage(root)
     this.paths = homePaths(root)
     this.digestMaxBytes = config.digestMaxBytes ?? 6144
     this.recallLimit = config.recallLimit ?? 20

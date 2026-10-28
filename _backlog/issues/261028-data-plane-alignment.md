@@ -43,7 +43,7 @@ opened: 2026-10-28
 | 0 | 立卡与授权（本卡 + proposed 决定卡 + goal） | 已完成 | 两个文件 + goal `goal-c7f546ff` |
 | 1 | 会话取数：手册 v22 + 迁移 + `session-recall` 技能 + 手动预算（cap 8192→14336）+ “生成内容装进预算”不变量测试 + `manual-over-budget` finding | 已完成 | 手册 v22 与迁移/预算 + 技能重写；`vitest root-files/layout/old-home-compat` 绿；`pnpm test` 1106 通过；`pnpm verify` 50/50；`pnpm prompt-smoke`：新策略在场、`Nothing indexes them` 缺席、六工具在场 |
 | 2 | 所有权分类：数据卡拆三表（用户内容/插件账本/宿主面）+ 损坏策略列 + 账本标签 + N2 回退登记（discipline 适配 14）+ README 同步 | 已完成 | `docs/delivery.md` §一、`docs/discipline.md` 适配 13/14、包 README 的 Data/平面表；`pnpm verify` 50/50；doc contract 17 通过 |
-| 3 | 两个护栏：`dataDir` 包内拒绝 + `bundledSkillDir` rank 600 | 未开始 | 待填 |
+| 3 | 两个护栏：`dataDir` 包内拒绝（memory + ledger）+ `bundledSkillDir` rank 600 + 组合测试 | 已完成 | `src/host/package-root.ts` + 两处调用；`data-dir-guard.spec.ts` 5 例；`preset-skill-root.spec.ts` 7 例含 band 断言；`pnpm test` 1112 通过；`pnpm verify` 50/50 |
 | 4 | 收口：build/typecheck/test/verify + prompt-smoke + note 翻转 | 未开始 | 待填 |
 
 ## 验收标准

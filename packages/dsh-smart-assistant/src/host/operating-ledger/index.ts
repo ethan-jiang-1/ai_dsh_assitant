@@ -22,6 +22,7 @@ import { closeSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, re
 import { hostname } from 'node:os'
 import { join, resolve } from 'node:path'
 import { EMPTY_LEDGER, applyOperation, canonicalJson, reviveLedgerState, type LedgerOperation, type LedgerState, type MatterRecord, type OperationReceipt, type OperationRecord, type UnclaimedMaterial } from '../../domain/operating/ledger.ts'
+import { assertDataDirOutsidePackage } from '../package-root.ts'
 import { OPERATIONS_ARCHIVE_FILE, mergeOperations, parseOperationsArchive, serializeOperationRecord } from '../../domain/operating/archive.ts'
 
 declare module '@deepseek-ai/cordis' {
@@ -316,6 +317,7 @@ export class AssistantOperatingLedger extends Service {
     this.dataDir = config.dataDir === undefined || config.dataDir.trim() === ''
       ? join(resolveDshHome(), 'assistant-operating')
       : resolve(expandHomePath(config.dataDir))
+    assertDataDirOutsidePackage(this.dataDir)
     this.keepOperations = config.keepOperations !== undefined && Number.isSafeInteger(config.keepOperations) && config.keepOperations > 0
       ? config.keepOperations
       : MAX_RECENT_OPERATIONS
