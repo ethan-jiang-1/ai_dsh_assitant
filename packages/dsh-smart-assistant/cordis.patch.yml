@@ -249,6 +249,12 @@
           # "上次怎么定的 X"走这里，不进 knowledge 房。Config 用默认（100 条 / 30s）。
           - id: tool-session-query
             name: '@deepseek-ai/dsh-tool-session-query'
+            config:
+              # The first search builds the derived FTS index; on a long dev history the 30s default
+              # aborts the build, and every retry starts over (2026-10-28 live probe: four timeouts,
+              # a 36 KiB index, then the raw-log fallback). Give the first call room; steady-state
+              # searches still finish in milliseconds.
+              searchTimeoutMs: 120000
 
           - id: assistant-learn
             name: dsh-smart-assistant/learn

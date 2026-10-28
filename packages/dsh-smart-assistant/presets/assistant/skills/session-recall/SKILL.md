@@ -28,7 +28,9 @@ substring the tokenizer misses, or a deployment without these tools needs the fa
 Use it only when the index cannot answer.
 
 1. Resolve the harness home: `$DSH_HOME` when set, otherwise `~/.dsh`. Do **not** assume it is your
-   working folder's parent — a deployment may have moved the working folder.
+   working folder's parent — a deployment may have moved the working folder. When `$DSH_HOME` is
+   set, that is the only home to read: do not also search `~/.dsh` in the same pass, and never mix
+   two homes' sessions in one answer.
 2. List `"${DSH_HOME:-$HOME/.dsh}/sessions"`. Project directories are `--<normalized-cwd>--/` —
    the session cwd with `/` replaced by `-`, wrapped in `--` — and each session is its own
    directory holding `session.v<n>.jsonl.zstd`. `<n>` is the log format generation and moves with
