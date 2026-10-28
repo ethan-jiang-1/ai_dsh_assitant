@@ -74,7 +74,7 @@ HOST 面（cordis.patch.yml → dsh.bundle.patch）
                               监听推送——**非独立组合行**；皮肤，不进模型上下文）
 
 AGENT 面（`cordis.patch.yml` 的 `preset-assistant` 行 → agent preset）
-├── assistant-home-preamble   提示词段落：身份（SOUL.md）与家手册（AGENTS.md）逐字
+├── assistant-home-preamble   提示词段落：身份（SOUL.md）与手册（MANUAL.md 渲染 + AGENTS.md 笔记）
 ├── assistant-memory-digest   提示词段落：有界摘要（桌面）
 ├── assistant-memory-tool     工具 assistant_memory
 ├── assistant-recall-tool     工具 assistant_recall（按需只读检索；A2 已裁决，随 preset 挂载）
@@ -154,7 +154,7 @@ seam 的成色读数是**第二个真实 Provider 出现而 Consumer 一行不�
 
 | 模块 | 职责 | 依赖方向 |
 |---|---|---|
-| `src/domain/home/layout.ts` | **working folder 布局的唯一 owner**：路径、scaffold、SOUL.md/AGENTS.md 生成 | 无（最底层） |
+| `src/domain/home/layout.ts` | **working folder 布局的唯一 owner**：路径、scaffold、SOUL.md/MANUAL.md/AGENTS.md 的生成与拆分迁移 | 无（最底层） |
 | `src/domain/home/frontmatter.ts` | YAML frontmatter 解析/生成（**不抛异常**：坏文件交给养护检查点名） | `yaml` |
 | `src/domain/home/room.ts` | 房间存储：安全 id、原子写、归档、**列出失败文件** | frontmatter |
 | `src/domain/memory/record.ts` | 记忆记录词汇与校验（一条记录一个断言） | room 类型 |
@@ -206,7 +206,7 @@ seam 的成色读数是**第二个真实 Provider 出现而 Consumer 一行不�
 
 | 模型可见输入 | 由什么覆盖 |
 |---|---|
-| 身份/手册/经营账本段/摘要四段落（SOUL.md + AGENTS.md + 经营事项走账本 + 精选记忆、线索与知识签树） | 系统提示词组装随请求记录；身份/手册/摘要内容由 working folder 的文件（外部状态）决定 |
+| 身份/手册/经营账本段/摘要四段落（SOUL.md + MANUAL.md + AGENTS.md 笔记 + 经营事项走账本 + 精选记忆、线索与知识签树） | 系统提示词组装随请求记录；身份/手册/摘要内容由 working folder 的文件（外部状态）决定 |
 | 六个工具的调用与结果 | `tool/call` / `tool/result` 逐字进日志 |
 | 技能目录（学到的技能出现/消失） | 目录随请求组装记录；`skills/change` 是注册表失效事件 |
 | 工具 description | 属于模型可见输入：改它是**行为变更**，不是改名 |

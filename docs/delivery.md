@@ -41,7 +41,7 @@
 | 事实 | 依赖层级 | 承诺/平面 | 权威 | 位置 | 作用域 | 寿命 | 谁看得见 | 进插件备份 | 迁移/删除 | 卸载后 | 损坏策略 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 记忆/线索/知识/技能/提案 | N0 文件 | P2 / U | 插件 + 用户 | `<dataDir>/{memory,research,knowledge,skills,skill-proposals}/` | home 单例，无项目键 | 房间生命周期；archive 保留 | 用户；模型经工具 | 是 | frontmatter 只增可选；`purge` 逐条擦除 | 保留 | 容忍：坏文件进 curate findings，不静默丢 |
-| 身份与手册 | N0 文件 | P2 / U | 用户 + 插件 | `<dataDir>/SOUL.md`、`AGENTS.md` | home 单例 | 身份永不覆盖；手册按已知文本迁移 | 用户；模型逐字进 prompt | 是 | generation 迁移；`refresh-manual` 备份后再生 | 保留 | 手册超预算报 `manual-over-budget`；旧 generation 在 prompt 标记 |
+| 身份与手册 | N0 文件 | P2 / U | 用户 + 插件 | `<dataDir>/SOUL.md`、`MANUAL.md`、`AGENTS.md` | home 单例 | 身份永不覆盖；`MANUAL.md` 是渲染镜像（prompt 用 render）；`AGENTS.md` 是用户笔记 | 用户；模型读渲染 + 笔记 | 是 | 旧生成 `AGENTS.md` → `.bak-*`（方案 A）；`refresh-manual` 只刷新 `MANUAL.md` | 保留 | 手册本身由不变量装进预算；笔记超预算报 `notes-over-budget`，身份报 `soul-over-budget` |
 | 交付稿 | N0 文件 | P2 / U | 用户 | `<dataDir>/deliverables/`、会话 cwd 的 `deliverables/` | home / workspace | 无生命周期（模型自发落点） | 用户 | 是（home 侧） | 手动归档/删除 | 保留 | 无 |
 
 **插件账本**（机器写；用户可读、可排障，但不是可依赖的用户内容；不进 prompt）
@@ -52,7 +52,7 @@
 | 治理审计 | N0 文件 | P3 / H-like | 插件 | `<dataDir>/audit/approvals.jsonl`、`audit/purges.jsonl`、`audit/maintenance.jsonl` | 只追加；显式 `rotate` 才移动 | 用户；面板读最近 200 行 | 是 | `rotate --apply` 移入 `archive-maintenance/` | 保留 | 坏行计数跳过；只有账本状态 fail loud |
 | 轮转归档 | N0 文件 | P3 / H-like | 插件 | `<dataDir>/archive-maintenance/<stamp>/` | 由 `rotate` 创建；手动清 | 用户 | 是 | 手动 | 保留 | 无 |
 | 界面密度 | N0 文件 + 自有 CLI | P3 / H-like | 插件/用户 | `<dataDir>/ui-mode.json`（v1 envelope） | 可删，删了回标准 | 用户（面板）；模型不可见 | 是 | key v1 | 保留 | 容忍：回默认 |
-| 手册再生备份 | N0 文件 + 自有 CLI | P3 / H-like | 用户 | `<dataDir>/AGENTS.md.bak-<stamp>` | 由 `refresh-manual` 创建；手动清 | 用户 | 是 | 手动 | 保留 | 无 |
+| MANUAL 镜像备份 | N0 文件 + 自有 CLI | P3 / H-like | 用户 | `<dataDir>/MANUAL.md.bak-<stamp>` | 由 `refresh-manual` 创建；手动清 | 用户 | 是 | 手动 | 保留 | 无 |
 | 经营账本状态 | N0 文件 + 自有服务 | 插件自有文件账本 | 插件 | `<operatingDir>/ledger.json` | 最近 256 条操作 + 全量计数；压缩后仍有界 | 用户；模型经工具 | 是 | v1 只增；`operationCount` 回填；不做硬删 | 保留 | **fail loud**：读不出 v1 拒绝当空账本 |
 | 账本操作归档 | N0 文件 + 自有服务 | 插件自有文件账本 | 插件 | `<operatingDir>/operations-archive.jsonl` | 只追加；完整回执历史；读取有 256 MiB 上限 | 用户；模型经工具按 id 读 | 是 | 按 `operationId` 去重；需要导出/轮转 | 保留 | 坏行计数跳过；超限 fail loud |
 | 单 writer 锁 | N0 文件 | 机器文件（不是数据） | 插件 | `<operatingDir>/writer.lock` | 进程持有；dispose 释放 | 排障者 | **否**（导出排除） | 不迁移；残锁按 PID/启动时间/心跳接管 | 不留 | 不可读锁 fail closed |
@@ -131,7 +131,7 @@ node .../assistant-data.mjs check  --assistant <DSH_HOME>/assistant --operating 
 - `export` 排除 `writer.lock` / `*.tmp` / `*.takeover`，拒绝符号链接（备份必须是普通文件）；旧的带锁 bundle 在 import 时也会被剔除。导出前停实例，得到跨房间一致的快照。
 - `import` 要求实例已停止；默认要求两个目标目录不存在或为空，非空拒绝、不覆盖。`--replace` 把非空目标改名为 `<dir>.pre-import-<id>` 旁路后再导入，失败时恢复旁路；旁路不删除，确认后可手动清。`--dry-run` 只做与真导入相同的校验并报告文件数与将被旁路的目标，不写盘。
 - 未知 `schemaVersion` 拒绝导入；不猜、不半导入。导入先写 sibling temp，再 rename 就位；失败不留下半成品。
-- `status` 读路径/文件数/字节数、手册 generation、`ledger.json` 是否 v1、归档操作数，以及 memory/research/skills archive、提案收件箱、approvals 的 retention 读数（只读，不删）；`check` 再加相对路径、坏 ledger/归档行、旧手册、符号链接、超大归档/审批、提案积压与备份总量（>512 MiB 提示手工导出/归档），问题以非零退出。
+- `status` 读路径/文件数/字节数、`MANUAL.md` 镜像版本、`ledger.json` 是否 v1、归档操作数，以及 memory/research/skills archive、提案收件箱、approvals 的 retention 读数（只读，不删）；`check` 再加相对路径、坏 ledger/归档行、符号链接、超大归档/审批、提案积压与备份总量（>512 MiB 提示手工导出/归档），问题以非零退出。
 - 原始 `cp -R` 等价可用；它不校验 manifest、不排除 `writer.lock`、也不保证目标为空——需要“可验证的恢复”时用 `assistant-data`。手动 `cp -R` 备份必须删掉 `<备份>/assistant-operating/writer.lock` 与 `*.tmp`，否则换机恢复后账本会把旧 host 的锁当活锁。
 
 **显式擦除（硬删除）**：
@@ -147,8 +147,8 @@ node .../assistant-data.mjs purge --assistant <DSH_HOME>/assistant [--operating 
 - 账本里的 material/quote 与 `discard` 是审计历史，不随房间记录擦除；要连账本一起擦除需另做显式操作。
 - 删除后可能留下悬空 `[[链接]]`/source；`curate` 会报，恢复需从备份。
 
-**手册再生**：`assistant-data refresh-manual --assistant <DSH_HOME>/assistant --yes` 把现有 `AGENTS.md` 复制为
-`AGENTS.md.bak-<stamp>`（0600）后写入当前 generation。它是给迁移表覆盖不到的更老手册的逃生门；手改内容在备份里，
+**MANUAL 镜像再生**：`assistant-data refresh-manual --assistant <DSH_HOME>/assistant --yes` 把现有 `MANUAL.md` 复制为
+`MANUAL.md.bak-<stamp>`（0600）后写入当前渲染；它不碰 `AGENTS.md` 笔记。旧生成手册的迁移在 scaffold 时完成（备份制，方案 A）；
 不碰 `SOUL.md`。不带 `--yes` 拒绝。
 
 **提案轮转**：`assistant-data archive-proposals --assistant <DSH_HOME>/assistant --yes` 只把 `status: landed`
@@ -163,12 +163,12 @@ node .../assistant-data.mjs purge --assistant <DSH_HOME>/assistant [--operating 
 
 **旧回执分页**：桌面活动流最近窗口之外，`GET /api/assistant/operating-receipts?before=<ISO>&limit=<n>` 从状态与归档分页返回 receipt；客户端「加载更早账本」消费它，不复制业务状态。
 
-**升级/卸载**：装新 tarball 不动用户数据；`--dump-config` 仍应有 `preset-assistant`，新会话验证一次。升级/remove 保留两个插件目录；remove 后重装回到组合。`pnpm upgrade-smoke` 证明“旧→新→remove”的两目录边界与组合恢复；真实旧字节的读取由 `tests/host/old-home-compat.spec.ts` 的冻结 v19 fixture 证明（房间、技能、提案、用量、手册迁移、账本回执）。
+**升级/卸载**：装新 tarball 不动用户数据；`--dump-config` 仍应有 `preset-assistant`，新会话验证一次。升级/remove 保留两个插件目录；remove 后重装回到组合。`pnpm upgrade-smoke` 证明“旧→新→remove”的两目录边界与组合恢复；真实旧字节的读取由 `tests/host/old-home-compat.spec.ts` 的冻结 v19 fixture 证明（房间、技能、提案、用量、旧手册拆分迁移、账本回执）。
 
 **格式兼容政策**：
 
 - 房间 frontmatter **只增可选字段**；新增必填字段或改语义必须先写迁移，再改校验。旧文件读不懂时由 `curate` 报 `unreadable-file`/`page-unreadable`，不静默跳过。
-- 手册按 generation 迁移：只替换已知的精确旧段落并盖**实际达到的**版本戳（v15 只到 v20 就标 v20，不冒充当前版本）；匹配不到的旧手册不重写，prompt 段末尾带 generation warning，`curate` 报 `manual-stale-scaffold`。更老的手册用 `assistant-data refresh-manual --yes` 备份后再生。
+- 手册与笔记分家：prompt 用手冊的当前渲染（升级永不旧），`AGENTS.md` 是用户笔记；旧生成手册（带 marker）在 scaffold 时整体移到 `AGENTS.md.bak-*`，不迁移、不改写；`refresh-manual --yes` 只刷新 `MANUAL.md` 镜像。
 - 账本 v1 只增字段：`operationCount` 缺失时按当前操作数回填；旧 `ledger.json` 首次写入时压缩；归档行按 `operationId` 去重，状态副本优先。
 - bundle manifest `schemaVersion` 是**包格式**版本，不是房间内容版本；不匹配拒绝导入。
 - 不在安装时静默重写用户数据；迁移要么可重复、可校验，要么 fail loud。

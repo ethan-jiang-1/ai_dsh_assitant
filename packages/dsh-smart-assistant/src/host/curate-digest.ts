@@ -13,8 +13,9 @@ import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import type { AssistantMemory } from './service.ts'
 import { renderDigest, type DigestResult } from '../domain/home/digest.ts'
+import { scaffoldHome } from '../domain/home/layout.ts'
 import { compareFindings, curateHome, type CurationBrief } from '../domain/home/health.ts'
-import { HOME_MANUAL_VERSION, HOME_STATUS_BLURB, parseManualVersion, renderHomeManual } from '../domain/home/home-map.ts'
+import { HOME_STATUS_BLURB, renderHomeManual } from '../domain/home/home-map.ts'
 import { DEFAULT_SOUL } from '../domain/home/soul.ts'
 import { curateKnowledge } from '../domain/knowledge/health.ts'
 import { scanLearnedSkills, scanSkillArchiveScale } from '../domain/skills/scan.ts'
@@ -151,7 +152,7 @@ export function digestSnapshotNow(host: AssistantMemory): string {
 export function prewarmHome(host: AssistantMemory): Promise<void> {
   host.prewarmPromise ??= (async () => {
     try {
-      await host.ensureHome()
+      await scaffoldHome(host.paths)
     } catch (error: unknown) {
       host.ctx.logger.warn(`assistant home scaffold failed at ${host.paths.root}: ${String(error)}`)
     }
@@ -177,28 +178,19 @@ export function soulSnapshotOf(host: AssistantMemory): string {
 }
 
 /**
- * The home manual that rides in the system prompt: `AGENTS.md` verbatim when present, a
- * freshly rendered manual otherwise — the fallback is always current, so a missing manual
- * can never go stale. Hand edits are the owner's; only the scaffold version marker is the
- * machine's (see `curate`'s drift finding). Since v10 the manual is fully portable: the
- * layout tree roots at a symbolic placeholder and NO machine path rides in the prompt —
- * all home access is tool-mediated, and a prompt-level path both goes stale when a home
- * moves and primes the model to bypass the tools with raw file access (both observed
- * 2026-10-01; the path-priming also degraded skill selection in the behavior eval).
- * @param host - The home service whose manual is read.
- * @returns The manual text, byte-capped.
+ * The manual that rides in the system prompt: the plugin-owned render plus the user's notes.
+ * `MANUAL.md` is a human-readable mirror and is deliberately NOT the prompt source, so an upgrade
+ * can never leave stale operating rules in front of the model. The notes file is the user's; it
+ * is appended after the manual and byte-capped. No machine path rides in either: all home access is
+ * tool-mediated, and a prompt-level path both goes stale when a home moves and primes the model to
+ * bypass the tools with raw file access (both observed 2026-10-01).
+ * @param host - The home service whose manual and notes are read.
+ * @returns The manual text plus the user's notes, byte-capped.
  */
 export function manualSnapshotOf(host: AssistantMemory): string {
-  const text = rootFileSnapshot(host.paths.agentsFile, renderHomeManual(), MANUAL_BYTE_CAP)
-  const version = parseManualVersion(text)
-  // A generated manual older than this build may not be reproducible by exact text replacement.
-  // Say so in the prompt: a model reading stale operating rules is worse than a visible warning.
-  // A hand-written manual (v0) is the owner's and is not warned.
-  if (version === 0 || version >= HOME_MANUAL_VERSION) return text
-  const warning = `\n\n[This manual is generation v${String(version)}; the current scaffold is v${String(HOME_MANUAL_VERSION)}. Treat older instructions as possibly stale; do not rewrite the file yourself.]`
-  const allowance = MANUAL_BYTE_CAP - Buffer.byteLength(warning, 'utf8')
-  const head = Buffer.from(text, 'utf8').subarray(0, Math.max(0, allowance)).toString('utf8')
-  return `${head}${warning}`
+  const manual = renderHomeManual()
+  const notes = rootFileSnapshot(host.paths.agentsFile, '', MANUAL_BYTE_CAP)
+  return notes === '' ? manual : `${manual}\n\n${notes}`
 }
 
 /**
@@ -216,7 +208,7 @@ export async function runCuration(host: AssistantMemory, shadowedBy?: Readonly<R
   const knowledge = await host.listKnowledge()
   const skills = await scanLearnedSkills(host.paths.skillsDir)
   const archiveScale = await scanSkillArchiveScale(host.paths.skillsArchiveDir)
-  const manualText = await readFile(host.paths.agentsFile, 'utf8').catch(() => undefined)
+  const notesText = await readFile(host.paths.agentsFile, 'utf8').catch(() => undefined)
   const soulText = await readFile(host.paths.soulFile, 'utf8').catch(() => undefined)
   const usage = await readSkillUsage(host.paths.skillUsageFile)
   const digest = await digestNow(host)
@@ -241,11 +233,10 @@ export async function runCuration(host: AssistantMemory, shadowedBy?: Readonly<R
     knowledgePages: knowledge.entries.length,
     retiredSkillBundles: archiveScale.retiredBundles,
     skillSnapshots: archiveScale.snapshots,
-    ...(manualText !== undefined
+    ...(notesText !== undefined
       ? {
-          manualVersion: parseManualVersion(manualText),
-          manualBytes: Buffer.byteLength(manualText.trim(), 'utf8'),
-          manualMaxBytes: MANUAL_BYTE_CAP,
+          notesBytes: Buffer.byteLength(notesText.trim(), 'utf8'),
+          notesMaxBytes: MANUAL_BYTE_CAP,
         }
       : {}),
     ...(soulText !== undefined

@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url'
 import { afterEach, describe, expect, it } from 'vitest'
 import { homePaths, scaffoldHome } from '../../src/domain/home/layout.ts'
 import { DEFAULT_SOUL, SOUL_FILE_NAME } from '../../src/domain/home/soul.ts'
-import { AGENTS_FILE_NAME, HOME_MANUAL_VERSION } from '../../src/domain/home/home-map.ts'
+import { AGENTS_FILE_NAME, NOTES_HEADER } from '../../src/domain/home/home-map.ts'
 
 const packageRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
 
@@ -66,11 +66,10 @@ describe('scaffoldHome', () => {
     ]) {
       expect(existsSync(directory)).toBe(true)
     }
-    const manual = await readFile(paths.agentsFile, 'utf8')
+    const manual = await readFile(paths.manualFile, 'utf8')
     expect(manual).toContain('# Your working folder — operating manual')
     expect(manual).toContain('## Past conversations')
     expect(manual).toContain('knowledge-craft')
-    expect(manual).toContain(`home-manual v${String(HOME_MANUAL_VERSION)}`)
     // The closing contract (eval-found 2026-09-28, Q8): bookkeeping must not eat the answer.
     expect(manual).toContain('Bookkeeping is not an answer')
     expect(manual).toContain('answers the principal\u0027s last question')
@@ -79,11 +78,13 @@ describe('scaffoldHome', () => {
     expect(manual).toContain('The chat reply is the pointer')
     expect(manual).toContain('research/')
     expect(manual).toContain('knowledge/')
-    // The manual is owner data seeded once — it must stay portable: the layout tree roots at a
-    // symbolic placeholder, and the machine's absolute path never gets baked in (a moved home
-    // would otherwise leave the model reading and writing the old location; observed 2026-10-01).
+    // The generated manual must stay portable: the layout tree roots at a symbolic placeholder,
+    // and the machine's absolute path never gets baked in (a moved home would otherwise leave the
+    // model reading and writing the old location; observed 2026-10-01). AGENTS.md is the owner's
+    // notes file, seeded with the header that points at MANUAL.md.
     expect(manual).toContain('<working-folder>/')
     expect(manual).not.toContain(root)
+    expect(await readFile(paths.agentsFile, 'utf8')).toBe(NOTES_HEADER)
     // The identity seed is the built-in default: day 0 the voice is exactly the shipped one.
     expect(await readFile(paths.soulFile, 'utf8')).toBe(`${DEFAULT_SOUL}\n`)
   })
@@ -135,7 +136,7 @@ describe('scaffoldHome', () => {
   it('splits the recall faces: the manual names the indexed tools, the skill names the log shape, neither pins a writer generation', async () => {
     const paths = homePaths(await fixtureHome())
     await scaffoldHome(paths)
-    const manual = await readFile(paths.agentsFile, 'utf8')
+    const manual = await readFile(paths.manualFile, 'utf8')
     const recallSkill = await readFile(
       join(packageRoot, 'presets', 'assistant', 'skills', 'session-recall', 'SKILL.md'),
       'utf8',

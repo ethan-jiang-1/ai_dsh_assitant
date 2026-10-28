@@ -26,7 +26,7 @@ shipped preset id（`standard`/`ptc`/`cordis`/`minimal`）、保留 profile 名�
 
 ## 二、皮肤（随时可改，零身份代价）
 
-preset 显示名与描述（`cordis.patch.yml` 的 `preset-assistant` 行 config）、一切 UI 文案（走 locale）、`SOUL.md`/`AGENTS.md` 的措辞与内置回退身份文本、技能正文、
+preset 显示名与描述（`cordis.patch.yml` 的 `preset-assistant` 行 config）、一切 UI 文案（走 locale）、`SOUL.md`/`MANUAL.md`/`AGENTS.md` 的措辞与内置回退身份文本、技能正文、
 Web 壳的页标题、图标与侧栏品牌（`src/host/web-branding.ts` 注入行 + `src/client/chrome/brand.ts` 的
 `sidebar.brand.*` slot 占位；侧栏名 `BRAND_NAME`「章鱼管家」，页签标题 `DEFAULT_WEB_TITLE`「章鱼管家 · 本地经营总管」）。
 工具 **description 是中间地带**：名字是身份，description 是**模型可见输入** —— 改它不是改名，

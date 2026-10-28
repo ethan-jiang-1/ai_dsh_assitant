@@ -15,14 +15,12 @@ import type { ResearchThread } from '../research/thread.ts'
 import type { SkillUsage, SkillUsageLine, SkillUsageReadFailure } from '../skills/usage.ts'
 import { skillUsageLines } from '../skills/usage.ts'
 import type { RoomReadFailure } from './room.ts'
-import { HOME_MANUAL_VERSION } from './home-map.ts'
 import { MS_PER_DAY } from './time.ts'
 
 /** Machine-readable finding kinds, stable enough for a caller to filter on. */
 export type FindingCode =
   | 'unreadable-file'
-  | 'manual-stale-scaffold'
-  | 'manual-over-budget'
+  | 'notes-over-budget'
   | 'soul-over-budget'
   | 'duplicate-id'
   | 'dangling-reference'
@@ -102,12 +100,10 @@ export interface CurationInput {
   readonly retiredSkillBundles: number
   /** Pre-overwrite snapshots under the skills archive. */
   readonly skillSnapshots: number
-  /** Scaffold version of the on-disk AGENTS.md marker; omitted when the file is absent. */
-  readonly manualVersion?: number
-  /** Bytes of the on-disk AGENTS.md; omitted when the file is absent. */
-  readonly manualBytes?: number
-  /** Byte budget the prompt keeps for the manual. */
-  readonly manualMaxBytes?: number
+  /** Bytes of the user notes (AGENTS.md); omitted when the file is absent. */
+  readonly notesBytes?: number
+  /** Byte budget the prompt keeps for the notes. */
+  readonly notesMaxBytes?: number
   /** Bytes of the on-disk SOUL.md identity; omitted when the file is absent. */
   readonly soulBytes?: number
   /** Byte budget the prompt keeps for the identity. */
@@ -257,27 +253,16 @@ export function curateHome(input: CurationInput): CurationBrief {
     })
   }
 
-  if (input.manualVersion !== undefined && input.manualVersion !== HOME_MANUAL_VERSION) {
-    findings.push({
-      code: 'manual-stale-scaffold',
-      severity: 'info',
-      message: 'the working folder manual (AGENTS.md) predates the current scaffold '
-        + `(v${String(input.manualVersion)} vs v${String(HOME_MANUAL_VERSION)}) — delete the file to `
-        + 'regenerate it, or ignore this if you curate it by hand',
-      refs: ['AGENTS.md'],
-    })
-  }
-
   if (
-    input.manualBytes !== undefined
-    && input.manualMaxBytes !== undefined
-    && input.manualBytes > input.manualMaxBytes
+    input.notesBytes !== undefined
+    && input.notesMaxBytes !== undefined
+    && input.notesBytes > input.notesMaxBytes
   ) {
     findings.push({
-      code: 'manual-over-budget',
+      code: 'notes-over-budget',
       severity: 'warn',
-      message: `the working folder manual (AGENTS.md) is ${String(input.manualBytes)} bytes but the `
-        + `prompt keeps ${String(input.manualMaxBytes)} — the tail is cut from every request; shorten the `
+      message: `the working folder notes (AGENTS.md) are ${String(input.notesBytes)} bytes but the `
+        + `prompt keeps ${String(input.notesMaxBytes)} — the tail is cut from every request; shorten the `
         + 'file or move detail into a skill',
       refs: ['AGENTS.md'],
     })

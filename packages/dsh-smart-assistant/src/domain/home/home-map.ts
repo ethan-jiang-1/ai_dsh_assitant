@@ -15,8 +15,16 @@
  * @module dsh-smart-assistant/home/home-map
  */
 
-/** File name of the home's operating manual (the AGENTS.md convention). */
+/** File name of the plugin-owned operating manual (always the current render). */
+export const MANUAL_FILE_NAME = 'MANUAL.md'
+
+/** File name of the user-owned notes appended after the manual (the AGENTS.md convention). */
 export const AGENTS_FILE_NAME = 'AGENTS.md'
+
+/** The notes file seeded on a fresh home; the manual lives in {@link MANUAL_FILE_NAME}. */
+export const NOTES_HEADER = '# Working-folder notes (yours)\n\n'
+  + 'The operating manual is `MANUAL.md` (generated; edits there are ignored). Notes that belong to\n'
+  + 'this working folder go here; this file is appended after the manual in every request.\n'
 
 /** Version of the generated manual; bump when the generated content changes meaningfully. */
 export const HOME_MANUAL_VERSION = 24
@@ -132,7 +140,7 @@ export const CURRENT_FOUR_THINGS_PARAGRAPH = 'Four things ride in every request:
   + 'deliberate: a working folder that crowds out the work in front of you makes you worse, not better.\n'
 
 /** v24 names the knowledge tree the digest also carries; v23 counted only memories and threads. */
-export const CURRENT_FOUR_THINGS_PARAGRAPH_V24 = 'Four things ride in every request: your identity (`SOUL.md`), this manual (`AGENTS.md`), the\n'
+export const CURRENT_FOUR_THINGS_PARAGRAPH_V24 = 'Four things ride in every request: your identity (`SOUL.md`), this manual (`MANUAL.md`), the\n'
   + 'standing brief that sends operating matters to the ledger, and a bounded digest of the working\n'
   + 'folder\'s live state — the strongest active memories, the open threads, and the knowledge tree.\n'
   + 'Everything else — full records, archived entries, skill bodies, knowledge pages — is fetched on\n'
@@ -161,7 +169,8 @@ export const RETIRED_LAYOUT_TREE = '```text\n'
 export const CURRENT_LAYOUT_TREE = '```text\n'
   + '<working-folder>/\n'
   + '├── SOUL.md            (your identity; seeded, never overwritten)\n'
-  + '├── AGENTS.md          (this manual; generated versions migrate; hand edits survive)\n'
+  + '├── MANUAL.md          (this manual; regenerated each build; edits are ignored)\n'
+  + '├── AGENTS.md          (your notes; appended after this manual)\n'
   + '├── skill-usage.json   (load counts; advisory, safe to delete)\n'
   + '├── ui-mode.json       (panel density; advisory, safe to delete)\n'
   + '├── memory/            (active records; archive/ for superseded or retired)\n'
@@ -281,23 +290,22 @@ export function parseManualVersion(text: string): number {
  * and that the digest is bounded on purpose.
  */
 export const HOME_STATUS_BLURB = [
-  'Live status of your working folder. The manual above (`AGENTS.md`) is how it works, your voice',
-  'is `SOUL.md`, and both are files in your working folder root — yours to read and edit. Only',
-  'this bounded status rides in every request; `recall` and `assistant_reflect` fetch the rest',
-  'on demand.',
+  'Live status of your working folder. The manual above (`MANUAL.md`) is how it works, your voice',
+  'is `SOUL.md`, and your own notes live in `AGENTS.md` — the manual is generated, the notes are',
+  'yours to read and edit. Only this bounded status rides in every request; `recall` and',
+  '`assistant_reflect` fetch the rest on demand.',
 ].join('\n')
 
 /**
- * Render the full home manual. The manual is seeded once and is owner data afterwards — so it
- * must stay **portable**: the layout tree roots at a symbolic placeholder, never the machine's
- * absolute path. Neither this text nor the assembled prompt names the dataDir: a baked path goes
- * stale the day the home moves, and the model trusts it (observed 2026-10-01: a moved home's
- * model read and wrote the old location). The home is reached through tools, not a prompt path.
- * @returns Markdown contents for `AGENTS.md`.
+ * Render the full home manual. The manual is plugin-owned and always current: the prompt uses this
+ * render directly (`MANUAL.md` is a human-readable mirror), so it must stay **portable** — the
+ * layout tree roots at a symbolic placeholder, never the machine's absolute path. Neither this text
+ * nor the assembled prompt names the dataDir: a baked path goes stale the day the home moves, and
+ * the model trusts it (observed 2026-10-01). The home is reached through tools, not a prompt path.
+ * @returns Markdown contents for `MANUAL.md`.
  */
 export function renderHomeManual(): string {
-  return `${HOME_MANUAL_MARKER}
-# Your working folder — operating manual
+  return `# Your working folder — operating manual
 
 This directory outlives every session. What you keep here is what you will still know tomorrow;
 what you do not keep is gone. Four rooms, one job each — do not mix them. Who you are lives in

@@ -50,11 +50,12 @@ Viki 的 API key 从 `apiKeyEnv`（默认 `OPENVIKING_API_KEY`）读；内联 `a
 ## Data
 
 - **Working folder**：`<dshHome>/assistant`，一棵用户可见的 home 树，由本插件拥有。**用户内容**：`SOUL.md`、
-  `AGENTS.md`、`memory/`、`research/`、`skills/`、`knowledge/`、`skill-proposals/`；**机器账本**（用户可读、可排障，
-  但不是可依赖的用户内容）：`skill-usage.json`、`ui-mode.json`、`audit/*.jsonl`、`archive-maintenance/`、`*.bak-*`。
-  `deliverables/` 是用户数据（模型自发落点，无生命周期）。学到的技能是本插件注册的 provider 根（`skills/`），
-  不是 `$DSH_HOME/skills`；策展技能随包只读，位于 `presets/assistant/skills/`。`AGENTS.md` 按 generation 迁移
-  已知旧段落；匹配不到的旧手册不重写，prompt 标记 stale；超过 prompt 预算时报 `manual-over-budget`。
+  `MANUAL.md`（插件手册的渲染镜像）、`AGENTS.md`（用户笔记）、`memory/`、`research/`、`skills/`、`knowledge/`、
+  `skill-proposals/`；**机器账本**：`skill-usage.json`、`ui-mode.json`、`audit/*.jsonl`、`archive-maintenance/`、`*.bak-*`。
+  `deliverables/` 是用户数据（模型自发落点，无生命周期）。prompt 用手册的**当前渲染** + `AGENTS.md` 笔记；
+  升级永远最新，没有 generation。旧生成手册（带 marker）在 scaffold 时整体移到 `AGENTS.md.bak-*`（手改留在备份）。
+  笔记超预算报 `notes-over-budget`，身份报 `soul-over-budget`。学到的技能是本插件注册的 provider 根（`skills/`），
+  不是 `$DSH_HOME/skills`；策展技能随包只读，位于 `presets/assistant/skills/`。
 - **Ledger**：`<dshHome>/assistant-operating`，插件自有文件账本（不是 `ctx.storageDomain` 的 host KV）：
   权威 `ledger.json`（最近 256 条操作 + 累计计数）+ `operations-archive.jsonl`（完整操作历史）+ 单 writer 锁；
   可用 `assistant-data` 导出/导入。
@@ -70,9 +71,9 @@ Viki 的 API key 从 `apiKeyEnv`（默认 `OPENVIKING_API_KEY`）读；内联 `a
   把现有目录移到 `.pre-import-*` 旁路。手动 `cp -R` 也要先删掉备份里的 `writer.lock`，并另备 sessions/credentials。
 - **诊断/擦除**：`assistant-data status` 报路径/大小/手册 generation/账本健康/归档操作数，以及 memory/research/skills
   archive、提案收件箱、approvals 的 retention 读数（只读）；`check` 再报相对路径、
-  坏 ledger/归档行、旧手册与符号链接，有问题以非零退出。`purge --kind ... --id ... --reason ... --yes`
+  坏 ledger/归档行与符号链接，有问题以非零退出。`purge --kind ... --id ... --reason ... --yes`
   是显式硬删除：删 active/archive/snapshot 副本，并向 `audit/purges.jsonl` 写审计；不删 sessions/账本历史。
-  `refresh-manual --yes` 先把 `AGENTS.md` 备份为 `.bak-*` 再写入当前 generation，供迁移表覆盖不到的旧手册。
+  `refresh-manual --yes` 先把 `MANUAL.md` 备份为 `.bak-*` 再写入当前渲染；它不碰 `AGENTS.md` 笔记。
   `archive-proposals --yes` 把 `landed`/`rejected` 提案移进 `skill-proposals/archive/`，`proposed`/`approved` 留在收件箱。
   `rotate --older-than <days> [--apply]` 默认 dry-run；apply 才把旧 approvals/房间 archive/操作归档移进 `archive-maintenance/`。
   `seal --in <bundle> --out <file>` / `unseal --in <file> --out <dir>` 用环境变量口令做 AES-256/PBKDF2 传输加密。
@@ -80,7 +81,7 @@ Viki 的 API key 从 `apiKeyEnv`（默认 `OPENVIKING_API_KEY`）读；内联 `a
 - **并发**：同一 home 只应有一个写入者；账本拒绝第二 writer，房间写是原子但 last-write-wins。
 - **Package**：不写任何用户数据/secret；`handoff-scan` 拒绝数据、凭据、宿主路径与活密钥，`release-smoke`
   断言安装不创建 working folder。Viki key 不落配置；bootstrap 的 `bootstrap.json` 0600、日志 token 已打码。
-- **升级/卸载**：两个插件目录保留；房间格式只增可选字段，手册按 generation 迁移，账本 v1 旧字节可读；
+- **升级/卸载**：两个插件目录保留；房间格式只增可选字段，旧生成手册在 scaffold 时备份并转为笔记，账本 v1 旧字节可读；
   `assistant-data` 提供带 `schemaVersion` 的备份/恢复；不把 sessions/credentials 打进 bundle。
   完整数据卡（每个面的归属/寿命/备份/卸载去向）= [`docs/delivery.md`](../../docs/delivery.md) §一。
 

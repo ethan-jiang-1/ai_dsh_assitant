@@ -185,6 +185,10 @@ export class AssistantMemory extends Service implements HomeHost {
    * @returns What this call created.
    */
   async ensureHome(): Promise<ScaffoldResult> {
+    // The constructor starts a prewarm scaffold. Wait for it before starting another one: a
+    // delayed default-soul write from that run can otherwise clobber a caller's fresh edit
+    // (the flaky hand-edit tests were exactly this interleaving).
+    if (this.prewarmPromise !== undefined) await this.prewarmPromise.catch(() => undefined)
     return scaffoldHome(this.paths)
   }
 

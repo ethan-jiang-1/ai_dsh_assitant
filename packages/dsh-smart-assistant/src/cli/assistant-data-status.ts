@@ -7,7 +7,7 @@
 import { existsSync } from 'node:fs'
 import { lstat, readFile, readdir, stat } from 'node:fs/promises'
 import { isAbsolute, join, resolve } from 'node:path'
-import { HOME_MANUAL_VERSION } from '../domain/home/home-map.ts'
+import { HOME_MANUAL_VERSION, MANUAL_FILE_NAME } from '../domain/home/home-map.ts'
 import { credentialShapeLabels } from '../domain/skills/audit.ts'
 import { OPERATIONS_ARCHIVE_FILE, parseOperationsArchive } from '../domain/operating/archive.ts'
 
@@ -83,11 +83,6 @@ async function fileCount(dir: string): Promise<{ files: number, bytes: number }>
   return { files, bytes }
 }
 
-function manualVersionOf(text: string): number | undefined {
-  const match = /^<!--\s*home-manual v(\d+)\s*-->/u.exec(text.trimStart())
-  return match?.[1] === undefined ? undefined : Number(match[1])
-}
-
 async function treeStatus(dir: string): Promise<DataTreeStatus> {
   if (!existsSync(dir)) return { exists: false, files: 0, bytes: 0 }
   return { exists: true, ...await fileCount(dir) }
@@ -105,10 +100,9 @@ export async function statusData(options: { readonly assistantDir: string, reado
   const operatingDir = resolve(options.operatingDir)
   const assistant = await treeStatus(assistantDir)
   const operating = await treeStatus(operatingDir)
-  let manualVersion: number | undefined
-  try {
-    manualVersion = manualVersionOf(await readFile(join(assistantDir, 'AGENTS.md'), 'utf8'))
-  } catch { /* missing/unreadable manual is reported by curate, not by status */ }
+  // MANUAL.md is the generated mirror; its presence means the scaffold has run for this home.
+  // It is refreshed by the scaffold, so the reported generation is always this build's.
+  const manualVersion = existsSync(join(assistantDir, MANUAL_FILE_NAME)) ? HOME_MANUAL_VERSION : undefined
 
   const ledgerPath = join(operatingDir, 'ledger.json')
   let ledger: DataLedgerStatus = { exists: false, bytes: 0, state: 'missing' }
@@ -219,11 +213,6 @@ export async function checkData(options: { readonly assistantDir: string, readon
     const text = await readFile(path, 'utf8').catch(() => '')
     const labels = credentialShapeLabels(text)
     if (labels.length > 0) problems.push(`ledger surface ${path} carries what looks like ${labels.join(', ')} — strip it and rotate the credential if it was real`)
-  }
-  if (status.assistant.manualVersion !== undefined
-    && status.assistant.manualVersion > 0
-    && status.assistant.manualVersion < HOME_MANUAL_VERSION) {
-    problems.push(`working folder manual is v${String(status.assistant.manualVersion)}; current is v${String(HOME_MANUAL_VERSION)} (the next launch migrates known text, or the prompt marks it stale)`)
   }
   for (const link of [...await findSymlinks(status.assistantDir), ...await findSymlinks(status.operatingDir)]) {
     problems.push(`symbolic link in owned data: ${link}`)

@@ -39,7 +39,8 @@ describe('assembleExpertHome', () => {
     expect(result.soul).toBe('seeded')
     expect(result.imported).toHaveLength(1)
     expect(readFileSync(join(dataDir, 'SOUL.md'), 'utf8')).toBe(`${DEFAULT_SOUL}\n`)
-    expect(readFileSync(join(dataDir, 'AGENTS.md'), 'utf8')).toContain('# Your working folder — operating manual')
+    expect(readFileSync(join(dataDir, 'MANUAL.md'), 'utf8')).toContain('# Your working folder — operating manual')
+    expect(readFileSync(join(dataDir, 'AGENTS.md'), 'utf8')).toContain('# Working-folder notes')
 
     const page = pageOf(result.imported[0].path)
     expect(page.data.status).toBe('draft')

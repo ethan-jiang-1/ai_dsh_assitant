@@ -12,7 +12,7 @@ import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:pat
 import { atomicWriteFile } from '../domain/home/atomic-write.ts'
 import { parseFrontmatterDocument } from '../domain/home/frontmatter.ts'
 import { appendAuditLine } from './assistant-data-audit.ts'
-import { renderHomeManual } from '../domain/home/home-map.ts'
+import { MANUAL_FILE_NAME, renderHomeManual } from '../domain/home/home-map.ts'
 import { isEntryId } from '../domain/home/room.ts'
 import {
   DATA_MANIFEST_FILE,
@@ -55,12 +55,6 @@ async function countTree(dir: string): Promise<{ files: number, bytes: number }>
 function isInside(parent: string, child: string): boolean {
   const nested = relative(parent, child)
   return nested === '' || (!nested.startsWith('..') && !isAbsolute(nested))
-}
-
-/** Parse the scaffold marker from a working-folder manual, without importing the domain. */
-function manualVersionOf(text: string): number | undefined {
-  const match = /^<!--\s*home-manual v(\d+)\s*-->/u.exec(text.trimStart())
-  return match?.[1] === undefined ? undefined : Number(match[1])
 }
 
 /** Coordination files, never user data, and never valid in a portable bundle. */
@@ -363,7 +357,7 @@ export async function refreshManual(options: ManualRefreshOptions): Promise<Manu
   if (rootInfo === undefined) throw new Error(`assistant-data: working folder not found: ${assistantDir}`)
   if (rootInfo.isSymbolicLink()) throw new Error(`assistant-data: working folder is a symbolic link: ${assistantDir}`)
   if (!rootInfo.isDirectory()) throw new Error(`assistant-data: working folder is not a directory: ${assistantDir}`)
-  const path = join(assistantDir, 'AGENTS.md')
+  const path = join(assistantDir, MANUAL_FILE_NAME)
   const existing = await lstat(path).catch(() => undefined)
   if (existing === undefined) {
     await atomicWriteFile(path, renderHomeManual())
@@ -371,14 +365,12 @@ export async function refreshManual(options: ManualRefreshOptions): Promise<Manu
   }
   if (existing.isSymbolicLink()) throw new Error(`assistant-data: refusing to refresh a symlinked manual: ${path}`)
   if (!existing.isFile()) throw new Error(`assistant-data: manual is not a regular file: ${path}`)
-  const previous = await readFile(path, 'utf8')
-  const previousVersion = manualVersionOf(previous)
   const stamp = (options.now ?? new Date()).toISOString().replace(/[:.]/g, '-')
-  const backup = join(assistantDir, `AGENTS.md.bak-${stamp}-${process.pid.toString(36)}`)
+  const backup = join(assistantDir, `${MANUAL_FILE_NAME}.bak-${stamp}-${process.pid.toString(36)}`)
   await copyFile(path, backup)
   await chmod(backup, 0o600)
   await atomicWriteFile(path, renderHomeManual())
-  return { path, backup, ...(previousVersion === undefined ? {} : { previousVersion }) }
+  return { path, backup }
 }
 
 /**

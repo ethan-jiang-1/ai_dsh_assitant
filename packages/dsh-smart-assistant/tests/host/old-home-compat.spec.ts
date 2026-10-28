@@ -7,14 +7,14 @@
  * test time (a literal manual under the repo would be picked up as developer instructions).
  */
 
-import { cpSync, readFileSync, renameSync } from 'node:fs'
+import { cpSync, readFileSync, readdirSync, renameSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { Context } from '@deepseek-ai/cordis'
 import { describe, expect, it } from 'vitest'
 import AssistantMemory from '../../src/index.ts'
 import { AssistantOperatingLedger } from '../../src/host/operating-ledger/index.ts'
-import { CURRENT_ONE_QUESTION_PARAGRAPH, HOME_MANUAL_VERSION, RETIRED_ONE_QUESTION_PARAGRAPH } from '../../src/domain/home/home-map.ts'
+import { NOTES_HEADER, renderHomeManual } from '../../src/domain/home/home-map.ts'
 import { dirPool } from '../support/host-harness.ts'
 
 const fixture = fileURLToPath(new URL('./fixtures/old-home-v19', import.meta.url))
@@ -54,22 +54,24 @@ describe('old-home compatibility (v19 fixture)', () => {
     expect((await service.skillUsage()).usage['old-skill']?.count).toBe(2)
   })
 
-  it('migrates the v19 manual to the current generation without touching the other rooms', async () => {
+  it('splits the v19 manual: legacy bytes move to a backup, MANUAL.md and notes take over', async () => {
     const home = copyFixture()
     const service = new AssistantMemory(new Context(), { dataDir: join(home, 'assistant') })
     await service.ensureHome()
 
-    const manual = readFileSync(join(home, 'assistant', 'AGENTS.md'), 'utf8')
-    expect(manual).toContain(`home-manual v${String(HOME_MANUAL_VERSION)}`)
-    expect(manual).toContain(CURRENT_ONE_QUESTION_PARAGRAPH)
-    expect(manual).not.toContain(RETIRED_ONE_QUESTION_PARAGRAPH)
-    expect(service.manualSnapshot()).toContain(CURRENT_ONE_QUESTION_PARAGRAPH)
-    expect(service.manualSnapshot()).not.toContain('generation v19')
+    // The constructor's prewarm and this call share one scaffold; whichever ran first did the
+    // split, so the backup is asserted on disk rather than through this call's return value.
+    const backups = readdirSync(join(home, 'assistant')).filter(name => name.startsWith('AGENTS.md.bak-'))
+    expect(backups).toHaveLength(1)
+    expect(readFileSync(join(home, 'assistant', backups[0]!), 'utf8')).toContain('A frozen v19-era manual')
+    expect(readFileSync(join(home, 'assistant', 'AGENTS.md'), 'utf8')).toBe(NOTES_HEADER)
+    expect(readFileSync(join(home, 'assistant', 'MANUAL.md'), 'utf8').trim()).toBe(renderHomeManual().trim())
+    expect(service.manualSnapshot()).toContain(renderHomeManual())
+    expect(service.manualSnapshot()).not.toContain('A frozen v19-era manual')
 
     const brief = await service.curate()
     expect(brief.findings.find(finding => finding.code === 'unreadable-file')).toBeUndefined()
     expect(brief.findings.find(finding => finding.code === 'page-unreadable')).toBeUndefined()
-    expect(brief.findings.find(finding => finding.code === 'manual-stale-scaffold')).toBeUndefined()
   })
 
   it('reads the old authoritative ledger and its receipt', async () => {

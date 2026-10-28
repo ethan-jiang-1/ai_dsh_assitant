@@ -12,7 +12,8 @@
 ```text
 <dataDir>/                      # 默认 <dshHome>/assistant（$DSH_HOME → ~/.dsh）
 ├── SOUL.md                     # 身份：agent 是谁、怎么说话（种子=内置默认；手改不覆盖）
-├── AGENTS.md                    # 手册：working folder 怎么用（AGENTS.md 惯例名；带 scaffold 版本标记）
+├── MANUAL.md                   # 插件手册：working folder 怎么用（每次渲染；盘上只是镜像）
+├── AGENTS.md                   # 你的笔记：追加在手册之后（无 marker、无迁移）
 ├── skill-usage.json            # 机器账本：skill 工具加载计数（可删，删了计数归零；不进摘要）
 ├── ui-mode.json                # 机器账本：完整看板密度 per-home（可删，删了回标准）
 ├── memory/                     # 房间一：已确立的事实 / 偏好 / 决定
@@ -129,7 +130,7 @@ dsh-obsidian 外部 vault 桥先不做：用户真想让助手管某个外部 va
 
 - **桌面**（常驻上下文，四个段落按提示词 order 讲一个顺序的故事：**你是谁（100）→ working folder 怎么用（300）→ 经营事项在账本（400）→ 里面现在有什么（10150）**）：
   - 身份段（`assistant:soul`）：`SOUL.md` 逐字（缺/空回退内置默认身份——回退是替换不是叠加）；
-  - 手册段（`assistant:home-manual`）：`AGENTS.md` 逐字（缺则现场渲染当前版，永不落后）；
+  - 手册段（`assistant:home-manual`）：`MANUAL.md` 的当前渲染 + `AGENTS.md` 笔记（缺则现场渲染当前版，永不落后）；
   - 经营账本段（`assistant:operating-brief`，order 400）：常设一句——经营事项走权威账本（`assistant_operating`），
     不在对话散文里落账。账本住独立 `assistant-operating` dataDir，不在本 working folder 四房间内
     （契约 = [`operating.md`](operating.md)）。
@@ -160,8 +161,7 @@ dsh-obsidian 外部 vault 桥先不做：用户真想让助手管某个外部 va
 | 悬空引用 | `supersedes` / `promotedTo` 指向不存在的 id | 引用断掉会让历史读不出来 |
 | 近似重复 | 高重合的活跃记忆（关键词/标签） | 三条模糊的记忆比一条准确的更糟 |
 | 摘要预算 | 摘要被预算截短（`truncated`）——被截掉的记忆对每个会话不可见；只有 `omittedMemories > 0` 时纯新增记忆才被服务层拒绝 | 桌面塞满 = 中间被漏掉；知识树/线索截短本身不阻塞 memory save；supersede/forget 是减压动作 |
-| 手册漂移 | `AGENTS.md` 的 scaffold 版本标记旧于当前（`manual-stale-scaffold`，info） | 持久化生成物会静默腐烂——**手改内容不报**（手改是拥有者的），版本落后才报；处置=`assistant-data refresh-manual --yes`（先备份）或忽略 |
-| 手册超预算 | `AGENTS.md` 的字节数超过 prompt 预算（`manual-over-budget`，warn）——模型每次只拿到被截断的头 | 尾部规则（协作边界、布局）会静默不进请求；处置=缩短文件或把细节移进技能。生成版必须装进预算，由 `tests/host/root-files.spec.ts` 钉住 |
+| 笔记超预算 | `AGENTS.md` 的字节数超过 prompt 预算（`notes-over-budget`，warn）——模型每次只拿到被截断的笔记尾 | 处置=缩短笔记或把细节移进技能/知识页。生成手册本身由 `tests/host/root-files.spec.ts` 的不变量装进预算 |
 | 身份超预算 | `SOUL.md` 的字节数超过 prompt 预算（`soul-over-budget`，warn）——身份会被截断 | 模型每次只拿到被截断的 voice；处置=缩短文件。与手册同一条纪律：超预算必须有人可读的告警 |
 | 过期线索 | 超过 `staleResearchDays` 未更新的 `open` 线索 | 悬着的线索会烂，机器先发现 |
 | 缺理由的 drop | `status: dropped` 但 `reason` 为空（经线程校验，以 `unreadable-file` 报出） | 尸体没写死因 = 白丢 |
@@ -204,24 +204,20 @@ bundles, M snapshots`，退役与快照都不删除、技能归档只增不减�
 （默认 5，`0` 关闭）轮自动插入一条养护 turn（plugin 源 user message，让路栅栏保证它是轮间
 安全空槽），指示跑 curate 并逐条处理发现项——养护按节拍进行，不依赖人记得；非 goal 会话仍由 persona 纪律驱动。
 
-## 五、working folder 根部的两个语义文件（`SOUL.md` 身份 + `AGENTS.md` 手册；另有机器账本）
+## 五、根部的三个语义文件（`MANUAL.md` 插件手册 + `AGENTS.md` 用户笔记 + `SOUL.md` 身份）
 
-**身份与引导分文件**，
-分工一句话——到处适用的进 `SOUL.md`，属于这个 working folder 的进 `AGENTS.md`。
+分工一句话：手册是插件的，属于这个 working folder 的笔记进 `AGENTS.md`，到处适用的身份进 `SOUL.md`。
 （`skill-usage.json`、`ui-mode.json` 是机器账本，不是语义文件。）
 
 - **`SOUL.md`（身份）**：agent 是谁、怎么说话。scaffold 缺则种（种子 = 内置默认身份；默认是管理岗，种子与回退一致），**已有永不覆盖**；空文件不注入。身份段读它逐字进 system prompt（紧贴 persona
   stub，`assistant:soul`）；缺/空/坏 → **回退内置默认**（回退是替换不是叠加）。改人格 = 编辑
   这个文件，不用动插件源码。管理知识种子不随 scaffold 落地；显式装配（包内 `bin/expert-setup.mjs`）把种子导入为 `draft`，`stable` 仍需人审。
-- **`AGENTS.md`（手册）**：working folder 怎么用——四房间、两档出口、退役、curate、盘上布局、首会话开场
+- **`MANUAL.md`（插件手册）**：working folder 怎么用——四房间、两档出口、退役、curate、盘上布局、首会话开场
   （first conversation）、首答一页纸（Answer with a page, not a report）、协作边界等节（非穷举，正文以
-  `renderHomeManual` 为准）。记忆/知识/技能面板
-  读 host `assistant-rooms` 的 working-folder 真值；业务事项住权威账本（合同见 [`operating.md`](operating.md) §二/§三）。手册正文由
-  `src/domain/home/home-map.ts` 的 `renderHomeManual` 渲染、运行时随家手册落盘.
-  scaffold 缺则种（首行 `<!-- home-manual vN -->` 版本标记）；已有的生成版按 generation 迁移**已知的精确旧段落**
-  （退役的 Room data 段、v19→v20 的答案契约段、v20→v21 的交付指引段、v21→v22 的召回策略与项目事实边界、v22→v23 的四段常驻与完整布局、v23→v24 的 knowledge tree 与遮蔽措辞）并盖**实际达到的**版本戳，手改保留；匹配不到的旧手册**不重写**，
-  手册段末尾附 generation warning（模型可见），curate 报 info。无 marker 的手写手册不迁移。手册段
-  （`assistant:home-manual`）逐字进 system prompt；缺则**现场渲染当前版**（缺文件永不落后）。
-- 两者都是**给人也给 agent 看**的文件；文件名走 AGENTS.md 业界惯例——DSH 原生装载器认项目根
+  `renderHomeManual` 为准）。记忆/知识/技能面板读 host `assistant-rooms` 的 working-folder 真值；业务事项住权威账本（合同见 [`operating.md`](operating.md) §二/§三）。
+  **prompt 段直接用 `renderHomeManual()` 的渲染，不读盘上文件**——升级永远最新，没有 generation/marker/迁移；盘上的 `MANUAL.md` 只是给人读的镜像，scaffold 发现漂移时先备份再重写。`assistant-data refresh-manual --yes` 只刷新这个镜像，不碰笔记。
+- **`AGENTS.md`（用户笔记）**：属于这个 working folder 的补充。scaffold 缺则种一个短头（指向 `MANUAL.md`）；prompt 把它追加在手冊之后，超预算时截断并报 `notes-over-budget`。
+  **旧生成手册的迁移**：带 `<!-- home-manual vN -->` marker 的文件在 scaffold 时整体移到 `AGENTS.md.bak-*`，新 `AGENTS.md` 只保留 notes 头——手改在备份里可见、可手动搬回，但不再自动进 prompt（方案 A）。无 marker 的手写文件原样保留为笔记。
+- 三者都是**给人也给 agent 看**的文件；`AGENTS.md` 走业界惯例——DSH 原生装载器认项目根
   与 `$DSH_HOME` 根的同名文件，不探 working folder 根，**同名不同域，互不冲突**。
 - persona 行缩为一句 stub（shadow 部署级 persona 的职能不动），身份正文由身份段拥有。

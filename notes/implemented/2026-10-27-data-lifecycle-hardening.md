@@ -7,7 +7,7 @@
 FAQ 26 的体检确认落点已对齐：working folder 是用户可见的 U home 文件树，经营账本是独立的 home 文件账本，session 归宿主；**不迁 `ctx.storageDomain`**。硬化集中在生命周期，而不是换存储面。
 
 - **用户可编辑的文件仍是权威。** 房间 frontmatter 只增可选字段；`Room.write` 保留本 build 不认识的字段；所有 home 写路径统一为「唯一 sibling temp → fsync → rename → 目录 fsync」，文件 0600、目录 0700；`SOUL.md`/`AGENTS.md` 也用同一原子写。摘要缓存按活跃房间文件的 size/mtime fingerprint 失效：外部手改在下一次 prompt 触发后台刷新。线索更新、知识页状态翻转、`save_page` 现有页重写与 memory supersede/forget 的 archive 在写前比较读到的原始文件内容（raw-text CAS），中途被改则报 `changed since it was read`；memory 写仍不做 CAS。
-- **手册是「随包规则 + owner 数据」的混合体。** 已知 generation 用精确旧文替换并盖**实际达到的**版本戳（v15 只到 v20 就标 v20，不冒充 v21）；v21 加「交付写 session cwd + `present`，working folder 是笔记本」；匹配不到的旧手册不重写，prompt 段末尾标 stale，需要时用 `assistant-data refresh-manual --yes` 先备份再再生。`SOUL.md` 保持 owner 数据，默认身份只到新 home。冻结 v19 home 作为旧字节回归，不用合成包冒充历史。
+- **手册是「渲染 + 用户笔记」两文件。** prompt 用 `renderHomeManual()` 的当前渲染（`MANUAL.md` 只是镜像），`AGENTS.md` 是用户笔记；旧生成手册（带 marker）在 scaffold 时整体移到 `AGENTS.md.bak-*`（方案 A，手改留在备份）。没有 generation/marker/迁移；`MANUAL.md` 漂移由 scaffold 备份后重写。
 - **账本状态有界，历史不丢。** `ledger.json` 只留最近 256 条操作 + `operationCount`，更早的进 `operations-archive.jsonl`；压缩先 fsync 归档再写缩小状态；重试先查归档，避免把已归档 operation 再应用一次；归档按 `operationId` 建索引，回执查找 O(1)，整文件读取有 256 MiB 上限；投影 `revision` 用累计计数，`receipts` 只含最近窗口，更早回执按 `operation_id` 读回。投影 byte cap 提到 8 MiB 只作未压缩旧 home 的桥。
 - **备份/恢复是显式的。** `assistant-data` 仍是唯一主路径；新增 `status`/`check`、`import --replace`（把非空目标移到 `.pre-import-*` 旁路，失败恢复，不删除）、`import --dry-run`（只校验并报计划）、manifest 文件数/字节数校验、活 `writer.lock` 拒绝、目标嵌套拒绝。bundle 不含 sessions/credentials/settings/storages/`session-search.db`。跨机合并与传输加密只做显式命令：`merge` 默认 dry-run、只补缺失并保留当前，账本冲突永不覆盖；`seal`/`unseal` 用环境变量口令做 AES-256/PBKDF2 传输加密；签名与密钥托管不做。
 - **秘密不落插件配置与日志。** Viki key 走 `apiKeyEnv`/`OPENVIKING_API_KEY`，内联 `apiKey` 仅为旧 home 兼容；bootstrap state/log 为 0600，launch token 在成功与失败路径都打码。
@@ -38,7 +38,7 @@ FAQ 26 的体检确认落点已对齐：working folder 是用户可见的 U home
 - 房间写仍是 last-write-wins；同一 home 的并发写不是支持场景。
 - 硬删除覆盖房间记录与账本 operation；audit 与 sessions 仍保留，要擦除它们需另做显式操作。
 - 备份默认是明文、整目录 replace；`merge` 保守合并与 `seal`/`unseal` 传输加密可用，签名、密钥托管与自动合并仍未取。
-- 手册只迁移已知旧文；更老 generation 标 stale，`refresh-manual` 是显式逃生门（先备份，手改可恢复）。
+- 旧生成手册在 scaffold 时备份并转为笔记（方案 A）；`refresh-manual` 只刷新 `MANUAL.md` 镜像。
 - 没有 project/workspace 键；一个 home 一个 principal，多项目共享是产品选择。
 
 ## 延后与触发

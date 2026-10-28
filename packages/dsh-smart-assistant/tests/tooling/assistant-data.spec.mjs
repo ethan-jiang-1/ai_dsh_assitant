@@ -13,6 +13,7 @@ import {
   readDataManifest,
   statusData,
 } from '../../src/cli/assistant-data.ts'
+import { HOME_MANUAL_VERSION, MANUAL_FILE_NAME } from '../../src/domain/home/home-map.ts'
 import { temp, disposeTempDirs } from './verify-gates-harness.mjs'
 
 afterEach(disposeTempDirs)
@@ -198,7 +199,7 @@ describe('assistant-data', () => {
     const operatingDir = join(target, 'assistant-operating')
     mkdirSync(assistantDir, { recursive: true })
     mkdirSync(operatingDir, { recursive: true })
-    writeFileSync(join(assistantDir, 'AGENTS.md'), '<!-- home-manual v20 -->\n# manual\n', 'utf8')
+    writeFileSync(join(assistantDir, MANUAL_FILE_NAME), '# manual mirror\n', 'utf8')
     writeFileSync(join(assistantDir, 'SOUL.md'), 'soul\n', 'utf8')
     writeFileSync(join(operatingDir, 'ledger.json'), JSON.stringify({
       version: 1,
@@ -208,7 +209,7 @@ describe('assistant-data', () => {
     }), 'utf8')
 
     const status = await statusData({ assistantDir, operatingDir })
-    expect(status.assistant.manualVersion).toBe(20)
+    expect(status.assistant.manualVersion).toBe(HOME_MANUAL_VERSION)
     expect(status.assistant.files).toBe(2)
     expect(status.ledger).toMatchObject({ exists: true, state: 'ok', version: 1, operations: 2 })
 
@@ -276,13 +277,12 @@ describe('assistant-data', () => {
     expect(result.problems.join('\n')).toContain('carries what looks like an API key')
   })
 
-  it('check names relative paths, a stale manual, a corrupt ledger and symlinks', async () => {
+  it('check names relative paths, a corrupt ledger and symlinks', async () => {
     const target = temp('data-check-')
     const assistantDir = join(target, 'assistant')
     const operatingDir = join(target, 'assistant-operating')
     mkdirSync(assistantDir, { recursive: true })
     mkdirSync(operatingDir, { recursive: true })
-    writeFileSync(join(assistantDir, 'AGENTS.md'), '<!-- home-manual v19 -->\n# manual\n', 'utf8')
     writeFileSync(join(operatingDir, 'ledger.json'), '{broken', 'utf8')
 
     const relative = await checkData({ assistantDir: 'relative/assistant', operatingDir: 'relative/operating' })
@@ -290,7 +290,6 @@ describe('assistant-data', () => {
 
     const absolute = await checkData({ assistantDir, operatingDir })
     const text = absolute.problems.join('\n')
-    expect(text).toMatch(/manual is v19; current is v\d+/)
     expect(text).toContain('ledger.json is unreadable')
 
     writeFileSync(join(operatingDir, 'desk-projection.json'), '{"schemaVersion":2}\n', 'utf8')

@@ -74,7 +74,6 @@ export interface ManualRefreshOptions {
 export interface ManualRefreshResult {
   readonly path: string
   readonly backup?: string
-  readonly previousVersion?: number
 }
 
 /** What an export bundle declares about itself. */

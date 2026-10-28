@@ -211,9 +211,7 @@ try {
     }
     const result = await module.refreshManual({ assistantDir, confirm: argv.includes('--yes') })
     console.log(`assistant-data: regenerated ${result.path}`)
-    if (result.backup !== undefined) {
-      console.log(`  previous manual (v${String(result.previousVersion ?? 0)}) kept at ${result.backup}`)
-    }
+    if (result.backup !== undefined) console.log(`  previous mirror kept at ${result.backup}`)
   } else {
     console.error(`assistant-data: unknown command ${JSON.stringify(command)}\n${usage}`)
     process.exit(2)
