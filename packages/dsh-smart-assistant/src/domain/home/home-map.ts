@@ -1,16 +1,16 @@
 /**
- * The home's operating manual: the text that rides in the system prompt's guidance section
- * and is seeded as `AGENTS.md` in the home root (the industry name; DSH's native instruction
- * loader reads AGENTS.md files from the workspace and the harness home — this one is the
- * home's own, loaded by this plugin's section, so the convention is shared and the paths
- * never collide).
+ * The plugin-owned operating manual and the user-owned notes that ride beside it.
+ *
+ * The prompt uses {@link renderHomeManual} directly, so an upgrade can never leave stale
+ * operating rules in front of the model; the on-disk `MANUAL.md` is a human-readable mirror
+ * refreshed by the scaffold. `AGENTS.md` is the owner's notes file (the industry name; DSH's
+ * native instruction loader reads AGENTS.md files from the workspace and the harness home —
+ * this one is the home's own, loaded by this plugin's section, so the convention is shared and
+ * the paths never collide). There is no generation marker and no migration table: a legacy
+ * generated manual is moved to `AGENTS.md.bak-*` by the scaffold.
  *
  * The manual is written for the agent, so it is in English like the persona and the skills;
- * the repo's own contracts (`docs/`) are in the maintainer's language. The file is generated
- * when missing; older generated manuals are migrated (only the exact retired block is removed)
- * and carries a scaffold
- * version marker so `curate` can report a manual that predates the current scaffold without
- * fighting hand edits (content edits are the owner's; the marker is the machine's).
+ * the repo's own contracts (`docs/`) are in the maintainer's language.
  *
  * @module dsh-smart-assistant/home/home-map
  */
@@ -26,79 +26,15 @@ export const NOTES_HEADER = '# Working-folder notes (yours)\n\n'
   + 'The operating manual is `MANUAL.md` (generated; edits there are ignored). Notes that belong to\n'
   + 'this working folder go here; this file is appended after the manual in every request.\n'
 
-/** Version of the generated manual; bump when the generated content changes meaningfully. */
+/** Version of the manual render; the CLI reports it for the MANUAL.md mirror. */
 export const HOME_MANUAL_VERSION = 24
 
-/** The version marker stamped as the file's first line (an HTML comment: invisible when rendered). */
-export const HOME_MANUAL_MARKER = `<!-- home-manual v${String(HOME_MANUAL_VERSION)} -->`
-
-/**
- * The exact Room data section the generated manual carried through v15. It is removed from an
- * existing generated manual by {@link migrateHomeManual}; a manual without this exact block (hand
- * edited, or older than versioning) is never touched.
- */
-export const RETIRED_ROOM_DATA_SECTION = '### Room data (`.desk/state.json`)\n\n'
-  + 'The memory and knowledge room panels read this file in the session workspace, and it is their\n'
-  + '**only** data source. It is not the desk, and business matters never go here: a matter, deadline,\n'
-  + 'decision-to-make or proposal lives in the authoritative operating ledger (`assistant_operating`),\n'
-  + 'and the principal\'s desk renders that ledger. Keep the file shaped: `generatedAt` (ISO-8601, the\n'
-  + 'moment you wrote it) plus the room sections you actually have — the `desk-refresh` skill owns the\n'
-  + 'field contract. End any session that changed the memory or knowledge rooms or the skill catalog by\n'
-  + 'writing the file. A file that parses but carries none of that shape leaves the rooms looking empty,\n'
-  + 'and the principal cannot tell it apart from "nothing happened".\n\n'
-
-/**
- * The v19 answer-contract paragraph. v20 tightened it so a missing second fact rides the page's
- * missing line instead of becoming a second question. Exact text, like the retired section: a
- * hand-edited paragraph is the owner's and must survive untouched.
- */
-export const RETIRED_ONE_QUESTION_PARAGRAPH = '- **Draft first, don\'t interrogate.** From one sentence, make the best draft you can with explicit\n'
-  + '  assumptions. Ask at most one question, and only when the answer changes the verdict. Never open\n'
-  + '  with a questionnaire or a list of data you need.'
-
-/** The v20 replacement for {@link RETIRED_ONE_QUESTION_PARAGRAPH}. */
-export const CURRENT_ONE_QUESTION_PARAGRAPH = '- **Draft first, don\'t interrogate.** From one sentence, make the best draft you can with explicit\n'
-  + '  assumptions. Ask at most one question, and only when the answer changes the verdict. When two\n'
-  + '  facts are missing, put both in the page\'s missing line and ask only the one that changes the\n'
-  + '  verdict — never two questions in one reply. Never open with a questionnaire or a list of data you\n'
-  + '  need.'
-
-/**
- * The v20 delivery anchor. v21 adds the rule that a file for the principal belongs in the session
- * workspace with `present`, not in the assistant's own notebook. Exact text: a hand-edited bullet
- * stays untouched.
- */
-export const RETIRED_ONE_ACTION_BULLET = '- **One action, if any.** End with one concrete next step, not a menu.'
-
-/** The v21 replacement for {@link RETIRED_ONE_ACTION_BULLET}. */
-export const CURRENT_DELIVERY_BULLETS = `${RETIRED_ONE_ACTION_BULLET}\n`
+/** The delivery rule in the answer contract: one action, and files go to the workspace. */
+export const CURRENT_DELIVERY_BULLETS = '- **One action, if any.** End with one concrete next step, not a menu.\n'
   + '- **Deliver files where the principal can take them.** Write a deliverable under the session\n'
-  + '  cwd and declare it with `present`; the working folder is your notebook, not the delivery shelf.'
+  + '  cwd and declare it with `present`; the working folder is your notebook, not the delivery shelf.\n'
 
-/** The bullet that follows the delivery anchor in both generations; it makes the anchor unique. */
-const NEXT_ANSWER_BULLET = '- **Say what you don\'t know.** The page\'s "missing" line is part of the answer; never fill a gap\n  with an invented number.'
-
-/** The exact v20 sequence the v21 migration replaces. */
-export const RETIRED_DELIVERY_ANCHOR = `${RETIRED_ONE_ACTION_BULLET}\n${NEXT_ANSWER_BULLET}`
-
-/** The exact v21 sequence the v20→v21 migration writes. */
-export const CURRENT_DELIVERY_ANCHOR = `${CURRENT_DELIVERY_BULLETS}\n${NEXT_ANSWER_BULLET}`
-
-/**
- * The v21 past-conversations section. It claimed nothing indexed the session logs and sent the model
- * to the raw zstd recipe; the composition has carried a full-text session index and its tools since
- * the same patch, so v22 makes the native tools primary and the raw logs an explicit fallback. Exact
- * text: a hand-edited section is the owner's and must survive untouched.
- */
-export const RETIRED_PAST_CONVERSATIONS = '## Past conversations\n\n'
-  + 'Every session you have ever had is on disk: `<harness-home>/sessions/--<normalized-cwd>--/session-<id>/session.v<n>.jsonl.zstd`\n'
-  + '(the harness home is your working folder\'s parent directory). `<n>` is the log format generation and moves\n'
-  + 'with the harness — list the session directory instead of assuming the name. Each line is one event — full user and assistant\n'
-  + 'messages, tool calls with their arguments, session headers naming the cwd and preset. Nothing indexes\n'
-  + 'them; when memory is not enough and you need what was actually said or done, search them with the\n'
-  + 'recipe in the `session-recall` skill.\n'
-
-/** The v22 replacement for {@link RETIRED_PAST_CONVERSATIONS}. */
+/** The manual's session-recall section (indexed tools first, raw logs as the declared fallback). */
 export const CURRENT_PAST_CONVERSATIONS = '## Past conversations\n\n'
   + 'Every session you have ever had is searchable. Use `session_search` to find\n'
   + 'earlier work in this project, `session_event_search` to search inside one session, and\n'
@@ -109,12 +45,9 @@ export const CURRENT_PAST_CONVERSATIONS = '## Past conversations\n\n'
   + 'else `~/.dsh`) instead of walking up blindly. Reading another project\'s sessions is a deliberate\n'
   + 'act: say so before you do it. The raw recipe is in the `session-recall` skill.\n'
 
-/** The v21 repository-boundaries heading (four boundaries). */
-export const RETIRED_REPO_BOUNDARIES_HEADING = 'When your session runs inside a repository (rather than only your working folder), four boundaries hold:\n'
-
 /**
- * The v22 heading and its first boundary: project-bound facts belong to the repository, not to the
- * cross-project working folder. Exact text: a hand-edited bullet block stays untouched.
+ * The repository-boundaries heading and its first boundary: project-bound facts belong to the
+ * repository, not to the cross-project working folder.
  */
 export const CURRENT_REPO_BOUNDARIES_HEADING = 'When your session runs inside a repository (rather than only your working folder), five boundaries hold:\n\n'
   + '- **Project-bound facts stay with the project.** What is true only of this repository — its\n'
@@ -122,50 +55,18 @@ export const CURRENT_REPO_BOUNDARIES_HEADING = 'When your session runs inside a 
   + '  `.dsh/`, or its docs). Your working folder holds what travels with you across projects: durable\n'
   + '  facts, preferences, and lessons.\n'
 
-/**
- * The v22 "what rides in every request" paragraph. It counted three things and omitted the
- * operating brief (order 400); v23 counts the four sections the composition actually assembles.
- */
-export const RETIRED_THREE_THINGS_PARAGRAPH = 'Three things ride in every request: your identity (`SOUL.md`), this manual (`AGENTS.md`), and a\n'
-  + 'bounded digest of the working folder\'s live state — the strongest active memories and the open\n'
-  + 'threads. Everything else — full records, archived entries, skill bodies, knowledge pages — is\n'
-  + 'fetched on demand. That is deliberate: a working folder that crowds out the work in front of you\n'
-  + 'makes you worse, not better.\n'
-
-/** The v23 replacement for {@link RETIRED_THREE_THINGS_PARAGRAPH}. */
-export const CURRENT_FOUR_THINGS_PARAGRAPH = 'Four things ride in every request: your identity (`SOUL.md`), this manual (`AGENTS.md`), the\n'
-  + 'standing brief that sends operating matters to the ledger, and a bounded digest of the working\n'
-  + 'folder\'s live state — the strongest active memories and the open threads. Everything else — full\n'
-  + 'records, archived entries, skill bodies, knowledge pages — is fetched on demand. That is\n'
-  + 'deliberate: a working folder that crowds out the work in front of you makes you worse, not better.\n'
-
-/** v24 names the knowledge tree the digest also carries; v23 counted only memories and threads. */
-export const CURRENT_FOUR_THINGS_PARAGRAPH_V24 = 'Four things ride in every request: your identity (`SOUL.md`), this manual (`MANUAL.md`), the\n'
+/** The standing-context paragraph: four sections, including the knowledge-tree digest. */
+export const CURRENT_FOUR_THINGS_PARAGRAPH = 'Four things ride in every request: your identity (`SOUL.md`), this manual (`MANUAL.md`), the\n'
   + 'standing brief that sends operating matters to the ledger, and a bounded digest of the working\n'
   + 'folder\'s live state — the strongest active memories, the open threads, and the knowledge tree.\n'
   + 'Everything else — full records, archived entries, skill bodies, knowledge pages — is fetched on\n'
   + 'demand. That is deliberate: a working folder that crowds out the work in front of you makes you\n'
   + 'worse, not better.\n'
 
-/** The v23 shadow example: curated skills moved to the rank-600 band, so they cannot shadow learned ones. */
-export const RETIRED_SHADOW_SENTENCE = 'learned skills shadowed by a same-named\ncurated one'
-
-/** The v24 shadow wording: the winner is a skill from another provider (project or user). */
+/** The curate shadow example: the winner is a skill from another provider (project or user). */
 export const CURRENT_SHADOW_SENTENCE = 'learned skills shadowed by a same-named\nskill outside the folder'
 
-/** The v22 layout tree: rooms plus one machine ledger, missing the other root entries. */
-export const RETIRED_LAYOUT_TREE = '```text\n'
-  + '<working-folder>/\n'
-  + '├── SOUL.md            (your identity; seeded, never overwritten)\n'
-  + '├── AGENTS.md          (this manual; generated versions migrate; hand edits survive)\n'
-  + '├── skill-usage.json   (load counts; advisory, safe to delete)\n'
-  + '├── memory/            (active records; archive/ for superseded or retired)\n'
-  + '├── research/          (open and parked threads; archive/ for promoted or dropped)\n'
-  + '├── skills/            (<name>/SKILL.md, discovered by the skill provider; archive/ for retired)\n'
-  + '└── knowledge/         (<id>.md pages with [[wikilinks]]; deprecated pages stay in place)\n'
-  + '```\n'
-
-/** The v23 replacement for {@link RETIRED_LAYOUT_TREE}: the complete root the scaffold owns. */
+/** The complete root the scaffold owns. */
 export const CURRENT_LAYOUT_TREE = '```text\n'
   + '<working-folder>/\n'
   + '├── SOUL.md            (your identity; seeded, never overwritten)\n'
@@ -181,108 +82,6 @@ export const CURRENT_LAYOUT_TREE = '```text\n'
   + '├── audit/             (approval and purge ledgers; append-only)\n'
   + '└── deliverables/      (draft files a session left here; not a room)\n'
   + '```\n'
-
-/**
- * Apply the known generated-text migrations to an older **generated** manual and stamp the version
- * actually reached. Only an exact retired block/paragraph is replaced; hand edits elsewhere survive,
- * and a manual without a marker (hand-written, or older than versioning) or newer than this build is
- * returned unchanged. A version we cannot migrate keeps its marker and is flagged in the prompt by
- * {@link manualSnapshotOf} rather than silently reflowed. The v21 delivery rule is applied only to a
- * manual already at the v20 generation (or a v19 that reached it here); an older manual is stamped
- * v20 and stays visibly stale instead of claiming content it never received.
- * @param text - The existing AGENTS.md contents.
- * @returns The migrated contents, or the same string when no known old text is present.
- */
-export function migrateHomeManual(text: string): string {
-  const version = parseManualVersion(text)
-  if (version === 0 || version >= HOME_MANUAL_VERSION) return text
-  let next = text
-  let migratedTo = version
-  let changed = false
-  if (migratedTo < 20) {
-    let changed20 = false
-    if (next.includes(RETIRED_ROOM_DATA_SECTION)) {
-      next = next.replace(RETIRED_ROOM_DATA_SECTION, '')
-      next = next.replace(
-        'Bookkeeping is not an answer. Room writes, thread merges, curate findings, even the room-data\nrewrite are housekeeping; none of them answers the person.',
-        'Bookkeeping is not an answer. Room writes, thread merges and curate findings are housekeeping;\nnone of them answers the person.',
-      )
-      next = next.replace('"I\'ll load the desk-refresh skill first"', '"I\'ll load the morning-brief skill first"')
-      changed20 = true
-    }
-    if (next.includes(RETIRED_ONE_QUESTION_PARAGRAPH)) {
-      next = next.replace(RETIRED_ONE_QUESTION_PARAGRAPH, CURRENT_ONE_QUESTION_PARAGRAPH)
-      changed20 = true
-    }
-    if (changed20) {
-      migratedTo = 20
-      changed = true
-    }
-  }
-  if (version >= 19 && migratedTo >= 20 && next.includes(RETIRED_DELIVERY_ANCHOR)) {
-    next = next.replace(RETIRED_DELIVERY_ANCHOR, CURRENT_DELIVERY_ANCHOR)
-    migratedTo = 21
-    changed = true
-  }
-  if (migratedTo >= 21) {
-    if (next.includes(RETIRED_PAST_CONVERSATIONS)) {
-      next = next.replace(RETIRED_PAST_CONVERSATIONS, CURRENT_PAST_CONVERSATIONS)
-      changed = true
-    }
-    if (next.includes(RETIRED_REPO_BOUNDARIES_HEADING)) {
-      next = next.replace(RETIRED_REPO_BOUNDARIES_HEADING, CURRENT_REPO_BOUNDARIES_HEADING)
-      changed = true
-    }
-    // A manual that already carries both v22 blocks reached the generation even when no replacement
-    // fired (an idempotent re-run over a file a human assembled); advance the stamp so it is not
-    // warned as stale forever.
-    if (next.includes(CURRENT_PAST_CONVERSATIONS) && next.includes(CURRENT_REPO_BOUNDARIES_HEADING)) {
-      migratedTo = 22
-      changed = true
-    }
-  }
-  if (migratedTo >= 22) {
-    if (next.includes(RETIRED_THREE_THINGS_PARAGRAPH)) {
-      next = next.replace(RETIRED_THREE_THINGS_PARAGRAPH, CURRENT_FOUR_THINGS_PARAGRAPH)
-      changed = true
-    }
-    if (next.includes(RETIRED_LAYOUT_TREE)) {
-      next = next.replace(RETIRED_LAYOUT_TREE, CURRENT_LAYOUT_TREE)
-      changed = true
-    }
-    if ((next.includes(CURRENT_FOUR_THINGS_PARAGRAPH) || next.includes(CURRENT_FOUR_THINGS_PARAGRAPH_V24)) && next.includes(CURRENT_LAYOUT_TREE)) {
-      migratedTo = 23
-      changed = true
-    }
-  }
-  if (migratedTo >= 23) {
-    if (next.includes(CURRENT_FOUR_THINGS_PARAGRAPH)) {
-      next = next.replace(CURRENT_FOUR_THINGS_PARAGRAPH, CURRENT_FOUR_THINGS_PARAGRAPH_V24)
-      changed = true
-    }
-    if (next.includes(RETIRED_SHADOW_SENTENCE)) {
-      next = next.replace(RETIRED_SHADOW_SENTENCE, CURRENT_SHADOW_SENTENCE)
-      changed = true
-    }
-    if (next.includes(CURRENT_FOUR_THINGS_PARAGRAPH_V24) && next.includes(CURRENT_SHADOW_SENTENCE)) {
-      migratedTo = 24
-      changed = true
-    }
-  }
-  if (!changed) return text
-  return next.replace(/^<!-- home-manual v\d+ -->/mu, `<!-- home-manual v${String(migratedTo)} -->`)
-}
-
-/**
- * Parse a manual's scaffold version from its marker. A file without a marker (hand-written
- * from scratch, or predating versioning) reads as version 0.
- * @param text - The manual's contents.
- * @returns The parsed version, or 0 when unmarked.
- */
-export function parseManualVersion(text: string): number {
-  const match = /^<!--\s*home-manual v(\d+)\s*-->/u.exec(text.trimStart())
-  return match?.[1] !== undefined ? Number(match[1]) : 0
-}
 
 /**
  * The blurb that rides in every digest: the manual above carries how the home works, so this
@@ -416,7 +215,7 @@ loading immediately. Nothing is deleted — moving the bundle back restores it.
 
 ## What is always in front of you, and what is not
 
-${CURRENT_FOUR_THINGS_PARAGRAPH_V24}
+${CURRENT_FOUR_THINGS_PARAGRAPH}
 ## Past conversations
 
 ${CURRENT_PAST_CONVERSATIONS}
