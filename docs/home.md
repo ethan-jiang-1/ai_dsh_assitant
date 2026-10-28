@@ -162,6 +162,7 @@ dsh-obsidian 外部 vault 桥先不做：用户真想让助手管某个外部 va
 | 摘要预算 | 摘要被预算截短（`truncated`）——被截掉的记忆对每个会话不可见；只有 `omittedMemories > 0` 时纯新增记忆才被服务层拒绝 | 桌面塞满 = 中间被漏掉；知识树/线索截短本身不阻塞 memory save；supersede/forget 是减压动作 |
 | 手册漂移 | `AGENTS.md` 的 scaffold 版本标记旧于当前（`manual-stale-scaffold`，info） | 持久化生成物会静默腐烂——**手改内容不报**（手改是拥有者的），版本落后才报；处置=`assistant-data refresh-manual --yes`（先备份）或忽略 |
 | 手册超预算 | `AGENTS.md` 的字节数超过 prompt 预算（`manual-over-budget`，warn）——模型每次只拿到被截断的头 | 尾部规则（协作边界、布局）会静默不进请求；处置=缩短文件或把细节移进技能。生成版必须装进预算，由 `tests/host/root-files.spec.ts` 钉住 |
+| 身份超预算 | `SOUL.md` 的字节数超过 prompt 预算（`soul-over-budget`，warn）——身份会被截断 | 模型每次只拿到被截断的 voice；处置=缩短文件。与手册同一条纪律：超预算必须有人可读的告警 |
 | 过期线索 | 超过 `staleResearchDays` 未更新的 `open` 线索 | 悬着的线索会烂，机器先发现 |
 | 缺理由的 drop | `status: dropped` 但 `reason` 为空（经线程校验，以 `unreadable-file` 报出） | 尸体没写死因 = 白丢 |
 | 技能文件 | 名字不合 `SKILL_NAME` 文法 / 缺 `description` / 目录名与 name 不一致 | 技能会静默不被发现 |

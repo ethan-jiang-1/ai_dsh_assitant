@@ -13,7 +13,7 @@
  *
  * No harness peers are imported: the command runs from an installed profile with plain Node.
  */
-import { dirname, join } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const packageRoot = dirname(dirname(fileURLToPath(import.meta.url)))
@@ -22,6 +22,17 @@ const command = argv[0]
 const option = (name) => {
   const index = argv.indexOf(name)
   return index === -1 ? undefined : argv[index + 1]
+}
+
+// R1 for the operator path: the service refuses a package-internal dataDir at activation, and this
+// CLI must refuse the same target before an export/import can read or write it. A data root inside
+// the installed package is replaced on upgrade; the default lives under <DSH_HOME>.
+const assertOutsidePackage = async () => {
+  const { assertDataDirOutsidePackage } = await import(join(packageRoot, 'lib', 'host', 'package-root.js'))
+  for (const name of ['--assistant', '--operating']) {
+    const value = option(name)
+    if (value !== undefined && value !== '') assertDataDirOutsidePackage(resolve(value))
+  }
 }
 
 const usage = `usage:
@@ -43,6 +54,7 @@ if (command === '--help' || command === undefined) {
 }
 
 try {
+  await assertOutsidePackage()
   const module = await import(join(packageRoot, 'lib', 'cli', 'assistant-data.js'))
   if (command === 'export') {
     const assistantDir = option('--assistant')

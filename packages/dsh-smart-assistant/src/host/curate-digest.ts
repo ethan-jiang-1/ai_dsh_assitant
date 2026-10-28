@@ -217,6 +217,7 @@ export async function runCuration(host: AssistantMemory, shadowedBy?: Readonly<R
   const skills = await scanLearnedSkills(host.paths.skillsDir)
   const archiveScale = await scanSkillArchiveScale(host.paths.skillsArchiveDir)
   const manualText = await readFile(host.paths.agentsFile, 'utf8').catch(() => undefined)
+  const soulText = await readFile(host.paths.soulFile, 'utf8').catch(() => undefined)
   const usage = await readSkillUsage(host.paths.skillUsageFile)
   const digest = await digestNow(host)
   const activeIds = [
@@ -245,6 +246,12 @@ export async function runCuration(host: AssistantMemory, shadowedBy?: Readonly<R
           manualVersion: parseManualVersion(manualText),
           manualBytes: Buffer.byteLength(manualText.trim(), 'utf8'),
           manualMaxBytes: MANUAL_BYTE_CAP,
+        }
+      : {}),
+    ...(soulText !== undefined
+      ? {
+          soulBytes: Buffer.byteLength(soulText.trim(), 'utf8'),
+          soulMaxBytes: SOUL_BYTE_CAP,
         }
       : {}),
     skillUsage: usage.usage,

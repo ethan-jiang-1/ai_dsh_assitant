@@ -23,6 +23,7 @@ export type FindingCode =
   | 'unreadable-file'
   | 'manual-stale-scaffold'
   | 'manual-over-budget'
+  | 'soul-over-budget'
   | 'duplicate-id'
   | 'dangling-reference'
   | 'near-duplicate'
@@ -107,6 +108,10 @@ export interface CurationInput {
   readonly manualBytes?: number
   /** Byte budget the prompt keeps for the manual. */
   readonly manualMaxBytes?: number
+  /** Bytes of the on-disk SOUL.md identity; omitted when the file is absent. */
+  readonly soulBytes?: number
+  /** Byte budget the prompt keeps for the identity. */
+  readonly soulMaxBytes?: number
   /** The skill-usage ledger, joined against `skills` for the usage lines. */
   readonly skillUsage: SkillUsage
   /** Set when the ledger file exists but is not a valid ledger. */
@@ -275,6 +280,20 @@ export function curateHome(input: CurationInput): CurationBrief {
         + `prompt keeps ${String(input.manualMaxBytes)} — the tail is cut from every request; shorten the `
         + 'file or move detail into a skill',
       refs: ['AGENTS.md'],
+    })
+  }
+
+  if (
+    input.soulBytes !== undefined
+    && input.soulMaxBytes !== undefined
+    && input.soulBytes > input.soulMaxBytes
+  ) {
+    findings.push({
+      code: 'soul-over-budget',
+      severity: 'warn',
+      message: `the identity file (SOUL.md) is ${String(input.soulBytes)} bytes but the prompt keeps `
+        + `${String(input.soulMaxBytes)} — the voice is cut from every request; shorten the file`,
+      refs: ['SOUL.md'],
     })
   }
 

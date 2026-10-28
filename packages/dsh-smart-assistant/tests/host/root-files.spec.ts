@@ -304,4 +304,18 @@ describe('curate reports manual scaffold drift', () => {
     expect(finding?.severity).toBe('warn')
     expect(finding?.message).toContain('the tail is cut from every request')
   })
+
+  it('reports an identity file that outgrew its prompt budget', async () => {
+    // The manual has had a curate finding since 2026-10-28; the soul uses the same silent
+    // truncation path (4 KiB), so an owner-grown identity was cut from every request with no
+    // machine-visible report. Symmetry is the point.
+    const { service } = boot()
+    await service.ensureHome()
+    writeFileSync(service.paths.soulFile, `${'x'.repeat(5000)}\n`, 'utf8')
+
+    const brief = await service.curate()
+    const finding = brief.findings.find(item => item.code === 'soul-over-budget')
+    expect(finding?.severity).toBe('warn')
+    expect(finding?.message).toContain('the voice is cut from every request')
+  })
 })
