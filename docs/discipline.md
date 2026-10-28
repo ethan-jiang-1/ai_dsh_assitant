@@ -64,7 +64,9 @@
 
 12. **shipped `expert-setup` 不挂 Host 服务写页**（约束：bin 从已安装 profile 运行，不保证能解析 harness peers；Host 的 `writePage` 依赖 cordis 服务）→ 复用纯核 `pageToDocument`/frontmatter/atomic write，并在写入前跑 `auditSkillCredentials`；不 touch digest（无会话）、不做 wiki 归一（种子无链接），status 跨重导入保留。证据 = [`expert-setup.spec.mjs`](../packages/dsh-smart-assistant/tests/tooling/expert-setup.spec.mjs) + `release-smoke` 的 installed bin 断言。
 
-13. **working folder 是自定义 home U 平面，不是 storageDomain**（约束：DSH 推荐宿主状态进 `ctx.storageDomain`、用户经验进 `$DSH_HOME`/`~/.agents` 的 AGENTS 与 skills；本产品的核心却是一个人要能读、能 review、能导出的跨项目 working folder）→ 用 `<DSH_HOME>/assistant` 的文件树（自有 frontmatter/curate 契约）与独立的 `<DSH_HOME>/assistant-operating` 单 writer 账本；不写进包目录，不冒充 workspace；sessions/credentials/settings 仍归宿主。证据 = [`docs/delivery.md`](delivery.md)、[`docs/home.md`](home.md)、`handoff-core`/`assistant-data`/`two-homes` 测试与 `release-smoke`。
+13. **working folder 是自定义 home U 平面，不是 storageDomain**（约束：DSH 推荐宿主状态进 `ctx.storageDomain`、用户经验进 `$DSH_HOME`/`~/.agents` 的 AGENTS 与 skills；本产品的核心却是一个人要能读、能 review、能导出的跨项目 working folder）→ 用 `<DSH_HOME>/assistant` 的文件树（自有 frontmatter/curate 契约）与独立的 `<DSH_HOME>/assistant-operating` 单 writer 账本；不写进包目录，不冒充 workspace；sessions/credentials/settings 仍归宿主。同一棵树里的 `skill-usage.json`/`ui-mode.json`/`audit/*` 是 advisory 机器账本（H-like），不是用户内容，也不进 prompt。证据 = [`docs/delivery.md`](delivery.md)、[`docs/home.md`](home.md)、`handoff-core`/`assistant-data`/`two-homes` 测试与 `release-smoke`。
+
+14. **会话召回：N1 索引 + N2 模型面 + 声明式回退**（约束：FAQ 24/26 把 `packages/experimental/*` 归 N2——只借鉴、不写进长期发布依赖；组合又需要一个模型可见的召回入口）→ 索引用 N1 `session-query-sqlite`（可删可重建），模型面用 N2 `tool-session-query`（版本随 `engines.dsh` 走），手册 v22 与 `session-recall` 技能把 raw 日志严格写成跨项目/精确子串/索引缺席时的显式回退，并声明跨项目读取是主动动作。证据 = 手册 v22 迁移与 `prompt-smoke` 的「新策略在场、旧指令缺席」断言；`tool-session-query` README 的同 cwd 授权。
 
 ## 复查环（防"一次性快照再烂"）
 

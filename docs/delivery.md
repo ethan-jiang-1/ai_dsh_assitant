@@ -24,27 +24,49 @@
 | **D 定义** | `cordis.patch.yml`、preset 行、包内只读技能、Config 默认 | 包；只读；随包/版本 |
 | **C 代码** | `lib/`、`bin/`、`bootstrap.mjs` | 包；只读；升级整体替换 |
 | **W workspace** | 不拥有；只有用户自己的 `deliverables/` | 项目/用户；随项目；插件不写 |
-| **U home** | `<dshHome>/assistant`（身份、记忆、线索、学到的技能、知识） | 插件拥有、用户可读可改；跨项目；升级/卸载保留 |
+| **U home** | `<dshHome>/assistant`：用户内容与插件账本共处一棵**用户可见**的树（下节分表） | 插件拥有、用户可读可改；跨项目；升级/卸载保留 |
 | **S session** | 宿主拥有；四个 prompt 段落随请求进日志；不新增 event 类型 | 会话；只追加；插件不写日志 |
-| **H host state** | 不使用 `ctx.storageDomain`；`<dshHome>/assistant-operating` 是文件账本 + 操作归档 | 插件拥有、用户可读；单 writer；可导出 |
+| **H host state** | 不用 `ctx.storageDomain`；`<dshHome>/assistant-operating` 是**插件自有文件账本** + 操作归档，模型经工具读 | 插件拥有、用户可读；单 writer；可导出 |
 | **K cache** | 只有内存摘要缓存，可重建；补丁启用的 `session-search.db` 是宿主搜索索引 | 运行时/宿主；可丢弃 |
 | **X credentials** | 宿主拥有；插件不读不写应由凭据服务管理的值；Viki key 只从环境变量读 | 用户/宿主；不进包、不进日志、不导出 |
 
-刻意偏离：working folder 是**用户可见的 U 平面自定义根**，不是 `ctx.storageDomain` 的 host KV，也不是随项目走的 W；账本是**可导出的文件账本**，不是 H KV。理由与证据 = [`discipline.md`](discipline.md) 适配 13、[`release.md`](release.md) 与 `handoff-core`/`assistant-data`/`two-homes`/`old-home-compat` 测试。
+刻意偏离：working folder 是**用户可见的 U 平面自定义根**，不是 `ctx.storageDomain` 的 host KV，也不是随项目走的 W；账本是**可导出的文件账本**，不占用 H 的 KV 语义。理由与证据 = [`discipline.md`](discipline.md) 适配 13/14、[`release.md`](release.md) 与 `handoff-core`/`assistant-data`/`two-homes`/`old-home-compat` 测试。
 
 ### 数据卡
 
-| 事实 | 依赖层级 | 承诺/平面 | 权威 | 位置 | 作用域 | 寿命 | 谁看得见 | 进插件备份 | 迁移/删除 | 卸载后 |
+数据卡分三张：**用户内容**（人写或人审、可手改、坏了报 finding）、**插件账本**（机器写、用户可读、坏了有明确降级或 fail loud）、**宿主面**（不属于插件备份）。三类的备份、清理与诊断口径不同，不要混用。
+
+**用户内容**
+
+| 事实 | 依赖层级 | 承诺/平面 | 权威 | 位置 | 作用域 | 寿命 | 谁看得见 | 进插件备份 | 迁移/删除 | 卸载后 | 损坏策略 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 记忆/线索/知识/技能/提案 | N0 文件 | P2 / U | 插件 + 用户 | `<dataDir>/{memory,research,knowledge,skills,skill-proposals}/` | home 单例，无项目键 | 房间生命周期；archive 保留 | 用户；模型经工具 | 是 | frontmatter 只增可选；`purge` 逐条擦除 | 保留 | 容忍：坏文件进 curate findings，不静默丢 |
+| 身份与手册 | N0 文件 | P2 / U | 用户 + 插件 | `<dataDir>/SOUL.md`、`AGENTS.md` | home 单例 | 身份永不覆盖；手册按已知文本迁移 | 用户；模型逐字进 prompt | 是 | generation 迁移；`refresh-manual` 备份后再生 | 保留 | 手册超预算报 `manual-over-budget`；旧 generation 在 prompt 标记 |
+| 交付稿 | N0 文件 | P2 / U | 用户 | `<dataDir>/deliverables/`、会话 cwd 的 `deliverables/` | home / workspace | 无生命周期（模型自发落点） | 用户 | 是（home 侧） | 手动归档/删除 | 保留 | 无 |
+
+**插件账本**（机器写；用户可读、可排障，但不是可依赖的用户内容；不进 prompt）
+
+| 事实 | 依赖层级 | 承诺/平面 | 权威 | 位置 | 寿命 | 谁看得见 | 进插件备份 | 迁移/删除 | 卸载后 | 损坏策略 |
 |---|---|---|---|---|---|---|---|---|---|---|
-| 记忆/线索/知识/技能/提案 | N0 `ctx.fs`（文件） | P2 / U | 插件 + 用户 | `<dataDir>/{memory,research,knowledge,skills,skill-proposals}/` | home 单例，无项目键 | 房间生命周期；archive 保留 | 用户；模型经工具 | 是 | frontmatter 只增可选；`purge` 逐条擦除 | 保留 |
-| 身份与手册 | N0 文件 | P2 / U | 用户 + 插件 | `<dataDir>/SOUL.md`、`AGENTS.md` | home 单例 | 身份永不覆盖；手册按已知文本迁移 | 用户；模型逐字进 prompt | 是 | generation 迁移；`refresh-manual` 备份后再生 | 保留 |
-| 用量、治理、界面、交付 | N0 文件 + 自有 CLI | P2 / U | 插件/用户 | `<dataDir>/skill-usage.json`、`audit/approvals.jsonl`、`audit/purges.jsonl`、`ui-mode.json`（v1 envelope）、`deliverables/` | home 单例 | usage 可删；审计只追加；deliverables 无生命周期 | 用户；模型不可见 ui-mode/audit | 是 | `purge` 房间记录；approvals/deliverables 手动；提案 `archive-proposals` | 保留 |
-| 经营账本状态 | N0 文件 + 自有服务 | P3 / H | 插件 | `<operatingDir>/ledger.json` | home 单例 | 最近 256 条操作 + 全量计数；压缩后仍有界 | 用户；模型经工具 | 是 | v1 只增；`operationCount` 回填；不做硬删 | 保留 |
-| 账本操作归档 | N0 文件 + 自有服务 | P3 / H | 插件 | `<operatingDir>/operations-archive.jsonl` | home 单例 | 只追加；完整回执历史；读取有 256 MiB 上限 | 用户；模型经工具按 id 读 | 是 | 按 `operationId` 去重；需要导出/轮转 | 保留 |
-| 会话搜索索引 | N1 `session-query-sqlite` | 宿主 K | 宿主（本包补丁启用） | `<dshHome>/session-search.db` | session/corpus | 首次检索创建；可重建 | 宿主；模型经 `session_query` | 否 | 删文件即重建 | **保留；要清就删此文件** |
-| 会话/凭据/设置/宿主 KV | N0/N1 宿主 | S / H / X | 宿主 | `$DSH_HOME/sessions/`、`.credentials.yaml`、`storages/`、`profiles/` 等 | session/home/profile | 宿主决定 | 宿主/模型经工具 | 否 | 宿主迁移/备份；不进插件 bundle | 保留 |
-| 客户端 UI 状态 | 平台 `localStorage`（非 N0） | 客户端 | 设备/浏览器 | localStorage：`dsha:ui-mode:v1`（旧 `dsha:ui-mode` 首次读迁移）、`dsha:receipt-since`、`dsha-proactive-ui-v1`、`dsh-assistant-debug`；sessionStorage：`dsha-capture-seen-running-v1`、`dsha-capture-receipt-v1` | origin/设备 | 可丢弃；换源/清站点即失 | 浏览器 | 否 | ui-mode key v1；其余键无版本；清站点数据 | 保留；清站点数据 |
-| OpenViking 记忆 | E2 外部服务 | E2 外部服务 | 外部服务 | OpenViking server（可选） | 外部 | 由服务决定 | 面板/模型经工具 | 否 | 按 OpenViking 手册 | 按 OpenViking 手册清理 |
+| 技能用量 | N0 文件 + 自有 CLI | P3 / H-like | 插件 | `<dataDir>/skill-usage.json` | 可删，删了归零；窗口 `since` 可推导 | 用户；curate 回显 | 是 | 无需迁移 | 保留 | 容忍：解析失败报 `skill-usage-unreadable`，不静默读零 |
+| 治理审计 | N0 文件 | P3 / H-like | 插件 | `<dataDir>/audit/approvals.jsonl`、`audit/purges.jsonl`、`audit/maintenance.jsonl` | 只追加；显式 `rotate` 才移动 | 用户；面板读最近 200 行 | 是 | `rotate --apply` 移入 `archive-maintenance/` | 保留 | 坏行计数跳过；只有账本状态 fail loud |
+| 轮转归档 | N0 文件 | P3 / H-like | 插件 | `<dataDir>/archive-maintenance/<stamp>/` | 由 `rotate` 创建；手动清 | 用户 | 是 | 手动 | 保留 | 无 |
+| 界面密度 | N0 文件 + 自有 CLI | P3 / H-like | 插件/用户 | `<dataDir>/ui-mode.json`（v1 envelope） | 可删，删了回标准 | 用户（面板）；模型不可见 | 是 | key v1 | 保留 | 容忍：回默认 |
+| 手册再生备份 | N0 文件 + 自有 CLI | P3 / H-like | 用户 | `<dataDir>/AGENTS.md.bak-<stamp>` | 由 `refresh-manual` 创建；手动清 | 用户 | 是 | 手动 | 保留 | 无 |
+| 经营账本状态 | N0 文件 + 自有服务 | 插件自有文件账本 | 插件 | `<operatingDir>/ledger.json` | 最近 256 条操作 + 全量计数；压缩后仍有界 | 用户；模型经工具 | 是 | v1 只增；`operationCount` 回填；不做硬删 | 保留 | **fail loud**：读不出 v1 拒绝当空账本 |
+| 账本操作归档 | N0 文件 + 自有服务 | 插件自有文件账本 | 插件 | `<operatingDir>/operations-archive.jsonl` | 只追加；完整回执历史；读取有 256 MiB 上限 | 用户；模型经工具按 id 读 | 是 | 按 `operationId` 去重；需要导出/轮转 | 保留 | 坏行计数跳过；超限 fail loud |
+| 单 writer 锁 | N0 文件 | 机器文件（不是数据） | 插件 | `<operatingDir>/writer.lock` | 进程持有；dispose 释放 | 排障者 | **否**（导出排除） | 不迁移；残锁按 PID/启动时间/心跳接管 | 不留 | 不可读锁 fail closed |
+
+**宿主面**
+
+| 事实 | 依赖层级 | 平面 | 权威 | 位置 | 寿命 | 进插件备份 | 卸载后 |
+|---|---|---|---|---|---|---|---|
+| 会话日志 / 凭据 / 设置 / 宿主 KV | N0/N1 宿主 | S / X / H | 宿主 | `$DSH_HOME/sessions/`、`.credentials.yaml`、`storages/`、`profiles/` 等 | 宿主决定 | 否 | 保留 |
+| 会话搜索索引 | N1 `session-query-sqlite`；模型面 `tool-session-query` 是 **N2 实验面**，回退 = 手册的 raw-log 策略 | 宿主 K | 宿主（本包补丁启用） | `<dshHome>/session-search.db` | 首次检索创建；可重建 | 否 | 保留；要清就删此文件 |
+| 客户端 UI 状态 | 平台 `localStorage`（非 N0） | 客户端 | 设备/浏览器 | 键清单见下 | 可丢弃 | 否 | 保留；清站点数据 |
+| OpenViking 记忆 | E2 外部服务 | E2 外部服务 | 外部服务 | OpenViking server（可选） | 由服务决定 | 否 | 按 OpenViking 手册清理 |
+
+**导入旁路**：`assistant-data import --replace` 把非空目标改名为 `<dir>.pre-import-<id>` 旁路（不删，确认后手动清）；它不在 bundle 里，`check` 不把它当普通读数。
 
 客户端 `ui-mode` key 已版本化（`dsha:ui-mode:v1`，旧 key 首次读迁移）；其余键仍是站点本地、无迁移，换源或清站点即重置。持有的是 UI 偏好/回执游标，不复制 session-derived 事实。
 

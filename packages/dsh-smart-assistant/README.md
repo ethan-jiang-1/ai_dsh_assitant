@@ -49,19 +49,22 @@ Viki 的 API key 从 `apiKeyEnv`（默认 `OPENVIKING_API_KEY`）读；内联 `a
 
 ## Data
 
-- **Working folder**：`<dshHome>/assistant`，用户可读可改的 home 数据，由本插件拥有：`SOUL.md`、`AGENTS.md`、
-  `memory/`、`research/`、`skills/`、`knowledge/`、`skill-proposals/`、`audit/`、`skill-usage.json`、
-  `ui-mode.json`、`deliverables/`。学到的技能是本插件注册的 provider 根（`skills/`），不是 `$DSH_HOME/skills`；
-  策展技能随包只读，位于 `presets/assistant/skills/`。`AGENTS.md` 按 generation 迁移已知旧段落；
-  匹配不到的旧手册不重写，prompt 标记 stale。
-- **Ledger**：`<dshHome>/assistant-operating`，权威 `ledger.json`（最近 256 条操作 + 累计计数）+
-  `operations-archive.jsonl`（完整操作历史）+ 单 writer 锁；可用 `assistant-data` 导出/导入。
+- **Working folder**：`<dshHome>/assistant`，一棵用户可见的 home 树，由本插件拥有。**用户内容**：`SOUL.md`、
+  `AGENTS.md`、`memory/`、`research/`、`skills/`、`knowledge/`、`skill-proposals/`；**机器账本**（用户可读、可排障，
+  但不是可依赖的用户内容）：`skill-usage.json`、`ui-mode.json`、`audit/*.jsonl`、`archive-maintenance/`、`*.bak-*`。
+  `deliverables/` 是用户数据（模型自发落点，无生命周期）。学到的技能是本插件注册的 provider 根（`skills/`），
+  不是 `$DSH_HOME/skills`；策展技能随包只读，位于 `presets/assistant/skills/`。`AGENTS.md` 按 generation 迁移
+  已知旧段落；匹配不到的旧手册不重写，prompt 标记 stale；超过 prompt 预算时报 `manual-over-budget`。
+- **Ledger**：`<dshHome>/assistant-operating`，插件自有文件账本（不是 `ctx.storageDomain` 的 host KV）：
+  权威 `ledger.json`（最近 256 条操作 + 累计计数）+ `operations-archive.jsonl`（完整操作历史）+ 单 writer 锁；
+  可用 `assistant-data` 导出/导入。
 - **Profile 不是租户**：同一 `DSH_HOME` 下的所有 profile 共用这两个目录；换 profile 名只隔离组合，不隔离数据。
   真要隔离试用，用独立 `DSH_HOME`，或同时覆盖 memory/ledger/projection 的 `dataDir`。
 - **Host-owned**：sessions、credentials、settings、storages 在 `$DSH_HOME` 下由宿主管理，插件备份不包含它们。
   补丁启用的 `session-search.db` 是会话全文索引（派生、可重建），卸载后仍留在盘上；要清就删它。
-  客户端 localStorage/sessionStorage 键属于设备，清站点数据即清，卸载不自动清。
-  working folder 或会话 cwd 下的 `deliverables/` 是用户数据。
+  会话召回默认走已索引的 `session_search` 族（模型面 `tool-session-query` 是 N2 实验面），raw zstd 日志只是
+  手册声明的回退（跨项目/精确子串/索引缺席）。客户端 localStorage/sessionStorage 键属于设备，清站点数据即清，
+  卸载不自动清。working folder 或会话 cwd 下的 `deliverables/` 是用户数据。
 - **备份/恢复**：`assistant-data` 只带这两个目录，排除 `writer.lock` / `*.tmp`，拒绝符号链接；import 要求实例已停止。
   首次启动前目标为空即可直接 import；已经启动过的 home 先 `import --replace --dry-run` 看计划，再用 `--replace`
   把现有目录移到 `.pre-import-*` 旁路。手动 `cp -R` 也要先删掉备份里的 `writer.lock`，并另备 sessions/credentials。
@@ -85,8 +88,8 @@ Viki 的 API key 从 `apiKeyEnv`（默认 `OPENVIKING_API_KEY`）读；内联 `a
 |---|---|
 | D 定义 / C 代码 | bundle patch、preset、包内只读技能、`lib/bin`；只读，随版本替换 |
 | W workspace | 不拥有；只有用户自己的 `deliverables/` |
-| U home | `<dshHome>/assistant`；用户可见可改，跨项目，升级/卸载保留 |
-| S session / H host state / K cache / X credentials | 宿主拥有；本包不写 session、不用 storageDomain、只有内存摘要缓存、不读凭据 |
+| U home | `<dshHome>/assistant`：用户内容 + 插件账本共处一棵用户可见的树；跨项目，升级/卸载保留 |
+| S session / H host state / K cache / X credentials | S/X 宿主拥有；本包不用 `ctx.storageDomain`，账本是自有文件账本；K 只有内存摘要缓存与宿主 `session-search.db` |
 
 这个 home 根是**用户可见的 U 平面**（人能读、能 review、能导出），不是 `ctx.storageDomain` 的 host KV，也不是
 随项目走的 workspace；因此使用文件格式 + `curate` 而不是 KV schema。转换边界的合同 = [`docs/delivery.md`](../../docs/delivery.md)。

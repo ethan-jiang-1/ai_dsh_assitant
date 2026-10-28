@@ -7,7 +7,7 @@
 FAQ 24 的判据（所有权先于存储、可见性硬约束、定义≠数据、平台不兜底）对照本包后，三处不满足：
 
 1. **同一份 prompt 有两条相反的会话召回指令。** 组合已启用 FTS5 索引（`session-query-sqlite`）与 `tool-session-query`（一段常驻 guidance + 五个工具），家手册却写 “Nothing indexes them” 并把模型指向 `session-recall` 技能的 `rg --pre` + `zstd` 配方。技能还依赖会话日志的私有布局（`session-<id>` 与 vendor 现文档的 `<encoded-id>` 不一致、`v<n>` 代际）、外部 `zstd` CLI，并假设 “harness home = working folder 的父目录”——该假设在 `dataDir` 被配置到别处时不成立，失败形态是“找不到日志”而不是报错。技能同时鼓励搜兄弟项目目录，而平台工具只授权同 `cwd` 的会话：跨项目读取是插件替平台做的边界决定，却没有作为数据边界声明。
-2. **一棵树混着三种所有权。** `<dataDir>` 同时住用户内容（SOUL、手册、四房间、提案）、插件账本（`skill-usage.json`、`ui-mode.json`、`audit/*.jsonl`、`archive-maintenance/`、`*.bak-*`）。数据卡把两类一起标成 P2/U，于是备份/清理/git/诊断用同一套口径；账本（`ledger.json`）标成 P3/H，容易被读成 `ctx.storageDomain` 的 host KV。`tool-session-query` 是 `packages/experimental/`（N2），却与 N1 的索引同列，没有回退登记。
+2. **一棵树混着三种所有权。** `<dataDir>` 同时住用户内容（SOUL、手册、四房间、提案）、插件账本（`skill-usage.json`、`ui-mode.json`、`audit/*.jsonl`、`archive-maintenance/`、`*.bak-*`）。数据卡把两类一起标成 P2/U，于是备份/清理/git/诊断用同一套口径；账本（`ledger.json`）标成 P3/H，容易被读成 `ctx.storageDomain` 的 host KV。`tool-session-query` 是 `vendor/dsh/packages/experimental/`（N2），却与 N1 的索引同列，没有回退登记。
 3. **两个不变量缺守卫。** `dataDir` 可配到包目录内而服务不拒绝（R1：包目录不是数据目录）；随包只读策展技能以 `customSkillDirs`（rank 300）注册，压过用户技能（rank 400），只读定义抢了更具体所有者的优先级。
 
 ## 提案

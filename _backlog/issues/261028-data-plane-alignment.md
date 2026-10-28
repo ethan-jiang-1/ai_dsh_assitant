@@ -10,7 +10,7 @@ opened: 2026-10-28
 
 **问题与期望结果：** FAQ 24 对照后，本包的数据面有三处不满足：模型同时收到两条相反的会话召回指令，且原始日志配方依赖私有布局与一个在自定义 `dataDir` 下为假的父目录假设；`<dataDir>` 把用户内容与插件账本混为一类，数据卡/平面标签/N2 依赖登记都不准；两个不变量（dataDir 不得落包内、随包只读技能不得压过用户技能）没有守卫。完成后：模型只收到一条召回策略，跨项目读取是被声明的动作，账本与用户内容各有备份/清理口径，误配立即报错。
 
-**当前情况：** 三处都已静态核验到具体行：`home-map.ts:281`（Nothing indexes them）、`presets/assistant/skills/session-recall/SKILL.md:14`（私有路径 + rg/zstd）、`cordis.patch.yml:85`（FTS 索引）与 `:250`（N2 工具行）、`docs/delivery.md:35`（数据卡）、`docs/discipline.md:67`（既有偏离登记）。`session-query-sqlite` 在数据卡里记 N1，模型面的 `tool-session-query` 是 N2 但未登记。`bootstrap.mjs:107` 有包内拒绝，服务层没有。策展技能用 `customSkillDirs`（`cordis.patch.yml:284`）。
+**当前情况：** 片 1 已交付（手册 v22 与迁移、`session-recall` 技能重写、手动预算 8192→14336 与 `manual-over-budget`、`prompt-smoke` 新断言）。片 2/3 在做：数据卡与 README 已拆用户内容/插件账本、N2 回退与账本标签已登记；`dataDir` 包内拒绝与 `bundledSkillDir` rank 600 未动。静态核验时的问题面：v21 手册把会话召回指向 raw 配方、`tool-session-query` 的常驻 guidance 与之相反；生成的手册超出 prompt 预算；`bootstrap.mjs` 有包内拒绝而服务层没有；策展技能用 `customSkillDirs`。
 
 **未决问题：** 片 1 是模型可见面改动，需要一次 fresh-home prompt-smoke 证明两条旧指令只剩一条；`session-recall` 技能重写后是否仍需要 `zstd` 依赖（保留为回退即需要）。手册 v22 的迁移必须只替换已知 v21 段，匹配不到不重写。
 
@@ -42,7 +42,7 @@ opened: 2026-10-28
 |---|---|---|---|
 | 0 | 立卡与授权（本卡 + proposed 决定卡 + goal） | 已完成 | 两个文件 + goal `goal-c7f546ff` |
 | 1 | 会话取数：手册 v22 + 迁移 + `session-recall` 技能 + 手动预算（cap 8192→14336）+ “生成内容装进预算”不变量测试 + `manual-over-budget` finding | 已完成 | 手册 v22 与迁移/预算 + 技能重写；`vitest root-files/layout/old-home-compat` 绿；`pnpm test` 1106 通过；`pnpm verify` 50/50；`pnpm prompt-smoke`：新策略在场、`Nothing indexes them` 缺席、六工具在场 |
-| 2 | 所有权分类：数据卡拆表 + 账本标签 + N2 登记 + 遗漏行 + README | 未开始 | 待填 |
+| 2 | 所有权分类：数据卡拆三表（用户内容/插件账本/宿主面）+ 损坏策略列 + 账本标签 + N2 回退登记（discipline 适配 14）+ README 同步 | 已完成 | `docs/delivery.md` §一、`docs/discipline.md` 适配 13/14、包 README 的 Data/平面表；`pnpm verify` 50/50；doc contract 17 通过 |
 | 3 | 两个护栏：`dataDir` 包内拒绝 + `bundledSkillDir` rank 600 | 未开始 | 待填 |
 | 4 | 收口：build/typecheck/test/verify + prompt-smoke + note 翻转 | 未开始 | 待填 |
 
