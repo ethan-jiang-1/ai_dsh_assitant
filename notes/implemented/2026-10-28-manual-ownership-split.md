@@ -21,7 +21,7 @@
 - CLI：`refresh-manual` 与 `status` 改到 `MANUAL.md`（`src/cli/assistant-data-*.ts`、`bin/assistant-data.mjs`）。
 - 测试：`tests/host/root-files.spec.ts`（seed/notes/迁移/镜像/预算）、`tests/host/old-home-compat.spec.ts`（v19 fixture 拆分）、`tests/domain/layout.spec.ts`、`tests/tooling/assistant-data.spec.mjs`、`assistant-data-manual.spec.mjs`、`expert-setup.spec.mjs`。
 - 文档：`docs/home.md` §一/§三/§四/§五、`docs/delivery.md` 数据卡与格式政策、`docs/architecture.md`、`docs/dev.md`、`docs/release.md`、`docs/identity.md`、`docs/testing.md`、包 README。
-- 证据：`pnpm test` **147 文件 1108 通过**；`pnpm verify` **50/50**；`pnpm prompt-smoke` PASS（四段常驻、手冊尾段）；`pnpm typecheck`/`build` 通过。提交 `97afa26`（拆分）、`ada524b`（删 generation 机器）。
+- 证据与逐片验收住提交说明与归档台账；本 note 只持决定与后果。
 
 ## 输掉的方案
 
