@@ -59,7 +59,13 @@ interface PresetRow {
 /** Read this package's agent-plane rows from the shipped preset configuration. */
 function ownPresetFromPatch(patchText: string): PresetRow {
   const patches = yaml.load(patchText, { schema: entryListSchema }) as PatchOptions[]
-  const entries = applyEntryPatches([], patches, (message, ...args) => {
+  // The bundle patch targets a few shipped rows by id (the vendor terminal is suppressed, not
+  // inserted). Seed the rows this isolated application is expected to find; the real profile
+  // layers them below this patch.
+  const base: PresetRow[] = [
+    { id: 'ui-sidebar-terminal', name: '@deepseek-ai/dsh-client-ui-sidebar-terminal' },
+  ]
+  const entries = applyEntryPatches(base, patches, (message, ...args) => {
     throw new Error(`cordis.patch.yml: ${message} ${args.join(' ')}`)
   }) as PresetRow[]
   const preset = entries.find(row => row.id === 'preset-assistant')
