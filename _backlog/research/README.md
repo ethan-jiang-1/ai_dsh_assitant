@@ -54,6 +54,7 @@ research 为问题和缺陷提供依据。问题按 [关闭条件](../README.md)
 
 - [261024-interface-layer-audit.md](positioning/261024-interface-layer-audit.md)——引用卡：[三层界面重排 note](../../notes/implemented/2026-10-24-interface-layer-rearrangement.md)（已 implemented；本档是证据，不再是待拍板方案）。三层在主面板内成立，旧 feature silos 仍并列；第一轮覆盖主面板/会话/右栏/三档/调试，窄视口与审批进第二轮
 - [261023-first-run-e2e-review.md](positioning/261023-first-run-e2e-review.md)——引用卡：无（2026-10-23 用户点名首开端到端复核；后续修复卡按此取用）。干净 home 真机 + eight 种子 + 两轴评审 + 资产盘点：主链 25s 出页、6 硬问题/4 UX 缺陷已修、5 个 P1 资产/语义缺口与优先级
+- [261029-first-value-journey.md](positioning/261029-first-value-journey.md)——引用卡：[首用价值问题卡](../issues/261029-first-value-journey.md)。仓内入口、首件产物、跨时连续性与 live probe 证据；A+C 仅为待评候选，不是结论
 - [261023-first-run-ux-walkthrough.md](positioning/261023-first-run-ux-walkthrough.md)——引用卡：[首开重做（已结）](../_archive/settled_issues/261023-first-run-ux-reframe.md)（证据/三案/设计议程在本档，结论与台账在卡上）。空 home 三屏走查 + 一次真模型回合：五条可观察事实、呈现面清单、机制诊断、目标体验草案、A/B/C 代价与九条未决议程
 
 - [261020-six-dimension-housekeeping-audit.md](tech-exploration/261020-six-dimension-housekeeping-audit.md)——引用卡：无（2026-10-20 用户点名六维深审，本档是本轮 REVIEW 的直接输入；改善项立项后由对应卡引用）。六维打扫卫生深审发现报告：五路 fresh 审计员 + 主线对抗复核；S1–S5 战役复核结论（立住）、26 条分级发现、改善三批次路线、banner 场景活体复验 PASS
@@ -76,3 +77,4 @@ research 为问题和缺陷提供依据。问题按 [关闭条件](../README.md)
 - [261012-personal-agent-landscape.md](positioning/261012-personal-agent-landscape.md)——间接使用：2026-10-12 用户直接请求（近月 personal agent 生态）→ [差异性对照](positioning/261012-personal-agent-differentiation.md) 引用本篇；无引用卡，待定位推敲取用。Muse/dots/Instinct/CC/Cowork 的时间线、能力形态、市场反响与未能证实清单
 - [261012-personal-agent-differentiation.md](positioning/261012-personal-agent-differentiation.md)——间接使用：同上请求 → 本篇。机制级对照本仓产品（对着 [README.md](../../README.md) 判据）：合理性论据、steelman 威胁表、逐维度对比与借鉴清单；无引用卡，待定位推敲取用
 - [261012-decision-continuity-evidence.md](positioning/261012-decision-continuity-evidence.md)——间接使用：2026-10-12 用户要求网络验证「经营事项连续性层」假设 → 本篇。区分组织执行连续性、个人管理者记忆问题与产品效果证据，含支持、反证、来源限制与本仓待验证项
+- [261029-first-use-value-systems.md](positioning/261029-first-use-value-systems.md)——间接使用：[首用价值问题卡](../issues/261029-first-value-journey.md) 的补充 REVIEW 证据，已在[首用价值旅程](positioning/261029-first-value-journey.md)中整合。Claude Projects 官方能力与本仓现有 DSH 数据面、模型可见差量及待验证处

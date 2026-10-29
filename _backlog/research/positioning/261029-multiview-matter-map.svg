@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1020" viewBox="0 0 1440 1020" role="img" aria-labelledby="title desc">
+  <title id="title">同一批事项的多视图研究示意</title>
+  <desc id="desc">同一经营账本派生全局关注视图和单件演变视图。可从全局进入一件事项并返回原视角。跨事项依赖关系当前没有数据支撑。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0L10 5L0 10Z" fill="#176b57"/>
+    </marker>
+    <marker id="arrow-muted" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0L10 5L0 10Z" fill="#536a78"/>
+    </marker>
+    <style>
+      text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;fill:#202a35}
+      .muted{fill:#5b6a75}.small{font-size:16px}.body{font-size:19px}.label{font-size:15px;font-weight:700;letter-spacing:1px}.heading{font-size:28px;font-weight:700}.cardtitle{font-size:21px;font-weight:650}.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:15px}
+    </style>
+  </defs>
+  <rect width="1440" height="1020" fill="#f1f4f5"/>
+  <text x="72" y="70" font-size="17" font-weight="700" fill="#176b57">RESEARCH · REVIEW DISCUSSION</text>
+  <text x="72" y="116" font-size="36" font-weight="750">同一批事项，不同 View</text>
+  <text x="72" y="151" font-size="19" class="muted">先看整体该关注什么，再进入一件事核对它怎样演变；不是复制出第二套业务数据。</text>
+  <rect x="1155" y="65" width="213" height="40" rx="5" fill="#fff5da" stroke="#dfbd6b"/>
+  <text x="1173" y="91" font-size="16" font-weight="700" fill="#795700">研究设想 · 尚未实现</text>
+
+  <rect x="72" y="185" width="1296" height="126" rx="7" fill="#ffffff" stroke="#afc4bd" stroke-width="2"/>
+  <rect x="72" y="185" width="8" height="126" rx="4" fill="#176b57"/>
+  <text x="104" y="224" class="label" fill="#176b57">ONE SOURCE OF TRUTH</text>
+  <text x="104" y="258" class="heading">同一经营账本 · 同一 Matter ID</text>
+  <text x="104" y="289" class="small muted">已知状态、负责人、承诺 / 预测 / 核对 / 完成时间、材料来源、待确认提案与操作回执</text>
+  <rect x="1035" y="217" width="292" height="56" rx="5" fill="#e8f3ef"/>
+  <text x="1061" y="251" class="body" font-weight="650" fill="#176b57">Views = 同一事实的不同读法</text>
+
+  <path d="M720 312V337H380V359" fill="none" stroke="#176b57" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M720 312V337H1060V359" fill="none" stroke="#176b57" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <rect x="72" y="367" width="612" height="405" rx="7" fill="#ffffff" stroke="#cbd5da" stroke-width="2"/>
+  <rect x="72" y="367" width="612" height="8" rx="4" fill="#176b57"/>
+  <text x="104" y="418" class="label" fill="#176b57">VIEW A · CANDIDATE</text>
+  <text x="104" y="457" class="heading">全局：先找到要看的事</text>
+  <text x="104" y="488" class="small muted">问题：现在哪些事项需要我留意？依据是什么？</text>
+
+  <rect x="104" y="515" width="548" height="67" rx="5" fill="#f5f7f8" stroke="#d7dfe3"/>
+  <text x="123" y="543" class="cardtitle">客户回款承诺变化</text>
+  <text x="123" y="568" class="small muted">当前日 10/29 · 在办 · 负责人：我 · 核对点：10/29</text>
+  <rect x="482" y="529" width="72" height="30" rx="4" fill="#fff0d0" stroke="#d5a83d"/>
+  <text x="495" y="550" font-size="14" font-weight="700" fill="#765300">到期</text>
+  <rect x="563" y="529" width="75" height="30" rx="4" fill="#fbe9e5" stroke="#cb8d80"/>
+  <text x="575" y="550" font-size="14" font-weight="700" fill="#8c3c30">待确认</text>
+
+  <text x="104" y="620" class="small" font-weight="650">可叠加的关注信号，不互斥分列</text>
+  <text x="104" y="650" class="small muted">业务状态：在办 / 已完成 / 已放弃</text>
+  <text x="104" y="678" class="small muted">关注标记：到期、待确认、缺少依据等</text>
+  <text x="104" y="718" class="small muted">只呈现账上可核对的事实；未知不推成优先级</text>
+
+  <rect x="756" y="367" width="612" height="405" rx="7" fill="#ffffff" stroke="#cbd5da" stroke-width="2"/>
+  <rect x="756" y="367" width="612" height="8" rx="4" fill="#365c83"/>
+  <text x="788" y="418" class="label" fill="#365c83">VIEW B · CANDIDATE</text>
+  <text x="788" y="457" class="heading">单件：看清它怎样走到这里</text>
+  <text x="788" y="488" class="small muted">问题：哪些事实变了？哪些还只是预测或提案？</text>
+  <path d="M813 532V715" stroke="#93aabd" stroke-width="3"/>
+  <circle cx="813" cy="544" r="8" fill="#365c83"/>
+  <circle cx="813" cy="606" r="8" fill="#365c83"/>
+  <circle cx="813" cy="668" r="8" fill="#c08313"/>
+  <text x="839" y="540" class="small" font-weight="700">原始交办 · 承诺期限 10/20</text>
+  <text x="839" y="563" class="small muted">来源：本人交办原话 · 已确认事实</text>
+  <text x="839" y="602" class="small" font-weight="700">后续来电 · 客户预测 10/29</text>
+  <text x="839" y="625" class="small muted">来源：10/11 客户来电 · 预测，不覆盖原承诺</text>
+  <text x="839" y="664" class="small" font-weight="700" fill="#795700">pending 提案 · 拟议期限 11/05</text>
+  <text x="839" y="687" class="small muted">待本人确认 · 尚未生效 · 可查看提案来源</text>
+  <rect x="788" y="718" width="548" height="35" rx="4" fill="#eaf0f6"/>
+  <text x="802" y="741" font-size="15" fill="#365c83">操作回执能说明做过什么；因果解释必须另有依据。</text>
+
+  <path d="M684 573H748" fill="none" stroke="#176b57" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="672" y="535" width="89" height="28" rx="4" fill="#f1f4f5"/>
+  <text x="684" y="554" font-size="13" font-weight="700" fill="#176b57">点开同一事项</text>
+  <path d="M756 735C715 835 270 835 225 776" fill="none" stroke="#536a78" stroke-width="2.5" stroke-dasharray="8 7" marker-end="url(#arrow-muted)"/>
+  <text x="477" y="823" class="small" font-weight="650" fill="#536a78">返回原 View · 保留筛选 / 选中项 / 位置（交互候选）</text>
+
+  <rect x="72" y="867" width="1296" height="104" rx="7" fill="#fff5da" stroke="#dfbd6b" stroke-width="2"/>
+  <text x="104" y="906" class="label" fill="#795700">NOT IN LEDGER TODAY</text>
+  <text x="104" y="944" class="body" font-weight="700">跨事项依赖链：A 阻塞 B</text>
+  <path d="M434 937H540" stroke="#b17b17" stroke-width="3" stroke-dasharray="7 6"/>
+  <path d="M482 924L502 950M502 924L482 950" stroke="#a44737" stroke-width="4"/>
+  <text x="565" y="944" class="body" fill="#694d12">当前没有关系字段支撑；不按标题相似或时间先后连线。</text>
+  <text x="104" y="989" font-size="14" class="muted">图中事项 / 日期 / 来源均为手写假设；单件时间线 ≠ 多事项间真实因果 / 依赖关系。</text>
+</svg>

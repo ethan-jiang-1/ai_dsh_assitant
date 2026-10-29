@@ -4,7 +4,7 @@
 
 ## 活跃清单
 
-当前没有活跃问题卡。
+- [261029-first-value-journey.md](261029-first-value-journey.md)——价值感不足的研究与实验台账；用户 REVIEW 提出用不同 View 连接单件深入与全局，回到推敲中，产品实施暂停。
 
 已结档：261028 数据面第二轮复查 → [settled_issues](../_archive/settled_issues/261028-data-plane-recheck.md)，261028 数据面校准 → [settled_issues](../_archive/settled_issues/261028-data-plane-alignment.md)，B 级缺口 → [settled_issues](../_archive/settled_issues/261028-b-grade-close.md)，P3 残余 → [settled_issues](../_archive/settled_issues/261028-p3-residuals.md)，六维改善 → [settled_issues](../_archive/settled_issues/261028-six-dimension-improvement.md)。
 
