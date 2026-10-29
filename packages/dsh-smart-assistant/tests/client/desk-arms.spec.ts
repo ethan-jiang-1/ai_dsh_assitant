@@ -174,9 +174,9 @@ function fixture(payload: Record<string, unknown> = envelope()): Fixture {
     connect: () => { generation.set({ id: 1 }); connectionState.set('connected') },
     armFaces: () => {
       const main = registrations.find(entry => entry.name === 'main')
-      const inject = main?.declaration.inject as ((actions: { selectMatter(id: string): void, setMode(mode: 'string'): void, setCaptureDraft(text: string): void, setCaptureReceipt(receipt: CaptureReceiptView | null): void }) => { surface?: { lanes: DeskLanes }, hooks?: ArmFaces['hooks'] }) | undefined
+      const inject = main?.declaration.inject as ((actions: { selectMatter(id: string): void, selectMode(mode: 'string'): void, setCaptureDraft(text: string): void, setCaptureReceipt(receipt: CaptureReceiptView | null): void }) => { surface?: { lanes: DeskLanes }, hooks?: ArmFaces['hooks'] }) | undefined
       const injected = inject?.({
-        selectMatter: (id: string) => { selected.push(id) }, setMode: () => {},
+        selectMatter: (id: string) => { selected.push(id) }, selectMode: () => {},
         setCaptureDraft: () => {}, setCaptureReceipt: receipt => { receipts.push(receipt) },
       })
       return { ...(injected?.surface?.lanes ?? {}), hooks: injected?.hooks } as ArmFaces

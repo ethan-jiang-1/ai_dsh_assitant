@@ -8,7 +8,7 @@
 import type { OperatingReceipt } from './operating-projection'
 
 export type ListFilter = 'all' | 'active' | 'settled'
-export type DeskMode = 'board' | 'activity'
+export type DeskMode = 'attention' | 'board' | 'activity'
 
 /**
  * The delivery receipt of one line the principal typed into the desk's capture row (desk-side capture, 2026-10-18).
@@ -38,6 +38,8 @@ export interface ProjectionView {
   selected: { kind: 'matter' | 'fragment'; id: string } | null
   pane: 'list' | 'detail'
   listScrollTop: number
+  attentionScrollTop: number
+  activityScrollTop: number
   filter: ListFilter
   /** The human list's search text; client-local, not persisted. */
   query: string
@@ -45,6 +47,8 @@ export interface ProjectionView {
   activityLimit: number
   /** Receipts paged from the archive after the recent projection window. */
   olderReceipts?: readonly OperatingReceipt[]
+  /** Per-feed archive request state and cursor; failures remain retryable. */
+  archiveLoads: Record<string, { readonly status: 'ready' | 'loading' | 'error' | 'exhausted', readonly before?: string }>
   /** The principal's un-sent words in the desk's capture row. */
   captureDraft: string
   /** The line delivered but not yet read back from the ledger; null = nothing in flight. */
@@ -85,18 +89,52 @@ function writeStoredReceipt(receipt: DeskCaptureReceipt | null): void {
   }
 }
 const projectionViewActions = {
-  selectMatter(draft: ProjectionView, id: string): void { draft.selected = { kind: 'matter', id }; draft.pane = 'detail' },
-  selectFragment(draft: ProjectionView, id: string): void { draft.selected = { kind: 'fragment', id }; draft.pane = 'detail' },
+  selectMatter(draft: ProjectionView, id: string, mode?: DeskMode): void {
+    if (mode !== undefined) draft.mode = mode
+    draft.selected = { kind: 'matter', id }
+    draft.pane = 'detail'
+  },
+  selectFragment(draft: ProjectionView, id: string, mode?: DeskMode): void {
+    if (mode !== undefined) draft.mode = mode
+    draft.selected = { kind: 'fragment', id }
+    draft.pane = 'detail'
+  },
   showList(draft: ProjectionView): void { draft.pane = 'list' },
+  selectMode(draft: ProjectionView, mode: DeskMode): void { draft.mode = mode; draft.pane = 'list' },
+  beginArchiveLoad(draft: ProjectionView, key: string, before: string | undefined): void {
+    const state = draft.archiveLoads[key]
+    if (state?.status === 'loading' || state?.status === 'exhausted') return
+    draft.archiveLoads[key] = { status: 'loading', ...(before === undefined ? {} : { before }) }
+  },
+  failArchiveLoad(draft: ProjectionView, key: string): void {
+    const state = draft.archiveLoads[key]
+    if (state?.status === 'loading') draft.archiveLoads[key] = { status: 'error', ...(state.before === undefined ? {} : { before: state.before }) }
+  },
+  completeArchiveLoad(draft: ProjectionView, key: string, receipts: readonly OperatingReceipt[], nextBefore: string | null): void {
+    const state = draft.archiveLoads[key]
+    if (state?.status !== 'loading') return
+    const seen = new Set((draft.olderReceipts ?? []).map(receipt => receipt.operationId))
+    draft.olderReceipts = [...(draft.olderReceipts ?? []), ...receipts.filter(receipt => {
+      if (seen.has(receipt.operationId)) return false
+      seen.add(receipt.operationId)
+      return true
+    })]
+    draft.archiveLoads[key] = nextBefore === null || receipts.length === 0
+      ? { status: 'exhausted' }
+      : { status: 'ready', before: nextBefore }
+  },
+
+
   rememberListPosition(draft: ProjectionView, position: number): void { draft.listScrollTop = Math.max(0, position) },
+  rememberModePosition(draft: ProjectionView, mode: DeskMode, position: number): void {
+    const top = Math.max(0, position)
+    if (mode === 'attention') draft.attentionScrollTop = top
+    else if (mode === 'activity') draft.activityScrollTop = top
+    else draft.listScrollTop = top
+  },
   setFilter(draft: ProjectionView, filter: ListFilter): void { draft.filter = filter },
   setQuery(draft: ProjectionView, query: string): void { draft.query = query },
-  setMode(draft: ProjectionView, mode: DeskMode): void { draft.mode = mode },
   revealMoreActivity(draft: ProjectionView): void { draft.activityLimit = draft.activityLimit + 50 },
-  appendOlderReceipts(draft: ProjectionView, receipts: readonly OperatingReceipt[]): void {
-    const seen = new Set((draft.olderReceipts ?? []).map(receipt => receipt.operationId))
-    draft.olderReceipts = [...(draft.olderReceipts ?? []), ...receipts.filter(receipt => !seen.has(receipt.operationId))]
-  },
   setCaptureDraft(draft: ProjectionView, text: string): void { draft.captureDraft = text },
   setCaptureReceipt(draft: ProjectionView, receipt: DeskCaptureReceipt | null): void { draft.captureReceipt = receipt; writeStoredReceipt(receipt) },
 }
@@ -104,15 +142,18 @@ export type ProjectionViewActions = typeof projectionViewActions
 export type DefineProjectionViewStore = (spec: { init(): ProjectionView; actions: ProjectionViewActions }) => ProjectionViewHandle
 /** The bound actions a concrete view store exposes to its component. */
 export interface ProjectionViewBoundActions {
-  selectMatter(id: string): void
-  selectFragment(id: string): void
+  selectMatter(id: string, mode?: DeskMode): void
+  selectFragment(id: string, mode?: DeskMode): void
   showList(): void
+  selectMode(mode: DeskMode): void
+  beginArchiveLoad(key: string, before: string | undefined): void
+  failArchiveLoad(key: string): void
+  completeArchiveLoad(key: string, receipts: readonly OperatingReceipt[], nextBefore: string | null): void
   rememberListPosition(position: number): void
+  rememberModePosition(mode: DeskMode, position: number): void
   setFilter(filter: ListFilter): void
   setQuery(query: string): void
-  setMode(mode: DeskMode): void
   revealMoreActivity(): void
-  appendOlderReceipts(receipts: readonly OperatingReceipt[]): void
   setCaptureDraft(text: string): void
   setCaptureReceipt(receipt: DeskCaptureReceipt | null): void
 }
@@ -131,5 +172,5 @@ export interface ProjectionViewHandle {
  * @returns Nonpersistent handle shared across main Slot declaration lifetimes.
  */
 export function createProjectionViewStore(define: (spec: { init(): ProjectionView; actions: ProjectionViewActions }) => ProjectionViewHandle): ProjectionViewHandle {
-  return define({ init: () => ({ selected: null, pane: 'list', listScrollTop: 0, filter: 'all' as const, query: '', mode: 'board' as const, activityLimit: 50, olderReceipts: [], captureDraft: '', captureReceipt: readStoredReceipt() }), actions: projectionViewActions })
+  return define({ init: () => ({ selected: null, pane: 'list', listScrollTop: 0, attentionScrollTop: 0, activityScrollTop: 0, filter: 'all' as const, query: '', mode: 'board' as const, activityLimit: 50, olderReceipts: [], archiveLoads: {}, captureDraft: '', captureReceipt: readStoredReceipt() }), actions: projectionViewActions })
 }

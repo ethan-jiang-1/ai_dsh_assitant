@@ -3,7 +3,7 @@
  * The command may run before main Slot injection; the next injection consumes its mode once.
  */
 export interface DeskActivityModeActions {
-  setMode(mode: 'activity'): void
+  selectMode(mode: 'activity'): void
 }
 
 /**
@@ -19,7 +19,7 @@ export function createDeskActivityHandoff(): {
     requestActivity() { pendingActivity = true },
     receive(actions) {
       if (actions === undefined || !pendingActivity) return
-      actions.setMode('activity')
+      actions.selectMode('activity')
       pendingActivity = false
     },
   }

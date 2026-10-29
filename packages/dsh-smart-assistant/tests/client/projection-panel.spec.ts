@@ -9,12 +9,14 @@ import type { OperatingMatter, OperatingProjection, OperatingReceipt } from '../
 import { createProjectionViewStore } from '../../src/client/projection/projection-view'
 import { getUiModeStore, initUiModeStore } from '../../src/client/chrome/ui-mode'
 import { defineStore } from '@deepseek-ai/dsh-client-store'
+import { deskEn } from '../../src/client/chrome/locales'
 
 const react = {
   createElement,
   useState: <T,>(initial: T | (() => T)): [T, (next: T) => void] => [typeof initial === 'function' ? (initial as () => T)() : initial, () => {}],
   useEffect: () => {},
   useRef: <T,>(value: T): { current: T } => ({ current: value }),
+  useCallback: <T extends (...args: never[]) => unknown>(callback: T): T => callback,
 }
 bindClientRequire(() => react)
 /** Invoke function components the way React would; the proactive strips are child components now. */
@@ -73,6 +75,7 @@ function panelProps(
 ): ProjectionPanelProps {
   const statuses = options.statuses ?? new Map()
   return {
+    t: (key, params) => Object.entries(params ?? {}).reduce((text, [name, value]) => text.replaceAll(`{${name}}`, String(value)), deskEn[key]),
     surface: surface(lanes),
     useProjection: <S,>(select: (candidate: ProjectionDownload) => S): S => select(value),
     useStore: <S,>(select: (candidate: ReturnType<typeof view.getSnapshot>) => S): S => select(view.getSnapshot()),
@@ -207,20 +210,64 @@ describe('global projection panel', () => {
     expect(text(ProjectionPanel(props))).toContain('办结的事B')
   })
 
+  it('attention mode shows overdue and pending signals together and opens that matter without changing view state', () => {
+    const view = createProjectionViewStore(defineStore).create()
+    view.actions.setFilter('active')
+    view.actions.setQuery('回款')
+    view.actions.rememberListPosition(180)
+    view.actions.rememberModePosition('attention', 420)
+    view.actions.selectMode('attention')
+    const value: ProjectionDownload = { status: 'ready', data: { schemaVersion: 2, ledgerId: 'test', revision: 4, receipts: [], unclaimed: [], matters: [
+      { id: 'm-1', title: '回款 A', status: 'active', summary: '等待凭证', responsible: '财务', revision: 2,
+        times: { nextCheckpoint: '2026-10-13T01:00:00.000Z' },
+        proposals: [{ id: 'p-1', kind: 'reschedule', status: 'pending', proposedAt: '2026-10-14T00:00:00.000Z', source: { sessionId: 's-proposal', quote: '建议改到周五' } }],
+        evidence: [{ id: 'e-1', sessionId: 's-source', receivedAt: '2026-10-12T01:00:00.000Z', note: '原承诺：本周五', quote: '本周五到账' }] },
+     ] } }
+    const props = panelProps(value, view)
+    const attention = ProjectionPanel(props)
+    const copy = text(attention)
+    expect(copy).toContain('· no completion result')
+    expect(copy).toContain('1 pending proposal(s)')
+    expect(copy.indexOf('Due ')).toBeLessThan(copy.indexOf('pending proposal'))
+
+    findButtonBySubstring(attention, '回款 A')?.onClick?.()
+    const detail = text(ProjectionPanel(props))
+    expect(detail).toContain('Matter records')
+    expect(detail).toContain('本周五到账')
+    expect(detail).toContain('Awaiting principal confirmation')
+    expect(detail.indexOf('回款 A')).toBeLessThan(detail.indexOf('本周五到账'))
+
+    findButtonBySubstring(ProjectionPanel(props), 'Back to Attention')?.onClick?.()
+    expect(view.getSnapshot()).toMatchObject({ mode: 'attention', pane: 'list', filter: 'active', query: '回款', listScrollTop: 180, attentionScrollTop: 420 })
+  })
+
+  it('includes active pending-only matters but not resolved matters with stale pending proposals', () => {
+    const view = createProjectionViewStore(defineStore).create()
+    view.actions.selectMode('attention')
+    const value: ProjectionDownload = { status: 'ready', data: { schemaVersion: 2, ledgerId: 'test', revision: 4, receipts: [], unclaimed: [], matters: [
+      { id: 'active-pending', title: '仍在办且待确认', status: 'active', summary: '', responsible: '', revision: 2, times: {}, proposals: [{ id: 'p-active', kind: 'reschedule', status: 'pending', source: { sessionId: 's1' } }], evidence: [] },
+      { id: 'done-pending', title: '已完成的旧提案', status: 'completed', summary: '', responsible: '', revision: 3, times: {}, proposals: [{ id: 'p-done', kind: 'complete', status: 'pending', source: { sessionId: 's2' } }], evidence: [] },
+    ] } }
+    const output = text(ProjectionPanel(panelProps(value, view)))
+    expect(output).toContain('仍在办且待确认')
+    expect(output).not.toContain('已完成的旧提案')
+    expect(output).toContain('1 pending proposal(s)')
+  })
+
   it('offers the older-ledger button only when a page loader is wired', () => {
     const value: ProjectionDownload = { status: 'ready', data: { schemaVersion: 2 as const, ledgerId: 'test', revision: 2, receipts: [
       { operationId: 'op-1', matterId: 'a', sessionId: 's1', submittedAt: '2026-10-12T01:00:00.000Z', status: 'committed', revision: 1, kind: 'create' },
     ], unclaimed: [], matters: [] } }
     const view = createProjectionViewStore(defineStore).create()
-    view.actions.setMode('activity')
+    view.actions.selectMode('activity')
     expect(text(ProjectionPanel(panelProps(value, view)))).not.toContain('加载更早账本')
-    const withLoader = { ...panelProps(value, view), loadOlderReceipts: async () => [] }
-    expect(text(ProjectionPanel(withLoader))).toContain('加载更早账本')
+    const withLoader = { ...panelProps(value, view), loadOlderReceipts: async () => ({ receipts: [], nextBefore: null }) }
+    expect(text(ProjectionPanel(withLoader))).toContain('Load earlier records')
   })
 
   it('activity mode renders the operations feed grouped newest-first and an entry click jumps to its matter (history views ③)', () => {
     const view = createProjectionViewStore(defineStore).create()
-    view.actions.setMode('activity')
+    view.actions.selectMode('activity')
     const value: ProjectionDownload = { status: 'ready', data: { schemaVersion: 2 as const, ledgerId: 'test', revision: 3, receipts: [
       { operationId: 'op-1', matterId: 'a', sessionId: 's1', submittedAt: '2026-10-12T01:00:00.000Z', status: 'committed', revision: 1, kind: 'create' },
       { operationId: 'op-2', matterId: 'b', sessionId: 's2', submittedAt: '2026-10-13T05:00:00.000Z', status: 'committed', revision: 1, kind: 'claim', quote: '那条就是它的' },
@@ -231,11 +278,11 @@ describe('global projection panel', () => {
     const output = ProjectionPanel(panelProps(value, view))
     const flat = text(output)
     // Newest first across matters: the 10-13 claim precedes the 10-12 creation.
-    expect(flat.indexOf('认领归户')).toBeLessThan(flat.indexOf('交办立项'))
+    expect(flat.indexOf('Material claimed')).toBeLessThan(flat.indexOf('Matter created'))
     expect(flat).toContain('事项B')
     expect(flat).toContain('「那条就是它的」')
     // The entry is a button that jumps: board mode back on, the matter selected in detail.
-    const entry = findButtonBySubstring(output, '认领归户')
+    const entry = findButtonBySubstring(output, 'Material claimed')
     expect(entry).toBeDefined()
     entry?.onClick?.()
     expect(view.getSnapshot().mode).toBe('board')
@@ -244,7 +291,7 @@ describe('global projection panel', () => {
 
   it('progressively reveals older operations inside the activity feed', () => {
     const view = createProjectionViewStore(defineStore).create()
-    view.actions.setMode('activity')
+    view.actions.selectMode('activity')
     const receipts = Array.from({ length: 60 }, (_, index) => ({
       operationId: `op-${String(index)}`, matterId: 'a', sessionId: 's', submittedAt: new Date(Date.UTC(2026, 9, 1, 0, index)).toISOString(), status: 'committed', revision: index + 1, kind: 'update',
     }))
@@ -253,14 +300,14 @@ describe('global projection panel', () => {
     ] } }
     const props = panelProps(value, view)
     // The default limit reveals the newest 50; the rest waits behind 「显示更早」.
-    expect((text(ProjectionPanel(props)).match(/更新事项/g) ?? []).length).toBe(50)
-    const more = findButton(ProjectionPanel(props), '显示更早')
+    expect((text(ProjectionPanel(props)).match(/Matter updated/g) ?? []).length).toBe(50)
+    const more = findButton(ProjectionPanel(props), 'Show earlier activity')
     expect(more).toBeDefined()
     more?.onClick?.()
-    expect((text(ProjectionPanel(props)).match(/更新事项/g) ?? []).length).toBe(60)
+    expect((text(ProjectionPanel(props)).match(/Matter updated/g) ?? []).length).toBe(60)
   })
 
-  it('renders the matter biography: the actions section lists this matter\'s operations newest-first with kind labels, quotes and sessions', () => {
+  it('renders one matter timeline chronologically with quotes and sources, without another matter\'s receipts', () => {
     const view = createProjectionViewStore(defineStore).create()
     view.actions.selectMatter('a')
     const value: ProjectionDownload = { status: 'ready', data: { schemaVersion: 2 as const, ledgerId: 'test', revision: 3, receipts: [
@@ -268,18 +315,19 @@ describe('global projection panel', () => {
       { operationId: 'op-2', matterId: 'a', sessionId: 's2', submittedAt: '2026-10-12T05:00:00.000Z', status: 'committed', revision: 2, kind: 'claim', quote: '那条就是 NB-02 的' },
       { operationId: 'op-9', matterId: 'b', sessionId: 's3', submittedAt: '2026-10-12T06:00:00.000Z', status: 'committed', revision: 1, kind: 'create' },
     ], unclaimed: [], matters: [
-      { id: 'a', title: '事项 A', status: 'active', summary: 'A 摘要', responsible: '', revision: 2, times: {}, proposals: [], evidence: [] },
+      { id: 'a', title: '事项 A', status: 'active', summary: 'A 摘要', responsible: '', revision: 2, times: {}, proposals: [{ id: 'p-unknown', kind: 'checkpoint', status: 'pending' }], evidence: [{ id: 'e-unknown-time', sessionId: 's-evidence', note: '来源材料时间未知' }] }
     ] } }
     const output = text(ProjectionPanel(panelProps(value, view)))
-    expect(output).toContain('动作')
-    expect(output).toContain('认领归户')
-    expect(output).toContain('交办立项')
-    // Newest first: the 05:00 claim precedes the 01:00 creation.
-    expect(output.indexOf('认领归户')).toBeLessThan(output.indexOf('交办立项'))
+    expect(output).toContain('Matter records')
+    expect(output).toContain('Material claimed')
+    expect(output).toContain('Matter created')
+    expect(output.indexOf('Matter created')).toBeLessThan(output.indexOf('Material claimed'))
     expect(output).toContain('「那条就是 NB-02 的」')
     expect(output).toContain('s2')
-    // Another matter's operation must not leak into this biography (its session id is the tell).
-    expect(output.indexOf('s3')).toBe(-1)
+    expect(output).toContain('来源材料时间未知')
+    expect(output).toContain('Time not recorded')
+    expect(output).toContain('Source not recorded')
+    expect(output).not.toContain('s3')
   })
 
   it('gates the detail action by status: settled matters wake, active matters process (history of the state machine)', () => {
@@ -319,14 +367,15 @@ describe('global projection panel', () => {
     const output = text(ProjectionPanel(props))
     // 四种时间各占一段：承诺/预测/核对/完成。Zoned stamps render viewer-local, so the
     // expectation is computed through the same Date API instead of a fixed wall clock.
-    expect(output).toContain('承诺 2026-10-13')
-    expect(output).toContain('预测 2026-10-15')
-    expect(output).toContain('核对 2026-10-13')
+    expect(output).toContain('Commitment 2026-10-13')
+    expect(output).toContain('Customer forecast 2026-10-15')
+    expect(output).toContain('Next check 2026-10-13')
     const stamp = '2026-10-16T04:00:00.000Z'
     const at = new Date(stamp)
     const pad = (n: number): string => String(n).padStart(2, '0')
     const local = `${at.getFullYear()}-${pad(at.getMonth() + 1)}-${pad(at.getDate())} ${pad(at.getHours())}:${pad(at.getMinutes())}`
-    expect(output).toContain(`完成 ${local}`)
+    expect(output).toContain(`Completed at ${local}`)
+    expect(output.match(/Completed at /g)).toHaveLength(1)
     expect(output).not.toContain(stamp)
   })
 
@@ -615,7 +664,7 @@ describe('proactive face rows (261018 片 1)', () => {
 
   it('row 1 action from the activity tab returns to the board and selects the matter (BUG-019)', () => {
     const { view, node } = renderWithCatalog(download([overdueMatter]), catalog([]))
-    view.actions.setMode('activity')
+    view.actions.selectMode('activity')
     findButton(node, '看这件事')?.onClick?.()
     expect(view.getSnapshot().mode).toBe('board')
     expect(view.getSnapshot().selected).toEqual({ kind: 'matter', id: 'm-1' })
@@ -623,7 +672,7 @@ describe('proactive face rows (261018 片 1)', () => {
 
   it('row 2 去处理 goes to the first waiting thing, and returns to the board (BUG-019)', () => {
     const { view, node } = renderWithCatalog(download([], [], [{ id: 'u-7', note: '待认领片段', sessionId: 's1' }]), catalog([]))
-    view.actions.setMode('activity')
+    view.actions.selectMode('activity')
     findButton(node, '去处理')?.onClick?.()
     expect(view.getSnapshot().mode).toBe('board')
     expect(view.getSnapshot().selected).toEqual({ kind: 'fragment', id: 'u-7' })
@@ -694,7 +743,7 @@ describe('proactive face rows (261018 片 1)', () => {
   it('the suggestion block sits below the capture row — the input comes first (261019)', () => {
     const { tree } = renderWithCatalog(download([]), catalog([]))
     expect(tree.indexOf('交给助手')).toBeLessThan(tree.indexOf('让它替你盯'))
-    expect(tree.indexOf('让它替你盯')).toBeLessThan(tree.indexOf('看板'))
+    expect(tree.indexOf('让它替你盯')).toBeLessThan(tree.indexOf('Attention'))
   })
 
   it('the suggestion block collapses to one line and expands again (261019)', () => {
@@ -813,8 +862,8 @@ describe('simple interface mode', () => {
     more?.onClick?.()
     expect(getUiModeStore().getSnapshot()).toBe('standard')
     const standard = text(ProjectionPanel(panelProps(value, view)))
-    expect(standard).toContain('看板')
-    expect(standard).toContain('流水')
+    expect(standard).toContain('All matters')
+    expect(standard).toContain('Activity')
     expect(standard).toContain('事项B')
   })
 

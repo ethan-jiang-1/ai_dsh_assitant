@@ -1,6 +1,6 @@
 /** Proactive face pure core (261018 片1): three honest rows from read-only sources, zero model calls. */
 import { describe, expect, it } from 'vitest'
-import { deriveProactiveFace, forgetAcceptedWatch, forgetPendingWatch, rememberAcceptedWatch, rememberPendingWatch, type ProactiveCatalogEntry, type ProactiveProjectionView } from '../../src/client/proactive/proactive-face'
+import { deriveOverdueMatters, deriveProactiveFace, forgetAcceptedWatch, forgetPendingWatch, rememberAcceptedWatch, rememberPendingWatch, type ProactiveCatalogEntry, type ProactiveProjectionView } from '../../src/client/proactive/proactive-face'
 
 const NOW = new Date('2026-10-18T04:00:00.000Z')
 
@@ -47,6 +47,25 @@ function catalogEntry(overrides: Record<string, unknown> = {}): ProactiveCatalog
 }
 
 describe('proactive face derivation', () => {
+  describe('per-matter overdue attention', () => {
+    it('keeps each overdue matter addressable and overlaps its pending proposal signal', () => {
+      const rows = deriveOverdueMatters(projection({ matters: [
+        matter({ proposals: [{ id: 'p-1', status: 'pending' }] }),
+        matter({ id: 'm-2', title: '另一个回款', times: { promisedDeadline: '2026-10-14T00:00:00.000Z' } }),
+        matter({ id: 'done', status: 'completed' }),
+      ] }), NOW)
+      expect(rows).toEqual([
+        { matterId: 'm-1', title: '合同 NB-02 二期款核对', dueAt: '2026-10-13T01:00:00.000Z', daysOverdue: 5, pendingProposals: 1 },
+        { matterId: 'm-2', title: '另一个回款', dueAt: '2026-10-14T00:00:00.000Z', daysOverdue: 4, pendingProposals: 0 },
+      ])
+    })
+
+    it('does not clear the attention row for a non-result receipt', () => {
+      const rows = deriveOverdueMatters(projection({ matters: [matter()], receipts: [receipt({ kind: 'update', status: 'committed' })] }), NOW)
+      expect(rows.map(row => row.matterId)).toEqual(['m-1'])
+    })
+  })
+
   describe('row 1: due without a result', () => {
     it('row 1: an active matter past its checkpoint with no receipt after it appears with days overdue', () => {
       const rows = deriveProactiveFace({ projection: projection({ matters: [matter()] }), catalog: [], now: NOW })

@@ -96,7 +96,7 @@ export function ProactiveRows(props: ProactiveStripProps): ReturnType<typeof ce>
         const dueLabel = row.daysOverdue === 0 ? '今天到期' : `到期 ${row.daysOverdue} 天`
         return ce('div', { key: 'due', className: 'dsha-proactive-row dsha-proactive-due' },
           ce('span', {}, `${row.title} · ${dueLabel}，账上没有结果${row.extraCount !== undefined ? `（另有 ${row.extraCount} 件同样到期）` : ''}`),
-          ce('button', { className: 'dsha-btn', type: 'button', onClick: () => { props.onOpenBoard?.(); props.actions.setMode('board'); props.actions.selectMatter(row.matterId) } }, '看这件事'))
+          ce('button', { className: 'dsha-btn', type: 'button', onClick: () => { props.onOpenBoard?.(); props.actions.selectMatter(row.matterId, 'board') } }, '看这件事'))
       }
       if (row.kind === 'waiting-for-you') {
         const waiting: string[] = []
@@ -115,11 +115,11 @@ export function ProactiveRows(props: ProactiveStripProps): ReturnType<typeof ce>
             return
           }
           props.onOpenBoard?.()
-          props.actions.setMode('board')
           const firstUnclaimed = props.data?.unclaimed[0]
-          if (firstUnclaimed !== undefined) { props.actions.selectFragment(firstUnclaimed.id); return }
-          const firstPending = props.data?.matters.find(matter => matter.proposals.some(proposal => proposal.status === 'pending'))
-          if (firstPending !== undefined) props.actions.selectMatter(firstPending.id)
+          if (firstUnclaimed !== undefined) { props.actions.selectFragment(firstUnclaimed.id, 'board'); return }
+          const firstPending = props.data?.matters.find(matter => matter.status === 'active' && matter.proposals.some(proposal => proposal.status === 'pending'))
+          if (firstPending !== undefined) props.actions.selectMatter(firstPending.id, 'board')
+          else props.actions.selectMode('board')
         }
         return ce('div', { key: 'waiting', className: 'dsha-proactive-row' },
           ce('span', {}, `它在等你：${waiting.join(' · ')}`),

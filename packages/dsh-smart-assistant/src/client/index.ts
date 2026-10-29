@@ -65,7 +65,7 @@ import { createProactiveHandlers } from './proactive/proactive-handlers'
 import type { ProactiveUiState } from './proactive/proactive-face'
 import { readProactiveUi } from './local-state'
 import { selectDashboardByDefault } from './chrome/default-panel-selection'
-import { en as firstMileEn, zh as firstMileZh } from './chrome/locales'
+import { deskEn, deskZh, en as firstMileEn, zh as firstMileZh } from './chrome/locales'
 
 /** Slots this face occupies (single-occupant, root-scope, declared by the sidebar). */
 const inject = ['slots', 'sidebarRightTabs', 'sidebarRight', 'sessions', 'remote', 'remote.agentPresets', 'remote.workspaceFiles', 'remote.session', 'remote.schedule', 'layout', 'connection', 'uiSession', 'workspaces', 'uiWorkspace', 'locale']
@@ -98,6 +98,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     ensureThemeVars()
     if (ctx.locale !== undefined) {
       ctx.effect(() => ctx.locale!.register('assistantFirstMile', { zh: firstMileZh, en: firstMileEn }), 'assistant-first-mile: dictionaries')
+      ctx.effect(() => ctx.locale!.register('assistantDesk', { zh: deskZh, en: deskEn }), 'assistant-desk: dictionaries')
     }
 
     // The knowledge-approve direct-call lane: mount our contribution (contract and console
@@ -185,7 +186,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     const { onSuggestAction, onSuggestDismiss, onWatchForget, onSuggestCollapse } = createProactiveHandlers({ arms, proactiveUi })
     const dashboardComponent = projection === undefined ? DashboardMainPanel : HomeSurface
     const dashboardInject = (sessionId: string | undefined, ...args: unknown[]) => {
-      const actions = args.find((argument): argument is { selectMatter(id: string): void, setMode(mode: 'activity'): void } =>
+      const actions = args.find((argument): argument is { selectMatter(id: string): void, selectMode(mode: 'activity'): void } =>
         typeof argument === 'object' && argument !== null && typeof (argument as { selectMatter?: unknown }).selectMatter === 'function')
       deskViewActions = actions ?? deskViewActions
       deskActivity.receive(actions)
@@ -205,18 +206,21 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       })
       const current = ctx.uiSession?.current.value.key
       const resolvedSession = sessionId ?? (current === undefined ? undefined : String(current))
-      const loadOlderReceipts = async (before: string): Promise<readonly OperatingReceipt[]> => {
+      const loadOlderReceipts = async (before: string | undefined): Promise<{ readonly receipts: readonly OperatingReceipt[], readonly nextBefore: string | null }> => {
         const url = new URL('/api/assistant/operating-receipts', document.baseURI)
-        url.searchParams.set('before', before)
+        if (before !== undefined) url.searchParams.set('before', before)
         url.searchParams.set('limit', '50')
         const response = await fetch(url, { headers: { accept: 'application/json' } })
-        if (!response.ok) return []
-        const body = await response.json() as { receipts?: unknown }
-        if (!Array.isArray(body.receipts)) return []
-        return body.receipts.filter((receipt): receipt is OperatingReceipt =>
-          typeof receipt === 'object' && receipt !== null
-          && typeof (receipt as { operationId?: unknown }).operationId === 'string'
-          && typeof (receipt as { submittedAt?: unknown }).submittedAt === 'string')
+        if (!response.ok) throw new Error(`receipt archive request failed (${String(response.status)})`)
+        const body = await response.json() as { receipts?: unknown, nextBefore?: unknown }
+        if (!Array.isArray(body.receipts) || (body.nextBefore !== null && typeof body.nextBefore !== 'string')) throw new Error('receipt archive response is invalid')
+        return {
+          receipts: body.receipts.filter((receipt): receipt is OperatingReceipt =>
+            typeof receipt === 'object' && receipt !== null
+            && typeof (receipt as { operationId?: unknown }).operationId === 'string'
+            && typeof (receipt as { submittedAt?: unknown }).submittedAt === 'string'),
+          nextBefore: body.nextBefore,
+        }
       }
       return {
         surface,
@@ -238,6 +242,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       const registration = ctx.slots.register({
         name: 'main',
         key: 'dsh-smart-assistant-dashboard',
+        locale: 'assistantDesk',
         ...(viewStore === undefined ? {} : { store: viewStore }),
         inject: injectDashboard,
       }, dashboardComponent)

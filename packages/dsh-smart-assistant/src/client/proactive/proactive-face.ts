@@ -128,6 +128,14 @@ export interface ProactiveFaceInput {
   readonly now: Date
 }
 
+export interface OverdueMatterAttention {
+  readonly matterId: string
+  readonly title: string
+  readonly dueAt: string
+  readonly daysOverdue: number
+  readonly pendingProposals: number
+}
+
 export type ProactiveRow =
   | { readonly kind: 'due-no-result', readonly matterId: string, readonly title: string, readonly dueAt: string, readonly daysOverdue: number, readonly extraCount?: number }
   | { readonly kind: 'waiting-for-you', readonly pendingProposals: number, readonly unclaimed: number, readonly openQuestions: number }
@@ -136,6 +144,40 @@ export type ProactiveRow =
   | { readonly kind: 'next-look-unavailable' }
 
 const DAY_MS = 86_400_000
+
+/**
+ * Derive every active matter past its earliest deadline/checkpoint without a committed result after it.
+ * @param projection - Read-only matter and receipt facts from the ledger projection.
+ * @param now - The evaluation instant, supplied by the caller for deterministic rendering and tests.
+ * @returns Each due matter independently, with overlapping pending-proposal count.
+ */
+export function deriveOverdueMatters(projection: Pick<ProactiveProjectionView, 'matters' | 'receipts'>, now: Date): OverdueMatterAttention[] {
+  const nowMs = now.getTime()
+  return projection.matters
+    .map(matter => {
+      if (matter.status !== 'active') return undefined
+      const passed = [matter.times.nextCheckpoint, matter.times.promisedDeadline]
+        .filter((value): value is string => value !== undefined && Date.parse(value) <= nowMs)
+        .sort((left, right) => Date.parse(left) - Date.parse(right))
+      const dueAt = passed[0]
+      if (dueAt === undefined) return undefined
+      const resultAfterDue = projection.receipts.some(receipt =>
+        receipt.matterId === matter.id
+        && (receipt.status === undefined || receipt.status === 'committed')
+        && receipt.kind !== undefined && RESULT_RECEIPT_KINDS.has(receipt.kind)
+        && Date.parse(receipt.submittedAt) > Date.parse(dueAt))
+      if (resultAfterDue) return undefined
+      return {
+        matterId: matter.id,
+        title: matter.title,
+        dueAt,
+        daysOverdue: Math.floor((nowMs - Date.parse(dueAt)) / DAY_MS),
+        pendingProposals: matter.proposals.filter(proposal => proposal.status === 'pending').length,
+      }
+    })
+    .filter((entry): entry is OverdueMatterAttention => entry !== undefined)
+    .sort((left, right) => Date.parse(left.dueAt) - Date.parse(right.dueAt))
+}
 
 /**
  * Derive the proactive face rows. Pure: same inputs, same rows, no clock reads.
@@ -148,37 +190,17 @@ export function deriveProactiveFace(input: ProactiveFaceInput): ProactiveRow[] {
   const nowMs = now.getTime()
   const rows: ProactiveRow[] = []
 
-  // 行 1 — due, no result. Instants (not lexical strings) decide "past" and "after".
-  const overdue = projection.matters
-    .map(matter => {
-      if (matter.status !== 'active') return undefined
-      const passed = [matter.times.nextCheckpoint, matter.times.promisedDeadline]
-        .filter((value): value is string => value !== undefined && Date.parse(value) <= nowMs)
-        .sort((left, right) => Date.parse(left) - Date.parse(right))
-      const dueAt = passed[0]
-      if (dueAt === undefined) return undefined
-      // 261019: "no result in the ledger" means no committed RESULT, not no activity. The live
-      // m-1 case had a claim and two updates after its promised date — all saying "still not
-      // arrived" — and the old any-receipt rule hid exactly the row this feature exists to show.
-      const resultAfterDue = projection.receipts.some(receipt =>
-        receipt.matterId === matter.id
-        && (receipt.status === undefined || receipt.status === 'committed')
-        && receipt.kind !== undefined && RESULT_RECEIPT_KINDS.has(receipt.kind)
-        && Date.parse(receipt.submittedAt) > Date.parse(dueAt))
-      if (resultAfterDue) return undefined
-      return { matter, dueAt }
-    })
-    .filter((entry): entry is NonNullable<typeof entry> => entry !== undefined)
-    .sort((left, right) => Date.parse(left.dueAt) - Date.parse(right.dueAt))
+  // The home hint and the full attention view share one due/result rule.
+  const overdue = deriveOverdueMatters(projection, now)
   const worst = overdue[0]
   if (worst !== undefined) {
     const extraCount = overdue.length - 1
     rows.push({
       kind: 'due-no-result',
-      matterId: worst.matter.id,
-      title: worst.matter.title,
+      matterId: worst.matterId,
+      title: worst.title,
       dueAt: worst.dueAt,
-      daysOverdue: Math.floor((nowMs - Date.parse(worst.dueAt)) / DAY_MS),
+      daysOverdue: worst.daysOverdue,
       ...(extraCount > 0 ? { extraCount } : {}),
     })
   }

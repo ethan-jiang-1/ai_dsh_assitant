@@ -13,12 +13,14 @@ import type { ProjectionDownload } from '../../src/client/projection/projection-
 import type { OperatingProjection } from '../../src/client/projection/operating-projection'
 import { createProjectionViewStore } from '../../src/client/projection/projection-view'
 import { defineStore } from '@deepseek-ai/dsh-client-store'
+import { deskEn } from '../../src/client/chrome/locales'
 
 const react = {
   createElement,
   useState: <T,>(initial: T | (() => T)): [T, (next: T) => void] => [typeof initial === 'function' ? (initial as () => T)() : initial, () => {}],
   useEffect: () => {},
   useRef: <T,>(value: T): { current: T } => ({ current: value }),
+  useCallback: <T extends (...args: never[]) => unknown>(callback: T): T => callback,
 }
 bindClientRequire(() => react)
 
@@ -52,6 +54,7 @@ function props(): ProjectionPanelProps & { sessionId: string } {
     onWake: () => {},
   }
   return {
+    t: key => deskEn[key],
     surface: { lanes },
     useProjection: <S,>(select: (candidate: ProjectionDownload) => S): S => select(value),
     useStore: <S,>(select: (candidate: ReturnType<typeof view.getSnapshot>) => S): S => select(view.getSnapshot()),

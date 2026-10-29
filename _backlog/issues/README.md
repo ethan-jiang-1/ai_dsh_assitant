@@ -4,7 +4,8 @@
 
 ## 活跃清单
 
-- [261029-first-value-journey.md](261029-first-value-journey.md)——价值感不足的研究与实验台账；用户 REVIEW 提出用不同 View 连接单件深入与全局，回到推敲中，产品实施暂停。
+- [261029-first-value-journey.md](261029-first-value-journey.md)——价值感不足的研究台账；M1 多视图授权与实施由[独立收口卡](261029-ledger-multiview-closure.md)承载，H1/H2/H3 的用户价值证据仍开放。
+- [261029-ledger-multiview-closure.md](261029-ledger-multiview-closure.md)——已授权的 M1 账本多视图唯一实施台账。
 
 已结档：261028 数据面第二轮复查 → [settled_issues](../_archive/settled_issues/261028-data-plane-recheck.md)，261028 数据面校准 → [settled_issues](../_archive/settled_issues/261028-data-plane-alignment.md)，B 级缺口 → [settled_issues](../_archive/settled_issues/261028-b-grade-close.md)，P3 残余 → [settled_issues](../_archive/settled_issues/261028-p3-residuals.md)，六维改善 → [settled_issues](../_archive/settled_issues/261028-six-dimension-improvement.md)。
 

@@ -171,8 +171,8 @@ describe('desk activity command handoff', () => {
     expect(modes).toEqual([])
 
     const main = declarations.find(declaration => declaration.name === 'main')
-    const inject = main?.inject as ((actions: { selectMatter(id: string): void, setMode(mode: 'activity'): void }) => unknown) | undefined
-    const actions = { selectMatter: (_id: string) => {}, setMode: (mode: 'activity') => { modes.push(mode) } }
+    const inject = main?.inject as ((actions: { selectMatter(id: string): void, selectMode(mode: 'activity'): void }) => unknown) | undefined
+    const actions = { selectMatter: (_id: string) => {}, selectMode: (mode: 'activity') => { modes.push(mode) } }
     inject?.(actions)
     expect(modes).toEqual(['activity'])
 
@@ -184,8 +184,8 @@ describe('desk activity command handoff', () => {
     const { ctx, selected, modes, commands, declarations } = activityHandoffContext()
     materialize().apply(ctx)
     const main = declarations.find(declaration => declaration.name === 'main')
-    const inject = main?.inject as ((actions: { selectMatter(id: string): void, setMode(mode: 'activity'): void }) => unknown) | undefined
-    const actions = { selectMatter: (_id: string) => {}, setMode: (mode: 'activity') => { modes.push(mode) } }
+    const inject = main?.inject as ((actions: { selectMatter(id: string): void, selectMode(mode: 'activity'): void }) => unknown) | undefined
+    const actions = { selectMatter: (_id: string) => {}, selectMode: (mode: 'activity') => { modes.push(mode) } }
     inject?.(actions)
     expect(modes).toEqual([])
 

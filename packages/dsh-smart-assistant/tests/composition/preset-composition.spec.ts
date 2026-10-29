@@ -62,7 +62,7 @@ function ownPresetFromPatch(patchText: string): PresetRow {
   // The bundle patch targets a few shipped rows by id (the vendor terminal is suppressed, not
   // inserted). Seed the rows this isolated application is expected to find; the real profile
   // layers them below this patch.
-  const base: PresetRow[] = [
+  const base: Parameters<typeof applyEntryPatches>[0] = [
     { id: 'ui-sidebar-terminal', name: '@deepseek-ai/dsh-client-ui-sidebar-terminal' },
   ]
   const entries = applyEntryPatches(base, patches, (message, ...args) => {

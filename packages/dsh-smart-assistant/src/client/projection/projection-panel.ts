@@ -1,9 +1,10 @@
 /** Global projection presentation. Renderer supplies the sole live-data hook. */
-import { createElement as ce } from '../chrome/runtime'
+import { createElement as ce, reactSurface } from '../chrome/runtime'
 import { AssistantBrandMark } from '../chrome/brand'
 import { canProcess, type CaptureStatus } from '../../domain/desk/desk-process'
 import { setUiMode, useUiMode } from '../chrome/ui-mode'
 import { deriveCaptureView } from '../../domain/desk/desk-capture-view'
+import { deriveOverdueMatters, type OverdueMatterAttention } from '../proactive/proactive-face'
 import { countPendingProposals, deriveActivityView, type ActivityView } from '../../domain/desk/desk-activity-view'
 import { humanTime, localDateKey, localDateLabel, localTimeLabel } from '../chrome/format'
 import { ProactiveRows, SuggestionStrip, PROACTIVE_STYLES } from './proactive-strip'
@@ -12,13 +13,77 @@ import type { ProactiveCatalogState } from '../proactive/proactive-face-source'
 import type { ProjectionDownload } from './projection-reader'
 import type { DeskSurface } from './desk-surface'
 import type { ProjectionView, ProjectionViewBoundActions } from './projection-view'
-import type { OperatingReceipt } from './operating-projection'
+import type { OperatingMatter, OperatingReceipt } from './operating-projection'
+import type { DeskTranslate } from '../chrome/locales'
 
 /** The non-empty projection data the faces consume. */
 type DeskData = NonNullable<ProjectionDownload['data']>
+type MatterAttention = OverdueMatterAttention
+type OperatingReceiptPage = { readonly receipts: readonly OperatingReceipt[], readonly nextBefore: string | null }
 
+type MatterTimelineItem =
+  | { readonly id: string, readonly at: string | undefined, readonly kind: 'evidence', readonly sessionId: string, readonly eventId?: string, readonly quote?: string, readonly note: string }
+  | { readonly id: string, readonly at: string, readonly kind: 'proposal', readonly proposal: DeskData['matters'][number]['proposals'][number] }
+  | { readonly id: string, readonly at: string, readonly kind: 'receipt', readonly receipt: OperatingReceipt }
+
+function attentionItems(data: Pick<DeskData, 'matters' | 'receipts'> | undefined, now: Date): readonly MatterAttention[] {
+  if (data === undefined) return []
+  return deriveOverdueMatters(data, now)
+}
+
+interface AttentionMatter {
+  readonly matter: OperatingMatter
+  readonly due?: MatterAttention
+  readonly pendingProposals: number
+}
+
+function deriveAttentionMatters(data: Pick<DeskData, 'matters' | 'receipts'> | undefined, now: Date): readonly AttentionMatter[] {
+  if (data === undefined) return []
+  const due = new Map(attentionItems(data, now).map(item => [item.matterId, item]))
+  return data.matters.flatMap(matter => {
+    if (matter.status !== 'active') return []
+    const pendingProposals = matter.proposals.filter(proposal => proposal.status === 'pending').length
+    const overdue = due.get(matter.id)
+    return overdue === undefined && pendingProposals === 0
+      ? []
+      : [{ matter, ...(overdue === undefined ? {} : { due: overdue }), pendingProposals }]
+  }).sort((left, right) => {
+    if (left.due === undefined) return right.due === undefined ? 0 : 1
+    if (right.due === undefined) return -1
+    return Date.parse(left.due.dueAt) - Date.parse(right.due.dueAt)
+  })
+}
+
+function matterTimelineItems(matter: OperatingMatter, receipts: readonly OperatingReceipt[]): readonly MatterTimelineItem[] {
+  const evidence: MatterTimelineItem[] = matter.evidence.map(item => ({
+    id: `evidence:${item.id}`,
+    at: item.receivedAt,
+    kind: 'evidence',
+    sessionId: item.sessionId,
+    ...(item.eventId === undefined ? {} : { eventId: item.eventId }),
+    ...(item.quote === undefined ? {} : { quote: item.quote }),
+    note: item.note,
+  }))
+  const proposals: MatterTimelineItem[] = matter.proposals.map(proposal => ({
+    id: `proposal:${proposal.id}`,
+    at: proposal.proposedAt ?? '',
+    kind: 'proposal',
+    proposal,
+  }))
+  const operations: MatterTimelineItem[] = receipts
+    .filter(receipt => receipt.matterId === matter.id)
+    .map(receipt => ({ id: `receipt:${receipt.operationId}`, at: receipt.submittedAt, kind: 'receipt', receipt }))
+  return [...evidence, ...proposals, ...operations].sort((left, right) => {
+    const leftAt = left.at ?? ''
+    const rightAt = right.at ?? ''
+    if (leftAt === '') return rightAt === '' ? left.id.localeCompare(right.id) : 1
+    if (rightAt === '') return -1
+    return Date.parse(leftAt) - Date.parse(rightAt) || left.id.localeCompare(right.id)
+  })
+}
 /** The framework-bound hooks, the view store, and the entry-owned lane surface. */
 export interface ProjectionPanelProps {
+  readonly t: DeskTranslate
   useProjection<S>(select: (value: ProjectionDownload) => S): S
   useStore<S>(select: (view: ProjectionView) => S): S
   /** The platform's per-session status map (desk-side capture, 2026-10-18), as a selector hook like the projection. */
@@ -32,7 +97,7 @@ export interface ProjectionPanelProps {
   /** Every callback the entry wires; one factory owns them so a new lane does not touch fixtures. */
   surface: DeskSurface
   /** Page older receipts from the ledger archive; absent on direct mounts without a host route. */
-  loadOlderReceipts?: (before: string) => Promise<readonly OperatingReceipt[]>
+  loadOlderReceipts?: (before: string | undefined) => Promise<OperatingReceiptPage>
   /** The home wrapper's way back from the full board to the one-page home (absent on direct mounts). */
   onBackHome?: () => void
 }
@@ -44,18 +109,10 @@ const errors: Record<string, string> = {
   'download-failed': '桌面读取失败，请重试。',
 }
 const STATUS_LABEL: Record<string, string> = { active: '在办', completed: '已完成', abandoned: '已放弃' }
-const CHANGE_LABEL: Record<string, string> = { reschedule: '重约承诺', checkpoint: '改核对点', complete: '办结', abandon: '放弃' }
-/** Operation kinds as the biography's human labels (ledger domain kinds; the tool's report and
- *  revise both submit `update`, so the label stays neutral). */
-const OP_LABEL: Record<string, string> = {
-  create: '交办立项', update: '更新事项', note: '记一笔', claim: '认领归户', discard: '判为噪音', complete: '办结',
-  reopen: '重开', propose: '提出请示', confirm: '确认', reject: '拒绝',
-}
-/** Outcome annotations for receipts whose status says more than the kind does. */
-const OP_STATUS_NOTE: Record<string, string> = {
-  retained: '存入待认领', conflict: '冲突未生效', rejected: '未生效',
-}
 const FILTER_LABEL: Record<'all' | 'active' | 'settled', string> = { all: '全部', active: '在办', settled: '已了结' }
+const RETURN_VIEW_KEY: Record<ProjectionView['mode'], 'desk.view.attention' | 'desk.view.matters' | 'desk.view.activity'> = {
+  attention: 'desk.view.attention', board: 'desk.view.matters', activity: 'desk.view.activity',
+}
 
 /** Inline stroke glyphs for the desk's switches — self-contained (no vendor icon components in
  *  this standalone bundle), currentColor keeps them on the theme. Builders, not values: `ce`
@@ -66,6 +123,7 @@ function glyph(children: ReturnType<typeof ce>[]): ReturnType<typeof ce> {
 const GLYPHS: Record<string, () => ReturnType<typeof ce>[]> = {
   board: () => [ce('path', { d: 'M4 4h4v16H4zM10 4h4v16h-4zM16 4h4v16h-4z' })],
   activity: () => [ce('path', { d: 'M3 12a9 9 0 1 0 2.6-6.4' }), ce('path', { d: 'M3 4v4h4' }), ce('path', { d: 'M12 7v5l3 2' })],
+  attention: () => [ce('path', { d: 'M12 3v2M12 19v2M3 12h2M19 12h2M5.64 5.64l1.42 1.42M16.94 16.94l1.42 1.42M18.36 5.64l-1.42 1.42M7.06 16.94l-1.42 1.42' }), ce('circle', { cx: 12, cy: 12, r: 4 })],
   all: () => [ce('path', { d: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z' })],
   active: () => [ce('circle', { cx: 12, cy: 12, r: 4, fill: 'currentColor' })],
   settled: () => [ce('circle', { cx: 12, cy: 12, r: 9 }), ce('path', { d: 'M8 12l3 3 5-6' })],
@@ -75,8 +133,15 @@ function glyphFor(name: string): ReturnType<typeof ce> {
   return glyph((GLYPHS[name] ?? (() => []))())
 }
 
+function restoreViewportScroll(element: HTMLElement | null): void {
+  if (element === null) return
+  const target = Number(element.dataset.restoreScrollTop ?? 0)
+  if (Number.isFinite(target) && element.scrollTop !== target) element.scrollTop = target
+}
+
 const STYLES = [
-  '.dsha-desk{display:flex;flex-direction:column;gap:16px;padding:20px 24px;overflow-y:auto;min-width:0;container-type:inline-size;height:100%;box-sizing:border-box;}',
+  '.dsha-desk{display:flex;flex-direction:column;gap:16px;padding:20px 24px;overflow:hidden;min-width:0;container-type:inline-size;height:100%;box-sizing:border-box;}',
+  '.dsha-viewport{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;}',
   '.dsha-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}',
   /* The capture row: accent-bordered because it is the desk's own input, not a control. */
   '.dsha-capture{display:flex;flex-direction:column;gap:6px;border:1px solid var(--dsha-accent);border-radius:10px;padding:10px 12px;background:var(--dsw-alias-bg-base);}',
@@ -120,7 +185,23 @@ const STYLES = [
   '.dsha-card-title{display:flex;align-items:center;gap:8px;font-weight:600;color:var(--dsw-alias-label-primary);overflow-wrap:anywhere;}',
   '.dsha-card-meta{margin:4px 0 0;font-size:12px;color:var(--dsw-alias-label-tertiary);overflow-wrap:anywhere;}',
   '.dsha-card-summary{margin:4px 0 0;font-size:13px;color:var(--dsw-alias-label-secondary);overflow-wrap:anywhere;}',
+  '.dsha-attention{display:flex;flex-direction:column;gap:12px;}',
+  '.dsha-attention-title{margin:0;font-size:17px;font-weight:600;color:var(--dsw-alias-label-primary);}',
+  '.dsha-attention-list{display:flex;flex-direction:column;gap:8px;}',
+  '.dsha-attention-card{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:6px 10px;}',
+  '.dsha-attention-card .dsha-card-title,.dsha-attention-card .dsha-card-meta,.dsha-attention-card .dsha-card-summary{grid-column:1/-1;}',
+  '.dsha-attention-open{grid-column:2;font-size:12px;color:var(--dsha-accent);}',
+  '.dsha-attention-empty{display:flex;flex-direction:column;gap:6px;border-left:2px solid var(--dsha-accent);padding:8px 12px;background:var(--dsw-alias-bg-layer-1);}',
+  '.dsha-attention-empty p,.dsha-timeline-note{margin:0;font-size:13px;color:var(--dsw-alias-label-secondary);}',
+  '.dsha-timeline{display:flex;flex-direction:column;gap:8px;margin-top:16px;}',
+  '.dsha-timeline-list{list-style:none;margin:0;padding:0 0 0 14px;display:flex;flex-direction:column;gap:10px;border-left:1px solid var(--dsw-alias-border-l3);}',
+  '.dsha-timeline-item{position:relative;padding:0 0 0 10px;min-width:0;}',
+  '.dsha-timeline-item:before{content:"";position:absolute;width:8px;height:8px;border-radius:50%;background:var(--dsha-accent);left:-19px;top:5px;}',
+  '.dsha-timeline-line,.dsha-timeline-body{margin:0;font-size:13px;color:var(--dsw-alias-label-primary);overflow-wrap:anywhere;}',
+  '.dsha-timeline-body{color:var(--dsw-alias-label-secondary);}',
+  '.dsha-timeline-current{margin:0;font-size:13px;font-weight:600;color:var(--dsw-alias-label-primary);}',
   '.dsha-simple{display:flex;flex-direction:column;gap:10px;margin-top:12px;}',
+
   '.dsha-simple-card{background:var(--dsw-alias-bg-layer-1);border:0.5px solid var(--dsw-alias-border-l2);border-radius:12px;padding:16px;}',
   '.dsha-simple-kicker{margin:0 0 4px;font-size:11px;letter-spacing:0.04em;color:var(--dsha-warn);}',
   '.dsha-simple-title{margin:0;font-size:18px;line-height:1.4;color:var(--dsw-alias-label-primary);overflow-wrap:anywhere;}',
@@ -174,19 +255,56 @@ function statusChip(status: string) {
   return chip(status === 'active' ? 'active' : status === 'completed' ? 'completed' : 'abandoned', STATUS_LABEL[status] ?? status)
 }
 
+function proposalKindLabel(kind: string, t: DeskTranslate): string {
+  switch (kind) {
+    case 'reschedule': return t('desk.proposal.reschedule')
+    case 'checkpoint': return t('desk.proposal.checkpoint')
+    case 'complete': return t('desk.proposal.complete')
+    case 'abandon': return t('desk.proposal.abandon')
+    default: return kind
+  }
+}
+
+function operationStatusLabel(status: string, t: DeskTranslate): string {
+  switch (status) {
+    case 'retained': return ` · ${t('desk.operationStatus.retained')}`
+    case 'conflict': return ` · ${t('desk.operationStatus.conflict')}`
+    case 'rejected':
+    case 'proposal-rejected': return ` · ${t('desk.operationStatus.rejected')}`
+    case 'proposed': return ` · ${t('desk.operationStatus.proposed')}`
+    default: return ''
+  }
+}
+
+function operationKindLabel(kind: string | undefined, t: DeskTranslate): string {
+  switch (kind) {
+    case 'create': return t('desk.operation.create')
+    case 'update': return t('desk.operation.update')
+    case 'note': return t('desk.operation.note')
+    case 'claim': return t('desk.operation.claim')
+    case 'discard': return t('desk.operation.discard')
+    case 'complete': return t('desk.operation.complete')
+    case 'reopen': return t('desk.operation.reopen')
+    case 'propose': return t('desk.operation.propose')
+    case 'confirm': return t('desk.operation.confirm')
+    case 'reject': return t('desk.operation.reject')
+    default: return t('desk.operation.unknown')
+  }
+}
+
 /** The detail's plain-text meta line: responsible plus the four business times, in the list
  * card's meta shape — pills are reserved for status, not for every fact in the header. */
-function metaLine(responsible: string, times: Parameters<typeof timeParts>[0]) {
-  const parts = (responsible.length > 0 ? [`责任 ${responsible}`] : []).concat(timeParts(times))
+function metaLine(responsible: string, times: Parameters<typeof timeParts>[0], t: DeskTranslate) {
+  const parts = (responsible.length > 0 ? [`${t('desk.times.responsible')} ${responsible}`] : []).concat(timeParts(times, t))
   return parts.length === 0 ? null : ce('p', { className: 'dsha-card-meta' }, parts.join(' · '))
 }
 
-function timeParts(times: { readonly promisedDeadline?: string; readonly forecastAt?: string; readonly nextCheckpoint?: string; readonly completedAt?: string }): string[] {
+function timeParts(times: { readonly promisedDeadline?: string; readonly forecastAt?: string; readonly nextCheckpoint?: string; readonly completedAt?: string }, t: DeskTranslate): string[] {
   const parts: string[] = []
-  if (times.promisedDeadline !== undefined) parts.push(`承诺 ${humanTime(times.promisedDeadline)}`)
-  if (times.forecastAt !== undefined) parts.push(`预测 ${humanTime(times.forecastAt)}`)
-  if (times.nextCheckpoint !== undefined) parts.push(`核对 ${humanTime(times.nextCheckpoint)}`)
-  if (times.completedAt !== undefined) parts.push(`完成 ${humanTime(times.completedAt)}`)
+  if (times.promisedDeadline !== undefined) parts.push(`${t('desk.times.promised')} ${humanTime(times.promisedDeadline)}`)
+  if (times.forecastAt !== undefined) parts.push(`${t('desk.times.forecast')} ${humanTime(times.forecastAt)}`)
+  if (times.nextCheckpoint !== undefined) parts.push(`${t('desk.times.checkpoint')} ${humanTime(times.nextCheckpoint)}`)
+  if (times.completedAt !== undefined) parts.push(`${t('desk.times.completed')} ${humanTime(times.completedAt)}`)
   return parts
 }
 
@@ -245,36 +363,41 @@ function ActivityFace(props: {
   activityView: ActivityView<OperatingReceipt>
   oldestReceipt: string | undefined
   actions: ProjectionViewBoundActions
-  loadOlderReceipts?: (before: string) => Promise<readonly OperatingReceipt[]>
+  t: DeskTranslate
+  archiveState: ProjectionView['archiveLoads'][string] | undefined
+  loadOlderReceipts?: (before: string | undefined) => Promise<OperatingReceiptPage>
+  onLoadOlder: (key: string, before: string | undefined) => void
+  onSelectMatter: (id: string, mode: ProjectionView['mode']) => void
 }): ReturnType<typeof ce> {
-  const { data, activityView, oldestReceipt, actions, loadOlderReceipts } = props
+  const { data, activityView, oldestReceipt, actions, t, archiveState, loadOlderReceipts, onLoadOlder, onSelectMatter } = props
   const activityEntries = activityView.entries
   const activityGroups = activityView.groups
   const titleOfMatter = (matterId: string): string => data.matters.find(matter => matter.id === matterId)?.title ?? matterId
   return ce('section', { className: 'dsha-activity' },
-        activityEntries.length === 0 ? ce('p', { className: 'dsha-detail-hint' }, '还没有做过任何动作——交代第一件事试试。') : null,
+        activityEntries.length === 0 ? ce('p', { className: 'dsha-detail-hint' }, t('desk.activity.empty')) : null,
         ...activityGroups.map(group => ce('div', { key: group.key, className: 'dsha-activity-day' },
           ce('p', { className: 'dsha-activity-date' }, group.label),
           ...group.entries.map(receipt => {
             const known = receipt.matterId !== '' && data.matters.some(matter => matter.id === receipt.matterId)
             const entryLine = ce('span', { className: 'dsha-activity-line' },
-              `${localTimeLabel(receipt.submittedAt)} ${OP_LABEL[receipt.kind ?? ''] ?? '操作'}${OP_STATUS_NOTE[receipt.status] !== undefined ? `（${OP_STATUS_NOTE[receipt.status]}）` : ''}${known ? ` · ${titleOfMatter(receipt.matterId)}` : ''}`)
+              `${localTimeLabel(receipt.submittedAt)} ${operationKindLabel(receipt.kind, t)}${operationStatusLabel(receipt.status, t)}${known ? ` · ${titleOfMatter(receipt.matterId)}` : ''}`)
             const quote = receipt.quote !== undefined ? ce('p', { className: 'dsha-op-quote' }, `「${receipt.quote}」`) : null
             return known
               ? ce('button', { key: receipt.operationId, type: 'button', className: 'dsha-activity-entry',
-                  onClick: () => { actions.setMode('board'); actions.selectMatter(receipt.matterId) } }, entryLine, quote)
+                  onClick: () => onSelectMatter(receipt.matterId, 'board') }, entryLine, quote)
               : ce('div', { key: receipt.operationId, className: 'dsha-activity-entry' }, entryLine, quote)
           }))),
         activityView.hasMore
-          ? ce('button', { type: 'button', className: 'dsha-btn dsha-activity-more', onClick: () => actions.revealMoreActivity() }, '显示更早')
-          : loadOlderReceipts !== undefined && oldestReceipt !== undefined
-            ? ce('button', {
+          ? ce('button', { type: 'button', className: 'dsha-btn dsha-activity-more', onClick: () => actions.revealMoreActivity() }, t('desk.activity.showMore'))
+          : loadOlderReceipts !== undefined && archiveState?.status !== 'exhausted'
+            ? ce('div', { className: 'dsha-archive-control' },
+              archiveState?.status === 'error' ? ce('p', { className: 'dsha-banner', role: 'alert' }, t('desk.archive.error')) : null,
+              ce('button', {
                 type: 'button',
                 className: 'dsha-btn dsha-activity-more',
-                onClick: () => {
-                  void loadOlderReceipts?.(oldestReceipt).then(receipts => actions.appendOlderReceipts(receipts)).catch(() => undefined)
-                },
-              }, '加载更早账本')
+                disabled: archiveState?.status === 'loading',
+                onClick: () => onLoadOlder('activity', oldestReceipt),
+              }, archiveState?.status === 'loading' ? t('desk.archive.loading') : archiveState?.status === 'error' ? t('desk.archive.retry') : t('desk.archive.more')))
             : null)
 }
 
@@ -284,6 +407,7 @@ function ActivityFace(props: {
  * (filter, selection, legal action) stay in one named component.
  */
 function MatterBoard(props: {
+  data: DeskData | undefined
   matters: DeskData['matters']
   visibleMatters: DeskData['matters']
   unclaimed: DeskData['unclaimed']
@@ -291,15 +415,56 @@ function MatterBoard(props: {
   selection: ProjectionView['selected']
   selected: DeskData['matters'][number] | undefined
   selectedFragment: DeskData['unclaimed'][number] | undefined
-  matterOps: readonly OperatingReceipt[]
+  receipts: readonly OperatingReceipt[]
+  now: Date
   view: ProjectionView
   deep: boolean
+  t: DeskTranslate
+  loadOlderReceipts?: (before: string | undefined) => Promise<OperatingReceiptPage>
+  archiveState: ProjectionView['archiveLoads'][string] | undefined
+  onLoadOlder: (key: string, before: string | undefined) => void
+  selectMatter: (id: string) => void
+  onShowList: () => void
   actions: ProjectionViewBoundActions
   lanes: DeskSurface['lanes']
 }): ReturnType<typeof ce> {
-  const { matters, visibleMatters, unclaimed, unclaimedCards, selection, selected, selectedFragment, matterOps, view, deep, actions, lanes } = props
-  return ce('section', { className: 'dsha-matters', 'data-pane': view.pane },
-        ce('div', { className: 'dsha-matter-list dsha-list', onScroll: (event: { currentTarget: { scrollTop: number } }) => actions.rememberListPosition(event.currentTarget.scrollTop) },
+  const { data, matters, visibleMatters, unclaimed, unclaimedCards, selection, selected, selectedFragment, receipts, view, deep, t, loadOlderReceipts, archiveState, onLoadOlder, selectMatter, onShowList, actions, lanes } = props
+  const attentionMatters = deriveAttentionMatters(data, props.now)
+  const matterReceipts = selection?.kind === 'matter' ? receipts.filter(receipt => receipt.matterId === selection.id) : []
+  const matterReceiptCursor = matterReceipts.reduce<string | undefined>((oldest, receipt) => oldest === undefined || receipt.submittedAt < oldest ? receipt.submittedAt : oldest, undefined)
+    ?? receipts.reduce<string | undefined>((oldest, receipt) => oldest === undefined || receipt.submittedAt < oldest ? receipt.submittedAt : oldest, undefined)
+  const selectedTimeline = selected === undefined ? [] : matterTimelineItems(selected, receipts)
+  return ce('section', { className: 'dsha-matters', 'data-pane': view.pane, 'data-mode': view.mode },
+        ce('div', { className: 'dsha-matter-list dsha-list' },
+          view.mode === 'attention'
+            ? ce('section', { className: 'dsha-attention', 'aria-label': t('desk.attention.title') },
+              ce('h2', { className: 'dsha-attention-title' }, t('desk.attention.title')),
+              attentionMatters.length === 0
+                ? ce('div', { className: 'dsha-attention-empty' },
+                  ce('p', {}, t('desk.attention.empty')),
+                  ce('p', {}, t('desk.attention.empty.note')))
+                : ce('div', { className: 'dsha-attention-list' }, ...attentionMatters.map(item => ce('button', {
+                  key: item.matter.id,
+                  type: 'button',
+                  className: 'dsha-card dsha-attention-card',
+                  'data-selected': String(selection?.kind === 'matter' && selection.id === item.matter.id),
+                  onClick: () => selectMatter(item.matter.id),
+                },
+                ce('span', { className: 'dsha-card-title' }, statusChip(item.matter.status), ce('span', {}, item.matter.title)),
+                item.due === undefined ? null : ce('span', { className: 'dsha-chip dsha-chip-warn' }, item.due.daysOverdue === 0
+                  ? t('desk.attention.due.today')
+                  : t('desk.attention.due', { days: item.due.daysOverdue })),
+                item.pendingProposals === 0 ? null : ce('span', { className: 'dsha-chip dsha-chip-warn' }, t('desk.attention.pending', { count: item.pendingProposals })),
+                item.matter.responsible === '' ? null : ce('p', { className: 'dsha-card-meta' }, item.matter.responsible),
+                item.matter.times.promisedDeadline === undefined && item.matter.times.nextCheckpoint === undefined ? null
+                  : ce('p', { className: 'dsha-card-meta' }, timeParts({
+                    ...(item.matter.times.promisedDeadline === undefined ? {} : { promisedDeadline: item.matter.times.promisedDeadline }),
+                    ...(item.matter.times.nextCheckpoint === undefined ? {} : { nextCheckpoint: item.matter.times.nextCheckpoint }),
+                  }, t).join(' · ')),
+                item.matter.summary.length === 0 ? null : ce('p', { className: 'dsha-card-summary' }, item.matter.summary),
+                ce('span', { className: 'dsha-attention-open' }, t('desk.attention.open'))))))
+            : null,
+          view.mode === 'board' ? ce('div', {},
           matters.length > 0 ? ce('div', { className: 'dsha-filter' },
             (['all', 'active', 'settled'] as const).map(filter => ce('button', {
               key: filter,
@@ -307,44 +472,31 @@ function MatterBoard(props: {
               className: 'dsha-filter-chip',
               'data-on': String(view.filter === filter),
               onClick: () => actions.setFilter(filter),
-            },
-            glyphFor(filter),
-            ce('span', {}, FILTER_LABEL[filter]),
-            ce('span', { className: 'dsha-chip-count' }, String(filter === 'active'
+            }, glyphFor(filter), ce('span', {}, FILTER_LABEL[filter]), ce('span', { className: 'dsha-chip-count' }, String(filter === 'active'
               ? matters.filter(matter => matter.status === 'active').length
               : filter === 'settled' ? matters.filter(matter => matter.status !== 'active').length : matters.length))))) : null,
-          visibleMatters.length === 0 && view.filter === 'settled' ? ce('p', { className: 'dsha-card-meta' },
-            '还没有办结的事项——了结要在对话里说清楚「办完了」加上依据，它才会落到这里；关掉会话窗口不算。')
+          visibleMatters.length === 0 && view.filter === 'settled' ? ce('p', { className: 'dsha-card-meta' }, '还没有办结的事项——了结要在对话里说清楚「办完了」加上依据，它才会落到这里；关掉会话窗口不算。')
             : visibleMatters.length === 0 && view.filter === 'active' ? ce('p', { className: 'dsha-card-meta' }, '没有在办事项。') : null,
-          visibleMatters.map(matter => ce('button', {
-            key: matter.id,
-            type: 'button',
-            className: 'dsha-card',
+          ...visibleMatters.map(matter => ce('button', {
+            key: matter.id, type: 'button', className: 'dsha-card',
             'data-selected': String(selection?.kind === 'matter' && selection.id === matter.id),
-            onClick: () => actions.selectMatter(matter.id),
+            onClick: () => selectMatter(matter.id),
           },
-          ce('span', { className: 'dsha-card-title' },
-            statusChip(matter.status),
-            ce('span', {}, matter.title)),
-          matter.times.promisedDeadline !== undefined || matter.times.nextCheckpoint !== undefined
-            ? ce('p', { className: 'dsha-card-meta' }, timeParts({
-                ...(matter.times.promisedDeadline !== undefined ? { promisedDeadline: matter.times.promisedDeadline } : {}),
-                ...(matter.times.nextCheckpoint !== undefined ? { nextCheckpoint: matter.times.nextCheckpoint } : {}),
-              }).join(' · '))
-            : null,
-          matter.summary.length > 0 ? ce('p', { className: 'dsha-card-summary' }, matter.summary) : null,
+          ce('span', { className: 'dsha-card-title' }, statusChip(matter.status), ce('span', {}, matter.title)),
+          matter.times.promisedDeadline === undefined && matter.times.nextCheckpoint === undefined ? null
+            : ce('p', { className: 'dsha-card-meta' }, timeParts({
+              ...(matter.times.promisedDeadline === undefined ? {} : { promisedDeadline: matter.times.promisedDeadline }),
+              ...(matter.times.nextCheckpoint === undefined ? {} : { nextCheckpoint: matter.times.nextCheckpoint }),
+            }, t).join(' · ')),
+          matter.summary.length === 0 ? null : ce('p', { className: 'dsha-card-summary' }, matter.summary),
           matter.proposals.some(proposal => proposal.status === 'pending') ? ce('p', { className: 'dsha-card-meta' }, chip('warn', '等你确认')) : null)),
           deep
-            ? (unclaimed.length === 0 ? null : ce('details', { className: 'dsha-background' },
-              ce('summary', {}, `后台：${String(unclaimed.length)} 条待归户——还没说清是哪件事，不猜`),
-              ...unclaimedCards))
-            : ce('div', {},
-              unclaimed.length > 0 ? ce('p', { className: 'dsha-list-label' }, '待认领——还没说清是哪件事，不猜') : null,
-              ...unclaimedCards)),
+            ? (unclaimed.length === 0 ? null : ce('details', { className: 'dsha-background' }, ce('summary', {}, `后台：${String(unclaimed.length)} 条待归户——还没说清是哪件事，不猜`), ...unclaimedCards))
+            : ce('div', {}, unclaimed.length > 0 ? ce('p', { className: 'dsha-list-label' }, '待认领——还没说清是哪件事，不猜') : null, ...unclaimedCards)) : null),
         ce('div', { className: 'dsha-matter-detail dsha-detail' },
           selectedFragment !== undefined ? ce('article', {},
             ce('div', { className: 'dsha-meta' },
-              ce('button', { className: 'dsha-btn dsha-back', type: 'button', onClick: actions.showList }, '返回事项列表'),
+              ce('button', { className: 'dsha-btn dsha-back', type: 'button', onClick: onShowList }, t('desk.timeline.return', { view: t(RETURN_VIEW_KEY[view.mode]) })),
               ce('button', { className: 'dsha-btn dsha-btn-primary', type: 'button', onClick: () => lanes.onClaim(selectedFragment.id) }, '认领这件事'),
               // The fragment's other terminal (desk-side capture, 2026-10-18): every item selects into a
               // proportionate action, and "this is noise" is the one that used to have no door.
@@ -353,7 +505,7 @@ function MatterBoard(props: {
             ce('p', { className: 'dsha-card-meta' }, `来自 ${selectedFragment.sessionId} · 还没说清是哪件事——认领后原文与来源随附入账`))
           : selected !== undefined ? ce('article', {},
             ce('div', { className: 'dsha-meta' },
-              ce('button', { className: 'dsha-btn dsha-back', type: 'button', onClick: actions.showList }, '返回事项列表'),
+              ce('button', { className: 'dsha-btn dsha-back', type: 'button', onClick: onShowList }, t('desk.timeline.return', { view: t(RETURN_VIEW_KEY[view.mode]) })),
               // State decides the legal action (principal direction, 2026-10-12): an active
               // matter processes; a settled matter's only legal action is waking it — the
               // state machine never offers 「再处理」 on finished work.
@@ -363,23 +515,34 @@ function MatterBoard(props: {
             // Status rides the title line (same shape as the list card) so it stops reading as a
             // second action button beside 「处理这件事」; facts render as the plain meta line below.
             ce('h2', {}, statusChip(selected.status), ce('span', {}, selected.title)),
-            metaLine(selected.responsible, selected.times),
+            metaLine(selected.responsible, selected.times, t),
             selected.summary.length > 0 ? ce('p', { className: 'dsha-card-summary' }, selected.summary) : null,
-            selected.proposals.filter(proposal => proposal.status === 'pending').map(proposal => ce('div', { key: proposal.id, className: 'dsha-proposal' },
-              chip('warn', `等你确认 · ${CHANGE_LABEL[proposal.kind] ?? proposal.kind}`))),
-            selected.evidence.length === 0 ? ce('p', { className: 'dsha-card-summary' }, '暂无可核对依据。')
-              : ce('ul', { className: 'dsha-evidence' }, ...selected.evidence.map(item => ce('li', { key: item.id },
-                ce('p', {}, item.note),
-                ce('small', {}, `${item.sessionId}${item.eventId !== undefined ? ` / ${item.eventId}` : ''}${item.quote !== undefined && item.quote !== item.note ? ` ·「${item.quote}」` : ''}`)))),
-            // The biography's decision half: this matter's own operations, newest first — labels,
-            // the submitter's words and the source session (desk history views, card 261012).
-            matterOps.length > 0 ? ce('section', { className: 'dsha-ops' },
-              ce('p', { className: 'dsha-ops-title' }, '动作'),
-              ...matterOps.map(op => ce('div', { key: op.operationId, className: 'dsha-op' },
-                ce('p', { className: 'dsha-op-line' },
-                  `${OP_LABEL[op.kind ?? ''] ?? '操作'}${OP_STATUS_NOTE[op.status] !== undefined ? `（${OP_STATUS_NOTE[op.status]}）` : ''} · ${humanTime(op.submittedAt)}`),
-                op.quote !== undefined ? ce('p', { className: 'dsha-op-quote' }, `「${op.quote}」`) : null,
-                ce('small', { className: 'dsha-op-src' }, op.sessionId)))) : null)
+            ce('section', { className: 'dsha-timeline', 'aria-label': t('desk.timeline.title') },
+              ce('h3', { className: 'dsha-ops-title' }, t('desk.timeline.title')),
+              ce('p', { className: 'dsha-timeline-note' }, t('desk.timeline.recordOrder')),
+              selectedTimeline.length === 0
+                ? ce('p', { className: 'dsha-card-summary' }, t('desk.timeline.noRecords'))
+                : ce('ol', { className: 'dsha-timeline-list' }, ...selectedTimeline.map(item => {
+                  const when = item.at === undefined || item.at === '' ? t('desk.timeline.unknownDate') : humanTime(item.at)
+                  if (item.kind === 'evidence') return ce('li', { key: item.id, className: 'dsha-timeline-item' },
+                    ce('p', { className: 'dsha-timeline-line' }, t('desk.timeline.source')),
+                    ce('p', { className: 'dsha-timeline-body' }, item.note),
+                    ce('small', { className: 'dsha-op-src' }, `${when} · ${item.sessionId}${item.eventId === undefined ? '' : ` / ${item.eventId}`}${item.quote === undefined || item.quote === item.note ? '' : ` ·「${item.quote}」`}`))
+                  if (item.kind === 'proposal') return ce('li', { key: item.id, className: 'dsha-timeline-item' },
+                    ce('p', { className: 'dsha-timeline-line' }, `${t('desk.timeline.proposal')} · ${proposalKindLabel(item.proposal.kind, t)}`),
+                    ce('p', { className: 'dsha-timeline-body' }, item.proposal.status === 'pending' ? t('desk.timeline.pending') : item.proposal.status === 'confirmed' ? t('desk.timeline.confirmed') : t('desk.timeline.rejected')),
+                    item.proposal.source?.quote === undefined ? null : ce('p', { className: 'dsha-op-quote' }, `「${item.proposal.source.quote}」`),
+                    ce('small', { className: 'dsha-op-src' }, `${when} · ${item.proposal.source?.sessionId ?? t('desk.provenance.unknown')}${item.proposal.source?.eventId === undefined ? '' : ` / ${item.proposal.source.eventId}`}`))
+                  const op = item.receipt
+                  return ce('li', { key: item.id, className: 'dsha-timeline-item' },
+                    ce('p', { className: 'dsha-timeline-line' }, `${operationKindLabel(op.kind, t)} · ${when}${operationStatusLabel(op.status, t)}`),
+                    op.quote === undefined ? null : ce('p', { className: 'dsha-op-quote' }, `「${op.quote}」`),
+                    ce('small', { className: 'dsha-op-src' }, op.sessionId))
+                })),
+              loadOlderReceipts !== undefined && archiveState?.status !== 'exhausted' ? ce('div', { className: 'dsha-archive-control' },
+                archiveState?.status === 'error' ? ce('p', { className: 'dsha-banner', role: 'alert' }, t('desk.archive.error')) : null,
+                ce('button', { className: 'dsha-btn', type: 'button', disabled: archiveState?.status === 'loading', onClick: () => onLoadOlder(`matter:${selected.id}`, matterReceiptCursor) },
+                  archiveState?.status === 'loading' ? t('desk.archive.loading') : archiveState?.status === 'error' ? t('desk.archive.retry') : t('desk.timeline.more'))) : null))
           : selection === null ? ce('p', { className: 'dsha-detail-hint' }, '选择一项查看详情。')
           : selection.kind === 'fragment' ? ce('p', { className: 'dsha-detail-hint' }, '所选片段不在当前投影中。')
           : ce('p', { className: 'dsha-detail-hint' }, '所选事项不在当前投影中。')))
@@ -394,11 +557,38 @@ function MatterBoard(props: {
  */
 export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof ce> {
   const lanes = props.surface.lanes
+  const { useCallback, useRef } = reactSurface()
   const simpleMode = useUiMode() === 'simple'
   const download = props.useProjection(value => value)
   const data = download.data
   const view = props.useStore(value => value)
   const effectiveMode = simpleMode ? 'board' : view.mode
+  const archiveRequests = useRef(new Set<string>())
+  const viewportElement = useRef<HTMLElement | null>(null)
+  const attachViewport = useCallback((element: HTMLElement | null): void => {
+    viewportElement.current = element
+    restoreViewportScroll(element)
+  }, [])
+  const rememberListOffset = (): void => {
+    const viewport = viewportElement.current
+    if (view.pane === 'list' && viewport !== null) props.actions.rememberModePosition(effectiveMode, viewport.scrollTop)
+  }
+  const selectMode = (mode: ProjectionView['mode']): void => { rememberListOffset(); props.actions.selectMode(mode) }
+  const openMatterInMode = (id: string, mode: ProjectionView['mode']): void => { rememberListOffset(); props.actions.selectMatter(id, mode) }
+  const selectMatter = (id: string): void => { openMatterInMode(id, effectiveMode) }
+  const selectFragment = (id: string): void => { rememberListOffset(); props.actions.selectFragment(id) }
+  const onShowList = (): void => { props.actions.showList() }
+  const loadOlder = (key: string, before: string | undefined): void => {
+    const current = view.archiveLoads[key]
+    if (props.loadOlderReceipts === undefined || current?.status === 'loading' || current?.status === 'exhausted' || archiveRequests.current.has(key)) return
+    archiveRequests.current.add(key)
+    const cursor = current?.status === 'error' || current?.status === 'ready' ? current.before : before
+    props.actions.beginArchiveLoad(key, cursor)
+    void props.loadOlderReceipts(cursor)
+      .then(page => props.actions.completeArchiveLoad(key, page.receipts, page.nextBefore))
+      .catch(() => props.actions.failArchiveLoad(key))
+      .finally(() => { archiveRequests.current.delete(key) })
+  }
   const selection = view.selected
   // The capture row's in-flight state. The receipt is a DELIVERY fact, so it stops being
   // shown the moment the projection's revision moves past the submission — the ledger has
@@ -438,14 +628,9 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
   }
   const selected = selection?.kind === 'matter' ? data?.matters.find(matter => matter.id === selection.id) : undefined
   const selectedFragment = selection?.kind === 'fragment' ? data?.unclaimed.find(fragment => fragment.id === selection.id) : undefined
-  // The biography's decision half: only the selected matter's own operations, newest first.
-  const matterOps = selection?.kind === 'matter'
-    ? (data?.receipts ?? []).filter(receipt => receipt.matterId === selection.id)
-      .slice().sort((left, right) => right.submittedAt.localeCompare(left.submittedAt))
-    : []
   // The activity feed (history views ③): every operation newest first, grouped by the viewer's
-  // local day. The recent window reveals locally; older receipts come from the page route into
-  // `olderReceipts`. Order and grouping rules live in the domain module.
+  // local day. The recent window reveals locally; older receipts arrive from the ledger archive.
+  const now = new Date()
   const allReceipts = (() => {
     const seen = new Set<string>()
     return [...(data?.receipts ?? []), ...(view.olderReceipts ?? [])].filter(receipt => {
@@ -490,39 +675,22 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
   const simpleFragment = unclaimed[0]
   const simpleQuestion = pendingQuestionSessions[0]
   const simpleFace = data === undefined ? null : SimpleFace({ data, simpleMatter, simpleFragment, simpleQuestion, lanes })
-  // Accepted limitation, verified against the spec card 2026-10-10
-  // ([desk-operating-entry](../../../../../notes/implemented/2026-10-06-desk-operating-entry.md)): the
-  // desk ROOT is the scroll container — the list never scrolls itself — so the record path
-  // rides the root's onScroll (board mode only: scrolling the activity feed must not corrupt
-  // the board's saved position), and the restore path is this post-render DOM effect on the
-  // root ref. The view store survives panel switches (the processing flow's auto-return
-  // remounts the whole panel), the DOM does not; the guard keeps re-render invocations off a
+  // Each keyed viewport owns one mode/pane scroll lifetime; the shared view store keeps its
+  // corresponding list offset across viewport replacements.ns off a
   // live scroll position, and a principal who scrolled back to top has already zeroed the
   // store through onScroll. Activity mode always presents itself from the top.
-  const restoreRootScroll = (element: { scrollTop: number } | null): void => {
-    if (element === null) return
-    if (effectiveMode === 'activity') {
-      if (element.scrollTop !== 0) element.scrollTop = 0
-      return
-    }
-    if (element.scrollTop === 0 && view.listScrollTop > 0) element.scrollTop = view.listScrollTop
-  }
   const unclaimedCards = unclaimed.map(fragment => ce('button', {
     key: fragment.id,
     type: 'button',
     className: 'dsha-card',
     'data-selected': String(selection?.kind === 'fragment' && selection.id === fragment.id),
-    onClick: () => props.actions.selectFragment(fragment.id),
+    onClick: () => selectFragment(fragment.id),
   },
   ce('span', { className: 'dsha-card-title' }, chip('warn', '待认领'), ce('span', {}, fragment.note)),
   ce('p', { className: 'dsha-card-meta' }, `来自 ${fragment.sessionId}`)))
   return ce('main', {
     className: 'dsha-desk',
     'data-assistant-operating-desk': true,
-    ref: restoreRootScroll,
-    onScroll: (event: { currentTarget: { scrollTop: number } }) => {
-      if (effectiveMode === 'board') props.actions.rememberListPosition(event.currentTarget.scrollTop)
-    },
   },
     ce('style', {}, STYLES + PROACTIVE_STYLES),
     ce('header', { className: 'dsha-head' },
@@ -538,6 +706,19 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
           ce('button', { className: 'dsha-btn', onClick: lanes.onAsk }, '有问题？跟助手说'),
           ce('button', { className: 'dsha-btn dsha-btn-primary', onClick: lanes.onEntrust ?? lanes.onAsk }, '＋ 交代新事项'),
         ]))),
+    ce('div', {
+      key: `${effectiveMode}:${view.pane}`,
+      className: 'dsha-viewport',
+      'data-pane': view.pane,
+      'data-mode': effectiveMode,
+      'data-restore-scroll-top': view.pane === 'detail' || effectiveMode === 'activity' ? 0
+        : effectiveMode === 'attention' ? view.attentionScrollTop : view.listScrollTop,
+      ref: attachViewport,
+      onScroll: (event: { currentTarget: HTMLElement }) => {
+        if (view.pane === 'list') props.actions.rememberModePosition(effectiveMode, event.currentTarget.scrollTop)
+      },
+    },
+      ce('div', { className: 'dsha-viewport-content' },
     // Proactive face (2026-10-18):「它替你看过」sits BETWEEN the header and the capture row —
     // structural anchor, not line numbers (the two 261018 cards invalidate each other's anchors).
     // All-empty state renders nothing; each row carries at most one action (the noise cap).
@@ -596,15 +777,15 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
     // divider line makes the split legible, the active underline sits ON the line, and the
     // glyphs carry the memory — this is not another row of filter pills.
     data !== undefined && !simpleMode ? ce('div', { className: 'dsha-tabs', role: 'tablist' },
-      (['board', 'activity'] as const).map(mode => ce('button', {
+      (['attention', 'board', 'activity'] as const).map(mode => ce('button', {
         key: mode,
         type: 'button',
         role: 'tab',
         className: 'dsha-tab',
         'aria-selected': String(effectiveMode === mode),
         'data-on': String(effectiveMode === mode),
-        onClick: () => props.actions.setMode(mode),
-      }, glyphFor(mode), ce('span', {}, mode === 'board' ? (deep ? '事项' : '看板') : '流水')))) : null,
+        onClick: () => { selectMode(mode) },
+      }, glyphFor(mode), ce('span', {}, props.t(RETURN_VIEW_KEY[mode]))))) : null,
     download.status === 'disconnected' ? ce('p', { className: 'dsha-banner', role: 'status' }, message) : null,
     download.stale ? ce('p', { className: 'dsha-banner', role: 'status' }, '以下是上次读到的内容，尚未刷新。') : null,
     download.status === 'error' ? ce('p', { className: 'dsha-banner', role: 'alert' }, message) : null,
@@ -615,8 +796,9 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
       ce('p', { className: 'dsha-detail-hint' },
         download.status === 'missing' ? '还没有经营事项资料。交代一件试试——它会被记进权威账本，事事有着落。' : '还没有经营事项。交代一件试试——它会被记进权威账本，事事有着落。'))
       : simpleMode && data !== undefined ? simpleFace
-      : effectiveMode === 'activity' && data !== undefined ? ActivityFace({ data, activityView, oldestReceipt, actions: props.actions, ...(props.loadOlderReceipts !== undefined ? { loadOlderReceipts: props.loadOlderReceipts } : {}) })
-      : MatterBoard({ matters, visibleMatters, unclaimed, unclaimedCards, selection, selected, selectedFragment, matterOps, view, deep, actions: props.actions, lanes }),
-
+      : effectiveMode === 'activity' && data !== undefined ? ActivityFace({ data, activityView, oldestReceipt, actions: props.actions, t: props.t, archiveState: view.archiveLoads.activity, ...(props.loadOlderReceipts === undefined ? {} : { loadOlderReceipts: props.loadOlderReceipts }), onLoadOlder: loadOlder, onSelectMatter: openMatterInMode })
+      : MatterBoard({ data, matters, visibleMatters, unclaimed, unclaimedCards, selection, selected, selectedFragment, receipts: allReceipts, now, view, deep, t: props.t, archiveState: selection?.kind === 'matter' ? view.archiveLoads[`matter:${selection.id}`] : undefined, ...(props.loadOlderReceipts === undefined ? {} : { loadOlderReceipts: props.loadOlderReceipts }), onLoadOlder: loadOlder, selectMatter, onShowList, actions: props.actions, lanes }),
+      ),
+    ),
   )
 }

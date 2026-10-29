@@ -15,6 +15,7 @@ import type { OperatingMatter, OperatingProjection, OperatingReceipt } from '../
 import type { ProactiveCatalogState } from '../../src/client/proactive/proactive-face-source'
 import { createProjectionViewStore } from '../../src/client/projection/projection-view'
 import { defineStore } from '@deepseek-ai/dsh-client-store'
+import { deskEn } from '../../src/client/chrome/locales'
 
 const stateSlots: unknown[] = []
 let stateIndex = 0
@@ -27,6 +28,7 @@ const react = {
   },
   useEffect: () => {},
   useRef: <T,>(value: T): { current: T } => ({ current: value }),
+  useCallback: <T extends (...args: never[]) => unknown>(callback: T): T => callback,
 }
 bindClientRequire(() => react)
 
@@ -153,6 +155,7 @@ function panelProps(
     process,
     openAll,
     props: {
+      t: (key, params) => Object.entries(params ?? {}).reduce((text, [name, value]) => text.replaceAll(`{${name}}`, String(value)), deskEn[key]),
       surface,
       useProjection: <S,>(select: (candidate: ProjectionDownload) => S): S => select(value),
       useStore: <S,>(select: (candidate: ReturnType<typeof view.getSnapshot>) => S): S => select(view.getSnapshot()),
