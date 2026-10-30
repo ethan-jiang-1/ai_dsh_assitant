@@ -116,4 +116,4 @@
 
 ## 旧回执分页
 
-投影只带最近窗口；更早回执由只读 `GET /api/assistant/operating-receipts?before=<ISO>&limit=<n>` 从 `ledger.json` 与 `operations-archive.jsonl` 分页，按 `submittedAt` 倒序，不新增业务状态。
+投影只带最近窗口；更早回执由只读 `GET /api/assistant/operating-receipts?before=<ISO>&limit=<n>[&matterId=<id>]` 从 `ledger.json` 与 `operations-archive.jsonl` 分页，按 `submittedAt` 倒序，不新增业务状态。`matterId` 把一页限定在该事项的页内；返回的每条与投影里的回执同形（`sessionId`/`status`/`kind`/`quote` 齐全）。

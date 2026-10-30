@@ -97,7 +97,7 @@ export interface ProjectionPanelProps {
   /** Every callback the entry wires; one factory owns them so a new lane does not touch fixtures. */
   surface: DeskSurface
   /** Page older receipts from the ledger archive; absent on direct mounts without a host route. */
-  loadOlderReceipts?: (before: string | undefined) => Promise<OperatingReceiptPage>
+  loadOlderReceipts?: (before: string | undefined, scope?: { readonly matterId?: string }) => Promise<OperatingReceiptPage>
   /** The home wrapper's way back from the full board to the one-page home (absent on direct mounts). */
   onBackHome?: () => void
 }
@@ -365,7 +365,7 @@ function ActivityFace(props: {
   actions: ProjectionViewBoundActions
   t: DeskTranslate
   archiveState: ProjectionView['archiveLoads'][string] | undefined
-  loadOlderReceipts?: (before: string | undefined) => Promise<OperatingReceiptPage>
+  loadOlderReceipts?: (before: string | undefined, scope?: { readonly matterId?: string }) => Promise<OperatingReceiptPage>
   onLoadOlder: (key: string, before: string | undefined) => void
   onSelectMatter: (id: string, mode: ProjectionView['mode']) => void
 }): ReturnType<typeof ce> {
@@ -420,7 +420,7 @@ function MatterBoard(props: {
   view: ProjectionView
   deep: boolean
   t: DeskTranslate
-  loadOlderReceipts?: (before: string | undefined) => Promise<OperatingReceiptPage>
+  loadOlderReceipts?: (before: string | undefined, scope?: { readonly matterId?: string }) => Promise<OperatingReceiptPage>
   archiveState: ProjectionView['archiveLoads'][string] | undefined
   onLoadOlder: (key: string, before: string | undefined) => void
   selectMatter: (id: string) => void
@@ -584,7 +584,8 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
     archiveRequests.current.add(key)
     const cursor = current?.status === 'error' || current?.status === 'ready' ? current.before : before
     props.actions.beginArchiveLoad(key, cursor)
-    void props.loadOlderReceipts(cursor)
+    const matterId = key.startsWith('matter:') ? key.slice('matter:'.length) : undefined
+    void props.loadOlderReceipts(cursor, matterId === undefined ? undefined : { matterId })
       .then(page => props.actions.completeArchiveLoad(key, page.receipts, page.nextBefore))
       .catch(() => props.actions.failArchiveLoad(key))
       .finally(() => { archiveRequests.current.delete(key) })

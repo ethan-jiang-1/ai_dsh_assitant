@@ -10,7 +10,7 @@
  * operating-loop card's V4/V5 rows) lands.
  */
 
-import type { LedgerSource, LedgerState, MatterRecord, MaterialRecord, OperationOutcome as OperationOutcomeWire, ProposalRecord } from './ledger.ts'
+import type { LedgerSource, LedgerState, MatterRecord, MaterialRecord, OperationOutcome as OperationOutcomeWire, OperationRecord, ProposalRecord } from './ledger.ts'
 
 /** One read-only evidence entry; event positioning is a claim carried when present. */
 export interface ProjectionEvidence {
@@ -116,18 +116,7 @@ export function renderLedgerProjection(state: LedgerState, ledgerId: string, gen
       ...(proposal.resolutionOperationId !== undefined ? { resolutionOperationId: proposal.resolutionOperationId } : {}),
     })),
   }))
-  const receipts = Object.values(state.operations).map(({ operation, receipt }) => {
-    const outcome = receipt.outcome
-    return {
-      operationId: receipt.operationId,
-      matterId: receipt.matterId,
-      sessionId: operation.source.sessionId,
-      submittedAt: receipt.submittedAt,
-      kind: operation.kind,
-      ...(operation.source.quote !== undefined ? { quote: operation.source.quote } : {}),
-      ...flattenOutcome(outcome),
-    }
-  })
+  const receipts = Object.values(state.operations).map(projectOperationRecord)
   return Object.freeze({
     schemaVersion: 2 as const,
     ledgerId,
@@ -147,6 +136,29 @@ export function renderLedgerProjection(state: LedgerState, ledgerId: string, gen
  * @param outcome - The receipt outcome from the ledger.
  * @returns The discriminating status plus its fields, spread-ready.
  */
+/**
+ * Render one ledger operation record as the wire receipt the Web client reads.
+ *
+ * The single-shape owner: the fixed projection and the older-receipts route both page records
+ * that must carry the same fields. A route serving the bare `OperationRecord.receipt` dropped
+ * `sessionId`, `status`, `kind` and `quote` — older timeline rows lost their source and showed
+ * 「操作」 (found by the 2026-10-30 adversarial walkthrough).
+ * @param record - The stored operation and its receipt.
+ * @returns The projection receipt.
+ */
+export function projectOperationRecord({ operation, receipt }: OperationRecord): ProjectionReceipt {
+  return {
+    operationId: receipt.operationId,
+    matterId: receipt.matterId,
+    sessionId: operation.source.sessionId,
+    submittedAt: receipt.submittedAt,
+    kind: operation.kind,
+    ...(operation.source.quote !== undefined ? { quote: operation.source.quote } : {}),
+    ...flattenOutcome(receipt.outcome),
+  }
+}
+
+/** The result of applying one operation: the next state plus the receipt the caller echoes back. */
 function flattenOutcome(outcome: OperationOutcomeWire): { status: string } & Record<string, string | number> {
   if (outcome.status === 'committed') {
     return {

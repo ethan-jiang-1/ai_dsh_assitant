@@ -179,16 +179,32 @@ describe('ProjectionPanel in a real DOM', () => {
     const more = () => container.querySelector('.dsha-archive-control button')
     await act(async () => { more().click(); more().click() })
     expect(loadOlderReceipts).toHaveBeenCalledTimes(1)
-    expect(loadOlderReceipts).toHaveBeenLastCalledWith(local.submittedAt)
+    expect(loadOlderReceipts).toHaveBeenLastCalledWith(local.submittedAt, undefined)
     expect(more().disabled).toBe(true)
 
     await act(async () => { release(pages.shift()) })
     expect((container.textContent.match(/Matter updated/g) ?? []).length).toBe(2)
     await act(async () => { more().click() })
-    expect(loadOlderReceipts).toHaveBeenLastCalledWith(first.submittedAt)
+    expect(loadOlderReceipts).toHaveBeenLastCalledWith(first.submittedAt, undefined)
     await act(async () => { release(pages.shift()) })
     expect((container.textContent.match(/Matter updated/g) ?? []).length).toBe(3)
     expect(container.querySelector('.dsha-archive-control')).toBeNull()
+  })
+
+  it('scopes the matter detail page to that matter so one click always progresses', async () => {
+    const local = { operationId: 'local-scope', matterId: 'm-1', sessionId: 's-local', submittedAt: '2026-10-30T00:00:00.000Z', status: 'committed', kind: 'update' }
+    const loadOlderReceipts = vi.fn(async () => ({ receipts: [], nextBefore: null }))
+    const view = createProjectionViewStore(defineStore).create()
+    view.actions.selectMatter('m-1')
+    const container = document.createElement('div')
+    document.body.append(container)
+    const root = createRoot(container)
+    cleanups.push(async () => { await act(async () => root.unmount()) })
+
+    await act(async () => { root.render(createElement(ProjectionPanel, propsFor(view, vi.fn(), loadOlderReceipts, value([local])))) })
+    const earlier = () => [...container.querySelectorAll('button')].find(button => button.textContent.includes('Load earlier records'))
+    await act(async () => { earlier().click() })
+    expect(loadOlderReceipts).toHaveBeenCalledWith(local.submittedAt, { matterId: 'm-1' })
   })
 
   it('shows archive failures for retry and treats an empty page as exhausted', async () => {

@@ -206,9 +206,10 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       })
       const current = ctx.uiSession?.current.value.key
       const resolvedSession = sessionId ?? (current === undefined ? undefined : String(current))
-      const loadOlderReceipts = async (before: string | undefined): Promise<{ readonly receipts: readonly OperatingReceipt[], readonly nextBefore: string | null }> => {
+      const loadOlderReceipts = async (before: string | undefined, scope?: { readonly matterId?: string }): Promise<{ readonly receipts: readonly OperatingReceipt[], readonly nextBefore: string | null }> => {
         const url = new URL('/api/assistant/operating-receipts', document.baseURI)
         if (before !== undefined) url.searchParams.set('before', before)
+        if (scope?.matterId !== undefined) url.searchParams.set('matterId', scope.matterId)
         url.searchParams.set('limit', '50')
         const response = await fetch(url, { headers: { accept: 'application/json' } })
         if (!response.ok) throw new Error(`receipt archive request failed (${String(response.status)})`)
