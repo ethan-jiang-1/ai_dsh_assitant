@@ -103,10 +103,10 @@ export interface ProjectionPanelProps {
 }
 const errors: Record<string, string> = {
   'authentication-required': '登录已失效，请重新登录后再读取。',
-  'download-forbidden': '当前连接无法读取桌面。',
-  'projection-invalid': '桌面资料损坏或版本不支持。',
-  'projection-too-large': '桌面资料超过读取限额。',
-  'download-failed': '桌面读取失败，请重试。',
+  'download-forbidden': '当前连接无法读取看板。',
+  'projection-invalid': '看板资料损坏或版本不支持。',
+  'projection-too-large': '看板资料超过读取限额。',
+  'download-failed': '看板读取失败，请重试。',
 }
 const STATUS_LABEL: Record<string, string> = { active: '在办', completed: '已完成', abandoned: '已放弃' }
 const FILTER_LABEL: Record<'all' | 'active' | 'settled', string> = { all: '全部', active: '在办', settled: '已了结' }
@@ -330,7 +330,7 @@ function SimpleFace(props: {
         simpleQuestion !== undefined ? '它在等你回答'
           : simpleMatter !== undefined ? simpleMatter.title
             : simpleFragment !== undefined ? '有一条还没归户的事'
-              : '桌面上没有在办的事'),
+              : '看板上没有在办的事'),
       simpleMatter !== undefined && simpleMatter.summary !== '' ? ce('p', { className: 'dsha-simple-summary' }, simpleMatter.summary) : null,
       simpleMatter === undefined && simpleFragment !== undefined ? ce('p', { className: 'dsha-simple-summary' }, simpleFragment.note) : null,
       simpleMatter !== undefined ? ce('p', { className: 'dsha-simple-meta' },
@@ -616,9 +616,9 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
   const PHASE_DETAIL: Record<string, string> = {
     running: '它正在处理你这句话。',
     queued: '排着队，等它接手。',
-    suspended: '助手在会话里问了话（等你回答）——点「去会话」接着答，桌面这边不会替你答。',
+    suspended: '助手在会话里问了话（等你回答）——点「去会话」接着答，看板这边不会替你答。',
     settled: isActionLane
-      ? '它跑完了，结论在会话里——桌面这边不会替你收下。'
+      ? '它跑完了，结论在会话里——看板这边不会替你收下。'
       : '它说完了，但账本没有新东西——点「去会话」看它说了什么。',
   }
   const submitCapture = (): void => {
@@ -655,7 +655,7 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
     ...(props.useProactiveUi !== undefined ? { useProactiveUi: props.useProactiveUi } : {}),
   }
   const message = download.status === 'disconnected' ? '连接已断开，恢复连接后重新读取。'
-    : download.status === 'loading' ? '正在读取桌面…'
+    : download.status === 'loading' ? '正在读取看板…'
     : download.status === 'missing' ? '还没有经营事项资料。'
     : download.status === 'error' ? (errors[download.error ?? 'download-failed'] ?? errors['download-failed']) : undefined
   const matters = data?.matters ?? []
@@ -696,14 +696,14 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
     ce('style', {}, STYLES + PROACTIVE_STYLES),
     ce('header', { className: 'dsha-head' },
       ce('div', {},
-        ce('h1', { className: 'dsha-title' }, deep ? '完整看板' : '你的桌面'),
+        ce('h1', { className: 'dsha-title' }, '完整看板'),
         counts === undefined ? null : ce('div', { className: 'dsha-sub' }, counts)),
       ce('div', { className: 'dsha-actions' },
         props.onBackHome !== undefined
           ? ce('button', { className: 'dsha-btn', type: 'button', onClick: props.onBackHome }, '回到今天')
           : null,
         ...(deep ? [] : [
-          ce('button', { className: 'dsha-btn', onClick: lanes.refreshProjection, disabled: download.status === 'loading', title: download.status === 'loading' ? '正在读取桌面…' : '重新读取桌面' }, '重新读取'),
+          ce('button', { className: 'dsha-btn', onClick: lanes.refreshProjection, disabled: download.status === 'loading', title: download.status === 'loading' ? '正在读取看板…' : '重新读取看板' }, '重新读取'),
           ce('button', { className: 'dsha-btn', onClick: lanes.onAsk }, '有问题？跟助手说'),
           ce('button', { className: 'dsha-btn dsha-btn-primary', onClick: lanes.onEntrust ?? lanes.onAsk }, '＋ 交代新事项'),
         ]))),
@@ -734,7 +734,7 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
         type: 'text',
         value: view.captureDraft,
         placeholder: '有新的事，直接说…',
-        'aria-label': '在桌面直接交代一件新事',
+        'aria-label': '在看板直接交代一件新事',
         disabled: capturePending,
         onInput: (event: { target: { value: string } }) => props.actions.setCaptureDraft(event.target.value),
         onKeyDown: (event: { key: string, preventDefault: () => void }) => {
@@ -769,8 +769,8 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
         ? ce('button', { className: 'dsha-btn', type: 'button', onClick: () => lanes.onOpenSession(receipt.sessionId) }, '去会话')
         : null,
       ce('p', { className: 'dsha-capture-hint' }, isActionLane
-        ? '来自：桌面按钮 · 话已进会话日志'
-        : '来自：桌面直接交代 · 话已进会话日志')) : null,
+        ? '来自：看板按钮 · 话已进会话日志'
+        : '来自：看板直接交代 · 话已进会话日志')) : null,
     // 261019: the offer sits BELOW the input and its in-flight row — the principal's own words
     // come first; the three named watches are an offer, not the desk's primary surface.
     deep ? null : ce(SuggestionStrip, { ...proactiveStripProps }),

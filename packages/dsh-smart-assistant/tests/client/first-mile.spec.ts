@@ -110,7 +110,7 @@ describe('first-mile seats', () => {
       processingMatter: { matterId: 'm-A', title: 'NB-02：客户验收节点', summary: '客户可能推迟到 10/20。' },
       t: key => ({
         'processing.title': '正在处理这件事',
-        'processing.label': '桌面事项',
+        'processing.label': '事项',
         'processing.visualOnly': '助手能从台账读到这件事的详情；直接说要做什么就行，它会先核对台账再动手。',
       }[key]),
     })

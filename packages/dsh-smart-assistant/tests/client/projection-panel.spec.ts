@@ -552,7 +552,7 @@ describe('the desk\'s capture row: takes the words here, and never overstates wh
     expect(during).toContain('已交给助手')
     expect(during).toContain('还没进账')
     expect(during).toContain('「记得问一下小王那个报价到底批了没」')
-    expect(during).toContain('来自：桌面直接交代')
+    expect(during).toContain('来自：看板直接交代')
     // The row must not borrow a matter's or a fragment's shape, and the desk must not claim the
     // ledger holds it.
     expect(during).not.toContain('已记下')

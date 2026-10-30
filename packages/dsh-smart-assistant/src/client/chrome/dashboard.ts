@@ -55,8 +55,8 @@ export function DashboardMainPanel(props: { onAsk?: () => void }): ReturnType<ty
   // No projection and no room data: say what is actually missing.
   if (data === undefined) {
     return ce('div', { style: { padding: '32px', maxWidth: '680px', margin: '0 auto' } },
-      ce('h1', { style: { margin: '0 0 8px', fontSize: '22px' } }, '你的桌面'),
-      muted('这个环境读不到账本投影（桌面数据），本机也还没有房间数据——跟助手说一件事，它会记进账本。'),
+      ce('h1', { style: { margin: '0 0 8px', fontSize: '22px' } }, '今天'),
+      muted('这个环境读不到账本投影（今天的数据），本机也还没有房间数据——跟助手说一件事，它会记进账本。'),
       ce('button', {
         onClick: props.onAsk,
         style: { marginTop: '12px', padding: '8px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: 600, background: MARK_TEAL, color: 'var(--dsha-on-accent)' },
@@ -73,13 +73,13 @@ export function DashboardMainPanel(props: { onAsk?: () => void }): ReturnType<ty
   return ce('div', { style: { padding: '24px 32px', maxWidth: '840px', margin: '0 auto', overflowY: 'auto' } },
     // Header
     ce('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' } },
-      ce('h1', { style: { margin: 0, fontSize: '22px' } }, '你的桌面'),
+      ce('h1', { style: { margin: 0, fontSize: '22px' } }, '今天'),
       ce('button', {
         onClick: props.onAsk,
         style: { padding: '6px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: 600, background: MARK_TEAL, color: 'var(--dsha-on-accent)' },
       }, '有问题？'),
     ),
-    muted('这个环境读不到账本投影——桌面全貌请在能读到投影的页面上看，或直接问助手。'),
+    muted('这个环境读不到账本投影——今天的全貌请在能读到投影的页面上看，或直接问助手。'),
 
     // Approvals: knowledge drafts are room data, readable here.
     ce('div', { style: { marginTop: '20px' } },

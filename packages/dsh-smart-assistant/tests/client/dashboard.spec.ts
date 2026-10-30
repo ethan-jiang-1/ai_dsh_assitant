@@ -83,7 +83,7 @@ describe('dashboard main panel', () => {
     store.data = populatedDesk
     const panel = exports.DashboardMainPanel as (props?: { onAsk?: () => void }) => unknown
     const text = textsOf(panel({ onAsk: () => {} })).join(' | ')
-    expect(text).toContain('你的桌面')
+    expect(text).toContain('今天')
     expect(text).toContain('读不到账本投影')
     expect(text).toContain('1 页知识草稿等你审批')
     expect(text).toContain('有问题')
