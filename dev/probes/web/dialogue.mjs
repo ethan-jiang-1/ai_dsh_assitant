@@ -29,6 +29,11 @@ export const deskText = `(() => { const root = document.querySelector('[data-ass
  * mounted (direct deep-link or an older composition) returns 'already'. The probes that assert
  * board internals call this after launch; a page with no matters has no "全部" link, which is a
  * genuine failure for those fixtures.
+ *
+ * Both steps POLL instead of reading once: the one-page home mounts before its matter list
+ * renders, so an immediate read races the projection download (observed 2026-10-30: same fixture,
+ * same probe, 'no-all' on one run and 'board' on the next). The bounded wait keeps 'no-all' /
+ * 'no-board' meaning "never appeared", not "not yet".
  * @param {(expression: string) => Promise<any>} evaluate - the CDP driver's evaluate.
  * @param {(ms: number) => Promise<void>} sleep - the probe-utils sleep.
  * @returns {'already'|'all'|'board'|'no-all'|'no-board'}
@@ -39,19 +44,28 @@ export async function openBoard(evaluate, sleep) {
     if (await evaluate(`document.querySelector('[data-assistant-one-page-home]') !== null`) === true) break
     await sleep(500)
   }
-  const all = await evaluate(`(() => {
-    const button = [...document.querySelectorAll('button')].find(b => (b.textContent ?? '').trim().startsWith('全部'));
-    if (button === undefined) return 'no-all';
-    button.click(); return 'all';
-  })()`)
+  let all = 'no-all'
+  for (let i = 0; i < 24; i++) {
+    all = await evaluate(`(() => {
+      const button = [...document.querySelectorAll('button')].find(b => (b.textContent ?? '').trim().startsWith('全部'));
+      if (button === undefined) return 'no-all';
+      button.click(); return 'all';
+    })()`)
+    if (all === 'all') break
+    await sleep(500)
+  }
   if (all !== 'all') return all
-  await sleep(400)
-  const board = await evaluate(`(() => {
-    const button = [...document.querySelectorAll('button')].find(b => (b.textContent ?? '').trim() === '完整看板');
-    if (button === undefined) return 'no-board';
-    button.click(); return 'board';
-  })()`)
-  await sleep(400)
+  await sleep(600)
+  let board = 'no-board'
+  for (let i = 0; i < 20; i++) {
+    board = await evaluate(`(() => {
+      const button = [...document.querySelectorAll('button')].find(b => (b.textContent ?? '').trim() === '完整看板');
+      if (button === undefined) return 'no-board';
+      button.click(); return 'board';
+    })()`)
+    if (board === 'board') return board
+    await sleep(500)
+  }
   return board
 }
 

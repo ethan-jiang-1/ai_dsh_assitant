@@ -208,6 +208,17 @@ if (revealedCount !== 61) die('activity-revealed', { expected: 61, revealedCount
 if (await evaluate(clickButtonWithText('读取更早记录')) !== 'clicked') die('archive-first-click', {})
 const afterFirstPage = await pollUntil(evaluate, entryCount, { checkFirst: true, budget: 30, isDone: count => count === 100 })
 if (afterFirstPage !== 100) die('archive-first-page', { expected: 100, afterFirstPage })
+// 回归守卫（2026-10-30 对抗性走查发现）：归档页曾经只回裸 receipt，缺 kind/sessionId/status，
+// 更早的流水条目降级成「操作」且时间线丢了来源。归档取回后每条仍须是「更新事项」。
+const archivedLabels = await evaluate(`(() => {
+  const root = document.querySelector('[data-assistant-operating-desk]')
+  const text = root?.innerText ?? ''
+  const known = (text.match(/更新事项|建立事项|提出变更|认领归户|办结/g) ?? []).length
+  return { unknownKind: /(^|\\n)操作 ·/.test(text), known, entries: document.querySelectorAll('button.dsha-activity-entry').length }
+})()`)
+if (archivedLabels.unknownKind === true || archivedLabels.known < 100) {
+  die('archive-labels', { expected: 'every archived entry keeps its kind', archivedLabels })
+}
 if (await evaluate(clickButtonWithText('显示更早')) !== 'clicked') die('archive-reveal-fetched', {})
 const fullyRevealed = await pollUntil(evaluate, entryCount, { checkFirst: true, budget: 20, isDone: count => count === 111 })
 if (fullyRevealed !== 111) die('archive-fully-revealed', { expected: 111, fullyRevealed })
