@@ -23,7 +23,7 @@ import { join } from 'node:path'
 import { sleep } from './probe-utils.mjs'
 
 /** Every pid file a self-hosting probe registers in its home — the shared-home protocol. */
-export const PROBE_SERVICE_PID_FILES = ['.desk-process-e2e-service.pid', '.projection-live-mechanics.pid']
+export const PROBE_SERVICE_PID_FILES = ['.desk-process-e2e-service.pid', '.projection-live-mechanics.pid', '.multiview-live.pid']
 
 /**
  * SIGTERM every registered stale probe service on a home and clear its pid file.
