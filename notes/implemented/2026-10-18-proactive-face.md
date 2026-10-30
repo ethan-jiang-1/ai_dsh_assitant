@@ -2,6 +2,8 @@
 
 日期：2026-10-18 · 状态：**implemented**
 
+> 标签：产品面 2026-10-24 起主面板称「今天」；本篇标题与正文的「桌面」指当时的主面板，`[桌面]` lane token 仍保留。
+
 > **依据**（三档调研 + 一档合成，索引在 [调研归档](../../_backlog/_archive/research/README.md)）：
 > [主动性 UX 机制](../../_backlog/_archive/research/positioning/261018-proactive-ux-mechanics.md)｜
 > [开源 agent 的主动性机制](../../_backlog/_archive/research/positioning/261018-oss-proactivity-mechanisms.md)｜

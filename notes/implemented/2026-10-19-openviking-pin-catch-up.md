@@ -22,9 +22,10 @@ OpenViking 用 `dsh plugin add` 进 profile，**不进** assistant preset 的 `c
 
 ## 当时的选项
 
-**上游已经解决了范围问题，不必等它**：查 registry，peer 范围从 **0.5.20 起**放宽成
+**上游已经解决了范围问题，不必等它**：查 registry（截至 2026-10-19），peer 范围从 **0.5.20 起**放宽成
 `>=0.1.0-rc.6 <1.0.0-0`，正好覆盖 0.2.1。latest = **0.5.26**（2026-10-15），零运行时依赖，
-`engines.node ^22.19.0 || >=24`（本机 22.23.1 ✓），打包形态仍是 `dsh.bundle.patch = ./cordis.patch.yml`。
+`engines.node ^22.19.0 || >=24`，打包形态仍是 `dsh.bundle.patch = ./cordis.patch.yml`。版本现值与升级
+依据见 [`vendor/thirdparty/openviking/README.md`](../../vendor/thirdparty/openviking/README.md)。
 
 三个选项（**当时需要拍板的事项**）：
 
@@ -46,9 +47,3 @@ OpenViking 用 `dsh plugin add` 进 profile，**不进** assistant preset 的 `c
 - **等上游**：不需要——0.5.20 已经把范围放开，等的是我们自己升版本。
 - **改我们的 `ov-shield` 迁就旧版**：治理层与被治理对象的版本无关，迁就它等于把兼容负担搬到我们这边，且换不来记忆层恢复。
 - **给本包声明 `engines.dsh` 从而"顺带处理"OpenViking**：两者无关，`plugin-engines-dsh` 判的是**各自**的 declaration。
-
-## 遗留（不是本卡范围，但撞见了要记）
-
-真机往返时，助手把长期记忆里的一批旧条目当成「另一家公司的 14 条底子」。事后核对证明它们是试点脚本写入的
-虚构人设哨兵事实（`ov-rt.mjs` 头注；[viki-cleanup](2026-10-19-viki-cleanup.md) §真数据实跑），不是真实数据；
-那批记忆已于 2026-10-20 按 B4 清完（memories 树只剩 `identity.md` + `soul.md`）。
