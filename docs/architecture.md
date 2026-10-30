@@ -98,7 +98,7 @@ AGENT 面（`cordis.patch.yml` 的 `preset-assistant` 行 → agent preset）
 座位与命令的精确清单是生成物：[`package-catalog.md`](package-catalog.md)「客户端座位面」节
 （生成器从 `src/client/` 模块树抽取，freshness 由 `pnpm verify` 守；散文不另维护清单）。
 语义要点：官方品牌包只在 official 构建档案下注册，本地构建里品牌 slot 空置；
-四个房间 tab（knowledge / memory / viki / skills）是「+」向导里可添加的右栏 tab；首里引导座位开聊即隐；全局经营
+三个产品房间 tab（knowledge / memory / skills）常驻「+」向导，Viki(调试) 只在 debug flag 开时加入；首里引导座位开聊即隐；全局经营
 主区投影消费 `main` 座位（左栏入口叫「今天」），默认渲染**常用面一页纸**（`home-surface` → `one-page-home`：空态一问、当前一页、
 一个输入），「全部」进人读列表（`brief-list`），「它记下的」进只读记录面（`records-surface`），「完整看板」再进 `projection-panel`，「看依据」就地展开证据；会话内不注册桌面/任务 tab（回到今天走主面板/左栏）；开屏带
 `#debug=1` 或本机 localStorage `dsh-assistant-debug=1` 时，会话视图栏再注册只读「开发调试」tab
@@ -347,7 +347,7 @@ Client 的 [下载对象](../packages/dsh-smart-assistant/src/client/projection/
         `assistantKnowledge` 服务在 host 行，但 client entry 不能消费动态挂载的 namespace
         （Cordis 未 inject 会抛错），面板批准按钮走上面的 POST；挂载失败只 console.info；
         approve-mount.ts 的 parameter codec 是 strict
-  └ 读回：route 的 generatedAt/revision 越过 pending.at 才算完成
+  └ 读回：route 的 generatedAt 越过 pending.at 才算完成（revision 是投影哈希，不参与判定）
     （队列接受 ≠ 完成；DATA GATE 冻结该行直到房间数据真的动了）
 ```
 

@@ -31,16 +31,14 @@ import type {} from './locales'
  * @returns the strip element, or null once the session has any content.
  */
 /**
- * The rich desk landing for the blank (pre-first-message) phase (2026-10-06,
- * [desk-primary-view](../../../../../notes/archived/2026-10-06-desk-primary-view.md)). This replaces the old thin first-mile strip with a substantial card that fills
- * the gap between the vendor hero and the composer — the plugin boundary's best shot at making
- * the first screen carry real content.
+ * The blank-phase pointer card (2026-10-06; current first-open contract = the one-page home,
+ * 2026-10-23). It replaces the old thin first-mile strip with a card that fills the gap between
+ * the vendor hero and the composer, but it is a pointer, not a second first-open composer: the
+ * one place to type a first sentence is the home page.
  *
  * Two modes:
- * - fresh folder (no desk file, no memories): the Day-0 landing — what the arc is, what you'll
- *   have after three answers, and one start button (the assistant asks first, not you).
- * - folder with a desk: the compact desk summary — what needs your call, what's due, what's
- *   blocking — with one-click actions, so the first screen IS the working surface.
+ * - fresh folder (no room content): "第一次来？回到今天，说一句就行" + one start button.
+ * - folder with content: a short pointer to 今天; no embedded textarea.
  *
  * Vendor seam facts this rides: `conversation.input.dock` is a list slot with no height limit,
  * rendered between HeroShell and the composer bar in the blank phase (ConversationContent.tsx:165-168).

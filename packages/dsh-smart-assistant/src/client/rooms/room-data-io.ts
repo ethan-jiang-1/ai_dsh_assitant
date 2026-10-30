@@ -28,7 +28,7 @@ import {
 import type { DeskData, DeskSlice } from './room-data-core'
 import { parseRooms } from '../../domain/rooms/projection.ts'
 
-/** The remote layer captured in apply; DeskPanel reads manifested namespaces through it. */
+/** The remote layer captured in apply; the room readers read manifested namespaces through it. */
 let deskRemote: Record<string, unknown> | undefined
 /** The client Session store; its list snapshot is already synced and needs no Remote call. */
 let deskSessions: { list?: { getSnapshot: () => unknown, subscribe: (fn: () => void) => () => void } } | undefined

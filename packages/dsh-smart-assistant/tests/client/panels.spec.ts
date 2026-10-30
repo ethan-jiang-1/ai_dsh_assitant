@@ -47,7 +47,6 @@ interface DeskStore extends DeskSlice {
 }
 
 interface PanelExports {
-  DeskPanel: (props?: { sessionId?: string }) => unknown
   KnowledgePanel: (props?: { sessionId?: string }) => unknown
   MemoryPanel: (props?: { sessionId?: string }) => unknown
   /** Release the data gate when the poller gives up (R1); the session scopes it (R11). */
@@ -56,7 +55,6 @@ interface PanelExports {
   settlePending: (generatedAt: string | undefined, sessionId?: string) => void
   /** Retire a receipt whose decision is still open in the file (R11). */
   retireStaleReceipt: (data: Record<string, unknown> | undefined, sessionId?: string) => void
-  DeskTabBody: (props: { sessionId?: string }) => unknown
   KnowledgeTabBody: (props: { sessionId?: string }) => unknown
   MemoryTabBody: (props: { sessionId?: string }) => unknown
   /** The tab-strip title factory: icon glyph before the room's title (user steer 2026-09-28). */

@@ -308,7 +308,7 @@ export function OnePageHome(props: ProjectionPanelProps & { onOpenAll: () => voi
           : ce('button', { className: 'dsha-home-link', type: 'button', onClick: () => props.onOpenAll() }, `全部（${String(matters.length)}）`),
         ce('button', { className: 'dsha-home-link', type: 'button', onClick: () => openRecords() }, '它记下的'),
         props.onOpenDebug === undefined ? null : ce('button', { className: 'dsha-home-link', type: 'button', onClick: () => { props.onOpenDebug?.() } }, '开发调试'))),
-    download.status === 'error' ? ce('p', { className: 'dsha-home-error', role: 'alert' }, '桌面读取失败，重试或直接跟助手说。') : null,
+    download.status === 'error' ? ce('p', { className: 'dsha-home-error', role: 'alert' }, '读取失败，重试或直接跟助手说。') : null,
     download.stale ? ce('p', { className: 'dsha-home-note' }, '以下是上次读到的内容，尚未刷新。') : null,
     data?.fixture ? ce('p', { className: 'dsha-home-note' }, '模拟资料，仅供验证界面。') : null,
     workingCard,
@@ -332,7 +332,7 @@ export function OnePageHome(props: ProjectionPanelProps & { onOpenAll: () => voi
           : steady
         : current !== undefined
           ? page
-          : fragmentCard ?? ce('p', { className: 'dsha-home-note' }, '正在读取桌面…'),
+          : fragmentCard ?? ce('p', { className: 'dsha-home-note' }, '正在读取…'),
     proactiveRows,
     empty && fresh ? null : inputRow('还有别的事？说一句…'),
     suggestionStrip,

@@ -109,7 +109,7 @@ export function BriefList(props: ProjectionPanelProps & { onBackHome: () => void
         onInput: (event: { target: { value: string } }) => { props.actions.setQuery(event.target.value) },
       })),
     download.status === 'error'
-      ? ce('p', { className: 'dsha-list-empty', role: 'alert' }, '桌面读取失败，回到今天重试或直接跟助手说。')
+      ? ce('p', { className: 'dsha-list-empty', role: 'alert' }, '读取失败，回到今天重试或直接跟助手说。')
       : ce('div', { className: 'dsha-list-body' },
           matters.length === 0
             ? ce('p', { className: 'dsha-list-empty' }, '还没有事项。回到今天，跟助手说一件就行。')

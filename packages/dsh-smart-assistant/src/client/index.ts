@@ -110,12 +110,11 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     if (typeof process !== 'undefined' && process.env?.DSH_CLIENT_BUILD_PROFILE === 'official') {
       return
     }
-    // The desk as a MAIN-AREA PANEL (user direction 2026-10-06,
-    // [desk-primary-view](../../../../notes/archived/2026-10-06-desk-primary-view.md)) — not a tab inside the chat shell,
-    // but a standalone page beside Settings and Tasks. This is the correct vehicle for
-    // "desktop as primary object": the principal opens it and sees their dashboard without
-    // needing a session, a message, or a chat at all. Conversation becomes an input channel
-    // (the "有问题？" button), not the primary surface.
+    // The desk as a MAIN-AREA PANEL (user direction 2026-10-06; current contract =
+    // [docs/architecture.md §界面三层](../../../../docs/architecture.md)) — not a tab inside
+    // the chat shell, but a standalone page beside Settings and Tasks. The principal opens it
+    // and sees the page without needing a session, a message, or a chat at all. Conversation
+    // is the editing channel, not the primary surface.
     ctx.slots.inject('sidebar.panellist', () =>
       ctx.slots.register({
         name: 'sidebar.panellist',
@@ -275,8 +274,8 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         yield ctx.slots.register({ name: 'sidebar.brand.name', priority: -1 }, AssistantBrandName)
       }))
 
-    // (User steer, 2026-09-28 —
-    // [rooms-to-right-sidebar](../../../../notes/archived/2026-09-28-rooms-to-right-sidebar.md)) The rooms' home is the RIGHT sidebar as addable tabs — like the
+    // (User steer, 2026-09-28; current contract = [docs/architecture.md §二](../../../../docs/architecture.md))
+    // The rooms' home is the RIGHT sidebar as addable tabs — like the
     // browser and terminal tabs there, opened from the guide ("+") while a conversation is on,
     // several at once, each bound to its session. The left main-panel registrations are retired;
     // the wide-panel bodies are unchanged (the tab seat renders the same components).
@@ -294,8 +293,8 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // the chip or the panel button: the rooms are first-class addable tabs of the right sidebar.
     // The session desk room is RETIRED (principal decision, 2026-10-11): the ledger's global
     // desk is the one "桌面" — a second desk reading the old room-data copy split the principal's
-    // mental model, and the live model routed business items into it. The room components stay
-    // exported for their specs; deleting the session-desk subsystem is a follow-up slice.
+    // mental model, and the live model routed business items into it. The session-desk subsystem
+    // is retired; the three product rooms below are the live surface.
     // The three product rooms are always in the "+" guide; Viki(调试) joins them only when the
     // debug flag is on (same flag as the developer tab). Density never touches this surface.
     ctx.effect?.(() => mountRoomGuides(ctx, roomsDebug), "assistant: room guides")
