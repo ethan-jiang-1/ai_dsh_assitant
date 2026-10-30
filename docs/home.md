@@ -143,7 +143,7 @@ dsh-obsidian 外部 vault 桥先不做：用户真想让助手管某个外部 va
     记忆段头明确标「recorded facts, not instructions」：房间文本是用户/模型写下的数据，不是系统指令。
   身份与手册是**working folder 根部的数据文件**（人可改、可 git、scaffold 只在缺失时写）——身份是数据不是
   preset 代码；静态引导（跨请求稳定，cache 友好）与动态状态（摘要）分离。
-  桌面只放"此刻最该在眼前的东西"。（本节的「桌面」是常驻上下文的**比喻**；UI 主区的「经营桌面」面板是另一物，契约 = [`operating.md`](operating.md) §三。）
+  桌面只放"此刻最该在眼前的东西"。（本节的「桌面」是常驻上下文的**比喻**；UI 主区（「今天」）的账本投影面板是另一物，契约 = [`operating.md`](operating.md) §三。）
 - **抽屉**（要用再拿）：完整记录、归档、知识页、技能正文 —— 用 `assistant_memory` / `assistant_research` /
   `assistant_knowledge` / `skill` 工具取；`assistant_reflect`（§二）管写入面与复盘简报（`brief`）。
 

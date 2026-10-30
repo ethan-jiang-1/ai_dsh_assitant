@@ -35,7 +35,7 @@ Web 壳的页标题、图标与侧栏品牌（`src/host/web-branding.ts` 注入�
 ## 三、刻意不做
 
 三个"刻意不做"——**不新增 SessionEventMap 成员、不注册 settings namespace、不做跨出通用座位的专属 Web 卡面**
-（＝自有 slot 域名；品牌、记忆/知识/技能/Viki 四个房间 tab 与经营桌面投影消费的都是 DSH 通用座位，清单见生成物
+（＝自有 slot 域名；品牌、记忆/知识/技能三个产品房间 tab、Viki(调试) tab 与经营桌面投影消费的都是 DSH 通用座位，清单见生成物
 [`package-catalog.md`](package-catalog.md)「客户端座位面」节）——
 都是**延后**而非永久否决。理由与触发条件的唯一出处是 `docs/architecture.md` 第六节延后项表；
 本表只管身份面：触发后按 §一 的文法与代价登记新行，涉及模型可见文案时按第二节走 model-visible 纪律。

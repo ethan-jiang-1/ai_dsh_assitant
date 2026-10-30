@@ -129,7 +129,7 @@ OpenViking 是独立可选层，另停 server 并按其安装手册清理。
 
 装法、身份名、working folder 的契约分别在仓库的 `README.md`、`docs/identity.md`、`docs/home.md`。
 
-Web 客户端贡献独立全局桌面（唯一「桌面」，账本投影）与右栏可按需添加的四个房间 tab（记忆 / 知识 / Viki / 技能）。默认主面板选择只在页面初始化时尝试，不随重挂覆盖用户导航；导航与数据读取的当前合同在 [浏览器动作链](../../docs/architecture.md#浏览器动作链一次点击--可见的桌面变化)。客户端不拥有经营权威数据。
+Web 客户端贡献独立全局经营桌面（内部概念；UI 叫「今天」，账本投影）与右栏可按需添加的三个产品房间 tab（记忆 / 知识 / 技能）；Viki(调试) tab 只在 debug flag 下出现。默认主面板选择只在页面初始化时尝试，不随重挂覆盖用户导航；导航与数据读取的当前合同在 [浏览器动作链](../../docs/architecture.md#浏览器动作链一次点击--可见的桌面变化)。客户端不拥有经营权威数据。
 
 Host 的 `./desk-projection` 是固定只读投影下载：有权威 `ledger.json` 时活渲染 v2 投影，无账本时回退固定 fixture；不是经营 writer 或通用文件读取。Config `dataDir` 与 agent working folder 独立；缺失、损坏和 I/O 错误分别返回错误，且 fiber 卸载撤销路由。目录/状态码/限额合同由上面的浏览器动作链拥有；此入口不向模型添加工具或提示词。
 

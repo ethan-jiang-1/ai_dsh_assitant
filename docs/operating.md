@@ -32,7 +32,7 @@
 - 每次状态变更是一个**操作**：调用方带身份与 `operationId`（幂等键——同键同内容重试=复用原回执，
   同键异内容=拒绝），返回**持久回执**；版本冲突回报告当前 revision，重读后以**新** operationId 表达新判断。
 
-## 二、模型工具（`assistant_operating`，13 动作）
+## 二、模型工具（`assistant_operating`）
 
 | 动作 | 语义 | 权限档 |
 |---|---|---|
@@ -98,7 +98,7 @@
   同 proposal id、匹配 `resolutionOperationId` 且状态一致的确认/拒绝回执。对话答复或普通 `proposed` 回执不算解决；
   提醒未同步只显示提示，不阻止返回。
 
-**与记忆/知识/技能面板的分工（两个数据面，别混）**：全局经营桌面（唯一「桌面」）读**独立 Host 固定投影**（本节）；
+**与记忆/知识/技能面板的分工（两个数据面，别混）**：全局经营桌面（唯一概念；UI 叫「今天」）读**独立 Host 固定投影**（本节）；
 记忆/知识/技能面板读独立 Host 行 `assistant-rooms` 的房间投影（working folder 四房间真值）——业务事项不进它
 （[`home.md`](home.md) §五、[`architecture.md`](architecture.md) §七）。
 
