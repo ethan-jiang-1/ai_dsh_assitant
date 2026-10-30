@@ -26,7 +26,7 @@ origin 走，换工作目录/克隆就会分叉。更危险的是这些调参一
 | `recallLimit` | 6 | 显式配额，默认 10 超出桌面预算 |
 | `recallMaxTokens` | 2400 | server 侧组装预算 |
 | `recallQueryExpansion` | off | 实测命中不变，省延迟 |
-| `skillCatalog` | false | server 当前没有技能，避免广告加载不了的目录 |
+| `skillCatalog` | false | 当时 server 侧没有可展示的技能目录，避免广告加载不了的目录 |
 | `skipSubagentSessions` | true | 子代理噪声不进记忆；团队记忆另议 |
 | `captureToolResults` | false | 云端例外下先收口，见云端出口决定 |
 
