@@ -38,4 +38,4 @@ F8：两进程同 home 同时 `updateThread` 同一线程追加 evidence → 数
 
 ## 修复关联
 
-证据 = [语义扫描报告](../research/tech-exploration/261007-semantic-sweep-src.md) F8/F9/F11；修法方向：tmp 名带随机段 + 房间写路径单飞队列（或文件锁）；client 持 unsubscribe、定时器跟面板生命周期；fired map 按轮收缩；settlePending 改单调序列号或服务端时钟偏移容忍——**修哪几条先按真实使用面出现频率裁**（desk-loop 摩擦报告可提供证据）。
+证据 = [语义扫描报告](../research/261007-semantic-sweep/261007-semantic-sweep-src.md) F8/F9/F11；修法方向：tmp 名带随机段 + 房间写路径单飞队列（或文件锁）；client 持 unsubscribe、定时器跟面板生命周期；fired map 按轮收缩；settlePending 改单调序列号或服务端时钟偏移容忍——**修哪几条先按真实使用面出现频率裁**（desk-loop 摩擦报告可提供证据）。

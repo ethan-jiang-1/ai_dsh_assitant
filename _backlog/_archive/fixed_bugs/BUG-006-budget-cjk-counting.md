@@ -24,4 +24,4 @@ F5（node 数值验证已做过）：3000 汉字写入 SOUL.md → 观察 digest
 
 ## 修复关联
 
-证据 = [语义扫描报告](../research/tech-exploration/261007-semantic-sweep-src.md) F5/F7/F12；修法方向：rootFileSnapshot 改字节精确截断（参照 ingest.ts:142 形态，截断标记按真实字节差）；F7 pop 后重算或 marker 保守化；F12 sections 从截断后文本算——三者同 diff 补退化形态 spec（超限 CJK / marker-预算互作用 / 截断后 sections）。
+证据 = [语义扫描报告](../research/261007-semantic-sweep/261007-semantic-sweep-src.md) F5/F7/F12；修法方向：rootFileSnapshot 改字节精确截断（参照 ingest.ts:142 形态，截断标记按真实字节差）；F7 pop 后重算或 marker 保守化；F12 sections 从截断后文本算——三者同 diff 补退化形态 spec（超限 CJK / marker-预算互作用 / 截断后 sections）。

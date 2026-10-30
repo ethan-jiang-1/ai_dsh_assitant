@@ -20,7 +20,7 @@
 | 文档词数预算 | 刻意不做 | 文档审计里**同一类腐化再出现** | [discipline.md ⏸ 行](../docs/discipline.md) |
 | 技能许可字段 | 不写 | 读 vendor 时 provider **开始读** `license` / `compatibility`，或技能出现第二个消费方 | [冻结卡](_archive/settled_issues/260928-skill-license-fields.md) |
 | hero 标题覆盖口 | 接受现状（本包不改 vendor 品牌语） | 读 vendor 时，上游发布带来 hero 标题槽位或 locale 覆盖口 | [首屏 hero 标题卡](_archive/settled_issues/261011-vendor-hero-headline.md) |
-| 输入观察的每周快照 | 先观察 30 天（专用环境 + 见现有入口）；**窗口自首条真人会话起算**（2026-10-18 拍板，对齐 261011 原设计"第 0 天＝首条真人会话"；此前零读数不补摘） | 读数档出现**首条真人会话**后每周扫读数（>7 天规则只对有读数的档生效） | [读数档](research/usage/261011-input-observation.md)；[裁决出处](_archive/settled_issues/261018-proactive-direction.md) |
+| 输入观察的每周快照 | 先观察 30 天（专用环境 + 见现有入口）；**窗口自首条真人会话起算**（2026-10-18 拍板，对齐 261011 原设计"第 0 天＝首条真人会话"；此前零读数不补摘） | 读数档出现**首条真人会话**后每周扫读数（>7 天规则只对有读数的档生效） | [读数档](research/261011-input-observation/261011-input-observation.md)；[裁决出处](_archive/settled_issues/261018-proactive-direction.md) |
 | Viki 转正面板 | 不做（内部走已有的 `assistant_memory save` + 审批） | 手工转正实际频率 **>5 次/月**，或客户明确要一个 Viki 入口 | [检索路径 note](../notes/implemented/2026-10-20-on-demand-recall-path.md) |
 | OV 用户侧安装脚本 / wizard | 不预建（手册 + doctor + 干净 home 冒烟已覆盖） | 真人按《安装手册》走查出现**同类卡点 ≥2 次**，或第一次真实远程部署 | [安装面 note](../notes/implemented/2026-10-21-install-surface-first-class.md) |
 | OV plugin 版本 | 未采用新版本（pin 0.5.26 / server 0.5.1.1） | 读 vendor 时上游**发布**带我们需要的修复或安全更新 | [RFC](../notes/implemented/2026-09-29-openviking-adoption-rfc.md) |

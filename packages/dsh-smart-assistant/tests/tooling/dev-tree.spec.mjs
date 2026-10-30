@@ -65,4 +65,18 @@ describe('researchSubdirProblems', () => {
     })
     expect(problems).toEqual([])
   })
+
+  // The same core runs on both shelves since 2026-10-30; the message must name the shelf it
+  // actually read, or an archive drift would send the reader to the active index.
+  it('names the shelf it checked, so the archive run points at the archive index', () => {
+    const problems = researchSubdirProblems({
+      subdirs: ['261019-self-update'],
+      readmeText: '# 已归档的研究题\n',
+      trackedRelPaths: ['261019-self-update/261019-self-update-lanes.md'],
+      where: '_backlog/_archive/research/README.md',
+    })
+    expect(problems).toHaveLength(1)
+    expect(problems[0]).toContain('_backlog/_archive/research/README.md')
+    expect(problems[0]).toContain('261019-self-update')
+  })
 })

@@ -30,14 +30,14 @@ opened: 2026-10-05
 | 承重主张 | 类型与当前状态 | 证据 owner / 判断边界 |
 |---|---|---|
 | 一把手总助、真用+打动、一把手优先、AI A/B/C、OKF/VK、DSH 原生优先 | 用户决定，已确认 | [定位卡](261005-open-value-deficit.md)；方向不等于所有方案或效果获确认 |
-| 桌面决策卡/行动表/缺数、知识页/curate 与 OV 层 1 载体 | 已有产物/机制证据 | [合成档](../research/positioning/261005-ceo-viewpoint-synthesis.md)、[技术审计](../research/tech-exploration/261005-turnaround-evidence-audit.md)；代理 trial 不是真人连续经营 n=1 |
-| CEO/GM 碎片工作、CoS 跟承诺、执行缺口 | 原料有出处，解释有样本限制 | [声音](../research/positioning/261005-ceo-voices.md)、[时间/决策](../research/positioning/261005-ceo-time-and-decision-research.md)、[SME 画像](../research/positioning/261005-chinese-sme-boss.md)；不能泛化全部 BU 或推出 AI 效果 |
-| 督办是楔子、桌面/intake/样板间更好、管理层会被打动 | 产品推论/候选，未验证 | [脚本](../research/positioning/261005-demo-walk-and-script-v0.md)、[UX 模式](../research/positioning/261005-external-ux-patterns.md)、[演示先例](../research/positioning/261005-exec-demo-narratives.md)；官网/代理读数不代替真实动作 |
-| 公司对象/主动性/可审计是独有差异 | 定位假设，排他结论撤回 | [替代品](../research/positioning/261005-substitute-landscape.md)、[却步点](../research/positioning/261005-coding-agent-exec-barrier.md)；已有竞品三轴/治理能力保留作反证 |
-| 即时直调审批、verified/session audit 已闭合 | 源码反证，不成立 | [技术审计](../research/tech-exploration/261005-turnaround-evidence-audit.md)；当前按钮模型提示回退，Remote JSONL 只属于对应调用路径，先改状态后写 audit 仍有风险 |
+| 桌面决策卡/行动表/缺数、知识页/curate 与 OV 层 1 载体 | 已有产物/机制证据 | [合成档](../research/261005-value-and-turnaround/261005-ceo-viewpoint-synthesis.md)、[技术审计](../research/261005-value-and-turnaround/261005-turnaround-evidence-audit.md)；代理 trial 不是真人连续经营 n=1 |
+| CEO/GM 碎片工作、CoS 跟承诺、执行缺口 | 原料有出处，解释有样本限制 | [声音](../research/261005-value-and-turnaround/261005-ceo-voices.md)、[时间/决策](../research/261005-ceo-value-positioning/261005-ceo-time-and-decision-research.md)、[SME 画像](../research/261005-value-and-turnaround/261005-chinese-sme-boss.md)；不能泛化全部 BU 或推出 AI 效果 |
+| 督办是楔子、桌面/intake/样板间更好、管理层会被打动 | 产品推论/候选，未验证 | [脚本](../research/261005-value-and-turnaround/261005-demo-walk-and-script-v0.md)、[UX 模式](../research/261005-ceo-value-positioning/261005-external-ux-patterns.md)、[演示先例](../research/261005-ceo-value-positioning/261005-exec-demo-narratives.md)；官网/代理读数不代替真实动作 |
+| 公司对象/主动性/可审计是独有差异 | 定位假设，排他结论撤回 | [替代品](../research/261005-value-and-turnaround/261005-substitute-landscape.md)、[却步点](../research/261005-value-and-turnaround/261005-coding-agent-exec-barrier.md)；已有竞品三轴/治理能力保留作反证 |
+| 即时直调审批、verified/session audit 已闭合 | 源码反证，不成立 | [技术审计](../research/261005-value-and-turnaround/261005-turnaround-evidence-audit.md)；当前按钮模型提示回退，Remote JSONL 只属于对应调用路径，先改状态后写 audit 仍有风险 |
 | 四 home 足够隔离、现成四格可跑并归因 OKF | 源码反证，不成立 | 同上；OV 外部 server/store/peer、legacy/scope 降级与题间学习均需隔离，等内容消融另设 |
 | 严格本地意味着现有推理全不出域 | 方向立场不等于运行事实 | 同上；生成器 embedding/VLM 配远端，活进程流量未验；敏感真实输入之前核对允许端点 |
-| verify 绿意味着所有证据链接有效 | 不成立；原活跃漏扫已修 | [技术审计](../research/tech-exploration/261005-turnaround-evidence-audit.md)；相对链接语料已扩到活跃 backlog，仍不验证 URL、anchors、冻结历史或主张真实性 |
+| verify 绿意味着所有证据链接有效 | 不成立；原活跃漏扫已修 | [技术审计](../research/261005-value-and-turnaround/261005-turnaround-evidence-audit.md)；相对链接语料已扩到活跃 backlog，仍不验证 URL、anchors、冻结历史或主张真实性 |
 
 留痕是过程可追溯，不是判断正确。MUM 不能推出取消人报，系统数据也会缺失/偏；未接外部系统不称实时坏消息通道。+30% prospective hindsight 不转成产品 premortem 收益；负库存不推出永不仪表盘；收益相关性不转因果。
 
@@ -49,13 +49,13 @@ opened: 2026-10-05
 |---|---|
 | [plans 账本](README.md)、定位/首开/SDLC 卡 | 当前状态与角色对齐；十九轮正文留历史，纠正说明置顶；无标题 sources 残片归首开卡候选，不误删定位卡正常论述 |
 | [reference 账本](../research/README.md) | 修入口与子目录链接、索引新审计、明确多消费者/证据校准语义；不删原始研究 |
-| [视角合成](../research/positioning/261005-ceo-viewpoint-synthesis.md) | 分事实/推论/样本/产物，撤回真人 n=1、系统取数与 +30%/负库存强外推 |
-| [演示脚本](../research/positioning/261005-demo-walk-and-script-v0.md) | 提醒/内联审批/现场落卡按现状或目标标注；缓存/录像/示例/真实边界明确，不把在途研究继续作等待 |
-| [替代品](../research/positioning/261005-substitute-landscape.md)、[却步点](../research/positioning/261005-coding-agent-exec-barrier.md) | 排他定位改有限检索假设，保留竞品能力反证；官网不代表真实使用者，后续同任务对照 |
-| [UX 模式](../research/positioning/261005-external-ux-patterns.md)、[演示研究](../research/positioning/261005-exec-demo-narratives.md) | 补适用边界，不照搬数据接入/新闻；董事会汇报不等上手，+90% 不当因果收益，CFO 不升第二主线 |
+| [视角合成](../research/261005-value-and-turnaround/261005-ceo-viewpoint-synthesis.md) | 分事实/推论/样本/产物，撤回真人 n=1、系统取数与 +30%/负库存强外推 |
+| [演示脚本](../research/261005-value-and-turnaround/261005-demo-walk-and-script-v0.md) | 提醒/内联审批/现场落卡按现状或目标标注；缓存/录像/示例/真实边界明确，不把在途研究继续作等待 |
+| [替代品](../research/261005-value-and-turnaround/261005-substitute-landscape.md)、[却步点](../research/261005-value-and-turnaround/261005-coding-agent-exec-barrier.md) | 排他定位改有限检索假设，保留竞品能力反证；官网不代表真实使用者，后续同任务对照 |
+| [UX 模式](../research/261005-ceo-value-positioning/261005-external-ux-patterns.md)、[演示研究](../research/261005-ceo-value-positioning/261005-exec-demo-narratives.md) | 补适用边界，不照搬数据接入/新闻；董事会汇报不等上手，+90% 不当因果收益，CFO 不升第二主线 |
 | 原始声音/时间/SME 研究 | 保留 URL/原句/获取限制，不重写为已验证需求；原 premortem 测量解释收窄，待需要数字时再追原实验 |
-| [OKF 材料](../research/tech-exploration/261005-okf-wiki-tech-case.md)、[DSH 原生定调](../research/tech-exploration/261005-dsh-native-first-tech-keynote.md) | 分载体、schema affordance、实际调用与未验证收益；实验归因/隔离/拒答假设校准；晨报/碎片抽取保持机会面，不解除不做 IM |
-| [上游候选](../research/upstream/261001-upstream-candidates.md)、[递交稿](../research/upstream/261001-upstream-issue-drafts.md) | 档头记录的放行与未递状态统一，代理读数标注真实身份；旧 SHA/认证/渠道引用待递交前复核，本轮不发布 |
+| [OKF 材料](../research/261005-value-and-turnaround/261005-okf-wiki-tech-case.md)、[DSH 原生定调](../research/261005-value-and-turnaround/261005-dsh-native-first-tech-keynote.md) | 分载体、schema affordance、实际调用与未验证收益；实验归因/隔离/拒答假设校准；晨报/碎片抽取保持机会面，不解除不做 IM |
+| [上游候选](../research/261001-first-open-upstream/261001-upstream-candidates.md)、[递交稿](../research/261001-first-open-upstream/261001-upstream-issue-drafts.md) | 档头记录的放行与未递状态统一，代理读数标注真实身份；旧 SHA/认证/渠道引用待递交前复核，本轮不发布 |
 | [旧提案](../../../notes/rejected/2026-10-01-real-use-first.md)、[根入口](../../AGENTS.md)、[notes 规则](../../../notes/README.md)、[backlog 规则](../README.md)、[纪律](../../docs/discipline.md) | 归位/豁免/已裁决延后与暂停规则一致；不重复向用户逐动作呈批，不复建 intents 队列 |
 | [README](../../README.md)、intents-retired | 本轮只校准进度路由，产品合同的方向迁移后续明确切片；现行能力不因候选叙事升格，P/O 保留，O2 行动计划不等组织已执行 |
 | [OV 层 1 决定](../../../notes/archived/2026-10-04-openviking-layer1-landing.md)、[reference 分装](../../../notes/archived/2026-10-05-reference-subdirs.md) | 缺失 A/B 补记改未验，不伪造结果；易过期材料数量去实体化，历史理由保留 |
@@ -67,8 +67,8 @@ opened: 2026-10-05
 
 | 当前可做 | 有界产物 / 停止线 | 影响的判断 |
 |---|---|---|
-| **公开决定/复盘案例** | [来源线索与模拟设计](../research/positioning/261005-prototype-cases-and-interview-method.md)：已定位官方入口，正文取回受限，两个具体已核案例尚未交付。不以空字段冒充重放；可先用标注模拟检查输入/追问/状态，来源恢复再补截止时点与动作/结果 | 输入/追问/决定记录/跟进信号是否足够明确，形成可离线验证的最小场景；具体案例证据仍未齐 |
-| **访谈与能力积累框架** | [访谈学习框架](../research/positioning/261005-interview-learning-framework.md)：短事件访谈、原始/推论分离、memory/research/knowledge/skill路由、条件例外、变更与验证卡。不联系真人，不把模拟回答当访谈 | 框架本轮可用；运行时接入另作有界方案，资料增长不等能力增益 |
+| **公开决定/复盘案例** | [来源线索与模拟设计](../research/261005-value-and-turnaround/261005-prototype-cases-and-interview-method.md)：已定位官方入口，正文取回受限，两个具体已核案例尚未交付。不以空字段冒充重放；可先用标注模拟检查输入/追问/状态，来源恢复再补截止时点与动作/结果 | 输入/追问/决定记录/跟进信号是否足够明确，形成可离线验证的最小场景；具体案例证据仍未齐 |
+| **访谈与能力积累框架** | [访谈学习框架](../research/261005-value-and-turnaround/261005-interview-learning-framework.md)：短事件访谈、原始/推论分离、memory/research/knowledge/skill路由、条件例外、变更与验证卡。不联系真人，不把模拟回答当访谈 | 框架本轮可用；运行时接入另作有界方案，资料增长不等能力增益 |
 | **技术契约/数据边界** | 已有审计基础上自主读源码/配置，明确实际车道、可测试方案和允许端点；活进程未知就限定结论，无需为原型等用户给经营数据 | 不承诺审批闭环/全链路本地；需要活体证据的主张仍留未验 |
 | **可辨识仪器设计** | 隔离/哨兵/配对manifest、readiness、评分、成本/停止线；可测试设计先毕业，实施与正式批次各有验收 | 效果未知可由成熟实验去验证，不能先实施再授权 |
 | **条件引用核查** | 仅在拟对外讲独有/收益数字时查对应原始资料；拿不到撤回表述 | 不继续泛CEO/竞品综述 |
@@ -96,7 +96,7 @@ opened: 2026-10-05
 
 先写具体用户动作与可见结果，再列最低状态/工具/数据需求，最后选承载。UX不只排版，也包括首件能做什么、等待/失败的反馈、确认与纠正、回访负担；不能把“先行为后界面”变成无限技术前置。内联审批、Conversation View桌面、intake/样板间等按路径原型选择，不因技术slot存在就定为主对象。
 
-技术偏好归 [DSH原生定调](../research/tech-exploration/261005-dsh-native-first-tech-keynote.md)：`Agent = Model + Harness`；OKF承载语义知识/生命周期，VK承载情景记忆；组合 → 既有缝 → 有证据的自建。一个UX动作要说明采用的DSH载体、尚缺什么、失败/关闭/日志边界；不为“用足插件”强行多装能力。沿用四工具/四房间，runtime技能与开发技能分开，Web/Desktop、不做IM；技术方向已确认，效果和活体数据边界分别验证。
+技术偏好归 [DSH原生定调](../research/261005-value-and-turnaround/261005-dsh-native-first-tech-keynote.md)：`Agent = Model + Harness`；OKF承载语义知识/生命周期，VK承载情景记忆；组合 → 既有缝 → 有证据的自建。一个UX动作要说明采用的DSH载体、尚缺什么、失败/关闭/日志边界；不为“用足插件”强行多装能力。沿用四工具/四房间，runtime技能与开发技能分开，Web/Desktop、不做IM；技术方向已确认，效果和活体数据边界分别验证。
 
 最小跟进只读实际提供的本地到期行动、待拍决定和缺数；公开/模拟数据明确标记。桌面是状态投影，稳定id/版本/owner/状态转换/完成证据支持它；提醒必须有静默、延期、去重/合并和预算，缺新信息不催、重启不重复、无证据不编完成。没有外部执行证据只称本地决定跟进。
 

@@ -7,7 +7,7 @@ opened: 2026-10-19
 
 > 立卡：2026-10-19 ｜ 状态：已结 ｜ 类型：Feature ｜ 可关闭：是 ｜ 毕业：做现在 ｜ 结论（2026-10-20）= **C1/C2 已结**：宿主路由/面板单测全绿；右栏 `skillsRoom` 浏览器 seat 记同一 vendor 渲染盲区；人判随本轮页面（本人已看到）。去向 = campaign close note + 归档
 > **依赖与授权：** C1 复用 A 卡 A2 的直写能力（含它"真机可达"的先决证据），读取复用 A1a 的共享 tab/drawer/route 骨架；C2 需 A2 白名单加一条"来源=消息 id 的新建"。**本卡不自行授权 C1 开工**：按 [_backlog/AGENTS.md](../../AGENTS.md) 铁律 1 与 [A 卡](261019-self-update-lanes.md) 的授权现状，每片仍走 [`notes/README.md`](../../../notes/README.md) §二之二 proposed 卡，点名/点头后才动手。
-> **依据：** [self-update/261019-self-update-lanes](../research/self-update/261019-self-update-lanes.md) §一（技能两写入口）、§三 D5、§九（复审更正）。
+> **依据：** [self-update/261019-self-update-lanes](../research/261019-self-update/261019-self-update-lanes.md) §一（技能两写入口）、§三 D5、§九（复审更正）。
 > **2026-10-19 复审重写：** 修正 C1 授权（不再"不等拍板"）、数据源（用量账本有 `count`+`lastUsedAt`+`since`，不是只有次数）、出处（`metadata.source`，不是常量 `origin`）、成本口径（常驻是 name+description，不是整份 `SKILL.md`）、C2 槽范围（`assistant-actions` 只收 assistant 消息）、`why`（记忆没有该字段）、消息解析（host 用 `ctx.sessionQuery`）。
 
 **问题与期望结果：** 产品判据 P3 要求"学到了什么，用户能看、能改、能删"（[README](../../../README.md)），而技能是三处来源里**最看不见**的一处：面板只有一个计数，正文要开文件，退役只能靠对话；直写 `save_skill` 无门、用量账本只有 curate 会读。同时"我想让它记住这句"今天只能靠一句含糊的"记一下"。要的是：**逐件看到技能（名字/用量/最近使用/出处/正文）+ 一键退役**；以及**在消息上直接说"这条留着"**，一次确认就进记忆。

@@ -51,7 +51,7 @@ opened: 2026-10-21
 
 ### 研究结论
 
-详见 [机制调研](../../research/tech-exploration/261021-assistant-ui-modes.md)。关键结论：
+详见 [机制调研](../../research/261021-assistant-ui-modes/261021-assistant-ui-modes.md)。关键结论：
 
 1. **可行**：侧栏 tab 与 slot 都有 disposer，动态注册/回收是平台能力；但需要把静态 `roomTabs` 循环改成 `mountRooms(mode)`，并处理已打开 tab 的收起落点。
 2. **偏好应有持久家**：`local-state` 是 per-tab，不能当唯一真相；目标态用 DSH settings（profile/home），客户端 `localStorage` 只做启动缓存，避免首屏闪默认档。
@@ -148,6 +148,6 @@ opened: 2026-10-21
 
 ## 关联
 
-- [机制调研（平台缝/矩阵/证据）](../../research/tech-exploration/261021-assistant-ui-modes.md)
+- [机制调研（平台缝/矩阵/证据）](../../research/261021-assistant-ui-modes/261021-assistant-ui-modes.md)
 - [Viki 收口卡](261021-openviking-viki-closure.md)
 - [Viki(调试) 的定位与检索卡](261020-openviking-retrieval-viki.md)

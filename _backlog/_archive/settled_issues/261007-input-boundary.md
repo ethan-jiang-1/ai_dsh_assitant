@@ -32,10 +32,10 @@ opened: 2026-10-07
 | 件 | 落在哪 | 判据 |
 |---|---|---|
 | 读数命令 | `pnpm observe [--home <dir>]`（[`dev/reports/input-observation.mjs`](../../dev/reports/input-observation.mjs)） | 在真日志上跑通：旧 `dev/trial-home` 干跑得「本人轮次 2 / 面板标记 9 / 注入前言 13 / 9 次入口含 1 次零工具调用」 |
-| 读数记录家 | [`_backlog/research/usage/261011-input-observation.md`](../../research/usage/261011-input-observation.md) | 口径表、剔除规则、环境创建约定、干跑读数都在里面 |
+| 读数记录家 | [`_backlog/research/261011-input-observation/261011-input-observation.md`](../../research/261011-input-observation/261011-input-observation.md) | 口径表、剔除规则、环境创建约定、干跑读数都在里面 |
 | 分类判据（谁在说话） | `usage-report.mjs` 的 `classifyUserMessage`（结构优先：`source.kind` + `rpcId: desk-…`），`desk-loop-report` 与读数命令共用一份 | 两代面板标记（旧 `[桌面] ` / 现 `[面板] `）与每回合一条的 `time-context` 前言都不再被算成「本人的话」；`tests/tooling/usage-report.spec.mjs` 新增两例钉住（含旧日志文本兜底） |
 | 环境创建约定 | 记录档里的可重跑命令串（`ASSISTANT_DSH_HOME` + prepare/setup + preflight + observe） | 幂等；已按它建好 `dev/trial-home-30d` |
-| 专用环境与基线 | `dev/trial-home-30d`（gitignore 覆盖）＋ [读数档](../../research/usage/261011-input-observation.md) 的基线块 | 基线在**任何真人会话之前**摘：会话 0 / 本人轮次 0 / 面板标记 0 / 注入前言 0——第 0 天的正确形态 |
+| 专用环境与基线 | `dev/trial-home-30d`（gitignore 覆盖）＋ [读数档](../../research/261011-input-observation/261011-input-observation.md) 的基线块 | 基线在**任何真人会话之前**摘：会话 0 / 本人轮次 0 / 面板标记 0 / 注入前言 0——第 0 天的正确形态 |
 
 ## 需要用户确认的问题（已裁决，2026-10-11）
 
@@ -56,9 +56,9 @@ opened: 2026-10-07
 播报、拍板和周坐已有 [历史实施记录](../../../notes/archived/2026-10-07-opening-brief-and-rhythm.md)，但它们的当前验收缺口见 [开屏与节律卡](261007-opening-brief-and-rhythm.md)。输入的量和质量会影响简报价值，本卡只讨论输入通道。
 
 - **既有边界**：不接外部数据源，不做 IM，见 [总助体验卡的约束](261006-chief-of-staff-experience.md) 和 [定位讨论](../../_archive/settled_issues/261005-open-value-deficit.md)。当前承诺限于跟进用户提供的事情。
-- **需求线索**：五谷渔粉“群里 99+，无法提炼关键信息”的案例见 [中国中小企业调研](../../research/positioning/261005-chinese-sme-boss.md)。它说明信息提炼可能有需求，不证明本人会自发投递碎片。
-- **时间与输入特点**：“输入端收碎片、输出端给大块”、坏消息来源和关注点组织，见 [时间与决策调研](../../research/positioning/261005-ceo-time-and-decision-research.md)。没有外部系统输入时，信息来源仍限于本人提供的材料。
-- **参考边界**：Huper 式全量接入与本产品不同，见 [演示叙事](../../research/positioning/261005-exec-demo-narratives.md)。不能从竞品能力推定本产品已经具备相同输入。
+- **需求线索**：五谷渔粉“群里 99+，无法提炼关键信息”的案例见 [中国中小企业调研](../../research/261005-value-and-turnaround/261005-chinese-sme-boss.md)。它说明信息提炼可能有需求，不证明本人会自发投递碎片。
+- **时间与输入特点**：“输入端收碎片、输出端给大块”、坏消息来源和关注点组织，见 [时间与决策调研](../../research/261005-ceo-value-positioning/261005-ceo-time-and-decision-research.md)。没有外部系统输入时，信息来源仍限于本人提供的材料。
+- **参考边界**：Huper 式全量接入与本产品不同，见 [演示叙事](../../research/261005-ceo-value-positioning/261005-exec-demo-narratives.md)。不能从竞品能力推定本产品已经具备相同输入。
 - **已有入口**：对话、播报行点击和周坐问答；workspace-files 客户端读取机制已在使用。它们不等于已验证的文件投递产品。
 
 产品约束目前可从上述卡片找到。需要下游保留时，申请中附原始依据和适用范围，由下游决定是否及如何记录，不预先要求新建决定 note。
@@ -91,7 +91,7 @@ opened: 2026-10-07
 
 ### 开始前要落实
 
-**已落实**：记录位置（`_backlog/research/usage/261011-input-observation.md`）、读数命令（`pnpm observe`）、
+**已落实**：记录位置（`_backlog/research/261011-input-observation/261011-input-observation.md`）、读数命令（`pnpm observe`）、
 分类与剔除规则（结构判据，机器写的轮次自动排除）、环境创建约定。
 **已落实**：观察环境（`dev/trial-home-30d`，另建、gitignore 覆盖）、开始日规则（首条真人会话为第 0 天）与**基线**
 （在任何真人会话之前摘，三项均为空）；记录位置 = 读数档；每周一行由 `pnpm observe` 输出后追加。
@@ -117,10 +117,10 @@ opened: 2026-10-07
 |---|---|
 | 问题 | 五谷渔粉式「群里 99+、提不出关键信息」显示信息提炼可能有需求，但不证明本人会自发投递碎片；四个候选（周坐问答／碎片收件箱／文件投递／关注点配置）都在猜同一个问题：本人会怎样提供碎片。先造收件箱会改变待观察的行为并引入维护成本 |
 | 结论 | 不现在设计通道；在**专用试用环境**（`dev/trial-home-30d`，另建、只用于试用、不碰日用 home 与 dev home）用现有入口观察 30 天 |
-| 观察安排 | 读数命令 `pnpm observe --home dev/trial-home-30d`；三项口径（A 自发投递／B 时长／C 入口后的操作）与剔除规则见[读数档](../../research/usage/261011-input-observation.md)；基线已于 2026-10-11 在任何真人会话之前摘（三项均为空） |
+| 观察安排 | 读数命令 `pnpm observe --home dev/trial-home-30d`；三项口径（A 自发投递／B 时长／C 入口后的操作）与剔除规则见[读数档](../../research/261011-input-observation/261011-input-observation.md)；基线已于 2026-10-11 在任何真人会话之前摘（三项均为空） |
 | 重新讨论条件与家 | **30 天读数落账**（约定的三组读数收齐并记录）→ 在读数档上比较候选；触发条件已入 [triggers.md](../../triggers.md)（agent 扫读数档，>7 天补摘） |
 | 范围与排除 | 接微信/IM、日历、邮箱、CRM **不在**候选范围；不操作日用 home；不因本卡已有方案就开始实现 |
-| 依据 | 既有边界与需求线索：[总助体验卡的约束](261006-chief-of-staff-experience.md)、[定位讨论](../../_archive/settled_issues/261005-open-value-deficit.md)、[中国中小企业调研](../../research/positioning/261005-chinese-sme-boss.md)、[时间与决策调研](../../research/positioning/261005-ceo-time-and-decision-research.md) |
+| 依据 | 既有边界与需求线索：[总助体验卡的约束](261006-chief-of-staff-experience.md)、[定位讨论](../../_archive/settled_issues/261005-open-value-deficit.md)、[中国中小企业调研](../../research/261005-value-and-turnaround/261005-chinese-sme-boss.md)、[时间与决策调研](../../research/261005-ceo-value-positioning/261005-ceo-time-and-decision-research.md) |
 
 **限制（随申请一并交代）**：30 天观察只能辅助选择形态，**不能**证明长期价值；少量投递不足以断言某一候选足够；
 若历史数据无法保留，B 只能作定性描述。读数缺失须如实说明「重新讨论条件尚未满足」，不在读数时自行放宽。

@@ -1,34 +1,41 @@
-# research/ · 跟卡离开的调研
+# research/ · 已归档的研究题
 
-从 [`../../research/`](../../research/README.md) 随最后一张活卡搬来。文件名和证据正文保留。`topic` 和 `intent` 原样留下，不改成状态。
+研究题不再服务活跃卡、缺陷或已授权工作时，整目录从 [`_backlog/research/`](../../research/README.md)
+迁入此处；目录名与题名页原样保留，题名页补 `> 归档：YYYY-MM-DD`。本页是**题名索引**：一题一行；
+材料明细、历史消费者与产出的卡住在各题的题名页（`<topic>/README.md`）。
 
-| 文件 | 服务的卡 | 日期 |
-|---|---|---|
-| [tech-exploration/261025-dsh-plugin-delivery-facts.md](tech-exploration/261025-dsh-plugin-delivery-facts.md) | [交付合同收口卡](../settled_issues/261025-delivery-closure.md)（四张问题卡已结；平台事实与第三方先例） | 2026-10-25 |
-| [positioning/261018-proactivity-synthesis.md](positioning/261018-proactivity-synthesis.md) | [主动性方向评审卡](../settled_issues/261018-proactive-direction.md) | 2026-10-18 |
-| [positioning/261018-proactive-ux-mechanics.md](positioning/261018-proactive-ux-mechanics.md) | [主动性 v1 提案](../../../notes/implemented/2026-10-18-proactive-face.md) | 2026-10-18 |
-| [positioning/261018-oss-proactivity-mechanisms.md](positioning/261018-oss-proactivity-mechanisms.md) | [主动性 v1 提案](../../../notes/implemented/2026-10-18-proactive-face.md) | 2026-10-18 |
-| [positioning/261018-proactivity-baseline.md](positioning/261018-proactivity-baseline.md) | [主动性 v1 提案](../../../notes/implemented/2026-10-18-proactive-face.md) | 2026-10-18 |
-| [self-update/261019-self-update-lanes.md](self-update/261019-self-update-lanes.md) | [A 卡](../settled_issues/261019-self-update-lanes.md)、[B 卡](../settled_issues/261019-viki-content-governance.md)、[C 卡](../settled_issues/261019-learned-skills-surface.md) | 2026-10-19 |
-| [memory-panel/261019-file-memory-panel-precedents.md](memory-panel/261019-file-memory-panel-precedents.md) | [B 卡](../settled_issues/261019-viki-content-governance.md)（外部先例） | 2026-10-19 |
-| [positioning/261005-chinese-sme-boss.md](positioning/261005-chinese-sme-boss.md) | [开屏节律](../settled_issues/261007-opening-brief-and-rhythm.md)（口语化红线）、[输入边界](../settled_issues/261007-input-boundary.md)（五谷渔粉案例） | 2026-10-05 |
-| [positioning/261008-ceo-value-contract-review.md](positioning/261008-ceo-value-contract-review.md) | [总助体验](../settled_issues/261006-chief-of-staff-experience.md)、[持续助理](../settled_issues/261008-ceo-operating-loop.md)：静态核对价值证据边界（现由 [规格卡](../../../notes/implemented/2026-10-06-desk-operating-entry.md) 作史据引用） | 2026-10-08 |
-| [positioning/261008-ceo-value-historical-review.md](positioning/261008-ceo-value-historical-review.md) | [总助体验](../settled_issues/261006-chief-of-staff-experience.md)、[持续助理](../settled_issues/261008-ceo-operating-loop.md)：历史材料回读诊断 | 2026-10-08 |
-| [positioning/261009-ceo-operating-practices.md](positioning/261009-ceo-operating-practices.md) | [持续助理](../settled_issues/261008-ceo-operating-loop.md)：外部有界检索与正文获取限制；一手实践未核 | 2026-10-09 |
-| [tech-exploration/261009-operating-loop-feasibility.md](tech-exploration/261009-operating-loop-feasibility.md) | [持续助理](../settled_issues/261008-ceo-operating-loop.md)：静态断点、Host 候选与恢复/验收，未实施 | 2026-10-09 |
-| [tech-exploration/261005-repo-entry-tooling-audit.md](tech-exploration/261005-repo-entry-tooling-audit.md) | [261005-repo-navigability](../settled_issues/261005-repo-navigability.md) | 2026-10-05 |
-| [tech-exploration/261005-repo-test-asset-audit.md](tech-exploration/261005-repo-test-asset-audit.md) | [261005-repo-navigability](../settled_issues/261005-repo-navigability.md) | 2026-10-05 |
-| [tech-exploration/261007-semantic-sweep-src.md](tech-exploration/261007-semantic-sweep-src.md) | [BUG-003～007](../fixed_bugs/BUG-007-concurrency-lifecycle-minors.md)（五张都在 fixed_bugs；007 那行写明只修了一部分） | 2026-10-07 |
-| [positioning/261005-ceo-viewpoint-synthesis.md](positioning/261005-ceo-viewpoint-synthesis.md) | [261005-open-value-deficit](../settled_issues/261005-open-value-deficit.md)、[261005-turnaround-coherence](../settled_issues/261005-turnaround-coherence.md) | 2026-10-05 |
-| [positioning/261005-ceo-voices.md](positioning/261005-ceo-voices.md) | [261005-open-value-deficit](../settled_issues/261005-open-value-deficit.md) | 2026-10-05 |
-| [positioning/261005-substitute-landscape.md](positioning/261005-substitute-landscape.md) | [261005-open-value-deficit](../settled_issues/261005-open-value-deficit.md) | 2026-10-05 |
-| [positioning/261005-coding-agent-exec-barrier.md](positioning/261005-coding-agent-exec-barrier.md) | [261005-open-value-deficit](../settled_issues/261005-open-value-deficit.md) | 2026-10-05 |
-| [positioning/261005-demo-walk-and-script-v0.md](positioning/261005-demo-walk-and-script-v0.md) | [261005-open-value-deficit](../settled_issues/261005-open-value-deficit.md) | 2026-10-05 |
-| [positioning/261005-ux-path-annotated-simulation.md](positioning/261005-ux-path-annotated-simulation.md) | [261005-turnaround-coherence](../settled_issues/261005-turnaround-coherence.md) | 2026-10-05 |
-| [positioning/261005-prototype-cases-and-interview-method.md](positioning/261005-prototype-cases-and-interview-method.md) | [261005-turnaround-coherence](../settled_issues/261005-turnaround-coherence.md) | 2026-10-05 |
-| [positioning/261005-interview-learning-framework.md](positioning/261005-interview-learning-framework.md) | [261005-open-value-deficit](../settled_issues/261005-open-value-deficit.md)、[261005-turnaround-coherence](../settled_issues/261005-turnaround-coherence.md) | 2026-10-05 |
-| [upstream/261001-upstream-candidates.md](upstream/261001-upstream-candidates.md) | [261001-first-open-ux](../settled_issues/261001-first-open-ux.md) | 2026-10-05 |
-| [upstream/261001-upstream-issue-drafts.md](upstream/261001-upstream-issue-drafts.md) | [261001-first-open-ux](../settled_issues/261001-first-open-ux.md) | 2026-10-05 |
-| [tech-exploration/261005-okf-wiki-tech-case.md](tech-exploration/261005-okf-wiki-tech-case.md) | [261005-open-value-deficit](../settled_issues/261005-open-value-deficit.md)、[261005-turnaround-coherence](../settled_issues/261005-turnaround-coherence.md) | 2026-10-05 |
-| [tech-exploration/261005-dsh-native-first-tech-keynote.md](tech-exploration/261005-dsh-native-first-tech-keynote.md) | [261005-open-value-deficit](../settled_issues/261005-open-value-deficit.md) | 2026-10-05 |
-| [tech-exploration/261005-turnaround-evidence-audit.md](tech-exploration/261005-turnaround-evidence-audit.md) | [261005-open-value-deficit](../settled_issues/261005-open-value-deficit.md)、[261005-turnaround-coherence](../settled_issues/261005-turnaround-coherence.md) | 2026-10-05 |
+## 怎么读
+
+1. 先看题名行，找到与当前卡相关的研究题；
+2. 打开题名页，读「问题 / 历史消费者 / 产出的卡 / 材料」；
+3. 再按材料表进入具体正文。归档是冻结证据，不是实施授权；引用归档材料不使研究「复活」。
+
+## 题名索引
+
+| 名头 | 材料 | 历史消费者 | 产出的卡 | 归档 |
+|---|---|---|---|---|
+| [261025-dsh-plugin-delivery/](261025-dsh-plugin-delivery/README.md) · DSH 插件交付事实与第三方先例 | 1 份 | [交付合同收口卡](../settled_issues/261025-delivery-closure.md) | — | 2026-10-25 |
+| [261018-proactivity/](261018-proactivity/README.md) · 主动性：外部机制、本仓现状与合成 | 4 份 | [主动性方向评审卡](../settled_issues/261018-proactive-direction.md)、[主动性 v1 提案](../../../notes/implemented/2026-10-18-proactive-face.md) | — | 2026-10-21 |
+| [261019-self-update/](261019-self-update/README.md) · 助手自更新与面板数据通路 | 2 份 | [A 卡](../settled_issues/261019-self-update-lanes.md)、[B 卡](../settled_issues/261019-viki-content-governance.md)、[C 卡](../settled_issues/261019-learned-skills-surface.md) | — | 2026-10-20 |
+| [261005-value-and-turnaround/](261005-value-and-turnaround/README.md) · 价值赤字与转向自洽 | 12 份 | [定位卡](../settled_issues/261005-open-value-deficit.md)、[自洽卡](../settled_issues/261005-turnaround-coherence.md)、[开屏节律卡](../settled_issues/261007-opening-brief-and-rhythm.md)、[输入边界卡](../settled_issues/261007-input-boundary.md) | — | 2026-10-12 |
+| [261008-operating-loop/](261008-operating-loop/README.md) · 经营事项接续与 CEO 价值证据 | 4 份 | [总助体验卡](../settled_issues/261006-chief-of-staff-experience.md)、[持续助理卡](../settled_issues/261008-ceo-operating-loop.md) | — | 2026-10-12 |
+| [261001-first-open-upstream/](261001-first-open-upstream/README.md) · 首开的上游递交面 | 2 份 | [261001-first-open-ux](../settled_issues/261001-first-open-ux.md) | — | 2026-10-09 |
+| [261005-repo-navigability/](261005-repo-navigability/README.md) · 入口、测试资产与验证车道 | 2 份 | [261005-repo-navigability](../settled_issues/261005-repo-navigability.md) | — | 2026-10-09 |
+| [261007-semantic-sweep/](261007-semantic-sweep/README.md) · 产品源码语义扫描 | 1 份 | [BUG-003](../fixed_bugs/BUG-003-eval-floor-red.md)～[BUG-007](../fixed_bugs/BUG-007-concurrency-lifecycle-minors.md) | BUG-003～007（均已修） | 2026-10-09 |
+
+## 归档规则
+
+- 迁入 = `git mv _backlog/research/<topic> _backlog/_archive/research/<topic>`；目录名不变，正文不重写，
+  只修必要的相对链接；题名页补 `> 归档：YYYY-MM-DD`。
+- 本页一题一行：名头（链题名页）| 材料份数 | 历史消费者 | 产出的卡 | 归档日。逐文件清单不铺在这里。
+- 材料必须住在题名目录内；题名页必须逐份点名 `.md` 材料。结构由 `pnpm verify` 的
+  `backlog: liveness`（题名页名头与材料点名）与 `backlog research: topic dirs ...`（目录 ↔ 索引）对账；
+  它们只证形状，不证证据质量。冻结区不纳入正文断链扫描。
+- 历史消费者 = 委托 / 使用过这轮研究的卡、note 或已授权工作；产出的卡 = 研究结束后由它新立的卡。
+
+## 2026-10-30 重排说明
+
+本区原先按主题架子（`positioning/`、`tech-exploration/`、`upstream/`、`self-update/`、`memory-panel/`）
+平铺材料。2026-10-30 借入 `ai_dsh_deep_research` 的「研究题 = 目录 + 题名页」形状，整区改成按研究题分组：
+目录名 = `YYMMDD-<slug>`，材料正文未重写，只做 `git mv` 与相对链接修复；决定理由见
+[研究题式调研台账](../../../notes/implemented/2026-10-30-research-topic-ledger.md)。

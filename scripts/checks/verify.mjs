@@ -246,15 +246,29 @@ check('structure: dev/ tree entries are all named in the dev drawer map', () =>
     drawerText: read(join(repoRoot, 'dev', 'AGENTS.md')),
   }))
 
-check('backlog research: theme dirs on disk match the research README index', () =>
+// Both research shelves are one directory per research topic (2026-10-30). The topic core is the
+// same on either shelf, so it runs twice: an archived topic no index names is a topic nobody can
+// find again, and a directory that holds no tracked material is a shell the index claims is real.
+const researchTopicDirs = (area) => readdirSync(join(repoRoot, area), { withFileTypes: true })
+  .filter(dirent => dirent.isDirectory())
+  .map(dirent => dirent.name)
+const researchTrackedPaths = (area) => execFileSync('git', ['ls-files', `${area}/`], { cwd: repoRoot })
+  .toString().split('\n').filter(Boolean)
+  .map(path => path.slice(area.length + 1))
+
+check('backlog research: topic dirs on disk match the research README index', () =>
   researchSubdirProblems({
-    subdirs: readdirSync(join(repoRoot, '_backlog', 'research'), { withFileTypes: true })
-      .filter(dirent => dirent.isDirectory())
-      .map(dirent => dirent.name),
+    subdirs: researchTopicDirs('_backlog/research'),
     readmeText: read(join(repoRoot, '_backlog', 'research', 'README.md')),
-    trackedRelPaths: execFileSync('git', ['ls-files', '_backlog/research/'], { cwd: repoRoot })
-      .toString().split('\n').filter(Boolean)
-      .map(path => path.replace(/^_backlog\/research\//, '')),
+    trackedRelPaths: researchTrackedPaths('_backlog/research'),
+  }))
+
+check('backlog research (archive): topic dirs on disk match the archive README index', () =>
+  researchSubdirProblems({
+    subdirs: researchTopicDirs('_backlog/_archive/research'),
+    readmeText: read(join(repoRoot, '_backlog', '_archive', 'research', 'README.md')),
+    trackedRelPaths: researchTrackedPaths('_backlog/_archive/research'),
+    where: '_backlog/_archive/research/README.md',
   }))
 
 check('structure: dev tooling never inherits DSH_HOME', () =>

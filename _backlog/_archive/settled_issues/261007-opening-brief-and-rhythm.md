@@ -39,7 +39,7 @@ opened: 2026-10-07
 | 6 | 周坐排程落盘：周一 09:00 Asia/Shanghai + at 型 due | 确定性（调度）+ 模型行为（技能守约） | 真模型跑 morning-brief 周变体一节 | schedule 两条落盘、时区正确、同一回合不堆叠（`schedule_list` 防堆叠） | **互补**：重复触发不产生第二组排程（防堆叠）；`weekly` 为 vendor 原生承载（B1 实施期待核实，当时只有 `at` 型先例） | **机械 half 缺耐久 owner**：排程落盘读的是会话日志（`session.v<n>.jsonl.zstd`，读法 owner = [`dev/reports/usage-report.mjs`](../../../../../dev/reports/usage-report.mjs) `sessionLogs`/`readEvents`），但**未固化成一次性可复跑的命令**——本卡只有走查记录（`/tmp/ux-shots/slice3-*`）。**模型 half**：`pnpm eval --only <task-id>`（任务清单 `pnpm eval --list`；家 = `dev/eval/`，其 AGENTS 是 owner）——本卡未挂具体 task-id，**属未指定，不是已证明**。**证明**该回合落盘正确；**不能证明**跨周边界行为（归真用） | 周坐这四个对账口径是不是一把手真想要的（业务价值） |
 | 7 | 桌面/面板**渲染期望不回归**（结构性外观） | 编排（渲染） | 隔离 home 真渲染，两场景 | `pnpm web-expected` 零 diff | **现状阻断**：blank 场景夹具前置腐烂，owner = [`snapshots/`](../../../../../snapshots/AGENTS.md)（**2026-10-08 校正**：原行归 [261007-bigfile-split](../../../../_archive/settled_issues/261007-bigfile-split.md)，而该卡归档时不吸收此观察、明写交回 snapshots——旧指针指给了一张拒收的卡）——**该行当前不可判，不得报绿** | `snapshots/web-face/` 两场景（`pnpm web-expected`）——**证明**渲染期望；**不能证明**交互逻辑（client spec 管） | 无 |
 
-**R5 待本人判断（贯穿 #1、#5、#6）**：口语化、看得懂且可操作的业务内容是否适合本人，仍须真人判断。[中国 SME 调研](../../../../research/positioning/261005-chinese-sme-boss.md)曾据此提出“三行口语题、不仪表盘化”；研究推论不能取代本人的选择。本轮已确认三行只是呈现假设，完整事项列表与宽/窄层级由总助卡承接；不再以“永远三行/永远不显示计数分区”卡死版式。机器证明的是当前分支/文案，不是产品价值通过。
+**R5 待本人判断（贯穿 #1、#5、#6）**：口语化、看得懂且可操作的业务内容是否适合本人，仍须真人判断。[中国 SME 调研](../../../../research/261005-value-and-turnaround/261005-chinese-sme-boss.md)曾据此提出“三行口语题、不仪表盘化”；研究推论不能取代本人的选择。本轮已确认三行只是呈现假设，完整事项列表与宽/窄层级由总助卡承接；不再以“永远三行/永远不显示计数分区”卡死版式。机器证明的是当前分支/文案，不是产品价值通过。
 
 **判定边界**：即使上表技术检查全部通过，#5、#6 与 R5 的用户判断也仍需单独记录。技术通过不能代替产品验收，见 [验收结果判断](../../../../methods/validation-judgment.md)。
 

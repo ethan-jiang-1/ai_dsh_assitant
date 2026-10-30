@@ -48,9 +48,9 @@ chat、空白相位 vendor 自持——「打开=桌面」的最后一步走上�
 - MUM/坏消息研究不意味着系统数据无偏或能取消人报。当前只处理实际提供的本地资料/会话；未接入外部事实系统，不承诺实时坏消息通道；不做 IM 约束不因碎片输入研究解除。
 - 竞品官网只证明其公开叙事；“管理层留空/没有对象模型/独占”是有限检索下的假设，不能排他证明。已找到的竞品治理/来源/问责能力是反证，演示必须同任务比结果。
 - OKF/VK 方向确认与效果测量分开；知识满/空 × OV 只能测可用性，同内容平铺/OKF 才能辨识结构增量。现有 runner/home 不满足全状态/外部 OV 隔离，正式实验未跑。
-- 字段存在不等于审批写 verified；留痕是可追溯性，不等于判断正确。审批 Remote 候选与当前 prompt fallback 不混为同一车道，事实见 [技术审计](../research/tech-exploration/261005-turnaround-evidence-audit.md)。
+- 字段存在不等于审批写 verified；留痕是可追溯性，不等于判断正确。审批 Remote 候选与当前 prompt fallback 不混为同一车道，事实见 [技术审计](../research/261005-value-and-turnaround/261005-turnaround-evidence-audit.md)。
 
-本轮原型校准：用户指出很难拿到真实决定/回访，研究只选agent能做的。旧真用第一已移rejected；先做 [公开案例](../research/positioning/261005-prototype-cases-and-interview-method.md) 与 [短访谈/能力积累框架](../research/positioning/261005-interview-learning-framework.md)，分决策时信息/后验、事实/推论、知识/做法和行为验证。实际访谈/回访以后补，不当原型推进前置；公开/模拟证据不冒充本人需求或经营价值。
+本轮原型校准：用户指出很难拿到真实决定/回访，研究只选agent能做的。旧真用第一已移rejected；先做 [公开案例](../research/261005-value-and-turnaround/261005-prototype-cases-and-interview-method.md) 与 [短访谈/能力积累框架](../research/261005-value-and-turnaround/261005-interview-learning-framework.md)，分决策时信息/后验、事实/推论、知识/做法和行为验证。实际访谈/回访以后补，不当原型推进前置；公开/模拟证据不冒充本人需求或经营价值。
 
 ## 背景 / 触发
 
@@ -192,9 +192,9 @@ dsh-morning-paper 证 slot 可行；现状桌面只是右栏 pane tab——`src/
 ### 外部调研（两份后台研究员产出，落 reference/）
 
 - 调研 1（同类产品首跑 UX 模式：Clay/Martin/NotebookLM/Limitless/AI chief of staff + 空输入框
-  设计文献）→ [reference/261005-external-ux-patterns.md](../research/positioning/261005-external-ux-patterns.md)。
+  设计文献）→ [reference/261005-external-ux-patterns.md](../research/261005-ceo-value-positioning/261005-external-ux-patterns.md)。
 - 调研 2（替代品格局：ChatGPT/Claude/Gemini 原生记忆现状 + AI chief of staff 品类成败 →
-  我们的真实增量）→ [reference/261005-substitute-landscape.md](../research/positioning/261005-substitute-landscape.md)。
+  我们的真实增量）→ [reference/261005-substitute-landscape.md](../research/261005-value-and-turnaround/261005-substitute-landscape.md)。
 - DSH 生态先例（本轮 grep 已核实）：`dsh-proactive`（host 级主动唤醒/静默门/投递预算）、
   `dsh-heartbeat`（心跳简报：能否开口由代码规则+agent 判断双层把关）、`dsh-morning-paper`
   （报纸式 Conversation View，零 token 从不调模型）——按硬规则 7 只借思路不装包。
@@ -239,7 +239,7 @@ dsh-morning-paper 证 slot 可行；现状桌面只是右栏 pane tab——`src/
 
 ## 第 4 轮（2026-10-05，外部调研 1 折入：同类产品首跑 UX 模式）
 
-调研落 [reference/261005-external-ux-patterns.md](../research/positioning/261005-external-ux-patterns.md)
+调研落 [reference/261005-external-ux-patterns.md](../research/261005-ceo-value-positioning/261005-external-ux-patterns.md)
 （Clay/Me.sh、Martin、Lindy、Audos、NotebookLM、Limitless、Motion/Reclaim/Dex/Day.ai、NN/g 与
 a16z 文献；逐条标注一手/二手/未找到一手）。对前几轮判断的影响：
 
@@ -300,7 +300,7 @@ a16z 文献；逐条标注一手/二手/未找到一手）。对前几轮判断�
 
 ## 第 6 轮（2026-10-05，外部调研 2 折入：替代品格局 → 定位收口的最后一锤）
 
-调研落 [reference/261005-substitute-landscape.md](../research/positioning/261005-substitute-landscape.md)
+调研落 [reference/261005-substitute-landscape.md](../research/261005-value-and-turnaround/261005-substitute-landscape.md)
 （24 个一手来源，查证日期 2026-10-05；三轴 = 记得住/盯得住/出得了活）。对定位的影响：
 
 1. **三轴平台已全补齐，"军师拆解"不再是差异化**：ChatGPT（Improved Memory + Projects 持久
@@ -398,7 +398,7 @@ a16z 文献；逐条标注一手/二手/未找到一手）。对前几轮判断�
   「别急于求成，反复推敲」）；每轮产出 = 推敲增量，不是实施授权。
 ## 第 9 轮（2026-10-05 续，调研 3 折入 + 演示脚本 v0 出稿）
 
-1. **调研 3 落地**：[exec-demo-narratives](../research/positioning/261005-exec-demo-narratives.md)
+1. **调研 3 落地**：[exec-demo-narratives](../research/261005-ceo-value-positioning/261005-exec-demo-narratives.md)
    （5 家产品叙事一手 / 4 篇高管演示方法 / 4 份 CFO 视角一手 / 4 份演示方法论，另附未证实清单）。
    四条合流点：①**Atlassian「一把手亲演示自身用例→采纳 +90%」× 本卡「真用不豁免」**——一把手
    本人就是演示者，真账面即论据：**真用与打动两个目的在这一点上合并，不再互斥**；②Gartner CFO
@@ -406,7 +406,7 @@ a16z 文献；逐条标注一手/二手/未找到一手）。对前几轮判断�
    内联化，队列形态是负资产）；③Vinci Rufus「董事会汇报不用 live demo」× 真账面说服力 →
    折中 = **真数据、受控路径**；④Lindy 信任三件套（"Nothing irreversible happens without
    your approval"）与拍板语义同构；Huper 产品演示 mock 就是「高管早晨五分钟」= 晨报原型佐证。
-2. **演示材料 v0 出稿**：[demo-walk-and-script-v0](../research/positioning/261005-demo-walk-and-script-v0.md)
+2. **演示材料 v0 出稿**：[demo-walk-and-script-v0](../research/261005-value-and-turnaround/261005-demo-walk-and-script-v0.md)
    ——现状十分钟管理层走查（两个 wow 都在 3 分钟后、第一分钟全是开发者内脏 → 必须 Do-the-
    Last-Thing-First 倒装）+ 督办主线十分钟脚本骨架（六段，逐段标出处锚点）+ 五条待攻击点
    （真账面厚度 / live 风险段 / 自曝错误的位置 / 对照帧 / 口径页质量）。
@@ -416,7 +416,7 @@ a16z 文献；逐条标注一手/二手/未找到一手）。对前几轮判断�
 
 ## 第 10 轮（2026-10-05 续，调研 4 折入：coding agent 管理层却步点 → 差异化空位定形）
 
-调研落 [coding-agent-exec-barrier](../research/positioning/261005-coding-agent-exec-barrier.md)
+调研落 [coding-agent-exec-barrier](../research/261005-value-and-turnaround/261005-coding-agent-exec-barrier.md)
 （Codex/Claude Code/ChatGPT Enterprise 官方叙事一手取证 + 4+1 条高管真实声音 + 权威调研数字；
 逐条一手/二手标注）。
 
@@ -493,7 +493,7 @@ a16z 文献；逐条标注一手/二手/未找到一手）。对前几轮判断�
    [note](../../../notes/archived/2026-10-05-reference-subdirs.md)）：`upstream/`（261001 两份）、
    `positioning/`（本卡四份调研 + 脚本 v0）、`tech-exploration/`（技术定调，本条第 3 点）；
    门禁递归升级 + 红绿夹具，spec 48 绿。
-3. **技术定调立档**：[tech-exploration/261005-okf-wiki-tech-case.md](../research/tech-exploration/261005-okf-wiki-tech-case.md)
+3. **技术定调立档**：[261005-value-and-turnaround/261005-okf-wiki-tech-case.md](../research/261005-value-and-turnaround/261005-okf-wiki-tech-case.md)
    ——OKF/WIKI 结构化知识层为什么承重一把手的判断工作（认识论定位、六字段逐格价值、五公理
    技术面、2×2 实验与失败归因、可证伪预言、诚实边界）。用户点名"这是技术定调"——从推敲
    对话升格为技术方向材料，OKF 四格实验是其验证器。
@@ -520,7 +520,7 @@ a16z 文献；逐条标注一手/二手/未找到一手）。对前几轮判断�
 
 ## 第 14 轮（2026-10-05 续，调研 5 折入：中国中小企业一把手画像）
 
-调研落 [chinese-sme-boss](../research/positioning/261005-chinese-sme-boss.md)
+调研落 [chinese-sme-boss](../research/261005-value-and-turnaround/261005-chinese-sme-boss.md)
 （22 来源逐条标注；BU 级公开数据少已明示）。五条改变产品叙事的发现：
 
 1. **价值叙事挂订单与回款，不挂日程/效率**：官方痛点锚点（工信部四大困难：订单/人才/资金
@@ -549,7 +549,7 @@ a16z 文献；逐条标注一手/二手/未找到一手）。对前几轮判断�
   不是实施授权。
 ## 第 15 轮（2026-10-05 续，调研 6 折入：真实一把手声音 + CoS 职业方法论）
 
-调研落 [ceo-voices](../research/positioning/261005-ceo-voices.md)
+调研落 [ceo-voices](../research/261005-value-and-turnaround/261005-ceo-voices.md)
 （27 卡逐条一手/二手标注 + 12 条诉求归纳 + 14 条未证实清单；BU 级一手文本稀薄已列盲区）。
 
 1. **最强同类印证：Axios CEO VandeHei 一年全司实测复盘（2026-06 一手全文）**——高管团队人手
@@ -573,7 +573,7 @@ a16z 文献；逐条标注一手/二手/未找到一手）。对前几轮判断�
 
 ## 第 16 轮（2026-10-05 续，调研 7 折入：时间与决策实证——硬数字）
 
-调研落 [ceo-time-and-decision-research](../research/positioning/261005-ceo-time-and-decision-research.md)
+调研落 [ceo-time-and-decision-research](../research/261005-ceo-value-positioning/261005-ceo-time-and-decision-research.md)
 （逐句核实一手 + 16 条未证实诚实清单）。
 
 1. **时间形状**：HBR Leader's Calendar——27 CEO/60,000 小时、周均 62.5h、**仅 43% 时间在自定
@@ -593,7 +593,7 @@ a16z 文献；逐条标注一手/二手/未找到一手）。对前几轮判断�
 
 ## 第 17 轮（三路合流：典型一把手诉求清单合成——深度探索收口）
 
-合成档落 [ceo-viewpoint-synthesis](../research/positioning/261005-ceo-viewpoint-synthesis.md)：
+合成档落 [ceo-viewpoint-synthesis](../research/261005-value-and-turnaround/261005-ceo-viewpoint-synthesis.md)：
 外证（三路调研）× 内证（n=1 真实桌面）互校 → 诉求清单按**日常 / 每周 / 遇事 / 边界**分层 →
 十二条可检验推论 → 对现有形态的验证与两处修正。脚本 v0 的相关性回改以合成档为准。
 
@@ -605,7 +605,7 @@ a16z 文献；逐条标注一手/二手/未找到一手）。对前几轮判断�
 擅长帮忙的东西**。
 
 - **三区过滤器**（全表与产品句见
-  [合成档 §六](../research/positioning/261005-ceo-viewpoint-synthesis.md)）：A 区 = AI 擅长
+  [合成档 §六](../research/261005-value-and-turnaround/261005-ceo-viewpoint-synthesis.md)）：A 区 = AI 擅长
   → 产品面（合成简报/坏消息通道/盯到闭环/缺数催收/pre-mortem/留痕/碎片抽取）；B 区 = AI
   准备、人执行 → 分工要讲清（谈判/难谈话/用人/对外文件：「它备你上」）；C 区 = AI 帮不了
   → 负空间永不承诺（现场拍板担责/组织政治/关系信任/应酬/线下手感）。
@@ -618,7 +618,7 @@ a16z 文献；逐条标注一手/二手/未找到一手）。对前几轮判断�
 ## 第 19 轮（2026-10-05 续，技术定调补全：双注确认 + DSH 原生能力优先）
 
 用户拍板："OKF 和 VK 肯定是对的；技术面上的诉求 = 充分利用 DSH 自身的能力——尤其是插件
-这里。"落档 [dsh-native-first-tech-keynote](../research/tech-exploration/261005-dsh-native-first-tech-keynote.md)：
+这里。"落档 [dsh-native-first-tech-keynote](../research/261005-value-and-turnaround/261005-dsh-native-first-tech-keynote.md)：
 ①双注确认（OKF=语义记忆、VK=情景记忆，验证器=四格实验）；②技术诉求升为 tech-exploration
 常设尺——组合→缝→自建三问，插件机制用足（功能优先表现为"多一行"而非"多一个模块"）；
 ③现状 A/B/C 盘点（原生承载示范/自建有据/待审待用——Conversation View 与碎片抽取的承载

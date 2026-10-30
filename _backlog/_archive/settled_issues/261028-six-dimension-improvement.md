@@ -7,7 +7,7 @@ opened: 2026-10-28
 
 > 立卡：2026-10-28 ｜ 状态：已结（已授权实施，S1–S4 全交付） ｜ 类型：Task ｜ 可关闭：是
 > 授权：用户 2026-10-28 在「S1+S2 / S1–S4 全做 / 只做 S2 / 先暂停」中选 **S1–S4 全做**。
-> 提案与取舍 = [implemented note](../../../notes/implemented/2026-10-28-six-dimension-continuous-improvement.md)；证据与边界 = [六维深审](../../research/tech-exploration/261028-six-dimension-audit.md)。
+> 提案与取舍 = [implemented note](../../../notes/implemented/2026-10-28-six-dimension-continuous-improvement.md)；证据与边界 = [六维深审](../../research/261020-six-dimension-audits/261028-six-dimension-audit.md)。
 
 ## 外部结果三要素
 

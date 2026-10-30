@@ -39,9 +39,12 @@ export function graduatedProposalProblems({ files }) {
  * 1. the institution's directories exist (issues / bugs / research / methods and the _archive pools);
  * 2. every issue and bug card opens with frontmatter whose first field is status, plus opened
  *    (and severity on a bug). Research files open with topic and a one-line intent.
- * 3. index membership: every card or research file is named by its area's index. A card moved
- *    without the index update is the drift the gate exists for. Missing link targets are the
- *    relative-link gate.
+ * 3. the research shelves are one directory per research topic (2026-10-30, borrowed from
+ *    ai_dsh_deep_research): the directory holds a title page (`README.md`) whose head names the
+ *    question, the consumers and the produced cards, and that title page names every material
+ *    inside the directory. The area index names the topics; a material moved without its title
+ *    page and the title page without the index are the drift this stage exists for. Missing link
+ *    targets are the relative-link gate.
  *
  * @param {string} backlogRoot - path of the _backlog/ directory.
  */
@@ -76,16 +79,6 @@ export function backlogLivenessProblems(backlogRoot) {
   // so a wild head means the leaning was never routed through them. Legacy 毕业门判断 fields
   // predate the law and stay free-form by design; only the 毕业： token is checked.
   const GRADUATION_LEANING_HEADS = new Set(['未定', '做现在', '以后做', '不做', '已在别处'])
-  // Mis-named themes are named by the research README's own table, so a new subdirectory joins here
-  // in the same change that registers it (and gains its prove-it-red case in the family spec).
-  const topicByDir = {
-    positioning: '定位',
-    'self-update': '自更新',
-    'memory-panel': '记忆面板',
-    upstream: '上游',
-    'tech-exploration': '技术',
-    usage: '使用',
-  }
   const headProblems = (text, where, expect) => {
     const block = frontmatterBlock(text)
     if (block === undefined) {
@@ -110,8 +103,10 @@ export function backlogLivenessProblems(backlogRoot) {
       if (!/^\d{4}-\d{2}-\d{2}$/.test(String(data.opened ?? ''))) problems.push(`${where} frontmatter needs opened: YYYY-MM-DD`)
       if (expect.bug && !['P0', 'P1', 'P2'].includes(data.severity)) problems.push(`${where} frontmatter needs severity: P0, P1, or P2`)
     } else {
+      // `topic` describes the material itself (free text); it is no longer an enum pinned to a
+      // theme directory. The title page is what groups materials, so the gate must not pretend a
+      // material's topic word has a directory to agree with.
       if (keys[0] !== 'topic') problems.push(`${where} frontmatter must start with topic`)
-      else if (expect.topic !== undefined && data.topic !== expect.topic) problems.push(`${where} topic ${JSON.stringify(data.topic)} does not match its directory (${expect.topic})`)
       if (typeof data.intent !== 'string' || data.intent.trim() === '' || data.intent.includes('\n')) problems.push(`${where} frontmatter needs a one-line intent`)
     }
     // The parsed map feeds the mirror law below; failure paths already pushed their problem.
@@ -154,27 +149,53 @@ export function backlogLivenessProblems(backlogRoot) {
     }
   }
 
-  // Stage 3 — research material (active + archived): named by its area's index. Topic
-  // subdirectories are part of the layout, so the walk follows them; a nested file that
-  // escapes the index is an unlisted file.
-  const researchIndexProblems = () => {
-    const markdownNames = (dir, prefix = '') => readdirSync(dir, { withFileTypes: true }).flatMap(entry => {
-      if (entry.isDirectory()) return markdownNames(join(dir, entry.name), join(prefix, entry.name))
-      if (entry.isFile() && entry.name.endsWith('.md') && entry.name !== 'README.md') return [join(prefix, entry.name)]
+  // Stage 3 — research topics (active + archived): each topic directory owns a title page, and the
+  // title page names its own materials. Walking directories (not a flat file list) is the whole
+  // point of the 2026-10-30 layout: a material that exists but is named by no title page is a file
+  // the topic cannot account for. "Does the index name this topic directory" stays with the
+  // structure gate (researchSubdirProblems) — one drift, one gate.
+  const researchTopicProblems = () => {
+    const materialNames = (dir, prefix = '') => readdirSync(dir, { withFileTypes: true }).flatMap(entry => {
+      if (entry.isDirectory()) return materialNames(join(dir, entry.name), join(prefix, entry.name))
+      if (entry.isFile() && entry.name.endsWith('.md')) return [join(prefix, entry.name)]
       return []
     })
-    for (const [dir, indexPath, label] of [
-      ['research', join('research', 'README.md'), 'research/README.md'],
-      [join('_archive', 'research'), join('_archive', 'research', 'README.md'), '_archive/research/README.md'],
+    // The title page head is the 名头 contract, checked shape-only: three lines on every topic,
+    // plus the archive date once the topic has left the active shelf. A long value may wrap onto
+    // `> ` continuation lines; only the labelled heads are required.
+    const titlePageProblems = (text, where, archived) => {
+      const head = text.split('\n').slice(0, 12).join('\n')
+      for (const label of ['问题', '消费者', '产出的卡']) {
+        if (!new RegExp(`^> ${label}：`, 'm').test(head)) problems.push(`${where} has no \`> ${label}：\` line in its head`)
+      }
+      if (archived && !/^> 归档：\d{4}-\d{2}-\d{2}/m.test(head)) {
+        problems.push(`${where} has no \`> 归档：YYYY-MM-DD\` line — an archived topic carries its archive date`)
+      }
+    }
+    for (const [dir, archived] of [
+      ['research', false],
+      [join('_archive', 'research'), true],
     ]) {
       const fullDir = join(backlogRoot, dir)
       if (!existsSync(fullDir)) continue
-      const index = readFileSync(join(backlogRoot, indexPath), 'utf8')
-      for (const name of markdownNames(fullDir)) {
-        const where = `_backlog/${dir}/${name}`
-        const parent = name.includes('/') ? name.slice(0, name.indexOf('/')) : ''
-        headProblems(readFileSync(join(fullDir, name), 'utf8'), where, { kind: 'research', topic: topicByDir[parent] })
-        if (!index.includes(name)) problems.push(`${where} is not named by ${label}'s index`)
+      const topics = readdirSync(fullDir, { withFileTypes: true })
+        .filter(entry => entry.isDirectory())
+        .map(entry => entry.name)
+      for (const topic of topics) {
+        const topicDir = join(fullDir, topic)
+        const where = `_backlog/${dir}/${topic}`
+        const titlePage = join(topicDir, 'README.md')
+        if (!existsSync(titlePage)) {
+          problems.push(`${where} has no title page (README.md) — a research topic is a directory plus its 名头`)
+          continue
+        }
+        const titleText = readFileSync(titlePage, 'utf8')
+        titlePageProblems(titleText, `${where}/README.md`, archived)
+        for (const name of materialNames(topicDir).filter(name => name !== 'README.md')) {
+          const materialWhere = `_backlog/${dir}/${topic}/${name}`
+          headProblems(readFileSync(join(topicDir, name), 'utf8'), materialWhere, { kind: 'research' })
+          if (!titleText.includes(name)) problems.push(`${materialWhere} is not named by its title page (${where}/README.md)`)
+        }
       }
     }
   }
@@ -201,7 +222,7 @@ export function backlogLivenessProblems(backlogRoot) {
   // The stage order is the output order the fixtures pin: dirs → active shelves →
   // research → archive pools.
   activeShelfProblems()
-  researchIndexProblems()
+  researchTopicProblems()
   archivePoolProblems()
   return problems
 }

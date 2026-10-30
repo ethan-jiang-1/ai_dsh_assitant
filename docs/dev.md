@@ -273,7 +273,7 @@ DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得
 `pnpm projection-selection '<URL>'`（交互证据门：一页纸点「看依据」并核对 quote 与 source Session/event 读回；
 实例须带 `dev/fixtures/desk-projection/eight-matters.json` 夹具；无模型、无截图）、
 `pnpm observe [--home <dir>]`（输入边界 30 天观察读数：A 自发投递 / B 时长 / C 入口后的操作；
-口径、剔除规则与每周快照落 `_backlog/research/usage/`）。
+口径、剔除规则与每周快照落 `_backlog/research/261011-input-observation/`）。
 
 **并行会话（同一仓库）**：一棵工作树 + 一个 dev home 同时跑多个会话会互相污染——真实发生过一次：
 一个会话的提交把另一个会话未提交的 `page.ts` 改动扫了进去。两种正当做法：**串行**（一个窗口一个会话），

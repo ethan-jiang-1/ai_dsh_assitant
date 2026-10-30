@@ -6,11 +6,11 @@ opened: 2026-10-19
 # 推敲：维护面收口——面板读真值、直写生效、看得见变化（A 卡：P0）
 
 > 立卡：2026-10-19 ｜ 状态：已结 ｜ 类型：Feature ｜ 可关闭：是 ｜ 毕业：做现在 ｜ 结论（2026-10-20）= **A/B/C 已结**：A1a/A2/A3 真机验（知识室正文、批准 9→8 + 审批账、收据/已读）；A1b 探针 PASS；B/C 见各卡。外部剩余 = 右栏 vendor seat（浏览器 tab 盲区）与 B4 真数据（本人另一工作区）。去向 = campaign close note + 三卡归档
-> **定位：** 本卡是 10-19 自更新统筹件的 **P0 总卡，兼维护面 IA / route 契约的 owner**；授权后转为该战役的收口卡（切片停点与证据住本卡）。B 卡（[Viki 内容面](261019-viki-content-governance.md)）与 C 卡（[学到的东西](261019-learned-skills-surface.md)）是独立卡，共用依据档 [self-update/261019-self-update-lanes](../research/self-update/261019-self-update-lanes.md)。
+> **定位：** 本卡是 10-19 自更新统筹件的 **P0 总卡，兼维护面 IA / route 契约的 owner**；授权后转为该战役的收口卡（切片停点与证据住本卡）。B 卡（[Viki 内容面](261019-viki-content-governance.md)）与 C 卡（[学到的东西](261019-learned-skills-surface.md)）是独立卡，共用依据档 [self-update/261019-self-update-lanes](../research/261019-self-update/261019-self-update-lanes.md)。
 > **授权现状（别读错）：** 本人 10-19 委托了**冲突/退役的形状**（那一格已定案，见「冲突与退役」），并在 2026-10-19 以「落地计划」授权按本卡 v2 的切片顺序实施；**A1a/A2/A3/A1b 与 B/C 全部切片已交付**（逐片 note 在 `notes/implemented/2026-10-19-*.md`）。剩余是 campaign close 的**凭据/人判/B4 真数据**，不是新功能。
 > **待你拍板项已按 2026-10-19「落地计划」与后续「主动往前跑」指令采用默认（still vetoable）：** ② Q3 = **退役** `.desk/state.json` 与 `desk-refresh`（A1b）；③ B 清理 = **先 dry-run 清单、确认后整批清除**（B4 的真数据仍由本人执行并回填回执）。当前不再重复提问。
 > **默认值（agent-selected，vetoable；2026-10-19「落地计划」已采用，still vetoable）：** 面板 IA 四 tab——记忆 / 知识 / 技能 / Viki，research 仍是房间、不单开 tab；C2 v1 只做 **assistant 消息**的"记下来"；A3 baseline = "自你上次打开维护面板以来" + "全部标为已读"；C1 成本列 v1 省略（或只报 always-on 字节估算，不用整份 `SKILL.md` 冒充）；B 删除回执带 commit id + 一个"恢复这次删除"的动作；A2 传输由 Step 0 探针决定（strict codec 优先，不能挂走 host POST，**绝不回退 prompt**）。
-> **2026-10-19 复审重写：** 修正 A1 真值源（working folder，不是会话工作区）、A2 传输前提（strict codec 可手写；261004 的"需要上游缝"结论不成立，待真机探针）、A3 baseline、退役清单与验收；依据档 [§九](../research/self-update/261019-self-update-lanes.md#九2026-10-19-复盘更正) 同步更正。
+> **2026-10-19 复审重写：** 修正 A1 真值源（working folder，不是会话工作区）、A2 传输前提（strict codec 可手写；261004 的"需要上游缝"结论不成立，待真机探针）、A3 baseline、退役清单与验收；依据档 [§九](../research/261019-self-update/261019-self-update-lanes.md#九2026-10-19-复盘更正) 同步更正。
 
 **问题与期望结果：** 面对"记忆/知识能不能在面板里维护、SKILL 和 Viki 整体怎么提"，发现面板**读的是拷贝、写的是话**：除知识批准外每个按钮都只往会话里投一句话，面板渲染 `desk-refresh` 技能重写的 `.desk/state.json`；知识正文不在场（只有 200 字片段），技能只有一个计数。要的是**看得见正文、点完当场变、一眼看到最近变了什么**，并消灭那条造成陈旧的拷贝。
 
@@ -28,7 +28,7 @@ opened: 2026-10-19
 |---|---|---|
 | 1 | 面板逐动作今天走哪条路、滞后多久 | 已取证（依据档 §二，含行号） |
 | 2 | "直调服务"这条路今天通不通 | **代码级阻塞点已定位**：parameter `src-json` → strict codec 可手写；真机探针未跑（A2 第一条红测试）。不再把 261004 的"需要上游缝"当定论 |
-| 3 | 外部同类产品怎么处理"面板是拷贝/派生索引" | 已对照（依据档 §四 + [先例档](../research/memory-panel/261019-file-memory-panel-precedents.md)） |
+| 3 | 外部同类产品怎么处理"面板是拷贝/派生索引" | 已对照（依据档 §四 + [先例档](../research/261019-self-update/261019-file-memory-panel-precedents.md)） |
 | 4 | Q1 新增权 / Q2 直写深度 | **建议**（见「方案与取舍」），非定案 |
 | 5 | Q3 `.desk/state.json` 与 `desk-refresh` 退役 | **待本人一句确认**（唯一涉及合同删减与模型可见技能退役的一条） |
 | 6 | A1 真值源到底是什么 | **已核**：working folder 四房间；`.desk/state.json` 是 session workspace 拷贝（`docs/home.md` 布局 + `room-data-io.ts:77`） |

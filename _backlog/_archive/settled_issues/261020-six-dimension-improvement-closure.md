@@ -7,7 +7,7 @@ opened: 2026-10-20
 
 > 立卡：2026-10-20 ｜ 状态：已结 ｜ 类型：Task ｜ 可关闭：是
 > 授权：用户 2026-10-20 23:45「拟订一个 Plan, 然后 setup goal 后推动落地……最后告知我整体的改善情况(打分各个维度)」与 23:50「发现的问题通通要改掉」；2026-10-21 00:58「预算可以加倍，不惜一切代价，静默自主完成所有任务」＋「无论如何，一定要遵循我们的流程」「切记切记，你只能操纵本repo」。
-> 决定 note = [six-dimension-improvement](../../../notes/implemented/2026-10-20-six-dimension-improvement.md)；深审依据 = [六维深审报告](../../research/tech-exploration/261020-six-dimension-housekeeping-audit.md)
+> 决定 note = [six-dimension-improvement](../../../notes/implemented/2026-10-20-six-dimension-improvement.md)；深审依据 = [六维深审报告](../../research/261020-six-dimension-audits/261020-six-dimension-housekeeping-audit.md)
 
 ## 外部结果三要素
 

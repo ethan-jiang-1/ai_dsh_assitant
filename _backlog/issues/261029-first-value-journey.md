@@ -15,9 +15,9 @@ opened: 2026-10-29
 
 **范围与去向**：早期 A + C 授权曾被“先研究，别急着落地，研究透了后再落地，我要 REVIEW”取代，因此研究期未实施。2026-10-29 本人 REVIEW 新反馈后，现明确授权按[账本多视图收口卡](261029-ledger-multiview-closure.md)推进 M1；研究卡继续持有价值诊断、研究材料与未决 H1/H2/H3 证据，不重复承载实施切片、验收状态或产品代码进度。M1 不新增第二业务数据面、模型可见能力或无来源的跨事项依赖关系；报价盲评、自然跨日净收益和长期价值判断仍未授权代答或代判。
 
-**研究结论**：研究与隔离实验已整合到[首用价值旅程](../research/positioning/261029-first-value-journey.md)和[通用 Projects/DSH 系统对照](../research/positioning/261029-first-use-value-systems.md)。三个根因没有单一归因；报价同题 generic baseline 每臂只有一条成功模型输出，continuity 只有一条有日期错误 seed 的机械地板，不构成第二组相对质量比较。终审核实报价未授权承诺日期、人力假设、违反领域 skill 和 memo 计算/阈值矛盾；continuity 地板 PASS 未覆盖过期 proposal 与无执行依据的外联承诺。旁支语义审计另有调试面文档矛盾、知识状态操作依赖模型指令而服务路径不强制本人授权两条未验证线索，见研究报告。
+**研究结论**：研究与隔离实验已整合到[首用价值旅程](../research/261029-first-value-journey/261029-first-value-journey.md)和[通用 Projects/DSH 系统对照](../research/261029-first-value-journey/261029-first-use-value-systems.md)。三个根因没有单一归因；报价同题 generic baseline 每臂只有一条成功模型输出，continuity 只有一条有日期错误 seed 的机械地板，不构成第二组相对质量比较。终审核实报价未授权承诺日期、人力假设、违反领域 skill 和 memo 计算/阈值矛盾；continuity 地板 PASS 未覆盖过期 proposal 与无执行依据的外联承诺。旁支语义审计另有调试面文档矛盾、知识状态操作依赖模型指令而服务路径不强制本人授权两条未验证线索，见研究报告。
 
-**授权记录**：本人提出“事情串成一条线”“也许这里弄个看板什么的也挺好”“深入/大局容易靠不同的 View 来”，后续明确授权为此设置 goal 推进首片。该授权只覆盖 M1，多视图实现、验收与阶段停点由[账本多视图收口卡](261029-ledger-multiview-closure.md)唯一承载，不延伸至所有 H1/H2/H3 候选。设计来源与限制见[多视图研究补充和示意图](../research/positioning/261029-first-value-journey.md#review-补充同一批事项的多视图)。
+**授权记录**：本人提出“事情串成一条线”“也许这里弄个看板什么的也挺好”“深入/大局容易靠不同的 View 来”，后续明确授权为此设置 goal 推进首片。该授权只覆盖 M1，多视图实现、验收与阶段停点由[账本多视图收口卡](261029-ledger-multiview-closure.md)唯一承载，不延伸至所有 H1/H2/H3 候选。设计来源与限制见[多视图研究补充和示意图](../research/261029-first-value-journey/261029-first-value-journey.md#review-补充同一批事项的多视图)。
 
 已发现的报价越权日期、无来源人数/经营阈值及 memo 计算/条件冲突与既有 `project-economics` 约束相冲突，是本轮可核验的输出缺陷；若做 H2 盲评，将“事实/模型假设/本人承诺明确分离”列为候选验收判据。
 
@@ -25,10 +25,10 @@ opened: 2026-10-29
 
 | 片 | 问题与产物 | 状态 | 证据 |
 |---|---|---|---|
-| R1 | 比较三个根因、形成支持/反证/未知并独立审计输出质量 | 已完成 | [首轮仓内研究](../research/positioning/261029-first-value-journey.md)；三个根因不归一，报告含两次真实模型运行的人工质量审查 |
-| R2 | 对照官方替代品资料和 DSH 当前机制边界 | 已完成 | [系统补充研究](../research/positioning/261029-first-use-value-systems.md)；Claude 一手资料与仓内实现；OpenAI 官方页 403，未推断 |
-| E | 在 `.tmp/first-use-value-review/` 做静态原型、隔离 preset/continuity run 与报价 generic baseline | 已完成（有限） | 原始输出与限制记在[首轮研究](../research/positioning/261029-first-value-journey.md)；报价每臂 1 条成功输出，continuity 为错误日期 seed 的机械地板，均非价值证据 |
-| V | 核对已有视图并绘制多视图研究示意 | 已完成 | [研究补充与 PNG/SVG 示意](../research/positioning/261029-first-value-journey.md#review-补充同一批事项的多视图)；设计输入，不代表已实现 |
+| R1 | 比较三个根因、形成支持/反证/未知并独立审计输出质量 | 已完成 | [首轮仓内研究](../research/261029-first-value-journey/261029-first-value-journey.md)；三个根因不归一，报告含两次真实模型运行的人工质量审查 |
+| R2 | 对照官方替代品资料和 DSH 当前机制边界 | 已完成 | [系统补充研究](../research/261029-first-value-journey/261029-first-use-value-systems.md)；Claude 一手资料与仓内实现；OpenAI 官方页 403，未推断 |
+| E | 在 `.tmp/first-use-value-review/` 做静态原型、隔离 preset/continuity run 与报价 generic baseline | 已完成（有限） | 原始输出与限制记在[首轮研究](../research/261029-first-value-journey/261029-first-value-journey.md)；报价每臂 1 条成功输出，continuity 为错误日期 seed 的机械地板，均非价值证据 |
+| V | 核对已有视图并绘制多视图研究示意 | 已完成 | [研究补充与 PNG/SVG 示意](../research/261029-first-value-journey/261029-first-value-journey.md#review-补充同一批事项的多视图)；设计输入，不代表已实现 |
 | 0 | 研究阶段收口及最初的实施暂停 | 已完成（历史） | 研究结论完成后曾等待本人 REVIEW；之后的 M1 授权与实现由[独立收口卡](261029-ledger-multiview-closure.md)持有 |
 | A/C | 首屏样本与真实读回验收 | 暂缓 | 不属于 M1；是否继续仍由证据与本人判断决定 |
 

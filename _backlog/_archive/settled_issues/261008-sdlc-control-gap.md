@@ -75,7 +75,7 @@ DSH [12](file:///Users/bowhead/deepseek-harness/_dsh_plugin_agent_ready_developm
 ### 第一次写错的吸纳（不再作为候选）
 
 1. **implemented 里看见 `## 提案` / `## 验收` 就让 verify 红。** 这条 2026-09-24 已经不吸。[吸收记录](../../../notes/archived/2026-09-24-agent-note-lifecycle-absorption.md) 在用户「点和吸纳，不要推翻」之下写明：全格式门禁不吸，只机械化「输掉的方案」。[`notes/README.md`](../../../notes/README.md) §二之二写明再钉正文结构会逼出凑节。[issue-to-note](../../methods/issue-to-note.md) §4 写明 verify 绿了，语义失败还在，这是故意的。
-2. **下次改模型可见面就用 replay patch 录一个场景。** 2026-10-05 [测试资产审计](../research/tech-exploration/261005-repo-test-asset-audit.md) 已把 [`preset-runner-replay.patch.yml`](../../../dev/probes/session/preset-runner-replay.patch.yml) 定为调试探针：行 id 写错或 `file` 形状错会静默不激活，真实模型照答，看起来像绿。它不是 DSH 那种「提交的 JSONL 既是回放输入又是预期结果」的快照。触发条件没被这次重挖证明已经响过。
+2. **下次改模型可见面就用 replay patch 录一个场景。** 2026-10-05 [测试资产审计](../research/261005-repo-navigability/261005-repo-test-asset-audit.md) 已把 [`preset-runner-replay.patch.yml`](../../../dev/probes/session/preset-runner-replay.patch.yml) 定为调试探针：行 id 写错或 `file` 形状错会静默不激活，真实模型照答，看起来像绿。它不是 DSH 那种「提交的 JSONL 既是回放输入又是预期结果」的快照。触发条件没被这次重挖证明已经响过。
 3. **把证据地图再拆成三格标签。** `testing.md`、`discipline.md`、`validation-evidence`、`snapshots/README.md`、`architecture.md` 已经各写了一遍适配。再写一格不改变实际跑的命令。
 
 ### 第二次：真正该动的两句

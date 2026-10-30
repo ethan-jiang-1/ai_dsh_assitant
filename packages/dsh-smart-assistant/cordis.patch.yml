@@ -212,7 +212,7 @@
             name: dsh-smart-assistant/tool-memory
 
           # A2: native read-only OpenViking recall (adopted 2026-10-23; A/B history in
-          # _backlog/research/tech-exploration/261021-recall-ab.md).
+          # _backlog/research/261021-recall-ab/261021-recall-ab.md).
           - id: assistant-recall-tool
             name: dsh-smart-assistant/tool-recall
 

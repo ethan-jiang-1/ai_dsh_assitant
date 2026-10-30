@@ -10,7 +10,7 @@ opened: 2026-10-07
 
 ## 症状
 
-三个同根缺陷（证据 = [语义扫描报告](../research/tech-exploration/261007-semantic-sweep-src.md) F1/F2/F3/F6，F1 已由委派方亲验）：
+三个同根缺陷（证据 = [语义扫描报告](../research/261007-semantic-sweep/261007-semantic-sweep-src.md) F1/F2/F3/F6，F1 已由委派方亲验）：
 
 1. **F1（高）**：`promote_page`/`deprecate_page` 模型可直调（`src/agent/learn/index.ts:433` 直调无校验）——同会话模型可把自己写的 draft 翻 stable；「you cannot approve your own page」只存在于工具 description 的 prose；模型路径零审计（人面路径写 approvals.jsonl）。
 2. **F2/F3（中）**：知识页批准与技能提案批准的**实际活路径**是普通 prompt（`[桌面]` 前缀明文可伪造——直调 lane 在当前 pin 下必然失败是 designed state）；land_skill 的机械门是真的，但「手改 status」这把钥匙由模型按 prompt 代写；审计错误码死码 + sessionId 不校验 + 头注释与实现矛盾。

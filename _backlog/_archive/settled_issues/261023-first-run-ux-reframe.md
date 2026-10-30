@@ -8,7 +8,7 @@ opened: 2026-10-23
 > 立卡：2026-10-23 ｜ 状态：已结 ｜ 类型：Feature ｜ 可关闭：是 ｜ 毕业：做现在
 > 结论：一页纸 L0 + 人读列表 L1 + 只读调试 L2 已交付；首答合同与 `[首页]` 车道落地；证据见台账；
 > 决定 = [一页纸](../../../notes/implemented/2026-10-23-first-run-one-page.md)
-> 现场与四条路 = [研究档](../../research/positioning/261023-first-run-ux-walkthrough.md)
+> 现场与四条路 = [研究档](../../research/261023-first-run-review/261023-first-run-ux-walkthrough.md)
 
 ## 外部结果三要素
 

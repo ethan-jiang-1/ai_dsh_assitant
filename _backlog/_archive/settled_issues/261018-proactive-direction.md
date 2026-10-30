@@ -6,13 +6,13 @@ opened: 2026-10-18
 # 推敲：主动性方向——把"它替我盯着什么"做成可见、可答、不重复
 
 > 立卡：2026-10-18 ｜ 状态：已结 ｜ 类型：Feature ｜ 可关闭：是 ｜ 结论：**路线裁决 A「可见化与收口」**（2026-10-18 本人六问逐项拍板：一条三行式＋空态不渲染＋"事 vs 会话"分工；建议排序 ②③①；路线 D 挂触发不立卡；暂停入口不要；输入观察触发行改"首条真人会话后计时"）→ [proposed 卡](../../../notes/implemented/2026-10-18-proactive-face.md) 已授权实施，推进台账 = [261018-proactive-face-closure](../issues/261018-proactive-face-closure.md)
-> **这是一张评审卡**：征集人与 agent 的 review，不承载实施。完整推理链 = [主动性综合](../../../_backlog/research/positioning/261018-proactivity-synthesis.md)（合成档）；实施提案 = [主动性 v1 提案](../../../notes/implemented/2026-10-18-proactive-face.md)（proposed，待拍板）。
+> **这是一张评审卡**：征集人与 agent 的 review，不承载实施。完整推理链 = [主动性综合](../../../_backlog/research/261018-proactivity/261018-proactivity-synthesis.md)（合成档）；实施提案 = [主动性 v1 提案](../../../notes/implemented/2026-10-18-proactive-face.md)（proposed，待拍板）。
 
 **评审怎么读（按序）**
 
 1. 本卡（10 分钟）：要决定什么、主张与证据强度、请你攻击哪几条；
-2. [主动性综合](../../../_backlog/research/positioning/261018-proactivity-synthesis.md)（20 分钟）：四层拆解、候选路线判据矩阵、逐条约束对账、反证与未决问题；
-3. 按需下钻三档原件：[外部主动性 UX 机制](../../../_backlog/research/positioning/261018-proactive-ux-mechanics.md)｜[开源 agent 机制（Hermes 等）](../../../_backlog/research/positioning/261018-oss-proactivity-mechanisms.md)｜[本仓现状事实表](../../../_backlog/research/positioning/261018-proactivity-baseline.md)。
+2. [主动性综合](../../../_backlog/research/261018-proactivity/261018-proactivity-synthesis.md)（20 分钟）：四层拆解、候选路线判据矩阵、逐条约束对账、反证与未决问题；
+3. 按需下钻三档原件：[外部主动性 UX 机制](../../../_backlog/research/261018-proactivity/261018-proactive-ux-mechanics.md)｜[开源 agent 机制（Hermes 等）](../../../_backlog/research/261018-proactivity/261018-oss-proactivity-mechanisms.md)｜[本仓现状事实表](../../../_backlog/research/261018-proactivity/261018-proactivity-baseline.md)。
 4. 实施细节与逐片验收：三份都读完再打开 [proposed 卡](../../../notes/implemented/2026-10-18-proactive-face.md)。
 
 ---
@@ -44,11 +44,11 @@ opened: 2026-10-18
 
 | # | 主张 | 证据与强度 | 谁能否证（怎么证） | 现状 |
 |---|---|---|---|---|
-| K1 | 桌面（唯一主对象）里没有主动性的痕迹，节拍器/curate 无界面 | **强**：桌面头部块（[`projection-panel.ts:276-283`](../../../packages/dsh-smart-assistant/src/client/projection/projection-panel.ts#L276-L283)＝h1＋计数行＋三按钮，无主动性内容；计数行构建在 [:247-250](../../../packages/dsh-smart-assistant/src/client/projection/projection-panel.ts#L247-L250)）＋ 全 `src/client` 大小写不敏感 grep `schedule\|maintenance\|curate` 仅 2 处命中且均非 UI（[:42](../../../packages/dsh-smart-assistant/src/client/projection/projection-panel.ts#L42) 账本变更标签、[client/index.ts:249](../../../packages/dsh-smart-assistant/src/client/index.ts#L249) 代码注释）；[baseline](../../../_backlog/research/positioning/261018-proactivity-baseline.md) §一/§五 | 架构 agent：同上 grep 找反例 | 已证（2026-10-18 首轮核验，见评审记录·架构） |
+| K1 | 桌面（唯一主对象）里没有主动性的痕迹，节拍器/curate 无界面 | **强**：桌面头部块（[`projection-panel.ts:276-283`](../../../packages/dsh-smart-assistant/src/client/projection/projection-panel.ts#L276-L283)＝h1＋计数行＋三按钮，无主动性内容；计数行构建在 [:247-250](../../../packages/dsh-smart-assistant/src/client/projection/projection-panel.ts#L247-L250)）＋ 全 `src/client` 大小写不敏感 grep `schedule\|maintenance\|curate` 仅 2 处命中且均非 UI（[:42](../../../packages/dsh-smart-assistant/src/client/projection/projection-panel.ts#L42) 账本变更标签、[client/index.ts:249](../../../packages/dsh-smart-assistant/src/client/index.ts#L249) 代码注释）；[baseline](../../../_backlog/research/261018-proactivity/261018-proactivity-baseline.md) §一/§五 | 架构 agent：同上 grep 找反例 | 已证（2026-10-18 首轮核验，见评审记录·架构） |
 | K2 | 主动开口后没有"未答"状态：简报问了两句，会话零回复、事项 5 天无结果 | **中强**：dev home 会话日志——`[SCHEDULE REMINDER]` user/message @2026-10-13T08:24:48Z 之后，turn 2 末 assistant 两句决策问句，此后无任何真人消息＋账本现态（试车场数据，非产品采纳） | 证据 agent：zstd 解压读 `dev/harness-home/sessions/--Users-bowhead-ai_dsh_assitant--/session-45e89f04-39f9-4955-ba2a-1d50c5f46c52/session.v4.jsonl.zstd`；或指出"dev home 不代表真实使用" | 已证（2026-10-18 首轮核验，见评审记录·证据） |
 | K3 | 盯守会重复：跨会话 `schedule_list` 互不可见；dev home 已有两条同 prompt 同周一的 weekly | **强**：vendor `schedule/schedule/src/tools.ts:175`（"in the current session"）、`index.ts:289-312`（`list` 按 sessionId 过滤；跨会话全局视野只有浏览器面 `catalog` Remote，非模型工具）；`dev/harness-home/storages/schedule.json` 两条同 prompt weekly（`b13ddcb8`/`be578c2c`，分属两会话）——**且第二条就是那次迟到投递的 turn 里模型当场 `schedule_create` 的**（会话日志可回放，不是静态存量） | 架构 agent：读 vendor 源码确认 `list` 的 sessionId 过滤；或证明工具页/模型另有全局视野 | 已证（2026-10-18 首轮核验，见评审记录·架构） |
-| K4 | 本地没有"值班面"（app 不开就不动），所以主动性形态应偏"打开时补一次 / 放在待看处" | **中**：迟到 7h24m48s 是实物（`schedule.json` deliveryHistory：scheduledAt 01:00Z → deliveredAt 08:24:48Z）；"不引入常驻网关"是已拍板（[baseline](../../../_backlog/research/positioning/261018-proactivity-baseline.md) §三、开源档 N1） | 架构 agent：指出是否有既有机制能在进程外投递 | 已证（2026-10-18 首轮核验，见评审记录·证据） |
-| K5 | 外部四家在主动性上收敛到同一套产品面（具名管理页／放进待看处／只在完成与需点头时出声／无人做打扰预算） | **中**：一手文档为主（Claude/Lindy），OpenAI 侧全二手、无使用率读数（[UX 档](../../../_backlog/research/positioning/261018-proactive-ux-mechanics.md) §三/§六） | 证据 agent：找反例（有产品做打扰预算/闲时自找事情而成立）或指出二手占比过高 | 未决 |
+| K4 | 本地没有"值班面"（app 不开就不动），所以主动性形态应偏"打开时补一次 / 放在待看处" | **中**：迟到 7h24m48s 是实物（`schedule.json` deliveryHistory：scheduledAt 01:00Z → deliveredAt 08:24:48Z）；"不引入常驻网关"是已拍板（[baseline](../../../_backlog/research/261018-proactivity/261018-proactivity-baseline.md) §三、开源档 N1） | 架构 agent：指出是否有既有机制能在进程外投递 | 已证（2026-10-18 首轮核验，见评审记录·证据） |
+| K5 | 外部四家在主动性上收敛到同一套产品面（具名管理页／放进待看处／只在完成与需点头时出声／无人做打扰预算） | **中**：一手文档为主（Claude/Lindy），OpenAI 侧全二手、无使用率读数（[UX 档](../../../_backlog/research/261018-proactivity/261018-proactive-ux-mechanics.md) §三/§六） | 证据 agent：找反例（有产品做打扰预算/闲时自找事情而成立）或指出二手占比过高 | 未决 |
 | K6 | 老 Hermes 的主动性=常驻 gateway + 平台投递 + 大配置面；机制值得借、形态必须不搬 | **中强**：源码与官方文档（`wakeAgent:false`、建议面、curator、`allow_agent_scheduling` 默认 false、配置参考 247KB/142 节） | 证据 agent：若能把"上手难"量化（放弃率/时间）则更强；否则维持结构性代价口径 | 未决 |
 | K7 | 建议走"可见化与收口"（路线 A），不加自主度 | **中**：判据矩阵是自评（综合 §五.2），B 的反证来自已拍板约束与官方劝退文本 | 出现下列之一则改判：真人明确要"它多替我干"且愿付权限代价（改选 B）；或片 1 落地后本人日常不看桌面、可见化前提失效（转 C/D） | 未决 |
 | K8 | 效果（少漏事）无证据，本卡不承诺 | **强**（负面事实）：输入观察 30 天窗口实际未启动，无任何真人读数 | 任何人：若能拿出读数则改变结论 | 已证（2026-10-18 复核：`dev/trial-home-30d/` 零会话目录、零会话日志） |

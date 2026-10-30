@@ -29,7 +29,7 @@
 
 **空白相位不动 vendor hero**（事实 3 限制）：我方首开条（composer dock）继续承担「打开第一眼」的引导，与 A' intake 衔接——首会话它先问；离开空白相位后桌面视图即可用。
 
-**当时的会话内默认桌面路径**被事实 2/3 挡在 vendor 边界，D7 于 2026-10-06 递交为 discussions/8961，历史见[上游台账](../../_backlog/_archive/research/upstream/261001-upstream-candidates.md)。当前全局默认入口由独立 main 承载，不再等待会话内默认 view；Conversation view 的公开限制仍成立。
+**当时的会话内默认桌面路径**被事实 2/3 挡在 vendor 边界，D7 于 2026-10-06 递交为 discussions/8961，历史见[上游台账](../../_backlog/_archive/research/261001-first-open-upstream/261001-upstream-candidates.md)。当前全局默认入口由独立 main 承载，不再等待会话内默认 view；Conversation view 的公开限制仍成立。
 
 **空态三步卡重写**（首开卡交接项）：新形态语境（桌面=视图、会话=动作）下重写三步文案，与 A' 的「它先问」一致（第一步不再是「你在对话里说句话」，而是它的开场问题）。
 

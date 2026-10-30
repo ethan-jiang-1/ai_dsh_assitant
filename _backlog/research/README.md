@@ -1,80 +1,86 @@
-# research/ · 卡片的调研依据
+# research/ · 研究题与活跃材料
 
-> 原料堆：为 [`issues/`](../issues/README.md) 和 [`bugs/`](../bugs/README.md) 里的卡收集的证据阅读、综述、机制笔记。
-> 短结论写回卡片，较长的依据放这里。先从卡片链接读取需要的材料，不必通读目录；流程在 [backlog 入口](../README.md)。
+研究按**研究题**组织：一个研究题 = 一个目录 + 一张题名页（`README.md`）。题名页是这轮研究的**名头**：
+它回答「研究什么、服务谁、长出了哪些卡、有哪些材料」。材料住在题名目录内；研究的最后一个活消费者
+离开后，整个目录原样迁入 [`_archive/research/`](../_archive/research/README.md)。
 
-## 契约
+总流程见 [_backlog 入口](../README.md)；与 issue / bug 的边界见 [AGENTS.md](../AGENTS.md)。
 
-- **什么进来**：值得保留、服务于**活跃**卡片的调研——推敲时收集、被卡片引用、帮助形成结论。
-  半成品合法。
-- **什么不进**：一次性草稿（留在树外，见根 `AGENTS.md`）。有超过原卡范围的长期用途时，说明用途并向 [下游](../../notes/README.md) 申请处理，是否形成 note 由下游决定。
-- **命名**：`YYMMDD-<slug>.md`（本仓推敲卡的日期格式），以它服务的卡或主题起名；卡片链接它。
-- **主题子目录（2026-10-05 用户拍板）**：材料按主题分装进子目录（`upstream/` = DSH 上游递交面、
-  `positioning/` = 定位与打动管理层、`self-update/` = 助手怎么学到东西与学到了怎么维护、
-  `memory-panel/` = 记忆/知识面板的外部产品先例、
-  `tech-exploration/` = 技术定调与技术实验、`usage/` = 真实使用观察），**文件名与证据正文保留，相对链接随位置修复**；新主题开新子目录，根目录不再平铺。
-  子目录**随材料在档而在**（材料不再被取用即整目录随迁，见「使用与校准」）：当前在档 `positioning/`、`usage/`、`tech-exploration/`（261020 六维深审重开）；`upstream/`、`self-update/`、`memory-panel/` 已迁入调研归档，再需要时新开同名目录即可。
-  索引记**含子目录的路径**。
-- **无状态行**：不把原料伪装成结论。制度级索引互查要求本区文件（含主题子目录）被本 README 点名；活跃正文的相对链接复用 verify 现有纯核。该结构检查不验证证据质量、URL/anchors 或实现/效果，对活跃 `issues/` 和 `bugs/` 同样适用。
-- **生命周期——跟着卡片走**：最后一张使用它的活卡关闭时 `git mv` 到
-  [`../_archive/research/`](../_archive/research/)，文件名、frontmatter 与历史证据正文保留，修可解析链接。喂完最后一张卡的
-  材料不留在这里。
+## 一个研究题长什么样
 
-## frontmatter
-
-新条目照这个写。文件第一行是 `---`，字段顺序固定，第一项是 `topic`。不写 `status`。
-
-```yaml
----
-topic: 定位
-intent: "背后那一句思路。"
----
+```
+research/
+  README.md              ← 本页：活跃题名索引
+  <topic>/               ← 研究题（目录名 = YYMMDD-稳定 slug，归档不改名）
+    README.md            ← 题名页（不是研究正文）
+    YYMMDD-<slug>.md     ← 研究正文
+    <asset>.png / .svg   ← 同题资产
 ```
 
-| 字段 | 写什么 |
-|---|---|
-| `topic` | 跟子目录走。`positioning/` 写 `定位`，`self-update/` 写 `自更新`，`memory-panel/` 写 `记忆面板`，`upstream/` 写 `上游`，`tech-exploration/` 写 `技术`，`usage/` 写 `使用`。新主题先开子目录，`topic` 用一个短中文词，和这个目录对应 |
-| `intent` | 一行，加引号。写这篇为什么存在、背后的思路，不写证据正文 |
+题名页模板（`> 归档：` 行只在归档后填）：
 
-搬走时 `topic` 和 `intent` 不动。随卡进 [`_archive/research/`](../_archive/research/README.md)。
+```markdown
+# <名头>：<一句话>
 
-## 使用与校准
+> 问题：这轮研究要回答什么
+> 消费者：<正在使用它的卡、note、触发行或方向判据；写相对链接>（历史消费者另起一句）
+> 产出的卡：<研究结束后由它新立的卡；没有写 —>
+> 归档：YYYY-MM-DD（归档后补）
 
-证据不必迎合方向。原始资料保留 URL、原句、样本/版本、获取限制与反证；合成档分开引用事实和产品推论。候选演示/实验写清实现状态，不从 schema、官网或代理读数推出收益/真实采纳。
+## 材料
+| 文件 | 作用 | 日期 |
+|---|---|---|
+| [YYMMDD-<slug>.md](YYMMDD-<slug>.md) | 一句话作用 | YYYY-MM-DD |
+```
 
-research 为问题和缺陷提供依据。问题按 [关闭条件](../README.md) 交接或关闭；缺陷按 [缺陷规则](../bugs/README.md) 离场，包括查明未修后的挂起。材料可以供多张卡使用，最后一张活卡关闭后才随迁。校准可以加纠正说明；搬迁保留证据正文并修相对链接。冻结的 `_archive/` 不纳入正文断链扫描。历史修复边界在已随卡归档的 [技术审计](../_archive/research/tech-exploration/261005-turnaround-evidence-audit.md)。
+## 约定
+
+- **目录名**：`YYMMDD-<slug>/`，日期 = 研究题首写日；slug 小写 kebab-case，归档不改名。
+  （沿用本仓 `YYMMDD` 六位口径；不用全日期，也不给目录追加第二套日期格式。）
+- **题名页**：三行名头 `> 问题：` / `> 消费者：` / `> 产出的卡：` 必填——缺一行就是名头没交代清楚；
+  `> 归档：` 只在归档区写。材料表逐份点名 `.md` 文件；资产（图片、原型）按文件或目录点名即可。
+- **材料名**：`YYMMDD-<slug>.md`，日期 = 材料首写日。frontmatter 首字段 `topic`、第二字段 `intent`，
+  不写 `status`。`topic` 说这份材料自己（自由文本），**不再与目录名挂钩**；旧料的
+  `定位` / `技术` / `使用` / `自更新` / `记忆面板` / `上游` 保留不改。
+- **消费者与产出的卡**：消费者 = 现在还在取用这轮研究的卡、note、触发行或方向判据；已结的卡写在
+  「历史消费者」一句里。产出的卡 = 研究结束后由它长出来的 issue / bug 卡。两者都写相对链接，没有就写 `—`。
+- **生命周期——跟着消费者走**：活跃区的研究题必须至少有一个活消费者；最后一个离开时
+  `git mv` 整个题名目录到 `_archive/research/<topic>/`，题名页补 `> 归档：YYYY-MM-DD`，归档索引只加
+  题名一行。材料可以供多个消费者使用；归档后仍可被引用，引用不等于让研究「复活」。
+- **无状态行**：不把原料伪装成结论。本区文件被题名页点名、题名页被本页点名，由 `pnpm verify` 的
+  `backlog: liveness` 与 `backlog research:` 对账；它只证形状（名头三行、材料逐份点名、frontmatter 合法），
+  不证证据质量、URL/anchors 或实现效果。
+- **卡片怎么链**：卡直接链材料路径（`research/<topic>/<file>.md`），不必改链题名页；题名页负责把
+  材料与消费者对起来，是这轮研究的入口而不是卡的指针。
 
 ## 索引
 
-先按当前使用关系分组。**引用卡**（下表「引用卡：」）= 正文直接引用该材料的卡——多已结档，但结论仍被 [`README.md`](../../README.md) 的方向判据或活触发行取用，故材料留在活跃区；`usage/` 的 30 天读数档是**活观察**（被 [triggers.md](../triggers.md) 点名），观察期结束前不迁。「间接使用」写明引用链和用途。「原卡」只说明立档背景，不证明现在还有使用者。引用它的卡全部结档、且结论已不再被任何方向判据或触发行取用的材料，随迁到 [调研归档](../_archive/research/README.md)。调研不写 `status`。
+一题一行；逐文件清单住在各题的题名页，不在本页重复。
 
-### 直接引用
+| 名头 | 问题 | 消费者 | 材料 |
+|---|---|---|---|
+| [一把手价值定位](261005-ceo-value-positioning/README.md) · 他的时间、决策与演示期待 | 一把手的时间/决策负荷、首跑主动价值、十分钟演示怎么讲 | 方向判据；历史：定位卡、输入边界卡 | 3 份 |
+| [近月 personal agent 生态](261012-personal-agent-landscape/README.md) · 形态、机制与我们的差异 | 同类在做什么、我们差在哪、连续性是不是真问题 | 用户直派（2026-10-12）；间接：首用价值卡 | 3 份 |
+| [首开复核](261023-first-run-review/README.md) · 端到端质量与现场走查 | 一页纸后首开真的走通吗、为什么仍无从下手 | 间接：首用价值卡；历史：首开重做卡 | 2 份 |
+| [三层界面安排审计](261024-interface-layer-audit/README.md) · 混层、越层与重排顺序 | 三层安排哪里混、哪里缺、该按什么顺序重排 | 三层界面重排 note | 1 份 |
+| [首用价值与跨会话连续性](261029-first-value-journey/README.md) | 首次打开到首件成果之间缺什么、连续性怎么验证 | 首用价值问题卡（活） | 2 份 + 示意图 |
+| [六维打扫卫生深审](261020-six-dimension-audits/README.md) · 10-20 与 10-28 两轮 | 这一轮哪里坏了、哪些是真问题、下一轮从哪起 | 两份六维改善 note | 2 份 |
+| [助手界面三档密度](261021-assistant-ui-modes/README.md) · 三档与随时切换 | 平台缝在哪、该选哪条路 | 三档界面卡（M1 已交付） | 1 份 |
+| [只读检索 A/B](261021-recall-ab/README.md) · MCP allowlist 与 native recall | A1/A2 能分出什么、代价各是什么 | 检索卡（A2 已挂载） | 1 份 |
+| [输入边界 30 天观察](261011-input-observation/README.md) · 真实使用读数 | 输入通道该不该做——先看 30 天真实读数 | 触发行（**活观察**） | 1 份 |
 
-从引用卡链接进入，按正在解决的问题选读。
+归档题名见 [_archive/research/README.md](../_archive/research/README.md)；本页只列活跃题名。
 
-- [261024-interface-layer-audit.md](positioning/261024-interface-layer-audit.md)——引用卡：[三层界面重排 note](../../notes/implemented/2026-10-24-interface-layer-rearrangement.md)（已 implemented；本档是证据，不再是待拍板方案）。三层在主面板内成立，旧 feature silos 仍并列；第一轮覆盖主面板/会话/右栏/三档/调试，窄视口与审批进第二轮
-- [261023-first-run-e2e-review.md](positioning/261023-first-run-e2e-review.md)——引用卡：无（2026-10-23 用户点名首开端到端复核；后续修复卡按此取用）。干净 home 真机 + eight 种子 + 两轴评审 + 资产盘点：主链 25s 出页、6 硬问题/4 UX 缺陷已修、5 个 P1 资产/语义缺口与优先级
-- [261029-first-value-journey.md](positioning/261029-first-value-journey.md)——引用卡：[首用价值问题卡](../issues/261029-first-value-journey.md)。仓内入口、首件产物、跨时连续性与 live probe 证据；A+C 仅为待评候选，不是结论
-- [261023-first-run-ux-walkthrough.md](positioning/261023-first-run-ux-walkthrough.md)——引用卡：[首开重做（已结）](../_archive/settled_issues/261023-first-run-ux-reframe.md)（证据/三案/设计议程在本档，结论与台账在卡上）。空 home 三屏走查 + 一次真模型回合：五条可观察事实、呈现面清单、机制诊断、目标体验草案、A/B/C 代价与九条未决议程
+## 收什么 / 不收什么
 
-- [261020-six-dimension-housekeeping-audit.md](tech-exploration/261020-six-dimension-housekeeping-audit.md)——引用卡：无（2026-10-20 用户点名六维深审，本档是本轮 REVIEW 的直接输入；改善项立项后由对应卡引用）。六维打扫卫生深审发现报告：五路 fresh 审计员 + 主线对抗复核；S1–S5 战役复核结论（立住）、26 条分级发现、改善三批次路线、banner 场景活体复验 PASS
+- **收**：服务活跃卡、值得保留的调研材料——推敲时攒的、被卡引用的、喂毕业判断的；半成品合法。
+- **不收**：抛弃型草稿（按 [AGENTS.md](../../AGENTS.md) 留在树外）；价值越过所有卡的留存型参考
+  （持久结论进 [notes](../../notes/README.md) 的决定 note，不另留调研目录）。
 
-- [261028-six-dimension-audit.md](tech-exploration/261028-six-dimension-audit.md)——引用卡：[六维持续改善 implemented](../../notes/implemented/2026-10-28-six-dimension-continuous-improvement.md)（已交付；本档是分级证据与边界）。四路 fresh 审计 + 主线复核 + 真机取证：六维判定、已修 P1/P2、开放项、S1–S4 与 P3/B 级补强的收口与误报纠正
+## 维护
 
-- [261021-assistant-ui-modes.md](tech-exploration/261021-assistant-ui-modes.md)——引用卡：[三档界面（已结）](../_archive/settled_issues/261021-assistant-ui-modes.md)（M1 已交付；M2 未取）。三档呈现的平台缝、现有面清单、候选架构、矩阵与证据
-
-- [261021-recall-ab.md](tech-exploration/261021-recall-ab.md)——引用卡：[检索卡](../_archive/settled_issues/261020-openviking-retrieval-viki.md)（A/B 题集/评分表已产出；A2 已裁决并挂载，A1 仅存原型历史）。只读检索 A/B 的 12 题、评分表与 A1/A2 原型约定
-
-- [261011-input-observation.md](usage/261011-input-observation.md)——引用卡：[输入边界](../_archive/settled_issues/261007-input-boundary.md)（**活观察**：读数档被 [triggers.md](../triggers.md) 的触发行点名，30 天观察期结束前留在活跃区）。30 天输入观察的读数档：A 自发投递 / B 时长 / C 入口后的操作的口径、剔除规则、环境创建约定与每周快照（读数命令 `pnpm observe`）
-- [261005-exec-demo-narratives.md](positioning/261005-exec-demo-narratives.md)——间接使用：[差异性对照](positioning/261012-personal-agent-differentiation.md) 引用其 Huper 边界与 CFO 证据行；原引用卡（输入边界）已结档。面向 CEO/CFO 的十分钟演示叙事
-- [261005-ceo-time-and-decision-research.md](positioning/261005-ceo-time-and-decision-research.md)——间接使用：[差异性对照](positioning/261012-personal-agent-differentiation.md) 两处引用（一把手时间与真实需求）；原引用卡（输入边界）已结档。一把手时间分配与决策过程
-
-### 间接使用
-
-只在需要核实对应引用链时进入。
-
-- [261005-external-ux-patterns.md](positioning/261005-external-ux-patterns.md)——间接使用：[输入边界卡](../_archive/settled_issues/261007-input-boundary.md) → [演示叙事](positioning/261005-exec-demo-narratives.md) → 本篇，仅作资料抓取限制的旁证；原卡：[261005-open-value-deficit](../_archive/settled_issues/261005-open-value-deficit.md)。外部同类产品首跑 UX
-- [261012-personal-agent-landscape.md](positioning/261012-personal-agent-landscape.md)——间接使用：2026-10-12 用户直接请求（近月 personal agent 生态）→ [差异性对照](positioning/261012-personal-agent-differentiation.md) 引用本篇；无引用卡，待定位推敲取用。Muse/dots/Instinct/CC/Cowork 的时间线、能力形态、市场反响与未能证实清单
-- [261012-personal-agent-differentiation.md](positioning/261012-personal-agent-differentiation.md)——间接使用：同上请求 → 本篇。机制级对照本仓产品（对着 [README.md](../../README.md) 判据）：合理性论据、steelman 威胁表、逐维度对比与借鉴清单；无引用卡，待定位推敲取用
-- [261012-decision-continuity-evidence.md](positioning/261012-decision-continuity-evidence.md)——间接使用：2026-10-12 用户要求网络验证「经营事项连续性层」假设 → 本篇。区分组织执行连续性、个人管理者记忆问题与产品效果证据，含支持、反证、来源限制与本仓待验证项
-- [261029-first-use-value-systems.md](positioning/261029-first-use-value-systems.md)——间接使用：[首用价值问题卡](../issues/261029-first-value-journey.md) 的补充 REVIEW 证据，已在[首用价值旅程](positioning/261029-first-value-journey.md)中整合。Claude Projects 官方能力与本仓现有 DSH 数据面、模型可见差量及待验证处
+- 新研究先建题名目录与题名页，再写材料；不要先在 research 根落文件，也不要为一份材料新开一个题
+  ——它属于哪个研究题就进哪个目录。
+- 同一研究题追加材料：放进题名目录，并在同一次改动里更新题名页材料表与索引的「材料」列。
+- 题名页的「消费者 / 产出的卡」随卡的生命周期更新；没有活消费者时整目录迁归档。
+- 本页只列活跃题名一行；归档索引一题一行。逐文件清单不在两个索引里重复。

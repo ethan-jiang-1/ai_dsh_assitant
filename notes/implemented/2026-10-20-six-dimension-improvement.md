@@ -2,7 +2,7 @@
 
 日期：2026-10-20 · 状态：**implemented**
 
-> 来源 = 2026-10-20 六维深审（[报告](../../_backlog/research/tech-exploration/261020-six-dimension-housekeeping-audit.md)、[收口卡](../../_backlog/_archive/settled_issues/261020-six-dimension-improvement-closure.md)）。本 note 只留与审计建议不同的裁决、被击败的做法与仍会约束以后的后果；逐项对账住收口卡。
+> 来源 = 2026-10-20 六维深审（[报告](../../_backlog/research/261020-six-dimension-audits/261020-six-dimension-housekeeping-audit.md)、[收口卡](../../_backlog/_archive/settled_issues/261020-six-dimension-improvement-closure.md)）。本 note 只留与审计建议不同的裁决、被击败的做法与仍会约束以后的后果；逐项对账住收口卡。
 
 ## 问题（可观察行为）
 

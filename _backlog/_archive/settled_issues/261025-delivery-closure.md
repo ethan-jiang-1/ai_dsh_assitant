@@ -36,7 +36,7 @@ opened: 2026-10-25
 
 | 片 | 状态 | 证据 |
 |---|---|---|
-| **S0 基线与合同** | 已交付 | 四张问题卡 + [交付合同 note](../../../notes/implemented/2026-10-25-delivery-contract.md) + [DSH 事实](../research/tech-exploration/261025-dsh-plugin-delivery-facts.md)；`pnpm verify` 48 checks；基线 `pnpm release-smoke` passed（515 files，clean-home 装/组合/OV 缺席在场）；commit `15d2dfd`；支持矩阵见上 |
+| **S0 基线与合同** | 已交付 | 四张问题卡 + [交付合同 note](../../../notes/implemented/2026-10-25-delivery-contract.md) + [DSH 事实](../research/261025-dsh-plugin-delivery/261025-dsh-plugin-delivery-facts.md)；`pnpm verify` 48 checks；基线 `pnpm release-smoke` passed（515 files，clean-home 装/组合/OV 缺席在场）；commit `15d2dfd`；支持矩阵见上 |
 | **S1 分发合同** | 已交付（2026-10-25） | `engines.dsh`/`engines.node` + gate + 负例 smoke；手册 UI-first/headless/升级/备份；`agent-preset-ui` 探针；0.0.9→0.1.0 升级保留数据；commits `311994f`、`5afb7d9` |
 | **S2 出厂身份** | 已交付（2026-10-25） | 管理岗默认 `SOUL` + legacy migration；`seeds` 随包（529 条目，seeds ×8）；`bin/expert-setup` 独立可跑；安装零写入断言；commit `c2839e7` |
 | **S3 数据边界** | 已交付（2026-10-25） | `docs/delivery.md`；handoff scan（tarball clean，534 条目）；`assistant-data` 导出/导入（manifest v1、空目标、临时目录 rename）；installed bin 往返；commit `53180da` |

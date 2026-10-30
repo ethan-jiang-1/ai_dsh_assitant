@@ -339,7 +339,7 @@ opened: 2026-10-01
   （含乱码测试会话，其消息本身混合），残留已清（第 14/17 轮 9→3），现存 3 会话标题全中文
   （真人首交互/两轮读数题），二读未再现。真用再现则属模型服从度，升上游候选。
 - **上游候选台账固化**：vendor 面候选散在卡面第 1/3/8/12/13/14/16 轮各处，收敛为
-  [reference/261001-upstream-candidates.md](../research/upstream/261001-upstream-candidates.md)——9 稳定 +
+  [reference/261001-upstream-candidates.md](../research/261001-first-open-upstream/261001-upstream-candidates.md)——9 稳定 +
   3 条件 + 2 已关闭，逐条带首报轮次与 vendor 代码锚点；随卡毕业同迁（reference 契约）。
   递交与否、何时递 = 用户拍板，agent 只备料（硬规则 1：vendor 源码永不改，递交是外部动作）。
 

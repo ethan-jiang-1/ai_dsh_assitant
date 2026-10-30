@@ -23,7 +23,7 @@
 //   node dev/reports/input-observation.mjs [--home <dir>] [--label baseline|<yyyy-mm-dd>] [--json]
 //     --home   观察环境；默认 ASSISTANT_DSH_HOME，否则 dev/harness-home
 //     --label  读数标签（基线用 baseline，之后每周用日期）
-// 输出：可直接粘进 `_backlog/research/usage/261011-input-observation.md` 的 Markdown 块；`--json` 出机器可读件。
+// 输出：可直接粘进 `_backlog/research/261011-input-observation/261011-input-observation.md` 的 Markdown 块；`--json` 出机器可读件。
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import process from 'node:process'

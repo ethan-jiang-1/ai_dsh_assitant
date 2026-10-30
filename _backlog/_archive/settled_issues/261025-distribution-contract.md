@@ -13,7 +13,7 @@ opened: 2026-10-25
 
 **当前情况：** `export-dist` 出 tgz + 手册，`release-smoke` 覆盖干净 home 安装、web profile 安装后仍是 standard、再手写 profile patch 切到 assistant、组合断言（[export-dist.mjs](../../../scripts/release/export-dist.mjs)、[release-smoke.mjs](../../../scripts/release/release-smoke.mjs)）；tag 与 manifest 版本有门禁（[dev.md](../../../docs/dev.md)）。但：
 
-- 兼容性有两套口径：`dsh.compatibility.dshReleases` 是给人看的，DSH 实际读 `engines.dsh` 或 peer 范围；本包没有 `engines.dsh`（[package.json](../../../packages/dsh-smart-assistant/package.json)、[研究档](../research/tech-exploration/261025-dsh-plugin-delivery-facts.md)）。
+- 兼容性有两套口径：`dsh.compatibility.dshReleases` 是给人看的，DSH 实际读 `engines.dsh` 或 peer 范围；本包没有 `engines.dsh`（[package.json](../../../packages/dsh-smart-assistant/package.json)、[研究档](../research/261025-dsh-plugin-delivery/261025-dsh-plugin-delivery-facts.md)）。
 - 安装是两段式：装 bundle + 手改 profile YAML（[安装手册](../../../_dist/安装手册.md)）；Web 其实有官方 preset 选择面，但手册没写。
 - 生命周期只有安装/验证/卸载，没有升级、回滚、备份；包 README 指向 `../../docs/...`，tarball 里没有这些文件；没有 `engines.node`/支持矩阵的机器声明。
 

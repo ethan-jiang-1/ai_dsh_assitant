@@ -27,11 +27,13 @@ export function devDrawerCoverageProblems({ entries, drawerText, where = 'dev/AG
 }
 
 /**
- * The research README's theme-subdir claims are claims about the tree: a directory with no
+ * The research README's topic-directory claims are claims about the tree: a directory with no
  * tracked material beneath it is a claimed-active shell (the 2026-10-12 round found
  * `tech-exploration/` empty on disk two days after its materials moved to the archive, with the
  * README still calling it active), and a directory the README never names is outside the index
- * contract ("制度级索引互查要求本区文件被本 README 点名").
+ * contract ("制度级索引互查要求本区文件被本 README 点名"). Since the 2026-10-30 research-topic
+ * layout the same rule runs on both shelves: an archived topic no index names is a topic nobody
+ * can find again.
  *
  * @param {{ subdirs: string[], readmeText: string, trackedRelPaths: string[], where?: string }} input
  */
@@ -40,11 +42,11 @@ export function researchSubdirProblems({ subdirs, readmeText, trackedRelPaths, w
   for (const dir of subdirs) {
     const hasMaterial = trackedRelPaths.some(path => path.startsWith(`${dir}/`))
     if (!hasMaterial) {
-      problems.push(`research theme dir \`${dir}/\` holds no tracked material — remove the empty shell or move materials in, in the same diff that updates ${where}`)
+      problems.push(`research topic dir \`${dir}/\` holds no tracked material — remove the empty shell or move materials in, in the same diff that updates ${where}`)
       continue
     }
     if (!readmeText.includes(dir)) {
-      problems.push(`${where} does not name research theme dir \`${dir}/\` — the index is the tree's only map`)
+      problems.push(`${where} does not name research topic dir \`${dir}/\` — the index is the tree's only map`)
     }
   }
   return problems

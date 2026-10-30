@@ -40,7 +40,7 @@ opened: 2026-10-11
 
 1. **§1b 已经规定了 A**：[validation-evidence](../../../methods/validation-evidence.md) §1b 明写这类「只有跑起来才看得出」的证据
    应当「命名读法协议而不是工件」「记录为 blocked 并指名缺口」「同类再犯才是一次要裁定的收编」——本卡的第二次出现正是它预见的路径，
-   而它已经给出了收编方式：读法协议 + 读数落在拥有它的记录（这里是 [读数档](../../research/usage/261011-input-observation.md)）。
+   而它已经给出了收编方式：读法协议 + 读数落在拥有它的记录（这里是 [读数档](../../research/261011-input-observation/261011-input-observation.md)）。
 2. **B 今天已被三例证明可行**：#2 的「三次重载不增殖」→ `projection-live-mechanics.mjs` 的 `session-audit`；
    #3 的「能打字」→ `pnpm loop-probe`；#7 的渲染 → `snapshots/web-face` 两场景。能脚本化的都脚本化了，
    残留面缩到「一次性真实会话读数」。

@@ -61,38 +61,78 @@ describe('backlogLivenessProblems', () => {
     expect(backlogLivenessProblems(backlog).some(p => p.includes('_archive/suspended_issues'))).toBe(true)
   })
 
-  it('rejects research material missing from its index', () => {
-    const backlog = temp('backlog-ref-')
+  // ── 2026-10-30 research-topic layout：研究题 = 目录 + 题名页（借自 ai_dsh_deep_research） ──
+
+  const titlePage = ({ head = ['问题：要回答什么', '消费者：—', '产出的卡：—'], materials = ['261005-case.md'] } = {}) => [
+    '# 一题：案例',
+    '',
+    ...head.map(line => `> ${line}`),
+    '',
+    '## 材料',
+    '| 文件 | 作用 | 日期 |',
+    '|---|---|---|',
+    ...materials.map(name => `| [${name}](${name}) | 作用 | 2026-10-05 |`),
+    '',
+  ].join('\n')
+
+  const writeTopic = (backlog, area, topic, page, materials = {}) => {
+    const dir = join(backlog, area, topic)
+    mkdirSync(dir, { recursive: true })
+    writeFileSync(join(dir, 'README.md'), page, 'utf8')
+    for (const [name, text] of Object.entries(materials)) writeFileSync(join(dir, name), text, 'utf8')
+    return dir
+  }
+
+  const material = (topicWord = '随便哪个词') =>
+    `---\ntopic: ${topicWord}\nintent: "这份材料自己的主题词，不再与目录名挂钩"\n---\n\n# 案例\n`
+
+  it('accepts a research topic: the title page names the material, and a free-text topic word is legal', () => {
+    const backlog = temp('backlog-topic-ok-')
     bootBacklog(backlog)
-    writeFileSync(join(backlog, 'research', '260928-survey.md'),
-      '---\ntopic: 定位\nintent: "补一条还没进索引的调研"\n---\n\n# 调研材料\n', 'utf8')
-    expect(backlogLivenessProblems(backlog).some(p => p.includes('260928-survey.md') && p.includes('index'))).toBe(true)
-    writeFileSync(join(backlog, 'research', 'README.md'), '# research\n\n| 文件 |\n|---|\n| [260928-survey.md](260928-survey.md) |\n', 'utf8')
+    writeTopic(backlog, 'research', '261005-case', titlePage(), { '261005-case.md': material() })
+    writeFileSync(join(backlog, 'research', 'README.md'),
+      '# research\n\n| 题 |\n|---|\n| [261005-case](261005-case/README.md) |\n', 'utf8')
     expect(backlogLivenessProblems(backlog)).toEqual([])
   })
 
-  it('walks topic subdirectories: subdir material must be named by its subpath, else red', () => {
-    const backlog = temp('backlog-refsub-')
+  it('rejects a material the title page never names (the old index-membership drift, one level down)', () => {
+    const backlog = temp('backlog-topic-unlisted-')
     bootBacklog(backlog)
-    mkdirSync(join(backlog, 'research', 'tech-exploration'), { recursive: true })
-    writeFileSync(join(backlog, 'research', 'tech-exploration', '261005-case.md'),
-      '---\ntopic: 技术\nintent: "先看 DSH 自己已经有的能力"\n---\n\n# 技术定调\n', 'utf8')
-    expect(backlogLivenessProblems(backlog).some(p => p.includes('tech-exploration/261005-case.md') && p.includes('index'))).toBe(true)
-    writeFileSync(join(backlog, 'research', 'README.md'), '# research\n\n| 文件 |\n|---|\n| [261005-case.md](tech-exploration/261005-case.md) |\n', 'utf8')
-    expect(backlogLivenessProblems(backlog)).toEqual([])
+    writeTopic(backlog, 'research', '261005-case', titlePage({ materials: [] }), { '261005-case.md': material() })
+    const problems = backlogLivenessProblems(backlog)
+    expect(problems).toHaveLength(1)
+    expect(problems[0]).toContain('261005-case/261005-case.md')
+    expect(problems[0]).toContain('not named by its title page')
   })
 
-  it('rejects a theme subdirectory whose topic word disagrees with the registered directory name', () => {
-    const backlog = temp('backlog-topic-')
+  it('rejects a topic directory with no title page', () => {
+    const backlog = temp('backlog-topic-bare-')
     bootBacklog(backlog)
-    mkdirSync(join(backlog, 'research', 'self-update'), { recursive: true })
-    writeFileSync(join(backlog, 'research', 'self-update', '261019-lanes.md'),
-      '---\ntopic: 技术\nintent: "写错了主题词"\n---\n\n# 自更新\n', 'utf8')
-    writeFileSync(join(backlog, 'research', 'README.md'), '# research\n\n| 文件 |\n|---|\n| [261019-lanes.md](self-update/261019-lanes.md) |\n', 'utf8')
-    expect(backlogLivenessProblems(backlog).some(p => p.includes('self-update/261019-lanes.md') && p.includes('自更新'))).toBe(true)
-    writeFileSync(join(backlog, 'research', 'self-update', '261019-lanes.md'),
-      '---\ntopic: 自更新\nintent: "写对了主题词"\n---\n\n# 自更新\n', 'utf8')
-    expect(backlogLivenessProblems(backlog)).toEqual([])
+    const dir = join(backlog, 'research', '261005-case')
+    mkdirSync(dir, { recursive: true })
+    writeFileSync(join(dir, '261005-case.md'), material(), 'utf8')
+    const problems = backlogLivenessProblems(backlog)
+    expect(problems).toHaveLength(1)
+    expect(problems[0]).toContain('has no title page')
+  })
+
+  it('rejects a title-page head missing one of the three lines, and an archived topic with no 归档 date', () => {
+    const backlog = temp('backlog-topic-head-')
+    bootBacklog(backlog)
+    writeTopic(backlog, 'research', '261005-case',
+      titlePage({ head: ['问题：要回答什么', '消费者：—'] }), { '261005-case.md': material() })
+    expect(backlogLivenessProblems(backlog)).toEqual([
+      expect.stringContaining('`> 产出的卡：`'),
+    ])
+
+    const archived = temp('backlog-topic-arch-')
+    bootBacklog(archived)
+    writeTopic(archived, join('_archive', 'research'), '261005-old', titlePage({ materials: [] }))
+    writeFileSync(join(archived, '_archive', 'research', 'README.md'),
+      '# research\n\n| 题 |\n|---|\n| [261005-old](261005-old/README.md) |\n', 'utf8')
+    expect(backlogLivenessProblems(archived)).toEqual([
+      expect.stringContaining('`> 归档：YYYY-MM-DD`'),
+    ])
   })
 
   it('rejects an archived card missing from its pool index', () => {

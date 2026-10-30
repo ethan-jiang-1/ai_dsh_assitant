@@ -5,10 +5,10 @@
 > 标签：产品面 2026-10-24 起主面板称「今天」；本篇标题与正文的「桌面」指当时的主面板，`[桌面]` lane token 仍保留。
 
 > **依据**（三档调研 + 一档合成，索引在 [调研归档](../../_backlog/_archive/research/README.md)）：
-> [主动性 UX 机制](../../_backlog/_archive/research/positioning/261018-proactive-ux-mechanics.md)｜
-> [开源 agent 的主动性机制](../../_backlog/_archive/research/positioning/261018-oss-proactivity-mechanisms.md)｜
-> [本仓主动性现状事实表](../../_backlog/_archive/research/positioning/261018-proactivity-baseline.md)｜
-> [主动性综合](../../_backlog/_archive/research/positioning/261018-proactivity-synthesis.md)（完整推理链）。
+> [主动性 UX 机制](../../_backlog/_archive/research/261018-proactivity/261018-proactive-ux-mechanics.md)｜
+> [开源 agent 的主动性机制](../../_backlog/_archive/research/261018-proactivity/261018-oss-proactivity-mechanisms.md)｜
+> [本仓主动性现状事实表](../../_backlog/_archive/research/261018-proactivity/261018-proactivity-baseline.md)｜
+> [主动性综合](../../_backlog/_archive/research/261018-proactivity/261018-proactivity-synthesis.md)（完整推理链）。
 > **邻卡**：[261018-desk-side-capture](./2026-10-18-desk-side-capture.md)（桌面受理位；本卡只与它相邻，不改其范围）。
 
 ## 问题（可观察行为）
@@ -19,7 +19,7 @@
 - **得到**：今天头部下方一条确定性（零 token、不调模型）的「它替你看过」三行式——到期没结果 / 它在等你 / 它下次看（含迟到事实说明与重复标）——以及「让它替你盯」的具名建议（先试跑一次；一键接受才建；忽略即封口）。
 - **完成条件**：机器判据证明三行与建议都由**已有只读数据**派生（新增模型工具 0、派生零模型调用、账本字节不变）；真机走查里本人一眼能答"它在盯什么 / 在等我什么 / 要不要加一条或停一条"（**2026-10-25 本人授权代判通过；同日走查发现「默认面不可达」并已修复，记录见 [归档卡](../../_backlog/_archive/settled_issues/261025-open-human-verdicts.md)**）。
 
-**交付前的现状**（逐条可复现，出处见[事实表](../../_backlog/_archive/research/positioning/261018-proactivity-baseline.md)）：8 件无人开口发生的事在桌面上零痕迹；到期简报迟到 7h24m 且两问句零回复 5 天悬置；`schedule_list` 只看当前会话导致跨会话重复 weekly（10-13 事故：第二条是那次迟到投递 turn 里模型当场建的）。
+**交付前的现状**（逐条可复现，出处见[事实表](../../_backlog/_archive/research/261018-proactivity/261018-proactivity-baseline.md)）：8 件无人开口发生的事在桌面上零痕迹；到期简报迟到 7h24m 且两问句零回复 5 天悬置；`schedule_list` 只看当前会话导致跨会话重复 weekly（10-13 事故：第二条是那次迟到投递 turn 里模型当场建的）。
 
 **拍板边界（全部守住）**：不预设固定节律、不回复不升级（261008）；不做 IM；推送式生成已被否；治理永远人工；权限三分不动。
 

@@ -23,4 +23,4 @@ F4：手造带 `references/x.md` 的技能 → `assistant_reflect action=retire_
 
 ## 修复关联
 
-证据 = [语义扫描报告](../research/tech-exploration/261007-semantic-sweep-src.md) F4/F10；修法方向：retire 改整目录搬迁（archive 收全 bundle）；writePage 的 import 路径显式化（不覆盖 status 或 import 专用动词）——同 diff 修测试的钉错预期（两处 spec 都把缺陷钉成了契约）。
+证据 = [语义扫描报告](../research/261007-semantic-sweep/261007-semantic-sweep-src.md) F4/F10；修法方向：retire 改整目录搬迁（archive 收全 bundle）；writePage 的 import 路径显式化（不覆盖 status 或 import 专用动词）——同 diff 修测试的钉错预期（两处 spec 都把缺陷钉成了契约）。

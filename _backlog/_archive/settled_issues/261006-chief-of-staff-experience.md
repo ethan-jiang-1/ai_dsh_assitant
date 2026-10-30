@@ -23,8 +23,8 @@ opened: 2026-10-06
 
 用户要求把“提醒或者是主动的建议”“事物跟踪”“经验沉淀和学习”放回 CEO 繁忙的工作过程，并强调“推敲的时候要跟现实状况对照一下”“要聪明地利用界面大小”“可行不可行”“怎么验证”。本卡不是再加一层漂亮面板：要解释此前为什么没有兑现，并给出可以否定候选方案的检查。
 
-- [历史诉求复核](../../../../research/positioning/261008-ceo-value-historical-review.md)说明研究如何在转卡、实施和验收中变弱；[当前合同复核](../../../../research/positioning/261008-ceo-value-contract-review.md)区分能力、局部交付与 CEO 价值。
-- [本轮 API 可行性附录](../../../../research/positioning/261008-ceo-value-contract-review.md#八本轮主区入口与会话数据路径的静态可行性)拥有当前 pin 的源码依据。以下结论是静态核验，不是浏览器或真模型实测。
+- [历史诉求复核](../../../../research/261008-operating-loop/261008-ceo-value-historical-review.md)说明研究如何在转卡、实施和验收中变弱；[当前合同复核](../../../../research/261008-operating-loop/261008-ceo-value-contract-review.md)区分能力、局部交付与 CEO 价值。
+- [本轮 API 可行性附录](../../../../research/261008-operating-loop/261008-ceo-value-contract-review.md#八本轮主区入口与会话数据路径的静态可行性)拥有当前 pin 的源码依据。以下结论是静态核验，不是浏览器或真模型实测。
 - 使用 [需求澄清](../../../../methods/requirements-elicitation.md)、[补证据](../../../../methods/requirements-probes.md)、[整理方案](../../../../methods/requirements-synthesis.md)、[验收设计](../../../../methods/validation-design.md)与[证据选择](../../../../methods/validation-evidence.md)。`to-spec` 未在当前目录注册，采用本地完整本体读源适配；只整理已有回答，保留原卡，不发布 tracker、不自动标记可实施。
 
 ## 已知与未决

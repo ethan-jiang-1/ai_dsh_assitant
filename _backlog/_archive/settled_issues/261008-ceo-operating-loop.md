@@ -37,7 +37,7 @@ opened: 2026-10-08
 
 **本卡拥有：** 事项身份与接续、何为最新已确认进展、提醒/建议依据、经验条件，以及多个会话输入如何成为经营账本的可信更新。[总助体验卡](../../_archive/settled_issues/261006-chief-of-staff-experience.md)拥有主区入口、信息层级、空间适配、事项对话交接和读回返回；它消费本卡的账本语义，不另建一份可写真相。
 
-当前 `loadDesk` 从最近 Session 工作区寻找快照；`dataDir` 是跨会话承载，但四个房间与工作区桌面投影不是已经实现的统一事项账本。可用持久载体和会话/导航 API 的静态依据见 [本轮可行性附录](../../research/positioning/261008-ceo-value-contract-review.md#八本轮主区入口与会话数据路径的静态可行性)，不据此宣布并入或冲突处理可用。
+当前 `loadDesk` 从最近 Session 工作区寻找快照；`dataDir` 是跨会话承载，但四个房间与工作区桌面投影不是已经实现的统一事项账本。可用持久载体和会话/导航 API 的静态依据见 [本轮可行性附录](../../research/261008-operating-loop/261008-ceo-value-contract-review.md#八本轮主区入口与会话数据路径的静态可行性)，不据此宣布并入或冲突处理可用。
 
 | 尚未定清的机制 | 需要形成的判断及反例 |
 |---|---|
@@ -52,13 +52,13 @@ opened: 2026-10-08
 
 ### 阅读依据
 
-- [历史诉求与研究承接复核](../../research/positioning/261008-ceo-value-historical-review.md)：研究洞见如何进入卡片/验收，哪些只剩方向、框架或延后引用。
-- [当前价值合同与评测复核](../../research/positioning/261008-ceo-value-contract-review.md)：区分机制存在、局部交付、模型行为和 CEO 价值，核对当前证据的边界。
-- [历史 CEO 视角合成](../research/positioning/261005-ceo-viewpoint-synthesis.md)：十二条产品推论与样本、输入、执行边界；不能从产物形态推定经营采纳。
-- [访谈与学习框架](../research/positioning/261005-interview-learning-framework.md)：事件访谈、条件与例外、前后/未见病例验证；仍是框架，不等于运行时学习链已验证。
+- [历史诉求与研究承接复核](../../research/261008-operating-loop/261008-ceo-value-historical-review.md)：研究洞见如何进入卡片/验收，哪些只剩方向、框架或延后引用。
+- [当前价值合同与评测复核](../../research/261008-operating-loop/261008-ceo-value-contract-review.md)：区分机制存在、局部交付、模型行为和 CEO 价值，核对当前证据的边界。
+- [历史 CEO 视角合成](../research/261005-value-and-turnaround/261005-ceo-viewpoint-synthesis.md)：十二条产品推论与样本、输入、执行边界；不能从产物形态推定经营采纳。
+- [访谈与学习框架](../research/261005-value-and-turnaround/261005-interview-learning-framework.md)：事件访谈、条件与例外、前后/未见病例验证；仍是框架，不等于运行时学习链已验证。
 - [历史自洽卡](261005-turnaround-coherence.md)：最小跟进要求去重、延期、预算、无新信息不催、无证据不编完成；阶段 4/5 的持续实践不能仅由归档状态推定已承接。
-- [科技公司经营实践：有界检索与待核证据](../research/positioning/261009-ceo-operating-practices.md)：定位 GitLab、Bezos/Amazon、Linear、37signals 四组官方/本人来源；正文均因非公网 IP 解析被拒绝，未核原句与过程，不据此指定本人节律或宣称外部实践已验证。
-- [静态可行性与最低验证](../research/tech-exploration/261009-operating-loop-feasibility.md)：钉住当前 DSH SHA，核查共享目录、更新、来源、排程、读回与经验治理；已有机制、缺失资产和未来执行前提逐项分开。
+- [科技公司经营实践：有界检索与待核证据](../research/261008-operating-loop/261009-ceo-operating-practices.md)：定位 GitLab、Bezos/Amazon、Linear、37signals 四组官方/本人来源；正文均因非公网 IP 解析被拒绝，未核原句与过程，不据此指定本人节律或宣称外部实践已验证。
+- [静态可行性与最低验证](../research/261008-operating-loop/261009-operating-loop-feasibility.md)：钉住当前 DSH SHA，核查共享目录、更新、来源、排程、读回与经验治理；已有机制、缺失资产和未来执行前提逐项分开。
 
 本轮复核以仓库文本和已存结果为依据；浏览器只用于隔离的模拟 HTML 原型，没有运行产品浏览器、真实排程投递或真模型行为评测。外部原研究 URL 未重新全量核验；本轮网络检索没有成功加载一手正文，不将检索摘要升级为外部事实。
 
@@ -71,11 +71,11 @@ opened: 2026-10-08
 | 事项 | 现在怎样工作 | 停在什么地方；不能如何解读 | 原始依据 |
 |---|---|---|---|
 | 返回时的主动内容 | blank 会话从已读桌面生成三行播报；行动区筛掉 `done` 后取第一条，再让本人点击问进展 | 这是确定性展示和提问入口；这段实现没有按到期、变化或经营影响选出最值得本人管的行动。不能把“第一条可点”称为主动筛选已经成立 | [first-mile](../../../packages/dsh-smart-assistant/src/client/chrome/first-mile.ts#L227)、[过问入口](../../../packages/dsh-smart-assistant/src/client/desk-io.ts#L405) |
-| 到期提醒与上下文建议 | morning-brief 要求同回合排程、到期读上下文、延期 update、完成 delete；Host schedule 有完整记录 CAS 与 FIFO | 模型工具绑定创建提醒的 Session，乙会话不能直接修改甲提醒；当前缺事项→任务/原 Session 映射与协调。receipt 只证明耐久入队，flush 后、task 写入前崩溃可能重复；排程创建成功后关联保存失败也是未闭合窗口 | [morning-brief](../../../packages/dsh-smart-assistant/presets/assistant/skills/morning-brief/SKILL.md#L14)、[技术断点与恢复](../research/tech-exploration/261009-operating-loop-feasibility.md#5-时间语义与必须解释的提交窗口) |
+| 到期提醒与上下文建议 | morning-brief 要求同回合排程、到期读上下文、延期 update、完成 delete；Host schedule 有完整记录 CAS 与 FIFO | 模型工具绑定创建提醒的 Session，乙会话不能直接修改甲提醒；当前缺事项→任务/原 Session 映射与协调。receipt 只证明耐久入队，flush 后、task 写入前崩溃可能重复；排程创建成功后关联保存失败也是未闭合窗口 | [morning-brief](../../../packages/dsh-smart-assistant/presets/assistant/skills/morning-brief/SKILL.md#L14)、[技术断点与恢复](../research/261008-operating-loop/261009-operating-loop-feasibility.md#5-时间语义与必须解释的提交窗口) |
 | 事情的持续跟踪 | desk 记录决定/行动/缺口，允许 id、owner、due、status、metric、stop、note；桌面主 walk 从最近五个会话寻找首个有桌面的工作区 | 载体存在；`DeskData` 字段可选不等于稳定身份、状态转换与完成证据已有强制合同。主 walk 不是跨工作区全部事项汇总，跨会话接续与跨工作区汇总也须分开验证 | [DeskData](../../../packages/dsh-smart-assistant/src/client/desk-core.ts#L14)、[loadDesk](../../../packages/dsh-smart-assistant/src/client/desk-io.ts#L42) |
 | 本人反馈后怎样更新 | 拍板、办完、补数、不办等按钮发送指令进入模型回合，再要求刷新桌面 | 不是确定性的业务状态转换；“按钮有响应/文件重写”不能证明正确事项、原判断、后续提醒和结果都同步。办完指令要求记录度量变化，但不能仅凭点击称完成证据已齐 | [拍板与完成](../../../packages/dsh-smart-assistant/src/client/desk-io.ts#L388)、[补数与不办](../../../packages/dsh-smart-assistant/src/client/desk-io.ts#L435) |
-| 原默认桌面为何未实现 | 主区桌面已有；旧自动发“你好”和隐藏 composer 方案因幽灵会话/输入被隐藏而退役；旧会话内默认 view 路径受 D7 限制 | D7 不能扩大成全局主区默认不可做：当前 pin 有注册/选中 API，startup restore 保留面板，但插件尚未连通默认入口与事项会话路由。原缺口仍未交付，也不能把这项 UI 限制当所有跟踪/学习问题的唯一根因 | [总助体验缺口](../../_archive/settled_issues/261006-chief-of-staff-experience.md#已知与未决)、[静态可行性](../../research/positioning/261008-ceo-value-contract-review.md#八本轮主区入口与会话数据路径的静态可行性) |
-| 学习怎样才算成立 | 有持久记忆、知识与技能载体，反馈/提案/启用路径；README 已有三件同类后第四件的 P2 目标 | 载体和加载不是迁移效果。当前五项行为任务不覆盖完整 P2、持续跟踪或主动判断优先级；学习改进和撤回需要专门情景，不能据此扩大为“所有测试都没覆盖” | [P2 目标](../../../README.md#L18)、[行为任务清单](../../../dev/eval/tasks.mjs#L19)、[当前合同复核](../../research/positioning/261008-ceo-value-contract-review.md) |
+| 原默认桌面为何未实现 | 主区桌面已有；旧自动发“你好”和隐藏 composer 方案因幽灵会话/输入被隐藏而退役；旧会话内默认 view 路径受 D7 限制 | D7 不能扩大成全局主区默认不可做：当前 pin 有注册/选中 API，startup restore 保留面板，但插件尚未连通默认入口与事项会话路由。原缺口仍未交付，也不能把这项 UI 限制当所有跟踪/学习问题的唯一根因 | [总助体验缺口](../../_archive/settled_issues/261006-chief-of-staff-experience.md#已知与未决)、[静态可行性](../../research/261008-operating-loop/261008-ceo-value-contract-review.md#八本轮主区入口与会话数据路径的静态可行性) |
+| 学习怎样才算成立 | 有持久记忆、知识与技能载体，反馈/提案/启用路径；README 已有三件同类后第四件的 P2 目标 | 载体和加载不是迁移效果。当前五项行为任务不覆盖完整 P2、持续跟踪或主动判断优先级；学习改进和撤回需要专门情景，不能据此扩大为“所有测试都没覆盖” | [P2 目标](../../../README.md#L18)、[行为任务清单](../../../dev/eval/tasks.mjs#L19)、[当前合同复核](../../research/261008-operating-loop/261008-ceo-value-contract-review.md) |
 
 上表是**当前源码 + 已存历史现场**的对照，不是本轮运行实测。此次 typecheck/test 通过只证明仓库检查，不补足表内业务行为证据。对模型执行、浏览器体验与提醒投递仍需按下面协议复验。
 
@@ -149,7 +149,7 @@ CEO 的繁忙使主动性同时有收益和成本。建议每次主动输出至�
 
 读取结果时至少分开：事实与来源、接续正确性、建议随关键条件变化、漏报/误报/重复、本人所需输入/追问/处理动作、经验适用与撤回。实际耗时与计数运行后才填写。关注阈值、语气和本人是否愿意采用属于需要确认的判断；模拟读数不能证明真实采纳。
 
-[公开案例研究](../research/positioning/261005-prototype-cases-and-interview-method.md) 原有两例一手正文尚未核齐，不能直接复用为“已验证案例”；可先用其明确标注的变式，并如实保留证据等级。
+[公开案例研究](../research/261005-value-and-turnaround/261005-prototype-cases-and-interview-method.md) 原有两例一手正文尚未核齐，不能直接复用为“已验证案例”；可先用其明确标注的变式，并如实保留证据等级。
 
 ## 与现有卡片的分工
 
@@ -233,7 +233,7 @@ B 的接口职责：明确新建/指定事项、读取、提交带 operation ide
 
 ## 验收标准
 
-以下是**候选设计的验收合同草案**；与未确认权限相关的行不能写 pass。预期来自上面的固定材料、用户已确认结果与当前 API 合同，独立于实现输出。证据 owner 按 [测试地图](../../../docs/testing.md#一页证据地图改什么--跑什么--回归资产在哪--谁能证明什么)；完整现有资产与未来命令见 [技术研究](../research/tech-exploration/261009-operating-loop-feasibility.md#6-验证路线已有-owner-与缺失资产)。新增资产均未建，命令建议不是已执行证据。
+以下是**候选设计的验收合同草案**；与未确认权限相关的行不能写 pass。预期来自上面的固定材料、用户已确认结果与当前 API 合同，独立于实现输出。证据 owner 按 [测试地图](../../../docs/testing.md#一页证据地图改什么--跑什么--回归资产在哪--谁能证明什么)；完整现有资产与未来命令见 [技术研究](../research/261008-operating-loop/261009-operating-loop-feasibility.md#6-验证路线已有-owner-与缺失资产)。新增资产均未建，命令建议不是已执行证据。
 
 | 行为 / 类别 | 输入、通过与失败信号（含反例/恢复） | 证据 owner 与真人判断 |
 |---|---|---|

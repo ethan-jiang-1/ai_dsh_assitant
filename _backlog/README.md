@@ -47,7 +47,7 @@
 
 被用户明确叫停、还没有结论的，进 [叫停的问题](_archive/suspended_issues/README.md)，`status` 改为 `叫停`；回到活跃区需要一次明确的新决定。证据或答复尚缺时，留在活跃区并写明下一步。
 
-缺陷按 [缺陷规则](bugs/README.md) 处理：修好进 [已修缺陷](_archive/fixed_bugs/README.md)，查明但未修进 [待修缺陷](_archive/suspended_bugs/README.md)。调研在最后一张使用它的活卡离开时，随迁到 [调研归档](_archive/research/README.md)。
+缺陷按 [缺陷规则](bugs/README.md) 处理：修好进 [已修缺陷](_archive/fixed_bugs/README.md)，查明但未修进 [待修缺陷](_archive/suspended_bugs/README.md)。研究题在最后一个活消费者离开时，整目录随迁到 [调研归档](_archive/research/README.md)。
 
 ## 卡的生命周期
 
@@ -63,7 +63,7 @@ frontmatter `status` 是当前阶段的唯一家——一个值，只在带守�
 |---|---|---|
 | [issues/](issues/README.md) | 尚未结束的问题 | `YYMMDD-<slug>.md`；新卡正文可写 `Feature` / `Task` / `未定`，旧卡不回填 |
 | [bugs/](bugs/README.md) | 这次不修的缺陷 | `BUG-<NNN>-<slug>.md`；下一个号在其 README |
-| [research/](research/README.md) | 卡片需要的较长依据 | 按主题分目录，卡片链接材料 |
+| [research/](research/README.md) | 卡片需要的较长依据 | 按研究题分目录 `YYMMDD-<slug>/`；题名页记问题 / 消费者 / 产出的卡，材料 `YYMMDD-<slug>.md` |
 | [methods/](methods/README.md) | 各步骤按需使用的方法 | 留在原处，持续改进 |
 | [triggers.md](triggers.md) | 工作里会自然遇到的重新讨论条件 | 延后不自动加行，按该表规则收录 |
 | [_archive/](_archive/README.md) | 已离开活跃区的卡片和调研 | 子目录区分有结论、叫停、已修和待修 |

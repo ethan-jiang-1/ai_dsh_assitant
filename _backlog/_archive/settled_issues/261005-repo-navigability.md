@@ -27,7 +27,7 @@ opened: 2026-10-05
 
 基线：本仓 HEAD `36f1f00d834ba931d10f0d728b7cabeca6beee9e`，2026-10-05；DSH pin 以 [簿记](../../../vendor/UPSTREAM.md)为准。源码可指认的机制不等于当前 GUI 已实际运行该构建。
 
-调研底稿：[入口与工具库存](../research/tech-exploration/261005-repo-entry-tooling-audit.md)、[测试资产审计](../research/tech-exploration/261005-repo-test-asset-audit.md)。以下承重事实由主代理回读对应源码，不以代理摘要作最终证据。
+调研底稿：[入口与工具库存](../research/261005-repo-navigability/261005-repo-entry-tooling-audit.md)、[测试资产审计](../research/261005-repo-navigability/261005-repo-test-asset-audit.md)。以下承重事实由主代理回读对应源码，不以代理摘要作最终证据。
 
 1. **目录用途混杂**：[根命令表](../../../package.json)将启动、部署装配、生成、门禁、浏览器探针和发布都路由到 scripts；dev 同时承载环境、评测、报告、试验、fixture 与忽略的运行 home。问题是职责不显露，不是功能不存在。
 2. **真实 preset 入口与导航冲突**：[bundle](../../../packages/dsh-smart-assistant/cordis.patch.yml#L129)内嵌 `preset-assistant.config.plugins`；[旧 preset 文件](../../../packages/dsh-smart-assistant/presets/assistant/agent.cordis.yml)为空。[包入口说明](../../../packages/dsh-smart-assistant/AGENTS.md#L38)和 [setup 提示](../../../dev/setup.sh#L103)仍引用旧链/宣称裸 headless 进入 preset，不能继续作为操作指导。
@@ -198,7 +198,7 @@ docs/ · notes/ · _backlog/ · .agents/ · vendor/ · _dist/
 
 ### 测试组织和运行约定
 
-每个现有 spec 归属最主要的 interface，跨层合同注明依赖；[测试底稿](../research/tech-exploration/261005-repo-test-asset-audit.md)的全量清单是迁移输入，不是日后第二清单。
+每个现有 spec 归属最主要的 interface，跨层合同注明依赖；[测试底稿](../research/261005-repo-navigability/261005-repo-test-asset-audit.md)的全量清单是迁移输入，不是日后第二清单。
 
 1. 保留 `.spec.{ts,mjs}` 和现有 Vitest，按目录选层、按文件/用例选功能；不为每功能造 runner。不把真实 IO 的 spec 称纯单元。
 2. 默认 `pnpm test` 继续收全部现有 keyless spec，不自动隐藏 build；整体可信入口明确为 `pnpm build && pnpm test`，缺构建物失败信息给出前置命令。局部源码 spec 保留快速入口，无需每次 build。显式层入口复用同一配置，候选为 `test:domain/host/agent/composition/client/tooling`，只为实际非空且有稳定职责的层设命令。参数透传与发现列表须实跑，不只写命令。
