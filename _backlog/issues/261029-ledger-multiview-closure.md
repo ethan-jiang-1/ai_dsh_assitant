@@ -47,6 +47,7 @@ opened: 2026-10-29
 - `node dev/probes/web/webui-preflight.mjs '<authenticated dev URL>'`：green；现有 DSH dev server PID 9816 的 `DSH_HOME` 是仓内 `dev/harness-home`，未启动或停止其他服务。
 - 最终 `pnpm verify`：PASS，50 checks；`PresetRow` fixture 已改为基于真实 `EntryOptions`，修复 optional/required `name` 类型错配。
 - 本人指出的 shell「自动化任务」项属于 DSH 全局 navigation，不是本插件代码；未修改全局 DSH 或 profile 配置。
+- 收尾验证（2026-10-30，handoff `.tmp/handoff/261030-m1-verification-plan.md` §四执行）：bin mode-only chore `6e5f020`；覆盖审计落 `.tmp/handoff/coverage-audit.md`（初心对照 diff 面无越界；缺口 A 畸形时间戳边界、B attention 空态已补，缺口 C archive 组件层重复证据、D 测试资产无新增有据不补），focused suite 127/127 + typecheck PASS，提交 `84ee851`；新增 live 探针 `dev/probes/web/multiview-live.mjs`（真实 Chrome，合成 ledger+archive 种子运行时入 probe home 不入库）四路径全 PASS——attention 全流程（offset 260→detail→返回恢复 260）、归档分页（50→61→100→111→114 耗尽，before 游标单调变老）、流水条目跳转（board/detail）、窄屏 420x900 往返（200→恢复 200，无横向溢出），verdict 落 `.tmp/probe-runs/multiview-live-verdict.json`，teardown 端口关闭无残留，verify 仍 50/50，提交 `0f87b11`。
 
 ## 仍未取
 
