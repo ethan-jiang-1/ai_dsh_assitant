@@ -12,8 +12,8 @@ tag 名必须逐字等于它在的那个提交里 `packages/dsh-smart-assistant/
 包名与手册版本也仍是 0.0.0，两边对不上。
 
 **旧 tag 的处理**：`0.0.1`（2026-10-22 的里程碑）同样不对齐——它指向的提交里 manifest 是 0.0.0。它被删除
-（本地 + 远端）；提交仍在 `master` 历史里，需要时可 `git tag -a 0.0.1 b66f3a0 -m "0.0.1: workbench tabs with
-shared desk projection; Viki/OpenViking acceptance"` 恢复——但恢复即违反本规则。
+（本地 + 远端）；提交仍在 `master` 历史里，需要时从 `git log` 找到那次里程碑提交（workbench tabs /
+shared desk projection）再打 tag——但恢复即违反本规则。
 
 ## 输掉的方案
 
