@@ -1,8 +1,9 @@
 # 首用价值与跨会话连续性
 
 > 问题：首次打开到第一件真成果之间缺什么；跨会话连续性值不值、怎么验证——而不是把根本体验问题缩成改文案？
-> 消费者：[账本多视图收口卡](../../issues/261029-ledger-multiview-closure.md)（活卡：设计来源与后续片）；历史消费者：[首用价值问题卡](../../_archive/settled_issues/261029-first-value-journey.md)（已结，研究台账）
-> 产出的卡：[账本多视图收口卡](../../issues/261029-ledger-multiview-closure.md)
+> 历史消费者：[账本多视图收口卡](../../settled_issues/261029-ledger-multiview-closure.md)（已结）、[首用价值问题卡](../../settled_issues/261029-first-value-journey.md)（已结）
+> 产出的卡：[账本多视图收口卡](../../settled_issues/261029-ledger-multiview-closure.md)
+> 归档：2026-10-31
 
 ## 材料
 

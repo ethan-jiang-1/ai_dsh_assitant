@@ -1,11 +1,14 @@
 ---
-status: 推敲中
+status: 已结
 opened: 2026-10-29
 ---
 
 # 推敲：账本全局关注与单件演变多视图
 
-> 立卡：2026-10-29 ｜ 状态：推敲中 ｜ 授权：用户明确要求为 261029 使用价值问题设置 goal 推进此首片落地 ｜ 类型：Feature ｜ 可关闭：否
+> 立卡：2026-10-29 ｜ 状态：已结（2026-10-31）｜ 授权：用户明确要求为 261029 使用价值问题设置 goal 推进此首片落地 ｜ 类型：Feature ｜ 可关闭：是
+> 结论：本人 2026-10-31 接受（agent 助判 + 本人确认），边界是验收表内已达成、价值未证明
+> 去向：本卡归档；下一片候选（提案目标值、关注卡可扫读、时间线降噪、待归户）见「验收结论」，未授权
+
 
 ## 外部结果三要素
 
@@ -13,7 +16,7 @@ opened: 2026-10-29
 - **用户得到**：同一权威账本事项的可读视图：从全局关注事项进入单件，核对账本记录、来源、承诺/预测/核对/完成时间与提案状态；返回时回到同一 view 和原位置。
 - **完成条件**：本卡验收标准通过；不写第二份事项事实，不新增无来源的事项间依赖；机械检查与现有 GUI 桌面/窄屏检查完成；由本人 REVIEW 后关闭或提出下一片。
 
-**当前授权与范围**：上游研究卡 [261029 首用价值旅程](../_archive/settled_issues/261029-first-value-journey.md)（已结）承载价值问题与研究证据；用户已明确授权本 M1 多视图首片实施。本卡是唯一 M1 work 台账。范围：全局关注 mode、既有事项 mode、既有流水 mode；同一 Matter ID 的详情 timeline；view 切换及详情返回保留对应的滚动位置、filter 与选择状态。`ProjectionView.query` 是当前未接 UI 的历史瞬态字段，本片不宣称提供搜索；其值不由 view 转换主动清除。不扩大到 H1/H2/H3 全部价值假设，不改模型工具/prompt/agent 行为，不改账本写入/schema，不推断关系、阻塞、优先级或跨事项因果。
+**当前授权与范围**：上游研究卡 [261029 首用价值旅程](261029-first-value-journey.md)（已结）承载价值问题与研究证据；用户已明确授权本 M1 多视图首片实施。本卡是唯一 M1 work 台账。范围：全局关注 mode、既有事项 mode、既有流水 mode；同一 Matter ID 的详情 timeline；view 切换及详情返回保留对应的滚动位置、filter 与选择状态。`ProjectionView.query` 是当前未接 UI 的历史瞬态字段，本片不宣称提供搜索；其值不由 view 转换主动清除。不扩大到 H1/H2/H3 全部价值假设，不改模型工具/prompt/agent 行为，不改账本写入/schema，不推断关系、阻塞、优先级或跨事项因果。
 
 ## 切片台账
 
@@ -22,7 +25,7 @@ opened: 2026-10-29
 | M1-S1 | 复用到期无结果规则，派生每件事项的 overdue / pending 信号 | 完成 | `proactive-face.ts` 的 `deriveOverdueMatters`；31 个 proactive-face specs 通过 |
 | M1-S2 | 加入 attention mode 与共享账本事项的时间线、locale 和 archive 回读 | 完成 | final Client suite 125 tests；认证 dev GUI 桌面/窄屏显示 overdue 与 pending 重叠、同件来源时间线、状态与四种时间；Activity desktop/narrow capture 均无 console/network errors |
 | M1-S3 | 按 mode/pane 保留滚动、filter 与选中 Matter，完成三种 view 往返 | 完成 | reducer + React DOM tests 通过；认证 dev GUI 窄屏 attention→detail→back 恢复实际可达 50px offset，原 Matter 保持可见 |
-| M1-S4 | 更新 Client 当前合同、本卡证据，构建及运行验收 | 完成（待本人产品 REVIEW） | `docs/operating.md` 已更新；package build、typecheck、preset composition、focused Client tests、`pnpm verify` 全部 PASS；现有认证 dev GUI 桌面/窄屏验收完成 |
+| M1-S4 | 更新 Client 当前合同、本卡证据，构建及运行验收 | 完成（本人 2026-10-31 接受） | `docs/operating.md` 已更新；package build、typecheck、preset composition、focused Client tests、`pnpm verify` 全部 PASS；现有认证 dev GUI 桌面/窄屏验收完成 |
 
 ## 验收标准
 
@@ -51,13 +54,20 @@ opened: 2026-10-29
 
 - 对抗性走查（2026-10-30，REVIEW 前，9 相位一次性探针 `.tmp/explore/multiview-explore.mjs`，verdict 落 `.tmp/probe-runs/multiview-explore-verdict.json`）：坏账本、缺账本、事项归档分页、筛选往返、详情时 F5、超长文本窄屏、全部办结空态、幽灵事项降级、断网恢复 —— 全 PASS。发现并修复两个真实缺陷：① 归档路由返回裸 `receipt`，缺 `sessionId`/`status`/`kind`/`quote`，更早的流水条目显示成「操作」、事项时间线丢来源；改为与投影同形的共享映射 `projectOperationRecord`（`src/domain/operating/projection.ts`），路由测试断言形状；② 事项详情「读取更早记录」翻的是全局页，一页常含别的事项，点击可能看起来无变化，改为路由接受 `matterId`、客户端按选中事项传参，一次点击必有进展。契约同步 `docs/operating.md` §旧回执分页；live 探针补归档标签回归守卫；共享探针库 `openBoard` 改为轮询（首页挂载早于清单渲染的竞态）。提交 `04d3fff`、`5634be8`，client+host 458 tests、typecheck、verify 50/50 全绿。
 - 走查留下的观察（不在 M1 授权边界内，未改）：完整看板（`deep`）刻意不渲染「重新读取」按钮（84815ab 起既有设计），板上数据不会自动刷新，刷新入口只有回首页；首页对 422 坏账本只给通用「桌面读取失败」而不含具体的「资料损坏或版本不支持」；账本文件损坏会让 host 的 operating ledger 服务起不来，连带新会话创建失败（console warning「waiting for assistantOperatingLedger」），韧性缺口在 host 侧、影响面大于桌面。
-- 评审包（2026-10-30，等本人产品裁决）：仓内认证 dev 实例端口 51665（`dev/harness-home`，token 不落文档），`webui-preflight` green；四张关键截图 `.tmp/shots/m1-review-{attention,detail,activity}-1440x900.png` 与 `m1-review-detail-narrow-420x900.png`，`consoleErrors`/`failedRequests` 均空；评审脚本与五问在 `.tmp/review/m1-review.md`，截图不参与判定。
+- 评审包（2026-10-30，本人 2026-10-31 接受）：仓内认证 dev 实例端口 51665（`dev/harness-home`，token 不落文档），`webui-preflight` green；四张关键截图 `.tmp/shots/m1-review-{attention,detail,activity}-1440x900.png` 与 `m1-review-detail-narrow-420x900.png`，`consoleErrors`/`failedRequests` 均空；评审脚本与五问在 `.tmp/review/m1-review.md`，截图不参与判定。
 
 ## 仍未取
 
-- 历史报价/回款实验与未完成的人类验证在[归档的研究卡](../_archive/settled_issues/261029-first-value-journey.md)；不是本片的隐含验收。
+- 历史报价/回款实验与未完成的人类验证在[归档的研究卡](261029-first-value-journey.md)；不是本片的隐含验收。
 - 目标入口 `http://127.0.0.1:3080` 的裸请求为 401；M1 浏览器验收使用同仓现有、由仓内 `dev/harness-home` 启动的认证 dev 实例 `http://127.0.0.1:65091/?token=...`。`pnpm run dev:web` watcher 未运行，因此不声称 HMR 已验证。
 - 多 view 实际是否提升复用/节约时间，需本人基于自己的业务判断及自然跨日使用再评估；技术验收和模拟账本浏览器渲染不证明产品价值。
+
+## 验收结论（2026-10-31）
+
+- **裁决：接受。** 依据 = agent 铺开的评审包（认证 dev 实例、四条真实运行事项、四张截图、`.tmp/review/m1-review.md` 五问）与本人确认；边界是「验收表内已达成」，不是「产品价值已被证明」。
+- **助判要点**：三视图读法分立（例外 / 库存 / 审计），单件时间线把来源、提案、回执与四种时间串起来，同一 matter id、不写第二份事实；真实浏览器往返 offset 260→260、窄屏 200→200 已验。
+- **下一片候选（未授权，不属本卡）**：① 提案显示「将改成什么」——p-1 的 `change.nextCheckpoint`（2026-10-21）未上屏，而 `docs/operating.md` §desk 已声明该信息；② 关注卡截断判词以可扫读（m-1 卡高约 353px）；③ 时间线降噪（来源材料与同引文回执成对、session/event id 原样上屏）；④ 关注 vs 待归户（dev 账本 5 条待归户不在「现在值得看」）。
+- **人证据边界**：多 view 是否提升复用 / 节约时间仍由真实使用观察，不在本卡结论内。
 
 ## 关闭条件
 
