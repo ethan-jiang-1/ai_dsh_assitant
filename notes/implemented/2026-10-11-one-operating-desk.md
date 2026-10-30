@@ -20,6 +20,7 @@
 ## 约束以后的后果
 
 - 任何新面叫「桌面」、或让用户以为存在第二张桌面，都是回归本决定。
+- **产品面命名（2026-10-24）**：主面板叫「今天」；「桌面」退为内部服务名/历史名（[三层界面重排](2026-10-24-interface-layer-rearrangement.md)）。本决定的「唯一」指概念，不指标签。
 - 组件级删除（`DeskPanel`/`DeskTabBody`/`DeskViewBody`/`AssistantDeskChip`/`DeskSummaryDock` 及其 spec）已完成，清点与 web-face 场景重录 = [会话桌面子系统清理卡](../../_backlog/_archive/settled_issues/261011-session-desk-cleanup.md)；删除时不得复活任何「桌面」命名的会话侧入口。
 - [桌面主对象化](../archived/2026-10-06-desk-primary-view.md) 中被本篇取代的部分：会话内「桌面」视图、`DeskSummaryDock` 摘要条、视图偏好预写；其缝探索事实（`conversation.view` 槽机制）与 Phase A 历史仍有效。
 - 规格卡（[desk-operating-entry](2026-10-06-desk-operating-entry.md)）与 [K4 收口卡](../../_backlog/_archive/settled_issues/261010-desk-k4-closure.md) 持有走查发现与验收。

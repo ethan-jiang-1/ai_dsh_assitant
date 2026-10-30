@@ -12,7 +12,7 @@ origin 走，换工作目录/克隆就会分叉。更危险的是这些调参一
 
 ## 决定
 
-运行态采用下面这组值，落点是 tracked 的安装器模板与 OV 专用 patch 层；dev 组合只在 **OV 插件真在场**
+运行态采用下面这组值，落点是 tracked 的 OV 专用 patch 层（12 个都在；安装器模板另带其中 6 个）；dev 组合只在 **OV 插件真在场**
 时追加该 patch，fresh home 无插件时不出现 inactive entry。
 
 | 旋钮 | 值 | 为什么 |

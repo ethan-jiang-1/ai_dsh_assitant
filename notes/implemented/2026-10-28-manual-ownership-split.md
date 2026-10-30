@@ -37,3 +37,4 @@
 - 旧的生成手册在升级后第一次 scaffold 时变成 `AGENTS.md.bak-*`，prompt 不再包含其中任何旧规则或手改；用户要保留的段落需手动搬进 `AGENTS.md`。
 - `MANUAL.md` 是可读镜像而非权威；编辑它不会改变 prompt（scaffold 会备份后重写）。
 - `AGENTS.md` notes 超预算见 `notes-over-budget`；身份超预算见 `soul-over-budget`。
+- **退役模型可见面时，同 diff 清掉手册与交叉引用**：只删技能/条目、留下手册旧路径，模型会继续去找它（A1b 的教训，[归档篇](../archived/2026-10-19-retire-room-data-copy.md)）。
