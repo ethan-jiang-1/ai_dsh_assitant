@@ -1,43 +1,40 @@
-# 结构还清：主包尾部拆分与 dev 共享库归位
+# 结构归位：主包尾部拆分与 dev 共享库的约束
 
 日期：2026-10-16 · 状态：**implemented**
 
-## 问题（可观察行为）
-
-2026-10-16 的全仓结构评估（`src`/`scripts`/`tests`/`dev` 逐文件深读 + 分层依赖机械验证）结论：结构与分层是强项（76/76 文件头注、依赖方向零违规、测试树镜像源码、`261007-bigfile-split` 已拆 host 1178→288 与 client 2950→13 模块），阻力只剩尾部两处"改得动但不好找"：主包 633 行组合根里内嵌四臂编排、708 行账本归约器里的单函数 if 链与逐字重复的拒绝样板；dev 面缺一个共享库抽屉——名为报告的 `dev/reports/usage-report.mjs` 实际被 5 个文件跨目录 import 当日志库用，接续判据核被浏览器探针反向 import。
-
-本人得到（已交付）：改桌面交互、账本归约或工具输出时定位进单一职责文件；dev 探针改动不再翻 561 行三合一文件；会话日志判据与接续判据各有唯一家。全程行为零变化。
+2026-10-16 的结构评估结论：骨架与分层立住，尾部只剩两处「改得动但不好找」——主包组合根的臂编排、
+账本归约器的 if 链与重复拒绝样板，以及 dev 面缺共享库抽屉。本 note 只留拆分后仍约束以后的后果与
+当时击败的做法；逐文件账在 git 与测试里。
 
 ## 还会约束以后的后果
 
-- **`src/client` 是经典脚本**：tsdown 把整棵树内联进一个 `lib/client/index.js`，硬约束是"无裸运行时 import"（`verify` 的 `clientScriptSafetyProblems` 守）。面向 vendor 的依赖一律走参数——`desk-arms.ts` 的 deps 袋就是这个约束的产物，不是风格选择。
-- **改过 `src/client` 后，跑 lib/ 消费型测试与 `verify` 之前必须 `pnpm build`**：`tsc -b` 会把 ESM 写进 `lib/client/index.js`、覆盖 tsdown 的 classic bundle；正确顺序 `typecheck → build → test → verify`（[docs/dev.md](../../docs/dev.md) §五）。
-- **每 apply 一份，不落模块态**：臂的 launch 锁与绑定、desk store、settle 观察器都是**每次 materialization 一份**（`createDeskArms` / `createSettleRefreshObserver` 的工厂形态）——落模块级会被同页多实例共享。
-- **纯搬迁的证据形态**（后续同类重构照此选）：逐字 diff（含浏览器侧字符串里的空白）、字面量多重集核对、特征 spec 跨搬迁零改动、生成表达式在假 DOM 上真跑；结构等价还要能"数得出来"（如 18 个写点 ↔ 10 + 8）。
-- **测试与被测模块同名对齐**：搬走逻辑时同 diff 搬或拆对名 spec（`tests/tooling/session-logs.spec.mjs` 就是这么从 `usage-report.spec.mjs` 拆出来的）。
-- **改导入/删导入按运行验，不按印象**：本战役三次同类自伤（`readdirSync`、场景模块的习语导入、以及片 7 漏改 `desk-continuity-live.mjs` 的**第二个** import 块——`node --check` 不解析 import、没有测试跑那个探针，于是"回归资产 import 就崩"一路绿灯，直到后来真跑才咬出）都是静态检查全过、真跑才暴露。**一个文件里有多处 import 时，逐处核对**；纯搬迁后对每个消费方至少做一次"真加载"。
-
-- **编辑与提交不许混在同一条 `&&` 链里**：编辑脚本失败（引号写错、锚点断言不过）会被「提交成功」掩盖，
-  于是提交说明里出现**假声明**——2026-10-16 在 261012 住处决策那一件上连犯两次 ✗。作业法：**编辑 + verify
-  一条链**（编辑失败即中断，verify 根本不跑），**提交单独一条**。
-- **写锚点前先取真锚点，不凭记忆**：要么先 grep 出原文，要么用「按小节结构定位 + 断言」（定位小节头 →
-  插在下一个 `##` 之前 → 断言插入生效）；凭记忆写 `old_string` 会静默不匹配 ✗。
-- **别把「还没创建的文件」写成仓库形状的反引号路径**：`links: backticked repo paths` 门当场红
-  （带目录前缀、或以 `.mjs`/`.ts` 结尾都算仓库形状）——2026-10-16 一天内踩了**四次**（片 7 的 `dev/lib/*`、
-  片 8 的三族核、261012 住处决策首版）。要指将来的文件，写**裸文件名 + 说明目录**。
-
-- **别让管道吞掉门的退出码**：`pnpm verify 2>&1 | tail -2 && git commit …` 里，`&&` 看的是**管道最后一个
-  命令**（`tail`）的状态，永远 0 ✗ —— 于是门红了提交照样落地（2026-10-16 在 261012 索引行那次连犯：
-  先链接写错、再被管道放过）。正确写法：`pnpm verify > log 2>&1; status=$?; …; [ $status -eq 0 ] || exit 1`
-  （或 `set -o pipefail`）。这条与「编辑与提交分开」是同一条纪律的两半：**先确证门是绿的，再提交**。
+- **`src/client` 是经典脚本**：tsdown 把整棵树内联进一个 `lib/client/index.js`，硬约束是「无裸运行时
+  import」（`verify` 的 `clientScriptSafetyProblems` 守）。面向 vendor 的依赖一律走参数——`desk-arms.ts`
+  的 deps 袋是这个约束的产物，不是风格选择。
+- **改过 `src/client` 后，跑 lib/ 消费型测试与 `verify` 之前必须 `pnpm build`**：`tsc -b` 会把 ESM 写进
+  `lib/client/index.js`、覆盖 tsdown 的 classic bundle；正确顺序 `typecheck → build → test → verify`
+  （[docs/dev.md](../../docs/dev.md) §五）。
+- **每 apply 一份，不落模块态**：臂的 launch 锁与绑定、desk store、settle 观察器都是每次
+  materialization 一份（`createDeskArms` / `createSettleRefreshObserver` 的工厂形态）——落模块级会被
+  同页多实例共享。
+- **纯搬迁的证据形态**：逐字 diff（含浏览器侧字符串里的空白）、字面量多重集核对、特征 spec 跨搬迁
+  零改动、生成表达式在假 DOM 上真跑；结构等价要能「数得出来」。
+- **测试与被测模块同名对齐**：搬走逻辑时同 diff 搬或拆对名 spec（例：`tests/tooling/session-logs.spec.mjs`
+  从 `usage-report.spec.mjs` 拆出）。
+- **改导入按运行验，不按印象**：`node --check` 不解析 import；一个文件有多处 import 时逐处核对，
+  纯搬迁后对每个消费方至少做一次真加载。
+- **编辑与提交分开**：编辑 + verify 一条链（编辑失败即中断），提交单独一条；别让管道吞掉门的退出码
+  （`set -o pipefail` 或 `${PIPESTATUS[0]}`）。这两条与 `docs/dev.md` §五的「链式命令吞退出码」同源。
 
 ## 输掉的方案
 
-- **client/ 子目录分组**（projection-\* / desk-\* / room-data-\* 三族进子目录）：现在做是纯 churn——命名前缀已可导航、tsdown 内联后 import 面收益为零、23 文件连同 tests import 的改动面不成比例。触发条件：client/ 文件数 > 30 或出现第四族。
-- **learn/index.ts 的 schema 抽离**：评估结论"大而合理"（一工具 8 动作、写 case 同构薄适配）。触发条件：超 ~550 行再拆。
-- **webui-shots 与 cdp-driver 两份 CDP 客户端合并**：重叠 60-90 行属实，但能力矩阵真有差（域启用/超时语义/发现通道/进程清理），合并是设计工作非机械抽取。触发条件：出现第三份 CDP 客户端或两份行为分歧出 bug，届时单独立卡。
-- **ledger 用 mixin/继承拆**：消费面与类型身份耦合，handler 表 + 辅助函数比继承层次可测（bigfile-split S1 输掉的同款理由）；本战役以判别标签 switch + 具名 handler 落地（映射式表在 `strict` 下需要一次函数型断言，参数逆变）。
+- **client/ 子目录分组**（projection-\* / desk-\* / room-data-\* 三族进子目录）：命名前缀已可导航，
+  tsdown 内联后 import 面收益为零；触发条件：client/ 文件数 > 30 或出现第四族。
+- **learn/index.ts 的 schema 抽离**：评估结论「大而合理」；触发条件：超 ~550 行再拆。
+- **webui-shots 与 cdp-driver 两份 CDP 客户端合并**：能力矩阵真有差；触发条件：出现第三份 CDP 客户端
+  或两份行为分歧出 bug，届时单独立卡。
+- **ledger 用 mixin/继承拆**：消费面与类型身份耦合；handler 表 + 辅助函数比继承层次可测。
 - **单文件 tool-\*/ 目录扁平化**：每目录一 index.ts 统一可导航，扁平化零收益。
-- **desk-process-e2e 只抽执行器不拆文件**：治样板不治导航；本战役拆三模块 + dispatcher 保命令面不变，两者兼得。
-- **片 1 连伴生类型一起搬**：把 `OperatingOutput`/`DeskItem` 等与 schema 同迁看似"一份契约一个家"，但 schema 块自足（零引用本地标识符），类型留在同目录 `index.ts` 一样可导航；最小切分换来零风险与可逐字证明。
-- **片 6b 的"六步参数化臂执行器"**：读过实际代码后确认不是三个平行骨架——claim/wake 是提前 return 的条件支路、flow 是主体，四臂入口在作用域（desk 根 vs 全局）、有无种子回合、投票选项、断言集与失败相位名上都不同。真正的样板是按文案找按钮（6a 下沉 10 处）与退出尾巴 ×3（抽成唯一 `finish()`）；再抽一个八参数执行器会把可 grep 的显式代码换成间接层。
+- **desk-process-e2e 只抽执行器不拆文件**：治样板不治导航；拆三模块 + dispatcher 保命令面不变。
+- **把四臂执行器参数化成八参数执行器**：claim/wake 是条件支路、flow 是主体，四臂在作用域、种子回合、
+  投票选项、断言集与失败相位上都不同；再抽一层会把可 grep 的显式代码换成间接层。
