@@ -61,7 +61,7 @@ research/
 | 名头 | 问题 | 消费者 | 材料 |
 |---|---|---|---|
 | [输入边界 30 天观察](261011-input-observation/README.md) · 真实使用读数 | 输入通道该不该做——先看 30 天真实读数 | 触发行（**活观察**，窗口未起算） | 1 份 |
-| [首用价值与跨会话连续性](261029-first-value-journey/README.md) | 首次打开到首件成果之间缺什么、连续性怎么验证 | 首用价值问题卡（活） | 2 份 + 示意图 |
+| [首用价值与跨会话连续性](261029-first-value-journey/README.md) | 首次打开到首件成果之间缺什么、连续性怎么验证 | [多视图收口卡](../issues/261029-ledger-multiview-closure.md)（活）；历史：[价值问题卡](../_archive/settled_issues/261029-first-value-journey.md) | 2 份 + 示意图 |
 
 归档题名见 [_archive/research/README.md](../_archive/research/README.md)；本页只列活跃题名。
 
