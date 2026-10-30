@@ -125,7 +125,7 @@ intent: "把本仓今天已有的主动性机制、用户手上的开关、历�
 
 ## 五、缺口表（只写现状与缺口）
 
-读法：左列 = 外部已有结论里的共性（[261005-external-ux-patterns.md:208-220](../../../research/261005-ceo-value-positioning/261005-external-ux-patterns.md#L208-L220)，本次不重述其证据过程）；中列只写我们**现在有没有**对应物与其落点；**不含方案**。
+读法：左列 = 外部已有结论里的共性（[261005-external-ux-patterns.md:208-220](../261005-ceo-value-positioning/261005-external-ux-patterns.md#L208-L220)，本次不重述其证据过程）；中列只写我们**现在有没有**对应物与其落点；**不含方案**。
 
 | 外部普遍做成一等 UI 对象的事 | 我们的对应物 | 现状出处 |
 |---|---|---|
@@ -140,11 +140,11 @@ intent: "把本仓今天已有的主动性机制、用户手上的开关、历�
 
 ## 六、证据限制清单
 
-1. **只有文档、没有自家实测读数的结论**：主动性形态的口径（可见可开关的例行清单、随事件顺延、最小主动数据集）= 外部调研 + 内部推敲（[261005:246-267](../../settled_issues/261005-open-value-deficit.md#L246-L267)），**零本机读数**；外部该档自带的局限（JS 重站点抓不到、部分模式未找到一手来源）= [261005-external-ux-patterns.md:224-227](../../../research/261005-ceo-value-positioning/261005-external-ux-patterns.md#L224-L227)。
+1. **只有文档、没有自家实测读数的结论**：主动性形态的口径（可见可开关的例行清单、随事件顺延、最小主动数据集）= 外部调研 + 内部推敲（[261005:246-267](../../settled_issues/261005-open-value-deficit.md#L246-L267)），**零本机读数**；外部该档自带的局限（JS 重站点抓不到、部分模式未找到一手来源）= [261005-external-ux-patterns.md:224-227](../261005-ceo-value-positioning/261005-external-ux-patterns.md#L224-L227)。
 2. **设计意图未验证**：节拍器与提案槽的实际收益、打断成本、长会话下的 token 代价，无实测；两者的现有证据只到纯核/组合断言层（`tests/agent/maintenance-metronome.spec.ts`、`tests/host/skill-proposals.spec.ts`）。
 3. **平台行为未在本机实测**：排程投递→模型回合这条链只读到源码（[runtime.ts:104-123](../../../../vendor/dsh/packages/schedule/schedule/src/runtime.ts#L104-L123)）；【推断】它构成一次真模型回合（因此花钱），本轮未测其 token 量或失败率——注意投递回执只确认进 inbox、不确认模型执行（[schedule/README.md:65](../../../../vendor/dsh/packages/schedule/schedule/README.md#L65)）。
 4. **口味面（唯一真人输入）全部未取**：节奏、话术负担、误催容忍 = [261008:245](../../settled_issues/261008-ceo-operating-loop.md#L245)（V6 真人列"介入阈值、语气与误催容忍"）、[desk-daily-brief note:25](../../../../notes/implemented/2026-10-10-desk-daily-brief.md#L25)、[desk-operating-entry note:41](../../../../notes/implemented/2026-10-06-desk-operating-entry.md#L41)。
 5. **运行产物一消失，live 证据降为不足**（源码可复跑）= [desk-operating-entry note:59](../../../../notes/implemented/2026-10-06-desk-operating-entry.md#L59)；本档引用的 `.tmp/` 证据（如 261018 的 DOM/截图落点）属此类。
 6. **UI 形态的读法**：本档对"用户在哪感知到它"的判断来自注册座位与渲染分支（[client/index.ts:293-320](../../../../packages/dsh-smart-assistant/src/client/index.ts#L293-L320)、[message.ts:76-92](../../../../vendor/dsh/packages/client/ui-chat/src/client/conversation-nodes/message.ts#L76-L92)），非本轮真机截图；具体观感需走查复核。
 7. **本档自身的登记义务未做**：[`_backlog/research/README.md`](../../../research/README.md) 的索引行（引用卡/间接使用）本轮不得改动其它文件，故未登记；下一步立卡时应同 diff 补上。
-8. **外部对照的等级**：本档只引用 [261005-external-ux-patterns.md](../../../research/261005-ceo-value-positioning/261005-external-ux-patterns.md) 已有的结论行，本轮**未复核其一手来源**；该档自标"部分模式未找到一手来源、JS 重站点取不到正文"（同档 :224-227），引用时按它的标注走。
+8. **外部对照的等级**：本档只引用 [261005-external-ux-patterns.md](../261005-ceo-value-positioning/261005-external-ux-patterns.md) 已有的结论行，本轮**未复核其一手来源**；该档自标"部分模式未找到一手来源、JS 重站点取不到正文"（同档 :224-227），引用时按它的标注走。

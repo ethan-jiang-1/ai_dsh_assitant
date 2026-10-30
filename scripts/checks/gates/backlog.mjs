@@ -160,12 +160,16 @@ export function backlogLivenessProblems(backlogRoot) {
       if (entry.isFile() && entry.name.endsWith('.md')) return [join(prefix, entry.name)]
       return []
     })
-    // The title page head is the 名头 contract, checked shape-only: three lines on every topic,
-    // plus the archive date once the topic has left the active shelf. A long value may wrap onto
-    // `> ` continuation lines; only the labelled heads are required.
+    // The title page head is the 名头 contract, checked shape-only: the question, who it served and
+    // what it produced on every topic, plus the archive date and the past-tense consumer label once
+    // the topic has left the active shelf. A long value may wrap onto `> ` continuation lines; only
+    // the labelled heads are required.
     const titlePageProblems = (text, where, archived) => {
       const head = text.split('\n').slice(0, 12).join('\n')
-      for (const label of ['问题', '消费者', '产出的卡']) {
+      // Active topics name their live consumers; an archived topic's consumers are all historical,
+      // so the label itself carries that fact instead of repeating "历史" inside the value.
+      const labels = ['问题', archived ? '历史消费者' : '消费者', '产出的卡']
+      for (const label of labels) {
         if (!new RegExp(`^> ${label}：`, 'm').test(head)) problems.push(`${where} has no \`> ${label}：\` line in its head`)
       }
       if (archived && !/^> 归档：\d{4}-\d{2}-\d{2}/m.test(head)) {

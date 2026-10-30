@@ -15,7 +15,7 @@ intent: "把近月 personal agent（dots/Muse/Instinct/CC/Cowork）拆到机制�
 > 交叉转述并逐条标注；Meta 官方 newsroom 标题页可证、正文抓取被截断，其设计/安全文档细节经
 > ppc.land 的逐段转述核实。本仓侧主张一律标 repo 相对路径（自本档所在目录起 `../../../`）。
 >
-> 全文遵守两条借鉴纪律：生态插件只借思路不装包（根 [AGENTS.md](../../../AGENTS.md) 硬规则 7）；
+> 全文遵守两条借鉴纪律：生态插件只借思路不装包（根 [AGENTS.md](../../../../AGENTS.md) 硬规则 7）；
 > 不为想象的未来预建（研发姿态 3）——每条借鉴标注采纳时机。
 
 ---
@@ -180,9 +180,9 @@ Monday, and Claude starts on the report without being asked"。交互二档：**
 
 ## 二、我们的合理性与差异性（问题二）
 
-> 本仓命题与判据的出处：[README.md](../../../README.md)（P1–P3 / O1–O6）、
-> [docs/home.md](../../../docs/home.md)（四房间合同）、[docs/operating.md](../../../docs/operating.md)（账本权限三分）、
-> [docs/identity.md](../../../docs/identity.md)。既有外部研究：[261005-external-ux-patterns.md](../261005-ceo-value-positioning/261005-external-ux-patterns.md)
+> 本仓命题与判据的出处：[README.md](../../../../README.md)（P1–P3 / O1–O6）、
+> [docs/home.md](../../../../docs/home.md)（四房间合同）、[docs/operating.md](../../../../docs/operating.md)（账本权限三分）、
+> [docs/identity.md](../../../../docs/identity.md)。既有外部研究：[261005-external-ux-patterns.md](../261005-ceo-value-positioning/261005-external-ux-patterns.md)
 > （首跑 UX，不重复）、[261005-ceo-time-and-decision-research.md](../261005-ceo-value-positioning/261005-ceo-time-and-decision-research.md)（一把手时间）。
 
 ### 2.1 合理性论据（巨头做云端 always-on 泛助理的世界里，为什么"严格本地 + 人审治理的 working folder"仍然成立）
@@ -191,36 +191,36 @@ Monday, and Claude starts on the report without being asked"。交互二档：**
    默认形态是**平台持钥**，"用户主权"要靠年内才上线的承诺品去逼近；而 Meta 承诺的"VM 数据不进广告系统"
    在 Small Business 版公告里没有重申、训练用途未说明，且 Meta 97% 收入来自广告、agent 与竞价系统同主
    （PPC Land 两篇，出处见 §1.2）。我们的边界由**物理位置**保证（dataDir 在用户机器上，
-   [docs/home.md](../../../docs/home.md) §一双 home 隔离），不由合同条款保证。〔证据+推断〕
+   [docs/home.md](../../../../docs/home.md) §一双 home 隔离），不由合同条款保证。〔证据+推断〕
    2026-10-12 补强：Muse 交互数据**默认用于训练 Meta 模型**、opt-out 需手动且溯及既往（[AI Agent Index 独立核验](https://theaiagentindex.com/agents/meta-muse)）——"本地=物理边界"对"云端=条款+开关"有了更硬的对照物。
 
 2. **他们的事故模式就是"代本人出面"的失败形态。** Muse 替用户谈价、公开家庭住址、以用户口吻回复道歉、
    再以用户身份承诺改期（§1.2）——每一步都是"代替本人对外承诺"。我们的立场＝对外内容由本人过目、不代他出面
-   （[README.md](../../../README.md) 动机节），账本把**确认性变化（明确指令）**与**推断性变化（提案不生效）**
-   分开（[docs/operating.md](../../../docs/operating.md) §二权限三分），完成事项必须附逐字证据。〔证据〕
+   （[README.md](../../../../README.md) 动机节），账本把**确认性变化（明确指令）**与**推断性变化（提案不生效）**
+   分开（[docs/operating.md](../../../../docs/operating.md) §二权限三分），完成事项必须附逐字证据。〔证据〕
 
 3. **领域深度不是连接器数量。** dots 专业 dot 停在"接企业系统 + 治理托管"（采购/发票/客服），
    Muse Small Business 停在"15 个连接器 + 审批"——两边都没有"管理岗判断力"。我们的 P1 判据是
    典型经营难题从管理/销售/财务三层拆解并给出可执行行动计划，O1 要求每条依据可指到原文
-   （[README.md](../../../README.md) 判据表）；专家包是**角色内容 + 学习机制**（`ai_dsh_company` 内容源 +
+   （[README.md](../../../../README.md) 判据表）；专家包是**角色内容 + 学习机制**（`ai_dsh_company` 内容源 +
    propose→approve→land），不是集成清单。〔证据+推断〕
 
 4. **记忆治理：黑箱与台账的分野。** dots 清除记忆的唯一方式是删除整只 dot；Muse 的 person pages 每小时编译、
    连系统提示词都能被普通对话提取（§1.1/1.2）。我们的对应物：学到的一切是**人可读文件**，能看、能改、能删
    （P3），`draft→stable` 人审、`curate` 纯函数检查 20+ 项、`audit/approvals.jsonl` 逐行台账
-   （[docs/home.md](../../../docs/home.md) §一/§二/§四）。〔证据〕
+   （[docs/home.md](../../../../docs/home.md) §一/§二/§四）。〔证据〕
 
 5. **成本结构不在同一档。** Instinct 创始人自述算力需求每周翻倍、40% 时间在管算力（§1.3）；
    卖方测算 Muse 每用户每月服务成本基准 $37、年化 $445，远超 Meta 用户年 ARPU 约 $70
    （[landscape 姊妹档 §五.5](261012-personal-agent-landscape.md)，二手转述）。always-on 云 VM 是**补贴品**，
    免费与低价靠商业模式（佣金/广告/订阅捆绑）回填。我们跑在用户自己的 harness 与模型配额上，无常驻云成本；
-   `curate` 节拍器（[docs/home.md](../../../docs/home.md) §四）管的是信噪比而不是算力扩张。〔证据〕
+   `curate` 节拍器（[docs/home.md](../../../../docs/home.md) §四）管的是信噪比而不是算力扩张。〔证据〕
 
 6. **企业治理是采购门槛——巨头自己的动作承认了这一点。** dots Enterprise beta 默认关闭等管理员开启、
    专业 dot 治理外接 Microsoft Agent 365（§1.1）；Anthropic 把 Docs/Slides 的开启权交给 Enterprise 管理员（§1.5）。
    "开箱即用的 always-on"在企业环境不可接受，治理面必须交给管理员——我们的 O5（一条命令装好、管理员不写 YAML
    就能配置与评审）与 O6（可追溯、不出边界、对外过目）就是这个门槛的产品化
-   （[README.md](../../../README.md) O5/O6）。〔证据+推断〕
+   （[README.md](../../../../README.md) O5/O6）。〔证据+推断〕
 
 7. **中小企业一把手正是他们的事故高发人群。** Muse 的 Marketplace 事故、Amazon 封锁、approval 疲劳
    （Muse 设计文档自己论证了"审批变反射"的风险，§1.2）——"代操作 + 审批点击"的分工把责任压回一个没时间的人。
@@ -228,12 +228,12 @@ Monday, and Claude starts on the report without being asked"。交互二档：**
    不是 4000 个应用的代点鼠标。〔证据+推断〕
 
 8. **入口立场：把 agent 塞进人际信道，与"辅助本人"冲突。** 他们下沉到 WhatsApp/iMessage/RCS/SMS——
-   agent 开始占据本人的人际界面。我们不做 IM（[README.md](../../../README.md) 2026-09-27 拍板），
+   agent 开始占据本人的人际界面。我们不做 IM（[README.md](../../../../README.md) 2026-09-27 拍板），
    交互面只在 DSH 自己的 Web/Desktop——对外出面权留在本人手里。〔证据〕
 
 9. **学习产物的归属。** 他们的记忆用于改进服务与模型（Muse 训练 opt-out、dots 记忆随 dot 平台资产化）；
    我们的学习产物是**用户资产**：人可读、可 git、provenance 必填、退役有台账
-   （[docs/home.md](../../../docs/home.md) §一/§四；P2"指出这条是哪次学来的"）。2026-10-12 补强：Muse 的交互与连接服务信息**默认**用于训练、opt-out 需手动且溯及既往（[AI Agent Index 独立核验](https://theaiagentindex.com/agents/meta-muse)）——"默认归属"的差异是真实的。〔证据〕
+   （[docs/home.md](../../../../docs/home.md) §一/§四；P2"指出这条是哪次学来的"）。2026-10-12 补强：Muse 的交互与连接服务信息**默认**用于训练、opt-out 需手动且溯及既往（[AI Agent Index 独立核验](https://theaiagentindex.com/agents/meta-muse)）——"默认归属"的差异是真实的。〔证据〕
 
 10. **专深场景才产生真价值——他们自己的数据也这么说。** Instinct 年化 $1B 流水里约一半来自旅行这一个
     纵深场景（§1.3）；Muse Small Business 唯一量化成果是一位杂货店主"省了 15 分钟工资核算"（PPC Land）。
@@ -248,7 +248,7 @@ Monday, and Claude starts on the report without being asked"。交互二档：**
 | C | "云端不能数据主权"的论证强度 | Muse Confidential VM：整机用户持钥加密（§1.2） | 中高 | 目前是"年内"承诺，无交付证据——2026-10-12 独立核验仍标注 announced but not yet available（[AI Agent Index](https://theaiagentindex.com/agents/meta-muse)）；且密钥托管模型仍依赖 Meta 的客户端实现。**承诺≠交付**，但一旦交付，"本地=唯一可信边界"的话术要收窄为"本地=无需信任供应商的边界"。 |
 | D | "主动性"的产品叙事：他们把主动性做成一等 UI 对象（Goals/Ideas 页、Space 持续指令、定时周报） | §1.1/1.2/1.5 | 中 | 我们的主动性（养护节拍器、提案槽、schedule 四件）内隐于工具与调度，桌面面没有"它正在替我盯什么"的可视对象——心智占有率吃亏。借鉴见 §三.5/§三.9，不预建。 |
 | E | "入口越轻 + 记忆越深"的增长力学被 Instinct 证实（3 周 40% 交卡、连敏感信息者留存 80%） | §1.3 | 中 | 反例打脸"轻入口=安全选择"？不——它同时证明代价是敏感信息全交，与我们用户的数据边界相反。真正可取的是其**onboarding 启示**：让用户尽早尝到"被记住的好处"。与 [261005-external-ux-patterns.md](../261005-ceo-value-positioning/261005-external-ux-patterns.md) 的冷启动结论一致。 |
-| F | 单主体假设被多主体形态侵蚀（CC 成员级授权、Space 多人+多 dot、Cowork 团队面） | §1.4/1.1/1.5 | 中低 | 本仓是"一把手总助"，单人立场是定位而非缺陷；但"一把手 + 秘书/家人协看"场景出现时，`draft/stable` 两级可见性与账本单 writer 需要扩展（[docs/operating.md](../../../docs/operating.md) §一 writer.lock）。已属带触发条件的延后项。 |
+| F | 单主体假设被多主体形态侵蚀（CC 成员级授权、Space 多人+多 dot、Cowork 团队面） | §1.4/1.1/1.5 | 中低 | 本仓是"一把手总助"，单人立场是定位而非缺陷；但"一把手 + 秘书/家人协看"场景出现时，`draft/stable` 两级可见性与账本单 writer 需要扩展（[docs/operating.md](../../../../docs/operating.md) §一 writer.lock）。已属带触发条件的延后项。 |
 | G | 捆绑定价压垮独立订阅位 | dots 含在 Pro/Business Premium、Muse 免费+$20/$100 档（定价矛盾见 landscape 未证实清单） | 低 | 我们本就不是独立 App、随 DSH 分发，无订阅位可被压；真正暴露的是 DSH 平台自身的定价位。 |
 | H | "个人 agent"品类叙事冷却（Muse 日均净新增 -62.4%，landscape §速览/一） | landscape 转述华尔街见闻 10-12 数据 | 低 | 对本仓中性偏正面：新颖性退潮后存活靠习惯与信任——恰是 working folder 的长坡。风险仅在对外叙事借势时被连带冷却。 |
 
@@ -259,29 +259,29 @@ Monday, and Claude starts on the report without being asked"。交互二档：**
 
 | 维度 | dots | Muse | Instinct | 本仓 |
 |---|---|---|---|---|
-| 部署位置与数据边界 | 专用云电脑；本地访问可选、默认关（[MIXED](https://mixed-news.com/en/openai-chatgpt-dots-exclude-pro-eea-switzerland-uk/)） | 每用户 Muse Secure VM；Confidential VM 承诺中（[PPC Land](https://ppc.land/meta-puts-an-ai-agent-that-buys-things-inside-whatsapp-us-only/)） | 云端 VM + secure vault（[The Verge](https://www.theverge.com/tech/1008254/instinct-agent-ai-hands-on-muse-dots)） | **严格本地** dataDir，双 home 隔离（[README.md](../../../README.md)；[docs/home.md](../../../docs/home.md) §一） |
-| 入口 | ChatGPT/Slack/Teams/SMS/语音；桌面创建（§1.1） | App/WhatsApp/网页；眼镜计划中（§1.2） | SMS/电话/邮件/语音，无 App（§1.3） | 仅 DSH Web/Desktop，**不做 IM**（[README.md](../../../README.md)） |
-| 个性化与记忆 | 主动形成记忆；删 dot 才能清（§1.1） | person pages 每小时编译；memory files 可读可编辑（§1.2） | 偏好记忆；主动补上下文；数据飞轮（§1.3） | memory/ 一条一文件 + archive；摘要有界、provenance 必填（[docs/home.md](../../../docs/home.md) §一/§三） |
-| 领域深度与角色内容 | 泛助理 + 专业 dot（企业 beta，接系统与治理）（§1.1） | 泛助理 + 15 连接器（Small Business）（[PPC Land](https://ppc.land/metas-muse-agent-gains-access-to-ad-accounts-and-15-business-tools/)） | 消费生活纵深（旅行≈一半流水）（§1.3） | **管理岗基座 + 专家包**；P1 三层拆解判据（[README.md](../../../README.md)） |
-| 治理与人审 | 四档规则 + 自动审查；Enterprise 管理员开关（§1.1） | Sentinel + 审批卡 + 最小授权；"nothing publishes…without your approval"（§1.2） | trusted interpersonal network，关系→授权分级（§1.3） | knowledge `draft→stable` 人审；skill `propose→approve→land`；账本权限三分（[docs/home.md](../../../docs/home.md) §二；[docs/operating.md](../../../docs/operating.md) §二） |
-| 信任与审计 | 平台侧监控可暂停 dot；用户可开云电脑看（§1.1） | 完整审计轨迹（已做+将做），存平台（§1.2） | 〔未证实〕 | `audit/approvals.jsonl` 逐行台账**在用户盘上**；`curate` 纯函数 20+ 检查；`skill-usage.json` 机器账本（[docs/home.md](../../../docs/home.md) §一/§四） |
-| 商业模式与目标用户 | 订阅捆绑（Pro/Business Premium 含首只 dot）（§1.1） | 免费 + 订阅 + 广告生态；中小企业（§1.2 + landscape） | 免费 + 交易佣金；消费者（§1.3） | DSH 插件（B 底座 + 专家包）；一把手数字分身；学习产物=用户资产（[README.md](../../../README.md)；[docs/identity.md](../../../docs/identity.md)） |
+| 部署位置与数据边界 | 专用云电脑；本地访问可选、默认关（[MIXED](https://mixed-news.com/en/openai-chatgpt-dots-exclude-pro-eea-switzerland-uk/)） | 每用户 Muse Secure VM；Confidential VM 承诺中（[PPC Land](https://ppc.land/meta-puts-an-ai-agent-that-buys-things-inside-whatsapp-us-only/)） | 云端 VM + secure vault（[The Verge](https://www.theverge.com/tech/1008254/instinct-agent-ai-hands-on-muse-dots)） | **严格本地** dataDir，双 home 隔离（[README.md](../../../../README.md)；[docs/home.md](../../../../docs/home.md) §一） |
+| 入口 | ChatGPT/Slack/Teams/SMS/语音；桌面创建（§1.1） | App/WhatsApp/网页；眼镜计划中（§1.2） | SMS/电话/邮件/语音，无 App（§1.3） | 仅 DSH Web/Desktop，**不做 IM**（[README.md](../../../../README.md)） |
+| 个性化与记忆 | 主动形成记忆；删 dot 才能清（§1.1） | person pages 每小时编译；memory files 可读可编辑（§1.2） | 偏好记忆；主动补上下文；数据飞轮（§1.3） | memory/ 一条一文件 + archive；摘要有界、provenance 必填（[docs/home.md](../../../../docs/home.md) §一/§三） |
+| 领域深度与角色内容 | 泛助理 + 专业 dot（企业 beta，接系统与治理）（§1.1） | 泛助理 + 15 连接器（Small Business）（[PPC Land](https://ppc.land/metas-muse-agent-gains-access-to-ad-accounts-and-15-business-tools/)） | 消费生活纵深（旅行≈一半流水）（§1.3） | **管理岗基座 + 专家包**；P1 三层拆解判据（[README.md](../../../../README.md)） |
+| 治理与人审 | 四档规则 + 自动审查；Enterprise 管理员开关（§1.1） | Sentinel + 审批卡 + 最小授权；"nothing publishes…without your approval"（§1.2） | trusted interpersonal network，关系→授权分级（§1.3） | knowledge `draft→stable` 人审；skill `propose→approve→land`；账本权限三分（[docs/home.md](../../../../docs/home.md) §二；[docs/operating.md](../../../../docs/operating.md) §二） |
+| 信任与审计 | 平台侧监控可暂停 dot；用户可开云电脑看（§1.1） | 完整审计轨迹（已做+将做），存平台（§1.2） | 〔未证实〕 | `audit/approvals.jsonl` 逐行台账**在用户盘上**；`curate` 纯函数 20+ 检查；`skill-usage.json` 机器账本（[docs/home.md](../../../../docs/home.md) §一/§四） |
+| 商业模式与目标用户 | 订阅捆绑（Pro/Business Premium 含首只 dot）（§1.1） | 免费 + 订阅 + 广告生态；中小企业（§1.2 + landscape） | 免费 + 交易佣金；消费者（§1.3） | DSH 插件（B 底座 + 专家包）；一把手数字分身；学习产物=用户资产（[README.md](../../../../README.md)；[docs/identity.md](../../../../docs/identity.md)） |
 
 ---
 
 ## 三、借鉴清单（问题三，最重要的交付）
 
 > 格式：借什么 → 来源与出处 → 对应本仓哪个面 → 已有/部分有/没有（repo 佐证）→ 采纳时机。
-> 克制约束：只借思路不装包（根 [AGENTS.md](../../../AGENTS.md) 硬规则 7）；不为想象的未来预建（研发姿态 3）。
+> 克制约束：只借思路不装包（根 [AGENTS.md](../../../../AGENTS.md) 硬规则 7）；不为想象的未来预建（研发姿态 3）。
 
 **1. 只读 proactive 档：给"无人值守的 turn"划工具红线**
 - 借什么：dots 的 proactive research 机制——空闲巡检期工具被限制为只读（不发消息、不改内容、不操控环境），
   动作只在有人看着的会话里按档授权（§1.1）。
 - 来源：[GIGAZINE 2026-09-30 转述官方公告](https://gigazine.net/news/20260930-openai-dots/)；
   [MIXED 2026-09-30 逐字转引官方帮助中心](https://mixed-news.com/en/openai-chatgpt-dots-exclude-pro-eea-switzerland-uk/)。
-- 对应面：**工具动词面 + host 节拍器**——`curate` 养护 turn（[docs/home.md](../../../docs/home.md) §四）
-  与 `schedule_*` 定时任务（[README.md](../../../README.md) 养护定时节）都是无人值守 turn。
-- 已有/部分有/没有：**部分有**。权限三分先例在账本（[docs/operating.md](../../../docs/operating.md) §二）；
+- 对应面：**工具动词面 + host 节拍器**——`curate` 养护 turn（[docs/home.md](../../../../docs/home.md) §四）
+  与 `schedule_*` 定时任务（[README.md](../../../../README.md) 养护定时节）都是无人值守 turn。
+- 已有/部分有/没有：**部分有**。权限三分先例在账本（[docs/operating.md](../../../../docs/operating.md) §二）；
   组合裁剪先例在 profile patch（headless 显式 disabled schedule 行）。没有的是"无人值守 turn 的工具级只读约束"
   ——养护 turn 拿的是全工具。
 - 时机：**现在就值得做纪律版（零代码）**——家手册写明"无人值守 turn（养护/定时）不做记忆写入门之外的状态变更、
@@ -292,7 +292,7 @@ Monday, and Claude starts on the report without being asked"。交互二档：**
 - 来源：[PPC Land 2026-09-09 转述官方《How We Built Safety Into Muse》](https://ppc.land/meta-puts-an-ai-agent-that-buys-things-inside-whatsapp-us-only/)。
 - 对应面：**写入面与对外出口**。本仓没有对外投递动词（不做 IM），最接近的"出站"是技能/知识写入面与交付稿。
 - 已有/部分有/没有：**部分有**——`curate` 查技能文本里的活凭据（"写入面即攻击面"，
-  [docs/home.md](../../../docs/home.md) §四）；`complete` 无逐字证据在工具边界被拒（[docs/operating.md](../../../docs/operating.md) §二）。
+  [docs/home.md](../../../../docs/home.md) §四）；`complete` 无逐字证据在工具边界被拒（[docs/operating.md](../../../../docs/operating.md) §二）。
   没有：独立于模型自觉的出站检查位。
 - 时机：**触发条件再议**——将来加任何"替本人对外发送"动词之前，必须先立此检查位（写进呈批卡）；
   现在只登记为设计判据。
@@ -303,16 +303,16 @@ Monday, and Claude starts on the report without being asked"。交互二档：**
 - 来源：[PPC Land 2026-09-09 转述《How We Designed Muse》](https://ppc.land/meta-puts-an-ai-agent-that-buys-things-inside-whatsapp-us-only/)。
 - 对应面：**经营账本动词分档 + 未来一切动词设计**。
 - 已有/部分有/没有：**大部分已有**——普通进展自动留存 / 确认性变化走明确指令 / 推断性变化只走提案
-  （[docs/operating.md](../../../docs/operating.md) §二）；摘要预算闸门只堵记忆行不堵线索
-  （[docs/home.md](../../../docs/home.md) §三）是同一判据的另一处落地。
+  （[docs/operating.md](../../../../docs/operating.md) §二）；摘要预算闸门只堵记忆行不堵线索
+  （[docs/home.md](../../../../docs/home.md) §三）是同一判据的另一处落地。
 - 时机：**现在就值得（零代码）**——把该论证作为"动词分档"的判定理由引用进下一次动词变更的设计记录
   （note 的判定记录面），不是新机制。
 
 **4. 审计轨迹带"计划做什么"：审计不只是追溯**
 - 借什么：Muse 的审计轨迹包含"已做了什么 + **计划做什么**"（§1.2）。
 - 来源：同上（PPC Land 转述官方安全文档）。
-- 对应面：**治理台账 + 经营桌面**——`audit/approvals.jsonl`（[docs/home.md](../../../docs/home.md) §一）
-  与桌面投影（[docs/operating.md](../../../docs/operating.md) §三）。
+- 对应面：**治理台账 + 经营桌面**——`audit/approvals.jsonl`（[docs/home.md](../../../../docs/home.md) §一）
+  与桌面投影（[docs/operating.md](../../../../docs/operating.md) §三）。
 - 已有/部分有/没有：**部分有**——回执逐条渲染、pending 提案阻止"处理路径回桌面"；没有"接下来要做什么"的
   预告面（v2 reminders 是有意保留的恒空占位）。
 - 时机：**触发条件再议**——reminders 通道落地时一并设计预告面；真用出现"不知道助手在干嘛"的摩擦才动。
@@ -321,7 +321,7 @@ Monday, and Claude starts on the report without being asked"。交互二档：**
 - 借什么：dots 的 Space 页面可设持续指令（"每天检查 X、把结果更新到这里"），评论可派任务给特定 dot（§1.1）。
 - 来源：[GIGAZINE 2026-09-30 转述官方](https://gigazine.net/news/20260930-openai-dots/)。
 - 对应面：**schedule 四件 + research/ 房间**——`schedule_create`（prompt+title+after_seconds，
-  [README.md](../../../README.md)）与 parked 线索（[docs/home.md](../../../docs/home.md) §二）。
+  [README.md](../../../../README.md)）与 parked 线索（[docs/home.md](../../../../docs/home.md) §二）。
 - 已有/部分有/没有：**部分有**——能定时、能带 prompt；没有"指令绑定目标对象（盯哪条线索、结果回写哪里）"
   的结构与提醒。
 - 时机：**触发条件再议**——真用出现"想让助手定期盯某条线索并回写"再立卡；短期零成本动作＝手册的 schedule
@@ -330,7 +330,7 @@ Monday, and Claude starts on the report without being asked"。交互二档：**
 **6. 专用 ID / 能力域凭据最小化：一个能力域一个身份**
 - 借什么：dots 给每只 dot 配专用 ID 管理访问权，企业专业 dot 由企业配置专用 ID、凭据与可访问系统（§1.1）。
 - 来源：[GIGAZINE 2026-09-30 转述官方](https://gigazine.net/news/20260930-openai-dots/)。
-- 对应面：**身份面与治理遮蔽**——行 id 前缀"一个专家一个前缀"（[docs/identity.md](../../../docs/identity.md) §一）
+- 对应面：**身份面与治理遮蔽**——行 id 前缀"一个专家一个前缀"（[docs/identity.md](../../../../docs/identity.md) §一）
   与 `assistant-ov-shield` 的 `denyToolPrefix`/`denyServerResources`/`shadowSkills` 三键（同上 §一 第 2 行）。
 - 已有/部分有/没有：**部分有**——前缀即能力域命名空间、遮蔽行即 deny 面；没有"按专家收敛凭据与数据目录"
   的装机检查（O5 面）。
@@ -342,7 +342,7 @@ Monday, and Claude starts on the report without being asked"。交互二档：**
   （§1.2/1.1）。
 - 来源：[PPC Land 2026-09-09](https://ppc.land/meta-puts-an-ai-agent-that-buys-things-inside-whatsapp-us-only/)；
   [MIXED](https://mixed-news.com/en/openai-chatgpt-dots-exclude-pro-eea-switzerland-uk/)。
-- 对应面：**P3 与四房间根本设计**（[README.md](../../../README.md)；[docs/home.md](../../../docs/home.md) §一/§四）。
+- 对应面：**P3 与四房间根本设计**（[README.md](../../../../README.md)；[docs/home.md](../../../../docs/home.md) §一/§四）。
 - 已有/部分有/没有：**已有，且是本命**——人可读文件、可 git、curate 报烂文件、退役走 archive 不删可恢复。
 - 时机：**无动作**。用途是定位话术：头部厂商的设计文档验证了我们 9 月就定下的根基（P3），可直接引用作旁证。
 
@@ -353,13 +353,13 @@ Monday, and Claude starts on the report without being asked"。交互二档：**
 - 对应面：**平台面，不是本仓面**——本仓不控 adapter 与调度；DSH 平台事实的家在 `vendor/dsh`（硬规则 2）。
 - 已有/部分有/没有：**没有，且不该有**——本仓无对应缝。
 - 时机：**平台出现模型路由/调度能力再议**（不预建）。当前同方向已有物：`curate` 的技能退役检查
-  （90 天阈值，[docs/home.md](../../../docs/home.md) §四"死技能每请求都在付费"）——同一成本意识的本地版。
+  （90 天阈值，[docs/home.md](../../../../docs/home.md) §四"死技能每请求都在付费"）——同一成本意识的本地版。
 
 **9. Ideas 式建议位：从目标与模式生成"下一步"**
 - 借什么：Muse 的 Ideas 页——从用户的目标与行为模式生成建议，回应"agent 能做的太多、人不知从哪开始"（§1.2）。
 - 来源：[PPC Land 2026-09-09 转述《How We Designed Muse》](https://ppc.land/meta-puts-an-ai-agent-that-buys-things-inside-whatsapp-us-only/)。
-- 对应面：**桌面摘要 + goal 提案槽**——开放线索标题已进摘要（[docs/home.md](../../../docs/home.md) §三）；
-  goal 完成时自动排提案槽（`goalProposalTurns`，[docs/home.md](../../../docs/home.md) §二）是"自动排下一步"的先例。
+- 对应面：**桌面摘要 + goal 提案槽**——开放线索标题已进摘要（[docs/home.md](../../../../docs/home.md) §三）；
+  goal 完成时自动排提案槽（`goalProposalTurns`，[docs/home.md](../../../../docs/home.md) §二）是"自动排下一步"的先例。
 - 已有/部分有/没有：**部分有**（提案槽）；没有主动建议位。
 - 时机：**触发条件再议**——真用出现"用户不知道该让助手干嘛"的摩擦再议；这是模型可见面新能力，须呈批。
 

@@ -5,7 +5,7 @@ intent: "首开为什么让人无从下手：把现场、机制、可选方向�
 
 # 首开体验走查：一屏功能是怎么堆出来的
 
-> 2026-10-23。为 [首开重做卡](../../_archive/settled_issues/261023-first-run-ux-reframe.md) 收集；本档只做证据与推敲，
+> 2026-10-23。为 [首开重做卡](../../settled_issues/261023-first-run-ux-reframe.md) 收集；本档只做证据与推敲，
 > 不是实施提案，也不构成任何落地授权。用户当天原话：「一启动插件之后就有点不知所措……堆叠了一堆功能，
 > 但体验上它就是让人手不知道哪着手」「感觉要费太大的力气消化了」。
 
@@ -25,7 +25,7 @@ intent: "首开为什么让人无从下手：把现场、机制、可选方向�
 - 一次真模型回合：`node dev/probes/web/webui-loop-probe.mjs '<URL>' --ask '我下季度销售掉了20%，帮我看看该怎么办' --home .tmp/ux-fresh-home`
   （PASS；会话日志 `session-2da25a77…` 可读）。
 - 对照：M2 简洁档真机截图（`.tmp/shots/m2-simple2-1600x1000.png`）与
-  [三档界面决定](../../../notes/implemented/2026-10-23-ui-modes-and-panel-surface.md)。
+  [三档界面决定](../../../../notes/implemented/2026-10-23-ui-modes-and-panel-surface.md)。
 
 ### 现场 A：空桌面（启动默认）
 
@@ -61,10 +61,10 @@ intent: "首开为什么让人无从下手：把现场、机制、可选方向�
    用户先看到机器，后看到价值。
 2. **唯一解释「第一句话说什么」的卡不可达。** `hasDesk = Object.keys(walk.data).length > 0`；
    rooms 路由即使四房间全空也返回带键对象 → Day-0 分支永远不走。空 home 看到的是「有桌面」文案。
-   已立 [BUG-025](../../_archive/fixed_bugs/BUG-025-first-run-day0-unreachable.md)。
+   已立 [BUG-025](../../fixed_bugs/BUG-025-first-run-day0-unreachable.md)。
 3. **两个主对象互相指路。** 桌面 →「＋交代新事项」→ 空白会话 → 卡片「打开桌面全景」→ 桌面。
    每一面都把用户推给另一面，没有一条路通向「先做成一件事」。
-4. **人面没有能力菜单。** 模型侧 15 个技能、6 个工具（[package-catalog](../../../docs/package-catalog.md)）；
+4. **人面没有能力菜单。** 模型侧 15 个技能、6 个工具（[package-catalog](../../../../docs/package-catalog.md)）；
    人侧只有「有问题？跟助手说」和一个空输入框。用户必须先知道该问什么，能力才存在。
 5. **首答密度与界面密度同源。** 2055 字是「一次给完」的默认；用户要的是「一次一步」。
 
@@ -81,8 +81,8 @@ intent: "首开为什么让人无从下手：把现场、机制、可选方向�
 | 桌面捕获行 | 桌面主面板 | 输入 +「交给助手」 |
 
 **平台边界**：`DEFAULT_VIEW_ID = 'chat'`、空白相位视图区自持、composer 属 vendor
-（见 [cockpit 卡](../../../notes/archived/2026-10-07-cockpit-page.md) 与
-[桌面主对象化](../../../notes/archived/2026-10-06-desk-primary-view.md)）；主区 `main` 面板可由插件整块拥有。
+（见 [cockpit 卡](../../../../notes/archived/2026-10-07-cockpit-page.md) 与
+[桌面主对象化](../../../../notes/archived/2026-10-06-desk-primary-view.md)）；主区 `main` 面板可由插件整块拥有。
 「家」能改，但**不能替换 vendor 的 hero/composer**——这决定了各案的可行边界。
 
 ## 5. 机制诊断
@@ -97,9 +97,9 @@ intent: "首开为什么让人无从下手：把现场、机制、可选方向�
    M2 简洁档把按钮 15→6，但它是选装（默认标准），空态仍无第一件事的引导。
 5. **输出密度没有被当成 UX。** 首答一次给完，用户要自己拆成下一步；「聪明」变成了消化负担。
 
-**历史重复**：同类症状已出现三次——[首开卡](../../_archive/settled_issues/261001-first-open-ux.md)、
-[Day-0 intake](../../../notes/archived/2026-10-05-day0-intake-first-conversation.md)、
-[桌面主对象化](../../../notes/archived/2026-10-06-desk-primary-view.md)。每次都以「再加一张卡/再换一个视图」收口。
+**历史重复**：同类症状已出现三次——[首开卡](../../settled_issues/261001-first-open-ux.md)、
+[Day-0 intake](../../../../notes/archived/2026-10-05-day0-intake-first-conversation.md)、
+[桌面主对象化](../../../../notes/archived/2026-10-06-desk-primary-view.md)。每次都以「再加一张卡/再换一个视图」收口。
 这一次若仍只在缝上加东西，大概率第四次复发。
 
 ## 6. 目标用户与形态：一页纸（推荐）
@@ -107,7 +107,7 @@ intent: "首开为什么让人无从下手：把现场、机制、可选方向�
 ### 6.1 目标用户的硬约束
 
 用户 2026-10-23 原话：「我们的用户其实说实在对 AI 是不熟悉的，都是高层管理，你让使用的代价过高，
-那你这套程序就已经是个废物了。」结合既有 CEO 研究（[视角合成](../../_archive/research/261005-value-and-turnaround/261005-ceo-viewpoint-synthesis.md)、
+那你这套程序就已经是个废物了。」结合既有 CEO 研究（[视角合成](../261005-value-and-turnaround/261005-ceo-viewpoint-synthesis.md)、
 [外部首跑模式](../261005-ceo-value-positioning/261005-external-ux-patterns.md)），把约束写成可检查的六条：
 
 1. **零学习**：第一小时不引入新名词（账本/投影/事项/认领/在办/流水/房间/技能/模式），一律用日常词。
@@ -236,7 +236,7 @@ B（会话优先）的问题不变：vendor 的空白会话是开发者语言，
 ### 6.11 可行性掂量：账本现在装不装得下这一页
 
 账本当前装的是：`title` / `summary` / `responsible` / `status` / 四种业务时间 / `evidence` / `proposals` / 回执
-（[operating.md](../../../docs/operating.md) §二）。页要的是：**判断 / 三个选项（各带代价与可逆性）/ 建议 /
+（[operating.md](../../../../docs/operating.md) §二）。页要的是：**判断 / 三个选项（各带代价与可逆性）/ 建议 /
 还缺的数 / 复查日 / 来源**。差三样：选项结构、建议、缺数清单。
 
 三条落法：
@@ -367,7 +367,7 @@ v3 `brief` 只在 summary 装不下结构化三选项、或页上按钮需要选
 - 首答长度是单次样本（模型 DeepSeek-V4.1-Flash），换模型/换问法会变；要进验收得用固定题集。
 - 截图落在 `.tmp/`，不是持久证据；固化为验收时需重跑命令或建 web-face 场景。
 - 三档界面的既有决定与拒绝方案见
-  [2026-10-23 note](../../../notes/implemented/2026-10-23-ui-modes-and-panel-surface.md)，
+  [2026-10-23 note](../../../../notes/implemented/2026-10-23-ui-modes-and-panel-surface.md)，
   本档不重复论证「要不要模式」，只讨论「模式之外还缺什么」。
 
 ## 10. 三案例纸面走查（B/C 的判据，模拟）

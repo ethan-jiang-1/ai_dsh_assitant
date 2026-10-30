@@ -8,8 +8,8 @@ intent: "一页纸落地后的端到端复核：哪些计划真的落地、质�
 > 2026-10-23。复核对象 = `6c161e6` + `0bd793c`，以及本轮复核中修掉的工作树改动。
 > 方法 = 干净 home 真机 E2E + eight-matters 种子交互 + 两轴代码评审（Standards / Spec）+ 测试资产盘点。
 > 边界：1–2 个 live home、无真人；模型有方差；注入/单测覆盖的状态不冒充实机。
-> 计划面 = [决定 note](../../../notes/implemented/2026-10-23-first-run-one-page.md) 与
-> [已结收口卡](../../_archive/settled_issues/261023-first-run-ux-reframe.md)。
+> 计划面 = [决定 note](../../../../notes/implemented/2026-10-23-first-run-one-page.md) 与
+> [已结收口卡](../../settled_issues/261023-first-run-ux-reframe.md)。
 
 ## 0. 结论
 

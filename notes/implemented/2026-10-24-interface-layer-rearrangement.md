@@ -1,4 +1,4 @@
-日期：2026-10-24 · 状态：**implemented**（用户「都弄好」授权；审计 = [三层界面安排审计](../../_backlog/research/261024-interface-layer-audit/261024-interface-layer-audit.md)）
+日期：2026-10-24 · 状态：**implemented**（用户「都弄好」授权；审计 = [三层界面安排审计](../../_backlog/_archive/research/261024-interface-layer-audit/261024-interface-layer-audit.md)）
 
 # 三层界面重排：一个家，深看归位，调试一个门
 
@@ -58,7 +58,7 @@ Viki(调试) 交给「专家」密度而不是 debug flag；首开有两张面�
 
 ## 链接
 
-- 审计与优先级：[261024-interface-layer-audit.md](../../_backlog/research/261024-interface-layer-audit/261024-interface-layer-audit.md)
+- 审计与优先级：[261024-interface-layer-audit.md](../../_backlog/_archive/research/261024-interface-layer-audit/261024-interface-layer-audit.md)
 - 三层合同：[docs/architecture.md](../../docs/architecture.md) §界面三层
 - 上一版首开决定：[2026-10-23-first-run-one-page.md](2026-10-23-first-run-one-page.md)（一页纸不变；本 note 收窄会话/看板/命名）
 - 三档界面决定：[2026-10-23-ui-modes-and-panel-surface.md](2026-10-23-ui-modes-and-panel-surface.md)（本 note 进一步收窄为完整看板内部）

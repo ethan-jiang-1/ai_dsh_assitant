@@ -1,7 +1,7 @@
 # 价值赤字与转向自洽：2026-10-05 那一轮
 
 > 问题：这个产品对一把手到底值在哪；转向之后前后是否自洽；技术面该先吃 DSH 哪些能力，又在哪些地方不该假装有证据？
-> 消费者：历史消费者：[定位卡](../../settled_issues/261005-open-value-deficit.md)、[自洽卡](../../settled_issues/261005-turnaround-coherence.md)、[开屏节律卡](../../settled_issues/261007-opening-brief-and-rhythm.md)、[输入边界卡](../../settled_issues/261007-input-boundary.md)（均已结）
+> 历史消费者：[定位卡](../../settled_issues/261005-open-value-deficit.md)、[自洽卡](../../settled_issues/261005-turnaround-coherence.md)、[开屏节律卡](../../settled_issues/261007-opening-brief-and-rhythm.md)、[输入边界卡](../../settled_issues/261007-input-boundary.md)（均已结）
 > 产出的卡：—
 > 归档：2026-10-12（最后一份材料随输入边界卡离场）
 

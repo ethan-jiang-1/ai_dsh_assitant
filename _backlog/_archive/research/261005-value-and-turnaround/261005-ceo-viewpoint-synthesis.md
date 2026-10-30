@@ -7,7 +7,7 @@ intent: "把三路资料和 trial 产物对照，分开证据和推论。"
 
 > 立档：2026-10-05 ｜ 喂 [定位卡](../../settled_issues/261005-open-value-deficit.md) 与 [自洽卡](../../settled_issues/261005-turnaround-coherence.md)。
 > 性质：三路外部资料与代理生成的 trial 产物形态对照，不是真人连续经营 n=1 实证。
-> 原始出处分别归 [CEO 声音](261005-ceo-voices.md)、[时间/决策研究](../../../research/261005-ceo-value-positioning/261005-ceo-time-and-decision-research.md)、[中国 SME 画像](../../../research/261005-value-and-turnaround/261005-chinese-sme-boss.md)。本轮校准推论强度，未重新访问全部外部 URL；“有出处”不等于原研究可推广到本产品。
+> 原始出处分别归 [CEO 声音](261005-ceo-voices.md)、[时间/决策研究](../261005-ceo-value-positioning/261005-ceo-time-and-decision-research.md)、[中国 SME 画像](../../../research/261005-value-and-turnaround/261005-chinese-sme-boss.md)。本轮校准推论强度，未重新访问全部外部 URL；“有出处”不等于原研究可推广到本产品。
 
 ## 一、证据与解释分开
 

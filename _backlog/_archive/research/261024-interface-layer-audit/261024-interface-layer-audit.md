@@ -306,4 +306,4 @@ memory-hygiene 明确是 agent 的活），却在客户的编辑层以“斜杠�
 - 左栏「插件 / 自动化任务」是 vendor 壳，插件不能移除。
 - 直接挂载 `ProjectionPanel`（测试/兼容）仍保留全量 dashboard；产品深看经 HomeSurface deep 变体。
 
-决定与后果 = [三层界面重排 note](../../../notes/implemented/2026-10-24-interface-layer-rearrangement.md)。
+决定与后果 = [三层界面重排 note](../../../../notes/implemented/2026-10-24-interface-layer-rearrangement.md)。

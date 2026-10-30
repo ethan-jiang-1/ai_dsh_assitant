@@ -127,12 +127,25 @@ describe('backlogLivenessProblems', () => {
 
     const archived = temp('backlog-topic-arch-')
     bootBacklog(archived)
-    writeTopic(archived, join('_archive', 'research'), '261005-old', titlePage({ materials: [] }))
+    // An archived topic names past consumers; the label itself is part of the archived head.
+    writeTopic(archived, join('_archive', 'research'), '261005-old',
+      titlePage({ head: ['问题：要回答什么', '历史消费者：—', '产出的卡：—'], materials: [] }))
     writeFileSync(join(archived, '_archive', 'research', 'README.md'),
       '# research\n\n| 题 |\n|---|\n| [261005-old](261005-old/README.md) |\n', 'utf8')
     expect(backlogLivenessProblems(archived)).toEqual([
       expect.stringContaining('`> 归档：YYYY-MM-DD`'),
     ])
+  })
+
+  it('rejects an archived title page that still claims live consumers', () => {
+    const backlog = temp('backlog-topic-live-label-')
+    bootBacklog(backlog)
+    writeTopic(backlog, join('_archive', 'research'), '261005-old', titlePage({ materials: [] }))
+    writeFileSync(join(backlog, '_archive', 'research', 'README.md'),
+      '# research\n\n| 题 |\n|---|\n| [261005-old](261005-old/README.md) |\n', 'utf8')
+    const problems = backlogLivenessProblems(backlog)
+    expect(problems.some(p => p.includes('`> 历史消费者：`'))).toBe(true)
+    expect(problems.some(p => p.includes('`> 归档：YYYY-MM-DD`'))).toBe(true)
   })
 
   it('rejects an archived card missing from its pool index', () => {

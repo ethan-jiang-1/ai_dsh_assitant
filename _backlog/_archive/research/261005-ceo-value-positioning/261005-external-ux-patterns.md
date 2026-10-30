@@ -13,7 +13,7 @@ intent: "看同类产品第一次打开时怎么给出主动价值。"
 
 ## 本轮使用边界
 
-本档是 CRM、日程、知识工具的公开模式原料，官网动作不证明真实管理者采纳或本仓收益。连接邮箱/日历与本仓“不做 IM/只用已提供本地资料”不同；只借可见状态、成品入口、可关闭主动性，不直接复制连接数据源、天气/新闻、次数/时间为硬规格。原来源/获取限制保留，本轮未逐 URL 重验。活卡链只把它当抓取限制的旁证：[输入边界](../../_archive/settled_issues/261007-input-boundary.md) → [演示叙事](261005-exec-demo-narratives.md) → 本篇。原卡：[定位卡](../../_archive/settled_issues/261005-open-value-deficit.md)、[自洽卡](../../_archive/settled_issues/261005-turnaround-coherence.md)。
+本档是 CRM、日程、知识工具的公开模式原料，官网动作不证明真实管理者采纳或本仓收益。连接邮箱/日历与本仓“不做 IM/只用已提供本地资料”不同；只借可见状态、成品入口、可关闭主动性，不直接复制连接数据源、天气/新闻、次数/时间为硬规格。原来源/获取限制保留，本轮未逐 URL 重验。活卡链只把它当抓取限制的旁证：[输入边界](../../settled_issues/261007-input-boundary.md) → [演示叙事](261005-exec-demo-narratives.md) → 本篇。原卡：[定位卡](../../settled_issues/261005-open-value-deficit.md)、[自洽卡](../../settled_issues/261005-turnaround-coherence.md)。
 
 ## 1. Clay（clay.earth，现更名 Me.sh / Mesh）
 

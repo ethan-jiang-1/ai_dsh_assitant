@@ -10,7 +10,7 @@ intent: "2026-10-28 六维打扫卫生深审：四路 fresh 只读审计 + 主�
 > 机器基线（审计时）：`pnpm test` **144 文件 / 1084 测试全绿**；`pnpm verify` **48/48**；`pnpm eval:continuity` **PASS**（35s）；
 > `pnpm eval --only first-open-intake` **PASS**（17s）；`pnpm start` → preflight 绿 → `pnpm shots` 产出真 PNG/DOM。
 > 处置：机械真相修复已提交 `5cb43b8`（14 文件，+27/−45）与 `21dab8d`（删退役组件 165 行）；S1–S4 跨切片改善已全部收口，
-> 决定 = [implemented note](../../../notes/implemented/2026-10-28-six-dimension-continuous-improvement.md)。
+> 决定 = [implemented note](../../../../notes/implemented/2026-10-28-six-dimension-continuous-improvement.md)。
 
 ## 一、六维判定
 
@@ -125,7 +125,7 @@ S4c 的 coverage 只报告车道已建：`pnpm test:coverage` 跑同一套 144 �
 
 ## 八、收口（2026-10-28）
 
-S1–S4 全部交付，逐片可回退；决定与后果 = [implemented note](../../../notes/implemented/2026-10-28-six-dimension-continuous-improvement.md)，work 台账 = [已结卡](../../_archive/settled_issues/261028-six-dimension-improvement.md)。
+S1–S4 全部交付，逐片可回退；决定与后果 = [implemented note](../../../../notes/implemented/2026-10-28-six-dimension-continuous-improvement.md)，work 台账 = [已结卡](../../settled_issues/261028-six-dimension-improvement.md)。
 
 | 片 | 收口结果 |
 |---|---|
@@ -140,4 +140,4 @@ S1–S4 全部交付，逐片可回退；决定与后果 = [implemented note](..
 
 **B 级补强（2026-10-28）**：⑤/⑥ 从 B 升 A —— 真 DOM 客户端 spec、`web-face-check --all` 8/8、pre-push 浏览器车道、TZ 固定。
 
-**仍延后**：performance/load、coverage 阈值（等死代码实证）、命令参数形状门。P3-a～P3-d 与 B1–B4 分别收口在 [P3 卡](../../_archive/settled_issues/261028-p3-residuals.md) 与 [B 卡](../../_archive/settled_issues/261028-b-grade-close.md)。
+**仍延后**：performance/load、coverage 阈值（等死代码实证）、命令参数形状门。P3-a～P3-d 与 B1–B4 分别收口在 [P3 卡](../../settled_issues/261028-p3-residuals.md) 与 [B 卡](../../settled_issues/261028-b-grade-close.md)。

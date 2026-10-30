@@ -1,8 +1,9 @@
 # 三层界面安排审计
 
 > 问题：主面板 / 会话 / 右栏的三层安排哪里混层、越层、缺失、重复、门不一致；该按什么顺序重排？
-> 消费者：[三层界面重排 note](../../../notes/implemented/2026-10-24-interface-layer-rearrangement.md)（本档是证据，不再是待拍板方案）
+> 历史消费者：[三层界面重排 note](../../../../notes/implemented/2026-10-24-interface-layer-rearrangement.md)（已 implemented）
 > 产出的卡：—
+> 归档：2026-10-30（重排已按 note 交付）
 
 ## 材料
 

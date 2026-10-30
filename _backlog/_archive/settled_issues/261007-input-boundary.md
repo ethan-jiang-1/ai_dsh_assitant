@@ -57,8 +57,8 @@ opened: 2026-10-07
 
 - **既有边界**：不接外部数据源，不做 IM，见 [总助体验卡的约束](261006-chief-of-staff-experience.md) 和 [定位讨论](../../_archive/settled_issues/261005-open-value-deficit.md)。当前承诺限于跟进用户提供的事情。
 - **需求线索**：五谷渔粉“群里 99+，无法提炼关键信息”的案例见 [中国中小企业调研](../../research/261005-value-and-turnaround/261005-chinese-sme-boss.md)。它说明信息提炼可能有需求，不证明本人会自发投递碎片。
-- **时间与输入特点**：“输入端收碎片、输出端给大块”、坏消息来源和关注点组织，见 [时间与决策调研](../../research/261005-ceo-value-positioning/261005-ceo-time-and-decision-research.md)。没有外部系统输入时，信息来源仍限于本人提供的材料。
-- **参考边界**：Huper 式全量接入与本产品不同，见 [演示叙事](../../research/261005-ceo-value-positioning/261005-exec-demo-narratives.md)。不能从竞品能力推定本产品已经具备相同输入。
+- **时间与输入特点**：“输入端收碎片、输出端给大块”、坏消息来源和关注点组织，见 [时间与决策调研](../research/261005-ceo-value-positioning/261005-ceo-time-and-decision-research.md)。没有外部系统输入时，信息来源仍限于本人提供的材料。
+- **参考边界**：Huper 式全量接入与本产品不同，见 [演示叙事](../research/261005-ceo-value-positioning/261005-exec-demo-narratives.md)。不能从竞品能力推定本产品已经具备相同输入。
 - **已有入口**：对话、播报行点击和周坐问答；workspace-files 客户端读取机制已在使用。它们不等于已验证的文件投递产品。
 
 产品约束目前可从上述卡片找到。需要下游保留时，申请中附原始依据和适用范围，由下游决定是否及如何记录，不预先要求新建决定 note。
@@ -120,7 +120,7 @@ opened: 2026-10-07
 | 观察安排 | 读数命令 `pnpm observe --home dev/trial-home-30d`；三项口径（A 自发投递／B 时长／C 入口后的操作）与剔除规则见[读数档](../../research/261011-input-observation/261011-input-observation.md)；基线已于 2026-10-11 在任何真人会话之前摘（三项均为空） |
 | 重新讨论条件与家 | **30 天读数落账**（约定的三组读数收齐并记录）→ 在读数档上比较候选；触发条件已入 [triggers.md](../../triggers.md)（agent 扫读数档，>7 天补摘） |
 | 范围与排除 | 接微信/IM、日历、邮箱、CRM **不在**候选范围；不操作日用 home；不因本卡已有方案就开始实现 |
-| 依据 | 既有边界与需求线索：[总助体验卡的约束](261006-chief-of-staff-experience.md)、[定位讨论](../../_archive/settled_issues/261005-open-value-deficit.md)、[中国中小企业调研](../../research/261005-value-and-turnaround/261005-chinese-sme-boss.md)、[时间与决策调研](../../research/261005-ceo-value-positioning/261005-ceo-time-and-decision-research.md) |
+| 依据 | 既有边界与需求线索：[总助体验卡的约束](261006-chief-of-staff-experience.md)、[定位讨论](../../_archive/settled_issues/261005-open-value-deficit.md)、[中国中小企业调研](../../research/261005-value-and-turnaround/261005-chinese-sme-boss.md)、[时间与决策调研](../research/261005-ceo-value-positioning/261005-ceo-time-and-decision-research.md) |
 
 **限制（随申请一并交代）**：30 天观察只能辅助选择形态，**不能**证明长期价值；少量投递不足以断言某一候选足够；
 若历史数据无法保留，B 只能作定性描述。读数缺失须如实说明「重新讨论条件尚未满足」，不在读数时自行放宽。

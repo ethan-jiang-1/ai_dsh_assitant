@@ -17,7 +17,7 @@ intent: "一手案例正文没取回，用标明的模拟变式继续原型。"
 | GitLab 数据库事故 | [官方 postmortem](https://about.gitlab.com/blog/postmortem-of-database-outage-of-january-31/) | 定位到可候选作失败反例的文章；当时备份/复制状态、动作、丢失与恢复量、选项与owner均未核，不能用熟知故事补字段 |
 | 事件/情境访谈 | [GOV.UK contextual inquiry](https://www.gov.uk/guidance/contextual-inquiry)、[understand user needs](https://www.gov.uk/service-manual/service-standard/point-1-understand-user-needs)、[choosing methods](https://www.gov.uk/service-manual/user-research/choosing-methods) | 定位官方方法入口；未核正文，不能把本仓十问框架称为官方方法已验证的实现 |
 
-本轮已尝试访问上述入口；原始发表/更新日期未核。既有 [CEO时间与决策研究](../../../research/261005-ceo-value-positioning/261005-ceo-time-and-decision-research.md#45-简报形态的两个高可信参照amazon-六页备忘录与军方-bluf) 留有 [Amazon 2017 letter](https://www.aboutamazon.com/news/company-news/2017-letter-to-shareholders) 六页叙事的核引，但那不补足本轮“具体决定→动作→结果”的缺口。
+本轮已尝试访问上述入口；原始发表/更新日期未核。既有 [CEO时间与决策研究](../261005-ceo-value-positioning/261005-ceo-time-and-decision-research.md#45-简报形态的两个高可信参照amazon-六页备忘录与军方-bluf) 留有 [Amazon 2017 letter](https://www.aboutamazon.com/news/company-news/2017-letter-to-shareholders) 六页叙事的核引，但那不补足本轮“具体决定→动作→结果”的缺口。
 
 ## 2. 取回后怎样形成可重放案例
 

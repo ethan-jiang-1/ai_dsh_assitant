@@ -1,7 +1,7 @@
 # 仓库可导航性：入口、测试资产与验证车道
 
 > 问题：运行入口和路径消费者到底有哪些；测试层级与验证车道在哪；哪些是源码事实、哪些还没被 live 证明？
-> 消费者：历史消费者：[261005-repo-navigability](../../settled_issues/261005-repo-navigability.md)（已结）
+> 历史消费者：[261005-repo-navigability](../../settled_issues/261005-repo-navigability.md)（已结）
 > 产出的卡：—
 > 归档：2026-10-09（随导航卡离场）
 

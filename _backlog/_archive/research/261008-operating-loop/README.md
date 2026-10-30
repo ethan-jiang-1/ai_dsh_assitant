@@ -1,7 +1,7 @@
 # 经营事项的跨会话接续与 CEO 价值证据
 
 > 问题：一件经营事项能不能跨会话接续、提醒联动、经验迁移；CEO 价值证据在研究到验收之间怎么损耗、边界在哪？
-> 消费者：历史消费者：[总助体验卡](../../settled_issues/261006-chief-of-staff-experience.md)、[持续助理卡](../../settled_issues/261008-ceo-operating-loop.md)（均已结）
+> 历史消费者：[总助体验卡](../../settled_issues/261006-chief-of-staff-experience.md)、[持续助理卡](../../settled_issues/261008-ceo-operating-loop.md)（均已结）
 > 产出的卡：—
 > 归档：2026-10-12（两张卡已结）
 

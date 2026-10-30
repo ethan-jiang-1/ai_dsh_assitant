@@ -1,8 +1,9 @@
 # 近月 personal agent 生态：形态、机制与我们的差异
 
 > 问题：近两个月 personal agent（Meta Muse / OpenAI dots / Instinct / CC / Cowork）在做什么、怎么做的；我们与它们的机制级差异在哪；经营决策连续性是不是真问题？
-> 消费者：用户直派（2026-10-12 近月生态）；间接：[首用价值问题卡](../../issues/261029-first-value-journey.md)（取用差异论证与连续性证据分层）
+> 历史消费者：用户直派（2026-10-12 近月生态）；[经营连续性价值卡](../../settled_issues/261012-operating-continuity-value.md)（已结）
 > 产出的卡：—
+> 归档：2026-10-30（用户直派那一轮收卷）
 
 ## 材料
 

@@ -1,7 +1,7 @@
 # 助手自更新：三条通道与面板数据通路
 
 > 问题：助手怎么学到东西、学到的东西怎么被维护；面板缺的到底是数据通路还是按钮？
-> 消费者：历史消费者：[A 卡](../../settled_issues/261019-self-update-lanes.md)、[B 卡](../../settled_issues/261019-viki-content-governance.md)、[C 卡](../../settled_issues/261019-learned-skills-surface.md)（均已结）
+> 历史消费者：[A 卡](../../settled_issues/261019-self-update-lanes.md)、[B 卡](../../settled_issues/261019-viki-content-governance.md)、[C 卡](../../settled_issues/261019-learned-skills-surface.md)（均已结）
 > 产出的卡：—
 > 归档：2026-10-20（三卡已结）
 

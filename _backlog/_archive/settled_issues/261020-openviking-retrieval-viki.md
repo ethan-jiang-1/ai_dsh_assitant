@@ -65,7 +65,7 @@ opened: 2026-10-20
 | A3. 不放 | 继续只靠自动 recall | 零新面 | “问细节”无解；指针展开不了 | 不选 |
 | A4. 全放 | 16 个工具全开 | 最“充分” | 写面风险、工具噪声、错房间 | 不选 |
 
-**A/B 结果（2026-10-21）：** A1 与 A2 各跑完 12 题；初评 91/96 vs 90/96，但**两侧工具面在 12 题内均未被调用**（A2 `assistant_recall` 0 次；A1 7 个只读 MCP 0 次），答案全部来自自动 recall 块——91/90 不是工具面成绩。**指针展开 probe（17:xx）：** A1 allowlist 生效后仍 0 MCP 调用：模型先 `list_mcp_resources`，被 `ov-shield` 的 `denyServerResources: openviking` 拒，退到文件 `read`；**A2 的 `assistant_recall read` 被调用并返回全文**（第二次 400，错误信息 `[object Object]`）。所以 **A2 是当前唯一被证明可达的按需读路径**；A1 必须补资源发现（`allowServerResources` 或工具描述自带 URI），否则 7 个工具“可见但不可发现”。A2 的 400 是待修 bug。完整证据见 [A/B note](../../research/261021-recall-ab/261021-recall-ab.md) §7。
+**A/B 结果（2026-10-21）：** A1 与 A2 各跑完 12 题；初评 91/96 vs 90/96，但**两侧工具面在 12 题内均未被调用**（A2 `assistant_recall` 0 次；A1 7 个只读 MCP 0 次），答案全部来自自动 recall 块——91/90 不是工具面成绩。**指针展开 probe（17:xx）：** A1 allowlist 生效后仍 0 MCP 调用：模型先 `list_mcp_resources`，被 `ov-shield` 的 `denyServerResources: openviking` 拒，退到文件 `read`；**A2 的 `assistant_recall read` 被调用并返回全文**（第二次 400，错误信息 `[object Object]`）。所以 **A2 是当前唯一被证明可达的按需读路径**；A1 必须补资源发现（`allowServerResources` 或工具描述自带 URI），否则 7 个工具“可见但不可发现”。A2 的 400 是待修 bug。完整证据见 [A/B note](../research/261021-recall-ab/261021-recall-ab.md) §7。
 
 **A2 入生产的门禁（2026-10-21）：** `pnpm verify` 43/43、`pnpm build`、`pnpm release-smoke`、`pnpm test` 910/910、`pnpm eval` **7/7**（1 个 web-only NOT EVALUATED）均通过。评测红曾把 A2 行 `disabled: true` 重跑仍 0/7——根因是 headless harness 未注入 key，[BUG-024](../fixed_bugs/BUG-024-eval-baseline-red.md) 已修；A2 不是回归源。**A2 已采用；生产就绪仍等真人安装走查/user review 关闭。**
 
@@ -121,7 +121,7 @@ opened: 2026-10-20
 
 | # | 问题 | 当前状态 / 建议 | owner / 去向 |
 |---|---|---|---|
-| 1 | A/B 的题集与评分 | 12 题 + 四项 0–2 评分表已产出（[research note](../../research/261021-recall-ab/261021-recall-ab.md)）；agent 初评/人抽查待 run | 本卡；人抽查（H3 之后） |
+| 1 | A/B 的题集与评分 | 12 题 + 四项 0–2 评分表已产出（[research note](../research/261021-recall-ab/261021-recall-ab.md)）；agent 初评/人抽查待 run | 本卡；人抽查（H3 之后） |
 | 2 | 先修 recall 还是 A/B 并行 | 建议先让运行态卡把 `recallContextTimeoutMs`/find 跑通；A/B 可与运行态并行，但“召回失败”不能算 A1/A2 的输 | 运行态卡 + 本卡 |
 | 3 | Viki 转正落点 | 只落 `memory/`；`knowledge/` 的 `sources` 引 OpenViking URI 留到知识卡 | 本卡 + H4 |
 | 4 | skills/experiences 是否随 commit 生成 | 0.4.22 无 experiences、`/agent-evolution` 404；0.5.1.1 未验 | 本卡 P3 + 触发 |
@@ -145,7 +145,7 @@ opened: 2026-10-20
 
 ### A/B（先做，决定是否实施）
 
-**题集/评分表/原型约定：** [research/261021-recall-ab](../../research/261021-recall-ab/261021-recall-ab.md)（12 题、四项 0–2 分、A1/A2 一次性原型）。A1/A2 已各跑一遍并完成裁决（A2 采用，2026-10-23）；实施后复跑见该 note §8（2026-10-25）。
+**题集/评分表/原型约定：** [research/261021-recall-ab](../research/261021-recall-ab/261021-recall-ab.md)（12 题、四项 0–2 分、A1/A2 一次性原型）。A1/A2 已各跑一遍并完成裁决（A2 采用，2026-10-23）；实施后复跑见该 note §8（2026-10-25）。
 
 - [x] **原型纪律**：A1 用一次性 home 的临时 `ov-shield` allowlist（或临时 patch），A2 用一次性分支/临时工具；产物保留提交指针，**不进发布物、不合并**。**2026-10-21：A1 `ab/a1-allowlist` @ `3fa7b4d`、A2 `ab/a2-recall` @ `629e79c`（修后 `53891`）；两分支都未合并，A2 的生产实现另走正式切片。**
 - [x] 固定问题集 ≥10 条，覆盖：偏好、事件、决策、跨 peer、无答案；每条有期望来源/答案。**2026-10-21：12 题在 research note；用户复核待 A/B。**

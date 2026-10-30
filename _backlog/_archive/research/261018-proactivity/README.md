@@ -1,7 +1,7 @@
 # 主动性：外部机制、本仓现状与合成
 
 > 问题：主动性该做哪一层、怎么做；Hermes 与同类开源 agent 的机制哪些可搬、哪些不能搬；本仓今天已经有什么？
-> 消费者：历史消费者：[主动性方向评审卡](../../settled_issues/261018-proactive-direction.md)、[主动性 v1 提案 note](../../../../notes/implemented/2026-10-18-proactive-face.md)
+> 历史消费者：[主动性方向评审卡](../../settled_issues/261018-proactive-direction.md)、[主动性 v1 提案 note](../../../../notes/implemented/2026-10-18-proactive-face.md)
 > 产出的卡：—
 > 归档：2026-10-21（v1 提案已 implemented，依据随提案走完）
 

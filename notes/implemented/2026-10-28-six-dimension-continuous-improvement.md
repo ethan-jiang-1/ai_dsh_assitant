@@ -1,4 +1,4 @@
-日期：2026-10-28 · 状态：**implemented**（来源 = [六维深审](../../_backlog/research/261020-six-dimension-audits/261028-six-dimension-audit.md)；收口 = [已结卡](../../_backlog/_archive/settled_issues/261028-six-dimension-improvement.md)）
+日期：2026-10-28 · 状态：**implemented**（来源 = [六维深审](../../_backlog/_archive/research/261020-six-dimension-audits/261028-six-dimension-audit.md)；收口 = [已结卡](../../_backlog/_archive/settled_issues/261028-six-dimension-improvement.md)）
 
 # 六维改善：入口分层、反馈诚实性与结构接缝
 
