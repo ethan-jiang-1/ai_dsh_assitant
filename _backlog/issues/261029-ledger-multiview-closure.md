@@ -49,6 +49,9 @@ opened: 2026-10-29
 - 本人指出的 shell「自动化任务」项属于 DSH 全局 navigation，不是本插件代码；未修改全局 DSH 或 profile 配置。
 - 收尾验证（2026-10-30，handoff `.tmp/handoff/261030-m1-verification-plan.md` §四执行）：bin mode-only chore `6e5f020`；覆盖审计落 `.tmp/handoff/coverage-audit.md`（初心对照 diff 面无越界；缺口 A 畸形时间戳边界、B attention 空态已补，缺口 C archive 组件层重复证据、D 测试资产无新增有据不补），focused suite 127/127 + typecheck PASS，提交 `84ee851`；新增 live 探针 `dev/probes/web/multiview-live.mjs`（真实 Chrome，合成 ledger+archive 种子运行时入 probe home 不入库）四路径全 PASS——attention 全流程（offset 260→detail→返回恢复 260）、归档分页（50→61→100→111→114 耗尽，before 游标单调变老）、流水条目跳转（board/detail）、窄屏 420x900 往返（200→恢复 200，无横向溢出），verdict 落 `.tmp/probe-runs/multiview-live-verdict.json`，teardown 端口关闭无残留，verify 仍 50/50，提交 `0f87b11`。
 
+- 对抗性走查（2026-10-30，REVIEW 前，9 相位一次性探针 `.tmp/explore/multiview-explore.mjs`，verdict 落 `.tmp/probe-runs/multiview-explore-verdict.json`）：坏账本、缺账本、事项归档分页、筛选往返、详情时 F5、超长文本窄屏、全部办结空态、幽灵事项降级、断网恢复 —— 全 PASS。发现并修复两个真实缺陷：① 归档路由返回裸 `receipt`，缺 `sessionId`/`status`/`kind`/`quote`，更早的流水条目显示成「操作」、事项时间线丢来源；改为与投影同形的共享映射 `projectOperationRecord`（`src/domain/operating/projection.ts`），路由测试断言形状；② 事项详情「读取更早记录」翻的是全局页，一页常含别的事项，点击可能看起来无变化，改为路由接受 `matterId`、客户端按选中事项传参，一次点击必有进展。契约同步 `docs/operating.md` §旧回执分页；live 探针补归档标签回归守卫；共享探针库 `openBoard` 改为轮询（首页挂载早于清单渲染的竞态）。提交 `04d3fff`、`5634be8`，client+host 458 tests、typecheck、verify 50/50 全绿。
+- 走查留下的观察（不在 M1 授权边界内，未改）：完整看板（`deep`）刻意不渲染「重新读取」按钮（84815ab 起既有设计），板上数据不会自动刷新，刷新入口只有回首页；首页对 422 坏账本只给通用「桌面读取失败」而不含具体的「资料损坏或版本不支持」；账本文件损坏会让 host 的 operating ledger 服务起不来，连带新会话创建失败（console warning「waiting for assistantOperatingLedger」），韧性缺口在 host 侧、影响面大于桌面。
+
 ## 仍未取
 
 - 历史报价/回款实验与未完成的人类验证在上游研究卡；不是本片的隐含验收。
