@@ -36,6 +36,7 @@ import SkillRegistry from '@deepseek-ai/dsh-skill'
 import AgentRegistry, { assembleContextFor } from '@deepseek-ai/dsh-agent'
 import AgentLoop from '@deepseek-ai/dsh-agent-loop'
 import AgentPresetRegistry from '@deepseek-ai/dsh-agent-preset-registry'
+import type { EntryOptions } from '@deepseek-ai/cordis-plugin-loader'
 import AgentPreset from '@deepseek-ai/dsh-agent-preset'
 import * as SessionPersistenceJsonl from '@deepseek-ai/dsh-session-persistence-jsonl'
 import { ToolCallId } from '@deepseek-ai/dsh-llm'
@@ -50,9 +51,7 @@ if (!built) {
   throw new Error('[preset-composition] lib/ is not built — run `pnpm build` before running the real-composition suite')
 }
 
-interface PresetRow {
-  id: string
-  name?: string
+interface PresetRow extends Omit<EntryOptions, 'config'> {
   config?: Record<string, unknown>
 }
 

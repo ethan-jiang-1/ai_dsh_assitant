@@ -20,9 +20,9 @@ opened: 2026-10-29
 | 片 | 结果 | 状态 | 证据 |
 |---|---|---|---|
 | M1-S1 | 复用到期无结果规则，派生每件事项的 overdue / pending 信号 | 完成 | `proactive-face.ts` 的 `deriveOverdueMatters`；31 个 proactive-face specs 通过 |
-| M1-S2 | 加入 attention mode 与共享账本事项的时间线、locale 和 archive 回读 | 完成（浏览器验收待补） | final Client suite 125 tests；时间、未知来源、pending 状态、跨 matter 隔离、archive 双页/失败/耗尽覆盖 |
-| M1-S3 | 按 mode/pane 保留滚动、filter 与选中 Matter，完成三种 view 往返 | 完成（窄屏浏览器验收待补） | view reducer + React DOM tabs/detail/clamp/scroll/archive 覆盖；真实 GUI 401 阻塞 |
-| M1-S4 | 更新 Client 当前合同、本卡证据，构建及运行验收 | 代码/合同/机械门禁完成，GUI 验收待补 | `docs/operating.md` 已更新；package build、typecheck 与 preset composition PASS；当前 live `main` Slot 无本插件 occupant 且 HTTP 401；`pnpm verify` 按本人要求未运行 |
+| M1-S2 | 加入 attention mode 与共享账本事项的时间线、locale 和 archive 回读 | 完成 | final Client suite 125 tests；认证 dev GUI 桌面/窄屏显示 overdue 与 pending 重叠、同件来源时间线、状态与四种时间；Activity desktop/narrow capture 均无 console/network errors |
+| M1-S3 | 按 mode/pane 保留滚动、filter 与选中 Matter，完成三种 view 往返 | 完成 | reducer + React DOM tests 通过；认证 dev GUI 窄屏 attention→detail→back 恢复实际可达 50px offset，原 Matter 保持可见 |
+| M1-S4 | 更新 Client 当前合同、本卡证据，构建及运行验收 | 完成（待本人产品 REVIEW） | `docs/operating.md` 已更新；package build、typecheck、preset composition、focused Client tests、`pnpm verify` 全部 PASS；现有认证 dev GUI 桌面/窄屏验收完成 |
 
 ## 验收标准
 
@@ -32,8 +32,8 @@ opened: 2026-10-29
 | 关注信号（确定性） | active matter 的最早已过承诺/核对时间且无之后 committed result 时显示 overdue；pending proposal 可同时出现 | update/claim/rejected 不清除 overdue；completed/abandoned 不进入 overdue；日期未知不伪造 overdue。`tests/client/proactive-face.spec.ts` + panel component spec | 纯 helper specs 证明派生边界；projection fixture 证明 UI 重叠 | 无 |
 | 单件记录（确定性呈现） | selected matter 的 evidence、proposal、available receipts 共列；区分 pending/confirmed/rejected；当前 commitment/forecast/checkpoint/completed 分别标注 | 无 timestamp 显示未知时间、无 source 不造 source；跨 matter receipt 排除；顺序不宣称因果。panel component spec | `projection-panel.spec.ts` + `projection-view.spec.ts`；仅证明已下载/已载入记录，不证明账本归档完整 | 无 |
 | view 往返（确定性 + orchestration） | attention/board/activity 三 tab；tab 切换进入目标 view 的 list pane；进入详情再返回同一 mode；filter/selection 与各 mode scroll offset 保留 | store remount 后仍能返回；窄 pane 回列表；detail clamp 事件不覆写原 offset。`query` 保留为 dormant store 字段，不宣称搜索能力。view specs + real DOM spec | `projection-view.spec.ts` 证明状态 reducer；`projection-panel-dom.spec.mjs` 证明 React DOM click/pane/scroll；真实 GUI 另验装配和窄容器 | 无 |
-| 桌面/窄视口（浏览器呈现） | 当前运行 GUI 中切换、进入同件、返回；宽屏和窄容器不重叠、文本不溢出 | 测试 renderer 不算浏览器证据；无运行 profile/数据则如实标 BLOCKED | 现有 `http://127.0.0.1:3080` 经构建刷新与 `node dev/probes/web/webui-preflight.mjs '<URL>'`；按 Client UI contribution Skill 的当前 URL 限制执行 | 视觉是否让“全局/深入”更易理解不由像素测试判定 |
-| 仓库门禁（构建/编译） | source 与 served client artifact 同步；scoped build/typecheck 与 client tests 通过 | `preset-composition.spec.ts` 若仍报独立基线类型错误，明确记录为门禁阻塞；本轮按用户要求不运行 `pnpm verify`，不将其标绿 | `pnpm build`、`pnpm --filter dsh-smart-assistant typecheck`、focused client tests；`pnpm verify` 留待后续由用户决定；owner: `docs/testing.md` + `packages/dsh-smart-assistant/AGENTS.md` | 无 |
+| 桌面/窄视口（浏览器呈现） | 已有认证 dev GUI 的 1440x900 与 420x900 显示三 mode；attention 进入同 Matter timeline；窄 pane 隐藏列表、显示 back，滚动后返回恢复非零 offset；Activity 两种宽度均渲染 | 浏览器使用 dev home 的模拟/现有账本数据；截图不能替代本人真实事项体验 | 现有仓内 dev URL preflight green；`.tmp/shots/m1-full-board-*`, `m1-attention-detail-*`, `m1-back-after-detail-narrow-*`, `m1-activity-*` PNG/DOM；所有完成 capture 的 `consoleErrors`、`networkFailures` 为空 | 视觉是否让“全局/深入”更易理解不由像素测试判定 |
+| 仓库门禁（构建/编译） | source 与 served client artifact 同步；typecheck、focused Client/composition tests 与 `pnpm verify` 通过 | 若 profile entry metadata 类型漂移，则 typecheck 红；不把被跳过的浏览器/人判断算成门禁通过 | `pnpm --filter dsh-smart-assistant typecheck`、最终 focused Client suite、composition spec、`pnpm --filter dsh-smart-assistant build`、`pnpm verify`（50 checks）；owner: `docs/testing.md` + 包 AGENTS.md | 无 |
 
 ## 当前证据与停点
 
@@ -42,8 +42,11 @@ opened: 2026-10-29
 - `pnpm --filter dsh-smart-assistant typecheck`：PASS。
 - `pnpm --filter dsh-smart-assistant exec vitest run tests/composition/preset-composition.spec.ts`：PASS，1 file / 8 tests。Fixture `base` 以 `applyEntryPatches` 的参数类型约束，匹配真实 Loader row metadata。
 - `git diff --check`：PASS。
-- 现有 `http://127.0.0.1:3080` 未带认证 token 的请求返回 HTTP 401；没有已知 authenticated URL，未启动替代实例。GUI preflight、刷新后桌面/窄容器视觉验收仍 BLOCKED。
-- `pnpm verify`：按用户明确要求，本轮未运行；不记为通过。
+- 现有认证实例 `http://127.0.0.1:65091/?token=...`：`webui-preflight.mjs` green；三 mode 与桌面/窄屏 attention-detail-back 和 Activity 截图见 `.tmp/shots/m1-*.png` / `.dom.txt`。窄屏实际保存并恢复 50px scrollTop；所有 capture 的 console/network error arrays 为空。
+- GUI shell 中的「自动化任务」是 DSH 全局 navigation；本次代码改动未包含 shell navigation 或任何全局 profile/config 改动。现有服务日志确认 `DSH_HOME` 指向仓内 `dev/harness-home`，本次隔离截图输出在 `.tmp/`。
+- `node dev/probes/web/webui-preflight.mjs '<authenticated dev URL>'`：green；现有 DSH dev server PID 9816 的 `DSH_HOME` 是仓内 `dev/harness-home`，未启动或停止其他服务。
+- 最终 `pnpm verify`：PASS，50 checks；`PresetRow` fixture 已改为基于真实 `EntryOptions`，修复 optional/required `name` 类型错配。
+- 本人指出的 shell「自动化任务」项属于 DSH 全局 navigation，不是本插件代码；未修改全局 DSH 或 profile 配置。
 
 ## 仍未取
 
