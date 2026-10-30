@@ -741,7 +741,7 @@ describe('proactive face rows (261018 片 1)', () => {
     const { tree, node, suggestAction } = renderWithCatalog(download([]), catalog([]))
     expect(tree).toContain('让它替你盯')
     expect(tree.indexOf('到期日到了替我核一遍账')).toBeLessThan(tree.indexOf('每周一替我对一次账'))
-    expect(tree.indexOf('每周一替我对一次账')).toBeLessThan(tree.indexOf('每个早上替我看一遍桌面'))
+    expect(tree.indexOf('每周一替我对一次账')).toBeLessThan(tree.indexOf('每个早上替我看一遍今天的事'))
     expect(tree).toContain('比「每周一坐」密')
     const trial = findButton(node, '先试跑一次')
     expect(trial).toBeDefined()
@@ -797,12 +797,12 @@ describe('proactive face rows (261018 片 1)', () => {
     const { tree, node, suggestAction } = renderWithCatalog(
       download([]),
       catalog([]),
-      { ignored: [], accepted: [{ id: 'daily-look', title: '每个早上替我看一遍桌面', at: new Date().toISOString() }] })
-    expect(tree).toContain('说了替你盯但没盯上：每个早上替我看一遍桌面')
+      { ignored: [], accepted: [{ id: 'daily-look', title: '每个早上替我看一遍今天的事', at: new Date().toISOString() }] })
+    expect(tree).toContain('说了替你盯但没盯上：每个早上替我看一遍今天的事')
     const retry = findButton(node, '再试一次')
     expect(retry).toBeDefined()
     retry?.onClick?.()
-    expect(suggestAction).toHaveBeenCalledWith('watch', 'retry:每个早上替我看一遍桌面')
+    expect(suggestAction).toHaveBeenCalledWith('watch', 'retry:每个早上替我看一遍今天的事')
   })
 
   it('Q5 repeated acceptances render ONE row, and 忽略 forgets it', () => {

@@ -107,7 +107,7 @@ export const PROACTIVE_SUGGESTIONS: readonly {
 }[] = [
   { id: 'due-check', name: '到期日到了替我核一遍账', hint: '到期那天替你核一遍：账上有结果没说一声，没有也来说一声' },
   { id: 'weekly-recon', name: '每周一替我对一次账', hint: '贴合你的每周一坐——周一早上先把料备好' },
-  { id: 'daily-look', name: '每个早上替我看一遍桌面', hint: '比「每周一坐」密——点了就是你自己把节律改成每天', dense: true },
+  { id: 'daily-look', name: '每个早上替我看一遍今天的事', hint: '比「每周一坐」密——点了就是你自己把节律改成每天', dense: true },
 ]
 
 export interface ProactiveFaceInput {
