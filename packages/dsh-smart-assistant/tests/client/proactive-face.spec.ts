@@ -162,6 +162,19 @@ describe('proactive face derivation', () => {
       })
       expect(rows.some(row => row.kind === 'due-no-result')).toBe(true)
     })
+
+    it('row 1: an unparseable timestamp never fakes an overdue row; a date-only string still compares as an instant', () => {
+      // The ledger copies times as raw strings and nothing upstream validates the format —
+      // a hand-edited or probe-synthesized ledger file can carry NaN or empty times.
+      // NaN comparisons are false, so the matter silently drops out instead of faking an overdue row.
+      const rows = deriveOverdueMatters(projection({ matters: [
+        matter({ id: 'm-garbage', times: { nextCheckpoint: 'not-a-date' } }),
+        matter({ id: 'm-empty', times: { promisedDeadline: '' } }),
+        matter({ id: 'm-dateonly', times: { nextCheckpoint: '2026-10-01' } }),
+      ] }), NOW)
+      expect(rows.map(row => row.matterId)).toEqual(['m-dateonly'])
+      expect(rows[0]?.daysOverdue).toBe(17)
+    })
   })
 
   describe('row 2: waiting for you', () => {

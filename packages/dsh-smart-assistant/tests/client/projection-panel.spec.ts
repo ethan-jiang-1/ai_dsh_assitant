@@ -241,6 +241,19 @@ describe('global projection panel', () => {
     expect(view.getSnapshot()).toMatchObject({ mode: 'attention', pane: 'list', filter: 'active', query: '回款', listScrollTop: 180, attentionScrollTop: 420 })
   })
 
+  it('attention mode with nothing due and nothing pending shows the honest empty copy, not a stray card', () => {
+    const view = createProjectionViewStore(defineStore).create()
+    view.actions.selectMode('attention')
+    const value: ProjectionDownload = { status: 'ready', data: { schemaVersion: 2, ledgerId: 'test', revision: 1, receipts: [], unclaimed: [], matters: [
+      { id: 'm-calm', title: '安静推进的事项', status: 'active', summary: '没有到期也没有待确认', responsible: '', revision: 1, times: {}, proposals: [], evidence: [] },
+    ] } }
+    const copy = text(ProjectionPanel(panelProps(value, view)))
+    expect(copy).toContain('Worth a look now')
+    expect(copy).toContain('No active matters are overdue without a result or waiting for confirmation.')
+    expect(copy).toContain('Due and pending signals can overlap')
+    expect(copy).not.toContain('安静推进的事项')
+  })
+
   it('includes active pending-only matters but not resolved matters with stale pending proposals', () => {
     const view = createProjectionViewStore(defineStore).create()
     view.actions.selectMode('attention')
