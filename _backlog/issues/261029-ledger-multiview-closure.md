@@ -51,6 +51,7 @@ opened: 2026-10-29
 
 - 对抗性走查（2026-10-30，REVIEW 前，9 相位一次性探针 `.tmp/explore/multiview-explore.mjs`，verdict 落 `.tmp/probe-runs/multiview-explore-verdict.json`）：坏账本、缺账本、事项归档分页、筛选往返、详情时 F5、超长文本窄屏、全部办结空态、幽灵事项降级、断网恢复 —— 全 PASS。发现并修复两个真实缺陷：① 归档路由返回裸 `receipt`，缺 `sessionId`/`status`/`kind`/`quote`，更早的流水条目显示成「操作」、事项时间线丢来源；改为与投影同形的共享映射 `projectOperationRecord`（`src/domain/operating/projection.ts`），路由测试断言形状；② 事项详情「读取更早记录」翻的是全局页，一页常含别的事项，点击可能看起来无变化，改为路由接受 `matterId`、客户端按选中事项传参，一次点击必有进展。契约同步 `docs/operating.md` §旧回执分页；live 探针补归档标签回归守卫；共享探针库 `openBoard` 改为轮询（首页挂载早于清单渲染的竞态）。提交 `04d3fff`、`5634be8`，client+host 458 tests、typecheck、verify 50/50 全绿。
 - 走查留下的观察（不在 M1 授权边界内，未改）：完整看板（`deep`）刻意不渲染「重新读取」按钮（84815ab 起既有设计），板上数据不会自动刷新，刷新入口只有回首页；首页对 422 坏账本只给通用「桌面读取失败」而不含具体的「资料损坏或版本不支持」；账本文件损坏会让 host 的 operating ledger 服务起不来，连带新会话创建失败（console warning「waiting for assistantOperatingLedger」），韧性缺口在 host 侧、影响面大于桌面。
+- 评审包（2026-10-30，等本人产品裁决）：仓内认证 dev 实例端口 51665（`dev/harness-home`，token 不落文档），`webui-preflight` green；四张关键截图 `.tmp/shots/m1-review-{attention,detail,activity}-1440x900.png` 与 `m1-review-detail-narrow-420x900.png`，`consoleErrors`/`failedRequests` 均空；评审脚本与五问在 `.tmp/review/m1-review.md`，截图不参与判定。
 
 ## 仍未取
 
