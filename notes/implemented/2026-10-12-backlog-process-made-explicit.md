@@ -2,7 +2,7 @@
 
 日期：2026-10-12 · 状态：**implemented**
 
-来源：本人指示借鉴 `ai_dsh_loop_advisor` 同日同题卡（`ai_dsh_loop_advisor/_backlog/issues/2026-10-12-backlog-process-made-explicit.md`，仓外路径；其证据基座 = 该仓生命周期研究，读 DSH 平台自己的状态机 + 归档卡全量翻转观察）立本仓推敲卡并同轮落地——「借助这个 issue 把我们 repo 的 _backlog 里头的内容调整对」。三项裁定沿源卡（2026-10-12 本人）：门禁升格延后、格式先行；修复就绪自授权 + 严重/变向例外；两轨状态生命周期。制度同源链与四门/不调度的 owner 是 [治理借鉴](2026-10-02-backlog-governance-borrow.md)，目录名与 frontmatter 形状的 owner 是 [架子命名](2026-10-09-backlog-shelf-names.md)。
+来源：本人指示借鉴 `ai_dsh_loop_advisor` 同日同题卡（`ai_dsh_loop_advisor/_backlog/issues/2026-10-12-backlog-process-made-explicit.md`，仓外路径；其证据基座 = 该仓生命周期研究，读 DSH 平台自己的状态机 + 归档卡全量翻转观察）立本仓推敲卡并同轮落地——「借助这个 issue 把我们 repo 的 _backlog 里头的内容调整对」。三项裁定沿源卡（2026-10-12 本人）：门禁升格延后、格式先行；修复就绪自授权 + 严重/变向例外；两轨状态生命周期。制度同源链与四门/不调度的决定记录在 [治理借鉴](2026-10-02-backlog-governance-borrow.md)；目录名与 frontmatter 的改名决定在 [架子命名](2026-10-09-backlog-shelf-names.md)，现行规则以 [`_backlog/README.md`](../../_backlog/README.md) 与各子 README 为准。
 
 ## 落了什么（事实的家在各文件，这里只记取舍）
 

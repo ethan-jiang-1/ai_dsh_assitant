@@ -17,11 +17,7 @@
 
 ## 交付物
 
-- 手册/笔记模型：`packages/dsh-smart-assistant/src/domain/home/home-map.ts`；scaffold 与迁移：`src/domain/home/layout.ts`；prompt 组装：`src/host/curate-digest.ts`；预算 finding：`src/domain/home/health.ts`。
-- CLI：`refresh-manual` 与 `status` 改到 `MANUAL.md`（`src/cli/assistant-data-*.ts`、`bin/assistant-data.mjs`）。
-- 测试：`tests/host/root-files.spec.ts`（seed/notes/迁移/镜像/预算）、`tests/host/old-home-compat.spec.ts`（v19 fixture 拆分）、`tests/domain/layout.spec.ts`、`tests/tooling/assistant-data.spec.mjs`、`assistant-data-manual.spec.mjs`、`expert-setup.spec.mjs`。
-- 文档：`docs/home.md` §一/§三/§四/§五、`docs/delivery.md` 数据卡与格式政策、`docs/architecture.md`、`docs/dev.md`、`docs/release.md`、`docs/identity.md`、`docs/testing.md`、包 README。
-- 证据与逐片验收住提交说明与归档台账；本 note 只持决定与后果。
+- 实现、合同更新与逐片验收住 [归档台账](../../_backlog/_archive/settled_issues/261028-data-plane-alignment.md) 与提交说明；本 note 只持决定与后果。
 
 ## 输掉的方案
 

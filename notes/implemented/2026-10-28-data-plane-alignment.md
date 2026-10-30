@@ -19,10 +19,7 @@ FAQ 24 的判据（所有权先于存储、可见性硬约束、定义≠数据�
 
 ## 交付物
 
-- 手册的召回策略段（现在住在 `renderHomeManual`，永久当前）：`packages/dsh-smart-assistant/src/domain/home/home-map.ts`；技能重写：`presets/assistant/skills/session-recall/SKILL.md`；`prompt-smoke` 增“新策略在场、`Nothing indexes them` 缺席、项目事实边界在场”。
-- 数据卡与依赖姿态：`docs/delivery.md` §一、`docs/discipline.md` 适配 13/14、`packages/dsh-smart-assistant/README.md`。
-- 护栏：`src/host/package-root.ts` + `src/host/index.ts` + `src/host/operating-ledger/index.ts`；组合行 `bundledSkillDir`（`cordis.patch.yml`）；`tests/host/data-dir-guard.spec.ts` 与 `tests/composition/preset-skill-root.spec.ts`。
-- 台账与关闭：`_backlog/_archive/settled_issues/261028-data-plane-alignment.md`（命令与提交证据住那里）。
+- 实现、合同更新与逐项证据住 [归档台账](../../_backlog/_archive/settled_issues/261028-data-plane-alignment.md)；本 note 只持决定与后果。
 
 ## 输掉的方案
 
