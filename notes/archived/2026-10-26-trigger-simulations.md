@@ -1,5 +1,5 @@
 日期：2026-10-26 · 状态：**implemented**
-已归档：2026-10-30（演练记录；结论已由 10-25/10-26 的决定、安装手册与 docs/release.md 持有）
+已归档：2026-10-30（演练记录；结论由 docs/release.md 与安装手册持有；本篇“无跨进程锁”的观察与 0.2.1 不符，冻结留档）
 
 # Trigger simulations: second machine, cold store, next version
 

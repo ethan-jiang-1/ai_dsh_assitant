@@ -12,7 +12,7 @@ FAQ 24 的判据（所有权先于存储、可见性硬约束、定义≠数据�
 
 ## 决定
 
-1. **会话召回两层**：native `session_search` / `session_event_search` / `session_event_read` 优先（同项目、已索引、平台授权）；原始日志只在跨项目、精确子串或索引缺席时显式回退，且“读别的项目”是主动动作、做之前说明。手册 v22 与 `session-recall` 技能同源；harness home 从环境解析（`$DSH_HOME`，否则 `~/.dsh`），不再假设父目录。
+1. **会话召回两层**：native `session_search` / `session_event_search` / `session_event_read` 优先（同项目、已索引、平台授权）；原始日志只在跨项目、精确子串或索引缺席时显式回退，且“读别的项目”是主动动作、做之前说明。手册的会话召回段与 `session-recall` 技能同源（同一渲染源）；harness home 从环境解析（`$DSH_HOME`，否则 `~/.dsh`），不再假设父目录。
 2. **手册与笔记各有预算**：`MANUAL_BYTE_CAP` 提到 14,336；手册渲染必须装进预算，由 `tests/host/root-files.spec.ts` 钉住；用户 notes（`AGENTS.md`）超预算时 `curate` 报 `notes-over-budget`，不再静默截断。
 3. **所有权分三类写清**：`docs/delivery.md` 数据卡拆成用户内容 / 插件账本 / 宿主面，账本改称“插件自有文件账本”，`tool-session-query` 以 N2 登记并写明 raw-log 回退；包 README 同步。
 4. **两个不变量进代码**：`assertDataDirOutsidePackage` 在 memory 与 ledger 初始化时拒绝包内 `dataDir`；随包只读技能改用 `bundledSkillDir`（rank 600），项目/用户同名技能可以遮蔽它。
@@ -30,7 +30,7 @@ FAQ 24 的判据（所有权先于存储、可见性硬约束、定义≠数据�
 - **digest 改 `PromptContext`**：现 10150 尾段 + fingerprint 失效已把变化代价限制在系统提示尾段；改 user-role snapshot 会降权并给日志加噪声。
 - **删掉原始日志配方、只靠 `session_search`**：工具只授权同 `cwd`，会失去跨项目回忆这一真实能力。
 - **把 harness home 绝对路径烘进 `AGENTS.md`**：文件会随备份跨机，路径立即过期；既有测试也禁止 prompt 携带 dataDir 路径。
-- **现在拆 `MANUAL.md` + `AGENTS.local.md`**：当时判断会改变用户可见文件语义而延后；同一天即以 [手册所有权拆分](2026-10-28-manual-ownership-split.md) 落地（`MANUAL.md` 归插件、`AGENTS.md` 仍是用户笔记；`AGENTS.local.md` 变体被那篇拒绝）。
+- **现在拆 `MANUAL.md` + `AGENTS.local.md`**：当时判断会改变用户可见文件语义而延后；同一天即以 [手册所有权拆分](2026-10-28-manual-ownership-split.md) 落地（`MANUAL.md` 归插件、`AGENTS.md` 仍是用户笔记；「`AGENTS.md` 归插件、另起用户文件名」的变体被那篇拒绝）。
 - **把机器账本也迁 KV、或从备份剔除**：它们是 advisory，容忍损坏比 fail loud 合适；同人备份要治理连续性，交接物本来就不含数据。
 - **为 replay 把 digest/manual 改成 sourced 注入**：系统提示本身以 `system/message` 落日志，replay 用已记录请求；resume 时重新组装是设计。既有疑虑按非缺陷结掉。
 

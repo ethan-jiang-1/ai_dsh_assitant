@@ -19,7 +19,7 @@
   v3 `brief` 字段不做，除非页上按钮需要选项级写入。
 - **三条车道分开**：`[桌面]` 是 desk capture（note-first，含糊先记再问）；`[首页]` 是一页纸（本轮第一条消息就
   产出页）；`[面板]` 是页上按钮（命令，不落成片段）。混用会让首页消息被 note 成片段并反问。
-- **首答合同**：manual v20「Answer with a page, not a report」+ `management-breakdown`「Land it on the desk」：
+- **首答合同**：manual「Answer with a page, not a report」+ `management-breakdown`「Land it on the desk」：
   draft-first（一句输入先给带显式假设的草稿，不先问卷）、一回合最多一问一动、首答 ≤400 字、说人话（页/桌面，
   不叫台账）、承诺可承接。固定 eval 题集守长度 / 一问 / 一动作 / 页写入 / 指针。
 - **三层表达**：常用面（默认）/ 深看面（看依据、全部、它记下的，人话）/ 调试面（`#debug=1` 或

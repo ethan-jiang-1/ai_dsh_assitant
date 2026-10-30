@@ -44,7 +44,7 @@ stock bundle 的 `assistant-memory` 行嵌在 bundle 内，`settings.describe` �
 - 命令面：命令不按密度隐藏——room/desk 与 `mode-*` 命令始终在场（2026-10-24 改定）；审批、错误、发送/停止不是命令，不隐藏。
 - 诊断/转正属房间面，随 guide 隐藏；不新增权限门。
 
-### M0 判定
+### M0 判定（当时）
 
 真机开 Viki tab，依次 standard → simple → expert；tab 与正文（11 条记忆）始终存活。结论：**guide-gated 的 type 重注册安全，不关已开 tab**；不需要 body 级降级或 `sidebarRight.close`。
 
@@ -64,6 +64,6 @@ stock bundle 的 `assistant-memory` 行嵌在 bundle 内，`settings.describe` �
 ## 边界
 
 - **持久化边界**：偏好是 assistant home 的 `ui-mode.json`，不是 settings 文档；同一 home 跨浏览器，换 home 不带走（随 home 备份/迁移）。不写 vendor，不改 settings schema。
-- **M2 边界**：简洁只做桌面单卡 + 命令过滤；房间正文、诊断、转正不在简洁露出（随 guide 隐藏），但审批、错误、发送/停止仍在。
+- **M2 边界（当时）**：简洁只做桌面单卡 + 命令过滤（命令过滤已由 10-24 取消）；房间正文、诊断、转正不在简洁露出（随 guide 隐藏），但审批、错误、发送/停止仍在。
 - 三档不是权限边界；隐藏不等于禁止。
 - P1 的面板 surface 只改客户端接口，不改投影数据或 lane 行为。

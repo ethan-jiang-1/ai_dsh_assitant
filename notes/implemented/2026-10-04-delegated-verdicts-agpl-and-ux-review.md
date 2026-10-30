@@ -26,7 +26,7 @@ review）。本文记录两项裁定的内容与依据，本人推翻权永久�
 
 **执行后果**：层 1 正式落地（安装器幂等安装 + dev home 组合行即 sanctioned 态）；eval
 挂 ov 的 A/B 对照臂跑批；[推敲卡 260929](../../_backlog/_archive/settled_issues/260929-openviking-formal-integration.md)
-层 1 毕业为 [implemented note](../archived/2026-10-04-openviking-layer1-landing.md)；[RFC](2026-09-29-openviking-adoption-rfc.md)
+层 1 毕业为 [implemented 决定（现归档）](../archived/2026-10-04-openviking-layer1-landing.md)；[RFC](2026-09-29-openviking-adoption-rfc.md)
 验收 3（AGPL）以 delegated 形态闭合。
 
 ## 裁定二：CEO 摩擦报告 review——**7 条全认，三批修**

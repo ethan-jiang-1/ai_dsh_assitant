@@ -16,7 +16,7 @@ dsh: skipping profile bundle "@openviking/dsh-memory-plugin": Error: Plugin
 `ov-shield` 仍在组合树里（它属于我们的 preset，治理 `mcp__openviking__*` 前缀 + 遮蔽两个同名技能），
 但它治理的工具面此时根本不存在——治理层空转，用户侧表现为"助手不再记得"。
 
-本插件**不受**影响：按 [层 1 落地 note](../archived/2026-10-04-openviking-layer1-landing.md) 的决定 3，
+本插件**不受**影响：按 [RFC](2026-09-29-openviking-adoption-rfc.md) 决定 1/4（[层 1 落地](../archived/2026-10-04-openviking-layer1-landing.md) 为历史记录），
 OpenViking 用 `dsh plugin add` 进 profile，**不进** assistant preset 的 `config.plugins`——"可选增强不能成单点故障"。
 所以 0.2.1 跳它不破坏组合、不破坏 preset、不破坏发布物。
 

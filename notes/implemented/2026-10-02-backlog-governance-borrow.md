@@ -50,7 +50,7 @@ ai_deerflow_dr_v3 补借）。**同源整章对齐**，非另起炉灶。
 - 调研卡形态规范与收卷台账机制；
 - 命名六位适配的用户拍板。
 
-## 续修：`backlog: graduated plans leave the active shelf`
+## 续修：毕业门禁（现名 `backlog: issues ready to close leave the active shelf`）
 
 **触发出处**：用户点名"拿 playbook 看看 `_backlog/issues` 里 plan 的质量，逐一敲打一遍"。读四张卡时
 发现的是**门禁与语料的错位**，不是卡写得差：`pnpm verify` 绿的同时，
@@ -104,5 +104,5 @@ and is still named by plans/README.md's active list`（卡当时在 `_backlog/is
   "推敲中但四门已判该做、只差真人签收"的诚实卡判红，等于用门禁逼人谎报。故另立
   `毕业门` 锚定的判据，不复用、不合并两份语义。
 - **（2026-10-08 续修）把"人待"也算毕业**：能让 `261007-opening-brief-and-rhythm` 提前归档，
-  名册更"干净"——但该卡的业务价值尚未由本人确认，归档它会把"等真人"这件**正在发生的事实**
-  从活跃面抹掉。门禁宁可少抓，不逼出假绿。
+  名册更"干净"——但该卡的业务价值尚未由本人确认，归档它会把"等真人"这件**当时正在发生的事实**
+  从活跃面抹掉（该卡后已归档，本句只记当时的判据）。门禁宁可少抓，不逼出假绿。

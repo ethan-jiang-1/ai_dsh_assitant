@@ -12,8 +12,8 @@
 2. **用量**：`assistant-rooms` 列表把 `skillUsage` 的 `count`/`lastUsedAt` join 到每行；不新增 scanner/索引。
 3. **正文**：`AssistantMemory.readLearnedSkill(name)`（`listSkillFiles` 找到 `<name>/SKILL.md` 或 `<name>.md` 后逐字读）；route 走 `GET /api/assistant/rooms?kind=skill&id=<name>`；只接受 kebab 名，缺失 404。
 4. **退役**：复用 A2 的 `skill.retire`（`retireSkill` → `skills/archive/` + 审批账 `retire`/`panel-direct`）；面板「退役」二次确认；不新增状态、不新建表单。
-5. **面板**：四 tab 骨架新增「技能」tab；每行名字/描述/用过 N 次/最近/出处/正文抽屉/退役。**成本列 v1 省略**（只说明常驻=名字+描述）。
-6. **同 diff**：`client-entry` 四 tab、`web-expected`、`docs` 无新行（复用 `assistant-rooms`）。
+5. **面板**：房间 tab 骨架新增「技能」tab；每行名字/描述/用过 N 次/最近/出处/正文抽屉/退役。**成本列 v1 省略**（只说明常驻=名字+描述）。
+6. **同 diff**：`client-entry` 房间 tab、`web-expected`、`docs` 无新行（复用 `assistant-rooms`）。
 
 ## 输掉的方案
 

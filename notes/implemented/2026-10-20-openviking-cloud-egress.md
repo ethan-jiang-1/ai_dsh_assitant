@@ -22,7 +22,7 @@ DeepSeek-V3.2 + bge-m3）。这与 README 的「严格本地」取向冲突；�
   脱敏后的命中示例；④ 0.5.1.1 的 privacy fields 作第二道。**没有发送前的运行时拦截点**——插件自己发
   HTTP，DSH 侧没有缝；运行时只能依赖第 ①道。
 - **ack 唯一载体 = 环境变量 `OPENVIKING_CLOUD_ACK=1`**，不新增配置文件口、不改上游 schema。云端 provider
-  且无 ack：doctor fail；`pnpm start` 只打 warning，不阻断 DSH。
+  且无 ack：doctor fail；`pnpm start` 不做这项检查，也不阻断 DSH。
 - **有源才显示**：provider/模型名、`/health`、`/stats/memories`、`/tasks` 最近状态、token 用量（走
   `token-meter`）。运行时脱敏计数与「最近一次发送时间」没有数据源，不造。
 

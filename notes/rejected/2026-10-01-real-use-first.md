@@ -2,7 +2,7 @@
 
 日期：2026-10-01 · 状态：**rejected**（方案被取代：原型阶段不再以本人真用/抽检为推进前置，已交付部分归各自 implemented；拒绝的是旧推进方式）
 
-2026-10-05 处置：本稿保留用于防止再次把真人业务输入设成原型研发的阻塞条件，不再拥有进度或等待任务。当前推敲归 [自洽卡](../../_backlog/_archive/settled_issues/261005-turnaround-coherence.md) 与 [定位卡](../../_backlog/_archive/settled_issues/261005-open-value-deficit.md)；本轮采用可由 agent 完成的公开案例、情景重放与访谈框架设计。未来实际受众/决定的反馈可提升证据等级，不是现在的开工门。
+2026-10-05 处置：本稿保留用于防止再次把真人业务输入设成原型研发的阻塞条件，不再拥有进度或等待任务。当时推敲归 [自洽卡](../../_backlog/_archive/settled_issues/261005-turnaround-coherence.md) 与 [定位卡](../../_backlog/_archive/settled_issues/261005-open-value-deficit.md)（均已归档）；当前推敲住 `_backlog/issues/`。本轮采用可由 agent 完成的公开案例、情景重放与访谈框架设计。未来实际受众/决定的反馈可提升证据等级，不是现在的开工门。
 
 已交付事实归 [基座搬运](../archived/2026-10-01-management-base-port.md)、[机器预评分](../archived/2026-10-02-g2-machine-prescore.md)、[反馈管线](../archived/2026-09-30-stock-plugin-adoption.md)、[OV 层 1](../archived/2026-10-04-openviking-layer1-landing.md) 与 [首开 UX 卡](../../_backlog/_archive/settled_issues/261001-first-open-ux.md)。仍有意义的研究问题归当前 owner，不把真人抽检转成新等待队列；旧评分仍是机器读数，未经真人验证。
 

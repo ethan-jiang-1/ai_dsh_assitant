@@ -8,7 +8,7 @@
 
 两件事同时暴露：
 
-1. **判据不在流程里**。`docs/dev.md` §二生成物登记表自己写着这一行「无独立 freshness 门禁」，纪律只活在 prose 里（根 `AGENTS.md` 与 `docs/dev.md` §五都要求人**记得**"改 src 后 `pnpm build`"、§五另有两行讲"`typecheck` 覆盖 classic bundle"与"链式命令吞退出码"的后果）。本人上一轮收尾把这条推回给人："改完 `src/` 记得 `pnpm build`"——而 `scripts/checks/verify.mjs` 开头写着本仓的立场：*everything here is a fact a machine can check, so a person does not have to remember it*。
+1. **判据不在流程里**。`docs/dev.md` §二生成物登记表当时写着这一行「无独立 freshness 门禁」，纪律只活在 prose 里（根 `AGENTS.md` 与 `docs/dev.md` §五都要求人**记得**"改 src 后 `pnpm build`"、§五另有两行讲"`typecheck` 覆盖 classic bundle"与"链式命令吞退出码"的后果）。本人上一轮收尾把这条推回给人："改完 `src/` 记得 `pnpm build`"——而 `scripts/checks/verify.mjs` 开头写着本仓的立场：*everything here is a fact a machine can check, so a person does not have to remember it*。
 2. **启动链整条靠人记**。默认启动动作是 ⓪①②③④ 四步加两条纪律（build 与 `pnpm preflight`）串起来的仪式，漏一条的失败点是一句指错方向的报错（`profile "dev" does not exist`）。
 
 本人得到（已交付）：一个**内容式**的 `lib/` 新鲜度判据（同一个核被 `pnpm verify` 与启动链消费），以及一条把经验整条收进去的 `pnpm start`——prepare → setup → 自证（陈旧即 build）→ 起 dev Web → preflight 绿了才交 URL，红了不交并收掉服务。
