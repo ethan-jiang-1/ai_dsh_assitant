@@ -1,8 +1,10 @@
 日期：2026-10-23 · 状态：**implemented**（用户批准 P1 面板 surface + 三档 M1，随后要求持久化与 M2 也做完；全部已交付）
 > 2026-10-23 部分收窄：默认首开改为[一页纸](2026-10-23-first-run-one-page.md)；首页不随三档变，三档只影响
-> 「全部 / 完整看板」与房间入口。本 note 其余决定不变。
+> 「全部 / 完整看板」与房间入口。
 > 2026-10-24 进一步收窄：三档只影响完整看板，房间/调试不再随它；Viki 与开发调试同由 debug flag；见
 > [三层界面重排](2026-10-24-interface-layer-rearrangement.md)。
+> **仍有效**：P1 lane surface 与 M1.1 per-home 持久化。P2/P3/M2 的密度呈现范围已被 10-24 取代，
+> 下文这些细节只作当时的推理记录；房间 guide、命令可见性与简洁档首页不再随密度变。
 
 # 面板 lane surface 与三档界面（M1 + M2）
 
@@ -26,20 +28,20 @@
 
 - 词表在 `domain/home/ui-mode.ts`；Host 文件 route 与客户端 store 共用。Host 只存偏好文件，不读它。
 - 模式 store：localStorage 首屏、per-materialization 重置；Host `api/assistant/ui-mode` 的 GET 采用、用户切换 POST 写回；远端失败保留本地。
-- rooms 的 body/title 一次注册；**tab type 按 mode 重注册**（`mount-rooms.ts`），guide 列表：简洁 = 无；标准 = 知识/记忆/技能（隐藏 Viki）；专家 = 全部。已开的 tab 不因 type 重注册而变空壳。
+- rooms 的 body/title 一次注册；**tab type 不随 mode 重注册**（2026-10-24 改定：三个产品房间常驻，Viki(调试) 只由 debug flag 打开；密度不参与——见 [三层界面重排](2026-10-24-interface-layer-rearrangement.md)）。
 - `settings.general.item` 置顶行三档选择；三条命令 `mode-simple`/`mode-standard`/`mode-expert` 走同一 store。
-- 简洁档：桌面 = 捕获输入 + 单卡 +「显示更多」；隐藏流水 tab、主动性与建议行、列表与筛选。标准档只隐藏 Viki guide；专家全开。默认标准。
+- 三档只影响完整看板：紧凑档收起完整看板的流水与主动建议；首页、「全部」、房间、调试都不随它变（2026-10-24 改定）。
 - 不自动升级；模式只是呈现，不改 host 路由、工具、审批、记忆层或模型行为。
 
 ### M1.1：持久化（per-home host route）
 
 stock bundle 的 `assistant-memory` 行嵌在 bundle 内，`settings.describe` 不列出它，`configForms` 不可达；不改 vendor、也不把偏好塞进 settings 文档。新增 `assistant-ui-mode` host 行：`GET/POST api/assistant/ui-mode` 读写 `assistant/ui-mode.json`；客户端 localStorage 首屏 + route adopt/写回；per-home durable，同一 home 跨浏览器。Host `Config.uiMode` 撤掉（避免死配置）。
 
-### M2：简洁档
+### M2：简洁档（已被 2026-10-24 取消；下列是当时的 M2 设计，不再是产品行为）
 
 - 单卡优先级：待答问题 → 在办/首件 → 未归户片段 → 空态；主按钮对应去会话 / 处理（或唤醒）/ 认领。
 - 捕获输入保留；回执行保留（诚实的投递事实），不显示列表、筛选、流水、proactive、建议；「显示更多 · 切到标准」是唯一桌面出口（设置行/命令亦可）。
-- 命令面：room/desk 命令的 `available` 在 simple 返回 false，`mode-*` 始终在场；审批、错误、发送/停止不是命令，不隐藏。
+- 命令面：命令不按密度隐藏——room/desk 与 `mode-*` 命令始终在场（2026-10-24 改定）；审批、错误、发送/停止不是命令，不隐藏。
 - 诊断/转正属房间面，随 guide 隐藏；不新增权限门。
 
 ### M0 判定

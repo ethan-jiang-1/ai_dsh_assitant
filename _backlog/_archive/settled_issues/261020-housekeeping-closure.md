@@ -6,7 +6,7 @@ opened: 2026-10-20
 # 收口：全仓打扫卫生（S1–S5 切片台账）
 
 > 立卡：2026-10-20 ｜ 状态：已结 ｜ 类型：Task ｜ 可关闭：是 ｜
-> 授权：用户 2026-10-20「修复全部」；决定 note = [housekeeping-campaign](../../../notes/implemented/2026-10-20-housekeeping-campaign.md)
+> 授权：用户 2026-10-20「修复全部」；决定 note = [housekeeping-campaign](../../../notes/archived/2026-10-20-housekeeping-campaign.md)
 
 ## 结论
 

@@ -30,7 +30,7 @@
 - **兼容与矩阵**：`dsh.compatibility` 不再进 manifest；历史 typecheck 台账在 repo-only `release-verification.json`，当前支持只看 `engines.dsh`/`engines.node`。`engines.dsh` 是宽 minor、窄 major 的**范围**（未来 0.2.x 放行，0.3.x 需重新验证），上界写 `<0.3.0-0`：预发布参与匹配，`<0.3.0` 会把 `0.3.0-rc.1` 当成满足；边界由 `compatibility-range.spec.mjs` 钉住。真实矩阵由 `compat-matrix` 跑：`0.2.1-rc.2` 安装/组合通过，`0.2.0-rc.2` 拒绝。`0.3.x` 尚未发布，没有可跑的真实 CLI；范围测试已拒绝其 alpha/RC/正式版，发布后再跑矩阵。
 - **依赖姿态**：共享 DSH 包 peer + dev 双写；README 补齐 Install / What it contributes / Configuration / Data / Compatibility / Uninstall。
 - **测试**：handoff/data/two-homes、`release-smoke` 的 package-tree 不变断言、`upgrade-smoke` 与 `standalone-smoke` 覆盖安装/卸载/迁移/独立启动。
-- **未取**：T6 的 DSH 最小/最大版本矩阵、T7 真人 UI 走查、T8 npm 构建证明（当前手工 tarball）；触发与记录在归档收口卡的「仍未取」。
+- **未取**：T7 真人 UI 走查、T8 npm 构建证明（当前手工 tarball）；T6 的 DSH 矩阵已跑（`0.2.1-rc.2`/`rc.3` 通过，`0.2.0-rc.2` 拒绝；`0.3.x` 尚无真实 CLI）。触发与记录在归档收口卡的「仍未取」。
 
 ## 输掉的方案
 

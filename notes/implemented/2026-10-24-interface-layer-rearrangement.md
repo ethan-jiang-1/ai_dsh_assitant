@@ -46,6 +46,7 @@ Viki(调试) 交给「专家」密度而不是 debug flag；首开有两张面�
 ## 后果与边界
 
 - 平台任务详情仍在 vendor 的「自动化任务」面板；深看只读「它在盯什么」，不复制详情。
+- **会话内 view 的平台约束**：`conversation.view` 的 slot store 是独占的，同一 view 注册两次会让 client entry 激活失败；平台没有应用级 tab strip，会话外不做浮层或改 vendor 壳。原 [workbench-tabs](../archived/2026-10-21-workbench-tabs.md) 的这两条实测约束在此保留。
 - 调试面：主面板在 flag 下也有「开发调试」入口（HomeSurface 的 debug 态，带「回到今天」）；会话的「开发调试」tab
   仍只在有内容的会话出现（平台 view bar 生命周期），不再是唯一入口。
 - 列表搜索已做：客户端过滤标题/摘要，query 在视图 store 里、不持久化；**删除不作为产品动作**

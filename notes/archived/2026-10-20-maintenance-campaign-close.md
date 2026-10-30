@@ -29,8 +29,8 @@
 - 真机：知识室完整渲染（`待你审批（9）` → 批准 → `9→8` + 审批账 `promote draft→stable room:knowledge source:panel-direct`）；收据/已读可交互、零 console error；A1b 无 key 探针 PASS。
 - 逐片理由：[maintenance-read-authority](../implemented/2026-10-19-maintenance-read-authority.md)、
   [maintenance-direct-write](../implemented/2026-10-19-maintenance-direct-write.md)、
-  [maintenance-receipt](../implemented/2026-10-19-maintenance-receipt.md)、
-  [retire-room-data-copy](../implemented/2026-10-19-retire-room-data-copy.md)、
+  [maintenance-receipt](../archived/2026-10-19-maintenance-receipt.md)、
+  [retire-room-data-copy](../archived/2026-10-19-retire-room-data-copy.md)、
   [viki-read](../implemented/2026-10-19-viki-read.md)、
   [viki-delete](../implemented/2026-10-19-viki-delete.md)、
   [viki-cleanup](../implemented/2026-10-19-viki-cleanup.md)、

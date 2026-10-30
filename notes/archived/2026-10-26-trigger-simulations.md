@@ -1,4 +1,5 @@
 日期：2026-10-26 · 状态：**implemented**
+已归档：2026-10-30（演练记录；结论已由 10-25/10-26 的决定、安装手册与 docs/release.md 持有）
 
 # Trigger simulations: second machine, cold store, next version
 

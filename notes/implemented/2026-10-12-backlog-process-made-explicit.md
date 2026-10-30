@@ -11,7 +11,7 @@
 3. **铁律带日期例外**（`_backlog/README.md`）：「卡上的状态、方案或建议都不授予实施权限」保持，例外显式写出——不让新修复流与铁律自相矛盾。
 4. **两轨生命周期**：frontmatter `status` 是当前阶段唯一家，状态行镜像并拥有历史，目录承载粗位置；沉默不翻转；出口值只在归档那次改动里翻。翻转表 issues 在 [`issues/README.md`](../../_backlog/issues/README.md)、bugs 在 [`_backlog/bugs/README.md`](../../_backlog/bugs/README.md)、共享法在入口 README。bugs 词汇：`活跃`→`排查中` 改名 + 增 `修复就绪`/`修复落地`/`等人拍板`——对应源仓 investigating/fix-ready/fix-landed/waiting-for-owner；`待修` 保留「查明未修挂起」的归档语义，**不**与修复就绪合并。
 5. **agent 面**（[`_backlog/AGENTS.md`](../../_backlog/AGENTS.md) 门牌）：嵌套 AGENTS.md 随目录链自动注入（平台机制，vendor agent-instructions）——规则到达落进区域的 agent，不再只靠它选择去读。门牌无日期无进度（入口文件稳定性门禁管着），事实的家仍在各 README。
-6. **门禁加强**（[verify-checks.mjs](../../scripts/checks/verify-checks.mjs) 的 liveness 族内，无新检查族）：cardStatus 新枚举、**活跃卡**状态行↔frontmatter 镜像互查、「毕业：」闭集头（`未定|做现在|以后做|不做|已在别处`，即关闭表四门）。归档卡豁免镜像与闭头——历史行（`已毕业`、带日期的 `毕业：` 记录）是记录不是漂移，位置与 frontmatter 已钉住。负例夹具三组在 [backlog.spec](../../packages/dsh-smart-assistant/tests/tooling/backlog.spec.mjs)：bug 四值镜像通过 / 旧词活跃+镜像分叉+缺行三红 / 野头红+归档豁免绿。旧卡 `毕业门判断` 字段保持兼容，刻意不匹配。
+6. **门禁加强**（[`scripts/checks/gates/backlog.mjs`](../../scripts/checks/gates/backlog.mjs) 的 liveness 族内，无新检查族）：cardStatus 新枚举、**活跃卡**状态行↔frontmatter 镜像互查、「毕业：」闭集头（`未定|做现在|以后做|不做|已在别处`，即关闭表四门）。归档卡豁免镜像与闭头——历史行（`已毕业`、带日期的 `毕业：` 记录）是记录不是漂移，位置与 frontmatter 已钉住。负例夹具三组在 [backlog.spec](../../packages/dsh-smart-assistant/tests/tooling/backlog.spec.mjs)：bug 四值镜像通过 / 旧词活跃+镜像分叉+缺行三红 / 野头红+归档豁免绿。旧卡 `毕业门判断` 字段保持兼容，刻意不匹配。
 
 ## 与源仓的差异（本地适配，非偏离）
 

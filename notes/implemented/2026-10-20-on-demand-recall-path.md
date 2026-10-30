@@ -13,8 +13,9 @@ search/read 展开」，而 `ov-shield` 整前缀拒 `mcp__openviking__*`（连�
 
 ## 决定
 
-- **按需读路径 = 一个 native 工具**（`assistant_recall`，动词 find/search/read/tree），经 host 服务
-  访问 OpenViking，scope 只读配置的 space/peer；它随 assistant preset 挂载。
+- **按需读路径 = 一个 native 工具**（`assistant_recall`，动词 find/search/read/tree）：agent 面直连
+  OpenViking HTTP 面（`OPENVIKING_URL`，缺省 `127.0.0.1:1933`），只做只读动词；不经过 host 服务，
+  检索 scope 固定 `viking://user/default`（`read`/`tree` 接受显式 URI）。它随 assistant preset 挂载。
 - **`ov-shield` 继续整前缀拒 MCP 工具与 resources**；写面不放开，工具面不引入 16 个 MCP。
 - **Viki 保持调试面，不做「转正到 memory/」面板**；内部若要把一条情景记忆转正，走已有的
   `assistant_memory save` + 既有审批。面板点击没有 open turn，不能套 `ctx.approval` 的

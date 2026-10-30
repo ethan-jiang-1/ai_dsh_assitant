@@ -96,8 +96,8 @@ opened: 2026-10-19
 |---|---|---|
 | **A1a 读权威** | **已交付**（2026-10-19） | `91f979f`（host route/row/tests）、`f1cb051`（client 换源/抽屉/文档/scene）、`8d46246`（scene 凭据+期望）、`c9cf41a`（web hook 探针+抽屉主题）；`vitest` 764 绿、`verify` 42 绿、`web-expected` 两场景 PASS、`webui-preflight` 绿；**人判待本人**：在真机上看一条知识页正文。决定 note = [maintenance-read-authority](../../../notes/implemented/2026-10-19-maintenance-read-authority.md) |
 | **A2 直写** | **已交付**（2026-10-19） | `3a0d125`（host POST 五动作 + ledger before/after + client 即时换组 + `approve-direct-probe`）；`vitest` 776 绿、`verify` 42 绿；探针 PASS（`source: panel-direct`，无 prompt）；**人判待本人**：真机点一次批准/纠错/退役。决定 note = [maintenance-direct-write](../../../notes/implemented/2026-10-19-maintenance-direct-write.md) |
-| **A3 收据** | **已交付**（2026-10-19） | `627b1f2`（纯核 + route ledger + ReceiptView + docs）；`vitest` 786 绿、`verify` 42 绿；**人判待本人**：打开面板看"自上次以来"、点"全部标为已读"归零。决定 note = [maintenance-receipt](../../../notes/implemented/2026-10-19-maintenance-receipt.md) |
-| **A1b 退役** | **已交付**（2026-10-19） | `cfd5e63` + 收口提交（模型面/客户端/preflight/场景/评测任务/报告指标/旧 home 手册迁移）；`vitest` 785、`verify` 42、`pnpm start` preflight 绿、`web-expected` 两场景 PASS、keyless prompt probe before/after（`.desk`/`desk-refresh`/`Room data` True→False）；**人判待本人**：打开交接 URL 核对面板与模型面；note = [retire-room-data-copy](../../../notes/implemented/2026-10-19-retire-room-data-copy.md) |
+| **A3 收据** | **已交付**（2026-10-19） | `627b1f2`（纯核 + route ledger + ReceiptView + docs）；`vitest` 786 绿、`verify` 42 绿；**人判待本人**：打开面板看"自上次以来"、点"全部标为已读"归零。决定 note = [maintenance-receipt](../../../notes/archived/2026-10-19-maintenance-receipt.md) |
+| **A1b 退役** | **已交付**（2026-10-19） | `cfd5e63` + 收口提交（模型面/客户端/preflight/场景/评测任务/报告指标/旧 home 手册迁移）；`vitest` 785、`verify` 42、`pnpm start` preflight 绿、`web-expected` 两场景 PASS、keyless prompt probe before/after（`.desk`/`desk-refresh`/`Room data` True→False）；**人判待本人**：打开交接 URL 核对面板与模型面；note = [retire-room-data-copy](../../../notes/archived/2026-10-19-retire-room-data-copy.md) |
 
 ## 关闭条件
 

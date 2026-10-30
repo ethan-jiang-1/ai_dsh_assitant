@@ -32,7 +32,7 @@ ai_deerflow_dr_v3 补借）。**同源整章对齐**，非另起炉灶。
    收卷后还会被重提的事实写进决定 note，不另留调研目录。
 5. **`backlog-liveness` 门禁**：制度目录在场 / 活跃卡首 12 行有 `状态：` 户口 /
    索引互查（plans·bugs 活跃名册、_closed_plans 索引、_done 归档行）——核在
-   verify-checks.mjs，红绿夹具三组在 verify-gates.spec（死稿卡 / 未点名 / 缺池 / 归档未点名）。
+   `scripts/checks/gates/backlog.mjs`，红绿夹具在 `backlog.spec.mjs`（死稿卡 / 未点名 / 缺池 / 归档未点名）。
    2026-10-08 续修其盲区：**liveness 只能证明卡"活着"，看不见"毕业了没走"**——见下节。
 6. **章程/账本二分** + "状态行是归档卡唯一会活的部分"（指向的 note 挪走时指针跟随更新）+
    带日期的负知识行（本表 `_suspended_*`/`_reference_` 两行翻案即此形态）。
@@ -77,7 +77,7 @@ ai_deerflow_dr_v3 补借）。**同源整章对齐**，非另起炉灶。
 and is still named by plans/README.md's active list`（卡当时在 `_backlog/issues/`，今已结档于
 [settled_issues](../../_backlog/_archive/settled_issues/261007-bigfile-split.md)）；同轮 261006 与 261007-opening **未被误报**
 （两张都带交付语言，但语义上是等待/未完成）——精确度与召回同轮实证。五组夹具在
-verify-gates.spec（放行四种未完成态 / 抓 毕业门=已过 / 抓 状态=完成词 / 不误杀部分交付 /
+`backlog.spec.mjs`（放行四种未完成态 / 抓 毕业门=已过 / 抓 状态=完成词 / 不误杀部分交付 /
 报索引残尾且只读 hukou 段）。
 
 ## 部分取代

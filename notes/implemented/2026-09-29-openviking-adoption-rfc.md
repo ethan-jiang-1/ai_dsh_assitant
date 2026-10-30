@@ -10,23 +10,23 @@
 
 ## 决定（S2 形态：组合行 + 准入，非依赖打包）
 
-1. **引入形态**：插件独立安装——`dsh plugin add <钉存 tgz 绝对路径>`（相对路径会被 pnpm 按 profile 目录解析，已踩）；server 双钉 `openviking==0.4.22` + 插件 `0.5.8`（上游五周 16 版、2026-09-29 registry 复测，升级=人工触发重跑准入+doctor+往返冒烟，不自动追 latest）。
+1. **引入形态**：插件独立安装——`dsh plugin add <钉存 tgz 绝对路径>`（相对路径会被 pnpm 按 profile 目录解析，已踩）；server 双钉 `openviking==0.5.1.1` + 插件 `0.5.26`（2026-09-29 初钉为 0.4.22 + 0.5.8；升级=人工触发重跑准入+doctor+往返冒烟，不自动追 latest）。
 2. **发布物两件套**（兄弟仓 `_dist` 精神，2026-09-29 对照确认）：**打包 tgz + 安装手册 md**，同目录即完整发布。手册七段：表头基线表（版本/包名/打包日期/验证基线 DSH pin+Node）→ 自包含声明（不依赖 registry/克隆）→ 安装（默认 profile + 隔离试用两种，命令可直接复制）→ 验证（`--dump-config` 应看到的确切标记）→ 界面出现方式（重启+硬刷新类操作细节）→ 卸载（干净无残留声明）→ 常见问题表（现象→原因与处理）。铁律：**手册只写发布冒烟验证过的路径**（兄弟仓原话「是被证明过的顺序，不是设想」）。**本仓已有同款机制**：`pnpm export-dist`（自家插件：pack → tgz + 脚本生成安装手册，版本注入防漂、verify 门禁守一致）——OpenViking 的安装手册生成复用该先例。
 3. **一键脚本**（已建于 dev/ 下，名 ov-install.sh；幂等七步，试点经验入脚本）：装 server → `dev/experiments/openviking/ov-trial.sh` 生成配置（0600）→ 起 server + doctor 通过门 → 建/复用裸 profile → 装 tgz → 写 profile patch（`commitTokenThreshold`/`skipSubagentSessions` 参数化）→ dump-config 断言 + 「怎么试记忆」提示。
-4. **治理边界**：本仓治理层完全不动（draft→stable 人审、`sources` 必填、provenance）；OpenViking 做自成长记忆/技能的**第二储存层**，与自研三房间**并存观察**；双记忆重叠靠 profile 隔离控制（`ov-trial` 先行，正式接入 preset = 独立决策切片，不在本 RFC）。
-5. **模型位**：VLM = `deepseek-ai/DeepSeek-V3.2`（文字位；**必须宽容连续 user 消息**——抽取协议按宽容假设设计，GLM-4.5V/Qwen3-VL 已证不可用，见 runbook 负知识）；embedding = `BAAI/bge-m3`（1024 维实测）；喂图（多模态摄取）待后续另议。
-6. **AGPL 边界**：独立进程 + HTTP/MCP 消费不构成链接（初判成立）；fork server 才触发——**合规复核为真人输入位，实施前完成**。
+4. **治理边界**：本仓治理层完全不动（draft→stable 人审、`sources` 必填、provenance）；OpenViking 做自成长记忆的**第二储存层**（技能目录当前关闭，同名技能被 ov-shield 遮蔽），与自研三房间**并存观察**；双记忆重叠靠 profile 隔离控制（`ov-trial` 先行，正式接入 preset = 独立决策切片，不在本 RFC）。
+5. **模型位**：VLM = `deepseek-ai/DeepSeek-V3.2`（云端 provider，需 `OPENVIKING_CLOUD_ACK`；文字位；**必须宽容连续 user 消息**——抽取协议按宽容假设设计，GLM-4.5V/Qwen3-VL 已证不可用，见 runbook 负知识）；embedding = `BAAI/bge-m3`（1024 维实测）；喂图（多模态摄取）待后续另议。
+6. **AGPL 边界**：独立进程 + HTTP/MCP 消费不构成链接（初判成立）；fork server 才触发——**合规复核已于 2026-10-04 以 delegated 形态闭合**（AGPL 认；三条复核触发见 [delegated 裁定](2026-10-04-delegated-verdicts-agpl-and-ux-review.md)）。
 
 ## 准入表（字段精神抄 dsh-memento dshWorkshop manifest）
 
 | 字段 | 值 |
 |---|---|
-| name / 版本 | `@openviking/dsh-memory-plugin` 0.5.8 + `openviking` 0.4.22（双钉） |
+| name / 版本 | `@openviking/dsh-memory-plugin` 0.5.26 + `openviking` 0.5.1.1（双钉） |
 | 完整性 | tgz SHA512 与 registry 一致（已验，见 runbook） |
 | license | 插件 Apache-2.0；server AGPL-3.0（进程边界，见提案 6） |
-| peer 兼容 | `0.1.7-rc.2` 显式声明（已亲验） |
+| peer 兼容 | `>=0.1.0-rc.6 <1.0.0-0`（0.5.20 起放宽，覆盖 pin `0.2.1-rc.2`） |
 | 维护方 | volcengine 组织级（38.8k★，周更） |
-| 数据流向 | 全本地 server（vectordb/agfs 内置）；telemetry 为请求级 opt-in 非外发 |
+| 数据流向 | 本地 server + 显式云 VLM/embedding 出口（默认关；四道闸 + `OPENVIKING_CLOUD_ACK`，见 [云端例外](2026-10-20-openviking-cloud-egress.md)） |
 | 回退 | `uv tool uninstall openviking` + 删 profile 目录，repo 零留痕 |
 
 ## 输掉的方案
