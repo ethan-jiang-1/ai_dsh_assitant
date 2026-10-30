@@ -2,6 +2,9 @@
 
 日期：2026-09-29 · 状态：**implemented**
 
+> 版本/兼容范围是 2026-10-19 的快照；现值与升级依据见
+> [`vendor/thirdparty/openviking/README.md`](../../vendor/thirdparty/openviking/README.md)。
+
 毕业自两张卡（均已关闭归档）：[260928-self-growth-base-research](../../_backlog/_archive/settled_issues/260928-self-growth-base-research.md)（三选一拍板）与 [260928-openviking-install-release](../../_backlog/_archive/settled_issues/260928-openviking-install-release.md)（试点六步 + S2 细节草案）。
 
 ## 问题（可观察行为）

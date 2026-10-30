@@ -11,7 +11,7 @@
 1. **判据不在流程里**。`docs/dev.md` §二生成物登记表当时写着这一行「无独立 freshness 门禁」，纪律只活在 prose 里（根 `AGENTS.md` 与 `docs/dev.md` §五都要求人**记得**"改 src 后 `pnpm build`"、§五另有两行讲"`typecheck` 覆盖 classic bundle"与"链式命令吞退出码"的后果）。本人上一轮收尾把这条推回给人："改完 `src/` 记得 `pnpm build`"——而 `scripts/checks/verify.mjs` 开头写着本仓的立场：*everything here is a fact a machine can check, so a person does not have to remember it*。
 2. **启动链整条靠人记**。默认启动动作是 ⓪①②③④ 四步加两条纪律（build 与 `pnpm preflight`）串起来的仪式，漏一条的失败点是一句指错方向的报错（`profile "dev" does not exist`）。
 
-本人得到（已交付）：一个**内容式**的 `lib/` 新鲜度判据（同一个核被 `pnpm verify` 与启动链消费），以及一条把经验整条收进去的 `pnpm start`——prepare → setup → 自证（陈旧即 build）→ 起 dev Web → preflight 绿了才交 URL，红了不交并收掉服务。
+拆出的判据是一个**内容式**的 `lib/` 新鲜度判据（同一个核被 `pnpm verify` 与启动链消费），以及一条把经验整条收进去的 `pnpm start`——prepare → setup → 自证（陈旧即 build）→ 起 dev Web → preflight 绿了才交 URL，红了不交并收掉服务。
 
 ## 输掉的方案
 
@@ -29,5 +29,5 @@
 - **一个判据一个核，两个消费者**：`pnpm verify`（红了不合并）与 `dev/env/ensure-build.mjs`（起服务前自动补）消费同一个 `packageBuildFreshnessProblems`；判据若要改，改在核里，两处一起动。
 - **`pnpm start` 是默认启动动作**：`docs/dev.md` 首节与根 `AGENTS.md` 命令表首段都指它；它红了不交 URL，所以"交出来的实例"从此隐含"产物与源码一致 + preflight 绿"两条不变量。要偏离（只起服务、不起自证）就显式走 `pnpm dsh`。
 - **scratch 用途分家**：verify 用 `.tmp/verify-bundle/`、启动自证用 `.tmp/build-check/`，并行跑不互踩（`dev/env/tmp.mjs` 的"一个用途一个目录"）。
-- **`verify.mjs` 的顶层 import 面被夹具镜像**：`tests/tooling/corpus-links.spec.mjs` 把 runner 按文本拷进 throwaway 树，只为它的每个顶层 import 在真实深度打桩（`verify-checks` / `run-gates` / `sync-bookkeeping`，本片又加了 `dev/env/tmp.mjs`）。**新增顶层 import 必须同 diff 补桩**，否则三条 wiring 测试的症状是"stdout 空串"而不是指名失败——本片真踩过一次（3 红，全在同一文件）。
-- **[结构还清 note](2026-10-16-structure-paydown.md) 的那条纪律仍然成立**（`tsc -b` 会把 ESM 写进 `lib/client/index.js` 覆盖 classic bundle，推荐顺序仍是 `typecheck → build → test → verify`）——本片只是给它加了一条门禁兜底，两篇互不矛盾、各留其位。
+- **`verify.mjs` 的顶层 import 面被夹具镜像**：`tests/tooling/corpus-links.spec.mjs` 把 runner 按文本拷进 throwaway 树，只为它的每个顶层 import 在真实深度打桩（`verify-checks` / `run-gates` / `sync-bookkeeping`，本片又加了 `dev/env/tmp.mjs`）。**新增顶层 import 必须同 diff 补桩**，否则三条 wiring 测试的症状是"stdout 空串"而不是指名失败——这条真踩过一次。
+- **[结构还清 note](2026-10-16-structure-paydown.md) 的那条纪律仍然成立**（`tsc -b` 会把 ESM 写进 `lib/client/index.js` 覆盖 classic bundle，推荐顺序仍是 `typecheck → build → test → verify`）——这条门禁只是兜底，两篇互不矛盾、各留其位。
