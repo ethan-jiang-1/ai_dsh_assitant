@@ -20,6 +20,6 @@
 ## 还会约束以后的后果
 
 - **取代关系**：本卡与[桌面主对象化](../archived/2026-10-06-desk-primary-view.md)是**部分反转**——独立全局 main 可默认桌面、不再以 D7 为触发；会话内 view 已由 [唯一桌面](2026-10-11-one-operating-desk.md) 与 [三层界面重排](2026-10-24-interface-layer-rearrangement.md) 退役，偏好记忆、locale/审批与既有回归事实由那篇作历史记录。同决定在那篇里的「当前取代检查」是历史记录，不再作为当前依据。
-- **已知缺口（如实记，不粉饰）**：`turnSettled` 客户端不可得（由已知 running 推导、未知失败闭合）；提醒通道恒 `synced`（V4/V5 未实现，投影 reminders 恒空）；A2 推荐质量未定版；K1 的 live proxy mount、live Connection 断连与同 home Session 增殖审计**未证实**。
+- **已知缺口（截至 2026-10-06；账在卡上）**：K1/K2 的补证与已接受限制住 [K4 收口卡](../../_backlog/_archive/settled_issues/261010-desk-k4-closure.md)；提醒协调（V4/V5）未实施，投影 `reminders` 恒空；`turnSettled` 是客户端从 running 推导的字段，不是原生信号；A2 推荐质量未定版。
 - **排除**：`vendor/` 与 pin 修改、历史全量迁移、多个经营账本/公司切换、外部数据/IM/对外动作、自动周期催办、完整优先级引擎与长期学习机制。经验/净收益的 V6/V8/V9 后续范围仍由持续助理的交接结论承接，本卡不撤销、不宣称其已完成。
 - **证据读法**：模拟资料不证明真实业务 Session 存在或操作成功；`ready` 只表示 JSON 下载，不是账本或操作成功；运行产物消失后 live 实测证据降为不足（源码可复跑）。
