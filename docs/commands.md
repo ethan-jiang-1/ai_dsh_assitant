@@ -88,6 +88,7 @@ pnpm ov-trial-rt        # OpenViking 真服务记忆往返试验（前提 server
 pnpm release-smoke      # pack → 干净 home → dsh plugin add → 组合断言（改动发布物/依赖/preset 包装/工具面必跑）
 pnpm upgrade-smoke      # 旧包→新包升级 + remove/re-add 后两目录数据保留
 pnpm standalone-smoke   # 无 .git 提取包 → bootstrap → 隔离 home → preflight → client boot/UI → stop
+pnpm product-smoke      # 产品模式：pack → bootstrap --workspace → 产品 home/profile/settings → 真 boot → workspace.json + in-process 会话 cwd → stop
 pnpm web-install-smoke [-- --tarball <old> --upgrade-tarball <new>]
                         # 标准 web profile：安装 → preflight → client boot/preset UI；upgrade 选项再加运行中升级
 pnpm install-resilience-smoke  # 损坏 tarball 被拒 → profile 保持空 → 有效 tarball 重试；两个并发 add 一份依赖

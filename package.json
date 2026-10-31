@@ -35,6 +35,7 @@
     "release-smoke": "node scripts/release/release-smoke.mjs",
     "upgrade-smoke": "node scripts/release/upgrade-smoke.mjs",
     "standalone-smoke": "node scripts/release/standalone-smoke.mjs",
+    "product-smoke": "node scripts/release/product-smoke.mjs",
     "web-install-smoke": "node scripts/release/web-install-smoke.mjs",
     "install-resilience-smoke": "node scripts/release/install-resilience-smoke.mjs",
     "bootstrap-guards-smoke": "node scripts/release/bootstrap-guards-smoke.mjs",

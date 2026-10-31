@@ -1,32 +1,56 @@
 #!/usr/bin/env node
 /**
- * Standalone directory bootstrap: turn an unpacked `dsh-smart-assistant` package into one
- * isolated web instance, without a git checkout or the repo's dev environment.
+ * Deployment wrapper for `dsh-smart-assistant`: turn an unpacked package into one web instance.
  *
- * The script is a deployment wrapper, not a new application launcher: it creates a dedicated
- * `assistant-standalone` profile through the installed `dsh`, installs this package into it,
- * starts `dsh --profile <name> --port 0`, and hands over the URL. State, workspace, agents home
- * and temp all live under `--home`, so the daily `~/.dsh` is never touched.
+ * Two modes share one profile/install/boot pipeline:
+ *
+ * - **product** (`--workspace <dir>` or `--product`): a product-owned home
+ *   (`~/.dsh-smart-assistant` by default), profile `assistant`, the user's project directory as the
+ *   boot cwd, and `<home>/assistant-product/settings.json` binding the product row to that
+ *   workspace. The daily `~/.dsh` is untouched unless `--home` names it explicitly.
+ * - **standalone** (no `--workspace`/`--product`): the original clean-room mode — home beside the
+ *   package, profile `assistant-standalone`, an internally created workspace under the home.
+ *
+ * The launcher is a deployment wrapper, not an application runtime: it creates/reuses a profile
+ * through the installed `dsh`, installs this package, starts `dsh --profile <name> --port 0`, and
+ * hands over the URL. It never writes a profile manifest by hand; `--from-default-profile` only
+ * runs when the profile does not exist, and `dsh plugin` owns dependencies and bundle membership.
  *
  * Usage:
- *   node bootstrap.mjs [--home <dir>] [--profile <name>] [--dsh <command>] [--offline]
- *   node bootstrap.mjs --stop [--home <dir>]
- *   node bootstrap.mjs --no-start [--home <dir>]
+ *   node bootstrap.mjs --workspace <dir> [--home <dir>] [--profile <name>] [--dsh <command>] [--offline]
+ *   node bootstrap.mjs --product [--home <dir>] [--profile <name>] [--dsh <command>] [--offline]
+ *   node bootstrap.mjs [--home <dir>] [--profile <name>] [--dsh <command>] [--offline]   # standalone
+ *   node bootstrap.mjs --stop [--home <dir>] [--product]
+ *   node bootstrap.mjs --no-start [--workspace <dir> | --product] [--home <dir>]
  *
  * Prerequisites: a compatible `dsh` on PATH (or --dsh), Node's npm (packs this directory into a
  * tarball so the profile owns the package's `yaml` dependency), and that dependency obtainable
- * once (network or a warm pnpm store/cache; --offline makes that explicit). Moving the whole
- * `--home` is supported by re-running this script: it detects the stale profile dependency,
- * recreates the profile, and leaves the data directories alone. The home must resolve outside
- * the package, including through symlinks.
+ * once (network or a warm pnpm store/cache; --offline makes that explicit). Moving a home is
+ * supported by re-running the launcher: a stale `file:` dependency or corrupt profile manifest is
+ * recreated while the data directories stay.
  */
 import { spawn, spawnSync } from 'node:child_process'
-import { chmodSync, closeSync, existsSync, mkdirSync, openSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
+import {
+  accessSync,
+  chmodSync,
+  closeSync,
+  constants as fsConstants,
+  existsSync,
+  mkdirSync,
+  openSync,
+  readFileSync,
+  realpathSync,
+  renameSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs'
 import { homedir } from 'node:os'
-import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:path'
+import { basename, dirname, isAbsolute, join, parse, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const packageRoot = dirname(fileURLToPath(import.meta.url))
+const packageManifest = JSON.parse(readFileSync(join(packageRoot, 'package.json'), 'utf8'))
 const isWindows = process.platform === 'win32'
 
 /**
@@ -70,9 +94,11 @@ const option = (name) => {
 }
 const flag = (name) => argv.includes(name)
 const usage = `usage:
-  node bootstrap.mjs [--home <dir>] [--profile <name>] [--dsh <command>] [--offline]
-  node bootstrap.mjs --stop [--home <dir>]
-  node bootstrap.mjs --no-start [--home <dir>]`
+  node bootstrap.mjs --workspace <dir> [--home <dir>] [--profile <name>] [--dsh <command>] [--offline]
+  node bootstrap.mjs --product [--home <dir>] [--profile <name>] [--dsh <command>] [--offline]
+  node bootstrap.mjs [--home <dir>] [--profile <name>] [--dsh <command>] [--offline]   # standalone
+  node bootstrap.mjs --stop [--home <dir>] [--product]
+  node bootstrap.mjs --no-start [--workspace <dir> | --product] [--home <dir>]`
 
 if (flag('--help')) {
   console.log(usage)
@@ -81,16 +107,22 @@ if (flag('--help')) {
 
 const stop = flag('--stop')
 const noStart = flag('--no-start')
-const home = resolve(option('--home') ?? join(dirname(packageRoot), 'assistant-data'))
+const requestedWorkspace = option('--workspace')
+const product = flag('--product') || requestedWorkspace !== undefined
 const daily = resolve(join(homedir(), '.dsh'))
-if (home === daily) {
+const home = resolve(option('--home') ?? (product ? join(homedir(), '.dsh-smart-assistant') : join(dirname(packageRoot), 'assistant-data')))
+
+if (product && home === daily) {
+  console.error('bootstrap: warning: --home names the daily ~/.dsh; the product will share that home')
+} else if (!product && home === daily) {
   console.error('bootstrap: refusing to use the daily ~/.dsh as a standalone home')
   process.exit(2)
 }
 if (home === resolve(homedir()) || dirname(home) === home) {
-  console.error(`bootstrap: refusing to use ${home} as a standalone home; choose a dedicated subdirectory`)
+  console.error(`bootstrap: refusing to use ${home} as a home; choose a dedicated subdirectory`)
   process.exit(2)
 }
+
 // Compare real paths: a symlink outside the package can still point into it. If the home does
 // not exist yet, resolve its nearest existing ancestor and append the missing tail.
 function realPathOf(target) {
@@ -102,22 +134,22 @@ function realPathOf(target) {
   }
   return join(realpathSync(probe), ...tail)
 }
-// The data root is beside the package, never inside it: a handoff copy of the agent directory
-// must stay clean, and an extracted package upgraded over an old one must not overwrite data.
+// The data root is never inside the package: an upgrade replaces that directory, and a handoff
+// copy of the agent directory must stay clean.
 const insidePackage = relative(realpathSync(packageRoot), realPathOf(home))
 if (insidePackage === '' || (!insidePackage.startsWith('..') && !isAbsolute(insidePackage))) {
-  console.error(`bootstrap: --home must be outside the package directory (${packageRoot})`)
-  console.error('  use the default sibling directory, or point --home at another writable location')
+  console.error(`bootstrap: home must be outside the package directory (${packageRoot})`)
   process.exit(2)
 }
-const profile = option('--profile') ?? 'assistant-standalone'
+
+const profile = option('--profile') ?? (product ? 'assistant' : 'assistant-standalone')
 const profilesRoot = join(home, 'profiles')
 const profileDir = resolve(profilesRoot, profile)
 
-/** True when `child` is a strict descendant of `parent`. */
-function isInside(parent, child) {
+/** True when `child` equals `parent` or sits beneath it. */
+function isInsideOrEqual(parent, child) {
   const nested = relative(parent, child)
-  return nested !== '' && !nested.startsWith('..') && !isAbsolute(nested)
+  return nested === '' || (!nested.startsWith('..') && !isAbsolute(nested))
 }
 
 // A profile is a directory name, never a path: reject separators, traversal, and the shipped
@@ -131,25 +163,27 @@ if (!stop) {
     process.exit(2)
   }
   if (RESERVED_PROFILES.has(profile)) {
-    console.error(`bootstrap: refusing shipped profile "${profile}" — standalone mode owns a custom profile`)
+    console.error(`bootstrap: refusing shipped profile "${profile}" — the product owns a custom profile`)
     process.exit(2)
   }
-  if (!isInside(profilesRoot, profileDir)) {
+  if (!isInsideOrEqual(profilesRoot, profileDir) || profilesRoot === profileDir) {
     console.error(`bootstrap: profile path escapes the home: ${profileDir}`)
     process.exit(2)
   }
 }
 
 const dsh = option('--dsh') ?? 'dsh'
-const workspace = join(home, 'workspace')
+const legacyWorkspace = join(home, 'workspace')
 const pidFile = join(home, 'bootstrap.pid')
 const stateFile = join(home, 'bootstrap.json')
 const logFile = join(home, 'logs', 'bootstrap.log')
+const settingsDir = join(home, 'assistant-product')
+const settingsPath = join(settingsDir, 'settings.json')
 
 /**
  * The first pnpm release whose profile settings (`nodeLinker`, `autoInstallPeers`) are read from
  * `pnpm-workspace.yaml`. Older releases either refuse to add to the workspace root or silently
- * install an isolated tree, so the standalone profile needs this floor.
+ * install an isolated tree, so the profile needs this floor.
  */
 const MIN_PNPM = [10, 6, 0]
 
@@ -192,6 +226,67 @@ function fail(message) {
   console.error(`bootstrap: ${message}`)
   process.exit(1)
 }
+
+/**
+ * Validate the workspace the product will bind. The host row re-validates with the shipped pure
+ * policy; this pre-check keeps a bad path from creating a home/profile first.
+ * @param {string} input - Absolute or resolvable user directory.
+ * @returns {string} canonical directory.
+ */
+function validateWorkspace(input) {
+  if (typeof input !== 'string' || input.trim() === '') fail('--workspace needs a directory')
+  const requested = resolve(input)
+  let info
+  try {
+    info = statSync(requested)
+  } catch {
+    fail(`workspace directory does not exist: ${requested}`)
+  }
+  if (!info.isDirectory()) fail(`workspace path is not a directory: ${requested}`)
+  const canonical = realpathSync(requested)
+  if (canonical === parse(canonical).root) fail('the filesystem root is not a product workspace')
+  const userHome = realpathSync(homedir())
+  if (canonical === userHome) fail('the user home directory is not a product workspace')
+  if (isInsideOrEqual(realPathOf(home), canonical)) {
+    fail('a workspace inside the product home would mix data planes')
+  }
+  if (isInsideOrEqual(realpathSync(packageRoot), canonical)) {
+    fail('the installed package directory is not a product workspace')
+  }
+  try {
+    accessSync(requested, fsConstants.R_OK | fsConstants.W_OK)
+  } catch {
+    fail(`workspace directory is not readable and writable: ${requested}`)
+  }
+  return canonical
+}
+
+/** Read the stored workspace binding; fail loud on a corrupt file. */
+function readStoredWorkspace() {
+  if (!existsSync(settingsPath)) return undefined
+  let parsed
+  try {
+    parsed = JSON.parse(readFileSync(settingsPath, 'utf8'))
+  } catch {
+    fail(`cannot parse ${settingsPath}; fix or remove it, then pass --workspace`)
+  }
+  if (parsed?.version !== 1 || typeof parsed.workspaceDir !== 'string') {
+    fail(`${settingsPath} is not a version-1 workspace binding; fix or remove it, then pass --workspace`)
+  }
+  return parsed.workspaceDir
+}
+
+/** Atomically write the product binding for the next boot. */
+function writeStoredWorkspace(workspaceDir) {
+  mkdirSync(settingsDir, { recursive: true, mode: 0o700 })
+  const content = `${JSON.stringify({ version: 1, workspaceDir, updatedAt: new Date().toISOString() })}\n`
+  const temp = `${settingsPath}.${process.pid}.tmp`
+  writeFileSync(temp, content, { encoding: 'utf8', mode: 0o600 })
+  renameSync(temp, settingsPath)
+}
+
+/** Validate `--workspace` before the home exists; stored settings are read after creation. */
+const providedWorkspace = requestedWorkspace === undefined ? undefined : validateWorkspace(requestedWorkspace)
 
 function processAlive(pid) {
   try {
@@ -250,7 +345,11 @@ try {
 } catch (error) {
   fail(`cannot create home ${home}: ${error instanceof Error ? error.message : String(error)}`)
 }
-mkdirSync(workspace, { recursive: true, mode: 0o700 })
+const workspace = product
+  ? validateWorkspace(providedWorkspace ?? readStoredWorkspace() ?? fail('pass --workspace on the first product run'))
+  : legacyWorkspace
+if (providedWorkspace !== undefined) writeStoredWorkspace(providedWorkspace)
+if (!product) mkdirSync(workspace, { recursive: true, mode: 0o700 })
 mkdirSync(join(home, 'tmp'), { recursive: true, mode: 0o700 })
 mkdirSync(join(home, 'agents-home'), { recursive: true, mode: 0o700 })
 mkdirSync(join(home, 'logs'), { recursive: true, mode: 0o700 })
@@ -276,13 +375,16 @@ function runDsh(args, label) {
   return result.stdout ?? ''
 }
 
+console.log(`bootstrap: mode ${product ? 'product' : 'standalone'}`)
 console.log(`bootstrap: home ${home}`)
 console.log(`bootstrap: profile ${profile}; dsh ${dsh}`)
+console.log(`bootstrap: workspace ${workspace}`)
 const profileManifestPath = join(profileDir, 'package.json')
-if (existsSync(profileManifestPath)) {
+let profileExisted = existsSync(profileManifestPath)
+if (profileExisted) {
   // A moved home leaves the profile manifest pointing at the old absolute tarball path.
   // pnpm resolves that dependency before `plugin add`, so the profile cannot be repaired in
-  // place. The profile is bootstrap-owned; recreate it and leave the data dirs untouched.
+  // place. The profile is launcher-owned; recreate it and leave the data dirs untouched.
   let manifest
   try {
     manifest = JSON.parse(readFileSync(profileManifestPath, 'utf8'))
@@ -292,6 +394,7 @@ if (existsSync(profileManifestPath)) {
   if (manifest === undefined) {
     console.log('bootstrap: profile manifest is corrupt; recreating the profile; data dirs stay')
     rmSync(profileDir, { recursive: true, force: true })
+    profileExisted = false
   } else {
     const recorded = manifest.dependencies?.['dsh-smart-assistant']
     const recordedPath = typeof recorded === 'string' && (recorded.startsWith('file:') || recorded.startsWith('link:'))
@@ -300,30 +403,53 @@ if (existsSync(profileManifestPath)) {
     if (recordedPath !== undefined && !existsSync(recordedPath)) {
       console.log('bootstrap: profile points at a missing package tarball (home moved?); recreating the profile; data dirs stay')
       rmSync(profileDir, { recursive: true, force: true })
+      profileExisted = false
     }
+  }
+}
+if (profileExisted) {
+  const manifest = JSON.parse(readFileSync(profileManifestPath, 'utf8'))
+  const bundles = manifest.dsh?.profile?.bundles
+  const owns = Array.isArray(bundles) && bundles.includes('dsh-smart-assistant')
+    || manifest.dependencies?.['dsh-smart-assistant'] !== undefined
+  if (!owns) {
+    fail(`profile "${profile}" exists but is not owned by dsh-smart-assistant; choose another --profile or remove it`)
   }
 }
 if (!existsSync(profileManifestPath)) {
   console.log('bootstrap: creating the profile from the shipped web template')
   runDsh(['--profile', profile, '--from-default-profile', 'web', '--dump-config'], 'create profile')
 }
-console.log('bootstrap: packing this directory and installing the tarball')
-// `dsh plugin add <directory>` installs a link, and pnpm does not install a linked
-// package's dependencies into the profile. Outside a repo checkout the ONLY runtime
-// dependency (`yaml`) is then missing. Pack first, install the tarball, so the profile
-// owns the dependency closure and `--offline` has something concrete to resolve.
-const packDir = join(home, '.bootstrap')
-mkdirSync(packDir, { recursive: true })
-const packed = spawnToolSync('npm', ['pack', '--ignore-scripts', '--silent', '--cache', join(packDir, 'npm-cache'), '--pack-destination', packDir], { cwd: packageRoot, encoding: 'utf8' })
-if (packed.error !== undefined) fail(`cannot pack ${packageRoot}: ${packed.error.message} (Node's npm is required)`)
-if (packed.status !== 0) fail(`npm pack failed (exit ${String(packed.status)}): ${(packed.stderr ?? '').trim().slice(-400)}`)
-const tarball = join(packDir, (packed.stdout ?? '').trim().split('\n').pop() ?? '')
-if (!existsSync(tarball)) fail(`npm pack produced no tarball under ${packDir}`)
-runDsh(['plugin', '--profile', profile, 'add', tarball, ...(flag('--offline') ? ['--offline'] : [])], 'install package')
-// Keep the tarball: the profile manifest records it as the dependency's file: source. Removing
-// it leaves a manifest that a later `dsh plugin`/pnpm repair cannot resolve. Drop only the
-// private npm cache used for packing.
-rmSync(join(packDir, 'npm-cache'), { recursive: true, force: true })
+
+const installedManifestPath = join(profileDir, 'node_modules', 'dsh-smart-assistant', 'package.json')
+let installedVersion
+try {
+  installedVersion = JSON.parse(readFileSync(installedManifestPath, 'utf8')).version
+} catch {
+  installedVersion = undefined
+}
+const needInstall = installedVersion !== packageManifest.version
+if (needInstall) {
+  console.log(`bootstrap: packing this directory and installing the tarball (${installedVersion ?? 'not installed'} → ${packageManifest.version})`)
+  // `dsh plugin add <directory>` installs a link, and pnpm does not install a linked
+  // package's dependencies into the profile. Outside a repo checkout the ONLY runtime
+  // dependency (`yaml`) is then missing. Pack first, install the tarball, so the profile
+  // owns the dependency closure and `--offline` has something concrete to resolve.
+  const packDir = join(home, '.bootstrap')
+  mkdirSync(packDir, { recursive: true })
+  const packed = spawnToolSync('npm', ['pack', '--ignore-scripts', '--silent', '--cache', join(packDir, 'npm-cache'), '--pack-destination', packDir], { cwd: packageRoot, encoding: 'utf8' })
+  if (packed.error !== undefined) fail(`cannot pack ${packageRoot}: ${packed.error.message} (Node's npm is required)`)
+  if (packed.status !== 0) fail(`npm pack failed (exit ${String(packed.status)}): ${(packed.stderr ?? '').trim().slice(-400)}`)
+  const tarball = join(packDir, (packed.stdout ?? '').trim().split('\n').pop() ?? '')
+  if (!existsSync(tarball)) fail(`npm pack produced no tarball under ${packDir}`)
+  runDsh(['plugin', '--profile', profile, 'add', tarball, ...(flag('--offline') ? ['--offline'] : [])], 'install package')
+  // Keep the tarball: the profile manifest records it as the dependency's file: source. Removing
+  // it leaves a manifest that a later `dsh plugin`/pnpm repair cannot resolve. Drop only the
+  // private npm cache used for packing.
+  rmSync(join(packDir, 'npm-cache'), { recursive: true, force: true })
+} else {
+  console.log(`bootstrap: install is current (${installedVersion})`)
+}
 
 const patchPath = join(profileDir, 'cordis.patch.yml')
 const patchBlock = `# Written by dsh-smart-assistant bootstrap.mjs
@@ -332,25 +458,31 @@ const patchBlock = `# Written by dsh-smart-assistant bootstrap.mjs
     default: assistant
 `
 const currentPatch = existsSync(patchPath) ? readFileSync(patchPath, 'utf8') : ''
-if (currentPatch.trim() === '' || currentPatch.trim() === '[]' || currentPatch.includes('dsh-smart-assistant bootstrap.mjs')) {
+const ownsPatch = currentPatch.includes('dsh-smart-assistant bootstrap.mjs')
+const hasRegistry = currentPatch.includes('agent-preset-registry')
+if (currentPatch.trim() === '' || currentPatch.trim() === '[]') {
   writeFileSync(patchPath, patchBlock, 'utf8')
-} else if (/^\s*\[\]\s*$/m.test(currentPatch)) {
+} else if (ownsPatch && hasRegistry) {
+  // The launcher wrote this block before. Keep every other row (the principal's own patches, a
+  // probe, another plugin's default) — rewriting the file here silently dropped them once.
+} else if (!ownsPatch && /^\s*\[\]\s*$/m.test(currentPatch)) {
   // A fresh profile ships a commented template whose only entry is `[]`; replacing that line
   // keeps the template comments and leaves one valid YAML array (appending after `[]` is a
   // second document and fails to parse).
   writeFileSync(patchPath, currentPatch.replace(/^\s*\[\]\s*$/m, patchBlock.trimEnd()), 'utf8')
-} else if (!currentPatch.includes('agent-preset-registry')) {
+} else if (!hasRegistry) {
   writeFileSync(patchPath, `${currentPatch.trimEnd()}\n${patchBlock}`, 'utf8')
 }
 
 const dump = runDsh(['--profile', profile, '--dump-config'], 'verify composition')
 if (!dump.includes('preset-assistant')) fail('the profile dump has no preset-assistant row')
+if (product && !dump.includes('assistant-product')) fail('the profile dump has no assistant-product row; rebuild/reinstall this package')
 if (dump.includes('default: standard') && !dump.includes('default: assistant')) {
   console.log('bootstrap: profile default still standard; select 章鱼管家 in the Web UI or add the registry patch')
 }
 
 if (noStart) {
-  console.log('bootstrap: profile ready (--no-start); not starting the web server')
+  console.log(`bootstrap: profile ready (--no-start); not starting the web server`)
   process.exit(0)
 }
 
@@ -358,7 +490,7 @@ if (existsSync(pidFile)) {
   const old = Number(readFileSync(pidFile, 'utf8').trim())
   try {
     process.kill(old, 0)
-    fail(`another standalone instance is already recorded at ${pidFile}; run --stop first`)
+    fail(`another instance is already recorded at ${pidFile}; run --stop first`)
   } catch { /* stale pid: continue */ }
   rmSync(pidFile, { force: true })
 }
@@ -404,12 +536,13 @@ if (url === undefined) {
 // log is not. Redact it in place so a log copied into a support thread carries no live token.
 redactLogFile()
 
-writeFileSync(stateFile, `${JSON.stringify({ pid: child.pid, url, profile, home, startedAt: new Date().toISOString() }, null, 2)}\n`, { encoding: 'utf8', mode: 0o600 })
+writeFileSync(stateFile, `${JSON.stringify({ pid: child.pid, url, profile, home, workspace, mode: product ? 'product' : 'standalone', startedAt: new Date().toISOString() }, null, 2)}\n`, { encoding: 'utf8', mode: 0o600 })
 chmodSync(stateFile, 0o600)
 console.log('')
-console.log(`✅ standalone instance ready`)
+console.log(`✅ ${product ? 'product' : 'standalone'} instance ready`)
 console.log(`   ${url}`)
 console.log(`   home: ${home}`)
+console.log(`   workspace: ${workspace}`)
 console.log(`   logs: ${logFile}`)
-console.log(`   stop: node bootstrap.mjs --stop --home ${home}`)
+console.log(`   stop: node bootstrap.mjs --stop --home ${home}${product ? ' --product' : ''}`)
 console.log('   model: configure the provider in the Web UI if this home has no credential yet')

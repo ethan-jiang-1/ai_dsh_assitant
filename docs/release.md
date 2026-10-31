@@ -65,6 +65,7 @@
 - `pnpm pnpm-matrix -- --pnpm <v> --expect install|reject`（发布物/依赖变化时至少覆盖 10.6 下界与当前开发 pnpm；需要 Corepack 联网）；
 - `pnpm web-install-smoke`（标准 web profile：干净 home 安装 → preflight → client boot/preset UI；可选 `--upgrade-tarball` 覆盖运行中升级 → 重启 → 复验；无 Chrome = BLOCKED，exit 2）；
 - `pnpm standalone-smoke`（无 `.git` 目录、隔离 home、preflight、client 真 boot/preset UI、stop/restart、搬移 home；无 Chrome = BLOCKED，exit 2）；
+- `pnpm product-smoke`（产品 home/profile/settings、工作区登记、in-process 会话 cwd、外来 profile/缺工作区拒绝、stop）；
 - `pnpm prompt-smoke`（无 key 回放 one-shot，断言四个 prompt 段落与六个工具进入请求）；
 - `pnpm compat-matrix -- --dsh <path> --version <v> --expect install|reject`（真实 DSH CLI 的安装/拒绝矩阵；干净 home，不调模型）；
 - `pnpm agent-preset-ui '<URL>'`（Web 选择，人工探针；不冒充自动门禁）。
