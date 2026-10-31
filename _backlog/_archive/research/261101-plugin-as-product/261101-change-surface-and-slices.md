@@ -5,30 +5,30 @@ intent: "把从插件到产品的代码、脚本、文档、分发与证据改�
 
 # 改动面与切片
 
-> 立档：2026-11-01 ｜ 服务卡：[插件即产品](../../issues/261101-plugin-as-product.md)
+> 立档：2026-11-01 ｜ 服务卡：[插件即产品](../../settled_issues/261101-plugin-as-product.md)
 
 ## 0. 原则
 
 - 一次交付 = 一个垂直切片（代码 + 测试 + 合同同 diff）；每片一个可回退 commit。
 - 文档只写现在：`docs/` 在切片落地时才改成事实，不在提案期先写未来合同。
-- 能复用的不新造：profile 建法沿用 [bootstrap.mjs](../../../packages/dsh-smart-assistant/bootstrap.mjs)；会话创建沿用 `uiWorkspace.startSession`；交付沿用 `present` 与 `deliverables/`。
+- 能复用的不新造：profile 建法沿用 [bootstrap.mjs](../../../../packages/dsh-smart-assistant/bootstrap.mjs)；会话创建沿用 `uiWorkspace.startSession`；交付沿用 `present` 与 `deliverables/`。
 - 手工 `dsh plugin add` 路径全程保留；产品启动器是新增入口，不是替代。
 
 ## 1. 改动面盘点
 
 | 面 | 要动的东西 | 为什么 | 证据/门禁 |
 |---|---|---|---|
-| Host 行 | 包内新增**一行 web-only 产品行**（必注 `connection`/`workspaceRegistry`，负责 boot 登记与路由；headless profile patch `disabled: true`，同 `schedule` 先例）；[cordis.patch.yml](../../../packages/dsh-smart-assistant/cordis.patch.yml) 加行；[package.json](../../../packages/dsh-smart-assistant/package.json) 加导出子路径 | 工作区登记、状态查询、客户端恢复面；headless 不新增 pending | `pnpm test:host`、导出形态守卫、`--dump-config`、catalog freshness |
+| Host 行 | 包内新增**一行 web-only 产品行**（必注 `connection`/`workspaceRegistry`，负责 boot 登记与路由；headless profile patch `disabled: true`，同 `schedule` 先例）；[cordis.patch.yml](../../../../packages/dsh-smart-assistant/cordis.patch.yml) 加行；[package.json](../../../../packages/dsh-smart-assistant/package.json) 加导出子路径 | 工作区登记、状态查询、客户端恢复面；headless 不新增 pending | `pnpm test:host`、导出形态守卫、`--dump-config`、catalog freshness |
 | 域核 | 包内新增产品设置纯核（路径守卫、原子写、版本化）与 run 目录命名/校验纯函数 | 宿主与启动器共用；可纯测 | `pnpm test:domain` |
-| 启动器 | 演进 [bootstrap.mjs](../../../packages/dsh-smart-assistant/bootstrap.mjs)：`--workspace`、**产品自有 home**、设置文件、profile 所有权/版本对账、危险路径守卫；干净房间模式保留为 `--home` | 一条命令的产品入口 | 新增 `product-smoke.mjs`；更新 `bootstrap-guards-smoke`、`standalone-smoke` |
-| 模型可见面 | [home-map.ts](../../../packages/dsh-smart-assistant/src/domain/home/home-map.ts) 的交付段：工作区 + `deliverables/<date>-<slug>/` + README 四段；**不强制模型写 session id**；策展技能新增交付技能，第一会话/行动计划技能指过去；项目 `AGENTS.md`/`.agents/skills` 只读/建议 | 让模型稳定把产物写进项目 | `pnpm test:agent` 预算合同、`pnpm prompt-smoke`、`pnpm eval`（有 key） |
+| 启动器 | 演进 [bootstrap.mjs](../../../../packages/dsh-smart-assistant/bootstrap.mjs)：`--workspace`、**产品自有 home**、设置文件、profile 所有权/版本对账、危险路径守卫；干净房间模式保留为 `--home` | 一条命令的产品入口 | 新增 `product-smoke.mjs`；更新 `bootstrap-guards-smoke`、`standalone-smoke` |
+| 模型可见面 | [home-map.ts](../../../../packages/dsh-smart-assistant/src/domain/home/home-map.ts) 的交付段：工作区 + `deliverables/<date>-<slug>/` + README 四段；**不强制模型写 session id**；策展技能新增交付技能，第一会话/行动计划技能指过去；项目 `AGENTS.md`/`.agents/skills` 只读/建议 | 让模型稳定把产物写进项目 | `pnpm test:agent` 预算合同、`pnpm prompt-smoke`、`pnpm eval`（有 key） |
 | 客户端 | 产品门：读产品路由；无设置保持现状，有设置但缺失时恢复面；首页显示当前工作区；CTA 用 `uiWorkspace.startSession` | 首屏知道在哪个项目、能恢复 | `pnpm test:client`、`pnpm web-expected` 现有/新增场景 |
-| 发布/分发 | [export-dist.mjs](../../../scripts/release/export-dist.mjs) 手册模板；`files`/`must` 清单加启动器；`handoff-scan` 拒绝产品设置目录；`release-smoke` 断言新产品文件 | `_dist/安装手册.md` 是生成物，改生成器再重跑 | `pnpm export-dist`、`pnpm release-smoke`、`pnpm verify` |
+| 发布/分发 | [export-dist.mjs](../../../../scripts/release/export-dist.mjs) 手册模板；`files`/`must` 清单加启动器；`handoff-scan` 拒绝产品设置目录；`release-smoke` 断言新产品文件 | `_dist/安装手册.md` 是生成物，改生成器再重跑 | `pnpm export-dist`、`pnpm release-smoke`、`pnpm verify` |
 | 冒烟 | 新增 `product-smoke.mjs`（pack → 解包 → 临时 home+workspace → `--no-start` 断言 → 真 boot → `storages/workspace.json` 断言 → stop）；更新 `bootstrap-guards-smoke`、`standalone-smoke` | 产品形态自己的机器证据 | `pnpm product-smoke`、`pnpm verify` 的 commands 门 |
 | 根 README | 首段改产品定位；「装法」产品启动优先、手工装包其次；新增“工作区与产物”一节；路由表加产品合同页 | 用户第一眼看到产品 | `pnpm verify` 断链 |
 | 根 AGENTS.md | 首段“working folder”定义改成“助手之家 + 用户工作区”两分；命令表加产品启动；硬规则 1 保持（产品自有 home 不是日用 `~/.dsh`），产品启动器的 home 语义写进产品页 | 入口链不能自相矛盾 | `pnpm verify` 入口链/命令门 |
-| docs | 新增产品合同页（产品形态、启动、工作区、run bundle、数据卡、失败模式）；[docs/home.md](../../../docs/home.md) 加指针并标家的 `deliverables/` legacy；[docs/delivery.md](../../../docs/delivery.md) 数据卡加工作区产物；[docs/release.md](../../../docs/release.md) 宪章改写；[docs/architecture.md](../../../docs/architecture.md) 加行/客户端门/链路；[docs/dev.md](../../../docs/dev.md) 加第四个根；[docs/commands.md](../../../docs/commands.md) 加冒烟；[docs/identity.md](../../../docs/identity.md) 去禁令、登记新名；[docs/discipline.md](../../../docs/discipline.md) 适配 11/13 扩写；[docs/testing.md](../../../docs/testing.md) 证据地图加行；[docs/package-catalog.md](../../../docs/package-catalog.md) 重生成 | 一个事实一个家；合同跟代码同 diff | `pnpm verify`、语义漂移审计 |
-| 包文档 | [包 README](../../../packages/dsh-smart-assistant/README.md) 六节重写；[包 AGENTS.md](../../../packages/dsh-smart-assistant/AGENTS.md) 加产品行 | 发布物门面 | `pnpm verify` |
+| docs | 新增产品合同页（产品形态、启动、工作区、run bundle、数据卡、失败模式）；[docs/home.md](../../../../docs/home.md) 加指针并标家的 `deliverables/` legacy；[docs/delivery.md](../../../../docs/delivery.md) 数据卡加工作区产物；[docs/release.md](../../../../docs/release.md) 宪章改写；[docs/architecture.md](../../../../docs/architecture.md) 加行/客户端门/链路；[docs/dev.md](../../../../docs/dev.md) 加第四个根；[docs/commands.md](../../../../docs/commands.md) 加冒烟；[docs/identity.md](../../../../docs/identity.md) 去禁令、登记新名；[docs/discipline.md](../../../../docs/discipline.md) 适配 11/13 扩写；[docs/testing.md](../../../../docs/testing.md) 证据地图加行；[docs/package-catalog.md](../../../../docs/package-catalog.md) 重生成 | 一个事实一个家；合同跟代码同 diff | `pnpm verify`、语义漂移审计 |
+| 包文档 | [包 README](../../../../packages/dsh-smart-assistant/README.md) 六节重写；[包 AGENTS.md](../../../../packages/dsh-smart-assistant/AGENTS.md) 加产品行 | 发布物门面 | `pnpm verify` |
 | 测试 | domain（设置/路径/run 目录）、host（注册/路由/缺失/headless idle）、client（门状态）、composition（新行）、tooling（export-dist 清单） | 每层只证明自己能证明的 | `pnpm test:*` |
 | 记忆 | 先落本研究的消费者问题卡；方向拍板后 work 去向记 proposed/收口卡；切片完成后写 implemented note，输掉的方案入 note | 决定理由要有家 | `pnpm verify` 的 notes 形状 |
 
@@ -38,7 +38,7 @@ intent: "把从插件到产品的代码、脚本、文档、分发与证据改�
 
 - 产出：问题卡的四项拍板有答复；work 去向（proposed 卡/本卡转收口）记录。
 - 不做代码。
-- 关闭：按 [_backlog 关闭条件](../../README.md#关闭条件) 留齐问题、方案、范围、比较过的选择、验收标准与去向。
+- 关闭：按 [_backlog 关闭条件](../../../README.md#关闭条件) 留齐问题、方案、范围、比较过的选择、验收标准与去向。
 
 ### 切片 1：Host 工作区绑定
 
@@ -77,7 +77,7 @@ intent: "把从插件到产品的代码、脚本、文档、分发与证据改�
 
 ## 3. 验收设计的落点
 
-完整矩阵住在问题卡的 `## 验收标准`（按 [验收设计](../../methods/validation-design.md) 的字段）。这份材料只记“为什么这样分”：
+完整矩阵住在问题卡的 `## 验收标准`（按 [验收设计](../../../methods/validation-design.md) 的字段）。这份材料只记“为什么这样分”：
 
 - **确定性**（设置解析、路径守卫、run 目录命名、profile 清单）→ domain/host/tooling spec，红绿对照。
 - **编排**（profile 建/装、boot 登记、会话 cwd、客户端门、版本对账）→ **拆开证**：profile/登记/URL 由 `product-smoke` 证；会话 `header.cwd` 由 host/composition spec 或带 token 的 Web 探针证；headless 的 optional inject 由 dev-task 证。不要把三者塞进一条 smoke。

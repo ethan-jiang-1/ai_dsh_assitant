@@ -14,6 +14,7 @@
 
 | 名头 | 材料 | 历史消费者 | 产出的卡 | 归档 |
 |---|---|---|---|---|
+| [261101-plugin-as-product/](261101-plugin-as-product/README.md) · 插件即产品 / 工作区作业面 / run bundle | 6 份 | [插件即产品收口卡](../settled_issues/261101-plugin-as-product.md) | — | 2026-11-01 |
 | [261029-first-value-journey/](261029-first-value-journey/README.md) · 首用价值与跨会话连续性 | 2 份 + 示意图 | [多视图收口卡](../settled_issues/261029-ledger-multiview-closure.md)、[价值问题卡](../settled_issues/261029-first-value-journey.md) | [多视图收口卡](../settled_issues/261029-ledger-multiview-closure.md) | 2026-10-31 |
 | [261024-interface-layer-audit/](261024-interface-layer-audit/README.md) · 三层界面安排审计 | 1 份 | [三层界面重排 note](../../../notes/implemented/2026-10-24-interface-layer-rearrangement.md) | — | 2026-10-30 |
 | [261023-first-run-review/](261023-first-run-review/README.md) · 首开复核 | 2 份 | [首开重做卡](../settled_issues/261023-first-run-ux-reframe.md) | — | 2026-10-30 |

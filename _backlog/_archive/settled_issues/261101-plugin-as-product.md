@@ -1,17 +1,17 @@
 ---
-status: 推敲中
+status: 已结
 opened: 2026-11-01
 ---
 
 # 推敲：插件即产品——产品 profile、工作区作业面与 run bundle 的归属
 
-> 立卡：2026-11-01 ｜ 状态：推敲中 ｜ 类型：Feature ｜ 可关闭：否 ｜ 毕业：做现在
+> 立卡：2026-11-01 ｜ 状态：已结 ｜ 类型：Feature ｜ 可关闭：是 ｜ 毕业：做现在
 
 **问题与期望结果：** 这个包现在是“装进用户既有 profile 的插件”：装完还要去 Settings 选预设，会话落在 DSH 的某个 Workspace（开发机上是仓根，用户机器上常见是 Documents 下的默认工作区），插件的 working folder 另在 `$DSH_HOME/assistant`。用户要的是**产品**：一条命令启动一个自己的 profile，启动时指定（或询问）一个项目工作区，此后这个助手的能力都作用在那个工作区里；插件内容留在插件侧，**一次作业产生的状态与产物（历史口径的 run bundle）落在用户工作区**。完成 = 用户在临时工作区真跑通“启动 → 会话在项目里 → 产物在项目里”，且根 README、`_dist/安装手册.md`、docs 合同同步。
 
 **用户口径（2026-11-01）：** 插件有自己的启动 profile；启动时知道、或在启动过程中询问 workspace 在哪里；插件的内容留在插件内部；产生的状态与最后的输出物（历史口径的 run bundle）在用户的 workspace 里；这样插件的能力才能施加到用户指定的 workspace 上。
 
-**授权（2026-11-01）：** 本人按推荐拍板——1A（大脑跟人走）、2 v0 可见 `deliverables/<date>-<slug>/`、3 产品自有 home + 首次 CLI 询问、4 现状命名（profile `assistant`、沿用 `bootstrap.mjs`、产物目录 `deliverables`）。授权按本卡 `## 落地顺序` 自主推进；work 台账 = 本卡，决定卡 = [proposed note](../../notes/proposed/2026-11-01-plugin-as-product.md)。
+**授权（2026-11-01）：** 本人按推荐拍板——1A（大脑跟人走）、2 v0 可见 `deliverables/<date>-<slug>/`、3 产品自有 home + 首次 CLI 询问、4 现状命名（profile `assistant`、沿用 `bootstrap.mjs`、产物目录 `deliverables`）。授权按本卡 `## 落地顺序` 自主推进；work 台账 = 本卡，决定 note = [implemented note](../../../notes/implemented/2026-11-01-plugin-as-product.md)。
 
 **当前情况：** 平台与仓内事实、冲突面、已对齐面见研究材料 [平台与仓内事实](../research/261101-plugin-as-product/261101-platform-and-repo-facts.md)。一句话：DSH 不给 `--workspace` 旗标，但 Workspace 登记与 `workspaceId` 开会话都是公开服务；会话 `header.cwd` 创建后不可变，所以“能力落在工作区”必须从会话创建时保证；“独立的启动 profile”只能由产品启动器经官方 CLI 建，DSH 没有第三方 profile 模板机制。**本卡推荐路线 = A（大脑跟人走）+ v0 run bundle + 产品自有 home + 沿用 bootstrap；第 1 项是真正的分叉。**
 
@@ -21,7 +21,7 @@ opened: 2026-11-01
 
 **未决问题：** 没有产品选择了（2026-11-01 已按推荐拍板）。剩余实现级未知（产品行的错误态/原子写、启动器 profile 建/装/回滚、无会话首屏）留到 S1/S2/S3 的 host spec、product-smoke 与真机；registry/session 核、headless pending、缺 preset 失败码、产品行 GET/POST 集成形状已由技术探针确认。
 
-**下一步：** 已授权，按 `## 落地顺序` 从 S1 推进；每片一个 commit，证据记入切片台账；缺 key/浏览器的检查标 BLOCKED。
+**下一步：** S1–S4 已落地，S5 收口完成；BLOCKED/人判项见 `## 仍未取` 与 `### 实测记录`。
 
 ## 外部结果三要素
 
@@ -97,7 +97,7 @@ opened: 2026-11-01
 
 - 把一个 home 拆成“每工作区一套”；好处是项目可连同助手一起交接、业务间天然隔离。
 - 平台硬伤：段落拿不到 session/workspace（见 [平台事实](../research/261101-plugin-as-product/261101-platform-and-repo-facts.md) §3）；要么接受“一个产品实例只服务一个工作区”，要么先做平台接缝。
-- 与本仓 [docs/delivery.md](../../docs/delivery.md) §一「home 单例」直接相反，需要另立决定；不建议在本卡夹带。
+- 与本仓 [docs/delivery.md](../../../docs/delivery.md) §一「home 单例」直接相反，需要另立决定；不建议在本卡夹带。
 
 ### C：混合
 
@@ -153,7 +153,7 @@ opened: 2026-11-01
 
 ## 验收标准
 
-矩阵按 [验收设计](../methods/validation-design.md) 的字段写；每行对应一个承重行为，证据 owner 是本仓现有/计划中的门。**“计划中的门”必须在落地切片里变成真命令，不能用这段文字冒充证据。**
+矩阵按 [验收设计](../../methods/validation-design.md) 的字段写；每行对应一个承重行为，证据 owner 是本仓现有/计划中的门。**“计划中的门”必须在落地切片里变成真命令，不能用这段文字冒充证据。**
 
 | # | 行为 | 类别 | 输入/状态 | 通过信号 | 反例/恢复 | 证据 owner | 人判断 |
 |---|---|---|---|---|---|---|---|
@@ -230,13 +230,13 @@ D0 拍板
 | S2 | 启动器（产品 home/profile 所有权/工作区/版本对账/守卫） | **已完成**（文档/手册在 S4） | `product-smoke`（profile/settings/登记/会话 cwd/stop）、`standalone-smoke`、`bootstrap-guards-smoke`、`release-smoke`（live turn 无 key = BLOCKED）、`verify` |
 | S3 | 首页 + 交付（四件物/项目面/手册/技能/恢复面） | **已完成** | `product-gate.spec`、`prompt-smoke`、`test`/`verify`；`web-face-check --scenario product-workspace-gate` 绿；真机 shots |
 | S4 | 文档/分发（README/docs/`_dist` 生成器） | **已完成** | `verify`/`export-dist`/全量 `test`；根 README、AGENTS、包 README/AGENTS、`docs/product.md` 与 `_dist/安装手册.md` 同步 |
-| S5 | 收口（proposed → implemented；输掉的方案；触发） | 待授权 | `verify` notes 形状 |
+| S5 | 收口（proposed → implemented；输掉的方案；触发） | **已完成** | `verify` notes 形状；note 已进 `notes/implemented/`；triggers 已加行 |
 
 切片级文件/API 细节 = [落地蓝图](../research/261101-plugin-as-product/261101-landing-blueprint.md)；证据设计 = `## 验收标准`。
 
 ## 测试计划（落地验收）
 
-> 这段回答“落地有没有问题”，不是第二张愿望表。每层只证明它能证明的；缺 key/浏览器 = BLOCKED，不并入绿；切片收尾跑该片会红的检查（[pre-push-evidence](../../.agents/skills/pre-push-evidence/SKILL.md)），S5 再跑全量。
+> 这段回答“落地有没有问题”，不是第二张愿望表。每层只证明它能证明的；缺 key/浏览器 = BLOCKED，不并入绿；切片收尾跑该片会红的检查（[pre-push-evidence](../../../.agents/skills/pre-push-evidence/SKILL.md)），S5 再跑全量。
 
 ### 分层
 
@@ -279,6 +279,24 @@ D0 拍板
 - `web-expected` 只证渲染，不证交互；交互看 client spec/真机。
 - 缺 key/浏览器 = BLOCKED（exit 2 或报告里明说），不写成绿。
 
+### 实测记录（2026-11-01）
+
+| 命令/证据 | 结果 |
+|---|---|
+| `pnpm typecheck` / `pnpm build` | 通过 |
+| `pnpm test` | 通过（152 test files） |
+| `pnpm verify` | 通过（51 checks） |
+| `pnpm product-smoke` | 通过：产品 home/profile/settings、工作区登记、in-process 会话 `header.cwd`、stop |
+| `pnpm standalone-smoke` | 通过：无 `.git`、隔离 home、client boot/preset UI、重启/搬 home/坏 profile |
+| `pnpm bootstrap-guards-smoke` | 通过：包内 home、缺 pnpm/npm、旧 pnpm、合法 profile |
+| `pnpm release-smoke` | **BLOCKED**：无 `DEEPSEEK_API_KEY` 的 live turn；安装/组合/tarball 半场通过 |
+| `pnpm web-face-check --scenario product-workspace-gate` | 通过：真渲染门条/按钮 |
+| `pnpm prompt-smoke` | 通过：交付段/项目面进入请求、旧家 `deliverables/` 指令缺席 |
+| 真机 shots（fresh product home） | 通过：`工作区 · workspace`、`开始一件事`、一页纸仍在 |
+| `pnpm eval` / `eval:domain` | **BLOCKED**：无 key / 需本人判 |
+
+行 10（首屏）由真机 shots 覆盖；行 11（首跑产出质量）与模型行为 = BLOCKED，转 `## 仍未取`。
+
 ## 仍未取（授权后仍不取或延后）
 
 - **per-workspace 大脑**：除非拍板 1 选 B；否则延后，触发 = 真实用户要求项目连同助手交接，或多业务知识串味成为实际抱怨。
@@ -288,12 +306,13 @@ D0 拍板
 - **Windows / Desktop 真机矩阵**：本轮不宣称；沿用现有边界。
 - **多工作区最近列表 / 自动更新 UX**：v1 先不做；触发 = 用户真实切换多个项目。
 - **项目 `AGENTS.md` / `.dsh/skills` / `.agents/skills` 的写回流程**：v1 只读 + 建议，不自动写；触发 = 用户明确要求助手直接维护项目笔记/技能。
-- **真实模型行为**：无 key 时 `eval` 标 BLOCKED，不用“测试绿”冒充行为已验。
+- **真实模型行为**：无 key 时 `eval` 标 BLOCKED，不用“测试绿”冒充行为已验；`release-smoke` 的 live turn 同因 BLOCKED。
+- **首跑人判**：首屏结构有真机 shots；首跑内容是否“像样”要本人判，本轮不冒充。
 
 ## 关闭条件
 
 - **决策层（2026-11-01 已完成）**：四项拍板有本人答复；方向、范围、比较过的选择与理由、验收标准写回本卡；work 去向（proposed note + 本卡收口）记录。
-- **实施层（推进中）**：`## 验收标准` 全绿；证据记入「落地顺序」的切片台账；开放项留在 `## 仍未取`；文档与 `_dist` 同 diff。满足即归档。
+- **实施层（2026-11-01 已完成）**：可机械验证的验收已完成（见 `### 实测记录`）；模型/人判/平台矩阵 = BLOCKED，已留在 `## 仍未取` 并转触发；文档与 `_dist` 同 diff。满足即归档。
 - **以后做/不做**：写清理由、触发条件与观察点，路由到 note 或 trigger 后再归档；不存在“没结论先归档”。
 
 ## 参考
@@ -304,6 +323,6 @@ D0 拍板
 - [可行性复核](../research/261101-plugin-as-product/261101-feasibility-review.md)
 - [技术探针](../research/261101-plugin-as-product/261101-technical-probes.md)
 - [落地蓝图](../research/261101-plugin-as-product/261101-landing-blueprint.md)
-- 现行合同：[根 README.md](../../README.md)、[docs/delivery.md](../../docs/delivery.md)、[docs/release.md](../../docs/release.md)、[docs/identity.md](../../docs/identity.md)、[docs/home.md](../../docs/home.md)、[docs/architecture.md](../../docs/architecture.md)
-- 现行决定：[交付合同](../../notes/implemented/2026-10-25-delivery-contract.md)、[数据面校准](../../notes/implemented/2026-10-28-data-plane-alignment.md)、[首开一页纸](../../notes/implemented/2026-10-23-first-run-one-page.md)
+- 现行合同：[根 README.md](../../../README.md)、[docs/delivery.md](../../../docs/delivery.md)、[docs/release.md](../../../docs/release.md)、[docs/identity.md](../../../docs/identity.md)、[docs/home.md](../../../docs/home.md)、[docs/architecture.md](../../../docs/architecture.md)
+- 现行决定：[插件即产品](../../../notes/implemented/2026-11-01-plugin-as-product.md)、[交付合同](../../../notes/implemented/2026-10-25-delivery-contract.md)、[数据面校准](../../../notes/implemented/2026-10-28-data-plane-alignment.md)、[首开一页纸](../../../notes/implemented/2026-10-23-first-run-one-page.md)
 - 外部参考：FAQ 26（`deepseek-harness/_faq_on_digested/26_plugin-as-product`）——只作判据来源，不复制正文。

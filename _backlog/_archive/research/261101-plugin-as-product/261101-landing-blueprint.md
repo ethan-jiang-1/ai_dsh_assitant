@@ -5,16 +5,16 @@ intent: "把 issue 的切片 1–3 拆到文件/API/测试/证据级：新文件
 
 # 落地蓝图：从卡到代码
 
-> 立档：2026-11-01 ｜ 服务卡：[插件即产品](../../issues/261101-plugin-as-product.md)
+> 立档：2026-11-01 ｜ 服务卡：[插件即产品](../../settled_issues/261101-plugin-as-product.md)
 > 事实底稿：[平台与仓内事实](261101-platform-and-repo-facts.md)、[技术探针](261101-technical-probes.md)、[可行性复核](261101-feasibility-review.md)。
 
 ## 0. 切片地图
 
 | 片 | 新文件 | 改文件 | 证据 |
 |---|---|---|---|
-| 1 Host 工作区绑定 | `src/domain/product/settings.ts`、`src/host/product/index.ts`、`src/host/product/route.ts` | [cordis.patch.yml](../../../packages/dsh-smart-assistant/cordis.patch.yml)、[package.json](../../../packages/dsh-smart-assistant/package.json)、[dev/profiles/profile-patch-headless.yml](../../../dev/profiles/profile-patch-headless.yml)、catalog | `test:domain`、`test:host`、`--dump-config`、product-smoke |
-| 2 产品启动器 | —（演进 [bootstrap.mjs](../../../packages/dsh-smart-assistant/bootstrap.mjs)） | bootstrap、`package.json files`、[export-dist.mjs](../../../scripts/release/export-dist.mjs)、root README / 包 README / 手册、release/identity/dev/commands | `product-smoke`、`standalone-smoke`、`release-smoke`、`verify` |
-| 3 交付契约 + 客户端门 | `src/client/product/`（门组件与 reader） | `src/client/index.ts`、`src/client/projection/home-surface.ts`、[home-map.ts](../../../packages/dsh-smart-assistant/src/domain/home/home-map.ts)、策展技能、docs | `prompt-smoke`、`test:client`、`web-expected`、真机 |
+| 1 Host 工作区绑定 | `src/domain/product/settings.ts`、`src/host/product/index.ts`、`src/host/product/route.ts` | [cordis.patch.yml](../../../../packages/dsh-smart-assistant/cordis.patch.yml)、[package.json](../../../../packages/dsh-smart-assistant/package.json)、[dev/profiles/profile-patch-headless.yml](../../../../dev/profiles/profile-patch-headless.yml)、catalog | `test:domain`、`test:host`、`--dump-config`、product-smoke |
+| 2 产品启动器 | —（演进 [bootstrap.mjs](../../../../packages/dsh-smart-assistant/bootstrap.mjs)） | bootstrap、`package.json files`、[export-dist.mjs](../../../../scripts/release/export-dist.mjs)、root README / 包 README / 手册、release/identity/dev/commands | `product-smoke`、`standalone-smoke`、`release-smoke`、`verify` |
+| 3 交付契约 + 客户端门 | `src/client/product/`（门组件与 reader） | `src/client/index.ts`、`src/client/projection/home-surface.ts`、[home-map.ts](../../../../packages/dsh-smart-assistant/src/domain/home/home-map.ts)、策展技能、docs | `prompt-smoke`、`test:client`、`web-expected`、真机 |
 
 ## 1. 切片 1：Host 工作区绑定
 
@@ -25,9 +25,9 @@ intent: "把 issue 的切片 1–3 拆到文件/API/测试/证据级：新文件
 | `src/domain/product/settings.ts` | 纯核：schema `{ version: 1, workspaceDir: string, updatedAt?: string }`；读（4 KiB 上限）、写（`atomicWriteFile` 0600）、路径校验、错误码 |
 | `src/host/product/index.ts` | 一行 web-only 插件：`inject = ['connection', 'workspaceRegistry']`；启动时读设置 → 登记工作区 → 注册路由 |
 | `src/host/product/route.ts` | `ConnectionFetchRoute`：`GET/POST /api/assistant/product`；四态；POST 校验 + 登记 + 写设置 |
-| [cordis.patch.yml](../../../packages/dsh-smart-assistant/cordis.patch.yml) | 插入 `assistant-product` 行（`name: dsh-smart-assistant/product`） |
-| [package.json](../../../packages/dsh-smart-assistant/package.json) | 加 `./product` 导出子路径 |
-| [dev/profiles/profile-patch-headless.yml](../../../dev/profiles/profile-patch-headless.yml) | `- id: assistant-product` + `disabled: true`（同 `schedule` 先例） |
+| [cordis.patch.yml](../../../../packages/dsh-smart-assistant/cordis.patch.yml) | 插入 `assistant-product` 行（`name: dsh-smart-assistant/product`） |
+| [package.json](../../../../packages/dsh-smart-assistant/package.json) | 加 `./product` 导出子路径 |
+| [dev/profiles/profile-patch-headless.yml](../../../../dev/profiles/profile-patch-headless.yml) | `- id: assistant-product` + `disabled: true`（同 `schedule` 先例） |
 
 ### 1.2 设置文件
 
@@ -108,7 +108,7 @@ pnpm dsh --profile dev-task --dump-config | grep -A2 assistant-product   # disab
 
 ## 2. 切片 2：产品启动器
 
-### 2.1 流程（演进 [bootstrap.mjs](../../../packages/dsh-smart-assistant/bootstrap.mjs)）
+### 2.1 流程（演进 [bootstrap.mjs](../../../../packages/dsh-smart-assistant/bootstrap.mjs)）
 
 1. **参数**：`--workspace <dir>`（首次必填；之后可省）、`--home <dir>`（默认 `~/.dsh-<product>`）、`--profile assistant`、`--dsh <cmd>`、`--no-start`、`--stop`。
 2. **home**：默认产品自有 home；启动器显式设 `DSH_HOME=<home>`、`DSH_AGENTS_HOME=<home>/agents-home`、`TMPDIR=<home>/tmp`；不继承日用 `~/.dsh`。`--home ~/.dsh` 显式共享，打警告。
@@ -131,7 +131,7 @@ pnpm dsh --profile dev-task --dump-config | grep -A2 assistant-product   # disab
 ### 2.3 文件与发布
 
 - `package.json` 的 `files` 已含 `bootstrap.mjs`；不新增 bin。
-- [export-dist.mjs](../../../scripts/release/export-dist.mjs) 的 `must` 清单与手册模板要含启动器；`release-smoke` 断言 tarball 里有它。
+- [export-dist.mjs](../../../../scripts/release/export-dist.mjs) 的 `must` 清单与手册模板要含启动器；`release-smoke` 断言 tarball 里有它。
 - `handoff-scan` 拒绝 `assistant-product/`（产品设置是机器本地，不进交接物）。
 - `bootstrap-guards-smoke` 更新：默认 home、workspace 危险路径、外来 profile、版本/缺 pnpm/npm 的失败。
 - `standalone-smoke` 保持：干净房间模式用 `--home <tmp>`。
@@ -166,13 +166,13 @@ pnpm verify
 
 ### 3.2 手册与技能
 
-- [home-map.ts](../../../packages/dsh-smart-assistant/src/domain/home/home-map.ts) 的 `CURRENT_DELIVERY_BULLETS`：
+- [home-map.ts](../../../../packages/dsh-smart-assistant/src/domain/home/home-map.ts) 的 `CURRENT_DELIVERY_BULLETS`：
   - 写 `<session cwd>/deliverables/<YYYY-MM-DD>-<slug>/`；
   - README 四段：问题与假设 / 依据（含来源定位）/ 产出 / 未决与状态；
   - `present` 关键文件；
   - 工作区是用户的，不是家的 `deliverables/`；
   - 项目 `AGENTS.md`/`.dsh/skills`/`.agents/skills` 只读/建议，不静默写。
-- **预算**：当前 `renderHomeManual()` = **11,936 bytes**，`MANUAL_BYTE_CAP` = **14,336**（[curate-digest.ts](../../../packages/dsh-smart-assistant/src/host/curate-digest.ts)）；headroom 2,400 bytes。新增交付段控制在 ~800 bytes；过程性内容进技能，不进手册。测试 = `tests/host/root-files.spec.ts` 的 `keeps the generated manual inside its prompt budget`。
+- **预算**：当前 `renderHomeManual()` = **11,936 bytes**，`MANUAL_BYTE_CAP` = **14,336**（[curate-digest.ts](../../../../packages/dsh-smart-assistant/src/host/curate-digest.ts)）；headroom 2,400 bytes。新增交付段控制在 ~800 bytes；过程性内容进技能，不进手册。测试 = `tests/host/root-files.spec.ts` 的 `keeps the generated manual inside its prompt budget`。
 - **技能**：新增 `presets/assistant/skills/work-delivery/SKILL.md`（英文；模型用）：一次作业一个文件夹、README 四段、来源写法、`present`、知识页只蒸馏、项目面只读；`first-conversation`/`action-plan` 指过去。
 - **证据**：`pnpm test:agent`（预算/段落）、`pnpm prompt-smoke`（新指令在场，旧“家 deliverables”指令不在场）、`pnpm eval`（有 key；无 key = BLOCKED）。
 
@@ -209,8 +209,8 @@ pnpm web-expected '<URL>' --scenario <场景>
 ## 4. 切片 4：文档/分发
 
 - 根 README：产品启动优先、手工装包其次、工作区与产物、数据归属。
-- 包 README 六节；[docs/home.md](../../../docs/home.md) 加“家 vs 工作区”指针并把家的 `deliverables/` 标 legacy；[docs/delivery.md](../../../docs/delivery.md) 数据卡加工作区产物/四件物；[docs/release.md](../../../docs/release.md) 宪章；[docs/identity.md](../../../docs/identity.md) 新行/禁令改写；[docs/architecture.md](../../../docs/architecture.md) 行/链路；[docs/dev.md](../../../docs/dev.md) 第四根；[docs/commands.md](../../../docs/commands.md) `product-smoke`；[docs/testing.md](../../../docs/testing.md) 证据地图；[docs/package-catalog.md](../../../docs/package-catalog.md) 重生成。
-- `_dist/安装手册.md`：改 [export-dist.mjs](../../../scripts/release/export-dist.mjs) 模板再重跑，不手改。
+- 包 README 六节；[docs/home.md](../../../../docs/home.md) 加“家 vs 工作区”指针并把家的 `deliverables/` 标 legacy；[docs/delivery.md](../../../../docs/delivery.md) 数据卡加工作区产物/四件物；[docs/release.md](../../../../docs/release.md) 宪章；[docs/identity.md](../../../../docs/identity.md) 新行/禁令改写；[docs/architecture.md](../../../../docs/architecture.md) 行/链路；[docs/dev.md](../../../../docs/dev.md) 第四根；[docs/commands.md](../../../../docs/commands.md) `product-smoke`；[docs/testing.md](../../../../docs/testing.md) 证据地图；[docs/package-catalog.md](../../../../docs/package-catalog.md) 重生成。
+- `_dist/安装手册.md`：改 [export-dist.mjs](../../../../scripts/release/export-dist.mjs) 模板再重跑，不手改。
 - 验证：`pnpm verify`、`pnpm export-dist`、语义漂移审计。
 
 ## 5. 风险与回退（逐片）

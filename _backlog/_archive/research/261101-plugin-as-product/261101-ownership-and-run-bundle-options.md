@@ -5,7 +5,7 @@ intent: "把助手大脑、产品设置、工作区产物与 run bundle 的归�
 
 # 数据归属与 run bundle 选项
 
-> 立档：2026-11-01 ｜ 服务卡：[插件即产品](../../issues/261101-plugin-as-product.md)
+> 立档：2026-11-01 ｜ 服务卡：[插件即产品](../../settled_issues/261101-plugin-as-product.md)
 
 ## 0. 先分清四类事实
 
@@ -13,7 +13,7 @@ FAQ 26 的四空间 / 六加二平面给出的不是分类标签，而是一张�
 
 > 这块事实的 owner、authority、source、mechanism/path、scope/key、readers、writers、可重建性、保留/删除责任分别是什么？
 
-本仓现在用 [docs/delivery.md](../../../docs/delivery.md) 的三张数据卡（用户内容 / 插件账本 / 宿主面）回答。新形态要加第四张：**工作区产物与 run bundle**。
+本仓现在用 [docs/delivery.md](../../../../docs/delivery.md) 的三张数据卡（用户内容 / 插件账本 / 宿主面）回答。新形态要加第四张：**工作区产物与 run bundle**。
 
 ## 1. 方案 A：大脑跟人走，工作区只收产物（agent 推荐）
 
@@ -53,7 +53,7 @@ FAQ 26 的四空间 / 六加二平面给出的不是分类标签，而是一张�
 - 一个数字分身可以跨多个工作区学习；工作区之间共享判断标准、偏好、学到的技能。
 - 项目文件夹备份走，带走产物与 run README，但带不走助手的“记忆”；要一起带走必须另跑 `assistant-data`。
 - 不需要改服务、段落、面板、账本、备份或测试的根模型；改动集中在启动器、Host 产品行、客户端门、手册与交付约定。
-- 与本仓既有决定一致：[docs/delivery.md](../../../docs/delivery.md) 的“home 单例，不按 workspace 分区”。
+- 与本仓既有决定一致：[docs/delivery.md](../../../../docs/delivery.md) 的“home 单例，不按 workspace 分区”。
 - 风险：用户以为“把项目交给别人就能连同助手一起交出去”；文档必须显式说清两物的分家。
 - **账本 scope**：A 也意味着多个工作区共享一个经营账本（home 单例）。如果工作区代表不同公司/业务，账本会混；这是 B/C 的触发，不是 v1 的问题，但文档要提前说清。
 
@@ -88,8 +88,8 @@ FAQ 26 的四空间 / 六加二平面给出的不是分类标签，而是一张�
 
 ### 平台代价
 
-- 最硬的一条是 **prompt 段落看不到 session/workspace**（[system-prompt/src/index.ts](../../../vendor/dsh/packages/core/system-prompt/src/index.ts)）。不新建平台接缝，就只能接受“一个产品实例只服务一个工作区”，把当前工作区放在进程级配置里；这会限制“同一实例多工作区”。
-- 与本仓已记录的决定相反（[docs/delivery.md](../../../docs/delivery.md) §一「作用域」、[数据面校准 note](../../../notes/implemented/2026-10-28-data-plane-alignment.md)）；按流程需要一个新的决定，不是一个实现细节。
+- 最硬的一条是 **prompt 段落看不到 session/workspace**（[system-prompt/src/index.ts](../../../../vendor/dsh/packages/core/system-prompt/src/index.ts)）。不新建平台接缝，就只能接受“一个产品实例只服务一个工作区”，把当前工作区放在进程级配置里；这会限制“同一实例多工作区”。
+- 与本仓已记录的决定相反（[docs/delivery.md](../../../../docs/delivery.md) §一「作用域」、[数据面校准 note](../../../../notes/implemented/2026-10-28-data-plane-alignment.md)）；按流程需要一个新的决定，不是一个实现细节。
 - 好处是真实的产品故事：把项目文件夹交给同事，助手与它的记忆一起走；项目之间天然隔离。
 - 成本量级：服务签名、四房间调用、段落、面板、账本、备份、测试、文档全要动；不是“把 dataDir 指到工作区”一行。
 

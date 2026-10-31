@@ -6,6 +6,7 @@
 
 | 卡 | 关闭日 | 判定 |
 |---|---|---|
+| [261101-plugin-as-product.md](261101-plugin-as-product.md) | 2026-11-01 | **S1–S4 全交付**：产品行/启动器/客户端门/交付契约/文档分发；`product-smoke`、`standalone-smoke`、`bootstrap-guards-smoke`、`verify`、全量 `test` 通过；`release-smoke` 的 live turn 与 `eval` 无 key = BLOCKED；`web-face-check --scenario product-workspace-gate` 通过。去向 = [implemented note](../../../notes/implemented/2026-11-01-plugin-as-product.md)；研究题随迁 `_archive/research/` |
 | [261029-ledger-multiview-closure.md](261029-ledger-multiview-closure.md) | 2026-10-31 | **M1-S1～S4 全交付，本人接受**：三视图（关注 / 全部事项 / 流水）+ 同件时间线 + 往返保留；真实浏览器 offset 260→260、窄屏 200→200、9 相位对抗走查全 PASS；focused 127、typecheck、build、`pnpm verify` 全绿。结档不把下一片候选算作交付：提案目标值未上屏、关注卡可扫读、时间线降噪、待归户并入（记录在卡内，未授权）。去向 = 本卡归档；研究题随迁 `_archive/research/` |
 | [261029-first-value-journey.md](261029-first-value-journey.md) | 2026-10-30 | **研究结档（转真实使用观察）**：三个根因不归一、研究材料与方法限制可复核；M1 多视图首片次日由[收口卡](261029-ledger-multiview-closure.md)接受（2026-10-31）。剩余人证据（H2 盲评材料、H3 自然跨日、3 人冷读）按 triggers.md 口径不新增触发行，缺口留卡内；研究题随最后一个活消费者离开迁入 `_archive/research/` |
 | [261028-data-plane-recheck.md](261028-data-plane-recheck.md) | 2026-10-28 | **第二轮真值漂移全收**：手册 v23（四段常驻 + 完整布局）与 v22→v23 迁移、v19 fixture 走到 v23；`docs/home.md` 迁移清单/owner/drop 措辞、`docs/delivery.md` generation 示例、`docs/architecture.md` 摘要描述；`session-recall` 补 cwd 作用域与 `<normalized-cwd>` 推导；`desk-projection` 第三数据根也走包内拒绝。独立漂移审计 F7–F12 全关。证据：`pnpm test` 147/1114、`verify` 50/50、`prompt-smoke` PASS。去向 = [上一轮 implemented note](../../../notes/implemented/2026-10-28-data-plane-alignment.md) |

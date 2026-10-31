@@ -5,7 +5,7 @@ intent: "把 headless pending、boot 时工作区登记、workspaceId 会话 cwd
 
 # 技术探针：四条机制的真读数
 
-> 立档：2026-11-01 ｜ 服务卡：[插件即产品](../../issues/261101-plugin-as-product.md)
+> 立档：2026-11-01 ｜ 服务卡：[插件即产品](../../settled_issues/261101-plugin-as-product.md)
 > 环境：本仓 `dev/harness-home` 与临时 home `.tmp/product-probe/home`；临时 workspace `.tmp/product-probe/workspace`；没有碰日用 `~/.dsh`。
 > 性质：**机制原型**，不是产品代码；探针文件只在 `.tmp/`，不进包、不进组合合同。
 
