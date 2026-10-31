@@ -229,7 +229,7 @@ D0 拍板
 | S1 | 产品行（设置纯核 + web-only 行 + route + 组合行 + headless disable） | **已完成** | `test:domain`/`test:host`/`test:composition`/`verify`；web `--dump-config` 有行、headless `disabled: true`；产品行探针 |
 | S2 | 启动器（产品 home/profile 所有权/工作区/版本对账/守卫） | **已完成**（文档/手册在 S4） | `product-smoke`（profile/settings/登记/会话 cwd/stop）、`standalone-smoke`、`bootstrap-guards-smoke`、`release-smoke`（live turn 无 key = BLOCKED）、`verify` |
 | S3 | 首页 + 交付（四件物/项目面/手册/技能/恢复面） | **已完成** | `product-gate.spec`、`prompt-smoke`、`test`/`verify`；`web-face-check --scenario product-workspace-gate` 绿；真机 shots |
-| S4 | 文档/分发（README/docs/`_dist` 生成器） | 待授权 | `verify`、`export-dist`、漂移审计 |
+| S4 | 文档/分发（README/docs/`_dist` 生成器） | **已完成** | `verify`/`export-dist`/全量 `test`；根 README、AGENTS、包 README/AGENTS、`docs/product.md` 与 `_dist/安装手册.md` 同步 |
 | S5 | 收口（proposed → implemented；输掉的方案；触发） | 待授权 | `verify` notes 形状 |
 
 切片级文件/API 细节 = [落地蓝图](../research/261101-plugin-as-product/261101-landing-blueprint.md)；证据设计 = `## 验收标准`。

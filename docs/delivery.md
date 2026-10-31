@@ -9,11 +9,11 @@
 | 物 | 内容 | 归属 |
 |---|---|---|
 | **agent 物** | `lib/`、`bin/`、`presets/`、`seeds/`、`cordis.patch.yml`、`package.json`、`README`、默认身份与回退 | 包；可复制给任何人，不含用户数据 |
-| **用户数据（插件拥有）** | `<dataDir>`（默认 `<dshHome>/assistant`）与 `<operatingDir>`（默认 `<dshHome>/assistant-operating`，含 `ledger.json` / `operations-archive.jsonl`） | 某一个人的 home |
+| **用户数据（插件拥有）** | `<dataDir>`（默认 `<dshHome>/assistant`；产品模式 `<productHome>/assistant`）与 `<operatingDir>`（默认 `<dshHome>/assistant-operating`，含 `ledger.json` / `operations-archive.jsonl`）；产品设置 `<productHome>/assistant-product/settings.json`（机器本地） | 某一个人的 home |
 | **用户数据（宿主拥有）** | `sessions/`、credentials、`settings`、`storages`、`session-search.db`、`cache/` 等 | 同一个 home；不进插件备份/交接物 |
 | **交付物** | 会话 cwd 下的 `deliverables/<YYYY-MM-DD>-<slug>/`（README 四段 + 交付物 + `present`；契约 = `work-delivery` 技能；见 [`home.md`](home.md) §一注） | 用户数据；随项目；不进 agent 物 |
 
-**一个人 = 一个 `DSH_HOME`。** profile 是组合，不是租户；不同人用不同 home（不同机器、不同 OS 用户或显式隔离 home），不共享插件数据目录。同一 home 下的所有 profile 共用 `<dshHome>/assistant` 与 `<dshHome>/assistant-operating`——换 profile 名只隔离组合，**不隔离数据**；真正隔离试用用独立 `DSH_HOME`，或同时覆盖 memory/ledger/projection 的 `dataDir`。
+**一个人 = 一个 home。** 产品模式默认**产品自有 home**（`~/.dsh-smart-assistant`，启动器显式设 `DSH_HOME`）；部署者也可 `--home ~/.dsh` 显式共享日用 home。profile 是组合，不是租户；不同人用不同 home（不同机器、不同 OS 用户或显式隔离 home），不共享插件数据目录。同一 home 下的所有 profile 共用 `<dshHome>/assistant` 与 `<dshHome>/assistant-operating`——换 profile 名只隔离组合，**不隔离数据**；真正隔离试用用独立 `DSH_HOME`，或同时覆盖 memory/ledger/projection 的 `dataDir`。
 
 ### 数据平面映射（DSH 6+2）
 
@@ -52,6 +52,7 @@
 | 治理审计 | N0 文件 | P3 / H-like | 插件 | `<dataDir>/audit/approvals.jsonl`、`audit/purges.jsonl`、`audit/maintenance.jsonl` | 只追加；显式 `rotate` 才移动 | 用户；面板读最近 200 行 | 是 | `rotate --apply` 移入 `archive-maintenance/` | 保留 | 坏行计数跳过；只有账本状态 fail loud |
 | 轮转归档 | N0 文件 | P3 / H-like | 插件 | `<dataDir>/archive-maintenance/<stamp>/` | 由 `rotate` 创建；手动清 | 用户 | 是 | 手动 | 保留 | 无 |
 | 界面密度 | N0 文件 + 自有 CLI | P3 / H-like | 插件/用户 | `<dataDir>/ui-mode.json`（v1 envelope） | 可删，删了回标准 | 用户（面板）；模型不可见 | 是 | key v1 | 保留 | 容忍：回默认 |
+| 产品设置 | N0 文件 + 产品行 | P3 / 机器本地 | 插件 | `<productHome>/assistant-product/settings.json`（version 1） | 换机重选；不进 `assistant-data` | 启动器/产品首页 | 否 | 重选即覆盖 | 保留 | 容忍：坏文件报 `invalid`，不静默当空 |
 | MANUAL 镜像备份 | N0 文件 + 自有 CLI | P3 / H-like | 用户 | `<dataDir>/MANUAL.md.bak-<stamp>` | 由 `refresh-manual` 创建；手动清 | 用户 | 是 | 手动 | 保留 | 无 |
 | 旧生成手册备份 | N0 文件 | P3 / H-like | 用户 | `<dataDir>/AGENTS.md.bak-<stamp>` | scaffold 拆分迁移产生；手动清 | 用户 | 是 | 手动 | 保留 | 无 |
 | 经营账本状态 | N0 文件 + 自有服务 | 插件自有文件账本 | 插件 | `<operatingDir>/ledger.json` | 最近 256 条操作 + 全量计数；压缩后仍有界 | 用户；模型经工具 | 是 | v1 只增；`operationCount` 回填；不做硬删 | 保留 | **fail loud**：读不出 v1 拒绝当空账本 |
@@ -92,7 +93,7 @@
 node scripts/release/handoff-scan.mjs <目录或 tarball>
 ```
 
-- 路径面拒绝：`assistant/`、`assistant-operating/`、`data/`、`sessions/`、`deliverables/`、`profiles/`、`storages/`、
+- 路径面拒绝：`assistant/`、`assistant-operating/`、`assistant-product/`、`data/`、`sessions/`、`deliverables/`、`profiles/`、`storages/`、
   `logs/`、`dev/harness-home/`、`dev/trial-home*`、`.tmp/`、`.desk/`、`.pi/`、`_dist/`、`node_modules/`、`.git/`；
   以及任意深度的 `.env`、`.env.local`、`.credentials.yaml`、`auth.json`、`*.key`、`*.pem`、`id_rsa`、`id_ed25519`。
 - 文本面拒绝：机器家目录的绝对路径前缀（具体规则 = `scripts/release/handoff-core.mjs`）与明显的活密钥形状。
@@ -106,7 +107,7 @@ node scripts/release/handoff-scan.mjs <目录或 tarball>
 
 ## 三、备份、恢复与迁移
 
-插件数据 = 两个目录；备份/恢复/诊断用包内 `assistant-data`（[`bin/assistant-data.mjs`](../packages/dsh-smart-assistant/bin/assistant-data.mjs)，
+插件数据 = 两个目录（产品模式相对于 `<productHome>`；产品设置是机器本地，不进备份）；备份/恢复/诊断用包内 `assistant-data`（[`bin/assistant-data.mjs`](../packages/dsh-smart-assistant/bin/assistant-data.mjs)，
 实现 = [`src/cli/assistant-data-bundle.ts`](../packages/dsh-smart-assistant/src/cli/assistant-data-bundle.ts)（入口 [`assistant-data.ts`](../packages/dsh-smart-assistant/src/cli/assistant-data.ts) 只做再导出））：
 
 ```sh

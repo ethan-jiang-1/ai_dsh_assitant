@@ -5,10 +5,11 @@
 
 ## 这是什么
 
-一个 DSH 插件 repo：**一个领域专家式的助手**（`dsh-smart-assistant`）。
-它给 agent 一个自己的 **working folder**（跨会话的工作目录 = 本插件的 `dataDir`，**不是**进程 cwd/workspace）：长期记忆 + 领域知识 + 学到的技能 + 机器能跑的养护检查。
+一个 DSH **产品** repo：一个领域专家式的助手（`dsh-smart-assistant`），有自己的启动 profile（`assistant`）与产品 home，在启动时绑定用户工作区。
+它有两块地：**助手自己的 working folder**（跨会话工作目录 = 产品 home 的 `dataDir`，默认 `<productHome>/assistant`）与**用户的项目工作区**（会话 cwd、文件工具、`deliverables/` 交付包）。
 核心命题是 `Agent = Model + Harness` —— 本 repo 做的就是"那一圈"。
-给谁、怎样算干成（P1–P3 / O1–O6 方向判据与装法的唯一家）= [`README.md`](README.md)。
+给谁、怎样算干成（P1–P3 / O1–O6 方向判据与装法的唯一家）= [`README.md`](README.md)；产品/工作区/交付包合同 = [`docs/product.md`](docs/product.md)。
+仓内开发启动 = `pnpm start`（dev home）；产品启动 = 包内 `bootstrap.mjs --workspace`（产品 home）；两者不混。
 
 ## 新会话开工（先读这段）
 
@@ -64,7 +65,7 @@ rejected 政策、命名——本文件不复制）；改行为、契约或开�
 | `snapshots/` | 行为回归的证据面——只收边界与现状见其 `AGENTS.md` 与 `README.md` | 回归证据问题动这里 |
 | `_dist/` | **分发导出（生成物）**：`pnpm export-dist` 的 tgz（不入库）与《安装手册》 | 分发问题动这里；生成器 `scripts/release/export-dist.mjs` |
 | `.agents/` | **开发用 Skill 根**（证据路由、探针、审计、UI 贡献约束等——DSH 原生 `project-agents` 根发现） | 新开发技能动这里 |
-| `deliverables/` · `.desk/` · `.tmp/` · `.pi/` | **会话运行现场（git 忽略或机器本地，不是仓库内容）**：cwd=仓根的会话留下的业务交付（未提交交接件——与 working folder 根的 `deliverables/` 同名不同物，见 [`docs/home.md`](docs/home.md) §一注）、My Desk 桌面状态、临时产物、DSH 会话任务持久化（`.pi/tasks/`） | 不提交、不当文档读；语义见 `.gitignore` 注释 |
+| `deliverables/` · `.desk/` · `.tmp/` · `.pi/` | **会话运行现场（git 忽略或机器本地，不是仓库内容）**：cwd=仓根的会话留下的业务交付（未提交交接件——与工作区 `deliverables/` 同名不同物，见 [`docs/product.md`](docs/product.md) §五）、My Desk 桌面状态、临时产物、DSH 会话任务持久化（`.pi/tasks/`） | 不提交、不当文档读；语义见 `.gitignore` 注释 |
 | `vendor/dsh/` · `vendor/thirdparty/` | **钉住的外部源码**：DSH 源码（submodule）与钉存的第三方上游包（只读证据物，如 OpenViking，见 `vendor/thirdparty/openviking/README.md`） | **永不改**；升级 DSH 走 `pnpm sync-dsh` |
 | `tsconfig.base.json` / `tsconfig.tsx.json` / `tsconfig.json` / `pnpm-workspace.yaml` | 根配置：两个 tsconfig **解析入口**（编译期手维护 / 运行期 `pnpm gen-paths` 生成）+ IDE 整仓聚合（`tsconfig.json`，typecheck 不经它）+ pnpm 工作区面 | 引入新 `@deepseek-ai/*` import 或换 pin 时动解析入口（契约：`docs/dev.md` §二） |
 
@@ -115,6 +116,7 @@ pnpm verify     # 机械门禁链
    `dev/env/env.sh` 是它们与手工调用时的兜底，**同样认 `ASSISTANT_DSH_HOME`**
    （用隔离 home 跑实验的人，脚本与启动器必须落在**同一个** home，否则 profile 建在一个 home、启动器去另一个找）。
    **任何情况下不碰日用的 `~/.dsh`。**
+    shipped 产品启动器默认自己的产品 home（`~/.dsh-smart-assistant`），同样不碰日用；`--home ~/.dsh` 是用户显式共享。
 2. **探索路由**：DSH 平台事实读钉住的 `vendor/dsh`。机制从 `vendor/dsh/docs/architecture.md` 到
    `vendor/dsh/docs/capability-seams.md` 再到包 README；真实签名读 `vendor/dsh/packages/**/src/`。
    文档 tier、主仓 note 制度、主仓开发技能的页在下面「探索路由」。本仓只写差量：适配一行进

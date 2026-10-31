@@ -1,6 +1,6 @@
 # dsh-smart-assistant
 
-一个 DSH 插件：给 agent 一个**自己的 working folder**（跨会话的工作目录），并让它始终"有用的多、没用的少"。
+一个 DSH **产品**：有自己的启动 profile（`assistant`）与产品 home，在启动时绑定用户项目工作区；助手的大脑留在自己的 home，一次作业的交付包留在项目里。
 
 - **四个房间**：`memory/`（已确立的事实/偏好/决定）、`research/`（未决线索，backlog 语义）、
   `skills/`（学到的本事）、`knowledge/`（领域知识页，`[[互链]]`）。
@@ -11,20 +11,36 @@
 - **一个只读部署自检 CLI**：`ov-doctor`（`bin/ov-doctor.mjs`；装好可选 OpenViking 层后在 profile 内运行，见安装手册的 OV 自检节）。
 - **一个专家装配 CLI**：`expert-setup`（`bin/expert-setup.mjs`；把管理种子显式导入为 `draft`，不自动 stable）。
 - **一个数据备份/诊断 CLI**：`assistant-data`（`bin/assistant-data.mjs`；导出/导入 `assistant` + `assistant-operating`，带 schema manifest；另有 `status`/`check`、`import --replace`/`--max-bytes`、`rotate` 与显式 `purge`）。
-- **一个独立启动脚本**：`bootstrap.mjs`（解开的包目录里用已安装 `dsh` 建隔离 profile；先用 npm 打包再安装，home 默认在包外，不碰日用 `~/.dsh`）。
+- **一个产品启动器**：`bootstrap.mjs`（`--workspace` 建/复用 `assistant` profile、绑工作区、起 Web；`--product` 复用上次绑定；`--stop` 收；默认产品 home `~/.dsh-smart-assistant`，不碰日用 `~/.dsh`）。没有 `--workspace`/`--product` 时仍是原 standalone 模式。
+- **一个产品工作区行**：`assistant-product`（web-only；读 `assistant-product/settings.json`、boot 时登记工作区、GET/POST `api/assistant/product`；headless profile patch 禁用）。
 - **默认身份是管理岗**（P1）：`SOUL.md` 是数据，种子与回退一致；管理种子只在显式装配时进入知识室，安装不写 working folder。
 
 ## Install
+
+**产品启动（推荐）**——把 tarball 解包，用 PATH 上兼容的 `dsh`：
+
+```sh
+node bootstrap.mjs --workspace /path/to/your-project
+node bootstrap.mjs --product          # 之后复用上次绑定
+node bootstrap.mjs --stop --home ~/.dsh-smart-assistant --product
+```
+
+启动器建/复用 `assistant` profile、装当前包、设默认 preset、写工作区绑定，再起
+`dsh --profile assistant --port 0`。产品 home 默认 `~/.dsh-smart-assistant`（不碰日用 `~/.dsh`；
+`--home ~/.dsh` 才是显式共享）。工作区绑定 = `<productHome>/assistant-product/settings.json`；
+交付包 = `<工作区>/deliverables/<YYYY-MM-DD>-<slug>/`。合同 = 仓根 `docs/product.md`。
+
+**手工装包（已有 DSH 的用户）**：
 
 ```sh
 dsh plugin --profile web add /path/to/dsh-smart-assistant-<version>.tgz
 ```
 
 安装只带定义；在 Web UI 的 Settings → Agent 预设里把 `章鱼管家` 设为默认，或 headless 用
-`agent-preset-registry.default: assistant` 的 profile patch。需要 DSH `>=0.2.1-rc.2 <0.3.0-0`、
-Node `^22.19.0 || >=24`，以及 PATH 上的 `pnpm >= 10.6.0`（10.4 及更低会报
-`ERR_PNPM_ADDING_TO_ROOT`；Corepack 已启用也算）。首次安装需要访问 npm registry 或内网镜像，
-拉唯一依赖 `yaml`；之后运行不需要网络。
+`agent-preset-registry.default: assistant` 的 profile patch。没有产品设置时产品行 idle，行为与旧版一致。
+需要 DSH `>=0.2.1-rc.2 <0.3.0-0`、Node `^22.19.0 || >=24`，以及 PATH 上的 `pnpm >= 10.6.0`
+（10.4 及更低会报 `ERR_PNPM_ADDING_TO_ROOT`；Corepack 已启用也算）。首次安装需要访问 npm registry
+或内网镜像，拉唯一依赖 `yaml`；之后运行不需要网络。
 
 Desktop 使用保留的 `desktop` profile：先在 Desktop 应用里初始化一次，再
 `dsh plugin --profile desktop add ...` 并重启应用（本轮未在 Desktop 真机验证）。
@@ -32,13 +48,15 @@ Desktop 使用保留的 `desktop` profile：先在 Desktop 应用里初始化一
 ## What it contributes
 
 `cordis.patch.yml` 是一层 bundle patch：host 面的 working-folder 服务（四房间、摘要、curate）、
-经营账本/投影、房间与 Viki 路由，以及 `assistant` preset（六个工具、四个常驻段落、策展技能、
+经营账本/投影、产品工作区绑定/门、房间与 Viki 路由，以及 `assistant` preset（六个工具、四个常驻段落、策展技能、
 学到的技能 provider 与遮蔽盾）。客户端贡献桌面与房间 tab；行、exports、工具动词的精确清单以
 [生成物 catalog](../../docs/package-catalog.md) 为准。组合同时**禁用 vendor 的右栏终端行**
 `ui-sidebar-terminal`——管理岗用户不用开发工具；终端 API/工具仍留给 headless 或显式配置的开发组合。
 
 ## Configuration
 
+产品行 `assistant-product` 没有 Config：工作区来自 `<dshHome>/assistant-product/settings.json`
+（启动器/产品首页写），home 由启动器的 `--home`/`DSH_HOME` 决定；无设置时 `not-configured`。
 `assistant-memory` 行可配 `dataDir`（默认 `<dshHome>/assistant`）、`digestMaxBytes`、`recallLimit`、
 `staleResearchDays`；`assistant-operating-ledger` 行有独立的 `dataDir`（默认
 `<dshHome>/assistant-operating`）与 `keepOperations`（默认 256）、`maxArchiveBytes`（默认 256 MiB 归档读取上限）；`assistant-desk-projection` 有
@@ -50,13 +68,14 @@ Viki 的 API key 从 `apiKeyEnv`（默认 `OPENVIKING_API_KEY`）读；内联 `a
 
 ## Data
 
-- **Working folder**：`<dshHome>/assistant`，一棵用户可见的 home 树，由本插件拥有。**用户内容**：`SOUL.md`、
+- **Working folder**：`<dshHome>/assistant`（产品模式 = `<productHome>/assistant`），一棵用户可见的 home 树，由本插件拥有。**用户内容**：`SOUL.md`、
   `MANUAL.md`（插件手册的渲染镜像）、`AGENTS.md`（用户笔记）、`memory/`、`research/`、`skills/`、`knowledge/`、
   `skill-proposals/`；**机器账本**：`skill-usage.json`、`ui-mode.json`、`audit/*.jsonl`、`archive-maintenance/`、`*.bak-*`。
-  `deliverables/` 是用户数据（模型自发落点，无生命周期）。prompt 用手册的**当前渲染** + `AGENTS.md` 笔记；
+  home 根下旧 `deliverables/` 是历史遗留；新交付包在会话 cwd 的 `deliverables/<date>-<slug>/`。prompt 用手册的**当前渲染** + `AGENTS.md` 笔记；
   升级永远最新，没有 generation。旧生成手册（带 marker）在 scaffold 时整体移到 `AGENTS.md.bak-*`（手改留在备份）。
   笔记超预算报 `notes-over-budget`，身份报 `soul-over-budget`。学到的技能是本插件注册的 provider 根（`skills/`），
   不是 `$DSH_HOME/skills`；策展技能随包只读，位于 `presets/assistant/skills/`。
+- **Workspace**：会话 cwd 是用户项目；一次作业一个 `deliverables/<date>-<slug>/`（README 四段 + 交付物 + `present`）；项目 `AGENTS.md`/`.dsh/skills`/`.agents/skills` 只读/建议；不复制会话日志。
 - **Ledger**：`<dshHome>/assistant-operating`，插件自有文件账本（不是 `ctx.storageDomain` 的 host KV）：
   权威 `ledger.json`（最近 256 条操作 + 累计计数）+ `operations-archive.jsonl`（完整操作历史）+ 单 writer 锁；
   可用 `assistant-data` 导出/导入。
@@ -89,7 +108,7 @@ Viki 的 API key 从 `apiKeyEnv`（默认 `OPENVIKING_API_KEY`）读；内联 `a
 | DSH 平面 | 本包 |
 |---|---|
 | D 定义 / C 代码 | bundle patch、preset、包内只读技能、`lib/bin`；只读，随版本替换 |
-| W workspace | 不拥有；只有用户自己的 `deliverables/` |
+| W workspace | 只写会话 cwd 的 `deliverables/<date>-<slug>/`；目录与项目文件归用户 |
 | U home | `<dshHome>/assistant`：用户内容 + 插件账本共处一棵用户可见的树；跨项目，升级/卸载保留 |
 | S session / H host state / K cache / X credentials | S/X 宿主拥有；本包不用 `ctx.storageDomain`，账本是自有文件账本；K 只有内存摘要缓存与宿主 `session-search.db` |
 
@@ -113,6 +132,7 @@ dsh plugin --profile <p> remove dsh-smart-assistant
 ```
 
 卸载不删 `<dshHome>/assistant` 与 `<dshHome>/assistant-operating`；先 `assistant-data export` 备份。
+产品模式的产品 home（`~/.dsh-smart-assistant`）与工作区交付包都保留；产品 home 要清就手动删，工作区随项目备份。
 卸载也不会删宿主数据：要清会话全文索引就删 `<dshHome>/session-search.db`，要清其余宿主数据按
 [`docs/delivery.md`](../../docs/delivery.md) §一数据卡逐项处理；客户端 localStorage 键用“清除站点数据”。
 OpenViking 是独立可选层，另停 server 并按其安装手册清理。

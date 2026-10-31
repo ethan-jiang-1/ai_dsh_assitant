@@ -306,9 +306,9 @@ try {
 
   step('reading the composed tree back')
   const dump = dsh(['--profile', profile, '--dump-config'])
-  if (!dump.includes('assistant-memory')) fail('--dump-config does not show the host-plane row assistant-memory')
+  if (!dump.includes('assistant-memory') || !dump.includes('assistant-product')) fail('--dump-config does not show the host-plane rows (assistant-memory / assistant-product)')
   if (!dump.includes(PACKAGE_NAME)) fail(`--dump-config does not mention ${PACKAGE_NAME}`)
-  else ok('host-plane row is in the composition')
+  else ok('host-plane rows are in the composition')
   if (!dump.includes('assistant')) fail('--dump-config does not show the preset roster default')
   else ok('the preset is the profile default')
 

@@ -22,6 +22,7 @@
 | **模型可见面**（工具描述 / prompt 段落 / persona / digest） | `pnpm build` → `pnpm test:composition` → **`pnpm eval --only <task-id>`**（行为判决，任务清单 `pnpm eval --list`；`repo-live-probe` 是取证非回归，见已定姿态） | `tests/agent/*.spec` + `dev/eval/` | agent spec：段落合同。eval：伤害地板、技能按名加载、回答正则（可凑巧命中）/ 段落是否进入请求、组装转录、领域质量（`eval:domain` 人判） |
 | agent 面合同（段落预算 / 养护回合的合同层） | `pnpm test:agent`（真服务 + 临时 home）；改动同时触模型可见面时按上一行加链 | `tests/agent/*.spec` | 段落就绪 / 预算 / 回合占位等合同 / Loader 组装、UI 读回 |
 | client 面（`src/client`：注册与交互状态） | `pnpm test`（整包套件——`entry.spec` 断言全 slot 面，加一个注册会红没打开过的 spec）+ 现有 web-face 场景（清单以 `snapshots/web-face/` 为准）→ `pnpm web-expected '<URL>' --scenario <场景>` | `tests/client/*.spec` + `snapshots/web-face/` | 注册、组件树、色彩契约 / 真浏览器渲染（场景期望管） |
+| 产品工作区门（`src/client/product` + `src/host/product`） | `pnpm test:client`（`product-gate.spec`）+ `pnpm web-face-check --scenario product-workspace-gate` | `tests/client/product-gate.spec.ts` + `snapshots/web-face/product-workspace-gate/` | 绑定解析/状态映射、真渲染门条/按钮、恢复面 / 点击后的 Session（client spec/真机分工） |
 | 导出形态 / 组合行身份 / 注册撤销 | 台阶①③守卫（现读 patch，新行自动被扫） | `tests/composition/export-shape` + `registry-lifecycle` | 行身份与生命周期 / 行为正确 |
 | 组装后组合（服务/段落/工具 scope） | `pnpm build` → `pnpm test:composition` | `tests/composition/`（`preset-composition.spec` 是组装证据；同层还有导出/生命周期/遮蔽 spec） | 真 Loader 组装 / vendor rows、完整产品 boot |
 | web 渲染面（首开/座位/文案） | `pnpm web-expected '<URL>' --scenario <场景>`（隔离 home 真渲染，场景必填；过目 diff 后 `--refresh`） | `snapshots/web-face/`（场景清单以目录为准） | 渲染期望 / 交互逻辑（client spec 管） |
@@ -31,7 +32,7 @@
 | 兼容范围边界 | `pnpm test`（`tests/tooling/compatibility-range.spec.mjs`） | 同左 | 0.2.x 放行、0.3.0 预发布/正式拒绝 / 这些版本上的真实运行（T6 矩阵） |
 | pnpm 版本矩阵 | `pnpm pnpm-matrix -- --pnpm <v> --expect install|reject` | `scripts/release/pnpm-matrix.mjs` | 10.6 下界安装 + 组合、9/10.4 拒绝 / Windows、Node 24、Corepack 离线 |
 | bootstrap 守卫 | `pnpm bootstrap-guards-smoke` | `scripts/release/bootstrap-guards-smoke.mjs` | 路径穿越/保留名/缺旧 pnpm/npm 在创建 home 前拒绝、victim 存活 / Windows 真机、注入式 pnpm |
-| 模型可见请求（T4） | `pnpm prompt-smoke`（无 key replay one-shot；读 `system/message` + `request/header.tools`） | `scripts/release/prompt-smoke.mjs` | 四个段落与六个工具确实进入请求 / 长会话回放、话术质量 |
+| 模型可见请求（T4） | `pnpm prompt-smoke`（无 key replay one-shot；读 `system/message` + `request/header.tools`） | `scripts/release/prompt-smoke.mjs` | 四个段落、六个工具与产品交付段/项目面确实进入请求、旧“家 deliverables”指令缺席 / 长会话回放、话术质量 |
 | 真实 DSH 兼容矩阵（T6） | `pnpm compat-matrix -- --dsh <path> --version <v> --expect install|reject` | `scripts/release/compat-matrix.mjs` | 目标 CLI 的安装/拒绝与组合 / 模型回合、全 minor 组合 |
 | 升级 / 卸载的数据边界 | `pnpm upgrade-smoke`（干净 home：合成旧包→新包→remove） | `scripts/release/upgrade-smoke.mjs` | 安装/升级/remove 不碰两目录、组合恢复 / 真实历史数据的**安装**迁移（读取兼容另见下行） |
 | 旧字节兼容 | `pnpm test:host` | `tests/host/old-home-compat.spec.ts` + `tests/host/fixtures/old-home-v19/` | 冻结 v19 home 的房间/技能/提案/用量/手册迁移/账本回执可读 / 0.1.0 之前的未知字节、未来版本、损坏文件 |

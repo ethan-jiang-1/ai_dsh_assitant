@@ -16,6 +16,9 @@
 | `dev-task`（§四） | 无 Web 的 headless one-shot：只装 host 面，进程自己退 | 只冒烟插件装载 / 服务行 / scaffold |
 | `--patch dev/probes/session/preset-runner.patch.yml`（§四） | 同上但挂 preset | 自动化 preset 探针 |
 | `pnpm --dir vendor/dsh run dev:web` | vendor 的客户端 bundle watcher（重建 web 产物），不建 home、不选 profile、不起本插件会话 | 改浏览器面源码时配合已起的实例用 |
+| 包内 `bootstrap.mjs --workspace <目录>` | **产品实例**：产品自有 home + `assistant` profile + 用户工作区；不是仓内开发入口 | 验证产品形态/端到端；自动证据 = `pnpm product-smoke`，合同 = [`product.md`](product.md) |
+
+产品启动与仓内开发启动是两条入口：`pnpm start` 只起 dev home 的开发实例；产品用包内 `bootstrap.mjs`（产品 home、`assistant` profile、用户工作区）。两者的 home 规则见 [`product.md`](product.md) 与根 `AGENTS.md` 硬规则 1。
 
 ## 一、隔离模型（什么被隔离、什么没有被隔离）
 
@@ -40,6 +43,7 @@ pnpm dsh --profile dev --port 0 --no-open  # 起服务与验证命令（prefligh
 | 通道 | 是否随 DSH_HOME 隔离 | dev 的处理 |
 |---|---|---|
 | profiles / sessions / storages / attachments / settings / credentials / 技能用户根 / `.agent-presets` / assistant working folder 的 dataDir（默认值；显式 `dataDir` 覆盖例外，见 `docs/home.md`） | ✅ | 自动落在 dev home |
+| 产品 home（默认 `~/.dsh-smart-assistant`）与用户工作区 | ❌ 不随 dev home | dev 不建产品 home；产品入口见上表与 [`product.md`](product.md)；产品 smoke 用临时 home/workspace |
 | skills 的共享 agent 根（默认 `~/.agents`） | ❌ 不隔离 | 启动器接管为 `$DSH_HOME/agents-home`（仅当未显式设置；`dev/env/env.sh` 则无条件强制） |
 | telemetry | 身份按 home 独立；默认 FEEDBACK_ONLY | 启动器设 `DSH_TELEMETRY_DISABLED=1` |
 | spill 与脚本临时文件 | ❌ 不经 DSH_HOME | **仓内唯一形式 = 仓根 `.tmp/<用途>/`**（硬规则 8，动机是仓外写会被沙箱挡成 approval）：dev 启动器把 `TMPDIR`/`TMP`/`TEMP` 收进 `.tmp/host/`，vendor 的 spill 随之入仓；脚本用 `dev/env/tmp.mjs` 的 `tmpDir`/`mkTmpDir`，测试进程由 `packages/dsh-smart-assistant/vitest.config.ts` 收进 `.tmp/vitest/`。日用（非 dev）实例不经本启动器，不受影响。清扫走 `pnpm sweep`（默认 dry-run，`--apply` 才真删；保护 = openviking / 新 mtime / 打开句柄 / `--keep` 白名单，判据见 `scripts/maintenance/sweep.mjs` 头注） |

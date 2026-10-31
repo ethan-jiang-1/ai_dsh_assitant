@@ -74,6 +74,7 @@ const must = [
   'package/cordis.patch.yml',
   'package/lib/index.js',
   'package/lib/client/index.js',
+  'package/lib/host/product/index.js',
   'package/lib/cli/expert-setup.js',
   'package/lib/cli/assistant-data.js',
   'package/bin/ov-doctor.mjs',
@@ -133,12 +134,30 @@ const manual = `# dsh-smart-assistant 手动安装手册
 除唯一的运行时依赖 \`yaml\` 外，这个安装包是自包含的：bundle 补丁（\`cordis.patch.yml\`，含 \`assistant\` preset 的完整组合）、
 编译产物（\`lib/\`，含浏览器端桌面面板与专家装配模块）、策展技能（\`presets/assistant/skills/\`）、
 管理种子（\`seeds/management/\`）、三个 bin（\`ov-doctor\` / \`expert-setup\` / \`assistant-data\`）、
-独立启动 \`bootstrap.mjs\`、README。
+产品启动器 \`bootstrap.mjs\`（\`--workspace\`/\`--product\`；无参 standalone）、README。
 DSH 本体一律按 peerDependencies 由宿主运行时提供，包里不带任何
 \`@deepseek-ai/*\` 代码；唯一的 npm 依赖是 ${prodDeps.map((name) => `\`${name}\``).join('、') || '（无）'}
 （安装时经 npm registry 拉取）。首次安装需要能访问 npm registry 或内网镜像；完全离线的机器请先把 yaml 预热进 pnpm store。DSH 安装时会按包里的 \`engines.dsh\` 检查兼容；
 不满足会拒绝安装，不要用强制安装跳过它。安装与 headless 附录路径由仓库发布冒烟
 （release-smoke）验证；Web UI 选择路径由 \`agent-preset-ui\` 探针在运行实例上验证。
+
+## 产品启动（推荐，一条命令）
+
+解包后在包目录运行（需要 PATH 上有兼容 \`dsh\`）：
+
+\`\`\`sh
+node bootstrap.mjs --workspace /path/to/your-project
+node bootstrap.mjs --product
+node bootstrap.mjs --stop --home ~/.dsh-smart-assistant --product
+\`\`\`
+
+它建/复用 \`assistant\` profile、装本包、设默认 preset、写工作区绑定，然后起 Web。产品 home 默认
+\`~/.dsh-smart-assistant\`，**不碰日用 \`~/.dsh\`**；\`--home ~/.dsh\` 才显式共享。
+工作区绑定 = \`<productHome>/assistant-product/settings.json\`；交付包 =
+\`<工作区>/deliverables/<YYYY-MM-DD>-<slug>/\`。会话落在工作区；首屏显示工作区与“开始一件事”。
+合同 = 包内 README 与仓根 \`docs/product.md\`。
+
+走产品启动时，下面的手工装包（一、二）可跳过；产品 home 是独立数据根，日用 home 不受影响。
 
 ## 〇、安装前提
 
@@ -149,7 +168,9 @@ DSH 本体一律按 peerDependencies 由宿主运行时提供，包里不带任�
 
 Windows：命令在 PowerShell 里可用；路径含空格时加引号。本手册的 \`cp -R\` / \`nohup\` 示例是 POSIX 写法，Windows 请优先改用 \`assistant-data\`。
 
-## 一、安装
+## 一、安装（手工 / 已有 DSH）
+
+走上面的产品启动时本节可跳过。
 
 默认装进你日常的 \`web\` profile（DSH 出厂默认名）。装完还要选默认 preset：Web 用下一节的
 UI；headless 用本文末尾的 profile patch。安装只带定义，不改默认。
@@ -366,7 +387,7 @@ dsh plugin --profile web remove dsh-smart-assistant
 \`\`\`
 
 卸载后 \`--dump-config\` 不再提及插件，profile 的 package.json 也不留痕迹；运行中的实例重启后不再加载。working folder
-本身（\`<DSH_HOME>/assistant/\`）是数据不是插件：卸载不删它，弃用前自行备份。
+本身（\`<DSH_HOME>/assistant/\`）是数据不是插件：卸载不删它，弃用前自行备份。产品模式的数据根是产品 home（默认 \`~/.dsh-smart-assistant\`），卸载同样保留；工作区交付包随项目保留。
 
 装了 OpenViking 的，另停 server 并 \`uv tool uninstall openviking\`；\`~/.openviking\` 是配置/数据，
 备份后再删。
@@ -429,9 +450,11 @@ Windows：\`dsh\`/\`npm\` 的 \`.cmd\` shim 与进程树语义已做代码级加
 |---|---|
 | 刷新后什么都没出现 | 浏览器刷新不加载新模块：重启 \`dsh web\`，再硬刷新页面 |
 | Web UI 里没有章鱼管家 | 先确认 \`preset-assistant\` 在组合里；重启并硬刷新；仍没有就按第八节写 profile patch，并记录界面缺口 |
-| 升级后数据在哪 | 仍在 \`<DSH_HOME>/assistant\` 与 \`assistant-operating\`；\`remove\` 不删；升级前先备份 |
+| 升级后数据在哪 | 仍在 \`<DSH_HOME>/assistant\` 与 \`assistant-operating\`；产品模式在 \`<productHome>\` 下；\`remove\` 不删；升级前先备份 |
+| 产品启动和手工装包有什么区别 | 产品启动多一个自己的 profile（\`assistant\`）、产品 home 与工作区绑定，一条命令起；手工装包没有工作区绑定，产品行 idle |
+| 工作区交付包在哪 | \`<工作区>/deliverables/<YYYY-MM-DD>-<slug>/\`（README 四段 + 交付物 + \`present\`）；不复制会话日志 |
 | 备份怎么恢复 | 用 \`assistant-data import\`，目标目录必须先清空；它按 manifest 的 schemaVersion 拒绝不兼容备份 |
-| 独立启动要 dsh 吗 | 要，PATH 上有兼容 \`dsh\` 或传 \`--dsh\`；没有 dsh 的便携包是另一个产品，不在本手册范围 |
+| 独立/产品启动要 dsh 吗 | 要，PATH 上有兼容 \`dsh\` 或传 \`--dsh\`；没有 dsh 的便携包是另一个产品，不在本手册范围 |
 | 独立启动的数据在哪 | 默认包目录旁的 \`assistant-data/\`（可用 \`--home\` 换）；它不写日用 \`~/.dsh\` |
 | DSH 版本不兼容 | 安装会被 \`engines.dsh\` 拒绝；升级 DSH 或换兼容的包版本，不要强制绕过 |
 | 管理种子怎么导入 | 默认身份已是管理岗；种子用 \`bin/expert-setup.mjs\` 显式导入为 draft，不会自动进检索 |

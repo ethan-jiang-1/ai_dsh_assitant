@@ -9,7 +9,9 @@
 一个 **bundle**（不是 profile）：`package.json` 只声明 `dsh.bundle.patch = ./cordis.patch.yml`；
 它贡献 plugin 子路径导出（host + agent + client 三平面）——清单与计数以生成物 `docs/package-catalog.md` 为准
 （本文件不复述数字：数过即过期）。
-它给 agent 一个 **working folder**（`assistant` 的 `dataDir`，默认 `<dshHome>/assistant`）——不是进程 cwd/workspace。
+它是产品形态：有一个自己的启动 profile（`assistant`）与产品 home；助手的大脑是 **working folder**
+（`assistant` 的 `dataDir`，产品模式默认 `<productHome>/assistant`），用户的项目是**会话 cwd/工作区**——
+两者不是同一个根。产品启动器 = 包根 `bootstrap.mjs`；产品行 = `src/host/product/`；客户端门 = `src/client/product/`。
 
 ## 入口、平面与组合行
 
@@ -38,6 +40,10 @@
 | `src/dev/preset-runner/` | 验证驱动（非产品能力；`./preset-runner` 公开出口保留，dev patch 按包名解析不受路径影响） |
 | `src/host/index.ts` + `src/host/service.ts` | 服务实现（host 面）：四个房间的读写、curate、digest、提案收件箱；`service.ts` 拥有服务的完整公开契约 `HomeHost`/`RoomReadResult`（房间与摘要、面板路由 rooms-route/viki 消费它，不反向依赖组装文件）；根 `src/index.ts` 是薄导出稳定入口（同 class 身份，不持第二份实现） |
 | `presets/assistant/` | 策展技能（`skills/`，**模型用**）；shipped preset 组合由包根 `cordis.patch.yml` 的 `preset-assistant` 行拥有 |
+| `src/domain/product/` | 产品设置（`settings.json` 读写/版本/原子写）与工作区路径策略（绝对、存在、可读写、禁 root/home/产品 home/包内；符号链接按目标判） |
+| `src/host/product/` | 产品行：web-only，读设置、boot 登记工作区、GET/POST `api/assistant/product`；headless profile patch 禁用 |
+| `src/client/product/` | 产品门：绑定状态机 + 首页门条/恢复面；404/未配置时透明 |
+| `bootstrap.mjs` | 产品启动器：`--workspace`/`--product`/`--stop`；经官方 CLI 建/复用 profile、装 tarball、写绑定、起 boot；无 `--workspace` 时 standalone 模式 |
 | `tests/` | domain 核 + 服务级合同 + 真实组合装载（服务级用真 cordis 构造，不依赖 DSH 运行时）；测试树的资产形态规则住其门牌 [`tests/AGENTS.md`](tests/AGENTS.md) |
 
 ## 本子树的纪律

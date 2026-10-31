@@ -7,20 +7,20 @@
 ## 一、发布物形态
 
 - **只发布 bundle。** `package.json` 的 `dsh.bundle.patch` 是作者发布物；profile 是用户侧组合，不是发布物。
-- **不在包里新增应用入口。** 不提供“起一个 DSH”的 bin 或独立 CLI；独立启动用 `bootstrap.mjs` 调已安装的 `dsh`，见 [`delivery.md`](delivery.md) §二。
+- **应用仍由 `dsh --profile` 启动。** 产品形态 = 包内 `bootstrap.mjs` **部署包装**：经已安装的 `dsh` 建/复用 `assistant` profile、装 tarball、写工作区绑定、起 Web；不打包 DSH 运行时、不新增 app bin、不手写 profile manifest。无 `--workspace`/`--product` 时是同一包装的 standalone 模式。合同 = [`product.md`](product.md)。
 - 包贡献的 preset、client、bundled skill、工具与段落都在 bundle 层声明；不得把 profile 选择、凭据或用户默认写进包。
 
 ## 二、渠道
 
 - **当前唯一渠道 = 手工 tarball + `export-dist` 生成的安装手册。** 包保持 `private: true`，不发布到 npm、registry 或市场。
-- tarball 是预构建产物：`lib/`、`client` bundle、`bin/`、`presets/`、`seeds/`、`cordis.patch.yml`、`bootstrap.mjs`、`LICENSE`、`README` 必须随包。
+- tarball 是预构建产物：`lib/`、`client` bundle、`bin/`、`presets/`、`seeds/`、`cordis.patch.yml`、`bootstrap.mjs`（产品启动器/独立启动共用）、`LICENSE`、`README` 必须随包。
 - 换渠道（npm、市场、Desktop 壳）不是“顺手加一步”，而是新提案：同 diff 更新本宪章、安装路径、兼容声明和真实安装 smoke。
 
 ## 三、产物合同
 
 - **自包含**：发布物不引用仓库内其他目录、`vendor/`、workspace 协议或 sibling 包；`pnpm verify` 与 `pnpm release-smoke` 守这条。
 - **元数据**：`engines.dsh`、`engines.node`、`repository`、`license`、`description`、`dsh.bundle.patch` 必须与实际一致；README 写 Install / What it contributes / Configuration / Data / Compatibility / Uninstall。
-- **不含用户数据**：不写 `assistant/`、`assistant-operating/`、sessions、profiles、storages、deliverables、`.env`、credentials、宿主绝对路径或符号链接。`handoff-scan` 与 `export-dist` 对真实 tarball 跑扫描，失败即不可发布。
+- **不含用户数据**：不写 `assistant/`、`assistant-operating/`、`assistant-product/`、sessions、profiles、storages、deliverables、`.env`、credentials、宿主绝对路径或符号链接。`handoff-scan` 与 `export-dist` 对真实 tarball 跑扫描，失败即不可发布。
 - 发布物以 `pnpm pack` 的真实字节为准；链接安装/source 直跑不能替代 tarball 安装。
 
 ## 四、兼容
@@ -46,8 +46,8 @@
 
 - **Profile 变更仍建议串行**：DSH 0.2.1 的 `dsh plugin` 在 profile `package.json` 上取跨进程文件锁（120s 等待），并发 `add`/`remove` 会被串行化；`install-resilience-smoke` 只证明两个并发 add 后的最终状态是一份依赖 + 一个 bundle 行，不承诺更复杂的并发语义。自动化仍逐条执行，完成后用 `--dump-config` 确认实际组合。
 
-- **安装不写用户数据**：`dsh plugin --profile <p> add <spec>` 只装包；不创建 working folder、不导入 seeds、不改默认 preset。
-- **升级/卸载保留数据**：两个插件目录（`<dshHome>/assistant`、`<dshHome>/assistant-operating`）跨升级和 remove 保留；remove 后重装必须回到组合。卸载后仍留在盘上的宿主数据（`session-search.db`、`sessions/`、`storages/`、`cache/`、客户端 localStorage 键）与清理方式见 [`delivery.md`](delivery.md) §一数据卡；插件不替用户删除这些文件。
+- **安装不写用户数据**：`dsh plugin --profile <p> add <spec>` 只装包；不创建 working folder、不导入 seeds、不改默认 preset。产品启动器是用户显式动作：它创建产品 home/profile 与 `<productHome>/assistant-product/settings.json`，不改日用 `~/.dsh`（除非 `--home ~/.dsh` 显式共享）。
+- **升级/卸载保留数据**：两个插件目录（`<dshHome>/assistant`、`<dshHome>/assistant-operating`）跨升级和 remove 保留；产品 home（`~/.dsh-smart-assistant`）与工作区 `deliverables/` 也保留；remove 后重装必须回到组合。卸载后仍留在盘上的宿主数据（`session-search.db`、`sessions/`、`storages/`、`cache/`、客户端 localStorage 键）与清理方式见 [`delivery.md`](delivery.md) §一数据卡；插件不替用户删除这些文件。
 - 备份/恢复/诊断只走 `assistant-data`（两目录 + schema manifest；`export`/`import [--replace]`/`status`/`check`）；sessions、credentials、settings、storages 另备整 home，绝不混进插件备份。
 - **格式与迁移**：房间 frontmatter 只增可选字段，新增必填/改语义必须先写迁移；手册由 `renderHomeManual` 组装（`MANUAL.md` 只是镜像），`AGENTS.md` 是用户笔记；旧生成手册在 scaffold 时备份并转为笔记；账本 v1 只增字段、旧 `ledger.json` 首次写入时压缩到有界状态 + `operations-archive.jsonl`；bundle manifest 的 `schemaVersion` 不匹配拒绝导入。安装时不得静默重写用户数据。
 - **升级的证据**：`pnpm upgrade-smoke` 证明安装/升级/remove 的两目录边界与组合恢复；`tests/host/old-home-compat.spec.ts` 用冻结 v19 fixture 证明旧字节能被当前代码读回（房间、技能、提案、用量、手册迁移、账本回执）。
@@ -75,7 +75,7 @@
 ## 八、禁则
 
 - 不把用户数据、凭据、sessions、profiles、宿主路径或符号链接放进发布物。
-- 不新增包内 app bin/应用入口来绕过 DSH profile 启动。
+- 不打包 DSH 运行时、不新增绕过 `dsh --profile` 的应用入口；部署包装（`bootstrap.mjs`）不属于应用入口。
 - 不精确 pin DSH 小版本，不把历史台账当当前支持，不用版本豁免当兼容策略。
 - 不自动导入 seeds、不自动改默认 preset、不手写/篡改用户 profile manifest。
 - 不修改 `vendor/`；升级只走 `pnpm sync-dsh`。
@@ -87,7 +87,7 @@
 
 - 转 npm / registry / 市场 / Desktop 壳；
 - 支持 DSH `0.3.x` 或 `1.x`；
-- 新增包内 app bin、独立应用入口或多租户；
+- 打包 DSH 运行时、新增绕过 `dsh --profile` 的应用入口，或多租户；
 - 把 working folder 或账本迁到 `ctx.storageDomain`；
 - 增加英文 locale 或面向非中文用户的 UI；
 - 数据格式大版本迁移或跨机器共享。

@@ -1,9 +1,9 @@
 # dsh-smart-assistant
 
-一个 DSH 插件：**一个领域专家式的助手，它拥有一个自己的 working folder（跨会话的工作目录）**。
+一个 DSH **产品**：一个有自己的启动 profile、在启动时绑定用户项目、并把作业产物留在项目里的领域专家助手。
 
-核心命题借自 `Agent = Model + Harness` —— 模型决定上限，**那一圈**决定你能拿到多少。
-本 repo 做的就是那一圈：给 agent 一个**跨会话存在的 working folder**，并让它始终"有用的多、没用的少"。
+它有两块地：**助手自己的 home**（跨会话的记忆/技能/账本/身份）和**用户的工作区**（会话、文件工具、一次作业的交付包）。
+核心命题借自 `Agent = Model + Harness` —— 模型决定上限，**那一圈**决定你能拿到多少；本 repo 做的就是那一圈。
 
 ## 它为谁、怎样算干成（方向判据）
 
@@ -69,9 +69,25 @@
 这些是本插件的**自有**工具；同一组合里还有 DSH 现货工具在场——`session_query` 族（原始会话
 检索）、`schedule_*` 定时四件、`skill`（技能加载）等，完整组合见 `docs/architecture.md` §二。
 
-## 装法
+## 产品怎么启动（推荐）
 
-研发期**不做正式发行**（没有 npm 发布路径）：拿到的就是这个 Git 仓，装它三步：
+拿到的 tarball 解包后，用已安装的兼容 `dsh` 起动（`node bootstrap.mjs --help` 看全部旗标）：
+
+```sh
+node bootstrap.mjs --workspace /path/to/your-project       # 首次：建/复用 assistant profile、绑工作区、起 Web
+node bootstrap.mjs --product                               # 之后：复用上次绑定
+node bootstrap.mjs --stop --home ~/.dsh-smart-assistant --product
+```
+
+产品有自己的 home（默认 `~/.dsh-smart-assistant`，不碰日用 `~/.dsh`）、自己的 `assistant` profile，以及一份工作区绑定
+（`<home>/assistant-product/settings.json`）。会话落在那个项目里；一次作业的交付包落在 `<项目>/deliverables/<date>-<slug>/`。
+`--home ~/.dsh` 才是显式共享日用 home。合同 = [docs/product.md](docs/product.md)。
+
+**没有产品启动器也能用**：手工把包装进你的 profile（下一节）；没有产品设置时产品行 idle，行为与旧版一致。
+
+## 装法（手工 / 高级）
+
+研发期**不做正式发行**（没有 npm 发布路径）：已有 DSH 的用户手工装它三步：
 
 ```sh
 git submodule update --init                                       # vendor/dsh（pin 的唯一出处：vendor/UPSTREAM.md）
@@ -81,6 +97,7 @@ dsh plugin --profile <p> add file:./packages/dsh-smart-assistant   # <p>＝你�
 装完在 Web UI 的 Settings → Agent 预设里把 `章鱼管家` 设为默认；headless/自动化再把 profile 的
 `agent-preset-registry` 行 `default` 设成 `assistant`（模板：`dev/profiles/profile-patch.yml`）。
 随后 `dsh --profile <p> --dump-config` 应能看到 `preset-assistant`。装包的形状由 `pnpm release-smoke` 机械验证。
+这条路没有工作区绑定；要产品形态（一条命令 + 项目工作区）用上一节。
 
 **可选 OpenViking 记忆层（不装也照常跑）**：插件与四房间不依赖 OV；缺席时 `ov doctor` exit 2、Viki 503，这是明确的降级而不是装坏。要装就按 [《安装手册》](_dist/安装手册.md)（`pnpm export-dist` 生成，含 server 0.5.1.1 的安装/配置/启动/doctor/故障表/卸载，命令不含本机绝对路径）；关键前提是 server 起在 `127.0.0.1:1933`、storage 指向持久目录、doctor 读的是运行中 server 同一份 config。装好后 profile 的 `openviking` 行默认 `baseUrl` 即可接上，再跑一次 doctor 确认绿。
 （仓内开发时用 `pnpm dsh --profile …`；它经 `dev/env/dsh.mjs` 启动 pinned CLI，强制 `DSH_HOME=dev/harness-home` 并把仓根作为 cwd。）
@@ -94,6 +111,7 @@ dsh plugin --profile <p> add file:./packages/dsh-smart-assistant   # <p>＝你�
 
 | 你的问题 | 去哪儿 |
 |---|---|
+| 产品怎么启动、工作区/交付包归谁 | [docs/product.md](docs/product.md)（启动器、home、工作区、交付包、失败模式） |
 | 某个功能的主链、实现入口、最小验证 | [docs/architecture.md](docs/architecture.md) §八（功能路由） |
 | 一条命令 / 一条消息 / 一次点击进来经谁、哪里可观察 | [docs/architecture.md](docs/architecture.md) §七（运行链路 + 失败模式表） |
 | 组合里到底有没有这一行 | `pnpm dsh --profile dev --dump-config`（路由见 [docs/dev.md](docs/dev.md) §六） |
@@ -105,7 +123,7 @@ dsh plugin --profile <p> add file:./packages/dsh-smart-assistant   # <p>＝你�
 | 改了为什么不生效 | [docs/dev.md](docs/dev.md) §四 三条纪律（build / preset 代际 / pin） |
 | 这个决定为什么这么定 | 先查 `docs/` 对应合同（理由多已内联）；再按关键词搜 `notes/`（`grep -ril '<关键词>' notes/`；负知识在 `notes/rejected/`；怎么读见 [notes/README.md](notes/README.md)）；**方向类推敲史**在 `_backlog/_archive/settled_issues/` 与 `_backlog/research/`（同法按关键词 grep） |
 
-运行数据的 `DSH_HOME`、助手 `dataDir` 与源码 cwd 是三个不同根，详见 [开发手册](docs/dev.md)。
+运行数据的四个根：产品 home（`DSH_HOME`）、助手 `dataDir`、用户工作区、源码 cwd；产品层见 [产品合同](docs/product.md)，开发层见 [开发手册](docs/dev.md)。
 
 打包安装的形状（`pnpm pack` 出 tarball 再 `dsh plugin --profile <p> add <tarball>`）由 `pnpm release-smoke` 机械验证：
 pack → 干净 home → 装 → 组合断言。装完只需把该 profile 的 `agent-preset-registry` 行的 `default` 设成

@@ -10,6 +10,7 @@
 const ROOT_DIRECTORIES = [
   'assistant',
   'assistant-operating',
+  'assistant-product',
   'data',
   'sessions',
   'deliverables',

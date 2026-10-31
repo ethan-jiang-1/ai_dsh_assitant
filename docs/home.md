@@ -3,7 +3,7 @@
 > 这个插件给 agent 一个**自己的 working folder**：一个跨会话存在的工作目录。
 > 它的组织本身就是产品的一部分 —— 概念依据是 `Agent = Model + Harness`：
 > working folder 就是"那一圈"的物理落点，它的信噪比决定 agent 糊涂还是清醒。
-> 布局的**唯一 owner** 是 `src/domain/home/layout.ts`（scaffold 的目录与房间；`ui-mode.json` 的文件名由 `src/host/ui-mode/route.ts` 拥有、`deliverables/` 是模型自发落点，二者不在 scaffold 面上）；本文是它的契约说明，两者必须一致（`pnpm verify` 校验）。
+> 布局的**唯一 owner** 是 `src/domain/home/layout.ts`（scaffold 的目录与房间；`ui-mode.json` 的文件名由 `src/host/ui-mode/route.ts` 拥有；home 根下旧 `deliverables/` 是历史遗留、不在 scaffold 面上，新交付包在会话 cwd（[`product.md`](product.md) §五））；本文是它的契约说明，两者必须一致（`pnpm verify` 校验）。
 >
 > **读法**：布局 §一 → 四房间语义 §二 → 桌面与抽屉 §三 → 机器能查的检查 §四 → 根部两个语义文件 §五。
 
