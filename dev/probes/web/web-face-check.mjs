@@ -246,8 +246,29 @@ async function runProduct() {
   if (!seed([seedScript, 'patch', home], home)) return failed('product-workspace-gate: seed patch failed')
   if (!seed([seedScript, 'bind', home], home)) return failed('product-workspace-gate: seed bind failed')
   const workspace = join(dirname(home), 'product-workspace')
-  const code = await withService(home, {}, url => expected(url, 'product-workspace-gate', ['--wait-text', '开始一件事']))
-  if (code === 0) ok('product-workspace-gate') ; else failed(`product-workspace-gate (exit ${code})`)
+  const code = await withService(home, {}, async url => {
+    const first = expected(url, 'product-workspace-gate', ['--wait-text', '开始一件事'])
+    if (first !== 0) return first
+    // The gate's one action must actually start a Session in the bound workspace; the composer
+    // is the stable signal that the conversation replaced the main panel. No model turn runs.
+    return sh(process.execPath, [
+      'dev/probes/web/webui-shots.mjs', url,
+      '--eval', `(async () => {
+        const b = [...document.querySelectorAll('button')].find(x => ((x.textContent ?? '').trim()).includes('开始一件事'))
+        if (b === undefined) return 'no-start'
+        b.click()
+        for (let i = 0; i < 50; i += 1) {
+          if (document.body.innerText.includes('描述你想要构建的内容')) return 'ready: composer'
+          await new Promise(resolve => setTimeout(resolve, 100))
+        }
+        return 'timeout'
+      })()`,
+      '--require-eval', 'ready: composer',
+      '--size', '1600x1000',
+      '--name', 'product-workspace-gate-session',
+    ]) === 0 ? 0 : 1
+  })
+  if (code === 0) ok('product-workspace-gate + CTA starts a session') ; else failed(`product-workspace-gate (exit ${code})`)
   rmSync(workspace, { recursive: true, force: true })
   if (!keep) rmSync(home, { recursive: true, force: true })
 }

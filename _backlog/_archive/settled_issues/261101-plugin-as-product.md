@@ -290,7 +290,7 @@ D0 拍板
 | `pnpm standalone-smoke` | 通过：无 `.git`、隔离 home、client boot/preset UI、重启/搬 home/坏 profile |
 | `pnpm bootstrap-guards-smoke` | 通过：包内 home、缺 pnpm/npm、旧 pnpm、合法 profile |
 | `pnpm release-smoke` | **BLOCKED**：无 `DEEPSEEK_API_KEY` 的 live turn；安装/组合/tarball 半场通过 |
-| `pnpm web-face-check --scenario product-workspace-gate` | 通过：真渲染门条/按钮 |
+| `pnpm web-face-check --scenario product-workspace-gate` | 通过：真渲染门条/按钮；点“开始一件事”→ 会话打开（composer 在场） |
 | `pnpm prompt-smoke` | 通过：交付段/项目面进入请求、旧家 `deliverables/` 指令缺席 |
 | 真机 shots（fresh product home） | 通过：`工作区 · workspace`、`开始一件事`、一页纸仍在 |
 | `pnpm eval` / `eval:domain` | **BLOCKED**：无 key / 需本人判 |
