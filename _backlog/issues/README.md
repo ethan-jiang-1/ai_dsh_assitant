@@ -4,7 +4,7 @@
 
 ## 活跃清单
 
-（暂无活跃问题卡。）
+- [261101 插件即产品：产品 profile、工作区作业面与 run bundle 的归属](261101-plugin-as-product.md) · 推敲中（已授权，S1 起推进） · 一条命令起产品、会话落用户工作区、产物与 run bundle 留在工作区；大脑跟人走
 
 已结档：261029 账本多视图 M1 → [settled_issues](../_archive/settled_issues/261029-ledger-multiview-closure.md)，261029 首用价值旅程 → [settled_issues](../_archive/settled_issues/261029-first-value-journey.md)，261028 数据面第二轮复查 → [settled_issues](../_archive/settled_issues/261028-data-plane-recheck.md)，261028 数据面校准 → [settled_issues](../_archive/settled_issues/261028-data-plane-alignment.md)，B 级缺口 → [settled_issues](../_archive/settled_issues/261028-b-grade-close.md)，P3 残余 → [settled_issues](../_archive/settled_issues/261028-p3-residuals.md)，六维改善 → [settled_issues](../_archive/settled_issues/261028-six-dimension-improvement.md)。
 

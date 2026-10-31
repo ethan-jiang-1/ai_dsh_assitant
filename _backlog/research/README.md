@@ -60,6 +60,7 @@ research/
 
 | 名头 | 问题 | 消费者 | 材料 |
 |---|---|---|---|
+| [插件即产品：产品 profile、工作区作业面与 run bundle 的归属](261101-plugin-as-product/README.md) · 产品形态与数据归属 | 一个插件怎样成为产品：独立启动 profile、启动时绑定用户工作区、产物与 run bundle 留在工作区 | [问题卡](../issues/261101-plugin-as-product.md)（已授权，S1 推进中） | 6 份 |
 | [输入边界 30 天观察](261011-input-observation/README.md) · 真实使用读数 | 输入通道该不该做——先看 30 天真实读数 | 触发行（**活观察**，窗口未起算） | 1 份 |
 
 归档题名见 [_archive/research/README.md](../_archive/research/README.md)；本页只列活跃题名。
