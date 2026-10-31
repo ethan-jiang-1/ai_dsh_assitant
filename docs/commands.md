@@ -39,7 +39,7 @@ pnpm web-expected '<URL>' --scenario <场景目录>
                         # web 渲染期望比对（场景必填；漂移 exit 1）；重录 --refresh
                         # 场景契约 = snapshots/web-face/<场景>/README.md
 pnpm web-face-check [--all] [--scenario <名>]
-                        # 默认 4 客户面；--all 加 4 Viki 调试面（固定 OV mock + #debug=1）
+                        # 默认 4 客户面；--all 加产品工作区场景 + 4 Viki 调试面（固定 OV mock + #debug=1）
                         # 隔离 home → seed → boot → 比对 → 收，一条命令
 pnpm loop-probe '<URL>' --ask '<问句>'   # 首用闭环探针：真发问真等回复，JSON 判决 + 截图
 pnpm desk-walk '<URL>' [--home <dir>]    # 处理流真机走查（真模型）：屏幕文本+截图

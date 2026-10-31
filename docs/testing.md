@@ -25,7 +25,7 @@
 | 导出形态 / 组合行身份 / 注册撤销 | 台阶①③守卫（现读 patch，新行自动被扫） | `tests/composition/export-shape` + `registry-lifecycle` | 行身份与生命周期 / 行为正确 |
 | 组装后组合（服务/段落/工具 scope） | `pnpm build` → `pnpm test:composition` | `tests/composition/`（`preset-composition.spec` 是组装证据；同层还有导出/生命周期/遮蔽 spec） | 真 Loader 组装 / vendor rows、完整产品 boot |
 | web 渲染面（首开/座位/文案） | `pnpm web-expected '<URL>' --scenario <场景>`（隔离 home 真渲染，场景必填；过目 diff 后 `--refresh`） | `snapshots/web-face/`（场景清单以目录为准） | 渲染期望 / 交互逻辑（client spec 管） |
-| 8 场景一键复跑 | `pnpm web-face-check [--all] [--scenario <名>]`（默认 4 客户面，`--all` 加 4 Viki 调试面；隔离 home → seed → boot → 比对 → 收） | `dev/probes/web/web-face-check.mjs` + `snapshots/web-face/`（8 面） | 真渲染与场景比对 / live OV 与真人走查不在本车道 |
+| 9 场景一键复跑 | `pnpm web-face-check [--all] [--scenario <名>]`（默认 4 客户面，`--all` 加产品工作区场景 + 4 Viki 调试面；隔离 home → seed → boot → 比对 → 收） | `dev/probes/web/web-face-check.mjs` + `snapshots/web-face/`（9 面） | 真渲染与场景比对 / live OV 与真人走查不在本车道 |
 | 行为地板 / 领域质量 | `pnpm eval`（`--only` 聚焦）/ `pnpm eval:continuity`（隔离 fixture 的首回合续接地板：一次性 home + 种子账本 + 前置断言 + 会话日志判据，无授权写入与账本字节不变为负例；评估器红绿对照挂 `pnpm verify`）/ `pnpm eval:domain`（人判）/ `node dev/probes/web/desk-daily-brief-live.mjs`（**web-only 任务**的驱动：`schedule_*` 只活在 web 组合里，runner 对该任务诚实报 NOT EVALUATED；探针在真模型 web 会话里跑**同一个任务**的 prompt 与 checks，并先断言 `request/header.tools` 含四个 `schedule_*`） | `dev/eval/`（任务集 `tasks.mjs`、领域题 `domain/`、续接驱动 + `dev/fixtures/eval-continuity/`）、`dev/probes/web/desk-daily-brief-live.mjs`（web-only 驱动） | 无害地板、续接行为地板与人判质量 / 机器不判质量 |
 | 发布物 / 依赖 / preset 包装 / exports | `pnpm gen-catalog`（freshness）+ `pnpm build` + `pnpm release-smoke`；keyless 回放 `dev/probes/session/preset-runner-replay.patch.yml` | `scripts/release/release-smoke.mjs` | 安装形状与组合断言 / 长期行为 |
 | 兼容范围边界 | `pnpm test`（`tests/tooling/compatibility-range.spec.mjs`） | 同左 | 0.2.x 放行、0.3.0 预发布/正式拒绝 / 这些版本上的真实运行（T6 矩阵） |
@@ -105,7 +105,7 @@
 - **coverage**：`pnpm test:coverage` 只出报告（`.tmp/coverage`），不设阈值、不进门禁；新文件 per-file 100% 仍是人工纪律，存量祖父豁免；机器门触发 = 第一处"删了才对"的死代码实证。
 - **eval 节奏**：模型可见切片收尾 `--only` 聚焦跑，阶段收尾才全量。
 - **eval 阻断**：缺 key / 无会话日志 = **BLOCKED（exit 2）**，不并入 PASS/FAIL；判据见 [`dev.md`](dev.md) §四。
-- **浏览器证据车道**：`pnpm web-face-check --all` 跑 8 面（4 客户 + 4 Viki 固定 mock）；默认 4 客户面。它不进 `pnpm verify`（Chrome/耗时/flake），由 pre-push 技能要求；test/verify 绿不证明页面没坏。
+- **浏览器证据车道**：`pnpm web-face-check --all` 跑 9 面（4 客户 + 1 产品工作区 + 4 Viki 固定 mock）；默认 4 客户面。它不进 `pnpm verify`（Chrome/耗时/flake），由 pre-push 技能要求；test/verify 绿不证明页面没坏。
 - **模型可见面回归的适配声明**（DSH testing policy 对独立插件仓的适配义务）：段落合同由 agent spec 证明；`pnpm eval --only <task-id>` 证明该题的伤害地板、技能按名加载和回答正则，不证明段落已进入请求，也不证明领域质量；`repo-live-probe` 是**取证动作不是回归资产**（复现「模型没看见」时用）；session 回放维持触发条件制（触发未到不预建，owner `snapshots/README.md`）。
 - **session 回放快照**：未建，触发条件 owner：`snapshots/README.md`（web 面期望已建，同树）。
 - **子进程 loader-smoke 中间层 / CI 矩阵**：刻意不采纳。本仓没有 CI，也没有平台矩阵；出现它们能拦住的事故再议。

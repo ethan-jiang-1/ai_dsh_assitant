@@ -19,7 +19,7 @@
  */
 import { spawn, spawnSync } from 'node:child_process'
 import { rmSync, writeFileSync } from 'node:fs'
-import { join, resolve } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { mkTmpDir } from '../../env/tmp.mjs'
 import { sleep } from './probe-utils.mjs'
@@ -37,13 +37,16 @@ const CUSTOMER = [
   'desk-eight-matters-first-open',
   'desk-eight-matters-brief-list',
 ]
+const PRODUCT = [
+  'product-workspace-gate',
+]
 const VIKI = [
   'viki-panel-connected',
   'viki-panel-diagnostics',
   'viki-panel-disconnected',
   'viki-panel-search',
 ]
-const ALL = [...CUSTOMER, ...VIKI]
+const ALL = [...CUSTOMER, ...PRODUCT, ...VIKI]
 if (scenarioArg !== undefined && !ALL.includes(scenarioArg)) {
   console.error(`web-face-check: unknown scenario ${scenarioArg}; choose one of ${ALL.join(', ')}`)
   process.exit(2)
@@ -235,6 +238,20 @@ async function runBanner() {
   if (!keep) rmSync(home, { recursive: true, force: true })
 }
 
+async function runProduct() {
+  const home = mkTmpDir('web-face-check', 'product-home-')
+  console.log(`\n▶ product-workspace-gate (${home})`)
+  if (!provision(home)) return failed('product-workspace-gate: provision failed')
+  const seedScript = 'snapshots/web-face/product-workspace-gate/seed.mjs'
+  if (!seed([seedScript, 'patch', home], home)) return failed('product-workspace-gate: seed patch failed')
+  if (!seed([seedScript, 'bind', home], home)) return failed('product-workspace-gate: seed bind failed')
+  const workspace = join(dirname(home), 'product-workspace')
+  const code = await withService(home, {}, url => expected(url, 'product-workspace-gate', ['--wait-text', '开始一件事']))
+  if (code === 0) ok('product-workspace-gate') ; else failed(`product-workspace-gate (exit ${code})`)
+  rmSync(workspace, { recursive: true, force: true })
+  if (!keep) rmSync(home, { recursive: true, force: true })
+}
+
 async function runDesk() {
   const home = mkTmpDir('web-face-check', 'desk-home-')
   console.log(`\n▶ desk-eight-matters (${home})`)
@@ -269,6 +286,8 @@ for (const scenario of selected) {
       vikiDone = true
       await runViki(selected.filter(name => name.startsWith('viki-')))
     }
+  } else if (scenario === 'product-workspace-gate') {
+    await runProduct()
   } else if (!deskDone) {
     deskDone = true
     await runDesk()
