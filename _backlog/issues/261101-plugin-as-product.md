@@ -226,7 +226,7 @@ D0 拍板
 | 步 | 内容 | 状态 | 证据 |
 |---|---|---|---|
 | D0 | 四项拍板收口；work 去向记录 | 待拍板 | 本卡状态行 |
-| S1 | 产品行（设置纯核 + web-only 行 + route + 组合行 + headless disable） | 待授权 | `test:domain`/`test:host`/`--dump-config`；product-row 探针 |
+| S1 | 产品行（设置纯核 + web-only 行 + route + 组合行 + headless disable） | **已完成** | `test:domain`/`test:host`/`test:composition`/`verify`；web `--dump-config` 有行、headless `disabled: true`；产品行探针 |
 | S2 | 启动器（产品 home/profile 所有权/工作区/版本对账/守卫） | 待授权 | `product-smoke`、`standalone-smoke`、`release-smoke` |
 | S3 | 首页 + 交付（四件物/项目面/手册/技能/恢复面） | 待授权 | `prompt-smoke`、`test:client`、`web-expected`、真机 |
 | S4 | 文档/分发（README/docs/`_dist` 生成器） | 待授权 | `verify`、`export-dist`、漂移审计 |

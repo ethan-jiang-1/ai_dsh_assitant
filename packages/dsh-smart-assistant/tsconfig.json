@@ -42,6 +42,9 @@
       "path": "../../vendor/dsh/packages/client/connection/tsconfig.host.json"
     },
     {
+      "path": "../../vendor/dsh/packages/workspace/workspace"
+    },
+    {
       "path": "../../vendor/dsh/packages/core/agent"
     },
     {

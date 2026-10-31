@@ -75,6 +75,10 @@
       "types": "./lib/host/ui-mode/index.d.ts",
       "default": "./lib/host/ui-mode/index.js"
     },
+    "./product": {
+      "types": "./lib/host/product/index.d.ts",
+      "default": "./lib/host/product/index.js"
+    },
     "./viki": {
       "types": "./lib/host/viki/index.d.ts",
       "default": "./lib/host/viki/index.js"
@@ -169,6 +173,7 @@
     "@deepseek-ai/dsh-session-projection": "workspace:^",
     "@deepseek-ai/dsh-skill": "workspace:^",
     "@deepseek-ai/dsh-skill-filesystem": "workspace:^",
+    "@deepseek-ai/dsh-workspace": "workspace:^",
     "@deepseek-ai/dsh-system-prompt": "workspace:^",
     "@deepseek-ai/dsh-tools": "workspace:^",
     "@deepseek-ai/dsh-typert-protocol": "workspace:^",

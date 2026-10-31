@@ -42,6 +42,7 @@
       "@deepseek-ai/dsh-skill": ["./vendor/dsh/packages/skill/skill/src"],
       "@deepseek-ai/dsh-skill-filesystem": ["./vendor/dsh/packages/skill/skill-filesystem/src"],
       "@deepseek-ai/dsh-client-connection": ["./vendor/dsh/packages/client/connection/src"],
+      "@deepseek-ai/dsh-workspace": ["./vendor/dsh/packages/workspace/workspace/src"],
       "@deepseek-ai/dsh-host-webserver": ["./vendor/dsh/packages/host/webserver/src"],
       "@deepseek-ai/dsh-agent": ["./vendor/dsh/packages/core/agent/src"],
       "@deepseek-ai/dsh-agent-default-model": ["./vendor/dsh/packages/core/agent-default-model/src"],

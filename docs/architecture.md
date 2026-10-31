@@ -43,6 +43,10 @@ HOST 面（cordis.patch.yml → dsh.bundle.patch）
                             + assistant-ui-mode 行（完整看板密度 per-home 持久：GET/POST
                               api/assistant/ui-mode，读写 assistant/ui-mode.json；标准默认；
                               不写 settings 文档，不碰账本/工作目录）
+                            + assistant-product 行（产品工作区绑定：启动时读
+                              assistant-product/settings.json 的 workspaceDir，用
+                              workspaceRegistry.create 登记；GET/POST api/assistant/product；
+                              web-only，headless profile patch 禁用）
                             + assistant-rooms 行（维护面板的房间投影 + 受控写 + 收据：GET
                               api/assistant/rooms 取四房间真值、?kind=knowledge&id= 读正文、
                               ?kind=skill&id= 读一件 SKILL.md、最近 200 行审批账；

@@ -11,6 +11,10 @@
 # （web-app patch :121），headless 组合永远等不到——不禁用则每次 one-shot 都挂着一条
 # pending warning，把真正的激活失败淹没。Web 组合（产品面）不受影响：schedule 默认带
 # 在 bundle patch 里。
+# `assistant-product` 是 web-only 行（必注 connection + workspaceRegistry）；headless 组合
+# 没有这两个服务，按 schedule 先例整行禁用，避免第 5 条 pending warning。
+- id: assistant-product
+  disabled: true
 - id: schedule
   disabled: true
 - insert:
