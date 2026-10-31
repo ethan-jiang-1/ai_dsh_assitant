@@ -27,12 +27,17 @@ export const NOTES_HEADER = '# Working-folder notes (yours)\n\n'
   + 'this working folder go here; this file is appended after the manual in every request.\n'
 
 /** Version of the manual render; the CLI reports it for the MANUAL.md mirror. */
-export const HOME_MANUAL_VERSION = 24
+export const HOME_MANUAL_VERSION = 25
 
 /** The delivery rule in the answer contract: one action, and files go to the workspace. */
 export const CURRENT_DELIVERY_BULLETS = '- **One action, if any.** End with one concrete next step, not a menu.\n'
-  + '- **Deliver files where the principal can take them.** Write a deliverable under the session\n'
-  + '  cwd and declare it with `present`; the working folder is your notebook, not the delivery shelf.\n'
+  + '- **Deliver files where the principal can take them.** Write each piece of work under the\n'
+  + '  session cwd as `deliverables/<YYYY-MM-DD>-<slug>/`: a `README.md` with what was asked, the\n'
+  + '  evidence (file/session/knowledge locators), what you produced, and what is still open; put\n'
+  + '  the files beside it and declare the key ones with `present`. The working folder is your\n'
+  + '  notebook, not the delivery shelf.\n'
+  + '- **The principal\'s project owns its instructions.** Read project `AGENTS.md` and project\n'
+  + '  skills under `.dsh/skills/` and `.agents/skills/`; suggest changes, never silently rewrite them.\n'
 
 /** The manual's session-recall section (indexed tools first, raw logs as the declared fallback). */
 export const CURRENT_PAST_CONVERSATIONS = '## Past conversations\n\n'
@@ -80,7 +85,7 @@ export const CURRENT_LAYOUT_TREE = '```text\n'
   + '├── knowledge/         (<id>.md pages with [[wikilinks]]; deprecated pages stay in place)\n'
   + '├── skill-proposals/   (proposed skills awaiting review; archive/ for settled)\n'
   + '├── audit/             (approval and purge ledgers; append-only)\n'
-  + '└── deliverables/      (draft files a session left here; not a room)\n'
+  + '└── (deliverables/ from older sessions is legacy; new work goes to the session cwd)\n'
   + '```\n'
 
 /**

@@ -41,3 +41,6 @@ never run a three-question form.
 
 Their first real matter **on the desk, with a receipt** — not a filled form. Then one short line:
 the desk is theirs; anything new, say it and it lands with a receipt they can check.
+
+If the first answer produces a file the principal should keep, leave it in
+`deliverables/<YYYY-MM-DD>-<slug>/` with a short README; load `work-delivery` for the shape.

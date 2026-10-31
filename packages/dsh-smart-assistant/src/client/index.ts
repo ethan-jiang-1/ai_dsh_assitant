@@ -52,12 +52,15 @@ import { createSnapshotStore, defineStore } from './chrome/store'
 import { ensureThemeVars } from './chrome/theme'
 import { debugEnabled } from './chrome/debug-flag'
 import { HomeSurface } from './projection/home-surface'
+import { ProductGate, type ProductGateRuntime } from './product/product-gate'
 import { DebugPanel } from './debug/debug-panel'
 import { createDeskSurface } from './projection/desk-surface'
 import { mountProjectionReader } from './projection/projection-lifecycle'
 import type { ProjectionDownload } from './projection/projection-reader'
 import type { OperatingReceipt } from './projection/operating-projection'
 import { createProjectionViewStore } from './projection/projection-view'
+import type { ProjectionPanelProps } from './projection/projection-panel'
+import type { ComponentType } from 'react'
 import type { DeskPath } from '../domain/desk/desk-process'
 import { createDeskArms } from './desk/desk-arms'
 import { createProactiveCatalogSource, type ProactiveCatalogState, type ProactiveRemoteLike } from './proactive/proactive-face-source'
@@ -184,6 +187,26 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // (the prompts and labels live in proactive-handlers.ts).
     const { onSuggestAction, onSuggestDismiss, onWatchForget, onSuggestCollapse } = createProactiveHandlers({ arms, proactiveUi })
     const dashboardComponent = projection === undefined ? DashboardMainPanel : HomeSurface
+    // The product gate is transparent unless a product home binds a workspace: a 404 (manual
+    // install/older profile), a transient failure, or `not-configured` renders the same
+    // dashboard as before. The base is cast once here because the two dashboard components
+    // share the panel props at runtime but not in their declared signatures.
+    // The lifecycle tests materialize the factory in a page-like global that may not carry
+    // `fetch`; the gate must never be the reason the client entry fails to register. The
+    // fallback answers 404, which the gate treats as "no product face" (legacy dashboard).
+    const gateFetch = typeof globalThis.fetch === 'function'
+      ? globalThis.fetch.bind(globalThis)
+      : async (): Promise<Response> => ({ ok: false, status: 404, json: async () => undefined }) as unknown as Response
+    const productGateRuntime: ProductGateRuntime = {
+      fetch: gateFetch,
+      baseURI: () => document.baseURI,
+      ...(ctx.uiWorkspace?.startSession === undefined ? {} : {
+        startSession: (workspaceId: string) => { ctx.uiWorkspace?.startSession?.(workspaceId, { agentPreset: 'assistant' }) },
+      }),
+    }
+    const baseDashboard = dashboardComponent as ComponentType<ProjectionPanelProps>
+    const gatedDashboard = (props: ProjectionPanelProps) =>
+      createElement(ProductGate, { ...props, base: baseDashboard, runtime: productGateRuntime })
     const dashboardInject = (sessionId: string | undefined, ...args: unknown[]) => {
       const actions = args.find((argument): argument is { selectMatter(id: string): void, selectMode(mode: 'activity'): void } =>
         typeof argument === 'object' && argument !== null && typeof (argument as { selectMatter?: unknown }).selectMatter === 'function')
@@ -245,7 +268,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         locale: 'assistantDesk',
         ...(viewStore === undefined ? {} : { store: viewStore }),
         inject: injectDashboard,
-      }, dashboardComponent)
+      }, gatedDashboard)
       selectDashboardByDefault(ctx)
       return registration
     })

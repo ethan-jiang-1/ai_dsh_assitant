@@ -47,6 +47,9 @@ A plan that lives only in this reply is gone the moment the session ends, and th
 If the plan changes later, write the page again under the same title and say what changed — a plan
 tracker that drifts silently is worse than no tracker.
 
+When the plan leaves a file, put it in `deliverables/<YYYY-MM-DD>-<slug>/` with a short README;
+load `work-delivery` for the four sections and the present step.
+
 ## Honesty rules
 
 - Every borrowed fact cites its source; every number without provenance is labelled assumed.

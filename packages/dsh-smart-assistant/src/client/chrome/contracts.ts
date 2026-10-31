@@ -88,6 +88,8 @@ export interface ClientContext {
    */
   uiWorkspace?: {
     openSession(target: string): void
+    /** Start a blank Session in a bound workspace; the product gate's one action. */
+    startSession?(workspaceId?: string, options?: { readonly agentPreset?: string }): void
   }
   /**
    * Scoped dependency injection. The command registry is reached this way instead of

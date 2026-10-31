@@ -11,7 +11,7 @@
 | **agent 物** | `lib/`、`bin/`、`presets/`、`seeds/`、`cordis.patch.yml`、`package.json`、`README`、默认身份与回退 | 包；可复制给任何人，不含用户数据 |
 | **用户数据（插件拥有）** | `<dataDir>`（默认 `<dshHome>/assistant`）与 `<operatingDir>`（默认 `<dshHome>/assistant-operating`，含 `ledger.json` / `operations-archive.jsonl`） | 某一个人的 home |
 | **用户数据（宿主拥有）** | `sessions/`、credentials、`settings`、`storages`、`session-search.db`、`cache/` 等 | 同一个 home；不进插件备份/交接物 |
-| **交付物** | working folder 根或会话 cwd 下的 `deliverables/`（模型自发落点，见 [`home.md`](home.md) §一注） | 用户数据；不进 agent 物 |
+| **交付物** | 会话 cwd 下的 `deliverables/<YYYY-MM-DD>-<slug>/`（README 四段 + 交付物 + `present`；契约 = `work-delivery` 技能；见 [`home.md`](home.md) §一注） | 用户数据；随项目；不进 agent 物 |
 
 **一个人 = 一个 `DSH_HOME`。** profile 是组合，不是租户；不同人用不同 home（不同机器、不同 OS 用户或显式隔离 home），不共享插件数据目录。同一 home 下的所有 profile 共用 `<dshHome>/assistant` 与 `<dshHome>/assistant-operating`——换 profile 名只隔离组合，**不隔离数据**；真正隔离试用用独立 `DSH_HOME`，或同时覆盖 memory/ledger/projection 的 `dataDir`。
 
@@ -23,7 +23,7 @@
 |---|---|---|
 | **D 定义** | `cordis.patch.yml`、preset 行、包内只读技能、Config 默认 | 包；只读；随包/版本 |
 | **C 代码** | `lib/`、`bin/`、`bootstrap.mjs` | 包；只读；升级整体替换 |
-| **W workspace** | 不拥有；只有用户自己的 `deliverables/` | 项目/用户；随项目；插件不写 |
+| **W workspace** | 只写模型交付的 `deliverables/<date>-<slug>/` 落点；目录本身归用户；不拥有项目文件 | 项目/用户；随项目；插件不拥有 |
 | **U home** | `<dshHome>/assistant`：用户内容与插件账本共处一棵**用户可见**的树（下节分表） | 插件拥有、用户可读可改；跨项目；升级/卸载保留 |
 | **S session** | 宿主拥有；四个 prompt 段落随请求进日志；不新增 event 类型 | 会话；只追加；插件不写日志 |
 | **H host state** | 不用 `ctx.storageDomain`；`<dshHome>/assistant-operating` 是**插件自有文件账本** + 操作归档，模型经工具读 | 插件拥有、用户可读；单 writer；可导出 |
@@ -42,7 +42,7 @@
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 记忆/线索/知识/技能/提案 | N0 文件 | P2 / U | 插件 + 用户 | `<dataDir>/{memory,research,knowledge,skills,skill-proposals}/` | home 单例，无项目键 | 房间生命周期；archive 保留 | 用户；模型经工具 | 是 | frontmatter 只增可选；`purge` 逐条擦除 | 保留 | 容忍：坏文件进 curate findings，不静默丢 |
 | 身份与手册 | N0 文件 | P2 / U | 用户 + 插件 | `<dataDir>/SOUL.md`、`MANUAL.md`、`AGENTS.md` | home 单例 | 身份永不覆盖；`MANUAL.md` 是渲染镜像（prompt 用 render）；`AGENTS.md` 是用户笔记 | 用户；模型读渲染 + 笔记 | 是 | 旧生成 `AGENTS.md` → `.bak-*`（方案 A）；`refresh-manual` 只刷新 `MANUAL.md` | 保留 | 手册本身由不变量装进预算；笔记超预算报 `notes-over-budget`，身份报 `soul-over-budget` |
-| 交付稿 | N0 文件 | P2 / U | 用户 | `<dataDir>/deliverables/`、会话 cwd 的 `deliverables/` | home / workspace | 无生命周期（模型自发落点） | 用户 | 是（home 侧） | 手动归档/删除 | 保留 | 无 |
+| 交付稿 | N0 文件 | P2 / W | 用户 | `<workspace>/deliverables/<date>-<slug>/`（HOME 根下旧 `deliverables/` 为 legacy） | workspace | 无生命周期（用户随项目备份/删除；插件不删） | 用户 | 否（随项目） | 手动归档/删除 | 保留（旧 home 侧） | 无 |
 
 **插件账本**（机器写；用户可读、可排障，但不是可依赖的用户内容；不进 prompt）
 
