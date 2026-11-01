@@ -1,14 +1,14 @@
 /**
  * The product route and state machine: GET reports the binding, POST changes it, and invalid
- * paths or files never turn into a silent ready state.
+ * paths or failed persistence never turn into a silent ready state. The binding is Config/env,
+ * not a settings file.
  */
-import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, rm } from 'node:fs/promises'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createProductRoute } from '../../src/host/product/route.ts'
-import { createProductState } from '../../src/host/product/state.ts'
-import { productSettingsPath, readProductSettings, writeProductSettings } from '../../src/domain/product/settings.ts'
+import { createProductState, type ProductSettingsWriter } from '../../src/host/product/state.ts'
 
 const repoTmp = fileURLToPath(new URL('../../../../.tmp/', import.meta.url))
 const dirs: string[] = []
@@ -24,13 +24,19 @@ interface Fixture {
   second: string
   userHome: string
   packageRoot: string
-  settingsPath: string
   created: string[]
-  route: ReturnType<typeof createProductRoute>
+  writes: { namespace: string, patch: object }[]
   state: ReturnType<typeof createProductState>
+  route: ReturnType<typeof createProductRoute>
 }
 
-async function fixture(): Promise<Fixture> {
+interface FixtureOptions {
+  readonly config?: { workspaceDir?: string, onboarding?: boolean }
+  readonly env?: Record<string, string | undefined>
+  readonly settings?: ProductSettingsWriter | null
+}
+
+async function fixture(options: FixtureOptions = {}): Promise<Fixture> {
   const root = await mkdtemp(join(repoTmp, 'product-route-'))
   dirs.push(root)
   const home = join(root, 'home')
@@ -43,24 +49,32 @@ async function fixture(): Promise<Fixture> {
   const packageRoot = join(root, 'package')
   await mkdir(userHome)
   await mkdir(packageRoot)
-  const settingsPath = productSettingsPath(home)
   const created: string[] = []
+  const writes: { namespace: string, patch: object }[] = []
   const registry = {
     create: async (path: string) => {
       created.push(path)
       return { id: `ws-${created.length}`, path }
     },
   }
+  const settings = options.settings === null
+    ? undefined
+    : options.settings ?? {
+        update: async (namespace: string, patch: object) => {
+          writes.push({ namespace, patch })
+        },
+      }
   const state = createProductState({
     registry,
+    ...(options.config === undefined ? {} : { config: options.config }),
+    ...(options.env === undefined ? {} : { env: options.env }),
+    ...(settings === undefined ? {} : { settings }),
     home,
-    settingsPath,
     userHome,
     packageRoot,
-    now: () => new Date('2026-11-01T00:00:00.000Z'),
   })
   return {
-    root, home, workspace, second, userHome, packageRoot, settingsPath, created,
+    root, home, workspace, second, userHome, packageRoot, created, writes,
     state,
     route: createProductRoute(state),
   }
@@ -75,22 +89,43 @@ const post = (body: string): Request => new Request(url, {
 })
 
 describe('product route', () => {
-  it('reports not-configured before any settings file exists', async () => {
+  it('reports not-configured and offers onboarding before Config/env exists', async () => {
     const f = await fixture()
     const response = await f.route.fetch(get())
     expect(response.status).toBe(200)
-    expect(await response.json()).toEqual({ version: 1, configured: false, status: 'not-configured' })
+    expect(await response.json()).toEqual({
+      version: 1,
+      configured: false,
+      status: 'not-configured',
+      onboarding: true,
+    })
   })
 
-  it('registers a stored workspace and returns the registration id', async () => {
-    const f = await fixture()
-    await writeProductSettings(f.settingsPath, f.workspace)
+  it('honors a deployment that turns onboarding off', async () => {
+    const f = await fixture({ config: { onboarding: false } })
+    expect(await (await f.route.fetch(get())).json()).toMatchObject({
+      configured: false,
+      status: 'not-configured',
+      onboarding: false,
+    })
+  })
+
+  it('registers the Config workspace without writing settings', async () => {
+    const root = await mkdtemp(join(repoTmp, 'product-config-'))
+    dirs.push(root)
+    const workspace = join(root, 'workspace')
+    const home = join(root, 'home')
+    await mkdir(workspace)
+    await mkdir(home)
+    const created: string[] = []
+    const writes: object[] = []
     const state = createProductState({
-      registry: { create: async path => ({ id: 'ws-stored', path }) },
-      home: f.home,
-      settingsPath: f.settingsPath,
-      userHome: f.userHome,
-      packageRoot: f.packageRoot,
+      registry: { create: async path => { created.push(path); return { id: 'ws-config', path } } },
+      config: { workspaceDir: workspace },
+      settings: { update: async (_namespace, patch) => { writes.push(patch) } },
+      home,
+      userHome: join(root, 'user-home'),
+      packageRoot: join(root, 'package'),
     })
     const response = await createProductRoute(state).fetch(get())
     expect(response.status).toBe(200)
@@ -98,9 +133,37 @@ describe('product route', () => {
       version: 1,
       configured: true,
       status: 'ready',
-      workspaceDir: f.workspace,
-      workspaceId: 'ws-stored',
+      workspaceDir: workspace,
+      workspaceId: 'ws-config',
+      onboarding: true,
     })
+    expect(created).toEqual([workspace])
+    expect(writes).toEqual([])
+  })
+
+  it('lets the env override Config and persists it to the profile patch', async () => {
+    const root = await mkdtemp(join(repoTmp, 'product-env-'))
+    dirs.push(root)
+    const workspace = join(root, 'workspace')
+    const home = join(root, 'home')
+    await mkdir(workspace)
+    await mkdir(home)
+    const writes: { namespace: string, patch: object }[] = []
+    const state = createProductState({
+      registry: { create: async path => ({ id: 'ws-env', path }) },
+      config: {},
+      env: { ASSISTANT_WORKSPACE: workspace },
+      settings: { update: async (namespace, patch) => { writes.push({ namespace, patch }) } },
+      home,
+      userHome: join(root, 'user-home'),
+      packageRoot: join(root, 'package'),
+    })
+    expect(await (await createProductRoute(state).fetch(get())).json()).toMatchObject({
+      status: 'ready',
+      workspaceDir: workspace,
+      workspaceId: 'ws-env',
+    })
+    expect(writes).toEqual([{ namespace: 'assistant-product', patch: { workspaceDir: workspace } }])
   })
 
   it('accepts a new workspace, persists it, and reads it back', async () => {
@@ -113,12 +176,9 @@ describe('product route', () => {
       status: 'ready',
       workspaceDir: f.second,
       workspaceId: 'ws-1',
+      onboarding: true,
     })
-    expect(await readProductSettings(f.settingsPath)).toMatchObject({
-      kind: 'ok',
-      settings: { workspaceDir: f.second, updatedAt: '2026-11-01T00:00:00.000Z' },
-    })
-    expect(JSON.parse(await readFile(f.settingsPath, 'utf8'))).toMatchObject({ version: 1, workspaceDir: f.second })
+    expect(f.writes).toEqual([{ namespace: 'assistant-product', patch: { workspaceDir: f.second } }])
     expect(await (await f.route.fetch(get())).json()).toMatchObject({ status: 'ready', workspaceDir: f.second })
   })
 
@@ -134,49 +194,58 @@ describe('product route', () => {
       expect(response.status).toBe(422)
       expect(await response.json()).toEqual({ error: code })
     }
-    expect(await readProductSettings(f.settingsPath)).toEqual({ kind: 'missing' })
     expect(f.created).toHaveLength(0)
+    expect(f.writes).toHaveLength(0)
   })
 
-  it('reports a corrupt file as invalid instead of not-configured', async () => {
-    const f = await fixture()
-    await mkdir(join(f.home, 'assistant-product'), { recursive: true })
-    await writeFile(f.settingsPath, '{', 'utf8')
+  it('reports a Config path that disappeared as workspace-missing', async () => {
+    const root = await mkdtemp(join(repoTmp, 'product-missing-'))
+    dirs.push(root)
+    const workspace = join(root, 'gone')
+    const home = join(root, 'home')
+    await mkdir(home)
     const state = createProductState({
       registry: { create: async path => ({ id: 'ws', path }) },
-      home: f.home,
-      settingsPath: f.settingsPath,
-      userHome: f.userHome,
-      packageRoot: f.packageRoot,
+      config: { workspaceDir: workspace },
+      home,
+      userHome: join(root, 'user-home'),
+      packageRoot: join(root, 'package'),
     })
-    const response = await createProductRoute(state).fetch(get())
-    expect(response.status).toBe(200)
-    expect(await response.json()).toEqual({
-      version: 1,
-      configured: true,
-      status: 'invalid',
-      error: 'settings-invalid',
-    })
-  })
-
-  it('reports a stored path that disappeared as workspace-missing', async () => {
-    const f = await fixture()
-    await writeProductSettings(f.settingsPath, f.workspace)
-    await rm(f.workspace, { recursive: true, force: true })
-    const state = createProductState({
-      registry: { create: async path => ({ id: 'ws', path }) },
-      home: f.home,
-      settingsPath: f.settingsPath,
-      userHome: f.userHome,
-      packageRoot: f.packageRoot,
-    })
-    const response = await createProductRoute(state).fetch(get())
-    expect(await response.json()).toEqual({
+    expect(await (await createProductRoute(state).fetch(get())).json()).toEqual({
       version: 1,
       configured: true,
       status: 'workspace-missing',
-      workspaceDir: f.workspace,
+      workspaceDir: workspace,
+      onboarding: true,
       error: 'workspace-missing',
+    })
+  })
+
+  it('refuses a POST when the settings service is absent', async () => {
+    const f = await fixture({ settings: null })
+    const response = await f.route.fetch(post(JSON.stringify({ workspaceDir: f.second })))
+    expect(response.status).toBe(500)
+    expect(await response.json()).toEqual({ error: 'settings-unavailable' })
+  })
+
+  it('keeps env-launched workspaces usable but reports a persistence failure', async () => {
+    const root = await mkdtemp(join(repoTmp, 'product-env-nosettings-'))
+    dirs.push(root)
+    const workspace = join(root, 'workspace')
+    const home = join(root, 'home')
+    await mkdir(workspace)
+    await mkdir(home)
+    const state = createProductState({
+      registry: { create: async path => ({ id: 'ws-env', path }) },
+      env: { ASSISTANT_WORKSPACE: workspace },
+      home,
+      userHome: join(root, 'user-home'),
+      packageRoot: join(root, 'package'),
+    })
+    expect(await (await createProductRoute(state).fetch(get())).json()).toMatchObject({
+      status: 'ready',
+      workspaceId: 'ws-env',
+      error: 'settings-unavailable',
     })
   })
 

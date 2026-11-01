@@ -10,7 +10,7 @@
 
 import type { ConnectionFetchRoute } from '@deepseek-ai/dsh-client-connection'
 import { WorkspacePathError, type WorkspacePathErrorCode } from '../../domain/product/workspace-path.ts'
-import type { ProductSnapshot, ProductState } from './state.ts'
+import { ProductSettingsError, type ProductSnapshot, type ProductState } from './state.ts'
 
 /** Request/response byte cap; a workspace binding is one path. */
 const MAX_BYTES = 4096
@@ -41,6 +41,9 @@ const USER_FIXABLE: ReadonlySet<WorkspacePathErrorCode> = new Set([
 function failureResponse(error: unknown): Response {
   if (error instanceof WorkspacePathError) {
     return failure(USER_FIXABLE.has(error.code) ? 422 : 500, error.code)
+  }
+  if (error instanceof ProductSettingsError) {
+    return failure(error.code === 'settings-conflict' ? 409 : 500, error.code)
   }
   return failure(500, 'product-unavailable')
 }

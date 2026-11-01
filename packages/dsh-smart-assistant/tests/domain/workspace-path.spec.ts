@@ -1,17 +1,11 @@
 /**
- * Product settings and workspace path policy: what the launcher may write and what the product
- * row may bind. These are the deterministic rules behind the product route.
+ * Workspace path policy: what the product row may bind. These are the deterministic rules behind
+ * the product route.
  */
-import { chmod, mkdir, mkdtemp, readFile, rm, stat, symlink, writeFile } from 'node:fs/promises'
+import { chmod, mkdir, mkdtemp, rm, symlink, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { afterEach, describe, expect, it } from 'vitest'
-import {
-  PRODUCT_SETTINGS_VERSION,
-  productSettingsPath,
-  readProductSettings,
-  writeProductSettings,
-} from '../../src/domain/product/settings.ts'
 import {
   resolveWorkspaceDir,
   WorkspacePathError,
@@ -24,7 +18,7 @@ afterEach(async () => {
   for (const dir of dirs.splice(0)) await rm(dir, { recursive: true, force: true })
 })
 
-async function tempDir(prefix = 'product-settings-'): Promise<string> {
+async function tempDir(prefix = 'product-workspace-'): Promise<string> {
   const dir = await mkdtemp(join(repoTmp, prefix))
   dirs.push(dir)
   return dir
@@ -33,37 +27,6 @@ async function tempDir(prefix = 'product-settings-'): Promise<string> {
 async function expectCode(promise: Promise<unknown>, code: string): Promise<void> {
   await expect(promise).rejects.toMatchObject({ name: 'WorkspacePathError', code })
 }
-
-describe('product settings', () => {
-  it('round-trips one binding with a version and a 0600 file', async () => {
-    const home = await tempDir()
-    const path = productSettingsPath(home)
-    expect(await readProductSettings(path)).toEqual({ kind: 'missing' })
-    const written = await writeProductSettings(path, '/abs/workspace', new Date('2026-11-01T00:00:00Z'))
-    expect(written).toEqual({
-      version: PRODUCT_SETTINGS_VERSION,
-      workspaceDir: '/abs/workspace',
-      updatedAt: '2026-11-01T00:00:00.000Z',
-    })
-    expect(await readProductSettings(path)).toEqual({ kind: 'ok', settings: written })
-    expect((await stat(path)).mode & 0o777).toBe(0o600)
-    expect(JSON.parse(await readFile(path, 'utf8'))).toMatchObject({ version: 1, workspaceDir: '/abs/workspace' })
-  })
-
-  it('reports corrupt, versioned, empty and oversized files as invalid, not missing', async () => {
-    const home = await tempDir()
-    const path = productSettingsPath(home)
-    await mkdir(join(home, 'assistant-product'), { recursive: true })
-    await writeFile(path, '{', 'utf8')
-    expect(await readProductSettings(path)).toEqual({ kind: 'invalid', reason: 'bad-json' })
-    await writeFile(path, JSON.stringify({ version: 2, workspaceDir: '/abs' }), 'utf8')
-    expect(await readProductSettings(path)).toEqual({ kind: 'invalid', reason: 'bad-version' })
-    await writeFile(path, JSON.stringify({ version: 1, workspaceDir: '   ' }), 'utf8')
-    expect(await readProductSettings(path)).toEqual({ kind: 'invalid', reason: 'missing-workspace' })
-    await writeFile(path, 'x'.repeat(5000), 'utf8')
-    expect(await readProductSettings(path)).toEqual({ kind: 'invalid', reason: 'too-large' })
-  })
-})
 
 describe('workspace path policy', () => {
   it('canonicalizes a valid directory and refuses relative paths', async () => {

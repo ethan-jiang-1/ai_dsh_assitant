@@ -38,9 +38,9 @@
 
     # ── 产品工作区绑定（web-only；headless profile patch 里 disabled）──────────────
     #
-    # 读 <dshHome>/assistant-product/settings.json 的 workspaceDir，boot 时用
-    # workspaceRegistry.create() 登记，并暴露 GET/POST api/assistant/product。
-    # 无 settings 文件时 not-configured、不改任何东西（手工 dsh plugin add 的旧行为保留）。
+    # 读本行 Config 的 workspaceDir（volatile profile patch）或一次性 ASSISTANT_WORKSPACE，
+    # boot 时用 workspaceRegistry.create() 登记，并暴露 GET/POST api/assistant/product。
+    # 未配置时 not-configured + onboarding=true（客户端首启选目录），不改任何东西。
     # 必注 connection + workspaceRegistry：headless 组合没有这两个服务，按 schedule 先例
     # 在 headless profile patch 里整行禁用；不靠 optional inject 猜。
     - id: assistant-product
