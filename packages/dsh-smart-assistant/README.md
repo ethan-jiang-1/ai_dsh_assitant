@@ -17,7 +17,23 @@
 
 ## Install
 
-**目标用户：一条命令（产品安装器）**
+**DSH 推荐：应用内 Plugins 页。** 启动 profile（`dsh --profile <你的 profile>` 或 `dsh web`）→ 侧栏 **Plugins**
+→ **Add plugin** → **Install a third-party plugin** → 填 tarball 的绝对路径（或已发布包名 / Git 地址 / 本地目录）
+→ 启用 → 重启 profile。页面装的是**当前 profile**，不创建 profile。
+
+要 dedicated `assistant` profile：
+
+```sh
+dsh --profile assistant --from-default-profile web   # ① 一次性建 profile（已有 profile 不要用）
+dsh --profile assistant                              # ② 启动
+# ③ Plugins 页装 tarball/包名（当前 profile = assistant）；启用并重启
+```
+
+**本地 tarball/自动化**：`dsh plugin --profile assistant add <tarball>`，装完重启；它面向 `dsh web` 自动化，headless/SDK/ACP
+没有 Plugins 页，也用 CLI 显式 profile；Desktop 用 Desktop 的 Plugins 页，普通 CLI 不能管理 `desktop`。装完 `--dump-config` 应看到 `assistant-product` 与
+`preset-assistant`。
+
+**可选：产品安装器（自托管 / 一条命令）**：没有 DSH 经验或需要离线时：
 
 ```sh
 node bootstrap.mjs --workspace /path/to/your-project
@@ -25,23 +41,8 @@ node bootstrap.mjs --product          # 之后从 profile Config 恢复
 node bootstrap.mjs --stop --home ~/.dsh-smart-assistant --product
 ```
 
-安装器建/复用 `assistant` profile、装当前包、设默认 preset，再起 `dsh --profile assistant --port 0`。
-`--workspace` 只做路径预检并给首启一个一次性 `ASSISTANT_WORKSPACE` 覆盖；**不写**工作区绑定文件。
-首启没绑定时，产品首屏让你选项目目录；选完写 profile Config。产品 home 默认 `~/.dsh-smart-assistant`
-（不碰日用 `~/.dsh`；`--home ~/.dsh` 才是显式共享），但 home 是部署选项，不是产品前提。
-
-**已有 DSH：原生路径（不用安装器）**
-
-```sh
-dsh --profile assistant --from-default-profile web   # ① 一次性建 dedicated profile
-dsh plugin --profile assistant add <tarball>          # ② CLI 自动化装；或先启动、Plugins 页装、重启
-dsh --profile assistant --port 0                      # ③ 起 Web；首屏选项目目录
-```
-
-Plugins 页没有 profile 参数，装的是**当前 profile**，它不创建 profile；GUI 路径的顺序是“先有并启动
-`assistant` profile → Plugins 页装 → 重启”。Desktop 用 Desktop 的 Plugins 页；普通 CLI 不能 boot/管理
-`desktop`，不要写 `dsh plugin --profile desktop`。装完 `--dump-config` 应看到 `assistant-product` 与
-`preset-assistant`。
+它不是 DSH 的默认安装方式；`--workspace` 只设一次性 `ASSISTANT_WORKSPACE`，不写工作区绑定文件；产品 home
+默认 `~/.dsh-smart-assistant`（不碰日用 `~/.dsh`；`--home ~/.dsh` 才是显式共享）。
 
 需要 DSH `>=0.2.1-rc.2 <0.3.0-0`、Node `^22.19.0 || >=24`，以及 PATH 上的 `pnpm >= 10.6.0`
 （10.4 及更低会报 `ERR_PNPM_ADDING_TO_ROOT`；Corepack 已启用也算）。首次安装需要访问 npm registry

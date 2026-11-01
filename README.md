@@ -73,25 +73,19 @@
 
 产品 = **dedicated `assistant` profile 的组合**：插件内容随包；工作区绑定在 `assistant-product.workspaceDir`（profile Config）；会话落在你的项目里；一次作业的交付包落在 `<项目>/deliverables/<date>-<slug>/`。合同 = [docs/product.md](docs/product.md)。
 
-**目标用户：一条命令（产品安装器）**
+**DSH 推荐：应用内 Plugins 页安装。** 启动 profile（`dsh --profile <你的 profile>` 或 `dsh web`）→ 侧栏 **Plugins** → **Add plugin** → **Install a third-party plugin** → 填 tarball 的绝对路径（或已发布包名 / Git 地址 / 本地目录）→ 启用 → 重启 profile。首启选项目目录。
+
+要 dedicated `assistant` profile（产品 profile）：
 
 ```sh
-node bootstrap.mjs --workspace /path/to/your-project   # 建/复用 assistant profile、装包、起 Web
-node bootstrap.mjs --product                           # 之后：复用 profile 里的绑定
-node bootstrap.mjs --stop --home ~/.dsh-smart-assistant --product
+dsh --profile assistant --from-default-profile web   # ① 一次性建 profile（已有 profile 不要用）
+dsh --profile assistant                              # ② 启动
+# ③ Plugins 页装 tarball/包名（当前 profile = assistant）；启用并重启
 ```
 
-安装器默认产品 home `~/.dsh-smart-assistant`（不碰日用 `~/.dsh`）；`--workspace` 只做路径预检并给首启一个 `ASSISTANT_WORKSPACE` 一次性覆盖，**不写**工作区绑定文件。首启没绑定时，产品首屏会让你选项目目录；选完写 profile Config。`--home ~/.dsh` 才是显式共享日用 home。
+**本机/自动化**：页面不能用于自动化时，CLI 面向 `dsh web` 自动化：`dsh plugin --profile assistant add <tarball>`，装完重启；headless/SDK/ACP 没有 Plugins 页，用 CLI 显式 profile；Desktop 用 Desktop 的 Plugins 页，普通 CLI 不能管理 `desktop`。装完 `--dump-config` 应看到 `assistant-product` 与 `preset-assistant`。
 
-**已有 DSH：原生路径（不用安装器）**
-
-```sh
-dsh --profile assistant --from-default-profile web      # ① 一次性建 dedicated profile
-dsh plugin --profile assistant add <tarball>             # ② CLI 自动化装；或先启动、Plugins 页装、重启
-dsh --profile assistant --port 0                         # ③ 起 Web；首屏选项目目录
-```
-
-Plugins 页没有 profile 参数，装的是**当前 profile**，它不创建 profile；所以 GUI 路径的顺序是“先有并启动 `assistant` profile → Plugins 页装 → 重启”。Desktop 用 Desktop 的 Plugins 页；普通 CLI 不能 boot/管理 `desktop`。装完 `--dump-config` 应能看到 `assistant-product` 与 `preset-assistant`；装包形状由 `pnpm release-smoke` 机械验证。
+**可选：产品安装器（自托管 / 一条命令）**：没有 DSH 经验或需要离线时，`node bootstrap.mjs --workspace <目录>`。它不是 DSH 的默认安装方式；`--workspace` 只设一次性 `ASSISTANT_WORKSPACE`，不写工作区绑定文件；产品 home 默认 `~/.dsh-smart-assistant`，之后 `--product` 复用 profile Config。
 
 **研发/开发**：本仓开发用 `pnpm start`（dev home），不要用产品安装器；两者不混。
 
@@ -107,7 +101,7 @@ Plugins 页没有 profile 参数，装的是**当前 profile**，它不创建 pr
 
 | 你的问题 | 去哪儿 |
 |---|---|
-| 产品是什么、怎么装/起、工作区/交付包归谁 | [docs/product.md](docs/product.md)（dedicated profile、安装器/native、Config、交付包、失败模式） |
+| 产品是什么、怎么装/起、工作区/交付包归谁 | [docs/product.md](docs/product.md)（dedicated profile、Plugins 页/CLI/安装器、Config、交付包、失败模式） |
 | 某个功能的主链、实现入口、最小验证 | [docs/architecture.md](docs/architecture.md) §八（功能路由） |
 | 一条命令 / 一条消息 / 一次点击进来经谁、哪里可观察 | [docs/architecture.md](docs/architecture.md) §七（运行链路 + 失败模式表） |
 | 组合里到底有没有这一行 | `pnpm dsh --profile dev --dump-config`（路由见 [docs/dev.md](docs/dev.md) §六） |

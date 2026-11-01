@@ -24,17 +24,20 @@
 
 ## 二、安装与启动
 
-### 2.1 三条路径
+### 2.1 四条路径
 
 | 路径 | 谁 | 怎么做 | home | 工作区绑定 |
 |---|---|---|---|---|
-| **A. 产品安装器**（目标用户） | 拿到 tarball、不熟 DSH 的用户 | `node bootstrap.mjs --workspace <目录>`；之后 `--product` 启动 | 默认 `~/.dsh-smart-assistant`（可 `--home`） | 首启 `ASSISTANT_WORKSPACE` + 产品行写 profile Config |
-| **B. DSH 原生**（已有 DSH） | 已维护 profile 的用户 | ① `dsh --profile assistant --from-default-profile web` → ② `dsh plugin --profile assistant add <tgz>` → ③ `dsh --profile assistant`；或先启动、Plugins 页装（当前 profile）、重启 | 当前 `DSH_HOME`（要隔离就自己设） | 首启 onboarding 写 profile Config |
-| **C. Desktop** | Desktop 用户 | Desktop 的 Plugins 页安装；重启应用 | Desktop 的 `desktop` profile | 首启 onboarding（若客户端可用）；不承诺独立 profile/home |
+| **A. Plugins 页（DSH 推荐）** | web/Desktop 用户 | 启动 profile → **Plugins** → **Add plugin** → **Install a third-party plugin** → 填 tarball 绝对路径/包名/Git/本地目录 → 启用 → 重启；dedicated `assistant` profile 先建/启动它，再在页面装 | 当前 `DSH_HOME` / Desktop profile | 首启 onboarding 写 profile Config |
+| **B. CLI**（自动化 / 非 GUI surface） | 自动化/本地 tarball/headless·SDK·ACP | `dsh plugin --profile assistant add <tgz>` → 重启 | 当前 `DSH_HOME` | 同上 |
+| **C. 产品安装器**（可选，自托管/shell） | 不熟 DSH/离线 | `node bootstrap.mjs --workspace <目录>`；之后 `--product` 启动 | 默认 `~/.dsh-smart-assistant`（可 `--home`） | 首启 `ASSISTANT_WORKSPACE` + 产品行写 profile Config |
+| **D. Desktop** | Desktop 用户 | Desktop 的 Plugins 页同上；CLI 不碰 `desktop` | Desktop 的 `desktop` profile | 首启 onboarding（若客户端可用）；不承诺独立 profile/home |
 
-**顺序不能反**：Plugins 页没有 profile 参数，装的是“当前 profile”；它**不创建** profile。GUI 路径必须先有并启动 `assistant` profile，再在 Plugins 页装、再重启；CLI 路径可以在启动前装。Desktop 使用保留的 `desktop` profile；普通 CLI 不能 boot 或管理它，安装说明只写 Desktop 的 Plugins 页。
+**Plugins 页是 DSH 推荐入口**：它没有 profile 参数，装的是“当前 profile”，**不创建** profile。要用 dedicated `assistant` profile，先建并启动它，再在页面装、启用、重启。CLI 面向 `dsh web` 自动化，headless/SDK/ACP 没有 Plugins 页，也用 CLI 显式 profile；Desktop 只用 Desktop 的 Plugins 页；产品安装器是 shell/自托管路径，不是 DSH 的默认安装方式。
 
-### 2.2 产品安装器（`bootstrap.mjs`）
+### 2.2 产品安装器（可选，`bootstrap.mjs`）
+
+它是 shell/自托管路径，不是 DSH 的默认安装方式。
 
 ```sh
 node bootstrap.mjs --workspace <dir> [--home <dir>] [--profile assistant] [--dsh <cmd>] [--offline]
