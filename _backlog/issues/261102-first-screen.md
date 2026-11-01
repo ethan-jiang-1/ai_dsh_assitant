@@ -19,6 +19,8 @@ dashboard 里面。真机实验（[机制与实验](../research/261102-first-scr
 3. 门（`product-gate.ts`）的渲染位置就是 dashboard 内部，注释自述 "in front of the `main` dashboard"。
 4. 平台自己的"第一次来"语言在会话里：hero 席位、welcome-notice、`conversation.input.dock`；
    本包已占其中三个席位。
+5. **刷新会把用户拽走**（E5）：会话 id 被原生恢复，但面板重置 + 我们自选 dashboard → 屏幕回到门/桌面，
+   不是刚才那段对话。对一个对话型助手，这是每次刷新都发生的体验损伤，不只是首屏选择。
 
 **未决问题：** 产品要哪种首屏形态（下表 A–D）——这是产品口味，只有本人能定。
 
