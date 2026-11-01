@@ -35,9 +35,13 @@ kind: "package-bundle"
 **CLI（自动化 / 无 Plugins 页的 surface）**：
 
 ```sh
-dsh plugin --profile <profile> add dsh-smart-assistant
+dsh plugin --profile <profile> add dsh-smart-assistant@<version>   # 钉 exact 版本，不用 latest
 dsh --profile <profile> --dump-config     # 找 preset-assistant 与 agent-preset-registry 的 default: assistant
 ```
+
+**市场（Discover）**：DSH 没有中心化市场，市场是索引源模式——发布后由 `pnpm market` 生成
+`_dist/market/index.json`，静态托管到 https 后加进 Discover（先启用出厂关着的「自定义插件市场」）。
+索引钉的是 exact 版本；卡片文字是索引的声明，装下来的字节由 manifest 决定。
 
 CLI 面向 `dsh web` 自动化，**不能管理 `desktop`**（Desktop 用 Desktop 的 Plugins 页）。
 

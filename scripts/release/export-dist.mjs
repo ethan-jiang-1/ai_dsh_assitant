@@ -230,7 +230,7 @@ Windows：命令在 PowerShell 里可用；路径含空格时加引号。本手�
    （\`--dump-config\` 不能省：不带它 launcher 会直接 boot，而不是建完就退。）
 2. 启动 \`dsh --profile assistant\`。
 3. 侧栏 **Plugins** → **Add plugin** → **Install a third-party plugin**，填 tarball 的**绝对路径**
-   （如 \`/path/to/${tarballName}\`；已发布时可填包名，也支持 Git 地址或本地目录；当前 profile = \`assistant\`）。
+   （如 \`/path/to/${tarballName}\`；已发布后填 \`dsh-smart-assistant@${manifest.version}\`，也支持 Git 地址或本地目录；当前 profile = \`assistant\`）。
 4. 启用 bundle，重启 profile；首屏选项目目录。
 
 **顺序不能反**：Plugins 页不创建 profile，只装当前 profile；必须先有并启动 \`assistant\` profile，再在页面装。
@@ -263,6 +263,19 @@ CLI 装完宿主不知道，必须重启 profile；应用内装可能返回 \`re
 Desktop 使用保留的 \`desktop\` profile，普通 CLI 不能 boot/管理它；
 **不要写** \`dsh plugin --profile desktop\`。Desktop 上没有 dedicated \`assistant\` profile 时，产品以 Desktop 当前
 profile 运行；不承诺独立 profile/产品 home。本轮未在 Desktop 真机验证。
+
+### E. 市场（Discover，发布后可用）
+
+DSH 没有中心化官方市场，市场是**索引源**模式：你自己加一个索引 URL，Discover 里就有这张卡片。
+本仓发布后由 \`pnpm market\` 产出 \`_dist/market/index.json\`（官方 generator 生成），把整个 \`_dist/market/\`
+目录静态托管到 https，再把 URL 加进索引：
+
+1. 侧栏 **Plugins** → **实验性插件** 旁 **更多** → 启用 **自定义插件市场**（出厂关着；版本需与当前 DSH 配套）；
+2. 重开 Plugins 页 → **Discover** → 添加索引源 URL；
+3. 搜 \`dsh-smart-assistant\` → 选版本 → 安装（它走的是与 Plugins 页同一个 install 通道）。
+
+索引是**声明不是签名**：卡片上的标题/作者/标签是索引的说法，装下来的字节由 manifest 决定；索引里钉的是 exact 版本，
+所以"升级"= 换索引里钉住的版本再装一次。**没有索引就还没有这条路径**——先有 npm 发布，才有 market。
 
 ### 可选：产品安装器（自托管 / shell）
 
