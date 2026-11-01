@@ -1,12 +1,12 @@
 ---
-status: 排查中
+status: 已修
 severity: P1
 opened: 2026-11-01
 ---
 
 # BUG-027：发布物内含 59 个 `src/` 源文件（client sourcemap 的 `sourcesContent`），三条门禁都看不见
 
-> 严重级别：P1（重要）｜发现：2026-11-01｜状态：排查中
+> 严重级别：P1（重要）｜发现：2026-11-01｜状态：已修（2026-11-02）
 
 ## 症状
 
@@ -50,6 +50,16 @@ $ tar -xzOf _dist/dsh-smart-assistant-0.1.13.tgz package/lib/client/index.js.map
   `sourcesContent: false`）；② `files` 排除 `**/*.map`；③ 在 `export-dist` 的清单边界里加
   "包内任何 `.map` 不得带指向 `../src/` 的 `sourcesContent`" 的断言。
 - 建议②+③：体积从 891 KB 降到约 210 KB，且门禁可造红证明。
+
+## 修复（2026-11-02）
+
+- `packages/dsh-smart-assistant/package.json` 的 `files` 追加 `"!lib/**/*.map"`：**map 不进发布物**。
+  源码本来就不随包（`files` 不含 `src`），map 对消费者只剩泄漏价值；本地 `lib/` 仍保留 map，开发调试不受影响。
+- 判据进 `scripts/release/publish-shape.mjs` 的 `sourcemapLeakProblems`（按**内容**判：任何 map 的
+  `sourcesContent` 嵌了本包 `src/` 就红），由 `export-dist` 对真实 tarball 调用，不再靠路径前缀。
+- 负例夹具：`packages/dsh-smart-assistant/tests/tooling/publish-shape.spec.mjs`（泄漏 map / 无 sources 的
+  payload / 坏 JSON 三红，依赖源与无 map 两绿）。证据：该 spec 11 passed；`pnpm export-dist` 报
+  `no shipped map embeds package sources — 0 map(s) shipped`；包体 891 KB → 548 KB，条目 605 → 322。
 
 ## 修好定义
 

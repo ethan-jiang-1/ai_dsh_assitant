@@ -12,14 +12,32 @@
 
 ## 二、渠道
 
-- **当前唯一渠道 = 手工 tarball + `export-dist` 生成的安装手册。** 包保持 `private: true`，不发布到 npm、registry 或市场。
-- tarball 是预构建产物：`lib/`、`client` bundle、`bin/`、`presets/`、`seeds/`、`cordis.patch.yml`、`bootstrap.mjs`（可选安装器/独立启动共用）、`LICENSE`、`README` 必须随包。
-- 换渠道（npm、市场、Desktop 壳）不是“顺手加一步”，而是新提案：同 diff 更新本宪章、安装路径、兼容声明和真实安装 smoke。
+- **主渠道 = npm registry（包名 `dsh-smart-assistant`）**；`dsh plugin add <spec>` 与 Plugins 页按名字安装，
+  市场索引只是**发现层**（见 §二之二）。**发布动作由本人执行**——agent 无 registry 凭证；`private` 必须缺省，
+  它会让 `npm publish` 以 `EPRIVATE` 拒绝，而 `--dry-run` 不经过那条分支（假绿）。
+- **离线/自托管渠道 = 手工 tarball ＋ `export-dist` 生成的安装手册**（同一份字节，可控交付）。
+- 包是预构建产物：`lib/`、`client` bundle、`bin/`、`presets/`、`seeds/`、`locale/`、`icon.svg`、
+  `cordis.patch.yml`、`LICENSE`、`README` 必须随包；**sourcemap 不进包**（源码不随包，map 只剩泄漏价值）。
+- 换渠道（市场、Desktop 壳）不是"顺手加一步"，而是新提案：同 diff 更新本宪章、安装路径、兼容声明和真实安装 smoke。
+
+## 二之二、市场索引（发现层）
+
+- 产物 = `_dist/market/index.json` ＋ 图标，由**官方 generator** 生成：输入一行包名，读 npm registry，
+  每个可安装版本必须已发布且声明 `dsh.bundle`。所以顺序锁死：**先 npm 发布，再生成索引**。
+- 索引是发现层不是分发层：DSH 出厂不配任何索引，用户要在 Discover 里自己加 URL；自定义市场 bundle
+  （`@deepseek-ai/dsh-experimental-plugin-market-bundle`）出厂关着。
+- 索引里的一切都是**声明**：`name`/`version`/`engines.dsh` 必须与包 manifest 一致、`publishTimestamp` 取
+  registry 发布时间；生成后必须过 `parseMarketIndex`（`export-dist` 的 market 步骤守这条）。
+
 
 ## 三、产物合同
 
 - **自包含**：发布物不引用仓库内其他目录、`vendor/`、workspace 协议或 sibling 包；`pnpm verify` 与 `pnpm release-smoke` 守这条。
-- **元数据**：`engines.dsh`、`engines.node`、`repository`、`license`、`description`、`dsh.bundle.patch` 必须与实际一致；README 写 Install / What it contributes / Configuration / Data / Compatibility / Uninstall。
+- **元数据**：`engines.dsh`、`engines.node`、`repository`、`license`、`description`、`icon`、`keywords`、
+  `locale/{en,zh}.json` 的 `meta.title/description`、`dsh.bundle.patch` 必须与实际一致；README 写
+  Install / What it contributes / Configuration / Data / Compatibility / Uninstall。
+  形状判据在 `scripts/release/publish-shape.mjs`：`export-dist` 对真实产物逐条判（`private` 缺省、bundle 补丁、
+  `engines.dsh`、图标与描述、locale 完整、包内无源码载荷），不靠人记。
 - **不含用户数据**：不写 `assistant/`、`assistant-operating/`、sessions、profiles、storages、deliverables、`.env`、credentials、宿主绝对路径或符号链接。`handoff-scan` 与 `export-dist` 对真实 tarball 跑扫描，失败即不可发布。
 - 发布物以 `pnpm pack` 的真实字节为准；链接安装/source 直跑不能替代 tarball 安装。
 

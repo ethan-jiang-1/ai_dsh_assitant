@@ -36,7 +36,7 @@
 | `./preset-runner` | AGENT（dev 专用） | — |
 | `./client` | CLIENT（浏览器面） | — |
 
-非 plugin 导出（不挂组合行）：`./package.json`
+非 plugin 导出（不挂组合行）：`./package.json`、`./locale/*.json`
 
 ## 组合行
 
@@ -92,5 +92,5 @@
 - 当前机器兼容范围：`dsh >=0.2.1-rc.2 <0.3.0-0`；Node `^22.19.0 || >=24`；pnpm `>=10.6.0`
 - 历史 verified 的 DSH release（不构成当前支持承诺）：`0.1.5-rc.2`、`0.1.7-rc.2`、`0.2.0-rc.2`、`0.2.1-rc.2`
 - 运行时 dependencies：`yaml`
-- peerDependencies：13 个 `@deepseek-ai/*`（姿态由门禁守：harness 包只许 peer）
+- peerDependencies：14 个 `@deepseek-ai/*`（姿态由门禁守：harness 包只许 peer）
 - client 面（浏览器包）：有

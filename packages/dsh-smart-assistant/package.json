@@ -1,8 +1,16 @@
 {
   "name": "dsh-smart-assistant",
   "version": "0.1.13",
-  "private": true,
   "description": "A DSH agent preset that owns a home: durable memory, self-written skills, and machine-checked curation.",
+  "icon": "./icon.svg",
+  "keywords": [
+    "dsh-plugin",
+    "dsh-bundle",
+    "agent-preset",
+    "assistant",
+    "memory",
+    "knowledge"
+  ],
   "type": "module",
   "license": "MIT",
   "engines": {
@@ -108,6 +116,7 @@
       "default": "./lib/client/index.js"
     },
     "./package.json": "./package.json",
+    "./locale/*.json": "./locale/*.json",
     "./operating-brief": {
       "types": "./lib/agent/operating-brief/index.d.ts",
       "default": "./lib/agent/operating-brief/index.js"
@@ -118,10 +127,13 @@
     "bin",
     "presets",
     "seeds",
+    "locale",
+    "icon.svg",
     "bootstrap.mjs",
     "LICENSE",
     "cordis.patch.yml",
-    "README.md"
+    "README.md",
+    "!lib/**/*.map"
   ],
   "scripts": {
     "clean": "rm -rf lib tsconfig.tsbuildinfo",
@@ -138,6 +150,7 @@
     "@deepseek-ai/dsh-home-paths": "workspace:^",
     "@deepseek-ai/dsh-llm": "workspace:^",
     "@deepseek-ai/dsh-schedule": "workspace:^",
+    "@deepseek-ai/dsh-scope": "workspace:^",
     "@deepseek-ai/dsh-session": "workspace:^",
     "@deepseek-ai/dsh-skill": "workspace:^",
     "@deepseek-ai/dsh-skill-filesystem": "workspace:^",

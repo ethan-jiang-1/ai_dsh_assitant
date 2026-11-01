@@ -181,14 +181,14 @@ opened: 2026-11-01
 |---|---|---|---|
 | W0 流程载体 | 本卡转收口卡、授权与决议入档 | 完成 | 本节 |
 | S1 bundle 自足 | 装进任意 web profile、不碰 profile patch，`--dump-config` 出现 `default: assistant` | 完成 | 隔离 home `.tmp/s1/home` 建 stock `web` profile → `dsh plugin add` 本包 → `--dump-config` 出现 `default: assistant`、`preset-assistant`，**全程零 profile patch**；派生索引落到 `dshCachePath('assistant','session-search.db')`；`bootstrap.mjs` 不再写 profile patch；`pnpm verify` 51/51；`vitest composition+tooling` 412 passed |
-| S2 发包就绪 | 去 `private`；locale/icon/author/homepage/keywords 齐；Plugins 页那一行有标题与描述 | 待办 | |
+| S2 发包就绪 | 去 `private`；locale/icon/keywords 齐；Plugins 页那一行有标题与描述 | 完成 | `private` 已删、`npm publish --dry-run` 通过（322 files / 558.7 kB）；`locale/en+zh.json` + `icon.svg` + `keywords` 随包；`export-dist` 三条新判据 ok（publishable / display metadata / 打包无 `src` 载荷）；包体 891→548 KB |
 | S3 发布与市场 | 一条命令产出「可发布包 ＋ `_dist/` ＋ `market/index.json`」 | 待办 | |
 | S4 文档分层 | 插件 README 七节、产品手册十段；默认 preset 只有一种说法 | 待办 | |
 | S5 安装器归位 | 包内不再有安装器；改独立资产 | 待办 | |
 | S6 门禁 | 四条新检查各带负例夹具 | 待办 | |
 | S7 收口 | A1–A8 全绿证据 ＋ 归档 ＋ 决定 note | 待办 | |
-| BUG-027 | 发布物不再带 `src/` 载荷 | 待办 | |
-| BUG-028 | 手册建 profile 命令带 `--dump-config` | 待办 | |
+| BUG-027 | 发布物不再带 `src/` 载荷 | 已修 | `files` 排除 `lib/**/*.map`；`sourcemapLeakProblems` 按内容判（export-dist 调用）；11 条夹具；0 map shipped |
+| BUG-028 | 手册建 profile 命令带 `--dump-config` | 已修 | 手册模板改 dump 形态 + 生成后文本判据；`pnpm export-dist` ok |
 
 ## 仍未取
 

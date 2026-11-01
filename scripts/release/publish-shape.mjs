@@ -1,0 +1,113 @@
+/**
+ * Publish-shape judges: pure predicates over what a packed artifact and its manifest actually
+ * contain. They take data (never paths they read themselves) so every accept/reject form can run
+ * on a throwaway fixture — the discipline in `scripts/AGENTS.md` §2.
+ *
+ * Why these live apart from `scripts/release/export-dist.mjs`: the export script owns "what is
+ * shipped and which files are read"; the rules own "what makes a shipped shape wrong". A rule that
+ * can only be exercised by producing a real tarball cannot be proven red.
+ *
+ * @module scripts/release/publish-shape
+ */
+
+/** @typedef {{ path: string, text: string }} ArtifactMember  One artifact member and its decoded text. */
+
+/**
+ * Source that must never reach a published artifact: the package's own TypeScript tree.
+ * Shipped sourcemaps are useless to a consumer (the sources are not shipped) and hand away the
+ * development surface; `export-dist` used to miss them because it only judged entry names.
+ */
+const OWN_SOURCE = /(^|\/)\.\.?\/.*\/src\//
+
+/** A `sourcesContent` entry counts as shipped source unless it belongs to a dependency. */
+function embeddedOwnSource(source) {
+  if (source.startsWith('node_modules/')) return false
+  return OWN_SOURCE.test(source) || /(^|\/)src\//.test(source)
+}
+
+/**
+ * Judge the macOS/Linux path is irrelevant; the rule is "no shipped map embeds our own sources".
+ * @param maps - every `.map` member of the artifact, decoded.
+ * @returns human-readable problems; empty means clean.
+ */
+export function sourcemapLeakProblems(maps) {
+  const problems = []
+  for (const map of maps) {
+    let parsed
+    try {
+      parsed = JSON.parse(map.text)
+    } catch {
+      problems.push(`${map.path}: not valid JSON — a published map must be parseable or absent`)
+      continue
+    }
+    const record = parsed
+    const sources = Array.isArray(record.sources) ? record.sources.filter(s => typeof s === 'string') : []
+    const contents = Array.isArray(record.sourcesContent) ? record.sourcesContent : []
+    const leaking = sources.filter(embeddedOwnSource)
+    if (contents.length > 0 && sources.length === 0) {
+      problems.push(`${map.path}: carries sourcesContent with no sources list — its payload cannot be reviewed`)
+      continue
+    }
+    for (const source of leaking) {
+      const index = sources.indexOf(source)
+      if (contents[index] !== undefined && contents[index] !== null) {
+        problems.push(`${map.path}: embeds the source of ${source}`)
+      }
+    }
+  }
+  return problems
+}
+
+/**
+ * Manifest shape a publishable bundle must have. `private` blocks `npm publish` with `EPRIVATE`
+ * (a dry run does not exercise it); display metadata is what the Plugins page and the market read.
+ * @param manifest - the parsed `package.json` of the package about to be packed.
+ * @returns human-readable problems; empty means publishable.
+ */
+export function manifestShapeProblems(manifest) {
+  const problems = []
+  if (manifest.private === true) problems.push('package.json: "private": true — `npm publish` refuses with EPRIVATE')
+  const dsh = manifest.dsh
+  if (dsh?.bundle?.patch === undefined) problems.push('package.json: declares no dsh.bundle.patch — the host would treat it as a plain dependency')
+  const engines = manifest.engines
+  if (typeof engines?.dsh !== 'string' || engines.dsh.trim() === '') {
+    problems.push('package.json: declares no engines.dsh — install and boot would have no version gate')
+  }
+  if (typeof manifest.icon !== 'string' || manifest.icon.trim() === '') {
+    problems.push('package.json: declares no icon — the Plugins page falls back to a generic mark')
+  }
+  if (typeof manifest.description !== 'string' || manifest.description.trim() === '') {
+    problems.push('package.json: declares no description — the Plugins card has no one-liner')
+  }
+  return problems
+}
+
+/**
+ * The locale dictionaries the host reads for display text. A missing English dictionary is not an
+ * error at runtime (titles fall back to the package name) but it is the difference between a card
+ * that says `dsh-smart-assistant` and one that says what the plugin is.
+ * @param locales - `{ language: parsed document }` for every `locale/<lang>.json`.
+ * @returns human-readable problems; empty means display metadata is complete.
+ */
+export function localeShapeProblems(locales) {
+  const problems = []
+  const english = locales.en
+  if (english === undefined) {
+    problems.push('locale/en.json: missing — the Plugins page title falls back to the package name')
+    return problems
+  }
+  for (const [language, document] of Object.entries(locales)) {
+    const meta = document?.meta
+    if (meta === undefined || typeof meta !== 'object') {
+      problems.push(`locale/${language}.json: no "meta" object — the host reads nothing from this file`)
+      continue
+    }
+    for (const field of ['title', 'description']) {
+      const value = meta[field]
+      if (typeof value !== 'string' || value.trim() === '') {
+        problems.push(`locale/${language}.json: meta.${field} must be a non-empty string`)
+      }
+    }
+  }
+  return problems
+}

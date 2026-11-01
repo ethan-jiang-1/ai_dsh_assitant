@@ -20,6 +20,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync
 import { dirname, isAbsolute, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { pinnedTagFrom } from '../maintenance/sync-bookkeeping.mjs'
+import { localeShapeProblems, manifestShapeProblems, sourcemapLeakProblems } from './publish-shape.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const packageDir = join(repoRoot, 'packages', 'dsh-smart-assistant')
@@ -100,6 +101,41 @@ report('tarball inventory', listed.status === 0 && missing.length === 0 && skill
   + `${missing.length ? `; missing: ${missing.join(', ')}` : ''}`
   + `${forbidden.length ? `; forbidden: ${forbidden.slice(0, 5).join(', ')}${forbidden.length > 5 ? ' …' : ''}` : ''}`)
 
+// Maps that embed our own sources are a development-surface leak: the sources are not shipped, so
+// the map serves no consumer, and it hands away the tree this package deliberately keeps out of the
+// artifact (`files` excludes `src`). Judged on content, not on the entry name, because a name-based
+// list cannot see what a map carries.
+const mapEntries = entries.filter(entry => entry.endsWith('.map')).slice(0, 50)
+const shippedMaps = mapEntries.map((entry) => {
+  const read = spawnSync('tar', ['-xzOf', tarball, entry], { encoding: 'utf8' })
+  return { path: entry, text: read.stdout ?? '' }
+})
+const mapProblems = sourcemapLeakProblems(shippedMaps)
+report('no shipped map embeds package sources', mapProblems.length === 0,
+  mapProblems.length > 0 ? mapProblems.slice(0, 3).join('; ') : `${entries.filter(entry => entry.endsWith('.map')).length} map(s) shipped`)
+
+// The shape a publishable bundle must have. `private: true` blocks `npm publish` with EPRIVATE and a
+// dry run does not exercise it, so this is the only place the refusal is caught before the tag.
+const shapeProblems = manifestShapeProblems(manifest)
+report('manifest is publishable', shapeProblems.length === 0,
+  shapeProblems.length > 0 ? shapeProblems.join('; ') : 'private absent, bundle patch + engines.dsh + icon + description declared')
+
+// Display metadata the Plugins page and the market index read. Missing English meta is what turns a
+// card into a package name; a locale file that the host cannot parse is worse than none.
+const localeProblems = (() => {
+  const dir = join(packageDir, 'locale')
+  if (!existsSync(dir)) return ['locale/: missing — no localized title/description for the Plugins page']
+  const documents = {}
+  for (const name of readdirSync(dir)) {
+    if (!name.endsWith('.json')) continue
+    try { documents[name.slice(0, -5)] = JSON.parse(readFileSync(join(dir, name), 'utf8')) }
+    catch (error) { return [`locale/${name}: ${String(error)}`] }
+  }
+  return localeShapeProblems(documents)
+})()
+report('display metadata is complete', localeProblems.length === 0,
+  localeProblems.length > 0 ? localeProblems.join('; ') : 'locale/en.json + icon declared')
+
 const handoff = spawnSync(process.execPath, [join(repoRoot, 'scripts', 'release', 'handoff-scan.mjs'), tarball], { encoding: 'utf8' })
 report('handoff scan', handoff.status === 0,
   handoff.status === 0 ? 'no user data, credentials, host paths or live-secret shapes'
@@ -163,8 +199,10 @@ Windows：命令在 PowerShell 里可用；路径含空格时加引号。本手�
 
 ### A. dedicated \`assistant\` profile（产品 profile，推荐）
 
-1. 一次性建 profile（CLI 自动化；已有 profile 不要用 \`--from-default-profile\`）：
-   \`dsh --profile assistant --from-default-profile web\`
+1. 一次性建 profile（CLI 自动化；**只用于全新 profile** —— \`--from-default-profile\` 是破坏性重置，
+   会删掉该 profile 的依赖与用户 patch）：
+   \`dsh --profile assistant --from-default-profile web --dump-config\`
+   （\`--dump-config\` 不能省：不带它 launcher 会直接 boot，而不是建完就退。）
 2. 启动 \`dsh --profile assistant\`。
 3. 侧栏 **Plugins** → **Add plugin** → **Install a third-party plugin**，填 tarball 的**绝对路径**
    （如 \`/path/to/${tarballName}\`；已发布时可填包名，也支持 Git 地址或本地目录；当前 profile = \`assistant\`）。
@@ -513,6 +551,15 @@ Windows：\`dsh\`/\`npm\` 的 \`.cmd\` shim 与进程树语义已做代码级加
 `
 writeFileSync(join(distDir, manualName), manual, 'utf8')
 report('install manual generated', true, join('_dist', manualName))
+
+// `--from-default-profile` is a destructive reset AND, without a dump flag, a boot. The manual is the
+// only place a user is told to run it, so every occurrence has to be the dump form; the scripts
+// already are (`bootstrap.mjs`, `release-smoke.mjs`), and a hand-written line drifting away from
+// that is a data-loss instruction, not a typo (BUG-028).
+const manualBootLines = manual.split('\n')
+  .filter(line => /\bdsh\s/.test(line) && line.includes('--from-default-profile') && !line.includes('--dump-config'))
+report('manual only quotes dump-mode profile creation', manualBootLines.length === 0,
+  manualBootLines.length === 0 ? 'every --from-default-profile carries --dump-config' : manualBootLines[0].trim().slice(0, 120))
 
 if (failed.length > 0) {
   console.error(`\nexport-dist: ${failed.length} check(s) failed — _dist/ 里的产物不可信，先修再发`)

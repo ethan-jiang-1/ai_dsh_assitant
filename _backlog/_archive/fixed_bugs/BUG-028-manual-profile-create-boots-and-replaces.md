@@ -1,12 +1,12 @@
 ---
-status: 排查中
+status: 已修
 severity: P1
 opened: 2026-11-01
 ---
 
 # BUG-028：安装手册的"建 profile"命令漏了 `--dump-config`——它会直接启动 Web，且 `--from-default-profile` 会替换已有 profile
 
-> 严重级别：P1（重要）｜发现：2026-11-01｜状态：排查中
+> 严重级别：P1（重要）｜发现：2026-11-01｜状态：已修（2026-11-02）
 
 ## 症状
 
@@ -48,6 +48,16 @@ dsh --profile assistant --from-default-profile web      # _dist/安装手册.md:
   该卡要把手册从"十步部署 runbook"改成"产品手册十段"，这条命令属于其中"安装"段。
 - 建议形状：`dsh --profile assistant --from-default-profile web --dump-config`，
   并在同句写明"只用于全新 profile；已有 profile 会丢失依赖与 patch"，与 `docs/release.md` 口径一致。
+
+## 修复（2026-11-02）
+
+- `scripts/release/export-dist.mjs` 的手册模板改成
+  `dsh --profile assistant --from-default-profile web --dump-config`，并写明「只用于全新 profile、
+  它是破坏性重置、不带 `--dump-config` 会直接 boot」。
+- 生成后新增文本判据：手册里任何 `dsh … --from-default-profile` 行都必须带 `--dump-config`，否则
+  `export-dist` 报红（`manual only quotes dump-mode profile creation`）。
+- 证据：`pnpm export-dist` 该条 ok（`every --from-default-profile carries --dump-config`）；
+  生成的 `_dist/安装手册.md` 第一节已是 dump 形态。
 
 ## 修好定义
 

@@ -4,6 +4,8 @@
 
 | 卡 | 标题 | 修复 | 日期 |
 |---|---|---|---|
+| [BUG-028](BUG-028-manual-profile-create-boots-and-replaces.md) | 安装手册的建 profile 命令漏 `--dump-config`：会启动 Web，且 `--from-default-profile` 替换已有 profile | 模板改为 dump 形态 + 生成后文本判据（任何 `--from-default-profile` 必须带 `--dump-config`）；`pnpm export-dist` 该条 ok | 2026-11-02 |
+| [BUG-027](BUG-027-published-sourcemap-embeds-src.md) | 发布物含 59 个 `src/` 源文件（client sourcemap 的 `sourcesContent`），三条门禁都看不见 | `files` 排除 `lib/**/*.map`（包体 891→548 KB、605→322 条目）；判据换成按内容的 `sourcemapLeakProblems`（`export-dist` 调用，11 条负例夹具） | 2026-11-02 |
 | [BUG-026](BUG-026-ledger-writer-lock-held-by-orphan.md) | 共享 dev home 的账本写锁被残留实验进程长期占用，运行中的实例整轮写不进去 | 拒绝改为可处置：锁身份记 `cwd`，拒绝信息点名 host/pid/cwd/取得时刻/锁路径 + `kill -TERM <pid>` 恢复，并写明"持锁者可能仍会写时不要删锁"；契约进 `docs/operating.md` §一 + `docs/dev.md` 并行会话节（会写账本的实验用隔离 home）。不做自动接管（无 flock，双写会丢更新）。证据：`test:host` 159、`build`、`verify` 45 | 2026-10-25 |
 | [BUG-025](BUG-025-first-run-day0-unreachable.md) | 空 home 的 Day-0 引导卡被 `Object.keys` 判据挡掉 | freshness 改读房间内容（rows + counts，含 research）；新增回归 spec；`pnpm test` 972 / `pnpm verify` 44 | 2026-10-23 |
 | [BUG-024](BUG-024-eval-baseline-red.md) | 行为评测基线红：7 个任务全部零 `tool/call`，误报 0/7 | `dev-task` 无 credentials service；`runPreset` 现从 dev home 的 `.credentials.yaml` 镜像 `DEEPSEEK_API_KEY`（不打印），并把 `desk-followup-readback` 的确认判据补同义表达。证据：`pnpm eval` 7/7（1 web-only NOT EVALUATED）、`verify` 43/43、`test` 910/910 | 2026-10-21 |

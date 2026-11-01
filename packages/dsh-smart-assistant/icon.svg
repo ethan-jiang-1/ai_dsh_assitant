@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Smart Assistant">
+  <!-- The same mark the sidebar and the blank-session hero draw (src/client/chrome/brand.ts):
+       the octopus steward on the teal tile — many arms, one keeper. Kept as a static file so the
+       DSH Plugins page and the market index can show it without evaluating plugin code. -->
+  <rect width="64" height="64" rx="14" fill="#0f766e"/>
+  <circle cx="32" cy="24" r="13" fill="#ffffff"/>
+  <circle cx="27" cy="23" r="2.2" fill="#0f766e"/>
+  <circle cx="37" cy="23" r="2.2" fill="#0f766e"/>
+  <path d="M21 31q-6 6-9 9M27 35q-3 9-8 12M37 35q3 9 8 12M43 31q6 6 9 9M32 37q0 7-2 12"
+        stroke="#ffffff" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+</svg>

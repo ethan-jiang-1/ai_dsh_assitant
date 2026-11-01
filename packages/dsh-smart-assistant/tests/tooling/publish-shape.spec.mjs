@@ -1,0 +1,82 @@
+/**
+ * Fixtures for the publish-shape judges (`scripts/release/publish-shape.mjs`).
+ *
+ * Each rule is proven red on the artifact shape it exists to refuse and green on the shape this
+ * repository actually ships (BUG-027: the client sourcemap embedded 59 `src/` files and three
+ * earlier gates could not see it; BUG-028's sibling rule guards the publishable manifest).
+ * Plain `.mjs` on purpose: vitest runs it, `tsc -p tsconfig.test.json` does not type-check it.
+ */
+import { describe, expect, it } from 'vitest'
+import { localeShapeProblems, manifestShapeProblems, sourcemapLeakProblems } from '../../../../scripts/release/publish-shape.mjs'
+
+const map = (sources, contents) => JSON.stringify({ version: 3, sources, sourcesContent: contents })
+
+describe('sourcemapLeakProblems', () => {
+  it('refuses a map that embeds this package\'s own sources', () => {
+    const problems = sourcemapLeakProblems([{ path: 'package/lib/client/index.js.map', text: map(['../../src/client/index.ts'], ['export const x = 1']) }])
+    expect(problems).toHaveLength(1)
+    expect(problems[0]).toMatch(/embeds the source of \.\.\/\.\.\/src\/client\/index\.ts/)
+  })
+
+  it('refuses a map whose sourcesContent has no reviewable sources list', () => {
+    expect(sourcemapLeakProblems([{ path: 'p.map', text: JSON.stringify({ sourcesContent: ['x'] }) }])[0]).toMatch(/no sources list/)
+  })
+
+  it('refuses a map that is not valid JSON', () => {
+    expect(sourcemapLeakProblems([{ path: 'p.map', text: '{oops' }])[0]).toMatch(/not valid JSON/)
+  })
+
+  it('accepts dependency sources and an artifact with no maps at all', () => {
+    expect(sourcemapLeakProblems([{ path: 'p.map', text: map(['node_modules/foo/index.js'], ['x']) }])).toEqual([])
+    expect(sourcemapLeakProblems([])).toEqual([])
+  })
+
+  it('accepts a map that lists sources but carries no content', () => {
+    expect(sourcemapLeakProblems([{ path: 'p.map', text: JSON.stringify({ sources: ['../../src/a.ts'] }) }])).toEqual([])
+  })
+})
+
+describe('manifestShapeProblems', () => {
+  const publishable = {
+    name: 'x',
+    description: 'one line',
+    icon: './icon.svg',
+    engines: { dsh: '>=0.2.1-rc.2 <0.3.0-0' },
+    dsh: { bundle: { patch: './cordis.patch.yml' } },
+  }
+
+  it('accepts the shape this repository ships', () => {
+    expect(manifestShapeProblems(publishable)).toEqual([])
+  })
+
+  it('refuses private:true — npm publish answers EPRIVATE and a dry run does not', () => {
+    expect(manifestShapeProblems({ ...publishable, private: true }).join(' ')).toMatch(/EPRIVATE/)
+  })
+
+  it('refuses a package with no bundle patch, no engines.dsh, no icon and no description', () => {
+    const problems = manifestShapeProblems({ name: 'x' })
+    expect(problems).toHaveLength(4)
+    expect(problems.join(' ')).toMatch(/dsh\.bundle\.patch/)
+    expect(problems.join(' ')).toMatch(/engines\.dsh/)
+    expect(problems.join(' ')).toMatch(/icon/)
+    expect(problems.join(' ')).toMatch(/description/)
+  })
+})
+
+describe('localeShapeProblems', () => {
+  it('accepts English plus a translation', () => {
+    expect(localeShapeProblems({
+      en: { meta: { title: 'Smart Assistant', description: 'x' } },
+      zh: { meta: { title: '章鱼管家', description: 'y' } },
+    })).toEqual([])
+  })
+
+  it('refuses a package with no English dictionary', () => {
+    expect(localeShapeProblems({ zh: { meta: { title: '章鱼管家', description: 'y' } } })[0]).toMatch(/locale\/en\.json/)
+  })
+
+  it('refuses an empty title or a document without meta', () => {
+    expect(localeShapeProblems({ en: { meta: { title: '  ', description: 'x' } } })[0]).toMatch(/meta\.title/)
+    expect(localeShapeProblems({ en: {}, zh: { meta: { title: 'a', description: 'b' } } })[0]).toMatch(/no "meta" object/)
+  })
+})
