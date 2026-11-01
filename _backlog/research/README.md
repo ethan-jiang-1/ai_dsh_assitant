@@ -60,6 +60,7 @@ research/
 
 | 名头 | 问题 | 消费者 | 材料 |
 |---|---|---|---|
+| [启动路径比较：产品启动器 vs deck-studio 标准启动](261101-startup-model-comparison/README.md) · 3 条命令/1 条命令/工作区绑定 | 仿效 deck-studio 的 3 条命令启动，能否保住产品 profile/home/工作区/交付包；优缺点 | [启动路径取舍 note](../../notes/proposed/2026-11-01-startup-paths.md)（proposed） | 3 份 + 4 图 |
 | [输入边界 30 天观察](261011-input-observation/README.md) · 真实使用读数 | 输入通道该不该做——先看 30 天真实读数 | 触发行（**活观察**，窗口未起算） | 1 份 |
 
 归档题名见 [_archive/research/README.md](../_archive/research/README.md)；本页只列活跃题名。
