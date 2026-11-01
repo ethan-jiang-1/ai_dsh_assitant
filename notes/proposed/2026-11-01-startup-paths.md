@@ -1,4 +1,4 @@
-日期：2026-11-01 · 状态：**proposed**（待拍板；本轮只做事实复核与对比实验，未改产品代码）
+日期：2026-11-01 · 状态：**proposed（待重审）**（新卡：[产品 profile 对齐](../../_backlog/issues/261101-product-profile-alignment.md)）｜本 note 的“原生安装 + onboarding、启动器可选”方向被收窄为“dedicated `assistant` profile + bundle 自有启动 + 薄安装器”；待拍板后改写或归档，正文保留为取舍记录。
 
 # 启动路径：DSH 原生安装做底座，产品开始页/工作区选择放客户端层
 

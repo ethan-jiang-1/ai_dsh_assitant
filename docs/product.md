@@ -1,47 +1,81 @@
 # 产品形态与工作区（当前合同）
 
-> 本文件拥有：**产品启动器、产品 home、用户工作区绑定、一次作业的交付包（run bundle）与项目面**的合同。
+> 本文件拥有：**产品 profile、安装/启动、用户工作区绑定、一次作业的交付包（run bundle）与项目面**的合同。
 > working folder 的四房间 = [`home.md`](home.md)；经营账本 = [`operating.md`](operating.md)；数据卡与备份 = [`delivery.md`](delivery.md)；
 > 发布宪章 = [`release.md`](release.md)；身份名 = [`identity.md`](identity.md)。本文件只写产品这一层的合同，不复制四房间语义。
 
-## 一、两个入口
+## 一、产品是什么
 
-| 入口 | 谁用 | 形态 |
-|---|---|---|
-| **产品启动器**（推荐） | 拿到 tarball 的用户 | 解包后 `node bootstrap.mjs --workspace <目录>`：建/复用一个自己的 `assistant` profile，装当前包，设默认 preset，起 `dsh --profile assistant` |
-| **手工装包**（高级/已有 DSH） | 已维护自己 profile 的用户 | `dsh plugin --profile <p> add <tgz>`，再在 Settings 选 `章鱼管家`——没有产品设置，产品行 idle，行为与旧版一致 |
+产品 = **一个 dedicated `assistant` profile 的组合**，不是启动器，也不是另一个 home：
 
-启动器是**部署包装**，不是新的应用运行时：应用仍由 `dsh --profile` 启动；不打包 DSH/Node，不手写 profile manifest，不新增 app bin。
+```text
+① 插件包（只读、随版本）      bundle patch / preset / skills / seeds / client / bootstrap.mjs
+② 产品 profile（用户侧组合）   assistant：web 模板 + 产品 bundle + 默认 preset + 产品 Config
+③ 用户 workspace（用户项目）   项目文件 + deliverables/<date>-<slug>/（run bundle）
+④ 宿主 home（DSH 运行态）      sessions / credentials / storages / workspace registry / 产品 home（可选）
+```
 
-## 二、产品 home 与 profile
+- **① 插件内容在包里**：静态内容随包，不写进用户项目，也不写进 profile。
+- **② 产品身份在 profile**：`assistant` 是稳定、非 shipped 的 dedicated profile；产品 bundle 的 patch 决定组合与默认值；用户设置写 profile patch。
+- **③ 生产状态与产物在 workspace**：一次作业的 run bundle、README、交付物、`present` 都落在用户项目。
+- **④ 助手大脑在 home**：四房间/账本跟人走（home 单例），不按 workspace 分区；产品 home 是 ④ 的部署选项，不是 ② 的要求。
 
-- **默认 home = 产品自有 home**（`~/.dsh-smart-assistant`，可由 `--home` 改；具体目录名 = 启动器实现，文档不另抄）。启动器显式设 `DSH_HOME`，**不继承日用 `~/.dsh`**。
-- `--home ~/.dsh` 是用户显式共享日用 home：会与用户其他 DSH 用途共用 sessions/workspace registry/credentials；启动器打警告后继续。
-- profile 默认 `assistant`：启动器经官方 CLI 从 web 模板创建，只写自己的依赖与 `agent-preset-registry.default`；用户在 profile 里的其他插件/配置保留。
-- 外来同名 profile：启动器拒绝，让用户换 `--profile`。
-- 版本对账：已装版本 ≠ 启动器版本时重装 tarball；失败保留旧装并退出。同版本不重装（开发期换内容请用新 home 或 bump 版本）。
+**产品不发布 profile 目录，也不发布第二个可执行文件。** profile 是用户机器上的组合；安装器/一次性 CLI 只负责“生成 profile + 装 bundle”，运行时仍由 `dsh --profile assistant` 提供。
 
-## 三、启动合同
+## 二、安装与启动
+
+### 2.1 三条路径
+
+| 路径 | 谁 | 怎么做 | home | 工作区绑定 |
+|---|---|---|---|---|
+| **A. 产品安装器**（目标用户） | 拿到 tarball、不熟 DSH 的用户 | `node bootstrap.mjs --workspace <目录>`；之后 `--product` 启动 | 默认 `~/.dsh-smart-assistant`（可 `--home`） | 首启 `ASSISTANT_WORKSPACE` + 产品行写 profile Config |
+| **B. DSH 原生**（已有 DSH） | 已维护 profile 的用户 | ① `dsh --profile assistant --from-default-profile web` → ② `dsh plugin --profile assistant add <tgz>` → ③ `dsh --profile assistant`；或先启动、Plugins 页装（当前 profile）、重启 | 当前 `DSH_HOME`（要隔离就自己设） | 首启 onboarding 写 profile Config |
+| **C. Desktop** | Desktop 用户 | Desktop 的 Plugins 页安装；重启应用 | Desktop 的 `desktop` profile | 首启 onboarding（若客户端可用）；不承诺独立 profile/home |
+
+**顺序不能反**：Plugins 页没有 profile 参数，装的是“当前 profile”；它**不创建** profile。GUI 路径必须先有并启动 `assistant` profile，再在 Plugins 页装、再重启；CLI 路径可以在启动前装。Desktop 使用保留的 `desktop` profile；普通 CLI 不能 boot 或管理它，安装说明只写 Desktop 的 Plugins 页。
+
+### 2.2 产品安装器（`bootstrap.mjs`）
 
 ```sh
 node bootstrap.mjs --workspace <dir> [--home <dir>] [--profile assistant] [--dsh <cmd>] [--offline]
-node bootstrap.mjs --product [--home <dir>]        # 之后复用上次绑定
+node bootstrap.mjs --product [--home <dir>]
 node bootstrap.mjs --stop [--home <dir>] [--product]
 node bootstrap.mjs --no-start ...
 ```
 
-- `--workspace` 首次必填，之后从 `<home>/assistant-product/settings.json` 读取。
-- 校验：绝对、存在、是目录、可读写；拒绝 `/`、用户 home 根、产品 home 内、包目录内（解析符号链接后）；路径缺失**不空建**。
-- 绑定写成 `<home>/assistant-product/settings.json`（`{version:1, workspaceDir, updatedAt}`，0600）；启动器在 boot 前写，Host 产品行在 boot 时读。
-- 启动 cwd 钉在工作区；Web 端口 `--port 0`（OS 分配 + token），日志 token 打码；`--stop` 收进程组。
-- 无 `--workspace`/`--product` → 原 standalone 模式（home 在包旁、`assistant-standalone`、内部 workspace）；两者共用 profile/安装/boot 流水线。
+- **profile**：不存在才从 shipped web 模板创建；已有 `assistant` profile 不重置；外来同名 profile 拒绝；缺 web-app 给明确错误。
+- **安装**：`pnpm pack` → `dsh plugin --profile assistant add <tarball>`；版本对账；同版本跳过；失败保留旧装。不手写 `dsh.profile.bundles`。
+- **默认 preset**：只写自己的 `agent-preset-registry.default: assistant`；用户其他行/插件保留。
+- **工作区**：`--workspace` 只做路径预检并给子进程设一次性 `ASSISTANT_WORKSPACE`；**不写** `settings.json`、不写 home patch。`--product` 不要求工作区，首启由产品行/客户端决定。
+- **启动**：`dsh --profile assistant --port 0 --no-open`；cwd 为工作区（有 `--workspace` 时）或产品 home；token URL 打码；`--stop` 收进程组。
+- **standalone**：保留为 dev/demo 模式，不是产品主路径。
 
-## 四、工作区合同
+### 2.3 版本与安装状态
 
-- **登记**：Host 行 `assistant-product`（web-only）在 boot 时用 `ctx.workspaceRegistry.create()` 登记 settings 的 `workspaceDir`；幂等；按 canonical path 去重。
-- **会话**：客户端用 `uiWorkspace.startSession(workspaceId, { agentPreset: 'assistant' })` 开会话；`header.cwd` = 工作区，sandbox 可写根 = 工作区。
-- **缺失/非法**：路由返回 `workspace-missing` / `invalid`；客户端首页显示恢复面（用 `--workspace` 重启），不自动建目录、不崩。
-- **没有 settings**：产品行 `not-configured`，客户端门透明，行为与旧版一致。
+- 本 pin 的 DSH 安装门只读 `engines.dsh`/peer（`vendor/dsh/packages/boot/app-boot/src/plugin-compatibility.ts`）；不兼容在写入前拒绝。exemption 只对 exact package + exact dsh version，是风险接受，不是兼容证明。
+- “装成功”有三个状态：pnpm exit 0 → dependency 写入 → `dsh.profile.bundles` 含该 bundle；只有第三个让功能存在。CLI 装完宿主不知道，必须重启 profile；应用内装可能返回 `restart-required`。
+- 升级先升版本号再打包；同名同版本重装不会刷新。
+
+## 三、工作区解析
+
+产品行 `assistant-product` 是唯一的工作区 owner：
+
+- **Config**：`workspaceDir?: string`（volatile；profile patch 可写）；`onboarding?: boolean`（部署默认，默认 true）。
+- **优先级**：`ASSISTANT_WORKSPACE`（一次性 env）> effective Config `workspaceDir`（profile/home/CLI patch 合成）> `not-configured`。
+- **持久化**：env/客户端选择成功登记后，产品行调用 `ctx.settings.update('assistant-product', { workspaceDir })` 写当前 profile patch；没有 settings 服务时状态 `invalid` + `error: settings-unavailable`，不静默丢。
+- **不写**：`<home>/assistant-product/settings.json`、home patch、其他 profile。
+- **校验**：绝对、存在、是目录、可读写；拒绝 `/`、用户 home 根、产品 home 内、包目录内（解析符号链接后）；路径缺失**不空建**。
+- **缺失/非法**：路由返回 `workspace-missing` / `invalid`；客户端显示恢复面，可重选；不崩。
+
+产品 home 是**部署选项**：安装器默认 `~/.dsh-smart-assistant`；native 路径用当前 `DSH_HOME`；要隔离就显式设 `DSH_HOME`。`--home ~/.dsh` 是用户显式共享日用 home，启动器打警告后继续。
+
+## 四、会话与工作区
+
+- **登记**：Host 行 `assistant-product`（web-only）在 boot 时用 `ctx.workspaceRegistry.create()` 登记工作区；幂等；按 canonical path 去重。
+- **会话**：客户端用 `uiWorkspace.startSession(workspaceId, { agentPreset: 'assistant' })` 开会话并选中；`header.cwd` = 工作区，sandbox 可写根 = 工作区。
+- **换项目**：客户端用 DSH 目录选择器选新目录 → POST 产品路由 → 校验/登记/写 Config；旧 workspace registration 与会话不删；当前会话不迁移，新会话用新工作区。
+- **首启**：`not-configured` 且 `onboarding` 未关时，客户端 `main` 槽显示“选一个项目目录”；可“稍后”，不阻塞 Host boot；不依赖 `welcome-notice`/`settings.onboarding`。
+- **没有产品行**：手工装包但没有产品行/旧 profile 时，客户端门透明，行为与普通 DSH 一致。
 - **跨 profile**：同一 home 下其他 profile 打开产品会话时，`assistant` preset 不在组合里，失败码 = `agent-preset/not-found`；文档要求从产品入口打开。
 - **headless**：产品行是 web-only（必注 `connection`/`workspaceRegistry`）；headless profile patch 里 `disabled: true`（同 `schedule` 先例）。
 
@@ -68,7 +102,6 @@ node bootstrap.mjs --no-start ...
 | 账本事项 | `<home>/assistant-operating/ledger.json` | 业务进展/待办/复查 | 按 id/标题关联，不加 schema |
 
 - 生命周期：用户拥有；插件不删、不轮转；`assistant-data` 不含它；用户随项目备份。
-- 旧 home 根下的 `deliverables/` 是历史遗留；新作业写到会话 cwd。
 - 用户可见文案叫“交付包 / 一次作业”，不叫 run bundle（内部术语）。
 
 ## 六、项目面
@@ -82,12 +115,12 @@ node bootstrap.mjs --no-start ...
 
 | 事实 | 位置 | Owner | 备份 |
 |---|---|---|---|
-| 助手大脑（四房间/SOUL/MANUAL/AGENTS/技能/审计） | `<productHome>/assistant` | 插件 | `assistant-data` |
+| 助手大脑（四房间/SOUL/MANUAL/AGENTS/技能/审计） | `<productHome>/assistant`（native：`<DSH_HOME>/assistant`） | 插件 | `assistant-data` |
 | 经营账本 | `<productHome>/assistant-operating` | 插件 | `assistant-data` |
-| 产品设置（workspace 绑定） | `<productHome>/assistant-product/settings.json` | 插件/机器本地 | 不备份（换机重选） |
+| 工作区绑定 | `assistant-product` Config（`<home>/profiles/assistant/cordis.patch.yml`） | 用户/profile | 随 profile；换机重选 |
 | 交付包 / run README | `<workspace>/deliverables/` | 用户 | 随项目 |
 | 项目 `AGENTS.md` / 项目技能 | `<workspace>/` | 用户 | 随项目 |
-| sessions / credentials / storages / workspace registry | `<productHome>/` | 宿主 | 另备整 home |
+| sessions / credentials / storages / workspace registry | `<home>/` | 宿主 | 另备整 home |
 
 完整数据卡与卸载责任 = [`delivery.md`](delivery.md) §一。
 
@@ -98,14 +131,19 @@ node bootstrap.mjs --no-start ...
 | `workspace directory does not exist` | 路径拼错/目录被移走；产品不会空建 |
 | `a workspace inside the product home...` | 工作区不能放在产品 home 里 |
 | `profile "assistant" exists but is not owned...` | 同名 profile 不是本产品；换 `--profile` 或移除 |
-| 首页显示“上次的项目目录不在了” | 设置里的路径失效；用 `--workspace` 重绑 |
+| 首屏显示“上次的项目目录不在了” | Config 里的路径失效；在首屏重选 |
+| 首屏显示“选一个项目目录”但没有选择器 | 当前组合没有 `remote.directoryPicker`；在 profile patch 设置 `assistant-product.workspaceDir` |
 | 产品会话在别的 profile 打开报 `agent-preset/not-found` | 从产品入口打开；该 profile 没有 `assistant` preset |
 | headless 多一条 `assistant-product` pending | headless profile patch 未加 `disabled: true` |
 | `the profile dump has no assistant-product row` | 包旧/未 build；重装当前 tarball |
+| 装完“没生效” | CLI 装完宿主不知道；重启 profile；客户端模块变更刷新 |
+| Desktop 装完界面没有 | 用了 `--profile web`/`--profile desktop` CLI；Desktop 只在 Plugins 页装 |
 
 ## 九、边界
 
-- 产品 home 是**数据边界**；profile 仍不是租户，同一 home 下 profile 共用数据。
+- 产品 home（若使用）是**数据边界**；profile 仍不是租户，同一 home 下 profile 共用数据。
 - 大脑仍跟人走（home 单例），**不按工作区分区**；per-workspace 大脑是另立决定（见 `_backlog` 的触发）。
+- 不发布 profile 目录；不手写 `dsh.profile.bundles`；不做第二个 launcher/桌面壳。
 - 不打包 DSH 运行时/Electron；不做非技术用户的安装器/签名/离线包（O5 的下一步）。
 - 不复制会话日志进工作区；不替用户删项目文件；不做多租户。
+- Desktop 是同一 bundle 的另一条 profile 线；CLI 不能管理 `desktop`；真机矩阵另立。

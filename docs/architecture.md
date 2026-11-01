@@ -21,7 +21,7 @@
 | ⑤ 让它经得起检查 | `curate`：**机器能跑的检查**（重复、悬空引用、预算、过期线索、缺理由的 drop、技能语法等——非穷举，完整面 = [`home.md`](home.md) §四） |
 
 **产品形态**：这一圈落到两个根——助手自己的 home（上表五件事）与用户的项目工作区（会话 cwd、文件工具、交付包）。
-产品启动器、工作区绑定与交付包合同 = [`product.md`](product.md)；本节不复制。
+产品 profile、安装器/原生启动、工作区绑定与交付包合同 = [`product.md`](product.md)；本节不复制。
 
 **反过度工程**：不建向量库、不建后台自动学习循环。浏览器面只消费 vendor 的**通用** slot/座位
 （皮肤面，不进模型上下文）——不做**专属 Web 卡片**（触发条件见 §六）。
@@ -46,10 +46,11 @@ HOST 面（cordis.patch.yml → dsh.bundle.patch）
                             + assistant-ui-mode 行（完整看板密度 per-home 持久：GET/POST
                               api/assistant/ui-mode，读写 assistant/ui-mode.json；标准默认；
                               不写 settings 文档，不碰账本/工作目录）
-                            + assistant-product 行（产品工作区绑定：启动时读
-                              assistant-product/settings.json 的 workspaceDir，用
+                            + assistant-product 行（产品工作区绑定：读 effective Config
+                              assistant-product.workspaceDir（或一次性 ASSISTANT_WORKSPACE），用
                               workspaceRegistry.create 登记；GET/POST api/assistant/product；
-                              web-only，headless profile patch 禁用）
+                              POST 经 settings.update 写 profile patch；web-only，headless
+                              profile patch 禁用）
                             + assistant-rooms 行（维护面板的房间投影 + 受控写 + 收据：GET
                               api/assistant/rooms 取四房间真值、?kind=knowledge&id= 读正文、
                               ?kind=skill&id= 读一件 SKILL.md、最近 200 行审批账；
@@ -182,10 +183,10 @@ seam 的成色读数是**第二个真实 Provider 出现而 Consumer 一行不�
 | `src/domain/viki/types.ts` | Viki 记忆内容类型（user/peer 与 memory 行）；client 面板与 host 路由共用 | 无（最底层） |
 | `src/domain/operating/`（`ledger.ts`、`projection.ts`、`archive.ts`） | 经营账本**纯核**：事项/操作/回执/待认领词汇与归约、v2 投影渲染、`operations-archive.jsonl` 行格式与合并（契约 = [`operating.md`](operating.md)） | 无（最底层） |
 | `src/index.ts` | 稳定包入口：`src/host/index.ts` 服务实现的薄导出（同 class 身份；`ctx.assistantMemory` 增广随实现加载） | 全部 |
-| `src/domain/product/settings.ts` | 产品设置读写（版本 1、4 KiB 上限、0600 原子写）与工作区路径策略（绝对/存在/可读写/禁 root/home/产品 home/包内；符号链接按目标判） | 无（最底层） |
-| `src/host/product/` | 产品行（web-only）：读设置、boot 用 `workspaceRegistry.create` 登记、GET/POST `api/assistant/product`；路由核与状态机分开，headless profile patch 禁用 | domain/product + dsh-client-connection + dsh-workspace |
-| `src/client/product/product-gate.ts` | 产品门：`main` 面板外包一层；404/未配置透明，ready 显示工作区与“开始一件事”，missing/invalid 显示恢复面 | 纯解析 + react surface |
-| `bootstrap.mjs` | 产品启动器：`--workspace`/`--product`/`--stop`；经官方 CLI 建/复用 profile、装 tarball、写绑定、起 boot；无 `--workspace` 时 standalone 模式 | 仅 Node + 官方 dsh CLI |
+| `src/domain/product/workspace-path.ts` | 工作区路径策略（绝对/存在/可读写/禁 root/home/产品 home/包内；符号链接按目标判）；产品行与测试共用 | 无（最底层） |
+| `src/host/product/` | 产品行（web-only）：`workspaceDir`/`onboarding` Config + `ASSISTANT_WORKSPACE` 一次性覆盖；boot 用 `workspaceRegistry.create` 登记；GET/POST `api/assistant/product`，POST 经 `settings.update` 写 profile patch；路由核与状态机分开，headless profile patch 禁用 | domain/product + dsh-client-connection + dsh-workspace + settings（可选） |
+| `src/client/product/product-gate.ts` | 产品门：`main` 面板外包一层；404/无产品行透明；`not-configured` 且 onboarding 开时显示首启选目录；ready 显示工作区/“开始一件事”/“换项目”；missing/invalid 显示恢复面 | 纯解析 + react surface + DSH directoryPicker |
+| `bootstrap.mjs` | 产品安装器：`--workspace`/`--product`/`--stop`；经官方 CLI 建/复用 profile、装 tarball、起 boot；`--workspace` 只设一次性 `ASSISTANT_WORKSPACE`，不写工作区文件；无 `--workspace` 时 standalone 模式 | 仅 Node + 官方 dsh CLI |
 | `src/cli/` + `bin/` + `bootstrap.mjs` | 交付/部署面：专家装配（`expert-setup`）、两目录数据 bundle（`assistant-data`）、独立目录 bootstrap；只跑 Node + 纯核，不进模型上下文 | domain 纯核 + `yaml` |
 | `src/host/index.ts` + `src/host/service.ts` | 服务实现：把领域模块组装成 `ctx.assistantMemory`；公开的 `HomeHost`/`RoomReadResult` 契约在 `service.ts`，房间与摘要按它消费，不反向依赖组装文件 | 全部 |
 | `src/agent/tool-support/presentation.ts` | agent 面工具共享的 presenter 管道：`presentationMeta` 投影摘要 → `presentResult` 从 `result.meta` 读回（完成卡读不到规范值，只能读持久化载荷） | dsh-tools 类型 |
@@ -269,9 +270,10 @@ assistant_operating ───→ ctx.assistantOperatingLedger ─→ 经营账�
 
 ### 启动链：命令 → 可用的会话面
 
-**产品入口**从包根 `bootstrap.mjs` 开始：它经已安装的 `dsh` 建/复用 `assistant` profile、装 tarball、写
-`<productHome>/assistant-product/settings.json`，再起 `dsh --profile assistant`；之后与下面的开发启动链汇合。
-产品合同 = [`product.md`](product.md)。
+**产品入口**由 dedicated `assistant` profile 提供：安装器 `bootstrap.mjs` 只是可选包装，经已安装的 `dsh`
+建/复用 profile、装 tarball、给首启一个 `ASSISTANT_WORKSPACE` 覆盖，再起 `dsh --profile assistant`；
+native 路径直接 `dsh --profile assistant`。工作区由产品行读 Config/env 后登记，客户端负责首启选目录；
+之后与下面的开发启动链汇合。产品合同 = [`product.md`](product.md)。
 
 ```text
 pnpm dsh …（package.json scripts → dev/env/dsh.mjs，唯一启动器：
@@ -331,9 +333,10 @@ pnpm dsh …（package.json scripts → dev/env/dsh.mjs，唯一启动器：
 - **记忆边界**：默认机会只在页面内记录，不保存导航偏好或业务数据；插件首次激活前的显式 null 与启动 null 无法由当前公开快照区分。
 - **数据源**：全局桌面读取独立 Host 固定投影；记忆/知识/技能三个房间 tab 读独立 Host 行 `assistant-rooms` 的房间投影（working folder 真值），Viki 读 `assistant-viki`；同一路径的 POST 是受控写；默认入口本身不创建业务 Session。
 - **会话内视图**：会话只有对话/轨迹，调试 flag 打开时多一个「开发调试」；桌面与任务只在主面板，不复制到会话。
-- **产品门**：`main` 的 dashboard 外包一层 `ProductGate`；GET `api/assistant/product`——404/未配置/超时透明（旧行为），
-  ready 显示 `工作区 · <目录>` 与“开始一件事”（`uiWorkspace.startSession(workspaceId, { agentPreset: 'assistant' })`），
-  `workspace-missing`/`invalid` 显示恢复面。产品行在 boot 时登记工作区；流程见 §七 启动链。
+- **产品门**：`main` 的 dashboard 外包一层 `ProductGate`；GET `api/assistant/product`——404/无产品行/传输失败透明，
+  `not-configured` 且 onboarding 开时显示首启选目录（DSH directoryPicker → POST → profile Config），
+  ready 显示 `工作区 · <目录>`、“开始一件事”（`uiWorkspace.startSession(workspaceId, { agentPreset: 'assistant' })`）与“换项目”，
+  `workspace-missing`/`invalid` 显示恢复面。产品行在 boot 时读 Config/env 并登记；流程见 §七 启动链。
 
 独立 Host 行 `assistant-desk-projection` 提供固定只读投影下载：经营 dataDir 里有 `ledger.json` 时**活渲染账本 v2 投影**；无账本默认 404，只有 `allowFixture: true` 才回退固定 `desk-projection.json` 模拟输入（模拟不是权威）；端点边界、认证、错误态与 byte cap 的完整契约 = [`operating.md`](operating.md) §三（唯一权威，本文不复述）。物理 HTTP 验证使用 [只读探针](../dev/probes/web/desk-projection-download.mjs)，以明确标注模拟的 [固定资料](../dev/fixtures/desk-projection/desk-projection.json) 为独立字节预期。
 
@@ -388,4 +391,4 @@ Client 的 [下载对象](../packages/dsh-smart-assistant/src/client/projection/
 | 经营事项（账本/投影/读回） | 模型请求链 + 浏览器动作链 | `assistant_operating`（`src/agent/tool-operating/`）→ `ctx.assistantOperatingLedger`（`src/host/operating-ledger/`）→ `ledger.json`；投影 = `src/host/desk-projection/` → client `projection-*`（契约 owner = [`operating.md`](operating.md)） | `pnpm --filter dsh-smart-assistant exec vitest run tests/host/operating-ledger.spec.ts tests/client/projection-reader.spec.ts`（组合面：`pnpm build` → `pnpm test:composition`） | 权限三分与幂等回执；投影 `ready` ≠ 业务成功；客户端 v1/v2 解析 | 工具动作语义无模型；真实交代→读回在模型回合与浏览器（eval `desk-*` 任务集） |
 | 房间读取 / 受控写 / 收据 / 技能 / 消息动作 | 浏览器 → host route | 房间 tab / 面板 → `loadDesk`/`loadDeskFor`（`src/client/rooms/room-data-io.ts`）→ `GET /api/assistant/rooms` → `assistant-rooms` 行 → `ctx.assistantMemory` 四房间真值；正文 `?kind=knowledge&id=`；技能 `?kind=skill&id=`；批准/过时/纠错/退役 → `POST /api/assistant/rooms` 的 action 白名单 → 服务方法 + 审批账；`memory.remember` 由 host `ctx.sessionQuery` 取逐字消息；`ReceiptView` 用同一 GET 的 `ledger` + 房间 `updated` 组"自上次以来" | `pnpm --filter dsh-smart-assistant exec vitest run tests/client/room-data-io.spec.ts tests/client/room-actions.spec.ts tests/client/receipt.spec.ts tests/domain/receipt.spec.ts tests/host/rooms-route.spec.ts tests/host/rooms-actions.spec.ts` | route 的 `generatedAt`/`revision` vs pending.at；审批账的 `source: panel-direct` + before/after；收据的 since 边界；会话日志 | 全链要真会话与渲染：`pnpm web-expected` 现有场景（清单以 `snapshots/web-face/` 为准）；`dev/probes/web/approve-direct-probe.mjs` |
 | 插件装载 | 启动链 | `cordis.patch.yml` 行 → built `lib/` → profile（`dev/env/setup.sh` 装包 + profile patch 设 default） | `pnpm test:composition`（先 build）+ `pnpm --filter dsh-smart-assistant exec vitest run tests/composition/export-shape.spec.mjs` | lib freshness（never started）；行 id/patch 落空（dump-config） | Web UI 行为要 `pnpm web-expected` 现有场景（清单以目录为准）；`pnpm preflight` 只证装得上 |
-| 产品启动 / 工作区绑定 | 产品启动链（`bootstrap.mjs`）→ `dsh --profile assistant` → 产品行 boot 登记 → 客户端 `main` 门 | 启动器 `bootstrap.mjs`；产品行 `src/host/product/`；门 `src/client/product/`；合同 [`product.md`](product.md) | `pnpm product-smoke`（profile/设置/登记/会话 cwd/stop）；`pnpm web-face-check --scenario product-workspace-gate` | workspace 设置坏/缺失/危险路径、外来 profile、headless disabled；缺失时恢复面 | 首跑产出质量与模型行为要 `pnpm eval`/真机；无 key/浏览器 = BLOCKED |
+| 产品启动 / 工作区绑定 | native `dsh --profile assistant` 或安装器 `bootstrap.mjs` → 产品行读 Config/env → boot 登记 → 客户端 `main` 门/onboarding | 安装器 `bootstrap.mjs`；产品行 `src/host/product/`；门 `src/client/product/`；合同 [`product.md`](product.md) | `pnpm product-smoke`（安装器路径）；`pnpm product-native-smoke`（无安装器、GET/POST/会话 cwd）；`pnpm web-face-check --scenario product-workspace-gate` / `product-onboarding` | Config 坏/缺失/危险路径、外来 profile、headless disabled；缺失时恢复面 | 首跑产出质量与模型行为要 `pnpm eval`/真机；无 key/浏览器 = BLOCKED |

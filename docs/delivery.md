@@ -9,7 +9,7 @@
 | 物 | 内容 | 归属 |
 |---|---|---|
 | **agent 物** | `lib/`、`bin/`、`presets/`、`seeds/`、`cordis.patch.yml`、`package.json`、`README`、默认身份与回退 | 包；可复制给任何人，不含用户数据 |
-| **用户数据（插件拥有）** | `<dataDir>`（默认 `<dshHome>/assistant`；产品模式 `<productHome>/assistant`）与 `<operatingDir>`（默认 `<dshHome>/assistant-operating`，含 `ledger.json` / `operations-archive.jsonl`）；产品设置 `<productHome>/assistant-product/settings.json`（机器本地） | 某一个人的 home |
+| **用户数据（插件拥有）** | `<dataDir>`（默认 `<dshHome>/assistant`；产品模式 `<productHome>/assistant`）与 `<operatingDir>`（默认 `<dshHome>/assistant-operating`，含 `ledger.json` / `operations-archive.jsonl`）；工作区绑定是 profile Config（`assistant-product.workspaceDir`），不是插件数据文件 | 某一个人的 home / profile |
 | **用户数据（宿主拥有）** | `sessions/`、credentials、`settings`、`storages`、`session-search.db`、`cache/` 等 | 同一个 home；不进插件备份/交接物 |
 | **交付物** | 会话 cwd 下的 `deliverables/<YYYY-MM-DD>-<slug>/`（README 四段 + 交付物 + `present`；契约 = `work-delivery` 技能；见 [`home.md`](home.md) §一注） | 用户数据；随项目；不进 agent 物 |
 
@@ -52,7 +52,7 @@
 | 治理审计 | N0 文件 | P3 / H-like | 插件 | `<dataDir>/audit/approvals.jsonl`、`audit/purges.jsonl`、`audit/maintenance.jsonl` | 只追加；显式 `rotate` 才移动 | 用户；面板读最近 200 行 | 是 | `rotate --apply` 移入 `archive-maintenance/` | 保留 | 坏行计数跳过；只有账本状态 fail loud |
 | 轮转归档 | N0 文件 | P3 / H-like | 插件 | `<dataDir>/archive-maintenance/<stamp>/` | 由 `rotate` 创建；手动清 | 用户 | 是 | 手动 | 保留 | 无 |
 | 界面密度 | N0 文件 + 自有 CLI | P3 / H-like | 插件/用户 | `<dataDir>/ui-mode.json`（v1 envelope） | 可删，删了回标准 | 用户（面板）；模型不可见 | 是 | key v1 | 保留 | 容忍：回默认 |
-| 产品设置 | N0 文件 + 产品行 | P3 / 机器本地 | 插件 | `<productHome>/assistant-product/settings.json`（version 1） | 换机重选；不进 `assistant-data` | 启动器/产品首页 | 否 | 重选即覆盖 | 保留 | 容忍：坏文件报 `invalid`，不静默当空 |
+| 工作区绑定 | profile Config + 产品行 | P3 / profile | 用户/profile | `<home>/profiles/assistant/cordis.patch.yml` 的 `assistant-product.workspaceDir` | 随 profile；换机重选；不进 `assistant-data` | 产品首页 / Settings | 否 | 首启重选或 Settings 改写 | 保留 | 容忍：坏值报 `invalid`，不静默当空 |
 | MANUAL 镜像备份 | N0 文件 + 自有 CLI | P3 / H-like | 用户 | `<dataDir>/MANUAL.md.bak-<stamp>` | 由 `refresh-manual` 创建；手动清 | 用户 | 是 | 手动 | 保留 | 无 |
 | 旧生成手册备份 | N0 文件 | P3 / H-like | 用户 | `<dataDir>/AGENTS.md.bak-<stamp>` | scaffold 拆分迁移产生；手动清 | 用户 | 是 | 手动 | 保留 | 无 |
 | 经营账本状态 | N0 文件 + 自有服务 | 插件自有文件账本 | 插件 | `<operatingDir>/ledger.json` | 最近 256 条操作 + 全量计数；压缩后仍有界 | 用户；模型经工具 | 是 | v1 只增；`operationCount` 回填；不做硬删 | 保留 | **fail loud**：读不出 v1 拒绝当空账本 |
@@ -101,13 +101,13 @@ node scripts/release/handoff-scan.mjs <目录或 tarball>
 - 符号链接拒绝：交接物必须是普通文件，不能指向 home 外。
 - `export-dist` 与 `release-smoke` 对 tarball 跑同一条扫描；扫描失败即发布物不可信。
 
-交接后的独立启动用包内 [`bootstrap.mjs`](../packages/dsh-smart-assistant/bootstrap.mjs)：它用已安装的兼容 `dsh` 在 `--home` 下建一个专用 profile，先用 Node 的 `npm pack` 把当前目录打成 tarball 再装进 profile（这样 profile 拥有 `yaml` 依赖），然后起 `--port 0`；`DSH_HOME`、workspace、agents-home、temp 都在该 home 下，不碰日用 `~/.dsh`。home 默认在包目录**旁边**的 `assistant-data/`；指向包内（含符号链接解析后）会被拒绝。搬移整个 home 时，对新路径重跑一次 `bootstrap --home <新路径> --no-start`：脚本检测到旧 profile 的 `file:` 依赖失效或 profile manifest 损坏后会重建 profile，数据目录保留；不要只 `mv` 后直接启动。没有 `dsh` 的环境不是这条路径的范围。
+交接后的独立启动用包内 [`bootstrap.mjs`](../packages/dsh-smart-assistant/bootstrap.mjs)：它用已安装的兼容 `dsh` 在 `--home` 下建一个专用 profile，先用 Node 的 `npm pack` 把当前目录打成 tarball 再装进 profile（这样 profile 拥有 `yaml` 依赖），然后起 `--port 0`；`DSH_HOME`、agents-home、temp 都在该 home 下，不碰日用 `~/.dsh`。工作区由产品行读 Config/env 后登记，`--workspace` 只给首启一个一次性覆盖；home 默认在包目录**旁边**的 `assistant-data/`，指向包内（含符号链接解析后）会被拒绝。搬移整个 home 时，对新路径重跑一次 `bootstrap --home <新路径> --no-start`：脚本检测到旧 profile 的 `file:` 依赖失效或 profile manifest 损坏后会重建 profile，数据目录保留；不要只 `mv` 后直接启动。没有 `dsh` 的环境不是这条路径的范围。
 
 允许的符号根：`~/.dsh`、`$DSH_HOME`、包内相对路径、`seeds/...`。手册和模型可见文案用符号根，不写宿主绝对路径。
 
 ## 三、备份、恢复与迁移
 
-插件数据 = 两个目录（产品模式相对于 `<productHome>`；产品设置是机器本地，不进备份）；备份/恢复/诊断用包内 `assistant-data`（[`bin/assistant-data.mjs`](../packages/dsh-smart-assistant/bin/assistant-data.mjs)，
+插件数据 = 两个目录（产品模式相对于 `<productHome>`；工作区绑定是 profile Config，不进备份）；备份/恢复/诊断用包内 `assistant-data`（[`bin/assistant-data.mjs`](../packages/dsh-smart-assistant/bin/assistant-data.mjs)，
 实现 = [`src/cli/assistant-data-bundle.ts`](../packages/dsh-smart-assistant/src/cli/assistant-data-bundle.ts)（入口 [`assistant-data.ts`](../packages/dsh-smart-assistant/src/cli/assistant-data.ts) 只做再导出））：
 
 ```sh

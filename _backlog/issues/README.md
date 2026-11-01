@@ -4,8 +4,7 @@
 
 ## 活跃清单
 
-（暂无活跃问题卡。）
-
+- [261101 产品 profile 对齐](261101-product-profile-alignment.md)：dedicated `assistant` profile + `assistant-product.workspaceDir` Config + 客户端 onboarding + 薄安装器；已授权实施。
 
 已结档：261029 账本多视图 M1 → [settled_issues](../_archive/settled_issues/261029-ledger-multiview-closure.md)，261029 首用价值旅程 → [settled_issues](../_archive/settled_issues/261029-first-value-journey.md)，261028 数据面第二轮复查 → [settled_issues](../_archive/settled_issues/261028-data-plane-recheck.md)，261028 数据面校准 → [settled_issues](../_archive/settled_issues/261028-data-plane-alignment.md)，B 级缺口 → [settled_issues](../_archive/settled_issues/261028-b-grade-close.md)，P3 残余 → [settled_issues](../_archive/settled_issues/261028-p3-residuals.md)，六维改善 → [settled_issues](../_archive/settled_issues/261028-six-dimension-improvement.md)。
 

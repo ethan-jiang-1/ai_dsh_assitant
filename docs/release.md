@@ -7,13 +7,13 @@
 ## 一、发布物形态
 
 - **只发布 bundle。** `package.json` 的 `dsh.bundle.patch` 是作者发布物；profile 是用户侧组合，不是发布物。
-- **应用仍由 `dsh --profile` 启动。** 产品形态 = 包内 `bootstrap.mjs` **部署包装**：经已安装的 `dsh` 建/复用 `assistant` profile、装 tarball、写工作区绑定、起 Web；不打包 DSH 运行时、不新增 app bin、不手写 profile manifest。无 `--workspace`/`--product` 时是同一包装的 standalone 模式。合同 = [`product.md`](product.md)。
+- **应用仍由 `dsh --profile` 启动。** 产品形态 = **dedicated `assistant` profile 的组合**；包内 `bootstrap.mjs` 只是可选安装器：经已安装的 `dsh` 建/复用 profile、装 tarball、起 Web；`--workspace` 只设一次性 `ASSISTANT_WORKSPACE`，不写工作区绑定。不打包 DSH 运行时、不新增 app bin、不手写 profile manifest。native 路径 = 建 profile → Plugins 页/CLI 装 → `dsh --profile assistant`；Desktop 用 Desktop 的 Plugins 页。合同 = [`product.md`](product.md)。
 - 包贡献的 preset、client、bundled skill、工具与段落都在 bundle 层声明；不得把 profile 选择、凭据或用户默认写进包。
 
 ## 二、渠道
 
 - **当前唯一渠道 = 手工 tarball + `export-dist` 生成的安装手册。** 包保持 `private: true`，不发布到 npm、registry 或市场。
-- tarball 是预构建产物：`lib/`、`client` bundle、`bin/`、`presets/`、`seeds/`、`cordis.patch.yml`、`bootstrap.mjs`（产品启动器/独立启动共用）、`LICENSE`、`README` 必须随包。
+- tarball 是预构建产物：`lib/`、`client` bundle、`bin/`、`presets/`、`seeds/`、`cordis.patch.yml`、`bootstrap.mjs`（可选安装器/独立启动共用）、`LICENSE`、`README` 必须随包。
 - 换渠道（npm、市场、Desktop 壳）不是“顺手加一步”，而是新提案：同 diff 更新本宪章、安装路径、兼容声明和真实安装 smoke。
 
 ## 三、产物合同
@@ -25,7 +25,7 @@
 
 ## 四、兼容
 
-- **`engines.dsh` 是唯一安装门**；peer 范围只在没有 `engines.dsh` 时兜底。共享 DSH 包始终 peer + dev 双写。
+- **`engines.dsh` 是唯一安装门**；peer 范围只在没有 `engines.dsh` 时兜底。共享 DSH 包始终 peer + dev 双写。`dsh.compatibility.dshReleases` 不在本 pin 的 reader 里（`plugin-compatibility.ts` 已核）；升级到读取该字段的 DSH 时再补，不写假声明。
 - 范围是**宽 minor、窄 major**：当前 `>=0.2.1-rc.2 <0.3.0-0`。未来 `0.2.x` 自动放行；`0.3.x`（含 `0.3.0-rc`）需要重新验证并发新版本。
 - **不精确钉死一个小版本。** 下界只写真实跑过安装/启动/核心工具的最低版本；未跑过的更老版本不得靠“范围看起来宽”宣称支持。
 - 上界写 `<0.3.0-0` 而不是 `<0.3.0`：预发布参与匹配，后者会放进 `0.3.0-rc.1`。
@@ -46,7 +46,7 @@
 
 - **Profile 变更仍建议串行**：DSH 0.2.1 的 `dsh plugin` 在 profile `package.json` 上取跨进程文件锁（120s 等待），并发 `add`/`remove` 会被串行化；`install-resilience-smoke` 只证明两个并发 add 后的最终状态是一份依赖 + 一个 bundle 行，不承诺更复杂的并发语义。自动化仍逐条执行，完成后用 `--dump-config` 确认实际组合。
 
-- **安装不写用户数据**：`dsh plugin --profile <p> add <spec>` 只装包；不创建 working folder、不导入 seeds、不改默认 preset。产品启动器是用户显式动作：它创建产品 home/profile 与 `<productHome>/assistant-product/settings.json`，不改日用 `~/.dsh`（除非 `--home ~/.dsh` 显式共享）。
+- **安装不写用户数据**：`dsh plugin --profile <p> add <spec>` 只装包；不创建 working folder、不导入 seeds、不改默认 preset。产品安装器是用户显式动作：它创建/复用 `assistant` profile、装包、只写自己的默认 preset；工作区绑定由产品行在首启/客户端选择时写 profile Config，不写私有设置文件。不改日用 `~/.dsh`（除非 `--home ~/.dsh` 显式共享）。
 - **升级/卸载保留数据**：两个插件目录（`<dshHome>/assistant`、`<dshHome>/assistant-operating`）跨升级和 remove 保留；产品 home（`~/.dsh-smart-assistant`）与工作区 `deliverables/` 也保留；remove 后重装必须回到组合。卸载后仍留在盘上的宿主数据（`session-search.db`、`sessions/`、`storages/`、`cache/`、客户端 localStorage 键）与清理方式见 [`delivery.md`](delivery.md) §一数据卡；插件不替用户删除这些文件。
 - 备份/恢复/诊断只走 `assistant-data`（两目录 + schema manifest；`export`/`import [--replace]`/`status`/`check`）；sessions、credentials、settings、storages 另备整 home，绝不混进插件备份。
 - **格式与迁移**：房间 frontmatter 只增可选字段，新增必填/改语义必须先写迁移；手册由 `renderHomeManual` 组装（`MANUAL.md` 只是镜像），`AGENTS.md` 是用户笔记；旧生成手册在 scaffold 时备份并转为笔记；账本 v1 只增字段、旧 `ledger.json` 首次写入时压缩到有界状态 + `operations-archive.jsonl`；bundle manifest 的 `schemaVersion` 不匹配拒绝导入。安装时不得静默重写用户数据。
@@ -65,7 +65,8 @@
 - `pnpm pnpm-matrix -- --pnpm <v> --expect install|reject`（发布物/依赖变化时至少覆盖 10.6 下界与当前开发 pnpm；需要 Corepack 联网）；
 - `pnpm web-install-smoke`（标准 web profile：干净 home 安装 → preflight → client boot/preset UI；可选 `--upgrade-tarball` 覆盖运行中升级 → 重启 → 复验；无 Chrome = BLOCKED，exit 2）；
 - `pnpm standalone-smoke`（无 `.git` 目录、隔离 home、preflight、client 真 boot/preset UI、stop/restart、搬移 home；无 Chrome = BLOCKED，exit 2）；
-- `pnpm product-smoke`（产品 home/profile/settings、工作区登记、in-process 会话 cwd、外来 profile/缺工作区拒绝、stop）；
+- `pnpm product-smoke`（安装器：profile/装包、`--workspace` 只设 env、profile Config、工作区登记、in-process 会话 cwd、外来 profile/缺工作区拒绝、stop）；
+- `pnpm product-native-smoke`（无安装器：web 模板建 `assistant` profile → `dsh plugin add` → 真 boot → GET `not-configured`/onboarding → POST → 登记 + Config + 会话 cwd）；
 - `pnpm prompt-smoke`（无 key 回放 one-shot，断言四个 prompt 段落与六个工具进入请求）；
 - `pnpm compat-matrix -- --dsh <path> --version <v> --expect install|reject`（真实 DSH CLI 的安装/拒绝矩阵；干净 home，不调模型）；
 - `pnpm agent-preset-ui '<URL>'`（Web 选择，人工探针；不冒充自动门禁）。

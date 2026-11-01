@@ -1,6 +1,6 @@
 # dsh-smart-assistant
 
-一个 DSH **产品**：有自己的启动 profile（`assistant`）与产品 home，在启动时绑定用户项目工作区；助手的大脑留在自己的 home，一次作业的交付包留在项目里。
+一个 DSH **产品**：dedicated `assistant` profile 的组合；工作区绑定在 `assistant-product.workspaceDir`（profile Config），会话落在用户项目里；助手的大脑留在自己的 home，一次作业的交付包留在项目里。产品 home 是部署选项，不是安装要求。
 
 - **四个房间**：`memory/`（已确立的事实/偏好/决定）、`research/`（未决线索，backlog 语义）、
   `skills/`（学到的本事）、`knowledge/`（领域知识页，`[[互链]]`）。
@@ -11,39 +11,41 @@
 - **一个只读部署自检 CLI**：`ov-doctor`（`bin/ov-doctor.mjs`；装好可选 OpenViking 层后在 profile 内运行，见安装手册的 OV 自检节）。
 - **一个专家装配 CLI**：`expert-setup`（`bin/expert-setup.mjs`；把管理种子显式导入为 `draft`，不自动 stable）。
 - **一个数据备份/诊断 CLI**：`assistant-data`（`bin/assistant-data.mjs`；导出/导入 `assistant` + `assistant-operating`，带 schema manifest；另有 `status`/`check`、`import --replace`/`--max-bytes`、`rotate` 与显式 `purge`）。
-- **一个产品启动器**：`bootstrap.mjs`（`--workspace` 建/复用 `assistant` profile、绑工作区、起 Web；`--product` 复用上次绑定；`--stop` 收；默认产品 home `~/.dsh-smart-assistant`，不碰日用 `~/.dsh`）。没有 `--workspace`/`--product` 时仍是原 standalone 模式。
-- **一个产品工作区行**：`assistant-product`（web-only；读 `assistant-product/settings.json`、boot 时登记工作区、GET/POST `api/assistant/product`；headless profile patch 禁用）。
+- **一个可选产品安装器**：`bootstrap.mjs`（`--workspace` 建/复用 `assistant` profile、给首启一个 `ASSISTANT_WORKSPACE` 覆盖、起 Web；`--product` 从 profile Config 恢复；`--stop` 收；默认产品 home `~/.dsh-smart-assistant`，不碰日用 `~/.dsh`）。不写工作区绑定文件；没有 `--workspace`/`--product` 时仍是 standalone 模式。
+- **一个产品工作区行**：`assistant-product`（web-only；`workspaceDir`/`onboarding` Config + `ASSISTANT_WORKSPACE` 一次性覆盖；boot 时登记工作区；GET/POST `api/assistant/product`，POST 经 `settings.update` 写 profile patch；headless profile patch 禁用）。
 - **默认身份是管理岗**（P1）：`SOUL.md` 是数据，种子与回退一致；管理种子只在显式装配时进入知识室，安装不写 working folder。
 
 ## Install
 
-**产品启动（推荐）**——把 tarball 解包，用 PATH 上兼容的 `dsh`：
+**目标用户：一条命令（产品安装器）**
 
 ```sh
 node bootstrap.mjs --workspace /path/to/your-project
-node bootstrap.mjs --product          # 之后复用上次绑定
+node bootstrap.mjs --product          # 之后从 profile Config 恢复
 node bootstrap.mjs --stop --home ~/.dsh-smart-assistant --product
 ```
 
-启动器建/复用 `assistant` profile、装当前包、设默认 preset、写工作区绑定，再起
-`dsh --profile assistant --port 0`。产品 home 默认 `~/.dsh-smart-assistant`（不碰日用 `~/.dsh`；
-`--home ~/.dsh` 才是显式共享）。工作区绑定 = `<productHome>/assistant-product/settings.json`；
-交付包 = `<工作区>/deliverables/<YYYY-MM-DD>-<slug>/`。合同 = 仓根 `docs/product.md`。
+安装器建/复用 `assistant` profile、装当前包、设默认 preset，再起 `dsh --profile assistant --port 0`。
+`--workspace` 只做路径预检并给首启一个一次性 `ASSISTANT_WORKSPACE` 覆盖；**不写**工作区绑定文件。
+首启没绑定时，产品首屏让你选项目目录；选完写 profile Config。产品 home 默认 `~/.dsh-smart-assistant`
+（不碰日用 `~/.dsh`；`--home ~/.dsh` 才是显式共享），但 home 是部署选项，不是产品前提。
 
-**手工装包（已有 DSH 的用户）**：
+**已有 DSH：原生路径（不用安装器）**
 
 ```sh
-dsh plugin --profile web add /path/to/dsh-smart-assistant-<version>.tgz
+dsh --profile assistant --from-default-profile web   # ① 一次性建 dedicated profile
+dsh plugin --profile assistant add <tarball>          # ② CLI 自动化装；或先启动、Plugins 页装、重启
+dsh --profile assistant --port 0                      # ③ 起 Web；首屏选项目目录
 ```
 
-安装只带定义；在 Web UI 的 Settings → Agent 预设里把 `章鱼管家` 设为默认，或 headless 用
-`agent-preset-registry.default: assistant` 的 profile patch。没有产品设置时产品行 idle，行为与旧版一致。
+Plugins 页没有 profile 参数，装的是**当前 profile**，它不创建 profile；GUI 路径的顺序是“先有并启动
+`assistant` profile → Plugins 页装 → 重启”。Desktop 用 Desktop 的 Plugins 页；普通 CLI 不能 boot/管理
+`desktop`，不要写 `dsh plugin --profile desktop`。装完 `--dump-config` 应看到 `assistant-product` 与
+`preset-assistant`。
+
 需要 DSH `>=0.2.1-rc.2 <0.3.0-0`、Node `^22.19.0 || >=24`，以及 PATH 上的 `pnpm >= 10.6.0`
 （10.4 及更低会报 `ERR_PNPM_ADDING_TO_ROOT`；Corepack 已启用也算）。首次安装需要访问 npm registry
 或内网镜像，拉唯一依赖 `yaml`；之后运行不需要网络。
-
-Desktop 使用保留的 `desktop` profile：先在 Desktop 应用里初始化一次，再
-`dsh plugin --profile desktop add ...` 并重启应用（本轮未在 Desktop 真机验证）。
 
 ## What it contributes
 
@@ -55,8 +57,7 @@ Desktop 使用保留的 `desktop` profile：先在 Desktop 应用里初始化一
 
 ## Configuration
 
-产品行 `assistant-product` 没有 Config：工作区来自 `<dshHome>/assistant-product/settings.json`
-（启动器/产品首页写），home 由启动器的 `--home`/`DSH_HOME` 决定；无设置时 `not-configured`。
+产品行 `assistant-product` 的 Config：`workspaceDir`（volatile；首启客户端或 profile patch 写）、`onboarding`（默认 true；部署可关）；`ASSISTANT_WORKSPACE` 是一次性启动覆盖。home 由 `--home`/`DSH_HOME` 决定；无绑定时 `not-configured`，首屏显示 onboarding。
 `assistant-memory` 行可配 `dataDir`（默认 `<dshHome>/assistant`）、`digestMaxBytes`、`recallLimit`、
 `staleResearchDays`；`assistant-operating-ledger` 行有独立的 `dataDir`（默认
 `<dshHome>/assistant-operating`）与 `keepOperations`（默认 256）、`maxArchiveBytes`（默认 256 MiB 归档读取上限）；`assistant-desk-projection` 有
@@ -68,7 +69,7 @@ Viki 的 API key 从 `apiKeyEnv`（默认 `OPENVIKING_API_KEY`）读；内联 `a
 
 ## Data
 
-- **Working folder**：`<dshHome>/assistant`（产品模式 = `<productHome>/assistant`），一棵用户可见的 home 树，由本插件拥有。**用户内容**：`SOUL.md`、
+- **Working folder**：`<dshHome>/assistant`（产品模式 = `<productHome>/assistant`，产品 home 可选），一棵用户可见的 home 树，由本插件拥有。**用户内容**：`SOUL.md`、
   `MANUAL.md`（插件手册的渲染镜像）、`AGENTS.md`（用户笔记）、`memory/`、`research/`、`skills/`、`knowledge/`、
   `skill-proposals/`；**机器账本**：`skill-usage.json`、`ui-mode.json`、`audit/*.jsonl`、`archive-maintenance/`、`*.bak-*`。
   home 根下旧 `deliverables/` 是历史遗留；新交付包在会话 cwd 的 `deliverables/<date>-<slug>/`。prompt 用手册的**当前渲染** + `AGENTS.md` 笔记；
@@ -132,7 +133,7 @@ dsh plugin --profile <p> remove dsh-smart-assistant
 ```
 
 卸载不删 `<dshHome>/assistant` 与 `<dshHome>/assistant-operating`；先 `assistant-data export` 备份。
-产品模式的产品 home（`~/.dsh-smart-assistant`）与工作区交付包都保留；产品 home 要清就手动删，工作区随项目备份。
+产品模式的产品 home（`~/.dsh-smart-assistant`，可选）与工作区交付包都保留；产品 home 要清就手动删，工作区随项目备份。
 卸载也不会删宿主数据：要清会话全文索引就删 `<dshHome>/session-search.db`，要清其余宿主数据按
 [`docs/delivery.md`](../../docs/delivery.md) §一数据卡逐项处理；客户端 localStorage 键用“清除站点数据”。
 OpenViking 是独立可选层，另停 server 并按其安装手册清理。
