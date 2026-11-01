@@ -60,7 +60,7 @@ research/
 
 | 名头 | 问题 | 消费者 | 材料 |
 |---|---|---|---|
-| [启动路径比较：产品启动器 vs deck-studio 标准启动](261101-startup-model-comparison/README.md) · 3 条命令/1 条命令/工作区绑定/产品 profile 纠偏 | 仿效 deck-studio 的 3 条命令启动，能否保住产品 profile/home/工作区/交付包；更新后的 FAQ 26 是否要求把产品层从启动器移回 profile/bundle | [启动路径取舍 note](../../notes/proposed/2026-11-01-startup-paths.md)（proposed，待重审）；[产品 profile 对齐卡](../issues/261101-product-profile-alignment.md)（等人拍板） | 5 份 + 4 图 |
+| [启动路径比较：产品启动器 vs deck-studio 标准启动](261101-startup-model-comparison/README.md) · 3 条命令/1 条命令/工作区绑定/产品 profile 纠偏 | 仿效 deck-studio 的 3 条命令启动，能否保住产品 profile/home/工作区/交付包；更新后的 FAQ 26 是否要求把产品层从启动器移回 profile/bundle | [启动路径取舍 note](../../notes/rejected/2026-11-01-startup-paths.md)（rejected：被本决定取代）；[产品 profile 对齐卡](../issues/261101-product-profile-alignment.md)（已授权实施） | 5 份 + 4 图 |
 | [输入边界 30 天观察](261011-input-observation/README.md) · 真实使用读数 | 输入通道该不该做——先看 30 天真实读数 | 触发行（**活观察**，窗口未起算） | 1 份 |
 
 归档题名见 [_archive/research/README.md](../_archive/research/README.md)；本页只列活跃题名。

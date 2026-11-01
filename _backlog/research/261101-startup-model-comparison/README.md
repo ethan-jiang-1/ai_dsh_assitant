@@ -1,7 +1,7 @@
 # 启动路径比较：产品启动器 vs deck-studio 标准启动
 
 > 问题：如果仿效 `dsh-deck-studio` 的「三条命令」启动（建 profile → `dsh plugin add` → `dsh --profile … --port …`），本产品还能不能保住已经设计好的产品 profile、产品 home、工作区绑定、客户端门与 `deliverables/` 交付包？两条路径各自付什么代价；更新后的 FAQ 26（安装/首启/生命周期）是否要求把产品层从启动器移回 profile/bundle。
-> 消费者：[启动路径取舍 note](../../../notes/proposed/2026-11-01-startup-paths.md)（proposed，待重审）、[产品 profile 对齐卡](../../issues/261101-product-profile-alignment.md)（等人拍板）
+> 消费者：[启动路径取舍 note](../../../notes/rejected/2026-11-01-startup-paths.md)（rejected：被本决定取代）、[产品 profile 对齐卡](../../issues/261101-product-profile-alignment.md)（已授权实施）
 > 产出的卡：[产品 profile 对齐卡](../../issues/261101-product-profile-alignment.md)
 
 ## 材料

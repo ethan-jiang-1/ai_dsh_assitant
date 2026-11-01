@@ -67,7 +67,7 @@ node bootstrap.mjs --no-start ...
 - **校验**：绝对、存在、是目录、可读写；拒绝 `/`、用户 home 根、产品 home 内、包目录内（解析符号链接后）；路径缺失**不空建**。
 - **缺失/非法**：路由返回 `workspace-missing` / `invalid`；客户端显示恢复面，可重选；不崩。
 
-产品 home 是**部署选项**：安装器默认 `~/.dsh-smart-assistant`；native 路径用当前 `DSH_HOME`；要隔离就显式设 `DSH_HOME`。`--home ~/.dsh` 是用户显式共享日用 home，启动器打警告后继续。
+产品 home 是**部署选项**：安装器默认 `~/.dsh-smart-assistant`；native 路径用当前 `DSH_HOME`；要隔离就显式设 `DSH_HOME`。`--home ~/.dsh` 是用户显式共享日用 home，安装器打警告后继续。
 
 ## 四、会话与工作区
 

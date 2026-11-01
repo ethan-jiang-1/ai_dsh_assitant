@@ -44,7 +44,7 @@ intent: 对照 2026-11-01 更新后的 FAQ 26（安装/启动/生命周期），
 - 无产品绑定时：插件行/客户端都在，但产品行 `not-configured`，首屏是普通 DSH 一页纸，默认工作区接住交付包；
 - 补一个 `settings.json` 后：门、工作区、CTA、交付包全部回来。
 
-结论是“标准路径缺的是产品层那一下（工作区绑定 + 默认 preset）”，并提出了 [`2026-11-01-startup-paths`](../../../notes/proposed/2026-11-01-startup-paths.md)：原生安装 + 客户端 onboarding，启动器降为可选。
+结论是“标准路径缺的是产品层那一下（工作区绑定 + 默认 preset）”，并提出了 [`2026-11-01-startup-paths`](../../../notes/rejected/2026-11-01-startup-paths.md)：原生安装 + 客户端 onboarding，启动器降为可选。
 
 这次实验本身是有效的；但它把“缺的那一下”主要归因于“客户端开始页/选择器”，没有把**产品 profile 的启动契约**（Config、host 登记、首启、默认 preset）作为一等对象。于是方案仍然把产品特殊性与安装路径混在一起，且保留了 `settings.json` 这条第二真值。
 

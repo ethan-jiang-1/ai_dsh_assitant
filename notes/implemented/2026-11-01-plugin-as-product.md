@@ -1,5 +1,7 @@
 日期：2026-11-01 · 状态：**implemented**
 
+> 部分收窄（2026-11-01）：工作区绑定改为 profile Config、启动器降为可选安装器、产品 home 降为部署选项；见 [产品 profile 对齐](2026-11-01-product-profile-alignment.md)。1A 大脑、run bundle、headless 禁用仍有效。
+
 # 插件即产品：产品 profile、工作区作业面与 run bundle 归属
 
 ## 问题（可观察行为）

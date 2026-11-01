@@ -13,7 +13,7 @@
 | **用户数据（宿主拥有）** | `sessions/`、credentials、`settings`、`storages`、`session-search.db`、`cache/` 等 | 同一个 home；不进插件备份/交接物 |
 | **交付物** | 会话 cwd 下的 `deliverables/<YYYY-MM-DD>-<slug>/`（README 四段 + 交付物 + `present`；契约 = `work-delivery` 技能；见 [`home.md`](home.md) §一注） | 用户数据；随项目；不进 agent 物 |
 
-**一个人 = 一个 home。** 产品模式默认**产品自有 home**（`~/.dsh-smart-assistant`，启动器显式设 `DSH_HOME`）；部署者也可 `--home ~/.dsh` 显式共享日用 home。profile 是组合，不是租户；不同人用不同 home（不同机器、不同 OS 用户或显式隔离 home），不共享插件数据目录。同一 home 下的所有 profile 共用 `<dshHome>/assistant` 与 `<dshHome>/assistant-operating`——换 profile 名只隔离组合，**不隔离数据**；真正隔离试用用独立 `DSH_HOME`，或同时覆盖 memory/ledger/projection 的 `dataDir`。
+**一个人 = 一个 home。** 产品安装器默认**产品自有 home**（`~/.dsh-smart-assistant`，安装器显式设 `DSH_HOME`）；native 路径用当前 `DSH_HOME`；部署者也可 `--home ~/.dsh` 显式共享日用 home。profile 是组合，不是租户；不同人用不同 home（不同机器、不同 OS 用户或显式隔离 home），不共享插件数据目录。同一 home 下的所有 profile 共用 `<dshHome>/assistant` 与 `<dshHome>/assistant-operating`——换 profile 名只隔离组合，**不隔离数据**；真正隔离试用用独立 `DSH_HOME`，或同时覆盖 memory/ledger/projection 的 `dataDir`。
 
 ### 数据平面映射（DSH 6+2）
 
