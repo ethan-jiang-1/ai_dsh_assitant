@@ -71,7 +71,7 @@ import { selectDashboardByDefault } from './chrome/default-panel-selection'
 import { deskEn, deskZh, en as firstMileEn, zh as firstMileZh } from './chrome/locales'
 
 /** Slots this face occupies (single-occupant, root-scope, declared by the sidebar). */
-const inject = ['slots', 'sidebarRightTabs', 'sidebarRight', 'sessions', 'remote', 'remote.agentPresets', 'remote.workspaceFiles', 'remote.session', 'remote.schedule', 'layout', 'connection', 'uiSession', 'workspaces', 'uiWorkspace', 'locale']
+const inject = ['slots', 'sidebarRightTabs', 'sidebarRight', 'sessions', 'remote', 'remote.agentPresets', 'remote.workspaceFiles', 'remote.session', 'remote.schedule', 'remote.directoryPicker', 'layout', 'connection', 'uiSession', 'workspaces', 'uiWorkspace', 'locale']
 
 /**
  * Build the plugin surface and the brand occupants against a module-table require.
@@ -197,9 +197,22 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     const gateFetch = typeof globalThis.fetch === 'function'
       ? globalThis.fetch.bind(globalThis)
       : async (): Promise<Response> => ({ ok: false, status: 404, json: async () => undefined }) as unknown as Response
+    // The directory picker is a Remote subface; the product onboarding uses the same
+    // native/browse backends as the workspace picker. Absence is a readable onboarding error,
+    // not a client-registration failure.
+    const directoryPicker = (ctx.remote as {
+      directoryPicker?: { pick(): Promise<{ ok: boolean, value?: string | null, error?: { message?: string } }> }
+    } | undefined)?.directoryPicker
     const productGateRuntime: ProductGateRuntime = {
       fetch: gateFetch,
       baseURI: () => document.baseURI,
+      ...(directoryPicker === undefined ? {} : {
+        pickDirectory: async (): Promise<string | null> => {
+          const result = await directoryPicker.pick()
+          if (!result.ok) throw new Error(result.error?.message ?? 'directory picker failed')
+          return result.value ?? null
+        },
+      }),
       ...(ctx.uiWorkspace?.startSession === undefined ? {} : {
         startSession: (workspaceId: string) => { ctx.uiWorkspace?.startSession?.(workspaceId, { agentPreset: 'assistant' }) },
       }),

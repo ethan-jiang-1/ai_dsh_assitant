@@ -5,7 +5,7 @@
  *   node seed.mjs patch <home>   # before boot: pin workspace-controller's documentsDirectory and
  *                                # pre-ack the welcome notice (same rows as the banner scene).
  *   node seed.mjs bind <home>    # before boot: create a workspace OUTSIDE the product home and
- *                                # write <home>/assistant-product/settings.json.
+ *                                # write assistant-product.workspaceDir into the dev profile patch.
  *
  * The workspace must stay outside the home: the product row refuses paths inside its own data
  * plane. The sibling directory keeps the gate label deterministic (`product-workspace`).
@@ -63,14 +63,24 @@ if (command === 'patch') {
 
 if (command === 'bind') {
   mkdirSync(workspace, { recursive: true, mode: 0o700 })
-  const settingsDir = join(home, 'assistant-product')
-  mkdirSync(settingsDir, { recursive: true, mode: 0o700 })
-  writeFileSync(join(settingsDir, 'settings.json'), `${JSON.stringify({
-    version: 1,
-    workspaceDir: workspace,
-    updatedAt: '2026-11-01T00:00:00.000Z',
-  })}\n`, { encoding: 'utf8', mode: 0o600 })
-  console.log(`seed: product binding written → ${workspace}`)
+  const patchPath = join(home, 'profiles', 'dev', 'cordis.patch.yml')
+  if (!existsSync(patchPath)) {
+    console.error(`seed: no profile patch at ${patchPath} — run prepare.sh && setup.sh first`)
+    process.exit(1)
+  }
+  const current = readFileSync(patchPath, 'utf8')
+  if (current.includes('assistant-product') && current.includes('workspaceDir')) {
+    console.log(`seed: product Config workspace already present — skip`)
+    process.exit(0)
+  }
+  const block = [
+    '# product-workspace-gate 场景预置：产品工作区绑定（profile Config，不是私有 settings.json）。',
+    '- id: assistant-product',
+    '  config:',
+    `    workspaceDir: ${workspace}`,
+  ].join('\n')
+  writeFileSync(patchPath, current.replace(/\n*$/, '\n') + block + '\n')
+  console.log(`seed: product Config binding written → ${workspace}`)
   process.exit(0)
 }
 

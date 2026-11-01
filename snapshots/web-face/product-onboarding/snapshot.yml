@@ -1,0 +1,9 @@
+# 场景契约的机器可读面；完整判据、命令与台账在同目录 README.md（同 diff 维护）。
+version: 1
+scenario: product-onboarding
+profile: dev            # 隔离 home；seed.mjs patch 预置 workspace-controller + 内测声明，不写产品绑定
+recording: live
+comparison: dom-evidence
+runner: README.md
+wait_text: '选择项目目录'
+entry: dev/probes/web/webui-expected.mjs

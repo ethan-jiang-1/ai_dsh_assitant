@@ -39,6 +39,7 @@ const CUSTOMER = [
 ]
 const PRODUCT = [
   'product-workspace-gate',
+  'product-onboarding',
 ]
 const VIKI = [
   'viki-panel-connected',
@@ -75,12 +76,14 @@ function seed(nodeArgs, home) {
   return sh(process.execPath, nodeArgs, { env: { ...process.env, ASSISTANT_DSH_HOME: home } }) === 0
 }
 
+const refreshExpectations = process.env.WEB_FACE_REFRESH === '1'
 function expected(url, scenario, expectedArgs) {
   const target = scenario.startsWith('viki-') ? `${url}#debug=1` : url
   return sh(process.execPath, [
     'dev/probes/web/webui-expected.mjs', target,
     '--scenario', `snapshots/web-face/${scenario}`,
     ...expectedArgs,
+    ...(refreshExpectations ? ['--refresh'] : []),
   ])
 }
 
@@ -273,6 +276,17 @@ async function runProduct() {
   if (!keep) rmSync(home, { recursive: true, force: true })
 }
 
+async function runProductOnboarding() {
+  const home = mkTmpDir('web-face-check', 'product-onboarding-home-')
+  console.log(`\n▶ product-onboarding (${home})`)
+  if (!provision(home)) return failed('product-onboarding: provision failed')
+  const seedScript = 'snapshots/web-face/product-onboarding/seed.mjs'
+  if (!seed([seedScript, 'patch', home], home)) return failed('product-onboarding: seed patch failed')
+  const code = await withService(home, {}, async url => expected(url, 'product-onboarding', ['--wait-text', '选择项目目录']))
+  if (code === 0) ok('product-onboarding') ; else failed(`product-onboarding (exit ${code})`)
+  if (!keep) rmSync(home, { recursive: true, force: true })
+}
+
 async function runDesk() {
   const home = mkTmpDir('web-face-check', 'desk-home-')
   console.log(`\n▶ desk-eight-matters (${home})`)
@@ -309,6 +323,8 @@ for (const scenario of selected) {
     }
   } else if (scenario === 'product-workspace-gate') {
     await runProduct()
+  } else if (scenario === 'product-onboarding') {
+    await runProductOnboarding()
   } else if (!deskDone) {
     deskDone = true
     await runDesk()
