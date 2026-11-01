@@ -1,7 +1,8 @@
 # OpenViking 记忆层的 v3 旋钮（条件追加件）。
 #
-# 由 dev/env/setup.sh 在**该 profile 已装 OpenViking 插件**时追加到 profile 的
-# cordis.patch.yml 末尾；没有插件的 fresh dev home 不会因此多出一条 inactive row。
+# 由 dev/env/setup.sh 在**该 profile 已装 OpenViking 插件**时写进
+# `$DSH_HOME/dev-overlay-<profile>.yml`（启动器以 `--patch` 注入，profile 用户层不写）；
+# 没有插件的 fresh dev home 不会因此多出一条 inactive row。
 # patch 语义是同 id 整行覆盖；这里给的是目标的完整 config。
 - id: openviking-memory-runtime
   name: '@openviking/dsh-memory-plugin'

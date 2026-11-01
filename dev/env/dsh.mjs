@@ -155,6 +155,23 @@ const sessionCwd = process.env.ASSISTANT_SESSION_CWD !== undefined && process.en
 // node_modules。从启动器自身位置解析成绝对 file URL，cwd 无关。
 const tsxEntry = import.meta.resolve('tsx/esm')
 
+// ── dev-only overlays（docs/dev.md §十）────────────────────────────────────────
+// setup.sh 把 dev-only 行（dev-task 的 roster insert、OpenViking 旋钮）写在
+// `$DSH_HOME/dev-overlay-<profile>.yml`，而不是 profile 的用户层；这里按 `--profile` 注入，
+// 让 `pnpm dsh --profile dev-task ...` 与 `pnpm start` 拿到同一份组合。`--patch` 可重复，
+// 调用者自己的 patch 仍会叠加在它后面。
+const forwardedArgs = process.argv.slice(2)
+const profileFlagIndex = forwardedArgs.findIndex(token => token === '--profile' || token.startsWith('--profile='))
+const profileName = profileFlagIndex === -1
+  ? undefined
+  : forwardedArgs[profileFlagIndex] === '--profile'
+    ? forwardedArgs[profileFlagIndex + 1]
+    : forwardedArgs[profileFlagIndex].slice('--profile='.length)
+const overlayPath = profileName === undefined || profileName === '' || profileName.startsWith('--')
+  ? undefined
+  : join(process.env.DSH_HOME, `dev-overlay-${profileName}.yml`)
+const overlayArgs = overlayPath !== undefined && existsSync(overlayPath) ? ['--patch', overlayPath] : []
+
 // ── 生命周期（规则见文件头第 6 条）────────────────────────────────────────────
 // 默认：服务是启动器的子进程，启动器在，服务在——调用者一退（Ctrl-C、挂断、父进程死），
 // 服务跟着收场，不留孤儿占端口与账本 `writer.lock`。要一个**交接出去、脱离终端**跑下去的
@@ -162,7 +179,7 @@ const tsxEntry = import.meta.resolve('tsx/esm')
 // 那时服务不跟着启动器死，寿命归打印出来的那个 `kill`。
 const detached = process.env.ASSISTANT_DSH_DETACH === '1'
 const posix = process.platform !== 'win32'
-const child = spawn(process.execPath, ['--import', tsxEntry, bin, ...process.argv.slice(2)], {
+const child = spawn(process.execPath, ['--import', tsxEntry, bin, ...overlayArgs, ...forwardedArgs], {
   cwd: sessionCwd,
   env: { ...process.env, TSX_TSCONFIG_PATH: join(repoRoot, 'tsconfig.tsx.json') },
   stdio: 'inherit',

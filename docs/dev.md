@@ -5,7 +5,7 @@
 >
 > **读法**：日常起服务看「默认启动动作」；换 home §一；生成物/两个 tsconfig §二；
 > 首次准备 §三；开发环 §四；排障先 §五；按意图选入口 §六；组合四层 §七；
-> 入库边界 §八；发布与标签 §九。
+> 入库边界 §八；发布与标签 §九；与产品安装路径的 parity §十。
 
 ## 默认启动动作
 
@@ -185,13 +185,14 @@ registering"——而第一个打开页面的人就成了 crash-test dummy。`pn
 **两个 profile 是刻意的**：web-app 与 headless 两个 bundle 都 `insert` 了 `id: code-runtime`，
 混装进同一个 profile 必撞 `duplicate loader entry id`（DSH 已把该组合列为退役元组）。
 - `dev` = `[dsh-base, dsh-web-app, dsh-smart-assistant]`，**不写 profile patch**：registry 的默认值随本包 bundle patch 进组合（`- id: agent-preset-registry` 整行替换），与用户装出来的形态完全一致——这正是不让开发环境掩盖"默认值没进 bundle"回归的判据。
-- `dev-task` = `[dsh-base, dsh-headless, dsh-smart-assistant]`，registry 用 dev/profiles/profile-patch-headless.yml
-  （insert 语义 —— headless 模板里没有 `agent-preset-registry` 行可替换）。两个 patch 文件不可互换。
+- `dev-task` = `[dsh-base, dsh-headless, dsh-smart-assistant]`，registry 的 insert 源是
+  `dev/profiles/profile-patch-headless.yml`（headless 模板里没有 `agent-preset-registry` 行可替换）；
+  它由 setup.sh 生成为 `$DSH_HOME/dev-overlay-dev-task.yml`，启动器以 `--patch` 注入（§十）。
 
 **一个 profile 装出来是什么**：`dev`（web 模板）与 `dev-task`（headless 模板）两个 profile 住在
 `$DSH_HOME/profiles/`；两者都装本插件（`dsh plugin add` 指向 repo 的裸路径 = link 语义），
-并载入 `dev/profiles/profile-patch-headless.yml`（insert）把 roster 的默认 preset 指到本仓的 `assistant`；
-`dev`（web）不再载入任何 profile patch —— 它的默认 preset 来自 bundle 层。
+profile 用户层保持模板内容（`[]`）；dev-only 行（dev-task 的 roster insert、OV 旋钮）住在
+`$DSH_HOME/dev-overlay-<profile>.yml`，由启动器注入 —— `dev` 的默认 preset 来自 bundle 层。
 
 **跳过 setup.sh 直接起服务（fresh clone 的第一次就会撞）**：
 
@@ -307,11 +308,11 @@ DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得
 bundle 层（两个 profile 各自的链，刻意的——§四，web-app 与 headless 不可混进同一 profile）：
   dev      = @deepseek-ai/dsh-base → dsh-web-app  → dsh-smart-assistant
   dev-task = @deepseek-ai/dsh-base → dsh-headless → dsh-smart-assistant
-  → profiles/<name>/cordis.patch.yml     # setup.sh 拷贝：dev **不拷**（默认 preset 来自 bundle 层），
-                                          #   dev-task 用 dev/profiles/profile-patch-headless.yml（insert 语义）；
-                                          #   OV 插件在场时写入 dev/profiles/profile-patch-ov.yml（v3 旋钮）
+  → profiles/<name>/cordis.patch.yml     # setup.sh 不写：模板内容原样，用户自己的行住这里
   → $DSH_HOME/cordis.patch.yml           # home 级（作用于该 home 全部 profile）—— dev 不用它
-  → --patch                              # 临时覆盖
+  → --patch                              # dev-only 行在这里：setup.sh 生成
+                                          #   $DSH_HOME/dev-overlay-<profile>.yml（dev-task 的 roster insert、
+                                          #   OV v3 旋钮），启动器按 --profile 注入
 ```
 
 诊断组合用 `pnpm dsh --profile dev --dump-config`（boot-free，输出整棵组合树）。
@@ -377,3 +378,30 @@ bundle 层（两个 profile 各自的链，刻意的——§四，web-app 与 he
 门禁：`release: every tag names the package version at its commit`（纯核 `tagVersionProblems`，负例夹具 =
 `tests/tooling/vendor-release.spec.mjs`）。它同时兜住两种错法：tag 打了但 manifest 忘 bump，bump 了但 tag 用旧名。
 标签一律 annotated（`git tag -a`）、不带 `v` 前缀——名字要逐字等于版本，才比得出来。
+
+## 十、与产品安装路径的 parity（同机制、有界差异）
+
+判据：**用户装这个包会经过的机制点，dev 侧必须有证据；差异只允许落在调试必需、隔离或热重建，
+并登记在这里。** 表外新增差异是漂移；用户路径多一个机制点时，同 diff 在表里加一行（或注明由哪条
+smoke 覆盖）。
+
+| 机制点 | 用户安装路径 | dev 快环 | 判定 | 证据 owner |
+|---|---|---|---|---|
+| profile 创建 | `--from-default-profile web` | 同一条命令 | 同形 | `dev/env/setup.sh`、`packages/dsh-smart-assistant/bootstrap.mjs` |
+| profile 名 | `assistant` | `dev` / `dev-task` | 有界：隔离，保留"在 dev home"的提示 | §一 |
+| 安装源 | tarball（`dsh plugin add <tgz>` / Plugins 页 / 市场） | 裸路径 = pnpm link | 有界：热重建需要；tarball 断点由 `pnpm install-parity` 真走 | `dev/env/setup.sh` + `scripts/release/install-parity.mjs` |
+| 包字节（`files` 白名单） | 以 tarball 清单为准 | 整棵 repo 可见 | 有界；lane 逐项断言运行时表面 | `scripts/release/install-parity.mjs` |
+| 依赖闭包 | profile 自己拥有运行时依赖（`yaml`） | link 不装依赖 | 有界；lane 断言依赖可解析 | `scripts/release/install-parity.mjs` |
+| roster / bundles 写入者 | `dsh plugin add` | 同一条命令 | 同形 | `dev/env/setup.sh` |
+| 默认 preset | bundle patch（`agent-preset-registry` 整行替换） | 同一份 bundle patch | 同形 | `scripts/release/install-parity.mjs`（dump 断言） |
+| profile 用户层 | 产品 profile 不写 | 也不写；dev-only 行住 `$DSH_HOME/dev-overlay-<profile>.yml`，启动器以 `--patch` 注入 | 同形（overlay 是额外层，不是用户层） | `dev/env/setup.sh` + `dev/env/dsh.mjs` |
+| 引擎门 | 安装时判 tarball manifest 的 `engines.dsh` / `engines.pnpm` | lane 判 `engines.dsh` 与 peer 范围；pnpm 版本由矩阵守 | 有界（开发机的 pnpm 固定） | `scripts/release/install-parity.mjs` + `pnpm-matrix` |
+| 运行时 | 已安装 `dsh`（版本在 `engines.dsh` 内） | vendor pin 源码（tsx） | 有界：调试必需；版本面由真实 CLI 矩阵守 | `compat-matrix` |
+| 重建 | 重装 tarball + 重启 | `pnpm build` 原地生效 | 有界：热环 | `pnpm build` / `dev/env/ensure-build.mjs` |
+| home / 凭据 / 工作区 | 产品 home（默认 `~/.dsh-smart-assistant`）+ 用户项目目录 | `dev/harness-home` + cwd = 仓根 | 有界：隔离 | §一 |
+| 外部服务 | 无 | `dev/env/openviking-up.sh`（可选） | 有界：dev 工具 | `dev/env/setup.sh` |
+
+**同机制的部分不接受 dev 特例**：profile 创建方式、安装源的可验证性、默认 preset 的来源、roster 的
+写入者、版本门。`pnpm install-parity` 是开发环里真走 tarball 的那条通道（pack → 干净 web profile →
+`dsh plugin add` → `--dump-config`，不 boot、无浏览器）；boot、UI、升级与数据边界仍归发布前的八条
+smoke（[`release.md`](release.md) §七）。**link 快环**只对热重建负责，不对"用户装得上"负责。

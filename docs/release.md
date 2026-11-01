@@ -39,7 +39,7 @@
   形状判据在 `scripts/release/publish-shape.mjs`：`export-dist` 对真实产物逐条判（`private` 缺省、bundle 补丁、
   `engines.dsh`、图标与描述、locale 完整、包内无源码载荷），不靠人记。
 - **不含用户数据**：不写 `assistant/`、`assistant-operating/`、sessions、profiles、storages、deliverables、`.env`、credentials、宿主绝对路径或符号链接。`handoff-scan` 与 `export-dist` 对真实 tarball 跑扫描，失败即不可发布。
-- 发布物以 `pnpm pack` 的真实字节为准；链接安装/source 直跑不能替代 tarball 安装。
+- 发布物以 `pnpm pack` 的真实字节为准；链接安装/source 直跑不能替代 tarball 安装。dev 侧的差异表与开发环的 tarball 通道 = [`dev.md`](dev.md) §十。
 
 ## 四、兼容
 

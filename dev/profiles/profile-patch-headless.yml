@@ -1,8 +1,8 @@
 #
 # headless 模板只有 [dsh-base, dsh-headless] —— 没有 web-app，所以 **没有** agent-preset-registry 行
-# 可供"整行替换"；这里必须用 `insert` 语义补进 registry（web profile 的 dev/profile-patch.yml
-# 用的是替换语义，两个文件不可互换：替换版在 headless profile 里 patch 不到行只 warn，
-# insert 版放进 web profile 会撞 duplicate id）。
+# 可供"整行替换"；这里必须用 `insert` 语义补进 registry。这份文件是 dev overlay 的源：
+# setup.sh 把它生成为 `$DSH_HOME/dev-overlay-dev-task.yml`，启动器按 profile 以 `--patch` 注入；
+# profile 的用户层 `cordis.patch.yml` 不写（docs/dev.md §十）。
 #
 # `assistant` 的**定义**不在 profile 里：它随本包的 `dsh.bundle.patch`（`cordis.patch.yml` 的
 # `preset-assistant` 行）进来，所以开发期改 preset 只改那一个文件。
