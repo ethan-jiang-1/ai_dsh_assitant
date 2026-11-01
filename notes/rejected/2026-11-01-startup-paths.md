@@ -20,8 +20,8 @@
 - deck-studio 的对照路径把项目放在 profile 配置/自己的 workbench，源只读、产物进插件 `dataRoot`——与本产品
   “交付包留在用户项目”相反。
 
-完整证据：[启动路径比较](../../_backlog/research/261101-startup-model-comparison/README.md)、
-[DSH 原生安装 + 产品客户端层](../../_backlog/research/261101-startup-model-comparison/261101-dsh-native-product-layer.md)。
+完整证据：[启动路径比较](../../_backlog/_archive/research/261101-startup-model-comparison/README.md)、
+[DSH 原生安装 + 产品客户端层](../../_backlog/_archive/research/261101-startup-model-comparison/261101-dsh-native-product-layer.md)。
 
 ## 提案
 
@@ -73,9 +73,9 @@
 
 ## 证据
 
-- 实验与截图：[启动路径比较](../../_backlog/research/261101-startup-model-comparison/README.md)
-- 对照事实：[deck-studio 启动](../../_backlog/research/261101-startup-model-comparison/261101-deck-studio-startup-facts.md)
-- 本产品实验：[标准三条命令的无绑定/有设置](../../_backlog/research/261101-startup-model-comparison/261101-our-startup-and-experiments.md)
-- 维度/选项：[对比与建议](../../_backlog/research/261101-startup-model-comparison/261101-comparison-and-recommendation.md)
-- 分层设计：[DSH 原生安装 + 客户端层](../../_backlog/research/261101-startup-model-comparison/261101-dsh-native-product-layer.md)
+- 实验与截图：[启动路径比较](../../_backlog/_archive/research/261101-startup-model-comparison/README.md)
+- 对照事实：[deck-studio 启动](../../_backlog/_archive/research/261101-startup-model-comparison/261101-deck-studio-startup-facts.md)
+- 本产品实验：[标准三条命令的无绑定/有设置](../../_backlog/_archive/research/261101-startup-model-comparison/261101-our-startup-and-experiments.md)
+- 维度/选项：[对比与建议](../../_backlog/_archive/research/261101-startup-model-comparison/261101-comparison-and-recommendation.md)
+- 分层设计：[DSH 原生安装 + 客户端层](../../_backlog/_archive/research/261101-startup-model-comparison/261101-dsh-native-product-layer.md)
 - 安装手册事实修复：headless 产品行禁用、产品模式备份/升级、首跑凭据、standalone 指针（见 `_dist/安装手册.md`）

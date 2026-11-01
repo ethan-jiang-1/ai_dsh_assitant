@@ -1,11 +1,11 @@
 ---
-status: 推敲中
+status: 已结
 opened: 2026-11-01
 ---
 
 # 推敲：产品 profile 对齐——独立启动 profile、工作区配置与 bundle 自有启动
 
-> 立卡：2026-11-01 ｜ 状态：推敲中（已授权实施） ｜ 类型：Feature ｜ 可关闭：否 ｜ 毕业：做现在
+> 立卡：2026-11-01 ｜ 状态：已结 ｜ 类型：Feature ｜ 可关闭：是 ｜ 毕业：做现在
 
 **问题与期望结果：** 上一轮把产品做成了“启动器 + 产品 home + `assistant-product/settings.json` + 客户端门”，native 安装时退化为“装了插件的普通 DSH”，与用户要的“插件有独立启动 profile、启动时知道/询问 workspace、插件能力施加到用户 workspace”不一致。本卡把产品 owner 移回 **dedicated `assistant` profile + bundle 自有启动/首屏 + profile Config**，让产品安装器与 DSH 原生安装都能给出同一产品体验。
 
@@ -17,7 +17,7 @@ opened: 2026-11-01
 
 **未决问题：** 产品安装器是否保留为“目标用户推荐路径”（建议保留，但降为安装器）；`workspaceDir`/`onboarding` 的 Config 键名；旧 `settings.json` 迁移策略；Desktop 是否本轮真机验证；机器 run manifest 是否现在做（建议延后）。技术未知已缩小：Config/volatile、workspaceRegistry、session create、directoryPicker、openSession 都有源码/探针依据；真机 picker 与 Plugins 页安装仍需切片证据。
 
-**下一步：** 已授权，从 S1 开始；每片一个 commit。研究/方案已在本卡与纠偏材料中显性化。
+**下一步：** 已结；S1–S4 已交付，S5 收口完成；开放项见 `## 仍未取` 与 `_backlog/triggers.md`。
 
 ## 怎么 review 这张卡
 
@@ -318,7 +318,7 @@ S0 研究/方案（本卡）
 | S2 | 客户端 onboarding/recovery/换项目 + 目录选择器 | **已完成** | `pnpm test:client`（269）；`pnpm web-face-check --scenario product-onboarding` / `product-workspace-gate` 真渲染 |
 | S3 | 安装器瘦身（env only）+ native 产品 smoke + 版本门按 pin 合同 | **已完成** | `pnpm product-smoke`、`pnpm product-native-smoke`（GET not-configured/onboarding → POST → 登记 + Config + 会话 cwd）、`standalone-smoke`、`bootstrap-guards-smoke`、`release-smoke`（live turn BLOCKED） |
 | S4 | README/docs/`_dist`/身份/发布/testing 同 diff | **已完成** | `pnpm verify` 51 checks；`pnpm export-dist` 重生成；手册 A/B/C + 无 `--profile desktop` |
-| S5 | 收口：全量证据、triggers、note/归档路由 | **进行中** | `pnpm typecheck`、`pnpm test`（1151）、`pnpm verify`、`web-install-smoke`、`prompt-smoke`、`upgrade-smoke`；待最终复跑与卡归档 |
+| S5 | 收口：全量证据、triggers、note/归档路由 | **已完成** | `pnpm typecheck`、`pnpm test`（152 files / 1151）、`pnpm verify`（51）、`web-install-smoke`、`prompt-smoke`、`upgrade-smoke`；implemented note + rejected note + triggers 已落 |
 
 ## 仍未取（本轮不做或延后）
 
@@ -329,6 +329,34 @@ S0 研究/方案（本卡）
 - **Windows / Desktop 真机矩阵**：本轮只改 Desktop 文档口径与替代路径；真机另立触发。
 - **自动更新 UX / 多工作区最近列表**：v1 先不做；触发 = 真实用户切换多个项目。
 - **产品 home 的强制隔离**：不强制；native 用当前 home，隔离用 `DSH_HOME` 或安装器。
+
+## 实测记录（2026-11-01）
+
+| 命令/证据 | 结果 |
+|---|---|
+| `pnpm typecheck` | 通过 |
+| `pnpm test` | 152 files / 1151 tests 通过 |
+| `pnpm verify` | 51 checks passed |
+| `pnpm product-smoke` | 通过：安装器建 profile/装包、`--workspace` 只设 env、profile Config 持久化、`workspace.json`、会话 `header.cwd`、stop；未写 `settings.json` |
+| `pnpm product-native-smoke` | 通过：web 模板建 `assistant` profile → `dsh plugin add` → 真 boot → GET `not-configured`/onboarding → POST → 登记 + Config + 会话 cwd |
+| `pnpm web-face-check --scenario product-onboarding` | 通过：真渲染首启选目录 |
+| `pnpm web-face-check --scenario product-workspace-gate` | 通过：门条/CTA/换项目，CTA 打开会话 |
+| `pnpm standalone-smoke` | 通过：standalone 不回归 |
+| `pnpm bootstrap-guards-smoke` | 通过：坏输入在创建 home 前拒绝 |
+| `pnpm release-smoke` | 安装/组合/零写入通过；live turn **BLOCKED**（无 `DEEPSEEK_API_KEY`） |
+| `pnpm web-install-smoke` | 通过：标准 web profile 安装/启动/preset UI |
+| `pnpm prompt-smoke` | 通过：模型可见段落/工具在场 |
+| `pnpm upgrade-smoke` | 通过：升级/remove/re-add 两目录保留 |
+| `pnpm export-dist` | 通过：tarball + A/B/C 手册重生成 |
+| `pnpm eval` / `eval:domain` | **BLOCKED**：无 key / 需本人判 |
+| Desktop / Plugins 页真机 | **BLOCKED**：本轮未验，见 `## 仍未取` |
+
+## 结论（2026-11-01）
+
+- 产品层 owner 从启动器/`settings.json` 移到 dedicated `assistant` profile + `assistant-product.workspaceDir`（profile Config）+ 客户端 onboarding；安装器只做安装/引导。
+- native 与安装器两条路径都有真启动证据；旧 `settings.json` 不再读取（明确不做兼容）。
+- 未取项（per-workspace 大脑、机器 run manifest、npm 发布、Windows/Desktop 真机、选择器边缘）已留 `## 仍未取` 与 `_backlog/triggers.md`。
+- 去向：[产品 profile 对齐 note](../../../notes/implemented/2026-11-01-product-profile-alignment.md)；研究题归档；本卡归档。
 
 ## 关闭条件
 
@@ -342,7 +370,7 @@ S0 研究/方案（本卡）
 - [标准路径实验](../research/261101-startup-model-comparison/261101-our-startup-and-experiments.md)
 - [启动路径对比](../research/261101-startup-model-comparison/261101-comparison-and-recommendation.md)
 - [DSH 原生 + 客户端层](../research/261101-startup-model-comparison/261101-dsh-native-product-layer.md)
-- 现行合同：[`README.md`](../../README.md)、[`docs/product.md`](../../docs/product.md)、[`docs/delivery.md`](../../docs/delivery.md)、[`docs/architecture.md`](../../docs/architecture.md)、[`docs/testing.md`](../../docs/testing.md)
-- 现行实现：[`bootstrap.mjs`](../../packages/dsh-smart-assistant/bootstrap.mjs)、[`src/host/product/`](../../packages/dsh-smart-assistant/src/host/product/)、[`src/client/product/`](../../packages/dsh-smart-assistant/src/client/product/)、[`src/domain/product/`](../../packages/dsh-smart-assistant/src/domain/product/)
-- 现行决定：[产品 profile 对齐](../../notes/implemented/2026-11-01-product-profile-alignment.md)、[插件即产品](../../notes/implemented/2026-11-01-plugin-as-product.md)（部分收窄）、[启动路径取舍](../../notes/rejected/2026-11-01-startup-paths.md)（rejected：被本决定取代）
+- 现行合同：[`README.md`](../../../README.md)、[`docs/product.md`](../../../docs/product.md)、[`docs/delivery.md`](../../../docs/delivery.md)、[`docs/architecture.md`](../../../docs/architecture.md)、[`docs/testing.md`](../../../docs/testing.md)
+- 现行实现：[`bootstrap.mjs`](../../../packages/dsh-smart-assistant/bootstrap.mjs)、[`src/host/product/`](../../../packages/dsh-smart-assistant/src/host/product/)、[`src/client/product/`](../../../packages/dsh-smart-assistant/src/client/product/)、[`src/domain/product/`](../../../packages/dsh-smart-assistant/src/domain/product/)
+- 现行决定：[产品 profile 对齐](../../../notes/implemented/2026-11-01-product-profile-alignment.md)、[插件即产品](../../../notes/implemented/2026-11-01-plugin-as-product.md)（部分收窄）、[启动路径取舍](../../../notes/rejected/2026-11-01-startup-paths.md)（rejected：被本决定取代）
 - 外部依据：FAQ 26 `deepseek-harness/_faq_on_digested/26_plugin-as-product`（2026-11-01 16:28 更新；`50-launch/10`、`50-launch/40`、`50-launch/70`、`30-external/37`、`10-foundations/16–18`）

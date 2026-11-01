@@ -42,7 +42,7 @@
 
 ## 验收
 
-工作台账、切片证据与开放项在收口卡：[产品 profile 对齐](../../_backlog/issues/261101-product-profile-alignment.md)。
+工作台账、切片证据与开放项在收口卡：[产品 profile 对齐](../../_backlog/_archive/settled_issues/261101-product-profile-alignment.md)。
 
 ## 与旧决定的关系
 

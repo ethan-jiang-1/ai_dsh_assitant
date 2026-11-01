@@ -110,4 +110,4 @@ intent: 给「要不要仿效 deck-studio 的启动」一个可拍板的选项�
 
 - 机制实验在临时 home/工作区；标准路径的「profile 配置」尚未实现，实验 B 用设置文件等价证明。
 - 未验证：真模型首跑质量、npm 安装、Windows/Desktop、deck-studio 的完整出图链。
-- 本材料不构成实施授权；拍板在 [启动路径取舍 note](../../../notes/rejected/2026-11-01-startup-paths.md)。
+- 本材料不构成实施授权；拍板在 [启动路径取舍 note](../../../../notes/rejected/2026-11-01-startup-paths.md)。

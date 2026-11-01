@@ -11,7 +11,7 @@ intent: 对照 2026-11-01 更新后的 FAQ 26（安装/启动/生命周期），
 
 上一轮已经按“产品启动器 + 产品 home + `assistant-product/settings.json` + 客户端门”落过一版，随后又提出“DSH 原生安装 + 客户端 onboarding、启动器可选”。FAQ 26 在 2026-11-01 16:00–16:30 连续更新（`2b1cc2e`、`48354c3`、`09a548a`、`12e502f`、`0d8925d`、`6aa365f`），补进了安装通道、生命周期、首启令牌门、home 层不能供货、配置层与 Plugins 页优先等事实。这些事实要求重新检查：上一轮的产品模型是不是把“产品”做成了 DSH 外面的第二层壳，而不是“一个 named profile 的产品组合”。
 
-本篇只回答三件事：更新后的硬事实是什么、上一轮歪在哪、目标模型和落地切片是什么。实施授权与 work 台账在 [产品 profile 对齐卡](../../issues/261101-product-profile-alignment.md)。
+本篇只回答三件事：更新后的硬事实是什么、上一轮歪在哪、目标模型和落地切片是什么。实施授权与 work 台账在 [产品 profile 对齐卡](../../settled_issues/261101-product-profile-alignment.md)。
 
 ## 一、更新后的硬事实（只列影响本产品的）
 
@@ -31,11 +31,11 @@ intent: 对照 2026-11-01 更新后的 FAQ 26（安装/启动/生命周期），
 
 ### 2.1 已落地的一版
 
-- 包根 [`bootstrap.mjs`](../../../packages/dsh-smart-assistant/bootstrap.mjs)：产品模式 `--workspace`/`--product`，默认产品 home `~/.dsh-smart-assistant`，经官方 CLI 建/复用 `assistant` profile、装 tarball、设默认 preset、写 `<productHome>/assistant-product/settings.json`、起 Web、`--stop` 收进程组。
-- host 行 [`assistant-product`](../../../packages/dsh-smart-assistant/src/host/product/state.ts)：boot 时读 `settings.json` 的 `workspaceDir`，用 `workspaceRegistry.create()` 登记；GET/POST `api/assistant/product`；headless 禁用。
-- 客户端门 [`ProductGate`](../../../packages/dsh-smart-assistant/src/client/product/product-gate.ts)：ready 显示 `工作区 · <目录>` + “开始一件事”；missing/invalid 显示恢复面；`not-configured`/404 时透明。
-- 交付契约 [`docs/product.md`](../../../docs/product.md) §五：`<workspace>/deliverables/<date>-<slug>/` + README 四段 + `present`；大脑仍在产品 home。
-- 文档/手册：根 [`README.md`](../../../README.md) 把启动器写成“推荐”；[`_dist/安装手册.md`](../../../_dist/安装手册.md) 以启动器开头，手工装包默认装进 `web` profile。
+- 包根 [`bootstrap.mjs`](../../../../packages/dsh-smart-assistant/bootstrap.mjs)：产品模式 `--workspace`/`--product`，默认产品 home `~/.dsh-smart-assistant`，经官方 CLI 建/复用 `assistant` profile、装 tarball、设默认 preset、写 `<productHome>/assistant-product/settings.json`、起 Web、`--stop` 收进程组。
+- host 行 [`assistant-product`](../../../../packages/dsh-smart-assistant/src/host/product/state.ts)：boot 时读 `settings.json` 的 `workspaceDir`，用 `workspaceRegistry.create()` 登记；GET/POST `api/assistant/product`；headless 禁用。
+- 客户端门 [`ProductGate`](../../../../packages/dsh-smart-assistant/src/client/product/product-gate.ts)：ready 显示 `工作区 · <目录>` + “开始一件事”；missing/invalid 显示恢复面；`not-configured`/404 时透明。
+- 交付契约 [`docs/product.md`](../../../../docs/product.md) §五：`<workspace>/deliverables/<date>-<slug>/` + README 四段 + `present`；大脑仍在产品 home。
+- 文档/手册：根 [`README.md`](../../../../README.md) 把启动器写成“推荐”；[`_dist/安装手册.md`](../../../../_dist/安装手册.md) 以启动器开头，手工装包默认装进 `web` profile。
 
 ### 2.2 上一轮的第二次尝试
 
@@ -44,7 +44,7 @@ intent: 对照 2026-11-01 更新后的 FAQ 26（安装/启动/生命周期），
 - 无产品绑定时：插件行/客户端都在，但产品行 `not-configured`，首屏是普通 DSH 一页纸，默认工作区接住交付包；
 - 补一个 `settings.json` 后：门、工作区、CTA、交付包全部回来。
 
-结论是“标准路径缺的是产品层那一下（工作区绑定 + 默认 preset）”，并提出了 [`2026-11-01-startup-paths`](../../../notes/rejected/2026-11-01-startup-paths.md)：原生安装 + 客户端 onboarding，启动器降为可选。
+结论是“标准路径缺的是产品层那一下（工作区绑定 + 默认 preset）”，并提出了 [`2026-11-01-startup-paths`](../../../../notes/rejected/2026-11-01-startup-paths.md)：原生安装 + 客户端 onboarding，启动器降为可选。
 
 这次实验本身是有效的；但它把“缺的那一下”主要归因于“客户端开始页/选择器”，没有把**产品 profile 的启动契约**（Config、host 登记、首启、默认 preset）作为一等对象。于是方案仍然把产品特殊性与安装路径混在一起，且保留了 `settings.json` 这条第二真值。
 
@@ -239,4 +239,4 @@ intent: 对照 2026-11-01 更新后的 FAQ 26（安装/启动/生命周期），
 
 - 上一轮不是“方向全错”，而是**产品层的 owner 放错了**：启动器和私有设置文件承担了本应属于 profile/Config/bundle 的职责，导致 native 路径退化为“普通 DSH + 插件”。
 - 目标模型一句话：**dedicated `assistant` profile 是产品；bundle 自带启动/首屏与工作区解析；工作区绑定写 profile Config；run bundle 在 workspace；启动器只是可选安装器。**
-- 落地顺序、验收矩阵与 work 台账见 [产品 profile 对齐卡](../../issues/261101-product-profile-alignment.md)。
+- 落地顺序、验收矩阵与 work 台账见 [产品 profile 对齐卡](../../settled_issues/261101-product-profile-alignment.md)。

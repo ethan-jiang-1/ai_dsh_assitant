@@ -25,8 +25,7 @@
 | OV 用户侧安装脚本 / wizard | 不预建（手册 + doctor + 干净 home 冒烟已覆盖） | 真人按《安装手册》走查出现**同类卡点 ≥2 次**，或第一次真实远程部署 | [安装面 note](../notes/implemented/2026-10-21-install-surface-first-class.md) |
 | OV plugin 版本 | 未采用新版本（pin 0.5.26 / server 0.5.1.1） | 读 vendor 时上游**发布**带我们需要的修复或安全更新 | [RFC](../notes/implemented/2026-09-29-openviking-adoption-rfc.md) |
 | notes 扁平结构的规模 | 维持扁平 | 一次笔记审计里 `implemented`/`archived` 的浏览明显受阻（找一篇要翻目录） | [notes/README](../notes/README.md) §四 |
-| 产品大脑的 per-workspace 分区 | 不做（A：大脑跟人走） | 真实用户要求项目连同助手交接，或同一 home 下多业务知识串味成为实际抱怨 | [插件即产品 note](../notes/implemented/2026-11-01-plugin-as-product.md) |
-| 产品 run 的机器 manifest / 面板枚举 | 不做（v0 只留人可读 README） | 出现真实消费者：首页“这周做了什么”、eval 核对产物、审计 | 同上 |
-| 产品安装器 / 签名 / 离线包（O5 下一步） | 不做（当前一条命令 + tarball） | 第一次真实企业交付，或用户明确说命令行安装不可接受 | 同上 |
-| 产品首次 GUI 目录选择器 | 不做（CLI 提示） | 真人首跑拒绝命令行，或产品交给非技术用户 | 同上 |
-| Windows / Desktop 真机矩阵 | 未宣称 | 第一次真实用户在这两类平台安装/启动 | 同上 |
+| 产品大脑的 per-workspace 分区 | 不做（A：大脑跟人走） | 真实用户要求项目连同助手交接，或同一 home 下多业务知识串味成为实际抱怨 | [产品 profile 对齐 note](../notes/implemented/2026-11-01-product-profile-alignment.md) |
+| 产品 run 的机器 manifest / 面板枚举 | 不做（v0 只留人可读 README） | 出现真实消费者：首页“这周做了什么”、eval 核对产物、审计 | [产品 profile 对齐 note](../notes/implemented/2026-11-01-product-profile-alignment.md) |
+| 产品安装器 / 签名 / 离线包（O5 下一步） | 不做（当前一条命令 + tarball） | 第一次真实企业交付，或用户明确说命令行安装不可接受 | [产品 profile 对齐 note](../notes/implemented/2026-11-01-product-profile-alignment.md) |
+| Windows / Desktop 真机矩阵 | 未宣称 | 第一次真实用户在这两类平台安装/启动 | [产品 profile 对齐 note](../notes/implemented/2026-11-01-product-profile-alignment.md) |
