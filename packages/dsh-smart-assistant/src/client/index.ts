@@ -286,9 +286,12 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       return registration
     })
 
-    // The developer debug panel and the Viki room share one flag. A separate `main`
-    // registration is not an option for the tab: the main slot is single-occupant, and a second
-    // one kills the whole client entry.
+    // The developer debug panel and the Viki room share one flag. They belong to
+    // `conversation.view` because they are per-session views, not global panels: `main` is a
+    // keyed slot and a second registration would be legal (measured 2026-11-02 — several plugins
+    // may register `main` with distinct keys), but only one panel is visible at a time and
+    // selection is not persisted, so a second global panel would only compete for the first
+    // screen instead of describing the session in front of the user.
     const roomsDebug = debugEnabled()
     if (projection !== undefined && storeApi !== undefined && roomsDebug) {
       ctx.slots.inject('conversation.view', () => ctx.slots.register({
