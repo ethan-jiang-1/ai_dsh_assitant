@@ -49,8 +49,8 @@ node bootstrap.mjs --no-start ...
 ```
 
 - **profile**：不存在才从 shipped web 模板创建；已有 `assistant` profile 不重置；外来同名 profile 拒绝；缺 web-app 给明确错误。
-- **安装**：`pnpm pack` → `dsh plugin --profile assistant add <tarball>`；版本对账；同版本跳过；失败保留旧装。不手写 `dsh.profile.bundles`。
-- **默认 preset**：只写自己的 `agent-preset-registry.default: assistant`；用户其他行/插件保留。
+- **安装**：`npm pack`（安装器；发布物本身由 `pnpm pack` 产出）→ `dsh plugin --profile assistant add <tarball>`；版本对账；同版本跳过；失败保留旧装。不手写 `dsh.profile.bundles`。
+- **默认 preset**：`agent-preset-registry.default: assistant` 由 bundle patch 携带（整行 config 替换）；安装器不写 profile patch，装完用 `--dump-config` 校验组合。
 - **工作区**：`--workspace` 只做路径预检并给子进程设一次性 `ASSISTANT_WORKSPACE`；**不写**工作区绑定文件、不写 home patch。`--product` 不要求工作区，首启由产品行/客户端决定。
 - **启动**：`dsh --profile assistant --port 0 --no-open`；cwd 为工作区（有 `--workspace` 时）或产品 home；token URL 打码；`--stop` 收进程组。
 - **standalone**：保留为 dev/demo 模式，不是产品主路径。
