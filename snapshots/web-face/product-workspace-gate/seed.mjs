@@ -74,7 +74,7 @@ if (command === 'bind') {
     process.exit(0)
   }
   const block = [
-    '# product-workspace-gate 场景预置：产品工作区绑定（profile Config，不是私有 settings.json）。',
+    '# product-workspace-gate 场景预置：产品工作区绑定（profile Config）。',
     '- id: assistant-product',
     '  config:',
     `    workspaceDir: ${workspace}`,

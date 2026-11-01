@@ -1,6 +1,8 @@
 日期：2026-11-01 · 状态：**implemented**
 
-> 部分收窄（2026-11-01）：工作区绑定改为 profile Config、启动器降为可选安装器、产品 home 降为部署选项；见 [产品 profile 对齐](2026-11-01-product-profile-alignment.md)。1A 大脑、run bundle、headless 禁用仍有效。
+已归档：2026-11-01（部分被 [产品 profile 对齐](../implemented/2026-11-01-product-profile-alignment.md) 收窄；1A、run bundle、headless 的决策史保留）
+
+> 部分收窄（2026-11-01）：工作区绑定改为 profile Config、启动器降为可选安装器、产品 home 降为部署选项；见 [产品 profile 对齐](../implemented/2026-11-01-product-profile-alignment.md)。1A 大脑、run bundle、headless 禁用仍有效。
 
 # 插件即产品：产品 profile、工作区作业面与 run bundle 归属
 
@@ -20,7 +22,7 @@
 
 ## 输掉的方案
 
-- **B：大脑跟项目走**（每个工作区一套四房间/账本）。好处是项目可连同助手交接、业务天然隔离；代价是服务、四段落、面板、账本、备份、curate 与测试全改，且提示词段落拿不到 session/workspace，只能退到“一个实例一个工作区”或新建平台接缝。与既有 [数据面校准](2026-10-28-data-plane-alignment.md) 的 home 单例决定相反。延后，触发 = 真实用户要求项目连同助手交接，或多业务知识串味成为实际抱怨。
+- **B：大脑跟项目走**（每个工作区一套四房间/账本）。好处是项目可连同助手交接、业务天然隔离；代价是服务、四段落、面板、账本、备份、curate 与测试全改，且提示词段落拿不到 session/workspace，只能退到“一个实例一个工作区”或新建平台接缝。与既有 [数据面校准](../implemented/2026-10-28-data-plane-alignment.md) 的 home 单例决定相反。延后，触发 = 真实用户要求项目连同助手交接，或多业务知识串味成为实际抱怨。
 - **C：混合**（身份/技能跟人，业务记忆/知识/账本跟项目）。需要 scope 前缀、摘要/检索过滤、面板展示与两处真相的长期维护；在“一个实例一个工作区”的前提下才可行。先不做。
 - **默认共享日用 home**：凭据/会话直接复用，但产品会话/工作区/预设与用户其他 DSH 用途混在一起，跨 profile 打开产品会话可能缺 preset；改为产品自有 home，`--home` 保留共享出口。
 - **包内 app bin / 自带运行时**：违反“只有 dsh profile 启动应用”；启动器是部署包装，仍由 `dsh --profile` 启动。

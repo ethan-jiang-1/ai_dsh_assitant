@@ -512,7 +512,7 @@ if (url === undefined) {
 // log is not. Redact it in place so a log copied into a support thread carries no live token.
 redactLogFile()
 
-writeFileSync(stateFile, `${JSON.stringify({ pid: child.pid, url, profile, home, ...(providedWorkspace === undefined ? {} : { requestedWorkspace: providedWorkspace }), mode: product ? 'product' : 'standalone', startedAt: new Date().toISOString() }, null, 2)}\n`, { encoding: 'utf8', mode: 0o600 })
+writeFileSync(stateFile, `${JSON.stringify({ pid: child.pid, url, profile, home, mode: product ? 'product' : 'standalone', startedAt: new Date().toISOString() }, null, 2)}\n`, { encoding: 'utf8', mode: 0o600 })
 chmodSync(stateFile, 0o600)
 console.log('')
 console.log(`✅ ${product ? 'product' : 'standalone'} instance ready`)

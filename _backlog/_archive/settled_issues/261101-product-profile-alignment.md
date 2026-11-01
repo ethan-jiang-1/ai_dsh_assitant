@@ -372,5 +372,5 @@ S0 研究/方案（本卡）
 - [DSH 原生 + 客户端层](../research/261101-startup-model-comparison/261101-dsh-native-product-layer.md)
 - 现行合同：[`README.md`](../../../README.md)、[`docs/product.md`](../../../docs/product.md)、[`docs/delivery.md`](../../../docs/delivery.md)、[`docs/architecture.md`](../../../docs/architecture.md)、[`docs/testing.md`](../../../docs/testing.md)
 - 现行实现：[`bootstrap.mjs`](../../../packages/dsh-smart-assistant/bootstrap.mjs)、[`src/host/product/`](../../../packages/dsh-smart-assistant/src/host/product/)、[`src/client/product/`](../../../packages/dsh-smart-assistant/src/client/product/)、[`src/domain/product/`](../../../packages/dsh-smart-assistant/src/domain/product/)
-- 现行决定：[产品 profile 对齐](../../../notes/implemented/2026-11-01-product-profile-alignment.md)、[插件即产品](../../../notes/implemented/2026-11-01-plugin-as-product.md)（部分收窄）、[启动路径取舍](../../../notes/rejected/2026-11-01-startup-paths.md)（rejected：被本决定取代）
+- 现行决定：[产品 profile 对齐](../../../notes/implemented/2026-11-01-product-profile-alignment.md)、[插件即产品](../../../notes/archived/2026-11-01-plugin-as-product.md)（部分收窄）、[启动路径取舍](../../../notes/rejected/2026-11-01-startup-paths.md)（rejected：被本决定取代）
 - 外部依据：FAQ 26 `deepseek-harness/_faq_on_digested/26_plugin-as-product`（2026-11-01 16:28 更新；`50-launch/10`、`50-launch/40`、`50-launch/70`、`30-external/37`、`10-foundations/16–18`）

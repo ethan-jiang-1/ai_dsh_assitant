@@ -81,7 +81,7 @@ node bootstrap.mjs --product                           # 之后：复用 profile
 node bootstrap.mjs --stop --home ~/.dsh-smart-assistant --product
 ```
 
-安装器默认产品 home `~/.dsh-smart-assistant`（不碰日用 `~/.dsh`）；`--workspace` 只做路径预检并给首启一个 `ASSISTANT_WORKSPACE` 一次性覆盖，**不写**私有设置文件。首启没绑定时，产品首屏会让你选项目目录；选完写 profile Config。`--home ~/.dsh` 才是显式共享日用 home。
+安装器默认产品 home `~/.dsh-smart-assistant`（不碰日用 `~/.dsh`）；`--workspace` 只做路径预检并给首启一个 `ASSISTANT_WORKSPACE` 一次性覆盖，**不写**工作区绑定文件。首启没绑定时，产品首屏会让你选项目目录；选完写 profile Config。`--home ~/.dsh` 才是显式共享日用 home。
 
 **已有 DSH：原生路径（不用安装器）**
 
@@ -117,7 +117,7 @@ Plugins 页没有 profile 参数，装的是**当前 profile**，它不创建 pr
 | 某次会话为什么答成这样 | [docs/dev.md](docs/dev.md) §六「逐事件复盘」行（过滤样例：[repo-live-probe](.agents/skills/repo-live-probe/SKILL.md)）；聚合视图 `pnpm usage` / `pnpm desk-loop` |
 | 我要改 X，最小验证是什么、回归资产在哪 | [docs/testing.md](docs/testing.md) §一页证据地图（唯一表主）；判断细则与假绿清单在 [.agents/skills/pre-push-evidence/](.agents/skills/pre-push-evidence/SKILL.md) |
 | 改了为什么不生效 | [docs/dev.md](docs/dev.md) §四 三条纪律（build / preset 代际 / pin） |
-| 这个决定为什么这么定 | 先查 `docs/` 对应合同（理由多已内联）；再按关键词搜 `notes/`（`grep -ril '<关键词>' notes/`；负知识在 `notes/rejected/`；怎么读见 [notes/README.md](notes/README.md)）；**方向类推敲史**在 `_backlog/_archive/settled_issues/` 与 `_backlog/research/`（同法按关键词 grep） |
+| 这个决定为什么这么定 | 先查 `docs/` 对应合同（理由多已内联）；再按关键词搜 `notes/`（`grep -ril '<关键词>' notes/`；负知识在 `notes/rejected/`；怎么读见 [notes/README.md](notes/README.md)）；**方向类推敲史**在 `_backlog/_archive/settled_issues/` 与 `_backlog/_archive/research/`（同法按关键词 grep） |
 
 运行数据的根：产品 home（`DSH_HOME`，可选）、助手 `dataDir`、用户工作区、源码 cwd；产品层见 [产品合同](docs/product.md)，开发层见 [开发手册](docs/dev.md)。
 
@@ -144,7 +144,7 @@ pack → 干净 home → 装 → 组合断言。装完只需把该 profile 的 `
 ## 开发
 
 ```sh
-git submodule update --init     # vendor/dsh submodule（pin 出处见上「装法」）
+git submodule update --init     # vendor/dsh submodule（pin 出处 = vendor/UPSTREAM.md）
 pnpm install
 pnpm typecheck && pnpm test && pnpm verify
 ```

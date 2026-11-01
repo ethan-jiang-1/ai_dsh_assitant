@@ -5,7 +5,7 @@
 
 ## 场景是什么
 
-隔离 home 里**没有** `assistant-product.workspaceDir`（没有 profile Config，也没有旧 settings 文件）。产品行在 boot 时是 `not-configured`；客户端首屏必须出现产品开始页：
+隔离 home 里**没有** `assistant-product.workspaceDir`（没有 profile Config）。产品行在 boot 时是 `not-configured`；客户端首屏必须出现产品开始页：
 
 - 标题 `选一个项目目录`；
 - 说明“助手会在这个项目里工作……”；

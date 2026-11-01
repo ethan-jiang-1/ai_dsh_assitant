@@ -11,7 +11,7 @@ opened: 2026-11-01
 
 **用户口径（2026-11-01）：** 插件有自己的启动 profile；启动时知道、或在启动过程中询问 workspace 在哪里；插件的内容留在插件内部；产生的状态与最后的输出物（历史口径的 run bundle）在用户的 workspace 里；这样插件的能力才能施加到用户指定的 workspace 上。
 
-**授权（2026-11-01）：** 本人按推荐拍板——1A（大脑跟人走）、2 v0 可见 `deliverables/<date>-<slug>/`、3 产品自有 home + 首次 CLI 询问、4 现状命名（profile `assistant`、沿用 `bootstrap.mjs`、产物目录 `deliverables`）。授权按本卡 `## 落地顺序` 自主推进；work 台账 = 本卡，决定 note = [implemented note](../../../notes/implemented/2026-11-01-plugin-as-product.md)。
+**授权（2026-11-01）：** 本人按推荐拍板——1A（大脑跟人走）、2 v0 可见 `deliverables/<date>-<slug>/`、3 产品自有 home + 首次 CLI 询问、4 现状命名（profile `assistant`、沿用 `bootstrap.mjs`、产物目录 `deliverables`）。授权按本卡 `## 落地顺序` 自主推进；work 台账 = 本卡，决定 note = [implemented note](../../../notes/archived/2026-11-01-plugin-as-product.md)。
 
 **当前情况：** 平台与仓内事实、冲突面、已对齐面见研究材料 [平台与仓内事实](../research/261101-plugin-as-product/261101-platform-and-repo-facts.md)。一句话：DSH 不给 `--workspace` 旗标，但 Workspace 登记与 `workspaceId` 开会话都是公开服务；会话 `header.cwd` 创建后不可变，所以“能力落在工作区”必须从会话创建时保证；“独立的启动 profile”只能由产品启动器经官方 CLI 建，DSH 没有第三方 profile 模板机制。**本卡推荐路线 = A（大脑跟人走）+ v0 run bundle + 产品自有 home + 沿用 bootstrap；第 1 项是真正的分叉。**
 
@@ -324,5 +324,5 @@ D0 拍板
 - [技术探针](../research/261101-plugin-as-product/261101-technical-probes.md)
 - [落地蓝图](../research/261101-plugin-as-product/261101-landing-blueprint.md)
 - 现行合同：[根 README.md](../../../README.md)、[docs/delivery.md](../../../docs/delivery.md)、[docs/release.md](../../../docs/release.md)、[docs/identity.md](../../../docs/identity.md)、[docs/home.md](../../../docs/home.md)、[docs/architecture.md](../../../docs/architecture.md)
-- 现行决定：[插件即产品](../../../notes/implemented/2026-11-01-plugin-as-product.md)、[交付合同](../../../notes/implemented/2026-10-25-delivery-contract.md)、[数据面校准](../../../notes/implemented/2026-10-28-data-plane-alignment.md)、[首开一页纸](../../../notes/implemented/2026-10-23-first-run-one-page.md)
+- 现行决定：[插件即产品](../../../notes/archived/2026-11-01-plugin-as-product.md)、[交付合同](../../../notes/implemented/2026-10-25-delivery-contract.md)、[数据面校准](../../../notes/implemented/2026-10-28-data-plane-alignment.md)、[首开一页纸](../../../notes/implemented/2026-10-23-first-run-one-page.md)
 - 外部参考：FAQ 26（`deepseek-harness/_faq_on_digested/26_plugin-as-product`）——只作判据来源，不复制正文。

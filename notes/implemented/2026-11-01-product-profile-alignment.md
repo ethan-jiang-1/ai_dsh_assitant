@@ -46,4 +46,4 @@
 
 ## 与旧决定的关系
 
-[插件即产品](2026-11-01-plugin-as-product.md) 被**部分收窄**：1A 大脑、run bundle、headless 禁用仍有效；产品 home 由“产品前提”降为部署选项，工作区绑定由 `settings.json` 改为 profile Config，启动器由“产品入口”降为可选安装器。
+[插件即产品](../archived/2026-11-01-plugin-as-product.md) 被**部分收窄**：1A 大脑、run bundle、headless 禁用仍有效；产品 home 由“产品前提”降为部署选项，工作区绑定由 `settings.json` 改为 profile Config，启动器由“产品入口”降为可选安装器。

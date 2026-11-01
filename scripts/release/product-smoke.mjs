@@ -3,7 +3,7 @@
  * Product-mode proof: pack → extract → `bootstrap.mjs --workspace` with a wrapper `dsh` →
  * profile/dump assertions → real boot → Config persistence + workspace registration + an
  * in-process session cwd probe → stop. The binding must live in the profile Config, not in a
- * private settings.json.
+ * profile Config.
  *
  * The smoke never touches the daily `~/.dsh`: the product home and workspace live under `.tmp/`.
  * The wrapper exists only because this checkout's `dsh` is the pinned source CLI. The probe row
@@ -44,7 +44,6 @@ const wrapperDir = join(root, 'bin')
 const wrapper = join(wrapperDir, 'dsh')
 const home = join(root, 'home')
 const workspace = join(root, 'workspace')
-const legacySettingsPath = join(home, 'assistant-product', 'settings.json')
 const profilesDir = join(home, 'profiles', 'assistant')
 
 try {
@@ -88,8 +87,6 @@ try {
     else ok('profile roster includes the package')
   }
 
-  if (existsSync(legacySettingsPath)) fail('bootstrap wrote the old assistant-product/settings.json')
-  else ok('bootstrap did not write a private settings file')
 
   const dump = run(wrapper, ['--profile', 'assistant', '--dump-config'], {
     env: { ...process.env, DSH_HOME: home, DSH_AGENTS_HOME: join(home, 'agents-home') },
@@ -187,8 +184,8 @@ export function apply(ctx) {
   if (!existsSync(statePath)) fail('bootstrap.json is missing')
   else {
     const state = JSON.parse(readFileSync(statePath, 'utf8'))
-    if (state.mode !== 'product' || state.requestedWorkspace !== realpathSync(workspace)) fail(`state mismatch: ${JSON.stringify({ mode: state.mode, requestedWorkspace: state.requestedWorkspace })}`)
-    else ok('bootstrap state names product mode and the requested workspace')
+    if (state.mode !== 'product' || state.profile !== 'assistant') fail(`state mismatch: ${JSON.stringify({ mode: state.mode, profile: state.profile })}`)
+    else ok('bootstrap state names product mode and the assistant profile')
   }
 
   step('stopping the product instance')

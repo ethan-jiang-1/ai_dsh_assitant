@@ -46,7 +46,7 @@ node bootstrap.mjs --no-start ...
 - **profile**：不存在才从 shipped web 模板创建；已有 `assistant` profile 不重置；外来同名 profile 拒绝；缺 web-app 给明确错误。
 - **安装**：`pnpm pack` → `dsh plugin --profile assistant add <tarball>`；版本对账；同版本跳过；失败保留旧装。不手写 `dsh.profile.bundles`。
 - **默认 preset**：只写自己的 `agent-preset-registry.default: assistant`；用户其他行/插件保留。
-- **工作区**：`--workspace` 只做路径预检并给子进程设一次性 `ASSISTANT_WORKSPACE`；**不写** `settings.json`、不写 home patch。`--product` 不要求工作区，首启由产品行/客户端决定。
+- **工作区**：`--workspace` 只做路径预检并给子进程设一次性 `ASSISTANT_WORKSPACE`；**不写**工作区绑定文件、不写 home patch。`--product` 不要求工作区，首启由产品行/客户端决定。
 - **启动**：`dsh --profile assistant --port 0 --no-open`；cwd 为工作区（有 `--workspace` 时）或产品 home；token URL 打码；`--stop` 收进程组。
 - **standalone**：保留为 dev/demo 模式，不是产品主路径。
 
@@ -63,7 +63,7 @@ node bootstrap.mjs --no-start ...
 - **Config**：`workspaceDir?: string`（volatile；profile patch 可写）；`onboarding?: boolean`（部署默认，默认 true）。
 - **优先级**：`ASSISTANT_WORKSPACE`（一次性 env）> effective Config `workspaceDir`（profile/home/CLI patch 合成）> `not-configured`。
 - **持久化**：env/客户端选择成功登记后，产品行调用 `ctx.settings.update('assistant-product', { workspaceDir })` 写当前 profile patch；没有 settings 服务时状态 `invalid` + `error: settings-unavailable`，不静默丢。
-- **不写**：`<home>/assistant-product/settings.json`、home patch、其他 profile。
+- **不写**：工作区绑定文件、home patch、其他 profile。
 - **校验**：绝对、存在、是目录、可读写；拒绝 `/`、用户 home 根、产品 home 内、包目录内（解析符号链接后）；路径缺失**不空建**。
 - **缺失/非法**：路由返回 `workspace-missing` / `invalid`；客户端显示恢复面，可重选；不崩。
 
