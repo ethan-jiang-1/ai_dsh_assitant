@@ -162,7 +162,7 @@ node bootstrap.mjs --no-start ...
 | 行 id | 我们改什么 | 为什么 | 复核条件（换 pin 时看） | 退役条件 |
 |---|---|---|---|---|
 | `agent-preset-registry` | `config.default: assistant`（**裸 id，整行 config 替换**） | 产品默认 preset 属于 bundle 默认值；装完即产品 | vendor 若给这行加字段，这里要一并写全（整行替换会丢） | 不退役（这是产品定义）；用户 `selectedDefault` 优先，卸载即回退 `standard` |
-| `ui-chat` | `config.transcriptView: detailed`（**insert 同 id 重声明**） | 本 pin 的**预构建 client bundle** 缺 `?? defaultMode` 兜底：全新 home 无存档时 `conversation.view` 崩 | 发布人口重新构建后有兜底就不再需要 | 发布人口自 rc.5 起已带兜底（`_backlog/research/261101-plugin-lifecycle` E 系列记录）；**抬 floor 到实测版本时退役**（2026-11-02 决议：抬 pin 单独做） |
+| `ui-chat` | `config.transcriptView: detailed`（**insert 同 id 重声明**） | 本 pin 的**预构建 client bundle** 缺 `?? defaultMode` 兜底：全新 home 无存档时 `conversation.view` 崩 | 发布人口重新构建后有兜底就不再需要 | 发布人口自 rc.5 起已带兜底（`_backlog/_archive/research/261101-plugin-lifecycle` E 系列记录）；**抬 floor 到实测版本时退役**（2026-11-02 决议：抬 pin 单独做） |
 | `locale` | `config.preference: zh`（insert 同 id） | 目标用户是中文管理者，无偏好时首开随浏览器协商会落英文 | vendor 若改 locale 配置键名/层级 | 不退役（产品口味）；用户可在 Settings 改 |
 | `session-query-sqlite` | `config.path` + `openAt: first-search`（insert 同 id） | base 出厂 `never` + `:memory:`；本产品要"首次检索才建索引 + 持久" | base 行若改 config 形状或默认值 | base 出厂即带缓存路径默认时退役 |
 | `tool-skill` | 同 id 重声明为 host 行（insert 同 id） | BUG-001：以 preset 行挂载时目录监听器在 one-shot 里不发布 | vendor 若修好 preset 行的目录发布 | 上游修好后退役（条件写在 BUG-001 归档） |
