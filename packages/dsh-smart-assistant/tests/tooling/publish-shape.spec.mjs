@@ -7,7 +7,7 @@
  * Plain `.mjs` on purpose: vitest runs it, `tsc -p tsconfig.test.json` does not type-check it.
  */
 import { describe, expect, it } from 'vitest'
-import { localeShapeProblems, manifestShapeProblems, sourcemapLeakProblems } from '../../../../scripts/release/publish-shape.mjs'
+import { docShapeProblems, localeShapeProblems, manifestShapeProblems, sourcemapLeakProblems } from '../../../../scripts/release/publish-shape.mjs'
 
 const map = (sources, contents) => JSON.stringify({ version: 3, sources, sourcesContent: contents })
 
@@ -78,5 +78,22 @@ describe('localeShapeProblems', () => {
   it('refuses an empty title or a document without meta', () => {
     expect(localeShapeProblems({ en: { meta: { title: '  ', description: 'x' } } })[0]).toMatch(/meta\.title/)
     expect(localeShapeProblems({ en: {}, zh: { meta: { title: 'a', description: 'b' } } })[0]).toMatch(/no "meta" object/)
+  })
+})
+
+describe('docShapeProblems', () => {
+  const readme = ['## Install', '## What it contributes', '## Configuration', '## Data', '## Compatibility', '## Upgrade', '## Uninstall'].join('\n')
+  const manual = ['## 产品是什么', '## 〇、安装前提', '## 一、安装（…）', '## 三、验证安装', '## 六、升级与备份', '## 七、卸载（删包，留数据）', '## 十一、安全'].join('\n')
+
+  it('accepts the shape both documents ship', () => {
+    expect(docShapeProblems({ readme, manual })).toEqual([])
+  })
+
+  it('refuses a README that lost the upgrade section', () => {
+    expect(docShapeProblems({ readme: readme.replace('## Upgrade\n', ''), manual })[0]).toMatch(/README: missing "## Upgrade"/)
+  })
+
+  it('refuses a manual that lost security or the profile command section', () => {
+    expect(docShapeProblems({ readme, manual: manual.replace('## 十一、安全', '') })[0]).toMatch(/manual: missing "## 十一、安全"/)
   })
 })

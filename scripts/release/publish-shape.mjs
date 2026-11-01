@@ -111,3 +111,43 @@ export function localeShapeProblems(locales) {
   }
   return problems
 }
+
+/**
+ * The two documents a plugin and its product owe a reader: the package README (install / what /
+ * configuration / data / compatibility / upgrade / uninstall — the order the host's own packages
+ * use) and the generated install manual (the ten-section skeleton). Shape only: this judge does not
+ * read prose. It exists because both documents are generated or hand-maintained next to code that
+ * moves, and the failure is silent — a missing "Upgrade" section is a reader who cannot roll back.
+ * @param input - `{ readme, manual }`: the package README text and the generated manual text.
+ * @returns problem strings; empty means both keep their contractual headings.
+ */
+export function docShapeProblems({ readme, manual }) {
+  const problems = []
+  const readmeHeadings = [
+    '## Install',
+    '## What it contributes',
+    '## Configuration',
+    '## Data',
+    '## Compatibility',
+    '## Upgrade',
+    '## Uninstall',
+  ]
+  const readmeLines = readme.split('\n')
+  for (const heading of readmeHeadings) {
+    if (!readmeLines.some(line => line.startsWith(heading))) problems.push(`README: missing "${heading}" — the plugin README keeps the host's seven sections`)
+  }
+  const manualHeadings = [
+    ['## 产品是什么', 'what the product is'],
+    ['## 〇、安装前提', 'prerequisites'],
+    ['## 一、安装', 'install'],
+    ['## 三、验证安装', 'verify'],
+    ['## 六、升级', 'upgrade'],
+    ['## 七、卸载', 'uninstall'],
+    ['## 十一、安全', 'security'],
+  ]
+  const manualLines = manual.split('\n')
+  for (const [heading, label] of manualHeadings) {
+    if (!manualLines.some(line => line.startsWith(heading))) problems.push(`manual: missing "${heading}" (${label}) — the install manual keeps the ten-section skeleton`)
+  }
+  return problems
+}

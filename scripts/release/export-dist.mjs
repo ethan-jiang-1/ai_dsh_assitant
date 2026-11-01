@@ -21,7 +21,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync
 import { dirname, isAbsolute, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { pinnedTagFrom } from '../maintenance/sync-bookkeeping.mjs'
-import { localeShapeProblems, manifestShapeProblems, sourcemapLeakProblems } from './publish-shape.mjs'
+import { docShapeProblems, localeShapeProblems, manifestShapeProblems, sourcemapLeakProblems } from './publish-shape.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const packageDir = join(repoRoot, 'packages', 'dsh-smart-assistant')
@@ -592,6 +592,14 @@ Windows：\`dsh\`/\`npm\` 的 \`.cmd\` shim 与进程树语义已做代码级加
 `
 writeFileSync(join(distDir, manualName), manual, 'utf8')
 report('install manual generated', true, join('_dist', manualName))
+
+// Both documents are contracts with a reader: the README's seven sections and the manual's ten.
+const docProblems = docShapeProblems({
+  readme: readFileSync(join(packageDir, 'README.md'), 'utf8'),
+  manual,
+})
+report('docs keep their contractual sections', docProblems.length === 0,
+  docProblems.length === 0 ? 'README 7 sections + manual skeleton' : docProblems.slice(0, 3).join('; '))
 
 // `--from-default-profile` is a destructive reset AND, without a dump flag, a boot. The manual is the
 // only place a user is told to run it, so every occurrence has to be the dump form; the scripts
