@@ -4,7 +4,7 @@
 
 提交只改这个目录：新建 `BUG-<NNN>-<slug>.md`，并在下面的表加一行。号在本文件取，不和 [`../issues/`](../issues/README.md) 的推敲卡混。
 
-**下一个缺陷号**：已分配到 BUG-026，Next BUG ID = 27。本目录、[`../_archive/fixed_bugs/`](../_archive/fixed_bugs/README.md) 和 [`../_archive/suspended_bugs/`](../_archive/suspended_bugs/README.md) 一起算，取最大号加一。
+**下一个缺陷号**：已分配到 BUG-028，Next BUG ID = 29。本目录、[`../_archive/fixed_bugs/`](../_archive/fixed_bugs/README.md) 和 [`../_archive/suspended_bugs/`](../_archive/suspended_bugs/README.md) 一起算，取最大号加一。
 
 ## 修复通道与授权
 
@@ -42,6 +42,8 @@ frontmatter `status` 是当前阶段的唯一家；状态行镜像它（`状态�
 
 | Bug | 标题 | 严重级 | 发现 |
 |---|---|---|---|
+| [BUG-028](BUG-028-manual-profile-create-boots-and-replaces.md) | 安装手册的建 profile 命令漏 `--dump-config`：会启动 Web，且 `--from-default-profile` 替换已有 profile | P1 | 2026-11-01 |
+| [BUG-027](BUG-027-published-sourcemap-embeds-src.md) | 发布物含 59 个 `src/` 源文件（client sourcemap 的 `sourcesContent`），三条门禁都看不见 | P1 | 2026-11-01 |
 
 ## frontmatter
 

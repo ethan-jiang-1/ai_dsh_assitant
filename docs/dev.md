@@ -184,14 +184,14 @@ registering"——而第一个打开页面的人就成了 crash-test dummy。`pn
 
 **两个 profile 是刻意的**：web-app 与 headless 两个 bundle 都 `insert` 了 `id: code-runtime`，
 混装进同一个 profile 必撞 `duplicate loader entry id`（DSH 已把该组合列为退役元组）。
-- `dev` = `[dsh-base, dsh-web-app, dsh-smart-assistant]`，registry 默认值用 dev/profiles/profile-patch.yml（替换语义）替换 `agent-preset-registry` 行的 config。
+- `dev` = `[dsh-base, dsh-web-app, dsh-smart-assistant]`，**不写 profile patch**：registry 的默认值随本包 bundle patch 进组合（`- id: agent-preset-registry` 整行替换），与用户装出来的形态完全一致——这正是不让开发环境掩盖"默认值没进 bundle"回归的判据。
 - `dev-task` = `[dsh-base, dsh-headless, dsh-smart-assistant]`，registry 用 dev/profiles/profile-patch-headless.yml
   （insert 语义 —— headless 模板里没有 `agent-preset-registry` 行可替换）。两个 patch 文件不可互换。
 
 **一个 profile 装出来是什么**：`dev`（web 模板）与 `dev-task`（headless 模板）两个 profile 住在
 `$DSH_HOME/profiles/`；两者都装本插件（`dsh plugin add` 指向 repo 的裸路径 = link 语义），
-并分别载入 `dev/profiles/profile-patch.yml`（整行替换）与 `dev/profiles/profile-patch-headless.yml`（insert），
-把 roster 的默认 preset 指到本仓的 `assistant`。
+并载入 `dev/profiles/profile-patch-headless.yml`（insert）把 roster 的默认 preset 指到本仓的 `assistant`；
+`dev`（web）不再载入任何 profile patch —— 它的默认 preset 来自 bundle 层。
 
 **跳过 setup.sh 直接起服务（fresh clone 的第一次就会撞）**：
 
@@ -307,9 +307,9 @@ DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得
 bundle 层（两个 profile 各自的链，刻意的——§四，web-app 与 headless 不可混进同一 profile）：
   dev      = @deepseek-ai/dsh-base → dsh-web-app  → dsh-smart-assistant
   dev-task = @deepseek-ai/dsh-base → dsh-headless → dsh-smart-assistant
-  → profiles/<name>/cordis.patch.yml     # setup.sh 拷贝：dev 用 dev/profiles/profile-patch.yml（替换语义），
-                                          #   dev-task 用 dev/profiles/profile-patch-headless.yml（insert 语义，两文件不可互换）；
-                                          #   OV 插件在场时追加 dev/profiles/profile-patch-ov.yml（v3 旋钮）
+  → profiles/<name>/cordis.patch.yml     # setup.sh 拷贝：dev **不拷**（默认 preset 来自 bundle 层），
+                                          #   dev-task 用 dev/profiles/profile-patch-headless.yml（insert 语义）；
+                                          #   OV 插件在场时写入 dev/profiles/profile-patch-ov.yml（v3 旋钮）
   → $DSH_HOME/cordis.patch.yml           # home 级（作用于该 home 全部 profile）—— dev 不用它
   → --patch                              # 临时覆盖
 ```

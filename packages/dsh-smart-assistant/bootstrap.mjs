@@ -427,34 +427,25 @@ if (needInstall) {
   console.log(`bootstrap: install is current (${installedVersion})`)
 }
 
+// The default preset is NOT written here any more (2026-11-02, bundle-first). It ships in the
+// bundle patch (`- id: agent-preset-registry` in cordis.patch.yml), so every install channel —
+// the Plugins page, `dsh plugin add`, the market — delivers the product without a second profile
+// writer. This installer therefore only builds the profile, installs the tarball, verifies, and
+// launches; if the composition does not already default to the product, that is a packaging bug
+// worth failing on rather than papering over with a hand-written profile patch.
 const patchPath = join(profileDir, 'cordis.patch.yml')
-const patchBlock = `# Written by dsh-smart-assistant bootstrap.mjs
-- id: agent-preset-registry
-  config:
-    default: assistant
-`
 const currentPatch = existsSync(patchPath) ? readFileSync(patchPath, 'utf8') : ''
-const ownsPatch = currentPatch.includes('dsh-smart-assistant bootstrap.mjs')
-const hasRegistry = currentPatch.includes('agent-preset-registry')
-if (currentPatch.trim() === '' || currentPatch.trim() === '[]') {
-  writeFileSync(patchPath, patchBlock, 'utf8')
-} else if (ownsPatch && hasRegistry) {
-  // The launcher wrote this block before. Keep every other row (the principal's own patches, a
-  // probe, another plugin's default) — rewriting the file here silently dropped them once.
-} else if (!ownsPatch && /^\s*\[\]\s*$/m.test(currentPatch)) {
-  // A fresh profile ships a commented template whose only entry is `[]`; replacing that line
-  // keeps the template comments and leaves one valid YAML array (appending after `[]` is a
-  // second document and fails to parse).
-  writeFileSync(patchPath, currentPatch.replace(/^\s*\[\]\s*$/m, patchBlock.trimEnd()), 'utf8')
-} else if (!hasRegistry) {
-  writeFileSync(patchPath, `${currentPatch.trimEnd()}\n${patchBlock}`, 'utf8')
+if (currentPatch.includes('dsh-smart-assistant bootstrap.mjs')) {
+  // Older installers wrote a default-preset block here. Leave it: removing rows the principal may
+  // have edited is worse than a redundant override that now matches the bundle anyway.
+  console.log('bootstrap: profile patch still carries the pre-0.2.0 default-preset block (harmless; delete it to inherit the bundle default)')
 }
 
 const dump = runDsh(['--profile', profile, '--dump-config'], 'verify composition')
 if (!dump.includes('preset-assistant')) fail('the profile dump has no preset-assistant row')
 if (product && !dump.includes('assistant-product')) fail('the profile dump has no assistant-product row; rebuild/reinstall this package')
-if (dump.includes('default: standard') && !dump.includes('default: assistant')) {
-  console.log('bootstrap: profile default still standard; select 章鱼管家 in the Web UI or add the registry patch')
+if (!/default:\s*assistant/.test(dump)) {
+  fail('the profile default is not the product preset; this package\'s bundle patch should set it — reinstall the package instead of patching the profile by hand')
 }
 
 if (noStart) {

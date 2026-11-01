@@ -58,11 +58,12 @@ interface PresetRow extends Omit<EntryOptions, 'config'> {
 /** Read this package's agent-plane rows from the shipped preset configuration. */
 function ownPresetFromPatch(patchText: string): PresetRow {
   const patches = yaml.load(patchText, { schema: entryListSchema }) as PatchOptions[]
-  // The bundle patch targets a few shipped rows by id (the vendor terminal is suppressed, not
-  // inserted). Seed the rows this isolated application is expected to find; the real profile
-  // layers them below this patch.
+  // The bundle patch targets a few shipped rows by id (the vendor terminal is suppressed, the preset
+  // roster default is retuned — neither is inserted). Seed the rows this isolated application is
+  // expected to find; the real profile layers them below this patch.
   const base: Parameters<typeof applyEntryPatches>[0] = [
     { id: 'ui-sidebar-terminal', name: '@deepseek-ai/dsh-client-ui-sidebar-terminal' },
+    { id: 'agent-preset-registry', name: '@deepseek-ai/dsh-agent-preset-registry', config: { default: 'standard' } },
   ]
   const entries = applyEntryPatches(base, patches, (message, ...args) => {
     throw new Error(`cordis.patch.yml: ${message} ${args.join(' ')}`)
@@ -176,6 +177,22 @@ function stubExecution(callId: ToolCallId, name: string, args: unknown): ToolExe
 }
 
 describe('real composition: loader + preset standing mount + joined agent', () => {
+  it('ships the product preset as the profile default (the whole point of the bundle-first shape)', () => {
+    // The default preset is a bundle-layer default value, not an installer side effect: a stock web
+    // profile that merely installs this package must already create sessions as 章鱼管家.
+    const patches = yaml.load(patchText, { schema: entryListSchema }) as PatchOptions[]
+    const entries = applyEntryPatches(
+      [
+        { id: 'ui-sidebar-terminal', name: '@deepseek-ai/dsh-client-ui-sidebar-terminal' },
+        { id: 'agent-preset-registry', name: '@deepseek-ai/dsh-agent-preset-registry', config: { default: 'standard' } },
+      ] as Parameters<typeof applyEntryPatches>[0],
+      patches,
+      (message, ...args) => { throw new Error(`cordis.patch.yml: ${message} ${args.join(' ')}`) },
+    ) as PresetRow[]
+    const registry = entries.find(row => row.id === 'agent-preset-registry')
+    expect((registry?.config as { default?: string } | undefined)?.default).toBe('assistant')
+  })
+
   it('rejects a missing preset declaration instead of assembling an empty selection', () => {
     expect(() => ownPresetFromPatch('- insert: []\n')).toThrow('declares no dsh-smart-assistant agent rows')
   })

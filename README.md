@@ -116,8 +116,9 @@ dsh --profile assistant                              # ② 启动
 运行数据的根：产品 home（`DSH_HOME`，可选）、助手 `dataDir`、用户工作区、源码 cwd；产品层见 [产品合同](docs/product.md)，开发层见 [开发手册](docs/dev.md)。
 
 打包安装的形状（`pnpm pack` 出 tarball 再 `dsh plugin --profile <p> add <tarball>`）由 `pnpm release-smoke` 机械验证：
-pack → 干净 home → 装 → 组合断言。装完只需把该 profile 的 `agent-preset-registry` 行的 `default` 设成
-`assistant`（模板：`dev/profiles/profile-patch.yml`）。registry 不扫目录、也不接受 preset 路径：
+pack → 干净 home → 装 → 组合断言。**装完不需要改 profile**：默认 preset 随 bundle patch 发
+（`- id: agent-preset-registry` 的 `default: assistant`），Plugins 页 / `dsh plugin add` / 市场 Discover
+装进任意 web profile 都直接生效；用户级 `selectedDefault` 仍优先。registry 不扫目录、也不接受 preset 路径：
 `assistant` 的定义随包发（`package.json` 的 `dsh.bundle.patch` → `cordis.patch.yml` 里的 `preset-assistant`
 行），装包即进组合 —— 不必再指 `presets/` 目录。
 

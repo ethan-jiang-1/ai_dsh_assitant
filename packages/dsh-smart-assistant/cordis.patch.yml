@@ -92,11 +92,17 @@
     # 持久库（DSH home 根，重启后历史仍可搜；**独立的派生索引**，绝不指向 session-persistence 库）。
     # 路径经 `dshHomePath` 解析（peer 现货 `@deepseek-ai/dsh-home-paths`），不手拼 DSH_HOME——
     # env 兜底/展开逻辑在 helper 里，patch 里复刻一遍就是第二份清单。
+    #
+    # 2026-11-02：从 `<home>/session-search.db` 移到 `<home>/cache/assistant/session-search.db`
+    # （`dshCachePath('assistant', …)`）。理由：这是**派生索引**（可丢弃、下次检索重建），
+    # 一个通用名文件直接躺在 home 根既不像缓存，也让"卸载后 home 根还剩什么"无法解释；
+    # home 根的 `cache/` 是宿主自己的缓存分类。插件会自建父目录（`schema.ts` 的
+    # `mkdir(dirname(actual), { recursive: true, mode: 0o700 })`），不需要预创建。
     - id: session-query-sqlite
       name: '@deepseek-ai/dsh-session-query-sqlite'
       config:
         path: !!js |-
-          process.getBuiltinModule('node:module').createRequire(baseUrl)('@deepseek-ai/dsh-home-paths').dshHomePath('session-search.db')
+          process.getBuiltinModule('node:module').createRequire(baseUrl)('@deepseek-ai/dsh-home-paths').dshCachePath('assistant', 'session-search.db')
         openAt: first-search
 
     # ── 时间上下文（adoption 卡 B2 片，2026-09-30）────────────────────────────────────
@@ -455,8 +461,22 @@
                   headChars: 4096
                   tailChars: 1024
 
-# The principal is a manager, not a developer: the right-sidebar terminal is tooling they never
-# use, and it costs attention on every page. Suppress the vendor row here; the terminal API/tools
-# remain available to headless or explicitly configured developer compositions.
+# ── 产品默认值：preset roster 的默认档（2026-11-02，bundle-first 的核心一片）──────────────
+#
+# **为什么在 bundle 层**：产品默认值属于 bundle patch（DSH 生命周期规范：默认值随 bundle 版本发布）。
+# 放在这里，任何安装通道装进任意 web profile 都能直接得到产品——
+# Plugins 页 / `dsh plugin add` / 市场 Discover 都不需要安装器或开发脚本再改一遍 profile patch。
+# 此前这一行由 `bootstrap.mjs` 与 `dev/env/setup.sh` 写进 profile patch，等于给 bundle 配了第二套 profile 写者。
+#
+# **覆盖语义是整行 config 替换**（不是合并）：web-app 的 `agent-preset-registry` 目前只有 `default`
+# 一个字段；换 pin 时若 vendor 给这行加了字段，这里要跟着补全，否则会丢必填项。
+# 复核/退役条件登记在 `docs/product.md` 的 vendor override 台账：换 pin 时逐条复核。
+# 用户级 `selectedDefault`（Settings → Agent 预设）优先于本默认，所以已经选过档的用户不被劫持，
+# 卸载后自然回退到 `standard`。
+- id: agent-preset-registry
+  config:
+    default: assistant
+
+# 开发期的右栏终端行由这里整行禁用（管理岗用户不用开发工具）。
 - id: ui-sidebar-terminal
   disabled: true

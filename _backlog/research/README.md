@@ -61,6 +61,7 @@ research/
 | 名头 | 问题 | 消费者 | 材料 |
 |---|---|---|---|
 | [输入边界 30 天观察](261011-input-observation/README.md) · 真实使用读数 | 输入通道该不该做——先看 30 天真实读数 | 触发行（**活观察**，窗口未起算） | 1 份 |
+| [DSH 插件生命周期对齐](261101-plugin-lifecycle/README.md) · 0.1.13 发行物对照 | 打包/发布/安装/初始化/配置/启动/更新/卸载/文档逐段差在哪，根因是打包还是形态 | [261101 插件生命周期对齐卡](../issues/261101-plugin-lifecycle-align.md) | 1 份 |
 
 归档题名见 [_archive/research/README.md](../_archive/research/README.md)；本页只列活跃题名。
 

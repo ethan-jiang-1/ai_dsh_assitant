@@ -1,7 +1,7 @@
 /**
  * Fixtures for the catalog generator's pure parts (`scripts/generate/gen-catalog.mjs`). The real catalog
  * is freshness-gated by `pnpm verify`; these pin the extraction rules that make the gate
- * trustworthy: disable-only rows are legal, a nameless-and-disabled-less row fails loud, an
+ * trustworthy: disable-only and config-only rows are legal, a row with no name/disabled/config fails loud, an
  * unrecognised tool declaration fails loud instead of silently thinning the catalog, and the
  * client seat extraction reads every seat family and fails loud on an undiscoverable tab.
  */
@@ -25,8 +25,15 @@ describe('parseRows', () => {
     ])
   })
 
-  it('fails loud on a row with neither name nor disabled', () => {
-    expect(() => parseRows('- id: broken\n  config:\n    x: 1\n')).toThrow(/neither name nor disabled/)
+  it('accepts a config-only override row (the product default preset shape)', () => {
+    // `- id: agent-preset-registry` + `config:` is a pure override: no module, no switch. It is a
+    // legal DSH patch entry and the shape the bundle uses to ship its default preset.
+    const rows = parseRows('- id: agent-preset-registry\n  config:\n    default: assistant\n')
+    expect(rows).toEqual([{ id: 'agent-preset-registry', indent: 0 }])
+  })
+
+  it('fails loud on a row with no name, disabled or config', () => {
+    expect(() => parseRows('- id: broken\n')).toThrow(/has no name, disabled or config/)
   })
 })
 

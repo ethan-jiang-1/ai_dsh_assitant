@@ -84,7 +84,7 @@ Viki 的 API key 从 `apiKeyEnv`（默认 `OPENVIKING_API_KEY`）读；内联 `a
 - **Profile 不是租户**：同一 `DSH_HOME` 下的所有 profile 共用这两个目录；换 profile 名只隔离组合，不隔离数据。
   真要隔离试用，用独立 `DSH_HOME`，或同时覆盖 memory/ledger/projection 的 `dataDir`。
 - **Host-owned**：sessions、credentials、settings、storages 在 `$DSH_HOME` 下由宿主管理，插件备份不包含它们。
-  补丁启用的 `session-search.db` 是会话全文索引（派生、可重建），卸载后仍留在盘上；要清就删它。
+  补丁启用的会话全文索引在 `<dshHome>/cache/assistant/session-search.db`（派生、可重建），卸载后仍留在盘上；要清就删该目录。
   会话召回默认走已索引的 `session_search` 族（模型面 `tool-session-query` 是 N2 实验面），raw zstd 日志只是
   手册声明的回退（跨项目/精确子串/索引缺席）。客户端 localStorage/sessionStorage 键属于设备，清站点数据即清，
   卸载不自动清。working folder 或会话 cwd 下的 `deliverables/` 是用户数据。
@@ -112,7 +112,7 @@ Viki 的 API key 从 `apiKeyEnv`（默认 `OPENVIKING_API_KEY`）读；内联 `a
 | D 定义 / C 代码 | bundle patch、preset、包内只读技能、`lib/bin`；只读，随版本替换 |
 | W workspace | 只写会话 cwd 的 `deliverables/<date>-<slug>/`；目录与项目文件归用户 |
 | U home | `<dshHome>/assistant`：用户内容 + 插件账本共处一棵用户可见的树；跨项目，升级/卸载保留 |
-| S session / H host state / K cache / X credentials | S/X 宿主拥有；本包不用 `ctx.storageDomain`，账本是自有文件账本；K 只有内存摘要缓存与宿主 `session-search.db` |
+| S session / H host state / K cache / X credentials | S/X 宿主拥有；本包不用 `ctx.storageDomain`，账本是自有文件账本；K = 内存摘要缓存 + `cache/assistant/session-search.db` |
 
 这个 home 根是**用户可见的 U 平面**（人能读、能 review、能导出），不是 `ctx.storageDomain` 的 host KV，也不是
 随项目走的 workspace；因此使用文件格式 + `curate` 而不是 KV schema。转换边界的合同 = [`docs/delivery.md`](../../docs/delivery.md)。
@@ -135,7 +135,7 @@ dsh plugin --profile <p> remove dsh-smart-assistant
 
 卸载不删 `<dshHome>/assistant` 与 `<dshHome>/assistant-operating`；先 `assistant-data export` 备份。
 产品模式的产品 home（`~/.dsh-smart-assistant`，可选）与工作区交付包都保留；产品 home 要清就手动删，工作区随项目备份。
-卸载也不会删宿主数据：要清会话全文索引就删 `<dshHome>/session-search.db`，要清其余宿主数据按
+卸载也不会删宿主数据：要清会话全文索引就删 `<dshHome>/cache/assistant/`，要清其余宿主数据按
 [`docs/delivery.md`](../../docs/delivery.md) §一数据卡逐项处理；客户端 localStorage 键用“清除站点数据”。
 OpenViking 是独立可选层，另停 server 并按其安装手册清理。
 

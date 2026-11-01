@@ -105,7 +105,7 @@ dsh-obsidian 外部 vault 桥先不做：用户真想让助手管某个外部 va
   digest 目录树只列 stable。
 - **与会话检索的分工**：`assistant_knowledge` 检索的是**我们自己提炼过的知识页**；"上次会话里怎么定的"
   这类**原始会话证据**走 DSH 现货 `session_query` 族（`session_search` 等，SQLite FTS5，索引库在
-  DSH home 根 `session-search.db`，host 行 `session-query-sqlite` 翻成 `first-search`）——原始证据
+  `<DSH_HOME>/cache/assistant/session-search.db`，host 行 `session-query-sqlite` 翻成 `first-search`）——原始证据
   不进 knowledge 房，提炼后想留存的才经 `assistant_reflect save_page` 入房。
 - **桥**（memory↔knowledge，不自动同步不双写）：pin = `assistant_memory save` 带
   `source: knowledge:<页id>`；promote = `save_page` 的 sources 引 `memory:<id>`——

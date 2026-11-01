@@ -312,26 +312,27 @@ try {
   if (!dump.includes('assistant')) fail('--dump-config does not show the preset roster default')
   else ok('the preset is the profile default')
 
-  step('clean-home web profile: the headless/automation appendix (install + profile patch)')
-  // The manual's Web path is the Settings preset picker (probed separately by
-  // dev/probes/web/agent-preset-ui.mjs); this second profile proves the appendix path the manual
-  // documents for headless/automation: install, then patch the deployment default. The headless
-  // profile above remains the one-shot/live-turn carrier.
+  step('clean-home web profile: the tarball alone lights the product (no profile patch)')
+  // The product default preset ships in the bundle patch, so a stock `web` profile that only
+  // installs the tarball must already default to `assistant`. This is the regression gate for
+  // "default values live in the bundle, not in an installer or a dev script".
   const webProfile = 'web-smoke'
   dsh(['--profile', webProfile, '--from-default-profile', 'web', '--dump-config'])
   dsh(['plugin', '--profile', webProfile, 'add', tarball])
-  const webBefore = dsh(['--profile', webProfile, '--dump-config'])
-  if (!/default:\s*standard/.test(webBefore)) fail('web profile did not start on the standard preset default')
-  else ok('web profile installs on the standard default (the preset is not assistant yet)')
-  writeFileSync(join(home, 'profiles', webProfile, 'cordis.patch.yml'), `# Written by scripts/release-smoke.mjs — the headless/automation appendix
+  const webDump = dsh(['--profile', webProfile, '--dump-config'])
+  if (!webDump.includes('preset-assistant')) fail('web profile dump does not show preset-assistant')
+  else if (!/default:\s*assistant/.test(webDump)) fail('web profile did not default to the product preset — the bundle patch lost its agent-preset-registry override')
+  else ok('web profile: tarball-only install defaults to the product preset (no profile patch)')
+
+  step('a user profile patch still overrides that default')
+  writeFileSync(join(home, 'profiles', webProfile, 'cordis.patch.yml'), `# Written by scripts/release-smoke.mjs — proves the bundle default is overridable
 - id: agent-preset-registry
   config:
-    default: assistant
+    default: standard
 `, 'utf8')
-  const webAfter = dsh(['--profile', webProfile, '--dump-config'])
-  if (!webAfter.includes('preset-assistant')) fail('web profile dump does not show preset-assistant')
-  else if (!/default:\s*assistant/.test(webAfter)) fail('web profile dump does not show the assistant default')
-  else ok('web profile: install + profile-patch default is the appendix path')
+  const webOverridden = dsh(['--profile', webProfile, '--dump-config'])
+  if (!/default:\s*standard/.test(webOverridden)) fail('a profile patch no longer overrides the bundle default preset')
+  else ok('profile patch overrides the bundle default (users are not captured)')
 
   step('installed ov-doctor: the bin a user actually gets')
   const doctorBin = join(home, 'profiles', webProfile, 'node_modules', PACKAGE_NAME, 'bin', 'ov-doctor.mjs')

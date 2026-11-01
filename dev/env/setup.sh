@@ -85,7 +85,9 @@ if [ ! -d "$task_dir" ]; then
   fi
 fi
 
-for pair in "$profile:$profile_dir:$repo_root/dev/profiles/profile-patch.yml" \
+# web profile 的 patch 列留空：产品默认 preset 已随 bundle patch 发布（2026-11-02 bundle-first），
+# 开发环境也走同一条路 —— 这里再抄一份 registry 行只会掩盖"默认值没进 bundle"的回归。
+for pair in "$profile:$profile_dir:" \
             "$task_profile:$task_dir:$repo_root/dev/profiles/profile-patch-headless.yml"; do
   name="${pair%%:*}"
   rest="${pair#*:}"
@@ -95,13 +97,20 @@ for pair in "$profile:$profile_dir:$repo_root/dev/profiles/profile-patch.yml" \
   # 裸路径 = pnpm 的 link 语义（symlink 回本 repo）：改 src 后只需 `pnpm build` 重建 lib，
   # 不必重新 add。`file:` 前缀是复制语义，开发环用它会"改了不生效"。
   run_dsh plugin --profile "$name" add "$repo_root/packages/dsh-smart-assistant"
-  echo "▸ pointing the preset roster at this repo ($name)"
-  cp "$patch" "$dir/cordis.patch.yml"
-  # OpenViking is optional: append the v3 knob block only when this profile actually carries
+  if [ -n "$patch" ]; then
+    echo "▸ pointing the preset roster at this repo ($name)"
+    cp "$patch" "$dir/cordis.patch.yml"
+  fi
+  # OpenViking is optional: write the v3 knob block only when this profile actually carries
   # the plugin. A fresh dev home without it must not gain an inactive row on every start.
+  # web 列没有 patch 文件时整份写（profile 模板的空 `[]` 后面不能直接追加第二个文档）。
   if grep -q '"@openviking/dsh-memory-plugin"' "$dir/package.json" 2>/dev/null; then
-    cat "$repo_root/dev/profiles/profile-patch-ov.yml" >> "$dir/cordis.patch.yml"
-    echo "▸ appended OpenViking v3 knobs (plugin present)"
+    if [ -n "$patch" ]; then
+      cat "$repo_root/dev/profiles/profile-patch-ov.yml" >> "$dir/cordis.patch.yml"
+    else
+      cp "$repo_root/dev/profiles/profile-patch-ov.yml" "$dir/cordis.patch.yml"
+    fi
+    echo "▸ wrote OpenViking v3 knobs (plugin present)"
   fi
 done
 

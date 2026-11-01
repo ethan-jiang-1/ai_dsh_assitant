@@ -10,7 +10,7 @@
 |---|---|---|
 | **agent 物** | `lib/`、`bin/`、`presets/`、`seeds/`、`cordis.patch.yml`、`package.json`、`README`、默认身份与回退 | 包；可复制给任何人，不含用户数据 |
 | **用户数据（插件拥有）** | `<dataDir>`（默认 `<dshHome>/assistant`；产品模式 `<productHome>/assistant`）与 `<operatingDir>`（默认 `<dshHome>/assistant-operating`，含 `ledger.json` / `operations-archive.jsonl`）；工作区绑定是 profile Config（`assistant-product.workspaceDir`），不是插件数据文件 | 某一个人的 home / profile |
-| **用户数据（宿主拥有）** | `sessions/`、credentials、`settings`、`storages`、`session-search.db`、`cache/` 等 | 同一个 home；不进插件备份/交接物 |
+| **用户数据（宿主拥有）** | `sessions/`、credentials、`settings`、`storages`、`cache/` 等 | 同一个 home；不进插件备份/交接物 |
 | **交付物** | 会话 cwd 下的 `deliverables/<YYYY-MM-DD>-<slug>/`（README 四段 + 交付物 + `present`；契约 = `work-delivery` 技能；见 [`home.md`](home.md) §一注） | 用户数据；随项目；不进 agent 物 |
 
 **一个人 = 一个 home。** 产品安装器默认**产品自有 home**（`~/.dsh-smart-assistant`，安装器显式设 `DSH_HOME`）；native 路径用当前 `DSH_HOME`；部署者也可 `--home ~/.dsh` 显式共享日用 home。profile 是组合，不是租户；不同人用不同 home（不同机器、不同 OS 用户或显式隔离 home），不共享插件数据目录。同一 home 下的所有 profile 共用 `<dshHome>/assistant` 与 `<dshHome>/assistant-operating`——换 profile 名只隔离组合，**不隔离数据**；真正隔离试用用独立 `DSH_HOME`，或同时覆盖 memory/ledger/projection 的 `dataDir`。
@@ -27,7 +27,7 @@
 | **U home** | `<dshHome>/assistant`：用户内容与插件账本共处一棵**用户可见**的树（下节分表） | 插件拥有、用户可读可改；跨项目；升级/卸载保留 |
 | **S session** | 宿主拥有；四个 prompt 段落随请求进日志；不新增 event 类型 | 会话；只追加；插件不写日志 |
 | **H host state** | 不用 `ctx.storageDomain`；`<dshHome>/assistant-operating` 是**插件自有文件账本** + 操作归档，模型经工具读 | 插件拥有、用户可读；单 writer；可导出 |
-| **K cache** | 只有内存摘要缓存，可重建；补丁启用的 `session-search.db` 是宿主搜索索引 | 运行时/宿主；可丢弃 |
+| **K cache** | 只有内存摘要缓存，可重建；补丁启用的搜索索引落在 `cache/assistant/session-search.db` | 运行时/宿主；可丢弃 |
 | **X credentials** | 宿主拥有；插件不读不写应由凭据服务管理的值；Viki key 只从环境变量读 | 用户/宿主；不进包、不进日志、不导出 |
 
 刻意偏离：working folder 是**用户可见的 U 平面自定义根**，不是 `ctx.storageDomain` 的 host KV，也不是随项目走的 W；账本是**可导出的文件账本**，不占用 H 的 KV 语义。理由与证据 = [`discipline.md`](discipline.md) 适配 13/14、[`release.md`](release.md) 与 `handoff-core`/`assistant-data`/`two-homes`/`old-home-compat` 测试。
@@ -64,7 +64,7 @@
 | 事实 | 依赖层级 | 平面 | 权威 | 位置 | 寿命 | 进插件备份 | 卸载后 |
 |---|---|---|---|---|---|---|---|
 | 会话日志 / 凭据 / 设置 / 宿主 KV | N0/N1 宿主 | S / X / H | 宿主 | `$DSH_HOME/sessions/`、`.credentials.yaml`、`storages/`、`profiles/` 等 | 宿主决定 | 否 | 保留 |
-| 会话搜索索引 | N1 `session-query-sqlite`；模型面 `tool-session-query` 是 **N2 实验面**，回退 = 手册的 raw-log 策略 | 宿主 K | 宿主（本包补丁启用） | `<dshHome>/session-search.db` | 首次检索创建；可重建 | 否 | 保留；要清就删此文件 |
+| 会话搜索索引 | N1 `session-query-sqlite`；模型面 `tool-session-query` 是 **N2 实验面**，回退 = 手册的 raw-log 策略 | 宿主 K | 宿主（本包补丁启用） | `<dshHome>/cache/assistant/session-search.db` | 首次检索创建；可重建 | 否 | 保留；要清就删此目录 |
 | 客户端 UI 状态 | 平台 `localStorage`（非 N0） | 客户端 | 设备/浏览器 | 键清单见下 | 可丢弃 | 否 | 保留；清站点数据 |
 | OpenViking 记忆 | E2 外部服务 | E2 外部服务 | 外部服务 | OpenViking server（可选） | 由服务决定 | 否 | 按 OpenViking 手册清理 |
 
@@ -129,7 +129,7 @@ node .../assistant-data.mjs check  --assistant <DSH_HOME>/assistant --operating 
 ```
 
 - bundle = `assistant/` + `assistant-operating/` + `manifest.json`；manifest 的 `schemaVersion` 当前为 `1`。
-- **不含** sessions/credentials/settings/storages/`session-search.db`；这些要另备整 home。账本里的 session/event 定位在只恢复插件两目录后仍指向原 home 的会话；要把证据链一起带走，另备 `sessions/`。
+- **不含** sessions/credentials/settings/storages/`cache/`；这些要另备整 home。账本里的 session/event 定位在只恢复插件两目录后仍指向原 home 的会话；要把证据链一起带走，另备 `sessions/`。
 - `export` 排除 `writer.lock` / `*.tmp` / `*.takeover`，拒绝符号链接（备份必须是普通文件）；旧的带锁 bundle 在 import 时也会被剔除。导出前停实例，得到跨房间一致的快照。
 - `import` 要求实例已停止；默认要求两个目标目录不存在或为空，非空拒绝、不覆盖。`--replace` 把非空目标改名为 `<dir>.pre-import-<id>` 旁路后再导入，失败时恢复旁路；旁路不删除，确认后可手动清。`--dry-run` 只做与真导入相同的校验并报告文件数与将被旁路的目标，不写盘。
 - 未知 `schemaVersion` 拒绝导入；不猜、不半导入。导入先写 sibling temp，再 rename 就位；失败不留下半成品。

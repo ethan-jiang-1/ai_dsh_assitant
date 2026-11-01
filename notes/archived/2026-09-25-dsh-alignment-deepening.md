@@ -51,7 +51,7 @@
 | `note-archive-judgment` | 判断一篇 implemented note 该留还是冻结进 archived | 本轮现场重推：低未来决策价值判据、`已归档：` 行、入站链接修复、冻结语义 |
 | `pre-push-evidence` | 收尾时按改动面选最小证据 | 硬规则 3 每轮都要判断；本轮 DSH 三次提交全是手工判断（typecheck/test/verify/夹具/build 的取舍） |
 **同 diff 必须做**：根 AGENTS.md 写消歧句（.agents/skills/（新建）=开发用、`presets/assistant/skills/`=模型用），
-否则正撞 `03:17` 警告的同名陷阱。装载面（dev profile 是否扫 .agents/skills/）先查 `dev/profiles/profile-patch.yml`
+否则正撞 `03:17` 警告的同名陷阱。装载面（dev profile 是否扫 .agents/skills/）先查 dev/profiles/profile-patch.yml（2026-11-02 已删除）
 与 `dsh-skill-filesystem` 配置再定，不猜。
 
 ### S4 · 负例控制补课 ✅（优先级 3）

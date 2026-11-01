@@ -32,17 +32,24 @@ const packageDir = join(repoRoot, 'packages', 'dsh-smart-assistant')
 
 const read = path => readFileSync(path, 'utf8')
 
-/** Parse `- id: … / name: … / disabled: …` rows out of a cordis yml. Fails loud on a nameless row. */
+/** Parse `- id: … / name: … / disabled: … / config: …` rows out of a cordis yml.
+ * A row is legal when it carries a `name` (insert), a `disabled` (switch), or a `config`
+ * (a pure override that only retunes an existing row — the shape the product default preset uses).
+ * Fails loud on a row with none of them, because that means the yml shape changed. */
 export function parseRows(text) {
   const rows = []
   let current
+  // Whether the row being read carries any body at all (name / disabled / config). Kept out of the
+  // returned records so consumers keep seeing exactly the fields they always did.
+  let rowHasBody = false
   for (const line of text.split('\n')) {
     const id = /^(\s*)- id:\s*(\S+)\s*$/.exec(line)
     if (id !== null) {
-      if (current !== undefined && current.name === undefined && current.disabled === undefined) {
-        throw new Error(`gen-catalog: row "${current.id}" has neither name nor disabled — the row shape changed`)
+      if (current !== undefined && !rowHasBody) {
+        throw new Error(`gen-catalog: row "${current.id}" has no name, disabled or config — the row shape changed`)
       }
       current = { id: id[2], indent: id[1].length }
+      rowHasBody = false
       rows.push(current)
       continue
     }
@@ -50,12 +57,13 @@ export function parseRows(text) {
     const indent = /^(\s*)/.exec(line)[1].length
     if (indent <= current.indent) continue
     const name = /^\s*name:\s*(.+?)\s*$/.exec(line)
-    if (name !== null && current.name === undefined) current.name = name[1]
+    if (name !== null && current.name === undefined) { current.name = name[1]; rowHasBody = true }
     const disabled = /^\s*disabled:\s*(.+?)\s*$/.exec(line)
-    if (disabled !== null && current.disabled === undefined) current.disabled = disabled[1]
+    if (disabled !== null && current.disabled === undefined) { current.disabled = disabled[1]; rowHasBody = true }
+    if (/^\s*config:\s*$/.test(line)) rowHasBody = true
   }
-  if (current !== undefined && current.name === undefined && current.disabled === undefined) {
-    throw new Error(`gen-catalog: last row "${current.id}" has neither name nor disabled — the row shape changed`)
+  if (current !== undefined && !rowHasBody) {
+    throw new Error(`gen-catalog: last row "${current.id}" has no name, disabled or config — the row shape changed`)
   }
   return rows
 }

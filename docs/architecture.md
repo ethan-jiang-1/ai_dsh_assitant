@@ -283,8 +283,8 @@ pnpm dsh …（package.json scripts → dev/env/dsh.mjs，唯一启动器：
       └ profile 解析（DSH_HOME/profiles/ 里的 dev / dev-task，由 dev/env/setup.sh 建立）
           └ boot graph 按四层装载组合（bundle → profile patch → home patch → --patch，
             细节 owner = docs/dev.md §七）：本包经 package.json 的 dsh.bundle.patch
-            → cordis.patch.yml 进入 bundle 层；profile 层是 setup.sh 拷贝的
-            dev/profiles/profile-patch.yml（dev）/ dev/profiles/profile-patch-headless.yml（dev-task）
+            → cordis.patch.yml 进入 bundle 层（含默认 preset）；profile 层只有 dev-task 拷
+            dev/profiles/profile-patch-headless.yml（dev 不写 profile patch）
           └ 行实例化：host 服务行与 preset 行读 built lib/（pnpm build 产物——
             改 src 不 build = 行 never started 或旧行为）；client 面经
             package.json 的 dsh.client → ./client 出口被 client-modules 自动发现
