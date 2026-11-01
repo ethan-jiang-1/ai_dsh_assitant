@@ -129,7 +129,6 @@
     "seeds",
     "locale",
     "icon.svg",
-    "bootstrap.mjs",
     "LICENSE",
     "cordis.patch.yml",
     "README.md",

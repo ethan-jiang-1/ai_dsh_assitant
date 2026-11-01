@@ -50,8 +50,22 @@ import { homedir } from 'node:os'
 import { basename, dirname, isAbsolute, join, parse, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-const packageRoot = dirname(fileURLToPath(import.meta.url))
-const packageManifest = JSON.parse(readFileSync(join(packageRoot, 'package.json'), 'utf8'))
+// The installer ships as its own release asset (`_dist/bootstrap.mjs`, S5 2026-11-02), so it can no
+// longer assume the package sits beside it: `--package <dir>` names the unpacked package it should
+// install. Without the flag the historical layout (script inside the package root) still works.
+const argvEarly = process.argv.slice(2)
+const earlyValue = (name) => {
+  const index = argvEarly.indexOf(name)
+  return index === -1 ? undefined : argvEarly[index + 1]
+}
+const packageRoot = resolve(earlyValue('--package') ?? dirname(fileURLToPath(import.meta.url)))
+let packageManifest
+try {
+  packageManifest = JSON.parse(readFileSync(join(packageRoot, 'package.json'), 'utf8'))
+} catch {
+  console.error(`bootstrap: no readable package.json under ${packageRoot} — pass --package <unpacked package dir> or run the copy that sits beside the package`)
+  process.exit(2)
+}
 const isWindows = process.platform === 'win32'
 
 /**

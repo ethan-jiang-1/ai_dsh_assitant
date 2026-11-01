@@ -45,6 +45,8 @@
     "compat-matrix": "node scripts/release/compat-matrix.mjs",
     "agent-preset-ui": "node dev/probes/web/agent-preset-ui.mjs",
     "export-dist": "node scripts/release/export-dist.mjs",
+    "publish-release": "node scripts/release/publish.mjs",
+    "market": "node scripts/release/market.mjs",
     "preflight": "node dev/probes/web/webui-preflight.mjs",
     "shots": "node dev/probes/web/webui-shots.mjs",
     "web-expected": "node dev/probes/web/webui-expected.mjs",

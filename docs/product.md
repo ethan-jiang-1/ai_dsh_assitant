@@ -9,7 +9,7 @@
 产品 = **一个 dedicated `assistant` profile 的组合**，不是启动器，也不是另一个 home：
 
 ```text
-① 插件包（只读、随版本）      bundle patch / preset / skills / seeds / client / bootstrap.mjs
+① 插件包（只读、随版本）      bundle patch / preset / skills / seeds / locale / client
 ② 产品 profile（用户侧组合）   assistant：web 模板 + 产品 bundle + 默认 preset + 产品 Config
 ③ 用户 workspace（用户项目）   项目文件 + deliverables/<date>-<slug>/（run bundle）
 ④ 宿主 home（DSH 运行态）      sessions / credentials / storages / workspace registry / 产品 home（可选）
@@ -30,19 +30,21 @@
 |---|---|---|---|---|
 | **A. Plugins 页（DSH 推荐）** | web/Desktop 用户 | 启动 profile → **Plugins** → **Add plugin** → **Install a third-party plugin** → 填 tarball 绝对路径/包名/Git/本地目录 → 启用 → 重启；dedicated `assistant` profile 先建/启动它，再在页面装 | 当前 `DSH_HOME` / Desktop profile | 首启 onboarding 写 profile Config |
 | **B. CLI**（自动化 / 非 GUI surface） | 自动化/本地 tarball/headless·SDK·ACP | `dsh plugin --profile assistant add <tgz>` → 重启 | 当前 `DSH_HOME` | 同上 |
-| **C. 产品安装器**（可选，自托管/shell） | 不熟 DSH/离线 | `node bootstrap.mjs --workspace <目录>`；之后 `--product` 启动 | 默认 `~/.dsh-smart-assistant`（可 `--home`） | 首启 `ASSISTANT_WORKSPACE` + 产品行写 profile Config |
+| **C. 产品安装器**（可选，独立发布资产，**不在包里**） | 不熟 DSH/离线 | `node bootstrap.mjs --package <解开的包> --workspace <目录>`；之后 `--product` 启动 | 默认 `~/.dsh-smart-assistant`（可 `--home`） | 首启 `ASSISTANT_WORKSPACE` + 产品行写 profile Config |
 | **D. Desktop** | Desktop 用户 | Desktop 的 Plugins 页同上；CLI 不碰 `desktop` | Desktop 的 `desktop` profile | 首启 onboarding（若客户端可用）；不承诺独立 profile/home |
 
 **Plugins 页是 DSH 推荐入口**：它没有 profile 参数，装的是“当前 profile”，**不创建** profile。要用 dedicated `assistant` profile，先建并启动它，再在页面装、启用、重启。CLI 面向 `dsh web` 自动化，headless/SDK/ACP 没有 Plugins 页，也用 CLI 显式 profile；Desktop 只用 Desktop 的 Plugins 页；产品安装器是 shell/自托管路径，不是 DSH 的默认安装方式。
 
-### 2.2 产品安装器（可选，`bootstrap.mjs`）
+### 2.2 产品安装器（可选，独立资产 `bootstrap.mjs`，不在包里）
+
+发布物里它是 `_dist/bootstrap.mjs` ＋ `.sha256`，与 tarball 同目录；`--package` 指向解开的产品包。
 
 它是 shell/自托管路径，不是 DSH 的默认安装方式。
 
 ```sh
-node bootstrap.mjs --workspace <dir> [--home <dir>] [--profile assistant] [--dsh <cmd>] [--offline]
-node bootstrap.mjs --product [--home <dir>]
-node bootstrap.mjs --stop [--home <dir>] [--product]
+node bootstrap.mjs --package <解开的包> --workspace <dir> [--home <dir>] [--profile assistant] [--dsh <cmd>] [--offline]
+node bootstrap.mjs --package <解开的包> --product [--home <dir>]
+node bootstrap.mjs --package <解开的包> --stop [--home <dir>] [--product]
 node bootstrap.mjs --no-start ...
 ```
 

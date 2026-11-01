@@ -186,7 +186,7 @@ seam 的成色读数是**第二个真实 Provider 出现而 Consumer 一行不�
 | `src/domain/product/workspace-path.ts` | 工作区路径策略（绝对/存在/可读写/禁 root/home/产品 home/包内；符号链接按目标判）；产品行与测试共用 | 无（最底层） |
 | `src/host/product/` | 产品行（web-only）：`workspaceDir`/`onboarding` Config + `ASSISTANT_WORKSPACE` 一次性覆盖；boot 用 `workspaceRegistry.create` 登记；GET/POST `api/assistant/product`，POST 经 `settings.update` 写 profile patch；路由核与状态机分开，headless profile patch 禁用 | domain/product + dsh-client-connection + dsh-workspace + settings（可选） |
 | `src/client/product/product-gate.ts` | 产品门：`main` 面板外包一层；404/无产品行透明；`not-configured` 且 onboarding 开时显示首启选目录；ready 显示工作区/“开始一件事”/“换项目”；missing/invalid 显示恢复面 | 纯解析 + react surface + DSH directoryPicker |
-| `bootstrap.mjs` | 产品安装器：`--workspace`/`--product`/`--stop`；经官方 CLI 建/复用 profile、装 tarball、起 boot；`--workspace` 只设一次性 `ASSISTANT_WORKSPACE`，不写工作区文件；无 `--workspace` 时 standalone 模式 | 仅 Node + 官方 dsh CLI |
+| `bootstrap.mjs` | 产品安装器（**独立发布资产，不在包里**）：`--package`/`--workspace`/`--product`/`--stop`；经官方 CLI 建/复用 profile、装包、校验组合、起 boot；不写 profile patch、不写工作区文件；无 `--workspace` 时 standalone 模式 | 仅 Node + 官方 dsh CLI |
 | `src/cli/` + `bin/` + `bootstrap.mjs` | 交付/部署面：专家装配（`expert-setup`）、两目录数据 bundle（`assistant-data`）、独立目录 bootstrap；只跑 Node + 纯核，不进模型上下文 | domain 纯核 + `yaml` |
 | `src/host/index.ts` + `src/host/service.ts` | 服务实现：把领域模块组装成 `ctx.assistantMemory`；公开的 `HomeHost`/`RoomReadResult` 契约在 `service.ts`，房间与摘要按它消费，不反向依赖组装文件 | 全部 |
 | `src/agent/tool-support/presentation.ts` | agent 面工具共享的 presenter 管道：`presentationMeta` 投影摘要 → `presentResult` 从 `result.meta` 读回（完成卡读不到规范值，只能读持久化载荷） | dsh-tools 类型 |

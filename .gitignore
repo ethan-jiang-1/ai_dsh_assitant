@@ -27,6 +27,10 @@ dev/trial-home*/
 
 # 打包与冒烟残留
 *.tgz
+# 发布资产由 export-dist 生成（从包内源拷贝），只入《安装手册》
+_dist/bootstrap.mjs
+_dist/bootstrap.mjs.sha256
+_dist/market/
 # 例外：vendor/thirdparty/ 的钉存上游包是证据/离线安装物，不是打包残留（见其 README）
 !vendor/thirdparty/openviking/*.tgz
 # 仓内唯一的临时落点（硬规则 8）：脚本、探针、评测、测试夹具、插件运行时的临时产物都写这里。

@@ -4,7 +4,8 @@
  * profile-repair `rmSync`, shipped profile names (including Desktop's reserved `desktop`) must be
  * refused, and the pnpm/npm prerequisites must fail before the home is created.
  *
- * The test packs the package and runs the *shipped* bootstrap from the extracted tarball. Every
+ * The test packs the package, extracts it, and runs the *release-asset* bootstrap against it with
+ * `--package <extracted>` (the installer no longer rides inside the bundle — S5, 2026-11-02). Every
  * case uses a stub `dsh` that exits 97, so reaching the launcher is observable: the guards must
  * stop before it. POSIX only (the stubs are shell scripts); Windows behaviour is a separate,
  * explicitly unverified matrix.
@@ -13,7 +14,7 @@
  * Exit 0 = every guard refused the input without touching the victim or creating the home.
  */
 import { execFileSync, spawnSync } from 'node:child_process'
-import { chmodSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { chmodSync, copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -45,6 +46,7 @@ function output(result) {
 }
 
 let bootstrap
+  let packageArg
 try {
   step('packing and extracting the shipped package')
   const packed = run('pnpm', ['--dir', packageDir, 'pack', '--pack-destination', root])
@@ -54,9 +56,14 @@ try {
     const extracted = join(root, 'pkg')
     mkdirSync(extracted, { recursive: true })
     const untar = run('tar', ['-xzf', tarball, '-C', extracted])
-    bootstrap = join(extracted, 'package', 'bootstrap.mjs')
-    if (untar.status !== 0 || !existsSync(bootstrap)) fail('extracted package has no bootstrap.mjs')
-    else ok('shipped bootstrap extracted')
+    // The installer is its own release asset; the extracted package must NOT contain it.
+    if (existsSync(join(extracted, 'package', 'bootstrap.mjs'))) fail('the bundle still ships bootstrap.mjs — the installer is a separate asset')
+    else ok('bundle ships no installer')
+    bootstrap = join(root, 'bootstrap.mjs')
+    copyFileSync(join(repoRoot, 'packages', 'dsh-smart-assistant', 'bootstrap.mjs'), bootstrap)
+    packageArg = join(extracted, 'package')
+    if (!existsSync(bootstrap)) fail('could not stage the installer asset')
+    else ok('installer asset staged beside the extracted package')
   }
 
   const stubDir = join(root, 'stub-bin')
@@ -66,7 +73,7 @@ try {
   chmodSync(stub, 0o755)
 
   const call = (home, profile, extra = [], env = {}) => run(process.execPath, [
-    bootstrap, '--home', home, '--profile', profile, '--no-start', '--dsh', stub, ...extra,
+    bootstrap, '--package', packageArg, '--home', home, '--profile', profile, '--no-start', '--dsh', stub, ...extra,
   ], { cwd: root, env: { ...process.env, ...env } })
 
   step('a traversal profile name refuses before the profile repair can delete outside the home')

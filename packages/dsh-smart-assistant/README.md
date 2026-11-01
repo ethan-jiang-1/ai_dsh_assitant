@@ -1,3 +1,8 @@
+---
+description: "A DSH bundle that turns an agent preset into a long-lived assistant with its own working folder: memory, research, skills, knowledge, and an operating ledger."
+kind: "package-bundle"
+---
+
 # dsh-smart-assistant
 
 一个 DSH **产品**：dedicated `assistant` profile 的组合；工作区绑定在 `assistant-product.workspaceDir`（profile Config），会话落在用户项目里；助手的大脑留在自己的 home，一次作业的交付包留在项目里。产品 home 是部署选项，不是安装要求。
@@ -11,38 +16,50 @@
 - **一个只读部署自检 CLI**：`ov-doctor`（`bin/ov-doctor.mjs`；装好可选 OpenViking 层后在 profile 内运行，见安装手册的 OV 自检节）。
 - **一个专家装配 CLI**：`expert-setup`（`bin/expert-setup.mjs`；把管理种子显式导入为 `draft`，不自动 stable）。
 - **一个数据备份/诊断 CLI**：`assistant-data`（`bin/assistant-data.mjs`；导出/导入 `assistant` + `assistant-operating`，带 schema manifest；另有 `status`/`check`、`import --replace`/`--max-bytes`、`rotate` 与显式 `purge`）。
-- **一个可选产品安装器**：`bootstrap.mjs`（`--workspace` 建/复用 `assistant` profile、给首启一个 `ASSISTANT_WORKSPACE` 覆盖、起 Web；`--product` 从 profile Config 恢复；`--stop` 收；默认产品 home `~/.dsh-smart-assistant`，不碰日用 `~/.dsh`）。不写工作区绑定文件；没有 `--workspace`/`--product` 时仍是 standalone 模式。
+- **一个可选产品安装器（独立发布资产，不在包里）**：`bootstrap.mjs`（`--package` 指向解开的产品包；`--workspace` 建/复用 `assistant` profile、给首启一个 `ASSISTANT_WORKSPACE` 覆盖、起 Web；`--product` 从 profile Config 恢复；`--stop` 收；默认产品 home `~/.dsh-smart-assistant`，不碰日用 `~/.dsh`）。它**不写** profile patch，也不写工作区绑定文件。
 - **一个产品工作区行**：`assistant-product`（web-only；`workspaceDir`/`onboarding` Config + `ASSISTANT_WORKSPACE` 一次性覆盖；boot 时登记工作区；GET/POST `api/assistant/product`，POST 经 `settings.update` 写 profile patch；headless profile patch 禁用）。
 - **默认身份是管理岗**（P1）：`SOUL.md` 是数据，种子与回退一致；管理种子只在显式装配时进入知识室，安装不写 working folder。
 
 ## Install
 
-**DSH 推荐：应用内 Plugins 页。** 启动 profile（`dsh --profile <你的 profile>` 或 `dsh web`）→ 侧栏 **Plugins**
-→ **Add plugin** → **Install a third-party plugin** → 填 tarball 的绝对路径（或已发布包名 / Git 地址 / 本地目录）
-→ 启用 → 重启 profile。页面装的是**当前 profile**，不创建 profile。
+**在 DSH 的 Plugins 页装**（`dsh web` 与 Desktop 同一句话；页面装的是**当前 profile**，不创建 profile）：
 
-要 dedicated `assistant` profile：
+1. 启动一个 web profile（`dsh web`，或 dedicated profile：`dsh --profile assistant --from-default-profile web --dump-config`）。
+2. 侧栏 **Plugins** → **Add plugin** → **Install a third-party plugin** → 填包名 `dsh-smart-assistant`（或本地 tarball 的绝对路径）。
+3. 启用、**重启 profile**（bundle membership 变化要重启）。
 
-```sh
-dsh --profile assistant --from-default-profile web   # ① 一次性建 profile（已有 profile 不要用）
-dsh --profile assistant                              # ② 启动
-# ③ Plugins 页装 tarball/包名（当前 profile = assistant）；启用并重启
-```
+装完即产品：`--dump-config` 应看到 `preset-assistant`、`assistant-memory`、`assistant-product`，且
+`agent-preset-registry` 的 `default:` 是 `assistant` —— **不需要改 profile patch**，默认 preset 随 bundle 发。
+已选过预设的用户（`selectedDefault`）不受影响，卸载后回到 `standard`。
 
-**本地 tarball/自动化**：`dsh plugin --profile assistant add <tarball>`，装完重启；它面向 `dsh web` 自动化，headless/SDK/ACP
-没有 Plugins 页，也用 CLI 显式 profile；Desktop 用 Desktop 的 Plugins 页，普通 CLI 不能管理 `desktop`。装完 `--dump-config` 应看到 `assistant-product` 与
-`preset-assistant`。
-
-**可选：产品安装器（自托管 / 一条命令）**：没有 DSH 经验或需要离线时：
+**CLI（自动化 / 无 Plugins 页的 surface）**：
 
 ```sh
-node bootstrap.mjs --workspace /path/to/your-project
-node bootstrap.mjs --product          # 之后从 profile Config 恢复
-node bootstrap.mjs --stop --home ~/.dsh-smart-assistant --product
+dsh plugin --profile <profile> add dsh-smart-assistant
+dsh --profile <profile> --dump-config     # 找 preset-assistant 与 agent-preset-registry 的 default: assistant
 ```
 
-它不是 DSH 的默认安装方式；`--workspace` 只设一次性 `ASSISTANT_WORKSPACE`，不写工作区绑定文件；产品 home
-默认 `~/.dsh-smart-assistant`（不碰日用 `~/.dsh`；`--home ~/.dsh` 才是显式共享）。
+CLI 面向 `dsh web` 自动化，**不能管理 `desktop`**（Desktop 用 Desktop 的 Plugins 页）。
+
+**本 bundle 是 web 面的组合。** 它 override 的 vendor 行（`ui-chat` / `locale` / `ui-sidebar-terminal`）与必注
+`connection`/`workspaceRegistry` 的产品行只在 web 组合里成立。装进 headless/SDK/ACP profile 时组合仍能起，
+但会看到 `patch: entry "ui-sidebar-terminal" not found`，且这几行停在 pending —— 要在 headless 里用它，加一行：
+
+```yaml
+- id: assistant-product
+  disabled: true
+```
+
+**安装器不是包的一部分。** 自托管/一条命令部署用独立发布的 `bootstrap.mjs`（在发布资产里，与 tarball 同目录）：
+
+```sh
+node bootstrap.mjs --package ./package --workspace /path/to/your-project
+node bootstrap.mjs --package ./package --product    # 之后从 profile Config 恢复
+node bootstrap.mjs --package ./package --stop --home ~/.dsh-smart-assistant --product
+```
+
+它只建/复用 `assistant` profile、装包、校验组合、起 Web；`--workspace` 只设一次性 `ASSISTANT_WORKSPACE`。
+产品 home 默认 `~/.dsh-smart-assistant`（不碰日用 `~/.dsh`；`--home ~/.dsh` 才是显式共享）。
 
 需要 DSH `>=0.2.1-rc.2 <0.3.0-0`、Node `^22.19.0 || >=24`，以及 PATH 上的 `pnpm >= 10.6.0`
 （10.4 及更低会报 `ERR_PNPM_ADDING_TO_ROOT`；Corepack 已启用也算）。首次安装需要访问 npm registry
@@ -126,6 +143,20 @@ Viki 的 API key 从 `apiKeyEnv`（默认 `OPENVIKING_API_KEY`）读；内联 `a
 `pnpm-workspace.yaml` 设置支持：10.4 及更低直接拒绝安装，10.5 会忽略 linker 设置。
 历史 typecheck 台账在 repo-only `release-verification.json`，不随包发布，也不是当前支持承诺；
 更老的 DSH 版本不在支持矩阵内。
+
+## Upgrade
+
+```sh
+dsh plugin --profile <profile> add dsh-smart-assistant@<new-version>
+# 重启 profile（运行中的 Web 不会热替换代码）
+dsh --profile <profile> --dump-config      # 仍应看到 preset-assistant 与 default: assistant
+```
+
+- **没有命令级回滚**（DSH 也没有）：回退 = 重装旧版本（`add dsh-smart-assistant@<old-version>`）。
+  升级前记下当前版本；数据格式不兼容时先恢复备份（`assistant-data import`）。
+- working folder、账本、`cache/assistant/` 跨升级保留；升级不写用户数据。
+- 升级后如果默认 preset 变了，先看 `--dump-config` 里的 `agent-preset-registry`：用户级
+  `selectedDefault` 优先于 bundle 默认。
 
 ## Uninstall
 
