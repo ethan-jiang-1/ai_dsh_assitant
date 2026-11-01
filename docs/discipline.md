@@ -68,6 +68,13 @@
 
 14. **会话召回：N1 索引 + N2 模型面 + 声明式回退**（约束：FAQ 24/26 把 `packages/experimental/*` 归 N2——只借鉴、不写进长期发布依赖；组合又需要一个模型可见的召回入口）→ 索引用 N1 `session-query-sqlite`（可删可重建），模型面用 N2 `tool-session-query`（版本随 `engines.dsh` 走），手册的会话召回段与 `session-recall` 技能把 raw 日志严格写成跨项目/精确子串/索引缺席时的显式回退，并声明跨项目读取是主动动作。证据 = `prompt-smoke` 的「新策略在场、旧指令缺席」断言；`tool-session-query` README 的同 cwd 授权。
 
+15. **dev 快环与用户安装路径不是同一条路，但差异必须有界且登记**（约束：热重建需要 pnpm link + vendor 源码；
+   用户装的是 tarball + 已安装 `dsh`，而且仓内没有 CI，发布 smoke 只在发布时跑）→ dev-only 行不写 profile
+   用户层，改走 `$DSH_HOME/dev-overlay-<profile>.yml` 的 `--patch`；安装断点在开发环由 `pnpm install-parity`
+   真走一次（pack → 干净 web profile → `dsh plugin add` → dump）；机制点差异登记在 [`dev.md`](dev.md) §十，
+   表外差异由 `dev-parity` 门禁点名。证据 = `install-parity` 的 green + 缺件红夹具；`dev-parity` 的负例夹具
+   （`tests/tooling/dev-parity.spec.mjs`）。
+
 ## 复查环（防"一次性快照再烂"）
 
 - `pnpm sync-dsh` 升 pin 时：对照本文逐行重校（vendor 的套路在演进，继承必须跟着 pin 走）；并

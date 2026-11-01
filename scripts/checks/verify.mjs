@@ -18,7 +18,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { agentsMdStabilityProblems, archivedNotePointerProblems, backtickedRepoPathProblems, backlogGraduationProblems, backlogLivenessProblems, implementedNoteEvidenceProblems, clientScriptSafetyProblems, commandAliasProblems, commitSafetyProblems, trackedContentProblems, trackedDataPaths, compositionRowProblems, configParseProblems, crossFileSectionProblems, dependencyPoseProblems, devDrawerCoverageProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, graduatedProposalProblems, homeDocContractProblems, implementedAlternativesProblems, identityNameProblems, languageGuardProblems, markdownCorpusFromTracked, notesNamingProblems, notePointerProblems, notesStateProblems, importResolutionProblems, notesTopLevelProblems, overrideLedgerProblems, pinProblems, machineLocalPathProblems, packageBuildFreshnessProblems, packageSubpathProblems, playbookFrontmatterProblems,
+import { agentsMdStabilityProblems, archivedNotePointerProblems, backtickedRepoPathProblems, backlogGraduationProblems, backlogLivenessProblems, implementedNoteEvidenceProblems, clientScriptSafetyProblems, commandAliasProblems, commitSafetyProblems, trackedContentProblems, trackedDataPaths, compositionRowProblems, configParseProblems, crossFileSectionProblems, dependencyPoseProblems, devDrawerCoverageProblems, devParityProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, graduatedProposalProblems, homeDocContractProblems, implementedAlternativesProblems, identityNameProblems, languageGuardProblems, markdownCorpusFromTracked, notesNamingProblems, notePointerProblems, notesStateProblems, importResolutionProblems, notesTopLevelProblems, overrideLedgerProblems, pinProblems, machineLocalPathProblems, packageBuildFreshnessProblems, packageSubpathProblems, playbookFrontmatterProblems,
   runtimeTsconfigProblems, selfContainmentProblems, skillFrontmatterKeyProblems, skillNameGrammarProblems, relativeLinkProblems, researchSubdirProblems, rootCommandBudgetProblems, scratchPathProblems, skillFrontmatterProblems, startPathProblems, tagVersionProblems, testAssetNamingProblems, textHygieneProblems, toolCommentNameProblems, vendorClientFreshnessProblems, webFaceExpectedHealthProblems } from './verify-checks.mjs'
 import * as gateCores from './verify-checks.mjs'
 import { runChecks } from './run-gates.mjs'
@@ -87,6 +87,7 @@ const REQUIRED_PATHS = [
   'packages/dsh-smart-assistant/src/agent/memory-digest/index.ts',
   'packages/dsh-smart-assistant/src/agent/learn/index.ts',
   'scripts/release/release-smoke.mjs',
+  'scripts/release/install-parity.mjs',
   'scripts/maintenance/sync-dsh.mjs',
   'scripts/generate/gen-paths.mjs',
   'tsconfig.tsx.json',
@@ -252,6 +253,21 @@ check('structure: dev/ tree entries are all named in the dev drawer map', () =>
   devDrawerCoverageProblems({
     entries: readdirSync(join(repoRoot, 'dev'), { withFileTypes: true }).map(dirent => dirent.name),
     drawerText: read(join(repoRoot, 'dev', 'AGENTS.md')),
+  }))
+
+// The dev fast loop and the user's install path are not the same road (link + vendor source vs
+// tarball + installed dsh). The differences are allowed only when registered in docs/dev.md §十,
+// and the two mechanisms that make them bounded — the dev overlay and the tarball lane — must stay
+// wired; otherwise the table becomes prose that no longer describes the tree.
+check('parity: the dev-channel table and its tarball lane stay wired', () =>
+  devParityProblems({
+    devDoc: read(join(repoRoot, 'docs', 'dev.md')),
+    setupScript: read(join(repoRoot, 'dev', 'env', 'setup.sh')),
+    launcher: read(join(repoRoot, 'dev', 'env', 'dsh.mjs')),
+    commandsDoc: read(join(repoRoot, 'docs', 'commands.md')),
+    testingDoc: read(join(repoRoot, 'docs', 'testing.md')),
+    laneExists: exists(join(repoRoot, 'scripts', 'release', 'install-parity.mjs')),
+    scripts: JSON.parse(read(join(repoRoot, 'package.json'))).scripts,
   }))
 
 // Both research shelves are one directory per research topic (2026-10-30). The topic core is the
