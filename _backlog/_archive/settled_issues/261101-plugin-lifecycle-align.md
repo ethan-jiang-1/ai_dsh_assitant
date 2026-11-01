@@ -1,11 +1,11 @@
 ---
-status: 推敲中
+status: 已结
 opened: 2026-11-01
 ---
 
 # 推敲：按 DSH 生命周期重排插件形态（bundle-first，从"安装器点亮"到"装上即产品"）
 
-> 立卡：2026-11-01 ｜ 状态：推敲中（2026-11-02 本人授权落地，卡转收口卡） ｜ 类型：Task ｜ 可关闭：否 ｜ 毕业：做现在
+> 立卡：2026-11-01 ｜ 状态：已结（2026-11-02 关闭）｜ 结论：七片全落，A1–A8 达成（A2/A3 的 registry 半步是本人动作）；决定见 `notes/implemented/2026-11-02-bundle-first-lifecycle.md` ｜ 类型：Task ｜ 可关闭：是 ｜ 毕业：做现在
 
 **问题与期望结果：** `_dist/` 的发行物（tgz ＋ 安装手册）看着不像 DSH 生态里的普通插件：要照着说明书先建 profile、
 再改 profile patch，产品才亮；发不出去（`private`），市场卡片没有标题/图标/作者。期望的结果是——
@@ -144,17 +144,16 @@ opened: 2026-11-01
 
 ## 验收标准
 
-| # | 验收 | 判据（可执行） |
-|---|---|---|
-| A1 | 装上即产品 | 全新 `DSH_HOME` → `dsh --profile web --dump-config` 建 profile → `dsh plugin add ./dsh-smart-assistant-<v>.tgz` → `--dump-config` 出现 `default: assistant` 与 `preset-assistant`；**全程不改 profile patch**；boot 一次无 required 失败；`dev/probes/web/agent-preset-ui.mjs` 断言卡片显示「新任务默认: 章鱼管家」（不改写，只读断言） |
-| A2 | 可发布 | `npm publish` 不再被 `EPRIVATE` 拒；干净 home 里 `dsh plugin add dsh-smart-assistant@<v>` 走 registry 成功并进 `dsh.profile.bundles` |
-| A3 | 展示面正常 | 生成的 `index.json` 过 `parseMarketIndex`；`metadata.title/description/icon/author/homepage/keywords` 非回退值（title ≠ 包名）；**且 Plugins 页那一行有标题（非包名）与描述**（客户端只读 `meta`） |
-| A4 | surface 诚实 | headless 安装后按 README 片段操作：无未解释的 warning/pending；README 明确"web only" |
-| A5 | 卸载残留可解释 | `remove` 后 home 根不出现 `session-search.db`；缓存位于 `$DSH_HOME/cache/assistant/`；README 列出留下什么、怎么清 |
-| A6 | override 有退役纪律 | 每处 vendor override 在**台账**里有"复核条件/退役条件（含实测依据）"；`ui-chat` 的退役条件登记为「发布人口 rc.5 起自带兜底」——**本 pin 不要求退役**（2026-11-02 决议 5：抬 pin 是独立工作） |
-| A7 | 文档一致 | README 七节、手册十段齐全；关于默认 preset 只有一种说法（门禁 grep 旧的自相矛盾表述） |
-| A8 | 证据链 | `pnpm verify`、`pnpm release-smoke` 绿；`_dist/` 产物可由 tag 处的提交复现（记录 checksum） |
-
+| # | 验收 | 判据（可执行） | 结论（2026-11-02） |
+|---|---|---|---|
+| A1 | 装上即产品 | 全新 `DSH_HOME` → `dsh --profile web --dump-config` 建 profile → `dsh plugin add ./dsh-smart-assistant-<v>.tgz` → `--dump-config` 出现 `default: assistant` 与 `preset-assistant`；**全程不改 profile patch**；boot 一次无 required 失败；`dev/probes/web/agent-preset-ui.mjs` 断言卡片显示「新任务默认: 章鱼管家」（不改写，只读断言）| **达成** — `pnpm release-smoke`：`web profile: tarball-only install defaults to the product preset (no profile patch)`；隔离 home 手工复验同结论 |
+| A2 | 可发布 | `npm publish` 不再被 `EPRIVATE` 拒；干净 home 里 `dsh plugin add dsh-smart-assistant@<v>` 走 registry 成功并进 `dsh.profile.bundles`| **本仓侧达成** — `npm publish --dry-run` 通过（322 files / 558.7 kB）、无 `EPRIVATE`；`publish-release` 把真发布拦在本人那一步（决议 2）。registry 安装待发布后复验 |
+| A3 | 展示面正常 | 生成的 `index.json` 过 `parseMarketIndex`；`metadata.title/description/icon/author/homepage/keywords` 非回退值（title ≠ 包名）；**且 Plugins 页那一行有标题（非包名）与描述**（客户端只读 `meta`）| **展示面达成** — 用宿主 `readPluginMeta` 实测：title `{en: Smart Assistant, zh: 章鱼管家}`、双语描述、`data:image/svg+xml` 图标（非回退包名）。**索引生成待发布**（generator 只读 registry；管线用两个已发布包实测通过） |
+| A4 | surface 诚实 | headless 安装后按 README 片段操作：无未解释的 warning/pending；README 明确"web only"| **达成** — README 明写「本 bundle 是 web 面的组合」+ headless `assistant-product disabled: true` 片段；手册新增「选运行时」 |
+| A5 | 卸载残留可解释 | `remove` 后 home 根不出现 `session-search.db`；缓存位于 `$DSH_HOME/cache/assistant/`；README 列出留下什么、怎么清| **达成** — 派生索引移到 `<home>/cache/assistant/session-search.db`；`docs/delivery.md`/`docs/release.md`/README 同步；`remove` 后 home 根不再出现该文件 |
+| A6 | override 有退役纪律 | 每处 vendor override 在**台账**里有"复核条件/退役条件（含实测依据）"；`ui-chat` 的退役条件登记为「发布人口 rc.5 起自带兜底」——**本 pin 不要求退役**（2026-11-02 决议 5：抬 pin 是独立工作）| **达成（按 2026-11-02 决议 5 改写判据）** — `docs/product.md` §十 台账 6 行（含复核/退役条件）；`pnpm verify` 的 `overrides` 门守裸 id 覆盖；`ui-chat` 退役条件登记为「发布人口 rc.5 起已带兜底」 |
+| A7 | 文档一致 | README 七节、手册十段齐全；关于默认 preset 只有一种说法（门禁 grep 旧的自相矛盾表述）| **达成** — README 七节 + 手册骨架由 `docShapeProblems` 门守（export-dist 每次跑）；默认 preset 只有一种说法（README / 手册 / release 宪章一致） |
+| A8 | 证据链 | `pnpm verify`、`pnpm release-smoke` 绿；`_dist/` 产物可由 tag 处的提交复现（记录 checksum）| **达成** — `pnpm verify` 52/52、`pnpm test` 1168 passed、`pnpm export-dist` 12 条 ok、`pnpm release-smoke` 唯一 BLOCKED 是无 key 的 live turn（出口 2，不是通过）、`pnpm publish-release` 干跑绿；`_dist/` 可由当前提交复现（版本 0.1.13，同一条 export 命令） |
 ## 决策与授权（2026-11-02，本人授权落地）
 
 本人 2026-11-02 授权："让 `_backlog/issues` 的内容完全按本仓流程落地"。本卡由推敲卡**转为收口卡**，
@@ -182,17 +181,25 @@ opened: 2026-11-01
 | W0 流程载体 | 本卡转收口卡、授权与决议入档 | 完成 | 本节 |
 | S1 bundle 自足 | 装进任意 web profile、不碰 profile patch，`--dump-config` 出现 `default: assistant` | 完成 | 隔离 home `.tmp/s1/home` 建 stock `web` profile → `dsh plugin add` 本包 → `--dump-config` 出现 `default: assistant`、`preset-assistant`，**全程零 profile patch**；派生索引落到 `dshCachePath('assistant','session-search.db')`；`bootstrap.mjs` 不再写 profile patch；`pnpm verify` 51/51；`vitest composition+tooling` 412 passed |
 | S2 发包就绪 | 去 `private`；locale/icon/keywords 齐；Plugins 页那一行有标题与描述 | 完成 | `private` 已删、`npm publish --dry-run` 通过（322 files / 558.7 kB）；`locale/en+zh.json` + `icon.svg` + `keywords` 随包；`export-dist` 三条新判据 ok（publishable / display metadata / 打包无 `src` 载荷）；包体 891→548 KB |
-| S3 发布与市场 | 一条命令产出「可发布包 ＋ `_dist/` ＋ `market/index.json`」 | 待办 | |
-| S4 文档分层 | 插件 README 七节、产品手册十段；默认 preset 只有一种说法 | 待办 | |
-| S5 安装器归位 | 包内不再有安装器；改独立资产 | 待办 | |
-| S6 门禁 | 四条新检查各带负例夹具 | 待办 | |
-| S7 收口 | A1–A8 全绿证据 ＋ 归档 ＋ 决定 note | 待办 | |
+| S3 发布与市场 | 一条命令产出「可发布包 ＋ `_dist/` ＋ `market/index.json`」 | 完成 | `pnpm publish-release` 预检全绿（版本一致/未发布/build/export-dist/verify，停在 publish 前）；`pnpm market` 调官方 generator + `parseMarketIndex` 校验，未发布时明确拒绝且不留残留；generator 管线用两个已发布包实测（写出 2 个 plugin，terminal-bundle 的 title/icon 正常）；**真发布待本人** |
+| S4 文档分层 | 插件 README 七节、产品手册十段；默认 preset 只有一种说法 | 完成 | README 加 frontmatter + 七节（含 `## Upgrade`）、明写 web 面与 headless disable 行；手册新增「选运行时」「安全」，卸载标题改为「删包，留数据」；`docShapeProblems` 门守两侧形状 |
+| S5 安装器归位 | 包内不再有安装器；改独立资产 | 完成 | `files` 去 `bootstrap.mjs`；export-dist 产出 `_dist/bootstrap.mjs` ＋ `.sha256`；新增 `--package`；`bootstrap-guards-smoke` 8 项拒绝 +「bundle ships no installer」全绿 |
+| S6 门禁 | 四条新检查各带负例夹具 | 完成 | ① 包形状 `manifestShapeProblems`（export-dist）；② override 台账 `overrideLedgerProblems`（verify，台账在 `docs/product.md` §十）；③ 市场条目 `market.mjs` 的 `parseMarketIndex`；④ 文档形状 `docShapeProblems`（export-dist）。夹具：`publish-shape.spec.mjs` 14 案、`overrides.spec.mjs` 4 案 |
+| S7 收口 | A1–A8 全绿证据 ＋ 归档 ＋ 决定 note | 完成 | 见上表结论列；决定 note `notes/implemented/2026-11-02-bundle-first-lifecycle.md`；本卡归档 `_archive/settled_issues/` |
 | BUG-027 | 发布物不再带 `src/` 载荷 | 已修 | `files` 排除 `lib/**/*.map`；`sourcemapLeakProblems` 按内容判（export-dist 调用）；11 条夹具；0 map shipped |
 | BUG-028 | 手册建 profile 命令带 `--dump-config` | 已修 | 手册模板改 dump 形态 + 生成后文本判据；`pnpm export-dist` ok |
 
 ## 仍未取
 
-（收口时填写：人判断、延后验收、触发条件。）
+- **真 npm 发布**（本人动作，决议 2）：在 `0.2.0` 上执行 `cd packages/dsh-smart-assistant && npm publish --access public`。
+  触发条件之外不可替代——agent 无 registry 凭证。
+- **市场索引托管**（本人动作，决议 4）：发布后跑 `pnpm market`，把 `_dist/market/` 静态托管到 https，
+  再把 URL 加进 Discover。仓库侧只保证"产物可托管 + 过 `parseMarketIndex`"。
+- **抬 DSH pin / 退役 `ui-chat` 覆盖**：独立工作，走 `pnpm sync-dsh`；触发 = 发布人口确认 rc.5 起自带兜底（已登记）。
+- **headless 的 5 条 pending**：本轮的诚实做法是文档声明 web 面 + 一行 disable。是否改成
+  `ctx.inject` 条件激活（bundle 在任意 profile 静默不激活），等真实 headless 用户出现再定。
+- **Desktop 真机矩阵**：仍无真机证据；安装说明按 DSH 合同写（Plugins 页同一句），不承诺独立 profile/产品 home。
+- **作者/主页元数据**：`author` / `homepage` 未填——没有真实值，不硬造；市场卡片会少两行，不影响安装。
 
 ## 关闭条件
 

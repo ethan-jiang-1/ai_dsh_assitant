@@ -44,7 +44,7 @@ $ tar -xzOf _dist/dsh-smart-assistant-0.1.13.tgz package/lib/client/index.js.map
 
 ## 修复关联
 
-- 与 [插件生命周期对齐卡](../issues/261101-plugin-lifecycle-align.md) 的 S2（发包就绪）同批处理：
+- 与 [插件生命周期对齐卡](../settled_issues/261101-plugin-lifecycle-align.md) 的 S2（发包就绪）同批处理：
   一公开就要发 npm，带着源码发出去属于**发布前必须清零**的项。
 - 候选修法（择一或并用）：① 发布构建关掉 `sourcesContent`（`sourcemap: 'hidden'` 或
   `sourcesContent: false`）；② `files` 排除 `**/*.map`；③ 在 `export-dist` 的清单边界里加

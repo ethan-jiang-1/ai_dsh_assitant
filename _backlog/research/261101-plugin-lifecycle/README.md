@@ -1,8 +1,8 @@
 # DSH 插件生命周期对齐：0.1.13 发行物距离社区插件形态多远
 
 > 问题：以 DSH 官方生命周期做法（打包 / 发布 / 安装 / 初始化 / 配置 / 启动 / 更新 / 卸载 / 文档）逐段对照本仓 `_dist/` 发行物，差距在哪、根因是打包还是插件形态、每处差距怎么补。
-> 消费者：[插件生命周期对齐卡](../../issues/261101-plugin-lifecycle-align.md)（活：方案与验收标准引用本页证据）
-> 产出的卡：[插件生命周期对齐卡](../../issues/261101-plugin-lifecycle-align.md)
+> 消费者：[插件生命周期对齐卡](../../_archive/settled_issues/261101-plugin-lifecycle-align.md)（已结：方案与验收标准引用本页证据）
+> 产出的卡：[插件生命周期对齐卡](../../_archive/settled_issues/261101-plugin-lifecycle-align.md)
 > 归档：
 
 ## 材料

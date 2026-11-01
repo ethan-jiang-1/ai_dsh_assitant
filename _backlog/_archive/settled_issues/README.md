@@ -6,6 +6,7 @@
 
 | 卡 | 关闭日 | 判定 |
 |---|---|---|
+| [261101 插件生命周期对齐](261101-plugin-lifecycle-align.md) | 2026-11-02 | 按 DSH 生命周期重排插件形态（bundle-first）：默认 preset 进 bundle、发布走 npm、市场索引作发现层、安装器独立资产、四条新门禁 |
 | [261101-product-profile-alignment.md](261101-product-profile-alignment.md) | 2026-11-01 | **S1–S5 全交付**：dedicated `assistant` profile + `assistant-product.workspaceDir` Config（profile patch）+ 客户端 onboarding/恢复/换项目 + 安装器瘦身（env only）+ native 产品 smoke；`product-smoke`、`product-native-smoke`、`web-install-smoke`、`standalone-smoke`、`bootstrap-guards-smoke`、`upgrade-smoke`、`prompt-smoke`、`verify`、全量 `test` 通过；`release-smoke` live turn / `eval` 无 key = BLOCKED，Desktop/Plugins 页真机 = BLOCKED。去向 = [implemented note](../../../notes/implemented/2026-11-01-product-profile-alignment.md)；研究题随迁 `_archive/research/` |
 | [261101-plugin-as-product.md](261101-plugin-as-product.md) | 2026-11-01 | **S1–S4 全交付**：产品行/启动器/客户端门/交付契约/文档分发；`product-smoke`、`standalone-smoke`、`bootstrap-guards-smoke`、`verify`、全量 `test` 通过；`release-smoke` 的 live turn 与 `eval` 无 key = BLOCKED；`web-face-check --scenario product-workspace-gate` 通过。去向 = [implemented note](../../../notes/archived/2026-11-01-plugin-as-product.md)；研究题随迁 `_archive/research/` |
 | [261029-ledger-multiview-closure.md](261029-ledger-multiview-closure.md) | 2026-10-31 | **M1-S1～S4 全交付，本人接受**：三视图（关注 / 全部事项 / 流水）+ 同件时间线 + 往返保留；真实浏览器 offset 260→260、窄屏 200→200、9 相位对抗走查全 PASS；focused 127、typecheck、build、`pnpm verify` 全绿。结档不把下一片候选算作交付：提案目标值未上屏、关注卡可扫读、时间线降噪、待归户并入（记录在卡内，未授权）。去向 = 本卡归档；研究题随迁 `_archive/research/` |

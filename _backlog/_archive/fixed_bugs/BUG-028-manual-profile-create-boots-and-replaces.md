@@ -44,7 +44,7 @@ dsh --profile assistant --from-default-profile web      # _dist/安装手册.md:
 
 ## 修复关联
 
-- 与 [插件生命周期对齐卡](../issues/261101-plugin-lifecycle-align.md) 的 S4（文档分层）同批处理：
+- 与 [插件生命周期对齐卡](../settled_issues/261101-plugin-lifecycle-align.md) 的 S4（文档分层）同批处理：
   该卡要把手册从"十步部署 runbook"改成"产品手册十段"，这条命令属于其中"安装"段。
 - 建议形状：`dsh --profile assistant --from-default-profile web --dump-config`，
   并在同句写明"只用于全新 profile；已有 profile 会丢失依赖与 patch"，与 `docs/release.md` 口径一致。
