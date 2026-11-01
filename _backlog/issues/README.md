@@ -4,6 +4,8 @@
 
 ## 活跃清单
 
+- [261102 首屏归谁](261102-first-screen.md) · 门在 dashboard 里只覆盖一条路径（实测新会话可绕过）；形态 A–D 待拍板；状态 `等人拍板`
+
 已结档：261101 插件生命周期对齐 → [settled_issues](../_archive/settled_issues/261101-plugin-lifecycle-align.md)（bundle-first：默认 preset 进 bundle、npm/市场发布路径、安装器独立资产），261029 账本多视图 M1 → [settled_issues](../_archive/settled_issues/261029-ledger-multiview-closure.md)，261029 首用价值旅程 → [settled_issues](../_archive/settled_issues/261029-first-value-journey.md)，261028 数据面第二轮复查 → [settled_issues](../_archive/settled_issues/261028-data-plane-recheck.md)，261028 数据面校准 → [settled_issues](../_archive/settled_issues/261028-data-plane-alignment.md)，B 级缺口 → [settled_issues](../_archive/settled_issues/261028-b-grade-close.md)，P3 残余 → [settled_issues](../_archive/settled_issues/261028-p3-residuals.md)，六维改善 → [settled_issues](../_archive/settled_issues/261028-six-dimension-improvement.md)。
 
 （261027 数据生命周期硬化已按关闭条件结档到 [settled_issues](../_archive/settled_issues/261027-data-lifecycle-hardening.md)，未取的 G14/G15 等触发式剩余留在卡内。）
