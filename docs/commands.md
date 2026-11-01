@@ -85,6 +85,7 @@ pnpm ov-trial-rt        # OpenViking 真服务记忆往返试验（前提 server
 ## 发布与兼容
 
 ```sh
+pnpm install-parity     # 开发环的安装面快通道：pack → 干净 web profile → dsh plugin add → dump 断言（不 boot、无浏览器）
 pnpm release-smoke      # pack → 干净 home → dsh plugin add → 组合断言（改动发布物/依赖/preset 包装/工具面必跑）
 pnpm upgrade-smoke      # 旧包→新包升级 + remove/re-add 后两目录数据保留
 pnpm standalone-smoke   # 无 .git 提取包 → bootstrap → 隔离 home → preflight → client boot/UI → stop

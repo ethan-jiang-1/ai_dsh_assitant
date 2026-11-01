@@ -33,6 +33,7 @@
     "test:composition": "pnpm build && pnpm --filter dsh-smart-assistant exec vitest run tests/composition",
     "verify": "node scripts/generate/gen-paths.mjs --check && node scripts/generate/gen-catalog.mjs --check && node dev/eval/run.mjs --self-check && node dev/reports/desk-loop-report.mjs --self-check && node dev/eval/domain-run.mjs --self-check && node dev/eval/continuity-run.mjs --self-check && node scripts/checks/verify.mjs",
     "release-smoke": "node scripts/release/release-smoke.mjs",
+    "install-parity": "node scripts/release/install-parity.mjs",
     "upgrade-smoke": "node scripts/release/upgrade-smoke.mjs",
     "standalone-smoke": "node scripts/release/standalone-smoke.mjs",
     "product-smoke": "node scripts/release/product-smoke.mjs",
