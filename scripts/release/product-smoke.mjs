@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /**
  * Product-mode proof: pack → extract → `bootstrap.mjs --workspace` with a wrapper `dsh` →
- * profile/settings/dump assertions → real boot → workspace registration + an in-process session
- * cwd probe → stop.
+ * profile/dump assertions → real boot → Config persistence + workspace registration + an
+ * in-process session cwd probe → stop. The binding must live in the profile Config, not in a
+ * private settings.json.
  *
  * The smoke never touches the daily `~/.dsh`: the product home and workspace live under `.tmp/`.
  * The wrapper exists only because this checkout's `dsh` is the pinned source CLI. The probe row
@@ -10,7 +11,7 @@
  * `--dump-config` cannot: the boot-time `workspaceRegistry.create` and the session `header.cwd`.
  *
  * Usage: node scripts/release/product-smoke.mjs [--keep]
- * Exit 0 = profile/settings correct, workspace registered, session cwd = workspace, stop clean.
+ * Exit 0 = profile/Config correct, workspace registered, session cwd = workspace, stop clean.
  */
 import { spawnSync } from 'node:child_process'
 import { chmodSync, existsSync, mkdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
@@ -43,7 +44,7 @@ const wrapperDir = join(root, 'bin')
 const wrapper = join(wrapperDir, 'dsh')
 const home = join(root, 'home')
 const workspace = join(root, 'workspace')
-const settingsPath = join(home, 'assistant-product', 'settings.json')
+const legacySettingsPath = join(home, 'assistant-product', 'settings.json')
 const profilesDir = join(home, 'profiles', 'assistant')
 
 try {
@@ -87,13 +88,8 @@ try {
     else ok('profile roster includes the package')
   }
 
-  if (!existsSync(settingsPath)) fail('product settings file is missing')
-  else {
-    const settings = JSON.parse(readFileSync(settingsPath, 'utf8'))
-    if (settings.version !== 1 || settings.workspaceDir !== realpathSync(workspace)) {
-      fail(`settings do not bind the canonical workspace: ${JSON.stringify(settings)}`)
-    } else ok('settings bind the canonical workspace')
-  }
+  if (existsSync(legacySettingsPath)) fail('bootstrap wrote the old assistant-product/settings.json')
+  else ok('bootstrap did not write a private settings file')
 
   const dump = run(wrapper, ['--profile', 'assistant', '--dump-config'], {
     env: { ...process.env, DSH_HOME: home, DSH_AGENTS_HOME: join(home, 'agents-home') },
@@ -150,7 +146,7 @@ export function apply(ctx) {
       name: './product-smoke-probe.mjs'
 `, 'utf8')
   rmSync(join(home, 'probe-result.json'), { force: true })
-  const started = bootstrap(['--product', '--home', home, '--dsh', wrapper])
+  const started = bootstrap(['--workspace', workspace, '--home', home, '--dsh', wrapper])
   if (started.status !== 0) fail(`product boot failed (exit ${String(started.status)}):\n${text(started).trim().split('\n').slice(-12).join('\n')}`)
   else ok('product instance handed over a URL')
 
@@ -182,12 +178,17 @@ export function apply(ctx) {
     else ok(`workspace registered (${found[0]})`)
   }
 
+  const patchText = readFileSync(join(profilesDir, 'cordis.patch.yml'), 'utf8')
+  if (!new RegExp(`workspaceDir:.*${realpathSync(workspace).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`).test(patchText)) {
+    fail(`profile patch does not persist workspaceDir: ${patchText.slice(-500)}`)
+  } else ok('profile Config persists the canonical workspace')
+
   const statePath = join(home, 'bootstrap.json')
   if (!existsSync(statePath)) fail('bootstrap.json is missing')
   else {
     const state = JSON.parse(readFileSync(statePath, 'utf8'))
-    if (state.mode !== 'product' || state.workspace !== realpathSync(workspace)) fail(`state mismatch: ${JSON.stringify({ mode: state.mode, workspace: state.workspace })}`)
-    else ok('bootstrap state names product mode and the workspace')
+    if (state.mode !== 'product' || state.requestedWorkspace !== realpathSync(workspace)) fail(`state mismatch: ${JSON.stringify({ mode: state.mode, requestedWorkspace: state.requestedWorkspace })}`)
+    else ok('bootstrap state names product mode and the requested workspace')
   }
 
   step('stopping the product instance')

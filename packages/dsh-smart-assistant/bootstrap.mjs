@@ -5,9 +5,11 @@
  * Two modes share one profile/install/boot pipeline:
  *
  * - **product** (`--workspace <dir>` or `--product`): a product-owned home
- *   (`~/.dsh-smart-assistant` by default), profile `assistant`, the user's project directory as the
- *   boot cwd, and `<home>/assistant-product/settings.json` binding the product row to that
- *   workspace. The daily `~/.dsh` is untouched unless `--home` names it explicitly.
+ *   (`~/.dsh-smart-assistant` by default), profile `assistant`, and the user's project directory
+ *   as the boot cwd when one is supplied. The workspace itself is owned by the product row's
+ *   `assistant-product.workspaceDir` Config (profile patch); `--workspace` only passes a one-shot
+ *   `ASSISTANT_WORKSPACE` override for the first boot. The daily `~/.dsh` is untouched unless
+ *   `--home` names it explicitly.
  * - **standalone** (no `--workspace`/`--product`): the original clean-room mode — home beside the
  *   package, profile `assistant-standalone`, an internally created workspace under the home.
  *
@@ -40,7 +42,6 @@ import {
   openSync,
   readFileSync,
   realpathSync,
-  renameSync,
   rmSync,
   statSync,
   writeFileSync,
@@ -177,8 +178,6 @@ const legacyWorkspace = join(home, 'workspace')
 const pidFile = join(home, 'bootstrap.pid')
 const stateFile = join(home, 'bootstrap.json')
 const logFile = join(home, 'logs', 'bootstrap.log')
-const settingsDir = join(home, 'assistant-product')
-const settingsPath = join(settingsDir, 'settings.json')
 
 /**
  * The first pnpm release whose profile settings (`nodeLinker`, `autoInstallPeers`) are read from
@@ -261,31 +260,7 @@ function validateWorkspace(input) {
   return canonical
 }
 
-/** Read the stored workspace binding; fail loud on a corrupt file. */
-function readStoredWorkspace() {
-  if (!existsSync(settingsPath)) return undefined
-  let parsed
-  try {
-    parsed = JSON.parse(readFileSync(settingsPath, 'utf8'))
-  } catch {
-    fail(`cannot parse ${settingsPath}; fix or remove it, then pass --workspace`)
-  }
-  if (parsed?.version !== 1 || typeof parsed.workspaceDir !== 'string') {
-    fail(`${settingsPath} is not a version-1 workspace binding; fix or remove it, then pass --workspace`)
-  }
-  return parsed.workspaceDir
-}
-
-/** Atomically write the product binding for the next boot. */
-function writeStoredWorkspace(workspaceDir) {
-  mkdirSync(settingsDir, { recursive: true, mode: 0o700 })
-  const content = `${JSON.stringify({ version: 1, workspaceDir, updatedAt: new Date().toISOString() })}\n`
-  const temp = `${settingsPath}.${process.pid}.tmp`
-  writeFileSync(temp, content, { encoding: 'utf8', mode: 0o600 })
-  renameSync(temp, settingsPath)
-}
-
-/** Validate `--workspace` before the home exists; stored settings are read after creation. */
+/** Validate `--workspace` before the home exists; the product row owns persistence. */
 const providedWorkspace = requestedWorkspace === undefined ? undefined : validateWorkspace(requestedWorkspace)
 
 function processAlive(pid) {
@@ -345,10 +320,10 @@ try {
 } catch (error) {
   fail(`cannot create home ${home}: ${error instanceof Error ? error.message : String(error)}`)
 }
-const workspace = product
-  ? validateWorkspace(providedWorkspace ?? readStoredWorkspace() ?? fail('pass --workspace on the first product run'))
-  : legacyWorkspace
-if (providedWorkspace !== undefined) writeStoredWorkspace(providedWorkspace)
+// Product mode without --workspace is valid: the product row shows the first-run chooser and
+// persists the chosen directory in the profile Config. The launcher only supplies a one-shot
+// override; it never writes the binding.
+const workspace = product ? (providedWorkspace ?? home) : legacyWorkspace
 if (!product) mkdirSync(workspace, { recursive: true, mode: 0o700 })
 mkdirSync(join(home, 'tmp'), { recursive: true, mode: 0o700 })
 mkdirSync(join(home, 'agents-home'), { recursive: true, mode: 0o700 })
@@ -362,6 +337,7 @@ const env = {
   TMPDIR: join(home, 'tmp'),
   TMP: join(home, 'tmp'),
   TEMP: join(home, 'tmp'),
+  ...(product && providedWorkspace !== undefined ? { ASSISTANT_WORKSPACE: providedWorkspace } : {}),
   ...(flag('--offline') ? { npm_config_offline: 'true', pnpm_config_offline: 'true' } : {}),
 }
 
@@ -378,7 +354,7 @@ function runDsh(args, label) {
 console.log(`bootstrap: mode ${product ? 'product' : 'standalone'}`)
 console.log(`bootstrap: home ${home}`)
 console.log(`bootstrap: profile ${profile}; dsh ${dsh}`)
-console.log(`bootstrap: workspace ${workspace}`)
+console.log(`bootstrap: workspace ${providedWorkspace ?? (product ? 'unbound (the product will ask)' : workspace)}`)
 const profileManifestPath = join(profileDir, 'package.json')
 let profileExisted = existsSync(profileManifestPath)
 if (profileExisted) {
@@ -536,13 +512,13 @@ if (url === undefined) {
 // log is not. Redact it in place so a log copied into a support thread carries no live token.
 redactLogFile()
 
-writeFileSync(stateFile, `${JSON.stringify({ pid: child.pid, url, profile, home, workspace, mode: product ? 'product' : 'standalone', startedAt: new Date().toISOString() }, null, 2)}\n`, { encoding: 'utf8', mode: 0o600 })
+writeFileSync(stateFile, `${JSON.stringify({ pid: child.pid, url, profile, home, ...(providedWorkspace === undefined ? {} : { requestedWorkspace: providedWorkspace }), mode: product ? 'product' : 'standalone', startedAt: new Date().toISOString() }, null, 2)}\n`, { encoding: 'utf8', mode: 0o600 })
 chmodSync(stateFile, 0o600)
 console.log('')
 console.log(`✅ ${product ? 'product' : 'standalone'} instance ready`)
 console.log(`   ${url}`)
 console.log(`   home: ${home}`)
-console.log(`   workspace: ${workspace}`)
+console.log(`   workspace: ${providedWorkspace ?? (product ? 'unbound (choose in the product first screen)' : workspace)}`)
 console.log(`   logs: ${logFile}`)
 console.log(`   stop: node bootstrap.mjs --stop --home ${home}${product ? ' --product' : ''}`)
 console.log('   model: configure the provider in the Web UI if this home has no credential yet')
