@@ -1,11 +1,20 @@
 ---
-status: 推敲中
+status: 等人拍板
 opened: 2026-11-02
 ---
 
 # 推敲：dev 通道与用户安装路径对齐（同机制 + 有界差异）
 
-> 立卡：2026-11-02 ｜ 状态：推敲中 ｜ 类型：Task ｜ 可关闭：否
+> 立卡：2026-11-02 ｜ 状态：等人拍板 ｜ 类型：Task ｜ 可关闭：否 ｜ 结论：方案 B 技术面已落地（2026-11-02），待你验收 dev 手感
+
+## 外部结果三要素
+
+- **触发条件：** 本人 2026-11-02 点名"推动落地"（授权记录 = 本卡状态行）。
+- **用户看到或得到什么：** dev 快环不再手写 profile 用户层；开发环有一条 `pnpm install-parity` 真走用户
+  的 tarball 安装断点；dev 与用户安装路径的差异有唯一登记表（[docs/dev.md](../../docs/dev.md) §十），
+  表外差异由 `dev-parity` 门禁点名；安装器"写默认 preset"的旧口径三处归一。
+- **完成条件：** 验收 1–6 有真跑证据（见「验证进展」）；parity 表与门禁在场；`pnpm start` 的 dev 实例
+  在真实 boot 上绿；结论去向 = implemented note。
 
 **借鉴来源：** 隔壁 `ai_dsh_deep_research` 仓同日立的 dev-product-path-parity 卡（跨仓引物，不随本仓入库）。
 它的判据是"**同机制 + 有界差异**"：dev 里验过的机制就是用户装上去会经过的机制；差异只许落在调试
@@ -36,6 +45,8 @@ opened: 2026-11-02
 暴露的回归；dev 快环的 profile 写入者与组合漂移可见、可对账；表外差异由 `pnpm verify` 点名。
 
 ## 当前情况
+
+> 以下是立卡时（2026-11-02 早）的现状；落地后的现况以「切片台账」与「验证进展」为准，旧事实保留作推敲记录。
 
 ### 已经同形的（不要重做）
 
@@ -81,7 +92,7 @@ opened: 2026-11-02
    同一份手册 `:123` 反而写"默认 preset 已经随 bundle 走"。手册口径的生成器在
    `scripts/release/export-dist.mjs:297`。
 
-## 未决问题
+## 未决问题（立卡时）
 
 1. **快环要不要保留 link？** 倾向保留（热重建是 `pnpm start` 的前提）。若保留，parity 表"安装源"一行
    要诚实写两列：快环 link = 允许差异；parity lane tarball = 同形。
@@ -117,12 +128,22 @@ opened: 2026-11-02
 - **只加表不加证据通道**：表要么写成"安装源 = 同形"（假），要么写成"不同"但没有补救（把已知风险写成
   文案）。
 
+## 切片台账
+
+| 片 | 状态 | 证据 |
+|---|---|---|
+| P0 安装路径事实单一 | 已落 | `docs/product.md` 的安装/默认 preset 两条与 `bootstrap.mjs` 现况一致；手册生成器 `export-dist.mjs` 同句修正并重生成 `_dist/安装手册.md`；`pnpm verify` 绿 |
+| P1 install-parity 快通道 | 已落 | `pnpm install-parity` 连跑绿（本机热 store 约 4s）；把 `!lib/client` 注入 `files` 后点名红（"tarball is missing package/lib/client/index.js"），还原即绿 |
+| P2 profile 用户层零写入 | 已落 | `bash dev/env/setup.sh` 把 `dev` / `dev-task` 的旧生成 patch 复位为 `[]` 并留 `.dev-backup`；生成 `dev-overlay-dev.yml`（OV 旋钮）与 `dev-overlay-dev-task.yml`（roster insert）；`pnpm dsh --profile dev --dump-config` 见 `openviking-memory-runtime` 与 `default: assistant`，`dev-task` 见 insert 的 registry 行；`pnpm start` 真 boot + preflight 绿 |
+| P3 dev-parity 门禁 | 已落 | `pnpm verify` 新增核绿；向 `setup.sh` 注入旧 `cp ... "$dir/cordis.patch.yml"` 时该核点名红，还原即绿；`tests/tooling/dev-parity.spec.mjs` 覆盖七种接受/拒绝形态 |
+| P4 全量地板 | 已落 | `pnpm test`（155 文件 / 1178 tests）、`pnpm typecheck`、`pnpm build`、`pnpm verify`（53 checks）全部真跑绿 |
+
 ## 验收标准
 
 | # | 行为 | 类 | 输入/状态 | 通过信号 | 负例/互补 | 证据 owner | 人判断 |
 |---|---|---|---|---|---|---|---|
 | 1 | parity 表可对账 | 确定性 | `docs/dev.md` 的 parity 表 | ≥ 8 个机制点，每行有产品路径、dev 路径、判定与证据 owner | 删一行或加一个未登记差异 → `pnpm verify` 红 | 新 `dev-parity` 核 + 红夹具 | 无 |
-| 2 | 真 tarball 通道 | 编排 | pack → 干净 home → `dsh plugin add <tgz>` → `--dump-config` | dump 含 `preset-assistant`、`default: assistant`、客户端 bundle 行；不 boot | 从 `files` 拿掉 `lib/client` 或一个运行时依赖 → lane 红 | parity lane + `release-smoke` 同源断言 | 无 |
+| 2 | 真 tarball 通道 | 编排 | pack → 干净 home → `dsh plugin add <tgz>` → `--dump-config` | tarball 含客户端 bundle（`lib/client/index.js`）；dump 含 `preset-assistant`、`default: assistant`、host 行；不 boot | 从 `files` 拿掉 `lib/client` 或一个运行时依赖 → lane 红 | parity lane + `release-smoke` 同源断言 | 无 |
 | 3 | 快环 link 有据 | 确定性 | dev profile 的安装形态 | 表里登记 link 为允许差异，且 lane 在场 | 删掉 lane 或把 link 写成"同形" → 红 | 同 #1 的核 | 无 |
 | 4 | profile 写入者边界 | 确定性 | `dev/env/setup.sh`、`dev/profiles/*` | web profile 的 `cordis.patch.yml` 不被 dev 脚本覆盖；`dev-task` 的写有 marker 且被表登记 | 让 setup.sh 再写 web patch → 红 | 新门禁核 + 真机 dev home 复核 | 无 |
 | 5 | 安装路径事实单一 | 确定性 | `docs/product.md`、手册生成器、`packages/dsh-smart-assistant/bootstrap.mjs` | 三处都不再声称安装器写默认 preset；`pnpm export-dist` 后手册一致 | 让生成器再写旧句 → verify 红 | `release: the exported install manual matches the package` 门禁 + 手册 diff | 无 |
@@ -131,14 +152,38 @@ opened: 2026-11-02
 **人判断**：dev 手感（快环速度 vs 对齐收益）与 parity 表"允许差异"的边界，在阶段收尾请本人看一眼——
 与对方卡一样，这是"够不够接近"的产品口味，不是机器能判的。
 
+## 验证进展（2026-11-02）
+
+| 验收 | 证据 |
+|---|---|
+| 1 parity 表可对账 | 表在 [docs/dev.md](../../docs/dev.md) §十（13 个机制点，每行有产品路径/dev 快环/判定/证据 owner）；`dev-parity` 核对在场与行数 |
+| 2 真 tarball 通道 | `pnpm install-parity` 绿：tarball 表面 321 files、无 src/map、peer 已具体化、干净 web profile 装得上、`yaml` 依赖可解析、dump 出 `preset-assistant` + `default: assistant` + host 行、install 不写 profile patch |
+| 3 快环 link 有据 | 表内 link 判为"有界（热重建）"且 lane 在场；lane 被删时门禁红（spec 覆盖） |
+| 4 profile 写入者边界 | setup.sh 不再写 `$dir/cordis.patch.yml`；旧生成 patch 迁移有 backup；`dev-task` 的 roster insert 只住 overlay |
+| 5 安装路径事实单一 | product.md / 手册 / bootstrap 三处一致；手册由 `pnpm export-dist` 重生成 |
+| 6 全量不回归 | 见切片台账 P4；发布前八条 smoke 未在本次改动面内（dev 脚本/文档/门禁），发布时按清单跑 |
+
+**待你验收：** dev 启动的手感（`pnpm start` 的热环是否仍够快）与 parity 表里"允许差异"的边界
+（尤其是"安装源 = link 快环 + lane 证据"这一行）。
+
+## 仍未取（本轮有意不做）
+
+- **profile 名对齐（`dev` vs `assistant`）**：登记为有界差异（隔离 + 入口提示）；触发 = 本人要求同名。
+- **dev profile 组合对账**：setup.sh 仍不收敛 `dev` 的 bundles（本机曾有 team bundle 漂移）；本轮只把
+  "dev 写入者"收口。触发 = 再出现"只在 dev home 装过的插件掩盖缺依赖/preset"的回归。
+- **launcher 注入的单元级测试**：本轮由 `dev-parity` 文本守 + 真机 dump/`pnpm start` 证明；触发 = 注入
+  逻辑出现第二种 shape（如按子命令注入）。
+- **安装器的 `npm pack` 与发布物 `pnpm pack` 的字节差**：仓内直跑安装器时 manifest 会带 `workspace:`
+  peers（profile 的 `autoInstallPeers: false` + `engines.dsh` 让今天的安装照常工作；手册走的是已具体化
+  的 `_dist` 包，用户路径不受影响）。触发 = DSH 开始 auto-install peers，或 product-smoke 要证明
+  "仓内直跑的安装器字节"。
+
 ## 下一步
 
-- **等点名**：本卡不自动开工（卡上的方案不授予实施权限）。若同意方向 B，按 P0→P3 推进；若要 A（dev
-  改走 tarball）或只要表（C），先说，P1/P2 的形状会不同。
-- **可以立刻顺手做的**：P0 的文案收口（`docs/product.md:53` 与手册生成器 `scripts/release/export-dist.mjs:297`）
-  是局部机械修正，不必等整卡；但改生成器要重跑 `pnpm export-dist`，会动 `_dist/` 产物，仍算 P0 的验收。
+- 等你验收 dev 手感与"允许差异"边界；点头后按关闭条件把本卡归档，结论指向已写的
+  [implemented note](../../notes/implemented/2026-11-02-dev-product-install-parity.md)。
 
 ## 关闭条件
 
-验收 1–6 有真跑证据；parity 表与门禁在场；结论去向（implemented note 或并入既有 install 决策）已记录；
-P2 第 4 项若延后，触发条件写回本卡。
+验收 1–6 有真跑证据；parity 表与门禁在场；结论去向已记录 =
+[implemented note](../../notes/implemented/2026-11-02-dev-product-install-parity.md)；仍未取的触发条件写在本卡。
