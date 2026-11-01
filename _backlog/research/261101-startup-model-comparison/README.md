@@ -11,6 +11,7 @@
 | [261101-deck-studio-startup-facts.md](261101-deck-studio-startup-facts.md) | deck-studio 的安装/启动/profile 配置/项目根/会话 cwd/数据根/首屏事实，以及本机 3 条命令实验 | 2026-11-01 |
 | [261101-our-startup-and-experiments.md](261101-our-startup-and-experiments.md) | 本产品启动器的合同、标准 3 条命令的两次实验（无绑定/有设置）、缺口感与证据 | 2026-11-01 |
 | [261101-comparison-and-recommendation.md](261101-comparison-and-recommendation.md) | 维度对比、优缺点、A–E 选项、推荐的双路径与门槛/风险 | 2026-11-01 |
+| [261101-dsh-native-product-layer.md](261101-dsh-native-product-layer.md) | DSH 原生安装 + 客户端开始页/工作区选择的分层设计、可行性、切片与未决 | 2026-11-01 |
 
 ## 实验资产（本机临时 home 真渲染，不参与判定）
 
