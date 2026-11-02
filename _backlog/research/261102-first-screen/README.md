@@ -10,4 +10,4 @@
 
 | 文件 | 作用 | 日期 |
 |---|---|---|
-| [261102-first-screen-mechanism.md](261102-first-screen-mechanism.md) | 机制与实验：`main` 键控槽、`layout.selectPanel`、四个实验（E1–E4）的读数与结论 | 2026-11-02 |
+| [261102-first-screen-mechanism.md](261102-first-screen-mechanism.md) | 机制与实验：`main` 键控槽、`layout.selectPanel`、五个实验（E1–E5）的读数与结论 | 2026-11-02 |

@@ -75,6 +75,8 @@
    表外差异由 `dev-parity` 门禁点名。证据 = `install-parity` 的 green + 缺件红夹具；`dev-parity` 的负例夹具
    （`tests/tooling/dev-parity.spec.mjs`）。
 
+16. **bundle 是 web-only；默认部署走专用 custom profile**（约束：本 bundle 的覆盖行（`ui-sidebar-terminal`/`ui-trajectory`/`locale`/`ui-chat`）与 client 插件只在 web-app 层成立，且这些默认值带产品口味）→ headless/SDK/ACP 要在 profile patch 显式禁用入口行；默认文档路径 = 专用 custom profile（安装器或 `--from-default-profile web` 建），bundle 本身不假设 profile 名（装进任意 web profile 可用）。证据 = `dev/profiles/profile-patch-headless.yml`、`release-smoke` 的 headless insert 段、`product-native-smoke`、[`release.md`](release.md) §一 app surface 轴。
+
 ## 复查环（防"一次性快照再烂"）
 
 - `pnpm sync-dsh` 升 pin 时：对照本文逐行重校（vendor 的套路在演进，继承必须跟着 pin 走）；并
