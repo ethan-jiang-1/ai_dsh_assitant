@@ -120,3 +120,5 @@
 | 机械门禁（`pnpm verify` / `test` / `typecheck`） | 结构、身份、链接、命名、状态与目录一致、依赖姿态 | 意图是否合理、替代方案是否真实、散文与 shipped 事实是否一致 |
 | 语义审计轮（新上下文探针 / 审计切片） | 散文与已交付事实一致、真实使用面的摩擦 | 替代方案实跑、用户意图优先级 |
 | 用户拍板 | 授权范围、方向级取舍、品味 | 代码正确性、机制是否存在 |
+
+17. **client bundle 形态**（约束：vendor `clientBundle` tsdown preset 不随 npm 发布，仓外包必须自建；本包 client 无 CSS/asset 导入、无非相对 bare import）→ 本地 tsdown **IIFE** 输出 `lib/client/index.js`，源码在末尾以 `__ModuleLoader__.load({ id, factory })` 提交，与 vendor 的 module-table 契约一致；构建后 `packages/dsh-smart-assistant/scripts/prune-client-chunks.mjs` 清掉 tsc 的每模块死 chunk；`clientScriptSafetyProblems` 守“入口触达 facade + 产物按 classic script 解析 + 无 bare external import”。vendor preset 的 CJS 形态与其 CSS/asset 插件不在本包使用，因为没有对应输入；差异不是行为差异。证据 = `packages/dsh-smart-assistant/tsdown.config.ts`、`packages/dsh-smart-assistant/scripts/prune-client-chunks.mjs`、`clientScriptSafetyProblems`、`web-face-check` 的客户/产品场景。
