@@ -44,7 +44,6 @@ import { RememberAction } from './rooms/message-action'
 import { createElement } from './chrome/runtime'
 import { initUiModeStore, mountUiModeRemote } from './chrome/ui-mode'
 import { UiModeRow } from './chrome/ui-mode-row'
-import { returnToConversation } from './chrome/navigation'
 import { bindVikiEnv } from './rooms/viki-data-io'
 import { bindClientRequire } from './chrome/runtime'
 import { createSnapshotStore, defineStore } from './chrome/store'
@@ -52,9 +51,9 @@ import { ensureThemeVars } from './chrome/theme'
 import { debugEnabled } from './chrome/debug-flag'
 import { HomeSurface } from './projection/home-surface'
 import { DebugPanel } from './debug/debug-panel'
-import { createDeskSurface } from './projection/desk-surface'
+import { mountDashboard } from './projection/mount-dashboard'
 import { mountProjectionReader } from './projection/projection-lifecycle'
-import { fetchReceiptArchivePage, type ProjectionDownload } from './projection/projection-reader'
+import type { ProjectionDownload } from './projection/projection-reader'
 import { createProjectionViewStore } from './projection/projection-view'
 import type { ProjectionPanelProps } from './projection/projection-panel'
 import type { ComponentType } from 'react'
@@ -64,7 +63,6 @@ import { createProactiveCatalogSource, type ProactiveCatalogState, type Proactiv
 import { createProactiveHandlers } from './proactive/proactive-handlers'
 import type { ProactiveUiState } from './proactive/proactive-face'
 import { readProactiveUi } from './local-state'
-import { restoreMainView, restoreStateFor, trackMainView } from './chrome/main-view'
 import { ProductGate } from './product/product-gate'
 import { ProductGateDock } from './product/product-dock'
 import { mountProductFace } from './product/mount-product'
@@ -193,63 +191,20 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     const baseDashboard = dashboardComponent as ComponentType<ProjectionPanelProps>
     const gatedDashboard = (props: ProjectionPanelProps) =>
       createElement(ProductGate, { ...props, base: baseDashboard })
-    const dashboardInject = (sessionId: string | undefined, ...args: unknown[]) => {
-      const actions = args.find((argument): argument is { selectMatter(id: string): void, selectMode(mode: 'activity'): void } =>
-        typeof argument === 'object' && argument !== null && typeof (argument as { selectMatter?: unknown }).selectMatter === 'function')
-      deskViewActions = actions ?? deskViewActions
-      deskActivity.receive(actions)
-      const hooks = {
-        ...(projection === undefined ? {} : { projection }),
-        ...(sessionStatuses === undefined ? {} : { sessionStatus: sessionStatuses }),
-        ...(proactiveCatalog === undefined ? {} : { catalog: proactiveCatalog }),
-        ...(proactiveUi === undefined ? {} : { proactiveUi }),
-      }
-      const surface = createDeskSurface({
-        ctx,
-        sessionId,
-        reader,
-        arms,
-        handlers: { onSuggestAction, onSuggestDismiss, onWatchForget, onSuggestCollapse },
-        openRecords: () => { openBeside('knowledgeRoom') },
-      })
-      const current = ctx.uiSession?.current.value.key
-      const resolvedSession = sessionId ?? (current === undefined ? undefined : String(current))
-      const loadOlderReceipts = (before: string | undefined, scope?: { readonly matterId?: string }) =>
-        fetchReceiptArchivePage({ baseURI: document.baseURI, fetch }, before, scope?.matterId)
-      return {
-        surface,
-        hooks,
-        loadOlderReceipts,
-        ...(resolvedSession === undefined ? {} : { sessionId: resolvedSession }),
-        // The fallback panel (no projection store in this composition) reads only the return.
-        ...(projection === undefined ? { onAsk: () => returnToConversation(ctx, sessionId, typeof document === 'undefined' ? {} : { document }) } : {}),
-      }
-    }
-    // The slot inject face is variadic and differs between `main` (no session) and
-    // `conversation.view` (session first). Resolve the session once at injection, not inside the
-    // eventual click handler; the navigation module owns what to do with it.
-    const injectDashboard = (...args: unknown[]) => dashboardInject(
-      args.find((argument): argument is string => typeof argument === 'string'),
-      ...args,
-    )
-    // One restore decision per Client root: a slot/layout or plugin rematerialization on the same
-    // page must not reopen the desk; a new page root gets a new gate. The gate is a keyed
-    // association on the root, not a page-global singleton (the remembered view handles HMR).
-    const mainViewRestore = restoreStateFor(ctx.root)
-    ctx.slots.inject('main', () => {
-      const registration = ctx.slots.register({
-        name: 'main',
-        key: 'dsh-smart-assistant-dashboard',
-        locale: 'assistantDesk',
-        ...(viewStore === undefined ? {} : { store: viewStore }),
-        inject: injectDashboard,
-      }, gatedDashboard)
-      // The shell resets layout on reload; the product remembers which of its two views the
-      // principal left (first visit = the desk) instead of forcing one on every load.
-      restoreMainView(ctx, 'dsh-smart-assistant-dashboard', undefined, mainViewRestore)
-      return registration
+    const dashboardMount = mountDashboard(ctx, {
+      projection,
+      viewStore,
+      reader,
+      arms,
+      sessionStatuses,
+      proactiveCatalog,
+      proactiveUi,
+      handlers: { onSuggestAction, onSuggestDismiss, onWatchForget, onSuggestCollapse },
+      dashboard: gatedDashboard,
+      openRecords: () => { openBeside('knowledgeRoom') },
+      setDeskActions: actions => { deskViewActions = actions ?? deskViewActions },
+      receiveActivity: actions => { deskActivity.receive(actions) },
     })
-    trackMainView(ctx, 'dsh-smart-assistant-dashboard')
 
     // The developer debug panel and the Viki room share one flag. They belong to
     // `conversation.view` because they are per-session views, not global panels: `main` is a
@@ -265,7 +220,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         order: 32,
         label: () => '开发调试',
         ...(workbenchViewStore === undefined ? {} : { store: workbenchViewStore }),
-        inject: injectDashboard,
+        inject: dashboardMount.injectDashboard,
       }, DebugPanel))
     }
 
