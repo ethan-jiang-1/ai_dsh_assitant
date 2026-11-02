@@ -1,4 +1,4 @@
-日期：2026-11-02 · 状态：**proposed**（已授权实施，在飞；work 台账在 [261102 发行版口径对齐](../../_backlog/issues/261102-distribution-alignment.md)）
+日期：2026-11-02 · 状态：**implemented**
 
 # 发行版口径：术语、六轴与文档骨架对齐 DSH 推荐
 
@@ -15,7 +15,7 @@
 - 两条发布 smoke 仍断言"解包里带 `bootstrap.mjs`"，在安装器出包后必然红；
 - 两篇 implemented note 互相矛盾且都自称当前。
 
-## 提案
+## 决定
 
 1. **术语线**：`product` 只指 ① 整台运行中的 dsh（引述 DSH 时）与 ② 这份业务/产品定位（P1–P3、产品口味）。
    **不修饰任何交付对象**——不用产品 profile／产品 bundle／产品行／产品门／产品 home／产品安装器／产品模式。
@@ -53,8 +53,3 @@
 - 历史不再有两篇都自称当前；归档只作历史引用。
 - 退役词与骨架由门禁守，同一类漂移下次会红而不是靠审计。
 - 代价：一次性的全量措辞替换（docs/README/当前权威 notes）；归档正文不重写，只在索引声明口径。
-
-## 验收
-
-由 [收口卡](../../_backlog/issues/261102-distribution-alignment.md) 的「验收标准」拥有：退役词零命中、
-`pnpm verify` 绿且新增门禁有负例、`pnpm export-dist` 骨架检查绿、两条 smoke 有真实结果、F01–F52 逐条可追溯。

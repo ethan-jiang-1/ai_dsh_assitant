@@ -2,7 +2,7 @@
 
 # 产品 profile 对齐：dedicated profile、工作区 Config 与 bundle 自有启动
 
-> **部分收窄（2026-11-02）**：第 4 条的"安装器设自己的默认 preset"被 [bundle-first](2026-11-02-bundle-first-lifecycle.md) 推翻（安装器不再写 profile patch）；第 1 条的"产品 = profile 组合"按 [发行版口径](../proposed/2026-11-02-distribution-alignment.md) 改称发行形态——身份在 bundle，不在 profile。
+> **部分收窄（2026-11-02）**：第 4 条的"安装器设自己的默认 preset"被 [bundle-first](2026-11-02-bundle-first-lifecycle.md) 推翻（安装器不再写 profile patch）；第 1 条的"产品 = profile 组合"按 [发行版口径](2026-11-02-distribution-alignment.md) 改称发行形态——身份在 bundle，不在 profile。
 
 ## 问题（可观察行为）
 

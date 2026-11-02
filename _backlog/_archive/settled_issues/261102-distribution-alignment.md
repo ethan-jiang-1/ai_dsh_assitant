@@ -1,17 +1,19 @@
 ---
-status: 推敲中
+status: 已结
 opened: 2026-11-02
 ---
 
 # 收口：发行版口径对齐（26_harness-release）
 
-> 立卡：2026-11-02 ｜ 状态：推敲中 ｜ 已授权实施（用户 2026-11-02「开工」点名；授权事实在状态行，不在提案卡） ｜ 类型：Task ｜ 可关闭：否
+> 立卡：2026-11-02 ｜ 状态：已结 ｜ 已授权实施（用户 2026-11-02「开工」点名） ｜ 类型：Task ｜ 可关闭：是
+>
+> **结论**：发行版口径全部落地（S1–S9 已做）；发现清单 F01–F52 与噪声 N01–N12 逐条有落点；去向 = [发行版口径 note](../../../notes/implemented/2026-11-02-distribution-alignment.md)。
 
 ## 外部结果三要素
 
 - **触发**：用户带来一份更规整的外部语料（`_faq_on_digested/26_harness-release`），要求术语、做法与历史一起对齐，并维持高信噪比（避免上下文腐化与漂移）。
 - **用户得到**：repo 里"插件怎么交出去"只有一个说法——一份发行版宪章（六轴 owner + 生命周期十段索引 + 术语表）；用户手里的 README 与安装手册按 DSH 骨架写、不再教错操作；历史不再有两篇都自称当前；退役词与新骨架由门禁守住。
-- **完成条件**：本卡「发现清单」每一行都有落地动作与可指认证据；`pnpm verify` 绿；`pnpm export-dist` 自检绿且新门禁有负例造红；`standalone-smoke` / `product-smoke` 有真实结果（无浏览器则如实 BLOCKED）；决定写进 implemented note（由 [发行版口径 note](../../notes/proposed/2026-11-02-distribution-alignment.md) 在 S8 改写成 implemented）。
+- **完成条件**：本卡「发现清单」每一行都有落地动作与可指认证据；`pnpm verify` 绿；`pnpm export-dist` 自检绿且新门禁有负例造红；`standalone-smoke` / `product-smoke` 有真实结果（无浏览器则如实 BLOCKED）；决定写进 implemented note（由 [发行版口径 note](../../../notes/implemented/2026-11-02-distribution-alignment.md) 在 S8 改写成 implemented）。
 
 ## 切片台账
 
@@ -22,8 +24,8 @@ opened: 2026-11-02
 | S3 | 安装手册模板修正（headless insert、import --replace、默认 preset、配置段、建 profile 顺序、tarball checksum） | 已做 | 提交 45d2f622；`pnpm export-dist` 绿（手册十段 + checksum 产出） |
 | S4 | 修 `standalone-smoke` / `product-smoke` 对"包内 bootstrap"的断言（bundle-first 后必红） | 已做 | 提交 eac6dbc8；`pnpm product-smoke` passed、`pnpm standalone-smoke` passed |
 | S5 | 合同陈旧断言清零（包内 bootstrap、private、profile patch 设 default、profiles/web、六条路由、两/三根文件、SessionInspect、web-face 计数、包描述） | 已做 | 本片提交；`pnpm verify` 53/53、`pnpm export-dist` 绿 |
-| S6 | 退役词全量替换 + 门禁（退役词、骨架进 verify、六轴/十段存在性） | 待做 | — |
-| S7 | 历史按 notes 取代判据逐篇处置（当前权威改真 + 指针；归档只加索引声明） | 待做 | — |
+| S6 | 退役词全量替换 + 门禁（退役词、骨架进 verify、六轴/十段存在性） | 已做 | 提交 2ddacee9；`pnpm verify` 56/56、注入 `产品行` 造红后还原、`distribution.spec.mjs` 6/6 |
+| S7 | 历史按 notes 取代判据逐篇处置（当前权威改真 + 指针；归档只加索引声明） | 已做 | 提交 9486c68e；`pnpm verify` 56/56（notes 治理与链接） |
 | S9 | 噪声合并：同一事实的多个"说法"按 owner 收敛（删 > 并 > 修；其余只留名字 + 指针） | 已做 | 本片提交；退役词在 owner 面零命中（登记行除外），根 README 机制段已删并入 release.md |
 | S8 | 收口：implemented note、全量证据、卡归档 | 待做 | — |
 
@@ -135,6 +137,12 @@ opened: 2026-11-02
 上表自左至右共 **N01–N12**（N01 = 安装入口与顺序 …… N12 = 只发 bundle）；S9 按编号逐条处置并留证据。
 
 
+## 落地对照
+
+F01–F52 逐条按所在切片追溯：S1 = e054f1e9、S2/S3 = 45d2f622、S4 = eac6dbc8、S5/S9 = 0fdfe085、S6 = 2ddacee9、S7 = 9486c68e；
+N01–N12 的处置 = S9（同一提交），退役词零命中由 `pnpm verify` 的 `docs: retired distribution vocabulary is gone` 持有。
+
+## 验收标准
 1. `rg -n "产品 profile|产品 bundle|产品型|插件即产品" docs/ README.md AGENTS.md packages/*/README.md packages/*/AGENTS.md` 零命中（登记豁免行除外）。
 2. `pnpm verify` 绿，且新增的三类门禁各有 prove-it-red 负例（`tests/tooling/` 同名族 spec）。
 3. `pnpm export-dist` 绿：README 新骨架、手册十段（含配置）、tarball checksum 产出；**且**把骨架改坏时 export-dist 报红。
@@ -144,5 +152,5 @@ opened: 2026-11-02
 
 ## 仍未取
 
-- 首屏形态（A–D）属产品口味，在 [261102 首屏归谁](261102-first-screen.md)；本卡只写"首屏由发行版 client 回答"的原则，不改实现。
+- 首屏形态（A–D）属产品口味，在 [261102 首屏归谁](../../issues/261102-first-screen.md)；本卡只写"首屏由发行版 client 回答"的原则，不改实现。
 - 真 npm 发布、索引托管、Windows/Desktop 真机矩阵仍是本人动作，不在本卡。
