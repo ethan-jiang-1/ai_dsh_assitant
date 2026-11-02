@@ -82,9 +82,9 @@ DSH 约定偏离（`insert` 当 override、两个 packer、client 状态所有�
 
 | 片 | 状态 | 证据 |
 |---|---|---|
-| B0 地板 | 已完成（并行会话 + 主线） | `7159653a` typecheck 绿；`pnpm verify` 56/56；`pnpm test` 1,219/1,220（唯一红 = load-sensitive build-freshness） |
-| B1 反馈诚实性 | 进行中（核心片已交付） | `45a97abb`：`scene-home.mjs` 单一 patch writer + YAML parse spec；`web-face-check` 起手 `ensure-build`、Chrome 缺失 BLOCKED 2、provision 失败 BLOCKED 2；`probe-service` 头+尾 stderr + sibling log、child 退出即停、`withService` catch 不中断剩余场景；`product-first-screen` 断言 composer 真禁用 + placeholder；`webui-shots`/`webui-expected` 的 no-Chrome 2/1 区分；`build-freshness` 20s→60s（budget，不是 retry） |
-| B1 仍余 | 待做 | comparator `unowned`、逐场景 refresh review、client composition seam spec、`pnpm session` join、per-run product workspace、四个非产品场景 README 的 posture 逐条化 |
+| B0 地板 | 已完成（并行会话 + 主线） | 当前：`pnpm typecheck` 绿；`pnpm verify` 56/56；`pnpm test` 160 文件 / 1,225 用例绿；`pnpm web-face-check --all` 10/10（`45a97abb` 后复跑）。基线 `7159653a` 的 1/1220 红是 load-sensitive build-freshness，已由 60s budget 治 |
+| B1 反馈诚实性 | 进行中（核心片已交付） | `45a97abb`：`scene-home.mjs` 单一 patch writer + YAML parse spec；`web-face-check` 起手 `ensure-build`、Chrome 缺失 BLOCKED 2、provision 失败 BLOCKED 2；`probe-service` 头+尾 stderr + sibling log、child 退出即停、`withService` catch 不中断剩余场景；`product-first-screen` 断言 composer 真禁用 + placeholder；`webui-shots`/`webui-expected` 的 no-Chrome 2/1 区分；`build-freshness` 20s→60s（budget，不是 retry）。`dbcb4a8d`：comparator 比较 `unowned`。`a9dd7212`：真 Cordis + conversation blocks 的入口接线 spec（删除入口 `ctx.inject` 块即红） |
+| B1 仍余 | 待做 | 逐场景 refresh review、`pnpm session` join、per-run product workspace、四个非产品场景 README 的 posture 逐条化 |
 | B2 文档漂移 | 基本完成 | `d477076f`：11 条漂移（轨迹页/安装器默认/两三个文件/400-500/`--all` 10 面/授权例外/A2/`discipline` 适配 10）+ `AGENTS.md:9` 默认路径 + `去向` 时机 + 收据生效日 + 收口卡样板 + 读法三篇 + note 同名互链/面数 + 产品失败模式行 + 场景 posture 中心说明 |
 | B2 仍余 | 待做 | 常驻入口散文预算（触发已到，属纪律改动，需单独拍板） |
 | B3 结构 | 待做 | client 组合根 / projection-panel / rooms write / agent dispatch / tests/cli |
