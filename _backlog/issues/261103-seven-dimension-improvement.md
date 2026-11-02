@@ -17,6 +17,41 @@ opened: 2026-11-03
 DSH 约定偏离（`insert` 当 override、两个 packer、client 状态所有权）有明确裁决或修复。
 **不做**：不重写入口、不新增流程层、不预建 session 回放/性能/CI 矩阵、不把 coverage 设阈值。
 
+
+## A- 验收线（2026-11-03 复评）
+
+> 口径：**A** = 无材料性缺口且证据自动；**A-** = 仅余轻微缺口/手工证据，无已知失败；**B+** = 一个材料性缺口（未决真人输入、未门禁化的关键面、或未修复的约定偏离）；**B** = 两个以上材料性缺口。
+> 复评基线：`38c70a02`；`pnpm test` 163 文件 / 1,233 用例、`pnpm verify` 56/56、`pnpm typecheck` 绿。
+
+| 维度 | 分数 | 结论 |
+|---|---|---|
+| 1 文档/渐进披露 | **B+** 8.2 | 入口链/tier 清楚，但常驻 `AGENTS.md` **23.3 KB > 16 KB 目标**，参考型内容占 36%，且无散文字数门禁 |
+| 2 代码层次 | **A-** 8.6 | 入口 491→336、`clientFactory` 398→249、`projection-panel` 805→317，schemas/commands/rooms 已归位；余 agent verb switch |
+| 3 整体结构 | **A-** 8.5 | 五道门 + 证据地图 + 收口卡台账成立；流程仍有手工/文本重量 |
+| 4 上下文漂移 | **B+** 8.0 | 已知 P1 漂移已修，catalog/链接有新鲜度门禁；但没有可重复的语义漂移巡检，入口仍长第二份事实 |
+| 5 测试资产 | **A-** 8.6 | 163 文件/1,233 用例、DOM/行为/web-face 多层；CLI 层组织与覆盖度量仍缺 |
+| 6 反馈通路 | **A-** 8.5 | `pnpm session` 时间线 + 真 Chrome/DOM/服务日志；全 10 场景车道仍靠手跑，不在 verify |
+| 7 DSH/Harness 约定 | **B+** 8.2 | 裸 id 覆盖、web-only 自禁用已修；packer、client bundling/死 Remote、状态所有权、发布真实性/旧包 fixture、重复 id 门禁仍未收 |
+
+**整体 ≈8.4（A-），但按“全维 ≥ A-”验收，D1/D4/D7 不达标。**
+
+### D1 → A- 计划
+- GAP：`AGENTS.md` 23.3 KB（目标 ≤16 KB）；参考型段落（硬规则/探索路由）占 36%；无散文预算门禁。
+- 做法：先量出可外移的参考型内容 → 移到 `docs/`/开发 skills，入口只留“约束 + 指针”；加 ≤16 KB 的散文预算门禁（证明会红）；用 `semantic-drift-audit` 复扫入口链。
+- 证据：`wc -c`、`pnpm verify` 新门禁、漂移报告零 P1。
+
+### D4 → A- 计划
+- GAP：漂移审计是一次性的；入口/文档/卡片仍可能长第二份事实；没有机械回归。
+- 做法：跑 `semantic-drift-audit` 建“高风险主张清单”（路径、命令、工具/动词、组合行状态）；能机械判定的进 `pnpm verify`，不能的留周期巡检；修掉本轮 P1；入口去重。
+- 证据：漂移报告、verify 新检查、两次巡检零 P1。
+
+### D7 → A- 计划
+- GAP：packer 未拍板；client bundling/死 Remote 不合 vendor；`product-face` 模块级 store + `useState` 镜像；README 发布状态/旧包升级 fixture/重复 id 机械门禁缺失。
+- 做法：① 出 packer 决策简报（唯一真人输入，pnpm vs npm）；② 按 vendor `clientBundle()` 改 client 打包，删/证明死 Remote；③ 把 `product-face` store 改成每 materialization 一个 owner，去 `useState` 镜像；④ 对齐 README 发布状态，补旧版本 tarball 升级/卸载 fixture；⑤ 把 `--dump-config` 的重复 row id 检查接进 verify。
+- 证据：干净安装/升级/卸载 + `pnpm start`/真 Chrome、`release-smoke`、`product-native-smoke`、`web-face-check --all`。
+
+> Goal：`goal-0457ded3-6496-4297-ad6b-3cc2d73e7abc`（revision 2，40 轮）已把验收线改为“全维 ≥ A-”；D1/D4/D7 为当前三个低于线维度。
+
 ## 当前情况（证据在深审报告里）
 
 - 维度分：1=7.5、2=7.5、3=8、4=7、5=7.5、6=6、7=7；整体 ≈7.2/10。
