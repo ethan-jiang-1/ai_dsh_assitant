@@ -4,7 +4,7 @@
 
 ## 活跃清单
 
-
+- [261103 七维改善](261103-seven-dimension-improvement.md) — `推敲中`：七维深审的改善批次（待 review）
 
 已结档：261102 首屏归谁 → [settled_issues](../_archive/settled_issues/261102-first-screen.md)（B+：桌面第一印象 + 会话内门 + 记住上次视图 + 未绑定禁输入；证据面修复），261102 发行版口径对齐 → [settled_issues](../_archive/settled_issues/261102-distribution-alignment.md)（术语/六轴/README/手册对齐 26_harness-release；噪声按 owner 收敛；退役词与骨架门禁），261102 去掉「运行轨迹」页 → [settled_issues](../_archive/settled_issues/261102-remove-trajectory-tab.md)（`ui-trajectory` 裸 id 停用；组合/客户端清单/真页面三处验），261102 dev 通道与用户安装路径对齐 → [settled_issues](../_archive/settled_issues/261102-dev-product-install-parity.md)（parity 表 + `pnpm install-parity` + overlay 化 + `dev-parity` 门禁），261101 插件生命周期对齐 → [settled_issues](../_archive/settled_issues/261101-plugin-lifecycle-align.md)（bundle-first：默认 preset 进 bundle、npm/市场发布路径、安装器独立资产），261029 账本多视图 M1 → [settled_issues](../_archive/settled_issues/261029-ledger-multiview-closure.md)，261029 首用价值旅程 → [settled_issues](../_archive/settled_issues/261029-first-value-journey.md)，261028 数据面第二轮复查 → [settled_issues](../_archive/settled_issues/261028-data-plane-recheck.md)，261028 数据面校准 → [settled_issues](../_archive/settled_issues/261028-data-plane-alignment.md)，B 级缺口 → [settled_issues](../_archive/settled_issues/261028-b-grade-close.md)，P3 残余 → [settled_issues](../_archive/settled_issues/261028-p3-residuals.md)，六维改善 → [settled_issues](../_archive/settled_issues/261028-six-dimension-improvement.md)。
 
