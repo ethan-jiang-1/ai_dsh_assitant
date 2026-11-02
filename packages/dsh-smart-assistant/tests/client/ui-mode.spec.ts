@@ -3,7 +3,7 @@
  * per-materialization reset, and a subscription that carries the new mode.
  */
 import { describe, expect, it, vi } from 'vitest'
-import { bindUiModeRemote, getUiModeStore, initUiModeStore, isUiMode, setUiMode, UI_MODES, type ModeRemote, type UiMode } from '../../src/client/chrome/ui-mode'
+import { bindUiModeRemote, createHttpUiModeRemote, getUiModeStore, initUiModeStore, isUiMode, setUiMode, UI_MODES, type ModeRemote, type UiMode } from '../../src/client/chrome/ui-mode'
 
 function storage(initial?: string) {
   const values = new Map<string, string>(initial === undefined ? [] : [['dsha:ui-mode:v1', initial]])
@@ -55,6 +55,32 @@ function remote(initial: UiMode | undefined = 'standard') {
   const value: ModeRemote = { load, save }
   return { remote: value, load, save, saved }
 }
+
+describe('ui mode HTTP remote', () => {
+  it('reads and writes the authenticated route through the page fetch', async () => {
+    const calls: string[] = []
+    const remote = createHttpUiModeRemote({
+      fetch: async (url, init) => {
+        calls.push(`${String(url)} ${init?.method ?? 'GET'} ${String(init?.body ?? '')}`)
+        return { ok: true, json: async () => ({ mode: 'expert' }) } as unknown as Response
+      },
+    })
+    await expect(remote.load()).resolves.toBe('expert')
+    await expect(remote.save('simple')).resolves.toBe(true)
+    expect(calls).toEqual([
+      '/api/assistant/ui-mode GET ',
+      '/api/assistant/ui-mode POST {"mode":"simple"}',
+    ])
+  })
+
+  it('treats a failed read/write as a local-only fallback', async () => {
+    const remote = createHttpUiModeRemote({
+      fetch: async () => { throw new Error('offline') },
+    })
+    await expect(remote.load()).resolves.toBeUndefined()
+    await expect(remote.save('simple')).resolves.toBe(false)
+  })
+})
 
 describe('ui mode remote binding', () => {
   it('adopts the durable value after the async read', async () => {

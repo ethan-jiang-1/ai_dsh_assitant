@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 // Platform-composition seam consumes the pinned store source through the vitest alias
 // (`@deepseek-ai/dsh-client-store` → vendor src; no vendor build output involved).
 import { createSnapshotStore } from '@deepseek-ai/dsh-client-store'
-import { createProjectionReader } from '../../src/client/projection/projection-reader.ts'
+import { createProjectionReader, fetchReceiptArchivePage } from '../../src/client/projection/projection-reader.ts'
 import { parseOperatingProjection } from '../../src/client/projection/operating-projection.ts'
 import type { ProjectionDownload } from '../../src/client/projection/projection-reader.ts'
 
@@ -190,5 +190,31 @@ describe('Web projection reader', () => {
     await flush()
     expect(f.snapshot.getSnapshot()).toEqual({ status: 'ready', data: parseOperatingProjection(projection(7)) })
     f.reader.dispose()
+  })
+})
+
+describe('receipt archive page', () => {
+  it('sends the cursor, optional matter and limit, and keeps valid rows', async () => {
+    const urls: string[] = []
+    const page = await fetchReceiptArchivePage({
+      baseURI: 'http://localhost:3080/',
+      fetch: async url => {
+        urls.push(String(url))
+        return new Response(JSON.stringify({
+          receipts: [{ operationId: 'o1', submittedAt: '2026-01-01' }, { bogus: true }],
+          nextBefore: null,
+        }))
+      },
+    }, 'cursor', 'm1')
+    expect(urls[0]).toBe('http://localhost:3080/api/assistant/operating-receipts?before=cursor&matterId=m1&limit=50')
+    expect(page.receipts).toEqual([{ operationId: 'o1', submittedAt: '2026-01-01' }])
+    expect(page.nextBefore).toBeNull()
+  })
+
+  it('rejects a payload whose cursor is neither null nor a string', async () => {
+    await expect(fetchReceiptArchivePage({
+      baseURI: 'http://localhost:3080/',
+      fetch: async () => new Response(JSON.stringify({ receipts: [], nextBefore: 3 })),
+    })).rejects.toThrow(/invalid/)
   })
 })

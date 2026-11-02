@@ -4,7 +4,7 @@
  * No persistence or automatic retries.
  */
 import { parseOperatingProjection } from './operating-projection'
-import type { OperatingProjection } from './operating-projection'
+import type { OperatingProjection, OperatingReceipt } from './operating-projection'
 export interface Observable<T> {
   getSnapshot(): T
   subscribe(listener: () => void): () => void
@@ -149,5 +149,48 @@ export function createProjectionReader(connection: Connection, snapshot: Publish
       offGeneration()
       offState()
     },
+  }
+}
+
+/** One receipt-archive page: the validated rows and the cursor for the next page. */
+export interface ReceiptArchivePage {
+  readonly receipts: readonly OperatingReceipt[]
+  readonly nextBefore: string | null
+}
+
+/** A receipt row is displayable when both identity and time are present. */
+function isOperatingReceipt(value: unknown): value is OperatingReceipt {
+  return typeof value === 'object' && value !== null
+    && typeof (value as { operationId?: unknown }).operationId === 'string'
+    && typeof (value as { submittedAt?: unknown }).submittedAt === 'string'
+}
+
+/**
+ * Fetch one page of the append-only receipt archive. The dashboard's "older receipts" paging
+ * lived inline in the client composition root; the wire shape belongs next to the projection
+ * reader that already owns the same-origin download contract.
+ * @param web - Document address and page fetch.
+ * @param before - Opaque cursor from the previous page; omitted for the first page.
+ * @param matterId - Optional matter scope.
+ * @returns validated rows plus the next cursor.
+ */
+export async function fetchReceiptArchivePage(
+  web: { readonly baseURI: string; readonly fetch: typeof globalThis.fetch },
+  before?: string,
+  matterId?: string,
+): Promise<ReceiptArchivePage> {
+  const url = new URL('/api/assistant/operating-receipts', web.baseURI)
+  if (before !== undefined) url.searchParams.set('before', before)
+  if (matterId !== undefined) url.searchParams.set('matterId', matterId)
+  url.searchParams.set('limit', '50')
+  const response = await web.fetch(url, { headers: { accept: 'application/json' } })
+  if (!response.ok) throw new Error(`receipt archive request failed (${String(response.status)})`)
+  const body = await response.json() as { receipts?: unknown, nextBefore?: unknown }
+  if (!Array.isArray(body.receipts) || (body.nextBefore !== null && typeof body.nextBefore !== 'string')) {
+    throw new Error('receipt archive response is invalid')
+  }
+  return {
+    receipts: body.receipts.filter(isOperatingReceipt),
+    nextBefore: body.nextBefore,
   }
 }

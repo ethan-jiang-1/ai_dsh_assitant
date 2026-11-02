@@ -113,6 +113,49 @@ export function initUiModeStore(next?: ModeStorage): UiModeStore {
 }
 
 /**
+ * Build the HTTP transport for the Host's `ui-mode.json` route. Separated from the binding so a
+ * test can stand in `fetch`; the entry never carries the route details itself.
+ * @param web - The page fetch used for the authenticated route.
+ * @returns the durable remote.
+ */
+export function createHttpUiModeRemote(web: { readonly fetch: typeof globalThis.fetch }): ModeRemote {
+  return {
+    load: async () => {
+      try {
+        const response = await web.fetch('/api/assistant/ui-mode', { headers: { accept: 'application/json' } })
+        if (!response.ok) return undefined
+        const body = await response.json() as { mode?: unknown }
+        return isUiMode(body.mode) ? body.mode : undefined
+      } catch {
+        return undefined
+      }
+    },
+    save: async (mode) => {
+      try {
+        const response = await web.fetch('/api/assistant/ui-mode', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ mode }),
+        })
+        return response.ok
+      } catch {
+        return false
+      }
+    },
+  }
+}
+
+/**
+ * Bind the per-home Host route when the page has fetch. The entry calls this once per
+ * materialization; a composition without fetch stays local-only.
+ * @param ctx - The plugin lifetime (`ctx.effect`) that owns the binding.
+ */
+export function mountUiModeRemote(ctx: { effect?: (install: () => () => void, label?: string) => unknown }): void {
+  if (typeof globalThis.fetch !== 'function') return
+  ctx.effect?.(() => bindUiModeRemote(createHttpUiModeRemote({ fetch: globalThis.fetch })), 'assistant: ui mode remote')
+}
+
+/**
  * Bind the per-home Host route: its stored value wins over the local first paint, and a switch
  * writes it back. A failed read keeps the localStorage choice; a failed write leaves the local
  * choice standing (the next successful switch retries the durable value).

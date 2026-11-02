@@ -43,7 +43,7 @@ import { ApprovalDockBanner, FirstMileDock } from './chrome/first-mile'
 import { mountRoomBodies, mountRoomGuides } from './rooms/mount-rooms'
 import { RememberAction } from './rooms/message-action'
 import { createElement } from './chrome/runtime'
-import { bindUiModeRemote, initUiModeStore, isUiMode, type ModeRemote } from './chrome/ui-mode'
+import { initUiModeStore, mountUiModeRemote } from './chrome/ui-mode'
 import { UiModeRow } from './chrome/ui-mode-row'
 import { returnToConversation } from './chrome/navigation'
 import { bindVikiEnv } from './rooms/viki-data-io'
@@ -55,8 +55,7 @@ import { HomeSurface } from './projection/home-surface'
 import { DebugPanel } from './debug/debug-panel'
 import { createDeskSurface } from './projection/desk-surface'
 import { mountProjectionReader } from './projection/projection-lifecycle'
-import type { ProjectionDownload } from './projection/projection-reader'
-import type { OperatingReceipt } from './projection/operating-projection'
+import { fetchReceiptArchivePage, type ProjectionDownload } from './projection/projection-reader'
 import { createProjectionViewStore } from './projection/projection-view'
 import type { ProjectionPanelProps } from './projection/projection-panel'
 import type { ComponentType } from 'react'
@@ -263,23 +262,8 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       })
       const current = ctx.uiSession?.current.value.key
       const resolvedSession = sessionId ?? (current === undefined ? undefined : String(current))
-      const loadOlderReceipts = async (before: string | undefined, scope?: { readonly matterId?: string }): Promise<{ readonly receipts: readonly OperatingReceipt[], readonly nextBefore: string | null }> => {
-        const url = new URL('/api/assistant/operating-receipts', document.baseURI)
-        if (before !== undefined) url.searchParams.set('before', before)
-        if (scope?.matterId !== undefined) url.searchParams.set('matterId', scope.matterId)
-        url.searchParams.set('limit', '50')
-        const response = await fetch(url, { headers: { accept: 'application/json' } })
-        if (!response.ok) throw new Error(`receipt archive request failed (${String(response.status)})`)
-        const body = await response.json() as { receipts?: unknown, nextBefore?: unknown }
-        if (!Array.isArray(body.receipts) || (body.nextBefore !== null && typeof body.nextBefore !== 'string')) throw new Error('receipt archive response is invalid')
-        return {
-          receipts: body.receipts.filter((receipt): receipt is OperatingReceipt =>
-            typeof receipt === 'object' && receipt !== null
-            && typeof (receipt as { operationId?: unknown }).operationId === 'string'
-            && typeof (receipt as { submittedAt?: unknown }).submittedAt === 'string'),
-          nextBefore: body.nextBefore,
-        }
-      }
+      const loadOlderReceipts = (before: string | undefined, scope?: { readonly matterId?: string }) =>
+        fetchReceiptArchivePage({ baseURI: document.baseURI, fetch }, before, scope?.matterId)
       return {
         surface,
         hooks,
@@ -389,33 +373,8 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
 
     // The mode's durable half: the Host's authenticated `ui-mode.json` route. Its value wins
     // over the localStorage first paint; a failed read/write leaves the local choice standing.
-    const modeRemote: ModeRemote = {
-      load: async () => {
-        try {
-          const response = await fetch('/api/assistant/ui-mode', { headers: { accept: 'application/json' } })
-          if (!response.ok) return undefined
-          const body = await response.json() as { mode?: unknown }
-          return isUiMode(body.mode) ? body.mode : undefined
-        } catch {
-          return undefined
-        }
-      },
-      save: async (mode) => {
-        try {
-          const response = await fetch('/api/assistant/ui-mode', {
-            method: 'POST',
-            headers: { 'content-type': 'application/json' },
-            body: JSON.stringify({ mode }),
-          })
-          return response.ok
-        } catch {
-          return false
-        }
-      },
-    }
-    if (typeof fetch === 'function') {
-      ctx.effect?.(() => bindUiModeRemote(modeRemote), 'assistant: ui mode remote')
-    }
+    // The transport lives with the store (`chrome/ui-mode.ts`), not in this composition root.
+    mountUiModeRemote(ctx)
     ctx.slots.inject('settings.general.item', () =>
       ctx.slots.register({ name: 'settings.general.item', id: 'assistant-ui-mode', order: -10 }, UiModeRow))
 
