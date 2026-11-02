@@ -28,7 +28,7 @@ const READY: ProductBinding = {
   version: 1,
   configured: true,
   status: 'ready',
-  workspaceDir: '/tmp/project',
+  workspaceDir: '/projects/assistant',
   workspaceId: 'ws-1',
 }
 
@@ -83,7 +83,7 @@ describe('choosing a project directory', () => {
   it('picks, posts, stores the ready binding and runs the follow-up', async () => {
     const posted: unknown[] = []
     initProductFaceStore(runtime({
-      pickDirectory: async () => '/tmp/project',
+      pickDirectory: async () => '/projects/assistant',
       fetch: async (input, init) => {
         posted.push({ url: String(input), body: init?.body })
         return { ok: true, json: async () => READY } as unknown as Response
@@ -91,7 +91,7 @@ describe('choosing a project directory', () => {
     }))
     let after: ProductBinding | undefined
     await chooseProductWorkspace(binding => { after = binding })
-    expect(posted).toEqual([{ url: 'http://localhost/api/assistant/product', body: JSON.stringify({ workspaceDir: '/tmp/project' }) }])
+    expect(posted).toEqual([{ url: 'http://localhost/api/assistant/product', body: JSON.stringify({ workspaceDir: '/projects/assistant' }) }])
     expect(productFaceState().binding).toEqual(READY)
     expect(productFaceState().busy).toBe(false)
     expect(after).toEqual(READY)
@@ -120,7 +120,7 @@ describe('choosing a project directory', () => {
 
   it('reports an unreadable success payload instead of inventing a binding', async () => {
     initProductFaceStore(runtime({
-      pickDirectory: async () => '/tmp/project',
+      pickDirectory: async () => '/projects/assistant',
       fetch: async () => ({ ok: true, json: async () => ({ version: 9 }) }) as unknown as Response,
     }))
     await chooseProductWorkspace()

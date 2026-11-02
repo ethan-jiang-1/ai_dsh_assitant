@@ -1,0 +1,13 @@
+#
+# dev web profile 的 overlay 源：`pnpm start` 起的是**开发环**，不是产品部署。
+#
+# 产品门（`assistant-product`）在未绑定时会禁用每个会话的输入；开发环的会话是给 preset 行为、
+# 工具与 persona 用的，不该被产品首启挡住。所以这里显式关掉首启门（`onboarding: false` = 透明脸），
+# 产品门本身由 `web-face-check --scenario product-*` 场景（它们 seed 自己的配置）与
+# `dev/probes/web/product-first-screen.mjs` 验证。
+#
+# 这份文件由 setup.sh 生成到 `$DSH_HOME/dev-overlay-dev.yml`，启动器以 `--patch` 注入；
+# profile 用户层不写（docs/dev.md §十）。
+- id: assistant-product
+  config:
+    onboarding: false

@@ -29,7 +29,7 @@ const base = (): unknown => createElement('div', null, 'BASE-DASHBOARD')
 const ONBOARDING = { version: 1, configured: false, status: 'not-configured' as const }
 const READY = {
   version: 1, configured: true, status: 'ready' as const,
-  workspaceDir: '/tmp/project', workspaceId: 'ws-1',
+  workspaceDir: '/projects/assistant', workspaceId: 'ws-1',
 }
 
 describe('product gate over the dashboard', () => {
@@ -56,7 +56,7 @@ describe('product gate over the dashboard', () => {
     surface.initProductFaceStore()
     surface.setProductFace({ binding: READY })
     const texts = textsOf(surface.ProductGate({ base })).join('\n')
-    expect(texts).toContain('工作区 · project')
+    expect(texts).toContain('工作区 · assistant')
     expect(texts).toContain('开始一件事')
     expect(texts).toContain('换项目')
     expect(texts).toContain('BASE-DASHBOARD')

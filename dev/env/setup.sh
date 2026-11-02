@@ -128,7 +128,7 @@ reset_dev_profile_patch() { # <profile-name> <profile-dir>
   echo "▸ reset the dev-generated profile patch for '$name' (backup: $file.dev-backup)"
 }
 
-for pair in "$profile:$profile_dir:" \
+for pair in "$profile:$profile_dir:$repo_root/dev/profiles/profile-patch-dev.yml" \
             "$task_profile:$task_dir:$repo_root/dev/profiles/profile-patch-headless.yml"; do
   name="${pair%%:*}"
   rest="${pair#*:}"
