@@ -9,7 +9,7 @@
  * @module dsh-smart-assistant/client/commands
  */
 
-import type { CommandContribution, RoomKind } from './contracts'
+import type { CommandContribution, CommandUiRegistry, RoomKind } from './contracts'
 import { setUiMode } from './ui-mode'
 
 /**
@@ -88,4 +88,37 @@ export function deskCommands(openActivity: () => void): CommandContribution[] {
     },
   ]
   return commands
+}
+
+/** The composition face `mountCommands` needs; the entry passes its plugin context. */
+export interface CommandMountContext {
+  inject?: (deps: string[], callback: (scope: { get: (name: string) => unknown }) => void) => unknown
+  layout?: { selectPanel(panelId: string): void }
+}
+
+/** The actions the commands dispatch; passed in so the module does not import the entry. */
+export interface CommandMountActions {
+  openRoom(kind: RoomKind): void
+  requestActivity(): void
+}
+
+/**
+ * Register the `/` and composer `+` discovery rows when the composition carries a command
+ * surface. Scoped inject keeps the rooms independent of whether `commandUi` exists at all.
+ * @param ctx - The plugin context (inject + layout).
+ * @param actions - Room opener and desk-activity request.
+ */
+export function mountCommands(ctx: CommandMountContext, actions: CommandMountActions): void {
+  ctx.inject?.(['commandUi'], (scope) => {
+    const commandUi = scope.get('commandUi') as CommandUiRegistry | undefined
+    if (commandUi === undefined) return
+    for (const contribution of [
+      ...roomCommands(actions.openRoom),
+      ...deskCommands(() => {
+        actions.requestActivity()
+        ctx.layout?.selectPanel('dsh-smart-assistant-dashboard')
+      }),
+      ...uiModeCommands(),
+    ]) commandUi.register(contribution)
+  })
 }

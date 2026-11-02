@@ -28,14 +28,14 @@
  * @module dsh-smart-assistant/client
  */
 
-import type { ClientContext, ClientRequire, CommandUiRegistry, ModuleLoaderFacade } from './chrome/contracts'
+import type { ClientContext, ClientRequire, ModuleLoaderFacade } from './chrome/contracts'
 import { mountApproveRemote } from './chrome/approve-mount'
 import { initDeskStore } from './rooms/room-data-core'
 import type { DeskStore } from './rooms/room-data-core'
 import { bindDeskEnv, loadDesk, newestSessionId, openBeside } from './rooms/room-data-io'
 import { mountSessionSettleRefresh } from './rooms/room-settle-refresh'
 import { AssistantBrandMark, AssistantBrandName, AssistantHeroMark } from './chrome/brand'
-import { deskCommands, roomCommands, uiModeCommands } from './chrome/commands'
+import { mountCommands } from './chrome/commands'
 import { createDeskActivityHandoff } from './desk/desk-view-actions'
 import { mountSessionCaptureStatuses } from './desk/desk-capture-status'
 import { DashboardMainPanel, DashboardPanelIcon } from './chrome/dashboard'
@@ -366,13 +366,9 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // so "what can this thing do" stops depending on the principal guessing at a prompt.
     // Scoped inject rather than the plugin's own inject list keeps the rooms independent
     // of whether this composition carries a command surface at all.
-    ctx.inject?.(['commandUi'], (scope) => {
-      const commandUi = scope.get('commandUi') as CommandUiRegistry | undefined
-      if (commandUi === undefined) return
-      for (const contribution of [...roomCommands(openBeside), ...deskCommands(() => {
-        deskActivity.requestActivity()
-        ctx.layout?.selectPanel('dsh-smart-assistant-dashboard')
-      }), ...uiModeCommands()]) commandUi.register(contribution)
+    mountCommands(ctx, {
+      openRoom: openBeside,
+      requestActivity: () => { deskActivity.requestActivity() },
     })
 
     // The mode's durable half: the Host's authenticated `ui-mode.json` route. Its value wins

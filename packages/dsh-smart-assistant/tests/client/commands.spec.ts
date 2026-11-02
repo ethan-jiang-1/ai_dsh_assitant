@@ -8,6 +8,7 @@
  */
 import { createElement } from 'react'
 import { describe, expect, it } from 'vitest'
+import { mountCommands } from '../../src/client/chrome/commands.ts'
 import { loadClientRegistration, materializeClient } from '../support/client-harness.ts'
 
 const registration = await loadClientRegistration()
@@ -78,5 +79,33 @@ describe('room commands', () => {
     // without ui-commands would leave the rooms pending too.
     expect(exports.inject).not.toContain('commandUi')
     expect(() => { exports.apply(fakeContext()) }).not.toThrow()
+  })
+})
+
+describe('mountCommands', () => {
+  it('registers all discovery rows through one scoped inject and dispatches their actions', () => {
+    const commands: CommandContribution[] = []
+    const opened: string[] = []
+    const panels: string[] = []
+    let activity = 0
+    let deps: string[] | undefined
+    let callback: ((scope: { get: (name: string) => unknown }) => void) | undefined
+    mountCommands({
+      inject: (names, run) => { deps = names; callback = run },
+      layout: { selectPanel: panel => { panels.push(panel) } },
+    }, {
+      openRoom: kind => { opened.push(kind) },
+      requestActivity: () => { activity += 1 },
+    })
+    expect(deps).toEqual(['commandUi'])
+    callback?.({ get: () => ({ register: (command: CommandContribution) => { commands.push(command) } }) })
+    expect(commands.map(command => command.name)).toEqual([
+      'knowledge', 'memory', 'desk-activity', 'mode-simple', 'mode-standard', 'mode-expert',
+    ])
+    commands.find(command => command.name === 'knowledge')?.ui.run(undefined)
+    expect(opened).toEqual(['knowledgeRoom'])
+    commands.find(command => command.name === 'desk-activity')?.ui.run(undefined)
+    expect(activity).toBe(1)
+    expect(panels).toEqual(['dsh-smart-assistant-dashboard'])
   })
 })
