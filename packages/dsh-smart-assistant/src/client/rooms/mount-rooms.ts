@@ -11,6 +11,8 @@
  * @module dsh-smart-assistant/client/mount-rooms
  */
 import type { ClientContext } from '../chrome/contracts'
+import { loadDesk } from './room-data-io'
+import { mountSessionSettleRefresh } from './room-settle-refresh'
 import { roomTabTitle, roomTabs } from './room-tabs'
 
 type RoomTab = (typeof roomTabs)[number]
@@ -71,4 +73,20 @@ export function mountRoomGuides(ctx: ClientContext, debug: boolean): () => void 
     if (typeof dispose === 'function') disposers.push(dispose)
   }
   return () => { for (const dispose of disposers.reverse()) dispose() }
+}
+
+/**
+ * Mount the whole right-sidebar room surface for one materialization: the shared desk load,
+ * the conversation-following settle refresh, the "+" guide entries, and the tab bodies.
+ * The entry calls this once; the lifetimes stay bound to the plugin fiber.
+ * @param ctx - The client apply context.
+ * @param debug - Whether the debug flag is on (Viki exists only then).
+ * @param reader - Projection reader to refresh after a turn settles; absent in partial compositions.
+ */
+export function mountRoomTabs(ctx: ClientContext, debug: boolean, reader: { refresh(): void } | undefined): void {
+  // One load feeds all three rooms; the store notifies them as it settles.
+  loadDesk()
+  mountSessionSettleRefresh(ctx, reader)
+  ctx.effect?.(() => mountRoomGuides(ctx, debug), 'assistant: room guides')
+  ctx.effect?.(() => mountRoomBodies(ctx, debug), 'assistant: room tab bodies')
 }

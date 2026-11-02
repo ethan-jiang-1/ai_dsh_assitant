@@ -32,15 +32,14 @@ import type { ClientContext, ClientRequire, ModuleLoaderFacade } from './chrome/
 import { mountApproveRemote } from './chrome/approve-mount'
 import { initDeskStore } from './rooms/room-data-core'
 import type { DeskStore } from './rooms/room-data-core'
-import { bindDeskEnv, loadDesk, newestSessionId, openBeside } from './rooms/room-data-io'
-import { mountSessionSettleRefresh } from './rooms/room-settle-refresh'
+import { bindDeskEnv, newestSessionId, openBeside } from './rooms/room-data-io'
 import { AssistantBrandMark, AssistantBrandName, AssistantHeroMark } from './chrome/brand'
 import { mountCommands } from './chrome/commands'
 import { createDeskActivityHandoff } from './desk/desk-view-actions'
 import { mountSessionCaptureStatuses } from './desk/desk-capture-status'
 import { DashboardMainPanel, DashboardPanelIcon } from './chrome/dashboard'
 import { ApprovalDockBanner, FirstMileDock } from './chrome/first-mile'
-import { mountRoomBodies, mountRoomGuides } from './rooms/mount-rooms'
+import { mountRoomTabs } from './rooms/mount-rooms'
 import { RememberAction } from './rooms/message-action'
 import { createElement } from './chrome/runtime'
 import { initUiModeStore, mountUiModeRemote } from './chrome/ui-mode'
@@ -326,31 +325,10 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         yield ctx.slots.register({ name: 'sidebar.brand.name', priority: -1 }, AssistantBrandName)
       }))
 
-    // (User steer, 2026-09-28; current contract = [docs/architecture.md §二](../../../../docs/architecture.md))
-    // The rooms' home is the RIGHT sidebar as addable tabs — like the
-    // browser and terminal tabs there, opened from the guide ("+") while a conversation is on,
-    // several at once, each bound to its session. The left main-panel registrations are retired;
-    // the wide-panel bodies are unchanged (the tab seat renders the same components).
-    // One load feeds all three rooms; the store notifies them as it settles.
-    loadDesk()
-
-    mountSessionSettleRefresh(ctx, reader)
-
-    // The rooms live beside the conversation as right-sidebar tabs, each bound to the session
-    // whose sidebar holds it — the body reads that session's workspace desk file directly, no
-    // more newest-five walk. Two-stage like ui-schedule: the definition into
-    // `sidebarRightTabs`, the body into the keyed `sidebar.right.pane.tab` seat under the
-    // definition's id. The guide entries (user steer, 2026-09-28) put the rooms in the "+"
-    // picker beside the browser and terminal tabs, so opening one no longer depends on knowing
-    // the chip or the panel button: the rooms are first-class addable tabs of the right sidebar.
-    // The session desk room is RETIRED (principal decision, 2026-10-11): the ledger's global
-    // desk is the one "桌面" — a second desk reading the old room-data copy split the principal's
-    // mental model, and the live model routed business items into it. The session-desk subsystem
-    // is retired; the three product rooms below are the live surface.
-    // The three product rooms are always in the "+" guide; Viki(调试) joins them only when the
-    // debug flag is on (same flag as the developer tab). Density never touches this surface.
-    ctx.effect?.(() => mountRoomGuides(ctx, roomsDebug), "assistant: room guides")
-    ctx.effect?.(() => mountRoomBodies(ctx, roomsDebug), "assistant: room tab bodies")
+    // The rooms' home is the RIGHT sidebar as addable tabs, each bound to its session. The
+    // whole surface (desk load, settle refresh, "+" guides, tab bodies) lives in
+    // `rooms/mount-rooms.ts`; this entry only decides that the surface mounts.
+    mountRoomTabs(ctx, roomsDebug, reader)
 
     // Form migration: conversation.composer is a CHAIN slot — chain slots are owner-only
     // registration (the declaring entry is the only one that can add to the chain).
