@@ -136,7 +136,7 @@
   ],
   "scripts": {
     "clean": "rm -rf lib tsconfig.tsbuildinfo",
-    "build": "tsc -b tsconfig.json && tsdown",
+    "build": "tsc -b tsconfig.json && tsdown && node scripts/prune-client-chunks.mjs",
     "typecheck": "tsc -b tsconfig.json && tsc -p tsconfig.test.json",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage"
