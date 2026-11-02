@@ -5,202 +5,120 @@ kind: "package-bundle"
 
 # dsh-smart-assistant
 
-一个 DSH **产品**：dedicated `assistant` profile 的组合；工作区绑定在 `assistant-product.workspaceDir`（profile Config），会话落在用户项目里；助手的大脑留在自己的 home，一次作业的交付包留在项目里。产品 home 是部署选项，不是安装要求。
+装进一个 DSH **web** profile 后，新会话默认就是「章鱼管家」：一个有自己 working folder 的常驻助手——
+记忆、线索、技能、知识页与经营账本都在它的 home 里，交付包落在你的项目目录。不是通用编码助手；
+要一个随项目走的代码 agent，用 DSH 自带的 preset 更合适。
 
-- **四个房间**：`memory/`（已确立的事实/偏好/决定）、`research/`（未决线索，backlog 语义）、
-  `skills/`（学到的本事）、`knowledge/`（领域知识页，`[[互链]]`）。
-- **自有工具**：`assistant_memory`、`assistant_recall`、`assistant_research`、`assistant_reflect`、`assistant_knowledge`、`assistant_operating`
-  （动词清单以生成物 catalog 为准）。
-- **一个机器能跑的养护检查**：`assistant_memory action=curate`。
-- **一个 agent preset**：`assistant`（挂上它，这个会话就是"有 working folder 的助手"）。
-- **一个只读部署自检 CLI**：`ov-doctor`（`bin/ov-doctor.mjs`；装好可选 OpenViking 层后在 profile 内运行，见安装手册的 OV 自检节）。
-- **一个专家装配 CLI**：`expert-setup`（`bin/expert-setup.mjs`；把管理种子显式导入为 `draft`，不自动 stable）。
-- **一个数据备份/诊断 CLI**：`assistant-data`（`bin/assistant-data.mjs`；导出/导入 `assistant` + `assistant-operating`，带 schema manifest；另有 `status`/`check`、`import --replace`/`--max-bytes`、`rotate` 与显式 `purge`）。
-- **一个可选产品安装器（独立发布资产，不在包里）**：`bootstrap.mjs`（`--package` 指向解开的产品包；`--workspace` 建/复用 `assistant` profile、给首启一个 `ASSISTANT_WORKSPACE` 覆盖、起 Web；`--product` 从 profile Config 恢复；`--stop` 收；默认产品 home `~/.dsh-smart-assistant`，不碰日用 `~/.dsh`）。它**不写** profile patch，也不写工作区绑定文件。
-- **一个产品工作区行**：`assistant-product`（web-only；`workspaceDir`/`onboarding` Config + `ASSISTANT_WORKSPACE` 一次性覆盖；boot 时登记工作区；GET/POST `api/assistant/product`，POST 经 `settings.update` 写 profile patch；headless profile patch 禁用）。
-- **默认身份是管理岗**（P1）：`SOUL.md` 是数据，种子与回退一致；管理种子只在显式装配时进入知识室，安装不写 working folder。
+## 装什么、装到哪
 
-## Install
+- 这是一个 **bundle**（`package.json` 声明 `dsh.bundle.patch`），不是普通依赖：装进 profile 后自动贡献一层组合。
+- 它插入/覆盖的主要行：`preset-assistant`（模型可见面）、`assistant-product`（工作区绑定与首屏门）、
+  `assistant-memory`、`assistant-operating-ledger`、`assistant-desk-projection`，以及两条 vendor 行停用
+  （`ui-sidebar-terminal`、`ui-trajectory`）。完整清单以 `--dump-config` 为准。
+- **适用面：web。** 它覆盖的行与 client 插件只在 web 组合里成立；headless/SDK/ACP 要显式停用 `assistant-product`（见「安装」末段）。
+- 版本：DSH `>=0.2.1-rc.2 <0.3.0-0`、Node `^22.19.0 || >=24`、pnpm `>=10.6.0`。不满足时 DSH 在写依赖前拒绝。
+- **装进哪个 profile**：任意 web profile 都能工作。推荐新建一个 **custom profile `assistant`** 再装——
+  本 bundle 的默认值带产品口味（停用右栏终端、关运行轨迹页、界面语言中文），装进你已有的 profile 会改它的组合。
+- DSH 本体的 `@deepseek-ai/*` 由宿主提供（peer）；唯一运行期依赖是 `yaml`，首次安装需要 registry 或内网镜像。
 
-**在 DSH 的 Plugins 页装**（`dsh web` 与 Desktop 同一句话；页面装的是**当前 profile**，不创建 profile）：
+## 安装
 
-1. 启动一个 web profile（`dsh web`，或 dedicated profile：`dsh --profile assistant --from-default-profile web --dump-config`）。
-2. 侧栏 **Plugins** → **Add plugin** → **Install a third-party plugin** → 填包名 `dsh-smart-assistant`（或本地 tarball 的绝对路径）。
-3. 启用、**重启 profile**（bundle membership 变化要重启）。
+默认入口是 **Plugins 页**（`dsh web` 与 Desktop 同一句；页面装的是**当前 profile**，不创建 profile）：
 
-装完即产品：`--dump-config` 应看到 `preset-assistant`、`assistant-memory`、`assistant-product`，且
-`agent-preset-registry` 的 `default:` 是 `assistant` —— **不需要改 profile patch**，默认 preset 随 bundle 发。
-已选过预设的用户（`selectedDefault`）不受影响，卸载后回到 `standard`。
+1. 建并启动一个 profile。推荐专用组合（一次建成，`--dump-config` 不能省——没有它会直接启动）：
+   ```sh
+   dsh --profile assistant --from-default-profile web --dump-config
+   dsh --profile assistant
+   ```
+2. 侧栏 **Plugins** → **Add plugin** → **Install a third-party plugin** → 填 `dsh-smart-assistant`（或本地 tarball 的绝对路径）。
+3. 启用，**重启 profile**（bundle 成员变化要重启），首屏按提示选项目目录。
 
-**CLI（自动化 / 无 Plugins 页的 surface）**：
+**CLI（仅 `dsh web` 自动化 / 无 Plugins 页的 surface）**：先确认 profile 已经建好——对自定义名字，`dsh plugin`
+只会建一个 base-only profile，没有 web-app 就起不了 Web。
 
 ```sh
-dsh plugin --profile <profile> add dsh-smart-assistant@<version>   # 钉 exact 版本，不用 latest
-dsh --profile <profile> --dump-config     # 找 preset-assistant 与 agent-preset-registry 的 default: assistant
+dsh plugin --profile assistant add dsh-smart-assistant@<version>   # 钉 exact 版本
 ```
 
-**市场（Discover）**：DSH 没有中心化市场，市场是索引源模式——发布后由 `pnpm market` 生成
-`_dist/market/index.json`，静态托管到 https 后加进 Discover（先启用出厂关着的「自定义插件市场」）。
-索引钉的是 exact 版本；卡片文字是索引的声明，装下来的字节由 manifest 决定。
-
-CLI 面向 `dsh web` 自动化，**不能管理 `desktop`**（Desktop 用 Desktop 的 Plugins 页）。
-
-**本 bundle 是 web 面的组合。** 它 override 的 vendor 行（`ui-chat` / `locale` / `ui-sidebar-terminal`）与必注
-`connection`/`workspaceRegistry` 的产品行只在 web 组合里成立。装进 headless/SDK/ACP profile 时组合仍能起，
-但会看到 `patch: entry "ui-sidebar-terminal" not found`，且这几行停在 pending —— 要在 headless 里用它，加一行：
-
-```yaml
-- id: assistant-product
-  disabled: true
-```
-
-**安装器不是包的一部分。** 自托管/一条命令部署用独立发布的 `bootstrap.mjs`（在发布资产里，与 tarball 同目录）：
+**安装器（仅 shell/自托管，不在包里）**：发布资产里的 `bootstrap.mjs` 负责建/复用 profile、装包、起 Web：
 
 ```sh
 node bootstrap.mjs --package ./package --workspace /path/to/your-project
-node bootstrap.mjs --package ./package --product    # 之后从 profile Config 恢复
-node bootstrap.mjs --package ./package --stop --home ~/.dsh-smart-assistant --product
+node bootstrap.mjs --package ./package --stop --home ~/.dsh-smart-assistant
 ```
 
-它只建/复用 `assistant` profile、装包、校验组合、起 Web；`--workspace` 只设一次性 `ASSISTANT_WORKSPACE`。
-产品 home 默认 `~/.dsh-smart-assistant`（不碰日用 `~/.dsh`；`--home ~/.dsh` 才是显式共享）。
+**headless / SDK / ACP**：装包后，在 profile patch 里停用 web-only 行（`insert` 不是必须——这行在 headless 组合里不存在，用 `insert:` 追加）：
 
-需要 DSH `>=0.2.1-rc.2 <0.3.0-0`、Node `^22.19.0 || >=24`，以及 PATH 上的 `pnpm >= 10.6.0`
-（10.4 及更低会报 `ERR_PNPM_ADDING_TO_ROOT`；Corepack 已启用也算）。首次安装需要访问 npm registry
-或内网镜像，拉唯一依赖 `yaml`；之后运行不需要网络。
+```yaml
+- insert:
+    - id: assistant-product
+      disabled: true
+```
 
-## What it contributes
+**市场（Discover）**：DSH 没有中心化市场，市场是索引源模式。索引只是发现层，安装仍是上面三条通道之一。
 
-`cordis.patch.yml` 是一层 bundle patch：host 面的 working-folder 服务（四房间、摘要、curate）、
-经营账本/投影、产品工作区绑定/门、房间与 Viki 路由，以及 `assistant` preset（六个工具、四个常驻段落、策展技能、
-学到的技能 provider 与遮蔽盾）。客户端贡献桌面与房间 tab；行、exports、工具动词的精确清单以
-[生成物 catalog](../../docs/package-catalog.md) 为准。组合同时**禁用两条 vendor 行**：右栏终端 `ui-sidebar-terminal`（管理岗用户不用开发工具；终端 API/工具
-仍留给 headless 或显式配置的开发组合）与会话视图的「运行轨迹」页 `ui-trajectory`（主 Tab 不摊调试面；
-要看时在 profile patch 里覆盖回来）。
-
-## Configuration
-
-产品行 `assistant-product` 的 Config：`workspaceDir`（volatile；首启客户端或 profile patch 写）、`onboarding`（默认 true；部署可关）；`ASSISTANT_WORKSPACE` 是一次性启动覆盖。home 由 `--home`/`DSH_HOME` 决定；无绑定时 `not-configured`，首屏显示 onboarding。
-`assistant-memory` 行可配 `dataDir`（默认 `<dshHome>/assistant`）、`digestMaxBytes`、`recallLimit`、
-`staleResearchDays`；`assistant-operating-ledger` 行有独立的 `dataDir`（默认
-`<dshHome>/assistant-operating`）与 `keepOperations`（默认 256）、`maxArchiveBytes`（默认 256 MiB 归档读取上限）；`assistant-desk-projection` 有
-`maxProjectionBytes`（默认 8 MiB）与 `allowFixture`（默认 `false`：无账本时 404，不把
-`desk-projection.json` 模拟资料当成真桌面）。patch 是整行 config 替换，不是深合并。
-
-Viki 的 API key 从 `apiKeyEnv`（默认 `OPENVIKING_API_KEY`）读；内联 `apiKey` 只为旧 home 保留，
-会以明文写进 profile patch，不推荐。
-
-## Data
-
-- **Working folder**：`<dshHome>/assistant`（产品模式 = `<productHome>/assistant`，产品 home 可选），一棵用户可见的 home 树，由本插件拥有。**用户内容**：`SOUL.md`、
-  `MANUAL.md`（插件手册的渲染镜像）、`AGENTS.md`（用户笔记）、`memory/`、`research/`、`skills/`、`knowledge/`、
-  `skill-proposals/`；**机器账本**：`skill-usage.json`、`ui-mode.json`、`audit/*.jsonl`、`archive-maintenance/`、`*.bak-*`。
-  home 根下旧 `deliverables/` 是历史遗留；新交付包在会话 cwd 的 `deliverables/<date>-<slug>/`。prompt 用手册的**当前渲染** + `AGENTS.md` 笔记；
-  升级永远最新，没有 generation。旧生成手册（带 marker）在 scaffold 时整体移到 `AGENTS.md.bak-*`（手改留在备份）。
-  笔记超预算报 `notes-over-budget`，身份报 `soul-over-budget`。学到的技能是本插件注册的 provider 根（`skills/`），
-  不是 `$DSH_HOME/skills`；策展技能随包只读，位于 `presets/assistant/skills/`。
-- **Workspace**：会话 cwd 是用户项目；一次作业一个 `deliverables/<date>-<slug>/`（README 四段 + 交付物 + `present`）；项目 `AGENTS.md`/`.dsh/skills`/`.agents/skills` 只读/建议；不复制会话日志。
-- **Ledger**：`<dshHome>/assistant-operating`，插件自有文件账本（不是 `ctx.storageDomain` 的 host KV）：
-  权威 `ledger.json`（最近 256 条操作 + 累计计数）+ `operations-archive.jsonl`（完整操作历史）+ 单 writer 锁；
-  可用 `assistant-data` 导出/导入。
-- **Profile 不是租户**：同一 `DSH_HOME` 下的所有 profile 共用这两个目录；换 profile 名只隔离组合，不隔离数据。
-  真要隔离试用，用独立 `DSH_HOME`，或同时覆盖 memory/ledger/projection 的 `dataDir`。
-- **Host-owned**：sessions、credentials、settings、storages 在 `$DSH_HOME` 下由宿主管理，插件备份不包含它们。
-  补丁启用的会话全文索引在 `<dshHome>/cache/assistant/session-search.db`（派生、可重建），卸载后仍留在盘上；要清就删该目录。
-  会话召回默认走已索引的 `session_search` 族（模型面 `tool-session-query` 是 N2 实验面），raw zstd 日志只是
-  手册声明的回退（跨项目/精确子串/索引缺席）。客户端 localStorage/sessionStorage 键属于设备，清站点数据即清，
-  卸载不自动清。working folder 或会话 cwd 下的 `deliverables/` 是用户数据。
-- **备份/恢复**：`assistant-data` 只带这两个目录，排除 `writer.lock` / `*.tmp`，拒绝符号链接；import 要求实例已停止。
-  首次启动前目标为空即可直接 import；已经启动过的 home 先 `import --replace --dry-run` 看计划，再用 `--replace`
-  把现有目录移到 `.pre-import-*` 旁路。手动 `cp -R` 也要先删掉备份里的 `writer.lock`，并另备 sessions/credentials。
-- **诊断/擦除**：`assistant-data status` 报路径/大小/手册 generation/账本健康/归档操作数，以及 memory/research/skills
-  archive、提案收件箱、approvals 的 retention 读数（只读）；`check` 再报相对路径、
-  坏 ledger/归档行与符号链接，有问题以非零退出。`purge --kind ... --id ... --reason ... --yes`
-  是显式硬删除：删 active/archive/snapshot 副本，并向 `audit/purges.jsonl` 写审计；不删 sessions/账本历史。
-  `refresh-manual --yes` 先把 `MANUAL.md` 备份为 `.bak-*` 再写入当前渲染；它不碰 `AGENTS.md` 笔记。
-  `archive-proposals --yes` 把 `landed`/`rejected` 提案移进 `skill-proposals/archive/`，`proposed`/`approved` 留在收件箱。
-  `rotate --older-than <days> [--apply]` 默认 dry-run；apply 才把旧 approvals/房间 archive/操作归档移进 `archive-maintenance/`。
-  `seal --in <bundle> --out <file>` / `unseal --in <file> --out <dir>` 用环境变量口令做 AES-256/PBKDF2 传输加密。
-  `merge --in <bundle>` 默认 dry-run，只补缺失、冲突保留当前；`--prefer incoming` 才替换并备份；账本冲突不覆盖。
-- **并发**：同一 home 只应有一个写入者；账本拒绝第二 writer，房间写是原子但 last-write-wins。
-- **Package**：不写任何用户数据/secret；`handoff-scan` 拒绝数据、凭据、宿主路径与活密钥，`release-smoke`
-  断言安装不创建 working folder。Viki key 不落配置；bootstrap 的 `bootstrap.json` 0600、日志 token 已打码。
-- **升级/卸载**：两个插件目录保留；房间格式只增可选字段，旧生成手册在 scaffold 时备份并转为笔记，账本 v1 旧字节可读；
-  `assistant-data` 提供带 `schemaVersion` 的备份/恢复；不把 sessions/credentials 打进 bundle。
-  完整数据卡（每个面的归属/寿命/备份/卸载去向）= [`docs/delivery.md`](../../docs/delivery.md) §一。
-
-| DSH 平面 | 本包 |
-|---|---|
-| D 定义 / C 代码 | bundle patch、preset、包内只读技能、`lib/bin`；只读，随版本替换 |
-| W workspace | 只写会话 cwd 的 `deliverables/<date>-<slug>/`；目录与项目文件归用户 |
-| U home | `<dshHome>/assistant`：用户内容 + 插件账本共处一棵用户可见的树；跨项目，升级/卸载保留 |
-| S session / H host state / K cache / X credentials | S/X 宿主拥有；本包不用 `ctx.storageDomain`，账本是自有文件账本；K = 内存摘要缓存 + `cache/assistant/session-search.db` |
-
-这个 home 根是**用户可见的 U 平面**（人能读、能 review、能导出），不是 `ctx.storageDomain` 的 host KV，也不是
-随项目走的 workspace；因此使用文件格式 + `curate` 而不是 KV schema。转换边界的合同 = [`docs/delivery.md`](../../docs/delivery.md)。
-
-## Compatibility
-
-机器可安装范围见 `engines.dsh`（当前 `>=0.2.1-rc.2 <0.3.0-0`）、`engines.node` 与
-`engines.pnpm`（`>=10.6.0`）；当前 pin 是 `dsh-v0.2.1-rc.2`。上界用 `<0.3.0-0` 而非 `<0.3.0`：
-预发布参与匹配，`0.3.0-rc.1` 会被 `<0.3.0` 放进来，而它是下一个 breaking minor 的 RC。未来
-0.2.x 自动放行；0.3.x 需要重新验证并发新版本。pnpm 下界来自 profile 的
-`pnpm-workspace.yaml` 设置支持：10.4 及更低直接拒绝安装，10.5 会忽略 linker 设置。
-历史 typecheck 台账在 repo-only `release-verification.json`，不随包发布，也不是当前支持承诺；
-更老的 DSH 版本不在支持矩阵内。
-
-## Upgrade
+## 验证
 
 ```sh
-dsh plugin --profile <profile> add dsh-smart-assistant@<new-version>
+dsh --profile assistant --dump-config     # 找 preset-assistant、assistant-product，以及 agent-preset-registry 的 default: assistant
+```
+
+界面上看到这些算成功：Plugins 列表里有它且已启用；首屏出现「选一个项目目录」；新会话的预设是「章鱼管家」；
+右栏有记忆/知识/技能三个房间 tab，右栏终端与「运行轨迹」页不在。`--dump-config` 有行但界面没有 = 没重启或没硬刷新。
+
+## 配置
+
+默认值在 bundle patch；你的覆盖写当前 profile 的 patch（Settings 里的改动也落这一层）。**patch 对同一行是整份替换**，
+不是深合并——覆盖时要把想保留的字段一起写全。
+
+| 行 | 字段 | 默认 |
+|---|---|---|
+| `assistant-product` | `workspaceDir`（volatile）、`onboarding` | 未绑定；`onboarding: true` |
+| `assistant-memory` | `dataDir`、`digestMaxBytes`、`recallLimit`、`staleResearchDays` | `<dshHome>/assistant`；见行内 schema |
+| `assistant-operating-ledger` | `dataDir`、`keepOperations`、`maxArchiveBytes` | `<dshHome>/assistant-operating`；256；256 MiB |
+| `assistant-desk-projection` | `maxProjectionBytes`、`allowFixture` | 8 MiB；`false`（无账本时 404，不把模拟资料当桌面） |
+
+`ASSISTANT_WORKSPACE` 是一次性启动覆盖，不落盘。Viki 的 key 从 `apiKeyEnv`（默认 `OPENVIKING_API_KEY`）读；
+凭据写进 patch 会跟着配置一起被备份/分享，不要写。
+
+## 升级
+
+```sh
+dsh plugin --profile assistant add dsh-smart-assistant@<new-version>
 # 重启 profile（运行中的 Web 不会热替换代码）
-dsh --profile <profile> --dump-config      # 仍应看到 preset-assistant 与 default: assistant
+dsh --profile assistant --dump-config      # 仍应看到 preset-assistant 与 default: assistant
 ```
 
-- **没有命令级回滚**（DSH 也没有）：回退 = 重装旧版本（`add dsh-smart-assistant@<old-version>`）。
-  升级前记下当前版本；数据格式不兼容时先恢复备份（`assistant-data import`）。
-- working folder、账本、`cache/assistant/` 跨升级保留；升级不写用户数据。
-- 升级后如果默认 preset 变了，先看 `--dump-config` 里的 `agent-preset-registry`：用户级
-  `selectedDefault` 优先于 bundle 默认。
+- **没有命令级回滚**（DSH 也没有）：回退 = 重装旧版本。升级前记下当前版本。
+- working folder、账本与 `<dshHome>/cache/assistant/` 跨升级保留；升级不写用户数据。
+- 升级后默认预设没变回去，先看 `--dump-config`：用户级 `selectedDefault` 优先于 bundle 默认。
 
-## Uninstall
+## 卸载与数据
 
 ```sh
-dsh plugin --profile <p> remove dsh-smart-assistant
+dsh plugin --profile assistant remove dsh-smart-assistant
 ```
 
-卸载不删 `<dshHome>/assistant` 与 `<dshHome>/assistant-operating`；先 `assistant-data export` 备份。
-产品模式的产品 home（`~/.dsh-smart-assistant`，可选）与工作区交付包都保留；产品 home 要清就手动删，工作区随项目备份。
-卸载也不会删宿主数据：要清会话全文索引就删 `<dshHome>/cache/assistant/`，要清其余宿主数据按
-[`docs/delivery.md`](../../docs/delivery.md) §一数据卡逐项处理；客户端 localStorage 键用“清除站点数据”。
-OpenViking 是独立可选层，另停 server 并按其安装手册清理。
+删掉的是包与 patch 层。**数据一律留下**：
 
-## 它是什么形状
+| 留下什么 | 在哪 | 要清怎么清 |
+|---|---|---|
+| 助手大脑（四房间、身份、手册、笔记、技能、审计） | `<dshHome>/assistant` | 先 `assistant-data export` 备份，再手动删目录 |
+| 经营账本与操作归档 | `<dshHome>/assistant-operating` | 同上 |
+| 会话全文索引（可重建） | `<dshHome>/cache/assistant/` | 删该目录 |
+| 会话、凭据、设置、storages | 宿主 `$DSH_HOME` | 按 DSH 自己的方式清；插件备份不含它们 |
+| 客户端 UI 偏好 | 浏览器 localStorage | 清除站点数据 |
 
-**当前声明了什么，以生成物为准**：[`docs/package-catalog.md`](../../docs/package-catalog.md)
-（由 `scripts/generate/gen-catalog.mjs` 从 exports、组合行、工具源码与技能目录抽取；`pnpm verify` 守 freshness）。
-这里只留一句形状概括，不再手维护清单（手维护的清单必然漂移）：
+换机/恢复用包内 `assistant-data`（`export` / `import`；已启动过的 home 走 `import --replace`，它把现有目录移到
+`.pre-import-*` 旁路，不需要先清空）。备份带 `schemaVersion`，不匹配会拒绝导入。
 
-- plugin 子路径按 host / agent / client 三平面分布（host 含知识批准服务，agent 含自有工具、常驻段落、
-  learn、遮蔽盾与 dev 的 `./preset-runner`），另有非 plugin 导出（`./package.json`）。**计数与逐行清单以
-  [生成物 catalog](../../docs/package-catalog.md) 为准——本句不携带数字。**
+## 排障
 
-装法、身份名、working folder 的契约分别在仓库的 `README.md`、`docs/identity.md`、`docs/home.md`。
-
-Web 客户端贡献独立全局经营桌面（内部概念；UI 叫「今天」，账本投影）与右栏可按需添加的三个产品房间 tab（记忆 / 知识 / 技能）；Viki(调试) tab 只在 debug flag 下出现。默认主面板选择只在页面初始化时尝试，不随重挂覆盖用户导航；导航与数据读取的当前合同在 [浏览器动作链](../../docs/architecture.md#浏览器动作链一次点击--可见的桌面变化)。客户端不拥有经营权威数据。
-
-Host 的 `./desk-projection` 是固定只读投影下载：有权威 `ledger.json` 时活渲染 v2 投影，无账本时回退固定 fixture；不是经营 writer 或通用文件读取。Config `dataDir` 与 agent working folder 独立；缺失、损坏和 I/O 错误分别返回错误，且 fiber 卸载撤销路由。目录/状态码/限额合同由上面的浏览器动作链拥有；此入口不向模型添加工具或提示词。
-
-Client 内部下载对象处理连接代际、手动重读、陈旧缓存与迟到结果拒绝，使用平台 snapshot publisher；apply 承担 effect disposal，并通过 Slot inject hooks 供全局主区消费。它使用经营 v1/v2 双信封解析器验证身份、修订、事项状态及证据定位；解析失败保留最后有效内容。主面板显示完整集合和缺失/空/错误/陈旧状态；事项选择显示摘要、状态、证据 quote 与 Session/event 定位，宽区双栏、窄区单 pane 保留选择与列表位置；事项选择、处理路径与自动回桌已提供，业务写入仍由模型经账本动作完成（客户端不直接写经营账本）；`ready` 不等于业务成功。对象无持久缓存，组件不自行订阅或发起下载。
-
-## 依赖姿态
-
-Host 运行期 `@deepseek-ai/*` 使用 **peerDependencies**；仅类型关系（例如 Connection 下载声明）使用开发依赖：DSH 的公开 API 仍是 pre-stable，
-精确钉死会让每次上游同步都变成一次发版。**当前可安装范围由 `engines.dsh` 机器声明**；`release-verification.json`（repo-only，不进 tarball）是每个 pin 上跑过 typecheck 的历史验证台账，不当作当前支持承诺。`engines.node` 与 pin 住的 DSH 保持一致。`yaml` 是唯一的运行时 dependency。
-
-## 自包含
-
-发布产物（`lib/`、`bin/`、`presets/`、`cordis.patch.yml`）不引用 repo 内任何其他目录，也不引用 `vendor/`；
-`pnpm verify` 机械检查这一点。唯一运行期 npm 依赖是 `yaml`（首次安装从 registry 拉取），其余全部由宿主
-DSH 提供；因此“自包含”指 agent 物自包含，不是离线安装包。真实安装形状（`pnpm pack` → 干净 home →
-`dsh plugin --profile <p> add <spec>`）由 `pnpm release-smoke` 验证；`bin/ov-doctor.mjs` 随包安装，另一人不需要仓库。
+| 现象 | 原因与处理 |
+|---|---|
+| 装完界面没有它 | CLI 装完宿主不知道：重启 profile；浏览器刷新不加载新模块，要硬刷新 |
+| `--dump-config` 有 `assistant-product` 但首屏是普通页面 | 当前组合没有该行（旧包/未 build）或 `onboarding: false`；重装当前 tarball，或删掉该覆盖 |
+| 首屏一直「选一个项目目录」 | Config 里没有 `workspaceDir` 且组合里没有目录选择器：在 profile patch 设 `assistant-product.workspaceDir`，或装 `remote.directoryPicker` |
+| 产品会话在别的 profile 打开报 `agent-preset/not-found` | 该 profile 没有 `assistant` preset；从专用 profile 打开 |
+| headless 组合多一条 pending | `assistant-product` 是 web-only：按「安装」末段在 profile patch 里 `insert` 一行 `disabled: true` |
+| 装不上，报版本不兼容 | `engines.dsh` / `engines.pnpm` 不满足；升 DSH 或 pnpm，不要用强制安装绕过 |

@@ -123,27 +123,34 @@ export function localeShapeProblems(locales) {
  */
 export function docShapeProblems({ readme, manual }) {
   const problems = []
+  // The plugin README's seven sections as the host's own packages present them to an installer:
+  // what it is and where it lands, install, verify, configure, upgrade, uninstall-and-data, and
+  // troubleshooting. Architecture and contribution notes deliberately have no section here.
   const readmeHeadings = [
-    '## Install',
-    '## What it contributes',
-    '## Configuration',
-    '## Data',
-    '## Compatibility',
-    '## Upgrade',
-    '## Uninstall',
+    '## 装什么、装到哪',
+    '## 安装',
+    '## 验证',
+    '## 配置',
+    '## 升级',
+    '## 卸载与数据',
+    '## 排障',
   ]
   const readmeLines = readme.split('\n')
   for (const heading of readmeHeadings) {
     if (!readmeLines.some(line => line.startsWith(heading))) problems.push(`README: missing "${heading}" — the plugin README keeps the host's seven sections`)
   }
   const manualHeadings = [
-    ['## 产品是什么', 'what the product is'],
+    ['## 产品是什么', 'what the distribution is'],
     ['## 〇、安装前提', 'prerequisites'],
+    ['## 〇之二、选运行时', 'runtime choice'],
     ['## 一、安装', 'install'],
+    ['## 二、首启', 'first launch'],
     ['## 三、验证安装', 'verify'],
-    ['## 六、升级', 'upgrade'],
-    ['## 七、卸载', 'uninstall'],
-    ['## 十一、安全', 'security'],
+    ['## 五、配置', 'configuration'],
+    ['## 七、升级', 'upgrade'],
+    ['## 八、卸载', 'uninstall'],
+    ['## 常见问题', 'troubleshooting'],
+    ['## 十二、安全', 'security'],
   ]
   const manualLines = manual.split('\n')
   for (const [heading, label] of manualHeadings) {
