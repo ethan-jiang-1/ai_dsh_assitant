@@ -69,7 +69,7 @@ import { mountProductFace } from './product/mount-product'
 import { deskEn, deskZh, en as firstMileEn, zh as firstMileZh } from './chrome/locales'
 
 /** Slots this face occupies (single-occupant, root-scope, declared by the sidebar). */
-const inject = ['slots', 'sidebarRightTabs', 'sidebarRight', 'sessions', 'remote', 'remote.agentPresets', 'remote.workspaceFiles', 'remote.session', 'remote.schedule', 'remote.directoryPicker', 'layout', 'connection', 'uiSession', 'workspaces', 'uiWorkspace', 'locale']
+const inject = ['slots', 'sidebarRightTabs', 'sidebarRight', 'sessions', 'remote', 'remote.session', 'remote.schedule', 'remote.directoryPicker', 'layout', 'connection', 'uiSession', 'workspaces', 'uiWorkspace', 'locale']
 
 /**
  * Build the plugin surface and the brand occupants against a module-table require.
