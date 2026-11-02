@@ -169,3 +169,32 @@ export function compositionRowProblems({ patchText, architectureText }) {
   }
   return problems
 }
+
+
+/** Rows that exist only in the web composition; they must disable themselves when `connection` is absent. */
+export const WEB_ONLY_ROWS = ['assistant-product', 'assistant-desk-projection', 'assistant-ui-mode', 'assistant-rooms', 'assistant-viki']
+
+/**
+ * The web-only rows inject `connection`; a headless profile has no such service. The bundle patch
+ * used to leave them pending until every headless user hand-wrote `disabled: true` in a profile
+ * patch; the 2026-11-03 fix made each row self-disable. This gate keeps the next edit from
+ * dropping one expression and silently returning to four pending warnings.
+ *
+ * @param patchText - `cordis.patch.yml` text.
+ * @returns problem strings, empty when all five rows carry the connection guard.
+ */
+export function webOnlyRowsDisabledProblems(patchText) {
+  const rows = new Map(parseRows(patchText).map(row => [row.id, row]))
+  const problems = []
+  for (const id of WEB_ONLY_ROWS) {
+    const row = rows.get(id)
+    if (row === undefined) {
+      problems.push(`composition: web-only row ${id} is not mounted — the self-disable guard has nothing to protect`)
+      continue
+    }
+    if (!/!\s*ctx\.get\(['"]connection['"]\)/u.test(row.disabled ?? '')) {
+      problems.push(`composition: web-only row ${id} lacks the !ctx.get('connection') self-disable — headless will report it pending again`)
+    }
+  }
+  return problems
+}
