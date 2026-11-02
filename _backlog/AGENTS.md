@@ -55,7 +55,7 @@ research: 调研中 → 已定性
 
 ## 去向与归档
 
-`去向` 在 issue 的 `待落地` 或 bug 的 `修复落地` 出口选，值 = `implemented | proposed | rejected | deferred | none`；它决定结论住哪，不是授权。写入时机与对账见 [`notes/AGENTS.md`](../notes/AGENTS.md)：
+`去向` 在结论确定时写：issue 的 `待落地` 或 `推敲中 → 已结` 同一次改动，bug 的 `修复落地` 出口；值 = `implemented | proposed | rejected | deferred | none`。它决定结论住哪，不是授权。写入时机与对账见 [`notes/AGENTS.md`](../notes/AGENTS.md)：
 
 - `implemented` → 结论进 note；`proposed` → 进 proposed 卡（**卡关闭 ≠ 批准**，毕业才写 implemented）；`rejected` → 仅防复犯价值；`deferred` → trigger/owner；`none` → 只链已有载体。
 - 交接期计划路径用 inline code（`` `notes/implemented/…` ``），关闭期改 live link；`待落地` 不提前写 implemented note。

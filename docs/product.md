@@ -131,6 +131,7 @@ node bootstrap.mjs --no-start ...
 | `a workspace inside the product home...` | 工作区不能放在专用 home 里 |
 | `profile "assistant" exists but is not owned...` | 同名 profile 不是本产品；换 `--profile` 或移除 |
 | 首屏显示“上次的项目目录不在了” | Config 里的路径失效；在首屏重选 |
+| 未绑定项目时 composer 被禁、dock 给出选择按钮 | 这是工作区门，不是输入故障；选项目目录后新会话落在项目里。`onboarding:false` 的部署/非产品场景保持透明 |
 | 首屏显示“选一个项目目录”但没有选择器 | 当前组合没有 `remote.directoryPicker`；在 profile patch 设置 `assistant-product.workspaceDir` |
 | 产品会话在别的 profile 打开报 `agent-preset/not-found` | 从专用 profile 打开；该 profile 没有 `assistant` preset |
 | headless 多一条 `assistant-product` pending | headless profile patch 未加 `disabled: true` |

@@ -3,6 +3,7 @@
 > 本文件拥有：**术语与判据、六轴 owner、发布物形态、渠道、产物合同、兼容范围、版本与标签、生命周期十段索引、门禁、禁则与变更触发**。
 > 操作步骤 = [`dev.md`](dev.md) §九；数据边界与卸载承诺 = [`delivery.md`](delivery.md)；安装/启动/工作区 = [`product.md`](product.md)；
 > 测试证据 = [`testing.md`](testing.md)。宪章只写常设规则，不写进度、命令流水账或第二张证据表。
+> **读法**：术语与判据 §〇 → 六轴 owner §一 → 发布物/渠道 §二/§三 → 产物合同 §四 → 兼容 §五 → 版本 §六 → 生命周期十段 §七 → 门禁 §八 → 禁则/触发/谁能改 §九–§十一。
 
 ## 〇、术语与判据
 
@@ -74,9 +75,9 @@
 - **离线/自托管渠道 = 手工 tarball ＋ `export-dist` 生成的安装手册**（同一份字节，可控交付）。
 - 包是预构建产物：`lib/`、`client` bundle、`bin/`、`presets/`、`seeds/`、`locale/`、`icon.svg`、
   `cordis.patch.yml`、`LICENSE`、`README` 必须随包；**sourcemap 不进包**（源码不随包，map 只剩泄漏价值）。
-- **默认部署 = 专用 profile + 安装器**。理由是我们的默认值带产品口味（禁右栏终端、关轨迹页、`locale: zh`、
-  会话视图默认），装进别人既有的 web profile 就是改他的组合。**但 bundle 不假设 profile 名**：装进任意 web profile
-  都能工作（`product-native-smoke` 证明），这是健壮性，不是推荐路径。
+- **默认部署 = 专用 custom profile**；安装器是可选的自托管包装，不是默认路径。理由是我们的默认值带产品口味
+  （禁右栏终端、关轨迹页、`locale: zh`、会话视图默认），装进别人既有的 web profile 就是改他的组合。
+  **但 bundle 不假设 profile 名**：装进任意 web profile 都能工作（`product-native-smoke` 证明），这是健壮性，不是推荐路径。
 - **安装入口按面分工**：Plugins 页（web 与 Desktop 同一句，装的是**当前 profile**，不创建 profile）；
   CLI `dsh plugin --profile <p> add`（仅 web 自动化；**先建 profile**——自定义名上 `dsh plugin` 只装 base，
   没有 web-app 就起不了 Web）；Desktop 只用 Desktop 的 Plugins 页；安装器仅 shell/自托管。

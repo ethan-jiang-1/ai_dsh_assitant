@@ -6,7 +6,7 @@
 ## 这是什么
 
 一个 DSH **发行版** repo：一个领域专家式的助手（`dsh-smart-assistant`），有 dedicated 启动 profile（`assistant`），工作区绑定在 `assistant-product.workspaceDir`（profile Config）；专用 home 是部署选项。
-它有两块地：**助手自己的 working folder**（跨会话工作目录 = 专用 home 的 `dataDir`，默认 `<productHome>/assistant`）与**用户的项目工作区**（会话 cwd、文件工具、`deliverables/` 交付包）。
+它有两块地：**助手自己的 working folder**（跨会话工作目录 = `dataDir`；默认 `<dshHome>/assistant`，专用 home 模式是 `<productHome>/assistant`）与**用户的项目工作区**（会话 cwd、文件工具、`deliverables/` 交付包）。
 核心命题是 `Agent = Model + Harness` —— 本 repo 做的就是"那一圈"。
 给谁、怎样算干成（P1–P3 / O1–O6 方向判据与装法的唯一家）= [`README.md`](README.md)；产品/工作区/交付包合同 = [`docs/product.md`](docs/product.md)。
 仓内开发启动 = `pnpm start`（dev home）；产品启动 = dedicated `assistant` profile（安装器 `bootstrap.mjs` 是可选包装）；两者不混。
@@ -20,7 +20,7 @@
 
 **一条工作怎么走完（五道门）**：`_backlog` 研究/推敲 → 定性（issue `待落地` / bug `修复就绪` / research `已定性`）→ 落地（收口卡台账 + 证据；状态仍是 `待落地`/`修复落地`）→ 审查/验收（机械不跳、语义自审按风险、用户验收按重要性；跳过记 `审查：`）→ 归档（卡与去向载体同变更）。
 `待落地` 是 ready，不是授权；`修复就绪` 按缺陷修复通道（P1/P2 即授权，P0/例外走 `等人拍板`）。其余授权来自本轮请求或 `notes/proposed/` 卡。研究只供证据，不授权。
-`待落地` 不提前写 implemented note；`去向` 在 issue 定性门 / bug 修复落地出口选（implemented / proposed / rejected / deferred / none），note/proposed 与交付或卡关闭同变更。每轨词表、守卫与交接清单 = [`_backlog/AGENTS.md`](_backlog/AGENTS.md)；收件与写入时机 = [`notes/AGENTS.md`](notes/AGENTS.md)。
+`待落地` 不提前写 implemented note；`去向` 在结论确定时写（issue 的 `待落地` 或 `推敲中 → 已结`、bug 的 `修复落地`；值 implemented / proposed / rejected / deferred / none），note/proposed 与交付或卡关闭同变更。每轨词表、守卫与交接清单 = [`_backlog/AGENTS.md`](_backlog/AGENTS.md)；收件与写入时机 = [`notes/AGENTS.md`](notes/AGENTS.md)。
 
 **能不能不经呈批直接开工**（此表只做单一判断，范围细则在各 owner）：
 

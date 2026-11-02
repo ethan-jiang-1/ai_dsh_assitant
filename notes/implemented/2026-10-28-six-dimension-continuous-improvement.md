@@ -2,6 +2,8 @@
 
 # 六维改善：入口分层、反馈诚实性与结构接缝
 
+> 同主题的第一轮（2026-10-20）：[六维改善：入口分层、反馈诚实性与结构接缝](2026-10-20-six-dimension-improvement.md)。
+
 ## 问题（可观察行为）
 
 深审确认骨架立住，但四类接缝在持续消耗 agent：
@@ -33,7 +35,7 @@
 - 根 `AGENTS.md` 只收启动五步与日常四条；新命令进 `docs/commands.md`，命令预算门是硬门。
 - 任何「跳过 / 阻断」必须报 `BLOCKED` 并 exit 2，不得打印 `passed`，也不得并入绿名单。
 - web-face 场景的 runbook、expected 与 wait token 同 diff 维护；`pnpm web-face-check --all` 跑全部
-  web-face 场景（客户面 + Viki 固定 mock），浏览器车道不进 verify。
+  web-face 场景（清单以 `docs/testing.md`/`snapshots/` 为准；当前 10 面），浏览器车道不进 verify。
 - 账本归档格式的 owner = `src/domain/operating/archive.ts`；CLI 入口只做再导出。
 - coverage 是读数不是门；机器门的触发条件仍是第一处「删了才对」的死代码实证。
 

@@ -11,7 +11,7 @@
 - 首页顶部的门条 `工作区 · product-workspace` 与 `开始一件事` 按钮；
 - 原有的一页纸（不是空白聊天）。
 
-这是 [`src/client/product/product-gate.ts`](../../../packages/dsh-smart-assistant/src/client/product/product-gate.ts) 的耐久回归面：没有产品 Config 时门必须透明（dev/standalone 的既有场景不变）；有 Config 且 ready 时才出现门条。场景第二步点“开始一件事”，确认它真的在该工作区开出一个 Session（composer 出现；不跑模型回合）。
+这是 [`src/client/product/product-gate.ts`](../../../packages/dsh-smart-assistant/src/client/product/product-gate.ts) 的耐久回归面：**没有入口行 / 404 / 传输失败 / `onboarding:false` 时**门透明（dev/standalone 的既有场景不变）；有入口行且 ready 时才出现门条。没有 `workspaceDir` 的产品部署是 `product-onboarding` 的 tenant，不是本场景的“透明”。场景第二步点“开始一件事”，确认它真的在该工作区开出一个 Session（composer 出现；不跑模型回合）。
 
 ## 怎么跑
 

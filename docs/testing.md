@@ -7,6 +7,7 @@
 > 路径基准：本文件中的 `tests/…` 一律**包内相对**（= `packages/dsh-smart-assistant/tests/…`），其余路径仓根相对。
 >
 > 入口分工：`pnpm test` 覆盖源码与服务级合同；真实 preset 装载使用 `preset-composition.spec.ts` 与 `dev/probes/session/preset-runner*.patch.yml`；浏览器交互使用 `snapshots/web-face/`。三者分别回答规则、组合、界面问题，不把 end-to-end 当作唯一理解方式。
+> **读法**：证据地图 §一 → 插件证据五台阶 → 政策条款 → 命名法 → 测试层 → 已定姿态与升级触发。
 
 ## 一页证据地图（改什么 → 跑什么 → 回归资产在哪 → 谁能证明什么）
 
@@ -22,7 +23,7 @@
 | **模型可见面**（工具描述 / prompt 段落 / persona / digest） | `pnpm build` → `pnpm test:composition` → **`pnpm eval --only <task-id>`**（行为判决，任务清单 `pnpm eval --list`；`repo-live-probe` 是取证非回归，见已定姿态） | `tests/agent/*.spec` + `dev/eval/` | agent spec：段落合同。eval：伤害地板、技能按名加载、回答正则（可凑巧命中）/ 段落是否进入请求、组装转录、领域质量（`eval:domain` 人判） |
 | agent 面合同（段落预算 / 养护回合的合同层） | `pnpm test:agent`（真服务 + 临时 home）；改动同时触模型可见面时按上一行加链 | `tests/agent/*.spec` | 段落就绪 / 预算 / 回合占位等合同 / Loader 组装、UI 读回 |
 | client 面（`src/client`：注册与交互状态） | `pnpm test`（整包套件——`entry.spec` 断言全 slot 面，加一个注册会红没打开过的 spec）+ 现有 web-face 场景（清单以 `snapshots/web-face/` 为准）→ `pnpm web-expected '<URL>' --scenario <场景>` | `tests/client/*.spec` + `snapshots/web-face/` | 注册、组件树、色彩契约 / 真浏览器渲染（场景期望管） |
-| 首屏门（`src/client/product` + `src/host/product` + `src/client/chrome/main-view`） | `pnpm test:client`（`product-binding` / `product-face` / `product-gate` / `product-dock` / `main-view` / `first-mile` spec）+ `pnpm web-face-check --scenario product-workspace-gate` / `product-onboarding` + `node dev/probes/web/product-first-screen.mjs '<URL>'` | `tests/client/product-*.spec.ts`、`main-view.spec.ts` + `snapshots/web-face/product-workspace-gate/`、`product-onboarding/` + 探针 | 绑定解析/状态映射、未绑定新会话被禁、刷新留在会话、真渲染门条/按钮/首启选目录/恢复面、CTA → 会话打开 / 模型回合（eval/真机分工） |
+| 首屏门（`src/client/product` + `src/host/product` + `src/client/chrome/main-view`） | `pnpm test:client`（`product-binding` / `product-face` / `product-gate` / `product-dock` / `main-view` / `first-mile` spec）+ `pnpm web-face-check --scenario product-workspace-gate` / `product-onboarding` + `node dev/probes/web/product-first-screen.mjs '<URL>'`（须跑在**未绑定项目的 home**；`pnpm start` 的 dev overlay 设了 `onboarding:false`，不能用作输入） | `tests/client/product-*.spec.ts`、`main-view.spec.ts` + `snapshots/web-face/product-workspace-gate/`、`product-onboarding/` + 探针 | 绑定解析/状态映射、未绑定新会话被禁、刷新留在会话、真渲染门条/按钮/首启选目录/恢复面、CTA → 会话打开 / 模型回合（eval/真机分工） |
 | 导出形态 / 组合行身份 / 注册撤销 | 台阶①③守卫（现读 patch，新行自动被扫） | `tests/composition/export-shape` + `registry-lifecycle` | 行身份与生命周期 / 行为正确 |
 | 组装后组合（服务/段落/工具 scope） | `pnpm build` → `pnpm test:composition` | `tests/composition/`（`preset-composition.spec` 是组装证据；同层还有导出/生命周期/遮蔽 spec） | 真 Loader 组装 / vendor rows、完整产品 boot |
 | web 渲染面（首开/座位/文案） | `pnpm web-expected '<URL>' --scenario <场景>`（隔离 home 真渲染，场景必填；过目 diff 后 `--refresh`） | `snapshots/web-face/`（场景清单以目录为准） | 渲染期望 / 交互逻辑（client spec 管） |

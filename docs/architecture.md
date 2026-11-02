@@ -89,7 +89,7 @@ AGENT 面（`cordis.patch.yml` 的 `preset-assistant` 行 → agent preset）
 ├── assistant-home-preamble   提示词段落：身份（SOUL.md）与手册（MANUAL.md 渲染 + AGENTS.md 笔记）
 ├── assistant-memory-digest   提示词段落：有界摘要（桌面）
 ├── assistant-memory-tool     工具 assistant_memory
-├── assistant-recall-tool     工具 assistant_recall（按需只读检索；A2 已裁决，随 preset 挂载）
+├── assistant-recall-tool     工具 assistant_recall（按需只读检索；已定，随 preset 挂载）
 ├── assistant-research-tool   工具 assistant_research
 ├── assistant-operating-tool  工具 assistant_operating（经营账本动作，消费 host 行服务——契约 = [operating.md](operating.md) §二）
 ├── assistant-operating-brief 提示词段落：经营事项走账本（order 400，稳定指令带）
@@ -333,9 +333,9 @@ pnpm dsh …（package.json scripts → dev/env/dsh.mjs，唯一启动器：
 - **首次 = 桌面**：没有偏好、且 `activePanelId` 为 null 时选全局桌面；否则保留已选面板。
 - **之后回到上次**：偏好=会话就**不选面板**（平台自己恢复 Session）；偏好=桌面且面板未选时才选桌面。每根上下文恢复一次，slot/布局重挂与 HMR 不重选。
 - **只记产品的两面**：产品桌面写“桌面”，`selectPanel(null)` 写“会话”；另一插件的面板不改写偏好。
-- **记忆边界**：偏好只存视图选择，不存导航偏好或业务数据；插件首次激活前的显式 null 与启动 null 无法由当前公开快照区分。
+- **记忆边界**：偏好只记 `desk | chat` 两面，不记其它面板或业务数据；插件首次激活前的显式 null 与启动 null 无法由当前公开快照区分。
 - **数据源**：全局桌面读取独立 Host 固定投影；记忆/知识/技能三个房间 tab 读独立 Host 行 `assistant-rooms` 的房间投影（working folder 真值），Viki 读 `assistant-viki`；同一路径的 POST 是受控写；默认入口本身不创建业务 Session。
-- **会话内视图**：会话只有对话/轨迹，调试 flag 打开时多一个「开发调试」；桌面与任务只在主面板，不复制到会话。
+- **会话内视图**：会话只有对话，调试 flag 打开时多一个「开发调试」；运行轨迹页由 bundle patch 整行停用（`ui-trajectory`），桌面与任务只在主面板，不复制到会话。
 - **首屏门**：一次 GET `api/assistant/product` 喂两处——`main` 的 dashboard 外包一层 `ProductGate`（ready 显示 `工作区 · <目录>`、“开始一件事”（`uiWorkspace.startSession(workspaceId, { agentPreset: 'assistant' })`）与“换项目”），
   会话侧由 `ProductGateDock` + `ctx.conversation.blocks` 承担（未绑定/恢复态禁输入、dock 给原因与选择按钮；没有“稍后”）。
   404/无入口行/传输失败透明；`not-configured` 且 onboarding 开时显示首启选目录（DSH directoryPicker → POST → profile Config）；

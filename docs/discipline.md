@@ -58,7 +58,7 @@
    同版本内容变的实证）。
 9. **平台语料留在 vendor**（约束：submodule 是平台事实的家；技能发现根是本仓 `.git`；`dsh-*` 技能的命令与相对路径假设 cwd 是 deepseek-harness）→ 读 vendor 对应页。本仓技能只写本仓路径、命令，以及 vendor 页上没有的差量。整段搬进 `docs/` 或 `.agents/skills/`，以及把 `dsh-*` symlink 进仓根技能目录，是输掉的做法。证据：`vendor/dsh/docs/subsystems/skills.md` 的发现根；`vendor/dsh/.agents/skills/dsh-pre-push-checks/SKILL.md` 写明服务对象是 deepseek-harness。
 
-10. **Client 共享观看状态使用声明 store**（约束：store 随注册/布局生命周期撤销，不能独立保留页面启动的默认机会）→ 唯一窄例外是页面 realm 中的根上下文 WeakSet，仅记录是否消费默认导航机会；不持业务数据、导航偏好或订阅，不进入持久存储。源码合同在 [entry.spec.ts](../packages/dsh-smart-assistant/tests/client/entry.spec.ts)，当前导航事实在 [architecture.md](architecture.md#浏览器动作链一次点击--可见的桌面变化)。
+10. **Client 共享观看状态使用声明 store**（约束：store 随注册/布局生命周期撤销，不能独立保留页面启动的默认机会）→ 两个窄例外：页面 realm 中的根上下文 WeakSet（仅记录是否消费默认导航机会），以及浏览器 `localStorage` 键 `dsha:main-view`（只记 `desk | chat` 两面）。不持业务数据、不记其它面板或订阅，不进入服务端持久存储。源码合同在 [main-view.ts](../packages/dsh-smart-assistant/src/client/chrome/main-view.ts) 与 [entry.spec.ts](../packages/dsh-smart-assistant/tests/client/entry.spec.ts)，当前导航事实在 [architecture.md](architecture.md#浏览器动作链一次点击--可见的桌面变化)。
 
 11. **shipped 产品/独立启动用已安装的 `dsh`，不是仓根 `pnpm dsh`**（约束：包层纪律禁止在包内用裸 node 起 harness；但导出包的用户没有本仓、vendor 或 dev home）→ `bootstrap.mjs` 是可选安装器：专用 home 模式经已安装的 `dsh` 建/复用 `assistant` profile、装 tarball、给首启一个 `ASSISTANT_WORKSPACE` 覆盖、起 `dsh --profile assistant`；工作区绑定归入口行/profile Config；standalone 模式建隔离 profile。两种模式都不新增应用入口、不绕过 launcher；native 产品路径直接 `dsh --profile assistant`；仓内开发仍只走 `pnpm dsh`。证据 = [`product-smoke`](../scripts/release/product-smoke.mjs)、[`product-native-smoke`](../scripts/release/product-native-smoke.mjs)、[`standalone-smoke`](../scripts/release/standalone-smoke.mjs) + vendor 的应用启动规则（[`vendor/dsh/AGENTS.md`](../vendor/dsh/AGENTS.md)）。
 

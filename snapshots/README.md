@@ -18,6 +18,10 @@ DSH 的行为回归证据面按"录一次、keyless 重放比对"运转（一场
   [`viki-panel-diagnostics`](web-face/viki-panel-diagnostics/README.md)（健康/诊断）。harness 是
   [`dev/probes/web/webui-expected.mjs`](../dev/probes/web/webui-expected.mjs)
   （`--scenario` 必填 + `--wait-text` 就绪令牌）。一键 `pnpm web-face-check --all` 跑全 10 面（默认 4 客户面；另含产品面 2 个）；Viki 面由固定 mock 驱动。
+  **场景 posture**：customer/Viki 场景不是产品部署——未绑定的产品门会把首屏换成「选一个项目目录」，wait token 永远等不到；
+  `web-face-check` 对它们注入 `assistant-product.onboarding:false`。手工复跑必须同样做（最省事是直接跑
+  `pnpm web-face-check --scenario <name>`，它已带上该 posture 与 `lib/` freshness 检查）；场景 README 里的固定 home
+  路径应换成 `.tmp/` 下的一次性目录。产品场景（`product-*`）不注入，且须用不加载 dev overlay 的 vendor CLI 起服务。
 - **session 回放**：**仍未建**——升级触发条件见文末，当前用什么顶见下。
 
 **当前用什么顶**：

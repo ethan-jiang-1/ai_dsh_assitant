@@ -6,9 +6,7 @@
 
 - [261103 七维改善](261103-seven-dimension-improvement.md) — `推敲中`：七维深审的改善批次（待 review）
 
-已结档：261102 首屏归谁 → [settled_issues](../_archive/settled_issues/261102-first-screen.md)（B+：桌面第一印象 + 会话内门 + 记住上次视图 + 未绑定禁输入；证据面修复），261102 发行版口径对齐 → [settled_issues](../_archive/settled_issues/261102-distribution-alignment.md)（术语/六轴/README/手册对齐 26_harness-release；噪声按 owner 收敛；退役词与骨架门禁），261102 去掉「运行轨迹」页 → [settled_issues](../_archive/settled_issues/261102-remove-trajectory-tab.md)（`ui-trajectory` 裸 id 停用；组合/客户端清单/真页面三处验），261102 dev 通道与用户安装路径对齐 → [settled_issues](../_archive/settled_issues/261102-dev-product-install-parity.md)（parity 表 + `pnpm install-parity` + overlay 化 + `dev-parity` 门禁），261101 插件生命周期对齐 → [settled_issues](../_archive/settled_issues/261101-plugin-lifecycle-align.md)（bundle-first：默认 preset 进 bundle、npm/市场发布路径、安装器独立资产），261029 账本多视图 M1 → [settled_issues](../_archive/settled_issues/261029-ledger-multiview-closure.md)，261029 首用价值旅程 → [settled_issues](../_archive/settled_issues/261029-first-value-journey.md)，261028 数据面第二轮复查 → [settled_issues](../_archive/settled_issues/261028-data-plane-recheck.md)，261028 数据面校准 → [settled_issues](../_archive/settled_issues/261028-data-plane-alignment.md)，B 级缺口 → [settled_issues](../_archive/settled_issues/261028-b-grade-close.md)，P3 残余 → [settled_issues](../_archive/settled_issues/261028-p3-residuals.md)，六维改善 → [settled_issues](../_archive/settled_issues/261028-six-dimension-improvement.md)。
 
-（261027 数据生命周期硬化已按关闭条件结档到 [settled_issues](../_archive/settled_issues/261027-data-lifecycle-hardening.md)，未取的 G14/G15 等触发式剩余留在卡内。）
 
 
 ## 写一张卡
@@ -51,7 +49,7 @@ opened: YYYY-MM-DD
 
 ## 收口卡
 
-问题卡的一种**用途**，不是新卡型：**`待落地` 卡的 work 台账**。授权后，切片推进、停点、证据缺口、开放验收和未取的人判断都住这里（授权事实记在 proposed 卡状态行；本轮点名时在卡上记一句来源；proposed 卡只指针到本卡，不复制台账）。`## 验收标准` 按入场票写全，各片真证据记在卡上或其链接的提交说明，验收与 `审查：` 完成后按[关闭条件](../README.md#关闭条件)归档。`待落地` 覆盖整个落地期；`## 切片台账` 是证据表，不是第二状态——不要为它新增 `落地中`/`待复核`。规格卡（部署/运行态/检索等）是**规格**，不单独授权、不持有台账；它们指向本卡。先例：[K4 收口卡](../_archive/settled_issues/261010-desk-k4-closure.md)。**落笔形状**：外部结果三要素（触发 / 用户得到 / 完成条件）打头，节名 `## 外部结果三要素`；切片推进与证据住 `## 切片台账`（片 × 状态 × 证据表）；开放项住 `## 仍未取`（人判断/延后验收；note 只留指针）。
+问题卡的一种**用途**，不是新卡型：**`待落地` 卡的 work 台账**。授权后，切片推进、停点、证据缺口、开放验收和未取的人判断都住这里（授权事实记在 proposed 卡状态行；本轮点名时在卡上记一句来源；proposed 卡只指针到本卡，不复制台账）。`## 验收标准` 按入场票写全，各片真证据记在卡上或其链接的提交说明，验收与 `审查：` 完成后按[关闭条件](../README.md#关闭条件)归档。`审查：` 与 `去向：` 的字段形状自 2026-11-02 起生效；更早归档的卡按其时规则，不回填。`待落地` 覆盖整个落地期；`## 切片台账` 是证据表，不是第二状态——不要为它新增 `落地中`/`待复核`。规格卡（部署/运行态/检索等）是**规格**，不单独授权、不持有台账；它们指向本卡。先例：[261102 首屏收口卡](../_archive/settled_issues/261102-first-screen.md)（外部结果三要素 / 验收标准 / 切片台账 / 仍未取 / 审查三层齐全）。**落笔形状**：外部结果三要素（触发 / 用户得到 / 完成条件）打头，节名 `## 外部结果三要素`；切片推进与证据住 `## 切片台账`（片 × 状态 × 证据表）；开放项住 `## 仍未取`（人判断/延后验收；note 只留指针）。
 
 ## 评审卡
 
