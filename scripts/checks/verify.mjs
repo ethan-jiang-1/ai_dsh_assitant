@@ -18,11 +18,12 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { agentsMdStabilityProblems, archivedNotePointerProblems, backtickedRepoPathProblems, backlogGraduationProblems, backlogLivenessProblems, implementedNoteEvidenceProblems, clientScriptSafetyProblems, commandAliasProblems, commitSafetyProblems, trackedContentProblems, trackedDataPaths, compositionRowProblems, configParseProblems, crossFileSectionProblems, dependencyPoseProblems, devDrawerCoverageProblems, devParityProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, graduatedProposalProblems, homeDocContractProblems, implementedAlternativesProblems, identityNameProblems, languageGuardProblems, markdownCorpusFromTracked, notesNamingProblems, notePointerProblems, notesStateProblems, importResolutionProblems, notesTopLevelProblems, overrideLedgerProblems, pinProblems, machineLocalPathProblems, packageBuildFreshnessProblems, packageSubpathProblems, playbookFrontmatterProblems,
+import { agentsMdStabilityProblems, releaseCharterProblems, retiredTermProblems, archivedNotePointerProblems, backtickedRepoPathProblems, backlogGraduationProblems, backlogLivenessProblems, implementedNoteEvidenceProblems, clientScriptSafetyProblems, commandAliasProblems, commitSafetyProblems, trackedContentProblems, trackedDataPaths, compositionRowProblems, configParseProblems, crossFileSectionProblems, dependencyPoseProblems, devDrawerCoverageProblems, devParityProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, graduatedProposalProblems, homeDocContractProblems, implementedAlternativesProblems, identityNameProblems, languageGuardProblems, markdownCorpusFromTracked, notesNamingProblems, notePointerProblems, notesStateProblems, importResolutionProblems, notesTopLevelProblems, overrideLedgerProblems, pinProblems, machineLocalPathProblems, packageBuildFreshnessProblems, packageSubpathProblems, playbookFrontmatterProblems,
   runtimeTsconfigProblems, selfContainmentProblems, skillFrontmatterKeyProblems, skillNameGrammarProblems, relativeLinkProblems, researchSubdirProblems, rootCommandBudgetProblems, scratchPathProblems, skillFrontmatterProblems, startPathProblems, tagVersionProblems, testAssetNamingProblems, textHygieneProblems, toolCommentNameProblems, vendorClientFreshnessProblems, webFaceExpectedHealthProblems } from './verify-checks.mjs'
 import * as gateCores from './verify-checks.mjs'
 import { runChecks } from './run-gates.mjs'
 import { pinnedTagFrom } from '../maintenance/sync-bookkeeping.mjs'
+import { docShapeProblems } from '../release/publish-shape.mjs'
 import { tmpDir } from '../../dev/env/tmp.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
@@ -336,6 +337,30 @@ check('docs: commands named in the docs exist, and every alias is named in a cur
 // 漏掉 setup.sh，DSH 回答的是 `create it with 'dsh plugin --profile dev add <package>'`——
 // 照它做得到的是既没本插件也没 roster 的模板 profile。所以命令表的启动块钉死三件事：
 // 脚本被标成第一步、它排在任何起服务的命令之前、两个 profile 各有路由。
+// The distribution surface has one vocabulary and one skeleton each for the plugin README and the
+// install manual. All three are user-facing contracts that an edit or a generator change can quietly
+// shrink; the cores live in gates/distribution.mjs and scripts/release/publish-shape.mjs.
+check('docs: retired distribution vocabulary is gone', () => {
+  const corpus = [
+    ...walk(join(repoRoot, 'docs'), ['.md']),
+    join(repoRoot, 'README.md'),
+    join(repoRoot, 'AGENTS.md'),
+    join(repoRoot, 'dev', 'AGENTS.md'),
+    ...walk(join(repoRoot, 'packages'), ['.md']).filter(path => /(README|AGENTS)\.md$/.test(path)),
+    join(repoRoot, '_dist', '安装手册.md'),
+  ].filter(exists)
+  return retiredTermProblems({ files: corpus.map(path => ({ path: relative(repoRoot, path), text: read(path) })) })
+})
+
+check('docs: the release charter keeps the six axes and ten stages', () =>
+  releaseCharterProblems({ text: read(join(repoRoot, 'docs', 'release.md')) }))
+
+check('docs: the plugin README and install manual keep the host skeletons', () =>
+  docShapeProblems({
+    readme: read(join(packageDir, 'README.md')),
+    manual: read(join(repoRoot, '_dist', '安装手册.md')),
+  }))
+
 check('docs: the startup path in AGENTS.md is reachable in first-step order', () =>
   startPathProblems({ agentsPath: 'AGENTS.md', source: read(join(repoRoot, 'AGENTS.md')) }))
 

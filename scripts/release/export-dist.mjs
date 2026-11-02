@@ -228,7 +228,7 @@ Windows：命令在 PowerShell 里可用；路径含空格时加引号。本手�
 **默认：在 DSH 的 Plugins 页安装 \`dsh-smart-assistant\`。** 这是 DSH 的跨面安装入口：\`dsh web\` 与 Desktop
 用同一句话；页面没有 profile 参数，装的是**当前 profile**。装完重启 profile（bundle membership 变化要重启）。
 
-### A. dedicated \`assistant\` profile（产品 profile，推荐）
+### A. 专用 custom profile \`assistant\`（推荐）
 
 1. 一次性建 profile（CLI 自动化；**只用于全新 profile** —— \`--from-default-profile\` 是破坏性重置，
    会删掉该 profile 的依赖与用户 patch）：
