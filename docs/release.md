@@ -66,6 +66,7 @@
   不写工作区绑定、不新增 app bin。native 路径 = 建 profile → Plugins 页/CLI 装 → `dsh --profile assistant`；
   Desktop 用 Desktop 的 Plugins 页。
 - 包贡献的 preset、client、bundled skill、工具与段落都在 bundle 层声明；不得把 profile 选择、凭据或用户默认写进包。
+- **打包器唯一 = `pnpm pack`**：`export-dist` 产出 `_dist/<name>-<version>.tgz`，registry 发布用 `npm publish <tgz>` 发**同一份字节**。不要从包目录裸 `npm publish`——npm 的 packer 保留 `workspace:^`/`scripts`，pnpm pack 会改写/裁剪；`pnpm pack-parity` 是这条差异的诊断。
 
 ## 三、渠道与安装入口
 

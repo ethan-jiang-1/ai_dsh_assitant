@@ -3,18 +3,20 @@
 // 因为凭证在本人手里（docs/release.md §二：agent 无 registry 凭证）。
 // 用法：
 //   node scripts/release/publish.mjs            # 预检：干净树检查 + build + 导出产物与形状判据，停在 publish 前
-//   node scripts/release/publish.mjs --publish  # 真发布：额外要求干净树与 release-smoke 绿，然后 npm publish
+//   node scripts/release/publish.mjs --publish  # 真发布：额外要求干净树与 release-smoke 绿，然后 npm publish <_dist tarball>
 //
-// 为什么发布不是"顺手一条 npm publish"：
+// 为什么发布不是"顺手一条 npm publish"（从包目录）：
 //   · 包体是**预构建**的（`lib/` 是 gitignore 的），发出去的字节必须来自一次成功的 `pnpm build`，
 //     而不是工作区里碰巧在的旧产物；
-//   · `_dist/` 的 tarball 与手册要和 registry 里那份同版本同内容，所以先 export-dist 再 publish；
+//   · `_dist/` 的 tarball 与手册要和 registry 里那份同版本同内容，所以先 export-dist 再发布同一份 tarball；
+//   · npm pack 与 pnpm pack 对 workspace 协议/scripts 的处理不同（pnpm pack-parity），从包目录裸
+//     `npm publish` 发的不是判定过的那份字节；发布命令一律用 `npm publish <tgz>`。
 //   · `private: true` 会让 publish 以 EPRIVATE 拒绝、而 `--dry-run` 不经过那条分支——形状判据在
 //     export-dist 里已经按真实产物跑过（scripts/release/publish-shape.mjs）；
 //   · 回滚没有命令级手段（DSH 也没有）：发错版本只能 bump 新 patch，所以版本一致性先查。
 import { execFileSync, spawnSync } from 'node:child_process'
-import { readFileSync } from 'node:fs'
-import { dirname, join, resolve } from 'node:path'
+import { existsSync, readFileSync } from 'node:fs'
+import { dirname, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
@@ -65,6 +67,10 @@ built.status === 0 ? ok('build') : bad('build', (built.stderr ?? '').trim().spli
 const exported = built.status === 0 ? run('pnpm', ['export-dist']) : { status: 1, stdout: '', stderr: 'skipped (build failed)' }
 if (exported.status === 0) ok('export-dist', '_dist/ tarball + manual + shape checks')
 else bad('export-dist', `${(exported.stdout ?? '').trim().split('\n').filter(line => line.startsWith('FAIL')).join(' | ') || (exported.stderr ?? '').trim().split('\n').pop()}`)
+const tarball = join(repoRoot, '_dist', `${packageManifest.name}-${packageManifest.version}.tgz`)
+existsSync(tarball)
+  ? ok('publish artifact', relative(repoRoot, tarball))
+  : bad('publish artifact', `${relative(repoRoot, tarball)} is missing — export-dist must produce the tarball that will be published`)
 
 // 5. 门禁：verify 总是跑（快）；release-smoke 只在真发布前跑（它装真 tarball、起真进程）。
 if (!skipVerify) {
@@ -84,13 +90,13 @@ if (failures.length > 0) {
 if (!publish) {
   console.log(`\npublish: dry run complete; ${spec} is shippable.`)
   console.log(`publish: 真发布（本人执行，凭证在本人手里）：`)
-  console.log(`  cd packages/dsh-smart-assistant && npm publish --access public`)
+  console.log(`  npm publish ${relative(repoRoot, tarball)} --access public --cache .tmp/npm-cache`)
   console.log(`publish: 发布后再生成市场索引：pnpm market（只读 registry，所以必须后置）`)
   console.log('publish: 之后跑 pnpm release-smoke，用干净 home 装 registry 上的版本，作为发布后验证。')
   process.exit(0)
 }
 
-const published_ = run('npm', ['publish', '--access', 'public', '--cache', join(repoRoot, '.tmp', 'npm-cache')], { cwd: packageDir })
+const published_ = run('npm', ['publish', tarball, '--access', 'public', '--cache', join(repoRoot, '.tmp', 'npm-cache')], { cwd: repoRoot })
 if (published_.status !== 0) {
   console.error(`publish: npm publish failed — ${(published_.stderr ?? '').trim().split('\n').slice(-8).join('\n')}`)
   process.exit(1)
