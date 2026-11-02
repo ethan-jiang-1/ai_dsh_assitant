@@ -85,25 +85,6 @@
     - id: assistant-knowledge-approve
       name: dsh-smart-assistant/knowledge-approve-remote
 
-    # ── 会话全文检索（翻开 base 出厂关着的 seam；adoption 卡 B1 片，2026-09-30）────────
-    #
-    # base 的 `session-query-sqlite` 行出厂 `openAt: never` + `:memory:`（base:149-153，注释明说
-    # 后续层翻开）。本行 = 整行 config 替换：`first-search`（首次检索才建索引，不付启动税）+
-    # 持久库（DSH home 根，重启后历史仍可搜；**独立的派生索引**，绝不指向 session-persistence 库）。
-    # 路径经 `dshHomePath` 解析（peer 现货 `@deepseek-ai/dsh-home-paths`），不手拼 DSH_HOME——
-    # env 兜底/展开逻辑在 helper 里，patch 里复刻一遍就是第二份清单。
-    #
-    # 2026-11-02：从 `<home>/session-search.db` 移到 `<home>/cache/assistant/session-search.db`
-    # （`dshCachePath('assistant', …)`）。理由：这是**派生索引**（可丢弃、下次检索重建），
-    # 一个通用名文件直接躺在 home 根既不像缓存，也让"卸载后 home 根还剩什么"无法解释；
-    # home 根的 `cache/` 是宿主自己的缓存分类。插件会自建父目录（`schema.ts` 的
-    # `mkdir(dirname(actual), { recursive: true, mode: 0o700 })`），不需要预创建。
-    - id: session-query-sqlite
-      name: '@deepseek-ai/dsh-session-query-sqlite'
-      config:
-        path: !!js |-
-          process.getBuiltinModule('node:module').createRequire(baseUrl)('@deepseek-ai/dsh-home-paths').dshCachePath('assistant', 'session-search.db')
-        openAt: first-search
 
     # ── 时间上下文（adoption 卡 B2 片，2026-09-30）────────────────────────────────────
     #
@@ -113,54 +94,8 @@
     - id: time-context
       name: '@deepseek-ai/dsh-time-context'
 
-    # ── 定时面：schedule 默认带（C1 反转，用户 2026-10-02 拍板）──────────────────────
-    #
-    # 0.2.0 起 Schedule 以可选 bundle 交付（`schedule-bundle`，OPTIONAL_BUNDLES，插件页
-    # 一键开），C1 原"文档指引不默认带"的 experimental 前提过期 → 反转为默认带。
-    # 两行照抄 schedule-bundle 的 patch（time-context 行我们已有，不重复）；它自己就是
-    # "借力不瞎折腾"的样本：到期投递 = 原会话 follow-up 消息，持久化、重启后仍投递，
-    # 全部上游维护。`dsh-schedule` 只给 root agents 挂 schedule_create/list/update/delete
-    # 四工具（`ctx.agents.roots()`，schedule/src/index.ts:170）——子代理不重复拿到；
-    # 养护检查定时触发（原 C1 预留的接入点）与"每周提醒我过经营状况"类主动感都走它。
-    - id: schedule
-      name: '@deepseek-ai/dsh-schedule'
 
-    - id: ui-schedule
-      name: '@deepseek-ai/dsh-client-ui-schedule'
 
-    # ── 首开预置（首开 UX 卡 261001，2026-10-01）──────────────────────────────────
-    #
-    # 两行都是"同 id 整行替换"覆盖 web-app 出厂行（session-query-sqlite 同先例）：
-    #
-    # `ui-chat.transcriptView`：此 pin 的 vendor **预构建 client bundle 落后于其 src**——
-    # src 的 `TranscriptViewPolicy.adopt()` 有 `?? defaultMode` 兜底，lib/client.js 没有；
-    # 全新 home 无存档时 mode=undefined → `POLICIES[undefined]` → conversation.view 槽崩溃
-    # （首条消息后对话区整片冻结，实测复现 + 修后消失，见首开 UX 卡第 3/8 轮）。
-    # 预置一个合法档位绕开。退役条件（2026-10-03 校准）：本 pin src 已带兜底、开发树 lib 已重建
-    # （首开 UX 卡「升 pin 复验」节），但**发布人口**（release-smoke 干净安装所用的 dsh 发布物
-    # 自带 client lib）是否带兜底未验——上游发布物确认后此行可退役。
-    - id: ui-chat
-      name: '@deepseek-ai/dsh-client-ui-chat'
-      config:
-        transcriptView: detailed
-
-    # `locale.preference`：目标用户是中文管理者，zh 字典 vendor 全套自带，但无偏好时
-    # 首开语言随浏览器协商（英文浏览器落回 en——首屏满英文，owner 2026-10-01 的直接投诉）。
-    # 这里给**产品默认**；Settings→General 可随时改（持久化到 home 层，覆盖本行）。
-    - id: locale
-      name: '@deepseek-ai/dsh-client-locale'
-      config:
-        preference: zh
-
-    # ── 技能目录工具（host 行，BUG-001 修复，2026-10-02）────────────────────────────
-    #
-    # tool-skill 以 preset 行挂载时，其目录监听器在 one-shot 会话里从不发布
-    # <available_skills>（host 层实例可发布——裸 one-shot 实测），模型无从知道技能存在，
-    # `skill-loaded` 类行为全部退化为"提示词点名才加载"。移到 host 行（web 侧同 id 覆盖
-    # web-app 的 disabled 行——session-query/ui-chat 同先例；headless 侧覆盖 base 活行，
-    # 形状不变）后目录随首请求发布。诊断与证据：BUG-001 归档卡。
-    - id: tool-skill
-      name: '@deepseek-ai/dsh-tool-skill'
 
 # ── AGENT 面：`assistant` preset（0.1.7 起是普通行，随本 bundle 分发）────────────────
 #
@@ -473,6 +408,67 @@
 # 复核/退役条件登记在 `docs/product.md` 的 vendor override 台账：换 pin 时逐条复核。
 # 用户级 `selectedDefault`（Settings → Agent 预设）优先于本默认，所以已经选过档的用户不被劫持，
 # 卸载后自然回退到 `standard`。
+# ── vendor 行覆盖（裸 id = 按 id 整行替换；insert 只用于新增行）────────────────
+#
+# 下面四行的 id 在 vendor 的 base/web-app 已经声明。`insert` 是 append，重复 id 只会
+# 被 loader 的 last-wins 静默覆盖（没有警告）；裸 `- id:` 才是方言里的"替换这一行"。
+# `schedule`/`ui-schedule` 已由本 pin 的 web-app 声明，本包不再插入。
+#
+# ── 会话全文检索（翻开 base 出厂关着的 seam；adoption 卡 B1 片，2026-09-30）────────
+#
+# base 的 `session-query-sqlite` 行出厂 `openAt: never` + `:memory:`（base:149-153，注释明说
+# 后续层翻开）。本行 = 整行 config 替换：`first-search`（首次检索才建索引，不付启动税）+
+# 持久库（DSH home 根，重启后历史仍可搜；**独立的派生索引**，绝不指向 session-persistence 库）。
+# 路径经 `dshHomePath` 解析（peer 现货 `@deepseek-ai/dsh-home-paths`），不手拼 DSH_HOME——
+# env 兜底/展开逻辑在 helper 里，patch 里复刻一遍就是第二份清单。
+#
+# 2026-11-02：从 `<home>/session-search.db` 移到 `<home>/cache/assistant/session-search.db`
+# （`dshCachePath('assistant', …)`）。理由：这是**派生索引**（可丢弃、下次检索重建），
+# 一个通用名文件直接躺在 home 根既不像缓存，也让"卸载后 home 根还剩什么"无法解释；
+# home 根的 `cache/` 是宿主自己的缓存分类。插件会自建父目录（`schema.ts` 的
+# `mkdir(dirname(actual), { recursive: true, mode: 0o700 })`），不需要预创建。
+- id: session-query-sqlite
+  name: '@deepseek-ai/dsh-session-query-sqlite'
+  config:
+    path: !!js |-
+      process.getBuiltinModule('node:module').createRequire(baseUrl)('@deepseek-ai/dsh-home-paths').dshCachePath('assistant', 'session-search.db')
+    openAt: first-search
+
+# ── 首开预置（首开 UX 卡 261001，2026-10-01）──────────────────────────────────
+#
+# 两行都是"同 id 整行替换"覆盖 web-app 出厂行（session-query-sqlite 同先例）：
+#
+# `ui-chat.transcriptView`：此 pin 的 vendor **预构建 client bundle 落后于其 src**——
+# src 的 `TranscriptViewPolicy.adopt()` 有 `?? defaultMode` 兜底，lib/client.js 没有；
+# 全新 home 无存档时 mode=undefined → `POLICIES[undefined]` → conversation.view 槽崩溃
+# （首条消息后对话区整片冻结，实测复现 + 修后消失，见首开 UX 卡第 3/8 轮）。
+# 预置一个合法档位绕开。退役条件（2026-10-03 校准）：本 pin src 已带兜底、开发树 lib 已重建
+# （首开 UX 卡「升 pin 复验」节），但**发布人口**（release-smoke 干净安装所用的 dsh 发布物
+# 自带 client lib）是否带兜底未验——上游发布物确认后此行可退役。
+- id: ui-chat
+  name: '@deepseek-ai/dsh-client-ui-chat'
+  config:
+    transcriptView: detailed
+
+# `locale.preference`：目标用户是中文管理者，zh 字典 vendor 全套自带，但无偏好时
+# 首开语言随浏览器协商（英文浏览器落回 en——首屏满英文，owner 2026-10-01 的直接投诉）。
+# 这里给**产品默认**；Settings→General 可随时改（持久化到 home 层，覆盖本行）。
+- id: locale
+  name: '@deepseek-ai/dsh-client-locale'
+  config:
+    preference: zh
+
+# ── 技能目录工具（host 行，BUG-001 修复，2026-10-02）────────────────────────────
+#
+# tool-skill 以 preset 行挂载时，其目录监听器在 one-shot 会话里从不发布
+# <available_skills>（host 层实例可发布——裸 one-shot 实测），模型无从知道技能存在，
+# `skill-loaded` 类行为全部退化为"提示词点名才加载"。移到 host 行（web 侧同 id 覆盖
+# web-app 的 disabled 行——session-query/ui-chat 同先例；headless 侧覆盖 base 活行，
+# 形状不变）后目录随首请求发布。诊断与证据：BUG-001 归档卡。
+- id: tool-skill
+  name: '@deepseek-ai/dsh-tool-skill'
+  disabled: false
+
 - id: agent-preset-registry
   config:
     default: assistant

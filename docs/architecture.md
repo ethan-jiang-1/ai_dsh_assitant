@@ -69,11 +69,6 @@ HOST 面（cordis.patch.yml → dsh.bundle.patch）
                             + session-query-sqlite 翻开行（`first-search` + 持久索引库，原始会话检索；
                               索引是宿主 K 数据，不在插件备份，卸载后保留、可删）
                             + time-context 行（当前时间/时区/经过时长随请求注入）
-                            + schedule + ui-schedule 行（定时面：到期任务以原会话 follow-up 投递；
-                              schedule_create/list/update/delete 定时四件只挂 root agents——Web 组合默认带，
-                              headless 组合由 profile 层显式 disabled，它依赖 web-app 层的 sessionController；
-                              不禁用时的形态 = 常驻 `pending (waiting for service: sessionController)`
-                              warning，淹没真实激活失败——隔离 home 实测判据）
                             + ui-chat 行（首开预置 transcriptView: detailed——vendor 预构建 client lib 落后其 src，
                               全新 home 无存档时 mode=undefined 会使 conversation.view 槽崩溃；退役条件=上游发布物确认带兜底）
                             + locale 行（首开预置 preference: zh——无偏好时首开语言随浏览器协商落回 en；
@@ -84,6 +79,9 @@ HOST 面（cordis.patch.yml → dsh.bundle.patch）
                               终端 API/tools 保留给 headless/开发组合）
                             + **禁用** 会话视图的「运行轨迹」页 `ui-trajectory`（主 Tab 不摊 vendor 的调试面；
                               要看时在 profile patch 覆盖回来）
+
+定时面（`schedule` / `ui-schedule`）由本 pin 的 web-app 层自带，本包不再插入；headless 组合由 profile 层显式
+disabled（它依赖 web-app 层的 `sessionController`，不禁用时是常驻 `pending (waiting for service: sessionController)`）。
 
 AGENT 面（`cordis.patch.yml` 的 `preset-assistant` 行 → agent preset）
 ├── assistant-home-preamble   提示词段落：身份（SOUL.md）与手册（MANUAL.md 渲染 + AGENTS.md 笔记）

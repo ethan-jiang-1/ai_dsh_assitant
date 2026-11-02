@@ -60,11 +60,16 @@ function ownPresetFromPatch(patchText: string): PresetRow {
   const patches = yaml.load(patchText, { schema: entryListSchema }) as PatchOptions[]
   // The bundle patch targets a few shipped rows by id (the vendor terminal is suppressed, the preset
   // roster default is retuned — neither is inserted). Seed the rows this isolated application is
-  // expected to find; the real profile layers them below this patch.
+  // expected to find; the real profile layers them below this patch. The override section is bare
+  // `- id:` now, so the strict patcher must see these vendor rows (the real web profile has them).
   const base: Parameters<typeof applyEntryPatches>[0] = [
     { id: 'ui-sidebar-terminal', name: '@deepseek-ai/dsh-client-ui-sidebar-terminal' },
     { id: 'ui-trajectory', name: '@deepseek-ai/dsh-client-ui-trajectory' },
     { id: 'agent-preset-registry', name: '@deepseek-ai/dsh-agent-preset-registry', config: { default: 'standard' } },
+    { id: 'session-query-sqlite', name: '@deepseek-ai/dsh-session-query-sqlite' },
+    { id: 'ui-chat', name: '@deepseek-ai/dsh-client-ui-chat' },
+    { id: 'locale', name: '@deepseek-ai/dsh-client-locale' },
+    { id: 'tool-skill', name: '@deepseek-ai/dsh-tool-skill', disabled: true },
   ]
   const entries = applyEntryPatches(base, patches, (message, ...args) => {
     throw new Error(`cordis.patch.yml: ${message} ${args.join(' ')}`)
@@ -187,6 +192,10 @@ describe('real composition: loader + preset standing mount + joined agent', () =
         { id: 'ui-sidebar-terminal', name: '@deepseek-ai/dsh-client-ui-sidebar-terminal' },
         { id: 'ui-trajectory', name: '@deepseek-ai/dsh-client-ui-trajectory' },
         { id: 'agent-preset-registry', name: '@deepseek-ai/dsh-agent-preset-registry', config: { default: 'standard' } },
+        { id: 'session-query-sqlite', name: '@deepseek-ai/dsh-session-query-sqlite' },
+        { id: 'ui-chat', name: '@deepseek-ai/dsh-client-ui-chat' },
+        { id: 'locale', name: '@deepseek-ai/dsh-client-locale' },
+        { id: 'tool-skill', name: '@deepseek-ai/dsh-tool-skill', disabled: true },
       ] as Parameters<typeof applyEntryPatches>[0],
       patches,
       (message, ...args) => { throw new Error(`cordis.patch.yml: ${message} ${args.join(' ')}`) },
