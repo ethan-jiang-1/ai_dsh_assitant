@@ -10,14 +10,17 @@ import { describe, expect, it } from 'vitest'
 import { devParityProblems } from '../../../../scripts/checks/gates/dev-parity.mjs'
 
 const row = name => `| ${name} | user path | dev path | bounded | \`scripts/release/install-parity.mjs\` |`
-const section = (rows = 8) => [
+// The eight mechanisms the install path goes through, in the words docs/dev.md uses. A synthetic
+// table has to carry them too: the gate pins the set, not just a count.
+const LOAD_BEARING = ['profile 创建', '安装源', '包字节', '依赖闭包', '写入者', '默认 preset', 'profile 用户层', '引擎门']
+const section = (rows = 8, names = LOAD_BEARING) => [
   '## 十、与产品安装路径的 parity',
   '',
   '判据：表外新增差异 = `pnpm verify` 的 `dev-parity` 门禁红。',
   '',
   '| 机制点 | 用户安装路径 | dev 快环 | 判定 | 证据 owner |',
   '|---|---|---|---|---|',
-  ...Array.from({ length: rows }, (_, index) => row(`机制 ${index + 1}`)),
+  ...Array.from({ length: Math.max(rows, names.length) }, (_, index) => row(names[index] ?? `机制 ${index + 1}`)),
   '',
   'dev-only 行住 `$DSH_HOME/dev-overlay-<profile>.yml`；通道 = `pnpm install-parity`。',
   '',
@@ -46,8 +49,14 @@ describe('devParityProblems', () => {
   })
 
   it('flags a table that lost mechanism rows', () => {
-    const problems = devParityProblems({ ...valid, devDoc: `${section(3)}\n` })
+    const problems = devParityProblems({ ...valid, devDoc: `${section(3, LOAD_BEARING.slice(0, 3))}\n` })
     expect(problems.join('\n')).toContain('mechanism row')
+  })
+
+  it('flags a table that dropped one load-bearing row while keeping the count', () => {
+    const withoutDeps = LOAD_BEARING.filter(name => name !== '依赖闭包')
+    const problems = devParityProblems({ ...valid, devDoc: `${section(8, [...withoutDeps, '重建', '运行时'])}\n` })
+    expect(problems.join('\n')).toContain('dependency closure')
   })
 
   it('flags a section that no longer names the overlay', () => {

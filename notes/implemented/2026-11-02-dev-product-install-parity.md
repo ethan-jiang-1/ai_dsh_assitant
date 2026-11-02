@@ -39,7 +39,8 @@
 
 ## 后果
 
-- dev 组合与用户组合的差异变成一张可对账的表；新增机制点必须同 diff 加行，否则门禁红。
+- dev 组合与用户组合的差异变成一张可对账的表；`dev-parity` 钉住八个负载机制点（不是只数行数），
+  新增机制点或删掉负载行都必须同 diff 处理，否则门禁红。
 - 开发环多了一条秒级 tarball 通道；包形状与依赖闭包的回归不再只等到发布。
 - dev home 的 profile 用户层回到模板内容；dev-only 行透明地住在 overlay 里，`--dump-config` 可见。
 - 旧 dev home 升级会经历一次 patch 迁移（`.dev-backup` 保留原文件）。
@@ -47,7 +48,7 @@
 
 ## 验收
 
-工作台账、逐片证据与开放项在卡上：[dev 快环与用户安装路径对齐](../../_backlog/issues/261102-dev-product-install-parity.md)。
+工作台账、逐片证据与开放项在卡上：[dev 快环与用户安装路径对齐](../../_backlog/_archive/settled_issues/261102-dev-product-install-parity.md)。
 
 ## 与旧决定的关系
 

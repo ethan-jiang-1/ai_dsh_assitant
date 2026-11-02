@@ -1,11 +1,11 @@
 ---
-status: 等人拍板
+status: 已结
 opened: 2026-11-02
 ---
 
 # 推敲：dev 通道与用户安装路径对齐（同机制 + 有界差异）
 
-> 立卡：2026-11-02 ｜ 状态：等人拍板 ｜ 类型：Task ｜ 可关闭：否 ｜ 结论：方案 B 技术面已落地（2026-11-02），待你验收 dev 手感
+> 立卡：2026-11-02 ｜ 状态：已结（2026-11-02 关闭）｜ 类型：Task ｜ 可关闭：是 ｜ 结论：方案 B 落地——parity 表（13 行）＋ `pnpm install-parity` 通道 ＋ overlay 化 profile 写入者 ＋ `dev-parity` 门禁；本人 2026-11-02 授权"按流程落地"后归档。决定见 [implemented note](../../../notes/implemented/2026-11-02-dev-product-install-parity.md)
 
 ## 外部结果三要素
 
@@ -137,6 +137,7 @@ opened: 2026-11-02
 | P2 profile 用户层零写入 | 已落 | `bash dev/env/setup.sh` 把 `dev` / `dev-task` 的旧生成 patch 复位为 `[]` 并留 `.dev-backup`；生成 `dev-overlay-dev.yml`（OV 旋钮）与 `dev-overlay-dev-task.yml`（roster insert）；`pnpm dsh --profile dev --dump-config` 见 `openviking-memory-runtime` 与 `default: assistant`，`dev-task` 见 insert 的 registry 行；`pnpm start` 真 boot + preflight 绿 |
 | P3 dev-parity 门禁 | 已落 | `pnpm verify` 新增核绿；向 `setup.sh` 注入旧 `cp ... "$dir/cordis.patch.yml"` 时该核点名红，还原即绿；`tests/tooling/dev-parity.spec.mjs` 覆盖七种接受/拒绝形态 |
 | P4 全量地板 | 已落 | `pnpm test`（155 文件 / 1178 tests）、`pnpm typecheck`、`pnpm build`、`pnpm verify`（53 checks）全部真跑绿 |
+| P5 收口复核（独立于 P0–P4 的复跑） | 已落 | 见「收口复核」节：三条门禁真跑 + 两条负例真红 + 一处判据修正（门禁从"行数 ≥ 8"改成"钉住八个负载机制点"） |
 
 ## 验收标准
 
@@ -166,6 +167,26 @@ opened: 2026-11-02
 **待你验收：** dev 启动的手感（`pnpm start` 的热环是否仍够快）与 parity 表里"允许差异"的边界
 （尤其是"安装源 = link 快环 + lane 证据"这一行）。
 
+## 收口复核（2026-11-02，独立复跑）
+
+本人 2026-11-02 点名"按我们的逻辑流程推动落地"。复核不是复述切片台账，逐项真跑：
+
+| 项 | 读数 |
+|---|---|
+| `pnpm install-parity` | 绿（干净 web profile 装 tarball、`yaml` 可解析、dump 出 `preset-assistant`/`default: assistant`/host 行、install 不写 profile 用户层） |
+| 负例：`files` 加 `!lib/client/**` | **红**：`tarball is missing package/lib/client/index.js — did pnpm build run?`；还原即绿 |
+| `pnpm verify` | 53/53（含 `dev-parity`） |
+| 负例：从 parity 表删掉「依赖闭包」行 | 修正前**不红**（门禁只判行数 ≥ 8，13→12 仍绿）；修正后红：`no row for dependency closure`；还原即绿 |
+| `pnpm test` | 1178 passed |
+| `pnpm export-dist` | 绿（手册与包同源；与上一版差异只有打包日期一行） |
+
+**修正的一处判据**：`dev-parity` 原来只数行数，表里删掉一个负载机制点也照样绿——与验收 #1 的负例
+"删一行 → 红"不符。现在改为**钉住八个负载机制点**（profile 创建 / 安装源 / 包字节 / 依赖闭包 /
+写入者 / 默认 preset / profile 用户层 / 引擎门），并补一条夹具覆盖"行数不变但丢了负载行"。
+
+**人判断（留给本人，不阻塞关闭）**：dev 手感（快环速度 vs 对齐收益）与 parity 表"允许差异"的边界。
+本轮由本人授权落地，手感问题在真实使用中随时可提。
+
 ## 仍未取（本轮有意不做）
 
 - **profile 名对齐（`dev` vs `assistant`）**：登记为有界差异（隔离 + 入口提示）；触发 = 本人要求同名。
@@ -180,10 +201,10 @@ opened: 2026-11-02
 
 ## 下一步
 
-- 等你验收 dev 手感与"允许差异"边界；点头后按关闭条件把本卡归档，结论指向已写的
-  [implemented note](../../notes/implemented/2026-11-02-dev-product-install-parity.md)。
+已按关闭条件归档（2026-11-02）；结论指向 [implemented note](../../../notes/implemented/2026-11-02-dev-product-install-parity.md)，
+未取的触发条件留在上节。
 
 ## 关闭条件
 
 验收 1–6 有真跑证据；parity 表与门禁在场；结论去向已记录 =
-[implemented note](../../notes/implemented/2026-11-02-dev-product-install-parity.md)；仍未取的触发条件写在本卡。
+[implemented note](../../../notes/implemented/2026-11-02-dev-product-install-parity.md)；仍未取的触发条件写在本卡。

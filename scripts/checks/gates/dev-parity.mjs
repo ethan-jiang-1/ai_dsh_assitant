@@ -31,6 +31,24 @@ export function devParityProblems({ devDoc, setupScript, launcher, commandsDoc, 
   // Header + separator are not mechanism rows; every other pipe line in the section is one.
   const rows = section.split('\n').filter(line => /^\|/.test(line.trim()) && !/^\|[\s:|-]+\|$/.test(line.trim()))
   const mechanismRows = rows.filter(line => !line.includes('机制点'))
+  // The load-bearing set, by the words each row's first column uses. A count alone would let a
+  // reworded or deleted row hide behind a spare one, so the judge pins the eight mechanisms the
+  // user's install path actually goes through (2026-11-02).
+  const loadBearing = [
+    ['profile 创建', 'profile creation'],
+    ['安装源', 'install source'],
+    ['包字节', 'package bytes'],
+    ['依赖闭包', 'dependency closure'],
+    ['写入者', 'roster/bundles writer'],
+    ['默认 preset', 'default preset'],
+    ['profile 用户层', 'profile user layer'],
+    ['引擎门', 'engine gate'],
+  ]
+  for (const [word, label] of loadBearing) {
+    if (!mechanismRows.some(line => line.includes(word))) {
+      problems.push(`docs/dev.md's parity table has no row for ${label} ("${word}") — the eight mechanisms the install path goes through must each stay registered`)
+    }
+  }
   if (mechanismRows.length < 8) {
     problems.push(`docs/dev.md's parity table carries ${mechanismRows.length} mechanism row(s); the load-bearing set is install source, package bytes, dependency closure, roster writer, default preset, profile user layer, engine gate and runtime (>= 8)`)
   }
