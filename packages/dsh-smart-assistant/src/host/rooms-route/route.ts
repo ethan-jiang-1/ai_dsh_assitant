@@ -23,6 +23,7 @@ import type { LearnedSkillInfo } from '../../domain/home/health.ts'
 import type { SkillUsageRead } from '../../domain/skills/usage.ts'
 import { isEntryId, type RoomReadFailure } from '../../domain/home/room.ts'
 import { isSkillName } from '../../domain/skills/skill-file.ts'
+import { actionErrorStatus, parseRoomAction } from '../../domain/rooms/actions.ts'
 import { projectRooms } from '../../domain/rooms/projection.ts'
 import type { ApprovalAuditOptions, ApprovalKind } from '../approval-audit.ts'
 import type { ApprovalLine, ReceiptRoom } from '../../domain/maintenance/receipt.ts'
@@ -82,11 +83,12 @@ export function createRoomsRoute(reader: RoomsReader, maxBytes: number = 1024 * 
     let body: unknown
     try { body = await request.json() } catch { return failure(400, 'invalid-json') }
     if (body === null || typeof body !== 'object' || Array.isArray(body)) return failure(400, 'invalid-body')
-    const input = body as Record<string, unknown>
-    const action = typeof input.action === 'string' ? input.action : undefined
-    if (action === undefined) return failure(400, 'missing-action')
-    const sessionId = typeof input.sessionId === 'string' && input.sessionId.length > 0 ? input.sessionId : undefined
-    const title = typeof input.title === 'string' && input.title.length > 0 ? input.title : undefined
+    const parsed = parseRoomAction(body)
+    if (!parsed.ok) return failure(400, parsed.error)
+    const actionRequest = parsed.request
+    const action = actionRequest.action
+    const sessionId = actionRequest.sessionId
+    const title = actionRequest.title
     const audit = (room: ReceiptRoom, before: unknown, after: unknown): ApprovalAuditOptions => ({
       source: 'panel-direct',
       ...(sessionId === undefined ? {} : { sessionId }),
@@ -97,18 +99,13 @@ export function createRoomsRoute(reader: RoomsReader, maxBytes: number = 1024 * 
     })
     const failAction = (error: unknown): Response => {
       const message = error instanceof Error ? error.message : String(error)
-      const status = /does not exist|not found|no learned skill|no knowledge page/.test(message)
-        ? 404
-        : /only drafts|not a draft|already archived|is not active|supersedes names|is approved and waiting/.test(message)
-          ? 409
-          : 400
-      return new Response(JSON.stringify({ error: 'action-failed', message }), { status, headers: headers() })
+      return new Response(JSON.stringify({ error: 'action-failed', message }), { status: actionErrorStatus(message), headers: headers() })
     }
-    const id = typeof input.id === 'string' ? input.id : undefined
+    const id = actionRequest.id
     try {
       switch (action) {
         case 'knowledge.approve': {
-          if (id === undefined || !isEntryId(id)) return failure(400, 'invalid-id')
+          if (id === undefined) return failure(400, 'invalid-id')
           const page = await reader.readKnowledgePage(id)
           if (page === undefined) return failure(404, 'page-not-found')
           if (page.page.status !== 'draft') return failure(409, 'not-a-draft')
@@ -116,7 +113,7 @@ export function createRoomsRoute(reader: RoomsReader, maxBytes: number = 1024 * 
           return emit({ ok: true, action, id: promoted.id, status: promoted.status })
         }
         case 'knowledge.deprecate': {
-          if (id === undefined || !isEntryId(id)) return failure(400, 'invalid-id')
+          if (id === undefined) return failure(400, 'invalid-id')
           const page = await reader.readKnowledgePage(id)
           if (page === undefined) return failure(404, 'page-not-found')
           if (page.page.status !== 'stable') return failure(409, 'not-stable')
@@ -124,9 +121,8 @@ export function createRoomsRoute(reader: RoomsReader, maxBytes: number = 1024 * 
           return emit({ ok: true, action, id: deprecated.id, status: deprecated.status })
         }
         case 'memory.correct': {
-          if (id === undefined || !isEntryId(id)) return failure(400, 'invalid-id')
-          const text = typeof input.text === 'string' ? input.text.trim() : ''
-          if (text.length === 0) return failure(400, 'missing-text')
+          if (id === undefined) return failure(400, 'invalid-id')
+          const text = actionRequest.text ?? ''
           const listing = await reader.listMemories()
           const old = listing.entries.find(record => record.id === id)
           if (old === undefined) return failure(404, 'memory-not-found')
@@ -141,7 +137,7 @@ export function createRoomsRoute(reader: RoomsReader, maxBytes: number = 1024 * 
           return emit({ ok: true, action, id: saved.id, status: saved.status })
         }
         case 'memory.retire': {
-          if (id === undefined || !isEntryId(id)) return failure(400, 'invalid-id')
+          if (id === undefined) return failure(400, 'invalid-id')
           const listing = await reader.listMemories()
           const old = listing.entries.find(record => record.id === id)
           if (old === undefined) return failure(404, 'memory-not-found')
@@ -151,8 +147,7 @@ export function createRoomsRoute(reader: RoomsReader, maxBytes: number = 1024 * 
           return emit({ ok: true, action, id, status: 'retired' })
         }
         case 'memory.remember': {
-          const sessionId = typeof input.sessionId === 'string' && input.sessionId.length > 0 ? input.sessionId : undefined
-          const messageId = typeof input.messageId === 'string' && input.messageId.length > 0 ? input.messageId : undefined
+          const messageId = actionRequest.messageId
           if (sessionId === undefined || messageId === undefined) return failure(400, 'missing-message')
           try {
             const saved = await actions.remember(sessionId, messageId)
@@ -162,9 +157,9 @@ export function createRoomsRoute(reader: RoomsReader, maxBytes: number = 1024 * 
           }
         }
         case 'skill.retire': {
-          const name = typeof input.name === 'string' ? input.name : undefined
-          if (name === undefined || !isSkillName(name)) return failure(400, 'invalid-name')
-          const reason = typeof input.reason === 'string' && input.reason.trim().length > 0 ? input.reason.trim() : undefined
+          const name = actionRequest.name
+          if (name === undefined) return failure(400, 'invalid-name')
+          const reason = actionRequest.reason
           const retired = await actions.retireSkill(name, reason)
           await actions.recordApproval('retire', name, audit(
             'skills',

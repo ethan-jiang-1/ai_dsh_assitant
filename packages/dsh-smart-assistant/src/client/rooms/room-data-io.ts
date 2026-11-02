@@ -27,6 +27,7 @@ import {
 } from './room-data-core'
 import type { DeskData, DeskSlice } from './room-data-core'
 import { parseRooms } from '../../domain/rooms/projection.ts'
+import type { RoomAction } from '../../domain/rooms/actions.ts'
 
 /** The remote layer captured in apply; the room readers read manifested namespaces through it. */
 let deskRemote: Record<string, unknown> | undefined
@@ -146,7 +147,7 @@ export type RoomsActionResult = { readonly ok: true, readonly value: Record<stri
  * @param payload - Action fields (id/name/text/sessionId/title/reason).
  * @returns The route payload, or the readable reason it failed.
  */
-export async function postRoomsAction(action: string, payload: Readonly<Record<string, unknown>>): Promise<RoomsActionResult> {
+export async function postRoomsAction(action: RoomAction, payload: Readonly<Record<string, unknown>>): Promise<RoomsActionResult> {
   const web = deskWeb
   if (web === undefined) return { ok: false, reason: 'the web face is not available' }
   try {
