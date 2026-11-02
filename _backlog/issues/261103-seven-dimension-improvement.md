@@ -87,7 +87,7 @@ DSH 约定偏离（`insert` 当 override、两个 packer、client 状态所有�
 | B1 仍余 | 完成 | `a6650ae2`：四个非产品场景 README 加 posture 指针；`--scenario` 缺值 / 空 `--wait-text` 的 CLI 洞已关。B3/B4 之外没有 B1 开口（refresh review / session join / per-run workspace 已交付） |
 | B2 文档漂移 | 基本完成 | `d477076f`：11 条漂移（轨迹页/安装器默认/两三个文件/400-500/`--all` 10 面/授权例外/A2/`discipline` 适配 10）+ `AGENTS.md:9` 默认路径 + `去向` 时机 + 收据生效日 + 收口卡样板 + 读法三篇 + note 同名互链/面数 + 产品失败模式行 + 场景 posture 中心说明 |
 | B2 仍余 | 待做 | 常驻入口散文预算（触发已到，属纪律改动，需单独拍板） |
-| B3 结构 | 待做 | client 组合根 / projection-panel / rooms write / agent dispatch / tests/cli |
+| B3 结构 | 进行中 | `0afdefea`：ui-mode HTTP transport 与 receipt archive paging 从入口搬回 owning module；`index.ts` 491→450 行、`clientFactory` 398→353 行；两处新 spec（HTTP remote / receipt page）。仍余：dashboard/rooms/commands 的 `mount*` 提取、`projection-panel` 三态、rooms write 进 domain、agent dispatch、`tests/cli/` |
 | B4 DSH 约定 | 进行中（D1 已交付） | `bd966d87`：`session-query-sqlite`/`ui-chat`/`locale`/`tool-skill` 从 `insert` 改为裸 `- id:` 整行覆盖；`tool-skill` 显式 `disabled: false`；删掉与 web-app 重复的 `schedule`/`ui-schedule` insert；`--dump-config` 0 重复 row id、`tool-skill` enabled、ui-chat/locale config 在场；`preset-composition.spec` 的 strict patcher seed 了这四行；`pnpm start` preflight 绿 + blank 场景 PASS。台账/架构树同步 |
 | B4 仍余 | 待做 | 一个 packer（`pnpm` vs `npm`）；client bundling / 死 Remote 车道；`main-view` 页面全局 + `product-face` 模块级 store 的状态所有权；web-only 行 self-disable；README 发布状态；真实旧包升级 fixture；preset 拆 `presets/*.patch.yml`（可选）；重复 id 的**机械门禁**（目前靠 `--dump-config` 手工/测试） |
 | 收口 | 待做 | 决定 note、卡归档、research 归档、清单同步 |
