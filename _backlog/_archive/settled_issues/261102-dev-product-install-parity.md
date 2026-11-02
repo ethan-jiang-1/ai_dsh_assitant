@@ -179,6 +179,7 @@ opened: 2026-11-02
 | 负例：从 parity 表删掉「依赖闭包」行 | 修正前**不红**（门禁只判行数 ≥ 8，13→12 仍绿）；修正后红：`no row for dependency closure`；还原即绿 |
 | `pnpm test` | 1178 passed |
 | `pnpm export-dist` | 绿（手册与包同源；与上一版差异只有打包日期一行） |
+| `pnpm start`（真 dev 环：artifacts 自证 → setup → boot → preflight） | 绿：`artifacts: lib/ matches src/`；`dsh-smart-assistant client bundle registers under its name`；boot graph 70 entries；remote 30 namespaces；`preflight: green`（端口 50069，OV 层 0.4.22 可选在线） |
 
 **修正的一处判据**：`dev-parity` 原来只数行数，表里删掉一个负载机制点也照样绿——与验收 #1 的负例
 "删一行 → 红"不符。现在改为**钉住八个负载机制点**（profile 创建 / 安装源 / 包字节 / 依赖闭包 /
