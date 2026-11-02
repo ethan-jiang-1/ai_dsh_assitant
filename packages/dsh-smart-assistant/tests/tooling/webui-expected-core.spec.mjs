@@ -79,6 +79,13 @@ describe('normalizeDomEvidence keeps only the compared contract', () => {
     expect(normalized.unowned).toEqual({ newShotsChannel: ['x'] })
   })
 
+  it('fails a capture whose new evidence channel the expectation did not record', () => {
+    const actual = normalizeDomEvidence(evidence({ newShotsChannel: ['console error!'] }))
+    const expected = normalizeDomEvidence(evidence())
+    expect(compareEvidence(actual, expected).join('\n')).toContain('unowned.newShotsChannel')
+    expect(compareEvidence(expected, actual).join('\n')).toContain('unowned.newShotsChannel: missing')
+  })
+
   it('rejects a non-object capture outright', () => {
     expect(() => normalizeDomEvidence(null)).toThrow(/must be a JSON object/)
     expect(() => normalizeDomEvidence([1, 2])).toThrow(/must be a JSON object/)

@@ -239,5 +239,22 @@ export function compareEvidence(actual, expected) {
       problems.push(`${field}: expected ${preview(e)}, actual ${preview(a)}`)
     }
   }
+  // Unknown top-level fields are kept under `unowned` (a new evidence channel must be a
+  // visible diff, not silently ignored). Compare them so the promise is mechanical.
+  const actualUnknown = actual.unowned ?? {}
+  const expectedUnknown = expected.unowned ?? {}
+  for (const key of new Set([...Object.keys(actualUnknown), ...Object.keys(expectedUnknown)])) {
+    if (!(key in expectedUnknown)) {
+      problems.push(`unowned.${key}: new evidence channel ${preview(JSON.stringify(actualUnknown[key]))} is not in the expectation — record it deliberately`)
+      continue
+    }
+    if (!(key in actualUnknown)) {
+      problems.push(`unowned.${key}: missing from the capture (expected ${preview(JSON.stringify(expectedUnknown[key]))})`)
+      continue
+    }
+    if (JSON.stringify(actualUnknown[key]) !== JSON.stringify(expectedUnknown[key])) {
+      problems.push(`unowned.${key}: expected ${preview(JSON.stringify(expectedUnknown[key]))}, actual ${preview(JSON.stringify(actualUnknown[key]))}`)
+    }
+  }
   return problems
 }

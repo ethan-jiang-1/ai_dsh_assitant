@@ -1,14 +1,14 @@
 ---
-status: 推敲中
+status: 待落地
 opened: 2026-11-03
 ---
 
 # 推敲：七维打扫卫生——先修证据面，再修文档漂移，最后动结构
 
-> 立卡：2026-11-03 ｜ 状态：推敲中 ｜ 毕业：做现在（待用户 review）｜ 去向：implemented ｜ 可关闭：否
+> 立卡：2026-11-03 ｜ 状态：待落地 ｜ 毕业：做现在 ｜ 去向：implemented ｜ 可关闭：否
 > 来源：[七维深审](../research/261103-seven-dimension-audit/261103-seven-dimension-audit.md)（2026-11-03，7 路 fresh 审计 + 真机取证）
-> 授权：用户 2026-11-03「到了打扫卫生的时候了……先评估一下这七个维度……REVIEW 后看看能不能持续改善」= 授权评估；
-> 本卡的改善范围等 review 后的点名/点头才开工（`待落地` 是 ready，不是授权）。
+> 授权：用户 2026-11-03「到了打扫卫生的时候了……先评估一下这七个维度……REVIEW 后看看能不能持续改善」= 授权评估与持续改善；
+> 本轮按 B1（证据面）与 B2（文档漂移）的已发现项自定范围推进（机械/证据修复，不改产品行为）；B3/B4 仍需 review 后点名。
 
 **问题与期望结果：** 深审确认骨架与依赖方向立住，但三类接缝在持续消耗 agent：①证据面（web-face 场景）不在 verify 里，
 曾被一条 YAML 写坏整条打灭；②高 churn 接缝（client 组合根、docs、vendor 覆盖）在长第二份合同/第二份清单；
@@ -83,10 +83,12 @@ DSH 约定偏离（`insert` 当 override、两个 packer、client 状态所有�
 | 片 | 状态 | 证据 |
 |---|---|---|
 | B0 地板 | 已完成（并行会话 + 主线） | `7159653a` typecheck 绿；`pnpm verify` 56/56；`pnpm test` 1,219/1,220（唯一红 = load-sensitive build-freshness） |
-| B1 反馈诚实性 | 待做 | — |
-| B2 文档漂移 | 待做 | — |
-| B3 结构 | 待做 | — |
-| B4 DSH 约定 | 待做 | — |
+| B1 反馈诚实性 | 进行中（核心片已交付） | `45a97abb`：`scene-home.mjs` 单一 patch writer + YAML parse spec；`web-face-check` 起手 `ensure-build`、Chrome 缺失 BLOCKED 2、provision 失败 BLOCKED 2；`probe-service` 头+尾 stderr + sibling log、child 退出即停、`withService` catch 不中断剩余场景；`product-first-screen` 断言 composer 真禁用 + placeholder；`webui-shots`/`webui-expected` 的 no-Chrome 2/1 区分；`build-freshness` 20s→60s（budget，不是 retry） |
+| B1 仍余 | 待做 | comparator `unowned`、逐场景 refresh review、client composition seam spec、`pnpm session` join、per-run product workspace、四个非产品场景 README 的 posture 逐条化 |
+| B2 文档漂移 | 基本完成 | `d477076f`：11 条漂移（轨迹页/安装器默认/两三个文件/400-500/`--all` 10 面/授权例外/A2/`discipline` 适配 10）+ `AGENTS.md:9` 默认路径 + `去向` 时机 + 收据生效日 + 收口卡样板 + 读法三篇 + note 同名互链/面数 + 产品失败模式行 + 场景 posture 中心说明 |
+| B2 仍余 | 待做 | 常驻入口散文预算（触发已到，属纪律改动，需单独拍板） |
+| B3 结构 | 待做 | client 组合根 / projection-panel / rooms write / agent dispatch / tests/cli |
+| B4 DSH 约定 | 待做 | `insert`→裸 id 覆盖 + 重复 id 门禁；一个 packer；client bundling；状态所有权；web-only self-disable；README 发布状态；真实旧包 fixture |
 | 收口 | 待做 | 决定 note、卡归档、research 归档、清单同步 |
 
 ## 仍未取
@@ -98,6 +100,7 @@ DSH 约定偏离（`insert` 当 override、两个 packer、client 状态所有�
 
 ## 下一步
 
-1. **用户 review 七维报告与上面五批**：选先做哪批（建议 B1）。
-2. 翻 `待落地`（`毕业：做现在` + `去向：implemented`）后，按批开工；每批一个可回退提交。
+1. 完成 B1 余项：comparator `unowned`、逐场景 refresh review、client composition seam spec、`pnpm session` join、
+   per-run product workspace、四个非产品场景 README 的逐条 posture。
+2. B3/B4 等用户 review 后点名；B4 的 client bundling 改法与发布渠道是真人拍板项。
 3. 收口时写 implemented note（只留决定与输掉的方案），卡归档，research 题归档，清单同步。
