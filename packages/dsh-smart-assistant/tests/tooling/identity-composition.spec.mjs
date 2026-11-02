@@ -131,6 +131,38 @@ describe('package subpaths: every patch that references our package names a real
   })
 })
 
+describe('compositionDuplicateProblems: insert vs bare override', () => {
+  const vendorTexts = ['- id: ui-chat\n  name: x\n- id: schedule\n  name: y\n']
+  const patch = (rows) => rows.join('\n') + '\n'
+
+  it('accepts a new insert and a bare override that targets vendor', () => {
+    expect(gateCores.compositionDuplicateProblems({
+      patchText: patch(['- insert:', '    - id: assistant-new', '- id: ui-chat']),
+      vendorTexts,
+    })).toEqual([])
+  })
+
+  it('rejects an insert id vendor already owns, a missing override target, and a duplicate', () => {
+    const insertCollision = gateCores.compositionDuplicateProblems({
+      patchText: patch(['- insert:', '    - id: schedule']),
+      vendorTexts,
+    })
+    expect(insertCollision.join(' ')).toContain('insert row schedule')
+
+    const missingOverride = gateCores.compositionDuplicateProblems({
+      patchText: patch(['- id: ghost']),
+      vendorTexts,
+    })
+    expect(missingOverride.join(' ')).toContain('bare override ghost')
+
+    const duplicate = gateCores.compositionDuplicateProblems({
+      patchText: patch(['- insert:', '    - id: assistant-new', '    - id: assistant-new']),
+      vendorTexts,
+    })
+    expect(duplicate.join(' ')).toContain('appears twice')
+  })
+})
+
 describe('webOnlyRowsDisabledProblems: the web-only rows self-disable in headless', () => {
   const row = (id, disabled) => `    - id: ${id}\n      name: dsh-smart-assistant/${id.replace('assistant-', '')}\n      disabled: ${disabled}\n`
   const all = (disabled = '!!js "!ctx.get(\'connection\')"') => [

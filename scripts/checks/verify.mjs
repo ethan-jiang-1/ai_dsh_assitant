@@ -18,7 +18,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { agentsMdStabilityProblems, releaseCharterProblems, retiredTermProblems, archivedNotePointerProblems, backtickedRepoPathProblems, backlogGraduationProblems, backlogLivenessProblems, implementedNoteEvidenceProblems, clientScriptSafetyProblems, commandAliasProblems, commitSafetyProblems, trackedContentProblems, trackedDataPaths, compositionRowProblems, configParseProblems, crossFileSectionProblems, dependencyPoseProblems, devDrawerCoverageProblems, devParityProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, graduatedProposalProblems, homeDocContractProblems, implementedAlternativesProblems, identityNameProblems, languageGuardProblems, markdownCorpusFromTracked, notesNamingProblems, notePointerProblems, notesStateProblems, importResolutionProblems, notesTopLevelProblems, overrideLedgerProblems, pinProblems, machineLocalPathProblems, packageBuildFreshnessProblems, packageSubpathProblems, playbookFrontmatterProblems,
+import { agentsMdStabilityProblems, releaseCharterProblems, retiredTermProblems, archivedNotePointerProblems, backtickedRepoPathProblems, backlogGraduationProblems, backlogLivenessProblems, implementedNoteEvidenceProblems, clientScriptSafetyProblems, commandAliasProblems, commitSafetyProblems, trackedContentProblems, trackedDataPaths, compositionDuplicateProblems, compositionRowProblems, configParseProblems, crossFileSectionProblems, dependencyPoseProblems, devDrawerCoverageProblems, devParityProblems, dshHomeInheritanceProblems, exportManualProblems, gateWiringProblems, graduatedProposalProblems, homeDocContractProblems, implementedAlternativesProblems, identityNameProblems, languageGuardProblems, markdownCorpusFromTracked, notesNamingProblems, notePointerProblems, notesStateProblems, importResolutionProblems, notesTopLevelProblems, overrideLedgerProblems, pinProblems, machineLocalPathProblems, packageBuildFreshnessProblems, packageSubpathProblems, playbookFrontmatterProblems,
   runtimeTsconfigProblems, selfContainmentProblems, skillFrontmatterKeyProblems, skillNameGrammarProblems, relativeLinkProblems, researchSubdirProblems, rootCommandBudgetProblems, rootProseBudgetProblems, scratchPathProblems, skillFrontmatterProblems, startPathProblems, tagVersionProblems, testAssetNamingProblems, textHygieneProblems, toolCommentNameProblems, vendorClientFreshnessProblems, webFaceExpectedHealthProblems, webOnlyRowsDisabledProblems } from './verify-checks.mjs'
 import * as gateCores from './verify-checks.mjs'
 import { runChecks } from './run-gates.mjs'
@@ -394,6 +394,15 @@ check('composition: our mounted rows are all named in the §二 trees, and every
 // The list is now a pointer, but comments still name tools; the catalog is the generated authority.
 check('composition: every web-only row self-disables when connection is absent', () =>
   webOnlyRowsDisabledProblems(read(join(packageDir, 'cordis.patch.yml'))))
+
+check('composition: insert ids are new and bare overrides hit vendor rows', () =>
+  compositionDuplicateProblems({
+    patchText: read(join(packageDir, 'cordis.patch.yml')),
+    vendorTexts: [
+      read(join(repoRoot, 'vendor', 'dsh', 'packages', 'bundle', 'base', 'cordis.patch.yml')),
+      read(join(repoRoot, 'vendor', 'dsh', 'packages', 'bundle', 'web-app', 'cordis.patch.yml')),
+    ],
+  }))
 
 check('composition: tool names in cordis.patch.yml comments exist in the catalog', () =>
   toolCommentNameProblems({

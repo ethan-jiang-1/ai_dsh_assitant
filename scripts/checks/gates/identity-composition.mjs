@@ -198,3 +198,38 @@ export function webOnlyRowsDisabledProblems(patchText) {
   }
   return problems
 }
+
+
+/**
+ * The bundle patch has two row shapes: `insert` rows add new ids, bare `- id:` rows replace a
+ * vendor row by id. A row in the wrong shape is silent: an inserted id that vendor already
+ * declares is last-wins (no warning), and a bare override with no vendor target is only a
+ * boot-time warning. The 2026-11-03 audit found the first class in `schedule`; this gate reads
+ * the pinned vendor base/web-app patches as the target set and checks both directions.
+ *
+ * @param {{ patchText: string, vendorTexts: readonly string[] }} input - our patch and the
+ *   vendor composition patches that declare the ids a bare override may replace.
+ * @returns problem strings, empty when every insert is new and every override hits vendor.
+ */
+export function compositionDuplicateProblems({ patchText, vendorTexts }) {
+  const vendor = new Set(vendorTexts.flatMap(text => parseRows(text).map(row => row.id)))
+  const rows = [...patchText.matchAll(/^([ \t]*)- id:[ \t]*(\S+)[ \t]*$/gm)]
+    .map(match => ({ indent: match[1].length, id: match[2] }))
+  const inserts = rows.filter(row => row.indent === 4).map(row => row.id)
+  const overrides = rows.filter(row => row.indent === 0).map(row => row.id)
+  const problems = []
+  const seen = new Set()
+  for (const row of rows) {
+    if (seen.has(row.id)) problems.push(`composition: row id ${row.id} appears twice in cordis.patch.yml — the loader keeps one silently`)
+    seen.add(row.id)
+  }
+  for (const id of inserts) {
+    if (vendor.has(id)) problems.push(`composition: insert row ${id} is already declared by the vendor base/web-app — use a bare override, not insert (last-wins is silent)`)
+    if (overrides.includes(id)) problems.push(`composition: row id ${id} is both inserted and overridden — pick one shape`)
+  }
+  for (const id of overrides) {
+    if (!vendor.has(id)) problems.push(`composition: bare override ${id} has no vendor row — the patch falls through with an entry-not-found warning`)
+  }
+  if (vendor.size === 0) problems.push('composition: the vendor base/web-app patches declare no row ids — the duplicate check has nothing to compare against')
+  return problems
+}
