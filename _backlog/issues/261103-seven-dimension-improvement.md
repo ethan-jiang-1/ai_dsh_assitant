@@ -98,7 +98,7 @@ DSH 约定偏离（`insert` 当 override、两个 packer、client 状态所有�
 - **发布渠道**：`pnpm publish` 还是 `npm publish`；前者与 `export-dist` 同字节，后者需要把 `export-dist` 改成 npm 判据。
 - **pnpm 10.6 下限**：本机无 Corepack 网络，BLOCKED；真实安装矩阵要另找环境。
 - **并行会话占位**：切片台账的“开工锚点”是否作为常设纪律（不加状态词），待 B2 与用户一起定。
-- **测试地板偶发**：`tests/host/knowledge-curation.spec.ts` 清理时出现一次 `ENOTEMPTY`（`host-harness` 的 `dirPool` 与异步写竞争；重跑全绿），未定性；B5 测试可靠性项。
+- **测试地板偶发（已修）**：`host-harness` 的 `memoryPool` 现在在删 home 前 dispose 自己的 Context（`e73f69ea`），`knowledge-curation` 单跑 5 次 + 全量 2 次绿；不再依赖 `rmSync` retry 掩盖竞态。
 
 ## 下一步
 
