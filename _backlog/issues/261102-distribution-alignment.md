@@ -17,14 +17,14 @@ opened: 2026-11-02
 
 | 片 | 内容 | 状态 | 证据 |
 |---|---|---|---|
-| S1 | `docs/release.md` 重写为发行版宪章：术语与判据、六轴 owner 表、生命周期十段索引、部署叙事与偏离 | 待做 | — |
-| S2 | 包 README 按 DSH 七节重排；`publish-shape.mjs` 骨架同步 + 负例 | 待做 | — |
-| S3 | 安装手册模板修正（headless insert、import --replace、默认 preset、配置段、建 profile 顺序、tarball checksum） | 待做 | — |
-| S4 | 修 `standalone-smoke` / `product-smoke` 对"包内 bootstrap"的断言（bundle-first 后必红） | 待做 | — |
-| S5 | 合同陈旧断言清零（包内 bootstrap、private、profile patch 设 default、profiles/web、六条路由、两/三根文件、SessionInspect、web-face 计数等） | 待做 | — |
+| S1 | `docs/release.md` 重写为发行版宪章：术语与判据、六轴 owner 表、生命周期十段索引、部署叙事与偏离 | 已做 | 提交 e054f1e9；`pnpm verify` 53/53 |
+| S2 | 包 README 按 DSH 七节重排；`publish-shape.mjs` 骨架同步（负例待 S6） | 已做 | 提交 45d2f622；`pnpm export-dist` 的 doc-shape 绿 |
+| S3 | 安装手册模板修正（headless insert、import --replace、默认 preset、配置段、建 profile 顺序、tarball checksum） | 已做 | 提交 45d2f622；`pnpm export-dist` 绿（手册十段 + checksum 产出） |
+| S4 | 修 `standalone-smoke` / `product-smoke` 对"包内 bootstrap"的断言（bundle-first 后必红） | 已做 | 提交 eac6dbc8；`pnpm product-smoke` passed、`pnpm standalone-smoke` passed |
+| S5 | 合同陈旧断言清零（包内 bootstrap、private、profile patch 设 default、profiles/web、六条路由、两/三根文件、SessionInspect、web-face 计数、包描述） | 已做 | 本片提交；`pnpm verify` 53/53、`pnpm export-dist` 绿 |
 | S6 | 退役词全量替换 + 门禁（退役词、骨架进 verify、六轴/十段存在性） | 待做 | — |
 | S7 | 历史按 notes 取代判据逐篇处置（当前权威改真 + 指针；归档只加索引声明） | 待做 | — |
-| S9 | 噪声合并：同一事实的多个"说法"按 owner 收敛（删 > 并 > 修；其余只留名字 + 指针） | 待做 | — |
+| S9 | 噪声合并：同一事实的多个"说法"按 owner 收敛（删 > 并 > 修；其余只留名字 + 指针） | 已做 | 本片提交；退役词在 owner 面零命中（登记行除外），根 README 机制段已删并入 release.md |
 | S8 | 收口：implemented note、全量证据、卡归档 | 待做 | — |
 
 ## 发现清单（逐条落地）

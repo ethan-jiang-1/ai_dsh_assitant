@@ -22,7 +22,7 @@
 
 **避开 DSH 保留面**（不是我们的命名空间）：`@deepseek-ai` scope、核心 ctx 服务名（`ctx.agents` 等）、
 shipped preset id（`standard`/`ptc`/`cordis`/`minimal`）、保留 profile 名（`web`/`headless`/`sdk`/`sdk-minimal`/`acp`/`desktop`）、
-核心事件名（`SessionEventMap` 成员，以钉住 vendor 的定义为准）、home 布局（`~/.dsh`、`profiles/`、`.agent-presets`、`sessions/`）。**不打包 DSH 运行时、不新增绕过 `dsh --profile` 的应用入口**；产品安装器 `bootstrap.mjs` 是可选部署包装（经已安装的 `dsh` 建/复用 `assistant` profile 再起 Web；工作区绑定归产品行/ profile Config），与随包运维/工具 CLI（`ov-doctor`、`expert-setup`、`assistant-data`）同类，不属于本禁令。
+核心事件名（`SessionEventMap` 成员，以钉住 vendor 的定义为准）、home 布局（`~/.dsh`、`profiles/`、`.agent-presets`、`sessions/`）。**不打包 DSH 运行时、不新增绕过 `dsh --profile` 的应用入口**；安装器 `bootstrap.mjs` 是可选部署包装（经已安装的 `dsh` 建/复用 `assistant` profile 再起 Web；工作区绑定归入口行/profile Config），与随包运维/工具 CLI（`ov-doctor`、`expert-setup`、`assistant-data`）同类，不属于本禁令。
 
 ## 二、皮肤（随时可改，零身份代价）
 
@@ -42,7 +42,7 @@ Web 壳的页标题、图标与侧栏品牌（`src/host/web-branding.ts` 注入�
 
 ## 四、改名窗口
 
-- **发布前**：全部可改，只有 repo 内部引用跟着动 —— 这正是现在的窗口（包仍是 `private`）。
+- **发布前**：全部可改，只有 repo 内部引用跟着动 —— 这正是现在的窗口（包尚未发布到 registry）。
 - **有用户安装后**：按上表逐行断，须按破坏性变更发 major 并写迁移说明。
 - **折中通道**：工具名可经 Config 暴露为部署参数（`tool-subagent` 的 `toolName` 先例），
   把"名字"从代码身份降级为部署选择 —— 但它不撤销历史日志里的旧名。

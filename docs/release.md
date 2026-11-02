@@ -40,7 +40,7 @@
 | 用法 | 词 |
 |---|---|
 | 保留 | bundle、custom profile、preset、app surface、发行版、发布物、入口行（`assistant-product`）、专用 home、安装器 |
-| 退役 | 产品 profile、产品 bundle、产品型插件、产品行、产品门、产品安装器、产品模式、插件即产品 |
+| 退役 | 产品 profile、产品 bundle、产品型插件、产品行、产品门、产品安装器、产品模式、插件即产品 <!-- term-policy: 退役词登记行，门禁跳过 --> |
 | `product` 的合法用法 | ① 引述 DSH 时指整台运行中的 dsh；② 指这份业务（P1–P3、产品定位、产品口味）。**不修饰任何交付对象。** |
 
 代码身份（`assistant-product`、`productHome`、`src/host/product/`）是身份名，不随说法改名；改它按

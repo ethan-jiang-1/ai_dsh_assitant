@@ -188,7 +188,7 @@ const manual = `# dsh-smart-assistant 手动安装手册
 除唯一的运行时依赖 \`yaml\` 外，这个安装包是自包含的：bundle 补丁（\`cordis.patch.yml\`，含 \`assistant\` preset 的完整组合）、
 编译产物（\`lib/\`，含浏览器端桌面面板与专家装配模块）、策展技能（\`presets/assistant/skills/\`）、
 管理种子（\`seeds/management/\`）、三个 bin（\`ov-doctor\` / \`expert-setup\` / \`assistant-data\`）、
-README。**产品安装器不在包里**：它是同目录下的独立资产 \`bootstrap.mjs\`（＋ \`.sha256\`），见下文「可选：产品安装器」。
+README。**安装器不在包里**：它是同目录下的独立资产 \`bootstrap.mjs\`（＋ \`.sha256\`），见下文「可选：安装器」。
 DSH 本体一律按 peerDependencies 由宿主运行时提供，包里不带任何
 \`@deepseek-ai/*\` 代码；唯一的 npm 依赖是 ${prodDeps.map((name) => `\`${name}\``).join('、') || '（无）'}
 （安装时经 npm registry 拉取）。首次安装需要能访问 npm registry 或内网镜像；完全离线的机器请先把 yaml 预热进 pnpm store。DSH 安装时会按包里的 \`engines.dsh\` 检查兼容；
@@ -198,7 +198,7 @@ DSH 本体一律按 peerDependencies 由宿主运行时提供，包里不带任�
 ## 产品是什么
 
 产品 = **dedicated \`assistant\` profile 的组合**；工作区绑定在 \`assistant-product.workspaceDir\`（profile Config），
-会话落在你的项目里，交付包落在 \`<项目>/deliverables/<YYYY-MM-DD>-<slug>/\`。产品 home 是部署选项，不是安装要求。
+会话落在你的项目里，交付包落在 \`<项目>/deliverables/<YYYY-MM-DD>-<slug>/\`。专用 home 是部署选项，不是安装要求。
 合同 = 包内 README 与仓根 \`docs/product.md\`。
 
 ## 〇、安装前提
@@ -248,7 +248,7 @@ Windows：命令在 PowerShell 里可用；路径含空格时加引号。本手�
    （或已发布包名 / Git 地址 / 本地目录）。
 3. 启用 bundle，重启 profile；首屏选项目目录。
 
-这条路径装进当前 profile，不是 dedicated \`assistant\` profile；产品行/首启/交付包仍工作。
+这条路径装进当前 profile，不是 dedicated \`assistant\` profile；入口行/首启/交付包仍工作。
 
 ### C. CLI（自动化 / 非 GUI surface）
 
@@ -268,7 +268,7 @@ CLI 装完宿主不知道，必须重启 profile；应用内装可能返回 \`re
 只用 Desktop 的 **Plugins** 页安装（**Add plugin → Install a third-party plugin** 填 tarball 绝对路径）；重启应用。
 Desktop 使用保留的 \`desktop\` profile，普通 CLI 不能 boot/管理它；
 **不要写** \`dsh plugin --profile desktop\`。Desktop 上没有 dedicated \`assistant\` profile 时，产品以 Desktop 当前
-profile 运行；不承诺独立 profile/产品 home。本轮未在 Desktop 真机验证。
+profile 运行；不承诺独立 profile/专用 home。本轮未在 Desktop 真机验证。
 
 ### E. 市场（Discover，发布后可用）
 
@@ -283,7 +283,7 @@ DSH 没有中心化官方市场，市场是**索引源**模式：你自己加一
 索引是**声明不是签名**：卡片上的标题/作者/标签是索引的说法，装下来的字节由 manifest 决定；索引里钉的是 exact 版本，
 所以"升级"= 换索引里钉住的版本再装一次。**没有索引就还没有这条路径**——先有 npm 发布，才有 market。
 
-### 可选：产品安装器（自托管 / shell）
+### 可选：安装器（自托管 / shell）
 
 目标用户没有 DSH 经验、或需要离线/一条命令时，用**本目录下的独立资产** \`bootstrap.mjs\`
 （与本手册、\`${tarballName}\` 同目录，附 \`bootstrap.mjs.sha256\`）。**它不在安装包里**，也不是 DSH 的默认
@@ -301,8 +301,8 @@ node bootstrap.mjs --package ./package --stop --home ~/.dsh-smart-assistant --pr
 校验组合、起 Web。
 
 它建/复用 \`assistant\` profile、装本包、校验组合，再起 Web；\`--workspace\` 只设一次性 \`ASSISTANT_WORKSPACE\`，
-不写工作区绑定文件；产品 home 默认 \`~/.dsh-smart-assistant\`（不碰日用 \`~/.dsh\`）。首启选目录写 profile Config。
-产品 home 是新 home：首次打开没有 provider 凭据，在 Web UI 登录/添加 API Key 后才有会话能力。
+不写工作区绑定文件；专用 home 默认 \`~/.dsh-smart-assistant\`（不碰日用 \`~/.dsh\`）。首启选目录写 profile Config。
+专用 home 是新 home：首次打开没有 provider 凭据，在 Web UI 登录/添加 API Key 后才有会话能力。
 
 **profile 只隔离组合，不隔离数据。** 多个 profile 共用 \`<DSH_HOME>/assistant\` 与 \`<DSH_HOME>/assistant-operating\`；
 要真正隔离试用，换一个独立的 \`DSH_HOME\`，或同时覆盖 memory/ledger/projection 的 \`dataDir\`。
@@ -311,7 +311,7 @@ node bootstrap.mjs --package ./package --stop --home ~/.dsh-smart-assistant --pr
 
 没有工作区绑定时，启动后首屏是产品开始页：**选一个项目目录**。选择后：
 
-- 产品行校验路径、用 \`workspaceRegistry.create\` 登记；
+- 入口行校验路径、用 \`workspaceRegistry.create\` 登记；
 - 通过 \`settings.update\` 把 \`assistant-product.workspaceDir\` 写进当前 profile patch；
 - 首屏显示 \`工作区 · <目录>\` 与“开始一件事”；
 - 之后启动从 profile Config 恢复；要换项目点“换项目”。
@@ -492,7 +492,7 @@ node <DSH_HOME>/profiles/assistant/node_modules/dsh-smart-assistant/bin/assistan
 它只带这两个插件目录，不含 sessions/credentials/settings；不带 \`--replace\` 时 import 要求目标目录为空，含符号链接的备份会
 被拒绝（备份必须是普通文件）；manifest 的 \`schemaVersion\` 不匹配会拒绝，不会猜着导入。
 
-**产品模式**：把命令里的 \`<DSH_HOME>\` 换成 \`<productHome>\`（默认 \`~/.dsh-smart-assistant\`，可选），
+**专用 home 模式**：把命令里的 \`<DSH_HOME>\` 换成 \`<productHome>\`（默认 \`~/.dsh-smart-assistant\`，可选），
 profile 换成 \`assistant\`；工作区绑定是 profile Config（\`assistant-product.workspaceDir\`），**不进**
 \`assistant-data\`——换机后从首启/“换项目”重选，或改 profile patch。
 
@@ -515,7 +515,7 @@ dsh --profile assistant --dump-config
 working folder/账本；若 CLI 拒绝同版本或要求先 remove，按 CLI 提示先 \`remove\` 再 \`add\`——
 \`remove\` 不删 working folder/账本，但升级前仍建议备份。
 
-**产品模式**：home 换成 \`<productHome>\`（可选）；
+**专用 home 模式**：home 换成 \`<productHome>\`（可选）；
 升级前先停产品实例（安装器用 \`bootstrap --stop --product\`，native 直接停 \`dsh --profile assistant\`），升级后重启 profile。
 回滚：保留上一版 tgz；\`remove\` 新版后 \`add\` 旧版；若新版引入不可读的数据格式，先恢复备份。
 
@@ -528,7 +528,7 @@ dsh plugin --profile assistant remove dsh-smart-assistant
 \`\`\`
 
 卸载后 \`--dump-config\` 不再提及插件，profile 的 package.json 也不留痕迹；运行中的实例重启后不再加载。working folder
-本身（\`<DSH_HOME>/assistant/\`）是数据不是插件：卸载不删它，弃用前自行备份。产品模式用 \`dsh plugin --profile assistant remove dsh-smart-assistant\`；数据根是产品 home（默认
+本身（\`<DSH_HOME>/assistant/\`）是数据不是插件：卸载不删它，弃用前自行备份。专用 home 模式用 \`dsh plugin --profile assistant remove dsh-smart-assistant\`；数据根是专用 home（默认
 \`~/.dsh-smart-assistant\`，可选），卸载同样保留；工作区交付包随项目保留；工作区绑定在 profile Config（\`assistant-product.workspaceDir\`），不随插件备份迁移；要清就在 profile patch/Settings 里清。
 
 装了 OpenViking 的，另停 server 并 \`uv tool uninstall openviking\`；\`~/.openviking\` 是配置/数据，
@@ -582,7 +582,7 @@ node <DSH_HOME>/profiles/assistant/node_modules/dsh-smart-assistant/bin/expert-s
 
 ## 十一、独立目录启动（无 git）
 
-这是**无参 standalone** 模式（dev/demo，不是产品主路径；没有工作区绑定，profile 是 \`assistant-standalone\`）。产品模式用
+这是**无参 standalone** 模式（dev/demo，不是产品主路径；没有工作区绑定，profile 是 \`assistant-standalone\`）。专用 home 模式用
 \`--workspace\`/\`--product\`（见文首），同一个 \`bootstrap.mjs\`。
 
 把 tarball 解开到任意目录（不需要 \`.git\`、不需要本仓），用同目录的独立资产指向它：
@@ -621,10 +621,10 @@ Windows：\`dsh\`/\`npm\` 的 \`.cmd\` shim 与进程树语义已做代码级加
 |---|---|
 | 刷新后什么都没出现 | 浏览器刷新不加载新模块：重启 \`dsh --profile assistant\`，再硬刷新页面 |
 | Web UI 里没有章鱼管家 | 先确认 \`preset-assistant\` 在组合里、装的是当前包；重启并硬刷新；仍没有就按第五节查配置，并记录界面缺口 |
-| 升级后数据在哪 | 仍在 \`<DSH_HOME>/assistant\` 与 \`assistant-operating\`；产品模式在 \`<productHome>\` 下；\`remove\` 不删；升级前先备份 |
+| 升级后数据在哪 | 仍在 \`<DSH_HOME>/assistant\` 与 \`assistant-operating\`；专用 home 模式在 \`<productHome>\` 下；\`remove\` 不删；升级前先备份 |
 | 安装器与 native 有什么区别 | 安装器（A）帮你建 \`assistant\` profile、装包、起 Web；native（B）用 DSH 三步达到同一 profile；两者的工作区都在首启选，写 profile Config |
-| 首跑停在登录/要求 API Key | 产品 home 是新的，没有 provider 凭据；在 Web UI 登录/配置后再用，不是装坏 |
-| headless 组合里多一条 \`assistant-product\` pending | 产品行是 web-only；headless profile patch 要加 \`- id: assistant-product\` + \`disabled: true\` |
+| 首跑停在登录/要求 API Key | 专用 home 是新的，没有 provider 凭据；在 Web UI 登录/配置后再用，不是装坏 |
+| headless 组合里多一条 \`assistant-product\` pending | 入口行是 web-only；headless profile patch 要加 \`- id: assistant-product\` + \`disabled: true\` |
 | 工作区交付包在哪 | \`<工作区>/deliverables/<YYYY-MM-DD>-<slug>/\`（README 四段 + 交付物 + \`present\`）；不复制会话日志 |
 | 备份怎么恢复 | 用 \`assistant-data import\`；已启动过的 home 加 \`--replace\`（现有目录移到旁路，不用清空）；它按 manifest 的 schemaVersion 拒绝不兼容备份 |
 | 产品启动要 dsh 吗 | 要，PATH 上有兼容 \`dsh\` 或传 \`--dsh\`；没有 dsh 的便携包是另一个产品，不在本手册范围 |

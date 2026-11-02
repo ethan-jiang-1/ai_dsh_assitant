@@ -16,9 +16,9 @@
 | `dev-task`（§四） | 无 Web 的 headless one-shot：只装 host 面，进程自己退 | 只冒烟插件装载 / 服务行 / scaffold |
 | `--patch dev/probes/session/preset-runner.patch.yml`（§四） | 同上但挂 preset | 自动化 preset 探针 |
 | `pnpm --dir vendor/dsh run dev:web` | vendor 的客户端 bundle watcher（重建 web 产物），不建 home、不选 profile、不起本插件会话 | 改浏览器面源码时配合已起的实例用 |
-| `dsh --profile assistant` 或包内 `bootstrap.mjs --workspace <目录>` | **产品实例**：dedicated `assistant` profile + 用户工作区；安装器可选；不是仓内开发入口 | 验证产品形态/端到端；自动证据 = `pnpm product-smoke` / `pnpm product-native-smoke`，合同 = [`product.md`](product.md) |
+| `dsh --profile assistant` 或发布资产里的 `bootstrap.mjs --package <包> --workspace <目录>` | **产品实例**：dedicated `assistant` profile + 用户工作区；安装器可选；不是仓内开发入口 | 验证产品形态/端到端；自动证据 = `pnpm product-smoke` / `pnpm product-native-smoke`，合同 = [`product.md`](product.md) |
 
-产品启动与仓内开发启动是两条入口：`pnpm start` 只起 dev home 的开发实例；产品走 `assistant` profile（native `dsh --profile assistant` 或可选安装器）。产品 home 是部署选项，不是产品前提；两者的 home 规则见 [`product.md`](product.md) 与根 `AGENTS.md` 硬规则 1。
+产品启动与仓内开发启动是两条入口：`pnpm start` 只起 dev home 的开发实例；产品走 `assistant` profile（native `dsh --profile assistant` 或可选安装器）。专用 home 是部署选项，不是产品前提；两者的 home 规则见 [`product.md`](product.md) 与根 `AGENTS.md` 硬规则 1。
 
 ## 一、隔离模型（什么被隔离、什么没有被隔离）
 
@@ -43,7 +43,7 @@ pnpm dsh --profile dev --port 0 --no-open  # 起服务与验证命令（prefligh
 | 通道 | 是否随 DSH_HOME 隔离 | dev 的处理 |
 |---|---|---|
 | profiles / sessions / storages / attachments / settings / credentials / 技能用户根 / `.agent-presets` / assistant working folder 的 dataDir（默认值；显式 `dataDir` 覆盖例外，见 `docs/home.md`） | ✅ | 自动落在 dev home |
-| 产品 home（默认 `~/.dsh-smart-assistant`，可选）与用户工作区 | ❌ 不随 dev home | dev 不建产品 home；产品入口见上表与 [`product.md`](product.md)；产品 smoke 用临时 home/workspace |
+| 专用 home（默认 `~/.dsh-smart-assistant`，可选）与用户工作区 | ❌ 不随 dev home | dev 不建专用 home；入口见上表与 [`product.md`](product.md)；产品 smoke 用临时 home/workspace |
 | skills 的共享 agent 根（默认 `~/.agents`） | ❌ 不隔离 | 启动器接管为 `$DSH_HOME/agents-home`（仅当未显式设置；`dev/env/env.sh` 则无条件强制） |
 | telemetry | 身份按 home 独立；默认 FEEDBACK_ONLY | 启动器设 `DSH_TELEMETRY_DISABLED=1` |
 | spill 与脚本临时文件 | ❌ 不经 DSH_HOME | **仓内唯一形式 = 仓根 `.tmp/<用途>/`**（硬规则 8，动机是仓外写会被沙箱挡成 approval）：dev 启动器把 `TMPDIR`/`TMP`/`TEMP` 收进 `.tmp/host/`，vendor 的 spill 随之入仓；脚本用 `dev/env/tmp.mjs` 的 `tmpDir`/`mkTmpDir`，测试进程由 `packages/dsh-smart-assistant/vitest.config.ts` 收进 `.tmp/vitest/`。日用（非 dev）实例不经本启动器，不受影响。清扫走 `pnpm sweep`（默认 dry-run，`--apply` 才真删；保护 = openviking / 新 mtime / 打开句柄 / `--keep` 白名单，判据见 `scripts/maintenance/sweep.mjs` 头注） |
@@ -221,7 +221,7 @@ DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得
 |---|---|---|
 | `pnpm dsh web --profile dev` | `dsh web` 别名**硬编码 profile 'web'**，会在 dev home 里自动创建一个 shipped `web` profile | 用 `pnpm dsh --profile dev`（dev profile 自带 web-app bundle） |
 | one-shot 无反应 | one-shot runner 行与位置参数解析都在 `@deepseek-ai/dsh-headless` bundle 的 headless-startup 里；web 模板没有它们 | 用 `dev-task` profile（headless 模板自带 runner 行）；**不要**往 `dev` 追加 headless bundle（§四：混装必撞 duplicate id，setup.sh 反而会把它摘掉） |
-| 无 key 的行为 | boot 不失败；首个 live turn 抛 `MISSING_CREDENTIAL`。"self-skip" 是**测试机制**不是产品行为 | 在 `$DSH_HOME/.credentials.yaml` 配 `DEEPSEEK_API_KEY`（或 `$DSH_HOME/.env`） |
+| 无 key 的行为 | boot 不失败；首个 live turn 抛 `MISSING_CREDENTIAL`。"self-skip" 是**测试机制**不是入口行为 | 在 `$DSH_HOME/.credentials.yaml` 配 `DEEPSEEK_API_KEY`（或 `$DSH_HOME/.env`） |
 | **one-shot 不进 preset** | headless runner 建**裸 agent**，roster 只在"创建会话的一方"被消费（web 会话创建 / 子 agent 继承父 composition）—— vendor 源码注释明文："A deployment that DOES configure one has to join it here first" | preset 行为（工具/persona/摘要段落）用 **dev profile 的 Web UI 会话**验证；dev-task 只冒烟 host 面（插件装载、working folder scaffold、服务行） |
 | API 抖动 | `TRANSPORT` 错误（"DeepSeek API request failed"）会触发 attempt 重试循环，模型可能开始即兴行为 | 重试即可；会话日志（`sessions/<proj>/<id>/session.v*.jsonl.zstd`）能逐事件还原 |
 | vendor install 失败 | 根 postinstall（lefthook）在 submodule 里必然失败 | 包已就位；build 用 `--config.verify-deps-before-run=false` 绕过 |
@@ -394,11 +394,11 @@ bundle 层（两个 profile 各自的链，刻意的——§四，web-app 与 he
 | 依赖闭包 | profile 自己拥有运行时依赖（`yaml`） | link 不装依赖 | 有界；lane 断言依赖可解析 | `scripts/release/install-parity.mjs` |
 | roster / bundles 写入者 | `dsh plugin add` | 同一条命令 | 同形 | `dev/env/setup.sh` |
 | 默认 preset | bundle patch（`agent-preset-registry` 整行替换） | 同一份 bundle patch | 同形 | `scripts/release/install-parity.mjs`（dump 断言） |
-| profile 用户层 | 产品 profile 不写 | 也不写；dev-only 行住 `$DSH_HOME/dev-overlay-<profile>.yml`，启动器以 `--patch` 注入 | 同形（overlay 是额外层，不是用户层） | `dev/env/setup.sh` + `dev/env/dsh.mjs` |
+| profile 用户层 | 专用 profile 不写 | 也不写；dev-only 行住 `$DSH_HOME/dev-overlay-<profile>.yml`，启动器以 `--patch` 注入 | 同形（overlay 是额外层，不是用户层） | `dev/env/setup.sh` + `dev/env/dsh.mjs` |
 | 引擎门 | 安装时判 tarball manifest 的 `engines.dsh` / `engines.pnpm` | lane 判 `engines.dsh` 与 peer 范围；pnpm 版本由矩阵守 | 有界（开发机的 pnpm 固定） | `scripts/release/install-parity.mjs` + `pnpm-matrix` |
 | 运行时 | 已安装 `dsh`（版本在 `engines.dsh` 内） | vendor pin 源码（tsx） | 有界：调试必需；版本面由真实 CLI 矩阵守 | `compat-matrix` |
 | 重建 | 重装 tarball + 重启 | `pnpm build` 原地生效 | 有界：热环 | `pnpm build` / `dev/env/ensure-build.mjs` |
-| home / 凭据 / 工作区 | 产品 home（默认 `~/.dsh-smart-assistant`）+ 用户项目目录 | `dev/harness-home` + cwd = 仓根 | 有界：隔离 | §一 |
+| home / 凭据 / 工作区 | 专用 home（默认 `~/.dsh-smart-assistant`）+ 用户项目目录 | `dev/harness-home` + cwd = 仓根 | 有界：隔离 | §一 |
 | 外部服务 | 无 | `dev/env/openviking-up.sh`（可选） | 有界：dev 工具 | `dev/env/setup.sh` |
 
 **同机制的部分不接受 dev 特例**：profile 创建方式、安装源的可验证性、默认 preset 的来源、roster 的

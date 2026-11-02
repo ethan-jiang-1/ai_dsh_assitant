@@ -89,7 +89,7 @@ pnpm install-parity     # 开发环的安装面快通道：pack → 干净 web p
 pnpm release-smoke      # pack → 干净 home → dsh plugin add → 组合断言（改动发布物/依赖/preset 包装/工具面必跑）
 pnpm upgrade-smoke      # 旧包→新包升级 + remove/re-add 后两目录数据保留
 pnpm standalone-smoke   # 无 .git 提取包 → bootstrap → 隔离 home → preflight → client boot/UI → stop
-pnpm product-smoke      # 产品安装器：pack → bootstrap --workspace → profile/Config → 真 boot → workspace.json + in-process 会话 cwd → stop
+pnpm product-smoke      # 安装器：pack → bootstrap --workspace → profile/Config → 真 boot → workspace.json + in-process 会话 cwd → stop
 pnpm product-native-smoke  # 无安装器：web 模板建 assistant profile → dsh plugin add → 真 boot → GET not-configured/onboarding → POST → 登记 + Config + 会话 cwd
 pnpm web-install-smoke [-- --tarball <old> --upgrade-tarball <new>]
                         # 标准 web profile：安装 → preflight → client boot/preset UI；upgrade 选项再加运行中升级

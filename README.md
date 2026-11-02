@@ -1,6 +1,6 @@
 # dsh-smart-assistant
 
-一个 DSH **产品**：一个有自己的启动 profile、在启动时绑定用户项目、并把作业产物留在项目里的领域专家助手。
+一个 DSH **发行版**：一个 bundle 加一种专用 custom profile 的建法。装进 web 面后，它有自己的启动 profile、在启动时绑定用户项目，并把作业产物留在项目里。
 
 它有两块地：**助手自己的 home**（跨会话的记忆/技能/账本/身份）和**用户的工作区**（会话、文件工具、一次作业的交付包）。
 核心命题借自 `Agent = Model + Harness` —— 模型决定上限，**那一圈**决定你能拿到多少；本 repo 做的就是那一圈。
@@ -60,7 +60,7 @@
 
 自有工具：`assistant_memory`（记忆）、`assistant_research`（线索）、`assistant_reflect`（复盘 / 技能 / 知识页写入）、
 `assistant_knowledge`（只读检索）、`assistant_operating`（经营账本；独立 `assistant-operating` dataDir，契约 = [docs/operating.md](docs/operating.md)）、`assistant_recall`（按需只读记忆检索；find/search/read/tree，A2 已裁决并随 preset 挂载）。
-各工具的**动词与完整清单以生成物 [`docs/package-catalog.md`](docs/package-catalog.md)「工具 × 动词」节为准**，此处不复制。
+各工具的**动词与完整清单以生成物 [`docs/package-catalog.md`](docs/package-catalog.md)「工具与动词」节为准**，此处不复制。
 
 `curate`（`assistant_memory` 的一个动词，不是独立工具；另有一条 host 节拍器按轮自动插入养护 turn，
 见 [`docs/home.md`](docs/home.md) §四）是**机器能跑的养护检查**（重复、悬空引用、摘要预算、过期线索、
@@ -71,23 +71,23 @@
 
 ## 产品怎么开始
 
-产品 = **dedicated `assistant` profile 的组合**：插件内容随包；工作区绑定在 `assistant-product.workspaceDir`（profile Config）；会话落在你的项目里；一次作业的交付包落在 `<项目>/deliverables/<date>-<slug>/`。合同 = [docs/product.md](docs/product.md)。
+产品 = **一个 bundle ＋ 一种 custom profile 的建法**：插件内容随包；工作区绑定在 `assistant-product.workspaceDir`（profile Config）；会话落在你的项目里；一次作业的交付包落在 `<项目>/deliverables/<date>-<slug>/`。完整合同 = [docs/product.md](docs/product.md)。
 
-**DSH 推荐：应用内 Plugins 页安装。** 启动 profile（`dsh --profile <你的 profile>` 或 `dsh web`）→ 侧栏 **Plugins** → **Add plugin** → **Install a third-party plugin** → 填 tarball 的绝对路径（或已发布包名 / Git 地址 / 本地目录）→ 启用 → 重启 profile。首启选项目目录。
+**DSH 推荐：应用内 Plugins 页安装。** 先建并启动 profile（`dsh --profile <名>` 或 `dsh web`）→ 侧栏 **Plugins** → **Add plugin** → **Install a third-party plugin** → 填 tarball 绝对路径或已发布包名 → 启用 → **重启 profile**。首启选项目目录。
 
-要 dedicated `assistant` profile（产品 profile）：
+要专用 custom profile（推荐：本 bundle 的默认值带产品口味，不装进你已有的 profile）：
 
 ```sh
-dsh --profile assistant --from-default-profile web   # ① 一次性建 profile（已有 profile 不要用）
-dsh --profile assistant                              # ② 启动
+dsh --profile assistant --from-default-profile web --dump-config   # ① 一次性建 profile（已有 profile 不要用）
+dsh --profile assistant                                            # ② 启动
 # ③ Plugins 页装 tarball/包名（当前 profile = assistant）；启用并重启
 ```
 
-**本机/自动化**：页面不能用于自动化时，CLI 面向 `dsh web` 自动化：`dsh plugin --profile assistant add <tarball>`，装完重启；headless/SDK/ACP 没有 Plugins 页，用 CLI 显式 profile；Desktop 用 Desktop 的 Plugins 页，普通 CLI 不能管理 `desktop`。装完 `--dump-config` 应看到 `assistant-product` 与 `preset-assistant`。
+**本机/自动化**：页面不能用于自动化时，CLI 面向 `dsh web` 自动化：先建 profile，再 `dsh plugin --profile assistant add <tarball>`（对自定义名字 `dsh plugin` 只建 base-only profile），装完重启；headless/SDK/ACP 没有 Plugins 页，用 CLI 显式 profile；Desktop 用 Desktop 的 Plugins 页，普通 CLI 不能管理 `desktop`。装完 `--dump-config` 应看到 `assistant-product` 与 `preset-assistant`。
 
-**可选：产品安装器（自托管 / 一条命令）**：没有 DSH 经验或需要离线时，`node bootstrap.mjs --workspace <目录>`。它不是 DSH 的默认安装方式；`--workspace` 只设一次性 `ASSISTANT_WORKSPACE`，不写工作区绑定文件；产品 home 默认 `~/.dsh-smart-assistant`，之后 `--product` 复用 profile Config。
+**可选：安装器（自托管 / 一条命令）**：它是发布目录里的独立资产（不在包里），`node bootstrap.mjs --package <解开的包> --workspace <目录>`。它不是 DSH 的默认安装方式；`--workspace` 只设一次性 `ASSISTANT_WORKSPACE`，不写工作区绑定文件；专用 home 默认 `~/.dsh-smart-assistant`，之后 `--product` 复用 profile Config。
 
-**研发/开发**：本仓开发用 `pnpm start`（dev home），不要用产品安装器；两者不混。
+**研发/开发**：本仓开发用 `pnpm start`（dev home），不要用安装器；两者不混。
 
 **可选 OpenViking 记忆层（不装也照常跑）**：插件与四房间不依赖 OV；缺席时 `ov doctor` exit 2、Viki 503，这是明确的降级而不是装坏。要装就按 [《安装手册》](_dist/安装手册.md)（`pnpm export-dist` 生成，含 server 0.5.1.1 的安装/配置/启动/doctor/故障表/卸载，命令不含本机绝对路径）；关键前提是 server 起在 `127.0.0.1:1933`、storage 指向持久目录、doctor 读的是运行中 server 同一份 config。装好后 profile 的 `openviking` 行默认 `baseUrl` 即可接上，再跑一次 doctor 确认绿。
 （仓内开发时用 `pnpm dsh --profile …`；它经 `dev/env/dsh.mjs` 启动 pinned CLI，强制 `DSH_HOME=dev/harness-home` 并把仓根作为 cwd。）
@@ -101,11 +101,11 @@ dsh --profile assistant                              # ② 启动
 
 | 你的问题 | 去哪儿 |
 |---|---|
-| 产品是什么、怎么装/起、工作区/交付包归谁 | [docs/product.md](docs/product.md)（dedicated profile、Plugins 页/CLI/安装器、Config、交付包、失败模式） |
+| 发行形态是什么、怎么装/起、工作区/交付包归谁 | [docs/product.md](docs/product.md)（dedicated profile、Plugins 页/CLI/安装器、Config、交付包、失败模式） |
 | 某个功能的主链、实现入口、最小验证 | [docs/architecture.md](docs/architecture.md) §八（功能路由） |
 | 一条命令 / 一条消息 / 一次点击进来经谁、哪里可观察 | [docs/architecture.md](docs/architecture.md) §七（运行链路 + 失败模式表） |
 | 组合里到底有没有这一行 | `pnpm dsh --profile dev --dump-config`（路由见 [docs/dev.md](docs/dev.md) §六） |
-| 运行态现在长什么样（四房间、两个根文件） | [docs/home.md](docs/home.md)；实际文件在 `dev/harness-home/assistant/` |
+| 运行态现在长什么样（四房间、三个语义文件） | [docs/home.md](docs/home.md)；实际文件在 `dev/harness-home/assistant/` |
 | 怎么把插件交给别人、怎么备份/迁移一个人的数据 | [docs/delivery.md](docs/delivery.md)（agent 物 vs 用户数据、handoff 扫描、两目录导出/导入） |
 | 能不能发、发什么渠道、版本/兼容范围怎么定 | [docs/release.md](docs/release.md)（发布/发行宪章；操作步骤在 [docs/dev.md](docs/dev.md) §九） |
 | 某次会话为什么答成这样 | [docs/dev.md](docs/dev.md) §六「逐事件复盘」行（过滤样例：[repo-live-probe](.agents/skills/repo-live-probe/SKILL.md)）；聚合视图 `pnpm usage` / `pnpm desk-loop` |
@@ -113,14 +113,9 @@ dsh --profile assistant                              # ② 启动
 | 改了为什么不生效 | [docs/dev.md](docs/dev.md) §四 三条纪律（build / preset 代际 / pin） |
 | 这个决定为什么这么定 | 先查 `docs/` 对应合同（理由多已内联）；再按关键词搜 `notes/`（`grep -ril '<关键词>' notes/`；负知识在 `notes/rejected/`；怎么读见 [notes/README.md](notes/README.md)）；**方向类推敲史**在 `_backlog/_archive/settled_issues/` 与 `_backlog/_archive/research/`（同法按关键词 grep） |
 
-运行数据的根：产品 home（`DSH_HOME`，可选）、助手 `dataDir`、用户工作区、源码 cwd；产品层见 [产品合同](docs/product.md)，开发层见 [开发手册](docs/dev.md)。
+运行数据的根：专用 home（`DSH_HOME`，可选）、助手 `dataDir`、用户工作区、源码 cwd；发行层见 [发行形态](docs/product.md)，开发层见 [开发手册](docs/dev.md)。
 
-打包安装的形状（`pnpm pack` 出 tarball 再 `dsh plugin --profile <p> add <tarball>`）由 `pnpm release-smoke` 机械验证：
-pack → 干净 home → 装 → 组合断言。**装完不需要改 profile**：默认 preset 随 bundle patch 发
-（`- id: agent-preset-registry` 的 `default: assistant`），Plugins 页 / `dsh plugin add` / 市场 Discover
-装进任意 web profile 都直接生效；用户级 `selectedDefault` 仍优先。registry 不扫目录、也不接受 preset 路径：
-`assistant` 的定义随包发（`package.json` 的 `dsh.bundle.patch` → `cordis.patch.yml` 里的 `preset-assistant`
-行），装包即进组合 —— 不必再指 `presets/` 目录。
+打包与安装的形状由 `pnpm release-smoke` 机械验证（pack → 干净 home → 装 → 组合断言）。为什么装完不需要改 profile、默认 preset 从哪来——只有一处 = [docs/release.md](docs/release.md) §一/§二；本 README 不复述机制。
 
 **知识导入**（把文件/目录导成知识页草稿）：`pnpm import-knowledge -- --data-dir <assistant 目录> <文件或目录>… [--dry-run]`。
 

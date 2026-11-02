@@ -22,7 +22,7 @@
 | **模型可见面**（工具描述 / prompt 段落 / persona / digest） | `pnpm build` → `pnpm test:composition` → **`pnpm eval --only <task-id>`**（行为判决，任务清单 `pnpm eval --list`；`repo-live-probe` 是取证非回归，见已定姿态） | `tests/agent/*.spec` + `dev/eval/` | agent spec：段落合同。eval：伤害地板、技能按名加载、回答正则（可凑巧命中）/ 段落是否进入请求、组装转录、领域质量（`eval:domain` 人判） |
 | agent 面合同（段落预算 / 养护回合的合同层） | `pnpm test:agent`（真服务 + 临时 home）；改动同时触模型可见面时按上一行加链 | `tests/agent/*.spec` | 段落就绪 / 预算 / 回合占位等合同 / Loader 组装、UI 读回 |
 | client 面（`src/client`：注册与交互状态） | `pnpm test`（整包套件——`entry.spec` 断言全 slot 面，加一个注册会红没打开过的 spec）+ 现有 web-face 场景（清单以 `snapshots/web-face/` 为准）→ `pnpm web-expected '<URL>' --scenario <场景>` | `tests/client/*.spec` + `snapshots/web-face/` | 注册、组件树、色彩契约 / 真浏览器渲染（场景期望管） |
-| 产品门（`src/client/product` + `src/host/product`） | `pnpm test:client`（`product-gate.spec`）+ `pnpm web-face-check --scenario product-workspace-gate` / `product-onboarding` | `tests/client/product-gate.spec.ts` + `snapshots/web-face/product-workspace-gate/`、`product-onboarding/` | 绑定解析/状态映射、真渲染门条/按钮/首启选目录/恢复面、CTA → 会话打开 / 模型回合（eval/真机分工） |
+| 首屏门（`src/client/product` + `src/host/product`） | `pnpm test:client`（`product-gate.spec`）+ `pnpm web-face-check --scenario product-workspace-gate` / `product-onboarding` | `tests/client/product-gate.spec.ts` + `snapshots/web-face/product-workspace-gate/`、`product-onboarding/` | 绑定解析/状态映射、真渲染门条/按钮/首启选目录/恢复面、CTA → 会话打开 / 模型回合（eval/真机分工） |
 | 导出形态 / 组合行身份 / 注册撤销 | 台阶①③守卫（现读 patch，新行自动被扫） | `tests/composition/export-shape` + `registry-lifecycle` | 行身份与生命周期 / 行为正确 |
 | 组装后组合（服务/段落/工具 scope） | `pnpm build` → `pnpm test:composition` | `tests/composition/`（`preset-composition.spec` 是组装证据；同层还有导出/生命周期/遮蔽 spec） | 真 Loader 组装 / vendor rows、完整产品 boot |
 | web 渲染面（首开/座位/文案） | `pnpm web-expected '<URL>' --scenario <场景>`（隔离 home 真渲染，场景必填；过目 diff 后 `--refresh`） | `snapshots/web-face/`（场景清单以目录为准） | 渲染期望 / 交互逻辑（client spec 管） |
@@ -42,7 +42,7 @@
 | 安装失败/重试 | `pnpm install-resilience-smoke [-- --dsh <path>]`（损坏 tarball + 有效重试；默认从 PATH 找 dsh） | `scripts/release/install-resilience-smoke.mjs` | 失败不残留依赖/文件，重试可恢复 / 真实网络中断、磁盘满 |
 | 标准 Web 安装/升级 | `pnpm web-install-smoke -- --dsh <path> [--tarball <tgz>] [--upgrade-tarball <tgz>]`（干净 HOME/DSH_HOME；Chrome 必须，无则 BLOCKED exit 2） | `scripts/release/web-install-smoke.mjs` | 官方 web profile 安装、client boot、preset UI、运行中升级后重启/复验 / 真人走查 |
 | 独立启动（无 `.git` 目录） | `pnpm standalone-smoke`（打包→解包→bootstrap→preflight→client boot→stop→restart；无 Chrome 的 UI 半场 = BLOCKED exit 2） | `scripts/release/standalone-smoke.mjs` | 无 `.git` 启动、隔离 home、包内/符号链接 home 拒绝、tarball 安装带 yaml、client 真 boot、preset UI、重启 URL、搬移 home 重建 profile、损坏 profile manifest 重建 profile / 真人环境与会话内容 |
-| 产品安装器 / 工作区绑定 | `pnpm product-smoke`（pack→extract→`bootstrap --workspace`→profile/dump→真 boot→profile Config + `workspace.json` + in-process 会话 cwd→stop） | `scripts/release/product-smoke.mjs` | 安装器建 profile/装包、`--workspace` 只设 env、Config 持久化、工作区登记、会话 `header.cwd`、外来 profile/缺工作区拒绝 / 真实浏览器首屏、模型行为 |
+| 安装器 / 工作区绑定 | `pnpm product-smoke`（pack→extract→`bootstrap --workspace`→profile/dump→真 boot→profile Config + `workspace.json` + in-process 会话 cwd→stop） | `scripts/release/product-smoke.mjs` | 安装器建 profile/装包、`--workspace` 只设 env、Config 持久化、工作区登记、会话 `header.cwd`、外来 profile/缺工作区拒绝 / 真实浏览器首屏、模型行为 |
 | 产品 native 路径 | `pnpm product-native-smoke`（无安装器：web 模板建 `assistant` profile→`dsh plugin add`→真 boot→GET not-configured/onboarding→POST→登记+Config+会话 cwd） | `scripts/release/product-native-smoke.mjs` | 无安装器也是产品；GET/POST/onboarding/Config/会话 cwd 全链 / 真浏览器 picker 点击、模型行为 |
 | 交接 / 数据 bundle / 诊断 / 擦除 / MANUAL 镜像再生 | `pnpm test:tooling` + `pnpm release-smoke`（含 installed status/check/dry-run/purge/refresh-manual/archive-proposals）+ `pnpm export-dist` | `tests/tooling/handoff-core.spec.mjs`、`assistant-data.spec.mjs`、`assistant-data-purge.spec.mjs`、`assistant-data-manual.spec.mjs`、`assistant-data-proposals.spec.mjs`、`assistant-data-rotate.spec.mjs`、`assistant-data-merge.spec.mjs`、`assistant-data-seal.spec.mjs`、`operating-receipts-route.spec.ts`、`scripts/release/handoff-*` | 扫描规则、真实 tarball、两目录往返、锁/符号链接/失败清理、`status`/`check`、`import --replace` 旁路与回滚、`--dry-run` 计划、`purge` 审计与拒绝、`refresh-manual` 备份/再生 `MANUAL.md`、`archive-proposals` 轮转、`rotate` dry-run/apply、`merge` 冲突报告/保守应用、`seal`/`unseal` 加密往返 / 真人数据迁移、账本历史擦除 |
 | Web preset 选择 | `pnpm agent-preset-ui '<URL>'`（需运行中的干净实例） | `dev/probes/web/agent-preset-ui.mjs` | Settings → Agent 预设 → 章鱼管家 → default / 自动门禁（人工探针） |
@@ -62,7 +62,7 @@
 
 ## 政策条款（禁令，无例外）
 
-- **mock 白名单 = LLM / 网络 / 时钟 / vendor 服务边界**；边界下游全真——手搭替身证明桥在动字节，证明不了产品行为。
+- **mock 白名单 = LLM / 网络 / 时钟 / vendor 服务边界**；边界下游全真——手搭替身证明桥在动字节，证明不了入口行为。
 - **vendor 服务边界允许声明式 stub**（白名单第四类，如 `rooms-row-wiring` 的 `sessionQuery`）：替身只出现在 vendor 边界上、边界下游全真；采用时必须在 spec 头注登记被替的边界与被测接缝。
 - **hand-built `ctx.plugin(...)` 不算组装证据**；组装语义必须经真 Loader boot 真配置。
 - **禁对 agent 自报的关键词探测**：断言落在会话日志、文件系统、注册表状态等外部事实。

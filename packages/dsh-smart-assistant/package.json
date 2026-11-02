@@ -1,7 +1,7 @@
 {
   "name": "dsh-smart-assistant",
   "version": "0.1.13",
-  "description": "A DSH agent preset that owns a home: durable memory, self-written skills, and machine-checked curation.",
+  "description": "A DSH bundle that owns a home: durable memory, self-written skills, machine-checked curation, and an operating ledger.",
   "icon": "./icon.svg",
   "keywords": [
     "dsh-plugin",

@@ -5,8 +5,8 @@
 
 ## 这是什么
 
-一个 DSH **产品** repo：一个领域专家式的助手（`dsh-smart-assistant`），有 dedicated 启动 profile（`assistant`），工作区绑定在 `assistant-product.workspaceDir`（profile Config）；产品 home 是部署选项。
-它有两块地：**助手自己的 working folder**（跨会话工作目录 = 产品 home 的 `dataDir`，默认 `<productHome>/assistant`）与**用户的项目工作区**（会话 cwd、文件工具、`deliverables/` 交付包）。
+一个 DSH **发行版** repo：一个领域专家式的助手（`dsh-smart-assistant`），有 dedicated 启动 profile（`assistant`），工作区绑定在 `assistant-product.workspaceDir`（profile Config）；专用 home 是部署选项。
+它有两块地：**助手自己的 working folder**（跨会话工作目录 = 专用 home 的 `dataDir`，默认 `<productHome>/assistant`）与**用户的项目工作区**（会话 cwd、文件工具、`deliverables/` 交付包）。
 核心命题是 `Agent = Model + Harness` —— 本 repo 做的就是"那一圈"。
 给谁、怎样算干成（P1–P3 / O1–O6 方向判据与装法的唯一家）= [`README.md`](README.md)；产品/工作区/交付包合同 = [`docs/product.md`](docs/product.md)。
 仓内开发启动 = `pnpm start`（dev home）；产品启动 = dedicated `assistant` profile（安装器 `bootstrap.mjs` 是可选包装）；两者不混。
@@ -116,7 +116,7 @@ pnpm verify     # 机械门禁链
    `dev/env/env.sh` 是它们与手工调用时的兜底，**同样认 `ASSISTANT_DSH_HOME`**
    （用隔离 home 跑实验的人，脚本与启动器必须落在**同一个** home，否则 profile 建在一个 home、启动器去另一个找）。
    **任何情况下不碰日用的 `~/.dsh`。**
-    shipped 产品安装器默认自己的产品 home（`~/.dsh-smart-assistant`），同样不碰日用；native 产品路径用当前 `DSH_HOME`；`--home ~/.dsh` 是用户显式共享。
+    shipped 安装器默认自己的专用 home（`~/.dsh-smart-assistant`），同样不碰日用；native 产品路径用当前 `DSH_HOME`；`--home ~/.dsh` 是用户显式共享。
 2. **探索路由**：DSH 平台事实读钉住的 `vendor/dsh`。机制从 `vendor/dsh/docs/architecture.md` 到
    `vendor/dsh/docs/capability-seams.md` 再到包 README；真实签名读 `vendor/dsh/packages/**/src/`。
    文档 tier、主仓 note 制度、主仓开发技能的页在下面「探索路由」。本仓只写差量：适配一行进
@@ -178,5 +178,5 @@ pnpm verify     # 机械门禁链
 - 工具与卡片（`defineTool` / presenter / 日志税）：`vendor/dsh/docs/cookbook/adding-a-tool.md`
 - **"组合里到底有没有这一行"**（读源码答不了这个问题）：`pnpm dsh --profile dev --dump-config`——排查 patch 落空 / 重复 id 的第一命令（boot-free；
   输出形状 = [`docs/commands.md`](docs/commands.md) 的 `dsh --dump-config` 行）
-- **"活进程里注册了什么"**：shipped `cordis` preset 自带只读 inspect 工具（`SessionInspect` 一族，见 `vendor/dsh/docs/subsystems/session.md`）；要用它就起一个不挂本仓 roster patch 的 profile——本仓 `assistant`
+- **"活进程里注册了什么"**：shipped `cordis` preset 自带只读 inspect 工具（`cordis_inspect_list` / `cordis_inspect_query`；机制见 `vendor/dsh/docs/subsystems/session.md`）；要用它就起一个不挂本仓 roster patch 的 profile——本仓 `assistant`
   preset 刻意不挂它们（那是模型可见面变更，为开发期需求不划算）
