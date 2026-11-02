@@ -22,9 +22,12 @@ import AssistantMemory, { type Config } from '../../src/index.ts'
 import { AssistantOperatingLedger } from '../../src/host/operating-ledger/index.ts'
 
 /** A pooled throwaway directory: every call makes a fresh one, all removed after the suite. */
-export function dirPool(prefix: string): () => string {
+export function dirPool(prefix: string, beforeRemove?: () => unknown): () => string {
   const dirs: string[] = []
-  afterEach(() => {
+  afterEach(async () => {
+    // A service can still be writing a digest when the test ends; let the caller dispose its
+    // contexts before the directory walk, otherwise rmSync can see ENOTEMPTY mid-delete.
+    await beforeRemove?.()
     for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 })
   })
   return () => {
@@ -40,10 +43,17 @@ export function dirPool(prefix: string): () => string {
  * pooled `dataDir` always wins over anything in `config`.
  */
 export function memoryPool(prefix: string): (config?: Partial<Config>) => { service: AssistantMemory, dataDir: string } {
-  const mkDir = dirPool(prefix)
+  const contexts: Context[] = []
+  const mkDir = dirPool(prefix, async () => {
+    for (const ctx of contexts.splice(0)) {
+      try { await ctx.fiber.dispose() } catch { /* already disposed */ }
+    }
+  })
   return (config?: Partial<Config>) => {
     const dataDir = mkDir()
-    const service = new AssistantMemory(new Context(), { ...config, dataDir })
+    const ctx = new Context()
+    contexts.push(ctx)
+    const service = new AssistantMemory(ctx, { ...config, dataDir })
     return { service, dataDir }
   }
 }
