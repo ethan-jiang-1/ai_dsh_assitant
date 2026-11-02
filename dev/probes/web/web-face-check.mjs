@@ -37,7 +37,12 @@ const args = process.argv.slice(2)
 const keep = args.includes('--keep')
 const refresh = args.includes('--refresh')
 const all = args.includes('--all')
-const scenarioArg = args.includes('--scenario') ? args[args.indexOf('--scenario') + 1] : undefined
+const scenarioIndex = args.indexOf('--scenario')
+const scenarioArg = scenarioIndex === -1 ? undefined : args[scenarioIndex + 1]
+if (scenarioIndex !== -1 && (scenarioArg === undefined || scenarioArg.startsWith('-'))) {
+  console.error('web-face-check: --scenario needs a scene name')
+  process.exit(2)
+}
 
 const CUSTOMER = [
   'blank-first-open',

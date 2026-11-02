@@ -50,6 +50,10 @@ const refresh = args.includes('--refresh')
 // Scenes pinning async-loaded content declare their readiness token; the polling eval
 // replaces a longer settle guess (see buildWaitSnippet for the flake it closes).
 const waitText = option(args, 'wait-text')
+if (waitText !== undefined && waitText.trim() === '') {
+  console.error('webui-expected: --wait-text must be a non-empty substring (an empty token proves nothing)')
+  process.exit(2)
+}
 
 if (targetUrl === undefined) {
   console.error(USAGE_LINE)

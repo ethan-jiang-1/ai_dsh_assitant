@@ -19,6 +19,8 @@ before/出现/贯通/退场三态真机证据当时的落点易失（仓外临�
 
 ## 怎么跑
 
+> **推荐**：`pnpm web-face-check --scenario <name>` 自动加 `assistant-product.onboarding:false`、检查 `lib/` 并隔离 home；下面的手工命令只用于调试。非产品 posture 见 [`snapshots/README.md`](../../README.md) 的「场景 posture」。
+
 ```sh
 export ASSISTANT_DSH_HOME="$PWD/.tmp/dsh-expected-banner-home"
 

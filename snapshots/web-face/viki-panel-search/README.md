@@ -14,6 +14,8 @@
 
 ## 怎么跑
 
+> **推荐**：`pnpm web-face-check --scenario <name>` 自动加 `assistant-product.onboarding:false`、检查 `lib/` 并隔离 home；下面的手工命令只用于调试。非产品 posture 见 [`snapshots/README.md`](../../README.md) 的「场景 posture」。
+
 ```sh
 export ASSISTANT_DSH_HOME="$PWD/.tmp/viki-scene-home"
 bash dev/env/prepare.sh && bash dev/env/setup.sh

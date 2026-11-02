@@ -16,6 +16,8 @@
 
 ## 怎么跑
 
+> **推荐**：`pnpm web-face-check --scenario <name>` 自动加 `assistant-product.onboarding:false`、检查 `lib/` 并隔离 home；下面的手工命令只用于调试。非产品 posture 见 [`snapshots/README.md`](../../README.md) 的「场景 posture」。
+
 ```sh
 # ① 起隔离 home 服务（幂等；vendor 产物在位时 ≈6s）
 mkdir -p .tmp && export ASSISTANT_DSH_HOME=$(mktemp -d "$PWD/.tmp/desk-blank-XXXXXX")
