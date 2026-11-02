@@ -109,7 +109,9 @@ describe('main view preference', () => {
 
   it('does not consume a root before layout state is available', () => {
     const root = {}
-    restoreMainView({ root }, DASHBOARD, memoryStorage('desk'))
+    // `effect` is required by the context (the plugin fiber provides it), but this branch
+    // returns before ever using it: the point is that layout absence must not burn the root.
+    restoreMainView({ root, effect: () => {} }, DASHBOARD, memoryStorage('desk'))
     const { ctx, selected } = layoutContext(null)
     restoreMainView({ ...ctx, root }, DASHBOARD, memoryStorage('desk'))
     expect(selected).toEqual([DASHBOARD])
