@@ -146,7 +146,7 @@
 
 - `pnpm verify`（结构/身份/链接/兼容声明/标签/退役词/骨架）；
 - `pnpm release-smoke`（真实 tarball、干净 home、安装、组合、零写入；无 key 的 live turn = BLOCKED，exit 2）；
-- `pnpm upgrade-smoke`（升级/remove 的数据边界与重装）；
+- `pnpm upgrade-smoke`（升级/remove 的数据边界与重装；`-- --old <上一发布 tgz>` 用真实前版）；
 - `pnpm install-resilience-smoke`（损坏 tarball 被拒、profile 不残留、有效 tarball 重试成功）；
 - `pnpm bootstrap-guards-smoke`（独立启动的坏输入：profile 穿越/保留名/缺旧 pnpm/npm 在创建 home 前拒绝）；
 - `pnpm pnpm-matrix -- --pnpm <v> --expect install|reject`（发布物/依赖变化时至少覆盖 10.6 下界与当前开发 pnpm；需要 Corepack 联网）；

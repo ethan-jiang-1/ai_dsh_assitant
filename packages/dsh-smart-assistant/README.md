@@ -15,7 +15,7 @@ kind: "package-bundle"
 - 它插入/覆盖的主要行：`preset-assistant`（模型可见面）、`assistant-product`（工作区绑定与首屏门）、
   `assistant-memory`、`assistant-operating-ledger`、`assistant-desk-projection`，以及两条 vendor 行停用
   （`ui-sidebar-terminal`、`ui-trajectory`）。完整清单以 `--dump-config` 为准。
-- **适用面：web。** 它覆盖的行与 client 插件只在 web 组合里成立；headless/SDK/ACP 要显式停用 `assistant-product`（见「安装」末段）。
+- **适用面：web。** 它覆盖的行与 client 插件只在 web 组合里成立；headless/SDK/ACP 不需要手写停用——五个 web-only 行按 `connection` 自禁用（见「安装」末段）。
 - 版本：DSH `>=0.2.1-rc.2 <0.3.0-0`、Node `^22.19.0 || >=24`、pnpm `>=10.6.0`。不满足时 DSH 在写依赖前拒绝。
 - **装进哪个 profile**：任意 web profile 都能工作。推荐新建一个 **custom profile `assistant`** 再装——
   本 bundle 的默认值带产品口味（停用右栏终端、关运行轨迹页、界面语言中文），装进你已有的 profile 会改它的组合。
@@ -30,14 +30,14 @@ kind: "package-bundle"
    dsh --profile assistant --from-default-profile web --dump-config
    dsh --profile assistant
    ```
-2. 侧栏 **Plugins** → **Add plugin** → **Install a third-party plugin** → 填 `dsh-smart-assistant`（或本地 tarball 的绝对路径）。
+2. 侧栏 **Plugins** → **Add plugin** → **Install a third-party plugin** → 填本地 tarball 的绝对路径（包尚未发布到 registry；发布后才可直接填 `dsh-smart-assistant`）。
 3. 启用，**重启 profile**（bundle 成员变化要重启），首屏按提示选项目目录。
 
 **CLI（仅 `dsh web` 自动化 / 无 Plugins 页的 surface）**：先确认 profile 已经建好——对自定义名字，`dsh plugin`
 只会建一个 base-only profile，没有 web-app 就起不了 Web。
 
 ```sh
-dsh plugin --profile assistant add dsh-smart-assistant@<version>   # 钉 exact 版本
+dsh plugin --profile assistant add <tarball 绝对路径>   # 尚未发布到 registry；发布后可用 dsh-smart-assistant@<version>
 ```
 
 **安装器（仅 shell/自托管，不在包里）**：发布资产里的 `bootstrap.mjs` 负责建/复用 profile、装包、起 Web：
@@ -78,7 +78,7 @@ dsh --profile assistant --dump-config     # 找 preset-assistant、assistant-pro
 ## 升级
 
 ```sh
-dsh plugin --profile assistant add dsh-smart-assistant@<new-version>
+dsh plugin --profile assistant add <新 tarball 路径>   # 尚未发布到 registry；发布后用 dsh-smart-assistant@<new-version>
 # 重启 profile（运行中的 Web 不会热替换代码）
 dsh --profile assistant --dump-config      # 仍应看到 preset-assistant 与 default: assistant
 ```

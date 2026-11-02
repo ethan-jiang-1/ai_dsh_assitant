@@ -1,13 +1,16 @@
 #!/usr/bin/env node
 /**
+ * Usage: node scripts/release/upgrade-smoke.mjs [--keep] [--old <previous-release tarball>]
+ *
+ * Without --old the predecessor is synthetic (current bytes, version rewritten); with --old a
+ * real previous-release tarball is used, and its version is read from the tarball.
+ *
  * Upgrade/uninstall smoke: prove that installing a newer tarball over an older one, and removing
  * the plugin, leave the two plugin-owned data directories alone.
  *
- * The "old" tarball is the current tarball with only its version changed. It is a synthetic
- * predecessor, not a historical release: the test proves the install/remove data boundary, not a
- * migration of production data. A real next-version fixture belongs to that release.
- *
- * Usage: node scripts/release/upgrade-smoke.mjs [--keep]
+ * Without --old the "old" tarball is the current tarball with only its version changed: it proves
+ * the install/remove data boundary, not a migration of production data. A release owner passes
+ * the previous release's tarball with --old to exercise the real predecessor bytes.
  * Exit 0 = old installed, new installed, data survived, remove left data and no plugin row.
  */
 import { spawnSync } from 'node:child_process'
@@ -19,6 +22,12 @@ import { mkTmpDir } from '../../dev/env/tmp.mjs'
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const packageDir = join(repoRoot, 'packages', 'dsh-smart-assistant')
 const keep = process.argv.includes('--keep')
+const oldArg = process.argv.indexOf('--old')
+const suppliedOld = oldArg >= 0 ? process.argv[oldArg + 1] : undefined
+if (oldArg >= 0 && (suppliedOld === undefined || !existsSync(suppliedOld))) {
+  console.error('upgrade-smoke: --old needs an existing tarball path')
+  process.exit(2)
+}
 const root = mkTmpDir('upgrade-smoke', 'run-')
 const failures = []
 const step = message => console.log(`\n▸ ${message}`)
@@ -45,24 +54,35 @@ try {
   const packed = run('pnpm', ['--dir', packageDir, 'pack', '--pack-destination', root])
   const newTarball = join(root, `${current.name}-${version}.tgz`)
   if (packed.status !== 0 || !existsSync(newTarball)) fail(`pack failed: ${(packed.stderr ?? '').trim().slice(0, 300)}`)
-  const oldRoot = join(root, 'old')
-  mkdirSync(oldRoot, { recursive: true })
-  const unpack = run('tar', ['-xzf', newTarball, '-C', oldRoot])
-  if (unpack.status !== 0) fail('cannot unpack the current tarball')
-  const oldManifestPath = join(oldRoot, 'package', 'package.json')
-  const oldManifest = JSON.parse(readFileSync(oldManifestPath, 'utf8'))
-  oldManifest.version = '0.1.0'
-  writeFileSync(oldManifestPath, `${JSON.stringify(oldManifest, null, 2)}\n`, 'utf8')
-  const oldTarball = join(root, `${current.name}-0.1.0-synthetic.tgz`)
-  const repack = run('tar', ['-czf', oldTarball, '-C', oldRoot, 'package'])
-  if (repack.status !== 0) fail('cannot repack the synthetic predecessor')
-  else ok('synthetic 0.1.0 predecessor ready')
+  let oldTarball = suppliedOld
+  let oldVersion = '0.1.0'
+  if (oldTarball !== undefined) {
+    // A real predecessor from the previous release. The caller keeps it; we only read the
+    // version so the post-install assertion compares the actual bytes, not a hardcoded 0.1.0.
+    const probe = run('tar', ['-xOzf', oldTarball, 'package/package.json'])
+    try { oldVersion = JSON.parse(probe.stdout).version } catch { fail('cannot read the supplied predecessor manifest') }
+    if (probe.status !== 0) fail('cannot read the supplied predecessor manifest')
+    else ok(`real predecessor ${oldVersion} ready`)
+  } else {
+    const oldRoot = join(root, 'old')
+    mkdirSync(oldRoot, { recursive: true })
+    const unpack = run('tar', ['-xzf', newTarball, '-C', oldRoot])
+    if (unpack.status !== 0) fail('cannot unpack the current tarball')
+    const oldManifestPath = join(oldRoot, 'package', 'package.json')
+    const oldManifest = JSON.parse(readFileSync(oldManifestPath, 'utf8'))
+    oldManifest.version = oldVersion
+    writeFileSync(oldManifestPath, `${JSON.stringify(oldManifest, null, 2)}\n`, 'utf8')
+    oldTarball = join(root, `${current.name}-${oldVersion}-synthetic.tgz`)
+    const repack = run('tar', ['-czf', oldTarball, '-C', oldRoot, 'package'])
+    if (repack.status !== 0) fail('cannot repack the synthetic predecessor')
+    else ok(`synthetic ${oldVersion} predecessor ready`)
+  }
 
   step('installing the predecessor into a clean profile')
   dsh(['--profile', profile, '--from-default-profile', 'web', '--dump-config'])
   dsh(['plugin', '--profile', profile, 'add', oldTarball])
   const installedOld = JSON.parse(readFileSync(join(home, 'profiles', profile, 'node_modules', current.name, 'package.json'), 'utf8'))
-  if (installedOld.version !== '0.1.0') fail(`expected 0.1.0 installed, got ${String(installedOld.version)}`)
+  if (installedOld.version !== oldVersion) fail(`expected ${oldVersion} installed, got ${String(installedOld.version)}`)
   else ok('predecessor installed')
 
   step('writing user data through the two owned directories')
@@ -72,12 +92,16 @@ try {
   writeFileSync(join(home, 'assistant-operating', 'ledger.json'), '{"revision":7}\n', 'utf8')
   ok('probe data written')
 
-  step('deleting the predecessor tarball before the upgrade')
-  // A user often deletes the download after installing. pnpm resolves the installed tree from
-  // its lockfile/store; retaining the old source must not be a prerequisite for an upgrade.
-  rmSync(oldTarball, { force: true })
-  if (existsSync(oldTarball)) fail('could not delete the predecessor tarball')
-  else ok('predecessor tarball deleted')
+  if (suppliedOld === undefined) {
+    step('deleting the predecessor tarball before the upgrade')
+    // A user often deletes the download after installing. pnpm resolves the installed tree from
+    // its lockfile/store; retaining the old source must not be a prerequisite for an upgrade.
+    rmSync(oldTarball, { force: true })
+    if (existsSync(oldTarball)) fail('could not delete the predecessor tarball')
+    else ok('predecessor tarball deleted')
+  } else {
+    ok('supplied predecessor kept in place (real-fixture mode)')
+  }
 
   step(`upgrading to ${version}`)
   dsh(['plugin', '--profile', profile, 'add', newTarball])
