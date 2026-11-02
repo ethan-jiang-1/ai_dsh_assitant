@@ -63,6 +63,7 @@ function ownPresetFromPatch(patchText: string): PresetRow {
   // expected to find; the real profile layers them below this patch.
   const base: Parameters<typeof applyEntryPatches>[0] = [
     { id: 'ui-sidebar-terminal', name: '@deepseek-ai/dsh-client-ui-sidebar-terminal' },
+    { id: 'ui-trajectory', name: '@deepseek-ai/dsh-client-ui-trajectory' },
     { id: 'agent-preset-registry', name: '@deepseek-ai/dsh-agent-preset-registry', config: { default: 'standard' } },
   ]
   const entries = applyEntryPatches(base, patches, (message, ...args) => {
@@ -184,6 +185,7 @@ describe('real composition: loader + preset standing mount + joined agent', () =
     const entries = applyEntryPatches(
       [
         { id: 'ui-sidebar-terminal', name: '@deepseek-ai/dsh-client-ui-sidebar-terminal' },
+        { id: 'ui-trajectory', name: '@deepseek-ai/dsh-client-ui-trajectory' },
         { id: 'agent-preset-registry', name: '@deepseek-ai/dsh-agent-preset-registry', config: { default: 'standard' } },
       ] as Parameters<typeof applyEntryPatches>[0],
       patches,

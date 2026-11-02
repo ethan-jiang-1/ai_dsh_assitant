@@ -6,6 +6,7 @@
 
 | 卡 | 关闭日 | 判定 |
 |---|---|---|
+| [261102 去掉会话视图的「运行轨迹」页](261102-remove-trajectory-tab.md) | 2026-11-02 | `ui-trajectory` 裸 id 停用（bundle 层）；组合 dump / 客户端清单 / 真页面三处验；决定入 vendor override 台账 |
 | [261102 dev 通道与用户安装路径对齐](261102-dev-product-install-parity.md) | 2026-11-02 | dev 快环与用户安装路径的差异登记成表（13 行）；tarball 通道 `pnpm install-parity` 进开发环；dev-only 行改 `--patch` overlay；`dev-parity` 门禁钉住八个负载机制点 |
 | [261101 插件生命周期对齐](261101-plugin-lifecycle-align.md) | 2026-11-02 | 按 DSH 生命周期重排插件形态（bundle-first）：默认 preset 进 bundle、发布走 npm、市场索引作发现层、安装器独立资产、四条新门禁 |
 | [261101-product-profile-alignment.md](261101-product-profile-alignment.md) | 2026-11-01 | **S1–S5 全交付**：dedicated `assistant` profile + `assistant-product.workspaceDir` Config（profile patch）+ 客户端 onboarding/恢复/换项目 + 安装器瘦身（env only）+ native 产品 smoke；`product-smoke`、`product-native-smoke`、`web-install-smoke`、`standalone-smoke`、`bootstrap-guards-smoke`、`upgrade-smoke`、`prompt-smoke`、`verify`、全量 `test` 通过；`release-smoke` live turn / `eval` 无 key = BLOCKED，Desktop/Plugins 页真机 = BLOCKED。去向 = [implemented note](../../../notes/implemented/2026-11-01-product-profile-alignment.md)；研究题随迁 `_archive/research/` |

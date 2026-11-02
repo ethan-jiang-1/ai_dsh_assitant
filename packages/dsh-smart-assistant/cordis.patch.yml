@@ -480,3 +480,9 @@
 # 开发期的右栏终端行由这里整行禁用（管理岗用户不用开发工具）。
 - id: ui-sidebar-terminal
   disabled: true
+
+# 会话视图里的「运行轨迹」页（vendor `@deepseek-ai/dsh-client-ui-trajectory`）同样整行禁用：
+# 主 Tab 上每多一页就是每次多一个注意力入口，而目标用户不看轨迹。它与右栏终端同形——
+# 裸 id + `disabled: true`，卸载后自动恢复；要看轨迹时仍可临时把它打开（profile patch 覆盖）。
+- id: ui-trajectory
+  disabled: true

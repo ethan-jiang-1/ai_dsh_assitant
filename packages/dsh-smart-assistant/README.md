@@ -74,8 +74,9 @@ node bootstrap.mjs --package ./package --stop --home ~/.dsh-smart-assistant --pr
 `cordis.patch.yml` 是一层 bundle patch：host 面的 working-folder 服务（四房间、摘要、curate）、
 经营账本/投影、产品工作区绑定/门、房间与 Viki 路由，以及 `assistant` preset（六个工具、四个常驻段落、策展技能、
 学到的技能 provider 与遮蔽盾）。客户端贡献桌面与房间 tab；行、exports、工具动词的精确清单以
-[生成物 catalog](../../docs/package-catalog.md) 为准。组合同时**禁用 vendor 的右栏终端行**
-`ui-sidebar-terminal`——管理岗用户不用开发工具；终端 API/工具仍留给 headless 或显式配置的开发组合。
+[生成物 catalog](../../docs/package-catalog.md) 为准。组合同时**禁用两条 vendor 行**：右栏终端 `ui-sidebar-terminal`（管理岗用户不用开发工具；终端 API/工具
+仍留给 headless 或显式配置的开发组合）与会话视图的「运行轨迹」页 `ui-trajectory`（主 Tab 不摊调试面；
+要看时在 profile patch 里覆盖回来）。
 
 ## Configuration
 

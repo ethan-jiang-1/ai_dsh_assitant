@@ -82,6 +82,8 @@ HOST 面（cordis.patch.yml → dsh.bundle.patch）
                               监听推送——**非独立组合行**；皮肤，不进模型上下文）
                             + **禁用** vendor 右栏终端行 `ui-sidebar-terminal`（管理岗用户不用终端；
                               终端 API/tools 保留给 headless/开发组合）
+                            + **禁用** 会话视图的「运行轨迹」页 `ui-trajectory`（主 Tab 不摊 vendor 的调试面；
+                              要看时在 profile patch 覆盖回来）
 
 AGENT 面（`cordis.patch.yml` 的 `preset-assistant` 行 → agent preset）
 ├── assistant-home-preamble   提示词段落：身份（SOUL.md）与手册（MANUAL.md 渲染 + AGENTS.md 笔记）

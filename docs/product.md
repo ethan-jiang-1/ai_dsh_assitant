@@ -167,5 +167,6 @@ node bootstrap.mjs --no-start ...
 | `session-query-sqlite` | `config.path` + `openAt: first-search`（insert 同 id） | base 出厂 `never` + `:memory:`；本产品要"首次检索才建索引 + 持久" | base 行若改 config 形状或默认值 | base 出厂即带缓存路径默认时退役 |
 | `tool-skill` | 同 id 重声明为 host 行（insert 同 id） | BUG-001：以 preset 行挂载时目录监听器在 one-shot 里不发布 | vendor 若修好 preset 行的目录发布 | 上游修好后退役（条件写在 BUG-001 归档） |
 | `ui-sidebar-terminal` | `disabled: true`（**裸 id**） | 管理岗用户不用开发工具，占注意力 | vendor 若把终端行改名/拆行 | 不退役（产品选择）；终端 API 仍留给 headless |
+| `ui-trajectory` | `disabled: true`（**裸 id**） | 主 Tab 每多一页就多一个注意力入口；管理者不看运行轨迹（2026-11-02 本人点名去掉） | vendor 若把轨迹页拆成 host 面的独立入口，或产品改要看轨迹 | 不退役（产品选择）；要看时在 profile patch 里覆盖回来即可 |
 
 复核动作：`pnpm sync-dsh -- --tag <tag>` 之后逐行看这张表；`pnpm verify` 会红在没有台账条目的裸 id 覆盖上。
