@@ -98,22 +98,25 @@ describe('main view preference', () => {
     expect(selected).toEqual([])
   })
 
-  it('restores at most once for one Client root', () => {
+  it('restores at most once for one materialization gate', () => {
     const storage = memoryStorage('desk')
     const { ctx, selected, setActive } = layoutContext(null)
-    restoreMainView(ctx, DASHBOARD, storage)
+    const state = { restored: false }
+    restoreMainView(ctx, DASHBOARD, storage, state)
     setActive(null)
-    restoreMainView(ctx, DASHBOARD, storage)
+    restoreMainView(ctx, DASHBOARD, storage, state)
     expect(selected).toEqual([DASHBOARD])
   })
 
-  it('does not consume a root before layout state is available', () => {
-    const root = {}
+  it('does not consume the gate before layout state is available', () => {
+    const state = { restored: false }
     // `effect` is required by the context (the plugin fiber provides it), but this branch
-    // returns before ever using it: the point is that layout absence must not burn the root.
-    restoreMainView({ root, effect: () => {} }, DASHBOARD, memoryStorage('desk'))
+    // returns before ever using it: the point is that layout absence must not burn the gate.
+    restoreMainView({ effect: () => {} }, DASHBOARD, memoryStorage('desk'), state)
+    expect(state.restored).toBe(false)
     const { ctx, selected } = layoutContext(null)
-    restoreMainView({ ...ctx, root }, DASHBOARD, memoryStorage('desk'))
+    restoreMainView(ctx, DASHBOARD, memoryStorage('desk'), state)
+    expect(state.restored).toBe(true)
     expect(selected).toEqual([DASHBOARD])
   })
 

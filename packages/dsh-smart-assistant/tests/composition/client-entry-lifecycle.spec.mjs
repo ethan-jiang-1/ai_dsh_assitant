@@ -31,6 +31,7 @@ afterEach(async () => {
 /** One page realm survives HMR and can also receive a fresh Client root. */
 function page(scriptText, globals = {}) {
   const registrations = []
+  const stored = new Map()
   const realm = createContext({
     console: { info() {}, warn() {}, error: console.error },
     setTimeout,
@@ -38,6 +39,11 @@ function page(scriptText, globals = {}) {
     setInterval,
     clearInterval,
     URL,
+    // The real page has localStorage; the main-view preference and the HMR assertion need it.
+    localStorage: {
+      getItem: key => stored.get(key) ?? null,
+      setItem: (key, value) => { stored.set(key, String(value)) },
+    },
     __ModuleLoader__: { load: registration => registrations.push(registration) },
     ...globals,
   })
@@ -163,10 +169,13 @@ async function defaultLifecycle(scriptText) {
   expect(first.selections, 'HMR must not steal Conversation on the same root').toHaveLength(2)
   expect(first.layout.panelInfo.getSnapshot().activePanelId).toBeNull()
 
+  // A new page (fresh realm + empty localStorage) is the case that defaults again; the same
+  // page's remembered `chat` preference is the product's refresh behavior and is asserted above.
+  const secondPage = page(builtScript)
   const second = await clientRoot()
   second.declareSeats()
-  await second.mount(browserPage.evaluate())
-  expect(second.selections, 'a new Client root defaults again').toEqual([
+  await second.mount(secondPage.evaluate())
+  expect(second.selections, 'a new page root defaults again').toEqual([
     { panelId: dashboard, mainKeys: [dashboard] },
   ])
 }

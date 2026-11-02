@@ -29,8 +29,6 @@ export interface MainViewStorage {
 
 /** The context slice the restore/track pair needs. */
 export interface MainViewContext {
-  /** Stable Client application identity; the restore and the tracking are once per root. */
-  readonly root?: object
   readonly layout?: {
     readonly panelInfo?: {
       getSnapshot(): { readonly activePanelId: string | null }
@@ -42,14 +40,36 @@ export interface MainViewContext {
 }
 
 /**
- * Roots whose restore decision already ran (layout/plugin remounts on one page share a root).
- * Page-global on purpose: an HMR re-evaluation swaps this module instance, and the decision is
- * about the Client root, not about the script generation that saw it.
+ * The per-materialization restore gate. The entry owns one of these in its `apply` closure, so a
+ * slot/layout remount on the same page does not reopen the desk; a fresh materialization (page
+ * reload or HMR) gets a fresh one. HMR itself is safe because the user's remembered view already
+ * says chat — this state only prevents a second decision inside one materialization.
  */
-const pageState = globalThis as typeof globalThis & {
-  __DSH_SMART_ASSISTANT_MAIN_VIEW_ROOTS__?: WeakSet<object>
+export interface MainViewRestoreState {
+  restored: boolean
 }
-const restoredRoots = pageState.__DSH_SMART_ASSISTANT_MAIN_VIEW_ROOTS__ ??= new WeakSet<object>()
+
+/**
+ * Per-root restore state. A page root keeps its gate across plugin/slot rematerializations;
+ * a new page root gets a new gate. This is a keyed association, not a page-global singleton:
+ * the module re-evaluates on HMR, and the remembered `chat` preference is what keeps a reloaded
+ * page in the conversation.
+ */
+const restoreStates = new WeakMap<object, MainViewRestoreState>()
+
+/**
+ * @param root - The stable Client root shared by every plugin scope; a test shim without one
+ *   gets a fresh gate rather than a crash (the keyed association needs an object).
+ * @returns the restore gate for this root.
+ */
+export function restoreStateFor(root: unknown): MainViewRestoreState {
+  if (typeof root !== 'object' || root === null) return { restored: false }
+  const existing = restoreStates.get(root)
+  if (existing !== undefined) return existing
+  const created: MainViewRestoreState = { restored: false }
+  restoreStates.set(root, created)
+  return created
+}
 
 /** Browser storage, or undefined in a page global without localStorage (tests, SSR-ish shims). */
 function storageOrDefault(storage?: MainViewStorage): MainViewStorage | undefined {
@@ -90,17 +110,23 @@ export function writeMainView(view: MainView, storage?: MainViewStorage): void {
  * Restore the desk when the preference says so and nothing else has claimed the panel. A
  * saved conversation preference leaves the panel unselected — the shell's own restore then
  * shows the Session it reconnected.
- * @param ctx - Client root + layout face.
+ * @param ctx - The layout face (the entry's plugin context).
  * @param dashboardKey - The product panel's `main` key.
  * @param storage - Storage slice; omitted reads the page's localStorage.
+ * @param state - Optional per-materialization gate; the entry creates one in its closure.
  */
-export function restoreMainView(ctx: MainViewContext, dashboardKey: string, storage?: MainViewStorage): void {
+export function restoreMainView(
+  ctx: MainViewContext,
+  dashboardKey: string,
+  storage?: MainViewStorage,
+  state?: MainViewRestoreState,
+): void {
   const layout = ctx.layout
   const panelInfo = layout?.panelInfo
   if (layout === undefined || panelInfo === undefined) return
-  if (ctx.root !== undefined) {
-    if (restoredRoots.has(ctx.root)) return
-    restoredRoots.add(ctx.root)
+  if (state !== undefined) {
+    if (state.restored) return
+    state.restored = true
   }
   if (readMainView(storage) !== 'desk') return
   if (panelInfo.getSnapshot().activePanelId !== null) return

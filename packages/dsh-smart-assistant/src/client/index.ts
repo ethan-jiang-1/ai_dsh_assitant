@@ -65,7 +65,7 @@ import { createProactiveCatalogSource, type ProactiveCatalogState, type Proactiv
 import { createProactiveHandlers } from './proactive/proactive-handlers'
 import type { ProactiveUiState } from './proactive/proactive-face'
 import { readProactiveUi } from './local-state'
-import { restoreMainView, trackMainView } from './chrome/main-view'
+import { restoreMainView, restoreStateFor, trackMainView } from './chrome/main-view'
 import { ProductGate } from './product/product-gate'
 import { ProductGateDock } from './product/product-dock'
 import {
@@ -280,6 +280,10 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       args.find((argument): argument is string => typeof argument === 'string'),
       ...args,
     )
+    // One restore decision per Client root: a slot/layout or plugin rematerialization on the same
+    // page must not reopen the desk; a new page root gets a new gate. The gate is a keyed
+    // association on the root, not a page-global singleton (the remembered view handles HMR).
+    const mainViewRestore = restoreStateFor(ctx.root)
     ctx.slots.inject('main', () => {
       const registration = ctx.slots.register({
         name: 'main',
@@ -290,7 +294,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
       }, gatedDashboard)
       // The shell resets layout on reload; the product remembers which of its two views the
       // principal left (first visit = the desk) instead of forcing one on every load.
-      restoreMainView(ctx, 'dsh-smart-assistant-dashboard')
+      restoreMainView(ctx, 'dsh-smart-assistant-dashboard', undefined, mainViewRestore)
       return registration
     })
     trackMainView(ctx, 'dsh-smart-assistant-dashboard')
