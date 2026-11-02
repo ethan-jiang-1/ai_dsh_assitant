@@ -54,7 +54,7 @@
 | **运行时** | 用户自带的 `dsh`（npm 全局 / Desktop 内置 / 源码树）；floor = `engines.dsh` + `engines.node` + `engines.pnpm`；不打包运行时 | 写依赖前按 `engines.dsh`（无则 peer）拒绝 | `dsh --version`；安装失败信息 | 本节；§五；[`dev.md`](dev.md) §一 |
 | **profile** | **custom profile** `assistant`，非 shipped；安装器或用户 `--from-default-profile web` 建；发行方拥有 bundle 顺序与默认 patch | `--from-default-profile` 只限首次（破坏性重置）；`dsh plugin` 对自定义名只装 base | `$DSH_HOME/profiles/assistant/package.json` 的 `dsh.profile.bundles` | 本节；[`product.md`](product.md) §二 |
 | **patch 层** | 默认值进 bundle patch；用户设置写 profile patch；不写 home patch | bundle → profile → home → `--patch`，后层**整份替换** `config`；app 参数只有行保留 `!!js` 才压过 config | `dsh --profile assistant --dump-config`；`skippedBundles` | 本节；[`product.md`](product.md) §十 |
-| **app surface** | **web**（client 插件 + web-only 行）；headless/SDK/ACP 要显式禁用入口行 | profile 决定起哪个 surface | 启动日志 `dsh web: <url>` | 本节；[`product.md`](product.md) §四 |
+| **app surface** | **web**（client 插件 + 五个 web-only 行）；headless/SDK/ACP 由 bundle patch 按 `connection` 自禁用（profile 显式 disabled 是双保险） | profile 决定起哪个 surface | 启动日志 `dsh web: <url>` | 本节；[`product.md`](product.md) §四 |
 | **home 与数据** | 专用 home 是部署选项（默认 `~/.dsh-smart-assistant`）；插件两目录 + 宿主面；卸载只回收包与 patch 层 | Workspace registry、Session log、`header.cwd`、storage domain | 数据卡逐行 | [`delivery.md`](delivery.md) §一 |
 | **生命周期** | Plugins 页默认；CLI 仅 web 自动化；安装器仅 shell/自托管；无命令级回滚 | Plugins 页 / `dsh plugin`；成员变化要重启 | 安装三态 + 卸载后文件 | 本节 §七；§三 |
 

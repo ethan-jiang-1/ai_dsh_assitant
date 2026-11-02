@@ -126,9 +126,8 @@ dsh --profile assistant                                            # ② 启动
 
 **养护定时（默认带）**：本包的 host patch 直接挂 `schedule` + `ui-schedule` 两行。Web 组合开箱即用：到期任务
 以原会话 follow-up 消息投递、重启后仍生效，`schedule_create`（`prompt`+`title` 必填、`after_seconds`
-延时秒）即可建首个养护或提醒任务。**headless 组合例外**：`schedule` 依赖 web-app 层的
-`sessionController`，纯 headless 部署里挂上激活不了，profile patch 应显式 `disabled: true` 该行
-（本仓先例：`dev/profiles/profile-patch-headless.yml`）；依赖机理与报错形态的合同 =
+延时秒）即可建首个养护或提醒任务。**headless 组合例外**：`schedule` 由 web-app 层自带，纯 headless 组合没有该行，不需要手写
+`disabled`；web-only 的五个入口行由 bundle patch 按 `connection` 自禁用。依赖机理与报错形态的合同 =
 [docs/architecture.md](docs/architecture.md) §二 schedule 行。
 
 ## 开发

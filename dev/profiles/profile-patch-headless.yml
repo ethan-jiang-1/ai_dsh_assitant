@@ -7,16 +7,10 @@
 # `assistant` 的**定义**不在 profile 里：它随本包的 `dsh.bundle.patch`（`cordis.patch.yml` 的
 # `preset-assistant` 行）进来，所以开发期改 preset 只改那一个文件。
 #
-# `schedule` 行在这里显式禁用：它注入的 `sessionController` 是 web-app 层的服务
-# （web-app patch :121），headless 组合永远等不到——不禁用则每次 one-shot 都挂着一条
-# pending warning，把真正的激活失败淹没。Web 组合（产品面）不受影响：schedule 默认带
-# 在 bundle patch 里。
-# `assistant-product` 是 web-only 行（必注 connection + workspaceRegistry）；headless 组合
-# 没有这两个服务，按 schedule 先例整行禁用，避免第 5 条 pending warning。
-- id: assistant-product
-  disabled: true
-- id: schedule
-  disabled: true
+# 五个 web-only 行（assistant-product / desk-projection / ui-mode / rooms / viki）已在 bundle
+# patch 里用 `!!js` 按 `connection` 自禁用；headless 组合没有该服务，所以这里不再写 bare
+# override（裸 id 找不到目标只会多一条 warning）。`schedule` 同样由 web-app 自带，headless
+# 组合没有这行；这里也不写。
 - insert:
     - id: agent-preset-registry
       name: '@deepseek-ai/dsh-agent-preset-registry'

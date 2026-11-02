@@ -47,13 +47,7 @@ node bootstrap.mjs --package ./package --workspace /path/to/your-project
 node bootstrap.mjs --package ./package --stop --home ~/.dsh-smart-assistant
 ```
 
-**headless / SDK / ACP**：装包后，在 profile patch 里停用 web-only 行（`insert` 不是必须——这行在 headless 组合里不存在，用 `insert:` 追加）：
-
-```yaml
-- insert:
-    - id: assistant-product
-      disabled: true
-```
+**headless / SDK / ACP**：装包即可。五个 web-only 行（`assistant-product`、`assistant-desk-projection`、`assistant-ui-mode`、`assistant-rooms`、`assistant-viki`）在 bundle patch 里按 `connection` 自禁用，headless 组合不需要手写 patch；若仍看到 pending，先检查 bundle 版本与 `connection` 服务。
 
 **市场（Discover）**：DSH 没有中心化市场，市场是索引源模式。索引只是发现层，安装仍是上面三条通道之一。
 
@@ -120,5 +114,5 @@ dsh plugin --profile assistant remove dsh-smart-assistant
 | `--dump-config` 有 `assistant-product` 但首屏是普通页面 | 当前组合没有该行（旧包/未 build）或 `onboarding: false`；重装当前 tarball，或删掉该覆盖 |
 | 首屏一直「选一个项目目录」 | Config 里没有 `workspaceDir` 且组合里没有目录选择器：在 profile patch 设 `assistant-product.workspaceDir`，或装 `remote.directoryPicker` |
 | 产品会话在别的 profile 打开报 `agent-preset/not-found` | 该 profile 没有 `assistant` preset；从专用 profile 打开 |
-| headless 组合多一条 pending | `assistant-product` 是 web-only：按「安装」末段在 profile patch 里 `insert` 一行 `disabled: true` |
+| headless 仍看到 web-only 行 pending | bundle patch 的 self-disable 未生效（旧包/被 profile 覆盖）；升级当前 tarball，或在 profile 层显式 `disabled: true` 双保险 |
 | 装不上，报版本不兼容 | `engines.dsh` / `engines.pnpm` 不满足；升 DSH 或 pnpm，不要用强制安装绕过 |

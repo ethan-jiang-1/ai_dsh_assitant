@@ -49,8 +49,8 @@ HOST 面（cordis.patch.yml → dsh.bundle.patch）
                             + assistant-product 行（产品工作区绑定：读 effective Config
                               assistant-product.workspaceDir（或一次性 ASSISTANT_WORKSPACE），用
                               workspaceRegistry.create 登记；GET/POST api/assistant/product；
-                              POST 经 settings.update 写 profile patch；web-only，headless
-                              profile patch 禁用）
+                              POST 经 settings.update 写 profile patch；web-only，
+                              bundle patch 按 `connection` 自禁用（profile 层可显式 disabled 双保险））
                             + assistant-rooms 行（维护面板的房间投影 + 受控写 + 收据：GET
                               api/assistant/rooms 取四房间真值、?kind=knowledge&id= 读正文、
                               ?kind=skill&id= 读一件 SKILL.md、最近 200 行审批账；
@@ -184,7 +184,7 @@ seam 的成色读数是**第二个真实 Provider 出现而 Consumer 一行不�
 | `src/domain/operating/`（`ledger.ts`、`projection.ts`、`archive.ts`） | 经营账本**纯核**：事项/操作/回执/待认领词汇与归约、v2 投影渲染、`operations-archive.jsonl` 行格式与合并（契约 = [`operating.md`](operating.md)） | 无（最底层） |
 | `src/index.ts` | 稳定包入口：`src/host/index.ts` 服务实现的薄导出（同 class 身份；`ctx.assistantMemory` 增广随实现加载） | 全部 |
 | `src/domain/product/workspace-path.ts` | 工作区路径策略（绝对/存在/可读写/禁 root/home/专用 home/包内；符号链接按目标判）；入口行与测试共用 | 无（最底层） |
-| `src/host/product/` | 入口行（web-only）：`workspaceDir`/`onboarding` Config + `ASSISTANT_WORKSPACE` 一次性覆盖；boot 用 `workspaceRegistry.create` 登记；GET/POST `api/assistant/product`，POST 经 `settings.update` 写 profile patch；路由核与状态机分开，headless profile patch 禁用 | domain/product + dsh-client-connection + dsh-workspace + settings（可选） |
+| `src/host/product/` | 入口行（web-only）：`workspaceDir`/`onboarding` Config + `ASSISTANT_WORKSPACE` 一次性覆盖；boot 用 `workspaceRegistry.create` 登记；GET/POST `api/assistant/product`，POST 经 `settings.update` 写 profile patch；路由核与状态机分开；bundle patch 按 `connection` 自禁用 | domain/product + dsh-client-connection + dsh-workspace + settings（可选） |
 | `src/client/product/`（`product-binding` / `product-face` / `product-gate` / `product-dock`） | 首屏门：绑定词表与 route 解析、一次 route 读取的共享 store（两处门共用）、桌面包装（onboarding/ready/recovery）、会话 dock + composer block（未绑定禁输入）；404/无入口行透明 | 纯解析 + react surface + DSH directoryPicker + `ctx.conversation.blocks` |
 | `bootstrap.mjs` | 安装器（**独立发布资产，不在包里**）：`--package`/`--workspace`/`--product`/`--stop`；经官方 CLI 建/复用 profile、装包、校验组合、起 boot；不写 profile patch、不写工作区文件；无 `--workspace` 时 standalone 模式 | 仅 Node + 官方 dsh CLI |
 | `src/cli/` + `bin/` + `bootstrap.mjs` | 交付/部署面：专家装配（`expert-setup`）、两目录数据 bundle（`assistant-data`）、独立目录 bootstrap；只跑 Node + 纯核，不进模型上下文 | domain 纯核 + `yaml` |
