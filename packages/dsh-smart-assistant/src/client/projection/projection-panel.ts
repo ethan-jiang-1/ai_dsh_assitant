@@ -2,12 +2,15 @@
 import { createElement as ce, reactSurface } from '../chrome/runtime'
 import { AssistantBrandMark } from '../chrome/brand'
 import { canProcess, type CaptureStatus } from '../../domain/desk/desk-process'
-import { setUiMode, useUiMode } from '../chrome/ui-mode'
+import { useUiMode } from '../chrome/ui-mode'
 import { deriveCaptureView } from '../../domain/desk/desk-capture-view'
 import { deriveOverdueMatters, type OverdueMatterAttention } from '../proactive/proactive-face'
 import { countPendingProposals, deriveActivityView, type ActivityView } from '../../domain/desk/desk-activity-view'
 import { humanTime, localDateKey, localDateLabel, localTimeLabel } from '../chrome/format'
 import { ProactiveRows, SuggestionStrip, PROACTIVE_STYLES } from './proactive-strip'
+import { SimpleFace } from './simple-face'
+import { PANEL_STYLES } from './panel-styles'
+import { STATUS_LABEL, type DeskData } from './panel-shared'
 import type { ProactiveUiState } from '../proactive/proactive-face'
 import type { ProactiveCatalogState } from '../proactive/proactive-face-source'
 import type { ProjectionDownload } from './projection-reader'
@@ -16,8 +19,6 @@ import type { ProjectionView, ProjectionViewBoundActions } from './projection-vi
 import type { OperatingMatter, OperatingReceipt } from './operating-projection'
 import type { DeskTranslate } from '../chrome/locales'
 
-/** The non-empty projection data the faces consume. */
-type DeskData = NonNullable<ProjectionDownload['data']>
 type MatterAttention = OverdueMatterAttention
 type OperatingReceiptPage = { readonly receipts: readonly OperatingReceipt[], readonly nextBefore: string | null }
 
@@ -108,7 +109,6 @@ const errors: Record<string, string> = {
   'projection-too-large': '看板资料超过读取限额。',
   'download-failed': '看板读取失败，请重试。',
 }
-const STATUS_LABEL: Record<string, string> = { active: '在办', completed: '已完成', abandoned: '已放弃' }
 const FILTER_LABEL: Record<'all' | 'active' | 'settled', string> = { all: '全部', active: '在办', settled: '已了结' }
 const RETURN_VIEW_KEY: Record<ProjectionView['mode'], 'desk.view.attention' | 'desk.view.matters' | 'desk.view.activity'> = {
   attention: 'desk.view.attention', board: 'desk.view.matters', activity: 'desk.view.activity',
@@ -139,113 +139,6 @@ function restoreViewportScroll(element: HTMLElement | null): void {
   if (Number.isFinite(target) && element.scrollTop !== target) element.scrollTop = target
 }
 
-const STYLES = [
-  '.dsha-desk{display:flex;flex-direction:column;gap:16px;padding:20px 24px;overflow:hidden;min-width:0;container-type:inline-size;height:100%;box-sizing:border-box;}',
-  '.dsha-viewport{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;}',
-  '.dsha-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}',
-  /* The capture row: accent-bordered because it is the desk's own input, not a control. */
-  '.dsha-capture{display:flex;flex-direction:column;gap:6px;border:1px solid var(--dsha-accent);border-radius:10px;padding:10px 12px;background:var(--dsw-alias-bg-base);}',
-  '.dsha-capture-input{flex:1;border:0;outline:0;font:inherit;font-size:14px;background:transparent;color:var(--dsw-alias-label-primary);min-width:0;}',
-  '.dsha-capture-hint{margin:0;font-size:12px;color:var(--dsw-alias-label-tertiary);}',
-  '.dsha-capture > .dsha-btn{align-self:flex-end;}',
-  /* The in-flight row: dashed and grey ON PURPOSE — it must not read as a matter or a fragment. */
-  '.dsha-inflight{border:1px dashed var(--dsw-alias-border-l3);border-radius:10px;padding:10px 12px;background:var(--dsw-alias-bg-layer-2);display:flex;flex-direction:column;gap:4px;}',
-  '.dsha-inflight-line{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--dsw-alias-label-secondary);}',
-  '.dsha-inflight-close{margin-left:auto;font-size:12px;padding:2px 8px;}',
-  '.dsha-inflight > .dsha-btn{align-self:flex-start;}',
-  '.dsha-chip-wait{background:var(--dsw-alias-bg-layer-3);color:var(--dsw-alias-label-secondary);}',
-  '.dsha-inflight-said{margin:0;font-size:13px;color:var(--dsw-alias-label-primary);overflow-wrap:anywhere;}',
-  '.dsha-tabs{display:flex;gap:2px;border-bottom:1px solid var(--dsw-alias-border-l2);}',
-  '.dsha-tab{display:inline-flex;align-items:center;gap:6px;border:0;background:none;padding:7px 14px;font-size:13px;color:var(--dsw-alias-label-secondary);cursor:pointer;font:inherit;border-bottom:2px solid transparent;margin-bottom:-1px;}',
-  '.dsha-tab:hover{color:var(--dsw-alias-label-primary);}',
-  '.dsha-tab[data-on="true"]{color:var(--dsha-accent);border-bottom-color:var(--dsha-accent);}',
-  '.dsha-tab .dsha-glyph{width:15px;height:15px;}',
-  '.dsha-title{margin:0;font-size:19px;font-weight:600;color:var(--dsw-alias-label-primary);}',
-  '.dsha-sub{font-size:13px;color:var(--dsw-alias-label-secondary);}',
-  '.dsha-actions{margin-left:auto;display:flex;gap:8px;}',
-  '.dsha-btn{border:0.5px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;}',
-  '.dsha-btn:hover{background:var(--dsw-alias-interactive-bg-hover-accent);}',
-  '.dsha-btn-primary{background:var(--dsha-accent-tint);color:var(--dsha-accent);border:0;}',
-  '.dsha-btn-wake{background:var(--dsha-warn-tint);color:var(--dsha-warn);border:0;}',
-  '.dsha-btn-wake .dsha-glyph{width:14px;height:14px;}',
-  '.dsha-banner{margin:0;font-size:13px;color:var(--dsha-warn);background:var(--dsha-warn-tint);border:0;border-radius:8px;padding:8px 12px;}',
-  '.dsha-note{margin:0;font-size:13px;color:var(--dsw-alias-label-secondary);background:var(--dsw-alias-bg-layer-1);border:0;border-radius:8px;padding:8px 12px;}',
-  '.dsha-matters{display:grid;grid-template-columns:minmax(260px,2fr) minmax(0,3fr);gap:16px;align-items:start;}',
-  '.dsha-list{display:flex;flex-direction:column;gap:8px;min-width:0;}',
-  '.dsha-filter{display:flex;gap:6px;flex-wrap:wrap;}',
-  '.dsha-filter-chip{display:inline-flex;align-items:center;gap:4px;border:0.5px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-secondary);border-radius:999px;padding:2px 10px;font-size:12px;cursor:pointer;font:inherit;}',
-  '.dsha-filter-chip[data-on="true"]{background:var(--dsha-accent-tint);color:var(--dsha-accent);border-color:var(--dsha-accent-tint);}',
-  '.dsha-glyph{width:13px;height:13px;flex:none;}',
-  '.dsha-chip-count{color:var(--dsw-alias-label-tertiary);}',
-  '.dsha-filter-chip[data-on="true"] .dsha-chip-count{color:var(--dsha-accent);}',
-  '.dsha-list-label{font-size:12px;color:var(--dsw-alias-label-tertiary);margin:4px 0 0;}',
-  '.dsha-card{display:block;width:100%;text-align:left;background:var(--dsw-alias-bg-layer-1);border:0.5px solid var(--dsw-alias-border-l2);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;}',
-  '.dsha-card:hover{background:var(--dsw-alias-bg-layer-2);}',
-  '.dsha-card[data-selected="true"]{border:1px solid var(--dsha-accent);background:var(--dsha-accent-tint);}',
-  '.dsha-card-title{display:flex;align-items:center;gap:8px;font-weight:600;color:var(--dsw-alias-label-primary);overflow-wrap:anywhere;}',
-  '.dsha-card-meta{margin:4px 0 0;font-size:12px;color:var(--dsw-alias-label-tertiary);overflow-wrap:anywhere;}',
-  '.dsha-card-summary{margin:4px 0 0;font-size:13px;color:var(--dsw-alias-label-secondary);overflow-wrap:anywhere;}',
-  '.dsha-attention{display:flex;flex-direction:column;gap:12px;}',
-  '.dsha-attention-title{margin:0;font-size:17px;font-weight:600;color:var(--dsw-alias-label-primary);}',
-  '.dsha-attention-list{display:flex;flex-direction:column;gap:8px;}',
-  '.dsha-attention-card{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:6px 10px;}',
-  '.dsha-attention-card .dsha-card-title,.dsha-attention-card .dsha-card-meta,.dsha-attention-card .dsha-card-summary{grid-column:1/-1;}',
-  '.dsha-attention-open{grid-column:2;font-size:12px;color:var(--dsha-accent);}',
-  '.dsha-attention-empty{display:flex;flex-direction:column;gap:6px;border-left:2px solid var(--dsha-accent);padding:8px 12px;background:var(--dsw-alias-bg-layer-1);}',
-  '.dsha-attention-empty p,.dsha-timeline-note{margin:0;font-size:13px;color:var(--dsw-alias-label-secondary);}',
-  '.dsha-timeline{display:flex;flex-direction:column;gap:8px;margin-top:16px;}',
-  '.dsha-timeline-list{list-style:none;margin:0;padding:0 0 0 14px;display:flex;flex-direction:column;gap:10px;border-left:1px solid var(--dsw-alias-border-l3);}',
-  '.dsha-timeline-item{position:relative;padding:0 0 0 10px;min-width:0;}',
-  '.dsha-timeline-item:before{content:"";position:absolute;width:8px;height:8px;border-radius:50%;background:var(--dsha-accent);left:-19px;top:5px;}',
-  '.dsha-timeline-line,.dsha-timeline-body{margin:0;font-size:13px;color:var(--dsw-alias-label-primary);overflow-wrap:anywhere;}',
-  '.dsha-timeline-body{color:var(--dsw-alias-label-secondary);}',
-  '.dsha-timeline-current{margin:0;font-size:13px;font-weight:600;color:var(--dsw-alias-label-primary);}',
-  '.dsha-simple{display:flex;flex-direction:column;gap:10px;margin-top:12px;}',
-
-  '.dsha-simple-card{background:var(--dsw-alias-bg-layer-1);border:0.5px solid var(--dsw-alias-border-l2);border-radius:12px;padding:16px;}',
-  '.dsha-simple-kicker{margin:0 0 4px;font-size:11px;letter-spacing:0.04em;color:var(--dsha-warn);}',
-  '.dsha-simple-title{margin:0;font-size:18px;line-height:1.4;color:var(--dsw-alias-label-primary);overflow-wrap:anywhere;}',
-  '.dsha-simple-summary{margin:8px 0 0;font-size:13px;line-height:1.6;color:var(--dsw-alias-label-secondary);overflow-wrap:anywhere;}',
-  '.dsha-simple-meta{margin:8px 0 0;font-size:12px;color:var(--dsw-alias-label-tertiary);}',
-  '.dsha-simple-actions{display:flex;gap:8px;margin-top:12px;}',
-  '.dsha-simple-more{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}',
-  '.dsha-chip{display:inline-block;flex:none;font-size:12px;line-height:18px;border-radius:999px;padding:0 8px;}',
-  '.dsha-chip-active{background:var(--dsha-accent-tint);color:var(--dsha-accent);}',
-  '.dsha-chip-completed{background:var(--dsha-success-tint);color:var(--dsha-success);}',
-  '.dsha-chip-abandoned{background:var(--dsw-alias-bg-layer-3);color:var(--dsw-alias-label-tertiary);}',
-  '.dsha-chip-warn{background:var(--dsha-warn-tint);color:var(--dsha-warn);}',
-  '.dsha-detail{min-width:0;border:0.5px solid var(--dsw-alias-border-l2);border-radius:10px;background:var(--dsw-alias-bg-layer-1);padding:14px 16px;overflow-wrap:anywhere;}',
-  '.dsha-detail h2{display:flex;align-items:center;gap:8px;margin:8px 0 4px;font-size:17px;font-weight:600;color:var(--dsw-alias-label-primary);}',
-  '.dsha-detail h2 span{overflow-wrap:anywhere;min-width:0;}',
-  '.dsha-meta{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px;}',
-  '.dsha-proposal{margin:10px 0;background:var(--dsha-warn-tint);border:0;border-radius:8px;padding:10px 12px;}',
-  '.dsha-evidence{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:8px;}',
-  '.dsha-evidence li{border-left:0.5px solid var(--dsw-alias-border-l3);padding-left:10px;}',
-  '.dsha-activity{display:flex;flex-direction:column;gap:12px;min-width:0;}',
-  '.dsha-activity-day{display:flex;flex-direction:column;gap:6px;}',
-  '.dsha-activity-date{margin:0;font-size:12px;color:var(--dsw-alias-label-tertiary);}',
-  '.dsha-activity-entry{display:block;width:100%;text-align:left;background:var(--dsw-alias-bg-layer-1);border:0.5px solid var(--dsw-alias-border-l2);border-radius:10px;padding:10px 12px;cursor:pointer;font:inherit;}',
-  'button.dsha-activity-entry:hover{background:var(--dsw-alias-bg-layer-2);}',
-  '.dsha-activity-line{margin:0;font-size:13px;color:var(--dsw-alias-label-primary);overflow-wrap:anywhere;}',
-  '.dsha-activity-more{align-self:flex-start;}',
-  '.dsha-ops{margin:12px 0 0;display:flex;flex-direction:column;gap:6px;}',
-  '.dsha-ops-title{margin:0;font-size:12px;color:var(--dsw-alias-label-tertiary);}',
-  '.dsha-op{border-left:0.5px solid var(--dsw-alias-border-l3);padding-left:10px;}',
-  '.dsha-op-line{margin:0;font-size:13px;color:var(--dsw-alias-label-primary);overflow-wrap:anywhere;}',
-  '.dsha-op-quote{margin:0;font-size:13px;color:var(--dsw-alias-label-secondary);overflow-wrap:anywhere;}',
-  '.dsha-op-src{font-size:12px;color:var(--dsw-alias-label-tertiary);}',
-  '.dsha-evidence p{margin:0;font-size:13px;color:var(--dsw-alias-label-primary);overflow-wrap:anywhere;}',
-  '.dsha-evidence small{font-size:12px;color:var(--dsw-alias-label-tertiary);}',
-  '.dsha-empty{display:flex;flex-direction:column;align-items:center;gap:10px;padding:36px 0;color:var(--dsw-alias-label-secondary);}',
-  '.dsha-back{display:none;margin:0;}',
-  '.dsha-detail-hint{margin:0;color:var(--dsw-alias-label-tertiary);}',
-  '@container (max-width: 680px){',
-  '  .dsha-matters{display:block;}',
-  '  .dsha-matters[data-pane="list"] .dsha-matter-detail{display:none;}',
-  '  .dsha-matters[data-pane="detail"] .dsha-matter-list{display:none;}',
-  '  .dsha-back{display:inline-block;}',
-  '}',
-].join('')
 
 function chip(kind: string, label: string) {
   return ce('span', { className: `dsha-chip dsha-chip-${kind}` }, label)
@@ -306,52 +199,6 @@ function timeParts(times: { readonly promisedDeadline?: string; readonly forecas
   if (times.nextCheckpoint !== undefined) parts.push(`${t('desk.times.checkpoint')} ${humanTime(times.nextCheckpoint)}`)
   if (times.completedAt !== undefined) parts.push(`${t('desk.times.completed')} ${humanTime(times.completedAt)}`)
   return parts
-}
-
-/**
- * The simple density face: one next thing, one action, one way out. Extracted from the panel
- * so its urgent/pending/matter/fragment precedence reads as one component rather than a local
- * branch inside the orchestration function.
- */
-function SimpleFace(props: {
-  data: DeskData
-  simpleMatter: DeskData['matters'][number] | undefined
-  simpleFragment: DeskData['unclaimed'][number] | undefined
-  simpleQuestion: string | undefined
-  lanes: DeskSurface['lanes']
-}): ReturnType<typeof ce> {
-  const { data, simpleMatter, simpleFragment, simpleQuestion, lanes } = props
-  const matters = data.matters
-  const unclaimed = data.unclaimed ?? []
-  return ce('section', { className: 'dsha-simple', 'data-ui-simple': true },
-    ce('div', { className: 'dsha-simple-card' },
-      simpleQuestion !== undefined ? ce('p', { className: 'dsha-simple-kicker' }, '它在等你') : null,
-      ce('h2', { className: 'dsha-simple-title' },
-        simpleQuestion !== undefined ? '它在等你回答'
-          : simpleMatter !== undefined ? simpleMatter.title
-            : simpleFragment !== undefined ? '有一条还没归户的事'
-              : '看板上没有在办的事'),
-      simpleMatter !== undefined && simpleMatter.summary !== '' ? ce('p', { className: 'dsha-simple-summary' }, simpleMatter.summary) : null,
-      simpleMatter === undefined && simpleFragment !== undefined ? ce('p', { className: 'dsha-simple-summary' }, simpleFragment.note) : null,
-      simpleMatter !== undefined ? ce('p', { className: 'dsha-simple-meta' },
-        `${STATUS_LABEL[simpleMatter.status] ?? simpleMatter.status}${simpleMatter.times.nextCheckpoint !== undefined ? ` · 核对点 ${simpleMatter.times.nextCheckpoint}` : ''}`) : null,
-      ce('div', { className: 'dsha-simple-actions' },
-        simpleQuestion !== undefined
-          ? ce('button', { className: 'dsha-btn dsha-btn-primary', type: 'button', onClick: () => { lanes.onOpenSession(simpleQuestion) } }, '去会话回答')
-          : simpleMatter !== undefined
-            ? ce('button', {
-              className: 'dsha-btn dsha-btn-primary', type: 'button',
-              onClick: () => { if (simpleMatter.status === 'active') lanes.onProcess(simpleMatter.id); else lanes.onWake(simpleMatter.id) },
-            }, simpleMatter.status === 'active' ? '处理这件事' : '唤醒这件事')
-            : simpleFragment !== undefined
-              ? ce('button', { className: 'dsha-btn dsha-btn-primary', type: 'button', onClick: () => { lanes.onClaim(simpleFragment.id) } }, '认领这件事')
-              : null)),
-    ce('div', { className: 'dsha-simple-more' },
-      ce('span', { className: 'dsha-note' }, [
-        matters.length > 1 ? `还有 ${String(matters.length - 1)} 件在账上` : '',
-        unclaimed.length > 0 && simpleMatter !== undefined ? `${String(unclaimed.length)} 条待认领` : '',
-      ].filter(Boolean).join(' · ')),
-      ce('button', { className: 'dsha-btn', type: 'button', onClick: () => { setUiMode('standard') } }, '显示更多 · 切到标准')))
 }
 
 /**
@@ -693,7 +540,7 @@ export function ProjectionPanel(props: ProjectionPanelProps): ReturnType<typeof 
     className: 'dsha-desk',
     'data-assistant-operating-desk': true,
   },
-    ce('style', {}, STYLES + PROACTIVE_STYLES),
+    ce('style', {}, PANEL_STYLES + PROACTIVE_STYLES),
     ce('header', { className: 'dsha-head' },
       ce('div', {},
         ce('h1', { className: 'dsha-title' }, '完整看板'),
