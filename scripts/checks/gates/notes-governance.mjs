@@ -15,8 +15,8 @@ const NOTE_NAME_PATTERN = /^\d{4}-\d{2}-\d{2}-[a-z0-9][a-z0-9-]*\.md$/
 /** Directory names directly under notes/ that may hold notes. */
 const NOTE_SUBDIRECTORIES = ['proposed', 'implemented', 'rejected', 'archived']
 
-/** Every top-level entry notes/ may carry besides the note subdirectories. The tree is the inventory; a root index is a second list. */
-const NOTES_ROOT_FILES = new Set(['README.md', '.gitkeep'])
+/** Every top-level entry notes/ may carry besides the note subdirectories. The tree is the inventory; a root index is a second list. AGENTS.md is the agent operating entry, not an index. */
+const NOTES_ROOT_FILES = new Set(['README.md', 'AGENTS.md', '.gitkeep'])
 
 /** The status word each lifecycle directory's notes must carry (archived keeps implemented). */
 const LIFECYCLE_STATUS = {
@@ -132,7 +132,7 @@ export function notesStateProblems(notesRoot) {
  * ("无状态"、"桌面状态"、"TODO/FIXME 不立项"), so only a `## … 状态 …` heading and the built/not-built
  * verbs are rejected — which is why the fixtures pin both directions.
  *
- * @param {string} agentsPath - path of the root AGENTS.md.
+ * @param {string} agentsPath - path of an AGENTS.md entry file.
  */
 export function agentsMdStabilityProblems(agentsPath) {
   const problems = []

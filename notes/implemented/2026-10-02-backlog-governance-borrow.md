@@ -9,6 +9,9 @@
 > **部分取代（2026-10-25）**：本文的「管道（notes/ 唯一实施通道）」与「无 proposed 卡不产生行为」由
 > [两个 handoff](2026-10-25-backlog-notes-two-handoffs.md) 收窄——work 走 proposed/收口卡，memory 走
 > note/trigger；四门与不调度仍以本文为决定记录。
+>
+> **2026-11-02 补**：工作项另走五道门（研究→定性→落地→审查→归档），见 [backlog 工作项生命周期](2026-11-02-backlog-work-item-lifecycle.md)；
+> 本文的治理四门与不调度仍有效。
 
 ## 借入（制度级）
 

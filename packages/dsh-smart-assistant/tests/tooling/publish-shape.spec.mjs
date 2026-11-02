@@ -82,18 +82,18 @@ describe('localeShapeProblems', () => {
 })
 
 describe('docShapeProblems', () => {
-  const readme = ['## Install', '## What it contributes', '## Configuration', '## Data', '## Compatibility', '## Upgrade', '## Uninstall'].join('\n')
-  const manual = ['## 产品是什么', '## 〇、安装前提', '## 一、安装（…）', '## 三、验证安装', '## 六、升级与备份', '## 七、卸载（删包，留数据）', '## 十一、安全'].join('\n')
+  const readme = ['## 装什么、装到哪', '## 安装', '## 验证', '## 配置', '## 升级', '## 卸载与数据', '## 排障'].join('\n')
+  const manual = ['## 产品是什么', '## 〇、安装前提', '## 〇之二、选运行时', '## 一、安装', '## 二、首启', '## 三、验证安装', '## 五、配置', '## 七、升级', '## 八、卸载', '## 常见问题', '## 十二、安全'].join('\n')
 
   it('accepts the shape both documents ship', () => {
     expect(docShapeProblems({ readme, manual })).toEqual([])
   })
 
   it('refuses a README that lost the upgrade section', () => {
-    expect(docShapeProblems({ readme: readme.replace('## Upgrade\n', ''), manual })[0]).toMatch(/README: missing "## Upgrade"/)
+    expect(docShapeProblems({ readme: readme.replace('## 升级\n', ''), manual })[0]).toMatch(/README: missing "## 升级"/)
   })
 
   it('refuses a manual that lost security or the profile command section', () => {
-    expect(docShapeProblems({ readme, manual: manual.replace('## 十一、安全', '') })[0]).toMatch(/manual: missing "## 十一、安全"/)
+    expect(docShapeProblems({ readme, manual: manual.replace('## 十二、安全', '') })[0]).toMatch(/manual: missing "## 十二、安全"/)
   })
 })

@@ -105,6 +105,11 @@ describe('verify relative-link corpus wiring', () => {
     const tmpHelper = new URL('../../../../dev/env/tmp.mjs', import.meta.url).href
     mkdirSync(join(root, 'dev', 'env'), { recursive: true })
     writeFileSync(join(root, 'dev', 'env', 'tmp.mjs'), `export * from ${JSON.stringify(tmpHelper)}\n`)
+    // The document-shape core is imported by verify.mjs since the 2026-11 doc-shape gate; stage it
+    // at its real depth too (the same empty-stdout failure mode as tmp.mjs).
+    const publishShape = new URL('../../../../scripts/release/publish-shape.mjs', import.meta.url).href
+    mkdirSync(join(root, 'scripts', 'release'), { recursive: true })
+    writeFileSync(join(root, 'scripts', 'release', 'publish-shape.mjs'), `export * from ${JSON.stringify(publishShape)}\n`)
     for (const file of ['AGENTS.md', 'README.md']) writeFileSync(join(root, file), '# fixture\n')
     const active = [
       '_backlog/README.md',
@@ -181,6 +186,11 @@ describe('verify machine-local-path corpus wiring', () => {
     const tmpHelper = new URL('../../../../dev/env/tmp.mjs', import.meta.url).href
     mkdirSync(join(root, 'dev', 'env'), { recursive: true })
     writeFileSync(join(root, 'dev', 'env', 'tmp.mjs'), `export * from ${JSON.stringify(tmpHelper)}\n`)
+    // The document-shape core is imported by verify.mjs since the 2026-11 doc-shape gate; stage it
+    // at its real depth too (the same empty-stdout failure mode as tmp.mjs).
+    const publishShape = new URL('../../../../scripts/release/publish-shape.mjs', import.meta.url).href
+    mkdirSync(join(root, 'scripts', 'release'), { recursive: true })
+    writeFileSync(join(root, 'scripts', 'release', 'publish-shape.mjs'), `export * from ${JSON.stringify(publishShape)}\n`)
     for (const file of ['AGENTS.md', 'README.md']) writeFileSync(join(root, file), '# fixture\n')
 
     const offending = [
@@ -252,6 +262,11 @@ describe('verify scratch-path corpus wiring', () => {
     const tmpHelper = new URL('../../../../dev/env/tmp.mjs', import.meta.url).href
     mkdirSync(join(root, 'dev', 'env'), { recursive: true })
     writeFileSync(join(root, 'dev', 'env', 'tmp.mjs'), `export * from ${JSON.stringify(tmpHelper)}\n`)
+    // The document-shape core is imported by verify.mjs since the 2026-11 doc-shape gate; stage it
+    // at its real depth too (the same empty-stdout failure mode as tmp.mjs).
+    const publishShape = new URL('../../../../scripts/release/publish-shape.mjs', import.meta.url).href
+    mkdirSync(join(root, 'scripts', 'release'), { recursive: true })
+    writeFileSync(join(root, 'scripts', 'release', 'publish-shape.mjs'), `export * from ${JSON.stringify(publishShape)}\n`)
     for (const file of ['AGENTS.md', 'README.md']) writeFileSync(join(root, file), '# fixture\n')
 
     const packageDir = join(root, 'packages', 'dsh-smart-assistant')

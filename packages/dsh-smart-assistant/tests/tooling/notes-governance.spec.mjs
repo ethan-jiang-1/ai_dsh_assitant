@@ -82,6 +82,7 @@ describe('notesTopLevelProblems', () => {
     const notes = temp('notes-top-')
     for (const sub of ['proposed', 'implemented', 'rejected', 'archived']) mkdirSync(join(notes, sub), { recursive: true })
     writeFileSync(join(notes, 'README.md'), '# map\n', 'utf8')
+    writeFileSync(join(notes, 'AGENTS.md'), '# operating entry\n', 'utf8')
 
     expect(notesTopLevelProblems(notes)).toEqual([])
 

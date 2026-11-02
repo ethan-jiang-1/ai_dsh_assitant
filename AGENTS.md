@@ -18,6 +18,10 @@
 与 `_backlog/issues/` 的问题卡（只有用户点名才开工，流程与关闭条件见 [`_backlog/README.md`](_backlog/README.md)）。
 缺陷当场修掉不建卡；这次不修的记 `_backlog/bugs/`（默认不修，唯一的自授权例外通道见其 README）。
 
+**一条工作怎么走完（五道门）**：`_backlog` 研究/推敲 → 定性（issue `待落地` / bug `修复就绪` / research `已定性`）→ 落地（收口卡台账 + 证据；状态仍是 `待落地`/`修复落地`）→ 审查/验收（机械不跳、语义自审按风险、用户验收按重要性；跳过记 `审查：`）→ 归档（卡与去向载体同变更）。
+`待落地` 是 ready，不是授权；`修复就绪` 按缺陷修复通道（P1/P2 即授权，P0/例外走 `等人拍板`）。其余授权来自本轮请求或 `notes/proposed/` 卡。研究只供证据，不授权。
+`待落地` 不提前写 implemented note；`去向` 在 issue 定性门 / bug 修复落地出口选（implemented / proposed / rejected / deferred / none），note/proposed 与交付或卡关闭同变更。每轨词表、守卫与交接清单 = [`_backlog/AGENTS.md`](_backlog/AGENTS.md)；收件与写入时机 = [`notes/AGENTS.md`](notes/AGENTS.md)。
+
 **能不能不经呈批直接开工**（此表只做单一判断，范围细则在各 owner）：
 
 | 本轮工作 | 直接开工？ |
@@ -28,17 +32,16 @@
 | 机械与局部编辑（口径 = note 义务豁免，[`notes/README.md`](notes/README.md) §〇） | 能 |
 | 跨切片的新工作 / 流程面改动 / 模型可见面新能力 | 不能——先立 proposed 卡呈批，等点头或点名 |
 
-**呈批**（两个载体，别混）：本轮复杂任务的步骤 = plan 呈批（硬规则 5）；跨切片新工作的授权 = proposed 卡呈批（上表末行）。呈批是把决定权显式交给人——等答复的那部分停，能自定的照常推进（研发姿态 4）。
+**呈批**（两个载体，别混）：本轮复杂任务的步骤 = plan 呈批（硬规则 5）；跨切片新工作的授权 = proposed 卡呈批（上表末行）。呈批是把决定权显式交给人——等答复的那部分停，能自定的照常推进（研发姿态 4）；小修不立空壳卡、不重复呈批。
 
 **没有用户任务时不发明任务**——报告家况（`pnpm usage`），或按点名的卡推敲/实施；不要从 git log 或记忆发明任务。
-重大未来工作先在 `_backlog/issues/` 推敲，成熟并进入跨会话实施前用 `notes/proposed/` 显式承载；不为小修立空壳卡或重复呈批。
 
 **开工先定外部结果**：非机械任务动手前先落**外部结果三要素**——触发条件 / 用户看到或得到什么 / 完成条件（载体 = plan 呈批，或承载该切片的收口卡首节——收口卡是什么见 [`_backlog/issues/README.md`](_backlog/issues/README.md)）；实现选择不先于意图定义，交付记录按它收口；机械/局部编辑豁免（同上表）。
 深评的原料住 `_backlog/research/`。收卷后还会被重提的事实写进决定 note，不另留调研目录——看不见的工作等于没在做。
 代码里的 `TODO/FIXME` 不立项，只在代码内。
 **Note 的义务、取代检查与生命周期以 [`notes/README.md`](notes/README.md) 为唯一权威**（何时写、输掉的方案、
-rejected 政策、命名——本文件不复制）；改行为、契约或开发流程前，按任务链接或机制名查相关 notes。
-交接即此链：AGENTS.md（本文件）→ 三个卡清单（`_backlog/issues/`、`_backlog/bugs/`、`notes/proposed/`——清单为空 = 无待续工作；work 台账在收口卡，memory 取舍在 note）→ 各卡；收尾时把停点与授权变化写回承载它的卡（收口卡或 proposed 卡状态行），无卡无 note 的机械收尾无写义务。
+rejected 政策、命名——本文件不复制）；收件与写入时机 = [`notes/AGENTS.md`](notes/AGENTS.md)。改行为、契约或开发流程前，按任务链接或机制名查相关 notes。
+交接即此链：AGENTS.md（本文件）→ [`_backlog/AGENTS.md`](_backlog/AGENTS.md)（产出：五道门/去向）→ [`notes/AGENTS.md`](notes/AGENTS.md)（收件：写入时机/对账）→ 三个卡清单（`_backlog/issues/`、`_backlog/bugs/`、`notes/proposed/`——清单为空 = 无待续工作；work 台账在收口卡，memory 取舍在 note）→ 各卡；收尾时把停点与授权变化写回承载它的卡（收口卡或 proposed 卡状态行），无卡无 note 的机械收尾无写义务。
 
 同一个多步流程第三次被重新推演时，就把它立成一件开发技能（放 `.agents/skills/`）——这是"重复即建"的常设规则，不占工作面。
 **两类 Skill，别混**：`.agents/skills/` 是**开发用**（给改这个仓库的 agent：证据路由、探针、
@@ -58,8 +61,8 @@ rejected 政策、命名——本文件不复制）；改行为、契约或开�
 |---|---|---|
 | `packages/dsh-smart-assistant/` | **插件包**（bundle）：入口×平面、自有工具×动词、组合行、pin 与依赖姿态见生成物 `docs/package-catalog.md`；包内 owner 面与纪律见其 `AGENTS.md` | 改模型可见面 / 服务 / 布局动这里 |
 | `docs/` | **当前合同**（只写现在，无历史）—— 文档 tier 与"谁拥有什么"见其 `AGENTS.md` | 门禁住了的事实进这里 |
-| `notes/` | **开发记忆与证据链**（分类 owner：`notes/README.md`）：`proposed/` 将来 → `implemented/` 当前权威 → `archived/` 冻结历史；`rejected/` 存负知识与一行原因 | 决策与输掉的方案进这里 |
-| `_backlog/` | **推敲空间 + 已授权切片的 work 台账**（门牌 [`_backlog/AGENTS.md`](_backlog/AGENTS.md)：落进区域的 agent 先读）：还没定的事在 `issues/`（`YYMMDD-`），这次不修的缺陷在 `bugs/`（`BUG-`），调研在 `research/`，方法在 `methods/`，离开活跃区的在 `_archive/`。判断材料 + 收口卡台账，**不排序、不做第二队列**；流程与关闭条件见其 `README.md`；`triggers.md` 只收工作里会撞上的观察（批量推进、真机走查、阶段收口时扫这张短表） | 收割/走查/对话中值得推敲但未到裁决的思考在此立卡 |
+| `notes/` | **开发记忆与证据链**（分类 owner：`notes/README.md`；收件/写入时机：`notes/AGENTS.md`）：`proposed/` 将来 → `implemented/` 当前权威 → `archived/` 冻结历史；`rejected/` 存负知识与一行原因 | 决策与输掉的方案进这里 |
+| `_backlog/` | **推敲空间 + 已授权切片的 work 台账**（门牌 [`_backlog/AGENTS.md`](_backlog/AGENTS.md)：落进区域的 agent 先读）：还没定的事在 `issues/`（`YYMMDD-`），这次不修的缺陷在 `bugs/`（`BUG-`），调研在 `research/`，方法在 `methods/`，离开活跃区的在 `_archive/`。判断材料 + 收口卡台账，**不排序、不做第二队列**；五道门/状态机见其 `AGENTS.md`，关闭条件见其 `README.md`；`triggers.md` 只收工作里会撞上的观察（批量推进、真机走查、阶段收口时扫这张短表） | 收割/走查/对话中值得推敲但未到裁决的思考在此立卡 |
 | `dev/` | 开发环境树：双 home、profile patch、探针/评测/夹具/部署 CLI——纪律与抽屉表见其 `AGENTS.md` | 环境与验证工具动这里（手册 owner：`docs/dev.md`） |
 | `scripts/` | 机械门禁与生成器 —— 门禁三条纪律与 freshness 约定见其 `AGENTS.md` | 门禁问题动这里 |
 | `snapshots/` | 行为回归的证据面——只收边界与现状见其 `AGENTS.md` 与 `README.md` | 回归证据问题动这里 |

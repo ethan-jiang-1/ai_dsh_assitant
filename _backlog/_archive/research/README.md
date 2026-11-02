@@ -1,8 +1,8 @@
 # research/ · 已归档的研究题
 
 研究题不再服务活跃卡、缺陷或已授权工作时，整目录从 [`_backlog/research/`](../../research/README.md)
-迁入此处；目录名与题名页原样保留，题名页补 `> 归档：YYYY-MM-DD`。本页是**题名索引**：一题一行；
-材料明细、历史消费者与产出的卡住在各题的题名页（`<topic>/README.md`）。
+迁入此处；目录名与题名页原样保留，题名页补 `> 归档：YYYY-MM-DD`，`status` 保持 `已定性`（归档是移动，不是第三个状态）。本页是**题名索引**：一题一行；
+材料明细、历史消费者与产出的卡住在各题的题名页（`<topic>/README.md`）。旧题名页没有 frontmatter 的不回填。
 
 ## 怎么读
 
@@ -39,10 +39,10 @@
 已归档材料里的"现状""当前渠道"等读数只对写作当天成立；当前口径见 `docs/` 与 `notes/implemented/`。
 
 - 迁入 = `git mv _backlog/research/<topic> _backlog/_archive/research/<topic>`；目录名不变，正文不重写，
-  只修必要的相对链接；题名页补 `> 归档：YYYY-MM-DD`，`> 消费者：` 行改为 `> 历史消费者：`。
+  只修必要的相对链接；题名页补 `> 归档：YYYY-MM-DD`，`> 消费者：` 行改为 `> 历史消费者：`，`status` 保持 `已定性`。
 - 本页一题一行：名头（链题名页）| 材料份数 | 历史消费者 | 产出的卡 | 归档日。逐文件清单不铺在这里。
 - 材料必须住在题名目录内；题名页必须逐份点名 `.md` 材料。结构由 `pnpm verify` 的
-  `backlog: liveness`（题名页名头与材料点名）与 `backlog research: topic dirs ...`（目录 ↔ 索引）对账；
+  `backlog: liveness`（题名页 status/opened/`> 状态`/`> 结论`、名头与材料点名）与 `backlog research: topic dirs ...`（目录 ↔ 索引）对账；
   它们只证形状，不证证据质量。冻结区不纳入正文断链扫描。
 - 历史消费者 = 委托 / 使用过这轮研究的卡、note 或已授权工作；产出的卡 = 研究结束后由它新立的卡。
 

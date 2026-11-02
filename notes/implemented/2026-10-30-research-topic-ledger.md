@@ -6,7 +6,8 @@
 目录 + 一张题名页（`README.md`）。题名页回答「研究什么、服务谁、长出了哪些卡、有哪些材料」；材料住在题内，
 仍是 `YYMMDD-<slug>.md` + `topic` / `intent`。两个区的索引一题一行，逐文件清单只在题名页。研究的最后一个
 活消费者离开时，整目录 `git mv` 到归档区，题名页补 `> 归档：YYYY-MM-DD`。现行规则在
-[`_backlog/research/README.md`](../../_backlog/research/README.md)，本篇只留为什么这样定。
+[`_backlog/research/README.md`](../../_backlog/research/README.md)，本篇只留为什么这样定。2026-11-02 起题名页
+另带 `status` / `opened` 与 `> 状态`，材料仍不装 status；决定见 [backlog 工作项生命周期](2026-11-02-backlog-work-item-lifecycle.md)。
 
 ## 借入（结构级）
 
@@ -17,8 +18,8 @@
 
 ## 门禁跟着布局走
 
-`backlog: liveness` 走题内：题名页在场、三行名头（归档区再加 `> 归档：`）、题名页逐份点名 `.md` 材料、
-材料 frontmatter 仍是 `topic` + 一行 `intent`。目录 ↔ 索引的互查归 `backlog research: topic dirs ...`，
+`backlog: liveness` 走题内：题名页在场、`status` / `opened` / `> 状态`（归档区再加 `> 归档：`；`已定性` 再加非空 `> 结论：`）、三行名头、题名页逐份点名 `.md` 材料、
+材料 frontmatter 仍是 `topic` + 一行 `intent` 且不装 status。目录 ↔ 索引的互查归 `backlog research: topic dirs ...`，
 两个区各跑一次。`topic` 不再与目录名绑定：目录是研究题，`topic` 是这份材料自己的主题词，旧枚举
 `定位 / 技术 / 使用 / 自更新 / 记忆面板 / 上游` 原样保留。
 

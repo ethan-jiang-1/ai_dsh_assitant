@@ -63,10 +63,22 @@ describe('backlogLivenessProblems', () => {
 
   // ── 2026-10-30 research-topic layout：研究题 = 目录 + 题名页（借自 ai_dsh_deep_research） ──
 
-  const titlePage = ({ head = ['问题：要回答什么', '消费者：—', '产出的卡：—'], materials = ['261005-case.md'] } = {}) => [
+  const titlePage = ({
+    status = '调研中',
+    head = ['问题：要回答什么', '消费者：—', '产出的卡：—'],
+    materials = ['261005-case.md'],
+    conclusion,
+  } = {}) => [
+    '---',
+    `status: ${status}`,
+    'opened: 2026-10-05',
+    '---',
+    '',
     '# 一题：案例',
     '',
+    `> 状态：${status} ｜ 立题：2026-10-05`,
     ...head.map(line => `> ${line}`),
+    ...(conclusion === undefined ? [] : [`> 结论：${conclusion}`]),
     '',
     '## 材料',
     '| 文件 | 作用 | 日期 |',
@@ -129,7 +141,7 @@ describe('backlogLivenessProblems', () => {
     bootBacklog(archived)
     // An archived topic names past consumers; the label itself is part of the archived head.
     writeTopic(archived, join('_archive', 'research'), '261005-old',
-      titlePage({ head: ['问题：要回答什么', '历史消费者：—', '产出的卡：—'], materials: [] }))
+      titlePage({ status: '已定性', head: ['问题：要回答什么', '历史消费者：—', '产出的卡：—'], materials: [], conclusion: '答案' }))
     writeFileSync(join(archived, '_archive', 'research', 'README.md'),
       '# research\n\n| 题 |\n|---|\n| [261005-old](261005-old/README.md) |\n', 'utf8')
     expect(backlogLivenessProblems(archived)).toEqual([
@@ -140,7 +152,7 @@ describe('backlogLivenessProblems', () => {
   it('rejects an archived title page that still claims live consumers', () => {
     const backlog = temp('backlog-topic-live-label-')
     bootBacklog(backlog)
-    writeTopic(backlog, join('_archive', 'research'), '261005-old', titlePage({ materials: [] }))
+    writeTopic(backlog, join('_archive', 'research'), '261005-old', titlePage({ status: '已定性', materials: [], conclusion: '答案' }))
     writeFileSync(join(backlog, '_archive', 'research', 'README.md'),
       '# research\n\n| 题 |\n|---|\n| [261005-old](261005-old/README.md) |\n', 'utf8')
     const problems = backlogLivenessProblems(backlog)
@@ -167,13 +179,79 @@ describe('backlogLivenessProblems', () => {
     const statuses = ['排查中', '修复就绪', '修复落地', '等人拍板']
     const rows = []
     for (const [i, status] of statuses.entries()) {
+      const fixDefinition = ['修复就绪', '修复落地'].includes(status) ? '\n## 修好定义\n\n- 修好定义内容\n' : ''
       writeFileSync(join(backlog, 'bugs', `BUG-01${i}-lane.md`),
-        `---\nstatus: ${status}\nseverity: P1\nopened: 2026-10-12\n---\n\n# BUG-01${i}：车道\n\n> 严重级别：P1｜发现：2026-10-12｜状态：${status}｜下一步 = 按翻转表走\n`, 'utf8')
+        `---\nstatus: ${status}\nseverity: P1\nopened: 2026-10-12\n---\n\n# BUG-01${i}：车道\n\n> 严重级别：P1｜发现：2026-10-12｜状态：${status}｜下一步 = 按翻转表走\n${fixDefinition}`, 'utf8')
       rows.push(`| [BUG-01${i}-lane.md](BUG-01${i}-lane.md) |`)
     }
     writeFileSync(join(backlog, 'bugs', 'README.md'),
       `# bugs\n\n| Bug |\n|---|\n${rows.join('\n')}\n`, 'utf8')
     expect(backlogLivenessProblems(backlog)).toEqual([])
+  })
+
+  it('accepts 待落地 only with 毕业：做现在 + 验收标准 + 去向, and reports each missing guard', () => {
+    const backlog = temp('backlog-ready-')
+    bootBacklog(backlog)
+    const card = (name, line, body = '## 验收标准\n\n- 可执行\n') =>
+      writeFileSync(join(backlog, 'issues', name),
+        `---\nstatus: 待落地\nopened: 2026-09-28\n---\n\n# 推敲：ready\n\n> 立卡：2026-09-28 ｜ 状态：待落地 ｜ ${line}\n\n${body}`, 'utf8')
+    card('260928-ready-ok.md', '毕业：做现在 ｜ 去向：implemented ｜ 可关闭：否')
+    card('260928-ready-no-accept.md', '毕业：做现在 ｜ 去向：implemented ｜ 可关闭：否', '## 验收标准\n\n')
+    card('260928-ready-no-dest.md', '毕业：做现在 ｜ 可关闭：否')
+    card('260928-ready-no-lean.md', '毕业：未定 ｜ 去向：implemented ｜ 可关闭：否')
+    writeFileSync(join(backlog, 'issues', 'README.md'),
+      '# issues\n\n| 卡 |\n|---|\n| [260928-ready-ok.md](260928-ready-ok.md) |\n| [260928-ready-no-accept.md](260928-ready-no-accept.md) |\n| [260928-ready-no-dest.md](260928-ready-no-dest.md) |\n| [260928-ready-no-lean.md](260928-ready-no-lean.md) |\n', 'utf8')
+    const problems = backlogLivenessProblems(backlog)
+    expect(problems.some(p => p.includes('260928-ready-ok.md'))).toBe(false)
+    expect(problems.some(p => p.includes('260928-ready-no-accept.md') && p.includes('## 验收标准 is empty'))).toBe(true)
+    expect(problems.some(p => p.includes('260928-ready-no-dest.md') && p.includes('has no 去向'))).toBe(true)
+    expect(problems.some(p => p.includes('260928-ready-no-lean.md') && p.includes('only for 做现在'))).toBe(true)
+  })
+
+  it('rejects 修复就绪/修复落地 without a 修好定义 section', () => {
+    const backlog = temp('backlog-fix-definition-')
+    bootBacklog(backlog)
+    for (const status of ['修复就绪', '修复落地']) {
+      writeFileSync(join(backlog, 'bugs', `BUG-02${status === '修复就绪' ? 0 : 1}-lane.md`),
+        `---\nstatus: ${status}\nseverity: P1\nopened: 2026-10-12\n---\n\n# BUG：车道\n\n> 严重级别：P1｜发现：2026-10-12｜状态：${status}\n`, 'utf8')
+    }
+    writeFileSync(join(backlog, 'bugs', 'README.md'),
+      '# bugs\n\n| Bug |\n|---|\n| [BUG-020-lane.md](BUG-020-lane.md) |\n| [BUG-021-lane.md](BUG-021-lane.md) |\n', 'utf8')
+    const problems = backlogLivenessProblems(backlog)
+    expect(problems.some(p => p.includes('BUG-020-lane.md') && p.includes('## 修好定义 is empty'))).toBe(true)
+    expect(problems.some(p => p.includes('BUG-021-lane.md') && p.includes('## 修好定义 is empty'))).toBe(true)
+  })
+
+  it('requires an active research title page to carry status/opened/> 状态, and 已定性 to carry a conclusion', () => {
+    const backlog = temp('backlog-topic-status-')
+    bootBacklog(backlog)
+    // No frontmatter: the active shelf lost its phase.
+    writeTopic(backlog, 'research', '261005-no-frontmatter',
+      '# 一题\n\n> 状态：调研中\n> 问题：要回答什么\n> 消费者：—\n> 产出的卡：—\n', { '261005-case.md': material() })
+    // Concluded without an answer.
+    writeTopic(backlog, 'research', '261005-no-conclusion',
+      titlePage({ status: '已定性' }), { '261005-case.md': material() })
+    // The status line forks from frontmatter.
+    writeTopic(backlog, 'research', '261005-forked',
+      titlePage().replace('> 状态：调研中', '> 状态：已定性'), { '261005-case.md': material() })
+    writeFileSync(join(backlog, 'research', 'README.md'),
+      '# research\n\n| 题 |\n|---|\n| [261005-no-frontmatter](261005-no-frontmatter/README.md) |\n| [261005-no-conclusion](261005-no-conclusion/README.md) |\n| [261005-forked](261005-forked/README.md) |\n', 'utf8')
+    const problems = backlogLivenessProblems(backlog)
+    expect(problems.some(p => p.includes('261005-no-frontmatter/README.md') && p.includes('has no frontmatter'))).toBe(true)
+    expect(problems.some(p => p.includes('261005-no-conclusion/README.md') && p.includes('> 结论'))).toBe(true)
+    expect(problems.some(p => p.includes('261005-forked/README.md') && p.includes('mirrors'))).toBe(true)
+  })
+
+  it('rejects research material that carries status', () => {
+    const backlog = temp('backlog-material-status-')
+    bootBacklog(backlog)
+    writeTopic(backlog, 'research', '261005-case', titlePage(), {
+      '261005-case.md': '---\ntopic: 随便哪个词\nintent: "材料"\nstatus: 调研中\n---\n\n# 案例\n',
+    })
+    writeFileSync(join(backlog, 'research', 'README.md'),
+      '# research\n\n| 题 |\n|---|\n| [261005-case](261005-case/README.md) |\n', 'utf8')
+    const problems = backlogLivenessProblems(backlog)
+    expect(problems.some(p => p.includes('261005-case/261005-case.md') && p.includes('must not carry status'))).toBe(true)
   })
 
   it('rejects the retired 活跃 value, a status line that forks from the frontmatter, and a head with no 状态 line', () => {

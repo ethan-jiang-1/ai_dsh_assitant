@@ -2,6 +2,8 @@
 
 日期：2026-10-25 · 状态：**implemented**
 
+> **2026-11-02 补**：ready 门、`去向` 值域与写入时机见 [backlog 工作项生命周期](2026-11-02-backlog-work-item-lifecycle.md) 与 [`notes/AGENTS.md`](../AGENTS.md)；两个 handoff 与收口卡台账仍有效。
+
 ## 问题（可观察行为）
 
 已结卡上的「下游处理」长期只有一行去向，方法要求的完整申请（日期、接收方、内容）几乎不出现；「做」的结论被递给 notes，但 work 的授权、验收和台账其实住在 proposed、收口卡和规格卡。10-12 之后流程文本冻结，campaign 形态（proposed + 规格卡 + 收口卡 + note）没有写进合同。10-20 的「implemented 只留决定」清理把 K4、晨报、proactive-face 的「本人的验收面（未取）」删掉——机器已绿、人的判断还没取的东西在 memory 树里没有位置。归档卡里指向 note 的「去向」指针也在烂，而 link gate 排除 `_archive`。
@@ -12,7 +14,7 @@
 2. **proposed 是 memory 的未来架，不是 work 板**：`proposed` ＝ 尚未成为当前权威（可待点头，也可已授权、在飞）；授权是**决定事实**，写在状态行，不是第二套生命周期词。
 3. **收口卡是唯一 work 台账**：切片推进、停点、证据、开放验收、未取的人判断都住 [`_backlog/issues/`](../../_backlog/issues/README.md) 的收口卡；规格卡是规格，不单独授权、不持台账；proposed 卡只指针到收口卡。
 4. **毕业前移开放 work**：note 毕业时，未取的人判断/延后验收先移到活卡（本次＝[261025-open-human-verdicts](../../_backlog/_archive/settled_issues/261025-open-human-verdicts.md)），note 只留指针；「implemented 只留决定」不再把开放 work 当交付证据删掉。
-5. **handoff 记录降为 destination ＋ 一句理由**：只有真要用户裁决 note 该不该写时，才写完整申请（日期/接收方/内容）。「去向」是记录，不是申请书。
+5. **handoff 记录降为 destination ＋ 一句理由**：只有真要用户裁决 note 该不该写时，才写完整申请（日期/接收方/内容）。「去向」是记录，不是申请书。2026-11-02 起值域为 `implemented` / `proposed` / `rejected` / `deferred` / `none`，写入时机归 [`notes/AGENTS.md`](../AGENTS.md)。
 6. **归档的 note 指针是活指针**：搬迁/毕业要修；`_archive` 的 handoff 指针进 scoped gate（不扫全部历史链接）。
 
 ## 输掉的方案

@@ -70,6 +70,8 @@ const REQUIRED_PATHS = [
   'docs/identity.md',
   'docs/discipline.md',
   'notes/README.md',
+  'notes/AGENTS.md',
+  '_backlog/AGENTS.md',
   'dev/env/env.sh',
   'dev/env/setup.sh',
   'dev/profiles/profile-patch-headless.yml',
@@ -396,12 +398,16 @@ check('composition: tool names in cordis.patch.yml comments exist in the catalog
 check('entry files: every AGENTS.md stays standing orders (no dates, no progress marks or prose)', () =>
   [
     join(repoRoot, 'AGENTS.md'),
+    join(repoRoot, '_backlog', 'AGENTS.md'),
+    join(repoRoot, 'notes', 'AGENTS.md'),
     join(repoRoot, 'docs', 'AGENTS.md'),
     join(repoRoot, 'dev', 'AGENTS.md'),
     join(repoRoot, 'scripts', 'AGENTS.md'),
     join(repoRoot, 'snapshots', 'AGENTS.md'),
     join(packageDir, 'AGENTS.md'),
-  ].flatMap(agentsMdStabilityProblems))
+    join(packageDir, 'tests', 'AGENTS.md'),
+  ].flatMap(path => agentsMdStabilityProblems(path)
+    .map(problem => problem.replace(/^AGENTS\.md:/, `${relative(repoRoot, path)}:`))))
 
 check('language: model-facing sources and skill bodies are English (skin face exempt)', () =>
   languageGuardProblems([

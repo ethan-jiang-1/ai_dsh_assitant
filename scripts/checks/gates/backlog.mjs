@@ -31,6 +31,26 @@ export function graduatedProposalProblems({ files }) {
   return problems
 }
 
+/** Body of a `## <title>` section, trimmed; undefined when the heading is absent. */
+function sectionBody(text, title) {
+  const lines = text.split('\n')
+  const start = lines.findIndex(line => line.trim() === title)
+  if (start < 0) return undefined
+  const body = []
+  for (let index = start + 1; index < lines.length; index += 1) {
+    if (/^##\s/.test(lines[index])) break
+    body.push(lines[index])
+  }
+  return body.join('\n').trim()
+}
+
+/** Memory carriers a `待落地` card may choose; the value set is owned by _backlog/AGENTS.md. */
+const DESTINATIONS = new Set(['implemented', 'proposed', 'rejected', 'deferred', 'none'])
+
+/** Research-topic statuses: active topics may still be gathering or concluded; archived keep 已定性. */
+const TOPIC_ACTIVE_STATUSES = new Set(['调研中', '已定性'])
+const TOPIC_ARCHIVED_STATUSES = new Set(['已定性'])
+
 /**
  * Backlog liveness (borrowed 2026-10-02 from ai_dsh_loop_advisor/_backlog's `backlog-liveness`,
  * owner-directed): the deliberation space's own mechanical gate. Three checks, all structural —
@@ -61,7 +81,7 @@ export function backlogLivenessProblems(backlogRoot) {
     .map(entry => entry.name)
 
   const cardStatus = {
-    issues: new Set(['推敲中', '等人拍板']),
+    issues: new Set(['推敲中', '待落地', '等人拍板']),
     // Bugs carry a four-value active vocabulary since the 2026-10-12 process card (borrowed
     // from ai_dsh_loop_advisor's same-day card): 活跃 was renamed 排查中 because "active"
     // collides with the manual's own 活跃区 once several active values coexist, and the
@@ -108,6 +128,9 @@ export function backlogLivenessProblems(backlogRoot) {
       // material's topic word has a directory to agree with.
       if (keys[0] !== 'topic') problems.push(`${where} frontmatter must start with topic`)
       if (typeof data.intent !== 'string' || data.intent.trim() === '' || data.intent.includes('\n')) problems.push(`${where} frontmatter needs a one-line intent`)
+      // Status belongs to the research topic, not to its evidence: a material that carries a
+      // phase word is pretending to be a conclusion.
+      if (Object.hasOwn(data, 'status')) problems.push(`${where} is research material and must not carry status — the topic title page owns the phase`)
     }
     // The parsed map feeds the mirror law below; failure paths already pushed their problem.
     return data
@@ -144,6 +167,19 @@ export function backlogLivenessProblems(backlogRoot) {
           if (leaning !== undefined && !GRADUATION_LEANING_HEADS.has(leaning)) {
             problems.push(`${where} 毕业 head ${JSON.stringify(leaning)} is not one of 未定|做现在|以后做|不做|已在别处`)
           }
+          if (area === 'issues' && String(data.status) === '待落地') {
+            if (leaning !== '做现在') problems.push(`${where} is 待落地 but its 毕业 head is ${JSON.stringify(leaning)} — 待落地 is only for 做现在`)
+            const destination = /去向：\s*([a-z]+)/.exec(head)?.[1]
+            if (destination === undefined) {
+              problems.push(`${where} is 待落地 but has no 去向 — choose implemented|proposed|rejected|deferred|none`)
+            } else if (!DESTINATIONS.has(destination)) {
+              problems.push(`${where} 去向 ${JSON.stringify(destination)} is not one of implemented|proposed|rejected|deferred|none`)
+            }
+            if (!sectionBody(text, '## 验收标准')) problems.push(`${where} is 待落地 but ## 验收标准 is empty — the card is not ready to land`)
+          }
+          if (area === 'bugs' && ['修复就绪', '修复落地'].includes(String(data.status))) {
+            if (!sectionBody(text, '## 修好定义')) problems.push(`${where} is ${data.status} but ## 修好定义 is empty — the fix has no definition`)
+          }
         }
       }
     }
@@ -165,12 +201,54 @@ export function backlogLivenessProblems(backlogRoot) {
     // the topic has left the active shelf. A long value may wrap onto `> ` continuation lines; only
     // the labelled heads are required.
     const titlePageProblems = (text, where, archived) => {
-      const head = text.split('\n').slice(0, 12).join('\n')
+      // The banner moved from 3 lines to 5 (status + question + consumers + produced cards +
+      // conclusion); the frontmatter adds 4 more. Read 16 lines so a wrapped question does not
+      // push the labels out of the checked band.
+      const head = text.split('\n').slice(0, 16).join('\n')
+      const block = frontmatterBlock(text)
+      let status
+      if (block === undefined) {
+        // Archived title pages from before the status contract are frozen evidence; only the
+        // active shelf is required to carry a phase. New archives keep the 已定性 status.
+        if (!archived) problems.push(`${where} has no frontmatter — an active research topic starts with status: 调研中|已定性`)
+      } else {
+        let data
+        try {
+          data = parseYaml(block)
+        } catch (error) {
+          problems.push(`${where} frontmatter is not parsable YAML: ${String(error).split('\n')[0]}`)
+          data = undefined
+        }
+        if (data !== null && typeof data === 'object' && !Array.isArray(data)) {
+          const keys = Object.keys(data)
+          if (keys[0] !== 'status') problems.push(`${where} frontmatter must start with status`)
+          status = String(data.status ?? '')
+          const allowed = archived ? TOPIC_ARCHIVED_STATUSES : TOPIC_ACTIVE_STATUSES
+          if (!allowed.has(status)) problems.push(`${where} status ${JSON.stringify(data.status)} is not a status of an ${archived ? 'archived' : 'active'} research topic`)
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(String(data.opened ?? ''))) problems.push(`${where} frontmatter needs opened: YYYY-MM-DD`)
+        } else if (data !== undefined) {
+          problems.push(`${where} frontmatter is not a field map`)
+        }
+      }
       // Active topics name their live consumers; an archived topic's consumers are all historical,
       // so the label itself carries that fact instead of repeating "历史" inside the value.
       const labels = ['问题', archived ? '历史消费者' : '消费者', '产出的卡']
       for (const label of labels) {
         if (!new RegExp(`^> ${label}：`, 'm').test(head)) problems.push(`${where} has no \`> ${label}：\` line in its head`)
+      }
+      if (status !== undefined) {
+        const mirrored = /^> 状态：\s*\**([^｜|\n（(]+)/m.exec(head)?.[1]?.replaceAll('*', '').trim()
+        if (mirrored === undefined) {
+          problems.push(`${where} has no \`> 状态：\` line — the title page mirrors its frontmatter`)
+        } else if (mirrored !== status) {
+          problems.push(`${where} status line says ${JSON.stringify(mirrored)} but frontmatter says ${JSON.stringify(status)} — the title page mirrors its frontmatter`)
+        }
+      }
+      if (status === '已定性') {
+        const conclusion = /^> 结论：\s*(.*)$/m.exec(head)?.[1]?.replaceAll('*', '').trim()
+        if (conclusion === undefined || conclusion === '' || conclusion === '—' || conclusion === '-') {
+          problems.push(`${where} is 已定性 but its \`> 结论：\` line is empty — a concluded topic carries its answer`)
+        }
       }
       if (archived && !/^> 归档：\d{4}-\d{2}-\d{2}/m.test(head)) {
         problems.push(`${where} has no \`> 归档：YYYY-MM-DD\` line — an archived topic carries its archive date`)

@@ -6,9 +6,11 @@ whenToUse: A confirmed issue conclusion needs downstream handling. Work goes to 
 
 # Route a conclusion to its downstream
 
-**Input:** the scoped issue, its confirmed conclusion and supporting evidence. For work that will be done,
-include its scope, alternatives and executable acceptance criteria. Resolve uncertain choices through
-[requirements confirmation](requirements-elicitation.md) before treating them as decisions.
+**Input:** the scoped issue at `待落地` (or a confirmed conclusion ready to route), its `去向` and supporting
+evidence. For work that will be done, include its scope, alternatives and executable acceptance criteria.
+`待落地` is ready, not authorization; authorization comes from the user request or a proposed card. Resolve
+uncertain choices through [requirements confirmation](requirements-elicitation.md) before treating them as
+decisions.
 
 **Output:** a recorded destination in the right tree, or an explicit gap preventing the handoff.
 
@@ -31,9 +33,10 @@ receiver is a future decision-maker reading the note. Neither handoff creates th
 Use the [backlog closure criteria](../README.md). State the applicable conclusion:
 
 - **Do it:** the observable problem, intended result, scope and exclusions, chosen approach, actual
-  alternatives and their costs, and executable acceptance criteria. If completion cannot be judged,
-  return to [acceptance design](validation-design.md). The work handoff needs this material; the note
-  does not duplicate it.
+  alternatives and their costs, and executable acceptance criteria. The card carries `毕业：做现在`, a
+  non-empty `## 验收标准` and a `去向`. If completion cannot be judged, return to
+  [acceptance design](validation-design.md). The work handoff needs this material; the note does not
+  duplicate it.
 - **Do it later:** why it is deferred, the condition for reconsidering it, and where that condition can
   be observed. Leave future design unresolved when it is unnecessary for this decision.
 - **Do not do it:** why, and the scope in which that reason applies.
@@ -44,18 +47,27 @@ Use the [backlog closure criteria](../README.md). State the applicable conclusio
 Separate confirmed facts from recommendations. A human choice that is still pending keeps the dependent
 conclusion open; record the exact question and next step.
 
+The card's `去向` is one of `implemented | proposed | rejected | deferred | none` (value set and guard:
+[`_backlog/AGENTS.md`](../AGENTS.md)). It names the memory carrier, not authorization. At `待落地` write
+the planned path as inline code; at close replace it with a live relative link (or `none`). The receiver
+owns writing timing and reconciliation ([`notes/AGENTS.md`](../../notes/AGENTS.md)): no note at
+`待落地`, `implemented` with delivery/card close, `proposed` with card close (card close ≠ approval),
+`none`/`deferred` never enter notes.
+
 ## 2. Route the conclusion and record the destination
 
 For a **work handoff**, the destination is the proposed card (authorization) and the closure card
 (ledger). Record the closure-card link and the authorization fact on the issue; the closure card owns
-the slice status, evidence and any open acceptance. The proposed card points to the closure card; it
-does not duplicate the ledger. The work starts only after the user's authorization is recorded.
+the slice status, evidence and any open acceptance. The issue flips `待落地` when the conclusion is
+ready; that status covers the whole implementation period — do not add `落地中`/`待复核`. The proposed
+card points to the closure card; it does not duplicate the ledger. The work starts only after the
+user's authorization is recorded.
 
-For a **memory handoff**, the destination is the note or the trigger row. Record the note/trigger link
-and the one-line reason it is the destination. A full submission section (date, recipient, requested
-handling) is only needed when the user is actually being asked to decide whether a note should exist;
-otherwise a one-line destination on the card is the record. The [notes entry](../../notes/README.md) is
-a rules entry, not an inbox.
+For a **memory handoff**, the destination is the note, the proposed card or the trigger row, recorded as
+`去向` on the card. Link it and give the one-line reason. A full submission section (date, recipient,
+requested handling) is only needed when the user is actually being asked to decide whether a note should
+exist; otherwise a one-line destination on the card is the record. The [notes entry](../../notes/README.md)
+is a rules entry, not an inbox; the receiver's writing timing is in [`notes/AGENTS.md`](../../notes/AGENTS.md).
 
 Keep the record on the issue (or in the closure card it points to); moving the card later must preserve
 the pointer. Source links support the problem, conclusion and reasons; they do not replace those
@@ -63,17 +75,20 @@ statements.
 
 ## 3. Close the issue when its conditions are met
 
-Apply the [backlog closure rules](../README.md): preserve the discussion, add the conclusion and
-destination (or the existing conclusion that already answers the issue), move the card into the
-appropriate archive, repair relative links, and update the active and archive lists. Research follows
-its [consumer-linked lifecycle](../research/README.md). A recorded destination need not have produced a
-note before the backlog card can close.
+Apply the [backlog closure rules](../README.md): preserve the discussion, add the conclusion,
+destination and `审查：` record (or the existing conclusion that already answers the issue), move the
+card into the appropriate archive, repair relative links, and update the active and archive lists. The
+card and its destination carrier (note, proposed card, trigger, or `none`) move in the same change.
+Research follows its [consumer-linked lifecycle](../research/README.md). A recorded destination need not
+have produced a note before the backlog card can close.
 
 Existing cards that already carry implementation and pending acceptance stay active until their stated
 requirements are resolved. Keep the remaining evidence gaps and human decisions explicit; do not treat
 implementation alone as acceptance. Open acceptance that outlives the note's graduation moves to a live
-work card; the note keeps only a pointer.
+work card; the note keeps only a pointer. `可关闭：是` is set only in the archive change; active cards
+stay `可关闭：否`.
 
-**Finish:** another reader can tell what backlog concluded, why, which downstream received it (work or
-memory), and whether the card is closed or exactly what still prevents closure. Each receiver owns its
-own subsequent decisions: the closure card owns work, the note owns memory.
+**Finish:** another reader can tell what backlog concluded, why, which downstream received it (work and
+memory), which review layer ran or was skipped, and whether the card is closed or exactly what still
+prevents closure. Each receiver owns its own subsequent decisions: the closure card owns work, the note
+owns memory.

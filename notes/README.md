@@ -1,5 +1,6 @@
 # notes/ —— 开发记忆与证据链（本目录的分类 owner）
 
+> **Agent 进目录先读 [`AGENTS.md`](AGENTS.md)**：收件、写入时机与验证对账在那里；本文件是分类与生命周期规则。
 > **每个目录装什么、状态怎么读、由谁维护，以本文件为准**——职责由一个具名文件拥有，不由惯例拥有
 > （借自 DSH 的 Agent Notes 分类学：主仓语料消化稿——主仓 checkout `deepseek-harness` 的
 > `_dsh_plugin_agent_ready_development/repo-harness/08-repository-taxonomy.md` 与
@@ -123,6 +124,7 @@ owner 是收口卡/规格卡；proposed 卡的「验收」是完成条件 + 指�
    台账/证据住收口卡。
 
 本文件不记「再出现就升级」的观察。真证据的家是测试和现行文档。
+从 `_backlog` 的 `待落地` 卡接班时，写入时机与验证对账按 [`AGENTS.md`](AGENTS.md)；本节只拥有 TDD 证据环。
 
 ## 三、不设计数清单（2026-09-26 拆除原"当前清单"）
 
