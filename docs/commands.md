@@ -92,6 +92,7 @@ pnpm ov-trial-rt        # OpenViking 真服务记忆往返试验（前提 server
 pnpm install-parity     # 开发环的安装面快通道：pack → 干净 web profile → dsh plugin add → dump 断言（不 boot、无浏览器）
 pnpm release-smoke      # pack → 干净 home → dsh plugin add → 组合断言（改动发布物/依赖/preset 包装/工具面必跑）
 pnpm upgrade-smoke      # 旧包→新包升级 + remove/re-add 后两目录数据保留
+pnpm pack-parity        # 诊断：pnpm pack 与 npm pack 的文件集/内容是否一致（不一致 exit 1）
 pnpm standalone-smoke   # 无 .git 提取包 → bootstrap → 隔离 home → preflight → client boot/UI → stop
 pnpm product-smoke      # 安装器：pack → bootstrap --workspace → profile/Config → 真 boot → workspace.json + in-process 会话 cwd → stop
 pnpm product-native-smoke  # 无安装器：web 模板建 assistant profile → dsh plugin add → 真 boot → GET not-configured/onboarding → POST → 登记 + Config + 会话 cwd
