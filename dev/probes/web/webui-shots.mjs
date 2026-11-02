@@ -101,8 +101,8 @@ const viewports = sizes.length > 0 ? sizes : ['1600x1000']
 
 const chrome = findChromeBinary()
 if (chrome === undefined) {
-  console.error('no Chrome/Edge binary found (set DSH_PROBE_CHROME or CHROME_BIN)')
-  process.exit(1)
+  console.error('webui-shots: BLOCKED — no Chrome/Edge binary (set DSH_PROBE_CHROME or CHROME_BIN)')
+  process.exit(2)
 }
 
 /** Resolve once Chrome prints its DevTools endpoint on stderr; fail after 20s. */

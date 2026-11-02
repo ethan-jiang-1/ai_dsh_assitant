@@ -10,8 +10,9 @@
  * The workspace must stay outside the home: the product row refuses paths inside its own data
  * plane. The sibling directory keeps the gate label deterministic (`product-workspace`).
  */
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
+import { addProfileRows } from '../../../dev/probes/web/scene-home.mjs'
 
 const [command, homeArg] = process.argv.slice(2)
 if (command === undefined || homeArg === undefined) {
@@ -55,10 +56,7 @@ if (command === 'patch') {
     console.log('seed: product scene rows already present — skip')
     process.exit(0)
   }
-  const addition = missing.map(row => ['', ...row.block].join('\n')).join('\n')
-  // The dev profile's user layer is an empty array after setup.sh; an appended list
-// must replace that placeholder, not follow it (two YAML documents do not parse).
-writeFileSync(patchPath, current.replace(/^\s*\[\s*\]\s*$/m, '').replace(/\n*$/, '\n') + addition + '\n')
+  addProfileRows(patchPath, missing.map(row => row.block.join('\n')))
   console.log(`seed: ${missing.length} profile row(s) written → ${patchPath}`)
   process.exit(0)
 }
@@ -81,7 +79,7 @@ if (command === 'bind') {
     '  config:',
     `    workspaceDir: ${workspace}`,
   ].join('\n')
-  writeFileSync(patchPath, current.replace(/\n*$/, '\n') + block + '\n')
+  addProfileRows(patchPath, [block])
   console.log(`seed: product Config binding written → ${workspace}`)
   process.exit(0)
 }

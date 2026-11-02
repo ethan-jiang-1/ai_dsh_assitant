@@ -25,7 +25,7 @@
  */
 import { mkdirSync } from 'node:fs'
 import { join } from 'node:path'
-import { launchCdpBrowser } from './cdp-driver.mjs'
+import { findChromeBinary, launchCdpBrowser } from './cdp-driver.mjs'
 import { pollUntil } from './dialogue.mjs'
 import { sleep } from './probe-utils.mjs'
 import { mkTmpDir } from '../../env/tmp.mjs'
@@ -37,6 +37,10 @@ const say = message => { if (!quiet) console.error(`  ..  ${message}`) }
 
 if (url === undefined || !/^https?:\/\//.test(url)) {
   console.error("product-first-screen: pass a booted GUI URL like 'http://127.0.0.1:<port>/?token=<t>'")
+  process.exit(2)
+}
+if (findChromeBinary() === undefined) {
+  console.error('product-first-screen: BLOCKED — no Chrome/Edge binary (set DSH_PROBE_CHROME or CHROME_BIN)')
   process.exit(2)
 }
 
@@ -90,11 +94,20 @@ try {
     'the product gate dock',
   )
   verdict.dockExplains = true
-  // The composer is a contenteditable editor, not a textarea: the block's own reason is
-  // rendered as the seat's placeholder copy, which is the signal the principal sees.
+  // The dock and the composer block share one seat and one copy line. Assert the block's own
+  // surface — the editor is disabled/inert AND its placeholder carries the reason — not the
+  // seat's innerText, which the dock alone satisfies.
   verdict.newSessionBlocked = await evaluate(`(() => {
     const seat = document.querySelector('[data-composer-seat]')
-    return seat !== null && seat.innerText.includes('先选择一个项目目录')
+    if (seat === null) return false
+    const editor = seat.querySelector('[contenteditable], [role="textbox"], textarea')
+    if (editor === null) return false
+    const disabled = editor.getAttribute('aria-disabled') === 'true'
+      || editor.getAttribute('contenteditable') === 'false'
+      || editor.hasAttribute('disabled')
+      || editor.inert === true
+    const placeholder = seat.querySelector('[data-composer-placeholder]')?.textContent ?? ''
+    return disabled && placeholder.includes('先选择一个项目目录')
   })()`) === true
 
   say(`binding the project ${project}`)

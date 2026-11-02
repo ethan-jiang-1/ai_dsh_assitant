@@ -8,8 +8,9 @@
  * There is deliberately no `bind` step: the product row is `not-configured`, so the client gate
  * must render the first-run chooser instead of the ordinary dashboard.
  */
-import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
+import { addProfileRows } from '../../../dev/probes/web/scene-home.mjs'
 
 const [command, homeArg] = process.argv.slice(2)
 if (command !== 'patch' || homeArg === undefined) {
@@ -50,8 +51,5 @@ if (missing.length === 0) {
   console.log('seed: onboarding scene rows already present — skip')
   process.exit(0)
 }
-const addition = missing.map(row => ['', ...row.block].join('\n')).join('\n')
-// The dev profile's user layer is an empty array after setup.sh; an appended list
-// must replace that placeholder, not follow it (two YAML documents do not parse).
-writeFileSync(patchPath, current.replace(/^\s*\[\s*\]\s*$/m, '').replace(/\n*$/, '\n') + addition + '\n')
+addProfileRows(patchPath, missing.map(row => row.block.join('\n')))
 console.log(`seed: ${missing.length} profile row(s) written → ${patchPath}`)

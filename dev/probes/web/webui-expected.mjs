@@ -105,7 +105,9 @@ const capture = spawnSync(process.execPath, [
 ], { stdio: 'inherit' })
 if (capture.status !== 0) {
   console.error(`webui-expected: capture failed (shots exit ${capture.status}) — evidence dir: ${workDir}`)
-  process.exit(1)
+  // Preserve the browser lane's BLOCKED distinction: no Chrome is an environment block (2),
+  // not a scene/product failure (1).
+  process.exit(capture.status === 2 ? 2 : 1)
 }
 
 const domPath = join(workDir, `expected-${size}.dom.txt`)

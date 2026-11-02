@@ -18,8 +18,8 @@
  * Style: scripts/AGENTS.md — pure ESM, Node built-ins only.
  */
 import { spawn } from 'node:child_process'
-import { existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { appendFileSync, existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { basename, dirname, join } from 'node:path'
 import { sleep } from './probe-utils.mjs'
 
 /** Every pid file a self-hosting probe registers in its home — the shared-home protocol. */
@@ -94,19 +94,31 @@ export async function startProbeService({ repoRoot, home, pidName, patch, extraE
   })
   const pidFile = join(home, pidName)
   writeFileSync(pidFile, String(service.pid))
+  // Sibling of the home, so a failed boot's log survives the scene cleanup (the home does not).
+  const logPath = join(dirname(home), `${basename(home)}-service.log`)
   let url = undefined
-  let bootError = undefined
+  let bootHead = ''
+  let bootTail = ''
   service.stdout.on('data', (chunk) => {
     const match = /dsh web: (http:\/\/\S+)/.exec(String(chunk))
     if (match !== null) url = match[1]
   })
-  service.stderr.on('data', (chunk) => { bootError = String(chunk) })
-  for (let i = 0; i < 120 && url === undefined; i++) await sleep(500)
+  service.stderr.on('data', (chunk) => {
+    const text = String(chunk)
+    try { appendFileSync(logPath, text) } catch { /* the home was removed underneath us */ }
+    if (bootHead.length < 4000) bootHead += text
+    bootTail = (bootTail + text).slice(-4000)
+  })
+  // Stop waiting as soon as the child exits: a compose/YAML failure should surface in seconds,
+  // not after the full URL budget.
+  for (let i = 0; i < 120 && url === undefined && service.exitCode === null; i++) await sleep(500)
   if (url === undefined) {
     service.kill('SIGTERM')
-    throw new Error(`service never printed its URL (stderr tail: ${String(bootError).slice(-400)})`)
+    // Keep the first error (usually the compose/YAML cause) and the last stack, not only the tail.
+    const head = bootHead.length >= 4000 ? `${bootHead.slice(0, 4000)}\n…\n` : bootHead
+    throw new Error(`service never printed its URL (log: ${logPath}; stderr: ${head}${bootTail})`)
   }
-  return { service, url, pidFile }
+  return { service, url, pidFile, logPath }
 }
 
 /**

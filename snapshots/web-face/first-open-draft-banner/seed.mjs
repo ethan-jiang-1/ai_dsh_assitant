@@ -14,6 +14,7 @@
  */
 import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
+import { addProfileRows } from '../../../dev/probes/web/scene-home.mjs'
 
 const [command, homeArg] = process.argv.slice(2)
 if (command === undefined || homeArg === undefined) {
@@ -84,10 +85,7 @@ if (command === 'patch') {
     console.log('seed: workspace pin and notice ack already present — skip')
     process.exit(0)
   }
-  const addition = missing.map(row => ['', ...row.block].join('\n')).join('\n')
-  // The dev profile's user layer is an empty array after setup.sh; an appended list
-// must replace that placeholder, not follow it (two YAML documents do not parse).
-writeFileSync(patchPath, current.replace(/^\s*\[\s*\]\s*$/m, '').replace(/\n*$/, '\n') + addition + '\n')
+  addProfileRows(patchPath, missing.map(row => row.block.join('\n')))
   console.log(`seed: ${missing.length} profile row(s) written → ${patchPath}`)
   process.exit(0)
 }

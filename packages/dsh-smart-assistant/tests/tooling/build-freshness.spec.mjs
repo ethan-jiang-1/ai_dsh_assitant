@@ -19,8 +19,12 @@ import { describe, expect, it, afterEach } from 'vitest'
 import { packageBuildFreshnessProblems } from '../../../../scripts/checks/gates/build-freshness.mjs'
 import { temp, disposeTempDirs } from './verify-gates-harness.mjs'
 
-/** Build-spawning fixtures exceed the default 5s on a loaded machine; assertions are unchanged. */
-const itBuilding = (name, fn) => it(name, fn, 20_000)
+/**
+ * Each case builds a real throwaway package (tsc + tsdown), so the budget is CPU contention,
+ * not a retry: a loaded full-suite run has taken >20s for one case while the file alone takes
+ * ~5s. A timeout is a fixture budget; it never papers over a failed assertion.
+ */
+const itBuilding = (name, fn) => it(name, fn, 60_000)
 
 afterEach(disposeTempDirs)
 

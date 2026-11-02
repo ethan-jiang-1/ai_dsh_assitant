@@ -3,17 +3,22 @@
  * One-command replay of the web-face scenes: fresh isolated home → seed → boot the real service
  * → capture/compare the committed expectation → stop.
  *
- * Default: the four customer scenes. `--all` adds the four Viki debug scenes: one fixed
- * OpenViking mock (viki-panel-connected/seed.mjs) serves connected/diagnostics/search, while
- * disconnected points at a dead port; all Viki pages use `#debug=1`.
+ * Default: the four customer scenes. `--all` adds the two product scenes (10 total) and the four
+ * Viki debug scenes: one fixed OpenViking mock (viki-panel-connected/seed.mjs) serves
+ * connected/diagnostics/search, while disconnected points at a dead port; all Viki pages use
+ * `#debug=1`.
  *
  * The unit lane has one real-DOM spec (happy-dom + react-dom); this lane stays the full
  * Chrome/CDP render, because the Viki tab, right rail and scene clicks are only real there.
+ *
+ * Missing Chrome, a stale `lib/`, or a failed provisioning is BLOCKED (exit 2), not a scene FAIL:
+ * the lane must not send an agent after a product regression that never ran.
  *
  * Usage:
  *   node dev/probes/web/web-face-check.mjs [--scenario <name>] [--all] [--keep]
  *   Customer: blank-first-open, first-open-draft-banner, desk-eight-matters-first-open,
  *             desk-eight-matters-brief-list (default)
+ *   Product:  product-workspace-gate, product-onboarding
  *   Viki:     viki-panel-connected, viki-panel-diagnostics, viki-panel-disconnected,
  *             viki-panel-search (only with --all or --scenario)
  */
@@ -22,8 +27,10 @@ import { readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { mkTmpDir } from '../../env/tmp.mjs'
+import { findChromeBinary } from './cdp-driver.mjs'
 import { sleep } from './probe-utils.mjs'
 import { startProbeService } from './probe-service.mjs'
+import { addProfileRows } from './scene-home.mjs'
 
 const repoRoot = resolve(fileURLToPath(new URL('.', import.meta.url)), '..', '..', '..')
 const args = process.argv.slice(2)
@@ -65,6 +72,24 @@ function sh(command, commandArgs, options = {}) {
   return result.status ?? 1
 }
 
+// The scene lane loads built `lib/` and a real browser. Missing either is an environment block,
+// not a product red — and a stale `lib/` must never be compared or refreshed as if it were green.
+if (findChromeBinary() === undefined) {
+  console.error('web-face-check: BLOCKED — no Chrome/Edge binary (set DSH_PROBE_CHROME or CHROME_BIN)')
+  process.exit(2)
+}
+if (sh(process.execPath, ['dev/env/ensure-build.mjs']) !== 0) {
+  console.error('web-face-check: FAIL — artifacts could not be made fresh (build failed or lib/ still stale)')
+  process.exit(1)
+}
+
+/** Provision or declare the lane blocked; a missing vendor build / profile is not a scene failure. */
+function provisionOrBlock(home, options = {}) {
+  if (provision(home, options)) return
+  console.error('web-face-check: BLOCKED — scene home could not be provisioned (vendor artifacts / profile setup)')
+  process.exit(2)
+}
+
 /**
  * Provision one probe home. `productOff` marks a scene that is NOT a product deployment: the
  * product gate would otherwise withhold every conversation's input (correct for the product,
@@ -79,20 +104,13 @@ function provision(home, options = {}) {
   if (sh('bash', ['dev/env/setup.sh'], { env: { ...process.env, ASSISTANT_DSH_HOME: home } }) !== 0) return false
   if (options.productOff === true) {
     const patchPath = join(home, 'profiles', 'dev', 'cordis.patch.yml')
-    const current = readFileSync(patchPath, 'utf8')
-    if (!current.includes('onboarding: false')) {
-      const block = [
+    if (!readFileSync(patchPath, 'utf8').includes('onboarding: false')) {
+      addProfileRows(patchPath, [[
         '# 非产品面场景：显式关掉产品首启门（本场景不是产品部署；产品门由 product-* 场景验）。',
         '- id: assistant-product',
         '  config:',
         '    onboarding: false',
-        '',
-      ].join('\n')
-      // A fresh profile's patch is the header comment plus `[]` — a flow sequence cannot be
-      // followed by block entries. Replace the empty list; otherwise append a list item.
-      const base = current.replace(/\n*$/, '\n')
-      const next = /^\s*\[\]\s*$/m.test(base) ? base.replace(/^\s*\[\]\s*$/m, block) : base + block
-      writeFileSync(patchPath, next)
+      ].join('\n')])
     }
   }
   return true
@@ -114,13 +132,22 @@ function expected(url, scenario, expectedArgs) {
 }
 
 async function withService(home, options, run) {
-  const { service, url, pidFile } = await startProbeService({
-    repoRoot,
-    home,
-    pidName: '.web-face-check.pid',
-    ...(options.patch !== undefined ? { patch: options.patch } : {}),
-    ...(options.extraEnv !== undefined ? { extraEnv: options.extraEnv } : {}),
-  })
+  let started
+  try {
+    started = await startProbeService({
+      repoRoot,
+      home,
+      pidName: '.web-face-check.pid',
+      ...(options.patch !== undefined ? { patch: options.patch } : {}),
+      ...(options.extraEnv !== undefined ? { extraEnv: options.extraEnv } : {}),
+    })
+  } catch (error) {
+    // One scene's boot failure must not abort the remaining scenes or lose the diagnosis. The
+    // caller still records the single FAIL; this line carries the actual compose/YAML error.
+    console.error(`  !!   ${options.name ?? 'scene'}: service did not boot — ${error instanceof Error ? error.message : String(error)}`)
+    return 1
+  }
+  const { service, url, pidFile } = started
   try {
     return await run(url)
   } finally {
@@ -183,7 +210,7 @@ async function startVikiMock() {
 async function runViki(names) {
   const home = mkTmpDir('web-face-check', 'viki-home-')
   console.log(`\n▶ viki (${home})`)
-  if (!provision(home, { productOff: true })) return failed('viki: provision failed')
+  provisionOrBlock(home, { productOff: true })
 
   const connected = names.filter(name => name !== 'viki-panel-disconnected')
   if (connected.length > 0) {
@@ -197,7 +224,7 @@ async function runViki(names) {
       return
     }
     try {
-      const code = await withService(home, { extraEnv: { OPENVIKING_URL: base } }, async url => {
+      const code = await withService(home, { name: 'viki', extraEnv: { OPENVIKING_URL: base } }, async url => {
         let status = 0
         for (const scenario of connected) {
           const recipe = VIKI_RECIPES[scenario]
@@ -218,7 +245,7 @@ async function runViki(names) {
   }
 
   if (names.includes('viki-panel-disconnected')) {
-    const code = await withService(home, { extraEnv: { OPENVIKING_URL: 'http://127.0.0.1:9' } }, url => {
+    const code = await withService(home, { name: 'viki-panel-disconnected', extraEnv: { OPENVIKING_URL: 'http://127.0.0.1:9' } }, url => {
       const recipe = VIKI_RECIPES['viki-panel-disconnected']
       return expected(url, 'viki-panel-disconnected', [
         ...recipe.evals.flatMap(evalSnippet => ['--eval', evalSnippet]),
@@ -234,7 +261,7 @@ async function runViki(names) {
 async function runBlank() {
   const home = mkTmpDir('web-face-check', 'blank-home-')
   console.log(`\n▶ blank-first-open (${home})`)
-  if (!provision(home, { productOff: true })) return failed('blank-first-open: provision failed')
+  provisionOrBlock(home, { productOff: true })
   const workspace = join(home, 'workspace.patch.yml')
   writeFileSync(workspace, [
     '- id: workspace-controller',
@@ -243,7 +270,7 @@ async function runBlank() {
     `    documentsDirectory: ${join(home, 'workspaces')}`,
     '',
   ].join('\n'))
-  const code = await withService(home, { patch: workspace }, url =>
+  const code = await withService(home, { name: 'blank-first-open', patch: workspace }, url =>
     expected(url, 'blank-first-open', ['--wait-text', '最近哪件事让你拿不准']))
   if (code === 0) ok('blank-first-open') ; else failed(`blank-first-open (exit ${code})`)
   if (!keep) rmSync(home, { recursive: true, force: true })
@@ -252,10 +279,10 @@ async function runBlank() {
 async function runBanner() {
   const home = mkTmpDir('web-face-check', 'banner-home-')
   console.log(`\n▶ first-open-draft-banner (${home})`)
-  if (!provision(home, { productOff: true })) return failed('first-open-draft-banner: provision failed')
+  provisionOrBlock(home, { productOff: true })
   const seedScript = 'snapshots/web-face/first-open-draft-banner/seed.mjs'
   if (!seed([seedScript, 'patch', home], home)) return failed('first-open-draft-banner: seed patch failed')
-  const code = await withService(home, {}, async url => {
+  const code = await withService(home, { name: 'first-open-draft-banner' }, async url => {
     if (warmUp('first-open-draft-banner', url, 'banner') !== 0) return 1
     if (!seed([seedScript, 'rooms', home], home)) return 1
     return expected(url, 'first-open-draft-banner', [
@@ -270,12 +297,12 @@ async function runBanner() {
 async function runProduct() {
   const home = mkTmpDir('web-face-check', 'product-home-')
   console.log(`\n▶ product-workspace-gate (${home})`)
-  if (!provision(home)) return failed('product-workspace-gate: provision failed')
+  provisionOrBlock(home)
   const seedScript = 'snapshots/web-face/product-workspace-gate/seed.mjs'
   if (!seed([seedScript, 'patch', home], home)) return failed('product-workspace-gate: seed patch failed')
   if (!seed([seedScript, 'bind', home], home)) return failed('product-workspace-gate: seed bind failed')
   const workspace = join(dirname(home), 'product-workspace')
-  const code = await withService(home, {}, async url => {
+  const code = await withService(home, { name: 'product-workspace-gate' }, async url => {
     const first = expected(url, 'product-workspace-gate', ['--wait-text', '开始一件事'])
     if (first !== 0) return first
     // The gate's one action must actually start a Session in the bound workspace; the composer
@@ -305,10 +332,10 @@ async function runProduct() {
 async function runProductOnboarding() {
   const home = mkTmpDir('web-face-check', 'product-onboarding-home-')
   console.log(`\n▶ product-onboarding (${home})`)
-  if (!provision(home)) return failed('product-onboarding: provision failed')
+  provisionOrBlock(home)
   const seedScript = 'snapshots/web-face/product-onboarding/seed.mjs'
   if (!seed([seedScript, 'patch', home], home)) return failed('product-onboarding: seed patch failed')
-  const code = await withService(home, {}, async url => expected(url, 'product-onboarding', ['--wait-text', '选择项目目录']))
+  const code = await withService(home, { name: 'product-onboarding' }, async url => expected(url, 'product-onboarding', ['--wait-text', '选择项目目录']))
   if (code === 0) ok('product-onboarding') ; else failed(`product-onboarding (exit ${code})`)
   if (!keep) rmSync(home, { recursive: true, force: true })
 }
@@ -316,13 +343,13 @@ async function runProductOnboarding() {
 async function runDesk() {
   const home = mkTmpDir('web-face-check', 'desk-home-')
   console.log(`\n▶ desk-eight-matters (${home})`)
-  if (!provision(home, { productOff: true })) return failed('desk-eight-matters: provision failed')
+  provisionOrBlock(home, { productOff: true })
   const seedScript = 'snapshots/web-face/desk-eight-matters-first-open/seed.mjs'
   if (!seed([seedScript, 'patch', home], home)) return failed('desk-eight-matters: seed patch failed')
   if (!seed([seedScript, 'desk', home], home)) return failed('desk-eight-matters: seed desk failed')
   const code = await withService(
     home,
-    { patch: join(repoRoot, 'dev/probes/web/projection-fixture.patch.yml') },
+    { name: 'desk-eight-matters', patch: join(repoRoot, 'dev/probes/web/projection-fixture.patch.yml') },
     async url => {
       if (warmUp('desk-eight-matters', url, 'desk') !== 0) return 1
       const first = expected(url, 'desk-eight-matters-first-open', ['--wait-text', '还有 7 件'])
