@@ -19,11 +19,13 @@ import type { ComponentType } from 'react'
 import { createElement as ce } from '../chrome/runtime'
 import type { ProjectionPanelProps } from '../projection/projection-panel'
 import { productGateView, workspaceLabel, type ProductBinding } from './product-binding'
-import { chooseProductWorkspace, startSessionInBinding, useProductFace } from './product-face'
+import { chooseProductWorkspace, startSessionInBinding, useProductFace, type ProductFace } from './product-face'
 
 /** The gate wraps one of the existing dashboard components. */
 export interface ProductGateProps extends ProjectionPanelProps {
   readonly base: ComponentType<ProjectionPanelProps>
+  /** The per-materialization face; the entry creates it and the dock/first-mile share it. */
+  readonly face: ProductFace
 }
 
 const STYLES = [
@@ -48,6 +50,7 @@ const STYLES = [
 
 /** Render the first-run chooser; the dashboard is withheld until a project is bound. */
 function onboarding(
+  face: ProductFace,
   binding: ProductBinding,
   busy: boolean,
   error: string | undefined,
@@ -62,7 +65,7 @@ function onboarding(
           className: 'dsha-product-start',
           type: 'button',
           disabled: busy,
-          onClick: () => { void chooseProductWorkspace() },
+          onClick: () => { void chooseProductWorkspace(face) },
         }, busy ? '正在登记…' : '选择项目目录'),
       ),
       error === undefined ? null : ce('p', { className: 'dsha-product-error' }, error),
@@ -74,6 +77,7 @@ function onboarding(
 
 /** Render the recovery screen; the dashboard is withheld until the binding is usable. */
 function recovery(
+  face: ProductFace,
   binding: ProductBinding,
   busy: boolean,
   error: string | undefined,
@@ -94,7 +98,7 @@ function recovery(
           className: 'dsha-product-start',
           type: 'button',
           disabled: busy,
-          onClick: () => { void chooseProductWorkspace() },
+          onClick: () => { void chooseProductWorkspace(face) },
         }, busy ? '正在登记…' : '选择另一个目录'),
       ),
       error === undefined ? null : ce('p', { className: 'dsha-product-error' }, error),
@@ -111,13 +115,13 @@ function recovery(
  * @returns the gated dashboard.
  */
 export function ProductGate(props: ProductGateProps): ReturnType<typeof ce> {
-  const { base: Base, ...rest } = props
-  const face = useProductFace()
-  const view = productGateView(face.binding)
-  if (view === 'onboarding') return onboarding(face.binding as ProductBinding, face.busy, face.error)
-  if (view === 'recovery') return recovery(face.binding as ProductBinding, face.busy, face.error)
+  const { base: Base, face: productFace, ...rest } = props
+  const state = useProductFace(productFace)
+  const view = productGateView(state.binding)
+  if (view === 'onboarding') return onboarding(productFace, state.binding as ProductBinding, state.busy, state.error)
+  if (view === 'recovery') return recovery(productFace, state.binding as ProductBinding, state.busy, state.error)
   if (view !== 'ready') return ce(Base, rest)
-  const binding = face.binding as ProductBinding
+  const binding = state.binding as ProductBinding
   return ce('div', { className: 'dsha-product' },
     ce('style', {}, STYLES),
     ce('div', { className: 'dsha-product-bar' },
@@ -126,17 +130,17 @@ export function ProductGate(props: ProductGateProps): ReturnType<typeof ce> {
         ? ce('button', {
             className: 'dsha-product-start',
             type: 'button',
-            onClick: () => { startSessionInBinding(binding) },
+            onClick: () => { startSessionInBinding(productFace, binding) },
           }, '开始一件事')
         : null,
       ce('button', {
         className: 'dsha-product-change',
         type: 'button',
-        disabled: face.busy,
-        onClick: () => { void chooseProductWorkspace() },
-      }, face.busy ? '正在登记…' : '换项目'),
+        disabled: state.busy,
+        onClick: () => { void chooseProductWorkspace(productFace) },
+      }, state.busy ? '正在登记…' : '换项目'),
     ),
-    face.error === undefined ? null : ce('p', { className: 'dsha-product-error' }, face.error),
+    state.error === undefined ? null : ce('p', { className: 'dsha-product-error' }, state.error),
     ce('div', { className: 'dsha-product-body' }, ce(Base, rest)),
   )
 }

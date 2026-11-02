@@ -12,9 +12,9 @@ import { inertReactShim, loadClientRegistration, materializeClient, textsOf } fr
 const registration = await loadClientRegistration()
 
 interface ClientExports {
-  ProductGateDock: () => unknown
-  initProductFaceStore: () => unknown
-  setProductFace: (next: Partial<{ binding: unknown, busy: boolean, error: string | undefined }>) => void
+  ProductGateDock: (props: { face: unknown }) => unknown
+  createProductFace: () => unknown
+  setProductFace: (face: unknown, next: Partial<{ binding: unknown, busy: boolean, error: string | undefined }>) => void
 }
 
 function materialize(): ClientExports {
@@ -27,44 +27,44 @@ const READY = { version: 1, configured: true, status: 'ready' as const, workspac
 describe('product gate dock', () => {
   it('renders nothing once the project is bound or the face is legacy', () => {
     const surface = materialize()
-    surface.initProductFaceStore()
+    const face = surface.createProductFace()
 
-    surface.setProductFace({ binding: READY })
-    expect(surface.ProductGateDock()).toBeNull()
+    surface.setProductFace(face, { binding: READY })
+    expect(surface.ProductGateDock({ face })).toBeNull()
 
-    surface.setProductFace({ binding: undefined })
-    expect(surface.ProductGateDock()).toBeNull()
+    surface.setProductFace(face, { binding: undefined })
+    expect(surface.ProductGateDock({ face })).toBeNull()
   })
 
   it('explains the inert input and offers the picker while unbound', () => {
     const surface = materialize()
-    surface.initProductFaceStore()
-    surface.setProductFace({ binding: ONBOARDING })
-    const texts = textsOf(surface.ProductGateDock()).join('\n')
+    const face = surface.createProductFace()
+    surface.setProductFace(face, { binding: ONBOARDING })
+    const texts = textsOf(surface.ProductGateDock({ face })).join('\n')
     expect(texts).toContain('先选择一个项目目录')
     expect(texts).toContain('选择项目目录')
   })
 
   it('offers the reselection copy in the recovery state', () => {
     const surface = materialize()
-    surface.initProductFaceStore()
-    surface.setProductFace({ binding: { version: 1, configured: true, status: 'workspace-missing', workspaceDir: '/gone' } })
-    const texts = textsOf(surface.ProductGateDock()).join('\n')
+    const face = surface.createProductFace()
+    surface.setProductFace(face, { binding: { version: 1, configured: true, status: 'workspace-missing', workspaceDir: '/gone' } })
+    const texts = textsOf(surface.ProductGateDock({ face })).join('\n')
     expect(texts).toContain('上次的项目目录不在了')
     expect(texts).toContain('选择另一个目录')
   })
 
   it('shows the last operation error under the strip', () => {
     const surface = materialize()
-    surface.initProductFaceStore()
-    surface.setProductFace({ binding: ONBOARDING, error: '这个目录不能作为项目。' })
-    expect(textsOf(surface.ProductGateDock()).join('\n')).toContain('这个目录不能作为项目。')
+    const face = surface.createProductFace()
+    surface.setProductFace(face, { binding: ONBOARDING, error: '这个目录不能作为项目。' })
+    expect(textsOf(surface.ProductGateDock({ face })).join('\n')).toContain('这个目录不能作为项目。')
   })
 
   it('reports the busy state on the action', () => {
     const surface = materialize()
-    surface.initProductFaceStore()
-    surface.setProductFace({ binding: ONBOARDING, busy: true })
-    expect(textsOf(surface.ProductGateDock()).join('\n')).toContain('正在登记')
+    const face = surface.createProductFace()
+    surface.setProductFace(face, { binding: ONBOARDING, busy: true })
+    expect(textsOf(surface.ProductGateDock({ face })).join('\n')).toContain('正在登记')
   })
 })

@@ -12,7 +12,7 @@
 
 import { createElement as ce } from '../chrome/runtime'
 import { productGateReason, productGateView } from './product-binding'
-import { chooseProductWorkspace, startSessionInBinding, useProductFace } from './product-face'
+import { chooseProductWorkspace, startSessionInBinding, useProductFace, type ProductFace } from './product-face'
 
 const DOCK_STYLES = [
   '.dsha-gate-dock{display:flex;flex-direction:column;gap:6px;width:min(var(--dsh-composer-card-max-width, 952px), 100%);margin:0 auto 8px;padding:10px 14px;border:1px solid var(--dsw-alias-border-l2);border-radius:10px;background:var(--dsw-alias-bg-layer-1);}',
@@ -28,10 +28,15 @@ const DOCK_STYLES = [
  * Render the strip while the product has no usable project; render nothing otherwise.
  * @returns the strip, or null for ready/legacy faces.
  */
-export function ProductGateDock(): ReturnType<typeof ce> | null {
-  const face = useProductFace()
-  const view = productGateView(face.binding)
-  const reason = productGateReason(view, face.binding)
+export interface ProductGateDockProps {
+  /** The same per-materialization face the dashboard gate renders. */
+  readonly face: ProductFace
+}
+
+export function ProductGateDock({ face: productFace }: ProductGateDockProps): ReturnType<typeof ce> | null {
+  const state = useProductFace(productFace)
+  const view = productGateView(state.binding)
+  const reason = productGateReason(view, state.binding)
   if (reason === undefined) return null
   const recovery = view === 'recovery'
   return ce('div', { className: 'dsha-gate-dock' },
@@ -41,10 +46,10 @@ export function ProductGateDock(): ReturnType<typeof ce> | null {
       ce('button', {
         className: 'dsha-gate-dock-cta',
         type: 'button',
-        disabled: face.busy,
-        onClick: () => { void chooseProductWorkspace(startSessionInBinding) },
-      }, face.busy ? '正在登记…' : recovery ? '选择另一个目录' : '选择项目目录'),
+        disabled: state.busy,
+        onClick: () => { void chooseProductWorkspace(productFace, binding => { startSessionInBinding(productFace, binding) }) },
+      }, state.busy ? '正在登记…' : recovery ? '选择另一个目录' : '选择项目目录'),
     ),
-    face.error === undefined ? null : ce('p', { className: 'dsha-gate-dock-error' }, face.error),
+    state.error === undefined ? null : ce('p', { className: 'dsha-gate-dock-error' }, state.error),
   )
 }

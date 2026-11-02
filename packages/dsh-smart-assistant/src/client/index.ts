@@ -38,7 +38,7 @@ import { mountCommands } from './chrome/commands'
 import { createDeskActivityHandoff } from './desk/desk-view-actions'
 import { mountSessionCaptureStatuses } from './desk/desk-capture-status'
 import { DashboardMainPanel, DashboardPanelIcon } from './chrome/dashboard'
-import { ApprovalDockBanner, FirstMileDock } from './chrome/first-mile'
+import { ApprovalDockBanner, FirstMileDock, type FirstMileDockProps } from './chrome/first-mile'
 import { mountRoomTabs } from './rooms/mount-rooms'
 import { RememberAction } from './rooms/message-action'
 import { createElement } from './chrome/runtime'
@@ -187,10 +187,10 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     const dashboardComponent = projection === undefined ? DashboardMainPanel : HomeSurface
     // The product face owns its route runtime, bound store and conversation block; the entry
     // keeps the two thin registrations (dashboard wrapper and dock) so their order stays visible.
-    mountProductFace(ctx)
+    const productFace = mountProductFace(ctx)
     const baseDashboard = dashboardComponent as ComponentType<ProjectionPanelProps>
     const gatedDashboard = (props: ProjectionPanelProps) =>
-      createElement(ProductGate, { ...props, base: baseDashboard })
+      createElement(ProductGate, { ...props, base: baseDashboard, face: productFace })
     const dashboardMount = mountDashboard(ctx, {
       projection,
       viewStore,
@@ -299,7 +299,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
             ...(processingMatter === undefined ? {} : { processingMatter }),
           }
         },
-      }, FirstMileDock))
+      }, (props: FirstMileDockProps) => createElement(FirstMileDock, { ...props, face: productFace })))
     // The approval banner (first-open UX card round 16) rides the same dock seat as the
     // first-mile strip; the two coexist (each answers a different question).
     ctx.slots.inject('conversation.input.dock', () =>
@@ -316,7 +316,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         name: 'conversation.input.dock',
         id: 'assistant-product-gate',
         order: -11,
-      }, ProductGateDock))
+      }, () => createElement(ProductGateDock, { face: productFace })))
 
 
 

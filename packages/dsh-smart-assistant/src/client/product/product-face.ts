@@ -39,36 +39,25 @@ export interface ProductFaceState {
 
 const INITIAL: ProductFaceState = { binding: undefined, busy: false, error: undefined }
 
-let store: SnapshotStore<ProductFaceState> = createSnapshotStore(INITIAL)
-let runtime: ProductGateRuntime | undefined
-let generation = 0
+/** One materialization's product face: the store is created and owned by the entry. */
+export interface ProductFace {
+  readonly store: SnapshotStore<ProductFaceState>
+  readonly runtime: ProductGateRuntime | undefined
+}
 
 /**
- * Reset the face store for one materialization. A late response from the previous store is
- * dropped by the generation check, the same discipline the ui-mode store uses.
- * @param next - Runtime capabilities for this materialization.
- * @returns the fresh store (tests read it directly).
+ * Create the face for one materialization. A late response from a previous materialization
+ * writes to its own store, which nothing renders any more — no module generation counter.
+ * @param runtime - Runtime capabilities for this materialization.
+ * @returns the fresh face.
  */
-export function initProductFaceStore(next?: ProductGateRuntime): SnapshotStore<ProductFaceState> {
-  generation += 1
-  store = createSnapshotStore(INITIAL)
-  runtime = next
-  return store
-}
-
-/** Bind (or clear) the runtime after the store exists; the entry calls this once per materialization. */
-export function bindProductFaceRuntime(next: ProductGateRuntime | undefined): void {
-  runtime = next
-}
-
-/** The live store; the entry hands it to the block applier. */
-export function productFaceStore(): SnapshotStore<ProductFaceState> {
-  return store
+export function createProductFace(runtime?: ProductGateRuntime): ProductFace {
+  return { store: createSnapshotStore(INITIAL), runtime }
 }
 
 /** The current snapshot without subscribing. */
-export function productFaceState(): ProductFaceState {
-  return store.getSnapshot()
+export function productFaceState(face: ProductFace): ProductFaceState {
+  return face.store.getSnapshot()
 }
 
 /**
@@ -76,8 +65,8 @@ export function productFaceState(): ProductFaceState {
  * a known face before rendering (the inert React shim does not replay subscriptions).
  * @param next - Fields to merge.
  */
-export function setProductFace(next: Partial<ProductFaceState>): void {
-  store.set({ ...store.getSnapshot(), ...next })
+export function setProductFace(face: ProductFace, next: Partial<ProductFaceState>): void {
+  face.store.set({ ...face.store.getSnapshot(), ...next })
 }
 
 /**
@@ -85,33 +74,35 @@ export function setProductFace(next: Partial<ProductFaceState>): void {
  * client re-renders on every change.
  * @returns the current state, re-read on change.
  */
-export function useProductFace(): ProductFaceState {
+export function useProductFace(face: ProductFace | undefined): ProductFaceState {
   const { useEffect, useState } = reactSurface()
-  const [face, setFace] = useState(store.getSnapshot())
+  const [state, setState] = useState(face?.store.getSnapshot() ?? INITIAL)
   useEffect(() => {
-    const update = (): void => setFace(store.getSnapshot())
-    const dispose = store.subscribe(update)
+    if (face === undefined) {
+      setState(INITIAL)
+      return
+    }
+    const update = (): void => setState(face.store.getSnapshot())
+    const dispose = face.store.subscribe(update)
     update()
     return dispose
-  }, [])
-  return face
+  }, [face])
+  return state
 }
 
 /**
  * Read `api/assistant/product` once. A 404, a transport failure or an unexpected payload leaves
  * the face at `undefined` (legacy): the gate never becomes a second failure source.
  */
-export async function loadProductFace(): Promise<void> {
-  const face = runtime
-  if (face === undefined) return
-  const current = generation
+export async function loadProductFace(face: ProductFace): Promise<void> {
+  const runtime = face.runtime
+  if (runtime === undefined) return
   const settle = (next: Partial<ProductFaceState>): void => {
-    if (current !== generation) return
-    setProductFace(next)
+    setProductFace(face, next)
   }
   try {
-    const url = new URL('api/assistant/product', face.baseURI())
-    const response = await face.fetch(url, {
+    const url = new URL('api/assistant/product', runtime.baseURI())
+    const response = await runtime.fetch(url, {
       method: 'GET',
       credentials: 'same-origin',
       cache: 'no-store',
@@ -129,25 +120,23 @@ export async function loadProductFace(): Promise<void> {
  * conversation dock starts a Session in the new project (the blocked one is not the project).
  * @param after - Called with the ready binding on success.
  */
-export async function chooseProductWorkspace(after?: (binding: ProductBinding) => void): Promise<void> {
-  const face = runtime
-  if (face === undefined || store.getSnapshot().busy) return
-  const pick = face.pickDirectory
+export async function chooseProductWorkspace(face: ProductFace, after?: (binding: ProductBinding) => void): Promise<void> {
+  const runtime = face.runtime
+  if (runtime === undefined || face.store.getSnapshot().busy) return
+  const pick = runtime.pickDirectory
   if (pick === undefined) {
-    setProductFace({ error: '当前环境没有目录选择器；请在 profile patch 设置 assistant-product.workspaceDir。' })
+    setProductFace(face, { error: '当前环境没有目录选择器；请在 profile patch 设置 assistant-product.workspaceDir。' })
     return
   }
-  const current = generation
   const settle = (next: Partial<ProductFaceState>): void => {
-    if (current !== generation) return
-    setProductFace(next)
+    setProductFace(face, next)
   }
-  setProductFace({ busy: true, error: undefined })
+  setProductFace(face, { busy: true, error: undefined })
   try {
     const picked = await pick()
     if (picked === null) return
-    const url = new URL('api/assistant/product', face.baseURI())
-    const response = await face.fetch(url, {
+    const url = new URL('api/assistant/product', runtime.baseURI())
+    const response = await runtime.fetch(url, {
       method: 'POST',
       credentials: 'same-origin',
       cache: 'no-store',
@@ -184,8 +173,8 @@ export interface ComposerBlockWriter {
  * project, so the conversation dock moves the principal where the work belongs.
  * @param binding - The ready binding returned by the POST.
  */
-export function startSessionInBinding(binding: ProductBinding): void {
-  if (binding.workspaceId !== undefined) runtime?.startSession?.(binding.workspaceId)
+export function startSessionInBinding(face: ProductFace, binding: ProductBinding): void {
+  if (binding.workspaceId !== undefined) face.runtime?.startSession?.(binding.workspaceId)
 }
 
 /**
@@ -237,21 +226,21 @@ export interface ProductGateHost {
  * @param host - Session list + effect lifecycle.
  * @param writer - The conversation's block registry.
  */
-export function mountProductInputGate(host: ProductGateHost, writer: ComposerBlockWriter): void {
+export function mountProductInputGate(host: ProductGateHost, writer: ComposerBlockWriter, face: ProductFace): void {
   const blocked = new Set<string>()
   const sync = (): void => {
-    const face = store.getSnapshot()
-    const view = productGateView(face.binding)
+    const state = face.store.getSnapshot()
+    const view = productGateView(state.binding)
     applyProductInputGate(
       writer,
       host.sessions?.list?.getSnapshot().ids ?? [],
       view,
-      productGateReason(view, face.binding),
+      productGateReason(view, state.binding),
       blocked,
     )
   }
   host.effect(() => {
-    const disposeStore = store.subscribe(sync)
+    const disposeStore = face.store.subscribe(sync)
     const disposeList = host.sessions?.list?.subscribe(sync)
     sync()
     return () => {

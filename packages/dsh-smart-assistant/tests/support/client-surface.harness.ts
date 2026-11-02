@@ -15,7 +15,7 @@ export { DashboardMainPanel, DashboardPanelIcon } from '../../src/client/chrome/
 export { ApprovalDockBanner, FirstMileDock } from '../../src/client/chrome/first-mile'
 export { ProductGateDock } from '../../src/client/product/product-dock'
 export { ProductGate } from '../../src/client/product/product-gate'
-export { initProductFaceStore, setProductFace } from '../../src/client/product/product-face'
+export { createProductFace, setProductFace } from '../../src/client/product/product-face'
 export { RememberAction } from '../../src/client/rooms/message-action'
 export { KnowledgeIcon, KnowledgePanel, MemoryIcon, MemoryPanel } from '../../src/client/rooms/panels'
 export { ReceiptView, markReceiptRead, readReceiptSince, resetReceiptBaseline } from '../../src/client/rooms/receipt-view'

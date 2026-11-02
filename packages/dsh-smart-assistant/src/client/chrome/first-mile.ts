@@ -13,7 +13,7 @@ import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
 import type { RoomKind } from './contracts'
 import { patchDesk, useDesk } from '../rooms/room-data-core'
 import { productGateBlocks, productGateView } from '../product/product-binding'
-import { useProductFace } from '../product/product-face'
+import { useProductFace, type ProductFace } from '../product/product-face'
 import { createElement } from './runtime'
 import { MARK_TEAL } from './theme'
 import type {} from './locales'
@@ -55,11 +55,13 @@ interface FirstMileInjected {
   /** Bring the ledger desk to the main area — the one 桌面 (the session desk room is retired). */
   readonly openDesk?: () => void
   readonly processingMatter?: ProcessingMatterContext
+  /** The per-materialization product face; absent on partial compositions (legacy). */
+  readonly face?: ProductFace
 }
 
-type FirstMileDockProps = PropsRuntime<'conversation.input.dock'> & FirstMileInjected & PropsLocale<'assistantFirstMile'>
+export type FirstMileDockProps = PropsRuntime<'conversation.input.dock'> & FirstMileInjected & PropsLocale<'assistantFirstMile'>
 
-export function FirstMileDock({ session, openDesk, processingMatter, t }: FirstMileDockProps): ReturnType<typeof createElement> | null {
+export function FirstMileDock({ session, openDesk, processingMatter, face, t }: FirstMileDockProps): ReturnType<typeof createElement> | null {
   // The card is a pointer, not a second first-open composer: the one place to type a first
   // sentence is the home page. Keeping the old embedded textarea here made two first-open
   // surfaces with two different lanes (home `[首页]` vs conversation chat).
@@ -85,7 +87,7 @@ export function FirstMileDock({ session, openDesk, processingMatter, t }: FirstM
   // While the product has no usable project the conversation gate owns this slot: its dock
   // carries the project picker and its block makes the composer inert. The pointer back to
   // 「今天」 would contradict that (the desk is the gate itself until a project is bound).
-  const productFace = useProductFace()
+  const productFace = useProductFace(face)
   if (productGateBlocks(productGateView(productFace.binding))) return null
 
   // The walk view's desk data — on a blank session there is no session slice yet, so the

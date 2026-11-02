@@ -9,18 +9,20 @@
  * - The composer-block applier blocks every listed Session while onboarding/recovery is up and
  *   clears exactly the Sessions it blocked when the face turns ready.
  * - The session-list subscription carries a Session created while unbound into the block.
+ * - The face is an explicit per-materialization handle: no module-level current store.
  */
 import { describe, expect, it } from 'vitest'
 import {
   applyProductInputGate,
   chooseProductWorkspace,
-  initProductFaceStore,
+  createProductFace,
   loadProductFace,
   mountProductInputGate,
   productFaceState,
   setProductFace,
   startSessionInBinding,
   type ComposerBlockWriter,
+  type ProductFace,
 } from '../../src/client/product/product-face.ts'
 import type { ProductBinding, ProductGateRuntime } from '../../src/client/product/product-binding.ts'
 
@@ -42,6 +44,10 @@ function runtime(overrides: Partial<ProductGateRuntime> = {}): ProductGateRuntim
   }
 }
 
+function faceWith(overrides: Partial<ProductGateRuntime> = {}): ProductFace {
+  return createProductFace(runtime(overrides))
+}
+
 function recorder(): { writer: ComposerBlockWriter, writes: [string, { reason: string } | undefined][] } {
   const writes: [string, { reason: string } | undefined][] = []
   return {
@@ -52,12 +58,12 @@ function recorder(): { writer: ComposerBlockWriter, writes: [string, { reason: s
 
 describe('product face store', () => {
   it('starts legacy and accepts a valid route payload', async () => {
-    initProductFaceStore(runtime({
+    const face = faceWith({
       fetch: async () => ({ ok: true, json: async () => READY }) as unknown as Response,
-    }))
-    expect(productFaceState().binding).toBeUndefined()
-    await loadProductFace()
-    expect(productFaceState().binding).toEqual(READY)
+    })
+    expect(productFaceState(face).binding).toBeUndefined()
+    await loadProductFace(face)
+    expect(productFaceState(face).binding).toEqual(READY)
   })
 
   it('stays legacy for a 404 or an unexpected payload', async () => {
@@ -66,72 +72,81 @@ describe('product face store', () => {
       async () => ({ ok: true, json: async () => ({ version: 2 }) }) as unknown as Response,
       async () => ({ ok: true, json: async () => undefined }) as unknown as Response,
     ]) {
-      initProductFaceStore(runtime({ fetch }))
-      await loadProductFace()
-      expect(productFaceState().binding).toBeUndefined()
+      const face = faceWith({ fetch })
+      await loadProductFace(face)
+      expect(productFaceState(face).binding).toBeUndefined()
     }
   })
 
   it('survives a transport failure', async () => {
-    initProductFaceStore(runtime({ fetch: async () => { throw new Error('offline') } }))
-    await loadProductFace()
-    expect(productFaceState().binding).toBeUndefined()
+    const face = faceWith({ fetch: async () => { throw new Error('offline') } })
+    await loadProductFace(face)
+    expect(productFaceState(face).binding).toBeUndefined()
+  })
+
+  it('keeps two materializations\' faces independent', async () => {
+    const first = faceWith({ fetch: async () => ({ ok: true, json: async () => READY }) as unknown as Response })
+    const second = faceWith({ fetch: async () => ({ ok: false, status: 404, json: async () => undefined }) as unknown as Response })
+    await loadProductFace(first)
+    await loadProductFace(second)
+    expect(productFaceState(first).binding).toEqual(READY)
+    expect(productFaceState(second).binding).toBeUndefined()
   })
 })
 
 describe('choosing a project directory', () => {
   it('picks, posts, stores the ready binding and runs the follow-up', async () => {
     const posted: unknown[] = []
-    initProductFaceStore(runtime({
+    const face = faceWith({
       pickDirectory: async () => '/projects/assistant',
       fetch: async (input, init) => {
         posted.push({ url: String(input), body: init?.body })
         return { ok: true, json: async () => READY } as unknown as Response
       },
-    }))
+    })
     let after: ProductBinding | undefined
-    await chooseProductWorkspace(binding => { after = binding })
+    await chooseProductWorkspace(face, binding => { after = binding })
     expect(posted).toEqual([{ url: 'http://localhost/api/assistant/product', body: JSON.stringify({ workspaceDir: '/projects/assistant' }) }])
-    expect(productFaceState().binding).toEqual(READY)
-    expect(productFaceState().busy).toBe(false)
+    expect(productFaceState(face).binding).toEqual(READY)
+    expect(productFaceState(face).busy).toBe(false)
     expect(after).toEqual(READY)
   })
 
   it('leaves the binding untouched when the picker is cancelled or absent', async () => {
-    initProductFaceStore(runtime({ pickDirectory: async () => null }))
-    await chooseProductWorkspace()
-    expect(productFaceState().binding).toBeUndefined()
-    expect(productFaceState().error).toBeUndefined()
+    const cancelled = faceWith({ pickDirectory: async () => null })
+    await chooseProductWorkspace(cancelled)
+    expect(productFaceState(cancelled).binding).toBeUndefined()
+    expect(productFaceState(cancelled).error).toBeUndefined()
 
-    initProductFaceStore(runtime())
-    await chooseProductWorkspace()
-    expect(productFaceState().error).toContain('目录选择器')
+    const absent = faceWith()
+    await chooseProductWorkspace(absent)
+    expect(productFaceState(absent).error).toContain('目录选择器')
   })
 
   it('turns a refused POST into the readable message for its stable code', async () => {
-    initProductFaceStore(runtime({
+    const face = faceWith({
       pickDirectory: async () => '/',
       fetch: async () => ({ ok: false, status: 400, json: async () => ({ error: 'workspace-forbidden' }) }) as unknown as Response,
-    }))
-    await chooseProductWorkspace()
-    expect(productFaceState().binding).toBeUndefined()
-    expect(productFaceState().error).toContain('不能作为项目')
+    })
+    await chooseProductWorkspace(face)
+    expect(productFaceState(face).binding).toBeUndefined()
+    expect(productFaceState(face).error).toContain('不能作为项目')
   })
 
   it('reports an unreadable success payload instead of inventing a binding', async () => {
-    initProductFaceStore(runtime({
+    const face = faceWith({
       pickDirectory: async () => '/projects/assistant',
       fetch: async () => ({ ok: true, json: async () => ({ version: 9 }) }) as unknown as Response,
-    }))
-    await chooseProductWorkspace()
-    expect(productFaceState().binding).toBeUndefined()
-    expect(productFaceState().error).toContain('没有登记成功')
+    })
+    await chooseProductWorkspace(face)
+    expect(productFaceState(face).binding).toBeUndefined()
+    expect(productFaceState(face).error).toContain('没有登记成功')
   })
 
   it('opens a Session in the bound project through the runtime', () => {
     const started: string[] = []
-    initProductFaceStore(runtime({ startSession: workspaceId => { started.push(workspaceId) } }))
-    startSessionInBinding(READY)
+    const face = faceWith({ startSession: workspaceId => { started.push(workspaceId) } })
+    startSessionInBinding(face, READY)
     expect(started).toEqual(['ws-1'])
   })
 })
@@ -161,8 +176,8 @@ describe('the composer input gate', () => {
     const { writer, writes } = recorder()
     const listeners = new Set<() => void>()
     let ids: string[] = []
-    initProductFaceStore()
-    setProductFace({ binding: ONBOARDING })
+    const face = createProductFace()
+    setProductFace(face, { binding: ONBOARDING })
     mountProductInputGate({
       sessions: {
         list: {
@@ -171,13 +186,13 @@ describe('the composer input gate', () => {
         },
       },
       effect: (install) => { install() },
-    }, writer)
+    }, writer, face)
 
     ids = ['session-new']
     for (const listener of [...listeners]) listener()
     expect(writes).toContainEqual(['session-new', { reason: expect.stringContaining('项目目录') as unknown as string }])
 
-    setProductFace({ binding: READY })
+    setProductFace(face, { binding: READY })
     expect(writes).toContainEqual(['session-new', undefined])
   })
 })

@@ -16,9 +16,9 @@ import { inertReactShim, loadClientRegistration, materializeClient, textsOf } fr
 const registration = await loadClientRegistration()
 
 interface ClientExports {
-  ProductGate: (props: { base: (props: unknown) => unknown }) => unknown
-  initProductFaceStore: () => unknown
-  setProductFace: (next: Partial<{ binding: unknown, busy: boolean, error: string | undefined }>) => void
+  ProductGate: (props: { base: (props: unknown) => unknown, face: unknown }) => unknown
+  createProductFace: () => unknown
+  setProductFace: (face: unknown, next: Partial<{ binding: unknown, busy: boolean, error: string | undefined }>) => void
 }
 
 function materialize(): ClientExports {
@@ -35,16 +35,16 @@ const READY = {
 describe('product gate over the dashboard', () => {
   it('renders the dashboard unchanged for a legacy face', () => {
     const surface = materialize()
-    surface.initProductFaceStore()
-    surface.setProductFace({ binding: undefined })
-    expect(textsOf(surface.ProductGate({ base }))).toContain('BASE-DASHBOARD')
+    const face = surface.createProductFace()
+    surface.setProductFace(face, { binding: undefined })
+    expect(textsOf(surface.ProductGate({ base, face }))).toContain('BASE-DASHBOARD')
   })
 
   it('asks for a project on first run and offers no later escape', () => {
     const surface = materialize()
-    surface.initProductFaceStore()
-    surface.setProductFace({ binding: ONBOARDING })
-    const texts = textsOf(surface.ProductGate({ base })).join('\n')
+    const face = surface.createProductFace()
+    surface.setProductFace(face, { binding: ONBOARDING })
+    const texts = textsOf(surface.ProductGate({ base, face })).join('\n')
     expect(texts).toContain('选一个项目目录')
     expect(texts).toContain('选择项目目录')
     expect(texts).not.toContain('稍后')
@@ -53,9 +53,9 @@ describe('product gate over the dashboard', () => {
 
   it('shows the project bar, the one start action and the dashboard once bound', () => {
     const surface = materialize()
-    surface.initProductFaceStore()
-    surface.setProductFace({ binding: READY })
-    const texts = textsOf(surface.ProductGate({ base })).join('\n')
+    const face = surface.createProductFace()
+    surface.setProductFace(face, { binding: READY })
+    const texts = textsOf(surface.ProductGate({ base, face })).join('\n')
     expect(texts).toContain('工作区 · assistant')
     expect(texts).toContain('开始一件事')
     expect(texts).toContain('换项目')
@@ -64,9 +64,9 @@ describe('product gate over the dashboard', () => {
 
   it('explains an unusable binding and offers a reselection', () => {
     const surface = materialize()
-    surface.initProductFaceStore()
-    surface.setProductFace({ binding: { version: 1, configured: true, status: 'workspace-missing', workspaceDir: '/gone' } })
-    const texts = textsOf(surface.ProductGate({ base })).join('\n')
+    const face = surface.createProductFace()
+    surface.setProductFace(face, { binding: { version: 1, configured: true, status: 'workspace-missing', workspaceDir: '/gone' } })
+    const texts = textsOf(surface.ProductGate({ base, face })).join('\n')
     expect(texts).toContain('上次的项目目录不在了')
     expect(texts).toContain('选择另一个目录')
     expect(texts).not.toContain('BASE-DASHBOARD')

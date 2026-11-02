@@ -29,12 +29,13 @@ interface ClientExports {
     openDesk?: () => void
     processingMatter?: { matterId: string, title: string, summary: string }
     t?: (key: string) => string | undefined
+    face?: unknown
   }) => Element | null
   ApprovalDockBanner: (props: {
     openRoom?: (kind: string) => void
   }) => Element | null
-  initProductFaceStore: () => unknown
-  setProductFace: (next: Partial<{ binding: unknown }>) => void
+  createProductFace: () => unknown
+  setProductFace: (face: unknown, next: Partial<{ binding: unknown }>) => void
   deskStore: {
     data?: {
       counts?: { knowledgeDraft?: number, memories?: number, skills?: number, knowledgeStable?: number, threads?: number }
@@ -99,12 +100,12 @@ describe('first-mile seats', () => {
     // The gate's strip owns this seat until a project is bound: "回到今天" would point at the
     // gate page itself, and the desk's own input lane is held back until the binding exists.
     const exports = materialize()
-    exports.initProductFaceStore()
-    exports.setProductFace({ binding: { version: 1, configured: false, status: 'not-configured' } })
-    expect(exports.FirstMileDock({ session: { blank: true }, openDesk: () => {} })).toBe(null)
+    const face = exports.createProductFace()
+    exports.setProductFace(face, { binding: { version: 1, configured: false, status: 'not-configured' } })
+    expect(exports.FirstMileDock({ session: { blank: true }, openDesk: () => {}, face })).toBe(null)
 
-    exports.setProductFace({ binding: { version: 1, configured: true, status: 'ready', workspaceId: 'ws-1' } })
-    expect(exports.FirstMileDock({ session: { blank: true }, openDesk: () => {} })).not.toBe(null)
+    exports.setProductFace(face, { binding: { version: 1, configured: true, status: 'ready', workspaceId: 'ws-1' } })
+    expect(exports.FirstMileDock({ session: { blank: true }, openDesk: () => {}, face })).not.toBe(null)
   })
 
   it('renders nothing once the session has any content', () => {

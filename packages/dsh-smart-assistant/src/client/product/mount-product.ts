@@ -11,10 +11,11 @@
 import type { ClientContext } from '../chrome/contracts'
 import type { ProductGateRuntime } from './product-binding'
 import {
-  initProductFaceStore,
+  createProductFace,
   loadProductFace,
   mountProductInputGate,
   type ComposerBlockWriter,
+  type ProductFace,
 } from './product-face'
 
 /**
@@ -23,7 +24,7 @@ import {
  * composition stays visible there.
  * @param ctx - The client apply context.
  */
-export function mountProductFace(ctx: ClientContext): void {
+export function mountProductFace(ctx: ClientContext): ProductFace {
   // The lifecycle tests materialize the factory in a page-like global that may not carry
   // `fetch`; the gate must never be the reason the client entry fails to register. The
   // fallback answers 404, which the gate treats as "no product face" (legacy dashboard).
@@ -49,8 +50,8 @@ export function mountProductFace(ctx: ClientContext): void {
       startSession: (workspaceId: string) => { ctx.uiWorkspace?.startSession?.(workspaceId, { agentPreset: 'assistant' }) },
     }),
   }
-  initProductFaceStore(runtime)
-  void loadProductFace()
+  const face = createProductFace(runtime)
+  void loadProductFace(face)
   // The conversation's half of the gate: block every Session's composer while the product has
   // no usable project. Scoped inject (not the plugin's own list) so a composition without a
   // conversation service still registers the rest of the face.
@@ -58,6 +59,7 @@ export function mountProductFace(ctx: ClientContext): void {
     const conversation = scope.get('conversation') as { readonly blocks?: ComposerBlockWriter } | undefined
     const blocks = conversation?.blocks
     if (blocks === undefined) return
-    mountProductInputGate({ sessions: ctx.sessions, effect: ctx.effect }, blocks)
+    mountProductInputGate({ sessions: ctx.sessions, effect: ctx.effect }, blocks, face)
   })
+  return face
 }
