@@ -29,15 +29,20 @@ afterEach(async () => {
 })
 
 /** One page realm survives HMR and can also receive a fresh Client root. */
-function page(scriptText) {
+function page(scriptText, globals = {}) {
   const registrations = []
   const realm = createContext({
     console: { info() {}, warn() {}, error: console.error },
     setTimeout,
     clearTimeout,
+    setInterval,
+    clearInterval,
+    URL,
     __ModuleLoader__: { load: registration => registrations.push(registration) },
+    ...globals,
   })
   return {
+    realm,
     evaluate() {
       registrations.length = 0
       new Script(scriptText, { filename: bundleUrl.pathname }).runInContext(realm)
@@ -214,5 +219,36 @@ describe('built client default entry through Loader and real slots', () => {
     expect(client.slots.entriesOfSlot('main').map(entry => entry.options.key)).toEqual([dashboard])
     expect(client.selections).toEqual([])
     expect(client.layout.panelInfo.getSnapshot().activePanelId).toBe('settings')
+  })
+
+  it('mounts the entry composer block against the real conversation service and clears it on dispose', async () => {
+    const calls = []
+    const blocks = { set: (sessionId, block) => { calls.push({ sessionId, block }) } }
+    const client = await clientRoot(null, {
+      list: {
+        getSnapshot: () => ({ ids: ['session-1'] }),
+        subscribe: () => () => {},
+      },
+    })
+    client.ctx.provide('conversation', { blocks })
+    client.declareSeats()
+    // The page must answer the product route with an unbound face; the entry's gate fetch
+    // otherwise falls back to 404 (legacy) and the block would never be raised.
+    const browserPage = page(builtScript, {
+      fetch: async () => ({
+        ok: true,
+        status: 200,
+        json: async () => ({ version: 1, configured: false, status: 'not-configured', onboarding: true }),
+      }),
+      document: { baseURI: 'http://localhost/', getElementById: () => ({}) },
+      location: { href: 'http://localhost/', origin: 'http://localhost', search: '', hash: '' },
+      localStorage: { getItem: () => null, setItem: () => {} },
+    })
+    await client.mount(browserPage.evaluate())
+    await vi.waitFor(() => {
+      expect(calls.some(call => call.sessionId === 'session-1' && call.block?.reason !== undefined)).toBe(true)
+    }, { timeout: 2000 })
+    await client.unmount()
+    expect(calls.at(-1)).toEqual({ sessionId: 'session-1', block: undefined })
   })
 })
