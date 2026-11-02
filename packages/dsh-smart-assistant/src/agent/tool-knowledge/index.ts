@@ -14,6 +14,7 @@ import type { Context } from '@deepseek-ai/cordis'
 import { defineTool, type InferValue } from '@deepseek-ai/dsh-tools'
 import type { KnowledgePage } from '../../domain/knowledge/page.ts'
 import { callCard, presentationMeta, resultCard } from '../tool-support/presentation.ts'
+import { KNOWLEDGE_OUTPUT_SCHEMA } from './schema.ts'
 
 export const name = 'assistant-knowledge-tool'
 
@@ -35,31 +36,6 @@ const DESCRIPTION = [
   'page, get it by id.',
 ].join('\n')
 
-const PAGE_ITEM = {
-  type: 'object',
-  additionalProperties: false,
-  properties: {
-    id: { type: 'string', required: true },
-    type: { type: 'string', required: true },
-    status: { type: 'string', required: true },
-    title: { type: 'string' },
-    description: { type: 'string' },
-    stale_after: { type: 'string' },
-    body: { type: 'string' },
-    why: { type: 'array', items: { type: 'string' } },
-  },
-} as const
-
-const OUTPUT = {
-  type: 'object',
-  additionalProperties: false,
-  properties: {
-    action: { type: 'string', required: true },
-    summary: { type: 'string', required: true },
-    pages: { type: 'array', required: true, items: PAGE_ITEM },
-    backlinks: { type: 'array', required: true, items: { type: 'string' } },
-  },
-} as const
 
 interface PageItem {
   id: string
@@ -73,7 +49,7 @@ interface PageItem {
 }
 
 /** The canonical result type, derived from `OUTPUT` so the schema and the projector cannot drift. */
-type KnowledgeOutput = InferValue<typeof OUTPUT>
+type KnowledgeOutput = InferValue<typeof KNOWLEDGE_OUTPUT_SCHEMA>
 
 function item(page: KnowledgePage, extra: Partial<PageItem>): PageItem {
   return {
@@ -114,7 +90,7 @@ export function apply(ctx: Context): void {
       limit: { type: 'number', description: 'search: maximum pages returned.' },
     },
     output: {
-      schema: OUTPUT,
+      schema: KNOWLEDGE_OUTPUT_SCHEMA,
       render,
       presentationMeta: (_args, value) => presentationMeta(value.summary),
     },

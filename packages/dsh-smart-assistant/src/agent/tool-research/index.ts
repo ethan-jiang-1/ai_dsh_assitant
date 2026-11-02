@@ -13,6 +13,7 @@ import type { Context } from '@deepseek-ai/cordis'
 import { defineTool, type InferValue } from '@deepseek-ai/dsh-tools'
 import type { ResearchThread } from '../../domain/research/thread.ts'
 import { callCard, presentationMeta, resultCard } from '../tool-support/presentation.ts'
+import { RESEARCH_OUTPUT_SCHEMA } from './schema.ts'
 
 export const name = 'assistant-research-tool'
 
@@ -33,29 +34,6 @@ const DESCRIPTION = [
   'Load the `research-backlog` skill before opening or closing a thread.',
 ].join('\n')
 
-const THREAD_ITEM = {
-  type: 'object',
-  additionalProperties: false,
-  properties: {
-    id: { type: 'string', required: true },
-    status: { type: 'string', required: true },
-    question: { type: 'string', required: true },
-    why: { type: 'string', required: true },
-    lean: { type: 'string', required: true },
-    evidence: { type: 'array', required: true, items: { type: 'string' } },
-    updated: { type: 'string', required: true },
-  },
-} as const
-
-const OUTPUT = {
-  type: 'object',
-  additionalProperties: false,
-  properties: {
-    action: { type: 'string', required: true },
-    summary: { type: 'string', required: true },
-    threads: { type: 'array', required: true, items: THREAD_ITEM },
-  },
-} as const
 
 interface ThreadItem {
   id: string
@@ -68,7 +46,7 @@ interface ThreadItem {
 }
 
 /** The canonical result type, derived from `OUTPUT` so the schema and the projector cannot drift. */
-type ResearchOutput = InferValue<typeof OUTPUT>
+type ResearchOutput = InferValue<typeof RESEARCH_OUTPUT_SCHEMA>
 
 function item(thread: ResearchThread): ThreadItem {
   return {
@@ -121,7 +99,7 @@ export function apply(ctx: Context): void {
       source: { type: 'string', description: 'open: where the thread came from (a person, a session).' },
     },
     output: {
-      schema: OUTPUT,
+      schema: RESEARCH_OUTPUT_SCHEMA,
       render,
       presentationMeta: (_args, value) => presentationMeta(value.summary),
     },

@@ -16,6 +16,7 @@ import { skillUsageLines } from '../../domain/skills/usage.ts'
 import { callCard, presentationMeta, resultCard } from '../tool-support/presentation.ts'
 import { LEARNED_PROVIDER_NAME } from '../tool-support/learned-provider.ts'
 import { installLearnedSkills } from '../learned-skills.ts'
+import { REFLECT_OUTPUT_SCHEMA } from './schema.ts'
 
 export const name = 'assistant-learn'
 
@@ -59,89 +60,9 @@ const DESCRIPTION = [
   'before reflecting.',
 ].join('\n')
 
-const OUTPUT = {
-  type: 'object',
-  additionalProperties: false,
-  properties: {
-    action: { type: 'string', required: true },
-    summary: { type: 'string', required: true },
-    session_id: { type: 'string', required: true },
-    asks: { type: 'array', required: true, items: { type: 'string' } },
-    tool_calls: {
-      type: 'array',
-      required: true,
-      items: {
-        type: 'object',
-        additionalProperties: false,
-        properties: {
-          name: { type: 'string', required: true },
-          count: { type: 'integer', required: true },
-        },
-      },
-    },
-    related_memories: { type: 'array', required: true, items: { type: 'string' } },
-    open_threads: { type: 'array', required: true, items: { type: 'string' } },
-    shadowed_skills: {
-      type: 'array',
-      required: true,
-      items: {
-        type: 'object',
-        additionalProperties: false,
-        properties: {
-          name: { type: 'string', required: true },
-          provider: { type: 'string', required: true },
-        },
-      },
-    },
-    pending_proposals: {
-      type: 'array',
-      required: true,
-      items: {
-        type: 'object',
-        additionalProperties: false,
-        properties: {
-          name: { type: 'string', required: true },
-          status: { type: 'string', required: true },
-          revision: { type: 'integer', required: true },
-        },
-      },
-    },
-    skill_usage: {
-      type: 'array',
-      required: true,
-      items: {
-        type: 'object',
-        additionalProperties: false,
-        properties: {
-          name: { type: 'string', required: true },
-          count: { type: 'integer', required: true },
-          last_used: { type: 'string' },
-        },
-      },
-    },
-    audit_findings: {
-      type: 'array',
-      required: true,
-      items: {
-        type: 'object',
-        additionalProperties: false,
-        properties: {
-          code: { type: 'string', required: true },
-          severity: { type: 'string', required: true },
-          message: { type: 'string', required: true },
-        },
-      },
-    },
-    skill_path: { type: 'string', required: true },
-    snapshot_path: { type: 'string', required: true },
-    page_id: { type: 'string', required: true },
-    page_path: { type: 'string', required: true },
-    proposal_status: { type: 'string', required: true },
-  },
-} as const
 
 /** The canonical result type, derived from `OUTPUT` so the schema and the projector cannot drift. */
-type ReflectOutput = InferValue<typeof OUTPUT>
+type ReflectOutput = InferValue<typeof REFLECT_OUTPUT_SCHEMA>
 
 function flatten(text: string): string {
   const flat = text.replace(/\s+/g, ' ').trim()
@@ -234,7 +155,7 @@ export function apply(ctx: Context): void {
       page_id: { type: 'string', description: 'promote_page | deprecate_page: the knowledge page id to change.' },
     },
     output: {
-      schema: OUTPUT,
+      schema: REFLECT_OUTPUT_SCHEMA,
       render,
       presentationMeta: (_args, value) => presentationMeta(value.summary),
     },

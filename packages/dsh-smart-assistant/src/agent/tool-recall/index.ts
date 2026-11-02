@@ -11,6 +11,7 @@
 import type { Context } from '@deepseek-ai/cordis'
 import { defineTool, type InferValue } from '@deepseek-ai/dsh-tools'
 import { presentationMeta } from '../tool-support/presentation.ts'
+import { RECALL_OUTPUT_SCHEMA } from './schema.ts'
 
 export const name = 'assistant-recall-tool'
 export const inject = ['tools']
@@ -31,18 +32,9 @@ const DESCRIPTION = [
   'a fact that is not in the current context. It never writes memory, the ledger, or the repo.',
 ].join('\n')
 
-const OUTPUT = {
-  type: 'object',
-  additionalProperties: false,
-  properties: {
-    action: { type: 'string', required: true },
-    summary: { type: 'string', required: true },
-    result: { type: 'string', required: true },
-  },
-} as const
 
 /** The canonical result type, derived from `OUTPUT` so the schema and the projector cannot drift. */
-export type RecallOutput = InferValue<typeof OUTPUT>
+export type RecallOutput = InferValue<typeof RECALL_OUTPUT_SCHEMA>
 
 /** Arguments the model passes. */
 export interface RecallArgs {
@@ -156,7 +148,7 @@ export function apply(ctx: Context): void {
       limit: { type: 'number', description: 'find/search: 1–20 (default 5).' },
     },
     output: {
-      schema: OUTPUT,
+      schema: RECALL_OUTPUT_SCHEMA,
       render,
       presentationMeta: (_args, value) => presentationMeta(value.summary),
     },
