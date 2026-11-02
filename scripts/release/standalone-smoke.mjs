@@ -11,7 +11,7 @@
  * Exit 0 = instance started, preflight green, data under the chosen home, stop left no process.
  */
 import { spawnSync } from 'node:child_process'
-import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, renameSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs'
+import { chmodSync, copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, renameSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { mkTmpDir } from '../../dev/env/tmp.mjs'
@@ -33,8 +33,15 @@ function run(command, args, options = {}) {
   return spawnSync(command, args, { encoding: 'utf8', ...options })
 }
 
-function bootstrap(args, binary = join(packageDir, 'bootstrap.mjs')) {
-  return run(process.execPath, [binary, ...args], { cwd: root, timeout: 300_000 })
+// The installer is a release asset beside the tarball, never inside it (2026-11-02 bundle-first).
+// Staging it next to the extracted package reproduces the shipped `_dist/` layout: installer
+// outside, package under `--package`. Running the copy inside the package would prove a layout
+// users never get.
+const installer = join(root, 'release', 'bootstrap.mjs')
+let stagedPackage
+
+function bootstrap(args) {
+  return run(process.execPath, [installer, '--package', stagedPackage, ...args], { cwd: root, timeout: 300_000 })
 }
 
 const home = join(root, 'data')
@@ -53,9 +60,14 @@ try {
   mkdirSync(extracted, { recursive: true })
   const untar = run('tar', ['-xzf', tarball, '-C', extracted])
   const pkg = join(extracted, 'package')
-  if (untar.status !== 0 || !existsSync(join(pkg, 'bootstrap.mjs'))) fail('extracted package has no bootstrap.mjs')
+  mkdirSync(dirname(installer), { recursive: true })
+  copyFileSync(join(packageDir, 'bootstrap.mjs'), installer)
+  stagedPackage = pkg
+  if (untar.status !== 0) fail(`extraction failed: ${(untar.stderr ?? '').trim().slice(0, 300)}`)
+  else if (existsSync(join(pkg, 'bootstrap.mjs'))) fail('extracted package carries bootstrap.mjs — the installer is a separate release asset')
   else if (existsSync(join(pkg, '.git'))) fail('extracted package unexpectedly carries .git')
-  else ok('extracted package has bootstrap.mjs and no .git')
+  else if (!existsSync(installer)) fail('the staged installer is missing beside the package')
+  else ok('extracted package has no .git and no installer; the installer sits beside it')
 
   mkdirSync(wrapperDir, { recursive: true })
   const tsx = fileURLToPath(import.meta.resolve('tsx/esm'))
@@ -64,7 +76,7 @@ try {
   chmodSync(wrapper, 0o755)
 
   step('refusing a data home inside the package')
-  const inside = bootstrap(['--home', join(pkg, 'data'), '--no-start', '--dsh', wrapper], join(pkg, 'bootstrap.mjs'))
+  const inside = bootstrap(['--home', join(pkg, 'data'), '--no-start', '--dsh', wrapper])
   if (inside.status === 0) fail('bootstrap accepted a data home inside the package')
   else ok('inside-package home refused')
 
@@ -72,7 +84,7 @@ try {
   const linkedHome = join(root, 'package-link')
   try {
     symlinkSync(pkg, linkedHome, 'dir')
-    const linked = bootstrap(['--home', linkedHome, '--no-start', '--dsh', wrapper], join(pkg, 'bootstrap.mjs'))
+    const linked = bootstrap(['--home', linkedHome, '--no-start', '--dsh', wrapper])
     if (linked.status === 0) fail('bootstrap accepted a symlinked home that resolves inside the package')
     else ok('symlinked inside-package home refused')
   } catch (error) {
@@ -80,7 +92,7 @@ try {
   }
 
   step('bootstrapping the extracted directory with an isolated home')
-  const started = bootstrap(['--home', home, '--dsh', wrapper], join(pkg, 'bootstrap.mjs'))
+  const started = bootstrap(['--home', home, '--dsh', wrapper])
   if (started.status !== 0) {
     fail(`bootstrap failed (exit ${String(started.status)}):\n${(started.stderr ?? started.stdout ?? '').trim().split('\n').slice(-12).join('\n')}`)
   } else {
@@ -139,7 +151,7 @@ try {
     }
 
     step('stopping the standalone instance')
-    const stopped = bootstrap(['--stop', '--home', home], join(pkg, 'bootstrap.mjs'))
+    const stopped = bootstrap(['--stop', '--home', home])
     if (stopped.status !== 0) fail(`stop failed: ${(stopped.stderr ?? '').trim()}`)
     else ok('stop command returned')
     await new Promise(done => setTimeout(done, 800))
@@ -151,7 +163,7 @@ try {
     else ok('bootstrap.pid removed')
 
     step('restarting the same home (URL must not be stale)')
-    const restarted = bootstrap(['--home', home, '--dsh', wrapper], join(pkg, 'bootstrap.mjs'))
+    const restarted = bootstrap(['--home', home, '--dsh', wrapper])
     if (restarted.status !== 0) {
       fail(`restart failed: ${(restarted.stderr ?? restarted.stdout ?? '').trim().split('\n').slice(-10).join(' | ')}`)
     } else {
@@ -161,7 +173,7 @@ try {
       const secondPreflight = run(process.execPath, [join(repoRoot, 'dev', 'probes', 'web', 'webui-preflight.mjs'), second.url], { timeout: 120_000 })
       if (secondPreflight.status !== 0) fail(`restart preflight failed: ${(secondPreflight.stderr ?? secondPreflight.stdout ?? '').trim().split('\n').slice(-10).join(' | ')}`)
       else ok('restart preflight green')
-      const secondStop = bootstrap(['--stop', '--home', home], join(pkg, 'bootstrap.mjs'))
+      const secondStop = bootstrap(['--stop', '--home', home])
       if (secondStop.status !== 0) fail(`restart stop failed: ${(secondStop.stderr ?? '').trim()}`)
       else ok('restart stop returned')
       await new Promise(done => setTimeout(done, 800))
@@ -174,7 +186,7 @@ try {
     step('moving the home and repairing the profile')
     const movedHome = join(root, 'data-moved')
     renameSync(home, movedHome)
-    const repaired = bootstrap(['--home', movedHome, '--dsh', wrapper, '--no-start'], join(pkg, 'bootstrap.mjs'))
+    const repaired = bootstrap(['--home', movedHome, '--dsh', wrapper, '--no-start'])
     if (repaired.status !== 0) {
       fail(`moved-home bootstrap failed: ${(repaired.stderr ?? repaired.stdout ?? '').trim().split('\n').slice(-8).join(' | ')}`)
     } else {
@@ -188,7 +200,7 @@ try {
 
     step('recovering a corrupt profile manifest')
     writeFileSync(join(movedHome, 'profiles', profile, 'package.json'), '{broken\n', 'utf8')
-    const recovered = bootstrap(['--home', movedHome, '--dsh', wrapper, '--no-start'], join(pkg, 'bootstrap.mjs'))
+    const recovered = bootstrap(['--home', movedHome, '--dsh', wrapper, '--no-start'])
     if (recovered.status !== 0) {
       fail(`corrupt-profile bootstrap failed: ${(recovered.stderr ?? recovered.stdout ?? '').trim().split('\n').slice(-8).join(' | ')}`)
     } else {

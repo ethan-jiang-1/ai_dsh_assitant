@@ -14,7 +14,7 @@
  * Exit 0 = profile/Config correct, workspace registered, session cwd = workspace, stop clean.
  */
 import { spawnSync } from 'node:child_process'
-import { chmodSync, existsSync, mkdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
+import { chmodSync, copyFileSync, existsSync, mkdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { mkTmpDir } from '../../dev/env/tmp.mjs'
@@ -35,8 +35,12 @@ function run(command, args, options = {}) {
   return spawnSync(command, args, { encoding: 'utf8', ...options })
 }
 
-const bootstrapPath = join(packageDir, 'bootstrap.mjs')
-const bootstrap = (args) => run(process.execPath, [bootstrapPath, ...args], { cwd: root, timeout: 300_000 })
+// The installer ships beside the tarball, not inside it (2026-11-02 bundle-first). Stage the
+// released shape — installer outside, package under `--package` — so this smoke proves the layout
+// a user actually receives, not the historical in-package one.
+const installer = join(root, 'release', 'bootstrap.mjs')
+let stagedPackage
+const bootstrap = (args) => run(process.execPath, [installer, '--package', stagedPackage, ...args], { cwd: root, timeout: 300_000 })
 const text = result => `${result.stdout ?? ''}${result.stderr ?? ''}`
 
 const packageJson = JSON.parse(readFileSync(join(packageDir, 'package.json'), 'utf8'))
@@ -56,8 +60,13 @@ try {
   mkdirSync(extracted, { recursive: true })
   const untar = run('tar', ['-xzf', tarball, '-C', extracted])
   const pkg = join(extracted, 'package')
-  if (untar.status !== 0 || !existsSync(join(pkg, 'bootstrap.mjs'))) fail('extracted package has no bootstrap.mjs')
-  else ok('extracted package has bootstrap.mjs')
+  mkdirSync(join(root, 'release'), { recursive: true })
+  copyFileSync(join(packageDir, 'bootstrap.mjs'), installer)
+  stagedPackage = pkg
+  if (untar.status !== 0) fail(`extraction failed: ${(untar.stderr ?? '').trim().slice(0, 300)}`)
+  else if (existsSync(join(pkg, 'bootstrap.mjs'))) fail('extracted package carries bootstrap.mjs — the installer is a separate release asset')
+  else if (!existsSync(installer)) fail('the staged installer is missing beside the package')
+  else ok('extracted package has no installer; the installer sits beside it')
 
   mkdirSync(wrapperDir, { recursive: true })
   const tsx = fileURLToPath(import.meta.resolve('tsx/esm'))
@@ -137,11 +146,16 @@ export function apply(ctx) {
 }
 `, 'utf8')
   const patchPath = join(profilesDir, 'cordis.patch.yml')
-  writeFileSync(patchPath, `${readFileSync(patchPath, 'utf8').trimEnd()}
-- insert:
+  // The bundle now carries the deployment defaults, so a fresh profile patch is the literal `[]`
+  // (plus the template's comment header). Appending a block after `[]` makes invalid YAML, so the
+  // probe replaces that placeholder line when it is the only content.
+  const probeRow = `- insert:
     - id: product-smoke-probe
-      name: './product-smoke-probe.mjs'
-`, 'utf8')
+      name: './product-smoke-probe.mjs'`
+  const patchLines = readFileSync(patchPath, 'utf8').split('\n')
+  const emptyAt = patchLines.findIndex(line => line.trim() === '[]')
+  if (emptyAt === -1) writeFileSync(patchPath, `${patchLines.join('\n').trimEnd()}\n${probeRow}\n`, 'utf8')
+  else writeFileSync(patchPath, [...patchLines.slice(0, emptyAt), probeRow, ...patchLines.slice(emptyAt + 1)].join('\n'), 'utf8')
   rmSync(join(home, 'probe-result.json'), { force: true })
   const started = bootstrap(['--workspace', workspace, '--home', home, '--dsh', wrapper])
   if (started.status !== 0) fail(`product boot failed (exit ${String(started.status)}):\n${text(started).trim().split('\n').slice(-12).join('\n')}`)
