@@ -63,15 +63,21 @@
 
 ## 命令表
 
-启动（dev home；完整五步/隔离 home = [`docs/dev.md`](docs/dev.md) §一）：
+启动（dev home；完整五步/隔离 home = [`docs/dev.md`](docs/dev.md) §一）。默认：
+
+```sh
+pnpm start   # 隔离 dev home 起 Web，preflight 绿才交 URL；收掉见横幅
+```
+
+手工五步（⓪-④）+ headless 冒烟 ⑤：
 
 ```sh
 git submodule update --init   # ⓪ 首次：拉起 vendor/dsh
 pnpm install                  # ① 依赖
 bash dev/env/prepare.sh       # ② 首次必须先跑：补 vendor/dsh 产物
 bash dev/env/setup.sh         # ③ 起服务前置：建 dev / dev-task profile
-pnpm dsh --profile dev --port 0 --no-open
-pnpm dsh --profile dev-task "one task"   # 只冒烟 headless
+pnpm dsh --profile dev --port 0 --no-open   # ④ Web
+pnpm dsh --profile dev-task "one task"      # ⑤ 只冒烟 headless
 ```
 
 日常四条：

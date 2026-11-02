@@ -80,8 +80,7 @@ HOST 面（cordis.patch.yml → dsh.bundle.patch）
                             + **禁用** 会话视图的「运行轨迹」页 `ui-trajectory`（主 Tab 不摊 vendor 的调试面；
                               要看时在 profile patch 覆盖回来）
 
-定时面（`schedule` / `ui-schedule`）由本 pin 的 web-app 层自带，本包不再插入；headless 组合由 profile 层显式
-disabled（它依赖 web-app 层的 `sessionController`，不禁用时是常驻 `pending (waiting for service: sessionController)`）。
+定时面（`schedule` / `ui-schedule`）由本 pin 的 web-app 层自带，本包不再插入；headless 组合没有这行。它依赖 web-app 层的 `sessionController`，所以只存在于有 web-app 的组合里。
 
 AGENT 面（`cordis.patch.yml` 的 `preset-assistant` 行 → agent preset）
 ├── assistant-home-preamble   提示词段落：身份（SOUL.md）与手册（MANUAL.md 渲染 + AGENTS.md 笔记）

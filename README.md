@@ -124,11 +124,11 @@ dsh --profile assistant                                            # ② 启动
 知识种子按治理写入路径落 `draft`；`draft → stable` 的人审有两条合法路径——**你亲手改** `status`（那一下就是评审），
 或**你明确批准后由助手 `promote_page` 执行那次翻转**（批准是你的，助手只做编辑）。
 
-**养护定时（默认带）**：本包的 host patch 直接挂 `schedule` + `ui-schedule` 两行。Web 组合开箱即用：到期任务
+**养护定时（默认带）**：定时面由本 pin 的 web-app 层自带（本包不再插入 `schedule`/`ui-schedule`）。Web 组合开箱即用：到期任务
 以原会话 follow-up 消息投递、重启后仍生效，`schedule_create`（`prompt`+`title` 必填、`after_seconds`
 延时秒）即可建首个养护或提醒任务。**headless 组合例外**：`schedule` 由 web-app 层自带，纯 headless 组合没有该行，不需要手写
 `disabled`；web-only 的五个入口行由 bundle patch 按 `connection` 自禁用。依赖机理与报错形态的合同 =
-[docs/architecture.md](docs/architecture.md) §二 schedule 行。
+[docs/architecture.md](docs/architecture.md) §二 定时面段落。
 
 ## 开发
 

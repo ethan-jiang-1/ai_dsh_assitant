@@ -351,6 +351,19 @@ describe('backtickedRepoPathProblems', () => {
   })
 })
 
+describe('non-markdown section pointers', () => {
+  it('checks section references that hide in a patch YAML comment', () => {
+    const root = temp('sections-yaml-')
+    mkdirSync(join(root, 'docs'), { recursive: true })
+    writeFileSync(join(root, 'docs', 'home.md'), '## 五、根部的三个语义文件\n', 'utf8')
+    const source = join(root, 'cordis.patch.yml')
+    writeFileSync(source, '# 合同 = docs/home.md §五「根部的两个文件」\n', 'utf8')
+    const problems = crossFileSectionProblems({ repoRoot: root, corpus: [{ file: source, where: 'cordis.patch.yml' }] })
+    expect(problems).toHaveLength(1)
+    expect(problems[0]).toContain('根部的两个文件')
+  })
+})
+
 describe('crossFileSectionProblems', () => {
   it('checks numbered sections and optional heading anchors in other markdown files', () => {
     const root = temp('sections-')

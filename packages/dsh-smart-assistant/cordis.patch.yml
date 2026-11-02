@@ -38,7 +38,7 @@
       name: dsh-smart-assistant/ui-mode
       disabled: !!js "!ctx.get('connection')"
 
-    # ── 产品工作区绑定（web-only；headless profile patch 里 disabled）──────────────
+    # ── 产品工作区绑定（web-only；headless 由 connection 检查自禁用）──────────────
     #
     # 读本行 Config 的 workspaceDir（volatile profile patch）或一次性 ASSISTANT_WORKSPACE，
     # boot 时用 workspaceRegistry.create() 登记，并暴露 GET/POST api/assistant/product。
@@ -148,7 +148,7 @@
           # 桌面常驻段落中的前三段在此，讲一个顺序的故事：你是谁（SOUL.md，紧贴 persona stub）→
           # working folder 怎么用（AGENTS.md）→ 里面现在有什么（有界摘要）；第四段（经营账本）在
           # assistant-operating-brief 行。身份与手册是 working folder 根部的两个文件——拥有者的数据，
-          # 不是 preset 代码（现行合同 = docs/home.md §三「桌面与抽屉」与 §五「根部的两个文件」）。
+          # 不是 preset 代码（现行合同 = docs/home.md §三「桌面与抽屉」与 §五「根部的三个语义文件」）。
           # 每段各自成行，部署可独立关掉或替换 —— 上下文控制是一等公民。
           # 摆位分两带（2026-10-02 起）：稳定内容（soul 100 / manual 300）留在前带紧贴身份；**易变内容
           # （digest，每次记忆写入都变）移到尾部带 10150**（环境事实 10000/10100 之后、persona 后缀 10200
@@ -415,7 +415,7 @@
 # 卸载后自然回退到 `standard`。
 # ── vendor 行覆盖（裸 id = 按 id 整行替换；insert 只用于新增行）────────────────
 #
-# 下面四行的 id 在 vendor 的 base/web-app 已经声明。`insert` 是 append，重复 id 只会
+# 下面七行的 id 在 vendor 的 base/web-app 已经声明。`insert` 是 append，重复 id 只会
 # 被 loader 的 last-wins 静默覆盖（没有警告）；裸 `- id:` 才是方言里的"替换这一行"。
 # `schedule`/`ui-schedule` 已由本 pin 的 web-app 声明，本包不再插入。
 #

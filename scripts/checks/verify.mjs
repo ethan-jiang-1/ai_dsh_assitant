@@ -554,6 +554,17 @@ check('test assets: web-face expectations are healthy captures with their wait t
 check('links: cross-file section references name a real section', () =>
   crossFileSectionProblems({ repoRoot, corpus: markdownCorpus.map(file => ({ file, where: relative(repoRoot, file) })) }))
 
+// Section pointers also hide in non-markdown comments (patch YAML, dev scripts); the markdown
+// corpus never saw them until the 2026-11-03 audit found a two-files/three-files drift in
+// cordis.patch.yml. Same core, explicit non-markdown corpus.
+const nonMarkdownSectionCorpus = [
+  join(packageDir, 'cordis.patch.yml'),
+  ...walk(join(repoRoot, 'dev'), ['.yml', '.mjs']).filter(file => !file.includes('harness-home')),
+  ...walk(join(repoRoot, 'scripts'), ['.mjs']),
+]
+check('links: section references in non-markdown files name a real section', () =>
+  crossFileSectionProblems({ repoRoot, corpus: nonMarkdownSectionCorpus.map(file => ({ file, where: relative(repoRoot, file) })) }))
+
 check('links: contract docs cite no machine-local absolute paths', () => {
   // The active deliberation space routes readers the same way the contract docs do, so it is held
   // to the same rule: a checkout path or home directory baked into tracked prose breaks for
