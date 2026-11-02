@@ -24,7 +24,7 @@
  */
 import { spawn, spawnSync } from 'node:child_process'
 import { readFileSync, rmSync, writeFileSync } from 'node:fs'
-import { dirname, join, resolve } from 'node:path'
+import { basename, dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { mkTmpDir } from '../../env/tmp.mjs'
 import { findChromeBinary } from './cdp-driver.mjs'
@@ -35,6 +35,7 @@ import { addProfileRows } from './scene-home.mjs'
 const repoRoot = resolve(fileURLToPath(new URL('.', import.meta.url)), '..', '..', '..')
 const args = process.argv.slice(2)
 const keep = args.includes('--keep')
+const refresh = args.includes('--refresh')
 const all = args.includes('--all')
 const scenarioArg = args.includes('--scenario') ? args[args.indexOf('--scenario') + 1] : undefined
 
@@ -120,14 +121,18 @@ function seed(nodeArgs, home) {
   return sh(process.execPath, nodeArgs, { env: { ...process.env, ASSISTANT_DSH_HOME: home } }) === 0
 }
 
-const refreshExpectations = process.env.WEB_FACE_REFRESH === '1'
+if (refresh && (all || scenarioArg === undefined)) {
+  console.error('web-face-check: --refresh requires an explicit --scenario (one scene at a time); bulk refresh is refused')
+  process.exit(2)
+}
+
 function expected(url, scenario, expectedArgs) {
   const target = scenario.startsWith('viki-') ? `${url}#debug=1` : url
   return sh(process.execPath, [
     'dev/probes/web/webui-expected.mjs', target,
     '--scenario', `snapshots/web-face/${scenario}`,
     ...expectedArgs,
-    ...(refreshExpectations ? ['--refresh'] : []),
+    ...(refresh && scenario === scenarioArg ? ['--refresh'] : []),
   ])
 }
 
@@ -301,7 +306,7 @@ async function runProduct() {
   const seedScript = 'snapshots/web-face/product-workspace-gate/seed.mjs'
   if (!seed([seedScript, 'patch', home], home)) return failed('product-workspace-gate: seed patch failed')
   if (!seed([seedScript, 'bind', home], home)) return failed('product-workspace-gate: seed bind failed')
-  const workspace = join(dirname(home), 'product-workspace')
+  const workspace = join(dirname(home), `${basename(home)}-workspace`, 'product-workspace')
   const code = await withService(home, { name: 'product-workspace-gate' }, async url => {
     const first = expected(url, 'product-workspace-gate', ['--wait-text', '开始一件事'])
     if (first !== 0) return first
@@ -325,7 +330,7 @@ async function runProduct() {
     ]) === 0 ? 0 : 1
   })
   if (code === 0) ok('product-workspace-gate + CTA starts a session') ; else failed(`product-workspace-gate (exit ${code})`)
-  rmSync(workspace, { recursive: true, force: true })
+  rmSync(dirname(workspace), { recursive: true, force: true })
   if (!keep) rmSync(home, { recursive: true, force: true })
 }
 

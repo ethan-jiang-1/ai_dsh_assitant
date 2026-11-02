@@ -8,10 +8,11 @@
  *                                # write assistant-product.workspaceDir into the dev profile patch.
  *
  * The workspace must stay outside the home: the product row refuses paths inside its own data
- * plane. The sibling directory keeps the gate label deterministic (`product-workspace`).
+ * plane. A per-run parent outside the home keeps concurrent scenes from colliding; the leaf
+ * name stays `product-workspace`, which is the label the expectation renders.
  */
 import { existsSync, mkdirSync, readFileSync } from 'node:fs'
-import { dirname, join, resolve } from 'node:path'
+import { basename, dirname, join, resolve } from 'node:path'
 import { addProfileRows } from '../../../dev/probes/web/scene-home.mjs'
 
 const [command, homeArg] = process.argv.slice(2)
@@ -20,7 +21,9 @@ if (command === undefined || homeArg === undefined) {
   process.exit(1)
 }
 const home = resolve(homeArg)
-const workspace = join(dirname(home), 'product-workspace')
+// Per-run parent, stable leaf: concurrent scenes cannot delete each other's workspace, while the
+// rendered label stays `product-workspace` (the leaf name, not the parent).
+const workspace = join(dirname(home), `${basename(home)}-workspace`, 'product-workspace')
 
 if (command === 'patch') {
   const patchPath = join(home, 'profiles', 'dev', 'cordis.patch.yml')

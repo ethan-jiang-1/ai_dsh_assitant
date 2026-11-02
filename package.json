@@ -14,6 +14,7 @@
     "gen-paths": "node scripts/generate/gen-paths.mjs",
     "gen-catalog": "node scripts/generate/gen-catalog.mjs",
     "usage": "node dev/reports/usage-report.mjs",
+    "session": "node dev/reports/session-trace.mjs",
     "import-knowledge": "TSX_TSCONFIG_PATH=tsconfig.tsx.json node --import tsx/esm dev/deploy/import-knowledge.mjs",
     "expert-setup": "TSX_TSCONFIG_PATH=tsconfig.tsx.json node --import tsx/esm dev/deploy/expert-setup.mjs",
     "eval": "node dev/eval/run.mjs",
