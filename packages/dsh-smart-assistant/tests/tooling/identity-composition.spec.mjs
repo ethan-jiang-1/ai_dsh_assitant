@@ -131,6 +131,22 @@ describe('package subpaths: every patch that references our package names a real
   })
 })
 
+describe('webOnlyRowsDisabledProblems: the web-only rows self-disable in headless', () => {
+  const row = (id, disabled) => `    - id: ${id}\n      name: dsh-smart-assistant/${id.replace('assistant-', '')}\n      disabled: ${disabled}\n`
+  const all = (disabled = '!!js "!ctx.get(\'connection\')"') => [
+    'assistant-product', 'assistant-desk-projection', 'assistant-ui-mode', 'assistant-rooms', 'assistant-viki',
+  ].map(id => row(id, disabled)).join('')
+
+  it('accepts all five web-only rows with the connection guard', () => {
+    expect(gateCores.webOnlyRowsDisabledProblems(all())).toEqual([])
+  })
+
+  it('rejects a row that lost the guard, and a guard watching a different service', () => {
+    expect(gateCores.webOnlyRowsDisabledProblems(all('true')).join(' ')).toContain('assistant-product')
+    expect(gateCores.webOnlyRowsDisabledProblems(all('!!js "!ctx.get(\'layout\')"')).join(' ')).toContain('self-disable')
+  })
+})
+
 describe('composition rows: architecture §二 plane trees and the bundle patch agree', () => {
   /** A §二 slice with the tree lines given; §三 follows so the slice boundary is exercised. */
   const archWith = (...treeLines) =>
