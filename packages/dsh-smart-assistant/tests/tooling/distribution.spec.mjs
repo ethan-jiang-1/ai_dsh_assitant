@@ -8,6 +8,7 @@
  */
 import { describe, expect, it } from 'vitest'
 import { releaseCharterProblems, retiredTermProblems } from '../../../../scripts/checks/gates/distribution.mjs'
+import { docShapeProblems } from '../../../../scripts/release/publish-shape.mjs'
 
 describe('retiredTermProblems', () => {
   it('accepts prose that names the objects in DSH vocabulary', () => {
@@ -67,5 +68,23 @@ describe('releaseCharterProblems', () => {
     const problems = releaseCharterProblems({ text: '# 发布\n\n只有散文。' })
     expect(problems).toContain('docs/release.md lost its six-axis owner section')
     expect(problems).toContain('docs/release.md lost its lifecycle index section')
+  })
+})
+
+const README_SKELETON = ['## 装什么、装到哪', '## 安装', '## 验证', '## 配置', '## 升级', '## 卸载与数据', '## 排障'].join('\n')
+const MANUAL_SKELETON = ['## 产品是什么', '## 〇、安装前提', '## 〇之二、选运行时', '## 一、安装', '## 二、首启', '## 三、验证安装', '## 五、配置', '## 七、升级', '## 八、卸载', '## 常见问题', '## 十二、安全'].join('\n')
+
+describe('docShapeProblems', () => {
+  it('accepts the host seven sections and the manual ten stages', () => {
+    expect(docShapeProblems({ readme: README_SKELETON, manual: MANUAL_SKELETON })).toEqual([])
+  })
+
+  it('reports a README without verification and a manual without configuration', () => {
+    const problems = docShapeProblems({
+      readme: README_SKELETON.replace('## 验证\n', ''),
+      manual: MANUAL_SKELETON.replace('## 五、配置\n', ''),
+    })
+    expect(problems.some(problem => problem.includes('## 验证'))).toBe(true)
+    expect(problems.some(problem => problem.includes('## 五、配置'))).toBe(true)
   })
 })
