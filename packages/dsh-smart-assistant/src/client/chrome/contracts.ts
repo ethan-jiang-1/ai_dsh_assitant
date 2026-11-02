@@ -59,7 +59,10 @@ export interface ClientContext {
   sessions?: {
     create(opts?: { readonly workspaceId?: string, readonly cwd?: string, readonly sessionId?: string }): Promise<string>
     retain(target: string, options: { readonly source: string }): { release(): void }
-    readonly list: { subscribe(listener: () => void): () => void }
+    readonly list: {
+      getSnapshot(): { readonly ids: readonly string[] }
+      subscribe(listener: () => void): () => void
+    }
   }
   /** The workspace catalog face: processing sessions are created inside the designated workspace. */
   workspaces?: {

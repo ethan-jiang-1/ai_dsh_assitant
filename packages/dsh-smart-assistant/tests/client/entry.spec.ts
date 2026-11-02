@@ -9,6 +9,8 @@
  * - The dashboard's panellist/main pair, both sidebar brand slots, and the desk primary
  *   view's `conversation.view` claim are wired by apply with their exact ids/orders.
  * - Dashboard defaults once per Client root and never reopens after explicit navigation/remount.
+ * - The remembered main view restores only the desk, and the product gate claims a dock seat
+ *   in the conversation's input stack.
  * - The desk activity command selects the dashboard immediately and its deferred mode intent is consumed once.
  *
  * The browser half is multi-module source (relative imports, tsdown-inlined into one
@@ -105,7 +107,7 @@ describe('client-module registration', () => {
       'sidebar.right.pane.tab', 'sidebar.right.pane.tab.title',
       'sidebar.right.pane.tab', 'sidebar.right.pane.tab.title',
       'settings.general.item',
-      'conversation.hero.brand.mark', 'conversation.chat.assistant-actions', 'conversation.input.dock', 'conversation.input.dock',
+      'conversation.hero.brand.mark', 'conversation.chat.assistant-actions', 'conversation.input.dock', 'conversation.input.dock', 'conversation.input.dock',
     ])
     // The tab types register first (the three product rooms; Viki is debug-only, so this
     // default boot carries none), then each room's keyed body and keyed tab title (the glyph
@@ -119,7 +121,7 @@ describe('client-module registration', () => {
       'dsh-smart-assistant-skills', 'dsh-smart-assistant-skills',
       'assistant-ui-mode',
       'conversation.hero.brand.mark',
-      'dsh-smart-assistant-remember', 'assistant-first-mile', 'assistant-approval-banner',
+      'dsh-smart-assistant-remember', 'assistant-first-mile', 'assistant-approval-banner', 'assistant-product-gate',
     ])
     // The default boot lists the three product rooms; Viki is debug-only and absent.
     expect(guideEntries).toEqual([

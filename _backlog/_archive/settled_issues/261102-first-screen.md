@@ -1,12 +1,14 @@
 ---
-status: 待落地
+status: 已结
 opened: 2026-11-02
 ---
 
 # 推敲：首屏归谁——「门在 dashboard 里」只覆盖一条路径，另外两条要先定形态
 
-> 立卡：2026-11-02 ｜ 状态：待落地 ｜ 毕业：做现在 ｜ 去向：implemented ｜ 可关闭：否
+> 立卡：2026-11-02 ｜ 状态：已结 ｜ 毕业：做现在 ｜ 去向：implemented ｜ 可关闭：是
 > 定性：2026-11-03 用户选定 **B+** / **未绑定禁用输入** / **本轮点名落地**（授权来源 = 2026-11-03 对话，范围 = 本卡 S1–S5）。
+> 结论：S1–S5 全交付——会话门（dock + composer block）、记住上次主视图、证据面（非产品场景 `onboarding:false` + 产品场景重录 + 真机探针）、合同与决定 note；去向 = [implemented note](../../../notes/implemented/2026-11-02-first-screen-ownership.md)。
+> 审查：agent — 机械 `typecheck`/`build`/`test`/`verify` + `web-face-check`（product-onboarding 重录、product-workspace-gate、blank/desk/banner/viki 非产品面）+ `product-first-screen` 探针；语义自审跨 host/client/合同；用户验收 = D1/D2 拍板（2026-11-03）。
 
 **问题与期望结果：** 产品打开时那一屏（还没开会话）现在由"本包 dashboard 先选"占住，工作区门渲染在
 dashboard 里面。真机实验（[机制与实验](../research/261102-first-screen/261102-first-screen-mechanism.md)）证明：
@@ -58,7 +60,7 @@ dashboard 里面。真机实验（[机制与实验](../research/261102-first-scr
 
 ## 验收标准
 
-（按 [`validation-design`](../methods/validation-design.md)；行为 / 类别 / 输入状态 / 判据 / 负例 / 证据 owner / 人判）
+（按 [`validation-design`](../../methods/validation-design.md)；行为 / 类别 / 输入状态 / 判据 / 负例 / 证据 owner / 人判）
 
 | # | 行为 | 类别 | 输入状态 | 通过信号 | 负例/恢复 | 证据 owner |
 |---|---|---|---|---|---|---|
@@ -75,11 +77,11 @@ dashboard 里面。真机实验（[机制与实验](../research/261102-first-scr
 
 | 片 | 状态 | 证据 |
 |---|---|---|
-| S1 会话门（binding store + dock + blocks + 删「稍后」+ 首开卡让位） | 待做 | — |
-| S2 首屏规则（上次主视图偏好替换 `selectDashboardByDefault`） | 待做 | — |
-| S3 证据面（8 个非产品场景 seed、产品场景重录、E4-2/E5 探针） | 待做 | — |
-| S4 合同（product.md / architecture.md / testing.md） | 待做 | — |
-| S5 收口（note、卡/调研归档、清单） | 待做 | — |
+| S1 会话门（binding store + dock + blocks + 删「稍后」+ 首开卡让位） | 完成 | `pnpm test:client`：`product-binding` / `product-face` / `product-gate` / `product-dock` / `first-mile` / `entry` spec；真机探针 `newSessionBlocked`/`dockExplains` |
+| S2 首屏规则（上次主视图偏好替换 `selectDashboardByDefault`） | 完成 | `main-view.spec` + `entry.spec`；探针 `reloadStaysInConversation` + `mainView=chat` |
+| S3 证据面 | 完成 | `web-face-check`：`blank-first-open`、`desk-eight-matters-first-open`（两条基线）、`first-open-draft-banner`、4 个 Viki 面、`product-workspace-gate` 绿；`product-onboarding` 重录（去「稍后」）；非产品场景 `onboarding:false` 与 seed 的 `[]` 占位修复；`node dev/probes/web/product-first-screen.mjs '<URL>'` 全绿 |
+| S4 合同 | 完成 | `docs/product.md` §四、`docs/architecture.md` §七 + 模块表、`docs/testing.md` 证据行（同 diff） |
+| S5 收口 | 完成 | 本卡归档 + 调研题 `已定性` 归档 + implemented note + 两个清单 |
 
 **仍未取**：Host `agent/pre-step` 反绕过（D3 延后，触发见上）；`selectPanel` 仲裁（残留风险，
 触发 = roster 出现第二个自选 `main` 的工作台型插件）。
@@ -129,8 +131,8 @@ dashboard 里面。真机实验（[机制与实验](../research/261102-first-scr
 
 1. 门覆盖与首屏正交——"门必须挡在唯一必经路径上"由会话门满足，不需要交出桌面。用一个首屏身份反转
    去修一个覆盖缺陷，代价和收益不成比例。
-2. A 反转的是两份已记录的决定（[首开体验：一页纸](../../notes/implemented/2026-10-23-first-run-one-page.md)、
-   [三层界面重排](../../notes/implemented/2026-10-24-interface-layer-rearrangement.md)：主面板默认一页纸、
+2. A 反转的是两份已记录的决定（[首开体验：一页纸](../../../notes/implemented/2026-10-23-first-run-one-page.md)、
+   [三层界面重排](../../../notes/implemented/2026-10-24-interface-layer-rearrangement.md)：主面板默认一页纸、
    会话是编辑层）。B+ 只补一条"记住上次视图"的规则，不推翻产品模型。
 3. E5 的真因是"每次加载自选"；B+ 用一个约 30 行的偏好把"回到你上次看的那一面"变成显式规则。
    A' 则让桌面用户每次刷新都被拽回对话（对称的损伤）。

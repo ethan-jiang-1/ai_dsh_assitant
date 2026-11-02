@@ -6,6 +6,7 @@
 
 | 卡 | 关闭日 | 判定 |
 |---|---|---|
+| [261102 首屏归谁](261102-first-screen.md) | 2026-11-03 | **B+ 落地**：首屏仍是桌面，会话侧由 `ProductGateDock` + `ctx.conversation.blocks` 覆盖（未绑定禁输入、无「稍后」）；刷新按上次主视图恢复；非产品场景补 `onboarding: false` 并修 seed 的 `[]` 占位；产品两场景重录/复跑、`product-first-screen` 探针全绿。去向 = [implemented note](../../../notes/implemented/2026-11-02-first-screen-ownership.md)；研究题随迁 `_archive/research/` |
 | [261102 发行版口径对齐](261102-distribution-alignment.md) | 2026-11-02 | 术语（product 不修饰交付对象）、六轴 owner + 生命周期十段进宪章；包 README 与安装手册回宿主骨架；噪声 N01–N12 按 owner 收敛；退役词/骨架/六轴三道门禁带负例。去向 = [implemented note](../../../notes/implemented/2026-11-02-distribution-alignment.md) |
 | [261102 去掉会话视图的「运行轨迹」页](261102-remove-trajectory-tab.md) | 2026-11-02 | `ui-trajectory` 裸 id 停用（bundle 层）；组合 dump / 客户端清单 / 真页面三处验；决定入 vendor override 台账 |
 | [261102 dev 通道与用户安装路径对齐](261102-dev-product-install-parity.md) | 2026-11-02 | dev 快环与用户安装路径的差异登记成表（13 行）；tarball 通道 `pnpm install-parity` 进开发环；dev-only 行改 `--patch` overlay；`dev-parity` 门禁钉住八个负载机制点 |

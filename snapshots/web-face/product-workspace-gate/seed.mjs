@@ -56,7 +56,9 @@ if (command === 'patch') {
     process.exit(0)
   }
   const addition = missing.map(row => ['', ...row.block].join('\n')).join('\n')
-  writeFileSync(patchPath, current.replace(/\n*$/, '\n') + addition + '\n')
+  // The dev profile's user layer is an empty array after setup.sh; an appended list
+// must replace that placeholder, not follow it (two YAML documents do not parse).
+writeFileSync(patchPath, current.replace(/^\s*\[\s*\]\s*$/m, '').replace(/\n*$/, '\n') + addition + '\n')
   console.log(`seed: ${missing.length} profile row(s) written → ${patchPath}`)
   process.exit(0)
 }

@@ -12,6 +12,8 @@ import type { PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots
 import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
 import type { RoomKind } from './contracts'
 import { patchDesk, useDesk } from '../rooms/room-data-core'
+import { productGateBlocks, productGateView } from '../product/product-binding'
+import { useProductFace } from '../product/product-face'
 import { createElement } from './runtime'
 import { MARK_TEAL } from './theme'
 import type {} from './locales'
@@ -79,6 +81,12 @@ export function FirstMileDock({ session, openDesk, processingMatter, t }: FirstM
   // lands asynchronously after mount, and the old one-shot never re-rendered — the brief
   // never appeared on a live reload (caught in the 2026-10-07 real-machine probe).
   const walk = useDesk()
+
+  // While the product has no usable project the conversation gate owns this slot: its dock
+  // carries the project picker and its block makes the composer inert. The pointer back to
+  // 「今天」 would contradict that (the desk is the gate itself until a project is bound).
+  const productFace = useProductFace()
+  if (productGateBlocks(productGateView(productFace.binding))) return null
 
   // The walk view's desk data — on a blank session there is no session slice yet, so the
   // brief reads the shared walk view (subscribed above).

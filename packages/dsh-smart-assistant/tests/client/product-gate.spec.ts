@@ -1,66 +1,74 @@
 /**
- * The product gate's state machine: the route payload the client accepts and the surface each
- * state asks for. The component itself is covered by the entry registration and the web-face
- * scenes; these are the deterministic rules behind it.
+ * The product gate in front of the dashboard (`src/client/product/product-gate.ts`).
+ *
+ * Acceptance points:
+ * - A legacy face renders the wrapped dashboard unchanged (manual installs stay plain DSH).
+ * - Onboarding withholds the dashboard and carries only the project picker — the retired
+ *   「稍后」 escape must not come back (it unlocked the desk's own input lane).
+ * - Ready shows the project bar, the one start action and the change action, with the
+ *   dashboard under it.
+ * - Recovery explains the unusable binding and offers a reselection.
  */
 import { describe, expect, it } from 'vitest'
-import { parseProductBinding, productGateView } from '../../src/client/product/product-gate.ts'
+import { createElement } from 'react'
+import { inertReactShim, loadClientRegistration, materializeClient, textsOf } from '../support/client-harness.ts'
 
-describe('product gate binding', () => {
-  it('accepts the route shape, including optional workspace, onboarding and error fields', () => {
-    expect(parseProductBinding({
-      version: 1,
-      configured: true,
-      status: 'ready',
-      workspaceDir: '/abs/workspace',
-      workspaceId: 'ws-1',
-      onboarding: true,
-    })).toEqual({
-      version: 1,
-      configured: true,
-      status: 'ready',
-      workspaceDir: '/abs/workspace',
-      workspaceId: 'ws-1',
-      onboarding: true,
-    })
-    expect(parseProductBinding({
-      version: 1,
-      configured: true,
-      status: 'workspace-missing',
-      workspaceDir: '/abs/gone',
-      error: 'workspace-missing',
-    })).toMatchObject({ status: 'workspace-missing', error: 'workspace-missing' })
+const registration = await loadClientRegistration()
+
+interface ClientExports {
+  ProductGate: (props: { base: (props: unknown) => unknown }) => unknown
+  initProductFaceStore: () => unknown
+  setProductFace: (next: Partial<{ binding: unknown, busy: boolean, error: string | undefined }>) => void
+}
+
+function materialize(): ClientExports {
+  return materializeClient(registration, inertReactShim()) as unknown as ClientExports
+}
+
+const base = (): unknown => createElement('div', null, 'BASE-DASHBOARD')
+const ONBOARDING = { version: 1, configured: false, status: 'not-configured' as const }
+const READY = {
+  version: 1, configured: true, status: 'ready' as const,
+  workspaceDir: '/tmp/project', workspaceId: 'ws-1',
+}
+
+describe('product gate over the dashboard', () => {
+  it('renders the dashboard unchanged for a legacy face', () => {
+    const surface = materialize()
+    surface.initProductFaceStore()
+    surface.setProductFace({ binding: undefined })
+    expect(textsOf(surface.ProductGate({ base }))).toContain('BASE-DASHBOARD')
   })
 
-  it('rejects a wrong version, unknown status, wrong field types and non-objects', () => {
-    for (const value of [
-      null,
-      [],
-      { version: 2, configured: true, status: 'ready' },
-      { version: 1, configured: 'yes', status: 'ready' },
-      { version: 1, configured: true, status: 'loud' },
-      { version: 1, configured: true, status: 'ready', workspaceDir: 42 },
-      { version: 1, configured: true, status: 'ready', onboarding: 'yes' },
-      { version: 1, configured: true, status: 'ready', error: 42 },
-    ]) {
-      expect(parseProductBinding(value)).toBeUndefined()
-    }
+  it('asks for a project on first run and offers no later escape', () => {
+    const surface = materialize()
+    surface.initProductFaceStore()
+    surface.setProductFace({ binding: ONBOARDING })
+    const texts = textsOf(surface.ProductGate({ base })).join('\n')
+    expect(texts).toContain('选一个项目目录')
+    expect(texts).toContain('选择项目目录')
+    expect(texts).not.toContain('稍后')
+    expect(texts).not.toContain('BASE-DASHBOARD')
   })
 
-  it('renders the existing dashboard for absent, pending or onboarding-disabled bindings', () => {
-    expect(productGateView(undefined)).toBe('legacy')
-    expect(productGateView({ version: 1, configured: false, status: 'not-configured', onboarding: false })).toBe('legacy')
-    expect(productGateView({ version: 1, configured: true, status: 'pending' })).toBe('legacy')
+  it('shows the project bar, the one start action and the dashboard once bound', () => {
+    const surface = materialize()
+    surface.initProductFaceStore()
+    surface.setProductFace({ binding: READY })
+    const texts = textsOf(surface.ProductGate({ base })).join('\n')
+    expect(texts).toContain('工作区 · project')
+    expect(texts).toContain('开始一件事')
+    expect(texts).toContain('换项目')
+    expect(texts).toContain('BASE-DASHBOARD')
   })
 
-  it('asks for onboarding when unconfigured and the product wants a first-run choice', () => {
-    expect(productGateView({ version: 1, configured: false, status: 'not-configured' })).toBe('onboarding')
-    expect(productGateView({ version: 1, configured: false, status: 'not-configured', onboarding: true })).toBe('onboarding')
-  })
-
-  it('renders the workspace surface only when ready, and recovery when the binding is unusable', () => {
-    expect(productGateView({ version: 1, configured: true, status: 'ready', workspaceId: 'ws' })).toBe('ready')
-    expect(productGateView({ version: 1, configured: true, status: 'workspace-missing' })).toBe('recovery')
-    expect(productGateView({ version: 1, configured: true, status: 'invalid' })).toBe('recovery')
+  it('explains an unusable binding and offers a reselection', () => {
+    const surface = materialize()
+    surface.initProductFaceStore()
+    surface.setProductFace({ binding: { version: 1, configured: true, status: 'workspace-missing', workspaceDir: '/gone' } })
+    const texts = textsOf(surface.ProductGate({ base })).join('\n')
+    expect(texts).toContain('上次的项目目录不在了')
+    expect(texts).toContain('选择另一个目录')
+    expect(texts).not.toContain('BASE-DASHBOARD')
   })
 })

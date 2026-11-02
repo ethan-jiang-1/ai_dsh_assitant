@@ -14,6 +14,7 @@
 
 | 名头 | 材料 | 历史消费者 | 产出的卡 | 归档 |
 |---|---|---|---|---|
+| [261102-first-screen/](261102-first-screen/README.md) · 首屏归属：main 键控槽、门覆盖与刷新行为 | 1 份 | [首屏归谁卡](../settled_issues/261102-first-screen.md)、[决定 note](../../../notes/implemented/2026-11-02-first-screen-ownership.md) | [首屏归谁卡](../settled_issues/261102-first-screen.md) | 2026-11-03 |
 | [261101-plugin-lifecycle/](261101-plugin-lifecycle/README.md) · DSH 插件生命周期对齐（0.1.13 发行物对照） | 1 份 | [插件生命周期对齐卡](../settled_issues/261101-plugin-lifecycle-align.md)、[bundle-first 决定 note](../../../notes/implemented/2026-11-02-bundle-first-lifecycle.md) | [插件生命周期对齐卡](../settled_issues/261101-plugin-lifecycle-align.md)、[BUG-027](../fixed_bugs/BUG-027-published-sourcemap-embeds-src.md)、[BUG-028](../fixed_bugs/BUG-028-manual-profile-create-boots-and-replaces.md) | 2026-11-02 |
 | [261101-startup-model-comparison/](261101-startup-model-comparison/README.md) · 启动路径比较与产品 profile 纠偏 | 5 份 + 4 图 | [产品 profile 对齐收口卡](../settled_issues/261101-product-profile-alignment.md)、[启动路径取舍 note](../../../notes/rejected/2026-11-01-startup-paths.md) | [产品 profile 对齐收口卡](../settled_issues/261101-product-profile-alignment.md) | 2026-11-01 |
 | [261101-plugin-as-product/](261101-plugin-as-product/README.md) · 插件即产品（前提已不成立：插件不构成 product，见 bundle-first）/ 工作区作业面 / run bundle | 6 份 | [插件即产品收口卡](../settled_issues/261101-plugin-as-product.md) | — | 2026-11-01 |

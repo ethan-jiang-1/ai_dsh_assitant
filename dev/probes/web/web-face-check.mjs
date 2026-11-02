@@ -18,7 +18,7 @@
  *             viki-panel-search (only with --all or --scenario)
  */
 import { spawn, spawnSync } from 'node:child_process'
-import { rmSync, writeFileSync } from 'node:fs'
+import { readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { mkTmpDir } from '../../env/tmp.mjs'
@@ -65,10 +65,36 @@ function sh(command, commandArgs, options = {}) {
   return result.status ?? 1
 }
 
-function provision(home) {
+/**
+ * Provision one probe home. `productOff` marks a scene that is NOT a product deployment: the
+ * product gate would otherwise withhold every conversation's input (correct for the product,
+ * wrong for a desk/Viki scene), so the profile patch declares `assistant-product.onboarding:
+ * false` once, before the scene's own rows.
+ * @param {string} home - the throwaway home.
+ * @param {{ productOff?: boolean }} [options] - scene posture.
+ */
+function provision(home, options = {}) {
   console.log(`  · provisioning ${home}`)
   if (sh('bash', ['dev/env/prepare.sh'], { env: { ...process.env, ASSISTANT_DSH_HOME: home } }) !== 0) return false
   if (sh('bash', ['dev/env/setup.sh'], { env: { ...process.env, ASSISTANT_DSH_HOME: home } }) !== 0) return false
+  if (options.productOff === true) {
+    const patchPath = join(home, 'profiles', 'dev', 'cordis.patch.yml')
+    const current = readFileSync(patchPath, 'utf8')
+    if (!current.includes('onboarding: false')) {
+      const block = [
+        '# 非产品面场景：显式关掉产品首启门（本场景不是产品部署；产品门由 product-* 场景验）。',
+        '- id: assistant-product',
+        '  config:',
+        '    onboarding: false',
+        '',
+      ].join('\n')
+      // A fresh profile's patch is the header comment plus `[]` — a flow sequence cannot be
+      // followed by block entries. Replace the empty list; otherwise append a list item.
+      const base = current.replace(/\n*$/, '\n')
+      const next = /^\s*\[\]\s*$/m.test(base) ? base.replace(/^\s*\[\]\s*$/m, block) : base + block
+      writeFileSync(patchPath, next)
+    }
+  }
   return true
 }
 
@@ -157,7 +183,7 @@ async function startVikiMock() {
 async function runViki(names) {
   const home = mkTmpDir('web-face-check', 'viki-home-')
   console.log(`\n▶ viki (${home})`)
-  if (!provision(home)) return failed('viki: provision failed')
+  if (!provision(home, { productOff: true })) return failed('viki: provision failed')
 
   const connected = names.filter(name => name !== 'viki-panel-disconnected')
   if (connected.length > 0) {
@@ -208,7 +234,7 @@ async function runViki(names) {
 async function runBlank() {
   const home = mkTmpDir('web-face-check', 'blank-home-')
   console.log(`\n▶ blank-first-open (${home})`)
-  if (!provision(home)) return failed('blank-first-open: provision failed')
+  if (!provision(home, { productOff: true })) return failed('blank-first-open: provision failed')
   const workspace = join(home, 'workspace.patch.yml')
   writeFileSync(workspace, [
     '- id: workspace-controller',
@@ -226,7 +252,7 @@ async function runBlank() {
 async function runBanner() {
   const home = mkTmpDir('web-face-check', 'banner-home-')
   console.log(`\n▶ first-open-draft-banner (${home})`)
-  if (!provision(home)) return failed('first-open-draft-banner: provision failed')
+  if (!provision(home, { productOff: true })) return failed('first-open-draft-banner: provision failed')
   const seedScript = 'snapshots/web-face/first-open-draft-banner/seed.mjs'
   if (!seed([seedScript, 'patch', home], home)) return failed('first-open-draft-banner: seed patch failed')
   const code = await withService(home, {}, async url => {
@@ -290,7 +316,7 @@ async function runProductOnboarding() {
 async function runDesk() {
   const home = mkTmpDir('web-face-check', 'desk-home-')
   console.log(`\n▶ desk-eight-matters (${home})`)
-  if (!provision(home)) return failed('desk-eight-matters: provision failed')
+  if (!provision(home, { productOff: true })) return failed('desk-eight-matters: provision failed')
   const seedScript = 'snapshots/web-face/desk-eight-matters-first-open/seed.mjs'
   if (!seed([seedScript, 'patch', home], home)) return failed('desk-eight-matters: seed patch failed')
   if (!seed([seedScript, 'desk', home], home)) return failed('desk-eight-matters: seed desk failed')

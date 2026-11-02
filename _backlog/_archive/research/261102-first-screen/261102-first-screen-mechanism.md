@@ -121,7 +121,7 @@ E4-2 不是猜测：`product-gate.ts` 的模块注释自己写着 "in front of t
 
 ### 6.2 平台三个现成接缝
 
-1. **`ctx.conversation.blocks`**（`packages/client/ui-conversation/src/client/input/blocks.ts`）：
+1. **`ctx.conversation.blocks`**（`vendor/dsh/packages/client/ui-conversation/src/client/input/blocks.ts`）：
    按 session 的 composer block，带本地化 `reason`。源码注释两句都重要：
    "the one way another plugin stops a session's input"，以及
    "This is an affordance, not enforcement: the Host refuses a prompt it cannot route regardless of

@@ -79,7 +79,8 @@ node bootstrap.mjs --no-start ...
 - **登记**：Host 行 `assistant-product`（web-only）在 boot 时用 `ctx.workspaceRegistry.create()` 登记工作区；幂等；按 canonical path 去重。
 - **会话**：客户端用 `uiWorkspace.startSession(workspaceId, { agentPreset: 'assistant' })` 开会话并选中；`header.cwd` = 工作区，sandbox 可写根 = 工作区。
 - **换项目**：客户端用 DSH 目录选择器选新目录 → POST 入口路由 → 校验/登记/写 Config；旧 workspace registration 与会话不删；当前会话不迁移，新会话用新工作区。
-- **首启**：`not-configured` 且 `onboarding` 未关时，客户端 `main` 槽显示“选一个项目目录”；可“稍后”，不阻塞 Host boot；不依赖 `welcome-notice`/`settings.onboarding`。
+- **首启**：`not-configured` 且 `onboarding` 未关时，桌面显示“选一个项目目录”；**未绑定时会话也走同一道门**——每个 Session 的 composer 被 `ctx.conversation.blocks` 禁用，dock 给出原因与选择按钮。没有“稍后”：它会解锁桌面的第二条输入车道。不阻塞 Host boot；不依赖 `welcome-notice`/`settings.onboarding`。
+- **首屏**：第一次打开是桌面（`main` 的「今天」）；之后按“上次主视图”恢复——偏好=会话就不选面板（平台自己恢复 Session），偏好=桌面才选桌面。偏好住浏览器 `dsha:main-view`，只记视图、不记业务数据。
 - **没有入口行**：手工装包但没有入口行/旧 profile 时，客户端门透明，行为与普通 DSH 一致。
 - **跨 profile**：同一 home 下其他 profile 打开产品会话时，`assistant` preset 不在组合里，失败码 = `agent-preset/not-found`；文档要求从专用 profile 打开。
 - **headless**：入口行是 web-only（必注 `connection`/`workspaceRegistry`）；headless profile patch 里 `disabled: true`（同 `schedule` 先例）。

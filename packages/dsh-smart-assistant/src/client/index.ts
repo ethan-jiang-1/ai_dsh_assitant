@@ -52,7 +52,6 @@ import { createSnapshotStore, defineStore } from './chrome/store'
 import { ensureThemeVars } from './chrome/theme'
 import { debugEnabled } from './chrome/debug-flag'
 import { HomeSurface } from './projection/home-surface'
-import { ProductGate, type ProductGateRuntime } from './product/product-gate'
 import { DebugPanel } from './debug/debug-panel'
 import { createDeskSurface } from './projection/desk-surface'
 import { mountProjectionReader } from './projection/projection-lifecycle'
@@ -67,7 +66,16 @@ import { createProactiveCatalogSource, type ProactiveCatalogState, type Proactiv
 import { createProactiveHandlers } from './proactive/proactive-handlers'
 import type { ProactiveUiState } from './proactive/proactive-face'
 import { readProactiveUi } from './local-state'
-import { selectDashboardByDefault } from './chrome/default-panel-selection'
+import { restoreMainView, trackMainView } from './chrome/main-view'
+import { ProductGate } from './product/product-gate'
+import { ProductGateDock } from './product/product-dock'
+import {
+  initProductFaceStore,
+  loadProductFace,
+  mountProductInputGate,
+  type ComposerBlockWriter,
+} from './product/product-face'
+import type { ProductGateRuntime } from './product/product-binding'
 import { deskEn, deskZh, en as firstMileEn, zh as firstMileZh } from './chrome/locales'
 
 /** Slots this face occupies (single-occupant, root-scope, declared by the sidebar). */
@@ -217,9 +225,23 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         startSession: (workspaceId: string) => { ctx.uiWorkspace?.startSession?.(workspaceId, { agentPreset: 'assistant' }) },
       }),
     }
+    // One route read per page materialization feeds both the dashboard gate and the
+    // conversation block. The read is optional-scoped: a composition without the product row
+    // answers 404 and the face stays legacy.
+    initProductFaceStore(productGateRuntime)
+    void loadProductFace()
+    // The conversation's half of the gate: block every Session's composer while the product
+    // has no usable project. Scoped inject (not the plugin's own list) so a composition with
+    // no conversation service still registers the rest of the face.
+    ctx.inject?.(['conversation'], (scope) => {
+      const conversation = scope.get('conversation') as { readonly blocks?: ComposerBlockWriter } | undefined
+      const blocks = conversation?.blocks
+      if (blocks === undefined) return
+      mountProductInputGate({ sessions: ctx.sessions, effect: ctx.effect }, blocks)
+    })
     const baseDashboard = dashboardComponent as ComponentType<ProjectionPanelProps>
     const gatedDashboard = (props: ProjectionPanelProps) =>
-      createElement(ProductGate, { ...props, base: baseDashboard, runtime: productGateRuntime })
+      createElement(ProductGate, { ...props, base: baseDashboard })
     const dashboardInject = (sessionId: string | undefined, ...args: unknown[]) => {
       const actions = args.find((argument): argument is { selectMatter(id: string): void, selectMode(mode: 'activity'): void } =>
         typeof argument === 'object' && argument !== null && typeof (argument as { selectMatter?: unknown }).selectMatter === 'function')
@@ -282,9 +304,12 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         ...(viewStore === undefined ? {} : { store: viewStore }),
         inject: injectDashboard,
       }, gatedDashboard)
-      selectDashboardByDefault(ctx)
+      // The shell resets layout on reload; the product remembers which of its two views the
+      // principal left (first visit = the desk) instead of forcing one on every load.
+      restoreMainView(ctx, 'dsh-smart-assistant-dashboard')
       return registration
     })
+    trackMainView(ctx, 'dsh-smart-assistant-dashboard')
 
     // The developer debug panel and the Viki room share one flag. They belong to
     // `conversation.view` because they are per-session views, not global panels: `main` is a
@@ -439,6 +464,15 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         order: -9,
         inject: () => ({ openRoom: openBeside }),
       }, ApprovalDockBanner))
+    // The product gate's conversation half (2026-11-03): the strip above the composer that
+    // explains the inert input and carries the project picker. The block itself is mounted
+    // once per materialization above; this registration only renders while the gate is up.
+    ctx.slots.inject('conversation.input.dock', () =>
+      ctx.slots.register({
+        name: 'conversation.input.dock',
+        id: 'assistant-product-gate',
+        order: -11,
+      }, ProductGateDock))
 
 
   }

@@ -187,7 +187,7 @@ seam 的成色读数是**第二个真实 Provider 出现而 Consumer 一行不�
 | `src/index.ts` | 稳定包入口：`src/host/index.ts` 服务实现的薄导出（同 class 身份；`ctx.assistantMemory` 增广随实现加载） | 全部 |
 | `src/domain/product/workspace-path.ts` | 工作区路径策略（绝对/存在/可读写/禁 root/home/专用 home/包内；符号链接按目标判）；入口行与测试共用 | 无（最底层） |
 | `src/host/product/` | 入口行（web-only）：`workspaceDir`/`onboarding` Config + `ASSISTANT_WORKSPACE` 一次性覆盖；boot 用 `workspaceRegistry.create` 登记；GET/POST `api/assistant/product`，POST 经 `settings.update` 写 profile patch；路由核与状态机分开，headless profile patch 禁用 | domain/product + dsh-client-connection + dsh-workspace + settings（可选） |
-| `src/client/product/product-gate.ts` | 首屏门：`main` 面板外包一层；404/无入口行透明；`not-configured` 且 onboarding 开时显示首启选目录；ready 显示工作区/“开始一件事”/“换项目”；missing/invalid 显示恢复面 | 纯解析 + react surface + DSH directoryPicker |
+| `src/client/product/`（`product-binding` / `product-face` / `product-gate` / `product-dock`） | 首屏门：绑定词表与 route 解析、一次 route 读取的共享 store（两处门共用）、桌面包装（onboarding/ready/recovery）、会话 dock + composer block（未绑定禁输入）；404/无入口行透明 | 纯解析 + react surface + DSH directoryPicker + `ctx.conversation.blocks` |
 | `bootstrap.mjs` | 安装器（**独立发布资产，不在包里**）：`--package`/`--workspace`/`--product`/`--stop`；经官方 CLI 建/复用 profile、装包、校验组合、起 boot；不写 profile patch、不写工作区文件；无 `--workspace` 时 standalone 模式 | 仅 Node + 官方 dsh CLI |
 | `src/cli/` + `bin/` + `bootstrap.mjs` | 交付/部署面：专家装配（`expert-setup`）、两目录数据 bundle（`assistant-data`）、独立目录 bootstrap；只跑 Node + 纯核，不进模型上下文 | domain 纯核 + `yaml` |
 | `src/host/index.ts` + `src/host/service.ts` | 服务实现：把领域模块组装成 `ctx.assistantMemory`；公开的 `HomeHost`/`RoomReadResult` 契约在 `service.ts`，房间与摘要按它消费，不反向依赖组装文件 | 全部 |
@@ -328,16 +328,17 @@ pnpm dsh …（package.json scripts → dev/env/dsh.mjs，唯一启动器：
 
 ### 浏览器动作链：一次点击 → 可见的桌面变化
 
-客户端在 `main` 声明可用并完成桌面注册后，默认面板选择每个 Client 根上下文只尝试一次：
+客户端在 `main` 声明可用并完成桌面注册后，按“上次主视图”恢复（`src/client/chrome/main-view.ts`，键 `dsha:main-view`）：
 
-- **机会**：`activePanelId` 为 null 时选全局桌面，否则保留已选面板。
-- **不重选**：显式回到 Conversation、归档引发的回退、slot/布局重挂及客户端 HMR 不重选；完整页面重载的新根上下文重新尝试。
-- **记忆边界**：默认机会只在页面内记录，不保存导航偏好或业务数据；插件首次激活前的显式 null 与启动 null 无法由当前公开快照区分。
+- **首次 = 桌面**：没有偏好、且 `activePanelId` 为 null 时选全局桌面；否则保留已选面板。
+- **之后回到上次**：偏好=会话就**不选面板**（平台自己恢复 Session）；偏好=桌面且面板未选时才选桌面。每根上下文恢复一次，slot/布局重挂与 HMR 不重选。
+- **只记产品的两面**：产品桌面写“桌面”，`selectPanel(null)` 写“会话”；另一插件的面板不改写偏好。
+- **记忆边界**：偏好只存视图选择，不存导航偏好或业务数据；插件首次激活前的显式 null 与启动 null 无法由当前公开快照区分。
 - **数据源**：全局桌面读取独立 Host 固定投影；记忆/知识/技能三个房间 tab 读独立 Host 行 `assistant-rooms` 的房间投影（working folder 真值），Viki 读 `assistant-viki`；同一路径的 POST 是受控写；默认入口本身不创建业务 Session。
 - **会话内视图**：会话只有对话/轨迹，调试 flag 打开时多一个「开发调试」；桌面与任务只在主面板，不复制到会话。
-- **首屏门**：`main` 的 dashboard 外包一层 `ProductGate`；GET `api/assistant/product`——404/无入口行/传输失败透明，
-  `not-configured` 且 onboarding 开时显示首启选目录（DSH directoryPicker → POST → profile Config），
-  ready 显示 `工作区 · <目录>`、“开始一件事”（`uiWorkspace.startSession(workspaceId, { agentPreset: 'assistant' })`）与“换项目”，
+- **首屏门**：一次 GET `api/assistant/product` 喂两处——`main` 的 dashboard 外包一层 `ProductGate`（ready 显示 `工作区 · <目录>`、“开始一件事”（`uiWorkspace.startSession(workspaceId, { agentPreset: 'assistant' })`）与“换项目”），
+  会话侧由 `ProductGateDock` + `ctx.conversation.blocks` 承担（未绑定/恢复态禁输入、dock 给原因与选择按钮；没有“稍后”）。
+  404/无入口行/传输失败透明；`not-configured` 且 onboarding 开时显示首启选目录（DSH directoryPicker → POST → profile Config）；
   `workspace-missing`/`invalid` 显示恢复面。入口行在 boot 时读 Config/env 并登记；流程见 §七 启动链。
 
 独立 Host 行 `assistant-desk-projection` 提供固定只读投影下载：经营 dataDir 里有 `ledger.json` 时**活渲染账本 v2 投影**；无账本默认 404，只有 `allowFixture: true` 才回退固定 `desk-projection.json` 模拟输入（模拟不是权威）；端点边界、认证、错误态与 byte cap 的完整契约 = [`operating.md`](operating.md) §三（唯一权威，本文不复述）。物理 HTTP 验证使用 [只读探针](../dev/probes/web/desk-projection-download.mjs)，以明确标注模拟的 [固定资料](../dev/fixtures/desk-projection/desk-projection.json) 为独立字节预期。
