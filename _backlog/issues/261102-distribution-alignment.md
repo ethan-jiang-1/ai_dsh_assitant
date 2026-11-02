@@ -122,7 +122,7 @@ opened: 2026-11-02
 | web-only 面与 headless 处置 | `packages/dsh-smart-assistant/README.md`「安装」末段 | `docs/product.md` §四、`docs/architecture.md`、`docs/identity.md`、`docs/discipline.md`、包 AGENTS、手册 §九、根 `README.md` 养护定时段 | owner 给完整 YAML；其余只写"web-only，headless 显式禁用"一词 + 指针 |
 | 数据归属与卸载承诺 | `docs/delivery.md` §一数据卡 | `docs/product.md` §七（速查表整张重复）、包 README「卸载与数据」、手册 §八、根 `AGENTS.md` 硬规则 1 尾段 | 删 product.md §七整表，改一句指针；其余保留面向该读者的最小行 |
 | 市场索引（发现层，先发布后生成） | `docs/release.md` §三之二 | 包 README 安装末段、手册 §一/E、`docs/commands.md` market 行 | 其余压成一句；命令清单保留命令本身 |
-| 兼容范围（`engines.dsh` 等三处） | `docs/release.md` §五 | 包 README「装什么」、手册「〇、安装前提」、`docs/product.md` §2.3、`docs/release-verification.json` 说明 | 各留一条读数行；不复制矩阵结论 |
+| 兼容范围（`engines.dsh` 等三处） | `docs/release.md` §五 | 包 README「装什么」、手册「〇、安装前提」、`docs/product.md` §2.3、`packages/dsh-smart-assistant/release-verification.json` 说明 | 各留一条读数行；不复制矩阵结论 |
 | 版本与标签 | `docs/release.md` §六（政策）＋`docs/dev.md` §九（操作） | 根 `README.md`、手册表头、`docs/commands.md` | 合法二分（政策/步骤），保留；不再加第三处 |
 | 首次启动 / onboarding | `docs/product.md` §四 | 包 README「验证/排障」、手册 §二、`docs/architecture.md` §七链路、快照场景 README | 保留 owner + 各读者一格；快照只写"证明什么" |
 | 验证读数（`--dump-config` 应看到什么） | 包 README「验证」 | `docs/release.md` §一、`docs/product.md` §2.3、手册 §三、`docs/dev.md` §六 | owner 给完整读数；其余只给"跑什么"，不给"应看到什么" |
