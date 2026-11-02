@@ -13,6 +13,7 @@ import {
   commandAliasProblems,
   dshHomeInheritanceProblems,
   rootCommandBudgetProblems,
+  rootProseBudgetProblems,
   startPathProblems,
 } from '../../../../scripts/checks/gates/docs-commands.mjs'
 import { temp, disposeTempDirs } from './verify-gates-harness.mjs'
@@ -139,6 +140,21 @@ describe('rootCommandBudgetProblems', () => {
 
   it('counts indented lines and reports a missing source instead of passing silently', () => {
     expect(entry('  pnpm a\n  pnpm b\n  pnpm c\n  pnpm d\n').join(' ')).toContain('4 pnpm command lines')
+    expect(entry('').join(' ')).toContain('cannot be checked')
+  })
+})
+
+describe('rootProseBudgetProblems', () => {
+  const entry = (source, maxBytes = 100) => rootProseBudgetProblems({ agentsPath: 'AGENTS.md', source, maxBytes })
+
+  it('accepts an entry under the byte budget and rejects one over it', () => {
+    expect(entry('x'.repeat(100))).toEqual([])
+    const problems = entry('x'.repeat(101))
+    expect(problems.join(' ')).toContain('101 bytes')
+    expect(problems.join(' ')).toContain('budget 100')
+  })
+
+  it('reports a missing source instead of passing silently', () => {
     expect(entry('').join(' ')).toContain('cannot be checked')
   })
 })

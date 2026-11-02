@@ -405,3 +405,18 @@ bundle 层（两个 profile 各自的链，刻意的——§四，web-app 与 he
 写入者、版本门。`pnpm install-parity` 是开发环里真走 tarball 的那条通道（pack → 干净 web profile →
 `dsh plugin add` → `--dump-config`，不 boot、无浏览器）；boot、UI、升级与数据边界仍归发布前的八条
 smoke（[`release.md`](release.md) §七）。**link 快环**只对热重建负责，不对"用户装得上"负责。
+
+## 十一、探索路由（本仓侧与 DSH 侧常用入口）
+
+- **本仓侧**：产品合同（working folder 四房间 = [`home.md`](home.md)，经营账本与桌面投影 = [`operating.md`](operating.md)）；证据路由（改什么 → 跑什么 → 回归资产在哪）= [`testing.md`](testing.md) §一页证据地图（唯一表主）；功能路由与运行链路的速查 = [`architecture.md`](architecture.md) §八/§七；出了问题先查本文 §五踩坑清单（每条真踩过）。
+- **平台事实的家**（读 vendor，本仓不复写正文）：文档 tier = `vendor/dsh/docs/AGENTS.md`；主仓 note 合同 = `vendor/dsh/.agents/notes/README.md`（本仓合同是 [`notes/README.md`](../notes/README.md)，只写差量）；主仓开发技能 = `vendor/dsh/.agents/skills/`（技能发现根 = 所在工作树的 `.git` 所在仓，各仓只发现自己的 `.agents/skills/`——所以主仓技能留在主仓跑，不进本仓技能目录）。
+- 组合层级（bundle → profile patch → home patch → `--patch`）：`vendor/dsh/docs/architecture.md`。
+- preset 语义（roster/roots/遮蔽/standing mount）：`vendor/dsh/packages/preset/agent-preset/README.md`。
+- 技能 provider 契约（本 repo 依赖它）：`vendor/dsh/docs/subsystems/skills.md`。
+- 从本包贡献 Web UI：机制读 `vendor/dsh/docs/subsystems/slots.md`、`vendor/dsh/docs/subsystems/web-client.md`、`vendor/dsh/docs/subsystems/sidebar-right.md`；本包的路径和验证在 [`.agents/skills/client-ui-contribution/SKILL.md`](../.agents/skills/client-ui-contribution/SKILL.md)。
+- Cordis 插件怎么挂：`vendor/dsh/docs/cordis-primer.md`。生命周期、并发、子进程：`vendor/dsh/docs/defensive-patterns/README.md`（目录：general / package-surface / conversation-and-session / remote-and-api / client-components）。
+- 主仓测试政策：`vendor/dsh/docs/testing.md`。本仓证据地图是 [`testing.md`](testing.md)，不抄主仓的 coverage、snapshot、CI 台阶。
+- 客户端样式：`vendor/dsh/docs/web-styling.md`。本包色值落点在 [`packages/dsh-smart-assistant/AGENTS.md`](../packages/dsh-smart-assistant/AGENTS.md)。
+- 工具与卡片（`defineTool` / presenter / 日志税）：`vendor/dsh/docs/cookbook/adding-a-tool.md`。
+- **"组合里到底有没有这一行"**（读源码答不了这个问题）：`pnpm dsh --profile dev --dump-config`——排查 patch 落空 / 重复 id 的第一命令（boot-free；输出形状 = [`commands.md`](commands.md) 的 `dsh --dump-config` 行）。
+- **"活进程里注册了什么"**：shipped `cordis` preset 自带只读 inspect 工具（`cordis_inspect_list` / `cordis_inspect_query`；机制见 `vendor/dsh/docs/subsystems/session.md`）；要用它就起一个不挂本仓 roster patch 的 profile——本仓 `assistant` preset 刻意不挂它们（那是模型可见面变更，为开发期需求不划算）。

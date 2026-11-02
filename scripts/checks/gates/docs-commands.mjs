@@ -139,3 +139,21 @@ export function rootCommandBudgetProblems({ agentsPath, source, max = 10 }) {
   if (commands.length <= max) return []
   return [`${agentsPath} lists ${commands.length} pnpm command lines (budget ${max}) — the reference table belongs in docs/commands.md`]
 }
+
+
+/**
+ * The resident entry is paid for by every session. The command table moved out; the prose budget
+ * keeps the next audit from finding the same ratchet in the rules/routing. 16 KiB is the deep-audit
+ * line (2026-11-03): it leaves room for the startup block, the nine rules, and the routing
+ * pointers, and sends reference prose to docs/ or a skill.
+ *
+ * @param options - `{ agentsPath, source, maxBytes }`; `maxBytes` defaults to 16 KiB.
+ */
+export function rootProseBudgetProblems({ agentsPath, source, maxBytes = 16 * 1024 }) {
+  if (typeof source !== 'string' || source.length === 0) {
+    return [`${agentsPath} was not read (or is empty) — the prose budget cannot be checked`]
+  }
+  const bytes = Buffer.byteLength(source, 'utf8')
+  if (bytes <= maxBytes) return []
+  return [`${agentsPath} is ${String(bytes)} bytes (budget ${String(maxBytes)}) — move reference prose to docs/ or a skill; the resident entry is paid for by every session`]
+}

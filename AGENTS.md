@@ -13,42 +13,27 @@
 
 ## 新会话开工（先读这段）
 
-**意图从哪来**（两通道，各管各的）：① **用户本轮请求**——唯一外部通道，本轮范围由它决定；
-② **已立项的内部工作项**——`notes/proposed/` 的取舍卡（**可待拍板，也可已授权、在飞**；work 台账在 `_backlog` 收口卡；卡片骨架与毕业门禁以 [`notes/README.md`](notes/README.md) §二之二 为准）
-与 `_backlog/issues/` 的问题卡（只有用户点名才开工，流程与关闭条件见 [`_backlog/README.md`](_backlog/README.md)）。
-缺陷当场修掉不建卡；这次不修的记 `_backlog/bugs/`（默认不修，唯一的自授权例外通道见其 README）。
+**意图两通道**：① 用户本轮请求（唯一外部通道，范围由它定）；② 已立项内部工作项——`notes/proposed/` 取舍卡与 `_backlog/issues/` 问题卡（只有用户点名才开工）。缺陷当场修，不修记 `_backlog/bugs/`；研究只供证据，不授权。
 
-**一条工作怎么走完（五道门）**：`_backlog` 研究/推敲 → 定性（issue `待落地` / bug `修复就绪` / research `已定性`）→ 落地（收口卡台账 + 证据；状态仍是 `待落地`/`修复落地`）→ 审查/验收（机械不跳、语义自审按风险、用户验收按重要性；跳过记 `审查：`）→ 归档（卡与去向载体同变更）。
-`待落地` 是 ready，不是授权；`修复就绪` 按缺陷修复通道（P1/P2 即授权，P0/例外走 `等人拍板`）。其余授权来自本轮请求或 `notes/proposed/` 卡。研究只供证据，不授权。
-`待落地` 不提前写 implemented note；`去向` 在结论确定时写（issue 的 `待落地` 或 `推敲中 → 已结`、bug 的 `修复落地`；值 implemented / proposed / rejected / deferred / none），note/proposed 与交付或卡关闭同变更。每轨词表、守卫与交接清单 = [`_backlog/AGENTS.md`](_backlog/AGENTS.md)；收件与写入时机 = [`notes/AGENTS.md`](notes/AGENTS.md)。
+**五道门**：`_backlog` 研究/推敲 → 定性（issue `待落地` / bug `修复就绪` / research `已定性`）→ 落地（收口卡台账 + 证据）→ 审查/验收（机械不跳、语义按风险自审、用户验收按重要性）→ 归档（卡与去向同变更）。`待落地` 是 ready，不是授权；`修复就绪` 按缺陷通道（P1/P2 即授权，P0/例外等拍板）。词表/守卫 = [`_backlog/AGENTS.md`](_backlog/AGENTS.md)，收件 = [`notes/AGENTS.md`](notes/AGENTS.md)。
 
-**能不能不经呈批直接开工**（此表只做单一判断，范围细则在各 owner）：
+**直接开工判断**（细则在各 owner）：
 
 | 本轮工作 | 直接开工？ |
 |---|---|
-| 用户本轮明确点名的具体任务 | 能——范围 = 本轮请求 |
-| 已授权切片的轮内延续（授权记在 proposed 卡状态行） | 能——按卡上范围 |
-| 翻到修复就绪的缺陷卡 | 能——翻转即授权（范围与例外清单 = [`_backlog/bugs/README.md`](_backlog/bugs/README.md) 修复通道节） |
-| 机械与局部编辑（口径 = note 义务豁免，[`notes/README.md`](notes/README.md) §〇） | 能 |
-| 跨切片的新工作 / 流程面改动 / 模型可见面新能力 | 不能——先立 proposed 卡呈批，等点头或点名 |
+| 用户点名具体任务 | 能，范围 = 本轮请求 |
+| 已授权切片轮内延续 | 能，按 proposed 卡范围 |
+| 翻到修复就绪缺陷卡 | 能，翻转即授权 |
+| 机械/局部编辑 | 能（note 豁免 = [`notes/README.md`](notes/README.md) §〇） |
+| 跨切片新工作/流程面/模型可见面新能力 | 先立 proposed 卡呈批，等点头 |
 
-**呈批**（两个载体，别混）：本轮复杂任务的步骤 = plan 呈批（硬规则 5）；跨切片新工作的授权 = proposed 卡呈批（上表末行）。呈批是把决定权显式交给人——等答复的那部分停，能自定的照常推进（研发姿态 4）；小修不立空壳卡、不重复呈批。
+呈批两个载体：本轮步骤 = plan 呈批（硬规则 5）；跨切片授权 = proposed 卡。等答复的部分停，能自定的照常推进（研发姿态 4）；小修不立空壳卡。
 
-**没有用户任务时不发明任务**——报告家况（`pnpm usage`），或按点名的卡推敲/实施；不要从 git log 或记忆发明任务。
+**没有用户任务时不发明任务**——报告家况（`pnpm usage`）或按点名卡推敲/实施。**非机械任务先落外部结果三要素**（触发条件/用户得到什么/完成条件），载体 = plan 或收口卡首节；深评原料住 `_backlog/research/`；代码 `TODO/FIXME` 不立项。
 
-**开工先定外部结果**：非机械任务动手前先落**外部结果三要素**——触发条件 / 用户看到或得到什么 / 完成条件（载体 = plan 呈批，或承载该切片的收口卡首节——收口卡是什么见 [`_backlog/issues/README.md`](_backlog/issues/README.md)）；实现选择不先于意图定义，交付记录按它收口；机械/局部编辑豁免（同上表）。
-深评的原料住 `_backlog/research/`。收卷后还会被重提的事实写进决定 note，不另留调研目录——看不见的工作等于没在做。
-代码里的 `TODO/FIXME` 不立项，只在代码内。
-**Note 的义务、取代检查与生命周期以 [`notes/README.md`](notes/README.md) 为唯一权威**（何时写、输掉的方案、
-rejected 政策、命名——本文件不复制）；收件与写入时机 = [`notes/AGENTS.md`](notes/AGENTS.md)。改行为、契约或开发流程前，按任务链接或机制名查相关 notes。
-交接即此链：AGENTS.md（本文件）→ [`_backlog/AGENTS.md`](_backlog/AGENTS.md)（产出：五道门/去向）→ [`notes/AGENTS.md`](notes/AGENTS.md)（收件：写入时机/对账）→ 三个卡清单（`_backlog/issues/`、`_backlog/bugs/`、`notes/proposed/`——清单为空 = 无待续工作；work 台账在收口卡，memory 取舍在 note）→ 各卡；收尾时把停点与授权变化写回承载它的卡（收口卡或 proposed 卡状态行），无卡无 note 的机械收尾无写义务。
+**Note 义务/取代检查/生命周期**以 [`notes/README.md`](notes/README.md) 为唯一权威；收件与写入时机 = [`notes/AGENTS.md`](notes/AGENTS.md)。交接链：AGENTS.md → `_backlog/AGENTS.md` → `notes/AGENTS.md` → 三个卡清单 → 各卡；收尾把停点/授权变化写回承载卡；无卡无 note 的机械收尾无写义务。
 
-同一个多步流程第三次被重新推演时，就把它立成一件开发技能（放 `.agents/skills/`）——这是"重复即建"的常设规则，不占工作面。
-**两类 Skill，别混**：`.agents/skills/` 是**开发用**（给改这个仓库的 agent：证据路由、探针、
-审计、UI 贡献约束等——由 DSH 原生 `project-agents` 根发现，进目录即入技能目录）；`packages/dsh-smart-assistant/presets/assistant/skills/`
-是**模型用**（**策展技能**，随 preset 走）；working folder 的 skills/ 房间里还有**学到的技能**（第三处，合同 = [`docs/home.md`](docs/home.md)）。
-同名不同机制，不共享 registry。
-**方法不是技能**：`_backlog/methods/` 的方法文件同为 agent 执行面（英文、SKILL 式 frontmatter），但它是推敲方法、住 backlog，不进任何技能发现根——见 [`_backlog/methods/README.md`](_backlog/methods/README.md)。
+**技能三处**：`.agents/skills/` 开发用（本仓 agent）；`packages/.../presets/assistant/skills/` 模型用（随 preset）；working folder 的 skills 是学到的技能（合同 = [`docs/home.md`](docs/home.md)）。同名不同机制。`_backlog/methods/` 是推敲方法（英文 SKILL 式），不进技能发现根。同一多步流程第三次重演 → 立开发技能（不占工作面）。
 
 ## 布局（改动前先认领 owner 面）
 
@@ -78,79 +63,39 @@ rejected 政策、命名——本文件不复制）；收件与写入时机 = [`
 
 ## 命令表
 
-**“启动一下这个 / 启动一下”** 在本仓库语境中默认指：一条 **`pnpm start`** —— 在本仓隔离 home 里备好并起动 `dev` Web 实例，返回可访问 URL（`dev/env/start.sh` 把下表的 ⓪①②③④ 串起来，末了自证产物与源码一致、preflight 绿了才交 URL；**交完即交接**——脚本退出、服务独立存活，收掉用 `kill -TERM -- -<pid>`，pid 见交接横幅）。不需要再追问“启动什么”，也不需要谁记着先 build、交前先 preflight。
-
-只有用户明确点名才换入口：`dev-task` 是无 Web 的 host 装载冒烟；`--patch ...preset-runner...` 是自动化 preset 探针；`vendor/dsh` 的 `dev:web`（`pnpm --dir vendor/dsh run dev:web`）只重建客户端 bundle 产物，不是起动本插件实例——三个入口的判据见 [`docs/dev.md`](docs/dev.md) 首节「默认启动动作」。
-
-**`pnpm start` 内部就是这一串**（⓪②③ 都幂等，重跑安全；手工按序敲得到同一结果，但那两件门禁得自己记着）：
+启动（dev home；完整五步/隔离 home = [`docs/dev.md`](docs/dev.md) §一）：
 
 ```sh
-git submodule update --init   # ⓪ 首次：拉起 vendor/dsh（pin 的唯一出处：`vendor/UPSTREAM.md`；vendor 空时 ② 会死在无关报错）
-pnpm install            # ① 并入 vendor/dsh 整树（首次较慢）
-bash dev/env/prepare.sh     # ② **首次必须先跑**：补齐 boot 需要的 vendor/dsh 产物（deps/native/lib/web，已在位即跳过）
-bash dev/env/setup.sh       # ③ **起服务的前置**：它才建 dev（web）+ dev-task（headless）两个 profile 并把 roster 指向本仓；
-                        #    skip 它 = `profile "dev" does not exist`，而 DSH 那句报错会把你指向错的命令
-pnpm dsh --profile dev --port 0 --no-open   # ④ Web UI：preset 行为（工具/persona/摘要段落）的人面交互只在这里的会话里验
-                        #    （自动行为判决走 `pnpm eval`）；`--port 0` = OS 分配端口 + token 鉴权（不占 3080、避撞车）
-pnpm dsh --profile dev-task "one task"   # ⑤ 只想冒烟 host 面（插件装载/scaffold/服务行）就跑它，进程自己退（不进 preset）
+git submodule update --init   # ⓪ 首次：拉起 vendor/dsh
+pnpm install                  # ① 依赖
+bash dev/env/prepare.sh       # ② 首次必须先跑：补 vendor/dsh 产物
+bash dev/env/setup.sh         # ③ 起服务前置：建 dev / dev-task profile
+pnpm dsh --profile dev --port 0 --no-open
+pnpm dsh --profile dev-task "one task"   # 只冒烟 headless
 ```
 
-**要落到另一个 home（隔离实验/并行实例）**：给 ②③④⑤ **每一条都前置** `ASSISTANT_DSH_HOME=<dir>`
-（漏加到任意一条 = profile 找不到的报错，机理见硬规则 1）；完整命令串与判据 =
-[`docs/dev.md`](docs/dev.md) §一（隔离模型 owner）。
-
-**日常四条**（完整清单 = [`docs/commands.md`](docs/commands.md)；每条深判据 = [`docs/dev.md`](docs/dev.md) §四）：
+日常四条：
 
 ```sh
-pnpm build      # 构建物：preset 行加载 lib/，不是源码
-pnpm typecheck  # tsc -b；跑完记得重跑 pnpm build
+pnpm build      # preset 行加载 lib/，不是源码
+pnpm typecheck  # 跑完重跑 pnpm build
 pnpm test       # vitest 全量（分层 spec）
 pnpm verify     # 机械门禁链
 ```
 
-**要跑探针/评测/发布/维护**：查 [`docs/commands.md`](docs/commands.md) 的对应分组；入口判据 =
-[`docs/dev.md`](docs/dev.md) §六，踩坑先查 §五。命令清单只有一个家，根不再复述。
+`pnpm dsh --profile dev-task "one task"` 只冒烟 headless；完整命令（探针/评测/发布/维护）= [`docs/commands.md`](docs/commands.md)，入口判据 = [`docs/dev.md`](docs/dev.md) §六，踩坑 §五。命令清单只有一个家，根不复述。
 
 ## 九条硬规则
 
-1. **双 home**：`pnpm dsh` 经 `dev/env/dsh.mjs` 启动，**永远强制** `DSH_HOME=<repo>/dev/harness-home`
-   （覆盖任何继承来的值，包括日用的 `~/.dsh`；显式出口是 `ASSISTANT_DSH_HOME`）。
-   绕过启动器直连 node 的调用（release-smoke、`dev/env/setup.sh`）自己负责设置 `DSH_HOME`；
-   `dev/env/env.sh` 是它们与手工调用时的兜底，**同样认 `ASSISTANT_DSH_HOME`**
-   （用隔离 home 跑实验的人，脚本与启动器必须落在**同一个** home，否则 profile 建在一个 home、启动器去另一个找）。
-   **任何情况下不碰日用的 `~/.dsh`。**
-    shipped 安装器默认自己的专用 home（`~/.dsh-smart-assistant`），同样不碰日用；native 产品路径用当前 `DSH_HOME`；`--home ~/.dsh` 是用户显式共享。
-2. **探索路由**：DSH 平台事实读钉住的 `vendor/dsh`。机制从 `vendor/dsh/docs/architecture.md` 到
-   `vendor/dsh/docs/capability-seams.md` 再到包 README；真实签名读 `vendor/dsh/packages/**/src/`。
-   文档 tier、主仓 note 制度、主仓开发技能的页在下面「探索路由」。本仓只写差量：适配一行进
-   [`docs/discipline.md`](docs/discipline.md)，本仓才能执行的步骤进仓根 `.agents/skills/`，本仓取舍进
-   [`notes/`](notes/README.md)。平台段落留在 vendor 那一页。
-3. **窄证据**：一次交付 = 一个垂直切片（代码 + 测试 + 这次改动的合同同 diff）。note 只有 [`notes/README.md`](notes/README.md) §〇 要求留下时才进同一 diff；
-   只跑"会为这次回归而失败"的最小检查（改动面 → 最小可信证据的判断细则 = [`.agents/skills/pre-push-evidence/SKILL.md`](.agents/skills/pre-push-evidence/SKILL.md)）；**报告里只列真跑过的命令**；
-   **提交只 add 本次改动涉及的路径**（同仓可能有并行会话，`git add -A` 会把别人的未提交改动扫进你的提交）。
-4. **默认严格，偏离登记**：研发纪律的继承是**逐源枚举**过的，不是凭印象
-   （全表：`docs/discipline.md`）。偏离或裁剪先在该文件「已声明的适配」登记一行
-   （约束 → 适配 → 证据），再动手。另写 note 的条件只看 [`notes/README.md`](notes/README.md) §〇。
-5. **轮内任务面**：复杂任务开工用 plan 呈批、实施期用 todo 活清单（整表替换、完成即勾）、
-   人可随时 steer —— 机制都在 base bundle 里，挂着不用等于白挂。
-6. **步步为营，死路回退**（用户拍板；带日期的原始记录在 [0.1.7 迁移 note](notes/archived/2026-09-25-dsh-0-1-7-migration.md)）：每个阶段评估达成了目的就**立刻提交**——
-   一次探索一个可回退的锚点，不攒大提交；往前探索怎么都过不去时，**用 git 回退**到上一个锚点，
-   把死路与原因记进 note，而不是把半成品留在工作树里。环境修复也要固化成可重跑的脚本提交
-   （范式：`pnpm repair-vendor`），修复只存在于手上＝没修复。
-7. **生态插件只借思路，不装包**（用户拍板）：引入第三方插件有真实代价（维护断供、安全、组合兼容、
-   升级漂移）；除非它有**已验证的声誉**（多人维护、活跃提交、社区口碑），否则**读它的源码、抄它的设计**，
-   不引入依赖。先看 popularity 与内部思路再决定；装之前必须过[准入表](notes/implemented/2026-09-29-openviking-adoption-rfc.md)。
-8. **临时文件只落仓内 `.tmp/`**（用户拍板）：这个 repo 产生的一切临时/中间产物——脚本默认落点、测试夹具、
-   探针与评测产物、插件运行时的 spill、**进模型上下文的指令里的路径**——只准落在**仓根 `.tmp/<用途>/`** 下，
-   这是仓内**唯一**的临时文件形式（一个用途一个子目录，清扫即回收全部）。**为什么不是洁癖**：文件沙箱只放行
-   会话工作目录，仓外写（系统临时根、`os.tmpdir`、`$HOME`）会被挡下并转成一次人工 approval——每写一次临时文件
-   就要人点一次同意，流程就废了。机制：仓内脚本用 `dev/env/tmp.mjs` 的 `tmpDir`/`mkTmpDir`（哪个环节收进哪个
-   子目录 = [`docs/dev.md`](docs/dev.md) §一 spill 行）；`pnpm verify` 有门禁守这条。
-   模型可见指令（SKILL.md 那一类）在别人机器上跑，口径是"写会话工作目录下的 `.tmp/`"，不是本仓绝对路径。
-9. **入库边界**：只入"换台机器逐字节相同、且有人守得住"的内容。源码/合同/证据基线入；构建产物、运行态、
-   本机环境、秘密不入（ignore + 一条重建命令）；生成物只有带 freshness 门禁（或"录制 + 人审 diff"）才入；
-   录制证据可以带机器痕迹，但必须声明"不参与任何判定"且消费方按声明办事。开源多环境条款、分类表与两个
-   内容门禁 = [`docs/dev.md`](docs/dev.md) §八——加文件/加目录前先过那张表。
+1. **双 home**：`pnpm dsh` 经 `dev/env/dsh.mjs` **永远强制** `DSH_HOME=<repo>/dev/harness-home`（覆盖继承值；显式出口 `ASSISTANT_DSH_HOME`）。绕过启动器的脚本自己设置并认同一个变量；**任何情况下不碰日用 `~/.dsh`**。shipped 安装器用自己的专用 home；native 用当前 `DSH_HOME`；`--home ~/.dsh` 是用户显式共享。隔离模型 = [`docs/dev.md`](docs/dev.md) §一。
+2. **探索路由**：平台事实读钉住 `vendor/dsh`（文档 tier、主仓 note/技能、包 README、真实签名）；本仓只写差量——适配进 [`docs/discipline.md`](docs/discipline.md)，本仓步骤进 `.agents/skills/`，取舍进 [`notes/`](notes/README.md)。完整路由 = [`docs/dev.md`](docs/dev.md) §十一。
+3. **窄证据**：一次交付 = 一个垂直切片（代码 + 测试 + 合同同 diff）；note 只在 [`notes/README.md`](notes/README.md) §〇 要求时进同一 diff；只跑会为这次回归失败的最小检查（细则 = [`.agents/skills/pre-push-evidence/SKILL.md`](.agents/skills/pre-push-evidence/SKILL.md)）；**报告只列真跑过的命令**；**提交只 add 本次改动路径**（并行会话，禁止 `git add -A`）。
+4. **默认严格，偏离登记**：纪律逐源枚举（[`docs/discipline.md`](docs/discipline.md)）；偏离/裁剪先登记「约束 → 适配 → 证据」再动手；note 义务只看 [`notes/README.md`](notes/README.md) §〇。
+5. **轮内任务面**：复杂任务 plan 呈批、实施期 todo 活清单（整表替换/完成即勾）、人可随时 steer；机制在 base bundle，挂着不用等于白挂。
+6. **步步为营，死路回退**：每阶段达成目的立刻提交，一探索一锚点；过不去用 git 回退并把死路记 note，不留半成品。环境修复固化成可重跑脚本（范式 `pnpm repair-vendor`；修复只在手上 = 没修复）。
+7. **生态插件只借思路，不装包**：第三方有维护/安全/组合代价；除非已验证声誉（多人维护、活跃提交、口碑），否则读源码抄设计；装前过[准入表](notes/implemented/2026-09-29-openviking-adoption-rfc.md)。
+8. **临时文件只落仓内 `.tmp/`**：脚本默认点、夹具、探针/评测产物、运行时 spill、模型可见指令路径，一律仓根 `.tmp/<用途>/`（一个用途一个子目录，清扫即回收）。仓外写会被沙箱挡成人工 approval。脚本用 `dev/env/tmp.mjs` 的 `tmpDir`/`mkTmpDir`（归属 = [`docs/dev.md`](docs/dev.md) §一 spill 行）；verify 有门禁。模型可见 SKILL 口径是“会话工作目录下 `.tmp/`”，不是本仓绝对路径。
+9. **入库边界**：只入换台机器逐字节相同且有人守得住的内容；构建产物/运行态/本机环境/秘密不入（ignore + 一条重建命令）；生成物只带 freshness 门禁（或录制+人审 diff）才入；录制证据声明“不参与任何判定”。分类表与门禁 = [`docs/dev.md`](docs/dev.md) §八。
 
 ## 研发姿态（用户拍板，常设）
 
@@ -167,19 +112,6 @@ pnpm verify     # 机械门禁链
    产品口味反转；除此之外一律不停。**"等用户拍板"不是默认状态**：先把能自己定的定下来，
    真的只剩真人输入时才挂起等拍板。
 
-## 探索路由（本仓侧与 DSH 侧常用入口）
+## 探索路由
 
-- **本仓侧**：产品合同（working folder 四房间 = [`docs/home.md`](docs/home.md)，经营账本与桌面投影 = [`docs/operating.md`](docs/operating.md)）；证据路由（改什么 → 跑什么 → 回归资产在哪）= [`docs/testing.md`](docs/testing.md) §一页证据地图（唯一表主）；功能路由与运行链路的速查 = [`docs/architecture.md`](docs/architecture.md) §八/§七；出了问题先查 [`docs/dev.md`](docs/dev.md) §五踩坑清单（每条真踩过）
-- **平台事实的家**（读 vendor，本仓不复写正文）：文档 tier = `vendor/dsh/docs/AGENTS.md`；主仓 note 合同 = `vendor/dsh/.agents/notes/README.md`（本仓合同是 [`notes/README.md`](notes/README.md)，只写差量）；主仓开发技能 = `vendor/dsh/.agents/skills/`（技能发现根 = 所在工作树的 `.git` 所在仓，各仓只发现自己的 `.agents/skills/`——所以主仓技能留在主仓跑，不进本仓技能目录）
-- 组合层级（bundle → profile patch → home patch → `--patch`）：`vendor/dsh/docs/architecture.md`
-- preset 语义（roster/roots/遮蔽/standing mount）：`vendor/dsh/packages/preset/agent-preset/README.md`
-- 技能 provider 契约（本 repo 依赖它）：`vendor/dsh/docs/subsystems/skills.md`
-- 从本包贡献 Web UI：机制读 `vendor/dsh/docs/subsystems/slots.md`、`vendor/dsh/docs/subsystems/web-client.md`、`vendor/dsh/docs/subsystems/sidebar-right.md`；本包的路径和验证在 [`.agents/skills/client-ui-contribution/SKILL.md`](.agents/skills/client-ui-contribution/SKILL.md)
-- Cordis 插件怎么挂：`vendor/dsh/docs/cordis-primer.md`。生命周期、并发、子进程：`vendor/dsh/docs/defensive-patterns/README.md`（目录：general / package-surface / conversation-and-session / remote-and-api / client-components）
-- 主仓测试政策：`vendor/dsh/docs/testing.md`。本仓证据地图是 [`docs/testing.md`](docs/testing.md)，不抄主仓的 coverage、snapshot、CI 台阶
-- 客户端样式：`vendor/dsh/docs/web-styling.md`。本包色值落点在 [`packages/dsh-smart-assistant/AGENTS.md`](packages/dsh-smart-assistant/AGENTS.md)
-- 工具与卡片（`defineTool` / presenter / 日志税）：`vendor/dsh/docs/cookbook/adding-a-tool.md`
-- **"组合里到底有没有这一行"**（读源码答不了这个问题）：`pnpm dsh --profile dev --dump-config`——排查 patch 落空 / 重复 id 的第一命令（boot-free；
-  输出形状 = [`docs/commands.md`](docs/commands.md) 的 `dsh --dump-config` 行）
-- **"活进程里注册了什么"**：shipped `cordis` preset 自带只读 inspect 工具（`cordis_inspect_list` / `cordis_inspect_query`；机制见 `vendor/dsh/docs/subsystems/session.md`）；要用它就起一个不挂本仓 roster patch 的 profile——本仓 `assistant`
-  preset 刻意不挂它们（那是模型可见面变更，为开发期需求不划算）
+完整路由 = [`docs/dev.md`](docs/dev.md) §十一（本仓侧合同/证据/链路 + vendor 平台事实 + 组合/inspect 工具）。三条硬约束：平台事实读 vendor，本仓只写差量（硬规则 2）；组合行是否存在用 `pnpm dsh --profile dev --dump-config`；活进程注册用 shipped inspect 工具（本仓 `assistant` preset 刻意不挂）。
