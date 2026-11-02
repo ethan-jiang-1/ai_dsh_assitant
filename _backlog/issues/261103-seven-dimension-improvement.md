@@ -25,7 +25,7 @@ DSH 约定偏离（`insert` 当 override、两个 packer、client 状态所有�
 
 | 维度 | 分数 | 结论 |
 |---|---|---|
-| 1 文档/渐进披露 | **B+** 8.2 | 入口链/tier 清楚，但常驻 `AGENTS.md` **23.3 KB > 16 KB 目标**，参考型内容占 36%，且无散文字数门禁 |
+| 1 文档/渐进披露 | **A-** 8.5 | `8f2f7c62`：入口 23.3 KB → **13.8 KB**，命令表回 `docs/commands.md`、路由回 `docs/dev.md` §十一；≤16 KB 门禁 + prove-it-red（verify 57） |
 | 2 代码层次 | **A-** 8.6 | 入口 491→336、`clientFactory` 398→249、`projection-panel` 805→317，schemas/commands/rooms 已归位；余 agent verb switch |
 | 3 整体结构 | **A-** 8.5 | 五道门 + 证据地图 + 收口卡台账成立；流程仍有手工/文本重量 |
 | 4 上下文漂移 | **B+** 8.0 | 已知 P1 漂移已修，catalog/链接有新鲜度门禁；但没有可重复的语义漂移巡检，入口仍长第二份事实 |
@@ -33,12 +33,11 @@ DSH 约定偏离（`insert` 当 override、两个 packer、client 状态所有�
 | 6 反馈通路 | **A-** 8.5 | `pnpm session` 时间线 + 真 Chrome/DOM/服务日志；全 10 场景车道仍靠手跑，不在 verify |
 | 7 DSH/Harness 约定 | **B+** 8.2 | 裸 id 覆盖、web-only 自禁用已修；packer、client bundling/死 Remote、状态所有权、发布真实性/旧包 fixture、重复 id 门禁仍未收 |
 
-**整体 ≈8.4（A-），但按“全维 ≥ A-”验收，D1/D4/D7 不达标。**
+**整体 ≈8.5（A-）；按“全维 ≥ A-”验收，D4/D7 仍不达标。**
 
-### D1 → A- 计划
-- GAP：`AGENTS.md` 23.3 KB（目标 ≤16 KB）；参考型段落（硬规则/探索路由）占 36%；无散文预算门禁。
-- 做法：先量出可外移的参考型内容 → 移到 `docs/`/开发 skills，入口只留“约束 + 指针”；加 ≤16 KB 的散文预算门禁（证明会红）；用 `semantic-drift-audit` 复扫入口链。
-- 证据：`wc -c`、`pnpm verify` 新门禁、漂移报告零 P1。
+### D1 → A-（已到）
+- `8f2f7c62`：`AGENTS.md` 13.8 KB（目标 ≤16 KB）；命令表回 `docs/commands.md`，探索路由回 `docs/dev.md` §十一；`rootProseBudgetProblems` 门禁 + 2 条 prove-it-red；`pnpm verify` 57/57。
+- 余项：入口里的重复事实清理归 D4 的单一事实源巡检（不阻塞 D1 分数）。
 
 ### D4 → A- 计划
 - GAP：漂移审计是一次性的；入口/文档/卡片仍可能长第二份事实；没有机械回归。
@@ -50,7 +49,7 @@ DSH 约定偏离（`insert` 当 override、两个 packer、client 状态所有�
 - 做法：① 出 packer 决策简报（唯一真人输入，pnpm vs npm）；② 按 vendor `clientBundle()` 改 client 打包，删/证明死 Remote；③ 把 `product-face` store 改成每 materialization 一个 owner，去 `useState` 镜像；④ 对齐 README 发布状态，补旧版本 tarball 升级/卸载 fixture；⑤ 把 `--dump-config` 的重复 row id 检查接进 verify。
 - 证据：干净安装/升级/卸载 + `pnpm start`/真 Chrome、`release-smoke`、`product-native-smoke`、`web-face-check --all`。
 
-> Goal：`goal-0457ded3-6496-4297-ad6b-3cc2d73e7abc`（revision 2，40 轮）已把验收线改为“全维 ≥ A-”；D1/D4/D7 为当前三个低于线维度。
+> Goal：`goal-0457ded3-6496-4297-ad6b-3cc2d73e7abc`（revision 2，40 轮）已把验收线改为“全维 ≥ A-”；D1 已到线，D4/D7 为当前两个低于线维度。
 
 ## 当前情况（证据在深审报告里）
 
@@ -117,11 +116,11 @@ DSH 约定偏离（`insert` 当 override、两个 packer、client 状态所有�
 
 | 片 | 状态 | 证据 |
 |---|---|---|
-| B0 地板 | 已完成（并行会话 + 主线） | 当前：`pnpm typecheck` 绿；`pnpm verify` 56/56；`pnpm test` 160 文件 / 1,233 用例绿；`pnpm web-face-check --all` 10/10（`45a97abb` 后复跑；`bd966d87` 后再跑 blank 单场景 PASS）；`pnpm start` preflight 绿。基线 `7159653a` 的 1/1220 红是 load-sensitive build-freshness，已由 60s budget 治 |
+| B0 地板 | 已完成（并行会话 + 主线） | 当前：`pnpm typecheck` 绿；`pnpm verify` 57/57；`pnpm test` 163 文件 / 1,235 用例绿；`pnpm web-face-check --all` 10/10（`45a97abb` 后复跑；`bd966d87` 后再跑 blank 单场景 PASS）；`pnpm start` preflight 绿。基线 `7159653a` 的 1/1220 红是 load-sensitive build-freshness，已由 60s budget 治 |
 | B1 反馈诚实性 | 基本完成 | `45a97abb`：`scene-home.mjs` 单一 patch writer + YAML parse spec；`web-face-check` 起手 `ensure-build`、Chrome 缺失 BLOCKED 2、provision 失败 BLOCKED 2；`probe-service` 头+尾 stderr + sibling log、child 退出即停、`withService` catch 不中断剩余场景；`product-first-screen` 断言 composer 真禁用 + placeholder；`webui-shots`/`webui-expected` 的 no-Chrome 2/1 区分；`build-freshness` 20s→60s（budget，不是 retry）。`dbcb4a8d`：comparator 比较 `unowned`。`a9dd7212`：真 Cordis + conversation blocks 的入口接线 spec（删除入口 `ctx.inject` 块即红）。`1d6d41bf`：`pnpm session <id|prefix>` 时间线（symptom→session join）；`--refresh` 必须显式 `--scenario`，拒绝 `--all` 批量重录；product scene 的 workspace 改 per-run parent（叶子仍叫 `product-workspace`，并发不互删） |
 | B1 仍余 | 完成 | `a6650ae2`：四个非产品场景 README 加 posture 指针；`--scenario` 缺值 / 空 `--wait-text` 的 CLI 洞已关。B3/B4 之外没有 B1 开口（refresh review / session join / per-run workspace 已交付） |
 | B2 文档漂移 | 基本完成 | `d477076f`：11 条漂移（轨迹页/安装器默认/两三个文件/400-500/`--all` 10 面/授权例外/A2/`discipline` 适配 10）+ `AGENTS.md:9` 默认路径 + `去向` 时机 + 收据生效日 + 收口卡样板 + 读法三篇 + note 同名互链/面数 + 产品失败模式行 + 场景 posture 中心说明 |
-| B2 仍余 | 待做 | 常驻入口散文预算（触发已到，属纪律改动，需单独拍板） |
+| B2 仍余 | 完成 | `8f2f7c62`：常驻入口 13.8 KB + ≤16 KB 门禁 + prove-it-red；命令/路由参考移出常驻面 |
 | B3 结构 | 进行中 | `0afdefea`：ui-mode HTTP transport 与 receipt archive paging 从入口搬回 owning module；两处新 spec（HTTP remote / receipt page）。`a4cc318d`：`mountCommands` 提取到 `chrome/commands.ts`，入口只传 room opener + activity 回调；新增 dispatch 单测。`797e330d`：`mountRoomTabs` 提取到 `rooms/mount-rooms.ts`（desk load + settle refresh + "+" guides + tab bodies）。`fe9e2f32`：product face（route runtime / binding store / conversation block）提取到 `product/mount-product.ts`，入口只留 dashboard 包装与 dock 注册。`115e94f5`：dashboard `main` 槽（inject 面 / keyed 注册 / restore+track）提取到 `projection/mount-dashboard.ts`；`index.ts` 491→336 行、`clientFactory` 398→249 行。`4375de70`：rooms 受控写的六个动词、字段校验与错误到 HTTP 状态的映射收进 `domain/rooms/actions.ts`；host route 与 client `postRoomsAction` 同源；新增 3 条 domain 测试。`d39fe3f7`：五个 agent 工具的 output schema 从 `index.ts` 收进各自 `schema.ts`（沿 `tool-operating/schema.ts` 先例），五个 index 共 -213 行；`pnpm prompt-smoke` 六工具仍全在。`b44df4b5`：CSS 95 条 → `panel-styles.ts`，`SimpleFace` → `simple-face.ts`，共享 `DeskData`/`STATUS_LABEL` → `panel-shared.ts`。`96e94fbd`：`ActivityFace` → `activity-face.ts`、`MatterBoard` + 专属 helpers → `matter-board.ts`；`projection-panel.ts` 805→317 行；desk 场景 PASS。`47786bae`：spec harness 抽到 `tests/support/projection-harness.ts`，`projection-panel.spec.ts` 902→612 行，新增 `simple-face.spec.ts`/`matter-board.spec.ts`；163 文件 / 1,233 用例绿。仍余：agent verb switch dispatch、`tests/cli/` |
 | B4 DSH 约定 | 进行中（D1/D3/D7 已交付） | `bd966d87`：`session-query-sqlite`/`ui-chat`/`locale`/`tool-skill` 从 `insert` 改为裸 `- id:` 整行覆盖；`tool-skill` 显式 `disabled: false`；删掉与 web-app 重复的 `schedule`/`ui-schedule` insert；`--dump-config` 0 重复 row id、`tool-skill` enabled、ui-chat/locale config 在场；`preset-composition.spec` 的 strict patcher seed 了这四行；`pnpm start` preflight 绿 + blank 场景 PASS。台账/架构树同步。`eb331dbd`：D3 — `main-view` 去掉 `globalThis.__…__`，改按 Client root 键控的 WeakMap 恢复门（新页面根重新开始，HMR 靠记住的 chat 偏好），`discipline` 适配 10 同步。`3f55bcb7`：D7 — 五个 web-only 行（product / desk-projection / ui-mode / rooms / viki）在 bundle patch 里按 `!!js "!ctx.get('connection')"` 自禁用；headless overlay 不再手写这些行；`pnpm dsh --profile dev-task` one-shot 只剩 MISSING_CREDENTIAL，无 pending；`pnpm start` preflight 绿；catalog 重生成 |
 | B4 仍余 | 待做 | 一个 packer（`pnpm` vs `npm`，**需拍板**）；client bundling / 死 Remote 车道；D4 `product-face` 模块级 store + `useState` 镜像；README 发布状态；真实旧包升级 fixture；preset 拆 `presets/*.patch.yml`（可选）；重复 id 的**机械门禁**（目前靠 `--dump-config` 手工/测试） |
