@@ -67,13 +67,7 @@ import { readProactiveUi } from './local-state'
 import { restoreMainView, restoreStateFor, trackMainView } from './chrome/main-view'
 import { ProductGate } from './product/product-gate'
 import { ProductGateDock } from './product/product-dock'
-import {
-  initProductFaceStore,
-  loadProductFace,
-  mountProductInputGate,
-  type ComposerBlockWriter,
-} from './product/product-face'
-import type { ProductGateRuntime } from './product/product-binding'
+import { mountProductFace } from './product/mount-product'
 import { deskEn, deskZh, en as firstMileEn, zh as firstMileZh } from './chrome/locales'
 
 /** Slots this face occupies (single-occupant, root-scope, declared by the sidebar). */
@@ -193,50 +187,9 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
     // (the prompts and labels live in proactive-handlers.ts).
     const { onSuggestAction, onSuggestDismiss, onWatchForget, onSuggestCollapse } = createProactiveHandlers({ arms, proactiveUi })
     const dashboardComponent = projection === undefined ? DashboardMainPanel : HomeSurface
-    // The product gate is transparent unless a product home binds a workspace: a 404 (manual
-    // install/older profile), a transient failure, or `not-configured` renders the same
-    // dashboard as before. The base is cast once here because the two dashboard components
-    // share the panel props at runtime but not in their declared signatures.
-    // The lifecycle tests materialize the factory in a page-like global that may not carry
-    // `fetch`; the gate must never be the reason the client entry fails to register. The
-    // fallback answers 404, which the gate treats as "no product face" (legacy dashboard).
-    const gateFetch = typeof globalThis.fetch === 'function'
-      ? globalThis.fetch.bind(globalThis)
-      : async (): Promise<Response> => ({ ok: false, status: 404, json: async () => undefined }) as unknown as Response
-    // The directory picker is a Remote subface; the product onboarding uses the same
-    // native/browse backends as the workspace picker. Absence is a readable onboarding error,
-    // not a client-registration failure.
-    const directoryPicker = (ctx.remote as {
-      directoryPicker?: { pick(): Promise<{ ok: boolean, value?: string | null, error?: { message?: string } }> }
-    } | undefined)?.directoryPicker
-    const productGateRuntime: ProductGateRuntime = {
-      fetch: gateFetch,
-      baseURI: () => document.baseURI,
-      ...(directoryPicker === undefined ? {} : {
-        pickDirectory: async (): Promise<string | null> => {
-          const result = await directoryPicker.pick()
-          if (!result.ok) throw new Error(result.error?.message ?? 'directory picker failed')
-          return result.value ?? null
-        },
-      }),
-      ...(ctx.uiWorkspace?.startSession === undefined ? {} : {
-        startSession: (workspaceId: string) => { ctx.uiWorkspace?.startSession?.(workspaceId, { agentPreset: 'assistant' }) },
-      }),
-    }
-    // One route read per page materialization feeds both the dashboard gate and the
-    // conversation block. The read is optional-scoped: a composition without the product row
-    // answers 404 and the face stays legacy.
-    initProductFaceStore(productGateRuntime)
-    void loadProductFace()
-    // The conversation's half of the gate: block every Session's composer while the product
-    // has no usable project. Scoped inject (not the plugin's own list) so a composition with
-    // no conversation service still registers the rest of the face.
-    ctx.inject?.(['conversation'], (scope) => {
-      const conversation = scope.get('conversation') as { readonly blocks?: ComposerBlockWriter } | undefined
-      const blocks = conversation?.blocks
-      if (blocks === undefined) return
-      mountProductInputGate({ sessions: ctx.sessions, effect: ctx.effect }, blocks)
-    })
+    // The product face owns its route runtime, bound store and conversation block; the entry
+    // keeps the two thin registrations (dashboard wrapper and dock) so their order stays visible.
+    mountProductFace(ctx)
     const baseDashboard = dashboardComponent as ComponentType<ProjectionPanelProps>
     const gatedDashboard = (props: ProjectionPanelProps) =>
       createElement(ProductGate, { ...props, base: baseDashboard })
@@ -401,15 +354,15 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
         order: -9,
         inject: () => ({ openRoom: openBeside }),
       }, ApprovalDockBanner))
-    // The product gate's conversation half (2026-11-03): the strip above the composer that
-    // explains the inert input and carries the project picker. The block itself is mounted
-    // once per materialization above; this registration only renders while the gate is up.
+    // The product gate's conversation half: the strip above the composer that explains the
+    // inert input and carries the project picker. The block is mounted by `mountProductFace`.
     ctx.slots.inject('conversation.input.dock', () =>
       ctx.slots.register({
         name: 'conversation.input.dock',
         id: 'assistant-product-gate',
         order: -11,
       }, ProductGateDock))
+
 
 
   }
