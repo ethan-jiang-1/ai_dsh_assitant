@@ -109,7 +109,7 @@ node scripts/release/handoff-scan.mjs <目录或 tarball>
 ## 三、备份、恢复与迁移
 
 插件数据 = 两个目录（专用 home 模式相对于 `<productHome>`；工作区绑定是 profile Config，不进备份）；备份/恢复/诊断用包内 `assistant-data`（[`bin/assistant-data.mjs`](../packages/dsh-smart-assistant/bin/assistant-data.mjs)，
-实现 = [`src/cli/assistant-data-bundle.ts`](../packages/dsh-smart-assistant/src/cli/assistant-data-bundle.ts)（入口 [`assistant-data.ts`](../packages/dsh-smart-assistant/src/cli/assistant-data.ts) 只做再导出））：
+实现 = [`src/cli/assistant-data/export.ts`](../packages/dsh-smart-assistant/src/cli/assistant-data/export.ts)（export/import/merge/maintenance/manifest 分文件；入口 [`assistant-data.ts`](../packages/dsh-smart-assistant/src/cli/assistant-data.ts) 只做再导出））：
 
 ```sh
 node <DSH_HOME>/profiles/assistant/node_modules/dsh-smart-assistant/bin/assistant-data.mjs export \

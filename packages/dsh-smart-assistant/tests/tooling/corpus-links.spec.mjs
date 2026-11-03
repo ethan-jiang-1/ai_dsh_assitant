@@ -19,6 +19,7 @@ import {
   markdownCorpusFromTracked,
   notePointerProblems,
   relativeLinkProblems,
+  scratchPathProblems,
 } from '../../../../scripts/checks/verify-checks.mjs'
 import { temp, disposeTempDirs } from './verify-gates-harness.mjs'
 
@@ -497,3 +498,9 @@ const trackFixtureRepo = root => {
   git('commit', '-qm', 'fixture')
 }
 
+describe('scratchPathProblems', () => {
+  it('skips a tracked-but-deleted file instead of throwing ENOENT mid-refactor', () => {
+    const missing = join(temp('scratch-gone-'), 'gone.ts')
+    expect(scratchPathProblems([{ file: missing, where: 'gone.ts' }])).toEqual([])
+  })
+})

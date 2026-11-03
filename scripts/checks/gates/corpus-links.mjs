@@ -212,6 +212,9 @@ const MACHINE_LOCAL_PATH = /\/Users\/|(?<![a-z])\/home\//
 export function scratchPathProblems(corpus) {
   const problems = []
   for (const { file, where, allowTmpdir = false } of corpus) {
+    // A tracked file deleted but not staged yet is not content to scan; without this the gate
+    // crashes with ENOENT exactly while a refactor is in flight.
+    if (!existsSync(file)) continue
     // Comments describe the rule instead of doing the write ("we redirect the temp root because a
     // write there is denied"); the same carve-out the language guard makes. Markdown has no
     // comment syntax the reader would skip, so a heading or prose line that spells out a path

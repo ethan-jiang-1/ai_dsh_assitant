@@ -21,7 +21,11 @@
 
 
 export * from './assistant-data-types.ts'
-export * from './assistant-data-bundle.ts'
+export { exportData } from './assistant-data/export.ts'
+export { readDataManifest } from './assistant-data/manifest.ts'
+export { archiveResolvedProposals, refreshManual } from './assistant-data/maintenance.ts'
+export { mergeData } from './assistant-data/merge.ts'
+export { importData } from './assistant-data/import.ts'
 export { PURGE_KINDS, purgeData, rotateArchives, type ArchiveRotationEntry, type ArchiveRotationOptions, type ArchiveRotationResult, type DataPurgeOptions, type DataPurgeResult, type PurgeKind } from './assistant-data-maintenance.ts'
 export { checkData, statusData, type DataCheck, type DataLedgerStatus, type DataRetentionStatus, type DataStatus, type DataTreeStatus } from './assistant-data-status.ts'
 export { sealBundle, unsealBundle, type SealBundleOptions, type SealedBundleResult, type UnsealBundleOptions } from './assistant-data-seal.ts'
