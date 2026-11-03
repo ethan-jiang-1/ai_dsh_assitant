@@ -56,10 +56,18 @@ describe('bootstrap --cleanup-legacy', () => {
     expect(readFileSync(path, 'utf8')).toBe('- id: keep-me\n  disabled: true\n')
   })
 
-  it('keeps other config keys and a different selection', () => {
-    const withSibling = fixture('- id: agent-preset-registry\n  config:\n    selectedDefault: assistant\n    modeSelectionEnabled: false\n')
+  it('removes the realistic row shape (default + selectedDefault, both assistant)', () => {
+    // What Settings actually persists: the whole effective config, not just the volatile field.
+    const patch = '- id: agent-preset-registry\n  config:\n    default: assistant\n    selectedDefault: assistant\n- id: keep-me\n  disabled: true\n'
+    const { home, path } = fixture(patch)
+    expect(run(home).status).toBe(0)
+    expect(readFileSync(path, 'utf8')).toBe('- id: keep-me\n  disabled: true\n')
+  })
+
+  it('keeps a valid default and other config keys and a different selection', () => {
+    const withSibling = fixture('- id: agent-preset-registry\n  config:\n    default: standard\n    selectedDefault: assistant\n    modeSelectionEnabled: false\n')
     expect(run(withSibling.home).status).toBe(0)
-    expect(readFileSync(withSibling.path, 'utf8')).toBe('- id: agent-preset-registry\n  config:\n    modeSelectionEnabled: false\n')
+    expect(readFileSync(withSibling.path, 'utf8')).toBe('- id: agent-preset-registry\n  config:\n    default: standard\n    modeSelectionEnabled: false\n')
 
     const other = '- id: agent-preset-registry\n  config:\n    selectedDefault: standard\n'
     const untouched = fixture(other)

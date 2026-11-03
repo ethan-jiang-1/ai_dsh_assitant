@@ -44,9 +44,12 @@
 - 七维分数必须带"剩余缺口"列，且与上一轮同口径比较；自评不得只列已修项。
 - 涉及 headless 组合的文档，必须同时回答"行会不会自禁用"（答案：不会，必须显式 disabled）。
 - 生成物里的用户指令，要么有 freshness 门钉住，要么由单一来源生成；两者都没有就不许写进手册。
-- 用户选择住在 profile 的 `cordis.patch.yml`（`agent-preset-registry` 行的 `config.selectedDefault`），
-  不是 `settings.yaml`——后者是 0.2.1 之前的导入源，首次启动会改名成 `.imported`。写卸载/清理文档按这条；
-  `bootstrap --cleanup-legacy` 只清这一键（行里还有别的键就保留整行）。
+- 用户选择住在 profile 的 `cordis.patch.yml`（`agent-preset-registry` 行），不是 `settings.yaml`——后者是
+  0.2.1 之前的导入源，首次启动会改名成 `.imported`。Settings 写的是**整份有效 config**，所以残留行同时有
+  `default: assistant` 与 `selectedDefault: assistant`；只删后者不够。`bootstrap --cleanup-legacy` 只删该行里
+  值为 `assistant` 的这两个键，其余键与字节保留。
+- 实测：只留 `selectedDefault` 的手写行会让 registry 配置校验失败（缺必填 `default`），全部 preset 变 pending——
+  比 `not-found` 更早、更响；照真实形状写 patch，别手写半份 config。
 - 全局样式（`--dsha-*`）按 vendor 规则挂在 `ctx.effect` 上并带 `data-plugin`/`data-plugin-css`；没有 owner
   的全局注入会在热重载或停用后残留。
 - 计数（工具数、动词数、场景数）只许住生成物或由数组长度派生；散在散文里就是下一处漂移（“six tools”

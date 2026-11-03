@@ -138,7 +138,7 @@
 | 配置 | 默认值进 bundle patch；可变项做 Config（`.volatile()` 才上设置页）；用户覆盖写 profile patch | §一 patch 轴；[`product.md`](product.md) §三 |
 | 启动 | named profile；不做第二 launcher；安装器最多建 profile、装包、exec | §二 |
 | 更新 | CLI `add` 新 tarball 即更新版本；应用内 Plugins 页（带 HMR）对**同名**包拒绝 `already-installed`，那里先 `remove` 再 `add`；成员变化要重启；**没有命令级回滚**，回退 = 重装旧版本 | README 升级；§八 |
-| 卸载 | 只回收包与 patch 层；数据一律留下并文档化位置。**用户选择不清**：Settings 选过 `assistant` 的 profile 卸载后新会话报 `agent-preset/not-found`（registry 对未知 id 直接抛错）；`bootstrap --cleanup-legacy` 精确清这一键，或改回 `standard` | [`delivery.md`](delivery.md) §一；README 卸载 |
+| 卸载 | 只回收包与 patch 层；数据一律留下并文档化位置。**用户选择不清**：Settings 选过 `assistant` 的 profile 卸载后新会话报 `agent-preset/not-found`（registry 对未知 id 直接抛错）；`bootstrap --cleanup-legacy` 只删该行里值为 `assistant` 的键，或改回 `standard` | [`delivery.md`](delivery.md) §一；README 卸载 |
 | 文档 | README 七节 + 手册十段，与发布物同版本 | §四 |
 
 ## 八、门禁

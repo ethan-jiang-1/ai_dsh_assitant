@@ -410,7 +410,7 @@
 # 用户级 `selectedDefault`（Settings → Agent 预设）优先于本默认，所以已经选过档的用户不被劫持。
 # 但它**不随卸载消失**：用户的选择写在 profile 的 `cordis.patch.yml`（同 id 的行带 `selectedDefault`），
 # 卸载只回收包与组合行，那行仍在；registry 对未知 id 抛 `agent-preset/not-found`
-# （`defaultId = selectedDefault ?? default`）。`bootstrap --cleanup-legacy` 只清这一键，
+# （`defaultId = selectedDefault ?? default`）。`bootstrap --cleanup-legacy` 只删这一行里值为 `assistant` 的键，
 # 也可以把默认 preset 改回 `standard`。
 # ── vendor 行覆盖（裸 id = 按 id 整行替换；insert 只用于新增行）────────────────
 #

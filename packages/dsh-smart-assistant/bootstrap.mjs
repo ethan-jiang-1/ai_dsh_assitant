@@ -72,17 +72,19 @@ export function stripLegacyPatchBlock(text) {
 }
 
 /**
- * Remove the user's Agent-preset selection from the profile patch.
+ * Remove the removed package's preset id from the profile patch.
  *
- * A Settings selection is persisted as an `agent-preset-registry` row in the profile patch
- * (`configEditor.documentPath`); `settings.yaml` is only the pre-0.2.1 import source and is
- * renamed to `.imported` after the first boot. After the package is removed the row keeps
- * pointing at a preset that no longer exists, and the registry throws `agent-preset/not-found`
- * for every new session (`defaultId = selectedDefault ?? default`).
+ * A Settings selection persists the whole effective config as an `agent-preset-registry` row in
+ * the profile patch (`configEditor.documentPath`); `settings.yaml` is only the pre-0.2.1 import
+ * source and is renamed to `.imported` after the first boot. With the bundle installed that row
+ * carries both `default: assistant` (the bundle's override) and `selectedDefault: assistant`
+ * (the user's pick). After `remove` both keys name a preset that no longer exists: the registry
+ * either refuses the config outright (a hand-written row without the required `default`) or
+ * throws `agent-preset/not-found` for every new session (`defaultId = selectedDefault ?? default`).
  *
- * Only the exact `selectedDefault: assistant` key is removed. A row that carries other config
- * keys stays; one whose only job was the selection goes whole (an empty `config:` would replace
- * the vendor row's own defaults).
+ * Only keys whose value is exactly `assistant` are removed, and only inside this row. Other keys
+ * (a real `default: standard`, legacy fields) stay; a row left with no keys goes whole, because
+ * an empty `config:` would replace the vendor row's own defaults.
  * @param {string} text - Profile patch text.
  * @returns {{ text: string, action: 'none' | 'removed' }}
  */
@@ -95,9 +97,10 @@ export function stripPresetSelection(text) {
   const block = lines.slice(start, end)
   const configIndex = block.findIndex(line => /^\s+config:\s*$/.test(line))
   if (configIndex === -1) return { text, action: 'none' }
-  const selectionIndex = block.findIndex(line => /^\s+selectedDefault:\s*['"]?assistant['"]?\s*$/.test(line))
-  if (selectionIndex === -1) return { text, action: 'none' }
-  block.splice(selectionIndex, 1)
+  const stale = (name) => new RegExp(`^\\s+${name}:\\s*['"]?assistant['"]?\\s*$`)
+  const hits = block.map((line, index) => (stale('selectedDefault').test(line) || stale('default').test(line)) ? index : -1).filter(index => index !== -1)
+  if (hits.length === 0) return { text, action: 'none' }
+  for (const index of hits.reverse()) block.splice(index, 1)
   const hasOtherKey = block.slice(configIndex + 1).some(line => /^\s{4,}\S/.test(line))
   const next = [...lines.slice(0, start), ...(hasOtherKey ? block : []), ...lines.slice(end)]
   // A block that runs to EOF carries the file's trailing empty element with it; put it back.
