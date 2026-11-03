@@ -1,9 +1,11 @@
 /**
- * A2 A/B prototype: OpenViking read-only recall as one native tool.
+ * `assistant_recall`: OpenViking read-only recall as one native tool, shipped with the preset.
  *
- * One-off branch `ab/a2-recall`; not production. The tool is deliberately one schema with four
- * verbs (find/search/read/tree) over the stateless OpenViking HTTP face — the A/B compares this
- * against A1's seven read-only MCP tools. No write verbs, no session mutation.
+ * One schema with four verbs (find/search/read/tree) over the stateless OpenViking HTTP face.
+ * No write verbs, no session mutation. It won the A/B against allowlisting the read-only MCP
+ * tools: those were visible but undiscoverable (resource discovery was denied), so the model
+ * never called them. Decision and evidence =
+ * [2026-10-20-on-demand-recall-path.md](../../../../../notes/implemented/2026-10-20-on-demand-recall-path.md).
  *
  * @module dsh-smart-assistant/tool-recall
  */
@@ -129,7 +131,7 @@ function render(_args: RecallArgs, value: RecallOutput): Array<{ type: 'text', t
 }
 
 /**
- * Register the A2 prototype tool.
+ * Register the recall tool.
  * @param ctx - Agent-plane context.
  */
 export function apply(ctx: Context): void {
