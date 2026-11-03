@@ -131,7 +131,11 @@ export function refreshHealthProblems(evidence) {
  * fails on the missing content — a legitimately absent token (negative probe) stays a
  * content drift, not a tool error.
  */
-export function buildWaitSnippet(needle, timeoutMs = 15_000) {
+export function buildWaitSnippet(needle, timeoutMs = 30_000) {
+  // The bound answers "did the page ever reach this state", not "how fast is the machine".
+  // Ten scenes run back to back in check:full; a 15s bound red-lined a healthy Viki panel
+  // once when the box was loaded (repro passed on its own). 30s only lengthens a real
+  // failure's wait, never turns one into a pass.
   const literal = String(needle).replace(/\\/g, '\\\\').replace(/'/g, "\\'")
   return [
     'new Promise(resolve => {',

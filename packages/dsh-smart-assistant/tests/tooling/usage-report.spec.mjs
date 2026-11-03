@@ -3,23 +3,14 @@
  * its parsing is pinned: the shapes it reads are the ones verified in real logs, and the report must
  * not invent a field a log does not carry.
  */
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
+import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { afterEach, describe, expect, it } from 'vitest'
+import { describe, expect, it, afterEach } from 'vitest'
+import { temp, disposeTempDirs } from './verify-gates-harness.mjs'
 import { homeCounts, mergeSummaries, renderReport, summarizeEvents, windowedLogs } from '../../../../dev/reports/usage-report.mjs'
 
-const dirs = []
 
-function temp(prefix) {
-  const dir = mkdtempSync(join(tmpdir(), prefix))
-  dirs.push(dir)
-  return dir
-}
-
-afterEach(() => {
-  for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true })
-})
+afterEach(disposeTempDirs)
 
 const events = [
   { type: 'session', data: null },

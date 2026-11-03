@@ -6,25 +6,17 @@
  * This spec drives the CLI against a synthetic home so both answers stay pinned.
  */
 import { spawnSync } from 'node:child_process'
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
+import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { afterEach, describe, expect, it } from 'vitest'
+import { describe, expect, it, afterEach } from 'vitest'
+import { temp, disposeTempDirs } from './verify-gates-harness.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..')
 const trace = join(repoRoot, 'dev', 'reports', 'session-trace.mjs')
 const haveZstd = spawnSync('zstd', ['--version'], { encoding: 'utf8' }).status === 0
 
-const dirs = []
-function temp(prefix) {
-  const dir = mkdtempSync(join(tmpdir(), prefix))
-  dirs.push(dir)
-  return dir
-}
-afterEach(() => {
-  for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true })
-})
+afterEach(disposeTempDirs)
 
 /** Write one compressed session log under `<home>/sessions/<project>/session-<uuid>/`. */
 function writeSession(home, project, id, events) {

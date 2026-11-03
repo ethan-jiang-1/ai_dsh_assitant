@@ -4,23 +4,14 @@
  * learned from real logs: a log NAME carries the writer generation (never pin one), and a
  * `user/message` is classified by its SOURCE STRUCTURE (with a text fallback for old shapes).
  */
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
+import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { afterEach, describe, expect, it } from 'vitest'
+import { describe, expect, it, afterEach } from 'vitest'
+import { temp, disposeTempDirs } from './verify-gates-harness.mjs'
 import { classifyUserMessage, readEvents, sessionLogs, sessionSnapshot, sessionsCreatedBetween, stripPreamble } from '../../../../dev/lib/session-logs.mjs'
 
-const dirs = []
 
-function temp(prefix) {
-  const dir = mkdtempSync(join(tmpdir(), prefix))
-  dirs.push(dir)
-  return dir
-}
-
-afterEach(() => {
-  for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true })
-})
+afterEach(disposeTempDirs)
 
 describe('classifyUserMessage', () => {
   it('classifies by source structure, and falls back to text for logs that carry none', () => {

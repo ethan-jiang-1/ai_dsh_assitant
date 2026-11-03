@@ -173,6 +173,10 @@ describe('buildWaitSnippet compiles a scene readiness token into a polling eval'
     expect(snippet).toContain("resolve('ready: ' + needle)")
   })
 
+  it('bounds readiness at 30s by default so a busy machine does not red a healthy page', () => {
+    expect(buildWaitSnippet('x')).toContain('30000')
+  })
+
   it('times out by resolving, not rejecting — an absent token stays a content drift', () => {
     const snippet = buildWaitSnippet('no-such-thing', 15_000)
     expect(snippet).toContain('15000')
