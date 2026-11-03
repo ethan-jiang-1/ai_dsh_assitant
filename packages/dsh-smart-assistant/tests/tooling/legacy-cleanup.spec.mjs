@@ -45,6 +45,34 @@ describe('bootstrap --cleanup-legacy', () => {
     expect(readFileSync(path, 'utf8')).toBe(edited)
   })
 
+  it('removes the "assistant" preset selection and keeps every other row', () => {
+    const patch = '- id: keep-me\n  disabled: true\n- id: agent-preset-registry\n  config:\n    selectedDefault: assistant\n'
+    const { home, path } = fixture(patch)
+    const result = run(home)
+    expect(result.status).toBe(0)
+    expect(readFileSync(path, 'utf8')).toBe('- id: keep-me\n  disabled: true\n')
+    // Idempotent: a second run finds nothing to remove and leaves the bytes alone.
+    expect(run(home).status).toBe(0)
+    expect(readFileSync(path, 'utf8')).toBe('- id: keep-me\n  disabled: true\n')
+  })
+
+  it('keeps other config keys and a different selection', () => {
+    const withSibling = fixture('- id: agent-preset-registry\n  config:\n    selectedDefault: assistant\n    modeSelectionEnabled: false\n')
+    expect(run(withSibling.home).status).toBe(0)
+    expect(readFileSync(withSibling.path, 'utf8')).toBe('- id: agent-preset-registry\n  config:\n    modeSelectionEnabled: false\n')
+
+    const other = '- id: agent-preset-registry\n  config:\n    selectedDefault: standard\n'
+    const untouched = fixture(other)
+    expect(run(untouched.home).status).toBe(0)
+    expect(readFileSync(untouched.path, 'utf8')).toBe(other)
+  })
+
+  it('removes the legacy block and the selection in one pass, leaving an explicit empty patch', () => {
+    const { home, path } = fixture(`${block}- id: agent-preset-registry\n  config:\n    selectedDefault: assistant\n`)
+    expect(run(home).status).toBe(0)
+    expect(readFileSync(path, 'utf8')).toBe('[]\n')
+  })
+
   it('reports a missing marker and a missing patch without changing anything', () => {
     const { home, path } = fixture('- id: something\n')
     const none = run(home)

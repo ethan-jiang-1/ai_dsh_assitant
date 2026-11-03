@@ -71,6 +71,40 @@ export function stripLegacyPatchBlock(text) {
   }
 }
 
+/**
+ * Remove the user's Agent-preset selection from the profile patch.
+ *
+ * A Settings selection is persisted as an `agent-preset-registry` row in the profile patch
+ * (`configEditor.documentPath`); `settings.yaml` is only the pre-0.2.1 import source and is
+ * renamed to `.imported` after the first boot. After the package is removed the row keeps
+ * pointing at a preset that no longer exists, and the registry throws `agent-preset/not-found`
+ * for every new session (`defaultId = selectedDefault ?? default`).
+ *
+ * Only the exact `selectedDefault: assistant` key is removed. A row that carries other config
+ * keys stays; one whose only job was the selection goes whole (an empty `config:` would replace
+ * the vendor row's own defaults).
+ * @param {string} text - Profile patch text.
+ * @returns {{ text: string, action: 'none' | 'removed' }}
+ */
+export function stripPresetSelection(text) {
+  const lines = text.split('\n')
+  const start = lines.findIndex(line => /^-\s+id:\s*agent-preset-registry\s*$/.test(line))
+  if (start === -1) return { text, action: 'none' }
+  let end = lines.findIndex((line, index) => index > start && /^-\s/.test(line))
+  if (end === -1) end = lines.length
+  const block = lines.slice(start, end)
+  const configIndex = block.findIndex(line => /^\s+config:\s*$/.test(line))
+  if (configIndex === -1) return { text, action: 'none' }
+  const selectionIndex = block.findIndex(line => /^\s+selectedDefault:\s*['"]?assistant['"]?\s*$/.test(line))
+  if (selectionIndex === -1) return { text, action: 'none' }
+  block.splice(selectionIndex, 1)
+  const hasOtherKey = block.slice(configIndex + 1).some(line => /^\s{4,}\S/.test(line))
+  const next = [...lines.slice(0, start), ...(hasOtherKey ? block : []), ...lines.slice(end)]
+  // A block that runs to EOF carries the file's trailing empty element with it; put it back.
+  const joined = next.join('\n')
+  return { text: text.endsWith('\n') && !joined.endsWith('\n') ? `${joined}\n` : joined, action: 'removed' }
+}
+
 // The installer ships as its own release asset (`_dist/bootstrap.mjs`, S5 2026-11-02), so it can no
 // longer assume the package sits beside it: `--package <dir>` names the unpacked package it should
 // install. Without the flag the historical layout (script inside the package root) still works.
@@ -91,16 +125,22 @@ if (argvEarly.includes('--cleanup-legacy')) {
     process.exit(2)
   }
   const result = stripLegacyPatchBlock(readFileSync(patchPath, 'utf8'))
-  if (result.action === 'none') {
-    console.log(`bootstrap: no pre-0.2.0 default-preset block in ${patchPath}`)
-    process.exit(0)
-  }
   if (result.action === 'edited') {
     console.error(`bootstrap: ${patchPath} carries a marked block that does not match the exact legacy bytes; remove it by hand (README uninstall section)`)
     process.exit(1)
   }
-  writeFileSync(patchPath, result.text, 'utf8')
-  console.log(`bootstrap: removed the pre-0.2.0 default-preset block from ${patchPath}`)
+  const selection = stripPresetSelection(result.text)
+  if (result.action === 'none' && selection.action === 'none') {
+    console.log(`bootstrap: no pre-0.2.0 default-preset block and no "assistant" preset selection in ${patchPath}`)
+    process.exit(0)
+  }
+  // Both strips can empty the document; a comment-only or empty patch parses as null, not as the
+  // array the loader expects (same rule the block stripper applies).
+  const patched = selection.text
+  const hasRow = patched.split('\n').some(line => line.trim() !== '' && !line.trim().startsWith('#'))
+  writeFileSync(patchPath, hasRow ? patched : `${patched.trimEnd()}${patched.trim() === '' ? '' : '\n'}[]\n`, 'utf8')
+  if (result.action === 'removed') console.log(`bootstrap: removed the pre-0.2.0 default-preset block from ${patchPath}`)
+  if (selection.action === 'removed') console.log(`bootstrap: removed the "assistant" preset selection from ${patchPath} (the package owns that preset; the vendor default applies again)`)
   process.exit(0)
 }
 

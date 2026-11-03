@@ -107,9 +107,11 @@ dsh plugin --profile assistant remove dsh-smart-assistant
 >
 > 它只删自己写的那 4 行，保留其他字节；块被改过就拒绝并让你手删。
 
-**用户选择不会随卸载清除**：在 Settings → Agent 预设里选过 `assistant`，这一选择留在 profile 的
-`settings.yaml`（`agent-preset-registry` 段的 `selectedDefault`）。卸载后新会话解析默认 preset 会拿到
-已不存在的 id，报 `agent-preset/not-found`。改回 `standard`，或删掉 `settings.yaml` 里的 `selectedDefault` 行。
+**用户选择不会随卸载清除**：在 Settings → Agent 预设里选过 `assistant`，这一选择写在 profile 的
+`cordis.patch.yml`（`agent-preset-registry` 行的 `config.selectedDefault`；`settings.yaml` 只是 0.2.1
+之前的导入源，首次启动后会改名成 `.imported`）。卸载后新会话解析默认 preset 会拿到已不存在的 id，报
+`agent-preset/not-found`。发布目录的安装器可以只清这一键：
+`node bootstrap.mjs --cleanup-legacy --home <home> --profile <名>`（其余字节不动）；也可以把默认改回 `standard`。
 
 删掉的是包与 patch 层。**数据一律留下**：
 

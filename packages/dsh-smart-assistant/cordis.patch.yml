@@ -408,9 +408,10 @@
 # 一个字段；换 pin 时若 vendor 给这行加了字段，这里要跟着补全，否则会丢必填项。
 # 复核/退役条件登记在 `docs/product.md` 的 vendor override 台账：换 pin 时逐条复核。
 # 用户级 `selectedDefault`（Settings → Agent 预设）优先于本默认，所以已经选过档的用户不被劫持。
-# 但它**不随卸载消失**：卸载只回收包与组合行，profile 的 settings 仍留着选中的 id，而 registry 对
-# 未知 id 抛 `agent-preset/not-found`（`defaultId = selectedDefault ?? default`）。卸载后要把默认
-# preset 改回 `standard`，或删掉 settings 里的那一段。
+# 但它**不随卸载消失**：用户的选择写在 profile 的 `cordis.patch.yml`（同 id 的行带 `selectedDefault`），
+# 卸载只回收包与组合行，那行仍在；registry 对未知 id 抛 `agent-preset/not-found`
+# （`defaultId = selectedDefault ?? default`）。`bootstrap --cleanup-legacy` 只清这一键，
+# 也可以把默认 preset 改回 `standard`。
 # ── vendor 行覆盖（裸 id = 按 id 整行替换；insert 只用于新增行）────────────────
 #
 # 下面七行的 id 在 vendor 的 base/web-app 已经声明。`insert` 是 append，重复 id 只会
