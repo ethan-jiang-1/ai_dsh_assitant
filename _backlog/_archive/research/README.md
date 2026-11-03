@@ -14,6 +14,7 @@
 
 | 名头 | 材料 | 历史消费者 | 产出的卡 | 归档 |
 |---|---|---|---|---|
+| [261103-seven-dimension-audit/](261103-seven-dimension-audit/README.md) · 七维打扫卫生 | 2 份 | [七维改善收口卡](../settled_issues/261103-seven-dimension-improvement.md)、[二轮 note](../../../notes/implemented/2026-11-03-seven-dimension-round2.md) | [七维改善收口卡](../settled_issues/261103-seven-dimension-improvement.md) | 2026-11-03 |
 | [261102-first-screen/](261102-first-screen/README.md) · 首屏归属：main 键控槽、门覆盖与刷新行为 | 1 份 | [首屏归谁卡](../settled_issues/261102-first-screen.md)、[决定 note](../../../notes/implemented/2026-11-02-first-screen-ownership.md) | [首屏归谁卡](../settled_issues/261102-first-screen.md) | 2026-11-03 |
 | [261101-plugin-lifecycle/](261101-plugin-lifecycle/README.md) · DSH 插件生命周期对齐（0.1.13 发行物对照） | 1 份 | [插件生命周期对齐卡](../settled_issues/261101-plugin-lifecycle-align.md)、[bundle-first 决定 note](../../../notes/implemented/2026-11-02-bundle-first-lifecycle.md) | [插件生命周期对齐卡](../settled_issues/261101-plugin-lifecycle-align.md)、[BUG-027](../fixed_bugs/BUG-027-published-sourcemap-embeds-src.md)、[BUG-028](../fixed_bugs/BUG-028-manual-profile-create-boots-and-replaces.md) | 2026-11-02 |
 | [261101-startup-model-comparison/](261101-startup-model-comparison/README.md) · 启动路径比较与产品 profile 纠偏 | 5 份 + 4 图 | [产品 profile 对齐收口卡](../settled_issues/261101-product-profile-alignment.md)、[启动路径取舍 note](../../../notes/rejected/2026-11-01-startup-paths.md) | [产品 profile 对齐收口卡](../settled_issues/261101-product-profile-alignment.md) | 2026-11-01 |

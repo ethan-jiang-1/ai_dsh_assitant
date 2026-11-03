@@ -24,6 +24,7 @@
  *   node bootstrap.mjs [--home <dir>] [--profile <name>] [--dsh <command>] [--offline]   # standalone
  *   node bootstrap.mjs --stop [--home <dir>] [--product]
  *   node bootstrap.mjs --no-start [--workspace <dir> | --product] [--home <dir>]
+ *   node bootstrap.mjs --cleanup-legacy [--home <dir>] [--profile <name>]
  *
  * Prerequisites: a compatible `dsh` on PATH (or --dsh), Node's npm (packs this directory into a
  * tarball so the profile owns the package's `yaml` dependency), and that dependency obtainable
@@ -78,6 +79,31 @@ const earlyValue = (name) => {
   const index = argvEarly.indexOf(name)
   return index === -1 ? undefined : argvEarly[index + 1]
 }
+// Standalone cleanup for the pre-0.2.0 profile block. This mode deliberately runs before any
+// package/profile work: after `dsh plugin remove` the package is gone, but the installer asset
+// still sits in the release directory and can remove the block it once wrote.
+if (argvEarly.includes('--cleanup-legacy')) {
+  const profile = earlyValue('--profile') ?? 'assistant'
+  const home = earlyValue('--home') ?? join(homedir(), '.dsh-smart-assistant')
+  const patchPath = join(home, 'profiles', profile, 'cordis.patch.yml')
+  if (!existsSync(patchPath)) {
+    console.error(`bootstrap: no profile patch at ${patchPath}; pass --home/--profile or check the install path`)
+    process.exit(2)
+  }
+  const result = stripLegacyPatchBlock(readFileSync(patchPath, 'utf8'))
+  if (result.action === 'none') {
+    console.log(`bootstrap: no pre-0.2.0 default-preset block in ${patchPath}`)
+    process.exit(0)
+  }
+  if (result.action === 'edited') {
+    console.error(`bootstrap: ${patchPath} carries a marked block that does not match the exact legacy bytes; remove it by hand (README uninstall section)`)
+    process.exit(1)
+  }
+  writeFileSync(patchPath, result.text, 'utf8')
+  console.log(`bootstrap: removed the pre-0.2.0 default-preset block from ${patchPath}`)
+  process.exit(0)
+}
+
 const packageRoot = resolve(earlyValue('--package') ?? dirname(fileURLToPath(import.meta.url)))
 let packageManifest
 try {

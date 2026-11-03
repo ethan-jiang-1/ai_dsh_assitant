@@ -1,15 +1,16 @@
 ---
-status: 待落地
+status: 已结
 opened: 2026-11-03
 ---
 
 # 推敲：七维打扫卫生——先修证据面，再修文档漂移，最后动结构
 
-> 立卡：2026-11-03 ｜ 状态：待落地 ｜ 毕业：做现在 ｜ 去向：implemented ｜ 可关闭：否
+> 立卡：2026-11-03 ｜ 状态：已结 ｜ 毕业：做现在 ｜ 去向：implemented ｜ 可关闭：是 ｜ 审查：agent — 七维复评 + pnpm check/verify + product-smoke/upgrade-smoke/web-face-check
 > 来源：[七维深审](../research/261103-seven-dimension-audit/261103-seven-dimension-audit.md)（2026-11-03，7 路 fresh 审计 + 真机取证）
 > 授权：用户 2026-11-03「到了打扫卫生的时候了……先评估一下这七个维度……REVIEW 后看看能不能持续改善」= 授权评估与持续改善；
 > 二轮按同一授权推进 A（真相恢复）与 B（地板+证据）批——机械/证据修复，不改产品行为；C 批（CLI 拆分 / 卸载清理 / 主题 seam）按用户「继续往前推进」分批推进。
 > 2026-11-03 08:xx：二轮七维评估已交用户；用户确认计划并追加「继续往前推进」→ C 批按切片推进。
+> 结论：七维全部 9.0；决定与输掉的方案 = [implemented note](../../../notes/implemented/2026-11-03-seven-dimension-round2.md)。
 
 **问题与期望结果：** 深审确认骨架与依赖方向立住，但三类接缝在持续消耗 agent：①证据面（web-face 场景）不在 verify 里，
 曾被一条 YAML 写坏整条打灭；②高 churn 接缝（client 组合根、docs、vendor 覆盖）在长第二份合同/第二份清单；
@@ -80,8 +81,8 @@ DSH 约定偏离（`insert` 当 override、两个 packer、client 状态所有�
 | 4 上下文腐化 | A- 8.6 | **A 9.0** | notes 审计 P1 全修（bundle-first 决策 6、活跃清单、卡的人判/仍未取/下一步、receipt 路径、10-20 引用规则、triggers、openviking 遗留句）；历史评分表已标注 |
 | 5 测试资产 | A- 8.6 | **A 9.0** | 新增 `brief` 真 session surface、`sendPrompt` 四条分支（含 15-poll 过期）、content-drawer 真 DOM（Escape/teardown）、product-smoke 旧块清理；1,262 用例 |
 | 6 反馈通路 | A- 8.6 | **A 9.0** | scratch 门禁不再 ENOENT；`check:full` 汇总不吞 BLOCKED；product-smoke 通过且五行警告消失；真页面 blank-first-open PASS |
-| 7 DSH 约定 | A- 8.6 | **A- 8.9** | 旧安装器 profile 块已手术式清理；[BUG-029](../_archive/fixed_bugs/BUG-029-web-only-host-rows-fail-on-tarball-install.md) 已修（五行 `inject` 启动 + headless overlay 显式 disabled）；唯一余项：vendor `remove` 没有 bundle 钩子，0.2.0 前用安装器装过且**不再重跑 bootstrap** 的 home 仍需手删 profile 块——已文档化，本地无更小修法 |
-| **整体** | **≈8.7** | **≈8.98（六维 9.0，D7 8.9）** | D7 的唯一 0.1 是 vendor remove 无钩子的旧 home 手删；不是本地代码缺口 |
+| 7 DSH 约定 | A- 8.6 | **A 9.0** | 旧安装器块：升级时自动手术式清理 + 包已移除后可跑的 `bootstrap.mjs --cleanup-legacy --home <home>`（精确 4 行、编辑过拒绝）；[BUG-029](../fixed_bugs/BUG-029-web-only-host-rows-fail-on-tarball-install.md) 已修（五行 `inject` + headless overlay 显式 disabled） |
+| **整体** | **≈8.7** | **9.0（七维全 A）** | D7 的旧 home 有了独立清理命令；无已知材料性缺口 |
 
 **BUG-029 的结论**：不是 peer/subpath，而是五行的 `disabled: !!js "!ctx.get('connection')"` 在 entry 创建时
 因 `connection` 晚注册而为真，Loader 跳过 entry 且不再启动；启动审计只看到「enabled 无 fiber」，打印无 stack 的
@@ -95,7 +96,7 @@ DSH 约定偏离（`insert` 当 override、两个 packer、client 状态所有�
 - `dsh.client.inject`：vendor 文档说明它是 client module 依赖边，不是 Cordis 服务清单；本包没有非 baseline 的 module 请求，**不加**（不是债）；
 - web-only 清单：包 README 的用户面点名 + product.md 的合同清单，两处用途不同，**不是重复，不合并**。
 
-**当前停点（2026-11-03 11:1x）**：BUG-029 已修并归档；`pnpm check` 1,262 用例 / verify 60/60；product-smoke 通过（五行警告消失、workspaceDir 落盘）；headless 五行 disabled、one-shot 无 pending；`upgrade-smoke` passed、`web-face-check --all/blank-first-open` PASS、`release-smoke` 安装/组合/bins 绿（live turn BLOCKED）。六维 9.0；D7 8.9 的唯一余项是 vendor remove 无钩子的旧 home 手删。下一步：决定 D7 是否按"无本地可修"记 9.0，然后 campaign 收口。B0–B3 已交付。B4 除"preset 拆 `presets/*.patch.yml`（可选）"外均已交付
+**当前停点（2026-11-03 11:2x）**：七维全部 **9.0**。`bootstrap --cleanup-legacy` 补上包已移除后的旧 home 清理（3 条工具核测试）；`pnpm check` 1,265 用例 / verify 60/60；product-smoke 通过；headless 五行 disabled；`upgrade-smoke` passed、`web-face-check --all/blank-first-open` PASS、`release-smoke` 安装/组合/bins 绿（live turn BLOCKED）。下一步只剩 campaign 收口（note/归档/清单）。B0–B3 已交付。B4 除"preset 拆 `presets/*.patch.yml`（可选）"外均已交付
 （packer 由 `69668754` 定为 pnpm pack + npm publish 同字节；死 Remote/product-face/旧包 fixture/重复 id 门禁
 均已落地）。二轮 **A 批（真相恢复）** 与 **B 批（地板+证据）** 属一轮授权内的机械/证据修复，本轮直接推进；
 **C 批（CLI 拆分 / 卸载清理 / 主题 seam）** 按用户「继续往前推进」分批推进。
@@ -194,7 +195,7 @@ DSH 约定偏离（`insert` 当 override、两个 packer、client 状态所有�
 | 12 | client 状态有 owner | 约定 | 两次 materialization + HMR | 无 `globalThis.__…__` 单例；store 经 slot/handle；HMR 不重选 | 模块级单例 → 断言红 | `main-view`/`product-face` + composition spec |
 
 人判：B4 的 client bundling 改法仍是可选，需本人拍板；发布渠道已由 `69668754` 定为 pnpm pack + `npm publish <tgz>` 同字节，不再是待判项。
-（按 [`validation-design`](../methods/validation-design.md)；行为/类别/输入状态/判据/负例/证据 owner/人判）
+（按 [`validation-design`](../../methods/validation-design.md)；行为/类别/输入状态/判据/负例/证据 owner/人判）
 
 ## 切片台账
 
@@ -222,5 +223,6 @@ DSH 约定偏离（`insert` 当 override、两个 packer、client 状态所有�
 
 ## 下一步
 
-A/B/C 已交付；只剩 **收口**：写 implemented note（只留决定与输掉的方案）、卡归档、research 题归档、
-两边清单同步。C 的残余（client bundling、legacy 自动清理的真实旧 home fixture）是独立可选片，不阻塞收口。
+已收口（2026-11-03）：决定与输掉的方案进 [implemented note](../../../notes/implemented/2026-11-03-seven-dimension-round2.md)；
+卡与研究题归档，两边清单同步。C 的残余（client bundling、legacy 自动清理的真实旧 home fixture）是独立可选片，
+触发条件留在本卡与 `triggers.md`。

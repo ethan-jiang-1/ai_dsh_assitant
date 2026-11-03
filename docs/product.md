@@ -135,7 +135,7 @@ node bootstrap.mjs --no-start ...
 | 首屏显示“上次的项目目录不在了” | Config 里的路径失效；在首屏重选 |
 | 未绑定项目时 composer 被禁、dock 给出选择按钮 | 这是工作区门，不是输入故障；选项目目录后新会话落在项目里。`onboarding:false` 的部署/非产品场景保持透明 |
 | 首屏显示“选一个项目目录”但没有选择器 | 当前组合没有 `remote.directoryPicker`；在 profile patch 设置 `assistant-product.workspaceDir` |
-| 产品会话在别的 profile 打开报 `agent-preset/not-found` | 从专用 profile 打开；该 profile 没有 `assistant` preset。若是 remove 后的旧 home，先删 0.2.0 前的 profile 块 |
+| 产品会话在别的 profile 打开报 `agent-preset/not-found` | 从专用 profile 打开；该 profile 没有 `assistant` preset。若是 remove 后的旧 home，跑 `bootstrap.mjs --cleanup-legacy --home <home>`（或手删 0.2.0 前的 profile 块） |
 | headless 仍看到 web-only 行 pending | headless profile 的 overlay/patch 没写 `disabled: true`；照 `dev/profiles/profile-patch-headless.yml` 补五条（不要用 bundle patch 的 `!!js` 表达式 gate 晚注册服务） |
 | `the profile dump has no assistant-product row` | 包旧/未 build；重装当前 tarball |
 | 装完“没生效” | CLI 装完宿主不知道；重启 profile；客户端模块变更刷新 |

@@ -79,7 +79,6 @@ frontmatter `status` 是研究题当前阶段的唯一家；题名页 `> 状态�
 | 名头 | 问题 | 消费者 | 材料 |
 |---|---|---|---|
 | [输入边界 30 天观察](261011-input-observation/README.md) · 真实使用读数 | 输入通道该不该做——先看 30 天真实读数 | 触发行（**活观察**，窗口未起算） | 1 份 |
-| [七维打扫卫生](261103-seven-dimension-audit/README.md) · 骨架/接缝 | 七维 fresh-eyes 深审：文档/代码/腐化/测试/反馈/DSH 约定 | [改善收口卡](../issues/261103-seven-dimension-improvement.md)（活） | 2 份 |
 
 归档题名见 [_archive/research/README.md](../_archive/research/README.md)；本页只列活跃题名。
 

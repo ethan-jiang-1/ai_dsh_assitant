@@ -530,7 +530,13 @@ dsh plugin --profile assistant remove dsh-smart-assistant
 卸载后 \`--dump-config\` 不再提及插件，profile 的 package.json 也不留痕迹；运行中的实例重启后不再加载。
 **0.2.0 之前用安装器装过**：profile patch 里可能有一段 \`# Written by dsh-smart-assistant bootstrap.mjs\` 的
 \`agent-preset-registry\` 块。\`remove\` 不会删它；它会让 profile 继续默认 \`assistant\`，而 preset 定义已随包移除。
-卸载后把这一段删掉；重装前也建议删掉，才会继承 bundle 的默认值。working folder
+用发布目录里的安装器资产清掉它（不需要包在场）：
+
+\`\`\`sh
+node bootstrap.mjs --cleanup-legacy --home ~/.dsh-smart-assistant [--profile assistant]
+\`\`\`
+
+它只删自己写的那 4 行，保留其他字节；块被改过就拒绝并让你手删。working folder
 本身（\`<DSH_HOME>/assistant/\`）是数据不是插件：卸载不删它，弃用前自行备份。专用 home 模式用 \`dsh plugin --profile assistant remove dsh-smart-assistant\`；数据根是专用 home（默认
 \`~/.dsh-smart-assistant\`，可选），卸载同样保留；工作区交付包随项目保留；工作区绑定在 profile Config（\`assistant-product.workspaceDir\`），不随插件备份迁移；要清就在 profile patch/Settings 里清。
 
