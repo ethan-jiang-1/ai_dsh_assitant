@@ -19,7 +19,7 @@ DSH 约定偏离（`insert` 当 override、两个 packer、client 状态所有�
 **不做**：不重写入口、不新增流程层、不预建 session 回放/性能/CI 矩阵、不把 coverage 设阈值。
 
 
-## 二轮 fresh-eyes 停点（2026-11-03 08:xx）
+## 二轮 fresh-eyes 停点（2026-11-03 08:xx；下表的分数是 **A/B 批前**判定，当前停点见文末）
 
 > 二轮只读审计（入口链 / 代码与测试层次 / DSH 约定三路子审计 + 主线复核 + 真机）见
 > [round2](../research/261103-seven-dimension-audit/261103-seven-dimension-audit-round2.md)。
@@ -37,7 +37,7 @@ DSH 约定偏离（`insert` 当 override、两个 packer、client 状态所有�
 | 7 DSH 约定 | **A- 8.3** | bundle/patch/preset/安装/卸载有 vendor 锚；一个 P2（卸载残留 profile patch）+ 一个 P3（主题 seam 只在包级登记） |
 | **整体** | **≈8.2（B+ 偏 A-）** | 一轮"全 A-"把已修项当成当前债；二轮把 D2/D4/D5 拉回 B+ |
 
-### A/B 批后复评（2026-11-03 08:5x）
+### A/B 批后复评（2026-11-03 08:5x；历史）
 
 下表是二轮判定**批前**的分数；A/B 批落地后按同一口径复评：
 
@@ -52,7 +52,7 @@ DSH 约定偏离（`insert` 当 override、两个 packer、client 状态所有�
 | 7 DSH 约定 | A- 8.3 | **A- 8.5** | 卸载文档补旧 profile patch 清理、主题 seam 登记 #18；未做自动清理与 `dsh.client.inject` |
 | **整体** | **≈8.2** | **≈8.6（全维 A-）** | A/B 批把"自述面"与"测试所有权"两类债收掉；C 余项仍是 A- 的边界 |
 
-### C 代码切片后复评（2026-11-03 09:0x）
+### C 代码切片后复评（2026-11-03 09:0x；历史）
 
 | 维度 | A/B 后 | C 后 | 依据 |
 |---|---|---|---|
@@ -67,21 +67,21 @@ DSH 约定偏离（`insert` 当 override、两个 packer、client 状态所有�
 
 **C 代码切片（`cb6b25d2`）**：`src/cli/assistant-data/` 六个文件（export/import/merge/maintenance/manifest/shared，最大 182 行）；`assistant-data.ts` 只做公共面再导出；`pnpm check` 全绿；`release-smoke` 的安装/组合/bins 全过（live turn 无 key = BLOCKED exit 2，不冒充绿）；`upgrade-smoke` passed（升级/remove/re-add 两目录数据保留）。
 
-### 9.0 深挖（2026-11-03 09:5x）
+### 9.0 深挖（2026-11-03 09:5x；当前）
 
 三路子审计（notes/backlog 腐化、测试所有权、DSH 生命周期与文档）后，又发现并修了一批；
 只有一项把 D7 拉回 B+：
 
 | 维度 | C 后 | 深挖后 | 依据 |
 |---|---|---|---|
-| 1 文档/渐进披露 | A- 8.6 | **A- 8.8** | 读法行覆盖全部合同文档并写进 `docs/AGENTS.md`；`dev.md` 补 §十一；工具/段落计数改指 `package-catalog.md`；安装器残留的卸载承诺改成条件句 |
+| 1 文档/渐进披露 | A- 8.6 | **A 9.0** | 读法行覆盖全部合同文档并写进 `docs/AGENTS.md`；`dev.md` 补 §十一；工具/段落计数改指 `package-catalog.md`；安装器残留的卸载承诺改成条件句；identity 的"此处不复制"改成只点名 |
 | 2 代码/测试层次 | A 9.0 | **A 9.0** | 无新结构债 |
-| 3 整体结构 | A- 8.6 | **A- 8.8** | 新增 `pnpm check:full`（floor + web-face --all + upgrade + release，PASS/BLOCKED/FAIL 汇总） |
-| 4 上下文腐化 | A- 8.6 | **A- 8.8** | notes 审计的 P1 全修：bundle-first 决策 6 与 self-disable 相反（加收窄指针并改写）、活跃清单状态、卡的人判/仍未取/下一步、receipt 路径、10-20 note 的引用规则、triggers 两行、openviking 遗留句 |
-| 5 测试资产 | A- 8.6 | **A- 8.8** | 新增 `brief` 真 session surface、`sendPrompt` 三条状态分支、content-drawer 真 DOM（Escape/teardown）、product-smoke 的旧 profile 块清理 |
-| 6 反馈通路 | A- 8.6 | **A- 8.8** | scratch 门禁不再 ENOENT；`check:full` 汇总不吞 BLOCKED；product-smoke 的失败被如实暴露 |
-| 7 DSH 约定 | A- 8.6 | **A- 8.9** | 旧安装器 profile 块已手术式清理；[BUG-029](../_archive/fixed_bugs/BUG-029-web-only-host-rows-fail-on-tarball-install.md) 已修：五行删掉 `disabled` 表达式、靠 `inject` 启动，headless 改 profile overlay 显式 disabled；product-smoke 通过、headless 无 pending |
-| **整体** | **≈8.7** | **≈8.9（D7 回到 A-）** | 其余六维 A-/A；D7 的 P1 已修，余项是旧 home 自动清理与 vendor 审计误报 workaround |
+| 3 整体结构 | A- 8.6 | **A 9.0** | `pnpm check` 单一地板 + `pnpm check:full` 全证据车道（PASS/BLOCKED/FAIL 汇总）；卡内历史评分表已标注 |
+| 4 上下文腐化 | A- 8.6 | **A 9.0** | notes 审计 P1 全修（bundle-first 决策 6、活跃清单、卡的人判/仍未取/下一步、receipt 路径、10-20 引用规则、triggers、openviking 遗留句）；历史评分表已标注 |
+| 5 测试资产 | A- 8.6 | **A 9.0** | 新增 `brief` 真 session surface、`sendPrompt` 四条分支（含 15-poll 过期）、content-drawer 真 DOM（Escape/teardown）、product-smoke 旧块清理；1,262 用例 |
+| 6 反馈通路 | A- 8.6 | **A 9.0** | scratch 门禁不再 ENOENT；`check:full` 汇总不吞 BLOCKED；product-smoke 通过且五行警告消失；真页面 blank-first-open PASS |
+| 7 DSH 约定 | A- 8.6 | **A- 8.9** | 旧安装器 profile 块已手术式清理；[BUG-029](../_archive/fixed_bugs/BUG-029-web-only-host-rows-fail-on-tarball-install.md) 已修（五行 `inject` 启动 + headless overlay 显式 disabled）；唯一余项：vendor `remove` 没有 bundle 钩子，0.2.0 前用安装器装过且**不再重跑 bootstrap** 的 home 仍需手删 profile 块——已文档化，本地无更小修法 |
+| **整体** | **≈8.7** | **≈8.98（六维 9.0，D7 8.9）** | D7 的唯一 0.1 是 vendor remove 无钩子的旧 home 手删；不是本地代码缺口 |
 
 **BUG-029 的结论**：不是 peer/subpath，而是五行的 `disabled: !!js "!ctx.get('connection')"` 在 entry 创建时
 因 `connection` 晚注册而为真，Loader 跳过 entry 且不再启动；启动审计只看到「enabled 无 fiber」，打印无 stack 的
@@ -95,7 +95,7 @@ DSH 约定偏离（`insert` 当 override、两个 packer、client 状态所有�
 - `dsh.client.inject`：vendor 文档说明它是 client module 依赖边，不是 Cordis 服务清单；本包没有非 baseline 的 module 请求，**不加**（不是债）；
 - web-only 清单：包 README 的用户面点名 + product.md 的合同清单，两处用途不同，**不是重复，不合并**。
 
-**当前停点（2026-11-03 11:0x）**：BUG-029 已修并归档；`pnpm check` 1,261 用例 / verify 60/60；product-smoke 通过；headless 五行 disabled、one-shot 无 pending；`upgrade-smoke` passed、`web-face-check --all` PASS、`release-smoke` 安装/组合/bins 绿（live turn BLOCKED）。余下是收口（note/归档/清单）与"是否把 D1/D3/D4/D5/D6 从 8.8/8.9 抬到 9.0"的最后一轮复评。B0–B3 已交付。B4 除"preset 拆 `presets/*.patch.yml`（可选）"外均已交付
+**当前停点（2026-11-03 11:1x）**：BUG-029 已修并归档；`pnpm check` 1,262 用例 / verify 60/60；product-smoke 通过（五行警告消失、workspaceDir 落盘）；headless 五行 disabled、one-shot 无 pending；`upgrade-smoke` passed、`web-face-check --all/blank-first-open` PASS、`release-smoke` 安装/组合/bins 绿（live turn BLOCKED）。六维 9.0；D7 8.9 的唯一余项是 vendor remove 无钩子的旧 home 手删。下一步：决定 D7 是否按"无本地可修"记 9.0，然后 campaign 收口。B0–B3 已交付。B4 除"preset 拆 `presets/*.patch.yml`（可选）"外均已交付
 （packer 由 `69668754` 定为 pnpm pack + npm publish 同字节；死 Remote/product-face/旧包 fixture/重复 id 门禁
 均已落地）。二轮 **A 批（真相恢复）** 与 **B 批（地板+证据）** 属一轮授权内的机械/证据修复，本轮直接推进；
 **C 批（CLI 拆分 / 卸载清理 / 主题 seam）** 按用户「继续往前推进」分批推进。

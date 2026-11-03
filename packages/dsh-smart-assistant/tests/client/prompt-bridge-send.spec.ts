@@ -52,6 +52,15 @@ describe('sendPrompt', () => {
     expect(getDeskStore().note).toBe('queue full')
   })
 
+  it('expires a send the desk never acknowledges after the 15-poll budget', async () => {
+    bind({ session: { prompt: () => Promise.resolve({ ok: true }) } })
+    sendPrompt('等不到回写', '试一下', 'row-5', 'session-1')
+    expect(deskSlice('session-1').pending).toBeDefined()
+    await vi.runAllTimersAsync()
+    expect(deskSlice('session-1').pending).toBeUndefined()
+    expect(deskSlice('session-1').stalled).toBeDefined()
+  })
+
   it('explains the missing session and the missing remote instead of silently dropping the line', () => {
     bind({}, [])
     sendPrompt('试试', '试一下', 'row-3')
