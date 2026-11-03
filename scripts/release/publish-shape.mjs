@@ -121,6 +121,19 @@ export function localeShapeProblems(locales) {
  * @param input - `{ readme, manual }`: the package README text and the generated manual text.
  * @returns problem strings; empty means both keep their contractual headings.
  */
+/**
+ * BUG-028: `--from-default-profile` is a destructive reset, and without `--dump-config` it boots.
+ * The manual is the only place a user is told to run it, so every occurrence must be the dump form;
+ * a line that drifts back is a data-loss instruction, not a typo.
+ * @param {string} manual - the generated manual's text.
+ * @returns {string[]} one problem per offending line (empty when every line is dump-mode).
+ */
+export function manualProfileCreateProblems(manual) {
+  return manual.split('\n')
+    .filter(line => /\bdsh\s/.test(line) && line.includes('--from-default-profile') && !line.includes('--dump-config'))
+    .map(line => `manual quotes a booting profile create (needs --dump-config): ${line.trim().slice(0, 120)}`)
+}
+
 export function docShapeProblems({ readme, manual }) {
   const problems = []
   // The plugin README's seven sections as the host's own packages present them to an installer:

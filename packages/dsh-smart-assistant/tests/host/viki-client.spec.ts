@@ -27,6 +27,47 @@ describe('VikiClient snapshot contract', () => {
     expect((calls[0]!.body as { message: string }).message.length).toBeGreaterThan(0)
   })
 
+  it('keeps the tree when only stats/memories fails, and names it as a problem', async () => {
+    // A stats outage must not blank the panel: the tree still lists, the cross-check degrades to
+    // a problem line the diagnostics face renders.
+    const client = new VikiClient({
+      baseUrl: 'http://viki.test',
+      fetch: (async (url: unknown) => {
+        if (String(url).includes('/stats/memories')) return new Response(JSON.stringify({ status: 'error', error: 'boom' }), { status: 500 })
+        return new Response(JSON.stringify({ status: 'ok', result: [] }))
+      }) as typeof fetch,
+    })
+    const list = await client.list()
+    expect(list.entries).toEqual([])
+    expect(list.problems.some(problem => problem.startsWith('stats:'))).toBe(true)
+  })
+
+  it('throws VikiUnavailable when the server is unreachable, not an empty list', async () => {
+    const client = new VikiClient({
+      baseUrl: 'http://viki.test',
+      fetch: (async () => { throw new Error('ECONNREFUSED') }) as unknown as typeof fetch,
+    })
+    await expect(client.list()).rejects.toThrow(/request failed.*ECONNREFUSED/s)
+  })
+
+  it('refuses to name a snapshot commit when the response carries no id', async () => {
+    const { client } = clientWith({ result: 'noop' })
+    await expect(client.commit(['viking://user/default/memories'])).rejects.toThrow(/no commit id/)
+  })
+
+  it('names a non-JSON health answer instead of guessing at its fields', async () => {
+    const client = new VikiClient({
+      baseUrl: 'http://viki.test',
+      fetch: (async () => new Response('<html>not json</html>', { status: 200 })) as typeof fetch,
+    })
+    await expect(client.health()).rejects.toThrow(/non-JSON/)
+  })
+
+  it('reports not-configured before touching the network', async () => {
+    const client = new VikiClient({ baseUrl: '', fetch: (async () => { throw new Error('must not be called') }) as unknown as typeof fetch })
+    await expect(client.list()).rejects.toThrow(/not configured/)
+  })
+
   it('restore and remove keep their wire shapes', async () => {
     const { client, calls } = clientWith({})
 

@@ -428,4 +428,37 @@ describe('assistant-data', () => {
     await expect(exportData({ ...source, outDir })).rejects.toThrow(/inside/i)
     expect(existsSync(outDir)).toBe(false)
   })
+
+  it('refuses import targets where the two directories are the same or nest', async () => {
+    const source = sourceFixture()
+    const outDir = join(temp('data-out-'), 'bundle')
+    await exportData({ ...source, outDir })
+
+    // Same directory: the ledger would overwrite the working folder.
+    const same = temp('data-same-')
+    await expect(importData({ inDir: outDir, assistantDir: same, operatingDir: same }))
+      .rejects.toThrow(/different directories/)
+
+    // Nested: the cap/manifest walk would read each directory as the other's child.
+    const outer = temp('data-outer-')
+    await expect(importData({
+      inDir: outDir,
+      assistantDir: join(outer, 'assistant'),
+      operatingDir: join(outer, 'assistant', 'operating'),
+    })).rejects.toThrow(/must not nest/)
+  })
+
+  it('refuses a maxBytes cap that is not a positive safe integer, before copying', async () => {
+    const source = sourceFixture()
+    const outDir = join(temp('data-out-'), 'bundle')
+    await exportData({ ...source, outDir })
+    const target = temp('data-target-')
+    await expect(importData({
+      inDir: outDir,
+      assistantDir: join(target, 'assistant'),
+      operatingDir: join(target, 'assistant-operating'),
+      maxBytes: 0,
+    })).rejects.toThrow(/positive safe integer/)
+    expect(existsSync(join(target, 'assistant'))).toBe(false)
+  })
 })

@@ -21,7 +21,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync
 import { dirname, isAbsolute, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { pinnedTagFrom } from '../maintenance/sync-bookkeeping.mjs'
-import { docShapeProblems, localeShapeProblems, manifestShapeProblems, sourcemapLeakProblems } from './publish-shape.mjs'
+import { docShapeProblems, localeShapeProblems, manualProfileCreateProblems, manifestShapeProblems, sourcemapLeakProblems } from './publish-shape.mjs'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const packageDir = join(repoRoot, 'packages', 'dsh-smart-assistant')
@@ -650,7 +650,7 @@ Windows：\`dsh\`/\`npm\` 的 \`.cmd\` shim 与进程树语义已做代码级加
 | 升级后数据在哪 | 仍在 \`<DSH_HOME>/assistant\` 与 \`assistant-operating\`；专用 home 模式在 \`<productHome>\` 下；\`remove\` 不删；升级前先备份 |
 | 安装器与 native 有什么区别 | 安装器（A）帮你建 \`assistant\` profile、装包、起 Web；native（B）用 DSH 三步达到同一 profile；两者的工作区都在首启选，写 profile Config |
 | 首跑停在登录/要求 API Key | 专用 home 是新的，没有 provider 凭据；在 Web UI 登录/配置后再用，不是装坏 |
-| headless 组合里多一条 \`assistant-product\` pending | bundle patch 的 self-disable 未生效（旧包/被 profile 覆盖）；升级当前 tarball，或在 profile 层显式 \`disabled: true\` 双保险 |
+| headless 组合里多一条 \`assistant-product\` pending | 该行等 \`connection\` 激活，而 headless 没有这个服务；在 profile patch 里显式 \`disabled: true\`（§九 的五行）。不是升级就能解决 |
 | 工作区交付包在哪 | \`<工作区>/deliverables/<YYYY-MM-DD>-<slug>/\`（README 四段 + 交付物 + \`present\`）；不复制会话日志 |
 | 备份怎么恢复 | 用 \`assistant-data import\`；已启动过的 home 加 \`--replace\`（现有目录移到旁路，不用清空）；它按 manifest 的 schemaVersion 拒绝不兼容备份 |
 | 产品启动要 dsh 吗 | 要，PATH 上有兼容 \`dsh\` 或传 \`--dsh\`；没有 dsh 的便携包是另一个产品，不在本手册范围 |
@@ -675,14 +675,10 @@ const docProblems = docShapeProblems({
 report('docs keep their contractual sections', docProblems.length === 0,
   docProblems.length === 0 ? 'README 7 sections + manual skeleton' : docProblems.slice(0, 3).join('; '))
 
-// `--from-default-profile` is a destructive reset AND, without a dump flag, a boot. The manual is the
-// only place a user is told to run it, so every occurrence has to be the dump form; the scripts
-// already are (`bootstrap.mjs`, `release-smoke.mjs`), and a hand-written line drifting away from
-// that is a data-loss instruction, not a typo (BUG-028).
-const manualBootLines = manual.split('\n')
-  .filter(line => /\bdsh\s/.test(line) && line.includes('--from-default-profile') && !line.includes('--dump-config'))
-report('manual only quotes dump-mode profile creation', manualBootLines.length === 0,
-  manualBootLines.length === 0 ? 'every --from-default-profile carries --dump-config' : manualBootLines[0].trim().slice(0, 120))
+// BUG-028: the judgement lives in publish-shape.mjs so a fixture can pin both answers.
+const manualBootProblems = manualProfileCreateProblems(manual)
+report('manual only quotes dump-mode profile creation', manualBootProblems.length === 0,
+  manualBootProblems.length === 0 ? 'every --from-default-profile carries --dump-config' : manualBootProblems[0])
 
 if (failed.length > 0) {
   console.error(`\nexport-dist: ${failed.length} check(s) failed — _dist/ 里的产物不可信，先修再发`)

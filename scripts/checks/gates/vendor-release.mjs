@@ -205,6 +205,9 @@ export function exportManualProblems({ manualPath, manifest, upstreamTag }) {
   if (notDisabled.length > 0) {
     problems.push(`manual does not tell headless users to disable ${notDisabled.join(', ')} explicitly — those rows wait on \`connection\` and stay pending; fix the export-dist template and rerun \`pnpm export-dist\``)
   }
+  if (/self-disable/iu.test(text)) {
+    problems.push('manual still describes a bundle-patch self-disable — the rows wait on `inject` and are disabled by the overlay (BUG-029); rerun `pnpm export-dist` after fixing the template')
+  }
   if (/自禁用[；。]/.test(text) && !/不会自禁用/.test(text)) {
     problems.push('manual says the web-only rows self-disable — they do not (BUG-029); rerun `pnpm export-dist` after fixing the template')
   }

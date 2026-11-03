@@ -7,7 +7,7 @@
  * Plain `.mjs` on purpose: vitest runs it, `tsc -p tsconfig.test.json` does not type-check it.
  */
 import { describe, expect, it } from 'vitest'
-import { docShapeProblems, localeShapeProblems, manifestShapeProblems, sourcemapLeakProblems } from '../../../../scripts/release/publish-shape.mjs'
+import { docShapeProblems, localeShapeProblems, manualProfileCreateProblems, manifestShapeProblems, sourcemapLeakProblems } from '../../../../scripts/release/publish-shape.mjs'
 
 const map = (sources, contents) => JSON.stringify({ version: 3, sources, sourcesContent: contents })
 
@@ -78,6 +78,21 @@ describe('localeShapeProblems', () => {
   it('refuses an empty title or a document without meta', () => {
     expect(localeShapeProblems({ en: { meta: { title: '  ', description: 'x' } } })[0]).toMatch(/meta\.title/)
     expect(localeShapeProblems({ en: {}, zh: { meta: { title: 'a', description: 'b' } } })[0]).toMatch(/no "meta" object/)
+  })
+})
+
+describe('manualProfileCreateProblems', () => {
+  it('accepts the dump form the manual ships', () => {
+    const manual = 'dsh --profile assistant --from-default-profile web --dump-config   # ① 一次性建 profile\n'
+    expect(manualProfileCreateProblems(manual)).toEqual([])
+  })
+
+  it('rejects a booting profile create (BUG-028: it also wipes an existing profile)', () => {
+    const problems = manualProfileCreateProblems('dsh --profile assistant --from-default-profile web\n')
+    expect(problems).toHaveLength(1)
+    expect(problems[0]).toContain('--dump-config')
+    // A line that is not a dsh command is prose, not an instruction.
+    expect(manualProfileCreateProblems('`--from-default-profile` 只限首次，是破坏性重置\n')).toEqual([])
   })
 })
 

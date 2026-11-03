@@ -13,6 +13,10 @@
  * 4. Inferred major changes only propose; an explicit confirm applies them.
  * 5. A fragment leaves the unclaimed lane only as a reasoned terminal discard — a blank
  *    reason is refused at the tool boundary, so "tidy up" cannot become a silent delete.
+ * 6. `revise` needs the observed revision and at least one changed field; the edit lands as a
+ *    new revision, not a silent overwrite.
+ * 7. `claim` attaches a retained fragment to a matter only on explicit reference (both ids).
+ * 8. `reopen` needs the observed revision and a reason; the matter returns to active.
  */
 
 import { describe, expect, it } from 'vitest'
@@ -284,5 +288,93 @@ describe('assistant_operating (tool adapter over the authoritative ledger)', () 
 
     const desk = await tool.execute({ action: 'desk' }, exec) as OperatingOutput
     expect(desk.unclaimed ?? []).toEqual([])
+  })
+
+  it('revises a matter with its observed revision and refuses an empty edit', async () => {
+    const tool = boot()
+    const entrusted = await tool.execute({
+      action: 'entrust', operation_id: 'op-revise-entrust', title: 'Q4 续约', quote: '帮我跟一下续约',
+    }, exec) as OperatingOutput
+    const matterId = entrusted.receipt!.matterId
+
+    // An edit that changes nothing is a caller bug, not a revision bump.
+    await expect(tool.execute({
+      action: 'revise', operation_id: 'op-revise-empty', matter_id: matterId, observed_revision: 1, quote: '改一下',
+    }, exec)).rejects.toThrow(/at least one field/)
+
+    const revised = await tool.execute({
+      action: 'revise',
+      operation_id: 'op-revise-1',
+      matter_id: matterId,
+      observed_revision: 1,
+      summary: '客户要求先出报价再谈续约',
+      quote: '先报价再谈',
+    }, exec) as OperatingOutput
+    expect(revised.receipt?.outcome).toEqual({ status: 'committed', revision: 2 })
+
+    const read = await tool.execute({ action: 'read', matter_id: matterId }, exec) as OperatingOutput
+    expect(read.matters?.[0]?.revision).toBe(2)
+    expect(read.matters?.[0]?.summary).toContain('先出报价')
+  })
+
+  it('claims a retained fragment only on an explicit unclaimed id and matter', async () => {
+    const tool = boot()
+    const noted = await tool.execute({
+      action: 'note', operation_id: 'op-claim-note', note: '客户财务说月底前走流程', quote: '月底前走流程',
+    }, exec) as OperatingOutput
+    const fragmentId = noted.receipt?.outcome.status === 'retained' ? noted.receipt.outcome.unclaimedId : ''
+    expect(fragmentId).not.toBe('')
+    const entrusted = await tool.execute({
+      action: 'entrust', operation_id: 'op-claim-entrust', title: 'Q4 续约', quote: '盯着续约',
+    }, exec) as OperatingOutput
+    const matterId = entrusted.receipt!.matterId
+
+    // Titles never match: the caller has to name the fragment and the matter.
+    await expect(tool.execute({ action: 'claim', operation_id: 'op-claim-missing', quote: '归到这里' }, exec))
+      .rejects.toThrow(/unclaimed_id and matter_id/)
+
+    const claimed = await tool.execute({
+      action: 'claim', operation_id: 'op-claim-1', unclaimed_id: fragmentId, matter_id: matterId, quote: '归到续约',
+    }, exec) as OperatingOutput
+    expect(claimed.receipt?.outcome).toMatchObject({ status: 'committed' })
+
+    const read = await tool.execute({ action: 'read', matter_id: matterId }, exec) as OperatingOutput
+    expect(read.materials?.some(material => material.quote === '月底前走流程')).toBe(true)
+    const desk = await tool.execute({ action: 'desk' }, exec) as OperatingOutput
+    expect(desk.unclaimed ?? []).toEqual([])
+  })
+
+  it('reopens a completed matter only with the observed revision and a reason', async () => {
+    const tool = boot()
+    const entrusted = await tool.execute({
+      action: 'entrust', operation_id: 'op-reopen-entrust', title: '对账单回收', quote: '帮我盯对账',
+    }, exec) as OperatingOutput
+    const matterId = entrusted.receipt!.matterId
+    const completed = await tool.execute({
+      action: 'complete',
+      operation_id: 'op-reopen-complete',
+      matter_id: matterId,
+      observed_revision: 1,
+      evidence_quote: '款已到账',
+      quote: '款已到账',
+    }, exec) as OperatingOutput
+    expect(completed.receipt?.outcome).toMatchObject({ status: 'committed' })
+
+    await expect(tool.execute({
+      action: 'reopen', operation_id: 'op-reopen-blank', matter_id: matterId, observed_revision: 2, quote: '再开',
+    }, exec)).rejects.toThrow(/reason/)
+
+    const reopened = await tool.execute({
+      action: 'reopen',
+      operation_id: 'op-reopen-1',
+      matter_id: matterId,
+      observed_revision: 2,
+      reason: '对方退回了部分款项，仍需跟进',
+      quote: '退回了部分款',
+    }, exec) as OperatingOutput
+    expect(reopened.receipt?.outcome).toMatchObject({ status: 'committed' })
+
+    const read = await tool.execute({ action: 'read', matter_id: matterId }, exec) as OperatingOutput
+    expect(read.matters?.[0]?.status).toBe('active')
   })
 })
