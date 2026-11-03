@@ -107,6 +107,33 @@ describe('assistant_research execute', () => {
     expect(listed).toContain('续费合同是否值得重谈？')
   })
 
+  it('parks a thread out of the digest and promotes it into a named answer', async () => {
+    const { ctx } = await boot(ToolResearch)
+    const opened = await run(ctx, 'assistant_research', {
+      action: 'open',
+      question: '渠道返利要不要改成年结？',
+      why: '季度结占用现金流。',
+    })
+    const id = opened.match(/thread ([A-Za-z0-9-]+)/)?.[1]
+    expect(id).toBeTruthy()
+
+    const parked = await run(ctx, 'assistant_research', { action: 'park', id })
+    expect(parked).toContain('Parked')
+    expect(parked).toContain('leaves the digest')
+
+    // Promotion without the answer pointer is refused: "promoted" alone loses the destination.
+    expect(await run(ctx, 'assistant_research', { action: 'promote', id }))
+      .toContain('Error: assistant_research promote requires promoted_to')
+
+    // Promotion must name a real destination: the service resolves the pointer, so seed one.
+    const record = await ctx.assistantMemory.saveMemory({ text: '返利按年结，季度不再预提', kind: 'fact' })
+    const promoted = await run(ctx, 'assistant_research', {
+      action: 'promote', id, promoted_to: record.id,
+    })
+    expect(promoted).toContain('Promoted')
+    expect(promoted).toContain(record.id)
+  })
+
   it('refuses a drop without a reason', async () => {
     const { ctx } = await boot(ToolResearch)
     const opened = await run(ctx, 'assistant_research', {

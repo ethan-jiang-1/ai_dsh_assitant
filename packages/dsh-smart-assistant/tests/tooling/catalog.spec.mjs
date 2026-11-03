@@ -5,8 +5,21 @@
  * unrecognised tool declaration fails loud instead of silently thinning the catalog, and the
  * client seat extraction reads every seat family and fails loud on an undiscoverable tab.
  */
-import { describe, expect, it } from 'vitest'
-import { collectCatalog, extractClientSurface, extractTool, parseRows, renderCatalog } from '../../../../scripts/generate/gen-catalog.mjs'
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { afterEach, describe, expect, it } from 'vitest'
+import { collectCatalog, discoverTools, extractClientSurface, extractTool, parseRows, renderCatalog } from '../../../../scripts/generate/gen-catalog.mjs'
+
+const dirs = []
+function temp(prefix) {
+  const dir = mkdtempSync(join(tmpdir(), prefix))
+  dirs.push(dir)
+  return dir
+}
+afterEach(() => {
+  for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true })
+})
 
 describe('parseRows', () => {
   it('reads id/name/disabled rows and accepts a disable-only directive', () => {
@@ -48,6 +61,32 @@ describe('extractTool', () => {
   it('fails loud when the name or the action enum is missing', () => {
     expect(() => extractTool("const ACTIONS = ['x'] as const\n", 'fixture')).toThrow(/no tool name/)
     expect(() => extractTool("name: 'assistant_x',\n", 'fixture')).toThrow(/no action enum/)
+  })
+})
+
+describe('discoverTools', () => {
+  it('follows one sibling action list when index.ts only imports the verbs', () => {
+    // tool-operating's thirteen verbs moved to vocabulary.ts; the generator reads the module it
+    // names instead of forcing the index file to keep a second copy of the enum.
+    const root = temp('agent-tools-')
+    mkdirSync(join(root, 'tool-x'), { recursive: true })
+    writeFileSync(join(root, 'tool-x', 'index.ts'), [
+      "import { ACTIONS } from './vocabulary.ts'",
+      "name: 'assistant_x',",
+      '',
+    ].join('\n'), 'utf8')
+    writeFileSync(join(root, 'tool-x', 'vocabulary.ts'), "export const ACTIONS = ['search', 'get'] as const\n", 'utf8')
+    const tools = discoverTools(root, path => readFileSync(path, 'utf8'))
+    expect(tools).toEqual([{ label: 'src/agent/tool-x/index.ts', name: 'assistant_x', actions: ['search', 'get'] }])
+  })
+
+  it('fails loud when two siblings both declare an action list', () => {
+    const root = temp('agent-tools-')
+    mkdirSync(join(root, 'tool-y'), { recursive: true })
+    writeFileSync(join(root, 'tool-y', 'index.ts'), "name: 'assistant_y',\n", 'utf8')
+    writeFileSync(join(root, 'tool-y', 'a.ts'), "export const ACTIONS = ['a'] as const\n", 'utf8')
+    writeFileSync(join(root, 'tool-y', 'b.ts'), "export const ACTIONS = ['b'] as const\n", 'utf8')
+    expect(() => discoverTools(root, path => readFileSync(path, 'utf8'))).toThrow(/keep one/)
   })
 })
 

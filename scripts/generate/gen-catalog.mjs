@@ -68,17 +68,22 @@ export function parseRows(text) {
   return rows
 }
 
-/** Extract a tool's wire name and action verbs from its source. Fails loud when either is absent. */
-export function extractTool(source, label) {
-  const name = /name:\s*'([a-z_]+)'/.exec(source)?.[1]
-  if (name === undefined) throw new Error(`gen-catalog: ${label} declares no tool name`)
+/** Read one action list out of a source text (const ACTIONS or an inline enum). */
+export function extractActions(source, label) {
   const constActions = /const ACTIONS = \[([^\]]+)\]/s.exec(source)?.[1]
   const inlineActions = /action:\s*\{[^}]*enum:\s*\[([^\]]+)\]/s.exec(source)?.[1]
   const raw = constActions ?? inlineActions
   if (raw === undefined) throw new Error(`gen-catalog: ${label} declares no action enum (const ACTIONS or inline enum)`)
   const actions = [...raw.matchAll(/'([a-z_]+)'/g)].map(match => match[1])
   if (actions.length === 0) throw new Error(`gen-catalog: ${label} action enum parsed empty`)
-  return { name, actions }
+  return actions
+}
+
+/** Extract a tool's wire name and action verbs from its source. Fails loud when either is absent. */
+export function extractTool(source, label) {
+  const name = /name:\s*'([a-z_]+)'/.exec(source)?.[1]
+  if (name === undefined) throw new Error(`gen-catalog: ${label} declares no tool name`)
+  return { name, actions: extractActions(source, label) }
 }
 
 /** Discover every tool under `src/agent/` by its wire name instead of a hand-listed dir set —
@@ -93,10 +98,22 @@ export function discoverTools(agentDir, read) {
     .map(dir => {
       const label = `src/agent/${dir}/index.ts`
       const source = read(join(agentDir, dir, 'index.ts'))
-      return /name:\s*'assistant_[a-z_]*'/.test(source) ? { label, source } : undefined
+      if (!/name:\s*'assistant_[a-z_]*'/.test(source)) return undefined
+      // The action list may live in a sibling vocabulary module (tool-operating split it out when
+      // it grew to thirteen verbs). Follow one sibling declaration instead of duplicating the list
+      // in index.ts; two sibling lists is a fail-loud, not a pick-first.
+      let actionSource = source
+      if (!/const ACTIONS = \[/.test(source) && !/enum:\s*\[/.test(source)) {
+        const siblings = readdirSync(join(agentDir, dir))
+          .filter(name => name.endsWith('.ts') && name !== 'index.ts')
+          .map(name => ({ name, text: read(join(agentDir, dir, name)) }))
+          .filter(entry => /const ACTIONS = \[/.test(entry.text))
+        if (siblings.length > 1) throw new Error(`gen-catalog: ${label} has ${String(siblings.length)} sibling action lists (${siblings.map(entry => entry.name).join(', ')}) — keep one`)
+        if (siblings.length === 1) actionSource = siblings[0].text
+      }
+      return { label, name: /name:\s*'([a-z_]+)'/.exec(source)[1], actions: extractActions(actionSource, label) }
     })
     .filter(entry => entry !== undefined)
-    .map(({ label, source }) => ({ label, ...extractTool(source, label) }))
     .sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))
   if (tools.length === 0) {
     throw new Error('gen-catalog: src/agent/ carries no tool wire names — the agent-face layout changed')
