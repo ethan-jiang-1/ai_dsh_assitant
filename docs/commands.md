@@ -53,7 +53,8 @@ pnpm web-face-check [--all] [--scenario <名>] [--refresh]
                         # 默认 4 客户面；--all 加 2 产品面 + 4 Viki 调试面（固定 OV mock + #debug=1）
                         # 隔离 home → seed → boot → 比对 → 收；起手自证 lib/ + Chrome，缺失 BLOCKED 2
                         # --refresh 只用于显式 --scenario（拒绝 --all 批量重录）
-pnpm session <id|prefix> [--home <dir>] [--reasoning]
+pnpm session <id|prefix> [--home <dir>] [--reasoning] [--tools]   # --tools 打印请求里的工具名
+pnpm session --recent [n] [--home <dir>]                          # 最近的会话（时间+cwd+preset），并行会话按上下文挑
                         # 会话日志路径 + request/tool 时间线（symptom→session join；读 dev home）
 pnpm loop-probe '<URL>' --ask '<问句>'   # 首用闭环探针：真发问真等回复，JSON 判决 + 截图
 pnpm desk-walk '<URL>' [--home <dir>]    # 处理流真机走查（真模型）：屏幕文本+截图

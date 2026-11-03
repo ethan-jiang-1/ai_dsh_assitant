@@ -14,7 +14,7 @@
  *
  * Two modes (each names its scenario explicitly — see the gate note under Usage):
  *   node dev/probes/web/webui-expected.mjs '<url>' --scenario <dir>              # capture → compare → exit 1 on drift
- *   node dev/probes/web/webui-expected.mjs '<url>' --scenario <dir> --refresh    # capture → write the expectation
+ *   node dev/probes/web/webui-expected.mjs '<url>' --scenario <dir> --refresh    # capture → print the drift → write
  *
  * Every written expectation is human-reviewed before commit (the DOM JSON is the diffable
  * surface; the PNG stays in the temp dir for eyeballing and never enters git). Scenario
@@ -132,6 +132,26 @@ if (refresh) {
     for (const problem of health) console.error(`  - ${problem}`)
     console.error(`webui-expected: capture kept for review: ${join(workDir, `expected-${size}.png`)}`)
     process.exit(1)
+  }
+  // Refresh is a recorded human decision, so the decision has to be visible: print exactly what
+  // the new baseline changes. Writing silently made "过目 diff 后 --refresh" an honour system.
+  if (existsSync(expectedPath)) {
+    let previous
+    try {
+      previous = normalizeDomEvidence(JSON.parse(readFileSync(expectedPath, 'utf8')))
+    } catch (error) {
+      console.error(`webui-expected: previous expectation is unreadable (${error.message}); treating refresh as a first capture`)
+    }
+    if (previous !== undefined) {
+      const drift = compareEvidence(actual, previous)
+      if (drift.length === 0) console.log('webui-expected: refresh changes nothing (capture equals the committed expectation)')
+      else {
+        console.log(`webui-expected: refresh rewrites ${drift.length} drift line(s) — review them before committing:`)
+        for (const line of drift) console.log(`  - ${line}`)
+      }
+    }
+  } else {
+    console.log('webui-expected: first capture for this scenario (no previous expectation)')
   }
   mkdirSync(scenarioDir, { recursive: true })
   writeFileSync(expectedPath, JSON.stringify(actual, null, 1) + '\n')

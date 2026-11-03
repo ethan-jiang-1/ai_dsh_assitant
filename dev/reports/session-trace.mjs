@@ -5,7 +5,8 @@
  * command an agent had to `find` the zstd file and `zstd -dc | jq` by hand.
  *
  * Usage:
- *   pnpm session <session-id|prefix> [--home <dir>] [--max <chars>] [--reasoning]
+ *   pnpm session <session-id|prefix> [--home <dir>] [--max <chars>] [--reasoning] [--tools]
+ *   pnpm session --recent [n] [--home <dir>]
  *
  * The id is the session directory name (`session-<uuid>`), matched as an exact name or a
  * prefix. More than one match is an error (the caller must disambiguate), not a "newest wins"
@@ -15,6 +16,7 @@
  *
  * Style: scripts/AGENTS.md — pure ESM, Node built-ins only.
  */
+import { statSync } from 'node:fs'
 import { basename, dirname } from 'node:path'
 import { devHome } from '../env/home.mjs'
 import {
@@ -35,9 +37,40 @@ const idArg = args.find(argument => !argument.startsWith('--') && argument !== v
 const home = devHome(value('--home'))
 const max = Number(value('--max') ?? (args.includes('--full') ? 4000 : 240))
 const reasoning = args.includes('--reasoning')
+const showTools = args.includes('--tools')
+
+// `--recent` exists because "the newest session" is not an identity under parallel sessions
+// (session-logs.mjs:78-82 records that incident). It lists candidates with their cwd and time so
+// the caller picks by context instead of trusting mtime alone.
+if (args.includes('--recent')) {
+  const count = Number(value('--recent') ?? 10) || 10
+  const logs = sessionLogs(home)
+    .map(log => {
+      let mtime = 0
+      try { mtime = statSync(log).mtimeMs } catch {}
+      return { log, mtime }
+    })
+    .sort((left, right) => right.mtime - left.mtime)
+    .slice(0, count)
+  for (const { log, mtime } of logs) {
+    const id = basename(dirname(log))
+    let cwd = '(unknown)'
+    let preset = '(unknown)'
+    try {
+      const session = readEvents(log).find(event => event.type === 'session')
+      cwd = session?.cwd ?? cwd
+      preset = session?.agentPreset ?? preset
+    } catch {}
+    const when = mtime === 0 ? '(unknown)' : new Date(mtime).toISOString().slice(0, 16).replace('T', ' ')
+    console.log(`${id}  ${when}  ${preset}  ${cwd}`)
+  }
+  if (logs.length === 0) console.error(`session: no logs under ${home}/sessions`)
+  process.exit(0)
+}
 
 if (idArg === undefined) {
-  console.error('usage: pnpm session <session-id|prefix> [--home <dir>] [--max <chars>] [--reasoning]')
+  console.error('usage: pnpm session <session-id|prefix> [--home <dir>] [--max <chars>] [--reasoning] [--tools]')
+  console.error('       pnpm session --recent [n] [--home <dir>]')
   process.exit(2)
 }
 
@@ -121,6 +154,12 @@ for (const event of events) {
       const config = header.config ?? {}
       const tools = Array.isArray(header.tools) ? header.tools.length : 0
       console.log(`request: model=${config.model ?? '?'} tools=${tools}`)
+      // The count alone cannot answer "did my tool ride in the request?" — the names can, and
+      // that is the symptom this report exists to settle (no zstd|jq by hand).
+      if (showTools && Array.isArray(header.tools)) {
+        const names = header.tools.map(tool => tool?.name ?? tool?.function?.name ?? '?').filter(name => name !== '?')
+        if (names.length > 0) console.log(`tools: ${names.join(' ')}`)
+      }
       break
     }
     case 'request/context': {

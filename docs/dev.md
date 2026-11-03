@@ -296,7 +296,7 @@ DSH 这句提示指向 profile 级的 `dsh plugin add` —— 照它做只能得
 | 验 assistant preset | `pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner.patch.yml "one task"` | one-shot 挂载 preset 后的会话驱动 | 浏览器渲染 |
 | 验 Web 面 | `pnpm dsh --profile dev --port 0 --no-open` + `pnpm preflight '<URL>'` | Web boot、Remote、rooms route 可达 | DOM 期望；再跑 `pnpm web-expected '<URL>' --scenario <场景>`（场景必填） |
 | 验请求侧组装 | `pnpm dsh --profile dev-task --patch dev/probes/session/preset-runner-replay.patch.yml "probe"` | keyless replay 的 system/tools/session log | 固定回复代表模型自主选择 |
-| 逐事件复盘某次会话 | `pnpm session <session-id\|prefix>`（打印日志路径 + request/tool 时间线；需要原始字节再 `zstd -dc` 那个路径） | 请求侧 system/tools 与 tool/result 逐字日志 | 不证明模型自主选择（回放车道回复是录制的） |
+| 逐事件复盘某次会话 | `pnpm session <session-id\|prefix> [--tools]`（打印日志路径 + request/tool 时间线；`--tools` 打印请求里的工具名——「工具没被模型看到」用这条定案）；定位会话用 `pnpm session --recent [n]`（并行会话下按 cwd/时间挑，不靠 `ls -t`） | 请求侧 system/tools 与 tool/result 逐字日志 | 不证明模型自主选择（回放车道回复是录制的） |
 
 当前 assistant preset 的定义来源是安装包的 `dsh.bundle.patch`，实际文件为 `packages/dsh-smart-assistant/cordis.patch.yml` 中的 `preset-assistant` 行；headless profile 本身没有 roster，必须使用 `preset-runner.patch.yml` 才会挂载 assistant preset。
 
