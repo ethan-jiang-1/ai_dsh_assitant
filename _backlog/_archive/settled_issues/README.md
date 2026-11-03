@@ -6,6 +6,7 @@
 
 | 卡 | 关闭日 | 判定 |
 |---|---|---|
+| [261103 打扫卫生三轮](261103-housekeeping-round3.md) | 2026-11-03 | **七维按剩余状态重打 ≈8.5（A-）**：上一轮"全维 9.0"按修复数打分。A 真相修复（web-only 自禁用、卸载 residue、tarball 引擎门、HMR 升级）、B 取证（`session --tools/--recent`、`refresh` 先 diff、probes README）、C 所有权（operating 三动词、research park/promote、Viki 降级、CLI 守卫、BUG-028 红夹具）、D 结构（health 464→5 文件、tool-operating 459→4 文件）、E 卫生（`.tmp` 916MB→273MB、归档索引进门禁）。去向 = [implemented note](../../../notes/implemented/2026-11-03-seven-dimension-round3.md)；不另立 research 报告 |
 | [261103 七维改善](261103-seven-dimension-improvement.md) | 2026-11-03 | **七维 9.0**：A/B/C 三批 + 9.0 深挖；`pnpm check`/`check:full` 地板、notes 腐化 P1、CLI 拆分、web-only 生命周期（inject + headless overlay）、BUG-029、旧安装器清理命令。去向 = [implemented note](../../../notes/implemented/2026-11-03-seven-dimension-round2.md)；研究题随迁 `_archive/research/` |
 | [261102 首屏归谁](261102-first-screen.md) | 2026-11-03 | **B+ 落地**：首屏仍是桌面，会话侧由 `ProductGateDock` + `ctx.conversation.blocks` 覆盖（未绑定禁输入、无「稍后」）；刷新按上次主视图恢复；非产品场景补 `onboarding: false` 并修 seed 的 `[]` 占位；产品两场景重录/复跑、`product-first-screen` 探针全绿。去向 = [implemented note](../../../notes/implemented/2026-11-02-first-screen-ownership.md)；研究题随迁 `_archive/research/` |
 | [261102 发行版口径对齐](261102-distribution-alignment.md) | 2026-11-02 | 术语（product 不修饰交付对象）、六轴 owner + 生命周期十段进宪章；包 README 与安装手册回宿主骨架；噪声 N01–N12 按 owner 收敛；退役词/骨架/六轴三道门禁带负例。去向 = [implemented note](../../../notes/implemented/2026-11-02-distribution-alignment.md) |
