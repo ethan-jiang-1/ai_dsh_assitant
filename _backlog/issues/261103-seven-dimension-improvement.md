@@ -74,7 +74,7 @@ DSH 约定偏离（`insert` 当 override、两个 packer、client 状态所有�
 - `dsh.client.inject`：vendor 文档说明它是 client module 依赖边，不是 Cordis 服务清单；本包没有非 baseline 的 module 请求，**不加**（不是债）；
 - web-only 行名去重：包 README 的用户面清单保留，product.md 保留合同清单；两处不同用途，**不强行合并**。
 
-**当前停点（2026-11-03 08:5x）**：A 批（真相恢复）、B 批（地板+证据）与 C 批的文档切片已交付，`pnpm check` 首次全绿（164 文件 / 1,254 用例、verify 60/60）；C 批按用户 2026-11-03「继续往前推进」分批推进。B0–B3 已交付。B4 除"preset 拆 `presets/*.patch.yml`（可选）"外均已交付
+**当前停点（2026-11-03 09:1x）**：A/B/C 全部交付；`pnpm check` 绿（1,255 用例 / verify 60/60）、`upgrade-smoke` passed、`web-face-check --all` PASS；`release-smoke` 的安装/组合/bins 绿，live turn 无 key = BLOCKED（exit 2，不冒充绿）。余下只有收口（note/归档/清单）与本卡 `仍未取` 的非本目标项。B0–B3 已交付。B4 除"preset 拆 `presets/*.patch.yml`（可选）"外均已交付
 （packer 由 `69668754` 定为 pnpm pack + npm publish 同字节；死 Remote/product-face/旧包 fixture/重复 id 门禁
 均已落地）。二轮 **A 批（真相恢复）** 与 **B 批（地板+证据）** 属一轮授权内的机械/证据修复，本轮直接推进；
 **C 批（CLI 拆分 / 卸载清理 / 主题 seam）** 按用户「继续往前推进」分批推进。
@@ -189,6 +189,7 @@ DSH 约定偏离（`insert` 当 override、两个 packer、client 状态所有�
 | B4 仍余 | 已收口 | packer 已定（`69668754`：pnpm pack + `npm publish <tgz>` 同字节）；死 Remote（`668ca625`）、`product-face` per materialization（`70ed3629`）、README 发布状态/旧包 fixture（`35b17d1f`）、重复 id 门禁（`21a020d4`）均已落地。仅余**可选**的 `presets/*.patch.yml` 拆分与 C 批 client bundling 重写 |
 | 二轮 A 真相恢复 | 完成（`95cf7c18` 记录，`90f5fb07`/`b5344909` 文档与手册） | 收口卡停点/台账收敛；活跃清单 `待落地`；安装手册 §九 改为"仅默认 preset 需要 insert，web-only 行已自禁用"（`export-dist.mjs` + `_dist/安装手册.md` 重生）；distribution note 加部分收窄指针；research 题名页/索引挂二轮；README 五步指针与 schedule 口径；delivery standalone 限定；client 模块地图补 product/debug；discipline #17 归位 |
 | 二轮 B 地板+证据 | 完成（`90f5fb07` 地板，`6e9b1fb0` 测试） | `pnpm check`（typecheck → test → verify）首次全绿：164 文件 / 1,254 用例、verify 60/60。新增断言：`assistant_reflect` 的 promote/deprecate/retire/propose/land/brief 与缺 sources 负例（`tests/agent/tool-adapters.spec.ts`）；product/ui-mode 行注册+dispose（`tests/host/*-route.spec.ts`）；desk-arms 启动锁双击反例（`tests/client/desk-arms.spec.ts`）；ledger corrupt/not-v1 拒绝（`tests/host/operating-ledger.spec.ts`）；CLI 导出目标在数据目录内的拒绝（`tests/tooling/assistant-data.spec.mjs`） |
+| 二轮 C 代码切片 | 完成（`cb6b25d2`、`0888a4c3`） | CLI bundle 拆 6 文件（最大 182 行）；scratch 门禁不再 ENOENT 崩；`--all` 摘要补 product；`tests/cli` 登记为例外；auto-cleanup 决策 = 文档化手工清理（需真实旧 home fixture 才做自动）。`pnpm check` 1,255 用例 / verify 60/60；`release-smoke` 安装/组合/bins 绿 + live turn BLOCKED（无 key, exit 2）；`upgrade-smoke` passed；`web-face-check --all` PASS（customer + product + viki） |
 | 收口 | 待做 | 决定 note、卡归档、research 归档、清单同步 |
 
 ## 仍未取
