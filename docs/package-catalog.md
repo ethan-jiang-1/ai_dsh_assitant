@@ -43,11 +43,11 @@
 | 文件 | id | plugin | 状态 |
 |---|---|---|---|
 | cordis.patch.yml（host 面） | `assistant-memory` | `dsh-smart-assistant` | 启用 |
-| cordis.patch.yml（host 面） | `assistant-desk-projection` | `dsh-smart-assistant/desk-projection` | 条件：!!js "!ctx.get('connection')" |
-| cordis.patch.yml（host 面） | `assistant-ui-mode` | `dsh-smart-assistant/ui-mode` | 条件：!!js "!ctx.get('connection')" |
-| cordis.patch.yml（host 面） | `assistant-product` | `dsh-smart-assistant/product` | 条件：!!js "!ctx.get('connection')" |
-| cordis.patch.yml（host 面） | `assistant-rooms` | `dsh-smart-assistant/rooms-route` | 条件：!!js "!ctx.get('connection')" |
-| cordis.patch.yml（host 面） | `assistant-viki` | `dsh-smart-assistant/viki` | 条件：!!js "!ctx.get('connection')" |
+| cordis.patch.yml（host 面） | `assistant-desk-projection` | `dsh-smart-assistant/desk-projection` | 启用 |
+| cordis.patch.yml（host 面） | `assistant-ui-mode` | `dsh-smart-assistant/ui-mode` | 启用 |
+| cordis.patch.yml（host 面） | `assistant-product` | `dsh-smart-assistant/product` | 启用 |
+| cordis.patch.yml（host 面） | `assistant-rooms` | `dsh-smart-assistant/rooms-route` | 启用 |
+| cordis.patch.yml（host 面） | `assistant-viki` | `dsh-smart-assistant/viki` | 启用 |
 | cordis.patch.yml（host 面） | `assistant-operating-ledger` | `dsh-smart-assistant/operating-ledger` | 启用 |
 | cordis.patch.yml（host 面） | `assistant-knowledge-approve` | `dsh-smart-assistant/knowledge-approve-remote` | 启用 |
 | cordis.patch.yml（agent 面 = preset 行的 plugins） | `assistant-home-preamble` | `dsh-smart-assistant/home-preamble` | 启用 |

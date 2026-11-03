@@ -83,8 +83,8 @@ export interface ProductStateOptions {
   readonly config?: ProductConfig
   /** Environment override, normally `process.env`; only `ASSISTANT_WORKSPACE` is read. */
   readonly env?: Readonly<Record<string, string | undefined>>
-  /** Settings writer; absent in a composition without the settings service. */
-  readonly settings?: ProductSettingsWriter
+  /** Settings writer, or a lazy resolver for a service that may register after this row. */
+  readonly settings?: ProductSettingsWriter | (() => ProductSettingsWriter | undefined)
   /** Product `DSH_HOME`; alias of `resolveDshHome()` by default. */
   readonly home?: string
   /** OS user home; a workspace equal to it is refused. */
@@ -148,12 +148,17 @@ export function createProductState(options: ProductStateOptions): ProductState {
 
   /** Persist the workspace into the current profile patch; surface every failure. */
   const persist = async (workspaceDir: string): Promise<ProductErrorCode | undefined> => {
-    if (options.settings === undefined) return 'settings-unavailable'
+    const settings = typeof options.settings === 'function' ? options.settings() : options.settings
+    if (settings === undefined) {
+      console.error('assistant-product: the settings service is unavailable; the workspace binding cannot be persisted')
+      return 'settings-unavailable'
+    }
     try {
-      await options.settings.update('assistant-product', { workspaceDir })
+      await settings.update('assistant-product', { workspaceDir })
       return undefined
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
+      console.error(`assistant-product: settings update failed: ${message}`)
       return /conflict|revision/i.test(message) ? 'settings-conflict' : 'settings-write-failed'
     }
   }

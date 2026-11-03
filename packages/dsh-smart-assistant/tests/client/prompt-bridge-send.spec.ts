@@ -13,10 +13,11 @@ import { getDeskStore, initDeskStore, deskSlice } from '../../src/client/rooms/r
 import { bindDeskEnv } from '../../src/client/rooms/room-data-io'
 import { sendPrompt } from '../../src/client/rooms/prompt-bridge'
 
-function bind(remote: Record<string, unknown>, ids: string[] = []): void {
+function bind(remote: Record<string, unknown>, ids: string[] = [], web?: Record<string, unknown>): void {
   bindDeskEnv({
     remote,
     sessions: { list: { getSnapshot: () => ({ ids, byId: {} }), subscribe: () => () => {} } },
+    ...(web === undefined ? {} : { web }),
   } as never)
 }
 

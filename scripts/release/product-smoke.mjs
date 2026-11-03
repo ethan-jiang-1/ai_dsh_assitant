@@ -213,8 +213,16 @@ export function apply(ctx) {
     else ok(`workspace registered (${found[0]})`)
   }
 
-  const patchText = readFileSync(join(profilesDir, 'cordis.patch.yml'), 'utf8')
-  if (!new RegExp(`workspaceDir:.*${realpathSync(workspace).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`).test(patchText)) {
+  // Persistence rides the boot-time product row; the probe can land before that write. Poll
+  // briefly instead of treating a one-shot read race as a product failure.
+  const workspacePattern = new RegExp(`workspaceDir:.*${realpathSync(workspace).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`)
+  let patchText = readFileSync(join(profilesDir, 'cordis.patch.yml'), 'utf8')
+  const patchDeadline = Date.now() + 10_000
+  while (!workspacePattern.test(patchText) && Date.now() < patchDeadline) {
+    await new Promise(resolve => setTimeout(resolve, 100))
+    patchText = readFileSync(join(profilesDir, 'cordis.patch.yml'), 'utf8')
+  }
+  if (!workspacePattern.test(patchText)) {
     fail(`profile patch does not persist workspaceDir: ${patchText.slice(-500)}`)
   } else ok('profile Config persists the canonical workspace')
 

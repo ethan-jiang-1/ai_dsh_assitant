@@ -15,7 +15,7 @@ kind: "package-bundle"
 - 它插入/覆盖的主要行：`preset-assistant`（模型可见面）、`assistant-product`（工作区绑定与首屏门）、
   `assistant-memory`、`assistant-operating-ledger`、`assistant-desk-projection`，以及两条 vendor 行停用
   （`ui-sidebar-terminal`、`ui-trajectory`）。完整清单以 `--dump-config` 为准。
-- **适用面：web。** 它覆盖的行与 client 插件只在 web 组合里成立；headless/SDK/ACP 不需要手写停用——五个 web-only 行按 `connection` 自禁用（见「安装」末段）。
+- **适用面：web。** 它覆盖的行与 client 插件只在 web 组合里成立；headless/SDK/ACP 需要在 profile patch/overlay 里显式停用五个 web-only 行（样板 = `dev/profiles/profile-patch-headless.yml`；见「安装」末段）。
 - 版本：DSH `>=0.2.1-rc.2 <0.3.0-0`、Node `^22.19.0 || >=24`、pnpm `>=10.6.0`。不满足时 DSH 在写依赖前拒绝。
 - **装进哪个 profile**：任意 web profile 都能工作。推荐新建一个 **custom profile `assistant`** 再装——
   本 bundle 的默认值带产品口味（停用右栏终端、关运行轨迹页、界面语言中文），装进你已有的 profile 会改它的组合。
@@ -47,7 +47,7 @@ node bootstrap.mjs --package ./package --workspace /path/to/your-project
 node bootstrap.mjs --package ./package --stop --home ~/.dsh-smart-assistant
 ```
 
-**headless / SDK / ACP**：装包即可。五个 web-only 行（`assistant-product`、`assistant-desk-projection`、`assistant-ui-mode`、`assistant-rooms`、`assistant-viki`）在 bundle patch 里按 `connection` 自禁用，headless 组合不需要手写 patch；若仍看到 pending，先检查 bundle 版本与 `connection` 服务。
+**headless / SDK / ACP**：装包后，在 profile patch/overlay 里显式 `disabled: true` 五个 web-only 行（`assistant-product`、`assistant-desk-projection`、`assistant-ui-mode`、`assistant-rooms`、`assistant-viki`）；样板 = `dev/profiles/profile-patch-headless.yml`。**不要**在 bundle patch 里用 `disabled: !!js "!ctx.get('connection')"`：entry 创建时服务未注册，Loader 会跳过且永不启动。
 
 **市场（Discover）**：DSH 没有中心化市场，市场是索引源模式。索引只是发现层，安装仍是上面三条通道之一。
 
@@ -118,5 +118,5 @@ dsh plugin --profile assistant remove dsh-smart-assistant
 | `--dump-config` 有 `assistant-product` 但首屏是普通页面 | 当前组合没有该行（旧包/未 build）或 `onboarding: false`；重装当前 tarball，或删掉该覆盖 |
 | 首屏一直「选一个项目目录」 | Config 里没有 `workspaceDir` 且组合里没有目录选择器：在 profile patch 设 `assistant-product.workspaceDir`，或装 `remote.directoryPicker` |
 | 产品会话在别的 profile 打开报 `agent-preset/not-found` | 该 profile 没有 `assistant` preset；从专用 profile 打开 |
-| headless 仍看到 web-only 行 pending | bundle patch 的 self-disable 未生效（旧包/被 profile 覆盖）；升级当前 tarball，或在 profile 层显式 `disabled: true` 双保险 |
+| headless 仍看到 web-only 行 pending | headless profile 的 overlay/patch 没写 `disabled: true`；照 `dev/profiles/profile-patch-headless.yml` 补五条 |
 | 装不上，报版本不兼容 | `engines.dsh` / `engines.pnpm` 不满足；升 DSH 或 pnpm，不要用强制安装绕过 |

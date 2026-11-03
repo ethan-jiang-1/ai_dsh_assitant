@@ -45,7 +45,6 @@ frontmatter `status` 是当前阶段的唯一家；状态行镜像它（`状态�
 
 | Bug | 标题 | 严重级 | 发现 |
 |---|---|---|---|
-| [BUG-029](BUG-029-web-only-host-rows-fail-on-tarball-install.md) | tarball 安装时五个 web-only host 行导入失败 | P1 | 2026-11-03 |
 
 ## frontmatter
 

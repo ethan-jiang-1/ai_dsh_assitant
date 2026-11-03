@@ -85,7 +85,7 @@ node bootstrap.mjs --no-start ...
 - **首屏**：第一次打开是桌面（`main` 的「今天」）；之后按“上次主视图”恢复——偏好=会话就不选面板（平台自己恢复 Session），偏好=桌面才选桌面。偏好住浏览器 `dsha:main-view`，只记视图、不记业务数据。
 - **没有入口行**：手工装包但没有入口行/旧 profile 时，客户端门透明，行为与普通 DSH 一致。
 - **跨 profile**：同一 home 下其他 profile 打开产品会话时，`assistant` preset 不在组合里，失败码 = `agent-preset/not-found`；文档要求从专用 profile 打开。
-- **headless**：五个 web-only 行（`assistant-product`、`assistant-desk-projection`、`assistant-ui-mode`、`assistant-rooms`、`assistant-viki`）在 bundle patch 里用 `disabled: !!js "!ctx.get('connection')"` 自禁用；headless 组合不需要手写 patch。profile 层显式 `disabled` 是双保险。
+- **headless**：五个 web-only 行靠 `inject` 等 `connection` 激活；headless 组合没有该服务，必须在 profile patch/overlay 里显式 `disabled: true`（`dev/profiles/profile-patch-headless.yml` 已带五条）。**不要在 bundle patch 里用 `disabled: !!js "!ctx.get('connection')"`**：entry 创建时 `connection` 还没注册，Loader 会跳过 entry 且不再启动，启动审计只报 "failed to import"。
 
 ## 五、一次作业的交付包（run bundle）
 
@@ -136,7 +136,7 @@ node bootstrap.mjs --no-start ...
 | 未绑定项目时 composer 被禁、dock 给出选择按钮 | 这是工作区门，不是输入故障；选项目目录后新会话落在项目里。`onboarding:false` 的部署/非产品场景保持透明 |
 | 首屏显示“选一个项目目录”但没有选择器 | 当前组合没有 `remote.directoryPicker`；在 profile patch 设置 `assistant-product.workspaceDir` |
 | 产品会话在别的 profile 打开报 `agent-preset/not-found` | 从专用 profile 打开；该 profile 没有 `assistant` preset。若是 remove 后的旧 home，先删 0.2.0 前的 profile 块 |
-| headless 仍看到 web-only 行 pending | bundle patch 的 self-disable 表达式未生效（旧包/被 profile 覆盖）；检查 `connection` 与 pin，profile 层可显式 `disabled: true` 双保险 |
+| headless 仍看到 web-only 行 pending | headless profile 的 overlay/patch 没写 `disabled: true`；照 `dev/profiles/profile-patch-headless.yml` 补五条（不要用 bundle patch 的 `!!js` 表达式 gate 晚注册服务） |
 | `the profile dump has no assistant-product row` | 包旧/未 build；重装当前 tarball |
 | 装完“没生效” | CLI 装完宿主不知道；重启 profile；客户端模块变更刷新 |
 | Desktop 装完界面没有 | 用了 `--profile web`/`--profile desktop` CLI；Desktop 只在 Plugins 页装 |

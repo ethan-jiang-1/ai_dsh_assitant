@@ -30,24 +30,22 @@
     # 独立 Host 经营目录的只读下载；不创建账本，不接收任意文件路径。
     - id: assistant-desk-projection
       name: dsh-smart-assistant/desk-projection
-      disabled: !!js "!ctx.get('connection')"
 
     # 界面密度的 per-home 持久家（assistant/ui-mode.json）：GET/POST 经 Connection 认证；
     # 不写 settings 文档（stock bundle 的嵌套 assistant-memory 行不是可配置 namespace）。
     - id: assistant-ui-mode
       name: dsh-smart-assistant/ui-mode
-      disabled: !!js "!ctx.get('connection')"
 
-    # ── 产品工作区绑定（web-only；headless 由 connection 检查自禁用）──────────────
+    # ── 产品工作区绑定（web-only；headless 由 profile overlay 显式 disabled）──────
     #
     # 读本行 Config 的 workspaceDir（volatile profile patch）或一次性 ASSISTANT_WORKSPACE，
     # boot 时用 workspaceRegistry.create() 登记，并暴露 GET/POST api/assistant/product。
     # 未配置时 not-configured + onboarding=true（客户端首启选目录），不改任何东西。
-    # 必注 connection + workspaceRegistry：headless 组合没有这两个服务。入口行自禁用——
-    # 平台 idiom（web-app 的 desktop 行同形），不再要求每个 headless 用户手写 disabled。
+    # 必注 connection + workspaceRegistry：headless 组合没有这两个服务，由 profile overlay
+    # 显式 disabled（dev-task 的 overlay 已带）。不要在 bundle patch 里用 `disabled` 表达式
+    # gate 一个晚注册的服务：entry 创建时表达式为真，Loader 直接跳过，之后不会再启动。
     - id: assistant-product
       name: dsh-smart-assistant/product
-      disabled: !!js "!ctx.get('connection')"
 
     # ── 维护面板的房间投影 + 受控写 + 收据 ───────────────────────────────────────
     #
@@ -57,7 +55,6 @@
     # sessionId + messageId。
     - id: assistant-rooms
       name: dsh-smart-assistant/rooms-route
-      disabled: !!js "!ctx.get('connection')"
 
     # ── Viki 记忆内容面 ────────────────────────────────────────────────────────
     #
@@ -67,7 +64,6 @@
     # 503（面板显示未连接），不阻断启动。
     - id: assistant-viki
       name: dsh-smart-assistant/viki
-      disabled: !!js "!ctx.get('connection')"
 
     # ── 权威经营账本（desk-operating-entry K3，2026-10-10）────────────────────────
     #

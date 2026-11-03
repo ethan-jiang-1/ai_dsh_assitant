@@ -298,13 +298,24 @@ try {
   step('selecting the installed preset as the profile default (the shape a user gets)')
   // insert semantics — the headless template has no registry row to replace
   // (dev/profiles/profile-patch-headless.yml is the same shape in dev). The definition itself arrives with
-  // the plugin's bundle patch, so nothing here points at a directory.
+  // the plugin's bundle patch, so nothing here points at a directory. The five web-only rows are
+  // disabled explicitly: gating them on the late `connection` service makes the Loader skip them.
   writeFileSync(join(home, 'profiles', profile, 'cordis.patch.yml'), `# Written by scripts/release-smoke.mjs
 - insert:
     - id: agent-preset-registry
       name: '@deepseek-ai/dsh-agent-preset-registry'
       config:
         default: assistant
+- id: assistant-product
+  disabled: true
+- id: assistant-desk-projection
+  disabled: true
+- id: assistant-ui-mode
+  disabled: true
+- id: assistant-rooms
+  disabled: true
+- id: assistant-viki
+  disabled: true
 `, 'utf8')
 
   step('reading the composed tree back')

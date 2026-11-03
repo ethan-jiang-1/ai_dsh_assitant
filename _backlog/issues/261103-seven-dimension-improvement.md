@@ -80,13 +80,13 @@ DSH 约定偏离（`insert` 当 override、两个 packer、client 状态所有�
 | 4 上下文腐化 | A- 8.6 | **A- 8.8** | notes 审计的 P1 全修：bundle-first 决策 6 与 self-disable 相反（加收窄指针并改写）、活跃清单状态、卡的人判/仍未取/下一步、receipt 路径、10-20 note 的引用规则、triggers 两行、openviking 遗留句 |
 | 5 测试资产 | A- 8.6 | **A- 8.8** | 新增 `brief` 真 session surface、`sendPrompt` 三条状态分支、content-drawer 真 DOM（Escape/teardown）、product-smoke 的旧 profile 块清理 |
 | 6 反馈通路 | A- 8.6 | **A- 8.8** | scratch 门禁不再 ENOENT；`check:full` 汇总不吞 BLOCKED；product-smoke 的失败被如实暴露 |
-| 7 DSH 约定 | A- 8.6 | **B+ 8.0** | 旧安装器 profile 块已被 bootstrap 手术式清理（product-smoke 的该段通过）；但新发现 [BUG-029](../bugs/BUG-029-web-only-host-rows-fail-on-tarball-install.md)：干净 tarball profile 里五个 web-only host 行 import 失败，产品面死（agent 面仍活） |
-| **整体** | **≈8.7** | **≈8.6（D7 单点 B+）** | 其余六维已到 A-/A；9.0 被 BUG-029 的单点阻断 |
+| 7 DSH 约定 | A- 8.6 | **A- 8.9** | 旧安装器 profile 块已手术式清理；[BUG-029](../_archive/fixed_bugs/BUG-029-web-only-host-rows-fail-on-tarball-install.md) 已修：五行删掉 `disabled` 表达式、靠 `inject` 启动，headless 改 profile overlay 显式 disabled；product-smoke 通过、headless 无 pending |
+| **整体** | **≈8.7** | **≈8.9（D7 回到 A-）** | 其余六维 A-/A；D7 的 P1 已修，余项是旧 home 自动清理与 vendor 审计误报 workaround |
 
-**BUG-029 的证据**：`product-smoke` 临时 home 日志 `dsh: warning: 5 entries did not activate` +
-`assistant-product ... failed to import`（其余四行同）；source wrapper 与已装 `dsh 0.2.1-rc.5` 都复现，
-dev link 安装不复现；手工给 profile 补 `@deepseek-ai/schemastery`/`dsh-home-paths` 符号链接后
-`import` 立即成功——根因在 tarball profile 的 host peer 映射，不是本包 `lib` 缺失。P1，待下一轮确认并修。
+**BUG-029 的结论**：不是 peer/subpath，而是五行的 `disabled: !!js "!ctx.get('connection')"` 在 entry 创建时
+因 `connection` 晚注册而为真，Loader 跳过 entry 且不再启动；启动审计只看到「enabled 无 fiber」，打印无 stack 的
+`failed to import`。修复 = 删五行表达式、靠 `inject` 启动；headless 在 profile overlay 显式 disabled。
+证据：product-smoke 通过、`dev-task --dump-config` 五行 disabled、one-shot 只剩 MISSING_CREDENTIAL。
 
 **C 余项（不阻塞 A-，下一轮按需）**：
 - ~~`assistant-data-bundle.ts` 按 5 动词拆 `src/cli/assistant-data/*`~~ 已完成（`cb6b25d2`；最大文件 182 行）；
@@ -95,7 +95,7 @@ dev link 安装不复现；手工给 profile 补 `@deepseek-ai/schemastery`/`dsh
 - `dsh.client.inject`：vendor 文档说明它是 client module 依赖边，不是 Cordis 服务清单；本包没有非 baseline 的 module 请求，**不加**（不是债）；
 - web-only 清单：包 README 的用户面点名 + product.md 的合同清单，两处用途不同，**不是重复，不合并**。
 
-**当前停点（2026-11-03 09:5x）**：9.0 深挖已交付六维 A-/A；`pnpm check` 绿、`upgrade-smoke` passed、`web-face-check --all` PASS、`release-smoke` 安装/组合/bins 绿（live turn BLOCKED）。D7 被 [BUG-029](../bugs/BUG-029-web-only-host-rows-fail-on-tarball-install.md) 的单点阻断拉回 B+；下一轮先确认/修 BUG-029，再谈全维 9.0 与收口。B0–B3 已交付。B4 除"preset 拆 `presets/*.patch.yml`（可选）"外均已交付
+**当前停点（2026-11-03 11:0x）**：BUG-029 已修并归档；`pnpm check` 1,261 用例 / verify 60/60；product-smoke 通过；headless 五行 disabled、one-shot 无 pending；`upgrade-smoke` passed、`web-face-check --all` PASS、`release-smoke` 安装/组合/bins 绿（live turn BLOCKED）。余下是收口（note/归档/清单）与"是否把 D1/D3/D4/D5/D6 从 8.8/8.9 抬到 9.0"的最后一轮复评。B0–B3 已交付。B4 除"preset 拆 `presets/*.patch.yml`（可选）"外均已交付
 （packer 由 `69668754` 定为 pnpm pack + npm publish 同字节；死 Remote/product-face/旧包 fixture/重复 id 门禁
 均已落地）。二轮 **A 批（真相恢复）** 与 **B 批（地板+证据）** 属一轮授权内的机械/证据修复，本轮直接推进；
 **C 批（CLI 拆分 / 卸载清理 / 主题 seam）** 按用户「继续往前推进」分批推进。

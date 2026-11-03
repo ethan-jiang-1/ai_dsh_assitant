@@ -7,12 +7,23 @@
 # `assistant` 的**定义**不在 profile 里：它随本包的 `dsh.bundle.patch`（`cordis.patch.yml` 的
 # `preset-assistant` 行）进来，所以开发期改 preset 只改那一个文件。
 #
-# 五个 web-only 行（assistant-product / desk-projection / ui-mode / rooms / viki）已在 bundle
-# patch 里用 `!!js` 按 `connection` 自禁用；headless 组合没有该服务，所以这里不再写 bare
-# override（裸 id 找不到目标只会多一条 warning）。`schedule` 同样由 web-app 自带，headless
-# 组合没有这行；这里也不写。
+# 五个 web-only 行（assistant-product / desk-projection / ui-mode / rooms / viki）靠 `inject`
+# 等 connection 激活；headless 组合没有该服务，所以这里显式 disabled。不要把这件事写成
+# `disabled: !!js "!ctx.get('connection')"`：entry 创建时 connection 还没注册，表达式为真，
+# Loader 跳过 entry；等 connection 出现时审计只看到“enabled 无 fiber”，永远不会启动。
+# `schedule` 同样由 web-app 自带，headless 组合没有这行；这里也不写。
 - insert:
     - id: agent-preset-registry
       name: '@deepseek-ai/dsh-agent-preset-registry'
       config:
         default: assistant
+- id: assistant-product
+  disabled: true
+- id: assistant-desk-projection
+  disabled: true
+- id: assistant-ui-mode
+  disabled: true
+- id: assistant-rooms
+  disabled: true
+- id: assistant-viki
+  disabled: true

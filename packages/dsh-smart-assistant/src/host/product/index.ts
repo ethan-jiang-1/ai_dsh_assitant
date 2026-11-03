@@ -43,7 +43,6 @@ export const Config = z.object({
  * @param config - Effective row Config from the patch stack.
  */
 export function apply(ctx: Context, config: Config = {}): void {
-  const settings = ctx.get('settings') as ProductSettingsWriter | undefined
   const workspaceDir = config.workspaceDir?.get()
   const onboarding = config.onboarding
   const state = createProductState({
@@ -53,7 +52,9 @@ export function apply(ctx: Context, config: Config = {}): void {
       ...(onboarding === undefined ? {} : { onboarding }),
     },
     env: process.env,
-    ...(settings === undefined ? {} : { settings }),
+    // Resolve late: the row can activate before the settings service's fiber, and capturing
+    // the service at apply time loses the binding on exactly that boot.
+    settings: () => ctx.get('settings') as ProductSettingsWriter | undefined,
   })
   ctx.effect(() => ctx.connection.fetch.register(createProductRoute(state)))
 }

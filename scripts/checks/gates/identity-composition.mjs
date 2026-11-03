@@ -171,34 +171,38 @@ export function compositionRowProblems({ patchText, architectureText }) {
 }
 
 
-/** Rows that exist only in the web composition; they must disable themselves when `connection` is absent. */
+/** Rows that exist only in the web composition; web starts them, headless disables them in its overlay. */
 export const WEB_ONLY_ROWS = ['assistant-product', 'assistant-desk-projection', 'assistant-ui-mode', 'assistant-rooms', 'assistant-viki']
 
 /**
- * The web-only rows inject `connection`; a headless profile has no such service. The bundle patch
- * used to leave them pending until every headless user hand-wrote `disabled: true` in a profile
- * patch; the 2026-11-03 fix made each row self-disable. This gate keeps the next edit from
- * dropping one expression and silently returning to four pending warnings.
+ * The web-only rows must not carry a `disabled` expression in the bundle patch: the expression
+ * gates on `connection`, which the web-app bundle registers after entry creation, so the Loader
+ * skips the entry and never starts it (the boot audit then reports the opaque "failed to import").
+ * They start in web via their `inject` list; the headless overlay must disable all five explicitly.
  *
- * @param patchText - `cordis.patch.yml` text.
- * @returns problem strings, empty when all five rows carry the connection guard.
+ * @param input - bundle patch text and the headless overlay text.
+ * @returns problem strings, empty when web starts all five and headless disables all five.
  */
-export function webOnlyRowsDisabledProblems(patchText) {
+export function webOnlyRowsProblems({ patchText, headlessText }) {
   const rows = new Map(parseRows(patchText).map(row => [row.id, row]))
+  const headless = new Map(parseRows(headlessText).map(row => [row.id, row]))
   const problems = []
   for (const id of WEB_ONLY_ROWS) {
     const row = rows.get(id)
     if (row === undefined) {
-      problems.push(`composition: web-only row ${id} is not mounted — the self-disable guard has nothing to protect`)
+      problems.push(`composition: web-only row ${id} is not mounted — the headless overlay has nothing to disable`)
       continue
     }
-    if (!/!\s*ctx\.get\(['"]connection['"]\)/u.test(row.disabled ?? '')) {
-      problems.push(`composition: web-only row ${id} lacks the !ctx.get('connection') self-disable — headless will report it pending again`)
+    if (row.disabled !== undefined) {
+      problems.push(`composition: web-only row ${id} carries a disabled expression — entry creation skips it and it never starts; use inject and the headless overlay`)
+    }
+    const overlay = headless.get(id)
+    if (overlay?.disabled !== 'true') {
+      problems.push(`composition: the headless overlay does not disable web-only row ${id} — headless will report it pending`)
     }
   }
   return problems
 }
-
 
 /**
  * The bundle patch has two row shapes: `insert` rows add new ids, bare `- id:` rows replace a

@@ -163,19 +163,25 @@ describe('compositionDuplicateProblems: insert vs bare override', () => {
   })
 })
 
-describe('webOnlyRowsDisabledProblems: the web-only rows self-disable in headless', () => {
-  const row = (id, disabled) => `    - id: ${id}\n      name: dsh-smart-assistant/${id.replace('assistant-', '')}\n      disabled: ${disabled}\n`
-  const all = (disabled = '!!js "!ctx.get(\'connection\')"') => [
-    'assistant-product', 'assistant-desk-projection', 'assistant-ui-mode', 'assistant-rooms', 'assistant-viki',
-  ].map(id => row(id, disabled)).join('')
+describe('webOnlyRowsProblems: web starts the web-only rows, headless disables them', () => {
+  const ids = ['assistant-product', 'assistant-desk-projection', 'assistant-ui-mode', 'assistant-rooms', 'assistant-viki']
+  const bundleRow = id => `    - id: ${id}\n      name: dsh-smart-assistant/${id.replace('assistant-', '')}\n`
+  const headlessRow = (id, disabled = 'true') => `- id: ${id}\n  disabled: ${disabled}\n`
+  const bundle = (disabled) => ids.map(id => disabled === undefined ? bundleRow(id) : `${bundleRow(id)}      disabled: ${disabled}\n`).join('')
+  const headless = (skip) => ids.filter(id => id !== skip).map(id => headlessRow(id)).join('')
 
-  it('accepts all five web-only rows with the connection guard', () => {
-    expect(gateCores.webOnlyRowsDisabledProblems(all())).toEqual([])
+  it('accepts five inject-gated rows plus a headless overlay that disables all five', () => {
+    expect(gateCores.webOnlyRowsProblems({ patchText: bundle(undefined), headlessText: headless(undefined) })).toEqual([])
   })
 
-  it('rejects a row that lost the guard, and a guard watching a different service', () => {
-    expect(gateCores.webOnlyRowsDisabledProblems(all('true')).join(' ')).toContain('assistant-product')
-    expect(gateCores.webOnlyRowsDisabledProblems(all('!!js "!ctx.get(\'layout\')"')).join(' ')).toContain('self-disable')
+  it('rejects a row that carries a disabled expression', () => {
+    expect(gateCores.webOnlyRowsProblems({ patchText: bundle('true'), headlessText: headless(undefined) }).join(' '))
+      .toContain('never starts')
+  })
+
+  it('rejects a headless overlay missing a row', () => {
+    expect(gateCores.webOnlyRowsProblems({ patchText: bundle(undefined), headlessText: headless('assistant-rooms') }).join(' '))
+      .toContain('assistant-rooms')
   })
 })
 

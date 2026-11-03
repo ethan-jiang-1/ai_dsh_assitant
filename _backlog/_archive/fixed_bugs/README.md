@@ -4,6 +4,7 @@
 
 | 卡 | 标题 | 修复 | 日期 |
 |---|---|---|---|
+| [BUG-029](BUG-029-web-only-host-rows-fail-on-tarball-install.md) | web-only host 行的 `disabled` 表达式让 entry 永不启动（tarball 产品面死） | 删五行表达式，靠 `inject` 启动；headless 改 profile overlay 显式 disabled；门禁/文档同步 | 2026-11-03 |
 | [BUG-028](BUG-028-manual-profile-create-boots-and-replaces.md) | 安装手册的建 profile 命令漏 `--dump-config`：会启动 Web，且 `--from-default-profile` 替换已有 profile | 模板改为 dump 形态 + 生成后文本判据（任何 `--from-default-profile` 必须带 `--dump-config`）；`pnpm export-dist` 该条 ok | 2026-11-02 |
 | [BUG-027](BUG-027-published-sourcemap-embeds-src.md) | 发布物含 59 个 `src/` 源文件（client sourcemap 的 `sourcesContent`），三条门禁都看不见 | `files` 排除 `lib/**/*.map`（包体 891→548 KB、605→322 条目）；判据换成按内容的 `sourcemapLeakProblems`（`export-dist` 调用，11 条负例夹具） | 2026-11-02 |
 | [BUG-026](BUG-026-ledger-writer-lock-held-by-orphan.md) | 共享 dev home 的账本写锁被残留实验进程长期占用，运行中的实例整轮写不进去 | 拒绝改为可处置：锁身份记 `cwd`，拒绝信息点名 host/pid/cwd/取得时刻/锁路径 + `kill -TERM <pid>` 恢复，并写明"持锁者可能仍会写时不要删锁"；契约进 `docs/operating.md` §一 + `docs/dev.md` 并行会话节（会写账本的实验用隔离 home）。不做自动接管（无 flock，双写会丢更新）。证据：`test:host` 159、`build`、`verify` 45 | 2026-10-25 |

@@ -2,7 +2,7 @@
 
 # bundle-first：产品默认值回到 bundle，发布走 npm，安装器退成独立资产
 
-> **部分收窄（2026-11-03）**：第 6 条的"headless 用一行 `disabled: true`"被 [self-disable](../../docs/product.md) 取代——五个 web-only 行改为 `disabled: !!js "!ctx.get('connection')"`；"`ctx.inject` 条件激活"仍不做。
+> **部分收窄（2026-11-03）**：第 6 条的"headless 用一行 `disabled: true`"曾改成 `disabled: !!js "!ctx.get('connection')"` 自禁用，随后证明该表达式会让 entry 在创建时被跳过且永不启动——回退为"`inject` 激活 + headless overlay 显式 disabled"（见 [BUG-029](../../_backlog/_archive/fixed_bugs/BUG-029-web-only-host-rows-fail-on-tarball-install.md)）；"`ctx.inject` 条件激活"仍不做。
 
 ## 问题（可观察行为）
 
@@ -27,7 +27,7 @@
 5. **覆盖 vendor 行要有台账。** `docs/product.md` §十 记每一处 override 的复核与退役条件；裸 id 覆盖没有台账
    条目时 `pnpm verify` 红——因为目标消失时只有一条 `entry not found` 警告，行不会出现。
 6. **两处判断延后，不当场扩权**：不抬 DSH pin（`ui-chat` 覆盖的退役条件是"发布人口 rc.5 起自带兜底"，登记为触发）；
-   不把 web-only 行改成 `ctx.inject` 条件激活；headless 用 `disabled: !!js "!ctx.get('connection')"` 自禁用（2026-11-03 起，不再需要手写 disabled 行）。
+   不把 web-only 行改成 `ctx.inject` 条件激活；五行靠现有 `inject` 激活，headless 在 profile overlay 显式 `disabled: true`（`dev/profiles/profile-patch-headless.yml`）。**不要**在 bundle patch 用 `disabled` 表达式 gate 晚注册的 `connection`：entry 创建时被跳过且永不启动。
 
 ## 输掉的方案
 
@@ -37,7 +37,7 @@
 - **把 `ui-chat` 覆盖在本 pin 上退役**：预构建 client bundle 的兜底属于**发布人口**而非 vendor 源树；
   rc.2 发布物未验，退役等于用没跑过的版本下线一个崩溃绕行。抬 floor 是独立工作，混进来会污染两边的证据。
 - **把 web-only 行改成 `ctx.inject` 条件激活**：能让 bundle 在任何 profile 静默不激活，代价是"永远等不到服务"
-  也不报错；当前取舍是 **`disabled` 表达式自禁用 + 文档声明 web 面**，`ctx.inject` 条件激活仍不做。
+  也不报错；当前取舍是 **`inject` 激活 + headless overlay 显式 disabled**，`ctx.inject` 条件激活仍不做。
 - **自己拼市场 JSON**：format 1 有生成者义务（version/publishTimestamp/engines.dsh/dist-tags 必须与 registry
   一致、显示字段按已安装插件规则取），自己拼就是第二套实现且必然漂移。
 
