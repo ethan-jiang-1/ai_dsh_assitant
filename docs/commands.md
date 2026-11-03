@@ -6,6 +6,8 @@
 > 判据先行：**装好了** = `node_modules/.modules.yaml` 在；**建好了** = `vendor/dsh/packages/boot/app-boot/lib/index.js`、
 > `vendor/dsh/packages/client/modules/lib/client.js`、`vendor/dsh/apps/web/dist/index.html` 三个都在（`--dump-config` / `--help` 不加载 lib，不能当判据）。
 
+> **读法**：启动与日常 → 开发环与生成物 → 渲染与反馈 → 组合与探针 → 测试层 → 评测与报告 → 发布与兼容 → 维护 → 部署与装配。
+
 ## 启动与日常
 
 `pnpm start` 的语义、手工五步与隔离 home 规则 = 根 [`AGENTS.md`](../AGENTS.md) 的启动段（常设指令 owner）。日常四条（按需单跑）：

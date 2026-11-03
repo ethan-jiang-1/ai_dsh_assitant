@@ -5,6 +5,8 @@
 > 身份名（行 id、wire 名、服务键）以 [`identity.md`](identity.md) 为唯一权威；本文件写语义与边界，
 > 改名代价与登记义务见彼处。
 
+> **读法**：账本服务 §一 → 模型工具 §二 → 桌面投影与客户端读回 §三 → 验证入口 §四；旧回执分页在文末（只读兼容面）。
+
 ## 一、账本服务（host 行 `assistant-operating-ledger`）
 
 - **服务键** `ctx.assistantOperatingLedger`（identity §一 第 3 行）。业务纯核 = `src/domain/operating/ledger.ts`

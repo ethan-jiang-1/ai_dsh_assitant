@@ -4,6 +4,8 @@
 > working folder 的四房间 = [`home.md`](home.md)；经营账本 = [`operating.md`](operating.md)；数据卡与备份 = [`delivery.md`](delivery.md)；
 > 发布宪章 = [`release.md`](release.md)；身份名 = [`identity.md`](identity.md)。本文件只写发行形态这一层的合同，不复制四房间语义。
 
+> **读法**：发行形态 §一 → 安装/启动 §二 → 工作区 §三 → 会话与首屏 §四 → 交付包 §五 → 项目面 §六 → 数据归属 §七 → 失败模式 §八 → 边界 §九 → vendor 覆盖台账 §十。
+
 ## 一、发行形态是什么
 
 发行形态 = 一个 **bundle** ＋ 一种 **custom profile** 的建法；profile 是组合边界，不是身份来源，也不是启动器或另一个 home：

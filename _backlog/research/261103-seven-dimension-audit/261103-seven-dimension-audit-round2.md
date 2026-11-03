@@ -15,7 +15,7 @@ intent: "2026-11-03 二轮 fresh-eyes 复评：在一轮收口后的树上重打
 
 | 维度 | 二轮分 | 一句话 |
 |---|---:|---|
-| 1 文档/渐进披露 | **A- 8.5** | 入口链仍是全仓最强项；6/13 篇 docs 没有「读法」行，README 把"起服务五步"指到一个把五步路由走的文件，web-only 行名在四处重复。 |
+| 1 文档/渐进披露 | **A- 8.5** | 入口链仍是全仓最强项；6/13 篇 docs 没有「读法」行，README 把"起服务五步"指到一个把五步路由走的文件，web-only 行名在包 README 出现两次。 |
 | 2 代码/测试层次 | **B+ 8.0** | 依赖方向与纯核**实测干净**（0 循环、0 反向、0 barrel 链）；但 `assistant-data-bundle.ts` 555 行装 5 个动词，测试所有权 facade 化（5 个高价值模块无 owning spec）。 |
 | 3 整体结构 | **A- 8.3** | 五道门、证据地图、验收标准、收口卡台账成立；地板仍是三条手敲命令，没有单一入口（一轮 P1 只修了"绿"，没修"一个入口"）。 |
 | 4 上下文腐化 | **B+ 7.8** | 一轮的 7 条语义漂移修了，但**新的腐化长在"收口卡自述"**：B4 仍余 7 项里 6 项已交付、下一步还写"完成 B1 余项"、活跃清单状态与 frontmatter 相反；生成手册的 headless 段落后于 self-disable。 |
@@ -40,8 +40,8 @@ intent: "2026-11-03 二轮 fresh-eyes 复评：在一轮收口后的树上重打
 **新增/未修的缺口**：
 - **P2 README 的"唯一清单"指向空手**：`README.md:97` 说"起服务五步……唯一清单 = docs/commands.md"，
   但 `docs/commands.md:11` 把五步路由回根 `AGENTS.md`，正文没有五步块；`docs/dev.md:110` 同。
-- **P3 web-only 行名四家**：`packages/.../README.md:18` 与 `:50`、`docs/product.md:86`、`docs/release.md:57`
-  各写一遍同一清单；owner 是 product.md，生成物 catalog 已有行名。
+- **P3 web-only 行名重复**：包 `README.md:18` 与 `:50` 各点一次、`docs/product.md:86` 第三次点名；
+  `docs/release.md:57` 只写"五个 web-only 行"不点名。owner 是 product.md，生成物 catalog 已有行名。
 - **P3 读法行只覆盖一半**：`architecture/dev/home/delivery/release/testing` 有，`product/commands/discipline/operating/identity`
   没有；`product.md` 167 行、`commands.md` 120 行，读者只能滚文件。
 - **P3 schedule 口径**：`README.md:70` "同一组合里还有 `schedule_*`" 与 `:129-130` 的 headless 例外相邻两句。
@@ -163,7 +163,7 @@ registry 默认在 bundle 层（`agent-preset-registry/README.md:46-48`）；首
 |---|---|---|---|---|
 | **A 真相恢复** | 收口卡状态面收敛（一个停点 + 一个台账）；活跃清单状态与 frontmatter 对齐；安装手册 headless 段改为"仅默认 preset 需要 insert，web-only 行已自禁用"；distribution note 加部分收窄指针；research 题名页指向二轮；README 五步指针；delivery.md standalone 限定；client 模块地图；discipline #17 归位 | D4/D1 | `pnpm verify` + 逐条 claim→fact 复核 | 纯文档/卡，不改行为 |
 | **B 地板与证据** | 加根 `pnpm check`（typecheck → test → verify），四处"地板"改指它；补 `assistant_reflect` 6 个动作的适配器断言；补 `assistant-product`/`ui-mode` 行 apply 的注册断言；补 `desk-arms` 启动锁反例；补 ledger corrupt / CLI export-inside 拒绝两个分支 | D3/D5/D2 | `pnpm check` 全绿 + 定向 spec 红绿（先造红） | 测试/脚本，不改产品行为 |
-| **C 结构（待点名）** | `assistant-data-bundle.ts` 按 5 个动词拆 `src/cli/assistant-data/*`；卸载残留 profile patch 的清理/拒绝；theme seam 归位或登记；`dsh.client.inject`；`tests/cli/` 层；读法行补齐；web-only 行名去重 | D2/D5/D7 | 全量 + `release-smoke`/`upgrade-smoke`/`web-face-check --all` | 动代码结构/用户生命周期，单独裁决 |
+| **C 结构（用户 2026-11-03「继续往前推进」后分批）** | `assistant-data-bundle.ts` 按 5 个动词拆 `src/cli/assistant-data/*`；卸载残留 profile patch 的清理/拒绝；theme seam 归位或登记；`dsh.client.inject`；`tests/cli/` 层；读法行补齐；web-only 行名去重 | D2/D5/D7 | 全量 + `release-smoke`/`upgrade-smoke`/`web-face-check --all` | 动代码结构/用户生命周期，单独裁决 |
 
 **批 A/B 的完成条件**：`pnpm check` 首次全绿；每条 finding 的 claim 在树上消失或被新事实取代；
 新测试在删掉实现时真红（prove-it-red）；报告只列真跑过的命令。

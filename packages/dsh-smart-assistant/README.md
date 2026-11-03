@@ -93,6 +93,10 @@ dsh --profile assistant --dump-config      # 仍应看到 preset-assistant 与 d
 dsh plugin --profile assistant remove dsh-smart-assistant
 ```
 
+> **0.2.0 之前用安装器装过**：profile patch 里可能有一段 `# Written by dsh-smart-assistant bootstrap.mjs` 的
+> `agent-preset-registry` 块。`remove` 不会删它；它会让 profile 继续默认 `assistant`，而 preset 定义已随包移除。
+> 卸载后把这一段删掉；重装前也建议删掉，才会继承 bundle 的默认值。
+
 删掉的是包与 patch 层。**数据一律留下**：
 
 | 留下什么 | 在哪 | 要清怎么清 |

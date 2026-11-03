@@ -8,8 +8,8 @@ opened: 2026-11-03
 > 立卡：2026-11-03 ｜ 状态：待落地 ｜ 毕业：做现在 ｜ 去向：implemented ｜ 可关闭：否
 > 来源：[七维深审](../research/261103-seven-dimension-audit/261103-seven-dimension-audit.md)（2026-11-03，7 路 fresh 审计 + 真机取证）
 > 授权：用户 2026-11-03「到了打扫卫生的时候了……先评估一下这七个维度……REVIEW 后看看能不能持续改善」= 授权评估与持续改善；
-> 二轮按同一授权推进 A（真相恢复）与 B（地板+证据）批——机械/证据修复，不改产品行为；C 批（CLI 拆分 / 卸载清理 / 主题 seam）仍需 review 后点名。
-> 2026-11-03 08:xx：二轮七维评估已交用户；在其 review 前只收口 A/B 批，不开 C 批。
+> 二轮按同一授权推进 A（真相恢复）与 B（地板+证据）批——机械/证据修复，不改产品行为；C 批（CLI 拆分 / 卸载清理 / 主题 seam）按用户「继续往前推进」分批推进。
+> 2026-11-03 08:xx：二轮七维评估已交用户；用户确认计划并追加「继续往前推进」→ C 批按切片推进。
 
 **问题与期望结果：** 深审确认骨架与依赖方向立住，但三类接缝在持续消耗 agent：①证据面（web-face 场景）不在 verify 里，
 曾被一条 YAML 写坏整条打灭；②高 churn 接缝（client 组合根、docs、vendor 覆盖）在长第二份合同/第二份清单；
@@ -28,7 +28,7 @@ DSH 约定偏离（`insert` 当 override、两个 packer、client 状态所有�
 
 | 维度 | 二轮 | 相对一轮收口 |
 |---|---|---|
-| 1 文档/渐进披露 | **A- 8.5** | 入口链仍最强；6/13 docs 缺读法行、README 五步指针指空、web-only 行名四家 |
+| 1 文档/渐进披露 | **A- 8.5** | 入口链仍最强；6/13 docs 缺读法行、README 五步指针指空、web-only 行名在包 README 重复两次 |
 | 2 代码/测试层次 | **B+ 8.0** | 依赖方向实测干净；但 CLI bundle 555 行 5 动词、测试所有权 facade 化 |
 | 3 整体结构 | **A- 8.3** | 五道门成立；地板仍三条手敲命令，没有单一入口 |
 | 4 上下文腐化 | **B+ 7.8** | 收口卡自述自相矛盾（B4 仍余 6/7 已做、下一步写 B1、活跃清单状态反）、生成手册 headless 落后于 self-disable |
@@ -37,10 +37,32 @@ DSH 约定偏离（`insert` 当 override、两个 packer、client 状态所有�
 | 7 DSH 约定 | **A- 8.3** | bundle/patch/preset/安装/卸载有 vendor 锚；一个 P2（卸载残留 profile patch）+ 一个 P3（主题 seam 只在包级登记） |
 | **整体** | **≈8.2（B+ 偏 A-）** | 一轮"全 A-"把已修项当成当前债；二轮把 D2/D4/D5 拉回 B+ |
 
-**当前停点（2026-11-03 08:41）**：A 批（真相恢复）与 B 批（地板+证据）已交付，`pnpm check` 首次全绿（164 文件 / 1,254 用例、verify 60/60）；C 批等 review 点名。B0–B3 已交付。B4 除"preset 拆 `presets/*.patch.yml`（可选）"外均已交付
+### A/B 批后复评（2026-11-03 08:5x）
+
+下表是二轮判定**批前**的分数；A/B 批落地后按同一口径复评：
+
+| 维度 | 批前 | 批后 | 依据 |
+|---|---|---|---|
+| 1 文档/渐进披露 | A- 8.5 | **A- 8.5** | 5 篇补读法行、README 五步指针修；包 README 内 web-only 行名仍重复两次 |
+| 2 代码/测试层次 | B+ 8.0 | **A- 8.5** | 测试所有权补 5 类；`assistant-data-bundle.ts` 555 行 5 动词仍未拆（C 余项） |
+| 3 整体结构 | A- 8.3 | **A- 8.5** | `pnpm check` 单一地板已落地并被本轮真实使用；覆盖面 = 原三条 |
+| 4 上下文腐化 | B+ 7.8 | **A- 8.5** | 卡自述/生成手册/discipline #17/delivery 限定/模块地图/research 指针全修；研究页结论保留首轮 7.2，但有明确后续指针 |
+| 5 测试资产 | B+ 7.9 | **A- 8.5** | reflect 6 动作、product/ui-mode 行、desk-arms 锁、ledger corrupt、CLI 导出拒绝均有断言；`tests/cli/` 层与 brief 真 agent 分支未做 |
+| 6 反馈通路 | A- 8.5 | **A- 8.5** | 未动；10 场景仍手跑、不在 verify |
+| 7 DSH 约定 | A- 8.3 | **A- 8.5** | 卸载文档补旧 profile patch 清理、主题 seam 登记 #18；未做自动清理与 `dsh.client.inject` |
+| **整体** | **≈8.2** | **≈8.6（全维 A-）** | A/B 批把"自述面"与"测试所有权"两类债收掉；C 余项仍是 A- 的边界 |
+
+**C 余项（不阻塞 A-，下一轮按需）**：
+- `assistant-data-bundle.ts` 按 5 动词拆 `src/cli/assistant-data/*`（纯结构，测试已在 facade 上）；
+- `tests/cli/` 层（把 shipped CLI 从 tooling 层分出；当前 8 文件 / 1,427 行已有 92.7% 行覆盖，缺的是层归属）；
+- 卸载残留 profile patch 的自动清理（0.2.0 前安装器；当前已文档化手工清理，自动清理需真实旧 home fixture）；
+- `dsh.client.inject`：vendor 文档说明它是 client module 依赖边，不是 Cordis 服务清单；本包没有非 baseline 的 module 请求，**不加**（不是债）；
+- web-only 行名去重：包 README 的用户面清单保留，product.md 保留合同清单；两处不同用途，**不强行合并**。
+
+**当前停点（2026-11-03 08:5x）**：A 批（真相恢复）、B 批（地板+证据）与 C 批的文档切片已交付，`pnpm check` 首次全绿（164 文件 / 1,254 用例、verify 60/60）；C 批按用户 2026-11-03「继续往前推进」分批推进。B0–B3 已交付。B4 除"preset 拆 `presets/*.patch.yml`（可选）"外均已交付
 （packer 由 `69668754` 定为 pnpm pack + npm publish 同字节；死 Remote/product-face/旧包 fixture/重复 id 门禁
 均已落地）。二轮 **A 批（真相恢复）** 与 **B 批（地板+证据）** 属一轮授权内的机械/证据修复，本轮直接推进；
-**C 批（CLI 拆分 / 卸载清理 / 主题 seam）** 等 review 点名。
+**C 批（CLI 拆分 / 卸载清理 / 主题 seam）** 按用户「继续往前推进」分批推进。
 
 ## 一轮收口复评（历史，2026-11-03 03:xx）
 
@@ -71,7 +93,7 @@ DSH 约定偏离（`insert` 当 override、两个 packer、client 状态所有�
 
 ### D7 → A- 计划（历史；已收口，余项见台账）
 - 已交付：pnpm pack 统一发布字节、死 Remote 删除、`product-face` per materialization、README 发布状态、旧包 fixture、重复 id 门禁、web-only 自禁用。
-- 仍未取：client bundling 按 vendor `clientBundle()` 重写（C 批，待点名）。
+- 仍未取：client bundling 按 vendor `clientBundle()` 重写（C 批，按用户「继续往前推进」评估）。
 - 做法：① 出 packer 决策简报（唯一真人输入，pnpm vs npm）；② 按 vendor `clientBundle()` 改 client 打包，删/证明死 Remote；③ 把 `product-face` store 改成每 materialization 一个 owner，去 `useState` 镜像；④ 对齐 README 发布状态，补旧版本 tarball 升级/卸载 fixture；⑤ 把 `--dump-config` 的重复 row id 检查接进 verify。
 - 证据：干净安装/升级/卸载 + `pnpm start`/真 Chrome、`release-smoke`、`product-native-smoke`、`web-face-check --all`。
 
@@ -170,6 +192,6 @@ DSH 约定偏离（`insert` 当 override、两个 packer、client 状态所有�
 2. **B 批（本轮，授权内）**：加 `pnpm check`（typecheck → test → verify）并改四处"地板"指针；
    补 `assistant_reflect` 6 个动作、`assistant-product`/`ui-mode` 行 apply、`desk-arms` 启动锁、
    ledger corrupt / CLI export-inside 拒绝的断言。
-3. **C 批（待 review 点名）**：CLI bundle 按 5 动词拆分；卸载残留 profile patch 清理/拒绝；
+3. **C 批（用户已确认继续）**：CLI bundle 按 5 动词拆分；卸载残留 profile patch 清理/拒绝；
    主题 seam 归位或登记；`dsh.client.inject`；`tests/cli/` 层；读法行；web-only 行名去重。
 4. 收口时写 implemented note（只留决定与输掉的方案），卡归档，research 题归档，清单同步。

@@ -8,6 +8,8 @@
 > `_dsh_plugin_agent_ready_development/`（native-model 即其 `native-development-model/`；不在本 pin 树内，编号相对该目录）。
 > **默认严格按本表走；偏离或裁剪不是错，但必须先在下面「已声明的适配」登记一行（约束 → 适配 → 证据）再动手。**
 
+> **读法**：纪律表 §表 → 已声明的适配 §已声明的适配 → 复查环 → 六层反馈 → 三道门禁。
+
 ## 表
 
 | DSH 纪律（源头） | 本仓落点 | 状态 |
@@ -79,6 +81,7 @@
 
 17. **client bundle 形态**（约束：vendor `clientBundle` tsdown preset 不随 npm 发布，仓外包必须自建；本包 client 无 CSS/asset 导入、无非相对 bare import）→ 本地 tsdown **IIFE** 输出 `lib/client/index.js`，源码在末尾以 `__ModuleLoader__.load({ id, factory })` 提交，与 vendor 的 module-table 契约一致；构建后 `packages/dsh-smart-assistant/scripts/prune-client-chunks.mjs` 清掉 tsc 的每模块死 chunk；`clientScriptSafetyProblems` 守“入口触达 facade + 产物按 classic script 解析 + 无 bare external import”。vendor preset 的 CJS 形态与其 CSS/asset 插件不在本包使用，因为没有对应输入；差异不是行为差异。证据 = `packages/dsh-smart-assistant/tsdown.config.ts`、`packages/dsh-smart-assistant/scripts/prune-client-chunks.mjs`、`clientScriptSafetyProblems`、`web-face-check` 的客户/产品场景。
 
+18. **client 主题变量块 `--dsha-*`**（约束：vendor 调色板没有亮面 ≥AA 的 warn/success 配对，feature 组件又不能写死颜色）→ `src/client/chrome/theme.ts` 每页注入一次 `--dsha-*` 契约块（亮值自带、暗值引用 vendor statics），中性角色仍走 `--dsw-alias-*`；AA 由 `tests/client/theme.spec.ts` 持有。这是**主题 seam 的差量**，不是另起一套全局样式；包级合同 = [package AGENTS.md](../packages/dsh-smart-assistant/AGENTS.md) 规则 4。
 ## 复查环（防"一次性快照再烂"）
 
 - `pnpm sync-dsh` 升 pin 时：对照本文逐行重校（vendor 的套路在演进，继承必须跟着 pin 走）；并
