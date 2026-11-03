@@ -5,7 +5,7 @@
  * command an agent had to `find` the zstd file and `zstd -dc | jq` by hand.
  *
  * Usage:
- *   pnpm session <session-id|prefix> [--home <dir>] [--max <chars>] [--reasoning] [--tools]
+ *   pnpm session <session-id|prefix> [--home <dir>] [--max <chars>] [--reasoning] [--tools] [--system]
  *   pnpm session --recent [n] [--home <dir>]
  *
  * The id is the session directory name (`session-<uuid>`), matched as an exact name or a
@@ -38,6 +38,7 @@ const home = devHome(value('--home'))
 const max = Number(value('--max') ?? (args.includes('--full') ? 4000 : 240))
 const reasoning = args.includes('--reasoning')
 const showTools = args.includes('--tools')
+const showSystem = args.includes('--system')
 
 // `--recent` exists because "the newest session" is not an identity under parallel sessions
 // (session-logs.mjs:78-82 records that incident). It lists candidates with their cwd and time so
@@ -149,6 +150,21 @@ for (const event of events) {
     case 'tool/result':
       console.log(`tool← ${slice(textParts(event.data?.message?.content ?? event.data?.result ?? ''))}`)
       break
+    case 'system/message': {
+      // "Did my section reach the request?" is the other half of the tools question. The trace
+      // used to stay silent here, so answering it meant `zstd -dc | python -c` by hand.
+      if (!showSystem) break
+      const text = textParts(event.data?.message?.content ?? '')
+      const sections = []
+      for (const line of text.split('\n')) {
+        if (/^#{1,2} /.test(line)) sections.push({ title: line.trim(), bytes: 0 })
+        if (sections.length > 0) sections[sections.length - 1].bytes += Buffer.byteLength(line) + 1
+      }
+      console.log(`system: ${Buffer.byteLength(text)} B, ${String(sections.length)} heading(s)`)
+      for (const section of sections) console.log(`  ${section.title}  [${String(section.bytes)} B]`)
+      if (args.includes('--full')) console.log(text)
+      break
+    }
     case 'request/header': {
       const header = event.data?.header ?? {}
       const config = header.config ?? {}

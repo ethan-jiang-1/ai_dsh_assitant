@@ -60,6 +60,21 @@ describe.skipIf(!haveZstd)('session-trace report', () => {
     expect(named.stdout).toContain('tools: assistant_memory bash')
   })
 
+  it('shows the assembled system prompt by heading and size (--system)', () => {
+    const home = temp('trace-home-')
+    writeSession(home, '--proj--', 'ddd', [
+      { type: 'session', id: 'session-ddd', createdAt: 1, cwd: '/work' },
+      { type: 'system/message', data: { message: { content: [{ type: 'text', text: '# Operating manual\n\nbody line\n\n## Dated commitments\nmore\n' }] } } },
+    ])
+    const result = run(['ddd', '--home', home, '--system'])
+    expect(result.status).toBe(0)
+    expect(result.stdout).toContain('system: ')
+    expect(result.stdout).toContain('# Operating manual')
+    expect(result.stdout).toContain('## Dated commitments')
+    // Without the flag the prompt is not printed; the trace is for one question at a time.
+    expect(run(['ddd', '--home', home]).stdout).not.toContain('# Operating manual')
+  })
+
   it('lists candidate sessions with their cwd and time (--recent) instead of guessing "newest"', () => {
     const home = temp('trace-home-')
     writeSession(home, '--proj--', 'bbb', [
