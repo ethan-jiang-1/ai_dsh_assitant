@@ -63,6 +63,9 @@
   （vendor 同形），后者围绕一个外部服务的读/写/降级；拆开只会制造第二个真相源，等出现独立 owner 需求时再评。
 - 七维复评至少安排一次**不共享对话的读者**按入口链复走两个任务（本轮：加一个工具并证明进请求、headless 五行为何
   显式 disabled）；自评不算数——两个读者在 12–15 步内到达正确答案，同时暴露了计数口径与手写映射的漂移。
+- dev 车道的模型 key 只走一个解析器 `dev/lib/dev-credentials.mjs`：环境变量优先，缺了读 dev home 的
+  `.credentials.yaml`；**任何 live 车道不得只认环境变量**（release-smoke 曾因此把可跑的 live turn 报成 BLOCKED）。
+  headless 组合没有 credentials 服务，key 必须进子进程环境，写进 home 的 `.credentials.yaml` 不生效。
 - 结构拆分的等价性证据按三层取：旧实现与新实现在同一组输入上的逐字节输出对照、被搬代码块在新文件里
   逐字出现、承载 `lib/` 的安装车道（`release-smoke` / `upgrade-smoke`）；「测试还绿」不单独算证据。
 - 新增的 dev 报告入口必须能被 `--tools`/`--recent` 这类"一问一命令"覆盖，否则补它。

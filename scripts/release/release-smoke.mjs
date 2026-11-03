@@ -15,8 +15,9 @@
  * roster row to replace) pointing at the *installed* `presets/` directory, mirroring
  * `dev/profiles/profile-patch-headless.yml`.
  *
- * A live model turn is optional but not green: without `DEEPSEEK_API_KEY`, that step is
- * BLOCKED (exit 2) while every keyless composition assertion still runs — including the
+ * A live model turn is optional but not green: the key comes from the environment or, failing
+ * that, the dev home's `.credentials.yaml` (the same source `pnpm eval` uses); with neither, that
+ * step is BLOCKED (exit 2) while every keyless composition assertion still runs — including the
  * patched dump proving the preset-mounted runner is in the composition. The turn runs through
  * `dsh-smart-assistant/preset-runner`
  * (the same driver `dev/probes/session/preset-runner.patch.yml` mounts in dev), so a keyed run joins the
@@ -33,6 +34,7 @@ import { createServer } from 'node:http'
 import { promisify } from 'node:util'
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs'
 import { dirname, isAbsolute, join, resolve } from 'node:path'
+import { deepseekKey } from '../../dev/lib/dev-credentials.mjs'
 import { fileURLToPath } from 'node:url'
 import { mkTmpDir } from '../../dev/env/tmp.mjs'
 
@@ -87,10 +89,15 @@ function dshCommand() {
 }
 
 const home = mkTmpDir('release-smoke', 'assistant-smoke-')
+// The headless composition has no credentials service: the live turn's key has to be in the
+// child environment. It comes from the caller's env, or from the dev home's `.credentials.yaml`
+// (the same fallback `pnpm eval` uses) — the key is never printed.
+const liveKey = deepseekKey()
 const env = {
   ...process.env,
   DSH_HOME: home,
   TSX_TSCONFIG_PATH: join(repoRoot, 'tsconfig.tsx.json'),
+  ...(liveKey === undefined ? {} : { DEEPSEEK_API_KEY: liveKey }),
 }
 const { command, prefix } = dshCommand()
 const dsh = args => run(command, [...prefix, ...args], { cwd: repoRoot, env })
@@ -169,7 +176,9 @@ try {
   // The profile directory must NOT pre-exist: `--from-default-profile` refuses to initialize over one.
   // The headless template carries the one-shot runner and positional-task parsing; the roster
   // row it lacks is inserted below (replace semantics would patch nothing and only warn).
-  writeFileSync(join(home, '.credentials.yaml'), '# no key here: the live turn is BLOCKED (exit 2)\n', 'utf8')
+  writeFileSync(join(home, '.credentials.yaml'), liveKey === undefined
+    ? '# no key: the live turn is BLOCKED (exit 2)\n'
+    : '# the live turn reads DEEPSEEK_API_KEY from the launching environment (headless has no credentials service)\n', 'utf8')
   dsh(['--profile', profile, '--from-default-profile', 'headless', '--dump-config'])
   if (!existsSync(join(home, 'profiles', profile, 'package.json'))) {
     fail('the profile was not created from the headless template')
@@ -440,12 +449,11 @@ try {
   else ok('preset-mounted runner composes (the live turn would join the assistant preset)')
 
   step('live turn on the assistant preset (BLOCKED without a key)')
-  const key = (process.env.DEEPSEEK_API_KEY ?? '').trim()
-  if (key.length === 0) {
-    blocked.push('live turn: no DEEPSEEK_API_KEY in the environment')
-    console.log('  BLOCKED no DEEPSEEK_API_KEY — the entry shape above was still checked keylessly')
+  if (liveKey === undefined || liveKey.length === 0) {
+    blocked.push('live turn: no DEEPSEEK_API_KEY in the environment or the dev home credentials')
+    console.log('  BLOCKED no DEEPSEEK_API_KEY (env or dev home) — the entry shape above was still checked keylessly')
   } else {
-    writeFileSync(join(home, '.credentials.yaml'), `DEEPSEEK_API_KEY: ${key}\n`, 'utf8')
+    // No file write: the child already inherits DEEPSEEK_API_KEY through `env`.
     // The preset-mounted runner prints the turn's final text and exits 0 on completion.
     const answer = dsh(['--profile', profile, '--patch', runnerPatch, 'reply with the single word ready'])
     if (!/ready/i.test(answer)) fail(`live turn did not answer as expected: ${answer.slice(0, 200)}`)
