@@ -92,7 +92,7 @@ pnpm eval:domain        # 领域评测：本人出题逐题跑 → 人打分的�
 pnpm eval:continuity    # 续接行为地板：隔离 fixture 首回合读回判据（红绿对照挂 verify）
 pnpm usage              # 意图级仪表：会话/工具混合/自用率/摩擦（读 dev home）
 pnpm desk-loop          # 培养循环摩擦报告（读 dev home 会话日志）
-pnpm observe [--home <dir>]   # 输入边界 30 天观察读数（A/B/C 口径与读数档 = docs/dev.md §四）
+pnpm observe [--home <dir>]   # 输入边界 30 天观察读数（A/B/C 口径与读数档 = docs/dev.md §五）
 pnpm ov-trial-rt        # OpenViking 真服务记忆往返试验（前提 server 已在 127.0.0.1:1933）
 ```
 

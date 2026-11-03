@@ -190,10 +190,24 @@ export function vendorClientFreshnessProblems({ vendorPackagesRoot, webAppRoot }
  * header table to the package manifest. No manual = nothing exported yet = nothing to check (the
  * gate must stay green on fresh clones, where `_dist/` does not exist).
  */
+/** The five host rows that only exist in a web composition; headless must disable them explicitly. */
+const WEB_ONLY_ROWS = ['assistant-product', 'assistant-desk-projection', 'assistant-ui-mode', 'assistant-rooms', 'assistant-viki']
+
 export function exportManualProblems({ manualPath, manifest, upstreamTag }) {
   if (!existsSync(manualPath)) return []
   const text = read(manualPath)
   const problems = []
+  // The headless section drifted once already: the generator kept the pre-BUG-029 wording ("rows
+  // self-disable on `connection`") after the code reverted to `inject` + an explicit overlay
+  // `disabled`, so a user following the manual landed on the same pending rows the bug described.
+  // Pin the instruction, not the prose: each row must carry its own `disabled: true` block.
+  const notDisabled = WEB_ONLY_ROWS.filter(id => !new RegExp(`- id: ${id}\\n(?:.*\\n){0,4}?\\s*disabled: true`).test(text))
+  if (notDisabled.length > 0) {
+    problems.push(`manual does not tell headless users to disable ${notDisabled.join(', ')} explicitly — those rows wait on \`connection\` and stay pending; fix the export-dist template and rerun \`pnpm export-dist\``)
+  }
+  if (/自禁用[；。]/.test(text) && !/不会自禁用/.test(text)) {
+    problems.push('manual says the web-only rows self-disable — they do not (BUG-029); rerun `pnpm export-dist` after fixing the template')
+  }
   const version = /^\| 版本 \| `?([^`|\n]+?)`? \|$/m.exec(text)?.[1]?.trim()
   if (version !== manifest.version) {
     problems.push(`manual 版本 row says ${version ?? 'nothing'}, package.json says ${manifest.version} — rerun \`pnpm export-dist\``)

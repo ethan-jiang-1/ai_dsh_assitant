@@ -117,6 +117,16 @@ describe('exportManualProblems', () => {
   const PIN = 'dsh-v9.9.9'
   // Rows mirror the exact shape export-dist.mjs generates (安装包 carries a suffix after the
   // filename) — the first red run of this gate was a fixture/reality mismatch on that suffix.
+  // The headless block is part of the correct shape after BUG-029: the five web-only rows carry an
+  // explicit `disabled: true`; accept-case without it would let the gate's new check pass vacuously.
+  const headless = [
+    '',
+    '```yaml',
+    ...['assistant-product', 'assistant-desk-projection', 'assistant-ui-mode', 'assistant-rooms', 'assistant-viki']
+      .flatMap(id => [`- id: ${id}`, '  disabled: true']),
+    '```',
+    '',
+  ].join('\n')
   const manual = (version, tarball, baseline = PIN) => [
     '# 手册',
     '',
@@ -125,7 +135,7 @@ describe('exportManualProblems', () => {
     `| 版本 | ${version === undefined ? '（缺行）' : `\`${version}\``} |`,
     `| 安装包 | \`${tarball}\`（与本手册同目录） |`,
     `| 验证基线 | ${baseline === undefined ? '（缺行）' : `DSH \`${baseline}\`（Node ≥ 22）`} |`,
-    '',
+    headless,
   ].join('\n')
   const call = file => exportManualProblems({ manualPath: file, manifest, upstreamTag: PIN })
 
@@ -170,9 +180,31 @@ describe('exportManualProblems', () => {
     const bare = join(dir, 'bare.md')
     writeFileSync(bare, '没有表头的手册\n', 'utf8')
     const problems = call(bare)
-    expect(problems).toHaveLength(3)
-    expect(problems[0]).toContain('says nothing')
-    expect(problems[2]).toContain('验证基线 row is missing')
+    const header = problems.filter(p => !p.includes('does not tell headless'))
+    expect(header).toHaveLength(3)
+    expect(header[0]).toContain('says nothing')
+    expect(header[2]).toContain('验证基线 row is missing')
+    expect(problems.some(p => p.includes('assistant-product') && p.includes('does not tell headless'))).toBe(true)
+  })
+
+  it('rejects a manual that leaves the five web-only rows to self-disable (BUG-029 regression)', () => {
+    const dir = temp('dist-')
+    const file = join(dir, '安装手册.md')
+    const withoutHeadlessBlock = manual('1.2.3', 'dsh-smart-assistant-1.2.3.tgz').replace(/```yaml[\s\S]*?```\n?/, '')
+    writeFileSync(file, withoutHeadlessBlock, 'utf8')
+    const problems = call(file)
+    expect(problems).toHaveLength(1)
+    expect(problems[0]).toContain('assistant-product')
+    expect(problems[0]).toContain('does not tell headless')
+  })
+
+  it('rejects the pre-BUG-029 wording even when the explicit blocks are present', () => {
+    const dir = temp('dist-')
+    const file = join(dir, '安装手册.md')
+    writeFileSync(file, `${manual('1.2.3', 'dsh-smart-assistant-1.2.3.tgz')}\n五个行会按 \`connection\` 自禁用；\n`, 'utf8')
+    const problems = call(file)
+    expect(problems).toHaveLength(1)
+    expect(problems[0]).toContain('do not (BUG-029)')
   })
 })
 

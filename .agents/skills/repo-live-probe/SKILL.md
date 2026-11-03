@@ -26,12 +26,18 @@ loop that answers "did it actually ride in the request?" without guessing.
 3. **Write the probe task so it can only answer from resident context** — e.g. "do not call any
    tool; answer only from what is already in front of you; if it is not there, say so." That turns
    the request into the measurement: an honest "I do not have it" is a finding, not a failure.
-4. **Find the newest session and unpack it** (paths start at the repo root; the sessions tree sits
-   three levels down, so the repo's `.tmp/` stays reachable as `../../../.tmp/`):
+4. **Take the session by diff, never by "newest".** Under parallel sessions `ls -t` points at
+   someone else's conversation (`dev/lib/session-logs.mjs:78-82` records that incident). Snapshot
+   the session directories before the probe and diff after — the new directory is yours:
    ```sh
-   cd dev/harness-home/sessions
-   ls -t ./--Users-...--/            # the ./ prefix is REQUIRED: dir names start with --
-   zstd -dc ./--<cwd-dir>--/<session-id>/session.v*.jsonl.zstd > ../../../.tmp/probe.jsonl   # the generation in the name moves with the pin: list the dir, do not assume it
+   find dev/harness-home/sessions -mindepth 2 -maxdepth 2 -type d | sort > .tmp/sessions-before.txt
+   # …run the probe…
+   comm -13 .tmp/sessions-before.txt <(find dev/harness-home/sessions -mindepth 2 -maxdepth 2 -type d | sort)
+   pnpm session <new-session-uuid>     # prints the log path and the request/tool timeline
+   ```
+   For bulk reads, unpack it (the repo's `.tmp/` stays reachable three levels down):
+   ```sh
+   zstd -dc dev/harness-home/sessions/<project>/session-<uuid>/session.v*.jsonl.zstd > .tmp/probe.jsonl   # the generation in the name moves with the pin: list the dir, do not assume it
    ```
    For bulk searches prefer the wrapper form (write it from the repo root, then hand `--pre` the
    absolute path it prints: `printf '#!/bin/sh\nexec zstd -dc -- "$@"\n' > .tmp/zstd-cat && chmod +x .tmp/zstd-cat`)

@@ -16,7 +16,9 @@ kind: "package-bundle"
   `assistant-memory`、`assistant-operating-ledger`、`assistant-desk-projection`，以及两条 vendor 行停用
   （`ui-sidebar-terminal`、`ui-trajectory`）。完整清单以 `--dump-config` 为准。
 - **适用面：web。** 它覆盖的行与 client 插件只在 web 组合里成立；headless/SDK/ACP 需要在 profile patch/overlay 里显式停用五个 web-only 行（样板 = `dev/profiles/profile-patch-headless.yml`；见「安装」末段）。
-- 版本：DSH `>=0.2.1-rc.2 <0.3.0-0`、Node `^22.19.0 || >=24`、pnpm `>=10.6.0`。不满足时 DSH 在写依赖前拒绝。
+- 版本：DSH `>=0.2.1-rc.2 <0.3.0-0`、Node `^22.19.0 || >=24`、pnpm `>=10.6.0`。判定时机按安装通道分：`add` 的
+  **path/registry** 规格在写依赖前就判 `engines.dsh`；**tarball**（本包的主渠道）要取回包才判，不满足时安装后
+  回滚 profile manifest 并重装原依赖——已允许的构建脚本副作用可能留下。
 - **装进哪个 profile**：任意 web profile 都能工作。推荐新建一个 **custom profile `assistant`** 再装——
   本 bundle 的默认值带产品口味（停用右栏终端、关运行轨迹页、界面语言中文），装进你已有的 profile 会改它的组合。
 - DSH 本体的 `@deepseek-ai/*` 由宿主提供（peer）；唯一运行期依赖是 `yaml`，首次安装需要 registry 或内网镜像。
@@ -84,6 +86,8 @@ dsh --profile assistant --dump-config      # 仍应看到 preset-assistant 与 d
 ```
 
 - **没有命令级回滚**（DSH 也没有）：回退 = 重装旧版本。升级前记下当前版本。
+- **应用内 Plugins 页**（profile 带 HMR）对**同名**包会拒绝 `already-installed`：那里先 `remove` 再 `add`。
+  CLI `dsh plugin add` 新 tarball 可直接更新版本，不需要先 remove。
 - working folder、账本与 `<dshHome>/cache/assistant/` 跨升级保留；升级不写用户数据。
 - 升级后默认预设没变回去，先看 `--dump-config`：用户级 `selectedDefault` 优先于 bundle 默认。
 
@@ -102,6 +106,10 @@ dsh plugin --profile assistant remove dsh-smart-assistant
 > ```
 >
 > 它只删自己写的那 4 行，保留其他字节；块被改过就拒绝并让你手删。
+
+**用户选择不会随卸载清除**：在 Settings → Agent 预设里选过 `assistant`，这一选择留在 profile 的
+`settings.yaml`（`agent-preset-registry` 段的 `selectedDefault`）。卸载后新会话解析默认 preset 会拿到
+已不存在的 id，报 `agent-preset/not-found`。改回 `standard`，或删掉 `settings.yaml` 里的 `selectedDefault` 行。
 
 删掉的是包与 patch 层。**数据一律留下**：
 
