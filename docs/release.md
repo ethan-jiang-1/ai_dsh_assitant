@@ -155,7 +155,7 @@
 - `pnpm standalone-smoke`（无 `.git` 目录、隔离 home、preflight、client 真 boot/preset UI、stop/restart、搬移 home；安装器按发布形态在包外运行；无 Chrome = BLOCKED，exit 2）；
 - `pnpm product-smoke`（安装器：包外安装器 + `--package`、profile/装包、`--workspace` 只设 env、profile Config、工作区登记、in-process 会话 cwd、外来 profile/缺工作区拒绝、stop）；
 - `pnpm product-native-smoke`（无安装器：web 模板建 `assistant` profile → `dsh plugin add` → 真 boot → GET `not-configured`/onboarding → POST → 登记 + Config + 会话 cwd）；
-- `pnpm prompt-smoke`（无 key 回放 one-shot，断言四个 prompt 段落与六个工具进入请求）；
+- `pnpm prompt-smoke`（无 key 回放 one-shot，断言 prompt 段落与自有工具进入请求（清单/计数 = `package-catalog.md`））；
 - `pnpm compat-matrix -- --dsh <path> --version <v> --expect install|reject`（真实 DSH CLI 的安装/拒绝矩阵；干净 home，不调模型）；
 - `pnpm agent-preset-ui '<URL>'`（Web 选择，人工探针；不冒充自动门禁）。
 

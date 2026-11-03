@@ -136,6 +136,19 @@ describe('assistant_knowledge execute', () => {
   })
 })
 
+async function runWithAgent(ctx: Context, name: string, args: unknown, agentLike: unknown): Promise<string> {
+  const result = await ctx.tools.execute({
+    signal: testSignal,
+    callId: ToolCallId(`adapter-${name}`),
+    name,
+    arguments: args,
+    agent: agentLike as never,
+  })
+  const first = result.content[0]
+  if (first?.type !== 'text') throw new Error(`tool ${name} rendered no text: ${JSON.stringify(result.content)}`)
+  return first.text
+}
+
 async function runWithoutAgent(ctx: Context, name: string, args: unknown): Promise<string> {
   const result = await ctx.tools.execute({
     signal: testSignal,
@@ -216,6 +229,27 @@ describe('assistant_reflect execute', () => {
     const { ctx } = await boot(Learn)
     expect(await run(ctx, 'assistant_reflect', { action: 'save_page', type: 'concept', body: '正文' }))
       .toContain('Error: assistant_reflect save_page requires type, body, and sources')
+  })
+
+  it('briefs from a real session surface and counts the user asks and tool calls', async () => {
+    const { ctx } = await boot(Learn)
+    const events = new Map<number, unknown>([
+      [1, { type: 'user/message', data: { content: [{ type: 'text', text: '客户回款怎么盯？' }] } }],
+      [2, { type: 'tool/call', data: { name: 'assistant_memory' } }],
+      [3, { type: 'tool/call', data: { name: 'assistant_memory' } }],
+    ])
+    const sessionAgent = {
+      session: {
+        id: 'brief-session',
+        header: { cwd: process.cwd() },
+        surface: { nodes: [1, 2, 3] },
+        eventAt: (seq: number) => events.get(seq),
+      },
+    }
+    const brief = await runWithAgent(ctx, 'assistant_reflect', { action: 'brief' }, sessionAgent)
+    expect(brief).toContain('Evidence for this reflection')
+    expect(brief).toContain('客户回款怎么盯？')
+    expect(brief).toContain('assistant_memory')
   })
 
   it('reports no session evidence for brief when the caller has no agent', async () => {

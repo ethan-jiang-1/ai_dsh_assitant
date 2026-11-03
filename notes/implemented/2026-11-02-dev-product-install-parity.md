@@ -44,7 +44,7 @@
 - 开发环多了一条秒级 tarball 通道；包形状与依赖闭包的回归不再只等到发布。
 - dev home 的 profile 用户层回到模板内容；dev-only 行透明地住在 overlay 里，`--dump-config` 可见。
 - 旧 dev home 升级会经历一次 patch 迁移（`.dev-backup` 保留原文件）。
-- 仍未取：profile 名对齐、dev profile 的 bundles 对账、launcher 注入的第二形态——触发条件记在卡上。
+- 仍未取：profile 名对齐、dev profile 的 bundles 对账、launcher 注入的第二形态——触发条件登记在 [`triggers.md`](../../_backlog/triggers.md) 的「dev/product 安装面 parity」行。
 
 ## 验收
 

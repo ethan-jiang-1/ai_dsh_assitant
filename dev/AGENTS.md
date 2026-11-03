@@ -27,7 +27,7 @@ roster 行可替换、两个 profile patch 语义不可互换），此处不复�
 
 | 目录 | 装什么 |
 |---|---|
-| `env/` | 启动器（`dsh.mjs`：home 强制 + 临时根收口）、**一键启动 `start.sh`（串起 prepare/setup/自证/起服务/preflight）与其产物自证 `ensure-build.mjs`**、env 兜底、prepare/setup、仓内临时根 helper（`tmp.mjs`）、DSH home 解析（`home.mjs` 的 `devHome`：工具旗标 > `ASSISTANT_DSH_HOME` > 仓内 dev home）——起服务的那串全在这 |
+| `env/` | 启动器（`dsh.mjs`：home 强制 + 临时根收口）、**一键启动 `start.sh`（串起 prepare/setup/自证/起服务/preflight）与其产物自证 `ensure-build.mjs`**、env 兜底、prepare/setup、仓内临时根 helper（`tmp.mjs`）、DSH home 解析（`home.mjs` 的 `devHome`：工具旗标 > `ASSISTANT_DSH_HOME` > 仓内 dev home）、**阶段收口全证据 `check-full.mjs`（floor + web-face --all + upgrade + release，PASS/BLOCKED/FAIL 汇总）**——起服务的那串全在这 |
 | `profiles/` | dev-only overlay 的源（setup 生成为 home 的 `dev-overlay-<profile>.yml`，profile 用户层不写；`profile-patch-expert.yml` 是 expert-setup 的装配件，非 setup 源；`profile-patch-ov.yml` 是 OV 插件在场时并入 overlay 的 v3 旋钮） |
 | `probes/session/` | one-shot 探针 patch（preset-runner / expert / recall / replay） |
 | `probes/web/` | 浏览器探针（preflight / shots / web-expected / **web-face-check（默认 4 客户面；--all 再加 2 产品面 + 4 Viki 调试面）** / loop-probe / **agent-preset-ui**（Settings → Agent 预设 的干净 home 选择探针）/ **approve-direct** / desk 走查·e2e（`desk-process-e2e` dispatcher + `-flow`/`-claim`/`-wake` 三场景）·接续 web 回归（`desk-continuity-live`）·晨报 web 回归（`desk-daily-brief-live`）·投影下载 / projection 系 + CDP 驱动 + 比对纯核 + replay 适配 + 共享库三件：`dialogue`（对话习语，含按文案找/点按钮的 `buttonByText` / `clickByText`）/ `probe-service`（自编排服务）/ `probe-utils`（参数与 sleep）） |

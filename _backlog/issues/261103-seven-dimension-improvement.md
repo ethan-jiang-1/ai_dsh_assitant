@@ -28,7 +28,7 @@ DSH 约定偏离（`insert` 当 override、两个 packer、client 状态所有�
 
 | 维度 | 二轮 | 相对一轮收口 |
 |---|---|---|
-| 1 文档/渐进披露 | **A- 8.5** | 入口链仍最强；6/13 docs 缺读法行、README 五步指针指空、web-only 行名在包 README 重复两次 |
+| 1 文档/渐进披露 | **A- 8.5** | 入口链仍最强；6/13 docs 缺读法行、README 五步指针指空、web-only 清单两处（用途不同） |
 | 2 代码/测试层次 | **B+ 8.0** | 依赖方向实测干净；但 CLI bundle 555 行 5 动词、测试所有权 facade 化 |
 | 3 整体结构 | **A- 8.3** | 五道门成立；地板仍三条手敲命令，没有单一入口 |
 | 4 上下文腐化 | **B+ 7.8** | 收口卡自述自相矛盾（B4 仍余 6/7 已做、下一步写 B1、活跃清单状态反）、生成手册 headless 落后于 self-disable |
@@ -43,7 +43,7 @@ DSH 约定偏离（`insert` 当 override、两个 packer、client 状态所有�
 
 | 维度 | 批前 | 批后 | 依据 |
 |---|---|---|---|
-| 1 文档/渐进披露 | A- 8.5 | **A- 8.5** | 5 篇补读法行、README 五步指针修；包 README 内 web-only 行名仍重复两次 |
+| 1 文档/渐进披露 | A- 8.5 | **A- 8.6** | 5 篇补读法行、README 五步指针修；web-only 清单两处、用途不同 |
 | 2 代码/测试层次 | B+ 8.0 | **A- 8.5** | 测试所有权补 5 类；`assistant-data-bundle.ts` 555 行 5 动词仍未拆（C 余项） |
 | 3 整体结构 | A- 8.3 | **A- 8.5** | `pnpm check` 单一地板已落地并被本轮真实使用；覆盖面 = 原三条 |
 | 4 上下文腐化 | B+ 7.8 | **A- 8.5** | 卡自述/生成手册/discipline #17/delivery 限定/模块地图/research 指针全修；研究页结论保留首轮 7.2，但有明确后续指针 |
@@ -56,10 +56,10 @@ DSH 约定偏离（`insert` 当 override、两个 packer、client 状态所有�
 
 | 维度 | A/B 后 | C 后 | 依据 |
 |---|---|---|---|
-| 1 文档/渐进披露 | A- 8.5 | **A- 8.6** | 5 篇读法行已补；README 五步指针已修；web-only 行名在包 README 内仍重复一次 |
+| 1 文档/渐进披露 | A- 8.5 | **A- 8.6** | 5 篇读法行已补；README 五步指针已修；web-only 清单只有包 README 与 product.md 两处、用途不同 |
 | 2 代码/测试层次 | A- 8.5 | **A 9.0** | `assistant-data-bundle.ts` 555 行 5 动词已按 verb 拆成 6 个文件（最大 182 行）；公共面仍是 `assistant-data.ts` facade；测试所有权已补 |
-| 3 整体结构 | A- 8.5 | **A- 8.6** | `pnpm check` 已是唯一地板并被连续使用；卡的状态面仍偏多，但顶部停点唯一 |
-| 4 上下文腐化 | A- 8.5 | **A- 8.6** | 无已知假话；research 页首轮 7.2 有明确"首轮判定"标注 |
+| 3 整体结构 | A- 8.5 | **A- 8.6** | `pnpm check` 已是唯一地板并被连续使用；停点/台账已收敛，但卡内仍保留三张历史评分表 |
+| 4 上下文腐化 | A- 8.5 | **A- 8.6** | notes 二轮审计发现 bundle-first 决策 6 与 self-disable 相反（本轮修）；其余无已知假话；research 页 7.2 有"首轮判定"标注 |
 | 5 测试资产 | A- 8.5 | **A- 8.6** | reflect 6 动作/行注册/启动锁/corrupt/CLI 拒绝均有断言；`tests/cli` 层与 brief 真 agent 分支仍缺 |
 | 6 反馈通路 | A- 8.5 | **A- 8.6** | scratch 门禁不再在"删除未暂存"时 ENOENT 崩；真页面车道待本轮 `--all` 读数 |
 | 7 DSH 约定 | A- 8.5 | **A- 8.6** | 卸载文档 + 主题 seam 登记已补；自动清理旧 profile patch 未做（需真实旧 home fixture） |
@@ -67,14 +67,35 @@ DSH 约定偏离（`insert` 当 override、两个 packer、client 状态所有�
 
 **C 代码切片（`cb6b25d2`）**：`src/cli/assistant-data/` 六个文件（export/import/merge/maintenance/manifest/shared，最大 182 行）；`assistant-data.ts` 只做公共面再导出；`pnpm check` 全绿；`release-smoke` 的安装/组合/bins 全过（live turn 无 key = BLOCKED exit 2，不冒充绿）；`upgrade-smoke` passed（升级/remove/re-add 两目录数据保留）。
 
+### 9.0 深挖（2026-11-03 09:5x）
+
+三路子审计（notes/backlog 腐化、测试所有权、DSH 生命周期与文档）后，又发现并修了一批；
+只有一项把 D7 拉回 B+：
+
+| 维度 | C 后 | 深挖后 | 依据 |
+|---|---|---|---|
+| 1 文档/渐进披露 | A- 8.6 | **A- 8.8** | 读法行覆盖全部合同文档并写进 `docs/AGENTS.md`；`dev.md` 补 §十一；工具/段落计数改指 `package-catalog.md`；安装器残留的卸载承诺改成条件句 |
+| 2 代码/测试层次 | A 9.0 | **A 9.0** | 无新结构债 |
+| 3 整体结构 | A- 8.6 | **A- 8.8** | 新增 `pnpm check:full`（floor + web-face --all + upgrade + release，PASS/BLOCKED/FAIL 汇总） |
+| 4 上下文腐化 | A- 8.6 | **A- 8.8** | notes 审计的 P1 全修：bundle-first 决策 6 与 self-disable 相反（加收窄指针并改写）、活跃清单状态、卡的人判/仍未取/下一步、receipt 路径、10-20 note 的引用规则、triggers 两行、openviking 遗留句 |
+| 5 测试资产 | A- 8.6 | **A- 8.8** | 新增 `brief` 真 session surface、`sendPrompt` 三条状态分支、content-drawer 真 DOM（Escape/teardown）、product-smoke 的旧 profile 块清理 |
+| 6 反馈通路 | A- 8.6 | **A- 8.8** | scratch 门禁不再 ENOENT；`check:full` 汇总不吞 BLOCKED；product-smoke 的失败被如实暴露 |
+| 7 DSH 约定 | A- 8.6 | **B+ 8.0** | 旧安装器 profile 块已被 bootstrap 手术式清理（product-smoke 的该段通过）；但新发现 [BUG-029](../bugs/BUG-029-web-only-host-rows-fail-on-tarball-install.md)：干净 tarball profile 里五个 web-only host 行 import 失败，产品面死（agent 面仍活） |
+| **整体** | **≈8.7** | **≈8.6（D7 单点 B+）** | 其余六维已到 A-/A；9.0 被 BUG-029 的单点阻断 |
+
+**BUG-029 的证据**：`product-smoke` 临时 home 日志 `dsh: warning: 5 entries did not activate` +
+`assistant-product ... failed to import`（其余四行同）；source wrapper 与已装 `dsh 0.2.1-rc.5` 都复现，
+dev link 安装不复现；手工给 profile 补 `@deepseek-ai/schemastery`/`dsh-home-paths` 符号链接后
+`import` 立即成功——根因在 tarball profile 的 host peer 映射，不是本包 `lib` 缺失。P1，待下一轮确认并修。
+
 **C 余项（不阻塞 A-，下一轮按需）**：
 - ~~`assistant-data-bundle.ts` 按 5 动词拆 `src/cli/assistant-data/*`~~ 已完成（`cb6b25d2`；最大文件 182 行）；
 - ~~`tests/cli/` 层~~ 评估后不做：CLI 行为 spec 住 `tests/tooling/` 是**已登记的例外**（共用 throwaway 夹具；被测面是 facade，不是浏览器/host 平面），见 `docs/testing.md` 分层表后的 CLI 例外；
 - 卸载残留 profile patch 的自动清理（0.2.0 前安装器；当前已文档化手工清理，自动清理需真实旧 home fixture）；
 - `dsh.client.inject`：vendor 文档说明它是 client module 依赖边，不是 Cordis 服务清单；本包没有非 baseline 的 module 请求，**不加**（不是债）；
-- web-only 行名去重：包 README 的用户面清单保留，product.md 保留合同清单；两处不同用途，**不强行合并**。
+- web-only 清单：包 README 的用户面点名 + product.md 的合同清单，两处用途不同，**不是重复，不合并**。
 
-**当前停点（2026-11-03 09:1x）**：A/B/C 全部交付；`pnpm check` 绿（1,255 用例 / verify 60/60）、`upgrade-smoke` passed、`web-face-check --all` PASS；`release-smoke` 的安装/组合/bins 绿，live turn 无 key = BLOCKED（exit 2，不冒充绿）。余下只有收口（note/归档/清单）与本卡 `仍未取` 的非本目标项。B0–B3 已交付。B4 除"preset 拆 `presets/*.patch.yml`（可选）"外均已交付
+**当前停点（2026-11-03 09:5x）**：9.0 深挖已交付六维 A-/A；`pnpm check` 绿、`upgrade-smoke` passed、`web-face-check --all` PASS、`release-smoke` 安装/组合/bins 绿（live turn BLOCKED）。D7 被 [BUG-029](../bugs/BUG-029-web-only-host-rows-fail-on-tarball-install.md) 的单点阻断拉回 B+；下一轮先确认/修 BUG-029，再谈全维 9.0 与收口。B0–B3 已交付。B4 除"preset 拆 `presets/*.patch.yml`（可选）"外均已交付
 （packer 由 `69668754` 定为 pnpm pack + npm publish 同字节；死 Remote/product-face/旧包 fixture/重复 id 门禁
 均已落地）。二轮 **A 批（真相恢复）** 与 **B 批（地板+证据）** 属一轮授权内的机械/证据修复，本轮直接推进；
 **C 批（CLI 拆分 / 卸载清理 / 主题 seam）** 按用户「继续往前推进」分批推进。
@@ -172,7 +193,7 @@ DSH 约定偏离（`insert` 当 override、两个 packer、client 状态所有�
 | 11 | judged 字节 = published 字节 | 约定 | `export-dist` / `publish-release` | 同一 packer；sha256/手册/registry 描述同一 manifest | 两个 packer → 负例 red | `scripts/release/*` + `install-parity` |
 | 12 | client 状态有 owner | 约定 | 两次 materialization + HMR | 无 `globalThis.__…__` 单例；store 经 slot/handle；HMR 不重选 | 模块级单例 → 断言红 | `main-view`/`product-face` + composition spec |
 
-人判：B4 的 client bundling 改法与发布渠道选择需要本人拍板；其余 agent 可自审。
+人判：B4 的 client bundling 改法仍是可选，需本人拍板；发布渠道已由 `69668754` 定为 pnpm pack + `npm publish <tgz>` 同字节，不再是待判项。
 （按 [`validation-design`](../methods/validation-design.md)；行为/类别/输入状态/判据/负例/证据 owner/人判）
 
 ## 切片台账
@@ -188,26 +209,18 @@ DSH 约定偏离（`insert` 当 override、两个 packer、client 状态所有�
 | B4 DSH 约定 | 进行中（D1/D3/D7 已交付） | `bd966d87`：`session-query-sqlite`/`ui-chat`/`locale`/`tool-skill` 从 `insert` 改为裸 `- id:` 整行覆盖；`tool-skill` 显式 `disabled: false`；删掉与 web-app 重复的 `schedule`/`ui-schedule` insert；`--dump-config` 0 重复 row id、`tool-skill` enabled、ui-chat/locale config 在场；`preset-composition.spec` 的 strict patcher seed 了这四行；`pnpm start` preflight 绿 + blank 场景 PASS。台账/架构树同步。`eb331dbd`：D3 — `main-view` 去掉 `globalThis.__…__`，改按 Client root 键控的 WeakMap 恢复门（新页面根重新开始，HMR 靠记住的 chat 偏好），`discipline` 适配 10 同步。`3f55bcb7`：D7 — 五个 web-only 行（product / desk-projection / ui-mode / rooms / viki）在 bundle patch 里按 `!!js "!ctx.get('connection')"` 自禁用；headless overlay 不再手写这些行；`pnpm dsh --profile dev-task` one-shot 只剩 MISSING_CREDENTIAL，无 pending；`pnpm start` preflight 绿；catalog 重生成。`65bd4ef2`/`850ca79b`：web-only 自禁用门禁 + 2 条红绿夹具（verify 58）。`70ed3629`：`product-face` 从模块级 store 改成每 materialization 一个 `ProductFace` handle，gate/dock/first-mile 都显式拿同一 handle；新增两 materialization 独立测试；product onboarding/workspace-gate 真机场景 PASS。`4c352324`：client 构建后 prune 256 个不可达 tsc chunk（260→4 文件，1.1 MB 只剩 index + map/d.ts 伴生），build 脚本 + 2 条红绿测试。`21a020d4`：新增 insert/override 行形门禁（insert id 不得与 vendor base/web-app 重复；bare override 必须命中 vendor；同 id 不得重复），读真 vendor patch + 红绿夹具（verify 60）。`668ca625`：client inject 去掉未消费的 `remote.agentPresets`/`remote.workspaceFiles` 两条死车道。`a4a837ea`：新增 `pnpm pack-parity` 诊断——pnpm pack 与 npm pack 的 `package.json` 不一致（pnpm 把 `workspace:^` 改写成版本并去掉 scripts；npm 保留 workspace 协议/scripts），**这是 packer 决策所需的实证**；未改发布路径。`35b17d1f`：包 README 的安装/升级命令改为 tarball 优先（尚未发布到 registry），headless 行改为五 web-only 行自禁用；`upgrade-smoke -- --old <上一发布 tgz>` 支持真实前版字节（合成 predecessor 仍跑通）。`fa58a505`：`docs/discipline.md` 适配 17 登记 client bundle 的本地 IIFE + facade 契约（vendor preset 不发布；无 CSS/asset 输入）。`69668754`：发布物统一为 `pnpm pack` 的 `_dist/*.tgz`，`publish.mjs` 用 `npm publish <tgz>` 发同一字节；`publish-release -- --skip-verify` 预检绿并打印真实发布命令 |
 | B4 仍余 | 已收口 | packer 已定（`69668754`：pnpm pack + `npm publish <tgz>` 同字节）；死 Remote（`668ca625`）、`product-face` per materialization（`70ed3629`）、README 发布状态/旧包 fixture（`35b17d1f`）、重复 id 门禁（`21a020d4`）均已落地。仅余**可选**的 `presets/*.patch.yml` 拆分与 C 批 client bundling 重写 |
 | 二轮 A 真相恢复 | 完成（`95cf7c18` 记录，`90f5fb07`/`b5344909` 文档与手册） | 收口卡停点/台账收敛；活跃清单 `待落地`；安装手册 §九 改为"仅默认 preset 需要 insert，web-only 行已自禁用"（`export-dist.mjs` + `_dist/安装手册.md` 重生）；distribution note 加部分收窄指针；research 题名页/索引挂二轮；README 五步指针与 schedule 口径；delivery standalone 限定；client 模块地图补 product/debug；discipline #17 归位 |
-| 二轮 B 地板+证据 | 完成（`90f5fb07` 地板，`6e9b1fb0` 测试） | `pnpm check`（typecheck → test → verify）首次全绿：164 文件 / 1,254 用例、verify 60/60。新增断言：`assistant_reflect` 的 promote/deprecate/retire/propose/land/brief 与缺 sources 负例（`tests/agent/tool-adapters.spec.ts`）；product/ui-mode 行注册+dispose（`tests/host/*-route.spec.ts`）；desk-arms 启动锁双击反例（`tests/client/desk-arms.spec.ts`）；ledger corrupt/not-v1 拒绝（`tests/host/operating-ledger.spec.ts`）；CLI 导出目标在数据目录内的拒绝（`tests/tooling/assistant-data.spec.mjs`） |
+| 二轮 B 地板+证据 | 完成（`90f5fb07` 地板，`6e9b1fb0` 测试） | `pnpm check`（typecheck → test → verify）全绿：1,255 用例、verify 60/60。新增断言：`assistant_reflect` 的 promote/deprecate/retire/propose/land/brief 与缺 sources 负例（`tests/agent/tool-adapters.spec.ts`）；product/ui-mode 行注册+dispose（`tests/host/*-route.spec.ts`）；desk-arms 启动锁双击反例（`tests/client/desk-arms.spec.ts`）；ledger corrupt/not-v1 拒绝（`tests/host/operating-ledger.spec.ts`）；CLI 导出目标在数据目录内的拒绝（`tests/tooling/assistant-data.spec.mjs`） |
 | 二轮 C 代码切片 | 完成（`cb6b25d2`、`0888a4c3`） | CLI bundle 拆 6 文件（最大 182 行）；scratch 门禁不再 ENOENT 崩；`--all` 摘要补 product；`tests/cli` 登记为例外；auto-cleanup 决策 = 文档化手工清理（需真实旧 home fixture 才做自动）。`pnpm check` 1,255 用例 / verify 60/60；`release-smoke` 安装/组合/bins 绿 + live turn BLOCKED（无 key, exit 2）；`upgrade-smoke` passed；`web-face-check --all` PASS（customer + product + viki） |
 | 收口 | 待做 | 决定 note、卡归档、research 归档、清单同步 |
 
 ## 仍未取
 
 - **B4 的 client bundling 改法**：按 vendor `clientBundle()` 重写构建，还是先修 module-table request？后者能救 Remote，但需要先证明 `@deepseek-ai/dsh-client-store` 在干净安装里可解析；前者会动构建链，风险更大。
-- **发布渠道**：`pnpm publish` 还是 `npm publish`；前者与 `export-dist` 同字节，后者需要把 `export-dist` 改成 npm 判据。
 - **pnpm 10.6 下限**：本机无 Corepack 网络，BLOCKED；真实安装矩阵要另找环境。
 - **并行会话占位**：切片台账的“开工锚点”是否作为常设纪律（不加状态词），待 B2 与用户一起定。
 - **测试地板偶发（已修）**：`host-harness` 的 `memoryPool` 现在在删 home 前 dispose 自己的 Context（`e73f69ea`），`knowledge-curation` 单跑 5 次 + 全量 2 次绿；不再依赖 `rmSync` retry 掩盖竞态。
 
 ## 下一步
 
-1. **A 批（本轮，授权内）**：收敛本卡状态面（一个停点 + 一个台账）；修活跃清单状态、安装手册 headless 段、
-   distribution note 的部分收窄、research 题名页指针、README 五步指针、delivery 的 standalone 限定、
-   client 模块地图、discipline #17 归位。
-2. **B 批（本轮，授权内）**：加 `pnpm check`（typecheck → test → verify）并改四处"地板"指针；
-   补 `assistant_reflect` 6 个动作、`assistant-product`/`ui-mode` 行 apply、`desk-arms` 启动锁、
-   ledger corrupt / CLI export-inside 拒绝的断言。
-3. **C 批（用户已确认继续）**：CLI bundle 按 5 动词拆分；卸载残留 profile patch 清理/拒绝；
-   主题 seam 归位或登记；`dsh.client.inject`；`tests/cli/` 层；读法行；web-only 行名去重。
-4. 收口时写 implemented note（只留决定与输掉的方案），卡归档，research 题归档，清单同步。
+A/B/C 已交付；只剩 **收口**：写 implemented note（只留决定与输掉的方案）、卡归档、research 题归档、
+两边清单同步。C 的残余（client bundling、legacy 自动清理的真实旧 home fixture）是独立可选片，不阻塞收口。

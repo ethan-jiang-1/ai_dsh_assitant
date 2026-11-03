@@ -135,7 +135,7 @@ node bootstrap.mjs --no-start ...
 | 首屏显示“上次的项目目录不在了” | Config 里的路径失效；在首屏重选 |
 | 未绑定项目时 composer 被禁、dock 给出选择按钮 | 这是工作区门，不是输入故障；选项目目录后新会话落在项目里。`onboarding:false` 的部署/非产品场景保持透明 |
 | 首屏显示“选一个项目目录”但没有选择器 | 当前组合没有 `remote.directoryPicker`；在 profile patch 设置 `assistant-product.workspaceDir` |
-| 产品会话在别的 profile 打开报 `agent-preset/not-found` | 从专用 profile 打开；该 profile 没有 `assistant` preset |
+| 产品会话在别的 profile 打开报 `agent-preset/not-found` | 从专用 profile 打开；该 profile 没有 `assistant` preset。若是 remove 后的旧 home，先删 0.2.0 前的 profile 块 |
 | headless 仍看到 web-only 行 pending | bundle patch 的 self-disable 表达式未生效（旧包/被 profile 覆盖）；检查 `connection` 与 pin，profile 层可显式 `disabled: true` 双保险 |
 | `the profile dump has no assistant-product row` | 包旧/未 build；重装当前 tarball |
 | 装完“没生效” | CLI 装完宿主不知道；重启 profile；客户端模块变更刷新 |
@@ -158,7 +158,7 @@ node bootstrap.mjs --no-start ...
 
 | 行 id | 我们改什么 | 为什么 | 复核条件（换 pin 时看） | 退役条件 |
 |---|---|---|---|---|
-| `agent-preset-registry` | `config.default: assistant`（**裸 id，整行 config 替换**） | 部署默认 preset 属于 bundle 默认值；装完即产品 | vendor 若给这行加字段，这里要一并写全（整行替换会丢） | 不退役（这是产品定义）；用户 `selectedDefault` 优先，卸载即回退 `standard` |
+| `agent-preset-registry` | `config.default: assistant`（**裸 id，整行 config 替换**） | 部署默认 preset 属于 bundle 默认值；装完即产品 | vendor 若给这行加字段，这里要一并写全（整行替换会丢） | 不退役（这是产品定义）；用户 `selectedDefault` 优先；0.2.0 前安装器写过的 profile 块会压过 bundle，需按 README 删除（重跑 `bootstrap` 会自动清） |
 | `ui-chat` | `config.transcriptView: detailed`（**裸 id，整行配置替换**） | 本 pin 的**预构建 client bundle** 缺 `?? defaultMode` 兜底：全新 home 无存档时 `conversation.view` 崩 | 发布人口重新构建后有兜底就不再需要 | 发布人口自 rc.5 起已带兜底（`_backlog/_archive/research/261101-plugin-lifecycle` E 系列记录）；**抬 floor 到实测版本时退役**（2026-11-02 决议：抬 pin 单独做） |
 | `locale` | `config.preference: zh`（**裸 id，整行配置替换**） | 目标用户是中文管理者，无偏好时首开随浏览器协商会落英文 | vendor 若改 locale 配置键名/层级 | 不退役（产品口味）；用户可在 Settings 改 |
 | `session-query-sqlite` | `config.path` + `openAt: first-search`（**裸 id，整行配置替换**） | base 出厂 `never` + `:memory:`；本产品要"首次检索才建索引 + 持久" | base 行若改 config 形状或默认值 | base 出厂即带缓存路径默认时退役 |

@@ -97,6 +97,30 @@ try {
   }
 
 
+  step('removing the pre-0.2.0 default-preset block from the profile patch')
+  const legacyPatchPath = join(profilesDir, 'cordis.patch.yml')
+  const originalPatch = existsSync(legacyPatchPath) ? readFileSync(legacyPatchPath, 'utf8') : ''
+  const legacyBlock = '# Written by dsh-smart-assistant bootstrap.mjs\n- id: agent-preset-registry\n  config:\n    default: assistant\n'
+  const userComment = '# keep-this-user-line\n'
+  writeFileSync(legacyPatchPath, `${legacyBlock}${userComment}`, 'utf8')
+  const cleaned = bootstrap(['--workspace', workspace, '--home', home, '--dsh', wrapper, '--no-start'])
+  const cleanedPatch = existsSync(legacyPatchPath) ? readFileSync(legacyPatchPath, 'utf8') : ''
+  if (cleaned.status !== 0) fail(`re-run with the legacy block failed: ${text(cleaned).trim().split('\n').slice(-5).join(' ')}`)
+  else if (cleanedPatch.includes('dsh-smart-assistant bootstrap.mjs')) fail('the legacy default-preset block survived bootstrap')
+  else if (!cleanedPatch.includes('keep-this-user-line')) fail('bootstrap removed a user line next to the legacy block')
+  else if (/default:\s*assistant/.test(cleanedPatch)) fail('the cleaned profile patch still sets the product preset as default')
+  else ok('legacy block removed and the user line preserved')
+
+  step('refusing an edited legacy marker instead of guessing')
+  const editedBlock = legacyBlock.replace('default: assistant', 'default: standard')
+  writeFileSync(legacyPatchPath, `${editedBlock}${userComment}`, 'utf8')
+  const refusedLegacy = bootstrap(['--workspace', workspace, '--home', home, '--dsh', wrapper, '--no-start'])
+  const refusedPatch = readFileSync(legacyPatchPath, 'utf8')
+  if (refusedLegacy.status === 0) fail('bootstrap accepted an edited legacy block')
+  else if (refusedPatch !== `${editedBlock}${userComment}`) fail('bootstrap changed an edited legacy block')
+  else ok('edited legacy block refused without touching the bytes')
+  writeFileSync(legacyPatchPath, originalPatch, 'utf8')
+
   const dump = run(wrapper, ['--profile', 'assistant', '--dump-config'], {
     env: { ...process.env, DSH_HOME: home, DSH_AGENTS_HOME: join(home, 'agents-home') },
     timeout: 120_000,

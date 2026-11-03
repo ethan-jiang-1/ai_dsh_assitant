@@ -119,6 +119,7 @@ try {
   dsh(['plugin', '--profile', profile, 'remove', current.name])
   const afterRemove = dsh(['--profile', profile, '--dump-config'])
   if (afterRemove.stdout.includes(current.name)) fail('dump still mentions the package after remove')
+  else if (/default:\s*assistant/.test(afterRemove.stdout)) fail('remove left the product preset as the profile default without the preset definition')
   else if (readFileSync(join(home, 'assistant', 'memory', 'upgrade-probe.md'), 'utf8') !== 'probe before upgrade\n') fail('remove deleted working-folder data')
   else if (readFileSync(join(home, 'assistant-operating', 'ledger.json'), 'utf8') !== '{"revision":7}\n') fail('remove deleted ledger data')
   else ok('remove left both data directories intact')

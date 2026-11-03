@@ -50,6 +50,26 @@ import { homedir } from 'node:os'
 import { basename, dirname, isAbsolute, join, parse, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+// The pre-0.2.0 installer wrote this exact block into the profile patch. It outlives the bundle
+// (the manager leaves user-authored patches untouched), and after removal it keeps a default
+// preset whose definition left with the bundle: every new session then throws
+// `agent-preset/not-found` while boot stays green. Remove exactly the block we authored; if a
+// principal edited it, refuse and keep every byte rather than guessing.
+const LEGACY_PATCH_MARKER = '# Written by dsh-smart-assistant bootstrap.mjs'
+const LEGACY_PATCH_BLOCK = `${LEGACY_PATCH_MARKER}\n- id: agent-preset-registry\n  config:\n    default: assistant\n`
+export function stripLegacyPatchBlock(text) {
+  if (!text.includes(LEGACY_PATCH_MARKER)) return { text, action: 'none' }
+  if (!text.includes(LEGACY_PATCH_BLOCK)) return { text, action: 'edited' }
+  const next = text.replace(LEGACY_PATCH_BLOCK, '')
+  const hasRow = next.split('\n').some(line => line.trim() !== '' && !line.trim().startsWith('#'))
+  // A comment-only patch parses as null, not as the array the loader expects. Keep the user's
+  // comments and make the empty patch explicit; if other rows remain, leave every byte alone.
+  return {
+    text: hasRow ? next : `${next.trimEnd()}${next.trim() === '' ? '' : '\n'}[]\n`,
+    action: 'removed',
+  }
+}
+
 // The installer ships as its own release asset (`_dist/bootstrap.mjs`, S5 2026-11-02), so it can no
 // longer assume the package sits beside it: `--package <dir>` names the unpacked package it should
 // install. Without the flag the historical layout (script inside the package root) still works.
@@ -449,10 +469,12 @@ if (needInstall) {
 // worth failing on rather than papering over with a hand-written profile patch.
 const patchPath = join(profileDir, 'cordis.patch.yml')
 const currentPatch = existsSync(patchPath) ? readFileSync(patchPath, 'utf8') : ''
-if (currentPatch.includes('dsh-smart-assistant bootstrap.mjs')) {
-  // Older installers wrote a default-preset block here. Leave it: removing rows the principal may
-  // have edited is worse than a redundant override that now matches the bundle anyway.
-  console.log('bootstrap: profile patch still carries the pre-0.2.0 default-preset block (harmless; delete it to inherit the bundle default)')
+const legacy = stripLegacyPatchBlock(currentPatch)
+if (legacy.action === 'edited') {
+  fail('bootstrap: the profile patch carries a marked pre-0.2.0 block that does not match the exact legacy bytes; remove it by hand (see README)')
+} else if (legacy.action === 'removed') {
+  writeFileSync(patchPath, legacy.text, 'utf8')
+  console.log('bootstrap: removed the pre-0.2.0 default-preset block; the bundle patch owns the default now')
 }
 
 const dump = runDsh(['--profile', profile, '--dump-config'], 'verify composition')

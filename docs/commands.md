@@ -24,6 +24,8 @@ pnpm verify             # 机械门禁链（覆盖面清单 = scripts/checks/ver
 
 ```sh
 pnpm check              # typecheck → test → verify（顺序由脚本钉住）
+pnpm check:full         # 阶段收口：check + web-face-check --all + upgrade-smoke + release-smoke
+                        #   PASS/FAIL/BLOCKED 分开汇总；floor 失败即停，其余车道尽量跑完
 ```
 
 `pnpm test:coverage`：同一套全量 + coverage 报告（落 `.tmp/coverage`；只报告，不设阈值）。
@@ -109,7 +111,7 @@ pnpm web-install-smoke [-- --tarball <old> --upgrade-tarball <new>]
 pnpm install-resilience-smoke  # 损坏 tarball 被拒 → profile 保持空 → 有效 tarball 重试；两个并发 add 一份依赖
 pnpm bootstrap-guards-smoke    # 独立启动的坏输入：profile 穿越/保留名/缺旧 pnpm/npm 在创建 home 前拒绝
 pnpm pnpm-matrix -- --pnpm <v> --expect install|reject   # pnpm 版本矩阵
-pnpm prompt-smoke       # 无 key 回放一次 preset one-shot，断言四个 prompt 段落与六个工具真进了请求
+pnpm prompt-smoke       # 无 key 回放一次 preset one-shot，断言 prompt 段落与自有工具真进了请求（清单/计数 = `package-catalog.md`）
 pnpm compat-matrix -- --dsh <path> --version <v> --expect install|reject   # 真实 DSH CLI 的下界/拒绝矩阵
 pnpm export-dist        # pnpm pack → _dist/ 的 tgz + 清单边界断言 + 自动生成《安装手册》
 pnpm publish-release    # 发布预检：版本一致/干净树/版本未发过/build/export-dist/verify；加 `-- --publish` 才真发 npm，且发布 `_dist/*.tgz` 同一份字节
