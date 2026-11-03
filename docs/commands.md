@@ -112,7 +112,7 @@ pnpm web-install-smoke [-- --tarball <old> --upgrade-tarball <new>]
 pnpm install-resilience-smoke  # 损坏 tarball 被拒 → profile 保持空 → 有效 tarball 重试；两个并发 add 一份依赖
 pnpm bootstrap-guards-smoke    # 独立启动的坏输入：profile 穿越/保留名/缺旧 pnpm/npm 在创建 home 前拒绝
 pnpm pnpm-matrix -- --pnpm <v> --expect install|reject   # pnpm 版本矩阵
-pnpm prompt-smoke       # 无 key 回放一次 preset one-shot，断言 prompt 段落与自有工具真进了请求（清单/计数 = `package-catalog.md`）
+pnpm prompt-smoke       # 无 key 回放一次 preset one-shot，断言 prompt 段落与自有工具真进了请求（清单/计数 = `package-catalog.md`）；前置 = dev-task profile + PATH 上有 `zstd`（先 `pnpm start` 或 `bash dev/env/setup.sh`），缺任一 = BLOCKED exit 2
 pnpm compat-matrix -- --dsh <path> --version <v> --expect install|reject   # 真实 DSH CLI 的下界/拒绝矩阵
 pnpm export-dist        # pnpm pack → _dist/ 的 tgz + 清单边界断言 + 自动生成《安装手册》
 pnpm publish-release    # 发布预检：版本一致/干净树/版本未发过/build/export-dist/verify；加 `-- --publish` 才真发 npm，且发布 `_dist/*.tgz` 同一份字节

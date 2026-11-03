@@ -126,4 +126,4 @@ pnpm check      # typecheck → test → verify
 
 ## 探索路由
 
-完整路由 = [`docs/dev.md`](docs/dev.md) §十一（本仓侧合同/证据/链路 + vendor 平台事实 + 组合/inspect 工具）。三条硬约束：平台事实读 vendor，本仓只写差量（硬规则 2）；组合行是否存在用 `pnpm dsh --profile dev --dump-config`；活进程注册用 shipped inspect 工具（本仓 `assistant` preset 刻意不挂）。
+完整路由 = [`docs/dev.md`](docs/dev.md) §十一（本仓侧合同/证据/链路 + vendor 平台事实 + 组合/inspect 工具）。三条硬约束：平台事实读 vendor，本仓只写差量（硬规则 2）；组合行是否存在用 `pnpm dsh --profile dev --dump-config`；活进程注册用 shipped inspect 工具（本仓 `assistant` preset 刻意不挂）。搜代码用 `git grep`，或把 `.tmp/`、`lib/` 排除在 glob 外——运行产物与构建物不是仓库内容，混进结果只会截断输出。
