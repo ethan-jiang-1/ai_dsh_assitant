@@ -66,8 +66,8 @@
 见 [`docs/home.md`](docs/home.md) §四）是**机器能跑的养护检查**（重复、悬空引用、摘要预算、过期线索、
 技能遮蔽/退役/断链/凭据、知识页治理等——**非穷举**，完整检查面 = [`docs/home.md`](docs/home.md) §四）—— 能让代码查的，别让 AI 自己说。
 
-这些是本插件的**自有**工具；同一组合里还有 DSH 现货工具在场——`session_query` 族（原始会话
-检索）、`schedule_*` 定时四件、`skill`（技能加载）等，完整组合见 `docs/architecture.md` §二。
+这些是本插件的**自有**工具；同一 **web** 组合里还有 DSH 现货工具在场——`session_query` 族（原始会话
+检索）、`schedule_*` 定时四件（headless 组合没有该行）、`skill`（技能加载）等，完整组合见 `docs/architecture.md` §二。
 
 ## 产品怎么开始
 
@@ -94,7 +94,7 @@ dsh --profile assistant                                            # ② 启动
 
 ## 从哪个入口开始
 
-起服务五步、开发环、验证链、评测的命令与判据，**唯一清单** = [`docs/commands.md`](docs/commands.md)（启动五步仍住根 [`AGENTS.md`](AGENTS.md) 的启动段）
+起服务五步住根 [`AGENTS.md`](AGENTS.md) 的启动段；开发环、验证链、评测的命令与判据，**唯一清单** = [`docs/commands.md`](docs/commands.md)
 （本 README 不复述；唯一例外是下面「知识导入」与「专家部署装配」两条部署 CLI，家在本文）。
 
 **按问题找**（纯路由，不复制正文）：
@@ -135,7 +135,7 @@ dsh --profile assistant                                            # ② 启动
 ```sh
 git submodule update --init     # vendor/dsh submodule（pin 出处 = vendor/UPSTREAM.md）
 pnpm install
-pnpm typecheck && pnpm test && pnpm verify
+pnpm check                      # typecheck → test → verify
 ```
 
 首次进入到此为止。日常开发环（dev / dev-task 两个 profile 各自验什么、one-shot 与 Web UI 的分工、

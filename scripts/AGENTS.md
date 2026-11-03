@@ -23,7 +23,7 @@
 
 ## 收尾三连与触发条件
 
-- 每个切片的收尾：`pnpm typecheck && pnpm test && pnpm verify`；
+- 每个切片的收尾：`pnpm check`（typecheck → test → verify，顺序由脚本钉住）；
 - **改动发布物 / 依赖 / preset 包装 / 工具面**时追加：`pnpm build && pnpm release-smoke`
   （组合测试与 smoke 消费 `lib/` 产物——不 build 会拿到旧行为，历史上真发生过假绿）；
 - 换 pin：`pnpm sync-dsh -- --tag <tag>`（它自己跑 typecheck 并按

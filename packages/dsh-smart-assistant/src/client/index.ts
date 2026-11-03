@@ -21,7 +21,8 @@
  * messages, processing settle observer, view actions; the return state machine itself is the
  * domain module `domain/desk/desk-process.ts`) / `projection/` (download
  * reader, v1/v2 normalization, view store, panel, lifecycle) / `proactive/` (suggestion rows
- * and handlers, catalog source) / `local-state` (per-tab persistence) — this entry owns the
+ * and handlers, catalog source) / `product/` (workspace gate, binding, dock) / `debug/` (flag-gated
+ * debug panel) / `local-state` (per-tab persistence) — this entry owns the
  * facade registration, the seat and command registrations inside `apply`, and the dependency
  * wiring between them (store mounts, the arms, the suggestion handlers).
  *

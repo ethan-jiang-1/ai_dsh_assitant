@@ -80,13 +80,19 @@ pnpm dsh --profile dev --port 0 --no-open   # ④ Web
 pnpm dsh --profile dev-task "one task"      # ⑤ 只冒烟 headless
 ```
 
-日常四条：
+日常四条（按需单跑）：
 
 ```sh
 pnpm build      # preset 行加载 lib/，不是源码
 pnpm typecheck  # 跑完重跑 pnpm build
 pnpm test       # vitest 全量（分层 spec）
 pnpm verify     # 机械门禁链
+```
+
+收尾一键（地板；顺序由脚本钉住）：
+
+```sh
+pnpm check      # typecheck → test → verify
 ```
 
 `pnpm dsh --profile dev-task "one task"` 只冒烟 headless；完整命令（探针/评测/发布/维护）= [`docs/commands.md`](docs/commands.md)，入口判据 = [`docs/dev.md`](docs/dev.md) §六，踩坑 §五。命令清单只有一个家，根不复述。

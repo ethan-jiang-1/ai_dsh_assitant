@@ -1,6 +1,6 @@
 # 命令参考（完整清单）
 
-> 本文件拥有**完整命令清单**（alias × 用途 × 判据指针）；根 [`AGENTS.md`](../AGENTS.md) 只留启动（默认 `pnpm start` / 手工五步）+ 日常四条。
+> 本文件拥有**完整命令清单**（alias × 用途 × 判据指针）；根 [`AGENTS.md`](../AGENTS.md) 只留启动（默认 `pnpm start` / 手工五步）+ 日常四条 + 收尾一键。
 > 每条命令的深层判据与坑 = [`dev.md`](dev.md) §四/§五；改什么 → 跑什么的证据选择 = [`testing.md`](testing.md) §一页证据地图。
 > 本文件不拥有启动语义（根 `AGENTS.md` 的启动段）或发布顺序（[`dev.md`](dev.md) §九）。
 > 判据先行：**装好了** = `node_modules/.modules.yaml` 在；**建好了** = `vendor/dsh/packages/boot/app-boot/lib/index.js`、
@@ -8,7 +8,7 @@
 
 ## 启动与日常
 
-`pnpm start` 的语义、手工五步与隔离 home 规则 = 根 [`AGENTS.md`](../AGENTS.md) 的启动段（常设指令 owner）。日常四条：
+`pnpm start` 的语义、手工五步与隔离 home 规则 = 根 [`AGENTS.md`](../AGENTS.md) 的启动段（常设指令 owner）。日常四条（按需单跑）：
 
 ```sh
 pnpm build              # tsc 出 lib/ + tsdown 出 classic bundle：preset 行加载的是构建物，不是源码
@@ -16,6 +16,12 @@ pnpm build              # tsc 出 lib/ + tsdown 出 classic bundle：preset 行�
 pnpm typecheck          # 委派包级：tsc -b + 测试工程；跑完记得重跑 pnpm build（tsc 会覆盖 classic bundle）
 pnpm test               # vitest 全量：分层 spec（纯核+服务合同+agent/client/composition/tooling）
 pnpm verify             # 机械门禁链（覆盖面清单 = scripts/checks/verify.mjs）
+```
+
+**收尾一键（地板）**：
+
+```sh
+pnpm check              # typecheck → test → verify（顺序由脚本钉住）
 ```
 
 `pnpm test:coverage`：同一套全量 + coverage 报告（落 `.tmp/coverage`；只报告，不设阈值）。

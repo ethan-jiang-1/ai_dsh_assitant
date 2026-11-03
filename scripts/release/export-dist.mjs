@@ -544,16 +544,15 @@ dsh --profile assistant --from-default-profile headless --dump-config
 dsh plugin --profile assistant add <tarball>
 \`\`\`
 
-然后写下面的 profile patch。**\`agent-preset-registry\` 必须用 \`insert\`**：headless 模板只有
-\`[dsh-base, dsh-headless]\`，没有这一行可替换；写成裸 \`- id:\` 只会得到 \`entry not found\`，默认预设不生效。
-打开 \`<DSH_HOME>/profiles/assistant/cordis.patch.yml\`：如果里面是占位 \`[]\`，把 \`[]\` 整行替换成下面的块；
-文件不存在就整段写入（\`<DSH_HOME>\` 默认是 \`~/.dsh\`）：
+装包后五个 web-only 行（\`assistant-product\`、\`assistant-desk-projection\`、\`assistant-ui-mode\`、
+\`assistant-rooms\`、\`assistant-viki\`）会按 \`connection\` 自禁用；\`schedule\` 不在 headless 组合里。
+**不要再手写这些 disabled 行。**
+
+只有要让 \`assistant\` 成为该 headless profile 的**默认 preset** 时，才需要写一条 patch：headless
+模板没有 \`agent-preset-registry\` 行，bundle patch 的裸 \`- id:\` 覆盖在这里落空。打开
+\`<DSH_HOME>/profiles/assistant/cordis.patch.yml\`，把占位 \`[]\` 整行替换成（或追加）下面这一块：
 
 \`\`\`yaml
-- id: assistant-product
-  disabled: true
-- id: schedule
-  disabled: true
 - insert:
     - id: agent-preset-registry
       name: '@deepseek-ai/dsh-agent-preset-registry'
@@ -561,9 +560,8 @@ dsh plugin --profile assistant add <tarball>
         default: assistant
 \`\`\`
 
-然后 \`dsh --profile assistant --dump-config\` 应看到 \`default: assistant\` 与 \`preset-assistant\`，
-且没有 \`assistant-product\` 的 pending 行。\`agent-preset-registry\` 的一条 \`entry not found\` 提示来自 bundle 对
-web 行的覆盖，\`insert\` 补进后功能正常，可以忽略。用了别的 profile 名，把路径里的 \`assistant\` 换掉。
+然后 \`dsh --profile assistant --dump-config\` 应看到 \`default: assistant\` 与 \`preset-assistant\`。
+如果你显式传了 \`--preset\` 或用户已选默认，可以不写这一段。用了别的 profile 名，把路径里的 \`assistant\` 换掉。
 
 ## 十、专家装配（可选：导入管理种子）
 
@@ -624,7 +622,7 @@ Windows：\`dsh\`/\`npm\` 的 \`.cmd\` shim 与进程树语义已做代码级加
 | 升级后数据在哪 | 仍在 \`<DSH_HOME>/assistant\` 与 \`assistant-operating\`；专用 home 模式在 \`<productHome>\` 下；\`remove\` 不删；升级前先备份 |
 | 安装器与 native 有什么区别 | 安装器（A）帮你建 \`assistant\` profile、装包、起 Web；native（B）用 DSH 三步达到同一 profile；两者的工作区都在首启选，写 profile Config |
 | 首跑停在登录/要求 API Key | 专用 home 是新的，没有 provider 凭据；在 Web UI 登录/配置后再用，不是装坏 |
-| headless 组合里多一条 \`assistant-product\` pending | 入口行是 web-only；headless profile patch 要加 \`- id: assistant-product\` + \`disabled: true\` |
+| headless 组合里多一条 \`assistant-product\` pending | bundle patch 的 self-disable 未生效（旧包/被 profile 覆盖）；升级当前 tarball，或在 profile 层显式 \`disabled: true\` 双保险 |
 | 工作区交付包在哪 | \`<工作区>/deliverables/<YYYY-MM-DD>-<slug>/\`（README 四段 + 交付物 + \`present\`）；不复制会话日志 |
 | 备份怎么恢复 | 用 \`assistant-data import\`；已启动过的 home 加 \`--replace\`（现有目录移到旁路，不用清空）；它按 manifest 的 schemaVersion 拒绝不兼容备份 |
 | 产品启动要 dsh 吗 | 要，PATH 上有兼容 \`dsh\` 或传 \`--dsh\`；没有 dsh 的便携包是另一个产品，不在本手册范围 |

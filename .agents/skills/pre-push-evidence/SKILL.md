@@ -68,7 +68,7 @@ harness commands. This skill selects this repo's commands.
 
 ## Finish line
 
-`pnpm typecheck && pnpm test && pnpm verify` is the floor for every slice. Add the evidence-map
+`pnpm check` (typecheck → test → verify, in that order) is the floor for every slice. Add the evidence-map
 rows that apply — the routing table lives in
 [docs/testing.md](../../../docs/testing.md)'s「一页证据地图」 — and stop there — the exhaustive
 matrix is not the goal, a red light that would actually have caught *this* regression is.
