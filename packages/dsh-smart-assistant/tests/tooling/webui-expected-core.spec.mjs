@@ -165,12 +165,16 @@ describe('compareEvidence accepts the matching state and bites on every compared
 })
 
 describe('buildWaitSnippet compiles a scene readiness token into a polling eval', () => {
-  it('polls for the needle and resolves ready on sight', () => {
+  it('resolves ready only after the needle stays visible for a stability window', () => {
     const snippet = buildWaitSnippet('在等你审批')
     expect(snippet).toContain("'在等你审批'")
-    expect(snippet).toContain('setInterval')
-    expect(snippet).toContain('document.body.innerText.includes(needle)')
+    // Readiness is not "first sight": the token is re-checked after 400ms, because a page can
+    // show the state and then drop its connection before the shot (one observed false red).
+    expect(snippet).toContain('innerText.includes(needle)')
+    expect(snippet).toContain('seen()')
+    expect(snippet).toContain('}, 400)')
     expect(snippet).toContain("resolve('ready: ' + needle)")
+    expect(snippet).not.toContain('setInterval')
   })
 
   it('bounds readiness at 30s by default so a busy machine does not red a healthy page', () => {

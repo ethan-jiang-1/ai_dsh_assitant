@@ -141,10 +141,19 @@ export function buildWaitSnippet(needle, timeoutMs = 30_000) {
     'new Promise(resolve => {',
     `  const needle = '${literal}'`,
     `  const deadline = Date.now() + ${Number(timeoutMs)}`,
-    '  const iv = setInterval(() => {',
-    "    if (document.body !== null && document.body.innerText.includes(needle)) { clearInterval(iv); resolve('ready: ' + needle) }",
-    "    if (Date.now() > deadline) { clearInterval(iv); resolve('timeout: ' + needle) }",
-    '  }, 200)',
+    '  const seen = () => document.body !== null && document.body.innerText.includes(needle)',
+    '  const poll = () => {',
+    "    if (Date.now() > deadline) return resolve('timeout: ' + needle)",
+    '    if (!seen()) return setTimeout(poll, 200)',
+    // Stable, not momentary: one observed flake had the token on screen, then a connection
+    // drop before the shot. Requiring it again after a short window catches that class
+    // without naming any page-specific banner.
+    '    return setTimeout(() => {',
+    "      if (seen()) resolve('ready: ' + needle)",
+    '      else setTimeout(poll, 200)',
+    '    }, 400)',
+    '  }',
+    '  poll()',
     '})',
   ].join('\n')
 }
