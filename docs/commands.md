@@ -91,7 +91,7 @@ pnpm test:composition   # 真 Loader + built lib（先 pnpm build）
 pnpm eval               # 行为评测：真实请求经 preset 会话，判定读会话日志（串行）
 pnpm eval:domain        # 领域评测：本人出题逐题跑 → 人打分的报告（模板 = dev/eval/domain/TEMPLATE.md）
 pnpm eval:continuity    # 续接行为地板：隔离 fixture 首回合读回判据（红绿对照挂 verify）
-pnpm usage              # 意图级仪表：会话/工具混合/自用率/摩擦（读 dev home）
+pnpm usage [--since N]  # 意图级仪表：会话/工具混合/自用率/摩擦（读 dev home；--since 只看最近 N 天）
 pnpm desk-loop          # 培养循环摩擦报告（读 dev home 会话日志）
 pnpm observe [--home <dir>]   # 输入边界 30 天观察读数（A/B/C 口径与读数档 = docs/dev.md §五）
 pnpm ov-trial-rt        # OpenViking 真服务记忆往返试验（前提 server 已在 127.0.0.1:1933）

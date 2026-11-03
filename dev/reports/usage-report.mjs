@@ -14,12 +14,13 @@
  *      `dev/lib/eval-sessions.mjs`（与 desk-loop 同源），报告打一行透明度说明，其余口径不动。
  *
  * 用法：
- *   pnpm usage            # 读 dev home（或 $DSH_HOME）的会话与 working folder
- *   pnpm usage -- --types # 只打印事件类型直方图（形状变了先看这个；同一剔除口径）
+ *   pnpm usage                # 读 dev home（或 $DSH_HOME）的会话与 working folder
+ *   pnpm usage -- --types     # 只打印事件类型直方图（形状变了先看这个；同一剔除口径）
+ *   pnpm usage -- --since 2   # 只看最近 2 天（按日志 mtime；全量扫描在 600+ 会话时是分钟级）
  *
  * @module dev/usage-report
  */
-import { existsSync, readdirSync } from 'node:fs'
+import { existsSync, readdirSync, statSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { devHome } from '../env/home.mjs'
@@ -221,8 +222,39 @@ export function renderReport(total, home, { excludedEvalSessions = 0 } = {}) {
   return lines.join('\n')
 }
 
+/**
+ * Keep the logs whose mtime falls inside the last `days` days. A 600+ log home makes the full
+ * scan slow; a diagnosis usually asks about today, not the archive. Pure over the two injected
+ * readings so the spec can pin the boundary without touching the filesystem.
+ * @param logs - Log paths.
+ * @param input - `{ days, now, mtimeOf }`.
+ * @returns The kept paths.
+ */
+export function windowedLogs(logs, { days, now, mtimeOf }) {
+  const cutoff = now - days * 24 * 60 * 60 * 1000
+  return logs.filter(log => mtimeOf(log) >= cutoff)
+}
+
+/** Parse `--since <days>`; invalid or missing values are a usage error, not a silent full scan. */
+function sinceDays() {
+  const index = process.argv.indexOf('--since')
+  if (index === -1) return undefined
+  const value = Number(process.argv[index + 1])
+  if (!Number.isFinite(value) || value <= 0) {
+    console.error('usage: pnpm usage [--since <days>] [--types]')
+    process.exit(2)
+  }
+  return value
+}
+
 function main() {
-  const logs = sessionLogs(harnessHome)
+  const days = sinceDays()
+  const allLogs = sessionLogs(harnessHome)
+  const logs = days === undefined
+    ? allLogs
+    : windowedLogs(allLogs, { days, now: Date.now(), mtimeOf: log => statSync(log).mtimeMs })
+  const window = days === undefined ? '' : `最近 ${String(days)} 天`
+  if (window !== '') console.log(`# 窗口：${window}（按日志 mtime；${String(logs.length)}/${String(allLogs.length)} 个会话）`)
   // 评测会话先剔（判据 = dev/lib/eval-sessions.mjs，与 desk-loop 同源）：不剔的话 dev home 里的
   // one-shot 评测会话被算成「本人使用」——自用率与摩擦读数都失真（261020 深审 #21）。
   const keptEvents = []

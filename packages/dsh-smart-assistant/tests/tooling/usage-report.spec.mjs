@@ -7,7 +7,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { homeCounts, mergeSummaries, renderReport, summarizeEvents } from '../../../../dev/reports/usage-report.mjs'
+import { homeCounts, mergeSummaries, renderReport, summarizeEvents, windowedLogs } from '../../../../dev/reports/usage-report.mjs'
 
 const dirs = []
 
@@ -162,5 +162,16 @@ describe('homeCounts', () => {
     expect(homeCounts(home)).toEqual({
       memories: 1, archivedMemories: 1, threads: 0, archivedThreads: 0, skills: 1, archivedSkills: 0, pages: 1,
     })
+  })
+
+  it('windows logs by mtime so a diagnosis can skip the archive', () => {
+    const now = Date.parse('2026-11-03T00:00:00.000Z')
+    const day = 24 * 60 * 60 * 1000
+    const logs = ['today', 'two-days', 'ten-days']
+    const mtime = { today: now - day / 2, 'two-days': now - 2 * day - 1, 'ten-days': now - 10 * day }
+    // Boundary: `>= cutoff` keeps a log exactly on the edge, so "last 2 days" includes day 2.
+    expect(windowedLogs(logs, { days: 2, now, mtimeOf: log => mtime[log] })).toEqual(['today'])
+    expect(windowedLogs(logs, { days: 3, now, mtimeOf: log => mtime[log] })).toEqual(['today', 'two-days'])
+    expect(windowedLogs(logs, { days: 30, now, mtimeOf: log => mtime[log] })).toEqual(logs)
   })
 })
