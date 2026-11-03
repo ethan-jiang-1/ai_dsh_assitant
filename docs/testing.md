@@ -100,6 +100,9 @@
 | `tests/tooling/` | 仓库工具核（verify 门禁、eval 判决、catalog 生成器、报告、DOM 比较核、包内 `ov-doctor`） | 脚本直读 + throwaway 夹具 | 工具核的接受/拒绝形状（含 prove-it-red 负例） | 真实会话/渲染/门禁全量（`pnpm verify` 的事） | `pnpm test:tooling` |
 | `tests/support/` | 共享夹具（`*harness.{ts,mjs}`） | — | — | 刻意不被任何 include 选中（门禁豁免容器） | — |
 
+> **CLI 例外**：shipped `assistant-data` 的行为 spec 住 `tests/tooling/`——它与工具核共用 throwaway 夹具，
+> 被测面是 CLI facade（不是浏览器/host 平面）；不为它单开 `tests/cli/` 层，避免同一条行为有两个家。
+
 失败报告先按本表分层归因再上浮：配置 / 构建物 / 领域规则 / 服务行为 / 模型回合 / UI 读回，不混称"测试挂了"。
 
 **夹具两家**：`tests/support/`（`*harness` 共享夹具）是 **spec 的夹具家**——被 vitest spec import、按豁免容器进命名表；`tests/host/fixtures/` 是 **spec 的冻结字节夹具家**（如 `old-home-v19/`，被 spec 整树复制后读取，不 import）；`dev/fixtures/` 是**真实运行的夹具家**——探针 / 评测消费的种子账本、回放语料与固定下载资料，由一次性或隔离 home 装载，**不被 spec import**。各夹具目录自带 README（预期集合、能证 / 不能证、复跑命令）。

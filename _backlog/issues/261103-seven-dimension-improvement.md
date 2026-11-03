@@ -52,9 +52,24 @@ DSH 约定偏离（`insert` 当 override、两个 packer、client 状态所有�
 | 7 DSH 约定 | A- 8.3 | **A- 8.5** | 卸载文档补旧 profile patch 清理、主题 seam 登记 #18；未做自动清理与 `dsh.client.inject` |
 | **整体** | **≈8.2** | **≈8.6（全维 A-）** | A/B 批把"自述面"与"测试所有权"两类债收掉；C 余项仍是 A- 的边界 |
 
+### C 代码切片后复评（2026-11-03 09:0x）
+
+| 维度 | A/B 后 | C 后 | 依据 |
+|---|---|---|---|
+| 1 文档/渐进披露 | A- 8.5 | **A- 8.6** | 5 篇读法行已补；README 五步指针已修；web-only 行名在包 README 内仍重复一次 |
+| 2 代码/测试层次 | A- 8.5 | **A 9.0** | `assistant-data-bundle.ts` 555 行 5 动词已按 verb 拆成 6 个文件（最大 182 行）；公共面仍是 `assistant-data.ts` facade；测试所有权已补 |
+| 3 整体结构 | A- 8.5 | **A- 8.6** | `pnpm check` 已是唯一地板并被连续使用；卡的状态面仍偏多，但顶部停点唯一 |
+| 4 上下文腐化 | A- 8.5 | **A- 8.6** | 无已知假话；research 页首轮 7.2 有明确"首轮判定"标注 |
+| 5 测试资产 | A- 8.5 | **A- 8.6** | reflect 6 动作/行注册/启动锁/corrupt/CLI 拒绝均有断言；`tests/cli` 层与 brief 真 agent 分支仍缺 |
+| 6 反馈通路 | A- 8.5 | **A- 8.6** | scratch 门禁不再在"删除未暂存"时 ENOENT 崩；真页面车道待本轮 `--all` 读数 |
+| 7 DSH 约定 | A- 8.5 | **A- 8.6** | 卸载文档 + 主题 seam 登记已补；自动清理旧 profile patch 未做（需真实旧 home fixture） |
+| **整体** | **≈8.6** | **≈8.7（D2 到 A，其余 A-）** | 结构债收口；剩余是证据/生命周期边界，不是骨架问题 |
+
+**C 代码切片（`cb6b25d2`）**：`src/cli/assistant-data/` 六个文件（export/import/merge/maintenance/manifest/shared，最大 182 行）；`assistant-data.ts` 只做公共面再导出；`pnpm check` 全绿；`release-smoke` 的安装/组合/bins 全过（live turn 无 key = BLOCKED exit 2，不冒充绿）；`upgrade-smoke` passed（升级/remove/re-add 两目录数据保留）。
+
 **C 余项（不阻塞 A-，下一轮按需）**：
-- `assistant-data-bundle.ts` 按 5 动词拆 `src/cli/assistant-data/*`（纯结构，测试已在 facade 上）；
-- `tests/cli/` 层（把 shipped CLI 从 tooling 层分出；当前 8 文件 / 1,427 行已有 92.7% 行覆盖，缺的是层归属）；
+- ~~`assistant-data-bundle.ts` 按 5 动词拆 `src/cli/assistant-data/*`~~ 已完成（`cb6b25d2`；最大文件 182 行）；
+- ~~`tests/cli/` 层~~ 评估后不做：CLI 行为 spec 住 `tests/tooling/` 是**已登记的例外**（共用 throwaway 夹具；被测面是 facade，不是浏览器/host 平面），见 `docs/testing.md` 分层表后的 CLI 例外；
 - 卸载残留 profile patch 的自动清理（0.2.0 前安装器；当前已文档化手工清理，自动清理需真实旧 home fixture）；
 - `dsh.client.inject`：vendor 文档说明它是 client module 依赖边，不是 Cordis 服务清单；本包没有非 baseline 的 module 请求，**不加**（不是债）；
 - web-only 行名去重：包 README 的用户面清单保留，product.md 保留合同清单；两处不同用途，**不强行合并**。

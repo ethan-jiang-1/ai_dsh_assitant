@@ -399,5 +399,5 @@ if (failures.length > 0) {
   console.log(`web-face-check: ${failures.length} failure(s)`)
   process.exit(1)
 }
-const lane = all ? 'customer + viki' : scenarioArg?.startsWith('viki-') ? 'viki' : scenarioArg === undefined ? 'customer' : 'one scene'
+const lane = all ? 'customer + product + viki' : scenarioArg?.startsWith('viki-') ? 'viki' : scenarioArg === undefined ? 'customer' : 'one scene'
 console.log(`web-face-check: PASS — all selected scenes match (${lane})`)
