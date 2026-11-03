@@ -58,6 +58,17 @@ describe('extractTool', () => {
     expect(extractTool(inline, 'fixture')).toEqual({ name: 'assistant_reflect', actions: ['brief', 'save_skill'] })
   })
 
+  it('takes the declared wire name, not one quoted inside a description', () => {
+    const tricky = [
+      "description: 'Before calling, check name: \'assistant_fake\' in the docs',",
+      "    name: 'assistant_real',",
+      "const ACTIONS = ['do'] as const",
+    ].join('\n')
+    expect(extractTool(tricky, 'fixture')).toEqual({ name: 'assistant_real', actions: ['do'] })
+    // A tool that is not one of ours is not a tool this catalog knows how to name.
+    expect(() => extractTool("name: 'someone_else'\nconst ACTIONS = ['do'] as const", 'fixture')).toThrow(/no tool name/)
+  })
+
   it('fails loud when the name or the action enum is missing', () => {
     expect(() => extractTool("const ACTIONS = ['x'] as const\n", 'fixture')).toThrow(/no tool name/)
     expect(() => extractTool("name: 'assistant_x',\n", 'fixture')).toThrow(/no action enum/)

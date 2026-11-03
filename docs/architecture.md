@@ -96,7 +96,7 @@ AGENT 面（`cordis.patch.yml` 的 `preset-assistant` 行 → agent preset）
 ├── assistant-knowledge-tool  工具 assistant_knowledge（只读检索：search/get 附反链）
 ├── tool-session-query        工具 session_query 族（原始会话证据检索；与 knowledge 房分工见 docs/home.md）
 ├── assistant-learn           工具 assistant_reflect + 挂载"学到的技能"provider
-├── assistant-ov-shield       治理遮蔽行（ov＝OpenViking 记忆插件：部署共装时拒其 mcp__openviking__* 工具前缀、按 server 名拒资源、遮蔽其同名技能——模型可见面保持本包六工具与策展技能目录；denyToolPrefix / denyServerResources / shadowSkills 三 config 键）
+├── assistant-ov-shield       治理遮蔽行（ov＝OpenViking 记忆插件：部署共装时拒其 mcp__openviking__* 工具前缀、按 server 名拒资源、遮蔽其同名技能——模型可见面保持本包自有工具（清单 = 生成物 `package-catalog.md`）与策展技能目录；denyToolPrefix / denyServerResources / shadowSkills 三 config 键）
 ├── skill-filesystem          策展技能（包内 `presets/assistant/skills/`，按包名解析后指过去）
 └── persona / agent-instructions / tool-fs / tool-fs-search / shell / ask-user /
     todo / goal（`tool-goal`+`command-goal`）/ plan-mode（isolate 组）/

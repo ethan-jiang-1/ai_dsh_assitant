@@ -350,7 +350,7 @@ describe('real composition: loader + preset standing mount + joined agent', () =
     })
   })
 
-  it('registers this package\'s six tools on the joined agent, and only there', async () => {
+  it('registers this package\'s tools on the joined agent, and only there', async () => {
     const ctx = await harness()
     const captured: Context[] = []
     const { agent } = await agentOnPreset(ctx, captured)

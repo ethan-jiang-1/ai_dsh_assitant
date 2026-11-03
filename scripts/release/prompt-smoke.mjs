@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Keyless prompt smoke: run the preset-mounted one-shot through the existing llm-replay patch,
- * then prove the assembled request actually carried the four prompt sections and the six tools.
+ * then prove the assembled request actually carried the prompt sections and every required tool.
  *
  * This is the T4 "model-visible" assertion without a real model or a full session replay: the
  * replay fixture answers deterministically; the evidence is the request side of the session log.
@@ -174,7 +174,7 @@ if (systemText !== undefined) {
     if (!systemText.includes(needle)) ok(`${name}: absent`)
     else fail(`${name}: still present (${needle})`)
   }
-  step('checking the six assistant tools')
+  step(`checking ${String(requiredTools.length)} assistant tools`)
   for (const name of requiredTools) {
     if (tools.includes(name)) ok(name)
     else fail(`${name}: missing from request/header.tools`)

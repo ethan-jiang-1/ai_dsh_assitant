@@ -81,7 +81,10 @@ export function extractActions(source, label) {
 
 /** Extract a tool's wire name and action verbs from its source. Fails loud when either is absent. */
 export function extractTool(source, label) {
-  const name = /name:\s*'([a-z_]+)'/.exec(source)?.[1]
+  // Anchored to a line start and the wire-name prefix: a description string that happens to
+  // contain `name: 'assistant_x'` must not win over the declaration (the first-match version
+  // would have taken it; discoverTools cannot see that mistake).
+  const name = /^\s*name:\s*'(assistant_[a-z_]+)'/m.exec(source)?.[1]
   if (name === undefined) throw new Error(`gen-catalog: ${label} declares no tool name`)
   return { name, actions: extractActions(source, label) }
 }

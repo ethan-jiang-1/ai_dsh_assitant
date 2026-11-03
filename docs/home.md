@@ -79,6 +79,8 @@ learn 模块的 `tools/result` 订阅就给对应名字计数（用户 `/name` �
 | `skills/` | 学到的做法（可复用、可被模型加载） | 由 DSH 技能 provider 发现与监听；被取代就改文件；**退役**（90 天未用阈值由 curate 报，`retire_skill` 执行）→ `skills/archive/`（不删、可恢复） | `assistant_reflect` |
 | `knowledge/` | 领域知识页：概念 / 实体 / 来源 / how-it-works，`[[互链]]` | `draft`（staged，不进搜索与摘要）→ **手改 status: stable 即人审** → `deprecated` 留在原地（链接必须继续解析，无 archive） | `assistant_reflect action=save_page`（写）+ `assistant_knowledge`（只读检索） |
 
+> 四个房间各有自己的动词工具；`assistant_recall`（按需只读检索）与 `assistant_operating`（经营账本）**不属于任何房间**，归属见生成物 [`package-catalog.md`](package-catalog.md)。
+
 **技能优先级**：provider rank 决定同名解析——项目技能（100）> 学到的 `skills/`（300，custom）> `$DSH_HOME/skills`（400，user-dsh）与 `~/.agents/skills`（500，user-agents）> 随包策展技能（600，bundled）。学到技能遮蔽用户同名技能是既定顺序；反过来（学到技能被遮蔽）由 `curate` 报 `skill-shadowed`。
 
 **Obsidian 互通**：`[[互链]]` 语法双方同构，但**解析键不同**——我们 id→title，Obsidian 只认**文件名**（= 我们的 id）：`aliases` 只喂它的补全，裸别名与 `title` 属性都不是解析键（[1.12.7 实测](https://forum.obsidian.md/t/wikilink-resolution-does-not-honor-frontmatter-aliases-1-12-7/113902)）。所以页内链接统一写**两边都认的形态** `[[<id>|<title>]]`：`save_page` 写入时自动把可解析的裸名字链接规范成它，每页 `aliases` 镜像着自己的 title——人在 Obsidian 里打 `[[` + 名字，补全选中后写下的正是这一形态。窄用（单开 `knowledge/` 为 vault：graph/tags/draft→stable 手改即人审）三条纪律：
