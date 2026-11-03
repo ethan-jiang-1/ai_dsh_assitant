@@ -48,7 +48,7 @@ import { UiModeRow } from './chrome/ui-mode-row'
 import { bindVikiEnv } from './rooms/viki-data-io'
 import { bindClientRequire } from './chrome/runtime'
 import { createSnapshotStore, defineStore } from './chrome/store'
-import { ensureThemeVars } from './chrome/theme'
+import { installThemeVars } from './chrome/theme'
 import { debugEnabled } from './chrome/debug-flag'
 import { HomeSurface } from './projection/home-surface'
 import { DebugPanel } from './debug/debug-panel'
@@ -97,7 +97,7 @@ function clientFactory(require: ClientRequire): Record<string, unknown> {
   function applyInner(ctx: ClientContext): void {
     bindDeskEnv(ctx)
     bindVikiEnv(ctx)
-    ensureThemeVars()
+    installThemeVars(ctx)
     if (ctx.locale !== undefined) {
       ctx.effect(() => ctx.locale!.register('assistantFirstMile', { zh: firstMileZh, en: firstMileEn }), 'assistant-first-mile: dictionaries')
       ctx.effect(() => ctx.locale!.register('assistantDesk', { zh: deskZh, en: deskEn }), 'assistant-desk: dictionaries')

@@ -121,10 +121,10 @@ function fixture(payload: Record<string, unknown> = envelope()): Fixture {
   ;(globalThis as Record<string, unknown>).document = {
     baseURI: 'http://localhost/mount/',
     visibilityState: 'visible',
-    // The theme bootstrap is the only other thing the entry touches on the page: it looks the
-    // style element up, builds one, and appends it to the head.
+    // The theme bootstrap is the only other thing the entry touches on the page: it builds a
+    // marked style element, appends it, and removes it through the owning effect's disposer.
     getElementById: () => null,
-    createElement: () => ({ id: '', textContent: '' }),
+    createElement: () => ({ id: '', textContent: '', dataset: {}, remove: () => {} }),
     head: { appendChild: () => {} },
   }
   ;(globalThis as Record<string, unknown>).location = { origin: 'http://localhost' }

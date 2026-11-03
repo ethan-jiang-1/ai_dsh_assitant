@@ -361,7 +361,7 @@ function installBrowser(hash: string): void {
     value: {
       baseURI: 'http://localhost/',
       getElementById: () => null,
-      createElement: () => ({ style: {} }),
+      createElement: () => ({ dataset: {}, remove: () => {} }),
       head: { appendChild: () => {} },
     },
     configurable: true,

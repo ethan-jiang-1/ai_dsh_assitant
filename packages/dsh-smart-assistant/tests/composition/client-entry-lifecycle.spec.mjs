@@ -249,7 +249,12 @@ describe('built client default entry through Loader and real slots', () => {
         status: 200,
         json: async () => ({ version: 1, configured: false, status: 'not-configured', onboarding: true }),
       }),
-      document: { baseURI: 'http://localhost/', getElementById: () => ({}) },
+      document: {
+        baseURI: 'http://localhost/',
+        getElementById: () => null,
+        createElement: () => ({ id: '', textContent: '', dataset: {}, remove: () => {} }),
+        head: { appendChild: () => {} },
+      },
       location: { href: 'http://localhost/', origin: 'http://localhost', search: '', hash: '' },
       localStorage: { getItem: () => null, setItem: () => {} },
     })
