@@ -4,7 +4,7 @@
 
 ## 活跃清单
 
-- [261103 七维改善](261103-seven-dimension-improvement.md) — `推敲中`：七维深审的改善批次（待 review）
+- [261103 七维改善](261103-seven-dimension-improvement.md) — `待落地`：七维二轮复评的 A/B 批推进中；C 批待 review（停点见卡顶）
 
 
 
