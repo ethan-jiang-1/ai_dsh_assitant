@@ -262,7 +262,14 @@ const SCRATCH_MKTEMP = /\bmktemp\b/
 export function markdownCorpusFromTracked(trackedPaths, repoRoot) {
   return trackedPaths
     .filter(path => path.endsWith('.md'))
-    .filter(path => !path.split('/').includes('_archive'))
+    .filter(path => {
+      const segments = path.split('/')
+      if (!segments.includes('_archive')) return true
+      // The frozen pool is history and stays out of the corpus — except its index pages. An
+      // archived card that moves leaves the shelf README pointing at the old path unless the
+      // index rides a gate; two such links were live and nothing could see them (2026-11-03).
+      return segments.at(-1) === 'README.md'
+    })
     .map(path => join(repoRoot, ...path.split('/')))
 }
 

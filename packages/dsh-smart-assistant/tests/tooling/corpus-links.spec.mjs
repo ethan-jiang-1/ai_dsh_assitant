@@ -150,13 +150,15 @@ describe('verify relative-link corpus wiring', () => {
     const broken = run()
     expect(broken).toContain(`FAIL ${gate}`)
     for (const file of active) expect(broken).toContain(`${file} links to missing.md`)
-    expect(broken).not.toContain('_backlog/_archive/README.md links to')
+    // Archive *index* pages ride the corpus: a card that moves leaves the shelf README pointing
+    // at the old path, and two such links were live in 2026-11 with nothing able to see them.
+    expect(broken).toContain('_backlog/_archive/README.md links to missing.md')
     expect(broken).not.toContain('_backlog/_archive/research/261005-frozen.md links to')
     expect(broken).not.toContain('_backlog/_archive/fixed_bugs/BUG-009-frozen.md links to')
     const archiveGate = 'links: archived note pointers resolve (handoff surface only)'
     expect(broken).toContain(`FAIL ${archiveGate}`)
     expect(broken).toContain('_backlog/_archive/settled_issues/261005-frozen-note.md links to ../../../notes/implemented/missing.md')
-    for (const file of active) writeFileSync(join(root, file, '..', 'missing.md'), '# destination\n')
+    for (const file of [...active, '_backlog/_archive/README.md']) writeFileSync(join(root, file, '..', 'missing.md'), '# destination\n')
     mkdirSync(join(root, 'notes', 'implemented'), { recursive: true })
     writeFileSync(join(root, 'notes', 'implemented', 'missing.md'), '# destination\n')
     const repaired = run()
@@ -207,6 +209,9 @@ describe('verify machine-local-path corpus wiring', () => {
       '_backlog/methods/some-method.md',
       // Loose tracked markdown in the deliberation space is held to the same rule (tracked-corpus).
       '_backlog/unowned.md',
+      // Archive *index* pages are navigation, not history: a machine-local path there is a live
+      // instruction to the next reader (the 2026-11 corpus change).
+      '_backlog/_archive/README.md',
     ]
     for (const file of offending) {
       const path = join(root, file)
@@ -229,7 +234,7 @@ describe('verify machine-local-path corpus wiring', () => {
     expect(result.status).toBe(1)
     expect(result.stdout).toContain(`FAIL ${gate}`)
     for (const file of offending) expect(result.stdout).toContain(`${file} cites a machine-local absolute path`)
-    for (const file of ['_backlog/_archive/README.md', '_backlog/_archive/research/261005-frozen.md', '_backlog/_archive/fixed_bugs/BUG-009-frozen.md', 'notes/implemented/2026-01-01-topic.md']) {
+    for (const file of ['_backlog/_archive/research/261005-frozen.md', '_backlog/_archive/fixed_bugs/BUG-009-frozen.md', 'notes/implemented/2026-01-01-topic.md']) {
       expect(result.stdout).not.toContain(`${file} cites a machine-local absolute path`)
     }
 
