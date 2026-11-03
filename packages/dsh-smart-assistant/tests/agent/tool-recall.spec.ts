@@ -1,9 +1,10 @@
 /**
- * A2 A/B prototype contract: one native read-only recall tool over the OpenViking HTTP face.
+ * Contract for the shipped read-only recall tool (`assistant_recall`) over the OpenViking HTTP face.
  *
- * One-off branch `ab/a2-recall`; the assertions pin the schema-facing behavior the A/B needs:
- * find returns a count + result, read/tree require a viking URI, and a failed server response is
- * a readable error rather than a silent empty result.
+ * The assertions pin the schema-facing behavior: find/search return a count + result, read/tree
+ * require a viking URI, and a failed server response is a readable error rather than a silent
+ * empty result. The tool won the A/B against allowlisting the read-only MCP tools; see
+ * [the decision note](../../../../../notes/implemented/2026-10-20-on-demand-recall-path.md).
  */
 import { describe, expect, it, vi } from 'vitest'
 import { executeRecall } from '../../src/agent/tool-recall/index.ts'
@@ -16,13 +17,20 @@ function mockFetch(body: unknown, status = 200): typeof fetch {
   })) as unknown as typeof fetch
 }
 
-describe('assistant_recall A2 prototype', () => {
+describe('assistant_recall', () => {
   it('find returns a count and the JSON result', async () => {
     const fetchImpl = mockFetch({ status: 'ok', result: { memories: [{ uri: 'a' }, { uri: 'b' }] } })
     const result = await executeRecall({ action: 'find', query: '合同' }, { base, fetchImpl })
     expect(result.summary).toContain('find "合同": 2 memories')
     expect(result.result).toContain('"a"')
     expect(fetchImpl).toHaveBeenCalledWith(`${base}/api/v1/search/find`, expect.objectContaining({ method: 'POST' }))
+  })
+
+  it('search is the session-aware sibling of find: same shape, its own endpoint', async () => {
+    const fetchImpl = mockFetch({ status: 'ok', result: { memories: [{ uri: 's-1' }] } })
+    const result = await executeRecall({ action: 'search', query: '返利' }, { base, fetchImpl })
+    expect(result.summary).toContain('search "返利": 1 memories')
+    expect(fetchImpl).toHaveBeenCalledWith(`${base}/api/v1/search/search`, expect.objectContaining({ method: 'POST' }))
   })
 
   it('read requires a viking:// uri and returns the body', async () => {

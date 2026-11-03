@@ -290,6 +290,18 @@ describe('assistant_operating (tool adapter over the authoritative ledger)', () 
     expect(desk.unclaimed ?? []).toEqual([])
   })
 
+  it('names the missing argument on every guard that has no other branch', async () => {
+    // These four throws are the only code path behind their verb's refusal; the model reads the
+    // message, so the wording is part of the contract, not an implementation detail.
+    const tool = boot()
+    const ok = { operation_id: 'op-guard', quote: '原话' }
+    await expect(tool.execute({ action: 'entrust', ...ok }, exec)).rejects.toThrow(/entrust requires title/)
+    await expect(tool.execute({ action: 'discard', ...ok }, exec)).rejects.toThrow(/discard requires unclaimed_id/)
+    await expect(tool.execute({ action: 'complete', ...ok }, exec)).rejects.toThrow(/complete requires matter_id and observed_revision/)
+    await expect(tool.execute({ action: 'reopen', ...ok }, exec)).rejects.toThrow(/reopen requires matter_id and observed_revision/)
+    await expect(tool.execute({ action: 'revise', ...ok }, exec)).rejects.toThrow(/revise requires matter_id and observed_revision/)
+  })
+
   it('revises a matter with its observed revision and refuses an empty edit', async () => {
     const tool = boot()
     const entrusted = await tool.execute({
