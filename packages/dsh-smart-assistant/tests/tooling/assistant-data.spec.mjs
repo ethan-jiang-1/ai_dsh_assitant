@@ -73,6 +73,16 @@ describe('assistant-data', () => {
       .rejects.toThrow('not empty')
   })
 
+  it('refuses an export destination inside the working folder or ledger directories', async () => {
+    const source = sourceFixture()
+    await expect(exportData({ ...source, outDir: join(source.assistantDir, 'bundle') }))
+      .rejects.toThrow('must not be inside')
+    await expect(exportData({ ...source, outDir: join(source.operatingDir, 'bundle') }))
+      .rejects.toThrow('must not be inside')
+    await expect(exportData({ ...source, outDir: join(source.assistantDir, '..') }))
+      .rejects.toThrow('must not be inside')
+  })
+
   it('refuses a truncated or incomplete bundle and a target with a writer lock', async () => {
     const source = sourceFixture()
     const outDir = join(temp('data-out-'), 'bundle')

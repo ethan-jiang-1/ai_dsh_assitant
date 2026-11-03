@@ -8,6 +8,7 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createProductRoute } from '../../src/host/product/route.ts'
+import * as ProductRow from '../../src/host/product/index.ts'
 import { createProductState, type ProductSettingsWriter } from '../../src/host/product/state.ts'
 
 const repoTmp = fileURLToPath(new URL('../../../../.tmp/', import.meta.url))
@@ -262,5 +263,22 @@ describe('product route', () => {
     const response = await f.route.fetch(new Request(url, { method: 'PUT' }))
     expect(response.status).toBe(405)
     expect(await response.json()).toEqual({ error: 'method-not-allowed' })
+  })
+})
+
+describe('product row wiring', () => {
+  it('registers the authenticated route through the fiber and removes it on dispose', () => {
+    const routes: unknown[] = []
+    let dispose: (() => void) | undefined
+    const ctx = {
+      get: () => undefined,
+      workspaceRegistry: { create: async (path: string) => ({ id: 'ws-1', path }) },
+      connection: { fetch: { register: (route: unknown) => { routes.push(route); return () => { routes.pop() } } } },
+      effect: (install: () => () => void) => { dispose = install(); return dispose },
+    }
+    ProductRow.apply(ctx as never, {})
+    expect(routes).toHaveLength(1)
+    dispose?.()
+    expect(routes).toHaveLength(0)
   })
 })

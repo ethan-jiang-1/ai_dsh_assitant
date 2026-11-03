@@ -7,6 +7,7 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createUiModeRoute } from '../../src/host/ui-mode/route.ts'
+import * as UiModeRow from '../../src/host/ui-mode/index.ts'
 
 const repoTmp = fileURLToPath(new URL('../../../../.tmp/', import.meta.url))
 const dirs: string[] = []
@@ -69,5 +70,21 @@ describe('ui-mode route', () => {
     const response = await route.fetch(new Request(`${url}?x=1`))
     expect(response.status).toBe(400)
     expect(await response.json()).toEqual({ error: 'unexpected-query' })
+  })
+})
+
+describe('ui-mode row wiring', () => {
+  it('registers the per-home route through the fiber and removes it on dispose', () => {
+    const routes: unknown[] = []
+    let dispose: (() => void) | undefined
+    const ctx = {
+      assistantMemory: { paths: { root: join(repoTmp, 'ui-mode-row-wiring') } },
+      connection: { fetch: { register: (route: unknown) => { routes.push(route); return () => { routes.pop() } } } },
+      effect: (install: () => () => void) => { dispose = install(); return dispose },
+    }
+    UiModeRow.apply(ctx as never)
+    expect(routes).toHaveLength(1)
+    dispose?.()
+    expect(routes).toHaveLength(0)
   })
 })

@@ -12,7 +12,9 @@
  * - memory save/recall/forget/curate execute and render the service result;
  * - research open/update/list execute; a blank drop reason is refused at the tool boundary;
  * - knowledge search/get read a page written through the host service; a missing id is an error;
- * - reflect save_page writes a draft and save_skill writes a skill, both through the tool.
+ * - reflect save_page writes a draft and save_skill writes a skill, both through the tool;
+ * - reflect promote/deprecate/retire/propose/land and the no-agent brief branch map to the
+ *   service and report refusal in model-facing text.
  */
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -134,6 +136,18 @@ describe('assistant_knowledge execute', () => {
   })
 })
 
+async function runWithoutAgent(ctx: Context, name: string, args: unknown): Promise<string> {
+  const result = await ctx.tools.execute({
+    signal: testSignal,
+    callId: ToolCallId(`adapter-${name}`),
+    name,
+    arguments: args,
+  })
+  const first = result.content[0]
+  if (first?.type !== 'text') throw new Error(`tool ${name} rendered no text: ${JSON.stringify(result.content)}`)
+  return first.text
+}
+
 describe('assistant_reflect execute', () => {
   it('writes a draft page and a learned skill through the adapter', async () => {
     const { ctx } = await boot(Learn)
@@ -152,5 +166,61 @@ describe('assistant_reflect execute', () => {
       body: '# Adapter skill\n\nDo the thing.\n',
     })
     expect(skill).toContain('adapter-skill')
+  })
+
+  it('promotes and deprecates a draft page through the adapter', async () => {
+    const { ctx } = await boot(Learn)
+    const page = await run(ctx, 'assistant_reflect', {
+      action: 'save_page',
+      type: 'concept',
+      title: '治理页',
+      body: '正文',
+      sources: ['memory:spec'],
+    })
+    const pageId = page.match(/Wrote draft page "([^"]+)"/)?.[1]
+    expect(pageId).toBeDefined()
+    const promoted = await run(ctx, 'assistant_reflect', { action: 'promote_page', page_id: pageId })
+    expect(promoted).toContain('Promoted')
+    const deprecated = await run(ctx, 'assistant_reflect', { action: 'deprecate_page', page_id: pageId })
+    expect(deprecated).toContain('Deprecated')
+  })
+
+  it('retires a learned skill and reports an unknown name as an error', async () => {
+    const { ctx } = await boot(Learn)
+    await run(ctx, 'assistant_reflect', {
+      action: 'save_skill',
+      name: 'retire-me',
+      description: 'A skill that will be retired.',
+      body: '# Retire me\n',
+    })
+    const retired = await run(ctx, 'assistant_reflect', { action: 'retire_skill', name: 'retire-me', reason: 'spec' })
+    expect(retired).toContain('Retired skill')
+    expect(await run(ctx, 'assistant_reflect', { action: 'retire_skill', name: 'missing-skill' }))
+      .toMatch(/Error:/)
+  })
+
+  it('proposes a skill and refuses to land it before approval', async () => {
+    const { ctx } = await boot(Learn)
+    const proposed = await run(ctx, 'assistant_reflect', {
+      action: 'propose_skill',
+      name: 'adapter-proposal',
+      description: 'A proposal that needs a human approval.',
+      body: '# Proposal\n',
+    })
+    expect(proposed).toContain('Proposed skill')
+    expect(await run(ctx, 'assistant_reflect', { action: 'land_skill', name: 'adapter-proposal' }))
+      .toContain('not approved')
+  })
+
+  it('refuses save_page without sources at the adapter boundary', async () => {
+    const { ctx } = await boot(Learn)
+    expect(await run(ctx, 'assistant_reflect', { action: 'save_page', type: 'concept', body: '正文' }))
+      .toContain('Error: assistant_reflect save_page requires type, body, and sources')
+  })
+
+  it('reports no session evidence for brief when the caller has no agent', async () => {
+    const { ctx } = await boot(Learn)
+    const brief = await runWithoutAgent(ctx, 'assistant_reflect', { action: 'brief' })
+    expect(brief).toContain('No session evidence available')
   })
 })

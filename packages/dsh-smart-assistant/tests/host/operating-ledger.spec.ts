@@ -788,4 +788,20 @@ describe('AssistantOperatingLedger (authoritative single writer)', () => {
       expect(matter?.status).toBe('abandoned')
     })
   })
+
+  describe('state-file refusal', () => {
+    it('refuses a corrupt ledger instead of treating it as empty', () => {
+      const dir = mkDir()
+      writeFileSync(join(dir, 'ledger.json'), '{ not json', 'utf8')
+      expect(() => new AssistantOperatingLedger(new Context(), { dataDir: dir }))
+        .toThrow(/corrupt/)
+    })
+
+    it('refuses a parsed file that is not a v1 ledger', () => {
+      const dir = mkDir()
+      writeFileSync(join(dir, 'ledger.json'), JSON.stringify({ version: 2, matters: {} }), 'utf8')
+      expect(() => new AssistantOperatingLedger(new Context(), { dataDir: dir }))
+        .toThrow(/not a v1 ledger/)
+    })
+  })
 })

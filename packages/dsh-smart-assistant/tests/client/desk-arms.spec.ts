@@ -25,6 +25,7 @@
 
 import { afterEach, describe, expect, it } from 'vitest'
 import { createSnapshotStore } from '@deepseek-ai/dsh-client-store'
+import { createDeskArms } from '../../src/client/desk/desk-arms.ts'
 import { inertReactShim, loadClientRegistration, materializeClient } from '../support/client-harness.ts'
 import type { DeskLanes } from '../../src/client/projection/desk-surface'
 
@@ -356,5 +357,39 @@ describe('desk arms through the entry', () => {
 
     expect(f.prompts).toEqual([])
     expect(f.receipts).toEqual([])
+  })
+})
+
+describe('createDeskArms launch lock', () => {
+  it('swallows a second process click while the first launch is in flight', async () => {
+    let resolveCreate: ((id: string) => void) | undefined
+    const created: number[] = []
+    const opened: string[] = []
+    const projection = createSnapshotStore({ status: 'ready', stale: false, data: envelope() } as never)
+    const deskPath = createSnapshotStore(undefined as never)
+    const arms = createDeskArms({
+      projection: projection as never,
+      reader: { refresh: () => {} },
+      deskPath: deskPath as never,
+      uiWorkspace: { openSession: (id: string) => opened.push(id) },
+      uiSession: undefined,
+      layout: undefined,
+      workspaces: { list: { getSnapshot: () => ({ items: [{ workspaceId: 'ws-1', sessionIds: [] }] }) } },
+      sessions: {
+        create: () => {
+          created.push(1)
+          return new Promise<string>(resolve => { resolveCreate = resolve })
+        },
+        list: { subscribe: () => () => {} },
+      },
+      effect: () => {},
+      viewActions: () => undefined,
+    })
+    arms.processMatter('m-1')
+    arms.processMatter('m-1')
+    expect(created).toHaveLength(1)
+    resolveCreate?.('session-new')
+    await flush()
+    expect(opened).toEqual(['session-new'])
   })
 })
