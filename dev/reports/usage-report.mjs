@@ -17,6 +17,7 @@
  *   pnpm usage                # 读 dev home（或 $DSH_HOME）的会话与 working folder
  *   pnpm usage -- --types     # 只打印事件类型直方图（形状变了先看这个；同一剔除口径）
  *   pnpm usage -- --since 2   # 只看最近 2 天（按日志 mtime；全量扫描在 600+ 会话时是分钟级）
+ *   pnpm usage -- --self-check # 仪表自证（合成会话 → 已知计数；已接进 pnpm verify）
  *
  * @module dev/usage-report
  */
@@ -235,6 +236,45 @@ export function windowedLogs(logs, { days, now, mtimeOf }) {
   return logs.filter(log => mtimeOf(log) >= cutoff)
 }
 
+/**
+ * The instrument's own red control: synthetic events with known answers, run by `pnpm verify`.
+ * A dashboard that silently miscounts still looks healthy, so the counts it is allowed to make
+ * are pinned here the same way `desk-loop --self-check` and the evaluator do it.
+ * @returns The number of mismatches (0 = healthy).
+ */
+export function selfCheck(log = console.log) {
+  const events = [
+    { type: 'session' },
+    { type: 'system/message', data: {} },
+    { type: 'turn/start', data: { turn: 1 } },
+    { type: 'step/start', data: {} },
+    { type: 'user/message', data: { source: { kind: 'time-context' }, content: [{ type: 'text', text: 'Time sampled while preparing turn 1' }] } },
+    { type: 'user/message', data: { source: { kind: 'user', rpcId: 'r-1' }, content: [{ type: 'text', text: '把上周的账对一下。' }] } },
+    { type: 'tool/call', data: { name: 'assistant_memory' } },
+    { type: 'tool/result', data: {} },
+    { type: 'assistant/message', data: { message: { content: [{ type: 'text', text: '对完了。' }] } } },
+    { type: 'turn/end', data: { turn: 1, reason: { kind: 'completed' } } },
+  ]
+  const summary = summarizeEvents(events)
+  const day = 24 * 60 * 60 * 1000
+  const windowed = windowedLogs(['inside', 'outside'], { days: 2, now: 10 * day, mtimeOf: log => log === 'inside' ? 9 * day : 0 })
+  const expectations = [
+    ['requests', summary.requests, 1],
+    ['turns', summary.turns, 1],
+    ['steps', summary.steps, 1],
+    ['principalMessages', summary.principalMessages, 1],
+    ['injectedUserMessages', summary.injectedUserMessages, 1],
+    ['assistantMessages', summary.assistantMessages, 1],
+    ['toolCalls.assistant_memory', summary.toolCalls.assistant_memory, 1],
+    ['errorTurns', summary.errorTurns, 0],
+    ['windowedLogs', windowed.join(','), 'inside'],
+  ]
+  const mismatches = expectations.filter(([, actual, expected]) => actual !== expected)
+  for (const [name, actual, expected] of mismatches) log(`usage --self-check: ${name} = ${String(actual)}, expected ${String(expected)}`)
+  if (mismatches.length === 0) log('usage --self-check: ok — synthetic session gives the known counts (injected preamble separate from the principal, tool mix, error turns) and the --since boundary keeps the edge')
+  return mismatches.length
+}
+
 /** Parse `--since <days>`; invalid or missing values are a usage error, not a silent full scan. */
 function sinceDays() {
   const index = process.argv.indexOf('--since')
@@ -248,6 +288,9 @@ function sinceDays() {
 }
 
 function main() {
+  if (process.argv.includes('--self-check')) {
+    process.exit(selfCheck() === 0 ? 0 : 1)
+  }
   const days = sinceDays()
   const allLogs = sessionLogs(harnessHome)
   const logs = days === undefined

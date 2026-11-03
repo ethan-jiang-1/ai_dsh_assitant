@@ -92,6 +92,25 @@ describe('Viki tab', () => {
     expect(calls.every(call => call.includes('/api/assistant/viki'))).toBe(true)
   })
 
+  it('renders an empty list and the read-problem badge instead of hiding them', async () => {
+    const degraded = {
+      ...list,
+      counts: { total: 0, user: 0, peers: 0, events: 0 },
+      entries: [],
+      problems: ['user tree: boom', 'stats: timeout'],
+    }
+    const exports = materialize()
+    exports.bindVikiEnv(fakeCtx([], () => json(degraded)))
+    exports.resetVikiView()
+    await exports.loadViki()
+    const rendered = textsOf(exports.VikiPanel()).join(' | ')
+    // Both states are honest degradation, not blank panels: the empty copy still teaches the
+    // principal what will appear, and the problem count stays visible for the diagnostics view.
+    expect(rendered).toContain('Viki 里还没有记忆')
+    expect(rendered).toContain('2 个读取问题')
+    expect(rendered).toContain('共 0 条')
+  })
+
   it('shows the honest not-connected state on 503', async () => {
     const exports = materialize()
     exports.bindVikiEnv(fakeCtx([], () => json({ error: 'viki-unavailable', message: 'OpenViking is not configured' }, 503)))
