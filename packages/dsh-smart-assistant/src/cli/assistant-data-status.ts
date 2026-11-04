@@ -10,6 +10,7 @@ import { isAbsolute, join, resolve } from 'node:path'
 import { HOME_MANUAL_VERSION, MANUAL_FILE_NAME } from '../domain/home/home-map.ts'
 import { credentialShapeLabels } from '../domain/skills/audit.ts'
 import { OPERATIONS_ARCHIVE_FILE, parseOperationsArchive } from '../domain/operating/archive.ts'
+import { countTree } from './assistant-data/shared.ts'
 
 /** A read-only `check` warning threshold for the approval ledger. */
 const ARCHIVE_WARN_BYTES = 64 * 1024 * 1024
@@ -64,28 +65,9 @@ export interface DataCheck {
   readonly problems: readonly string[]
 }
 
-async function fileCount(dir: string): Promise<{ files: number, bytes: number }> {
-  if (!existsSync(dir)) return { files: 0, bytes: 0 }
-  let files = 0
-  let bytes = 0
-  for (const entry of await readdir(dir, { withFileTypes: true })) {
-    const path = join(dir, entry.name)
-    if (entry.isDirectory()) {
-      const nested = await fileCount(path)
-      files += nested.files
-      bytes += nested.bytes
-    } else {
-      const info = await stat(path)
-      files += 1
-      bytes += info.size
-    }
-  }
-  return { files, bytes }
-}
-
 async function treeStatus(dir: string): Promise<DataTreeStatus> {
   if (!existsSync(dir)) return { exists: false, files: 0, bytes: 0 }
-  return { exists: true, ...await fileCount(dir) }
+  return { exists: true, ...await countTree(dir) }
 }
 
 /**
