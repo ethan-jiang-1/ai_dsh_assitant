@@ -6,18 +6,7 @@ import { join } from 'node:path'
 import type { ConnectionFetchRoute } from '@deepseek-ai/dsh-client-connection'
 import { reviveLedgerState } from '../../domain/operating/ledger.ts'
 import { renderLedgerProjection } from '../../domain/operating/projection.ts'
-
-function headers(): Record<string, string> {
-  return { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' }
-}
-
-function failure(status: number, error: string): Response {
-  return new Response(JSON.stringify({ error }), { status, headers: headers() })
-}
-
-function json(value: unknown): Response {
-  return new Response(JSON.stringify(value), { headers: headers() })
-}
+import { failure, json, jsonHeaders } from '../http.ts'
 
 /** Capped read outcome: the bytes, or why they are unavailable. */
 type CappedRead = { readonly bytes: Buffer } | 'missing' | 'oversized'
@@ -115,7 +104,7 @@ export function createDeskProjectionRoute(
           void error
           return failure(422, 'projection-invalid-json')
         }
-        return new Response(new TextDecoder('utf-8').decode(fixed.bytes), { headers: headers() })
+        return new Response(new TextDecoder('utf-8').decode(fixed.bytes), { headers: jsonHeaders() })
       } catch (error) {
         if (request.signal.aborted) throw error
         return failure(500, 'projection-unavailable')

@@ -12,21 +12,10 @@ import { mkdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import type { ConnectionFetchRoute } from '@deepseek-ai/dsh-client-connection'
 import { isUiMode, type UiMode } from '../../domain/home/ui-mode.ts'
+import { failure, json } from '../http.ts'
 
 const FILE_NAME = 'ui-mode.json'
 const MAX_BYTES = 1024
-
-function headers(): Record<string, string> {
-  return { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' }
-}
-
-function json(value: unknown): Response {
-  return new Response(JSON.stringify(value), { headers: headers() })
-}
-
-function failure(status: number, error: string): Response {
-  return new Response(JSON.stringify({ error }), { status, headers: headers() })
-}
 
 /** The value read back from disk: a mode, missing, or an unreadable file. */
 type Stored = { readonly mode: UiMode } | 'missing' | 'invalid'

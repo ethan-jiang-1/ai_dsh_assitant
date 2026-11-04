@@ -15,6 +15,7 @@
 import type { ConnectionFetchRoute } from '@deepseek-ai/dsh-client-connection'
 import type { VikiDiagnostics, VikiList, VikiSearch, VikiSearchHit } from '../../domain/viki/types.ts'
 import { VikiUnavailable } from './client.ts'
+import { failure, json, jsonHeaders } from '../http.ts'
 
 /** The read surface the plugin binds to the real OpenViking client. */
 export interface VikiReader {
@@ -49,18 +50,6 @@ export interface VikiRouteOptions {
   readonly maxBytes?: number
 }
 
-function headers(): Record<string, string> {
-  return { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' }
-}
-
-function failure(status: number, error: string, message?: string): Response {
-  return new Response(JSON.stringify(message === undefined ? { error } : { error, message }), { status, headers: headers() })
-}
-
-function respond(status: number, value: unknown): Response {
-  return new Response(JSON.stringify(value), { status, headers: headers() })
-}
-
 function allowedUri(uri: string, options: VikiRouteOptions): boolean {
   if (uri.split('/').includes('..')) return false
   for (const space of options.allowedSpaces) {
@@ -90,7 +79,7 @@ export function createVikiRoute(reader: VikiReader, options: VikiRouteOptions, a
   const emit = (value: unknown): Response => {
     const body = JSON.stringify(value)
     if (Buffer.byteLength(body, 'utf8') > maxBytes) return failure(413, 'projection-too-large')
-    return new Response(body, { headers: headers() })
+    return new Response(body, { headers: jsonHeaders() })
   }
   const handleAction = async (request: Request): Promise<Response> => {
     if (actions === undefined) return failure(405, 'method-not-allowed')
@@ -114,7 +103,7 @@ export function createVikiRoute(reader: VikiReader, options: VikiRouteOptions, a
       if (!list.entries.some(entry => entry.uri === uri)) return failure(404, 'uri-not-found')
       const references = await actions.references(uri)
       const cited = references.knowledge.length + references.siblings.length
-      if (cited > 0 && input.confirm !== true) return respond(409, { error: 'references-require-confirm', references })
+      if (cited > 0 && input.confirm !== true) return json({ error: 'references-require-confirm', references }, 409)
       let commitId: string
       try {
         commitId = await actions.commit([uri])

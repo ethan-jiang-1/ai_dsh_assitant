@@ -28,6 +28,7 @@ import { projectRooms } from '../../domain/rooms/projection.ts'
 import type { ApprovalAuditOptions, ApprovalKind } from '../approval-audit.ts'
 import type { ApprovalLine, ReceiptRoom } from '../../domain/maintenance/receipt.ts'
 import type { SaveMemoryInput } from '../memory-room.ts'
+import { failure, jsonHeaders } from '../http.ts'
 
 /** The read slice of the home service the route consumes; the plugin binds the real service. */
 export interface RoomsReader {
@@ -55,13 +56,6 @@ export interface RoomsActions {
   recordApproval(kind: ApprovalKind, id: string, options: ApprovalAuditOptions): Promise<void>
 }
 
-function headers(): Record<string, string> {
-  return { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' }
-}
-
-function failure(status: number, error: string): Response {
-  return new Response(JSON.stringify({ error }), { status, headers: headers() })
-}
 
 /**
  * Build the exact GET route. A bare request returns every room; `?kind=knowledge&id=<id>` returns
@@ -75,7 +69,7 @@ export function createRoomsRoute(reader: RoomsReader, maxBytes: number = 1024 * 
   const emit = (value: unknown): Response => {
     const body = JSON.stringify(value)
     if (Buffer.byteLength(body, 'utf8') > maxBytes) return failure(413, 'projection-too-large')
-    return new Response(body, { headers: headers() })
+    return new Response(body, { headers: jsonHeaders() })
   }
   /** One controlled write; the JSON body names the action and its target. */
   const handleAction = async (request: Request): Promise<Response> => {
@@ -99,7 +93,7 @@ export function createRoomsRoute(reader: RoomsReader, maxBytes: number = 1024 * 
     })
     const failAction = (error: unknown): Response => {
       const message = error instanceof Error ? error.message : String(error)
-      return new Response(JSON.stringify({ error: 'action-failed', message }), { status: actionErrorStatus(message), headers: headers() })
+      return failure(actionErrorStatus(message), 'action-failed', message)
     }
     const id = actionRequest.id
     try {
