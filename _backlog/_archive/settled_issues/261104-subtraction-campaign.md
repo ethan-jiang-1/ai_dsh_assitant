@@ -1,13 +1,15 @@
 ---
-status: 待落地
+status: 已结
 opened: 2026-11-04
 ---
 
 # 推敲：减法 campaign（步进、行为不变）
 
-> 立卡：2026-11-04 ｜ 状态：待落地 ｜ 毕业：做现在 ｜ 去向：implemented ｜ 可关闭：否
+> 立卡：2026-11-04 ｜ 状态：已结 ｜ 毕业：做现在 ｜ 去向：implemented ｜ 可关闭：是
 > 授权：2026-11-04 用户授权静默自主执行；要求步步为营、每刀 `pnpm check` 绿、不破坏原功能、失败即回退。
-> 审查：—（出口前补 agent 机械/语义自审）。
+> 结论：S1–S3 减法落地（code-only −72 行，55+/127−）；S4 评估后不落（没有净减法）；S5 保留 `repo-hygiene` + 一个月无消费者触发；S6 复盘。行为由现有 spec 与全量套件钉住；无新工具/门禁/文档层。host load 高时全量套件用 `--maxWorkers=2` 跑通，canonical `pnpm check` 的 test 阶段仍会因机器负载超时（逐条单跑均绿）。
+> 审查：agent — 机械 `typecheck`/`build`/全量套件（`--maxWorkers=2`）/`verify`；语义自审跨 dev/domain/agent/docs；用户授权静默自主执行。
+> 去向 = [读数 note](../../../notes/implemented/2026-11-04-code-quality-readings.md)。
 
 ## 外部结果三要素
 
@@ -29,9 +31,9 @@ opened: 2026-11-04
 | S1 | `code-shape` 去重复扫描；命令文档只留 `commands.md` + `testing.md`；更新 note | 已交付 | code-shape 282→200 行、duplicate/`--window` 移除；docs 只留两处；172/1313 tests（`--maxWorkers=2`，host load ~70；canonical check 的 test 阶段超时）；verify 60/60 |
 | S2 | `desk-process.ts` 四处 return 形状收一个 helper | 已交付 | 5 处 `decision:'return'` 收成 `returnToDesk`；该文件 8 行重复组 4→0；函数 35→36（helper），决策 130→128，行 246→234；domain spec 60；172/1313 tests；verify 60/60 |
 | S3 | `learn/index.ts` save/propose 字段映射收一个 helper | 已交付 | `skillDraft` 统一校验+字段；`learn.execute` 54→44 决策、231→213 行；文件 106→102 决策；agent 72 tests；172/1313 tests；verify 60/60 |
-| S4 | 评估一个分派器；有安全切法才落 | 待开始 | — |
-| S5 | `repo-hygiene` 保留/删除决定 + 触发 | 待开始 | — |
-| S6 | 复盘两个新工具与总读数 | 待开始 | — |
+| S4 | 评估一个分派器；有安全切法才落 | 已评估，不落 | `tool-memory.execute` 26/109、`tool-research.execute` 27/77、`learn.execute` 44/213；`requireId`/optional-spread 只会净 0 行搬移守卫，表驱动会改模型可见结构；没有净减法，停 |
+| S5 | `repo-hygiene` 保留/删除决定 + 触发 | 已决定：保留 | 只读、一条命令；删除要反转 note/card/trigger，成本大于收益；加“一个月无消费者即删”触发 |
+| S6 | 复盘两个新工具与总读数 | 已交付 | code-only −72 行（55+/127−）；`code-shape` 282→200 行；函数 1671→1673（两个 helper）；`learn.execute` 54→44；desk-process 8 行重复 4→0；全局 8 行重复 10→5；docs 提法 −2 |
 
 ## 每刀硬规则
 
