@@ -31,13 +31,6 @@ const STYLES = [
   '.dsha-debug-btn{border:0.5px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);border-radius:8px;padding:5px 12px;font:inherit;font-size:12px;cursor:pointer;}',
 ].join('')
 
-/** The debug entry's icon: a small terminal/monitor glyph. */
-export function DebugPanelIcon(): ReturnType<typeof ce> {
-  return ce('svg', { width: 20, height: 20, viewBox: '0 0 20 20', fill: 'none', style: { display: 'block' } },
-    ce('rect', { x: 2, y: 4, width: 16, height: 12, rx: 2, stroke: 'currentColor', strokeWidth: 1.5, fill: 'none' }),
-    ce('path', { d: 'M6 8l2 2-2 2M10 12h4', stroke: 'currentColor', strokeWidth: 1.3, strokeLinecap: 'round', strokeLinejoin: 'round', fill: 'none' }))
-}
-
 /**
  * The debug panel: parsed projection, lifecycle and the client's own state, read-only.
  * @param props - The same injected hook/surface contract the home receives, plus the session id.
