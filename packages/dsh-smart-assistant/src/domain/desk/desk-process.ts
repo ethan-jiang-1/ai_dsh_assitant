@@ -87,6 +87,16 @@ export interface ReturnDecision {
   readonly remindersUnsynced: boolean
 }
 
+/** The return shape every arm shares; `matterId` is absent for the discard arm. */
+function returnToDesk(matterId: string | undefined, remindersUnsynced: boolean): ReturnDecision {
+  return {
+    decision: 'return',
+    ...(matterId === undefined ? {} : { matterId }),
+    reasons: remindersUnsynced ? ['reminders-unsynced'] : [],
+    remindersUnsynced,
+  }
+}
+
 /** One explicit processing path: the matter, its processing session, and what was observed. */
 export interface ProcessingPath {
   readonly kind: 'matter'
@@ -380,12 +390,7 @@ export function judgeReturn(path: ProcessingPath, input: ReturnJudgeInput): Retu
   if (!input.projection.matterIds.has(path.matterId)) reasons.push('matter-vanished')
   const remindersUnsynced = input.reminders !== 'synced'
   if (reasons.length > 0) return { decision: 'stay', matterId: path.matterId, reasons, remindersUnsynced }
-  return {
-    decision: 'return',
-    matterId: path.matterId,
-    reasons: remindersUnsynced ? ['reminders-unsynced'] : [],
-    remindersUnsynced,
-  }
+  return returnToDesk(path.matterId, remindersUnsynced)
 }
 
 /**
@@ -426,12 +431,7 @@ export function judgeIntakeReturn(path: IntakePath, input: ReturnJudgeInput): Re
   if (target === undefined) return { decision: 'stay', reasons: [...reasons, 'matter-not-entrusted'], remindersUnsynced }
   if (!input.projection.matterIds.has(target.matterId)) reasons.push('matter-vanished')
   if (reasons.length > 0) return { decision: 'stay', reasons, remindersUnsynced }
-  return {
-    decision: 'return',
-    matterId: target.matterId,
-    reasons: remindersUnsynced ? ['reminders-unsynced'] : [],
-    remindersUnsynced,
-  }
+  return returnToDesk(target.matterId, remindersUnsynced)
 }
 
 /** What the claim judge needs beyond the shared input: the unclaimed ids as currently projected. */
@@ -478,12 +478,7 @@ export function judgeClaimReturn(path: ClaimPath, input: ClaimJudgeInput): Retur
 
   const remindersUnsynced = input.reminders !== 'synced'
   if (reasons.length > 0 || target === undefined) return { decision: 'stay', reasons, remindersUnsynced }
-  return {
-    decision: 'return',
-    matterId: target.matterId,
-    reasons: remindersUnsynced ? ['reminders-unsynced'] : [],
-    remindersUnsynced,
-  }
+  return returnToDesk(target.matterId, remindersUnsynced)
 }
 
 /**
@@ -520,7 +515,7 @@ export function judgeDiscardReturn(path: DiscardPath, input: ClaimJudgeInput): R
 
   const remindersUnsynced = input.reminders !== 'synced'
   if (reasons.length > 0) return { decision: 'stay', reasons, remindersUnsynced }
-  return { decision: 'return', reasons: remindersUnsynced ? ['reminders-unsynced'] : [], remindersUnsynced }
+  return returnToDesk(undefined, remindersUnsynced)
 }
 
 /** What the wake judge needs beyond the shared input: each matter's current projected status. */
@@ -562,10 +557,5 @@ export function judgeWakeReturn(path: WakePath, input: WakeJudgeInput): ReturnDe
 
   const remindersUnsynced = input.reminders !== 'synced'
   if (reasons.length > 0) return { decision: 'stay', matterId: path.matterId, reasons, remindersUnsynced }
-  return {
-    decision: 'return',
-    matterId: path.matterId,
-    reasons: remindersUnsynced ? ['reminders-unsynced'] : [],
-    remindersUnsynced,
-  }
+  return returnToDesk(path.matterId, remindersUnsynced)
 }
