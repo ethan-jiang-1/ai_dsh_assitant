@@ -49,7 +49,7 @@ opened: 2026-11-04
 | S0 证据探针 | 已交付 | 1671 个函数/方法/回调；41 个 >60 行；87 个 >10 决策点；12 行重复 0 组、8 行 10 组；18 个 mutant 14 killed / 4 survived |
 | S1 code-shape 读数 | 已交付 | `dev/reports/code-shape.mjs` + `tests/tooling/code-shape.spec.mjs`；`pnpm code-shape` 可跑；`--self-check` 进 verify；故意破坏决策计数 → self-check 红 |
 | S2 survivor 补测 | 已交付 | 3 个 meaningful survivor 补测（长值不折行、数组 body、`no knowledge page` 404）；复跑 17 killed / 1 equivalent |
-| S3 hygiene 报告 + 清理 | 已交付 | `dev/reports/repo-hygiene.mjs` + `tests/tooling/repo-hygiene.spec.mjs`；`.tmp` 301M→190M（删 24 条）；`git worktree prune` 清掉 stale 元数据；3 条未合并分支保留 |
+| S3 hygiene 报告 + 清理 | 已交付 | `dev/reports/repo-hygiene.mjs` + `tests/tooling/repo-hygiene.spec.mjs`；`.tmp` 301M→190M（删 24 条）；`git worktree prune` 清掉 stale 元数据；4 条未合并分支保留 |
 | S4 GAP 3 处置 | 已交付 | 不改仓；触发 = 接下来两个 bug 周期重复同一前提，写进本卡与 note |
 
 ## 证据
@@ -60,12 +60,12 @@ opened: 2026-11-04
   - 初始 18 个：14 killed / 4 survived（F8、F9、R2、R8）。
   - S2 后 17 killed / 1 survived。F8 是 equivalent：`yaml.stringify` 本身省略 `undefined`，显式 guard 保留为防御；F9 补“长值不折行”；R2 补“数组 body = invalid-body”；R8 补“`no knowledge page` → 404”。
 - **S1**：`pnpm code-shape` 输出函数长度/决策点/重复窗口；`--self-check` 已进 `pnpm verify`；findings 不影响退出码。prove-it-red：临时关掉决策计数，self-check 报 `expected a >10-decision function, max was 1`，恢复后绿。
-- **S3**：`pnpm hygiene` 输出 `.tmp` / worktree / branch / 未提交四段；只读，不删除。一次性清理：`pnpm sweep --apply` 删 24 条（`.tmp` 301M→190M；`web-expected/` 189.7M 有打开句柄，保留）；`git worktree prune` 清掉 stale 元数据（仓外目录当时已不存在）。三条未合并分支保留：`ab/a1-allowlist`、`ab/a2-recall`、两条 `prototype/*`。
+- **S3**：`pnpm hygiene` 输出 `.tmp` / worktree / branch / 未提交四段；只读，不删除。一次性清理：`pnpm sweep --apply` 删 24 条（`.tmp` 301M→190M；`web-expected/` 189.7M 有打开句柄，保留）；`git worktree prune` 清掉 stale 元数据（仓外目录当时已不存在）。四条未合并分支保留：`ab/a1-allowlist`、`ab/a2-recall`、两条 `prototype/*`。
 - **全局**：`pnpm verify` 60/60；`pnpm check` 通过（typecheck → build/test → verify）。
 
 ## 仍未取
 
-- 三条未合并分支（`ab/a1-allowlist`、`ab/a2-recall`、两个 `prototype/*`）的保留/删除：脚本只报告，删除需单独确认；本轮保留。
+- 四条未合并分支（`ab/a1-allowlist`、`ab/a2-recall`、两个 `prototype/*`）的保留/删除：脚本只报告，删除需单独确认；本轮保留。
 - `.tmp/web-expected/`（189.7M）有打开句柄：保留，待进程结束后再清扫。
 - `code-shape` 的阈值/门禁：不设；触发 = 第一处它本可提前抓到、但审计后才发现的回归。
 - mutation 常驻工具：不建；触发 = 第三次需要手工 mutation（同一多步流程第三次）。
