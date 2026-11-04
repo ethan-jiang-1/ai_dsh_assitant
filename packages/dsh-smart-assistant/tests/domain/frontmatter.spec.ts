@@ -21,6 +21,14 @@ describe('renderFrontmatterDocument', () => {
 
     expect(parsed?.data.note).toBe('yes: no')
   })
+
+  it('keeps a long value on one line instead of wrapping it', () => {
+    const long = 'x'.repeat(200)
+    const text = renderFrontmatterDocument({ note: long }, 'body')
+
+    expect(text).toBe(`---\nnote: ${long}\n---\n\nbody\n`)
+    expect(parseFrontmatterDocument(text)?.data.note).toBe(long)
+  })
 })
 
 describe('parseFrontmatterDocument', () => {

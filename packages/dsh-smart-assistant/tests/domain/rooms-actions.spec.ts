@@ -36,6 +36,7 @@ describe('parseRoomAction', () => {
 
   it('rejects the wrong shape before any service is called', () => {
     expect(parseRoomAction(null)).toEqual({ ok: false, error: 'invalid-body' })
+    expect(parseRoomAction([])).toEqual({ ok: false, error: 'invalid-body' })
     expect(parseRoomAction({})).toEqual({ ok: false, error: 'missing-action' })
     expect(parseRoomAction({ action: 'knowledge.delete', id: 'k-1' })).toEqual({ ok: false, error: 'unknown-action' })
     expect(parseRoomAction({ action: 'knowledge.approve' })).toEqual({ ok: false, error: 'invalid-id' })
@@ -49,6 +50,7 @@ describe('parseRoomAction', () => {
 describe('actionErrorStatus', () => {
   it('maps missing targets to 404 and state conflicts to 409', () => {
     expect(actionErrorStatus('knowledge page k-1 does not exist')).toBe(404)
+    expect(actionErrorStatus('no knowledge page "k-1"')).toBe(404)
     expect(actionErrorStatus('no learned skill named x')).toBe(404)
     expect(actionErrorStatus('only drafts may be approved')).toBe(409)
     expect(actionErrorStatus('already archived')).toBe(409)
