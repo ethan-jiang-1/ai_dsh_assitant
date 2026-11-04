@@ -28,7 +28,7 @@ opened: 2026-11-04
 |---|---|---|---|
 | S1 | `code-shape` 去重复扫描；命令文档只留 `commands.md` + `testing.md`；更新 note | 已交付 | code-shape 282→200 行、duplicate/`--window` 移除；docs 只留两处；172/1313 tests（`--maxWorkers=2`，host load ~70；canonical check 的 test 阶段超时）；verify 60/60 |
 | S2 | `desk-process.ts` 四处 return 形状收一个 helper | 已交付 | 5 处 `decision:'return'` 收成 `returnToDesk`；该文件 8 行重复组 4→0；函数 35→36（helper），决策 130→128，行 246→234；domain spec 60；172/1313 tests；verify 60/60 |
-| S3 | `learn/index.ts` save/propose 字段映射收一个 helper | 待开始 | — |
+| S3 | `learn/index.ts` save/propose 字段映射收一个 helper | 已交付 | `skillDraft` 统一校验+字段；`learn.execute` 54→44 决策、231→213 行；文件 106→102 决策；agent 72 tests；172/1313 tests；verify 60/60 |
 | S4 | 评估一个分派器；有安全切法才落 | 待开始 | — |
 | S5 | `repo-hygiene` 保留/删除决定 + 触发 | 待开始 | — |
 | S6 | 复盘两个新工具与总读数 | 待开始 | — |

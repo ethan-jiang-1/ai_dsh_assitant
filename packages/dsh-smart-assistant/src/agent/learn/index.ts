@@ -13,6 +13,7 @@ import { defineTool, type InferValue } from '@deepseek-ai/dsh-tools'
 import { scanLearnedSkills } from '../../domain/skills/scan.ts'
 import { shadowedLearnedSkills } from '../../domain/skills/shadow.ts'
 import { skillUsageLines } from '../../domain/skills/usage.ts'
+import type { SkillDraft } from '../../domain/skills/skill-file.ts'
 import { callCard, presentationMeta, resultCard } from '../tool-support/presentation.ts'
 import { LEARNED_PROVIDER_NAME } from '../tool-support/learned-provider.ts'
 import { installLearnedSkills } from '../learned-skills.ts'
@@ -26,6 +27,24 @@ const MAX_ASKS = 5
 const MAX_TOOL_KINDS = 12
 const MAX_TEXT_CHARS = 240
 const MAX_SKILL_USAGE = 8
+
+/** The skill fields shared by `save_skill` and `propose_skill`; both validate the same three. */
+function skillDraft(
+  action: 'save_skill' | 'propose_skill',
+  args: { readonly name?: string, readonly description?: string, readonly body?: string, readonly when_to_use?: string },
+  source: string | undefined,
+): Omit<SkillDraft, 'learnedAt'> {
+  if (args.name === undefined || args.description === undefined || args.body === undefined) {
+    throw new Error(`assistant_reflect ${action} requires name, description, and body`)
+  }
+  return {
+    name: args.name,
+    description: args.description,
+    ...(args.when_to_use !== undefined ? { whenToUse: args.when_to_use } : {}),
+    body: args.body,
+    ...(source !== undefined ? { source } : {}),
+  }
+}
 
 const DESCRIPTION = [
   'Turn an experience into durable knowledge: gather the evidence, then write what is reusable.',
@@ -270,16 +289,7 @@ export function apply(ctx: Context): void {
           }
         }
         case 'save_skill': {
-          if (args.name === undefined || args.description === undefined || args.body === undefined) {
-            throw new Error('assistant_reflect save_skill requires name, description, and body')
-          }
-          const written = await ctx.assistantMemory.writeSkill({
-            name: args.name,
-            description: args.description,
-            ...(args.when_to_use !== undefined ? { whenToUse: args.when_to_use } : {}),
-            body: args.body,
-            ...(exec.agent !== undefined ? { source: String(exec.agent.session.id) } : {}),
-          })
+          const written = await ctx.assistantMemory.writeSkill(skillDraft('save_skill', args, auditSessionId))
           return {
             ...empty,
             summary: written.findings.length > 0
@@ -357,16 +367,7 @@ export function apply(ctx: Context): void {
           }
         }
         case 'propose_skill': {
-          if (args.name === undefined || args.description === undefined || args.body === undefined) {
-            throw new Error('assistant_reflect propose_skill requires name, description, and body')
-          }
-          const proposal = await ctx.assistantMemory.proposeSkill({
-            name: args.name,
-            description: args.description,
-            ...(args.when_to_use !== undefined ? { whenToUse: args.when_to_use } : {}),
-            body: args.body,
-            ...(exec.agent !== undefined ? { source: String(exec.agent.session.id) } : {}),
-          })
+          const proposal = await ctx.assistantMemory.proposeSkill(skillDraft('propose_skill', args, auditSessionId))
           return {
             ...empty,
             summary: `Proposed skill "${proposal.id}" (revision ${String(proposal.revision)}) into the review inbox — `
