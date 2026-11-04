@@ -12,7 +12,7 @@
  * @module dsh-smart-assistant/skills/audit
  */
 
-import { access, constants } from 'node:fs/promises'
+import { existsSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import type { CurationFinding } from '../home/health.ts'
@@ -38,15 +38,6 @@ const REFERENCES_BACKTICK = /`((?:\.{1,2}\/)?references\/[^`|]+?)`/g
 
 function looksLikeExternalTarget(target: string): boolean {
   return target.startsWith('#') || /^[a-z][a-z0-9+.-]*:/i.test(target) || target.startsWith('/')
-}
-
-async function exists(path: string): Promise<boolean> {
-  try {
-    await access(path, constants.F_OK)
-    return true
-  } catch {
-    return false
-  }
 }
 
 /**
@@ -105,7 +96,7 @@ export async function auditSkillReferences(
   }
   const findings: CurationFinding[] = []
   for (const target of targets) {
-    if (await exists(join(baseDir, target))) continue
+    if (existsSync(join(baseDir, target))) continue
     findings.push({
       code: 'skill-broken-reference',
       severity: 'warn',

@@ -6,7 +6,11 @@
  */
 import { existsSync } from 'node:fs'
 import { lstat, readdir, rename, rm, stat } from 'node:fs/promises'
-import { isAbsolute, join, relative } from 'node:path'
+import { join } from 'node:path'
+import { isInsideOrEqual } from '../../domain/product/workspace-path.ts'
+
+/** The CLI's name for the one path-containment rule the domain owns. */
+export const isInside = isInsideOrEqual
 
 export async function countTree(dir: string): Promise<{ files: number, bytes: number }> {
   if (!existsSync(dir)) return { files: 0, bytes: 0 }
@@ -25,12 +29,6 @@ export async function countTree(dir: string): Promise<{ files: number, bytes: nu
     }
   }
   return { files, bytes }
-}
-
-/** True when `child` is `parent` or lies below it. Both paths are expected to be absolute. */
-export function isInside(parent: string, child: string): boolean {
-  const nested = relative(parent, child)
-  return nested === '' || (!nested.startsWith('..') && !isAbsolute(nested))
 }
 
 /** Coordination files, never user data, and never valid in a portable bundle. */

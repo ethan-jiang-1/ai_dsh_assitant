@@ -8,8 +8,8 @@
  * @module dsh-smart-assistant/home/layout
  */
 
-import { constants } from 'node:fs'
-import { access, mkdir, readFile, rename } from 'node:fs/promises'
+import { existsSync } from 'node:fs'
+import { mkdir, readFile, rename } from 'node:fs/promises'
 import { randomUUID } from 'node:crypto'
 import { join } from 'node:path'
 import { atomicWriteFile } from './atomic-write.ts'
@@ -130,15 +130,6 @@ function backupStamp(): string {
   return `${new Date().toISOString().replace(/[:.]/gu, '-')}-${randomUUID().slice(0, 8)}`
 }
 
-async function exists(path: string): Promise<boolean> {
-  try {
-    await access(path, constants.F_OK)
-    return true
-  } catch {
-    return false
-  }
-}
-
 /**
  * Create a missing home. Idempotent, and safe on a home a person has edited: directories are only
  * created, `SOUL.md` is written only when absent, `MANUAL.md` is refreshed to the current render
@@ -162,12 +153,12 @@ export async function scaffoldHome(paths: HomePaths): Promise<ScaffoldResult> {
   ]
   const createdDirectories: string[] = []
   for (const directory of directories) {
-    if (!(await exists(directory))) createdDirectories.push(directory)
+    if (!existsSync(directory)) createdDirectories.push(directory)
     await mkdir(directory, { recursive: true, mode: 0o700 })
   }
 
   const render = renderHomeManual()
-  const manualWritten = !(await exists(paths.manualFile))
+  const manualWritten = !existsSync(paths.manualFile)
   if (manualWritten) {
     await atomicWriteFile(paths.manualFile, render)
   } else {
@@ -180,7 +171,7 @@ export async function scaffoldHome(paths: HomePaths): Promise<ScaffoldResult> {
 
   let notesSeeded = false
   let legacyManualBackup: string | undefined
-  if (await exists(paths.agentsFile)) {
+  if (existsSync(paths.agentsFile)) {
     const text = await readFile(paths.agentsFile, 'utf8')
     if (/^<!--\s*home-manual v\d+\s*-->/u.test(text.trimStart())) {
       legacyManualBackup = `${paths.agentsFile}.bak-${backupStamp()}`
@@ -193,7 +184,7 @@ export async function scaffoldHome(paths: HomePaths): Promise<ScaffoldResult> {
     notesSeeded = true
   }
 
-  const soulWritten = !(await exists(paths.soulFile))
+  const soulWritten = !existsSync(paths.soulFile)
   if (soulWritten) await atomicWriteFile(paths.soulFile, `${DEFAULT_SOUL}\n`)
   return {
     createdDirectories,

@@ -99,7 +99,7 @@ export async function resolveWorkspaceDir(
 }
 
 /** True when `child` equals `parent` or sits beneath it. */
-function isInsideOrEqual(parent: string, child: string): boolean {
+export function isInsideOrEqual(parent: string, child: string): boolean {
   const nested = relative(parent, child)
   return nested === '' || (!nested.startsWith('..') && !isAbsolute(nested))
 }
