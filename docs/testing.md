@@ -111,6 +111,7 @@
 ## 已定姿态与升级触发
 
 - **coverage**：`pnpm test:coverage` 只出报告（`.tmp/coverage`），不设阈值、不进门禁；新文件 per-file 100% 仍是人工纪律，存量祖父豁免；机器门触发 = 第一处"删了才对"的死代码实证。
+- **code-shape**：`pnpm code-shape` 只出读数（函数长度/决策点/重复窗口），不设阈值、不进门禁；`--self-check` 进 `pnpm verify` 但只自证仪表，不因 findings 红；机器门触发 = 第一处它本可提前抓到的真实回归。
 - **eval 节奏**：模型可见切片收尾 `--only` 聚焦跑，阶段收尾才全量。
 - **eval 阻断**：缺 key / 无会话日志 = **BLOCKED（exit 2）**，不并入 PASS/FAIL；判据见 [`dev.md`](dev.md) §五。
 - **浏览器证据车道**：`pnpm web-face-check --all` 跑 10 面（4 客户 + 2 产品面 + 4 Viki 固定 mock）；默认 4 客户面。它不进 `pnpm verify`（Chrome/耗时/flake），由 pre-push 技能要求；test/verify 绿不证明页面没坏。

@@ -34,7 +34,7 @@ roster 行可替换、两个 profile patch 语义不可互换），此处不复�
 | `lib/` | **跨目录共享库**（谁都不属于，只被 import）：`session-logs`（会话日志发现/解压/分类 + 会话目录快照/差集的判据核——报告、评测、探针同用一份）、`eval-sessions`（评测会话剔除判据核：题面命中且单消息非面板——desk-loop/usage/observe 三报告同源共用）、`continuity-core`（接续评测的判据核：种子前置、工具调用解析、六类交接判定、账本不变式） |
 | `fixtures/` | keyless 回放夹具（llm-replay）、投影/处理流夹具（desk-projection、desk-process）与续接种子账本（eval-continuity）。**spec 侧共享夹具的家不在这里** = `packages/dsh-smart-assistant/tests/support/`（分工判据见 [`docs/testing.md`](../docs/testing.md) 分层表）。录制语料按原样入库：宿主绝对路径只出现在请求/工具文本里（回放只 derive assistant 轮次，不比对它们），要移植就在消费侧归一化，不改语料 |
 | `eval/` | 行为/领域评测（不与单元测试合并） |
-| `reports/` | usage / desk-loop / 输入观察报告 |
+| `reports/` | usage / code-shape / repo-hygiene / desk-loop / 输入观察报告 |
 | `deploy/` | 知识导入与专家装配 CLI（仓库用，非发行命令） |
 | `experiments/openviking/` | 外部服务试验工具（只归位不执行） |
 | `harness-home/` · `trial-home*/` | **忽略的运行数据**（含 30 天观察专用 home），原地保留（源码归位 ≠ 数据迁移） |
