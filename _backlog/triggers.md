@@ -31,3 +31,6 @@
 | 产品 run 的机器 manifest / 面板枚举 | 不做（v0 只留人可读 README） | 出现真实消费者：首页“这周做了什么”、eval 核对产物、审计 | [产品 profile 对齐 note](../notes/implemented/2026-11-01-product-profile-alignment.md) |
 | 非技术用户的 GUI 安装器 / 签名 / 离线包（O5 下一步） | 不做（当前是可选安装器 + tarball；`docs/product.md` §2.2） | 第一次真实企业交付，或用户明确说命令行安装不可接受 | [产品 profile 对齐 note](../notes/implemented/2026-11-01-product-profile-alignment.md) |
 | Windows / Desktop 真机矩阵 | 未宣称 | 第一次真实用户在这两类平台安装/启动 | [产品 profile 对齐 note](../notes/implemented/2026-11-01-product-profile-alignment.md) |
+| code-shape 阈值/门禁 | 只做读数，不设阈值、不进门禁 | 第一处它本可提前抓到、但审计后才发现的回归 | [读数 note](../notes/implemented/2026-11-04-code-quality-readings.md) |
+| mutation 常驻工具 | 一次性 probe + 补测，不装 Stryker | 第三次需要手工 mutation（同一多步流程第三次） | [读数 note](../notes/implemented/2026-11-04-code-quality-readings.md) |
+| attack the premise 成文 | 不改仓；外部 `diagnosing-bugs` + 根因证据已覆盖 | 接下来两个 bug 周期重复同一前提 | [读数 note](../notes/implemented/2026-11-04-code-quality-readings.md) |
