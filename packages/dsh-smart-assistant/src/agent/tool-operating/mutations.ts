@@ -16,9 +16,27 @@ export interface MutationDeps {
   readonly ledger: Context['assistantOperatingLedger']
   readonly args: OperatingArgs
   readonly quote: string
-  readonly operationId: string | undefined
+  readonly operationId: string
   readonly source: (quote: string) => LedgerSource
   readonly submit: (operation: LedgerOperation, summary: string) => Promise<OperatingOutput>
+}
+
+/** Fields shared by `entrust` and `revise`; omitted keys stay absent, not undefined. */
+function carriedFields(args: OperatingArgs): {
+  summary?: string
+  responsible?: string
+  times?: { promisedDeadline?: string, nextCheckpoint?: string }
+} {
+  return {
+    ...(args.summary !== undefined ? { summary: args.summary } : {}),
+    ...(args.responsible !== undefined ? { responsible: args.responsible } : {}),
+    ...((args.promised_deadline !== undefined || args.next_checkpoint !== undefined) ? {
+      times: {
+        ...(args.promised_deadline !== undefined ? { promisedDeadline: args.promised_deadline } : {}),
+        ...(args.next_checkpoint !== undefined ? { nextCheckpoint: args.next_checkpoint } : {}),
+      },
+    } : {}),
+  }
 }
 
 /** Dispatch one mutating action; every other value is a schema violation. */
@@ -31,16 +49,9 @@ export async function submitMutation(deps: MutationDeps): Promise<OperatingOutpu
       }
       return submit({
         kind: 'create',
-        operationId: operationId!,
+        operationId,
         title: args.title,
-        ...(args.summary !== undefined ? { summary: args.summary } : {}),
-        ...(args.responsible !== undefined ? { responsible: args.responsible } : {}),
-        ...((args.promised_deadline !== undefined || args.next_checkpoint !== undefined) ? {
-          times: {
-            ...(args.promised_deadline !== undefined ? { promisedDeadline: args.promised_deadline } : {}),
-            ...(args.next_checkpoint !== undefined ? { nextCheckpoint: args.next_checkpoint } : {}),
-          },
-        } : {}),
+        ...carriedFields(args),
         source: source(quote),
       }, `Entrusted "${args.title}".`)
     }
@@ -55,7 +66,7 @@ export async function submitMutation(deps: MutationDeps): Promise<OperatingOutpu
       if (matter === undefined) throw new Error(`no operating matter "${args.matter_id}"`)
       return submit({
         kind: 'update',
-        operationId: operationId!,
+        operationId,
         matterId: matter.id,
         observedRevision: matter.revision,
         ...(args.forecast_at !== undefined ? { forecast: { at: args.forecast_at, source: source(quote) } } : {}),
@@ -72,18 +83,11 @@ export async function submitMutation(deps: MutationDeps): Promise<OperatingOutpu
       if (!hasField) throw new Error('assistant_operating revise requires at least one field to change')
       return submit({
         kind: 'update',
-        operationId: operationId!,
+        operationId,
         matterId: args.matter_id,
         observedRevision: args.observed_revision,
         ...(args.title !== undefined ? { title: args.title } : {}),
-        ...(args.summary !== undefined ? { summary: args.summary } : {}),
-        ...(args.responsible !== undefined ? { responsible: args.responsible } : {}),
-        ...((args.promised_deadline !== undefined || args.next_checkpoint !== undefined) ? {
-          times: {
-            ...(args.promised_deadline !== undefined ? { promisedDeadline: args.promised_deadline } : {}),
-            ...(args.next_checkpoint !== undefined ? { nextCheckpoint: args.next_checkpoint } : {}),
-          },
-        } : {}),
+        ...carriedFields(args),
         source: source(quote),
       }, `Revised ${args.matter_id} on explicit instruction.`)
     }
@@ -108,35 +112,35 @@ export async function submitMutation(deps: MutationDeps): Promise<OperatingOutpu
       } else {
         change = { kind: 'abandon' }
       }
-      return submit({ kind: 'propose', operationId: operationId!, matterId: args.matter_id, change, source: source(quote) },
+      return submit({ kind: 'propose', operationId, matterId: args.matter_id, change, source: source(quote) },
         `Proposed ${args.change_kind} on ${args.matter_id}; it stays pending until the principal confirms.`)
     }
     case 'confirm': {
       if (typeof args.matter_id !== 'string' || typeof args.proposal_id !== 'string') {
         throw new Error('assistant_operating confirm requires matter_id and proposal_id')
       }
-      return submit({ kind: 'confirm', operationId: operationId!, matterId: args.matter_id, proposalId: args.proposal_id, source: source(quote) },
+      return submit({ kind: 'confirm', operationId, matterId: args.matter_id, proposalId: args.proposal_id, source: source(quote) },
         `Confirmed ${args.proposal_id} on ${args.matter_id} on the principal's explicit instruction.`)
     }
     case 'reject': {
       if (typeof args.matter_id !== 'string' || typeof args.proposal_id !== 'string') {
         throw new Error('assistant_operating reject requires matter_id and proposal_id')
       }
-      return submit({ kind: 'reject', operationId: operationId!, matterId: args.matter_id, proposalId: args.proposal_id, source: source(quote) },
+      return submit({ kind: 'reject', operationId, matterId: args.matter_id, proposalId: args.proposal_id, source: source(quote) },
         `Rejected ${args.proposal_id} on ${args.matter_id} on the principal's explicit instruction.`)
     }
     case 'note': {
       if (typeof args.note !== 'string' || args.note.trim().length === 0) {
         throw new Error('assistant_operating note requires note')
       }
-      return submit({ kind: 'note', operationId: operationId!, note: args.note, source: source(quote) },
+      return submit({ kind: 'note', operationId, note: args.note, source: source(quote) },
         'Retained the fragment as unclaimed; attribution was not guessed.')
     }
     case 'claim': {
       if (typeof args.unclaimed_id !== 'string' || typeof args.matter_id !== 'string') {
         throw new Error('assistant_operating claim requires unclaimed_id and matter_id')
       }
-      return submit({ kind: 'claim', operationId: operationId!, unclaimedId: args.unclaimed_id, matterId: args.matter_id, source: source(quote) },
+      return submit({ kind: 'claim', operationId, unclaimedId: args.unclaimed_id, matterId: args.matter_id, source: source(quote) },
         `Attached ${args.unclaimed_id} to ${args.matter_id}.`)
     }
     case 'discard': {
@@ -146,7 +150,7 @@ export async function submitMutation(deps: MutationDeps): Promise<OperatingOutpu
       if (typeof args.reason !== 'string' || args.reason.trim().length === 0) {
         throw new Error('assistant_operating discard requires reason (why the fragment is noise; no reason, no removal)')
       }
-      return submit({ kind: 'discard', operationId: operationId!, unclaimedId: args.unclaimed_id, reason: args.reason, source: source(quote) },
+      return submit({ kind: 'discard', operationId, unclaimedId: args.unclaimed_id, reason: args.reason, source: source(quote) },
         `Discarded ${args.unclaimed_id} as noise: ${args.reason}`)
     }
     case 'complete': {
@@ -158,7 +162,7 @@ export async function submitMutation(deps: MutationDeps): Promise<OperatingOutpu
       }
       return submit({
         kind: 'complete',
-        operationId: operationId!,
+        operationId,
         matterId: args.matter_id,
         observedRevision: args.observed_revision,
         evidence: { note: args.note ?? 'arrival evidence', source: source(args.evidence_quote) },
@@ -172,7 +176,7 @@ export async function submitMutation(deps: MutationDeps): Promise<OperatingOutpu
       if (typeof args.reason !== 'string' || args.reason.trim().length === 0) {
         throw new Error('assistant_operating reopen requires reason')
       }
-      return submit({ kind: 'reopen', operationId: operationId!, matterId: args.matter_id, observedRevision: args.observed_revision, reason: args.reason, source: source(quote) },
+      return submit({ kind: 'reopen', operationId, matterId: args.matter_id, observedRevision: args.observed_revision, reason: args.reason, source: source(quote) },
         `Reopened ${args.matter_id}: ${args.reason}`)
     }
     /* v8 ignore next 2 -- the enum in the parameter schema admits only mutating actions */

@@ -104,15 +104,8 @@ export function operatingTool(ctx: Context) {
       // Provenance is stamped here, not by the model: the session id is the real one.
       const sessionId = exec.agent !== undefined ? String(exec.agent.session.id) : 'outside-session'
       const source = (quote: string): LedgerSource => ({ sessionId, ...(quote.length > 0 ? { quote } : {}) })
-      const mutating = action !== 'desk' && action !== 'read'
       const operationId = args.operation_id
       const quote = args.quote ?? ''
-      if (mutating && (typeof operationId !== 'string' || operationId.trim().length === 0)) {
-        throw new Error(`assistant_operating ${action} requires operation_id`)
-      }
-      if (mutating && quote.trim().length === 0) {
-        throw new Error(`assistant_operating ${action} requires quote (the principal's words or the material, verbatim)`)
-      }
       const submit = async (operation: LedgerOperation, summary: string): Promise<OperatingOutput> => {
         const receipt = await ledger.submitOperation(operation)
         return { action, summary, source: operation.source, receipt: { operationId: receipt.operationId, matterId: receipt.matterId, submittedAt: receipt.submittedAt, outcome: receipt.outcome } }
@@ -178,10 +171,17 @@ export function operatingTool(ctx: Context) {
           }
           throw new Error('assistant_operating read requires matter_id or operation_id')
         }
-        default:
-          // Read actions stay here (they are pure view composition); every mutating family lives
-          // in mutations.ts so the adapter file only owns wiring and the two reads.
+        default: {
+          // Every mutating family lives in mutations.ts so the adapter file only owns wiring,
+          // the two reads, and the one place both mutating preconditions are enforced.
+          if (typeof operationId !== 'string' || operationId.trim().length === 0) {
+            throw new Error(`assistant_operating ${action} requires operation_id`)
+          }
+          if (quote.trim().length === 0) {
+            throw new Error(`assistant_operating ${action} requires quote (the principal's words or the material, verbatim)`)
+          }
           return submitMutation({ action, args, ledger, quote, operationId, source, submit })
+        }
       }
     },
   })

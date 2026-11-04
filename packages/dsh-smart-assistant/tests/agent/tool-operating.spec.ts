@@ -302,6 +302,12 @@ describe('assistant_operating (tool adapter over the authoritative ledger)', () 
     await expect(tool.execute({ action: 'revise', ...ok }, exec)).rejects.toThrow(/revise requires matter_id and observed_revision/)
   })
 
+  it('refuses a mutating action without operation_id or quote before touching the ledger', async () => {
+    const tool = boot()
+    await expect(tool.execute({ action: 'entrust', title: '无票', quote: '原话' }, exec)).rejects.toThrow(/requires operation_id/)
+    await expect(tool.execute({ action: 'entrust', operation_id: 'op-guard-quote', title: '无票' }, exec)).rejects.toThrow(/requires quote/)
+  })
+
   it('revises a matter with its observed revision and refuses an empty edit', async () => {
     const tool = boot()
     const entrusted = await tool.execute({
