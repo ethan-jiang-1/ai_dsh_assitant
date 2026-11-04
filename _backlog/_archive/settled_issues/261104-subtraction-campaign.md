@@ -7,7 +7,7 @@ opened: 2026-11-04
 
 > 立卡：2026-11-04 ｜ 状态：已结 ｜ 毕业：做现在 ｜ 去向：implemented ｜ 可关闭：是
 > 授权：2026-11-04 用户授权静默自主执行；要求步步为营、每刀 `pnpm check` 绿、不破坏原功能、失败即回退。
-> 结论：S1–S3 减法落地（code-only −72 行，55+/127−）；S4 评估后不落（没有净减法）；S5 保留 `repo-hygiene` + 一个月无消费者触发；S6 复盘。行为由现有 spec 与全量套件钉住；无新工具/门禁/文档层。host load 高时全量套件用 `--maxWorkers=2` 跑通，canonical `pnpm check` 的 test 阶段仍会因机器负载超时（逐条单跑均绿）。
+> 结论：S1–S3 减法落地（code-only −72 行，55+/127−）；S4 评估后不落（没有净减法）；S5 保留 `repo-hygiene` + 一个月无消费者触发；S6 复盘。行为由现有 spec 与全量套件钉住；无新工具/门禁/文档层。host load 高时先用 `--maxWorkers=2` 跑通；负载降至 ~40 后 canonical `pnpm check` 复跑通过（172 文件 / 1,313 tests、verify 60/60）。
 > 审查：agent — 机械 `typecheck`/`build`/全量套件（`--maxWorkers=2`）/`verify`；语义自审跨 dev/domain/agent/docs；用户授权静默自主执行。
 > 去向 = [读数 note](../../../notes/implemented/2026-11-04-code-quality-readings.md)。
 
