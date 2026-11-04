@@ -10,7 +10,7 @@
 
 ## 决定
 
-- 删除 `dev/reports/repo-hygiene.mjs` 与它的 spec、`hygiene` alias、verify self-check、命令文档行。
+- 删除 `repo-hygiene` 报告（实现与 spec 已不在仓库）、`hygiene` alias、verify self-check、命令文档行。
 - 阶段收口保留动作本身：`pnpm sweep`（dry-run 后按需 `--apply`）、`git worktree prune`、分支逐个复盘；
   删除仍由人执行，不自动删。
 - `code-shape` 保留：它是减法/形状的前后测量仪，不是这次删的对象。
