@@ -94,8 +94,8 @@ pnpm eval               # 行为评测：真实请求经 preset 会话，判定�
 pnpm eval:domain        # 领域评测：本人出题逐题跑 → 人打分的报告（模板 = dev/eval/domain/TEMPLATE.md）
 pnpm eval:continuity    # 续接行为地板：隔离 fixture 首回合读回判据（红绿对照挂 verify）
 pnpm usage [--since N]  # 意图级仪表：会话/工具混合/自用率/摩擦（读 dev home；--since 只看最近 N 天；--self-check 仪表自证）
-pnpm code-shape [--top N] [--window N] [--json]
-                        # 代码形状读数：函数长度/决策点/重复窗口；只报告，不设阈值（--self-check 仪表自证）
+pnpm code-shape [--top N] [--json]
+                        # 代码形状读数：函数长度/决策点；只报告，不设阈值（--self-check 仪表自证）
 pnpm desk-loop          # 培养循环摩擦报告（读 dev home 会话日志）
 pnpm observe [--home <dir>]   # 输入边界 30 天观察读数（A/B/C 口径与读数档 = docs/dev.md §五）
 pnpm ov-trial-rt        # OpenViking 真服务记忆往返试验（前提 server 已在 127.0.0.1:1933）

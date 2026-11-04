@@ -1,7 +1,7 @@
 /**
  * Fixtures for the code-shape reading (`dev/reports/code-shape.mjs`). The report is an instrument,
  * not a gate: these pin that it counts what it says it counts and that its self-check still
- * detects a known long function, a known decision-heavy function and a known duplicate window.
+ * detects a known long function and a known decision-heavy function.
  */
 import { describe, expect, it } from 'vitest'
 import { analyzeSources, renderReport, selfCheck } from '../../../../dev/reports/code-shape.mjs'
@@ -17,13 +17,9 @@ const simple = [
 const longBody = Array.from({ length: 70 }, (_, index) => `  const value${index} = ${index}`).join('\n')
 const long = `export function longOne() {\n${longBody}\n  return value0\n}`
 
-const shared = Array.from({ length: 14 }, (_, index) => `  const line${index} = ${index}`).join('\n')
-const duplicate = `export function firstCopy() {\n${shared}\n  return line0\n}\nexport function secondCopy() {\n${shared}\n  return line0\n}`
-
 const sources = [
   { fileName: 'simple.ts', text: simple },
   { fileName: 'long.ts', text: long },
-  { fileName: 'duplicate.ts', text: duplicate },
 ]
 
 describe('analyzeSources', () => {
@@ -35,7 +31,7 @@ describe('analyzeSources', () => {
     expect(simpleRow?.decisions).toBe(3)
     expect(simpleRow?.lines).toBe(5)
     expect(longRow?.lines).toBeGreaterThan(60)
-    expect(result.functions).toHaveLength(4)
+    expect(result.functions).toHaveLength(2)
   })
 
   it('keeps a nested function out of its parent decision count', () => {
@@ -44,11 +40,6 @@ describe('analyzeSources', () => {
 
     expect(result.functions.find(row => row.name === 'outer')?.decisions).toBe(1)
     expect(result.functions.find(row => row.name === 'inner')?.decisions).toBe(3)
-  })
-
-  it('reports an exact 12-line duplicate window and nothing at a wider one', () => {
-    expect(analyzeSources(sources).duplicates.length).toBeGreaterThan(0)
-    expect(analyzeSources(sources, { window: 20 }).duplicates).toHaveLength(0)
   })
 })
 
@@ -65,7 +56,7 @@ describe('renderReport', () => {
 })
 
 describe('selfCheck', () => {
-  it('accepts the synthetic fixture and names a drift', () => {
+  it('accepts the synthetic fixture', () => {
     expect(selfCheck(() => {})).toBe(0)
   })
 })

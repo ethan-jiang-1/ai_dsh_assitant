@@ -1,20 +1,23 @@
 #!/usr/bin/env node
 /**
- * 代码形状读数：函数长度、决策点数、重复窗口。**只报告，不设阈值，不因 findings 非零退出。**
+ * 代码形状读数：函数长度与决策点数。**只报告，不设阈值，不因 findings 非零退出。**
  *
  * 为什么存在：七维审计手工量过三次——261103 两轮找 god-module（`assistant-data-bundle` 555 行、
  * `health.ts` 464 行、`tool-operating` 459 行），2026-11-04 的 ub-mode 对照又量了一次。按根
- * AGENTS.md「同一多步流程第三次就立」的常设规则，固化成仓内读数；它回答「哪里在长、哪里重复」，
+ * AGENTS.md「同一多步流程第三次就立」的常设规则，固化成仓内读数；它回答「哪里在长、哪里决策密集」，
  * 不回答「多少算坏」——阈值与门禁等第一处真实回归的证据（与 coverage 同一姿态）。
  *
+ * 为什么不再报重复：重复扫描在 12 行窗口是 0，8 行窗口只剩 schema 字段块与少量字段构造；
+ * 没有可行动的重复，保留它只是给读数加一个不会改变决定的分区。重复仍可用一次性脚本查，
+ * 不进常驻工具。
+ *
  * 两条诚实纪律：
- *   ① 只报测得到的东西：函数跨度按 AST 行号算，决策点按 if/循环/case/&&/||/??/三元算；
- *      重复窗口按归一化行的精确匹配算（默认 12 行），不做语义近似。
+ *   ① 只报测得到的东西：函数跨度按 AST 行号算，决策点按 if/循环/case/&&/||/??/三元算。
  *   ② 不评级、不设 PASS/FAIL：findings 只进 stdout；退出码只表达工具自身是否跑通。
  *
  * 用法：
- *   pnpm code-shape                    # 默认包内 src，top 20，12 行重复窗口
- *   pnpm code-shape --top 30 --window 8
+ *   pnpm code-shape                    # 默认包内 src，top 20
+ *   pnpm code-shape --top 30
  *   pnpm code-shape --json             # 结构化输出，便于脚本消费
  *   pnpm code-shape --self-check       # 仪表自证（合成源码 → 已知计数；已接进 pnpm verify）
  *
@@ -26,9 +29,6 @@ import { fileURLToPath } from 'node:url'
 import ts from 'typescript'
 
 const repoRoot = resolve(fileURLToPath(new URL('../..', import.meta.url)))
-
-/** Default exact-match window for the duplicate reading. */
-export const DEFAULT_WINDOW = 12
 
 const DECISIONS = new Set([
   ts.SyntaxKind.IfStatement,
@@ -75,32 +75,16 @@ function scriptKind(fileName) {
   return ts.ScriptKind.TS
 }
 
-/** Source text lines that carry signal; blank lines and pure punctuation are ignored by the window. */
-function normalizeLine(line) {
-  return line
-    .replace(/\/\/.*$/, '')
-    .replace(/\/\*[\s\S]*?\*\//g, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-}
-
-const trivialLine = line => line === '' || /^[)}\];,]+$/.test(line) || /^(import|export from|export \{)/.test(line)
-
 /**
  * Analyze in-memory sources. Pure: no filesystem, no clock, no output.
  * @param sources - `{ fileName, text }` entries.
- * @param options - `window` for duplicate detection.
- * @returns functions, duplicate groups, and the per-file count.
+ * @returns `{ files, functions }`.
  */
-export function analyzeSources(sources, { window = DEFAULT_WINDOW } = {}) {
-  if (!Number.isInteger(window) || window < 2) throw new Error('window must be an integer >= 2')
+export function analyzeSources(sources) {
   const functions = []
-  const sitesByHash = new Map()
-
   for (const source of sources) {
     const fileName = source.fileName
-    const text = source.text
-    const sf = ts.createSourceFile(fileName, text, ts.ScriptTarget.ES2024, true, scriptKind(fileName))
+    const sf = ts.createSourceFile(fileName, source.text, ts.ScriptTarget.ES2024, true, scriptKind(fileName))
     const visit = node => {
       if (isFunctionLike(node)) {
         const start = sf.getLineAndCharacterOfPosition(node.getStart(sf))
@@ -116,26 +100,8 @@ export function analyzeSources(sources, { window = DEFAULT_WINDOW } = {}) {
       ts.forEachChild(node, visit)
     }
     visit(sf)
-
-    const lines = text.split('\n').map(normalizeLine)
-    for (let index = 0; index + window <= lines.length; index += 1) {
-      const block = lines.slice(index, index + window)
-      if (block.filter(line => !trivialLine(line)).length < window - 3) continue
-      const key = block.join('\n')
-      const sites = sitesByHash.get(key) ?? []
-      sites.push({ file: fileName, line: index + 1 })
-      sitesByHash.set(key, sites)
-    }
   }
-
-  const duplicates = []
-  for (const sites of sitesByHash.values()) {
-    if (sites.length < 2) continue
-    duplicates.push({ sites, preview: sites[0] === undefined ? '' : `window ${window}` })
-  }
-  duplicates.sort((left, right) => right.sites.length - left.sites.length)
-
-  return { files: sources.length, functions, duplicates, window }
+  return { files: sources.length, functions }
 }
 
 /** Group a repo-relative path by the directory under `src/`, or its first segment. */
@@ -169,7 +135,7 @@ export function renderReport(result, { top = 20 } = {}) {
 
   const lines = [
     `code-shape — ${result.files} files, ${result.functions.length} function-like nodes`,
-    `counts: >60 lines ${long.length}; >10 decisions ${complex.length}; duplicate groups ${result.duplicates.length} (window ${result.window})`,
+    `counts: >60 lines ${long.length}; >10 decisions ${complex.length}`,
     '',
     '## per top-level directory',
     '',
@@ -191,17 +157,6 @@ export function renderReport(result, { top = 20 } = {}) {
     lines.push(tableRow([row.lines, row.decisions, `\`${row.file}:${row.line}\``, `\`${row.name}\``]))
   }
 
-  lines.push('', `## duplicate windows (${result.window} normalized lines)`, '')
-  if (result.duplicates.length === 0) {
-    lines.push(`none at this window (try \`--window 8\` only when the default reports nothing and duplication is suspected)`)
-  } else {
-    lines.push(tableRow(['sites', 'first site']))
-    lines.push(tableRow(['---:', '---']))
-    for (const duplicate of result.duplicates.slice(0, limit)) {
-      lines.push(tableRow([duplicate.sites.length, duplicate.sites.map(site => `\`${site.file}:${site.line}\``).slice(0, 4).join('<br>')]))
-    }
-  }
-
   lines.push('', '读数不是门禁；阈值与门禁等第一处真实回归的证据。')
   return lines.join('\n')
 }
@@ -219,26 +174,22 @@ export function selfCheck(log = console.log) {
   const long = `export function longOne() {\n${longBody}\n  return value0\n}`
   const complexBody = Array.from({ length: 11 }, (_, index) => `  if (input === ${index}) return ${index}`).join('\n')
   const complex = `export function complexOne(input: number) {\n${complexBody}\n  return -1\n}`
-  const shared = Array.from({ length: 14 }, (_, index) => `  const line${index} = ${index}`).join('\n')
-  const duplicate = `export function firstCopy() {\n${shared}\n  return line0\n}\nexport function secondCopy() {\n${shared}\n  return line0\n}`
 
   const result = analyzeSources([
     { fileName: 'simple.ts', text: simple },
     { fileName: 'long.ts', text: long },
     { fileName: 'complex.ts', text: complex },
-    { fileName: 'duplicate.ts', text: duplicate },
   ])
   const problems = []
   const longest = Math.max(...result.functions.map(row => row.lines))
   const mostDecisions = Math.max(...result.functions.map(row => row.decisions))
   if (longest <= 60) problems.push(`expected a >60-line function, longest was ${longest}`)
   if (mostDecisions <= 10) problems.push(`expected a >10-decision function, max was ${mostDecisions}`)
-  if (result.duplicates.length === 0) problems.push('expected one duplicate window in the synthetic pair')
   if (!renderReport(result, { top: 3 }).includes('function-like nodes')) problems.push('renderer lost its header')
 
   for (const problem of problems) log(`code-shape --self-check: ${problem}`)
   if (problems.length > 0) return 1
-  log('code-shape --self-check: ok — synthetic sources give the known length, decision and duplicate counts')
+  log('code-shape --self-check: ok — synthetic sources give the known length and decision counts')
   return 0
 }
 
@@ -262,19 +213,14 @@ function main() {
 
   const root = resolve(repoRoot, optionValue(args, '--root') ?? 'packages/dsh-smart-assistant/src')
   const top = Number(optionValue(args, '--top') ?? 20)
-  const window = Number(optionValue(args, '--window') ?? DEFAULT_WINDOW)
   if (!Number.isInteger(top) || top < 1) {
     console.error('code-shape: --top must be a positive integer')
-    process.exit(2)
-  }
-  if (!Number.isInteger(window) || window < 2) {
-    console.error('code-shape: --window must be an integer >= 2')
     process.exit(2)
   }
 
   const sources = []
   for (const file of walk(root)) sources.push({ fileName: relative(repoRoot, file), text: readFileSync(file, 'utf8') })
-  const result = analyzeSources(sources, { window })
+  const result = analyzeSources(sources)
   if (args.includes('--json')) console.log(JSON.stringify(result, null, 2))
   else console.log(renderReport(result, { top }))
 }
