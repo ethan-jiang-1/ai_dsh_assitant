@@ -1,5 +1,7 @@
 日期：2026-11-04 · 状态：**implemented**
 
+> 部分收窄：`repo-hygiene` 已删除，原因与收口动作见 [repo-hygiene 去留](2026-11-04-repo-hygiene-removal.md)。
+
 # 代码质量读数：报告不是门禁
 
 ## 问题（可观察行为）
@@ -14,8 +16,8 @@ ub-mode 对照暴露了两个一直靠人补的缺口：代码形状与测试强
    `--self-check` 进 `pnpm verify` 只自证仪表本身。阈值与门禁等第一处它本可提前抓到的真实回归。
 2. **mutation 保持一次性探针，不常驻。** 手工改一个文件、跑 owning spec、立即恢复；survivor 按
    “补测 / equivalent 理由 / 删死代码”处置。第三次需要同一流程时才考虑常驻（本仓“第三次就立”规则）。
-3. **`hygiene` 只报告，不删除。** 四段：`.tmp` 可回收项、worktree、branch、未提交。删除仍由人执行
-   `pnpm sweep --apply` / `git worktree prune` / `git branch -d`；未合并分支保留，报告只提示。
+3. **`hygiene` 报告已删除（同日减法）。** `.tmp` 仍走 `pnpm sweep`，worktree/分支在阶段收口人工复盘；
+   删除动作由人执行，未合并分支保留。原因见 [repo-hygiene 去留](2026-11-04-repo-hygiene-removal.md)。
 4. **GAP 3 不改仓。** 外部 `diagnosing-bugs` 技能与 bug 通道的“根因有证据”已覆盖诊断；
    触发 = 接下来两个 bug 周期重复同一前提，才在 bug 模板加一句“先写前提、数 actor、再动手”。
 5. **重复不建 dryer。** 12 行窗口的重复为 0；8 行有 10 组，集中在 schema 字段块与少量字段构造，
@@ -26,18 +28,18 @@ ub-mode 对照暴露了两个一直靠人补的缺口：代码形状与测试强
 - **直接上 CRAP<10 / 重复率阈值 / coverage 门**：没有“删了才对”的死代码实证，阈值会逼出拆函数凑数；与既有的 coverage 读数姿态冲突。
 - **装 Stryker / jscpd / eslint**：维护与组合成本大于当前收益；本仓 scripts 纪律是 Node 内置 + 仓内已有。
 - **中央 GLOSSARY**：会造第二份词表；domain 词汇已分散在模块 JSDoc + docs owner 表。
-- **把 git 报告塞进 `sweep --git`**：`.tmp` 清扫与 git 卫生是两个关注点，混在一个命令会让两边都不清；改立独立只读报告 `hygiene`。
+- **把 git 报告塞进 `sweep --git`**：`.tmp` 清扫与 git 卫生是两个关注点，混在一个命令会让两边都不清；先立了独立报告，后因无消费者删除（见 [repo-hygiene 去留](2026-11-04-repo-hygiene-removal.md)）。
 - **自动删除未合并分支 / worktree**：未提交工作等决定；删除权不交给脚本。
 - **再写一份七维审计报告**：round3 已判定“第四份只会训练下一次”；读数与卡上的证据足够。
 
 ## 后果（还会约束以后的）
 
-- `pnpm code-shape` 与 `pnpm hygiene` 只做读数；不要因为“报告里数字大”就加阈值——先找到它本可提前抓到的回归。
+- `pnpm code-shape` 只做读数；不要因为“报告里数字大”就加阈值——先找到它本可提前抓到的回归。
 - **减法后 `code-shape` 只读数函数长度/决策点**：重复扫描在 12 行窗口没有可行动的重复，8 行只剩 schema 字段块；重复仍用一次性脚本查，不常驻。
-- **`repo-hygiene` 保留**：只读、一条命令；一个月内无人跑 `pnpm hygiene` 就删掉，换阶段收口 3 行。删除动作仍由人执行。
+- **`repo-hygiene` 已删除**：无消费者；阶段收口用 `pnpm sweep` + `git worktree prune` + 分支复盘，重建触发见 [repo-hygiene 去留](2026-11-04-repo-hygiene-removal.md)。
 - **分派器不做表驱动**：`tool-memory` / `tool-research` / `learn` 的安全切法只有净 0 行的守卫搬移；表驱动会改模型可见结构，等一次真实回归再做。
 - 测试强度的默认读法是手工 mutation probe，不是常驻工具；survivor 的 equivalent 判定要写理由。
-- 分支与 worktree 的删除永远是人的决定；`hygiene` 只把选择摆出来。
+- 分支与 worktree 的删除永远是人的决定；收口动作只把选择摆出来。
 - GAP 3 未成文是决定，不是遗漏；重复出现两次再立规则。
 - 卡的完整证据（复杂度分布、18 个 mutant 的 killed/survived、清理前后大小）在
   [261104 收口卡](../../_backlog/_archive/settled_issues/261104-code-quality-readings.md)；本 note 只留决定与输掉的方案。

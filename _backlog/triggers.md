@@ -33,6 +33,6 @@
 | Windows / Desktop 真机矩阵 | 未宣称 | 第一次真实用户在这两类平台安装/启动 | [产品 profile 对齐 note](../notes/implemented/2026-11-01-product-profile-alignment.md) |
 | code-shape 阈值/门禁 | 只做读数，不设阈值、不进门禁 | 第一处它本可提前抓到、但审计后才发现的回归 | [读数 note](../notes/implemented/2026-11-04-code-quality-readings.md) |
 | mutation 常驻工具 | 一次性 probe + 补测，不装 Stryker | 第三次需要手工 mutation（同一多步流程第三次） | [读数 note](../notes/implemented/2026-11-04-code-quality-readings.md) |
-| repo-hygiene 去留 | 保留（只读、一条命令） | 一个月内无人跑 `pnpm hygiene`（工作里的一次观察） | [读数 note](../notes/implemented/2026-11-04-code-quality-readings.md) |
+| repo-hygiene 重建 | 已删；阶段收口用 `pnpm sweep` + `git worktree prune` + 分支复盘 | 连续两次阶段收口漏掉 stale worktree 或该复盘的分支 | [去留 note](../notes/implemented/2026-11-04-repo-hygiene-removal.md) |
 | 分派器表驱动 | 不做（安全切法只有净 0 行的守卫搬移） | 一次真实回归指向分派器的重复校验或漏校验 | [读数 note](../notes/implemented/2026-11-04-code-quality-readings.md) |
 | attack the premise 成文 | 不改仓；外部 `diagnosing-bugs` + 根因证据已覆盖 | 接下来两个 bug 周期重复同一前提 | [读数 note](../notes/implemented/2026-11-04-code-quality-readings.md) |

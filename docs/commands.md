@@ -38,8 +38,7 @@ pnpm gen-catalog        # 重新生成 docs/package-catalog.md（改组合行/ex
 pnpm clean              # 删 lib/（tsc 不清理已改名/删除文件的旧产物；改名后先 clean 再 build）
 pnpm sweep [--root <dir>] [--apply] [--min-age-minutes <n>] [--keep <名字>]
                         # .tmp 清扫（硬规则 8）：默认 dry-run；--apply 才真删；跳过 openviking / 新 mtime / 打开句柄 / --keep
-pnpm hygiene [--top N] [--json]
-                        # 仓库卫生读数：.tmp 可回收项 + worktree + branch + 未提交；只报告，不删除
+                        # 阶段收口另跑 git worktree prune 与分支复盘；删除仍由人执行
 ```
 
 ## 渲染与反馈
