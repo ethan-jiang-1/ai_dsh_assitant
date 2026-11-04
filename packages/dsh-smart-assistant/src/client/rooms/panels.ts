@@ -157,7 +157,7 @@ export function KnowledgePanel(props?: { sessionId?: string }): unknown {
  * @param memories - Every active record the desk file carries.
  * @returns Section headings and rows, as an element array to spread.
  */
-export function memoryGroups(memories: NonNullable<DeskData['memories']>, session?: string): ReturnType<typeof createElement>[] {
+function memoryGroups(memories: NonNullable<DeskData['memories']>, session?: string): ReturnType<typeof createElement>[] {
   const groups: { key: string, label: string }[] = [
     { key: 'preference', label: '你的偏好' },
     { key: 'decision', label: '你的决定' },

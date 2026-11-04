@@ -25,7 +25,7 @@ import {
 } from '../../domain/product/workspace-path.ts'
 
 /** Payload schema version the client parses. */
-export const PRODUCT_SCHEMA_VERSION = 1 as const
+const PRODUCT_SCHEMA_VERSION = 1 as const
 
 /** Product binding states the client gate can render. */
 export type ProductStatus =

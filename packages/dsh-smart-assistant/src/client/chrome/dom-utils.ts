@@ -25,7 +25,7 @@ import { MARK_TEAL } from './theme'
  * prefixes map to product words; every other source stays verbatim, because
  * workspace/external origins ARE the provenance the owner needs.
  */
-export function friendlySource(source: string): string {
+function friendlySource(source: string): string {
   return source.replace(/packages\/dsh-smart-assistant\/seeds\//g, '内置基座种子页/')
 }
 

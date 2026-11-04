@@ -81,7 +81,7 @@ export interface PendingWatch {
 }
 
 /** How long an accepted watch may take before "no schedule in that session" is a failure. */
-export const WATCH_GRACE_MS = 2 * 60_000
+const WATCH_GRACE_MS = 2 * 60_000
 
 /** Client-local proactive UI state: dismissed suggestions + remembered acceptances (proactive face, 2026-10-18).
  * Deliberately NOT a second truth about schedules — it only remembers the principal's own

@@ -122,7 +122,7 @@ export function tabBody(props: TabBodyProps, Panel: (props?: { sessionId?: strin
  * @param children - the room content, or an error/empty state.
  * @returns the scrollable wrapper element.
  */
-export function roomScroller(...children: (string | ReturnType<typeof createElement>)[]): ReturnType<typeof createElement> {
+function roomScroller(...children: (string | ReturnType<typeof createElement>)[]): ReturnType<typeof createElement> {
   return createElement('div', {
     style: { flex: '1', minHeight: '0', minWidth: '0', overflowY: 'auto', overflowX: 'hidden' },
   }, ...children)

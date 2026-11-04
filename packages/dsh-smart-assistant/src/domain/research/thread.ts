@@ -14,7 +14,7 @@ import type { RoomEntry } from '../home/room.ts'
 import { slugify } from '../memory/record.ts'
 
 /** Where a thread sits in its lifecycle. */
-export const THREAD_STATUSES = ['open', 'parked', 'promoted', 'dropped'] as const
+const THREAD_STATUSES = ['open', 'parked', 'promoted', 'dropped'] as const
 
 /** A thread's lifecycle status. */
 export type ThreadStatus = (typeof THREAD_STATUSES)[number]

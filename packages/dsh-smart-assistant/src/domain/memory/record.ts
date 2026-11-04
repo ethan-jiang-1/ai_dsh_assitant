@@ -17,7 +17,7 @@ export const MEMORY_KINDS = ['fact', 'preference', 'decision'] as const
 export type MemoryKind = (typeof MEMORY_KINDS)[number]
 
 /** Where a record sits in its lifecycle. Only `active` records reach the digest. */
-export const MEMORY_STATUSES = ['active', 'superseded', 'retired'] as const
+const MEMORY_STATUSES = ['active', 'superseded', 'retired'] as const
 
 /** A record's lifecycle status. */
 export type MemoryStatus = (typeof MEMORY_STATUSES)[number]

@@ -32,19 +32,19 @@ export const SKILLS_ROOM = 'skills'
 export const KNOWLEDGE_ROOM = 'knowledge'
 
 /** Directory holding skill proposals: drafts awaiting human review, one `<name>.md` per name. */
-export const SKILL_PROPOSALS_DIRECTORY_NAME = 'skill-proposals'
+const SKILL_PROPOSALS_DIRECTORY_NAME = 'skill-proposals'
 
 /** Directory holding governance ledgers (not a room, never scaffolded; created on first approval). */
-export const AUDIT_DIRECTORY_NAME = 'audit'
+const AUDIT_DIRECTORY_NAME = 'audit'
 
 /** Append-only approval ledger inside the audit directory. */
-export const APPROVALS_LEDGER_FILE_NAME = 'approvals.jsonl'
+const APPROVALS_LEDGER_FILE_NAME = 'approvals.jsonl'
 
 /** Subdirectory holding entries that left a room's active set. */
 export const ARCHIVE_DIRECTORY_NAME = 'archive'
 
 /** Machine-owned ledger of `skill`-tool load counts; advisory state, safe to delete. */
-export const SKILL_USAGE_FILE_NAME = 'skill-usage.json'
+const SKILL_USAGE_FILE_NAME = 'skill-usage.json'
 
 /** Every path the home layout owns. */
 export interface HomePaths {

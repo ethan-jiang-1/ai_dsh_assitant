@@ -18,7 +18,7 @@ import type { CurationFinding } from '../home/health.ts'
 import { MS_PER_DAY } from '../home/time.ts'
 
 /** Proposal lifecycle. */
-export const PROPOSAL_STATUSES = ['proposed', 'approved', 'rejected', 'landed'] as const
+const PROPOSAL_STATUSES = ['proposed', 'approved', 'rejected', 'landed'] as const
 
 /** A proposal's lifecycle status. */
 export type ProposalStatus = (typeof PROPOSAL_STATUSES)[number]

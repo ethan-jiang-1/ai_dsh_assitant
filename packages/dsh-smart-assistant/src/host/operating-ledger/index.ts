@@ -49,10 +49,10 @@ export interface Config {
 }
 
 /** Default recent-operation window; the file stays bounded while receipts remain readable. */
-export const MAX_RECENT_OPERATIONS = 256
+const MAX_RECENT_OPERATIONS = 256
 
 /** Default ceiling for the archive file read; `check` warns well before it. */
-export const MAX_ARCHIVE_BYTES = 256 * 1024 * 1024
+const MAX_ARCHIVE_BYTES = 256 * 1024 * 1024
 
 /** Resolved writer-lock holder identity. */
 interface WriterLock {

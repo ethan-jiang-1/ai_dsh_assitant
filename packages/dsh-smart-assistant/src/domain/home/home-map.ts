@@ -30,7 +30,7 @@ export const NOTES_HEADER = '# Working-folder notes (yours)\n\n'
 export const HOME_MANUAL_VERSION = 25
 
 /** The delivery rule in the answer contract: one action, and files go to the workspace. */
-export const CURRENT_DELIVERY_BULLETS = '- **One action, if any.** End with one concrete next step, not a menu.\n'
+const CURRENT_DELIVERY_BULLETS = '- **One action, if any.** End with one concrete next step, not a menu.\n'
   + '- **Deliver files where the principal can take them.** Write each piece of work under the\n'
   + '  session cwd as `deliverables/<YYYY-MM-DD>-<slug>/`: a `README.md` with what was asked, the\n'
   + '  evidence (file/session/knowledge locators), what you produced, and what is still open; put\n'
@@ -40,7 +40,7 @@ export const CURRENT_DELIVERY_BULLETS = '- **One action, if any.** End with one 
   + '  skills under `.dsh/skills/` and `.agents/skills/`; suggest changes, never silently rewrite them.\n'
 
 /** The manual's session-recall section (indexed tools first, raw logs as the declared fallback). */
-export const CURRENT_PAST_CONVERSATIONS = '## Past conversations\n\n'
+const CURRENT_PAST_CONVERSATIONS = '## Past conversations\n\n'
   + 'Every session you have ever had is searchable. Use `session_search` to find\n'
   + 'earlier work in this project, `session_event_search` to search inside one session, and\n'
   + '`session_event_read` to read an exact event. Raw logs remain the fallback for another project\'s\n'
@@ -54,14 +54,14 @@ export const CURRENT_PAST_CONVERSATIONS = '## Past conversations\n\n'
  * The repository-boundaries heading and its first boundary: project-bound facts belong to the
  * repository, not to the cross-project working folder.
  */
-export const CURRENT_REPO_BOUNDARIES_HEADING = 'When your session runs inside a repository (rather than only your working folder), five boundaries hold:\n\n'
+const CURRENT_REPO_BOUNDARIES_HEADING = 'When your session runs inside a repository (rather than only your working folder), five boundaries hold:\n\n'
   + '- **Project-bound facts stay with the project.** What is true only of this repository — its\n'
   + '  conventions, its numbers, its people — belongs in the repository itself (its `AGENTS.md`, its\n'
   + '  `.dsh/`, or its docs). Your working folder holds what travels with you across projects: durable\n'
   + '  facts, preferences, and lessons.\n'
 
 /** The standing-context paragraph: four sections, including the knowledge-tree digest. */
-export const CURRENT_FOUR_THINGS_PARAGRAPH = 'Four things ride in every request: your identity (`SOUL.md`), this manual (`MANUAL.md`), the\n'
+const CURRENT_FOUR_THINGS_PARAGRAPH = 'Four things ride in every request: your identity (`SOUL.md`), this manual (`MANUAL.md`), the\n'
   + 'standing brief that sends operating matters to the ledger, and a bounded digest of the working\n'
   + 'folder\'s live state — the strongest active memories, the open threads, and the knowledge tree.\n'
   + 'Everything else — full records, archived entries, skill bodies, knowledge pages — is fetched on\n'
@@ -69,10 +69,10 @@ export const CURRENT_FOUR_THINGS_PARAGRAPH = 'Four things ride in every request:
   + 'worse, not better.\n'
 
 /** The curate shadow example: the winner is a skill from another provider (project or user). */
-export const CURRENT_SHADOW_SENTENCE = 'learned skills shadowed by a same-named\nskill outside the folder'
+const CURRENT_SHADOW_SENTENCE = 'learned skills shadowed by a same-named\nskill outside the folder'
 
 /** The complete root the scaffold owns. */
-export const CURRENT_LAYOUT_TREE = '```text\n'
+const CURRENT_LAYOUT_TREE = '```text\n'
   + '<working-folder>/\n'
   + '├── SOUL.md            (your identity; seeded, never overwritten)\n'
   + '├── MANUAL.md          (this manual; regenerated each build; edits are ignored)\n'

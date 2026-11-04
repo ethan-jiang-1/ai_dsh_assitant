@@ -12,7 +12,7 @@ import { isEntryId } from '../home/room.ts'
 import { isSkillName } from '../skills/skill-file.ts'
 
 /** Every action the panel may send to `POST /api/assistant/rooms`. */
-export const ROOM_ACTIONS = [
+const ROOM_ACTIONS = [
   'knowledge.approve',
   'knowledge.deprecate',
   'memory.correct',
@@ -46,7 +46,7 @@ export type RoomActionParse =
   | { readonly ok: false, readonly error: string }
 
 /** @param value - unknown wire value. @returns whether it is one of the six verbs. */
-export function isRoomAction(value: unknown): value is RoomAction {
+function isRoomAction(value: unknown): value is RoomAction {
   return typeof value === 'string' && (ROOM_ACTIONS as readonly string[]).includes(value)
 }
 

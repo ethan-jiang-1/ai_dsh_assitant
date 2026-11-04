@@ -37,7 +37,7 @@ const DESK_CAPTURE_MARKER = '[桌面] '
  * first answer must be the page (found live 2026-10-23: the home input used the desk lane and the
  * model noted the line and asked a clarifying question instead of producing the page).
  */
-export const HOME_PAGE_MARKER = '[首页] '
+const HOME_PAGE_MARKER = '[首页] '
 
 /**
  * Build one panel prompt request. The principal's panel actions (this module) and the desk arms'

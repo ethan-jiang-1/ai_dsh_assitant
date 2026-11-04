@@ -21,7 +21,7 @@ const MAX_BYTES = 1024
 type Stored = { readonly mode: UiMode } | 'missing' | 'invalid'
 
 /** The stored envelope version; an absent version is the pre-version `{ mode }` shape. */
-export const UI_MODE_FILE_VERSION = 1
+const UI_MODE_FILE_VERSION = 1
 
 /**
  * Read and validate one stored mode, capped before reading.

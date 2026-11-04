@@ -196,7 +196,7 @@ export function carryRowStateTo(previous: string, next: string): void {
 const DESK_SLICE_KEYS = ['data', 'source', 'readError', 'pending', 'lastReceipt', 'stalled', 'sessionUpdatedAt'] as const
 
 /** The view one surface reads: the shared fields plus one session's slice, slice keys explicit. */
-export function mergeDeskSlice(sessionId?: string): DeskStore {
+function mergeDeskSlice(sessionId?: string): DeskStore {
   const slice = deskSlice(sessionId)
   const merged: Record<string, unknown> = { ...deskStore }
   for (const key of DESK_SLICE_KEYS) merged[key] = slice[key]

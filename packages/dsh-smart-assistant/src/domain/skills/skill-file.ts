@@ -28,10 +28,10 @@ export const SKILL_FILE_NAME = 'SKILL.md'
 export const LEARNED_ORIGIN = 'learned'
 
 /** Longest accepted description; the provider puts it in every catalog. */
-export const MAX_DESCRIPTION_LENGTH = 500
+const MAX_DESCRIPTION_LENGTH = 500
 
 /** Longest accepted body. */
-export const MAX_BODY_BYTES = 32_768
+const MAX_BODY_BYTES = 32_768
 
 /**
  * Whether a string is a valid skill name.
