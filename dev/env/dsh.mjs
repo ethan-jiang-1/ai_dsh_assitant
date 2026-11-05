@@ -12,8 +12,11 @@
  *      （覆盖继承值时在 stderr 打一行说明，让发生的事可见）。
  *   2. 唯一出口是 `ASSISTANT_DSH_HOME`：显式指定另一个开发用 home（冒烟/实验），指向
  *      `~/.dsh` 时不拦截但会打印显著警告 —— 本 repo 没有任何场景需要日用 home。
- *   3. 从钉住的源码启动 CLI（vendor/dsh/apps/cli/src/bin.ts），经运行期tsconfig 解析入口
- *      `tsconfig.tsx.json` 加载 DSH 的 src（契约：`docs/dev.md` §二「两个 tsconfig 解析入口」）。
+ *   3. 启动 CLI：默认跑**已构建的** `vendor/dsh/apps/cli/lib/bin.js`（实测 boot 比源码启动快
+ *      ≈1.9s），但只在构建物与 pin 簿记一致时才用；任何一条不成立（没构建、HEAD 与
+ *      `vendor/UPSTREAM.md` 的 SHA 不符、lib 比簿记旧、显式 `ASSISTANT_DSH_FROM_SOURCE=1`）
+ *      就回源码启动——经运行期 tsconfig 解析入口 `tsconfig.tsx.json` 加载 DSH 的 src
+ *      （契约：`docs/dev.md` §二「两个 tsconfig 解析入口」；判据：`dev/env/launch-mode.mjs`）。
  *   4. 出网代理**条件注入**（有没有 VPN 都能跑）：本地代理端口活着才把 `HTTP(S)_PROXY`
  *      注入子进程环境，死了就什么都不注入（直连 + 真实 DNS，web_fetch 的 SSRF 预解析自然
  *      通过）。为什么不能写死进 home `.env`：代理进程不在时那两行会把一切出网——含模型
@@ -37,12 +40,15 @@ import { spawn, execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { join, resolve } from 'node:path'
 import { homedir } from 'node:os'
-import { existsSync, mkdirSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, statSync } from 'node:fs'
 import { connect } from 'node:net'
+import { chooseLaunchMode } from './launch-mode.mjs'
 
 const repoRoot = fileURLToPath(new URL('../..', import.meta.url))
 const devHome = join(repoRoot, 'dev', 'harness-home')
 const bin = join(repoRoot, 'vendor', 'dsh', 'apps', 'cli', 'src', 'bin.ts')
+const builtBin = join(repoRoot, 'vendor', 'dsh', 'apps', 'cli', 'lib', 'bin.js')
+const upstreamRecord = join(repoRoot, 'vendor', 'UPSTREAM.md')
 
 if (!existsSync(bin)) {
   console.error(`vendor/dsh is not checked out (${bin}) — run \`git submodule update --init\``)
@@ -155,6 +161,37 @@ const sessionCwd = process.env.ASSISTANT_SESSION_CWD !== undefined && process.en
 // node_modules。从启动器自身位置解析成绝对 file URL，cwd 无关。
 const tsxEntry = import.meta.resolve('tsx/esm')
 
+// ── 从已构建的 lib/ 还是从钉住的源码启动 ──────────────────────────────────────
+// 判据与实测理由 = dev/env/launch-mode.mjs（构建物只在与 pin 簿记一致时才用；否则回源码）。
+const mtimeOf = path => { try { return statSync(path).mtimeMs } catch { return undefined } }
+const recordedSha = (() => {
+  try {
+    return /\|\s*精确 SHA\s*\|\s*`?([0-9a-f]{40})`?/u.exec(readFileSync(upstreamRecord, 'utf8'))?.[1]
+  } catch {
+    return undefined
+  }
+})()
+const headSha = (() => {
+  try {
+    return execFileSync('git', ['-C', join(repoRoot, 'vendor', 'dsh'), 'rev-parse', 'HEAD'], { encoding: 'utf8', timeout: 2000 }).trim()
+  } catch {
+    return undefined
+  }
+})()
+const launch = chooseLaunchMode({
+  fromSource: process.env.ASSISTANT_DSH_FROM_SOURCE === '1',
+  built: existsSync(builtBin),
+  builtMtime: mtimeOf(builtBin),
+  recordMtime: mtimeOf(upstreamRecord),
+  recordedSha,
+  headSha,
+})
+if (launch.mode === 'built') {
+  console.error('[dsh] launching from built vendor lib/ (source launch: ASSISTANT_DSH_FROM_SOURCE=1)')
+} else {
+  console.error(`[dsh] launching from pinned source — ${launch.reason}`)
+}
+
 // ── dev-only overlays（docs/dev.md §十）────────────────────────────────────────
 // setup.sh 把 dev-only 行（dev-task 的 roster insert、OpenViking 旋钮）写在
 // `$DSH_HOME/dev-overlay-<profile>.yml`，而不是 profile 的用户层；这里按 `--profile` 注入，
@@ -179,9 +216,14 @@ const overlayArgs = overlayPath !== undefined && existsSync(overlayPath) ? ['--p
 // 那时服务不跟着启动器死，寿命归打印出来的那个 `kill`。
 const detached = process.env.ASSISTANT_DSH_DETACH === '1'
 const posix = process.platform !== 'win32'
-const child = spawn(process.execPath, ['--import', tsxEntry, bin, ...overlayArgs, ...forwardedArgs], {
+const nodeArgs = launch.mode === 'built' ? [builtBin] : ['--import', tsxEntry, bin]
+const child = spawn(process.execPath, [...nodeArgs, ...overlayArgs, ...forwardedArgs], {
   cwd: sessionCwd,
-  env: { ...process.env, TSX_TSCONFIG_PATH: join(repoRoot, 'tsconfig.tsx.json') },
+  env: {
+    ...process.env,
+    // tsx 只服务源码启动；跑构建物时它会让 Node 白装一个 loader。
+    ...(launch.mode === 'built' ? {} : { TSX_TSCONFIG_PATH: join(repoRoot, 'tsconfig.tsx.json') }),
+  },
   stdio: 'inherit',
   // posix 下给 CLI 自己的进程组（`set -m` 的等价物），按组收才不会剩孤儿；detach 时顺带脱离终端会话。
   detached: posix,

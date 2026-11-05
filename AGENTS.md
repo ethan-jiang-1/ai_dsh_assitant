@@ -69,6 +69,8 @@
 pnpm start   # 隔离 dev home 起 Web，preflight 绿才交 URL；健康实例直接复用（--fresh 强制新起）；收掉见横幅
 ```
 
+启动的路径、每段耗时、什么让复用失效、什么不该为速度牺牲 = [`.agents/skills/dev-startup/SKILL.md`](.agents/skills/dev-startup/SKILL.md)。
+
 手工五步（⓪-④）+ headless 冒烟 ⑤：
 
 ```sh

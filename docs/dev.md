@@ -63,10 +63,21 @@ pnpm dsh --profile dev --port 0 --no-open  # 起服务与验证命令（prefligh
 | 门面 | 管什么 | 谁维护 |
 |---|---|---|
 | `tsconfig.base.json` | **编译期**：只列我们直接 import 的 `@deepseek-ai/*` 包（paths → vendor `src`，条数随 import 面演进）+ 公共编译选项；`packages/dsh-smart-assistant/tsconfig.json` extends 它，并为每个包配 project reference —— `tsc -b` 按项目引用构建它们，API 漂移在编译期暴露，又不把 DSH 源码并进本程序（撞 `rootDir`） | 手维护：src 里新增 `@deepseek-ai/*` import 时加一行 paths（`pnpm verify` 机械检查） |
-| `tsconfig.tsx.json` | **运行期**：全量别名（条数以生成物为准），`dev/env/dsh.mjs` 经 `TSX_TSCONFIG_PATH` 让 tsx 加载 DSH 的 `src` 启动 CLI | `pnpm gen-paths` 从 vendor/dsh 生成；`pnpm verify` 查不过期（换 pin 后必跑） |
+| `tsconfig.tsx.json` | **运行期**：全量别名（条数以生成物为准），`dev/env/dsh.mjs` 在**源码启动**时经 `TSX_TSCONFIG_PATH` 让 tsx 加载 DSH 的 `src` | `pnpm gen-paths` 从 vendor/dsh 生成；`pnpm verify` 查不过期（换 pin 后必跑） |
 
 `pnpm typecheck`（根命令委派包级脚本：`tsc -b` 按项目引用聚合到包工程、走编译期入口，再
 `tsc -p tsconfig.test.json` 覆盖 tests——测试工程经 workspace 构建声明解析 vendor，需先有构建产物）走编译期入口；`pnpm dsh` 走运行期入口。
+
+**运行期入口有两条启动路径**（判定 = [`dev/env/launch-mode.mjs`](../dev/env/launch-mode.mjs)；`pnpm dsh` 每次打印走了哪条）：
+
+| 路径 | 什么时候走 | boot 代价（2026-11-05 实测，同一台机器） |
+|---|---|---|
+| **已构建的** `vendor/dsh/apps/cli/lib/bin.js`（默认） | `lib/` 存在、`vendor/dsh` 的 HEAD 与 `vendor/UPSTREAM.md` 记的精确 SHA 一致、且 `lib/bin.js` 不早于该簿记 | ≈2.5s 墙钟 / ≈3.4s CPU |
+| **钉住的源码**（`src/bin.ts` + `tsconfig.tsx.json`） | 上面任一条不成立：没构建、HEAD 与簿记不符、pin 刚挪还没重建、或显式 `ASSISTANT_DSH_FROM_SOURCE=1` | ≈3–4s 墙钟 / ≈4.4s CPU |
+
+回源码不是降级——源码路径永远正确，只是慢一点；三条前提合起来就是"`lib/` 属于这个 pin"的证明。
+走构建物时不注入 `TSX_TSCONFIG_PATH`（tsx 只服务源码路径）。差别来自模块加载：`--cpu-prof` 显示源码路径
+3.1s 的 boot 里 2.16s 花在读文件/编译几千个 `.ts`，本插件自己只占 4ms。
 
 **生成物登记表**（生成物 / 生成器 / freshness 检查——新增生成物必须同 diff 补一行，否则第二个生成物必然漏检）：
 

@@ -241,3 +241,42 @@ describe('setup.sh: the plugin install is skipped through the same guard', () =>
     expect(setup).toMatch(/\[ "\$\(cat "\$overlay"\)" = "\$content" \]/)
   })
 })
+
+describe('launch mode: built lib only while it provably belongs to the pinned source', () => {
+  /**
+   * Booting the built CLI measured ~1s of CPU and ~0.3-0.8s of wall time less than booting the
+   * pinned source through tsx (2026-11-05). The saving is only safe while lib/ belongs to the
+   * checked-out pin, so every uncertain state must fall back to the source launch — that is the
+   * whole decision table.
+   */
+  const devEnv = join(import.meta.dirname, '..', '..', '..', '..', 'dev', 'env')
+  const mode = () => import(pathToFileURL(join(devEnv, 'launch-mode.mjs')).href)
+  const sha = 'a'.repeat(40)
+
+  it('boots the built CLI when lib/ is newer than the pin record and HEAD matches it', async () => {
+    const { chooseLaunchMode } = await mode()
+    expect(chooseLaunchMode({
+      fromSource: false, built: true, builtMtime: 2_000, recordMtime: 1_000, recordedSha: sha, headSha: sha,
+    })).toEqual({ mode: 'built', reason: '' })
+  })
+
+  it('falls back to the source launch for every uncertain state', async () => {
+    const { chooseLaunchMode } = await mode()
+    const base = { fromSource: false, built: true, builtMtime: 2_000, recordMtime: 1_000, recordedSha: sha, headSha: sha }
+    expect(chooseLaunchMode({ ...base, fromSource: true }).reason).toBe('ASSISTANT_DSH_FROM_SOURCE=1')
+    expect(chooseLaunchMode({ ...base, built: false }).mode).toBe('source')
+    expect(chooseLaunchMode({ ...base, recordMtime: undefined }).reason).toMatch(/UPSTREAM\.md is missing/)
+    expect(chooseLaunchMode({ ...base, headSha: undefined }).reason).toMatch(/cannot read the vendor\/dsh HEAD/)
+    expect(chooseLaunchMode({ ...base, headSha: 'b'.repeat(40) }).reason).toMatch(/does not match/)
+    expect(chooseLaunchMode({ ...base, builtMtime: 500 }).reason).toMatch(/older than the pin record/)
+  })
+})
+
+describe('the launcher wires the launch-mode judgment', () => {
+  const launcher = readFileSync(join(import.meta.dirname, '..', '..', '..', '..', 'dev', 'env', 'dsh.mjs'), 'utf8')
+  it('decides through the shared module and keeps a source escape hatch', () => {
+    expect(launcher).toContain("from './launch-mode.mjs'")
+    expect(launcher).toContain('ASSISTANT_DSH_FROM_SOURCE')
+    expect(launcher).toContain('apps/cli/lib/bin.js')
+  })
+})
