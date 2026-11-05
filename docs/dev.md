@@ -324,6 +324,8 @@ bundle 层（两个 profile 各自的链，刻意的——§四，web-app 与 he
   → --patch                              # dev-only 行在这里：setup.sh 生成
                                           #   $DSH_HOME/dev-overlay-<profile>.yml（dev-task 的 roster insert、
                                           #   OV v3 旋钮），启动器按 --profile 注入
+                                          #   注入位置在调用者自己的 --patch 之前：同层按 argv 顺序应用，
+                                          #   所以调用者的 patch 仍能盖过它（docs/dev.md §十）
 ```
 
 诊断组合用 `pnpm dsh --profile dev --dump-config`（boot-free，输出整棵组合树）。

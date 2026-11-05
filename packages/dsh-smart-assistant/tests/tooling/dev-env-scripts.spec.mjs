@@ -280,3 +280,17 @@ describe('the launcher wires the launch-mode judgment', () => {
     expect(launcher).toContain('apps/cli/lib/bin.js')
   })
 })
+
+describe('the launcher keeps the DSH layer order', () => {
+  const launcher = readFileSync(join(import.meta.dirname, '..', '..', '..', '..', 'dev', 'env', 'dsh.mjs'), 'utf8')
+  it('injects the dev overlay before the caller arguments, so caller patches still win', () => {
+    // DSH applies --patch overlays after the profile layer, in argv order. Putting our overlay first
+    // keeps "the caller's own patch is applied on top" true (docs/dev.md §七/§十); swapping these
+    // two would silently make the dev overlay override a caller's intent.
+    const argv = /spawn\(process\.execPath, \[([^\]]+)\]/u.exec(launcher)?.[1] ?? ''
+    const overlay = argv.indexOf('...overlayArgs')
+    const forwarded = argv.indexOf('...forwardedArgs')
+    expect(overlay).toBeGreaterThanOrEqual(0)
+    expect(forwarded).toBeGreaterThan(overlay)
+  })
+})
