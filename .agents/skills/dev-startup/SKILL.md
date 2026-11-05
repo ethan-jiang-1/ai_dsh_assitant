@@ -32,6 +32,33 @@ The script prints `⏱` per stage and a total. **Read those numbers before optim
 the earlier guesswork ("it felt slow") was resolved by them, and the answer was never the plugin:
 a 3.1s source boot spends 2.16s in Node module loading and 4ms in `dsh-smart-assistant`.
 
+## Native order is not ours to change
+
+DSH owns the boot: parse args → read the profile → apply the layers (ordered bundles → profile
+`cordis.patch.yml` → home patch → `--patch` in argv order) → compose through app-boot → load
+plugins → start the app. This repo wraps that order. It never edits, reorders or replaces it.
+
+Do:
+
+- do the preparation **before** the CLI runs: artifacts (`prepare.sh`), the profile and the plugin
+  link (`dsh plugin add`, `--from-default-profile`), the overlay file (`setup.sh`);
+- keep dev-only rows in `$DSH_HOME/dev-overlay-<profile>.yml` and inject them as the **first**
+  `--patch`, so a caller's own patch still wins (there is a spec for this order);
+- verify **after** the boot (`pnpm preflight`), never before it as a substitute.
+
+Don't:
+
+- write the profile's `cordis.patch.yml` or hand-edit `profiles/*/package.json`;
+- mount rows through a bundle to dodge the patch order, or start a Cordis tree yourself instead of
+  going through the `dsh` CLI;
+- reorder `--patch` overlays, or put our overlay last so it overrides a caller's intent;
+- add a startup step DSH does not have (own env loader, own home resolution, extra launcher flags);
+- skip a DSH step for speed. The only legitimate speed lever is **not booting at all** (reuse) —
+  once a boot happens, it is DSH's full sequence.
+
+If a change seems to need a new startup step, that is a proposed change with its own rationale —
+not something to slip into `start.sh`.
+
 ## What makes a start fast: reuse
 
 The handed-over instance is recorded in `.tmp/start/instance.json`. The next `pnpm start` reuses it

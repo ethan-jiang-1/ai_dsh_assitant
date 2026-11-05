@@ -69,6 +69,7 @@
 pnpm start   # 隔离 dev home 起 Web，preflight 绿才交 URL；健康实例直接复用（--fresh 强制新起）；收掉见横幅
 ```
 
+**启动严格走 DSH 原生次序**：CLI 解析 → 读 profile → 叠层（有序 bundles → profile patch → home patch → `--patch`）→ app-boot 组合 → 插件装载 → app 起服务。本仓只在它**之前**做准备（产物、profile、overlay 文件）、在它**之后**做验证（preflight），**不重排层级、不自创启动面、不绕过 CLI**；dev-only 行一律走 `--patch` 且排在调用者参数之前，profile 用户层零写入。判据 = [`docs/dev.md`](docs/dev.md) §二/§七。
 启动的路径、每段耗时、什么让复用失效、什么不该为速度牺牲 = [`.agents/skills/dev-startup/SKILL.md`](.agents/skills/dev-startup/SKILL.md)。
 
 手工五步（⓪-④）+ headless 冒烟 ⑤：
