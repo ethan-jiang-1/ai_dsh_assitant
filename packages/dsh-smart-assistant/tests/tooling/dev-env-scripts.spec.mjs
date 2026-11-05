@@ -6,7 +6,7 @@
  * (same contract as the other tooling specs).
  */
 import { execFileSync } from 'node:child_process'
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, utimesSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { describe, expect, it, afterEach } from 'vitest'
@@ -210,6 +210,21 @@ describe('instance registry: reuse a live instance only while its artifacts are 
     expect(stale.reasons.join('\n')).toMatch(/artifacts changed after the instance started/)
     expect(instanceReusable({ repoRoot, profile: 'dev', entry: entryFor({ url: 'http://127.0.0.1:51212/' }) }).reusable)
       .toBe(false)
+  })
+
+  it('keeps the instance when only skill text changed — skills are a live root, not loaded code', async () => {
+    // A SKILL.md edit is picked up by the running provider (watched / rescanned per request), so a
+    // restart here would be pure loss — it is the most common edit in this repo.
+    const { instanceReusable } = await registry()
+    const repoRoot = repoWithLib()
+    const entry = entryFor({ startedAt: Date.now() })
+    // The built face predates the instance; only the skill text arrives afterwards.
+    const past = new Date(Date.now() - 60_000)
+    utimesSync(join(repoRoot, 'packages', 'dsh-smart-assistant', 'lib', 'index.js'), past, past)
+    const skillDir = join(repoRoot, 'packages', 'dsh-smart-assistant', 'presets', 'assistant', 'skills', 'demo')
+    mkdirSync(skillDir, { recursive: true })
+    writeFileSync(join(skillDir, 'SKILL.md'), '# demo\n')
+    expect(instanceReusable({ repoRoot, profile: 'dev', entry })).toEqual({ reusable: true, reasons: [] })
   })
 })
 

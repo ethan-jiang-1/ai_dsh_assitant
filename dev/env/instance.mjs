@@ -7,8 +7,9 @@
  * "启动一下"按的往往是同一个实例——重造一个只是多等十几秒外加多一个端口。
  *
  * 判据保守：账本里记着没人杀、且**插件产物没有比它更新**才复用。陈旧实例最坏的样子是
- * "改了 lib/ 却没重建进浏览器"，所以任何 lib/、presets/、dev overlay、profile patch 的 mtime
- * 晚于实例启动时刻，就判定该实例已经过期，交回调用方去新起一个（`dev/env/start.sh` 会顺手收掉旧的）。
+ * "改了 lib/ 却没重建进浏览器"，所以任何 lib/、dev overlay、profile patch 的 mtime 晚于实例
+ * 启动时刻，就判定该实例已经过期，交回调用方去新起一个（`dev/env/start.sh` 会顺手收掉旧的）。
+ * 技能正文（`presets/assistant/skills/**`）刻意不在判据里：它是活根，改技能不需要新进程。
  *
  * 账本住仓库内 `.tmp/start/instance.json`（硬规则 8；`.tmp/` 不入库）。
  * CLI（供 start.sh 调用，不给人敲）：
@@ -21,11 +22,15 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, wri
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-/** 产物面：这些路径下任何文件比实例新，就说明实例加载的是旧代码。 */
-const ARTIFACT_ROOTS = [
-  'packages/dsh-smart-assistant/lib',
-  'packages/dsh-smart-assistant/presets',
-]
+/**
+ * 产物面：这些路径下任何文件比实例新，就说明实例加载的是旧代码。
+ *
+ * 只有 `lib/`：`presets/` 下全是技能正文（`presets/assistant/skills/**`），而技能目录是
+ * `dsh-skill-filesystem` 的活根（provider 带监听、目录按请求重扫）——改技能不需要新进程，
+ * 把它算进"必须重启"会让最常见的迭代（调一个 SKILL.md）白付一整次 boot。预设组合行本身
+ * 走 `patchReload: live`（新会话取下一世代），同样不靠重启。
+ */
+const ARTIFACT_ROOTS = ['packages/dsh-smart-assistant/lib']
 
 /**
  * pin 面：升级 vendor/dsh 后必须重启实例——它加载的 host/client 代码全来自那里。
@@ -104,7 +109,7 @@ export function instanceReusable({ repoRoot, profile, entry }) {
     ]
     const newest = artifacts.reduce((latest, path) => Math.max(latest, newestMtime(path)), 0)
     if (newest > entry.startedAt) {
-      reasons.push('artifacts changed after the instance started (lib/presets/overlay newer than startedAt)')
+      reasons.push('artifacts changed after the instance started (lib/overlay/patch newer than startedAt)')
     }
   }
   return { reusable: reasons.length === 0, reasons }
