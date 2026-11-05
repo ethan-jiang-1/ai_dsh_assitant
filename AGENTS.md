@@ -66,7 +66,7 @@
 启动（dev home；完整五步/隔离 home = [`docs/dev.md`](docs/dev.md) §一）。默认：
 
 ```sh
-pnpm start   # 隔离 dev home 起 Web，preflight 绿才交 URL；收掉见横幅
+pnpm start   # 隔离 dev home 起 Web，preflight 绿才交 URL；健康实例直接复用（--fresh 强制新起）；收掉见横幅
 ```
 
 手工五步（⓪-④）+ headless 冒烟 ⑤：

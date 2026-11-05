@@ -9,7 +9,7 @@
 
 ## 默认启动动作
 
-"启动一下"的默认语义 = 根 [`AGENTS.md`](../AGENTS.md) 的启动段（常设指令 owner）：一条 `pnpm start` 在本仓隔离 home 里起动 `dev` Web 实例——它自己按序补齐 submodule / 根依赖（缺才补）→ prepare → setup → 产物自证（`lib/` 与 `src/` 不一致就先 build）→ 起服务 → `pnpm preflight`，绿了才把 URL 打出来（实现 = [`dev/env/start.sh`](../dev/env/start.sh)）。本节拥有的是下面这张入口判别表——三个邻近但不同的入口，除非用户明确点名不走：
+"启动一下"的默认语义 = 根 [`AGENTS.md`](../AGENTS.md) 的启动段（常设指令 owner）：一条 `pnpm start` 在本仓隔离 home 里起动 `dev` Web 实例——它自己按序补齐 submodule / 根依赖（缺才补）→ prepare → setup → 产物自证（`lib/` 与 `src/` 不一致就先 build）→ 起服务 → `pnpm preflight`，绿了才把 URL 打出来（实现 = [`dev/env/start.sh`](../dev/env/start.sh)）。每一步打印耗时；账本（`.tmp/start/instance.json`）里的实例还活着、且 `lib/`、`presets/`、overlay/patch 与 pin 簿记都没有比它启动时刻更新时，只跑 preflight 就交它的 URL（`--fresh` 忽略账本强制新起，带任何 dsh 旗标时不复用），判据 = [`dev/env/instance.mjs`](../dev/env/instance.mjs)。本节拥有的是下面这张入口判别表——三个邻近但不同的入口，除非用户明确点名不走：
 
 | 入口 | 实际起动什么 | 什么时候用 |
 |---|---|---|

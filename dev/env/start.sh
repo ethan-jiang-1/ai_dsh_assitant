@@ -20,11 +20,50 @@
 # 参数：额外的 dsh 旗标原样透传，且**放在 `--port` 之前**——启动器解析到第一个不认识的 token
 # 为止，`--port` 之后的 `--patch` 不会到达 CLI（docs/dev.md §五踩坑清单）。
 #   例：pnpm start -- --patch dev/probes/session/preset-runner.patch.yml
+#   例：pnpm start --fresh        # 忽略在跑的实例，强制新起一个
+#
+# 两件后来加的事（2026-11-05，起因是"这次启动怎么这么久"）：
+#   · **计时**：每一步打印耗时。那次坏样本 36.8s vs 热启动 12.4s，而脚本此前不留任何分段证据，
+#     只能事后猜；现在"为什么慢"当场可读（哪一步、几秒）。
+#   · **复用**：实例账本（`.tmp/start/instance.json`，判据 = `dev/env/instance.mjs`）里记着
+#     还活着、且**产物没有比它更新**的实例时，直接跑 preflight 交它的 URL（≈1.1s），
+#     不再重造一个（≈12.4s）。带任何 dsh 旗标（组合变了）或 `--fresh` 时照旧新起。
 set -euo pipefail
 set -m   # job control：每个后台作业自己一个进程组，失败时能整组收（见 cleanup）
 
 repo_root="$(git rev-parse --show-toplevel)"
 cd "$repo_root"
+
+# 计时：macOS 的 BSD date 不认 %N，perl 的 HiRes 是两边都在的最小面。
+now_ms() { perl -MTime::HiRes=time -e 'printf "%d", time * 1000' 2>/dev/null || printf '%d' "$(($(date +%s) * 1000))"; }
+fmt_ms() { perl -e 'printf "%.1fs", $ARGV[0] / 1000' "$1"; }
+script_start="$(now_ms)"
+step() { # <label> <command...> —— 跑一步并打印耗时；失败照常把退出码交给 set -e
+  local label="$1"; shift
+  local started ended
+  started="$(now_ms)"
+  printf '▸ %s\n' "$label"
+  "$@"
+  ended="$(now_ms)"
+  printf '   ⏱ %s\n' "$(fmt_ms "$((ended - started))")"
+}
+
+fresh=0
+dsh_args=()
+for arg in "$@"; do
+  if [ "$arg" = "--fresh" ]; then fresh=1; else dsh_args+=("$arg"); fi
+done
+
+# 交接（复用与新起共用一个出口）：打 URL/pid/总耗时，摘掉 EXIT trap，退出。
+# `trap - EXIT INT TERM` 必须在这里做——脚本一退，EXIT trap 会把刚交出去的服务收掉。
+handover() { # <url> <pid> <mode-label>
+  local url pid mode
+  url="$1"; pid="$2"; mode="$3"
+  printf '\n✅ dev 实例就绪（preflight 绿；%s）\n   %s\n   日志：%s\n   收掉它：kill -TERM -- -%s   （负 pid = 连进程组一起收）\n\n本脚本到此退出，服务继续在后台运行。总耗时 %s。\n' \
+    "$mode" "$url" "$log" "${pid:-$server_pid}" "$(fmt_ms "$(( $(now_ms) - script_start ))")"
+  trap - EXIT INT TERM
+  exit 0
+}
 
 # 首跑前置（⓪①）：fresh clone 里 submodule 与根依赖都可能不在。一条 `pnpm start` 要能自己
 # 补齐，否则第一次会死在 prepare 的 "vendor/dsh is empty" 或 pnpm 的 no package.json。
@@ -42,12 +81,26 @@ log_dir="$repo_root/.tmp/start"
 mkdir -p "$log_dir"
 log="$log_dir/server.log"
 
-echo "▸ prepare（vendor 产物，幂等）"
-bash dev/env/prepare.sh
-echo "▸ setup（dev / dev-task profile，幂等）"
-bash dev/env/setup.sh
-echo "▸ 产物自证（lib/ 与 src/ 不一致就 build）"
-node dev/env/ensure-build.mjs
+step "prepare（vendor 产物，幂等）" bash dev/env/prepare.sh
+step "setup（dev / dev-task profile，幂等）" bash dev/env/setup.sh
+step "产物自证（lib/ 与 src/ 不一致就 build）" node dev/env/ensure-build.mjs
+
+# ── 复用：已经在跑的实例还健康就直接交接 ────────────────────────────────────────
+# 判据在 dev/env/instance.mjs：进程还在、是同一个 profile、且 lib//presets/overlay/patch
+# 都没有比它启动时刻更新。产物变过就说明它加载的是旧代码——交回下面的新起路径（并收掉旧的）。
+profile="${ASSISTANT_DEV_PROFILE:-dev}"
+instance() { node "$repo_root/dev/env/instance.mjs" "$@"; }
+if [ "$fresh" = 0 ] && [ "${#dsh_args[@]}" = 0 ]; then
+  existing="$(instance --check "$repo_root" "$profile" 2>/dev/null || true)"
+  if [ -n "$existing" ]; then
+    echo "▸ 已有健康的 $profile 实例（复用；--fresh 可强制新起）"
+    if pnpm preflight "$existing"; then
+      handover "$existing" "$(instance --print-pid "$repo_root" 2>/dev/null || true)" "复用已有实例"
+    fi
+    echo "▸ 该实例 preflight 不绿——收掉它，重起一个"
+    instance --stop "$repo_root" || true
+  fi
+fi
 
 # 服务放自己的进程组里（`set -m`）再杀：`pnpm dsh` 是包装层（pnpm 还会再 prepend 一层
 # `sh -c` INT trap），只杀它会留下真 CLI 孤儿——孤儿继续持有端口与会话语义上的写锁，下一轮
@@ -69,9 +122,10 @@ cleanup() {
 # 交接前明确 `trap - EXIT` 把它摘掉。
 trap cleanup EXIT INT TERM
 
-echo "▸ 起 dev Web（--port 0 = OS 分配端口 + token 鉴权；detach = 交接后独立存活）"
+printf '▸ 起 dev Web（--port 0 = OS 分配端口 + token 鉴权；detach = 交接后独立存活）\n'
 : > "$log"
-ASSISTANT_DSH_DETACH=1 pnpm dsh --profile dev "$@" --port 0 --no-open > "$log" 2>&1 &
+boot_start="$(now_ms)"
+ASSISTANT_DSH_DETACH=1 pnpm dsh --profile dev ${dsh_args[@]+"${dsh_args[@]}"} --port 0 --no-open > "$log" 2>&1 &
 server_pid=$!
 
 # 抓 URL：CLI 打出 `dsh web: http://127.0.0.1:<port>/?token=<...>`（Rust 侧与 CLI 都可能在
@@ -95,23 +149,14 @@ if [ -z "$url" ]; then
   exit 1
 fi
 
+printf '   ⏱ boot→URL %s\n' "$(fmt_ms "$(( $(now_ms) - boot_start ))")"
 echo "▸ preflight（开屏前门禁：装得上才算数，不证明渲染）"
 if ! pnpm preflight "$url"; then
+  instance --clear "$repo_root" || true
   echo "✗ preflight 红——不交这个实例，服务已收掉。" >&2
   exit 1
 fi
 
-cat <<EOF
-
-✅ dev 实例就绪（preflight 绿）
-   $url
-   日志：$log
-   收掉它：kill -TERM -- -${service_pid:-$server_pid}   （负 pid = 连进程组一起收）
-
-本脚本到此退出，服务继续在后台运行。
-EOF
-
-# 交接即完成：先摘掉 EXIT trap（否则这个脚本一退就把刚交出去的服务收掉），再退出。
-# 不要 `wait "$server_pid"`：那让调用者被吊住，而调用者一退（管道、后台作业、一次性 shell）
-# 就把服务带走（包装层 ELIFECYCLE）。服务寿命归调用者的 `kill`。
-trap - EXIT INT TERM
+# 记进账本：下一次 `pnpm start` 凭它直接复用（判据 = dev/env/instance.mjs）。
+instance --record "$repo_root" "$profile" "$url" "${service_pid:-$server_pid}"
+handover "$url" "$service_pid" "新起"

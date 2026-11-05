@@ -6,8 +6,9 @@
  * (same contract as the other tooling specs).
  */
 import { execFileSync } from 'node:child_process'
-import { readFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
+import { pathToFileURL } from 'node:url'
 import { describe, expect, it, afterEach } from 'vitest'
 import { temp, disposeTempDirs } from './verify-gates-harness.mjs'
 
@@ -94,5 +95,134 @@ describe('start.sh covers the fresh-clone prerequisites', () => {
     expect(start).toContain('pnpm install')
     expect(start).toMatch(/if \[ ! -f vendor\/dsh\/package\.json \]; then/)
     expect(start).toMatch(/if \[ ! -f node_modules\/\.modules\.yaml \]; then/)
+  })
+  it('quantifies each step so "why was this start slow" is answerable from the output', () => {
+    // 2026-11-05: one start took 36.8s against a 12.4s warm one; the script printed no per-step
+    // numbers, so the attribution had to be reconstructed from session logs after the fact.
+    expect(start).toContain('now_ms()')
+    expect(start).toContain('⏱')
+    expect(start).toMatch(/step "prepare/)
+    expect(start).toMatch(/step "setup/)
+  })
+  it('hands over a healthy running instance instead of booting another one', () => {
+    // Reuse is the difference between ~1.1s (preflight only) and ~12.4s (fresh boot) per start.
+    expect(start).toContain('dev/env/instance.mjs')
+    expect(start).toContain('--check')
+    expect(start).toContain('--fresh')
+  })
+})
+
+describe('plugin link guard: `dsh plugin add` is skipped only when nothing would change', () => {
+  /**
+   * The two `dsh plugin add` calls are ≈4s of a ≈12.4s warm start, and their result can only
+   * differ when the profile row or the plugin manifest moved. A wrong "skip" would surface as
+   * stale composition hours later, so the guard is pinned from both sides here.
+   */
+  const devEnv = join(import.meta.dirname, '..', '..', '..', '..', 'dev', 'env')
+  const guard = () => import(pathToFileURL(join(devEnv, 'plugin-link.mjs')).href)
+
+  const fixture = () => {
+    const packageDir = temp('plugin-package-')
+    writeFileSync(join(packageDir, 'package.json'), JSON.stringify({ name: 'dsh-smart-assistant', version: '1.0.0' }))
+    const profileDir = temp('dev-profile-')
+    mkdirSync(join(profileDir, 'node_modules', 'dsh-smart-assistant'), { recursive: true })
+    writeFileSync(join(profileDir, 'package.json'), JSON.stringify({
+      name: 'dsh-profile-dev',
+      private: true,
+      dependencies: { 'dsh-smart-assistant': `link:${packageDir}` },
+      dsh: { profile: { bundles: ['@deepseek-ai/dsh-base', 'dsh-smart-assistant'] } },
+    }))
+    return { packageDir, profileDir }
+  }
+
+  it('accepts a linked profile whose plugin manifest has not moved', async () => {
+    const { pluginLinkIsCurrent, writePluginStamp } = await guard()
+    const { packageDir, profileDir } = fixture()
+    // No stamp yet: the previous install cannot be assumed to match the current manifest.
+    expect(pluginLinkIsCurrent({ profileDir, packageDir }).current).toBe(false)
+    writePluginStamp(profileDir, packageDir)
+    expect(pluginLinkIsCurrent({ profileDir, packageDir })).toEqual({ current: true, reasons: [] })
+  })
+
+  it('re-runs the install when the manifest, the link form or the bundle row changed', async () => {
+    const { pluginLinkIsCurrent, writePluginStamp } = await guard()
+    const { packageDir, profileDir } = fixture()
+    writePluginStamp(profileDir, packageDir)
+
+    writeFileSync(join(packageDir, 'package.json'), JSON.stringify({ name: 'dsh-smart-assistant', version: '1.0.1' }))
+    expect(pluginLinkIsCurrent({ profileDir, packageDir }).reasons)
+      .toContain('plugin manifest changed since the last plugin add')
+
+    const { packageDir: otherDir, profileDir: otherProfile } = fixture()
+    writePluginStamp(otherProfile, otherDir)
+    const manifest = JSON.parse(readFileSync(join(otherProfile, 'package.json'), 'utf8'))
+    manifest.dependencies['dsh-smart-assistant'] = `file:${otherDir}`
+    writeFileSync(join(otherProfile, 'package.json'), JSON.stringify(manifest))
+    expect(pluginLinkIsCurrent({ profileDir: otherProfile, packageDir: otherDir }).reasons.join('\n'))
+      .toContain('expected link:')
+
+    manifest.dependencies['dsh-smart-assistant'] = `link:${otherDir}`
+    manifest.dsh.profile.bundles = ['@deepseek-ai/dsh-base']
+    writeFileSync(join(otherProfile, 'package.json'), JSON.stringify(manifest))
+    expect(pluginLinkIsCurrent({ profileDir: otherProfile, packageDir: otherDir }).reasons)
+      .toContain('bundles does not list dsh-smart-assistant')
+  })
+})
+
+describe('instance registry: reuse a live instance only while its artifacts are older than it', () => {
+  /**
+   * Reuse turns a ≈12.4s start into a ≈1.1s preflight — but only if the instance is really live
+   * and really newer than the code it loaded. Both halves are pinned here because a false "yes"
+   * hands out an instance running last build's `lib/`.
+   */
+  const devEnv = join(import.meta.dirname, '..', '..', '..', '..', 'dev', 'env')
+  const registry = () => import(pathToFileURL(join(devEnv, 'instance.mjs')).href)
+  const entryFor = (overrides = {}) => ({
+    profile: 'dev',
+    url: 'http://127.0.0.1:51212/?token=abc',
+    pid: process.pid,
+    startedAt: Date.now() + 60_000,
+    ...overrides,
+  })
+  const repoWithLib = () => {
+    const repoRoot = temp('instance-repo-')
+    const lib = join(repoRoot, 'packages', 'dsh-smart-assistant', 'lib')
+    mkdirSync(lib, { recursive: true })
+    writeFileSync(join(lib, 'index.js'), 'export {}\n')
+    return repoRoot
+  }
+
+  it('accepts a live pid whose artifacts predate the instance', async () => {
+    const { instanceReusable } = await registry()
+    const repoRoot = repoWithLib()
+    expect(instanceReusable({ repoRoot, profile: 'dev', entry: entryFor() })).toEqual({ reusable: true, reasons: [] })
+  })
+
+  it('refuses a dead pid, another profile, or artifacts written after the start', async () => {
+    const { instanceReusable } = await registry()
+    const repoRoot = repoWithLib()
+    expect(instanceReusable({ repoRoot, profile: 'dev', entry: entryFor({ pid: 2_147_483_646 }) }).reasons.join('\n'))
+      .toMatch(/is not running/)
+    expect(instanceReusable({ repoRoot, profile: 'dev', entry: entryFor({ profile: 'dev-task' }) }).reasons.join('\n'))
+      .toMatch(/recorded profile/)
+    const stale = instanceReusable({ repoRoot, profile: 'dev', entry: entryFor({ startedAt: Date.now() - 60_000 }) })
+    expect(stale.reusable).toBe(false)
+    expect(stale.reasons.join('\n')).toMatch(/artifacts changed after the instance started/)
+    expect(instanceReusable({ repoRoot, profile: 'dev', entry: entryFor({ url: 'http://127.0.0.1:51212/' }) }).reusable)
+      .toBe(false)
+  })
+})
+
+describe('setup.sh: the plugin install is skipped through the same guard', () => {
+  const setup = readFileSync(join(import.meta.dirname, '..', '..', '..', '..', 'dev', 'env', 'setup.sh'), 'utf8')
+  it('checks the guard before `plugin add` and stamps after it', () => {
+    expect(setup).toContain('dev/env/plugin-link.mjs')
+    expect(setup).toMatch(/plugin_link --check/)
+    expect(setup).toMatch(/plugin_link --stamp/)
+    expect(setup).toContain('ASSISTANT_FORCE_PLUGIN_ADD')
+  })
+  it('does not re-touch the overlay when its content is unchanged (instance reuse reads its mtime)', () => {
+    expect(setup).toContain('unchanged')
+    expect(setup).toMatch(/\[ "\$\(cat "\$overlay"\)" = "\$content" \]/)
   })
 })
