@@ -3,7 +3,7 @@
   //
   // Runtime resolution facade for `pnpm dsh` (node --import tsx/esm): tsx resolves
   // `@deepseek-ai/*` through the nearest tsconfig's `paths`, so this file is what lets the harness
-  // load the pinned sources instead of unbuilt `lib/index.js`. 356 aliases,
+  // load the pinned sources instead of unbuilt `lib/index.js`. 357 aliases,
   // regenerated from vendor/dsh on every pin change.
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
@@ -72,6 +72,7 @@
       "@deepseek-ai/dsh-client-ui-directory-picker-browse": ["./vendor/dsh/packages/client/ui-directory-picker-browse/src"],
       "@deepseek-ai/dsh-client-ui-directory-picker-native": ["./vendor/dsh/packages/client/ui-directory-picker-native/src"],
       "@deepseek-ai/dsh-client-ui-dockkit": ["./vendor/dsh/packages/client/ui-dockkit/src"],
+      "@deepseek-ai/dsh-client-ui-entry-customization": ["./vendor/dsh/packages/client/ui-entry-customization/src"],
       "@deepseek-ai/dsh-client-ui-goal": ["./vendor/dsh/packages/client/ui-goal/src"],
       "@deepseek-ai/dsh-client-ui-input-trigger": ["./vendor/dsh/packages/client/ui-input-trigger/src"],
       "@deepseek-ai/dsh-client-ui-jobs": ["./vendor/dsh/packages/client/ui-jobs/src"],
